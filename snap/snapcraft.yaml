@@ -1,0 +1,25 @@
+name: flatc
+base: core18
+version: git
+summary: FlatBuffers compiler
+description: |
+  FlatBuffers compiler
+
+grade: stable
+confinement: strict
+
+parts:
+  flatc:
+    plugin: cmake
+    source: .
+    configflags:
+      - -GUnix Makefiles
+      - -DCMAKE_BUILD_TYPE=Release
+    build-packages:
+      - g++
+
+apps:
+  flatc:
+    command: flatc
+    plugs:
+      - home
