@@ -668,11 +668,11 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
 
   if (token_ == '=') {
     NEXT();
+    ECHECK(ParseSingleValue(&field->name, field->value, true));
     if (!IsScalar(type.base_type) ||
         (struct_def.fixed && field->value.constant != "0"))
       return Error(
             "default values currently only supported for scalars in tables");
-    ECHECK(ParseSingleValue(&field->name, field->value, true));
   }
   if (type.enum_def &&
       !type.enum_def->is_union &&
