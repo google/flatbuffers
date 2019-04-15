@@ -197,6 +197,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Rapunzel FLATBUFFERS_FINAL_CLASS {
   int32_t hair_length_;
 
  public:
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return RapunzelTypeTable();
+  }
   Rapunzel() {
     memset(static_cast<void *>(this), 0, sizeof(Rapunzel));
   }
@@ -227,6 +230,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) BookReader FLATBUFFERS_FINAL_CLASS {
   int32_t books_read_;
 
  public:
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return BookReaderTypeTable();
+  }
   BookReader() {
     memset(static_cast<void *>(this), 0, sizeof(BookReader));
   }
