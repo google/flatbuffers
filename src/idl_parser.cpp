@@ -99,8 +99,10 @@ void DeserializeDoc( std::vector<std::string> &doc,
 }
 
 void Parser::Message(const std::string &msg) {
-  error_ = file_being_parsed_.length() ? AbsolutePath(file_being_parsed_) : "";
+  if (!error_.empty()) error_ += "\n";  // log all warnings and errors
+  error_ += file_being_parsed_.length() ? AbsolutePath(file_being_parsed_) : "";
   // clang-format off
+
   #ifdef _WIN32  // MSVC alike
     error_ +=
         "(" + NumToString(line_) + ", " + NumToString(CursorPosition()) + ")";
