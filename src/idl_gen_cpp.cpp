@@ -2684,6 +2684,15 @@ class CppGenerator : public BaseGenerator {
     // Generate GetFullyQualifiedName
     code_ += "";
     code_ += " public:";
+
+    // Make TypeTable accessible via the generated struct.
+    if (parser_.opts.mini_reflect != IDLOptions::kNone) {
+      code_ +=
+          "  static const flatbuffers::TypeTable *MiniReflectTypeTable() {";
+      code_ += "    return {{STRUCT_NAME}}TypeTable();";
+      code_ += "  }";
+    }
+
     GenFullyQualifiedNameGetter(struct_def, Name(struct_def));
 
     // Generate a default constructor.
