@@ -542,6 +542,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(2) Test FLATBUFFERS_FINAL_CLASS {
   int8_t padding0__;
 
  public:
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return TestTypeTable();
+  }
   Test() {
     memset(static_cast<void *>(this), 0, sizeof(Test));
   }
@@ -590,6 +593,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vec3 FLATBUFFERS_FINAL_CLASS {
   int16_t padding2__;
 
  public:
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return Vec3TypeTable();
+  }
   Vec3() {
     memset(static_cast<void *>(this), 0, sizeof(Vec3));
   }
@@ -667,6 +673,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Ability FLATBUFFERS_FINAL_CLASS {
   uint32_t distance_;
 
  public:
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return AbilityTypeTable();
+  }
   Ability() {
     memset(static_cast<void *>(this), 0, sizeof(Ability));
   }

@@ -174,6 +174,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vec3 FLATBUFFERS_FINAL_CLASS {
   float z_;
 
  public:
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return Vec3TypeTable();
+  }
   Vec3() {
     memset(static_cast<void *>(this), 0, sizeof(Vec3));
   }
