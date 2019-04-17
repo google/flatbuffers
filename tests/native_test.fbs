@@ -33,4 +33,18 @@ table Foo {
   newInt: int;
 }
 
+namespace TestN.NamespaceFoo;
+
+table Foo {
+  foo:TestN.Foo;
+}
+
+namespace TestN.NamespaceBar;
+
+table Foo {
+  foo2:TestN.Foo;
+}
+
+namespace TestN;
+
 root_type Foo;

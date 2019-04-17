@@ -228,6 +228,7 @@ class CppNativeGenerator : public BaseGenerator {
           it != parser_.structs_.vec.end(); ++it) {
         const auto &struct_def = **it;
         if (!struct_def.fixed && !struct_def.generated && !hasNative(struct_def)) {
+          SetNameSpace(*struct_def.defined_namespace);
           auto nativeName = NativeName(struct_def);
           code_ += "bool operator==(const " + nativeName + " &lhs, const " + nativeName + " &rhs);";
           code_ += "";

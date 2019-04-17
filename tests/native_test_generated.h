@@ -16,6 +16,18 @@ struct Mat;
 
 struct Foo;
 
+namespace NamespaceFoo {
+
+struct Foo;
+
+}  // namespace NamespaceFoo
+
+namespace NamespaceBar {
+
+struct Foo;
+
+}  // namespace NamespaceBar
+
 inline const flatbuffers::TypeTable *ComplexTypeTable();
 
 inline const flatbuffers::TypeTable *CompTypeTable();
@@ -23,6 +35,18 @@ inline const flatbuffers::TypeTable *CompTypeTable();
 inline const flatbuffers::TypeTable *MatTypeTable();
 
 inline const flatbuffers::TypeTable *FooTypeTable();
+
+namespace NamespaceFoo {
+
+inline const flatbuffers::TypeTable *FooTypeTable();
+
+}  // namespace NamespaceFoo
+
+namespace NamespaceBar {
+
+inline const flatbuffers::TypeTable *FooTypeTable();
+
+}  // namespace NamespaceBar
 
 enum BundleSize {
   BundleSize_Size2 = 0,
@@ -292,6 +316,110 @@ inline flatbuffers::Offset<Foo> CreateFooDirect(
       newInt);
 }
 
+namespace NamespaceFoo {
+
+struct Foo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return FooTypeTable();
+  }
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_FOO = 4
+  };
+  const TestN::Foo *foo() const {
+    return GetPointer<const TestN::Foo *>(VT_FOO);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_FOO) &&
+           verifier.VerifyTable(foo()) &&
+           verifier.EndTable();
+  }
+};
+
+struct FooBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_foo(flatbuffers::Offset<TestN::Foo> foo) {
+    fbb_.AddOffset(Foo::VT_FOO, foo);
+  }
+  explicit FooBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  FooBuilder &operator=(const FooBuilder &);
+  flatbuffers::Offset<Foo> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<Foo>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<Foo> CreateFoo(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<TestN::Foo> foo = 0) {
+  FooBuilder builder_(_fbb);
+  builder_.add_foo(foo);
+  return builder_.Finish();
+}
+
+}  // namespace NamespaceFoo
+
+namespace NamespaceBar {
+
+struct Foo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return FooTypeTable();
+  }
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_FOO2 = 4
+  };
+  const TestN::Foo *foo2() const {
+    return GetPointer<const TestN::Foo *>(VT_FOO2);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_FOO2) &&
+           verifier.VerifyTable(foo2()) &&
+           verifier.EndTable();
+  }
+};
+
+struct FooBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_foo2(flatbuffers::Offset<TestN::Foo> foo2) {
+    fbb_.AddOffset(Foo::VT_FOO2, foo2);
+  }
+  explicit FooBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  FooBuilder &operator=(const FooBuilder &);
+  flatbuffers::Offset<Foo> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<Foo>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<Foo> CreateFoo(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<TestN::Foo> foo2 = 0) {
+  FooBuilder builder_(_fbb);
+  builder_.add_foo2(foo2);
+  return builder_.Finish();
+}
+
+}  // namespace NamespaceBar
+
+namespace NamespaceFoo {
+
+}  // namespace NamespaceFoo
+
+namespace NamespaceBar {
+
+}  // namespace NamespaceBar
+
 inline const flatbuffers::TypeTable *BundleSizeTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_CHAR, 0, 0 },
@@ -390,6 +518,46 @@ inline const flatbuffers::TypeTable *FooTypeTable() {
   };
   return &tt;
 }
+
+namespace NamespaceFoo {
+
+inline const flatbuffers::TypeTable *FooTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_SEQUENCE, 0, 0 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    TestN::FooTypeTable
+  };
+  static const char * const names[] = {
+    "foo"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 1, type_codes, type_refs, nullptr, names
+  };
+  return &tt;
+}
+
+}  // namespace NamespaceFoo
+
+namespace NamespaceBar {
+
+inline const flatbuffers::TypeTable *FooTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_SEQUENCE, 0, 0 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    TestN::FooTypeTable
+  };
+  static const char * const names[] = {
+    "foo2"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 1, type_codes, type_refs, nullptr, names
+  };
+  return &tt;
+}
+
+}  // namespace NamespaceBar
 
 inline const TestN::Foo *GetFoo(const void *buf) {
   return flatbuffers::GetRoot<TestN::Foo>(buf);

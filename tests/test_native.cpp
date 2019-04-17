@@ -43,13 +43,23 @@ void CompileTest() {
 
   flatbuffers::FlatBufferBuilder fbb;
   fbb.ForceDefaults(true);
-  FinishFooBuffer(fbb, Native::Pack(fbb, foo));
+  fbb.Finish(Native::Pack(fbb, foo));
 
   // debugging + access to serialized data
   auto s = flatbuffers::FlatBufferToString(fbb.GetBufferPointer(),
                                            TestN::FooTypeTable(), true);
 
   TEST_EQ_STR(s.c_str(), "sdf");
+}
+
+void TestNamespaces() {
+  TestN::NamespaceFoo::Native::Foo foofoo;
+  flatbuffers::FlatBufferBuilder fbbfoo;
+  fbbfoo.Finish(Native::Pack(fbbfoo, foofoo));
+
+  flatbuffers::FlatBufferBuilder fbbbar;
+  TestN::NamespaceBar::Native::Foo barfoo;
+  fbbbar.Finish(Native::Pack(fbbbar, barfoo));
 }
 
 
