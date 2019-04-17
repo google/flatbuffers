@@ -543,7 +543,7 @@ class Builder(object):
     def Finish(self, rootTable, file_identifier=None):
         """Finish finalizes a buffer, pointing to the given `rootTable`."""
         return self.__Finish(rootTable, False, file_identifier=file_identifier)
- 
+
     def FinishSizePrefixed(self, rootTable, file_identifier=None):
         """
         Finish finalizes a buffer, pointing to the given `rootTable`,
