@@ -554,13 +554,14 @@ class PythonGenerator : public BaseGenerator {
 
   // Generate function to check for proper file identifier
   void GenHasFileIdentifier(const StructDef &struct_def,
-                             std::string *code_ptr) {
+                            std::string *code_ptr) {
     std::string &code = *code_ptr;
     std::string escapedID;
-    // In the event any of file_identifier characters are special(NULL, \, etc), problems occur.
-    // To prevent this, convert all chars to their hex-escaped equivalent
+    // In the event any of file_identifier characters are special(NULL, \, etc),
+    // problems occur. To prevent this, convert all chars to their hex-escaped
+    // equivalent.
     for (auto it = parser_.file_identifier_.begin();
-        it != parser_.file_identifier_.end(); ++it) {
+         it != parser_.file_identifier_.end(); ++it) {
       escapedID += "\\x" + IntToStringHex(*it, 2);
     }
 
