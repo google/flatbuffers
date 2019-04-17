@@ -32,7 +32,8 @@ def GetBufferIdentifier(buf, offset, size_prefixed=False):
         return buf[offset:end]
 
 def BufferHasIdentifier(buf, offset, file_identifier, size_prefixed=False):
-        return GetBufferIdentifier(buf, offset, size_prefixed=size_prefixed)==file_identifier
+        got = GetBufferIdentifier(buf, offset, size_prefixed=size_prefixed)
+	return got == file_identifier
 
 def RemoveSizePrefix(buf, offset):
 	"""
