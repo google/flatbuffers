@@ -28,9 +28,8 @@ def GetBufferIdentifier(buf, offset, size_prefixed=False):
         # increase offset by size of root table pointer
         offset += number_types.UOffsetTFlags.bytewidth
         # end of FILE_IDENTIFIER
-        FILE_IDENTIFIER_END_OFFSET = offset + encode.FILE_IDENTIFIER_LENGTH
-        #return FILE_IDENTIFIER
-        return buf[offset:FILE_IDENTIFIER_END_OFFSET]
+        end = offset + encode.FILE_IDENTIFIER_LENGTH
+        return buf[offset:end]
 
 def BufferHasIdentifier(buf, offset, file_identifier, size_prefixed=False):
         return GetBufferIdentifier(buf, offset, size_prefixed=size_prefixed)==file_identifier
