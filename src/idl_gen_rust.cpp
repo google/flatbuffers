@@ -295,7 +295,7 @@ class RustGenerator : public BaseGenerator {
   // structs, and tables) and output them to a single file.
   bool generate() {
     code_.Clear();
-    code_ += "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n"; 
+    code_ += "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
 
     assert(!cur_name_space_);
 
@@ -586,13 +586,12 @@ class RustGenerator : public BaseGenerator {
     GenComment(enum_def.doc_comment);
     code_ += "#[allow(non_camel_case_types)]";
     code_ += "#[repr({{BASE_TYPE}})]";
-    code_ += "#[derive(Clone, Copy, PartialEq, Debug)]";
+    code_ += "#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]";
     code_ += "pub enum " + Name(enum_def) + " {";
 
     int64_t anyv = 0;
     const EnumVal *minv = nullptr, *maxv = nullptr;
-    for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
-         ++it) {
+    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       const auto &ev = **it;
 
       GenComment(ev.doc_comment, "  ");
@@ -655,15 +654,14 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
 
     // Generate an array of all enumeration values.
-    auto num_fields = NumToString(enum_def.vals.vec.size());
+    auto num_fields = NumToString(enum_def.size());
     code_ += "#[allow(non_camel_case_types)]";
     code_ += "const ENUM_VALUES_{{ENUM_NAME_CAPS}}:[{{ENUM_NAME}}; " +
               num_fields + "] = [";
-    for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
-         ++it) {
+    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       const auto &ev = **it;
       auto value = GetEnumValUse(enum_def, ev);
-      auto suffix = *it != enum_def.vals.vec.back() ? "," : "";
+      auto suffix = *it != enum_def.Vals().back() ? "," : "";
       code_ += "  " + value + suffix;
     }
     code_ += "];";
@@ -684,8 +682,8 @@ class RustGenerator : public BaseGenerator {
       code_ += "const ENUM_NAMES_{{ENUM_NAME_CAPS}}:[&'static str; " +
                 NumToString(range) + "] = [";
 
-      auto val = enum_def.vals.vec.front()->value;
-      for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
+      auto val = enum_def.Vals().front()->value;
+      for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
            ++it) {
         const auto &ev = **it;
         while (val++ != ev.value) { code_ += "    \"\","; }
@@ -698,14 +696,14 @@ class RustGenerator : public BaseGenerator {
       code_ += "pub fn enum_name_{{ENUM_NAME_SNAKE}}(e: {{ENUM_NAME}}) -> "
                "&'static str {";
 
-      code_ += "  let index: usize = e as usize\\";
+      code_ += "  let index = e as {{BASE_TYPE}}\\";
       if (enum_def.vals.vec.front()->value) {
         auto vals = GetEnumValUse(enum_def, *enum_def.vals.vec.front());
-        code_ += " - " + vals + " as usize\\";
+        code_ += " - " + vals + " as {{BASE_TYPE}}\\";
       }
       code_ += ";";
 
-      code_ += "  ENUM_NAMES_{{ENUM_NAME_CAPS}}[index]";
+      code_ += "  ENUM_NAMES_{{ENUM_NAME_CAPS}}[index as usize]";
       code_ += "}";
       code_ += "";
     }
@@ -1027,11 +1025,11 @@ class RustGenerator : public BaseGenerator {
       }
       case ftVectorOfTable: {
         const auto typname = WrapInNameSpace(*type.struct_def);
-        return WrapInOptionIfNotRequired("flatbuffers::Vector<flatbuffers::ForwardsUOffset<" + \
+        return WrapInOptionIfNotRequired("flatbuffers::Vector<" + lifetime + ", flatbuffers::ForwardsUOffset<" + \
                typname + "<" + lifetime + ">>>", field.required);
       }
       case ftVectorOfString: {
-        return WrapInOptionIfNotRequired("flatbuffers::Vector<flatbuffers::ForwardsUOffset<&" + \
+        return WrapInOptionIfNotRequired("flatbuffers::Vector<" + lifetime + ", flatbuffers::ForwardsUOffset<&" + \
                lifetime + " str>>", field.required);
       }
       case ftVectorOfUnionValue: {
@@ -1317,7 +1315,7 @@ class RustGenerator : public BaseGenerator {
 
       code_.SetValue("FIELD_NAME", Name(field));
 
-      for (auto u_it = u->vals.vec.begin(); u_it != u->vals.vec.end(); ++u_it) {
+      for (auto u_it = u->Vals().begin(); u_it != u->Vals().end(); ++u_it) {
         auto &ev = **u_it;
         if (ev.union_type.base_type == BASE_TYPE_NONE) { continue; }
 
@@ -1749,8 +1747,6 @@ class RustGenerator : public BaseGenerator {
 
   void GenNamespaceImports(const int white_spaces) {
       std::string indent = std::string(white_spaces, ' ');
-      code_ += indent + "#![allow(dead_code)]";
-      code_ += indent + "#![allow(unused_imports)]";
       code_ += "";
       code_ += indent + "use std::mem;";
       code_ += indent + "use std::cmp::Ordering;";
@@ -1792,6 +1788,7 @@ class RustGenerator : public BaseGenerator {
     // open namespace parts to reach the ns namespace
     // in the previous example, E, then F, then G are opened
     for (auto j = common_prefix_size; j != new_size; ++j) {
+      code_ += "#[allow(unused_imports, dead_code)]";
       code_ += "pub mod " + MakeSnakeCase(ns->components[j]) + " {";
       // Generate local namespace imports.
       GenNamespaceImports(2);

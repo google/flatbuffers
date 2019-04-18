@@ -99,8 +99,10 @@ void DeserializeDoc( std::vector<std::string> &doc,
 }
 
 void Parser::Message(const std::string &msg) {
-  error_ = file_being_parsed_.length() ? AbsolutePath(file_being_parsed_) : "";
+  if (!error_.empty()) error_ += "\n";  // log all warnings and errors
+  error_ += file_being_parsed_.length() ? AbsolutePath(file_being_parsed_) : "";
   // clang-format off
+
   #ifdef _WIN32  // MSVC alike
     error_ +=
         "(" + NumToString(line_) + ", " + NumToString(CursorPosition()) + ")";
@@ -135,21 +137,21 @@ template<typename F> CheckedError Parser::Recurse(F f) {
   return ce;
 }
 
-CheckedError Parser::InvalidNumber(const char *number, const std::string &msg) {
-  return Error("invalid number: \"" + std::string(number) + "\"" + msg);
+template<typename T> std::string TypeToIntervalString() {
+  return "[" + NumToString((flatbuffers::numeric_limits<T>::lowest)()) + "; " +
+         NumToString((flatbuffers::numeric_limits<T>::max)()) + "]";
 }
-// atot: templated version of atoi/atof: convert a string to an instance of T.
+
+// atot: template version of atoi/atof: convert a string to an instance of T.
 template<typename T>
 inline CheckedError atot(const char *s, Parser &parser, T *val) {
   auto done = StringToNumber(s, val);
   if (done) return NoError();
-
-  return parser.InvalidNumber(
-      s, (0 == *val)
-             ? ""
-             : (", constant does not fit [" +
-                NumToString(flatbuffers::numeric_limits<T>::lowest()) + "; " +
-                NumToString(flatbuffers::numeric_limits<T>::max()) + "]"));
+  if (0 == *val)
+    return parser.Error("invalid number: \"" + std::string(s) + "\"");
+  else
+    return parser.Error("invalid number: \"" + std::string(s) + "\"" +
+                        ", constant does not fit " + TypeToIntervalString<T>());
 }
 template<>
 inline CheckedError atot<Offset<void>>(const char *s, Parser &parser,
@@ -374,7 +376,7 @@ CheckedError Parser::Next() {
                   "illegal Unicode sequence (unpaired high surrogate)");
             }
             // reset if non-printable
-            attr_is_trivial_ascii_string_ &= check_in_range(*cursor_, ' ', '~');
+            attr_is_trivial_ascii_string_ &= check_ascii_range(*cursor_, ' ', '~');
 
             attribute_ += *cursor_++;
           }
@@ -476,7 +478,7 @@ CheckedError Parser::Next() {
         }
         std::string ch;
         ch = c;
-        if (false == check_in_range(c, ' ', '~')) ch = "code: " + NumToString(c);
+        if (false == check_ascii_range(c, ' ', '~')) ch = "code: " + NumToString(c);
         return Error("illegal character: " + ch);
     }
   }
@@ -668,11 +670,11 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
 
   if (token_ == '=') {
     NEXT();
+    ECHECK(ParseSingleValue(&field->name, field->value, true));
     if (!IsScalar(type.base_type) ||
         (struct_def.fixed && field->value.constant != "0"))
       return Error(
             "default values currently only supported for scalars in tables");
-    ECHECK(ParseSingleValue(&field->name, field->value, true));
   }
   if (type.enum_def &&
       !type.enum_def->is_union &&
@@ -1254,7 +1256,7 @@ CheckedError Parser::ParseNestedFlatbuffer(Value &val, FieldDef *field,
     nested_parser.enums_.vec.clear();
 
     if (!ok) {
-      ECHECK(Error(nested_parser.error_)); 
+      ECHECK(Error(nested_parser.error_));
     }
     // Force alignment for nested flatbuffer
     builder_.ForceVectorAlignment(nested_parser.builder_.GetSize(), sizeof(uint8_t),
@@ -1334,8 +1336,9 @@ CheckedError Parser::TryTypedValue(const std::string *name, int dtoken,
   return NoError();
 }
 
-CheckedError Parser::ParseEnumFromString(Type &type, int64_t *result) {
-  *result = 0;
+CheckedError Parser::ParseEnumFromString(const Type &type,
+                                         std::string *result) {
+  int64_t i64 = 0;
   // Parse one or more enum identifiers, separated by spaces.
   const char *next = attribute_.c_str();
   do {
@@ -1353,7 +1356,7 @@ CheckedError Parser::ParseEnumFromString(Type &type, int64_t *result) {
       if (!enum_val)
         return Error("unknown enum value: " + word +
                      ", for enum: " + type.enum_def->name);
-      *result |= enum_val->value;
+      i64 |= enum_val->value;
     } else {  // No enum type, probably integral field.
       if (!IsInteger(type.base_type))
         return Error("not a valid value for this field: " + word);
@@ -1367,9 +1370,10 @@ CheckedError Parser::ParseEnumFromString(Type &type, int64_t *result) {
       if (!enum_def) return Error("unknown enum: " + enum_def_str);
       auto enum_val = enum_def->vals.Lookup(enum_val_str);
       if (!enum_val) return Error("unknown enum value: " + enum_val_str);
-      *result |= enum_val->value;
+      i64 |= enum_val->value;
     }
   } while (*next);
+  *result = NumToString(i64);
   return NoError();
 }
 
@@ -1503,9 +1507,7 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
     // Enum can have only true integer base type.
     if (!match && IsInteger(e.type.base_type) && !IsBool(e.type.base_type) &&
         IsIdentifierStart(*attribute_.c_str())) {
-      int64_t val;
-      ECHECK(ParseEnumFromString(e.type, &val));
-      e.constant = NumToString(val);
+      ECHECK(ParseEnumFromString(e.type, &e.constant));
       NEXT();
       match = true;
     }
@@ -2035,10 +2037,18 @@ CheckedError Parser::ParseProtoDecl() {
 
     // Temp: remove any duplicates, as .fbs files can't handle them.
     for (auto it = v.begin(); it != v.end();) {
-      if (it != v.begin() && it[0]->value == it[-1]->value)
+      if (it != v.begin() && it[0]->value == it[-1]->value) {
+        auto ref = it[-1];
+        auto ev = it[0];
+        for (auto dit = enum_def->vals.dict.begin();
+             dit != enum_def->vals.dict.end(); ++dit) {
+          if (dit->second == ev) dit->second = ref;  // reassign
+        }
+        delete ev;  // delete enum value
         it = v.erase(it);
-      else
+      } else {
         ++it;
+      }
     }
   } else if (IsIdent("syntax")) {  // Skip these.
     NEXT();
@@ -2482,8 +2492,8 @@ CheckedError Parser::ParseRoot(const char *source, const char **include_paths,
   for (auto it = enums_.vec.begin(); it != enums_.vec.end(); ++it) {
     auto &enum_def = **it;
     if (enum_def.is_union) {
-      for (auto val_it = enum_def.vals.vec.begin();
-           val_it != enum_def.vals.vec.end(); ++val_it) {
+      for (auto val_it = enum_def.Vals().begin();
+           val_it != enum_def.Vals().end(); ++val_it) {
         auto &val = **val_it;
         if (!SupportsAdvancedUnionFeatures() && val.union_type.struct_def &&
             val.union_type.struct_def->fixed)
@@ -3192,7 +3202,7 @@ std::string Parser::ConformTo(const Parser &base) {
         enum_def.defined_namespace->GetFullyQualifiedName(enum_def.name);
     auto enum_def_base = base.enums_.Lookup(qualified_name);
     if (!enum_def_base) continue;
-    for (auto evit = enum_def.vals.vec.begin(); evit != enum_def.vals.vec.end();
+    for (auto evit = enum_def.Vals().begin(); evit != enum_def.Vals().end();
          ++evit) {
       auto &enum_val = **evit;
       auto enum_val_base = enum_def_base->vals.Lookup(enum_val.name);

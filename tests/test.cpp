@@ -894,6 +894,17 @@ void MiniReflectFlatBuffersTest(uint8_t *flatbuf) {
       "test5: [ { a: 10, b: 20 }, { a: 30, b: 40 } ], "
       "vector_of_enums: [ Blue, Green ] "
       "}");
+
+  Test test(16, 32);
+  Vec3 vec(1,2,3, 1.5, Color_Red, test);
+  flatbuffers::FlatBufferBuilder vec_builder;
+  vec_builder.Finish(vec_builder.CreateStruct(vec));
+  auto vec_buffer = vec_builder.Release();
+  auto vec_str = flatbuffers::FlatBufferToString(vec_buffer.data(),
+                                                 Vec3::MiniReflectTypeTable());
+  TEST_EQ_STR(
+      vec_str.c_str(),
+      "{ x: 1.0, y: 2.0, z: 3.0, test1: 1.5, test2: Red, test3: { a: 16, b: 32 } }");
 }
 
 // Parse a .proto schema, output as .fbs
@@ -1264,6 +1275,7 @@ void ErrorTest() {
   TestError("table Y {} table X { Y:int; }", "same as table");
   TestError("struct X { Y:string; }", "only scalar");
   TestError("table X { Y:string = \"\"; }", "default values");
+  TestError("struct X { a:uint = 42; }", "default values");
   TestError("enum Y:byte { Z = 1 } table X { y:Y; }", "not part of enum");
   TestError("struct X { Y:int (deprecated); }", "deprecate");
   TestError("union Z { X } table X { Y:Z; } root_type X; { Y: {}, A:1 }",
@@ -1305,15 +1317,20 @@ void ErrorTest() {
   TestError("enum X:bool { Y = true }", "must be integral");
 }
 
-template<typename T> T TestValue(const char *json, const char *type_name) {
+template<typename T>
+T TestValue(const char *json, const char *type_name,
+            const char *decls = nullptr) {
   flatbuffers::Parser parser;
   parser.builder_.ForceDefaults(true);  // return defaults
   auto check_default = json ? false : true;
   if (check_default) { parser.opts.output_default_scalars_in_json = true; }
   // Simple schema.
-  std::string schema =
-      "table X { Y:" + std::string(type_name) + "; } root_type X;";
-  TEST_EQ(parser.Parse(schema.c_str()), true);
+  std::string schema = std::string(decls ? decls : "") + "\n" +
+                       "table X { Y:" + std::string(type_name) +
+                       "; } root_type X;";
+  auto schema_done = parser.Parse(schema.c_str());
+  TEST_EQ_STR(parser.error_.c_str(), "");
+  TEST_EQ(schema_done, true);
 
   auto done = parser.Parse(check_default ? "{}" : json);
   TEST_EQ_STR(parser.error_.c_str(), "");
@@ -1439,6 +1456,24 @@ void EnumOutOfRangeTest() {
   TestError("enum X:ulong { Y = 18446744073709551615 }", "constant does not fit");
 }
 
+void EnumValueTest() {
+  // json: "{ Y:0 }", schema: table X { Y : "E"}
+  // 0 in enum (V=0) E then Y=0 is valid.
+  TEST_EQ(TestValue<int>("{ Y:0 }", "E", "enum E:int { V }"), 0);
+  TEST_EQ(TestValue<int>("{ Y:V }", "E", "enum E:int { V }"), 0);
+  // A default value of Y is 0.
+  TEST_EQ(TestValue<int>("{ }", "E", "enum E:int { V }"), 0);
+  TEST_EQ(TestValue<int>("{ Y:5 }", "E=V", "enum E:int { V=5 }"), 5);
+  // Generate json with defaults and check.
+  TEST_EQ(TestValue<int>(nullptr, "E=V", "enum E:int { V=5 }"), 5);
+  // 5 in enum
+  TEST_EQ(TestValue<int>("{ Y:5 }", "E", "enum E:int { Z, V=5 }"), 5);
+  TEST_EQ(TestValue<int>("{ Y:5 }", "E=V", "enum E:int { Z, V=5 }"), 5);
+  // Generate json with defaults and check.
+  TEST_EQ(TestValue<int>(nullptr, "E", "enum E:int { Z, V=5 }"), 0);
+  TEST_EQ(TestValue<int>(nullptr, "E=V", "enum E:int { Z, V=5 }"), 5);
+}
+
 void IntegerOutOfRangeTest() {
   TestError("table T { F:byte; } root_type T; { F:128 }",
             "constant does not fit");
@@ -1508,6 +1543,27 @@ void IntegerOutOfRangeTest() {
 }
 
 void IntegerBoundaryTest() {
+  // Check numerical compatibility with non-C++ languages.
+  // By the C++ standard, std::numerical_limits<int64_t>::min() == -9223372036854775807 (-2^63+1) or less*
+  // The Flatbuffers grammar and most of the languages (C#, Java, Rust) expect
+  // that minimum values are: -128, -32768,.., -9223372036854775808.
+  // Since C++20, static_cast<int64>(0x8000000000000000ULL) is well-defined two's complement cast.
+  // Therefore -9223372036854775808 should be valid negative value.
+  TEST_EQ(flatbuffers::numeric_limits<int8_t>::min(), -128);
+  TEST_EQ(flatbuffers::numeric_limits<int8_t>::max(), 127);
+  TEST_EQ(flatbuffers::numeric_limits<int16_t>::min(), -32768);
+  TEST_EQ(flatbuffers::numeric_limits<int16_t>::max(), 32767);
+  TEST_EQ(flatbuffers::numeric_limits<int32_t>::min() + 1, -2147483647);
+  TEST_EQ(flatbuffers::numeric_limits<int32_t>::max(), 2147483647ULL);
+  TEST_EQ(flatbuffers::numeric_limits<int64_t>::min() + 1LL,
+          -9223372036854775807LL);
+  TEST_EQ(flatbuffers::numeric_limits<int64_t>::max(), 9223372036854775807ULL);
+  TEST_EQ(flatbuffers::numeric_limits<uint8_t>::max(), 255);
+  TEST_EQ(flatbuffers::numeric_limits<uint16_t>::max(), 65535);
+  TEST_EQ(flatbuffers::numeric_limits<uint32_t>::max(), 4294967295ULL);
+  TEST_EQ(flatbuffers::numeric_limits<uint64_t>::max(),
+          18446744073709551615ULL);
+
   TEST_EQ(TestValue<int8_t>("{ Y:127 }", "byte"), 127);
   TEST_EQ(TestValue<int8_t>("{ Y:-128 }", "byte"), -128);
   TEST_EQ(TestValue<uint8_t>("{ Y:255 }", "ubyte"), 255);
@@ -1517,15 +1573,15 @@ void IntegerBoundaryTest() {
   TEST_EQ(TestValue<uint16_t>("{ Y:65535 }", "ushort"), 65535);
   TEST_EQ(TestValue<uint16_t>("{ Y:0 }", "ushort"), 0);
   TEST_EQ(TestValue<int32_t>("{ Y:2147483647 }", "int"), 2147483647);
-  TEST_EQ(TestValue<int32_t>("{ Y:-2147483648 }", "int"), (-2147483647 - 1));
+  TEST_EQ(TestValue<int32_t>("{ Y:-2147483648 }", "int") + 1, -2147483647);
   TEST_EQ(TestValue<uint32_t>("{ Y:4294967295 }", "uint"), 4294967295);
   TEST_EQ(TestValue<uint32_t>("{ Y:0 }", "uint"), 0);
   TEST_EQ(TestValue<int64_t>("{ Y:9223372036854775807 }", "long"),
-          9223372036854775807);
-  TEST_EQ(TestValue<int64_t>("{ Y:-9223372036854775808 }", "long"),
-          (-9223372036854775807 - 1));
+          9223372036854775807LL);
+  TEST_EQ(TestValue<int64_t>("{ Y:-9223372036854775808 }", "long") + 1LL,
+          -9223372036854775807LL);
   TEST_EQ(TestValue<uint64_t>("{ Y:18446744073709551615 }", "ulong"),
-          18446744073709551615U);
+          18446744073709551615ULL);
   TEST_EQ(TestValue<uint64_t>("{ Y:0 }", "ulong"), 0);
   TEST_EQ(TestValue<uint64_t>("{ Y: 18446744073709551615 }", "uint64"),
           18446744073709551615ULL);
@@ -1679,6 +1735,53 @@ void InvalidFloatTest() {
   // null is not a number constant!
   TestError("table T { F:float; } root_type T; { F:\"null\" }", invalid_msg);
   TestError("table T { F:float; } root_type T; { F:null }", invalid_msg);
+}
+
+void GenerateTableTextTest() {
+  std::string schemafile;
+  std::string jsonfile;
+  bool ok =
+      flatbuffers::LoadFile((test_data_path + "monster_test.fbs").c_str(),
+                            false, &schemafile) &&
+      flatbuffers::LoadFile((test_data_path + "monsterdata_test.json").c_str(),
+                            false, &jsonfile);
+  TEST_EQ(ok, true);
+  auto include_test_path =
+      flatbuffers::ConCatPathFileName(test_data_path, "include_test");
+  const char *include_directories[] = {test_data_path.c_str(),
+                                       include_test_path.c_str(), nullptr};
+  flatbuffers::IDLOptions opt;
+  opt.indent_step = -1;
+  flatbuffers::Parser parser(opt);
+  ok = parser.Parse(schemafile.c_str(), include_directories) &&
+       parser.Parse(jsonfile.c_str(), include_directories);
+  TEST_EQ(ok, true);
+  // Test root table
+  const Monster *monster = GetMonster(parser.builder_.GetBufferPointer());
+  std::string jsongen;
+  auto result = GenerateTextFromTable(parser, monster, "MyGame.Example.Monster",
+                                      &jsongen);
+  TEST_EQ(result, true);
+  // Test sub table
+  const Vec3 *pos = monster->pos();
+  jsongen.clear();
+  result = GenerateTextFromTable(parser, pos, "MyGame.Example.Vec3", &jsongen);
+  TEST_EQ(result, true);
+  TEST_EQ_STR(
+      jsongen.c_str(),
+      "{x: 1.0,y: 2.0,z: 3.0,test1: 3.0,test2: \"Green\",test3: {a: 5,b: 6}}");
+  const Test &test3 = pos->test3();
+  jsongen.clear();
+  result =
+      GenerateTextFromTable(parser, &test3, "MyGame.Example.Test", &jsongen);
+  TEST_EQ(result, true);
+  TEST_EQ_STR(jsongen.c_str(), "{a: 5,b: 6}");
+  const Test *test4 = monster->test4()->Get(0);
+  jsongen.clear();
+  result =
+      GenerateTextFromTable(parser, test4, "MyGame.Example.Test", &jsongen);
+  TEST_EQ(result, true);
+  TEST_EQ_STR(jsongen.c_str(), "{a: 10,b: 20}");
 }
 
 template<typename T>
@@ -2423,19 +2526,25 @@ void EqualOperatorTest() {
   MonsterT a;
   MonsterT b;
   TEST_EQ(b == a, true);
+  TEST_EQ(b != a, false);
 
   b.mana = 33;
   TEST_EQ(b == a, false);
+  TEST_EQ(b != a, true);
   b.mana = 150;
   TEST_EQ(b == a, true);
+  TEST_EQ(b != a, false);
 
   b.inventory.push_back(3);
   TEST_EQ(b == a, false);
+  TEST_EQ(b != a, true);
   b.inventory.clear();
   TEST_EQ(b == a, true);
+  TEST_EQ(b != a, false);
 
   b.test.type = Any_Monster;
   TEST_EQ(b == a, false);
+  TEST_EQ(b != a, true);
 }
 
 // For testing any binaries, e.g. from fuzzing.
@@ -2548,6 +2657,7 @@ int FlatBufferTests() {
 
   ErrorTest();
   ValueTest();
+  EnumValueTest();
   EnumStringsTest();
   EnumNamesTest();
   EnumOutOfRangeTest();
@@ -2575,6 +2685,7 @@ int FlatBufferTests() {
   IsAsciiUtilsTest();
   ValidFloatTest();
   InvalidFloatTest();
+  GenerateTableTextTest();
   return 0;
 }
 

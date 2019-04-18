@@ -287,10 +287,20 @@ struct ToStringVisitor : public IterationVisitor {
   bool q;
   std::string in;
   size_t indent_level;
-  ToStringVisitor(std::string delimiter, bool quotes, std::string indent)
-      : d(delimiter), q(quotes), in(indent), indent_level(0) {}
+  bool vector_delimited;
+  ToStringVisitor(std::string delimiter, bool quotes, std::string indent,
+                  bool vdelimited = true)
+      : d(delimiter),
+        q(quotes),
+        in(indent),
+        indent_level(0),
+        vector_delimited(vdelimited) {}
   ToStringVisitor(std::string delimiter)
-      : d(delimiter), q(false), in(""), indent_level(0) {}
+      : d(delimiter),
+        q(false),
+        in(""),
+        indent_level(0),
+        vector_delimited(true) {}
 
   void append_indent() {
     for (size_t i = 0; i < indent_level; i++) { s += in; }
@@ -350,30 +360,44 @@ struct ToStringVisitor : public IterationVisitor {
   void Unknown(const uint8_t *) { s += "(?)"; }
   void StartVector() {
     s += "[";
-    s += d;
-    indent_level++;
-    append_indent();
+    if (vector_delimited) {
+      s += d;
+      indent_level++;
+      append_indent();
+    } else {
+      s += " ";
+    }
   }
   void EndVector() {
-    s += d;
-    indent_level--;
-    append_indent();
+    if (vector_delimited) {
+      s += d;
+      indent_level--;
+      append_indent();
+    } else {
+      s += " ";
+    }
     s += "]";
   }
   void Element(size_t i, ElementaryType /*type*/,
                const TypeTable * /*type_table*/, const uint8_t * /*val*/) {
     if (i) {
       s += ",";
-      s += d;
-      append_indent();
+      if (vector_delimited) {
+        s += d;
+        append_indent();
+      } else {
+        s += " ";
+      }
     }
   }
 };
 
 inline std::string FlatBufferToString(const uint8_t *buffer,
                                       const TypeTable *type_table,
-                                      bool multi_line = false) {
-  ToStringVisitor tostring_visitor(multi_line ? "\n" : " ");
+                                      bool multi_line = false,
+                                      bool vector_delimited = true) {
+  ToStringVisitor tostring_visitor(multi_line ? "\n" : " ", false, "",
+                                   vector_delimited);
   IterateFlatBuffer(buffer, type_table, &tostring_visitor);
   return tostring_visitor.s;
 }

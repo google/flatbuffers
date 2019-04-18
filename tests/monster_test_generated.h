@@ -45,21 +45,31 @@ struct TypeAliasesT;
 }  // namespace Example
 
 bool operator==(const InParentNamespaceT &lhs, const InParentNamespaceT &rhs);
+bool operator!=(const InParentNamespaceT &lhs, const InParentNamespaceT &rhs);
 namespace Example2 {
 
 bool operator==(const MonsterT &lhs, const MonsterT &rhs);
+bool operator!=(const MonsterT &lhs, const MonsterT &rhs);
 }  // namespace Example2
 
 namespace Example {
 
 bool operator==(const Test &lhs, const Test &rhs);
+bool operator!=(const Test &lhs, const Test &rhs);
 bool operator==(const TestSimpleTableWithEnumT &lhs, const TestSimpleTableWithEnumT &rhs);
+bool operator!=(const TestSimpleTableWithEnumT &lhs, const TestSimpleTableWithEnumT &rhs);
 bool operator==(const Vec3 &lhs, const Vec3 &rhs);
+bool operator!=(const Vec3 &lhs, const Vec3 &rhs);
 bool operator==(const Ability &lhs, const Ability &rhs);
+bool operator!=(const Ability &lhs, const Ability &rhs);
 bool operator==(const StatT &lhs, const StatT &rhs);
+bool operator!=(const StatT &lhs, const StatT &rhs);
 bool operator==(const ReferrableT &lhs, const ReferrableT &rhs);
+bool operator!=(const ReferrableT &lhs, const ReferrableT &rhs);
 bool operator==(const MonsterT &lhs, const MonsterT &rhs);
+bool operator!=(const MonsterT &lhs, const MonsterT &rhs);
 bool operator==(const TypeAliasesT &lhs, const TypeAliasesT &rhs);
+bool operator!=(const TypeAliasesT &lhs, const TypeAliasesT &rhs);
 
 }  // namespace Example
 
@@ -123,7 +133,7 @@ inline const char * const *EnumNamesColor() {
 
 inline const char *EnumNameColor(Color e) {
   if (e < Color_Red || e > Color_Blue) return "";
-  const size_t index = static_cast<int>(e) - static_cast<int>(Color_Red);
+  const size_t index = static_cast<size_t>(e) - static_cast<size_t>(Color_Red);
   return EnumNamesColor()[index];
 }
 
@@ -159,7 +169,7 @@ inline const char * const *EnumNamesAny() {
 
 inline const char *EnumNameAny(Any e) {
   if (e < Any_NONE || e > Any_MyGame_Example2_Monster) return "";
-  const size_t index = static_cast<int>(e);
+  const size_t index = static_cast<size_t>(e);
   return EnumNamesAny()[index];
 }
 
@@ -199,10 +209,11 @@ struct AnyUnion {
 #ifndef FLATBUFFERS_CPP98_STL
   template <typename T>
   void Set(T&& val) {
+    using RT = typename std::remove_reference<T>::type;
     Reset();
-    type = AnyTraits<typename T::TableType>::enum_value;
+    type = AnyTraits<typename RT::TableType>::enum_value;
     if (type != Any_NONE) {
-      value = new T(std::forward<T>(val));
+      value = new RT(std::forward<T>(val));
     }
   }
 #endif  // FLATBUFFERS_CPP98_STL
@@ -260,6 +271,11 @@ inline bool operator==(const AnyUnion &lhs, const AnyUnion &rhs) {
     }
   }
 }
+
+inline bool operator!=(const AnyUnion &lhs, const AnyUnion &rhs) {
+    return !(lhs == rhs);
+}
+
 bool VerifyAny(flatbuffers::Verifier &verifier, const void *obj, Any type);
 bool VerifyAnyVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
 
@@ -295,7 +311,7 @@ inline const char * const *EnumNamesAnyUniqueAliases() {
 
 inline const char *EnumNameAnyUniqueAliases(AnyUniqueAliases e) {
   if (e < AnyUniqueAliases_NONE || e > AnyUniqueAliases_M2) return "";
-  const size_t index = static_cast<int>(e);
+  const size_t index = static_cast<size_t>(e);
   return EnumNamesAnyUniqueAliases()[index];
 }
 
@@ -335,10 +351,11 @@ struct AnyUniqueAliasesUnion {
 #ifndef FLATBUFFERS_CPP98_STL
   template <typename T>
   void Set(T&& val) {
+    using RT = typename std::remove_reference<T>::type;
     Reset();
-    type = AnyUniqueAliasesTraits<typename T::TableType>::enum_value;
+    type = AnyUniqueAliasesTraits<typename RT::TableType>::enum_value;
     if (type != AnyUniqueAliases_NONE) {
-      value = new T(std::forward<T>(val));
+      value = new RT(std::forward<T>(val));
     }
   }
 #endif  // FLATBUFFERS_CPP98_STL
@@ -396,6 +413,11 @@ inline bool operator==(const AnyUniqueAliasesUnion &lhs, const AnyUniqueAliasesU
     }
   }
 }
+
+inline bool operator!=(const AnyUniqueAliasesUnion &lhs, const AnyUniqueAliasesUnion &rhs) {
+    return !(lhs == rhs);
+}
+
 bool VerifyAnyUniqueAliases(flatbuffers::Verifier &verifier, const void *obj, AnyUniqueAliases type);
 bool VerifyAnyUniqueAliasesVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
 
@@ -431,7 +453,7 @@ inline const char * const *EnumNamesAnyAmbiguousAliases() {
 
 inline const char *EnumNameAnyAmbiguousAliases(AnyAmbiguousAliases e) {
   if (e < AnyAmbiguousAliases_NONE || e > AnyAmbiguousAliases_M3) return "";
-  const size_t index = static_cast<int>(e);
+  const size_t index = static_cast<size_t>(e);
   return EnumNamesAnyAmbiguousAliases()[index];
 }
 
@@ -505,6 +527,11 @@ inline bool operator==(const AnyAmbiguousAliasesUnion &lhs, const AnyAmbiguousAl
     }
   }
 }
+
+inline bool operator!=(const AnyAmbiguousAliasesUnion &lhs, const AnyAmbiguousAliasesUnion &rhs) {
+    return !(lhs == rhs);
+}
+
 bool VerifyAnyAmbiguousAliases(flatbuffers::Verifier &verifier, const void *obj, AnyAmbiguousAliases type);
 bool VerifyAnyAmbiguousAliasesVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
 
@@ -515,6 +542,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(2) Test FLATBUFFERS_FINAL_CLASS {
   int8_t padding0__;
 
  public:
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return TestTypeTable();
+  }
   Test() {
     memset(static_cast<void *>(this), 0, sizeof(Test));
   }
@@ -545,6 +575,11 @@ inline bool operator==(const Test &lhs, const Test &rhs) {
       (lhs.b() == rhs.b());
 }
 
+inline bool operator!=(const Test &lhs, const Test &rhs) {
+    return !(lhs == rhs);
+}
+
+
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vec3 FLATBUFFERS_FINAL_CLASS {
  private:
   float x_;
@@ -558,6 +593,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vec3 FLATBUFFERS_FINAL_CLASS {
   int16_t padding2__;
 
  public:
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return Vec3TypeTable();
+  }
   Vec3() {
     memset(static_cast<void *>(this), 0, sizeof(Vec3));
   }
@@ -624,12 +662,20 @@ inline bool operator==(const Vec3 &lhs, const Vec3 &rhs) {
       (lhs.test3() == rhs.test3());
 }
 
+inline bool operator!=(const Vec3 &lhs, const Vec3 &rhs) {
+    return !(lhs == rhs);
+}
+
+
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Ability FLATBUFFERS_FINAL_CLASS {
  private:
   uint32_t id_;
   uint32_t distance_;
 
  public:
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return AbilityTypeTable();
+  }
   Ability() {
     memset(static_cast<void *>(this), 0, sizeof(Ability));
   }
@@ -664,6 +710,11 @@ inline bool operator==(const Ability &lhs, const Ability &rhs) {
       (lhs.distance() == rhs.distance());
 }
 
+inline bool operator!=(const Ability &lhs, const Ability &rhs) {
+    return !(lhs == rhs);
+}
+
+
 }  // namespace Example
 
 struct InParentNamespaceT : public flatbuffers::NativeTable {
@@ -675,6 +726,11 @@ struct InParentNamespaceT : public flatbuffers::NativeTable {
 inline bool operator==(const InParentNamespaceT &, const InParentNamespaceT &) {
   return true;
 }
+
+inline bool operator!=(const InParentNamespaceT &lhs, const InParentNamespaceT &rhs) {
+    return !(lhs == rhs);
+}
+
 
 struct InParentNamespace FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef InParentNamespaceT NativeTableType;
@@ -724,6 +780,11 @@ struct MonsterT : public flatbuffers::NativeTable {
 inline bool operator==(const MonsterT &, const MonsterT &) {
   return true;
 }
+
+inline bool operator!=(const MonsterT &lhs, const MonsterT &rhs) {
+    return !(lhs == rhs);
+}
+
 
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MonsterT NativeTableType;
@@ -778,6 +839,11 @@ inline bool operator==(const TestSimpleTableWithEnumT &lhs, const TestSimpleTabl
   return
       (lhs.color == rhs.color);
 }
+
+inline bool operator!=(const TestSimpleTableWithEnumT &lhs, const TestSimpleTableWithEnumT &rhs) {
+    return !(lhs == rhs);
+}
+
 
 struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef TestSimpleTableWithEnumT NativeTableType;
@@ -848,6 +914,11 @@ inline bool operator==(const StatT &lhs, const StatT &rhs) {
       (lhs.val == rhs.val) &&
       (lhs.count == rhs.count);
 }
+
+inline bool operator!=(const StatT &lhs, const StatT &rhs) {
+    return !(lhs == rhs);
+}
+
 
 struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef StatT NativeTableType;
@@ -953,6 +1024,11 @@ inline bool operator==(const ReferrableT &lhs, const ReferrableT &rhs) {
   return
       (lhs.id == rhs.id);
 }
+
+inline bool operator!=(const ReferrableT &lhs, const ReferrableT &rhs) {
+    return !(lhs == rhs);
+}
+
 
 struct Referrable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef ReferrableT NativeTableType;
@@ -1127,6 +1203,11 @@ inline bool operator==(const MonsterT &lhs, const MonsterT &rhs) {
       (lhs.any_ambiguous == rhs.any_ambiguous) &&
       (lhs.vector_of_enums == rhs.vector_of_enums);
 }
+
+inline bool operator!=(const MonsterT &lhs, const MonsterT &rhs) {
+    return !(lhs == rhs);
+}
+
 
 /// an example documentation comment: monster object
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -2039,6 +2120,11 @@ inline bool operator==(const TypeAliasesT &lhs, const TypeAliasesT &rhs) {
       (lhs.v8 == rhs.v8) &&
       (lhs.vf64 == rhs.vf64);
 }
+
+inline bool operator!=(const TypeAliasesT &lhs, const TypeAliasesT &rhs) {
+    return !(lhs == rhs);
+}
+
 
 struct TypeAliases FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef TypeAliasesT NativeTableType;

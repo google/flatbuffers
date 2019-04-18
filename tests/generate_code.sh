@@ -17,7 +17,7 @@ set -e
 
 ../flatc --cpp --java --csharp --dart --go --binary --lobster --lua --python --js --ts --php --rust --grpc --gen-mutable --reflect-names --gen-object-api --gen-compare --no-includes --cpp-ptr-type flatbuffers::unique_ptr  --no-fb-import -I include_test monster_test.fbs monsterdata_test.json
 ../flatc --cpp --java --csharp --dart --go --binary --lobster --lua --python --js --ts --php --rust --gen-mutable --reflect-names --no-fb-import --cpp-ptr-type flatbuffers::unique_ptr  -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs
-../flatc --cpp --java --js --ts --php --gen-mutable --reflect-names --gen-object-api --gen-compare --cpp-ptr-type flatbuffers::unique_ptr -o union_vector ./union_vector/union_vector.fbs
+../flatc --cpp --java --csharp --js --ts --php --gen-mutable --reflect-names --gen-object-api --gen-compare --cpp-ptr-type flatbuffers::unique_ptr -o union_vector ./union_vector/union_vector.fbs
 ../flatc -b --schema --bfbs-comments --bfbs-builtins -I include_test monster_test.fbs
 ../flatc --jsonschema --schema -I include_test monster_test.fbs
 ../flatc --cpp --java --csharp --python --gen-mutable --reflect-names --gen-object-api --gen-compare --no-includes monster_extra.fbs || goto FAIL

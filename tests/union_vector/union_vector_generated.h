@@ -17,9 +17,13 @@ struct Movie;
 struct MovieT;
 
 bool operator==(const AttackerT &lhs, const AttackerT &rhs);
+bool operator!=(const AttackerT &lhs, const AttackerT &rhs);
 bool operator==(const Rapunzel &lhs, const Rapunzel &rhs);
+bool operator!=(const Rapunzel &lhs, const Rapunzel &rhs);
 bool operator==(const BookReader &lhs, const BookReader &rhs);
+bool operator!=(const BookReader &lhs, const BookReader &rhs);
 bool operator==(const MovieT &lhs, const MovieT &rhs);
+bool operator!=(const MovieT &lhs, const MovieT &rhs);
 
 inline const flatbuffers::TypeTable *AttackerTypeTable();
 
@@ -70,7 +74,7 @@ inline const char * const *EnumNamesCharacter() {
 
 inline const char *EnumNameCharacter(Character e) {
   if (e < Character_NONE || e > Character_Unused) return "";
-  const size_t index = static_cast<int>(e);
+  const size_t index = static_cast<size_t>(e);
   return EnumNamesCharacter()[index];
 }
 
@@ -180,6 +184,11 @@ inline bool operator==(const CharacterUnion &lhs, const CharacterUnion &rhs) {
     }
   }
 }
+
+inline bool operator!=(const CharacterUnion &lhs, const CharacterUnion &rhs) {
+    return !(lhs == rhs);
+}
+
 bool VerifyCharacter(flatbuffers::Verifier &verifier, const void *obj, Character type);
 bool VerifyCharacterVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
 
@@ -188,6 +197,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Rapunzel FLATBUFFERS_FINAL_CLASS {
   int32_t hair_length_;
 
  public:
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return RapunzelTypeTable();
+  }
   Rapunzel() {
     memset(static_cast<void *>(this), 0, sizeof(Rapunzel));
   }
@@ -208,11 +220,19 @@ inline bool operator==(const Rapunzel &lhs, const Rapunzel &rhs) {
       (lhs.hair_length() == rhs.hair_length());
 }
 
+inline bool operator!=(const Rapunzel &lhs, const Rapunzel &rhs) {
+    return !(lhs == rhs);
+}
+
+
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) BookReader FLATBUFFERS_FINAL_CLASS {
  private:
   int32_t books_read_;
 
  public:
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return BookReaderTypeTable();
+  }
   BookReader() {
     memset(static_cast<void *>(this), 0, sizeof(BookReader));
   }
@@ -233,6 +253,11 @@ inline bool operator==(const BookReader &lhs, const BookReader &rhs) {
       (lhs.books_read() == rhs.books_read());
 }
 
+inline bool operator!=(const BookReader &lhs, const BookReader &rhs) {
+    return !(lhs == rhs);
+}
+
+
 struct AttackerT : public flatbuffers::NativeTable {
   typedef Attacker TableType;
   int32_t sword_attack_damage;
@@ -245,6 +270,11 @@ inline bool operator==(const AttackerT &lhs, const AttackerT &rhs) {
   return
       (lhs.sword_attack_damage == rhs.sword_attack_damage);
 }
+
+inline bool operator!=(const AttackerT &lhs, const AttackerT &rhs) {
+    return !(lhs == rhs);
+}
+
 
 struct Attacker FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef AttackerT NativeTableType;
@@ -311,6 +341,11 @@ inline bool operator==(const MovieT &lhs, const MovieT &rhs) {
       (lhs.main_character == rhs.main_character) &&
       (lhs.characters == rhs.characters);
 }
+
+inline bool operator!=(const MovieT &lhs, const MovieT &rhs) {
+    return !(lhs == rhs);
+}
+
 
 struct Movie FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MovieT NativeTableType;
