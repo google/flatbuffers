@@ -1,4 +1,4 @@
-name: flatc
+name: flatbuffers
 base: core18
 version: latest
 version-script: git describe --always | sed -e 's/-/+git/;y/-/./' | tail -c +2
