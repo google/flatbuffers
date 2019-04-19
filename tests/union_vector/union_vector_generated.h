@@ -547,13 +547,13 @@ inline bool VerifyCharacter(flatbuffers::Verifier &verifier, const void *obj, Ch
       return verifier.VerifyTable(ptr);
     }
     case Character_Rapunzel: {
-      return true;
+      return verifier.Verify<Rapunzel>(static_cast<const uint8_t *>(obj), 0);
     }
     case Character_Belle: {
-      return true;
+      return verifier.Verify<BookReader>(static_cast<const uint8_t *>(obj), 0);
     }
     case Character_BookFan: {
-      return true;
+      return verifier.Verify<BookReader>(static_cast<const uint8_t *>(obj), 0);
     }
     case Character_Other: {
       auto ptr = reinterpret_cast<const flatbuffers::String *>(obj);

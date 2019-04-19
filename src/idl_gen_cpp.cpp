@@ -1213,7 +1213,8 @@ class CppGenerator : public BaseGenerator {
             "      auto ptr = reinterpret_cast<const {{TYPE}} *>(obj);";
         if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
           if (ev.union_type.struct_def->fixed) {
-            code_ += "      return true;";
+            code_ += "      return verifier.Verify<{{TYPE}}>(static_cast<const "
+                     "uint8_t *>(obj), 0);";
           } else {
             code_ += getptr;
             code_ += "      return verifier.VerifyTable(ptr);";
