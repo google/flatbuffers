@@ -17,7 +17,7 @@ documentation to build `flatc` and should be familiar with
 ## FlatBuffers TypeScript library code location
 
 The code for the FlatBuffers TypeScript library can be found at
-`flatbuffers/js` with typings available at @types/flatubffers.
+`flatbuffers/js` with typings available at `@types/flatbuffers`.
 
 ## Testing the FlatBuffers TypeScript library
 
