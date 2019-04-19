@@ -28,6 +28,14 @@ use primitives::*;
 #[derive(Debug)]
 pub struct Vector<'a, T: 'a>(&'a [u8], usize, PhantomData<T>);
 
+impl<'a, T: Follow<'a> + 'a> Clone for Vector<'a, T> {
+    fn clone(&self) -> Self {
+        Vector(self.0, self.1, self.2)
+    }
+}
+
+impl<'a, T: Follow<'a> + 'a> Copy for Vector<'a, T> {}
+
 impl<'a, T: 'a> Vector<'a, T> {
     #[inline(always)]
     pub fn new(buf: &'a [u8], loc: usize) -> Self {
@@ -53,8 +61,8 @@ impl<'a, T: Follow<'a> + 'a> Vector<'a, T> {
         T::follow(self.0, self.1 as usize + SIZE_UOFFSET + sz * idx)
     }
 
-    #[inline(always)]
-    pub fn iter(&'a self) -> VectorIter<'a, T> { VectorIter::new(&self) }
+    #[inline]
+    pub fn iter(&self) -> VectorIter<'a, T> { VectorIter::new(*self) }
 }
 
 pub trait SafeSliceAccess {}
@@ -138,10 +146,16 @@ impl<'a, T: Follow<'a> + 'a> Follow<'a> for Vector<'a, T> {
     }
 }
 
-pub struct VectorIter<'a, T:'a >(&'a Vector<'a, T>, usize);
+pub struct VectorIter<'a, T:'a >(Vector<'a, T>, usize);
 impl<'a, T: 'a> VectorIter<'a, T> {
-    pub fn new(inner: &'a Vector<'a, T>) -> Self {
+    pub fn new(inner: Vector<'a, T>) -> Self {
         VectorIter(inner, 0)
+    }
+}
+
+impl<'a, T: Follow<'a> + 'a> Clone for VectorIter<'a, T> {
+    fn clone(&self) -> Self {
+        VectorIter(self.0, self.1)
     }
 }
 
@@ -156,5 +170,21 @@ impl<'a, T: Follow<'a> + 'a> Iterator for VectorIter<'a, T> {
         self.1 += 1;
 
         ret
+    }
+}
+
+impl<'a, T: Follow<'a> + 'a> IntoIterator for Vector<'a, T> {
+    type Item = T::Inner;
+    type IntoIter = VectorIter<'a, T>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
+impl<'a, 'b, T: Follow<'a> + 'a> IntoIterator for &'b Vector<'a, T> {
+    type Item = T::Inner;
+    type IntoIter = VectorIter<'a, T>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
     }
 }
