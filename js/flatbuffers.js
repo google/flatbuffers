@@ -829,7 +829,6 @@ flatbuffers.ByteBuffer = function(bytes) {
    * @private
    */
   this.position_ = 0;
-
 };
 
 /**
