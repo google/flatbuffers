@@ -2649,6 +2649,7 @@ int FlatBufferTests() {
     ParseProtoTest();
     UnionVectorTest();
     LoadVerifyBinaryTest();
+    GenerateTableTextTest();
   #endif
   // clang-format on
 
@@ -2685,7 +2686,6 @@ int FlatBufferTests() {
   IsAsciiUtilsTest();
   ValidFloatTest();
   InvalidFloatTest();
-  GenerateTableTextTest();
   return 0;
 }
 
