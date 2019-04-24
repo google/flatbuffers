@@ -1,12 +1,12 @@
 ---
 buildifier: latest
 platforms:
-  ubuntu1404:
+  ubuntu1604:
     build_targets:
     - "..."
     test_targets:
     - "..."
-  ubuntu1604:
+  ubuntu1804:
     build_targets:
     - "..."
     test_targets:
