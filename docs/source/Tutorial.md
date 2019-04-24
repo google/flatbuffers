@@ -735,10 +735,10 @@ our `orc` Monster, lets create some `Weapon`s: a `Sword` and an `Axe`.
 </div>
 <div class="language-c">
 ~~~{.c}
-  ns(Weapon_ref_t) weapon_one_name = flatbuffers_string_create_str(B, "Sword");
+  flatbuffers_string_ref_t weapon_one_name = flatbuffers_string_create_str(B, "Sword");
   uint16_t weapon_one_damage = 3;
 
-  ns(Weapon_ref_t) weapon_two_name = flatbuffers_string_create_str(B, "Axe");
+  flatbuffers_string_ref_t weapon_two_name = flatbuffers_string_create_str(B, "Axe");
   uint16_t weapon_two_damage = 5;
 
   ns(Weapon_ref_t) sword = ns(Weapon_create(B, weapon_one_name, weapon_one_damage));
