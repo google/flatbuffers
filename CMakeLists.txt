@@ -289,7 +289,7 @@ if(FLATBUFFERS_BUILD_SHAREDLIB)
   # - minor updated when there are additions in API/ABI
   # - major (ABI number) updated when there are changes in ABI (or removals)
   set(FlatBuffers_Library_SONAME_MAJOR "1")
-  set(FlatBuffers_Library_SONAME_FULL "${FlatBuffers_Library_SONAME_MAJOR}.10.0")
+  set(FlatBuffers_Library_SONAME_FULL "${FlatBuffers_Library_SONAME_MAJOR}.11.0")
   set_target_properties(flatbuffers_shared PROPERTIES OUTPUT_NAME flatbuffers
                         SOVERSION "${FlatBuffers_Library_SONAME_MAJOR}"
                         VERSION "${FlatBuffers_Library_SONAME_FULL}")
