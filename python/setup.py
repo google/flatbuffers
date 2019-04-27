@@ -12,9 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import fileinput
 import os
+import re
+import sys
 from datetime import datetime
 from setuptools import setup
+
+
+def _update_version_attr(new_version):
+    for line in fileinput.input('flatbuffers/_version.py', inplace=True):
+        if line.startswith('__version__'):
+            line = re.sub(r'".*"', '"{}"'.format(new_version), line)
+        sys.stdout.write(line)
 
 
 def version():
@@ -39,7 +49,10 @@ def version():
         print("VERSION environment variable not set, using datetime instead: {}"
               .format(version))
 
+    _update_version_attr(version)
+
     return version
+
 
 setup(
     name='flatbuffers',
