@@ -40,6 +40,7 @@ struct FieldLoc {
 /// FlatBufferBuilder builds a FlatBuffer through manipulating its internal
 /// state. It has an owned `Vec<u8>` that grows as needed (up to the hardcoded
 /// limit of 2GiB, which is set by the FlatBuffers format).
+#[derive(Clone, Debug)]
 pub struct FlatBufferBuilder<'fbb> {
     owned_buf: Vec<u8>,
     head: usize,
@@ -637,4 +638,10 @@ fn get_vtable_byte_len(field_locs: &[FieldLoc]) -> usize {
 fn padding_bytes(buf_size: usize, scalar_size: usize) -> usize {
     // ((!buf_size) + 1) & (scalar_size - 1)
     (!buf_size).wrapping_add(1) & (scalar_size.wrapping_sub(1))
+}
+
+impl<'fbb> Default for FlatBufferBuilder<'fbb> {
+    fn default() -> Self {
+        Self::new_with_capacity(0)
+    }
 }
