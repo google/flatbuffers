@@ -153,6 +153,7 @@ cc_test(
         ":tests/monster_test.bfbs",
         ":tests/monster_test.fbs",
         ":tests/monsterdata_test.golden",
+        ":tests/monsterdata_test.json",
         ":tests/prototest/imported.proto",
         ":tests/prototest/test.golden",
         ":tests/prototest/test.proto",
