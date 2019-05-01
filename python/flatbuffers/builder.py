@@ -94,7 +94,7 @@ class Builder(object):
     It holds the following internal state:
         - Bytes: an array of bytes.
         - current_vtable: a list of integers.
-        - vtables: a list of vtable entries (i.e. a list of list of integers).
+        - vtables: a hash of vtable entries.
 
     Attributes:
       Bytes: The internal `bytearray` for the Builder.
@@ -129,7 +129,7 @@ class Builder(object):
         self.head = UOffsetTFlags.py_type(initialSize)
         self.minalign = 1
         self.objectEnd = None
-        self.vtables = []
+        self.vtables = {}
         self.nested = False
         ## @endcond
         self.finished = False
@@ -191,38 +191,26 @@ class Builder(object):
         self.PrependSOffsetTRelative(0)
 
         objectOffset = self.Offset()
-        existingVtable = None
 
         # Trim trailing 0 offsets.
         while self.current_vtable and self.current_vtable[-1] == 0:
             self.current_vtable.pop()
 
-        # Search backwards through existing vtables, because similar vtables
-        # are likely to have been recently appended. See
-        # BenchmarkVtableDeduplication for a case in which this heuristic
-        # saves about 30% of the time used in writing objects with duplicate
-        # tables.
+        vtKey = []
+        trim = True
+        for elem in reversed(self.current_vtable):
+            if elem == 0:
+                if trim:
+                    continue
+            else:
+                elem = objectOffset - elem
+                trim = False
 
-        i = len(self.vtables) - 1
-        while i >= 0:
-            # Find the other vtable, which is associated with `i`:
-            vt2Offset = self.vtables[i]
-            vt2Start = len(self.Bytes) - vt2Offset
-            vt2Len = encode.Get(packer.voffset, self.Bytes, vt2Start)
+            vtKey.append(elem)
 
-            metadata = VtableMetadataFields * N.VOffsetTFlags.bytewidth
-            vt2End = vt2Start + vt2Len
-            vt2 = self.Bytes[vt2Start+metadata:vt2End]
-
-            # Compare the other vtable to the one under consideration.
-            # If they are equal, store the offset and break:
-            if vtableEqual(self.current_vtable, objectOffset, vt2):
-                existingVtable = vt2Offset
-                break
-
-            i -= 1
-
-        if existingVtable is None:
+        vtKey = tuple(vtKey)
+        vt2Offset = self.vtables.get(vtKey)
+        if vt2Offset is None:
             # Did not find a vtable, so write this one to the buffer.
 
             # Write out the current vtable in reverse , because
@@ -257,17 +245,16 @@ class Builder(object):
 
             # Finally, store this vtable in memory for future
             # deduplication:
-            self.vtables.append(self.Offset())
+            self.vtables[vtKey] = self.Offset()
         else:
             # Found a duplicate vtable.
-
             objectStart = SOffsetTFlags.py_type(len(self.Bytes) - objectOffset)
             self.head = UOffsetTFlags.py_type(objectStart)
 
             # Write the offset to the found vtable in the
             # already-allocated SOffsetT at the beginning of this object:
             encode.Write(packer.soffset, self.Bytes, self.Head(),
-                         SOffsetTFlags.py_type(existingVtable - objectOffset))
+                         SOffsetTFlags.py_type(vt2Offset - objectOffset))
 
         self.current_vtable = None
         return objectOffset
