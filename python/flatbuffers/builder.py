@@ -192,10 +192,6 @@ class Builder(object):
 
         objectOffset = self.Offset()
 
-        # Trim trailing 0 offsets.
-        while self.current_vtable and self.current_vtable[-1] == 0:
-            self.current_vtable.pop()
-
         vtKey = []
         trim = True
         for elem in reversed(self.current_vtable):
@@ -216,15 +212,24 @@ class Builder(object):
             # Write out the current vtable in reverse , because
             # serialization occurs in last-first order:
             i = len(self.current_vtable) - 1
+            trailing = 0
+            trim = True
             while i >= 0:
                 off = 0
-                if self.current_vtable[i] != 0:
+                elem = self.current_vtable[i]
+                i -= 1
+
+                if elem == 0:
+                    if trim:
+                        trailing += 1
+                        continue
+                else:
                     # Forward reference to field;
                     # use 32bit number to ensure no overflow:
-                    off = objectOffset - self.current_vtable[i]
+                    off = objectOffset - elem
+                    trim = False
 
                 self.PrependVOffsetT(off)
-                i -= 1
 
             # The two metadata fields are written last.
 
@@ -233,7 +238,7 @@ class Builder(object):
             self.PrependVOffsetT(VOffsetTFlags.py_type(objectSize))
 
             # Second, store the vtable bytesize:
-            vBytes = len(self.current_vtable) + VtableMetadataFields
+            vBytes = len(self.current_vtable) - trailing + VtableMetadataFields
             vBytes *= N.VOffsetTFlags.bytewidth
             self.PrependVOffsetT(VOffsetTFlags.py_type(vBytes))
 
