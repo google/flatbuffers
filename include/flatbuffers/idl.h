@@ -386,10 +386,6 @@ struct EnumDef : public Definition {
                          bool skip_union_default = false) const;
   EnumVal *FindByValue(const std::string &constant) const;
 
-  bool IsUInt64() const {
-    return (BASE_TYPE_ULONG == underlying_type.base_type);
-  }
-
   std::string ToString(const EnumVal &ev) const {
     return IsUInt64() ? NumToString(ev.GetAsUInt64())
                       : NumToString(ev.GetAsInt64());
@@ -413,6 +409,10 @@ struct EnumDef : public Definition {
   Type underlying_type;
 
  private:
+  bool IsUInt64() const {
+    return (BASE_TYPE_ULONG == underlying_type.base_type);
+  }
+
   friend EnumValBuilder;
   SymbolTable<EnumVal> vals;
 };
