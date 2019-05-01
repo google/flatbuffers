@@ -734,8 +734,7 @@ class RustGenerator : public BaseGenerator {
       }
       case ftUnionKey:
       case ftEnumKey: {
-        auto ev = field.value.type.enum_def->ReverseLookup(
-            StringToInt(field.value.constant.c_str()), false);
+        auto ev = field.value.type.enum_def->FindByValue(field.value.constant);
         assert(ev);
         return WrapInNameSpace(field.value.type.enum_def->defined_namespace,
                                GetEnumValUse(*field.value.type.enum_def, *ev));

@@ -365,15 +365,6 @@ struct EnumVal {
 struct EnumDef : public Definition {
   EnumDef() : is_union(false), uses_multiple_type_instances(false) {}
 
-  EnumVal *ReverseLookup(int64_t enum_idx, bool skip_union_default = true) {
-      for (auto it = Vals().begin() +
-                   static_cast<int>(is_union && skip_union_default);
-         it != Vals().end(); ++it) {
-      if ((*it)->GetAsInt64() == enum_idx) { return *it; }
-    }
-    return nullptr;
-  }
-
   Offset<reflection::Enum> Serialize(FlatBufferBuilder *builder,
                                      const Parser &parser) const;
 
@@ -391,8 +382,8 @@ struct EnumDef : public Definition {
   // Returns the number of integer steps from Min to Max.
   uint64_t Distance() const { return Distance(MinValue(), MaxValue()); }
 
-  // In fact, this is uint64/int64 safe ReverseLookup without
-  // skip_union_default.
+  EnumVal *ReverseLookup(int64_t enum_idx,
+                         bool skip_union_default = false) const;
   EnumVal *FindByValue(const std::string &constant) const;
 
   bool IsUInt64() const {
@@ -421,7 +412,7 @@ struct EnumDef : public Definition {
   bool uses_multiple_type_instances;
   Type underlying_type;
 
-private:
+ private:
   friend EnumValBuilder;
   SymbolTable<EnumVal> vals;
 };
@@ -765,7 +756,7 @@ class Parser : public ParserState {
 
   FLATBUFFERS_CHECKED_ERROR Error(const std::string &msg);
 
-private:
+ private:
   void Message(const std::string &msg);
   void Warning(const std::string &msg);
   FLATBUFFERS_CHECKED_ERROR ParseHexNum(int nibbles, uint64_t *val);

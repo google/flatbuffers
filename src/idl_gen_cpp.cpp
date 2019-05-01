@@ -901,7 +901,7 @@ class CppGenerator : public BaseGenerator {
       code_ += "  };";
     }
     if (!vs.empty()) {
-      // Problem with uint64_t values greate than 9223372036854775807ULL.
+      // Problem with uint64_t values greater than 9223372036854775807ULL.
       code_ += "  static const int64_t values[] = { {{VALUES}} };";
     }
     auto has_names =
@@ -934,8 +934,8 @@ class CppGenerator : public BaseGenerator {
 
     GenComment(enum_def.doc_comment);
     code_ += GenEnumDecl(enum_def) + "\\";
-    // MSVC doesn't support int64/uint64 enum without explicit declared enum type.
-    // The value 4611686018427387904ULL truncated to zero with warning:
+    // MSVC doesn't support int64/uint64 enum without explicitly declared enum
+    // type. The value 4611686018427387904ULL is truncated to zero with warning:
     // "warning C4309: 'initializing': truncation of constant value".
     auto add_type = parser_.opts.scoped_enums;
     add_type |= (enum_def.underlying_type.base_type == BASE_TYPE_LONG);

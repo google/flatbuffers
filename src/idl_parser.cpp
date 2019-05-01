@@ -700,7 +700,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
                        (type.base_type == BASE_TYPE_UNION) ||
                        (type.base_type == BASE_TYPE_VECTOR));
     if (type.base_type == BASE_TYPE_VECTOR) {
-      // Vector cannot use initialization list.
+      // Vector can't use initialization list.
       FLATBUFFERS_ASSERT(field->value.constant == "0");
     } else {
       // All unions should have the NONE ("0") enum value.
@@ -922,7 +922,7 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
       } else {
         ECHECK(atot(constant.c_str(), *this, &enum_idx));
       }
-      auto enum_val = val.type.enum_def->ReverseLookup(enum_idx);
+      auto enum_val = val.type.enum_def->ReverseLookup(enum_idx, true);
       if (!enum_val) return Error("illegal type id for: " + field->name);
       if (enum_val->union_type.base_type == BASE_TYPE_STRUCT) {
         ECHECK(ParseTable(*enum_val->union_type.struct_def, &val.constant,
@@ -1642,6 +1642,15 @@ std::string EnumDef::AllFlags() const {
   return IsUInt64() ? NumToString(u64) : NumToString(static_cast<int64_t>(u64));
 }
 
+EnumVal *EnumDef::ReverseLookup(int64_t enum_idx,
+                                bool skip_union_default) const {
+  auto skip_first = static_cast<int>(is_union && skip_union_default);
+  for (auto it = Vals().begin() + skip_first; it != Vals().end(); ++it) {
+    if ((*it)->GetAsInt64() == enum_idx) { return *it; }
+  }
+  return nullptr;
+}
+
 EnumVal *EnumDef::FindByValue(const std::string &constant) const {
   int64_t i64;
   auto done = false;
@@ -1654,11 +1663,7 @@ EnumVal *EnumDef::FindByValue(const std::string &constant) const {
   }
   FLATBUFFERS_ASSERT(done);
   if (!done) return nullptr;
-  for (auto it = Vals().begin(); it != Vals().end(); ++it) {
-    auto ev = *it;
-    if (ev->GetAsInt64() == i64) return ev;
-  }
-  return nullptr;
+  return ReverseLookup(i64, false);
 }
 
 void EnumDef::SortByValue() {
@@ -1738,26 +1743,23 @@ struct EnumValBuilder {
 
   FLATBUFFERS_CHECKED_ERROR AssignEnumeratorValue(const std::string &value) {
     user_value = true;
+    auto fit = false;
     auto ascending = false;
     if (enum_def.IsUInt64()) {
       uint64_t u64;
-      if (!StringToNumber(value.c_str(), &u64))
-        return parser.Error(temp->name + " enum value does not fit, \"" +
-                            value + "\"");
-      ascending = u64 > static_cast<uint64_t>(temp->value);
+      fit = StringToNumber(value.c_str(), &u64); 
+      ascending = u64 > temp->GetAsUInt64();
       temp->value = static_cast<int64_t>(u64);  // well-defined since C++20.
     } else {
       int64_t i64;
-      if (!StringToNumber(value.c_str(), &i64))
-        return parser.Error(temp->name + " enum value does not fit, \"" +
-                            value + "\"");
-      ascending = i64 > temp->value;
+      fit = StringToNumber(value.c_str(), &i64);
+      ascending = i64 > temp->GetAsInt64();
       temp->value = i64;
     }
+    if (!fit) return parser.Error("enum value does not fit, \"" + value + "\"");
     if (!ascending && strict_ascending && !enum_def.vals.vec.empty())
       return parser.Error("enum values must be specified in ascending order");
-    else
-      return NoError();
+    return NoError();
   }
 
   template<BaseType E, typename CTYPE>
