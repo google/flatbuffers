@@ -1,0 +1,11 @@
+{
+  // Float-point values with NaN and Inf defaults.
+  testf_nan : nan,
+  testf_pinf : +inf,
+  testf_ninf : -inf,
+  testd_nan  : nan,
+  testd_pinf : +inf,
+  testd_ninf : -inf,
+  testf_vec : [-1.0, 2.0, -inf, +inf, nan],
+  testd_vec : [-1.0, 4.0, -inf, +inf, nan]
+}

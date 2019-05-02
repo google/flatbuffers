@@ -11,6 +11,7 @@ import com.google.flatbuffers.*;
 public final class MonsterExtra extends Table {
   public static MonsterExtra getRootAsMonsterExtra(ByteBuffer _bb) { return getRootAsMonsterExtra(_bb, new MonsterExtra()); }
   public static MonsterExtra getRootAsMonsterExtra(ByteBuffer _bb, MonsterExtra obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
+  public static boolean MonsterExtraBufferHasIdentifier(ByteBuffer _bb) { return __has_identifier(_bb, "MONE"); }
   public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; vtable_start = bb_pos - bb.getInt(bb_pos); vtable_size = bb.getShort(vtable_start); }
   public MonsterExtra __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
@@ -26,6 +27,16 @@ public final class MonsterExtra extends Table {
   public boolean mutateTestdPinf(double testd_pinf) { int o = __offset(12); if (o != 0) { bb.putDouble(o + bb_pos, testd_pinf); return true; } else { return false; } }
   public double testdNinf() { int o = __offset(14); return o != 0 ? bb.getDouble(o + bb_pos) : Double.NEGATIVE_INFINITY; }
   public boolean mutateTestdNinf(double testd_ninf) { int o = __offset(14); if (o != 0) { bb.putDouble(o + bb_pos, testd_ninf); return true; } else { return false; } }
+  public float testfVec(int j) { int o = __offset(16); return o != 0 ? bb.getFloat(__vector(o) + j * 4) : 0; }
+  public int testfVecLength() { int o = __offset(16); return o != 0 ? __vector_len(o) : 0; }
+  public ByteBuffer testfVecAsByteBuffer() { return __vector_as_bytebuffer(16, 4); }
+  public ByteBuffer testfVecInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 16, 4); }
+  public boolean mutateTestfVec(int j, float testf_vec) { int o = __offset(16); if (o != 0) { bb.putFloat(__vector(o) + j * 4, testf_vec); return true; } else { return false; } }
+  public double testdVec(int j) { int o = __offset(18); return o != 0 ? bb.getDouble(__vector(o) + j * 8) : 0; }
+  public int testdVecLength() { int o = __offset(18); return o != 0 ? __vector_len(o) : 0; }
+  public ByteBuffer testdVecAsByteBuffer() { return __vector_as_bytebuffer(18, 8); }
+  public ByteBuffer testdVecInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 18, 8); }
+  public boolean mutateTestdVec(int j, double testd_vec) { int o = __offset(18); if (o != 0) { bb.putDouble(__vector(o) + j * 8, testd_vec); return true; } else { return false; } }
 
   public static int createMonsterExtra(FlatBufferBuilder builder,
       float testf_nan,
@@ -33,27 +44,39 @@ public final class MonsterExtra extends Table {
       float testf_ninf,
       double testd_nan,
       double testd_pinf,
-      double testd_ninf) {
-    builder.startObject(6);
+      double testd_ninf,
+      int testf_vecOffset,
+      int testd_vecOffset) {
+    builder.startObject(8);
     MonsterExtra.addTestdNinf(builder, testd_ninf);
     MonsterExtra.addTestdPinf(builder, testd_pinf);
     MonsterExtra.addTestdNan(builder, testd_nan);
+    MonsterExtra.addTestdVec(builder, testd_vecOffset);
+    MonsterExtra.addTestfVec(builder, testf_vecOffset);
     MonsterExtra.addTestfNinf(builder, testf_ninf);
     MonsterExtra.addTestfPinf(builder, testf_pinf);
     MonsterExtra.addTestfNan(builder, testf_nan);
     return MonsterExtra.endMonsterExtra(builder);
   }
 
-  public static void startMonsterExtra(FlatBufferBuilder builder) { builder.startObject(6); }
+  public static void startMonsterExtra(FlatBufferBuilder builder) { builder.startObject(8); }
   public static void addTestfNan(FlatBufferBuilder builder, float testfNan) { builder.addFloat(0, testfNan, Float.NaN); }
   public static void addTestfPinf(FlatBufferBuilder builder, float testfPinf) { builder.addFloat(1, testfPinf, Float.POSITIVE_INFINITY); }
   public static void addTestfNinf(FlatBufferBuilder builder, float testfNinf) { builder.addFloat(2, testfNinf, Float.NEGATIVE_INFINITY); }
   public static void addTestdNan(FlatBufferBuilder builder, double testdNan) { builder.addDouble(3, testdNan, Double.NaN); }
   public static void addTestdPinf(FlatBufferBuilder builder, double testdPinf) { builder.addDouble(4, testdPinf, Double.POSITIVE_INFINITY); }
   public static void addTestdNinf(FlatBufferBuilder builder, double testdNinf) { builder.addDouble(5, testdNinf, Double.NEGATIVE_INFINITY); }
+  public static void addTestfVec(FlatBufferBuilder builder, int testfVecOffset) { builder.addOffset(6, testfVecOffset, 0); }
+  public static int createTestfVecVector(FlatBufferBuilder builder, float[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addFloat(data[i]); return builder.endVector(); }
+  public static void startTestfVecVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
+  public static void addTestdVec(FlatBufferBuilder builder, int testdVecOffset) { builder.addOffset(7, testdVecOffset, 0); }
+  public static int createTestdVecVector(FlatBufferBuilder builder, double[] data) { builder.startVector(8, data.length, 8); for (int i = data.length - 1; i >= 0; i--) builder.addDouble(data[i]); return builder.endVector(); }
+  public static void startTestdVecVector(FlatBufferBuilder builder, int numElems) { builder.startVector(8, numElems, 8); }
   public static int endMonsterExtra(FlatBufferBuilder builder) {
     int o = builder.endObject();
     return o;
   }
+  public static void finishMonsterExtraBuffer(FlatBufferBuilder builder, int offset) { builder.finish(offset, "MONE"); }
+  public static void finishSizePrefixedMonsterExtraBuffer(FlatBufferBuilder builder, int offset) { builder.finishSizePrefixed(offset, "MONE"); }
 }
 
