@@ -125,8 +125,7 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + "const ";
     code += ev.name;
     code += " = ";
-    code += NumToString(ev.value) + ";\n";
-    (void)enum_def;
+    code += enum_def.ToString(ev) + ";\n";
   }
 
   // End enum code.
@@ -875,8 +874,7 @@ class PhpGenerator : public BaseGenerator {
 
   std::string GenDefaultValue(const Value &value) {
     if (value.type.enum_def) {
-      if (auto val = value.type.enum_def->ReverseLookup(
-              StringToInt(value.constant.c_str()), false)) {
+      if (auto val = value.type.enum_def->FindByValue(value.constant)) {
         return WrapInNameSpace(*value.type.enum_def) + "::" + val->name;
       }
     }

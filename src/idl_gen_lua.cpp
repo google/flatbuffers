@@ -111,8 +111,8 @@ namespace lua {
     // A single enum member.
     void EnumMember(const EnumDef &enum_def, const EnumVal &ev, std::string *code_ptr) {
       std::string &code = *code_ptr;
-      code += std::string(Indent) + NormalizedName(ev) + " = " + NumToString(ev.value) + ",\n";
-      (void)enum_def;
+      code += std::string(Indent) + NormalizedName(ev) + " = " +
+              enum_def.ToString(ev) + ",\n";
     }
 
     // End enum code.

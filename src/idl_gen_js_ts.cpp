@@ -359,13 +359,13 @@ class JsTsGenerator : public BaseGenerator {
 
       // Generate mapping between EnumName: EnumValue(int)
       if (reverse) {
-        code += "  " + NumToString(ev.value);
+        code += "  " + enum_def.ToString(ev);
         code += lang_.language == IDLOptions::kTs ? "= " : ": ";
         code += "'" + ev.name + "'";
       } else {
         code += "  " + ev.name;
         code += lang_.language == IDLOptions::kTs ? "= " : ": ";
-        code += NumToString(ev.value);
+        code += enum_def.ToString(ev);
       }
 
       code += (it + 1) != enum_def.Vals().end() ? ",\n" : "\n";
@@ -431,8 +431,7 @@ class JsTsGenerator : public BaseGenerator {
 
   std::string GenDefaultValue(const Value &value, const std::string &context) {
     if (value.type.enum_def) {
-      if (auto val = value.type.enum_def->ReverseLookup(
-              StringToInt(value.constant.c_str()), false)) {
+      if (auto val = value.type.enum_def->FindByValue(value.constant)) {
         if (lang_.language == IDLOptions::kTs) {
           return GenPrefixedTypeName(WrapInNameSpace(*value.type.enum_def),
                                      value.type.enum_def->file) +

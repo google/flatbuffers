@@ -28,6 +28,23 @@ namespace flatbuffers {
 // Pedantic warning free version of toupper().
 inline char ToUpper(char c) { return static_cast<char>(::toupper(c)); }
 
+// Make numerical literal with type-suffix.
+// This function is only needed for C++! Other languages do not need it.
+static inline std::string NumToStringCpp(std::string val, BaseType type) {
+  // Avoid issues with -2147483648, -9223372036854775808.
+  switch (type) {
+    case BASE_TYPE_INT:
+      return (val != "-2147483648") ? val : ("(-2147483647 - 1)");
+    case BASE_TYPE_ULONG: return (val == "0") ? val : (val + "ULL");
+    case BASE_TYPE_LONG:
+      if (val == "-9223372036854775808")
+        return "(-9223372036854775807LL - 1LL)";
+      else
+        return (val == "0") ? val : (val + "LL");
+    default: return val;
+  }
+}
+
 static std::string GeneratedFileName(const std::string &path,
                                      const std::string &file_name) {
   return path + file_name + "_generated.h";
@@ -789,7 +806,7 @@ class CppGenerator : public BaseGenerator {
     code_.SetValue("NUM_FIELDS", NumToString(num_fields));
     std::vector<std::string> names;
     std::vector<Type> types;
-    bool consecutive_enum_from_zero = true;
+
     if (struct_def) {
       for (auto it = struct_def->fields.vec.begin();
            it != struct_def->fields.vec.end(); ++it) {
@@ -804,9 +821,6 @@ class CppGenerator : public BaseGenerator {
         names.push_back(Name(ev));
         types.push_back(enum_def->is_union ? ev.union_type
                                            : Type(enum_def->underlying_type));
-        if (static_cast<int64_t>(it - enum_def->Vals().begin()) != ev.value) {
-          consecutive_enum_from_zero = false;
-        }
       }
     }
     std::string ts;
@@ -851,12 +865,16 @@ class CppGenerator : public BaseGenerator {
       ns += "\"" + *it + "\"";
     }
     std::string vs;
+    const auto consecutive_enum_from_zero =
+        enum_def && enum_def->MinValue()->IsZero() &&
+        ((enum_def->size() - 1) == enum_def->Distance());
     if (enum_def && !consecutive_enum_from_zero) {
       for (auto it = enum_def->Vals().begin(); it != enum_def->Vals().end();
            ++it) {
         const auto &ev = **it;
         if (!vs.empty()) vs += ", ";
-        vs += NumToString(ev.value);
+        vs += NumToStringCpp(enum_def->ToString(ev),
+                             enum_def->underlying_type.base_type);
       }
     } else if (struct_def && struct_def->fixed) {
       for (auto it = struct_def->fields.vec.begin();
@@ -883,6 +901,7 @@ class CppGenerator : public BaseGenerator {
       code_ += "  };";
     }
     if (!vs.empty()) {
+      // Problem with uint64_t values greater than 9223372036854775807ULL.
       code_ += "  static const int64_t values[] = { {{VALUES}} };";
     }
     auto has_names =
@@ -907,6 +926,7 @@ class CppGenerator : public BaseGenerator {
   // Generate an enum declaration,
   // an enum string lookup table,
   // and an enum array of values
+
   void GenEnum(const EnumDef &enum_def) {
     code_.SetValue("ENUM_NAME", Name(enum_def));
     code_.SetValue("BASE_TYPE", GenTypeBasic(enum_def.underlying_type, false));
@@ -914,24 +934,31 @@ class CppGenerator : public BaseGenerator {
 
     GenComment(enum_def.doc_comment);
     code_ += GenEnumDecl(enum_def) + "\\";
-    if (parser_.opts.scoped_enums) code_ += " : {{BASE_TYPE}}\\";
+    // MSVC doesn't support int64/uint64 enum without explicitly declared enum
+    // type. The value 4611686018427387904ULL is truncated to zero with warning:
+    // "warning C4309: 'initializing': truncation of constant value".
+    auto add_type = parser_.opts.scoped_enums;
+    add_type |= (enum_def.underlying_type.base_type == BASE_TYPE_LONG);
+    add_type |= (enum_def.underlying_type.base_type == BASE_TYPE_ULONG);
+    if (add_type) code_ += " : {{BASE_TYPE}}\\";
     code_ += " {";
 
-    int64_t anyv = 0;
-    const EnumVal *minv = nullptr, *maxv = nullptr;
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       const auto &ev = **it;
-
-      GenComment(ev.doc_comment, "  ");
+      if (!ev.doc_comment.empty()) {
+        auto prefix = code_.GetValue("SEP") + "  ";
+        GenComment(ev.doc_comment, prefix.c_str());
+        code_.SetValue("SEP", "");
+      }
       code_.SetValue("KEY", GenEnumValDecl(enum_def, Name(ev)));
-      code_.SetValue("VALUE", NumToString(ev.value));
+      code_.SetValue("VALUE",
+                     NumToStringCpp(enum_def.ToString(ev),
+                                    enum_def.underlying_type.base_type));
       code_ += "{{SEP}}  {{KEY}} = {{VALUE}}\\";
       code_.SetValue("SEP", ",\n");
-
-      minv = !minv || minv->value > ev.value ? &ev : minv;
-      maxv = !maxv || maxv->value < ev.value ? &ev : maxv;
-      anyv |= ev.value;
     }
+    const EnumVal *minv = enum_def.MinValue();
+    const EnumVal *maxv = enum_def.MaxValue();
 
     if (parser_.opts.scoped_enums || parser_.opts.prefixed_enums) {
       FLATBUFFERS_ASSERT(minv && maxv);
@@ -943,7 +970,9 @@ class CppGenerator : public BaseGenerator {
         code_ += "{{SEP}}  {{KEY}} = {{VALUE}}\\";
 
         code_.SetValue("KEY", GenEnumValDecl(enum_def, "ANY"));
-        code_.SetValue("VALUE", NumToString(anyv));
+        code_.SetValue("VALUE",
+                       NumToStringCpp(enum_def.AllFlags(),
+                                      enum_def.underlying_type.base_type));
         code_ += "{{SEP}}  {{KEY}} = {{VALUE}}\\";
       } else {  // MIN & MAX are useless for bit_flags
         code_.SetValue("KEY", GenEnumValDecl(enum_def, "MIN"));
@@ -984,22 +1013,23 @@ class CppGenerator : public BaseGenerator {
     // Problem is, if values are very sparse that could generate really big
     // tables. Ideally in that case we generate a map lookup instead, but for
     // the moment we simply don't output a table at all.
-    auto range =
-        enum_def.vals.vec.back()->value - enum_def.vals.vec.front()->value + 1;
+    auto range = enum_def.Distance();
     // Average distance between values above which we consider a table
     // "too sparse". Change at will.
-    static const int kMaxSparseness = 5;
-    if (range / static_cast<int64_t>(enum_def.vals.vec.size()) <
-        kMaxSparseness) {
+    static const uint64_t kMaxSparseness = 5;
+    if (range / static_cast<uint64_t>(enum_def.size()) < kMaxSparseness) {
       code_ += "inline const char * const *EnumNames{{ENUM_NAME}}() {";
       code_ += "  static const char * const names[] = {";
 
-      auto val = enum_def.Vals().front()->value;
+      auto val = enum_def.Vals().front();
       for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
            ++it) {
-        const auto &ev = **it;
-        while (val++ != ev.value) { code_ += "    \"\","; }
-        code_ += "    \"" + Name(ev) + "\",";
+        auto ev = *it;
+        for (auto k = enum_def.Distance(val, ev); k > 1; --k) {
+          code_ += "    \"\",";
+        }
+        val = ev;
+        code_ += "    \"" + Name(*ev) + "\",";
       }
       code_ += "    nullptr";
       code_ += "  };";
@@ -1010,14 +1040,13 @@ class CppGenerator : public BaseGenerator {
 
       code_ += "inline const char *EnumName{{ENUM_NAME}}({{ENUM_NAME}} e) {";
 
-      code_ += "  if (e < " +
-               GetEnumValUse(enum_def, *enum_def.vals.vec.front()) +
-               " || e > " + GetEnumValUse(enum_def, *enum_def.vals.vec.back()) +
+      code_ += "  if (e < " + GetEnumValUse(enum_def, *enum_def.MinValue()) +
+               " || e > " + GetEnumValUse(enum_def, *enum_def.MaxValue()) +
                ") return \"\";";
 
       code_ += "  const size_t index = static_cast<size_t>(e)\\";
-      if (enum_def.vals.vec.front()->value) {
-        auto vals = GetEnumValUse(enum_def, *enum_def.vals.vec.front());
+      if (enum_def.MinValue()->IsNonZero()) {
+        auto vals = GetEnumValUse(enum_def, *enum_def.MinValue());
         code_ += " - static_cast<size_t>(" + vals + ")\\";
       }
       code_ += ";";
@@ -1067,8 +1096,8 @@ class CppGenerator : public BaseGenerator {
     if (parser_.opts.generate_object_based_api && enum_def.is_union) {
       // Generate a union type
       code_.SetValue("NAME", Name(enum_def));
-      code_.SetValue("NONE",
-                     GetEnumValUse(enum_def, *enum_def.vals.Lookup("NONE")));
+      FLATBUFFERS_ASSERT(enum_def.Lookup("NONE"));
+      code_.SetValue("NONE", GetEnumValUse(enum_def, *enum_def.Lookup("NONE")));
 
       code_ += "struct {{NAME}}Union {";
       code_ += "  {{NAME}} type;";
@@ -1363,8 +1392,8 @@ class CppGenerator : public BaseGenerator {
       code_ += "";
 
       // Union Reset() function.
-      code_.SetValue("NONE",
-                     GetEnumValUse(enum_def, *enum_def.vals.Lookup("NONE")));
+      FLATBUFFERS_ASSERT(enum_def.Lookup("NONE"));
+      code_.SetValue("NONE", GetEnumValUse(enum_def, *enum_def.Lookup("NONE")));
 
       code_ += "inline void {{ENUM_NAME}}Union::Reset() {";
       code_ += "  switch (type) {";
@@ -1430,18 +1459,19 @@ class CppGenerator : public BaseGenerator {
     if (IsFloat(field.value.type.base_type))
       return float_const_gen_.GenFloatConstant(field);
     else
-      return field.value.constant;
+      return NumToStringCpp(field.value.constant, field.value.type.base_type);
   }
 
   std::string GetDefaultScalarValue(const FieldDef &field, bool is_ctor) {
     if (field.value.type.enum_def && IsScalar(field.value.type.base_type)) {
-      auto ev = field.value.type.enum_def->ReverseLookup(
-          StringToInt(field.value.constant.c_str()), false);
+      auto ev = field.value.type.enum_def->FindByValue(field.value.constant);
       if (ev) {
         return WrapInNameSpace(field.value.type.enum_def->defined_namespace,
                                GetEnumValUse(*field.value.type.enum_def, *ev));
       } else {
-        return GenUnderlyingCast(field, true, field.value.constant);
+        return GenUnderlyingCast(
+            field, true,
+            NumToStringCpp(field.value.constant, field.value.type.base_type));
       }
     } else if (field.value.type.base_type == BASE_TYPE_BOOL) {
       return field.value.constant == "0" ? "false" : "true";

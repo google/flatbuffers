@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <list>
 #include <string>
+#include <utility>
 
 #include <math.h>
 
@@ -676,14 +677,6 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
       return Error(
             "default values currently only supported for scalars in tables");
   }
-  if (type.enum_def &&
-      !type.enum_def->is_union &&
-      !type.enum_def->attributes.Lookup("bit_flags") &&
-      !type.enum_def->ReverseLookup(StringToInt(
-                                      field->value.constant.c_str()))) {
-    return Error("default value of " + field->value.constant + " for field " +
-                 name + " is not part of enum " + type.enum_def->name);
-  }
   // Append .0 if the value has not it (skip hex and scientific floats).
   // This suffix needed for generated C++ code.
   if (IsFloat(type.base_type)) {
@@ -699,14 +692,26 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
       field->value.constant += ".0";
     }
   }
-
-  if (type.enum_def && IsScalar(type.base_type) && !struct_def.fixed &&
-      !type.enum_def->attributes.Lookup("bit_flags") &&
-      !type.enum_def->ReverseLookup(StringToInt(
-                                      field->value.constant.c_str())))
-    Warning("enum " + type.enum_def->name +
-            " does not have a declaration for this field\'s default of " +
-            field->value.constant);
+  if (type.enum_def) {
+    // The type.base_type can only be scalar, union or vector.
+    // Table, struct or string can't have enum_def.
+    // Default value of union and vector in NONE, NULL translated to "0".
+    FLATBUFFERS_ASSERT(IsInteger(type.base_type) ||
+                       (type.base_type == BASE_TYPE_UNION) ||
+                       (type.base_type == BASE_TYPE_VECTOR));
+    if (type.base_type == BASE_TYPE_VECTOR) {
+      // Vector can't use initialization list.
+      FLATBUFFERS_ASSERT(field->value.constant == "0");
+    } else {
+      // All unions should have the NONE ("0") enum value.
+      auto in_enum = type.enum_def->attributes.Lookup("bit_flags") ||
+                     type.enum_def->FindByValue(field->value.constant);
+      if (false == in_enum)
+        return Error("default value of " + field->value.constant +
+                     " for field " + name + " is not part of enum " +
+                     type.enum_def->name);
+    }
+  }
 
   field->doc_comment = dc;
   ECHECK(ParseMetaData(&field->attributes));
@@ -917,7 +922,7 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
       } else {
         ECHECK(atot(constant.c_str(), *this, &enum_idx));
       }
-      auto enum_val = val.type.enum_def->ReverseLookup(enum_idx);
+      auto enum_val = val.type.enum_def->ReverseLookup(enum_idx, true);
       if (!enum_val) return Error("illegal type id for: " + field->name);
       if (enum_val->union_type.base_type == BASE_TYPE_STRUCT) {
         ECHECK(ParseTable(*enum_val->union_type.struct_def, &val.constant,
@@ -1338,42 +1343,33 @@ CheckedError Parser::TryTypedValue(const std::string *name, int dtoken,
 
 CheckedError Parser::ParseEnumFromString(const Type &type,
                                          std::string *result) {
-  int64_t i64 = 0;
-  // Parse one or more enum identifiers, separated by spaces.
-  const char *next = attribute_.c_str();
-  do {
-    const char *divider = strchr(next, ' ');
-    std::string word;
-    if (divider) {
-      word = std::string(next, divider);
-      next = divider + strspn(divider, " ");
+  const auto base_type =
+      type.enum_def ? type.enum_def->underlying_type.base_type : type.base_type;
+  if (!IsInteger(base_type)) return Error("not a valid value for this field");
+  uint64_t u64 = 0;
+  for (size_t pos = 0; pos != std::string::npos;) {
+    const auto delim = attribute_.find_first_of(' ', pos);
+    const auto last = (std::string::npos == delim);
+    auto word = attribute_.substr(pos, !last ? delim - pos : std::string::npos);
+    pos = !last ? delim + 1 : std::string::npos;
+    const EnumVal *ev = nullptr;
+    if (type.enum_def) {
+      ev = type.enum_def->Lookup(word);
     } else {
-      word = next;
-      next += word.length();
-    }
-    if (type.enum_def) {  // The field has an enum type
-      auto enum_val = type.enum_def->vals.Lookup(word);
-      if (!enum_val)
-        return Error("unknown enum value: " + word +
-                     ", for enum: " + type.enum_def->name);
-      i64 |= enum_val->value;
-    } else {  // No enum type, probably integral field.
-      if (!IsInteger(type.base_type))
-        return Error("not a valid value for this field: " + word);
-      // TODO: could check if its a valid number constant here.
-      const char *dot = strrchr(word.c_str(), '.');
-      if (!dot)
+      auto dot = word.find_first_of('.');
+      if (std::string::npos == dot)
         return Error("enum values need to be qualified by an enum type");
-      std::string enum_def_str(word.c_str(), dot);
-      std::string enum_val_str(dot + 1, word.c_str() + word.length());
-      auto enum_def = LookupEnum(enum_def_str);
+      auto enum_def_str = word.substr(0, dot);
+      const auto enum_def = LookupEnum(enum_def_str);
       if (!enum_def) return Error("unknown enum: " + enum_def_str);
-      auto enum_val = enum_def->vals.Lookup(enum_val_str);
-      if (!enum_val) return Error("unknown enum value: " + enum_val_str);
-      i64 |= enum_val->value;
+      auto enum_val_str = word.substr(dot + 1);
+      ev = enum_def->Lookup(enum_val_str);
     }
-  } while (*next);
-  *result = NumToString(i64);
+    if (!ev) return Error("unknown enum value: " + word);
+    u64 |= ev->GetAsUInt64();
+  }
+  *result = IsUnsigned(base_type) ? NumToString(u64)
+                                  : NumToString(static_cast<int64_t>(u64));
   return NoError();
 }
 
@@ -1618,7 +1614,204 @@ StructDef *Parser::LookupCreateStruct(const std::string &name,
   return struct_def;
 }
 
-CheckedError Parser::ParseEnum(bool is_union, EnumDef **dest) {
+const EnumVal *EnumDef::MinValue() const {
+  return vals.vec.empty() ? nullptr : vals.vec.front();
+}
+const EnumVal *EnumDef::MaxValue() const {
+  return vals.vec.empty() ? nullptr : vals.vec.back();
+}
+
+template<typename T> static uint64_t EnumDistanceImpl(T e1, T e2) {
+  if (e1 < e2) { std::swap(e1, e2); }  // use std for scalars
+  // Signed overflow may occur, use unsigned calculation.
+  // The unsigned overflow is well-defined by C++ standard (modulo 2^n).
+  return static_cast<uint64_t>(e1) - static_cast<uint64_t>(e2);
+}
+
+uint64_t EnumDef::Distance(const EnumVal *v1, const EnumVal *v2) const {
+  return IsUInt64() ? EnumDistanceImpl(v1->GetAsUInt64(), v2->GetAsUInt64())
+                    : EnumDistanceImpl(v1->GetAsInt64(), v2->GetAsInt64());
+}
+
+std::string EnumDef::AllFlags() const {
+  FLATBUFFERS_ASSERT(attributes.Lookup("bit_flags"));
+  uint64_t u64 = 0;
+  for (auto it = Vals().begin(); it != Vals().end(); ++it) {
+    u64 |= (*it)->GetAsUInt64();
+  }
+  return IsUInt64() ? NumToString(u64) : NumToString(static_cast<int64_t>(u64));
+}
+
+EnumVal *EnumDef::ReverseLookup(int64_t enum_idx,
+                                bool skip_union_default) const {
+  auto skip_first = static_cast<int>(is_union && skip_union_default);
+  for (auto it = Vals().begin() + skip_first; it != Vals().end(); ++it) {
+    if ((*it)->GetAsInt64() == enum_idx) { return *it; }
+  }
+  return nullptr;
+}
+
+EnumVal *EnumDef::FindByValue(const std::string &constant) const {
+  int64_t i64;
+  auto done = false;
+  if (IsUInt64()) {
+    uint64_t u64;  // avoid reinterpret_cast of pointers
+    done = StringToNumber(constant.c_str(), &u64);
+    i64 = static_cast<int64_t>(u64);
+  } else {
+    done = StringToNumber(constant.c_str(), &i64);
+  }
+  FLATBUFFERS_ASSERT(done);
+  if (!done) return nullptr;
+  return ReverseLookup(i64, false);
+}
+
+void EnumDef::SortByValue() {
+  auto &v = vals.vec;
+  if (IsUInt64())
+    std::sort(v.begin(), v.end(), [](const EnumVal *e1, const EnumVal *e2) {
+      return e1->GetAsUInt64() < e2->GetAsUInt64();
+    });
+  else
+    std::sort(v.begin(), v.end(), [](const EnumVal *e1, const EnumVal *e2) {
+      return e1->GetAsInt64() < e2->GetAsInt64();
+    });
+}
+
+void EnumDef::RemoveDuplicates() {
+  // This method depends form SymbolTable implementation!
+  // 1) vals.vec - owner (raw pointer)
+  // 2) vals.dict - access map
+  auto first = vals.vec.begin();
+  auto last = vals.vec.end();
+  if (first == last) return;
+  auto result = first;
+  while (++first != last) {
+    if ((*result)->value != (*first)->value) {
+      *(++result) = *first;
+    } else {
+      auto ev = *first;
+      for (auto it = vals.dict.begin(); it != vals.dict.end(); ++it) {
+        if (it->second == ev) it->second = *result;  // reassign
+      }
+      delete ev;  // delete enum value
+      *first = nullptr;
+    }
+  }
+  vals.vec.erase(++result, last);
+}
+
+template<typename T> void EnumDef::ChangeEnumValue(EnumVal *ev, T new_value) {
+  ev->value = static_cast<int64_t>(new_value);
+}
+
+namespace EnumHelper {
+template<BaseType E> struct EnumValType { typedef int64_t type; };
+template<> struct EnumValType<BASE_TYPE_ULONG> { typedef uint64_t type; };
+}  // namespace EnumHelper
+
+struct EnumValBuilder {
+  EnumVal *CreateEnumerator(const std::string &ev_name) {
+    FLATBUFFERS_ASSERT(!temp);
+    auto first = enum_def.vals.vec.empty();
+    user_value = first;
+    temp = new EnumVal(ev_name, first ? 0 : enum_def.vals.vec.back()->value);
+    return temp;
+  }
+
+  EnumVal *CreateEnumerator(const std::string &ev_name, int64_t val) {
+    FLATBUFFERS_ASSERT(!temp);
+    user_value = true;
+    temp = new EnumVal(ev_name, val);
+    return temp;
+  }
+
+  FLATBUFFERS_CHECKED_ERROR AcceptEnumerator(const std::string &name) {
+    FLATBUFFERS_ASSERT(temp);
+    ECHECK(ValidateValue(&temp->value, false == user_value));
+    FLATBUFFERS_ASSERT((temp->union_type.enum_def == nullptr) ||
+                       (temp->union_type.enum_def == &enum_def));
+    auto not_unique = enum_def.vals.Add(name, temp);
+    temp = nullptr;
+    if (not_unique) return parser.Error("enum value already exists: " + name);
+    return NoError();
+  }
+
+  FLATBUFFERS_CHECKED_ERROR AcceptEnumerator() {
+    return AcceptEnumerator(temp->name);
+  }
+
+  FLATBUFFERS_CHECKED_ERROR AssignEnumeratorValue(const std::string &value) {
+    user_value = true;
+    auto fit = false;
+    auto ascending = false;
+    if (enum_def.IsUInt64()) {
+      uint64_t u64;
+      fit = StringToNumber(value.c_str(), &u64); 
+      ascending = u64 > temp->GetAsUInt64();
+      temp->value = static_cast<int64_t>(u64);  // well-defined since C++20.
+    } else {
+      int64_t i64;
+      fit = StringToNumber(value.c_str(), &i64);
+      ascending = i64 > temp->GetAsInt64();
+      temp->value = i64;
+    }
+    if (!fit) return parser.Error("enum value does not fit, \"" + value + "\"");
+    if (!ascending && strict_ascending && !enum_def.vals.vec.empty())
+      return parser.Error("enum values must be specified in ascending order");
+    return NoError();
+  }
+
+  template<BaseType E, typename CTYPE>
+  inline FLATBUFFERS_CHECKED_ERROR ValidateImpl(int64_t *ev, int m) {
+    typedef typename EnumHelper::EnumValType<E>::type T;  // int64_t or uint64_t
+    static_assert(sizeof(T) == sizeof(int64_t), "invalid EnumValType");
+    const auto v = static_cast<T>(*ev);
+    auto up = static_cast<T>((flatbuffers::numeric_limits<CTYPE>::max)());
+    auto dn = static_cast<T>((flatbuffers::numeric_limits<CTYPE>::lowest)());
+    if (v < dn || v > (up - m)) {
+      return parser.Error("enum value does not fit, \"" + NumToString(v) +
+                          (m ? " + 1\"" : "\"") + " out of " +
+                          TypeToIntervalString<CTYPE>());
+    }
+    *ev = static_cast<int64_t>(v + m);  // well-defined since C++20.
+    return NoError();
+  }
+
+  FLATBUFFERS_CHECKED_ERROR ValidateValue(int64_t *ev, bool next) {
+    // clang-format off
+    switch (enum_def.underlying_type.base_type) {
+    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE,   \
+                           PTYPE, RTYPE)                                \
+      case BASE_TYPE_##ENUM: {                                          \
+        if (!IsInteger(BASE_TYPE_##ENUM)) break;                        \
+        return ValidateImpl<BASE_TYPE_##ENUM, CTYPE>(ev, next ? 1 : 0); \
+      }
+      FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD);
+    #undef FLATBUFFERS_TD
+    default: break;
+    }
+    // clang-format on
+    return parser.Error("fatal: invalid enum underlying type");
+  }
+
+  EnumValBuilder(Parser &_parser, EnumDef &_enum_def, bool strict_order = true)
+      : parser(_parser),
+        enum_def(_enum_def),
+        temp(nullptr),
+        strict_ascending(strict_order),
+        user_value(false) {}
+
+  ~EnumValBuilder() { delete temp; }
+
+  Parser &parser;
+  EnumDef &enum_def;
+  EnumVal *temp;
+  const bool strict_ascending;
+  bool user_value;
+};
+
+CheckedError Parser::ParseEnum(const bool is_union, EnumDef **dest) {
   std::vector<std::string> enum_comment = doc_comment_;
   NEXT();
   std::string enum_name = attribute_;
@@ -1645,33 +1838,38 @@ CheckedError Parser::ParseEnum(bool is_union, EnumDef **dest) {
     enum_def->underlying_type.enum_def = enum_def;
   }
   ECHECK(ParseMetaData(&enum_def->attributes));
+  const auto underlying_type = enum_def->underlying_type.base_type;
+  if (enum_def->attributes.Lookup("bit_flags") &&
+      !IsUnsigned(underlying_type)) {
+    // todo: Convert to the Error in the future?
+    Warning("underlying type of bit_flags enum must be unsigned");
+  }
+  // Protobuf allows them to be specified in any order, so sort afterwards.
+  const auto strict_ascending = (false == opts.proto_mode);
+  EnumValBuilder evb(*this, *enum_def, strict_ascending);
   EXPECT('{');
-  if (is_union) enum_def->vals.Add("NONE", new EnumVal("NONE", 0));
-  std::set<std::pair<BaseType, StructDef*>> union_types;
-  for (;;) {
+  // A lot of code generatos expect that an enum is not-empty.
+  if ((is_union || Is('}')) && !opts.proto_mode) {
+    evb.CreateEnumerator("NONE");
+    ECHECK(evb.AcceptEnumerator());
+  }
+  std::set<std::pair<BaseType, StructDef *>> union_types;
+  while (!Is('}')) {
     if (opts.proto_mode && attribute_ == "option") {
       ECHECK(ParseProtoOption());
     } else {
-      auto value_name = attribute_;
-      auto full_name = value_name;
-      std::vector<std::string> value_comment = doc_comment_;
+      auto &ev = *evb.CreateEnumerator(attribute_);
+      auto full_name = ev.name;
+      ev.doc_comment = doc_comment_;
       EXPECT(kTokenIdentifier);
       if (is_union) {
-        ECHECK(ParseNamespacing(&full_name, &value_name));
+        ECHECK(ParseNamespacing(&full_name, &ev.name));
         if (opts.union_value_namespacing) {
           // Since we can't namespace the actual enum identifiers, turn
           // namespace parts into part of the identifier.
-          value_name = full_name;
-          std::replace(value_name.begin(), value_name.end(), '.', '_');
+          ev.name = full_name;
+          std::replace(ev.name.begin(), ev.name.end(), '.', '_');
         }
-      }
-      auto prevsize = enum_def->vals.vec.size();
-      auto prevvalue = prevsize > 0 ? enum_def->vals.vec.back()->value : 0;
-      auto &ev = *new EnumVal(value_name, 0);
-      if (enum_def->vals.Add(value_name, &ev))
-        return Error("enum value already exists: " + value_name);
-      ev.doc_comment = value_comment;
-      if (is_union) {
         if (Is(':')) {
           NEXT();
           ECHECK(ParseType(ev.union_type));
@@ -1682,51 +1880,22 @@ CheckedError Parser::ParseEnum(bool is_union, EnumDef **dest) {
           ev.union_type = Type(BASE_TYPE_STRUCT, LookupCreateStruct(full_name));
         }
         if (!enum_def->uses_multiple_type_instances) {
-          auto union_type_key = std::make_pair(ev.union_type.base_type, ev.union_type.struct_def);
-          if (union_types.count(union_type_key) > 0) {
-            enum_def->uses_multiple_type_instances = true;
-          } else {
-            union_types.insert(union_type_key);
-          }
+          auto ins = union_types.insert(std::make_pair(
+              ev.union_type.base_type, ev.union_type.struct_def));
+          enum_def->uses_multiple_type_instances = (false == ins.second);
         }
       }
+
       if (Is('=')) {
         NEXT();
-        ECHECK(atot(attribute_.c_str(), *this, &ev.value));
+        ECHECK(evb.AssignEnumeratorValue(attribute_));
         EXPECT(kTokenIntegerConstant);
-        if (!opts.proto_mode && prevsize &&
-            enum_def->vals.vec[prevsize - 1]->value >= ev.value)
-          return Error("enum values must be specified in ascending order");
-      } else if (prevsize == 0) {
-        // already set to zero
-      } else if (prevvalue != flatbuffers::numeric_limits<int64_t>::max()) {
-        ev.value = prevvalue + 1;
-      } else {
-        return Error("enum value overflows");
+      } else if (false == strict_ascending) {
+        // The opts.proto_mode flag is active.
+        return Error("Protobuf mode doesn't allow implicit enum values.");
       }
 
-      // Check that value fits into the underlying type.
-      switch (enum_def->underlying_type.base_type) {
-        // clang-format off
-        #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, \
-                               PTYPE, RTYPE)                              \
-          case BASE_TYPE_##ENUM: {                                        \
-            int64_t min_value = static_cast<int64_t>(                     \
-              flatbuffers::numeric_limits<CTYPE>::lowest());              \
-            int64_t max_value = static_cast<int64_t>(                     \
-              flatbuffers::numeric_limits<CTYPE>::max());                 \
-            if (ev.value < min_value || ev.value > max_value) {           \
-              return Error(                                               \
-                "enum value does not fit [" +  NumToString(min_value) +   \
-                "; " + NumToString(max_value) + "]");                     \
-            }                                                             \
-            break;                                                        \
-          }
-        FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD);
-        #undef FLATBUFFERS_TD
-        default: break;
-        // clang-format on
-      }
+      ECHECK(evb.AcceptEnumerator());
 
       if (opts.proto_mode && Is('[')) {
         NEXT();
@@ -1737,18 +1906,31 @@ CheckedError Parser::ParseEnum(bool is_union, EnumDef **dest) {
     }
     if (!Is(opts.proto_mode ? ';' : ',')) break;
     NEXT();
-    if (Is('}')) break;
   }
   EXPECT('}');
+
+  // At this point, the enum can be empty if input is invalid proto-file.
+  if (!enum_def->size())
+    return Error("incomplete enum declaration, values not found");
+
   if (enum_def->attributes.Lookup("bit_flags")) {
-    for (auto it = enum_def->vals.vec.begin(); it != enum_def->vals.vec.end();
+    const auto base_width = static_cast<uint64_t>(8 * SizeOf(underlying_type));
+    for (auto it = enum_def->Vals().begin(); it != enum_def->Vals().end();
          ++it) {
-      if (static_cast<size_t>((*it)->value) >=
-          SizeOf(enum_def->underlying_type.base_type) * 8)
+      auto ev = *it;
+      const auto u = ev->GetAsUInt64();
+      // Stop manipulations with the sign.
+      if (!IsUnsigned(underlying_type) && u == (base_width - 1))
+        return Error("underlying type of bit_flags enum must be unsigned");
+      if (u >= base_width)
         return Error("bit flag out of range of underlying integral type");
-      (*it)->value = 1LL << (*it)->value;
+      enum_def->ChangeEnumValue(ev, 1ULL << u);
     }
   }
+
+  if (false == strict_ascending)
+    enum_def->SortByValue();  // Must be sorted to use MinValue/MaxValue.
+
   if (dest) *dest = enum_def;
   types_.Add(current_namespace_->GetFullyQualifiedName(enum_def->name),
              new Type(BASE_TYPE_UNION, nullptr, enum_def));
@@ -1982,10 +2164,6 @@ CheckedError Parser::ParseNamespace() {
   return NoError();
 }
 
-static bool compareEnumVals(const EnumVal *a, const EnumVal *b) {
-  return a->value < b->value;
-}
-
 // Best effort parsing of .proto declarations, with the aim to turn them
 // in the closest corresponding FlatBuffer equivalent.
 // We parse everything as identifiers instead of keywords, since we don't
@@ -2031,25 +2209,8 @@ CheckedError Parser::ParseProtoDecl() {
     EnumDef *enum_def;
     ECHECK(ParseEnum(false, &enum_def));
     if (Is(';')) NEXT();
-    // Protobuf allows them to be specified in any order, so sort afterwards.
-    auto &v = enum_def->vals.vec;
-    std::sort(v.begin(), v.end(), compareEnumVals);
-
     // Temp: remove any duplicates, as .fbs files can't handle them.
-    for (auto it = v.begin(); it != v.end();) {
-      if (it != v.begin() && it[0]->value == it[-1]->value) {
-        auto ref = it[-1];
-        auto ev = it[0];
-        for (auto dit = enum_def->vals.dict.begin();
-             dit != enum_def->vals.dict.end(); ++dit) {
-          if (dit->second == ev) dit->second = ref;  // reassign
-        }
-        delete ev;  // delete enum value
-        it = v.erase(it);
-      } else {
-        ++it;
-      }
-    }
+    enum_def->RemoveDuplicates();
   } else if (IsIdent("syntax")) {  // Skip these.
     NEXT();
     EXPECT('=');
@@ -2219,11 +2380,11 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
             return Error("oneof '" + name +
                 "' cannot be mapped to a union because member '" +
                 oneof_field.name + "' is not a table type.");
-          auto enum_val = new EnumVal(oneof_type.struct_def->name,
-                                      oneof_union->vals.vec.size());
-          enum_val->union_type = oneof_type;
-          enum_val->doc_comment = oneof_field.doc_comment;
-          oneof_union->vals.Add(oneof_field.name, enum_val);
+          EnumValBuilder evb(*this, *oneof_union);
+          auto ev = evb.CreateEnumerator(oneof_type.struct_def->name);
+          ev->union_type = oneof_type;
+          ev->doc_comment = oneof_field.doc_comment;
+          ECHECK(evb.AcceptEnumerator(oneof_field.name));
         }
       } else {
         EXPECT(';');
@@ -3205,9 +3366,9 @@ std::string Parser::ConformTo(const Parser &base) {
     for (auto evit = enum_def.Vals().begin(); evit != enum_def.Vals().end();
          ++evit) {
       auto &enum_val = **evit;
-      auto enum_val_base = enum_def_base->vals.Lookup(enum_val.name);
+      auto enum_val_base = enum_def_base->Lookup(enum_val.name);
       if (enum_val_base) {
-        if (enum_val.value != enum_val_base->value)
+        if (enum_val != *enum_val_base)
           return "values differ for enum: " + enum_val.name;
       }
     }

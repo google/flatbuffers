@@ -242,9 +242,9 @@ class DartGenerator : public BaseGenerator {
     // holes.
     if (!is_bit_flags) {
       code += "  static const int minValue = " +
-              NumToString(enum_def.vals.vec.front()->value) + ";\n";
+              enum_def.ToString(*enum_def.MinValue()) + ";\n";
       code += "  static const int maxValue = " +
-              NumToString(enum_def.vals.vec.back()->value) + ";\n";
+              enum_def.ToString(*enum_def.MaxValue()) + ";\n";
     }
 
     code +=
@@ -259,13 +259,13 @@ class DartGenerator : public BaseGenerator {
         GenDocComment(ev.doc_comment, &code, "", "  ");
       }
       code += "  static const " + name + " " + ev.name + " = ";
-      code += "const " + name + "._(" + NumToString(ev.value) + ");\n";
+      code += "const " + name + "._(" + enum_def.ToString(ev) + ");\n";
     }
 
     code += "  static get values => {";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
-      code += NumToString(ev.value) + ": " + ev.name + ",";
+      code += enum_def.ToString(ev) + ": " + ev.name + ",";
     }
     code += "};\n\n";
 
@@ -507,7 +507,7 @@ class DartGenerator : public BaseGenerator {
           auto &ev = **en_it;
 
           auto enum_name = NamespaceAliasFromUnionType(ev.name);
-          code += "      case " + NumToString(ev.value) + ": return " +
+          code += "      case " + enum_def.ToString(ev) + ": return " +
                   enum_name + ".reader.vTableGet(_bc, _bcOffset, " +
                   NumToString(field.value.offset) + ", null);\n";
         }

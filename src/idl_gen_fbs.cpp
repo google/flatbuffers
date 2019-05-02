@@ -102,7 +102,7 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
       if (enum_def.is_union)
         schema += "  " + GenType(ev.union_type) + ",\n";
       else
-        schema += "  " + ev.name + " = " + NumToString(ev.value) + ",\n";
+        schema += "  " + ev.name + " = " + enum_def.ToString(ev) + ",\n";
     }
     schema += "}\n\n";
   }
