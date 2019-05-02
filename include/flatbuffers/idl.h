@@ -123,6 +123,13 @@ inline bool IsLong   (BaseType t) { return t == BASE_TYPE_LONG ||
 inline bool IsBool   (BaseType t) { return t == BASE_TYPE_BOOL; }
 inline bool IsOneByte(BaseType t) { return t >= BASE_TYPE_UTYPE &&
                                            t <= BASE_TYPE_UCHAR; }
+
+inline bool IsUnsigned(BaseType t) {
+  return (t == BASE_TYPE_UTYPE)  || (t == BASE_TYPE_UCHAR) ||
+         (t == BASE_TYPE_USHORT) || (t == BASE_TYPE_UINT)  ||
+         (t == BASE_TYPE_ULONG);
+}
+
 // clang-format on
 
 extern const char *const kTypeNames[];
@@ -327,51 +334,95 @@ inline size_t InlineAlignment(const Type &type) {
   return IsStruct(type) ? type.struct_def->minalign : SizeOf(type.base_type);
 }
 
-struct EnumVal {
-  EnumVal(const std::string &_name, int64_t _val) : name(_name), value(_val) {}
-  EnumVal() : value(0) {}
+struct EnumDef;
+struct EnumValBuilder;
 
+struct EnumVal {
   Offset<reflection::EnumVal> Serialize(FlatBufferBuilder *builder, const Parser &parser) const;
 
   bool Deserialize(const Parser &parser, const reflection::EnumVal *val);
+
+  uint64_t GetAsUInt64() const { return static_cast<uint64_t>(value); }
+  int64_t GetAsInt64() const { return value; }
   bool IsZero() const { return 0 == value; }
   bool IsNonZero() const { return !IsZero(); }
 
   std::string name;
   std::vector<std::string> doc_comment;
-  int64_t value;
   Type union_type;
+
+ private:
+  friend EnumDef;
+  friend EnumValBuilder;
+  friend bool operator==(const EnumVal &lhs, const EnumVal &rhs);
+
+  EnumVal(const std::string &_name, int64_t _val) : name(_name), value(_val) {}
+  EnumVal() : value(0) {}
+
+  int64_t value;
 };
 
 struct EnumDef : public Definition {
   EnumDef() : is_union(false), uses_multiple_type_instances(false) {}
 
-  EnumVal *ReverseLookup(int64_t enum_idx, bool skip_union_default = true) {
-    for (auto it = Vals().begin() +
-                   static_cast<int>(is_union && skip_union_default);
-         it != Vals().end(); ++it) {
-      if ((*it)->value == enum_idx) { return *it; }
-    }
-    return nullptr;
-  }
-
-  Offset<reflection::Enum> Serialize(FlatBufferBuilder *builder, const Parser &parser) const;
+  Offset<reflection::Enum> Serialize(FlatBufferBuilder *builder,
+                                     const Parser &parser) const;
 
   bool Deserialize(Parser &parser, const reflection::Enum *values);
+
+  template<typename T> void ChangeEnumValue(EnumVal *ev, T new_val);
+  void SortByValue();
+  void RemoveDuplicates();
+
+  std::string AllFlags() const;
+  const EnumVal *MinValue() const;
+  const EnumVal *MaxValue() const;
+  // Returns the number of integer steps from v1 to v2.
+  uint64_t Distance(const EnumVal *v1, const EnumVal *v2) const;
+  // Returns the number of integer steps from Min to Max.
+  uint64_t Distance() const { return Distance(MinValue(), MaxValue()); }
+
+  EnumVal *ReverseLookup(int64_t enum_idx,
+                         bool skip_union_default = false) const;
+  EnumVal *FindByValue(const std::string &constant) const;
+
+  std::string ToString(const EnumVal &ev) const {
+    return IsUInt64() ? NumToString(ev.GetAsUInt64())
+                      : NumToString(ev.GetAsInt64());
+  }
 
   size_t size() const { return vals.vec.size(); }
 
   const std::vector<EnumVal *> &Vals() const {
+    FLATBUFFERS_ASSERT(false == vals.vec.empty());
     return vals.vec;
   }
 
-  SymbolTable<EnumVal> vals;
+  const EnumVal *Lookup(const std::string &enum_name) const {
+    return vals.Lookup(enum_name);
+  }
+
   bool is_union;
   // Type is a union which uses type aliases where at least one type is
   // available under two different names.
   bool uses_multiple_type_instances;
   Type underlying_type;
+
+ private:
+  bool IsUInt64() const {
+    return (BASE_TYPE_ULONG == underlying_type.base_type);
+  }
+
+  friend EnumValBuilder;
+  SymbolTable<EnumVal> vals;
 };
+
+inline bool operator==(const EnumVal &lhs, const EnumVal &rhs) {
+  return lhs.value == rhs.value;
+}
+inline bool operator!=(const EnumVal &lhs, const EnumVal &rhs) {
+  return !(lhs == rhs);
+}
 
 inline bool EqualByName(const Type &a, const Type &b) {
   return a.base_type == b.base_type && a.element == b.element &&

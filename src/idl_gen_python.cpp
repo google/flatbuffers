@@ -118,8 +118,7 @@ class PythonGenerator : public BaseGenerator {
     code += Indent;
     code += NormalizedName(ev);
     code += " = ";
-    code += NumToString(ev.value) + "\n";
-    (void)enum_def;
+    code += enum_def.ToString(ev) + "\n";
   }
 
   // End enum code.

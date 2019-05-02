@@ -1297,7 +1297,6 @@ void ErrorTest() {
   TestError("enum X:float {}", "underlying");
   TestError("enum X:byte { Y, Y }", "value already");
   TestError("enum X:byte { Y=2, Z=1 }", "ascending");
-  TestError("enum X:byte (bit_flags) { Y=8 }", "bit flag out");
   TestError("table X { Y:int; } table X {", "datatype already");
   TestError("struct X (force_align: 7) { Y:int; }", "force_align");
   TestError("struct X {}", "size 0");
@@ -1416,6 +1415,13 @@ void EnumStringsTest() {
                         "root_type T;"
                         "{ F:[ \"E.C\", \"E.A E.B E.C\" ] }"),
           true);
+  // unsigned bit_flags
+  flatbuffers::Parser parser3;
+  TEST_EQ(
+      parser3.Parse("enum E:uint16 (bit_flags) { F0, F07=7, F08, F14=14, F15 }"
+                    " table T { F: E = \"F15 F08\"; }"
+                    "root_type T;"),
+      true);
 }
 
 void EnumNamesTest() {
@@ -1436,9 +1442,10 @@ void EnumNamesTest() {
 void EnumOutOfRangeTest() {
   TestError("enum X:byte { Y = 128 }", "enum value does not fit");
   TestError("enum X:byte { Y = -129 }", "enum value does not fit");
-  TestError("enum X:byte { Y = 127, Z }", "enum value does not fit");
+  TestError("enum X:byte { Y = 126, Z0, Z1 }", "enum value does not fit");
   TestError("enum X:ubyte { Y = -1 }", "enum value does not fit");
   TestError("enum X:ubyte { Y = 256 }", "enum value does not fit");
+  TestError("enum X:ubyte { Y = 255, Z }", "enum value does not fit");
   // Unions begin with an implicit "NONE = 0".
   TestError("table Y{} union X { Y = -1 }",
             "enum values must be specified in ascending order");
@@ -1448,12 +1455,13 @@ void EnumOutOfRangeTest() {
   TestError("enum X:int { Y = 2147483648 }", "enum value does not fit");
   TestError("enum X:uint { Y = -1 }", "enum value does not fit");
   TestError("enum X:uint { Y = 4294967297 }", "enum value does not fit");
-  TestError("enum X:long { Y = 9223372036854775808 }", "constant does not fit");
-  TestError("enum X:long { Y = 9223372036854775807, Z }", "enum value overflows");
-  TestError("enum X:ulong { Y = -1 }", "enum value does not fit");
-  // TODO: these are perfectly valid constants that shouldn't fail
-  TestError("enum X:ulong { Y = 13835058055282163712 }", "constant does not fit");
-  TestError("enum X:ulong { Y = 18446744073709551615 }", "constant does not fit");
+  TestError("enum X:long { Y = 9223372036854775808 }", "does not fit");
+  TestError("enum X:long { Y = 9223372036854775807, Z }", "enum value does not fit");
+  TestError("enum X:ulong { Y = -1 }", "does not fit");
+  TestError("enum X:ubyte (bit_flags) { Y=8 }", "bit flag out");
+  TestError("enum X:byte (bit_flags) { Y=7 }", "must be unsigned"); // -128
+  // bit_flgs out of range
+  TestError("enum X:ubyte (bit_flags) { Y0,Y1,Y2,Y3,Y4,Y5,Y6,Y7,Y8 }", "out of range");
 }
 
 void EnumValueTest() {
@@ -1472,6 +1480,15 @@ void EnumValueTest() {
   // Generate json with defaults and check.
   TEST_EQ(TestValue<int>(nullptr, "E", "enum E:int { Z, V=5 }"), 0);
   TEST_EQ(TestValue<int>(nullptr, "E=V", "enum E:int { Z, V=5 }"), 5);
+  // u84 test
+  TEST_EQ(TestValue<uint64_t>(nullptr, "E=V",
+                              "enum E:ulong { V = 13835058055282163712 }"),
+          13835058055282163712ULL);
+  TEST_EQ(TestValue<uint64_t>(nullptr, "E=V",
+                              "enum E:ulong { V = 18446744073709551615 }"),
+          18446744073709551615ULL);
+  // Assign non-enum value to enum field. Is it right?
+  TEST_EQ(TestValue<int>("{ Y:7 }", "E", "enum E:int { V = 0 }"), 7);
 }
 
 void IntegerOutOfRangeTest() {
@@ -2694,7 +2711,7 @@ int main(int /*argc*/, const char * /*argv*/ []) {
 
   std::string req_locale;
   if (flatbuffers::ReadEnvironmentVariable("FLATBUFFERS_TEST_LOCALE",
-                                          &req_locale)) {
+                                           &req_locale)) {
     TEST_OUTPUT_LINE("The environment variable FLATBUFFERS_TEST_LOCALE=%s",
                      req_locale.c_str());
     req_locale = flatbuffers::RemoveStringQuotes(req_locale);

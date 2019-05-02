@@ -263,7 +263,7 @@ class LobsterGenerator : public BaseGenerator {
       auto &ev = **it;
       GenComment(ev.doc_comment, code_ptr, nullptr, "    ");
       code += "    " + enum_def.name + "_" + NormalizedName(ev) + " = " +
-              NumToString(ev.value);
+              enum_def.ToString(ev);
       if (it + 1 != enum_def.Vals().end()) code += ",";
       code += "\n";
     }

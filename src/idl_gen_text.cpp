@@ -51,10 +51,10 @@ bool Print(T val, Type type, int /*indent*/, Type * /*union_type*/,
            const IDLOptions &opts, std::string *_text) {
   std::string &text = *_text;
   if (type.enum_def && opts.output_enum_identifiers) {
-    auto enum_val = type.enum_def->ReverseLookup(static_cast<int64_t>(val));
-    if (enum_val) {
+    auto ev = type.enum_def->ReverseLookup(static_cast<int64_t>(val));
+    if (ev) {
       text += "\"";
-      text += enum_val->name;
+      text += ev->name;
       text += "\"";
       return true;
     }
@@ -251,7 +251,7 @@ static bool GenStruct(const StructDef &struct_def, const Table *table,
       }
       if (fd.value.type.base_type == BASE_TYPE_UTYPE) {
         auto enum_val = fd.value.type.enum_def->ReverseLookup(
-            table->GetField<uint8_t>(fd.value.offset, 0));
+            table->GetField<uint8_t>(fd.value.offset, 0), true);
         union_type = enum_val ? &enum_val->union_type : nullptr;
       }
     }

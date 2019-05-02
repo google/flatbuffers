@@ -53,6 +53,11 @@ class CodeWriter {
     value_map_[key] = value;
   }
 
+  std::string GetValue(const std::string &key) const {
+    const auto it = value_map_.find(key);
+    return it == value_map_.end() ? "" : it->second;
+  }
+
   // Appends the given text to the generated code as well as a newline
   // character.  Any text within {{ and }} delimeters is replaced by values
   // previously stored in the CodeWriter by calling SetValue above.  The newline
