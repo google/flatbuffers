@@ -590,6 +590,41 @@ void JsonDefaultTest() {
   TEST_EQ(std::string::npos != jsongen.find("testf: 3.14159"), true);
 }
 
+#if defined(FLATBUFFERS_HAS_NEW_STRTOD)
+void TestMonsterExtraFloats() {
+  using namespace MyGame;
+  // Load FlatBuffer schema (.fbs) from disk.
+  std::string schemafile;
+  TEST_EQ(flatbuffers::LoadFile((test_data_path + "monster_extra.fbs").c_str(),
+                                false, &schemafile),
+          true);
+  // Parse schema first, so we can use it to parse the data after.
+  flatbuffers::Parser parser;
+  auto include_test_path =
+      flatbuffers::ConCatPathFileName(test_data_path, "include_test");
+  const char *include_directories[] = { test_data_path.c_str(),
+                                        include_test_path.c_str(), nullptr };
+  TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
+  // Create empty extra and store to json.
+  parser.opts.output_default_scalars_in_json = true;
+  parser.opts.output_enum_identifiers = true;
+  flatbuffers::FlatBufferBuilder builder;
+  MonsterExtraBuilder extra(builder);
+  FinishMonsterExtraBuffer(builder, extra.Finish());
+  std::string jsongen;
+  auto result = GenerateText(parser, builder.GetBufferPointer(), &jsongen);
+  TEST_EQ(result, true);
+  TEST_EQ(std::string::npos != jsongen.find("testf_nan: nan"), true);
+  TEST_EQ(std::string::npos != jsongen.find("testf_pinf: inf"), true);
+  TEST_EQ(std::string::npos != jsongen.find("testf_ninf: -inf"), true);
+  TEST_EQ(std::string::npos != jsongen.find("testd_nan: nan"), true);
+  TEST_EQ(std::string::npos != jsongen.find("testd_pinf: inf"), true);
+  TEST_EQ(std::string::npos != jsongen.find("testd_ninf: -inf"), true);
+}
+#else
+void TestMonsterExtraFloats() {}
+#endif
+
 // example of parsing text straight into a buffer, and generating
 // text back from it:
 void ParseAndGenerateTextTest(bool binary) {
@@ -2686,6 +2721,7 @@ int FlatBufferTests() {
   IsAsciiUtilsTest();
   ValidFloatTest();
   InvalidFloatTest();
+  TestMonsterExtraFloats();
   return 0;
 }
 
