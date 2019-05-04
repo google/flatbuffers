@@ -44,7 +44,7 @@ class _ColorReader extends fb.Reader<Color> {
 
   @override
   Color read(fb.BufferContext bc, int offset) =>
-      new Color.fromValue(const fb.Int8Reader().read(bc, offset));
+      new Color.fromValue(const fb.Uint8Reader().read(bc, offset));
 }
 
 class AnyTypeId {
@@ -257,7 +257,7 @@ class TestSimpleTableWithEnum {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
-  Color get color => new Color.fromValue(const fb.Int8Reader().vTableGet(_bc, _bcOffset, 4, 2));
+  Color get color => new Color.fromValue(const fb.Uint8Reader().vTableGet(_bc, _bcOffset, 4, 2));
 
   @override
   String toString() {
@@ -285,7 +285,7 @@ class TestSimpleTableWithEnumBuilder {
   }
 
   int addColor(Color color) {
-    fbBuilder.addInt8(0, color?.value);
+    fbBuilder.addUint8(0, color?.value);
     return fbBuilder.offset;
   }
 
@@ -309,7 +309,7 @@ class TestSimpleTableWithEnumObjectBuilder extends fb.ObjectBuilder {
     assert(fbBuilder != null);
 
     fbBuilder.startTable();
-    fbBuilder.addInt8(0, _color?.value);
+    fbBuilder.addUint8(0, _color?.value);
     return fbBuilder.endTable();
   }
 
@@ -333,7 +333,7 @@ class Vec3 {
   double get y => const fb.Float32Reader().read(_bc, _bcOffset + 4);
   double get z => const fb.Float32Reader().read(_bc, _bcOffset + 8);
   double get test1 => const fb.Float64Reader().read(_bc, _bcOffset + 16);
-  Color get test2 => new Color.fromValue(const fb.Int8Reader().read(_bc, _bcOffset + 24));
+  Color get test2 => new Color.fromValue(const fb.Uint8Reader().read(_bc, _bcOffset + 24));
   Test get test3 => Test.reader.read(_bc, _bcOffset + 26);
 
   @override
@@ -364,7 +364,7 @@ class Vec3Builder {
     fbBuilder.pad(2);
     test3();
     fbBuilder.pad(1);
-    fbBuilder.putInt8(test2?.value);
+    fbBuilder.putUint8(test2?.value);
     fbBuilder.putFloat64(test1);
     fbBuilder.pad(4);
     fbBuilder.putFloat32(z);
@@ -407,7 +407,7 @@ class Vec3ObjectBuilder extends fb.ObjectBuilder {
     fbBuilder.pad(2);
     _test3.finish(fbBuilder);
     fbBuilder.pad(1);
-    fbBuilder.putInt8(_test2?.value);
+    fbBuilder.putUint8(_test2?.value);
     fbBuilder.putFloat64(_test1);
     fbBuilder.pad(4);
     fbBuilder.putFloat32(_z);
@@ -688,7 +688,7 @@ class Monster {
   int get hp => const fb.Int16Reader().vTableGet(_bc, _bcOffset, 8, 100);
   String get name => const fb.StringReader().vTableGet(_bc, _bcOffset, 10, null);
   List<int> get inventory => const fb.ListReader<int>(const fb.Uint8Reader()).vTableGet(_bc, _bcOffset, 14, null);
-  Color get color => new Color.fromValue(const fb.Int8Reader().vTableGet(_bc, _bcOffset, 16, 8));
+  Color get color => new Color.fromValue(const fb.Uint8Reader().vTableGet(_bc, _bcOffset, 16, 8));
   AnyTypeId get testType => new AnyTypeId.fromValue(const fb.Uint8Reader().vTableGet(_bc, _bcOffset, 18, 0));
   dynamic get test {
     switch (testType?.value) {
@@ -800,7 +800,7 @@ class MonsterBuilder {
     return fbBuilder.offset;
   }
   int addColor(Color color) {
-    fbBuilder.addInt8(6, color?.value);
+    fbBuilder.addUint8(6, color?.value);
     return fbBuilder.offset;
   }
   int addTestType(AnyTypeId testType) {
@@ -1183,7 +1183,7 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
     final int anyUniqueOffset = _anyUnique?.getOrCreateOffset(fbBuilder);
     final int anyAmbiguousOffset = _anyAmbiguous?.getOrCreateOffset(fbBuilder);
     final int vectorOfEnumsOffset = _vectorOfEnums?.isNotEmpty == true
-        ? fbBuilder.writeListInt8(_vectorOfEnums.map((f) => f.value))
+        ? fbBuilder.writeListUint8(_vectorOfEnums.map((f) => f.value))
         : null;
 
     fbBuilder.startTable();
@@ -1198,7 +1198,7 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
     if (inventoryOffset != null) {
       fbBuilder.addOffset(5, inventoryOffset);
     }
-    fbBuilder.addInt8(6, _color?.value);
+    fbBuilder.addUint8(6, _color?.value);
     fbBuilder.addUint8(7, _testType?.value);
     if (testOffset != null) {
       fbBuilder.addOffset(8, testOffset);

@@ -255,7 +255,7 @@ static getRootAsTestSimpleTableWithEnum(bb:flatbuffers.ByteBuffer, obj?:TestSimp
  */
 color():MyGame.Example.Color {
   var offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? /**  */ (this.bb!.readInt8(this.bb_pos + offset)) : MyGame.Example.Color.Green;
+  return offset ? /**  */ (this.bb!.readUint8(this.bb_pos + offset)) : MyGame.Example.Color.Green;
 };
 
 /**
@@ -269,7 +269,7 @@ mutate_color(value:MyGame.Example.Color):boolean {
     return false;
   }
 
-  this.bb!.writeInt8(this.bb_pos + offset, value);
+  this.bb!.writeUint8(this.bb_pos + offset, value);
   return true;
 };
 
@@ -415,7 +415,7 @@ mutate_test1(value:number):boolean {
  * @returns MyGame.Example.Color
  */
 test2():MyGame.Example.Color {
-  return /**  */ (this.bb!.readInt8(this.bb_pos + 24));
+  return /**  */ (this.bb!.readUint8(this.bb_pos + 24));
 };
 
 /**
@@ -429,7 +429,7 @@ mutate_test2(value:MyGame.Example.Color):boolean {
     return false;
   }
 
-  this.bb!.writeInt8(this.bb_pos + offset, value);
+  this.bb!.writeUint8(this.bb_pos + offset, value);
   return true;
 };
 
@@ -899,7 +899,7 @@ inventoryArray():Uint8Array|null {
  */
 color():MyGame.Example.Color {
   var offset = this.bb!.__offset(this.bb_pos, 16);
-  return offset ? /**  */ (this.bb!.readInt8(this.bb_pos + offset)) : MyGame.Example.Color.Blue;
+  return offset ? /**  */ (this.bb!.readUint8(this.bb_pos + offset)) : MyGame.Example.Color.Blue;
 };
 
 /**
@@ -913,7 +913,7 @@ mutate_color(value:MyGame.Example.Color):boolean {
     return false;
   }
 
-  this.bb!.writeInt8(this.bb_pos + offset, value);
+  this.bb!.writeUint8(this.bb_pos + offset, value);
   return true;
 };
 
@@ -1710,7 +1710,7 @@ anyAmbiguous<T extends flatbuffers.Table>(obj:T):T|null {
  */
 vectorOfEnums(index: number):MyGame.Example.Color|null {
   var offset = this.bb!.__offset(this.bb_pos, 98);
-  return offset ? /**  */ (this.bb!.readInt8(this.bb!.__vector(this.bb_pos + offset) + index)) : /**  */ (0);
+  return offset ? /**  */ (this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index)) : /**  */ (0);
 };
 
 /**
@@ -1722,11 +1722,11 @@ vectorOfEnumsLength():number {
 };
 
 /**
- * @returns Int8Array
+ * @returns Uint8Array
  */
-vectorOfEnumsArray():Int8Array|null {
+vectorOfEnumsArray():Uint8Array|null {
   var offset = this.bb!.__offset(this.bb_pos, 98);
-  return offset ? new Int8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
+  return offset ? new Uint8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
 };
 
 /**
