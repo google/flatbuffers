@@ -21,6 +21,7 @@ PY_VERSION = sys.version_info[:2]
 import ctypes
 from collections import defaultdict
 import math
+import random
 import timeit
 import unittest
 
@@ -1617,26 +1618,40 @@ def BenchmarkVtableDeduplication(count):
     When count is large (as in long benchmarks), memory usage may be high.
     '''
 
-    prePop = 10
-    builder = flatbuffers.Builder(0)
+    for prePop in (1, 10, 100, 1000):
+        builder = flatbuffers.Builder(0)
+        n = 1 + int(math.log(prePop, 1.5))
 
-    # pre-populate some vtables:
-    for i in compat_range(prePop):
-        builder.StartObject(i)
-        for j in compat_range(i):
-            builder.PrependInt16Slot(j, j, 0)
-        builder.EndObject()
+        # generate some layouts:
+        layouts = set()
+        r = list(compat_range(n))
+        while len(layouts) < prePop:
+            layouts.add(tuple(sorted(random.sample(r, int(max(1, n / 2))))))
 
-    # benchmark deduplication of a new vtable:
-    def f():
-        builder.StartObject(prePop)
-        for j in compat_range(prePop):
-            builder.PrependInt16Slot(j, j, 0)
-        builder.EndObject()
+        layouts = list(layouts)
 
-    duration = timeit.timeit(stmt=f, number=count)
-    rate = float(count) / duration
-    print(('vtable deduplication rate: %.2f/sec' % rate))
+        # pre-populate vtables:
+        for layout in layouts:
+            builder.StartObject(n)
+            for j in layout:
+                builder.PrependInt16Slot(j, j, 0)
+            builder.EndObject()
+
+        # benchmark deduplication of a new vtable:
+        def f():
+            layout = random.choice(layouts)
+            builder.StartObject(n)
+            for j in layout:
+                builder.PrependInt16Slot(j, j, 0)
+            builder.EndObject()
+
+        duration = timeit.timeit(stmt=f, number=count)
+        rate = float(count) / duration
+        print(('vtable deduplication rate (n=%d, vtables=%d): %.2f sec' % (
+            prePop,
+            len(builder.vtables),
+            rate))
+        )
 
 
 def BenchmarkCheckReadBuffer(count, buf, off):
