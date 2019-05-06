@@ -212,7 +212,7 @@ function testUnicode() {
 
   // Test reading
   function testReadingUnicode(bb) {
-    var monster = MyGame.Example.Monster.getRootAsMonster(bb);
+    var monster = MyGame.Example.Monster.getSizePrefixedRootAsMonster(bb);
     assert.strictEqual(monster.name(), json.name);
     assert.deepEqual(new Buffer(monster.name(flatbuffers.Encoding.UTF8_BYTES)), new Buffer(json.name));
     assert.strictEqual(monster.testarrayoftablesLength(), json.testarrayoftables.length);
@@ -246,7 +246,7 @@ function testUnicode() {
   MyGame.Example.Monster.addTestarrayofstring(fbb, testarrayofstringOffset);
   MyGame.Example.Monster.addTestarrayoftables(fbb, testarrayoftablesOffset);
   MyGame.Example.Monster.addName(fbb, name);
-  MyGame.Example.Monster.finishMonsterBuffer(fbb, MyGame.Example.Monster.endMonster(fbb));
+  MyGame.Example.Monster.finishSizePrefixedMonsterBuffer(fbb, MyGame.Example.Monster.endMonster(fbb));
   testReadingUnicode(new flatbuffers.ByteBuffer(fbb.asUint8Array()));
 }
 
