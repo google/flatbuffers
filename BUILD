@@ -161,6 +161,8 @@ cc_test(
         ":tests/unicode_test.json",
         ":tests/union_vector/union_vector.fbs",
         ":tests/union_vector/union_vector.json",
+        ":tests/monster_extra.fbs",
+        ":tests/monsterdata_extra.json",
     ],
     includes = ["include/"],
     deps = [
