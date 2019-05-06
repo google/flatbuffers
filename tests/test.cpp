@@ -37,6 +37,7 @@
 #include "test_assert.h"
 
 #include "flatbuffers/flexbuffers.h"
+#include <chrono>
 
 using namespace MyGame::Example;
 
@@ -2759,6 +2760,43 @@ int main(int /*argc*/, const char * /*argv*/ []) {
 
   FlatBufferTests();
   FlatBufferBuilderTest();
+  
+  TEST_OUTPUT_LINE("Temporary string parser benchmark");
+  size_t SL = 50;
+  size_t SN = 4000;
+  size_t RN = 100;
+  std::string schema =
+      "table X{x:[string];}\n"
+      "root_type X;"
+      "file_identifier \"TEST\";\n"
+      "file_extension \"mon\";";
+  std::string sample = "{x: [";
+  if (SN > 0) {
+    for (auto k = SN; k > 0; k--) {
+      sample += "\"";
+      if (SL > 0) sample += std::string(SL, 'x');
+      sample += "\",";
+    }
+    sample.pop_back(); // remove latest ','
+  }
+  sample += "]}";
+
+  flatbuffers::Parser parser;
+  TEST_EQ(parser.Parse(schema.c_str()), true);
+  for (auto k = 0; k < 2; k++) { TEST_EQ(parser.Parse(sample.c_str()), true); }
+  std::string print_back;
+  parser.opts.indent_step = -1;
+  TEST_EQ(GenerateText(parser, parser.builder_.GetBufferPointer(), &print_back),
+          true);
+  TEST_ASSERT(sample ==  print_back);
+
+  auto json = sample.c_str();
+  auto start = std::chrono::high_resolution_clock::now();
+  for (auto k = RN; k > 0; k--) { parser.Parse(json); }
+  auto stop = std::chrono::high_resolution_clock::now();
+  auto time = std::chrono::duration<double, std::nano>(stop - start).count() /
+              (RN * SN);
+  TEST_OUTPUT_LINE("Test time [ns]: %f", time);
 
   if (!testing_fails) {
     TEST_OUTPUT_LINE("ALL TESTS PASSED");

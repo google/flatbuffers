@@ -143,23 +143,37 @@ template<typename T> std::string TypeToIntervalString() {
          NumToString((flatbuffers::numeric_limits<T>::max)()) + "]";
 }
 
+template<typename T>
+static void BoxScalarToString(const T *val, std::string *str) {
+  static_assert(flatbuffers::is_scalar<T>::value, "invalid type");
+  *str = "#";
+  str->append(reinterpret_cast<const char *>(val), sizeof(T));
+}
+
 // atot: template version of atoi/atof: convert a string to an instance of T.
 template<typename T>
-inline CheckedError atot(const char *s, Parser &parser, T *val) {
+inline CheckedError atot(const std::string &str, Parser &parser, T *val) {
+  auto s = str.c_str();
+  if (*s == '#' && str.size() == (sizeof(T) + 1)) {
+    std::memcpy(val, s + 1, sizeof(T));
+    return NoError();
+  }
+
   auto done = StringToNumber(s, val);
   if (done) return NoError();
   if (0 == *val)
-    return parser.Error("invalid number: \"" + std::string(s) + "\"");
+    return parser.Error("invalid number: \"" + str + "\"");
   else
-    return parser.Error("invalid number: \"" + std::string(s) + "\"" +
+    return parser.Error("invalid number: \"" + str + "\"" +
                         ", constant does not fit " + TypeToIntervalString<T>());
 }
 template<>
-inline CheckedError atot<Offset<void>>(const char *s, Parser &parser,
+inline CheckedError atot<Offset<void>>(const std::string &s, Parser &parser,
                                        Offset<void> *val) {
-  (void)parser;
-  *val = Offset<void>(atoi(s));
-  return NoError();
+  uoffset_t ofs = 0;
+  auto res = atot(s, parser, &ofs);
+  *val = Offset<void>(ofs);
+  return res;
 }
 
 std::string Namespace::GetFullyQualifiedName(const std::string &name,
@@ -837,9 +851,12 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
 }
 
 CheckedError Parser::ParseString(Value &val) {
-  auto s = attribute_;
+  // Parser is unrecoverable state-machine.
+  // To avoid copy, add current string to the builder even if it not
+  // kTokenStringConstant.
+  auto o = builder_.CreateString(attribute_).o;
+  BoxScalarToString(&o, &val.constant);
   EXPECT(kTokenStringConstant);
-  val.constant = NumToString(builder_.CreateString(s).o);
   return NoError();
 }
 
@@ -868,7 +885,7 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
                 type.element == BASE_TYPE_UTYPE) {
               // Vector of union type field.
               uoffset_t offset;
-              ECHECK(atot(elem->first.constant.c_str(), *this, &offset));
+              ECHECK(atot(elem->first.constant, *this, &offset));
               vector_of_union_types = reinterpret_cast<Vector<uint8_t> *>(
                                         builder_.GetCurrentBufferPointer() +
                                         builder_.GetSize() - offset);
@@ -920,7 +937,7 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
       if (vector_of_union_types) {
         enum_idx = vector_of_union_types->Get(count);
       } else {
-        ECHECK(atot(constant.c_str(), *this, &enum_idx));
+        ECHECK(atot(constant, *this, &enum_idx));
       }
       auto enum_val = val.type.enum_def->ReverseLookup(enum_idx, true);
       if (!enum_val) return Error("illegal type id for: " + field->name);
@@ -931,6 +948,7 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
           // All BASE_TYPE_UNION values are offsets, so turn this into one.
           SerializeStruct(*enum_val->union_type.struct_def, val);
           builder_.ClearOffsets();
+          // Use BoxScalarToString?
           val.constant = NumToString(builder_.GetSize());
         }
       } else if (enum_val->union_type.base_type == BASE_TYPE_STRING) {
@@ -950,7 +968,7 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
     case BASE_TYPE_VECTOR: {
       uoffset_t off;
       ECHECK(ParseVector(val.type.VectorType(), &off, field, parent_fieldn));
-      val.constant = NumToString(off);
+      BoxScalarToString(&off, &val.constant);
       break;
     }
     case BASE_TYPE_INT:
@@ -1054,7 +1072,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
               builder_.ForceVectorAlignment(builder.GetSize(), sizeof(uint8_t),
                                             sizeof(largest_scalar_t));
               auto off = builder_.CreateVector(builder.GetBuffer());
-              val.constant = NumToString(off.o);
+              BoxScalarToString(&off.o, &val.constant);
             } else if (field->nested_flatbuffer) {
               ECHECK(
                   ParseNestedFlatbuffer(val, field, fieldn, struct_def_inner));
@@ -1126,12 +1144,12 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
               builder_.Pad(field->padding); \
               if (struct_def.fixed) { \
                 CTYPE val; \
-                ECHECK(atot(field_value.constant.c_str(), *this, &val)); \
+                ECHECK(atot(field_value.constant, *this, &val)); \
                 builder_.PushElement(val); \
               } else { \
                 CTYPE val, valdef; \
-                ECHECK(atot(field_value.constant.c_str(), *this, &val)); \
-                ECHECK(atot(field->value.constant.c_str(), *this, &valdef)); \
+                ECHECK(atot(field_value.constant, *this, &val)); \
+                ECHECK(atot(field->value.constant, *this, &valdef)); \
                 builder_.AddElement(field_value.offset, val, valdef); \
               } \
               break;
@@ -1145,7 +1163,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
                 SerializeStruct(*field->value.type.struct_def, field_value); \
               } else { \
                 CTYPE val; \
-                ECHECK(atot(field_value.constant.c_str(), *this, &val)); \
+                ECHECK(atot(field_value.constant, *this, &val)); \
                 builder_.AddOffset(field_value.offset, val); \
               } \
               break;
@@ -1218,7 +1236,7 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
           if (IsStruct(val.type)) SerializeStruct(*val.type.struct_def, val); \
           else { \
              CTYPE elem; \
-             ECHECK(atot(val.constant.c_str(), *this, &elem)); \
+             ECHECK(atot(val.constant, *this, &elem)); \
              builder_.PushElement(elem); \
           } \
           break;
@@ -1269,7 +1287,7 @@ CheckedError Parser::ParseNestedFlatbuffer(Value &val, FieldDef *field,
 
     auto off = builder_.CreateVector(nested_parser.builder_.GetBufferPointer(),
                                      nested_parser.builder_.GetSize());
-    val.constant = NumToString(off.o);
+    BoxScalarToString(&off.o, &val.constant);
   }
   return NoError();
 }
@@ -1441,7 +1459,7 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
     EXPECT(')');
     // calculate with double precision
     double x, y = 0.0;
-    ECHECK(atot(e.constant.c_str(), *this, &x));
+    ECHECK(atot(e.constant, *this, &x));
     auto func_match = false;
     // clang-format off
     #define FLATBUFFERS_FN_DOUBLE(name, op) \
@@ -1549,7 +1567,7 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
             CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
             case BASE_TYPE_ ## ENUM: {\
                 CTYPE val; \
-                ECHECK(atot(e.constant.c_str(), *this, &val)); \
+                ECHECK(atot(e.constant, *this, &val)); \
                 if(repack) e.constant = NumToString(val); \
               break; }
     FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD);
