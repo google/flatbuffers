@@ -743,26 +743,26 @@ class JsTsGenerator : public BaseGenerator {
     // Generate special accessors for the table that when used as the root of a
     // FlatBuffer
     GenerateRootAccessor(struct_def, code_ptr, code, object_name, false);
-    GenerateRootAccessor(struct_def, code_ptr, code, object_name, true);
+    //GenerateRootAccessor(struct_def, code_ptr, code, object_name, true);
 
     // Generate the identifier check method
-      if (parser_.root_struct_def_ == &struct_def &&
-          !parser_.file_identifier_.empty()) {
-        GenDocComment(
-            code_ptr,
-            GenTypeAnnotation(kParam, "flatbuffers.ByteBuffer", "bb") +
-                GenTypeAnnotation(kReturns, "boolean", "", false));
-        if (lang_.language == IDLOptions::kTs) {
-          code +=
-              "static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean "
-              "{\n";
-        } else {
-          code += object_name + ".bufferHasIdentifier = function(bb) {\n";
-        }
-
-        code += "  return bb.__has_identifier('" + parser_.file_identifier_;
-        code += "');\n};\n\n";
+    if (!struct_def.fixed && parser_.root_struct_def_ == &struct_def &&
+        !parser_.file_identifier_.empty()) {
+      GenDocComment(
+          code_ptr,
+          GenTypeAnnotation(kParam, "flatbuffers.ByteBuffer", "bb") +
+              GenTypeAnnotation(kReturns, "boolean", "", false));
+      if (lang_.language == IDLOptions::kTs) {
+        code +=
+            "static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean "
+            "{\n";
+      } else {
+        code += object_name + ".bufferHasIdentifier = function(bb) {\n";
       }
+
+      code += "  return bb.__has_identifier('" + parser_.file_identifier_;
+      code += "');\n};\n\n";
+    }
 
     // Emit field accessors
     for (auto it = struct_def.fields.vec.begin();
@@ -1277,7 +1277,7 @@ class JsTsGenerator : public BaseGenerator {
 
       // Generate the methods to complete buffer construction
       GenerateFinisher(struct_def, code_ptr, code, object_name, false);
-      GenerateFinisher(struct_def, code_ptr, code, object_name, true);
+      //GenerateFinisher(struct_def, code_ptr, code, object_name, true);
 
       // Generate a convenient CreateX function
       if (lang_.language == IDLOptions::kJs) {

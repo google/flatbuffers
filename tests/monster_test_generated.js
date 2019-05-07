@@ -138,15 +138,6 @@ MyGame.InParentNamespace.getRootAsInParentNamespace = function(bb, obj) {
 };
 
 /**
- * @param {flatbuffers.ByteBuffer} bb
- * @param {MyGame.InParentNamespace=} obj
- * @returns {MyGame.InParentNamespace}
- */
-MyGame.InParentNamespace.getSizePrefixedRootAsInParentNamespace = function(bb, obj) {
-  return (obj || new MyGame.InParentNamespace).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-};
-
-/**
  * @param {flatbuffers.Builder} builder
  */
 MyGame.InParentNamespace.startInParentNamespace = function(builder) {
@@ -203,15 +194,6 @@ MyGame.Example2.Monster.prototype.__init = function(i, bb) {
  * @returns {MyGame.Example2.Monster}
  */
 MyGame.Example2.Monster.getRootAsMonster = function(bb, obj) {
-  return (obj || new MyGame.Example2.Monster).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-};
-
-/**
- * @param {flatbuffers.ByteBuffer} bb
- * @param {MyGame.Example2.Monster=} obj
- * @returns {MyGame.Example2.Monster}
- */
-MyGame.Example2.Monster.getSizePrefixedRootAsMonster = function(bb, obj) {
   return (obj || new MyGame.Example2.Monster).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
@@ -356,15 +338,6 @@ MyGame.Example.TestSimpleTableWithEnum.prototype.__init = function(i, bb) {
  * @returns {MyGame.Example.TestSimpleTableWithEnum}
  */
 MyGame.Example.TestSimpleTableWithEnum.getRootAsTestSimpleTableWithEnum = function(bb, obj) {
-  return (obj || new MyGame.Example.TestSimpleTableWithEnum).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-};
-
-/**
- * @param {flatbuffers.ByteBuffer} bb
- * @param {MyGame.Example.TestSimpleTableWithEnum=} obj
- * @returns {MyGame.Example.TestSimpleTableWithEnum}
- */
-MyGame.Example.TestSimpleTableWithEnum.getSizePrefixedRootAsTestSimpleTableWithEnum = function(bb, obj) {
   return (obj || new MyGame.Example.TestSimpleTableWithEnum).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
@@ -717,15 +690,6 @@ MyGame.Example.Stat.getRootAsStat = function(bb, obj) {
 };
 
 /**
- * @param {flatbuffers.ByteBuffer} bb
- * @param {MyGame.Example.Stat=} obj
- * @returns {MyGame.Example.Stat}
- */
-MyGame.Example.Stat.getSizePrefixedRootAsStat = function(bb, obj) {
-  return (obj || new MyGame.Example.Stat).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-};
-
-/**
  * @param {flatbuffers.Encoding=} optionalEncoding
  * @returns {string|Uint8Array|null}
  */
@@ -871,15 +835,6 @@ MyGame.Example.Referrable.getRootAsReferrable = function(bb, obj) {
 };
 
 /**
- * @param {flatbuffers.ByteBuffer} bb
- * @param {MyGame.Example.Referrable=} obj
- * @returns {MyGame.Example.Referrable}
- */
-MyGame.Example.Referrable.getSizePrefixedRootAsReferrable = function(bb, obj) {
-  return (obj || new MyGame.Example.Referrable).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-};
-
-/**
  * @returns {flatbuffers.Long}
  */
 MyGame.Example.Referrable.prototype.id = function() {
@@ -971,15 +926,6 @@ MyGame.Example.Monster.prototype.__init = function(i, bb) {
  * @returns {MyGame.Example.Monster}
  */
 MyGame.Example.Monster.getRootAsMonster = function(bb, obj) {
-  return (obj || new MyGame.Example.Monster).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-};
-
-/**
- * @param {flatbuffers.ByteBuffer} bb
- * @param {MyGame.Example.Monster=} obj
- * @returns {MyGame.Example.Monster}
- */
-MyGame.Example.Monster.getSizePrefixedRootAsMonster = function(bb, obj) {
   return (obj || new MyGame.Example.Monster).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
@@ -2653,14 +2599,6 @@ MyGame.Example.Monster.finishMonsterBuffer = function(builder, offset) {
 
 /**
  * @param {flatbuffers.Builder} builder
- * @param {flatbuffers.Offset} offset
- */
-MyGame.Example.Monster.finishMonsterBuffer = function(builder, offset) {
-  builder.finish(offset, 'MONS', true);
-};
-
-/**
- * @param {flatbuffers.Builder} builder
  * @param {flatbuffers.Offset} posOffset
  * @param {number} mana
  * @param {number} hp
@@ -2794,15 +2732,6 @@ MyGame.Example.TypeAliases.prototype.__init = function(i, bb) {
  * @returns {MyGame.Example.TypeAliases}
  */
 MyGame.Example.TypeAliases.getRootAsTypeAliases = function(bb, obj) {
-  return (obj || new MyGame.Example.TypeAliases).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-};
-
-/**
- * @param {flatbuffers.ByteBuffer} bb
- * @param {MyGame.Example.TypeAliases=} obj
- * @returns {MyGame.Example.TypeAliases}
- */
-MyGame.Example.TypeAliases.getSizePrefixedRootAsTypeAliases = function(bb, obj) {
   return (obj || new MyGame.Example.TypeAliases).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 

@@ -62,15 +62,6 @@ Attacker.getRootAsAttacker = function(bb, obj) {
 };
 
 /**
- * @param {flatbuffers.ByteBuffer} bb
- * @param {Attacker=} obj
- * @returns {Attacker}
- */
-Attacker.getSizePrefixedRootAsAttacker = function(bb, obj) {
-  return (obj || new Attacker).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-};
-
-/**
  * @returns {number}
  */
 Attacker.prototype.swordAttackDamage = function() {
@@ -283,15 +274,6 @@ Movie.getRootAsMovie = function(bb, obj) {
 
 /**
  * @param {flatbuffers.ByteBuffer} bb
- * @param {Movie=} obj
- * @returns {Movie}
- */
-Movie.getSizePrefixedRootAsMovie = function(bb, obj) {
-  return (obj || new Movie).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-};
-
-/**
- * @param {flatbuffers.ByteBuffer} bb
  * @returns {boolean}
  */
 Movie.bufferHasIdentifier = function(bb) {
@@ -469,14 +451,6 @@ Movie.endMovie = function(builder) {
  */
 Movie.finishMovieBuffer = function(builder, offset) {
   builder.finish(offset, 'MOVI');
-};
-
-/**
- * @param {flatbuffers.Builder} builder
- * @param {flatbuffers.Offset} offset
- */
-Movie.finishMovieBuffer = function(builder, offset) {
-  builder.finish(offset, 'MOVI', true);
 };
 
 /**
