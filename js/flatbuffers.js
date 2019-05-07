@@ -683,7 +683,7 @@ flatbuffers.Builder.prototype.finish = function(root_table, opt_file_identifier,
   if (opt_file_identifier) {
     var file_identifier = opt_file_identifier;
     this.prep(this.minalign, flatbuffers.SIZEOF_INT +
-      flatbuffers.FILE_IDENTIFIER_LENGTH + (size_prefix ? SIZEOF_INT : 0));
+      flatbuffers.FILE_IDENTIFIER_LENGTH + (size_prefix ? flatbuffers.SIZEOF_INT : 0));
     if (file_identifier.length != flatbuffers.FILE_IDENTIFIER_LENGTH) {
       throw new Error('FlatBuffers: file identifier must be length ' +
         flatbuffers.FILE_IDENTIFIER_LENGTH);
@@ -692,10 +692,10 @@ flatbuffers.Builder.prototype.finish = function(root_table, opt_file_identifier,
       this.writeInt8(file_identifier.charCodeAt(i));
     }
   }
-  this.prep(this.minalign, flatbuffers.SIZEOF_INT + (size_prefix ? SIZEOF_INT : 0));
+  this.prep(this.minalign, flatbuffers.SIZEOF_INT + (size_prefix ? flatbuffers.SIZEOF_INT : 0));
   this.addOffset(root_table);
   if (size_prefix) {
-    this.addInt32(bb.capacity() - space);
+    this.addInt32(this.bb.capacity() - this.space);
   }
   this.bb.setPosition(this.space);
 };

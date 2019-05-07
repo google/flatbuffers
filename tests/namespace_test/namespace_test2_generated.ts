@@ -25,7 +25,16 @@ __init(i:number, bb:flatbuffers.ByteBuffer):TableInFirstNS {
  * @param TableInFirstNS= obj
  * @returns TableInFirstNS
  */
-static getRootAsTableInFirstNS(bb:flatbuffers.ByteBuffer, obj?:TableInFirstNS):TableInFirstNS {
+static get RootAsTableInFirstNS(bb:flatbuffers.ByteBuffer, obj?:TableInFirstNS):TableInFirstNS {
+  return (obj || new TableInFirstNS).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param flatbuffers.ByteBuffer bb
+ * @param TableInFirstNS= obj
+ * @returns TableInFirstNS
+ */
+static getSizePrefixed RootAsTableInFirstNS(bb:flatbuffers.ByteBuffer, obj?:TableInFirstNS):TableInFirstNS {
   return (obj || new TableInFirstNS).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
@@ -143,7 +152,16 @@ __init(i:number, bb:flatbuffers.ByteBuffer):TableInC {
  * @param TableInC= obj
  * @returns TableInC
  */
-static getRootAsTableInC(bb:flatbuffers.ByteBuffer, obj?:TableInC):TableInC {
+static get RootAsTableInC(bb:flatbuffers.ByteBuffer, obj?:TableInC):TableInC {
+  return (obj || new TableInC).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param flatbuffers.ByteBuffer bb
+ * @param TableInC= obj
+ * @returns TableInC
+ */
+static getSizePrefixed RootAsTableInC(bb:flatbuffers.ByteBuffer, obj?:TableInC):TableInC {
   return (obj || new TableInC).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
@@ -229,7 +247,16 @@ __init(i:number, bb:flatbuffers.ByteBuffer):SecondTableInA {
  * @param SecondTableInA= obj
  * @returns SecondTableInA
  */
-static getRootAsSecondTableInA(bb:flatbuffers.ByteBuffer, obj?:SecondTableInA):SecondTableInA {
+static get RootAsSecondTableInA(bb:flatbuffers.ByteBuffer, obj?:SecondTableInA):SecondTableInA {
+  return (obj || new SecondTableInA).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param flatbuffers.ByteBuffer bb
+ * @param SecondTableInA= obj
+ * @returns SecondTableInA
+ */
+static getSizePrefixed RootAsSecondTableInA(bb:flatbuffers.ByteBuffer, obj?:SecondTableInA):SecondTableInA {
   return (obj || new SecondTableInA).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 

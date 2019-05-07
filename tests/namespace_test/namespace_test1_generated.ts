@@ -34,7 +34,16 @@ __init(i:number, bb:flatbuffers.ByteBuffer):TableInNestedNS {
  * @param TableInNestedNS= obj
  * @returns TableInNestedNS
  */
-static getRootAsTableInNestedNS(bb:flatbuffers.ByteBuffer, obj?:TableInNestedNS):TableInNestedNS {
+static get RootAsTableInNestedNS(bb:flatbuffers.ByteBuffer, obj?:TableInNestedNS):TableInNestedNS {
+  return (obj || new TableInNestedNS).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param flatbuffers.ByteBuffer bb
+ * @param TableInNestedNS= obj
+ * @returns TableInNestedNS
+ */
+static getSizePrefixed RootAsTableInNestedNS(bb:flatbuffers.ByteBuffer, obj?:TableInNestedNS):TableInNestedNS {
   return (obj || new TableInNestedNS).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 

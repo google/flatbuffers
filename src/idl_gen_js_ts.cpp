@@ -604,6 +604,58 @@ class JsTsGenerator : public BaseGenerator {
     }
   }
 
+  void GenerateRootAccessor(StructDef &struct_def, std::string *code_ptr,
+                 std::string &code, std::string &object_name, bool size_prefixed) {
+    if (!struct_def.fixed) {
+      GenDocComment(code_ptr,
+                    GenTypeAnnotation(kParam, "flatbuffers.ByteBuffer", "bb") +
+                        GenTypeAnnotation(kParam, object_name + "=", "obj") +
+                        GenTypeAnnotation(kReturns, object_name, "", false));
+      std::string sizePrefixed("SizePrefixed");
+      if (lang_.language == IDLOptions::kTs) {
+        code += "static get" + (size_prefixed ? sizePrefixed : "") + " Root" + Verbose(struct_def, "As");
+        code += "(bb:flatbuffers.ByteBuffer, obj?:" + object_name +
+                "):" + object_name + " {\n";
+      } else {
+        code += object_name + ".get" + (size_prefixed ? sizePrefixed : "") + "Root" + Verbose(struct_def, "As");
+        code += " = function(bb, obj) {\n";
+      }
+      code += "  return (obj || new " + object_name;
+      code += ").__init(bb.readInt32(bb.position()) + bb.position(), bb);\n";
+      code += "};\n\n";
+    }
+  }
+
+  void GenerateFinisher(StructDef &struct_def, std::string *code_ptr,
+                 std::string &code, std::string &object_name, bool size_prefixed) {
+    if (parser_.root_struct_def_ == &struct_def) {
+      GenDocComment(
+          code_ptr,
+          GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder") +
+              GenTypeAnnotation(kParam, "flatbuffers.Offset", "offset",
+                                false));
+
+      if (lang_.language == IDLOptions::kTs) {
+        code += "static finish" + Verbose(struct_def) + "Buffer";
+        code +=
+            "(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {\n";
+      } else {
+        code += object_name + ".finish" + Verbose(struct_def) + "Buffer";
+        code += " = function(builder, offset) {\n";
+      }
+
+      code += "  builder.finish(offset";
+      if (!parser_.file_identifier_.empty()) {
+        code += ", '" + parser_.file_identifier_ + "'";
+      }
+      if (size_prefixed) {
+        code += ", true";
+      }
+      code += ");\n";
+      code += "};\n\n";
+    }
+  }
+
   // Generate an accessor struct with constructor for a flatbuffers struct.
   void GenStruct(const Parser &parser, StructDef &struct_def,
                  std::string *code_ptr, std::string *exports_ptr,
@@ -688,26 +740,12 @@ class JsTsGenerator : public BaseGenerator {
     code += "  return this;\n";
     code += "};\n\n";
 
-    // Generate a special accessor for the table that when used as the root of a
+    // Generate special accessors for the table that when used as the root of a
     // FlatBuffer
-    if (!struct_def.fixed) {
-      GenDocComment(code_ptr,
-                    GenTypeAnnotation(kParam, "flatbuffers.ByteBuffer", "bb") +
-                        GenTypeAnnotation(kParam, object_name + "=", "obj") +
-                        GenTypeAnnotation(kReturns, object_name, "", false));
-      if (lang_.language == IDLOptions::kTs) {
-        code += "static getRoot" + Verbose(struct_def, "As");
-        code += "(bb:flatbuffers.ByteBuffer, obj?:" + object_name +
-                "):" + object_name + " {\n";
-      } else {
-        code += object_name + ".getRoot" + Verbose(struct_def, "As");
-        code += " = function(bb, obj) {\n";
-      }
-      code += "  return (obj || new " + object_name;
-      code += ").__init(bb.readInt32(bb.position()) + bb.position(), bb);\n";
-      code += "};\n\n";
+    GenerateRootAccessor(struct_def, code_ptr, code, object_name, false);
+    GenerateRootAccessor(struct_def, code_ptr, code, object_name, true);
 
-      // Generate the identifier check method
+    // Generate the identifier check method
       if (parser_.root_struct_def_ == &struct_def &&
           !parser_.file_identifier_.empty()) {
         GenDocComment(
@@ -725,7 +763,6 @@ class JsTsGenerator : public BaseGenerator {
         code += "  return bb.__has_identifier('" + parser_.file_identifier_;
         code += "');\n};\n\n";
       }
-    }
 
     // Emit field accessors
     for (auto it = struct_def.fields.vec.begin();
@@ -1238,30 +1275,9 @@ class JsTsGenerator : public BaseGenerator {
       code += "  return offset;\n";
       code += "};\n\n";
 
-      // Generate the method to complete buffer construction
-      if (parser_.root_struct_def_ == &struct_def) {
-        GenDocComment(
-            code_ptr,
-            GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder") +
-                GenTypeAnnotation(kParam, "flatbuffers.Offset", "offset",
-                                  false));
-
-        if (lang_.language == IDLOptions::kTs) {
-          code += "static finish" + Verbose(struct_def) + "Buffer";
-          code +=
-              "(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {\n";
-        } else {
-          code += object_name + ".finish" + Verbose(struct_def) + "Buffer";
-          code += " = function(builder, offset) {\n";
-        }
-
-        code += "  builder.finish(offset";
-        if (!parser_.file_identifier_.empty()) {
-          code += ", '" + parser_.file_identifier_ + "'";
-        }
-        code += ");\n";
-        code += "};\n\n";
-      }
+      // Generate the methods to complete buffer construction
+      GenerateFinisher(struct_def, code_ptr, code, object_name, false);
+      GenerateFinisher(struct_def, code_ptr, code, object_name, true);
 
       // Generate a convenient CreateX function
       if (lang_.language == IDLOptions::kJs) {
