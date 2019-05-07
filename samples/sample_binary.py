@@ -35,8 +35,8 @@ def main():
   builder = flatbuffers.Builder(0)
 
   # Create some weapons for our Monster ('Sword' and 'Axe').
-  weapon_one = builder.CreateString('Sword')
-  weapon_two = builder.CreateString('Axe')
+  weapon_one = builder.CreateString(b'Sword')
+  weapon_two = builder.CreateString(b'Axe')
 
   MyGame.Sample.Weapon.WeaponStart(builder)
   MyGame.Sample.Weapon.WeaponAddName(builder, weapon_one)
@@ -49,7 +49,7 @@ def main():
   axe = MyGame.Sample.Weapon.WeaponEnd(builder)
 
   # Serialize the FlatBuffer data.
-  name = builder.CreateString('Orc')
+  name = builder.CreateString(b'Orc')
 
   MyGame.Sample.Monster.MonsterStartInventoryVector(builder, 10)
   # Note: Since we prepend the bytes, this loop iterates in reverse order.
@@ -99,20 +99,20 @@ def main():
   # Note: We did not set the `Mana` field explicitly, so we get a default value.
   assert monster.Mana() == 150
   assert monster.Hp() == 300
-  assert monster.Name() == 'Orc'
+  assert monster.Name() == b'Orc'
   assert monster.Color() == MyGame.Sample.Color.Color().Red
   assert monster.Pos().X() == 1.0
   assert monster.Pos().Y() == 2.0
   assert monster.Pos().Z() == 3.0
 
   # Get and test the `inventory` FlatBuffer `vector`.
-  for i in xrange(monster.InventoryLength()):
+  for i in range(monster.InventoryLength()):
     assert monster.Inventory(i) == i
 
   # Get and test the `weapons` FlatBuffer `vector` of `table`s.
-  expected_weapon_names = ['Sword', 'Axe']
+  expected_weapon_names = [b'Sword', b'Axe']
   expected_weapon_damages = [3, 5]
-  for i in xrange(monster.WeaponsLength()):
+  for i in range(monster.WeaponsLength()):
     assert monster.Weapons(i).Name() == expected_weapon_names[i]
     assert monster.Weapons(i).Damage() == expected_weapon_damages[i]
 
@@ -128,10 +128,10 @@ def main():
     union_weapon = MyGame.Sample.Weapon.Weapon()
     union_weapon.Init(monster.Equipped().Bytes, monster.Equipped().Pos)
 
-    assert union_weapon.Name() == "Axe"
+    assert union_weapon.Name() == b'Axe'
     assert union_weapon.Damage() == 5
 
-  print 'The FlatBuffer was successfully created and verified!'
+  print('The FlatBuffer was successfully created and verified!')
 
 if __name__ == '__main__':
   main()
