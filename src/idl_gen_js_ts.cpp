@@ -613,7 +613,7 @@ class JsTsGenerator : public BaseGenerator {
                         GenTypeAnnotation(kReturns, object_name, "", false));
       std::string sizePrefixed("SizePrefixed");
       if (lang_.language == IDLOptions::kTs) {
-        code += "static get" + (size_prefixed ? sizePrefixed : "") + " Root" + Verbose(struct_def, "As");
+        code += "static get" + (size_prefixed ? sizePrefixed : "") + "Root" + Verbose(struct_def, "As");
         code += "(bb:flatbuffers.ByteBuffer, obj?:" + object_name +
                 "):" + object_name + " {\n";
       } else {
@@ -629,6 +629,7 @@ class JsTsGenerator : public BaseGenerator {
   void GenerateFinisher(StructDef &struct_def, std::string *code_ptr,
                  std::string &code, std::string &object_name, bool size_prefixed) {
     if (parser_.root_struct_def_ == &struct_def) {
+      std::string sizePrefixed("SizePrefixed");
       GenDocComment(
           code_ptr,
           GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder") +
@@ -636,11 +637,11 @@ class JsTsGenerator : public BaseGenerator {
                                 false));
 
       if (lang_.language == IDLOptions::kTs) {
-        code += "static finish" + Verbose(struct_def) + "Buffer";
+        code += "static finish" + (size_prefixed ? sizePrefixed : "") + Verbose(struct_def) + "Buffer";
         code +=
             "(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {\n";
       } else {
-        code += object_name + ".finish" + Verbose(struct_def) + "Buffer";
+        code += object_name + ".finish" + (size_prefixed ? sizePrefixed : "") + Verbose(struct_def) + "Buffer";
         code += " = function(builder, offset) {\n";
       }
 
@@ -743,7 +744,7 @@ class JsTsGenerator : public BaseGenerator {
     // Generate special accessors for the table that when used as the root of a
     // FlatBuffer
     GenerateRootAccessor(struct_def, code_ptr, code, object_name, false);
-    //GenerateRootAccessor(struct_def, code_ptr, code, object_name, true);
+    GenerateRootAccessor(struct_def, code_ptr, code, object_name, true);
 
     // Generate the identifier check method
     if (!struct_def.fixed && parser_.root_struct_def_ == &struct_def &&
@@ -1277,7 +1278,7 @@ class JsTsGenerator : public BaseGenerator {
 
       // Generate the methods to complete buffer construction
       GenerateFinisher(struct_def, code_ptr, code, object_name, false);
-      //GenerateFinisher(struct_def, code_ptr, code, object_name, true);
+      GenerateFinisher(struct_def, code_ptr, code, object_name, true);
 
       // Generate a convenient CreateX function
       if (lang_.language == IDLOptions::kJs) {

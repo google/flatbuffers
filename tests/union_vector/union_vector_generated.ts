@@ -36,7 +36,16 @@ __init(i:number, bb:flatbuffers.ByteBuffer):Attacker {
  * @param Attacker= obj
  * @returns Attacker
  */
-static get RootAsAttacker(bb:flatbuffers.ByteBuffer, obj?:Attacker):Attacker {
+static getRootAsAttacker(bb:flatbuffers.ByteBuffer, obj?:Attacker):Attacker {
+  return (obj || new Attacker).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param flatbuffers.ByteBuffer bb
+ * @param Attacker= obj
+ * @returns Attacker
+ */
+static getSizePrefixedRootAsAttacker(bb:flatbuffers.ByteBuffer, obj?:Attacker):Attacker {
   return (obj || new Attacker).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
@@ -220,7 +229,16 @@ __init(i:number, bb:flatbuffers.ByteBuffer):Movie {
  * @param Movie= obj
  * @returns Movie
  */
-static get RootAsMovie(bb:flatbuffers.ByteBuffer, obj?:Movie):Movie {
+static getRootAsMovie(bb:flatbuffers.ByteBuffer, obj?:Movie):Movie {
+  return (obj || new Movie).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param flatbuffers.ByteBuffer bb
+ * @param Movie= obj
+ * @returns Movie
+ */
+static getSizePrefixedRootAsMovie(bb:flatbuffers.ByteBuffer, obj?:Movie):Movie {
   return (obj || new Movie).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
@@ -403,6 +421,14 @@ static endMovie(builder:flatbuffers.Builder):flatbuffers.Offset {
  */
 static finishMovieBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
   builder.finish(offset, 'MOVI');
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset offset
+ */
+static finishSizePrefixedMovieBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
+  builder.finish(offset, 'MOVI', true);
 };
 
 static createMovie(builder:flatbuffers.Builder, mainCharacterType:Character, mainCharacterOffset:flatbuffers.Offset, charactersTypeOffset:flatbuffers.Offset, charactersOffset:flatbuffers.Offset):flatbuffers.Offset {
