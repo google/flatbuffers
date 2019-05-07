@@ -676,8 +676,10 @@ outer_loop:
  *
  * @param {flatbuffers.Offset} root_table
  * @param {string=} opt_file_identifier
+ * @param {boolean=} opt_size_prefix
  */
-flatbuffers.Builder.prototype.finish = function(root_table, opt_file_identifier, size_prefix) {
+flatbuffers.Builder.prototype.finish = function(root_table, opt_file_identifier, opt_size_prefix) {
+  var size_prefix = opt_size_prefix ? true : false;
   if (opt_file_identifier) {
     var file_identifier = opt_file_identifier;
     this.prep(this.minalign, flatbuffers.SIZEOF_INT +
@@ -690,7 +692,7 @@ flatbuffers.Builder.prototype.finish = function(root_table, opt_file_identifier,
       this.writeInt8(file_identifier.charCodeAt(i));
     }
   }
-  this.prep(this.minalign, flatbuffers.SIZEOF_INT);
+  this.prep(this.minalign, flatbuffers.SIZEOF_INT + (size_prefix ? SIZEOF_INT : 0));
   this.addOffset(root_table);
   if (size_prefix) {
     this.addInt32(bb.capacity() - space);
