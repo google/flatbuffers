@@ -191,7 +191,9 @@ class Builder(object):
         self.PrependSOffsetTRelative(0)
 
         objectOffset = self.Offset()
+        existingVtable = None
 
+        # Trim trailing 0 offsets, extracting vtable key.
         vtKey = []
         trim = True
         for elem in reversed(self.current_vtable):
@@ -204,32 +206,34 @@ class Builder(object):
 
             vtKey.append(elem)
 
-        vtKey = tuple(vtKey)
-        vt2Offset = self.vtables.get(vtKey)
-        if vt2Offset is None:
+        # Search through existing vtables to see if this layout has already
+        # been written to the buffer. We manually use Python's built-in hash
+        # function in order to avoid storing the actual key, at the cost of
+        # having to subsequently test for equality.
+
+        vtKeyLength = len(vtKey)
+        vtKeyHash = hash(tuple(vtKey))
+        for vt2Offset in self.vtables.get(vtKeyHash, ()):
+            vt2Start = len(self.Bytes) - vt2Offset
+            vt2Len = encode.Get(packer.voffset, self.Bytes, vt2Start)
+
+            metadata = VtableMetadataFields * N.VOffsetTFlags.bytewidth
+            vt2End = vt2Start + vt2Len
+            vt2 = self.Bytes[vt2Start + metadata:vt2End]
+
+            # Compare the other vtable to the one under consideration.
+            # If they are equal, store the offset and break:
+            if vtableEqual(self.current_vtable, objectOffset, vt2, vtKeyLength):
+                existingVtable = vt2Offset
+                break
+
+        if existingVtable is None:
             # Did not find a vtable, so write this one to the buffer.
 
-            # Write out the current vtable in reverse , because
-            # serialization occurs in last-first order:
-            i = len(self.current_vtable) - 1
-            trailing = 0
-            trim = True
-            while i >= 0:
-                off = 0
-                elem = self.current_vtable[i]
-                i -= 1
-
-                if elem == 0:
-                    if trim:
-                        trailing += 1
-                        continue
-                else:
-                    # Forward reference to field;
-                    # use 32bit number to ensure no overflow:
-                    off = objectOffset - elem
-                    trim = False
-
-                self.PrependVOffsetT(off)
+            # Write out the current vtable key (which is reversed, because
+            # serialization occurs in last-first order):
+            for elem in vtKey:
+                self.PrependVOffsetT(elem)
 
             # The two metadata fields are written last.
 
@@ -238,7 +242,7 @@ class Builder(object):
             self.PrependVOffsetT(VOffsetTFlags.py_type(objectSize))
 
             # Second, store the vtable bytesize:
-            vBytes = len(self.current_vtable) - trailing + VtableMetadataFields
+            vBytes = vtKeyLength + VtableMetadataFields
             vBytes *= N.VOffsetTFlags.bytewidth
             self.PrependVOffsetT(VOffsetTFlags.py_type(vBytes))
 
@@ -250,7 +254,7 @@ class Builder(object):
 
             # Finally, store this vtable in memory for future
             # deduplication:
-            self.vtables[vtKey] = self.Offset()
+            self.vtables.setdefault(vtKeyHash, []).append(self.Offset())
         else:
             # Found a duplicate vtable.
             objectStart = SOffsetTFlags.py_type(len(self.Bytes) - objectOffset)
@@ -259,7 +263,7 @@ class Builder(object):
             # Write the offset to the found vtable in the
             # already-allocated SOffsetT at the beginning of this object:
             encode.Write(packer.soffset, self.Bytes, self.Head(),
-                         SOffsetTFlags.py_type(vt2Offset - objectOffset))
+                         SOffsetTFlags.py_type(existingVtable - objectOffset))
 
         self.current_vtable = None
         return objectOffset
@@ -724,15 +728,18 @@ class Builder(object):
     ## @endcond
 
 ## @cond FLATBUFFERS_INTERNAL
-def vtableEqual(a, objectStart, b):
+def vtableEqual(a, objectStart, b, length):
     """vtableEqual compares an unwritten vtable to a written vtable."""
 
     N.enforce_number(objectStart, N.UOffsetTFlags)
 
-    if len(a) * N.VOffsetTFlags.bytewidth != len(b):
+    if length * N.VOffsetTFlags.bytewidth != len(b):
         return False
 
     for i, elem in enumerate(a):
+        if i == length:
+            break
+
         x = encode.Get(packer.voffset, b, i * N.VOffsetTFlags.bytewidth)
 
         # Skip vtable entries that indicate a default value.
