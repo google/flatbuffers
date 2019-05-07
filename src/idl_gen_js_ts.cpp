@@ -650,6 +650,9 @@ class JsTsGenerator : public BaseGenerator {
         code += ", '" + parser_.file_identifier_ + "'";
       }
       if (size_prefixed) {
+        if (parser_.file_identifier_.empty()) {
+          code += ", undefined";
+        }
         code += ", true";
       }
       code += ");\n";
