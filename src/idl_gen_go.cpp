@@ -50,13 +50,13 @@ static const char * const g_golang_keywords[] = {
   "for",    "import",  "return",      "var",
 };
 
-static std::string GoIdentity(const std::string &name) {
+static std::string GoIdentity(const std::string &name, bool first = false) {
   for (size_t i = 0;
        i < sizeof(g_golang_keywords) / sizeof(g_golang_keywords[0]); i++) {
     if (name == g_golang_keywords[i]) { return MakeCamel(name + "_", false); }
   }
 
-  return MakeCamel(name, false);
+  return MakeCamel(name, first);
 }
 
 class GoGenerator : public BaseGenerator {
@@ -684,6 +684,12 @@ class GoGenerator : public BaseGenerator {
     cur_name_space_ = struct_def.defined_namespace;
 
     GenComment(struct_def.doc_comment, code_ptr, nullptr);
+    if (parser_.opts.generate_object_based_api) {
+      // TODO(iceboy): Also generate native code for structs.
+      if (!struct_def.fixed) {
+        GenNativeTable(struct_def, code_ptr);
+      }
+    }
     BeginClass(struct_def, code_ptr);
     if (!struct_def.fixed) {
       // Generate a special accessor for the table that has been declared as
@@ -714,6 +720,34 @@ class GoGenerator : public BaseGenerator {
       // Create a set of functions that allow table construction.
       GenTableBuilders(struct_def, code_ptr);
     }
+  }
+
+  void GenNativeTable(const StructDef &struct_def, std::string *code_ptr) {
+    std::string &code = *code_ptr;
+
+    std::string native_name = NativeName(struct_def, parser_.opts);
+    code += "type " + native_name + " struct {\n";
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      const FieldDef &field = **it;
+      if (field.deprecated) continue;
+      code += "\t" + GoIdentity(field.name, true) + " " +
+              NativeType(field.value.type) + "\n";
+    }
+    code += "}\n\n";
+
+    code += "func " + struct_def.name + "Pack(o *" + native_name +
+            ", builder *flatbuffers.Builder) flatbuffers.UOffsetT {\n";
+    // TODO(iceboy): Create fields.
+    code += "\t" + struct_def.name + "Start(builder)\n";
+    // TODO(iceboy): Add fields.
+    code += "\treturn " + struct_def.name + "End(builder)\n";
+    code += "}\n\n";
+    code += "func " + struct_def.name + "UnPack(buf []byte) *" + native_name + " {\n";
+    // TODO(iceboy): Generate recover.
+    code += "\to := &" + native_name + "{}\n";
+    code += "\treturn o\n";
+    code += "}\n\n";
   }
 
   // Generate enum declarations.
@@ -794,9 +828,23 @@ class GoGenerator : public BaseGenerator {
 
   std::string GenConstant(const FieldDef &field) {
     switch (field.value.type.base_type) {
-      case BASE_TYPE_BOOL: return field.value.constant == "0" ? "false" : "true";;
+      case BASE_TYPE_BOOL: return field.value.constant == "0" ? "false" : "true";
       default: return field.value.constant;
     }
+  }
+
+  std::string NativeName(const StructDef &struct_def, const IDLOptions &opts) {
+    return opts.object_prefix + struct_def.name + opts.object_suffix;
+  }
+
+  std::string NativeType(const Type &type) {
+    if (IsScalar(type.base_type)) {
+      return GenTypeBasic(type);
+    }
+    // TODO(iceboy): Support BASE_TYPE_VECTOR.
+    // TODO(iceboy): Support nested table.
+    // TODO(iceboy): Support nested struct.
+    return "int";
   }
 
   // Create a struct with a builder and the struct's arguments.
