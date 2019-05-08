@@ -530,8 +530,9 @@ class Builder(object):
             # https://docs.python.org/2/library/struct.html#format-characters
             file_identifier = N.struct.unpack(">BBBB", file_identifier)
             for i in range(encode.FILE_IDENTIFIER_LENGTH-1, -1, -1):
-                # Place the bytes of the file_identifer in reverse order(depth-first)
-                self.Place(file_identifier[i], N.Uint8Flags)                
+                # Place the bytes of the file_identifer in reverse order:
+                self.Place(file_identifier[i], N.Uint8Flags)   
+                
         self.PrependUOffsetTRelative(rootTable)
         if sizePrefix:
             size = len(self.Bytes) - self.Head()
