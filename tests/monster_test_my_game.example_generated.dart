@@ -753,10 +753,18 @@ class Monster {
     }
   }
   List<Color> get vectorOfEnums => const fb.ListReader<Color>(Color.reader).vTableGet(_bc, _bcOffset, 98, null);
+  List<Test> get vecOfStructsWithMax => const fb.ListReader<Test>(Test.reader).vTableGet(_bc, _bcOffset, 100, null);
+  List<String> get vecOfStringsWithMax => const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 102, null);
+  List<Referrable> get vecOfReferrablesWithMax => const fb.ListReader<Referrable>(Referrable.reader).vTableGet(_bc, _bcOffset, 104, null);
+  List<Referrable> get vecOfStrongReferrablesWithMax => const fb.ListReader<Referrable>(Referrable.reader).vTableGet(_bc, _bcOffset, 106, null);
+  List<int> get vecOfCoOwningReferencesWithMax => const fb.ListReader<int>(const fb.Uint64Reader()).vTableGet(_bc, _bcOffset, 108, null);
+  List<int> get vecOfNonOwningReferencesWithMax => const fb.ListReader<int>(const fb.Uint64Reader()).vTableGet(_bc, _bcOffset, 110, null);
+  List<Color> get vecOfEnumsWithMax => const fb.ListReader<Color>(Color.reader).vTableGet(_bc, _bcOffset, 112, null);
+  String get stringWithMax => const fb.StringReader().vTableGet(_bc, _bcOffset, 114, null);
 
   @override
   String toString() {
-    return 'Monster{pos: $pos, mana: $mana, hp: $hp, name: $name, inventory: $inventory, color: $color, testType: $testType, test: $test, test4: $test4, testarrayofstring: $testarrayofstring, testarrayoftables: $testarrayoftables, enemy: $enemy, testnestedflatbuffer: $testnestedflatbuffer, testempty: $testempty, testbool: $testbool, testhashs32Fnv1: $testhashs32Fnv1, testhashu32Fnv1: $testhashu32Fnv1, testhashs64Fnv1: $testhashs64Fnv1, testhashu64Fnv1: $testhashu64Fnv1, testhashs32Fnv1a: $testhashs32Fnv1a, testhashu32Fnv1a: $testhashu32Fnv1a, testhashs64Fnv1a: $testhashs64Fnv1a, testhashu64Fnv1a: $testhashu64Fnv1a, testarrayofbools: $testarrayofbools, testf: $testf, testf2: $testf2, testf3: $testf3, testarrayofstring2: $testarrayofstring2, testarrayofsortedstruct: $testarrayofsortedstruct, flex: $flex, test5: $test5, vectorOfLongs: $vectorOfLongs, vectorOfDoubles: $vectorOfDoubles, parentNamespaceTest: $parentNamespaceTest, vectorOfReferrables: $vectorOfReferrables, singleWeakReference: $singleWeakReference, vectorOfWeakReferences: $vectorOfWeakReferences, vectorOfStrongReferrables: $vectorOfStrongReferrables, coOwningReference: $coOwningReference, vectorOfCoOwningReferences: $vectorOfCoOwningReferences, nonOwningReference: $nonOwningReference, vectorOfNonOwningReferences: $vectorOfNonOwningReferences, anyUniqueType: $anyUniqueType, anyUnique: $anyUnique, anyAmbiguousType: $anyAmbiguousType, anyAmbiguous: $anyAmbiguous, vectorOfEnums: $vectorOfEnums}';
+    return 'Monster{pos: $pos, mana: $mana, hp: $hp, name: $name, inventory: $inventory, color: $color, testType: $testType, test: $test, test4: $test4, testarrayofstring: $testarrayofstring, testarrayoftables: $testarrayoftables, enemy: $enemy, testnestedflatbuffer: $testnestedflatbuffer, testempty: $testempty, testbool: $testbool, testhashs32Fnv1: $testhashs32Fnv1, testhashu32Fnv1: $testhashu32Fnv1, testhashs64Fnv1: $testhashs64Fnv1, testhashu64Fnv1: $testhashu64Fnv1, testhashs32Fnv1a: $testhashs32Fnv1a, testhashu32Fnv1a: $testhashu32Fnv1a, testhashs64Fnv1a: $testhashs64Fnv1a, testhashu64Fnv1a: $testhashu64Fnv1a, testarrayofbools: $testarrayofbools, testf: $testf, testf2: $testf2, testf3: $testf3, testarrayofstring2: $testarrayofstring2, testarrayofsortedstruct: $testarrayofsortedstruct, flex: $flex, test5: $test5, vectorOfLongs: $vectorOfLongs, vectorOfDoubles: $vectorOfDoubles, parentNamespaceTest: $parentNamespaceTest, vectorOfReferrables: $vectorOfReferrables, singleWeakReference: $singleWeakReference, vectorOfWeakReferences: $vectorOfWeakReferences, vectorOfStrongReferrables: $vectorOfStrongReferrables, coOwningReference: $coOwningReference, vectorOfCoOwningReferences: $vectorOfCoOwningReferences, nonOwningReference: $nonOwningReference, vectorOfNonOwningReferences: $vectorOfNonOwningReferences, anyUniqueType: $anyUniqueType, anyUnique: $anyUnique, anyAmbiguousType: $anyAmbiguousType, anyAmbiguous: $anyAmbiguous, vectorOfEnums: $vectorOfEnums, vecOfStructsWithMax: $vecOfStructsWithMax, vecOfStringsWithMax: $vecOfStringsWithMax, vecOfReferrablesWithMax: $vecOfReferrablesWithMax, vecOfStrongReferrablesWithMax: $vecOfStrongReferrablesWithMax, vecOfCoOwningReferencesWithMax: $vecOfCoOwningReferencesWithMax, vecOfNonOwningReferencesWithMax: $vecOfNonOwningReferencesWithMax, vecOfEnumsWithMax: $vecOfEnumsWithMax, stringWithMax: $stringWithMax}';
   }
 }
 
@@ -967,6 +975,38 @@ class MonsterBuilder {
     fbBuilder.addOffset(47, offset);
     return fbBuilder.offset;
   }
+  int addVecOfStructsWithMaxOffset(int offset) {
+    fbBuilder.addOffset(48, offset);
+    return fbBuilder.offset;
+  }
+  int addVecOfStringsWithMaxOffset(int offset) {
+    fbBuilder.addOffset(49, offset);
+    return fbBuilder.offset;
+  }
+  int addVecOfReferrablesWithMaxOffset(int offset) {
+    fbBuilder.addOffset(50, offset);
+    return fbBuilder.offset;
+  }
+  int addVecOfStrongReferrablesWithMaxOffset(int offset) {
+    fbBuilder.addOffset(51, offset);
+    return fbBuilder.offset;
+  }
+  int addVecOfCoOwningReferencesWithMaxOffset(int offset) {
+    fbBuilder.addOffset(52, offset);
+    return fbBuilder.offset;
+  }
+  int addVecOfNonOwningReferencesWithMaxOffset(int offset) {
+    fbBuilder.addOffset(53, offset);
+    return fbBuilder.offset;
+  }
+  int addVecOfEnumsWithMaxOffset(int offset) {
+    fbBuilder.addOffset(54, offset);
+    return fbBuilder.offset;
+  }
+  int addStringWithMaxOffset(int offset) {
+    fbBuilder.addOffset(55, offset);
+    return fbBuilder.offset;
+  }
 
   int finish() {
     return fbBuilder.endTable();
@@ -1021,6 +1061,14 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
   final AnyAmbiguousAliasesTypeId _anyAmbiguousType;
   final dynamic _anyAmbiguous;
   final List<Color> _vectorOfEnums;
+  final List<TestObjectBuilder> _vecOfStructsWithMax;
+  final List<String> _vecOfStringsWithMax;
+  final List<ReferrableObjectBuilder> _vecOfReferrablesWithMax;
+  final List<ReferrableObjectBuilder> _vecOfStrongReferrablesWithMax;
+  final List<int> _vecOfCoOwningReferencesWithMax;
+  final List<int> _vecOfNonOwningReferencesWithMax;
+  final List<Color> _vecOfEnumsWithMax;
+  final String _stringWithMax;
 
   MonsterObjectBuilder({
     Vec3ObjectBuilder pos,
@@ -1070,6 +1118,14 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
     AnyAmbiguousAliasesTypeId anyAmbiguousType,
     dynamic anyAmbiguous,
     List<Color> vectorOfEnums,
+    List<TestObjectBuilder> vecOfStructsWithMax,
+    List<String> vecOfStringsWithMax,
+    List<ReferrableObjectBuilder> vecOfReferrablesWithMax,
+    List<ReferrableObjectBuilder> vecOfStrongReferrablesWithMax,
+    List<int> vecOfCoOwningReferencesWithMax,
+    List<int> vecOfNonOwningReferencesWithMax,
+    List<Color> vecOfEnumsWithMax,
+    String stringWithMax,
   })
       : _pos = pos,
         _mana = mana,
@@ -1117,7 +1173,15 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
         _anyUnique = anyUnique,
         _anyAmbiguousType = anyAmbiguousType,
         _anyAmbiguous = anyAmbiguous,
-        _vectorOfEnums = vectorOfEnums;
+        _vectorOfEnums = vectorOfEnums,
+        _vecOfStructsWithMax = vecOfStructsWithMax,
+        _vecOfStringsWithMax = vecOfStringsWithMax,
+        _vecOfReferrablesWithMax = vecOfReferrablesWithMax,
+        _vecOfStrongReferrablesWithMax = vecOfStrongReferrablesWithMax,
+        _vecOfCoOwningReferencesWithMax = vecOfCoOwningReferencesWithMax,
+        _vecOfNonOwningReferencesWithMax = vecOfNonOwningReferencesWithMax,
+        _vecOfEnumsWithMax = vecOfEnumsWithMax,
+        _stringWithMax = stringWithMax;
 
   /// Finish building, and store into the [fbBuilder].
   @override
@@ -1185,6 +1249,28 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
     final int vectorOfEnumsOffset = _vectorOfEnums?.isNotEmpty == true
         ? fbBuilder.writeListInt8(_vectorOfEnums.map((f) => f.value))
         : null;
+    final int vecOfStructsWithMaxOffset = _vecOfStructsWithMax?.isNotEmpty == true
+        ? fbBuilder.writeListOfStructs(_vecOfStructsWithMax)
+        : null;
+    final int vecOfStringsWithMaxOffset = _vecOfStringsWithMax?.isNotEmpty == true
+        ? fbBuilder.writeList(_vecOfStringsWithMax.map((b) => fbBuilder.writeString(b)).toList())
+        : null;
+    final int vecOfReferrablesWithMaxOffset = _vecOfReferrablesWithMax?.isNotEmpty == true
+        ? fbBuilder.writeList(_vecOfReferrablesWithMax.map((b) => b.getOrCreateOffset(fbBuilder)).toList())
+        : null;
+    final int vecOfStrongReferrablesWithMaxOffset = _vecOfStrongReferrablesWithMax?.isNotEmpty == true
+        ? fbBuilder.writeList(_vecOfStrongReferrablesWithMax.map((b) => b.getOrCreateOffset(fbBuilder)).toList())
+        : null;
+    final int vecOfCoOwningReferencesWithMaxOffset = _vecOfCoOwningReferencesWithMax?.isNotEmpty == true
+        ? fbBuilder.writeListUint64(_vecOfCoOwningReferencesWithMax)
+        : null;
+    final int vecOfNonOwningReferencesWithMaxOffset = _vecOfNonOwningReferencesWithMax?.isNotEmpty == true
+        ? fbBuilder.writeListUint64(_vecOfNonOwningReferencesWithMax)
+        : null;
+    final int vecOfEnumsWithMaxOffset = _vecOfEnumsWithMax?.isNotEmpty == true
+        ? fbBuilder.writeListInt8(_vecOfEnumsWithMax.map((f) => f.value))
+        : null;
+    final int stringWithMaxOffset = fbBuilder.writeString(_stringWithMax);
 
     fbBuilder.startTable();
     if (_pos != null) {
@@ -1285,6 +1371,30 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
     }
     if (vectorOfEnumsOffset != null) {
       fbBuilder.addOffset(47, vectorOfEnumsOffset);
+    }
+    if (vecOfStructsWithMaxOffset != null) {
+      fbBuilder.addOffset(48, vecOfStructsWithMaxOffset);
+    }
+    if (vecOfStringsWithMaxOffset != null) {
+      fbBuilder.addOffset(49, vecOfStringsWithMaxOffset);
+    }
+    if (vecOfReferrablesWithMaxOffset != null) {
+      fbBuilder.addOffset(50, vecOfReferrablesWithMaxOffset);
+    }
+    if (vecOfStrongReferrablesWithMaxOffset != null) {
+      fbBuilder.addOffset(51, vecOfStrongReferrablesWithMaxOffset);
+    }
+    if (vecOfCoOwningReferencesWithMaxOffset != null) {
+      fbBuilder.addOffset(52, vecOfCoOwningReferencesWithMaxOffset);
+    }
+    if (vecOfNonOwningReferencesWithMaxOffset != null) {
+      fbBuilder.addOffset(53, vecOfNonOwningReferencesWithMaxOffset);
+    }
+    if (vecOfEnumsWithMaxOffset != null) {
+      fbBuilder.addOffset(54, vecOfEnumsWithMaxOffset);
+    }
+    if (stringWithMaxOffset != null) {
+      fbBuilder.addOffset(55, stringWithMaxOffset);
     }
     return fbBuilder.endTable();
   }

@@ -187,8 +187,52 @@ public struct Monster : IFlatbufferObject
 #endif
   public Color[] GetVectorOfEnumsArray() { return __p.__vector_as_array<Color>(98); }
   public bool MutateVectorOfEnums(int j, Color vector_of_enums) { int o = __p.__offset(98); if (o != 0) { __p.bb.PutSbyte(__p.__vector(o) + j * 1, (sbyte)vector_of_enums); return true; } else { return false; } }
+  public Test? VecOfStructsWithMax(int j) { int o = __p.__offset(100); return o != 0 ? (Test?)(new Test()).__assign(__p.__vector(o) + j * 4, __p.bb) : null; }
+  public int VecOfStructsWithMaxLength { get { int o = __p.__offset(100); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public string VecOfStringsWithMax(int j) { int o = __p.__offset(102); return o != 0 ? __p.__string(__p.__vector(o) + j * 4) : null; }
+  public int VecOfStringsWithMaxLength { get { int o = __p.__offset(102); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public Referrable? VecOfReferrablesWithMax(int j) { int o = __p.__offset(104); return o != 0 ? (Referrable?)(new Referrable()).__assign(__p.__indirect(__p.__vector(o) + j * 4), __p.bb) : null; }
+  public int VecOfReferrablesWithMaxLength { get { int o = __p.__offset(104); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public Referrable? VecOfReferrablesWithMaxByKey(ulong key) { int o = __p.__offset(104); return o != 0 ? Referrable.__lookup_by_key(__p.__vector(o), key, __p.bb) : null; }
+  public Referrable? VecOfStrongReferrablesWithMax(int j) { int o = __p.__offset(106); return o != 0 ? (Referrable?)(new Referrable()).__assign(__p.__indirect(__p.__vector(o) + j * 4), __p.bb) : null; }
+  public int VecOfStrongReferrablesWithMaxLength { get { int o = __p.__offset(106); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public Referrable? VecOfStrongReferrablesWithMaxByKey(ulong key) { int o = __p.__offset(106); return o != 0 ? Referrable.__lookup_by_key(__p.__vector(o), key, __p.bb) : null; }
+  public ulong VecOfCoOwningReferencesWithMax(int j) { int o = __p.__offset(108); return o != 0 ? __p.bb.GetUlong(__p.__vector(o) + j * 8) : (ulong)0; }
+  public int VecOfCoOwningReferencesWithMaxLength { get { int o = __p.__offset(108); return o != 0 ? __p.__vector_len(o) : 0; } }
+#if ENABLE_SPAN_T
+  public Span<byte> GetVecOfCoOwningReferencesWithMaxBytes() { return __p.__vector_as_span(108); }
+#else
+  public ArraySegment<byte>? GetVecOfCoOwningReferencesWithMaxBytes() { return __p.__vector_as_arraysegment(108); }
+#endif
+  public ulong[] GetVecOfCoOwningReferencesWithMaxArray() { return __p.__vector_as_array<ulong>(108); }
+  public bool MutateVecOfCoOwningReferencesWithMax(int j, ulong vec_of_co_owning_references_with_max) { int o = __p.__offset(108); if (o != 0) { __p.bb.PutUlong(__p.__vector(o) + j * 8, vec_of_co_owning_references_with_max); return true; } else { return false; } }
+  public ulong VecOfNonOwningReferencesWithMax(int j) { int o = __p.__offset(110); return o != 0 ? __p.bb.GetUlong(__p.__vector(o) + j * 8) : (ulong)0; }
+  public int VecOfNonOwningReferencesWithMaxLength { get { int o = __p.__offset(110); return o != 0 ? __p.__vector_len(o) : 0; } }
+#if ENABLE_SPAN_T
+  public Span<byte> GetVecOfNonOwningReferencesWithMaxBytes() { return __p.__vector_as_span(110); }
+#else
+  public ArraySegment<byte>? GetVecOfNonOwningReferencesWithMaxBytes() { return __p.__vector_as_arraysegment(110); }
+#endif
+  public ulong[] GetVecOfNonOwningReferencesWithMaxArray() { return __p.__vector_as_array<ulong>(110); }
+  public bool MutateVecOfNonOwningReferencesWithMax(int j, ulong vec_of_non_owning_references_with_max) { int o = __p.__offset(110); if (o != 0) { __p.bb.PutUlong(__p.__vector(o) + j * 8, vec_of_non_owning_references_with_max); return true; } else { return false; } }
+  public Color VecOfEnumsWithMax(int j) { int o = __p.__offset(112); return o != 0 ? (Color)__p.bb.GetSbyte(__p.__vector(o) + j * 1) : (Color)0; }
+  public int VecOfEnumsWithMaxLength { get { int o = __p.__offset(112); return o != 0 ? __p.__vector_len(o) : 0; } }
+#if ENABLE_SPAN_T
+  public Span<byte> GetVecOfEnumsWithMaxBytes() { return __p.__vector_as_span(112); }
+#else
+  public ArraySegment<byte>? GetVecOfEnumsWithMaxBytes() { return __p.__vector_as_arraysegment(112); }
+#endif
+  public Color[] GetVecOfEnumsWithMaxArray() { return __p.__vector_as_array<Color>(112); }
+  public bool MutateVecOfEnumsWithMax(int j, Color vec_of_enums_with_max) { int o = __p.__offset(112); if (o != 0) { __p.bb.PutSbyte(__p.__vector(o) + j * 1, (sbyte)vec_of_enums_with_max); return true; } else { return false; } }
+  public string StringWithMax { get { int o = __p.__offset(114); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+#if ENABLE_SPAN_T
+  public Span<byte> GetStringWithMaxBytes() { return __p.__vector_as_span(114); }
+#else
+  public ArraySegment<byte>? GetStringWithMaxBytes() { return __p.__vector_as_arraysegment(114); }
+#endif
+  public byte[] GetStringWithMaxArray() { return __p.__vector_as_array<byte>(114); }
 
-  public static void StartMonster(FlatBufferBuilder builder) { builder.StartObject(48); }
+  public static void StartMonster(FlatBufferBuilder builder) { builder.StartObject(56); }
   public static void AddPos(FlatBufferBuilder builder, Offset<Vec3> posOffset) { builder.AddStruct(0, posOffset.Value, 0); }
   public static void AddMana(FlatBufferBuilder builder, short mana) { builder.AddShort(1, mana, 150); }
   public static void AddHp(FlatBufferBuilder builder, short hp) { builder.AddShort(2, hp, 100); }
@@ -284,6 +328,33 @@ public struct Monster : IFlatbufferObject
   public static VectorOffset CreateVectorOfEnumsVector(FlatBufferBuilder builder, Color[] data) { builder.StartVector(1, data.Length, 1); for (int i = data.Length - 1; i >= 0; i--) builder.AddSbyte((sbyte)data[i]); return builder.EndVector(); }
   public static VectorOffset CreateVectorOfEnumsVectorBlock(FlatBufferBuilder builder, Color[] data) { builder.StartVector(1, data.Length, 1); builder.Add(data); return builder.EndVector(); }
   public static void StartVectorOfEnumsVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(1, numElems, 1); }
+  public static void AddVecOfStructsWithMax(FlatBufferBuilder builder, VectorOffset vecOfStructsWithMaxOffset) { builder.AddOffset(48, vecOfStructsWithMaxOffset.Value, 0); }
+  public static void StartVecOfStructsWithMaxVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 2); }
+  public static void AddVecOfStringsWithMax(FlatBufferBuilder builder, VectorOffset vecOfStringsWithMaxOffset) { builder.AddOffset(49, vecOfStringsWithMaxOffset.Value, 0); }
+  public static VectorOffset CreateVecOfStringsWithMaxVector(FlatBufferBuilder builder, StringOffset[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddOffset(data[i].Value); return builder.EndVector(); }
+  public static VectorOffset CreateVecOfStringsWithMaxVectorBlock(FlatBufferBuilder builder, StringOffset[] data) { builder.StartVector(4, data.Length, 4); builder.Add(data); return builder.EndVector(); }
+  public static void StartVecOfStringsWithMaxVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
+  public static void AddVecOfReferrablesWithMax(FlatBufferBuilder builder, VectorOffset vecOfReferrablesWithMaxOffset) { builder.AddOffset(50, vecOfReferrablesWithMaxOffset.Value, 0); }
+  public static VectorOffset CreateVecOfReferrablesWithMaxVector(FlatBufferBuilder builder, Offset<Referrable>[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddOffset(data[i].Value); return builder.EndVector(); }
+  public static VectorOffset CreateVecOfReferrablesWithMaxVectorBlock(FlatBufferBuilder builder, Offset<Referrable>[] data) { builder.StartVector(4, data.Length, 4); builder.Add(data); return builder.EndVector(); }
+  public static void StartVecOfReferrablesWithMaxVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
+  public static void AddVecOfStrongReferrablesWithMax(FlatBufferBuilder builder, VectorOffset vecOfStrongReferrablesWithMaxOffset) { builder.AddOffset(51, vecOfStrongReferrablesWithMaxOffset.Value, 0); }
+  public static VectorOffset CreateVecOfStrongReferrablesWithMaxVector(FlatBufferBuilder builder, Offset<Referrable>[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddOffset(data[i].Value); return builder.EndVector(); }
+  public static VectorOffset CreateVecOfStrongReferrablesWithMaxVectorBlock(FlatBufferBuilder builder, Offset<Referrable>[] data) { builder.StartVector(4, data.Length, 4); builder.Add(data); return builder.EndVector(); }
+  public static void StartVecOfStrongReferrablesWithMaxVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
+  public static void AddVecOfCoOwningReferencesWithMax(FlatBufferBuilder builder, VectorOffset vecOfCoOwningReferencesWithMaxOffset) { builder.AddOffset(52, vecOfCoOwningReferencesWithMaxOffset.Value, 0); }
+  public static VectorOffset CreateVecOfCoOwningReferencesWithMaxVector(FlatBufferBuilder builder, ulong[] data) { builder.StartVector(8, data.Length, 8); for (int i = data.Length - 1; i >= 0; i--) builder.AddUlong(data[i]); return builder.EndVector(); }
+  public static VectorOffset CreateVecOfCoOwningReferencesWithMaxVectorBlock(FlatBufferBuilder builder, ulong[] data) { builder.StartVector(8, data.Length, 8); builder.Add(data); return builder.EndVector(); }
+  public static void StartVecOfCoOwningReferencesWithMaxVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(8, numElems, 8); }
+  public static void AddVecOfNonOwningReferencesWithMax(FlatBufferBuilder builder, VectorOffset vecOfNonOwningReferencesWithMaxOffset) { builder.AddOffset(53, vecOfNonOwningReferencesWithMaxOffset.Value, 0); }
+  public static VectorOffset CreateVecOfNonOwningReferencesWithMaxVector(FlatBufferBuilder builder, ulong[] data) { builder.StartVector(8, data.Length, 8); for (int i = data.Length - 1; i >= 0; i--) builder.AddUlong(data[i]); return builder.EndVector(); }
+  public static VectorOffset CreateVecOfNonOwningReferencesWithMaxVectorBlock(FlatBufferBuilder builder, ulong[] data) { builder.StartVector(8, data.Length, 8); builder.Add(data); return builder.EndVector(); }
+  public static void StartVecOfNonOwningReferencesWithMaxVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(8, numElems, 8); }
+  public static void AddVecOfEnumsWithMax(FlatBufferBuilder builder, VectorOffset vecOfEnumsWithMaxOffset) { builder.AddOffset(54, vecOfEnumsWithMaxOffset.Value, 0); }
+  public static VectorOffset CreateVecOfEnumsWithMaxVector(FlatBufferBuilder builder, Color[] data) { builder.StartVector(1, data.Length, 1); for (int i = data.Length - 1; i >= 0; i--) builder.AddSbyte((sbyte)data[i]); return builder.EndVector(); }
+  public static VectorOffset CreateVecOfEnumsWithMaxVectorBlock(FlatBufferBuilder builder, Color[] data) { builder.StartVector(1, data.Length, 1); builder.Add(data); return builder.EndVector(); }
+  public static void StartVecOfEnumsWithMaxVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(1, numElems, 1); }
+  public static void AddStringWithMax(FlatBufferBuilder builder, StringOffset stringWithMaxOffset) { builder.AddOffset(55, stringWithMaxOffset.Value, 0); }
   public static Offset<Monster> EndMonster(FlatBufferBuilder builder) {
     int o = builder.EndObject();
     builder.Required(o, 10);  // name

@@ -2663,6 +2663,97 @@ void CreateSharedStringTest() {
   TEST_EQ((*a[6]) < (*a[5]), true);
 }
 
+void GuardedObjectTest() {
+  GuardedMonster guarded_monster;
+
+  // Test normal vector functionality.
+  guarded_monster.emplace_test4(Test(int16_t{1}, int8_t{123}));
+  TEST_EQ(guarded_monster.test4().size(), 1);
+  TEST_EQ(guarded_monster.test4().back().a(), 1);
+  TEST_EQ(guarded_monster.test4().back().b(), 123);
+  TEST_EQ(true, guarded_monster.push_test4(Test(int16_t{2}, int8_t{124})));
+  TEST_EQ(guarded_monster.test4().size(), 2);
+  TEST_EQ(guarded_monster.test4().back().a(), 2);
+  TEST_EQ(guarded_monster.test4().back().b(), 124);
+  TEST_EQ(true, guarded_monster.pop_test4());
+  TEST_EQ(guarded_monster.test4().size(), 1);
+  TEST_EQ(guarded_monster.test4().back().a(), 1);
+  TEST_EQ(guarded_monster.test4().back().b(), 123);
+  TEST_EQ(true, guarded_monster.pop_test4());
+  TEST_EQ(false, guarded_monster.pop_test4());
+  auto* x = guarded_monster.add_test4();
+  TEST_EQ(!!x, true);
+  x->mutate_a(3);
+  TEST_EQ(guarded_monster.test4().back().a(), 3);
+
+  // Test constrained vector functionality with emplace_*().
+  TEST_EQ(GuardedMonster::VEC_OF_STRUCTS_WITH_MAX_MAX_SIZE(), 9);
+  for (size_t i = 0;
+       i < GuardedMonster::VEC_OF_STRUCTS_WITH_MAX_MAX_SIZE();
+       ++i) {
+    TEST_EQ(guarded_monster.emplace_vec_of_structs_with_max(
+          Test(int16_t{1}, int8_t{123})), true);
+  }
+  TEST_EQ(guarded_monster.emplace_vec_of_structs_with_max(
+        Test(int16_t{1}, int8_t{123})), false);
+
+  // Test clearing an individual vector.
+  guarded_monster.clear_vec_of_structs_with_max();
+  TEST_EQ(guarded_monster.vec_of_structs_with_max().size(), 0);
+
+  // Test constrained vector functionality with push_*().
+  TEST_EQ(GuardedMonster::VEC_OF_STRUCTS_WITH_MAX_MAX_SIZE(), 9);
+  for (size_t i = 0;
+       i < GuardedMonster::VEC_OF_STRUCTS_WITH_MAX_MAX_SIZE();
+       ++i) {
+    TEST_EQ(guarded_monster.push_vec_of_structs_with_max(
+          Test(int16_t{1}, int8_t{123})), true);
+  }
+  TEST_EQ(guarded_monster.push_vec_of_structs_with_max(
+        Test(int16_t{1}, int8_t{123})), false);
+
+  guarded_monster.clear_vec_of_structs_with_max();
+  TEST_EQ(guarded_monster.vec_of_structs_with_max().size(), 0);
+
+  // Test constrained vector functionality with add_*().
+  TEST_EQ(GuardedMonster::VEC_OF_STRUCTS_WITH_MAX_MAX_SIZE(), 9);
+  for (size_t i = 0;
+       i < GuardedMonster::VEC_OF_STRUCTS_WITH_MAX_MAX_SIZE();
+       ++i) {
+    *guarded_monster.add_vec_of_structs_with_max() =
+        Test(int16_t{1}, int8_t{123});
+  }
+  TEST_EQ(guarded_monster.add_vec_of_structs_with_max(), false);
+
+  // Test clearing a all vectors and strings.
+  guarded_monster.clear();
+  TEST_EQ(guarded_monster.vec_of_structs_with_max().size(), 0);
+
+  // Test string access.
+  TEST_EQ(64, guarded_monster.STRING_WITH_MAX_MAX_SIZE());
+  std::string str(65, 'x');
+  TEST_EQ(false, guarded_monster.set_string_with_max(str));
+  str = std::string(64, 'x');
+  TEST_EQ(true, guarded_monster.set_string_with_max(str));
+  TEST_EQ(str, guarded_monster.string_with_max());
+  {
+    // Test swap failure.
+    std::string other_str(65, 'y');
+    TEST_EQ(false, guarded_monster.swap_string_with_max(other_str));
+    TEST_EQ(other_str[0], 'y');
+    TEST_EQ(guarded_monster.string_with_max(), str);
+  }
+  {
+    // Test swap success.
+    std::string other_str(64, 'y');
+    TEST_EQ(true, guarded_monster.swap_string_with_max(other_str));
+    TEST_EQ(other_str[0], 'x');
+    TEST_EQ(guarded_monster.string_with_max()[0], 'y');
+  }
+  guarded_monster.clear_string_with_max();
+  TEST_EQ(true, guarded_monster.string_with_max().empty());
+}
+
 int FlatBufferTests() {
   // clang-format off
 
@@ -2738,6 +2829,7 @@ int FlatBufferTests() {
   IsAsciiUtilsTest();
   ValidFloatTest();
   InvalidFloatTest();
+  GuardedObjectTest();
   TestMonsterExtraFloats();
   return 0;
 }

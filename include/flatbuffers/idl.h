@@ -167,6 +167,7 @@ struct Type {
   StructDef *struct_def;  // only set if t or element == BASE_TYPE_STRUCT
   EnumDef *enum_def;      // set if t == BASE_TYPE_UNION / BASE_TYPE_UTYPE,
                           // or for an integral type derived from an enum.
+  size_t max_elements;    // only set if t == BASE_TYPE_VECTOR
 };
 
 // Represents a parsed scalar value, it's type, and field offset.
@@ -695,6 +696,7 @@ class Parser : public ParserState {
     known_attributes_["native_default"] = true;
     known_attributes_["flexbuffer"] = true;
     known_attributes_["private"] = true;
+    known_attributes_["max_size"] = true;
   }
 
   ~Parser() {

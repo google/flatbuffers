@@ -329,11 +329,41 @@ struct Monster : flatbuffers_handle
         buf_.read_int8_le(buf_.flatbuffers_field_vector(pos_, 98) + i * 1)
     def vector_of_enums_length():
         buf_.flatbuffers_field_vector_len(pos_, 98)
+    def vec_of_structs_with_max(i:int):
+        MyGame_Example_Test { buf_, buf_.flatbuffers_field_vector(pos_, 100) + i * 4 }
+    def vec_of_structs_with_max_length():
+        buf_.flatbuffers_field_vector_len(pos_, 100)
+    def vec_of_strings_with_max(i:int):
+        buf_.flatbuffers_string(buf_.flatbuffers_field_vector(pos_, 102) + i * 4)
+    def vec_of_strings_with_max_length():
+        buf_.flatbuffers_field_vector_len(pos_, 102)
+    def vec_of_referrables_with_max(i:int):
+        MyGame_Example_Referrable { buf_, buf_.flatbuffers_indirect(buf_.flatbuffers_field_vector(pos_, 104) + i * 4) }
+    def vec_of_referrables_with_max_length():
+        buf_.flatbuffers_field_vector_len(pos_, 104)
+    def vec_of_strong_referrables_with_max(i:int):
+        MyGame_Example_Referrable { buf_, buf_.flatbuffers_indirect(buf_.flatbuffers_field_vector(pos_, 106) + i * 4) }
+    def vec_of_strong_referrables_with_max_length():
+        buf_.flatbuffers_field_vector_len(pos_, 106)
+    def vec_of_co_owning_references_with_max(i:int):
+        buf_.read_int64_le(buf_.flatbuffers_field_vector(pos_, 108) + i * 8)
+    def vec_of_co_owning_references_with_max_length():
+        buf_.flatbuffers_field_vector_len(pos_, 108)
+    def vec_of_non_owning_references_with_max(i:int):
+        buf_.read_int64_le(buf_.flatbuffers_field_vector(pos_, 110) + i * 8)
+    def vec_of_non_owning_references_with_max_length():
+        buf_.flatbuffers_field_vector_len(pos_, 110)
+    def vec_of_enums_with_max(i:int):
+        buf_.read_int8_le(buf_.flatbuffers_field_vector(pos_, 112) + i * 1)
+    def vec_of_enums_with_max_length():
+        buf_.flatbuffers_field_vector_len(pos_, 112)
+    def string_with_max():
+        buf_.flatbuffers_field_string(pos_, 114)
 
 def GetRootAsMonster(buf:string): Monster { buf, buf.flatbuffers_indirect(0) }
 
 def MonsterStart(b_:flatbuffers_builder):
-    b_.StartObject(48)
+    b_.StartObject(56)
 def MonsterAddPos(b_:flatbuffers_builder, pos:int):
     b_.PrependStructSlot(0, pos, 0)
 def MonsterAddMana(b_:flatbuffers_builder, mana:int):
@@ -524,6 +554,60 @@ def MonsterCreateVectorOfEnumsVector(b_:flatbuffers_builder, v_:[int]):
     b_.StartVector(1, v_.length, 1)
     reverse(v_) e_: b_.PrependInt8(e_)
     b_.EndVector(v_.length)
+def MonsterAddVecOfStructsWithMax(b_:flatbuffers_builder, vec_of_structs_with_max:int):
+    b_.PrependUOffsetTRelativeSlot(48, vec_of_structs_with_max, 0)
+def MonsterStartVecOfStructsWithMaxVector(b_:flatbuffers_builder, n_:int):
+    b_.StartVector(4, n_, 2)
+def MonsterAddVecOfStringsWithMax(b_:flatbuffers_builder, vec_of_strings_with_max:int):
+    b_.PrependUOffsetTRelativeSlot(49, vec_of_strings_with_max, 0)
+def MonsterStartVecOfStringsWithMaxVector(b_:flatbuffers_builder, n_:int):
+    b_.StartVector(4, n_, 4)
+def MonsterCreateVecOfStringsWithMaxVector(b_:flatbuffers_builder, v_:[int]):
+    b_.StartVector(4, v_.length, 4)
+    reverse(v_) e_: b_.PrependUOffsetTRelative(e_)
+    b_.EndVector(v_.length)
+def MonsterAddVecOfReferrablesWithMax(b_:flatbuffers_builder, vec_of_referrables_with_max:int):
+    b_.PrependUOffsetTRelativeSlot(50, vec_of_referrables_with_max, 0)
+def MonsterStartVecOfReferrablesWithMaxVector(b_:flatbuffers_builder, n_:int):
+    b_.StartVector(4, n_, 4)
+def MonsterCreateVecOfReferrablesWithMaxVector(b_:flatbuffers_builder, v_:[int]):
+    b_.StartVector(4, v_.length, 4)
+    reverse(v_) e_: b_.PrependUOffsetTRelative(e_)
+    b_.EndVector(v_.length)
+def MonsterAddVecOfStrongReferrablesWithMax(b_:flatbuffers_builder, vec_of_strong_referrables_with_max:int):
+    b_.PrependUOffsetTRelativeSlot(51, vec_of_strong_referrables_with_max, 0)
+def MonsterStartVecOfStrongReferrablesWithMaxVector(b_:flatbuffers_builder, n_:int):
+    b_.StartVector(4, n_, 4)
+def MonsterCreateVecOfStrongReferrablesWithMaxVector(b_:flatbuffers_builder, v_:[int]):
+    b_.StartVector(4, v_.length, 4)
+    reverse(v_) e_: b_.PrependUOffsetTRelative(e_)
+    b_.EndVector(v_.length)
+def MonsterAddVecOfCoOwningReferencesWithMax(b_:flatbuffers_builder, vec_of_co_owning_references_with_max:int):
+    b_.PrependUOffsetTRelativeSlot(52, vec_of_co_owning_references_with_max, 0)
+def MonsterStartVecOfCoOwningReferencesWithMaxVector(b_:flatbuffers_builder, n_:int):
+    b_.StartVector(8, n_, 8)
+def MonsterCreateVecOfCoOwningReferencesWithMaxVector(b_:flatbuffers_builder, v_:[int]):
+    b_.StartVector(8, v_.length, 8)
+    reverse(v_) e_: b_.PrependUint64(e_)
+    b_.EndVector(v_.length)
+def MonsterAddVecOfNonOwningReferencesWithMax(b_:flatbuffers_builder, vec_of_non_owning_references_with_max:int):
+    b_.PrependUOffsetTRelativeSlot(53, vec_of_non_owning_references_with_max, 0)
+def MonsterStartVecOfNonOwningReferencesWithMaxVector(b_:flatbuffers_builder, n_:int):
+    b_.StartVector(8, n_, 8)
+def MonsterCreateVecOfNonOwningReferencesWithMaxVector(b_:flatbuffers_builder, v_:[int]):
+    b_.StartVector(8, v_.length, 8)
+    reverse(v_) e_: b_.PrependUint64(e_)
+    b_.EndVector(v_.length)
+def MonsterAddVecOfEnumsWithMax(b_:flatbuffers_builder, vec_of_enums_with_max:int):
+    b_.PrependUOffsetTRelativeSlot(54, vec_of_enums_with_max, 0)
+def MonsterStartVecOfEnumsWithMaxVector(b_:flatbuffers_builder, n_:int):
+    b_.StartVector(1, n_, 1)
+def MonsterCreateVecOfEnumsWithMaxVector(b_:flatbuffers_builder, v_:[int]):
+    b_.StartVector(1, v_.length, 1)
+    reverse(v_) e_: b_.PrependInt8(e_)
+    b_.EndVector(v_.length)
+def MonsterAddStringWithMax(b_:flatbuffers_builder, string_with_max:int):
+    b_.PrependUOffsetTRelativeSlot(55, string_with_max, 0)
 def MonsterEnd(b_:flatbuffers_builder):
     b_.EndObject()
 

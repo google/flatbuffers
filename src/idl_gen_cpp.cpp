@@ -1536,6 +1536,183 @@ class CppGenerator : public BaseGenerator {
     }
   }
 
+  // Generate member accessors.
+  void GenMemberAccessor(const FieldDef &field,
+                         std::vector<std::string>& list_of_methods_to_clear) {
+    if (field.deprecated ||
+        field.value.type.base_type == BASE_TYPE_UTYPE ||
+       (field.value.type.base_type == BASE_TYPE_VECTOR &&
+         field.value.type.element == BASE_TYPE_UTYPE)) return;
+    const auto type = GenTypeNative(field.value.type, false, field);
+    const auto cpp_type = field.attributes.Lookup("cpp_type");
+    const auto full_type = [&](){
+          if (cpp_type) {
+            const auto native_ptr_type =
+                GenTypeNativePtr(cpp_type->constant, &field, false);
+            if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+              return "std::vector<" + native_ptr_type + ">";
+            } else {
+              return native_ptr_type;
+            }
+          } else {
+            return type;
+          }
+        }();
+    const auto name = Name(field);
+    const auto parent_name = "Parent::" + name;
+    code_.SetValue("FIELD_TYPE", full_type);
+    code_.SetValue("PARENT_FIELD_NAME", parent_name);
+    code_.SetValue("FIELD_NAME", name);
+    bool gen_max_check = false;
+    if (auto max_size = field.attributes.Lookup("max_size")) {
+      std::string upper_name(name);
+      std::transform(upper_name.begin(), upper_name.end(),
+                     upper_name.begin(), ToUpper);
+      code_.SetValue("MAX_SIZE", max_size->constant);
+      code_.SetValue("MAX_SIZE_FN", upper_name + "_MAX_SIZE");
+      gen_max_check = true;
+    }
+    if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+      const bool element_is_scalar = IsScalar(field.value.type.element);
+      const bool element_is_struct = IsStruct(field.value.type.VectorType());
+      const bool element_is_string = field.value.type.element == BASE_TYPE_STRING;
+      auto attr = field.attributes.Lookup("cpp_ptr_type");
+      const bool element_is_unique_ptr = attr 
+          ? (attr->constant == parser_.opts.cpp_object_api_pointer_type ||
+             attr->constant == "default_ptr_type")
+          : (!element_is_scalar && !element_is_struct && !element_is_string);
+      const bool gen_emplace = element_is_scalar || element_is_struct || 
+                               element_is_string || element_is_unique_ptr;
+      const bool emplace_rref = gen_emplace && !element_is_scalar;
+      const bool gen_push = !element_is_unique_ptr;
+      const bool push_cref = element_is_struct || element_is_string;
+      const bool gen_add = element_is_struct;
+      const auto element_type = GenTypeNative(field.value.type.VectorType(),
+          true, field);
+      list_of_methods_to_clear.push_back(parent_name);
+      if (cpp_type) {
+        const std::string element_ptr_type =
+            GenTypeNativePtr(cpp_type->constant, &field, false);
+        code_.SetValue("INNER_TYPE", element_ptr_type);
+        code_.SetValue("REF", "");
+      } else {
+        code_.SetValue("INNER_TYPE", element_type);
+      }
+      if (gen_max_check) {
+        code_ += "  static constexpr size_t {{MAX_SIZE_FN}}() {";
+        code_ += "    return {{MAX_SIZE}};";
+        code_ += "  }";
+      }
+      if (gen_add) {
+        code_ += "  {{INNER_TYPE}}* add_{{FIELD_NAME}}() {";
+        if (gen_max_check) {
+          code_ += "    if ({{PARENT_FIELD_NAME}}.size() >= {{MAX_SIZE_FN}}())";
+          code_ += "        return nullptr;";
+        }
+        code_ += "    {{PARENT_FIELD_NAME}}.emplace_back();";
+        code_ += "    return &{{PARENT_FIELD_NAME}}.back();";
+        code_ += "  }";
+      }
+      if (gen_push) {
+        if (push_cref) {
+          code_.SetValue("REF", "const&");
+        } else {
+          code_.SetValue("REF", "");
+        }
+        code_ += "  bool push_{{FIELD_NAME}}({{INNER_TYPE}} {{REF}} value) {";
+        if (gen_max_check) {
+          code_ += "    if ({{PARENT_FIELD_NAME}}.size() >= {{MAX_SIZE_FN}}())";
+          code_ += "        return false;";
+        }
+        code_ += "    {{PARENT_FIELD_NAME}}.push_back(value);";
+        code_ += "    return true;";
+        code_ += "  }";
+      }
+      if (gen_emplace) {
+        if (emplace_rref) {
+          code_.SetValue("REF", " &&");
+        } else {
+          code_.SetValue("REF", "");
+        }
+        code_ += "  bool emplace_{{FIELD_NAME}}({{INNER_TYPE}}{{REF}} value) {";
+        if (gen_max_check) {
+          code_ += "    if ({{PARENT_FIELD_NAME}}.size() >= "
+                           "{{MAX_SIZE_FN}}())";
+          code_ += "        return false;";
+        }
+        code_ += "    {{PARENT_FIELD_NAME}}.emplace_back(std::move(value));";
+        code_ += "    return true;";
+        code_ += "  }";
+      }
+      code_ += "  bool pop_{{FIELD_NAME}}() {";
+      code_ += "    if ({{PARENT_FIELD_NAME}}.size()) {";
+      code_ += "      {{PARENT_FIELD_NAME}}.pop_back();";
+      code_ += "      return true;";
+      code_ += "    };";
+      code_ += "    return false;";
+      code_ += "  }";
+      code_ += "  bool swap_{{FIELD_NAME}}({{FIELD_TYPE}}& value) {";
+      if (gen_max_check) {
+        code_ += "    if (value.size() > {{MAX_SIZE_FN}}())";
+        code_ += "        return false;";
+      }
+      code_ += "    std::swap({{PARENT_FIELD_NAME}}, value);";
+      code_ += "    return true;";
+      code_ += "  }";
+      code_ += "  const {{FIELD_TYPE}}& {{FIELD_NAME}}() const & {";
+      code_ += "    return {{PARENT_FIELD_NAME}};";
+      code_ += "  }";
+      code_ += "  size_t {{FIELD_NAME}}_size() const {";
+      code_ += "    return {{PARENT_FIELD_NAME}}.size();";
+      code_ += "  }";
+      code_ += "  void clear_{{FIELD_NAME}}() {";
+      code_ += "    {{PARENT_FIELD_NAME}}.clear();";
+      code_ += "  }";
+    } else if (field.value.type.base_type == BASE_TYPE_STRING) {
+      list_of_methods_to_clear.push_back(parent_name);
+      if (gen_max_check) {
+        code_ += "  static constexpr size_t {{MAX_SIZE_FN}}() {";
+        code_ += "    return {{MAX_SIZE}};";
+        code_ += "  }";
+      }
+      code_ += "  bool set_{{FIELD_NAME}}(const std::string& value) {";
+      if (gen_max_check) {
+        code_ += "    if (value.size() > {{MAX_SIZE_FN}}())";
+        code_ += "        return false;";
+      }
+      code_ += "    {{PARENT_FIELD_NAME}} = value;";
+      code_ += "    return true;";
+      code_ += "  }";
+      code_ += "  bool set_{{FIELD_NAME}}(std::string&& value) {";
+      if (gen_max_check) {
+        code_ += "    if (value.size() > {{MAX_SIZE_FN}}())";
+        code_ += "        return false;";
+      }
+      code_ += "    {{PARENT_FIELD_NAME}} = std::move(value);";
+      code_ += "    return true;";
+      code_ += "  }";
+      code_ += "  bool swap_{{FIELD_NAME}}(std::string& value) {";
+      if (gen_max_check) {
+        code_ += "    if (value.size() > {{MAX_SIZE_FN}}())";
+        code_ += "        return false;";
+      }
+      code_ += "    std::swap({{PARENT_FIELD_NAME}}, value);";
+      code_ += "    return true;";
+      code_ += "  }";
+      code_ += "  const std::string& {{FIELD_NAME}}() const & {";
+      code_ += "    return {{PARENT_FIELD_NAME}};";
+      code_ += "  }";
+      code_ += "  void clear_{{FIELD_NAME}}() {";
+      code_ += "    {{PARENT_FIELD_NAME}}.clear();";
+      code_ += "  }";
+    } else {
+      code_ += "  auto {{FIELD_NAME}}() -> decltype({{PARENT_FIELD_NAME}})&"
+                    "{ return {{PARENT_FIELD_NAME}}; }";
+      code_ += "  auto {{FIELD_NAME}}() const -> const decltype({{PARENT_FIELD_NAME}})&"
+                    "{ return {{PARENT_FIELD_NAME}}; }";
+    }
+  }
+
   // Generate the default constructor for this struct. Properly initialize all
   // scalar members with default values.
   void GenDefaultConstructor(const StructDef &struct_def) {
@@ -1644,6 +1821,36 @@ class CppGenerator : public BaseGenerator {
                "ptr),1);";
       code_ += "  }";
     }
+  }
+
+  void GenGuardedTable(const StructDef &struct_def) {
+    const auto name = Name(struct_def);
+    const auto native_name =
+        NativeName(name, &struct_def, parser_.opts);
+    const auto guarded_name = "Guarded" + name;
+    code_.SetValue("STRUCT_NAME", name);
+    code_.SetValue("NATIVE_NAME", native_name);
+    code_.SetValue("GUARDED_NAME", guarded_name);
+    // Generate a C++ object that can hold an unpacked version of this table.
+    code_ += "class {{GUARDED_NAME}} : private {{NATIVE_NAME}} {";
+    code_ += "  typedef {{NATIVE_NAME}} Parent;";
+    code_ += " public:";
+    code_ += "  typedef {{STRUCT_NAME}} TableType;";
+    code_ += "  const {{NATIVE_NAME}}& NativeTable() const { return *this; }";
+    std::vector<std::string> list_of_methods_to_clear;
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      GenMemberAccessor(**it, list_of_methods_to_clear);
+    }
+    // Generate a clear() method.
+    code_ += "  void clear() {";
+    for (const auto& method : list_of_methods_to_clear) {
+      code_.SetValue("FIELD_NAME", method);
+      code_ += "    {{FIELD_NAME}}.clear();";
+    }
+    code_ += "  }";
+    code_ += "};";
+    code_ += "";
   }
 
   void GenNativeTable(const StructDef &struct_def) {
@@ -2019,6 +2226,8 @@ class CppGenerator : public BaseGenerator {
     }
 
     GenBuilders(struct_def);
+
+    if (parser_.opts.generate_object_based_api) { GenGuardedTable(struct_def); }
 
     if (parser_.opts.generate_object_based_api) {
       // Generate a pre-declaration for a CreateX method that works with an

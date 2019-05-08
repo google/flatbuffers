@@ -158,8 +158,41 @@ public final class Monster extends Table {
   public ByteBuffer vectorOfEnumsAsByteBuffer() { return __vector_as_bytebuffer(98, 1); }
   public ByteBuffer vectorOfEnumsInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 98, 1); }
   public boolean mutateVectorOfEnums(int j, byte vector_of_enums) { int o = __offset(98); if (o != 0) { bb.put(__vector(o) + j * 1, vector_of_enums); return true; } else { return false; } }
+  public Test vecOfStructsWithMax(int j) { return vecOfStructsWithMax(new Test(), j); }
+  public Test vecOfStructsWithMax(Test obj, int j) { int o = __offset(100); return o != 0 ? obj.__assign(__vector(o) + j * 4, bb) : null; }
+  public int vecOfStructsWithMaxLength() { int o = __offset(100); return o != 0 ? __vector_len(o) : 0; }
+  public String vecOfStringsWithMax(int j) { int o = __offset(102); return o != 0 ? __string(__vector(o) + j * 4) : null; }
+  public int vecOfStringsWithMaxLength() { int o = __offset(102); return o != 0 ? __vector_len(o) : 0; }
+  public Referrable vecOfReferrablesWithMax(int j) { return vecOfReferrablesWithMax(new Referrable(), j); }
+  public Referrable vecOfReferrablesWithMax(Referrable obj, int j) { int o = __offset(104); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
+  public int vecOfReferrablesWithMaxLength() { int o = __offset(104); return o != 0 ? __vector_len(o) : 0; }
+  public Referrable vecOfReferrablesWithMaxByKey(long key) { int o = __offset(104); return o != 0 ? Referrable.__lookup_by_key(null, __vector(o), key, bb) : null; }
+  public Referrable vecOfReferrablesWithMaxByKey(Referrable obj, long key) { int o = __offset(104); return o != 0 ? Referrable.__lookup_by_key(obj, __vector(o), key, bb) : null; }
+  public Referrable vecOfStrongReferrablesWithMax(int j) { return vecOfStrongReferrablesWithMax(new Referrable(), j); }
+  public Referrable vecOfStrongReferrablesWithMax(Referrable obj, int j) { int o = __offset(106); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
+  public int vecOfStrongReferrablesWithMaxLength() { int o = __offset(106); return o != 0 ? __vector_len(o) : 0; }
+  public Referrable vecOfStrongReferrablesWithMaxByKey(long key) { int o = __offset(106); return o != 0 ? Referrable.__lookup_by_key(null, __vector(o), key, bb) : null; }
+  public Referrable vecOfStrongReferrablesWithMaxByKey(Referrable obj, long key) { int o = __offset(106); return o != 0 ? Referrable.__lookup_by_key(obj, __vector(o), key, bb) : null; }
+  public long vecOfCoOwningReferencesWithMax(int j) { int o = __offset(108); return o != 0 ? bb.getLong(__vector(o) + j * 8) : 0; }
+  public int vecOfCoOwningReferencesWithMaxLength() { int o = __offset(108); return o != 0 ? __vector_len(o) : 0; }
+  public ByteBuffer vecOfCoOwningReferencesWithMaxAsByteBuffer() { return __vector_as_bytebuffer(108, 8); }
+  public ByteBuffer vecOfCoOwningReferencesWithMaxInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 108, 8); }
+  public boolean mutateVecOfCoOwningReferencesWithMax(int j, long vec_of_co_owning_references_with_max) { int o = __offset(108); if (o != 0) { bb.putLong(__vector(o) + j * 8, vec_of_co_owning_references_with_max); return true; } else { return false; } }
+  public long vecOfNonOwningReferencesWithMax(int j) { int o = __offset(110); return o != 0 ? bb.getLong(__vector(o) + j * 8) : 0; }
+  public int vecOfNonOwningReferencesWithMaxLength() { int o = __offset(110); return o != 0 ? __vector_len(o) : 0; }
+  public ByteBuffer vecOfNonOwningReferencesWithMaxAsByteBuffer() { return __vector_as_bytebuffer(110, 8); }
+  public ByteBuffer vecOfNonOwningReferencesWithMaxInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 110, 8); }
+  public boolean mutateVecOfNonOwningReferencesWithMax(int j, long vec_of_non_owning_references_with_max) { int o = __offset(110); if (o != 0) { bb.putLong(__vector(o) + j * 8, vec_of_non_owning_references_with_max); return true; } else { return false; } }
+  public byte vecOfEnumsWithMax(int j) { int o = __offset(112); return o != 0 ? bb.get(__vector(o) + j * 1) : 0; }
+  public int vecOfEnumsWithMaxLength() { int o = __offset(112); return o != 0 ? __vector_len(o) : 0; }
+  public ByteBuffer vecOfEnumsWithMaxAsByteBuffer() { return __vector_as_bytebuffer(112, 1); }
+  public ByteBuffer vecOfEnumsWithMaxInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 112, 1); }
+  public boolean mutateVecOfEnumsWithMax(int j, byte vec_of_enums_with_max) { int o = __offset(112); if (o != 0) { bb.put(__vector(o) + j * 1, vec_of_enums_with_max); return true; } else { return false; } }
+  public String stringWithMax() { int o = __offset(114); return o != 0 ? __string(o + bb_pos) : null; }
+  public ByteBuffer stringWithMaxAsByteBuffer() { return __vector_as_bytebuffer(114, 1); }
+  public ByteBuffer stringWithMaxInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 114, 1); }
 
-  public static void startMonster(FlatBufferBuilder builder) { builder.startObject(48); }
+  public static void startMonster(FlatBufferBuilder builder) { builder.startObject(56); }
   public static void addPos(FlatBufferBuilder builder, int posOffset) { builder.addStruct(0, posOffset, 0); }
   public static void addMana(FlatBufferBuilder builder, short mana) { builder.addShort(1, mana, 150); }
   public static void addHp(FlatBufferBuilder builder, short hp) { builder.addShort(2, hp, 100); }
@@ -240,6 +273,27 @@ public final class Monster extends Table {
   public static void addVectorOfEnums(FlatBufferBuilder builder, int vectorOfEnumsOffset) { builder.addOffset(47, vectorOfEnumsOffset, 0); }
   public static int createVectorOfEnumsVector(FlatBufferBuilder builder, byte[] data) { builder.startVector(1, data.length, 1); for (int i = data.length - 1; i >= 0; i--) builder.addByte(data[i]); return builder.endVector(); }
   public static void startVectorOfEnumsVector(FlatBufferBuilder builder, int numElems) { builder.startVector(1, numElems, 1); }
+  public static void addVecOfStructsWithMax(FlatBufferBuilder builder, int vecOfStructsWithMaxOffset) { builder.addOffset(48, vecOfStructsWithMaxOffset, 0); }
+  public static void startVecOfStructsWithMaxVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 2); }
+  public static void addVecOfStringsWithMax(FlatBufferBuilder builder, int vecOfStringsWithMaxOffset) { builder.addOffset(49, vecOfStringsWithMaxOffset, 0); }
+  public static int createVecOfStringsWithMaxVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
+  public static void startVecOfStringsWithMaxVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
+  public static void addVecOfReferrablesWithMax(FlatBufferBuilder builder, int vecOfReferrablesWithMaxOffset) { builder.addOffset(50, vecOfReferrablesWithMaxOffset, 0); }
+  public static int createVecOfReferrablesWithMaxVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
+  public static void startVecOfReferrablesWithMaxVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
+  public static void addVecOfStrongReferrablesWithMax(FlatBufferBuilder builder, int vecOfStrongReferrablesWithMaxOffset) { builder.addOffset(51, vecOfStrongReferrablesWithMaxOffset, 0); }
+  public static int createVecOfStrongReferrablesWithMaxVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
+  public static void startVecOfStrongReferrablesWithMaxVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
+  public static void addVecOfCoOwningReferencesWithMax(FlatBufferBuilder builder, int vecOfCoOwningReferencesWithMaxOffset) { builder.addOffset(52, vecOfCoOwningReferencesWithMaxOffset, 0); }
+  public static int createVecOfCoOwningReferencesWithMaxVector(FlatBufferBuilder builder, long[] data) { builder.startVector(8, data.length, 8); for (int i = data.length - 1; i >= 0; i--) builder.addLong(data[i]); return builder.endVector(); }
+  public static void startVecOfCoOwningReferencesWithMaxVector(FlatBufferBuilder builder, int numElems) { builder.startVector(8, numElems, 8); }
+  public static void addVecOfNonOwningReferencesWithMax(FlatBufferBuilder builder, int vecOfNonOwningReferencesWithMaxOffset) { builder.addOffset(53, vecOfNonOwningReferencesWithMaxOffset, 0); }
+  public static int createVecOfNonOwningReferencesWithMaxVector(FlatBufferBuilder builder, long[] data) { builder.startVector(8, data.length, 8); for (int i = data.length - 1; i >= 0; i--) builder.addLong(data[i]); return builder.endVector(); }
+  public static void startVecOfNonOwningReferencesWithMaxVector(FlatBufferBuilder builder, int numElems) { builder.startVector(8, numElems, 8); }
+  public static void addVecOfEnumsWithMax(FlatBufferBuilder builder, int vecOfEnumsWithMaxOffset) { builder.addOffset(54, vecOfEnumsWithMaxOffset, 0); }
+  public static int createVecOfEnumsWithMaxVector(FlatBufferBuilder builder, byte[] data) { builder.startVector(1, data.length, 1); for (int i = data.length - 1; i >= 0; i--) builder.addByte(data[i]); return builder.endVector(); }
+  public static void startVecOfEnumsWithMaxVector(FlatBufferBuilder builder, int numElems) { builder.startVector(1, numElems, 1); }
+  public static void addStringWithMax(FlatBufferBuilder builder, int stringWithMaxOffset) { builder.addOffset(55, stringWithMaxOffset, 0); }
   public static int endMonster(FlatBufferBuilder builder) {
     int o = builder.endObject();
     builder.required(o, 10);  // name

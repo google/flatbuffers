@@ -326,6 +326,17 @@ inline flatbuffers::Offset<Attacker> CreateAttacker(
   return builder_.Finish();
 }
 
+class GuardedAttacker : private AttackerT {
+  typedef AttackerT Parent;
+ public:
+  typedef Attacker TableType;
+  const AttackerT& NativeTable() const { return *this; }
+  auto sword_attack_damage() -> decltype(Parent::sword_attack_damage)&{ return Parent::sword_attack_damage; }
+  auto sword_attack_damage() const -> const decltype(Parent::sword_attack_damage)&{ return Parent::sword_attack_damage; }
+  void clear() {
+  }
+};
+
 flatbuffers::Offset<Attacker> CreateAttacker(flatbuffers::FlatBufferBuilder &_fbb, const AttackerT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 struct MovieT : public flatbuffers::NativeTable {
@@ -473,6 +484,42 @@ inline flatbuffers::Offset<Movie> CreateMovieDirect(
       characters_type__,
       characters__);
 }
+
+class GuardedMovie : private MovieT {
+  typedef MovieT Parent;
+ public:
+  typedef Movie TableType;
+  const MovieT& NativeTable() const { return *this; }
+  auto main_character() -> decltype(Parent::main_character)&{ return Parent::main_character; }
+  auto main_character() const -> const decltype(Parent::main_character)&{ return Parent::main_character; }
+  bool emplace_characters(CharacterUnion && value) {
+    Parent::characters.emplace_back(std::move(value));
+    return true;
+  }
+  bool pop_characters() {
+    if (Parent::characters.size()) {
+      Parent::characters.pop_back();
+      return true;
+    };
+    return false;
+  }
+  bool swap_characters(std::vector<CharacterUnion>& value) {
+    std::swap(Parent::characters, value);
+    return true;
+  }
+  const std::vector<CharacterUnion>& characters() const & {
+    return Parent::characters;
+  }
+  size_t characters_size() const {
+    return Parent::characters.size();
+  }
+  void clear_characters() {
+    Parent::characters.clear();
+  }
+  void clear() {
+    Parent::characters.clear();
+  }
+};
 
 flatbuffers::Offset<Movie> CreateMovie(flatbuffers::FlatBufferBuilder &_fbb, const MovieT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
