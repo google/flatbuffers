@@ -50,13 +50,13 @@ static const char * const g_golang_keywords[] = {
   "for",    "import",  "return",      "var",
 };
 
-static std::string GoIdentity(const std::string &name, bool first = false) {
+static std::string GoIdentity(const std::string &name) {
   for (size_t i = 0;
        i < sizeof(g_golang_keywords) / sizeof(g_golang_keywords[0]); i++) {
     if (name == g_golang_keywords[i]) { return MakeCamel(name + "_", false); }
   }
 
-  return MakeCamel(name, first);
+  return MakeCamel(name, false);
 }
 
 class GoGenerator : public BaseGenerator {
@@ -723,30 +723,144 @@ class GoGenerator : public BaseGenerator {
   }
 
   void GenNativeTable(const StructDef &struct_def, std::string *code_ptr) {
+    GenNativeTableStruct(struct_def, code_ptr);
+    GenNativeTablePack(struct_def, code_ptr);
+    GenNativeTableUnPack(struct_def, code_ptr);
+  }
+
+  void GenNativeTableStruct(
+    const StructDef &struct_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
 
-    std::string native_name = NativeName(struct_def, parser_.opts);
-    code += "type " + native_name + " struct {\n";
+    code += "type " + NativeName(struct_def) + " struct {\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const FieldDef &field = **it;
       if (field.deprecated) continue;
-      code += "\t" + GoIdentity(field.name, true) + " " +
+      code += "\t" + MakeCamel(field.name) + " " +
               NativeType(field.value.type) + "\n";
     }
     code += "}\n\n";
+  }
 
-    code += "func " + struct_def.name + "Pack(o *" + native_name +
-            ", builder *flatbuffers.Builder) flatbuffers.UOffsetT {\n";
-    // TODO(iceboy): Create fields.
+  void GenNativeTablePack(const StructDef &struct_def, std::string *code_ptr) {
+    std::string &code = *code_ptr;
+
+    code += "func " + struct_def.name +
+            "Pack(builder *flatbuffers.Builder, t *" + NativeName(struct_def) +
+            ") flatbuffers.UOffsetT {\n";
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      const FieldDef &field = **it;
+      if (field.deprecated) continue;
+      if (IsScalar(field.value.type.base_type)) continue;
+
+      std::string offset = MakeCamel(field.name, false) + "Offset";
+
+      if (field.value.type.base_type == BASE_TYPE_STRING) {
+        code += "\t" + offset + " := builder.CreateString(t." +
+                MakeCamel(field.name) + ")\n";
+      } else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+        std::string length = MakeCamel(field.name, false) + "Length";
+        std::string offsets = MakeCamel(field.name, false) + "Offsets";
+        code += "\t" + length + " := len(t." + MakeCamel(field.name) + ")\n";
+        if (!IsScalar(field.value.type.element)) {
+          code += "\t" + offsets + " := []flatbuffers.UOffsetT{}\n";
+          code += "\tfor j := 0; j < " + length + "; j++ {\n";
+          code += "\t\t" + offsets + " = append(" + offsets + ", ";
+          if (field.value.type.element == BASE_TYPE_STRING) {
+            code += "builder.CreateString(t." + MakeCamel(field.name) + "[j])";
+          } else if (field.value.type.element == BASE_TYPE_STRUCT) {
+            code += field.value.type.struct_def->name + "Pack(builder, t." +
+                    MakeCamel(field.name) + "[j])";
+          } else {
+            // TODO
+          }
+          code += ")\n";
+          code += "\t}\n";
+        }
+        // TODO(iceboy): Use CreateByteString when
+        // field.value.type.element == BASE_TYPE_UCHAR .
+        code += "\t" + struct_def.name + "Start" + MakeCamel(field.name) +
+                "Vector(builder, " + length + ")\n";
+        code += "\tfor j := " + length + " - 1; j >= 0; j-- {\n";
+        if (IsScalar(field.value.type.element)) {
+          code += "\t\tbuilder.Prepend" +
+                  MakeCamel(GenTypeBasic(field.value.type.VectorType())) +
+                  "(t." + MakeCamel(field.name) + "[j])\n";
+        } else {
+          code += "\t\tbuilder.PrependUOffsetT(" + offsets + "[j])\n";
+        }
+        code += "\t}\n";
+        code += "\t" + offset + " := builder.EndVector(" + length + ")\n";
+      } else if (field.value.type.base_type == BASE_TYPE_STRUCT) {
+        // TODO
+      } else if (field.value.type.base_type == BASE_TYPE_UNION) {
+        // TODO
+      } else {
+        FLATBUFFERS_ASSERT(0);
+      }
+    }
     code += "\t" + struct_def.name + "Start(builder)\n";
-    // TODO(iceboy): Add fields.
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      const FieldDef &field = **it;
+      if (field.deprecated) continue;
+      if (IsScalar(field.value.type.base_type)) {
+        code += "\t" + struct_def.name + "Add" + MakeCamel(field.name) +
+                "(builder, t." + MakeCamel(field.name) + ")\n";
+      } else {
+        code += "\t" + struct_def.name + "Add" + MakeCamel(field.name) +
+                "(builder, " + MakeCamel(field.name, false) + "Offset)\n";
+      }
+    }
     code += "\treturn " + struct_def.name + "End(builder)\n";
     code += "}\n\n";
-    code += "func " + struct_def.name + "UnPack(buf []byte) *" + native_name + " {\n";
-    // TODO(iceboy): Generate recover.
-    code += "\to := &" + native_name + "{}\n";
-    code += "\treturn o\n";
+  }
+
+  void GenNativeTableUnPack(
+    const StructDef &struct_def, std::string *code_ptr) {
+    std::string &code = *code_ptr;
+
+    code += "func (rcv *" + struct_def.name + ") UnPack() *" +
+            NativeName(struct_def) + " {\n";
+    code += "\tt := &" + NativeName(struct_def) + "{}\n";
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      const FieldDef &field = **it;
+      if (field.deprecated) continue;
+      std::string field_name_camel = MakeCamel(field.name);
+      if (IsScalar(field.value.type.base_type)) {
+        code += "\tt." + field_name_camel + " = rcv." + field_name_camel +
+                "()\n";
+      } else if (field.value.type.base_type == BASE_TYPE_STRING) {
+        code += "\tt." + field_name_camel + " = string(rcv." +
+                field_name_camel + "())\n";
+      } else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+        // TODO(iceboy): Use bytes getter when
+        // field.value.type.element == BASE_TYPE_UCHAR .
+        code += "\tfor j := 0; j < rcv." + field_name_camel +
+                "Length(); j++ {\n";
+        code += "\t\tt." + field_name_camel + " = append(t." +
+                field_name_camel + ", ";
+        if (IsScalar(field.value.type.element)) {
+          code += "rcv." + field_name_camel + "(j)";
+        } else if (field.value.type.element == BASE_TYPE_STRING) {
+          code += "string(rcv." + field_name_camel + "(j))";
+        } else {
+          // TODO(iceboy): BASE_TYPE_STRUCT
+          // TODO(iceboy): BASE_TYPE_UNION
+          FLATBUFFERS_ASSERT(0);
+        }
+        code += ")\n";
+        code += "\t}\n";
+      } else {
+        // TODO(iceboy): BASE_TYPE_STRUCT
+        // TODO(iceboy): BASE_TYPE_UNION
+        FLATBUFFERS_ASSERT(0);
+      }
+    }
+    code += "\treturn t\n";
     code += "}\n\n";
   }
 
@@ -833,18 +947,25 @@ class GoGenerator : public BaseGenerator {
     }
   }
 
-  std::string NativeName(const StructDef &struct_def, const IDLOptions &opts) {
-    return opts.object_prefix + struct_def.name + opts.object_suffix;
+  std::string NativeName(const StructDef &struct_def) {
+    return parser_.opts.object_prefix + struct_def.name +
+           parser_.opts.object_suffix;
   }
 
   std::string NativeType(const Type &type) {
     if (IsScalar(type.base_type)) {
       return GenTypeBasic(type);
+    } else if (type.base_type == BASE_TYPE_STRING) {
+      return "string";
+    } else if (type.base_type == BASE_TYPE_VECTOR) {
+      return "[]" + NativeType(type.VectorType());
+    } else if (type.base_type == BASE_TYPE_STRUCT) {
+      return "*" + NativeName(*type.struct_def);
+    } else if (type.base_type == BASE_TYPE_UNION) {
+      // TODO
     }
-    // TODO(iceboy): Support BASE_TYPE_VECTOR.
-    // TODO(iceboy): Support nested table.
-    // TODO(iceboy): Support nested struct.
-    return "int";
+    FLATBUFFERS_ASSERT(0);
+    return std::string();
   }
 
   // Create a struct with a builder and the struct's arguments.
