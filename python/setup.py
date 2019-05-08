@@ -47,11 +47,25 @@ setup(
     license='Apache 2.0',
     author='FlatBuffers Contributors',
     author_email='me@rwinslow.com',
-    url='https://github.com/google/flatbuffers',
-    long_description=('Python runtime library for use with the Flatbuffers'
+    url='https://google.github.io/flatbuffers/',
+    long_description=('Python runtime library for use with the '
+                      '`Flatbuffers <https://google.github.io/flatbuffers/>`_ '
                       'serialization format.'),
     packages=['flatbuffers'],
     include_package_data=True,
     requires=[],
     description='The FlatBuffers serialization format for Python',
+    classifiers=[
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: Apache Software License',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 3',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+    ],
+    project_urls={
+        'Documentation': 'https://google.github.io/flatbuffers/',
+        'Source': 'https://github.com/google/flatbuffers',
+    },
 )
