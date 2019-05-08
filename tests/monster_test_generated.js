@@ -1858,10 +1858,141 @@ MyGame.Example.Monster.prototype.vectorOfEnumsArray = function() {
 };
 
 /**
+ * @param {number} index
+ * @param {MyGame.Example.Test=} obj
+ * @returns {MyGame.Example.Test}
+ */
+MyGame.Example.Monster.prototype.vecOfStructsWithMax = function(index, obj) {
+  var offset = this.bb.__offset(this.bb_pos, 100);
+  return offset ? (obj || new MyGame.Example.Test).__init(this.bb.__vector(this.bb_pos + offset) + index * 4, this.bb) : null;
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.Monster.prototype.vecOfStructsWithMaxLength = function() {
+  var offset = this.bb.__offset(this.bb_pos, 100);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} index
+ * @param {flatbuffers.Encoding=} optionalEncoding
+ * @returns {string|Uint8Array}
+ */
+MyGame.Example.Monster.prototype.vecOfStringsWithMax = function(index, optionalEncoding) {
+  var offset = this.bb.__offset(this.bb_pos, 102);
+  return offset ? this.bb.__string(this.bb.__vector(this.bb_pos + offset) + index * 4, optionalEncoding) : null;
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.Monster.prototype.vecOfStringsWithMaxLength = function() {
+  var offset = this.bb.__offset(this.bb_pos, 102);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} index
+ * @param {MyGame.Example.Referrable=} obj
+ * @returns {MyGame.Example.Referrable}
+ */
+MyGame.Example.Monster.prototype.vecOfReferrablesWithMax = function(index, obj) {
+  var offset = this.bb.__offset(this.bb_pos, 104);
+  return offset ? (obj || new MyGame.Example.Referrable).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos + offset) + index * 4), this.bb) : null;
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.Monster.prototype.vecOfReferrablesWithMaxLength = function() {
+  var offset = this.bb.__offset(this.bb_pos, 104);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} index
+ * @param {MyGame.Example.Referrable=} obj
+ * @returns {MyGame.Example.Referrable}
+ */
+MyGame.Example.Monster.prototype.vecOfStrongReferrablesWithMax = function(index, obj) {
+  var offset = this.bb.__offset(this.bb_pos, 106);
+  return offset ? (obj || new MyGame.Example.Referrable).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos + offset) + index * 4), this.bb) : null;
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.Monster.prototype.vecOfStrongReferrablesWithMaxLength = function() {
+  var offset = this.bb.__offset(this.bb_pos, 106);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} index
+ * @returns {flatbuffers.Long}
+ */
+MyGame.Example.Monster.prototype.vecOfCoOwningReferencesWithMax = function(index) {
+  var offset = this.bb.__offset(this.bb_pos, 108);
+  return offset ? this.bb.readUint64(this.bb.__vector(this.bb_pos + offset) + index * 8) : this.bb.createLong(0, 0);
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.Monster.prototype.vecOfCoOwningReferencesWithMaxLength = function() {
+  var offset = this.bb.__offset(this.bb_pos, 108);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} index
+ * @returns {flatbuffers.Long}
+ */
+MyGame.Example.Monster.prototype.vecOfNonOwningReferencesWithMax = function(index) {
+  var offset = this.bb.__offset(this.bb_pos, 110);
+  return offset ? this.bb.readUint64(this.bb.__vector(this.bb_pos + offset) + index * 8) : this.bb.createLong(0, 0);
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.Monster.prototype.vecOfNonOwningReferencesWithMaxLength = function() {
+  var offset = this.bb.__offset(this.bb_pos, 110);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} index
+ * @returns {MyGame.Example.Color}
+ */
+MyGame.Example.Monster.prototype.vecOfEnumsWithMax = function(index) {
+  var offset = this.bb.__offset(this.bb_pos, 112);
+  return offset ? /** @type {MyGame.Example.Color} */ (this.bb.readInt8(this.bb.__vector(this.bb_pos + offset) + index)) : /** @type {MyGame.Example.Color} */ (0);
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.Monster.prototype.vecOfEnumsWithMaxLength = function() {
+  var offset = this.bb.__offset(this.bb_pos, 112);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @returns {Int8Array}
+ */
+MyGame.Example.Monster.prototype.vecOfEnumsWithMaxArray = function() {
+  var offset = this.bb.__offset(this.bb_pos, 112);
+  return offset ? new Int8Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+};
+
+/**
  * @param {flatbuffers.Builder} builder
  */
 MyGame.Example.Monster.startMonster = function(builder) {
-  builder.startObject(48);
+  builder.startObject(55);
 };
 
 /**
@@ -2581,6 +2712,196 @@ MyGame.Example.Monster.startVectorOfEnumsVector = function(builder, numElems) {
 
 /**
  * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} vecOfStructsWithMaxOffset
+ */
+MyGame.Example.Monster.addVecOfStructsWithMax = function(builder, vecOfStructsWithMaxOffset) {
+  builder.addFieldOffset(48, vecOfStructsWithMaxOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+MyGame.Example.Monster.startVecOfStructsWithMaxVector = function(builder, numElems) {
+  builder.startVector(4, numElems, 2);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} vecOfStringsWithMaxOffset
+ */
+MyGame.Example.Monster.addVecOfStringsWithMax = function(builder, vecOfStringsWithMaxOffset) {
+  builder.addFieldOffset(49, vecOfStringsWithMaxOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<flatbuffers.Offset>} data
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.Monster.createVecOfStringsWithMaxVector = function(builder, data) {
+  builder.startVector(4, data.length, 4);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+MyGame.Example.Monster.startVecOfStringsWithMaxVector = function(builder, numElems) {
+  builder.startVector(4, numElems, 4);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} vecOfReferrablesWithMaxOffset
+ */
+MyGame.Example.Monster.addVecOfReferrablesWithMax = function(builder, vecOfReferrablesWithMaxOffset) {
+  builder.addFieldOffset(50, vecOfReferrablesWithMaxOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<flatbuffers.Offset>} data
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.Monster.createVecOfReferrablesWithMaxVector = function(builder, data) {
+  builder.startVector(4, data.length, 4);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+MyGame.Example.Monster.startVecOfReferrablesWithMaxVector = function(builder, numElems) {
+  builder.startVector(4, numElems, 4);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} vecOfStrongReferrablesWithMaxOffset
+ */
+MyGame.Example.Monster.addVecOfStrongReferrablesWithMax = function(builder, vecOfStrongReferrablesWithMaxOffset) {
+  builder.addFieldOffset(51, vecOfStrongReferrablesWithMaxOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<flatbuffers.Offset>} data
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.Monster.createVecOfStrongReferrablesWithMaxVector = function(builder, data) {
+  builder.startVector(4, data.length, 4);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+MyGame.Example.Monster.startVecOfStrongReferrablesWithMaxVector = function(builder, numElems) {
+  builder.startVector(4, numElems, 4);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} vecOfCoOwningReferencesWithMaxOffset
+ */
+MyGame.Example.Monster.addVecOfCoOwningReferencesWithMax = function(builder, vecOfCoOwningReferencesWithMaxOffset) {
+  builder.addFieldOffset(52, vecOfCoOwningReferencesWithMaxOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<flatbuffers.Long>} data
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.Monster.createVecOfCoOwningReferencesWithMaxVector = function(builder, data) {
+  builder.startVector(8, data.length, 8);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addInt64(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+MyGame.Example.Monster.startVecOfCoOwningReferencesWithMaxVector = function(builder, numElems) {
+  builder.startVector(8, numElems, 8);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} vecOfNonOwningReferencesWithMaxOffset
+ */
+MyGame.Example.Monster.addVecOfNonOwningReferencesWithMax = function(builder, vecOfNonOwningReferencesWithMaxOffset) {
+  builder.addFieldOffset(53, vecOfNonOwningReferencesWithMaxOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<flatbuffers.Long>} data
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.Monster.createVecOfNonOwningReferencesWithMaxVector = function(builder, data) {
+  builder.startVector(8, data.length, 8);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addInt64(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+MyGame.Example.Monster.startVecOfNonOwningReferencesWithMaxVector = function(builder, numElems) {
+  builder.startVector(8, numElems, 8);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} vecOfEnumsWithMaxOffset
+ */
+MyGame.Example.Monster.addVecOfEnumsWithMax = function(builder, vecOfEnumsWithMaxOffset) {
+  builder.addFieldOffset(54, vecOfEnumsWithMaxOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<MyGame.Example.Color>} data
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.Monster.createVecOfEnumsWithMaxVector = function(builder, data) {
+  builder.startVector(1, data.length, 1);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addInt8(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+MyGame.Example.Monster.startVecOfEnumsWithMaxVector = function(builder, numElems) {
+  builder.startVector(1, numElems, 1);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
  * @returns {flatbuffers.Offset}
  */
 MyGame.Example.Monster.endMonster = function(builder) {
@@ -2646,9 +2967,16 @@ MyGame.Example.Monster.finishMonsterBuffer = function(builder, offset) {
  * @param {MyGame.Example.AnyAmbiguousAliases} anyAmbiguousType
  * @param {flatbuffers.Offset} anyAmbiguousOffset
  * @param {flatbuffers.Offset} vectorOfEnumsOffset
+ * @param {flatbuffers.Offset} vecOfStructsWithMaxOffset
+ * @param {flatbuffers.Offset} vecOfStringsWithMaxOffset
+ * @param {flatbuffers.Offset} vecOfReferrablesWithMaxOffset
+ * @param {flatbuffers.Offset} vecOfStrongReferrablesWithMaxOffset
+ * @param {flatbuffers.Offset} vecOfCoOwningReferencesWithMaxOffset
+ * @param {flatbuffers.Offset} vecOfNonOwningReferencesWithMaxOffset
+ * @param {flatbuffers.Offset} vecOfEnumsWithMaxOffset
  * @returns {flatbuffers.Offset}
  */
-MyGame.Example.Monster.createMonster = function(builder, posOffset, mana, hp, nameOffset, inventoryOffset, color, testType, testOffset, test4Offset, testarrayofstringOffset, testarrayoftablesOffset, enemyOffset, testnestedflatbufferOffset, testemptyOffset, testbool, testhashs32Fnv1, testhashu32Fnv1, testhashs64Fnv1, testhashu64Fnv1, testhashs32Fnv1a, testhashu32Fnv1a, testhashs64Fnv1a, testhashu64Fnv1a, testarrayofboolsOffset, testf, testf2, testf3, testarrayofstring2Offset, testarrayofsortedstructOffset, flexOffset, test5Offset, vectorOfLongsOffset, vectorOfDoublesOffset, parentNamespaceTestOffset, vectorOfReferrablesOffset, singleWeakReference, vectorOfWeakReferencesOffset, vectorOfStrongReferrablesOffset, coOwningReference, vectorOfCoOwningReferencesOffset, nonOwningReference, vectorOfNonOwningReferencesOffset, anyUniqueType, anyUniqueOffset, anyAmbiguousType, anyAmbiguousOffset, vectorOfEnumsOffset) {
+MyGame.Example.Monster.createMonster = function(builder, posOffset, mana, hp, nameOffset, inventoryOffset, color, testType, testOffset, test4Offset, testarrayofstringOffset, testarrayoftablesOffset, enemyOffset, testnestedflatbufferOffset, testemptyOffset, testbool, testhashs32Fnv1, testhashu32Fnv1, testhashs64Fnv1, testhashu64Fnv1, testhashs32Fnv1a, testhashu32Fnv1a, testhashs64Fnv1a, testhashu64Fnv1a, testarrayofboolsOffset, testf, testf2, testf3, testarrayofstring2Offset, testarrayofsortedstructOffset, flexOffset, test5Offset, vectorOfLongsOffset, vectorOfDoublesOffset, parentNamespaceTestOffset, vectorOfReferrablesOffset, singleWeakReference, vectorOfWeakReferencesOffset, vectorOfStrongReferrablesOffset, coOwningReference, vectorOfCoOwningReferencesOffset, nonOwningReference, vectorOfNonOwningReferencesOffset, anyUniqueType, anyUniqueOffset, anyAmbiguousType, anyAmbiguousOffset, vectorOfEnumsOffset, vecOfStructsWithMaxOffset, vecOfStringsWithMaxOffset, vecOfReferrablesWithMaxOffset, vecOfStrongReferrablesWithMaxOffset, vecOfCoOwningReferencesWithMaxOffset, vecOfNonOwningReferencesWithMaxOffset, vecOfEnumsWithMaxOffset) {
   MyGame.Example.Monster.startMonster(builder);
   MyGame.Example.Monster.addPos(builder, posOffset);
   MyGame.Example.Monster.addMana(builder, mana);
@@ -2697,6 +3025,13 @@ MyGame.Example.Monster.createMonster = function(builder, posOffset, mana, hp, na
   MyGame.Example.Monster.addAnyAmbiguousType(builder, anyAmbiguousType);
   MyGame.Example.Monster.addAnyAmbiguous(builder, anyAmbiguousOffset);
   MyGame.Example.Monster.addVectorOfEnums(builder, vectorOfEnumsOffset);
+  MyGame.Example.Monster.addVecOfStructsWithMax(builder, vecOfStructsWithMaxOffset);
+  MyGame.Example.Monster.addVecOfStringsWithMax(builder, vecOfStringsWithMaxOffset);
+  MyGame.Example.Monster.addVecOfReferrablesWithMax(builder, vecOfReferrablesWithMaxOffset);
+  MyGame.Example.Monster.addVecOfStrongReferrablesWithMax(builder, vecOfStrongReferrablesWithMaxOffset);
+  MyGame.Example.Monster.addVecOfCoOwningReferencesWithMax(builder, vecOfCoOwningReferencesWithMaxOffset);
+  MyGame.Example.Monster.addVecOfNonOwningReferencesWithMax(builder, vecOfNonOwningReferencesWithMaxOffset);
+  MyGame.Example.Monster.addVecOfEnumsWithMax(builder, vecOfEnumsWithMaxOffset);
   return MyGame.Example.Monster.endMonster(builder);
 }
 

@@ -807,8 +807,162 @@ func (rcv *Monster) MutateVectorOfEnums(j int, n Color) bool {
 	return false
 }
 
+func (rcv *Monster) VecOfStructsWithMax(obj *Test, j int) bool {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(100))
+	if o != 0 {
+		x := rcv._tab.Vector(o)
+		x += flatbuffers.UOffsetT(j) * 4
+		obj.Init(rcv._tab.Bytes, x)
+		return true
+	}
+	return false
+}
+
+func (rcv *Monster) VecOfStructsWithMaxLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(100))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
+func (rcv *Monster) VecOfStringsWithMax(j int) []byte {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(102))
+	if o != 0 {
+		a := rcv._tab.Vector(o)
+		return rcv._tab.ByteVector(a + flatbuffers.UOffsetT(j*4))
+	}
+	return nil
+}
+
+func (rcv *Monster) VecOfStringsWithMaxLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(102))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
+func (rcv *Monster) VecOfReferrablesWithMax(obj *Referrable, j int) bool {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(104))
+	if o != 0 {
+		x := rcv._tab.Vector(o)
+		x += flatbuffers.UOffsetT(j) * 4
+		x = rcv._tab.Indirect(x)
+		obj.Init(rcv._tab.Bytes, x)
+		return true
+	}
+	return false
+}
+
+func (rcv *Monster) VecOfReferrablesWithMaxLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(104))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
+func (rcv *Monster) VecOfStrongReferrablesWithMax(obj *Referrable, j int) bool {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(106))
+	if o != 0 {
+		x := rcv._tab.Vector(o)
+		x += flatbuffers.UOffsetT(j) * 4
+		x = rcv._tab.Indirect(x)
+		obj.Init(rcv._tab.Bytes, x)
+		return true
+	}
+	return false
+}
+
+func (rcv *Monster) VecOfStrongReferrablesWithMaxLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(106))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
+func (rcv *Monster) VecOfCoOwningReferencesWithMax(j int) uint64 {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(108))
+	if o != 0 {
+		a := rcv._tab.Vector(o)
+		return rcv._tab.GetUint64(a + flatbuffers.UOffsetT(j*8))
+	}
+	return 0
+}
+
+func (rcv *Monster) VecOfCoOwningReferencesWithMaxLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(108))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
+func (rcv *Monster) MutateVecOfCoOwningReferencesWithMax(j int, n uint64) bool {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(108))
+	if o != 0 {
+		a := rcv._tab.Vector(o)
+		return rcv._tab.MutateUint64(a+flatbuffers.UOffsetT(j*8), n)
+	}
+	return false
+}
+
+func (rcv *Monster) VecOfNonOwningReferencesWithMax(j int) uint64 {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(110))
+	if o != 0 {
+		a := rcv._tab.Vector(o)
+		return rcv._tab.GetUint64(a + flatbuffers.UOffsetT(j*8))
+	}
+	return 0
+}
+
+func (rcv *Monster) VecOfNonOwningReferencesWithMaxLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(110))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
+func (rcv *Monster) MutateVecOfNonOwningReferencesWithMax(j int, n uint64) bool {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(110))
+	if o != 0 {
+		a := rcv._tab.Vector(o)
+		return rcv._tab.MutateUint64(a+flatbuffers.UOffsetT(j*8), n)
+	}
+	return false
+}
+
+func (rcv *Monster) VecOfEnumsWithMax(j int) Color {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(112))
+	if o != 0 {
+		a := rcv._tab.Vector(o)
+		return rcv._tab.GetInt8(a + flatbuffers.UOffsetT(j*1))
+	}
+	return 0
+}
+
+func (rcv *Monster) VecOfEnumsWithMaxLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(112))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
+func (rcv *Monster) MutateVecOfEnumsWithMax(j int, n Color) bool {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(112))
+	if o != 0 {
+		a := rcv._tab.Vector(o)
+		return rcv._tab.MutateInt8(a+flatbuffers.UOffsetT(j*1), n)
+	}
+	return false
+}
+
 func MonsterStart(builder *flatbuffers.Builder) {
-	builder.StartObject(48)
+	builder.StartObject(55)
 }
 func MonsterAddPos(builder *flatbuffers.Builder, pos flatbuffers.UOffsetT) {
 	builder.PrependStructSlot(0, flatbuffers.UOffsetT(pos), 0)
@@ -1003,6 +1157,48 @@ func MonsterAddVectorOfEnums(builder *flatbuffers.Builder, vectorOfEnums flatbuf
 	builder.PrependUOffsetTSlot(47, flatbuffers.UOffsetT(vectorOfEnums), 0)
 }
 func MonsterStartVectorOfEnumsVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+	return builder.StartVector(1, numElems, 1)
+}
+func MonsterAddVecOfStructsWithMax(builder *flatbuffers.Builder, vecOfStructsWithMax flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(48, flatbuffers.UOffsetT(vecOfStructsWithMax), 0)
+}
+func MonsterStartVecOfStructsWithMaxVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+	return builder.StartVector(4, numElems, 2)
+}
+func MonsterAddVecOfStringsWithMax(builder *flatbuffers.Builder, vecOfStringsWithMax flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(49, flatbuffers.UOffsetT(vecOfStringsWithMax), 0)
+}
+func MonsterStartVecOfStringsWithMaxVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+	return builder.StartVector(4, numElems, 4)
+}
+func MonsterAddVecOfReferrablesWithMax(builder *flatbuffers.Builder, vecOfReferrablesWithMax flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(50, flatbuffers.UOffsetT(vecOfReferrablesWithMax), 0)
+}
+func MonsterStartVecOfReferrablesWithMaxVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+	return builder.StartVector(4, numElems, 4)
+}
+func MonsterAddVecOfStrongReferrablesWithMax(builder *flatbuffers.Builder, vecOfStrongReferrablesWithMax flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(51, flatbuffers.UOffsetT(vecOfStrongReferrablesWithMax), 0)
+}
+func MonsterStartVecOfStrongReferrablesWithMaxVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+	return builder.StartVector(4, numElems, 4)
+}
+func MonsterAddVecOfCoOwningReferencesWithMax(builder *flatbuffers.Builder, vecOfCoOwningReferencesWithMax flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(52, flatbuffers.UOffsetT(vecOfCoOwningReferencesWithMax), 0)
+}
+func MonsterStartVecOfCoOwningReferencesWithMaxVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+	return builder.StartVector(8, numElems, 8)
+}
+func MonsterAddVecOfNonOwningReferencesWithMax(builder *flatbuffers.Builder, vecOfNonOwningReferencesWithMax flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(53, flatbuffers.UOffsetT(vecOfNonOwningReferencesWithMax), 0)
+}
+func MonsterStartVecOfNonOwningReferencesWithMaxVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+	return builder.StartVector(8, numElems, 8)
+}
+func MonsterAddVecOfEnumsWithMax(builder *flatbuffers.Builder, vecOfEnumsWithMax flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(54, flatbuffers.UOffsetT(vecOfEnumsWithMax), 0)
+}
+func MonsterStartVecOfEnumsWithMaxVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.StartVector(1, numElems, 1)
 }
 func MonsterEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {

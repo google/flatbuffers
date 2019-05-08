@@ -2663,6 +2663,37 @@ void CreateSharedStringTest() {
   TEST_EQ((*a[6]) < (*a[5]), true);
 }
 
+void GuardedObjectTest() {
+  GuardedMonster guarded_monster;
+
+  // Test normal vector functionality.
+  guarded_monster.emplace_test4(Test(int16_t{1}, int8_t{123}));
+  TEST_EQ(guarded_monster.test4().size(), 1);
+  TEST_EQ(guarded_monster.test4().back().a(), 1);
+  TEST_EQ(guarded_monster.test4().back().b(), 123);
+  TEST_EQ(true, guarded_monster.push_test4(Test(int16_t{2}, int8_t{124})));
+  TEST_EQ(guarded_monster.test4().size(), 2);
+  TEST_EQ(guarded_monster.test4().back().a(), 2);
+  TEST_EQ(guarded_monster.test4().back().b(), 124);
+  TEST_EQ(true, guarded_monster.pop_test4());
+  TEST_EQ(guarded_monster.test4().size(), 1);
+  TEST_EQ(guarded_monster.test4().back().a(), 1);
+  TEST_EQ(guarded_monster.test4().back().b(), 123);
+  TEST_EQ(true, guarded_monster.pop_test4());
+  TEST_EQ(false, guarded_monster.pop_test4());
+
+  // Test constrained vector functionality.
+  TEST_EQ(GuardedMonster::VEC_OF_STRUCTS_WITH_MAX_MAX_SIZE(), 9);
+  for (size_t i = 0;
+       i < GuardedMonster::VEC_OF_STRUCTS_WITH_MAX_MAX_SIZE();
+       ++i) {
+    TEST_EQ(guarded_monster.emplace_vec_of_structs_with_max(
+          Test(int16_t{1}, int8_t{123})), true);
+  }
+  TEST_EQ(guarded_monster.emplace_vec_of_structs_with_max(
+        Test(int16_t{1}, int8_t{123})), false);
+}
+
 int FlatBufferTests() {
   // clang-format off
 
@@ -2739,6 +2770,7 @@ int FlatBufferTests() {
   ValidFloatTest();
   InvalidFloatTest();
   TestMonsterExtraFloats();
+  GuardedObjectTest();
   return 0;
 }
 

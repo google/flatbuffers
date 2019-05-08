@@ -596,8 +596,23 @@ CheckedError Parser::ParseType(Type &type) {
       // easier to work around with a struct around the inner vector.
       return Error("nested vector types not supported (wrap in table first).");
     }
+    size_t max_elements = 0; // no limit.
+    if (token_ == ':') {
+      NEXT();
+      if (token_ != kTokenIntegerConstant) {
+        return Error(
+              "max-elements specifier must be an integer value.");
+      }
+      max_elements = StringToInt(attribute_.c_str());
+      if (max_elements < 1) {
+        return Error(
+              "max-elements specifier must be positive.");
+      }
+      NEXT();
+    }
     type = Type(BASE_TYPE_VECTOR, subtype.struct_def, subtype.enum_def);
     type.element = subtype.base_type;
+    type.max_elements = max_elements;
     EXPECT(']');
   } else {
     return Error("illegal type syntax");

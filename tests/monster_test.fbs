@@ -100,6 +100,14 @@ table Monster {
   any_unique:AnyUniqueAliases(id:44);
   any_ambiguous:AnyAmbiguousAliases (id:46);
   vector_of_enums:[Color] (id:47);
+  // an example use of [type:max_elements] schema syntax.
+  vec_of_structs_with_max:[Test:9] (id: 48);
+  vec_of_strings_with_max:[string:12] (id: 49);
+  vec_of_referrables_with_max:[Referrable:14] (id: 50);
+  vec_of_strong_referrables_with_max:[Referrable:21] (id: 51, cpp_ptr_type:"default_ptr_type");
+  vec_of_co_owning_references_with_max:[ulong:34](id:52, hash:"fnv1a_64", cpp_type:"ReferrableT", cpp_ptr_type:"default_ptr_type", cpp_ptr_type_get:".get()");  //was shared_ptr
+  vec_of_non_owning_references_with_max:[ulong:24](id:53, hash:"fnv1a_64", cpp_type:"ReferrableT", cpp_ptr_type:"naked", cpp_ptr_type_get:"");                 //was weak_ptr
+  vec_of_enums_with_max:[Color:2] (id:54);
 }
 
 table TypeAliases {

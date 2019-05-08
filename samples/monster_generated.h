@@ -465,6 +465,84 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
       path__);
 }
 
+class GuardedMonster : private MonsterT {
+  typedef MonsterT Parent;
+ public:
+  typedef Monster TableType;
+  const MonsterT& NativeTable() const { return *this; }
+  auto pos() -> decltype(Parent::pos)&{ return Parent::pos; }
+  auto pos() const -> const decltype(Parent::pos)&{ return Parent::pos; }
+  auto mana() -> decltype(Parent::mana)&{ return Parent::mana; }
+  auto mana() const -> const decltype(Parent::mana)&{ return Parent::mana; }
+  auto hp() -> decltype(Parent::hp)&{ return Parent::hp; }
+  auto hp() const -> const decltype(Parent::hp)&{ return Parent::hp; }
+  auto name() -> decltype(Parent::name)&{ return Parent::name; }
+  auto name() const -> const decltype(Parent::name)&{ return Parent::name; }
+  bool push_inventory(uint8_t  value) {
+    Parent::inventory.push_back(value);
+    return true;
+  }
+  bool emplace_inventory(uint8_t value) {
+    Parent::inventory.emplace_back(std::move(value));
+    return true;
+  }
+  bool pop_inventory() {
+    if (Parent::inventory.size()) {
+      Parent::inventory.pop_back();
+      return true;
+    };
+    return false;
+  }
+  const std::vector<uint8_t>& inventory() const & {
+    return Parent::inventory;
+  }
+  size_t inventory_size() const {
+    return Parent::inventory.size();
+  }
+  auto color() -> decltype(Parent::color)&{ return Parent::color; }
+  auto color() const -> const decltype(Parent::color)&{ return Parent::color; }
+  bool emplace_weapons(flatbuffers::unique_ptr<WeaponT> && value) {
+    Parent::weapons.emplace_back(std::move(value));
+    return true;
+  }
+  bool pop_weapons() {
+    if (Parent::weapons.size()) {
+      Parent::weapons.pop_back();
+      return true;
+    };
+    return false;
+  }
+  const std::vector<flatbuffers::unique_ptr<WeaponT>>& weapons() const & {
+    return Parent::weapons;
+  }
+  size_t weapons_size() const {
+    return Parent::weapons.size();
+  }
+  auto equipped() -> decltype(Parent::equipped)&{ return Parent::equipped; }
+  auto equipped() const -> const decltype(Parent::equipped)&{ return Parent::equipped; }
+  bool push_path(Vec3 const& value) {
+    Parent::path.push_back(value);
+    return true;
+  }
+  bool emplace_path(Vec3 && value) {
+    Parent::path.emplace_back(std::move(value));
+    return true;
+  }
+  bool pop_path() {
+    if (Parent::path.size()) {
+      Parent::path.pop_back();
+      return true;
+    };
+    return false;
+  }
+  const std::vector<Vec3>& path() const & {
+    return Parent::path;
+  }
+  size_t path_size() const {
+    return Parent::path.size();
+  }
+};
+
 flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 struct WeaponT : public flatbuffers::NativeTable {
@@ -561,6 +639,17 @@ inline flatbuffers::Offset<Weapon> CreateWeaponDirect(
       name__,
       damage);
 }
+
+class GuardedWeapon : private WeaponT {
+  typedef WeaponT Parent;
+ public:
+  typedef Weapon TableType;
+  const WeaponT& NativeTable() const { return *this; }
+  auto name() -> decltype(Parent::name)&{ return Parent::name; }
+  auto name() const -> const decltype(Parent::name)&{ return Parent::name; }
+  auto damage() -> decltype(Parent::damage)&{ return Parent::damage; }
+  auto damage() const -> const decltype(Parent::damage)&{ return Parent::damage; }
+};
 
 flatbuffers::Offset<Weapon> CreateWeapon(flatbuffers::FlatBufferBuilder &_fbb, const WeaponT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 

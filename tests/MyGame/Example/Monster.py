@@ -616,7 +616,147 @@ class Monster(object):
             return self._tab.VectorLen(o)
         return 0
 
-def MonsterStart(builder): builder.StartObject(48)
+    # Monster
+    def VecOfStructsWithMax(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(100))
+        if o != 0:
+            x = self._tab.Vector(o)
+            x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
+            from .Test import Test
+            obj = Test()
+            obj.Init(self._tab.Bytes, x)
+            return obj
+        return None
+
+    # Monster
+    def VecOfStructsWithMaxLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(100))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # Monster
+    def VecOfStringsWithMax(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(102))
+        if o != 0:
+            a = self._tab.Vector(o)
+            return self._tab.String(a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
+        return ""
+
+    # Monster
+    def VecOfStringsWithMaxLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(102))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # Monster
+    def VecOfReferrablesWithMax(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(104))
+        if o != 0:
+            x = self._tab.Vector(o)
+            x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
+            x = self._tab.Indirect(x)
+            from .Referrable import Referrable
+            obj = Referrable()
+            obj.Init(self._tab.Bytes, x)
+            return obj
+        return None
+
+    # Monster
+    def VecOfReferrablesWithMaxLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(104))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # Monster
+    def VecOfStrongReferrablesWithMax(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(106))
+        if o != 0:
+            x = self._tab.Vector(o)
+            x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
+            x = self._tab.Indirect(x)
+            from .Referrable import Referrable
+            obj = Referrable()
+            obj.Init(self._tab.Bytes, x)
+            return obj
+        return None
+
+    # Monster
+    def VecOfStrongReferrablesWithMaxLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(106))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # Monster
+    def VecOfCoOwningReferencesWithMax(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(108))
+        if o != 0:
+            a = self._tab.Vector(o)
+            return self._tab.Get(flatbuffers.number_types.Uint64Flags, a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 8))
+        return 0
+
+    # Monster
+    def VecOfCoOwningReferencesWithMaxAsNumpy(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(108))
+        if o != 0:
+            return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Uint64Flags, o)
+        return 0
+
+    # Monster
+    def VecOfCoOwningReferencesWithMaxLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(108))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # Monster
+    def VecOfNonOwningReferencesWithMax(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(110))
+        if o != 0:
+            a = self._tab.Vector(o)
+            return self._tab.Get(flatbuffers.number_types.Uint64Flags, a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 8))
+        return 0
+
+    # Monster
+    def VecOfNonOwningReferencesWithMaxAsNumpy(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(110))
+        if o != 0:
+            return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Uint64Flags, o)
+        return 0
+
+    # Monster
+    def VecOfNonOwningReferencesWithMaxLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(110))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # Monster
+    def VecOfEnumsWithMax(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(112))
+        if o != 0:
+            a = self._tab.Vector(o)
+            return self._tab.Get(flatbuffers.number_types.Int8Flags, a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 1))
+        return 0
+
+    # Monster
+    def VecOfEnumsWithMaxAsNumpy(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(112))
+        if o != 0:
+            return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Int8Flags, o)
+        return 0
+
+    # Monster
+    def VecOfEnumsWithMaxLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(112))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+def MonsterStart(builder): builder.StartObject(55)
 def MonsterAddPos(builder, pos): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(pos), 0)
 def MonsterAddMana(builder, mana): builder.PrependInt16Slot(1, mana, 150)
 def MonsterAddHp(builder, hp): builder.PrependInt16Slot(2, hp, 100)
@@ -682,4 +822,18 @@ def MonsterAddAnyAmbiguousType(builder, anyAmbiguousType): builder.PrependUint8S
 def MonsterAddAnyAmbiguous(builder, anyAmbiguous): builder.PrependUOffsetTRelativeSlot(46, flatbuffers.number_types.UOffsetTFlags.py_type(anyAmbiguous), 0)
 def MonsterAddVectorOfEnums(builder, vectorOfEnums): builder.PrependUOffsetTRelativeSlot(47, flatbuffers.number_types.UOffsetTFlags.py_type(vectorOfEnums), 0)
 def MonsterStartVectorOfEnumsVector(builder, numElems): return builder.StartVector(1, numElems, 1)
+def MonsterAddVecOfStructsWithMax(builder, vecOfStructsWithMax): builder.PrependUOffsetTRelativeSlot(48, flatbuffers.number_types.UOffsetTFlags.py_type(vecOfStructsWithMax), 0)
+def MonsterStartVecOfStructsWithMaxVector(builder, numElems): return builder.StartVector(4, numElems, 2)
+def MonsterAddVecOfStringsWithMax(builder, vecOfStringsWithMax): builder.PrependUOffsetTRelativeSlot(49, flatbuffers.number_types.UOffsetTFlags.py_type(vecOfStringsWithMax), 0)
+def MonsterStartVecOfStringsWithMaxVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def MonsterAddVecOfReferrablesWithMax(builder, vecOfReferrablesWithMax): builder.PrependUOffsetTRelativeSlot(50, flatbuffers.number_types.UOffsetTFlags.py_type(vecOfReferrablesWithMax), 0)
+def MonsterStartVecOfReferrablesWithMaxVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def MonsterAddVecOfStrongReferrablesWithMax(builder, vecOfStrongReferrablesWithMax): builder.PrependUOffsetTRelativeSlot(51, flatbuffers.number_types.UOffsetTFlags.py_type(vecOfStrongReferrablesWithMax), 0)
+def MonsterStartVecOfStrongReferrablesWithMaxVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def MonsterAddVecOfCoOwningReferencesWithMax(builder, vecOfCoOwningReferencesWithMax): builder.PrependUOffsetTRelativeSlot(52, flatbuffers.number_types.UOffsetTFlags.py_type(vecOfCoOwningReferencesWithMax), 0)
+def MonsterStartVecOfCoOwningReferencesWithMaxVector(builder, numElems): return builder.StartVector(8, numElems, 8)
+def MonsterAddVecOfNonOwningReferencesWithMax(builder, vecOfNonOwningReferencesWithMax): builder.PrependUOffsetTRelativeSlot(53, flatbuffers.number_types.UOffsetTFlags.py_type(vecOfNonOwningReferencesWithMax), 0)
+def MonsterStartVecOfNonOwningReferencesWithMaxVector(builder, numElems): return builder.StartVector(8, numElems, 8)
+def MonsterAddVecOfEnumsWithMax(builder, vecOfEnumsWithMax): builder.PrependUOffsetTRelativeSlot(54, flatbuffers.number_types.UOffsetTFlags.py_type(vecOfEnumsWithMax), 0)
+def MonsterStartVecOfEnumsWithMaxVector(builder, numElems): return builder.StartVector(1, numElems, 1)
 def MonsterEnd(builder): return builder.EndObject()

@@ -522,7 +522,120 @@ function Monster_mt:VectorOfEnumsLength()
     end
     return 0
 end
-function Monster.Start(builder) builder:StartObject(48) end
+function Monster_mt:VecOfStructsWithMax(j)
+    local o = self.view:Offset(100)
+    if o ~= 0 then
+        local x = self.view:Vector(o)
+        x = x + ((j-1) * 4)
+        local obj = require('MyGame.Example.Test').New()
+        obj:Init(self.view.bytes, x)
+        return obj
+    end
+end
+function Monster_mt:VecOfStructsWithMaxLength()
+    local o = self.view:Offset(100)
+    if o ~= 0 then
+        return self.view:VectorLen(o)
+    end
+    return 0
+end
+function Monster_mt:VecOfStringsWithMax(j)
+    local o = self.view:Offset(102)
+    if o ~= 0 then
+        local a = self.view:Vector(o)
+        return self.view:String(a + ((j-1) * 4))
+    end
+    return ''
+end
+function Monster_mt:VecOfStringsWithMaxLength()
+    local o = self.view:Offset(102)
+    if o ~= 0 then
+        return self.view:VectorLen(o)
+    end
+    return 0
+end
+function Monster_mt:VecOfReferrablesWithMax(j)
+    local o = self.view:Offset(104)
+    if o ~= 0 then
+        local x = self.view:Vector(o)
+        x = x + ((j-1) * 4)
+        x = self.view:Indirect(x)
+        local obj = require('MyGame.Example.Referrable').New()
+        obj:Init(self.view.bytes, x)
+        return obj
+    end
+end
+function Monster_mt:VecOfReferrablesWithMaxLength()
+    local o = self.view:Offset(104)
+    if o ~= 0 then
+        return self.view:VectorLen(o)
+    end
+    return 0
+end
+function Monster_mt:VecOfStrongReferrablesWithMax(j)
+    local o = self.view:Offset(106)
+    if o ~= 0 then
+        local x = self.view:Vector(o)
+        x = x + ((j-1) * 4)
+        x = self.view:Indirect(x)
+        local obj = require('MyGame.Example.Referrable').New()
+        obj:Init(self.view.bytes, x)
+        return obj
+    end
+end
+function Monster_mt:VecOfStrongReferrablesWithMaxLength()
+    local o = self.view:Offset(106)
+    if o ~= 0 then
+        return self.view:VectorLen(o)
+    end
+    return 0
+end
+function Monster_mt:VecOfCoOwningReferencesWithMax(j)
+    local o = self.view:Offset(108)
+    if o ~= 0 then
+        local a = self.view:Vector(o)
+        return self.view:Get(flatbuffers.N.Uint64, a + ((j-1) * 8))
+    end
+    return 0
+end
+function Monster_mt:VecOfCoOwningReferencesWithMaxLength()
+    local o = self.view:Offset(108)
+    if o ~= 0 then
+        return self.view:VectorLen(o)
+    end
+    return 0
+end
+function Monster_mt:VecOfNonOwningReferencesWithMax(j)
+    local o = self.view:Offset(110)
+    if o ~= 0 then
+        local a = self.view:Vector(o)
+        return self.view:Get(flatbuffers.N.Uint64, a + ((j-1) * 8))
+    end
+    return 0
+end
+function Monster_mt:VecOfNonOwningReferencesWithMaxLength()
+    local o = self.view:Offset(110)
+    if o ~= 0 then
+        return self.view:VectorLen(o)
+    end
+    return 0
+end
+function Monster_mt:VecOfEnumsWithMax(j)
+    local o = self.view:Offset(112)
+    if o ~= 0 then
+        local a = self.view:Vector(o)
+        return self.view:Get(flatbuffers.N.Int8, a + ((j-1) * 1))
+    end
+    return 0
+end
+function Monster_mt:VecOfEnumsWithMaxLength()
+    local o = self.view:Offset(112)
+    if o ~= 0 then
+        return self.view:VectorLen(o)
+    end
+    return 0
+end
+function Monster.Start(builder) builder:StartObject(55) end
 function Monster.AddPos(builder, pos) builder:PrependStructSlot(0, pos, 0) end
 function Monster.AddMana(builder, mana) builder:PrependInt16Slot(1, mana, 150) end
 function Monster.AddHp(builder, hp) builder:PrependInt16Slot(2, hp, 100) end
@@ -588,6 +701,20 @@ function Monster.AddAnyAmbiguousType(builder, anyAmbiguousType) builder:PrependU
 function Monster.AddAnyAmbiguous(builder, anyAmbiguous) builder:PrependUOffsetTRelativeSlot(46, anyAmbiguous, 0) end
 function Monster.AddVectorOfEnums(builder, vectorOfEnums) builder:PrependUOffsetTRelativeSlot(47, vectorOfEnums, 0) end
 function Monster.StartVectorOfEnumsVector(builder, numElems) return builder:StartVector(1, numElems, 1) end
+function Monster.AddVecOfStructsWithMax(builder, vecOfStructsWithMax) builder:PrependUOffsetTRelativeSlot(48, vecOfStructsWithMax, 0) end
+function Monster.StartVecOfStructsWithMaxVector(builder, numElems) return builder:StartVector(4, numElems, 2) end
+function Monster.AddVecOfStringsWithMax(builder, vecOfStringsWithMax) builder:PrependUOffsetTRelativeSlot(49, vecOfStringsWithMax, 0) end
+function Monster.StartVecOfStringsWithMaxVector(builder, numElems) return builder:StartVector(4, numElems, 4) end
+function Monster.AddVecOfReferrablesWithMax(builder, vecOfReferrablesWithMax) builder:PrependUOffsetTRelativeSlot(50, vecOfReferrablesWithMax, 0) end
+function Monster.StartVecOfReferrablesWithMaxVector(builder, numElems) return builder:StartVector(4, numElems, 4) end
+function Monster.AddVecOfStrongReferrablesWithMax(builder, vecOfStrongReferrablesWithMax) builder:PrependUOffsetTRelativeSlot(51, vecOfStrongReferrablesWithMax, 0) end
+function Monster.StartVecOfStrongReferrablesWithMaxVector(builder, numElems) return builder:StartVector(4, numElems, 4) end
+function Monster.AddVecOfCoOwningReferencesWithMax(builder, vecOfCoOwningReferencesWithMax) builder:PrependUOffsetTRelativeSlot(52, vecOfCoOwningReferencesWithMax, 0) end
+function Monster.StartVecOfCoOwningReferencesWithMaxVector(builder, numElems) return builder:StartVector(8, numElems, 8) end
+function Monster.AddVecOfNonOwningReferencesWithMax(builder, vecOfNonOwningReferencesWithMax) builder:PrependUOffsetTRelativeSlot(53, vecOfNonOwningReferencesWithMax, 0) end
+function Monster.StartVecOfNonOwningReferencesWithMaxVector(builder, numElems) return builder:StartVector(8, numElems, 8) end
+function Monster.AddVecOfEnumsWithMax(builder, vecOfEnumsWithMax) builder:PrependUOffsetTRelativeSlot(54, vecOfEnumsWithMax, 0) end
+function Monster.StartVecOfEnumsWithMaxVector(builder, numElems) return builder:StartVector(1, numElems, 1) end
 function Monster.End(builder) return builder:EndObject() end
 
 return Monster -- return the module

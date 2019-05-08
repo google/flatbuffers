@@ -156,7 +156,14 @@
         "any_unique" : { "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_TestSimpleTableWithEnum" },{ "$ref" : "#/definitions/MyGame_Example2_Monster" }] },
         "any_ambiguous_type" : { "$ref" : "#/definitions/MyGame_Example_AnyAmbiguousAliases" },
         "any_ambiguous" : { "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_Monster" }] },
-        "vector_of_enums" : { "$ref" : "#/definitions/MyGame_Example_Color" }
+        "vector_of_enums" : { "$ref" : "#/definitions/MyGame_Example_Color" },
+        "vec_of_structs_with_max" : { "type" : "array", "items" : { "$ref" : "#/definitions/MyGame_Example_Test" } },
+        "vec_of_strings_with_max" : { "type" : "array", "items" : { "type" : "string" } },
+        "vec_of_referrables_with_max" : { "type" : "array", "items" : { "$ref" : "#/definitions/MyGame_Example_Referrable" } },
+        "vec_of_strong_referrables_with_max" : { "type" : "array", "items" : { "$ref" : "#/definitions/MyGame_Example_Referrable" } },
+        "vec_of_co_owning_references_with_max" : { "type" : "array", "items" : { "type" : "number" } },
+        "vec_of_non_owning_references_with_max" : { "type" : "array", "items" : { "type" : "number" } },
+        "vec_of_enums_with_max" : { "$ref" : "#/definitions/MyGame_Example_Color" }
       },
       "required" : ["name"],
       "additionalProperties" : false

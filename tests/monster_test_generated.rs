@@ -952,6 +952,13 @@ impl<'a> Monster<'a> {
       builder.add_testhashs64_fnv1a(args.testhashs64_fnv1a);
       builder.add_testhashu64_fnv1(args.testhashu64_fnv1);
       builder.add_testhashs64_fnv1(args.testhashs64_fnv1);
+      if let Some(x) = args.vec_of_enums_with_max { builder.add_vec_of_enums_with_max(x); }
+      if let Some(x) = args.vec_of_non_owning_references_with_max { builder.add_vec_of_non_owning_references_with_max(x); }
+      if let Some(x) = args.vec_of_co_owning_references_with_max { builder.add_vec_of_co_owning_references_with_max(x); }
+      if let Some(x) = args.vec_of_strong_referrables_with_max { builder.add_vec_of_strong_referrables_with_max(x); }
+      if let Some(x) = args.vec_of_referrables_with_max { builder.add_vec_of_referrables_with_max(x); }
+      if let Some(x) = args.vec_of_strings_with_max { builder.add_vec_of_strings_with_max(x); }
+      if let Some(x) = args.vec_of_structs_with_max { builder.add_vec_of_structs_with_max(x); }
       if let Some(x) = args.vector_of_enums { builder.add_vector_of_enums(x); }
       if let Some(x) = args.any_ambiguous { builder.add_any_ambiguous(x); }
       if let Some(x) = args.any_unique { builder.add_any_unique(x); }
@@ -1042,6 +1049,13 @@ impl<'a> Monster<'a> {
     pub const VT_ANY_AMBIGUOUS_TYPE: flatbuffers::VOffsetT = 94;
     pub const VT_ANY_AMBIGUOUS: flatbuffers::VOffsetT = 96;
     pub const VT_VECTOR_OF_ENUMS: flatbuffers::VOffsetT = 98;
+    pub const VT_VEC_OF_STRUCTS_WITH_MAX: flatbuffers::VOffsetT = 100;
+    pub const VT_VEC_OF_STRINGS_WITH_MAX: flatbuffers::VOffsetT = 102;
+    pub const VT_VEC_OF_REFERRABLES_WITH_MAX: flatbuffers::VOffsetT = 104;
+    pub const VT_VEC_OF_STRONG_REFERRABLES_WITH_MAX: flatbuffers::VOffsetT = 106;
+    pub const VT_VEC_OF_CO_OWNING_REFERENCES_WITH_MAX: flatbuffers::VOffsetT = 108;
+    pub const VT_VEC_OF_NON_OWNING_REFERENCES_WITH_MAX: flatbuffers::VOffsetT = 110;
+    pub const VT_VEC_OF_ENUMS_WITH_MAX: flatbuffers::VOffsetT = 112;
 
   #[inline]
   pub fn pos(&self) -> Option<&'a Vec3> {
@@ -1253,6 +1267,34 @@ impl<'a> Monster<'a> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, Color>>>(Monster::VT_VECTOR_OF_ENUMS, None)
   }
   #[inline]
+  pub fn vec_of_structs_with_max(&self) -> Option<&'a [Test]> {
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<Test>>>(Monster::VT_VEC_OF_STRUCTS_WITH_MAX, None).map(|v| v.safe_slice() )
+  }
+  #[inline]
+  pub fn vec_of_strings_with_max(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<&'a str>>> {
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<flatbuffers::ForwardsUOffset<&'a str>>>>(Monster::VT_VEC_OF_STRINGS_WITH_MAX, None)
+  }
+  #[inline]
+  pub fn vec_of_referrables_with_max(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Referrable<'a>>>> {
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<flatbuffers::ForwardsUOffset<Referrable<'a>>>>>(Monster::VT_VEC_OF_REFERRABLES_WITH_MAX, None)
+  }
+  #[inline]
+  pub fn vec_of_strong_referrables_with_max(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Referrable<'a>>>> {
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<flatbuffers::ForwardsUOffset<Referrable<'a>>>>>(Monster::VT_VEC_OF_STRONG_REFERRABLES_WITH_MAX, None)
+  }
+  #[inline]
+  pub fn vec_of_co_owning_references_with_max(&self) -> Option<flatbuffers::Vector<'a, u64>> {
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u64>>>(Monster::VT_VEC_OF_CO_OWNING_REFERENCES_WITH_MAX, None)
+  }
+  #[inline]
+  pub fn vec_of_non_owning_references_with_max(&self) -> Option<flatbuffers::Vector<'a, u64>> {
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u64>>>(Monster::VT_VEC_OF_NON_OWNING_REFERENCES_WITH_MAX, None)
+  }
+  #[inline]
+  pub fn vec_of_enums_with_max(&self) -> Option<flatbuffers::Vector<'a, Color>> {
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, Color>>>(Monster::VT_VEC_OF_ENUMS_WITH_MAX, None)
+  }
+  #[inline]
   #[allow(non_snake_case)]
   pub fn test_as_monster(&self) -> Option<Monster<'a>> {
     if self.test_type() == Any::Monster {
@@ -1392,6 +1434,13 @@ pub struct MonsterArgs<'a> {
     pub any_ambiguous_type: AnyAmbiguousAliases,
     pub any_ambiguous: Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>>,
     pub vector_of_enums: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a , Color>>>,
+    pub vec_of_structs_with_max: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a , Test>>>,
+    pub vec_of_strings_with_max: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a , flatbuffers::ForwardsUOffset<&'a  str>>>>,
+    pub vec_of_referrables_with_max: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a , flatbuffers::ForwardsUOffset<Referrable<'a >>>>>,
+    pub vec_of_strong_referrables_with_max: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a , flatbuffers::ForwardsUOffset<Referrable<'a >>>>>,
+    pub vec_of_co_owning_references_with_max: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a ,  u64>>>,
+    pub vec_of_non_owning_references_with_max: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a ,  u64>>>,
+    pub vec_of_enums_with_max: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a , Color>>>,
 }
 impl<'a> Default for MonsterArgs<'a> {
     #[inline]
@@ -1444,6 +1493,13 @@ impl<'a> Default for MonsterArgs<'a> {
             any_ambiguous_type: AnyAmbiguousAliases::NONE,
             any_ambiguous: None,
             vector_of_enums: None,
+            vec_of_structs_with_max: None,
+            vec_of_strings_with_max: None,
+            vec_of_referrables_with_max: None,
+            vec_of_strong_referrables_with_max: None,
+            vec_of_co_owning_references_with_max: None,
+            vec_of_non_owning_references_with_max: None,
+            vec_of_enums_with_max: None,
         }
     }
 }
@@ -1639,6 +1695,34 @@ impl<'a: 'b, 'b> MonsterBuilder<'a, 'b> {
   #[inline]
   pub fn add_vector_of_enums(&mut self, vector_of_enums: flatbuffers::WIPOffset<flatbuffers::Vector<'b , Color>>) {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Monster::VT_VECTOR_OF_ENUMS, vector_of_enums);
+  }
+  #[inline]
+  pub fn add_vec_of_structs_with_max(&mut self, vec_of_structs_with_max: flatbuffers::WIPOffset<flatbuffers::Vector<'b , Test>>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Monster::VT_VEC_OF_STRUCTS_WITH_MAX, vec_of_structs_with_max);
+  }
+  #[inline]
+  pub fn add_vec_of_strings_with_max(&mut self, vec_of_strings_with_max: flatbuffers::WIPOffset<flatbuffers::Vector<'b , flatbuffers::ForwardsUOffset<&'b  str>>>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Monster::VT_VEC_OF_STRINGS_WITH_MAX, vec_of_strings_with_max);
+  }
+  #[inline]
+  pub fn add_vec_of_referrables_with_max(&mut self, vec_of_referrables_with_max: flatbuffers::WIPOffset<flatbuffers::Vector<'b , flatbuffers::ForwardsUOffset<Referrable<'b >>>>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Monster::VT_VEC_OF_REFERRABLES_WITH_MAX, vec_of_referrables_with_max);
+  }
+  #[inline]
+  pub fn add_vec_of_strong_referrables_with_max(&mut self, vec_of_strong_referrables_with_max: flatbuffers::WIPOffset<flatbuffers::Vector<'b , flatbuffers::ForwardsUOffset<Referrable<'b >>>>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Monster::VT_VEC_OF_STRONG_REFERRABLES_WITH_MAX, vec_of_strong_referrables_with_max);
+  }
+  #[inline]
+  pub fn add_vec_of_co_owning_references_with_max(&mut self, vec_of_co_owning_references_with_max: flatbuffers::WIPOffset<flatbuffers::Vector<'b , u64>>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Monster::VT_VEC_OF_CO_OWNING_REFERENCES_WITH_MAX, vec_of_co_owning_references_with_max);
+  }
+  #[inline]
+  pub fn add_vec_of_non_owning_references_with_max(&mut self, vec_of_non_owning_references_with_max: flatbuffers::WIPOffset<flatbuffers::Vector<'b , u64>>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Monster::VT_VEC_OF_NON_OWNING_REFERENCES_WITH_MAX, vec_of_non_owning_references_with_max);
+  }
+  #[inline]
+  pub fn add_vec_of_enums_with_max(&mut self, vec_of_enums_with_max: flatbuffers::WIPOffset<flatbuffers::Vector<'b , Color>>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Monster::VT_VEC_OF_ENUMS_WITH_MAX, vec_of_enums_with_max);
   }
   #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> MonsterBuilder<'a, 'b> {

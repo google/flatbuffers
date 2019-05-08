@@ -96,7 +96,7 @@ The following attributes are supported:
     Specifically, `CreateXxxDirect` functions and `Pack` functions for object
     based API (see below) will use `CreateSharedString` to create strings.
 
-## Object based API.  {#flatbuffers_cpp_object_based_api}
+## Object based API
 
 FlatBuffers is all about memory efficiency, which is why its base API is written
 around using as little as possible of it. This does make the API clumsier
@@ -127,72 +127,72 @@ To use:
 
 The following attributes are specific to the object-based API code generation:
 
--   `native_inline` (on a field): Because FlatBuffer tables and structs are
-    optionally present in a given buffer, they are best represented as pointers
-    (specifically std::unique_ptrs) in the native class since they can be null.
-    This attribute changes the member declaration to use the type directly
-    rather than wrapped in a unique_ptr.
+- `native_inline` (on a field): Because FlatBuffer tables and structs are
+  optionally present in a given buffer, they are best represented as pointers
+  (specifically std::unique_ptrs) in the native class since they can be null.
+  This attribute changes the member declaration to use the type directly
+  rather than wrapped in a unique_ptr.
 
--   `native_default`: "value" (on a field): For members that are declared
-    "native_inline", the value specified with this attribute will be included
-    verbatim in the class constructor initializer list for this member.
+- `native_default`: "value" (on a field): For members that are declared
+  "native_inline", the value specified with this attribute will be included
+  verbatim in the class constructor initializer list for this member.
 
--   `native_custom_alloc`:"custom_allocator" (on a table or struct): When using the
-    object-based API all generated NativeTables that  are allocated when unpacking
-    your  flatbuffer will use "custom allocator". The allocator is also used by
-    any std::vector that appears in a table defined with `native_custom_alloc`.
-    This can be  used to provide allocation from a pool for example, for faster
-    unpacking when using the object-based API.
+- `native_custom_alloc`:"custom_allocator" (on a table or struct): When using the
+  object-based API all generated NativeTables that  are allocated when unpacking
+  your  flatbuffer will use "custom allocator". The allocator is also used by
+  any std::vector that appears in a table defined with `native_custom_alloc`.
+  This can be  used to provide allocation from a pool for example, for faster
+  unpacking when using the object-based API.
 
-    Minimal Example:
+  Minimal Example:
 
-    schema:
+      // schema:
 
-    table mytable(native_custom_alloc:"custom_allocator") {
-      ...
-    }
+      table mytable(native_custom_alloc:"custom_allocator") {
+        ...
+      }
 
-    with custom_allocator defined before flatbuffers.h is included, as:
+      // with custom_allocator defined before flatbuffers.h is included, as:
 
-    template <typename T> struct custom_allocator : public std::allocator<T> {
+      template <typename T> struct custom_allocator : public std::allocator<T> {
 
-      typedef T *pointer;
+        typedef T *pointer;
 
-      template <class U>
-      struct rebind {
-        typedef custom_allocator<U> other;
+        template <class U>
+        struct rebind {
+          typedef custom_allocator<U> other;
+        };
+
+        pointer allocate(const std::size_t n) {
+          return std::allocator<T>::allocate(n);
+        }
+
+        void deallocate(T* ptr, std::size_t n) {
+          return std::allocator<T>::deallocate(ptr,n);
+        }
+
+        custom_allocator() throw() {}
+        template <class U>
+        custom_allocator(const custom_allocator<U>&) throw() {}
       };
 
-      pointer allocate(const std::size_t n) {
-        return std::allocator<T>::allocate(n);
-      }
-
-      void deallocate(T* ptr, std::size_t n) {
-        return std::allocator<T>::deallocate(ptr,n);
-      }
-
-      custom_allocator() throw() {}
-      template <class U>
-      custom_allocator(const custom_allocator<U>&) throw() {}
-    };
-
--   `native_type`' "type" (on a struct): In some cases, a more optimal C++ data
-    type exists for a given struct.  For example, the following schema:
+- `native_type`' "type" (on a struct): In some cases, a more optimal C++ data
+  type exists for a given struct.  For example, the following schema:
 
       struct Vec2 {
         x: float;
         y: float;
       }
 
-    generates the following Object-Based API class:
+  generates the following Object-Based API class:
 
       struct Vec2T : flatbuffers::NativeTable {
         float x;
         float y;
       };
 
-    However, it can be useful to instead use a user-defined C++ type since it
-    can provide more functionality, eg.
+  However, it can be useful to instead use a user-defined C++ type since it
+  can provide more functionality, eg.
 
       struct vector2 {
         float x = 0, y = 0;
@@ -202,12 +202,12 @@ The following attributes are specific to the object-based API code generation:
         // etc.
       };
 
-    The `native_type` attribute will replace the usage of the generated class
-    with the given type.  So, continuing with the example, the generated
-    code would use |vector2| in place of |Vec2T| for all generated code.
+  The `native_type` attribute will replace the usage of the generated class
+  with the given type.  So, continuing with the example, the generated
+  code would use |vector2| in place of |Vec2T| for all generated code.
 
-    However, becuase the native_type is unknown to flatbuffers, the user must
-    provide the following functions to aide in the serialization process:
+  However, becuase the native_type is unknown to flatbuffers, the user must
+  provide the following functions to aide in the serialization process:
 
       namespace flatbuffers {
         FlatbufferStruct Pack(const native_type& obj);
@@ -216,14 +216,83 @@ The following attributes are specific to the object-based API code generation:
 
 Finally, the following top-level attribute
 
--   `native_include`: "path" (at file level): Because the `native_type` attribute
-    can be used to introduce types that are unknown to flatbuffers, it may be
-    necessary to include "external" header files in the generated code.  This
-    attribute can be used to directly add an #include directive to the top of
-    the generated code that includes the specified path directly.
+- `native_include`: "path" (at file level): Because the `native_type` attribute
+  can be used to introduce types that are unknown to flatbuffers, it may be
+  necessary to include "external" header files in the generated code.  This
+  attribute can be used to directly add an #include directive to the top of
+  the generated code that includes the specified path directly.
 
--   `force_align`: this attribute may not be respected in the object API,
-    depending on the aligned of the allocator used with `new`.
+- `force_align`: this attribute may not be respected in the object API,
+  depending on the aligned of the allocator used with `new`.
+
+
+## Guarded Object API
+
+When your packed message must fit into a fixed number of bytes and the
+runtime overhead of the Object API is acceptable, you can use the Guarded
+Object API.
+
+A Guarded object is generated for every Native (e.g. `Vec2T`) object when
+the `flatc` flag `--gen-object-api` is used. For example, this schema:
+
+    struct Nested {
+      a:short;
+      b:byte;
+    }
+
+    table Thing {
+      list:[Nested];
+      nested:[Nested:13]; // note the max element count here
+    }
+
+generates the aforementioned Object-Based API, along with the following
+Guarded API class:
+
+    class GuardedThing : private ThingT {
+     public:
+      const ThingT& NativeTable() const { return *this; }
+
+      bool push_list(const Nested& value);
+      bool emplace_list(Nested&& value);
+      bool pop_list();
+      const std::vector<Nested>& list() const &;
+      size_t list_size() const;
+
+      static constexpr size_t NESTED_MAX_SIZE() { return 13; }
+      bool push_nested(const Nested& value);
+      bool emplace_nested(Nested&& value);
+      bool pop_nested();
+      const std::vector<Nested>& nested() const &;
+      size_t nested_size() const;
+    };
+
+While populating your Guarded object, the underlying vectors are "guarded"
+from filling beyond their maximum size (e.g. `NESTED_MAX_SIZE()`), returning
+`false` when too many elements are pushed or emplaced. Conversely, `pop_`
+will return `true` unless no elements were in the vector prior to its call.
+
+For simplicity, vector fields in this object type are treated more like
+stacks; you can add to and remove from the back of the vector and you can
+view (via const-ref) the entire stack.
+
+When you're done populating your Guarded object, you can access the
+underlying Native object via the `NativeTable()` method. Thus, when you
+want to serialize, you might do something like this:
+
+    GuardedThing thing;
+    thing.emplace_nested(Nested(1, 2));
+
+    flatbuffers::FlatbufferBuilder builder;
+    builder.Finish(Record::Pack(builder, &thing.NativeTable()));
+    auto p = reinterpret_cast<char*>(builder.GetBufferPointer());
+
+Vector fields that do not have a maximum element count are given a similar
+API to those that do, the primary difference being their `push_` and
+`emplace_` methods will always return `true`.
+
+Of course, this doesn't completely solve the problem of a maximum serialized
+size for your messages; however, it does allow you to specify the necessary
+constraints to achieve the solution as part of your schema.
 
 # External references.
 

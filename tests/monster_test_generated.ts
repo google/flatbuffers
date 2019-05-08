@@ -1730,10 +1730,143 @@ vectorOfEnumsArray():Int8Array|null {
 };
 
 /**
+ * @param number index
+ * @param MyGame.Example.Test= obj
+ * @returns MyGame.Example.Test
+ */
+vecOfStructsWithMax(index: number, obj?:MyGame.Example.Test):MyGame.Example.Test|null {
+  var offset = this.bb!.__offset(this.bb_pos, 100);
+  return offset ? (obj || new MyGame.Example.Test).__init(this.bb!.__vector(this.bb_pos + offset) + index * 4, this.bb!) : null;
+};
+
+/**
+ * @returns number
+ */
+vecOfStructsWithMaxLength():number {
+  var offset = this.bb!.__offset(this.bb_pos, 100);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param number index
+ * @param flatbuffers.Encoding= optionalEncoding
+ * @returns string|Uint8Array
+ */
+vecOfStringsWithMax(index: number):string
+vecOfStringsWithMax(index: number,optionalEncoding:flatbuffers.Encoding):string|Uint8Array
+vecOfStringsWithMax(index: number,optionalEncoding?:any):string|Uint8Array|null {
+  var offset = this.bb!.__offset(this.bb_pos, 102);
+  return offset ? this.bb!.__string(this.bb!.__vector(this.bb_pos + offset) + index * 4, optionalEncoding) : null;
+};
+
+/**
+ * @returns number
+ */
+vecOfStringsWithMaxLength():number {
+  var offset = this.bb!.__offset(this.bb_pos, 102);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param number index
+ * @param MyGame.Example.Referrable= obj
+ * @returns MyGame.Example.Referrable
+ */
+vecOfReferrablesWithMax(index: number, obj?:MyGame.Example.Referrable):MyGame.Example.Referrable|null {
+  var offset = this.bb!.__offset(this.bb_pos, 104);
+  return offset ? (obj || new MyGame.Example.Referrable).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
+};
+
+/**
+ * @returns number
+ */
+vecOfReferrablesWithMaxLength():number {
+  var offset = this.bb!.__offset(this.bb_pos, 104);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param number index
+ * @param MyGame.Example.Referrable= obj
+ * @returns MyGame.Example.Referrable
+ */
+vecOfStrongReferrablesWithMax(index: number, obj?:MyGame.Example.Referrable):MyGame.Example.Referrable|null {
+  var offset = this.bb!.__offset(this.bb_pos, 106);
+  return offset ? (obj || new MyGame.Example.Referrable).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
+};
+
+/**
+ * @returns number
+ */
+vecOfStrongReferrablesWithMaxLength():number {
+  var offset = this.bb!.__offset(this.bb_pos, 106);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param number index
+ * @returns flatbuffers.Long
+ */
+vecOfCoOwningReferencesWithMax(index: number):flatbuffers.Long|null {
+  var offset = this.bb!.__offset(this.bb_pos, 108);
+  return offset ? this.bb!.readUint64(this.bb!.__vector(this.bb_pos + offset) + index * 8) : this.bb!.createLong(0, 0);
+};
+
+/**
+ * @returns number
+ */
+vecOfCoOwningReferencesWithMaxLength():number {
+  var offset = this.bb!.__offset(this.bb_pos, 108);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param number index
+ * @returns flatbuffers.Long
+ */
+vecOfNonOwningReferencesWithMax(index: number):flatbuffers.Long|null {
+  var offset = this.bb!.__offset(this.bb_pos, 110);
+  return offset ? this.bb!.readUint64(this.bb!.__vector(this.bb_pos + offset) + index * 8) : this.bb!.createLong(0, 0);
+};
+
+/**
+ * @returns number
+ */
+vecOfNonOwningReferencesWithMaxLength():number {
+  var offset = this.bb!.__offset(this.bb_pos, 110);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param number index
+ * @returns MyGame.Example.Color
+ */
+vecOfEnumsWithMax(index: number):MyGame.Example.Color|null {
+  var offset = this.bb!.__offset(this.bb_pos, 112);
+  return offset ? /**  */ (this.bb!.readInt8(this.bb!.__vector(this.bb_pos + offset) + index)) : /**  */ (0);
+};
+
+/**
+ * @returns number
+ */
+vecOfEnumsWithMaxLength():number {
+  var offset = this.bb!.__offset(this.bb_pos, 112);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @returns Int8Array
+ */
+vecOfEnumsWithMaxArray():Int8Array|null {
+  var offset = this.bb!.__offset(this.bb_pos, 112);
+  return offset ? new Int8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
+};
+
+/**
  * @param flatbuffers.Builder builder
  */
 static startMonster(builder:flatbuffers.Builder) {
-  builder.startObject(48);
+  builder.startObject(55);
 };
 
 /**
@@ -2453,6 +2586,196 @@ static startVectorOfEnumsVector(builder:flatbuffers.Builder, numElems:number) {
 
 /**
  * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset vecOfStructsWithMaxOffset
+ */
+static addVecOfStructsWithMax(builder:flatbuffers.Builder, vecOfStructsWithMaxOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(48, vecOfStructsWithMaxOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param number numElems
+ */
+static startVecOfStructsWithMaxVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(4, numElems, 2);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset vecOfStringsWithMaxOffset
+ */
+static addVecOfStringsWithMax(builder:flatbuffers.Builder, vecOfStringsWithMaxOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(49, vecOfStringsWithMaxOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param Array.<flatbuffers.Offset> data
+ * @returns flatbuffers.Offset
+ */
+static createVecOfStringsWithMaxVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
+  builder.startVector(4, data.length, 4);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param number numElems
+ */
+static startVecOfStringsWithMaxVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(4, numElems, 4);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset vecOfReferrablesWithMaxOffset
+ */
+static addVecOfReferrablesWithMax(builder:flatbuffers.Builder, vecOfReferrablesWithMaxOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(50, vecOfReferrablesWithMaxOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param Array.<flatbuffers.Offset> data
+ * @returns flatbuffers.Offset
+ */
+static createVecOfReferrablesWithMaxVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
+  builder.startVector(4, data.length, 4);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param number numElems
+ */
+static startVecOfReferrablesWithMaxVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(4, numElems, 4);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset vecOfStrongReferrablesWithMaxOffset
+ */
+static addVecOfStrongReferrablesWithMax(builder:flatbuffers.Builder, vecOfStrongReferrablesWithMaxOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(51, vecOfStrongReferrablesWithMaxOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param Array.<flatbuffers.Offset> data
+ * @returns flatbuffers.Offset
+ */
+static createVecOfStrongReferrablesWithMaxVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
+  builder.startVector(4, data.length, 4);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param number numElems
+ */
+static startVecOfStrongReferrablesWithMaxVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(4, numElems, 4);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset vecOfCoOwningReferencesWithMaxOffset
+ */
+static addVecOfCoOwningReferencesWithMax(builder:flatbuffers.Builder, vecOfCoOwningReferencesWithMaxOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(52, vecOfCoOwningReferencesWithMaxOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param Array.<flatbuffers.Long> data
+ * @returns flatbuffers.Offset
+ */
+static createVecOfCoOwningReferencesWithMaxVector(builder:flatbuffers.Builder, data:flatbuffers.Long[]):flatbuffers.Offset {
+  builder.startVector(8, data.length, 8);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addInt64(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param number numElems
+ */
+static startVecOfCoOwningReferencesWithMaxVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(8, numElems, 8);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset vecOfNonOwningReferencesWithMaxOffset
+ */
+static addVecOfNonOwningReferencesWithMax(builder:flatbuffers.Builder, vecOfNonOwningReferencesWithMaxOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(53, vecOfNonOwningReferencesWithMaxOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param Array.<flatbuffers.Long> data
+ * @returns flatbuffers.Offset
+ */
+static createVecOfNonOwningReferencesWithMaxVector(builder:flatbuffers.Builder, data:flatbuffers.Long[]):flatbuffers.Offset {
+  builder.startVector(8, data.length, 8);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addInt64(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param number numElems
+ */
+static startVecOfNonOwningReferencesWithMaxVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(8, numElems, 8);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset vecOfEnumsWithMaxOffset
+ */
+static addVecOfEnumsWithMax(builder:flatbuffers.Builder, vecOfEnumsWithMaxOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(54, vecOfEnumsWithMaxOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param Array.<MyGame.Example.Color> data
+ * @returns flatbuffers.Offset
+ */
+static createVecOfEnumsWithMaxVector(builder:flatbuffers.Builder, data:MyGame.Example.Color[]):flatbuffers.Offset {
+  builder.startVector(1, data.length, 1);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addInt8(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param number numElems
+ */
+static startVecOfEnumsWithMaxVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(1, numElems, 1);
+};
+
+/**
+ * @param flatbuffers.Builder builder
  * @returns flatbuffers.Offset
  */
 static endMonster(builder:flatbuffers.Builder):flatbuffers.Offset {
@@ -2469,7 +2792,7 @@ static finishMonsterBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offse
   builder.finish(offset, 'MONS');
 };
 
-static createMonster(builder:flatbuffers.Builder, posOffset:flatbuffers.Offset, mana:number, hp:number, nameOffset:flatbuffers.Offset, inventoryOffset:flatbuffers.Offset, color:MyGame.Example.Color, testType:MyGame.Example.Any, testOffset:flatbuffers.Offset, test4Offset:flatbuffers.Offset, testarrayofstringOffset:flatbuffers.Offset, testarrayoftablesOffset:flatbuffers.Offset, enemyOffset:flatbuffers.Offset, testnestedflatbufferOffset:flatbuffers.Offset, testemptyOffset:flatbuffers.Offset, testbool:boolean, testhashs32Fnv1:number, testhashu32Fnv1:number, testhashs64Fnv1:flatbuffers.Long, testhashu64Fnv1:flatbuffers.Long, testhashs32Fnv1a:number, testhashu32Fnv1a:number, testhashs64Fnv1a:flatbuffers.Long, testhashu64Fnv1a:flatbuffers.Long, testarrayofboolsOffset:flatbuffers.Offset, testf:number, testf2:number, testf3:number, testarrayofstring2Offset:flatbuffers.Offset, testarrayofsortedstructOffset:flatbuffers.Offset, flexOffset:flatbuffers.Offset, test5Offset:flatbuffers.Offset, vectorOfLongsOffset:flatbuffers.Offset, vectorOfDoublesOffset:flatbuffers.Offset, parentNamespaceTestOffset:flatbuffers.Offset, vectorOfReferrablesOffset:flatbuffers.Offset, singleWeakReference:flatbuffers.Long, vectorOfWeakReferencesOffset:flatbuffers.Offset, vectorOfStrongReferrablesOffset:flatbuffers.Offset, coOwningReference:flatbuffers.Long, vectorOfCoOwningReferencesOffset:flatbuffers.Offset, nonOwningReference:flatbuffers.Long, vectorOfNonOwningReferencesOffset:flatbuffers.Offset, anyUniqueType:MyGame.Example.AnyUniqueAliases, anyUniqueOffset:flatbuffers.Offset, anyAmbiguousType:MyGame.Example.AnyAmbiguousAliases, anyAmbiguousOffset:flatbuffers.Offset, vectorOfEnumsOffset:flatbuffers.Offset):flatbuffers.Offset {
+static createMonster(builder:flatbuffers.Builder, posOffset:flatbuffers.Offset, mana:number, hp:number, nameOffset:flatbuffers.Offset, inventoryOffset:flatbuffers.Offset, color:MyGame.Example.Color, testType:MyGame.Example.Any, testOffset:flatbuffers.Offset, test4Offset:flatbuffers.Offset, testarrayofstringOffset:flatbuffers.Offset, testarrayoftablesOffset:flatbuffers.Offset, enemyOffset:flatbuffers.Offset, testnestedflatbufferOffset:flatbuffers.Offset, testemptyOffset:flatbuffers.Offset, testbool:boolean, testhashs32Fnv1:number, testhashu32Fnv1:number, testhashs64Fnv1:flatbuffers.Long, testhashu64Fnv1:flatbuffers.Long, testhashs32Fnv1a:number, testhashu32Fnv1a:number, testhashs64Fnv1a:flatbuffers.Long, testhashu64Fnv1a:flatbuffers.Long, testarrayofboolsOffset:flatbuffers.Offset, testf:number, testf2:number, testf3:number, testarrayofstring2Offset:flatbuffers.Offset, testarrayofsortedstructOffset:flatbuffers.Offset, flexOffset:flatbuffers.Offset, test5Offset:flatbuffers.Offset, vectorOfLongsOffset:flatbuffers.Offset, vectorOfDoublesOffset:flatbuffers.Offset, parentNamespaceTestOffset:flatbuffers.Offset, vectorOfReferrablesOffset:flatbuffers.Offset, singleWeakReference:flatbuffers.Long, vectorOfWeakReferencesOffset:flatbuffers.Offset, vectorOfStrongReferrablesOffset:flatbuffers.Offset, coOwningReference:flatbuffers.Long, vectorOfCoOwningReferencesOffset:flatbuffers.Offset, nonOwningReference:flatbuffers.Long, vectorOfNonOwningReferencesOffset:flatbuffers.Offset, anyUniqueType:MyGame.Example.AnyUniqueAliases, anyUniqueOffset:flatbuffers.Offset, anyAmbiguousType:MyGame.Example.AnyAmbiguousAliases, anyAmbiguousOffset:flatbuffers.Offset, vectorOfEnumsOffset:flatbuffers.Offset, vecOfStructsWithMaxOffset:flatbuffers.Offset, vecOfStringsWithMaxOffset:flatbuffers.Offset, vecOfReferrablesWithMaxOffset:flatbuffers.Offset, vecOfStrongReferrablesWithMaxOffset:flatbuffers.Offset, vecOfCoOwningReferencesWithMaxOffset:flatbuffers.Offset, vecOfNonOwningReferencesWithMaxOffset:flatbuffers.Offset, vecOfEnumsWithMaxOffset:flatbuffers.Offset):flatbuffers.Offset {
   Monster.startMonster(builder);
   Monster.addPos(builder, posOffset);
   Monster.addMana(builder, mana);
@@ -2518,6 +2841,13 @@ static createMonster(builder:flatbuffers.Builder, posOffset:flatbuffers.Offset, 
   Monster.addAnyAmbiguousType(builder, anyAmbiguousType);
   Monster.addAnyAmbiguous(builder, anyAmbiguousOffset);
   Monster.addVectorOfEnums(builder, vectorOfEnumsOffset);
+  Monster.addVecOfStructsWithMax(builder, vecOfStructsWithMaxOffset);
+  Monster.addVecOfStringsWithMax(builder, vecOfStringsWithMaxOffset);
+  Monster.addVecOfReferrablesWithMax(builder, vecOfReferrablesWithMaxOffset);
+  Monster.addVecOfStrongReferrablesWithMax(builder, vecOfStrongReferrablesWithMaxOffset);
+  Monster.addVecOfCoOwningReferencesWithMax(builder, vecOfCoOwningReferencesWithMaxOffset);
+  Monster.addVecOfNonOwningReferencesWithMax(builder, vecOfNonOwningReferencesWithMaxOffset);
+  Monster.addVecOfEnumsWithMax(builder, vecOfEnumsWithMaxOffset);
   return Monster.endMonster(builder);
 }
 }

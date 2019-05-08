@@ -220,6 +220,67 @@ inline flatbuffers::Offset<MonsterExtra> CreateMonsterExtraDirect(
       testd_vec__);
 }
 
+class GuardedMonsterExtra : private MonsterExtraT {
+  typedef MonsterExtraT Parent;
+ public:
+  typedef MonsterExtra TableType;
+  const MonsterExtraT& NativeTable() const { return *this; }
+  auto testf_nan() -> decltype(Parent::testf_nan)&{ return Parent::testf_nan; }
+  auto testf_nan() const -> const decltype(Parent::testf_nan)&{ return Parent::testf_nan; }
+  auto testf_pinf() -> decltype(Parent::testf_pinf)&{ return Parent::testf_pinf; }
+  auto testf_pinf() const -> const decltype(Parent::testf_pinf)&{ return Parent::testf_pinf; }
+  auto testf_ninf() -> decltype(Parent::testf_ninf)&{ return Parent::testf_ninf; }
+  auto testf_ninf() const -> const decltype(Parent::testf_ninf)&{ return Parent::testf_ninf; }
+  auto testd_nan() -> decltype(Parent::testd_nan)&{ return Parent::testd_nan; }
+  auto testd_nan() const -> const decltype(Parent::testd_nan)&{ return Parent::testd_nan; }
+  auto testd_pinf() -> decltype(Parent::testd_pinf)&{ return Parent::testd_pinf; }
+  auto testd_pinf() const -> const decltype(Parent::testd_pinf)&{ return Parent::testd_pinf; }
+  auto testd_ninf() -> decltype(Parent::testd_ninf)&{ return Parent::testd_ninf; }
+  auto testd_ninf() const -> const decltype(Parent::testd_ninf)&{ return Parent::testd_ninf; }
+  bool push_testf_vec(float  value) {
+    Parent::testf_vec.push_back(value);
+    return true;
+  }
+  bool emplace_testf_vec(float value) {
+    Parent::testf_vec.emplace_back(std::move(value));
+    return true;
+  }
+  bool pop_testf_vec() {
+    if (Parent::testf_vec.size()) {
+      Parent::testf_vec.pop_back();
+      return true;
+    };
+    return false;
+  }
+  const std::vector<float>& testf_vec() const & {
+    return Parent::testf_vec;
+  }
+  size_t testf_vec_size() const {
+    return Parent::testf_vec.size();
+  }
+  bool push_testd_vec(double  value) {
+    Parent::testd_vec.push_back(value);
+    return true;
+  }
+  bool emplace_testd_vec(double value) {
+    Parent::testd_vec.emplace_back(std::move(value));
+    return true;
+  }
+  bool pop_testd_vec() {
+    if (Parent::testd_vec.size()) {
+      Parent::testd_vec.pop_back();
+      return true;
+    };
+    return false;
+  }
+  const std::vector<double>& testd_vec() const & {
+    return Parent::testd_vec;
+  }
+  size_t testd_vec_size() const {
+    return Parent::testd_vec.size();
+  }
+};
+
 flatbuffers::Offset<MonsterExtra> CreateMonsterExtra(flatbuffers::FlatBufferBuilder &_fbb, const MonsterExtraT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 inline MonsterExtraT *MonsterExtra::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
