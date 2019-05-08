@@ -18,6 +18,9 @@
 # Append paths to the `flatbuffers` and `MyGame` modules. This is necessary
 # to facilitate executing this script in the `samples` folder, and to root
 # folder (where it gets placed when using `cmake`).
+#
+# Tested with with python 3.5.2, 3.6.8 and 2.7.12
+
 import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '../python'))
