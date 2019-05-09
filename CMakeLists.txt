@@ -140,7 +140,7 @@ set(FlatBuffers_Sample_BFBS_SRCS
 set(FlatBuffers_GRPCTest_SRCS
   include/flatbuffers/flatbuffers.h
   include/flatbuffers/grpc.h
-  include/util.h
+  include/flatbuffers/util.h
   src/util.cpp
   tests/monster_test.grpc.fb.h
   tests/test_assert.h
