@@ -101,7 +101,8 @@ class JavaTest {
         TestEq(pos.y(), 2.0f);
         TestEq(pos.z(), 3.0f);
         TestEq(pos.test1(), 3.0);
-        TestEq(pos.test2(), Color.Green);
+        // issue: int != byte
+        TestEq(pos.test2(), (int) Color.Green);
         Test t = pos.test3();
         TestEq(t.a(), (short)5);
         TestEq(t.b(), (byte)6);

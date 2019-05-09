@@ -164,7 +164,7 @@ pub mod example {
   use self::flatbuffers::EndianScalar;
 
 #[allow(non_camel_case_types)]
-#[repr(i8)]
+#[repr(u8)]
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub enum Color {
   Red = 1,
@@ -173,8 +173,8 @@ pub enum Color {
 
 }
 
-const ENUM_MIN_COLOR: i8 = 1;
-const ENUM_MAX_COLOR: i8 = 8;
+const ENUM_MIN_COLOR: u8 = 1;
+const ENUM_MAX_COLOR: u8 = 8;
 
 impl<'a> flatbuffers::Follow<'a> for Color {
   type Inner = Self;
@@ -187,14 +187,14 @@ impl<'a> flatbuffers::Follow<'a> for Color {
 impl flatbuffers::EndianScalar for Color {
   #[inline]
   fn to_little_endian(self) -> Self {
-    let n = i8::to_le(self as i8);
-    let p = &n as *const i8 as *const Color;
+    let n = u8::to_le(self as u8);
+    let p = &n as *const u8 as *const Color;
     unsafe { *p }
   }
   #[inline]
   fn from_little_endian(self) -> Self {
-    let n = i8::from_le(self as i8);
-    let p = &n as *const i8 as *const Color;
+    let n = u8::from_le(self as u8);
+    let p = &n as *const u8 as *const Color;
     unsafe { *p }
   }
 }
@@ -227,7 +227,7 @@ const ENUM_NAMES_COLOR:[&'static str; 8] = [
 ];
 
 pub fn enum_name_color(e: Color) -> &'static str {
-  let index = e as i8 - Color::Red as i8;
+  let index = e as u8 - Color::Red as u8;
   ENUM_NAMES_COLOR[index as usize]
 }
 

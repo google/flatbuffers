@@ -99,7 +99,7 @@ def GetRootAsTestSimpleTableWithEnum(buf:string): TestSimpleTableWithEnum { buf,
 def TestSimpleTableWithEnumStart(b_:flatbuffers_builder):
     b_.StartObject(1)
 def TestSimpleTableWithEnumAddColor(b_:flatbuffers_builder, color:int):
-    b_.PrependInt8Slot(0, color, 2)
+    b_.PrependUint8Slot(0, color, 2)
 def TestSimpleTableWithEnumEnd(b_:flatbuffers_builder):
     b_.EndObject()
 
@@ -125,7 +125,7 @@ def CreateVec3(b_:flatbuffers_builder, x:float, y:float, z:float, test1:float, t
     b_.PrependInt8(test3_b)
     b_.PrependInt16(test3_a)
     b_.Pad(1)
-    b_.PrependInt8(test2)
+    b_.PrependUint8(test2)
     b_.PrependFloat64(test1)
     b_.Pad(4)
     b_.PrependFloat32(z)
@@ -351,7 +351,7 @@ def MonsterCreateInventoryVector(b_:flatbuffers_builder, v_:[int]):
     reverse(v_) e_: b_.PrependUint8(e_)
     b_.EndVector(v_.length)
 def MonsterAddColor(b_:flatbuffers_builder, color:int):
-    b_.PrependInt8Slot(6, color, 8)
+    b_.PrependUint8Slot(6, color, 8)
 def MonsterAddTestType(b_:flatbuffers_builder, test_type:int):
     b_.PrependUint8Slot(7, test_type, 0)
 def MonsterAddTest(b_:flatbuffers_builder, test:int):
@@ -522,7 +522,7 @@ def MonsterStartVectorOfEnumsVector(b_:flatbuffers_builder, n_:int):
     b_.StartVector(1, n_, 1)
 def MonsterCreateVectorOfEnumsVector(b_:flatbuffers_builder, v_:[int]):
     b_.StartVector(1, v_.length, 1)
-    reverse(v_) e_: b_.PrependInt8(e_)
+    reverse(v_) e_: b_.PrependUint8(e_)
     b_.EndVector(v_.length)
 def MonsterEnd(b_:flatbuffers_builder):
     b_.EndObject()

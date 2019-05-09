@@ -2,7 +2,7 @@
 
 package Example
 
-type Color = int8
+type Color = byte
 const (
 	ColorRed Color = 1
 	ColorGreen Color = 2

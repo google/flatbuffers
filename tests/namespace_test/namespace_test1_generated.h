@@ -35,7 +35,7 @@ inline const EnumInNestedNS (&EnumValuesEnumInNestedNS())[3] {
 }
 
 inline const char * const *EnumNamesEnumInNestedNS() {
-  static const char * const names[] = {
+  static const char * const names[4] = {
     "A",
     "B",
     "C",

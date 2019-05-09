@@ -17,8 +17,8 @@ internal partial struct TestSimpleTableWithEnum : IFlatbufferObject
   public void __init(int _i, ByteBuffer _bb) { __p.bb_pos = _i; __p.bb = _bb; }
   public TestSimpleTableWithEnum __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
-  public Color Color { get { int o = __p.__offset(4); return o != 0 ? (Color)__p.bb.GetSbyte(o + __p.bb_pos) : Color.Green; } }
-  public bool MutateColor(Color color) { int o = __p.__offset(4); if (o != 0) { __p.bb.PutSbyte(o + __p.bb_pos, (sbyte)color); return true; } else { return false; } }
+  public Color Color { get { int o = __p.__offset(4); return o != 0 ? (Color)__p.bb.Get(o + __p.bb_pos) : Color.Green; } }
+  public bool MutateColor(Color color) { int o = __p.__offset(4); if (o != 0) { __p.bb.Put(o + __p.bb_pos, (byte)color); return true; } else { return false; } }
 
   public static Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnum(FlatBufferBuilder builder,
       Color color = Color.Green) {
@@ -28,7 +28,7 @@ internal partial struct TestSimpleTableWithEnum : IFlatbufferObject
   }
 
   public static void StartTestSimpleTableWithEnum(FlatBufferBuilder builder) { builder.StartObject(1); }
-  public static void AddColor(FlatBufferBuilder builder, Color color) { builder.AddSbyte(0, (sbyte)color, 2); }
+  public static void AddColor(FlatBufferBuilder builder, Color color) { builder.AddByte(0, (byte)color, 2); }
   public static Offset<TestSimpleTableWithEnum> EndTestSimpleTableWithEnum(FlatBufferBuilder builder) {
     int o = builder.EndObject();
     return new Offset<TestSimpleTableWithEnum>(o);

@@ -59,7 +59,7 @@ inline const Character (&EnumValuesCharacter())[7] {
 }
 
 inline const char * const *EnumNamesCharacter() {
-  static const char * const names[] = {
+  static const char * const names[8] = {
     "NONE",
     "MuLan",
     "Rapunzel",

@@ -1019,7 +1019,8 @@ class CppGenerator : public BaseGenerator {
     static const uint64_t kMaxSparseness = 5;
     if (range / static_cast<uint64_t>(enum_def.size()) < kMaxSparseness) {
       code_ += "inline const char * const *EnumNames{{ENUM_NAME}}() {";
-      code_ += "  static const char * const names[] = {";
+      code_ += "  static const char * const names[" +
+               NumToString(range + 1 + 1) + "] = {";
 
       auto val = enum_def.Vals().front();
       for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();

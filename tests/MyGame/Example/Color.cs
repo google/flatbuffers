@@ -5,7 +5,7 @@
 namespace MyGame.Example
 {
 
-public enum Color : sbyte
+public enum Color : byte
 {
  Red = 1,
  Green = 2,

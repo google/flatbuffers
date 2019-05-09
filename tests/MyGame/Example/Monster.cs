@@ -40,8 +40,8 @@ public struct Monster : IFlatbufferObject
 #endif
   public byte[] GetInventoryArray() { return __p.__vector_as_array<byte>(14); }
   public bool MutateInventory(int j, byte inventory) { int o = __p.__offset(14); if (o != 0) { __p.bb.Put(__p.__vector(o) + j * 1, inventory); return true; } else { return false; } }
-  public Color Color { get { int o = __p.__offset(16); return o != 0 ? (Color)__p.bb.GetSbyte(o + __p.bb_pos) : Color.Blue; } }
-  public bool MutateColor(Color color) { int o = __p.__offset(16); if (o != 0) { __p.bb.PutSbyte(o + __p.bb_pos, (sbyte)color); return true; } else { return false; } }
+  public Color Color { get { int o = __p.__offset(16); return o != 0 ? (Color)__p.bb.Get(o + __p.bb_pos) : Color.Blue; } }
+  public bool MutateColor(Color color) { int o = __p.__offset(16); if (o != 0) { __p.bb.Put(o + __p.bb_pos, (byte)color); return true; } else { return false; } }
   public Any TestType { get { int o = __p.__offset(18); return o != 0 ? (Any)__p.bb.Get(o + __p.bb_pos) : Any.NONE; } }
   public bool MutateTestType(Any test_type) { int o = __p.__offset(18); if (o != 0) { __p.bb.Put(o + __p.bb_pos, (byte)test_type); return true; } else { return false; } }
   public TTable? Test<TTable>() where TTable : struct, IFlatbufferObject { int o = __p.__offset(20); return o != 0 ? (TTable?)__p.__union<TTable>(o) : null; }
@@ -178,7 +178,7 @@ public struct Monster : IFlatbufferObject
   public AnyAmbiguousAliases AnyAmbiguousType { get { int o = __p.__offset(94); return o != 0 ? (AnyAmbiguousAliases)__p.bb.Get(o + __p.bb_pos) : AnyAmbiguousAliases.NONE; } }
   public bool MutateAnyAmbiguousType(AnyAmbiguousAliases any_ambiguous_type) { int o = __p.__offset(94); if (o != 0) { __p.bb.Put(o + __p.bb_pos, (byte)any_ambiguous_type); return true; } else { return false; } }
   public TTable? AnyAmbiguous<TTable>() where TTable : struct, IFlatbufferObject { int o = __p.__offset(96); return o != 0 ? (TTable?)__p.__union<TTable>(o) : null; }
-  public Color VectorOfEnums(int j) { int o = __p.__offset(98); return o != 0 ? (Color)__p.bb.GetSbyte(__p.__vector(o) + j * 1) : (Color)0; }
+  public Color VectorOfEnums(int j) { int o = __p.__offset(98); return o != 0 ? (Color)__p.bb.Get(__p.__vector(o) + j * 1) : (Color)0; }
   public int VectorOfEnumsLength { get { int o = __p.__offset(98); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
   public Span<byte> GetVectorOfEnumsBytes() { return __p.__vector_as_span(98); }
@@ -186,7 +186,7 @@ public struct Monster : IFlatbufferObject
   public ArraySegment<byte>? GetVectorOfEnumsBytes() { return __p.__vector_as_arraysegment(98); }
 #endif
   public Color[] GetVectorOfEnumsArray() { return __p.__vector_as_array<Color>(98); }
-  public bool MutateVectorOfEnums(int j, Color vector_of_enums) { int o = __p.__offset(98); if (o != 0) { __p.bb.PutSbyte(__p.__vector(o) + j * 1, (sbyte)vector_of_enums); return true; } else { return false; } }
+  public bool MutateVectorOfEnums(int j, Color vector_of_enums) { int o = __p.__offset(98); if (o != 0) { __p.bb.Put(__p.__vector(o) + j * 1, (byte)vector_of_enums); return true; } else { return false; } }
 
   public static void StartMonster(FlatBufferBuilder builder) { builder.StartObject(48); }
   public static void AddPos(FlatBufferBuilder builder, Offset<Vec3> posOffset) { builder.AddStruct(0, posOffset.Value, 0); }
@@ -197,7 +197,7 @@ public struct Monster : IFlatbufferObject
   public static VectorOffset CreateInventoryVector(FlatBufferBuilder builder, byte[] data) { builder.StartVector(1, data.Length, 1); for (int i = data.Length - 1; i >= 0; i--) builder.AddByte(data[i]); return builder.EndVector(); }
   public static VectorOffset CreateInventoryVectorBlock(FlatBufferBuilder builder, byte[] data) { builder.StartVector(1, data.Length, 1); builder.Add(data); return builder.EndVector(); }
   public static void StartInventoryVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(1, numElems, 1); }
-  public static void AddColor(FlatBufferBuilder builder, Color color) { builder.AddSbyte(6, (sbyte)color, 8); }
+  public static void AddColor(FlatBufferBuilder builder, Color color) { builder.AddByte(6, (byte)color, 8); }
   public static void AddTestType(FlatBufferBuilder builder, Any testType) { builder.AddByte(7, (byte)testType, 0); }
   public static void AddTest(FlatBufferBuilder builder, int testOffset) { builder.AddOffset(8, testOffset, 0); }
   public static void AddTest4(FlatBufferBuilder builder, VectorOffset test4Offset) { builder.AddOffset(9, test4Offset.Value, 0); }
@@ -281,7 +281,7 @@ public struct Monster : IFlatbufferObject
   public static void AddAnyAmbiguousType(FlatBufferBuilder builder, AnyAmbiguousAliases anyAmbiguousType) { builder.AddByte(45, (byte)anyAmbiguousType, 0); }
   public static void AddAnyAmbiguous(FlatBufferBuilder builder, int anyAmbiguousOffset) { builder.AddOffset(46, anyAmbiguousOffset, 0); }
   public static void AddVectorOfEnums(FlatBufferBuilder builder, VectorOffset vectorOfEnumsOffset) { builder.AddOffset(47, vectorOfEnumsOffset.Value, 0); }
-  public static VectorOffset CreateVectorOfEnumsVector(FlatBufferBuilder builder, Color[] data) { builder.StartVector(1, data.Length, 1); for (int i = data.Length - 1; i >= 0; i--) builder.AddSbyte((sbyte)data[i]); return builder.EndVector(); }
+  public static VectorOffset CreateVectorOfEnumsVector(FlatBufferBuilder builder, Color[] data) { builder.StartVector(1, data.Length, 1); for (int i = data.Length - 1; i >= 0; i--) builder.AddByte((byte)data[i]); return builder.EndVector(); }
   public static VectorOffset CreateVectorOfEnumsVectorBlock(FlatBufferBuilder builder, Color[] data) { builder.StartVector(1, data.Length, 1); builder.Add(data); return builder.EndVector(); }
   public static void StartVectorOfEnumsVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(1, numElems, 1); }
   public static Offset<Monster> EndMonster(FlatBufferBuilder builder) {
