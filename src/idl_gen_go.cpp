@@ -760,6 +760,10 @@ class GoGenerator : public BaseGenerator {
       if (field.value.type.base_type == BASE_TYPE_STRING) {
         code += "\t" + offset + " := builder.CreateString(t." +
                 MakeCamel(field.name) + ")\n";
+      } else if (field.value.type.base_type == BASE_TYPE_VECTOR &&
+                 field.value.type.element == BASE_TYPE_UCHAR) {
+        code += "\t" + offset + " := builder.CreateByteString(t." +
+                MakeCamel(field.name) + ")\n";
       } else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
         std::string length = MakeCamel(field.name, false) + "Length";
         std::string offsets = MakeCamel(field.name, false) + "Offsets";
@@ -779,8 +783,6 @@ class GoGenerator : public BaseGenerator {
           code += ")\n";
           code += "\t}\n";
         }
-        // TODO(iceboy): Use CreateByteString when
-        // field.value.type.element == BASE_TYPE_UCHAR .
         code += "\t" + struct_def.name + "Start" + MakeCamel(field.name) +
                 "Vector(builder, " + length + ")\n";
         code += "\tfor j := " + length + " - 1; j >= 0; j-- {\n";
@@ -836,9 +838,11 @@ class GoGenerator : public BaseGenerator {
       } else if (field.value.type.base_type == BASE_TYPE_STRING) {
         code += "\tt." + field_name_camel + " = string(rcv." +
                 field_name_camel + "())\n";
+      } else if (field.value.type.base_type == BASE_TYPE_VECTOR &&
+                 field.value.type.element == BASE_TYPE_UCHAR) {
+        code += "\tt." + field_name_camel + " = rcv." + field_name_camel +
+                "Bytes()\n";
       } else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
-        // TODO(iceboy): Use bytes getter when
-        // field.value.type.element == BASE_TYPE_UCHAR .
         code += "\tfor j := 0; j < rcv." + field_name_camel +
                 "Length(); j++ {\n";
         if (field.value.type.element == BASE_TYPE_STRUCT) {
