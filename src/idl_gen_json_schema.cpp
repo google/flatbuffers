@@ -184,11 +184,16 @@ class JsonSchemaGenerator : public BaseGenerator {
       if (*s != parser_.structs_.vec.back()) { closeType.append(","); }
       code_ += closeType;  // close type
     }
-    code_ += "  },";  // close definitions
 
     // mark root type
-    code_ += "  \"$ref\" : \"#/definitions/" +
-             GenFullName(parser_.root_struct_def_) + "\"";
+    if (parser_.root_struct_def_)
+    {
+      code_ += "  },";  // close definitions
+      code_ += "  \"$ref\" : \"#/definitions/" +
+               GenFullName(parser_.root_struct_def_) + "\"";
+    }
+    else
+      code_ += "  }";  // close definitions
 
     code_ += "}";  // close schema root
     const std::string file_path = GeneratedFileName(path_, file_name_);
