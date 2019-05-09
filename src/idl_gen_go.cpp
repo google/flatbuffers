@@ -931,7 +931,8 @@ class GoGenerator : public BaseGenerator {
     std::string code = "";
     BeginFile(LastNamespacePart(ns), needs_imports, is_enum, &code);
     code += classcode;
-    while (code.substr(code.length() - 2) == "\n\n") {
+    // Strip extra newlines at end of file to make it gofmt-clean.
+    while (code.length() > 2 && code.substr(code.length() - 2) == "\n\n") {
       code.pop_back();
     }
     std::string filename = NamespaceDir(ns) + def.name + ".go";
