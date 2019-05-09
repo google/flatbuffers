@@ -796,7 +796,8 @@ class GoGenerator : public BaseGenerator {
         code += "\t}\n";
         code += "\t" + offset + " := builder.EndVector(" + length + ")\n";
       } else if (field.value.type.base_type == BASE_TYPE_STRUCT) {
-        // TODO
+        code += "\t" + offset + " := " + field.value.type.struct_def->name +
+                "Pack(builder, t." + MakeCamel(field.name) + ")\n";
       } else if (field.value.type.base_type == BASE_TYPE_UNION) {
         // TODO
       } else {
@@ -863,8 +864,10 @@ class GoGenerator : public BaseGenerator {
         }
         code += ")\n";
         code += "\t}\n";
+      } else if (field.value.type.base_type == BASE_TYPE_STRUCT) {
+        code += "\tt." + field_name_camel + " = rcv." + field_name_camel +
+                "(nil).UnPack()\n";
       } else {
-        // TODO(iceboy): BASE_TYPE_STRUCT
         // TODO(iceboy): BASE_TYPE_UNION
         FLATBUFFERS_ASSERT(0);
       }
