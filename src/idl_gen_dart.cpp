@@ -120,7 +120,7 @@ class DartGenerator : public BaseGenerator {
               std::ostream_iterator<std::string>(sstream, "."));
 
     auto ret = sstream.str() + ns.components.back();
-    for (int i = 0; ret[i]; i++) {
+    for (size_t i = 0; i < ret.size(); i++) {
       auto lower = tolower(ret[i]);
       if (lower != ret[i]) {
         ret[i] = static_cast<char>(lower);
