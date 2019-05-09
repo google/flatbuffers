@@ -111,13 +111,13 @@ func (rcv *Monster) MutateInventory(j int, n byte) bool {
 func (rcv *Monster) Color() Color {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(16))
 	if o != 0 {
-		return rcv._tab.GetInt8(o + rcv._tab.Pos)
+		return rcv._tab.GetByte(o + rcv._tab.Pos)
 	}
 	return 8
 }
 
 func (rcv *Monster) MutateColor(n Color) bool {
-	return rcv._tab.MutateInt8Slot(16, n)
+	return rcv._tab.MutateByteSlot(16, n)
 }
 
 func (rcv *Monster) TestType() byte {
@@ -785,7 +785,7 @@ func (rcv *Monster) VectorOfEnums(j int) Color {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(98))
 	if o != 0 {
 		a := rcv._tab.Vector(o)
-		return rcv._tab.GetInt8(a + flatbuffers.UOffsetT(j*1))
+		return rcv._tab.GetByte(a + flatbuffers.UOffsetT(j*1))
 	}
 	return 0
 }
@@ -798,11 +798,19 @@ func (rcv *Monster) VectorOfEnumsLength() int {
 	return 0
 }
 
+func (rcv *Monster) VectorOfEnumsBytes() []byte {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(98))
+	if o != 0 {
+		return rcv._tab.ByteVector(o + rcv._tab.Pos)
+	}
+	return nil
+}
+
 func (rcv *Monster) MutateVectorOfEnums(j int, n Color) bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(98))
 	if o != 0 {
 		a := rcv._tab.Vector(o)
-		return rcv._tab.MutateInt8(a+flatbuffers.UOffsetT(j*1), n)
+		return rcv._tab.MutateByte(a+flatbuffers.UOffsetT(j*1), n)
 	}
 	return false
 }
@@ -828,8 +836,8 @@ func MonsterAddInventory(builder *flatbuffers.Builder, inventory flatbuffers.UOf
 func MonsterStartInventoryVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.StartVector(1, numElems, 1)
 }
-func MonsterAddColor(builder *flatbuffers.Builder, color int8) {
-	builder.PrependInt8Slot(6, color, 8)
+func MonsterAddColor(builder *flatbuffers.Builder, color byte) {
+	builder.PrependByteSlot(6, color, 8)
 }
 func MonsterAddTestType(builder *flatbuffers.Builder, testType byte) {
 	builder.PrependByteSlot(7, testType, 0)

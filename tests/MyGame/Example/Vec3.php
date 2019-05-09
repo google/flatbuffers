@@ -55,11 +55,11 @@ class Vec3 extends Struct
     }
 
     /**
-     * @return sbyte
+     * @return byte
      */
     public function GetTest2()
     {
-        return $this->bb->getSbyte($this->bb_pos + 24);
+        return $this->bb->getByte($this->bb_pos + 24);
     }
 
     /**
@@ -85,7 +85,7 @@ class Vec3 extends Struct
         $builder->putSbyte($test3_b);
         $builder->putShort($test3_a);
         $builder->pad(1);
-        $builder->putSbyte($test2);
+        $builder->putByte($test2);
         $builder->putDouble($test1);
         $builder->pad(4);
         $builder->putFloat($z);
