@@ -841,14 +841,19 @@ class GoGenerator : public BaseGenerator {
         // field.value.type.element == BASE_TYPE_UCHAR .
         code += "\tfor j := 0; j < rcv." + field_name_camel +
                 "Length(); j++ {\n";
+        if (field.value.type.element == BASE_TYPE_STRUCT) {
+          code += "\tx := " + field.value.type.struct_def->name + "{}\n";
+          code += "\tif !rcv." + field_name_camel + "(&x, j) { return nil }\n";
+        }
         code += "\t\tt." + field_name_camel + " = append(t." +
                 field_name_camel + ", ";
         if (IsScalar(field.value.type.element)) {
           code += "rcv." + field_name_camel + "(j)";
         } else if (field.value.type.element == BASE_TYPE_STRING) {
           code += "string(rcv." + field_name_camel + "(j))";
+        } else if (field.value.type.element == BASE_TYPE_STRUCT) {
+          code += "x.UnPack()";
         } else {
-          // TODO(iceboy): BASE_TYPE_STRUCT
           // TODO(iceboy): BASE_TYPE_UNION
           FLATBUFFERS_ASSERT(0);
         }
