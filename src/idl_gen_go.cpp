@@ -685,10 +685,7 @@ class GoGenerator : public BaseGenerator {
 
     GenComment(struct_def.doc_comment, code_ptr, nullptr);
     if (parser_.opts.generate_object_based_api) {
-      // TODO(iceboy): Also generate native code for structs.
-      if (!struct_def.fixed) {
-        GenNativeTable(struct_def, code_ptr);
-      }
+      GenNativeStruct(struct_def, code_ptr);
     }
     BeginClass(struct_def, code_ptr);
     if (!struct_def.fixed) {
@@ -722,14 +719,7 @@ class GoGenerator : public BaseGenerator {
     }
   }
 
-  void GenNativeTable(const StructDef &struct_def, std::string *code_ptr) {
-    GenNativeTableStruct(struct_def, code_ptr);
-    GenNativeTablePack(struct_def, code_ptr);
-    GenNativeTableUnPack(struct_def, code_ptr);
-  }
-
-  void GenNativeTableStruct(
-    const StructDef &struct_def, std::string *code_ptr) {
+  void GenNativeStruct(const StructDef &struct_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
 
     code += "type " + NativeName(struct_def) + " struct {\n";
@@ -741,6 +731,14 @@ class GoGenerator : public BaseGenerator {
               NativeType(field.value.type) + "\n";
     }
     code += "}\n\n";
+
+    if (!struct_def.fixed) {
+      GenNativeTablePack(struct_def, code_ptr);
+      GenNativeTableUnPack(struct_def, code_ptr);
+    } else {
+      GenNativeStructPack(struct_def, code_ptr);
+      GenNativeStructUnPack(struct_def, code_ptr);
+    }
   }
 
   void GenNativeTablePack(const StructDef &struct_def, std::string *code_ptr) {
@@ -872,6 +870,58 @@ class GoGenerator : public BaseGenerator {
       } else {
         // TODO(iceboy): BASE_TYPE_UNION
         FLATBUFFERS_ASSERT(0);
+      }
+    }
+    code += "\treturn t\n";
+    code += "}\n\n";
+  }
+
+  void GenNativeStructPack(const StructDef &struct_def, std::string *code_ptr) {
+    std::string &code = *code_ptr;
+
+    code += "func " + struct_def.name +
+            "Pack(builder *flatbuffers.Builder, t *" + NativeName(struct_def) +
+            ") flatbuffers.UOffsetT {\n";
+    code += "\tif t == nil { return 0 }\n";
+    code += "\treturn Create" + struct_def.name + "(builder";
+    StructPackArgs(struct_def, "", code_ptr);
+    code += ")\n";
+    code += "}\n";
+  }
+
+  void StructPackArgs(const StructDef &struct_def, const char *nameprefix,
+                      std::string *code_ptr) {
+    std::string &code = *code_ptr;
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      const FieldDef &field = **it;
+      if (field.value.type.base_type != BASE_TYPE_STRUCT) {
+        code += std::string(", t.") + nameprefix + MakeCamel(field.name);
+      } else {
+        StructPackArgs(*field.value.type.struct_def,
+                       (nameprefix + MakeCamel(field.name) + ".").c_str(),
+                       code_ptr);
+      }
+    }
+  }
+
+  void GenNativeStructUnPack(
+    const StructDef &struct_def, std::string *code_ptr) {
+    std::string &code = *code_ptr;
+
+    code += "func (rcv *" + struct_def.name + ") UnPack() *" +
+            NativeName(struct_def) + " {\n";
+    code += "\tif rcv == nil { return nil }\n";
+    code += "\tt := &" + NativeName(struct_def) + "{}\n";
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      const FieldDef &field = **it;
+      if (field.value.type.base_type != BASE_TYPE_STRUCT) {
+        code += "\tt." + MakeCamel(field.name) + " = rcv." +
+                MakeCamel(field.name) + "()\n";
+      } else {
+        code += "\tt." + MakeCamel(field.name) + " = rcv." +
+                MakeCamel(field.name) + "(nil).UnPack()\n";
       }
     }
     code += "\treturn t\n";
