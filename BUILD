@@ -96,6 +96,7 @@ cc_binary(
         "src/idl_gen_python.cpp",
         "src/idl_gen_rust.cpp",
         "src/idl_gen_text.cpp",
+        "src/util.cpp",
     ],
     includes = [
         "grpc/",

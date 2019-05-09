@@ -649,6 +649,9 @@ bool SetGlobalTestLocale(const char *locale_name,
 bool ReadEnvironmentVariable(const char *var_name,
                              std::string *_value = nullptr);
 
+// MSVC specific: Send all assert reports to STDOUT to prevent CI hangs.
+void SetupDefaultCRTReportMode();
+
 }  // namespace flatbuffers
 
 #endif  // FLATBUFFERS_UTIL_H_
