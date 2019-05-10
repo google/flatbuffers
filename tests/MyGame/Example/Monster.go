@@ -221,12 +221,7 @@ func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT
 		anyAmbiguousType = AnyAmbiguousAliasesM3
 		anyAmbiguousOffset = MonsterPack(builder, t.AnyAmbiguous.(*MonsterT))
 	}
-	vectorOfEnumsLength := len(t.VectorOfEnums)
-	MonsterStartVectorOfEnumsVector(builder, vectorOfEnumsLength)
-	for j := vectorOfEnumsLength - 1; j >= 0; j-- {
-		builder.PrependInt8(t.VectorOfEnums[j])
-	}
-	vectorOfEnumsOffset := builder.EndVector(vectorOfEnumsLength)
+	vectorOfEnumsOffset := builder.CreateByteString(t.VectorOfEnums)
 	MonsterStart(builder)
 	MonsterAddPos(builder, posOffset)
 	MonsterAddMana(builder, t.Mana)
@@ -394,9 +389,7 @@ func (rcv *Monster) UnPack() *MonsterT {
 		x := Monster{}
 		if rcv.AnyAmbiguous(&x._tab) { t.AnyAmbiguous = x.UnPack() }
 	}
-	for j := 0; j < rcv.VectorOfEnumsLength(); j++ {
-		t.VectorOfEnums = append(t.VectorOfEnums, rcv.VectorOfEnums(j))
-	}
+	t.VectorOfEnums = rcv.VectorOfEnumsBytes()
 	return t
 }
 
