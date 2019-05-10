@@ -220,82 +220,82 @@ inline flatbuffers::Offset<MonsterExtra> CreateMonsterExtraDirect(
       testd_vec__);
 }
 
-class GuardedMonsterExtra : private MonsterExtraT {
-  typedef MonsterExtraT Parent;
+class GuardedMonsterExtra {
+  MonsterExtraT native_table_;
  public:
   typedef MonsterExtra TableType;
-  const MonsterExtraT& NativeTable() const { return *this; }
-  auto testf_nan() -> decltype(Parent::testf_nan)&{ return Parent::testf_nan; }
-  auto testf_nan() const -> const decltype(Parent::testf_nan)&{ return Parent::testf_nan; }
-  auto testf_pinf() -> decltype(Parent::testf_pinf)&{ return Parent::testf_pinf; }
-  auto testf_pinf() const -> const decltype(Parent::testf_pinf)&{ return Parent::testf_pinf; }
-  auto testf_ninf() -> decltype(Parent::testf_ninf)&{ return Parent::testf_ninf; }
-  auto testf_ninf() const -> const decltype(Parent::testf_ninf)&{ return Parent::testf_ninf; }
-  auto testd_nan() -> decltype(Parent::testd_nan)&{ return Parent::testd_nan; }
-  auto testd_nan() const -> const decltype(Parent::testd_nan)&{ return Parent::testd_nan; }
-  auto testd_pinf() -> decltype(Parent::testd_pinf)&{ return Parent::testd_pinf; }
-  auto testd_pinf() const -> const decltype(Parent::testd_pinf)&{ return Parent::testd_pinf; }
-  auto testd_ninf() -> decltype(Parent::testd_ninf)&{ return Parent::testd_ninf; }
-  auto testd_ninf() const -> const decltype(Parent::testd_ninf)&{ return Parent::testd_ninf; }
+  const MonsterExtraT& NativeTable() const { return native_table_; }
+  auto testf_nan() -> decltype(native_table_.testf_nan)&{ return native_table_.testf_nan; }
+  auto testf_nan() const -> const decltype(native_table_.testf_nan)&{ return native_table_.testf_nan; }
+  auto testf_pinf() -> decltype(native_table_.testf_pinf)&{ return native_table_.testf_pinf; }
+  auto testf_pinf() const -> const decltype(native_table_.testf_pinf)&{ return native_table_.testf_pinf; }
+  auto testf_ninf() -> decltype(native_table_.testf_ninf)&{ return native_table_.testf_ninf; }
+  auto testf_ninf() const -> const decltype(native_table_.testf_ninf)&{ return native_table_.testf_ninf; }
+  auto testd_nan() -> decltype(native_table_.testd_nan)&{ return native_table_.testd_nan; }
+  auto testd_nan() const -> const decltype(native_table_.testd_nan)&{ return native_table_.testd_nan; }
+  auto testd_pinf() -> decltype(native_table_.testd_pinf)&{ return native_table_.testd_pinf; }
+  auto testd_pinf() const -> const decltype(native_table_.testd_pinf)&{ return native_table_.testd_pinf; }
+  auto testd_ninf() -> decltype(native_table_.testd_ninf)&{ return native_table_.testd_ninf; }
+  auto testd_ninf() const -> const decltype(native_table_.testd_ninf)&{ return native_table_.testd_ninf; }
   bool push_testf_vec(float  value) {
-    Parent::testf_vec.push_back(value);
+    native_table_.testf_vec.push_back(value);
     return true;
   }
   bool emplace_testf_vec(float value) {
-    Parent::testf_vec.emplace_back(std::move(value));
+    native_table_.testf_vec.emplace_back(std::move(value));
     return true;
   }
   bool pop_testf_vec() {
-    if (Parent::testf_vec.size()) {
-      Parent::testf_vec.pop_back();
+    if (native_table_.testf_vec.size()) {
+      native_table_.testf_vec.pop_back();
       return true;
     };
     return false;
   }
   bool swap_testf_vec(std::vector<float>& value) {
-    std::swap(Parent::testf_vec, value);
+    std::swap(native_table_.testf_vec, value);
     return true;
   }
   const std::vector<float>& testf_vec() const & {
-    return Parent::testf_vec;
+    return native_table_.testf_vec;
   }
   size_t testf_vec_size() const {
-    return Parent::testf_vec.size();
+    return native_table_.testf_vec.size();
   }
   void clear_testf_vec() {
-    Parent::testf_vec.clear();
+    native_table_.testf_vec.clear();
   }
   bool push_testd_vec(double  value) {
-    Parent::testd_vec.push_back(value);
+    native_table_.testd_vec.push_back(value);
     return true;
   }
   bool emplace_testd_vec(double value) {
-    Parent::testd_vec.emplace_back(std::move(value));
+    native_table_.testd_vec.emplace_back(std::move(value));
     return true;
   }
   bool pop_testd_vec() {
-    if (Parent::testd_vec.size()) {
-      Parent::testd_vec.pop_back();
+    if (native_table_.testd_vec.size()) {
+      native_table_.testd_vec.pop_back();
       return true;
     };
     return false;
   }
   bool swap_testd_vec(std::vector<double>& value) {
-    std::swap(Parent::testd_vec, value);
+    std::swap(native_table_.testd_vec, value);
     return true;
   }
   const std::vector<double>& testd_vec() const & {
-    return Parent::testd_vec;
+    return native_table_.testd_vec;
   }
   size_t testd_vec_size() const {
-    return Parent::testd_vec.size();
+    return native_table_.testd_vec.size();
   }
   void clear_testd_vec() {
-    Parent::testd_vec.clear();
+    native_table_.testd_vec.clear();
   }
   void clear() {
-    Parent::testf_vec.clear();
-    Parent::testd_vec.clear();
+    native_table_.testf_vec.clear();
+    native_table_.testd_vec.clear();
   }
 };
 

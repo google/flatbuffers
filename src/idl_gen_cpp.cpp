@@ -1560,9 +1560,9 @@ class CppGenerator : public BaseGenerator {
           }
         }();
     const auto name = Name(field);
-    const auto parent_name = "Parent::" + name;
+    const auto native_field_name = "native_table_." + name;
     code_.SetValue("FIELD_TYPE", full_type);
-    code_.SetValue("PARENT_FIELD_NAME", parent_name);
+    code_.SetValue("NATIVE_FIELD_NAME", native_field_name);
     code_.SetValue("FIELD_NAME", name);
     bool gen_max_check = false;
     if (auto max_size = field.attributes.Lookup("max_size")) {
@@ -1593,7 +1593,7 @@ class CppGenerator : public BaseGenerator {
       const bool gen_add = element_is_struct;
       const auto element_type = GenTypeNative(field.value.type.VectorType(),
           true, field);
-      list_of_methods_to_clear.push_back(parent_name);
+      list_of_methods_to_clear.push_back(native_field_name);
       if (cpp_type) {
         const std::string element_ptr_type =
             GenTypeNativePtr(cpp_type->constant, &field, false);
@@ -1610,11 +1610,11 @@ class CppGenerator : public BaseGenerator {
       if (gen_add) {
         code_ += "  {{INNER_TYPE}}* add_{{FIELD_NAME}}() {";
         if (gen_max_check) {
-          code_ += "    if ({{PARENT_FIELD_NAME}}.size() >= {{MAX_SIZE_FN}}())";
+          code_ += "    if ({{NATIVE_FIELD_NAME}}.size() >= {{MAX_SIZE_FN}}())";
           code_ += "        return nullptr;";
         }
-        code_ += "    {{PARENT_FIELD_NAME}}.emplace_back();";
-        code_ += "    return &{{PARENT_FIELD_NAME}}.back();";
+        code_ += "    {{NATIVE_FIELD_NAME}}.emplace_back();";
+        code_ += "    return &{{NATIVE_FIELD_NAME}}.back();";
         code_ += "  }";
       }
       if (gen_push) {
@@ -1625,10 +1625,10 @@ class CppGenerator : public BaseGenerator {
         }
         code_ += "  bool push_{{FIELD_NAME}}({{INNER_TYPE}} {{REF}} value) {";
         if (gen_max_check) {
-          code_ += "    if ({{PARENT_FIELD_NAME}}.size() >= {{MAX_SIZE_FN}}())";
+          code_ += "    if ({{NATIVE_FIELD_NAME}}.size() >= {{MAX_SIZE_FN}}())";
           code_ += "        return false;";
         }
-        code_ += "    {{PARENT_FIELD_NAME}}.push_back(value);";
+        code_ += "    {{NATIVE_FIELD_NAME}}.push_back(value);";
         code_ += "    return true;";
         code_ += "  }";
       }
@@ -1640,17 +1640,17 @@ class CppGenerator : public BaseGenerator {
         }
         code_ += "  bool emplace_{{FIELD_NAME}}({{INNER_TYPE}}{{REF}} value) {";
         if (gen_max_check) {
-          code_ += "    if ({{PARENT_FIELD_NAME}}.size() >= "
+          code_ += "    if ({{NATIVE_FIELD_NAME}}.size() >= "
                            "{{MAX_SIZE_FN}}())";
           code_ += "        return false;";
         }
-        code_ += "    {{PARENT_FIELD_NAME}}.emplace_back(std::move(value));";
+        code_ += "    {{NATIVE_FIELD_NAME}}.emplace_back(std::move(value));";
         code_ += "    return true;";
         code_ += "  }";
       }
       code_ += "  bool pop_{{FIELD_NAME}}() {";
-      code_ += "    if ({{PARENT_FIELD_NAME}}.size()) {";
-      code_ += "      {{PARENT_FIELD_NAME}}.pop_back();";
+      code_ += "    if ({{NATIVE_FIELD_NAME}}.size()) {";
+      code_ += "      {{NATIVE_FIELD_NAME}}.pop_back();";
       code_ += "      return true;";
       code_ += "    };";
       code_ += "    return false;";
@@ -1660,20 +1660,20 @@ class CppGenerator : public BaseGenerator {
         code_ += "    if (value.size() > {{MAX_SIZE_FN}}())";
         code_ += "        return false;";
       }
-      code_ += "    std::swap({{PARENT_FIELD_NAME}}, value);";
+      code_ += "    std::swap({{NATIVE_FIELD_NAME}}, value);";
       code_ += "    return true;";
       code_ += "  }";
       code_ += "  const {{FIELD_TYPE}}& {{FIELD_NAME}}() const & {";
-      code_ += "    return {{PARENT_FIELD_NAME}};";
+      code_ += "    return {{NATIVE_FIELD_NAME}};";
       code_ += "  }";
       code_ += "  size_t {{FIELD_NAME}}_size() const {";
-      code_ += "    return {{PARENT_FIELD_NAME}}.size();";
+      code_ += "    return {{NATIVE_FIELD_NAME}}.size();";
       code_ += "  }";
       code_ += "  void clear_{{FIELD_NAME}}() {";
-      code_ += "    {{PARENT_FIELD_NAME}}.clear();";
+      code_ += "    {{NATIVE_FIELD_NAME}}.clear();";
       code_ += "  }";
     } else if (field.value.type.base_type == BASE_TYPE_STRING) {
-      list_of_methods_to_clear.push_back(parent_name);
+      list_of_methods_to_clear.push_back(native_field_name);
       if (gen_max_check) {
         code_ += "  static constexpr size_t {{MAX_SIZE_FN}}() {";
         code_ += "    return {{MAX_SIZE}};";
@@ -1684,7 +1684,7 @@ class CppGenerator : public BaseGenerator {
         code_ += "    if (value.size() > {{MAX_SIZE_FN}}())";
         code_ += "        return false;";
       }
-      code_ += "    {{PARENT_FIELD_NAME}} = value;";
+      code_ += "    {{NATIVE_FIELD_NAME}} = value;";
       code_ += "    return true;";
       code_ += "  }";
       code_ += "  bool set_{{FIELD_NAME}}(std::string&& value) {";
@@ -1692,7 +1692,7 @@ class CppGenerator : public BaseGenerator {
         code_ += "    if (value.size() > {{MAX_SIZE_FN}}())";
         code_ += "        return false;";
       }
-      code_ += "    {{PARENT_FIELD_NAME}} = std::move(value);";
+      code_ += "    {{NATIVE_FIELD_NAME}} = std::move(value);";
       code_ += "    return true;";
       code_ += "  }";
       code_ += "  bool swap_{{FIELD_NAME}}(std::string& value) {";
@@ -1700,20 +1700,20 @@ class CppGenerator : public BaseGenerator {
         code_ += "    if (value.size() > {{MAX_SIZE_FN}}())";
         code_ += "        return false;";
       }
-      code_ += "    std::swap({{PARENT_FIELD_NAME}}, value);";
+      code_ += "    std::swap({{NATIVE_FIELD_NAME}}, value);";
       code_ += "    return true;";
       code_ += "  }";
       code_ += "  const std::string& {{FIELD_NAME}}() const & {";
-      code_ += "    return {{PARENT_FIELD_NAME}};";
+      code_ += "    return {{NATIVE_FIELD_NAME}};";
       code_ += "  }";
       code_ += "  void clear_{{FIELD_NAME}}() {";
-      code_ += "    {{PARENT_FIELD_NAME}}.clear();";
+      code_ += "    {{NATIVE_FIELD_NAME}}.clear();";
       code_ += "  }";
     } else {
-      code_ += "  auto {{FIELD_NAME}}() -> decltype({{PARENT_FIELD_NAME}})&"
-                    "{ return {{PARENT_FIELD_NAME}}; }";
-      code_ += "  auto {{FIELD_NAME}}() const -> const decltype({{PARENT_FIELD_NAME}})&"
-                    "{ return {{PARENT_FIELD_NAME}}; }";
+      code_ += "  auto {{FIELD_NAME}}() -> decltype({{NATIVE_FIELD_NAME}})&"
+                    "{ return {{NATIVE_FIELD_NAME}}; }";
+      code_ += "  auto {{FIELD_NAME}}() const -> const decltype({{NATIVE_FIELD_NAME}})&"
+                    "{ return {{NATIVE_FIELD_NAME}}; }";
     }
   }
 
@@ -1836,11 +1836,11 @@ class CppGenerator : public BaseGenerator {
     code_.SetValue("NATIVE_NAME", native_name);
     code_.SetValue("GUARDED_NAME", guarded_name);
     // Generate a C++ object that can hold an unpacked version of this table.
-    code_ += "class {{GUARDED_NAME}} : private {{NATIVE_NAME}} {";
-    code_ += "  typedef {{NATIVE_NAME}} Parent;";
+    code_ += "class {{GUARDED_NAME}} {";
+    code_ += "  {{NATIVE_NAME}} native_table_;";
     code_ += " public:";
     code_ += "  typedef {{STRUCT_NAME}} TableType;";
-    code_ += "  const {{NATIVE_NAME}}& NativeTable() const { return *this; }";
+    code_ += "  const {{NATIVE_NAME}}& NativeTable() const { return native_table_; }";
     std::vector<std::string> list_of_methods_to_clear;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {

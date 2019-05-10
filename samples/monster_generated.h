@@ -465,128 +465,128 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
       path__);
 }
 
-class GuardedMonster : private MonsterT {
-  typedef MonsterT Parent;
+class GuardedMonster {
+  MonsterT native_table_;
  public:
   typedef Monster TableType;
-  const MonsterT& NativeTable() const { return *this; }
-  auto pos() -> decltype(Parent::pos)&{ return Parent::pos; }
-  auto pos() const -> const decltype(Parent::pos)&{ return Parent::pos; }
-  auto mana() -> decltype(Parent::mana)&{ return Parent::mana; }
-  auto mana() const -> const decltype(Parent::mana)&{ return Parent::mana; }
-  auto hp() -> decltype(Parent::hp)&{ return Parent::hp; }
-  auto hp() const -> const decltype(Parent::hp)&{ return Parent::hp; }
+  const MonsterT& NativeTable() const { return native_table_; }
+  auto pos() -> decltype(native_table_.pos)&{ return native_table_.pos; }
+  auto pos() const -> const decltype(native_table_.pos)&{ return native_table_.pos; }
+  auto mana() -> decltype(native_table_.mana)&{ return native_table_.mana; }
+  auto mana() const -> const decltype(native_table_.mana)&{ return native_table_.mana; }
+  auto hp() -> decltype(native_table_.hp)&{ return native_table_.hp; }
+  auto hp() const -> const decltype(native_table_.hp)&{ return native_table_.hp; }
   bool set_name(const std::string& value) {
-    Parent::name = value;
+    native_table_.name = value;
     return true;
   }
   bool set_name(std::string&& value) {
-    Parent::name = std::move(value);
+    native_table_.name = std::move(value);
     return true;
   }
   bool swap_name(std::string& value) {
-    std::swap(Parent::name, value);
+    std::swap(native_table_.name, value);
     return true;
   }
   const std::string& name() const & {
-    return Parent::name;
+    return native_table_.name;
   }
   void clear_name() {
-    Parent::name.clear();
+    native_table_.name.clear();
   }
   bool push_inventory(uint8_t  value) {
-    Parent::inventory.push_back(value);
+    native_table_.inventory.push_back(value);
     return true;
   }
   bool emplace_inventory(uint8_t value) {
-    Parent::inventory.emplace_back(std::move(value));
+    native_table_.inventory.emplace_back(std::move(value));
     return true;
   }
   bool pop_inventory() {
-    if (Parent::inventory.size()) {
-      Parent::inventory.pop_back();
+    if (native_table_.inventory.size()) {
+      native_table_.inventory.pop_back();
       return true;
     };
     return false;
   }
   bool swap_inventory(std::vector<uint8_t>& value) {
-    std::swap(Parent::inventory, value);
+    std::swap(native_table_.inventory, value);
     return true;
   }
   const std::vector<uint8_t>& inventory() const & {
-    return Parent::inventory;
+    return native_table_.inventory;
   }
   size_t inventory_size() const {
-    return Parent::inventory.size();
+    return native_table_.inventory.size();
   }
   void clear_inventory() {
-    Parent::inventory.clear();
+    native_table_.inventory.clear();
   }
-  auto color() -> decltype(Parent::color)&{ return Parent::color; }
-  auto color() const -> const decltype(Parent::color)&{ return Parent::color; }
+  auto color() -> decltype(native_table_.color)&{ return native_table_.color; }
+  auto color() const -> const decltype(native_table_.color)&{ return native_table_.color; }
   bool emplace_weapons(flatbuffers::unique_ptr<WeaponT> && value) {
-    Parent::weapons.emplace_back(std::move(value));
+    native_table_.weapons.emplace_back(std::move(value));
     return true;
   }
   bool pop_weapons() {
-    if (Parent::weapons.size()) {
-      Parent::weapons.pop_back();
+    if (native_table_.weapons.size()) {
+      native_table_.weapons.pop_back();
       return true;
     };
     return false;
   }
   bool swap_weapons(std::vector<flatbuffers::unique_ptr<WeaponT>>& value) {
-    std::swap(Parent::weapons, value);
+    std::swap(native_table_.weapons, value);
     return true;
   }
   const std::vector<flatbuffers::unique_ptr<WeaponT>>& weapons() const & {
-    return Parent::weapons;
+    return native_table_.weapons;
   }
   size_t weapons_size() const {
-    return Parent::weapons.size();
+    return native_table_.weapons.size();
   }
   void clear_weapons() {
-    Parent::weapons.clear();
+    native_table_.weapons.clear();
   }
-  auto equipped() -> decltype(Parent::equipped)&{ return Parent::equipped; }
-  auto equipped() const -> const decltype(Parent::equipped)&{ return Parent::equipped; }
+  auto equipped() -> decltype(native_table_.equipped)&{ return native_table_.equipped; }
+  auto equipped() const -> const decltype(native_table_.equipped)&{ return native_table_.equipped; }
   Vec3* add_path() {
-    Parent::path.emplace_back();
-    return &Parent::path.back();
+    native_table_.path.emplace_back();
+    return &native_table_.path.back();
   }
   bool push_path(Vec3 const& value) {
-    Parent::path.push_back(value);
+    native_table_.path.push_back(value);
     return true;
   }
   bool emplace_path(Vec3 && value) {
-    Parent::path.emplace_back(std::move(value));
+    native_table_.path.emplace_back(std::move(value));
     return true;
   }
   bool pop_path() {
-    if (Parent::path.size()) {
-      Parent::path.pop_back();
+    if (native_table_.path.size()) {
+      native_table_.path.pop_back();
       return true;
     };
     return false;
   }
   bool swap_path(std::vector<Vec3>& value) {
-    std::swap(Parent::path, value);
+    std::swap(native_table_.path, value);
     return true;
   }
   const std::vector<Vec3>& path() const & {
-    return Parent::path;
+    return native_table_.path;
   }
   size_t path_size() const {
-    return Parent::path.size();
+    return native_table_.path.size();
   }
   void clear_path() {
-    Parent::path.clear();
+    native_table_.path.clear();
   }
   void clear() {
-    Parent::name.clear();
-    Parent::inventory.clear();
-    Parent::weapons.clear();
-    Parent::path.clear();
+    native_table_.name.clear();
+    native_table_.inventory.clear();
+    native_table_.weapons.clear();
+    native_table_.path.clear();
   }
 };
 
@@ -687,33 +687,33 @@ inline flatbuffers::Offset<Weapon> CreateWeaponDirect(
       damage);
 }
 
-class GuardedWeapon : private WeaponT {
-  typedef WeaponT Parent;
+class GuardedWeapon {
+  WeaponT native_table_;
  public:
   typedef Weapon TableType;
-  const WeaponT& NativeTable() const { return *this; }
+  const WeaponT& NativeTable() const { return native_table_; }
   bool set_name(const std::string& value) {
-    Parent::name = value;
+    native_table_.name = value;
     return true;
   }
   bool set_name(std::string&& value) {
-    Parent::name = std::move(value);
+    native_table_.name = std::move(value);
     return true;
   }
   bool swap_name(std::string& value) {
-    std::swap(Parent::name, value);
+    std::swap(native_table_.name, value);
     return true;
   }
   const std::string& name() const & {
-    return Parent::name;
+    return native_table_.name;
   }
   void clear_name() {
-    Parent::name.clear();
+    native_table_.name.clear();
   }
-  auto damage() -> decltype(Parent::damage)&{ return Parent::damage; }
-  auto damage() const -> const decltype(Parent::damage)&{ return Parent::damage; }
+  auto damage() -> decltype(native_table_.damage)&{ return native_table_.damage; }
+  auto damage() const -> const decltype(native_table_.damage)&{ return native_table_.damage; }
   void clear() {
-    Parent::name.clear();
+    native_table_.name.clear();
   }
 };
 

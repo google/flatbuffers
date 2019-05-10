@@ -326,13 +326,13 @@ inline flatbuffers::Offset<Attacker> CreateAttacker(
   return builder_.Finish();
 }
 
-class GuardedAttacker : private AttackerT {
-  typedef AttackerT Parent;
+class GuardedAttacker {
+  AttackerT native_table_;
  public:
   typedef Attacker TableType;
-  const AttackerT& NativeTable() const { return *this; }
-  auto sword_attack_damage() -> decltype(Parent::sword_attack_damage)&{ return Parent::sword_attack_damage; }
-  auto sword_attack_damage() const -> const decltype(Parent::sword_attack_damage)&{ return Parent::sword_attack_damage; }
+  const AttackerT& NativeTable() const { return native_table_; }
+  auto sword_attack_damage() -> decltype(native_table_.sword_attack_damage)&{ return native_table_.sword_attack_damage; }
+  auto sword_attack_damage() const -> const decltype(native_table_.sword_attack_damage)&{ return native_table_.sword_attack_damage; }
   void clear() {
   }
 };
@@ -485,39 +485,39 @@ inline flatbuffers::Offset<Movie> CreateMovieDirect(
       characters__);
 }
 
-class GuardedMovie : private MovieT {
-  typedef MovieT Parent;
+class GuardedMovie {
+  MovieT native_table_;
  public:
   typedef Movie TableType;
-  const MovieT& NativeTable() const { return *this; }
-  auto main_character() -> decltype(Parent::main_character)&{ return Parent::main_character; }
-  auto main_character() const -> const decltype(Parent::main_character)&{ return Parent::main_character; }
+  const MovieT& NativeTable() const { return native_table_; }
+  auto main_character() -> decltype(native_table_.main_character)&{ return native_table_.main_character; }
+  auto main_character() const -> const decltype(native_table_.main_character)&{ return native_table_.main_character; }
   bool emplace_characters(CharacterUnion && value) {
-    Parent::characters.emplace_back(std::move(value));
+    native_table_.characters.emplace_back(std::move(value));
     return true;
   }
   bool pop_characters() {
-    if (Parent::characters.size()) {
-      Parent::characters.pop_back();
+    if (native_table_.characters.size()) {
+      native_table_.characters.pop_back();
       return true;
     };
     return false;
   }
   bool swap_characters(std::vector<CharacterUnion>& value) {
-    std::swap(Parent::characters, value);
+    std::swap(native_table_.characters, value);
     return true;
   }
   const std::vector<CharacterUnion>& characters() const & {
-    return Parent::characters;
+    return native_table_.characters;
   }
   size_t characters_size() const {
-    return Parent::characters.size();
+    return native_table_.characters.size();
   }
   void clear_characters() {
-    Parent::characters.clear();
+    native_table_.characters.clear();
   }
   void clear() {
-    Parent::characters.clear();
+    native_table_.characters.clear();
   }
 };
 

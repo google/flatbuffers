@@ -767,11 +767,11 @@ inline flatbuffers::Offset<InParentNamespace> CreateInParentNamespace(
   return builder_.Finish();
 }
 
-class GuardedInParentNamespace : private InParentNamespaceT {
-  typedef InParentNamespaceT Parent;
+class GuardedInParentNamespace {
+  InParentNamespaceT native_table_;
  public:
   typedef InParentNamespace TableType;
-  const InParentNamespaceT& NativeTable() const { return *this; }
+  const InParentNamespaceT& NativeTable() const { return native_table_; }
   void clear() {
   }
 };
@@ -830,11 +830,11 @@ inline flatbuffers::Offset<Monster> CreateMonster(
   return builder_.Finish();
 }
 
-class GuardedMonster : private MonsterT {
-  typedef MonsterT Parent;
+class GuardedMonster {
+  MonsterT native_table_;
  public:
   typedef Monster TableType;
-  const MonsterT& NativeTable() const { return *this; }
+  const MonsterT& NativeTable() const { return native_table_; }
   void clear() {
   }
 };
@@ -913,13 +913,13 @@ inline flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnu
   return builder_.Finish();
 }
 
-class GuardedTestSimpleTableWithEnum : private TestSimpleTableWithEnumT {
-  typedef TestSimpleTableWithEnumT Parent;
+class GuardedTestSimpleTableWithEnum {
+  TestSimpleTableWithEnumT native_table_;
  public:
   typedef TestSimpleTableWithEnum TableType;
-  const TestSimpleTableWithEnumT& NativeTable() const { return *this; }
-  auto color() -> decltype(Parent::color)&{ return Parent::color; }
-  auto color() const -> const decltype(Parent::color)&{ return Parent::color; }
+  const TestSimpleTableWithEnumT& NativeTable() const { return native_table_; }
+  auto color() -> decltype(native_table_.color)&{ return native_table_.color; }
+  auto color() const -> const decltype(native_table_.color)&{ return native_table_.color; }
   void clear() {
   }
 };
@@ -1039,35 +1039,35 @@ inline flatbuffers::Offset<Stat> CreateStatDirect(
       count);
 }
 
-class GuardedStat : private StatT {
-  typedef StatT Parent;
+class GuardedStat {
+  StatT native_table_;
  public:
   typedef Stat TableType;
-  const StatT& NativeTable() const { return *this; }
+  const StatT& NativeTable() const { return native_table_; }
   bool set_id(const std::string& value) {
-    Parent::id = value;
+    native_table_.id = value;
     return true;
   }
   bool set_id(std::string&& value) {
-    Parent::id = std::move(value);
+    native_table_.id = std::move(value);
     return true;
   }
   bool swap_id(std::string& value) {
-    std::swap(Parent::id, value);
+    std::swap(native_table_.id, value);
     return true;
   }
   const std::string& id() const & {
-    return Parent::id;
+    return native_table_.id;
   }
   void clear_id() {
-    Parent::id.clear();
+    native_table_.id.clear();
   }
-  auto val() -> decltype(Parent::val)&{ return Parent::val; }
-  auto val() const -> const decltype(Parent::val)&{ return Parent::val; }
-  auto count() -> decltype(Parent::count)&{ return Parent::count; }
-  auto count() const -> const decltype(Parent::count)&{ return Parent::count; }
+  auto val() -> decltype(native_table_.val)&{ return native_table_.val; }
+  auto val() const -> const decltype(native_table_.val)&{ return native_table_.val; }
+  auto count() -> decltype(native_table_.count)&{ return native_table_.count; }
+  auto count() const -> const decltype(native_table_.count)&{ return native_table_.count; }
   void clear() {
-    Parent::id.clear();
+    native_table_.id.clear();
   }
 };
 
@@ -1147,13 +1147,13 @@ inline flatbuffers::Offset<Referrable> CreateReferrable(
   return builder_.Finish();
 }
 
-class GuardedReferrable : private ReferrableT {
-  typedef ReferrableT Parent;
+class GuardedReferrable {
+  ReferrableT native_table_;
  public:
   typedef Referrable TableType;
-  const ReferrableT& NativeTable() const { return *this; }
-  auto id() -> decltype(Parent::id)&{ return Parent::id; }
-  auto id() const -> const decltype(Parent::id)&{ return Parent::id; }
+  const ReferrableT& NativeTable() const { return native_table_; }
+  auto id() -> decltype(native_table_.id)&{ return native_table_.id; }
+  auto id() const -> const decltype(native_table_.id)&{ return native_table_.id; }
   void clear() {
   }
 };
@@ -2302,599 +2302,599 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
       string_with_max__);
 }
 
-class GuardedMonster : private MonsterT {
-  typedef MonsterT Parent;
+class GuardedMonster {
+  MonsterT native_table_;
  public:
   typedef Monster TableType;
-  const MonsterT& NativeTable() const { return *this; }
-  auto pos() -> decltype(Parent::pos)&{ return Parent::pos; }
-  auto pos() const -> const decltype(Parent::pos)&{ return Parent::pos; }
-  auto mana() -> decltype(Parent::mana)&{ return Parent::mana; }
-  auto mana() const -> const decltype(Parent::mana)&{ return Parent::mana; }
-  auto hp() -> decltype(Parent::hp)&{ return Parent::hp; }
-  auto hp() const -> const decltype(Parent::hp)&{ return Parent::hp; }
+  const MonsterT& NativeTable() const { return native_table_; }
+  auto pos() -> decltype(native_table_.pos)&{ return native_table_.pos; }
+  auto pos() const -> const decltype(native_table_.pos)&{ return native_table_.pos; }
+  auto mana() -> decltype(native_table_.mana)&{ return native_table_.mana; }
+  auto mana() const -> const decltype(native_table_.mana)&{ return native_table_.mana; }
+  auto hp() -> decltype(native_table_.hp)&{ return native_table_.hp; }
+  auto hp() const -> const decltype(native_table_.hp)&{ return native_table_.hp; }
   bool set_name(const std::string& value) {
-    Parent::name = value;
+    native_table_.name = value;
     return true;
   }
   bool set_name(std::string&& value) {
-    Parent::name = std::move(value);
+    native_table_.name = std::move(value);
     return true;
   }
   bool swap_name(std::string& value) {
-    std::swap(Parent::name, value);
+    std::swap(native_table_.name, value);
     return true;
   }
   const std::string& name() const & {
-    return Parent::name;
+    return native_table_.name;
   }
   void clear_name() {
-    Parent::name.clear();
+    native_table_.name.clear();
   }
   bool push_inventory(uint8_t  value) {
-    Parent::inventory.push_back(value);
+    native_table_.inventory.push_back(value);
     return true;
   }
   bool emplace_inventory(uint8_t value) {
-    Parent::inventory.emplace_back(std::move(value));
+    native_table_.inventory.emplace_back(std::move(value));
     return true;
   }
   bool pop_inventory() {
-    if (Parent::inventory.size()) {
-      Parent::inventory.pop_back();
+    if (native_table_.inventory.size()) {
+      native_table_.inventory.pop_back();
       return true;
     };
     return false;
   }
   bool swap_inventory(std::vector<uint8_t>& value) {
-    std::swap(Parent::inventory, value);
+    std::swap(native_table_.inventory, value);
     return true;
   }
   const std::vector<uint8_t>& inventory() const & {
-    return Parent::inventory;
+    return native_table_.inventory;
   }
   size_t inventory_size() const {
-    return Parent::inventory.size();
+    return native_table_.inventory.size();
   }
   void clear_inventory() {
-    Parent::inventory.clear();
+    native_table_.inventory.clear();
   }
-  auto color() -> decltype(Parent::color)&{ return Parent::color; }
-  auto color() const -> const decltype(Parent::color)&{ return Parent::color; }
-  auto test() -> decltype(Parent::test)&{ return Parent::test; }
-  auto test() const -> const decltype(Parent::test)&{ return Parent::test; }
+  auto color() -> decltype(native_table_.color)&{ return native_table_.color; }
+  auto color() const -> const decltype(native_table_.color)&{ return native_table_.color; }
+  auto test() -> decltype(native_table_.test)&{ return native_table_.test; }
+  auto test() const -> const decltype(native_table_.test)&{ return native_table_.test; }
   Test* add_test4() {
-    Parent::test4.emplace_back();
-    return &Parent::test4.back();
+    native_table_.test4.emplace_back();
+    return &native_table_.test4.back();
   }
   bool push_test4(Test const& value) {
-    Parent::test4.push_back(value);
+    native_table_.test4.push_back(value);
     return true;
   }
   bool emplace_test4(Test && value) {
-    Parent::test4.emplace_back(std::move(value));
+    native_table_.test4.emplace_back(std::move(value));
     return true;
   }
   bool pop_test4() {
-    if (Parent::test4.size()) {
-      Parent::test4.pop_back();
+    if (native_table_.test4.size()) {
+      native_table_.test4.pop_back();
       return true;
     };
     return false;
   }
   bool swap_test4(std::vector<Test>& value) {
-    std::swap(Parent::test4, value);
+    std::swap(native_table_.test4, value);
     return true;
   }
   const std::vector<Test>& test4() const & {
-    return Parent::test4;
+    return native_table_.test4;
   }
   size_t test4_size() const {
-    return Parent::test4.size();
+    return native_table_.test4.size();
   }
   void clear_test4() {
-    Parent::test4.clear();
+    native_table_.test4.clear();
   }
   bool push_testarrayofstring(std::string const& value) {
-    Parent::testarrayofstring.push_back(value);
+    native_table_.testarrayofstring.push_back(value);
     return true;
   }
   bool emplace_testarrayofstring(std::string && value) {
-    Parent::testarrayofstring.emplace_back(std::move(value));
+    native_table_.testarrayofstring.emplace_back(std::move(value));
     return true;
   }
   bool pop_testarrayofstring() {
-    if (Parent::testarrayofstring.size()) {
-      Parent::testarrayofstring.pop_back();
+    if (native_table_.testarrayofstring.size()) {
+      native_table_.testarrayofstring.pop_back();
       return true;
     };
     return false;
   }
   bool swap_testarrayofstring(std::vector<std::string>& value) {
-    std::swap(Parent::testarrayofstring, value);
+    std::swap(native_table_.testarrayofstring, value);
     return true;
   }
   const std::vector<std::string>& testarrayofstring() const & {
-    return Parent::testarrayofstring;
+    return native_table_.testarrayofstring;
   }
   size_t testarrayofstring_size() const {
-    return Parent::testarrayofstring.size();
+    return native_table_.testarrayofstring.size();
   }
   void clear_testarrayofstring() {
-    Parent::testarrayofstring.clear();
+    native_table_.testarrayofstring.clear();
   }
   bool emplace_testarrayoftables(flatbuffers::unique_ptr<MonsterT> && value) {
-    Parent::testarrayoftables.emplace_back(std::move(value));
+    native_table_.testarrayoftables.emplace_back(std::move(value));
     return true;
   }
   bool pop_testarrayoftables() {
-    if (Parent::testarrayoftables.size()) {
-      Parent::testarrayoftables.pop_back();
+    if (native_table_.testarrayoftables.size()) {
+      native_table_.testarrayoftables.pop_back();
       return true;
     };
     return false;
   }
   bool swap_testarrayoftables(std::vector<flatbuffers::unique_ptr<MonsterT>>& value) {
-    std::swap(Parent::testarrayoftables, value);
+    std::swap(native_table_.testarrayoftables, value);
     return true;
   }
   const std::vector<flatbuffers::unique_ptr<MonsterT>>& testarrayoftables() const & {
-    return Parent::testarrayoftables;
+    return native_table_.testarrayoftables;
   }
   size_t testarrayoftables_size() const {
-    return Parent::testarrayoftables.size();
+    return native_table_.testarrayoftables.size();
   }
   void clear_testarrayoftables() {
-    Parent::testarrayoftables.clear();
+    native_table_.testarrayoftables.clear();
   }
-  auto enemy() -> decltype(Parent::enemy)&{ return Parent::enemy; }
-  auto enemy() const -> const decltype(Parent::enemy)&{ return Parent::enemy; }
+  auto enemy() -> decltype(native_table_.enemy)&{ return native_table_.enemy; }
+  auto enemy() const -> const decltype(native_table_.enemy)&{ return native_table_.enemy; }
   bool push_testnestedflatbuffer(uint8_t  value) {
-    Parent::testnestedflatbuffer.push_back(value);
+    native_table_.testnestedflatbuffer.push_back(value);
     return true;
   }
   bool emplace_testnestedflatbuffer(uint8_t value) {
-    Parent::testnestedflatbuffer.emplace_back(std::move(value));
+    native_table_.testnestedflatbuffer.emplace_back(std::move(value));
     return true;
   }
   bool pop_testnestedflatbuffer() {
-    if (Parent::testnestedflatbuffer.size()) {
-      Parent::testnestedflatbuffer.pop_back();
+    if (native_table_.testnestedflatbuffer.size()) {
+      native_table_.testnestedflatbuffer.pop_back();
       return true;
     };
     return false;
   }
   bool swap_testnestedflatbuffer(std::vector<uint8_t>& value) {
-    std::swap(Parent::testnestedflatbuffer, value);
+    std::swap(native_table_.testnestedflatbuffer, value);
     return true;
   }
   const std::vector<uint8_t>& testnestedflatbuffer() const & {
-    return Parent::testnestedflatbuffer;
+    return native_table_.testnestedflatbuffer;
   }
   size_t testnestedflatbuffer_size() const {
-    return Parent::testnestedflatbuffer.size();
+    return native_table_.testnestedflatbuffer.size();
   }
   void clear_testnestedflatbuffer() {
-    Parent::testnestedflatbuffer.clear();
+    native_table_.testnestedflatbuffer.clear();
   }
-  auto testempty() -> decltype(Parent::testempty)&{ return Parent::testempty; }
-  auto testempty() const -> const decltype(Parent::testempty)&{ return Parent::testempty; }
-  auto testbool() -> decltype(Parent::testbool)&{ return Parent::testbool; }
-  auto testbool() const -> const decltype(Parent::testbool)&{ return Parent::testbool; }
-  auto testhashs32_fnv1() -> decltype(Parent::testhashs32_fnv1)&{ return Parent::testhashs32_fnv1; }
-  auto testhashs32_fnv1() const -> const decltype(Parent::testhashs32_fnv1)&{ return Parent::testhashs32_fnv1; }
-  auto testhashu32_fnv1() -> decltype(Parent::testhashu32_fnv1)&{ return Parent::testhashu32_fnv1; }
-  auto testhashu32_fnv1() const -> const decltype(Parent::testhashu32_fnv1)&{ return Parent::testhashu32_fnv1; }
-  auto testhashs64_fnv1() -> decltype(Parent::testhashs64_fnv1)&{ return Parent::testhashs64_fnv1; }
-  auto testhashs64_fnv1() const -> const decltype(Parent::testhashs64_fnv1)&{ return Parent::testhashs64_fnv1; }
-  auto testhashu64_fnv1() -> decltype(Parent::testhashu64_fnv1)&{ return Parent::testhashu64_fnv1; }
-  auto testhashu64_fnv1() const -> const decltype(Parent::testhashu64_fnv1)&{ return Parent::testhashu64_fnv1; }
-  auto testhashs32_fnv1a() -> decltype(Parent::testhashs32_fnv1a)&{ return Parent::testhashs32_fnv1a; }
-  auto testhashs32_fnv1a() const -> const decltype(Parent::testhashs32_fnv1a)&{ return Parent::testhashs32_fnv1a; }
-  auto testhashu32_fnv1a() -> decltype(Parent::testhashu32_fnv1a)&{ return Parent::testhashu32_fnv1a; }
-  auto testhashu32_fnv1a() const -> const decltype(Parent::testhashu32_fnv1a)&{ return Parent::testhashu32_fnv1a; }
-  auto testhashs64_fnv1a() -> decltype(Parent::testhashs64_fnv1a)&{ return Parent::testhashs64_fnv1a; }
-  auto testhashs64_fnv1a() const -> const decltype(Parent::testhashs64_fnv1a)&{ return Parent::testhashs64_fnv1a; }
-  auto testhashu64_fnv1a() -> decltype(Parent::testhashu64_fnv1a)&{ return Parent::testhashu64_fnv1a; }
-  auto testhashu64_fnv1a() const -> const decltype(Parent::testhashu64_fnv1a)&{ return Parent::testhashu64_fnv1a; }
+  auto testempty() -> decltype(native_table_.testempty)&{ return native_table_.testempty; }
+  auto testempty() const -> const decltype(native_table_.testempty)&{ return native_table_.testempty; }
+  auto testbool() -> decltype(native_table_.testbool)&{ return native_table_.testbool; }
+  auto testbool() const -> const decltype(native_table_.testbool)&{ return native_table_.testbool; }
+  auto testhashs32_fnv1() -> decltype(native_table_.testhashs32_fnv1)&{ return native_table_.testhashs32_fnv1; }
+  auto testhashs32_fnv1() const -> const decltype(native_table_.testhashs32_fnv1)&{ return native_table_.testhashs32_fnv1; }
+  auto testhashu32_fnv1() -> decltype(native_table_.testhashu32_fnv1)&{ return native_table_.testhashu32_fnv1; }
+  auto testhashu32_fnv1() const -> const decltype(native_table_.testhashu32_fnv1)&{ return native_table_.testhashu32_fnv1; }
+  auto testhashs64_fnv1() -> decltype(native_table_.testhashs64_fnv1)&{ return native_table_.testhashs64_fnv1; }
+  auto testhashs64_fnv1() const -> const decltype(native_table_.testhashs64_fnv1)&{ return native_table_.testhashs64_fnv1; }
+  auto testhashu64_fnv1() -> decltype(native_table_.testhashu64_fnv1)&{ return native_table_.testhashu64_fnv1; }
+  auto testhashu64_fnv1() const -> const decltype(native_table_.testhashu64_fnv1)&{ return native_table_.testhashu64_fnv1; }
+  auto testhashs32_fnv1a() -> decltype(native_table_.testhashs32_fnv1a)&{ return native_table_.testhashs32_fnv1a; }
+  auto testhashs32_fnv1a() const -> const decltype(native_table_.testhashs32_fnv1a)&{ return native_table_.testhashs32_fnv1a; }
+  auto testhashu32_fnv1a() -> decltype(native_table_.testhashu32_fnv1a)&{ return native_table_.testhashu32_fnv1a; }
+  auto testhashu32_fnv1a() const -> const decltype(native_table_.testhashu32_fnv1a)&{ return native_table_.testhashu32_fnv1a; }
+  auto testhashs64_fnv1a() -> decltype(native_table_.testhashs64_fnv1a)&{ return native_table_.testhashs64_fnv1a; }
+  auto testhashs64_fnv1a() const -> const decltype(native_table_.testhashs64_fnv1a)&{ return native_table_.testhashs64_fnv1a; }
+  auto testhashu64_fnv1a() -> decltype(native_table_.testhashu64_fnv1a)&{ return native_table_.testhashu64_fnv1a; }
+  auto testhashu64_fnv1a() const -> const decltype(native_table_.testhashu64_fnv1a)&{ return native_table_.testhashu64_fnv1a; }
   bool push_testarrayofbools(bool  value) {
-    Parent::testarrayofbools.push_back(value);
+    native_table_.testarrayofbools.push_back(value);
     return true;
   }
   bool pop_testarrayofbools() {
-    if (Parent::testarrayofbools.size()) {
-      Parent::testarrayofbools.pop_back();
+    if (native_table_.testarrayofbools.size()) {
+      native_table_.testarrayofbools.pop_back();
       return true;
     };
     return false;
   }
   bool swap_testarrayofbools(std::vector<bool>& value) {
-    std::swap(Parent::testarrayofbools, value);
+    std::swap(native_table_.testarrayofbools, value);
     return true;
   }
   const std::vector<bool>& testarrayofbools() const & {
-    return Parent::testarrayofbools;
+    return native_table_.testarrayofbools;
   }
   size_t testarrayofbools_size() const {
-    return Parent::testarrayofbools.size();
+    return native_table_.testarrayofbools.size();
   }
   void clear_testarrayofbools() {
-    Parent::testarrayofbools.clear();
+    native_table_.testarrayofbools.clear();
   }
-  auto testf() -> decltype(Parent::testf)&{ return Parent::testf; }
-  auto testf() const -> const decltype(Parent::testf)&{ return Parent::testf; }
-  auto testf2() -> decltype(Parent::testf2)&{ return Parent::testf2; }
-  auto testf2() const -> const decltype(Parent::testf2)&{ return Parent::testf2; }
-  auto testf3() -> decltype(Parent::testf3)&{ return Parent::testf3; }
-  auto testf3() const -> const decltype(Parent::testf3)&{ return Parent::testf3; }
+  auto testf() -> decltype(native_table_.testf)&{ return native_table_.testf; }
+  auto testf() const -> const decltype(native_table_.testf)&{ return native_table_.testf; }
+  auto testf2() -> decltype(native_table_.testf2)&{ return native_table_.testf2; }
+  auto testf2() const -> const decltype(native_table_.testf2)&{ return native_table_.testf2; }
+  auto testf3() -> decltype(native_table_.testf3)&{ return native_table_.testf3; }
+  auto testf3() const -> const decltype(native_table_.testf3)&{ return native_table_.testf3; }
   bool push_testarrayofstring2(std::string const& value) {
-    Parent::testarrayofstring2.push_back(value);
+    native_table_.testarrayofstring2.push_back(value);
     return true;
   }
   bool emplace_testarrayofstring2(std::string && value) {
-    Parent::testarrayofstring2.emplace_back(std::move(value));
+    native_table_.testarrayofstring2.emplace_back(std::move(value));
     return true;
   }
   bool pop_testarrayofstring2() {
-    if (Parent::testarrayofstring2.size()) {
-      Parent::testarrayofstring2.pop_back();
+    if (native_table_.testarrayofstring2.size()) {
+      native_table_.testarrayofstring2.pop_back();
       return true;
     };
     return false;
   }
   bool swap_testarrayofstring2(std::vector<std::string>& value) {
-    std::swap(Parent::testarrayofstring2, value);
+    std::swap(native_table_.testarrayofstring2, value);
     return true;
   }
   const std::vector<std::string>& testarrayofstring2() const & {
-    return Parent::testarrayofstring2;
+    return native_table_.testarrayofstring2;
   }
   size_t testarrayofstring2_size() const {
-    return Parent::testarrayofstring2.size();
+    return native_table_.testarrayofstring2.size();
   }
   void clear_testarrayofstring2() {
-    Parent::testarrayofstring2.clear();
+    native_table_.testarrayofstring2.clear();
   }
   Ability* add_testarrayofsortedstruct() {
-    Parent::testarrayofsortedstruct.emplace_back();
-    return &Parent::testarrayofsortedstruct.back();
+    native_table_.testarrayofsortedstruct.emplace_back();
+    return &native_table_.testarrayofsortedstruct.back();
   }
   bool push_testarrayofsortedstruct(Ability const& value) {
-    Parent::testarrayofsortedstruct.push_back(value);
+    native_table_.testarrayofsortedstruct.push_back(value);
     return true;
   }
   bool emplace_testarrayofsortedstruct(Ability && value) {
-    Parent::testarrayofsortedstruct.emplace_back(std::move(value));
+    native_table_.testarrayofsortedstruct.emplace_back(std::move(value));
     return true;
   }
   bool pop_testarrayofsortedstruct() {
-    if (Parent::testarrayofsortedstruct.size()) {
-      Parent::testarrayofsortedstruct.pop_back();
+    if (native_table_.testarrayofsortedstruct.size()) {
+      native_table_.testarrayofsortedstruct.pop_back();
       return true;
     };
     return false;
   }
   bool swap_testarrayofsortedstruct(std::vector<Ability>& value) {
-    std::swap(Parent::testarrayofsortedstruct, value);
+    std::swap(native_table_.testarrayofsortedstruct, value);
     return true;
   }
   const std::vector<Ability>& testarrayofsortedstruct() const & {
-    return Parent::testarrayofsortedstruct;
+    return native_table_.testarrayofsortedstruct;
   }
   size_t testarrayofsortedstruct_size() const {
-    return Parent::testarrayofsortedstruct.size();
+    return native_table_.testarrayofsortedstruct.size();
   }
   void clear_testarrayofsortedstruct() {
-    Parent::testarrayofsortedstruct.clear();
+    native_table_.testarrayofsortedstruct.clear();
   }
   bool push_flex(uint8_t  value) {
-    Parent::flex.push_back(value);
+    native_table_.flex.push_back(value);
     return true;
   }
   bool emplace_flex(uint8_t value) {
-    Parent::flex.emplace_back(std::move(value));
+    native_table_.flex.emplace_back(std::move(value));
     return true;
   }
   bool pop_flex() {
-    if (Parent::flex.size()) {
-      Parent::flex.pop_back();
+    if (native_table_.flex.size()) {
+      native_table_.flex.pop_back();
       return true;
     };
     return false;
   }
   bool swap_flex(std::vector<uint8_t>& value) {
-    std::swap(Parent::flex, value);
+    std::swap(native_table_.flex, value);
     return true;
   }
   const std::vector<uint8_t>& flex() const & {
-    return Parent::flex;
+    return native_table_.flex;
   }
   size_t flex_size() const {
-    return Parent::flex.size();
+    return native_table_.flex.size();
   }
   void clear_flex() {
-    Parent::flex.clear();
+    native_table_.flex.clear();
   }
   Test* add_test5() {
-    Parent::test5.emplace_back();
-    return &Parent::test5.back();
+    native_table_.test5.emplace_back();
+    return &native_table_.test5.back();
   }
   bool push_test5(Test const& value) {
-    Parent::test5.push_back(value);
+    native_table_.test5.push_back(value);
     return true;
   }
   bool emplace_test5(Test && value) {
-    Parent::test5.emplace_back(std::move(value));
+    native_table_.test5.emplace_back(std::move(value));
     return true;
   }
   bool pop_test5() {
-    if (Parent::test5.size()) {
-      Parent::test5.pop_back();
+    if (native_table_.test5.size()) {
+      native_table_.test5.pop_back();
       return true;
     };
     return false;
   }
   bool swap_test5(std::vector<Test>& value) {
-    std::swap(Parent::test5, value);
+    std::swap(native_table_.test5, value);
     return true;
   }
   const std::vector<Test>& test5() const & {
-    return Parent::test5;
+    return native_table_.test5;
   }
   size_t test5_size() const {
-    return Parent::test5.size();
+    return native_table_.test5.size();
   }
   void clear_test5() {
-    Parent::test5.clear();
+    native_table_.test5.clear();
   }
   bool push_vector_of_longs(int64_t  value) {
-    Parent::vector_of_longs.push_back(value);
+    native_table_.vector_of_longs.push_back(value);
     return true;
   }
   bool emplace_vector_of_longs(int64_t value) {
-    Parent::vector_of_longs.emplace_back(std::move(value));
+    native_table_.vector_of_longs.emplace_back(std::move(value));
     return true;
   }
   bool pop_vector_of_longs() {
-    if (Parent::vector_of_longs.size()) {
-      Parent::vector_of_longs.pop_back();
+    if (native_table_.vector_of_longs.size()) {
+      native_table_.vector_of_longs.pop_back();
       return true;
     };
     return false;
   }
   bool swap_vector_of_longs(std::vector<int64_t>& value) {
-    std::swap(Parent::vector_of_longs, value);
+    std::swap(native_table_.vector_of_longs, value);
     return true;
   }
   const std::vector<int64_t>& vector_of_longs() const & {
-    return Parent::vector_of_longs;
+    return native_table_.vector_of_longs;
   }
   size_t vector_of_longs_size() const {
-    return Parent::vector_of_longs.size();
+    return native_table_.vector_of_longs.size();
   }
   void clear_vector_of_longs() {
-    Parent::vector_of_longs.clear();
+    native_table_.vector_of_longs.clear();
   }
   bool push_vector_of_doubles(double  value) {
-    Parent::vector_of_doubles.push_back(value);
+    native_table_.vector_of_doubles.push_back(value);
     return true;
   }
   bool emplace_vector_of_doubles(double value) {
-    Parent::vector_of_doubles.emplace_back(std::move(value));
+    native_table_.vector_of_doubles.emplace_back(std::move(value));
     return true;
   }
   bool pop_vector_of_doubles() {
-    if (Parent::vector_of_doubles.size()) {
-      Parent::vector_of_doubles.pop_back();
+    if (native_table_.vector_of_doubles.size()) {
+      native_table_.vector_of_doubles.pop_back();
       return true;
     };
     return false;
   }
   bool swap_vector_of_doubles(std::vector<double>& value) {
-    std::swap(Parent::vector_of_doubles, value);
+    std::swap(native_table_.vector_of_doubles, value);
     return true;
   }
   const std::vector<double>& vector_of_doubles() const & {
-    return Parent::vector_of_doubles;
+    return native_table_.vector_of_doubles;
   }
   size_t vector_of_doubles_size() const {
-    return Parent::vector_of_doubles.size();
+    return native_table_.vector_of_doubles.size();
   }
   void clear_vector_of_doubles() {
-    Parent::vector_of_doubles.clear();
+    native_table_.vector_of_doubles.clear();
   }
-  auto parent_namespace_test() -> decltype(Parent::parent_namespace_test)&{ return Parent::parent_namespace_test; }
-  auto parent_namespace_test() const -> const decltype(Parent::parent_namespace_test)&{ return Parent::parent_namespace_test; }
+  auto parent_namespace_test() -> decltype(native_table_.parent_namespace_test)&{ return native_table_.parent_namespace_test; }
+  auto parent_namespace_test() const -> const decltype(native_table_.parent_namespace_test)&{ return native_table_.parent_namespace_test; }
   bool emplace_vector_of_referrables(flatbuffers::unique_ptr<ReferrableT> && value) {
-    Parent::vector_of_referrables.emplace_back(std::move(value));
+    native_table_.vector_of_referrables.emplace_back(std::move(value));
     return true;
   }
   bool pop_vector_of_referrables() {
-    if (Parent::vector_of_referrables.size()) {
-      Parent::vector_of_referrables.pop_back();
+    if (native_table_.vector_of_referrables.size()) {
+      native_table_.vector_of_referrables.pop_back();
       return true;
     };
     return false;
   }
   bool swap_vector_of_referrables(std::vector<flatbuffers::unique_ptr<ReferrableT>>& value) {
-    std::swap(Parent::vector_of_referrables, value);
+    std::swap(native_table_.vector_of_referrables, value);
     return true;
   }
   const std::vector<flatbuffers::unique_ptr<ReferrableT>>& vector_of_referrables() const & {
-    return Parent::vector_of_referrables;
+    return native_table_.vector_of_referrables;
   }
   size_t vector_of_referrables_size() const {
-    return Parent::vector_of_referrables.size();
+    return native_table_.vector_of_referrables.size();
   }
   void clear_vector_of_referrables() {
-    Parent::vector_of_referrables.clear();
+    native_table_.vector_of_referrables.clear();
   }
-  auto single_weak_reference() -> decltype(Parent::single_weak_reference)&{ return Parent::single_weak_reference; }
-  auto single_weak_reference() const -> const decltype(Parent::single_weak_reference)&{ return Parent::single_weak_reference; }
+  auto single_weak_reference() -> decltype(native_table_.single_weak_reference)&{ return native_table_.single_weak_reference; }
+  auto single_weak_reference() const -> const decltype(native_table_.single_weak_reference)&{ return native_table_.single_weak_reference; }
   bool push_vector_of_weak_references(ReferrableT *  value) {
-    Parent::vector_of_weak_references.push_back(value);
+    native_table_.vector_of_weak_references.push_back(value);
     return true;
   }
   bool emplace_vector_of_weak_references(ReferrableT * value) {
-    Parent::vector_of_weak_references.emplace_back(std::move(value));
+    native_table_.vector_of_weak_references.emplace_back(std::move(value));
     return true;
   }
   bool pop_vector_of_weak_references() {
-    if (Parent::vector_of_weak_references.size()) {
-      Parent::vector_of_weak_references.pop_back();
+    if (native_table_.vector_of_weak_references.size()) {
+      native_table_.vector_of_weak_references.pop_back();
       return true;
     };
     return false;
   }
   bool swap_vector_of_weak_references(std::vector<ReferrableT *>& value) {
-    std::swap(Parent::vector_of_weak_references, value);
+    std::swap(native_table_.vector_of_weak_references, value);
     return true;
   }
   const std::vector<ReferrableT *>& vector_of_weak_references() const & {
-    return Parent::vector_of_weak_references;
+    return native_table_.vector_of_weak_references;
   }
   size_t vector_of_weak_references_size() const {
-    return Parent::vector_of_weak_references.size();
+    return native_table_.vector_of_weak_references.size();
   }
   void clear_vector_of_weak_references() {
-    Parent::vector_of_weak_references.clear();
+    native_table_.vector_of_weak_references.clear();
   }
   bool emplace_vector_of_strong_referrables(flatbuffers::unique_ptr<ReferrableT> && value) {
-    Parent::vector_of_strong_referrables.emplace_back(std::move(value));
+    native_table_.vector_of_strong_referrables.emplace_back(std::move(value));
     return true;
   }
   bool pop_vector_of_strong_referrables() {
-    if (Parent::vector_of_strong_referrables.size()) {
-      Parent::vector_of_strong_referrables.pop_back();
+    if (native_table_.vector_of_strong_referrables.size()) {
+      native_table_.vector_of_strong_referrables.pop_back();
       return true;
     };
     return false;
   }
   bool swap_vector_of_strong_referrables(std::vector<flatbuffers::unique_ptr<ReferrableT>>& value) {
-    std::swap(Parent::vector_of_strong_referrables, value);
+    std::swap(native_table_.vector_of_strong_referrables, value);
     return true;
   }
   const std::vector<flatbuffers::unique_ptr<ReferrableT>>& vector_of_strong_referrables() const & {
-    return Parent::vector_of_strong_referrables;
+    return native_table_.vector_of_strong_referrables;
   }
   size_t vector_of_strong_referrables_size() const {
-    return Parent::vector_of_strong_referrables.size();
+    return native_table_.vector_of_strong_referrables.size();
   }
   void clear_vector_of_strong_referrables() {
-    Parent::vector_of_strong_referrables.clear();
+    native_table_.vector_of_strong_referrables.clear();
   }
-  auto co_owning_reference() -> decltype(Parent::co_owning_reference)&{ return Parent::co_owning_reference; }
-  auto co_owning_reference() const -> const decltype(Parent::co_owning_reference)&{ return Parent::co_owning_reference; }
+  auto co_owning_reference() -> decltype(native_table_.co_owning_reference)&{ return native_table_.co_owning_reference; }
+  auto co_owning_reference() const -> const decltype(native_table_.co_owning_reference)&{ return native_table_.co_owning_reference; }
   bool emplace_vector_of_co_owning_references(flatbuffers::unique_ptr<ReferrableT> value) {
-    Parent::vector_of_co_owning_references.emplace_back(std::move(value));
+    native_table_.vector_of_co_owning_references.emplace_back(std::move(value));
     return true;
   }
   bool pop_vector_of_co_owning_references() {
-    if (Parent::vector_of_co_owning_references.size()) {
-      Parent::vector_of_co_owning_references.pop_back();
+    if (native_table_.vector_of_co_owning_references.size()) {
+      native_table_.vector_of_co_owning_references.pop_back();
       return true;
     };
     return false;
   }
   bool swap_vector_of_co_owning_references(std::vector<flatbuffers::unique_ptr<ReferrableT>>& value) {
-    std::swap(Parent::vector_of_co_owning_references, value);
+    std::swap(native_table_.vector_of_co_owning_references, value);
     return true;
   }
   const std::vector<flatbuffers::unique_ptr<ReferrableT>>& vector_of_co_owning_references() const & {
-    return Parent::vector_of_co_owning_references;
+    return native_table_.vector_of_co_owning_references;
   }
   size_t vector_of_co_owning_references_size() const {
-    return Parent::vector_of_co_owning_references.size();
+    return native_table_.vector_of_co_owning_references.size();
   }
   void clear_vector_of_co_owning_references() {
-    Parent::vector_of_co_owning_references.clear();
+    native_table_.vector_of_co_owning_references.clear();
   }
-  auto non_owning_reference() -> decltype(Parent::non_owning_reference)&{ return Parent::non_owning_reference; }
-  auto non_owning_reference() const -> const decltype(Parent::non_owning_reference)&{ return Parent::non_owning_reference; }
+  auto non_owning_reference() -> decltype(native_table_.non_owning_reference)&{ return native_table_.non_owning_reference; }
+  auto non_owning_reference() const -> const decltype(native_table_.non_owning_reference)&{ return native_table_.non_owning_reference; }
   bool push_vector_of_non_owning_references(ReferrableT *  value) {
-    Parent::vector_of_non_owning_references.push_back(value);
+    native_table_.vector_of_non_owning_references.push_back(value);
     return true;
   }
   bool emplace_vector_of_non_owning_references(ReferrableT * value) {
-    Parent::vector_of_non_owning_references.emplace_back(std::move(value));
+    native_table_.vector_of_non_owning_references.emplace_back(std::move(value));
     return true;
   }
   bool pop_vector_of_non_owning_references() {
-    if (Parent::vector_of_non_owning_references.size()) {
-      Parent::vector_of_non_owning_references.pop_back();
+    if (native_table_.vector_of_non_owning_references.size()) {
+      native_table_.vector_of_non_owning_references.pop_back();
       return true;
     };
     return false;
   }
   bool swap_vector_of_non_owning_references(std::vector<ReferrableT *>& value) {
-    std::swap(Parent::vector_of_non_owning_references, value);
+    std::swap(native_table_.vector_of_non_owning_references, value);
     return true;
   }
   const std::vector<ReferrableT *>& vector_of_non_owning_references() const & {
-    return Parent::vector_of_non_owning_references;
+    return native_table_.vector_of_non_owning_references;
   }
   size_t vector_of_non_owning_references_size() const {
-    return Parent::vector_of_non_owning_references.size();
+    return native_table_.vector_of_non_owning_references.size();
   }
   void clear_vector_of_non_owning_references() {
-    Parent::vector_of_non_owning_references.clear();
+    native_table_.vector_of_non_owning_references.clear();
   }
-  auto any_unique() -> decltype(Parent::any_unique)&{ return Parent::any_unique; }
-  auto any_unique() const -> const decltype(Parent::any_unique)&{ return Parent::any_unique; }
-  auto any_ambiguous() -> decltype(Parent::any_ambiguous)&{ return Parent::any_ambiguous; }
-  auto any_ambiguous() const -> const decltype(Parent::any_ambiguous)&{ return Parent::any_ambiguous; }
+  auto any_unique() -> decltype(native_table_.any_unique)&{ return native_table_.any_unique; }
+  auto any_unique() const -> const decltype(native_table_.any_unique)&{ return native_table_.any_unique; }
+  auto any_ambiguous() -> decltype(native_table_.any_ambiguous)&{ return native_table_.any_ambiguous; }
+  auto any_ambiguous() const -> const decltype(native_table_.any_ambiguous)&{ return native_table_.any_ambiguous; }
   bool push_vector_of_enums(Color  value) {
-    Parent::vector_of_enums.push_back(value);
+    native_table_.vector_of_enums.push_back(value);
     return true;
   }
   bool emplace_vector_of_enums(Color value) {
-    Parent::vector_of_enums.emplace_back(std::move(value));
+    native_table_.vector_of_enums.emplace_back(std::move(value));
     return true;
   }
   bool pop_vector_of_enums() {
-    if (Parent::vector_of_enums.size()) {
-      Parent::vector_of_enums.pop_back();
+    if (native_table_.vector_of_enums.size()) {
+      native_table_.vector_of_enums.pop_back();
       return true;
     };
     return false;
   }
   bool swap_vector_of_enums(std::vector<Color>& value) {
-    std::swap(Parent::vector_of_enums, value);
+    std::swap(native_table_.vector_of_enums, value);
     return true;
   }
   const std::vector<Color>& vector_of_enums() const & {
-    return Parent::vector_of_enums;
+    return native_table_.vector_of_enums;
   }
   size_t vector_of_enums_size() const {
-    return Parent::vector_of_enums.size();
+    return native_table_.vector_of_enums.size();
   }
   void clear_vector_of_enums() {
-    Parent::vector_of_enums.clear();
+    native_table_.vector_of_enums.clear();
   }
   static constexpr size_t VEC_OF_STRUCTS_WITH_MAX_MAX_SIZE() {
     return 9;
   }
   Test* add_vec_of_structs_with_max() {
-    if (Parent::vec_of_structs_with_max.size() >= VEC_OF_STRUCTS_WITH_MAX_MAX_SIZE())
+    if (native_table_.vec_of_structs_with_max.size() >= VEC_OF_STRUCTS_WITH_MAX_MAX_SIZE())
         return nullptr;
-    Parent::vec_of_structs_with_max.emplace_back();
-    return &Parent::vec_of_structs_with_max.back();
+    native_table_.vec_of_structs_with_max.emplace_back();
+    return &native_table_.vec_of_structs_with_max.back();
   }
   bool push_vec_of_structs_with_max(Test const& value) {
-    if (Parent::vec_of_structs_with_max.size() >= VEC_OF_STRUCTS_WITH_MAX_MAX_SIZE())
+    if (native_table_.vec_of_structs_with_max.size() >= VEC_OF_STRUCTS_WITH_MAX_MAX_SIZE())
         return false;
-    Parent::vec_of_structs_with_max.push_back(value);
+    native_table_.vec_of_structs_with_max.push_back(value);
     return true;
   }
   bool emplace_vec_of_structs_with_max(Test && value) {
-    if (Parent::vec_of_structs_with_max.size() >= VEC_OF_STRUCTS_WITH_MAX_MAX_SIZE())
+    if (native_table_.vec_of_structs_with_max.size() >= VEC_OF_STRUCTS_WITH_MAX_MAX_SIZE())
         return false;
-    Parent::vec_of_structs_with_max.emplace_back(std::move(value));
+    native_table_.vec_of_structs_with_max.emplace_back(std::move(value));
     return true;
   }
   bool pop_vec_of_structs_with_max() {
-    if (Parent::vec_of_structs_with_max.size()) {
-      Parent::vec_of_structs_with_max.pop_back();
+    if (native_table_.vec_of_structs_with_max.size()) {
+      native_table_.vec_of_structs_with_max.pop_back();
       return true;
     };
     return false;
@@ -2902,36 +2902,36 @@ class GuardedMonster : private MonsterT {
   bool swap_vec_of_structs_with_max(std::vector<Test>& value) {
     if (value.size() > VEC_OF_STRUCTS_WITH_MAX_MAX_SIZE())
         return false;
-    std::swap(Parent::vec_of_structs_with_max, value);
+    std::swap(native_table_.vec_of_structs_with_max, value);
     return true;
   }
   const std::vector<Test>& vec_of_structs_with_max() const & {
-    return Parent::vec_of_structs_with_max;
+    return native_table_.vec_of_structs_with_max;
   }
   size_t vec_of_structs_with_max_size() const {
-    return Parent::vec_of_structs_with_max.size();
+    return native_table_.vec_of_structs_with_max.size();
   }
   void clear_vec_of_structs_with_max() {
-    Parent::vec_of_structs_with_max.clear();
+    native_table_.vec_of_structs_with_max.clear();
   }
   static constexpr size_t VEC_OF_STRINGS_WITH_MAX_MAX_SIZE() {
     return 12;
   }
   bool push_vec_of_strings_with_max(std::string const& value) {
-    if (Parent::vec_of_strings_with_max.size() >= VEC_OF_STRINGS_WITH_MAX_MAX_SIZE())
+    if (native_table_.vec_of_strings_with_max.size() >= VEC_OF_STRINGS_WITH_MAX_MAX_SIZE())
         return false;
-    Parent::vec_of_strings_with_max.push_back(value);
+    native_table_.vec_of_strings_with_max.push_back(value);
     return true;
   }
   bool emplace_vec_of_strings_with_max(std::string && value) {
-    if (Parent::vec_of_strings_with_max.size() >= VEC_OF_STRINGS_WITH_MAX_MAX_SIZE())
+    if (native_table_.vec_of_strings_with_max.size() >= VEC_OF_STRINGS_WITH_MAX_MAX_SIZE())
         return false;
-    Parent::vec_of_strings_with_max.emplace_back(std::move(value));
+    native_table_.vec_of_strings_with_max.emplace_back(std::move(value));
     return true;
   }
   bool pop_vec_of_strings_with_max() {
-    if (Parent::vec_of_strings_with_max.size()) {
-      Parent::vec_of_strings_with_max.pop_back();
+    if (native_table_.vec_of_strings_with_max.size()) {
+      native_table_.vec_of_strings_with_max.pop_back();
       return true;
     };
     return false;
@@ -2939,30 +2939,30 @@ class GuardedMonster : private MonsterT {
   bool swap_vec_of_strings_with_max(std::vector<std::string>& value) {
     if (value.size() > VEC_OF_STRINGS_WITH_MAX_MAX_SIZE())
         return false;
-    std::swap(Parent::vec_of_strings_with_max, value);
+    std::swap(native_table_.vec_of_strings_with_max, value);
     return true;
   }
   const std::vector<std::string>& vec_of_strings_with_max() const & {
-    return Parent::vec_of_strings_with_max;
+    return native_table_.vec_of_strings_with_max;
   }
   size_t vec_of_strings_with_max_size() const {
-    return Parent::vec_of_strings_with_max.size();
+    return native_table_.vec_of_strings_with_max.size();
   }
   void clear_vec_of_strings_with_max() {
-    Parent::vec_of_strings_with_max.clear();
+    native_table_.vec_of_strings_with_max.clear();
   }
   static constexpr size_t VEC_OF_REFERRABLES_WITH_MAX_MAX_SIZE() {
     return 12;
   }
   bool emplace_vec_of_referrables_with_max(flatbuffers::unique_ptr<ReferrableT> && value) {
-    if (Parent::vec_of_referrables_with_max.size() >= VEC_OF_REFERRABLES_WITH_MAX_MAX_SIZE())
+    if (native_table_.vec_of_referrables_with_max.size() >= VEC_OF_REFERRABLES_WITH_MAX_MAX_SIZE())
         return false;
-    Parent::vec_of_referrables_with_max.emplace_back(std::move(value));
+    native_table_.vec_of_referrables_with_max.emplace_back(std::move(value));
     return true;
   }
   bool pop_vec_of_referrables_with_max() {
-    if (Parent::vec_of_referrables_with_max.size()) {
-      Parent::vec_of_referrables_with_max.pop_back();
+    if (native_table_.vec_of_referrables_with_max.size()) {
+      native_table_.vec_of_referrables_with_max.pop_back();
       return true;
     };
     return false;
@@ -2970,30 +2970,30 @@ class GuardedMonster : private MonsterT {
   bool swap_vec_of_referrables_with_max(std::vector<flatbuffers::unique_ptr<ReferrableT>>& value) {
     if (value.size() > VEC_OF_REFERRABLES_WITH_MAX_MAX_SIZE())
         return false;
-    std::swap(Parent::vec_of_referrables_with_max, value);
+    std::swap(native_table_.vec_of_referrables_with_max, value);
     return true;
   }
   const std::vector<flatbuffers::unique_ptr<ReferrableT>>& vec_of_referrables_with_max() const & {
-    return Parent::vec_of_referrables_with_max;
+    return native_table_.vec_of_referrables_with_max;
   }
   size_t vec_of_referrables_with_max_size() const {
-    return Parent::vec_of_referrables_with_max.size();
+    return native_table_.vec_of_referrables_with_max.size();
   }
   void clear_vec_of_referrables_with_max() {
-    Parent::vec_of_referrables_with_max.clear();
+    native_table_.vec_of_referrables_with_max.clear();
   }
   static constexpr size_t VEC_OF_STRONG_REFERRABLES_WITH_MAX_MAX_SIZE() {
     return 24;
   }
   bool emplace_vec_of_strong_referrables_with_max(flatbuffers::unique_ptr<ReferrableT> && value) {
-    if (Parent::vec_of_strong_referrables_with_max.size() >= VEC_OF_STRONG_REFERRABLES_WITH_MAX_MAX_SIZE())
+    if (native_table_.vec_of_strong_referrables_with_max.size() >= VEC_OF_STRONG_REFERRABLES_WITH_MAX_MAX_SIZE())
         return false;
-    Parent::vec_of_strong_referrables_with_max.emplace_back(std::move(value));
+    native_table_.vec_of_strong_referrables_with_max.emplace_back(std::move(value));
     return true;
   }
   bool pop_vec_of_strong_referrables_with_max() {
-    if (Parent::vec_of_strong_referrables_with_max.size()) {
-      Parent::vec_of_strong_referrables_with_max.pop_back();
+    if (native_table_.vec_of_strong_referrables_with_max.size()) {
+      native_table_.vec_of_strong_referrables_with_max.pop_back();
       return true;
     };
     return false;
@@ -3001,30 +3001,30 @@ class GuardedMonster : private MonsterT {
   bool swap_vec_of_strong_referrables_with_max(std::vector<flatbuffers::unique_ptr<ReferrableT>>& value) {
     if (value.size() > VEC_OF_STRONG_REFERRABLES_WITH_MAX_MAX_SIZE())
         return false;
-    std::swap(Parent::vec_of_strong_referrables_with_max, value);
+    std::swap(native_table_.vec_of_strong_referrables_with_max, value);
     return true;
   }
   const std::vector<flatbuffers::unique_ptr<ReferrableT>>& vec_of_strong_referrables_with_max() const & {
-    return Parent::vec_of_strong_referrables_with_max;
+    return native_table_.vec_of_strong_referrables_with_max;
   }
   size_t vec_of_strong_referrables_with_max_size() const {
-    return Parent::vec_of_strong_referrables_with_max.size();
+    return native_table_.vec_of_strong_referrables_with_max.size();
   }
   void clear_vec_of_strong_referrables_with_max() {
-    Parent::vec_of_strong_referrables_with_max.clear();
+    native_table_.vec_of_strong_referrables_with_max.clear();
   }
   static constexpr size_t VEC_OF_CO_OWNING_REFERENCES_WITH_MAX_MAX_SIZE() {
     return 13;
   }
   bool emplace_vec_of_co_owning_references_with_max(flatbuffers::unique_ptr<ReferrableT> value) {
-    if (Parent::vec_of_co_owning_references_with_max.size() >= VEC_OF_CO_OWNING_REFERENCES_WITH_MAX_MAX_SIZE())
+    if (native_table_.vec_of_co_owning_references_with_max.size() >= VEC_OF_CO_OWNING_REFERENCES_WITH_MAX_MAX_SIZE())
         return false;
-    Parent::vec_of_co_owning_references_with_max.emplace_back(std::move(value));
+    native_table_.vec_of_co_owning_references_with_max.emplace_back(std::move(value));
     return true;
   }
   bool pop_vec_of_co_owning_references_with_max() {
-    if (Parent::vec_of_co_owning_references_with_max.size()) {
-      Parent::vec_of_co_owning_references_with_max.pop_back();
+    if (native_table_.vec_of_co_owning_references_with_max.size()) {
+      native_table_.vec_of_co_owning_references_with_max.pop_back();
       return true;
     };
     return false;
@@ -3032,36 +3032,36 @@ class GuardedMonster : private MonsterT {
   bool swap_vec_of_co_owning_references_with_max(std::vector<flatbuffers::unique_ptr<ReferrableT>>& value) {
     if (value.size() > VEC_OF_CO_OWNING_REFERENCES_WITH_MAX_MAX_SIZE())
         return false;
-    std::swap(Parent::vec_of_co_owning_references_with_max, value);
+    std::swap(native_table_.vec_of_co_owning_references_with_max, value);
     return true;
   }
   const std::vector<flatbuffers::unique_ptr<ReferrableT>>& vec_of_co_owning_references_with_max() const & {
-    return Parent::vec_of_co_owning_references_with_max;
+    return native_table_.vec_of_co_owning_references_with_max;
   }
   size_t vec_of_co_owning_references_with_max_size() const {
-    return Parent::vec_of_co_owning_references_with_max.size();
+    return native_table_.vec_of_co_owning_references_with_max.size();
   }
   void clear_vec_of_co_owning_references_with_max() {
-    Parent::vec_of_co_owning_references_with_max.clear();
+    native_table_.vec_of_co_owning_references_with_max.clear();
   }
   static constexpr size_t VEC_OF_NON_OWNING_REFERENCES_WITH_MAX_MAX_SIZE() {
     return 24;
   }
   bool push_vec_of_non_owning_references_with_max(ReferrableT *  value) {
-    if (Parent::vec_of_non_owning_references_with_max.size() >= VEC_OF_NON_OWNING_REFERENCES_WITH_MAX_MAX_SIZE())
+    if (native_table_.vec_of_non_owning_references_with_max.size() >= VEC_OF_NON_OWNING_REFERENCES_WITH_MAX_MAX_SIZE())
         return false;
-    Parent::vec_of_non_owning_references_with_max.push_back(value);
+    native_table_.vec_of_non_owning_references_with_max.push_back(value);
     return true;
   }
   bool emplace_vec_of_non_owning_references_with_max(ReferrableT * value) {
-    if (Parent::vec_of_non_owning_references_with_max.size() >= VEC_OF_NON_OWNING_REFERENCES_WITH_MAX_MAX_SIZE())
+    if (native_table_.vec_of_non_owning_references_with_max.size() >= VEC_OF_NON_OWNING_REFERENCES_WITH_MAX_MAX_SIZE())
         return false;
-    Parent::vec_of_non_owning_references_with_max.emplace_back(std::move(value));
+    native_table_.vec_of_non_owning_references_with_max.emplace_back(std::move(value));
     return true;
   }
   bool pop_vec_of_non_owning_references_with_max() {
-    if (Parent::vec_of_non_owning_references_with_max.size()) {
-      Parent::vec_of_non_owning_references_with_max.pop_back();
+    if (native_table_.vec_of_non_owning_references_with_max.size()) {
+      native_table_.vec_of_non_owning_references_with_max.pop_back();
       return true;
     };
     return false;
@@ -3069,36 +3069,36 @@ class GuardedMonster : private MonsterT {
   bool swap_vec_of_non_owning_references_with_max(std::vector<ReferrableT *>& value) {
     if (value.size() > VEC_OF_NON_OWNING_REFERENCES_WITH_MAX_MAX_SIZE())
         return false;
-    std::swap(Parent::vec_of_non_owning_references_with_max, value);
+    std::swap(native_table_.vec_of_non_owning_references_with_max, value);
     return true;
   }
   const std::vector<ReferrableT *>& vec_of_non_owning_references_with_max() const & {
-    return Parent::vec_of_non_owning_references_with_max;
+    return native_table_.vec_of_non_owning_references_with_max;
   }
   size_t vec_of_non_owning_references_with_max_size() const {
-    return Parent::vec_of_non_owning_references_with_max.size();
+    return native_table_.vec_of_non_owning_references_with_max.size();
   }
   void clear_vec_of_non_owning_references_with_max() {
-    Parent::vec_of_non_owning_references_with_max.clear();
+    native_table_.vec_of_non_owning_references_with_max.clear();
   }
   static constexpr size_t VEC_OF_ENUMS_WITH_MAX_MAX_SIZE() {
     return 2;
   }
   bool push_vec_of_enums_with_max(Color  value) {
-    if (Parent::vec_of_enums_with_max.size() >= VEC_OF_ENUMS_WITH_MAX_MAX_SIZE())
+    if (native_table_.vec_of_enums_with_max.size() >= VEC_OF_ENUMS_WITH_MAX_MAX_SIZE())
         return false;
-    Parent::vec_of_enums_with_max.push_back(value);
+    native_table_.vec_of_enums_with_max.push_back(value);
     return true;
   }
   bool emplace_vec_of_enums_with_max(Color value) {
-    if (Parent::vec_of_enums_with_max.size() >= VEC_OF_ENUMS_WITH_MAX_MAX_SIZE())
+    if (native_table_.vec_of_enums_with_max.size() >= VEC_OF_ENUMS_WITH_MAX_MAX_SIZE())
         return false;
-    Parent::vec_of_enums_with_max.emplace_back(std::move(value));
+    native_table_.vec_of_enums_with_max.emplace_back(std::move(value));
     return true;
   }
   bool pop_vec_of_enums_with_max() {
-    if (Parent::vec_of_enums_with_max.size()) {
-      Parent::vec_of_enums_with_max.pop_back();
+    if (native_table_.vec_of_enums_with_max.size()) {
+      native_table_.vec_of_enums_with_max.pop_back();
       return true;
     };
     return false;
@@ -3106,17 +3106,17 @@ class GuardedMonster : private MonsterT {
   bool swap_vec_of_enums_with_max(std::vector<Color>& value) {
     if (value.size() > VEC_OF_ENUMS_WITH_MAX_MAX_SIZE())
         return false;
-    std::swap(Parent::vec_of_enums_with_max, value);
+    std::swap(native_table_.vec_of_enums_with_max, value);
     return true;
   }
   const std::vector<Color>& vec_of_enums_with_max() const & {
-    return Parent::vec_of_enums_with_max;
+    return native_table_.vec_of_enums_with_max;
   }
   size_t vec_of_enums_with_max_size() const {
-    return Parent::vec_of_enums_with_max.size();
+    return native_table_.vec_of_enums_with_max.size();
   }
   void clear_vec_of_enums_with_max() {
-    Parent::vec_of_enums_with_max.clear();
+    native_table_.vec_of_enums_with_max.clear();
   }
   static constexpr size_t STRING_WITH_MAX_MAX_SIZE() {
     return 64;
@@ -3124,55 +3124,55 @@ class GuardedMonster : private MonsterT {
   bool set_string_with_max(const std::string& value) {
     if (value.size() > STRING_WITH_MAX_MAX_SIZE())
         return false;
-    Parent::string_with_max = value;
+    native_table_.string_with_max = value;
     return true;
   }
   bool set_string_with_max(std::string&& value) {
     if (value.size() > STRING_WITH_MAX_MAX_SIZE())
         return false;
-    Parent::string_with_max = std::move(value);
+    native_table_.string_with_max = std::move(value);
     return true;
   }
   bool swap_string_with_max(std::string& value) {
     if (value.size() > STRING_WITH_MAX_MAX_SIZE())
         return false;
-    std::swap(Parent::string_with_max, value);
+    std::swap(native_table_.string_with_max, value);
     return true;
   }
   const std::string& string_with_max() const & {
-    return Parent::string_with_max;
+    return native_table_.string_with_max;
   }
   void clear_string_with_max() {
-    Parent::string_with_max.clear();
+    native_table_.string_with_max.clear();
   }
   void clear() {
-    Parent::name.clear();
-    Parent::inventory.clear();
-    Parent::test4.clear();
-    Parent::testarrayofstring.clear();
-    Parent::testarrayoftables.clear();
-    Parent::testnestedflatbuffer.clear();
-    Parent::testarrayofbools.clear();
-    Parent::testarrayofstring2.clear();
-    Parent::testarrayofsortedstruct.clear();
-    Parent::flex.clear();
-    Parent::test5.clear();
-    Parent::vector_of_longs.clear();
-    Parent::vector_of_doubles.clear();
-    Parent::vector_of_referrables.clear();
-    Parent::vector_of_weak_references.clear();
-    Parent::vector_of_strong_referrables.clear();
-    Parent::vector_of_co_owning_references.clear();
-    Parent::vector_of_non_owning_references.clear();
-    Parent::vector_of_enums.clear();
-    Parent::vec_of_structs_with_max.clear();
-    Parent::vec_of_strings_with_max.clear();
-    Parent::vec_of_referrables_with_max.clear();
-    Parent::vec_of_strong_referrables_with_max.clear();
-    Parent::vec_of_co_owning_references_with_max.clear();
-    Parent::vec_of_non_owning_references_with_max.clear();
-    Parent::vec_of_enums_with_max.clear();
-    Parent::string_with_max.clear();
+    native_table_.name.clear();
+    native_table_.inventory.clear();
+    native_table_.test4.clear();
+    native_table_.testarrayofstring.clear();
+    native_table_.testarrayoftables.clear();
+    native_table_.testnestedflatbuffer.clear();
+    native_table_.testarrayofbools.clear();
+    native_table_.testarrayofstring2.clear();
+    native_table_.testarrayofsortedstruct.clear();
+    native_table_.flex.clear();
+    native_table_.test5.clear();
+    native_table_.vector_of_longs.clear();
+    native_table_.vector_of_doubles.clear();
+    native_table_.vector_of_referrables.clear();
+    native_table_.vector_of_weak_references.clear();
+    native_table_.vector_of_strong_referrables.clear();
+    native_table_.vector_of_co_owning_references.clear();
+    native_table_.vector_of_non_owning_references.clear();
+    native_table_.vector_of_enums.clear();
+    native_table_.vec_of_structs_with_max.clear();
+    native_table_.vec_of_strings_with_max.clear();
+    native_table_.vec_of_referrables_with_max.clear();
+    native_table_.vec_of_strong_referrables_with_max.clear();
+    native_table_.vec_of_co_owning_references_with_max.clear();
+    native_table_.vec_of_non_owning_references_with_max.clear();
+    native_table_.vec_of_enums_with_max.clear();
+    native_table_.string_with_max.clear();
   }
 };
 
@@ -3454,90 +3454,90 @@ inline flatbuffers::Offset<TypeAliases> CreateTypeAliasesDirect(
       vf64__);
 }
 
-class GuardedTypeAliases : private TypeAliasesT {
-  typedef TypeAliasesT Parent;
+class GuardedTypeAliases {
+  TypeAliasesT native_table_;
  public:
   typedef TypeAliases TableType;
-  const TypeAliasesT& NativeTable() const { return *this; }
-  auto i8() -> decltype(Parent::i8)&{ return Parent::i8; }
-  auto i8() const -> const decltype(Parent::i8)&{ return Parent::i8; }
-  auto u8() -> decltype(Parent::u8)&{ return Parent::u8; }
-  auto u8() const -> const decltype(Parent::u8)&{ return Parent::u8; }
-  auto i16() -> decltype(Parent::i16)&{ return Parent::i16; }
-  auto i16() const -> const decltype(Parent::i16)&{ return Parent::i16; }
-  auto u16() -> decltype(Parent::u16)&{ return Parent::u16; }
-  auto u16() const -> const decltype(Parent::u16)&{ return Parent::u16; }
-  auto i32() -> decltype(Parent::i32)&{ return Parent::i32; }
-  auto i32() const -> const decltype(Parent::i32)&{ return Parent::i32; }
-  auto u32() -> decltype(Parent::u32)&{ return Parent::u32; }
-  auto u32() const -> const decltype(Parent::u32)&{ return Parent::u32; }
-  auto i64() -> decltype(Parent::i64)&{ return Parent::i64; }
-  auto i64() const -> const decltype(Parent::i64)&{ return Parent::i64; }
-  auto u64() -> decltype(Parent::u64)&{ return Parent::u64; }
-  auto u64() const -> const decltype(Parent::u64)&{ return Parent::u64; }
-  auto f32() -> decltype(Parent::f32)&{ return Parent::f32; }
-  auto f32() const -> const decltype(Parent::f32)&{ return Parent::f32; }
-  auto f64() -> decltype(Parent::f64)&{ return Parent::f64; }
-  auto f64() const -> const decltype(Parent::f64)&{ return Parent::f64; }
+  const TypeAliasesT& NativeTable() const { return native_table_; }
+  auto i8() -> decltype(native_table_.i8)&{ return native_table_.i8; }
+  auto i8() const -> const decltype(native_table_.i8)&{ return native_table_.i8; }
+  auto u8() -> decltype(native_table_.u8)&{ return native_table_.u8; }
+  auto u8() const -> const decltype(native_table_.u8)&{ return native_table_.u8; }
+  auto i16() -> decltype(native_table_.i16)&{ return native_table_.i16; }
+  auto i16() const -> const decltype(native_table_.i16)&{ return native_table_.i16; }
+  auto u16() -> decltype(native_table_.u16)&{ return native_table_.u16; }
+  auto u16() const -> const decltype(native_table_.u16)&{ return native_table_.u16; }
+  auto i32() -> decltype(native_table_.i32)&{ return native_table_.i32; }
+  auto i32() const -> const decltype(native_table_.i32)&{ return native_table_.i32; }
+  auto u32() -> decltype(native_table_.u32)&{ return native_table_.u32; }
+  auto u32() const -> const decltype(native_table_.u32)&{ return native_table_.u32; }
+  auto i64() -> decltype(native_table_.i64)&{ return native_table_.i64; }
+  auto i64() const -> const decltype(native_table_.i64)&{ return native_table_.i64; }
+  auto u64() -> decltype(native_table_.u64)&{ return native_table_.u64; }
+  auto u64() const -> const decltype(native_table_.u64)&{ return native_table_.u64; }
+  auto f32() -> decltype(native_table_.f32)&{ return native_table_.f32; }
+  auto f32() const -> const decltype(native_table_.f32)&{ return native_table_.f32; }
+  auto f64() -> decltype(native_table_.f64)&{ return native_table_.f64; }
+  auto f64() const -> const decltype(native_table_.f64)&{ return native_table_.f64; }
   bool push_v8(int8_t  value) {
-    Parent::v8.push_back(value);
+    native_table_.v8.push_back(value);
     return true;
   }
   bool emplace_v8(int8_t value) {
-    Parent::v8.emplace_back(std::move(value));
+    native_table_.v8.emplace_back(std::move(value));
     return true;
   }
   bool pop_v8() {
-    if (Parent::v8.size()) {
-      Parent::v8.pop_back();
+    if (native_table_.v8.size()) {
+      native_table_.v8.pop_back();
       return true;
     };
     return false;
   }
   bool swap_v8(std::vector<int8_t>& value) {
-    std::swap(Parent::v8, value);
+    std::swap(native_table_.v8, value);
     return true;
   }
   const std::vector<int8_t>& v8() const & {
-    return Parent::v8;
+    return native_table_.v8;
   }
   size_t v8_size() const {
-    return Parent::v8.size();
+    return native_table_.v8.size();
   }
   void clear_v8() {
-    Parent::v8.clear();
+    native_table_.v8.clear();
   }
   bool push_vf64(double  value) {
-    Parent::vf64.push_back(value);
+    native_table_.vf64.push_back(value);
     return true;
   }
   bool emplace_vf64(double value) {
-    Parent::vf64.emplace_back(std::move(value));
+    native_table_.vf64.emplace_back(std::move(value));
     return true;
   }
   bool pop_vf64() {
-    if (Parent::vf64.size()) {
-      Parent::vf64.pop_back();
+    if (native_table_.vf64.size()) {
+      native_table_.vf64.pop_back();
       return true;
     };
     return false;
   }
   bool swap_vf64(std::vector<double>& value) {
-    std::swap(Parent::vf64, value);
+    std::swap(native_table_.vf64, value);
     return true;
   }
   const std::vector<double>& vf64() const & {
-    return Parent::vf64;
+    return native_table_.vf64;
   }
   size_t vf64_size() const {
-    return Parent::vf64.size();
+    return native_table_.vf64.size();
   }
   void clear_vf64() {
-    Parent::vf64.clear();
+    native_table_.vf64.clear();
   }
   void clear() {
-    Parent::v8.clear();
-    Parent::vf64.clear();
+    native_table_.v8.clear();
+    native_table_.vf64.clear();
   }
 };
 
