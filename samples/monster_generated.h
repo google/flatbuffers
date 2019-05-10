@@ -48,7 +48,7 @@ inline const Color (&EnumValuesColor())[3] {
 }
 
 inline const char * const *EnumNamesColor() {
-  static const char * const names[] = {
+  static const char * const names[4] = {
     "Red",
     "Green",
     "Blue",
@@ -79,7 +79,7 @@ inline const Equipment (&EnumValuesEquipment())[2] {
 }
 
 inline const char * const *EnumNamesEquipment() {
-  static const char * const names[] = {
+  static const char * const names[3] = {
     "NONE",
     "Weapon",
     nullptr

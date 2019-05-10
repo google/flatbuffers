@@ -172,7 +172,7 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
   // We use this special creation function because we have an array of
   // pre-C++11 (enum class) enums whose size likely is int, yet its declared
   // type in the schema is byte.
-  auto vecofcolors = builder.CreateVectorScalarCast<int8_t, Color>(colors, 2);
+  auto vecofcolors = builder.CreateVectorScalarCast<uint8_t, Color>(colors, 2);
 
   // shortcut for creating monster with all fields set:
   auto mloc = CreateMonster(builder, &vec, 150, 80, name, inventory, Color_Blue,

@@ -346,7 +346,7 @@ MyGame.Example.TestSimpleTableWithEnum.getRootAsTestSimpleTableWithEnum = functi
  */
 MyGame.Example.TestSimpleTableWithEnum.prototype.color = function() {
   var offset = this.bb.__offset(this.bb_pos, 4);
-  return offset ? /** @type {MyGame.Example.Color} */ (this.bb.readInt8(this.bb_pos + offset)) : MyGame.Example.Color.Green;
+  return offset ? /** @type {MyGame.Example.Color} */ (this.bb.readUint8(this.bb_pos + offset)) : MyGame.Example.Color.Green;
 };
 
 /**
@@ -360,7 +360,7 @@ MyGame.Example.TestSimpleTableWithEnum.prototype.mutate_color = function(value) 
     return false;
   }
 
-  this.bb.writeInt8(this.bb_pos + offset, value);
+  this.bb.writeUint8(this.bb_pos + offset, value);
   return true;
 };
 
@@ -517,7 +517,7 @@ MyGame.Example.Vec3.prototype.mutate_test1 = function(value) {
  * @returns {MyGame.Example.Color}
  */
 MyGame.Example.Vec3.prototype.test2 = function() {
-  return /** @type {MyGame.Example.Color} */ (this.bb.readInt8(this.bb_pos + 24));
+  return /** @type {MyGame.Example.Color} */ (this.bb.readUint8(this.bb_pos + 24));
 };
 
 /**
@@ -531,7 +531,7 @@ MyGame.Example.Vec3.prototype.mutate_test2 = function(value) {
     return false;
   }
 
-  this.bb.writeInt8(this.bb_pos + offset, value);
+  this.bb.writeUint8(this.bb_pos + offset, value);
   return true;
 };
 
@@ -1031,7 +1031,7 @@ MyGame.Example.Monster.prototype.inventoryArray = function() {
  */
 MyGame.Example.Monster.prototype.color = function() {
   var offset = this.bb.__offset(this.bb_pos, 16);
-  return offset ? /** @type {MyGame.Example.Color} */ (this.bb.readInt8(this.bb_pos + offset)) : MyGame.Example.Color.Blue;
+  return offset ? /** @type {MyGame.Example.Color} */ (this.bb.readUint8(this.bb_pos + offset)) : MyGame.Example.Color.Blue;
 };
 
 /**
@@ -1045,7 +1045,7 @@ MyGame.Example.Monster.prototype.mutate_color = function(value) {
     return false;
   }
 
-  this.bb.writeInt8(this.bb_pos + offset, value);
+  this.bb.writeUint8(this.bb_pos + offset, value);
   return true;
 };
 
@@ -1838,7 +1838,7 @@ MyGame.Example.Monster.prototype.anyAmbiguous = function(obj) {
  */
 MyGame.Example.Monster.prototype.vectorOfEnums = function(index) {
   var offset = this.bb.__offset(this.bb_pos, 98);
-  return offset ? /** @type {MyGame.Example.Color} */ (this.bb.readInt8(this.bb.__vector(this.bb_pos + offset) + index)) : /** @type {MyGame.Example.Color} */ (0);
+  return offset ? /** @type {MyGame.Example.Color} */ (this.bb.readUint8(this.bb.__vector(this.bb_pos + offset) + index)) : /** @type {MyGame.Example.Color} */ (0);
 };
 
 /**
@@ -1850,11 +1850,11 @@ MyGame.Example.Monster.prototype.vectorOfEnumsLength = function() {
 };
 
 /**
- * @returns {Int8Array}
+ * @returns {Uint8Array}
  */
 MyGame.Example.Monster.prototype.vectorOfEnumsArray = function() {
   var offset = this.bb.__offset(this.bb_pos, 98);
-  return offset ? new Int8Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+  return offset ? new Uint8Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
 };
 
 /**
@@ -1969,7 +1969,7 @@ MyGame.Example.Monster.prototype.vecOfNonOwningReferencesWithMaxLength = functio
  */
 MyGame.Example.Monster.prototype.vecOfEnumsWithMax = function(index) {
   var offset = this.bb.__offset(this.bb_pos, 112);
-  return offset ? /** @type {MyGame.Example.Color} */ (this.bb.readInt8(this.bb.__vector(this.bb_pos + offset) + index)) : /** @type {MyGame.Example.Color} */ (0);
+  return offset ? /** @type {MyGame.Example.Color} */ (this.bb.readUint8(this.bb.__vector(this.bb_pos + offset) + index)) : /** @type {MyGame.Example.Color} */ (0);
 };
 
 /**
@@ -1981,11 +1981,11 @@ MyGame.Example.Monster.prototype.vecOfEnumsWithMaxLength = function() {
 };
 
 /**
- * @returns {Int8Array}
+ * @returns {Uint8Array}
  */
 MyGame.Example.Monster.prototype.vecOfEnumsWithMaxArray = function() {
   var offset = this.bb.__offset(this.bb_pos, 112);
-  return offset ? new Int8Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+  return offset ? new Uint8Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
 };
 
 /**

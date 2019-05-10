@@ -107,12 +107,12 @@ class Monster extends Table
     }
 
     /**
-     * @return sbyte
+     * @return byte
      */
     public function getColor()
     {
         $o = $this->__offset(16);
-        return $o != 0 ? $this->bb->getSbyte($o + $this->bb_pos) : \MyGame\Example\Color::Blue;
+        return $o != 0 ? $this->bb->getByte($o + $this->bb_pos) : \MyGame\Example\Color::Blue;
     }
 
     /**
@@ -649,12 +649,12 @@ class Monster extends Table
 
     /**
      * @param int offset
-     * @return sbyte
+     * @return byte
      */
     public function getVectorOfEnums($j)
     {
         $o = $this->__offset(98);
-        return $o != 0 ? $this->bb->getSbyte($this->__vector($o) + $j * 1) : 0;
+        return $o != 0 ? $this->bb->getByte($this->__vector($o) + $j * 1) : 0;
     }
 
     /**
@@ -664,6 +664,14 @@ class Monster extends Table
     {
         $o = $this->__offset(98);
         return $o != 0 ? $this->__vector_len($o) : 0;
+    }
+
+    /**
+     * @return string
+     */
+    public function getVectorOfEnumsBytes()
+    {
+        return $this->__vector_as_bytes(98);
     }
 
     /**
@@ -782,12 +790,12 @@ class Monster extends Table
 
     /**
      * @param int offset
-     * @return sbyte
+     * @return byte
      */
     public function getVecOfEnumsWithMax($j)
     {
         $o = $this->__offset(112);
-        return $o != 0 ? $this->bb->getSbyte($this->__vector($o) + $j * 1) : 0;
+        return $o != 0 ? $this->bb->getByte($this->__vector($o) + $j * 1) : 0;
     }
 
     /**
@@ -797,6 +805,14 @@ class Monster extends Table
     {
         $o = $this->__offset(112);
         return $o != 0 ? $this->__vector_len($o) : 0;
+    }
+
+    /**
+     * @return string
+     */
+    public function getVecOfEnumsWithMaxBytes()
+    {
+        return $this->__vector_as_bytes(112);
     }
 
     public function getStringWithMax()
@@ -957,12 +973,12 @@ class Monster extends Table
 
     /**
      * @param FlatBufferBuilder $builder
-     * @param sbyte
+     * @param byte
      * @return void
      */
     public static function addColor(FlatBufferBuilder $builder, $color)
     {
-        $builder->addSbyteX(6, $color, 8);
+        $builder->addByteX(6, $color, 8);
     }
 
     /**
@@ -1753,7 +1769,7 @@ class Monster extends Table
     {
         $builder->startVector(1, count($data), 1);
         for ($i = count($data) - 1; $i >= 0; $i--) {
-            $builder->putSbyte($data[$i]);
+            $builder->putByte($data[$i]);
         }
         return $builder->endVector();
     }
@@ -1991,7 +2007,7 @@ class Monster extends Table
     {
         $builder->startVector(1, count($data), 1);
         for ($i = count($data) - 1; $i >= 0; $i--) {
-            $builder->putSbyte($data[$i]);
+            $builder->putByte($data[$i]);
         }
         return $builder->endVector();
     }

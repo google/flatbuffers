@@ -14,18 +14,18 @@ final class TestSimpleTableWithEnum extends Table {
   public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; vtable_start = bb_pos - bb.getInt(bb_pos); vtable_size = bb.getShort(vtable_start); }
   public TestSimpleTableWithEnum __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
-  public byte color() { int o = __offset(4); return o != 0 ? bb.get(o + bb_pos) : 2; }
-  public boolean mutateColor(byte color) { int o = __offset(4); if (o != 0) { bb.put(o + bb_pos, color); return true; } else { return false; } }
+  public int color() { int o = __offset(4); return o != 0 ? bb.get(o + bb_pos) & 0xFF : 2; }
+  public boolean mutateColor(int color) { int o = __offset(4); if (o != 0) { bb.put(o + bb_pos, (byte)color); return true; } else { return false; } }
 
   public static int createTestSimpleTableWithEnum(FlatBufferBuilder builder,
-      byte color) {
+      int color) {
     builder.startObject(1);
     TestSimpleTableWithEnum.addColor(builder, color);
     return TestSimpleTableWithEnum.endTestSimpleTableWithEnum(builder);
   }
 
   public static void startTestSimpleTableWithEnum(FlatBufferBuilder builder) { builder.startObject(1); }
-  public static void addColor(FlatBufferBuilder builder, byte color) { builder.addByte(0, color, 2); }
+  public static void addColor(FlatBufferBuilder builder, int color) { builder.addByte(0, (byte)color, (byte)2); }
   public static int endTestSimpleTableWithEnum(FlatBufferBuilder builder) {
     int o = builder.endObject();
     return o;

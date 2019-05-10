@@ -117,7 +117,7 @@ inline const Color (&EnumValuesColor())[3] {
 }
 
 inline const char * const *EnumNamesColor() {
-  static const char * const names[] = {
+  static const char * const names[9] = {
     "Red",
     "Green",
     "",
@@ -157,7 +157,7 @@ inline const Any (&EnumValuesAny())[4] {
 }
 
 inline const char * const *EnumNamesAny() {
-  static const char * const names[] = {
+  static const char * const names[5] = {
     "NONE",
     "Monster",
     "TestSimpleTableWithEnum",
@@ -299,7 +299,7 @@ inline const AnyUniqueAliases (&EnumValuesAnyUniqueAliases())[4] {
 }
 
 inline const char * const *EnumNamesAnyUniqueAliases() {
-  static const char * const names[] = {
+  static const char * const names[5] = {
     "NONE",
     "M",
     "T",
@@ -441,7 +441,7 @@ inline const AnyAmbiguousAliases (&EnumValuesAnyAmbiguousAliases())[4] {
 }
 
 inline const char * const *EnumNamesAnyAmbiguousAliases() {
-  static const char * const names[] = {
+  static const char * const names[5] = {
     "NONE",
     "M1",
     "M2",
@@ -587,7 +587,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vec3 FLATBUFFERS_FINAL_CLASS {
   float z_;
   int32_t padding0__;
   double test1_;
-  int8_t test2_;
+  uint8_t test2_;
   int8_t padding1__;
   Test test3_;
   int16_t padding2__;
@@ -605,7 +605,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vec3 FLATBUFFERS_FINAL_CLASS {
         z_(flatbuffers::EndianScalar(_z)),
         padding0__(0),
         test1_(flatbuffers::EndianScalar(_test1)),
-        test2_(flatbuffers::EndianScalar(static_cast<int8_t>(_test2))),
+        test2_(flatbuffers::EndianScalar(static_cast<uint8_t>(_test2))),
         padding1__(0),
         test3_(_test3),
         padding2__(0) {
@@ -641,7 +641,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vec3 FLATBUFFERS_FINAL_CLASS {
     return static_cast<Color>(flatbuffers::EndianScalar(test2_));
   }
   void mutate_test2(Color _test2) {
-    flatbuffers::WriteScalar(&test2_, static_cast<int8_t>(_test2));
+    flatbuffers::WriteScalar(&test2_, static_cast<uint8_t>(_test2));
   }
   const Test &test3() const {
     return test3_;
@@ -872,14 +872,14 @@ struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Ta
     VT_COLOR = 4
   };
   Color color() const {
-    return static_cast<Color>(GetField<int8_t>(VT_COLOR, 2));
+    return static_cast<Color>(GetField<uint8_t>(VT_COLOR, 2));
   }
   bool mutate_color(Color _color) {
-    return SetField<int8_t>(VT_COLOR, static_cast<int8_t>(_color), 2);
+    return SetField<uint8_t>(VT_COLOR, static_cast<uint8_t>(_color), 2);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<int8_t>(verifier, VT_COLOR) &&
+           VerifyField<uint8_t>(verifier, VT_COLOR) &&
            verifier.EndTable();
   }
   TestSimpleTableWithEnumT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -891,7 +891,7 @@ struct TestSimpleTableWithEnumBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_color(Color color) {
-    fbb_.AddElement<int8_t>(TestSimpleTableWithEnum::VT_COLOR, static_cast<int8_t>(color), 2);
+    fbb_.AddElement<uint8_t>(TestSimpleTableWithEnum::VT_COLOR, static_cast<uint8_t>(color), 2);
   }
   explicit TestSimpleTableWithEnumBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -1397,10 +1397,10 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return GetPointer<flatbuffers::Vector<uint8_t> *>(VT_INVENTORY);
   }
   Color color() const {
-    return static_cast<Color>(GetField<int8_t>(VT_COLOR, 8));
+    return static_cast<Color>(GetField<uint8_t>(VT_COLOR, 8));
   }
   bool mutate_color(Color _color) {
-    return SetField<int8_t>(VT_COLOR, static_cast<int8_t>(_color), 8);
+    return SetField<uint8_t>(VT_COLOR, static_cast<uint8_t>(_color), 8);
   }
   Any test_type() const {
     return static_cast<Any>(GetField<uint8_t>(VT_TEST_TYPE, 0));
@@ -1679,11 +1679,11 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   void *mutable_any_ambiguous() {
     return GetPointer<void *>(VT_ANY_AMBIGUOUS);
   }
-  const flatbuffers::Vector<int8_t> *vector_of_enums() const {
-    return GetPointer<const flatbuffers::Vector<int8_t> *>(VT_VECTOR_OF_ENUMS);
+  const flatbuffers::Vector<uint8_t> *vector_of_enums() const {
+    return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_VECTOR_OF_ENUMS);
   }
-  flatbuffers::Vector<int8_t> *mutable_vector_of_enums() {
-    return GetPointer<flatbuffers::Vector<int8_t> *>(VT_VECTOR_OF_ENUMS);
+  flatbuffers::Vector<uint8_t> *mutable_vector_of_enums() {
+    return GetPointer<flatbuffers::Vector<uint8_t> *>(VT_VECTOR_OF_ENUMS);
   }
   const flatbuffers::Vector<const Test *> *vec_of_structs_with_max() const {
     return GetPointer<const flatbuffers::Vector<const Test *> *>(VT_VEC_OF_STRUCTS_WITH_MAX);
@@ -1721,11 +1721,11 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   flatbuffers::Vector<uint64_t> *mutable_vec_of_non_owning_references_with_max() {
     return GetPointer<flatbuffers::Vector<uint64_t> *>(VT_VEC_OF_NON_OWNING_REFERENCES_WITH_MAX);
   }
-  const flatbuffers::Vector<int8_t> *vec_of_enums_with_max() const {
-    return GetPointer<const flatbuffers::Vector<int8_t> *>(VT_VEC_OF_ENUMS_WITH_MAX);
+  const flatbuffers::Vector<uint8_t> *vec_of_enums_with_max() const {
+    return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_VEC_OF_ENUMS_WITH_MAX);
   }
-  flatbuffers::Vector<int8_t> *mutable_vec_of_enums_with_max() {
-    return GetPointer<flatbuffers::Vector<int8_t> *>(VT_VEC_OF_ENUMS_WITH_MAX);
+  flatbuffers::Vector<uint8_t> *mutable_vec_of_enums_with_max() {
+    return GetPointer<flatbuffers::Vector<uint8_t> *>(VT_VEC_OF_ENUMS_WITH_MAX);
   }
   const flatbuffers::String *string_with_max() const {
     return GetPointer<const flatbuffers::String *>(VT_STRING_WITH_MAX);
@@ -1742,7 +1742,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyString(name()) &&
            VerifyOffset(verifier, VT_INVENTORY) &&
            verifier.VerifyVector(inventory()) &&
-           VerifyField<int8_t>(verifier, VT_COLOR) &&
+           VerifyField<uint8_t>(verifier, VT_COLOR) &&
            VerifyField<uint8_t>(verifier, VT_TEST_TYPE) &&
            VerifyOffset(verifier, VT_TEST) &&
            VerifyAny(verifier, test(), test_type()) &&
@@ -1881,7 +1881,7 @@ struct MonsterBuilder {
     fbb_.AddOffset(Monster::VT_INVENTORY, inventory);
   }
   void add_color(Color color) {
-    fbb_.AddElement<int8_t>(Monster::VT_COLOR, static_cast<int8_t>(color), 8);
+    fbb_.AddElement<uint8_t>(Monster::VT_COLOR, static_cast<uint8_t>(color), 8);
   }
   void add_test_type(Any test_type) {
     fbb_.AddElement<uint8_t>(Monster::VT_TEST_TYPE, static_cast<uint8_t>(test_type), 0);
@@ -2003,7 +2003,7 @@ struct MonsterBuilder {
   void add_any_ambiguous(flatbuffers::Offset<void> any_ambiguous) {
     fbb_.AddOffset(Monster::VT_ANY_AMBIGUOUS, any_ambiguous);
   }
-  void add_vector_of_enums(flatbuffers::Offset<flatbuffers::Vector<int8_t>> vector_of_enums) {
+  void add_vector_of_enums(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> vector_of_enums) {
     fbb_.AddOffset(Monster::VT_VECTOR_OF_ENUMS, vector_of_enums);
   }
   void add_vec_of_structs_with_max(flatbuffers::Offset<flatbuffers::Vector<const Test *>> vec_of_structs_with_max) {
@@ -2024,7 +2024,7 @@ struct MonsterBuilder {
   void add_vec_of_non_owning_references_with_max(flatbuffers::Offset<flatbuffers::Vector<uint64_t>> vec_of_non_owning_references_with_max) {
     fbb_.AddOffset(Monster::VT_VEC_OF_NON_OWNING_REFERENCES_WITH_MAX, vec_of_non_owning_references_with_max);
   }
-  void add_vec_of_enums_with_max(flatbuffers::Offset<flatbuffers::Vector<int8_t>> vec_of_enums_with_max) {
+  void add_vec_of_enums_with_max(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> vec_of_enums_with_max) {
     fbb_.AddOffset(Monster::VT_VEC_OF_ENUMS_WITH_MAX, vec_of_enums_with_max);
   }
   void add_string_with_max(flatbuffers::Offset<flatbuffers::String> string_with_max) {
@@ -2091,14 +2091,14 @@ inline flatbuffers::Offset<Monster> CreateMonster(
     flatbuffers::Offset<void> any_unique = 0,
     AnyAmbiguousAliases any_ambiguous_type = AnyAmbiguousAliases_NONE,
     flatbuffers::Offset<void> any_ambiguous = 0,
-    flatbuffers::Offset<flatbuffers::Vector<int8_t>> vector_of_enums = 0,
+    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> vector_of_enums = 0,
     flatbuffers::Offset<flatbuffers::Vector<const Test *>> vec_of_structs_with_max = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> vec_of_strings_with_max = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Referrable>>> vec_of_referrables_with_max = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Referrable>>> vec_of_strong_referrables_with_max = 0,
     flatbuffers::Offset<flatbuffers::Vector<uint64_t>> vec_of_co_owning_references_with_max = 0,
     flatbuffers::Offset<flatbuffers::Vector<uint64_t>> vec_of_non_owning_references_with_max = 0,
-    flatbuffers::Offset<flatbuffers::Vector<int8_t>> vec_of_enums_with_max = 0,
+    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> vec_of_enums_with_max = 0,
     flatbuffers::Offset<flatbuffers::String> string_with_max = 0) {
   MonsterBuilder builder_(_fbb);
   builder_.add_non_owning_reference(non_owning_reference);
@@ -2207,14 +2207,14 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
     flatbuffers::Offset<void> any_unique = 0,
     AnyAmbiguousAliases any_ambiguous_type = AnyAmbiguousAliases_NONE,
     flatbuffers::Offset<void> any_ambiguous = 0,
-    const std::vector<int8_t> *vector_of_enums = nullptr,
+    const std::vector<uint8_t> *vector_of_enums = nullptr,
     const std::vector<Test> *vec_of_structs_with_max = nullptr,
     const std::vector<flatbuffers::Offset<flatbuffers::String>> *vec_of_strings_with_max = nullptr,
     const std::vector<flatbuffers::Offset<Referrable>> *vec_of_referrables_with_max = nullptr,
     const std::vector<flatbuffers::Offset<Referrable>> *vec_of_strong_referrables_with_max = nullptr,
     const std::vector<uint64_t> *vec_of_co_owning_references_with_max = nullptr,
     const std::vector<uint64_t> *vec_of_non_owning_references_with_max = nullptr,
-    const std::vector<int8_t> *vec_of_enums_with_max = nullptr,
+    const std::vector<uint8_t> *vec_of_enums_with_max = nullptr,
     const char *string_with_max = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto inventory__ = inventory ? _fbb.CreateVector<uint8_t>(*inventory) : 0;
@@ -2234,14 +2234,14 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
   auto vector_of_strong_referrables__ = vector_of_strong_referrables ? _fbb.CreateVector<flatbuffers::Offset<Referrable>>(*vector_of_strong_referrables) : 0;
   auto vector_of_co_owning_references__ = vector_of_co_owning_references ? _fbb.CreateVector<uint64_t>(*vector_of_co_owning_references) : 0;
   auto vector_of_non_owning_references__ = vector_of_non_owning_references ? _fbb.CreateVector<uint64_t>(*vector_of_non_owning_references) : 0;
-  auto vector_of_enums__ = vector_of_enums ? _fbb.CreateVector<int8_t>(*vector_of_enums) : 0;
+  auto vector_of_enums__ = vector_of_enums ? _fbb.CreateVector<uint8_t>(*vector_of_enums) : 0;
   auto vec_of_structs_with_max__ = vec_of_structs_with_max ? _fbb.CreateVectorOfStructs<Test>(*vec_of_structs_with_max) : 0;
   auto vec_of_strings_with_max__ = vec_of_strings_with_max ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*vec_of_strings_with_max) : 0;
   auto vec_of_referrables_with_max__ = vec_of_referrables_with_max ? _fbb.CreateVector<flatbuffers::Offset<Referrable>>(*vec_of_referrables_with_max) : 0;
   auto vec_of_strong_referrables_with_max__ = vec_of_strong_referrables_with_max ? _fbb.CreateVector<flatbuffers::Offset<Referrable>>(*vec_of_strong_referrables_with_max) : 0;
   auto vec_of_co_owning_references_with_max__ = vec_of_co_owning_references_with_max ? _fbb.CreateVector<uint64_t>(*vec_of_co_owning_references_with_max) : 0;
   auto vec_of_non_owning_references_with_max__ = vec_of_non_owning_references_with_max ? _fbb.CreateVector<uint64_t>(*vec_of_non_owning_references_with_max) : 0;
-  auto vec_of_enums_with_max__ = vec_of_enums_with_max ? _fbb.CreateVector<int8_t>(*vec_of_enums_with_max) : 0;
+  auto vec_of_enums_with_max__ = vec_of_enums_with_max ? _fbb.CreateVector<uint8_t>(*vec_of_enums_with_max) : 0;
   auto string_with_max__ = string_with_max ? _fbb.CreateString(string_with_max) : 0;
   return MyGame::Example::CreateMonster(
       _fbb,
@@ -3814,14 +3814,14 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
   auto _any_unique = _o->any_unique.Pack(_fbb);
   auto _any_ambiguous_type = _o->any_ambiguous.type;
   auto _any_ambiguous = _o->any_ambiguous.Pack(_fbb);
-  auto _vector_of_enums = _o->vector_of_enums.size() ? _fbb.CreateVectorScalarCast<int8_t>(flatbuffers::data(_o->vector_of_enums), _o->vector_of_enums.size()) : 0;
+  auto _vector_of_enums = _o->vector_of_enums.size() ? _fbb.CreateVectorScalarCast<uint8_t>(flatbuffers::data(_o->vector_of_enums), _o->vector_of_enums.size()) : 0;
   auto _vec_of_structs_with_max = _o->vec_of_structs_with_max.size() ? _fbb.CreateVectorOfStructs(_o->vec_of_structs_with_max) : 0;
   auto _vec_of_strings_with_max = _o->vec_of_strings_with_max.size() ? _fbb.CreateVectorOfStrings(_o->vec_of_strings_with_max) : 0;
   auto _vec_of_referrables_with_max = _o->vec_of_referrables_with_max.size() ? _fbb.CreateVector<flatbuffers::Offset<Referrable>> (_o->vec_of_referrables_with_max.size(), [](size_t i, _VectorArgs *__va) { return CreateReferrable(*__va->__fbb, __va->__o->vec_of_referrables_with_max[i].get(), __va->__rehasher); }, &_va ) : 0;
   auto _vec_of_strong_referrables_with_max = _o->vec_of_strong_referrables_with_max.size() ? _fbb.CreateVector<flatbuffers::Offset<Referrable>> (_o->vec_of_strong_referrables_with_max.size(), [](size_t i, _VectorArgs *__va) { return CreateReferrable(*__va->__fbb, __va->__o->vec_of_strong_referrables_with_max[i].get(), __va->__rehasher); }, &_va ) : 0;
   auto _vec_of_co_owning_references_with_max = _o->vec_of_co_owning_references_with_max.size() ? _fbb.CreateVector<uint64_t>(_o->vec_of_co_owning_references_with_max.size(), [](size_t i, _VectorArgs *__va) { return __va->__rehasher ? static_cast<uint64_t>((*__va->__rehasher)(__va->__o->vec_of_co_owning_references_with_max[i].get())) : 0; }, &_va ) : 0;
   auto _vec_of_non_owning_references_with_max = _o->vec_of_non_owning_references_with_max.size() ? _fbb.CreateVector<uint64_t>(_o->vec_of_non_owning_references_with_max.size(), [](size_t i, _VectorArgs *__va) { return __va->__rehasher ? static_cast<uint64_t>((*__va->__rehasher)(__va->__o->vec_of_non_owning_references_with_max[i])) : 0; }, &_va ) : 0;
-  auto _vec_of_enums_with_max = _o->vec_of_enums_with_max.size() ? _fbb.CreateVectorScalarCast<int8_t>(flatbuffers::data(_o->vec_of_enums_with_max), _o->vec_of_enums_with_max.size()) : 0;
+  auto _vec_of_enums_with_max = _o->vec_of_enums_with_max.size() ? _fbb.CreateVectorScalarCast<uint8_t>(flatbuffers::data(_o->vec_of_enums_with_max), _o->vec_of_enums_with_max.size()) : 0;
   auto _string_with_max = _o->string_with_max.empty() ? 0 : _fbb.CreateString(_o->string_with_max);
   return MyGame::Example::CreateMonster(
       _fbb,
@@ -4276,9 +4276,9 @@ inline void AnyAmbiguousAliasesUnion::Reset() {
 
 inline const flatbuffers::TypeTable *ColorTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
-    { flatbuffers::ET_CHAR, 0, 0 },
-    { flatbuffers::ET_CHAR, 0, 0 },
-    { flatbuffers::ET_CHAR, 0, 0 }
+    { flatbuffers::ET_UCHAR, 0, 0 },
+    { flatbuffers::ET_UCHAR, 0, 0 },
+    { flatbuffers::ET_UCHAR, 0, 0 }
   };
   static const flatbuffers::TypeFunction type_refs[] = {
     ColorTypeTable
@@ -4405,7 +4405,7 @@ inline const flatbuffers::TypeTable *TestTypeTable() {
 
 inline const flatbuffers::TypeTable *TestSimpleTableWithEnumTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
-    { flatbuffers::ET_CHAR, 0, 0 }
+    { flatbuffers::ET_UCHAR, 0, 0 }
   };
   static const flatbuffers::TypeFunction type_refs[] = {
     ColorTypeTable
@@ -4425,7 +4425,7 @@ inline const flatbuffers::TypeTable *Vec3TypeTable() {
     { flatbuffers::ET_FLOAT, 0, -1 },
     { flatbuffers::ET_FLOAT, 0, -1 },
     { flatbuffers::ET_DOUBLE, 0, -1 },
-    { flatbuffers::ET_CHAR, 0, 0 },
+    { flatbuffers::ET_UCHAR, 0, 0 },
     { flatbuffers::ET_SEQUENCE, 0, 1 }
   };
   static const flatbuffers::TypeFunction type_refs[] = {
@@ -4501,7 +4501,7 @@ inline const flatbuffers::TypeTable *MonsterTypeTable() {
     { flatbuffers::ET_STRING, 0, -1 },
     { flatbuffers::ET_BOOL, 0, -1 },
     { flatbuffers::ET_UCHAR, 1, -1 },
-    { flatbuffers::ET_CHAR, 0, 1 },
+    { flatbuffers::ET_UCHAR, 0, 1 },
     { flatbuffers::ET_UTYPE, 0, 2 },
     { flatbuffers::ET_SEQUENCE, 0, 2 },
     { flatbuffers::ET_SEQUENCE, 1, 3 },
@@ -4542,14 +4542,14 @@ inline const flatbuffers::TypeTable *MonsterTypeTable() {
     { flatbuffers::ET_SEQUENCE, 0, 9 },
     { flatbuffers::ET_UTYPE, 0, 10 },
     { flatbuffers::ET_SEQUENCE, 0, 10 },
-    { flatbuffers::ET_CHAR, 1, 1 },
+    { flatbuffers::ET_UCHAR, 1, 1 },
     { flatbuffers::ET_SEQUENCE, 1, 3 },
     { flatbuffers::ET_STRING, 1, -1 },
     { flatbuffers::ET_SEQUENCE, 1, 8 },
     { flatbuffers::ET_SEQUENCE, 1, 8 },
     { flatbuffers::ET_ULONG, 1, -1 },
     { flatbuffers::ET_ULONG, 1, -1 },
-    { flatbuffers::ET_CHAR, 1, 1 },
+    { flatbuffers::ET_UCHAR, 1, 1 },
     { flatbuffers::ET_STRING, 0, -1 }
   };
   static const flatbuffers::TypeFunction type_refs[] = {

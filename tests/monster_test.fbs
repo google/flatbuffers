@@ -14,7 +14,7 @@ namespace MyGame.Example;
 
 attribute "priority";
 
-enum Color:byte (bit_flags) { Red = 0, Green, Blue = 3, }
+enum Color:ubyte (bit_flags) { Red = 0, Green, Blue = 3, }
 
 union Any { Monster, TestSimpleTableWithEnum, MyGame.Example2.Monster }
 

@@ -32,8 +32,8 @@ public final class Monster extends Table {
   public ByteBuffer inventoryAsByteBuffer() { return __vector_as_bytebuffer(14, 1); }
   public ByteBuffer inventoryInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 14, 1); }
   public boolean mutateInventory(int j, int inventory) { int o = __offset(14); if (o != 0) { bb.put(__vector(o) + j * 1, (byte)inventory); return true; } else { return false; } }
-  public byte color() { int o = __offset(16); return o != 0 ? bb.get(o + bb_pos) : 8; }
-  public boolean mutateColor(byte color) { int o = __offset(16); if (o != 0) { bb.put(o + bb_pos, color); return true; } else { return false; } }
+  public int color() { int o = __offset(16); return o != 0 ? bb.get(o + bb_pos) & 0xFF : 8; }
+  public boolean mutateColor(int color) { int o = __offset(16); if (o != 0) { bb.put(o + bb_pos, (byte)color); return true; } else { return false; } }
   public byte testType() { int o = __offset(18); return o != 0 ? bb.get(o + bb_pos) : 0; }
   public boolean mutateTestType(byte test_type) { int o = __offset(18); if (o != 0) { bb.put(o + bb_pos, test_type); return true; } else { return false; } }
   public Table test(Table obj) { int o = __offset(20); return o != 0 ? __union(obj, o) : null; }
@@ -153,11 +153,11 @@ public final class Monster extends Table {
   public byte anyAmbiguousType() { int o = __offset(94); return o != 0 ? bb.get(o + bb_pos) : 0; }
   public boolean mutateAnyAmbiguousType(byte any_ambiguous_type) { int o = __offset(94); if (o != 0) { bb.put(o + bb_pos, any_ambiguous_type); return true; } else { return false; } }
   public Table anyAmbiguous(Table obj) { int o = __offset(96); return o != 0 ? __union(obj, o) : null; }
-  public byte vectorOfEnums(int j) { int o = __offset(98); return o != 0 ? bb.get(__vector(o) + j * 1) : 0; }
+  public int vectorOfEnums(int j) { int o = __offset(98); return o != 0 ? bb.get(__vector(o) + j * 1) & 0xFF : 0; }
   public int vectorOfEnumsLength() { int o = __offset(98); return o != 0 ? __vector_len(o) : 0; }
   public ByteBuffer vectorOfEnumsAsByteBuffer() { return __vector_as_bytebuffer(98, 1); }
   public ByteBuffer vectorOfEnumsInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 98, 1); }
-  public boolean mutateVectorOfEnums(int j, byte vector_of_enums) { int o = __offset(98); if (o != 0) { bb.put(__vector(o) + j * 1, vector_of_enums); return true; } else { return false; } }
+  public boolean mutateVectorOfEnums(int j, int vector_of_enums) { int o = __offset(98); if (o != 0) { bb.put(__vector(o) + j * 1, (byte)vector_of_enums); return true; } else { return false; } }
   public Test vecOfStructsWithMax(int j) { return vecOfStructsWithMax(new Test(), j); }
   public Test vecOfStructsWithMax(Test obj, int j) { int o = __offset(100); return o != 0 ? obj.__assign(__vector(o) + j * 4, bb) : null; }
   public int vecOfStructsWithMaxLength() { int o = __offset(100); return o != 0 ? __vector_len(o) : 0; }
@@ -183,11 +183,11 @@ public final class Monster extends Table {
   public ByteBuffer vecOfNonOwningReferencesWithMaxAsByteBuffer() { return __vector_as_bytebuffer(110, 8); }
   public ByteBuffer vecOfNonOwningReferencesWithMaxInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 110, 8); }
   public boolean mutateVecOfNonOwningReferencesWithMax(int j, long vec_of_non_owning_references_with_max) { int o = __offset(110); if (o != 0) { bb.putLong(__vector(o) + j * 8, vec_of_non_owning_references_with_max); return true; } else { return false; } }
-  public byte vecOfEnumsWithMax(int j) { int o = __offset(112); return o != 0 ? bb.get(__vector(o) + j * 1) : 0; }
+  public int vecOfEnumsWithMax(int j) { int o = __offset(112); return o != 0 ? bb.get(__vector(o) + j * 1) & 0xFF : 0; }
   public int vecOfEnumsWithMaxLength() { int o = __offset(112); return o != 0 ? __vector_len(o) : 0; }
   public ByteBuffer vecOfEnumsWithMaxAsByteBuffer() { return __vector_as_bytebuffer(112, 1); }
   public ByteBuffer vecOfEnumsWithMaxInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 112, 1); }
-  public boolean mutateVecOfEnumsWithMax(int j, byte vec_of_enums_with_max) { int o = __offset(112); if (o != 0) { bb.put(__vector(o) + j * 1, vec_of_enums_with_max); return true; } else { return false; } }
+  public boolean mutateVecOfEnumsWithMax(int j, int vec_of_enums_with_max) { int o = __offset(112); if (o != 0) { bb.put(__vector(o) + j * 1, (byte)vec_of_enums_with_max); return true; } else { return false; } }
   public String stringWithMax() { int o = __offset(114); return o != 0 ? __string(o + bb_pos) : null; }
   public ByteBuffer stringWithMaxAsByteBuffer() { return __vector_as_bytebuffer(114, 1); }
   public ByteBuffer stringWithMaxInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 114, 1); }
@@ -200,7 +200,7 @@ public final class Monster extends Table {
   public static void addInventory(FlatBufferBuilder builder, int inventoryOffset) { builder.addOffset(5, inventoryOffset, 0); }
   public static int createInventoryVector(FlatBufferBuilder builder, byte[] data) { builder.startVector(1, data.length, 1); for (int i = data.length - 1; i >= 0; i--) builder.addByte(data[i]); return builder.endVector(); }
   public static void startInventoryVector(FlatBufferBuilder builder, int numElems) { builder.startVector(1, numElems, 1); }
-  public static void addColor(FlatBufferBuilder builder, byte color) { builder.addByte(6, color, 8); }
+  public static void addColor(FlatBufferBuilder builder, int color) { builder.addByte(6, (byte)color, (byte)8); }
   public static void addTestType(FlatBufferBuilder builder, byte testType) { builder.addByte(7, testType, 0); }
   public static void addTest(FlatBufferBuilder builder, int testOffset) { builder.addOffset(8, testOffset, 0); }
   public static void addTest4(FlatBufferBuilder builder, int test4Offset) { builder.addOffset(9, test4Offset, 0); }
