@@ -79,6 +79,9 @@ class GoGenerator : public BaseGenerator {
          ++it) {
       tracked_imported_namespaces_.clear();
       std::string enumcode;
+      if ((*it)->is_union && parser_.opts.generate_object_based_api) {
+        GenNativeUnion(**it, &enumcode);
+      }
       GenEnum(**it, &enumcode);
       if (parser_.opts.one_file) {
         one_file_code += enumcode;
@@ -727,6 +730,10 @@ class GoGenerator : public BaseGenerator {
          it != struct_def.fields.vec.end(); ++it) {
       const FieldDef &field = **it;
       if (field.deprecated) continue;
+      if (IsScalar(field.value.type.base_type) &&
+          field.value.type.enum_def != nullptr &&
+          field.value.type.enum_def->is_union)
+          continue;
       code += "\t" + MakeCamel(field.name) + " " +
               NativeType(field.value.type) + "\n";
     }
@@ -739,6 +746,11 @@ class GoGenerator : public BaseGenerator {
       GenNativeStructPack(struct_def, code_ptr);
       GenNativeStructUnPack(struct_def, code_ptr);
     }
+  }
+
+  void GenNativeUnion(const EnumDef &enum_def, std::string *code_ptr) {
+    std::string &code = *code_ptr;
+    code += "type " + NativeName(enum_def) + " interface{}\n";
   }
 
   void GenNativeTablePack(const StructDef &struct_def, std::string *code_ptr) {
@@ -777,7 +789,7 @@ class GoGenerator : public BaseGenerator {
             code += field.value.type.struct_def->name + "Pack(builder, t." +
                     MakeCamel(field.name) + "[j])";
           } else {
-            // TODO
+            // TODO(iceboy): Support vector of unions.
           }
           code += ")\n";
           code += "\t}\n";
@@ -798,7 +810,23 @@ class GoGenerator : public BaseGenerator {
         code += "\t" + offset + " := " + field.value.type.struct_def->name +
                 "Pack(builder, t." + MakeCamel(field.name) + ")\n";
       } else if (field.value.type.base_type == BASE_TYPE_UNION) {
-        // TODO
+        std::string type = MakeCamel(
+          field.name + UnionTypeFieldSuffix(), false);
+        code += "\t" + type + " := DummyNONE\n";
+        code += "\t" + offset + " := flatbuffers.UOffsetT(0)\n";
+        code += "\tswitch t." + MakeCamel(field.name) + ".(type) {\n";
+        const EnumDef &enum_def = *field.value.type.enum_def;
+        for (auto it = enum_def.Vals().begin();
+             it != enum_def.Vals().end(); ++it) {
+          const EnumVal &ev = **it;
+          if (ev.IsZero()) continue;
+          code += "\tcase " + NativeType(ev.union_type) + ":\n";
+          code += "\t\t" + type + " = " + enum_def.name + ev.name + "\n";
+          code += "\t\t" + offset + " = " + ev.union_type.struct_def->name +
+                  "Pack(builder, t." + MakeCamel(field.name) + ".(" +
+                  NativeType(ev.union_type) + "))\n";
+        }
+        code += "\t}\n";
       } else {
         FLATBUFFERS_ASSERT(0);
       }
@@ -809,8 +837,14 @@ class GoGenerator : public BaseGenerator {
       const FieldDef &field = **it;
       if (field.deprecated) continue;
       if (IsScalar(field.value.type.base_type)) {
-        code += "\t" + struct_def.name + "Add" + MakeCamel(field.name) +
-                "(builder, t." + MakeCamel(field.name) + ")\n";
+        if (field.value.type.enum_def == nullptr ||
+            !field.value.type.enum_def->is_union) {
+          code += "\t" + struct_def.name + "Add" + MakeCamel(field.name) +
+                  "(builder, t." + MakeCamel(field.name) + ")\n";
+        } else {
+          code += "\t" + struct_def.name + "Add" + MakeCamel(field.name) +
+                  "(builder, " + MakeCamel(field.name, false) + ")\n";
+        }
       } else {
         code += "\t" + struct_def.name + "Add" + MakeCamel(field.name) +
                 "(builder, " + MakeCamel(field.name, false) + "Offset)\n";
@@ -834,6 +868,9 @@ class GoGenerator : public BaseGenerator {
       if (field.deprecated) continue;
       std::string field_name_camel = MakeCamel(field.name);
       if (IsScalar(field.value.type.base_type)) {
+        if (field.value.type.enum_def != nullptr &&
+            field.value.type.enum_def->is_union)
+            continue;
         code += "\tt." + field_name_camel + " = rcv." + field_name_camel +
                 "()\n";
       } else if (field.value.type.base_type == BASE_TYPE_STRING) {
@@ -847,8 +884,8 @@ class GoGenerator : public BaseGenerator {
         code += "\tfor j := 0; j < rcv." + field_name_camel +
                 "Length(); j++ {\n";
         if (field.value.type.element == BASE_TYPE_STRUCT) {
-          code += "\tx := " + field.value.type.struct_def->name + "{}\n";
-          code += "\tif !rcv." + field_name_camel + "(&x, j) { return nil }\n";
+          code += "\t\tx := " + field.value.type.struct_def->name + "{}\n";
+          code += "\t\trcv." + field_name_camel + "(&x, j)\n";
         }
         code += "\t\tt." + field_name_camel + " = append(t." +
                 field_name_camel + ", ";
@@ -859,7 +896,7 @@ class GoGenerator : public BaseGenerator {
         } else if (field.value.type.element == BASE_TYPE_STRUCT) {
           code += "x.UnPack()";
         } else {
-          // TODO(iceboy): BASE_TYPE_UNION
+          // TODO(iceboy): Support vector of unions.
           FLATBUFFERS_ASSERT(0);
         }
         code += ")\n";
@@ -867,8 +904,21 @@ class GoGenerator : public BaseGenerator {
       } else if (field.value.type.base_type == BASE_TYPE_STRUCT) {
         code += "\tt." + field_name_camel + " = rcv." + field_name_camel +
                 "(nil).UnPack()\n";
+      } else if (field.value.type.base_type == BASE_TYPE_UNION) {
+        code += "\tswitch rcv." +
+                MakeCamel(field.name + UnionTypeFieldSuffix()) + "() {\n";
+        const EnumDef &enum_def = *field.value.type.enum_def;
+        for (auto it = enum_def.Vals().begin();
+             it != enum_def.Vals().end(); ++it) {
+          const EnumVal &ev = **it;
+          if (ev.IsZero()) continue;
+          code += "\tcase " + enum_def.name + ev.name + ":\n";
+          code += "\t\tx := " + ev.union_type.struct_def->name + "{}\n";
+          code += "\t\tif rcv." + MakeCamel(field.name) + "(&x._tab) { t." +
+                  MakeCamel(field.name) + " = x.UnPack() }\n";
+        }
+        code += "\t}\n";
       } else {
-        // TODO(iceboy): BASE_TYPE_UNION
         FLATBUFFERS_ASSERT(0);
       }
     }
@@ -895,12 +945,12 @@ class GoGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const FieldDef &field = **it;
-      if (field.value.type.base_type != BASE_TYPE_STRUCT) {
-        code += std::string(", t.") + nameprefix + MakeCamel(field.name);
-      } else {
+      if (field.value.type.base_type == BASE_TYPE_STRUCT) {
         StructPackArgs(*field.value.type.struct_def,
                        (nameprefix + MakeCamel(field.name) + ".").c_str(),
                        code_ptr);
+      } else {
+        code += std::string(", t.") + nameprefix + MakeCamel(field.name);
       }
     }
   }
@@ -916,12 +966,12 @@ class GoGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const FieldDef &field = **it;
-      if (field.value.type.base_type != BASE_TYPE_STRUCT) {
-        code += "\tt." + MakeCamel(field.name) + " = rcv." +
-                MakeCamel(field.name) + "()\n";
-      } else {
+      if (field.value.type.base_type == BASE_TYPE_STRUCT) {
         code += "\tt." + MakeCamel(field.name) + " = rcv." +
                 MakeCamel(field.name) + "(nil).UnPack()\n";
+      } else {
+        code += "\tt." + MakeCamel(field.name) + " = rcv." +
+                MakeCamel(field.name) + "()\n";
       }
     }
     code += "\treturn t\n";
@@ -938,7 +988,7 @@ class GoGenerator : public BaseGenerator {
     GenEnumType(enum_def, code_ptr);
     BeginEnum(code_ptr);
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
-      auto &ev = **it;
+      const EnumVal &ev = **it;
       GenComment(ev.doc_comment, code_ptr, nullptr, "\t");
       EnumMember(enum_def, ev, code_ptr);
     }
@@ -946,7 +996,7 @@ class GoGenerator : public BaseGenerator {
 
     BeginEnumNames(enum_def, code_ptr);
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
-      auto &ev = **it;
+      const EnumVal &ev = **it;
       EnumNameMember(enum_def, ev, code_ptr);
     }
     EndEnumNames(code_ptr);
@@ -1016,9 +1066,18 @@ class GoGenerator : public BaseGenerator {
            parser_.opts.object_suffix;
   }
 
+  std::string NativeName(const EnumDef &enum_def) {
+    return parser_.opts.object_prefix + enum_def.name +
+           parser_.opts.object_suffix;
+  }
+
   std::string NativeType(const Type &type) {
     if (IsScalar(type.base_type)) {
-      return GenTypeBasic(type);
+      if (type.enum_def == nullptr) {
+        return GenTypeBasic(type);
+      } else {
+        return GetEnumTypeName(*type.enum_def);
+      }
     } else if (type.base_type == BASE_TYPE_STRING) {
       return "string";
     } else if (type.base_type == BASE_TYPE_VECTOR) {
@@ -1026,7 +1085,7 @@ class GoGenerator : public BaseGenerator {
     } else if (type.base_type == BASE_TYPE_STRUCT) {
       return "*" + NativeName(*type.struct_def);
     } else if (type.base_type == BASE_TYPE_UNION) {
-      // TODO
+      return NativeName(*type.enum_def);
     }
     FLATBUFFERS_ASSERT(0);
     return std::string();
