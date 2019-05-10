@@ -2,6 +2,7 @@
 
 package Example
 
+type AnyUniqueAliasesT interface{}
 type AnyUniqueAliases = byte
 const (
 	AnyUniqueAliasesNONE AnyUniqueAliases = 0

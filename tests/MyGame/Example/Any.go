@@ -2,6 +2,7 @@
 
 package Example
 
+type AnyT interface{}
 type Any = byte
 const (
 	AnyNONE Any = 0
