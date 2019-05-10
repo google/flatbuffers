@@ -790,6 +790,7 @@ class GoGenerator : public BaseGenerator {
                     MakeCamel(field.name) + "[j])";
           } else {
             // TODO(iceboy): Support vector of unions.
+            FLATBUFFERS_ASSERT(0);
           }
           code += ")\n";
           code += "\t}\n";
