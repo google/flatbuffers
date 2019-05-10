@@ -2501,10 +2501,6 @@ class GuardedMonster : private MonsterT {
     Parent::testarrayofbools.push_back(value);
     return true;
   }
-  bool emplace_testarrayofbools(bool value) {
-    Parent::testarrayofbools.emplace_back(std::move(value));
-    return true;
-  }
   bool pop_testarrayofbools() {
     if (Parent::testarrayofbools.size()) {
       Parent::testarrayofbools.pop_back();

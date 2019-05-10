@@ -1574,6 +1574,7 @@ class CppGenerator : public BaseGenerator {
       gen_max_check = true;
     }
     if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+      const bool element_is_bool = IsBool(field.value.type.element);
       const bool element_is_scalar = IsScalar(field.value.type.element);
       const bool element_is_struct = IsStruct(field.value.type.VectorType());
       const bool element_is_string = field.value.type.element == BASE_TYPE_STRING;
@@ -1582,8 +1583,10 @@ class CppGenerator : public BaseGenerator {
           ? (attr->constant == parser_.opts.cpp_object_api_pointer_type ||
              attr->constant == "default_ptr_type")
           : (!element_is_scalar && !element_is_struct && !element_is_string);
-      const bool gen_emplace = element_is_scalar || element_is_struct || 
-                               element_is_string || element_is_unique_ptr;
+      const bool gen_emplace =
+          !element_is_bool && // vector<bool>::emplace_back is not in C++11
+          (element_is_scalar || element_is_struct || 
+           element_is_string || element_is_unique_ptr);
       const bool emplace_rref = gen_emplace && !element_is_scalar;
       const bool gen_push = !element_is_unique_ptr;
       const bool push_cref = element_is_struct || element_is_string;
