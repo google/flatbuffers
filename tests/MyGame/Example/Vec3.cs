@@ -23,8 +23,8 @@ public struct Vec3 : IFlatbufferObject
   public void MutateZ(float z) { __p.bb.PutFloat(__p.bb_pos + 8, z); }
   public double Test1 { get { return __p.bb.GetDouble(__p.bb_pos + 16); } }
   public void MutateTest1(double test1) { __p.bb.PutDouble(__p.bb_pos + 16, test1); }
-  public Color Test2 { get { return (Color)__p.bb.GetSbyte(__p.bb_pos + 24); } }
-  public void MutateTest2(Color test2) { __p.bb.PutSbyte(__p.bb_pos + 24, (sbyte)test2); }
+  public Color Test2 { get { return (Color)__p.bb.Get(__p.bb_pos + 24); } }
+  public void MutateTest2(Color test2) { __p.bb.Put(__p.bb_pos + 24, (byte)test2); }
   public Test Test3 { get { return (new Test()).__assign(__p.bb_pos + 26, __p.bb); } }
 
   public static Offset<Vec3> CreateVec3(FlatBufferBuilder builder, float X, float Y, float Z, double Test1, Color Test2, short test3_A, sbyte test3_B) {
@@ -35,7 +35,7 @@ public struct Vec3 : IFlatbufferObject
     builder.PutSbyte(test3_B);
     builder.PutShort(test3_A);
     builder.Pad(1);
-    builder.PutSbyte((sbyte)Test2);
+    builder.PutByte((byte)Test2);
     builder.PutDouble(Test1);
     builder.Pad(4);
     builder.PutFloat(Z);
