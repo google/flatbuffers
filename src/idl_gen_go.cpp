@@ -165,7 +165,7 @@ class GoGenerator : public BaseGenerator {
     code += " ";
     code += GetEnumTypeName(enum_def);
     code += " = ";
-    code += NumToString(ev.value) + "\n";
+    code += enum_def.ToString(ev) + "\n";
   }
 
   // End enum code.

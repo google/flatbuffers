@@ -589,20 +589,17 @@ class RustGenerator : public BaseGenerator {
     code_ += "#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]";
     code_ += "pub enum " + Name(enum_def) + " {";
 
-    int64_t anyv = 0;
-    const EnumVal *minv = nullptr, *maxv = nullptr;
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       const auto &ev = **it;
 
       GenComment(ev.doc_comment, "  ");
       code_.SetValue("KEY", Name(ev));
-      code_.SetValue("VALUE", NumToString(ev.value));
+      code_.SetValue("VALUE", enum_def.ToString(ev));
       code_ += "  {{KEY}} = {{VALUE}},";
-
-      minv = !minv || minv->value > ev.value ? &ev : minv;
-      maxv = !maxv || maxv->value < ev.value ? &ev : maxv;
-      anyv |= ev.value;
     }
+    const EnumVal *minv = enum_def.MinValue();
+    const EnumVal *maxv = enum_def.MaxValue();
+    FLATBUFFERS_ASSERT(minv && maxv);
 
     code_ += "";
     code_ += "}";
@@ -611,8 +608,8 @@ class RustGenerator : public BaseGenerator {
     code_.SetValue("ENUM_NAME", Name(enum_def));
     code_.SetValue("ENUM_NAME_SNAKE", MakeSnakeCase(Name(enum_def)));
     code_.SetValue("ENUM_NAME_CAPS", MakeUpper(MakeSnakeCase(Name(enum_def))));
-    code_.SetValue("ENUM_MIN_BASE_VALUE", NumToString(minv->value));
-    code_.SetValue("ENUM_MAX_BASE_VALUE", NumToString(maxv->value));
+    code_.SetValue("ENUM_MIN_BASE_VALUE", enum_def.ToString(*minv));
+    code_.SetValue("ENUM_MAX_BASE_VALUE", enum_def.ToString(*maxv));
 
     // Generate enum constants, and impls for Follow, EndianScalar, and Push.
     code_ += "const ENUM_MIN_{{ENUM_NAME_CAPS}}: {{BASE_TYPE}} = \\";
@@ -671,34 +668,36 @@ class RustGenerator : public BaseGenerator {
     // Problem is, if values are very sparse that could generate really big
     // tables. Ideally in that case we generate a map lookup instead, but for
     // the moment we simply don't output a table at all.
-    auto range =
-        enum_def.vals.vec.back()->value - enum_def.vals.vec.front()->value + 1;
+    auto range = enum_def.Distance();
     // Average distance between values above which we consider a table
     // "too sparse". Change at will.
-    static const int kMaxSparseness = 5;
-    if (range / static_cast<int64_t>(enum_def.vals.vec.size()) <
-        kMaxSparseness) {
+    static const uint64_t kMaxSparseness = 5;
+    if (range / static_cast<uint64_t>(enum_def.size()) < kMaxSparseness) {
       code_ += "#[allow(non_camel_case_types)]";
       code_ += "const ENUM_NAMES_{{ENUM_NAME_CAPS}}:[&'static str; " +
-                NumToString(range) + "] = [";
+               NumToString(range + 1) + "] = [";
 
-      auto val = enum_def.Vals().front()->value;
+      auto val = enum_def.Vals().front();
       for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
            ++it) {
-        const auto &ev = **it;
-        while (val++ != ev.value) { code_ += "    \"\","; }
-        auto suffix = *it != enum_def.vals.vec.back() ? "," : "";
-        code_ += "    \"" + Name(ev) + "\"" + suffix;
+        auto ev = *it;
+        for (auto k = enum_def.Distance(val, ev); k > 1; --k) {
+          code_ += "    \"\",";
+        }
+        val = ev;
+        auto suffix = *it != enum_def.Vals().back() ? "," : "";
+        code_ += "    \"" + Name(*ev) + "\"" + suffix;
       }
       code_ += "];";
       code_ += "";
 
-      code_ += "pub fn enum_name_{{ENUM_NAME_SNAKE}}(e: {{ENUM_NAME}}) -> "
-               "&'static str {";
+      code_ +=
+          "pub fn enum_name_{{ENUM_NAME_SNAKE}}(e: {{ENUM_NAME}}) -> "
+          "&'static str {";
 
       code_ += "  let index = e as {{BASE_TYPE}}\\";
-      if (enum_def.vals.vec.front()->value) {
-        auto vals = GetEnumValUse(enum_def, *enum_def.vals.vec.front());
+      if (enum_def.MinValue()->IsNonZero()) {
+        auto vals = GetEnumValUse(enum_def, *enum_def.MinValue());
         code_ += " - " + vals + " as {{BASE_TYPE}}\\";
       }
       code_ += ";";
@@ -735,8 +734,7 @@ class RustGenerator : public BaseGenerator {
       }
       case ftUnionKey:
       case ftEnumKey: {
-        auto ev = field.value.type.enum_def->ReverseLookup(
-            StringToInt(field.value.constant.c_str()), false);
+        auto ev = field.value.type.enum_def->FindByValue(field.value.constant);
         assert(ev);
         return WrapInNameSpace(field.value.type.enum_def->defined_namespace,
                                GetEnumValUse(*field.value.type.enum_def, *ev));
