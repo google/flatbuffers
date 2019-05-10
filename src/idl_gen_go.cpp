@@ -817,9 +817,9 @@ class GoGenerator : public BaseGenerator {
         code += "\t" + offset + " := flatbuffers.UOffsetT(0)\n";
         code += "\tswitch t." + MakeCamel(field.name) + ".(type) {\n";
         const EnumDef &enum_def = *field.value.type.enum_def;
-        for (auto it = enum_def.Vals().begin();
-             it != enum_def.Vals().end(); ++it) {
-          const EnumVal &ev = **it;
+        for (auto it2 = enum_def.Vals().begin();
+             it2 != enum_def.Vals().end(); ++it2) {
+          const EnumVal &ev = **it2;
           if (ev.IsZero()) continue;
           code += "\tcase " + NativeType(ev.union_type) + ":\n";
           code += "\t\t" + type + " = " + enum_def.name + ev.name + "\n";
@@ -909,9 +909,9 @@ class GoGenerator : public BaseGenerator {
         code += "\tswitch rcv." +
                 MakeCamel(field.name + UnionTypeFieldSuffix()) + "() {\n";
         const EnumDef &enum_def = *field.value.type.enum_def;
-        for (auto it = enum_def.Vals().begin();
-             it != enum_def.Vals().end(); ++it) {
-          const EnumVal &ev = **it;
+        for (auto it2 = enum_def.Vals().begin();
+             it2 != enum_def.Vals().end(); ++it2) {
+          const EnumVal &ev = **it2;
           if (ev.IsZero()) continue;
           code += "\tcase " + enum_def.name + ev.name + ":\n";
           code += "\t\tx := " + ev.union_type.struct_def->name + "{}\n";
