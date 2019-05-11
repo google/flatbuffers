@@ -1084,9 +1084,11 @@ class GoGenerator : public BaseGenerator {
     } else if (type.base_type == BASE_TYPE_VECTOR) {
       return "[]" + NativeType(type.VectorType());
     } else if (type.base_type == BASE_TYPE_STRUCT) {
-      return "*" + NativeName(*type.struct_def);
+      return "*" + WrapInNameSpaceAndTrack(
+          type.struct_def->defined_namespace, NativeName(*type.struct_def));
     } else if (type.base_type == BASE_TYPE_UNION) {
-      return NativeName(*type.enum_def);
+      return WrapInNameSpaceAndTrack(
+          type.enum_def->defined_namespace, NativeName(*type.enum_def));
     }
     FLATBUFFERS_ASSERT(0);
     return std::string();

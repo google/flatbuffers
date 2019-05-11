@@ -6,6 +6,7 @@ import (
 	flatbuffers "github.com/google/flatbuffers/go"
 
 	MyGame "MyGame"
+	MyGame__Example2 "MyGame/Example2"
 )
 
 /// an example documentation comment: monster object
@@ -42,7 +43,7 @@ type MonsterT struct {
 	Test5 []*TestT
 	VectorOfLongs []int64
 	VectorOfDoubles []float64
-	ParentNamespaceTest *InParentNamespaceT
+	ParentNamespaceTest *MyGame.InParentNamespaceT
 	VectorOfReferrables []*ReferrableT
 	SingleWeakReference uint64
 	VectorOfWeakReferences []uint64
@@ -70,9 +71,9 @@ func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT
 	case *TestSimpleTableWithEnumT:
 		testType = AnyTestSimpleTableWithEnum
 		testOffset = TestSimpleTableWithEnumPack(builder, t.Test.(*TestSimpleTableWithEnumT))
-	case *MonsterT:
+	case *MyGame__Example2.MonsterT:
 		testType = AnyMyGame_Example2_Monster
-		testOffset = MonsterPack(builder, t.Test.(*MonsterT))
+		testOffset = MonsterPack(builder, t.Test.(*MyGame__Example2.MonsterT))
 	}
 	test4Length := len(t.Test4)
 	test4Offsets := []flatbuffers.UOffsetT{}
@@ -204,9 +205,9 @@ func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT
 	case *TestSimpleTableWithEnumT:
 		anyUniqueType = AnyUniqueAliasesT
 		anyUniqueOffset = TestSimpleTableWithEnumPack(builder, t.AnyUnique.(*TestSimpleTableWithEnumT))
-	case *MonsterT:
+	case *MyGame__Example2.MonsterT:
 		anyUniqueType = AnyUniqueAliasesM2
-		anyUniqueOffset = MonsterPack(builder, t.AnyUnique.(*MonsterT))
+		anyUniqueOffset = MonsterPack(builder, t.AnyUnique.(*MyGame__Example2.MonsterT))
 	}
 	anyAmbiguousType := DummyNONE
 	anyAmbiguousOffset := flatbuffers.UOffsetT(0)
