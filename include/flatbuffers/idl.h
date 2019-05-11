@@ -233,7 +233,7 @@ struct Namespace {
 
 inline bool operator<(const Namespace &a, const Namespace &b) {
   size_t min_size = std::min(a.components.size(), b.components.size());
-  for (int i = 0; i < min_size; ++i) {
+  for (size_t i = 0; i < min_size; ++i) {
     if (a.components[i] != b.components[i])
       return a.components[i] < b.components[i];
   }
