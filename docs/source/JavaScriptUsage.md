@@ -103,3 +103,7 @@ Now you can access values like this:
 
 There currently is no support for parsing text (Schema's and JSON) directly
 from JavaScript.
+
+## Alignment issues
+
+JavaScript is more suspectible to alignment issues as the Float64Array has strict alignment requirements. You need to make sure your buffer is correctly positioned. See https://github.com/google/flatbuffers/issues/5325 for an example which was resolved by making sure buffers was properly alignment.
