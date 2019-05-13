@@ -24,6 +24,8 @@ table Mat (native_type:"MyMat") {
   data: [Complex];
 }
 
+union MyUnion { Mat}
+
 table Foo {
   enumData:BundleSize;
   bitData:Mat;
@@ -31,6 +33,7 @@ table Foo {
   iqSample:Complex;
   iqSample2:Comp;
   newInt: int;
+  variant: MyUnion;
 }
 
 namespace TestN.NamespaceFoo;

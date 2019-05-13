@@ -167,13 +167,13 @@ if(EXISTS "${CMAKE_TOOLCHAIN_FILE}")
   # is being configured externally
   message(STATUS "Using toolchain file: ${CMAKE_TOOLCHAIN_FILE}.")
 elseif(APPLE)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -stdlib=libc++")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Werror -Wextra -Wno-unused-parameter")
   set(FLATBUFFERS_PRIVATE_CXX_FLAGS "-Wold-style-cast")
 elseif(CMAKE_COMPILER_IS_GNUCXX)
   if(CYGWIN)
     set(CMAKE_CXX_FLAGS
-      "${CMAKE_CXX_FLAGS} -std=gnu++11")
+      "${CMAKE_CXX_FLAGS} -std=gnu++17")
   else(CYGWIN)
     set(CMAKE_CXX_FLAGS
       "${CMAKE_CXX_FLAGS} -std=c++0x")
@@ -223,7 +223,7 @@ elseif(MSVC)
   # Visual Studio pedantic build settings
   # warning C4512: assignment operator could not be generated
   # warning C4316: object allocated on the heap may not be aligned
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /WX /wd4512 /wd4316")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /WX /wd4512 /wd4316 /std:c++17")
 endif()
 
 if(FLATBUFFERS_CODE_COVERAGE)

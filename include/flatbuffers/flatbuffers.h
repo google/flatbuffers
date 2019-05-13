@@ -2545,6 +2545,10 @@ static_assert(sizeof(TypeCode) == 2, "TypeCode");
 
 struct TypeTable;
 
+// none type for variant
+struct NoneType {};
+inline bool operator==(const NoneType &, const NoneType &) { return true;}
+
 // Signature of the static method present in each type.
 typedef const TypeTable *(*TypeFunction)();
 

@@ -81,6 +81,47 @@ inline const char *EnumNameBundleSize(BundleSize e) {
   return EnumNamesBundleSize()[index];
 }
 
+enum MyUnion {
+  MyUnion_NONE = 0,
+  MyUnion_Mat = 1,
+  MyUnion_MIN = MyUnion_NONE,
+  MyUnion_MAX = MyUnion_Mat
+};
+
+inline const MyUnion (&EnumValuesMyUnion())[2] {
+  static const MyUnion values[] = {
+    MyUnion_NONE,
+    MyUnion_Mat
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesMyUnion() {
+  static const char * const names[] = {
+    "NONE",
+    "Mat",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameMyUnion(MyUnion e) {
+  if (e < MyUnion_NONE || e > MyUnion_Mat) return "";
+  const size_t index = static_cast<int>(e);
+  return EnumNamesMyUnion()[index];
+}
+
+template<typename T> struct MyUnionTraits {
+  static const MyUnion enum_value = MyUnion_NONE;
+};
+
+template<> struct MyUnionTraits<Mat> {
+  static const MyUnion enum_value = MyUnion_Mat;
+};
+
+bool VerifyMyUnion(flatbuffers::Verifier &verifier, const void *obj, MyUnion type);
+bool VerifyMyUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
+
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Complex FLATBUFFERS_FINAL_CLASS {
  private:
   double i_;
@@ -212,7 +253,9 @@ struct Foo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_IQDATA = 8,
     VT_IQSAMPLE = 10,
     VT_IQSAMPLE2 = 12,
-    VT_NEWINT = 14
+    VT_NEWINT = 14,
+    VT_VARIANT_TYPE = 16,
+    VT_VARIANT = 18
   };
   BundleSize enumData() const {
     return static_cast<BundleSize>(GetField<int8_t>(VT_ENUMDATA, 0));
@@ -232,6 +275,16 @@ struct Foo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   int32_t newInt() const {
     return GetField<int32_t>(VT_NEWINT, 0);
   }
+  MyUnion variant_type() const {
+    return static_cast<MyUnion>(GetField<uint8_t>(VT_VARIANT_TYPE, 0));
+  }
+  const void *variant() const {
+    return GetPointer<const void *>(VT_VARIANT);
+  }
+  template<typename T> const T *variant_as() const;
+  const Mat *variant_as_Mat() const {
+    return variant_type() == MyUnion_Mat ? static_cast<const Mat *>(variant()) : nullptr;
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int8_t>(verifier, VT_ENUMDATA) &&
@@ -242,9 +295,16 @@ struct Foo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<Complex>(verifier, VT_IQSAMPLE) &&
            VerifyField<Comp>(verifier, VT_IQSAMPLE2) &&
            VerifyField<int32_t>(verifier, VT_NEWINT) &&
+           VerifyField<uint8_t>(verifier, VT_VARIANT_TYPE) &&
+           VerifyOffset(verifier, VT_VARIANT) &&
+           VerifyMyUnion(verifier, variant(), variant_type()) &&
            verifier.EndTable();
   }
 };
+
+template<> inline const Mat *Foo::variant_as<Mat>() const {
+  return variant_as_Mat();
+}
 
 struct FooBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
@@ -267,6 +327,12 @@ struct FooBuilder {
   void add_newInt(int32_t newInt) {
     fbb_.AddElement<int32_t>(Foo::VT_NEWINT, newInt, 0);
   }
+  void add_variant_type(MyUnion variant_type) {
+    fbb_.AddElement<uint8_t>(Foo::VT_VARIANT_TYPE, static_cast<uint8_t>(variant_type), 0);
+  }
+  void add_variant(flatbuffers::Offset<void> variant) {
+    fbb_.AddOffset(Foo::VT_VARIANT, variant);
+  }
   explicit FooBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -286,13 +352,17 @@ inline flatbuffers::Offset<Foo> CreateFoo(
     flatbuffers::Offset<flatbuffers::Vector<const Complex *>> iqData = 0,
     const Complex *iqSample = 0,
     const Comp *iqSample2 = 0,
-    int32_t newInt = 0) {
+    int32_t newInt = 0,
+    MyUnion variant_type = MyUnion_NONE,
+    flatbuffers::Offset<void> variant = 0) {
   FooBuilder builder_(_fbb);
+  builder_.add_variant(variant);
   builder_.add_newInt(newInt);
   builder_.add_iqSample2(iqSample2);
   builder_.add_iqSample(iqSample);
   builder_.add_iqData(iqData);
   builder_.add_bitData(bitData);
+  builder_.add_variant_type(variant_type);
   builder_.add_enumData(enumData);
   return builder_.Finish();
 }
@@ -304,7 +374,9 @@ inline flatbuffers::Offset<Foo> CreateFooDirect(
     const std::vector<Complex> *iqData = nullptr,
     const Complex *iqSample = 0,
     const Comp *iqSample2 = 0,
-    int32_t newInt = 0) {
+    int32_t newInt = 0,
+    MyUnion variant_type = MyUnion_NONE,
+    flatbuffers::Offset<void> variant = 0) {
   auto iqData__ = iqData ? _fbb.CreateVectorOfStructs<Complex>(*iqData) : 0;
   return TestN::CreateFoo(
       _fbb,
@@ -313,7 +385,9 @@ inline flatbuffers::Offset<Foo> CreateFooDirect(
       iqData__,
       iqSample,
       iqSample2,
-      newInt);
+      newInt,
+      variant_type,
+      variant);
 }
 
 namespace NamespaceFoo {
@@ -420,6 +494,31 @@ namespace NamespaceBar {
 
 }  // namespace NamespaceBar
 
+inline bool VerifyMyUnion(flatbuffers::Verifier &verifier, const void *obj, MyUnion type) {
+  switch (type) {
+    case MyUnion_NONE: {
+      return true;
+    }
+    case MyUnion_Mat: {
+      auto ptr = reinterpret_cast<const Mat *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    default: return false;
+  }
+}
+
+inline bool VerifyMyUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types) {
+  if (!values || !types) return !values && !types;
+  if (values->size() != types->size()) return false;
+  for (flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
+    if (!VerifyMyUnion(
+        verifier,  values->Get(i), types->GetEnum<MyUnion>(i))) {
+      return false;
+    }
+  }
+  return true;
+}
+
 inline const flatbuffers::TypeTable *BundleSizeTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_CHAR, 0, 0 },
@@ -436,6 +535,24 @@ inline const flatbuffers::TypeTable *BundleSizeTypeTable() {
   };
   static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_ENUM, 3, type_codes, type_refs, nullptr, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *MyUnionTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_SEQUENCE, 0, -1 },
+    { flatbuffers::ET_SEQUENCE, 0, 0 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    MatTypeTable
+  };
+  static const char * const names[] = {
+    "NONE",
+    "Mat"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_UNION, 2, type_codes, type_refs, nullptr, names
   };
   return &tt;
 }
@@ -497,13 +614,16 @@ inline const flatbuffers::TypeTable *FooTypeTable() {
     { flatbuffers::ET_SEQUENCE, 1, 2 },
     { flatbuffers::ET_SEQUENCE, 0, 2 },
     { flatbuffers::ET_SEQUENCE, 0, 3 },
-    { flatbuffers::ET_INT, 0, -1 }
+    { flatbuffers::ET_INT, 0, -1 },
+    { flatbuffers::ET_UTYPE, 0, 4 },
+    { flatbuffers::ET_SEQUENCE, 0, 4 }
   };
   static const flatbuffers::TypeFunction type_refs[] = {
     BundleSizeTypeTable,
     MatTypeTable,
     ComplexTypeTable,
-    CompTypeTable
+    CompTypeTable,
+    MyUnionTypeTable
   };
   static const char * const names[] = {
     "enumData",
@@ -511,10 +631,12 @@ inline const flatbuffers::TypeTable *FooTypeTable() {
     "iqData",
     "iqSample",
     "iqSample2",
-    "newInt"
+    "newInt",
+    "variant_type",
+    "variant"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 6, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_TABLE, 8, type_codes, type_refs, nullptr, names
   };
   return &tt;
 }

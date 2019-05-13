@@ -5,6 +5,7 @@
 #define FLATBUFFERS_NATIVE_NATIVETEST_TESTN_H_
 
 #include "flatbuffers/flatbuffers.h"
+#include <variant>
 #include "native_test_generated.h"
 #include "custom_native.h"
 
@@ -26,11 +27,12 @@ namespace NamespaceBar {
 namespace Native {
 
 struct Foo;
-
 }  // namespace Native
 }  // namespace NamespaceBar
 
 namespace Native {
+
+struct MyUnionUnion;
 
 bool operator==(const Foo &lhs, const Foo &rhs);
 
@@ -54,6 +56,10 @@ bool operator==(const Foo &lhs, const Foo &rhs);
 
 namespace Native {
 
+struct MyUnionUnion : public std::variant<flatbuffers::NoneType, MyMat> {
+    using std::variant<flatbuffers::NoneType, MyMat>::variant;
+};
+
 struct Foo : public flatbuffers::NativeTable {
   typedef ::TestN::Foo TableType;
   ::TestN::BundleSize enumData;
@@ -62,6 +68,7 @@ struct Foo : public flatbuffers::NativeTable {
   std::complex<double> iqSample;
   Comp iqSample2;
   int32_t newInt;
+  MyUnionUnion variant;
   Foo()
       : enumData(::TestN::BundleSize_Size2),
         newInt(0) {
@@ -75,7 +82,8 @@ inline bool operator==(const Foo &lhs, const Foo &rhs) {
       (lhs.iqData == rhs.iqData) &&
       (lhs.iqSample == rhs.iqSample) &&
       (lhs.iqSample2 == rhs.iqSample2) &&
-      (lhs.newInt == rhs.newInt);
+      (lhs.newInt == rhs.newInt) &&
+      (lhs.variant == rhs.variant);
 }
 
 }  // namespace Native
@@ -128,6 +136,9 @@ flatbuffers::Offset<::TestN::NamespaceFoo::Foo> Pack(flatbuffers::FlatBufferBuil
 flatbuffers::Offset<::TestN::NamespaceBar::Foo> Pack(flatbuffers::FlatBufferBuilder &_fbb, const ::TestN::NamespaceBar::Native::Foo &_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 ::TestN::NamespaceBar::Native::Foo UnPack(const ::TestN::NamespaceBar::Foo &_f, const flatbuffers::resolver_function_t *_resolver = nullptr);
 
+flatbuffers::Offset<void> Pack(flatbuffers::FlatBufferBuilder &_fbb, const ::TestN::Native::MyUnionUnion &_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+::TestN::Native::MyUnionUnion UnPack(const void *obj, const ::TestN::MyUnion type, const flatbuffers::resolver_function_t *resolver = nullptr);
+
 inline ::TestN::Native::Foo UnPack(const ::TestN::Foo &_f, const flatbuffers::resolver_function_t *_resolver) {
   (void)_f;
   (void)_resolver;
@@ -138,6 +149,7 @@ inline ::TestN::Native::Foo UnPack(const ::TestN::Foo &_f, const flatbuffers::re
   { auto _e = _f.iqSample(); if (_e) _o.iqSample = ::Native::UnPack(*_e); };
   { auto _e = _f.iqSample2(); if (_e) _o.iqSample2 = *_e; };
   { auto _e = _f.newInt(); _o.newInt = _e; };
+  { auto _e = _f.variant(); if (_e) _o.variant = ::Native::UnPack(_e, _f.variant_type(), _resolver); };
   return _o;
 }
 
@@ -145,18 +157,22 @@ inline flatbuffers::Offset<::TestN::Foo> Pack(flatbuffers::FlatBufferBuilder &_f
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const ::TestN::Native::Foo& __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
+  auto variant__ = ::Native::Pack(_fbb, _o.variant, _rehasher);
   auto newInt__ = _o.newInt;
   auto iqSample2__ = &_o.iqSample2;
   auto iqSample__ = & static_cast<const ::TestN::Complex &>(::Native::Pack(_o.iqSample));
   auto iqData__ = _o.iqData.size() ? _fbb.CreateVectorOfStructs<::TestN::Complex>(_o.iqData.size(),[&](size_t i, ::TestN::Complex *r) {*r = ::Native::Pack(_o.iqData[i]);}) : 0;
   auto bitData__ = ::Native::Pack(_fbb, _o.bitData, _rehasher);
+  auto variant_type__ = static_cast<::TestN::MyUnion>(_o.variant.index());
   auto enumData__ = _o.enumData;
   ::TestN::FooBuilder builder_(_fbb);
+  builder_.add_variant(variant__);
   builder_.add_newInt(newInt__);
   builder_.add_iqSample2(iqSample2__);
   builder_.add_iqSample(iqSample__);
   builder_.add_iqData(iqData__);
   builder_.add_bitData(bitData__);
+  builder_.add_variant_type(variant_type__);
   builder_.add_enumData(enumData__);
   return builder_.Finish();
 }

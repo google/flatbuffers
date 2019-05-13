@@ -204,12 +204,13 @@ class CppNativeGenerator : public BaseGenerator {
     }
 
     code_ += "#include \"flatbuffers/flatbuffers.h\"";
+    code_ += "#include <variant>";
     code_ += "#include \"" + GeneratedFileName("", file_name_, "generated") + "\"";
     if (parser_.opts.include_dependence_headers) { GenIncludeDependencies(); }
 
     code_ += "";
 
-    // Generate forward declarations for all structs/tables, since they may
+    // Generate forward declarations for all structs/tables/enums, since they may
     // have circular references.
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
@@ -218,6 +219,14 @@ class CppNativeGenerator : public BaseGenerator {
         SetNameSpace(*struct_def.defined_namespace);
         auto nativeName = NativeName(struct_def);
         if (!struct_def.fixed) { code_ += "struct " + nativeName + ";"; }
+      }
+    }
+    for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
+         ++it) {
+      const auto &enum_def = **it;
+      if (enum_def.is_union && !enum_def.generated) {
+        SetNameSpace(*enum_def.defined_namespace);
+        code_ += "struct " + NativeName(enum_def) + ";";
       }
     }
     code_ += "";
@@ -242,8 +251,7 @@ class CppNativeGenerator : public BaseGenerator {
       const auto &enum_def = **it;
       if (enum_def.is_union && !enum_def.generated) {
         SetNameSpace(*enum_def.defined_namespace);
-        // unions are not supported right now
-        FLATBUFFERS_ASSERT(false);
+        GenNativeUnion(enum_def);
       }
     }
 
@@ -271,6 +279,15 @@ class CppNativeGenerator : public BaseGenerator {
           code_ += "";
         }
       }
+      for (auto it = parser_.enums_.vec.begin(); 
+           it != parser_.enums_.vec.end(); ++it) {
+        const auto &enum_def = **it;
+        if (enum_def.is_union && !enum_def.generated) {
+          code_ += UnionPackSignature(enum_def, true) + ";";
+          code_ += UnionUnPackSignature(enum_def, true) + ";";
+          code_ += "";
+        }
+      }
     }
 
     // Generate Pack Unpack
@@ -279,7 +296,7 @@ class CppNativeGenerator : public BaseGenerator {
       const auto &enum_def = **it;
       if (enum_def.is_union && !enum_def.generated) {
         // unions are not supported right now
-        FLATBUFFERS_ASSERT(false);
+        //FLATBUFFERS_ASSERT(false);
       }
     }
     for (auto it = parser_.structs_.vec.begin();
@@ -392,7 +409,12 @@ class CppNativeGenerator : public BaseGenerator {
   }
 
   std::string NativeName(const EnumDef &ed) {
-    return ed.name + "Union";
+    Namespace ns = NativeNamespace(*ed.defined_namespace);
+    return WrapInNameSpace(&ns, ed.name + "Union");
+  }
+
+  std::string EnumName(const EnumDef &ed) {
+    return WrapInNameSpace(ed.defined_namespace, ed.name);
   }
 
   const std::string &PtrType() {
@@ -469,6 +491,19 @@ class CppNativeGenerator : public BaseGenerator {
   std::string TableUnPackSignature(const StructDef &struct_def, bool predecl) {
     return NativeName(struct_def) + " UnPack(const " + NameNameSpace(struct_def) + " &_f, "
            + "const flatbuffers::resolver_function_t *_resolver" +
+           (predecl ? " = nullptr" : "") + ")";
+  }
+
+  std::string UnionPackSignature(const EnumDef &enum_def, bool predecl) {
+    return std::string("flatbuffers::Offset<void> Pack(flatbuffers::FlatBufferBuilder &_fbb, ") +
+           "const " + NativeName(enum_def) + " &_o, " +
+           "const flatbuffers::rehasher_function_t *_rehasher" + 
+           (predecl ? " = nullptr" : "") + ")";
+  }
+
+  std::string UnionUnPackSignature(const EnumDef &enum_def, bool predecl) {
+    return NativeName(enum_def) + " UnPack(const void *obj, const " + EnumName(enum_def) + " type," +
+           " const flatbuffers::resolver_function_t *resolver" +
            (predecl ? " = nullptr" : "") + ")";
   }
 
@@ -658,12 +693,40 @@ class CppNativeGenerator : public BaseGenerator {
     code_ += "";
   }
 
+  std::string GetUnionElement(const EnumVal &ev) {
+    if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
+      return NativeName(*ev.union_type.struct_def);
+    } else if (ev.union_type.base_type == BASE_TYPE_STRING) {
+      return "std::string";
+    } else {
+      FLATBUFFERS_ASSERT(false);
+      return Name(ev);
+    }
+  }
+
+  void GenNativeUnion(const EnumDef &enum_def) {
+    std::string variants = "std::variant<flatbuffers::NoneType";
+    for (auto it = enum_def.vals.vec.begin();
+                  it != enum_def.vals.vec.end(); ++it) {
+      const auto &ev = **it;
+      if (!ev.value) { continue; }
+
+      const auto native_type = GetUnionElement(ev);
+      variants += ", " + native_type;
+    }
+    variants += ">";
+
+    code_ += "struct " + NativeName(enum_def) + " : public " + variants + " {";
+    code_ += "    using " + variants + "::variant;";
+    code_ += "};";
+    code_ += "";
+  }
+
   std::string GenUnionUnpackVal(const FieldDef &afield,
                                 const char *vec_elem_access,
                                 const char *vec_type_access) {
-    return afield.value.type.enum_def->name +
-           "Union::UnPack(" + "_e" + vec_elem_access + ", " +
-           EscapeKeyword(afield.name + UnionTypeFieldSuffix()) +
+    return std::string("::Native::UnPack(_e") + vec_elem_access + ", " +
+           "_f." + EscapeKeyword(afield.name + UnionTypeFieldSuffix()) +
            "()" + vec_type_access + ", _resolver)";
   }
 
@@ -705,8 +768,7 @@ class CppNativeGenerator : public BaseGenerator {
     }
   };
 
-  std::string GenUnpackFieldStatement(const FieldDef &field,
-                                      const FieldDef *union_field) {
+  std::string GenUnpackFieldStatement(const FieldDef &field) {
     std::string code;
     switch (field.value.type.base_type) {
       case BASE_TYPE_VECTOR: {
@@ -723,31 +785,24 @@ class CppNativeGenerator : public BaseGenerator {
         if (field.value.type.element == BASE_TYPE_UTYPE) {
           name = StripUnionType(Name(field));
         }
-        auto access =
-            field.value.type.element == BASE_TYPE_UTYPE
-                ? ".type"
-                : (field.value.type.element == BASE_TYPE_UNION ? ".value" : "");
         code += "{ _o." + name + ".resize(_e->size()); ";
         code += "for (flatbuffers::uoffset_t _i = 0;";
         code += " _i < _e->size(); _i++) { ";
 
-        code += "_o." + name + "[_i]" + access + " = ";
+        code += "_o." + name + "[_i]" + " = ";
         code +=
             GenUnpackVal(field.value.type.VectorType(), indexing, true, field);
         code += "; } }";
         break;
       }
       case BASE_TYPE_UTYPE: {
-        FLATBUFFERS_ASSERT(union_field->value.type.base_type == BASE_TYPE_UNION);
-        // Generate code that sets the union type, of the form:
-        //   _o->field.type = _e;
-        code += "_o." + union_field->name + ".type = _e;";
+        // UTYPE is handled with unions
         break;
       }
       case BASE_TYPE_UNION: {
         // Generate code that sets the union value, of the form:
         //   _o->field.value = Union::Unpack(_e, field_type(), resolver);
-        code += "_o." + Name(field) + ".value = ";
+        code += "_o." + Name(field) + " = ";
         code += GenUnionUnpackVal(field, "", "");
         code += ";";
         break;
@@ -766,12 +821,12 @@ class CppNativeGenerator : public BaseGenerator {
   std::string GenPackParam(const FieldDef &field) {
     const IDLOptions &opts = parser_.opts;
 
-    std::string value = "_o.";
+    std::string value = "";
     if (field.value.type.base_type == BASE_TYPE_UTYPE) {
-      value += StripUnionType(Name(field));
-      value += ".type";
+      value += "static_cast<" + WrapInNameSpace(*field.value.type.enum_def) + ">(_o." + StripUnionType(Name(field));
+      value += ".index())";
     } else {
-      value += Name(field);
+      value += "_o." + Name(field);
     }
 
     std::string code;
@@ -876,7 +931,7 @@ class CppNativeGenerator : public BaseGenerator {
         break;
       }
       case BASE_TYPE_UNION: {
-        FLATBUFFERS_ASSERT(false);
+        code += "::Native::Pack(_fbb, " + value + ", _rehasher)";
         break;
       }
       case BASE_TYPE_STRUCT: {
@@ -932,14 +987,16 @@ class CppNativeGenerator : public BaseGenerator {
       // in a variable |_e| by calling this->field_type().  The value is then
       // assigned to |_o| using the GenUnpackFieldStatement.
       const bool is_union = field.value.type.base_type == BASE_TYPE_UTYPE;
-      const auto statement =
-          GenUnpackFieldStatement(field, is_union ? *(it + 1) : nullptr);
+      if (!is_union)
+      {
+        const auto statement = GenUnpackFieldStatement(field);
 
-      code_.SetValue("FIELD_NAME", Name(field));
-      auto prefix = "  { auto _e = _f.{{FIELD_NAME}}(); ";
-      auto check = IsScalar(field.value.type.base_type) ? "" : "if (_e) ";
-      auto postfix = " };";
-      code_ += std::string(prefix) + check + statement + postfix;
+        code_.SetValue("FIELD_NAME", Name(field));
+        auto prefix = "  { auto _e = _f.{{FIELD_NAME}}(); ";
+        auto check = IsScalar(field.value.type.base_type) ? "" : "if (_e) ";
+        auto postfix = " };";
+        code_ += std::string(prefix) + check + statement + postfix;
+      }
     }
     code_ += "  return _o;";
     code_ += "}";
