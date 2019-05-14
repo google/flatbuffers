@@ -1542,11 +1542,6 @@ Note how we create `Vec3` struct in-line in the table. Unlike tables, structs
 are simple combinations of scalars that are always stored inline, just like
 scalars themselves.
 
-**Important**: Unlike structs, you should not nest tables or other objects,
-which is why we created all the strings/vectors/tables that this monster refers
-to before `start`. If you try to create any of them between `start` and `end`,
-you will get an assert/exception/panic depending on your language.
-
 *Note: Since we are passing `150` as the `mana` field, which happens to be the
 default value, the field will not actually be written to the buffer, since the
 default value will be returned on query anyway. This is a nice space savings,
@@ -1575,6 +1570,10 @@ a bit more flexibility.
   monster_builder.add_equipped(axe.Union());
   auto orc = monster_builder.Finish();
 ~~~
+**Important**: Unlike structs, you should not interlace creation of tables or other objects,
+which is why we created all the strings/vectors/tables that this monster refers
+to beforehand. If you try to create any of them after creation of `monster_builder` and before the corresponding call to `Finish()`,
+you will get an exception.
 </div>
 <div class="language-c">
 If you do not wish to set every field in a `table`, it may be more convenient to
@@ -1600,6 +1599,10 @@ a bit more flexibility.
   // Complete the monster object and make it the buffer root object.
   ns(Monster_end_as_root(B));
 ~~~
+**Important**: Unlike structs, you should not interlace creation of tables or other objects,
+which is why we created all the strings/vectors/tables that this monster refers
+to beforehand. If you try to create any of them between `start_as_root` and `end_as_root`,
+you will get an assertion.
 </div>
 
 Before finishing the serialization, let's take a quick look at FlatBuffer
