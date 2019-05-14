@@ -817,12 +817,12 @@ class GoGenerator : public BaseGenerator {
         code += "\t" + offset + " := " + field.value.type.struct_def->name +
                 "Pack(builder, t." + MakeCamel(field.name) + ")\n";
       } else if (field.value.type.base_type == BASE_TYPE_UNION) {
+        const EnumDef &enum_def = *field.value.type.enum_def;
         std::string type = MakeCamel(
-          field.name + UnionTypeFieldSuffix(), false);
-        code += "\t" + type + " := DummyNONE\n";
+            field.name + UnionTypeFieldSuffix(), false);
+        code += "\t" + type + " := " + enum_def.name + "NONE\n";
         code += "\t" + offset + " := flatbuffers.UOffsetT(0)\n";
         code += "\tswitch t." + MakeCamel(field.name) + ".(type) {\n";
-        const EnumDef &enum_def = *field.value.type.enum_def;
         for (auto it2 = enum_def.Vals().begin();
              it2 != enum_def.Vals().end(); ++it2) {
           const EnumVal &ev = **it2;

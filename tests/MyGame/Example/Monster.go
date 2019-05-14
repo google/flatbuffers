@@ -62,7 +62,7 @@ func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT
 	posOffset := Vec3Pack(builder, t.Pos)
 	nameOffset := builder.CreateString(t.Name)
 	inventoryOffset := builder.CreateByteString(t.Inventory)
-	testType := DummyNONE
+	testType := AnyNONE
 	testOffset := flatbuffers.UOffsetT(0)
 	switch t.Test.(type) {
 	case *MonsterT:
@@ -196,7 +196,7 @@ func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT
 		builder.PrependUint64(t.VectorOfNonOwningReferences[j])
 	}
 	vectorOfNonOwningReferencesOffset := builder.EndVector(vectorOfNonOwningReferencesLength)
-	anyUniqueType := DummyNONE
+	anyUniqueType := AnyUniqueAliasesNONE
 	anyUniqueOffset := flatbuffers.UOffsetT(0)
 	switch t.AnyUnique.(type) {
 	case *MonsterT:
@@ -209,7 +209,7 @@ func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT
 		anyUniqueType = AnyUniqueAliasesM2
 		anyUniqueOffset = MonsterPack(builder, t.AnyUnique.(*MyGame__Example2.MonsterT))
 	}
-	anyAmbiguousType := DummyNONE
+	anyAmbiguousType := AnyAmbiguousAliasesNONE
 	anyAmbiguousOffset := flatbuffers.UOffsetT(0)
 	switch t.AnyAmbiguous.(type) {
 	case *MonsterT:
