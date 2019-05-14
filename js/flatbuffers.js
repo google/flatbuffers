@@ -685,11 +685,11 @@ outer_loop:
  * @param {boolean=} opt_size_prefix
  */
 flatbuffers.Builder.prototype.finish = function(root_table, opt_file_identifier, opt_size_prefix) {
-  var size_prefix = opt_size_prefix ? true : false;
+  var size_prefix = opt_size_prefix ? flatbuffers.SIZE_PREFIX_LENGTH : 0;
   if (opt_file_identifier) {
     var file_identifier = opt_file_identifier;
     this.prep(this.minalign, flatbuffers.SIZEOF_INT +
-      flatbuffers.FILE_IDENTIFIER_LENGTH + (size_prefix ? flatbuffers.SIZE_PREFIX_LENGTH : 0));
+      flatbuffers.FILE_IDENTIFIER_LENGTH + size_prefix);
     if (file_identifier.length != flatbuffers.FILE_IDENTIFIER_LENGTH) {
       throw new Error('FlatBuffers: file identifier must be length ' +
         flatbuffers.FILE_IDENTIFIER_LENGTH);
@@ -698,7 +698,7 @@ flatbuffers.Builder.prototype.finish = function(root_table, opt_file_identifier,
       this.writeInt8(file_identifier.charCodeAt(i));
     }
   }
-  this.prep(this.minalign, flatbuffers.SIZEOF_INT + (size_prefix ? flatbuffers.SIZE_PREFIX_LENGTH : 0));
+  this.prep(this.minalign, flatbuffers.SIZEOF_INT + size_prefix);
   this.addOffset(root_table);
   if (size_prefix) {
     this.addInt32(this.bb.capacity() - this.space);
