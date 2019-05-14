@@ -41,6 +41,8 @@ void CompileTest() {
     foo.iqData.push_back(c);
   }
 
+  foo.variant = MyMat(1, {std::complex<double>(static_cast<double>(42), 1.)});
+
   flatbuffers::FlatBufferBuilder fbb;
   fbb.ForceDefaults(true);
   fbb.Finish(Native::Pack(fbb, foo));

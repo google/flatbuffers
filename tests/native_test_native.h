@@ -137,7 +137,24 @@ flatbuffers::Offset<::TestN::NamespaceBar::Foo> Pack(flatbuffers::FlatBufferBuil
 ::TestN::NamespaceBar::Native::Foo UnPack(const ::TestN::NamespaceBar::Foo &_f, const flatbuffers::resolver_function_t *_resolver = nullptr);
 
 flatbuffers::Offset<void> Pack(flatbuffers::FlatBufferBuilder &_fbb, const ::TestN::Native::MyUnionUnion &_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
-::TestN::Native::MyUnionUnion UnPack(const void *obj, const ::TestN::MyUnion type, const flatbuffers::resolver_function_t *resolver = nullptr);
+::TestN::Native::MyUnionUnion UnPack(const void *obj, const ::TestN::MyUnion type, const flatbuffers::resolver_function_t *_resolver = nullptr);
+
+inline flatbuffers::Offset<void> Pack(flatbuffers::FlatBufferBuilder &_fbb, const ::TestN::Native::MyUnionUnion &_o, const flatbuffers::rehasher_function_t *_rehasher){
+  (void)_o;
+  (void)_rehasher;
+  if (auto pval = std::get_if<MyMat>(&_o))
+    return Native::Pack(_fbb, *pval, _rehasher).Union();
+  return 0;
+}
+
+inline ::TestN::Native::MyUnionUnion UnPack(const void *obj, const ::TestN::MyUnion type, const flatbuffers::resolver_function_t *_resolver){
+  (void)obj;
+  (void)type;
+  (void)_resolver;
+  if (type == ::TestN::MyUnion_Mat)
+    return Native::UnPack(*static_cast<const ::TestN::Mat*>(obj), _resolver);
+  return ::TestN::Native::MyUnionUnion();
+}
 
 inline ::TestN::Native::Foo UnPack(const ::TestN::Foo &_f, const flatbuffers::resolver_function_t *_resolver) {
   (void)_f;

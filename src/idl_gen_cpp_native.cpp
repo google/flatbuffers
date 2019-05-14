@@ -295,8 +295,7 @@ class CppNativeGenerator : public BaseGenerator {
          ++it) {
       const auto &enum_def = **it;
       if (enum_def.is_union && !enum_def.generated) {
-        // unions are not supported right now
-        //FLATBUFFERS_ASSERT(false);
+        GenUnionPackUnpack(enum_def);
       }
     }
     for (auto it = parser_.structs_.vec.begin();
@@ -503,7 +502,7 @@ class CppNativeGenerator : public BaseGenerator {
 
   std::string UnionUnPackSignature(const EnumDef &enum_def, bool predecl) {
     return NativeName(enum_def) + " UnPack(const void *obj, const " + EnumName(enum_def) + " type," +
-           " const flatbuffers::resolver_function_t *resolver" +
+           " const flatbuffers::resolver_function_t *_resolver" +
            (predecl ? " = nullptr" : "") + ")";
   }
 
@@ -693,11 +692,22 @@ class CppNativeGenerator : public BaseGenerator {
     code_ += "";
   }
 
-  std::string GetUnionElement(const EnumVal &ev) {
+  std::string GetUnionElementNative(const EnumVal &ev) {
     if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
       return NativeName(*ev.union_type.struct_def);
     } else if (ev.union_type.base_type == BASE_TYPE_STRING) {
       return "std::string";
+    } else {
+      FLATBUFFERS_ASSERT(false);
+      return Name(ev);
+    }
+  }
+
+  std::string GetUnionElement(const EnumVal &ev) {
+    if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
+      return WrapInNameSpace(*ev.union_type.struct_def);
+    } else if (ev.union_type.base_type == BASE_TYPE_STRING) {
+      return "flatbuffers::String";
     } else {
       FLATBUFFERS_ASSERT(false);
       return Name(ev);
@@ -711,7 +721,7 @@ class CppNativeGenerator : public BaseGenerator {
       const auto &ev = **it;
       if (!ev.value) { continue; }
 
-      const auto native_type = GetUnionElement(ev);
+      const auto native_type = GetUnionElementNative(ev);
       variants += ", " + native_type;
     }
     variants += ">";
@@ -1048,6 +1058,54 @@ class CppNativeGenerator : public BaseGenerator {
     code_ += "";
   }
 
+  // Generate code for union that needs to come after the regular definition.
+  void GenUnionPackUnpack(const EnumDef &enum_def) {
+    code_.SetValue("NATIVE_NAME", NativeName(enum_def));
+
+    code_ += "inline " + UnionPackSignature(enum_def, false)  + "{";
+    code_ += "  (void)_o;";
+    code_ += "  (void)_rehasher;";
+
+    for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
+         ++it) {
+      const auto &ev = **it;
+      if (!ev.value) { continue; }
+      const auto native_type = GetUnionElementNative(ev);
+      code_ += "  if (auto pval = std::get_if<" + native_type + ">(&_o))";
+      if (ev.union_type.base_type != BASE_TYPE_STRING)
+        code_ += "    return Native::Pack(_fbb, *pval, _rehasher).Union();";
+      else 
+        code_ += "    return _fbb.CreateString(*pval).Union()";
+    }
+    code_ += "  return 0;";
+    code_ += "}";
+    code_ += "";
+
+
+    code_ += "inline " + UnionUnPackSignature(enum_def, false) + "{";
+    code_ += "  (void)obj;";
+    code_ += "  (void)type;";
+    code_ += "  (void)_resolver;";
+
+
+    for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
+         ++it) {
+      const auto &ev = **it;
+      if (!ev.value) { continue; }
+
+      code_ += "  if (type == " +
+               WrapInNameSpace(enum_def.defined_namespace,
+                               GetEnumValUse(enum_def, ev)) +
+               ")";
+
+      auto full_struct_name = GetUnionElement(ev);
+      code_ += "    return Native::UnPack(*static_cast<const " + full_struct_name + "*>(obj), _resolver);";
+    }
+
+    code_ += "  return {{NATIVE_NAME}}();";
+    code_ += "}";
+    code_ += "";
+  }
 
   // Set up the correct namespace. Only open a namespace if the existing one is
   // different (closing/opening only what is necessary).
