@@ -231,6 +231,15 @@ struct Namespace {
   size_t from_table;  // Part of the namespace corresponds to a message/table.
 };
 
+inline bool operator<(const Namespace &a, const Namespace &b) {
+  size_t min_size = std::min(a.components.size(), b.components.size());
+  for (size_t i = 0; i < min_size; ++i) {
+    if (a.components[i] != b.components[i])
+      return a.components[i] < b.components[i];
+  }
+  return a.components.size() < b.components.size();
+}
+
 // Base class for all definition types (fields, structs_, enums_).
 struct Definition {
   Definition()

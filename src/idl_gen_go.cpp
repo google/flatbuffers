@@ -116,7 +116,13 @@ class GoGenerator : public BaseGenerator {
  private:
   Namespace go_namespace_;
   Namespace *cur_name_space_;
-  std::set<const Namespace*> tracked_imported_namespaces_;
+
+  struct NamespacePtrLess {
+    bool operator()(const Namespace *a, const Namespace *b) const {
+      return *a < *b;
+    }
+  };
+  std::set<const Namespace *, NamespacePtrLess> tracked_imported_namespaces_;
 
   // Most field accessors need to retrieve and test the field offset first,
   // this is the prefix code for that.
