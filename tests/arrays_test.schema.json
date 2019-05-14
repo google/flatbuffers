@@ -42,6 +42,9 @@
                 "type" : "array", "items" : { "$ref" : "#/definitions/MyGame_Example_NestedStruct" },
                 "minItems": 2,
                 "maxItems": 2
+              },
+        "e" : {
+                "type" : "string"
               }
       },
       "additionalProperties" : false

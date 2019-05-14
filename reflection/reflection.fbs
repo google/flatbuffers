@@ -24,7 +24,8 @@ enum BaseType : byte {
     Vector,
     Obj,     // Used for tables & structs.
     Union,
-    Array
+    Array,
+    CharArray
 }
 
 table Type {

@@ -600,8 +600,16 @@ CheckedError Parser::ParseType(Type &type) {
   } else if (token_ == '[') {
     NEXT();
     Type subtype;
-    ECHECK(Recurse([&]() { return ParseType(subtype); }));
-    if (IsSeries(subtype)) {
+    ECHECK(Recurse([&]() -> CheckedError {
+      if (IsIdent("char")) {
+        subtype.base_type = BASE_TYPE_CHAR_ARRAY;
+        return Next();
+      } else {
+        return ParseType(subtype);
+      }
+    }));
+    if (subtype.base_type == BASE_TYPE_VECTOR ||
+        subtype.base_type == BASE_TYPE_ARRAY) {
       // We could support this, but it will complicate things, and it's
       // easier to work around with a struct around the inner vector.
       return Error("nested vector types not supported (wrap in table first)");
@@ -628,6 +636,9 @@ CheckedError Parser::ParseType(Type &type) {
                   fixed_length);
       NEXT();
     } else {
+      if (subtype.base_type == BASE_TYPE_CHAR_ARRAY) {
+        return Error("char type not supported in vector");
+      }
       type = Type(BASE_TYPE_VECTOR, subtype.struct_def, subtype.enum_def);
     }
     type.element = subtype.base_type;
@@ -878,7 +889,14 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
 CheckedError Parser::ParseString(Value &val) {
   auto s = attribute_;
   EXPECT(kTokenStringConstant);
-  val.constant = NumToString(builder_.CreateString(s).o);
+  if (IsArray(val.type)) {
+    if (s.size() > val.type.fixed_length)
+      return Error("string exceeds array limits");
+    s.resize(val.type.fixed_length, 0);
+    val.constant = s;
+  } else {
+    val.constant = NumToString(builder_.CreateString(s).o);
+  }
   return NoError();
 }
 
@@ -993,7 +1011,11 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
       break;
     }
     case BASE_TYPE_ARRAY: {
-      ECHECK(ParseArray(val));
+      if (val.type.VectorType().base_type == BASE_TYPE_CHAR_ARRAY) {
+        ECHECK(ParseString(val));
+      } else {
+        ECHECK(ParseArray(val));
+      }
       break;
     }
     case BASE_TYPE_INT:
@@ -1184,6 +1206,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
               } \
               break;
             FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD);
+            FLATBUFFERS_GEN_TYPE_CHAR_ARRAY(FLATBUFFERS_TD);
           #undef FLATBUFFERS_TD
           #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
             CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
@@ -1323,8 +1346,15 @@ CheckedError Parser::ParseArray(Value &array) {
             builder.PushElement(elem); \
           } \
         break;
-        FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
+        FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
+        FLATBUFFERS_GEN_TYPES_POINTER(FLATBUFFERS_TD)
       #undef FLATBUFFERS_TD
+      // clang-format on
+      case BASE_TYPE_CHAR_ARRAY:
+        builder.PushBytes(
+            reinterpret_cast<const uint8_t *>(val.constant.c_str()),
+            val.constant.size());
+        break;
       default: FLATBUFFERS_ASSERT(0);
     }
     // clang-format on
@@ -1655,6 +1685,7 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
                 if(repack) e.constant = NumToString(val); \
               break; }
     FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD);
+    FLATBUFFERS_GEN_TYPE_CHAR_ARRAY(FLATBUFFERS_TD);
     #undef FLATBUFFERS_TD
     default: break;
     // clang-format on

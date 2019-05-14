@@ -13,6 +13,7 @@ struct ArrayStruct{
   b:[int:0xF];
   c:byte;
   d:[NestedStruct:2];
+  e:[char:6];
 }
 
 table ArrayTable{

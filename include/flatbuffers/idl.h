@@ -67,6 +67,8 @@ namespace flatbuffers {
   TD(UNION,  "",       Offset<void>, int, int, int,          int, unused)
 #define FLATBUFFERS_GEN_TYPE_ARRAY(TD) \
   TD(ARRAY,  "",       int,          int, int, int,          int, unused)
+#define FLATBUFFERS_GEN_TYPE_CHAR_ARRAY(TD) \
+  TD(CHAR_ARRAY, "char", char, byte, byte, byte, int8, i8)
 // The fields are:
 // - enum
 // - FlatBuffers schema type.
@@ -93,7 +95,8 @@ switch (type) {
 #define FLATBUFFERS_GEN_TYPES(TD) \
         FLATBUFFERS_GEN_TYPES_SCALAR(TD) \
         FLATBUFFERS_GEN_TYPES_POINTER(TD) \
-        FLATBUFFERS_GEN_TYPE_ARRAY(TD)
+        FLATBUFFERS_GEN_TYPE_ARRAY(TD) \
+        FLATBUFFERS_GEN_TYPE_CHAR_ARRAY(TD)
 
 // Create an enum for all the types above.
 #ifdef __GNUC__
@@ -114,8 +117,8 @@ enum BaseType {
   FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 #undef FLATBUFFERS_TD
 
-inline bool IsScalar (BaseType t) { return t >= BASE_TYPE_UTYPE &&
-                                           t <= BASE_TYPE_DOUBLE; }
+inline bool IsScalar (BaseType t) { return (t >= BASE_TYPE_UTYPE &&
+                                           t <= BASE_TYPE_DOUBLE) || t == BASE_TYPE_CHAR_ARRAY; }
 inline bool IsInteger(BaseType t) { return t >= BASE_TYPE_UTYPE &&
                                            t <= BASE_TYPE_ULONG; }
 inline bool IsFloat  (BaseType t) { return t == BASE_TYPE_FLOAT ||

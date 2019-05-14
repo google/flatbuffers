@@ -19,9 +19,15 @@ public final class ArrayStruct extends Struct {
   public byte c() { return bb.get(bb_pos + 64); }
   public void mutateC(byte c) { bb.put(bb_pos + 64, c); }
   public MyGame.Example.NestedStruct d(MyGame.Example.NestedStruct obj, int j) { return obj.__assign(bb_pos + 68 + j * 12, bb); }
+  public byte e(int j) { return bb.get(bb_pos + 92 + j * 1); }
+  public void mutateE(int j, byte e) { bb.put(bb_pos + 92 + j * 1, e); }
 
-  public static int createArrayStruct(FlatBufferBuilder builder, float a, int[] b, byte c, int[][] d_a, byte[] d_b, byte[][] d_c) {
-    builder.prep(4, 92);
+  public static int createArrayStruct(FlatBufferBuilder builder, float a, int[] b, byte c, int[][] d_a, byte[] d_b, byte[][] d_c, byte[] e) {
+    builder.prep(4, 100);
+    builder.pad(2);
+    for (int _idx0 = 6; _idx0 > 0; _idx0--) {
+      builder.putByte(e[_idx0-1]);
+    }
     for (int _idx0 = 2; _idx0 > 0; _idx0--) {
       builder.prep(4, 12);
       builder.pad(1);

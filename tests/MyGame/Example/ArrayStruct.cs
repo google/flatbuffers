@@ -22,9 +22,15 @@ public struct ArrayStruct : IFlatbufferObject
   public sbyte C { get { return __p.bb.GetSbyte(__p.bb_pos + 64); } }
   public void MutateC(sbyte c) { __p.bb.PutSbyte(__p.bb_pos + 64, c); }
   public MyGame.Example.NestedStruct D(int j) { return (new MyGame.Example.NestedStruct()).__assign(__p.bb_pos + 68 + j * 12, __p.bb); }
+  public byte E(int j) { return __p.bb.Get(__p.bb_pos + 92 + j * 1); }
+  public void MutateE(int j, byte e) { __p.bb.Put(__p.bb_pos + 92 + j * 1, e); }
 
-  public static Offset<MyGame.Example.ArrayStruct> CreateArrayStruct(FlatBufferBuilder builder, float A, int[] B, sbyte C, int[,] d_A, MyGame.Example.TestEnum[] d_B, MyGame.Example.TestEnum[,] d_C) {
-    builder.Prep(4, 92);
+  public static Offset<MyGame.Example.ArrayStruct> CreateArrayStruct(FlatBufferBuilder builder, float A, int[] B, sbyte C, int[,] d_A, MyGame.Example.TestEnum[] d_B, MyGame.Example.TestEnum[,] d_C, byte[] E) {
+    builder.Prep(4, 100);
+    builder.Pad(2);
+    for (int _idx0 = 6; _idx0 > 0; _idx0--) {
+      builder.PutByte(E[_idx0-1]);
+    }
     for (int _idx0 = 2; _idx0 > 0; _idx0--) {
       builder.Prep(4, 12);
       builder.Pad(1);

@@ -395,6 +395,61 @@ template<typename T> static inline size_t VectorLength(const Vector<T> *v) {
   return v ? v->size() : 0;
 }
 
+// Lexicographically compare two strings (possibly containing nulls), and
+// return true if the first is less than the second.
+static inline bool StringLessThan(const char *a_data, uoffset_t a_size,
+                                  const char *b_data, uoffset_t b_size) {
+  const auto cmp = memcmp(a_data, b_data, (std::min)(a_size, b_size));
+  return cmp == 0 ? a_size < b_size : cmp < 0;
+}
+
+template<typename T> struct StringBase : public T {
+  // @note If you are using @p c_str on a char array, call @p check
+  //  or @p check_fast first to verify that the string contains
+  //  a null-terminator.
+  const char *c_str() const {
+    return reinterpret_cast<const char *>(this->Data());
+  }
+  std::string str() const { return std::string(c_str(), this->size()); }
+
+  // clang-format off
+  #ifdef FLATBUFFERS_HAS_STRING_VIEW
+  flatbuffers::string_view string_view() const {
+    return flatbuffers::string_view(c_str(), this->size());
+  }
+  #endif // FLATBUFFERS_HAS_STRING_VIEW
+  // clang-format on
+
+  bool operator<(const StringBase &o) const {
+    return StringLessThan(this->data(), this->size(), o.data(), o.size());
+  }
+};
+
+struct String : public StringBase<Vector<char>> {};
+
+static inline const char *StringCopy(char *dest, const char *src, size_t n) {
+#ifdef _MSC_VER
+#  pragma warning(push)
+#  pragma warning(disable : 4996)
+#endif
+  return std::strncpy(dest, src, n);
+#ifdef _MSC_VER
+#  pragma warning(pop)
+#endif
+}
+
+// Convenience function to get std::string from a String returning an empty
+// string on null pointer.
+static inline std::string GetString(const String *str) {
+  return str ? str->str() : "";
+}
+
+// Convenience function to get char* from a String returning an empty string on
+// null pointer.
+static inline const char *GetCstring(const String *str) {
+  return str ? str->c_str() : "";
+}
+
 // This is used as a helper type for accessing arrays.
 template<typename T, uint16_t length> class Array {
  public:
@@ -404,6 +459,22 @@ template<typename T, uint16_t length> class Array {
 
   typedef typename IndirectHelper<T>::return_type return_type;
 
+  struct ArrayString : public StringBase<Array<char, length>> {
+    // Checks if the string contains a null-terminator
+    // This function should be called prior to @p c_str
+    bool check() const {
+      for (auto i = this->size(); i > 0; i--) {
+        if (this->Data()[i - 1] == 0) return true;
+      }
+      return false;
+    }
+
+    // Like @p check, but only checks the last character.
+    bool check_fast() const { return this->Data()[this->size() - 1] == 0; }
+
+    const char *safe_c_str() const { return check() ? this->c_str() : ""; }
+  };
+
   FLATBUFFERS_CONSTEXPR uint16_t size() const { return length; }
 
   return_type Get(uoffset_t i) const {
@@ -412,6 +483,16 @@ template<typename T, uint16_t length> class Array {
   }
 
   return_type operator[](uoffset_t i) const { return Get(i); }
+
+  // There's no check to make sure this is actually a string!
+  const ArrayString *GetAsString() const {
+    return reinterpret_cast<const ArrayString *>(this);
+  }
+
+  // There's no check to make sure this is actually a string!
+  void SetString(const char *str) {
+    StringCopy(reinterpret_cast<char *>(Data()), str, size());
+  }
 
   const_iterator begin() const { return const_iterator(Data(), 0); }
   const_iterator end() const { return const_iterator(Data(), size()); }
@@ -471,43 +552,6 @@ template<typename T, uint16_t length> class Array {
   // Private and unimplemented copy constructor.
   Array(const Array &);
 };
-
-// Lexicographically compare two strings (possibly containing nulls), and
-// return true if the first is less than the second.
-static inline bool StringLessThan(const char *a_data, uoffset_t a_size,
-                                  const char *b_data, uoffset_t b_size) {
-  const auto cmp = memcmp(a_data, b_data, (std::min)(a_size, b_size));
-  return cmp == 0 ? a_size < b_size : cmp < 0;
-}
-
-struct String : public Vector<char> {
-  const char *c_str() const { return reinterpret_cast<const char *>(Data()); }
-  std::string str() const { return std::string(c_str(), size()); }
-
-  // clang-format off
-  #ifdef FLATBUFFERS_HAS_STRING_VIEW
-  flatbuffers::string_view string_view() const {
-    return flatbuffers::string_view(c_str(), size());
-  }
-  #endif // FLATBUFFERS_HAS_STRING_VIEW
-  // clang-format on
-
-  bool operator<(const String &o) const {
-    return StringLessThan(this->data(), this->size(), o.data(), o.size());
-  }
-};
-
-// Convenience function to get std::string from a String returning an empty
-// string on null pointer.
-static inline std::string GetString(const String * str) {
-  return str ? str->str() : "";
-}
-
-// Convenience function to get char* from a String returning an empty string on
-// null pointer.
-static inline const char * GetCstring(const String * str) {
-  return str ? str->c_str() : "";
-}
 
 // Allocator interface. This is flatbuffers-specific and meant only for
 // `vector_downward` usage.

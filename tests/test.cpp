@@ -2702,7 +2702,7 @@ void FixedLengthArrayTest() {
   TEST_NOTNULL(nStruct1.mutable_c());
   nStruct1.mutable_c()->Mutate(0, MyGame::Example::TestEnum::C);
   nStruct1.mutable_c()->Mutate(1, MyGame::Example::TestEnum::A);
-  MyGame::Example::ArrayStruct aStruct(2, 12);
+  MyGame::Example::ArrayStruct aStruct(2, 12, "Hello World");
   TEST_NOTNULL(aStruct.b());
   TEST_NOTNULL(aStruct.mutable_b());
   TEST_NOTNULL(aStruct.mutable_d());
@@ -2752,6 +2752,10 @@ void FixedLengthArrayTest() {
           true);
   for (int i = 0; i < mArStruct->b()->size() - 1; i++)
     TEST_EQ(mArStruct->b()->Get(i), i + 1);
+  TEST_NOTNULL(mArStruct->e());
+  TEST_EQ(std::strncmp(mArStruct->e()->GetAsString()->c_str(), "Hello World",
+                       mArStruct->e()->size()),
+          0);
 #endif
 }
 

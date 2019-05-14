@@ -2770,22 +2770,26 @@ class CppGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
-      if (IsArray(field.value.type)) {
+      const auto &field_type = field.value.type;
+      bool char_array =
+          IsArray(field_type) &&
+          field_type.VectorType().base_type == BASE_TYPE_CHAR_ARRAY;
+      if (IsArray(field_type) && !char_array) {
         first++;
         continue;
       }
       const auto member_name = Name(field) + "_";
       const auto arg_name = "_" + Name(field);
       const auto arg_type =
-          GenTypeGet(field.value.type, " ", "const ", " &", true);
+          GenTypeGet(field_type, " ", "const ", char_array ? " *" : " &", true);
 
       if (it != first) { arg_list += ", "; }
       arg_list += arg_type;
       arg_list += arg_name;
-      if (!IsArray(field.value.type)) {
+      if (!IsArray(field_type)) {
         if (it != first && init_list != "") { init_list += ",\n        "; }
         init_list += member_name;
-        if (IsScalar(field.value.type.base_type)) {
+        if (IsScalar(field_type.base_type)) {
           auto type = GenUnderlyingCast(field, false, arg_name);
           init_list += "(flatbuffers::EndianScalar(" + type + "))";
         } else {
@@ -2812,8 +2816,13 @@ class CppGenerator : public BaseGenerator {
         const auto &field = **it;
         if (IsArray(field.value.type)) {
           const auto &member = Name(field) + "_";
-          code_ +=
-              "    std::memset(" + member + ", 0, sizeof(" + member + "));";
+          if (field.value.type.VectorType().base_type == BASE_TYPE_CHAR_ARRAY) {
+            code_ += "    flatbuffers::StringCopy(" + member + ", _" +
+                     field.name + ", sizeof(" + member + "));";
+          } else {
+            code_ +=
+                "    std::memset(" + member + ", 0, sizeof(" + member + "));";
+          }
         }
         if (field.padding) {
           std::string padding;

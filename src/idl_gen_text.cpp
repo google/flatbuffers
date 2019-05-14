@@ -178,6 +178,17 @@ bool Print<const void *>(const void *val, Type type, int indent,
         FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
         FLATBUFFERS_GEN_TYPES_POINTER(FLATBUFFERS_TD)
         #undef FLATBUFFERS_TD
+        // clang-format on
+        case BASE_TYPE_CHAR_ARRAY: {
+          const char *s = reinterpret_cast<const char *>(val);
+          auto length = type.fixed_length;
+          while (length > 0 && s[length - 1] == 0) length--;
+          if (!EscapeString(s, length, _text, opts.allow_non_utf8,
+                            opts.natural_utf8)) {
+            return false;
+          }
+          break;
+        }
         case BASE_TYPE_ARRAY: FLATBUFFERS_ASSERT(0);
       }
       // clang-format on
@@ -274,6 +285,7 @@ static bool GenStruct(const StructDef &struct_def, const Table *table,
               } \
               break;
           FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
+          FLATBUFFERS_GEN_TYPE_CHAR_ARRAY(FLATBUFFERS_TD)
         #undef FLATBUFFERS_TD
         // Generate drop-thru case statements for all pointer types:
         #define FLATBUFFERS_TD(ENUM, IDLTYPE, \

@@ -22,9 +22,14 @@ class ArrayStruct(object):
         obj.Init(self._tab.Bytes, self._tab.Pos + 68 + i * 12)
         return obj
 
+    # ArrayStruct
+    def E(self): return [self._tab.Get(flatbuffers.number_types.Int8Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(92 + i * 1)) for i in range(6)]
 
-def CreateArrayStruct(builder, a, b, c, d_a, d_b, d_c):
-    builder.Prep(4, 92)
+def CreateArrayStruct(builder, a, b, c, d_a, d_b, d_c, e):
+    builder.Prep(4, 100)
+    builder.Pad(2)
+    for _idx0 in range(6 , 0, -1):
+        builder.PrependInt8(e[_idx0-1])
     for _idx0 in range(2 , 0, -1):
         builder.Prep(4, 12)
         builder.Pad(1)

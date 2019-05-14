@@ -41,6 +41,7 @@ std::string GenNativeType(BaseType type) {
     case BASE_TYPE_ULONG:
     case BASE_TYPE_FLOAT:
     case BASE_TYPE_DOUBLE: return "number";
+    case BASE_TYPE_CHAR_ARRAY:
     case BASE_TYPE_STRING: return "string";
     case BASE_TYPE_ARRAY: return "array";
     default: return "";
@@ -71,7 +72,10 @@ std::string GenType(const Type &type) {
     return GenTypeRef(type.enum_def);
   }
   switch (type.base_type) {
-    case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();  // fall thru
+    case BASE_TYPE_ARRAY:
+      if (type.VectorType().base_type == BASE_TYPE_CHAR_ARRAY)
+        return GenType(GenNativeType(type.VectorType().base_type));
+      FLATBUFFERS_FALLTHROUGH();  // fall thru
     case BASE_TYPE_VECTOR: {
       std::string typeline;
       typeline.append("\"type\" : \"array\", \"items\" : { ");
@@ -159,7 +163,9 @@ class JsonSchemaGenerator : public BaseGenerator {
       for (auto prop = properties.cbegin(); prop != properties.cend(); ++prop) {
         const auto &property = *prop;
         std::string arrayInfo = "";
-        if (IsArray(property->value.type)) {
+        if (IsArray(property->value.type) &&
+            property->value.type.VectorType().base_type !=
+                BASE_TYPE_CHAR_ARRAY) {
           arrayInfo = ",\n                \"minItems\": " +
                       NumToString(property->value.type.fixed_length) +
                       ",\n                \"maxItems\": " +

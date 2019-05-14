@@ -31,7 +31,7 @@ namespace flatbuffers {
 // ------------------------- GETTERS -------------------------
 
 inline bool IsScalar(reflection::BaseType t) {
-  return t >= reflection::UType && t <= reflection::Double;
+  return (t >= reflection::UType && t <= reflection::Double);
 }
 inline bool IsInteger(reflection::BaseType t) {
   return t >= reflection::UType && t <= reflection::ULong;
