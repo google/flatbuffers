@@ -72,6 +72,15 @@ static getRootAsInParentNamespace(bb:flatbuffers.ByteBuffer, obj?:InParentNamesp
 };
 
 /**
+ * @param flatbuffers.ByteBuffer bb
+ * @param InParentNamespace= obj
+ * @returns InParentNamespace
+ */
+static getSizePrefixedRootAsInParentNamespace(bb:flatbuffers.ByteBuffer, obj?:InParentNamespace):InParentNamespace {
+  return (obj || new InParentNamespace).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
  * @param flatbuffers.Builder builder
  */
 static startInParentNamespace(builder:flatbuffers.Builder) {
@@ -118,6 +127,15 @@ __init(i:number, bb:flatbuffers.ByteBuffer):Monster {
  * @returns Monster
  */
 static getRootAsMonster(bb:flatbuffers.ByteBuffer, obj?:Monster):Monster {
+  return (obj || new Monster).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param flatbuffers.ByteBuffer bb
+ * @param Monster= obj
+ * @returns Monster
+ */
+static getSizePrefixedRootAsMonster(bb:flatbuffers.ByteBuffer, obj?:Monster):Monster {
   return (obj || new Monster).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
@@ -247,6 +265,15 @@ __init(i:number, bb:flatbuffers.ByteBuffer):TestSimpleTableWithEnum {
  * @returns TestSimpleTableWithEnum
  */
 static getRootAsTestSimpleTableWithEnum(bb:flatbuffers.ByteBuffer, obj?:TestSimpleTableWithEnum):TestSimpleTableWithEnum {
+  return (obj || new TestSimpleTableWithEnum).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param flatbuffers.ByteBuffer bb
+ * @param TestSimpleTableWithEnum= obj
+ * @returns TestSimpleTableWithEnum
+ */
+static getSizePrefixedRootAsTestSimpleTableWithEnum(bb:flatbuffers.ByteBuffer, obj?:TestSimpleTableWithEnum):TestSimpleTableWithEnum {
   return (obj || new TestSimpleTableWithEnum).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
@@ -578,6 +605,15 @@ static getRootAsStat(bb:flatbuffers.ByteBuffer, obj?:Stat):Stat {
 };
 
 /**
+ * @param flatbuffers.ByteBuffer bb
+ * @param Stat= obj
+ * @returns Stat
+ */
+static getSizePrefixedRootAsStat(bb:flatbuffers.ByteBuffer, obj?:Stat):Stat {
+  return (obj || new Stat).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
  * @param flatbuffers.Encoding= optionalEncoding
  * @returns string|Uint8Array|null
  */
@@ -712,6 +748,15 @@ static getRootAsReferrable(bb:flatbuffers.ByteBuffer, obj?:Referrable):Referrabl
 };
 
 /**
+ * @param flatbuffers.ByteBuffer bb
+ * @param Referrable= obj
+ * @returns Referrable
+ */
+static getSizePrefixedRootAsReferrable(bb:flatbuffers.ByteBuffer, obj?:Referrable):Referrable {
+  return (obj || new Referrable).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
  * @returns flatbuffers.Long
  */
 id():flatbuffers.Long {
@@ -792,6 +837,15 @@ __init(i:number, bb:flatbuffers.ByteBuffer):Monster {
  * @returns Monster
  */
 static getRootAsMonster(bb:flatbuffers.ByteBuffer, obj?:Monster):Monster {
+  return (obj || new Monster).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param flatbuffers.ByteBuffer bb
+ * @param Monster= obj
+ * @returns Monster
+ */
+static getSizePrefixedRootAsMonster(bb:flatbuffers.ByteBuffer, obj?:Monster):Monster {
   return (obj || new Monster).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
@@ -2469,6 +2523,14 @@ static finishMonsterBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offse
   builder.finish(offset, 'MONS');
 };
 
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset offset
+ */
+static finishSizePrefixedMonsterBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
+  builder.finish(offset, 'MONS', true);
+};
+
 static createMonster(builder:flatbuffers.Builder, posOffset:flatbuffers.Offset, mana:number, hp:number, nameOffset:flatbuffers.Offset, inventoryOffset:flatbuffers.Offset, color:MyGame.Example.Color, testType:MyGame.Example.Any, testOffset:flatbuffers.Offset, test4Offset:flatbuffers.Offset, testarrayofstringOffset:flatbuffers.Offset, testarrayoftablesOffset:flatbuffers.Offset, enemyOffset:flatbuffers.Offset, testnestedflatbufferOffset:flatbuffers.Offset, testemptyOffset:flatbuffers.Offset, testbool:boolean, testhashs32Fnv1:number, testhashu32Fnv1:number, testhashs64Fnv1:flatbuffers.Long, testhashu64Fnv1:flatbuffers.Long, testhashs32Fnv1a:number, testhashu32Fnv1a:number, testhashs64Fnv1a:flatbuffers.Long, testhashu64Fnv1a:flatbuffers.Long, testarrayofboolsOffset:flatbuffers.Offset, testf:number, testf2:number, testf3:number, testarrayofstring2Offset:flatbuffers.Offset, testarrayofsortedstructOffset:flatbuffers.Offset, flexOffset:flatbuffers.Offset, test5Offset:flatbuffers.Offset, vectorOfLongsOffset:flatbuffers.Offset, vectorOfDoublesOffset:flatbuffers.Offset, parentNamespaceTestOffset:flatbuffers.Offset, vectorOfReferrablesOffset:flatbuffers.Offset, singleWeakReference:flatbuffers.Long, vectorOfWeakReferencesOffset:flatbuffers.Offset, vectorOfStrongReferrablesOffset:flatbuffers.Offset, coOwningReference:flatbuffers.Long, vectorOfCoOwningReferencesOffset:flatbuffers.Offset, nonOwningReference:flatbuffers.Long, vectorOfNonOwningReferencesOffset:flatbuffers.Offset, anyUniqueType:MyGame.Example.AnyUniqueAliases, anyUniqueOffset:flatbuffers.Offset, anyAmbiguousType:MyGame.Example.AnyAmbiguousAliases, anyAmbiguousOffset:flatbuffers.Offset, vectorOfEnumsOffset:flatbuffers.Offset):flatbuffers.Offset {
   Monster.startMonster(builder);
   Monster.addPos(builder, posOffset);
@@ -2547,6 +2609,15 @@ __init(i:number, bb:flatbuffers.ByteBuffer):TypeAliases {
  * @returns TypeAliases
  */
 static getRootAsTypeAliases(bb:flatbuffers.ByteBuffer, obj?:TypeAliases):TypeAliases {
+  return (obj || new TypeAliases).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param flatbuffers.ByteBuffer bb
+ * @param TypeAliases= obj
+ * @returns TypeAliases
+ */
+static getSizePrefixedRootAsTypeAliases(bb:flatbuffers.ByteBuffer, obj?:TypeAliases):TypeAliases {
   return (obj || new TypeAliases).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
