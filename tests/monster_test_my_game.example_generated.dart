@@ -9,6 +9,7 @@ import 'package:flat_buffers/flat_buffers.dart' as fb;
 import './monster_test_my_game_generated.dart' as my_game;
 import './monster_test_my_game.example2_generated.dart' as my_game_example2;
 
+///  Composite components of Monster color.
 class Color {
   final int value;
   const Color._(this.value);
@@ -24,7 +25,12 @@ class Color {
   static bool containsValue(int value) => values.containsKey(value);
 
   static const Color Red = const Color._(1);
+
+  ///  \brief color Green
+  ///  Green is bit_flag with value (1u << 1)
   static const Color Green = const Color._(2);
+
+  ///  \brief color Blue (1u << 3)
   static const Color Blue = const Color._(8);
   static get values => {1: Red,2: Green,8: Blue,};
 
@@ -700,8 +706,8 @@ class Monster {
   }
   List<Test> get test4 => const fb.ListReader<Test>(Test.reader).vTableGet(_bc, _bcOffset, 22, null);
   List<String> get testarrayofstring => const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 24, null);
-///  an example documentation comment: this will end up in the generated code
-///  multiline too
+  ///  an example documentation comment: this will end up in the generated code
+  ///  multiline too
   List<Monster> get testarrayoftables => const fb.ListReader<Monster>(Monster.reader).vTableGet(_bc, _bcOffset, 26, null);
   Monster get enemy => Monster.reader.vTableGet(_bc, _bcOffset, 28, null);
   List<int> get testnestedflatbuffer => const fb.ListReader<int>(const fb.Uint8Reader()).vTableGet(_bc, _bcOffset, 30, null);

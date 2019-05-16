@@ -14,7 +14,15 @@ namespace MyGame.Example;
 
 attribute "priority";
 
-enum Color:ubyte (bit_flags) { Red = 0, Green, Blue = 3, }
+/// Composite components of Monster color.
+enum Color:ubyte (bit_flags) { 
+  Red = 0, // color Red = (1u << 0)
+  /// \brief color Green
+  /// Green is bit_flag with value (1u << 1)
+  Green, 
+  /// \brief color Blue (1u << 3)
+  Blue = 3, 
+}
 
 union Any { Monster, TestSimpleTableWithEnum, MyGame.Example2.Monster }
 
