@@ -41,6 +41,15 @@ static getRootAsAttacker(bb:flatbuffers.ByteBuffer, obj?:Attacker):Attacker {
 };
 
 /**
+ * @param flatbuffers.ByteBuffer bb
+ * @param Attacker= obj
+ * @returns Attacker
+ */
+static getSizePrefixedRootAsAttacker(bb:flatbuffers.ByteBuffer, obj?:Attacker):Attacker {
+  return (obj || new Attacker).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
  * @returns number
  */
 swordAttackDamage():number {
@@ -226,6 +235,15 @@ static getRootAsMovie(bb:flatbuffers.ByteBuffer, obj?:Movie):Movie {
 
 /**
  * @param flatbuffers.ByteBuffer bb
+ * @param Movie= obj
+ * @returns Movie
+ */
+static getSizePrefixedRootAsMovie(bb:flatbuffers.ByteBuffer, obj?:Movie):Movie {
+  return (obj || new Movie).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param flatbuffers.ByteBuffer bb
  * @returns boolean
  */
 static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean {
@@ -403,6 +421,14 @@ static endMovie(builder:flatbuffers.Builder):flatbuffers.Offset {
  */
 static finishMovieBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
   builder.finish(offset, 'MOVI');
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset offset
+ */
+static finishSizePrefixedMovieBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
+  builder.finish(offset, 'MOVI', true);
 };
 
 static createMovie(builder:flatbuffers.Builder, mainCharacterType:Character, mainCharacterOffset:flatbuffers.Offset, charactersTypeOffset:flatbuffers.Offset, charactersOffset:flatbuffers.Offset):flatbuffers.Offset {

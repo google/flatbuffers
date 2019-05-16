@@ -54,6 +54,15 @@ NamespaceA.TableInFirstNS.getRootAsTableInFirstNS = function(bb, obj) {
 };
 
 /**
+ * @param {flatbuffers.ByteBuffer} bb
+ * @param {NamespaceA.TableInFirstNS=} obj
+ * @returns {NamespaceA.TableInFirstNS}
+ */
+NamespaceA.TableInFirstNS.getSizePrefixedRootAsTableInFirstNS = function(bb, obj) {
+  return (obj || new NamespaceA.TableInFirstNS).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
  * @param {NamespaceA.NamespaceB.TableInNestedNS=} obj
  * @returns {NamespaceA.NamespaceB.TableInNestedNS|null}
  */
@@ -185,6 +194,15 @@ NamespaceC.TableInC.getRootAsTableInC = function(bb, obj) {
 };
 
 /**
+ * @param {flatbuffers.ByteBuffer} bb
+ * @param {NamespaceC.TableInC=} obj
+ * @returns {NamespaceC.TableInC}
+ */
+NamespaceC.TableInC.getSizePrefixedRootAsTableInC = function(bb, obj) {
+  return (obj || new NamespaceC.TableInC).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
  * @param {NamespaceA.TableInFirstNS=} obj
  * @returns {NamespaceA.TableInFirstNS|null}
  */
@@ -279,6 +297,15 @@ NamespaceA.SecondTableInA.prototype.__init = function(i, bb) {
  * @returns {NamespaceA.SecondTableInA}
  */
 NamespaceA.SecondTableInA.getRootAsSecondTableInA = function(bb, obj) {
+  return (obj || new NamespaceA.SecondTableInA).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param {flatbuffers.ByteBuffer} bb
+ * @param {NamespaceA.SecondTableInA=} obj
+ * @returns {NamespaceA.SecondTableInA}
+ */
+NamespaceA.SecondTableInA.getSizePrefixedRootAsSecondTableInA = function(bb, obj) {
   return (obj || new NamespaceA.SecondTableInA).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
