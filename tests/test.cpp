@@ -253,29 +253,37 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length,
   unsigned char inv_data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
   // Check compatibilty of iterators with STL.
   std::vector<unsigned char> inv_vec(inventory->begin(), inventory->end());
-  for (auto it = inventory->begin(); it != inventory->end(); ++it) {
+  int n = 0;
+  for (auto it = inventory->begin(); it != inventory->end(); ++it, ++n) {
     auto indx = it - inventory->begin();
     TEST_EQ(*it, inv_vec.at(indx));  // Use bounds-check.
     TEST_EQ(*it, inv_data[indx]);
   }
+  TEST_EQ(n, inv_vec.size());
 
-  for (auto it = inventory->cbegin(); it != inventory->cend(); ++it) {
+  n = 0;
+  for (auto it = inventory->cbegin(); it != inventory->cend(); ++it, ++n) {
     auto indx = it - inventory->cbegin();
     TEST_EQ(*it, inv_vec.at(indx));  // Use bounds-check.
     TEST_EQ(*it, inv_data[indx]);
   }
+  TEST_EQ(n, inv_vec.size());
 
-  for (auto it = inventory->rbegin(); it != inventory->rend(); ++it) {
-    auto indx = inventory->rend() - it;
+  n = 0;
+  for (auto it = inventory->rbegin(); it != inventory->rend(); ++it, ++n) {
+    auto indx = inventory->rend() - it - 1;
     TEST_EQ(*it, inv_vec.at(indx));  // Use bounds-check.
     TEST_EQ(*it, inv_data[indx]);
   }
+  TEST_EQ(n, inv_vec.size());
 
-  for (auto it = inventory->crbegin(); it != inventory->crend(); ++it) {
-    auto indx = inventory->crend() - it;
+  n = 0;
+  for (auto it = inventory->crbegin(); it != inventory->crend(); ++it, ++n) {
+    auto indx = inventory->crend() - it - 1;
     TEST_EQ(*it, inv_vec.at(indx));  // Use bounds-check.
     TEST_EQ(*it, inv_data[indx]);
   }
+  TEST_EQ(n, inv_vec.size());
 
   TEST_EQ(monster->color(), Color_Blue);
 
