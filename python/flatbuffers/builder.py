@@ -254,7 +254,10 @@ class Builder(object):
 
             # Finally, store this vtable in memory for future
             # deduplication:
-            self.vtables.setdefault(vtKeyHash, []).append(self.Offset())
+            vtables = self.vtables.get(vtKeyHash)
+            if vtables is None:
+                vtables = self.vtables[vtKeyHash] = []
+            vtables.append(objectOffset + vBytes)
         else:
             # Found a duplicate vtable.
             objectStart = SOffsetTFlags.py_type(len(self.Bytes) - objectOffset)
