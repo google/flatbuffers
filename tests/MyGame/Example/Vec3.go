@@ -48,10 +48,10 @@ func (rcv *Vec3) MutateTest1(n float64) bool {
 }
 
 func (rcv *Vec3) Test2() Color {
-	return rcv._tab.GetByte(rcv._tab.Pos + flatbuffers.UOffsetT(24))
+	return Color(rcv._tab.GetByte(rcv._tab.Pos + flatbuffers.UOffsetT(24)))
 }
 func (rcv *Vec3) MutateTest2(n Color) bool {
-	return rcv._tab.MutateByte(rcv._tab.Pos+flatbuffers.UOffsetT(24), n)
+	return rcv._tab.MutateByte(rcv._tab.Pos+flatbuffers.UOffsetT(24), byte(n))
 }
 
 func (rcv *Vec3) Test3(obj *Test) *Test {
