@@ -44,13 +44,13 @@ func (rcv *TableInFirstNS) FooTable(obj *NamespaceA__NamespaceB.TableInNestedNS)
 func (rcv *TableInFirstNS) FooEnum() EnumInNestedNS {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(6))
 	if o != 0 {
-		return rcv._tab.GetInt8(o + rcv._tab.Pos)
+		return EnumInNestedNS(rcv._tab.GetInt8(o + rcv._tab.Pos))
 	}
 	return 0
 }
 
 func (rcv *TableInFirstNS) MutateFooEnum(n EnumInNestedNS) bool {
-	return rcv._tab.MutateInt8Slot(6, n)
+	return rcv._tab.MutateInt8Slot(6, int8(n))
 }
 
 func (rcv *TableInFirstNS) FooStruct(obj *NamespaceA__NamespaceB.StructInNestedNS) *NamespaceA__NamespaceB.StructInNestedNS {

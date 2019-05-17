@@ -29,13 +29,13 @@ func (rcv *TestSimpleTableWithEnum) Table() flatbuffers.Table {
 func (rcv *TestSimpleTableWithEnum) Color() Color {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(4))
 	if o != 0 {
-		return rcv._tab.GetByte(o + rcv._tab.Pos)
+		return Color(rcv._tab.GetByte(o + rcv._tab.Pos))
 	}
 	return 2
 }
 
 func (rcv *TestSimpleTableWithEnum) MutateColor(n Color) bool {
-	return rcv._tab.MutateByteSlot(4, n)
+	return rcv._tab.MutateByteSlot(4, byte(n))
 }
 
 func TestSimpleTableWithEnumStart(builder *flatbuffers.Builder) {

@@ -106,6 +106,12 @@ func TestAll(t *testing.T) {
 	// Verify the enum names
 	CheckEnumNames(t.Fatalf)
 
+	// Verify enum String methods
+	CheckEnumString(t.Fatalf)
+
+	// Verify the enum values maps
+	CheckEnumValues(t.Fatalf)
+
 	// Verify that the Go code used in FlatBuffers documentation passes
 	// some sanity checks:
 	CheckDocExample(generated, off, t.Fatalf)
@@ -199,8 +205,8 @@ func CheckReadBuffer(buf []byte, offset flatbuffers.UOffsetT, fail func(string, 
 			fail(FailString("Pos.Test1", float64(3.0), got))
 		}
 
-		if got := vec.Test2(); uint8(2) != got {
-			fail(FailString("Pos.Test2", uint8(2), got))
+		if got := vec.Test2(); example.ColorGreen != got {
+			fail(FailString("Pos.Test2", example.ColorGreen, got))
 		}
 
 		// initialize a Test from Test3(...)
@@ -331,7 +337,7 @@ func CheckMutateBuffer(org []byte, offset flatbuffers.UOffsetT, fail func(string
 		testcase{"Pos.Y'", func() bool { return monster.Pos(nil).Y() == float32(2.0) }},
 		testcase{"Pos.Z'", func() bool { return monster.Pos(nil).Z() == float32(3.0) }},
 		testcase{"Pos.Test1'", func() bool { return monster.Pos(nil).Test1() == float64(3.0) }},
-		testcase{"Pos.Test2'", func() bool { return monster.Pos(nil).Test2() == uint8(2) }},
+		testcase{"Pos.Test2'", func() bool { return monster.Pos(nil).Test2() == example.ColorGreen }},
 		testcase{"Pos.Test3.A", func() bool { return monster.Pos(nil).Test3(nil).A() == int16(5) }},
 		testcase{"Pos.Test3.B", func() bool { return monster.Pos(nil).Test3(nil).B() == int8(6) }},
 		testcase{"Inventory[2]", func() bool { return monster.Inventory(2) == byte(2) }},
@@ -345,7 +351,7 @@ func CheckMutateBuffer(org []byte, offset flatbuffers.UOffsetT, fail func(string
 		testcase{"Pos.Y", func() bool { return monster.Pos(nil).MutateY(20.0) }},
 		testcase{"Pos.Z", func() bool { return monster.Pos(nil).MutateZ(30.0) }},
 		testcase{"Pos.Test1", func() bool { return monster.Pos(nil).MutateTest1(30.0) }},
-		testcase{"Pos.Test2", func() bool { return monster.Pos(nil).MutateTest2(20) }},
+		testcase{"Pos.Test2", func() bool { return monster.Pos(nil).MutateTest2(example.ColorBlue) }},
 		testcase{"Pos.Test3.A", func() bool { return monster.Pos(nil).Test3(nil).MutateA(50) }},
 		testcase{"Pos.Test3.B", func() bool { return monster.Pos(nil).Test3(nil).MutateB(60) }},
 		testcase{"Inventory[2]", func() bool { return monster.MutateInventory(2, 200) }},
@@ -359,10 +365,15 @@ func CheckMutateBuffer(org []byte, offset flatbuffers.UOffsetT, fail func(string
 		testcase{"Pos.Y'", func() bool { return monster.Pos(nil).Y() == float32(20.0) }},
 		testcase{"Pos.Z'", func() bool { return monster.Pos(nil).Z() == float32(30.0) }},
 		testcase{"Pos.Test1'", func() bool { return monster.Pos(nil).Test1() == float64(30.0) }},
-		testcase{"Pos.Test2'", func() bool { return monster.Pos(nil).Test2() == uint8(20) }},
+		testcase{"Pos.Test2'", func() bool { return monster.Pos(nil).Test2() == example.ColorBlue }},
 		testcase{"Pos.Test3.A", func() bool { return monster.Pos(nil).Test3(nil).A() == int16(50) }},
 		testcase{"Pos.Test3.B", func() bool { return monster.Pos(nil).Test3(nil).B() == int8(60) }},
 		testcase{"Inventory[2]", func() bool { return monster.Inventory(2) == byte(200) }},
+	}
+
+	testInvalidEnumValues := []testcase{
+		testcase{"Pos.Test2", func() bool { return monster.Pos(nil).MutateTest2(example.Color(20)) }},
+		testcase{"Pos.Test2", func() bool { return monster.Pos(nil).Test2() == example.Color(20) }},
 	}
 
 	// make sure original values are okay
@@ -400,6 +411,14 @@ func CheckMutateBuffer(org []byte, offset flatbuffers.UOffsetT, fail func(string
 		}
 	}
 
+	// a couple extra tests for "invalid" enum values, which don't correspond to
+	// anything in the schema, but are allowed
+	for _, t := range testInvalidEnumValues {
+		if !t.testfn() {
+			fail("field '" + t.field + "' doesn't work with an invalid enum value")
+		}
+	}
+
 	// reverting all fields to original values should
 	// re-create the original buffer. Mutate all fields
 	// back to their original values and compare buffers.
@@ -412,7 +431,7 @@ func CheckMutateBuffer(org []byte, offset flatbuffers.UOffsetT, fail func(string
 	monster.Pos(nil).MutateY(2.0)
 	monster.Pos(nil).MutateZ(3.0)
 	monster.Pos(nil).MutateTest1(3.0)
-	monster.Pos(nil).MutateTest2(2)
+	monster.Pos(nil).MutateTest2(example.ColorGreen)
 	monster.Pos(nil).Test3(nil).MutateA(5)
 	monster.Pos(nil).Test3(nil).MutateB(6)
 	monster.MutateInventory(2, 2)
@@ -1379,7 +1398,6 @@ func CheckFinishedBytesError(fail func(string, ...interface{})) {
 // CheckEnumNames checks that the generated enum names are correct.
 func CheckEnumNames(fail func(string, ...interface{})) {
 	{
-
 		want := map[example.Any]string{
 			example.AnyNONE:                    "NONE",
 			example.AnyMonster:                 "Monster",
@@ -1398,6 +1416,43 @@ func CheckEnumNames(fail func(string, ...interface{})) {
 			example.ColorBlue:  "Blue",
 		}
 		got := example.EnumNamesColor
+		if !reflect.DeepEqual(got, want) {
+			fail("enum name is not equal")
+		}
+	}
+}
+
+// CheckEnumString checks the String method on generated enum types.
+func CheckEnumString(fail func(string, ...interface{})) {
+	if got := example.AnyMonster.String(); got != "Monster" {
+		fail("Monster.String: %q != %q", got, "Monster")
+	}
+	if got := fmt.Sprintf("color: %s", example.ColorGreen); got != "color: Green" {
+		fail("color.String: %q != %q", got, "color: Green")
+	}
+}
+
+// CheckEnumValues checks that the generated enum values maps are correct.
+func CheckEnumValues(fail func(string, ...interface{})) {
+	{
+		want := map[string]example.Any{
+			"NONE":                    example.AnyNONE,
+			"Monster":                 example.AnyMonster,
+			"TestSimpleTableWithEnum": example.AnyTestSimpleTableWithEnum,
+			"MyGame_Example2_Monster": example.AnyMyGame_Example2_Monster,
+		}
+		got := example.EnumValuesAny
+		if !reflect.DeepEqual(got, want) {
+			fail("enum name is not equal")
+		}
+	}
+	{
+		want := map[string]example.Color{
+			"Red":   example.ColorRed,
+			"Green": example.ColorGreen,
+			"Blue":  example.ColorBlue,
+		}
+		got := example.EnumValuesColor
 		if !reflect.DeepEqual(got, want) {
 			fail("enum name is not equal")
 		}

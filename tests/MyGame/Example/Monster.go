@@ -111,25 +111,25 @@ func (rcv *Monster) MutateInventory(j int, n byte) bool {
 func (rcv *Monster) Color() Color {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(16))
 	if o != 0 {
-		return rcv._tab.GetByte(o + rcv._tab.Pos)
+		return Color(rcv._tab.GetByte(o + rcv._tab.Pos))
 	}
 	return 8
 }
 
 func (rcv *Monster) MutateColor(n Color) bool {
-	return rcv._tab.MutateByteSlot(16, n)
+	return rcv._tab.MutateByteSlot(16, byte(n))
 }
 
-func (rcv *Monster) TestType() byte {
+func (rcv *Monster) TestType() Any {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(18))
 	if o != 0 {
-		return rcv._tab.GetByte(o + rcv._tab.Pos)
+		return Any(rcv._tab.GetByte(o + rcv._tab.Pos))
 	}
 	return 0
 }
 
-func (rcv *Monster) MutateTestType(n byte) bool {
-	return rcv._tab.MutateByteSlot(18, n)
+func (rcv *Monster) MutateTestType(n Any) bool {
+	return rcv._tab.MutateByteSlot(18, byte(n))
 }
 
 func (rcv *Monster) Test(obj *flatbuffers.Table) bool {
@@ -739,16 +739,16 @@ func (rcv *Monster) MutateVectorOfNonOwningReferences(j int, n uint64) bool {
 	return false
 }
 
-func (rcv *Monster) AnyUniqueType() byte {
+func (rcv *Monster) AnyUniqueType() AnyUniqueAliases {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(90))
 	if o != 0 {
-		return rcv._tab.GetByte(o + rcv._tab.Pos)
+		return AnyUniqueAliases(rcv._tab.GetByte(o + rcv._tab.Pos))
 	}
 	return 0
 }
 
-func (rcv *Monster) MutateAnyUniqueType(n byte) bool {
-	return rcv._tab.MutateByteSlot(90, n)
+func (rcv *Monster) MutateAnyUniqueType(n AnyUniqueAliases) bool {
+	return rcv._tab.MutateByteSlot(90, byte(n))
 }
 
 func (rcv *Monster) AnyUnique(obj *flatbuffers.Table) bool {
@@ -760,16 +760,16 @@ func (rcv *Monster) AnyUnique(obj *flatbuffers.Table) bool {
 	return false
 }
 
-func (rcv *Monster) AnyAmbiguousType() byte {
+func (rcv *Monster) AnyAmbiguousType() AnyAmbiguousAliases {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(94))
 	if o != 0 {
-		return rcv._tab.GetByte(o + rcv._tab.Pos)
+		return AnyAmbiguousAliases(rcv._tab.GetByte(o + rcv._tab.Pos))
 	}
 	return 0
 }
 
-func (rcv *Monster) MutateAnyAmbiguousType(n byte) bool {
-	return rcv._tab.MutateByteSlot(94, n)
+func (rcv *Monster) MutateAnyAmbiguousType(n AnyAmbiguousAliases) bool {
+	return rcv._tab.MutateByteSlot(94, byte(n))
 }
 
 func (rcv *Monster) AnyAmbiguous(obj *flatbuffers.Table) bool {
@@ -785,7 +785,7 @@ func (rcv *Monster) VectorOfEnums(j int) Color {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(98))
 	if o != 0 {
 		a := rcv._tab.Vector(o)
-		return rcv._tab.GetByte(a + flatbuffers.UOffsetT(j*1))
+		return Color(rcv._tab.GetByte(a + flatbuffers.UOffsetT(j*1)))
 	}
 	return 0
 }
@@ -810,7 +810,7 @@ func (rcv *Monster) MutateVectorOfEnums(j int, n Color) bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(98))
 	if o != 0 {
 		a := rcv._tab.Vector(o)
-		return rcv._tab.MutateByte(a+flatbuffers.UOffsetT(j*1), n)
+		return rcv._tab.MutateByte(a+flatbuffers.UOffsetT(j*1), byte(n))
 	}
 	return false
 }
