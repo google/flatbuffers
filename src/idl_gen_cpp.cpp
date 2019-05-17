@@ -474,6 +474,14 @@ class CppGenerator : public BaseGenerator {
         code_ += "(Get{{STRUCT_NAME}}(buf)->UnPack(res));";
         code_ += "}";
         code_ += "";
+
+        code_ += "inline {{UNPACK_RETURN}} UnPackSizePrefixed{{STRUCT_NAME}}(";
+        code_ += "    const void *buf,";
+        code_ += "    const flatbuffers::resolver_function_t *res = nullptr) {";
+        code_ += "  return {{UNPACK_TYPE}}\\";
+        code_ += "(GetSizePrefixed{{STRUCT_NAME}}(buf)->UnPack(res));";
+        code_ += "}";
+        code_ += "";
       }
     }
 
