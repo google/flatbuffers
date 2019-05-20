@@ -497,7 +497,7 @@ class GoGenerator : public BaseGenerator {
         std::string &code = *code_ptr;
         code += std::string(", ") + nameprefix;
         code += GoIdentity(field.name);
-        code += " " + GenTypeBasic(field.value.type);
+        code += " " + TypeName(field);
       }
     }
   }
@@ -525,7 +525,7 @@ class GoGenerator : public BaseGenerator {
                           (nameprefix + (field.name + "_")).c_str(), code_ptr);
       } else {
         code += "\tbuilder.Prepend" + GenMethod(field) + "(";
-        code += nameprefix + GoIdentity(field.name) + ")\n";
+        code += CastToBaseType(field.value.type, nameprefix + GoIdentity(field.name)) + ")\n";
       }
     }
   }
@@ -556,7 +556,7 @@ class GoGenerator : public BaseGenerator {
     if (!IsScalar(field.value.type.base_type) && (!struct_def.fixed)) {
       code += "flatbuffers.UOffsetT";
     } else {
-      code += GenTypeBasic(field.value.type);
+      code += TypeName(field);
     }
     code += ") {\n";
     code += "\tbuilder.Prepend";
@@ -567,7 +567,7 @@ class GoGenerator : public BaseGenerator {
       code += "(";
       code += GoIdentity(field.name) + ")";
     } else {
-      code += GoIdentity(field.name);
+      code += CastToBaseType(field.value.type, GoIdentity(field.name));
     }
     code += ", " + GenConstant(field);
     code += ")\n}\n";

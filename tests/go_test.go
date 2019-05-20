@@ -1189,7 +1189,7 @@ func CheckGeneratedBuild(fail func(string, ...interface{})) ([]byte, flatbuffers
 
 	example.MonsterStart(b)
 
-	pos := example.CreateVec3(b, 1.0, 2.0, 3.0, 3.0, 2, 5, 6)
+	pos := example.CreateVec3(b, 1.0, 2.0, 3.0, 3.0, example.ColorGreen, 5, 6)
 	example.MonsterAddPos(b, pos)
 
 	example.MonsterAddHp(b, 80)
@@ -1479,11 +1479,12 @@ func CheckDocExample(buf []byte, off flatbuffers.UOffsetT, fail func(string, ...
 
 	str := builder.CreateString("MyMonster")
 	example.MonsterStart(builder)
-	example.MonsterAddPos(builder, example.CreateVec3(builder, 1.0, 2.0, 3.0, 3.0, 4, 5, 6))
+	example.MonsterAddPos(builder, example.CreateVec3(builder, 1.0, 2.0, 3.0, 3.0, example.Color(4), 5, 6))
 	example.MonsterAddHp(builder, 80)
 	example.MonsterAddName(builder, str)
 	example.MonsterAddInventory(builder, inv)
 	example.MonsterAddTestType(builder, 1)
+	example.MonsterAddColor(builder, example.ColorRed)
 	// example.MonsterAddTest(builder, mon2)
 	// example.MonsterAddTest4(builder, test4s)
 	_ = example.MonsterEnd(builder)
@@ -1871,7 +1872,7 @@ func BenchmarkBuildGold(b *testing.B) {
 
 		example.MonsterStart(bldr)
 
-		pos := example.CreateVec3(bldr, 1.0, 2.0, 3.0, 3.0, 2, 5, 6)
+		pos := example.CreateVec3(bldr, 1.0, 2.0, 3.0, 3.0, example.ColorGreen, 5, 6)
 		example.MonsterAddPos(bldr, pos)
 
 		example.MonsterAddHp(bldr, 80)
