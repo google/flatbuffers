@@ -72,8 +72,8 @@ func TableInFirstNSStart(builder *flatbuffers.Builder) {
 func TableInFirstNSAddFooTable(builder *flatbuffers.Builder, fooTable flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(0, flatbuffers.UOffsetT(fooTable), 0)
 }
-func TableInFirstNSAddFooEnum(builder *flatbuffers.Builder, fooEnum int8) {
-	builder.PrependInt8Slot(1, fooEnum, 0)
+func TableInFirstNSAddFooEnum(builder *flatbuffers.Builder, fooEnum EnumInNestedNS) {
+	builder.PrependInt8Slot(1, int8(fooEnum), 0)
 }
 func TableInFirstNSAddFooStruct(builder *flatbuffers.Builder, fooStruct flatbuffers.UOffsetT) {
 	builder.PrependStructSlot(2, flatbuffers.UOffsetT(fooStruct), 0)
