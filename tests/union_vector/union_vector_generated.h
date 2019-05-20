@@ -850,4 +850,10 @@ inline flatbuffers::unique_ptr<MovieT> UnPackMovie(
   return flatbuffers::unique_ptr<MovieT>(GetMovie(buf)->UnPack(res));
 }
 
+inline flatbuffers::unique_ptr<MovieT> UnPackSizePrefixedMovie(
+    const void *buf,
+    const flatbuffers::resolver_function_t *res = nullptr) {
+  return flatbuffers::unique_ptr<MovieT>(GetSizePrefixedMovie(buf)->UnPack(res));
+}
+
 #endif  // FLATBUFFERS_GENERATED_UNIONVECTOR_H_
