@@ -204,6 +204,19 @@ class CppGenerator : public BaseGenerator {
     if (num_includes) code_ += "";
   }
 
+  void GenExtraIncludes() {
+    if(parser_.opts.cpp_includes.empty()) {
+      return;
+    }
+    // non-const copy needed for std::strtok
+    std::string data = parser_.opts.cpp_includes;
+    for(char* pch = std::strtok(&data[0], ",");
+        pch != nullptr; pch = std::strtok(nullptr, ",")) {
+      code_ += "#include <" + std::string(pch) + ">";
+    }
+    code_ += "";
+  }
+
   std::string EscapeKeyword(const std::string &name) const {
     return keywords_.find(name) == keywords_.end() ? name : name + "_";
   }
@@ -236,6 +249,7 @@ class CppGenerator : public BaseGenerator {
     code_ += "";
 
     if (parser_.opts.include_dependence_headers) { GenIncludeDependencies(); }
+    GenExtraIncludes();
 
     FLATBUFFERS_ASSERT(!cur_name_space_);
 
