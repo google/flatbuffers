@@ -836,11 +836,11 @@ func MonsterAddInventory(builder *flatbuffers.Builder, inventory flatbuffers.UOf
 func MonsterStartInventoryVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.StartVector(1, numElems, 1)
 }
-func MonsterAddColor(builder *flatbuffers.Builder, color byte) {
-	builder.PrependByteSlot(6, color, 8)
+func MonsterAddColor(builder *flatbuffers.Builder, color Color) {
+	builder.PrependByteSlot(6, byte(color), 8)
 }
-func MonsterAddTestType(builder *flatbuffers.Builder, testType byte) {
-	builder.PrependByteSlot(7, testType, 0)
+func MonsterAddTestType(builder *flatbuffers.Builder, testType Any) {
+	builder.PrependByteSlot(7, byte(testType), 0)
 }
 func MonsterAddTest(builder *flatbuffers.Builder, test flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(8, flatbuffers.UOffsetT(test), 0)
@@ -995,14 +995,14 @@ func MonsterAddVectorOfNonOwningReferences(builder *flatbuffers.Builder, vectorO
 func MonsterStartVectorOfNonOwningReferencesVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.StartVector(8, numElems, 8)
 }
-func MonsterAddAnyUniqueType(builder *flatbuffers.Builder, anyUniqueType byte) {
-	builder.PrependByteSlot(43, anyUniqueType, 0)
+func MonsterAddAnyUniqueType(builder *flatbuffers.Builder, anyUniqueType AnyUniqueAliases) {
+	builder.PrependByteSlot(43, byte(anyUniqueType), 0)
 }
 func MonsterAddAnyUnique(builder *flatbuffers.Builder, anyUnique flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(44, flatbuffers.UOffsetT(anyUnique), 0)
 }
-func MonsterAddAnyAmbiguousType(builder *flatbuffers.Builder, anyAmbiguousType byte) {
-	builder.PrependByteSlot(45, anyAmbiguousType, 0)
+func MonsterAddAnyAmbiguousType(builder *flatbuffers.Builder, anyAmbiguousType AnyAmbiguousAliases) {
+	builder.PrependByteSlot(45, byte(anyAmbiguousType), 0)
 }
 func MonsterAddAnyAmbiguous(builder *flatbuffers.Builder, anyAmbiguous flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(46, flatbuffers.UOffsetT(anyAmbiguous), 0)

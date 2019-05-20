@@ -62,7 +62,7 @@ func (rcv *Vec3) Test3(obj *Test) *Test {
 	return obj
 }
 
-func CreateVec3(builder *flatbuffers.Builder, x float32, y float32, z float32, test1 float64, test2 byte, test3_a int16, test3_b int8) flatbuffers.UOffsetT {
+func CreateVec3(builder *flatbuffers.Builder, x float32, y float32, z float32, test1 float64, test2 Color, test3_a int16, test3_b int8) flatbuffers.UOffsetT {
 	builder.Prep(8, 32)
 	builder.Pad(2)
 	builder.Prep(2, 4)
@@ -70,7 +70,7 @@ func CreateVec3(builder *flatbuffers.Builder, x float32, y float32, z float32, t
 	builder.PrependInt8(test3_b)
 	builder.PrependInt16(test3_a)
 	builder.Pad(1)
-	builder.PrependByte(test2)
+	builder.PrependByte(byte(test2))
 	builder.PrependFloat64(test1)
 	builder.Pad(4)
 	builder.PrependFloat32(z)
