@@ -803,7 +803,12 @@ class vector_downward {
   uint8_t *data_at(size_t offset) const { return buf_ + reserved_ - offset; }
 
   void push(const uint8_t *bytes, size_t num) {
-    memcpy(make_space(num), bytes, num);
+    // CreateVector above, can pass through a nullptr for bytes
+    // for empty vectors.  Passing nullptr to memcpy is undefined
+    // behavior.
+    if (num > 0) {
+      memcpy(make_space(num), bytes, num);
+    }
   }
 
   // Specialized version of push() that avoids memcpy call for small data.
