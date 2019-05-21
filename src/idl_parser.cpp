@@ -1327,7 +1327,7 @@ CheckedError Parser::TryTypedValue(const std::string *name, int dtoken,
       const auto &s = e.constant;
       const auto k = s.find_first_of("0123456789.");
       if ((std::string::npos != k) && (s.length() > (k + 1)) &&
-          (s.at(k) == '0' && is_alpha_char(s.at(k + 1), 'X')) &&
+          (s[k] == '0' && is_alpha_char(s[k + 1], 'X')) &&
           (std::string::npos == s.find_first_of("pP", k + 2))) {
         return Error(
             "invalid number, the exponent suffix of hexadecimal "
