@@ -73,7 +73,7 @@ func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT
 		testOffset = TestSimpleTableWithEnumPack(builder, t.Test.(*TestSimpleTableWithEnumT))
 	case *MyGame__Example2.MonsterT:
 		testType = AnyMyGame_Example2_Monster
-		testOffset = MonsterPack(builder, t.Test.(*MyGame__Example2.MonsterT))
+		testOffset = MyGame__Example2.MonsterPack(builder, t.Test.(*MyGame__Example2.MonsterT))
 	}
 	test4Length := len(t.Test4)
 	test4Offsets := []flatbuffers.UOffsetT{}
@@ -157,7 +157,7 @@ func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT
 		builder.PrependFloat64(t.VectorOfDoubles[j])
 	}
 	vectorOfDoublesOffset := builder.EndVector(vectorOfDoublesLength)
-	parentNamespaceTestOffset := InParentNamespacePack(builder, t.ParentNamespaceTest)
+	parentNamespaceTestOffset := MyGame.InParentNamespacePack(builder, t.ParentNamespaceTest)
 	vectorOfReferrablesLength := len(t.VectorOfReferrables)
 	vectorOfReferrablesOffsets := []flatbuffers.UOffsetT{}
 	for j := 0; j < vectorOfReferrablesLength; j++ {
@@ -207,7 +207,7 @@ func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT
 		anyUniqueOffset = TestSimpleTableWithEnumPack(builder, t.AnyUnique.(*TestSimpleTableWithEnumT))
 	case *MyGame__Example2.MonsterT:
 		anyUniqueType = AnyUniqueAliasesM2
-		anyUniqueOffset = MonsterPack(builder, t.AnyUnique.(*MyGame__Example2.MonsterT))
+		anyUniqueOffset = MyGame__Example2.MonsterPack(builder, t.AnyUnique.(*MyGame__Example2.MonsterT))
 	}
 	anyAmbiguousType := AnyAmbiguousAliasesNONE
 	anyAmbiguousOffset := flatbuffers.UOffsetT(0)

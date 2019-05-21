@@ -841,8 +841,8 @@ class GoGenerator : public BaseGenerator {
           if (field.value.type.element == BASE_TYPE_STRING) {
             code += "builder.CreateString(t." + MakeCamel(field.name) + "[j])";
           } else if (field.value.type.element == BASE_TYPE_STRUCT) {
-            code += field.value.type.struct_def->name + "Pack(builder, t." +
-                    MakeCamel(field.name) + "[j])";
+            code += WrapInNameSpaceAndTrack(*field.value.type.struct_def) +
+                    "Pack(builder, t." + MakeCamel(field.name) + "[j])";
           } else {
             // TODO(iceboy): Support vector of unions.
             FLATBUFFERS_ASSERT(0);
@@ -863,7 +863,8 @@ class GoGenerator : public BaseGenerator {
         code += "\t}\n";
         code += "\t" + offset + " := builder.EndVector(" + length + ")\n";
       } else if (field.value.type.base_type == BASE_TYPE_STRUCT) {
-        code += "\t" + offset + " := " + field.value.type.struct_def->name +
+        code += "\t" + offset + " := " +
+                WrapInNameSpaceAndTrack(*field.value.type.struct_def) +
                 "Pack(builder, t." + MakeCamel(field.name) + ")\n";
       } else if (field.value.type.base_type == BASE_TYPE_UNION) {
         const EnumDef &enum_def = *field.value.type.enum_def;
@@ -878,7 +879,8 @@ class GoGenerator : public BaseGenerator {
           if (ev.IsZero()) continue;
           code += "\tcase " + NativeType(ev.union_type) + ":\n";
           code += "\t\t" + type + " = " + enum_def.name + ev.name + "\n";
-          code += "\t\t" + offset + " = " + ev.union_type.struct_def->name +
+          code += "\t\t" + offset + " = " +
+                  WrapInNameSpaceAndTrack(*ev.union_type.struct_def) +
                   "Pack(builder, t." + MakeCamel(field.name) + ".(" +
                   NativeType(ev.union_type) + "))\n";
         }
