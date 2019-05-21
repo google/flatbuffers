@@ -66,6 +66,15 @@ NamespaceA.NamespaceB.TableInNestedNS.getRootAsTableInNestedNS = function(bb, ob
 };
 
 /**
+ * @param {flatbuffers.ByteBuffer} bb
+ * @param {NamespaceA.NamespaceB.TableInNestedNS=} obj
+ * @returns {NamespaceA.NamespaceB.TableInNestedNS}
+ */
+NamespaceA.NamespaceB.TableInNestedNS.getSizePrefixedRootAsTableInNestedNS = function(bb, obj) {
+  return (obj || new NamespaceA.NamespaceB.TableInNestedNS).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
  * @returns {number}
  */
 NamespaceA.NamespaceB.TableInNestedNS.prototype.foo = function() {

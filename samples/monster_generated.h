@@ -865,6 +865,12 @@ inline flatbuffers::unique_ptr<MonsterT> UnPackMonster(
   return flatbuffers::unique_ptr<MonsterT>(GetMonster(buf)->UnPack(res));
 }
 
+inline flatbuffers::unique_ptr<MonsterT> UnPackSizePrefixedMonster(
+    const void *buf,
+    const flatbuffers::resolver_function_t *res = nullptr) {
+  return flatbuffers::unique_ptr<MonsterT>(GetSizePrefixedMonster(buf)->UnPack(res));
+}
+
 }  // namespace Sample
 }  // namespace MyGame
 

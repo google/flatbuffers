@@ -39,6 +39,15 @@ static getRootAsTableInNestedNS(bb:flatbuffers.ByteBuffer, obj?:TableInNestedNS)
 };
 
 /**
+ * @param flatbuffers.ByteBuffer bb
+ * @param TableInNestedNS= obj
+ * @returns TableInNestedNS
+ */
+static getSizePrefixedRootAsTableInNestedNS(bb:flatbuffers.ByteBuffer, obj?:TableInNestedNS):TableInNestedNS {
+  return (obj || new TableInNestedNS).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
  * @returns number
  */
 foo():number {

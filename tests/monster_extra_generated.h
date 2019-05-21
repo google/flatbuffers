@@ -349,6 +349,12 @@ inline std::unique_ptr<MonsterExtraT> UnPackMonsterExtra(
   return std::unique_ptr<MonsterExtraT>(GetMonsterExtra(buf)->UnPack(res));
 }
 
+inline std::unique_ptr<MonsterExtraT> UnPackSizePrefixedMonsterExtra(
+    const void *buf,
+    const flatbuffers::resolver_function_t *res = nullptr) {
+  return std::unique_ptr<MonsterExtraT>(GetSizePrefixedMonsterExtra(buf)->UnPack(res));
+}
+
 }  // namespace MyGame
 
 #endif  // FLATBUFFERS_GENERATED_MONSTEREXTRA_MYGAME_H_

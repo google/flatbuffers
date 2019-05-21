@@ -201,14 +201,16 @@ template<typename T, typename IT> struct VectorIterator {
 template<typename Iterator> struct VectorReverseIterator :
   public std::reverse_iterator<Iterator> {
 
-  explicit VectorReverseIterator(Iterator iter) : iter_(iter) {}
+  explicit VectorReverseIterator(Iterator iter) :
+    std::reverse_iterator<Iterator>(iter) {}
 
-  typename Iterator::value_type operator*() const { return *(iter_ - 1); }
+  typename Iterator::value_type operator*() const {
+    return *(std::reverse_iterator<Iterator>::current);
+  }
 
-  typename Iterator::value_type operator->() const { return *(iter_ - 1); }
-
- private:
-  Iterator iter_;
+  typename Iterator::value_type operator->() const {
+    return *(std::reverse_iterator<Iterator>::current);
+  }
 };
 
 struct String;
@@ -269,11 +271,11 @@ template<typename T> class Vector {
   iterator end() { return iterator(Data(), size()); }
   const_iterator end() const { return const_iterator(Data(), size()); }
 
-  reverse_iterator rbegin() { return reverse_iterator(end()); }
-  const_reverse_iterator rbegin() const { return const_reverse_iterator(end()); }
+  reverse_iterator rbegin() { return reverse_iterator(end() - 1); }
+  const_reverse_iterator rbegin() const { return const_reverse_iterator(end() - 1); }
 
-  reverse_iterator rend() { return reverse_iterator(end()); }
-  const_reverse_iterator rend() const { return const_reverse_iterator(end()); }
+  reverse_iterator rend() { return reverse_iterator(begin() - 1); }
+  const_reverse_iterator rend() const { return const_reverse_iterator(begin() - 1); }
 
   const_iterator cbegin() const { return begin(); }
 
@@ -2473,7 +2475,7 @@ inline int LookupEnum(const char **names, const char *name) {
   #define FLATBUFFERS_STRUCT_END(name, size) \
     __pragma(pack()) \
     static_assert(sizeof(name) == size, "compiler breaks packing rules")
-#elif defined(__GNUC__) || defined(__clang__)
+#elif defined(__GNUC__) || defined(__clang__) || defined(__ICCARM__)
   #define FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(alignment) \
     _Pragma("pack(1)") \
     struct __attribute__((aligned(alignment)))

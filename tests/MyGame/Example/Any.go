@@ -2,19 +2,35 @@
 
 package Example
 
+import "strconv"
+
 type AnyT interface{}
-type Any = byte
+type Any byte
+
 const (
-	AnyNONE Any = 0
-	AnyMonster Any = 1
+	AnyNONE                    Any = 0
+	AnyMonster                 Any = 1
 	AnyTestSimpleTableWithEnum Any = 2
 	AnyMyGame_Example2_Monster Any = 3
 )
 
 var EnumNamesAny = map[Any]string{
-	AnyNONE:"NONE",
-	AnyMonster:"Monster",
-	AnyTestSimpleTableWithEnum:"TestSimpleTableWithEnum",
-	AnyMyGame_Example2_Monster:"MyGame_Example2_Monster",
+	AnyNONE:                    "NONE",
+	AnyMonster:                 "Monster",
+	AnyTestSimpleTableWithEnum: "TestSimpleTableWithEnum",
+	AnyMyGame_Example2_Monster: "MyGame_Example2_Monster",
 }
 
+var EnumValuesAny = map[string]Any{
+	"NONE":                    AnyNONE,
+	"Monster":                 AnyMonster,
+	"TestSimpleTableWithEnum": AnyTestSimpleTableWithEnum,
+	"MyGame_Example2_Monster": AnyMyGame_Example2_Monster,
+}
+
+func (v Any) String() string {
+	if s, ok := EnumNamesAny[v]; ok {
+		return s
+	}
+	return "Any(" + strconv.FormatInt(int64(v), 10) + ")"
+}
