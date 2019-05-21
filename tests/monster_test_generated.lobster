@@ -18,7 +18,7 @@ enum +
 enum + 
     AnyUniqueAliases_NONE = 0,
     AnyUniqueAliases_M = 1,
-    AnyUniqueAliases_T = 2,
+    AnyUniqueAliases_TS = 2,
     AnyUniqueAliases_M2 = 3
 
 enum + 
@@ -313,7 +313,7 @@ struct Monster : flatbuffers_handle
         buf_.flatbuffers_field_int8(pos_, 90, 0)
     def any_unique_as_M():
         MyGame_Example_Monster { buf_, buf_.flatbuffers_field_table(pos_, 92) }
-    def any_unique_as_T():
+    def any_unique_as_TS():
         MyGame_Example_TestSimpleTableWithEnum { buf_, buf_.flatbuffers_field_table(pos_, 92) }
     def any_unique_as_M2():
         MyGame_Example2_Monster { buf_, buf_.flatbuffers_field_table(pos_, 92) }

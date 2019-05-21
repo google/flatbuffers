@@ -106,9 +106,9 @@ class AnyUniqueAliasesTypeId {
 
   static const AnyUniqueAliasesTypeId NONE = const AnyUniqueAliasesTypeId._(0);
   static const AnyUniqueAliasesTypeId M = const AnyUniqueAliasesTypeId._(1);
-  static const AnyUniqueAliasesTypeId T = const AnyUniqueAliasesTypeId._(2);
+  static const AnyUniqueAliasesTypeId TS = const AnyUniqueAliasesTypeId._(2);
   static const AnyUniqueAliasesTypeId M2 = const AnyUniqueAliasesTypeId._(3);
-  static get values => {0: NONE,1: M,2: T,3: M2,};
+  static get values => {0: NONE,1: M,2: TS,3: M2,};
 
   static const fb.Reader<AnyUniqueAliasesTypeId> reader = const _AnyUniqueAliasesTypeIdReader();
 
@@ -738,7 +738,7 @@ class Monster {
   dynamic get anyUnique {
     switch (anyUniqueType?.value) {
       case 1: return M.reader.vTableGet(_bc, _bcOffset, 92, null);
-      case 2: return T.reader.vTableGet(_bc, _bcOffset, 92, null);
+      case 2: return TS.reader.vTableGet(_bc, _bcOffset, 92, null);
       case 3: return M2.reader.vTableGet(_bc, _bcOffset, 92, null);
       default: return null;
     }

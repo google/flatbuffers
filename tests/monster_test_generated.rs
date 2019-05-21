@@ -304,7 +304,7 @@ pub struct AnyUnionTableOffset {}
 pub enum AnyUniqueAliases {
   NONE = 0,
   M = 1,
-  T = 2,
+  TS = 2,
   M2 = 3,
 
 }
@@ -347,7 +347,7 @@ impl flatbuffers::Push for AnyUniqueAliases {
 const ENUM_VALUES_ANY_UNIQUE_ALIASES:[AnyUniqueAliases; 4] = [
   AnyUniqueAliases::NONE,
   AnyUniqueAliases::M,
-  AnyUniqueAliases::T,
+  AnyUniqueAliases::TS,
   AnyUniqueAliases::M2
 ];
 
@@ -355,7 +355,7 @@ const ENUM_VALUES_ANY_UNIQUE_ALIASES:[AnyUniqueAliases; 4] = [
 const ENUM_NAMES_ANY_UNIQUE_ALIASES:[&'static str; 4] = [
     "NONE",
     "M",
-    "T",
+    "TS",
     "M2"
 ];
 
@@ -1294,8 +1294,8 @@ impl<'a> Monster<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn any_unique_as_t(&self) -> Option<TestSimpleTableWithEnum<'a>> {
-    if self.any_unique_type() == AnyUniqueAliases::T {
+  pub fn any_unique_as_ts(&self) -> Option<TestSimpleTableWithEnum<'a>> {
+    if self.any_unique_type() == AnyUniqueAliases::TS {
       self.any_unique().map(|u| TestSimpleTableWithEnum::init_from_table(u))
     } else {
       None

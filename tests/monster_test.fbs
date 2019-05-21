@@ -18,7 +18,7 @@ enum Color:ubyte (bit_flags) { Red = 0, Green, Blue = 3, }
 
 union Any { Monster, TestSimpleTableWithEnum, MyGame.Example2.Monster }
 
-union AnyUniqueAliases { M: Monster, T: TestSimpleTableWithEnum, M2: MyGame.Example2.Monster }
+union AnyUniqueAliases { M: Monster, TS: TestSimpleTableWithEnum, M2: MyGame.Example2.Monster }
 union AnyAmbiguousAliases { M1: Monster, M2: Monster, M3: Monster }
 
 struct Test { a:short; b:byte; }
