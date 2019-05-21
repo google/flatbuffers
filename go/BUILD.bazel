@@ -3,6 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 alias(
     name = "go_default_library",
     actual = ":go",
+    visibility = ["//visibility:public"],
 )
 
 go_library(
