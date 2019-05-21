@@ -2594,8 +2594,8 @@ CheckedError Parser::ParseRoot(const char *source, const char **include_paths,
   for (auto it = structs_.vec.begin(); it != structs_.vec.end();) {
     auto &struct_def = **it;
     if (struct_def.predecl) {
-      if (opts.proto_mode) {
-        // Protos allow enums to be used before declaration, so check if that
+
+        // Allow enums to be used before declaration, so check if that
         // is the case here.
         EnumDef *enum_def = nullptr;
         for (size_t components =
@@ -2638,7 +2638,7 @@ CheckedError Parser::ParseRoot(const char *source, const char **include_paths,
           delete &struct_def;
           continue;  // Skip error.
         }
-      }
+
       auto err = "type referenced but not defined (check namespace): " +
                  struct_def.name;
       if (struct_def.original_location)
