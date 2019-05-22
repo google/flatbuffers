@@ -18,7 +18,7 @@ class TableInFirstNS : flatbuffers_handle
         let o = buf_.flatbuffers_field_table(pos_, 4)
         return if o: NamespaceA_NamespaceB_TableInNestedNS { buf_, o } else: nil
     def foo_enum():
-        return buf_.flatbuffers_field_int8(pos_, 6, 0)
+        return EnumInNestedNS(buf_.flatbuffers_field_int8(pos_, 6, 0))
     def foo_struct():
         let o = buf_.flatbuffers_field_struct(pos_, 8)
         return if o: NamespaceA_NamespaceB_StructInNestedNS { buf_, o } else: nil
@@ -29,7 +29,7 @@ def TableInFirstNSStart(b_:flatbuffers_builder):
     b_.StartObject(3)
 def TableInFirstNSAddFooTable(b_:flatbuffers_builder, foo_table:int):
     b_.PrependUOffsetTRelativeSlot(0, foo_table, 0)
-def TableInFirstNSAddFooEnum(b_:flatbuffers_builder, foo_enum:int):
+def TableInFirstNSAddFooEnum(b_:flatbuffers_builder, foo_enum:EnumInNestedNS):
     b_.PrependInt8Slot(1, foo_enum, 0)
 def TableInFirstNSAddFooStruct(b_:flatbuffers_builder, foo_struct:int):
     b_.PrependStructSlot(2, foo_struct, 0)

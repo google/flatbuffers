@@ -66,6 +66,7 @@ class LobsterGenerator : public BaseGenerator {
 
   std::string LobsterType(const Type &type) {
     if (IsFloat(type.base_type)) return "float";
+    if (IsScalar(type.base_type) && type.enum_def) return NormalizedName(*type.enum_def);
     return "int";
   }
 
@@ -98,15 +99,19 @@ class LobsterGenerator : public BaseGenerator {
     auto offsets = NumToString(field.value.offset);
     auto def = "    def " + NormalizedName(field);
     if (IsScalar(field.value.type.base_type)) {
+      std::string acc;
       if (struct_def.fixed) {
-        code += def + "():\n        return buf_.read_" +
-                GenTypeName(field.value.type) + "_le(pos_ + " + offsets +
-                ")\n";
+        acc = "buf_.read_" + GenTypeName(field.value.type) +
+              "_le(pos_ + " + offsets + ")";
+
       } else {
-        code += def + "():\n        return buf_.flatbuffers_field_" +
-                GenTypeName(field.value.type) + "(pos_, " + offsets + ", " +
-                field.value.constant + ")\n";
+        acc = "buf_.flatbuffers_field_" +
+              GenTypeName(field.value.type) + "(pos_, " + offsets + ", " +
+              field.value.constant + ")";
       }
+      if (field.value.type.enum_def)
+        acc = NormalizedName(*field.value.type.enum_def) + "(" + acc + ")";
+      code += def + "():\n        return " + acc + "\n";
       return;
     }
     switch (field.value.type.base_type) {
