@@ -12,32 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-include "std.lobster"
+import std
 
 namespace flatbuffers
 
-struct handle:
+class handle:
     buf_:string
     pos_:int
 
-enum + sz_8 = 1,
-       sz_16 = 2,
-       sz_32 = 4,
-       sz_64 = 8,
-       sz_voffset = 2,
-       sz_uoffset = 4,
-       sz_soffset = 4,
-       sz_metadata_fields = 2
+enum sizeof:
+    sz_8 = 1
+    sz_16 = 2
+    sz_32 = 4
+    sz_64 = 8
+    sz_voffset = 2
+    sz_uoffset = 4
+    sz_soffset = 4
+    sz_metadata_fields = 2
 
-struct builder:
-    buf:string = "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+class builder:
+    buf = "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
     current_vtable:[int] = []
-    head:int = 0
-    minalign:int = 1
-    object_end:int = 0
+    head = 0
+    minalign = 1
+    object_end = 0
     vtables:[int] = []
-    nested:int = false
-    finished:int = false
+    nested = false
+    finished = false
 
     // Optionally call this right after creating the builder for a larger initial buffer.
     def Initial(initial_size:int):
@@ -75,11 +76,11 @@ struct builder:
         // Prepend a zero scalar to the object. Later in this function we'll
         // write an offset here that points to the object's vtable:
         PrependInt32(0)
-        object_offset := head
+        let object_offset = head
         // Write out new vtable speculatively.
-        vtable_size := (current_vtable.length + sz_metadata_fields) * sz_voffset
+        let vtable_size = (current_vtable.length + sz_metadata_fields) * sz_voffset
         while current_vtable.length:
-            o := current_vtable.pop()
+            let o = current_vtable.pop()
             PrependVOffsetT(if o: object_offset - o else: 0)
         // The two metadata fields are written last.
         // First, store the object bytesize:
@@ -91,17 +92,18 @@ struct builder:
         // BenchmarkVtableDeduplication for a case in which this heuristic
         // saves about 30% of the time used in writing objects with duplicate
         // tables.
-        existing_vtable := do():
+        def find_existing_table():
             reverse(vtables) vt2_offset:
                 // Find the other vtable:
-                vt2_start := buf.length - vt2_offset
-                vt2_len := buf.read_int16_le(vt2_start)
+                let vt2_start = buf.length - vt2_offset
+                let vt2_len = buf.read_int16_le(vt2_start)
                 // Compare the other vtable to the one under consideration.
                 // If they are equal, return the offset:
                 if vtable_size == vt2_len and
                     not compare_substring(buf, Start(), buf, vt2_start, vtable_size):
-                        return vt2_offset from do
-            0
+                        return vt2_offset
+            return 0
+        let existing_vtable = find_existing_table()
         if existing_vtable:
             // Found a duplicate vtable, remove the one we wrote.
             head = object_offset
@@ -119,7 +121,8 @@ struct builder:
         return object_offset
 
     def Pad(n):
-        for(n): buf, head = buf.write_int8_le_back(head, 0)
+        for(n):
+            buf, head = buf.write_int8_le_back(head, 0)
 
     def Prep(size, additional_bytes):
         // Track the biggest thing we've ever aligned to.
@@ -127,7 +130,7 @@ struct builder:
             minalign = size
         // Find the amount of alignment needed such that `size` is properly
         // aligned after `additionalBytes`:
-        align_size := ((~(head + additional_bytes)) + 1) & (size - 1)
+        let align_size = ((~(head + additional_bytes)) + 1) & (size - 1)
         Pad(align_size)
 
     def PrependUOffsetTRelative(off):
@@ -172,7 +175,7 @@ struct builder:
         // Finish finalizes a buffer, pointing to the given root_table
         assert not finished
         assert not nested
-        prep_size := sz_32
+        var prep_size = sz_32
         if size_prefix:
             prep_size += sz_32
         Prep(minalign, prep_size)

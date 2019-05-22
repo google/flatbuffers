@@ -31,7 +31,7 @@ class LobsterGenerator : public BaseGenerator {
                   const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "" /* not used */, "_") {
     static const char * const keywords[] = {
-      "nil", "true", "false", "return", "struct", "value", "include", "int",
+      "nil", "true", "false", "return", "struct", "class", "import", "int",
       "float", "string", "any", "def", "is", "from", "program", "private",
       "coroutine", "resource", "enum", "typeof", "var", "let", "pakfile",
       "switch", "case", "default", "namespace", "not", "and", "or", "bool",
@@ -99,11 +99,11 @@ class LobsterGenerator : public BaseGenerator {
     auto def = "    def " + NormalizedName(field);
     if (IsScalar(field.value.type.base_type)) {
       if (struct_def.fixed) {
-        code += def + "():\n        buf_.read_" +
+        code += def + "():\n        return buf_.read_" +
                 GenTypeName(field.value.type) + "_le(pos_ + " + offsets +
                 ")\n";
       } else {
-        code += def + "():\n        buf_.flatbuffers_field_" +
+        code += def + "():\n        return buf_.flatbuffers_field_" +
                 GenTypeName(field.value.type) + "(pos_, " + offsets + ", " +
                 field.value.constant + ")\n";
       }
@@ -114,22 +114,22 @@ class LobsterGenerator : public BaseGenerator {
         auto name = NamespacedName(*field.value.type.struct_def);
         code += def + "():\n        ";
         if (struct_def.fixed) {
-          code += name + "{ buf_, pos_ + " + offsets + " }\n";
+          code += "return " + name + "{ buf_, pos_ + " + offsets + " }\n";
         } else {
-          code += std::string("o := buf_.flatbuffers_field_") +
+          code += std::string("let o = buf_.flatbuffers_field_") +
                   (field.value.type.struct_def->fixed ? "struct" : "table") +
-                  "(pos_, " + offsets + ")\n        if o: " + name +
+                  "(pos_, " + offsets + ")\n        return if o: " + name +
                   " { buf_, o } else: nil\n";
         }
         break;
       }
       case BASE_TYPE_STRING:
-        code += def + "():\n        buf_.flatbuffers_field_string(pos_, " +
+        code += def + "():\n        return buf_.flatbuffers_field_string(pos_, " +
                 offsets + ")\n";
         break;
       case BASE_TYPE_VECTOR: {
         auto vectortype = field.value.type.VectorType();
-        code += def + "(i:int):\n        ";
+        code += def + "(i:int):\n        return ";
         if (vectortype.base_type == BASE_TYPE_STRUCT) {
           auto start = "buf_.flatbuffers_field_vector(pos_, " + offsets +
                        ") + i * " + NumToString(InlineSize(vectortype));
@@ -153,7 +153,7 @@ class LobsterGenerator : public BaseGenerator {
              it != field.value.type.enum_def->Vals().end(); ++it) {
           auto &ev = **it;
           if (ev.IsNonZero()) {
-            code += def + "_as_" + ev.name + "():\n        " +
+            code += def + "_as_" + ev.name + "():\n        return " +
                     NamespacedName(*ev.union_type.struct_def) +
                     " { buf_, buf_.flatbuffers_field_table(pos_, " + offsets +
                     ") }\n";
@@ -165,7 +165,7 @@ class LobsterGenerator : public BaseGenerator {
     }
     if (field.value.type.base_type == BASE_TYPE_VECTOR) {
       code += def +
-              "_length():\n        buf_.flatbuffers_field_vector_len(pos_, " +
+              "_length():\n        return buf_.flatbuffers_field_vector_len(pos_, " +
               offsets + ")\n";
     }
   }
@@ -207,19 +207,19 @@ class LobsterGenerator : public BaseGenerator {
                   NumToString(alignment) +
                   ")\n    reverse(v_) e_: b_.Prepend" +
                   GenMethod(vector_type) +
-                  "(e_)\n    b_.EndVector(v_.length)\n";
+                  "(e_)\n    return b_.EndVector(v_.length)\n";
         }
       }
     }
     code += "def " + NormalizedName(struct_def) +
-            "End(b_:flatbuffers_builder):\n    b_.EndObject()\n\n";
+            "End(b_:flatbuffers_builder):\n    return b_.EndObject()\n\n";
   }
 
   void GenStructPreDecl(const StructDef &struct_def, std::string *code_ptr) {
     if (struct_def.generated) return;
     std::string &code = *code_ptr;
     CheckNameSpace(struct_def, &code);
-    code += "struct " + NormalizedName(struct_def) + "\n\n";
+    code += "class " + NormalizedName(struct_def) + "\n\n";
   }
 
   // Generate struct or table methods.
@@ -228,7 +228,7 @@ class LobsterGenerator : public BaseGenerator {
     std::string &code = *code_ptr;
     CheckNameSpace(struct_def, &code);
     GenComment(struct_def.doc_comment, code_ptr, nullptr, "");
-    code += "struct " + NormalizedName(struct_def) + " : flatbuffers_handle\n";
+    code += "class " + NormalizedName(struct_def) + " : flatbuffers_handle\n";
     for (auto it = struct_def.fields.vec.begin();
         it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
@@ -239,7 +239,7 @@ class LobsterGenerator : public BaseGenerator {
     if (!struct_def.fixed) {
       // Generate a special accessor for the table that has been declared as
       // the root type.
-      code += "def GetRootAs" + NormalizedName(struct_def) + "(buf:string): " +
+      code += "def GetRootAs" + NormalizedName(struct_def) + "(buf:string): return " +
               NormalizedName(struct_def) +
               " { buf, buf.flatbuffers_indirect(0) }\n\n";
     }
@@ -258,14 +258,12 @@ class LobsterGenerator : public BaseGenerator {
     std::string &code = *code_ptr;
     CheckNameSpace(enum_def, &code);
     GenComment(enum_def.doc_comment, code_ptr, nullptr, "");
-    code += "enum + \n";
+    code += "enum " + NormalizedName(enum_def) + ":\n";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
       GenComment(ev.doc_comment, code_ptr, nullptr, "    ");
       code += "    " + enum_def.name + "_" + NormalizedName(ev) + " = " +
-              enum_def.ToString(ev);
-      if (it + 1 != enum_def.Vals().end()) code += ",";
-      code += "\n";
+              enum_def.ToString(ev) + "\n";
     }
     code += "\n";
   }
@@ -336,7 +334,7 @@ class LobsterGenerator : public BaseGenerator {
   bool generate() {
     std::string code;
     code += std::string("// ") + FlatBuffersGeneratedWarning() +
-            "\n\ninclude \"flatbuffers.lobster\"\n\n";
+            "\nimport flatbuffers\n\n";
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
       auto &enum_def = **it;
