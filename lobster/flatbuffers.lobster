@@ -20,6 +20,10 @@ class handle:
     buf_:string
     pos_:int
 
+// More strongly typed than a naked int, at no cost.
+struct offset:
+    o:int
+
 enum sizeof:
     sz_8 = 1
     sz_16 = 2
@@ -50,7 +54,7 @@ class builder:
 
     def Offset():
         // Offset relative to the end of the buffer.
-        return head
+        return offset { head }
 
     // Returns a copy of the part of the buffer containing only the finished FlatBuffer
     def SizedCopy():
@@ -118,7 +122,7 @@ class builder:
             // Finally, store this vtable in memory for future
             // deduplication:
             vtables.push(head)
-        return object_offset
+        return offset { object_offset }
 
     def Pad(n):
         for(n):
@@ -133,24 +137,24 @@ class builder:
         let align_size = ((~(head + additional_bytes)) + 1) & (size - 1)
         Pad(align_size)
 
-    def PrependUOffsetTRelative(off):
+    def PrependUOffsetTRelative(off:offset):
         // Prepends an unsigned offset into vector data, relative to where it will be written.
         Prep(sz_uoffset, 0)
-        assert off <= head
-        PlaceUOffsetT(head - off + sz_uoffset)
+        assert off.o <= head
+        PlaceUOffsetT(head - off.o + sz_uoffset)
 
     def StartVector(elem_size, num_elems, alignment):
         // Initializes bookkeeping for writing a new vector.
         StartNesting()
         Prep(sz_32, elem_size * num_elems)
         Prep(alignment, elem_size * num_elems)  // In case alignment > int.
-        return head
+        return Offset()
 
     def EndVector(vector_num_elems):
         EndNesting()
         // we already made space for this, so write without PrependUint32
         PlaceUOffsetT(vector_num_elems)
-        return head
+        return Offset()
 
     def CreateString(s:string):
         // writes a null-terminated byte string.
@@ -171,7 +175,7 @@ class builder:
         while current_vtable.length <= slotnum: current_vtable.push(0)
         current_vtable[slotnum] = head
 
-    def __Finish(root_table:int, size_prefix:int):
+    def __Finish(root_table:offset, size_prefix:int):
         // Finish finalizes a buffer, pointing to the given root_table
         assert not finished
         assert not nested
@@ -185,10 +189,10 @@ class builder:
         finished = true
         return Start()
 
-    def Finish(root_table:int):
+    def Finish(root_table:offset):
         return __Finish(root_table, false)
 
-    def FinishSizePrefixed(root_table:int):
+    def FinishSizePrefixed(root_table:offset):
         return __Finish(root_table, true)
 
     def PrependBool(x):
@@ -266,16 +270,16 @@ class builder:
     def PrependFloat32Slot(o, x, d): PrependSlot(o, x, d): PrependFloat32(_)
     def PrependFloat64Slot(o, x, d): PrependSlot(o, x, d): PrependFloat64(_)
 
-    def PrependUOffsetTRelativeSlot(o, x, d):
-        if x != d:
+    def PrependUOffsetTRelativeSlot(o:int, x:offset):
+        if x.o:
             PrependUOffsetTRelative(x)
             Slot(o)
 
-    def PrependStructSlot(v, x, d):
-        if x != d:
+    def PrependStructSlot(v:int, x:offset):
+        if x.o:
             // Structs are always stored inline, so need to be created right
             // where they are used. You'll get this error if you created it
-            //elsewhere.
-            assert x == head
+            // elsewhere.
+            assert x.o == head
             Slot(v)
 

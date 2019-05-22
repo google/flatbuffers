@@ -27,12 +27,12 @@ def GetRootAsTableInFirstNS(buf:string): return TableInFirstNS { buf, buf.flatbu
 
 def TableInFirstNSStart(b_:flatbuffers_builder):
     b_.StartObject(3)
-def TableInFirstNSAddFooTable(b_:flatbuffers_builder, foo_table:int):
-    b_.PrependUOffsetTRelativeSlot(0, foo_table, 0)
+def TableInFirstNSAddFooTable(b_:flatbuffers_builder, foo_table:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(0, foo_table)
 def TableInFirstNSAddFooEnum(b_:flatbuffers_builder, foo_enum:EnumInNestedNS):
     b_.PrependInt8Slot(1, foo_enum, 0)
-def TableInFirstNSAddFooStruct(b_:flatbuffers_builder, foo_struct:int):
-    b_.PrependStructSlot(2, foo_struct, 0)
+def TableInFirstNSAddFooStruct(b_:flatbuffers_builder, foo_struct:flatbuffers_offset):
+    b_.PrependStructSlot(2, foo_struct)
 def TableInFirstNSEnd(b_:flatbuffers_builder):
     return b_.EndObject()
 
@@ -50,10 +50,10 @@ def GetRootAsTableInC(buf:string): return TableInC { buf, buf.flatbuffers_indire
 
 def TableInCStart(b_:flatbuffers_builder):
     b_.StartObject(2)
-def TableInCAddReferToA1(b_:flatbuffers_builder, refer_to_a1:int):
-    b_.PrependUOffsetTRelativeSlot(0, refer_to_a1, 0)
-def TableInCAddReferToA2(b_:flatbuffers_builder, refer_to_a2:int):
-    b_.PrependUOffsetTRelativeSlot(1, refer_to_a2, 0)
+def TableInCAddReferToA1(b_:flatbuffers_builder, refer_to_a1:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(0, refer_to_a1)
+def TableInCAddReferToA2(b_:flatbuffers_builder, refer_to_a2:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(1, refer_to_a2)
 def TableInCEnd(b_:flatbuffers_builder):
     return b_.EndObject()
 
@@ -68,8 +68,8 @@ def GetRootAsSecondTableInA(buf:string): return SecondTableInA { buf, buf.flatbu
 
 def SecondTableInAStart(b_:flatbuffers_builder):
     b_.StartObject(1)
-def SecondTableInAAddReferToC(b_:flatbuffers_builder, refer_to_c:int):
-    b_.PrependUOffsetTRelativeSlot(0, refer_to_c, 0)
+def SecondTableInAAddReferToC(b_:flatbuffers_builder, refer_to_c:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(0, refer_to_c)
 def SecondTableInAEnd(b_:flatbuffers_builder):
     return b_.EndObject()
 
