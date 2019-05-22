@@ -156,8 +156,8 @@ def GetRootAsStat(buf:string): return Stat { buf, buf.flatbuffers_indirect(0) }
 
 def StatStart(b_:flatbuffers_builder):
     b_.StartObject(3)
-def StatAddId(b_:flatbuffers_builder, id:int):
-    b_.PrependUOffsetTRelativeSlot(0, id, 0)
+def StatAddId(b_:flatbuffers_builder, id:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(0, id)
 def StatAddVal(b_:flatbuffers_builder, val:int):
     b_.PrependInt64Slot(1, val, 0)
 def StatAddCount(b_:flatbuffers_builder, count:int):
@@ -333,16 +333,16 @@ def GetRootAsMonster(buf:string): return Monster { buf, buf.flatbuffers_indirect
 
 def MonsterStart(b_:flatbuffers_builder):
     b_.StartObject(48)
-def MonsterAddPos(b_:flatbuffers_builder, pos:int):
-    b_.PrependStructSlot(0, pos, 0)
+def MonsterAddPos(b_:flatbuffers_builder, pos:flatbuffers_offset):
+    b_.PrependStructSlot(0, pos)
 def MonsterAddMana(b_:flatbuffers_builder, mana:int):
     b_.PrependInt16Slot(1, mana, 150)
 def MonsterAddHp(b_:flatbuffers_builder, hp:int):
     b_.PrependInt16Slot(2, hp, 100)
-def MonsterAddName(b_:flatbuffers_builder, name:int):
-    b_.PrependUOffsetTRelativeSlot(3, name, 0)
-def MonsterAddInventory(b_:flatbuffers_builder, inventory:int):
-    b_.PrependUOffsetTRelativeSlot(5, inventory, 0)
+def MonsterAddName(b_:flatbuffers_builder, name:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(3, name)
+def MonsterAddInventory(b_:flatbuffers_builder, inventory:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(5, inventory)
 def MonsterStartInventoryVector(b_:flatbuffers_builder, n_:int):
     b_.StartVector(1, n_, 1)
 def MonsterCreateInventoryVector(b_:flatbuffers_builder, v_:[int]):
@@ -353,40 +353,40 @@ def MonsterAddColor(b_:flatbuffers_builder, color:Color):
     b_.PrependUint8Slot(6, color, 8)
 def MonsterAddTestType(b_:flatbuffers_builder, test_type:Any):
     b_.PrependUint8Slot(7, test_type, 0)
-def MonsterAddTest(b_:flatbuffers_builder, test:int):
-    b_.PrependUOffsetTRelativeSlot(8, test, 0)
-def MonsterAddTest4(b_:flatbuffers_builder, test4:int):
-    b_.PrependUOffsetTRelativeSlot(9, test4, 0)
+def MonsterAddTest(b_:flatbuffers_builder, test:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(8, test)
+def MonsterAddTest4(b_:flatbuffers_builder, test4:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(9, test4)
 def MonsterStartTest4Vector(b_:flatbuffers_builder, n_:int):
     b_.StartVector(4, n_, 2)
-def MonsterAddTestarrayofstring(b_:flatbuffers_builder, testarrayofstring:int):
-    b_.PrependUOffsetTRelativeSlot(10, testarrayofstring, 0)
+def MonsterAddTestarrayofstring(b_:flatbuffers_builder, testarrayofstring:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(10, testarrayofstring)
 def MonsterStartTestarrayofstringVector(b_:flatbuffers_builder, n_:int):
     b_.StartVector(4, n_, 4)
-def MonsterCreateTestarrayofstringVector(b_:flatbuffers_builder, v_:[int]):
+def MonsterCreateTestarrayofstringVector(b_:flatbuffers_builder, v_:[flatbuffers_offset]):
     b_.StartVector(4, v_.length, 4)
     reverse(v_) e_: b_.PrependUOffsetTRelative(e_)
     return b_.EndVector(v_.length)
-def MonsterAddTestarrayoftables(b_:flatbuffers_builder, testarrayoftables:int):
-    b_.PrependUOffsetTRelativeSlot(11, testarrayoftables, 0)
+def MonsterAddTestarrayoftables(b_:flatbuffers_builder, testarrayoftables:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(11, testarrayoftables)
 def MonsterStartTestarrayoftablesVector(b_:flatbuffers_builder, n_:int):
     b_.StartVector(4, n_, 4)
-def MonsterCreateTestarrayoftablesVector(b_:flatbuffers_builder, v_:[int]):
+def MonsterCreateTestarrayoftablesVector(b_:flatbuffers_builder, v_:[flatbuffers_offset]):
     b_.StartVector(4, v_.length, 4)
     reverse(v_) e_: b_.PrependUOffsetTRelative(e_)
     return b_.EndVector(v_.length)
-def MonsterAddEnemy(b_:flatbuffers_builder, enemy:int):
-    b_.PrependUOffsetTRelativeSlot(12, enemy, 0)
-def MonsterAddTestnestedflatbuffer(b_:flatbuffers_builder, testnestedflatbuffer:int):
-    b_.PrependUOffsetTRelativeSlot(13, testnestedflatbuffer, 0)
+def MonsterAddEnemy(b_:flatbuffers_builder, enemy:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(12, enemy)
+def MonsterAddTestnestedflatbuffer(b_:flatbuffers_builder, testnestedflatbuffer:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(13, testnestedflatbuffer)
 def MonsterStartTestnestedflatbufferVector(b_:flatbuffers_builder, n_:int):
     b_.StartVector(1, n_, 1)
 def MonsterCreateTestnestedflatbufferVector(b_:flatbuffers_builder, v_:[int]):
     b_.StartVector(1, v_.length, 1)
     reverse(v_) e_: b_.PrependUint8(e_)
     return b_.EndVector(v_.length)
-def MonsterAddTestempty(b_:flatbuffers_builder, testempty:int):
-    b_.PrependUOffsetTRelativeSlot(14, testempty, 0)
+def MonsterAddTestempty(b_:flatbuffers_builder, testempty:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(14, testempty)
 def MonsterAddTestbool(b_:flatbuffers_builder, testbool:int):
     b_.PrependBoolSlot(15, testbool, 0)
 def MonsterAddTesthashs32Fnv1(b_:flatbuffers_builder, testhashs32_fnv1:int):
@@ -405,8 +405,8 @@ def MonsterAddTesthashs64Fnv1a(b_:flatbuffers_builder, testhashs64_fnv1a:int):
     b_.PrependInt64Slot(22, testhashs64_fnv1a, 0)
 def MonsterAddTesthashu64Fnv1a(b_:flatbuffers_builder, testhashu64_fnv1a:int):
     b_.PrependUint64Slot(23, testhashu64_fnv1a, 0)
-def MonsterAddTestarrayofbools(b_:flatbuffers_builder, testarrayofbools:int):
-    b_.PrependUOffsetTRelativeSlot(24, testarrayofbools, 0)
+def MonsterAddTestarrayofbools(b_:flatbuffers_builder, testarrayofbools:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(24, testarrayofbools)
 def MonsterStartTestarrayofboolsVector(b_:flatbuffers_builder, n_:int):
     b_.StartVector(1, n_, 1)
 def MonsterCreateTestarrayofboolsVector(b_:flatbuffers_builder, v_:[int]):
@@ -419,78 +419,78 @@ def MonsterAddTestf2(b_:flatbuffers_builder, testf2:float):
     b_.PrependFloat32Slot(26, testf2, 3.0)
 def MonsterAddTestf3(b_:flatbuffers_builder, testf3:float):
     b_.PrependFloat32Slot(27, testf3, 0.0)
-def MonsterAddTestarrayofstring2(b_:flatbuffers_builder, testarrayofstring2:int):
-    b_.PrependUOffsetTRelativeSlot(28, testarrayofstring2, 0)
+def MonsterAddTestarrayofstring2(b_:flatbuffers_builder, testarrayofstring2:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(28, testarrayofstring2)
 def MonsterStartTestarrayofstring2Vector(b_:flatbuffers_builder, n_:int):
     b_.StartVector(4, n_, 4)
-def MonsterCreateTestarrayofstring2Vector(b_:flatbuffers_builder, v_:[int]):
+def MonsterCreateTestarrayofstring2Vector(b_:flatbuffers_builder, v_:[flatbuffers_offset]):
     b_.StartVector(4, v_.length, 4)
     reverse(v_) e_: b_.PrependUOffsetTRelative(e_)
     return b_.EndVector(v_.length)
-def MonsterAddTestarrayofsortedstruct(b_:flatbuffers_builder, testarrayofsortedstruct:int):
-    b_.PrependUOffsetTRelativeSlot(29, testarrayofsortedstruct, 0)
+def MonsterAddTestarrayofsortedstruct(b_:flatbuffers_builder, testarrayofsortedstruct:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(29, testarrayofsortedstruct)
 def MonsterStartTestarrayofsortedstructVector(b_:flatbuffers_builder, n_:int):
     b_.StartVector(8, n_, 4)
-def MonsterAddFlex(b_:flatbuffers_builder, flex:int):
-    b_.PrependUOffsetTRelativeSlot(30, flex, 0)
+def MonsterAddFlex(b_:flatbuffers_builder, flex:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(30, flex)
 def MonsterStartFlexVector(b_:flatbuffers_builder, n_:int):
     b_.StartVector(1, n_, 1)
 def MonsterCreateFlexVector(b_:flatbuffers_builder, v_:[int]):
     b_.StartVector(1, v_.length, 1)
     reverse(v_) e_: b_.PrependUint8(e_)
     return b_.EndVector(v_.length)
-def MonsterAddTest5(b_:flatbuffers_builder, test5:int):
-    b_.PrependUOffsetTRelativeSlot(31, test5, 0)
+def MonsterAddTest5(b_:flatbuffers_builder, test5:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(31, test5)
 def MonsterStartTest5Vector(b_:flatbuffers_builder, n_:int):
     b_.StartVector(4, n_, 2)
-def MonsterAddVectorOfLongs(b_:flatbuffers_builder, vector_of_longs:int):
-    b_.PrependUOffsetTRelativeSlot(32, vector_of_longs, 0)
+def MonsterAddVectorOfLongs(b_:flatbuffers_builder, vector_of_longs:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(32, vector_of_longs)
 def MonsterStartVectorOfLongsVector(b_:flatbuffers_builder, n_:int):
     b_.StartVector(8, n_, 8)
 def MonsterCreateVectorOfLongsVector(b_:flatbuffers_builder, v_:[int]):
     b_.StartVector(8, v_.length, 8)
     reverse(v_) e_: b_.PrependInt64(e_)
     return b_.EndVector(v_.length)
-def MonsterAddVectorOfDoubles(b_:flatbuffers_builder, vector_of_doubles:int):
-    b_.PrependUOffsetTRelativeSlot(33, vector_of_doubles, 0)
+def MonsterAddVectorOfDoubles(b_:flatbuffers_builder, vector_of_doubles:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(33, vector_of_doubles)
 def MonsterStartVectorOfDoublesVector(b_:flatbuffers_builder, n_:int):
     b_.StartVector(8, n_, 8)
 def MonsterCreateVectorOfDoublesVector(b_:flatbuffers_builder, v_:[float]):
     b_.StartVector(8, v_.length, 8)
     reverse(v_) e_: b_.PrependFloat64(e_)
     return b_.EndVector(v_.length)
-def MonsterAddParentNamespaceTest(b_:flatbuffers_builder, parent_namespace_test:int):
-    b_.PrependUOffsetTRelativeSlot(34, parent_namespace_test, 0)
-def MonsterAddVectorOfReferrables(b_:flatbuffers_builder, vector_of_referrables:int):
-    b_.PrependUOffsetTRelativeSlot(35, vector_of_referrables, 0)
+def MonsterAddParentNamespaceTest(b_:flatbuffers_builder, parent_namespace_test:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(34, parent_namespace_test)
+def MonsterAddVectorOfReferrables(b_:flatbuffers_builder, vector_of_referrables:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(35, vector_of_referrables)
 def MonsterStartVectorOfReferrablesVector(b_:flatbuffers_builder, n_:int):
     b_.StartVector(4, n_, 4)
-def MonsterCreateVectorOfReferrablesVector(b_:flatbuffers_builder, v_:[int]):
+def MonsterCreateVectorOfReferrablesVector(b_:flatbuffers_builder, v_:[flatbuffers_offset]):
     b_.StartVector(4, v_.length, 4)
     reverse(v_) e_: b_.PrependUOffsetTRelative(e_)
     return b_.EndVector(v_.length)
 def MonsterAddSingleWeakReference(b_:flatbuffers_builder, single_weak_reference:int):
     b_.PrependUint64Slot(36, single_weak_reference, 0)
-def MonsterAddVectorOfWeakReferences(b_:flatbuffers_builder, vector_of_weak_references:int):
-    b_.PrependUOffsetTRelativeSlot(37, vector_of_weak_references, 0)
+def MonsterAddVectorOfWeakReferences(b_:flatbuffers_builder, vector_of_weak_references:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(37, vector_of_weak_references)
 def MonsterStartVectorOfWeakReferencesVector(b_:flatbuffers_builder, n_:int):
     b_.StartVector(8, n_, 8)
 def MonsterCreateVectorOfWeakReferencesVector(b_:flatbuffers_builder, v_:[int]):
     b_.StartVector(8, v_.length, 8)
     reverse(v_) e_: b_.PrependUint64(e_)
     return b_.EndVector(v_.length)
-def MonsterAddVectorOfStrongReferrables(b_:flatbuffers_builder, vector_of_strong_referrables:int):
-    b_.PrependUOffsetTRelativeSlot(38, vector_of_strong_referrables, 0)
+def MonsterAddVectorOfStrongReferrables(b_:flatbuffers_builder, vector_of_strong_referrables:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(38, vector_of_strong_referrables)
 def MonsterStartVectorOfStrongReferrablesVector(b_:flatbuffers_builder, n_:int):
     b_.StartVector(4, n_, 4)
-def MonsterCreateVectorOfStrongReferrablesVector(b_:flatbuffers_builder, v_:[int]):
+def MonsterCreateVectorOfStrongReferrablesVector(b_:flatbuffers_builder, v_:[flatbuffers_offset]):
     b_.StartVector(4, v_.length, 4)
     reverse(v_) e_: b_.PrependUOffsetTRelative(e_)
     return b_.EndVector(v_.length)
 def MonsterAddCoOwningReference(b_:flatbuffers_builder, co_owning_reference:int):
     b_.PrependUint64Slot(39, co_owning_reference, 0)
-def MonsterAddVectorOfCoOwningReferences(b_:flatbuffers_builder, vector_of_co_owning_references:int):
-    b_.PrependUOffsetTRelativeSlot(40, vector_of_co_owning_references, 0)
+def MonsterAddVectorOfCoOwningReferences(b_:flatbuffers_builder, vector_of_co_owning_references:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(40, vector_of_co_owning_references)
 def MonsterStartVectorOfCoOwningReferencesVector(b_:flatbuffers_builder, n_:int):
     b_.StartVector(8, n_, 8)
 def MonsterCreateVectorOfCoOwningReferencesVector(b_:flatbuffers_builder, v_:[int]):
@@ -499,8 +499,8 @@ def MonsterCreateVectorOfCoOwningReferencesVector(b_:flatbuffers_builder, v_:[in
     return b_.EndVector(v_.length)
 def MonsterAddNonOwningReference(b_:flatbuffers_builder, non_owning_reference:int):
     b_.PrependUint64Slot(41, non_owning_reference, 0)
-def MonsterAddVectorOfNonOwningReferences(b_:flatbuffers_builder, vector_of_non_owning_references:int):
-    b_.PrependUOffsetTRelativeSlot(42, vector_of_non_owning_references, 0)
+def MonsterAddVectorOfNonOwningReferences(b_:flatbuffers_builder, vector_of_non_owning_references:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(42, vector_of_non_owning_references)
 def MonsterStartVectorOfNonOwningReferencesVector(b_:flatbuffers_builder, n_:int):
     b_.StartVector(8, n_, 8)
 def MonsterCreateVectorOfNonOwningReferencesVector(b_:flatbuffers_builder, v_:[int]):
@@ -509,14 +509,14 @@ def MonsterCreateVectorOfNonOwningReferencesVector(b_:flatbuffers_builder, v_:[i
     return b_.EndVector(v_.length)
 def MonsterAddAnyUniqueType(b_:flatbuffers_builder, any_unique_type:AnyUniqueAliases):
     b_.PrependUint8Slot(43, any_unique_type, 0)
-def MonsterAddAnyUnique(b_:flatbuffers_builder, any_unique:int):
-    b_.PrependUOffsetTRelativeSlot(44, any_unique, 0)
+def MonsterAddAnyUnique(b_:flatbuffers_builder, any_unique:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(44, any_unique)
 def MonsterAddAnyAmbiguousType(b_:flatbuffers_builder, any_ambiguous_type:AnyAmbiguousAliases):
     b_.PrependUint8Slot(45, any_ambiguous_type, 0)
-def MonsterAddAnyAmbiguous(b_:flatbuffers_builder, any_ambiguous:int):
-    b_.PrependUOffsetTRelativeSlot(46, any_ambiguous, 0)
-def MonsterAddVectorOfEnums(b_:flatbuffers_builder, vector_of_enums:int):
-    b_.PrependUOffsetTRelativeSlot(47, vector_of_enums, 0)
+def MonsterAddAnyAmbiguous(b_:flatbuffers_builder, any_ambiguous:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(46, any_ambiguous)
+def MonsterAddVectorOfEnums(b_:flatbuffers_builder, vector_of_enums:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(47, vector_of_enums)
 def MonsterStartVectorOfEnumsVector(b_:flatbuffers_builder, n_:int):
     b_.StartVector(1, n_, 1)
 def MonsterCreateVectorOfEnumsVector(b_:flatbuffers_builder, v_:[Color]):
@@ -580,16 +580,16 @@ def TypeAliasesAddF32(b_:flatbuffers_builder, f32:float):
     b_.PrependFloat32Slot(8, f32, 0.0)
 def TypeAliasesAddF64(b_:flatbuffers_builder, f64:float):
     b_.PrependFloat64Slot(9, f64, 0.0)
-def TypeAliasesAddV8(b_:flatbuffers_builder, v8:int):
-    b_.PrependUOffsetTRelativeSlot(10, v8, 0)
+def TypeAliasesAddV8(b_:flatbuffers_builder, v8:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(10, v8)
 def TypeAliasesStartV8Vector(b_:flatbuffers_builder, n_:int):
     b_.StartVector(1, n_, 1)
 def TypeAliasesCreateV8Vector(b_:flatbuffers_builder, v_:[int]):
     b_.StartVector(1, v_.length, 1)
     reverse(v_) e_: b_.PrependInt8(e_)
     return b_.EndVector(v_.length)
-def TypeAliasesAddVf64(b_:flatbuffers_builder, vf64:int):
-    b_.PrependUOffsetTRelativeSlot(11, vf64, 0)
+def TypeAliasesAddVf64(b_:flatbuffers_builder, vf64:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(11, vf64)
 def TypeAliasesStartVf64Vector(b_:flatbuffers_builder, n_:int):
     b_.StartVector(8, n_, 8)
 def TypeAliasesCreateVf64Vector(b_:flatbuffers_builder, v_:[float]):

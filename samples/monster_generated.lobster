@@ -66,16 +66,16 @@ def GetRootAsMonster(buf:string): return Monster { buf, buf.flatbuffers_indirect
 
 def MonsterStart(b_:flatbuffers_builder):
     b_.StartObject(11)
-def MonsterAddPos(b_:flatbuffers_builder, pos:int):
-    b_.PrependStructSlot(0, pos, 0)
+def MonsterAddPos(b_:flatbuffers_builder, pos:flatbuffers_offset):
+    b_.PrependStructSlot(0, pos)
 def MonsterAddMana(b_:flatbuffers_builder, mana:int):
     b_.PrependInt16Slot(1, mana, 150)
 def MonsterAddHp(b_:flatbuffers_builder, hp:int):
     b_.PrependInt16Slot(2, hp, 100)
-def MonsterAddName(b_:flatbuffers_builder, name:int):
-    b_.PrependUOffsetTRelativeSlot(3, name, 0)
-def MonsterAddInventory(b_:flatbuffers_builder, inventory:int):
-    b_.PrependUOffsetTRelativeSlot(5, inventory, 0)
+def MonsterAddName(b_:flatbuffers_builder, name:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(3, name)
+def MonsterAddInventory(b_:flatbuffers_builder, inventory:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(5, inventory)
 def MonsterStartInventoryVector(b_:flatbuffers_builder, n_:int):
     b_.StartVector(1, n_, 1)
 def MonsterCreateInventoryVector(b_:flatbuffers_builder, v_:[int]):
@@ -84,20 +84,20 @@ def MonsterCreateInventoryVector(b_:flatbuffers_builder, v_:[int]):
     return b_.EndVector(v_.length)
 def MonsterAddColor(b_:flatbuffers_builder, color:Color):
     b_.PrependInt8Slot(6, color, 2)
-def MonsterAddWeapons(b_:flatbuffers_builder, weapons:int):
-    b_.PrependUOffsetTRelativeSlot(7, weapons, 0)
+def MonsterAddWeapons(b_:flatbuffers_builder, weapons:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(7, weapons)
 def MonsterStartWeaponsVector(b_:flatbuffers_builder, n_:int):
     b_.StartVector(4, n_, 4)
-def MonsterCreateWeaponsVector(b_:flatbuffers_builder, v_:[int]):
+def MonsterCreateWeaponsVector(b_:flatbuffers_builder, v_:[flatbuffers_offset]):
     b_.StartVector(4, v_.length, 4)
     reverse(v_) e_: b_.PrependUOffsetTRelative(e_)
     return b_.EndVector(v_.length)
 def MonsterAddEquippedType(b_:flatbuffers_builder, equipped_type:Equipment):
     b_.PrependUint8Slot(8, equipped_type, 0)
-def MonsterAddEquipped(b_:flatbuffers_builder, equipped:int):
-    b_.PrependUOffsetTRelativeSlot(9, equipped, 0)
-def MonsterAddPath(b_:flatbuffers_builder, path:int):
-    b_.PrependUOffsetTRelativeSlot(10, path, 0)
+def MonsterAddEquipped(b_:flatbuffers_builder, equipped:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(9, equipped)
+def MonsterAddPath(b_:flatbuffers_builder, path:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(10, path)
 def MonsterStartPathVector(b_:flatbuffers_builder, n_:int):
     b_.StartVector(12, n_, 4)
 def MonsterEnd(b_:flatbuffers_builder):
@@ -113,8 +113,8 @@ def GetRootAsWeapon(buf:string): return Weapon { buf, buf.flatbuffers_indirect(0
 
 def WeaponStart(b_:flatbuffers_builder):
     b_.StartObject(2)
-def WeaponAddName(b_:flatbuffers_builder, name:int):
-    b_.PrependUOffsetTRelativeSlot(0, name, 0)
+def WeaponAddName(b_:flatbuffers_builder, name:flatbuffers_offset):
+    b_.PrependUOffsetTRelativeSlot(0, name)
 def WeaponAddDamage(b_:flatbuffers_builder, damage:int):
     b_.PrependInt16Slot(1, damage, 0)
 def WeaponEnd(b_:flatbuffers_builder):
