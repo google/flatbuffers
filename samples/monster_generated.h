@@ -6,6 +6,9 @@
 
 #include "flatbuffers/flatbuffers.h"
 
+#include <string>
+#include <vector>
+
 namespace MyGame {
 namespace Sample {
 
