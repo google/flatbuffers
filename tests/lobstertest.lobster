@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-include from "../lobster/"
-include "monster_test_generated.lobster"
+import from "../lobster/"
+import monster_test_generated
 
 def check_read_buffer(buf):
     // CheckReadBuffer checks that the given buffer is evaluated correctly as the example Monster.
@@ -119,14 +119,14 @@ check_read_buffer(fb1)
 write_file("monsterdata_lobster_wire.mon", fb1)
 
 // Test converting the buffer to JSON and parsing the JSON back again.
-schema := read_file("monster_test.fbs")
+let schema = read_file("monster_test.fbs")
 assert schema
-includedirs := [ "include_test" ]
+let includedirs = [ "include_test" ]
 // Convert binary to JSON:
-json, err1 := flatbuffers_binary_to_json(schema, fb1, includedirs)
+let json, err1 = flatbuffers_binary_to_json(schema, fb1, includedirs)
 assert not err1
 // Parse JSON back to binary:
-fb3, err2 := flatbuffers_json_to_binary(schema, json, includedirs)
+let fb3, err2 = flatbuffers_json_to_binary(schema, json, includedirs)
 assert not err2
 // Check the resulting binary again (full roundtrip test):
 check_read_buffer(fb3)

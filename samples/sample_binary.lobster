@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-include from "../lobster/"
-include "monster_generated.lobster"
+import from "../lobster/"
+import monster_generated
 
 // Example of how to use FlatBuffers to create and read binary buffers.
 
@@ -24,7 +24,7 @@ let b = flatbuffers_builder {}
 let weapon_names = [ "Sword", "Axe" ]
 let weapon_damages = [ 3, 5 ]
 
-weapon_offsets := map(weapon_names) name, i:
+let weapon_offsets = map(weapon_names) name, i:
     let ns = b.CreateString(name)
     b.MyGame_Sample_WeaponStart()
     b.MyGame_Sample_WeaponAddName(ns)

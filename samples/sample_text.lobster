@@ -12,20 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-include from "../lobster/"
-include "monster_generated.lobster"
+import from "../lobster/"
+import monster_generated
 
 // Example how to interop with JSON.
 
 // Test loading some JSON, converting it to a binary FlatBuffer and back again.
 
 // First read the schema and JSON data.
-schema := read_file("monster.fbs", true)
-json := read_file("monsterdata.json", true)
+let schema = read_file("monster.fbs", true)
+let json = read_file("monsterdata.json", true)
 assert schema and json
 
 // Parse JSON  to binary:
-fb, err1 := flatbuffers_json_to_binary(schema, json, [])
+let fb, err1 = flatbuffers_json_to_binary(schema, json, [])
 assert not err1
 
 // Access one field in it, just to check:
@@ -33,7 +33,7 @@ let monster = MyGame_Sample_GetRootAsMonster(fb)
 assert monster.name == "Orc"
 
 // Convert binary back to JSON:
-json2, err2 := flatbuffers_binary_to_json(schema, fb, [])
+let json2, err2 = flatbuffers_binary_to_json(schema, fb, [])
 assert not err2
 
 // The generated JSON should be exactly equal to the original!
