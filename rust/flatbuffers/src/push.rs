@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-use std::cmp::max;
-use std::mem::{align_of, size_of};
+use core::cmp::max;
+use core::mem::{align_of, size_of};
 
 use crate::endian_scalar::emplace_scalar;
 

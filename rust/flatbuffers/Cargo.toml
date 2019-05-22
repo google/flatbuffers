@@ -15,3 +15,7 @@ rust = "1.51"
 smallvec = "1.6.1"
 bitflags = "1.2.1"
 thiserror = "1.0.23"
+
+[features]
+default = ["std"]
+std = []
