@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 grpc_1_39_0_githash=58602e20a3f3e48f24a4114c757099b25b947f7b
 

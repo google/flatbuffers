@@ -1,4 +1,4 @@
-#!/bin/bash -eu
+#!/usr/bin/env bash -eu
 #
 # Copyright 2014 Google Inc. All rights reserved.
 #

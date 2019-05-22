@@ -322,6 +322,7 @@ class RustGenerator : public BaseGenerator {
       "yield",
 
       // other rust terms we should not use
+      "core"
       "std",
       "usize",
       "isize",
@@ -382,8 +383,13 @@ class RustGenerator : public BaseGenerator {
       code_.Clear();
       code_ += "// " + std::string(FlatBuffersGeneratedWarning());
       code_ += "extern crate flatbuffers;";
-      code_ += "use std::mem;";
-      code_ += "use std::cmp::Ordering;";
+      code_ += "extern crate core;";
+      code_ += "extern crate alloc;";
+      code_ += "use self::alloc::vec::Vec;";
+      code_ += "use self::alloc::boxed::Box;";
+      code_ += "use self::alloc::string::{String, ToString as _};";
+      code_ += "use self::core::mem;";
+      code_ += "use self::core::cmp::Ordering;";
       code_ += "use self::flatbuffers::{EndianScalar, Follow};";
       code_ += "use super::*;";
       cur_name_space_ = symbol.defined_namespace;
@@ -826,10 +832,10 @@ class RustGenerator : public BaseGenerator {
       code_ += "}";
 
       // Generate Debug. Unknown variants are printed like "<UNKNOWN 42>".
-      code_ += "impl std::fmt::Debug for {{ENUM_NAME}} {";
+      code_ += "impl self::core::fmt::Debug for {{ENUM_NAME}} {";
       code_ +=
-          "  fn fmt(&self, f: &mut std::fmt::Formatter) ->"
-          " std::fmt::Result {";
+          "  fn fmt(&self, f: &mut self::core::fmt::Formatter) ->"
+          " self::core::fmt::Result {";
       code_ += "    if let Some(name) = self.variant_name() {";
       code_ += "      f.write_str(name)";
       code_ += "    } else {";
@@ -981,7 +987,7 @@ class RustGenerator : public BaseGenerator {
           "pub fn take_{{U_ELEMENT_NAME}}(&mut self) -> "
           "Option<Box<{{U_ELEMENT_TABLE_TYPE}}>> {";
       code_ += "  if let Self::{{NATIVE_VARIANT}}(_) = self {";
-      code_ += "    let v = std::mem::replace(self, Self::NONE);";
+      code_ += "    let v = self::core::mem::replace(self, Self::NONE);";
       code_ += "    if let Self::{{NATIVE_VARIANT}}(w) = v {";
       code_ += "      Some(w)";
       code_ += "    } else {";
@@ -2078,10 +2084,10 @@ class RustGenerator : public BaseGenerator {
     code_ += "}";
     code_ += "";
 
-    code_ += "impl std::fmt::Debug for {{STRUCT_NAME}}<'_> {";
+    code_ += "impl self::core::fmt::Debug for {{STRUCT_NAME}}<'_> {";
     code_ +=
-        "  fn fmt(&self, f: &mut std::fmt::Formatter<'_>"
-        ") -> std::fmt::Result {";
+        "  fn fmt(&self, f: &mut self::core::fmt::Formatter<'_>"
+        ") -> self::core::fmt::Result {";
     code_ += "    let mut ds = f.debug_struct(\"{{STRUCT_NAME}}\");";
     ForAllTableFields(struct_def, [&](const FieldDef &field) {
       if (GetFullType(field.value.type) == ftUnionValue) {
@@ -2302,7 +2308,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "#[inline]";
     code_ +=
         "pub fn key_compare_with_value(&self, val: {{KEY_TYPE}}) -> "
-        "::std::cmp::Ordering {";
+        " self::core::cmp::Ordering {";
     code_ += "  let key = self.{{FIELD_NAME}}();";
     code_ += "  key.cmp({{REF}}val)";
     code_ += "}";
@@ -2565,10 +2571,10 @@ class RustGenerator : public BaseGenerator {
     code_ += "}";
 
     // Debug for structs.
-    code_ += "impl std::fmt::Debug for {{STRUCT_NAME}} {";
+    code_ += "impl self::core::fmt::Debug for {{STRUCT_NAME}} {";
     code_ +=
-        "  fn fmt(&self, f: &mut std::fmt::Formatter"
-        ") -> std::fmt::Result {";
+        "  fn fmt(&self, f: &mut self::core::fmt::Formatter"
+        ") -> self::core::fmt::Result {";
     code_ += "    f.debug_struct(\"{{STRUCT_NAME}}\")";
     ForAllStructFields(struct_def, [&](const FieldDef &unused) {
       (void)unused;
@@ -2604,7 +2610,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "    fn push(&self, dst: &mut [u8], _rest: &[u8]) {";
     code_ += "        let src = unsafe {";
     code_ +=
-        "            ::std::slice::from_raw_parts("
+        "            self::core::slice::from_raw_parts("
         "self as *const {{STRUCT_NAME}} as *const u8, Self::size())";
     code_ += "        };";
     code_ += "        dst.copy_from_slice(src);";
@@ -2617,7 +2623,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "    fn push(&self, dst: &mut [u8], _rest: &[u8]) {";
     code_ += "        let src = unsafe {";
     code_ +=
-        "            ::std::slice::from_raw_parts("
+        "            self::core::slice::from_raw_parts("
         "*self as *const {{STRUCT_NAME}} as *const u8, Self::size())";
     code_ += "        };";
     code_ += "        dst.copy_from_slice(src);";
@@ -2718,7 +2724,7 @@ class RustGenerator : public BaseGenerator {
                          NumToString(InlineSize(field.value.type)));
           code_ += "pub fn set_{{FIELD_NAME}}(&mut self, x: &{{FIELD_TYPE}}) {";
           code_ += "  unsafe {";
-          code_ += "    std::ptr::copy(";
+          code_ += "    self::core::ptr::copy(";
           code_ += "      x.as_ptr() as *const u8,";
           code_ += "      self.0.as_mut_ptr().add({{FIELD_OFFSET}}),";
           code_ += "      {{FIELD_SIZE}},";
@@ -2831,8 +2837,10 @@ class RustGenerator : public BaseGenerator {
         }
       }
     }
-    code_ += indent + "use std::mem;";
-    code_ += indent + "use std::cmp::Ordering;";
+    code_ += indent + "extern crate core;";
+    code_ += "";
+    code_ += indent + "use self::core::mem;";
+    code_ += indent + "use self::core::cmp::Ordering;";
     code_ += "";
     code_ += indent + "extern crate flatbuffers;";
     code_ += indent + "use self::flatbuffers::{EndianScalar, Follow};";
