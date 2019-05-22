@@ -485,8 +485,8 @@ The first step is to import/include the library, generated files, etc.
 </div>
 <div class="language-lobster">
 ~~~{.lobster}
-  include from "../lobster/"  // Where to find flatbuffers.lobster
-  include "monster_generated.lobster"
+  import from "../lobster/"  // Where to find flatbuffers.lobster
+  import monster_generated
 ~~~
 </div>
 <div class="language-rust">
@@ -592,7 +592,7 @@ which will grow automatically if needed:
 </div>
 <div class="language-lobster">
 ~~~{.lobster}
-  -- get access to the builder
+  // get access to the builder
   let builder = flatbuffers_builder {}
 ~~~
 </div>
@@ -813,7 +813,7 @@ our `orc` Monster, lets create some `Weapon`s: a `Sword` and an `Axe`.
   let weapon_names = [ "Sword", "Axe" ]
   let weapon_damages = [ 3, 5 ]
 
-  weapon_offsets := map(weapon_names) name, i:
+  let weapon_offsets = map(weapon_names) name, i:
       let ns = builder.CreateString(name)
       builder.MyGame_Sample_WeaponStart()
       builder.MyGame_Sample_WeaponAddName(ns)
@@ -2033,8 +2033,8 @@ import './monster_my_game.sample_generated.dart' as myGame;
 </div>
 <div class="language-lobster">
 ~~~{.lobster}
-  include from "../lobster/"  // Where to find flatbuffers.lobster
-  include "monster_generated.lobster"
+  import from "../lobster/"  // Where to find flatbuffers.lobster
+  import monster_generated
 ~~~
 </div>
 <div class="language-rust">
