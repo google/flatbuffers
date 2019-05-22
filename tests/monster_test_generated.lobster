@@ -91,13 +91,13 @@ def CreateTest(b_:flatbuffers_builder, a:int, b:int):
 
 class TestSimpleTableWithEnum : flatbuffers_handle
     def color():
-        return buf_.flatbuffers_field_int8(pos_, 4, 2)
+        return Color(buf_.flatbuffers_field_int8(pos_, 4, 2))
 
 def GetRootAsTestSimpleTableWithEnum(buf:string): return TestSimpleTableWithEnum { buf, buf.flatbuffers_indirect(0) }
 
 def TestSimpleTableWithEnumStart(b_:flatbuffers_builder):
     b_.StartObject(1)
-def TestSimpleTableWithEnumAddColor(b_:flatbuffers_builder, color:int):
+def TestSimpleTableWithEnumAddColor(b_:flatbuffers_builder, color:Color):
     b_.PrependUint8Slot(0, color, 2)
 def TestSimpleTableWithEnumEnd(b_:flatbuffers_builder):
     return b_.EndObject()
@@ -112,11 +112,11 @@ class Vec3 : flatbuffers_handle
     def test1():
         return buf_.read_float64_le(pos_ + 16)
     def test2():
-        return buf_.read_int8_le(pos_ + 24)
+        return Color(buf_.read_int8_le(pos_ + 24))
     def test3():
         return MyGame_Example_Test{ buf_, pos_ + 26 }
 
-def CreateVec3(b_:flatbuffers_builder, x:float, y:float, z:float, test1:float, test2:int, test3_a:int, test3_b:int):
+def CreateVec3(b_:flatbuffers_builder, x:float, y:float, z:float, test1:float, test2:Color, test3_a:int, test3_b:int):
     b_.Prep(8, 32)
     b_.Pad(2)
     b_.Prep(2, 4)
@@ -194,9 +194,9 @@ class Monster : flatbuffers_handle
     def inventory_length():
         return buf_.flatbuffers_field_vector_len(pos_, 14)
     def color():
-        return buf_.flatbuffers_field_int8(pos_, 16, 8)
+        return Color(buf_.flatbuffers_field_int8(pos_, 16, 8))
     def test_type():
-        return buf_.flatbuffers_field_int8(pos_, 18, 0)
+        return Any(buf_.flatbuffers_field_int8(pos_, 18, 0))
     def test_as_Monster():
         return MyGame_Example_Monster { buf_, buf_.flatbuffers_field_table(pos_, 20) }
     def test_as_TestSimpleTableWithEnum():
@@ -309,7 +309,7 @@ class Monster : flatbuffers_handle
     def vector_of_non_owning_references_length():
         return buf_.flatbuffers_field_vector_len(pos_, 88)
     def any_unique_type():
-        return buf_.flatbuffers_field_int8(pos_, 90, 0)
+        return AnyUniqueAliases(buf_.flatbuffers_field_int8(pos_, 90, 0))
     def any_unique_as_M():
         return MyGame_Example_Monster { buf_, buf_.flatbuffers_field_table(pos_, 92) }
     def any_unique_as_T():
@@ -317,7 +317,7 @@ class Monster : flatbuffers_handle
     def any_unique_as_M2():
         return MyGame_Example2_Monster { buf_, buf_.flatbuffers_field_table(pos_, 92) }
     def any_ambiguous_type():
-        return buf_.flatbuffers_field_int8(pos_, 94, 0)
+        return AnyAmbiguousAliases(buf_.flatbuffers_field_int8(pos_, 94, 0))
     def any_ambiguous_as_M1():
         return MyGame_Example_Monster { buf_, buf_.flatbuffers_field_table(pos_, 96) }
     def any_ambiguous_as_M2():
@@ -349,9 +349,9 @@ def MonsterCreateInventoryVector(b_:flatbuffers_builder, v_:[int]):
     b_.StartVector(1, v_.length, 1)
     reverse(v_) e_: b_.PrependUint8(e_)
     return b_.EndVector(v_.length)
-def MonsterAddColor(b_:flatbuffers_builder, color:int):
+def MonsterAddColor(b_:flatbuffers_builder, color:Color):
     b_.PrependUint8Slot(6, color, 8)
-def MonsterAddTestType(b_:flatbuffers_builder, test_type:int):
+def MonsterAddTestType(b_:flatbuffers_builder, test_type:Any):
     b_.PrependUint8Slot(7, test_type, 0)
 def MonsterAddTest(b_:flatbuffers_builder, test:int):
     b_.PrependUOffsetTRelativeSlot(8, test, 0)
@@ -507,11 +507,11 @@ def MonsterCreateVectorOfNonOwningReferencesVector(b_:flatbuffers_builder, v_:[i
     b_.StartVector(8, v_.length, 8)
     reverse(v_) e_: b_.PrependUint64(e_)
     return b_.EndVector(v_.length)
-def MonsterAddAnyUniqueType(b_:flatbuffers_builder, any_unique_type:int):
+def MonsterAddAnyUniqueType(b_:flatbuffers_builder, any_unique_type:AnyUniqueAliases):
     b_.PrependUint8Slot(43, any_unique_type, 0)
 def MonsterAddAnyUnique(b_:flatbuffers_builder, any_unique:int):
     b_.PrependUOffsetTRelativeSlot(44, any_unique, 0)
-def MonsterAddAnyAmbiguousType(b_:flatbuffers_builder, any_ambiguous_type:int):
+def MonsterAddAnyAmbiguousType(b_:flatbuffers_builder, any_ambiguous_type:AnyAmbiguousAliases):
     b_.PrependUint8Slot(45, any_ambiguous_type, 0)
 def MonsterAddAnyAmbiguous(b_:flatbuffers_builder, any_ambiguous:int):
     b_.PrependUOffsetTRelativeSlot(46, any_ambiguous, 0)
@@ -519,7 +519,7 @@ def MonsterAddVectorOfEnums(b_:flatbuffers_builder, vector_of_enums:int):
     b_.PrependUOffsetTRelativeSlot(47, vector_of_enums, 0)
 def MonsterStartVectorOfEnumsVector(b_:flatbuffers_builder, n_:int):
     b_.StartVector(1, n_, 1)
-def MonsterCreateVectorOfEnumsVector(b_:flatbuffers_builder, v_:[int]):
+def MonsterCreateVectorOfEnumsVector(b_:flatbuffers_builder, v_:[Color]):
     b_.StartVector(1, v_.length, 1)
     reverse(v_) e_: b_.PrependUint8(e_)
     return b_.EndVector(v_.length)

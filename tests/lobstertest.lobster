@@ -89,7 +89,8 @@ def make_monster_from_generated_code():
                                 [ -1.7976931348623157e+308, 0, 1.7976931348623157e+308 ])
 
     b.MyGame_Example_MonsterStart()
-    b.MyGame_Example_MonsterAddPos(b.MyGame_Example_CreateVec3(1.0, 2.0, 3.0, 3.0, 2, 5, 6))
+    b.MyGame_Example_MonsterAddPos(b.MyGame_Example_CreateVec3(1.0, 2.0, 3.0, 3.0,
+                                   MyGame_Example_Color_Green, 5, 6))
     b.MyGame_Example_MonsterAddHp(80)
     b.MyGame_Example_MonsterAddName(name)
     b.MyGame_Example_MonsterAddInventory(inv)
