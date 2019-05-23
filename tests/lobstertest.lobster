@@ -70,9 +70,10 @@ def make_monster_from_generated_code():
 
     let inv = b.MyGame_Example_MonsterCreateInventoryVector([ 0, 1, 2, 3, 4 ])
 
-    b.MyGame_Example_MonsterStart()
-    b.MyGame_Example_MonsterAddName(fred)
-    let mon2 = b.MyGame_Example_MonsterEnd()
+    let mon2 = MyGame_Example_MonsterBuilder { b }
+        .start()
+        .add_name(fred)
+        .end()
 
     b.MyGame_Example_MonsterStartTest4Vector(2)
     b.MyGame_Example_CreateTest(10, 20)
@@ -88,19 +89,20 @@ def make_monster_from_generated_code():
     let vector_of_doubles = b.MyGame_Example_MonsterCreateVectorOfDoublesVector(
                                 [ -1.7976931348623157e+308, 0, 1.7976931348623157e+308 ])
 
-    b.MyGame_Example_MonsterStart()
-    b.MyGame_Example_MonsterAddPos(b.MyGame_Example_CreateVec3(1.0, 2.0, 3.0, 3.0,
-                                   MyGame_Example_Color_Green, 5, 6))
-    b.MyGame_Example_MonsterAddHp(80)
-    b.MyGame_Example_MonsterAddName(name)
-    b.MyGame_Example_MonsterAddInventory(inv)
-    b.MyGame_Example_MonsterAddTestType(MyGame_Example_Any_Monster)
-    b.MyGame_Example_MonsterAddTest(mon2)
-    b.MyGame_Example_MonsterAddTest4(test4)
-    b.MyGame_Example_MonsterAddTestarrayofstring(test_array_of_string)
-    b.MyGame_Example_MonsterAddVectorOfLongs(vector_of_longs)
-    b.MyGame_Example_MonsterAddVectorOfDoubles(vector_of_doubles)
-    let mon = b.MyGame_Example_MonsterEnd()
+    let mon = MyGame_Example_MonsterBuilder { b }
+        .start()
+        .add_pos(b.MyGame_Example_CreateVec3(1.0, 2.0, 3.0, 3.0,
+                 MyGame_Example_Color_Green, 5, 6))
+        .add_hp(80)
+        .add_name(name)
+        .add_inventory(inv)
+        .add_test_type(MyGame_Example_Any_Monster)
+        .add_test(mon2)
+        .add_test4(test4)
+        .add_testarrayofstring(test_array_of_string)
+        .add_vector_of_longs(vector_of_longs)
+        .add_vector_of_doubles(vector_of_doubles)
+        .end()
 
     b.Finish(mon)
 

@@ -64,44 +64,60 @@ class Monster : flatbuffers_handle
 
 def GetRootAsMonster(buf:string): return Monster { buf, buf.flatbuffers_indirect(0) }
 
-def MonsterStart(b_:flatbuffers_builder):
-    b_.StartObject(11)
-def MonsterAddPos(b_:flatbuffers_builder, pos:flatbuffers_offset):
-    b_.PrependStructSlot(0, pos)
-def MonsterAddMana(b_:flatbuffers_builder, mana:int):
-    b_.PrependInt16Slot(1, mana, 150)
-def MonsterAddHp(b_:flatbuffers_builder, hp:int):
-    b_.PrependInt16Slot(2, hp, 100)
-def MonsterAddName(b_:flatbuffers_builder, name:flatbuffers_offset):
-    b_.PrependUOffsetTRelativeSlot(3, name)
-def MonsterAddInventory(b_:flatbuffers_builder, inventory:flatbuffers_offset):
-    b_.PrependUOffsetTRelativeSlot(5, inventory)
+struct MonsterBuilder:
+    b_:flatbuffers_builder
+    def start():
+        b_.StartObject(11)
+        return this
+    def add_pos(pos:flatbuffers_offset):
+        b_.PrependStructSlot(0, pos)
+        return this
+    def add_mana(mana:int):
+        b_.PrependInt16Slot(1, mana, 150)
+        return this
+    def add_hp(hp:int):
+        b_.PrependInt16Slot(2, hp, 100)
+        return this
+    def add_name(name:flatbuffers_offset):
+        b_.PrependUOffsetTRelativeSlot(3, name)
+        return this
+    def add_inventory(inventory:flatbuffers_offset):
+        b_.PrependUOffsetTRelativeSlot(5, inventory)
+        return this
+    def add_color(color:Color):
+        b_.PrependInt8Slot(6, color, 2)
+        return this
+    def add_weapons(weapons:flatbuffers_offset):
+        b_.PrependUOffsetTRelativeSlot(7, weapons)
+        return this
+    def add_equipped_type(equipped_type:Equipment):
+        b_.PrependUint8Slot(8, equipped_type, 0)
+        return this
+    def add_equipped(equipped:flatbuffers_offset):
+        b_.PrependUOffsetTRelativeSlot(9, equipped)
+        return this
+    def add_path(path:flatbuffers_offset):
+        b_.PrependUOffsetTRelativeSlot(10, path)
+        return this
+    def end():
+        return b_.EndObject()
+
 def MonsterStartInventoryVector(b_:flatbuffers_builder, n_:int):
     b_.StartVector(1, n_, 1)
 def MonsterCreateInventoryVector(b_:flatbuffers_builder, v_:[int]):
     b_.StartVector(1, v_.length, 1)
     reverse(v_) e_: b_.PrependUint8(e_)
     return b_.EndVector(v_.length)
-def MonsterAddColor(b_:flatbuffers_builder, color:Color):
-    b_.PrependInt8Slot(6, color, 2)
-def MonsterAddWeapons(b_:flatbuffers_builder, weapons:flatbuffers_offset):
-    b_.PrependUOffsetTRelativeSlot(7, weapons)
+
 def MonsterStartWeaponsVector(b_:flatbuffers_builder, n_:int):
     b_.StartVector(4, n_, 4)
 def MonsterCreateWeaponsVector(b_:flatbuffers_builder, v_:[flatbuffers_offset]):
     b_.StartVector(4, v_.length, 4)
     reverse(v_) e_: b_.PrependUOffsetTRelative(e_)
     return b_.EndVector(v_.length)
-def MonsterAddEquippedType(b_:flatbuffers_builder, equipped_type:Equipment):
-    b_.PrependUint8Slot(8, equipped_type, 0)
-def MonsterAddEquipped(b_:flatbuffers_builder, equipped:flatbuffers_offset):
-    b_.PrependUOffsetTRelativeSlot(9, equipped)
-def MonsterAddPath(b_:flatbuffers_builder, path:flatbuffers_offset):
-    b_.PrependUOffsetTRelativeSlot(10, path)
+
 def MonsterStartPathVector(b_:flatbuffers_builder, n_:int):
     b_.StartVector(12, n_, 4)
-def MonsterEnd(b_:flatbuffers_builder):
-    return b_.EndObject()
 
 class Weapon : flatbuffers_handle
     def name():
@@ -111,12 +127,17 @@ class Weapon : flatbuffers_handle
 
 def GetRootAsWeapon(buf:string): return Weapon { buf, buf.flatbuffers_indirect(0) }
 
-def WeaponStart(b_:flatbuffers_builder):
-    b_.StartObject(2)
-def WeaponAddName(b_:flatbuffers_builder, name:flatbuffers_offset):
-    b_.PrependUOffsetTRelativeSlot(0, name)
-def WeaponAddDamage(b_:flatbuffers_builder, damage:int):
-    b_.PrependInt16Slot(1, damage, 0)
-def WeaponEnd(b_:flatbuffers_builder):
-    return b_.EndObject()
+struct WeaponBuilder:
+    b_:flatbuffers_builder
+    def start():
+        b_.StartObject(2)
+        return this
+    def add_name(name:flatbuffers_offset):
+        b_.PrependUOffsetTRelativeSlot(0, name)
+        return this
+    def add_damage(damage:int):
+        b_.PrependInt16Slot(1, damage, 0)
+        return this
+    def end():
+        return b_.EndObject()
 
