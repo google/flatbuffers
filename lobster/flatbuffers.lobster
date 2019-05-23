@@ -282,4 +282,3 @@ class builder:
             // elsewhere.
             assert x.o == head
             Slot(v)
-

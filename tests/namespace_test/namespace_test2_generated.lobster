@@ -25,16 +25,22 @@ class TableInFirstNS : flatbuffers_handle
 
 def GetRootAsTableInFirstNS(buf:string): return TableInFirstNS { buf, buf.flatbuffers_indirect(0) }
 
-def TableInFirstNSStart(b_:flatbuffers_builder):
-    b_.StartObject(3)
-def TableInFirstNSAddFooTable(b_:flatbuffers_builder, foo_table:flatbuffers_offset):
-    b_.PrependUOffsetTRelativeSlot(0, foo_table)
-def TableInFirstNSAddFooEnum(b_:flatbuffers_builder, foo_enum:EnumInNestedNS):
-    b_.PrependInt8Slot(1, foo_enum, 0)
-def TableInFirstNSAddFooStruct(b_:flatbuffers_builder, foo_struct:flatbuffers_offset):
-    b_.PrependStructSlot(2, foo_struct)
-def TableInFirstNSEnd(b_:flatbuffers_builder):
-    return b_.EndObject()
+struct TableInFirstNSBuilder:
+    b_:flatbuffers_builder
+    def start():
+        b_.StartObject(3)
+        return this
+    def add_foo_table(foo_table:flatbuffers_offset):
+        b_.PrependUOffsetTRelativeSlot(0, foo_table)
+        return this
+    def add_foo_enum(foo_enum:EnumInNestedNS):
+        b_.PrependInt8Slot(1, foo_enum, 0)
+        return this
+    def add_foo_struct(foo_struct:flatbuffers_offset):
+        b_.PrependStructSlot(2, foo_struct)
+        return this
+    def end():
+        return b_.EndObject()
 
 namespace NamespaceC
 
@@ -48,14 +54,19 @@ class TableInC : flatbuffers_handle
 
 def GetRootAsTableInC(buf:string): return TableInC { buf, buf.flatbuffers_indirect(0) }
 
-def TableInCStart(b_:flatbuffers_builder):
-    b_.StartObject(2)
-def TableInCAddReferToA1(b_:flatbuffers_builder, refer_to_a1:flatbuffers_offset):
-    b_.PrependUOffsetTRelativeSlot(0, refer_to_a1)
-def TableInCAddReferToA2(b_:flatbuffers_builder, refer_to_a2:flatbuffers_offset):
-    b_.PrependUOffsetTRelativeSlot(1, refer_to_a2)
-def TableInCEnd(b_:flatbuffers_builder):
-    return b_.EndObject()
+struct TableInCBuilder:
+    b_:flatbuffers_builder
+    def start():
+        b_.StartObject(2)
+        return this
+    def add_refer_to_a1(refer_to_a1:flatbuffers_offset):
+        b_.PrependUOffsetTRelativeSlot(0, refer_to_a1)
+        return this
+    def add_refer_to_a2(refer_to_a2:flatbuffers_offset):
+        b_.PrependUOffsetTRelativeSlot(1, refer_to_a2)
+        return this
+    def end():
+        return b_.EndObject()
 
 namespace NamespaceA
 
@@ -66,10 +77,14 @@ class SecondTableInA : flatbuffers_handle
 
 def GetRootAsSecondTableInA(buf:string): return SecondTableInA { buf, buf.flatbuffers_indirect(0) }
 
-def SecondTableInAStart(b_:flatbuffers_builder):
-    b_.StartObject(1)
-def SecondTableInAAddReferToC(b_:flatbuffers_builder, refer_to_c:flatbuffers_offset):
-    b_.PrependUOffsetTRelativeSlot(0, refer_to_c)
-def SecondTableInAEnd(b_:flatbuffers_builder):
-    return b_.EndObject()
+struct SecondTableInABuilder:
+    b_:flatbuffers_builder
+    def start():
+        b_.StartObject(1)
+        return this
+    def add_refer_to_c(refer_to_c:flatbuffers_offset):
+        b_.PrependUOffsetTRelativeSlot(0, refer_to_c)
+        return this
+    def end():
+        return b_.EndObject()
 

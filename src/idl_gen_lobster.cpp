@@ -180,22 +180,28 @@ class LobsterGenerator : public BaseGenerator {
   void GenTableBuilders(const StructDef &struct_def,
                         std::string *code_ptr) {
     std::string &code = *code_ptr;
-    code += "def " + NormalizedName(struct_def) +
-            "Start(b_:flatbuffers_builder):\n    b_.StartObject(" +
-            NumToString(struct_def.fields.vec.size()) + ")\n";
+    code += "struct " + NormalizedName(struct_def) +
+            "Builder:\n    b_:flatbuffers_builder\n";
+    code += "    def start():\n        b_.StartObject(" +
+            NumToString(struct_def.fields.vec.size()) + ")\n        return this\n";
     for (auto it = struct_def.fields.vec.begin();
-        it != struct_def.fields.vec.end(); ++it) {
+         it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
       if (field.deprecated) continue;
       auto offset = it - struct_def.fields.vec.begin();
-      code += "def " + NormalizedName(struct_def) + "Add" +
-              MakeCamel(NormalizedName(field)) + "(b_:flatbuffers_builder, " +
+      code += "    def add_" + NormalizedName(field) + "(" +
               NormalizedName(field) + ":" + LobsterType(field.value.type) +
-              "):\n    b_.Prepend" + GenMethod(field.value.type) + "Slot(" +
+              "):\n        b_.Prepend" + GenMethod(field.value.type) + "Slot(" +
               NumToString(offset) + ", " + NormalizedName(field);
       if (IsScalar(field.value.type.base_type))
         code += ", " + field.value.constant;
-      code += ")\n";
+      code += ")\n        return this\n";
+    }
+    code += "    def end():\n        return b_.EndObject()\n\n";
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto &field = **it;
+      if (field.deprecated) continue;
       if (field.value.type.base_type == BASE_TYPE_VECTOR) {
         code += "def " + NormalizedName(struct_def) + "Start" +
                 MakeCamel(NormalizedName(field)) +
@@ -217,10 +223,9 @@ class LobsterGenerator : public BaseGenerator {
                   GenMethod(vector_type) +
                   "(e_)\n    return b_.EndVector(v_.length)\n";
         }
+        code += "\n";
       }
     }
-    code += "def " + NormalizedName(struct_def) +
-            "End(b_:flatbuffers_builder):\n    return b_.EndObject()\n\n";
   }
 
   void GenStructPreDecl(const StructDef &struct_def, std::string *code_ptr) {

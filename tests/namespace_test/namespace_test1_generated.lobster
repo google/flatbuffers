@@ -18,12 +18,16 @@ class TableInNestedNS : flatbuffers_handle
 
 def GetRootAsTableInNestedNS(buf:string): return TableInNestedNS { buf, buf.flatbuffers_indirect(0) }
 
-def TableInNestedNSStart(b_:flatbuffers_builder):
-    b_.StartObject(1)
-def TableInNestedNSAddFoo(b_:flatbuffers_builder, foo:int):
-    b_.PrependInt32Slot(0, foo, 0)
-def TableInNestedNSEnd(b_:flatbuffers_builder):
-    return b_.EndObject()
+struct TableInNestedNSBuilder:
+    b_:flatbuffers_builder
+    def start():
+        b_.StartObject(1)
+        return this
+    def add_foo(foo:int):
+        b_.PrependInt32Slot(0, foo, 0)
+        return this
+    def end():
+        return b_.EndObject()
 
 class StructInNestedNS : flatbuffers_handle
     def a():
