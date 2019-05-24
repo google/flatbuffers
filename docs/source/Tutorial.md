@@ -485,8 +485,8 @@ The first step is to import/include the library, generated files, etc.
 </div>
 <div class="language-lobster">
 ~~~{.lobster}
-  include from "../lobster/"  // Where to find flatbuffers.lobster
-  include "monster_generated.lobster"
+  import from "../lobster/"  // Where to find flatbuffers.lobster
+  import monster_generated
 ~~~
 </div>
 <div class="language-rust">
@@ -592,7 +592,7 @@ which will grow automatically if needed:
 </div>
 <div class="language-lobster">
 ~~~{.lobster}
-  -- get access to the builder
+  // get access to the builder
   let builder = flatbuffers_builder {}
 ~~~
 </div>
@@ -813,12 +813,13 @@ our `orc` Monster, lets create some `Weapon`s: a `Sword` and an `Axe`.
   let weapon_names = [ "Sword", "Axe" ]
   let weapon_damages = [ 3, 5 ]
 
-  weapon_offsets := map(weapon_names) name, i:
+  let weapon_offsets = map(weapon_names) name, i:
       let ns = builder.CreateString(name)
-      builder.MyGame_Sample_WeaponStart()
-      builder.MyGame_Sample_WeaponAddName(ns)
-      builder.MyGame_Sample_WeaponAddDamage(weapon_damages[i])
-      builder.MyGame_Sample_WeaponEnd()
+      MyGame_Sample_WeaponBuilder { b }
+          .start()
+          .add_name(ns)
+          .add_damage(weapon_damages[i])
+          .end()
 ~~~
 </div>
 <div class="language-rust">
@@ -1503,17 +1504,18 @@ can serialize the monster itself:
 </div>
 <div class="language-lobster">
 ~~~{.lobster}
-  builder.MyGame_Sample_MonsterStart()
-  builder.MyGame_Sample_MonsterAddPos(builder.MyGame_Sample_CreateVec3(1.0, 2.0, 3.0))
-  builder.MyGame_Sample_MonsterAddHp(300)
-  builder.MyGame_Sample_MonsterAddName(name)
-  builder.MyGame_Sample_MonsterAddInventory(inv)
-  builder.MyGame_Sample_MonsterAddColor(MyGame_Sample_Color_Red)
-  builder.MyGame_Sample_MonsterAddWeapons(weapons)
-  builder.MyGame_Sample_MonsterAddEquippedType(MyGame_Sample_Equipment_Weapon)
-  builder.MyGame_Sample_MonsterAddEquipped(weapon_offsets[1])
-  builder.MyGame_Sample_MonsterAddPath(path)
-  let orc = builder.MyGame_Sample_MonsterEnd()
+  let orc = MyGame_Sample_MonsterBuilder { b }
+      .start()
+      .add_pos(b.MyGame_Sample_CreateVec3(1.0, 2.0, 3.0))
+      .add_hp(300)
+      .add_name(name)
+      .add_inventory(inv)
+      .add_color(MyGame_Sample_Color_Red)
+      .add_weapons(weapons)
+      .add_equipped_type(MyGame_Sample_Equipment_Weapon)
+      .add_equipped(weapon_offsets[1])
+      .add_path(path)
+      .end()
 ~~~
 </div>
 <div class="language-rust">
@@ -1687,8 +1689,8 @@ Here is a repetition these lines, to help highlight them more clearly:
 </div>
 <div class="language-lobster">
 ~~~{.lobster}
-  builder.MyGame_Sample_MonsterAddEquippedType(MyGame_Sample_Equipment_Weapon)
-  builder.MyGame_Sample_MonsterAddEquipped(axe)
+    .add_equipped_type(MyGame_Sample_Equipment_Weapon)
+    .add_equipped(axe)
 ~~~
 </div>
 <div class="language-rust">
@@ -2033,8 +2035,8 @@ import './monster_my_game.sample_generated.dart' as myGame;
 </div>
 <div class="language-lobster">
 ~~~{.lobster}
-  include from "../lobster/"  // Where to find flatbuffers.lobster
-  include "monster_generated.lobster"
+  import from "../lobster/"  // Where to find flatbuffers.lobster
+  import monster_generated
 ~~~
 </div>
 <div class="language-rust">
