@@ -476,7 +476,6 @@ struct IDLOptions {
   bool generate_name_strings;
   bool generate_object_based_api;
   bool gen_compare;
-  std::vector<std::string> cpp_includes;
   std::string cpp_object_api_pointer_type;
   std::string cpp_object_api_string_type;
   bool cpp_object_api_string_flexible_constructor;
@@ -500,6 +499,7 @@ struct IDLOptions {
   bool size_prefixed;
   std::string root_type;
   bool force_defaults;
+  std::vector<std::string> cpp_includes;
 
   // Possible options for the more general generator below.
   enum Language {
@@ -555,7 +555,6 @@ struct IDLOptions {
         generate_name_strings(false),
         generate_object_based_api(false),
         gen_compare(false),
-        cpp_includes({}),
         cpp_object_api_pointer_type("std::unique_ptr"),
         cpp_object_api_string_flexible_constructor(false),
         gen_nullable(false),
