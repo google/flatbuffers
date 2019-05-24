@@ -1,0 +1,7 @@
+FROM rust
+WORKDIR /code
+ADD . .
+WORKDIR /code/rust/flatbuffers
+RUN rustup default nightly
+RUN rustc --version
+RUN cargo test --no-default-features
