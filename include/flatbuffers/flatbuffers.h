@@ -803,12 +803,7 @@ class vector_downward {
   uint8_t *data_at(size_t offset) const { return buf_ + reserved_ - offset; }
 
   void push(const uint8_t *bytes, size_t num) {
-    // CreateVector above, can pass through a nullptr for bytes
-    // for empty vectors.  Passing nullptr to memcpy is undefined
-    // behavior.
-    if (num > 0) {
-      memcpy(make_space(num), bytes, num);
-    }
+    memcpy(make_space(num), bytes, num);
   }
 
   // Specialized version of push() that avoids memcpy call for small data.
@@ -897,10 +892,16 @@ inline voffset_t FieldIndexToOffset(voffset_t field_id) {
 
 template<typename T, typename Alloc>
 const T *data(const std::vector<T, Alloc> &v) {
-  return v.empty() ? nullptr : &v.front();
+  // Eventually the returned pointer gets passed down to memcpy, so
+  // we need it to be non-null to avoid undefined behavior.
+  static uint8_t t;
+  return v.empty() ? reinterpret_cast<const T*>(&t) : &v.front();
 }
 template<typename T, typename Alloc> T *data(std::vector<T, Alloc> &v) {
-  return v.empty() ? nullptr : &v.front();
+  // Eventually the returned pointer gets passed down to memcpy, so
+  // we need it to be non-null to avoid undefined behavior.
+  static uint8_t t;
+  return v.empty() ? reinterpret_cast<T*>(&t) : &v.front();
 }
 
 /// @endcond
