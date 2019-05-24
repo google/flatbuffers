@@ -107,7 +107,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "                     If the language uses a single file for output (by default\n"
     "                     the case for C++ and JS), all code will end up in this one\n"
     "                     file.\n"
-    "  --cpp-includes     Comma delimited strings to be #include-d in generated files.\n"
+    "  --cpp-include      Adds an #include in generated file.\n"
     "  --cpp-ptr-type T   Set object API pointer type (default std::unique_ptr).\n"
     "  --cpp-str-type T   Set object API string type (default std::string).\n"
     "                     T::c_str(), T::length() and T::empty() must be supported.\n"
@@ -248,9 +248,9 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.generate_object_based_api = true;
       } else if (arg == "--gen-compare") {
         opts.gen_compare = true;
-      } else if (arg == "--cpp-includes") {
+      } else if (arg == "--cpp-include") {
         if (++argi >= argc) Error("missing type following" + arg, true);
-        opts.cpp_includes = argv[argi];
+        opts.cpp_includes.push_back(argv[argi]);
       } else if (arg == "--cpp-ptr-type") {
         if (++argi >= argc) Error("missing type following" + arg, true);
         opts.cpp_object_api_pointer_type = argv[argi];

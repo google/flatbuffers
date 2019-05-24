@@ -29,7 +29,7 @@ IF NOT "%MONSTER_EXTRA%"=="skip" (
 )
 
 cd ../samples
-..\%buildtype%\flatc.exe --cpp --lobster --gen-mutable --reflect-names --gen-object-api --gen-compare --cpp-ptr-type flatbuffers::unique_ptr --cpp-includes "string,vector" monster.fbs || goto FAIL
+..\%buildtype%\flatc.exe --cpp --lobster --gen-mutable --reflect-names --gen-object-api --gen-compare --cpp-ptr-type flatbuffers::unique_ptr --cpp-include "string" --cpp-include "vector" monster.fbs || goto FAIL
 ..\%buildtype%\flatc.exe -b --schema --bfbs-comments --bfbs-builtins monster.fbs || goto FAIL
 cd ../reflection
 call generate_code.bat %1 %2 || goto FAIL

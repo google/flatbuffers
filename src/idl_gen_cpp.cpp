@@ -205,18 +205,12 @@ class CppGenerator : public BaseGenerator {
   }
 
   void GenExtraIncludes() {
-    if(parser_.opts.cpp_includes.empty()) {
-      return;
+    for(const std::string & i: parser_.opts.cpp_includes) {
+      code_ += "#include <" + i + ">";
     }
-    const std::string &ref = parser_.opts.cpp_includes;
-    for (size_t pos = 0; pos != std::string::npos;) {
-      const auto delim = ref.find_first_of(',', pos);
-      const auto last = (std::string::npos == delim);
-      auto word = ref.substr(pos, !last ? delim - pos : std::string::npos);
-      code_ += "#include <" + word + ">";
-      pos = !last ? delim + 1 : std::string::npos;
+    if (!parser_.opts.cpp_includes.empty()) {
+      code_ += "";
     }
-    code_ += "";
   }
 
   std::string EscapeKeyword(const std::string &name) const {
