@@ -136,6 +136,17 @@ namespace FlatBuffers.Test
         }
 
         [FlatBuffersTestMethod]
+        public void TestCreateSharedAsciiString()
+        {
+            var builder = new FlatBufferBuilder(1);
+            builder.CreateSharedString("foo");
+            Assert.ArrayEqual(new byte[] { 3, 0, 0, 0, (byte)'f', (byte)'o', (byte)'o', 0 }, builder.DataBuffer.ToFullArray());
+
+            builder.CreateSharedString("foo");
+            Assert.ArrayEqual(new byte[] { 3, 0, 0, 0, (byte)'f', (byte)'o', (byte)'o', 0 }, builder.DataBuffer.ToFullArray());
+        }
+
+        [FlatBuffersTestMethod]
         public void TestCreateArbitarytring()
         {
             var builder = new FlatBufferBuilder(1);
