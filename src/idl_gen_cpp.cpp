@@ -602,12 +602,14 @@ class CppGenerator : public BaseGenerator {
 
   const std::string &PtrType(const FieldDef *field) {
     auto attr = field ? field->attributes.Lookup("cpp_ptr_type") : nullptr;
-    return attr ? attr->constant : parser_.opts.cpp_object_api_pointer_type;
+    return attr ? attr->constant
+                : parser_.opts.cpp_object_api_pointer_type.Get();
   }
 
   const std::string NativeString(const FieldDef *field) {
     auto attr = field ? field->attributes.Lookup("cpp_str_type") : nullptr;
-    auto &ret = attr ? attr->constant : parser_.opts.cpp_object_api_string_type;
+    auto &ret =
+        attr ? attr->constant : parser_.opts.cpp_object_api_string_type.Get();
     if (ret.empty()) { return "::std::string"; }
     return ret;
   }
@@ -628,7 +630,7 @@ class CppGenerator : public BaseGenerator {
     if (ptr_type != "naked") {
       return (ptr_type != "default_ptr_type"
                   ? ptr_type
-                  : parser_.opts.cpp_object_api_pointer_type) +
+                  : parser_.opts.cpp_object_api_pointer_type.Get()) +
              "<" + type + ">";
     } else if (is_constructor) {
       return "";

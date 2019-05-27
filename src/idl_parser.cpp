@@ -1747,7 +1747,7 @@ struct EnumValBuilder {
     auto ascending = false;
     if (enum_def.IsUInt64()) {
       uint64_t u64;
-      fit = StringToNumber(value.c_str(), &u64); 
+      fit = StringToNumber(value.c_str(), &u64);
       ascending = u64 > temp->GetAsUInt64();
       temp->value = static_cast<int64_t>(u64);  // well-defined since C++20.
     } else {
@@ -3098,6 +3098,15 @@ bool ServiceDef::Deserialize(Parser &parser,
     return false;
   DeserializeDoc(doc_comment, service->documentation());
   return true;
+}
+
+CPPTypeName::CPPTypeName(std::string value) : value_{} {
+  // If the name is already qualified (starts with "::"), we're good.
+  if (value.rfind("::", 0) == 0) {
+    value_ = std::move(value);
+  } else {
+    value_ = "::" + std::move(value);
+  }
 }
 
 Offset<reflection::Enum> EnumDef::Serialize(FlatBufferBuilder *builder,

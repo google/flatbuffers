@@ -1,8 +1,12 @@
 #include <string>
+#include <utility>
 
 namespace some_namespace {
 struct custom_string {
   std::string value;
+
+  custom_string() = default;
+  custom_string(std::string value) : value{ std::move(value) } {}
 
   char const *c_str() const { return value.c_str(); }
 

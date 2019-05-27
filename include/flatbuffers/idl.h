@@ -455,6 +455,17 @@ struct ServiceDef : public Definition {
   SymbolTable<RPCCall> calls;
 };
 
+struct CPPTypeName {
+ public:
+  CPPTypeName() = default;
+  explicit CPPTypeName(std::string type_name);
+
+  std::string const &Get() const { return value_; }
+
+ private:
+  std::string value_;
+};
+
 // Container of options that may apply to any of the source/text generators.
 struct IDLOptions {
   bool strict_json;
@@ -476,8 +487,8 @@ struct IDLOptions {
   bool generate_name_strings;
   bool generate_object_based_api;
   bool gen_compare;
-  std::string cpp_object_api_pointer_type;
-  std::string cpp_object_api_string_type;
+  CPPTypeName cpp_object_api_pointer_type;
+  CPPTypeName cpp_object_api_string_type;
   bool cpp_object_api_string_flexible_constructor;
   bool gen_nullable;
   bool gen_generated;
@@ -554,7 +565,7 @@ struct IDLOptions {
         generate_name_strings(false),
         generate_object_based_api(false),
         gen_compare(false),
-        cpp_object_api_pointer_type("::std::unique_ptr"),
+        cpp_object_api_pointer_type("std::unique_ptr"),
         cpp_object_api_string_flexible_constructor(false),
         gen_nullable(false),
         gen_generated(false),
