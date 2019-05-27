@@ -54,10 +54,10 @@ struct TableInFirstNS FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     return GetPointer<NamespaceA::NamespaceB::TableInNestedNS *>(VT_FOO_TABLE);
   }
   NamespaceA::NamespaceB::EnumInNestedNS foo_enum() const {
-    return static_cast<NamespaceA::NamespaceB::EnumInNestedNS>(GetField<int8_t>(VT_FOO_ENUM, 0));
+    return static_cast<NamespaceA::NamespaceB::EnumInNestedNS>(GetField<::int8_t>(VT_FOO_ENUM, 0));
   }
   bool mutate_foo_enum(NamespaceA::NamespaceB::EnumInNestedNS _foo_enum) {
-    return SetField<int8_t>(VT_FOO_ENUM, static_cast<int8_t>(_foo_enum), 0);
+    return SetField<::int8_t>(VT_FOO_ENUM, static_cast<::int8_t>(_foo_enum), 0);
   }
   const NamespaceA::NamespaceB::StructInNestedNS *foo_struct() const {
     return GetStruct<const NamespaceA::NamespaceB::StructInNestedNS *>(VT_FOO_STRUCT);
@@ -69,7 +69,7 @@ struct TableInFirstNS FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_FOO_TABLE) &&
            verifier.VerifyTable(foo_table()) &&
-           VerifyField<int8_t>(verifier, VT_FOO_ENUM) &&
+           VerifyField<::int8_t>(verifier, VT_FOO_ENUM) &&
            VerifyField<NamespaceA::NamespaceB::StructInNestedNS>(verifier, VT_FOO_STRUCT) &&
            verifier.EndTable();
   }
@@ -82,7 +82,7 @@ struct TableInFirstNSBuilder {
     fbb_.AddOffset(TableInFirstNS::VT_FOO_TABLE, foo_table);
   }
   void add_foo_enum(NamespaceA::NamespaceB::EnumInNestedNS foo_enum) {
-    fbb_.AddElement<int8_t>(TableInFirstNS::VT_FOO_ENUM, static_cast<int8_t>(foo_enum), 0);
+    fbb_.AddElement<::int8_t>(TableInFirstNS::VT_FOO_ENUM, static_cast<::int8_t>(foo_enum), 0);
   }
   void add_foo_struct(const NamespaceA::NamespaceB::StructInNestedNS *foo_struct) {
     fbb_.AddStruct(TableInFirstNS::VT_FOO_STRUCT, foo_struct);

@@ -2692,7 +2692,7 @@ class CppGenerator : public BaseGenerator {
   }
 
   static void PaddingDefinition(int bits, std::string *code_ptr, int *id) {
-    *code_ptr += "  int" + NumToString(bits) + "_t padding" +
+    *code_ptr += "  ::int" + NumToString(bits) + "_t padding" +
                  NumToString((*id)++) + "__;";
   }
 

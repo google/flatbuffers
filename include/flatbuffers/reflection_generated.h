@@ -106,19 +106,19 @@ struct Type FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     VT_INDEX = 8
   };
   BaseType base_type() const {
-    return static_cast<BaseType>(GetField<int8_t>(VT_BASE_TYPE, 0));
+    return static_cast<BaseType>(GetField<::int8_t>(VT_BASE_TYPE, 0));
   }
   BaseType element() const {
-    return static_cast<BaseType>(GetField<int8_t>(VT_ELEMENT, 0));
+    return static_cast<BaseType>(GetField<::int8_t>(VT_ELEMENT, 0));
   }
-  int32_t index() const {
-    return GetField<int32_t>(VT_INDEX, -1);
+  ::int32_t index() const {
+    return GetField<::int32_t>(VT_INDEX, -1);
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<int8_t>(verifier, VT_BASE_TYPE) &&
-           VerifyField<int8_t>(verifier, VT_ELEMENT) &&
-           VerifyField<int32_t>(verifier, VT_INDEX) &&
+           VerifyField<::int8_t>(verifier, VT_BASE_TYPE) &&
+           VerifyField<::int8_t>(verifier, VT_ELEMENT) &&
+           VerifyField<::int32_t>(verifier, VT_INDEX) &&
            verifier.EndTable();
   }
 };
@@ -127,13 +127,13 @@ struct TypeBuilder {
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
   void add_base_type(BaseType base_type) {
-    fbb_.AddElement<int8_t>(Type::VT_BASE_TYPE, static_cast<int8_t>(base_type), 0);
+    fbb_.AddElement<::int8_t>(Type::VT_BASE_TYPE, static_cast<::int8_t>(base_type), 0);
   }
   void add_element(BaseType element) {
-    fbb_.AddElement<int8_t>(Type::VT_ELEMENT, static_cast<int8_t>(element), 0);
+    fbb_.AddElement<::int8_t>(Type::VT_ELEMENT, static_cast<::int8_t>(element), 0);
   }
-  void add_index(int32_t index) {
-    fbb_.AddElement<int32_t>(Type::VT_INDEX, index, -1);
+  void add_index(::int32_t index) {
+    fbb_.AddElement<::int32_t>(Type::VT_INDEX, index, -1);
   }
   explicit TypeBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -151,7 +151,7 @@ inline ::flatbuffers::Offset<Type> CreateType(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     BaseType base_type = None,
     BaseType element = None,
-    int32_t index = -1) {
+    ::int32_t index = -1) {
   TypeBuilder builder_(_fbb);
   builder_.add_index(index);
   builder_.add_element(element);
@@ -241,13 +241,13 @@ struct EnumVal FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::String *name() const {
     return GetPointer<const ::flatbuffers::String *>(VT_NAME);
   }
-  int64_t value() const {
-    return GetField<int64_t>(VT_VALUE, 0);
+  ::int64_t value() const {
+    return GetField<::int64_t>(VT_VALUE, 0);
   }
   bool KeyCompareLessThan(const EnumVal *o) const {
     return value() < o->value();
   }
-  int KeyCompareWithValue(int64_t val) const {
+  int KeyCompareWithValue(::int64_t val) const {
     return static_cast<int>(value() > val) - static_cast<int>(value() < val);
   }
   const Object *object() const {
@@ -263,7 +263,7 @@ struct EnumVal FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
-           VerifyField<int64_t>(verifier, VT_VALUE) &&
+           VerifyField<::int64_t>(verifier, VT_VALUE) &&
            VerifyOffset(verifier, VT_OBJECT) &&
            verifier.VerifyTable(object()) &&
            VerifyOffset(verifier, VT_UNION_TYPE) &&
@@ -281,8 +281,8 @@ struct EnumValBuilder {
   void add_name(::flatbuffers::Offset<::flatbuffers::String> name) {
     fbb_.AddOffset(EnumVal::VT_NAME, name);
   }
-  void add_value(int64_t value) {
-    fbb_.AddElement<int64_t>(EnumVal::VT_VALUE, value, 0);
+  void add_value(::int64_t value) {
+    fbb_.AddElement<::int64_t>(EnumVal::VT_VALUE, value, 0);
   }
   void add_object(::flatbuffers::Offset<Object> object) {
     fbb_.AddOffset(EnumVal::VT_OBJECT, object);
@@ -309,7 +309,7 @@ struct EnumValBuilder {
 inline ::flatbuffers::Offset<EnumVal> CreateEnumVal(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     ::flatbuffers::Offset<::flatbuffers::String> name = 0,
-    int64_t value = 0,
+    ::int64_t value = 0,
     ::flatbuffers::Offset<Object> object = 0,
     ::flatbuffers::Offset<Type> union_type = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> documentation = 0) {
@@ -325,7 +325,7 @@ inline ::flatbuffers::Offset<EnumVal> CreateEnumVal(
 inline ::flatbuffers::Offset<EnumVal> CreateEnumValDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
-    int64_t value = 0,
+    ::int64_t value = 0,
     ::flatbuffers::Offset<Object> object = 0,
     ::flatbuffers::Offset<Type> union_type = 0,
     const ::std::vector<::flatbuffers::Offset<::flatbuffers::String>> *documentation = nullptr) {
@@ -362,7 +362,7 @@ struct Enum FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<EnumVal>> *>(VT_VALUES);
   }
   bool is_union() const {
-    return GetField<uint8_t>(VT_IS_UNION, 0) != 0;
+    return GetField<::uint8_t>(VT_IS_UNION, 0) != 0;
   }
   const Type *underlying_type() const {
     return GetPointer<const Type *>(VT_UNDERLYING_TYPE);
@@ -380,7 +380,7 @@ struct Enum FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            VerifyOffsetRequired(verifier, VT_VALUES) &&
            verifier.VerifyVector(values()) &&
            verifier.VerifyVectorOfTables(values()) &&
-           VerifyField<uint8_t>(verifier, VT_IS_UNION) &&
+           VerifyField<::uint8_t>(verifier, VT_IS_UNION) &&
            VerifyOffsetRequired(verifier, VT_UNDERLYING_TYPE) &&
            verifier.VerifyTable(underlying_type()) &&
            VerifyOffset(verifier, VT_ATTRIBUTES) &&
@@ -403,7 +403,7 @@ struct EnumBuilder {
     fbb_.AddOffset(Enum::VT_VALUES, values);
   }
   void add_is_union(bool is_union) {
-    fbb_.AddElement<uint8_t>(Enum::VT_IS_UNION, static_cast<uint8_t>(is_union), 0);
+    fbb_.AddElement<::uint8_t>(Enum::VT_IS_UNION, static_cast<::uint8_t>(is_union), 0);
   }
   void add_underlying_type(::flatbuffers::Offset<Type> underlying_type) {
     fbb_.AddOffset(Enum::VT_UNDERLYING_TYPE, underlying_type);
@@ -495,26 +495,26 @@ struct Field FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const Type *type() const {
     return GetPointer<const Type *>(VT_TYPE);
   }
-  uint16_t id() const {
-    return GetField<uint16_t>(VT_ID, 0);
+  ::uint16_t id() const {
+    return GetField<::uint16_t>(VT_ID, 0);
   }
-  uint16_t offset() const {
-    return GetField<uint16_t>(VT_OFFSET, 0);
+  ::uint16_t offset() const {
+    return GetField<::uint16_t>(VT_OFFSET, 0);
   }
-  int64_t default_integer() const {
-    return GetField<int64_t>(VT_DEFAULT_INTEGER, 0);
+  ::int64_t default_integer() const {
+    return GetField<::int64_t>(VT_DEFAULT_INTEGER, 0);
   }
   double default_real() const {
     return GetField<double>(VT_DEFAULT_REAL, 0.0);
   }
   bool deprecated() const {
-    return GetField<uint8_t>(VT_DEPRECATED, 0) != 0;
+    return GetField<::uint8_t>(VT_DEPRECATED, 0) != 0;
   }
   bool required() const {
-    return GetField<uint8_t>(VT_REQUIRED, 0) != 0;
+    return GetField<::uint8_t>(VT_REQUIRED, 0) != 0;
   }
   bool key() const {
-    return GetField<uint8_t>(VT_KEY, 0) != 0;
+    return GetField<::uint8_t>(VT_KEY, 0) != 0;
   }
   const ::flatbuffers::Vector<::flatbuffers::Offset<KeyValue>> *attributes() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<KeyValue>> *>(VT_ATTRIBUTES);
@@ -528,13 +528,13 @@ struct Field FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            verifier.VerifyString(name()) &&
            VerifyOffsetRequired(verifier, VT_TYPE) &&
            verifier.VerifyTable(type()) &&
-           VerifyField<uint16_t>(verifier, VT_ID) &&
-           VerifyField<uint16_t>(verifier, VT_OFFSET) &&
-           VerifyField<int64_t>(verifier, VT_DEFAULT_INTEGER) &&
+           VerifyField<::uint16_t>(verifier, VT_ID) &&
+           VerifyField<::uint16_t>(verifier, VT_OFFSET) &&
+           VerifyField<::int64_t>(verifier, VT_DEFAULT_INTEGER) &&
            VerifyField<double>(verifier, VT_DEFAULT_REAL) &&
-           VerifyField<uint8_t>(verifier, VT_DEPRECATED) &&
-           VerifyField<uint8_t>(verifier, VT_REQUIRED) &&
-           VerifyField<uint8_t>(verifier, VT_KEY) &&
+           VerifyField<::uint8_t>(verifier, VT_DEPRECATED) &&
+           VerifyField<::uint8_t>(verifier, VT_REQUIRED) &&
+           VerifyField<::uint8_t>(verifier, VT_KEY) &&
            VerifyOffset(verifier, VT_ATTRIBUTES) &&
            verifier.VerifyVector(attributes()) &&
            verifier.VerifyVectorOfTables(attributes()) &&
@@ -554,26 +554,26 @@ struct FieldBuilder {
   void add_type(::flatbuffers::Offset<Type> type) {
     fbb_.AddOffset(Field::VT_TYPE, type);
   }
-  void add_id(uint16_t id) {
-    fbb_.AddElement<uint16_t>(Field::VT_ID, id, 0);
+  void add_id(::uint16_t id) {
+    fbb_.AddElement<::uint16_t>(Field::VT_ID, id, 0);
   }
-  void add_offset(uint16_t offset) {
-    fbb_.AddElement<uint16_t>(Field::VT_OFFSET, offset, 0);
+  void add_offset(::uint16_t offset) {
+    fbb_.AddElement<::uint16_t>(Field::VT_OFFSET, offset, 0);
   }
-  void add_default_integer(int64_t default_integer) {
-    fbb_.AddElement<int64_t>(Field::VT_DEFAULT_INTEGER, default_integer, 0);
+  void add_default_integer(::int64_t default_integer) {
+    fbb_.AddElement<::int64_t>(Field::VT_DEFAULT_INTEGER, default_integer, 0);
   }
   void add_default_real(double default_real) {
     fbb_.AddElement<double>(Field::VT_DEFAULT_REAL, default_real, 0.0);
   }
   void add_deprecated(bool deprecated) {
-    fbb_.AddElement<uint8_t>(Field::VT_DEPRECATED, static_cast<uint8_t>(deprecated), 0);
+    fbb_.AddElement<::uint8_t>(Field::VT_DEPRECATED, static_cast<::uint8_t>(deprecated), 0);
   }
   void add_required(bool required) {
-    fbb_.AddElement<uint8_t>(Field::VT_REQUIRED, static_cast<uint8_t>(required), 0);
+    fbb_.AddElement<::uint8_t>(Field::VT_REQUIRED, static_cast<::uint8_t>(required), 0);
   }
   void add_key(bool key) {
-    fbb_.AddElement<uint8_t>(Field::VT_KEY, static_cast<uint8_t>(key), 0);
+    fbb_.AddElement<::uint8_t>(Field::VT_KEY, static_cast<::uint8_t>(key), 0);
   }
   void add_attributes(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<KeyValue>>> attributes) {
     fbb_.AddOffset(Field::VT_ATTRIBUTES, attributes);
@@ -599,9 +599,9 @@ inline ::flatbuffers::Offset<Field> CreateField(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     ::flatbuffers::Offset<::flatbuffers::String> name = 0,
     ::flatbuffers::Offset<Type> type = 0,
-    uint16_t id = 0,
-    uint16_t offset = 0,
-    int64_t default_integer = 0,
+    ::uint16_t id = 0,
+    ::uint16_t offset = 0,
+    ::int64_t default_integer = 0,
     double default_real = 0.0,
     bool deprecated = false,
     bool required = false,
@@ -627,9 +627,9 @@ inline ::flatbuffers::Offset<Field> CreateFieldDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
     ::flatbuffers::Offset<Type> type = 0,
-    uint16_t id = 0,
-    uint16_t offset = 0,
-    int64_t default_integer = 0,
+    ::uint16_t id = 0,
+    ::uint16_t offset = 0,
+    ::int64_t default_integer = 0,
     double default_real = 0.0,
     bool deprecated = false,
     bool required = false,
@@ -677,13 +677,13 @@ struct Object FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<Field>> *>(VT_FIELDS);
   }
   bool is_struct() const {
-    return GetField<uint8_t>(VT_IS_STRUCT, 0) != 0;
+    return GetField<::uint8_t>(VT_IS_STRUCT, 0) != 0;
   }
-  int32_t minalign() const {
-    return GetField<int32_t>(VT_MINALIGN, 0);
+  ::int32_t minalign() const {
+    return GetField<::int32_t>(VT_MINALIGN, 0);
   }
-  int32_t bytesize() const {
-    return GetField<int32_t>(VT_BYTESIZE, 0);
+  ::int32_t bytesize() const {
+    return GetField<::int32_t>(VT_BYTESIZE, 0);
   }
   const ::flatbuffers::Vector<::flatbuffers::Offset<KeyValue>> *attributes() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<KeyValue>> *>(VT_ATTRIBUTES);
@@ -698,9 +698,9 @@ struct Object FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            VerifyOffsetRequired(verifier, VT_FIELDS) &&
            verifier.VerifyVector(fields()) &&
            verifier.VerifyVectorOfTables(fields()) &&
-           VerifyField<uint8_t>(verifier, VT_IS_STRUCT) &&
-           VerifyField<int32_t>(verifier, VT_MINALIGN) &&
-           VerifyField<int32_t>(verifier, VT_BYTESIZE) &&
+           VerifyField<::uint8_t>(verifier, VT_IS_STRUCT) &&
+           VerifyField<::int32_t>(verifier, VT_MINALIGN) &&
+           VerifyField<::int32_t>(verifier, VT_BYTESIZE) &&
            VerifyOffset(verifier, VT_ATTRIBUTES) &&
            verifier.VerifyVector(attributes()) &&
            verifier.VerifyVectorOfTables(attributes()) &&
@@ -721,13 +721,13 @@ struct ObjectBuilder {
     fbb_.AddOffset(Object::VT_FIELDS, fields);
   }
   void add_is_struct(bool is_struct) {
-    fbb_.AddElement<uint8_t>(Object::VT_IS_STRUCT, static_cast<uint8_t>(is_struct), 0);
+    fbb_.AddElement<::uint8_t>(Object::VT_IS_STRUCT, static_cast<::uint8_t>(is_struct), 0);
   }
-  void add_minalign(int32_t minalign) {
-    fbb_.AddElement<int32_t>(Object::VT_MINALIGN, minalign, 0);
+  void add_minalign(::int32_t minalign) {
+    fbb_.AddElement<::int32_t>(Object::VT_MINALIGN, minalign, 0);
   }
-  void add_bytesize(int32_t bytesize) {
-    fbb_.AddElement<int32_t>(Object::VT_BYTESIZE, bytesize, 0);
+  void add_bytesize(::int32_t bytesize) {
+    fbb_.AddElement<::int32_t>(Object::VT_BYTESIZE, bytesize, 0);
   }
   void add_attributes(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<KeyValue>>> attributes) {
     fbb_.AddOffset(Object::VT_ATTRIBUTES, attributes);
@@ -754,8 +754,8 @@ inline ::flatbuffers::Offset<Object> CreateObject(
     ::flatbuffers::Offset<::flatbuffers::String> name = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Field>>> fields = 0,
     bool is_struct = false,
-    int32_t minalign = 0,
-    int32_t bytesize = 0,
+    ::int32_t minalign = 0,
+    ::int32_t bytesize = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<KeyValue>>> attributes = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> documentation = 0) {
   ObjectBuilder builder_(_fbb);
@@ -774,8 +774,8 @@ inline ::flatbuffers::Offset<Object> CreateObjectDirect(
     const char *name = nullptr,
     const ::std::vector<::flatbuffers::Offset<Field>> *fields = nullptr,
     bool is_struct = false,
-    int32_t minalign = 0,
-    int32_t bytesize = 0,
+    ::int32_t minalign = 0,
+    ::int32_t bytesize = 0,
     const ::std::vector<::flatbuffers::Offset<KeyValue>> *attributes = nullptr,
     const ::std::vector<::flatbuffers::Offset<::flatbuffers::String>> *documentation = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;

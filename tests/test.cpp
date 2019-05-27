@@ -35,6 +35,14 @@
   namespace flexbuffers {}
   namespace grpc {}
   namespace std {}
+  using int8_t = void;
+  using uint8_t = void;
+  using int16_t = void;
+  using uint16_t = void;
+  using int32_t = void;
+  using uint32_t = void;
+  using int64_t = void;
+  using uint64_t = void;
   }  // namespace MyGame
 
 #include "monster_test_generated.h"

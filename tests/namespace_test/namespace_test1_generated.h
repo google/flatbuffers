@@ -52,8 +52,8 @@ inline const char *EnumNameEnumInNestedNS(EnumInNestedNS e) {
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) StructInNestedNS FLATBUFFERS_FINAL_CLASS {
  private:
-  int32_t a_;
-  int32_t b_;
+  ::int32_t a_;
+  ::int32_t b_;
 
  public:
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
@@ -62,20 +62,20 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) StructInNestedNS FLATBUFFERS_FINAL_CLASS 
   StructInNestedNS() {
     memset(static_cast<void *>(this), 0, sizeof(StructInNestedNS));
   }
-  StructInNestedNS(int32_t _a, int32_t _b)
+  StructInNestedNS(::int32_t _a, ::int32_t _b)
       : a_(::flatbuffers::EndianScalar(_a)),
         b_(::flatbuffers::EndianScalar(_b)) {
   }
-  int32_t a() const {
+  ::int32_t a() const {
     return ::flatbuffers::EndianScalar(a_);
   }
-  void mutate_a(int32_t _a) {
+  void mutate_a(::int32_t _a) {
     ::flatbuffers::WriteScalar(&a_, _a);
   }
-  int32_t b() const {
+  ::int32_t b() const {
     return ::flatbuffers::EndianScalar(b_);
   }
-  void mutate_b(int32_t _b) {
+  void mutate_b(::int32_t _b) {
     ::flatbuffers::WriteScalar(&b_, _b);
   }
 };
@@ -88,15 +88,15 @@ struct TableInNestedNS FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_FOO = 4
   };
-  int32_t foo() const {
-    return GetField<int32_t>(VT_FOO, 0);
+  ::int32_t foo() const {
+    return GetField<::int32_t>(VT_FOO, 0);
   }
-  bool mutate_foo(int32_t _foo) {
-    return SetField<int32_t>(VT_FOO, _foo, 0);
+  bool mutate_foo(::int32_t _foo) {
+    return SetField<::int32_t>(VT_FOO, _foo, 0);
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<int32_t>(verifier, VT_FOO) &&
+           VerifyField<::int32_t>(verifier, VT_FOO) &&
            verifier.EndTable();
   }
 };
@@ -104,8 +104,8 @@ struct TableInNestedNS FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
 struct TableInNestedNSBuilder {
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_foo(int32_t foo) {
-    fbb_.AddElement<int32_t>(TableInNestedNS::VT_FOO, foo, 0);
+  void add_foo(::int32_t foo) {
+    fbb_.AddElement<::int32_t>(TableInNestedNS::VT_FOO, foo, 0);
   }
   explicit TableInNestedNSBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -121,7 +121,7 @@ struct TableInNestedNSBuilder {
 
 inline ::flatbuffers::Offset<TableInNestedNS> CreateTableInNestedNS(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    int32_t foo = 0) {
+    ::int32_t foo = 0) {
   TableInNestedNSBuilder builder_(_fbb);
   builder_.add_foo(foo);
   return builder_.Finish();
@@ -165,7 +165,7 @@ inline const ::flatbuffers::TypeTable *StructInNestedNSTypeTable() {
     { ::flatbuffers::ET_INT, 0, -1 },
     { ::flatbuffers::ET_INT, 0, -1 }
   };
-  static const int64_t values[] = { 0, 4, 8 };
+  static const ::int64_t values[] = { 0, 4, 8 };
   static const char * const names[] = {
     "a",
     "b"

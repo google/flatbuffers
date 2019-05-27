@@ -190,11 +190,11 @@ inline bool operator!=(const CharacterUnion &lhs, const CharacterUnion &rhs) {
 }
 
 bool VerifyCharacter(::flatbuffers::Verifier &verifier, const void *obj, Character type);
-bool VerifyCharacterVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<uint8_t> *types);
+bool VerifyCharacterVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<::uint8_t> *types);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Rapunzel FLATBUFFERS_FINAL_CLASS {
  private:
-  int32_t hair_length_;
+  ::int32_t hair_length_;
 
  public:
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
@@ -203,13 +203,13 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Rapunzel FLATBUFFERS_FINAL_CLASS {
   Rapunzel() {
     memset(static_cast<void *>(this), 0, sizeof(Rapunzel));
   }
-  Rapunzel(int32_t _hair_length)
+  Rapunzel(::int32_t _hair_length)
       : hair_length_(::flatbuffers::EndianScalar(_hair_length)) {
   }
-  int32_t hair_length() const {
+  ::int32_t hair_length() const {
     return ::flatbuffers::EndianScalar(hair_length_);
   }
-  void mutate_hair_length(int32_t _hair_length) {
+  void mutate_hair_length(::int32_t _hair_length) {
     ::flatbuffers::WriteScalar(&hair_length_, _hair_length);
   }
 };
@@ -227,7 +227,7 @@ inline bool operator!=(const Rapunzel &lhs, const Rapunzel &rhs) {
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) BookReader FLATBUFFERS_FINAL_CLASS {
  private:
-  int32_t books_read_;
+  ::int32_t books_read_;
 
  public:
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
@@ -236,13 +236,13 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) BookReader FLATBUFFERS_FINAL_CLASS {
   BookReader() {
     memset(static_cast<void *>(this), 0, sizeof(BookReader));
   }
-  BookReader(int32_t _books_read)
+  BookReader(::int32_t _books_read)
       : books_read_(::flatbuffers::EndianScalar(_books_read)) {
   }
-  int32_t books_read() const {
+  ::int32_t books_read() const {
     return ::flatbuffers::EndianScalar(books_read_);
   }
-  void mutate_books_read(int32_t _books_read) {
+  void mutate_books_read(::int32_t _books_read) {
     ::flatbuffers::WriteScalar(&books_read_, _books_read);
   }
 };
@@ -260,7 +260,7 @@ inline bool operator!=(const BookReader &lhs, const BookReader &rhs) {
 
 struct AttackerT : public ::flatbuffers::NativeTable {
   typedef Attacker TableType;
-  int32_t sword_attack_damage;
+  ::int32_t sword_attack_damage;
   AttackerT()
       : sword_attack_damage(0) {
   }
@@ -284,15 +284,15 @@ struct Attacker FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_SWORD_ATTACK_DAMAGE = 4
   };
-  int32_t sword_attack_damage() const {
-    return GetField<int32_t>(VT_SWORD_ATTACK_DAMAGE, 0);
+  ::int32_t sword_attack_damage() const {
+    return GetField<::int32_t>(VT_SWORD_ATTACK_DAMAGE, 0);
   }
-  bool mutate_sword_attack_damage(int32_t _sword_attack_damage) {
-    return SetField<int32_t>(VT_SWORD_ATTACK_DAMAGE, _sword_attack_damage, 0);
+  bool mutate_sword_attack_damage(::int32_t _sword_attack_damage) {
+    return SetField<::int32_t>(VT_SWORD_ATTACK_DAMAGE, _sword_attack_damage, 0);
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<int32_t>(verifier, VT_SWORD_ATTACK_DAMAGE) &&
+           VerifyField<::int32_t>(verifier, VT_SWORD_ATTACK_DAMAGE) &&
            verifier.EndTable();
   }
   AttackerT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -303,8 +303,8 @@ struct Attacker FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
 struct AttackerBuilder {
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_sword_attack_damage(int32_t sword_attack_damage) {
-    fbb_.AddElement<int32_t>(Attacker::VT_SWORD_ATTACK_DAMAGE, sword_attack_damage, 0);
+  void add_sword_attack_damage(::int32_t sword_attack_damage) {
+    fbb_.AddElement<::int32_t>(Attacker::VT_SWORD_ATTACK_DAMAGE, sword_attack_damage, 0);
   }
   explicit AttackerBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -320,7 +320,7 @@ struct AttackerBuilder {
 
 inline ::flatbuffers::Offset<Attacker> CreateAttacker(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    int32_t sword_attack_damage = 0) {
+    ::int32_t sword_attack_damage = 0) {
   AttackerBuilder builder_(_fbb);
   builder_.add_sword_attack_damage(sword_attack_damage);
   return builder_.Finish();
@@ -359,10 +359,10 @@ struct Movie FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     VT_CHARACTERS = 10
   };
   Character main_character_type() const {
-    return static_cast<Character>(GetField<uint8_t>(VT_MAIN_CHARACTER_TYPE, 0));
+    return static_cast<Character>(GetField<::uint8_t>(VT_MAIN_CHARACTER_TYPE, 0));
   }
   bool mutate_main_character_type(Character _main_character_type) {
-    return SetField<uint8_t>(VT_MAIN_CHARACTER_TYPE, static_cast<uint8_t>(_main_character_type), 0);
+    return SetField<::uint8_t>(VT_MAIN_CHARACTER_TYPE, static_cast<::uint8_t>(_main_character_type), 0);
   }
   const void *main_character() const {
     return GetPointer<const void *>(VT_MAIN_CHARACTER);
@@ -388,11 +388,11 @@ struct Movie FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   void *mutable_main_character() {
     return GetPointer<void *>(VT_MAIN_CHARACTER);
   }
-  const ::flatbuffers::Vector<uint8_t> *characters_type() const {
-    return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_CHARACTERS_TYPE);
+  const ::flatbuffers::Vector<::uint8_t> *characters_type() const {
+    return GetPointer<const ::flatbuffers::Vector<::uint8_t> *>(VT_CHARACTERS_TYPE);
   }
-  ::flatbuffers::Vector<uint8_t> *mutable_characters_type() {
-    return GetPointer<::flatbuffers::Vector<uint8_t> *>(VT_CHARACTERS_TYPE);
+  ::flatbuffers::Vector<::uint8_t> *mutable_characters_type() {
+    return GetPointer<::flatbuffers::Vector<::uint8_t> *>(VT_CHARACTERS_TYPE);
   }
   const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *characters() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *>(VT_CHARACTERS);
@@ -402,7 +402,7 @@ struct Movie FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<uint8_t>(verifier, VT_MAIN_CHARACTER_TYPE) &&
+           VerifyField<::uint8_t>(verifier, VT_MAIN_CHARACTER_TYPE) &&
            VerifyOffset(verifier, VT_MAIN_CHARACTER) &&
            VerifyCharacter(verifier, main_character(), main_character_type()) &&
            VerifyOffset(verifier, VT_CHARACTERS_TYPE) &&
@@ -421,12 +421,12 @@ struct MovieBuilder {
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
   void add_main_character_type(Character main_character_type) {
-    fbb_.AddElement<uint8_t>(Movie::VT_MAIN_CHARACTER_TYPE, static_cast<uint8_t>(main_character_type), 0);
+    fbb_.AddElement<::uint8_t>(Movie::VT_MAIN_CHARACTER_TYPE, static_cast<::uint8_t>(main_character_type), 0);
   }
   void add_main_character(::flatbuffers::Offset<void> main_character) {
     fbb_.AddOffset(Movie::VT_MAIN_CHARACTER, main_character);
   }
-  void add_characters_type(::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> characters_type) {
+  void add_characters_type(::flatbuffers::Offset<::flatbuffers::Vector<::uint8_t>> characters_type) {
     fbb_.AddOffset(Movie::VT_CHARACTERS_TYPE, characters_type);
   }
   void add_characters(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<void>>> characters) {
@@ -448,7 +448,7 @@ inline ::flatbuffers::Offset<Movie> CreateMovie(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     Character main_character_type = Character_NONE,
     ::flatbuffers::Offset<void> main_character = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> characters_type = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::uint8_t>> characters_type = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<void>>> characters = 0) {
   MovieBuilder builder_(_fbb);
   builder_.add_characters(characters);
@@ -462,9 +462,9 @@ inline ::flatbuffers::Offset<Movie> CreateMovieDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     Character main_character_type = Character_NONE,
     ::flatbuffers::Offset<void> main_character = 0,
-    const ::std::vector<uint8_t> *characters_type = nullptr,
+    const ::std::vector<::uint8_t> *characters_type = nullptr,
     const ::std::vector<::flatbuffers::Offset<void>> *characters = nullptr) {
-  auto characters_type__ = characters_type ? _fbb.CreateVector<uint8_t>(*characters_type) : 0;
+  auto characters_type__ = characters_type ? _fbb.CreateVector<::uint8_t>(*characters_type) : 0;
   auto characters__ = characters ? _fbb.CreateVector<::flatbuffers::Offset<void>>(*characters) : 0;
   return CreateMovie(
       _fbb,
@@ -527,7 +527,7 @@ inline ::flatbuffers::Offset<Movie> CreateMovie(::flatbuffers::FlatBufferBuilder
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const MovieT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
   auto _main_character_type = _o->main_character.type;
   auto _main_character = _o->main_character.Pack(_fbb);
-  auto _characters_type = _o->characters.size() ? _fbb.CreateVector<uint8_t>(_o->characters.size(), [](size_t i, _VectorArgs *__va) { return static_cast<uint8_t>(__va->__o->characters[i].type); }, &_va) : 0;
+  auto _characters_type = _o->characters.size() ? _fbb.CreateVector<::uint8_t>(_o->characters.size(), [](size_t i, _VectorArgs *__va) { return static_cast<::uint8_t>(__va->__o->characters[i].type); }, &_va) : 0;
   auto _characters = _o->characters.size() ? _fbb.CreateVector<::flatbuffers::Offset<void>>(_o->characters.size(), [](size_t i, _VectorArgs *__va) { return __va->__o->characters[i].Pack(*__va->__fbb, __va->__rehasher); }, &_va) : 0;
   return CreateMovie(
       _fbb,
@@ -547,13 +547,13 @@ inline bool VerifyCharacter(::flatbuffers::Verifier &verifier, const void *obj, 
       return verifier.VerifyTable(ptr);
     }
     case Character_Rapunzel: {
-      return verifier.Verify<Rapunzel>(static_cast<const uint8_t *>(obj), 0);
+      return verifier.Verify<Rapunzel>(static_cast<const ::uint8_t *>(obj), 0);
     }
     case Character_Belle: {
-      return verifier.Verify<BookReader>(static_cast<const uint8_t *>(obj), 0);
+      return verifier.Verify<BookReader>(static_cast<const ::uint8_t *>(obj), 0);
     }
     case Character_BookFan: {
-      return verifier.Verify<BookReader>(static_cast<const uint8_t *>(obj), 0);
+      return verifier.Verify<BookReader>(static_cast<const ::uint8_t *>(obj), 0);
     }
     case Character_Other: {
       auto ptr = reinterpret_cast<const ::flatbuffers::String *>(obj);
@@ -567,7 +567,7 @@ inline bool VerifyCharacter(::flatbuffers::Verifier &verifier, const void *obj, 
   }
 }
 
-inline bool VerifyCharacterVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<uint8_t> *types) {
+inline bool VerifyCharacterVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<::uint8_t> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
@@ -755,7 +755,7 @@ inline const ::flatbuffers::TypeTable *RapunzelTypeTable() {
   static const ::flatbuffers::TypeCode type_codes[] = {
     { ::flatbuffers::ET_INT, 0, -1 }
   };
-  static const int64_t values[] = { 0, 4 };
+  static const ::int64_t values[] = { 0, 4 };
   static const char * const names[] = {
     "hair_length"
   };
@@ -769,7 +769,7 @@ inline const ::flatbuffers::TypeTable *BookReaderTypeTable() {
   static const ::flatbuffers::TypeCode type_codes[] = {
     { ::flatbuffers::ET_INT, 0, -1 }
   };
-  static const int64_t values[] = { 0, 4 };
+  static const ::int64_t values[] = { 0, 4 };
   static const char * const names[] = {
     "books_read"
   };

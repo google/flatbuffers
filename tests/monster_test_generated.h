@@ -277,7 +277,7 @@ inline bool operator!=(const AnyUnion &lhs, const AnyUnion &rhs) {
 }
 
 bool VerifyAny(::flatbuffers::Verifier &verifier, const void *obj, Any type);
-bool VerifyAnyVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<uint8_t> *types);
+bool VerifyAnyVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<::uint8_t> *types);
 
 enum AnyUniqueAliases {
   AnyUniqueAliases_NONE = 0,
@@ -419,7 +419,7 @@ inline bool operator!=(const AnyUniqueAliasesUnion &lhs, const AnyUniqueAliasesU
 }
 
 bool VerifyAnyUniqueAliases(::flatbuffers::Verifier &verifier, const void *obj, AnyUniqueAliases type);
-bool VerifyAnyUniqueAliasesVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<uint8_t> *types);
+bool VerifyAnyUniqueAliasesVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<::uint8_t> *types);
 
 enum AnyAmbiguousAliases {
   AnyAmbiguousAliases_NONE = 0,
@@ -533,13 +533,13 @@ inline bool operator!=(const AnyAmbiguousAliasesUnion &lhs, const AnyAmbiguousAl
 }
 
 bool VerifyAnyAmbiguousAliases(::flatbuffers::Verifier &verifier, const void *obj, AnyAmbiguousAliases type);
-bool VerifyAnyAmbiguousAliasesVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<uint8_t> *types);
+bool VerifyAnyAmbiguousAliasesVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<::uint8_t> *types);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(2) Test FLATBUFFERS_FINAL_CLASS {
  private:
-  int16_t a_;
-  int8_t b_;
-  int8_t padding0__;
+  ::int16_t a_;
+  ::int8_t b_;
+  ::int8_t padding0__;
 
  public:
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
@@ -548,22 +548,22 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(2) Test FLATBUFFERS_FINAL_CLASS {
   Test() {
     memset(static_cast<void *>(this), 0, sizeof(Test));
   }
-  Test(int16_t _a, int8_t _b)
+  Test(::int16_t _a, ::int8_t _b)
       : a_(::flatbuffers::EndianScalar(_a)),
         b_(::flatbuffers::EndianScalar(_b)),
         padding0__(0) {
     (void)padding0__;
   }
-  int16_t a() const {
+  ::int16_t a() const {
     return ::flatbuffers::EndianScalar(a_);
   }
-  void mutate_a(int16_t _a) {
+  void mutate_a(::int16_t _a) {
     ::flatbuffers::WriteScalar(&a_, _a);
   }
-  int8_t b() const {
+  ::int8_t b() const {
     return ::flatbuffers::EndianScalar(b_);
   }
-  void mutate_b(int8_t _b) {
+  void mutate_b(::int8_t _b) {
     ::flatbuffers::WriteScalar(&b_, _b);
   }
 };
@@ -585,12 +585,12 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vec3 FLATBUFFERS_FINAL_CLASS {
   float x_;
   float y_;
   float z_;
-  int32_t padding0__;
+  ::int32_t padding0__;
   double test1_;
-  uint8_t test2_;
-  int8_t padding1__;
+  ::uint8_t test2_;
+  ::int8_t padding1__;
   Test test3_;
-  int16_t padding2__;
+  ::int16_t padding2__;
 
  public:
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
@@ -605,7 +605,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vec3 FLATBUFFERS_FINAL_CLASS {
         z_(::flatbuffers::EndianScalar(_z)),
         padding0__(0),
         test1_(::flatbuffers::EndianScalar(_test1)),
-        test2_(::flatbuffers::EndianScalar(static_cast<uint8_t>(_test2))),
+        test2_(::flatbuffers::EndianScalar(static_cast<::uint8_t>(_test2))),
         padding1__(0),
         test3_(_test3),
         padding2__(0) {
@@ -641,7 +641,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vec3 FLATBUFFERS_FINAL_CLASS {
     return static_cast<Color>(::flatbuffers::EndianScalar(test2_));
   }
   void mutate_test2(Color _test2) {
-    ::flatbuffers::WriteScalar(&test2_, static_cast<uint8_t>(_test2));
+    ::flatbuffers::WriteScalar(&test2_, static_cast<::uint8_t>(_test2));
   }
   const Test &test3() const {
     return test3_;
@@ -669,8 +669,8 @@ inline bool operator!=(const Vec3 &lhs, const Vec3 &rhs) {
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Ability FLATBUFFERS_FINAL_CLASS {
  private:
-  uint32_t id_;
-  uint32_t distance_;
+  ::uint32_t id_;
+  ::uint32_t distance_;
 
  public:
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
@@ -679,26 +679,26 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Ability FLATBUFFERS_FINAL_CLASS {
   Ability() {
     memset(static_cast<void *>(this), 0, sizeof(Ability));
   }
-  Ability(uint32_t _id, uint32_t _distance)
+  Ability(::uint32_t _id, ::uint32_t _distance)
       : id_(::flatbuffers::EndianScalar(_id)),
         distance_(::flatbuffers::EndianScalar(_distance)) {
   }
-  uint32_t id() const {
+  ::uint32_t id() const {
     return ::flatbuffers::EndianScalar(id_);
   }
-  void mutate_id(uint32_t _id) {
+  void mutate_id(::uint32_t _id) {
     ::flatbuffers::WriteScalar(&id_, _id);
   }
   bool KeyCompareLessThan(const Ability *o) const {
     return id() < o->id();
   }
-  int KeyCompareWithValue(uint32_t val) const {
+  int KeyCompareWithValue(::uint32_t val) const {
     return static_cast<int>(id() > val) - static_cast<int>(id() < val);
   }
-  uint32_t distance() const {
+  ::uint32_t distance() const {
     return ::flatbuffers::EndianScalar(distance_);
   }
-  void mutate_distance(uint32_t _distance) {
+  void mutate_distance(::uint32_t _distance) {
     ::flatbuffers::WriteScalar(&distance_, _distance);
   }
 };
@@ -854,14 +854,14 @@ struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::
     VT_COLOR = 4
   };
   Color color() const {
-    return static_cast<Color>(GetField<uint8_t>(VT_COLOR, 2));
+    return static_cast<Color>(GetField<::uint8_t>(VT_COLOR, 2));
   }
   bool mutate_color(Color _color) {
-    return SetField<uint8_t>(VT_COLOR, static_cast<uint8_t>(_color), 2);
+    return SetField<::uint8_t>(VT_COLOR, static_cast<::uint8_t>(_color), 2);
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<uint8_t>(verifier, VT_COLOR) &&
+           VerifyField<::uint8_t>(verifier, VT_COLOR) &&
            verifier.EndTable();
   }
   TestSimpleTableWithEnumT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -873,7 +873,7 @@ struct TestSimpleTableWithEnumBuilder {
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
   void add_color(Color color) {
-    fbb_.AddElement<uint8_t>(TestSimpleTableWithEnum::VT_COLOR, static_cast<uint8_t>(color), 2);
+    fbb_.AddElement<::uint8_t>(TestSimpleTableWithEnum::VT_COLOR, static_cast<::uint8_t>(color), 2);
   }
   explicit TestSimpleTableWithEnumBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -900,8 +900,8 @@ inline ::flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithE
 struct StatT : public ::flatbuffers::NativeTable {
   typedef Stat TableType;
   ::std::string id;
-  int64_t val;
-  uint16_t count;
+  ::int64_t val;
+  ::uint16_t count;
   StatT()
       : val(0),
         count(0) {
@@ -936,24 +936,24 @@ struct Stat FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   ::flatbuffers::String *mutable_id() {
     return GetPointer<::flatbuffers::String *>(VT_ID);
   }
-  int64_t val() const {
-    return GetField<int64_t>(VT_VAL, 0);
+  ::int64_t val() const {
+    return GetField<::int64_t>(VT_VAL, 0);
   }
-  bool mutate_val(int64_t _val) {
-    return SetField<int64_t>(VT_VAL, _val, 0);
+  bool mutate_val(::int64_t _val) {
+    return SetField<::int64_t>(VT_VAL, _val, 0);
   }
-  uint16_t count() const {
-    return GetField<uint16_t>(VT_COUNT, 0);
+  ::uint16_t count() const {
+    return GetField<::uint16_t>(VT_COUNT, 0);
   }
-  bool mutate_count(uint16_t _count) {
-    return SetField<uint16_t>(VT_COUNT, _count, 0);
+  bool mutate_count(::uint16_t _count) {
+    return SetField<::uint16_t>(VT_COUNT, _count, 0);
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_ID) &&
            verifier.VerifyString(id()) &&
-           VerifyField<int64_t>(verifier, VT_VAL) &&
-           VerifyField<uint16_t>(verifier, VT_COUNT) &&
+           VerifyField<::int64_t>(verifier, VT_VAL) &&
+           VerifyField<::uint16_t>(verifier, VT_COUNT) &&
            verifier.EndTable();
   }
   StatT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -967,11 +967,11 @@ struct StatBuilder {
   void add_id(::flatbuffers::Offset<::flatbuffers::String> id) {
     fbb_.AddOffset(Stat::VT_ID, id);
   }
-  void add_val(int64_t val) {
-    fbb_.AddElement<int64_t>(Stat::VT_VAL, val, 0);
+  void add_val(::int64_t val) {
+    fbb_.AddElement<::int64_t>(Stat::VT_VAL, val, 0);
   }
-  void add_count(uint16_t count) {
-    fbb_.AddElement<uint16_t>(Stat::VT_COUNT, count, 0);
+  void add_count(::uint16_t count) {
+    fbb_.AddElement<::uint16_t>(Stat::VT_COUNT, count, 0);
   }
   explicit StatBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -988,8 +988,8 @@ struct StatBuilder {
 inline ::flatbuffers::Offset<Stat> CreateStat(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     ::flatbuffers::Offset<::flatbuffers::String> id = 0,
-    int64_t val = 0,
-    uint16_t count = 0) {
+    ::int64_t val = 0,
+    ::uint16_t count = 0) {
   StatBuilder builder_(_fbb);
   builder_.add_val(val);
   builder_.add_id(id);
@@ -1000,8 +1000,8 @@ inline ::flatbuffers::Offset<Stat> CreateStat(
 inline ::flatbuffers::Offset<Stat> CreateStatDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *id = nullptr,
-    int64_t val = 0,
-    uint16_t count = 0) {
+    ::int64_t val = 0,
+    ::uint16_t count = 0) {
   auto id__ = id ? _fbb.CreateString(id) : 0;
   return MyGame::Example::CreateStat(
       _fbb,
@@ -1014,7 +1014,7 @@ inline ::flatbuffers::Offset<Stat> CreateStatDirect(
 
 struct ReferrableT : public ::flatbuffers::NativeTable {
   typedef Referrable TableType;
-  uint64_t id;
+  ::uint64_t id;
   ReferrableT()
       : id(0) {
   }
@@ -1038,21 +1038,21 @@ struct Referrable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_ID = 4
   };
-  uint64_t id() const {
-    return GetField<uint64_t>(VT_ID, 0);
+  ::uint64_t id() const {
+    return GetField<::uint64_t>(VT_ID, 0);
   }
-  bool mutate_id(uint64_t _id) {
-    return SetField<uint64_t>(VT_ID, _id, 0);
+  bool mutate_id(::uint64_t _id) {
+    return SetField<::uint64_t>(VT_ID, _id, 0);
   }
   bool KeyCompareLessThan(const Referrable *o) const {
     return id() < o->id();
   }
-  int KeyCompareWithValue(uint64_t val) const {
+  int KeyCompareWithValue(::uint64_t val) const {
     return static_cast<int>(id() > val) - static_cast<int>(id() < val);
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<uint64_t>(verifier, VT_ID) &&
+           VerifyField<::uint64_t>(verifier, VT_ID) &&
            verifier.EndTable();
   }
   ReferrableT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -1063,8 +1063,8 @@ struct Referrable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
 struct ReferrableBuilder {
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_id(uint64_t id) {
-    fbb_.AddElement<uint64_t>(Referrable::VT_ID, id, 0);
+  void add_id(::uint64_t id) {
+    fbb_.AddElement<::uint64_t>(Referrable::VT_ID, id, 0);
   }
   explicit ReferrableBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -1080,7 +1080,7 @@ struct ReferrableBuilder {
 
 inline ::flatbuffers::Offset<Referrable> CreateReferrable(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    uint64_t id = 0) {
+    ::uint64_t id = 0) {
   ReferrableBuilder builder_(_fbb);
   builder_.add_id(id);
   return builder_.Finish();
@@ -1091,36 +1091,36 @@ inline ::flatbuffers::Offset<Referrable> CreateReferrable(
 struct MonsterT : public ::flatbuffers::NativeTable {
   typedef Monster TableType;
   ::flatbuffers::unique_ptr<Vec3> pos;
-  int16_t mana;
-  int16_t hp;
+  ::int16_t mana;
+  ::int16_t hp;
   ::std::string name;
-  ::std::vector<uint8_t> inventory;
+  ::std::vector<::uint8_t> inventory;
   Color color;
   AnyUnion test;
   ::std::vector<Test> test4;
   ::std::vector<::std::string> testarrayofstring;
   ::std::vector<::flatbuffers::unique_ptr<MonsterT>> testarrayoftables;
   ::flatbuffers::unique_ptr<MonsterT> enemy;
-  ::std::vector<uint8_t> testnestedflatbuffer;
+  ::std::vector<::uint8_t> testnestedflatbuffer;
   ::flatbuffers::unique_ptr<StatT> testempty;
   bool testbool;
-  int32_t testhashs32_fnv1;
-  uint32_t testhashu32_fnv1;
-  int64_t testhashs64_fnv1;
-  uint64_t testhashu64_fnv1;
-  int32_t testhashs32_fnv1a;
+  ::int32_t testhashs32_fnv1;
+  ::uint32_t testhashu32_fnv1;
+  ::int64_t testhashs64_fnv1;
+  ::uint64_t testhashu64_fnv1;
+  ::int32_t testhashs32_fnv1a;
   Stat *testhashu32_fnv1a;
-  int64_t testhashs64_fnv1a;
-  uint64_t testhashu64_fnv1a;
+  ::int64_t testhashs64_fnv1a;
+  ::uint64_t testhashu64_fnv1a;
   ::std::vector<bool> testarrayofbools;
   float testf;
   float testf2;
   float testf3;
   ::std::vector<::std::string> testarrayofstring2;
   ::std::vector<Ability> testarrayofsortedstruct;
-  ::std::vector<uint8_t> flex;
+  ::std::vector<::uint8_t> flex;
   ::std::vector<Test> test5;
-  ::std::vector<int64_t> vector_of_longs;
+  ::std::vector<::int64_t> vector_of_longs;
   ::std::vector<double> vector_of_doubles;
   ::flatbuffers::unique_ptr<MyGame::InParentNamespaceT> parent_namespace_test;
   ::std::vector<::flatbuffers::unique_ptr<ReferrableT>> vector_of_referrables;
@@ -1270,17 +1270,17 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   Vec3 *mutable_pos() {
     return GetStruct<Vec3 *>(VT_POS);
   }
-  int16_t mana() const {
-    return GetField<int16_t>(VT_MANA, 150);
+  ::int16_t mana() const {
+    return GetField<::int16_t>(VT_MANA, 150);
   }
-  bool mutate_mana(int16_t _mana) {
-    return SetField<int16_t>(VT_MANA, _mana, 150);
+  bool mutate_mana(::int16_t _mana) {
+    return SetField<::int16_t>(VT_MANA, _mana, 150);
   }
-  int16_t hp() const {
-    return GetField<int16_t>(VT_HP, 100);
+  ::int16_t hp() const {
+    return GetField<::int16_t>(VT_HP, 100);
   }
-  bool mutate_hp(int16_t _hp) {
-    return SetField<int16_t>(VT_HP, _hp, 100);
+  bool mutate_hp(::int16_t _hp) {
+    return SetField<::int16_t>(VT_HP, _hp, 100);
   }
   const ::flatbuffers::String *name() const {
     return GetPointer<const ::flatbuffers::String *>(VT_NAME);
@@ -1294,23 +1294,23 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   int KeyCompareWithValue(const char *val) const {
     return strcmp(name()->c_str(), val);
   }
-  const ::flatbuffers::Vector<uint8_t> *inventory() const {
-    return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_INVENTORY);
+  const ::flatbuffers::Vector<::uint8_t> *inventory() const {
+    return GetPointer<const ::flatbuffers::Vector<::uint8_t> *>(VT_INVENTORY);
   }
-  ::flatbuffers::Vector<uint8_t> *mutable_inventory() {
-    return GetPointer<::flatbuffers::Vector<uint8_t> *>(VT_INVENTORY);
+  ::flatbuffers::Vector<::uint8_t> *mutable_inventory() {
+    return GetPointer<::flatbuffers::Vector<::uint8_t> *>(VT_INVENTORY);
   }
   Color color() const {
-    return static_cast<Color>(GetField<uint8_t>(VT_COLOR, 8));
+    return static_cast<Color>(GetField<::uint8_t>(VT_COLOR, 8));
   }
   bool mutate_color(Color _color) {
-    return SetField<uint8_t>(VT_COLOR, static_cast<uint8_t>(_color), 8);
+    return SetField<::uint8_t>(VT_COLOR, static_cast<::uint8_t>(_color), 8);
   }
   Any test_type() const {
-    return static_cast<Any>(GetField<uint8_t>(VT_TEST_TYPE, 0));
+    return static_cast<Any>(GetField<::uint8_t>(VT_TEST_TYPE, 0));
   }
   bool mutate_test_type(Any _test_type) {
-    return SetField<uint8_t>(VT_TEST_TYPE, static_cast<uint8_t>(_test_type), 0);
+    return SetField<::uint8_t>(VT_TEST_TYPE, static_cast<::uint8_t>(_test_type), 0);
   }
   const void *test() const {
     return GetPointer<const void *>(VT_TEST);
@@ -1354,11 +1354,11 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   Monster *mutable_enemy() {
     return GetPointer<Monster *>(VT_ENEMY);
   }
-  const ::flatbuffers::Vector<uint8_t> *testnestedflatbuffer() const {
-    return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_TESTNESTEDFLATBUFFER);
+  const ::flatbuffers::Vector<::uint8_t> *testnestedflatbuffer() const {
+    return GetPointer<const ::flatbuffers::Vector<::uint8_t> *>(VT_TESTNESTEDFLATBUFFER);
   }
-  ::flatbuffers::Vector<uint8_t> *mutable_testnestedflatbuffer() {
-    return GetPointer<::flatbuffers::Vector<uint8_t> *>(VT_TESTNESTEDFLATBUFFER);
+  ::flatbuffers::Vector<::uint8_t> *mutable_testnestedflatbuffer() {
+    return GetPointer<::flatbuffers::Vector<::uint8_t> *>(VT_TESTNESTEDFLATBUFFER);
   }
   const MyGame::Example::Monster *testnestedflatbuffer_nested_root() const {
     return ::flatbuffers::GetRoot<MyGame::Example::Monster>(testnestedflatbuffer()->Data());
@@ -1370,64 +1370,64 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     return GetPointer<Stat *>(VT_TESTEMPTY);
   }
   bool testbool() const {
-    return GetField<uint8_t>(VT_TESTBOOL, 0) != 0;
+    return GetField<::uint8_t>(VT_TESTBOOL, 0) != 0;
   }
   bool mutate_testbool(bool _testbool) {
-    return SetField<uint8_t>(VT_TESTBOOL, static_cast<uint8_t>(_testbool), 0);
+    return SetField<::uint8_t>(VT_TESTBOOL, static_cast<::uint8_t>(_testbool), 0);
   }
-  int32_t testhashs32_fnv1() const {
-    return GetField<int32_t>(VT_TESTHASHS32_FNV1, 0);
+  ::int32_t testhashs32_fnv1() const {
+    return GetField<::int32_t>(VT_TESTHASHS32_FNV1, 0);
   }
-  bool mutate_testhashs32_fnv1(int32_t _testhashs32_fnv1) {
-    return SetField<int32_t>(VT_TESTHASHS32_FNV1, _testhashs32_fnv1, 0);
+  bool mutate_testhashs32_fnv1(::int32_t _testhashs32_fnv1) {
+    return SetField<::int32_t>(VT_TESTHASHS32_FNV1, _testhashs32_fnv1, 0);
   }
-  uint32_t testhashu32_fnv1() const {
-    return GetField<uint32_t>(VT_TESTHASHU32_FNV1, 0);
+  ::uint32_t testhashu32_fnv1() const {
+    return GetField<::uint32_t>(VT_TESTHASHU32_FNV1, 0);
   }
-  bool mutate_testhashu32_fnv1(uint32_t _testhashu32_fnv1) {
-    return SetField<uint32_t>(VT_TESTHASHU32_FNV1, _testhashu32_fnv1, 0);
+  bool mutate_testhashu32_fnv1(::uint32_t _testhashu32_fnv1) {
+    return SetField<::uint32_t>(VT_TESTHASHU32_FNV1, _testhashu32_fnv1, 0);
   }
-  int64_t testhashs64_fnv1() const {
-    return GetField<int64_t>(VT_TESTHASHS64_FNV1, 0);
+  ::int64_t testhashs64_fnv1() const {
+    return GetField<::int64_t>(VT_TESTHASHS64_FNV1, 0);
   }
-  bool mutate_testhashs64_fnv1(int64_t _testhashs64_fnv1) {
-    return SetField<int64_t>(VT_TESTHASHS64_FNV1, _testhashs64_fnv1, 0);
+  bool mutate_testhashs64_fnv1(::int64_t _testhashs64_fnv1) {
+    return SetField<::int64_t>(VT_TESTHASHS64_FNV1, _testhashs64_fnv1, 0);
   }
-  uint64_t testhashu64_fnv1() const {
-    return GetField<uint64_t>(VT_TESTHASHU64_FNV1, 0);
+  ::uint64_t testhashu64_fnv1() const {
+    return GetField<::uint64_t>(VT_TESTHASHU64_FNV1, 0);
   }
-  bool mutate_testhashu64_fnv1(uint64_t _testhashu64_fnv1) {
-    return SetField<uint64_t>(VT_TESTHASHU64_FNV1, _testhashu64_fnv1, 0);
+  bool mutate_testhashu64_fnv1(::uint64_t _testhashu64_fnv1) {
+    return SetField<::uint64_t>(VT_TESTHASHU64_FNV1, _testhashu64_fnv1, 0);
   }
-  int32_t testhashs32_fnv1a() const {
-    return GetField<int32_t>(VT_TESTHASHS32_FNV1A, 0);
+  ::int32_t testhashs32_fnv1a() const {
+    return GetField<::int32_t>(VT_TESTHASHS32_FNV1A, 0);
   }
-  bool mutate_testhashs32_fnv1a(int32_t _testhashs32_fnv1a) {
-    return SetField<int32_t>(VT_TESTHASHS32_FNV1A, _testhashs32_fnv1a, 0);
+  bool mutate_testhashs32_fnv1a(::int32_t _testhashs32_fnv1a) {
+    return SetField<::int32_t>(VT_TESTHASHS32_FNV1A, _testhashs32_fnv1a, 0);
   }
-  uint32_t testhashu32_fnv1a() const {
-    return GetField<uint32_t>(VT_TESTHASHU32_FNV1A, 0);
+  ::uint32_t testhashu32_fnv1a() const {
+    return GetField<::uint32_t>(VT_TESTHASHU32_FNV1A, 0);
   }
-  bool mutate_testhashu32_fnv1a(uint32_t _testhashu32_fnv1a) {
-    return SetField<uint32_t>(VT_TESTHASHU32_FNV1A, _testhashu32_fnv1a, 0);
+  bool mutate_testhashu32_fnv1a(::uint32_t _testhashu32_fnv1a) {
+    return SetField<::uint32_t>(VT_TESTHASHU32_FNV1A, _testhashu32_fnv1a, 0);
   }
-  int64_t testhashs64_fnv1a() const {
-    return GetField<int64_t>(VT_TESTHASHS64_FNV1A, 0);
+  ::int64_t testhashs64_fnv1a() const {
+    return GetField<::int64_t>(VT_TESTHASHS64_FNV1A, 0);
   }
-  bool mutate_testhashs64_fnv1a(int64_t _testhashs64_fnv1a) {
-    return SetField<int64_t>(VT_TESTHASHS64_FNV1A, _testhashs64_fnv1a, 0);
+  bool mutate_testhashs64_fnv1a(::int64_t _testhashs64_fnv1a) {
+    return SetField<::int64_t>(VT_TESTHASHS64_FNV1A, _testhashs64_fnv1a, 0);
   }
-  uint64_t testhashu64_fnv1a() const {
-    return GetField<uint64_t>(VT_TESTHASHU64_FNV1A, 0);
+  ::uint64_t testhashu64_fnv1a() const {
+    return GetField<::uint64_t>(VT_TESTHASHU64_FNV1A, 0);
   }
-  bool mutate_testhashu64_fnv1a(uint64_t _testhashu64_fnv1a) {
-    return SetField<uint64_t>(VT_TESTHASHU64_FNV1A, _testhashu64_fnv1a, 0);
+  bool mutate_testhashu64_fnv1a(::uint64_t _testhashu64_fnv1a) {
+    return SetField<::uint64_t>(VT_TESTHASHU64_FNV1A, _testhashu64_fnv1a, 0);
   }
-  const ::flatbuffers::Vector<uint8_t> *testarrayofbools() const {
-    return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_TESTARRAYOFBOOLS);
+  const ::flatbuffers::Vector<::uint8_t> *testarrayofbools() const {
+    return GetPointer<const ::flatbuffers::Vector<::uint8_t> *>(VT_TESTARRAYOFBOOLS);
   }
-  ::flatbuffers::Vector<uint8_t> *mutable_testarrayofbools() {
-    return GetPointer<::flatbuffers::Vector<uint8_t> *>(VT_TESTARRAYOFBOOLS);
+  ::flatbuffers::Vector<::uint8_t> *mutable_testarrayofbools() {
+    return GetPointer<::flatbuffers::Vector<::uint8_t> *>(VT_TESTARRAYOFBOOLS);
   }
   float testf() const {
     return GetField<float>(VT_TESTF, 3.14159f);
@@ -1459,11 +1459,11 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   ::flatbuffers::Vector<const Ability *> *mutable_testarrayofsortedstruct() {
     return GetPointer<::flatbuffers::Vector<const Ability *> *>(VT_TESTARRAYOFSORTEDSTRUCT);
   }
-  const ::flatbuffers::Vector<uint8_t> *flex() const {
-    return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_FLEX);
+  const ::flatbuffers::Vector<::uint8_t> *flex() const {
+    return GetPointer<const ::flatbuffers::Vector<::uint8_t> *>(VT_FLEX);
   }
-  ::flatbuffers::Vector<uint8_t> *mutable_flex() {
-    return GetPointer<::flatbuffers::Vector<uint8_t> *>(VT_FLEX);
+  ::flatbuffers::Vector<::uint8_t> *mutable_flex() {
+    return GetPointer<::flatbuffers::Vector<::uint8_t> *>(VT_FLEX);
   }
   ::flexbuffers::Reference flex_flexbuffer_root() const {
     return ::flexbuffers::GetRoot(flex()->Data(), flex()->size());
@@ -1474,11 +1474,11 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   ::flatbuffers::Vector<const Test *> *mutable_test5() {
     return GetPointer<::flatbuffers::Vector<const Test *> *>(VT_TEST5);
   }
-  const ::flatbuffers::Vector<int64_t> *vector_of_longs() const {
-    return GetPointer<const ::flatbuffers::Vector<int64_t> *>(VT_VECTOR_OF_LONGS);
+  const ::flatbuffers::Vector<::int64_t> *vector_of_longs() const {
+    return GetPointer<const ::flatbuffers::Vector<::int64_t> *>(VT_VECTOR_OF_LONGS);
   }
-  ::flatbuffers::Vector<int64_t> *mutable_vector_of_longs() {
-    return GetPointer<::flatbuffers::Vector<int64_t> *>(VT_VECTOR_OF_LONGS);
+  ::flatbuffers::Vector<::int64_t> *mutable_vector_of_longs() {
+    return GetPointer<::flatbuffers::Vector<::int64_t> *>(VT_VECTOR_OF_LONGS);
   }
   const ::flatbuffers::Vector<double> *vector_of_doubles() const {
     return GetPointer<const ::flatbuffers::Vector<double> *>(VT_VECTOR_OF_DOUBLES);
@@ -1498,17 +1498,17 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   ::flatbuffers::Vector<::flatbuffers::Offset<Referrable>> *mutable_vector_of_referrables() {
     return GetPointer<::flatbuffers::Vector<::flatbuffers::Offset<Referrable>> *>(VT_VECTOR_OF_REFERRABLES);
   }
-  uint64_t single_weak_reference() const {
-    return GetField<uint64_t>(VT_SINGLE_WEAK_REFERENCE, 0);
+  ::uint64_t single_weak_reference() const {
+    return GetField<::uint64_t>(VT_SINGLE_WEAK_REFERENCE, 0);
   }
-  bool mutate_single_weak_reference(uint64_t _single_weak_reference) {
-    return SetField<uint64_t>(VT_SINGLE_WEAK_REFERENCE, _single_weak_reference, 0);
+  bool mutate_single_weak_reference(::uint64_t _single_weak_reference) {
+    return SetField<::uint64_t>(VT_SINGLE_WEAK_REFERENCE, _single_weak_reference, 0);
   }
-  const ::flatbuffers::Vector<uint64_t> *vector_of_weak_references() const {
-    return GetPointer<const ::flatbuffers::Vector<uint64_t> *>(VT_VECTOR_OF_WEAK_REFERENCES);
+  const ::flatbuffers::Vector<::uint64_t> *vector_of_weak_references() const {
+    return GetPointer<const ::flatbuffers::Vector<::uint64_t> *>(VT_VECTOR_OF_WEAK_REFERENCES);
   }
-  ::flatbuffers::Vector<uint64_t> *mutable_vector_of_weak_references() {
-    return GetPointer<::flatbuffers::Vector<uint64_t> *>(VT_VECTOR_OF_WEAK_REFERENCES);
+  ::flatbuffers::Vector<::uint64_t> *mutable_vector_of_weak_references() {
+    return GetPointer<::flatbuffers::Vector<::uint64_t> *>(VT_VECTOR_OF_WEAK_REFERENCES);
   }
   const ::flatbuffers::Vector<::flatbuffers::Offset<Referrable>> *vector_of_strong_referrables() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<Referrable>> *>(VT_VECTOR_OF_STRONG_REFERRABLES);
@@ -1516,35 +1516,35 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   ::flatbuffers::Vector<::flatbuffers::Offset<Referrable>> *mutable_vector_of_strong_referrables() {
     return GetPointer<::flatbuffers::Vector<::flatbuffers::Offset<Referrable>> *>(VT_VECTOR_OF_STRONG_REFERRABLES);
   }
-  uint64_t co_owning_reference() const {
-    return GetField<uint64_t>(VT_CO_OWNING_REFERENCE, 0);
+  ::uint64_t co_owning_reference() const {
+    return GetField<::uint64_t>(VT_CO_OWNING_REFERENCE, 0);
   }
-  bool mutate_co_owning_reference(uint64_t _co_owning_reference) {
-    return SetField<uint64_t>(VT_CO_OWNING_REFERENCE, _co_owning_reference, 0);
+  bool mutate_co_owning_reference(::uint64_t _co_owning_reference) {
+    return SetField<::uint64_t>(VT_CO_OWNING_REFERENCE, _co_owning_reference, 0);
   }
-  const ::flatbuffers::Vector<uint64_t> *vector_of_co_owning_references() const {
-    return GetPointer<const ::flatbuffers::Vector<uint64_t> *>(VT_VECTOR_OF_CO_OWNING_REFERENCES);
+  const ::flatbuffers::Vector<::uint64_t> *vector_of_co_owning_references() const {
+    return GetPointer<const ::flatbuffers::Vector<::uint64_t> *>(VT_VECTOR_OF_CO_OWNING_REFERENCES);
   }
-  ::flatbuffers::Vector<uint64_t> *mutable_vector_of_co_owning_references() {
-    return GetPointer<::flatbuffers::Vector<uint64_t> *>(VT_VECTOR_OF_CO_OWNING_REFERENCES);
+  ::flatbuffers::Vector<::uint64_t> *mutable_vector_of_co_owning_references() {
+    return GetPointer<::flatbuffers::Vector<::uint64_t> *>(VT_VECTOR_OF_CO_OWNING_REFERENCES);
   }
-  uint64_t non_owning_reference() const {
-    return GetField<uint64_t>(VT_NON_OWNING_REFERENCE, 0);
+  ::uint64_t non_owning_reference() const {
+    return GetField<::uint64_t>(VT_NON_OWNING_REFERENCE, 0);
   }
-  bool mutate_non_owning_reference(uint64_t _non_owning_reference) {
-    return SetField<uint64_t>(VT_NON_OWNING_REFERENCE, _non_owning_reference, 0);
+  bool mutate_non_owning_reference(::uint64_t _non_owning_reference) {
+    return SetField<::uint64_t>(VT_NON_OWNING_REFERENCE, _non_owning_reference, 0);
   }
-  const ::flatbuffers::Vector<uint64_t> *vector_of_non_owning_references() const {
-    return GetPointer<const ::flatbuffers::Vector<uint64_t> *>(VT_VECTOR_OF_NON_OWNING_REFERENCES);
+  const ::flatbuffers::Vector<::uint64_t> *vector_of_non_owning_references() const {
+    return GetPointer<const ::flatbuffers::Vector<::uint64_t> *>(VT_VECTOR_OF_NON_OWNING_REFERENCES);
   }
-  ::flatbuffers::Vector<uint64_t> *mutable_vector_of_non_owning_references() {
-    return GetPointer<::flatbuffers::Vector<uint64_t> *>(VT_VECTOR_OF_NON_OWNING_REFERENCES);
+  ::flatbuffers::Vector<::uint64_t> *mutable_vector_of_non_owning_references() {
+    return GetPointer<::flatbuffers::Vector<::uint64_t> *>(VT_VECTOR_OF_NON_OWNING_REFERENCES);
   }
   AnyUniqueAliases any_unique_type() const {
-    return static_cast<AnyUniqueAliases>(GetField<uint8_t>(VT_ANY_UNIQUE_TYPE, 0));
+    return static_cast<AnyUniqueAliases>(GetField<::uint8_t>(VT_ANY_UNIQUE_TYPE, 0));
   }
   bool mutate_any_unique_type(AnyUniqueAliases _any_unique_type) {
-    return SetField<uint8_t>(VT_ANY_UNIQUE_TYPE, static_cast<uint8_t>(_any_unique_type), 0);
+    return SetField<::uint8_t>(VT_ANY_UNIQUE_TYPE, static_cast<::uint8_t>(_any_unique_type), 0);
   }
   const void *any_unique() const {
     return GetPointer<const void *>(VT_ANY_UNIQUE);
@@ -1563,10 +1563,10 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     return GetPointer<void *>(VT_ANY_UNIQUE);
   }
   AnyAmbiguousAliases any_ambiguous_type() const {
-    return static_cast<AnyAmbiguousAliases>(GetField<uint8_t>(VT_ANY_AMBIGUOUS_TYPE, 0));
+    return static_cast<AnyAmbiguousAliases>(GetField<::uint8_t>(VT_ANY_AMBIGUOUS_TYPE, 0));
   }
   bool mutate_any_ambiguous_type(AnyAmbiguousAliases _any_ambiguous_type) {
-    return SetField<uint8_t>(VT_ANY_AMBIGUOUS_TYPE, static_cast<uint8_t>(_any_ambiguous_type), 0);
+    return SetField<::uint8_t>(VT_ANY_AMBIGUOUS_TYPE, static_cast<::uint8_t>(_any_ambiguous_type), 0);
   }
   const void *any_ambiguous() const {
     return GetPointer<const void *>(VT_ANY_AMBIGUOUS);
@@ -1583,23 +1583,23 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   void *mutable_any_ambiguous() {
     return GetPointer<void *>(VT_ANY_AMBIGUOUS);
   }
-  const ::flatbuffers::Vector<uint8_t> *vector_of_enums() const {
-    return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_VECTOR_OF_ENUMS);
+  const ::flatbuffers::Vector<::uint8_t> *vector_of_enums() const {
+    return GetPointer<const ::flatbuffers::Vector<::uint8_t> *>(VT_VECTOR_OF_ENUMS);
   }
-  ::flatbuffers::Vector<uint8_t> *mutable_vector_of_enums() {
-    return GetPointer<::flatbuffers::Vector<uint8_t> *>(VT_VECTOR_OF_ENUMS);
+  ::flatbuffers::Vector<::uint8_t> *mutable_vector_of_enums() {
+    return GetPointer<::flatbuffers::Vector<::uint8_t> *>(VT_VECTOR_OF_ENUMS);
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<Vec3>(verifier, VT_POS) &&
-           VerifyField<int16_t>(verifier, VT_MANA) &&
-           VerifyField<int16_t>(verifier, VT_HP) &&
+           VerifyField<::int16_t>(verifier, VT_MANA) &&
+           VerifyField<::int16_t>(verifier, VT_HP) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
            VerifyOffset(verifier, VT_INVENTORY) &&
            verifier.VerifyVector(inventory()) &&
-           VerifyField<uint8_t>(verifier, VT_COLOR) &&
-           VerifyField<uint8_t>(verifier, VT_TEST_TYPE) &&
+           VerifyField<::uint8_t>(verifier, VT_COLOR) &&
+           VerifyField<::uint8_t>(verifier, VT_TEST_TYPE) &&
            VerifyOffset(verifier, VT_TEST) &&
            VerifyAny(verifier, test(), test_type()) &&
            VerifyOffset(verifier, VT_TEST4) &&
@@ -1616,15 +1616,15 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            verifier.VerifyVector(testnestedflatbuffer()) &&
            VerifyOffset(verifier, VT_TESTEMPTY) &&
            verifier.VerifyTable(testempty()) &&
-           VerifyField<uint8_t>(verifier, VT_TESTBOOL) &&
-           VerifyField<int32_t>(verifier, VT_TESTHASHS32_FNV1) &&
-           VerifyField<uint32_t>(verifier, VT_TESTHASHU32_FNV1) &&
-           VerifyField<int64_t>(verifier, VT_TESTHASHS64_FNV1) &&
-           VerifyField<uint64_t>(verifier, VT_TESTHASHU64_FNV1) &&
-           VerifyField<int32_t>(verifier, VT_TESTHASHS32_FNV1A) &&
-           VerifyField<uint32_t>(verifier, VT_TESTHASHU32_FNV1A) &&
-           VerifyField<int64_t>(verifier, VT_TESTHASHS64_FNV1A) &&
-           VerifyField<uint64_t>(verifier, VT_TESTHASHU64_FNV1A) &&
+           VerifyField<::uint8_t>(verifier, VT_TESTBOOL) &&
+           VerifyField<::int32_t>(verifier, VT_TESTHASHS32_FNV1) &&
+           VerifyField<::uint32_t>(verifier, VT_TESTHASHU32_FNV1) &&
+           VerifyField<::int64_t>(verifier, VT_TESTHASHS64_FNV1) &&
+           VerifyField<::uint64_t>(verifier, VT_TESTHASHU64_FNV1) &&
+           VerifyField<::int32_t>(verifier, VT_TESTHASHS32_FNV1A) &&
+           VerifyField<::uint32_t>(verifier, VT_TESTHASHU32_FNV1A) &&
+           VerifyField<::int64_t>(verifier, VT_TESTHASHS64_FNV1A) &&
+           VerifyField<::uint64_t>(verifier, VT_TESTHASHU64_FNV1A) &&
            VerifyOffset(verifier, VT_TESTARRAYOFBOOLS) &&
            verifier.VerifyVector(testarrayofbools()) &&
            VerifyField<float>(verifier, VT_TESTF) &&
@@ -1648,22 +1648,22 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            VerifyOffset(verifier, VT_VECTOR_OF_REFERRABLES) &&
            verifier.VerifyVector(vector_of_referrables()) &&
            verifier.VerifyVectorOfTables(vector_of_referrables()) &&
-           VerifyField<uint64_t>(verifier, VT_SINGLE_WEAK_REFERENCE) &&
+           VerifyField<::uint64_t>(verifier, VT_SINGLE_WEAK_REFERENCE) &&
            VerifyOffset(verifier, VT_VECTOR_OF_WEAK_REFERENCES) &&
            verifier.VerifyVector(vector_of_weak_references()) &&
            VerifyOffset(verifier, VT_VECTOR_OF_STRONG_REFERRABLES) &&
            verifier.VerifyVector(vector_of_strong_referrables()) &&
            verifier.VerifyVectorOfTables(vector_of_strong_referrables()) &&
-           VerifyField<uint64_t>(verifier, VT_CO_OWNING_REFERENCE) &&
+           VerifyField<::uint64_t>(verifier, VT_CO_OWNING_REFERENCE) &&
            VerifyOffset(verifier, VT_VECTOR_OF_CO_OWNING_REFERENCES) &&
            verifier.VerifyVector(vector_of_co_owning_references()) &&
-           VerifyField<uint64_t>(verifier, VT_NON_OWNING_REFERENCE) &&
+           VerifyField<::uint64_t>(verifier, VT_NON_OWNING_REFERENCE) &&
            VerifyOffset(verifier, VT_VECTOR_OF_NON_OWNING_REFERENCES) &&
            verifier.VerifyVector(vector_of_non_owning_references()) &&
-           VerifyField<uint8_t>(verifier, VT_ANY_UNIQUE_TYPE) &&
+           VerifyField<::uint8_t>(verifier, VT_ANY_UNIQUE_TYPE) &&
            VerifyOffset(verifier, VT_ANY_UNIQUE) &&
            VerifyAnyUniqueAliases(verifier, any_unique(), any_unique_type()) &&
-           VerifyField<uint8_t>(verifier, VT_ANY_AMBIGUOUS_TYPE) &&
+           VerifyField<::uint8_t>(verifier, VT_ANY_AMBIGUOUS_TYPE) &&
            VerifyOffset(verifier, VT_ANY_AMBIGUOUS) &&
            VerifyAnyAmbiguousAliases(verifier, any_ambiguous(), any_ambiguous_type()) &&
            VerifyOffset(verifier, VT_VECTOR_OF_ENUMS) &&
@@ -1705,23 +1705,23 @@ struct MonsterBuilder {
   void add_pos(const Vec3 *pos) {
     fbb_.AddStruct(Monster::VT_POS, pos);
   }
-  void add_mana(int16_t mana) {
-    fbb_.AddElement<int16_t>(Monster::VT_MANA, mana, 150);
+  void add_mana(::int16_t mana) {
+    fbb_.AddElement<::int16_t>(Monster::VT_MANA, mana, 150);
   }
-  void add_hp(int16_t hp) {
-    fbb_.AddElement<int16_t>(Monster::VT_HP, hp, 100);
+  void add_hp(::int16_t hp) {
+    fbb_.AddElement<::int16_t>(Monster::VT_HP, hp, 100);
   }
   void add_name(::flatbuffers::Offset<::flatbuffers::String> name) {
     fbb_.AddOffset(Monster::VT_NAME, name);
   }
-  void add_inventory(::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> inventory) {
+  void add_inventory(::flatbuffers::Offset<::flatbuffers::Vector<::uint8_t>> inventory) {
     fbb_.AddOffset(Monster::VT_INVENTORY, inventory);
   }
   void add_color(Color color) {
-    fbb_.AddElement<uint8_t>(Monster::VT_COLOR, static_cast<uint8_t>(color), 8);
+    fbb_.AddElement<::uint8_t>(Monster::VT_COLOR, static_cast<::uint8_t>(color), 8);
   }
   void add_test_type(Any test_type) {
-    fbb_.AddElement<uint8_t>(Monster::VT_TEST_TYPE, static_cast<uint8_t>(test_type), 0);
+    fbb_.AddElement<::uint8_t>(Monster::VT_TEST_TYPE, static_cast<::uint8_t>(test_type), 0);
   }
   void add_test(::flatbuffers::Offset<void> test) {
     fbb_.AddOffset(Monster::VT_TEST, test);
@@ -1738,40 +1738,40 @@ struct MonsterBuilder {
   void add_enemy(::flatbuffers::Offset<Monster> enemy) {
     fbb_.AddOffset(Monster::VT_ENEMY, enemy);
   }
-  void add_testnestedflatbuffer(::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> testnestedflatbuffer) {
+  void add_testnestedflatbuffer(::flatbuffers::Offset<::flatbuffers::Vector<::uint8_t>> testnestedflatbuffer) {
     fbb_.AddOffset(Monster::VT_TESTNESTEDFLATBUFFER, testnestedflatbuffer);
   }
   void add_testempty(::flatbuffers::Offset<Stat> testempty) {
     fbb_.AddOffset(Monster::VT_TESTEMPTY, testempty);
   }
   void add_testbool(bool testbool) {
-    fbb_.AddElement<uint8_t>(Monster::VT_TESTBOOL, static_cast<uint8_t>(testbool), 0);
+    fbb_.AddElement<::uint8_t>(Monster::VT_TESTBOOL, static_cast<::uint8_t>(testbool), 0);
   }
-  void add_testhashs32_fnv1(int32_t testhashs32_fnv1) {
-    fbb_.AddElement<int32_t>(Monster::VT_TESTHASHS32_FNV1, testhashs32_fnv1, 0);
+  void add_testhashs32_fnv1(::int32_t testhashs32_fnv1) {
+    fbb_.AddElement<::int32_t>(Monster::VT_TESTHASHS32_FNV1, testhashs32_fnv1, 0);
   }
-  void add_testhashu32_fnv1(uint32_t testhashu32_fnv1) {
-    fbb_.AddElement<uint32_t>(Monster::VT_TESTHASHU32_FNV1, testhashu32_fnv1, 0);
+  void add_testhashu32_fnv1(::uint32_t testhashu32_fnv1) {
+    fbb_.AddElement<::uint32_t>(Monster::VT_TESTHASHU32_FNV1, testhashu32_fnv1, 0);
   }
-  void add_testhashs64_fnv1(int64_t testhashs64_fnv1) {
-    fbb_.AddElement<int64_t>(Monster::VT_TESTHASHS64_FNV1, testhashs64_fnv1, 0);
+  void add_testhashs64_fnv1(::int64_t testhashs64_fnv1) {
+    fbb_.AddElement<::int64_t>(Monster::VT_TESTHASHS64_FNV1, testhashs64_fnv1, 0);
   }
-  void add_testhashu64_fnv1(uint64_t testhashu64_fnv1) {
-    fbb_.AddElement<uint64_t>(Monster::VT_TESTHASHU64_FNV1, testhashu64_fnv1, 0);
+  void add_testhashu64_fnv1(::uint64_t testhashu64_fnv1) {
+    fbb_.AddElement<::uint64_t>(Monster::VT_TESTHASHU64_FNV1, testhashu64_fnv1, 0);
   }
-  void add_testhashs32_fnv1a(int32_t testhashs32_fnv1a) {
-    fbb_.AddElement<int32_t>(Monster::VT_TESTHASHS32_FNV1A, testhashs32_fnv1a, 0);
+  void add_testhashs32_fnv1a(::int32_t testhashs32_fnv1a) {
+    fbb_.AddElement<::int32_t>(Monster::VT_TESTHASHS32_FNV1A, testhashs32_fnv1a, 0);
   }
-  void add_testhashu32_fnv1a(uint32_t testhashu32_fnv1a) {
-    fbb_.AddElement<uint32_t>(Monster::VT_TESTHASHU32_FNV1A, testhashu32_fnv1a, 0);
+  void add_testhashu32_fnv1a(::uint32_t testhashu32_fnv1a) {
+    fbb_.AddElement<::uint32_t>(Monster::VT_TESTHASHU32_FNV1A, testhashu32_fnv1a, 0);
   }
-  void add_testhashs64_fnv1a(int64_t testhashs64_fnv1a) {
-    fbb_.AddElement<int64_t>(Monster::VT_TESTHASHS64_FNV1A, testhashs64_fnv1a, 0);
+  void add_testhashs64_fnv1a(::int64_t testhashs64_fnv1a) {
+    fbb_.AddElement<::int64_t>(Monster::VT_TESTHASHS64_FNV1A, testhashs64_fnv1a, 0);
   }
-  void add_testhashu64_fnv1a(uint64_t testhashu64_fnv1a) {
-    fbb_.AddElement<uint64_t>(Monster::VT_TESTHASHU64_FNV1A, testhashu64_fnv1a, 0);
+  void add_testhashu64_fnv1a(::uint64_t testhashu64_fnv1a) {
+    fbb_.AddElement<::uint64_t>(Monster::VT_TESTHASHU64_FNV1A, testhashu64_fnv1a, 0);
   }
-  void add_testarrayofbools(::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> testarrayofbools) {
+  void add_testarrayofbools(::flatbuffers::Offset<::flatbuffers::Vector<::uint8_t>> testarrayofbools) {
     fbb_.AddOffset(Monster::VT_TESTARRAYOFBOOLS, testarrayofbools);
   }
   void add_testf(float testf) {
@@ -1789,13 +1789,13 @@ struct MonsterBuilder {
   void add_testarrayofsortedstruct(::flatbuffers::Offset<::flatbuffers::Vector<const Ability *>> testarrayofsortedstruct) {
     fbb_.AddOffset(Monster::VT_TESTARRAYOFSORTEDSTRUCT, testarrayofsortedstruct);
   }
-  void add_flex(::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> flex) {
+  void add_flex(::flatbuffers::Offset<::flatbuffers::Vector<::uint8_t>> flex) {
     fbb_.AddOffset(Monster::VT_FLEX, flex);
   }
   void add_test5(::flatbuffers::Offset<::flatbuffers::Vector<const Test *>> test5) {
     fbb_.AddOffset(Monster::VT_TEST5, test5);
   }
-  void add_vector_of_longs(::flatbuffers::Offset<::flatbuffers::Vector<int64_t>> vector_of_longs) {
+  void add_vector_of_longs(::flatbuffers::Offset<::flatbuffers::Vector<::int64_t>> vector_of_longs) {
     fbb_.AddOffset(Monster::VT_VECTOR_OF_LONGS, vector_of_longs);
   }
   void add_vector_of_doubles(::flatbuffers::Offset<::flatbuffers::Vector<double>> vector_of_doubles) {
@@ -1807,40 +1807,40 @@ struct MonsterBuilder {
   void add_vector_of_referrables(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Referrable>>> vector_of_referrables) {
     fbb_.AddOffset(Monster::VT_VECTOR_OF_REFERRABLES, vector_of_referrables);
   }
-  void add_single_weak_reference(uint64_t single_weak_reference) {
-    fbb_.AddElement<uint64_t>(Monster::VT_SINGLE_WEAK_REFERENCE, single_weak_reference, 0);
+  void add_single_weak_reference(::uint64_t single_weak_reference) {
+    fbb_.AddElement<::uint64_t>(Monster::VT_SINGLE_WEAK_REFERENCE, single_weak_reference, 0);
   }
-  void add_vector_of_weak_references(::flatbuffers::Offset<::flatbuffers::Vector<uint64_t>> vector_of_weak_references) {
+  void add_vector_of_weak_references(::flatbuffers::Offset<::flatbuffers::Vector<::uint64_t>> vector_of_weak_references) {
     fbb_.AddOffset(Monster::VT_VECTOR_OF_WEAK_REFERENCES, vector_of_weak_references);
   }
   void add_vector_of_strong_referrables(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Referrable>>> vector_of_strong_referrables) {
     fbb_.AddOffset(Monster::VT_VECTOR_OF_STRONG_REFERRABLES, vector_of_strong_referrables);
   }
-  void add_co_owning_reference(uint64_t co_owning_reference) {
-    fbb_.AddElement<uint64_t>(Monster::VT_CO_OWNING_REFERENCE, co_owning_reference, 0);
+  void add_co_owning_reference(::uint64_t co_owning_reference) {
+    fbb_.AddElement<::uint64_t>(Monster::VT_CO_OWNING_REFERENCE, co_owning_reference, 0);
   }
-  void add_vector_of_co_owning_references(::flatbuffers::Offset<::flatbuffers::Vector<uint64_t>> vector_of_co_owning_references) {
+  void add_vector_of_co_owning_references(::flatbuffers::Offset<::flatbuffers::Vector<::uint64_t>> vector_of_co_owning_references) {
     fbb_.AddOffset(Monster::VT_VECTOR_OF_CO_OWNING_REFERENCES, vector_of_co_owning_references);
   }
-  void add_non_owning_reference(uint64_t non_owning_reference) {
-    fbb_.AddElement<uint64_t>(Monster::VT_NON_OWNING_REFERENCE, non_owning_reference, 0);
+  void add_non_owning_reference(::uint64_t non_owning_reference) {
+    fbb_.AddElement<::uint64_t>(Monster::VT_NON_OWNING_REFERENCE, non_owning_reference, 0);
   }
-  void add_vector_of_non_owning_references(::flatbuffers::Offset<::flatbuffers::Vector<uint64_t>> vector_of_non_owning_references) {
+  void add_vector_of_non_owning_references(::flatbuffers::Offset<::flatbuffers::Vector<::uint64_t>> vector_of_non_owning_references) {
     fbb_.AddOffset(Monster::VT_VECTOR_OF_NON_OWNING_REFERENCES, vector_of_non_owning_references);
   }
   void add_any_unique_type(AnyUniqueAliases any_unique_type) {
-    fbb_.AddElement<uint8_t>(Monster::VT_ANY_UNIQUE_TYPE, static_cast<uint8_t>(any_unique_type), 0);
+    fbb_.AddElement<::uint8_t>(Monster::VT_ANY_UNIQUE_TYPE, static_cast<::uint8_t>(any_unique_type), 0);
   }
   void add_any_unique(::flatbuffers::Offset<void> any_unique) {
     fbb_.AddOffset(Monster::VT_ANY_UNIQUE, any_unique);
   }
   void add_any_ambiguous_type(AnyAmbiguousAliases any_ambiguous_type) {
-    fbb_.AddElement<uint8_t>(Monster::VT_ANY_AMBIGUOUS_TYPE, static_cast<uint8_t>(any_ambiguous_type), 0);
+    fbb_.AddElement<::uint8_t>(Monster::VT_ANY_AMBIGUOUS_TYPE, static_cast<::uint8_t>(any_ambiguous_type), 0);
   }
   void add_any_ambiguous(::flatbuffers::Offset<void> any_ambiguous) {
     fbb_.AddOffset(Monster::VT_ANY_AMBIGUOUS, any_ambiguous);
   }
-  void add_vector_of_enums(::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> vector_of_enums) {
+  void add_vector_of_enums(::flatbuffers::Offset<::flatbuffers::Vector<::uint8_t>> vector_of_enums) {
     fbb_.AddOffset(Monster::VT_VECTOR_OF_ENUMS, vector_of_enums);
   }
   explicit MonsterBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
@@ -1859,10 +1859,10 @@ struct MonsterBuilder {
 inline ::flatbuffers::Offset<Monster> CreateMonster(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     const Vec3 *pos = 0,
-    int16_t mana = 150,
-    int16_t hp = 100,
+    ::int16_t mana = 150,
+    ::int16_t hp = 100,
     ::flatbuffers::Offset<::flatbuffers::String> name = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> inventory = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::uint8_t>> inventory = 0,
     Color color = Color_Blue,
     Any test_type = Any_NONE,
     ::flatbuffers::Offset<void> test = 0,
@@ -1870,41 +1870,41 @@ inline ::flatbuffers::Offset<Monster> CreateMonster(
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> testarrayofstring = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Monster>>> testarrayoftables = 0,
     ::flatbuffers::Offset<Monster> enemy = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> testnestedflatbuffer = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::uint8_t>> testnestedflatbuffer = 0,
     ::flatbuffers::Offset<Stat> testempty = 0,
     bool testbool = false,
-    int32_t testhashs32_fnv1 = 0,
-    uint32_t testhashu32_fnv1 = 0,
-    int64_t testhashs64_fnv1 = 0,
-    uint64_t testhashu64_fnv1 = 0,
-    int32_t testhashs32_fnv1a = 0,
-    uint32_t testhashu32_fnv1a = 0,
-    int64_t testhashs64_fnv1a = 0,
-    uint64_t testhashu64_fnv1a = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> testarrayofbools = 0,
+    ::int32_t testhashs32_fnv1 = 0,
+    ::uint32_t testhashu32_fnv1 = 0,
+    ::int64_t testhashs64_fnv1 = 0,
+    ::uint64_t testhashu64_fnv1 = 0,
+    ::int32_t testhashs32_fnv1a = 0,
+    ::uint32_t testhashu32_fnv1a = 0,
+    ::int64_t testhashs64_fnv1a = 0,
+    ::uint64_t testhashu64_fnv1a = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::uint8_t>> testarrayofbools = 0,
     float testf = 3.14159f,
     float testf2 = 3.0f,
     float testf3 = 0.0f,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> testarrayofstring2 = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<const Ability *>> testarrayofsortedstruct = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> flex = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::uint8_t>> flex = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<const Test *>> test5 = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<int64_t>> vector_of_longs = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::int64_t>> vector_of_longs = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<double>> vector_of_doubles = 0,
     ::flatbuffers::Offset<MyGame::InParentNamespace> parent_namespace_test = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Referrable>>> vector_of_referrables = 0,
-    uint64_t single_weak_reference = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<uint64_t>> vector_of_weak_references = 0,
+    ::uint64_t single_weak_reference = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::uint64_t>> vector_of_weak_references = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<Referrable>>> vector_of_strong_referrables = 0,
-    uint64_t co_owning_reference = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<uint64_t>> vector_of_co_owning_references = 0,
-    uint64_t non_owning_reference = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<uint64_t>> vector_of_non_owning_references = 0,
+    ::uint64_t co_owning_reference = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::uint64_t>> vector_of_co_owning_references = 0,
+    ::uint64_t non_owning_reference = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::uint64_t>> vector_of_non_owning_references = 0,
     AnyUniqueAliases any_unique_type = AnyUniqueAliases_NONE,
     ::flatbuffers::Offset<void> any_unique = 0,
     AnyAmbiguousAliases any_ambiguous_type = AnyAmbiguousAliases_NONE,
     ::flatbuffers::Offset<void> any_ambiguous = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> vector_of_enums = 0) {
+    ::flatbuffers::Offset<::flatbuffers::Vector<::uint8_t>> vector_of_enums = 0) {
   MonsterBuilder builder_(_fbb);
   builder_.add_non_owning_reference(non_owning_reference);
   builder_.add_co_owning_reference(co_owning_reference);
@@ -1959,10 +1959,10 @@ inline ::flatbuffers::Offset<Monster> CreateMonster(
 inline ::flatbuffers::Offset<Monster> CreateMonsterDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     const Vec3 *pos = 0,
-    int16_t mana = 150,
-    int16_t hp = 100,
+    ::int16_t mana = 150,
+    ::int16_t hp = 100,
     const char *name = nullptr,
-    const ::std::vector<uint8_t> *inventory = nullptr,
+    const ::std::vector<::uint8_t> *inventory = nullptr,
     Color color = Color_Blue,
     Any test_type = Any_NONE,
     ::flatbuffers::Offset<void> test = 0,
@@ -1970,60 +1970,60 @@ inline ::flatbuffers::Offset<Monster> CreateMonsterDirect(
     const ::std::vector<::flatbuffers::Offset<::flatbuffers::String>> *testarrayofstring = nullptr,
     const ::std::vector<::flatbuffers::Offset<Monster>> *testarrayoftables = nullptr,
     ::flatbuffers::Offset<Monster> enemy = 0,
-    const ::std::vector<uint8_t> *testnestedflatbuffer = nullptr,
+    const ::std::vector<::uint8_t> *testnestedflatbuffer = nullptr,
     ::flatbuffers::Offset<Stat> testempty = 0,
     bool testbool = false,
-    int32_t testhashs32_fnv1 = 0,
-    uint32_t testhashu32_fnv1 = 0,
-    int64_t testhashs64_fnv1 = 0,
-    uint64_t testhashu64_fnv1 = 0,
-    int32_t testhashs32_fnv1a = 0,
-    uint32_t testhashu32_fnv1a = 0,
-    int64_t testhashs64_fnv1a = 0,
-    uint64_t testhashu64_fnv1a = 0,
-    const ::std::vector<uint8_t> *testarrayofbools = nullptr,
+    ::int32_t testhashs32_fnv1 = 0,
+    ::uint32_t testhashu32_fnv1 = 0,
+    ::int64_t testhashs64_fnv1 = 0,
+    ::uint64_t testhashu64_fnv1 = 0,
+    ::int32_t testhashs32_fnv1a = 0,
+    ::uint32_t testhashu32_fnv1a = 0,
+    ::int64_t testhashs64_fnv1a = 0,
+    ::uint64_t testhashu64_fnv1a = 0,
+    const ::std::vector<::uint8_t> *testarrayofbools = nullptr,
     float testf = 3.14159f,
     float testf2 = 3.0f,
     float testf3 = 0.0f,
     const ::std::vector<::flatbuffers::Offset<::flatbuffers::String>> *testarrayofstring2 = nullptr,
     const ::std::vector<Ability> *testarrayofsortedstruct = nullptr,
-    const ::std::vector<uint8_t> *flex = nullptr,
+    const ::std::vector<::uint8_t> *flex = nullptr,
     const ::std::vector<Test> *test5 = nullptr,
-    const ::std::vector<int64_t> *vector_of_longs = nullptr,
+    const ::std::vector<::int64_t> *vector_of_longs = nullptr,
     const ::std::vector<double> *vector_of_doubles = nullptr,
     ::flatbuffers::Offset<MyGame::InParentNamespace> parent_namespace_test = 0,
     const ::std::vector<::flatbuffers::Offset<Referrable>> *vector_of_referrables = nullptr,
-    uint64_t single_weak_reference = 0,
-    const ::std::vector<uint64_t> *vector_of_weak_references = nullptr,
+    ::uint64_t single_weak_reference = 0,
+    const ::std::vector<::uint64_t> *vector_of_weak_references = nullptr,
     const ::std::vector<::flatbuffers::Offset<Referrable>> *vector_of_strong_referrables = nullptr,
-    uint64_t co_owning_reference = 0,
-    const ::std::vector<uint64_t> *vector_of_co_owning_references = nullptr,
-    uint64_t non_owning_reference = 0,
-    const ::std::vector<uint64_t> *vector_of_non_owning_references = nullptr,
+    ::uint64_t co_owning_reference = 0,
+    const ::std::vector<::uint64_t> *vector_of_co_owning_references = nullptr,
+    ::uint64_t non_owning_reference = 0,
+    const ::std::vector<::uint64_t> *vector_of_non_owning_references = nullptr,
     AnyUniqueAliases any_unique_type = AnyUniqueAliases_NONE,
     ::flatbuffers::Offset<void> any_unique = 0,
     AnyAmbiguousAliases any_ambiguous_type = AnyAmbiguousAliases_NONE,
     ::flatbuffers::Offset<void> any_ambiguous = 0,
-    const ::std::vector<uint8_t> *vector_of_enums = nullptr) {
+    const ::std::vector<::uint8_t> *vector_of_enums = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
-  auto inventory__ = inventory ? _fbb.CreateVector<uint8_t>(*inventory) : 0;
+  auto inventory__ = inventory ? _fbb.CreateVector<::uint8_t>(*inventory) : 0;
   auto test4__ = test4 ? _fbb.CreateVectorOfStructs<Test>(*test4) : 0;
   auto testarrayofstring__ = testarrayofstring ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*testarrayofstring) : 0;
   auto testarrayoftables__ = testarrayoftables ? _fbb.CreateVector<::flatbuffers::Offset<Monster>>(*testarrayoftables) : 0;
-  auto testnestedflatbuffer__ = testnestedflatbuffer ? _fbb.CreateVector<uint8_t>(*testnestedflatbuffer) : 0;
-  auto testarrayofbools__ = testarrayofbools ? _fbb.CreateVector<uint8_t>(*testarrayofbools) : 0;
+  auto testnestedflatbuffer__ = testnestedflatbuffer ? _fbb.CreateVector<::uint8_t>(*testnestedflatbuffer) : 0;
+  auto testarrayofbools__ = testarrayofbools ? _fbb.CreateVector<::uint8_t>(*testarrayofbools) : 0;
   auto testarrayofstring2__ = testarrayofstring2 ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*testarrayofstring2) : 0;
   auto testarrayofsortedstruct__ = testarrayofsortedstruct ? _fbb.CreateVectorOfStructs<Ability>(*testarrayofsortedstruct) : 0;
-  auto flex__ = flex ? _fbb.CreateVector<uint8_t>(*flex) : 0;
+  auto flex__ = flex ? _fbb.CreateVector<::uint8_t>(*flex) : 0;
   auto test5__ = test5 ? _fbb.CreateVectorOfStructs<Test>(*test5) : 0;
-  auto vector_of_longs__ = vector_of_longs ? _fbb.CreateVector<int64_t>(*vector_of_longs) : 0;
+  auto vector_of_longs__ = vector_of_longs ? _fbb.CreateVector<::int64_t>(*vector_of_longs) : 0;
   auto vector_of_doubles__ = vector_of_doubles ? _fbb.CreateVector<double>(*vector_of_doubles) : 0;
   auto vector_of_referrables__ = vector_of_referrables ? _fbb.CreateVector<::flatbuffers::Offset<Referrable>>(*vector_of_referrables) : 0;
-  auto vector_of_weak_references__ = vector_of_weak_references ? _fbb.CreateVector<uint64_t>(*vector_of_weak_references) : 0;
+  auto vector_of_weak_references__ = vector_of_weak_references ? _fbb.CreateVector<::uint64_t>(*vector_of_weak_references) : 0;
   auto vector_of_strong_referrables__ = vector_of_strong_referrables ? _fbb.CreateVector<::flatbuffers::Offset<Referrable>>(*vector_of_strong_referrables) : 0;
-  auto vector_of_co_owning_references__ = vector_of_co_owning_references ? _fbb.CreateVector<uint64_t>(*vector_of_co_owning_references) : 0;
-  auto vector_of_non_owning_references__ = vector_of_non_owning_references ? _fbb.CreateVector<uint64_t>(*vector_of_non_owning_references) : 0;
-  auto vector_of_enums__ = vector_of_enums ? _fbb.CreateVector<uint8_t>(*vector_of_enums) : 0;
+  auto vector_of_co_owning_references__ = vector_of_co_owning_references ? _fbb.CreateVector<::uint64_t>(*vector_of_co_owning_references) : 0;
+  auto vector_of_non_owning_references__ = vector_of_non_owning_references ? _fbb.CreateVector<::uint64_t>(*vector_of_non_owning_references) : 0;
+  auto vector_of_enums__ = vector_of_enums ? _fbb.CreateVector<::uint8_t>(*vector_of_enums) : 0;
   return MyGame::Example::CreateMonster(
       _fbb,
       pos,
@@ -2079,17 +2079,17 @@ inline ::flatbuffers::Offset<Monster> CreateMonsterDirect(
 
 struct TypeAliasesT : public ::flatbuffers::NativeTable {
   typedef TypeAliases TableType;
-  int8_t i8;
-  uint8_t u8;
-  int16_t i16;
-  uint16_t u16;
-  int32_t i32;
-  uint32_t u32;
-  int64_t i64;
-  uint64_t u64;
+  ::int8_t i8;
+  ::uint8_t u8;
+  ::int16_t i16;
+  ::uint16_t u16;
+  ::int32_t i32;
+  ::uint32_t u32;
+  ::int64_t i64;
+  ::uint64_t u64;
   float f32;
   double f64;
-  ::std::vector<int8_t> v8;
+  ::std::vector<::int8_t> v8;
   ::std::vector<double> vf64;
   TypeAliasesT()
       : i8(0),
@@ -2145,53 +2145,53 @@ struct TypeAliases FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     VT_V8 = 24,
     VT_VF64 = 26
   };
-  int8_t i8() const {
-    return GetField<int8_t>(VT_I8, 0);
+  ::int8_t i8() const {
+    return GetField<::int8_t>(VT_I8, 0);
   }
-  bool mutate_i8(int8_t _i8) {
-    return SetField<int8_t>(VT_I8, _i8, 0);
+  bool mutate_i8(::int8_t _i8) {
+    return SetField<::int8_t>(VT_I8, _i8, 0);
   }
-  uint8_t u8() const {
-    return GetField<uint8_t>(VT_U8, 0);
+  ::uint8_t u8() const {
+    return GetField<::uint8_t>(VT_U8, 0);
   }
-  bool mutate_u8(uint8_t _u8) {
-    return SetField<uint8_t>(VT_U8, _u8, 0);
+  bool mutate_u8(::uint8_t _u8) {
+    return SetField<::uint8_t>(VT_U8, _u8, 0);
   }
-  int16_t i16() const {
-    return GetField<int16_t>(VT_I16, 0);
+  ::int16_t i16() const {
+    return GetField<::int16_t>(VT_I16, 0);
   }
-  bool mutate_i16(int16_t _i16) {
-    return SetField<int16_t>(VT_I16, _i16, 0);
+  bool mutate_i16(::int16_t _i16) {
+    return SetField<::int16_t>(VT_I16, _i16, 0);
   }
-  uint16_t u16() const {
-    return GetField<uint16_t>(VT_U16, 0);
+  ::uint16_t u16() const {
+    return GetField<::uint16_t>(VT_U16, 0);
   }
-  bool mutate_u16(uint16_t _u16) {
-    return SetField<uint16_t>(VT_U16, _u16, 0);
+  bool mutate_u16(::uint16_t _u16) {
+    return SetField<::uint16_t>(VT_U16, _u16, 0);
   }
-  int32_t i32() const {
-    return GetField<int32_t>(VT_I32, 0);
+  ::int32_t i32() const {
+    return GetField<::int32_t>(VT_I32, 0);
   }
-  bool mutate_i32(int32_t _i32) {
-    return SetField<int32_t>(VT_I32, _i32, 0);
+  bool mutate_i32(::int32_t _i32) {
+    return SetField<::int32_t>(VT_I32, _i32, 0);
   }
-  uint32_t u32() const {
-    return GetField<uint32_t>(VT_U32, 0);
+  ::uint32_t u32() const {
+    return GetField<::uint32_t>(VT_U32, 0);
   }
-  bool mutate_u32(uint32_t _u32) {
-    return SetField<uint32_t>(VT_U32, _u32, 0);
+  bool mutate_u32(::uint32_t _u32) {
+    return SetField<::uint32_t>(VT_U32, _u32, 0);
   }
-  int64_t i64() const {
-    return GetField<int64_t>(VT_I64, 0);
+  ::int64_t i64() const {
+    return GetField<::int64_t>(VT_I64, 0);
   }
-  bool mutate_i64(int64_t _i64) {
-    return SetField<int64_t>(VT_I64, _i64, 0);
+  bool mutate_i64(::int64_t _i64) {
+    return SetField<::int64_t>(VT_I64, _i64, 0);
   }
-  uint64_t u64() const {
-    return GetField<uint64_t>(VT_U64, 0);
+  ::uint64_t u64() const {
+    return GetField<::uint64_t>(VT_U64, 0);
   }
-  bool mutate_u64(uint64_t _u64) {
-    return SetField<uint64_t>(VT_U64, _u64, 0);
+  bool mutate_u64(::uint64_t _u64) {
+    return SetField<::uint64_t>(VT_U64, _u64, 0);
   }
   float f32() const {
     return GetField<float>(VT_F32, 0.0f);
@@ -2205,11 +2205,11 @@ struct TypeAliases FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   bool mutate_f64(double _f64) {
     return SetField<double>(VT_F64, _f64, 0.0);
   }
-  const ::flatbuffers::Vector<int8_t> *v8() const {
-    return GetPointer<const ::flatbuffers::Vector<int8_t> *>(VT_V8);
+  const ::flatbuffers::Vector<::int8_t> *v8() const {
+    return GetPointer<const ::flatbuffers::Vector<::int8_t> *>(VT_V8);
   }
-  ::flatbuffers::Vector<int8_t> *mutable_v8() {
-    return GetPointer<::flatbuffers::Vector<int8_t> *>(VT_V8);
+  ::flatbuffers::Vector<::int8_t> *mutable_v8() {
+    return GetPointer<::flatbuffers::Vector<::int8_t> *>(VT_V8);
   }
   const ::flatbuffers::Vector<double> *vf64() const {
     return GetPointer<const ::flatbuffers::Vector<double> *>(VT_VF64);
@@ -2219,14 +2219,14 @@ struct TypeAliases FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<int8_t>(verifier, VT_I8) &&
-           VerifyField<uint8_t>(verifier, VT_U8) &&
-           VerifyField<int16_t>(verifier, VT_I16) &&
-           VerifyField<uint16_t>(verifier, VT_U16) &&
-           VerifyField<int32_t>(verifier, VT_I32) &&
-           VerifyField<uint32_t>(verifier, VT_U32) &&
-           VerifyField<int64_t>(verifier, VT_I64) &&
-           VerifyField<uint64_t>(verifier, VT_U64) &&
+           VerifyField<::int8_t>(verifier, VT_I8) &&
+           VerifyField<::uint8_t>(verifier, VT_U8) &&
+           VerifyField<::int16_t>(verifier, VT_I16) &&
+           VerifyField<::uint16_t>(verifier, VT_U16) &&
+           VerifyField<::int32_t>(verifier, VT_I32) &&
+           VerifyField<::uint32_t>(verifier, VT_U32) &&
+           VerifyField<::int64_t>(verifier, VT_I64) &&
+           VerifyField<::uint64_t>(verifier, VT_U64) &&
            VerifyField<float>(verifier, VT_F32) &&
            VerifyField<double>(verifier, VT_F64) &&
            VerifyOffset(verifier, VT_V8) &&
@@ -2243,29 +2243,29 @@ struct TypeAliases FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
 struct TypeAliasesBuilder {
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_i8(int8_t i8) {
-    fbb_.AddElement<int8_t>(TypeAliases::VT_I8, i8, 0);
+  void add_i8(::int8_t i8) {
+    fbb_.AddElement<::int8_t>(TypeAliases::VT_I8, i8, 0);
   }
-  void add_u8(uint8_t u8) {
-    fbb_.AddElement<uint8_t>(TypeAliases::VT_U8, u8, 0);
+  void add_u8(::uint8_t u8) {
+    fbb_.AddElement<::uint8_t>(TypeAliases::VT_U8, u8, 0);
   }
-  void add_i16(int16_t i16) {
-    fbb_.AddElement<int16_t>(TypeAliases::VT_I16, i16, 0);
+  void add_i16(::int16_t i16) {
+    fbb_.AddElement<::int16_t>(TypeAliases::VT_I16, i16, 0);
   }
-  void add_u16(uint16_t u16) {
-    fbb_.AddElement<uint16_t>(TypeAliases::VT_U16, u16, 0);
+  void add_u16(::uint16_t u16) {
+    fbb_.AddElement<::uint16_t>(TypeAliases::VT_U16, u16, 0);
   }
-  void add_i32(int32_t i32) {
-    fbb_.AddElement<int32_t>(TypeAliases::VT_I32, i32, 0);
+  void add_i32(::int32_t i32) {
+    fbb_.AddElement<::int32_t>(TypeAliases::VT_I32, i32, 0);
   }
-  void add_u32(uint32_t u32) {
-    fbb_.AddElement<uint32_t>(TypeAliases::VT_U32, u32, 0);
+  void add_u32(::uint32_t u32) {
+    fbb_.AddElement<::uint32_t>(TypeAliases::VT_U32, u32, 0);
   }
-  void add_i64(int64_t i64) {
-    fbb_.AddElement<int64_t>(TypeAliases::VT_I64, i64, 0);
+  void add_i64(::int64_t i64) {
+    fbb_.AddElement<::int64_t>(TypeAliases::VT_I64, i64, 0);
   }
-  void add_u64(uint64_t u64) {
-    fbb_.AddElement<uint64_t>(TypeAliases::VT_U64, u64, 0);
+  void add_u64(::uint64_t u64) {
+    fbb_.AddElement<::uint64_t>(TypeAliases::VT_U64, u64, 0);
   }
   void add_f32(float f32) {
     fbb_.AddElement<float>(TypeAliases::VT_F32, f32, 0.0f);
@@ -2273,7 +2273,7 @@ struct TypeAliasesBuilder {
   void add_f64(double f64) {
     fbb_.AddElement<double>(TypeAliases::VT_F64, f64, 0.0);
   }
-  void add_v8(::flatbuffers::Offset<::flatbuffers::Vector<int8_t>> v8) {
+  void add_v8(::flatbuffers::Offset<::flatbuffers::Vector<::int8_t>> v8) {
     fbb_.AddOffset(TypeAliases::VT_V8, v8);
   }
   void add_vf64(::flatbuffers::Offset<::flatbuffers::Vector<double>> vf64) {
@@ -2293,17 +2293,17 @@ struct TypeAliasesBuilder {
 
 inline ::flatbuffers::Offset<TypeAliases> CreateTypeAliases(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    int8_t i8 = 0,
-    uint8_t u8 = 0,
-    int16_t i16 = 0,
-    uint16_t u16 = 0,
-    int32_t i32 = 0,
-    uint32_t u32 = 0,
-    int64_t i64 = 0,
-    uint64_t u64 = 0,
+    ::int8_t i8 = 0,
+    ::uint8_t u8 = 0,
+    ::int16_t i16 = 0,
+    ::uint16_t u16 = 0,
+    ::int32_t i32 = 0,
+    ::uint32_t u32 = 0,
+    ::int64_t i64 = 0,
+    ::uint64_t u64 = 0,
     float f32 = 0.0f,
     double f64 = 0.0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<int8_t>> v8 = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::int8_t>> v8 = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<double>> vf64 = 0) {
   TypeAliasesBuilder builder_(_fbb);
   builder_.add_f64(f64);
@@ -2323,19 +2323,19 @@ inline ::flatbuffers::Offset<TypeAliases> CreateTypeAliases(
 
 inline ::flatbuffers::Offset<TypeAliases> CreateTypeAliasesDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    int8_t i8 = 0,
-    uint8_t u8 = 0,
-    int16_t i16 = 0,
-    uint16_t u16 = 0,
-    int32_t i32 = 0,
-    uint32_t u32 = 0,
-    int64_t i64 = 0,
-    uint64_t u64 = 0,
+    ::int8_t i8 = 0,
+    ::uint8_t u8 = 0,
+    ::int16_t i16 = 0,
+    ::uint16_t u16 = 0,
+    ::int32_t i32 = 0,
+    ::uint32_t u32 = 0,
+    ::int64_t i64 = 0,
+    ::uint64_t u64 = 0,
     float f32 = 0.0f,
     double f64 = 0.0,
-    const ::std::vector<int8_t> *v8 = nullptr,
+    const ::std::vector<::int8_t> *v8 = nullptr,
     const ::std::vector<double> *vf64 = nullptr) {
-  auto v8__ = v8 ? _fbb.CreateVector<int8_t>(*v8) : 0;
+  auto v8__ = v8 ? _fbb.CreateVector<::int8_t>(*v8) : 0;
   auto vf64__ = vf64 ? _fbb.CreateVector<double>(*vf64) : 0;
   return MyGame::Example::CreateTypeAliases(
       _fbb,
@@ -2586,7 +2586,7 @@ inline ::flatbuffers::Offset<Monster> CreateMonster(::flatbuffers::FlatBufferBui
   auto _testhashs64_fnv1 = _o->testhashs64_fnv1;
   auto _testhashu64_fnv1 = _o->testhashu64_fnv1;
   auto _testhashs32_fnv1a = _o->testhashs32_fnv1a;
-  auto _testhashu32_fnv1a = _rehasher ? static_cast<uint32_t>((*_rehasher)(_o->testhashu32_fnv1a)) : 0;
+  auto _testhashu32_fnv1a = _rehasher ? static_cast<::uint32_t>((*_rehasher)(_o->testhashu32_fnv1a)) : 0;
   auto _testhashs64_fnv1a = _o->testhashs64_fnv1a;
   auto _testhashu64_fnv1a = _o->testhashu64_fnv1a;
   auto _testarrayofbools = _o->testarrayofbools.size() ? _fbb.CreateVector(_o->testarrayofbools) : 0;
@@ -2601,18 +2601,18 @@ inline ::flatbuffers::Offset<Monster> CreateMonster(::flatbuffers::FlatBufferBui
   auto _vector_of_doubles = _o->vector_of_doubles.size() ? _fbb.CreateVector(_o->vector_of_doubles) : 0;
   auto _parent_namespace_test = _o->parent_namespace_test ? CreateInParentNamespace(_fbb, _o->parent_namespace_test.get(), _rehasher) : 0;
   auto _vector_of_referrables = _o->vector_of_referrables.size() ? _fbb.CreateVector<::flatbuffers::Offset<Referrable>> (_o->vector_of_referrables.size(), [](size_t i, _VectorArgs *__va) { return CreateReferrable(*__va->__fbb, __va->__o->vector_of_referrables[i].get(), __va->__rehasher); }, &_va ) : 0;
-  auto _single_weak_reference = _rehasher ? static_cast<uint64_t>((*_rehasher)(_o->single_weak_reference)) : 0;
-  auto _vector_of_weak_references = _o->vector_of_weak_references.size() ? _fbb.CreateVector<uint64_t>(_o->vector_of_weak_references.size(), [](size_t i, _VectorArgs *__va) { return __va->__rehasher ? static_cast<uint64_t>((*__va->__rehasher)(__va->__o->vector_of_weak_references[i])) : 0; }, &_va ) : 0;
+  auto _single_weak_reference = _rehasher ? static_cast<::uint64_t>((*_rehasher)(_o->single_weak_reference)) : 0;
+  auto _vector_of_weak_references = _o->vector_of_weak_references.size() ? _fbb.CreateVector<::uint64_t>(_o->vector_of_weak_references.size(), [](size_t i, _VectorArgs *__va) { return __va->__rehasher ? static_cast<::uint64_t>((*__va->__rehasher)(__va->__o->vector_of_weak_references[i])) : 0; }, &_va ) : 0;
   auto _vector_of_strong_referrables = _o->vector_of_strong_referrables.size() ? _fbb.CreateVector<::flatbuffers::Offset<Referrable>> (_o->vector_of_strong_referrables.size(), [](size_t i, _VectorArgs *__va) { return CreateReferrable(*__va->__fbb, __va->__o->vector_of_strong_referrables[i].get(), __va->__rehasher); }, &_va ) : 0;
-  auto _co_owning_reference = _rehasher ? static_cast<uint64_t>((*_rehasher)(_o->co_owning_reference)) : 0;
-  auto _vector_of_co_owning_references = _o->vector_of_co_owning_references.size() ? _fbb.CreateVector<uint64_t>(_o->vector_of_co_owning_references.size(), [](size_t i, _VectorArgs *__va) { return __va->__rehasher ? static_cast<uint64_t>((*__va->__rehasher)(__va->__o->vector_of_co_owning_references[i].get())) : 0; }, &_va ) : 0;
-  auto _non_owning_reference = _rehasher ? static_cast<uint64_t>((*_rehasher)(_o->non_owning_reference)) : 0;
-  auto _vector_of_non_owning_references = _o->vector_of_non_owning_references.size() ? _fbb.CreateVector<uint64_t>(_o->vector_of_non_owning_references.size(), [](size_t i, _VectorArgs *__va) { return __va->__rehasher ? static_cast<uint64_t>((*__va->__rehasher)(__va->__o->vector_of_non_owning_references[i])) : 0; }, &_va ) : 0;
+  auto _co_owning_reference = _rehasher ? static_cast<::uint64_t>((*_rehasher)(_o->co_owning_reference)) : 0;
+  auto _vector_of_co_owning_references = _o->vector_of_co_owning_references.size() ? _fbb.CreateVector<::uint64_t>(_o->vector_of_co_owning_references.size(), [](size_t i, _VectorArgs *__va) { return __va->__rehasher ? static_cast<::uint64_t>((*__va->__rehasher)(__va->__o->vector_of_co_owning_references[i].get())) : 0; }, &_va ) : 0;
+  auto _non_owning_reference = _rehasher ? static_cast<::uint64_t>((*_rehasher)(_o->non_owning_reference)) : 0;
+  auto _vector_of_non_owning_references = _o->vector_of_non_owning_references.size() ? _fbb.CreateVector<::uint64_t>(_o->vector_of_non_owning_references.size(), [](size_t i, _VectorArgs *__va) { return __va->__rehasher ? static_cast<::uint64_t>((*__va->__rehasher)(__va->__o->vector_of_non_owning_references[i])) : 0; }, &_va ) : 0;
   auto _any_unique_type = _o->any_unique.type;
   auto _any_unique = _o->any_unique.Pack(_fbb);
   auto _any_ambiguous_type = _o->any_ambiguous.type;
   auto _any_ambiguous = _o->any_ambiguous.Pack(_fbb);
-  auto _vector_of_enums = _o->vector_of_enums.size() ? _fbb.CreateVectorScalarCast<uint8_t>(::flatbuffers::data(_o->vector_of_enums), _o->vector_of_enums.size()) : 0;
+  auto _vector_of_enums = _o->vector_of_enums.size() ? _fbb.CreateVectorScalarCast<::uint8_t>(::flatbuffers::data(_o->vector_of_enums), _o->vector_of_enums.size()) : 0;
   return MyGame::Example::CreateMonster(
       _fbb,
       _pos,
@@ -2744,7 +2744,7 @@ inline bool VerifyAny(::flatbuffers::Verifier &verifier, const void *obj, Any ty
   }
 }
 
-inline bool VerifyAnyVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<uint8_t> *types) {
+inline bool VerifyAnyVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<::uint8_t> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
@@ -2855,7 +2855,7 @@ inline bool VerifyAnyUniqueAliases(::flatbuffers::Verifier &verifier, const void
   }
 }
 
-inline bool VerifyAnyUniqueAliasesVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<uint8_t> *types) {
+inline bool VerifyAnyUniqueAliasesVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<::uint8_t> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
@@ -2966,7 +2966,7 @@ inline bool VerifyAnyAmbiguousAliases(::flatbuffers::Verifier &verifier, const v
   }
 }
 
-inline bool VerifyAnyAmbiguousAliasesVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<uint8_t> *types) {
+inline bool VerifyAnyAmbiguousAliasesVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<::uint8_t> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
@@ -3065,7 +3065,7 @@ inline const ::flatbuffers::TypeTable *ColorTypeTable() {
   static const ::flatbuffers::TypeFunction type_refs[] = {
     ColorTypeTable
   };
-  static const int64_t values[] = { 1, 2, 8 };
+  static const ::int64_t values[] = { 1, 2, 8 };
   static const char * const names[] = {
     "Red",
     "Green",
@@ -3174,7 +3174,7 @@ inline const ::flatbuffers::TypeTable *TestTypeTable() {
     { ::flatbuffers::ET_SHORT, 0, -1 },
     { ::flatbuffers::ET_CHAR, 0, -1 }
   };
-  static const int64_t values[] = { 0, 2, 4 };
+  static const ::int64_t values[] = { 0, 2, 4 };
   static const char * const names[] = {
     "a",
     "b"
@@ -3214,7 +3214,7 @@ inline const ::flatbuffers::TypeTable *Vec3TypeTable() {
     ColorTypeTable,
     TestTypeTable
   };
-  static const int64_t values[] = { 0, 4, 8, 16, 24, 26, 32 };
+  static const ::int64_t values[] = { 0, 4, 8, 16, 24, 26, 32 };
   static const char * const names[] = {
     "x",
     "y",
@@ -3234,7 +3234,7 @@ inline const ::flatbuffers::TypeTable *AbilityTypeTable() {
     { ::flatbuffers::ET_UINT, 0, -1 },
     { ::flatbuffers::ET_UINT, 0, -1 }
   };
-  static const int64_t values[] = { 0, 4, 8 };
+  static const ::int64_t values[] = { 0, 4, 8 };
   static const char * const names[] = {
     "id",
     "distance"
