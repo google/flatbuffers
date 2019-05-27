@@ -457,7 +457,7 @@ struct ServiceDef : public Definition {
 
 struct FullyQualifiedType {
  public:
-  FullyQualifiedType() = default;
+  FullyQualifiedType() {}
   explicit FullyQualifiedType(std::string type_name);
 
   std::string const &Get() const { return value_; }
