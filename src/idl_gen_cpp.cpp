@@ -600,17 +600,17 @@ class CppGenerator : public BaseGenerator {
                             : name;
   }
 
-  const std::string &PtrType(const FieldDef *field) {
+  CPPTypeName PtrType(const FieldDef *field) {
     auto attr = field ? field->attributes.Lookup("cpp_ptr_type") : nullptr;
-    return attr ? attr->constant
-                : parser_.opts.cpp_object_api_pointer_type.Get();
+    return attr ? CPPTypeName(attr->constant)
+                : parser_.opts.cpp_object_api_pointer_type;
   }
 
-  const std::string NativeString(const FieldDef *field) {
+  CPPTypeName NativeString(const FieldDef *field) {
     auto attr = field ? field->attributes.Lookup("cpp_str_type") : nullptr;
-    auto &ret =
-        attr ? attr->constant : parser_.opts.cpp_object_api_string_type.Get();
-    if (ret.empty()) { return "::std::string"; }
+    auto &ret = attr ? CPPTypeName(attr->constant)
+                     : parser_.opts.cpp_object_api_string_type;
+    if (ret.Get().empty()) { return CPPTypeName("::std::string"); }
     return ret;
   }
 
@@ -620,15 +620,15 @@ class CppGenerator : public BaseGenerator {
                     : false;
     auto ret =
         attr ? attr : parser_.opts.cpp_object_api_string_flexible_constructor;
-    return ret && NativeString(field) !=
+    return ret && NativeString(field).Get() !=
                       "::std::string";  // Only for custom string types.
   }
 
   std::string GenTypeNativePtr(const std::string &type, const FieldDef *field,
                                bool is_constructor) {
-    auto &ptr_type = PtrType(field);
-    if (ptr_type != "naked") {
-      return (ptr_type != "default_ptr_type"
+    auto ptr_type = PtrType(field).Get();
+    if (ptr_type != "::naked") {
+      return (ptr_type != "::default_ptr_type"
                   ? ptr_type
                   : parser_.opts.cpp_object_api_pointer_type.Get()) +
              "<" + type + ">";
@@ -642,15 +642,15 @@ class CppGenerator : public BaseGenerator {
   std::string GenPtrGet(const FieldDef &field) {
     auto cpp_ptr_type_get = field.attributes.Lookup("cpp_ptr_type_get");
     if (cpp_ptr_type_get) return cpp_ptr_type_get->constant;
-    auto &ptr_type = PtrType(&field);
-    return ptr_type == "naked" ? "" : ".get()";
+    auto ptr_type = PtrType(&field).Get();
+    return ptr_type == "::naked" ? "" : ".get()";
   }
 
   std::string GenTypeNative(const Type &type, bool invector,
                             const FieldDef &field) {
     switch (type.base_type) {
       case BASE_TYPE_STRING: {
-        return NativeString(&field);
+        return NativeString(&field).Get();
       }
       case BASE_TYPE_VECTOR: {
         const auto type_name = GenTypeNative(type.VectorType(), true, field);
@@ -1501,7 +1501,7 @@ class CppGenerator : public BaseGenerator {
       return field.value.constant == "0" ? "false" : "true";
     } else if (field.attributes.Lookup("cpp_type")) {
       if (is_ctor) {
-        if (PtrType(&field) == "naked") {
+        if (PtrType(&field).Get() == "::naked") {
           return "nullptr";
         } else {
           return "";
@@ -2243,7 +2243,7 @@ class CppGenerator : public BaseGenerator {
     switch (type.base_type) {
       case BASE_TYPE_STRING: {
         if (FlexibleStringConstructor(&afield)) {
-          return NativeString(&afield) + "(" + val + "->c_str(), " + val +
+          return NativeString(&afield).Get() + "(" + val + "->c_str(), " + val +
                  "->size())";
         } else {
           return val + "->str()";
@@ -2316,14 +2316,14 @@ class CppGenerator : public BaseGenerator {
           //    (*resolver)(&_o->field, (hash_value_t)(_e));
           //  else
           //    _o->field = nullptr;
-          code += "//vector resolver, " + PtrType(&field) + "\n";
+          code += "//vector resolver, " + PtrType(&field).Get() + "\n";
           code += "if (_resolver) ";
           code += "(*_resolver)";
           code += "(reinterpret_cast<void **>(&_o->" + name + "[_i]" + access +
                   "), ";
           code +=
               "static_cast<::flatbuffers::hash_value_t>(" + indexing + "));";
-          if (PtrType(&field) == "naked") {
+          if (PtrType(&field).Get() == "::naked") {
             code += " else ";
             code += "_o->" + name + "[_i]" + access + " = nullptr";
           } else {
@@ -2364,12 +2364,12 @@ class CppGenerator : public BaseGenerator {
           //    (*resolver)(&_o->field, (hash_value_t)(_e));
           //  else
           //    _o->field = nullptr;
-          code += "//scalar resolver, " + PtrType(&field) + " \n";
+          code += "//scalar resolver, " + PtrType(&field).Get() + " \n";
           code += "if (_resolver) ";
           code += "(*_resolver)";
           code += "(reinterpret_cast<void **>(&_o->" + Name(field) + "), ";
           code += "static_cast<::flatbuffers::hash_value_t>(_e));";
-          if (PtrType(&field) == "naked") {
+          if (PtrType(&field).Get() == "::::naked") {
             code += " else ";
             code += "_o->" + Name(field) + " = nullptr;";
           } else {
@@ -2446,7 +2446,7 @@ class CppGenerator : public BaseGenerator {
         auto vector_type = field.value.type.VectorType();
         switch (vector_type.base_type) {
           case BASE_TYPE_STRING: {
-            if (NativeString(&field) == "::std::string") {
+            if (NativeString(&field).Get() == "::std::string") {
               code += "_fbb.CreateVectorOfStrings(" + value + ")";
             } else {
               // Use by-function serialization to emulate
