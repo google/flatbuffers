@@ -268,7 +268,7 @@ class CppGenerator : public BaseGenerator {
           code_ += "bool operator==(const " + nativeName + " &lhs, const " +
                    nativeName + " &rhs);";
           code_ += "bool operator!=(const " + nativeName + " &lhs, const " +
-              nativeName + " &rhs);";
+                   nativeName + " &rhs);";
         }
       }
       code_ += "";
@@ -372,7 +372,7 @@ class CppGenerator : public BaseGenerator {
       code_ +=
           "const {{CPP_NAME}} *{{NULLABLE_EXT}}Get{{STRUCT_NAME}}(const void "
           "*buf) {";
-      code_ += "  return flatbuffers::GetRoot<{{CPP_NAME}}>(buf);";
+      code_ += "  return ::flatbuffers::GetRoot<{{CPP_NAME}}>(buf);";
       code_ += "}";
       code_ += "";
 
@@ -381,14 +381,16 @@ class CppGenerator : public BaseGenerator {
           "const {{CPP_NAME}} "
           "*{{NULLABLE_EXT}}GetSizePrefixed{{STRUCT_NAME}}(const void "
           "*buf) {";
-      code_ += "  return flatbuffers::GetSizePrefixedRoot<{{CPP_NAME}}>(buf);";
+      code_ +=
+          "  return ::flatbuffers::GetSizePrefixedRoot<{{CPP_NAME}}>(buf);";
       code_ += "}";
       code_ += "";
 
       if (parser_.opts.mutable_buffer) {
         code_ += "inline \\";
         code_ += "{{STRUCT_NAME}} *GetMutable{{STRUCT_NAME}}(void *buf) {";
-        code_ += "  return flatbuffers::GetMutableRoot<{{STRUCT_NAME}}>(buf);";
+        code_ +=
+            "  return ::flatbuffers::GetMutableRoot<{{STRUCT_NAME}}>(buf);";
         code_ += "}";
         code_ += "";
       }
@@ -403,7 +405,7 @@ class CppGenerator : public BaseGenerator {
         // Check if a buffer has the identifier.
         code_ += "inline \\";
         code_ += "bool {{STRUCT_NAME}}BufferHasIdentifier(const void *buf) {";
-        code_ += "  return flatbuffers::BufferHasIdentifier(";
+        code_ += "  return ::flatbuffers::BufferHasIdentifier(";
         code_ += "      buf, {{STRUCT_NAME}}Identifier());";
         code_ += "}";
         code_ += "";
@@ -417,13 +419,13 @@ class CppGenerator : public BaseGenerator {
       }
 
       code_ += "inline bool Verify{{STRUCT_NAME}}Buffer(";
-      code_ += "    flatbuffers::Verifier &verifier) {";
+      code_ += "    ::flatbuffers::Verifier &verifier) {";
       code_ += "  return verifier.VerifyBuffer<{{CPP_NAME}}>({{ID}});";
       code_ += "}";
       code_ += "";
 
       code_ += "inline bool VerifySizePrefixed{{STRUCT_NAME}}Buffer(";
-      code_ += "    flatbuffers::Verifier &verifier) {";
+      code_ += "    ::flatbuffers::Verifier &verifier) {";
       code_ +=
           "  return verifier.VerifySizePrefixedBuffer<{{CPP_NAME}}>({{ID}});";
       code_ += "}";
@@ -439,8 +441,8 @@ class CppGenerator : public BaseGenerator {
 
       // Finish a buffer with a given root object:
       code_ += "inline void Finish{{STRUCT_NAME}}Buffer(";
-      code_ += "    flatbuffers::FlatBufferBuilder &fbb,";
-      code_ += "    flatbuffers::Offset<{{CPP_NAME}}> root) {";
+      code_ += "    ::flatbuffers::FlatBufferBuilder &fbb,";
+      code_ += "    ::flatbuffers::Offset<{{CPP_NAME}}> root) {";
       if (parser_.file_identifier_.length())
         code_ += "  fbb.Finish(root, {{STRUCT_NAME}}Identifier());";
       else
@@ -449,8 +451,8 @@ class CppGenerator : public BaseGenerator {
       code_ += "";
 
       code_ += "inline void FinishSizePrefixed{{STRUCT_NAME}}Buffer(";
-      code_ += "    flatbuffers::FlatBufferBuilder &fbb,";
-      code_ += "    flatbuffers::Offset<{{CPP_NAME}}> root) {";
+      code_ += "    ::flatbuffers::FlatBufferBuilder &fbb,";
+      code_ += "    ::flatbuffers::Offset<{{CPP_NAME}}> root) {";
       if (parser_.file_identifier_.length())
         code_ += "  fbb.FinishSizePrefixed(root, {{STRUCT_NAME}}Identifier());";
       else
@@ -469,7 +471,8 @@ class CppGenerator : public BaseGenerator {
 
         code_ += "inline {{UNPACK_RETURN}} UnPack{{STRUCT_NAME}}(";
         code_ += "    const void *buf,";
-        code_ += "    const flatbuffers::resolver_function_t *res = nullptr) {";
+        code_ +=
+            "    const ::flatbuffers::resolver_function_t *res = nullptr) {";
         code_ += "  return {{UNPACK_TYPE}}\\";
         code_ += "(Get{{STRUCT_NAME}}(buf)->UnPack(res));";
         code_ += "}";
@@ -477,7 +480,8 @@ class CppGenerator : public BaseGenerator {
 
         code_ += "inline {{UNPACK_RETURN}} UnPackSizePrefixed{{STRUCT_NAME}}(";
         code_ += "    const void *buf,";
-        code_ += "    const flatbuffers::resolver_function_t *res = nullptr) {";
+        code_ +=
+            "    const ::flatbuffers::resolver_function_t *res = nullptr) {";
         code_ += "  return {{UNPACK_TYPE}}\\";
         code_ += "(GetSizePrefixed{{STRUCT_NAME}}(buf)->UnPack(res));";
         code_ += "}";
@@ -546,11 +550,11 @@ class CppGenerator : public BaseGenerator {
   std::string GenTypePointer(const Type &type) const {
     switch (type.base_type) {
       case BASE_TYPE_STRING: {
-        return "flatbuffers::String";
+        return "::flatbuffers::String";
       }
       case BASE_TYPE_VECTOR: {
         const auto type_name = GenTypeWire(type.VectorType(), "", false);
-        return "flatbuffers::Vector<" + type_name + ">";
+        return "::flatbuffers::Vector<" + type_name + ">";
       }
       case BASE_TYPE_STRUCT: {
         return WrapInNameSpace(*type.struct_def);
@@ -570,7 +574,7 @@ class CppGenerator : public BaseGenerator {
     } else if (IsStruct(type)) {
       return "const " + GenTypePointer(type) + " *";
     } else {
-      return "flatbuffers::Offset<" + GenTypePointer(type) + ">" + postfix;
+      return "::flatbuffers::Offset<" + GenTypePointer(type) + ">" + postfix;
     }
   }
 
@@ -582,7 +586,7 @@ class CppGenerator : public BaseGenerator {
     } else if (IsStruct(type)) {
       return GenTypePointer(type);
     } else {
-      return "flatbuffers::uoffset_t";
+      return "::flatbuffers::uoffset_t";
     }
   }
 
@@ -727,8 +731,9 @@ class CppGenerator : public BaseGenerator {
                                     name)
                   : name;
     } else if (ev.union_type.base_type == BASE_TYPE_STRING) {
-      return actual_type ? (native_type ? "std::string" : "flatbuffers::String")
-                         : Name(ev);
+      return actual_type
+                 ? (native_type ? "std::string" : "::flatbuffers::String")
+                 : Name(ev);
     } else {
       FLATBUFFERS_ASSERT(false);
       return Name(ev);
@@ -737,48 +742,50 @@ class CppGenerator : public BaseGenerator {
 
   std::string UnionVerifySignature(const EnumDef &enum_def) {
     return "bool Verify" + Name(enum_def) +
-           "(flatbuffers::Verifier &verifier, const void *obj, " +
+           "(::flatbuffers::Verifier &verifier, const void *obj, " +
            Name(enum_def) + " type)";
   }
 
   std::string UnionVectorVerifySignature(const EnumDef &enum_def) {
     return "bool Verify" + Name(enum_def) + "Vector" +
-           "(flatbuffers::Verifier &verifier, " +
-           "const flatbuffers::Vector<flatbuffers::Offset<void>> *values, " +
-           "const flatbuffers::Vector<uint8_t> *types)";
+           "(::flatbuffers::Verifier &verifier, " +
+           "const ::flatbuffers::Vector<::flatbuffers::Offset<void>> "
+           "*values, " +
+           "const ::flatbuffers::Vector<uint8_t> *types)";
   }
 
   std::string UnionUnPackSignature(const EnumDef &enum_def, bool inclass) {
     return (inclass ? "static " : "") + std::string("void *") +
            (inclass ? "" : Name(enum_def) + "Union::") +
            "UnPack(const void *obj, " + Name(enum_def) +
-           " type, const flatbuffers::resolver_function_t *resolver)";
+           " type, const ::flatbuffers::resolver_function_t *resolver)";
   }
 
   std::string UnionPackSignature(const EnumDef &enum_def, bool inclass) {
-    return "flatbuffers::Offset<void> " +
+    return "::flatbuffers::Offset<void> " +
            (inclass ? "" : Name(enum_def) + "Union::") +
-           "Pack(flatbuffers::FlatBufferBuilder &_fbb, " +
-           "const flatbuffers::rehasher_function_t *_rehasher" +
+           "Pack(::flatbuffers::FlatBufferBuilder &_fbb, " +
+           "const ::flatbuffers::rehasher_function_t *_rehasher" +
            (inclass ? " = nullptr" : "") + ") const";
   }
 
   std::string TableCreateSignature(const StructDef &struct_def, bool predecl,
                                    const IDLOptions &opts) {
-    return "flatbuffers::Offset<" + Name(struct_def) + "> Create" +
-           Name(struct_def) + "(flatbuffers::FlatBufferBuilder &_fbb, const " +
+    return "::flatbuffers::Offset<" + Name(struct_def) + "> Create" +
+           Name(struct_def) +
+           "(::flatbuffers::FlatBufferBuilder &_fbb, const " +
            NativeName(Name(struct_def), &struct_def, opts) +
-           " *_o, const flatbuffers::rehasher_function_t *_rehasher" +
+           " *_o, const ::flatbuffers::rehasher_function_t *_rehasher" +
            (predecl ? " = nullptr" : "") + ")";
   }
 
   std::string TablePackSignature(const StructDef &struct_def, bool inclass,
                                  const IDLOptions &opts) {
-    return std::string(inclass ? "static " : "") + "flatbuffers::Offset<" +
+    return std::string(inclass ? "static " : "") + "::flatbuffers::Offset<" +
            Name(struct_def) + "> " + (inclass ? "" : Name(struct_def) + "::") +
-           "Pack(flatbuffers::FlatBufferBuilder &_fbb, " + "const " +
+           "Pack(::flatbuffers::FlatBufferBuilder &_fbb, " + "const " +
            NativeName(Name(struct_def), &struct_def, opts) + "* _o, " +
-           "const flatbuffers::rehasher_function_t *_rehasher" +
+           "const ::flatbuffers::rehasher_function_t *_rehasher" +
            (inclass ? " = nullptr" : "") + ")";
   }
 
@@ -786,7 +793,7 @@ class CppGenerator : public BaseGenerator {
                                    const IDLOptions &opts) {
     return NativeName(Name(struct_def), &struct_def, opts) + " *" +
            (inclass ? "" : Name(struct_def) + "::") +
-           "UnPack(const flatbuffers::resolver_function_t *_resolver" +
+           "UnPack(const ::flatbuffers::resolver_function_t *_resolver" +
            (inclass ? " = nullptr" : "") + ") const";
   }
 
@@ -794,13 +801,13 @@ class CppGenerator : public BaseGenerator {
                                      const IDLOptions &opts) {
     return "void " + (inclass ? "" : Name(struct_def) + "::") + "UnPackTo(" +
            NativeName(Name(struct_def), &struct_def, opts) + " *" +
-           "_o, const flatbuffers::resolver_function_t *_resolver" +
+           "_o, const ::flatbuffers::resolver_function_t *_resolver" +
            (inclass ? " = nullptr" : "") + ") const";
   }
 
   void GenMiniReflectPre(const StructDef *struct_def) {
     code_.SetValue("NAME", struct_def->name);
-    code_ += "inline const flatbuffers::TypeTable *{{NAME}}TypeTable();";
+    code_ += "inline const ::flatbuffers::TypeTable *{{NAME}}TypeTable();";
     code_ += "";
   }
 
@@ -859,8 +866,8 @@ class CppGenerator : public BaseGenerator {
           type_refs.push_back(ref_name);
         }
       }
-      ts += "{ flatbuffers::" + std::string(ElementaryTypeNames()[et]) + ", " +
-            NumToString(is_vector) + ", " + NumToString(ref_idx) + " }";
+      ts += "{ ::flatbuffers::" + std::string(ElementaryTypeNames()[et]) +
+            ", " + NumToString(is_vector) + ", " + NumToString(ref_idx) + " }";
     }
     std::string rs;
     for (auto it = type_refs.begin(); it != type_refs.end(); ++it) {
@@ -897,14 +904,14 @@ class CppGenerator : public BaseGenerator {
     code_.SetValue("REFS", rs);
     code_.SetValue("NAMES", ns);
     code_.SetValue("VALUES", vs);
-    code_ += "inline const flatbuffers::TypeTable *{{NAME}}TypeTable() {";
+    code_ += "inline const ::flatbuffers::TypeTable *{{NAME}}TypeTable() {";
     if (num_fields) {
-      code_ += "  static const flatbuffers::TypeCode type_codes[] = {";
+      code_ += "  static const ::flatbuffers::TypeCode type_codes[] = {";
       code_ += "    {{TYPES}}";
       code_ += "  };";
     }
     if (!type_refs.empty()) {
-      code_ += "  static const flatbuffers::TypeFunction type_refs[] = {";
+      code_ += "  static const ::flatbuffers::TypeFunction type_refs[] = {";
       code_ += "    {{REFS}}";
       code_ += "  };";
     }
@@ -919,8 +926,8 @@ class CppGenerator : public BaseGenerator {
       code_ += "    {{NAMES}}";
       code_ += "  };";
     }
-    code_ += "  static const flatbuffers::TypeTable tt = {";
-    code_ += std::string("    flatbuffers::{{SEQ_TYPE}}, {{NUM_FIELDS}}, ") +
+    code_ += "  static const ::flatbuffers::TypeTable tt = {";
+    code_ += std::string("    ::flatbuffers::{{SEQ_TYPE}}, {{NUM_FIELDS}}, ") +
              (num_fields ? "type_codes, " : "nullptr, ") +
              (!type_refs.empty() ? "type_refs, " : "nullptr, ") +
              (!vs.empty() ? "values, " : "nullptr, ") +
@@ -1138,7 +1145,8 @@ class CppGenerator : public BaseGenerator {
         code_ += "  void Set(T&& val) {";
         code_ += "    using RT = typename std::remove_reference<T>::type;";
         code_ += "    Reset();";
-        code_ += "    type = {{NAME}}Traits<typename RT::TableType>::enum_value;";
+        code_ +=
+            "    type = {{NAME}}Traits<typename RT::TableType>::enum_value;";
         code_ += "    if (type != {{NONE}}) {";
         code_ += "      value = new RT(std::forward<T>(val));";
         code_ += "    }";
@@ -1251,8 +1259,9 @@ class CppGenerator : public BaseGenerator {
             "      auto ptr = reinterpret_cast<const {{TYPE}} *>(obj);";
         if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
           if (ev.union_type.struct_def->fixed) {
-            code_ += "      return verifier.Verify<{{TYPE}}>(static_cast<const "
-                     "uint8_t *>(obj), 0);";
+            code_ +=
+                "      return verifier.Verify<{{TYPE}}>(static_cast<const "
+                "uint8_t *>(obj), 0);";
           } else {
             code_ += getptr;
             code_ += "      return verifier.VerifyTable(ptr);";
@@ -1278,7 +1287,8 @@ class CppGenerator : public BaseGenerator {
     code_ += "inline " + UnionVectorVerifySignature(enum_def) + " {";
     code_ += "  if (!values || !types) return !values && !types;";
     code_ += "  if (values->size() != types->size()) return false;";
-    code_ += "  for (flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {";
+    code_ +=
+        "  for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {";
     code_ += "    if (!Verify" + Name(enum_def) + "(";
     code_ += "        verifier,  values->Get(i), types->GetEnum<" +
              Name(enum_def) + ">(i))) {";
@@ -1662,7 +1672,7 @@ class CppGenerator : public BaseGenerator {
     code_.SetValue("NATIVE_NAME", native_name);
 
     // Generate a C++ object that can hold an unpacked version of this table.
-    code_ += "struct {{NATIVE_NAME}} : public flatbuffers::NativeTable {";
+    code_ += "struct {{NATIVE_NAME}} : public ::flatbuffers::NativeTable {";
     code_ += "  typedef {{STRUCT_NAME}} TableType;";
     GenFullyQualifiedNameGetter(struct_def, native_name);
     for (auto it = struct_def.fields.vec.begin();
@@ -1784,13 +1794,13 @@ class CppGenerator : public BaseGenerator {
     code_.SetValue("STRUCT_NAME", Name(struct_def));
     code_ +=
         "struct {{STRUCT_NAME}} FLATBUFFERS_FINAL_CLASS"
-        " : private flatbuffers::Table {";
+        " : private ::flatbuffers::Table {";
     if (parser_.opts.generate_object_based_api) {
       code_ += "  typedef {{NATIVE_NAME}} NativeTableType;";
     }
     if (parser_.opts.mini_reflect != IDLOptions::kNone) {
       code_ +=
-          "  static const flatbuffers::TypeTable *MiniReflectTypeTable() {";
+          "  static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {";
       code_ += "    return {{STRUCT_NAME}}TypeTable();";
       code_ += "  }";
     }
@@ -1944,7 +1954,7 @@ class CppGenerator : public BaseGenerator {
         code_ += "  const {{CPP_NAME}} *{{FIELD_NAME}}_nested_root() const {";
         code_ +=
             "    return "
-            "flatbuffers::GetRoot<{{CPP_NAME}}>({{FIELD_NAME}}()->Data());";
+            "::flatbuffers::GetRoot<{{CPP_NAME}}>({{FIELD_NAME}}()->Data());";
         code_ += "  }";
       }
 
@@ -1966,7 +1976,7 @@ class CppGenerator : public BaseGenerator {
 
     // Generate a verifier function that can check a buffer from an untrusted
     // source will never cause reads outside the buffer.
-    code_ += "  bool Verify(flatbuffers::Verifier &verifier) const {";
+    code_ += "  bool Verify(::flatbuffers::Verifier &verifier) const {";
     code_ += "    return VerifyTableStart(verifier)\\";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
@@ -2042,8 +2052,8 @@ class CppGenerator : public BaseGenerator {
 
     // Generate a builder struct:
     code_ += "struct {{STRUCT_NAME}}Builder {";
-    code_ += "  flatbuffers::FlatBufferBuilder &fbb_;";
-    code_ += "  flatbuffers::uoffset_t start_;";
+    code_ += "  ::flatbuffers::FlatBufferBuilder &fbb_;";
+    code_ += "  ::flatbuffers::uoffset_t start_;";
 
     bool has_string_or_vector_fields = false;
     for (auto it = struct_def.fields.vec.begin();
@@ -2090,7 +2100,7 @@ class CppGenerator : public BaseGenerator {
 
     // Builder constructor
     code_ +=
-        "  explicit {{STRUCT_NAME}}Builder(flatbuffers::FlatBufferBuilder "
+        "  explicit {{STRUCT_NAME}}Builder(::flatbuffers::FlatBufferBuilder "
         "&_fbb)";
     code_ += "        : fbb_(_fbb) {";
     code_ += "    start_ = fbb_.StartTable();";
@@ -2102,9 +2112,9 @@ class CppGenerator : public BaseGenerator {
         "(const {{STRUCT_NAME}}Builder &);";
 
     // Finish() function.
-    code_ += "  flatbuffers::Offset<{{STRUCT_NAME}}> Finish() {";
+    code_ += "  ::flatbuffers::Offset<{{STRUCT_NAME}}> Finish() {";
     code_ += "    const auto end = fbb_.EndTable(start_);";
-    code_ += "    auto o = flatbuffers::Offset<{{STRUCT_NAME}}>(end);";
+    code_ += "    auto o = ::flatbuffers::Offset<{{STRUCT_NAME}}>(end);";
 
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
@@ -2123,9 +2133,9 @@ class CppGenerator : public BaseGenerator {
     // Generate a convenient CreateX function that uses the above builder
     // to create a table in one go.
     code_ +=
-        "inline flatbuffers::Offset<{{STRUCT_NAME}}> "
+        "inline ::flatbuffers::Offset<{{STRUCT_NAME}}> "
         "Create{{STRUCT_NAME}}(";
-    code_ += "    flatbuffers::FlatBufferBuilder &_fbb\\";
+    code_ += "    ::flatbuffers::FlatBufferBuilder &_fbb\\";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
@@ -2153,9 +2163,9 @@ class CppGenerator : public BaseGenerator {
     // Generate a CreateXDirect function with vector types as parameters
     if (has_string_or_vector_fields) {
       code_ +=
-          "inline flatbuffers::Offset<{{STRUCT_NAME}}> "
+          "inline ::flatbuffers::Offset<{{STRUCT_NAME}}> "
           "Create{{STRUCT_NAME}}Direct(";
-      code_ += "    flatbuffers::FlatBufferBuilder &_fbb\\";
+      code_ += "    ::flatbuffers::FlatBufferBuilder &_fbb\\";
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
         const auto &field = **it;
@@ -2239,7 +2249,7 @@ class CppGenerator : public BaseGenerator {
         if (IsStruct(type)) {
           auto native_type = type.struct_def->attributes.Lookup("native_type");
           if (native_type) {
-            return "flatbuffers::UnPack(*" + val + ")";
+            return "::flatbuffers::UnPack(*" + val + ")";
           } else if (invector || afield.native_inline) {
             return "*" + val;
           } else {
@@ -2293,7 +2303,7 @@ class CppGenerator : public BaseGenerator {
                 ? ".type"
                 : (field.value.type.element == BASE_TYPE_UNION ? ".value" : "");
         code += "{ _o->" + name + ".resize(_e->size()); ";
-        code += "for (flatbuffers::uoffset_t _i = 0;";
+        code += "for (::flatbuffers::uoffset_t _i = 0;";
         code += " _i < _e->size(); _i++) { ";
         if (cpp_type) {
           // Generate code that resolves the cpp pointer type, of the form:
@@ -2306,7 +2316,8 @@ class CppGenerator : public BaseGenerator {
           code += "(*_resolver)";
           code += "(reinterpret_cast<void **>(&_o->" + name + "[_i]" + access +
                   "), ";
-          code += "static_cast<flatbuffers::hash_value_t>(" + indexing + "));";
+          code +=
+              "static_cast<::flatbuffers::hash_value_t>(" + indexing + "));";
           if (PtrType(&field) == "naked") {
             code += " else ";
             code += "_o->" + name + "[_i]" + access + " = nullptr";
@@ -2352,7 +2363,7 @@ class CppGenerator : public BaseGenerator {
           code += "if (_resolver) ";
           code += "(*_resolver)";
           code += "(reinterpret_cast<void **>(&_o->" + Name(field) + "), ";
-          code += "static_cast<flatbuffers::hash_value_t>(_e));";
+          code += "static_cast<::flatbuffers::hash_value_t>(_e));";
           if (PtrType(&field) == "naked") {
             code += " else ";
             code += "_o->" + Name(field) + " = nullptr;";
@@ -2436,7 +2447,8 @@ class CppGenerator : public BaseGenerator {
               // Use by-function serialization to emulate
               // CreateVectorOfStrings(); this works also with non-std strings.
               code +=
-                  "_fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>"
+                  "_fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::"
+                  "String>>"
                   " ";
               code += "(" + value + ".size(), ";
               code += "[](size_t i, _VectorArgs *__va) { ";
@@ -2458,7 +2470,7 @@ class CppGenerator : public BaseGenerator {
               }
               code += "(" + value + ")";
             } else {
-              code += "_fbb.CreateVector<flatbuffers::Offset<";
+              code += "_fbb.CreateVector<::flatbuffers::Offset<";
               code += WrapInNameSpace(*vector_type.struct_def) + ">> ";
               code += "(" + value + ".size(), ";
               code += "[](size_t i, _VectorArgs *__va) { ";
@@ -2475,7 +2487,7 @@ class CppGenerator : public BaseGenerator {
           }
           case BASE_TYPE_UNION: {
             code +=
-                "_fbb.CreateVector<flatbuffers::"
+                "_fbb.CreateVector<::flatbuffers::"
                 "Offset<void>>(" +
                 value +
                 ".size(), [](size_t i, _VectorArgs *__va) { "
@@ -2498,7 +2510,7 @@ class CppGenerator : public BaseGenerator {
               const auto basetype = GenTypeBasic(
                   field.value.type.enum_def->underlying_type, false);
               code += "_fbb.CreateVectorScalarCast<" + basetype +
-                      ">(flatbuffers::data(" + value + "), " + value +
+                      ">(::flatbuffers::data(" + value + "), " + value +
                       ".size())";
             } else if (field.attributes.Lookup("cpp_type")) {
               auto type = GenTypeBasic(vector_type, false);
@@ -2533,7 +2545,7 @@ class CppGenerator : public BaseGenerator {
           auto native_type =
               field.value.type.struct_def->attributes.Lookup("native_type");
           if (native_type) {
-            code += "flatbuffers::Pack(" + value + ")";
+            code += "::flatbuffers::Pack(" + value + ")";
           } else if (field.native_inline) {
             code += "&" + value;
           } else {
@@ -2614,11 +2626,11 @@ class CppGenerator : public BaseGenerator {
 
       code_ +=
           "  struct _VectorArgs "
-          "{ flatbuffers::FlatBufferBuilder *__fbb; "
+          "{ ::flatbuffers::FlatBufferBuilder *__fbb; "
           "const " +
           NativeName(Name(struct_def), &struct_def, parser_.opts) +
           "* __o; "
-          "const flatbuffers::rehasher_function_t *__rehasher; } _va = { "
+          "const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { "
           "&_fbb, _o, _rehasher}; (void)_va;";
 
       for (auto it = struct_def.fields.vec.begin();
@@ -2728,7 +2740,7 @@ class CppGenerator : public BaseGenerator {
     // Make TypeTable accessible via the generated struct.
     if (parser_.opts.mini_reflect != IDLOptions::kNone) {
       code_ +=
-          "  static const flatbuffers::TypeTable *MiniReflectTypeTable() {";
+          "  static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {";
       code_ += "    return {{STRUCT_NAME}}TypeTable();";
       code_ += "  }";
     }
@@ -2737,7 +2749,8 @@ class CppGenerator : public BaseGenerator {
 
     // Generate a default constructor.
     code_ += "  {{STRUCT_NAME}}() {";
-    code_ += "    memset(static_cast<void *>(this), 0, sizeof({{STRUCT_NAME}}));";
+    code_ +=
+        "    memset(static_cast<void *>(this), 0, sizeof({{STRUCT_NAME}}));";
     code_ += "  }";
 
     // Generate a constructor that takes all fields as arguments.
@@ -2761,7 +2774,7 @@ class CppGenerator : public BaseGenerator {
       init_list += member_name;
       if (IsScalar(field.value.type.base_type)) {
         auto type = GenUnderlyingCast(field, false, arg_name);
-        init_list += "(flatbuffers::EndianScalar(" + type + "))";
+        init_list += "(::flatbuffers::EndianScalar(" + type + "))";
       } else {
         init_list += "(" + arg_name + ")";
       }
@@ -2798,7 +2811,7 @@ class CppGenerator : public BaseGenerator {
       auto is_scalar = IsScalar(field.value.type.base_type);
       auto member = Name(field) + "_";
       auto value =
-          is_scalar ? "flatbuffers::EndianScalar(" + member + ")" : member;
+          is_scalar ? "::flatbuffers::EndianScalar(" + member + ")" : member;
 
       code_.SetValue("FIELD_NAME", Name(field));
       code_.SetValue("FIELD_TYPE", field_type);
@@ -2819,7 +2832,7 @@ class CppGenerator : public BaseGenerator {
 
           code_ += "  void mutate_{{FIELD_NAME}}({{ARG}} _{{FIELD_NAME}}) {";
           code_ +=
-              "    flatbuffers::WriteScalar(&{{FIELD_NAME}}_, "
+              "    ::flatbuffers::WriteScalar(&{{FIELD_NAME}}_, "
               "{{FIELD_VALUE}});";
           code_ += "  }";
         } else {

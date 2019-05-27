@@ -11,7 +11,7 @@ function(flatbuffers_adversiarial_namespaces_test)
       -o ${CMAKE_CURRENT_BINARY_DIR}/generated
       ${ARG_FLAGS}
       ${CMAKE_CURRENT_SOURCE_DIR}/test_cases/${ARG_CASE}.fbs
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/test_cases/${ARG_CASE}.fbs
+    DEPENDS flatc ${CMAKE_CURRENT_SOURCE_DIR}/test_cases/${ARG_CASE}.fbs
     BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/generated/${ARG_CASE}_generated.h
   )
   add_executable(flattests.adversarial_namespace.${ARG_CASE}

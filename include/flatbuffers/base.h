@@ -150,7 +150,7 @@
     defined(__clang__)
   #define FLATBUFFERS_FINAL_CLASS final
   #define FLATBUFFERS_OVERRIDE override
-  #define FLATBUFFERS_VTABLE_UNDERLYING_TYPE : flatbuffers::voffset_t
+  #define FLATBUFFERS_VTABLE_UNDERLYING_TYPE : ::flatbuffers::voffset_t
 #else
   #define FLATBUFFERS_FINAL_CLASS
   #define FLATBUFFERS_OVERRIDE
