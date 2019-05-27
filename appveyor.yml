@@ -59,7 +59,7 @@ test_script:
   - 7z a GeneratedMyGameCode.zip MyGame\
   - rem "---------------- C++ -----------------"
   - "cd .."
-  - "%CONFIGURATION%\\flattests.exe"
+  - ctest -C %CONFIGURATION% --extra-verbose --output-on-failure
   - "cd tests"
   - rem "---------------- Java -----------------"
   - "java -version"
