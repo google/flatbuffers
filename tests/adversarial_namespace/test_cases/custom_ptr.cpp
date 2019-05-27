@@ -1,7 +1,12 @@
 #include <memory>
 
 namespace some_namespace {
-template<typename T> using custom_ptr = std::shared_ptr<T>;
+template<typename T> struct custom_ptr : public std::shared_ptr<T> {
+  custom_ptr() {}
+  custom_ptr(T *p) : std::shared_ptr<T>(p) {}
+
+  T *get() const { return std::shared_ptr<T>::get(); }
+};
 }  // namespace some_namespace
 
 namespace ns {

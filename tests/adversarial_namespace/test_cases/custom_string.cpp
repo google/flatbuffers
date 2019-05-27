@@ -6,9 +6,9 @@ struct custom_string {
   std::string value;
 
   custom_string() = default;
-  custom_string(std::string value) : value{ std::move(value) } {}
+  custom_string(const std::string &value) : value(value) {}
 
-  char const *c_str() const { return value.c_str(); }
+  const char *c_str() const { return value.c_str(); }
 
   std::string::size_type length() const { return value.length(); }
 

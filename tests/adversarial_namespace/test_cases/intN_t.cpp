@@ -1,13 +1,13 @@
 namespace ns {
-using int8_t = void;
-using uint8_t = void;
-using int16_t = void;
-using uint16_t = void;
-using int32_t = void;
-using uint32_t = void;
-using int64_t = void;
-using uint64_t = void;
-using size_t = void;
+typedef void int8_t;
+typedef void uint8_t;
+typedef void int16_t;
+typedef void uint16_t;
+typedef void int32_t;
+typedef void uint32_t;
+typedef void int64_t;
+typedef void uint64_t;
+typedef void size_t;
 }  // namespace ns
 
 #include "intN_t_generated.h"
