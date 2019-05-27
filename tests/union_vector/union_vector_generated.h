@@ -74,7 +74,7 @@ inline const char * const *EnumNamesCharacter() {
 
 inline const char *EnumNameCharacter(Character e) {
   if (e < Character_NONE || e > Character_Unused) return "";
-  const size_t index = static_cast<size_t>(e);
+  const ::size_t index = static_cast<::size_t>(e);
   return EnumNamesCharacter()[index];
 }
 
@@ -527,8 +527,8 @@ inline ::flatbuffers::Offset<Movie> CreateMovie(::flatbuffers::FlatBufferBuilder
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const MovieT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
   auto _main_character_type = _o->main_character.type;
   auto _main_character = _o->main_character.Pack(_fbb);
-  auto _characters_type = _o->characters.size() ? _fbb.CreateVector<::uint8_t>(_o->characters.size(), [](size_t i, _VectorArgs *__va) { return static_cast<::uint8_t>(__va->__o->characters[i].type); }, &_va) : 0;
-  auto _characters = _o->characters.size() ? _fbb.CreateVector<::flatbuffers::Offset<void>>(_o->characters.size(), [](size_t i, _VectorArgs *__va) { return __va->__o->characters[i].Pack(*__va->__fbb, __va->__rehasher); }, &_va) : 0;
+  auto _characters_type = _o->characters.size() ? _fbb.CreateVector<::uint8_t>(_o->characters.size(), [](::size_t i, _VectorArgs *__va) { return static_cast<::uint8_t>(__va->__o->characters[i].type); }, &_va) : 0;
+  auto _characters = _o->characters.size() ? _fbb.CreateVector<::flatbuffers::Offset<void>>(_o->characters.size(), [](::size_t i, _VectorArgs *__va) { return __va->__o->characters[i].Pack(*__va->__fbb, __va->__rehasher); }, &_va) : 0;
   return CreateMovie(
       _fbb,
       _main_character_type,

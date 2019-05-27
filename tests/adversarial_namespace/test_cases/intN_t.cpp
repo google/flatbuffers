@@ -7,6 +7,7 @@ using int32_t = void;
 using uint32_t = void;
 using int64_t = void;
 using uint64_t = void;
+using size_t = void;
 }  // namespace ns
 
 #include "intN_t_generated.h"

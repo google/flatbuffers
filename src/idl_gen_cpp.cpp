@@ -1062,10 +1062,10 @@ class CppGenerator : public BaseGenerator {
                " || e > " + GetEnumValUse(enum_def, *enum_def.MaxValue()) +
                ") return \"\";";
 
-      code_ += "  const size_t index = static_cast<size_t>(e)\\";
+      code_ += "  const ::size_t index = static_cast<::size_t>(e)\\";
       if (enum_def.MinValue()->IsNonZero()) {
         auto vals = GetEnumValUse(enum_def, *enum_def.MinValue());
-        code_ += " - static_cast<size_t>(" + vals + ")\\";
+        code_ += " - static_cast<::size_t>(" + vals + ")\\";
       }
       code_ += ";";
 
@@ -2456,7 +2456,7 @@ class CppGenerator : public BaseGenerator {
                   "String>>"
                   " ";
               code += "(" + value + ".size(), ";
-              code += "[](size_t i, _VectorArgs *__va) { ";
+              code += "[](::size_t i, _VectorArgs *__va) { ";
               code +=
                   "return __va->__fbb->CreateString(__va->_" + value + "[i]);";
               code += " }, &_va )";
@@ -2478,7 +2478,7 @@ class CppGenerator : public BaseGenerator {
               code += "_fbb.CreateVector<::flatbuffers::Offset<";
               code += WrapInNameSpace(*vector_type.struct_def) + ">> ";
               code += "(" + value + ".size(), ";
-              code += "[](size_t i, _VectorArgs *__va) { ";
+              code += "[](::size_t i, _VectorArgs *__va) { ";
               code += "return Create" + vector_type.struct_def->name;
               code += "(*__va->__fbb, __va->_" + value + "[i]" +
                       GenPtrGet(field) + ", ";
@@ -2495,7 +2495,7 @@ class CppGenerator : public BaseGenerator {
                 "_fbb.CreateVector<::flatbuffers::"
                 "Offset<void>>(" +
                 value +
-                ".size(), [](size_t i, _VectorArgs *__va) { "
+                ".size(), [](::size_t i, _VectorArgs *__va) { "
                 "return __va->_" +
                 value + "[i].Pack(*__va->__fbb, __va->__rehasher); }, &_va)";
             break;
@@ -2503,7 +2503,7 @@ class CppGenerator : public BaseGenerator {
           case BASE_TYPE_UTYPE: {
             value = StripUnionType(value);
             code += "_fbb.CreateVector<::uint8_t>(" + value +
-                    ".size(), [](size_t i, _VectorArgs *__va) { "
+                    ".size(), [](::size_t i, _VectorArgs *__va) { "
                     "return static_cast<::uint8_t>(__va->_" +
                     value + "[i].type); }, &_va)";
             break;
@@ -2520,7 +2520,7 @@ class CppGenerator : public BaseGenerator {
             } else if (field.attributes.Lookup("cpp_type")) {
               auto type = GenTypeBasic(vector_type, false);
               code += "_fbb.CreateVector<" + type + ">(" + value + ".size(), ";
-              code += "[](size_t i, _VectorArgs *__va) { ";
+              code += "[](::size_t i, _VectorArgs *__va) { ";
               code += "return __va->__rehasher ? ";
               code += "static_cast<" + type + ">((*__va->__rehasher)";
               code += "(__va->_" + value + "[i]" + GenPtrGet(field) + ")) : 0";

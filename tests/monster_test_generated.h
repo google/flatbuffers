@@ -133,7 +133,7 @@ inline const char * const *EnumNamesColor() {
 
 inline const char *EnumNameColor(Color e) {
   if (e < Color_Red || e > Color_Blue) return "";
-  const size_t index = static_cast<size_t>(e) - static_cast<size_t>(Color_Red);
+  const ::size_t index = static_cast<::size_t>(e) - static_cast<::size_t>(Color_Red);
   return EnumNamesColor()[index];
 }
 
@@ -169,7 +169,7 @@ inline const char * const *EnumNamesAny() {
 
 inline const char *EnumNameAny(Any e) {
   if (e < Any_NONE || e > Any_MyGame_Example2_Monster) return "";
-  const size_t index = static_cast<size_t>(e);
+  const ::size_t index = static_cast<::size_t>(e);
   return EnumNamesAny()[index];
 }
 
@@ -311,7 +311,7 @@ inline const char * const *EnumNamesAnyUniqueAliases() {
 
 inline const char *EnumNameAnyUniqueAliases(AnyUniqueAliases e) {
   if (e < AnyUniqueAliases_NONE || e > AnyUniqueAliases_M2) return "";
-  const size_t index = static_cast<size_t>(e);
+  const ::size_t index = static_cast<::size_t>(e);
   return EnumNamesAnyUniqueAliases()[index];
 }
 
@@ -453,7 +453,7 @@ inline const char * const *EnumNamesAnyAmbiguousAliases() {
 
 inline const char *EnumNameAnyAmbiguousAliases(AnyAmbiguousAliases e) {
   if (e < AnyAmbiguousAliases_NONE || e > AnyAmbiguousAliases_M3) return "";
-  const size_t index = static_cast<size_t>(e);
+  const ::size_t index = static_cast<::size_t>(e);
   return EnumNamesAnyAmbiguousAliases()[index];
 }
 
@@ -2576,7 +2576,7 @@ inline ::flatbuffers::Offset<Monster> CreateMonster(::flatbuffers::FlatBufferBui
   auto _test = _o->test.Pack(_fbb);
   auto _test4 = _o->test4.size() ? _fbb.CreateVectorOfStructs(_o->test4) : 0;
   auto _testarrayofstring = _o->testarrayofstring.size() ? _fbb.CreateVectorOfStrings(_o->testarrayofstring) : 0;
-  auto _testarrayoftables = _o->testarrayoftables.size() ? _fbb.CreateVector<::flatbuffers::Offset<Monster>> (_o->testarrayoftables.size(), [](size_t i, _VectorArgs *__va) { return CreateMonster(*__va->__fbb, __va->__o->testarrayoftables[i].get(), __va->__rehasher); }, &_va ) : 0;
+  auto _testarrayoftables = _o->testarrayoftables.size() ? _fbb.CreateVector<::flatbuffers::Offset<Monster>> (_o->testarrayoftables.size(), [](::size_t i, _VectorArgs *__va) { return CreateMonster(*__va->__fbb, __va->__o->testarrayoftables[i].get(), __va->__rehasher); }, &_va ) : 0;
   auto _enemy = _o->enemy ? CreateMonster(_fbb, _o->enemy.get(), _rehasher) : 0;
   auto _testnestedflatbuffer = _o->testnestedflatbuffer.size() ? _fbb.CreateVector(_o->testnestedflatbuffer) : 0;
   auto _testempty = _o->testempty ? CreateStat(_fbb, _o->testempty.get(), _rehasher) : 0;
@@ -2600,14 +2600,14 @@ inline ::flatbuffers::Offset<Monster> CreateMonster(::flatbuffers::FlatBufferBui
   auto _vector_of_longs = _o->vector_of_longs.size() ? _fbb.CreateVector(_o->vector_of_longs) : 0;
   auto _vector_of_doubles = _o->vector_of_doubles.size() ? _fbb.CreateVector(_o->vector_of_doubles) : 0;
   auto _parent_namespace_test = _o->parent_namespace_test ? CreateInParentNamespace(_fbb, _o->parent_namespace_test.get(), _rehasher) : 0;
-  auto _vector_of_referrables = _o->vector_of_referrables.size() ? _fbb.CreateVector<::flatbuffers::Offset<Referrable>> (_o->vector_of_referrables.size(), [](size_t i, _VectorArgs *__va) { return CreateReferrable(*__va->__fbb, __va->__o->vector_of_referrables[i].get(), __va->__rehasher); }, &_va ) : 0;
+  auto _vector_of_referrables = _o->vector_of_referrables.size() ? _fbb.CreateVector<::flatbuffers::Offset<Referrable>> (_o->vector_of_referrables.size(), [](::size_t i, _VectorArgs *__va) { return CreateReferrable(*__va->__fbb, __va->__o->vector_of_referrables[i].get(), __va->__rehasher); }, &_va ) : 0;
   auto _single_weak_reference = _rehasher ? static_cast<::uint64_t>((*_rehasher)(_o->single_weak_reference)) : 0;
-  auto _vector_of_weak_references = _o->vector_of_weak_references.size() ? _fbb.CreateVector<::uint64_t>(_o->vector_of_weak_references.size(), [](size_t i, _VectorArgs *__va) { return __va->__rehasher ? static_cast<::uint64_t>((*__va->__rehasher)(__va->__o->vector_of_weak_references[i])) : 0; }, &_va ) : 0;
-  auto _vector_of_strong_referrables = _o->vector_of_strong_referrables.size() ? _fbb.CreateVector<::flatbuffers::Offset<Referrable>> (_o->vector_of_strong_referrables.size(), [](size_t i, _VectorArgs *__va) { return CreateReferrable(*__va->__fbb, __va->__o->vector_of_strong_referrables[i].get(), __va->__rehasher); }, &_va ) : 0;
+  auto _vector_of_weak_references = _o->vector_of_weak_references.size() ? _fbb.CreateVector<::uint64_t>(_o->vector_of_weak_references.size(), [](::size_t i, _VectorArgs *__va) { return __va->__rehasher ? static_cast<::uint64_t>((*__va->__rehasher)(__va->__o->vector_of_weak_references[i])) : 0; }, &_va ) : 0;
+  auto _vector_of_strong_referrables = _o->vector_of_strong_referrables.size() ? _fbb.CreateVector<::flatbuffers::Offset<Referrable>> (_o->vector_of_strong_referrables.size(), [](::size_t i, _VectorArgs *__va) { return CreateReferrable(*__va->__fbb, __va->__o->vector_of_strong_referrables[i].get(), __va->__rehasher); }, &_va ) : 0;
   auto _co_owning_reference = _rehasher ? static_cast<::uint64_t>((*_rehasher)(_o->co_owning_reference)) : 0;
-  auto _vector_of_co_owning_references = _o->vector_of_co_owning_references.size() ? _fbb.CreateVector<::uint64_t>(_o->vector_of_co_owning_references.size(), [](size_t i, _VectorArgs *__va) { return __va->__rehasher ? static_cast<::uint64_t>((*__va->__rehasher)(__va->__o->vector_of_co_owning_references[i].get())) : 0; }, &_va ) : 0;
+  auto _vector_of_co_owning_references = _o->vector_of_co_owning_references.size() ? _fbb.CreateVector<::uint64_t>(_o->vector_of_co_owning_references.size(), [](::size_t i, _VectorArgs *__va) { return __va->__rehasher ? static_cast<::uint64_t>((*__va->__rehasher)(__va->__o->vector_of_co_owning_references[i].get())) : 0; }, &_va ) : 0;
   auto _non_owning_reference = _rehasher ? static_cast<::uint64_t>((*_rehasher)(_o->non_owning_reference)) : 0;
-  auto _vector_of_non_owning_references = _o->vector_of_non_owning_references.size() ? _fbb.CreateVector<::uint64_t>(_o->vector_of_non_owning_references.size(), [](size_t i, _VectorArgs *__va) { return __va->__rehasher ? static_cast<::uint64_t>((*__va->__rehasher)(__va->__o->vector_of_non_owning_references[i])) : 0; }, &_va ) : 0;
+  auto _vector_of_non_owning_references = _o->vector_of_non_owning_references.size() ? _fbb.CreateVector<::uint64_t>(_o->vector_of_non_owning_references.size(), [](::size_t i, _VectorArgs *__va) { return __va->__rehasher ? static_cast<::uint64_t>((*__va->__rehasher)(__va->__o->vector_of_non_owning_references[i])) : 0; }, &_va ) : 0;
   auto _any_unique_type = _o->any_unique.type;
   auto _any_unique = _o->any_unique.Pack(_fbb);
   auto _any_ambiguous_type = _o->any_ambiguous.type;

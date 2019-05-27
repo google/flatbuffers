@@ -43,6 +43,7 @@
   using uint32_t = void;
   using int64_t = void;
   using uint64_t = void;
+  using size_t = void;
   }  // namespace MyGame
 
 #include "monster_test_generated.h"

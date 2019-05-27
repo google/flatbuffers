@@ -11,3 +11,9 @@ table Types
     i64:int64;
     u64:uint64;
 }
+
+enum SomeEnum:short {
+    a,
+    b,
+    c,
+}

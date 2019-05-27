@@ -59,7 +59,7 @@ inline const char * const *EnumNamesColor() {
 
 inline const char *EnumNameColor(Color e) {
   if (e < Color_Red || e > Color_Blue) return "";
-  const size_t index = static_cast<size_t>(e);
+  const ::size_t index = static_cast<::size_t>(e);
   return EnumNamesColor()[index];
 }
 
@@ -89,7 +89,7 @@ inline const char * const *EnumNamesEquipment() {
 
 inline const char *EnumNameEquipment(Equipment e) {
   if (e < Equipment_NONE || e > Equipment_Weapon) return "";
-  const size_t index = static_cast<size_t>(e);
+  const ::size_t index = static_cast<::size_t>(e);
   return EnumNamesEquipment()[index];
 }
 
@@ -599,7 +599,7 @@ inline ::flatbuffers::Offset<Monster> CreateMonster(::flatbuffers::FlatBufferBui
   auto _name = _o->name.empty() ? 0 : _fbb.CreateString(_o->name);
   auto _inventory = _o->inventory.size() ? _fbb.CreateVector(_o->inventory) : 0;
   auto _color = _o->color;
-  auto _weapons = _o->weapons.size() ? _fbb.CreateVector<::flatbuffers::Offset<Weapon>> (_o->weapons.size(), [](size_t i, _VectorArgs *__va) { return CreateWeapon(*__va->__fbb, __va->__o->weapons[i].get(), __va->__rehasher); }, &_va ) : 0;
+  auto _weapons = _o->weapons.size() ? _fbb.CreateVector<::flatbuffers::Offset<Weapon>> (_o->weapons.size(), [](::size_t i, _VectorArgs *__va) { return CreateWeapon(*__va->__fbb, __va->__o->weapons[i].get(), __va->__rehasher); }, &_va ) : 0;
   auto _equipped_type = _o->equipped.type;
   auto _equipped = _o->equipped.Pack(_fbb);
   auto _path = _o->path.size() ? _fbb.CreateVectorOfStructs(_o->path) : 0;
