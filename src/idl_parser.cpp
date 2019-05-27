@@ -3100,12 +3100,11 @@ bool ServiceDef::Deserialize(Parser &parser,
   return true;
 }
 
-FullyQualifiedType::FullyQualifiedType(std::string value) : value_{} {
-  // If the name is already qualified (starts with "::"), we're good.
-  if (value.rfind("::", 0) == 0) {
-    value_ = std::move(value);
-  } else {
-    value_ = "::" + std::move(value);
+FullyQualifiedType::FullyQualifiedType(const std::string &value)
+    : value_(value) {
+  // If the name is not already qualified (starts with "::"), qualify it.
+  if (value_.rfind("::", 0) == std::string::npos) {
+    value_.insert(0, "::", 2);
   }
 }
 
