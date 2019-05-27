@@ -39,6 +39,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}/generated)
 
 flatbuffers_adversarial_namespaces_test(CASE flatbuffers)
 flatbuffers_adversarial_namespaces_test(CASE external_flatbuffers)
+flatbuffers_adversarial_namespaces_test(CASE intN_t)
 flatbuffers_adversarial_namespaces_test(CASE std                      FLAGS --gen-object-api)
 flatbuffers_adversarial_namespaces_test(CASE custom_string_attribute  FLAGS --gen-object-api)
 flatbuffers_adversarial_namespaces_test(CASE custom_ptr_attribute     FLAGS --gen-object-api)

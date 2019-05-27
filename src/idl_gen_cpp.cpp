@@ -753,7 +753,7 @@ class CppGenerator : public BaseGenerator {
            "(::flatbuffers::Verifier &verifier, " +
            "const ::flatbuffers::Vector<::flatbuffers::Offset<void>> "
            "*values, " +
-           "const ::flatbuffers::Vector<uint8_t> *types)";
+           "const ::flatbuffers::Vector<::uint8_t> *types)";
   }
 
   std::string UnionUnPackSignature(const EnumDef &enum_def, bool inclass) {
@@ -919,7 +919,7 @@ class CppGenerator : public BaseGenerator {
     }
     if (!vs.empty()) {
       // Problem with uint64_t values greater than 9223372036854775807ULL.
-      code_ += "  static const int64_t values[] = { {{VALUES}} };";
+      code_ += "  static const ::int64_t values[] = { {{VALUES}} };";
     }
     auto has_names =
         num_fields && parser_.opts.mini_reflect == IDLOptions::kTypesAndNames;
@@ -1266,7 +1266,7 @@ class CppGenerator : public BaseGenerator {
           if (ev.union_type.struct_def->fixed) {
             code_ +=
                 "      return verifier.Verify<{{TYPE}}>(static_cast<const "
-                "uint8_t *>(obj), 0);";
+                "::uint8_t *>(obj), 0);";
           } else {
             code_ += getptr;
             code_ += "      return verifier.VerifyTable(ptr);";
@@ -2502,9 +2502,9 @@ class CppGenerator : public BaseGenerator {
           }
           case BASE_TYPE_UTYPE: {
             value = StripUnionType(value);
-            code += "_fbb.CreateVector<uint8_t>(" + value +
+            code += "_fbb.CreateVector<::uint8_t>(" + value +
                     ".size(), [](size_t i, _VectorArgs *__va) { "
-                    "return static_cast<uint8_t>(__va->_" +
+                    "return static_cast<::uint8_t>(__va->_" +
                     value + "[i].type); }, &_va)";
             break;
           }
