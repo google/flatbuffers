@@ -600,17 +600,17 @@ class CppGenerator : public BaseGenerator {
                             : name;
   }
 
-  CPPTypeName PtrType(const FieldDef *field) {
+  FullyQualifiedType PtrType(const FieldDef *field) {
     auto attr = field ? field->attributes.Lookup("cpp_ptr_type") : nullptr;
-    return attr ? CPPTypeName(attr->constant)
+    return attr ? FullyQualifiedType(attr->constant)
                 : parser_.opts.cpp_object_api_pointer_type;
   }
 
-  CPPTypeName NativeString(const FieldDef *field) {
+  FullyQualifiedType NativeString(const FieldDef *field) {
     auto attr = field ? field->attributes.Lookup("cpp_str_type") : nullptr;
-    auto &ret = attr ? CPPTypeName(attr->constant)
+    auto &ret = attr ? FullyQualifiedType(attr->constant)
                      : parser_.opts.cpp_object_api_string_type;
-    if (ret.Get().empty()) { return CPPTypeName("::std::string"); }
+    if (ret.Get().empty()) { return FullyQualifiedType("::std::string"); }
     return ret;
   }
 

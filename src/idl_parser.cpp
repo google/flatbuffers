@@ -3100,7 +3100,7 @@ bool ServiceDef::Deserialize(Parser &parser,
   return true;
 }
 
-CPPTypeName::CPPTypeName(std::string value) : value_{} {
+FullyQualifiedType::FullyQualifiedType(std::string value) : value_{} {
   // If the name is already qualified (starts with "::"), we're good.
   if (value.rfind("::", 0) == 0) {
     value_ = std::move(value);

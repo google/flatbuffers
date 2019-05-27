@@ -249,10 +249,10 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.gen_compare = true;
       } else if (arg == "--cpp-ptr-type") {
         if (++argi >= argc) Error("missing type following" + arg, true);
-        opts.cpp_object_api_pointer_type = CPPTypeName(argv[argi]);
+        opts.cpp_object_api_pointer_type = FullyQualifiedType(argv[argi]);
       } else if (arg == "--cpp-str-type") {
         if (++argi >= argc) Error("missing type following" + arg, true);
-        opts.cpp_object_api_string_type = CPPTypeName(argv[argi]);
+        opts.cpp_object_api_string_type = FullyQualifiedType(argv[argi]);
       } else if (arg == "--cpp-str-flex-ctor") {
         opts.cpp_object_api_string_flexible_constructor = true;
       } else if (arg == "--gen-nullable") {
