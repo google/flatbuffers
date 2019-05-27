@@ -57,8 +57,8 @@ class CppGenerator : public BaseGenerator {
                const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", "::"),
         cur_name_space_(nullptr),
-        float_const_gen_("std::numeric_limits<double>::",
-                         "std::numeric_limits<float>::", "quiet_NaN()",
+        float_const_gen_("::std::numeric_limits<double>::",
+                         "::std::numeric_limits<float>::", "quiet_NaN()",
                          "infinity()") {
     static const char *const keywords[] = {
       "alignas",
@@ -1965,12 +1965,12 @@ class CppGenerator : public BaseGenerator {
 
       if (field.flexbuffer) {
         code_ +=
-            "  flexbuffers::Reference {{FIELD_NAME}}_flexbuffer_root()"
+            "  ::flexbuffers::Reference {{FIELD_NAME}}_flexbuffer_root()"
             " const {";
         // Both Data() and size() are const-methods, therefore call order
         // doesn't matter.
         code_ +=
-            "    return flexbuffers::GetRoot({{FIELD_NAME}}()->Data(), "
+            "    return ::flexbuffers::GetRoot({{FIELD_NAME}}()->Data(), "
             "{{FIELD_NAME}}()->size());";
         code_ += "  }";
       }

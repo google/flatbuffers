@@ -29,6 +29,14 @@
 #endif
 // clang-format on
 
+  // Ensure we are robust against adversarial namespaces:
+  namespace MyGame {
+  namespace flatbuffers {}
+  namespace flexbuffers {}
+  namespace grpc {}
+  namespace std {}
+  }  // namespace MyGame
+
 #include "monster_test_generated.h"
 #include "namespace_test/namespace_test1_generated.h"
 #include "namespace_test/namespace_test2_generated.h"
@@ -602,32 +610,33 @@ void JsonDefaultTest() {
 void TestMonsterExtraFloats() {
   using namespace MyGame;
   // Load FlatBuffer schema (.fbs) from disk.
-  std::string schemafile;
-  TEST_EQ(flatbuffers::LoadFile((test_data_path + "monster_extra.fbs").c_str(),
-                                false, &schemafile),
-          true);
+  ::std::string schemafile;
+  TEST_EQ(
+      ::flatbuffers::LoadFile((test_data_path + "monster_extra.fbs").c_str(),
+                              false, &schemafile),
+      true);
   // Parse schema first, so we can use it to parse the data after.
-  flatbuffers::Parser parser;
+  ::flatbuffers::Parser parser;
   auto include_test_path =
-      flatbuffers::ConCatPathFileName(test_data_path, "include_test");
+      ::flatbuffers::ConCatPathFileName(test_data_path, "include_test");
   const char *include_directories[] = { test_data_path.c_str(),
                                         include_test_path.c_str(), nullptr };
   TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
   // Create empty extra and store to json.
   parser.opts.output_default_scalars_in_json = true;
   parser.opts.output_enum_identifiers = true;
-  flatbuffers::FlatBufferBuilder builder;
+  ::flatbuffers::FlatBufferBuilder builder;
   MonsterExtraBuilder extra(builder);
   FinishMonsterExtraBuffer(builder, extra.Finish());
-  std::string jsongen;
+  ::std::string jsongen;
   auto result = GenerateText(parser, builder.GetBufferPointer(), &jsongen);
   TEST_EQ(result, true);
-  TEST_EQ(std::string::npos != jsongen.find("testf_nan: nan"), true);
-  TEST_EQ(std::string::npos != jsongen.find("testf_pinf: inf"), true);
-  TEST_EQ(std::string::npos != jsongen.find("testf_ninf: -inf"), true);
-  TEST_EQ(std::string::npos != jsongen.find("testd_nan: nan"), true);
-  TEST_EQ(std::string::npos != jsongen.find("testd_pinf: inf"), true);
-  TEST_EQ(std::string::npos != jsongen.find("testd_ninf: -inf"), true);
+  TEST_EQ(::std::string::npos != jsongen.find("testf_nan: nan"), true);
+  TEST_EQ(::std::string::npos != jsongen.find("testf_pinf: inf"), true);
+  TEST_EQ(::std::string::npos != jsongen.find("testf_ninf: -inf"), true);
+  TEST_EQ(::std::string::npos != jsongen.find("testd_nan: nan"), true);
+  TEST_EQ(::std::string::npos != jsongen.find("testd_pinf: inf"), true);
+  TEST_EQ(::std::string::npos != jsongen.find("testd_ninf: -inf"), true);
 }
 #else
 void TestMonsterExtraFloats() {}

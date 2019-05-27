@@ -60,7 +60,7 @@ class FlatBufMethod : public grpc_generator::Method {
   std::string name() const { return method_->name; }
 
   std::string GRPCType(const StructDef &sd) const {
-    return "flatbuffers::grpc::Message<" + sd.name + ">";
+    return "::flatbuffers::grpc::Message<" + sd.name + ">";
   }
 
   std::string get_input_type_name() const { return (*method_->request).name; }

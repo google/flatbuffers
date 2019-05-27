@@ -14,9 +14,9 @@ struct MonsterExtraT;
 bool operator==(const MonsterExtraT &lhs, const MonsterExtraT &rhs);
 bool operator!=(const MonsterExtraT &lhs, const MonsterExtraT &rhs);
 
-inline const flatbuffers::TypeTable *MonsterExtraTypeTable();
+inline const ::flatbuffers::TypeTable *MonsterExtraTypeTable();
 
-struct MonsterExtraT : public flatbuffers::NativeTable {
+struct MonsterExtraT : public ::flatbuffers::NativeTable {
   typedef MonsterExtra TableType;
   float testf_nan;
   float testf_pinf;
@@ -24,15 +24,15 @@ struct MonsterExtraT : public flatbuffers::NativeTable {
   double testd_nan;
   double testd_pinf;
   double testd_ninf;
-  std::vector<float> testf_vec;
-  std::vector<double> testd_vec;
+  ::std::vector<float> testf_vec;
+  ::std::vector<double> testd_vec;
   MonsterExtraT()
-      : testf_nan(std::numeric_limits<float>::quiet_NaN()),
-        testf_pinf(std::numeric_limits<float>::infinity()),
-        testf_ninf(-std::numeric_limits<float>::infinity()),
-        testd_nan(std::numeric_limits<double>::quiet_NaN()),
-        testd_pinf(std::numeric_limits<double>::infinity()),
-        testd_ninf(-std::numeric_limits<double>::infinity()) {
+      : testf_nan(::std::numeric_limits<float>::quiet_NaN()),
+        testf_pinf(::std::numeric_limits<float>::infinity()),
+        testf_ninf(-::std::numeric_limits<float>::infinity()),
+        testd_nan(::std::numeric_limits<double>::quiet_NaN()),
+        testd_pinf(::std::numeric_limits<double>::infinity()),
+        testd_ninf(-::std::numeric_limits<double>::infinity()) {
   }
 };
 
@@ -53,9 +53,9 @@ inline bool operator!=(const MonsterExtraT &lhs, const MonsterExtraT &rhs) {
 }
 
 
-struct MonsterExtra FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct MonsterExtra FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef MonsterExtraT NativeTableType;
-  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+  static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return MonsterExtraTypeTable();
   }
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
@@ -69,54 +69,54 @@ struct MonsterExtra FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_TESTD_VEC = 18
   };
   float testf_nan() const {
-    return GetField<float>(VT_TESTF_NAN, std::numeric_limits<float>::quiet_NaN());
+    return GetField<float>(VT_TESTF_NAN, ::std::numeric_limits<float>::quiet_NaN());
   }
   bool mutate_testf_nan(float _testf_nan) {
-    return SetField<float>(VT_TESTF_NAN, _testf_nan, std::numeric_limits<float>::quiet_NaN());
+    return SetField<float>(VT_TESTF_NAN, _testf_nan, ::std::numeric_limits<float>::quiet_NaN());
   }
   float testf_pinf() const {
-    return GetField<float>(VT_TESTF_PINF, std::numeric_limits<float>::infinity());
+    return GetField<float>(VT_TESTF_PINF, ::std::numeric_limits<float>::infinity());
   }
   bool mutate_testf_pinf(float _testf_pinf) {
-    return SetField<float>(VT_TESTF_PINF, _testf_pinf, std::numeric_limits<float>::infinity());
+    return SetField<float>(VT_TESTF_PINF, _testf_pinf, ::std::numeric_limits<float>::infinity());
   }
   float testf_ninf() const {
-    return GetField<float>(VT_TESTF_NINF, -std::numeric_limits<float>::infinity());
+    return GetField<float>(VT_TESTF_NINF, -::std::numeric_limits<float>::infinity());
   }
   bool mutate_testf_ninf(float _testf_ninf) {
-    return SetField<float>(VT_TESTF_NINF, _testf_ninf, -std::numeric_limits<float>::infinity());
+    return SetField<float>(VT_TESTF_NINF, _testf_ninf, -::std::numeric_limits<float>::infinity());
   }
   double testd_nan() const {
-    return GetField<double>(VT_TESTD_NAN, std::numeric_limits<double>::quiet_NaN());
+    return GetField<double>(VT_TESTD_NAN, ::std::numeric_limits<double>::quiet_NaN());
   }
   bool mutate_testd_nan(double _testd_nan) {
-    return SetField<double>(VT_TESTD_NAN, _testd_nan, std::numeric_limits<double>::quiet_NaN());
+    return SetField<double>(VT_TESTD_NAN, _testd_nan, ::std::numeric_limits<double>::quiet_NaN());
   }
   double testd_pinf() const {
-    return GetField<double>(VT_TESTD_PINF, std::numeric_limits<double>::infinity());
+    return GetField<double>(VT_TESTD_PINF, ::std::numeric_limits<double>::infinity());
   }
   bool mutate_testd_pinf(double _testd_pinf) {
-    return SetField<double>(VT_TESTD_PINF, _testd_pinf, std::numeric_limits<double>::infinity());
+    return SetField<double>(VT_TESTD_PINF, _testd_pinf, ::std::numeric_limits<double>::infinity());
   }
   double testd_ninf() const {
-    return GetField<double>(VT_TESTD_NINF, -std::numeric_limits<double>::infinity());
+    return GetField<double>(VT_TESTD_NINF, -::std::numeric_limits<double>::infinity());
   }
   bool mutate_testd_ninf(double _testd_ninf) {
-    return SetField<double>(VT_TESTD_NINF, _testd_ninf, -std::numeric_limits<double>::infinity());
+    return SetField<double>(VT_TESTD_NINF, _testd_ninf, -::std::numeric_limits<double>::infinity());
   }
-  const flatbuffers::Vector<float> *testf_vec() const {
-    return GetPointer<const flatbuffers::Vector<float> *>(VT_TESTF_VEC);
+  const ::flatbuffers::Vector<float> *testf_vec() const {
+    return GetPointer<const ::flatbuffers::Vector<float> *>(VT_TESTF_VEC);
   }
-  flatbuffers::Vector<float> *mutable_testf_vec() {
-    return GetPointer<flatbuffers::Vector<float> *>(VT_TESTF_VEC);
+  ::flatbuffers::Vector<float> *mutable_testf_vec() {
+    return GetPointer<::flatbuffers::Vector<float> *>(VT_TESTF_VEC);
   }
-  const flatbuffers::Vector<double> *testd_vec() const {
-    return GetPointer<const flatbuffers::Vector<double> *>(VT_TESTD_VEC);
+  const ::flatbuffers::Vector<double> *testd_vec() const {
+    return GetPointer<const ::flatbuffers::Vector<double> *>(VT_TESTD_VEC);
   }
-  flatbuffers::Vector<double> *mutable_testd_vec() {
-    return GetPointer<flatbuffers::Vector<double> *>(VT_TESTD_VEC);
+  ::flatbuffers::Vector<double> *mutable_testd_vec() {
+    return GetPointer<::flatbuffers::Vector<double> *>(VT_TESTD_VEC);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<float>(verifier, VT_TESTF_NAN) &&
            VerifyField<float>(verifier, VT_TESTF_PINF) &&
@@ -130,60 +130,60 @@ struct MonsterExtra FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyVector(testd_vec()) &&
            verifier.EndTable();
   }
-  MonsterExtraT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(MonsterExtraT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  static flatbuffers::Offset<MonsterExtra> Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterExtraT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+  MonsterExtraT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(MonsterExtraT *_o, const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  static ::flatbuffers::Offset<MonsterExtra> Pack(::flatbuffers::FlatBufferBuilder &_fbb, const MonsterExtraT* _o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
 struct MonsterExtraBuilder {
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
   void add_testf_nan(float testf_nan) {
-    fbb_.AddElement<float>(MonsterExtra::VT_TESTF_NAN, testf_nan, std::numeric_limits<float>::quiet_NaN());
+    fbb_.AddElement<float>(MonsterExtra::VT_TESTF_NAN, testf_nan, ::std::numeric_limits<float>::quiet_NaN());
   }
   void add_testf_pinf(float testf_pinf) {
-    fbb_.AddElement<float>(MonsterExtra::VT_TESTF_PINF, testf_pinf, std::numeric_limits<float>::infinity());
+    fbb_.AddElement<float>(MonsterExtra::VT_TESTF_PINF, testf_pinf, ::std::numeric_limits<float>::infinity());
   }
   void add_testf_ninf(float testf_ninf) {
-    fbb_.AddElement<float>(MonsterExtra::VT_TESTF_NINF, testf_ninf, -std::numeric_limits<float>::infinity());
+    fbb_.AddElement<float>(MonsterExtra::VT_TESTF_NINF, testf_ninf, -::std::numeric_limits<float>::infinity());
   }
   void add_testd_nan(double testd_nan) {
-    fbb_.AddElement<double>(MonsterExtra::VT_TESTD_NAN, testd_nan, std::numeric_limits<double>::quiet_NaN());
+    fbb_.AddElement<double>(MonsterExtra::VT_TESTD_NAN, testd_nan, ::std::numeric_limits<double>::quiet_NaN());
   }
   void add_testd_pinf(double testd_pinf) {
-    fbb_.AddElement<double>(MonsterExtra::VT_TESTD_PINF, testd_pinf, std::numeric_limits<double>::infinity());
+    fbb_.AddElement<double>(MonsterExtra::VT_TESTD_PINF, testd_pinf, ::std::numeric_limits<double>::infinity());
   }
   void add_testd_ninf(double testd_ninf) {
-    fbb_.AddElement<double>(MonsterExtra::VT_TESTD_NINF, testd_ninf, -std::numeric_limits<double>::infinity());
+    fbb_.AddElement<double>(MonsterExtra::VT_TESTD_NINF, testd_ninf, -::std::numeric_limits<double>::infinity());
   }
-  void add_testf_vec(flatbuffers::Offset<flatbuffers::Vector<float>> testf_vec) {
+  void add_testf_vec(::flatbuffers::Offset<::flatbuffers::Vector<float>> testf_vec) {
     fbb_.AddOffset(MonsterExtra::VT_TESTF_VEC, testf_vec);
   }
-  void add_testd_vec(flatbuffers::Offset<flatbuffers::Vector<double>> testd_vec) {
+  void add_testd_vec(::flatbuffers::Offset<::flatbuffers::Vector<double>> testd_vec) {
     fbb_.AddOffset(MonsterExtra::VT_TESTD_VEC, testd_vec);
   }
-  explicit MonsterExtraBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit MonsterExtraBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
   MonsterExtraBuilder &operator=(const MonsterExtraBuilder &);
-  flatbuffers::Offset<MonsterExtra> Finish() {
+  ::flatbuffers::Offset<MonsterExtra> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<MonsterExtra>(end);
+    auto o = ::flatbuffers::Offset<MonsterExtra>(end);
     return o;
   }
 };
 
-inline flatbuffers::Offset<MonsterExtra> CreateMonsterExtra(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    float testf_nan = std::numeric_limits<float>::quiet_NaN(),
-    float testf_pinf = std::numeric_limits<float>::infinity(),
-    float testf_ninf = -std::numeric_limits<float>::infinity(),
-    double testd_nan = std::numeric_limits<double>::quiet_NaN(),
-    double testd_pinf = std::numeric_limits<double>::infinity(),
-    double testd_ninf = -std::numeric_limits<double>::infinity(),
-    flatbuffers::Offset<flatbuffers::Vector<float>> testf_vec = 0,
-    flatbuffers::Offset<flatbuffers::Vector<double>> testd_vec = 0) {
+inline ::flatbuffers::Offset<MonsterExtra> CreateMonsterExtra(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    float testf_nan = ::std::numeric_limits<float>::quiet_NaN(),
+    float testf_pinf = ::std::numeric_limits<float>::infinity(),
+    float testf_ninf = -::std::numeric_limits<float>::infinity(),
+    double testd_nan = ::std::numeric_limits<double>::quiet_NaN(),
+    double testd_pinf = ::std::numeric_limits<double>::infinity(),
+    double testd_ninf = -::std::numeric_limits<double>::infinity(),
+    ::flatbuffers::Offset<::flatbuffers::Vector<float>> testf_vec = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<double>> testd_vec = 0) {
   MonsterExtraBuilder builder_(_fbb);
   builder_.add_testd_ninf(testd_ninf);
   builder_.add_testd_pinf(testd_pinf);
@@ -196,16 +196,16 @@ inline flatbuffers::Offset<MonsterExtra> CreateMonsterExtra(
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<MonsterExtra> CreateMonsterExtraDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    float testf_nan = std::numeric_limits<float>::quiet_NaN(),
-    float testf_pinf = std::numeric_limits<float>::infinity(),
-    float testf_ninf = -std::numeric_limits<float>::infinity(),
-    double testd_nan = std::numeric_limits<double>::quiet_NaN(),
-    double testd_pinf = std::numeric_limits<double>::infinity(),
-    double testd_ninf = -std::numeric_limits<double>::infinity(),
-    const std::vector<float> *testf_vec = nullptr,
-    const std::vector<double> *testd_vec = nullptr) {
+inline ::flatbuffers::Offset<MonsterExtra> CreateMonsterExtraDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    float testf_nan = ::std::numeric_limits<float>::quiet_NaN(),
+    float testf_pinf = ::std::numeric_limits<float>::infinity(),
+    float testf_ninf = -::std::numeric_limits<float>::infinity(),
+    double testd_nan = ::std::numeric_limits<double>::quiet_NaN(),
+    double testd_pinf = ::std::numeric_limits<double>::infinity(),
+    double testd_ninf = -::std::numeric_limits<double>::infinity(),
+    const ::std::vector<float> *testf_vec = nullptr,
+    const ::std::vector<double> *testd_vec = nullptr) {
   auto testf_vec__ = testf_vec ? _fbb.CreateVector<float>(*testf_vec) : 0;
   auto testd_vec__ = testd_vec ? _fbb.CreateVector<double>(*testd_vec) : 0;
   return MyGame::CreateMonsterExtra(
@@ -220,15 +220,15 @@ inline flatbuffers::Offset<MonsterExtra> CreateMonsterExtraDirect(
       testd_vec__);
 }
 
-flatbuffers::Offset<MonsterExtra> CreateMonsterExtra(flatbuffers::FlatBufferBuilder &_fbb, const MonsterExtraT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+::flatbuffers::Offset<MonsterExtra> CreateMonsterExtra(::flatbuffers::FlatBufferBuilder &_fbb, const MonsterExtraT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
-inline MonsterExtraT *MonsterExtra::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
+inline MonsterExtraT *MonsterExtra::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
   auto _o = new MonsterExtraT();
   UnPackTo(_o, _resolver);
   return _o;
 }
 
-inline void MonsterExtra::UnPackTo(MonsterExtraT *_o, const flatbuffers::resolver_function_t *_resolver) const {
+inline void MonsterExtra::UnPackTo(MonsterExtraT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
   { auto _e = testf_nan(); _o->testf_nan = _e; };
@@ -237,18 +237,18 @@ inline void MonsterExtra::UnPackTo(MonsterExtraT *_o, const flatbuffers::resolve
   { auto _e = testd_nan(); _o->testd_nan = _e; };
   { auto _e = testd_pinf(); _o->testd_pinf = _e; };
   { auto _e = testd_ninf(); _o->testd_ninf = _e; };
-  { auto _e = testf_vec(); if (_e) { _o->testf_vec.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testf_vec[_i] = _e->Get(_i); } } };
-  { auto _e = testd_vec(); if (_e) { _o->testd_vec.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testd_vec[_i] = _e->Get(_i); } } };
+  { auto _e = testf_vec(); if (_e) { _o->testf_vec.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testf_vec[_i] = _e->Get(_i); } } };
+  { auto _e = testd_vec(); if (_e) { _o->testd_vec.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testd_vec[_i] = _e->Get(_i); } } };
 }
 
-inline flatbuffers::Offset<MonsterExtra> MonsterExtra::Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterExtraT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<MonsterExtra> MonsterExtra::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const MonsterExtraT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   return CreateMonsterExtra(_fbb, _o, _rehasher);
 }
 
-inline flatbuffers::Offset<MonsterExtra> CreateMonsterExtra(flatbuffers::FlatBufferBuilder &_fbb, const MonsterExtraT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<MonsterExtra> CreateMonsterExtra(::flatbuffers::FlatBufferBuilder &_fbb, const MonsterExtraT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
-  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const MonsterExtraT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
+  struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const MonsterExtraT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
   auto _testf_nan = _o->testf_nan;
   auto _testf_pinf = _o->testf_pinf;
   auto _testf_ninf = _o->testf_ninf;
@@ -269,16 +269,16 @@ inline flatbuffers::Offset<MonsterExtra> CreateMonsterExtra(flatbuffers::FlatBuf
       _testd_vec);
 }
 
-inline const flatbuffers::TypeTable *MonsterExtraTypeTable() {
-  static const flatbuffers::TypeCode type_codes[] = {
-    { flatbuffers::ET_FLOAT, 0, -1 },
-    { flatbuffers::ET_FLOAT, 0, -1 },
-    { flatbuffers::ET_FLOAT, 0, -1 },
-    { flatbuffers::ET_DOUBLE, 0, -1 },
-    { flatbuffers::ET_DOUBLE, 0, -1 },
-    { flatbuffers::ET_DOUBLE, 0, -1 },
-    { flatbuffers::ET_FLOAT, 1, -1 },
-    { flatbuffers::ET_DOUBLE, 1, -1 }
+inline const ::flatbuffers::TypeTable *MonsterExtraTypeTable() {
+  static const ::flatbuffers::TypeCode type_codes[] = {
+    { ::flatbuffers::ET_FLOAT, 0, -1 },
+    { ::flatbuffers::ET_FLOAT, 0, -1 },
+    { ::flatbuffers::ET_FLOAT, 0, -1 },
+    { ::flatbuffers::ET_DOUBLE, 0, -1 },
+    { ::flatbuffers::ET_DOUBLE, 0, -1 },
+    { ::flatbuffers::ET_DOUBLE, 0, -1 },
+    { ::flatbuffers::ET_FLOAT, 1, -1 },
+    { ::flatbuffers::ET_DOUBLE, 1, -1 }
   };
   static const char * const names[] = {
     "testf_nan",
@@ -290,22 +290,22 @@ inline const flatbuffers::TypeTable *MonsterExtraTypeTable() {
     "testf_vec",
     "testd_vec"
   };
-  static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 8, type_codes, nullptr, nullptr, names
+  static const ::flatbuffers::TypeTable tt = {
+    ::flatbuffers::ST_TABLE, 8, type_codes, nullptr, nullptr, names
   };
   return &tt;
 }
 
 inline const MyGame::MonsterExtra *GetMonsterExtra(const void *buf) {
-  return flatbuffers::GetRoot<MyGame::MonsterExtra>(buf);
+  return ::flatbuffers::GetRoot<MyGame::MonsterExtra>(buf);
 }
 
 inline const MyGame::MonsterExtra *GetSizePrefixedMonsterExtra(const void *buf) {
-  return flatbuffers::GetSizePrefixedRoot<MyGame::MonsterExtra>(buf);
+  return ::flatbuffers::GetSizePrefixedRoot<MyGame::MonsterExtra>(buf);
 }
 
 inline MonsterExtra *GetMutableMonsterExtra(void *buf) {
-  return flatbuffers::GetMutableRoot<MonsterExtra>(buf);
+  return ::flatbuffers::GetMutableRoot<MonsterExtra>(buf);
 }
 
 inline const char *MonsterExtraIdentifier() {
@@ -313,17 +313,17 @@ inline const char *MonsterExtraIdentifier() {
 }
 
 inline bool MonsterExtraBufferHasIdentifier(const void *buf) {
-  return flatbuffers::BufferHasIdentifier(
+  return ::flatbuffers::BufferHasIdentifier(
       buf, MonsterExtraIdentifier());
 }
 
 inline bool VerifyMonsterExtraBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifyBuffer<MyGame::MonsterExtra>(MonsterExtraIdentifier());
 }
 
 inline bool VerifySizePrefixedMonsterExtraBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifySizePrefixedBuffer<MyGame::MonsterExtra>(MonsterExtraIdentifier());
 }
 
@@ -332,27 +332,27 @@ inline const char *MonsterExtraExtension() {
 }
 
 inline void FinishMonsterExtraBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<MyGame::MonsterExtra> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<MyGame::MonsterExtra> root) {
   fbb.Finish(root, MonsterExtraIdentifier());
 }
 
 inline void FinishSizePrefixedMonsterExtraBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<MyGame::MonsterExtra> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<MyGame::MonsterExtra> root) {
   fbb.FinishSizePrefixed(root, MonsterExtraIdentifier());
 }
 
-inline std::unique_ptr<MonsterExtraT> UnPackMonsterExtra(
+inline ::std::unique_ptr<MonsterExtraT> UnPackMonsterExtra(
     const void *buf,
-    const flatbuffers::resolver_function_t *res = nullptr) {
-  return std::unique_ptr<MonsterExtraT>(GetMonsterExtra(buf)->UnPack(res));
+    const ::flatbuffers::resolver_function_t *res = nullptr) {
+  return ::std::unique_ptr<MonsterExtraT>(GetMonsterExtra(buf)->UnPack(res));
 }
 
-inline std::unique_ptr<MonsterExtraT> UnPackSizePrefixedMonsterExtra(
+inline ::std::unique_ptr<MonsterExtraT> UnPackSizePrefixedMonsterExtra(
     const void *buf,
-    const flatbuffers::resolver_function_t *res = nullptr) {
-  return std::unique_ptr<MonsterExtraT>(GetSizePrefixedMonsterExtra(buf)->UnPack(res));
+    const ::flatbuffers::resolver_function_t *res = nullptr) {
+  return ::std::unique_ptr<MonsterExtraT>(GetSizePrefixedMonsterExtra(buf)->UnPack(res));
 }
 
 }  // namespace MyGame
