@@ -1,3 +1,5 @@
+include(CMakeParseArguments)
+
 function(flatbuffers_adversarial_namespaces_test)
   set(options)
   set(args CASE)
