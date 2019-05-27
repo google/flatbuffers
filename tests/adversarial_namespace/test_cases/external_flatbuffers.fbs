@@ -1,0 +1,11 @@
+namespace nested.ns;
+
+table Weapon
+{
+    name:string;
+}
+
+table Monster
+{
+    weapon:Weapon;
+}

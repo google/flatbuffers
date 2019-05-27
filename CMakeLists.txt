@@ -453,6 +453,8 @@ if(FLATBUFFERS_BUILD_TESTS)
   if(FLATBUFFERS_BUILD_GRPCTEST)
     add_test(NAME grpctest COMMAND grpctest)
   endif()
+
+  add_subdirectory(tests/adversarial_namespace)
 endif()
 
 include(CMake/BuildFlatBuffers.cmake)

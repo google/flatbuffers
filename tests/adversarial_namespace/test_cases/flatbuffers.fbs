@@ -1,0 +1,11 @@
+namespace nested.flatbuffers;
+
+table Weapon
+{
+    name:string;
+}
+
+table Monster
+{
+    weapon:Weapon;
+}

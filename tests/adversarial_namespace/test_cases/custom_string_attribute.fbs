@@ -1,0 +1,11 @@
+namespace ns;
+
+table Weapon
+{
+    name:string(cpp_str_type:"some_namespace::custom_string");
+}
+
+table Monster
+{
+    weapon:Weapon;
+}
