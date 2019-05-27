@@ -608,7 +608,7 @@ class CppGenerator : public BaseGenerator {
   const std::string NativeString(const FieldDef *field) {
     auto attr = field ? field->attributes.Lookup("cpp_str_type") : nullptr;
     auto &ret = attr ? attr->constant : parser_.opts.cpp_object_api_string_type;
-    if (ret.empty()) { return "std::string"; }
+    if (ret.empty()) { return "::std::string"; }
     return ret;
   }
 
@@ -619,7 +619,7 @@ class CppGenerator : public BaseGenerator {
     auto ret =
         attr ? attr : parser_.opts.cpp_object_api_string_flexible_constructor;
     return ret && NativeString(field) !=
-                      "std::string";  // Only for custom string types.
+                      "::std::string";  // Only for custom string types.
   }
 
   std::string GenTypeNativePtr(const std::string &type, const FieldDef *field,
@@ -656,10 +656,10 @@ class CppGenerator : public BaseGenerator {
             type.struct_def->attributes.Lookup("native_custom_alloc")) {
           auto native_custom_alloc =
               type.struct_def->attributes.Lookup("native_custom_alloc");
-          return "std::vector<" + type_name + "," +
+          return "::std::vector<" + type_name + "," +
                  native_custom_alloc->constant + "<" + type_name + ">>";
         } else
-          return "std::vector<" + type_name + ">";
+          return "::std::vector<" + type_name + ">";
       }
       case BASE_TYPE_STRUCT: {
         auto type_name = WrapInNameSpace(*type.struct_def);
@@ -732,7 +732,7 @@ class CppGenerator : public BaseGenerator {
                   : name;
     } else if (ev.union_type.base_type == BASE_TYPE_STRING) {
       return actual_type
-                 ? (native_type ? "std::string" : "::flatbuffers::String")
+                 ? (native_type ? "::std::string" : "::flatbuffers::String")
                  : Name(ev);
     } else {
       FLATBUFFERS_ASSERT(false);
@@ -1122,18 +1122,21 @@ class CppGenerator : public BaseGenerator {
       code_ += "  {{NAME}}Union() : type({{NONE}}), value(nullptr) {}";
       code_ += "  {{NAME}}Union({{NAME}}Union&& u) FLATBUFFERS_NOEXCEPT :";
       code_ += "    type({{NONE}}), value(nullptr)";
-      code_ += "    { std::swap(type, u.type); std::swap(value, u.value); }";
+      code_ +=
+          "    { using ::std::swap; swap(type, u.type); swap(value, u.value); "
+          "}";
       code_ += "  {{NAME}}Union(const {{NAME}}Union &) FLATBUFFERS_NOEXCEPT;";
       code_ +=
           "  {{NAME}}Union &operator=(const {{NAME}}Union &u) "
           "FLATBUFFERS_NOEXCEPT";
       code_ +=
-          "    { {{NAME}}Union t(u); std::swap(type, t.type); std::swap(value, "
-          "t.value); return *this; }";
+          "    { {{NAME}}Union t(u); using ::std::swap; swap(type, t.type); "
+          "swap(value, t.value); return *this; }";
       code_ +=
           "  {{NAME}}Union &operator=({{NAME}}Union &&u) FLATBUFFERS_NOEXCEPT";
       code_ +=
-          "    { std::swap(type, u.type); std::swap(value, u.value); return "
+          "    { using ::std::swap; swap(type, u.type); swap(value, u.value); "
+          "return "
           "*this; }";
       code_ += "  ~{{NAME}}Union() { Reset(); }";
       code_ += "";
@@ -1143,12 +1146,12 @@ class CppGenerator : public BaseGenerator {
         code_ += "#ifndef FLATBUFFERS_CPP98_STL";
         code_ += "  template <typename T>";
         code_ += "  void Set(T&& val) {";
-        code_ += "    using RT = typename std::remove_reference<T>::type;";
+        code_ += "    using RT = typename ::std::remove_reference<T>::type;";
         code_ += "    Reset();";
         code_ +=
             "    type = {{NAME}}Traits<typename RT::TableType>::enum_value;";
         code_ += "    if (type != {{NONE}}) {";
-        code_ += "      value = new RT(std::forward<T>(val));";
+        code_ += "      value = new RT(::std::forward<T>(val));";
         code_ += "    }";
         code_ += "  }";
         code_ += "#endif  // FLATBUFFERS_CPP98_STL";
@@ -1320,7 +1323,7 @@ class CppGenerator : public BaseGenerator {
             code_ += "      return ptr->UnPack(resolver);";
           }
         } else if (ev.union_type.base_type == BASE_TYPE_STRING) {
-          code_ += "      return new std::string(ptr->c_str(), ptr->size());";
+          code_ += "      return new ::std::string(ptr->c_str(), ptr->size());";
         } else {
           FLATBUFFERS_ASSERT(false);
         }
@@ -1523,7 +1526,7 @@ class CppGenerator : public BaseGenerator {
       } else {
         type = GenTypeWire(vtype, "", false);
       }
-      code_.SetValue("PARAM_TYPE", "const std::vector<" + type + "> *");
+      code_.SetValue("PARAM_TYPE", "const ::std::vector<" + type + "> *");
       code_.SetValue("PARAM_VALUE", "nullptr");
     } else {
       code_.SetValue("PARAM_TYPE", GenTypeWire(field.value.type, " ", true));
@@ -1543,7 +1546,7 @@ class CppGenerator : public BaseGenerator {
       auto full_type =
           (cpp_type
                ? (field.value.type.base_type == BASE_TYPE_VECTOR
-                      ? "std::vector<" +
+                      ? "::std::vector<" +
                             GenTypeNativePtr(cpp_type->constant, &field,
                                              false) +
                             "> "
@@ -1653,7 +1656,7 @@ class CppGenerator : public BaseGenerator {
   void GenOperatorNewDelete(const StructDef &struct_def) {
     if (auto native_custom_alloc =
             struct_def.attributes.Lookup("native_custom_alloc")) {
-      code_ += "  inline void *operator new (std::size_t count) {";
+      code_ += "  inline void *operator new (::std::size_t count) {";
       code_ += "    return " + native_custom_alloc->constant +
                "<{{NATIVE_NAME}}>().allocate(count / sizeof({{NATIVE_NAME}}));";
       code_ += "  }";
@@ -2441,7 +2444,7 @@ class CppGenerator : public BaseGenerator {
         auto vector_type = field.value.type.VectorType();
         switch (vector_type.base_type) {
           case BASE_TYPE_STRING: {
-            if (NativeString(&field) == "std::string") {
+            if (NativeString(&field) == "::std::string") {
               code += "_fbb.CreateVectorOfStrings(" + value + ")";
             } else {
               // Use by-function serialization to emulate

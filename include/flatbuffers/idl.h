@@ -554,7 +554,7 @@ struct IDLOptions {
         generate_name_strings(false),
         generate_object_based_api(false),
         gen_compare(false),
-        cpp_object_api_pointer_type("std::unique_ptr"),
+        cpp_object_api_pointer_type("::std::unique_ptr"),
         cpp_object_api_string_flexible_constructor(false),
         gen_nullable(false),
         gen_generated(false),
