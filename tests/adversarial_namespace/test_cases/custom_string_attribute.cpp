@@ -5,7 +5,7 @@ namespace some_namespace {
 struct custom_string {
   std::string value;
 
-  custom_string() = default;
+  custom_string() {}
   custom_string(const std::string &value) : value(value) {}
 
   const char *c_str() const { return value.c_str(); }
