@@ -164,7 +164,7 @@ class GoGenerator : public BaseGenerator {
 
   // A single enum member.
   void EnumMember(const EnumDef &enum_def, const EnumVal &ev,
-                  const int max_name_length, std::string *code_ptr) {
+                  size_t max_name_length, std::string *code_ptr) {
     std::string &code = *code_ptr;
     code += "\t";
     code += enum_def.name;
@@ -192,7 +192,7 @@ class GoGenerator : public BaseGenerator {
 
   // A single enum name member.
   void EnumNameMember(const EnumDef &enum_def, const EnumVal ev,
-                      const int max_name_length, std::string *code_ptr) {
+                      size_t max_name_length, std::string *code_ptr) {
     std::string &code = *code_ptr;
     code += "\t";
     code += enum_def.name;
@@ -232,7 +232,7 @@ class GoGenerator : public BaseGenerator {
 
   // A single enum value member.
   void EnumValueMember(const EnumDef &enum_def, const EnumVal ev,
-                       const int max_name_length, std::string *code_ptr) {
+                       size_t max_name_length, std::string *code_ptr) {
     std::string &code = *code_ptr;
     code += "\t\"";
     code += ev.name;
@@ -1040,7 +1040,7 @@ class GoGenerator : public BaseGenerator {
   void GenEnum(const EnumDef &enum_def, std::string *code_ptr) {
     if (enum_def.generated) return;
 
-    const int max_name_length = MaxNameLength(enum_def);
+    auto max_name_length = MaxNameLength(enum_def);
     cur_name_space_ = enum_def.defined_namespace;
 
     GenComment(enum_def.doc_comment, code_ptr, nullptr);
@@ -1286,12 +1286,11 @@ class GoGenerator : public BaseGenerator {
 
   const Namespace *CurrentNameSpace() const { return cur_name_space_; }
 
-  static int MaxNameLength(const EnumDef &enum_def) {
-    int max = 0;
+  static size_t MaxNameLength(const EnumDef &enum_def) {
+    size_t max = 0;
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
         ++it) {
-      const int length = (*it)->name.length();
-      max = length > max ? length : max;
+      max = std::max((*it)->name.length(), max);
     }
     return max;
   }
