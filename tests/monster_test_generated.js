@@ -68,7 +68,7 @@ MyGame.Example.AnyName = {
 MyGame.Example.AnyUniqueAliases = {
   NONE: 0,
   M: 1,
-  T: 2,
+  TS: 2,
   M2: 3
 };
 
@@ -78,7 +78,7 @@ MyGame.Example.AnyUniqueAliases = {
 MyGame.Example.AnyUniqueAliasesName = {
   0: 'NONE',
   1: 'M',
-  2: 'T',
+  2: 'TS',
   3: 'M2'
 };
 

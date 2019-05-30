@@ -17,7 +17,7 @@ enum Any:
 enum AnyUniqueAliases:
     AnyUniqueAliases_NONE = 0
     AnyUniqueAliases_M = 1
-    AnyUniqueAliases_T = 2
+    AnyUniqueAliases_TS = 2
     AnyUniqueAliases_M2 = 3
 
 enum AnyAmbiguousAliases:
@@ -332,7 +332,7 @@ class Monster : flatbuffers_handle
         return AnyUniqueAliases(buf_.flatbuffers_field_int8(pos_, 90, 0))
     def any_unique_as_M():
         return MyGame_Example_Monster { buf_, buf_.flatbuffers_field_table(pos_, 92) }
-    def any_unique_as_T():
+    def any_unique_as_TS():
         return MyGame_Example_TestSimpleTableWithEnum { buf_, buf_.flatbuffers_field_table(pos_, 92) }
     def any_unique_as_M2():
         return MyGame_Example2_Monster { buf_, buf_.flatbuffers_field_table(pos_, 92) }

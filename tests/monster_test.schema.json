@@ -15,7 +15,7 @@
     },
     "MyGame_Example_AnyUniqueAliases" : {
       "type" : "string",
-      "enum": ["NONE", "M", "T", "M2"]
+      "enum": ["NONE", "M", "TS", "M2"]
     },
     "MyGame_Example_AnyAmbiguousAliases" : {
       "type" : "string",

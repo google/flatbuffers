@@ -28,7 +28,7 @@ export namespace MyGame.Example{
 export enum AnyUniqueAliases{
   NONE= 0,
   M= 1,
-  T= 2,
+  TS= 2,
   M2= 3
 }};
 
