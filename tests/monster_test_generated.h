@@ -282,7 +282,7 @@ bool VerifyAnyVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<
 enum AnyUniqueAliases {
   AnyUniqueAliases_NONE = 0,
   AnyUniqueAliases_M = 1,
-  AnyUniqueAliases_T = 2,
+  AnyUniqueAliases_TS = 2,
   AnyUniqueAliases_M2 = 3,
   AnyUniqueAliases_MIN = AnyUniqueAliases_NONE,
   AnyUniqueAliases_MAX = AnyUniqueAliases_M2
@@ -292,7 +292,7 @@ inline const AnyUniqueAliases (&EnumValuesAnyUniqueAliases())[4] {
   static const AnyUniqueAliases values[] = {
     AnyUniqueAliases_NONE,
     AnyUniqueAliases_M,
-    AnyUniqueAliases_T,
+    AnyUniqueAliases_TS,
     AnyUniqueAliases_M2
   };
   return values;
@@ -302,7 +302,7 @@ inline const char * const *EnumNamesAnyUniqueAliases() {
   static const char * const names[5] = {
     "NONE",
     "M",
-    "T",
+    "TS",
     "M2",
     nullptr
   };
@@ -324,7 +324,7 @@ template<> struct AnyUniqueAliasesTraits<Monster> {
 };
 
 template<> struct AnyUniqueAliasesTraits<TestSimpleTableWithEnum> {
-  static const AnyUniqueAliases enum_value = AnyUniqueAliases_T;
+  static const AnyUniqueAliases enum_value = AnyUniqueAliases_TS;
 };
 
 template<> struct AnyUniqueAliasesTraits<MyGame::Example2::Monster> {
@@ -371,12 +371,12 @@ struct AnyUniqueAliasesUnion {
     return type == AnyUniqueAliases_M ?
       reinterpret_cast<const MonsterT *>(value) : nullptr;
   }
-  TestSimpleTableWithEnumT *AsT() {
-    return type == AnyUniqueAliases_T ?
+  TestSimpleTableWithEnumT *AsTS() {
+    return type == AnyUniqueAliases_TS ?
       reinterpret_cast<TestSimpleTableWithEnumT *>(value) : nullptr;
   }
-  const TestSimpleTableWithEnumT *AsT() const {
-    return type == AnyUniqueAliases_T ?
+  const TestSimpleTableWithEnumT *AsTS() const {
+    return type == AnyUniqueAliases_TS ?
       reinterpret_cast<const TestSimpleTableWithEnumT *>(value) : nullptr;
   }
   MyGame::Example2::MonsterT *AsM2() {
@@ -400,7 +400,7 @@ inline bool operator==(const AnyUniqueAliasesUnion &lhs, const AnyUniqueAliasesU
       return *(reinterpret_cast<const MonsterT *>(lhs.value)) ==
              *(reinterpret_cast<const MonsterT *>(rhs.value));
     }
-    case AnyUniqueAliases_T: {
+    case AnyUniqueAliases_TS: {
       return *(reinterpret_cast<const TestSimpleTableWithEnumT *>(lhs.value)) ==
              *(reinterpret_cast<const TestSimpleTableWithEnumT *>(rhs.value));
     }
@@ -1553,8 +1553,8 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const Monster *any_unique_as_M() const {
     return any_unique_type() == AnyUniqueAliases_M ? static_cast<const Monster *>(any_unique()) : nullptr;
   }
-  const TestSimpleTableWithEnum *any_unique_as_T() const {
-    return any_unique_type() == AnyUniqueAliases_T ? static_cast<const TestSimpleTableWithEnum *>(any_unique()) : nullptr;
+  const TestSimpleTableWithEnum *any_unique_as_TS() const {
+    return any_unique_type() == AnyUniqueAliases_TS ? static_cast<const TestSimpleTableWithEnum *>(any_unique()) : nullptr;
   }
   const MyGame::Example2::Monster *any_unique_as_M2() const {
     return any_unique_type() == AnyUniqueAliases_M2 ? static_cast<const MyGame::Example2::Monster *>(any_unique()) : nullptr;
@@ -1692,7 +1692,7 @@ template<> inline const Monster *Monster::any_unique_as<Monster>() const {
 }
 
 template<> inline const TestSimpleTableWithEnum *Monster::any_unique_as<TestSimpleTableWithEnum>() const {
-  return any_unique_as_T();
+  return any_unique_as_TS();
 }
 
 template<> inline const MyGame::Example2::Monster *Monster::any_unique_as<MyGame::Example2::Monster>() const {
@@ -2843,7 +2843,7 @@ inline bool VerifyAnyUniqueAliases(flatbuffers::Verifier &verifier, const void *
       auto ptr = reinterpret_cast<const Monster *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case AnyUniqueAliases_T: {
+    case AnyUniqueAliases_TS: {
       auto ptr = reinterpret_cast<const TestSimpleTableWithEnum *>(obj);
       return verifier.VerifyTable(ptr);
     }
@@ -2873,7 +2873,7 @@ inline void *AnyUniqueAliasesUnion::UnPack(const void *obj, AnyUniqueAliases typ
       auto ptr = reinterpret_cast<const Monster *>(obj);
       return ptr->UnPack(resolver);
     }
-    case AnyUniqueAliases_T: {
+    case AnyUniqueAliases_TS: {
       auto ptr = reinterpret_cast<const TestSimpleTableWithEnum *>(obj);
       return ptr->UnPack(resolver);
     }
@@ -2891,7 +2891,7 @@ inline flatbuffers::Offset<void> AnyUniqueAliasesUnion::Pack(flatbuffers::FlatBu
       auto ptr = reinterpret_cast<const MonsterT *>(value);
       return CreateMonster(_fbb, ptr, _rehasher).Union();
     }
-    case AnyUniqueAliases_T: {
+    case AnyUniqueAliases_TS: {
       auto ptr = reinterpret_cast<const TestSimpleTableWithEnumT *>(value);
       return CreateTestSimpleTableWithEnum(_fbb, ptr, _rehasher).Union();
     }
@@ -2909,7 +2909,7 @@ inline AnyUniqueAliasesUnion::AnyUniqueAliasesUnion(const AnyUniqueAliasesUnion 
       FLATBUFFERS_ASSERT(false);  // MonsterT not copyable.
       break;
     }
-    case AnyUniqueAliases_T: {
+    case AnyUniqueAliases_TS: {
       value = new TestSimpleTableWithEnumT(*reinterpret_cast<TestSimpleTableWithEnumT *>(u.value));
       break;
     }
@@ -2929,7 +2929,7 @@ inline void AnyUniqueAliasesUnion::Reset() {
       delete ptr;
       break;
     }
-    case AnyUniqueAliases_T: {
+    case AnyUniqueAliases_TS: {
       auto ptr = reinterpret_cast<TestSimpleTableWithEnumT *>(value);
       delete ptr;
       break;
@@ -3116,7 +3116,7 @@ inline const flatbuffers::TypeTable *AnyUniqueAliasesTypeTable() {
   static const char * const names[] = {
     "NONE",
     "M",
-    "T",
+    "TS",
     "M2"
   };
   static const flatbuffers::TypeTable tt = {
