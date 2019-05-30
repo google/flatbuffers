@@ -510,6 +510,11 @@ class GeneralGenerator : public BaseGenerator {
     std::string &code = *code_ptr;
     if (enum_def.generated) return;
 
+    // In C# this indicates enumeration values can be treated as bit flags.
+    if (lang_.language == IDLOptions::kCSharp && enum_def.attributes.Lookup("bit_flags")) {
+        code += "[System.FlagsAttribute]\n";
+    }
+
     // Generate enum definitions of the form:
     // public static (final) int name = value;
     // In Java, we use ints rather than the Enum feature, because we want them

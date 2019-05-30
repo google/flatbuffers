@@ -5,6 +5,7 @@
 namespace MyGame.Example
 {
 
+[System.FlagsAttribute]
 public enum Color : byte
 {
  Red = 1,
