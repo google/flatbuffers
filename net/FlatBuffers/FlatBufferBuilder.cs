@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Collections.Generic;
 using System.Text;
 
 /// @file
@@ -46,6 +47,9 @@ namespace FlatBuffers
         private int _numVtables = 0;
         // For the current vector being built.
         private int _vectorNumElems = 0;
+
+        // For CreateSharedString
+        private Dictionary<string, StringOffset> _sharedStringMap = null;
 
         /// <summary>
         /// Create a FlatBufferBuilder with a given initial size.
@@ -578,6 +582,32 @@ namespace FlatBuffers
             return new StringOffset(EndVector().Value);
         }
 #endif
+
+        /// <summary>
+        /// Store a string in the buffer, which can contain any binary data.
+        /// If a string with this exact contents has already been serialized before,
+        /// instead simply returns the offset of the existing string.
+        /// </summary>
+        /// <param name="s">The string to encode.</param>
+        /// <returns>
+        /// The offset in the buffer where the encoded string starts.
+        /// </returns>
+        public StringOffset CreateSharedString(string s)
+        {
+            if (_sharedStringMap == null)
+            {
+                _sharedStringMap = new Dictionary<string, StringOffset>();
+            }
+
+            if (_sharedStringMap.ContainsKey(s))
+            {
+                return _sharedStringMap[s];
+            }
+
+            var stringOffset = CreateString(s);
+            _sharedStringMap.Add(s, stringOffset);
+            return stringOffset;
+        }
 
         /// @cond FLATBUFFERS_INTERNAL
         // Structs are stored inline, so nothing additional is being added.
