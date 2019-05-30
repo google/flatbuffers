@@ -892,10 +892,16 @@ inline voffset_t FieldIndexToOffset(voffset_t field_id) {
 
 template<typename T, typename Alloc>
 const T *data(const std::vector<T, Alloc> &v) {
-  return v.empty() ? nullptr : &v.front();
+  // Eventually the returned pointer gets passed down to memcpy, so
+  // we need it to be non-null to avoid undefined behavior.
+  static uint8_t t;
+  return v.empty() ? reinterpret_cast<const T*>(&t) : &v.front();
 }
 template<typename T, typename Alloc> T *data(std::vector<T, Alloc> &v) {
-  return v.empty() ? nullptr : &v.front();
+  // Eventually the returned pointer gets passed down to memcpy, so
+  // we need it to be non-null to avoid undefined behavior.
+  static uint8_t t;
+  return v.empty() ? reinterpret_cast<T*>(&t) : &v.front();
 }
 
 /// @endcond
