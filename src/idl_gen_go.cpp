@@ -921,10 +921,8 @@ class GoGenerator : public BaseGenerator {
                   "(builder, t." + MakeCamel(field.name) + ".Type)\n";
           code += "\t}\n";
         }
-        code += "\tif " + offset + " != 0 {\n";
-        code += "\t\t" + struct_def.name + "Add" + MakeCamel(field.name) +
+        code += "\t" + struct_def.name + "Add" + MakeCamel(field.name) +
                 "(builder, " + offset + ")\n";
-        code += "\t}\n";
       }
     }
     code += "\treturn " + struct_def.name + "End(builder)\n";

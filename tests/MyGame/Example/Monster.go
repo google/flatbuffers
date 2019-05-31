@@ -223,42 +223,22 @@ func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT
 	vectorOfEnumsOffset := builder.EndVector(vectorOfEnumsLength)
 	MonsterStart(builder)
 	posOffset := Vec3Pack(builder, t.Pos)
-	if posOffset != 0 {
-		MonsterAddPos(builder, posOffset)
-	}
+	MonsterAddPos(builder, posOffset)
 	MonsterAddMana(builder, t.Mana)
 	MonsterAddHp(builder, t.Hp)
-	if nameOffset != 0 {
-		MonsterAddName(builder, nameOffset)
-	}
-	if inventoryOffset != 0 {
-		MonsterAddInventory(builder, inventoryOffset)
-	}
+	MonsterAddName(builder, nameOffset)
+	MonsterAddInventory(builder, inventoryOffset)
 	MonsterAddColor(builder, t.Color)
 	if t.Test != nil {
 		MonsterAddTestType(builder, t.Test.Type)
 	}
-	if testOffset != 0 {
-		MonsterAddTest(builder, testOffset)
-	}
-	if test4Offset != 0 {
-		MonsterAddTest4(builder, test4Offset)
-	}
-	if testarrayofstringOffset != 0 {
-		MonsterAddTestarrayofstring(builder, testarrayofstringOffset)
-	}
-	if testarrayoftablesOffset != 0 {
-		MonsterAddTestarrayoftables(builder, testarrayoftablesOffset)
-	}
-	if enemyOffset != 0 {
-		MonsterAddEnemy(builder, enemyOffset)
-	}
-	if testnestedflatbufferOffset != 0 {
-		MonsterAddTestnestedflatbuffer(builder, testnestedflatbufferOffset)
-	}
-	if testemptyOffset != 0 {
-		MonsterAddTestempty(builder, testemptyOffset)
-	}
+	MonsterAddTest(builder, testOffset)
+	MonsterAddTest4(builder, test4Offset)
+	MonsterAddTestarrayofstring(builder, testarrayofstringOffset)
+	MonsterAddTestarrayoftables(builder, testarrayoftablesOffset)
+	MonsterAddEnemy(builder, enemyOffset)
+	MonsterAddTestnestedflatbuffer(builder, testnestedflatbufferOffset)
+	MonsterAddTestempty(builder, testemptyOffset)
 	MonsterAddTestbool(builder, t.Testbool)
 	MonsterAddTesthashs32Fnv1(builder, t.Testhashs32Fnv1)
 	MonsterAddTesthashu32Fnv1(builder, t.Testhashu32Fnv1)
@@ -268,66 +248,34 @@ func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT
 	MonsterAddTesthashu32Fnv1a(builder, t.Testhashu32Fnv1a)
 	MonsterAddTesthashs64Fnv1a(builder, t.Testhashs64Fnv1a)
 	MonsterAddTesthashu64Fnv1a(builder, t.Testhashu64Fnv1a)
-	if testarrayofboolsOffset != 0 {
-		MonsterAddTestarrayofbools(builder, testarrayofboolsOffset)
-	}
+	MonsterAddTestarrayofbools(builder, testarrayofboolsOffset)
 	MonsterAddTestf(builder, t.Testf)
 	MonsterAddTestf2(builder, t.Testf2)
 	MonsterAddTestf3(builder, t.Testf3)
-	if testarrayofstring2Offset != 0 {
-		MonsterAddTestarrayofstring2(builder, testarrayofstring2Offset)
-	}
-	if testarrayofsortedstructOffset != 0 {
-		MonsterAddTestarrayofsortedstruct(builder, testarrayofsortedstructOffset)
-	}
-	if flexOffset != 0 {
-		MonsterAddFlex(builder, flexOffset)
-	}
-	if test5Offset != 0 {
-		MonsterAddTest5(builder, test5Offset)
-	}
-	if vectorOfLongsOffset != 0 {
-		MonsterAddVectorOfLongs(builder, vectorOfLongsOffset)
-	}
-	if vectorOfDoublesOffset != 0 {
-		MonsterAddVectorOfDoubles(builder, vectorOfDoublesOffset)
-	}
-	if parentNamespaceTestOffset != 0 {
-		MonsterAddParentNamespaceTest(builder, parentNamespaceTestOffset)
-	}
-	if vectorOfReferrablesOffset != 0 {
-		MonsterAddVectorOfReferrables(builder, vectorOfReferrablesOffset)
-	}
+	MonsterAddTestarrayofstring2(builder, testarrayofstring2Offset)
+	MonsterAddTestarrayofsortedstruct(builder, testarrayofsortedstructOffset)
+	MonsterAddFlex(builder, flexOffset)
+	MonsterAddTest5(builder, test5Offset)
+	MonsterAddVectorOfLongs(builder, vectorOfLongsOffset)
+	MonsterAddVectorOfDoubles(builder, vectorOfDoublesOffset)
+	MonsterAddParentNamespaceTest(builder, parentNamespaceTestOffset)
+	MonsterAddVectorOfReferrables(builder, vectorOfReferrablesOffset)
 	MonsterAddSingleWeakReference(builder, t.SingleWeakReference)
-	if vectorOfWeakReferencesOffset != 0 {
-		MonsterAddVectorOfWeakReferences(builder, vectorOfWeakReferencesOffset)
-	}
-	if vectorOfStrongReferrablesOffset != 0 {
-		MonsterAddVectorOfStrongReferrables(builder, vectorOfStrongReferrablesOffset)
-	}
+	MonsterAddVectorOfWeakReferences(builder, vectorOfWeakReferencesOffset)
+	MonsterAddVectorOfStrongReferrables(builder, vectorOfStrongReferrablesOffset)
 	MonsterAddCoOwningReference(builder, t.CoOwningReference)
-	if vectorOfCoOwningReferencesOffset != 0 {
-		MonsterAddVectorOfCoOwningReferences(builder, vectorOfCoOwningReferencesOffset)
-	}
+	MonsterAddVectorOfCoOwningReferences(builder, vectorOfCoOwningReferencesOffset)
 	MonsterAddNonOwningReference(builder, t.NonOwningReference)
-	if vectorOfNonOwningReferencesOffset != 0 {
-		MonsterAddVectorOfNonOwningReferences(builder, vectorOfNonOwningReferencesOffset)
-	}
+	MonsterAddVectorOfNonOwningReferences(builder, vectorOfNonOwningReferencesOffset)
 	if t.AnyUnique != nil {
 		MonsterAddAnyUniqueType(builder, t.AnyUnique.Type)
 	}
-	if anyUniqueOffset != 0 {
-		MonsterAddAnyUnique(builder, anyUniqueOffset)
-	}
+	MonsterAddAnyUnique(builder, anyUniqueOffset)
 	if t.AnyAmbiguous != nil {
 		MonsterAddAnyAmbiguousType(builder, t.AnyAmbiguous.Type)
 	}
-	if anyAmbiguousOffset != 0 {
-		MonsterAddAnyAmbiguous(builder, anyAmbiguousOffset)
-	}
-	if vectorOfEnumsOffset != 0 {
-		MonsterAddVectorOfEnums(builder, vectorOfEnumsOffset)
-	}
+	MonsterAddAnyAmbiguous(builder, anyAmbiguousOffset)
+	MonsterAddVectorOfEnums(builder, vectorOfEnumsOffset)
 	return MonsterEnd(builder)
 }
 
