@@ -249,7 +249,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       } else if (arg == "--gen-compare") {
         opts.gen_compare = true;
       } else if (arg == "--cpp-include") {
-        if (++argi >= argc) Error("missing type following" + arg, true);
+        if (++argi >= argc) Error("missing include following" + arg, true);
         opts.cpp_includes.push_back(argv[argi]);
       } else if (arg == "--cpp-ptr-type") {
         if (++argi >= argc) Error("missing type following" + arg, true);
