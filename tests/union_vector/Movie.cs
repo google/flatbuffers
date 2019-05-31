@@ -35,7 +35,7 @@ public struct Movie : IFlatbufferObject
       int main_characterOffset = 0,
       VectorOffset characters_typeOffset = default(VectorOffset),
       VectorOffset charactersOffset = default(VectorOffset)) {
-    builder.StartObject(4);
+    builder.StartTable(4);
     Movie.AddCharacters(builder, charactersOffset);
     Movie.AddCharactersType(builder, characters_typeOffset);
     Movie.AddMainCharacter(builder, main_characterOffset);
@@ -43,7 +43,7 @@ public struct Movie : IFlatbufferObject
     return Movie.EndMovie(builder);
   }
 
-  public static void StartMovie(FlatBufferBuilder builder) { builder.StartObject(4); }
+  public static void StartMovie(FlatBufferBuilder builder) { builder.StartTable(4); }
   public static void AddMainCharacterType(FlatBufferBuilder builder, Character mainCharacterType) { builder.AddByte(0, (byte)mainCharacterType, 0); }
   public static void AddMainCharacter(FlatBufferBuilder builder, int mainCharacterOffset) { builder.AddOffset(1, mainCharacterOffset, 0); }
   public static void AddCharactersType(FlatBufferBuilder builder, VectorOffset charactersTypeOffset) { builder.AddOffset(2, charactersTypeOffset.Value, 0); }
@@ -55,7 +55,7 @@ public struct Movie : IFlatbufferObject
   public static VectorOffset CreateCharactersVectorBlock(FlatBufferBuilder builder, int[] data) { builder.StartVector(4, data.Length, 4); builder.Add(data); return builder.EndVector(); }
   public static void StartCharactersVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
   public static Offset<Movie> EndMovie(FlatBufferBuilder builder) {
-    int o = builder.EndObject();
+    int o = builder.EndTable();
     return new Offset<Movie>(o);
   }
   public static void FinishMovieBuffer(FlatBufferBuilder builder, Offset<Movie> offset) { builder.Finish(offset.Value, "MOVI"); }

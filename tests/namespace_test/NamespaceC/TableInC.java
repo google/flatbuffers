@@ -22,17 +22,17 @@ public final class TableInC extends Table {
   public static int createTableInC(FlatBufferBuilder builder,
       int refer_to_a1Offset,
       int refer_to_a2Offset) {
-    builder.startObject(2);
+    builder.startTable(2);
     TableInC.addReferToA2(builder, refer_to_a2Offset);
     TableInC.addReferToA1(builder, refer_to_a1Offset);
     return TableInC.endTableInC(builder);
   }
 
-  public static void startTableInC(FlatBufferBuilder builder) { builder.startObject(2); }
+  public static void startTableInC(FlatBufferBuilder builder) { builder.startTable(2); }
   public static void addReferToA1(FlatBufferBuilder builder, int referToA1Offset) { builder.addOffset(0, referToA1Offset, 0); }
   public static void addReferToA2(FlatBufferBuilder builder, int referToA2Offset) { builder.addOffset(1, referToA2Offset, 0); }
   public static int endTableInC(FlatBufferBuilder builder) {
-    int o = builder.endObject();
+    int o = builder.endTable();
     return o;
   }
 }

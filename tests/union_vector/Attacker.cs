@@ -19,15 +19,15 @@ public struct Attacker : IFlatbufferObject
 
   public static Offset<Attacker> CreateAttacker(FlatBufferBuilder builder,
       int sword_attack_damage = 0) {
-    builder.StartObject(1);
+    builder.StartTable(1);
     Attacker.AddSwordAttackDamage(builder, sword_attack_damage);
     return Attacker.EndAttacker(builder);
   }
 
-  public static void StartAttacker(FlatBufferBuilder builder) { builder.StartObject(1); }
+  public static void StartAttacker(FlatBufferBuilder builder) { builder.StartTable(1); }
   public static void AddSwordAttackDamage(FlatBufferBuilder builder, int swordAttackDamage) { builder.AddInt(0, swordAttackDamage, 0); }
   public static Offset<Attacker> EndAttacker(FlatBufferBuilder builder) {
-    int o = builder.EndObject();
+    int o = builder.EndTable();
     return new Offset<Attacker>(o);
   }
 };

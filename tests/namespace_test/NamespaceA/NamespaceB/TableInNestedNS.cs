@@ -22,15 +22,15 @@ public struct TableInNestedNS : IFlatbufferObject
 
   public static Offset<TableInNestedNS> CreateTableInNestedNS(FlatBufferBuilder builder,
       int foo = 0) {
-    builder.StartObject(1);
+    builder.StartTable(1);
     TableInNestedNS.AddFoo(builder, foo);
     return TableInNestedNS.EndTableInNestedNS(builder);
   }
 
-  public static void StartTableInNestedNS(FlatBufferBuilder builder) { builder.StartObject(1); }
+  public static void StartTableInNestedNS(FlatBufferBuilder builder) { builder.StartTable(1); }
   public static void AddFoo(FlatBufferBuilder builder, int foo) { builder.AddInt(0, foo, 0); }
   public static Offset<TableInNestedNS> EndTableInNestedNS(FlatBufferBuilder builder) {
-    int o = builder.EndObject();
+    int o = builder.EndTable();
     return new Offset<TableInNestedNS>(o);
   }
 };

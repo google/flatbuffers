@@ -17,15 +17,15 @@ public final class Attacker extends Table {
 
   public static int createAttacker(FlatBufferBuilder builder,
       int sword_attack_damage) {
-    builder.startObject(1);
+    builder.startTable(1);
     Attacker.addSwordAttackDamage(builder, sword_attack_damage);
     return Attacker.endAttacker(builder);
   }
 
-  public static void startAttacker(FlatBufferBuilder builder) { builder.startObject(1); }
+  public static void startAttacker(FlatBufferBuilder builder) { builder.startTable(1); }
   public static void addSwordAttackDamage(FlatBufferBuilder builder, int swordAttackDamage) { builder.addInt(0, swordAttackDamage, 0); }
   public static int endAttacker(FlatBufferBuilder builder) {
-    int o = builder.endObject();
+    int o = builder.endTable();
     return o;
   }
 }

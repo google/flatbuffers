@@ -58,7 +58,7 @@ public struct MonsterExtra : IFlatbufferObject
       double testd_ninf = Double.NegativeInfinity,
       VectorOffset testf_vecOffset = default(VectorOffset),
       VectorOffset testd_vecOffset = default(VectorOffset)) {
-    builder.StartObject(8);
+    builder.StartTable(8);
     MonsterExtra.AddTestdNinf(builder, testd_ninf);
     MonsterExtra.AddTestdPinf(builder, testd_pinf);
     MonsterExtra.AddTestdNan(builder, testd_nan);
@@ -70,7 +70,7 @@ public struct MonsterExtra : IFlatbufferObject
     return MonsterExtra.EndMonsterExtra(builder);
   }
 
-  public static void StartMonsterExtra(FlatBufferBuilder builder) { builder.StartObject(8); }
+  public static void StartMonsterExtra(FlatBufferBuilder builder) { builder.StartTable(8); }
   public static void AddTestfNan(FlatBufferBuilder builder, float testfNan) { builder.AddFloat(0, testfNan, Single.NaN); }
   public static void AddTestfPinf(FlatBufferBuilder builder, float testfPinf) { builder.AddFloat(1, testfPinf, Single.PositiveInfinity); }
   public static void AddTestfNinf(FlatBufferBuilder builder, float testfNinf) { builder.AddFloat(2, testfNinf, Single.NegativeInfinity); }
@@ -86,7 +86,7 @@ public struct MonsterExtra : IFlatbufferObject
   public static VectorOffset CreateTestdVecVectorBlock(FlatBufferBuilder builder, double[] data) { builder.StartVector(8, data.Length, 8); builder.Add(data); return builder.EndVector(); }
   public static void StartTestdVecVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(8, numElems, 8); }
   public static Offset<MonsterExtra> EndMonsterExtra(FlatBufferBuilder builder) {
-    int o = builder.EndObject();
+    int o = builder.EndTable();
     return new Offset<MonsterExtra>(o);
   }
   public static void FinishMonsterExtraBuffer(FlatBufferBuilder builder, Offset<MonsterExtra> offset) { builder.Finish(offset.Value, "MONE"); }

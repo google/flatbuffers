@@ -22,15 +22,15 @@ public struct Referrable : IFlatbufferObject
 
   public static Offset<Referrable> CreateReferrable(FlatBufferBuilder builder,
       ulong id = 0) {
-    builder.StartObject(1);
+    builder.StartTable(1);
     Referrable.AddId(builder, id);
     return Referrable.EndReferrable(builder);
   }
 
-  public static void StartReferrable(FlatBufferBuilder builder) { builder.StartObject(1); }
+  public static void StartReferrable(FlatBufferBuilder builder) { builder.StartTable(1); }
   public static void AddId(FlatBufferBuilder builder, ulong id) { builder.AddUlong(0, id, 0); }
   public static Offset<Referrable> EndReferrable(FlatBufferBuilder builder) {
-    int o = builder.EndObject();
+    int o = builder.EndTable();
     return new Offset<Referrable>(o);
   }
 

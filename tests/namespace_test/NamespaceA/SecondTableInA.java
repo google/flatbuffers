@@ -19,15 +19,15 @@ public final class SecondTableInA extends Table {
 
   public static int createSecondTableInA(FlatBufferBuilder builder,
       int refer_to_cOffset) {
-    builder.startObject(1);
+    builder.startTable(1);
     SecondTableInA.addReferToC(builder, refer_to_cOffset);
     return SecondTableInA.endSecondTableInA(builder);
   }
 
-  public static void startSecondTableInA(FlatBufferBuilder builder) { builder.startObject(1); }
+  public static void startSecondTableInA(FlatBufferBuilder builder) { builder.startTable(1); }
   public static void addReferToC(FlatBufferBuilder builder, int referToCOffset) { builder.addOffset(0, referToCOffset, 0); }
   public static int endSecondTableInA(FlatBufferBuilder builder) {
-    int o = builder.endObject();
+    int o = builder.endTable();
     return o;
   }
 }

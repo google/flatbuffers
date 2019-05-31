@@ -21,15 +21,15 @@ public struct SecondTableInA : IFlatbufferObject
 
   public static Offset<SecondTableInA> CreateSecondTableInA(FlatBufferBuilder builder,
       Offset<NamespaceC.TableInC> refer_to_cOffset = default(Offset<NamespaceC.TableInC>)) {
-    builder.StartObject(1);
+    builder.StartTable(1);
     SecondTableInA.AddReferToC(builder, refer_to_cOffset);
     return SecondTableInA.EndSecondTableInA(builder);
   }
 
-  public static void StartSecondTableInA(FlatBufferBuilder builder) { builder.StartObject(1); }
+  public static void StartSecondTableInA(FlatBufferBuilder builder) { builder.StartTable(1); }
   public static void AddReferToC(FlatBufferBuilder builder, Offset<NamespaceC.TableInC> referToCOffset) { builder.AddOffset(0, referToCOffset.Value, 0); }
   public static Offset<SecondTableInA> EndSecondTableInA(FlatBufferBuilder builder) {
-    int o = builder.EndObject();
+    int o = builder.EndTable();
     return new Offset<SecondTableInA>(o);
   }
 };

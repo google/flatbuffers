@@ -19,15 +19,15 @@ public final class Referrable extends Table {
 
   public static int createReferrable(FlatBufferBuilder builder,
       long id) {
-    builder.startObject(1);
+    builder.startTable(1);
     Referrable.addId(builder, id);
     return Referrable.endReferrable(builder);
   }
 
-  public static void startReferrable(FlatBufferBuilder builder) { builder.startObject(1); }
+  public static void startReferrable(FlatBufferBuilder builder) { builder.startTable(1); }
   public static void addId(FlatBufferBuilder builder, long id) { builder.addLong(0, id, 0L); }
   public static int endReferrable(FlatBufferBuilder builder) {
-    int o = builder.endObject();
+    int o = builder.endTable();
     return o;
   }
 

@@ -22,12 +22,12 @@ public struct TableInFirstNS : IFlatbufferObject
   public bool MutateFooEnum(NamespaceA.NamespaceB.EnumInNestedNS foo_enum) { int o = __p.__offset(6); if (o != 0) { __p.bb.PutSbyte(o + __p.bb_pos, (sbyte)foo_enum); return true; } else { return false; } }
   public NamespaceA.NamespaceB.StructInNestedNS? FooStruct { get { int o = __p.__offset(8); return o != 0 ? (NamespaceA.NamespaceB.StructInNestedNS?)(new NamespaceA.NamespaceB.StructInNestedNS()).__assign(o + __p.bb_pos, __p.bb) : null; } }
 
-  public static void StartTableInFirstNS(FlatBufferBuilder builder) { builder.StartObject(3); }
+  public static void StartTableInFirstNS(FlatBufferBuilder builder) { builder.StartTable(3); }
   public static void AddFooTable(FlatBufferBuilder builder, Offset<NamespaceA.NamespaceB.TableInNestedNS> fooTableOffset) { builder.AddOffset(0, fooTableOffset.Value, 0); }
   public static void AddFooEnum(FlatBufferBuilder builder, NamespaceA.NamespaceB.EnumInNestedNS fooEnum) { builder.AddSbyte(1, (sbyte)fooEnum, 0); }
   public static void AddFooStruct(FlatBufferBuilder builder, Offset<NamespaceA.NamespaceB.StructInNestedNS> fooStructOffset) { builder.AddStruct(2, fooStructOffset.Value, 0); }
   public static Offset<TableInFirstNS> EndTableInFirstNS(FlatBufferBuilder builder) {
-    int o = builder.EndObject();
+    int o = builder.EndTable();
     return new Offset<TableInFirstNS>(o);
   }
 };

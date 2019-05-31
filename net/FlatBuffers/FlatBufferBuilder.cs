@@ -195,7 +195,7 @@ namespace FlatBuffers
         }
 
         /// <summary>
-        /// Puts an array of type T into this builder at the 
+        /// Puts an array of type T into this builder at the
         /// current offset
         /// </summary>
         /// <typeparam name="T">The type of the input data </typeparam>
@@ -208,7 +208,7 @@ namespace FlatBuffers
 
 #if ENABLE_SPAN_T
         /// <summary>
-        /// Puts a span of type T into this builder at the 
+        /// Puts a span of type T into this builder at the
         /// current offset
         /// </summary>
         /// <typeparam name="T">The type of the input data </typeparam>
@@ -411,7 +411,7 @@ namespace FlatBuffers
                     "FlatBuffers: object serialization must not be nested.");
         }
 
-        public void StartObject(int numfields)
+        public void StartTable(int numfields)
         {
             if (numfields < 0)
                 throw new ArgumentOutOfRangeException("Flatbuffers: invalid numfields");
@@ -621,11 +621,11 @@ namespace FlatBuffers
             }
         }
 
-        public int EndObject()
+        public int EndTable()
         {
             if (_vtableSize < 0)
                 throw new InvalidOperationException(
-                  "Flatbuffers: calling endObject without a startObject");
+                  "Flatbuffers: calling EndTable without a StartTable");
 
             AddInt((int)0);
             var vtableloc = Offset;
