@@ -868,8 +868,8 @@ class GoGenerator : public BaseGenerator {
         }
         code += "\t}\n";
         code += "\t" + offset + " := builder.EndVector(" + length + ")\n";
-      } else if (field.value.type.base_type == BASE_TYPE_STRUCT &&
-                 !field.value.type.struct_def->fixed) {
+      } else if (field.value.type.base_type == BASE_TYPE_STRUCT) {
+        if (field.value.type.struct_def->fixed) continue;
         code += "\t" + offset + " := " +
                 WrapInNameSpaceAndTrack(*field.value.type.struct_def) +
                 "Pack(builder, t." + MakeCamel(field.name) + ")\n";
