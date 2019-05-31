@@ -117,6 +117,8 @@ Additional options:
     output (by default the case for C++ and JS), all code will end up in
     this one file.
 
+-   `--cpp-include` : Adds an #include in generated file
+
 -   `--cpp-ptr-type T` : Set object API pointer type (default std::unique_ptr)
 
 -   `--cpp-str-type T` : Set object API string type (default std::string)

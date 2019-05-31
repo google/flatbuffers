@@ -204,6 +204,15 @@ class CppGenerator : public BaseGenerator {
     if (num_includes) code_ += "";
   }
 
+  void GenExtraIncludes() {
+    for(std::size_t i = 0; i < parser_.opts.cpp_includes.size(); ++i) {
+      code_ += "#include <" + parser_.opts.cpp_includes[i] + ">";
+    }
+    if (!parser_.opts.cpp_includes.empty()) {
+      code_ += "";
+    }
+  }
+
   std::string EscapeKeyword(const std::string &name) const {
     return keywords_.find(name) == keywords_.end() ? name : name + "_";
   }
@@ -236,6 +245,7 @@ class CppGenerator : public BaseGenerator {
     code_ += "";
 
     if (parser_.opts.include_dependence_headers) { GenIncludeDependencies(); }
+    GenExtraIncludes();
 
     FLATBUFFERS_ASSERT(!cur_name_space_);
 
