@@ -838,20 +838,20 @@ class GoGenerator : public BaseGenerator {
         std::string length = MakeCamel(field.name, false) + "Length";
         std::string offsets = MakeCamel(field.name, false) + "Offsets";
         code += "\t" + length + " := len(t." + MakeCamel(field.name) + ")\n";
-        if (!IsScalar(field.value.type.element)) {
+        if (field.value.type.element == BASE_TYPE_STRING) {
           code += "\t" + offsets + " := []flatbuffers.UOffsetT{}\n";
           code += "\tfor j := 0; j < " + length + "; j++ {\n";
-          code += "\t\t" + offsets + " = append(" + offsets + ", ";
-          if (field.value.type.element == BASE_TYPE_STRING) {
-            code += "builder.CreateString(t." + MakeCamel(field.name) + "[j])";
-          } else if (field.value.type.element == BASE_TYPE_STRUCT) {
-            code += WrapInNameSpaceAndTrack(*field.value.type.struct_def) +
-                    "Pack(builder, t." + MakeCamel(field.name) + "[j])";
-          } else {
-            // TODO(iceboy): Support vector of unions.
-            FLATBUFFERS_ASSERT(0);
-          }
-          code += ")\n";
+          code += "\t\t" + offsets + " = append(" + offsets +
+                  ", builder.CreateString(t." + MakeCamel(field.name) +
+                  "[j]))\n";
+          code += "\t}\n";
+        } else if (field.value.type.element == BASE_TYPE_STRUCT &&
+                   !field.value.type.struct_def->fixed) {
+          code += "\t" + offsets + " := []flatbuffers.UOffsetT{}\n";
+          code += "\tfor j := 0; j < " + length + "; j++ {\n";
+          code += "\t\t" + offsets + " = append(" + offsets + ", " +
+                  WrapInNameSpaceAndTrack(*field.value.type.struct_def) +
+                  "Pack(builder, t." + MakeCamel(field.name) + "[j]))\n";
           code += "\t}\n";
         }
         code += "\t" + struct_def.name + "Start" + MakeCamel(field.name) +
@@ -863,6 +863,11 @@ class GoGenerator : public BaseGenerator {
                   CastToBaseType(
                       field.value.type.VectorType(),
                       "t." + MakeCamel(field.name) + "[j]") + ")\n";
+        } else if (field.value.type.element == BASE_TYPE_STRUCT &&
+                   field.value.type.struct_def->fixed) {
+          code += "\t\t" +
+                  WrapInNameSpaceAndTrack(*field.value.type.struct_def) +
+                  "Pack(builder, t." + MakeCamel(field.name) + "[j])\n";
         } else {
           code += "\t\tbuilder.PrependUOffsetT(" + offsets + "[j])\n";
         }

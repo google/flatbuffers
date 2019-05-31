@@ -73,13 +73,9 @@ func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT
 		}
 	}
 	test4Length := len(t.Test4)
-	test4Offsets := []flatbuffers.UOffsetT{}
-	for j := 0; j < test4Length; j++ {
-		test4Offsets = append(test4Offsets, TestPack(builder, t.Test4[j]))
-	}
 	MonsterStartTest4Vector(builder, test4Length)
 	for j := test4Length - 1; j >= 0; j-- {
-		builder.PrependUOffsetT(test4Offsets[j])
+		TestPack(builder, t.Test4[j])
 	}
 	test4Offset := builder.EndVector(test4Length)
 	testarrayofstringLength := len(t.Testarrayofstring)
@@ -122,24 +118,16 @@ func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT
 	}
 	testarrayofstring2Offset := builder.EndVector(testarrayofstring2Length)
 	testarrayofsortedstructLength := len(t.Testarrayofsortedstruct)
-	testarrayofsortedstructOffsets := []flatbuffers.UOffsetT{}
-	for j := 0; j < testarrayofsortedstructLength; j++ {
-		testarrayofsortedstructOffsets = append(testarrayofsortedstructOffsets, AbilityPack(builder, t.Testarrayofsortedstruct[j]))
-	}
 	MonsterStartTestarrayofsortedstructVector(builder, testarrayofsortedstructLength)
 	for j := testarrayofsortedstructLength - 1; j >= 0; j-- {
-		builder.PrependUOffsetT(testarrayofsortedstructOffsets[j])
+		AbilityPack(builder, t.Testarrayofsortedstruct[j])
 	}
 	testarrayofsortedstructOffset := builder.EndVector(testarrayofsortedstructLength)
 	flexOffset := builder.CreateByteString(t.Flex)
 	test5Length := len(t.Test5)
-	test5Offsets := []flatbuffers.UOffsetT{}
-	for j := 0; j < test5Length; j++ {
-		test5Offsets = append(test5Offsets, TestPack(builder, t.Test5[j]))
-	}
 	MonsterStartTest5Vector(builder, test5Length)
 	for j := test5Length - 1; j >= 0; j-- {
-		builder.PrependUOffsetT(test5Offsets[j])
+		TestPack(builder, t.Test5[j])
 	}
 	test5Offset := builder.EndVector(test5Length)
 	vectorOfLongsLength := len(t.VectorOfLongs)
