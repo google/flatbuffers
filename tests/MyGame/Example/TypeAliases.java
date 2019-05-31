@@ -58,7 +58,7 @@ public final class TypeAliases extends Table {
       double f64,
       int v8Offset,
       int vf64Offset) {
-    builder.startObject(12);
+    builder.startTable(12);
     TypeAliases.addF64(builder, f64);
     TypeAliases.addU64(builder, u64);
     TypeAliases.addI64(builder, i64);
@@ -74,7 +74,7 @@ public final class TypeAliases extends Table {
     return TypeAliases.endTypeAliases(builder);
   }
 
-  public static void startTypeAliases(FlatBufferBuilder builder) { builder.startObject(12); }
+  public static void startTypeAliases(FlatBufferBuilder builder) { builder.startTable(12); }
   public static void addI8(FlatBufferBuilder builder, byte i8) { builder.addByte(0, i8, 0); }
   public static void addU8(FlatBufferBuilder builder, int u8) { builder.addByte(1, (byte)u8, (byte)0); }
   public static void addI16(FlatBufferBuilder builder, short i16) { builder.addShort(2, i16, 0); }
@@ -92,7 +92,7 @@ public final class TypeAliases extends Table {
   public static int createVf64Vector(FlatBufferBuilder builder, double[] data) { builder.startVector(8, data.length, 8); for (int i = data.length - 1; i >= 0; i--) builder.addDouble(data[i]); return builder.endVector(); }
   public static void startVf64Vector(FlatBufferBuilder builder, int numElems) { builder.startVector(8, numElems, 8); }
   public static int endTypeAliases(FlatBufferBuilder builder) {
-    int o = builder.endObject();
+    int o = builder.endTable();
     return o;
   }
 }

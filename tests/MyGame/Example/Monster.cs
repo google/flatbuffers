@@ -188,7 +188,7 @@ public struct Monster : IFlatbufferObject
   public Color[] GetVectorOfEnumsArray() { return __p.__vector_as_array<Color>(98); }
   public bool MutateVectorOfEnums(int j, Color vector_of_enums) { int o = __p.__offset(98); if (o != 0) { __p.bb.Put(__p.__vector(o) + j * 1, (byte)vector_of_enums); return true; } else { return false; } }
 
-  public static void StartMonster(FlatBufferBuilder builder) { builder.StartObject(48); }
+  public static void StartMonster(FlatBufferBuilder builder) { builder.StartTable(48); }
   public static void AddPos(FlatBufferBuilder builder, Offset<Vec3> posOffset) { builder.AddStruct(0, posOffset.Value, 0); }
   public static void AddMana(FlatBufferBuilder builder, short mana) { builder.AddShort(1, mana, 150); }
   public static void AddHp(FlatBufferBuilder builder, short hp) { builder.AddShort(2, hp, 100); }
@@ -285,7 +285,7 @@ public struct Monster : IFlatbufferObject
   public static VectorOffset CreateVectorOfEnumsVectorBlock(FlatBufferBuilder builder, Color[] data) { builder.StartVector(1, data.Length, 1); builder.Add(data); return builder.EndVector(); }
   public static void StartVectorOfEnumsVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(1, numElems, 1); }
   public static Offset<Monster> EndMonster(FlatBufferBuilder builder) {
-    int o = builder.EndObject();
+    int o = builder.EndTable();
     builder.Required(o, 10);  // name
     return new Offset<Monster>(o);
   }

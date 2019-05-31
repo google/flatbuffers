@@ -1308,7 +1308,7 @@ class GeneralGenerator : public BaseGenerator {
           }
         }
         code += ") {\n    builder.";
-        code += FunctionStart('S') + "tartObject(";
+        code += FunctionStart('S') + "tartTable(";
         code += NumToString(struct_def.fields.vec.size()) + ");\n";
         for (size_t size = struct_def.sortbysize ? sizeof(largest_scalar_t) : 1;
              size; size /= 2) {
@@ -1338,7 +1338,7 @@ class GeneralGenerator : public BaseGenerator {
       code += "  public static void " + FunctionStart('S') + "tart";
       code += struct_def.name;
       code += "(FlatBufferBuilder builder) { builder.";
-      code += FunctionStart('S') + "tartObject(";
+      code += FunctionStart('S') + "tartTable(";
       code += NumToString(struct_def.fields.vec.size()) + "); }\n";
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
@@ -1422,7 +1422,7 @@ class GeneralGenerator : public BaseGenerator {
       code += "  public static " + GenOffsetType(struct_def) + " ";
       code += FunctionStart('E') + "nd" + struct_def.name;
       code += "(FlatBufferBuilder builder) {\n    int o = builder.";
-      code += FunctionStart('E') + "ndObject();\n";
+      code += FunctionStart('E') + "ndTable();\n";
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
         auto &field = **it;

@@ -22,15 +22,15 @@ internal partial struct TestSimpleTableWithEnum : IFlatbufferObject
 
   public static Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnum(FlatBufferBuilder builder,
       Color color = Color.Green) {
-    builder.StartObject(1);
+    builder.StartTable(1);
     TestSimpleTableWithEnum.AddColor(builder, color);
     return TestSimpleTableWithEnum.EndTestSimpleTableWithEnum(builder);
   }
 
-  public static void StartTestSimpleTableWithEnum(FlatBufferBuilder builder) { builder.StartObject(1); }
+  public static void StartTestSimpleTableWithEnum(FlatBufferBuilder builder) { builder.StartTable(1); }
   public static void AddColor(FlatBufferBuilder builder, Color color) { builder.AddByte(0, (byte)color, 2); }
   public static Offset<TestSimpleTableWithEnum> EndTestSimpleTableWithEnum(FlatBufferBuilder builder) {
-    int o = builder.EndObject();
+    int o = builder.EndTable();
     return new Offset<TestSimpleTableWithEnum>(o);
   }
 };

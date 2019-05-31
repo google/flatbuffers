@@ -47,7 +47,7 @@ public final class MonsterExtra extends Table {
       double testd_ninf,
       int testf_vecOffset,
       int testd_vecOffset) {
-    builder.startObject(8);
+    builder.startTable(8);
     MonsterExtra.addTestdNinf(builder, testd_ninf);
     MonsterExtra.addTestdPinf(builder, testd_pinf);
     MonsterExtra.addTestdNan(builder, testd_nan);
@@ -59,7 +59,7 @@ public final class MonsterExtra extends Table {
     return MonsterExtra.endMonsterExtra(builder);
   }
 
-  public static void startMonsterExtra(FlatBufferBuilder builder) { builder.startObject(8); }
+  public static void startMonsterExtra(FlatBufferBuilder builder) { builder.startTable(8); }
   public static void addTestfNan(FlatBufferBuilder builder, float testfNan) { builder.addFloat(0, testfNan, Float.NaN); }
   public static void addTestfPinf(FlatBufferBuilder builder, float testfPinf) { builder.addFloat(1, testfPinf, Float.POSITIVE_INFINITY); }
   public static void addTestfNinf(FlatBufferBuilder builder, float testfNinf) { builder.addFloat(2, testfNinf, Float.NEGATIVE_INFINITY); }
@@ -73,7 +73,7 @@ public final class MonsterExtra extends Table {
   public static int createTestdVecVector(FlatBufferBuilder builder, double[] data) { builder.startVector(8, data.length, 8); for (int i = data.length - 1; i >= 0; i--) builder.addDouble(data[i]); return builder.endVector(); }
   public static void startTestdVecVector(FlatBufferBuilder builder, int numElems) { builder.startVector(8, numElems, 8); }
   public static int endMonsterExtra(FlatBufferBuilder builder) {
-    int o = builder.endObject();
+    int o = builder.endTable();
     return o;
   }
   public static void finishMonsterExtraBuffer(FlatBufferBuilder builder, int offset) { builder.finish(offset, "MONE"); }

@@ -19,15 +19,15 @@ public final class TableInNestedNS extends Table {
 
   public static int createTableInNestedNS(FlatBufferBuilder builder,
       int foo) {
-    builder.startObject(1);
+    builder.startTable(1);
     TableInNestedNS.addFoo(builder, foo);
     return TableInNestedNS.endTableInNestedNS(builder);
   }
 
-  public static void startTableInNestedNS(FlatBufferBuilder builder) { builder.startObject(1); }
+  public static void startTableInNestedNS(FlatBufferBuilder builder) { builder.startTable(1); }
   public static void addFoo(FlatBufferBuilder builder, int foo) { builder.addInt(0, foo, 0); }
   public static int endTableInNestedNS(FlatBufferBuilder builder) {
-    int o = builder.endObject();
+    int o = builder.endTable();
     return o;
   }
 }

@@ -19,15 +19,15 @@ final class TestSimpleTableWithEnum extends Table {
 
   public static int createTestSimpleTableWithEnum(FlatBufferBuilder builder,
       int color) {
-    builder.startObject(1);
+    builder.startTable(1);
     TestSimpleTableWithEnum.addColor(builder, color);
     return TestSimpleTableWithEnum.endTestSimpleTableWithEnum(builder);
   }
 
-  public static void startTestSimpleTableWithEnum(FlatBufferBuilder builder) { builder.startObject(1); }
+  public static void startTestSimpleTableWithEnum(FlatBufferBuilder builder) { builder.startTable(1); }
   public static void addColor(FlatBufferBuilder builder, int color) { builder.addByte(0, (byte)color, (byte)2); }
   public static int endTestSimpleTableWithEnum(FlatBufferBuilder builder) {
-    int o = builder.endObject();
+    int o = builder.endTable();
     return o;
   }
 }

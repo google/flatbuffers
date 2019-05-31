@@ -15,9 +15,9 @@ public final class InParentNamespace extends Table {
   public InParentNamespace __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
 
-  public static void startInParentNamespace(FlatBufferBuilder builder) { builder.startObject(0); }
+  public static void startInParentNamespace(FlatBufferBuilder builder) { builder.startTable(0); }
   public static int endInParentNamespace(FlatBufferBuilder builder) {
-    int o = builder.endObject();
+    int o = builder.endTable();
     return o;
   }
 }

@@ -33,19 +33,19 @@ public struct Stat : IFlatbufferObject
       StringOffset idOffset = default(StringOffset),
       long val = 0,
       ushort count = 0) {
-    builder.StartObject(3);
+    builder.StartTable(3);
     Stat.AddVal(builder, val);
     Stat.AddId(builder, idOffset);
     Stat.AddCount(builder, count);
     return Stat.EndStat(builder);
   }
 
-  public static void StartStat(FlatBufferBuilder builder) { builder.StartObject(3); }
+  public static void StartStat(FlatBufferBuilder builder) { builder.StartTable(3); }
   public static void AddId(FlatBufferBuilder builder, StringOffset idOffset) { builder.AddOffset(0, idOffset.Value, 0); }
   public static void AddVal(FlatBufferBuilder builder, long val) { builder.AddLong(1, val, 0); }
   public static void AddCount(FlatBufferBuilder builder, ushort count) { builder.AddUshort(2, count, 0); }
   public static Offset<Stat> EndStat(FlatBufferBuilder builder) {
-    int o = builder.EndObject();
+    int o = builder.EndTable();
     return new Offset<Stat>(o);
   }
 };

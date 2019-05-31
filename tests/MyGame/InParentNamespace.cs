@@ -18,9 +18,9 @@ public struct InParentNamespace : IFlatbufferObject
   public InParentNamespace __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
 
-  public static void StartInParentNamespace(FlatBufferBuilder builder) { builder.StartObject(0); }
+  public static void StartInParentNamespace(FlatBufferBuilder builder) { builder.StartTable(0); }
   public static Offset<InParentNamespace> EndInParentNamespace(FlatBufferBuilder builder) {
-    int o = builder.EndObject();
+    int o = builder.EndTable();
     return new Offset<InParentNamespace>(o);
   }
 };
