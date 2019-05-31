@@ -59,17 +59,18 @@ type MonsterT struct {
 
 func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT {
 	if t == nil { return 0 }
-	posOffset := Vec3Pack(builder, t.Pos)
 	nameOffset := builder.CreateString(t.Name)
 	inventoryOffset := builder.CreateByteString(t.Inventory)
 	testOffset := flatbuffers.UOffsetT(0)
-	switch t.Test.Type {
-	case AnyMonster:
-		testOffset = MonsterPack(builder, t.Test.Value.(*MonsterT))
-	case AnyTestSimpleTableWithEnum:
-		testOffset = TestSimpleTableWithEnumPack(builder, t.Test.Value.(*TestSimpleTableWithEnumT))
-	case AnyMyGame_Example2_Monster:
-		testOffset = MyGame__Example2.MonsterPack(builder, t.Test.Value.(*MyGame__Example2.MonsterT))
+	if t.Test != nil {
+		switch t.Test.Type {
+		case AnyMonster:
+			testOffset = MonsterPack(builder, t.Test.Value.(*MonsterT))
+		case AnyTestSimpleTableWithEnum:
+			testOffset = TestSimpleTableWithEnumPack(builder, t.Test.Value.(*TestSimpleTableWithEnumT))
+		case AnyMyGame_Example2_Monster:
+			testOffset = MyGame__Example2.MonsterPack(builder, t.Test.Value.(*MyGame__Example2.MonsterT))
+		}
 	}
 	test4Length := len(t.Test4)
 	test4Offsets := []flatbuffers.UOffsetT{}
@@ -193,22 +194,26 @@ func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT
 	}
 	vectorOfNonOwningReferencesOffset := builder.EndVector(vectorOfNonOwningReferencesLength)
 	anyUniqueOffset := flatbuffers.UOffsetT(0)
-	switch t.AnyUnique.Type {
-	case AnyUniqueAliasesM:
-		anyUniqueOffset = MonsterPack(builder, t.AnyUnique.Value.(*MonsterT))
-	case AnyUniqueAliasesTS:
-		anyUniqueOffset = TestSimpleTableWithEnumPack(builder, t.AnyUnique.Value.(*TestSimpleTableWithEnumT))
-	case AnyUniqueAliasesM2:
-		anyUniqueOffset = MyGame__Example2.MonsterPack(builder, t.AnyUnique.Value.(*MyGame__Example2.MonsterT))
+	if t.AnyUnique != nil {
+		switch t.AnyUnique.Type {
+		case AnyUniqueAliasesM:
+			anyUniqueOffset = MonsterPack(builder, t.AnyUnique.Value.(*MonsterT))
+		case AnyUniqueAliasesTS:
+			anyUniqueOffset = TestSimpleTableWithEnumPack(builder, t.AnyUnique.Value.(*TestSimpleTableWithEnumT))
+		case AnyUniqueAliasesM2:
+			anyUniqueOffset = MyGame__Example2.MonsterPack(builder, t.AnyUnique.Value.(*MyGame__Example2.MonsterT))
+		}
 	}
 	anyAmbiguousOffset := flatbuffers.UOffsetT(0)
-	switch t.AnyAmbiguous.Type {
-	case AnyAmbiguousAliasesM1:
-		anyAmbiguousOffset = MonsterPack(builder, t.AnyAmbiguous.Value.(*MonsterT))
-	case AnyAmbiguousAliasesM2:
-		anyAmbiguousOffset = MonsterPack(builder, t.AnyAmbiguous.Value.(*MonsterT))
-	case AnyAmbiguousAliasesM3:
-		anyAmbiguousOffset = MonsterPack(builder, t.AnyAmbiguous.Value.(*MonsterT))
+	if t.AnyAmbiguous != nil {
+		switch t.AnyAmbiguous.Type {
+		case AnyAmbiguousAliasesM1:
+			anyAmbiguousOffset = MonsterPack(builder, t.AnyAmbiguous.Value.(*MonsterT))
+		case AnyAmbiguousAliasesM2:
+			anyAmbiguousOffset = MonsterPack(builder, t.AnyAmbiguous.Value.(*MonsterT))
+		case AnyAmbiguousAliasesM3:
+			anyAmbiguousOffset = MonsterPack(builder, t.AnyAmbiguous.Value.(*MonsterT))
+		}
 	}
 	vectorOfEnumsLength := len(t.VectorOfEnums)
 	MonsterStartVectorOfEnumsVector(builder, vectorOfEnumsLength)
@@ -217,20 +222,43 @@ func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT
 	}
 	vectorOfEnumsOffset := builder.EndVector(vectorOfEnumsLength)
 	MonsterStart(builder)
-	MonsterAddPos(builder, posOffset)
+	posOffset := Vec3Pack(builder, t.Pos)
+	if posOffset != 0 {
+		MonsterAddPos(builder, posOffset)
+	}
 	MonsterAddMana(builder, t.Mana)
 	MonsterAddHp(builder, t.Hp)
-	MonsterAddName(builder, nameOffset)
-	MonsterAddInventory(builder, inventoryOffset)
+	if nameOffset != 0 {
+		MonsterAddName(builder, nameOffset)
+	}
+	if inventoryOffset != 0 {
+		MonsterAddInventory(builder, inventoryOffset)
+	}
 	MonsterAddColor(builder, t.Color)
-	MonsterAddTestType(builder, t.Test.Type)
-	MonsterAddTest(builder, testOffset)
-	MonsterAddTest4(builder, test4Offset)
-	MonsterAddTestarrayofstring(builder, testarrayofstringOffset)
-	MonsterAddTestarrayoftables(builder, testarrayoftablesOffset)
-	MonsterAddEnemy(builder, enemyOffset)
-	MonsterAddTestnestedflatbuffer(builder, testnestedflatbufferOffset)
-	MonsterAddTestempty(builder, testemptyOffset)
+	if t.Test != nil {
+		MonsterAddTestType(builder, t.Test.Type)
+	}
+	if testOffset != 0 {
+		MonsterAddTest(builder, testOffset)
+	}
+	if test4Offset != 0 {
+		MonsterAddTest4(builder, test4Offset)
+	}
+	if testarrayofstringOffset != 0 {
+		MonsterAddTestarrayofstring(builder, testarrayofstringOffset)
+	}
+	if testarrayoftablesOffset != 0 {
+		MonsterAddTestarrayoftables(builder, testarrayoftablesOffset)
+	}
+	if enemyOffset != 0 {
+		MonsterAddEnemy(builder, enemyOffset)
+	}
+	if testnestedflatbufferOffset != 0 {
+		MonsterAddTestnestedflatbuffer(builder, testnestedflatbufferOffset)
+	}
+	if testemptyOffset != 0 {
+		MonsterAddTestempty(builder, testemptyOffset)
+	}
 	MonsterAddTestbool(builder, t.Testbool)
 	MonsterAddTesthashs32Fnv1(builder, t.Testhashs32Fnv1)
 	MonsterAddTesthashu32Fnv1(builder, t.Testhashu32Fnv1)
@@ -240,30 +268,66 @@ func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT
 	MonsterAddTesthashu32Fnv1a(builder, t.Testhashu32Fnv1a)
 	MonsterAddTesthashs64Fnv1a(builder, t.Testhashs64Fnv1a)
 	MonsterAddTesthashu64Fnv1a(builder, t.Testhashu64Fnv1a)
-	MonsterAddTestarrayofbools(builder, testarrayofboolsOffset)
+	if testarrayofboolsOffset != 0 {
+		MonsterAddTestarrayofbools(builder, testarrayofboolsOffset)
+	}
 	MonsterAddTestf(builder, t.Testf)
 	MonsterAddTestf2(builder, t.Testf2)
 	MonsterAddTestf3(builder, t.Testf3)
-	MonsterAddTestarrayofstring2(builder, testarrayofstring2Offset)
-	MonsterAddTestarrayofsortedstruct(builder, testarrayofsortedstructOffset)
-	MonsterAddFlex(builder, flexOffset)
-	MonsterAddTest5(builder, test5Offset)
-	MonsterAddVectorOfLongs(builder, vectorOfLongsOffset)
-	MonsterAddVectorOfDoubles(builder, vectorOfDoublesOffset)
-	MonsterAddParentNamespaceTest(builder, parentNamespaceTestOffset)
-	MonsterAddVectorOfReferrables(builder, vectorOfReferrablesOffset)
+	if testarrayofstring2Offset != 0 {
+		MonsterAddTestarrayofstring2(builder, testarrayofstring2Offset)
+	}
+	if testarrayofsortedstructOffset != 0 {
+		MonsterAddTestarrayofsortedstruct(builder, testarrayofsortedstructOffset)
+	}
+	if flexOffset != 0 {
+		MonsterAddFlex(builder, flexOffset)
+	}
+	if test5Offset != 0 {
+		MonsterAddTest5(builder, test5Offset)
+	}
+	if vectorOfLongsOffset != 0 {
+		MonsterAddVectorOfLongs(builder, vectorOfLongsOffset)
+	}
+	if vectorOfDoublesOffset != 0 {
+		MonsterAddVectorOfDoubles(builder, vectorOfDoublesOffset)
+	}
+	if parentNamespaceTestOffset != 0 {
+		MonsterAddParentNamespaceTest(builder, parentNamespaceTestOffset)
+	}
+	if vectorOfReferrablesOffset != 0 {
+		MonsterAddVectorOfReferrables(builder, vectorOfReferrablesOffset)
+	}
 	MonsterAddSingleWeakReference(builder, t.SingleWeakReference)
-	MonsterAddVectorOfWeakReferences(builder, vectorOfWeakReferencesOffset)
-	MonsterAddVectorOfStrongReferrables(builder, vectorOfStrongReferrablesOffset)
+	if vectorOfWeakReferencesOffset != 0 {
+		MonsterAddVectorOfWeakReferences(builder, vectorOfWeakReferencesOffset)
+	}
+	if vectorOfStrongReferrablesOffset != 0 {
+		MonsterAddVectorOfStrongReferrables(builder, vectorOfStrongReferrablesOffset)
+	}
 	MonsterAddCoOwningReference(builder, t.CoOwningReference)
-	MonsterAddVectorOfCoOwningReferences(builder, vectorOfCoOwningReferencesOffset)
+	if vectorOfCoOwningReferencesOffset != 0 {
+		MonsterAddVectorOfCoOwningReferences(builder, vectorOfCoOwningReferencesOffset)
+	}
 	MonsterAddNonOwningReference(builder, t.NonOwningReference)
-	MonsterAddVectorOfNonOwningReferences(builder, vectorOfNonOwningReferencesOffset)
-	MonsterAddAnyUniqueType(builder, t.AnyUnique.Type)
-	MonsterAddAnyUnique(builder, anyUniqueOffset)
-	MonsterAddAnyAmbiguousType(builder, t.AnyAmbiguous.Type)
-	MonsterAddAnyAmbiguous(builder, anyAmbiguousOffset)
-	MonsterAddVectorOfEnums(builder, vectorOfEnumsOffset)
+	if vectorOfNonOwningReferencesOffset != 0 {
+		MonsterAddVectorOfNonOwningReferences(builder, vectorOfNonOwningReferencesOffset)
+	}
+	if t.AnyUnique != nil {
+		MonsterAddAnyUniqueType(builder, t.AnyUnique.Type)
+	}
+	if anyUniqueOffset != 0 {
+		MonsterAddAnyUnique(builder, anyUniqueOffset)
+	}
+	if t.AnyAmbiguous != nil {
+		MonsterAddAnyAmbiguousType(builder, t.AnyAmbiguous.Type)
+	}
+	if anyAmbiguousOffset != 0 {
+		MonsterAddAnyAmbiguous(builder, anyAmbiguousOffset)
+	}
+	if vectorOfEnumsOffset != 0 {
+		MonsterAddVectorOfEnums(builder, vectorOfEnumsOffset)
+	}
 	return MonsterEnd(builder)
 }
 

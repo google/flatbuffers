@@ -8,6 +8,7 @@ type AnyT struct {
 	Type Any
 	Value interface{}
 }
+
 type Any byte
 
 const (

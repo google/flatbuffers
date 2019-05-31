@@ -8,6 +8,7 @@ type AnyAmbiguousAliasesT struct {
 	Type AnyAmbiguousAliases
 	Value interface{}
 }
+
 type AnyAmbiguousAliases byte
 
 const (

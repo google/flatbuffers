@@ -46,8 +46,12 @@ func TypeAliasesPack(builder *flatbuffers.Builder, t *TypeAliasesT) flatbuffers.
 	TypeAliasesAddU64(builder, t.U64)
 	TypeAliasesAddF32(builder, t.F32)
 	TypeAliasesAddF64(builder, t.F64)
-	TypeAliasesAddV8(builder, v8Offset)
-	TypeAliasesAddVf64(builder, vf64Offset)
+	if v8Offset != 0 {
+		TypeAliasesAddV8(builder, v8Offset)
+	}
+	if vf64Offset != 0 {
+		TypeAliasesAddVf64(builder, vf64Offset)
+	}
 	return TypeAliasesEnd(builder)
 }
 

@@ -16,7 +16,9 @@ func StatPack(builder *flatbuffers.Builder, t *StatT) flatbuffers.UOffsetT {
 	if t == nil { return 0 }
 	idOffset := builder.CreateString(t.Id)
 	StatStart(builder)
-	StatAddId(builder, idOffset)
+	if idOffset != 0 {
+		StatAddId(builder, idOffset)
+	}
 	StatAddVal(builder, t.Val)
 	StatAddCount(builder, t.Count)
 	return StatEnd(builder)
