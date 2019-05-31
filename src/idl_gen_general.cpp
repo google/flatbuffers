@@ -848,6 +848,11 @@ class GeneralGenerator : public BaseGenerator {
       // create method that allows object reuse
       code +=
           method_signature + "(ByteBuffer _bb, " + struct_def.name + " obj) { ";
+      // Force compile time error if not using the same version runtime.
+      if (lang_.language == IDLOptions::kCSharp)
+        code += "FlatBufferConstants.FLATBUFFERS_1_11_1(); ";
+      else
+        code += "Constants.FLATBUFFERS_1_11_1(); ";
       code += lang_.set_bb_byteorder;
       code += "return (obj.__assign(_bb." + FunctionStart('G') + "etInt(_bb.";
       code += lang_.get_bb_position;
