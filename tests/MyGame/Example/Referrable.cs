@@ -13,7 +13,7 @@ public struct Referrable : IFlatbufferObject
   private Table __p;
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
   public static Referrable GetRootAsReferrable(ByteBuffer _bb) { return GetRootAsReferrable(_bb, new Referrable()); }
-  public static Referrable GetRootAsReferrable(ByteBuffer _bb, Referrable obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
+  public static Referrable GetRootAsReferrable(ByteBuffer _bb, Referrable obj) { FlatBufferConstants.FLATBUFFERS_1_11_1(); return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public void __init(int _i, ByteBuffer _bb) { __p.bb_pos = _i; __p.bb = _bb; }
   public Referrable __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
