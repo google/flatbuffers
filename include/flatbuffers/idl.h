@@ -499,6 +499,7 @@ struct IDLOptions {
   bool size_prefixed;
   std::string root_type;
   bool force_defaults;
+  std::vector<std::string> cpp_includes;
 
   // Possible options for the more general generator below.
   enum Language {
