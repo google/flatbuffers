@@ -17,7 +17,7 @@ type MonsterT struct {
 	Name string
 	Inventory []byte
 	Color Color
-	Test AnyT
+	Test *AnyT
 	Test4 []*TestT
 	Testarrayofstring []string
 	Testarrayoftables []*MonsterT
@@ -52,8 +52,8 @@ type MonsterT struct {
 	VectorOfCoOwningReferences []uint64
 	NonOwningReference uint64
 	VectorOfNonOwningReferences []uint64
-	AnyUnique AnyUniqueAliasesT
-	AnyAmbiguous AnyAmbiguousAliasesT
+	AnyUnique *AnyUniqueAliasesT
+	AnyAmbiguous *AnyAmbiguousAliasesT
 	VectorOfEnums []Color
 }
 
@@ -62,18 +62,14 @@ func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT
 	posOffset := Vec3Pack(builder, t.Pos)
 	nameOffset := builder.CreateString(t.Name)
 	inventoryOffset := builder.CreateByteString(t.Inventory)
-	testType := AnyNONE
 	testOffset := flatbuffers.UOffsetT(0)
-	switch t.Test.(type) {
-	case *MonsterT:
-		testType = AnyMonster
-		testOffset = MonsterPack(builder, t.Test.(*MonsterT))
-	case *TestSimpleTableWithEnumT:
-		testType = AnyTestSimpleTableWithEnum
-		testOffset = TestSimpleTableWithEnumPack(builder, t.Test.(*TestSimpleTableWithEnumT))
-	case *MyGame__Example2.MonsterT:
-		testType = AnyMyGame_Example2_Monster
-		testOffset = MyGame__Example2.MonsterPack(builder, t.Test.(*MyGame__Example2.MonsterT))
+	switch t.Test.Type {
+	case AnyMonster:
+		testOffset = MonsterPack(builder, t.Test.Value.(*MonsterT))
+	case AnyTestSimpleTableWithEnum:
+		testOffset = TestSimpleTableWithEnumPack(builder, t.Test.Value.(*TestSimpleTableWithEnumT))
+	case AnyMyGame_Example2_Monster:
+		testOffset = MyGame__Example2.MonsterPack(builder, t.Test.Value.(*MyGame__Example2.MonsterT))
 	}
 	test4Length := len(t.Test4)
 	test4Offsets := []flatbuffers.UOffsetT{}
@@ -196,31 +192,23 @@ func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT
 		builder.PrependUint64(t.VectorOfNonOwningReferences[j])
 	}
 	vectorOfNonOwningReferencesOffset := builder.EndVector(vectorOfNonOwningReferencesLength)
-	anyUniqueType := AnyUniqueAliasesNONE
 	anyUniqueOffset := flatbuffers.UOffsetT(0)
-	switch t.AnyUnique.(type) {
-	case *MonsterT:
-		anyUniqueType = AnyUniqueAliasesM
-		anyUniqueOffset = MonsterPack(builder, t.AnyUnique.(*MonsterT))
-	case *TestSimpleTableWithEnumT:
-		anyUniqueType = AnyUniqueAliasesTS
-		anyUniqueOffset = TestSimpleTableWithEnumPack(builder, t.AnyUnique.(*TestSimpleTableWithEnumT))
-	case *MyGame__Example2.MonsterT:
-		anyUniqueType = AnyUniqueAliasesM2
-		anyUniqueOffset = MyGame__Example2.MonsterPack(builder, t.AnyUnique.(*MyGame__Example2.MonsterT))
+	switch t.AnyUnique.Type {
+	case AnyUniqueAliasesM:
+		anyUniqueOffset = MonsterPack(builder, t.AnyUnique.Value.(*MonsterT))
+	case AnyUniqueAliasesTS:
+		anyUniqueOffset = TestSimpleTableWithEnumPack(builder, t.AnyUnique.Value.(*TestSimpleTableWithEnumT))
+	case AnyUniqueAliasesM2:
+		anyUniqueOffset = MyGame__Example2.MonsterPack(builder, t.AnyUnique.Value.(*MyGame__Example2.MonsterT))
 	}
-	anyAmbiguousType := AnyAmbiguousAliasesNONE
 	anyAmbiguousOffset := flatbuffers.UOffsetT(0)
-	switch t.AnyAmbiguous.(type) {
-	case *MonsterT:
-		anyAmbiguousType = AnyAmbiguousAliasesM1
-		anyAmbiguousOffset = MonsterPack(builder, t.AnyAmbiguous.(*MonsterT))
-	case *MonsterT:
-		anyAmbiguousType = AnyAmbiguousAliasesM2
-		anyAmbiguousOffset = MonsterPack(builder, t.AnyAmbiguous.(*MonsterT))
-	case *MonsterT:
-		anyAmbiguousType = AnyAmbiguousAliasesM3
-		anyAmbiguousOffset = MonsterPack(builder, t.AnyAmbiguous.(*MonsterT))
+	switch t.AnyAmbiguous.Type {
+	case AnyAmbiguousAliasesM1:
+		anyAmbiguousOffset = MonsterPack(builder, t.AnyAmbiguous.Value.(*MonsterT))
+	case AnyAmbiguousAliasesM2:
+		anyAmbiguousOffset = MonsterPack(builder, t.AnyAmbiguous.Value.(*MonsterT))
+	case AnyAmbiguousAliasesM3:
+		anyAmbiguousOffset = MonsterPack(builder, t.AnyAmbiguous.Value.(*MonsterT))
 	}
 	vectorOfEnumsLength := len(t.VectorOfEnums)
 	MonsterStartVectorOfEnumsVector(builder, vectorOfEnumsLength)
@@ -235,7 +223,7 @@ func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT
 	MonsterAddName(builder, nameOffset)
 	MonsterAddInventory(builder, inventoryOffset)
 	MonsterAddColor(builder, t.Color)
-	MonsterAddTestType(builder, testType)
+	MonsterAddTestType(builder, t.Test.Type)
 	MonsterAddTest(builder, testOffset)
 	MonsterAddTest4(builder, test4Offset)
 	MonsterAddTestarrayofstring(builder, testarrayofstringOffset)
@@ -271,9 +259,9 @@ func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT
 	MonsterAddVectorOfCoOwningReferences(builder, vectorOfCoOwningReferencesOffset)
 	MonsterAddNonOwningReference(builder, t.NonOwningReference)
 	MonsterAddVectorOfNonOwningReferences(builder, vectorOfNonOwningReferencesOffset)
-	MonsterAddAnyUniqueType(builder, anyUniqueType)
+	MonsterAddAnyUniqueType(builder, t.AnyUnique.Type)
 	MonsterAddAnyUnique(builder, anyUniqueOffset)
-	MonsterAddAnyAmbiguousType(builder, anyAmbiguousType)
+	MonsterAddAnyAmbiguousType(builder, t.AnyAmbiguous.Type)
 	MonsterAddAnyAmbiguous(builder, anyAmbiguousOffset)
 	MonsterAddVectorOfEnums(builder, vectorOfEnumsOffset)
 	return MonsterEnd(builder)
@@ -291,13 +279,19 @@ func (rcv *Monster) UnPack() *MonsterT {
 	switch rcv.TestType() {
 	case AnyMonster:
 		x := Monster{}
-		if rcv.Test(&x._tab) { t.Test = x.UnPack() }
+		if rcv.Test(&x._tab) {
+			t.Test = &AnyT{ Type: AnyMonster, Value: x.UnPack() }
+		}
 	case AnyTestSimpleTableWithEnum:
 		x := TestSimpleTableWithEnum{}
-		if rcv.Test(&x._tab) { t.Test = x.UnPack() }
+		if rcv.Test(&x._tab) {
+			t.Test = &AnyT{ Type: AnyTestSimpleTableWithEnum, Value: x.UnPack() }
+		}
 	case AnyMyGame_Example2_Monster:
 		x := Monster{}
-		if rcv.Test(&x._tab) { t.Test = x.UnPack() }
+		if rcv.Test(&x._tab) {
+			t.Test = &AnyT{ Type: AnyMyGame_Example2_Monster, Value: x.UnPack() }
+		}
 	}
 	for j := 0; j < rcv.Test4Length(); j++ {
 		x := Test{}
@@ -376,24 +370,36 @@ func (rcv *Monster) UnPack() *MonsterT {
 	switch rcv.AnyUniqueType() {
 	case AnyUniqueAliasesM:
 		x := Monster{}
-		if rcv.AnyUnique(&x._tab) { t.AnyUnique = x.UnPack() }
+		if rcv.AnyUnique(&x._tab) {
+			t.AnyUnique = &AnyUniqueAliasesT{ Type: AnyUniqueAliasesM, Value: x.UnPack() }
+		}
 	case AnyUniqueAliasesTS:
 		x := TestSimpleTableWithEnum{}
-		if rcv.AnyUnique(&x._tab) { t.AnyUnique = x.UnPack() }
+		if rcv.AnyUnique(&x._tab) {
+			t.AnyUnique = &AnyUniqueAliasesT{ Type: AnyUniqueAliasesTS, Value: x.UnPack() }
+		}
 	case AnyUniqueAliasesM2:
 		x := Monster{}
-		if rcv.AnyUnique(&x._tab) { t.AnyUnique = x.UnPack() }
+		if rcv.AnyUnique(&x._tab) {
+			t.AnyUnique = &AnyUniqueAliasesT{ Type: AnyUniqueAliasesM2, Value: x.UnPack() }
+		}
 	}
 	switch rcv.AnyAmbiguousType() {
 	case AnyAmbiguousAliasesM1:
 		x := Monster{}
-		if rcv.AnyAmbiguous(&x._tab) { t.AnyAmbiguous = x.UnPack() }
+		if rcv.AnyAmbiguous(&x._tab) {
+			t.AnyAmbiguous = &AnyAmbiguousAliasesT{ Type: AnyAmbiguousAliasesM1, Value: x.UnPack() }
+		}
 	case AnyAmbiguousAliasesM2:
 		x := Monster{}
-		if rcv.AnyAmbiguous(&x._tab) { t.AnyAmbiguous = x.UnPack() }
+		if rcv.AnyAmbiguous(&x._tab) {
+			t.AnyAmbiguous = &AnyAmbiguousAliasesT{ Type: AnyAmbiguousAliasesM2, Value: x.UnPack() }
+		}
 	case AnyAmbiguousAliasesM3:
 		x := Monster{}
-		if rcv.AnyAmbiguous(&x._tab) { t.AnyAmbiguous = x.UnPack() }
+		if rcv.AnyAmbiguous(&x._tab) {
+			t.AnyAmbiguous = &AnyAmbiguousAliasesT{ Type: AnyAmbiguousAliasesM3, Value: x.UnPack() }
+		}
 	}
 	for j := 0; j < rcv.VectorOfEnumsLength(); j++ {
 		t.VectorOfEnums = append(t.VectorOfEnums, rcv.VectorOfEnums(j))

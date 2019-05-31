@@ -4,7 +4,10 @@ package Example
 
 import "strconv"
 
-type AnyAmbiguousAliasesT interface{}
+type AnyAmbiguousAliasesT struct {
+	Type AnyAmbiguousAliases
+	Value interface{}
+}
 type AnyAmbiguousAliases byte
 
 const (

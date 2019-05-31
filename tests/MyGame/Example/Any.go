@@ -4,7 +4,10 @@ package Example
 
 import "strconv"
 
-type AnyT interface{}
+type AnyT struct {
+	Type Any
+	Value interface{}
+}
 type Any byte
 
 const (
