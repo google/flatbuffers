@@ -203,7 +203,7 @@ func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT
 		anyUniqueType = AnyUniqueAliasesM
 		anyUniqueOffset = MonsterPack(builder, t.AnyUnique.(*MonsterT))
 	case *TestSimpleTableWithEnumT:
-		anyUniqueType = AnyUniqueAliasesT
+		anyUniqueType = AnyUniqueAliasesTS
 		anyUniqueOffset = TestSimpleTableWithEnumPack(builder, t.AnyUnique.(*TestSimpleTableWithEnumT))
 	case *MyGame__Example2.MonsterT:
 		anyUniqueType = AnyUniqueAliasesM2
@@ -222,7 +222,12 @@ func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT
 		anyAmbiguousType = AnyAmbiguousAliasesM3
 		anyAmbiguousOffset = MonsterPack(builder, t.AnyAmbiguous.(*MonsterT))
 	}
-	vectorOfEnumsOffset := builder.CreateByteString(t.VectorOfEnums)
+	vectorOfEnumsLength := len(t.VectorOfEnums)
+	MonsterStartVectorOfEnumsVector(builder, vectorOfEnumsLength)
+	for j := vectorOfEnumsLength - 1; j >= 0; j-- {
+		builder.PrependByte(byte(t.VectorOfEnums[j]))
+	}
+	vectorOfEnumsOffset := builder.EndVector(vectorOfEnumsLength)
 	MonsterStart(builder)
 	MonsterAddPos(builder, posOffset)
 	MonsterAddMana(builder, t.Mana)
@@ -372,7 +377,7 @@ func (rcv *Monster) UnPack() *MonsterT {
 	case AnyUniqueAliasesM:
 		x := Monster{}
 		if rcv.AnyUnique(&x._tab) { t.AnyUnique = x.UnPack() }
-	case AnyUniqueAliasesT:
+	case AnyUniqueAliasesTS:
 		x := TestSimpleTableWithEnum{}
 		if rcv.AnyUnique(&x._tab) { t.AnyUnique = x.UnPack() }
 	case AnyUniqueAliasesM2:
@@ -390,7 +395,9 @@ func (rcv *Monster) UnPack() *MonsterT {
 		x := Monster{}
 		if rcv.AnyAmbiguous(&x._tab) { t.AnyAmbiguous = x.UnPack() }
 	}
-	t.VectorOfEnums = rcv.VectorOfEnumsBytes()
+	for j := 0; j < rcv.VectorOfEnumsLength(); j++ {
+		t.VectorOfEnums = append(t.VectorOfEnums, rcv.VectorOfEnums(j))
+	}
 	return t
 }
 

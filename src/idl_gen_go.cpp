@@ -827,7 +827,8 @@ class GoGenerator : public BaseGenerator {
         code += "\t" + offset + " := builder.CreateString(t." +
                 MakeCamel(field.name) + ")\n";
       } else if (field.value.type.base_type == BASE_TYPE_VECTOR &&
-                 field.value.type.element == BASE_TYPE_UCHAR) {
+                 field.value.type.element == BASE_TYPE_UCHAR &&
+                 field.value.type.enum_def == nullptr) {
         code += "\t" + offset + " := builder.CreateByteString(t." +
                 MakeCamel(field.name) + ")\n";
       } else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
@@ -855,8 +856,10 @@ class GoGenerator : public BaseGenerator {
         code += "\tfor j := " + length + " - 1; j >= 0; j-- {\n";
         if (IsScalar(field.value.type.element)) {
           code += "\t\tbuilder.Prepend" +
-                  MakeCamel(GenTypeBasic(field.value.type.VectorType())) +
-                  "(t." + MakeCamel(field.name) + "[j])\n";
+                  MakeCamel(GenTypeBasic(field.value.type.VectorType())) + "(" +
+                  CastToBaseType(
+                      field.value.type.VectorType(),
+                      "t." + MakeCamel(field.name) + "[j]") + ")\n";
         } else {
           code += "\t\tbuilder.PrependUOffsetT(" + offsets + "[j])\n";
         }
@@ -935,7 +938,8 @@ class GoGenerator : public BaseGenerator {
         code += "\tt." + field_name_camel + " = string(rcv." +
                 field_name_camel + "())\n";
       } else if (field.value.type.base_type == BASE_TYPE_VECTOR &&
-                 field.value.type.element == BASE_TYPE_UCHAR) {
+                 field.value.type.element == BASE_TYPE_UCHAR &&
+                 field.value.type.enum_def == nullptr) {
         code += "\tt." + field_name_camel + " = rcv." + field_name_camel +
                 "Bytes()\n";
       } else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
