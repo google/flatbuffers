@@ -832,47 +832,53 @@ class GoGenerator : public BaseGenerator {
       } else if (field.value.type.base_type == BASE_TYPE_VECTOR &&
                  field.value.type.element == BASE_TYPE_UCHAR &&
                  field.value.type.enum_def == nullptr) {
-        code += "\t" + offset + " := builder.CreateByteString(t." +
+        code += "\t" + offset + " := flatbuffers.UOffsetT(0)\n";
+        code += "\tif t." + MakeCamel(field.name) + " != nil {\n";
+        code += "\t\t" + offset + " = builder.CreateByteString(t." +
                 MakeCamel(field.name) + ")\n";
+        code += "\t}\n";
       } else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+        code += "\t" + offset + " := flatbuffers.UOffsetT(0)\n";
+        code += "\tif t." + MakeCamel(field.name) + " != nil {\n";
         std::string length = MakeCamel(field.name, false) + "Length";
         std::string offsets = MakeCamel(field.name, false) + "Offsets";
-        code += "\t" + length + " := len(t." + MakeCamel(field.name) + ")\n";
+        code += "\t\t" + length + " := len(t." + MakeCamel(field.name) + ")\n";
         if (field.value.type.element == BASE_TYPE_STRING) {
-          code += "\t" + offsets + " := []flatbuffers.UOffsetT{}\n";
-          code += "\tfor j := 0; j < " + length + "; j++ {\n";
-          code += "\t\t" + offsets + " = append(" + offsets +
+          code += "\t\t" + offsets + " := []flatbuffers.UOffsetT{}\n";
+          code += "\t\tfor j := 0; j < " + length + "; j++ {\n";
+          code += "\t\t\t" + offsets + " = append(" + offsets +
                   ", builder.CreateString(t." + MakeCamel(field.name) +
                   "[j]))\n";
-          code += "\t}\n";
+          code += "\t\t}\n";
         } else if (field.value.type.element == BASE_TYPE_STRUCT &&
                    !field.value.type.struct_def->fixed) {
-          code += "\t" + offsets + " := []flatbuffers.UOffsetT{}\n";
-          code += "\tfor j := 0; j < " + length + "; j++ {\n";
-          code += "\t\t" + offsets + " = append(" + offsets + ", " +
+          code += "\t\t" + offsets + " := []flatbuffers.UOffsetT{}\n";
+          code += "\t\tfor j := 0; j < " + length + "; j++ {\n";
+          code += "\t\t\t" + offsets + " = append(" + offsets + ", " +
                   WrapInNameSpaceAndTrack(*field.value.type.struct_def) +
                   "Pack(builder, t." + MakeCamel(field.name) + "[j]))\n";
-          code += "\t}\n";
+          code += "\t\t}\n";
         }
-        code += "\t" + struct_def.name + "Start" + MakeCamel(field.name) +
+        code += "\t\t" + struct_def.name + "Start" + MakeCamel(field.name) +
                 "Vector(builder, " + length + ")\n";
-        code += "\tfor j := " + length + " - 1; j >= 0; j-- {\n";
+        code += "\t\tfor j := " + length + " - 1; j >= 0; j-- {\n";
         if (IsScalar(field.value.type.element)) {
-          code += "\t\tbuilder.Prepend" +
+          code += "\t\t\tbuilder.Prepend" +
                   MakeCamel(GenTypeBasic(field.value.type.VectorType())) + "(" +
                   CastToBaseType(
                       field.value.type.VectorType(),
                       "t." + MakeCamel(field.name) + "[j]") + ")\n";
         } else if (field.value.type.element == BASE_TYPE_STRUCT &&
                    field.value.type.struct_def->fixed) {
-          code += "\t\t" +
+          code += "\t\t\t" +
                   WrapInNameSpaceAndTrack(*field.value.type.struct_def) +
                   "Pack(builder, t." + MakeCamel(field.name) + "[j])\n";
         } else {
-          code += "\t\tbuilder.PrependUOffsetT(" + offsets + "[j])\n";
+          code += "\t\t\tbuilder.PrependUOffsetT(" + offsets + "[j])\n";
         }
+        code += "\t\t}\n";
+        code += "\t\t" + offset + " = builder.EndVector(" + length + ")\n";
         code += "\t}\n";
-        code += "\t" + offset + " := builder.EndVector(" + length + ")\n";
       } else if (field.value.type.base_type == BASE_TYPE_STRUCT) {
         if (field.value.type.struct_def->fixed) continue;
         code += "\t" + offset + " := " +

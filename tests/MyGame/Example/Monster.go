@@ -60,7 +60,10 @@ type MonsterT struct {
 func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT {
 	if t == nil { return 0 }
 	nameOffset := builder.CreateString(t.Name)
-	inventoryOffset := builder.CreateByteString(t.Inventory)
+	inventoryOffset := flatbuffers.UOffsetT(0)
+	if t.Inventory != nil {
+		inventoryOffset = builder.CreateByteString(t.Inventory)
+	}
 	testOffset := flatbuffers.UOffsetT(0)
 	if t.Test != nil {
 		switch t.Test.Type {
@@ -72,115 +75,163 @@ func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT
 			testOffset = MyGame__Example2.MonsterPack(builder, t.Test.Value.(*MyGame__Example2.MonsterT))
 		}
 	}
-	test4Length := len(t.Test4)
-	MonsterStartTest4Vector(builder, test4Length)
-	for j := test4Length - 1; j >= 0; j-- {
-		TestPack(builder, t.Test4[j])
+	test4Offset := flatbuffers.UOffsetT(0)
+	if t.Test4 != nil {
+		test4Length := len(t.Test4)
+		MonsterStartTest4Vector(builder, test4Length)
+		for j := test4Length - 1; j >= 0; j-- {
+			TestPack(builder, t.Test4[j])
+		}
+		test4Offset = builder.EndVector(test4Length)
 	}
-	test4Offset := builder.EndVector(test4Length)
-	testarrayofstringLength := len(t.Testarrayofstring)
-	testarrayofstringOffsets := []flatbuffers.UOffsetT{}
-	for j := 0; j < testarrayofstringLength; j++ {
-		testarrayofstringOffsets = append(testarrayofstringOffsets, builder.CreateString(t.Testarrayofstring[j]))
+	testarrayofstringOffset := flatbuffers.UOffsetT(0)
+	if t.Testarrayofstring != nil {
+		testarrayofstringLength := len(t.Testarrayofstring)
+		testarrayofstringOffsets := []flatbuffers.UOffsetT{}
+		for j := 0; j < testarrayofstringLength; j++ {
+			testarrayofstringOffsets = append(testarrayofstringOffsets, builder.CreateString(t.Testarrayofstring[j]))
+		}
+		MonsterStartTestarrayofstringVector(builder, testarrayofstringLength)
+		for j := testarrayofstringLength - 1; j >= 0; j-- {
+			builder.PrependUOffsetT(testarrayofstringOffsets[j])
+		}
+		testarrayofstringOffset = builder.EndVector(testarrayofstringLength)
 	}
-	MonsterStartTestarrayofstringVector(builder, testarrayofstringLength)
-	for j := testarrayofstringLength - 1; j >= 0; j-- {
-		builder.PrependUOffsetT(testarrayofstringOffsets[j])
+	testarrayoftablesOffset := flatbuffers.UOffsetT(0)
+	if t.Testarrayoftables != nil {
+		testarrayoftablesLength := len(t.Testarrayoftables)
+		testarrayoftablesOffsets := []flatbuffers.UOffsetT{}
+		for j := 0; j < testarrayoftablesLength; j++ {
+			testarrayoftablesOffsets = append(testarrayoftablesOffsets, MonsterPack(builder, t.Testarrayoftables[j]))
+		}
+		MonsterStartTestarrayoftablesVector(builder, testarrayoftablesLength)
+		for j := testarrayoftablesLength - 1; j >= 0; j-- {
+			builder.PrependUOffsetT(testarrayoftablesOffsets[j])
+		}
+		testarrayoftablesOffset = builder.EndVector(testarrayoftablesLength)
 	}
-	testarrayofstringOffset := builder.EndVector(testarrayofstringLength)
-	testarrayoftablesLength := len(t.Testarrayoftables)
-	testarrayoftablesOffsets := []flatbuffers.UOffsetT{}
-	for j := 0; j < testarrayoftablesLength; j++ {
-		testarrayoftablesOffsets = append(testarrayoftablesOffsets, MonsterPack(builder, t.Testarrayoftables[j]))
-	}
-	MonsterStartTestarrayoftablesVector(builder, testarrayoftablesLength)
-	for j := testarrayoftablesLength - 1; j >= 0; j-- {
-		builder.PrependUOffsetT(testarrayoftablesOffsets[j])
-	}
-	testarrayoftablesOffset := builder.EndVector(testarrayoftablesLength)
 	enemyOffset := MonsterPack(builder, t.Enemy)
-	testnestedflatbufferOffset := builder.CreateByteString(t.Testnestedflatbuffer)
+	testnestedflatbufferOffset := flatbuffers.UOffsetT(0)
+	if t.Testnestedflatbuffer != nil {
+		testnestedflatbufferOffset = builder.CreateByteString(t.Testnestedflatbuffer)
+	}
 	testemptyOffset := StatPack(builder, t.Testempty)
-	testarrayofboolsLength := len(t.Testarrayofbools)
-	MonsterStartTestarrayofboolsVector(builder, testarrayofboolsLength)
-	for j := testarrayofboolsLength - 1; j >= 0; j-- {
-		builder.PrependBool(t.Testarrayofbools[j])
+	testarrayofboolsOffset := flatbuffers.UOffsetT(0)
+	if t.Testarrayofbools != nil {
+		testarrayofboolsLength := len(t.Testarrayofbools)
+		MonsterStartTestarrayofboolsVector(builder, testarrayofboolsLength)
+		for j := testarrayofboolsLength - 1; j >= 0; j-- {
+			builder.PrependBool(t.Testarrayofbools[j])
+		}
+		testarrayofboolsOffset = builder.EndVector(testarrayofboolsLength)
 	}
-	testarrayofboolsOffset := builder.EndVector(testarrayofboolsLength)
-	testarrayofstring2Length := len(t.Testarrayofstring2)
-	testarrayofstring2Offsets := []flatbuffers.UOffsetT{}
-	for j := 0; j < testarrayofstring2Length; j++ {
-		testarrayofstring2Offsets = append(testarrayofstring2Offsets, builder.CreateString(t.Testarrayofstring2[j]))
+	testarrayofstring2Offset := flatbuffers.UOffsetT(0)
+	if t.Testarrayofstring2 != nil {
+		testarrayofstring2Length := len(t.Testarrayofstring2)
+		testarrayofstring2Offsets := []flatbuffers.UOffsetT{}
+		for j := 0; j < testarrayofstring2Length; j++ {
+			testarrayofstring2Offsets = append(testarrayofstring2Offsets, builder.CreateString(t.Testarrayofstring2[j]))
+		}
+		MonsterStartTestarrayofstring2Vector(builder, testarrayofstring2Length)
+		for j := testarrayofstring2Length - 1; j >= 0; j-- {
+			builder.PrependUOffsetT(testarrayofstring2Offsets[j])
+		}
+		testarrayofstring2Offset = builder.EndVector(testarrayofstring2Length)
 	}
-	MonsterStartTestarrayofstring2Vector(builder, testarrayofstring2Length)
-	for j := testarrayofstring2Length - 1; j >= 0; j-- {
-		builder.PrependUOffsetT(testarrayofstring2Offsets[j])
+	testarrayofsortedstructOffset := flatbuffers.UOffsetT(0)
+	if t.Testarrayofsortedstruct != nil {
+		testarrayofsortedstructLength := len(t.Testarrayofsortedstruct)
+		MonsterStartTestarrayofsortedstructVector(builder, testarrayofsortedstructLength)
+		for j := testarrayofsortedstructLength - 1; j >= 0; j-- {
+			AbilityPack(builder, t.Testarrayofsortedstruct[j])
+		}
+		testarrayofsortedstructOffset = builder.EndVector(testarrayofsortedstructLength)
 	}
-	testarrayofstring2Offset := builder.EndVector(testarrayofstring2Length)
-	testarrayofsortedstructLength := len(t.Testarrayofsortedstruct)
-	MonsterStartTestarrayofsortedstructVector(builder, testarrayofsortedstructLength)
-	for j := testarrayofsortedstructLength - 1; j >= 0; j-- {
-		AbilityPack(builder, t.Testarrayofsortedstruct[j])
+	flexOffset := flatbuffers.UOffsetT(0)
+	if t.Flex != nil {
+		flexOffset = builder.CreateByteString(t.Flex)
 	}
-	testarrayofsortedstructOffset := builder.EndVector(testarrayofsortedstructLength)
-	flexOffset := builder.CreateByteString(t.Flex)
-	test5Length := len(t.Test5)
-	MonsterStartTest5Vector(builder, test5Length)
-	for j := test5Length - 1; j >= 0; j-- {
-		TestPack(builder, t.Test5[j])
+	test5Offset := flatbuffers.UOffsetT(0)
+	if t.Test5 != nil {
+		test5Length := len(t.Test5)
+		MonsterStartTest5Vector(builder, test5Length)
+		for j := test5Length - 1; j >= 0; j-- {
+			TestPack(builder, t.Test5[j])
+		}
+		test5Offset = builder.EndVector(test5Length)
 	}
-	test5Offset := builder.EndVector(test5Length)
-	vectorOfLongsLength := len(t.VectorOfLongs)
-	MonsterStartVectorOfLongsVector(builder, vectorOfLongsLength)
-	for j := vectorOfLongsLength - 1; j >= 0; j-- {
-		builder.PrependInt64(t.VectorOfLongs[j])
+	vectorOfLongsOffset := flatbuffers.UOffsetT(0)
+	if t.VectorOfLongs != nil {
+		vectorOfLongsLength := len(t.VectorOfLongs)
+		MonsterStartVectorOfLongsVector(builder, vectorOfLongsLength)
+		for j := vectorOfLongsLength - 1; j >= 0; j-- {
+			builder.PrependInt64(t.VectorOfLongs[j])
+		}
+		vectorOfLongsOffset = builder.EndVector(vectorOfLongsLength)
 	}
-	vectorOfLongsOffset := builder.EndVector(vectorOfLongsLength)
-	vectorOfDoublesLength := len(t.VectorOfDoubles)
-	MonsterStartVectorOfDoublesVector(builder, vectorOfDoublesLength)
-	for j := vectorOfDoublesLength - 1; j >= 0; j-- {
-		builder.PrependFloat64(t.VectorOfDoubles[j])
+	vectorOfDoublesOffset := flatbuffers.UOffsetT(0)
+	if t.VectorOfDoubles != nil {
+		vectorOfDoublesLength := len(t.VectorOfDoubles)
+		MonsterStartVectorOfDoublesVector(builder, vectorOfDoublesLength)
+		for j := vectorOfDoublesLength - 1; j >= 0; j-- {
+			builder.PrependFloat64(t.VectorOfDoubles[j])
+		}
+		vectorOfDoublesOffset = builder.EndVector(vectorOfDoublesLength)
 	}
-	vectorOfDoublesOffset := builder.EndVector(vectorOfDoublesLength)
 	parentNamespaceTestOffset := MyGame.InParentNamespacePack(builder, t.ParentNamespaceTest)
-	vectorOfReferrablesLength := len(t.VectorOfReferrables)
-	vectorOfReferrablesOffsets := []flatbuffers.UOffsetT{}
-	for j := 0; j < vectorOfReferrablesLength; j++ {
-		vectorOfReferrablesOffsets = append(vectorOfReferrablesOffsets, ReferrablePack(builder, t.VectorOfReferrables[j]))
+	vectorOfReferrablesOffset := flatbuffers.UOffsetT(0)
+	if t.VectorOfReferrables != nil {
+		vectorOfReferrablesLength := len(t.VectorOfReferrables)
+		vectorOfReferrablesOffsets := []flatbuffers.UOffsetT{}
+		for j := 0; j < vectorOfReferrablesLength; j++ {
+			vectorOfReferrablesOffsets = append(vectorOfReferrablesOffsets, ReferrablePack(builder, t.VectorOfReferrables[j]))
+		}
+		MonsterStartVectorOfReferrablesVector(builder, vectorOfReferrablesLength)
+		for j := vectorOfReferrablesLength - 1; j >= 0; j-- {
+			builder.PrependUOffsetT(vectorOfReferrablesOffsets[j])
+		}
+		vectorOfReferrablesOffset = builder.EndVector(vectorOfReferrablesLength)
 	}
-	MonsterStartVectorOfReferrablesVector(builder, vectorOfReferrablesLength)
-	for j := vectorOfReferrablesLength - 1; j >= 0; j-- {
-		builder.PrependUOffsetT(vectorOfReferrablesOffsets[j])
+	vectorOfWeakReferencesOffset := flatbuffers.UOffsetT(0)
+	if t.VectorOfWeakReferences != nil {
+		vectorOfWeakReferencesLength := len(t.VectorOfWeakReferences)
+		MonsterStartVectorOfWeakReferencesVector(builder, vectorOfWeakReferencesLength)
+		for j := vectorOfWeakReferencesLength - 1; j >= 0; j-- {
+			builder.PrependUint64(t.VectorOfWeakReferences[j])
+		}
+		vectorOfWeakReferencesOffset = builder.EndVector(vectorOfWeakReferencesLength)
 	}
-	vectorOfReferrablesOffset := builder.EndVector(vectorOfReferrablesLength)
-	vectorOfWeakReferencesLength := len(t.VectorOfWeakReferences)
-	MonsterStartVectorOfWeakReferencesVector(builder, vectorOfWeakReferencesLength)
-	for j := vectorOfWeakReferencesLength - 1; j >= 0; j-- {
-		builder.PrependUint64(t.VectorOfWeakReferences[j])
+	vectorOfStrongReferrablesOffset := flatbuffers.UOffsetT(0)
+	if t.VectorOfStrongReferrables != nil {
+		vectorOfStrongReferrablesLength := len(t.VectorOfStrongReferrables)
+		vectorOfStrongReferrablesOffsets := []flatbuffers.UOffsetT{}
+		for j := 0; j < vectorOfStrongReferrablesLength; j++ {
+			vectorOfStrongReferrablesOffsets = append(vectorOfStrongReferrablesOffsets, ReferrablePack(builder, t.VectorOfStrongReferrables[j]))
+		}
+		MonsterStartVectorOfStrongReferrablesVector(builder, vectorOfStrongReferrablesLength)
+		for j := vectorOfStrongReferrablesLength - 1; j >= 0; j-- {
+			builder.PrependUOffsetT(vectorOfStrongReferrablesOffsets[j])
+		}
+		vectorOfStrongReferrablesOffset = builder.EndVector(vectorOfStrongReferrablesLength)
 	}
-	vectorOfWeakReferencesOffset := builder.EndVector(vectorOfWeakReferencesLength)
-	vectorOfStrongReferrablesLength := len(t.VectorOfStrongReferrables)
-	vectorOfStrongReferrablesOffsets := []flatbuffers.UOffsetT{}
-	for j := 0; j < vectorOfStrongReferrablesLength; j++ {
-		vectorOfStrongReferrablesOffsets = append(vectorOfStrongReferrablesOffsets, ReferrablePack(builder, t.VectorOfStrongReferrables[j]))
+	vectorOfCoOwningReferencesOffset := flatbuffers.UOffsetT(0)
+	if t.VectorOfCoOwningReferences != nil {
+		vectorOfCoOwningReferencesLength := len(t.VectorOfCoOwningReferences)
+		MonsterStartVectorOfCoOwningReferencesVector(builder, vectorOfCoOwningReferencesLength)
+		for j := vectorOfCoOwningReferencesLength - 1; j >= 0; j-- {
+			builder.PrependUint64(t.VectorOfCoOwningReferences[j])
+		}
+		vectorOfCoOwningReferencesOffset = builder.EndVector(vectorOfCoOwningReferencesLength)
 	}
-	MonsterStartVectorOfStrongReferrablesVector(builder, vectorOfStrongReferrablesLength)
-	for j := vectorOfStrongReferrablesLength - 1; j >= 0; j-- {
-		builder.PrependUOffsetT(vectorOfStrongReferrablesOffsets[j])
+	vectorOfNonOwningReferencesOffset := flatbuffers.UOffsetT(0)
+	if t.VectorOfNonOwningReferences != nil {
+		vectorOfNonOwningReferencesLength := len(t.VectorOfNonOwningReferences)
+		MonsterStartVectorOfNonOwningReferencesVector(builder, vectorOfNonOwningReferencesLength)
+		for j := vectorOfNonOwningReferencesLength - 1; j >= 0; j-- {
+			builder.PrependUint64(t.VectorOfNonOwningReferences[j])
+		}
+		vectorOfNonOwningReferencesOffset = builder.EndVector(vectorOfNonOwningReferencesLength)
 	}
-	vectorOfStrongReferrablesOffset := builder.EndVector(vectorOfStrongReferrablesLength)
-	vectorOfCoOwningReferencesLength := len(t.VectorOfCoOwningReferences)
-	MonsterStartVectorOfCoOwningReferencesVector(builder, vectorOfCoOwningReferencesLength)
-	for j := vectorOfCoOwningReferencesLength - 1; j >= 0; j-- {
-		builder.PrependUint64(t.VectorOfCoOwningReferences[j])
-	}
-	vectorOfCoOwningReferencesOffset := builder.EndVector(vectorOfCoOwningReferencesLength)
-	vectorOfNonOwningReferencesLength := len(t.VectorOfNonOwningReferences)
-	MonsterStartVectorOfNonOwningReferencesVector(builder, vectorOfNonOwningReferencesLength)
-	for j := vectorOfNonOwningReferencesLength - 1; j >= 0; j-- {
-		builder.PrependUint64(t.VectorOfNonOwningReferences[j])
-	}
-	vectorOfNonOwningReferencesOffset := builder.EndVector(vectorOfNonOwningReferencesLength)
 	anyUniqueOffset := flatbuffers.UOffsetT(0)
 	if t.AnyUnique != nil {
 		switch t.AnyUnique.Type {
@@ -203,12 +254,15 @@ func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT
 			anyAmbiguousOffset = MonsterPack(builder, t.AnyAmbiguous.Value.(*MonsterT))
 		}
 	}
-	vectorOfEnumsLength := len(t.VectorOfEnums)
-	MonsterStartVectorOfEnumsVector(builder, vectorOfEnumsLength)
-	for j := vectorOfEnumsLength - 1; j >= 0; j-- {
-		builder.PrependByte(byte(t.VectorOfEnums[j]))
+	vectorOfEnumsOffset := flatbuffers.UOffsetT(0)
+	if t.VectorOfEnums != nil {
+		vectorOfEnumsLength := len(t.VectorOfEnums)
+		MonsterStartVectorOfEnumsVector(builder, vectorOfEnumsLength)
+		for j := vectorOfEnumsLength - 1; j >= 0; j-- {
+			builder.PrependByte(byte(t.VectorOfEnums[j]))
+		}
+		vectorOfEnumsOffset = builder.EndVector(vectorOfEnumsLength)
 	}
-	vectorOfEnumsOffset := builder.EndVector(vectorOfEnumsLength)
 	MonsterStart(builder)
 	posOffset := Vec3Pack(builder, t.Pos)
 	MonsterAddPos(builder, posOffset)

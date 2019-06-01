@@ -464,6 +464,10 @@ func CheckObjectAPI(buf []byte, offset flatbuffers.UOffsetT, fail func(string, .
 
 	builder := flatbuffers.NewBuilder(0)
 	builder.Finish(example.MonsterPack(builder, monster))
+	monster2 := example.GetRootAsMonster(builder.FinishedBytes(), 0).UnPack()
+	if !reflect.DeepEqual(monster, monster2) {
+		fail("monsters not equal")
+	}
 }
 
 // Low level stress/fuzz test: serialize/deserialize a variety of

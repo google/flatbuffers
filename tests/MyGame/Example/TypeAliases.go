@@ -23,18 +23,24 @@ type TypeAliasesT struct {
 
 func TypeAliasesPack(builder *flatbuffers.Builder, t *TypeAliasesT) flatbuffers.UOffsetT {
 	if t == nil { return 0 }
-	v8Length := len(t.V8)
-	TypeAliasesStartV8Vector(builder, v8Length)
-	for j := v8Length - 1; j >= 0; j-- {
-		builder.PrependInt8(t.V8[j])
+	v8Offset := flatbuffers.UOffsetT(0)
+	if t.V8 != nil {
+		v8Length := len(t.V8)
+		TypeAliasesStartV8Vector(builder, v8Length)
+		for j := v8Length - 1; j >= 0; j-- {
+			builder.PrependInt8(t.V8[j])
+		}
+		v8Offset = builder.EndVector(v8Length)
 	}
-	v8Offset := builder.EndVector(v8Length)
-	vf64Length := len(t.Vf64)
-	TypeAliasesStartVf64Vector(builder, vf64Length)
-	for j := vf64Length - 1; j >= 0; j-- {
-		builder.PrependFloat64(t.Vf64[j])
+	vf64Offset := flatbuffers.UOffsetT(0)
+	if t.Vf64 != nil {
+		vf64Length := len(t.Vf64)
+		TypeAliasesStartVf64Vector(builder, vf64Length)
+		for j := vf64Length - 1; j >= 0; j-- {
+			builder.PrependFloat64(t.Vf64[j])
+		}
+		vf64Offset = builder.EndVector(vf64Length)
 	}
-	vf64Offset := builder.EndVector(vf64Length)
 	TypeAliasesStart(builder)
 	TypeAliasesAddI8(builder, t.I8)
 	TypeAliasesAddU8(builder, t.U8)
