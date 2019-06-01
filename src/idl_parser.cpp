@@ -26,6 +26,20 @@
 
 namespace flatbuffers {
 
+const char *FLATBUFFERS_VERSION() {
+  return "FLATBUFFERS_"
+      FLATBUFFERS_STRING(FLATBUFFERS_VERSION_MAJOR) "_"
+      FLATBUFFERS_STRING(FLATBUFFERS_VERSION_MINOR) "_"
+      FLATBUFFERS_STRING(FLATBUFFERS_VERSION_REVISION);
+}
+
+const char *FLATBUFFERS_COMPATIBLE() {
+  return "FLATBUFFERS_"
+      FLATBUFFERS_STRING(FLATBUFFERS_COMPATIBLE_MAJOR) "_"
+      FLATBUFFERS_STRING(FLATBUFFERS_COMPATIBLE_MINOR) "_"
+      FLATBUFFERS_STRING(FLATBUFFERS_COMPATIBLE_REVISION);
+}
+
 const double kPi = 3.14159265358979323846;
 
 const char *const kTypeNames[] = {
@@ -1747,7 +1761,7 @@ struct EnumValBuilder {
     auto ascending = false;
     if (enum_def.IsUInt64()) {
       uint64_t u64;
-      fit = StringToNumber(value.c_str(), &u64); 
+      fit = StringToNumber(value.c_str(), &u64);
       ascending = u64 > temp->GetAsUInt64();
       temp->value = static_cast<int64_t>(u64);  // well-defined since C++20.
     } else {

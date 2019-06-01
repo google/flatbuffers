@@ -12,7 +12,8 @@ public struct Test : IFlatbufferObject
 {
   private Struct __p;
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
-  public void __init(int _i, ByteBuffer _bb) { __p.bb_pos = _i; __p.bb = _bb; }
+  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_1_11_1(); }
+  public void __init(int _i, ByteBuffer _bb) { __p = default(Struct); __p.__reset(_i, _bb); }
   public Test __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public short A { get { return __p.bb.GetShort(__p.bb_pos + 0); } }

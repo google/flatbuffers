@@ -139,11 +139,21 @@
   #endif
 #endif // !defined(FLATBUFFERS_LITTLEENDIAN)
 
+// Current Version.
 #define FLATBUFFERS_VERSION_MAJOR 1
 #define FLATBUFFERS_VERSION_MINOR 11
-#define FLATBUFFERS_VERSION_REVISION 0
+#define FLATBUFFERS_VERSION_REVISION 1
+// Compatible Version.
+#define FLATBUFFERS_COMPATIBLE_MAJOR 1
+#define FLATBUFFERS_COMPATIBLE_MINOR 11
+#define FLATBUFFERS_COMPATIBLE_REVISION 1
+
 #define FLATBUFFERS_STRING_EXPAND(X) #X
 #define FLATBUFFERS_STRING(X) FLATBUFFERS_STRING_EXPAND(X)
+namespace flatbuffers {
+  const char* FLATBUFFERS_VERSION();
+  const char* FLATBUFFERS_COMPATIBLE(); 
+}
 
 #if (!defined(_MSC_VER) || _MSC_VER > 1600) && \
     (!defined(__GNUC__) || (__GNUC__ * 100 + __GNUC_MINOR__ >= 407)) || \
