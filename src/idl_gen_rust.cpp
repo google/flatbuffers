@@ -449,7 +449,7 @@ class RustGenerator : public BaseGenerator {
     std::stringstream stream;
 
     stream << "::";
-    for (auto d = dst->components.begin(); d != dst->components.end(); d++) {
+    for (auto d = dst->components.begin(); d != dst->components.end(); ++d) {
       stream << MakeSnakeCase(*d) + "::";
     }
     return stream.str();
@@ -481,15 +481,15 @@ class RustGenerator : public BaseGenerator {
       if (s == src->components.end()) { break; }
       if (d == dst->components.end()) { break; }
       if (*s != *d) { break; }
-      s++;
-      d++;
-      i++;
+      ++s;
+      ++d;
+      ++i;
     }
 
-    for (; s != src->components.end(); s++) {
+    for (; s != src->components.end(); ++s) {
       stream << "super::";
     }
-    for (; d != dst->components.end(); d++) {
+    for (; d != dst->components.end(); ++d) {
       stream << MakeSnakeCase(*d) + "::";
     }
     return stream.str();
@@ -758,7 +758,7 @@ class RustGenerator : public BaseGenerator {
   //    the vtable, or
   // 3) return a hardcoded value because the vtable field value is set to zero.
   std::string TableBuilderArgsDefnType(const FieldDef &field,
-                                       const std::string lifetime) {
+                                       const std::string &lifetime) {
     const Type& type = field.value.type;
 
     switch (GetFullType(type)) {
@@ -786,7 +786,6 @@ class RustGenerator : public BaseGenerator {
         return typname;
       }
       case ftUnionValue: {
-        const auto typname = WrapInNameSpace(*type.enum_def);
         return "Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>>";
       }
 
@@ -836,10 +835,11 @@ class RustGenerator : public BaseGenerator {
     return GetDefaultScalarValue(field);
   }
   std::string TableBuilderAddFuncDefaultValue(const FieldDef &field) {
+    // All branches of switch do the same action!
     switch (GetFullType(field.value.type)) {
       case ftUnionKey:
       case ftEnumKey: {
-        const std::string basetype = GetTypeBasic(field.value.type);
+        const std::string basetype = GetTypeBasic(field.value.type); //<- never used
         return GetDefaultScalarValue(field);
       }
 
@@ -848,7 +848,7 @@ class RustGenerator : public BaseGenerator {
   }
 
   std::string TableBuilderArgsAddFuncType(const FieldDef &field,
-                                          const std::string lifetime) {
+                                          const std::string &lifetime) {
     const Type& type = field.value.type;
 
     switch (GetFullType(field.value.type)) {
@@ -883,7 +883,6 @@ class RustGenerator : public BaseGenerator {
                ", " + typname + ">>";
       }
       case ftVectorOfUnionValue: {
-        const auto typname = WrapInNameSpace(*type.enum_def);
         return "flatbuffers::WIPOffset<flatbuffers::Vector<" + lifetime + \
                ", flatbuffers::ForwardsUOffset<flatbuffers::Table<" + \
                lifetime + ">>>";
@@ -916,7 +915,6 @@ class RustGenerator : public BaseGenerator {
         return typname;
       }
       case ftUnionValue: {
-        const auto typname = WrapInNameSpace(*type.enum_def);
         return "flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>";
       }
     }
@@ -970,7 +968,7 @@ class RustGenerator : public BaseGenerator {
   }
 
   std::string GenTableAccessorFuncReturnType(const FieldDef &field,
-                                             const std::string lifetime) {
+                                             const std::string &lifetime) {
     const Type& type = field.value.type;
 
     switch (GetFullType(field.value.type)) {
@@ -1041,8 +1039,8 @@ class RustGenerator : public BaseGenerator {
   }
 
   std::string GenTableAccessorFuncBody(const FieldDef &field,
-                                       const std::string lifetime,
-                                       const std::string offset_prefix) {
+                                       const std::string &lifetime,
+                                       const std::string &offset_prefix) {
     const std::string offset_name = offset_prefix + "::" + \
                                     GetFieldOffsetName(field);
     const Type& type = field.value.type;
@@ -1072,7 +1070,7 @@ class RustGenerator : public BaseGenerator {
       }
       case ftUnionKey:
       case ftEnumKey: {
-        const auto underlying_typname = GetTypeBasic(type);
+        const auto underlying_typname = GetTypeBasic(type); //<- never used
         const auto typname = WrapInNameSpace(*type.enum_def);
         const auto default_value = GetDefaultScalarValue(field);
         return "self._tab.get::<" + typname + ">(" + offset_name + \
@@ -1394,8 +1392,6 @@ class RustGenerator : public BaseGenerator {
         const bool is_scalar = IsScalar(field.value.type.base_type);
 
         std::string offset = GetFieldOffsetName(field);
-        std::string name = Name(field);
-        std::string value = GetDefaultScalarValue(field);
 
         // Generate functions to add data, which take one of two forms.
         //

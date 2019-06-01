@@ -269,10 +269,10 @@ bool GenerateTextFromTable(const Parser &parser, const void *table,
   if (struct_def == nullptr) {
     return false;
   }
-  auto text = *_text;
+  auto &text = *_text;
   text.reserve(1024);  // Reduce amount of inevitable reallocs.
   auto root = static_cast<const Table *>(table);
-  if (!GenStruct(*struct_def, root, 0, parser.opts, _text)) {
+  if (!GenStruct(*struct_def, root, 0, parser.opts, &text)) {
     return false;
   }
   text += NewLine(parser.opts);

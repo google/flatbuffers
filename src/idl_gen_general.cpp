@@ -1540,7 +1540,7 @@ std::string GeneralMakeRule(const Parser &parser, const std::string &path,
   for (auto it = parser.enums_.vec.begin(); it != parser.enums_.vec.end();
        ++it) {
     auto &enum_def = **it;
-    if (make_rule != "") make_rule += " ";
+    if (!make_rule.empty()) make_rule += " ";
     std::string directory =
         BaseGenerator::NamespaceDir(parser, path, *enum_def.defined_namespace);
     make_rule += directory + enum_def.name + lang.file_extension;
@@ -1549,7 +1549,7 @@ std::string GeneralMakeRule(const Parser &parser, const std::string &path,
   for (auto it = parser.structs_.vec.begin(); it != parser.structs_.vec.end();
        ++it) {
     auto &struct_def = **it;
-    if (make_rule != "") make_rule += " ";
+    if (!make_rule.empty()) make_rule += " ";
     std::string directory = BaseGenerator::NamespaceDir(
         parser, path, *struct_def.defined_namespace);
     make_rule += directory + struct_def.name + lang.file_extension;

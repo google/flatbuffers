@@ -520,7 +520,7 @@ class CppGenerator : public BaseGenerator {
   static std::string TranslateNameSpace(const std::string &qualified_name) {
     std::string cpp_qualified_name = qualified_name;
     size_t start_pos = 0;
-    while ((start_pos = cpp_qualified_name.find(".", start_pos)) !=
+    while ((start_pos = cpp_qualified_name.find('.', start_pos)) !=
            std::string::npos) {
       cpp_qualified_name.replace(start_pos, 1, "::");
     }

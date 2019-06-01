@@ -1747,7 +1747,7 @@ struct EnumValBuilder {
     auto ascending = false;
     if (enum_def.IsUInt64()) {
       uint64_t u64;
-      fit = StringToNumber(value.c_str(), &u64); 
+      fit = StringToNumber(value.c_str(), &u64);
       ascending = u64 > temp->GetAsUInt64();
       temp->value = static_cast<int64_t>(u64);  // well-defined since C++20.
     } else {
@@ -1990,7 +1990,7 @@ Namespace *Parser::UniqueNamespace(Namespace *ns) {
   return ns;
 }
 
-std::string Parser::UnqualifiedName(std::string full_qualified_name) {
+std::string Parser::UnqualifiedName(const std::string &full_qualified_name) {
   Namespace *ns = new Namespace();
 
   std::size_t current, previous = 0;
@@ -2957,13 +2957,12 @@ bool StructDef::Deserialize(Parser &parser, const reflection::Object *object) {
   name = parser.UnqualifiedName(object->name()->str());
   predecl = false;
   sortbysize = attributes.Lookup("original_order") == nullptr && !fixed;
-  std::vector<uoffset_t> indexes =
-    std::vector<uoffset_t>(object->fields()->size());
-  for (uoffset_t i = 0; i < object->fields()->size(); i++)
-    indexes[object->fields()->Get(i)->id()] = i;
+  const auto& of = *(object->fields());
+  auto indexes = std::vector<uoffset_t>(of.size());
+  for (uoffset_t i = 0; i < of.size(); i++) indexes[of.Get(i)->id()] = i;
   size_t tmp_struct_size = 0;
   for (size_t i = 0; i < indexes.size(); i++) {
-    auto field = object->fields()->Get(indexes[i]);
+    auto field = of.Get(indexes[i]);
     auto field_def = new FieldDef();
     if (!field_def->Deserialize(parser, field) ||
         fields.Add(field_def->name, field_def)) {
@@ -2975,7 +2974,7 @@ bool StructDef::Deserialize(Parser &parser, const reflection::Object *object) {
       auto size = InlineSize(field_def->value.type);
       auto next_field =
           i + 1 < indexes.size()
-          ? object->fields()->Get(indexes[i+1])
+          ? of.Get(indexes[i+1])
           : nullptr;
       tmp_struct_size += size;
       field_def->padding =
