@@ -510,17 +510,17 @@ class GeneralGenerator : public BaseGenerator {
     std::string &code = *code_ptr;
     if (enum_def.generated) return;
 
-    // In C# this indicates enumeration values can be treated as bit flags.
-    if (lang_.language == IDLOptions::kCSharp && enum_def.attributes.Lookup("bit_flags")) {
-        code += "[System.FlagsAttribute]\n";
-    }
-
     // Generate enum definitions of the form:
     // public static (final) int name = value;
     // In Java, we use ints rather than the Enum feature, because we want them
     // to map directly to how they're used in C/C++ and file formats.
     // That, and Java Enums are expensive, and not universally liked.
     GenComment(enum_def.doc_comment, code_ptr, &lang_.comment_config);
+
+    // In C# this indicates enumeration values can be treated as bit flags.
+    if (lang_.language == IDLOptions::kCSharp && enum_def.attributes.Lookup("bit_flags")) {
+      code += "[System.FlagsAttribute]\n";
+    }
     if (enum_def.attributes.Lookup("private")) {
       // For Java, we leave the enum unmarked to indicate package-private
       // For C# we mark the enum as internal
@@ -547,7 +547,8 @@ class GeneralGenerator : public BaseGenerator {
         code += lang_.const_decl;
         code += GenTypeBasic(enum_def.underlying_type, false);
       }
-      code += " " + ev.name + " = ";
+      code += (lang_.language == IDLOptions::kJava) ? " " : "  ";
+      code += ev.name + " = ";
       code += enum_def.ToString(ev);
       code += lang_.enum_separator;
     }

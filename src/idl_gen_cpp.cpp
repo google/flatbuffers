@@ -948,7 +948,6 @@ class CppGenerator : public BaseGenerator {
   void GenEnum(const EnumDef &enum_def) {
     code_.SetValue("ENUM_NAME", Name(enum_def));
     code_.SetValue("BASE_TYPE", GenTypeBasic(enum_def.underlying_type, false));
-    code_.SetValue("SEP", "");
 
     GenComment(enum_def.doc_comment);
     code_ += GenEnumDecl(enum_def) + "\\";
@@ -961,19 +960,18 @@ class CppGenerator : public BaseGenerator {
     if (add_type) code_ += " : {{BASE_TYPE}}\\";
     code_ += " {";
 
+    code_.SetValue("SEP", ",");
+    auto add_sep = false;
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       const auto &ev = **it;
-      if (!ev.doc_comment.empty()) {
-        auto prefix = code_.GetValue("SEP") + "  ";
-        GenComment(ev.doc_comment, prefix.c_str());
-        code_.SetValue("SEP", "");
-      }
+      if (add_sep) code_ += "{{SEP}}";
+      GenComment(ev.doc_comment, "  ");
       code_.SetValue("KEY", GenEnumValDecl(enum_def, Name(ev)));
       code_.SetValue("VALUE",
                      NumToStringCpp(enum_def.ToString(ev),
                                     enum_def.underlying_type.base_type));
-      code_ += "{{SEP}}  {{KEY}} = {{VALUE}}\\";
-      code_.SetValue("SEP", ",\n");
+      code_ += "  {{KEY}} = {{VALUE}}\\";
+      add_sep = true;
     }
     const EnumVal *minv = enum_def.MinValue();
     const EnumVal *maxv = enum_def.MaxValue();

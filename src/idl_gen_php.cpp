@@ -673,7 +673,7 @@ class PhpGenerator : public BaseGenerator {
   // Generate a struct field, conditioned on its child type(s).
   void GenStructAccessor(const StructDef &struct_def, const FieldDef &field,
                          std::string *code_ptr) {
-    GenComment(field.doc_comment, code_ptr, nullptr);
+    GenComment(field.doc_comment, code_ptr, nullptr, Indent.c_str());
 
     if (IsScalar(field.value.type.base_type)) {
       if (struct_def.fixed) {
@@ -818,7 +818,7 @@ class PhpGenerator : public BaseGenerator {
     BeginEnum(enum_def.name, code_ptr);
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
-      GenComment(ev.doc_comment, code_ptr, nullptr);
+      GenComment(ev.doc_comment, code_ptr, nullptr, Indent.c_str());
       EnumMember(enum_def, ev, code_ptr);
     }
 

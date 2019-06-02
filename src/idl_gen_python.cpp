@@ -29,6 +29,7 @@ namespace flatbuffers {
 namespace python {
 
 // Hardcode spaces per indentation.
+const CommentConfig def_comment = { nullptr, "#", nullptr };
 const std::string Indent = "    ";
 
 class PythonGenerator : public BaseGenerator {
@@ -497,7 +498,7 @@ class PythonGenerator : public BaseGenerator {
   // Generate a struct field, conditioned on its child type(s).
   void GenStructAccessor(const StructDef &struct_def,
                          const FieldDef &field, std::string *code_ptr) {
-    GenComment(field.doc_comment, code_ptr, nullptr, "# ");
+    GenComment(field.doc_comment, code_ptr, &def_comment, Indent.c_str());
     if (IsScalar(field.value.type.base_type)) {
       if (struct_def.fixed) {
         GetScalarFieldOfStruct(struct_def, field, code_ptr);
@@ -557,7 +558,7 @@ class PythonGenerator : public BaseGenerator {
   void GenStruct(const StructDef &struct_def, std::string *code_ptr) {
     if (struct_def.generated) return;
 
-    GenComment(struct_def.doc_comment, code_ptr, nullptr, "# ");
+    GenComment(struct_def.doc_comment, code_ptr, &def_comment);
     BeginClass(struct_def, code_ptr);
     if (!struct_def.fixed) {
       // Generate a special accessor for the table that has been declared as
@@ -588,11 +589,11 @@ class PythonGenerator : public BaseGenerator {
   void GenEnum(const EnumDef &enum_def, std::string *code_ptr) {
     if (enum_def.generated) return;
 
-    GenComment(enum_def.doc_comment, code_ptr, nullptr, "# ");
+    GenComment(enum_def.doc_comment, code_ptr, &def_comment);
     BeginEnum(NormalizedName(enum_def), code_ptr);
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
-      GenComment(ev.doc_comment, code_ptr, nullptr, "# ");
+      GenComment(ev.doc_comment, code_ptr, &def_comment, Indent.c_str());
       EnumMember(enum_def, ev, code_ptr);
     }
     EndEnum(code_ptr);

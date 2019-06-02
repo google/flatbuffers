@@ -163,12 +163,16 @@ pub mod example {
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
 
+/// Composite components of Monster color.
 #[allow(non_camel_case_types)]
 #[repr(u8)]
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub enum Color {
   Red = 1,
+  /// \brief color Green
+  /// Green is bit_flag with value (1u << 1)
   Green = 2,
+  /// \brief color Blue (1u << 3)
   Blue = 8,
 
 }

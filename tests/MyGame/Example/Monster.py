@@ -4,7 +4,7 @@
 
 import flatbuffers
 
-# /// an example documentation comment: monster object
+# an example documentation comment: monster object
 class Monster(object):
     __slots__ = ['_tab']
 
@@ -131,8 +131,8 @@ class Monster(object):
             return self._tab.VectorLen(o)
         return 0
 
-# /// an example documentation comment: this will end up in the generated code
-# /// multiline too
+    # an example documentation comment: this will end up in the generated code
+    # multiline too
     # Monster
     def Testarrayoftables(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(26))
