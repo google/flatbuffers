@@ -25,20 +25,42 @@ MyGame.Example2 = MyGame.Example2 || {};
 MyGame.OtherNameSpace = MyGame.OtherNameSpace || {};
 
 /**
+ * Composite components of Monster color.
+ *
  * @enum {number}
  */
 MyGame.Example.Color = {
   Red: 1,
+
+  /**
+   * \brief color Green
+   * Green is bit_flag with value (1u << 1)
+   */
   Green: 2,
+
+  /**
+   * \brief color Blue (1u << 3)
+   */
   Blue: 8
 };
 
 /**
+ * Composite components of Monster color.
+ *
  * @enum {string}
  */
 MyGame.Example.ColorName = {
   1: 'Red',
+
+  /**
+   * \brief color Green
+   * Green is bit_flag with value (1u << 1)
+   */
   2: 'Green',
+
+  /**
+   * \brief color Blue (1u << 3)
+   */
   8: 'Blue'
 };
 

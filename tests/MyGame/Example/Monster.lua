@@ -4,7 +4,7 @@
 
 local flatbuffers = require('flatbuffers')
 
--- /// an example documentation comment: monster object
+-- an example documentation comment: monster object
 local Monster = {} -- the module
 local Monster_mt = {} -- the class metatable
 
@@ -120,8 +120,8 @@ function Monster_mt:TestarrayofstringLength()
     end
     return 0
 end
--- /// an example documentation comment: this will end up in the generated code
--- /// multiline too
+-- an example documentation comment: this will end up in the generated code
+-- multiline too
 function Monster_mt:Testarrayoftables(j)
     local o = self.view:Offset(26)
     if o ~= 0 then

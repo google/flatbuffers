@@ -171,8 +171,8 @@ class Monster extends Table
         return $o != 0 ? $this->__vector_len($o) : 0;
     }
 
-/// an example documentation comment: this will end up in the generated code
-/// multiline too
+    /// an example documentation comment: this will end up in the generated code
+    /// multiline too
     /**
      * @returnVectorOffset
      */

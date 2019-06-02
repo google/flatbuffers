@@ -181,7 +181,6 @@ class DartGenerator : public BaseGenerator {
     }
 
     auto &code = *code_ptr;
-    if (indent) code += indent;
 
     for (auto it = dc.begin(); it != dc.end(); ++it) {
       if (indent) code += indent;
@@ -495,7 +494,7 @@ class DartGenerator : public BaseGenerator {
       std::string type_name = GenDartTypeName(
           field.value.type, struct_def.defined_namespace, field, false);
 
-      GenDocComment(field.doc_comment, &code, "");
+      GenDocComment(field.doc_comment, &code, "", "  ");
 
       code += "  " + type_name + " get " + field_name;
       if (field.value.type.base_type == BASE_TYPE_UNION) {

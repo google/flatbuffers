@@ -3,9 +3,13 @@ import flatbuffers
 
 namespace MyGame_Example
 
+/// Composite components of Monster color.
 enum Color:
     Color_Red = 1
+    /// \brief color Green
+    /// Green is bit_flag with value (1u << 1)
     Color_Green = 2
+    /// \brief color Blue (1u << 3)
     Color_Blue = 8
 
 enum Any:
