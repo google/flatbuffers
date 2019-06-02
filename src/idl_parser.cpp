@@ -2955,14 +2955,13 @@ bool StructDef::Deserialize(Parser &parser, const reflection::Object *object) {
     return false;
   DeserializeDoc(doc_comment, object->documentation());
   name = parser.UnqualifiedName(object->name()->str());
-  fixed = object->is_struct();
-  minalign = object->minalign();
   predecl = false;
   sortbysize = attributes.Lookup("original_order") == nullptr && !fixed;
   std::vector<uoffset_t> indexes =
     std::vector<uoffset_t>(object->fields()->size());
   for (uoffset_t i = 0; i < object->fields()->size(); i++)
     indexes[object->fields()->Get(i)->id()] = i;
+  size_t tmp_struct_size = 0;
   for (size_t i = 0; i < indexes.size(); i++) {
     auto field = object->fields()->Get(indexes[i]);
     auto field_def = new FieldDef();
@@ -2978,14 +2977,14 @@ bool StructDef::Deserialize(Parser &parser, const reflection::Object *object) {
           i + 1 < indexes.size()
           ? object->fields()->Get(indexes[i+1])
           : nullptr;
-      bytesize += size;
+      tmp_struct_size += size;
       field_def->padding =
           next_field ? (next_field->offset() - field_def->value.offset) - size
-                     : PaddingBytes(bytesize, minalign);
-      bytesize += field_def->padding;
+                     : PaddingBytes(tmp_struct_size, minalign);
+      tmp_struct_size += field_def->padding;
     }
   }
-  FLATBUFFERS_ASSERT(static_cast<int>(bytesize) == object->bytesize());
+  FLATBUFFERS_ASSERT(static_cast<int>(tmp_struct_size) == object->bytesize());
   return true;
 }
 
@@ -3264,6 +3263,9 @@ bool Parser::Deserialize(const reflection::Schema *schema) {
   for (auto it = schema->objects()->begin(); it != schema->objects()->end();
        ++it) {
     auto struct_def = new StructDef();
+    struct_def->bytesize = it->bytesize();
+    struct_def->fixed = it->is_struct();
+    struct_def->minalign = it->minalign();
     if (structs_.Add(it->name()->str(), struct_def)) {
       delete struct_def;
       return false;
