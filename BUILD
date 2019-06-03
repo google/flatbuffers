@@ -164,11 +164,15 @@ cc_test(
         ":tests/union_vector/union_vector.json",
         ":tests/monster_extra.fbs",
         ":tests/monsterdata_extra.json",
+        ":tests/arrays_test.bfbs",
+        ":tests/arrays_test.fbs",
+        ":tests/arrays_test.golden",
     ],
     includes = ["include/"],
     deps = [
         ":monster_extra_cc_fbs",
         ":monster_test_cc_fbs",
+        ":arrays_test_cc_fbs",
     ],
 )
 
@@ -187,4 +191,17 @@ flatbuffer_cc_library(
 flatbuffer_cc_library(
     name = "monster_extra_cc_fbs",
     srcs = ["tests/monster_extra.fbs"],
+)
+
+flatbuffer_cc_library(
+    name = "arrays_test_cc_fbs",
+    srcs = ["tests/arrays_test.fbs"],
+    flatc_args = [
+        "--gen-object-api",
+        "--gen-compare",
+        "--no-includes",
+        "--gen-mutable",
+        "--reflect-names",
+        "--cpp-ptr-type flatbuffers::unique_ptr",
+        "--scoped-enums" ],
 )

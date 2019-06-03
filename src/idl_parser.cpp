@@ -591,12 +591,35 @@ CheckedError Parser::ParseType(Type &type) {
     NEXT();
     Type subtype;
     ECHECK(Recurse([&]() { return ParseType(subtype); }));
-    if (subtype.base_type == BASE_TYPE_VECTOR) {
+    if (IsSeries(subtype)) {
       // We could support this, but it will complicate things, and it's
       // easier to work around with a struct around the inner vector.
-      return Error("nested vector types not supported (wrap in table first).");
+      return Error("nested vector types not supported (wrap in table first)");
     }
-    type = Type(BASE_TYPE_VECTOR, subtype.struct_def, subtype.enum_def);
+    if (token_ == ':') {
+      NEXT();
+      if (token_ != kTokenIntegerConstant) {
+        return Error("length of fixed-length array must be an integer value");
+      }
+      uint16_t fixed_length = 0;
+      bool check = StringToNumber(attribute_.c_str(), &fixed_length);
+      if (!check || fixed_length < 1) {
+        return Error(
+            "length of fixed-length array must be positive and fit to "
+            "uint16_t type");
+      }
+      // Check if enum arrays are used in C++ without specifying --scoped-enums
+      if ((opts.lang_to_generate & IDLOptions::kCpp) && !opts.scoped_enums &&
+          IsEnum(subtype)) {
+        return Error(
+            "--scoped-enums must be enabled to use enum arrays in C++\n");
+      }
+      type = Type(BASE_TYPE_ARRAY, subtype.struct_def, subtype.enum_def,
+                  fixed_length);
+      NEXT();
+    } else {
+      type = Type(BASE_TYPE_VECTOR, subtype.struct_def, subtype.enum_def);
+    }
     type.element = subtype.base_type;
     EXPECT(']');
   } else {
@@ -641,8 +664,18 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   Type type;
   ECHECK(ParseType(type));
 
-  if (struct_def.fixed && !IsScalar(type.base_type) && !IsStruct(type))
+  if (struct_def.fixed && !IsScalar(type.base_type) && !IsStruct(type) &&
+      !IsArray(type))
     return Error("structs_ may contain only scalar or struct fields");
+
+  if (!struct_def.fixed && IsArray(type))
+    return Error("fixed-length array in table must be wrapped in struct");
+
+  if (IsArray(type) && !SupportsAdvancedArrayFeatures()) {
+    return Error(
+        "Arrays are not yet supported in all "
+        "the specified programming languages.");
+  }
 
   FieldDef *typefield = nullptr;
   if (type.base_type == BASE_TYPE_UNION) {
@@ -693,12 +726,13 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     }
   }
   if (type.enum_def) {
-    // The type.base_type can only be scalar, union or vector.
+    // The type.base_type can only be scalar, union, array or vector.
     // Table, struct or string can't have enum_def.
     // Default value of union and vector in NONE, NULL translated to "0".
     FLATBUFFERS_ASSERT(IsInteger(type.base_type) ||
                        (type.base_type == BASE_TYPE_UNION) ||
-                       (type.base_type == BASE_TYPE_VECTOR));
+                       (type.base_type == BASE_TYPE_VECTOR) ||
+                       (type.base_type == BASE_TYPE_ARRAY));
     if (type.base_type == BASE_TYPE_VECTOR) {
       // Vector can't use initialization list.
       FLATBUFFERS_ASSERT(field->value.constant == "0");
@@ -953,6 +987,10 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
       val.constant = NumToString(off);
       break;
     }
+    case BASE_TYPE_ARRAY: {
+      ECHECK(ParseArray(val));
+      break;
+    }
     case BASE_TYPE_INT:
     case BASE_TYPE_UINT:
     case BASE_TYPE_LONG:
@@ -973,11 +1011,16 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
 }
 
 void Parser::SerializeStruct(const StructDef &struct_def, const Value &val) {
+  SerializeStruct(builder_, struct_def, val);
+}
+
+void Parser::SerializeStruct(FlatBufferBuilder &builder,
+                             const StructDef &struct_def, const Value &val) {
   FLATBUFFERS_ASSERT(val.constant.length() == struct_def.bytesize);
-  builder_.Align(struct_def.minalign);
-  builder_.PushBytes(reinterpret_cast<const uint8_t *>(val.constant.c_str()),
-                     struct_def.bytesize);
-  builder_.AddStructOffset(val.offset, builder_.GetSize());
+  builder.Align(struct_def.minalign);
+  builder.PushBytes(reinterpret_cast<const uint8_t *>(val.constant.c_str()),
+                    struct_def.bytesize);
+  builder.AddStructOffset(val.offset, builder.GetSize());
 }
 
 template <typename F>
@@ -1151,7 +1194,13 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
               break;
             FLATBUFFERS_GEN_TYPES_POINTER(FLATBUFFERS_TD);
           #undef FLATBUFFERS_TD
-          // clang-format on
+            case BASE_TYPE_ARRAY:
+              builder_.Pad(field->padding);
+              builder_.PushBytes(
+                reinterpret_cast<const uint8_t*>(field_value.constant.c_str()),
+                InlineSize(field_value.type));
+              break;
+              // clang-format on
         }
       }
     }
@@ -1231,6 +1280,54 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
 
   builder_.ClearOffsets();
   *ovalue = builder_.EndVector(count);
+  return NoError();
+}
+
+CheckedError Parser::ParseArray(Value &array) {
+  std::vector<Value> stack;
+  FlatBufferBuilder builder;
+  const auto &type = array.type.VectorType();
+  auto length = array.type.fixed_length;
+  uoffset_t count = 0;
+  auto err = ParseVectorDelimiters(count, [&](uoffset_t &) -> CheckedError {
+    vector_emplace_back(&stack, Value());
+    auto &val = stack.back();
+    val.type = type;
+    if (IsStruct(type)) {
+      ECHECK(ParseTable(*val.type.struct_def, &val.constant, nullptr));
+    } else {
+      ECHECK(ParseSingleValue(nullptr, val, false));
+    }
+    return NoError();
+  });
+  ECHECK(err);
+  if (length != count) return Error("Fixed-length array size is incorrect.");
+
+  for (auto it = stack.rbegin(); it != stack.rend(); ++it) {
+    auto &val = *it;
+    // clang-format off
+    switch (val.type.base_type) {
+      #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
+        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
+        case BASE_TYPE_ ## ENUM: \
+          if (IsStruct(val.type)) { \
+            SerializeStruct(builder, *val.type.struct_def, val); \
+          } else { \
+            CTYPE elem; \
+            ECHECK(atot(val.constant.c_str(), *this, &elem)); \
+            builder.PushElement(elem); \
+          } \
+        break;
+        FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
+      #undef FLATBUFFERS_TD
+      default: FLATBUFFERS_ASSERT(0);
+    }
+    // clang-format on
+  }
+
+  array.constant.assign(
+      reinterpret_cast<const char *>(builder.GetCurrentBufferPointer()),
+      InlineSize(array.type));
   return NoError();
 }
 
@@ -1977,6 +2074,13 @@ bool Parser::SupportsAdvancedUnionFeatures() const {
                                     IDLOptions::kTs | IDLOptions::kPhp |
                                     IDLOptions::kJava | IDLOptions::kCSharp |
                                     IDLOptions::kBinary)) == 0;
+}
+
+bool Parser::SupportsAdvancedArrayFeatures() const {
+  return (opts.lang_to_generate &
+          ~(IDLOptions::kCpp | IDLOptions::kPython | IDLOptions::kJava |
+            IDLOptions::kCSharp | IDLOptions::kJsonSchema | IDLOptions::kJson |
+            IDLOptions::kBinary)) == 0;
 }
 
 Namespace *Parser::UniqueNamespace(Namespace *ns) {
@@ -3161,19 +3265,22 @@ bool EnumVal::Deserialize(const Parser &parser,
 
 Offset<reflection::Type> Type::Serialize(FlatBufferBuilder *builder) const {
   return reflection::CreateType(
-      *builder,
-      static_cast<reflection::BaseType>(base_type),
+      *builder, static_cast<reflection::BaseType>(base_type),
       static_cast<reflection::BaseType>(element),
-      struct_def ? struct_def->index : (enum_def ? enum_def->index : -1));
+      struct_def ? struct_def->index : (enum_def ? enum_def->index : -1),
+      fixed_length);
 }
 
 bool Type::Deserialize(const Parser &parser, const reflection::Type *type) {
   if (type == nullptr) return true;
   base_type = static_cast<BaseType>(type->base_type());
   element = static_cast<BaseType>(type->element());
+  fixed_length = type->fixed_length();
   if (type->index() >= 0) {
+    bool is_series = type->base_type() == reflection::Vector ||
+                     type->base_type() == reflection::Array;
     if (type->base_type() == reflection::Obj ||
-        (type->base_type() == reflection::Vector &&
+        (is_series &&
          type->element() == reflection::Obj)) {
       if (static_cast<size_t>(type->index()) < parser.structs_.vec.size()) {
         struct_def = parser.structs_.vec[type->index()];
