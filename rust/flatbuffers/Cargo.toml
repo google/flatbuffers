@@ -11,3 +11,4 @@ categories = ["encoding", "data-structures", "memory-management"]
 
 [dependencies]
 smallvec = "0.6"
+serde = { version = "1.0", features = ["derive"] }
