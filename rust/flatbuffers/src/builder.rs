@@ -88,6 +88,33 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         }
     }
 
+    /// The current size of the builder's buffer in bytes, counting from the end.
+    ///
+    /// Note that the returned size will only match with the size of the
+    /// serialized data if the buffer was aligned beforehand with [`finish`] or
+    /// [`finish_minimal`]. Otherwise, it is only an approximation.
+    ///
+    /// # Example
+    /// ```
+    /// use flatbuffers::FlatBufferBuilder;
+    ///
+    /// let mut builder = FlatBufferBuilder::new();
+    /// // Push some arbitrary bytes in the builder.
+    /// let offset = builder.create_vector_direct(b"abcd");
+    /// // Align the buffer to get an accurate size.
+    /// builder.finish_minimal(offset);
+    ///
+    /// let used_space = builder.used_space();
+    /// assert_eq!(builder.finished_data().len(), used_space);
+    /// ```
+    ///
+    /// [`finish`]: #method.finish
+    /// [`finish_minimal`]: #method.finish_minimal
+    #[inline]
+    pub fn used_space(&self) -> usize {
+        self.owned_buf.len() - self.head
+    }
+
     /// Reset the FlatBufferBuilder internal state. Use this method after a
     /// call to a `finish` function in order to re-use a FlatBufferBuilder.
     ///
@@ -102,9 +129,8 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     pub fn reset(&mut self) {
         // memset only the part of the buffer that could be dirty:
         {
-            let to_clear = self.owned_buf.len() - self.head;
             let ptr = (&mut self.owned_buf[self.head..]).as_mut_ptr();
-            unsafe { write_bytes(ptr, 0, to_clear); }
+            unsafe { write_bytes(ptr, 0, self.used_space()); }
         }
 
         self.head = self.owned_buf.len();
@@ -349,11 +375,6 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     #[inline]
     pub fn finish_minimal<T>(&mut self, root: WIPOffset<T>) {
         self.finish_with_opts(root, None, false);
-    }
-
-    #[inline]
-    fn used_space(&self) -> usize {
-        self.owned_buf.len() - self.head as usize
     }
 
     #[inline]
