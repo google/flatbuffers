@@ -28,13 +28,15 @@ use primitives::*;
 #[derive(Debug)]
 pub struct Vector<'a, T: 'a>(&'a [u8], usize, PhantomData<T>);
 
-impl<'a, T: Follow<'a> + 'a> Clone for Vector<'a, T> {
+// Note that we manually implement `Clone` and `Copy` because deriving
+// either would put a `Clone or `Copy` bound on T.
+impl<'a, T: 'a> Clone for Vector<'a, T> {
     fn clone(&self) -> Self {
         Vector(self.0, self.1, self.2)
     }
 }
 
-impl<'a, T: Follow<'a> + 'a> Copy for Vector<'a, T> {}
+impl<'a, T: 'a> Copy for Vector<'a, T> {}
 
 impl<'a, T: 'a> Vector<'a, T> {
     #[inline(always)]
@@ -146,14 +148,16 @@ impl<'a, T: Follow<'a> + 'a> Follow<'a> for Vector<'a, T> {
     }
 }
 
+#[derive(Debug)]
 pub struct VectorIter<'a, T:'a >(Vector<'a, T>, usize);
+
 impl<'a, T: 'a> VectorIter<'a, T> {
     pub fn new(inner: Vector<'a, T>) -> Self {
         VectorIter(inner, 0)
     }
 }
 
-impl<'a, T: Follow<'a> + 'a> Clone for VectorIter<'a, T> {
+impl<'a, T: 'a> Clone for VectorIter<'a, T> {
     fn clone(&self) -> Self {
         VectorIter(self.0, self.1)
     }
