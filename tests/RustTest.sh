@@ -21,7 +21,13 @@ if [[ "$1" == "mips-unknown-linux-gnu" ]]; then
     export CARGO_TARGET_MIPS_UNKNOWN_LINUX_GNU_RUNNER="qemu-mips -L /usr/mips-linux-gnu"
 fi
 
-cd ./rust_usage_test
+# Add rustup to tool chain.
+rustup component add rustfmt
+
+# Run lint checks
+rustfmt ../rust/flatbuffers/src/lib.rs --check
+cd ../tests/rust_usage_test
+
 cargo test $TARGET_FLAG -- --quiet
 TEST_RESULT=$?
 if [[ $TEST_RESULT  == 0 ]]; then
