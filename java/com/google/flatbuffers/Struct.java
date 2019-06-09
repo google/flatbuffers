@@ -37,7 +37,7 @@ public class Struct {
    */
   protected void __reset(int _i, ByteBuffer _bb) { 
     bb = _bb;
-    if(bb != null) {
+    if (bb != null) {
       bb_pos = _i;
     } else {
       bb_pos = 0;

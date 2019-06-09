@@ -7,7 +7,6 @@ import com.google.flatbuffers.*;
 
 @SuppressWarnings("unused")
 public final class BookReader extends Struct {
-  public static void ValidateVersion() { Constants.FLATBUFFERS_1_11_1(); }
   public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }
   public BookReader __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 

@@ -833,17 +833,17 @@ class GeneralGenerator : public BaseGenerator {
       code += lang_.open_curly;
     }
 
-    // Generate verson check method.
-    // Force compile time error if not using the same version runtime.
-    code += "  public static void ValidateVersion() {";
-    if (lang_.language == IDLOptions::kCSharp)
-      code += " FlatBufferConstants.";
-    else
-      code += " Constants.";
-    code += std::string(FLATBUFFERS_COMPATIBLE()) + "(); ";
-    code += "}\n";
-
     if (!struct_def.fixed) {
+      // Generate verson check method.
+      // Force compile time error if not using the same version runtime.
+      code += "  public static void ValidateVersion() {";
+      if (lang_.language == IDLOptions::kCSharp)
+        code += " FlatBufferConstants.";
+      else
+        code += " Constants.";
+      code += "FLATBUFFERS_1_11_1(); ";
+      code += "}\n";
+
       // Generate a special accessor for the table that when used as the root
       // of a FlatBuffer
       std::string method_name =

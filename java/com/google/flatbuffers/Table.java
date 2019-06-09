@@ -271,7 +271,7 @@ public class Table {
    */
   protected void __reset(int _i, ByteBuffer _bb) { 
     bb = _bb;
-    if(bb != null) {
+    if (bb != null) {
       bb_pos = _i;
       vtable_start = bb_pos - bb.getInt(bb_pos);
       vtable_size = bb.getShort(vtable_start);
