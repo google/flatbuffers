@@ -3,7 +3,7 @@ Using the schema compiler    {#flatbuffers_guide_using_schema_compiler}
 
 Usage:
 
-    flatc [ GENERATOR OPTIONS ] [ -o PATH ] [ -I PATH ] [ -S ] FILES...
+    flatc [ GENERATOR OPTIONS ] [ -o PATH ] [ -I PATH ] FILES...
           [ -- FILES...]
 
 The files are read and parsed in order, and can contain either schemas
