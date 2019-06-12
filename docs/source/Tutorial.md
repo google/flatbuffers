@@ -2899,15 +2899,17 @@ If this is not sufficient, other ways of mutating FlatBuffers may be supported
 in your language through an object based API (`--gen-object-api`) or reflection.
 See the individual language documents for support.
 
-## JSON with FlatBuffers
+## Using `flatc` as a JSON Conversion Tool
 
-#### Using `flatc` as a Conversion Tool
-
-This is often the preferred method to use JSON with FlatBuffers, as it doesn't
-require you to add any new code to your program. It is also efficient, since you
-can ship with the binary data. The drawback is that it requires an extra step
-for your users/developers to perform (although it may be able to be automated
+If you are working with C, C++, or Lobster, you can parse JSON at runtime.
+If your language does not support JSON at the moment, `flatc` may provide an
+alternative. Using `flatc` is often the preferred method, as it doesn't require you to 
+add any new code to your program. It is also efficient, since you can ship with 
+the binary data. The drawback is that it requires an extra step for your 
+users/developers to perform (although it may be able to be automated
 as part of your compilation).
+
+#### JSON to binary representation
 
 Lets say you have a JSON file that describes your monster. In this example,
 we will use the file `flatbuffers/samples/monsterdata.json`.
@@ -2954,6 +2956,30 @@ for `flatcc` to support this.*
 [Use in Lobster](@ref flatbuffers_guide_use_lobster) section of the Programmer's
 Guide for more information.*
 </div>
+
+#### FlatBuffer binary to JSON
+
+Converting from a FlatBuffer binary representation to JSON is supported as well:
+~~~{.sh}
+./../flatc --json --raw-binary monster.fbs -- monsterdata.bin
+~~~
+This will convert `monsterdata.bin` back to its original JSON representation.
+You need to pass the corresponding FlatBuffers schema so that flatc knows how to 
+interpret the binary buffer. Since `monster.fbs` does not specify an explicit 
+`file_identifier` for binary buffers, `flatc` needs to be forced into reading 
+the `.bin` file using the `--raw-binary` option.
+
+The FlatBuffer binary representation does not explicitly encode default values, 
+therefore they are not present in the resulting JSON unless you specify 
+`--defaults-json`.
+
+If you intend to process the JSON with other tools, you may consider switching
+on `--strict-json` so that identifiers are quoted properly.
+
+*Note: The resulting JSON file is not necessarily identical with the original JSON.
+If the binary representation contains floating point numbers, floats and doubles
+are rounded to 6 and 12 digits, respectively, in order to represent them as 
+decimals in the JSON document. *
 
 ## Advanced Features for Each Language
 
