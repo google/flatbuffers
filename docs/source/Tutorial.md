@@ -2919,16 +2919,31 @@ Here are the contents of the file:
 ~~~{.json}
 {
   pos: {
-    x: 1,
-    y: 2,
-    z: 3
+    x: 1.0,
+    y: 2.0,
+    z: 3.0
   },
   hp: 300,
-  name: "Orc"
+  name: "Orc",
+  weapons: [
+    {
+      name: "axe",
+      damage: 100
+    },
+    {
+      name: "bow",
+      damage: 90
+    }
+  ],
+  equipped_type: "Weapon",
+  equipped: {
+    name: "bow",
+    damage: 90
+  }
 }
 ~~~
 
-You can run this file through the `flatc` compile with the `-b` flag and
+You can run this file through the `flatc` compiler with the `-b` flag and
 our `monster.fbs` schema to produce a FlatBuffer binary file.
 
 ~~~{.sh}
