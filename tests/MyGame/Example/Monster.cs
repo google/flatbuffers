@@ -63,7 +63,7 @@ public struct Monster : IFlatbufferObject
   public ArraySegment<byte>? GetTestnestedflatbufferBytes() { return __p.__vector_as_arraysegment(30); }
 #endif
   public byte[] GetTestnestedflatbufferArray() { return __p.__vector_as_array<byte>(30); }
-  public MyGame.Example.Monster? GetTestnestedflatbufferAsMyGame.Example.Monster() { int o = __p.__offset(30); return o != 0 ? (MyGame.Example.Monster?)(new MyGame.Example.Monster()).__assign(__p.__indirect(__p.__vector(o)), __p.bb) : null; }
+  public MyGame.Example.Monster? GetTestnestedflatbufferAsMonster() { int o = __p.__offset(30); return o != 0 ? (MyGame.Example.Monster?)(new MyGame.Example.Monster()).__assign(__p.__indirect(__p.__vector(o)), __p.bb) : null; }
   public bool MutateTestnestedflatbuffer(int j, byte testnestedflatbuffer) { int o = __p.__offset(30); if (o != 0) { __p.bb.Put(__p.__vector(o) + j * 1, testnestedflatbuffer); return true; } else { return false; } }
   public MyGame.Example.Stat? Testempty { get { int o = __p.__offset(32); return o != 0 ? (MyGame.Example.Stat?)(new MyGame.Example.Stat()).__assign(__p.__indirect(o + __p.bb_pos), __p.bb) : null; } }
   public bool Testbool { get { int o = __p.__offset(34); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }

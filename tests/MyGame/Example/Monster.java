@@ -57,8 +57,8 @@ public final class Monster extends Table {
   public int testnestedflatbufferLength() { int o = __offset(30); return o != 0 ? __vector_len(o) : 0; }
   public ByteBuffer testnestedflatbufferAsByteBuffer() { return __vector_as_bytebuffer(30, 1); }
   public ByteBuffer testnestedflatbufferInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 30, 1); }
-  public MyGame.Example.Monster testnestedflatbufferAsMyGame.Example.Monster() { return testnestedflatbufferAsMyGame.Example.Monster(new MyGame.Example.Monster()); }
-  public MyGame.Example.Monster testnestedflatbufferAsMyGame.Example.Monster(MyGame.Example.Monster obj) { int o = __offset(30); return o != 0 ? obj.__assign(__indirect(__vector(o)), bb) : null; }
+  public MyGame.Example.Monster testnestedflatbufferAsMonster() { return testnestedflatbufferAsMonster(new MyGame.Example.Monster()); }
+  public MyGame.Example.Monster testnestedflatbufferAsMonster(MyGame.Example.Monster obj) { int o = __offset(30); return o != 0 ? obj.__assign(__indirect(__vector(o)), bb) : null; }
   public boolean mutateTestnestedflatbuffer(int j, int testnestedflatbuffer) { int o = __offset(30); if (o != 0) { bb.put(__vector(o) + j * 1, (byte)testnestedflatbuffer); return true; } else { return false; } }
   public MyGame.Example.Stat testempty() { return testempty(new MyGame.Example.Stat()); }
   public MyGame.Example.Stat testempty(MyGame.Example.Stat obj) { int o = __offset(32); return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null; }
