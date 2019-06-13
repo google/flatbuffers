@@ -56,7 +56,7 @@ public struct TypeAliases : IFlatbufferObject
   public double[] GetVf64Array() { return __p.__vector_as_array<double>(26); }
   public bool MutateVf64(int j, double vf64) { int o = __p.__offset(26); if (o != 0) { __p.bb.PutDouble(__p.__vector(o) + j * 8, vf64); return true; } else { return false; } }
 
-  public static Offset<TypeAliases> CreateTypeAliases(FlatBufferBuilder builder,
+  public static Offset<MyGame.Example.TypeAliases> CreateTypeAliases(FlatBufferBuilder builder,
       sbyte i8 = 0,
       byte u8 = 0,
       short i16 = 0,
@@ -104,9 +104,9 @@ public struct TypeAliases : IFlatbufferObject
   public static VectorOffset CreateVf64Vector(FlatBufferBuilder builder, double[] data) { builder.StartVector(8, data.Length, 8); for (int i = data.Length - 1; i >= 0; i--) builder.AddDouble(data[i]); return builder.EndVector(); }
   public static VectorOffset CreateVf64VectorBlock(FlatBufferBuilder builder, double[] data) { builder.StartVector(8, data.Length, 8); builder.Add(data); return builder.EndVector(); }
   public static void StartVf64Vector(FlatBufferBuilder builder, int numElems) { builder.StartVector(8, numElems, 8); }
-  public static Offset<TypeAliases> EndTypeAliases(FlatBufferBuilder builder) {
+  public static Offset<MyGame.Example.TypeAliases> EndTypeAliases(FlatBufferBuilder builder) {
     int o = builder.EndTable();
-    return new Offset<TypeAliases>(o);
+    return new Offset<MyGame.Example.TypeAliases>(o);
   }
 };
 
