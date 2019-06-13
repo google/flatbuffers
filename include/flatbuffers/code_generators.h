@@ -109,8 +109,9 @@ class BaseGenerator {
   // which works for js and php
   virtual const Namespace *CurrentNameSpace() const { return nullptr; }
 
-  // Ensure that a type is prefixed with its namespace whenever it is used
-  // outside of its namespace.
+  // Ensure that a type is prefixed with its namespace even within
+  // its own namespace to avoid conflict between generated method
+  // names and similarly named classes or structs
   std::string WrapInNameSpace(const Namespace *ns,
                               const std::string &name) const;
 
