@@ -23,7 +23,9 @@
 #  ifndef NOMINMAX
 #    define NOMINMAX
 #  endif
-#  include <crtdbg.h>
+#  ifdef _MSC_VER
+#    include <crtdbg.h>
+#  endif
 #  include <windows.h>  // Must be included before <direct.h>
 #  include <direct.h>
 #  include <winbase.h>
