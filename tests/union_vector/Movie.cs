@@ -13,7 +13,7 @@ public struct Movie : IFlatbufferObject
   public static Movie GetRootAsMovie(ByteBuffer _bb) { return GetRootAsMovie(_bb, new Movie()); }
   public static Movie GetRootAsMovie(ByteBuffer _bb, Movie obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public static bool MovieBufferHasIdentifier(ByteBuffer _bb) { return Table.__has_identifier(_bb, "MOVI"); }
-  public void __init(int _i, ByteBuffer _bb) { __p = default(Table); __p.__reset(_i, _bb); }
+  public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
   public Movie __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public Character MainCharacterType { get { int o = __p.__offset(4); return o != 0 ? (Character)__p.bb.Get(o + __p.bb_pos) : Character.NONE; } }

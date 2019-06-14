@@ -15,7 +15,7 @@ public struct InParentNamespace : IFlatbufferObject
   public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_1_11_1(); }
   public static InParentNamespace GetRootAsInParentNamespace(ByteBuffer _bb) { return GetRootAsInParentNamespace(_bb, new InParentNamespace()); }
   public static InParentNamespace GetRootAsInParentNamespace(ByteBuffer _bb, InParentNamespace obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
-  public void __init(int _i, ByteBuffer _bb) { __p = default(Table); __p.__reset(_i, _bb); }
+  public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
   public InParentNamespace __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
 

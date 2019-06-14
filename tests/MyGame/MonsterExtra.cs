@@ -16,7 +16,7 @@ public struct MonsterExtra : IFlatbufferObject
   public static MonsterExtra GetRootAsMonsterExtra(ByteBuffer _bb) { return GetRootAsMonsterExtra(_bb, new MonsterExtra()); }
   public static MonsterExtra GetRootAsMonsterExtra(ByteBuffer _bb, MonsterExtra obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public static bool MonsterExtraBufferHasIdentifier(ByteBuffer _bb) { return Table.__has_identifier(_bb, "MONE"); }
-  public void __init(int _i, ByteBuffer _bb) { __p = default(Table); __p.__reset(_i, _bb); }
+  public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
   public MonsterExtra __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public float TestfNan { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)Single.NaN; } }

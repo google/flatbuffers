@@ -25,8 +25,7 @@ namespace FlatBuffers.Test
 
         public TestTable(ByteBuffer bb, int pos)
         {
-          t = default(Table);
-          t.__reset(pos, bb);
+          t = new Table(pos, bb);
         }
 
         public bool GetSlot(int slot, bool def)

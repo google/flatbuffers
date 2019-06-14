@@ -882,9 +882,9 @@ class GeneralGenerator : public BaseGenerator {
     code += "  public void __init(int _i, ByteBuffer _bb) ";
     code += "{ ";
     if (lang_.language == IDLOptions::kCSharp) {
-      code += "__p = default(";
+      code += "__p = new ";
       code += struct_def.fixed ? "Struct" : "Table";
-      code += "); __p.__reset(_i, _bb); ";
+      code += "(_i, _bb); ";
     } else {
       code += "__reset(_i, _bb); ";
     }

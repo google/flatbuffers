@@ -25,7 +25,7 @@ namespace FlatBuffers
         public ByteBuffer bb { get; private set; }
 
         // Re-init the internal state with an external buffer {@code ByteBuffer} and an offset within.
-        public void __reset(int _i, ByteBuffer _bb)
+        public Struct(int _i, ByteBuffer _bb)
         {
             bb = _bb;
             bb_pos = _i;
