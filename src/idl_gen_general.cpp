@@ -1182,7 +1182,7 @@ class GeneralGenerator : public BaseGenerator {
         auto nested_type_name = WrapInNameSpace(*field.nested_flatbuffer);
         auto nested_method_name =
             MakeCamel(field.name, lang_.first_camel_upper) + "As" +
-            nested_type_name;
+            field.nested_flatbuffer->name;
         auto get_nested_method_name = nested_method_name;
         if (lang_.language == IDLOptions::kCSharp) {
           get_nested_method_name = "Get" + nested_method_name;

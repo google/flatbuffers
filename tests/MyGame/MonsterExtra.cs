@@ -49,7 +49,7 @@ public struct MonsterExtra : IFlatbufferObject
   public double[] GetTestdVecArray() { return __p.__vector_as_array<double>(18); }
   public bool MutateTestdVec(int j, double testd_vec) { int o = __p.__offset(18); if (o != 0) { __p.bb.PutDouble(__p.__vector(o) + j * 8, testd_vec); return true; } else { return false; } }
 
-  public static Offset<MonsterExtra> CreateMonsterExtra(FlatBufferBuilder builder,
+  public static Offset<MyGame.MonsterExtra> CreateMonsterExtra(FlatBufferBuilder builder,
       float testf_nan = Single.NaN,
       float testf_pinf = Single.PositiveInfinity,
       float testf_ninf = Single.NegativeInfinity,
@@ -85,12 +85,12 @@ public struct MonsterExtra : IFlatbufferObject
   public static VectorOffset CreateTestdVecVector(FlatBufferBuilder builder, double[] data) { builder.StartVector(8, data.Length, 8); for (int i = data.Length - 1; i >= 0; i--) builder.AddDouble(data[i]); return builder.EndVector(); }
   public static VectorOffset CreateTestdVecVectorBlock(FlatBufferBuilder builder, double[] data) { builder.StartVector(8, data.Length, 8); builder.Add(data); return builder.EndVector(); }
   public static void StartTestdVecVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(8, numElems, 8); }
-  public static Offset<MonsterExtra> EndMonsterExtra(FlatBufferBuilder builder) {
+  public static Offset<MyGame.MonsterExtra> EndMonsterExtra(FlatBufferBuilder builder) {
     int o = builder.EndTable();
-    return new Offset<MonsterExtra>(o);
+    return new Offset<MyGame.MonsterExtra>(o);
   }
-  public static void FinishMonsterExtraBuffer(FlatBufferBuilder builder, Offset<MonsterExtra> offset) { builder.Finish(offset.Value, "MONE"); }
-  public static void FinishSizePrefixedMonsterExtraBuffer(FlatBufferBuilder builder, Offset<MonsterExtra> offset) { builder.FinishSizePrefixed(offset.Value, "MONE"); }
+  public static void FinishMonsterExtraBuffer(FlatBufferBuilder builder, Offset<MyGame.MonsterExtra> offset) { builder.Finish(offset.Value, "MONE"); }
+  public static void FinishSizePrefixedMonsterExtraBuffer(FlatBufferBuilder builder, Offset<MyGame.MonsterExtra> offset) { builder.FinishSizePrefixed(offset.Value, "MONE"); }
 };
 
 

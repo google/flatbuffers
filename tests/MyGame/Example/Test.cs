@@ -20,12 +20,12 @@ public struct Test : IFlatbufferObject
   public sbyte B { get { return __p.bb.GetSbyte(__p.bb_pos + 2); } }
   public void MutateB(sbyte b) { __p.bb.PutSbyte(__p.bb_pos + 2, b); }
 
-  public static Offset<Test> CreateTest(FlatBufferBuilder builder, short A, sbyte B) {
+  public static Offset<MyGame.Example.Test> CreateTest(FlatBufferBuilder builder, short A, sbyte B) {
     builder.Prep(2, 4);
     builder.Pad(1);
     builder.PutSbyte(B);
     builder.PutShort(A);
-    return new Offset<Test>(builder.Offset);
+    return new Offset<MyGame.Example.Test>(builder.Offset);
   }
 };
 

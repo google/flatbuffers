@@ -19,9 +19,9 @@ public struct InParentNamespace : IFlatbufferObject
 
 
   public static void StartInParentNamespace(FlatBufferBuilder builder) { builder.StartTable(0); }
-  public static Offset<InParentNamespace> EndInParentNamespace(FlatBufferBuilder builder) {
+  public static Offset<MyGame.InParentNamespace> EndInParentNamespace(FlatBufferBuilder builder) {
     int o = builder.EndTable();
-    return new Offset<InParentNamespace>(o);
+    return new Offset<MyGame.InParentNamespace>(o);
   }
 };
 

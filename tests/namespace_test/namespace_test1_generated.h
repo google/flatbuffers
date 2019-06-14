@@ -134,7 +134,7 @@ inline const flatbuffers::TypeTable *EnumInNestedNSTypeTable() {
     { flatbuffers::ET_CHAR, 0, 0 }
   };
   static const flatbuffers::TypeFunction type_refs[] = {
-    EnumInNestedNSTypeTable
+    NamespaceA::NamespaceB::EnumInNestedNSTypeTable
   };
   static const char * const names[] = {
     "A",

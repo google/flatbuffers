@@ -19,7 +19,7 @@ public struct SecondTableInA : IFlatbufferObject
 
   public NamespaceC.TableInC? ReferToC { get { int o = __p.__offset(4); return o != 0 ? (NamespaceC.TableInC?)(new NamespaceC.TableInC()).__assign(__p.__indirect(o + __p.bb_pos), __p.bb) : null; } }
 
-  public static Offset<SecondTableInA> CreateSecondTableInA(FlatBufferBuilder builder,
+  public static Offset<NamespaceA.SecondTableInA> CreateSecondTableInA(FlatBufferBuilder builder,
       Offset<NamespaceC.TableInC> refer_to_cOffset = default(Offset<NamespaceC.TableInC>)) {
     builder.StartTable(1);
     SecondTableInA.AddReferToC(builder, refer_to_cOffset);
@@ -28,9 +28,9 @@ public struct SecondTableInA : IFlatbufferObject
 
   public static void StartSecondTableInA(FlatBufferBuilder builder) { builder.StartTable(1); }
   public static void AddReferToC(FlatBufferBuilder builder, Offset<NamespaceC.TableInC> referToCOffset) { builder.AddOffset(0, referToCOffset.Value, 0); }
-  public static Offset<SecondTableInA> EndSecondTableInA(FlatBufferBuilder builder) {
+  public static Offset<NamespaceA.SecondTableInA> EndSecondTableInA(FlatBufferBuilder builder) {
     int o = builder.EndTable();
-    return new Offset<SecondTableInA>(o);
+    return new Offset<NamespaceA.SecondTableInA>(o);
   }
 };
 
