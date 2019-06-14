@@ -143,7 +143,7 @@ class GoGenerator : public BaseGenerator {
 
   // Construct the name of the type for this enum.
   std::string GetEnumTypeName(const EnumDef &enum_def) {
-    return WrapInNameSpaceAndTrack(cur_name_space_, GoIdentity(enum_def.name));
+    return WrapInNameSpaceAndTrack(enum_def.defined_namespace, GoIdentity(enum_def.name));
   }
 
   // Create a type for the enum values.
