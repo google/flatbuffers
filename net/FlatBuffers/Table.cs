@@ -22,7 +22,7 @@ namespace FlatBuffers
     /// <summary>
     /// All tables in the generated code derive from this struct, and add their own accessors.
     /// </summary>
-    public struct Table
+    internal struct Table
     {
         public int bb_pos { get; private set; }
         public ByteBuffer bb { get; private set; }
