@@ -47,26 +47,26 @@ namespace flatbuffers {
 // of type tokens.
 // clang-format off
 #define FLATBUFFERS_GEN_TYPES_SCALAR(TD) \
-  TD(NONE,   "",       uint8_t,  byte,   byte,    byte,   uint8,   u8) \
-  TD(UTYPE,  "",       uint8_t,  byte,   byte,    byte,   uint8,   u8) /* begin scalar/int */ \
-  TD(BOOL,   "bool",   uint8_t,  boolean,bool,    bool,   bool,    bool) \
-  TD(CHAR,   "byte",   int8_t,   byte,   int8,    sbyte,  int8,    i8) \
-  TD(UCHAR,  "ubyte",  uint8_t,  byte,   byte,    byte,   uint8,   u8) \
-  TD(SHORT,  "short",  int16_t,  short,  int16,   short,  int16,   i16) \
-  TD(USHORT, "ushort", uint16_t, short,  uint16,  ushort, uint16,  u16) \
-  TD(INT,    "int",    int32_t,  int,    int32,   int,    int32,   i32) \
-  TD(UINT,   "uint",   uint32_t, int,    uint32,  uint,   uint32,  u32) \
-  TD(LONG,   "long",   int64_t,  long,   int64,   long,   int64,   i64) \
-  TD(ULONG,  "ulong",  uint64_t, long,   uint64,  ulong,  uint64,  u64) /* end int */ \
-  TD(FLOAT,  "float",  float,    float,  float32, float,  float32, f32) /* begin float */ \
-  TD(DOUBLE, "double", double,   double, float64, double, float64, f64) /* end float/scalar */
+  TD(NONE,   "",       uint8_t,  byte,   byte,    byte,   uint8,   u8,   Byte) \
+  TD(UTYPE,  "",       uint8_t,  byte,   byte,    byte,   uint8,   u8,   Byte) /* begin scalar/int */ \
+  TD(BOOL,   "bool",   uint8_t,  boolean,bool,    bool,   bool,    bool, Boolean) \
+  TD(CHAR,   "byte",   int8_t,   byte,   int8,    sbyte,  int8,    i8,   Byte) \
+  TD(UCHAR,  "ubyte",  uint8_t,  byte,   byte,    byte,   uint8,   u8,   Byte) \
+  TD(SHORT,  "short",  int16_t,  short,  int16,   short,  int16,   i16,  Short) \
+  TD(USHORT, "ushort", uint16_t, short,  uint16,  ushort, uint16,  u16,  Short) \
+  TD(INT,    "int",    int32_t,  int,    int32,   int,    int32,   i32,  Int) \
+  TD(UINT,   "uint",   uint32_t, int,    uint32,  uint,   uint32,  u32,  Int) \
+  TD(LONG,   "long",   int64_t,  long,   int64,   long,   int64,   i64,  Long) \
+  TD(ULONG,  "ulong",  uint64_t, long,   uint64,  ulong,  uint64,  u64,  Long) /* end int */ \
+  TD(FLOAT,  "float",  float,    float,  float32, float,  float32, f32,  Float) /* begin float */ \
+  TD(DOUBLE, "double", double,   double, float64, double, float64, f64,  Double) /* end float/scalar */
 #define FLATBUFFERS_GEN_TYPES_POINTER(TD) \
-  TD(STRING, "string", Offset<void>, int, int, StringOffset, int, unused) \
-  TD(VECTOR, "",       Offset<void>, int, int, VectorOffset, int, unused) \
-  TD(STRUCT, "",       Offset<void>, int, int, int,          int, unused) \
-  TD(UNION,  "",       Offset<void>, int, int, int,          int, unused)
+  TD(STRING, "string", Offset<void>, int, int, StringOffset, int, unused, Int) \
+  TD(VECTOR, "",       Offset<void>, int, int, VectorOffset, int, unused, Int) \
+  TD(STRUCT, "",       Offset<void>, int, int, int,          int, unused, Int) \
+  TD(UNION,  "",       Offset<void>, int, int, int,          int, unused, Int)
 #define FLATBUFFERS_GEN_TYPE_ARRAY(TD) \
-  TD(ARRAY,  "",       int,          int, int, int,          int, unused)
+  TD(ARRAY,  "",       int,          int, int, int,          int, unused, Int)
 // The fields are:
 // - enum
 // - FlatBuffers schema type.
@@ -76,13 +76,14 @@ namespace flatbuffers {
 // - C# / .Net type.
 // - Python type.
 // - Rust type.
+// - Kotlin type.
 
 // using these macros, we can now write code dealing with types just once, e.g.
 
 /*
 switch (type) {
   #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, \
-                         RTYPE) \
+                         RTYPE, KTYPE) \
     case BASE_TYPE_ ## ENUM: \
       // do something specific to CTYPE here
     FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
@@ -101,14 +102,14 @@ __extension__  // Stop GCC complaining about trailing comma with -Wpendantic.
 #endif
 enum BaseType {
   #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, \
-                         RTYPE) \
+                         RTYPE, KTYPE) \
       BASE_TYPE_ ## ENUM,
     FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
   #undef FLATBUFFERS_TD
 };
 
 #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, \
-                       RTYPE) \
+                       RTYPE, KTYPE) \
     static_assert(sizeof(CTYPE) <= sizeof(largest_scalar_t), \
                   "define largest_scalar_t as " #CTYPE);
   FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
@@ -546,6 +547,7 @@ struct IDLOptions {
     kLua = 1 << 12,
     kLobster = 1 << 13,
     kRust = 1 << 14,
+    kKotlin = 1 << 15,
     kMAX
   };
 
@@ -1007,6 +1009,9 @@ extern bool GenerateRust(const Parser &parser,
 // See idl_gen_json_schema.cpp.
 extern bool GenerateJsonSchema(const Parser &parser,
                            const std::string &path,
+                           const std::string &file_name);
+
+extern bool GenerateKotlin(const Parser &parser, const std::string &path,
                            const std::string &file_name);
 
 // Generate Java/C#/.. files from the definitions in the Parser object.
