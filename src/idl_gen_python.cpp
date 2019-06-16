@@ -36,8 +36,7 @@ class PythonGenerator : public BaseGenerator {
  public:
   PythonGenerator(const Parser &parser, const std::string &path,
                   const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "" /* not used */,
-                      "" /* not used */),
+      : BaseGenerator(parser, path, file_name, "" /* not used */, "."),
         float_const_gen_("float('nan')", "float('inf')", "float('-inf')") {
     static const char * const keywords[] = {
       "False",
@@ -241,7 +240,8 @@ class PythonGenerator : public BaseGenerator {
       code += "x = self._tab.Indirect(o + self._tab.Pos)\n";
     }
     code += Indent + Indent + Indent;
-    code += "from ." + TypeName(field) + " import " + TypeName(field) + "\n";
+    code += "from " + WrapInNameSpace(*field.value.type.struct_def);
+    code += " import " + TypeName(field) + "\n";
     code += Indent + Indent + Indent + "obj = " + TypeName(field) + "()\n";
     code += Indent + Indent + Indent + "obj.Init(self._tab.Bytes, x)\n";
     code += Indent + Indent + Indent + "return obj\n";

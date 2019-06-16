@@ -32,10 +32,19 @@ class TableInFirstNS extends Table
         return $this;
     }
 
+    /**
+     * @return int
+     */
+    public function getX()
+    {
+        $o = $this->__offset(4);
+        return $o != 0 ? $this->bb->getInt($o + $this->bb_pos) : 0;
+    }
+
     public function getFooTable()
     {
         $obj = new TableInNestedNS();
-        $o = $this->__offset(4);
+        $o = $this->__offset(6);
         return $o != 0 ? $obj->init($this->__indirect($o + $this->bb_pos), $this->bb) : 0;
     }
 
@@ -44,14 +53,14 @@ class TableInFirstNS extends Table
      */
     public function getFooEnum()
     {
-        $o = $this->__offset(6);
+        $o = $this->__offset(8);
         return $o != 0 ? $this->bb->getSbyte($o + $this->bb_pos) : \NamespaceA\NamespaceB\EnumInNestedNS::A;
     }
 
     public function getFooStruct()
     {
         $obj = new StructInNestedNS();
-        $o = $this->__offset(8);
+        $o = $this->__offset(10);
         return $o != 0 ? $obj->init($o + $this->bb_pos, $this->bb) : 0;
     }
 
@@ -61,16 +70,17 @@ class TableInFirstNS extends Table
      */
     public static function startTableInFirstNS(FlatBufferBuilder $builder)
     {
-        $builder->StartObject(3);
+        $builder->StartObject(4);
     }
 
     /**
      * @param FlatBufferBuilder $builder
      * @return TableInFirstNS
      */
-    public static function createTableInFirstNS(FlatBufferBuilder $builder, $foo_table, $foo_enum, $foo_struct)
+    public static function createTableInFirstNS(FlatBufferBuilder $builder, $x, $foo_table, $foo_enum, $foo_struct)
     {
-        $builder->startObject(3);
+        $builder->startObject(4);
+        self::addX($builder, $x);
         self::addFooTable($builder, $foo_table);
         self::addFooEnum($builder, $foo_enum);
         self::addFooStruct($builder, $foo_struct);
@@ -83,9 +93,19 @@ class TableInFirstNS extends Table
      * @param int
      * @return void
      */
+    public static function addX(FlatBufferBuilder $builder, $x)
+    {
+        $builder->addIntX(0, $x, 0);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param int
+     * @return void
+     */
     public static function addFooTable(FlatBufferBuilder $builder, $fooTable)
     {
-        $builder->addOffsetX(0, $fooTable, 0);
+        $builder->addOffsetX(1, $fooTable, 0);
     }
 
     /**
@@ -95,7 +115,7 @@ class TableInFirstNS extends Table
      */
     public static function addFooEnum(FlatBufferBuilder $builder, $fooEnum)
     {
-        $builder->addSbyteX(1, $fooEnum, 0);
+        $builder->addSbyteX(2, $fooEnum, 0);
     }
 
     /**
@@ -105,7 +125,7 @@ class TableInFirstNS extends Table
      */
     public static function addFooStruct(FlatBufferBuilder $builder, $fooStruct)
     {
-        $builder->addStructX(2, $fooStruct, 0);
+        $builder->addStructX(3, $fooStruct, 0);
     }
 
     /**

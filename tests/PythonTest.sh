@@ -30,8 +30,8 @@ function run_tests() {
     echo "Testing with interpreter: ${1}"
     PYTHONDONTWRITEBYTECODE=1 \
     JYTHONDONTWRITEBYTECODE=1 \
-    PYTHONPATH=${runtime_library_dir}:${gen_code_path} \
-    JYTHONPATH=${runtime_library_dir}:${gen_code_path} \
+    PYTHONPATH=${runtime_library_dir}:${gen_code_path}:${gen_code_path}/namespace_test \
+    JYTHONPATH=${runtime_library_dir}:${gen_code_path}:${gen_code_path}/namespace_test \
     COMPARE_GENERATED_TO_GO=0 \
     COMPARE_GENERATED_TO_JAVA=0 \
     $1 py_test.py $2 $3 $4
@@ -63,7 +63,7 @@ if $(which coverage >/dev/null); then
   echo 'Found coverage utility, running coverage with default Python:'
 
   PYTHONDONTWRITEBYTECODE=1 \
-  PYTHONPATH=${runtime_library_dir}:${gen_code_path} \
+  PYTHONPATH=${runtime_library_dir}:${gen_code_path}:${gen_code_path}/namespace_test \
   coverage run --source=flatbuffers,MyGame py_test.py 0 0 0 > /dev/null
 
   echo

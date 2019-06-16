@@ -19,11 +19,18 @@ class TableInFirstNS(object):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # TableInFirstNS
-    def FooTable(self):
+    def X(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Int32Flags, o + self._tab.Pos)
+        return 0
+
+    # TableInFirstNS
+    def FooTable(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        if o != 0:
             x = self._tab.Indirect(o + self._tab.Pos)
-            from .TableInNestedNS import TableInNestedNS
+            from NamespaceA.NamespaceB.TableInNestedNS import TableInNestedNS
             obj = TableInNestedNS()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -31,24 +38,25 @@ class TableInFirstNS(object):
 
     # TableInFirstNS
     def FooEnum(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Int8Flags, o + self._tab.Pos)
         return 0
 
     # TableInFirstNS
     def FooStruct(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
             x = o + self._tab.Pos
-            from .StructInNestedNS import StructInNestedNS
+            from NamespaceA.NamespaceB.StructInNestedNS import StructInNestedNS
             obj = StructInNestedNS()
             obj.Init(self._tab.Bytes, x)
             return obj
         return None
 
-def TableInFirstNSStart(builder): builder.StartObject(3)
-def TableInFirstNSAddFooTable(builder, fooTable): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(fooTable), 0)
-def TableInFirstNSAddFooEnum(builder, fooEnum): builder.PrependInt8Slot(1, fooEnum, 0)
-def TableInFirstNSAddFooStruct(builder, fooStruct): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(fooStruct), 0)
+def TableInFirstNSStart(builder): builder.StartObject(4)
+def TableInFirstNSAddX(builder, x): builder.PrependInt32Slot(0, x, 0)
+def TableInFirstNSAddFooTable(builder, fooTable): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(fooTable), 0)
+def TableInFirstNSAddFooEnum(builder, fooEnum): builder.PrependInt8Slot(2, fooEnum, 0)
+def TableInFirstNSAddFooStruct(builder, fooStruct): builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(fooStruct), 0)
 def TableInFirstNSEnd(builder): return builder.EndObject()

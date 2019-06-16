@@ -63,11 +63,34 @@ NamespaceA.TableInFirstNS.getSizePrefixedRootAsTableInFirstNS = function(bb, obj
 };
 
 /**
+ * @returns {number}
+ */
+NamespaceA.TableInFirstNS.prototype.x = function() {
+  var offset = this.bb.__offset(this.bb_pos, 4);
+  return offset ? this.bb.readInt32(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+NamespaceA.TableInFirstNS.prototype.mutate_x = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 4);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @param {NamespaceA.NamespaceB.TableInNestedNS=} obj
  * @returns {NamespaceA.NamespaceB.TableInNestedNS|null}
  */
 NamespaceA.TableInFirstNS.prototype.fooTable = function(obj) {
-  var offset = this.bb.__offset(this.bb_pos, 4);
+  var offset = this.bb.__offset(this.bb_pos, 6);
   return offset ? (obj || new NamespaceA.NamespaceB.TableInNestedNS).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
 };
 
@@ -75,7 +98,7 @@ NamespaceA.TableInFirstNS.prototype.fooTable = function(obj) {
  * @returns {NamespaceA.NamespaceB.EnumInNestedNS}
  */
 NamespaceA.TableInFirstNS.prototype.fooEnum = function() {
-  var offset = this.bb.__offset(this.bb_pos, 6);
+  var offset = this.bb.__offset(this.bb_pos, 8);
   return offset ? /** @type {NamespaceA.NamespaceB.EnumInNestedNS} */ (this.bb.readInt8(this.bb_pos + offset)) : NamespaceA.NamespaceB.EnumInNestedNS.A;
 };
 
@@ -84,7 +107,7 @@ NamespaceA.TableInFirstNS.prototype.fooEnum = function() {
  * @returns {boolean}
  */
 NamespaceA.TableInFirstNS.prototype.mutate_foo_enum = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 6);
+  var offset = this.bb.__offset(this.bb_pos, 8);
 
   if (offset === 0) {
     return false;
@@ -99,7 +122,7 @@ NamespaceA.TableInFirstNS.prototype.mutate_foo_enum = function(value) {
  * @returns {NamespaceA.NamespaceB.StructInNestedNS|null}
  */
 NamespaceA.TableInFirstNS.prototype.fooStruct = function(obj) {
-  var offset = this.bb.__offset(this.bb_pos, 8);
+  var offset = this.bb.__offset(this.bb_pos, 10);
   return offset ? (obj || new NamespaceA.NamespaceB.StructInNestedNS).__init(this.bb_pos + offset, this.bb) : null;
 };
 
@@ -107,7 +130,15 @@ NamespaceA.TableInFirstNS.prototype.fooStruct = function(obj) {
  * @param {flatbuffers.Builder} builder
  */
 NamespaceA.TableInFirstNS.startTableInFirstNS = function(builder) {
-  builder.startObject(3);
+  builder.startObject(4);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} x
+ */
+NamespaceA.TableInFirstNS.addX = function(builder, x) {
+  builder.addFieldInt32(0, x, 0);
 };
 
 /**
@@ -115,7 +146,7 @@ NamespaceA.TableInFirstNS.startTableInFirstNS = function(builder) {
  * @param {flatbuffers.Offset} fooTableOffset
  */
 NamespaceA.TableInFirstNS.addFooTable = function(builder, fooTableOffset) {
-  builder.addFieldOffset(0, fooTableOffset, 0);
+  builder.addFieldOffset(1, fooTableOffset, 0);
 };
 
 /**
@@ -123,7 +154,7 @@ NamespaceA.TableInFirstNS.addFooTable = function(builder, fooTableOffset) {
  * @param {NamespaceA.NamespaceB.EnumInNestedNS} fooEnum
  */
 NamespaceA.TableInFirstNS.addFooEnum = function(builder, fooEnum) {
-  builder.addFieldInt8(1, fooEnum, NamespaceA.NamespaceB.EnumInNestedNS.A);
+  builder.addFieldInt8(2, fooEnum, NamespaceA.NamespaceB.EnumInNestedNS.A);
 };
 
 /**
@@ -131,7 +162,7 @@ NamespaceA.TableInFirstNS.addFooEnum = function(builder, fooEnum) {
  * @param {flatbuffers.Offset} fooStructOffset
  */
 NamespaceA.TableInFirstNS.addFooStruct = function(builder, fooStructOffset) {
-  builder.addFieldStruct(2, fooStructOffset, 0);
+  builder.addFieldStruct(3, fooStructOffset, 0);
 };
 
 /**
@@ -145,13 +176,15 @@ NamespaceA.TableInFirstNS.endTableInFirstNS = function(builder) {
 
 /**
  * @param {flatbuffers.Builder} builder
+ * @param {number} x
  * @param {flatbuffers.Offset} fooTableOffset
  * @param {NS8755221360535654258.NamespaceA.NamespaceB.EnumInNestedNS} fooEnum
  * @param {flatbuffers.Offset} fooStructOffset
  * @returns {flatbuffers.Offset}
  */
-NamespaceA.TableInFirstNS.createTableInFirstNS = function(builder, fooTableOffset, fooEnum, fooStructOffset) {
+NamespaceA.TableInFirstNS.createTableInFirstNS = function(builder, x, fooTableOffset, fooEnum, fooStructOffset) {
   NamespaceA.TableInFirstNS.startTableInFirstNS(builder);
+  NamespaceA.TableInFirstNS.addX(builder, x);
   NamespaceA.TableInFirstNS.addFooTable(builder, fooTableOffset);
   NamespaceA.TableInFirstNS.addFooEnum(builder, fooEnum);
   NamespaceA.TableInFirstNS.addFooStruct(builder, fooStructOffset);

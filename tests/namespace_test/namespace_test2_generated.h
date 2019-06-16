@@ -43,10 +43,17 @@ struct TableInFirstNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return TableInFirstNSTypeTable();
   }
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_FOO_TABLE = 4,
-    VT_FOO_ENUM = 6,
-    VT_FOO_STRUCT = 8
+    VT_X = 4,
+    VT_FOO_TABLE = 6,
+    VT_FOO_ENUM = 8,
+    VT_FOO_STRUCT = 10
   };
+  int32_t x() const {
+    return GetField<int32_t>(VT_X, 0);
+  }
+  bool mutate_x(int32_t _x) {
+    return SetField<int32_t>(VT_X, _x, 0);
+  }
   const NamespaceA::NamespaceB::TableInNestedNS *foo_table() const {
     return GetPointer<const NamespaceA::NamespaceB::TableInNestedNS *>(VT_FOO_TABLE);
   }
@@ -67,6 +74,7 @@ struct TableInFirstNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
+           VerifyField<int32_t>(verifier, VT_X) &&
            VerifyOffset(verifier, VT_FOO_TABLE) &&
            verifier.VerifyTable(foo_table()) &&
            VerifyField<int8_t>(verifier, VT_FOO_ENUM) &&
@@ -78,6 +86,9 @@ struct TableInFirstNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct TableInFirstNSBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
+  void add_x(int32_t x) {
+    fbb_.AddElement<int32_t>(TableInFirstNS::VT_X, x, 0);
+  }
   void add_foo_table(flatbuffers::Offset<NamespaceA::NamespaceB::TableInNestedNS> foo_table) {
     fbb_.AddOffset(TableInFirstNS::VT_FOO_TABLE, foo_table);
   }
@@ -101,12 +112,14 @@ struct TableInFirstNSBuilder {
 
 inline flatbuffers::Offset<TableInFirstNS> CreateTableInFirstNS(
     flatbuffers::FlatBufferBuilder &_fbb,
+    int32_t x = 0,
     flatbuffers::Offset<NamespaceA::NamespaceB::TableInNestedNS> foo_table = 0,
     NamespaceA::NamespaceB::EnumInNestedNS foo_enum = NamespaceA::NamespaceB::EnumInNestedNS_A,
     const NamespaceA::NamespaceB::StructInNestedNS *foo_struct = 0) {
   TableInFirstNSBuilder builder_(_fbb);
   builder_.add_foo_struct(foo_struct);
   builder_.add_foo_table(foo_table);
+  builder_.add_x(x);
   builder_.add_foo_enum(foo_enum);
   return builder_.Finish();
 }
@@ -237,6 +250,7 @@ namespace NamespaceA {
 
 inline const flatbuffers::TypeTable *TableInFirstNSTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_INT, 0, -1 },
     { flatbuffers::ET_SEQUENCE, 0, 0 },
     { flatbuffers::ET_CHAR, 0, 1 },
     { flatbuffers::ET_SEQUENCE, 0, 2 }
@@ -247,12 +261,13 @@ inline const flatbuffers::TypeTable *TableInFirstNSTypeTable() {
     NamespaceA::NamespaceB::StructInNestedNSTypeTable
   };
   static const char * const names[] = {
+    "x",
     "foo_table",
     "foo_enum",
     "foo_struct"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 3, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_TABLE, 4, type_codes, type_refs, nullptr, names
   };
   return &tt;
 }

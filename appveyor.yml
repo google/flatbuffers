@@ -71,6 +71,7 @@ test_script:
   - "..\\%CONFIGURATION%\\flatc -b -I include_test monster_test.fbs unicode_test.json"
   - "node JavaScriptTest ./monster_test_generated"
   - rem "-------------- Python ---------------"
+  - set PYTHONPATH=namespace_test
   - where python
   - python --version
   - where pip

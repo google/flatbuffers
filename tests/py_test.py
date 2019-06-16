@@ -43,6 +43,15 @@ import MyGame.Example.Stat  # refers to generated code
 import MyGame.Example.Vec3  # refers to generated code
 import MyGame.MonsterExtra  # refers to generated code
 
+from NamespaceA\
+    import TableInFirstNS as NSA_T1  # refers to generated code
+from NamespaceA\
+    import SecondTableInA as NSA_T2 # refers to generated code
+from NamespaceA.NamespaceB\
+    import StructInNestedNS as NSB_S1  # refers to generated code
+
+from NamespaceC\
+    import TableInC as NSC_T1  # refers to generated code
 
 def assertRaises(test_case, fn, exception_class):
     ''' Backwards-compatible assertion for exceptions raised. '''
@@ -1542,6 +1551,57 @@ class TestExceptions(unittest.TestCase):
         b = flatbuffers.Builder(0)
         assertRaises(self, lambda: b.Output(),
                      flatbuffers.builder.BuilderNotFinishedError)
+
+class TestNamespaces(unittest.TestCase):
+    def test_nested_namespace(self):
+        builder = flatbuffers.Builder(0)
+
+        # Build NamespaceA.NamespaceB.StructInNestedNS
+        nsb_s1_in = NSB_S1.CreateStructInNestedNS(builder, 1, 2)
+
+        # Add NamespaceA.NamespaceB.StructInNestedNS to NamespaceA.TableInFirstNS
+        NSA_T1.TableInFirstNSStart(builder)
+        NSA_T1.TableInFirstNSAddFooStruct(builder, nsb_s1_in)
+        nsa_t1_in = NSA_T1.TableInFirstNSEnd(builder)
+
+        builder.Finish(nsa_t1_in)
+        buf = builder.Output()
+
+        # Read NamespaceA.TableInFirstNS
+        nsa_t1_out = NSA_T1.TableInFirstNS.GetRootAsTableInFirstNS(buf, 0)
+
+        # Read NamespaceA.NamespaceB.StructInNestedNS
+        nsb_s1_out = nsa_t1_out.FooStruct()
+
+        # Verify data
+        self.assertEqual(1, nsb_s1_out.A())
+        self.assertEqual(2, nsb_s1_out.B())
+
+
+    def test_neighbor_namespace(self):
+        builder = flatbuffers.Builder(0)
+
+        # Build NamespaceA.TableInFirstNS
+        NSA_T1.TableInFirstNSStart(builder)
+        NSA_T1.TableInFirstNSAddX(builder, 133)
+        nsa_t1_in = NSA_T1.TableInFirstNSEnd(builder)
+
+        # Build NamespaceC.TableInC
+        NSC_T1.TableInCStart(builder)
+        NSC_T1.TableInCAddReferToA1(builder, nsa_t1_in)
+        nsc_t1_in = NSC_T1.TableInCEnd(builder)
+
+        builder.Finish(nsc_t1_in)
+        buf = builder.Output()
+
+        # Read NamespaceC.TableInC
+        nsc_t1_out = NSC_T1.TableInC.GetRootAsTableInC(buf, 0)
+
+        # Read NamespaceA.TableInFirstNS
+        nsa_t1_out = nsc_t1_out.ReferToA1()
+
+        # Verify data
+        self.assertEqual(133, nsa_t1_out.X())
 
 
 def CheckAgainstGoldDataGo():

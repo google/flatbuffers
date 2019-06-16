@@ -39,11 +39,34 @@ static getSizePrefixedRootAsTableInFirstNS(bb:flatbuffers.ByteBuffer, obj?:Table
 };
 
 /**
+ * @returns number
+ */
+x():number {
+  var offset = this.bb!.__offset(this.bb_pos, 4);
+  return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param number value
+ * @returns boolean
+ */
+mutate_x(value:number):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 4);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeInt32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @param NamespaceA.NamespaceB.TableInNestedNS= obj
  * @returns NamespaceA.NamespaceB.TableInNestedNS|null
  */
 fooTable(obj?:NS8755221360535654258.NamespaceA.NamespaceB.TableInNestedNS):NS8755221360535654258.NamespaceA.NamespaceB.TableInNestedNS|null {
-  var offset = this.bb!.__offset(this.bb_pos, 4);
+  var offset = this.bb!.__offset(this.bb_pos, 6);
   return offset ? (obj || new NS8755221360535654258.NamespaceA.NamespaceB.TableInNestedNS).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
 };
 
@@ -51,7 +74,7 @@ fooTable(obj?:NS8755221360535654258.NamespaceA.NamespaceB.TableInNestedNS):NS875
  * @returns NamespaceA.NamespaceB.EnumInNestedNS
  */
 fooEnum():NS8755221360535654258.NamespaceA.NamespaceB.EnumInNestedNS {
-  var offset = this.bb!.__offset(this.bb_pos, 6);
+  var offset = this.bb!.__offset(this.bb_pos, 8);
   return offset ? /**  */ (this.bb!.readInt8(this.bb_pos + offset)) : NS8755221360535654258.NamespaceA.NamespaceB.EnumInNestedNS.A;
 };
 
@@ -60,7 +83,7 @@ fooEnum():NS8755221360535654258.NamespaceA.NamespaceB.EnumInNestedNS {
  * @returns boolean
  */
 mutate_foo_enum(value:NS8755221360535654258.NamespaceA.NamespaceB.EnumInNestedNS):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 6);
+  var offset = this.bb!.__offset(this.bb_pos, 8);
 
   if (offset === 0) {
     return false;
@@ -75,7 +98,7 @@ mutate_foo_enum(value:NS8755221360535654258.NamespaceA.NamespaceB.EnumInNestedNS
  * @returns NamespaceA.NamespaceB.StructInNestedNS|null
  */
 fooStruct(obj?:NS8755221360535654258.NamespaceA.NamespaceB.StructInNestedNS):NS8755221360535654258.NamespaceA.NamespaceB.StructInNestedNS|null {
-  var offset = this.bb!.__offset(this.bb_pos, 8);
+  var offset = this.bb!.__offset(this.bb_pos, 10);
   return offset ? (obj || new NS8755221360535654258.NamespaceA.NamespaceB.StructInNestedNS).__init(this.bb_pos + offset, this.bb!) : null;
 };
 
@@ -83,7 +106,15 @@ fooStruct(obj?:NS8755221360535654258.NamespaceA.NamespaceB.StructInNestedNS):NS8
  * @param flatbuffers.Builder builder
  */
 static startTableInFirstNS(builder:flatbuffers.Builder) {
-  builder.startObject(3);
+  builder.startObject(4);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param number x
+ */
+static addX(builder:flatbuffers.Builder, x:number) {
+  builder.addFieldInt32(0, x, 0);
 };
 
 /**
@@ -91,7 +122,7 @@ static startTableInFirstNS(builder:flatbuffers.Builder) {
  * @param flatbuffers.Offset fooTableOffset
  */
 static addFooTable(builder:flatbuffers.Builder, fooTableOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(0, fooTableOffset, 0);
+  builder.addFieldOffset(1, fooTableOffset, 0);
 };
 
 /**
@@ -99,7 +130,7 @@ static addFooTable(builder:flatbuffers.Builder, fooTableOffset:flatbuffers.Offse
  * @param NamespaceA.NamespaceB.EnumInNestedNS fooEnum
  */
 static addFooEnum(builder:flatbuffers.Builder, fooEnum:NS8755221360535654258.NamespaceA.NamespaceB.EnumInNestedNS) {
-  builder.addFieldInt8(1, fooEnum, NS8755221360535654258.NamespaceA.NamespaceB.EnumInNestedNS.A);
+  builder.addFieldInt8(2, fooEnum, NS8755221360535654258.NamespaceA.NamespaceB.EnumInNestedNS.A);
 };
 
 /**
@@ -107,7 +138,7 @@ static addFooEnum(builder:flatbuffers.Builder, fooEnum:NS8755221360535654258.Nam
  * @param flatbuffers.Offset fooStructOffset
  */
 static addFooStruct(builder:flatbuffers.Builder, fooStructOffset:flatbuffers.Offset) {
-  builder.addFieldStruct(2, fooStructOffset, 0);
+  builder.addFieldStruct(3, fooStructOffset, 0);
 };
 
 /**
@@ -119,8 +150,9 @@ static endTableInFirstNS(builder:flatbuffers.Builder):flatbuffers.Offset {
   return offset;
 };
 
-static createTableInFirstNS(builder:flatbuffers.Builder, fooTableOffset:flatbuffers.Offset, fooEnum:NS8755221360535654258.NamespaceA.NamespaceB.EnumInNestedNS, fooStructOffset:flatbuffers.Offset):flatbuffers.Offset {
+static createTableInFirstNS(builder:flatbuffers.Builder, x:number, fooTableOffset:flatbuffers.Offset, fooEnum:NS8755221360535654258.NamespaceA.NamespaceB.EnumInNestedNS, fooStructOffset:flatbuffers.Offset):flatbuffers.Offset {
   TableInFirstNS.startTableInFirstNS(builder);
+  TableInFirstNS.addX(builder, x);
   TableInFirstNS.addFooTable(builder, fooTableOffset);
   TableInFirstNS.addFooEnum(builder, fooEnum);
   TableInFirstNS.addFooStruct(builder, fooStructOffset);

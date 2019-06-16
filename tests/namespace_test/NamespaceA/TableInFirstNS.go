@@ -28,8 +28,20 @@ func (rcv *TableInFirstNS) Table() flatbuffers.Table {
 	return rcv._tab
 }
 
-func (rcv *TableInFirstNS) FooTable(obj *NamespaceA__NamespaceB.TableInNestedNS) *NamespaceA__NamespaceB.TableInNestedNS {
+func (rcv *TableInFirstNS) X() int32 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(4))
+	if o != 0 {
+		return rcv._tab.GetInt32(o + rcv._tab.Pos)
+	}
+	return 0
+}
+
+func (rcv *TableInFirstNS) MutateX(n int32) bool {
+	return rcv._tab.MutateInt32Slot(4, n)
+}
+
+func (rcv *TableInFirstNS) FooTable(obj *NamespaceA__NamespaceB.TableInNestedNS) *NamespaceA__NamespaceB.TableInNestedNS {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(6))
 	if o != 0 {
 		x := rcv._tab.Indirect(o + rcv._tab.Pos)
 		if obj == nil {
@@ -42,7 +54,7 @@ func (rcv *TableInFirstNS) FooTable(obj *NamespaceA__NamespaceB.TableInNestedNS)
 }
 
 func (rcv *TableInFirstNS) FooEnum() NamespaceA__NamespaceB.EnumInNestedNS {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(6))
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(8))
 	if o != 0 {
 		return NamespaceA__NamespaceB.EnumInNestedNS(rcv._tab.GetInt8(o + rcv._tab.Pos))
 	}
@@ -50,11 +62,11 @@ func (rcv *TableInFirstNS) FooEnum() NamespaceA__NamespaceB.EnumInNestedNS {
 }
 
 func (rcv *TableInFirstNS) MutateFooEnum(n NamespaceA__NamespaceB.EnumInNestedNS) bool {
-	return rcv._tab.MutateInt8Slot(6, int8(n))
+	return rcv._tab.MutateInt8Slot(8, int8(n))
 }
 
 func (rcv *TableInFirstNS) FooStruct(obj *NamespaceA__NamespaceB.StructInNestedNS) *NamespaceA__NamespaceB.StructInNestedNS {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(8))
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(10))
 	if o != 0 {
 		x := o + rcv._tab.Pos
 		if obj == nil {
@@ -67,16 +79,19 @@ func (rcv *TableInFirstNS) FooStruct(obj *NamespaceA__NamespaceB.StructInNestedN
 }
 
 func TableInFirstNSStart(builder *flatbuffers.Builder) {
-	builder.StartObject(3)
+	builder.StartObject(4)
+}
+func TableInFirstNSAddX(builder *flatbuffers.Builder, x int32) {
+	builder.PrependInt32Slot(0, x, 0)
 }
 func TableInFirstNSAddFooTable(builder *flatbuffers.Builder, fooTable flatbuffers.UOffsetT) {
-	builder.PrependUOffsetTSlot(0, flatbuffers.UOffsetT(fooTable), 0)
+	builder.PrependUOffsetTSlot(1, flatbuffers.UOffsetT(fooTable), 0)
 }
 func TableInFirstNSAddFooEnum(builder *flatbuffers.Builder, fooEnum NamespaceA__NamespaceB.EnumInNestedNS) {
-	builder.PrependInt8Slot(1, int8(fooEnum), 0)
+	builder.PrependInt8Slot(2, int8(fooEnum), 0)
 }
 func TableInFirstNSAddFooStruct(builder *flatbuffers.Builder, fooStruct flatbuffers.UOffsetT) {
-	builder.PrependStructSlot(2, flatbuffers.UOffsetT(fooStruct), 0)
+	builder.PrependStructSlot(3, flatbuffers.UOffsetT(fooStruct), 0)
 }
 func TableInFirstNSEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()

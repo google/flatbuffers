@@ -21,8 +21,15 @@ end
 function TableInFirstNS_mt:Init(buf, pos)
     self.view = flatbuffers.view.New(buf, pos)
 end
-function TableInFirstNS_mt:FooTable()
+function TableInFirstNS_mt:X()
     local o = self.view:Offset(4)
+    if o ~= 0 then
+        return self.view:Get(flatbuffers.N.Int32, o + self.view.pos)
+    end
+    return 0
+end
+function TableInFirstNS_mt:FooTable()
+    local o = self.view:Offset(6)
     if o ~= 0 then
         local x = self.view:Indirect(o + self.view.pos)
         local obj = require('NamespaceA.NamespaceB.TableInNestedNS').New()
@@ -31,14 +38,14 @@ function TableInFirstNS_mt:FooTable()
     end
 end
 function TableInFirstNS_mt:FooEnum()
-    local o = self.view:Offset(6)
+    local o = self.view:Offset(8)
     if o ~= 0 then
         return self.view:Get(flatbuffers.N.Int8, o + self.view.pos)
     end
     return 0
 end
 function TableInFirstNS_mt:FooStruct()
-    local o = self.view:Offset(8)
+    local o = self.view:Offset(10)
     if o ~= 0 then
         local x = o + self.view.pos
         local obj = require('NamespaceA.NamespaceB.StructInNestedNS').New()
@@ -46,10 +53,11 @@ function TableInFirstNS_mt:FooStruct()
         return obj
     end
 end
-function TableInFirstNS.Start(builder) builder:StartObject(3) end
-function TableInFirstNS.AddFooTable(builder, fooTable) builder:PrependUOffsetTRelativeSlot(0, fooTable, 0) end
-function TableInFirstNS.AddFooEnum(builder, fooEnum) builder:PrependInt8Slot(1, fooEnum, 0) end
-function TableInFirstNS.AddFooStruct(builder, fooStruct) builder:PrependStructSlot(2, fooStruct, 0) end
+function TableInFirstNS.Start(builder) builder:StartObject(4) end
+function TableInFirstNS.AddX(builder, x) builder:PrependInt32Slot(0, x, 0) end
+function TableInFirstNS.AddFooTable(builder, fooTable) builder:PrependUOffsetTRelativeSlot(1, fooTable, 0) end
+function TableInFirstNS.AddFooEnum(builder, fooEnum) builder:PrependInt8Slot(2, fooEnum, 0) end
+function TableInFirstNS.AddFooStruct(builder, fooStruct) builder:PrependStructSlot(3, fooStruct, 0) end
 function TableInFirstNS.End(builder) return builder:EndObject() end
 
 return TableInFirstNS -- return the module

@@ -4,6 +4,7 @@ namespace NamespaceA;
 
 table TableInFirstNS
 {
+    x:int;
     foo_table:NamespaceB.TableInNestedNS;
 	foo_enum:NamespaceB.EnumInNestedNS;
 	foo_struct:NamespaceB.StructInNestedNS;

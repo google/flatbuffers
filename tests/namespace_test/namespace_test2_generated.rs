@@ -48,14 +48,20 @@ impl<'a> TableInFirstNS<'a> {
       let mut builder = TableInFirstNSBuilder::new(_fbb);
       if let Some(x) = args.foo_struct { builder.add_foo_struct(x); }
       if let Some(x) = args.foo_table { builder.add_foo_table(x); }
+      builder.add_x(args.x);
       builder.add_foo_enum(args.foo_enum);
       builder.finish()
     }
 
-    pub const VT_FOO_TABLE: flatbuffers::VOffsetT = 4;
-    pub const VT_FOO_ENUM: flatbuffers::VOffsetT = 6;
-    pub const VT_FOO_STRUCT: flatbuffers::VOffsetT = 8;
+    pub const VT_X: flatbuffers::VOffsetT = 4;
+    pub const VT_FOO_TABLE: flatbuffers::VOffsetT = 6;
+    pub const VT_FOO_ENUM: flatbuffers::VOffsetT = 8;
+    pub const VT_FOO_STRUCT: flatbuffers::VOffsetT = 10;
 
+  #[inline]
+  pub fn x(&self) -> i32 {
+    self._tab.get::<i32>(TableInFirstNS::VT_X, Some(0)).unwrap()
+  }
   #[inline]
   pub fn foo_table(&self) -> Option<namespace_b::TableInNestedNS<'a>> {
     self._tab.get::<flatbuffers::ForwardsUOffset<namespace_b::TableInNestedNS<'a>>>(TableInFirstNS::VT_FOO_TABLE, None)
@@ -71,6 +77,7 @@ impl<'a> TableInFirstNS<'a> {
 }
 
 pub struct TableInFirstNSArgs<'a> {
+    pub x: i32,
     pub foo_table: Option<flatbuffers::WIPOffset<namespace_b::TableInNestedNS<'a >>>,
     pub foo_enum: namespace_b::EnumInNestedNS,
     pub foo_struct: Option<&'a  namespace_b::StructInNestedNS>,
@@ -79,6 +86,7 @@ impl<'a> Default for TableInFirstNSArgs<'a> {
     #[inline]
     fn default() -> Self {
         TableInFirstNSArgs {
+            x: 0,
             foo_table: None,
             foo_enum: namespace_b::EnumInNestedNS::A,
             foo_struct: None,
@@ -90,6 +98,10 @@ pub struct TableInFirstNSBuilder<'a: 'b, 'b> {
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
 }
 impl<'a: 'b, 'b> TableInFirstNSBuilder<'a, 'b> {
+  #[inline]
+  pub fn add_x(&mut self, x: i32) {
+    self.fbb_.push_slot::<i32>(TableInFirstNS::VT_X, x, 0);
+  }
   #[inline]
   pub fn add_foo_table(&mut self, foo_table: flatbuffers::WIPOffset<namespace_b::TableInNestedNS<'b >>) {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<namespace_b::TableInNestedNS>>(TableInFirstNS::VT_FOO_TABLE, foo_table);

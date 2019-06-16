@@ -14,13 +14,15 @@ namespace NamespaceA
 class SecondTableInA
 
 class TableInFirstNS : flatbuffers_handle
+    def x():
+        return buf_.flatbuffers_field_int32(pos_, 4, 0)
     def foo_table():
-        let o = buf_.flatbuffers_field_table(pos_, 4)
+        let o = buf_.flatbuffers_field_table(pos_, 6)
         return if o: NamespaceA_NamespaceB_TableInNestedNS { buf_, o } else: nil
     def foo_enum():
-        return EnumInNestedNS(buf_.flatbuffers_field_int8(pos_, 6, 0))
+        return EnumInNestedNS(buf_.flatbuffers_field_int8(pos_, 8, 0))
     def foo_struct():
-        let o = buf_.flatbuffers_field_struct(pos_, 8)
+        let o = buf_.flatbuffers_field_struct(pos_, 10)
         return if o: NamespaceA_NamespaceB_StructInNestedNS { buf_, o } else: nil
 
 def GetRootAsTableInFirstNS(buf:string): return TableInFirstNS { buf, buf.flatbuffers_indirect(0) }
@@ -28,16 +30,19 @@ def GetRootAsTableInFirstNS(buf:string): return TableInFirstNS { buf, buf.flatbu
 struct TableInFirstNSBuilder:
     b_:flatbuffers_builder
     def start():
-        b_.StartObject(3)
+        b_.StartObject(4)
+        return this
+    def add_x(x:int):
+        b_.PrependInt32Slot(0, x, 0)
         return this
     def add_foo_table(foo_table:flatbuffers_offset):
-        b_.PrependUOffsetTRelativeSlot(0, foo_table)
+        b_.PrependUOffsetTRelativeSlot(1, foo_table)
         return this
     def add_foo_enum(foo_enum:EnumInNestedNS):
-        b_.PrependInt8Slot(1, foo_enum, 0)
+        b_.PrependInt8Slot(2, foo_enum, 0)
         return this
     def add_foo_struct(foo_struct:flatbuffers_offset):
-        b_.PrependStructSlot(2, foo_struct)
+        b_.PrependStructSlot(3, foo_struct)
         return this
     def end():
         return b_.EndObject()

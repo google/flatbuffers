@@ -21,13 +21,14 @@ class TableInFirstNS {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
-  namespace_a_namespace_b.TableInNestedNS get fooTable => namespace_a_namespace_b.TableInNestedNS.reader.vTableGet(_bc, _bcOffset, 4, null);
-  EnumInNestedNS get fooEnum => new EnumInNestedNS.fromValue(const fb.Int8Reader().vTableGet(_bc, _bcOffset, 6, 0));
-  namespace_a_namespace_b.StructInNestedNS get fooStruct => namespace_a_namespace_b.StructInNestedNS.reader.vTableGet(_bc, _bcOffset, 8, null);
+  int get x => const fb.Int32Reader().vTableGet(_bc, _bcOffset, 4, 0);
+  namespace_a_namespace_b.TableInNestedNS get fooTable => namespace_a_namespace_b.TableInNestedNS.reader.vTableGet(_bc, _bcOffset, 6, null);
+  EnumInNestedNS get fooEnum => new EnumInNestedNS.fromValue(const fb.Int8Reader().vTableGet(_bc, _bcOffset, 8, 0));
+  namespace_a_namespace_b.StructInNestedNS get fooStruct => namespace_a_namespace_b.StructInNestedNS.reader.vTableGet(_bc, _bcOffset, 10, null);
 
   @override
   String toString() {
-    return 'TableInFirstNS{fooTable: $fooTable, fooEnum: $fooEnum, fooStruct: $fooStruct}';
+    return 'TableInFirstNS{x: $x, fooTable: $fooTable, fooEnum: $fooEnum, fooStruct: $fooStruct}';
   }
 }
 
@@ -50,16 +51,20 @@ class TableInFirstNSBuilder {
     fbBuilder.startTable();
   }
 
+  int addX(int x) {
+    fbBuilder.addInt32(0, x);
+    return fbBuilder.offset;
+  }
   int addFooTableOffset(int offset) {
-    fbBuilder.addOffset(0, offset);
+    fbBuilder.addOffset(1, offset);
     return fbBuilder.offset;
   }
   int addFooEnum(EnumInNestedNS fooEnum) {
-    fbBuilder.addInt8(1, fooEnum?.value);
+    fbBuilder.addInt8(2, fooEnum?.value);
     return fbBuilder.offset;
   }
   int addFooStruct(int offset) {
-    fbBuilder.addStruct(2, offset);
+    fbBuilder.addStruct(3, offset);
     return fbBuilder.offset;
   }
 
@@ -69,16 +74,19 @@ class TableInFirstNSBuilder {
 }
 
 class TableInFirstNSObjectBuilder extends fb.ObjectBuilder {
+  final int _x;
   final namespace_a_namespace_b.TableInNestedNSObjectBuilder _fooTable;
   final EnumInNestedNS _fooEnum;
   final namespace_a_namespace_b.StructInNestedNSObjectBuilder _fooStruct;
 
   TableInFirstNSObjectBuilder({
+    int x,
     namespace_a_namespace_b.TableInNestedNSObjectBuilder fooTable,
     EnumInNestedNS fooEnum,
     namespace_a_namespace_b.StructInNestedNSObjectBuilder fooStruct,
   })
-      : _fooTable = fooTable,
+      : _x = x,
+        _fooTable = fooTable,
         _fooEnum = fooEnum,
         _fooStruct = fooStruct;
 
@@ -90,12 +98,13 @@ class TableInFirstNSObjectBuilder extends fb.ObjectBuilder {
     final int fooTableOffset = _fooTable?.getOrCreateOffset(fbBuilder);
 
     fbBuilder.startTable();
+    fbBuilder.addInt32(0, _x);
     if (fooTableOffset != null) {
-      fbBuilder.addOffset(0, fooTableOffset);
+      fbBuilder.addOffset(1, fooTableOffset);
     }
-    fbBuilder.addInt8(1, _fooEnum?.value);
+    fbBuilder.addInt8(2, _fooEnum?.value);
     if (_fooStruct != null) {
-      fbBuilder.addStruct(2, _fooStruct.finish(fbBuilder));
+      fbBuilder.addStruct(3, _fooStruct.finish(fbBuilder));
     }
     return fbBuilder.endTable();
   }
