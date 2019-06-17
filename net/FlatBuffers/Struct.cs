@@ -19,9 +19,16 @@ namespace FlatBuffers
     /// <summary>
     /// All structs in the generated code derive from this class, and add their own accessors.
     /// </summary>
-    public struct Struct
+    internal struct Struct
     {
-        public int bb_pos;
-        public ByteBuffer bb;
+        public int bb_pos { get; private set; }
+        public ByteBuffer bb { get; private set; }
+
+        // Re-init the internal state with an external buffer {@code ByteBuffer} and an offset within.
+        public Struct(int _i, ByteBuffer _bb)
+        {
+            bb = _bb;
+            bb_pos = _i;
+        }
     }
 }

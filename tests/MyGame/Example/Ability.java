@@ -9,7 +9,7 @@ import com.google.flatbuffers.*;
 
 @SuppressWarnings("unused")
 public final class Ability extends Struct {
-  public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
+  public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }
   public Ability __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public long id() { return (long)bb.getInt(bb_pos + 0) & 0xFFFFFFFFL; }
