@@ -22,12 +22,19 @@ namespace FlatBuffers
     /// <summary>
     /// All tables in the generated code derive from this struct, and add their own accessors.
     /// </summary>
-    public struct Table
+    internal struct Table
     {
-        public int bb_pos;
-        public ByteBuffer bb;
+        public int bb_pos { get; private set; }
+        public ByteBuffer bb { get; private set; }
 
         public ByteBuffer ByteBuffer { get { return bb; } }
+
+        // Re-init the internal state with an external buffer {@code ByteBuffer} and an offset within.
+        public Table(int _i, ByteBuffer _bb)
+        {
+            bb = _bb;
+            bb_pos = _i;
+        }
 
         // Look up a field in the vtable, return an offset into the object, or 0 if the field is not
         // present.

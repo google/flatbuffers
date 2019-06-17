@@ -833,7 +833,18 @@ class GeneralGenerator : public BaseGenerator {
       code += struct_def.fixed ? "Struct" : "Table";
       code += lang_.open_curly;
     }
+
     if (!struct_def.fixed) {
+      // Generate verson check method.
+      // Force compile time error if not using the same version runtime.
+      code += "  public static void ValidateVersion() {";
+      if (lang_.language == IDLOptions::kCSharp)
+        code += " FlatBufferConstants.";
+      else
+        code += " Constants.";
+      code += "FLATBUFFERS_1_11_1(); ";
+      code += "}\n";
+
       // Generate a special accessor for the table that when used as the root
       // of a FlatBuffer
       std::string method_name =
@@ -849,11 +860,6 @@ class GeneralGenerator : public BaseGenerator {
       // create method that allows object reuse
       code +=
           method_signature + "(ByteBuffer _bb, " + struct_def.name + " obj) { ";
-      // Force compile time error if not using the same version runtime.
-      if (lang_.language == IDLOptions::kCSharp)
-        code += "FlatBufferConstants.FLATBUFFERS_1_11_1(); ";
-      else
-        code += "Constants.FLATBUFFERS_1_11_1(); ";
       code += lang_.set_bb_byteorder;
       code += "return (obj.__assign(_bb." + FunctionStart('G') + "etInt(_bb.";
       code += lang_.get_bb_position;
@@ -875,14 +881,13 @@ class GeneralGenerator : public BaseGenerator {
     // Generate the __init method that sets the field in a pre-existing
     // accessor object. This is to allow object reuse.
     code += "  public void __init(int _i, ByteBuffer _bb) ";
-    code += "{ " + lang_.accessor_prefix + "bb_pos = _i; ";
-    code += lang_.accessor_prefix + "bb = _bb; ";
-    if (!struct_def.fixed && lang_.language == IDLOptions::kJava) {
-      code += lang_.accessor_prefix + "vtable_start = " + lang_.accessor_prefix + "bb_pos - ";
-      code += lang_.accessor_prefix + "bb." + FunctionStart('G') + "etInt(";
-      code += lang_.accessor_prefix + "bb_pos); " + lang_.accessor_prefix + "vtable_size = ";
-      code += lang_.accessor_prefix + "bb." + FunctionStart('G') + "etShort(";
-      code += lang_.accessor_prefix + "vtable_start); ";
+    code += "{ ";
+    if (lang_.language == IDLOptions::kCSharp) {
+      code += "__p = new ";
+      code += struct_def.fixed ? "Struct" : "Table";
+      code += "(_i, _bb); ";
+    } else {
+      code += "__reset(_i, _bb); ";
     }
     code += "}\n";
     code +=
