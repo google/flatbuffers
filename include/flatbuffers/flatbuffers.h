@@ -395,6 +395,83 @@ template<typename T> static inline size_t VectorLength(const Vector<T> *v) {
   return v ? v->size() : 0;
 }
 
+// This is used as a helper type for accessing arrays.
+template<typename T, uint16_t length> class Array {
+ public:
+  typedef VectorIterator<T, typename IndirectHelper<T>::return_type>
+      const_iterator;
+  typedef VectorReverseIterator<const_iterator> const_reverse_iterator;
+
+  typedef typename IndirectHelper<T>::return_type return_type;
+
+  FLATBUFFERS_CONSTEXPR uint16_t size() const { return length; }
+
+  return_type Get(uoffset_t i) const {
+    FLATBUFFERS_ASSERT(i < size());
+    return IndirectHelper<T>::Read(Data(), i);
+  }
+
+  return_type operator[](uoffset_t i) const { return Get(i); }
+
+  const_iterator begin() const { return const_iterator(Data(), 0); }
+  const_iterator end() const { return const_iterator(Data(), size()); }
+
+  const_reverse_iterator rbegin() const {
+    return const_reverse_iterator(end());
+  }
+  const_reverse_iterator rend() const { return const_reverse_iterator(end()); }
+
+  const_iterator cbegin() const { return begin(); }
+  const_iterator cend() const { return end(); }
+
+  const_reverse_iterator crbegin() const { return rbegin(); }
+  const_reverse_iterator crend() const { return rend(); }
+
+  // Change elements if you have a non-const pointer to this object.
+  void Mutate(uoffset_t i, const T &val) {
+    FLATBUFFERS_ASSERT(i < size());
+    WriteScalar(data() + i, val);
+  }
+
+  // Get a mutable pointer to elements inside this array.
+  // @note This method should be only used to mutate arrays of structs followed
+  //  by a @p Mutate operation. For primitive types use @p Mutate directly.
+  // @warning Assignments and reads to/from the dereferenced pointer are not
+  //  automatically converted to the correct endianness.
+  T *GetMutablePointer(uoffset_t i) const {
+    FLATBUFFERS_ASSERT(i < size());
+    return const_cast<T *>(&data()[i]);
+  }
+
+  // The raw data in little endian format. Use with care.
+  const uint8_t *Data() const { return data_; }
+
+  uint8_t *Data() { return data_; }
+
+  // Similarly, but typed, much like std::vector::data
+  const T *data() const { return reinterpret_cast<const T *>(Data()); }
+  T *data() { return reinterpret_cast<T *>(Data()); }
+
+ protected:
+  // This class is only used to access pre-existing data. Don't ever
+  // try to construct these manually.
+  // 'constexpr' allows us to use 'size()' at compile time.
+  // @note Must not use 'FLATBUFFERS_CONSTEXPR' here, as const is not allowed on
+  //  a constructor.
+#if defined(__cpp_constexpr)
+  constexpr Array();
+#else
+  Array();
+#endif
+
+  uint8_t data_[length * sizeof(T)];
+
+ private:
+  // This class is a pointer. Copying will therefore create an invalid object.
+  // Private and unimplemented copy constructor.
+  Array(const Array &);
+};
+
 // Lexicographically compare two strings (possibly containing nulls), and
 // return true if the first is less than the second.
 static inline bool StringLessThan(const char *a_data, uoffset_t a_size,

@@ -114,6 +114,27 @@ of same-size data where a `reinterpret_cast` would give you a desirable result,
 e.g. you could change a `uint` to an `int` if no values in current data use the
 high bit yet.
 
+### Arrays
+
+Arrays are a convenience short-hand for a fixed-length collection of elements.
+Arrays can be used to replace the following schema:
+
+    struct Vec3 {
+        x:float;
+        y:float;
+        z:float;
+    }
+
+with the following schema:
+
+    struct Vec3 {
+        v:[float:3];
+    }
+
+Both representations are binary equivalent.
+
+Arrays are currently only supported in a `struct`.
+
 ### (Default) Values
 
 Values are a sequence of digits. Values may be optionally followed by a decimal

@@ -42,7 +42,10 @@ import MyGame.Example.Test  # refers to generated code
 import MyGame.Example.Stat  # refers to generated code
 import MyGame.Example.Vec3  # refers to generated code
 import MyGame.MonsterExtra  # refers to generated code
-
+import MyGame.Example.ArrayTable  # refers to generated code
+import MyGame.Example.ArrayStruct  # refers to generated code
+import MyGame.Example.NestedStruct  # refers to generated code
+import MyGame.Example.TestEnum  # refers to generated code
 
 def assertRaises(test_case, fn, exception_class):
     ''' Backwards-compatible assertion for exceptions raised. '''
@@ -1542,6 +1545,55 @@ class TestExceptions(unittest.TestCase):
         b = flatbuffers.Builder(0)
         assertRaises(self, lambda: b.Output(),
                      flatbuffers.builder.BuilderNotFinishedError)
+
+
+class TestFixedLengthArrays(unittest.TestCase):
+    def test_fixed_length_array(self):
+        builder = flatbuffers.Builder(0)
+
+        a = 0.5
+        b = range(0, 15)
+        c = 1
+        d_a = [[1, 2], [3, 4]]
+        d_b = [MyGame.Example.TestEnum.TestEnum.B, \
+                MyGame.Example.TestEnum.TestEnum.C]
+        d_c = [[MyGame.Example.TestEnum.TestEnum.A, \
+                MyGame.Example.TestEnum.TestEnum.B], \
+                [MyGame.Example.TestEnum.TestEnum.C, \
+                 MyGame.Example.TestEnum.TestEnum.B]]
+
+        arrayOffset = MyGame.Example.ArrayStruct.CreateArrayStruct(builder, \
+            a, b, c, d_a, d_b, d_c)
+
+        # Create a table with the ArrayStruct.
+        MyGame.Example.ArrayTable.ArrayTableStart(builder)
+        MyGame.Example.ArrayTable.ArrayTableAddA(builder, arrayOffset)
+        tableOffset = MyGame.Example.ArrayTable.ArrayTableEnd(builder)
+
+        builder.Finish(tableOffset)
+
+        buf = builder.Output()
+
+        table = MyGame.Example.ArrayTable.ArrayTable.GetRootAsArrayTable(buf, 0)
+
+        # Verify structure.
+        nested = MyGame.Example.NestedStruct.NestedStruct()
+        self.assertEqual(table.A().A(), 0.5)
+        self.assertEqual(table.A().B(), \
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14])
+        self.assertEqual(table.A().C(), 1)
+        self.assertEqual(table.A().D(nested, 0).A(), [1, 2])
+        self.assertEqual(table.A().D(nested, 1).A(), [3, 4])
+        self.assertEqual(table.A().D(nested, 0).B(), \
+            MyGame.Example.TestEnum.TestEnum.B)
+        self.assertEqual(table.A().D(nested, 1).B(), \
+            MyGame.Example.TestEnum.TestEnum.C)
+        self.assertEqual(table.A().D(nested, 0).C(), \
+            [MyGame.Example.TestEnum.TestEnum.A, \
+             MyGame.Example.TestEnum.TestEnum.B])
+        self.assertEqual(table.A().D(nested, 1).C(), \
+            [MyGame.Example.TestEnum.TestEnum.C, \
+             MyGame.Example.TestEnum.TestEnum.B])
 
 
 def CheckAgainstGoldDataGo():

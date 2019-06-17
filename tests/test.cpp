@@ -34,6 +34,9 @@
 #include "namespace_test/namespace_test2_generated.h"
 #include "union_vector/union_vector_generated.h"
 #include "monster_extra_generated.h"
+#if !defined(_MSC_VER) || _MSC_VER >= 1700
+#  include "arrays_test_generated.h"
+#endif
 #include "test_assert.h"
 
 #include "flatbuffers/flexbuffers.h"
@@ -1202,6 +1205,15 @@ void FuzzTest2() {
         case flatbuffers::BASE_TYPE_BOOL:
           AddToSchemaAndInstances(
               "bool", deprecated ? "" : (lcg_rand() % 2 ? "true" : "false"));
+          break;
+        case flatbuffers::BASE_TYPE_ARRAY:
+          if (!is_struct) {
+            AddToSchemaAndInstances(
+                "ubyte",
+                deprecated ? "" : "255");  // No fixed-length arrays in tables.
+          } else {
+            AddToSchemaAndInstances("[int:3]", deprecated ? "" : "[\n,\n,\n]");
+          }
           break;
         default:
           // All the scalar types.
@@ -2671,6 +2683,142 @@ void CreateSharedStringTest() {
   TEST_EQ((*a[6]) < (*a[5]), true);
 }
 
+void FixedLengthArrayTest() {
+  // VS10 does not support typed enums, exclude from tests
+#if !defined(_MSC_VER) || _MSC_VER >= 1700
+  // Generate an ArrayTable containing one ArrayStruct.
+  flatbuffers::FlatBufferBuilder fbb;
+  MyGame::Example::NestedStruct nStruct0(MyGame::Example::TestEnum::B);
+  TEST_NOTNULL(nStruct0.mutable_a());
+  nStruct0.mutable_a()->Mutate(0, 1);
+  nStruct0.mutable_a()->Mutate(1, 2);
+  TEST_NOTNULL(nStruct0.mutable_c());
+  nStruct0.mutable_c()->Mutate(0, MyGame::Example::TestEnum::C);
+  nStruct0.mutable_c()->Mutate(1, MyGame::Example::TestEnum::A);
+  MyGame::Example::NestedStruct nStruct1(MyGame::Example::TestEnum::C);
+  TEST_NOTNULL(nStruct1.mutable_a());
+  nStruct1.mutable_a()->Mutate(0, 3);
+  nStruct1.mutable_a()->Mutate(1, 4);
+  TEST_NOTNULL(nStruct1.mutable_c());
+  nStruct1.mutable_c()->Mutate(0, MyGame::Example::TestEnum::C);
+  nStruct1.mutable_c()->Mutate(1, MyGame::Example::TestEnum::A);
+  MyGame::Example::ArrayStruct aStruct(2, 12);
+  TEST_NOTNULL(aStruct.b());
+  TEST_NOTNULL(aStruct.mutable_b());
+  TEST_NOTNULL(aStruct.mutable_d());
+  for (int i = 0; i < aStruct.b()->size(); i++)
+    aStruct.mutable_b()->Mutate(i, i + 1);
+  aStruct.mutable_d()->Mutate(0, nStruct0);
+  aStruct.mutable_d()->Mutate(1, nStruct1);
+  auto aTable = MyGame::Example::CreateArrayTable(fbb, &aStruct);
+  fbb.Finish(aTable);
+
+  // Verify correctness of the ArrayTable.
+  flatbuffers::Verifier verifier(fbb.GetBufferPointer(), fbb.GetSize());
+  MyGame::Example::VerifyArrayTableBuffer(verifier);
+  auto p = MyGame::Example::GetMutableArrayTable(fbb.GetBufferPointer());
+  auto mArStruct = p->mutable_a();
+  TEST_NOTNULL(mArStruct);
+  TEST_NOTNULL(mArStruct->b());
+  TEST_NOTNULL(mArStruct->d());
+  TEST_NOTNULL(mArStruct->mutable_b());
+  TEST_NOTNULL(mArStruct->mutable_d());
+  mArStruct->mutable_b()->Mutate(14, -14);
+  TEST_EQ(mArStruct->a(), 2);
+  TEST_EQ(mArStruct->b()->size(), 15);
+  TEST_EQ(mArStruct->b()->Get(aStruct.b()->size() - 1), -14);
+  TEST_EQ(mArStruct->c(), 12);
+  TEST_NOTNULL(mArStruct->d()->Get(0).a());
+  TEST_EQ(mArStruct->d()->Get(0).a()->Get(0), 1);
+  TEST_EQ(mArStruct->d()->Get(0).a()->Get(1), 2);
+  TEST_NOTNULL(mArStruct->d()->Get(1).a());
+  TEST_EQ(mArStruct->d()->Get(1).a()->Get(0), 3);
+  TEST_EQ(mArStruct->d()->Get(1).a()->Get(1), 4);
+  TEST_NOTNULL(mArStruct->mutable_d()->GetMutablePointer(1));
+  TEST_NOTNULL(mArStruct->mutable_d()->GetMutablePointer(1)->mutable_a());
+  mArStruct->mutable_d()->GetMutablePointer(1)->mutable_a()->Mutate(1, 5);
+  TEST_EQ(mArStruct->d()->Get(1).a()->Get(1), 5);
+  TEST_EQ(mArStruct->d()->Get(0).b() == MyGame::Example::TestEnum::B, true);
+  TEST_NOTNULL(mArStruct->d()->Get(0).c());
+  TEST_EQ(mArStruct->d()->Get(0).c()->Get(0) == MyGame::Example::TestEnum::C,
+          true);
+  TEST_EQ(mArStruct->d()->Get(0).c()->Get(1) == MyGame::Example::TestEnum::A,
+          true);
+  TEST_EQ(mArStruct->d()->Get(1).b() == MyGame::Example::TestEnum::C, true);
+  TEST_NOTNULL(mArStruct->d()->Get(1).c());
+  TEST_EQ(mArStruct->d()->Get(1).c()->Get(0) == MyGame::Example::TestEnum::C,
+          true);
+  TEST_EQ(mArStruct->d()->Get(1).c()->Get(1) == MyGame::Example::TestEnum::A,
+          true);
+  for (int i = 0; i < mArStruct->b()->size() - 1; i++)
+    TEST_EQ(mArStruct->b()->Get(i), i + 1);
+#endif
+}
+
+void FixedLengthArrayJsonTest(bool binary) {  
+  // VS10 does not support typed enums, exclude from tests
+#if !defined(_MSC_VER) || _MSC_VER >= 1700
+  // load FlatBuffer schema (.fbs) and JSON from disk
+  std::string schemafile;
+  std::string jsonfile;
+  TEST_EQ(
+      flatbuffers::LoadFile(
+          (test_data_path + "arrays_test." + (binary ? "bfbs" : "fbs")).c_str(),
+          binary, &schemafile),
+      true);
+  TEST_EQ(flatbuffers::LoadFile((test_data_path + "arrays_test.golden").c_str(),
+                                false, &jsonfile),
+          true);
+
+  // parse schema first, so we can use it to parse the data after
+  flatbuffers::Parser parserOrg, parserGen;
+  if (binary) {
+    flatbuffers::Verifier verifier(
+        reinterpret_cast<const uint8_t *>(schemafile.c_str()),
+        schemafile.size());
+    TEST_EQ(reflection::VerifySchemaBuffer(verifier), true);
+    TEST_EQ(parserOrg.Deserialize((const uint8_t *)schemafile.c_str(),
+                                  schemafile.size()),
+            true);
+    TEST_EQ(parserGen.Deserialize((const uint8_t *)schemafile.c_str(),
+                                  schemafile.size()),
+            true);
+  } else {
+    TEST_EQ(parserOrg.Parse(schemafile.c_str()), true);
+    TEST_EQ(parserGen.Parse(schemafile.c_str()), true);
+  }
+  TEST_EQ(parserOrg.Parse(jsonfile.c_str()), true);
+
+  // First, verify it, just in case:
+  flatbuffers::Verifier verifierOrg(parserOrg.builder_.GetBufferPointer(),
+                                    parserOrg.builder_.GetSize());
+  TEST_EQ(VerifyArrayTableBuffer(verifierOrg), true);
+
+  // Export to JSON
+  std::string jsonGen;
+  TEST_EQ(
+      GenerateText(parserOrg, parserOrg.builder_.GetBufferPointer(), &jsonGen),
+      true);
+
+  // Import from JSON
+  TEST_EQ(parserGen.Parse(jsonGen.c_str()), true);
+
+  // Verify buffer from generated JSON
+  flatbuffers::Verifier verifierGen(parserGen.builder_.GetBufferPointer(),
+                                    parserGen.builder_.GetSize());
+  TEST_EQ(VerifyArrayTableBuffer(verifierGen), true);
+
+  // Compare generated buffer to original
+  TEST_EQ(parserOrg.builder_.GetSize(), parserGen.builder_.GetSize());
+  TEST_EQ(std::memcmp(parserOrg.builder_.GetBufferPointer(),
+                      parserGen.builder_.GetBufferPointer(),
+                      parserOrg.builder_.GetSize()),
+          0);
+#else
+  (void)binary;
+#endif
+}
+
 int FlatBufferTests() {
   // clang-format off
 
@@ -2705,6 +2853,8 @@ int FlatBufferTests() {
     #endif
     ParseAndGenerateTextTest(false);
     ParseAndGenerateTextTest(true);
+    FixedLengthArrayJsonTest(false);
+    FixedLengthArrayJsonTest(true);
     ReflectionTest(flatbuf.data(), flatbuf.size());
     ParseProtoTest();
     UnionVectorTest();
@@ -2747,6 +2897,7 @@ int FlatBufferTests() {
   ValidFloatTest();
   InvalidFloatTest();
   TestMonsterExtraFloats();
+  FixedLengthArrayTest();
   return 0;
 }
 

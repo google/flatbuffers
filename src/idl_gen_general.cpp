@@ -254,10 +254,6 @@ class GeneralGenerator : public BaseGenerator {
                : "";
   }
 
-  static bool IsEnum(const Type &type) {
-    return type.enum_def != nullptr && IsInteger(type.base_type);
-  }
-
   std::string GenTypeBasic(const Type &type, bool enableLangOverrides) const {
     // clang-format off
   static const char * const java_typename[] = {
@@ -312,7 +308,10 @@ class GeneralGenerator : public BaseGenerator {
   }
 
   std::string GenTypeGet(const Type &type) const {
-    return IsScalar(type.base_type) ? GenTypeBasic(type) : GenTypePointer(type);
+    return IsScalar(type.base_type)
+               ? GenTypeBasic(type)
+               : (IsArray(type) ? GenTypeGet(type.VectorType())
+                                : GenTypePointer(type));
   }
 
   // Find the destination type the user wants to receive the value in (e.g.
@@ -325,6 +324,7 @@ class GeneralGenerator : public BaseGenerator {
       case BASE_TYPE_UCHAR: return Type(BASE_TYPE_INT);
       case BASE_TYPE_USHORT: return Type(BASE_TYPE_INT);
       case BASE_TYPE_UINT: return Type(BASE_TYPE_LONG);
+      case BASE_TYPE_ARRAY:
       case BASE_TYPE_VECTOR:
         if (vectorelem) return DestinationType(type.VectorType(), vectorelem);
         FLATBUFFERS_FALLTHROUGH(); // else fall thru
@@ -378,7 +378,7 @@ class GeneralGenerator : public BaseGenerator {
 
   // Casts necessary to correctly read serialized data
   std::string DestinationCast(const Type &type) const {
-    if (type.base_type == BASE_TYPE_VECTOR) {
+    if (IsSeries(type)) {
       return DestinationCast(type.VectorType());
     } else {
       switch (lang_.language) {
@@ -405,7 +405,7 @@ class GeneralGenerator : public BaseGenerator {
   // directly cast an Enum to its underlying type, which is essential before
   // putting it onto the buffer.
   std::string SourceCast(const Type &type, bool castFromDest) const {
-    if (type.base_type == BASE_TYPE_VECTOR) {
+    if (IsSeries(type)) {
       return SourceCast(type.VectorType(), castFromDest);
     } else {
       switch (lang_.language) {
@@ -602,6 +602,7 @@ class GeneralGenerator : public BaseGenerator {
       case BASE_TYPE_STRUCT: return lang_.accessor_prefix + "__struct";
       case BASE_TYPE_UNION: return lang_.accessor_prefix + "__union";
       case BASE_TYPE_VECTOR: return GenGetter(type.VectorType());
+      case BASE_TYPE_ARRAY: return GenGetter(type.VectorType());
       default: {
         std::string getter =
             lang_.accessor_prefix + "bb." + FunctionStart('G') + "et";
@@ -656,20 +657,36 @@ class GeneralGenerator : public BaseGenerator {
   // Recursively generate arguments for a constructor, to deal with nested
   // structs.
   void GenStructArgs(const StructDef &struct_def, std::string *code_ptr,
-                     const char *nameprefix) const {
+                     const char *nameprefix, size_t array_count = 0) const {
     std::string &code = *code_ptr;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
-      if (IsStruct(field.value.type)) {
+      const auto &field_type = field.value.type;
+      const auto array_field = IsArray(field_type);
+      const auto &type = array_field ? field_type.VectorType()
+                                     : DestinationType(field_type, false);
+      const auto array_cnt = array_field ? (array_count + 1) : array_count;
+      if (IsStruct(type)) {
         // Generate arguments for a struct inside a struct. To ensure names
         // don't clash, and to make it obvious these arguments are constructing
         // a nested struct, prefix the name with the field name.
-        GenStructArgs(*field.value.type.struct_def, code_ptr,
-                      (nameprefix + (field.name + "_")).c_str());
+        GenStructArgs(*field_type.struct_def, code_ptr,
+                      (nameprefix + (field.name + "_")).c_str(), array_cnt);
       } else {
         code += ", ";
-        code += GenTypeBasic(DestinationType(field.value.type, false));
+        code += GenTypeBasic(type);
+        if (lang_.language == IDLOptions::kJava) {
+          for (size_t i = 0; i < array_cnt; i++) code += "[]";
+        } else if (lang_.language == IDLOptions::kCSharp) {
+          if (array_cnt > 0) {
+            code += "[";
+            for (size_t i = 1; i < array_cnt; i++) code += ",";
+            code += "]";
+          }
+        } else {
+          FLATBUFFERS_ASSERT(0);
+        }
         code += " ";
         code += nameprefix;
         code += MakeCamel(field.name, lang_.first_camel_upper);
@@ -681,29 +698,67 @@ class GeneralGenerator : public BaseGenerator {
   // builder.putType(name);
   // and insert manual padding.
   void GenStructBody(const StructDef &struct_def, std::string *code_ptr,
-                     const char *nameprefix) const {
+                     const char *nameprefix, size_t index = 0,
+                     bool in_array = false) const {
     std::string &code = *code_ptr;
-    code += "    builder." + FunctionStart('P') + "rep(";
+    std::string indent((index + 1) * 2, ' ');
+    code += indent + "  builder." + FunctionStart('P') + "rep(";
     code += NumToString(struct_def.minalign) + ", ";
     code += NumToString(struct_def.bytesize) + ");\n";
     for (auto it = struct_def.fields.vec.rbegin();
          it != struct_def.fields.vec.rend(); ++it) {
       auto &field = **it;
+      const auto &field_type = field.value.type;
       if (field.padding) {
-        code += "    builder." + FunctionStart('P') + "ad(";
+        code += indent + "  builder." + FunctionStart('P') + "ad(";
         code += NumToString(field.padding) + ");\n";
       }
-      if (IsStruct(field.value.type)) {
-        GenStructBody(*field.value.type.struct_def, code_ptr,
-                      (nameprefix + (field.name + "_")).c_str());
+      if (IsStruct(field_type)) {
+        GenStructBody(*field_type.struct_def, code_ptr,
+                      (nameprefix + (field.name + "_")).c_str(), index,
+                      in_array);
       } else {
-        code += "    builder." + FunctionStart('P') + "ut";
-        code += GenMethod(field.value.type) + "(";
-        code += SourceCast(field.value.type);
-        auto argname =
-            nameprefix + MakeCamel(field.name, lang_.first_camel_upper);
-        code += argname;
-        code += ");\n";
+        const auto &type =
+            IsArray(field_type) ? field_type.VectorType() : field_type;
+        const auto index_var = "_idx" + NumToString(index);
+        if (IsArray(field_type)) {
+          code += indent + "  for (int " + index_var + " = ";
+          code += NumToString(field_type.fixed_length);
+          code += "; " + index_var + " > 0; " + index_var + "--) {\n";
+          in_array = true;
+        }
+        if (IsStruct(type)) {
+          GenStructBody(*field_type.struct_def, code_ptr,
+                        (nameprefix + (field.name + "_")).c_str(), index + 1,
+                        in_array);
+        } else {
+          code += IsArray(field_type) ? "  " : "";
+          code += indent + "  builder." + FunctionStart('P') + "ut";
+          code += GenMethod(type) + "(";
+          code += SourceCast(type);
+          auto argname =
+              nameprefix + MakeCamel(field.name, lang_.first_camel_upper);
+          code += argname;
+          size_t array_cnt = index + (IsArray(field_type) ? 1 : 0);
+          if (lang_.language == IDLOptions::kJava) {
+            for (size_t i = 0; in_array && i < array_cnt; i++) {
+              code += "[_idx" + NumToString(i) + "-1]";
+            }
+          } else if (lang_.language == IDLOptions::kCSharp) {
+            if (array_cnt > 0) {
+              code += "[";
+              for (size_t i = 0; in_array && i < array_cnt; i++) {
+                code += "_idx" + NumToString(i) + "-1";
+                if (i != (array_cnt - 1)) code += ",";
+              }
+              code += "]";
+            }
+          } else {
+            FLATBUFFERS_ASSERT(0);
+          }
+          code += ");\n";
+        }
+        if (IsArray(field_type)) { code += indent + "  }\n"; }
       }
     }
   }
@@ -924,9 +979,11 @@ class GeneralGenerator : public BaseGenerator {
 
       // Most field accessors need to retrieve and test the field offset first,
       // this is the prefix code for that:
-      auto offset_prefix = " { int o = " + lang_.accessor_prefix + "__offset(" +
-                           NumToString(field.value.offset) +
-                           "); return o != 0 ? ";
+      auto offset_prefix =
+          IsArray(field.value.type)
+              ? " { return "
+              : (" { int o = " + lang_.accessor_prefix + "__offset(" +
+                 NumToString(field.value.offset) + "); return o != 0 ? ");
       // Generate the accessors that don't do object reuse.
       if (field.value.type.base_type == BASE_TYPE_STRUCT) {
         // Calls the accessor that takes an accessor object with a new object.
@@ -1017,6 +1074,7 @@ class GeneralGenerator : public BaseGenerator {
             code += offset_prefix + getter + "(o + " + lang_.accessor_prefix;
             code += "bb_pos) : null";
             break;
+          case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();  // fall thru
           case BASE_TYPE_VECTOR: {
             auto vectortype = field.value.type.VectorType();
             if (vectortype.base_type == BASE_TYPE_UNION &&
@@ -1043,8 +1101,13 @@ class GeneralGenerator : public BaseGenerator {
             } else {
               code += body;
             }
-            auto index = lang_.accessor_prefix + "__vector(o) + j * " +
-                         NumToString(InlineSize(vectortype));
+            auto index = lang_.accessor_prefix;
+            if (IsArray(field.value.type)) {
+              index += "bb_pos + " + NumToString(field.value.offset) + " + ";
+            } else {
+              index += "__vector(o) + ";
+            }
+            index += "j * " + NumToString(InlineSize(vectortype));
             if (vectortype.base_type == BASE_TYPE_STRUCT) {
               code += vectortype.struct_def->fixed
                           ? index
@@ -1055,13 +1118,16 @@ class GeneralGenerator : public BaseGenerator {
             } else {
               code += index;
             }
-            code += ")" + dest_mask + " : ";
+            code += ")" + dest_mask;
+            if (!IsArray(field.value.type)) {
+              code += " : ";
+              code +=
+                  field.value.type.element == BASE_TYPE_BOOL
+                      ? "false"
+                      : (IsScalar(field.value.type.element) ? default_cast + "0"
+                                                            : "null");
+            }
 
-            code +=
-                field.value.type.element == BASE_TYPE_BOOL
-                    ? "false"
-                    : (IsScalar(field.value.type.element) ? default_cast + "0"
-                                                          : "null");
             break;
           }
           case BASE_TYPE_UNION:
@@ -1215,9 +1281,9 @@ class GeneralGenerator : public BaseGenerator {
       }
       // Generate mutators for scalar fields or vectors of scalars.
       if (parser_.opts.mutable_buffer) {
-        auto underlying_type = field.value.type.base_type == BASE_TYPE_VECTOR
-                                   ? field.value.type.VectorType()
-                                   : field.value.type;
+        auto is_series = (IsSeries(field.value.type));
+        const auto &underlying_type =
+            is_series ? field.value.type.VectorType() : field.value.type;
         // Boolean parameters have to be explicitly converted to byte
         // representation.
         auto setter_parameter = underlying_type.base_type == BASE_TYPE_BOOL
@@ -1226,21 +1292,21 @@ class GeneralGenerator : public BaseGenerator {
         auto mutator_prefix = MakeCamel("mutate", lang_.first_camel_upper);
         // A vector mutator also needs the index of the vector element it should
         // mutate.
-        auto mutator_params =
-            (field.value.type.base_type == BASE_TYPE_VECTOR ? "(int j, "
-                                                            : "(") +
-            GenTypeNameDest(underlying_type) + " " + field.name + ") { ";
+        auto mutator_params = (is_series ? "(int j, " : "(") +
+                              GenTypeNameDest(underlying_type) + " " +
+                              field.name + ") { ";
         auto setter_index =
-            field.value.type.base_type == BASE_TYPE_VECTOR
-                ? lang_.accessor_prefix + "__vector(o) + j * " +
-                      NumToString(InlineSize(underlying_type))
+            is_series
+                ? lang_.accessor_prefix +
+                      (IsArray(field.value.type)
+                           ? "bb_pos + " + NumToString(field.value.offset)
+                           : "__vector(o)") +
+                      +" + j * " + NumToString(InlineSize(underlying_type))
                 : (struct_def.fixed
                        ? lang_.accessor_prefix + "bb_pos + " +
                              NumToString(field.value.offset)
                        : "o + " + lang_.accessor_prefix + "bb_pos");
-        if (IsScalar(field.value.type.base_type) ||
-            (field.value.type.base_type == BASE_TYPE_VECTOR &&
-             IsScalar(field.value.type.VectorType().base_type))) {
+        if (IsScalar(underlying_type.base_type)) {
           code += "  public ";
           code += struct_def.fixed ? "void " : lang_.bool_type;
           code += mutator_prefix + MakeCamel(field.name, true);

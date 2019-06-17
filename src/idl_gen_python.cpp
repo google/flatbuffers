@@ -224,6 +224,30 @@ class PythonGenerator : public BaseGenerator {
     code += "\n" + Indent + Indent + "return obj\n\n";
   }
 
+  // Get the value of a fixed size array.
+  void GetArrayOfStruct(const StructDef &struct_def, const FieldDef &field,
+                        std::string *code_ptr) {
+    std::string &code = *code_ptr;
+    const auto vec_type = field.value.type.VectorType();
+    GenReceiver(struct_def, code_ptr);
+    code += MakeCamel(NormalizedName(field));
+    if (IsStruct(vec_type)) {
+      code += "(self, obj, i):\n";
+      code += Indent + Indent + "obj.Init(self._tab.Bytes, self._tab.Pos + ";
+      code += NumToString(field.value.offset) + " + i * ";
+      code += NumToString(InlineSize(vec_type));
+      code += ")\n" + Indent + Indent + "return obj\n\n";
+    } else {
+      auto getter = GenGetter(vec_type);
+      code += "(self): return [" + getter;
+      code += "self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(";
+      code += NumToString(field.value.offset) + " + i * ";
+      code += NumToString(InlineSize(vec_type));
+      code += ")) for i in range(";
+      code += NumToString(field.value.type.fixed_length) + ")]\n";
+    }
+  }
+
   // Get a struct by initializing an existing struct.
   // Specific to Table.
   void GetStructFieldOfTable(const StructDef &struct_def,
@@ -380,12 +404,16 @@ class PythonGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
         it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
-      if (IsStruct(field.value.type)) {
+      const auto &field_type = field.value.type;
+      const auto &type =
+          IsArray(field_type) ? field_type.VectorType() : field_type;
+      if (IsStruct(type)) {
         // Generate arguments for a struct inside a struct. To ensure names
         // don't clash, and to make it obvious these arguments are constructing
         // a nested struct, prefix the name with the field name.
-        StructBuilderArgs(*field.value.type.struct_def,
-                          (nameprefix + (NormalizedName(field) + "_")).c_str(), code_ptr);
+        StructBuilderArgs(*field_type.struct_def,
+                          (nameprefix + (NormalizedName(field) + "_")).c_str(),
+                          code_ptr);
       } else {
         std::string &code = *code_ptr;
         code += std::string(", ") + nameprefix;
@@ -402,22 +430,50 @@ class PythonGenerator : public BaseGenerator {
 
   // Recursively generate struct construction statements and instert manual
   // padding.
-  void StructBuilderBody(const StructDef &struct_def,
-                         const char *nameprefix, std::string *code_ptr) {
+  void StructBuilderBody(const StructDef &struct_def, const char *nameprefix,
+                         std::string *code_ptr, size_t index = 0,
+                         bool in_array = false) {
     std::string &code = *code_ptr;
-    code += "    builder.Prep(" + NumToString(struct_def.minalign) + ", ";
+    std::string indent(index * 4, ' ');
+    code +=
+        indent + "    builder.Prep(" + NumToString(struct_def.minalign) + ", ";
     code += NumToString(struct_def.bytesize) + ")\n";
     for (auto it = struct_def.fields.vec.rbegin();
         it != struct_def.fields.vec.rend(); ++it) {
       auto &field = **it;
+      const auto &field_type = field.value.type;
+      const auto &type =
+          IsArray(field_type) ? field_type.VectorType() : field_type;
       if (field.padding)
-        code += "    builder.Pad(" + NumToString(field.padding) + ")\n";
-      if (IsStruct(field.value.type)) {
-        StructBuilderBody(*field.value.type.struct_def,
-                          (nameprefix + (NormalizedName(field) + "_")).c_str(), code_ptr);
+        code +=
+            indent + "    builder.Pad(" + NumToString(field.padding) + ")\n";
+      if (IsStruct(field_type)) {
+        StructBuilderBody(*field_type.struct_def,
+                          (nameprefix + (NormalizedName(field) + "_")).c_str(),
+                          code_ptr, index, in_array);
       } else {
-        code += "    builder.Prepend" + GenMethod(field) + "(";
-        code += nameprefix + MakeCamel(NormalizedName(field), false) + ")\n";
+        const auto index_var = "_idx" + NumToString(index);
+        if (IsArray(field_type)) {
+          code += indent + "    for " + index_var + " in range(";
+          code += NumToString(field_type.fixed_length);
+          code += " , 0, -1):\n";
+          in_array = true;
+        }
+        if (IsStruct(type)) {
+          StructBuilderBody(
+              *field_type.struct_def,
+              (nameprefix + (NormalizedName(field) + "_")).c_str(), code_ptr,
+              index + 1, in_array);
+        } else {
+          code += IsArray(field_type) ? "    " : "";
+          code += indent + "    builder.Prepend" + GenMethod(field) + "(";
+          code += nameprefix + MakeCamel(NormalizedName(field), false);
+          size_t array_cnt = index + (IsArray(field_type) ? 1 : 0);
+          for (size_t i = 0; in_array && i < array_cnt; i++) {
+            code += "[_idx" + NumToString(i) + "-1]";
+          }
+          code += ")\n";
+        }
       }
     }
   }
@@ -505,6 +561,8 @@ class PythonGenerator : public BaseGenerator {
       } else {
         GetScalarFieldOfTable(struct_def, field, code_ptr);
       }
+    } else if (IsArray(field.value.type)) {
+      GetArrayOfStruct(struct_def, field, code_ptr);
     } else {
       switch (field.value.type.base_type) {
         case BASE_TYPE_STRUCT:
@@ -613,9 +671,9 @@ class PythonGenerator : public BaseGenerator {
 
   // Returns the method name for use with add/put calls.
   std::string GenMethod(const FieldDef &field) {
-    return IsScalar(field.value.type.base_type)
-              ? MakeCamel(GenTypeBasic(field.value.type))
-              : (IsStruct(field.value.type) ? "Struct" : "UOffsetTRelative");
+    return (IsScalar(field.value.type.base_type) || IsArray(field.value.type))
+               ? MakeCamel(GenTypeBasic(field.value.type))
+               : (IsStruct(field.value.type) ? "Struct" : "UOffsetTRelative");
   }
 
   std::string GenTypeBasic(const Type &type) {
@@ -628,7 +686,8 @@ class PythonGenerator : public BaseGenerator {
       #undef FLATBUFFERS_TD
       // clang-format on
     };
-    return ctypename[type.base_type];
+    return ctypename[IsArray(type) ? type.VectorType().base_type
+                                   : type.base_type];
   }
 
   std::string GenTypePointer(const Type &type) {

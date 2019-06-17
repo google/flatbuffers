@@ -43,10 +43,11 @@ enum BaseType {
   String = 13,
   Vector = 14,
   Obj = 15,
-  Union = 16
+  Union = 16,
+  Array = 17
 };
 
-inline const BaseType (&EnumValuesBaseType())[17] {
+inline const BaseType (&EnumValuesBaseType())[18] {
   static const BaseType values[] = {
     None,
     UType,
@@ -64,13 +65,14 @@ inline const BaseType (&EnumValuesBaseType())[17] {
     String,
     Vector,
     Obj,
-    Union
+    Union,
+    Array
   };
   return values;
 }
 
 inline const char * const *EnumNamesBaseType() {
-  static const char * const names[18] = {
+  static const char * const names[19] = {
     "None",
     "UType",
     "Bool",
@@ -88,13 +90,14 @@ inline const char * const *EnumNamesBaseType() {
     "Vector",
     "Obj",
     "Union",
+    "Array",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameBaseType(BaseType e) {
-  if (e < None || e > Union) return "";
+  if (e < None || e > Array) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesBaseType()[index];
 }
@@ -103,7 +106,8 @@ struct Type FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_BASE_TYPE = 4,
     VT_ELEMENT = 6,
-    VT_INDEX = 8
+    VT_INDEX = 8,
+    VT_FIXED_LENGTH = 10
   };
   reflection::BaseType base_type() const {
     return static_cast<reflection::BaseType>(GetField<int8_t>(VT_BASE_TYPE, 0));
@@ -114,11 +118,15 @@ struct Type FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   int32_t index() const {
     return GetField<int32_t>(VT_INDEX, -1);
   }
+  uint16_t fixed_length() const {
+    return GetField<uint16_t>(VT_FIXED_LENGTH, 0);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int8_t>(verifier, VT_BASE_TYPE) &&
            VerifyField<int8_t>(verifier, VT_ELEMENT) &&
            VerifyField<int32_t>(verifier, VT_INDEX) &&
+           VerifyField<uint16_t>(verifier, VT_FIXED_LENGTH) &&
            verifier.EndTable();
   }
 };
@@ -134,6 +142,9 @@ struct TypeBuilder {
   }
   void add_index(int32_t index) {
     fbb_.AddElement<int32_t>(Type::VT_INDEX, index, -1);
+  }
+  void add_fixed_length(uint16_t fixed_length) {
+    fbb_.AddElement<uint16_t>(Type::VT_FIXED_LENGTH, fixed_length, 0);
   }
   explicit TypeBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -151,9 +162,11 @@ inline flatbuffers::Offset<Type> CreateType(
     flatbuffers::FlatBufferBuilder &_fbb,
     reflection::BaseType base_type = reflection::None,
     reflection::BaseType element = reflection::None,
-    int32_t index = -1) {
+    int32_t index = -1,
+    uint16_t fixed_length = 0) {
   TypeBuilder builder_(_fbb);
   builder_.add_index(index);
+  builder_.add_fixed_length(fixed_length);
   builder_.add_element(element);
   builder_.add_base_type(base_type);
   return builder_.Finish();
