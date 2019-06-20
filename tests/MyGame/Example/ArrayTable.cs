@@ -12,10 +12,11 @@ public struct ArrayTable : IFlatbufferObject
 {
   private Table __p;
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
+  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_1_11_1(); }
   public static ArrayTable GetRootAsArrayTable(ByteBuffer _bb) { return GetRootAsArrayTable(_bb, new ArrayTable()); }
-  public static ArrayTable GetRootAsArrayTable(ByteBuffer _bb, ArrayTable obj) { FlatBufferConstants.FLATBUFFERS_1_11_1(); return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
+  public static ArrayTable GetRootAsArrayTable(ByteBuffer _bb, ArrayTable obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public static bool ArrayTableBufferHasIdentifier(ByteBuffer _bb) { return Table.__has_identifier(_bb, "ARRT"); }
-  public void __init(int _i, ByteBuffer _bb) { __p.bb_pos = _i; __p.bb = _bb; }
+  public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
   public ArrayTable __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public MyGame.Example.ArrayStruct? A { get { int o = __p.__offset(4); return o != 0 ? (MyGame.Example.ArrayStruct?)(new MyGame.Example.ArrayStruct()).__assign(o + __p.bb_pos, __p.bb) : null; } }
