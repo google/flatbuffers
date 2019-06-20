@@ -9,7 +9,7 @@ import com.google.flatbuffers.*;
 
 @SuppressWarnings("unused")
 public final class ArrayStruct extends Struct {
-  public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
+  public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }
   public ArrayStruct __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public float a() { return bb.getFloat(bb_pos + 0); }

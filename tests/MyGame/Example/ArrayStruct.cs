@@ -12,7 +12,7 @@ public struct ArrayStruct : IFlatbufferObject
 {
   private Struct __p;
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
-  public void __init(int _i, ByteBuffer _bb) { __p.bb_pos = _i; __p.bb = _bb; }
+  public void __init(int _i, ByteBuffer _bb) { __p = new Struct(_i, _bb); }
   public ArrayStruct __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public float A { get { return __p.bb.GetFloat(__p.bb_pos + 0); } }
