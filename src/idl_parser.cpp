@@ -843,12 +843,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
           "nested_flatbuffer attribute may only apply to a vector of ubyte");
     // This will cause an error if the root type of the nested flatbuffer
     // wasn't defined elsewhere.
-    LookupCreateStruct(nested->constant);
-
-    // Keep a pointer to StructDef in FieldDef to simplify re-use later
-    auto nested_qualified_name =
-        current_namespace_->GetFullyQualifiedName(nested->constant);
-    field->nested_flatbuffer = LookupStruct(nested_qualified_name);
+    field->nested_flatbuffer = LookupCreateStruct(nested->constant);
   }
 
   if (field->attributes.Lookup("flexbuffer")) {
