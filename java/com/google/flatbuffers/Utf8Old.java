@@ -67,6 +67,7 @@ public class Utf8Old extends Utf8 {
         throw new IllegalArgumentException("bad character encoding", e);
       }
     }
+    cache.lastOutput.flip();
     return cache.lastOutput.remaining();
   }
 
@@ -90,7 +91,6 @@ public class Utf8Old extends Utf8 {
     buffer.limit(offset + length);
     try {
       CharBuffer result = decoder.decode(buffer);
-      result.flip();
       return result.toString();
     } catch (CharacterCodingException e) {
       throw new IllegalArgumentException("Bad encoding", e);
