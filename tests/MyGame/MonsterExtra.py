@@ -19,100 +19,116 @@ class MonsterExtra(object):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # MonsterExtra
-    def TestfNan(self):
+    def D0(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
-            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
+            return self._tab.Get(flatbuffers.number_types.Float64Flags, o + self._tab.Pos)
         return float('nan')
 
     # MonsterExtra
-    def TestfPinf(self):
+    def D1(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
-            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
+            return self._tab.Get(flatbuffers.number_types.Float64Flags, o + self._tab.Pos)
+        return float('nan')
+
+    # MonsterExtra
+    def D2(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Float64Flags, o + self._tab.Pos)
         return float('inf')
 
     # MonsterExtra
-    def TestfNinf(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
-        if o != 0:
-            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
-        return float('-inf')
-
-    # MonsterExtra
-    def TestdNan(self):
+    def D3(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Float64Flags, o + self._tab.Pos)
-        return float('nan')
-
-    # MonsterExtra
-    def TestdPinf(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
-        if o != 0:
-            return self._tab.Get(flatbuffers.number_types.Float64Flags, o + self._tab.Pos)
-        return float('inf')
-
-    # MonsterExtra
-    def TestdNinf(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
-        if o != 0:
-            return self._tab.Get(flatbuffers.number_types.Float64Flags, o + self._tab.Pos)
         return float('-inf')
 
     # MonsterExtra
-    def TestfVec(self, j):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
+    def F0(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         if o != 0:
-            a = self._tab.Vector(o)
-            return self._tab.Get(flatbuffers.number_types.Float32Flags, a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
-        return 0
+            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
+        return float('nan')
 
     # MonsterExtra
-    def TestfVecAsNumpy(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
+    def F1(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
-            return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Float32Flags, o)
-        return 0
+            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
+        return float('nan')
 
     # MonsterExtra
-    def TestfVecLength(self):
+    def F2(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
         if o != 0:
-            return self._tab.VectorLen(o)
-        return 0
+            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
+        return float('inf')
 
     # MonsterExtra
-    def TestdVec(self, j):
+    def F3(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(18))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
+        return float('-inf')
+
+    # MonsterExtra
+    def Dvec(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(20))
         if o != 0:
             a = self._tab.Vector(o)
             return self._tab.Get(flatbuffers.number_types.Float64Flags, a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 8))
         return 0
 
     # MonsterExtra
-    def TestdVecAsNumpy(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(18))
+    def DvecAsNumpy(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(20))
         if o != 0:
             return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Float64Flags, o)
         return 0
 
     # MonsterExtra
-    def TestdVecLength(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(18))
+    def DvecLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(20))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
-def MonsterExtraStart(builder): builder.StartObject(8)
-def MonsterExtraAddTestfNan(builder, testfNan): builder.PrependFloat32Slot(0, testfNan, float('nan'))
-def MonsterExtraAddTestfPinf(builder, testfPinf): builder.PrependFloat32Slot(1, testfPinf, float('inf'))
-def MonsterExtraAddTestfNinf(builder, testfNinf): builder.PrependFloat32Slot(2, testfNinf, float('-inf'))
-def MonsterExtraAddTestdNan(builder, testdNan): builder.PrependFloat64Slot(3, testdNan, float('nan'))
-def MonsterExtraAddTestdPinf(builder, testdPinf): builder.PrependFloat64Slot(4, testdPinf, float('inf'))
-def MonsterExtraAddTestdNinf(builder, testdNinf): builder.PrependFloat64Slot(5, testdNinf, float('-inf'))
-def MonsterExtraAddTestfVec(builder, testfVec): builder.PrependUOffsetTRelativeSlot(6, flatbuffers.number_types.UOffsetTFlags.py_type(testfVec), 0)
-def MonsterExtraStartTestfVecVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def MonsterExtraAddTestdVec(builder, testdVec): builder.PrependUOffsetTRelativeSlot(7, flatbuffers.number_types.UOffsetTFlags.py_type(testdVec), 0)
-def MonsterExtraStartTestdVecVector(builder, numElems): return builder.StartVector(8, numElems, 8)
+    # MonsterExtra
+    def Fvec(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
+        if o != 0:
+            a = self._tab.Vector(o)
+            return self._tab.Get(flatbuffers.number_types.Float32Flags, a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
+        return 0
+
+    # MonsterExtra
+    def FvecAsNumpy(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
+        if o != 0:
+            return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Float32Flags, o)
+        return 0
+
+    # MonsterExtra
+    def FvecLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+def MonsterExtraStart(builder): builder.StartObject(10)
+def MonsterExtraAddD0(builder, d0): builder.PrependFloat64Slot(0, d0, float('nan'))
+def MonsterExtraAddD1(builder, d1): builder.PrependFloat64Slot(1, d1, float('nan'))
+def MonsterExtraAddD2(builder, d2): builder.PrependFloat64Slot(2, d2, float('inf'))
+def MonsterExtraAddD3(builder, d3): builder.PrependFloat64Slot(3, d3, float('-inf'))
+def MonsterExtraAddF0(builder, f0): builder.PrependFloat32Slot(4, f0, float('nan'))
+def MonsterExtraAddF1(builder, f1): builder.PrependFloat32Slot(5, f1, float('nan'))
+def MonsterExtraAddF2(builder, f2): builder.PrependFloat32Slot(6, f2, float('inf'))
+def MonsterExtraAddF3(builder, f3): builder.PrependFloat32Slot(7, f3, float('-inf'))
+def MonsterExtraAddDvec(builder, dvec): builder.PrependUOffsetTRelativeSlot(8, flatbuffers.number_types.UOffsetTFlags.py_type(dvec), 0)
+def MonsterExtraStartDvecVector(builder, numElems): return builder.StartVector(8, numElems, 8)
+def MonsterExtraAddFvec(builder, fvec): builder.PrependUOffsetTRelativeSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(fvec), 0)
+def MonsterExtraStartFvecVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def MonsterExtraEnd(builder): return builder.EndObject()

@@ -439,13 +439,18 @@ numerical literals:
     For example: `[0x123, +0x45, -0x67]` are equal to `[291, 69, -103]` decimals.
 -   The format of float-point numbers is fully compatible with C/C++ format.
     If a modern C++ compiler is used the parser accepts hexadecimal and special
-    float-point literals as well:
+    floating-point literals as well:
     `[-1.0, 2., .3e0, 3.e4, 0x21.34p-5, -inf, nan]`.
-    The exponent suffix of hexadecimal float-point number is mandatory.
 
-    Extended float-point support was tested with:
+    The following conventions for floating-point numbers are used:
+    - The exponent suffix of hexadecimal floating-point number is mandatory.
+    - Parsed `NaN` converted to unsigned IEEE-754 `quiet-NaN` value.
+
+    Extended floating-point support was tested with:
     - x64 Windows: `MSVC2015` and higher.
     - x64 Linux: `LLVM 6.0`, `GCC 4.9` and higher.
+
+    For details, see [Use in C++](@ref flatbuffers_guide_use_cpp) section.
 
 -   For compatibility with a JSON lint tool all numeric literals of scalar
     fields can be wrapped to quoted string:
