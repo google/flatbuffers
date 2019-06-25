@@ -218,6 +218,18 @@ namespace FlatBuffers
         {
             _space = _bb.Put(_space, x);
         }
+#else
+        /// <summary>
+        /// Puts a ArraySegment of type T into this builder at the 
+        /// current offset
+        /// </summary>
+        /// <typeparam name="T">The type of the input data </typeparam>
+        /// <param name="x">The array segment to copy data from</param>
+        public void Put<T>(ArraySegment<T> x)
+            where T : struct
+        {
+            _space = _bb.Put(_space, x);
+        }
 #endif
 
         public void PutDouble(double x)
@@ -335,6 +347,37 @@ namespace FlatBuffers
             // Need to prep on size (for data alignment) and then we pass the
             // rest of the length (minus 1) as additional bytes
             Prep(size, size * (x.Length - 1));
+            Put(x);
+        }
+#else
+        /// <summary>
+        /// Add an array segment of type T to the buffer (aligns the data and grows if necessary).
+        /// </summary>
+        /// <typeparam name="T">The type of the input data</typeparam>
+        /// <param name="x">The array segment to copy data from</param>
+        public void Add<T>(ArraySegment<T> x)
+            where T : struct
+        {
+            if (x == null)
+            {
+                throw new ArgumentNullException("Cannot add a null array segment");
+            }
+
+            if (x.Count == 0)
+            {
+                // don't do anything if the array is empty
+                return;
+            }
+
+            if (!ByteBuffer.IsSupportedType<T>())
+            {
+                throw new ArgumentException("Cannot add this Type array segments to the builder");
+            }
+
+            int size = ByteBuffer.SizeOf<T>();
+            // Need to prep on size (for data alignment) and then we pass the
+            // rest of the length (minus 1) as additional bytes
+            Prep(size, size * (x.Count - 1));
             Put(x);
         }
 #endif
