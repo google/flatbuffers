@@ -203,27 +203,25 @@ class CppNativeGenerator : public BaseGenerator {
       code_ += "#pragma clang system_header\n\n";
     }
 
-    code_ += "#include \"flatbuffers/flatbuffers.h\"";
-    code_ += "#include <variant>";
     code_ += "#include \"" + GeneratedFileName("", file_name_, "generated") + "\"";
     if (parser_.opts.include_dependence_headers) { GenIncludeDependencies(); }
+    code_ += "#include \"flatbuffers/flatbuffers.h\"";
+    code_ += "#include <variant>";
 
     code_ += "";
 
     // Generate forward declarations for all structs/tables/enums, since they may
     // have circular references.
-    for (auto it = parser_.structs_.vec.begin();
-         it != parser_.structs_.vec.end(); ++it) {
-      const auto &struct_def = **it;
+    for (auto it : parser_.structs_.vec) {
+      const auto &struct_def = *it;
       if (!struct_def.generated && !hasNative(struct_def)) {
         SetNameSpace(*struct_def.defined_namespace);
         auto nativeName = NativeName(struct_def);
         if (!struct_def.fixed) { code_ += "struct " + nativeName + ";"; }
       }
     }
-    for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
-         ++it) {
-      const auto &enum_def = **it;
+    for (auto it : parser_.enums_.vec) {
+      const auto &enum_def = *it;
       if (enum_def.is_union && !enum_def.generated) {
         SetNameSpace(*enum_def.defined_namespace);
         code_ += "struct " + NativeName(enum_def) + ";";
@@ -233,9 +231,8 @@ class CppNativeGenerator : public BaseGenerator {
 
     // Generate forward declarations for all equal operators
     if (parser_.opts.gen_compare) {
-      for (auto it = parser_.structs_.vec.begin();
-          it != parser_.structs_.vec.end(); ++it) {
-        const auto &struct_def = **it;
+      for (auto it : parser_.structs_.vec) {
+        const auto &struct_def = *it;
         if (!struct_def.fixed && !struct_def.generated && !hasNative(struct_def)) {
           SetNameSpace(*struct_def.defined_namespace);
           auto nativeName = NativeName(struct_def);
@@ -246,9 +243,8 @@ class CppNativeGenerator : public BaseGenerator {
     }
 
     // Generate code for all the enum declarations.
-    for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
-         ++it) {
-      const auto &enum_def = **it;
+    for (auto it : parser_.enums_.vec) {
+      const auto &enum_def = *it;
       if (enum_def.is_union && !enum_def.generated) {
         SetNameSpace(*enum_def.defined_namespace);
         GenNativeUnion(enum_def);
@@ -256,9 +252,8 @@ class CppNativeGenerator : public BaseGenerator {
     }
 
     // Generate code for all tables.
-    for (auto it = parser_.structs_.vec.begin();
-         it != parser_.structs_.vec.end(); ++it) {
-      const auto &struct_def = **it;
+    for (auto it : parser_.structs_.vec) {
+      const auto &struct_def = *it;
       if (!struct_def.fixed && !struct_def.generated && !hasNative(struct_def)) {
         SetNameSpace(*struct_def.defined_namespace);
         GenNativeTable(struct_def);
@@ -269,9 +264,8 @@ class CppNativeGenerator : public BaseGenerator {
 
     // Generate forward declarations for pack / unpack operators
     if (parser_.opts.gen_compare) {
-      for (auto it = parser_.structs_.vec.begin();
-           it != parser_.structs_.vec.end(); ++it) {
-        const auto &struct_def = **it;
+      for (auto it : parser_.structs_.vec) {
+        const auto &struct_def = *it;
         if (!struct_def.fixed && !struct_def.generated &&
             !hasNative(struct_def)) {
           code_ += TablePackSignature(struct_def, true) + ";";
@@ -279,9 +273,8 @@ class CppNativeGenerator : public BaseGenerator {
           code_ += "";
         }
       }
-      for (auto it = parser_.enums_.vec.begin(); 
-           it != parser_.enums_.vec.end(); ++it) {
-        const auto &enum_def = **it;
+      for (auto it : parser_.enums_.vec) {
+        const auto &enum_def = *it;
         if (enum_def.is_union && !enum_def.generated) {
           code_ += UnionPackSignature(enum_def, true) + ";";
           code_ += UnionUnPackSignature(enum_def, true) + ";";
@@ -291,16 +284,14 @@ class CppNativeGenerator : public BaseGenerator {
     }
 
     // Generate Pack Unpack
-    for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
-         ++it) {
-      const auto &enum_def = **it;
+    for (auto it : parser_.enums_.vec) {
+      const auto &enum_def = *it;
       if (enum_def.is_union && !enum_def.generated) {
         GenUnionPackUnpack(enum_def);
       }
     }
-    for (auto it = parser_.structs_.vec.begin();
-         it != parser_.structs_.vec.end(); ++it) {
-      const auto &struct_def = **it;
+    for (auto it : parser_.structs_.vec) {
+      const auto &struct_def = *it;
       if (!struct_def.fixed && !struct_def.generated && !hasNative(struct_def)) {
         GenTablePackUnpack(struct_def);
       }
@@ -359,7 +350,7 @@ class CppNativeGenerator : public BaseGenerator {
 
       code_ += "#include \"" + parser_.opts.include_prefix +
                (parser_.opts.keep_include_path ? noext : basename) +
-               "_generated.h\"";
+               "_native.h\"";
       num_includes++;
     }
     if (num_includes) code_ += "";
