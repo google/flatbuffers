@@ -14,6 +14,8 @@ struct Comp;
 
 struct Mat;
 
+struct DefindeBeforeUnion;
+
 struct Foo;
 
 namespace NamespaceFoo {
@@ -33,6 +35,8 @@ inline const flatbuffers::TypeTable *ComplexTypeTable();
 inline const flatbuffers::TypeTable *CompTypeTable();
 
 inline const flatbuffers::TypeTable *MatTypeTable();
+
+inline const flatbuffers::TypeTable *DefindeBeforeUnionTypeTable();
 
 inline const flatbuffers::TypeTable *FooTypeTable();
 
@@ -84,14 +88,16 @@ inline const char *EnumNameBundleSize(BundleSize e) {
 enum MyUnion {
   MyUnion_NONE = 0,
   MyUnion_Mat = 1,
+  MyUnion_DefindeBeforeUnion = 2,
   MyUnion_MIN = MyUnion_NONE,
-  MyUnion_MAX = MyUnion_Mat
+  MyUnion_MAX = MyUnion_DefindeBeforeUnion
 };
 
-inline const MyUnion (&EnumValuesMyUnion())[2] {
+inline const MyUnion (&EnumValuesMyUnion())[3] {
   static const MyUnion values[] = {
     MyUnion_NONE,
-    MyUnion_Mat
+    MyUnion_Mat,
+    MyUnion_DefindeBeforeUnion
   };
   return values;
 }
@@ -100,13 +106,14 @@ inline const char * const *EnumNamesMyUnion() {
   static const char * const names[] = {
     "NONE",
     "Mat",
+    "DefindeBeforeUnion",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameMyUnion(MyUnion e) {
-  if (e < MyUnion_NONE || e > MyUnion_Mat) return "";
+  if (e < MyUnion_NONE || e > MyUnion_DefindeBeforeUnion) return "";
   const size_t index = static_cast<int>(e);
   return EnumNamesMyUnion()[index];
 }
@@ -117,6 +124,10 @@ template<typename T> struct MyUnionTraits {
 
 template<> struct MyUnionTraits<Mat> {
   static const MyUnion enum_value = MyUnion_Mat;
+};
+
+template<> struct MyUnionTraits<DefindeBeforeUnion> {
+  static const MyUnion enum_value = MyUnion_DefindeBeforeUnion;
 };
 
 bool VerifyMyUnion(flatbuffers::Verifier &verifier, const void *obj, MyUnion type);
@@ -243,6 +254,49 @@ inline flatbuffers::Offset<Mat> CreateMatDirect(
       data__);
 }
 
+struct DefindeBeforeUnion FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return DefindeBeforeUnionTypeTable();
+  }
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_DUMMY = 4
+  };
+  int32_t dummy() const {
+    return GetField<int32_t>(VT_DUMMY, 0);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<int32_t>(verifier, VT_DUMMY) &&
+           verifier.EndTable();
+  }
+};
+
+struct DefindeBeforeUnionBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_dummy(int32_t dummy) {
+    fbb_.AddElement<int32_t>(DefindeBeforeUnion::VT_DUMMY, dummy, 0);
+  }
+  explicit DefindeBeforeUnionBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  DefindeBeforeUnionBuilder &operator=(const DefindeBeforeUnionBuilder &);
+  flatbuffers::Offset<DefindeBeforeUnion> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<DefindeBeforeUnion>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<DefindeBeforeUnion> CreateDefindeBeforeUnion(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    int32_t dummy = 0) {
+  DefindeBeforeUnionBuilder builder_(_fbb);
+  builder_.add_dummy(dummy);
+  return builder_.Finish();
+}
+
 struct Foo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return FooTypeTable();
@@ -285,6 +339,9 @@ struct Foo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const Mat *variant_as_Mat() const {
     return variant_type() == MyUnion_Mat ? static_cast<const Mat *>(variant()) : nullptr;
   }
+  const DefindeBeforeUnion *variant_as_DefindeBeforeUnion() const {
+    return variant_type() == MyUnion_DefindeBeforeUnion ? static_cast<const DefindeBeforeUnion *>(variant()) : nullptr;
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int8_t>(verifier, VT_ENUMDATA) &&
@@ -304,6 +361,10 @@ struct Foo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 template<> inline const Mat *Foo::variant_as<Mat>() const {
   return variant_as_Mat();
+}
+
+template<> inline const DefindeBeforeUnion *Foo::variant_as<DefindeBeforeUnion>() const {
+  return variant_as_DefindeBeforeUnion();
 }
 
 struct FooBuilder {
@@ -503,6 +564,10 @@ inline bool VerifyMyUnion(flatbuffers::Verifier &verifier, const void *obj, MyUn
       auto ptr = reinterpret_cast<const Mat *>(obj);
       return verifier.VerifyTable(ptr);
     }
+    case MyUnion_DefindeBeforeUnion: {
+      auto ptr = reinterpret_cast<const DefindeBeforeUnion *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
     default: return false;
   }
 }
@@ -542,17 +607,20 @@ inline const flatbuffers::TypeTable *BundleSizeTypeTable() {
 inline const flatbuffers::TypeTable *MyUnionTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_SEQUENCE, 0, -1 },
-    { flatbuffers::ET_SEQUENCE, 0, 0 }
+    { flatbuffers::ET_SEQUENCE, 0, 0 },
+    { flatbuffers::ET_SEQUENCE, 0, 1 }
   };
   static const flatbuffers::TypeFunction type_refs[] = {
-    MatTypeTable
+    MatTypeTable,
+    DefindeBeforeUnionTypeTable
   };
   static const char * const names[] = {
     "NONE",
-    "Mat"
+    "Mat",
+    "DefindeBeforeUnion"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_UNION, 2, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_UNION, 3, type_codes, type_refs, nullptr, names
   };
   return &tt;
 }
@@ -603,6 +671,19 @@ inline const flatbuffers::TypeTable *MatTypeTable() {
   };
   static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_TABLE, 2, type_codes, type_refs, nullptr, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *DefindeBeforeUnionTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_INT, 0, -1 }
+  };
+  static const char * const names[] = {
+    "dummy"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 1, type_codes, nullptr, nullptr, names
   };
   return &tt;
 }

@@ -4,15 +4,16 @@
 #ifndef FLATBUFFERS_NATIVE_NATIVETEST_TESTN_H_
 #define FLATBUFFERS_NATIVE_NATIVETEST_TESTN_H_
 
-#include "flatbuffers/flatbuffers.h"
-#include <variant>
 #include "native_test_generated.h"
 #include "custom_native.h"
 
+#include "flatbuffers/flatbuffers.h"
+#include <variant>
 
 namespace TestN {
 namespace Native {
 
+struct DefindeBeforeUnion;
 struct Foo;
 }  // namespace Native
 
@@ -34,6 +35,8 @@ namespace Native {
 
 struct MyUnionUnion;
 
+bool operator==(const DefindeBeforeUnion &lhs, const DefindeBeforeUnion &rhs);
+
 bool operator==(const Foo &lhs, const Foo &rhs);
 
 }  // namespace Native
@@ -56,8 +59,21 @@ bool operator==(const Foo &lhs, const Foo &rhs);
 
 namespace Native {
 
-struct MyUnionUnion : public std::variant<flatbuffers::NoneType, MyMat> {
-    using std::variant<flatbuffers::NoneType, MyMat>::variant;
+struct DefindeBeforeUnion : public flatbuffers::NativeTable {
+  typedef ::TestN::DefindeBeforeUnion TableType;
+  int32_t dummy;
+  DefindeBeforeUnion()
+      : dummy(0) {
+  }
+};
+
+inline bool operator==(const DefindeBeforeUnion &lhs, const DefindeBeforeUnion &rhs) {
+  return
+      (lhs.dummy == rhs.dummy);
+}
+
+struct MyUnionUnion : public std::variant<flatbuffers::NoneType, MyMat, DefindeBeforeUnion> {
+    using std::variant<flatbuffers::NoneType, MyMat, DefindeBeforeUnion>::variant;
 };
 
 struct Foo : public flatbuffers::NativeTable {
@@ -127,6 +143,9 @@ inline bool operator==(const Foo &lhs, const Foo &rhs) {
 
 namespace Native {
 
+flatbuffers::Offset<::TestN::DefindeBeforeUnion> Pack(flatbuffers::FlatBufferBuilder &_fbb, const ::TestN::Native::DefindeBeforeUnion &_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+::TestN::Native::DefindeBeforeUnion UnPack(const ::TestN::DefindeBeforeUnion &_f, const flatbuffers::resolver_function_t *_resolver = nullptr);
+
 flatbuffers::Offset<::TestN::Foo> Pack(flatbuffers::FlatBufferBuilder &_fbb, const ::TestN::Native::Foo &_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 ::TestN::Native::Foo UnPack(const ::TestN::Foo &_f, const flatbuffers::resolver_function_t *_resolver = nullptr);
 
@@ -144,6 +163,8 @@ inline flatbuffers::Offset<void> Pack(flatbuffers::FlatBufferBuilder &_fbb, cons
   (void)_rehasher;
   if (auto pval = std::get_if<MyMat>(&_o))
     return Native::Pack(_fbb, *pval, _rehasher).Union();
+  if (auto pval = std::get_if<::TestN::Native::DefindeBeforeUnion>(&_o))
+    return Native::Pack(_fbb, *pval, _rehasher).Union();
   return 0;
 }
 
@@ -153,7 +174,27 @@ inline ::TestN::Native::MyUnionUnion UnPack(const void *obj, const ::TestN::MyUn
   (void)_resolver;
   if (type == ::TestN::MyUnion_Mat)
     return Native::UnPack(*static_cast<const ::TestN::Mat*>(obj), _resolver);
+  if (type == ::TestN::MyUnion_DefindeBeforeUnion)
+    return Native::UnPack(*static_cast<const ::TestN::DefindeBeforeUnion*>(obj), _resolver);
   return ::TestN::Native::MyUnionUnion();
+}
+
+inline ::TestN::Native::DefindeBeforeUnion UnPack(const ::TestN::DefindeBeforeUnion &_f, const flatbuffers::resolver_function_t *_resolver) {
+  (void)_f;
+  (void)_resolver;
+  auto _o = ::TestN::Native::DefindeBeforeUnion();
+  { auto _e = _f.dummy(); _o.dummy = _e; };
+  return _o;
+}
+
+inline flatbuffers::Offset<::TestN::DefindeBeforeUnion> Pack(flatbuffers::FlatBufferBuilder &_fbb, const ::TestN::Native::DefindeBeforeUnion &_o, const flatbuffers::rehasher_function_t *_rehasher) {
+  (void)_rehasher;
+  (void)_o;
+  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const ::TestN::Native::DefindeBeforeUnion& __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
+  auto dummy__ = _o.dummy;
+  ::TestN::DefindeBeforeUnionBuilder builder_(_fbb);
+  builder_.add_dummy(dummy__);
+  return builder_.Finish();
 }
 
 inline ::TestN::Native::Foo UnPack(const ::TestN::Foo &_f, const flatbuffers::resolver_function_t *_resolver) {
