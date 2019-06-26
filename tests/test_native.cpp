@@ -32,6 +32,24 @@
 #include "native_test_native.h"
 #include "test_assert.h"
 
+int TopologicalSortTests() {
+  std::vector<int> vertex {1, 2, 3, 4};
+  flatbuffers::doTopologicalSort(vertex.begin(), vertex.end(), [] (auto a, auto b) {
+    // hard coded dependencies
+    if ((a == 4 && b == 2) || (a == 4 && b == 3) || (a == 3 && b == 1) || (a == 2 && b == 1))
+      return true;
+    else
+      return false;
+  }
+  );
+
+  TEST_EQ(vertex[0], 4);
+  TEST_EQ(vertex[1], 2);
+  TEST_EQ(vertex[2], 3);
+  TEST_EQ(vertex[3], 1);
+  return 0;
+}
+
 void CompileTest() {
   TestN::Native::Foo foo;
   foo.enumData = TestN::BundleSize_Size3;
@@ -64,10 +82,10 @@ void TestNamespaces() {
   fbbbar.Finish(Native::Pack(fbbbar, barfoo));
 }
 
-
 int FlatBufferTests() {
-
+  TopologicalSortTests();
   CompileTest();
+  TestNamespaces();
 
   return 0;
 }

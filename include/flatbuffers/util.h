@@ -646,6 +646,24 @@ bool SetGlobalTestLocale(const char *locale_name,
 bool ReadEnvironmentVariable(const char *var_name,
                              std::string *_value = nullptr);
 
+template<class _it, class is_dependent_fun>
+_it findIndegreeZero(_it begin, _it end, is_dependent_fun dep) {
+  for (auto outer = begin; outer != end; ++outer) {
+    auto cnt =
+        std::count_if(outer + 1, end, [&](auto &e) { return dep(e, *outer); });
+    if (cnt == 0) return outer;
+  }
+  return end;
+}
+
+template<class _it, class is_dependent_fun>
+void doTopologicalSort(_it begin, _it end, is_dependent_fun dep) {
+  for (auto it = begin; it != end; ++it) {
+    auto zeroIt = findIndegreeZero(it, end, dep);
+    std::swap(*it, *zeroIt);
+  }
+}
+
 }  // namespace flatbuffers
 
 #endif  // FLATBUFFERS_UTIL_H_
