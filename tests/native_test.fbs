@@ -24,7 +24,12 @@ table Mat (native_type:"MyMat") {
   data: [Complex];
 }
 
-union MyUnion { Mat}
+table DefindeBeforeUnion {
+  dummy: int;
+}
+
+// union must be generated after table to get no compile error
+union MyUnion { Mat, DefindeBeforeUnion }
 
 table Foo {
   enumData:BundleSize;

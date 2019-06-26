@@ -34,6 +34,52 @@ static std::string GeneratedFileName(const std::string &path,
   return path + file_name + "_" + postfix + ".h";
 }
 
+
+inline std::string getFullName(const flatbuffers::Definition &d) {
+  FLATBUFFERS_ASSERT(d.defined_namespace != nullptr);
+  return d.defined_namespace->GetFullyQualifiedName(d.name);
+}
+
+inline bool dependsOnStruct(const flatbuffers::Definition &a,
+                            const flatbuffers::StructDef &b) {
+  return std::find_if(
+             b.fields.vec.begin(), b.fields.vec.end(),
+             [&](flatbuffers::FieldDef *d) {
+               if (d->value.type.base_type == flatbuffers::BASE_TYPE_STRUCT)
+                 return getFullName(a) == getFullName(*d->value.type.struct_def);
+               else
+                 return false;
+             }) != b.fields.vec.end();
+}
+
+inline bool dependsOnUnion(const flatbuffers::Definition &a,
+                           const flatbuffers::EnumDef &b) {
+  if(!b.is_union) return false;
+  return std::find_if(
+             b.vals.vec.begin(), b.vals.vec.end(),
+             [&](flatbuffers::EnumVal *ev) {
+               if (ev->union_type.base_type == flatbuffers::BASE_TYPE_STRUCT)
+                 return getFullName(a) == getFullName(*(ev->union_type.struct_def));
+               else
+                 return false;
+             }) != b.vals.vec.end();
+}
+
+inline bool dependsOn(const flatbuffers::Definition *a,
+                      const flatbuffers::Definition *b) {
+  auto s = dynamic_cast<const flatbuffers::StructDef *>(b);
+  auto u = dynamic_cast<const flatbuffers::EnumDef *>(b);
+
+  if (s)
+    return dependsOnStruct(*a, *s);
+  else if (u)
+    return dependsOnUnion(*a, *u);
+  else {
+    FLATBUFFERS_ASSERT(false);
+    return false;
+  }
+}
+
 namespace cpp {
 class CppNativeGenerator : public BaseGenerator {
  public:
@@ -242,24 +288,25 @@ class CppNativeGenerator : public BaseGenerator {
       }
     }
 
+    // Generate dependency sorted list of all definitions
+    std::vector<Definition*> defs;
+    defs.insert(defs.end(), parser_.enums_.vec.begin(), parser_.enums_.vec.end());
+    defs.insert(defs.end(), parser_.structs_.vec.begin(), parser_.structs_.vec.end());
+    doTopologicalSort(defs.begin(), defs.end(), dependsOn);
+
     // Generate code for all the enum declarations.
-    for (auto it : parser_.enums_.vec) {
-      const auto &enum_def = *it;
-      if (enum_def.is_union && !enum_def.generated) {
-        SetNameSpace(*enum_def.defined_namespace);
-        GenNativeUnion(enum_def);
+    for (auto it : defs) {
+      auto struct_def = dynamic_cast<const flatbuffers::StructDef *>(it);
+      auto enum_def = dynamic_cast<const flatbuffers::EnumDef *>(it);
+
+      if (struct_def && !struct_def->generated && !struct_def->fixed && !hasNative(*struct_def)) {
+        SetNameSpace(*(struct_def->defined_namespace));
+        GenNativeTable(*struct_def);
+      } else if (enum_def && !enum_def->generated && enum_def->is_union) {
+        SetNameSpace(*(enum_def->defined_namespace));
+        GenNativeUnion(*enum_def);
       }
     }
-
-    // Generate code for all tables.
-    for (auto it : parser_.structs_.vec) {
-      const auto &struct_def = *it;
-      if (!struct_def.fixed && !struct_def.generated && !hasNative(struct_def)) {
-        SetNameSpace(*struct_def.defined_namespace);
-        GenNativeTable(struct_def);
-      }
-    }
-
     SetNameSpace(Namespace{});
 
     // Generate forward declarations for pack / unpack operators
