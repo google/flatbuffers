@@ -233,6 +233,8 @@ struct Definition {
         index(-1),
         refcount(1) {}
 
+  virtual ~Definition() {}
+
   flatbuffers::Offset<
       flatbuffers::Vector<flatbuffers::Offset<reflection::KeyValue>>>
   SerializeAttributes(FlatBufferBuilder *builder, const Parser &parser) const;
@@ -288,6 +290,8 @@ struct StructDef : public Definition {
         has_key(false),
         minalign(1),
         bytesize(0) {}
+
+  ~StructDef() override {}
 
   void PadLastField(size_t min_align) {
     auto padding = PaddingBytes(bytesize, min_align);
@@ -349,6 +353,8 @@ struct EnumDef : public Definition {
     }
     return nullptr;
   }
+
+  ~EnumDef() override {}
 
   Offset<reflection::Enum> Serialize(FlatBufferBuilder *builder, const Parser &parser) const;
 
