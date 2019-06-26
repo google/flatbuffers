@@ -221,6 +221,10 @@ namespace FlatBuffers
         /// <returns>The number of bytes the array takes on wire</returns>
         public static int ArraySize<T>(T[] x)
         {
+            if (typeof(T).IsEnum)
+            {
+                return Marshal.SizeOf(Enum.GetUnderlyingType(typeof(T))) * x.Length;
+            }
             return SizeOf<T>() * x.Length;
         }
 
@@ -246,7 +250,19 @@ namespace FlatBuffers
         {
             AssertOffsetAndLength(pos, len);
             T[] arr = new T[len];
-            Buffer.BlockCopy(_buffer.Buffer, pos, arr, 0, ArraySize(arr));
+            if (typeof(T).IsEnum)
+            {
+                // BlockCopy will not copy into an array of T if T is an enumeration.
+                var tmp = Array.CreateInstance(Enum.GetUnderlyingType(typeof(T)), len);
+                // ArraySize gives the size in bytes. Though the destination is tmp,
+                // an array of the correct underlying type.
+                Buffer.BlockCopy(_buffer.Buffer, pos, tmp, 0, ArraySize(arr));
+                for (int i = 0; i < len; i++) arr[i] = (T)tmp.GetValue(i);
+            }
+            else
+            {
+                Buffer.BlockCopy(_buffer.Buffer, pos, arr, 0, ArraySize(arr));
+            }
             return arr;
         }
 #endif

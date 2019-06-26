@@ -293,6 +293,29 @@ namespace FlatBuffers.Test
         }
 
         [FlatBuffersTestMethod]
+        public void TestVectorOfEnums()
+        {
+            const string monsterName = "TestVectorOfEnumsMonster";
+            Color[] colorVec = new Color[]{ Color.Red, Color.Green, Color.Blue };
+            var fbb = new FlatBufferBuilder(32);
+            var str1 = fbb.CreateString(monsterName);
+            var vec1 = Monster.CreateVectorOfEnumsVector(fbb, colorVec);
+            Monster.StartMonster(fbb);
+            Monster.AddName(fbb, str1);
+            Monster.AddVectorOfEnums(fbb, vec1);
+            var monster1 = Monster.EndMonster(fbb);
+            Monster.FinishMonsterBuffer(fbb, monster1);
+
+            var mons = Monster.GetRootAsMonster(fbb.DataBuffer);
+            Color[] colors = mons.GetVectorOfEnumsArray();
+            Assert.AreEqual(colorVec.Length, colors.Length);
+            for (int i = 0; i < colors.Length; i++)
+            {
+              Assert.AreEqual(colors[i], colorVec[i]);
+            }
+        }
+
+        [FlatBuffersTestMethod]
         public void TestNestedFlatBuffer()
         {
             const string nestedMonsterName = "NestedMonsterName";
