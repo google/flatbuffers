@@ -102,7 +102,7 @@ std::string NumToStringImplWrapper(T t, const char *fmt, int precision = 0) {
   size_t string_width = NumToStringWidth(t, precision);
   std::string s(string_width, 0x00);
   // Allow snprintf to use std::string trailing null to detect buffer overflow
-  snprintf(const_cast<char *>(s.data()), (s.size() + 1), fmt, precision, t);
+  snprintf(const_cast<char *>(s.data()), (s.size() + 1), fmt, string_width, t);
   return s;
 }
 #endif  // FLATBUFFERS_PREFER_PRINTF
