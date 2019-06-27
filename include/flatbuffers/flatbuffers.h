@@ -880,7 +880,7 @@ class vector_downward {
   uint8_t *data_at(size_t offset) const { return buf_ + reserved_ - offset; }
 
   void push(const uint8_t *bytes, size_t num) {
-    memcpy(make_space(num), bytes, num);
+    if (num > 0) { memcpy(make_space(num), bytes, num); }
   }
 
   // Specialized version of push() that avoids memcpy call for small data.
@@ -903,6 +903,7 @@ class vector_downward {
   }
 
   // Version for when we know the size is larger.
+  // Precondition: zero_pad_bytes > 0
   void fill_big(size_t zero_pad_bytes) {
     memset(make_space(zero_pad_bytes), 0, zero_pad_bytes);
   }
