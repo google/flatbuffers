@@ -846,12 +846,6 @@ class vector_downward {
   inline uint8_t *make_space(size_t len) {
     size_t space = ensure_space(len);
     cur_ -= space;
-    if (cur_ == nullptr) {
-      // Eventually the returned pointer gets passed down to memcpy, so
-      // we need it to be non-null to avoid undefined behavior.
-      static uint8_t t;
-      return &t;
-    }
     return cur_;
   }
 
@@ -886,7 +880,7 @@ class vector_downward {
   uint8_t *data_at(size_t offset) const { return buf_ + reserved_ - offset; }
 
   void push(const uint8_t *bytes, size_t num) {
-    memcpy(make_space(num), bytes, num);
+    if (num > 0) { memcpy(make_space(num), bytes, num); }
   }
 
   // Specialized version of push() that avoids memcpy call for small data.
@@ -909,6 +903,7 @@ class vector_downward {
   }
 
   // Version for when we know the size is larger.
+  // Precondition: zero_pad_bytes > 0
   void fill_big(size_t zero_pad_bytes) {
     memset(make_space(zero_pad_bytes), 0, zero_pad_bytes);
   }
