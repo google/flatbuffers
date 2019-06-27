@@ -846,6 +846,12 @@ class vector_downward {
   inline uint8_t *make_space(size_t len) {
     size_t space = ensure_space(len);
     cur_ -= space;
+    if (cur_ == nullptr) {
+      // Eventually the returned pointer gets passed down to memcpy, so
+      // we need it to be non-null to avoid undefined behavior.
+      static uint8_t t;
+      return &t;
+    }
     return cur_;
   }
 
