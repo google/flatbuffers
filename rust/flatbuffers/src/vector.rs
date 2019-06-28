@@ -34,7 +34,7 @@ impl<'a, T: Follow<'a> + 'a> Clone for Vector<'a, T> {
     }
 }
 
-impl<'a, T: Follow<'a> + 'a> Copy for Vector<'a, T> {}
+impl<'a, T: 'a> Copy for Vector<'a, T> {}
 
 impl<'a, T: 'a> Vector<'a, T> {
     #[inline(always)]
