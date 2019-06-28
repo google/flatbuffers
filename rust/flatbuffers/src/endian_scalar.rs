@@ -34,7 +34,7 @@ pub trait EndianScalar: Sized + PartialEq + Copy + Clone {
 /// Macro for implementing a no-op endian conversion. This is used for types
 /// that are one byte wide.
 macro_rules! impl_endian_scalar_noop {
-    ($ty:ident) => (
+    ($ty:ident) => {
         impl EndianScalar for $ty {
             #[inline]
             fn to_little_endian(self) -> Self {
@@ -45,7 +45,7 @@ macro_rules! impl_endian_scalar_noop {
                 self
             }
         }
-    )
+    };
 }
 
 /// Macro for implementing an endian conversion using the stdlib `to_le` and
@@ -53,7 +53,7 @@ macro_rules! impl_endian_scalar_noop {
 /// floats, because the `to_le` and `from_le` are not implemented for them in
 /// the stdlib.
 macro_rules! impl_endian_scalar_stdlib_le_conversion {
-    ($ty:ident) => (
+    ($ty:ident) => {
         impl EndianScalar for $ty {
             #[inline]
             fn to_little_endian(self) -> Self {
@@ -64,7 +64,7 @@ macro_rules! impl_endian_scalar_stdlib_le_conversion {
                 Self::from_le(self)
             }
         }
-    )
+    };
 }
 
 impl_endian_scalar_noop!(bool);
@@ -177,4 +177,3 @@ pub fn read_scalar<T: EndianScalar>(s: &[u8]) -> T {
 
     x.from_little_endian()
 }
-
