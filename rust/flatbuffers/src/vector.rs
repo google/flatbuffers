@@ -28,7 +28,7 @@ use primitives::*;
 #[derive(Debug)]
 pub struct Vector<'a, T: 'a>(&'a [u8], usize, PhantomData<T>);
 
-impl<'a, T: Follow<'a> + 'a> Clone for Vector<'a, T> {
+impl<'a, T: 'a> Clone for Vector<'a, T> {
     fn clone(&self) -> Self {
         Vector(self.0, self.1, self.2)
     }
@@ -52,7 +52,7 @@ impl<'a, T: 'a> Vector<'a, T> {
     }
 }
 
-impl<'a, T: Follow<'a> + 'a> Vector<'a, T> {
+impl<'a, T: 'a> Vector<'a, T> {
     #[inline(always)]
     pub fn get(&self, idx: usize) -> T::Inner {
         debug_assert!(idx < read_scalar::<u32>(&self.0[self.1 as usize..]) as usize);
