@@ -52,7 +52,7 @@ impl<'a, T: 'a> Vector<'a, T> {
     }
 }
 
-impl<'a, T: 'a> Vector<'a, T> {
+impl<'a, T: 'a> Vector<'a, T: Follow<'a> + 'a> {
     #[inline(always)]
     pub fn get(&self, idx: usize) -> T::Inner {
         debug_assert!(idx < read_scalar::<u32>(&self.0[self.1 as usize..]) as usize);
