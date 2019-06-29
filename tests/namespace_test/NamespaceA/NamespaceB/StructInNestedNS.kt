@@ -7,6 +7,7 @@ import kotlin.math.sign
 import com.google.flatbuffers.*
 
 @Suppress("unused")
+@ExperimentalUnsignedTypes
 class StructInNestedNS : Struct() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {

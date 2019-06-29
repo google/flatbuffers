@@ -7,6 +7,7 @@ import kotlin.math.sign
 import com.google.flatbuffers.*
 
 @Suppress("unused")
+@ExperimentalUnsignedTypes
 class Vec3 : Struct() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {
@@ -24,12 +25,12 @@ class Vec3 : Struct() {
     fun mutateZ(z: Float) : ByteBuffer = bb.putFloat(bb_pos + 8, z)
     val test1 : Double get() = bb.getDouble(bb_pos + 16)
     fun mutateTest1(test1: Double) : ByteBuffer = bb.putDouble(bb_pos + 16, test1)
-    val test2 : Int get() = bb.get(bb_pos + 24).toInt().and(0xFF)
-    fun mutateTest2(test2: Int) : ByteBuffer = bb.put(bb_pos + 24, test2.toByte())
+    val test2 : UByte get() = bb.get(bb_pos + 24).toUByte()
+    fun mutateTest2(test2: UByte) : ByteBuffer = bb.put(bb_pos + 24, test2.toByte())
     val test3 : MyGame.Example.Test? get() = test3(MyGame.Example.Test())
     fun test3(obj: MyGame.Example.Test) : MyGame.Example.Test? = obj.__assign(bb_pos + 26, bb)
     companion object {
-        fun createVec3(builder: FlatBufferBuilder, x: Float, y: Float, z: Float, test1: Double, test2: Int, test3_a: Short, test3_b: Byte) : Int {
+        fun createVec3(builder: FlatBufferBuilder, x: Float, y: Float, z: Float, test1: Double, test2: UByte, test3_a: Short, test3_b: Byte) : Int {
             builder.prep(8, 32)
             builder.pad(2)
             builder.prep(2, 4)

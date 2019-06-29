@@ -3,6 +3,7 @@
 package NamespaceA.NamespaceB
 
 @Suppress("unused")
+@ExperimentalUnsignedTypes
 class EnumInNestedNS private constructor() {
     companion object {
         const val A: Byte = 0

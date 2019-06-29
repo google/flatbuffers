@@ -5,6 +5,7 @@ import kotlin.math.sign
 import com.google.flatbuffers.*
 
 @Suppress("unused")
+@ExperimentalUnsignedTypes
 class Movie : Table() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {
@@ -14,15 +15,15 @@ class Movie : Table() {
         __init(_i, _bb)
         return this
     }
-    val mainCharacterType : Byte
+    val mainCharacterType : UByte
         get() {
             val o = __offset(4)
-            return if(o != 0) bb.get(o + bb_pos) else 0
+            return if(o != 0) bb.get(o + bb_pos).toUByte() else 0u
         }
-    fun mutateMainCharacterType(mainCharacterType: Byte) : Boolean {
+    fun mutateMainCharacterType(mainCharacterType: UByte) : Boolean {
         val o = __offset(4)
         return if (o != 0) {
-            bb.put(o + bb_pos, mainCharacterType)
+            bb.put(o + bb_pos, mainCharacterType.toByte())
             true
         } else {
             false
@@ -31,12 +32,12 @@ class Movie : Table() {
     fun mainCharacter(obj: Table) : Table? {
         val o = __offset(6); return if (o != 0) __union(obj, o) else null
     }
-    fun charactersType(j: Int) : Byte {
+    fun charactersType(j: Int) : UByte {
         val o = __offset(8)
         return if (o != 0) {
-            bb.get(__vector(o) + j * 1)
+            bb.get(__vector(o) + j * 1).toUByte()
         } else {
-            0
+            0u
         }
     }
     val charactersTypeLength : Int
@@ -45,10 +46,10 @@ class Movie : Table() {
         }
     val charactersTypeAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(8, 1)
     fun charactersTypeInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 8, 1)
-    fun mutateCharactersType(j: Int, charactersType: Byte) : Boolean {
+    fun mutateCharactersType(j: Int, charactersType: UByte) : Boolean {
         val o = __offset(8)
         return if (o != 0) {
-            bb.put(__vector(o) + j * 1, charactersType)
+            bb.put(__vector(o) + j * 1, charactersType.toByte())
             true
         } else {
             false
@@ -74,7 +75,7 @@ class Movie : Table() {
             return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb))
         }
         fun MovieBufferHasIdentifier(_bb: ByteBuffer) : Boolean = __has_identifier(_bb, "MOVI")
-        fun createMovie(builder: FlatBufferBuilder, mainCharacterType: Byte, mainCharacterOffset: Int, charactersTypeOffset: Int, charactersOffset: Int) : Int {
+        fun createMovie(builder: FlatBufferBuilder, mainCharacterType: UByte, mainCharacterOffset: Int, charactersTypeOffset: Int, charactersOffset: Int) : Int {
             builder.startTable(4)
             addCharacters(builder, charactersOffset)
             addCharactersType(builder, charactersTypeOffset)
@@ -83,13 +84,13 @@ class Movie : Table() {
             return endMovie(builder)
         }
         fun startMovie(builder: FlatBufferBuilder) = builder.startTable(4)
-        fun addMainCharacterType(builder: FlatBufferBuilder, mainCharacterType: Byte) = builder.addByte(0, mainCharacterType, 0.toInt())
+        fun addMainCharacterType(builder: FlatBufferBuilder, mainCharacterType: UByte) = builder.addByte(0, mainCharacterType.toByte(), 0)
         fun addMainCharacter(builder: FlatBufferBuilder, mainCharacter: Int) = builder.addOffset(1, mainCharacter, 0)
         fun addCharactersType(builder: FlatBufferBuilder, charactersType: Int) = builder.addOffset(2, charactersType, 0)
-        fun createCharactersTypeVector(builder: FlatBufferBuilder, data: ByteArray) : Int {
+        fun createCharactersTypeVector(builder: FlatBufferBuilder, data: UByteArray) : Int {
             builder.startVector(1, data.size, 1)
             for (i in data.size - 1 downTo 0) {
-                builder.addByte(data[i])
+                builder.addByte(data[i].toByte())
             }
             return builder.endVector()
         }

@@ -7,6 +7,7 @@ import kotlin.math.sign
 import com.google.flatbuffers.*
 
 @Suppress("unused")
+@ExperimentalUnsignedTypes
 class Stat : Table() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {
@@ -37,12 +38,12 @@ class Stat : Table() {
             false
         }
     }
-    val count : Int
+    val count : UShort
         get() {
             val o = __offset(8)
-            return if(o != 0) bb.getShort(o + bb_pos).toInt().and(0xFFFF) else 0
+            return if(o != 0) bb.getShort(o + bb_pos).toUShort() else 0u
         }
-    fun mutateCount(count: Int) : Boolean {
+    fun mutateCount(count: UShort) : Boolean {
         val o = __offset(8)
         return if (o != 0) {
             bb.putShort(o + bb_pos, count.toShort())
@@ -58,7 +59,7 @@ class Stat : Table() {
             _bb.order(ByteOrder.LITTLE_ENDIAN)
             return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb))
         }
-        fun createStat(builder: FlatBufferBuilder, idOffset: Int, val_: Long, count: Int) : Int {
+        fun createStat(builder: FlatBufferBuilder, idOffset: Int, val_: Long, count: UShort) : Int {
             builder.startTable(3)
             addVal_(builder, val_)
             addId(builder, idOffset)
@@ -68,7 +69,7 @@ class Stat : Table() {
         fun startStat(builder: FlatBufferBuilder) = builder.startTable(3)
         fun addId(builder: FlatBufferBuilder, id: Int) = builder.addOffset(0, id, 0)
         fun addVal_(builder: FlatBufferBuilder, val_: Long) = builder.addLong(1, val_, 0L)
-        fun addCount(builder: FlatBufferBuilder, count: Int) = builder.addShort(2, count.toShort(), 0)
+        fun addCount(builder: FlatBufferBuilder, count: UShort) = builder.addShort(2, count.toShort(), 0)
         fun endStat(builder: FlatBufferBuilder) : Int {
             val o = builder.endTable()
             return o

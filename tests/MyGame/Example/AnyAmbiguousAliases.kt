@@ -3,12 +3,13 @@
 package MyGame.Example
 
 @Suppress("unused")
+@ExperimentalUnsignedTypes
 class AnyAmbiguousAliases private constructor() {
     companion object {
-        const val NONE: Byte = 0
-        const val M1: Byte = 1
-        const val M2: Byte = 2
-        const val M3: Byte = 3
+        const val NONE: UByte = 0u
+        const val M1: UByte = 1u
+        const val M2: UByte = 2u
+        const val M3: UByte = 3u
         val names : Array<String> = arrayOf("NONE", "M1", "M2", "M3")
         fun name(e: Int) : String = names[e]
     }

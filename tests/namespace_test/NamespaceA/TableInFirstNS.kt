@@ -7,6 +7,7 @@ import kotlin.math.sign
 import com.google.flatbuffers.*
 
 @Suppress("unused")
+@ExperimentalUnsignedTypes
 class TableInFirstNS : Table() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {
@@ -57,7 +58,7 @@ class TableInFirstNS : Table() {
         }
         fun startTableInFirstNS(builder: FlatBufferBuilder) = builder.startTable(3)
         fun addFooTable(builder: FlatBufferBuilder, fooTable: Int) = builder.addOffset(0, fooTable, 0)
-        fun addFooEnum(builder: FlatBufferBuilder, fooEnum: Byte) = builder.addByte(1, fooEnum, 0.toInt())
+        fun addFooEnum(builder: FlatBufferBuilder, fooEnum: Byte) = builder.addByte(1, fooEnum, 0)
         fun addFooStruct(builder: FlatBufferBuilder, fooStruct: Int) = builder.addStruct(2, fooStruct, 0)
         fun endTableInFirstNS(builder: FlatBufferBuilder) : Int {
             val o = builder.endTable()

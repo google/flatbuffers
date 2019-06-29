@@ -5,6 +5,7 @@ import kotlin.math.sign
 import com.google.flatbuffers.*
 
 @Suppress("unused")
+@ExperimentalUnsignedTypes
 class Attacker : Table() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {

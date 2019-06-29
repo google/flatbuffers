@@ -7,6 +7,7 @@ import kotlin.math.sign
 import com.google.flatbuffers.*
 
 @Suppress("unused")
+@ExperimentalUnsignedTypes
 class MonsterExtra : Table() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {
@@ -167,9 +168,9 @@ class MonsterExtra : Table() {
             return endMonsterExtra(builder)
         }
         fun startMonsterExtra(builder: FlatBufferBuilder) = builder.startTable(8)
-        fun addTestfNan(builder: FlatBufferBuilder, testfNan: Float) = builder.addFloat(0, testfNan, Float.NaN.toDouble())
-        fun addTestfPinf(builder: FlatBufferBuilder, testfPinf: Float) = builder.addFloat(1, testfPinf, Float.POSITIVE_INFINITY.toDouble())
-        fun addTestfNinf(builder: FlatBufferBuilder, testfNinf: Float) = builder.addFloat(2, testfNinf, Float.NEGATIVE_INFINITY.toDouble())
+        fun addTestfNan(builder: FlatBufferBuilder, testfNan: Float) = builder.addFloat(0, testfNan, Double.NaN)
+        fun addTestfPinf(builder: FlatBufferBuilder, testfPinf: Float) = builder.addFloat(1, testfPinf, Double.POSITIVE_INFINITY)
+        fun addTestfNinf(builder: FlatBufferBuilder, testfNinf: Float) = builder.addFloat(2, testfNinf, Double.NEGATIVE_INFINITY)
         fun addTestdNan(builder: FlatBufferBuilder, testdNan: Double) = builder.addDouble(3, testdNan, Double.NaN)
         fun addTestdPinf(builder: FlatBufferBuilder, testdPinf: Double) = builder.addDouble(4, testdPinf, Double.POSITIVE_INFINITY)
         fun addTestdNinf(builder: FlatBufferBuilder, testdNinf: Double) = builder.addDouble(5, testdNinf, Double.NEGATIVE_INFINITY)

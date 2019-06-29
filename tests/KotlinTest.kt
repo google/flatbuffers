@@ -30,6 +30,7 @@ import java.nio.channels.FileChannel
 
 import com.google.flatbuffers.Constants.SIZE_PREFIX_LENGTH
 
+@kotlin.ExperimentalUnsignedTypes
 class KotlinTest {
 
   companion object {
@@ -79,63 +80,63 @@ class KotlinTest {
     }
 
     fun TestEnums() {
-        TestEq(Color.name(Color.Red.toInt()), "Red")
-        TestEq(Color.name(Color.Blue.toInt()), "Blue")
-        TestEq(Any_.name(Any_.NONE.toInt()), "NONE")
-        TestEq(Any_.name(Any_.Monster.toInt()), "Monster")
+        assert(Color.name(Color.Red.toInt()) == "Red")
+        assert(Color.name(Color.Blue.toInt()) == "Blue")
+        assert(Any_.name(Any_.NONE.toInt()) == "NONE")
+        assert(Any_.name(Any_.Monster.toInt()) == "Monster")
     }
 
     fun TestBuffer(bb: ByteBuffer) {
-        TestEq(Monster.MonsterBufferHasIdentifier(bb), true)
+        assert(Monster.MonsterBufferHasIdentifier(bb) == true)
 
         val monster = Monster.getRootAsMonster(bb)
 
-        TestEq(monster.hp, 80.toShort())
-        TestEq(monster.mana, 150.toShort())  // default
+        assert(monster.hp == 80.toShort())
+        assert(monster.mana == 150.toShort())  // default
 
-        TestEq(monster.name, "MyMonster")
+        assert(monster.name == "MyMonster")
         // monster.friendly() // can't access, deprecated
 
         val pos = monster.pos!!
-        TestEq(pos.x, 1.0f)
-        TestEq(pos.y, 2.0f)
-        TestEq(pos.z, 3.0f)
-        TestEq(pos.test1, 3.0)
+        assert(pos.x == 1.0f)
+        assert(pos.y == 2.0f)
+        assert(pos.z == 3.0f)
+        assert(pos.test1 == 3.0)
         // issue: int != byte
-        TestEq(pos.test2, Color.Green.toInt())
+        assert(pos.test2 == Color.Green)
         val t = pos.test3!!
-        TestEq(t.a, 5.toShort())
-        TestEq(t.b, 6.toByte())
+        assert(t.a == 5.toShort())
+        assert(t.b == 6.toByte())
 
-        TestEq(monster.testType, Any_.Monster)
+        assert(monster.testType == Any_.Monster)
         val monster2 = Monster()
-        TestEq(monster.test(monster2) != null, true)
-        TestEq(monster2.name, "Fred")
+        assert(monster.test(monster2) != null == true)
+        assert(monster2.name == "Fred")
 
-        TestEq(monster.inventoryLength, 5)
-        var invsum = 0
+        assert(monster.inventoryLength == 5)
+        var invsum = 0u
         for (i in 0 until monster.inventoryLength)
             invsum += monster.inventory(i)
-        TestEq(invsum, 10)
+        assert(invsum == 10u)
 
         // Alternative way of accessing a vector:
         val ibb = monster.inventoryAsByteBuffer
-        invsum = 0
+        invsum = 0u
         while (ibb.position() < ibb.limit())
-            invsum += ibb.get().toInt()
-        TestEq(invsum, 10)
+            invsum += ibb.get().toUInt()
+        assert(invsum == 10u)
 
 
         val test_0 = monster.test4(0)!!
         val test_1 = monster.test4(1)!!
-        TestEq(monster.test4Length, 2)
-        TestEq(test_0.a + test_0.b + test_1.a + test_1.b, 100)
+        assert(monster.test4Length == 2)
+        assert(test_0.a + test_0.b + test_1.a + test_1.b == 100)
 
-        TestEq(monster.testarrayofstringLength, 2)
-        TestEq(monster.testarrayofstring(0), "test1")
-        TestEq(monster.testarrayofstring(1), "test2")
+        assert(monster.testarrayofstringLength == 2)
+        assert(monster.testarrayofstring(0) == "test1")
+        assert(monster.testarrayofstring(1) == "test2")
 
-        TestEq(monster.testbool, true)
+        assert(monster.testbool == true)
     }
 
     // this method checks additional fields not present in the binary buffer read from file
@@ -145,7 +146,7 @@ class KotlinTest {
 
         val monster = Monster.getRootAsMonster(bb)
 
-        TestEq(monster.testhashu32Fnv1, Integer.MAX_VALUE + 1L)
+        assert(monster.testhashu32Fnv1 == (1u + Integer.MAX_VALUE.toUInt()))
     }
 
     fun TestNamespaceNesting() {
@@ -177,7 +178,7 @@ class KotlinTest {
         
         val fbb2 = FlatBufferBuilder(16)
         val str2 = fbb2.createString("My Monster")
-        val nestedBuffer = Monster.createTestnestedflatbufferVector(fbb2, fbb1Bytes)
+        val nestedBuffer = Monster.createTestnestedflatbufferVector(fbb2, fbb1Bytes.asUByteArray())
         Monster.startMonster(fbb2)
         Monster.addName(fbb2, str2)
         Monster.addHp(fbb2, 50.toShort())
@@ -190,9 +191,9 @@ class KotlinTest {
         val mons = Monster.getRootAsMonster(fbb2.dataBuffer())
         val nestedMonster = mons.testnestedflatbufferAsMonster!!
 
-        TestEq(nestedMonsterMana, nestedMonster.mana)
-        TestEq(nestedMonsterHp, nestedMonster.hp)
-        TestEq(nestedMonsterName, nestedMonster.name)
+        assert(nestedMonsterMana == nestedMonster.mana)
+        assert(nestedMonsterHp == nestedMonster.hp)
+        assert(nestedMonsterName == nestedMonster.name)
     }
 
     fun TestCreateByteVector() {
@@ -207,9 +208,9 @@ class KotlinTest {
         Monster.finishMonsterBuffer(fbb, monster1)
         val monsterObject = Monster.getRootAsMonster(fbb.dataBuffer())
 
-        TestEq(monsterObject.inventory(1), inventory[1].toInt())
-        TestEq(monsterObject.inventoryLength, inventory.size)
-        TestEq(ByteBuffer.wrap(inventory), monsterObject.inventoryAsByteBuffer)
+        assert(monsterObject.inventory(1) == inventory[1].toUByte())
+        assert(monsterObject.inventoryLength == inventory.size)
+        assert(ByteBuffer.wrap(inventory) == monsterObject.inventoryAsByteBuffer)
     }
 
     fun TestCreateUninitializedVector() {
@@ -228,9 +229,9 @@ class KotlinTest {
         Monster.finishMonsterBuffer(fbb, monster1)
         val monsterObject = Monster.getRootAsMonster(fbb.dataBuffer())
 
-        TestEq(monsterObject.inventory(1), inventory[1].toInt())
-        TestEq(monsterObject.inventoryLength, inventory.size)
-        TestEq(ByteBuffer.wrap(inventory), monsterObject.inventoryAsByteBuffer)
+        assert(monsterObject.inventory(1) == inventory[1].toUByte())
+        assert(monsterObject.inventoryLength == inventory.size)
+        assert(ByteBuffer.wrap(inventory) == monsterObject.inventoryAsByteBuffer)
     }
 
     fun TestByteBufferFactory() {
@@ -276,10 +277,10 @@ class KotlinTest {
                 return
             }
 
-            TestEq(currentVal.toByte(), array[count])
+            assert(currentVal.toByte() == array[count])
             count++
         }
-        TestEq(count, array.size)
+        assert(count == array.size)
     }
 
     fun TestBuilderBasics(fbb: FlatBufferBuilder, sizePrefix: Boolean) {
@@ -300,7 +301,7 @@ class KotlinTest {
 
         val str = fbb.createString("MyMonster")
 
-        val inv = Monster.createInventoryVector(fbb, byteArrayOf(0, 1, 2, 3, 4))
+        val inv = Monster.createInventoryVector(fbb, byteArrayOf(0, 1, 2, 3, 4).asUByteArray())
 
         val fred = fbb.createString("Fred")
         Monster.startMonster(fbb)
@@ -319,7 +320,7 @@ class KotlinTest {
         Monster.addPos(
             fbb, Vec3.createVec3(
                 fbb, 1.0f, 2.0f, 3.0f, 3.0,
-                Color.Green.toInt(), 5.toShort(), 6.toByte()
+                Color.Green, 5.toShort(), 6.toByte()
             )
         )
         Monster.addHp(fbb, 80.toShort())
@@ -330,7 +331,7 @@ class KotlinTest {
         Monster.addTest4(fbb, test4)
         Monster.addTestarrayofstring(fbb, testArrayOfString)
         Monster.addTestbool(fbb, true)
-        Monster.addTesthashu32Fnv1(fbb, Integer.MAX_VALUE + 1L)
+        Monster.addTesthashu32Fnv1(fbb, UInt.MAX_VALUE + 1u)
         Monster.addTestarrayoftables(fbb, sortMons)
         val mon = Monster.endMonster(fbb)
 
@@ -358,8 +359,8 @@ class KotlinTest {
         // Test it:
         var dataBuffer = fbb.dataBuffer()
         if (sizePrefix) {
-            TestEq(
-                ByteBufferUtil.getSizePrefix(dataBuffer) + SIZE_PREFIX_LENGTH,
+            assert(
+                ByteBufferUtil.getSizePrefix(dataBuffer) + SIZE_PREFIX_LENGTH ==
                 dataBuffer.remaining()
             )
             dataBuffer = ByteBufferUtil.removeSizePrefix(dataBuffer)
@@ -379,51 +380,51 @@ class KotlinTest {
 
         // mana is optional and does not exist in the buffer so the mutation should fail
         // the mana field should retain its default value
-        TestEq(monster.mutateMana(10.toShort()), false)
-        TestEq(monster.mana, 150.toShort())
+        assert(monster.mutateMana(10.toShort()) == false)
+        assert(monster.mana == 150.toShort())
 
         // Accessing a vector of sorted by the key tables
-        TestEq(monster.testarrayoftables(0)!!.name, "Barney")
-        TestEq(monster.testarrayoftables(1)!!.name, "Frodo")
-        TestEq(monster.testarrayoftables(2)!!.name, "Wilma")
+        assert(monster.testarrayoftables(0)!!.name == "Barney")
+        assert(monster.testarrayoftables(1)!!.name == "Frodo")
+        assert(monster.testarrayoftables(2)!!.name == "Wilma")
 
         // Example of searching for a table by the key
-        TestEq(monster.testarrayoftablesByKey("Frodo")!!.name, "Frodo")
-        TestEq(monster.testarrayoftablesByKey("Barney")!!.name, "Barney")
-        TestEq(monster.testarrayoftablesByKey("Wilma")!!.name, "Wilma")
+        assert(monster.testarrayoftablesByKey("Frodo")!!.name == "Frodo")
+        assert(monster.testarrayoftablesByKey("Barney")!!.name == "Barney")
+        assert(monster.testarrayoftablesByKey("Wilma")!!.name == "Wilma")
 
         // testType is an existing field and mutating it should succeed
-        TestEq(monster.testType, Any_.Monster)
-        TestEq(monster.mutateTestType(Any_.NONE), true)
-        TestEq(monster.testType, Any_.NONE)
-        TestEq(monster.mutateTestType(Any_.Monster), true)
-        TestEq(monster.testType, Any_.Monster)
+        assert(monster.testType == Any_.Monster)
+        assert(monster.mutateTestType(Any_.NONE) == true)
+        assert(monster.testType == Any_.NONE)
+        assert(monster.mutateTestType(Any_.Monster) == true)
+        assert(monster.testType == Any_.Monster)
 
         //mutate the inventory vector
-        TestEq(monster.mutateInventory(0, 1), true)
-        TestEq(monster.mutateInventory(1, 2), true)
-        TestEq(monster.mutateInventory(2, 3), true)
-        TestEq(monster.mutateInventory(3, 4), true)
-        TestEq(monster.mutateInventory(4, 5), true)
+        assert(monster.mutateInventory(0, 1u) == true)
+        assert(monster.mutateInventory(1, 2u) == true)
+        assert(monster.mutateInventory(2, 3u) == true)
+        assert(monster.mutateInventory(3, 4u) == true)
+        assert(monster.mutateInventory(4, 5u) == true)
 
         for (i in 0 until monster.inventoryLength) {
-            TestEq(monster.inventory(i), i + 1)
+            assert(monster.inventory(i) == (i.toUByte() + 1u).toUByte())
         }
 
         //reverse mutation
-        TestEq(monster.mutateInventory(0, 0), true)
-        TestEq(monster.mutateInventory(1, 1), true)
-        TestEq(monster.mutateInventory(2, 2), true)
-        TestEq(monster.mutateInventory(3, 3), true)
-        TestEq(monster.mutateInventory(4, 4), true)
+        assert(monster.mutateInventory(0, 0u) == true)
+        assert(monster.mutateInventory(1, 1u) == true)
+        assert(monster.mutateInventory(2, 2u) == true)
+        assert(monster.mutateInventory(3, 3u) == true)
+        assert(monster.mutateInventory(4, 4u) == true)
 
         // get a struct field and edit one of its fields
         val pos = monster.pos!!
-        TestEq(pos.x, 1.0f)
+        assert(pos.x == 1.0f)
         pos.mutateX(55.0f)
-        TestEq(pos.x, 55.0f)
+        assert(pos.x == 55.0f)
         pos.mutateX(1.0f)
-        TestEq(pos.x, 1.0f)
+        assert(pos.x == 1.0f)
     }
 
     fun TestVectorOfUnions() {
@@ -433,13 +434,13 @@ class KotlinTest {
 
         val characterVector = intArrayOf(Attacker.createAttacker(fbb, swordAttackDamage))
 
-        val characterTypeVector = byteArrayOf(Character_.MuLan)
+        val characterTypeVector = ubyteArrayOf(Character_.MuLan)
 
         Movie.finishMovieBuffer(
             fbb,
             Movie.createMovie(
                 fbb,
-                0.toByte(),
+                0u,
                 0,
                 Movie.createCharactersTypeVector(fbb, characterTypeVector),
                 Movie.createCharactersVector(fbb, characterVector)
@@ -448,21 +449,12 @@ class KotlinTest {
 
         val movie = Movie.getRootAsMovie(fbb.dataBuffer())
 
-        TestEq(movie.charactersTypeLength, characterTypeVector.size)
-        TestEq(movie.charactersLength, characterVector.size)
+        assert(movie.charactersTypeLength == characterTypeVector.size)
+        assert(movie.charactersLength == characterVector.size)
 
-        TestEq(movie.charactersType(0), characterTypeVector[0])
+        assert(movie.charactersType(0) == characterTypeVector[0])
 
-        TestEq((movie.characters(Attacker(), 0) as Attacker).swordAttackDamage, swordAttackDamage)
-    }
-
-    fun <T>TestEq(a: T, b: T) {
-        if (a != b) {
-            //println("" + a!!::class.simpleName + " " + b!!::class.simpleName)
-            println("FlatBuffers test FAILED: \'$a\' != \'$b\'")
-            assert(false)
-            System.exit(1)
-        }
+        assert((movie.characters(Attacker(), 0) as Attacker).swordAttackDamage == swordAttackDamage)
     }
 }
   }

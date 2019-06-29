@@ -7,6 +7,7 @@ import kotlin.math.sign
 import com.google.flatbuffers.*
 
 @Suppress("unused")
+@ExperimentalUnsignedTypes
 class Referrable : Table() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {
@@ -16,15 +17,15 @@ class Referrable : Table() {
         __init(_i, _bb)
         return this
     }
-    val id : Long
+    val id : ULong
         get() {
             val o = __offset(4)
-            return if(o != 0) bb.getLong(o + bb_pos) else 0L
+            return if(o != 0) bb.getLong(o + bb_pos).toULong() else 0UL
         }
-    fun mutateId(id: Long) : Boolean {
+    fun mutateId(id: ULong) : Boolean {
         val o = __offset(4)
         return if (o != 0) {
-            bb.putLong(o + bb_pos, id)
+            bb.putLong(o + bb_pos, id.toLong())
             true
         } else {
             false
@@ -42,25 +43,25 @@ class Referrable : Table() {
             _bb.order(ByteOrder.LITTLE_ENDIAN)
             return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb))
         }
-        fun createReferrable(builder: FlatBufferBuilder, id: Long) : Int {
+        fun createReferrable(builder: FlatBufferBuilder, id: ULong) : Int {
             builder.startTable(1)
             addId(builder, id)
             return endReferrable(builder)
         }
         fun startReferrable(builder: FlatBufferBuilder) = builder.startTable(1)
-        fun addId(builder: FlatBufferBuilder, id: Long) = builder.addLong(0, id, 0L)
+        fun addId(builder: FlatBufferBuilder, id: ULong) = builder.addLong(0, id.toLong(), 0)
         fun endReferrable(builder: FlatBufferBuilder) : Int {
             val o = builder.endTable()
             return o
         }
-        fun __lookup_by_key(obj: Referrable?, vectorLocation: Int, key: Long, bb: ByteBuffer) : Referrable? {
+        fun __lookup_by_key(obj: Referrable?, vectorLocation: Int, key: ULong, bb: ByteBuffer) : Referrable? {
             var span = bb.getInt(vectorLocation - 4)
             var start = 0
             while (span != 0) {
                 var middle = span / 2
                 val tableOffset = __indirect(vectorLocation + 4 * (start + middle), bb)
-                val value = bb.getLong(__offset(4, bb.capacity() - tableOffset, bb))
-                val comp = (value - key).sign
+                val value = bb.getLong(__offset(4, bb.capacity() - tableOffset, bb)).toULong()
+                val comp = value.compareTo(key)
                 when {
                     comp > 0 -> span = middle
                     comp < 0 -> {
