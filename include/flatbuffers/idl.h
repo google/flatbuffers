@@ -790,7 +790,7 @@ class Parser : public ParserState {
 
   StructDef *LookupStruct(const std::string &id) const;
 
-  std::string UnqualifiedName(std::string fullQualifiedName);
+  std::string UnqualifiedName(const std::string &fullQualifiedName);
 
   FLATBUFFERS_CHECKED_ERROR Error(const std::string &msg);
 

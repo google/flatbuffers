@@ -232,7 +232,6 @@ class PhpGenerator : public BaseGenerator {
   // Get the value of a table's scalar.
   void GetScalarFieldOfTable(const FieldDef &field, std::string *code_ptr) {
     std::string &code = *code_ptr;
-    std::string getter = GenGetter(field.value.type);
 
     code += Indent + "/**\n";
     code += Indent + " * @return " + GenTypeGet(field.value.type) + "\n";

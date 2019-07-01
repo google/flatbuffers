@@ -105,10 +105,10 @@ class DartGenerator : public BaseGenerator {
   static std::string ImportAliasName(const std::string &ns) {
     std::string ret;
     ret.assign(ns);
-    size_t pos = ret.find(".");
+    size_t pos = ret.find('.');
     while (pos != std::string::npos) {
       ret.replace(pos, 1, "_");
-      pos = ret.find(".", pos + 1);
+      pos = ret.find('.', pos + 1);
     }
 
     return ret;
@@ -409,23 +409,23 @@ class DartGenerator : public BaseGenerator {
     auto object_namespace = BuildNamespaceName(*struct_def.defined_namespace);
     std::string code;
 
-    auto object_name = struct_def.name;
+    const auto &object_name = struct_def.name;
 
     // Emit constructor
 
     GenDocComment(struct_def.doc_comment, &code, "");
 
-    auto reader_name = "_" + struct_def.name + "Reader";
-    auto builder_name = struct_def.name + "Builder";
-    auto object_builder_name = struct_def.name + "ObjectBuilder";
+    auto reader_name = "_" + object_name + "Reader";
+    auto builder_name = object_name + "Builder";
+    auto object_builder_name = object_name + "ObjectBuilder";
 
     std::string reader_code, builder_code;
 
-    code += "class " + struct_def.name + " {\n";
+    code += "class " + object_name + " {\n";
 
-    code += "  " + struct_def.name + "._(this._bc, this._bcOffset);\n";
+    code += "  " + object_name + "._(this._bc, this._bcOffset);\n";
     if (!struct_def.fixed) {
-      code += "  factory " + struct_def.name + "(List<int> bytes) {\n";
+      code += "  factory " + object_name + "(List<int> bytes) {\n";
       code += "    " + _kFb + ".BufferContext rootRef = new " + _kFb +
               ".BufferContext.fromBytes(bytes);\n";
       code += "    return reader.read(rootRef, 0);\n";
@@ -433,7 +433,7 @@ class DartGenerator : public BaseGenerator {
     }
 
     code += "\n";
-    code += "  static const " + _kFb + ".Reader<" + struct_def.name +
+    code += "  static const " + _kFb + ".Reader<" + object_name +
             "> reader = const " + reader_name + "();\n\n";
 
     code += "  final " + _kFb + ".BufferContext _bc;\n";
@@ -454,7 +454,7 @@ class DartGenerator : public BaseGenerator {
   }
 
   std::string NamespaceAliasFromUnionType(const std::string &in) {
-    if (in.find("_") == std::string::npos) { return in; }
+    if (in.find('_') == std::string::npos) { return in; }
 
     std::stringstream ss(in);
     std::string item;

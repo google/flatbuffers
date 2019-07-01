@@ -72,13 +72,13 @@ const char *BaseGenerator::FlatBuffersGeneratedWarning() {
 std::string BaseGenerator::NamespaceDir(const Parser &parser,
                                         const std::string &path,
                                         const Namespace &ns) {
-  EnsureDirExists(path.c_str());
+  EnsureDirExists(path);
   if (parser.opts.one_file) return path;
   std::string namespace_dir = path;  // Either empty or ends in separator.
   auto &namespaces = ns.components;
   for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
     namespace_dir += *it + kPathSeparator;
-    EnsureDirExists(namespace_dir.c_str());
+    EnsureDirExists(namespace_dir);
   }
   return namespace_dir;
 }

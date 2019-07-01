@@ -127,12 +127,12 @@ static const char kPathSeparatorWindows = '\\';
 static const char *PathSeparatorSet = "\\/";  // Intentionally no ':'
 
 std::string StripExtension(const std::string &filepath) {
-  size_t i = filepath.find_last_of(".");
+  size_t i = filepath.find_last_of('.');
   return i != std::string::npos ? filepath.substr(0, i) : filepath;
 }
 
 std::string GetExtension(const std::string &filepath) {
-  size_t i = filepath.find_last_of(".");
+  size_t i = filepath.find_last_of('.');
   return i != std::string::npos ? filepath.substr(i + 1) : "";
 }
 

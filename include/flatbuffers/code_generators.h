@@ -82,8 +82,8 @@ class BaseGenerator {
  protected:
   BaseGenerator(const Parser &parser, const std::string &path,
                 const std::string &file_name,
-                const std::string qualifying_start,
-                const std::string qualifying_separator)
+                std::string qualifying_start,
+                std::string qualifying_separator)
       : parser_(parser),
         path_(path),
         file_name_(file_name),
