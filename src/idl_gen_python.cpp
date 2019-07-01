@@ -95,7 +95,7 @@ class PythonGenerator : public BaseGenerator {
   }
 
   // Begin enum code with a class declaration.
-  void BeginEnum(const std::string class_name, std::string *code_ptr) {
+  void BeginEnum(const std::string &class_name, std::string *code_ptr) {
     std::string &code = *code_ptr;
     code += "class " + class_name + "(object):\n";
   }
@@ -750,7 +750,7 @@ class PythonGenerator : public BaseGenerator {
   }
 
   // Begin by declaring namespace and imports.
-  void BeginFile(const std::string name_space_name, const bool needs_imports,
+  void BeginFile(const std::string &name_space_name, const bool needs_imports,
                  std::string *code_ptr) {
     std::string &code = *code_ptr;
     code = code + "# " + FlatBuffersGeneratedWarning() + "\n\n";
