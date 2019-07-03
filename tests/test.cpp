@@ -53,11 +53,12 @@ static_assert(flatbuffers::is_same<uint8_t, char>::value ||
   static_assert(std::numeric_limits<float>::is_iec559 &&
                 std::numeric_limits<double>::is_iec559,
                 "IEC-559 (IEEE-754) standard required");
-  // Shortcuts for the infinity.
-  static const auto infinityf = std::numeric_limits<float>::infinity();
-  static const auto infinityd = std::numeric_limits<double>::infinity();
 #endif
 // clang-format on
+
+// Shortcuts for the infinity.
+static const auto infinityf = std::numeric_limits<float>::infinity();
+static const auto infinityd = std::numeric_limits<double>::infinity();
 
 using namespace MyGame::Example;
 
