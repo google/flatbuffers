@@ -1412,13 +1412,13 @@ class TestAllCodePathsOfMonsterExtraSchema(unittest.TestCase):
         self.mon = MyGame.MonsterExtra.MonsterExtra.GetRootAsMonsterExtra(b.Bytes, b.Head())
 
     def test_default_nan_inf(self):
-        self.assertTrue(math.isnan(self.mon.TestfNan()))
-        self.assertEqual(self.mon.TestfPinf(), float("inf"))
-        self.assertEqual(self.mon.TestfNinf(), float("-inf"))
+        self.assertTrue(math.isnan(self.mon.F1()))
+        self.assertEqual(self.mon.F2(), float("inf"))
+        self.assertEqual(self.mon.F3(), float("-inf"))
 
-        self.assertTrue(math.isnan(self.mon.TestdNan()))
-        self.assertEqual(self.mon.TestdPinf(), float("inf"))
-        self.assertEqual(self.mon.TestdNinf(), float("-inf"))
+        self.assertTrue(math.isnan(self.mon.D1()))
+        self.assertEqual(self.mon.D2(), float("inf"))
+        self.assertEqual(self.mon.D3(), float("-inf"))
 
 
 class TestVtableDeduplication(unittest.TestCase):
