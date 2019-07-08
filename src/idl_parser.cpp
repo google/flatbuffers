@@ -19,7 +19,7 @@
 #include <string>
 #include <utility>
 
-#include <math.h>
+#include <cmath>
 
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
@@ -1525,6 +1525,21 @@ CheckedError Parser::TokenError() {
   return Error("cannot parse value starting with: " + TokenToStringId(token_));
 }
 
+// Re-pack helper (ParseSingleValue) to normalize defaults of scalars.
+template<typename T> inline void SingleValueRepack(Value &e, T val) {
+  // Remove leading zeros.
+  if (IsInteger(e.type.base_type)) { e.constant = NumToString(val); }
+}
+#if defined(FLATBUFFERS_HAS_NEW_STRTOD) && (FLATBUFFERS_HAS_NEW_STRTOD > 0)
+// Normilaze defaults NaN to unsigned quiet-NaN(0).
+static inline void SingleValueRepack(Value& e, float val) {
+  if (val != val) e.constant = "nan";
+}
+static inline void SingleValueRepack(Value& e, double val) {
+  if (val != val) e.constant = "nan";
+}
+#endif
+
 CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
                                       bool check_now) {
   // First see if this could be a conversion function:
@@ -1569,96 +1584,94 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
   }
 
   auto match = false;
+  const auto in_type = e.type.base_type;
   // clang-format off
-  #define TRY_ECHECK(force, dtoken, check, req)    \
+  #define IF_ECHECK_(force, dtoken, check, req)    \
     if (!match && ((check) || IsConstTrue(force))) \
     ECHECK(TryTypedValue(name, dtoken, check, e, req, &match))
+  #define TRY_ECHECK(dtoken, check, req) IF_ECHECK_(false, dtoken, check, req)
+  #define FORCE_ECHECK(dtoken, check, req) IF_ECHECK_(true, dtoken, check, req)
   // clang-format on
 
   if (token_ == kTokenStringConstant || token_ == kTokenIdentifier) {
     const auto kTokenStringOrIdent = token_;
     // The string type is a most probable type, check it first.
-    TRY_ECHECK(false, kTokenStringConstant,
-               e.type.base_type == BASE_TYPE_STRING, BASE_TYPE_STRING);
+    TRY_ECHECK(kTokenStringConstant, in_type == BASE_TYPE_STRING,
+               BASE_TYPE_STRING);
 
     // avoid escaped and non-ascii in the string
-    if ((token_ == kTokenStringConstant) && IsScalar(e.type.base_type) &&
+    if (!match && (token_ == kTokenStringConstant) && IsScalar(in_type) &&
         !attr_is_trivial_ascii_string_) {
       return Error(
           std::string("type mismatch or invalid value, an initializer of "
                       "non-string field must be trivial ASCII string: type: ") +
-          kTypeNames[e.type.base_type] + ", name: " + (name ? *name : "") +
+          kTypeNames[in_type] + ", name: " + (name ? *name : "") +
           ", value: " + attribute_);
     }
 
     // A boolean as true/false. Boolean as Integer check below.
-    if (!match && IsBool(e.type.base_type)) {
+    if (!match && IsBool(in_type)) {
       auto is_true = attribute_ == "true";
       if (is_true || attribute_ == "false") {
         attribute_ = is_true ? "1" : "0";
         // accepts both kTokenStringConstant and kTokenIdentifier
-        TRY_ECHECK(false, kTokenStringOrIdent, IsBool(e.type.base_type),
-                   BASE_TYPE_BOOL);
+        TRY_ECHECK(kTokenStringOrIdent, IsBool(in_type), BASE_TYPE_BOOL);
       }
     }
     // Check if this could be a string/identifier enum value.
     // Enum can have only true integer base type.
-    if (!match && IsInteger(e.type.base_type) && !IsBool(e.type.base_type) &&
+    if (!match && IsInteger(in_type) && !IsBool(in_type) &&
         IsIdentifierStart(*attribute_.c_str())) {
       ECHECK(ParseEnumFromString(e.type, &e.constant));
       NEXT();
       match = true;
     }
-    // float/integer number in string
-    if ((token_ == kTokenStringConstant) && IsScalar(e.type.base_type)) {
+    // Parse a float/integer number from the string.
+    if (!match) check_now = true;  // Re-pack if parsed from string literal.
+    if (!match && (token_ == kTokenStringConstant) && IsScalar(in_type)) {
       // remove trailing whitespaces from attribute_
       auto last = attribute_.find_last_not_of(' ');
       if (std::string::npos != last)  // has non-whitespace
         attribute_.resize(last + 1);
     }
     // Float numbers or nan, inf, pi, etc.
-    TRY_ECHECK(false, kTokenStringOrIdent, IsFloat(e.type.base_type),
-               BASE_TYPE_FLOAT);
+    TRY_ECHECK(kTokenStringOrIdent, IsFloat(in_type), BASE_TYPE_FLOAT);
     // An integer constant in string.
-    TRY_ECHECK(false, kTokenStringOrIdent, IsInteger(e.type.base_type),
-               BASE_TYPE_INT);
+    TRY_ECHECK(kTokenStringOrIdent, IsInteger(in_type), BASE_TYPE_INT);
     // Unknown tokens will be interpreted as string type.
-    TRY_ECHECK(true, kTokenStringConstant, e.type.base_type == BASE_TYPE_STRING,
+    FORCE_ECHECK(kTokenStringConstant, in_type == BASE_TYPE_STRING,
                BASE_TYPE_STRING);
   } else {
     // Try a float number.
-    TRY_ECHECK(false, kTokenFloatConstant, IsFloat(e.type.base_type),
-               BASE_TYPE_FLOAT);
+    TRY_ECHECK(kTokenFloatConstant, IsFloat(in_type), BASE_TYPE_FLOAT);
     // Integer token can init any scalar (integer of float).
-    TRY_ECHECK(true, kTokenIntegerConstant, IsScalar(e.type.base_type),
-               BASE_TYPE_INT);
+    FORCE_ECHECK(kTokenIntegerConstant, IsScalar(in_type), BASE_TYPE_INT);
   }
-  #undef TRY_ECHECK
+#undef FORCE_ECHECK
+#undef TRY_ECHECK
+#undef IF_ECHECK_
 
   if (!match) return TokenError();
-
+  const auto match_type = e.type.base_type; // may differ from in_type
   // The check_now flag must be true when parse a fbs-schema.
   // This flag forces to check default scalar values or metadata of field.
   // For JSON parser the flag should be false.
   // If it is set for JSON each value will be checked twice (see ParseTable).
-  if (check_now && IsScalar(e.type.base_type)) {
-    // "re-pack" an integer scalar to remove any ambiguities like leading zeros
-    // which can be treated as octal-literal (idl_gen_cpp/GenDefaultConstant).
-    const auto repack = IsInteger(e.type.base_type);
-    switch (e.type.base_type) {
+  if (check_now && IsScalar(match_type)) {
     // clang-format off
+    switch (match_type) {
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
             CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
             case BASE_TYPE_ ## ENUM: {\
                 CTYPE val; \
                 ECHECK(atot(e.constant.c_str(), *this, &val)); \
-                if(repack) e.constant = NumToString(val); \
+                SingleValueRepack(e, val); \
               break; }
     FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD);
     #undef FLATBUFFERS_TD
     default: break;
-    // clang-format on
     }
+    // clang-format on
   }
   return NoError();
 }
@@ -3031,7 +3044,7 @@ static Namespace *GetNamespace(
     for (;;) {
       dot = qualified_name.find('.', pos);
       if (dot == std::string::npos) { break; }
-      ns->components.push_back(qualified_name.substr(pos, dot-pos));
+      ns->components.push_back(qualified_name.substr(pos, dot - pos));
       pos = dot + 1;
     }
   }

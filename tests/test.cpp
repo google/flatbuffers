@@ -41,6 +41,25 @@
 
 #include "flatbuffers/flexbuffers.h"
 
+// clang-format off
+// Check that char* and uint8_t* are interoperable types.
+// The reinterpret_cast<> between the pointers are used to simplify data loading.
+static_assert(flatbuffers::is_same<uint8_t, char>::value ||
+              flatbuffers::is_same<uint8_t, unsigned char>::value,
+              "unexpected uint8_t type");
+
+#if defined(FLATBUFFERS_HAS_NEW_STRTOD) && (FLATBUFFERS_HAS_NEW_STRTOD > 0)
+  // Ensure IEEE-754 support if tests of floats with NaN/Inf will run.
+  static_assert(std::numeric_limits<float>::is_iec559 &&
+                std::numeric_limits<double>::is_iec559,
+                "IEC-559 (IEEE-754) standard required");
+#endif
+// clang-format on
+
+// Shortcuts for the infinity.
+static const auto infinityf = std::numeric_limits<float>::infinity();
+static const auto infinityd = std::numeric_limits<double>::infinity();
+
 using namespace MyGame::Example;
 
 void FlatBufferBuilderTest();
@@ -601,36 +620,105 @@ void JsonDefaultTest() {
   TEST_EQ(std::string::npos != jsongen.find("testf: 3.14159"), true);
 }
 
-#if defined(FLATBUFFERS_HAS_NEW_STRTOD)
+#if defined(FLATBUFFERS_HAS_NEW_STRTOD) && (FLATBUFFERS_HAS_NEW_STRTOD > 0)
+// The IEEE-754 quiet_NaN is not simple binary constant.
+// All binary NaN bit strings have all the bits of the biased exponent field E
+// set to 1. A quiet NaN bit string should be encoded with the first bit d[1]
+// of the trailing significand field T being 1 (d[0] is implicit bit).
+// It is assumed that endianness of floating-point is same as integer.
+template<typename T, typename U, U qnan_base> bool is_quiet_nan_impl(T v) {
+  static_assert(sizeof(T) == sizeof(U), "unexpected");
+  U b = 0;
+  std::memcpy(&b, &v, sizeof(T));
+  return ((b & qnan_base) == qnan_base);
+}
+static bool is_quiet_nan(float v) {
+  return is_quiet_nan_impl<float, uint32_t, 0x7FC00000u>(v);
+}
+static bool is_quiet_nan(double v) {
+  return is_quiet_nan_impl<double, uint64_t, 0x7FF8000000000000ul>(v);
+}
+
 void TestMonsterExtraFloats() {
+  TEST_EQ(is_quiet_nan(1.0), false);
+  TEST_EQ(is_quiet_nan(infinityd), false);
+  TEST_EQ(is_quiet_nan(-infinityf), false);
+  TEST_EQ(is_quiet_nan(std::numeric_limits<float>::quiet_NaN()), true);
+  TEST_EQ(is_quiet_nan(std::numeric_limits<double>::quiet_NaN()), true);
+
+  using namespace flatbuffers;
   using namespace MyGame;
   // Load FlatBuffer schema (.fbs) from disk.
   std::string schemafile;
-  TEST_EQ(flatbuffers::LoadFile((test_data_path + "monster_extra.fbs").c_str(),
-                                false, &schemafile),
+  TEST_EQ(LoadFile((test_data_path + "monster_extra.fbs").c_str(), false,
+                   &schemafile),
           true);
   // Parse schema first, so we can use it to parse the data after.
-  flatbuffers::Parser parser;
-  auto include_test_path =
-      flatbuffers::ConCatPathFileName(test_data_path, "include_test");
+  Parser parser;
+  auto include_test_path = ConCatPathFileName(test_data_path, "include_test");
   const char *include_directories[] = { test_data_path.c_str(),
                                         include_test_path.c_str(), nullptr };
   TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
   // Create empty extra and store to json.
   parser.opts.output_default_scalars_in_json = true;
   parser.opts.output_enum_identifiers = true;
-  flatbuffers::FlatBufferBuilder builder;
-  MonsterExtraBuilder extra(builder);
-  FinishMonsterExtraBuffer(builder, extra.Finish());
+  FlatBufferBuilder builder;
+  const auto def_root = MonsterExtraBuilder(builder).Finish();
+  FinishMonsterExtraBuffer(builder, def_root);
+  const auto def_obj = builder.GetBufferPointer();
+  const auto def_extra = GetMonsterExtra(def_obj);
+  TEST_NOTNULL(def_extra);
+  TEST_EQ(is_quiet_nan(def_extra->f0()), true);
+  TEST_EQ(is_quiet_nan(def_extra->f1()), true);
+  TEST_EQ(def_extra->f2(), +infinityf);
+  TEST_EQ(def_extra->f3(), -infinityf);
+  TEST_EQ(is_quiet_nan(def_extra->d0()), true);
+  TEST_EQ(is_quiet_nan(def_extra->d1()), true);
+  TEST_EQ(def_extra->d2(), +infinityd);
+  TEST_EQ(def_extra->d3(), -infinityd);
   std::string jsongen;
-  auto result = GenerateText(parser, builder.GetBufferPointer(), &jsongen);
+  auto result = GenerateText(parser, def_obj, &jsongen);
   TEST_EQ(result, true);
-  TEST_EQ(std::string::npos != jsongen.find("testf_nan: nan"), true);
-  TEST_EQ(std::string::npos != jsongen.find("testf_pinf: inf"), true);
-  TEST_EQ(std::string::npos != jsongen.find("testf_ninf: -inf"), true);
-  TEST_EQ(std::string::npos != jsongen.find("testd_nan: nan"), true);
-  TEST_EQ(std::string::npos != jsongen.find("testd_pinf: inf"), true);
-  TEST_EQ(std::string::npos != jsongen.find("testd_ninf: -inf"), true);
+  // Check expected default values.
+  TEST_EQ(std::string::npos != jsongen.find("f0: nan"), true);
+  TEST_EQ(std::string::npos != jsongen.find("f1: nan"), true);
+  TEST_EQ(std::string::npos != jsongen.find("f2: inf"), true);
+  TEST_EQ(std::string::npos != jsongen.find("f3: -inf"), true);
+  TEST_EQ(std::string::npos != jsongen.find("d0: nan"), true);
+  TEST_EQ(std::string::npos != jsongen.find("d1: nan"), true);
+  TEST_EQ(std::string::npos != jsongen.find("d2: inf"), true);
+  TEST_EQ(std::string::npos != jsongen.find("d3: -inf"), true);
+  // Parse 'mosterdata_extra.json'.
+  const auto extra_base = test_data_path + "monsterdata_extra";
+  jsongen = "";
+  TEST_EQ(LoadFile((extra_base + ".json").c_str(), false, &jsongen), true);
+  TEST_EQ(parser.Parse(jsongen.c_str()), true);
+  const auto test_file = parser.builder_.GetBufferPointer();
+  const auto test_size = parser.builder_.GetSize();
+  Verifier verifier(test_file, test_size);
+  TEST_ASSERT(VerifyMonsterExtraBuffer(verifier));
+  const auto extra = GetMonsterExtra(test_file);
+  TEST_NOTNULL(extra);
+  TEST_EQ(is_quiet_nan(extra->f0()), true);
+  TEST_EQ(is_quiet_nan(extra->f1()), true);
+  TEST_EQ(extra->f2(), +infinityf);
+  TEST_EQ(extra->f3(), -infinityf);
+  TEST_EQ(is_quiet_nan(extra->d0()), true);
+  TEST_EQ(extra->d1(), +infinityd);
+  TEST_EQ(extra->d2(), -infinityd);
+  TEST_EQ(is_quiet_nan(extra->d3()), true);
+  TEST_NOTNULL(extra->fvec());
+  TEST_EQ(extra->fvec()->size(), 4);
+  TEST_EQ(extra->fvec()->Get(0), 1.0f);
+  TEST_EQ(extra->fvec()->Get(1), -infinityf);
+  TEST_EQ(extra->fvec()->Get(2), +infinityf);
+  TEST_EQ(is_quiet_nan(extra->fvec()->Get(3)), true);
+  TEST_NOTNULL(extra->dvec());
+  TEST_EQ(extra->dvec()->size(), 4);
+  TEST_EQ(extra->dvec()->Get(0), 2.0);
+  TEST_EQ(extra->dvec()->Get(1), +infinityd);
+  TEST_EQ(extra->dvec()->Get(2), -infinityd);
+  TEST_EQ(is_quiet_nan(extra->dvec()->Get(3)), true);
 }
 #else
 void TestMonsterExtraFloats() {}
@@ -1663,8 +1751,6 @@ void IntegerBoundaryTest() {
 }
 
 void ValidFloatTest() {
-  const auto infinityf = flatbuffers::numeric_limits<float>::infinity();
-  const auto infinityd = flatbuffers::numeric_limits<double>::infinity();
   // check rounding to infinity
   TEST_EQ(TestValue<float>("{ Y:+3.4029e+38 }", "float"), +infinityf);
   TEST_EQ(TestValue<float>("{ Y:-3.4029e+38 }", "float"), -infinityf);
@@ -1694,7 +1780,7 @@ void ValidFloatTest() {
   TEST_EQ(TestValue<float>("{ Y:5 }", "float"), 5.0f);
   TEST_EQ(TestValue<float>("{ Y:\"5\" }", "float"), 5.0f);
 
-  #if defined(FLATBUFFERS_HAS_NEW_STRTOD)
+  #if defined(FLATBUFFERS_HAS_NEW_STRTOD) && (FLATBUFFERS_HAS_NEW_STRTOD > 0)
   // Old MSVC versions may have problem with this check.
   // https://www.exploringbinary.com/visual-c-plus-plus-strtod-still-broken/
   TEST_EQ(TestValue<double>("{ Y:6.9294956446009195e15 }", "double"),
@@ -1740,7 +1826,7 @@ void ValidFloatTest() {
 
 #else   // FLATBUFFERS_HAS_NEW_STRTOD
   TEST_OUTPUT_LINE("FLATBUFFERS_HAS_NEW_STRTOD tests skipped");
-#endif  // FLATBUFFERS_HAS_NEW_STRTOD
+#endif  // !FLATBUFFERS_HAS_NEW_STRTOD
 }
 
 void InvalidFloatTest() {
