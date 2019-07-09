@@ -134,4 +134,3 @@ impl<'a, T: Follow<'a> + 'a> Follow<'a> for Vector<'a, T> {
         Vector::new(buf, loc)
     }
 }
-
