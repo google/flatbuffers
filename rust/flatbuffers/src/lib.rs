@@ -39,12 +39,14 @@ mod vtable;
 mod vtable_writer;
 
 pub use builder::FlatBufferBuilder;
-pub use endian_scalar::{EndianScalar, emplace_scalar, read_scalar, read_scalar_at, byte_swap_f32, byte_swap_f64};
+pub use endian_scalar::{
+    byte_swap_f32, byte_swap_f64, emplace_scalar, read_scalar, read_scalar_at, EndianScalar,
+};
 pub use follow::{Follow, FollowStart};
 pub use primitives::*;
 pub use push::Push;
-pub use table::{Table, buffer_has_identifier, get_root, get_size_prefixed_root};
-pub use vector::{SafeSliceAccess, Vector, follow_cast_ref};
+pub use table::{buffer_has_identifier, get_root, get_size_prefixed_root, Table};
+pub use vector::{follow_cast_ref, SafeSliceAccess, Vector};
 pub use vtable::field_index_to_field_offset;
 
 // TODO(rw): Unify `create_vector` and `create_vector_direct` by using

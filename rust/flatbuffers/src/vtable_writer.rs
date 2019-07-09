@@ -82,4 +82,3 @@ impl<'a> VTableWriter<'a> {
         }
     }
 }
-

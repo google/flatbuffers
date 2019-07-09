@@ -34,10 +34,7 @@ impl<'a> PartialEq for VTable<'a> {
 
 impl<'a> VTable<'a> {
     pub fn init(buf: &'a [u8], loc: usize) -> Self {
-        VTable {
-            buf: buf,
-            loc: loc,
-        }
+        VTable { buf: buf, loc: loc }
     }
     pub fn num_fields(&self) -> usize {
         (self.num_bytes() / SIZE_VOFFSET) - 2
@@ -71,7 +68,6 @@ impl<'a> VTable<'a> {
         &self.buf[self.loc..self.loc + len]
     }
 }
-
 
 #[allow(dead_code)]
 pub fn field_index_to_field_offset(field_id: VOffsetT) -> VOffsetT {
