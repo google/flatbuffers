@@ -40,6 +40,7 @@
 #include "test_assert.h"
 
 #include "flatbuffers/flexbuffers.h"
+#include "native_type_test_generated.h"
 
 // clang-format off
 // Check that char* and uint8_t* are interoperable types.
@@ -2841,6 +2842,29 @@ void FixedLengthArrayTest() {
 #endif
 }
 
+void NativeTypeTest() {
+  const int N = 3;
+
+  Geometry::ApplicationDataT srcDataT;
+  srcDataT.vectors.reserve(N);
+
+  for (int i = 0; i < N; ++i) {
+    srcDataT.vectors.push_back (Native::Vector3D(10 * i + 0.1, 10 * i + 0.2, 10 * i + 0.3));
+  }
+
+  flatbuffers::FlatBufferBuilder fbb;
+  fbb.Finish(Geometry::ApplicationData::Pack(fbb, &srcDataT));
+
+  auto dstDataT =  Geometry::UnPackApplicationData(fbb.GetBufferPointer());
+
+  for (int i = 0; i < N; ++i) {
+    Native::Vector3D& v = dstDataT->vectors[i];
+    TEST_EQ(v.x, 10 * i + 0.1);
+    TEST_EQ(v.y, 10 * i + 0.2);
+    TEST_EQ(v.z, 10 * i + 0.3);
+  }
+}
+
 void FixedLengthArrayJsonTest(bool binary) {  
   // VS10 does not support typed enums, exclude from tests
 #if !defined(_MSC_VER) || _MSC_VER >= 1700
@@ -2984,6 +3008,7 @@ int FlatBufferTests() {
   InvalidFloatTest();
   TestMonsterExtraFloats();
   FixedLengthArrayTest();
+  NativeTypeTest();
   return 0;
 }
 

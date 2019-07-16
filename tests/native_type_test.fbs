@@ -1,0 +1,18 @@
+native_include "vector3d.h";
+native_include "vector3d_pack.h";
+
+namespace Geometry;
+
+struct Vector3D (native_type:"Native::Vector3D")
+{
+  x:double;
+  y:double;
+  z:double;
+}
+
+table ApplicationData
+{
+  vectors:[Vector3D];
+}
+
+root_type ApplicationData;
