@@ -173,7 +173,7 @@ cc_test(
         ":tests/native_type_test.fbs",
     ],
     includes = [
-        "include/"
+        "include/",
         "tests/",
     ],
     include_paths = ["tests"],
