@@ -136,6 +136,9 @@ cc_test(
         "src/util.cpp",
         "tests/namespace_test/namespace_test1_generated.h",
         "tests/namespace_test/namespace_test2_generated.h",
+        "tests/vector3d.h",
+        "tests/vector3d_pack.h",
+        "tests/vector3d_pack.cpp",
         "tests/test.cpp",
         "tests/test_assert.cpp",
         "tests/test_assert.h",
@@ -167,12 +170,14 @@ cc_test(
         ":tests/arrays_test.bfbs",
         ":tests/arrays_test.fbs",
         ":tests/arrays_test.golden",
+        ":tests/native_type_test.fbs",
     ],
     includes = ["include/"],
     deps = [
         ":monster_extra_cc_fbs",
         ":monster_test_cc_fbs",
         ":arrays_test_cc_fbs",
+        ":native_type_test_cc_fbs",
     ],
 )
 
