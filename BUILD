@@ -205,3 +205,13 @@ flatbuffer_cc_library(
         "--cpp-ptr-type flatbuffers::unique_ptr",
         "--scoped-enums" ],
 )
+
+flatbuffer_cc_library(
+    name = "native_type_test_cc_fbs",
+    srcs = ["tests/native_type_test.fbs"],
+    flatc_args = [
+        "--gen-object-api",
+        "--gen-mutable",
+        "--cpp-ptr-type flatbuffers::unique_ptr" ],
+)
+
