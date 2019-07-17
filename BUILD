@@ -173,6 +173,7 @@ cc_test(
         ":tests/native_type_test.fbs",
     ],
     includes = ["include/"],
+    include_paths = ["tests"],
     deps = [
         ":monster_extra_cc_fbs",
         ":monster_test_cc_fbs",
