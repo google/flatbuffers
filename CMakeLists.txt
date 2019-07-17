@@ -310,23 +310,25 @@ if(FLATBUFFERS_BUILD_SHAREDLIB)
                         VERSION "${FlatBuffers_Library_SONAME_FULL}")
 endif()
 
-function(compile_flatbuffers_schema_to_cpp_opt SRC_FBS OPT)
+function(compile_flatbuffers_schema_to_cpp_with_add_options SRC_FBS NO_INCLUDES GEN_COMPARE ADD_OPTIONS)
   get_filename_component(SRC_FBS_DIR ${SRC_FBS} PATH)
   string(REGEX REPLACE "\\.fbs$" "_generated.h" GEN_HEADER ${SRC_FBS})
   add_custom_command(
     OUTPUT ${GEN_HEADER}
-    COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}" -c --no-includes --gen-mutable
-            --gen-object-api --gen-compare -o "${SRC_FBS_DIR}"
+    COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}" -c --gen-mutable ${NO_INCLUDES}
+            --gen-object-api ${GEN_COMPARE} -o "${SRC_FBS_DIR}"
             --cpp-ptr-type flatbuffers::unique_ptr # Used to test with C++98 STLs
-            --reflect-names ${OPT}
+            --reflect-names ${ADD_OPTIONS}
             -I "${CMAKE_CURRENT_SOURCE_DIR}/tests/include_test"
             "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
     DEPENDS flatc)
 endfunction()
 
+
 function(compile_flatbuffers_schema_to_cpp SRC_FBS)
-    compile_flatbuffers_schema_to_cpp_opt(${SRC_FBS} "")
+    compile_flatbuffers_schema_to_cpp_with_add_options(${SRC_FBS} --no-includes --gen-compare "")
 endfunction()
+
 
 function(compile_flatbuffers_schema_to_binary SRC_FBS)
   get_filename_component(SRC_FBS_DIR ${SRC_FBS} PATH)
@@ -340,8 +342,8 @@ endfunction()
 
 if(FLATBUFFERS_BUILD_TESTS)
   compile_flatbuffers_schema_to_cpp(tests/monster_test.fbs)
-  compile_flatbuffers_schema_to_cpp(tests/native_type_test.fbs)
-  compile_flatbuffers_schema_to_cpp_opt(tests/arrays_test.fbs --scoped-enums)
+  compile_flatbuffers_schema_to_cpp_with_add_options(tests/native_type_test.fbs "" "" "")
+  compile_flatbuffers_schema_to_cpp_with_add_options(tests/arrays_test.fbs --no-includes --gen-compare --scoped-enums)
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/tests)
   add_executable(flattests ${FlatBuffers_Tests_SRCS})
   set_property(TARGET flattests
