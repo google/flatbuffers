@@ -172,7 +172,10 @@ cc_test(
         ":tests/arrays_test.golden",
         ":tests/native_type_test.fbs",
     ],
-    includes = ["include/"],
+    includes = [
+        "include/"
+        "tests/",
+    ],
     include_paths = ["tests"],
     deps = [
         ":monster_extra_cc_fbs",
