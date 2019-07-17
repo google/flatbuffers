@@ -35,12 +35,13 @@
 #include "union_vector/union_vector_generated.h"
 #include "monster_extra_generated.h"
 #if !defined(_MSC_VER) || _MSC_VER >= 1700
-#  include "arrays_test_generated.h"
+#include "arrays_test_generated.h"
+#include "native_type_test_generated.h"
 #endif
 #include "test_assert.h"
 
 #include "flatbuffers/flexbuffers.h"
-#include "native_type_test_generated.h"
+
 
 // clang-format off
 // Check that char* and uint8_t* are interoperable types.
@@ -2843,6 +2844,16 @@ void FixedLengthArrayTest() {
 }
 
 void NativeTypeTest() {
+// looks like VS10 does not support std::vector with explicit alignment
+// From stackoverflow (https://stackoverflow.com/questions/8456236/how-is-a-vectors-data-aligned):
+//
+// Visual C++ version 2010 will not work with an std::vector with classes whose alignment are specified.
+// The reason is std::vector::resize.
+// When compiling, next error appears:
+// c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\vector(870): error C2719: 
+//  '_Val': formal parameter with __declspec(align('8')) won't be aligned [C:\projects\flatbuffers\flattests.vcxproj]
+
+#if !defined(_MSC_VER) || _MSC_VER >= 1700
   const int N = 3;
 
   Geometry::ApplicationDataT srcDataT;
@@ -2863,6 +2874,7 @@ void NativeTypeTest() {
     TEST_EQ(v.y, 10 * i + 0.2);
     TEST_EQ(v.z, 10 * i + 0.3);
   }
+#endif
 }
 
 void FixedLengthArrayJsonTest(bool binary) {  
