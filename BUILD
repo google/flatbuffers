@@ -176,7 +176,6 @@ cc_test(
         "include/",
         "tests/",
     ],
-    include_paths = ["tests"],
     deps = [
         ":monster_extra_cc_fbs",
         ":monster_test_cc_fbs",
