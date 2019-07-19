@@ -314,7 +314,7 @@ function(compile_flatbuffers_schema_to_cpp_opt SRC_FBS OPT)
   string(REGEX REPLACE "\\.fbs$" "_generated.h" GEN_HEADER ${SRC_FBS})
   add_custom_command(
     OUTPUT ${GEN_HEADER}
-    COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}" -c 
+    COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}" -c --gen-mutable
             --gen-object-api --gen-compare -o "${SRC_FBS_DIR}"
             --cpp-ptr-type flatbuffers::unique_ptr # Used to test with C++98 STLs
             --reflect-names ${OPT}
