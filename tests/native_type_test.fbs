@@ -1,5 +1,4 @@
-native_include "vector3d.h";
-native_include "vector3d_pack.h";
+native_include "native_type_test_impl.h";
 
 namespace Geometry;
 

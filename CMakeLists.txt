@@ -117,9 +117,8 @@ set(FlatBuffers_Tests_SRCS
   tests/test_assert.cpp
   tests/test_builder.h
   tests/test_builder.cpp
-  tests/vector3d.h
-  tests/vector3d_pack.h
-  tests/vector3d_pack.cpp
+  tests/native_type_test_impl.h
+  tests/native_type_test_impl.cpp
   # file generate by running compiler on tests/monster_test.fbs
   ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_test_generated.h
   # file generate by running compiler on tests/arrays_test.fbs

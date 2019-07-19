@@ -6,8 +6,7 @@
 
 #include "flatbuffers/flatbuffers.h"
 
-#include "vector3d.h"
-#include "vector3d_pack.h"
+#include "native_type_test_impl.h"
 
 namespace Geometry {
 
