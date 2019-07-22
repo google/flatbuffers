@@ -29,7 +29,7 @@ namespace flatbuffers {
 // Reflects the version at the compiling time of binary(lib/dll/so).
 const char *FLATBUFFERS_VERSION() {
   // clang-format off
-  return 
+  return
       FLATBUFFERS_STRING(FLATBUFFERS_VERSION_MAJOR) "."
       FLATBUFFERS_STRING(FLATBUFFERS_VERSION_MINOR) "."
       FLATBUFFERS_STRING(FLATBUFFERS_VERSION_REVISION);
@@ -41,7 +41,7 @@ const double kPi = 3.14159265358979323846;
 const char *const kTypeNames[] = {
 // clang-format off
   #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-    CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
+    CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
     IDLTYPE,
     FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
   #undef FLATBUFFERS_TD
@@ -52,7 +52,7 @@ const char *const kTypeNames[] = {
 const char kTypeSizes[] = {
 // clang-format off
   #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-      CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
+      CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
       sizeof(CTYPE),
     FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
   #undef FLATBUFFERS_TD
@@ -212,7 +212,7 @@ static std::string TokenToString(int t) {
       FLATBUFFERS_GEN_TOKENS(FLATBUFFERS_TOKEN)
     #undef FLATBUFFERS_TOKEN
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-      CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
+      CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
       IDLTYPE,
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
@@ -1169,7 +1169,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
         switch (field_value.type.base_type) {
           // clang-format off
           #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
+            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
             case BASE_TYPE_ ## ENUM: \
               builder_.Pad(field->padding); \
               if (struct_def.fixed) { \
@@ -1186,7 +1186,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
             FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD);
           #undef FLATBUFFERS_TD
           #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
+            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
             case BASE_TYPE_ ## ENUM: \
               builder_.Pad(field->padding); \
               if (IsStruct(field->value.type)) { \
@@ -1267,7 +1267,7 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
     switch (val.type.base_type) {
       // clang-format off
       #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
+        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
         case BASE_TYPE_ ## ENUM: \
           if (IsStruct(val.type)) SerializeStruct(*val.type.struct_def, val); \
           else { \
@@ -1313,7 +1313,7 @@ CheckedError Parser::ParseArray(Value &array) {
     // clang-format off
     switch (val.type.base_type) {
       #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
+        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
         case BASE_TYPE_ ## ENUM: \
           if (IsStruct(val.type)) { \
             SerializeStruct(builder, *val.type.struct_def, val); \
@@ -1661,7 +1661,7 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
     // clang-format off
     switch (match_type) {
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
+            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
             case BASE_TYPE_ ## ENUM: {\
                 CTYPE val; \
                 ECHECK(atot(e.constant.c_str(), *this, &val)); \
@@ -1897,7 +1897,7 @@ struct EnumValBuilder {
     // clang-format off
     switch (enum_def.underlying_type.base_type) {
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE,   \
-                           PTYPE, RTYPE)                                \
+                           PTYPE, RTYPE, KTYPE)                         \
       case BASE_TYPE_##ENUM: {                                          \
         if (!IsInteger(BASE_TYPE_##ENUM)) break;                        \
         return ValidateImpl<BASE_TYPE_##ENUM, CTYPE>(ev, next ? 1 : 0); \
@@ -2091,6 +2091,7 @@ bool Parser::SupportsAdvancedUnionFeatures() const {
          (opts.lang_to_generate & ~(IDLOptions::kCpp | IDLOptions::kJs |
                                     IDLOptions::kTs | IDLOptions::kPhp |
                                     IDLOptions::kJava | IDLOptions::kCSharp |
+                                    IDLOptions::kKotlin |
                                     IDLOptions::kBinary)) == 0;
 }
 
