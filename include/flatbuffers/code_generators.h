@@ -26,7 +26,7 @@ namespace flatbuffers {
 // Utility class to assist in generating code through use of text templates.
 //
 // Example code:
-//   CodeWriter code;
+//   CodeWriter code("\t");
 //   code.SetValue("NAME", "Foo");
 //   code += "void {{NAME}}() { printf("%s", "{{NAME}}"); }";
 //   code.SetValue("NAME", "Bar");
@@ -38,7 +38,8 @@ namespace flatbuffers {
 //  void Bar() { printf("%s", "Bar"); }
 class CodeWriter {
  public:
-  CodeWriter() {}
+  CodeWriter(std::string pad = std::string())
+      : pad_(pad), cur_ident_lvl_(0), ignore_ident_(false) {}
 
   // Clears the current "written" code.
   void Clear() {
@@ -67,9 +68,22 @@ class CodeWriter {
   // Returns the current contents of the CodeWriter as a std::string.
   std::string ToString() const { return stream_.str(); }
 
+  // Increase ident level for writing code
+  void IncrementIdentLevel() { cur_ident_lvl_++; }
+  // Decrease ident level for writing code
+  void DecrementIdentLevel() {
+    if (cur_ident_lvl_) cur_ident_lvl_--;
+  }
+
  private:
   std::map<std::string, std::string> value_map_;
   std::stringstream stream_;
+  std::string pad_;
+  int cur_ident_lvl_;
+  bool ignore_ident_;
+
+  // Add ident padding (tab or space) based on ident level
+  void AppendIdent(std::stringstream &stream);
 };
 
 class BaseGenerator {

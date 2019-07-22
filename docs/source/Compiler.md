@@ -23,6 +23,8 @@ For any schema input files, one or more generators can be specified:
 
 -   `--java`, `-j` : Generate Java code.
 
+-   `--kotlin`, `-k` : Generate Kotlin code.
+
 -   `--csharp`, `-n` : Generate C# code.
 
 -   `--go`, `-g` : Generate Go code.

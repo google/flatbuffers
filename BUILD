@@ -86,6 +86,7 @@ cc_binary(
         "src/idl_gen_cpp.cpp",
         "src/idl_gen_dart.cpp",
         "src/idl_gen_general.cpp",
+        "src/idl_gen_kotlin.cpp",
         "src/idl_gen_go.cpp",
         "src/idl_gen_grpc.cpp",
         "src/idl_gen_js_ts.cpp",

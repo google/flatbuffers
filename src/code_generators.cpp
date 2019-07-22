@@ -29,6 +29,8 @@
 namespace flatbuffers {
 
 void CodeWriter::operator+=(std::string text) {
+  if (!ignore_ident_ && !text.empty()) AppendIdent(stream_);
+
   while (true) {
     auto begin = text.find("{{");
     if (begin == std::string::npos) { break; }
@@ -58,9 +60,18 @@ void CodeWriter::operator+=(std::string text) {
   }
   if (!text.empty() && string_back(text) == '\\') {
     text.pop_back();
+    ignore_ident_ = true;
     stream_ << text;
   } else {
+    ignore_ident_ = false;
     stream_ << text << std::endl;
+  }
+}
+
+void CodeWriter::AppendIdent(std::stringstream &stream) {
+  int lvl = cur_ident_lvl_;
+  while (lvl--) {
+    stream.write(pad_.c_str(), static_cast<std::streamsize>(pad_.size()));
   }
 }
 
