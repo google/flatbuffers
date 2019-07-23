@@ -3131,7 +3131,7 @@ Offset<reflection::Field> FieldDef::Serialize(FlatBufferBuilder *builder,
 }
 
 bool FieldDef::Deserialize(Parser &parser, const reflection::Field *field) {
-  name = parser.UnqualifiedName(field->name()->str());
+  name = field->name()->str();
   defined_namespace = parser.current_namespace_;
   if (!value.type.Deserialize(parser, field->type()))
     return false;
@@ -3157,6 +3157,12 @@ bool FieldDef::Deserialize(Parser &parser, const reflection::Field *field) {
     if (value.type.base_type != BASE_TYPE_VECTOR ||
         value.type.element != BASE_TYPE_UCHAR)
       return false;
+  }
+  if (auto nested = attributes.Lookup("nested_flatbuffer")) {
+    auto nested_qualified_name =
+        parser.current_namespace_->GetFullyQualifiedName(nested->constant);
+    nested_flatbuffer = parser.LookupStruct(nested_qualified_name);
+    if (!nested_flatbuffer) return false;
   }
   DeserializeDoc(doc_comment, field->documentation());
   return true;
