@@ -30,9 +30,9 @@ conan-linux-master: &conan-linux-master
   services:
     - docker
   install:
-    - ./conan/travis/install.sh
+    - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then bash ./conan/travis/install.sh; fi'
   script:
-    - ./conan/travis/build.sh
+    - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then bash ./conan/travis/build.sh; fi'
   branches:
     only:
     - master
