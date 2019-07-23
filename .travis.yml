@@ -22,6 +22,21 @@ conan-linux: &conan-linux
     - ./conan/travis/build.sh
   if: tag IS present
 
+conan-linux-master: &conan-linux-master
+  os: linux
+  dist: xenial
+  language: python
+  python: "3.7"
+  services:
+    - docker
+  install:
+    - ./conan/travis/install.sh
+  script:
+    - ./conan/travis/build.sh
+  branches:
+    only:
+    - master
+
 conan-osx: &conan-osx
   os: osx
   language: generic
@@ -78,7 +93,7 @@ matrix:
       env:
         matrix:
           - BUILD_TYPE=Debug
-          - BUILD_TYPE=Release CONAN=true
+          - BUILD_TYPE=Release
 
       before_install:
       - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; fi
@@ -100,7 +115,6 @@ matrix:
       - cmake --build . -- -j${JOBS}
       - LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/google/grpc/install/lib ctest --extra-verbose --output-on-failure
       - bash .travis/check-generate-code.sh
-      - if [ "$CONAN" == "true" ] && [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo pip install conan && conan create . flatbuffers/${TRAVIS_BRANCH}@google/testing -s build_type=$BUILD_TYPE -tf conan/test_package; fi
 
     - language: cpp
       os: osx
@@ -122,6 +136,8 @@ matrix:
       - DYLD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/google/grpc/install/lib ctest --extra-verbose --output-on-failure
       - bash .travis/check-generate-code.sh
 
+    - <<: *conan-linux-master
+      env: CONAN_GCC_VERSIONS=8 CONAN_DOCKER_IMAGE=conanio/gcc8
     - <<: *conan-linux
       env: CONAN_GCC_VERSIONS=4.9 CONAN_DOCKER_IMAGE=conanio/gcc49
     - <<: *conan-linux
@@ -133,6 +149,8 @@ matrix:
     - <<: *conan-linux
       env: CONAN_GCC_VERSIONS=8 CONAN_DOCKER_IMAGE=conanio/gcc8
     - <<: *conan-linux
+      env: CONAN_GCC_VERSIONS=9 CONAN_DOCKER_IMAGE=conanio/gcc9
+    - <<: *conan-linux
       env: CONAN_CLANG_VERSIONS=3.9 CONAN_DOCKER_IMAGE=conanio/clang39
     - <<: *conan-linux
       env: CONAN_CLANG_VERSIONS=4.0 CONAN_DOCKER_IMAGE=conanio/clang40
@@ -140,6 +158,10 @@ matrix:
       env: CONAN_CLANG_VERSIONS=5.0 CONAN_DOCKER_IMAGE=conanio/clang50
     - <<: *conan-linux
       env: CONAN_CLANG_VERSIONS=6.0 CONAN_DOCKER_IMAGE=conanio/clang60
+    - <<: *conan-linux
+      env: CONAN_CLANG_VERSIONS=7.0 CONAN_DOCKER_IMAGE=conanio/clang7
+    - <<: *conan-linux
+      env: CONAN_CLANG_VERSIONS=8 CONAN_DOCKER_IMAGE=conanio/clang8
     - <<: *conan-osx
       osx_image: xcode7.3
       env: CONAN_APPLE_CLANG_VERSIONS=7.3
@@ -153,7 +175,7 @@ matrix:
       osx_image: xcode9.4
       env: CONAN_APPLE_CLANG_VERSIONS=9.1
     - <<: *conan-osx
-      osx_image: xcode10
+      osx_image: xcode10.2
       env: CONAN_APPLE_CLANG_VERSIONS=10.0
 
     - language: android
