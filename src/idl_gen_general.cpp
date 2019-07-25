@@ -1238,12 +1238,31 @@ class GeneralGenerator : public BaseGenerator {
             code += GenTypeBasic(field.value.type.VectorType());
             code += "[] Get";
             code += MakeCamel(field.name, lang_.first_camel_upper);
-            code += "Array() { return ";
-            code += lang_.accessor_prefix + "__vector_as_array<";
-            code += GenTypeBasic(field.value.type.VectorType());
-            code += ">(";
-            code += NumToString(field.value.offset);
-            code += "); }\n";
+            code += "Array() { ";
+            if (IsEnum(field.value.type.VectorType())) {
+              // Since __vector_as_array does not work for enum types,
+              // fill array using an explicit loop.
+              code += "int o = " + lang_.accessor_prefix + "__offset(";
+              code += NumToString(field.value.offset);
+              code += "); if (o == 0) return null; int p = ";
+              code += lang_.accessor_prefix + "__vector(o); int l = ";
+              code += lang_.accessor_prefix + "__vector_len(o); ";
+              code += GenTypeBasic(field.value.type.VectorType());
+              code += "[] a = new ";
+              code += GenTypeBasic(field.value.type.VectorType());
+              code += "[l]; for (int i = 0; i < l; i++) { a[i] = " + getter;
+              code += "(p + i * ";
+              code += NumToString(InlineSize(field.value.type.VectorType()));
+              code += "); } return a;";
+            } else {
+              code += "return ";
+              code += lang_.accessor_prefix + "__vector_as_array<";
+              code += GenTypeBasic(field.value.type.VectorType());
+              code += ">(";
+              code += NumToString(field.value.offset);
+              code += ");";
+            }
+            code += " }\n";
             break;
           default: break;
         }
@@ -1473,11 +1492,20 @@ class GeneralGenerator : public BaseGenerator {
               code += MakeCamel(field.name);
               code += "VectorBlock(FlatBufferBuilder builder, ";
               code += GenTypeBasic(vector_type) + "[] data) ";
-              code += "{ builder." + FunctionStart('S') + "tartVector(";
-              code += NumToString(elem_size);
-              code += ", data." + FunctionStart('L') + "ength, ";
-              code += NumToString(alignment);
-              code += "); builder.Add(data); return builder.EndVector(); }\n";
+              if (IsEnum(vector_type)) {
+                // Since builder.Add does not work for enum types,
+                // delegate to the non-block method. Block method is
+                // still produced for strict backward compatibility.
+                code += "{ return " + FunctionStart('C') + "reate";
+                code += MakeCamel(field.name) + "Vector(builder, data);";
+              } else {
+                code += "{ builder." + FunctionStart('S') + "tartVector(";
+                code += NumToString(elem_size);
+                code += ", data." + FunctionStart('L') + "ength, ";
+                code += NumToString(alignment);
+                code += "); builder.Add(data); return builder.EndVector();";
+              }
+              code += " }\n";
             }
           }
           // Generate a method to start a vector, data to be added manually

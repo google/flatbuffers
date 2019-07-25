@@ -186,7 +186,7 @@ public struct Monster : IFlatbufferObject
 #else
   public ArraySegment<byte>? GetVectorOfEnumsBytes() { return __p.__vector_as_arraysegment(98); }
 #endif
-  public MyGame.Example.Color[] GetVectorOfEnumsArray() { return __p.__vector_as_array<MyGame.Example.Color>(98); }
+  public MyGame.Example.Color[] GetVectorOfEnumsArray() { int o = __p.__offset(98); if (o == 0) return null; int p = __p.__vector(o); int l = __p.__vector_len(o); MyGame.Example.Color[] a = new MyGame.Example.Color[l]; for (int i = 0; i < l; i++) { a[i] = (MyGame.Example.Color)__p.bb.Get(p + i * 1); } return a; }
   public bool MutateVectorOfEnums(int j, MyGame.Example.Color vector_of_enums) { int o = __p.__offset(98); if (o != 0) { __p.bb.Put(__p.__vector(o) + j * 1, (byte)vector_of_enums); return true; } else { return false; } }
 
   public static void StartMonster(FlatBufferBuilder builder) { builder.StartTable(48); }
@@ -283,7 +283,7 @@ public struct Monster : IFlatbufferObject
   public static void AddAnyAmbiguous(FlatBufferBuilder builder, int anyAmbiguousOffset) { builder.AddOffset(46, anyAmbiguousOffset, 0); }
   public static void AddVectorOfEnums(FlatBufferBuilder builder, VectorOffset vectorOfEnumsOffset) { builder.AddOffset(47, vectorOfEnumsOffset.Value, 0); }
   public static VectorOffset CreateVectorOfEnumsVector(FlatBufferBuilder builder, MyGame.Example.Color[] data) { builder.StartVector(1, data.Length, 1); for (int i = data.Length - 1; i >= 0; i--) builder.AddByte((byte)data[i]); return builder.EndVector(); }
-  public static VectorOffset CreateVectorOfEnumsVectorBlock(FlatBufferBuilder builder, MyGame.Example.Color[] data) { builder.StartVector(1, data.Length, 1); builder.Add(data); return builder.EndVector(); }
+  public static VectorOffset CreateVectorOfEnumsVectorBlock(FlatBufferBuilder builder, MyGame.Example.Color[] data) { return CreateVectorOfEnumsVector(builder, data); }
   public static void StartVectorOfEnumsVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(1, numElems, 1); }
   public static Offset<MyGame.Example.Monster> EndMonster(FlatBufferBuilder builder) {
     int o = builder.EndTable();
