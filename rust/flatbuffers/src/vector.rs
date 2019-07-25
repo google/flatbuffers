@@ -19,7 +19,9 @@ use std::mem::size_of;
 use std::slice::from_raw_parts;
 use std::str::from_utf8_unchecked;
 
-use endian_scalar::{EndianScalar, read_scalar};
+#[cfg(target_endian = "little")]
+use endian_scalar::EndianScalar;
+use endian_scalar::{read_scalar, read_scalar_at};
 use follow::Follow;
 use primitives::*;
 
@@ -59,7 +61,7 @@ impl<'a, T: SafeSliceAccess + 'a> Vector<'a, T> {
         let loc = self.1;
         let sz = size_of::<T>();
         debug_assert!(sz > 0);
-        let len = read_scalar::<UOffsetT>(&buf[loc..loc + SIZE_UOFFSET]) as usize;
+        let len = read_scalar_at::<UOffsetT>(&buf, loc) as usize;
         let data_buf = &buf[loc + SIZE_UOFFSET..loc + SIZE_UOFFSET + len * sz];
         let ptr = data_buf.as_ptr() as *const T;
         let s: &'a [T] = unsafe { from_raw_parts(ptr, len) };
@@ -85,6 +87,7 @@ mod le_safe_slice_impls {
     impl super::SafeSliceAccess for f64 {}
 }
 
+#[cfg(target_endian = "little")]
 pub use self::le_safe_slice_impls::*;
 
 pub fn follow_cast_ref<'a, T: Sized + 'a>(buf: &'a [u8], loc: usize) -> &'a T {
@@ -97,17 +100,18 @@ pub fn follow_cast_ref<'a, T: Sized + 'a>(buf: &'a [u8], loc: usize) -> &'a T {
 impl<'a> Follow<'a> for &'a str {
     type Inner = &'a str;
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        let len = read_scalar::<UOffsetT>(&buf[loc..loc + SIZE_UOFFSET]) as usize;
+        let len = read_scalar_at::<UOffsetT>(&buf, loc) as usize;
         let slice = &buf[loc + SIZE_UOFFSET..loc + SIZE_UOFFSET + len];
         let s = unsafe { from_utf8_unchecked(slice) };
         s
     }
 }
 
+#[cfg(target_endian = "little")]
 fn follow_slice_helper<T>(buf: &[u8], loc: usize) -> &[T] {
     let sz = size_of::<T>();
     debug_assert!(sz > 0);
-    let len = read_scalar::<UOffsetT>(&buf[loc..loc + SIZE_UOFFSET]) as usize;
+    let len = read_scalar_at::<UOffsetT>(&buf, loc) as usize;
     let data_buf = &buf[loc + SIZE_UOFFSET..loc + SIZE_UOFFSET + len * sz];
     let ptr = data_buf.as_ptr() as *const T;
     let s: &[T] = unsafe { from_raw_parts(ptr, len) };
@@ -130,4 +134,3 @@ impl<'a, T: Follow<'a> + 'a> Follow<'a> for Vector<'a, T> {
         Vector::new(buf, loc)
     }
 }
-

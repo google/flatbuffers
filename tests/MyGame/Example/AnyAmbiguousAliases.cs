@@ -7,10 +7,10 @@ namespace MyGame.Example
 
 public enum AnyAmbiguousAliases : byte
 {
- NONE = 0,
- M1 = 1,
- M2 = 2,
- M3 = 3,
+  NONE = 0,
+  M1 = 1,
+  M2 = 2,
+  M3 = 3,
 };
 
 

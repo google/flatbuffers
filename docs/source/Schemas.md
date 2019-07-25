@@ -114,6 +114,27 @@ of same-size data where a `reinterpret_cast` would give you a desirable result,
 e.g. you could change a `uint` to an `int` if no values in current data use the
 high bit yet.
 
+### Arrays
+
+Arrays are a convenience short-hand for a fixed-length collection of elements.
+Arrays can be used to replace the following schema:
+
+    struct Vec3 {
+        x:float;
+        y:float;
+        z:float;
+    }
+
+with the following schema:
+
+    struct Vec3 {
+        v:[float:3];
+    }
+
+Both representations are binary equivalent.
+
+Arrays are currently only supported in a `struct`.
+
 ### (Default) Values
 
 Values are a sequence of digits. Values may be optionally followed by a decimal
@@ -324,8 +345,8 @@ Current understood attributes:
     Note: currently not guaranteed to have an effect when used with
     `--object-api`, since that may allocate objects at alignments less than
     what you specify with `force_align`.
--   `bit_flags` (on an enum): the values of this field indicate bits,
-    meaning that any value N specified in the schema will end up
+-   `bit_flags` (on an unsigned enum): the values of this field indicate bits,
+    meaning that any unsigned value N specified in the schema will end up
     representing 1<<N, or if you don't specify values at all, you'll get
     the sequence 1, 2, 4, 8, ...
 -   `nested_flatbuffer: "table_name"` (on a field): this indicates that the field
@@ -418,13 +439,18 @@ numerical literals:
     For example: `[0x123, +0x45, -0x67]` are equal to `[291, 69, -103]` decimals.
 -   The format of float-point numbers is fully compatible with C/C++ format.
     If a modern C++ compiler is used the parser accepts hexadecimal and special
-    float-point literals as well:
+    floating-point literals as well:
     `[-1.0, 2., .3e0, 3.e4, 0x21.34p-5, -inf, nan]`.
-    The exponent suffix of hexadecimal float-point number is mandatory.
 
-    Extended float-point support was tested with:
+    The following conventions for floating-point numbers are used:
+    - The exponent suffix of hexadecimal floating-point number is mandatory.
+    - Parsed `NaN` converted to unsigned IEEE-754 `quiet-NaN` value.
+
+    Extended floating-point support was tested with:
     - x64 Windows: `MSVC2015` and higher.
     - x64 Linux: `LLVM 6.0`, `GCC 4.9` and higher.
+
+    For details, see [Use in C++](@ref flatbuffers_guide_use_cpp) section.
 
 -   For compatibility with a JSON lint tool all numeric literals of scalar
     fields can be wrapped to quoted string:

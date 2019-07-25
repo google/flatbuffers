@@ -21,6 +21,7 @@ PY_VERSION = sys.version_info[:2]
 import ctypes
 from collections import defaultdict
 import math
+import random
 import timeit
 import unittest
 
@@ -41,7 +42,10 @@ import MyGame.Example.Test  # refers to generated code
 import MyGame.Example.Stat  # refers to generated code
 import MyGame.Example.Vec3  # refers to generated code
 import MyGame.MonsterExtra  # refers to generated code
-
+import MyGame.Example.ArrayTable  # refers to generated code
+import MyGame.Example.ArrayStruct  # refers to generated code
+import MyGame.Example.NestedStruct  # refers to generated code
+import MyGame.Example.TestEnum  # refers to generated code
 
 def assertRaises(test_case, fn, exception_class):
     ''' Backwards-compatible assertion for exceptions raised. '''
@@ -1415,13 +1419,13 @@ class TestAllCodePathsOfMonsterExtraSchema(unittest.TestCase):
         self.mon = MyGame.MonsterExtra.MonsterExtra.GetRootAsMonsterExtra(b.Bytes, b.Head())
 
     def test_default_nan_inf(self):
-        self.assertTrue(math.isnan(self.mon.TestfNan()))
-        self.assertEqual(self.mon.TestfPinf(), float("inf"))
-        self.assertEqual(self.mon.TestfNinf(), float("-inf"))
+        self.assertTrue(math.isnan(self.mon.F1()))
+        self.assertEqual(self.mon.F2(), float("inf"))
+        self.assertEqual(self.mon.F3(), float("-inf"))
 
-        self.assertTrue(math.isnan(self.mon.TestdNan()))
-        self.assertEqual(self.mon.TestdPinf(), float("inf"))
-        self.assertEqual(self.mon.TestdNinf(), float("-inf"))
+        self.assertTrue(math.isnan(self.mon.D1()))
+        self.assertEqual(self.mon.D2(), float("inf"))
+        self.assertEqual(self.mon.D3(), float("-inf"))
 
 
 class TestVtableDeduplication(unittest.TestCase):
@@ -1550,6 +1554,55 @@ class TestExceptions(unittest.TestCase):
                      flatbuffers.builder.BuilderNotFinishedError)
 
 
+class TestFixedLengthArrays(unittest.TestCase):
+    def test_fixed_length_array(self):
+        builder = flatbuffers.Builder(0)
+
+        a = 0.5
+        b = range(0, 15)
+        c = 1
+        d_a = [[1, 2], [3, 4]]
+        d_b = [MyGame.Example.TestEnum.TestEnum.B, \
+                MyGame.Example.TestEnum.TestEnum.C]
+        d_c = [[MyGame.Example.TestEnum.TestEnum.A, \
+                MyGame.Example.TestEnum.TestEnum.B], \
+                [MyGame.Example.TestEnum.TestEnum.C, \
+                 MyGame.Example.TestEnum.TestEnum.B]]
+
+        arrayOffset = MyGame.Example.ArrayStruct.CreateArrayStruct(builder, \
+            a, b, c, d_a, d_b, d_c)
+
+        # Create a table with the ArrayStruct.
+        MyGame.Example.ArrayTable.ArrayTableStart(builder)
+        MyGame.Example.ArrayTable.ArrayTableAddA(builder, arrayOffset)
+        tableOffset = MyGame.Example.ArrayTable.ArrayTableEnd(builder)
+
+        builder.Finish(tableOffset)
+
+        buf = builder.Output()
+
+        table = MyGame.Example.ArrayTable.ArrayTable.GetRootAsArrayTable(buf, 0)
+
+        # Verify structure.
+        nested = MyGame.Example.NestedStruct.NestedStruct()
+        self.assertEqual(table.A().A(), 0.5)
+        self.assertEqual(table.A().B(), \
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14])
+        self.assertEqual(table.A().C(), 1)
+        self.assertEqual(table.A().D(nested, 0).A(), [1, 2])
+        self.assertEqual(table.A().D(nested, 1).A(), [3, 4])
+        self.assertEqual(table.A().D(nested, 0).B(), \
+            MyGame.Example.TestEnum.TestEnum.B)
+        self.assertEqual(table.A().D(nested, 1).B(), \
+            MyGame.Example.TestEnum.TestEnum.C)
+        self.assertEqual(table.A().D(nested, 0).C(), \
+            [MyGame.Example.TestEnum.TestEnum.A, \
+             MyGame.Example.TestEnum.TestEnum.B])
+        self.assertEqual(table.A().D(nested, 1).C(), \
+            [MyGame.Example.TestEnum.TestEnum.C, \
+             MyGame.Example.TestEnum.TestEnum.B])
+
+
 def CheckAgainstGoldDataGo():
     try:
         gen_buf, gen_off = make_monster_from_generated_code()
@@ -1624,26 +1677,40 @@ def BenchmarkVtableDeduplication(count):
     When count is large (as in long benchmarks), memory usage may be high.
     '''
 
-    prePop = 10
-    builder = flatbuffers.Builder(0)
+    for prePop in (1, 10, 100, 1000):
+        builder = flatbuffers.Builder(0)
+        n = 1 + int(math.log(prePop, 1.5))
 
-    # pre-populate some vtables:
-    for i in compat_range(prePop):
-        builder.StartObject(i)
-        for j in compat_range(i):
-            builder.PrependInt16Slot(j, j, 0)
-        builder.EndObject()
+        # generate some layouts:
+        layouts = set()
+        r = list(compat_range(n))
+        while len(layouts) < prePop:
+            layouts.add(tuple(sorted(random.sample(r, int(max(1, n / 2))))))
 
-    # benchmark deduplication of a new vtable:
-    def f():
-        builder.StartObject(prePop)
-        for j in compat_range(prePop):
-            builder.PrependInt16Slot(j, j, 0)
-        builder.EndObject()
+        layouts = list(layouts)
 
-    duration = timeit.timeit(stmt=f, number=count)
-    rate = float(count) / duration
-    print(('vtable deduplication rate: %.2f/sec' % rate))
+        # pre-populate vtables:
+        for layout in layouts:
+            builder.StartObject(n)
+            for j in layout:
+                builder.PrependInt16Slot(j, j, 0)
+            builder.EndObject()
+
+        # benchmark deduplication of a new vtable:
+        def f():
+            layout = random.choice(layouts)
+            builder.StartObject(n)
+            for j in layout:
+                builder.PrependInt16Slot(j, j, 0)
+            builder.EndObject()
+
+        duration = timeit.timeit(stmt=f, number=count)
+        rate = float(count) / duration
+        print(('vtable deduplication rate (n=%d, vtables=%d): %.2f sec' % (
+            prePop,
+            len(builder.vtables),
+            rate))
+        )
 
 
 def BenchmarkCheckReadBuffer(count, buf, off):

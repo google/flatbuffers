@@ -3,7 +3,7 @@ Using the schema compiler    {#flatbuffers_guide_using_schema_compiler}
 
 Usage:
 
-    flatc [ GENERATOR OPTIONS ] [ -o PATH ] [ -I PATH ] [ -S ] FILES...
+    flatc [ GENERATOR OPTIONS ] [ -o PATH ] [ -I PATH ] FILES...
           [ -- FILES...]
 
 The files are read and parsed in order, and can contain either schemas
@@ -22,6 +22,8 @@ For any schema input files, one or more generators can be specified:
     `filename_generated.h`).
 
 -   `--java`, `-j` : Generate Java code.
+
+-   `--kotlin`, `-k` : Generate Kotlin code.
 
 -   `--csharp`, `-n` : Generate C# code.
 
@@ -75,7 +77,7 @@ Additional options:
 -   `--allow-non-utf8` : Pass non-UTF-8 input through parser and emit nonstandard
     \x escapes in JSON. (Default is to raise parse error on non-UTF-8 input.)
 
--  `--natural-utf8` : Output strings with UTF-8 as human-readable strings. 
+-  `--natural-utf8` : Output strings with UTF-8 as human-readable strings.
      By default, UTF-8 characters are printed as \uXXXX escapes."
 
 -   `--defaults-json` : Output fields whose value is equal to the default value
@@ -117,10 +119,18 @@ Additional options:
     output (by default the case for C++ and JS), all code will end up in
     this one file.
 
+-   `--cpp-include` : Adds an #include in generated file
+
 -   `--cpp-ptr-type T` : Set object API pointer type (default std::unique_ptr)
 
 -   `--cpp-str-type T` : Set object API string type (default std::string)
--   T::c_str() and T::length() must be supported.
+    T::c_str(), T::length() and T::empty() must be supported.
+    The custom type also needs to be constructible from std::string (see the
+	--cpp-str-flex-ctor option to change this behavior).
+
+-   `--cpp-str-flex-ctor` : Don't construct custom string types by passing
+    std::string from Flatbuffers, but (char* + length). This allows efficient
+	construction of custom string types, including zero-copy construction.
 
 -   `--object-prefix` : Customise class prefix for C++ object-based API.
 
@@ -168,7 +178,7 @@ Additional options:
     an evolution of. Gives errors if not. Useful to check if schema
     modifications don't break schema evolution rules.
 
--   `--conform-includes PATH` : Include path for the schema given with 
+-   `--conform-includes PATH` : Include path for the schema given with
     `--conform PATH`.
 
 -   `--include-prefix PATH` : Prefix this path to any generated include

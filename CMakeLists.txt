@@ -23,6 +23,12 @@ option(FLATBUFFERS_LIBCXX_WITH_CLANG "Force libc++ when using Clang" ON)
 option(FLATBUFFERS_CODE_SANITIZE
       "Add '-fsanitize' flags to 'flattests' and 'flatc' targets."
       OFF)
+option(FLATBUFFERS_PACKAGE_REDHAT
+       "Build an rpm using the 'package' target."
+       OFF)
+option(FLATBUFFERS_PACKAGE_DEBIAN
+       "Build an deb using the 'package' target."
+       OFF)
 
 if(NOT FLATBUFFERS_BUILD_FLATC AND FLATBUFFERS_BUILD_TESTS)
     message(WARNING
@@ -36,12 +42,18 @@ if(DEFINED FLATBUFFERS_MAX_PARSING_DEPTH)
   message(STATUS "FLATBUFFERS_MAX_PARSING_DEPTH: ${FLATBUFFERS_MAX_PARSING_DEPTH}")
 endif()
 
-# Auto-detect locale-narrow 'strtod_l' function.
+# Auto-detect locale-narrow 'strtod_l' and  'strtoull_l' functions.
 if(NOT DEFINED FLATBUFFERS_LOCALE_INDEPENDENT)
+  set(FLATBUFFERS_LOCALE_INDEPENDENT 0)
   if(MSVC)
-    check_cxx_symbol_exists(_strtof_l stdlib.h FLATBUFFERS_LOCALE_INDEPENDENT)
+    check_cxx_symbol_exists(_strtof_l stdlib.h FLATBUFFERS_HAS_STRTOF_L)
+    check_cxx_symbol_exists(_strtoui64_l stdlib.h FLATBUFFERS_HAS_STRTOULL_L)
   else()
-    check_cxx_symbol_exists(strtof_l stdlib.h FLATBUFFERS_LOCALE_INDEPENDENT)
+    check_cxx_symbol_exists(strtof_l stdlib.h FLATBUFFERS_HAS_STRTOF_L)
+    check_cxx_symbol_exists(strtoull_l stdlib.h FLATBUFFERS_HAS_STRTOULL_L)
+  endif()
+  if(FLATBUFFERS_HAS_STRTOF_L AND FLATBUFFERS_HAS_STRTOULL_L)
+    set(FLATBUFFERS_LOCALE_INDEPENDENT 1)
   endif()
 endif()
 add_definitions(-DFLATBUFFERS_LOCALE_INDEPENDENT=$<BOOL:${FLATBUFFERS_LOCALE_INDEPENDENT}>)
@@ -71,6 +83,7 @@ set(FlatBuffers_Compiler_SRCS
   src/idl_gen_cpp.cpp
   src/idl_gen_dart.cpp
   src/idl_gen_general.cpp
+  src/idl_gen_kotlin.cpp
   src/idl_gen_go.cpp
   src/idl_gen_js_ts.cpp
   src/idl_gen_php.cpp
@@ -107,6 +120,8 @@ set(FlatBuffers_Tests_SRCS
   tests/test_builder.cpp
   # file generate by running compiler on tests/monster_test.fbs
   ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_test_generated.h
+  # file generate by running compiler on tests/arrays_test.fbs
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/arrays_test_generated.h
 )
 
 set(FlatBuffers_Sample_Binary_SRCS
@@ -134,6 +149,8 @@ set(FlatBuffers_Sample_BFBS_SRCS
 set(FlatBuffers_GRPCTest_SRCS
   include/flatbuffers/flatbuffers.h
   include/flatbuffers/grpc.h
+  include/flatbuffers/util.h
+  src/util.cpp
   tests/monster_test.grpc.fb.h
   tests/test_assert.h
   tests/test_builder.h
@@ -187,7 +204,7 @@ elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
       "${CMAKE_CXX_FLAGS} -std=c++0x -Wall -pedantic -Werror -Wextra -Wno-unused-parameter")
   set(FLATBUFFERS_PRIVATE_CXX_FLAGS "-Wold-style-cast")
   if(NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 3.8)
-    list(APPEND FLATBUFFERS_PRIVATE_CXX_FLAGS "-Wimplicit-fallthrough" "-Werror=unused-private-field") # enable warning
+    list(APPEND FLATBUFFERS_PRIVATE_CXX_FLAGS "-Wimplicit-fallthrough" "-Wextra-semi" "-Werror=unused-private-field") # enable warning
   endif()
   if(FLATBUFFERS_LIBCXX_WITH_CLANG)
     if(NOT "${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
@@ -283,13 +300,13 @@ if(FLATBUFFERS_BUILD_SHAREDLIB)
   # - minor updated when there are additions in API/ABI
   # - major (ABI number) updated when there are changes in ABI (or removals)
   set(FlatBuffers_Library_SONAME_MAJOR "1")
-  set(FlatBuffers_Library_SONAME_FULL "${FlatBuffers_Library_SONAME_MAJOR}.10.0")
+  set(FlatBuffers_Library_SONAME_FULL "${FlatBuffers_Library_SONAME_MAJOR}.11.0")
   set_target_properties(flatbuffers_shared PROPERTIES OUTPUT_NAME flatbuffers
                         SOVERSION "${FlatBuffers_Library_SONAME_MAJOR}"
                         VERSION "${FlatBuffers_Library_SONAME_FULL}")
 endif()
 
-function(compile_flatbuffers_schema_to_cpp SRC_FBS)
+function(compile_flatbuffers_schema_to_cpp_opt SRC_FBS OPT)
   get_filename_component(SRC_FBS_DIR ${SRC_FBS} PATH)
   string(REGEX REPLACE "\\.fbs$" "_generated.h" GEN_HEADER ${SRC_FBS})
   add_custom_command(
@@ -297,10 +314,14 @@ function(compile_flatbuffers_schema_to_cpp SRC_FBS)
     COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}" -c --no-includes --gen-mutable
             --gen-object-api --gen-compare -o "${SRC_FBS_DIR}"
             --cpp-ptr-type flatbuffers::unique_ptr # Used to test with C++98 STLs
-            --reflect-names
+            --reflect-names ${OPT}
             -I "${CMAKE_CURRENT_SOURCE_DIR}/tests/include_test"
             "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
     DEPENDS flatc)
+endfunction()
+
+function(compile_flatbuffers_schema_to_cpp SRC_FBS)
+    compile_flatbuffers_schema_to_cpp_opt(${SRC_FBS} "")
 endfunction()
 
 function(compile_flatbuffers_schema_to_binary SRC_FBS)
@@ -315,6 +336,7 @@ endfunction()
 
 if(FLATBUFFERS_BUILD_TESTS)
   compile_flatbuffers_schema_to_cpp(tests/monster_test.fbs)
+  compile_flatbuffers_schema_to_cpp_opt(tests/arrays_test.fbs --scoped-enums)
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/tests)
   add_executable(flattests ${FlatBuffers_Tests_SRCS})
   set_property(TARGET flattests
@@ -393,7 +415,6 @@ if(FLATBUFFERS_INSTALL)
     install(
       TARGETS flatc EXPORT FlatcTargets
       RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-      CONFIGURATIONS Release
     )
 
     install(
@@ -401,7 +422,6 @@ if(FLATBUFFERS_INSTALL)
       FILE FlatcTargets.cmake
       NAMESPACE flatbuffers::
       DESTINATION ${FB_CMAKE_DIR}
-      CONFIGURATIONS Release
     )
   endif()
 
@@ -445,6 +465,13 @@ endif()
 
 include(CMake/BuildFlatBuffers.cmake)
 
-if(FLATBUFFERS_PACKAGE_DEBIAN)
-    include(CMake/PackageDebian.cmake)
+if(UNIX)
+    # Use of CPack only supported on Linux systems.
+    if(FLATBUFFERS_PACKAGE_DEBIAN)
+        include(CMake/PackageDebian.cmake)
+    endif()
+    if (FLATBUFFERS_PACKAGE_REDHAT)
+        include(CMake/PackageRedhat.cmake)
+    endif()
+    include(CPack)
 endif()

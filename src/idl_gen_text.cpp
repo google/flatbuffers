@@ -51,10 +51,10 @@ bool Print(T val, Type type, int /*indent*/, Type * /*union_type*/,
            const IDLOptions &opts, std::string *_text) {
   std::string &text = *_text;
   if (type.enum_def && opts.output_enum_identifiers) {
-    auto enum_val = type.enum_def->ReverseLookup(static_cast<int64_t>(val));
-    if (enum_val) {
+    auto ev = type.enum_def->ReverseLookup(static_cast<int64_t>(val));
+    if (ev) {
       text += "\"";
-      text += enum_val->name;
+      text += ev->name;
       text += "\"";
       return true;
     }
@@ -69,26 +69,27 @@ bool Print(T val, Type type, int /*indent*/, Type * /*union_type*/,
   return true;
 }
 
-// Print a vector a sequence of JSON values, comma separated, wrapped in "[]".
-template<typename T>
-bool PrintVector(const Vector<T> &v, Type type, int indent,
-                 const IDLOptions &opts, std::string *_text) {
+// Print a vector or an array of JSON values, comma seperated, wrapped in "[]".
+template<typename T, typename Container>
+bool PrintContainer(const Container &c, size_t size, Type type, int indent,
+                    const IDLOptions &opts, std::string *_text) {
   std::string &text = *_text;
   text += "[";
   text += NewLine(opts);
-  for (uoffset_t i = 0; i < v.size(); i++) {
+  for (uoffset_t i = 0; i < size; i++) {
     if (i) {
       if (!opts.protobuf_ascii_alike) text += ",";
       text += NewLine(opts);
     }
     text.append(indent + Indent(opts), ' ');
     if (IsStruct(type)) {
-      if (!Print(v.GetStructFromOffset(i * type.struct_def->bytesize), type,
-                 indent + Indent(opts), nullptr, opts, _text)) {
+      if (!Print(reinterpret_cast<const void *>(c.Data() +
+                                                i * type.struct_def->bytesize),
+                 type, indent + Indent(opts), nullptr, opts, _text)) {
         return false;
       }
     } else {
-      if (!Print(v[i], type, indent + Indent(opts), nullptr, opts, _text)) {
+      if (!Print(c[i], type, indent + Indent(opts), nullptr, opts, _text)) {
         return false;
       }
     }
@@ -97,6 +98,20 @@ bool PrintVector(const Vector<T> &v, Type type, int indent,
   text.append(indent, ' ');
   text += "]";
   return true;
+}
+
+template<typename T>
+bool PrintVector(const Vector<T> &v, Type type, int indent,
+                 const IDLOptions &opts, std::string *_text) {
+  return PrintContainer<T, Vector<T>>(v, v.size(), type, indent, opts, _text);
+}
+
+// Print an array a sequence of JSON values, comma separated, wrapped in "[]".
+template<typename T>
+bool PrintArray(const Array<T, 0xFFFF> &a, size_t size, Type type, int indent,
+                const IDLOptions &opts, std::string *_text) {
+  return PrintContainer<T, Array<T, 0xFFFF>>(a, size, type, indent, opts,
+                                             _text);
 }
 
 // Specialization of Print above for pointer types.
@@ -125,25 +140,49 @@ bool Print<const void *>(const void *val, Type type, int indent,
       }
       break;
     }
-    case BASE_TYPE_VECTOR:
-      type = type.VectorType();
+    case BASE_TYPE_VECTOR: {
+      const auto vec_type = type.VectorType();
       // Call PrintVector above specifically for each element type:
-      switch (type.base_type) {
-        // clang-format off
+      // clang-format off
+      switch (vec_type.base_type) {
         #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-          CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
+          CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
           case BASE_TYPE_ ## ENUM: \
             if (!PrintVector<CTYPE>( \
                   *reinterpret_cast<const Vector<CTYPE> *>(val), \
-                  type, indent, opts, _text)) { \
+                  vec_type, indent, opts, _text)) { \
               return false; \
             } \
             break;
           FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
         #undef FLATBUFFERS_TD
-        // clang-format on
       }
+      // clang-format on
       break;
+    }
+    case BASE_TYPE_ARRAY: {
+      const auto vec_type = type.VectorType();
+      // Call PrintArray above specifically for each element type:
+      // clang-format off
+      switch (vec_type.base_type) {
+        #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
+        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
+        case BASE_TYPE_ ## ENUM: \
+          if (!PrintArray<CTYPE>( \
+              *reinterpret_cast<const Array<CTYPE, 0xFFFF> *>(val), \
+              type.fixed_length, \
+              vec_type, indent, opts, _text)) { \
+          return false; \
+          } \
+          break;
+        FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
+        FLATBUFFERS_GEN_TYPES_POINTER(FLATBUFFERS_TD)
+        #undef FLATBUFFERS_TD
+        case BASE_TYPE_ARRAY: FLATBUFFERS_ASSERT(0);
+      }
+      // clang-format on
+      break;
+    }
     default: FLATBUFFERS_ASSERT(0);
   }
   return true;
@@ -177,8 +216,8 @@ static bool GenFieldOffset(const FieldDef &fd, const Table *table, bool fixed,
                            std::string *_text) {
   const void *val = nullptr;
   if (fixed) {
-    // The only non-scalar fields in structs are structs.
-    FLATBUFFERS_ASSERT(IsStruct(fd.value.type));
+    // The only non-scalar fields in structs are structs or arrays.
+    FLATBUFFERS_ASSERT(IsStruct(fd.value.type) || IsArray(fd.value.type));
     val = reinterpret_cast<const Struct *>(table)->GetStruct<const void *>(
         fd.value.offset);
   } else if (fd.flexbuffer) {
@@ -227,7 +266,7 @@ static bool GenStruct(const StructDef &struct_def, const Table *table,
       switch (fd.value.type.base_type) {
           // clang-format off
           #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
+            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
             case BASE_TYPE_ ## ENUM: \
               if (!GenField<CTYPE>(fd, table, struct_def.fixed, \
                                    opts, indent + Indent(opts), _text)) { \
@@ -238,9 +277,10 @@ static bool GenStruct(const StructDef &struct_def, const Table *table,
         #undef FLATBUFFERS_TD
         // Generate drop-thru case statements for all pointer types:
         #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-          CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
+          CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
           case BASE_TYPE_ ## ENUM:
           FLATBUFFERS_GEN_TYPES_POINTER(FLATBUFFERS_TD)
+          FLATBUFFERS_GEN_TYPE_ARRAY(FLATBUFFERS_TD)
         #undef FLATBUFFERS_TD
             if (!GenFieldOffset(fd, table, struct_def.fixed, indent + Indent(opts),
                                 union_type, opts, _text)) {
@@ -251,7 +291,7 @@ static bool GenStruct(const StructDef &struct_def, const Table *table,
       }
       if (fd.value.type.base_type == BASE_TYPE_UTYPE) {
         auto enum_val = fd.value.type.enum_def->ReverseLookup(
-            table->GetField<uint8_t>(fd.value.offset, 0));
+            table->GetField<uint8_t>(fd.value.offset, 0), true);
         union_type = enum_val ? &enum_val->union_type : nullptr;
       }
     }
@@ -259,6 +299,23 @@ static bool GenStruct(const StructDef &struct_def, const Table *table,
   text += NewLine(opts);
   text.append(indent, ' ');
   text += "}";
+  return true;
+}
+
+// Generate a text representation of a flatbuffer in JSON format.
+bool GenerateTextFromTable(const Parser &parser, const void *table,
+                           const std::string &table_name, std::string *_text) {
+  auto struct_def = parser.LookupStruct(table_name);
+  if (struct_def == nullptr) {
+    return false;
+  }
+  auto &text = *_text;
+  text.reserve(1024);  // Reduce amount of inevitable reallocs.
+  auto root = static_cast<const Table *>(table);
+  if (!GenStruct(*struct_def, root, 0, parser.opts, &text)) {
+    return false;
+  }
+  text += NewLine(parser.opts);
   return true;
 }
 

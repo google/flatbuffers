@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-include from "../lobster/"
-include "monster_generated.lobster"
+import from "../lobster/"
+import monster_generated
 
 // Example of how to use FlatBuffers to create and read binary buffers.
 
@@ -24,12 +24,13 @@ let b = flatbuffers_builder {}
 let weapon_names = [ "Sword", "Axe" ]
 let weapon_damages = [ 3, 5 ]
 
-weapon_offsets := map(weapon_names) name, i:
+let weapon_offsets = map(weapon_names) name, i:
     let ns = b.CreateString(name)
-    b.MyGame_Sample_WeaponStart()
-    b.MyGame_Sample_WeaponAddName(ns)
-    b.MyGame_Sample_WeaponAddDamage(weapon_damages[i])
-    b.MyGame_Sample_WeaponEnd()
+    MyGame_Sample_WeaponBuilder { b }
+        .start()
+        .add_name(ns)
+        .add_damage(weapon_damages[i])
+        .end()
 
 let weapons = b.MyGame_Sample_MonsterCreateWeaponsVector(weapon_offsets)
 
@@ -40,16 +41,17 @@ let name = b.CreateString("Orc")
 let inv = b.MyGame_Sample_MonsterCreateInventoryVector(map(10): _)
 
 // Now pack it all together in our root monster object.
-b.MyGame_Sample_MonsterStart()
-b.MyGame_Sample_MonsterAddPos(b.MyGame_Sample_CreateVec3(1.0, 2.0, 3.0))
-b.MyGame_Sample_MonsterAddHp(300)
-b.MyGame_Sample_MonsterAddName(name)
-b.MyGame_Sample_MonsterAddInventory(inv)
-b.MyGame_Sample_MonsterAddColor(MyGame_Sample_Color_Red)
-b.MyGame_Sample_MonsterAddWeapons(weapons)
-b.MyGame_Sample_MonsterAddEquippedType(MyGame_Sample_Equipment_Weapon)
-b.MyGame_Sample_MonsterAddEquipped(weapon_offsets[1])
-let orc = b.MyGame_Sample_MonsterEnd()
+let orc = MyGame_Sample_MonsterBuilder { b }
+    .start()
+    .add_pos(b.MyGame_Sample_CreateVec3(1.0, 2.0, 3.0))
+    .add_hp(300)
+    .add_name(name)
+    .add_inventory(inv)
+    .add_color(MyGame_Sample_Color_Red)
+    .add_weapons(weapons)
+    .add_equipped_type(MyGame_Sample_Equipment_Weapon)
+    .add_equipped(weapon_offsets[1])
+    .end()
 
 // Finish the buffer!
 b.Finish(orc)

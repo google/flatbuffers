@@ -29,6 +29,8 @@
 namespace flatbuffers {
 
 void CodeWriter::operator+=(std::string text) {
+  if (!ignore_ident_ && !text.empty()) AppendIdent(stream_);
+
   while (true) {
     auto begin = text.find("{{");
     if (begin == std::string::npos) { break; }
@@ -58,9 +60,18 @@ void CodeWriter::operator+=(std::string text) {
   }
   if (!text.empty() && string_back(text) == '\\') {
     text.pop_back();
+    ignore_ident_ = true;
     stream_ << text;
   } else {
+    ignore_ident_ = false;
     stream_ << text << std::endl;
+  }
+}
+
+void CodeWriter::AppendIdent(std::stringstream &stream) {
+  int lvl = cur_ident_lvl_;
+  while (lvl--) {
+    stream.write(pad_.c_str(), static_cast<std::streamsize>(pad_.size()));
   }
 }
 
@@ -72,13 +83,13 @@ const char *BaseGenerator::FlatBuffersGeneratedWarning() {
 std::string BaseGenerator::NamespaceDir(const Parser &parser,
                                         const std::string &path,
                                         const Namespace &ns) {
-  EnsureDirExists(path.c_str());
+  EnsureDirExists(path);
   if (parser.opts.one_file) return path;
   std::string namespace_dir = path;  // Either empty or ends in separator.
   auto &namespaces = ns.components;
   for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
     namespace_dir += *it + kPathSeparator;
-    EnsureDirExists(namespace_dir.c_str());
+    EnsureDirExists(namespace_dir);
   }
   return namespace_dir;
 }
@@ -105,11 +116,9 @@ std::string BaseGenerator::LastNamespacePart(const Namespace &ns) {
     return std::string("");
 }
 
-// Ensure that a type is prefixed with its namespace whenever it is used
-// outside of its namespace.
+// Ensure that a type is prefixed with its namespace.
 std::string BaseGenerator::WrapInNameSpace(const Namespace *ns,
                                            const std::string &name) const {
-  if (CurrentNameSpace() == ns) return name;
   std::string qualified_name = qualifying_start_;
   for (auto it = ns->components.begin(); it != ns->components.end(); ++it)
     qualified_name += *it + qualifying_separator_;

@@ -42,20 +42,24 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
+#if ENABLE_SPAN_T
+using System.Buffers.Binary;
+#endif
+
 #if ENABLE_SPAN_T && !UNSAFE_BYTEBUFFER
 #error ENABLE_SPAN_T requires UNSAFE_BYTEBUFFER to also be defined
 #endif
 
 namespace FlatBuffers
 {
-    public abstract class ByteBufferAllocator : IDisposable
+    public abstract class ByteBufferAllocator
     {
-#if UNSAFE_BYTEBUFFER
-        public unsafe byte* Buffer
-        {
-            get;
-            protected set;
-        }
+#if ENABLE_SPAN_T
+        public abstract Span<byte> Span { get; }
+        public abstract ReadOnlySpan<byte> ReadOnlySpan { get; }
+        public abstract Memory<byte> Memory { get; }
+        public abstract ReadOnlyMemory<byte> ReadOnlyMemory { get; }
+
 #else
         public byte[] Buffer
         {
@@ -70,23 +74,17 @@ namespace FlatBuffers
             protected set;
         }
 
-        public abstract void Dispose();
-
         public abstract void GrowFront(int newSize);
-
-#if !ENABLE_SPAN_T
-        public abstract byte[] ByteArray { get; }
-#endif
     }
 
-    public class ByteArrayAllocator : ByteBufferAllocator
+    public sealed class ByteArrayAllocator : ByteBufferAllocator
     {
         private byte[] _buffer;
 
         public ByteArrayAllocator(byte[] buffer)
         {
             _buffer = buffer;
-            InitPointer();
+            InitBuffer();
         }
 
         public override void GrowFront(int newSize)
@@ -101,63 +99,29 @@ namespace FlatBuffers
             byte[] newBuffer = new byte[newSize];
             System.Buffer.BlockCopy(_buffer, 0, newBuffer, newSize - Length, Length);
             _buffer = newBuffer;
-            InitPointer();
+            InitBuffer();
         }
 
-        public override void Dispose()
-        {
-            GC.SuppressFinalize(this);
-#if UNSAFE_BYTEBUFFER
-            if (_handle.IsAllocated)
-            {
-                _handle.Free();
-            }
-#endif
-        }
-
-#if !ENABLE_SPAN_T
-        public override byte[] ByteArray
-        {
-            get { return _buffer; }
-        }
+#if ENABLE_SPAN_T
+        public override Span<byte> Span => _buffer;
+        public override ReadOnlySpan<byte> ReadOnlySpan => _buffer;
+        public override Memory<byte> Memory => _buffer;
+        public override ReadOnlyMemory<byte> ReadOnlyMemory => _buffer;
 #endif
 
-#if UNSAFE_BYTEBUFFER
-        private GCHandle _handle;
-
-        ~ByteArrayAllocator()
-        {
-            if (_handle.IsAllocated)
-            {
-                _handle.Free();
-            }
-        }
-#endif
-
-        private void InitPointer()
+        private void InitBuffer()
         {
             Length = _buffer.Length;
-#if UNSAFE_BYTEBUFFER
-            if (_handle.IsAllocated)
-            {
-                _handle.Free();
-            }
-            _handle = GCHandle.Alloc(_buffer, GCHandleType.Pinned);
-            unsafe
-            {
-                Buffer = (byte*)_handle.AddrOfPinnedObject().ToPointer();
-            }
-#else
+#if !ENABLE_SPAN_T
             Buffer = _buffer;
 #endif
         }
     }
 
-
     /// <summary>
     /// Class to mimic Java's ByteBuffer which is used heavily in Flatbuffers.
     /// </summary>
-    public class ByteBuffer : IDisposable
+    public class ByteBuffer
     {
         private ByteBufferAllocator _buffer;
         private int _pos;  // Must track start of the buffer.
@@ -178,15 +142,8 @@ namespace FlatBuffers
             _pos = pos;
         }
 
-        public void Dispose()
+        public int Position
         {
-            if (_buffer != null)
-            {
-                _buffer.Dispose();
-            }
-        }
-
-        public int Position {
             get { return _pos; }
             set { _pos = value; }
         }
@@ -278,16 +235,10 @@ namespace FlatBuffers
         // the buffer position and length.
 #if ENABLE_SPAN_T
         public T[] ToArray<T>(int pos, int len)
-            where T: struct
+            where T : struct
         {
-            unsafe
-            {
-                AssertOffsetAndLength(pos, len);
-                T[] arr = new T[len];
-                var typed = MemoryMarshal.Cast<byte, T>(new Span<byte>(_buffer.Buffer + pos, _buffer.Length));
-                typed.Slice(0, arr.Length).CopyTo(arr);
-                return arr;
-            }
+            AssertOffsetAndLength(pos, len);
+            return MemoryMarshal.Cast<byte, T>(_buffer.ReadOnlySpan.Slice(pos)).Slice(0, len).ToArray();
         }
 #else
         public T[] ToArray<T>(int pos, int len)
@@ -295,7 +246,7 @@ namespace FlatBuffers
         {
             AssertOffsetAndLength(pos, len);
             T[] arr = new T[len];
-            Buffer.BlockCopy(_buffer.ByteArray, pos, arr, 0, ArraySize(arr));
+            Buffer.BlockCopy(_buffer.Buffer, pos, arr, 0, ArraySize(arr));
             return arr;
         }
 #endif
@@ -310,23 +261,30 @@ namespace FlatBuffers
             return ToArray<byte>(0, Length);
         }
 
-
 #if ENABLE_SPAN_T
-        public unsafe Span<byte> ToSpan(int pos, int len)
+        public ReadOnlyMemory<byte> ToReadOnlyMemory(int pos, int len)
         {
-            return new Span<byte>(_buffer.Buffer, _buffer.Length).Slice(pos, len);
+            return _buffer.ReadOnlyMemory.Slice(pos, len);
+        }
+
+        public Memory<byte> ToMemory(int pos, int len)
+        {
+            return _buffer.Memory.Slice(pos, len);
+        }
+
+        public Span<byte> ToSpan(int pos, int len)
+        {
+            return _buffer.Span.Slice(pos, len);
         }
 #else
         public ArraySegment<byte> ToArraySegment(int pos, int len)
         {
-            return new ArraySegment<byte>(_buffer.ByteArray, pos, len);
+            return new ArraySegment<byte>(_buffer.Buffer, pos, len);
         }
-#endif
 
-#if !ENABLE_SPAN_T
         public MemoryStream ToMemoryStream(int pos, int len)
         {
-            return new MemoryStream(_buffer.ByteArray, pos, len);
+            return new MemoryStream(_buffer.Buffer, pos, len);
         }
 #endif
 
@@ -391,15 +349,15 @@ namespace FlatBuffers
             {
                 for (int i = 0; i < count; i++)
                 {
-                  r |= (ulong)_buffer.Buffer[offset + i] << i * 8;
+                    r |= (ulong)_buffer.Buffer[offset + i] << i * 8;
                 }
             }
             else
             {
-              for (int i = 0; i < count; i++)
-              {
-                r |= (ulong)_buffer.Buffer[offset + count - 1 - i] << i * 8;
-              }
+                for (int i = 0; i < count; i++)
+                {
+                    r |= (ulong)_buffer.Buffer[offset + count - 1 - i] << i * 8;
+                }
             }
             return r;
         }
@@ -414,31 +372,26 @@ namespace FlatBuffers
 #endif
         }
 
-#if UNSAFE_BYTEBUFFER
+#if ENABLE_SPAN_T
 
-        public unsafe void PutSbyte(int offset, sbyte value)
+        public void PutSbyte(int offset, sbyte value)
         {
             AssertOffsetAndLength(offset, sizeof(sbyte));
-            _buffer.Buffer[offset] = (byte)value;
+            _buffer.Span[offset] = (byte)value;
         }
 
-        public unsafe void PutByte(int offset, byte value)
+        public void PutByte(int offset, byte value)
         {
             AssertOffsetAndLength(offset, sizeof(byte));
-            _buffer.Buffer[offset] = value;
+            _buffer.Span[offset] = value;
         }
 
-        public unsafe void PutByte(int offset, byte value, int count)
+        public void PutByte(int offset, byte value, int count)
         {
             AssertOffsetAndLength(offset, sizeof(byte) * count);
-            for (var i = 0; i < count; ++i)
-                _buffer.Buffer[offset + i] = value;
-        }
-
-        // this method exists in order to conform with Java ByteBuffer standards
-        public void Put(int offset, byte value)
-        {
-            PutByte(offset, value);
+            Span<byte> span = _buffer.Span.Slice(offset, count);
+            for (var i = 0; i < span.Length; ++i)
+                span[i] = value;
         }
 #else
         public void PutSbyte(int offset, sbyte value)
@@ -459,13 +412,13 @@ namespace FlatBuffers
             for (var i = 0; i < count; ++i)
                 _buffer.Buffer[offset + i] = value;
         }
+#endif
 
         // this method exists in order to conform with Java ByteBuffer standards
         public void Put(int offset, byte value)
         {
             PutByte(offset, value);
         }
-#endif
 
 #if ENABLE_SPAN_T
         public unsafe void PutStringUTF8(int offset, string value)
@@ -473,7 +426,10 @@ namespace FlatBuffers
             AssertOffsetAndLength(offset, value.Length);
             fixed (char* s = value)
             {
-                Encoding.UTF8.GetBytes(s, value.Length, _buffer.Buffer + offset, Length - offset);
+                fixed (byte* buffer = &MemoryMarshal.GetReference(_buffer.Span))
+                {
+                    Encoding.UTF8.GetBytes(s, value.Length, buffer + offset, Length - offset);
+                }
             }
         }
 #else
@@ -481,7 +437,7 @@ namespace FlatBuffers
         {
             AssertOffsetAndLength(offset, value.Length);
             Encoding.UTF8.GetBytes(value, 0, value.Length,
-                _buffer.ByteArray, offset);
+                _buffer.Buffer, offset);
         }
 #endif
 
@@ -495,10 +451,17 @@ namespace FlatBuffers
         public unsafe void PutUshort(int offset, ushort value)
         {
             AssertOffsetAndLength(offset, sizeof(ushort));
-            byte* ptr = _buffer.Buffer;
-            *(ushort*)(ptr + offset) = BitConverter.IsLittleEndian
-                ? value
-                : ReverseBytes(value);
+#if ENABLE_SPAN_T
+            Span<byte> span = _buffer.Span.Slice(offset);
+            BinaryPrimitives.WriteUInt16LittleEndian(span, value);
+#else
+            fixed (byte* ptr = _buffer.Buffer)
+            {
+                *(ushort*)(ptr + offset) = BitConverter.IsLittleEndian
+                    ? value
+                    : ReverseBytes(value);
+            }
+#endif
         }
 
         public void PutInt(int offset, int value)
@@ -509,10 +472,17 @@ namespace FlatBuffers
         public unsafe void PutUint(int offset, uint value)
         {
             AssertOffsetAndLength(offset, sizeof(uint));
-            byte* ptr = _buffer.Buffer;
-            *(uint*)(ptr + offset) = BitConverter.IsLittleEndian
-                ? value
-                : ReverseBytes(value);
+#if ENABLE_SPAN_T
+            Span<byte> span = _buffer.Span.Slice(offset);
+            BinaryPrimitives.WriteUInt32LittleEndian(span, value);
+#else
+            fixed (byte* ptr = _buffer.Buffer)
+            {
+                *(uint*)(ptr + offset) = BitConverter.IsLittleEndian
+                    ? value
+                    : ReverseBytes(value);
+            }
+#endif
         }
 
         public unsafe void PutLong(int offset, long value)
@@ -523,38 +493,56 @@ namespace FlatBuffers
         public unsafe void PutUlong(int offset, ulong value)
         {
             AssertOffsetAndLength(offset, sizeof(ulong));
-            byte* ptr = _buffer.Buffer;
-            *(ulong*)(ptr + offset) = BitConverter.IsLittleEndian
-                ? value
-                : ReverseBytes(value);
+#if ENABLE_SPAN_T
+            Span<byte> span = _buffer.Span.Slice(offset);
+            BinaryPrimitives.WriteUInt64LittleEndian(span, value);
+#else
+            fixed (byte* ptr = _buffer.Buffer)
+            {
+                *(ulong*)(ptr + offset) = BitConverter.IsLittleEndian
+                    ? value
+                    : ReverseBytes(value);
+            }
+#endif
         }
 
         public unsafe void PutFloat(int offset, float value)
         {
             AssertOffsetAndLength(offset, sizeof(float));
-            byte* ptr = _buffer.Buffer;
-            if (BitConverter.IsLittleEndian)
+#if ENABLE_SPAN_T
+            fixed (byte* ptr = &MemoryMarshal.GetReference(_buffer.Span))
+#else
+            fixed (byte* ptr = _buffer.Buffer)
+#endif
             {
-                *(float*)(ptr + offset) = value;
-            }
-            else
-            {
-                *(uint*)(ptr + offset) = ReverseBytes(*(uint*)(&value));
+                if (BitConverter.IsLittleEndian)
+                {
+                    *(float*)(ptr + offset) = value;
+                }
+                else
+                {
+                    *(uint*)(ptr + offset) = ReverseBytes(*(uint*)(&value));
+                }
             }
         }
 
         public unsafe void PutDouble(int offset, double value)
         {
             AssertOffsetAndLength(offset, sizeof(double));
-            byte* ptr = _buffer.Buffer;
-            if (BitConverter.IsLittleEndian)
+#if ENABLE_SPAN_T
+            fixed (byte* ptr = &MemoryMarshal.GetReference(_buffer.Span))
+#else
+            fixed (byte* ptr = _buffer.Buffer)
+#endif
             {
-                *(double*)(ptr + offset) = value;
-
-            }
-            else
-            {
-                *(ulong*)(ptr + offset) = ReverseBytes(*(ulong*)(&value));
+                if (BitConverter.IsLittleEndian)
+                {
+                    *(double*)(ptr + offset) = value;
+                }
+                else
+                {
+                    *(ulong*)(ptr + offset) = ReverseBytes(*(ulong*)(&value));
+                }
             }
         }
 #else // !UNSAFE_BYTEBUFFER
@@ -613,17 +601,17 @@ namespace FlatBuffers
 
 #endif // UNSAFE_BYTEBUFFER
 
-#if UNSAFE_BYTEBUFFER
-        public unsafe sbyte GetSbyte(int index)
+#if ENABLE_SPAN_T
+        public sbyte GetSbyte(int index)
         {
             AssertOffsetAndLength(index, sizeof(sbyte));
-            return (sbyte)_buffer.Buffer[index];
+            return (sbyte)_buffer.ReadOnlySpan[index];
         }
 
-        public unsafe byte Get(int index)
+        public byte Get(int index)
         {
             AssertOffsetAndLength(index, sizeof(byte));
-            return _buffer.Buffer[index];
+            return _buffer.ReadOnlySpan[index];
         }
 #else
         public sbyte GetSbyte(int index)
@@ -642,12 +630,15 @@ namespace FlatBuffers
 #if ENABLE_SPAN_T
         public unsafe string GetStringUTF8(int startPos, int len)
         {
-            return Encoding.UTF8.GetString(_buffer.Buffer + startPos, len);
+            fixed (byte* buffer = &MemoryMarshal.GetReference(_buffer.ReadOnlySpan.Slice(startPos)))
+            {
+                return Encoding.UTF8.GetString(buffer, len);
+            }
         }
 #else
         public string GetStringUTF8(int startPos, int len)
         {
-            return Encoding.UTF8.GetString(_buffer.ByteArray, startPos, len);
+            return Encoding.UTF8.GetString(_buffer.Buffer, startPos, len);
         }
 #endif
 
@@ -661,12 +652,17 @@ namespace FlatBuffers
         public unsafe ushort GetUshort(int offset)
         {
             AssertOffsetAndLength(offset, sizeof(ushort));
-            byte* ptr = _buffer.Buffer;
+#if ENABLE_SPAN_T
+            ReadOnlySpan<byte> span = _buffer.ReadOnlySpan.Slice(offset);
+            return BinaryPrimitives.ReadUInt16LittleEndian(span);
+#else
+            fixed (byte* ptr = _buffer.Buffer)
             {
                 return BitConverter.IsLittleEndian
                     ? *(ushort*)(ptr + offset)
                     : ReverseBytes(*(ushort*)(ptr + offset));
             }
+#endif
         }
 
         public int GetInt(int offset)
@@ -677,12 +673,17 @@ namespace FlatBuffers
         public unsafe uint GetUint(int offset)
         {
             AssertOffsetAndLength(offset, sizeof(uint));
-            byte* ptr = _buffer.Buffer;
+#if ENABLE_SPAN_T
+            ReadOnlySpan<byte> span = _buffer.ReadOnlySpan.Slice(offset);
+            return BinaryPrimitives.ReadUInt32LittleEndian(span);
+#else
+            fixed (byte* ptr = _buffer.Buffer)
             {
                 return BitConverter.IsLittleEndian
                     ? *(uint*)(ptr + offset)
                     : ReverseBytes(*(uint*)(ptr + offset));
             }
+#endif
         }
 
         public long GetLong(int offset)
@@ -693,18 +694,27 @@ namespace FlatBuffers
         public unsafe ulong GetUlong(int offset)
         {
             AssertOffsetAndLength(offset, sizeof(ulong));
-            byte* ptr = _buffer.Buffer;
+#if ENABLE_SPAN_T
+            ReadOnlySpan<byte> span = _buffer.ReadOnlySpan.Slice(offset);
+            return BinaryPrimitives.ReadUInt64LittleEndian(span);
+#else            
+            fixed (byte* ptr = _buffer.Buffer)
             {
                 return BitConverter.IsLittleEndian
                     ? *(ulong*)(ptr + offset)
                     : ReverseBytes(*(ulong*)(ptr + offset));
             }
+#endif
         }
 
         public unsafe float GetFloat(int offset)
         {
             AssertOffsetAndLength(offset, sizeof(float));
-            byte* ptr = _buffer.Buffer;
+#if ENABLE_SPAN_T
+            fixed (byte* ptr = &MemoryMarshal.GetReference(_buffer.ReadOnlySpan))
+#else
+            fixed (byte* ptr = _buffer.Buffer)
+#endif
             {
                 if (BitConverter.IsLittleEndian)
                 {
@@ -721,7 +731,11 @@ namespace FlatBuffers
         public unsafe double GetDouble(int offset)
         {
             AssertOffsetAndLength(offset, sizeof(double));
-            byte* ptr = _buffer.Buffer;
+#if ENABLE_SPAN_T
+            fixed (byte* ptr = &MemoryMarshal.GetReference(_buffer.ReadOnlySpan))
+#else
+            fixed (byte* ptr = _buffer.Buffer)
+#endif
             {
                 if (BitConverter.IsLittleEndian)
                 {
@@ -758,7 +772,7 @@ namespace FlatBuffers
 
         public long GetLong(int index)
         {
-           return (long)ReadLittleEndian(index, sizeof(long));
+            return (long)ReadLittleEndian(index, sizeof(long));
         }
 
         public ulong GetUlong(int index)
@@ -819,12 +833,9 @@ namespace FlatBuffers
                 AssertOffsetAndLength(offset, numBytes);
                 // if we are LE, just do a block copy
 #if ENABLE_SPAN_T
-                unsafe
-                {
-                    MemoryMarshal.Cast<T, byte>(x).CopyTo(new Span<byte>(_buffer.Buffer, _buffer.Length).Slice(offset, numBytes));
-                }
+                MemoryMarshal.Cast<T, byte>(x).CopyTo(_buffer.Span.Slice(offset, numBytes));
 #else
-                Buffer.BlockCopy(x, 0, _buffer.ByteArray, offset, numBytes);
+                Buffer.BlockCopy(x, 0, _buffer.Buffer, offset, numBytes);
 #endif
             }
             else
@@ -841,7 +852,7 @@ namespace FlatBuffers
         }
 
 #if ENABLE_SPAN_T
-        public unsafe int Put<T>(int offset, Span<T> x)
+        public int Put<T>(int offset, Span<T> x)
             where T : struct
         {
             if (x.Length == 0)
@@ -861,7 +872,7 @@ namespace FlatBuffers
                 offset -= numBytes;
                 AssertOffsetAndLength(offset, numBytes);
                 // if we are LE, just do a block copy
-                MemoryMarshal.Cast<T, byte>(x).CopyTo(new Span<byte>(_buffer.Buffer, _buffer.Length).Slice(offset, numBytes));
+                MemoryMarshal.Cast<T, byte>(x).CopyTo(_buffer.Span.Slice(offset, numBytes));
             }
             else
             {

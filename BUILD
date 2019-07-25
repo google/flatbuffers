@@ -86,6 +86,7 @@ cc_binary(
         "src/idl_gen_cpp.cpp",
         "src/idl_gen_dart.cpp",
         "src/idl_gen_general.cpp",
+        "src/idl_gen_kotlin.cpp",
         "src/idl_gen_go.cpp",
         "src/idl_gen_grpc.cpp",
         "src/idl_gen_js_ts.cpp",
@@ -96,6 +97,7 @@ cc_binary(
         "src/idl_gen_python.cpp",
         "src/idl_gen_rust.cpp",
         "src/idl_gen_text.cpp",
+        "src/util.cpp",
     ],
     includes = [
         "grpc/",
@@ -133,7 +135,6 @@ cc_test(
         "src/idl_parser.cpp",
         "src/reflection.cpp",
         "src/util.cpp",
-        "monster_test_generated.h",
         "tests/namespace_test/namespace_test1_generated.h",
         "tests/namespace_test/namespace_test2_generated.h",
         "tests/test.cpp",
@@ -154,14 +155,26 @@ cc_test(
         ":tests/monster_test.bfbs",
         ":tests/monster_test.fbs",
         ":tests/monsterdata_test.golden",
+        ":tests/monsterdata_test.json",
         ":tests/prototest/imported.proto",
         ":tests/prototest/test.golden",
         ":tests/prototest/test.proto",
         ":tests/prototest/test_union.golden",
         ":tests/unicode_test.json",
         ":tests/union_vector/union_vector.fbs",
+        ":tests/union_vector/union_vector.json",
+        ":tests/monster_extra.fbs",
+        ":tests/monsterdata_extra.json",
+        ":tests/arrays_test.bfbs",
+        ":tests/arrays_test.fbs",
+        ":tests/arrays_test.golden",
     ],
     includes = ["include/"],
+    deps = [
+        ":monster_extra_cc_fbs",
+        ":monster_test_cc_fbs",
+        ":arrays_test_cc_fbs",
+    ],
 )
 
 # Test bzl rules
@@ -174,4 +187,22 @@ flatbuffer_cc_library(
         "tests/include_test/include_test1.fbs",
         "tests/include_test/sub/include_test2.fbs",
     ],
+)
+
+flatbuffer_cc_library(
+    name = "monster_extra_cc_fbs",
+    srcs = ["tests/monster_extra.fbs"],
+)
+
+flatbuffer_cc_library(
+    name = "arrays_test_cc_fbs",
+    srcs = ["tests/arrays_test.fbs"],
+    flatc_args = [
+        "--gen-object-api",
+        "--gen-compare",
+        "--no-includes",
+        "--gen-mutable",
+        "--reflect-names",
+        "--cpp-ptr-type flatbuffers::unique_ptr",
+        "--scoped-enums" ],
 )

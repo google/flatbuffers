@@ -4,7 +4,7 @@
 
 import flatbuffers
 
-# /// an example documentation comment: monster object
+# an example documentation comment: monster object
 class Monster(object):
     __slots__ = ['_tab']
 
@@ -81,7 +81,7 @@ class Monster(object):
     def Color(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
         if o != 0:
-            return self._tab.Get(flatbuffers.number_types.Int8Flags, o + self._tab.Pos)
+            return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 8
 
     # Monster
@@ -135,8 +135,8 @@ class Monster(object):
             return self._tab.VectorLen(o)
         return 0
 
-# /// an example documentation comment: this will end up in the generated code
-# /// multiline too
+    # an example documentation comment: this will end up in the generated code
+    # multiline too
     # Monster
     def Testarrayoftables(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(26))
@@ -603,14 +603,14 @@ class Monster(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(98))
         if o != 0:
             a = self._tab.Vector(o)
-            return self._tab.Get(flatbuffers.number_types.Int8Flags, a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 1))
+            return self._tab.Get(flatbuffers.number_types.Uint8Flags, a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 1))
         return 0
 
     # Monster
     def VectorOfEnumsAsNumpy(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(98))
         if o != 0:
-            return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Int8Flags, o)
+            return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Uint8Flags, o)
         return 0
 
     # Monster
@@ -627,7 +627,7 @@ def MonsterAddHp(builder, hp): builder.PrependInt16Slot(2, hp, 100)
 def MonsterAddName(builder, name): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
 def MonsterAddInventory(builder, inventory): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(inventory), 0)
 def MonsterStartInventoryVector(builder, numElems): return builder.StartVector(1, numElems, 1)
-def MonsterAddColor(builder, color): builder.PrependInt8Slot(6, color, 8)
+def MonsterAddColor(builder, color): builder.PrependUint8Slot(6, color, 8)
 def MonsterAddTestType(builder, testType): builder.PrependUint8Slot(7, testType, 0)
 def MonsterAddTest(builder, test): builder.PrependUOffsetTRelativeSlot(8, flatbuffers.number_types.UOffsetTFlags.py_type(test), 0)
 def MonsterAddTest4(builder, test4): builder.PrependUOffsetTRelativeSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(test4), 0)

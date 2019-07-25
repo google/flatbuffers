@@ -23,6 +23,9 @@
 #  ifndef NOMINMAX
 #    define NOMINMAX
 #  endif
+#  ifdef _MSC_VER
+#    include <crtdbg.h>
+#  endif
 #  include <windows.h>  // Must be included before <direct.h>
 #  include <direct.h>
 #  include <winbase.h>
@@ -124,12 +127,12 @@ static const char kPathSeparatorWindows = '\\';
 static const char *PathSeparatorSet = "\\/";  // Intentionally no ':'
 
 std::string StripExtension(const std::string &filepath) {
-  size_t i = filepath.find_last_of(".");
+  size_t i = filepath.find_last_of('.');
   return i != std::string::npos ? filepath.substr(0, i) : filepath;
 }
 
 std::string GetExtension(const std::string &filepath) {
-  size_t i = filepath.find_last_of(".");
+  size_t i = filepath.find_last_of('.');
   return i != std::string::npos ? filepath.substr(i + 1) : "";
 }
 
@@ -235,6 +238,7 @@ bool SetGlobalTestLocale(const char *locale_name, std::string *_value) {
   if (_value) *_value = std::string(the_locale);
   return true;
 }
+
 bool ReadEnvironmentVariable(const char *var_name, std::string *_value) {
   #ifdef _MSC_VER
   __pragma(warning(disable : 4996)); // _CRT_SECURE_NO_WARNINGS
@@ -243,6 +247,29 @@ bool ReadEnvironmentVariable(const char *var_name, std::string *_value) {
   if (!env_str) return false;
   if (_value) *_value = std::string(env_str);
   return true;
+}
+
+void SetupDefaultCRTReportMode() {
+  // clang-format off
+
+  #ifdef _MSC_VER
+    // By default, send all reports to STDOUT to prevent CI hangs.
+    // Enable assert report box [Abort|Retry|Ignore] if a debugger is present.
+    const int dbg_mode = (_CRTDBG_MODE_FILE | _CRTDBG_MODE_DEBUG) |
+                         (IsDebuggerPresent() ? _CRTDBG_MODE_WNDW : 0);
+    (void)dbg_mode; // release mode fix
+    // CrtDebug reports to _CRT_WARN channel.
+    _CrtSetReportMode(_CRT_WARN, dbg_mode);
+    _CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDOUT);
+    // The assert from <assert.h> reports to _CRT_ERROR channel
+    _CrtSetReportMode(_CRT_ERROR, dbg_mode);
+    _CrtSetReportFile(_CRT_ERROR, _CRTDBG_FILE_STDOUT);
+    // Internal CRT assert channel?
+    _CrtSetReportMode(_CRT_ASSERT, dbg_mode);
+    _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDOUT);
+  #endif
+
+  // clang-format on
 }
 
 }  // namespace flatbuffers
