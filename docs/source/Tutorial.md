@@ -2555,7 +2555,7 @@ FlatBuffers `vector`.
 <div class="language-cpp">
 ~~~{.cpp}
   auto inv = monster->inventory(); // A pointer to a `flatbuffers::Vector<>`.
-  auto inv_len = inv->Length();
+  auto inv_len = inv->size();
   auto third_item = inv->Get(2);
 ~~~
 </div>
@@ -2650,7 +2650,7 @@ except your need to handle the result as a FlatBuffer `table`:
 <div class="language-cpp">
 ~~~{.cpp}
   auto weapons = monster->weapons(); // A pointer to a `flatbuffers::Vector<>`.
-  auto weapon_len = weapons->Length();
+  auto weapon_len = weapons->size();
   auto second_weapon_name = weapons->Get(1)->name()->str();
   auto second_weapon_damage = weapons->Get(1)->damage()
 ~~~
