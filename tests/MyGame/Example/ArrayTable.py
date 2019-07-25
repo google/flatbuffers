@@ -14,6 +14,10 @@ class ArrayTable(object):
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def ArrayTableBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
+        return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x41\x52\x52\x54", size_prefixed=size_prefixed)
+
     # ArrayTable
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
