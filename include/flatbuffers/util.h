@@ -327,7 +327,7 @@ template<typename T> inline bool StringToNumber(const char *s, T *val) {
   int64_t i64;
   // The errno check isn't needed, will return MAX/MIN on overflow.
   if (StringToIntegerImpl(&i64, s, 0, false)) {
-    const int64_t max = flatbuffers::numeric_limits<T>::max();
+    const int64_t max = (flatbuffers::numeric_limits<T>::max)();
     const int64_t min = flatbuffers::numeric_limits<T>::lowest();
     if (i64 > max) {
       *val = static_cast<T>(max);
@@ -365,7 +365,7 @@ inline bool StringToNumber<uint64_t>(const char *str, uint64_t *val) {
     if (*s == '-') {
       // For unsigned types return the max to distinguish from
       // "no conversion can be performed".
-      *val = flatbuffers::numeric_limits<uint64_t>::max();
+      *val = (flatbuffers::numeric_limits<uint64_t>::max)();
       return false;
     }
   }
