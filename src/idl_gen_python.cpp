@@ -612,6 +612,30 @@ class PythonGenerator : public BaseGenerator {
     GetEndOffsetOnTable(struct_def, code_ptr);
   }
 
+  // Generate function to check for proper file identifier
+  void GenHasFileIdentifier(const StructDef &struct_def,
+                            std::string *code_ptr) {
+    std::string &code = *code_ptr;
+    std::string escapedID;
+    // In the event any of file_identifier characters are special(NULL, \, etc),
+    // problems occur. To prevent this, convert all chars to their hex-escaped
+    // equivalent.
+    for (auto it = parser_.file_identifier_.begin();
+         it != parser_.file_identifier_.end(); ++it) {
+      escapedID += "\\x" + IntToStringHex(*it, 2);
+    }
+
+    code += Indent + "@classmethod\n";
+    code += Indent + "def " + NormalizedName(struct_def);
+    code += "BufferHasIdentifier(cls, buf, offset, size_prefixed=False):";
+    code += "\n";
+    code += Indent + Indent;
+    code += "return flatbuffers.util.BufferHasIdentifier(buf, offset, b\"";
+    code += escapedID;
+    code += "\", size_prefixed=size_prefixed)\n";
+    code += "\n";
+  }
+  
   // Generate struct or table methods.
   void GenStruct(const StructDef &struct_def, std::string *code_ptr) {
     if (struct_def.generated) return;
@@ -622,6 +646,10 @@ class PythonGenerator : public BaseGenerator {
       // Generate a special accessor for the table that has been declared as
       // the root type.
       NewRootTypeFromBuffer(struct_def, code_ptr);
+      if (parser_.file_identifier_.length()){
+        // Generate a special function to test file_identifier
+        GenHasFileIdentifier(struct_def, code_ptr);
+      }
     }
     // Generate the Init method that sets the field in a pre-existing
     // accessor object. This is to allow object reuse.
