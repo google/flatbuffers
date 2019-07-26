@@ -14,6 +14,10 @@ class MonsterExtra(object):
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def MonsterExtraBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
+        return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x4D\x4F\x4E\x45", size_prefixed=size_prefixed)
+
     # MonsterExtra
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)

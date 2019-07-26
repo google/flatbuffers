@@ -65,8 +65,9 @@ class TestWireFormat(unittest.TestCase):
         # returning errors, and is interpreted correctly, for size prefixed
         # representation and regular:
         for sizePrefix in [True, False]:
-            gen_buf, gen_off = make_monster_from_generated_code(sizePrefix = sizePrefix)
-            CheckReadBuffer(gen_buf, gen_off, sizePrefix = sizePrefix)
+            for file_identifier in [None, b"MONS"]:
+                gen_buf, gen_off = make_monster_from_generated_code(sizePrefix=sizePrefix, file_identifier=file_identifier)
+                CheckReadBuffer(gen_buf, gen_off, sizePrefix=sizePrefix, file_identifier=file_identifier)
 
         # Verify that the canonical flatbuffer file is readable by the
         # generated Python code. Note that context managers are not part of
@@ -74,7 +75,7 @@ class TestWireFormat(unittest.TestCase):
         f = open('monsterdata_test.mon', 'rb')
         canonicalWireData = f.read()
         f.close()
-        CheckReadBuffer(bytearray(canonicalWireData), 0)
+        CheckReadBuffer(bytearray(canonicalWireData), 0, file_identifier=b'MONS')
 
         # Write the generated buffer out to a file:
         f = open('monsterdata_python_wire.mon', 'wb')
@@ -82,7 +83,7 @@ class TestWireFormat(unittest.TestCase):
         f.close()
 
 
-def CheckReadBuffer(buf, offset, sizePrefix = False):
+def CheckReadBuffer(buf, offset, sizePrefix=False, file_identifier=None):
     ''' CheckReadBuffer checks that the given buffer is evaluated correctly
         as the example Monster. '''
 
@@ -90,12 +91,18 @@ def CheckReadBuffer(buf, offset, sizePrefix = False):
         ''' An assertion helper that is separated from TestCase classes. '''
         if not stmt:
             raise AssertionError('CheckReadBuffer case failed')
-
+    if file_identifier:
+        # test prior to removal of size_prefix
+        asserter(util.GetBufferIdentifier(buf, offset, size_prefixed=sizePrefix) == file_identifier)
+        asserter(util.BufferHasIdentifier(buf, offset, file_identifier=file_identifier, size_prefixed=sizePrefix))
     if sizePrefix:
         size = util.GetSizePrefix(buf, offset)
-        # taken from the size of monsterdata_python_wire.mon, minus 4
-        asserter(size == 340)
+        asserter(size == len(buf[offset:])-4)
         buf, offset = util.RemoveSizePrefix(buf, offset)
+    if file_identifier:
+        asserter(MyGame.Example.Monster.Monster.MonsterBufferHasIdentifier(buf, offset))
+    else:
+        asserter(not MyGame.Example.Monster.Monster.MonsterBufferHasIdentifier(buf, offset))
     monster = MyGame.Example.Monster.Monster.GetRootAsMonster(buf, offset)
 
     asserter(monster.Hp() == 80)
@@ -1083,7 +1090,7 @@ class TestByteLayout(unittest.TestCase):
         ])
 
 
-def make_monster_from_generated_code(sizePrefix = False):
+def make_monster_from_generated_code(sizePrefix = False, file_identifier=None):
     ''' Use generated code to build the example Monster. '''
 
     b = flatbuffers.Builder(0)
@@ -1145,9 +1152,9 @@ def make_monster_from_generated_code(sizePrefix = False):
     mon = MyGame.Example.Monster.MonsterEnd(b)
 
     if sizePrefix:
-        b.FinishSizePrefixed(mon)
+        b.FinishSizePrefixed(mon, file_identifier)
     else:
-        b.Finish(mon)
+        b.Finish(mon, file_identifier)
 
     return b.Bytes, b.Head()
 
