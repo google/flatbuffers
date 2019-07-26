@@ -1486,26 +1486,20 @@ class GeneralGenerator : public BaseGenerator {
             code += "); return ";
             code += "builder." + FunctionStart('E') + "ndVector(); }\n";
             // For C#, include a block copy method signature.
-            if (lang_.language == IDLOptions::kCSharp) {
+            // Skip if the vector is of enums, because builder.Add
+            // throws an exception when supplied an enum array.
+            if (lang_.language == IDLOptions::kCSharp &&
+                !IsEnum(vector_type)) {
               code += "  public static " + GenVectorOffsetType() + " ";
               code += FunctionStart('C') + "reate";
               code += MakeCamel(field.name);
               code += "VectorBlock(FlatBufferBuilder builder, ";
               code += GenTypeBasic(vector_type) + "[] data) ";
-              if (IsEnum(vector_type)) {
-                // Since builder.Add does not work for enum types,
-                // delegate to the non-block method. Block method is
-                // still produced for strict backward compatibility.
-                code += "{ return " + FunctionStart('C') + "reate";
-                code += MakeCamel(field.name) + "Vector(builder, data);";
-              } else {
-                code += "{ builder." + FunctionStart('S') + "tartVector(";
-                code += NumToString(elem_size);
-                code += ", data." + FunctionStart('L') + "ength, ";
-                code += NumToString(alignment);
-                code += "); builder.Add(data); return builder.EndVector();";
-              }
-              code += " }\n";
+              code += "{ builder." + FunctionStart('S') + "tartVector(";
+              code += NumToString(elem_size);
+              code += ", data." + FunctionStart('L') + "ength, ";
+              code += NumToString(alignment);
+              code += "); builder.Add(data); return builder.EndVector(); }\n";
             }
           }
           // Generate a method to start a vector, data to be added manually

@@ -283,7 +283,6 @@ public struct Monster : IFlatbufferObject
   public static void AddAnyAmbiguous(FlatBufferBuilder builder, int anyAmbiguousOffset) { builder.AddOffset(46, anyAmbiguousOffset, 0); }
   public static void AddVectorOfEnums(FlatBufferBuilder builder, VectorOffset vectorOfEnumsOffset) { builder.AddOffset(47, vectorOfEnumsOffset.Value, 0); }
   public static VectorOffset CreateVectorOfEnumsVector(FlatBufferBuilder builder, MyGame.Example.Color[] data) { builder.StartVector(1, data.Length, 1); for (int i = data.Length - 1; i >= 0; i--) builder.AddByte((byte)data[i]); return builder.EndVector(); }
-  public static VectorOffset CreateVectorOfEnumsVectorBlock(FlatBufferBuilder builder, MyGame.Example.Color[] data) { return CreateVectorOfEnumsVector(builder, data); }
   public static void StartVectorOfEnumsVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(1, numElems, 1); }
   public static Offset<MyGame.Example.Monster> EndMonster(FlatBufferBuilder builder) {
     int o = builder.EndTable();
