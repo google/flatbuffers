@@ -180,6 +180,7 @@ matrix:
 
     - language: android
       sudo: true
+      dist: trusty
       android:
         components:
           - tools
@@ -193,8 +194,20 @@ matrix:
       before_install:
         # Output something every 10 minutes or Travis kills the job
         - while sleep 540; do echo "=====[ $SECONDS seconds still running ]====="; done &
-        - git clone https://github.com/urho3d/android-ndk.git $HOME/android-ndk-root
-        - export ANDROID_NDK_HOME=$HOME/android-ndk-root
+        # Install the r17c version of the NDK that still so that we can continue to test with gnustl
+        # and stlport.
+        - export ANDROID_NDK_HOME=$HOME/android-ndk
+        - NDK_ZIP=$ANDROID_NDK_HOME/ndk.zip
+        - mkdir -p $ANDROID_NDK_HOME
+        - curl -o $NDK_ZIP https://dl.google.com/android/repository/android-ndk-r17c-linux-x86_64.zip
+        - unzip -q -d $ANDROID_NDK_HOME $NDK_ZIP
+        - rm $NDK_ZIP
+        - mv $ANDROID_NDK_HOME/android-ndk-*/* $ANDROID_NDK_HOME
+        - rmdir $ANDROID_NDK_HOME/android-ndk-*
+        - export CMAKE=$(which cmake)
+        # libc required for prebuilt llvm toolchain the NDK r17c.
+        - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get update -qq; fi
+        - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install -qq libc6; fi
         # Setup environment for Linux build which is required to build the sample.
         - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; fi
         - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get update -qq; fi
