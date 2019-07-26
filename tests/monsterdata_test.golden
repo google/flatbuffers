@@ -56,6 +56,9 @@
       name: "Wilma"
     }
   ],
+  testnestedflatbuffer: {
+    name: "NestedMonster"
+  },
   testbool: true,
   testhashs32_fnv1: -579221183,
   testhashu32_fnv1: 3715746113,
