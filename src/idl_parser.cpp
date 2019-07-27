@@ -1656,7 +1656,6 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
     std::string msg;
     msg += "Cannot assign token starting with '" + TokenToStringId(token_) +
            "' to value of <" + std::string(kTypeNames[in_type]) + "> type.";
-    msg += " Please, check the type name and namespace.";
     return Error(msg);
   }
   const auto match_type = e.type.base_type; // may differ from in_type
