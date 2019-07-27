@@ -1639,8 +1639,9 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
     // An integer constant in string.
     TRY_ECHECK(kTokenStringOrIdent, IsInteger(in_type), BASE_TYPE_INT);
     // Unknown tokens will be interpreted as string type.
+    // An attribute value may be a scalar or string constant.
     FORCE_ECHECK(kTokenStringConstant, in_type == BASE_TYPE_STRING,
-               BASE_TYPE_STRING);
+                 BASE_TYPE_STRING);
   } else {
     // Try a float number.
     TRY_ECHECK(kTokenFloatConstant, IsFloat(in_type), BASE_TYPE_FLOAT);
@@ -1651,7 +1652,12 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
 #undef TRY_ECHECK
 #undef IF_ECHECK_
 
-  if (!match) return TokenError();
+  if (!match) {
+    std::string msg;
+    msg += "Cannot assign token starting with '" + TokenToStringId(token_) +
+           "' to value of <" + std::string(kTypeNames[in_type]) + "> type.";
+    return Error(msg);
+  }
   const auto match_type = e.type.base_type; // may differ from in_type
   // The check_now flag must be true when parse a fbs-schema.
   // This flag forces to check default scalar values or metadata of field.
