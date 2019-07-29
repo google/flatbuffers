@@ -620,8 +620,7 @@ void JsonDefaultTest() {
   TEST_EQ(std::string::npos != jsongen.find("testf: 3.14159"), true);
 }
 
-void JsonEnumsTest() 
-{
+void JsonEnumsTest() {
   // load FlatBuffer schema (.fbs) from disk
   std::string schemafile;
   TEST_EQ(flatbuffers::LoadFile((test_data_path + "monster_test.fbs").c_str(),
