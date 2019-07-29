@@ -206,7 +206,7 @@ class CppGenerator : public BaseGenerator {
 
   void GenExtraIncludes() {
     for(std::size_t i = 0; i < parser_.opts.cpp_includes.size(); ++i) {
-      code_ += "#include <" + parser_.opts.cpp_includes[i] + ">";
+      code_ += "#include \"" + parser_.opts.cpp_includes[i] + "\"";
     }
     if (!parser_.opts.cpp_includes.empty()) {
       code_ += "";
