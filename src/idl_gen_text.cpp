@@ -51,11 +51,24 @@ bool Print(T val, Type type, int /*indent*/, Type * /*union_type*/,
            const IDLOptions &opts, std::string *_text) {
   std::string &text = *_text;
   if (type.enum_def && opts.output_enum_identifiers) {
-    auto ev = type.enum_def->ReverseLookup(static_cast<int64_t>(val));
-    if (ev) {
-      text += "\"";
-      text += ev->name;
-      text += "\"";
+    std::vector<EnumVal const *> enum_values;
+    if (auto ev = type.enum_def->ReverseLookup(static_cast<int64_t>(val))) {
+      enum_values.push_back(ev);
+    }
+    else if (val && type.enum_def->attributes.Lookup("bit_flags")) {
+      for (auto it = type.enum_def->Vals().begin(),
+                e = type.enum_def->Vals().end();
+           it != e; ++it) {
+        if ((*it)->GetAsInt64() & static_cast<int64_t>(val))
+          enum_values.push_back(*it);
+      }
+    }
+
+    if (!enum_values.empty()) {
+      text += '\"';
+      for(auto it = enum_values.begin(), e = enum_values.end(); it != e; ++it)
+        text += (*it)->name + ' ';
+      text[text.length() - 1] = '\"';
       return true;
     }
   }
