@@ -102,6 +102,18 @@ std::string MakeCamel(const std::string &in, bool first) {
   return s;
 }
 
+// Convert an underscore_based_identifier in to screaming snake case.
+std::string MakeScreamingCamel(const std::string &in) {
+  std::string s;
+  for (size_t i = 0; i < in.length(); i++) {
+    if (in[i] != '_')
+      s += static_cast<char>(toupper(in[i]));
+    else
+      s += in[i];
+  }
+  return s;
+}
+
 void DeserializeDoc( std::vector<std::string> &doc,
                      const Vector<Offset<String>> *documentation) {
   if (documentation == nullptr) return;
