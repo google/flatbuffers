@@ -53,7 +53,12 @@ local bool_mt =
     max_value = true,
     lua_type = type(true),
     name = "bool",
-    packFmt = "<b"
+    packFmt = "<I1",
+    Pack = function(self, value) return value and "1" or "0" end,
+    Unpack = function(self, buf, pos) return buf[pos] == "1" end,
+    ValidNumber = function(self, n) return true end, -- anything is a valid boolean in Lua
+    EnforceNumber = function(self, n) end, -- anything is a valid boolean in Lua
+    EnforceNumberAndPack = function(self, n) return self:Pack(value) end,
 }
 
 local uint8_mt = 
@@ -170,7 +175,6 @@ setmetatable(float32_mt, {__index = type_mt})
 setmetatable(float64_mt, {__index = type_mt})
 
 
-m.Bool      = bool_mt
 m.Uint8     = uint8_mt
 m.Uint16    = uint16_mt
 m.Uint32    = uint32_mt
@@ -186,7 +190,7 @@ m.UOffsetT  = uint32_mt
 m.VOffsetT  = uint16_mt
 m.SOffsetT  = int32_mt
 
-function GenerateTypes(listOfTypes)
+local GenerateTypes = function(listOfTypes)
     for _,t in pairs(listOfTypes) do
         t.Pack = function(self, value) return bpack(self.packFmt, value) end
         t.Unpack = function(self, buf, pos) return bunpack(self.packFmt, buf, pos) end
@@ -195,4 +199,6 @@ end
 
 GenerateTypes(m)
 
+-- explicitly execute after GenerateTypes call, as we don't want to define a Pack/Unpack function for it.
+m.Bool      = bool_mt
 return m
