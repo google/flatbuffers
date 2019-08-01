@@ -118,10 +118,14 @@ set(FlatBuffers_Tests_SRCS
   tests/test_assert.cpp
   tests/test_builder.h
   tests/test_builder.cpp
+  tests/native_type_test_impl.h
+  tests/native_type_test_impl.cpp
   # file generate by running compiler on tests/monster_test.fbs
   ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_test_generated.h
   # file generate by running compiler on tests/arrays_test.fbs
   ${CMAKE_CURRENT_BINARY_DIR}/tests/arrays_test_generated.h
+  # file generate by running compiler on tests/native_type_test.fbs
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/native_type_test_generated.h
 )
 
 set(FlatBuffers_Sample_Binary_SRCS
@@ -311,8 +315,8 @@ function(compile_flatbuffers_schema_to_cpp_opt SRC_FBS OPT)
   string(REGEX REPLACE "\\.fbs$" "_generated.h" GEN_HEADER ${SRC_FBS})
   add_custom_command(
     OUTPUT ${GEN_HEADER}
-    COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}" -c --no-includes --gen-mutable
-            --gen-object-api --gen-compare -o "${SRC_FBS_DIR}"
+    COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}" -c --gen-mutable
+            --gen-object-api -o "${SRC_FBS_DIR}"
             --cpp-ptr-type flatbuffers::unique_ptr # Used to test with C++98 STLs
             --reflect-names ${OPT}
             -I "${CMAKE_CURRENT_SOURCE_DIR}/tests/include_test"
@@ -321,7 +325,7 @@ function(compile_flatbuffers_schema_to_cpp_opt SRC_FBS OPT)
 endfunction()
 
 function(compile_flatbuffers_schema_to_cpp SRC_FBS)
-    compile_flatbuffers_schema_to_cpp_opt(${SRC_FBS} "")
+    compile_flatbuffers_schema_to_cpp_opt(${SRC_FBS} "--no-includes;--gen-compare")
 endfunction()
 
 function(compile_flatbuffers_schema_to_binary SRC_FBS)
@@ -336,6 +340,7 @@ endfunction()
 
 if(FLATBUFFERS_BUILD_TESTS)
   compile_flatbuffers_schema_to_cpp(tests/monster_test.fbs)
+  compile_flatbuffers_schema_to_cpp_opt(tests/native_type_test.fbs "")
   compile_flatbuffers_schema_to_cpp_opt(tests/arrays_test.fbs --scoped-enums)
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/tests)
   add_executable(flattests ${FlatBuffers_Tests_SRCS})

@@ -35,11 +35,14 @@
 #include "union_vector/union_vector_generated.h"
 #include "monster_extra_generated.h"
 #if !defined(_MSC_VER) || _MSC_VER >= 1700
-#  include "arrays_test_generated.h"
+#include "arrays_test_generated.h"
 #endif
+
+#include "native_type_test_generated.h"
 #include "test_assert.h"
 
 #include "flatbuffers/flexbuffers.h"
+
 
 // clang-format off
 // Check that char* and uint8_t* are interoperable types.
@@ -2867,6 +2870,29 @@ void FixedLengthArrayTest() {
 #endif
 }
 
+void NativeTypeTest() {
+  const int N = 3;
+
+  Geometry::ApplicationDataT src_data;
+  src_data.vectors.reserve(N);
+
+  for (int i = 0; i < N; ++i) {
+    src_data.vectors.push_back (Native::Vector3D(10 * i + 0.1f, 10 * i + 0.2f, 10 * i + 0.3f));
+  }
+
+  flatbuffers::FlatBufferBuilder fbb;
+  fbb.Finish(Geometry::ApplicationData::Pack(fbb, &src_data));
+
+  auto dstDataT =  Geometry::UnPackApplicationData(fbb.GetBufferPointer());
+
+  for (int i = 0; i < N; ++i) {
+    Native::Vector3D& v = dstDataT->vectors[i];
+    TEST_EQ(v.x, 10 * i + 0.1f);
+    TEST_EQ(v.y, 10 * i + 0.2f);
+    TEST_EQ(v.z, 10 * i + 0.3f);
+  }
+}
+
 void FixedLengthArrayJsonTest(bool binary) {  
   // VS10 does not support typed enums, exclude from tests
 #if !defined(_MSC_VER) || _MSC_VER >= 1700
@@ -3011,6 +3037,7 @@ int FlatBufferTests() {
   InvalidFloatTest();
   TestMonsterExtraFloats();
   FixedLengthArrayTest();
+  NativeTypeTest();
   return 0;
 }
 
