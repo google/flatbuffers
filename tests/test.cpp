@@ -620,6 +620,32 @@ void JsonDefaultTest() {
   TEST_EQ(std::string::npos != jsongen.find("testf: 3.14159"), true);
 }
 
+void JsonEnumsTest() {
+  // load FlatBuffer schema (.fbs) from disk
+  std::string schemafile;
+  TEST_EQ(flatbuffers::LoadFile((test_data_path + "monster_test.fbs").c_str(),
+                                false, &schemafile),
+          true);
+  // parse schema first, so we can use it to parse the data after
+  flatbuffers::Parser parser;
+  auto include_test_path =
+      flatbuffers::ConCatPathFileName(test_data_path, "include_test");
+  const char *include_directories[] = { test_data_path.c_str(),
+                                        include_test_path.c_str(), nullptr };
+  parser.opts.output_enum_identifiers = true;
+  TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
+  flatbuffers::FlatBufferBuilder builder;
+  auto name = builder.CreateString("bitflag_enum");
+  MonsterBuilder color_monster(builder);
+  color_monster.add_name(name);
+  color_monster.add_color(Color(Color_Blue | Color_Red));
+  FinishMonsterBuffer(builder, color_monster.Finish());
+  std::string jsongen;
+  auto result = GenerateText(parser, builder.GetBufferPointer(), &jsongen);
+  TEST_EQ(result, true);
+  TEST_EQ(std::string::npos != jsongen.find("color: \"Red Blue\""), true);
+}
+
 #if defined(FLATBUFFERS_HAS_NEW_STRTOD) && (FLATBUFFERS_HAS_NEW_STRTOD > 0)
 // The IEEE-754 quiet_NaN is not simple binary constant.
 // All binary NaN bit strings have all the bits of the biased exponent field E
@@ -2975,6 +3001,7 @@ int FlatBufferTests() {
   EndianSwapTest();
   CreateSharedStringTest();
   JsonDefaultTest();
+  JsonEnumsTest();
   FlexBuffersTest();
   UninitializedVectorTest();
   EqualOperatorTest();
