@@ -51,6 +51,8 @@ LOCAL_SRC_FILES := android/jni/main.cpp \
                    tests/test_builder.h \
                    tests/test_assert.cpp \
                    tests/test_builder.cpp \
+                   tests/native_type_test_impl.h \
+                   tests/native_type_test_impl.cpp \
                    src/idl_gen_fbs.cpp \
                    src/idl_gen_general.cpp
 LOCAL_LDLIBS := -llog -landroid -latomic
