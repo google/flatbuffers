@@ -19,11 +19,11 @@ inline const flatbuffers::TypeTable *Vector3DTypeTable();
 
 inline const flatbuffers::TypeTable *ApplicationDataTypeTable();
 
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vector3D FLATBUFFERS_FINAL_CLASS {
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector3D FLATBUFFERS_FINAL_CLASS {
  private:
-  double x_;
-  double y_;
-  double z_;
+  float x_;
+  float y_;
+  float z_;
 
  public:
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
@@ -32,31 +32,31 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vector3D FLATBUFFERS_FINAL_CLASS {
   Vector3D() {
     memset(static_cast<void *>(this), 0, sizeof(Vector3D));
   }
-  Vector3D(double _x, double _y, double _z)
+  Vector3D(float _x, float _y, float _z)
       : x_(flatbuffers::EndianScalar(_x)),
         y_(flatbuffers::EndianScalar(_y)),
         z_(flatbuffers::EndianScalar(_z)) {
   }
-  double x() const {
+  float x() const {
     return flatbuffers::EndianScalar(x_);
   }
-  void mutate_x(double _x) {
+  void mutate_x(float _x) {
     flatbuffers::WriteScalar(&x_, _x);
   }
-  double y() const {
+  float y() const {
     return flatbuffers::EndianScalar(y_);
   }
-  void mutate_y(double _y) {
+  void mutate_y(float _y) {
     flatbuffers::WriteScalar(&y_, _y);
   }
-  double z() const {
+  float z() const {
     return flatbuffers::EndianScalar(z_);
   }
-  void mutate_z(double _z) {
+  void mutate_z(float _z) {
     flatbuffers::WriteScalar(&z_, _z);
   }
 };
-FLATBUFFERS_STRUCT_END(Vector3D, 24);
+FLATBUFFERS_STRUCT_END(Vector3D, 12);
 
 struct ApplicationDataT : public flatbuffers::NativeTable {
   typedef ApplicationData TableType;
@@ -155,11 +155,11 @@ inline flatbuffers::Offset<ApplicationData> CreateApplicationData(flatbuffers::F
 
 inline const flatbuffers::TypeTable *Vector3DTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
-    { flatbuffers::ET_DOUBLE, 0, -1 },
-    { flatbuffers::ET_DOUBLE, 0, -1 },
-    { flatbuffers::ET_DOUBLE, 0, -1 }
+    { flatbuffers::ET_FLOAT, 0, -1 },
+    { flatbuffers::ET_FLOAT, 0, -1 },
+    { flatbuffers::ET_FLOAT, 0, -1 }
   };
-  static const int64_t values[] = { 0, 8, 16, 24 };
+  static const int64_t values[] = { 0, 4, 8, 12 };
   static const char * const names[] = {
     "x",
     "y",

@@ -2844,37 +2844,26 @@ void FixedLengthArrayTest() {
 }
 
 void NativeTypeTest() {
-// looks like VS10 does not support std::vector with explicit alignment
-// From stackoverflow (https://stackoverflow.com/questions/8456236/how-is-a-vectors-data-aligned):
-//
-// Visual C++ version 2010 will not work with an std::vector with classes whose alignment are specified.
-// The reason is std::vector::resize.
-// When compiling, next error appears:
-// c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\vector(870): error C2719: 
-//  '_Val': formal parameter with __declspec(align('8')) won't be aligned [C:\projects\flatbuffers\flattests.vcxproj]
-
-#if !defined(_MSC_VER) || _MSC_VER >= 1700
   const int N = 3;
 
-  Geometry::ApplicationDataT srcDataT;
-  srcDataT.vectors.reserve(N);
+  Geometry::ApplicationDataT src_data;
+  src_data.vectors.reserve(N);
 
   for (int i = 0; i < N; ++i) {
-    srcDataT.vectors.push_back (Native::Vector3D(10 * i + 0.1, 10 * i + 0.2, 10 * i + 0.3));
+    src_data.vectors.push_back (Native::Vector3D(10 * i + 0.1f, 10 * i + 0.2f, 10 * i + 0.3f));
   }
 
   flatbuffers::FlatBufferBuilder fbb;
-  fbb.Finish(Geometry::ApplicationData::Pack(fbb, &srcDataT));
+  fbb.Finish(Geometry::ApplicationData::Pack(fbb, &src_data));
 
   auto dstDataT =  Geometry::UnPackApplicationData(fbb.GetBufferPointer());
 
   for (int i = 0; i < N; ++i) {
     Native::Vector3D& v = dstDataT->vectors[i];
-    TEST_EQ(v.x, 10 * i + 0.1);
-    TEST_EQ(v.y, 10 * i + 0.2);
-    TEST_EQ(v.z, 10 * i + 0.3);
+    TEST_EQ(v.x, 10 * i + 0.1f);
+    TEST_EQ(v.y, 10 * i + 0.2f);
+    TEST_EQ(v.z, 10 * i + 0.3f);
   }
-#endif
 }
 
 void FixedLengthArrayJsonTest(bool binary) {  
