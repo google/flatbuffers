@@ -137,6 +137,8 @@ cc_test(
         "src/util.cpp",
         "tests/namespace_test/namespace_test1_generated.h",
         "tests/namespace_test/namespace_test2_generated.h",
+        "tests/native_type_test_impl.h",
+        "tests/native_type_test_impl.cpp",
         "tests/test.cpp",
         "tests/test_assert.cpp",
         "tests/test_assert.h",
@@ -168,12 +170,17 @@ cc_test(
         ":tests/arrays_test.bfbs",
         ":tests/arrays_test.fbs",
         ":tests/arrays_test.golden",
+        ":tests/native_type_test.fbs",
     ],
-    includes = ["include/"],
+    includes = [
+        "include/",
+        "tests/",
+    ],
     deps = [
         ":monster_extra_cc_fbs",
         ":monster_test_cc_fbs",
         ":arrays_test_cc_fbs",
+        ":native_type_test_cc_fbs",
     ],
 )
 
@@ -206,3 +213,13 @@ flatbuffer_cc_library(
         "--cpp-ptr-type flatbuffers::unique_ptr",
         "--scoped-enums" ],
 )
+
+flatbuffer_cc_library(
+    name = "native_type_test_cc_fbs",
+    srcs = ["tests/native_type_test.fbs"],
+    flatc_args = [
+        "--gen-object-api",
+        "--gen-mutable",
+        "--cpp-ptr-type flatbuffers::unique_ptr" ],
+)
+
