@@ -36,8 +36,9 @@
 #include "monster_extra_generated.h"
 #if !defined(_MSC_VER) || _MSC_VER >= 1700
 #include "arrays_test_generated.h"
-#include "native_type_test_generated.h"
 #endif
+
+#include "native_type_test_generated.h"
 #include "test_assert.h"
 
 #include "flatbuffers/flexbuffers.h"
