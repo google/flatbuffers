@@ -319,7 +319,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.force_defaults = true;
       } else if (arg == "--force-empty") {
         opts.set_empty_to_null = false;
-      } else if (arg == "--java_primitive_has_method") {
+      } else if (arg == "--java-primitive-has-method") {
         opts.java_primitive_has_method = true;
       } else {
         for (size_t i = 0; i < params_.num_generators; ++i) {
