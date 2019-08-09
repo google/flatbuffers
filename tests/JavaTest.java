@@ -18,13 +18,13 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
-import MyGame.Example.*;
-import NamespaceA.*;
-import NamespaceA.NamespaceB.*;
+import mygame.example.*;
+import namespacea.*;
+import namespacea.namespaceb.*;
 import com.google.flatbuffers.ByteBufferUtil;
 import static com.google.flatbuffers.Constants.*;
 import com.google.flatbuffers.FlatBufferBuilder;
-import MyGame.MonsterExtra;
+import mygame.MonsterExtra;
 
 class JavaTest {
     public static void main(String[] args) {

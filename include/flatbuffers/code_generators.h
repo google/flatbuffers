@@ -90,8 +90,8 @@ class BaseGenerator {
  public:
   virtual bool generate() = 0;
 
-  static std::string NamespaceDir(const Parser &parser, const std::string &path,
-                                  const Namespace &ns);
+  std::string NamespaceDir(const Parser &parser, const std::string &path,
+                                  const Namespace &ns) const;
 
  protected:
   BaseGenerator(const Parser &parser, const std::string &path,
@@ -113,9 +113,9 @@ class BaseGenerator {
 
   static const char *FlatBuffersGeneratedWarning();
 
-  static std::string FullNamespace(const char *separator, const Namespace &ns);
+  std::string FullNamespace(const char *separator, const Namespace &ns) const;
 
-  static std::string LastNamespacePart(const Namespace &ns);
+  std::string LastNamespacePart(const Namespace &ns) const;
 
   // tracks the current namespace for early exit in WrapInNameSpace
   // c++, java and csharp returns a different namespace from
@@ -132,6 +132,8 @@ class BaseGenerator {
   std::string WrapInNameSpace(const Definition &def) const;
 
   std::string GetNameSpace(const Definition &def) const;
+
+  virtual const Namespace TransformNamespace(const Namespace *ns) const { return *ns; };
 
   const Parser &parser_;
   const std::string &path_;

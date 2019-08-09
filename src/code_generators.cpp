@@ -82,11 +82,12 @@ const char *BaseGenerator::FlatBuffersGeneratedWarning() {
 
 std::string BaseGenerator::NamespaceDir(const Parser &parser,
                                         const std::string &path,
-                                        const Namespace &ns) {
+                                        const Namespace &ns) const {
   EnsureDirExists(path);
   if (parser.opts.one_file) return path;
   std::string namespace_dir = path;  // Either empty or ends in separator.
-  auto &namespaces = ns.components;
+  Namespace tns = TransformNamespace(&ns);
+  auto &namespaces = tns.components;
   for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
     namespace_dir += *it + kPathSeparator;
     EnsureDirExists(namespace_dir);
@@ -95,13 +96,14 @@ std::string BaseGenerator::NamespaceDir(const Parser &parser,
 }
 
 std::string BaseGenerator::NamespaceDir(const Namespace &ns) const {
-  return BaseGenerator::NamespaceDir(parser_, path_, ns);
+  return NamespaceDir(parser_, path_, ns);
 }
 
 std::string BaseGenerator::FullNamespace(const char *separator,
-                                         const Namespace &ns) {
+                                         const Namespace &ns) const {
+  const Namespace tns = TransformNamespace(&ns);
   std::string namespace_name;
-  auto &namespaces = ns.components;
+  auto &namespaces = tns.components;
   for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
     if (namespace_name.length()) namespace_name += separator;
     namespace_name += *it;
@@ -109,9 +111,10 @@ std::string BaseGenerator::FullNamespace(const char *separator,
   return namespace_name;
 }
 
-std::string BaseGenerator::LastNamespacePart(const Namespace &ns) {
-  if (!ns.components.empty())
-    return ns.components.back();
+std::string BaseGenerator::LastNamespacePart(const Namespace &ns) const {
+  const Namespace tns = TransformNamespace(&ns);
+  if (!tns.components.empty())
+    return tns.components.back();
   else
     return std::string("");
 }
@@ -119,8 +122,9 @@ std::string BaseGenerator::LastNamespacePart(const Namespace &ns) {
 // Ensure that a type is prefixed with its namespace.
 std::string BaseGenerator::WrapInNameSpace(const Namespace *ns,
                                            const std::string &name) const {
+  const Namespace tns = TransformNamespace(ns);
   std::string qualified_name = qualifying_start_;
-  for (auto it = ns->components.begin(); it != ns->components.end(); ++it)
+  for (auto it = tns.components.begin(); it != tns.components.end(); ++it)
     qualified_name += *it + qualifying_separator_;
   return qualified_name + name;
 }
@@ -130,12 +134,12 @@ std::string BaseGenerator::WrapInNameSpace(const Definition &def) const {
 }
 
 std::string BaseGenerator::GetNameSpace(const Definition &def) const {
-  const Namespace *ns = def.defined_namespace;
-  if (CurrentNameSpace() == ns) return "";
+  const Namespace ns = TransformNamespace(def.defined_namespace);
+  if (CurrentNameSpace() == def.defined_namespace) return "";
   std::string qualified_name = qualifying_start_;
-  for (auto it = ns->components.begin(); it != ns->components.end(); ++it) {
+  for (auto it = ns.components.begin(); it != ns.components.end(); ++it) {
     qualified_name += *it;
-    if ((it + 1) != ns->components.end()) {
+    if ((it + 1) != ns.components.end()) {
       qualified_name += qualifying_separator_;
     }
   }

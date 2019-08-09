@@ -17,5 +17,5 @@ rem Compile then run the Java test.
 
 set batch_file_dir=%~d0%~p0
 
-javac -g -classpath %batch_file_dir%\..\java;%batch_file_dir%;%batch_file_dir%\namespace_test;%batch_file_dir%\union_vector JavaTest.java
-java -classpath %batch_file_dir%\..\java;%batch_file_dir%;%batch_file_dir%\namespace_test;%batch_file_dir%\union_vector JavaTest
+javac -g -classpath %batch_file_dir%\..\java;%batch_file_dir%;%batch_file_dir%\java\namespace_test;%batch_file_dir%\java\union_vector;%batch_file_dir%\java JavaTest.java
+java -classpath %batch_file_dir%\..\java;%batch_file_dir%;%batch_file_dir%\java\namespace_test;%batch_file_dir%\java\union_vector;%batch_file_dir%\java JavaTest

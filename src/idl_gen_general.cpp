@@ -45,6 +45,7 @@ struct LanguageParameters {
   std::string getter_prefix;
   std::string getter_suffix;
   std::string inheritance_marker;
+  bool namespace_lowercase;
   std::string namespace_ident;
   std::string namespace_begin;
   std::string namespace_end;
@@ -84,6 +85,7 @@ const LanguageParameters &GetLangParams(IDLOptions::Language lang) {
         "()",
         "",
         " extends ",
+        true,
         "package ",
         ";",
         "",
@@ -119,6 +121,7 @@ const LanguageParameters &GetLangParams(IDLOptions::Language lang) {
         " { get",
         "} ",
         " : ",
+        false,
         "namespace ",
         "\n{",
         "\n}\n",
@@ -235,8 +238,22 @@ class GeneralGenerator : public BaseGenerator {
     }
     code += classcode;
     if (!namespace_name.empty()) code += lang_.namespace_end;
-    auto filename = NamespaceDir(ns) + defname + lang_.file_extension;
+
+    auto dirname = (lang_.namespace_lowercase) ? ToLowerCase(NamespaceDir(ns)) : NamespaceDir(ns);
+    auto filename = dirname + defname + lang_.file_extension;
     return SaveFile(filename.c_str(), code, false);
+  }
+
+  const Namespace TransformNamespace(const Namespace *ns) const {
+    if (lang_.namespace_lowercase) {
+      Namespace tns = *ns;
+      std::transform(tns.components.begin(), tns.components.end(), tns.components.begin(), [](std::string str) {
+        return ToLowerCase(str);
+      });
+      return tns;
+    } else {
+      return *ns;
+    }
   }
 
   const Namespace *CurrentNameSpace() const { return cur_name_space_; }
@@ -1606,6 +1623,7 @@ std::string GeneralMakeRule(const Parser &parser, const std::string &path,
   FLATBUFFERS_ASSERT(parser.opts.lang <= IDLOptions::kMAX);
   const auto &lang = GetLangParams(parser.opts.lang);
 
+  general::GeneralGenerator generator(parser, path, file_name);
   std::string make_rule;
 
   for (auto it = parser.enums_.vec.begin(); it != parser.enums_.vec.end();
@@ -1613,7 +1631,8 @@ std::string GeneralMakeRule(const Parser &parser, const std::string &path,
     auto &enum_def = **it;
     if (!make_rule.empty()) make_rule += " ";
     std::string directory =
-        BaseGenerator::NamespaceDir(parser, path, *enum_def.defined_namespace);
+        generator.NamespaceDir(parser, path, *enum_def.defined_namespace);
+
     make_rule += directory + enum_def.name + lang.file_extension;
   }
 
@@ -1621,7 +1640,7 @@ std::string GeneralMakeRule(const Parser &parser, const std::string &path,
        ++it) {
     auto &struct_def = **it;
     if (!make_rule.empty()) make_rule += " ";
-    std::string directory = BaseGenerator::NamespaceDir(
+    std::string directory = generator.NamespaceDir(
         parser, path, *struct_def.defined_namespace);
     make_rule += directory + struct_def.name + lang.file_extension;
   }

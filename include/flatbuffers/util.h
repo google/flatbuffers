@@ -390,6 +390,12 @@ inline uint64_t StringToUInt(const char *s, int base = 10) {
   return StringToIntegerImpl(&val, s, base) ? val : 0;
 }
 
+inline std::string ToLowerCase(const std::string &str) {
+  std::string copy = str;
+  std::transform(copy.begin(), copy.end(), copy.begin(), ::tolower);
+  return copy;
+}
+
 typedef bool (*LoadFileFunction)(const char *filename, bool binary,
                                  std::string *dest);
 typedef bool (*FileExistsFunction)(const char *filename);
