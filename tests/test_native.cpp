@@ -67,9 +67,9 @@ void CompileTest() {
 
   // debugging + access to serialized data
   auto s = flatbuffers::FlatBufferToString(fbb.GetBufferPointer(),
-                                           TestN::FooTypeTable(), true);
+                                           TestN::FooTypeTable());
 
-  TEST_EQ_STR(s.c_str(), "sdf");
+  TEST_EQ_STR(s.c_str(), "{ enumData: Size3, bitData: { rows: 0 }, iqData: [ { i: 0.0, q: 1.0 }, { i: 1.0, q: 1.0 }, { i: 2.0, q: 1.0 } ], iqSample: { i: 0.0, q: 0.0 }, iqSample2: { i: 0.0, q: 0.0 }, newInt: 0, variant_type: Mat, variant: { rows: 1, data: [ { i: 42.0, q: 1.0 } ] } }");
 }
 
 void TestNamespaces() {
