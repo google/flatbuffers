@@ -106,10 +106,10 @@ fn main() {
             assert_eq!("MyMonster", m.name());
 
             let pos = m.pos().unwrap();
-            assert_eq!(pos.x(), 1.0f32);
-            assert_eq!(pos.y(), 2.0f32);
-            assert_eq!(pos.z(), 3.0f32);
-            assert_eq!(pos.test1(), 3.0f64);
+            assert!((pos.x() - 1.0f32).abs() < std::f32::EPSILON);
+            assert!((pos.y() - 2.0f32).abs() < std::f32::EPSILON);
+            assert!((pos.z() - 3.0f32).abs() < std::f32::EPSILON);
+            assert!((pos.test1() - 3.0f64).abs() < std::f64::EPSILON);
             assert_eq!(pos.test2(), my_game::example::Color::Green);
             let pos_test3 = pos.test3();
             assert_eq!(pos_test3.a(), 5i16);
@@ -126,8 +126,8 @@ fn main() {
 
             let test4 = m.test4().unwrap();
             assert_eq!(test4.len(), 2);
-            assert_eq!(test4[0].a() as i32 + test4[0].b() as i32 +
-                       test4[1].a() as i32 + test4[1].b() as i32, 100);
+            assert_eq!(i32::from(test4[0].a() + test4[1].a()) +
+                       i32::from(test4[0].b() + test4[1].b()), 100);
 
             let testarrayofstring = m.testarrayofstring().unwrap();
             assert_eq!(testarrayofstring.len(), 2);
