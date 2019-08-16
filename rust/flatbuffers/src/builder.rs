@@ -389,10 +389,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
 
     #[inline]
     fn track_field(&mut self, slot_off: VOffsetT, off: UOffsetT) {
-        let fl = FieldLoc {
-            id: slot_off,
-            off: off,
-        };
+        let fl = FieldLoc { id: slot_off, off };
         self.field_locs.push(fl);
     }
 
@@ -406,7 +403,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         // Write the vtable offset, which is the start of any Table.
         // We fill its value later.
         let object_revloc_to_vtable: WIPOffset<VTableWIPOffset> =
-            WIPOffset::new(self.push::<UOffsetT>(0xF0F0F0F0 as UOffsetT).value());
+            WIPOffset::new(self.push::<UOffsetT>(0xF0F0_F0F0 as UOffsetT).value());
 
         // Layout of the data this function will create when a new vtable is
         // needed.
@@ -496,7 +493,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         {
             let n = self.head + self.used_space() - object_revloc_to_vtable.value() as usize;
             let saw = read_scalar_at::<UOffsetT>(&self.owned_buf, n);
-            debug_assert_eq!(saw, 0xF0F0F0F0);
+            debug_assert_eq!(saw, 0xF0F0_F0F0);
             emplace_scalar::<SOffsetT>(
                 &mut self.owned_buf[n..n + SIZE_SOFFSET],
                 vt_use as SOffsetT - object_revloc_to_vtable.value() as SOffsetT,
@@ -619,7 +616,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     #[inline]
     fn push_bytes_unprefixed(&mut self, x: &[u8]) -> UOffsetT {
         let n = self.make_space(x.len());
-        &mut self.owned_buf[n..n + x.len()].copy_from_slice(x);
+        self.owned_buf[n..n + x.len()].copy_from_slice(x);
 
         n as UOffsetT
     }
