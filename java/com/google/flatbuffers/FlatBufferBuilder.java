@@ -199,6 +199,17 @@ public class FlatBufferBuilder {
         }
     }
 
+   /**
+   * Helper function to test if a field is present in the table
+   *
+   * @param table Flatbuffer table
+   * @param offset virtual table offset
+   * @return true if the filed is present
+   */
+   public static boolean isFieldPresent(Table table, int offset) {
+     return table.__offset(offset) != 0;
+   }
+
     /**
      * Reset the FlatBufferBuilder by purging all data that it holds.
      */

@@ -1323,6 +1323,15 @@ class GeneralGenerator : public BaseGenerator {
           }
         }
       }
+      if (parser_.opts.java_primitive_has_method &&
+          IsScalar(field.value.type.base_type) && !struct_def.fixed) {
+        auto vt_offset_constant = "  public static final int VT_" +
+                                  MakeScreamingCamel(field.name) + " = " +
+                                  NumToString(field.value.offset) + ";";
+
+        code += vt_offset_constant;
+        code += "\n";
+      }
     }
     code += "\n";
     flatbuffers::FieldDef *key_field = nullptr;
