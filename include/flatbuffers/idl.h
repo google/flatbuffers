@@ -528,6 +528,7 @@ struct IDLOptions {
   bool size_prefixed;
   std::string root_type;
   bool force_defaults;
+  bool java_primitive_has_method;
   std::vector<std::string> cpp_includes;
 
   // Possible options for the more general generator below.
@@ -602,6 +603,7 @@ struct IDLOptions {
         protobuf_ascii_alike(false),
         size_prefixed(false),
         force_defaults(false),
+        java_primitive_has_method(false),
         lang(IDLOptions::kJava),
         mini_reflect(IDLOptions::kNone),
         lang_to_generate(0),
@@ -926,6 +928,8 @@ class Parser : public ParserState {
 // Utility functions for multiple generators:
 
 extern std::string MakeCamel(const std::string &in, bool first = true);
+
+extern std::string MakeScreamingCamel(const std::string &in);
 
 // Generate text (JSON) from a given FlatBuffer, and a given Parser
 // object that has been populated with the corresponding schema.
