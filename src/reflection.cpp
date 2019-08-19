@@ -656,6 +656,7 @@ bool VerifyObject(flatbuffers::Verifier &v, const reflection::Schema &schema,
         if (utype != 0) {
           // Means we have this union field present
           auto fb_enum = schema.enums()->Get(field_def->type()->index());
+          if (utype >= fb_enum->values()->size()) return false;
           auto child_obj = fb_enum->values()->Get(utype)->object();
           if (!VerifyObject(v, schema, *child_obj,
                             flatbuffers::GetFieldT(*table, *field_def),
