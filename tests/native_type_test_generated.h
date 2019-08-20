@@ -136,7 +136,7 @@ inline ApplicationDataT *ApplicationData::UnPack(const flatbuffers::resolver_fun
 inline void ApplicationData::UnPackTo(ApplicationDataT *_o, const flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = vectors(); if (_e) { _o->vectors.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vectors[_i] = flatbuffers::UnPack(*_e->Get(_i)); } } };
+  { auto _e = vectors(); if (_e) { _o->vectors.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vectors[_i] = flatbuffers::UnPack(*_e->Get(_i)); } } }
 }
 
 inline flatbuffers::Offset<ApplicationData> ApplicationData::Pack(flatbuffers::FlatBufferBuilder &_fbb, const ApplicationDataT* _o, const flatbuffers::rehasher_function_t *_rehasher) {

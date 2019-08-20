@@ -2607,7 +2607,7 @@ class CppGenerator : public BaseGenerator {
         code_.SetValue("FIELD_NAME", Name(field));
         auto prefix = "  { auto _e = {{FIELD_NAME}}(); ";
         auto check = IsScalar(field.value.type.base_type) ? "" : "if (_e) ";
-        auto postfix = " };";
+        auto postfix = " }";
         code_ += std::string(prefix) + check + statement + postfix;
       }
       code_ += "}";

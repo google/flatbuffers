@@ -267,16 +267,16 @@ inline MonsterExtraT *MonsterExtra::UnPack(const flatbuffers::resolver_function_
 inline void MonsterExtra::UnPackTo(MonsterExtraT *_o, const flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = d0(); _o->d0 = _e; };
-  { auto _e = d1(); _o->d1 = _e; };
-  { auto _e = d2(); _o->d2 = _e; };
-  { auto _e = d3(); _o->d3 = _e; };
-  { auto _e = f0(); _o->f0 = _e; };
-  { auto _e = f1(); _o->f1 = _e; };
-  { auto _e = f2(); _o->f2 = _e; };
-  { auto _e = f3(); _o->f3 = _e; };
-  { auto _e = dvec(); if (_e) { _o->dvec.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->dvec[_i] = _e->Get(_i); } } };
-  { auto _e = fvec(); if (_e) { _o->fvec.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->fvec[_i] = _e->Get(_i); } } };
+  { auto _e = d0(); _o->d0 = _e; }
+  { auto _e = d1(); _o->d1 = _e; }
+  { auto _e = d2(); _o->d2 = _e; }
+  { auto _e = d3(); _o->d3 = _e; }
+  { auto _e = f0(); _o->f0 = _e; }
+  { auto _e = f1(); _o->f1 = _e; }
+  { auto _e = f2(); _o->f2 = _e; }
+  { auto _e = f3(); _o->f3 = _e; }
+  { auto _e = dvec(); if (_e) { _o->dvec.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->dvec[_i] = _e->Get(_i); } } }
+  { auto _e = fvec(); if (_e) { _o->fvec.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->fvec[_i] = _e->Get(_i); } } }
 }
 
 inline flatbuffers::Offset<MonsterExtra> MonsterExtra::Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterExtraT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
