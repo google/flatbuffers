@@ -16,13 +16,6 @@ struct ArrayStruct;
 struct ArrayTable;
 struct ArrayTableT;
 
-bool operator==(const NestedStruct &lhs, const NestedStruct &rhs);
-bool operator!=(const NestedStruct &lhs, const NestedStruct &rhs);
-bool operator==(const ArrayStruct &lhs, const ArrayStruct &rhs);
-bool operator!=(const ArrayStruct &lhs, const ArrayStruct &rhs);
-bool operator==(const ArrayTableT &lhs, const ArrayTableT &rhs);
-bool operator!=(const ArrayTableT &lhs, const ArrayTableT &rhs);
-
 inline const flatbuffers::TypeTable *NestedStructTypeTable();
 
 inline const flatbuffers::TypeTable *ArrayStructTypeTable();
@@ -103,18 +96,6 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) NestedStruct FLATBUFFERS_FINAL_CLASS {
 };
 FLATBUFFERS_STRUCT_END(NestedStruct, 12);
 
-inline bool operator==(const NestedStruct &lhs, const NestedStruct &rhs) {
-  return
-      (lhs.a() == rhs.a()) &&
-      (lhs.b() == rhs.b()) &&
-      (lhs.c() == rhs.c());
-}
-
-inline bool operator!=(const NestedStruct &lhs, const NestedStruct &rhs) {
-    return !(lhs == rhs);
-}
-
-
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) ArrayStruct FLATBUFFERS_FINAL_CLASS {
  private:
   float a_;
@@ -166,35 +147,12 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) ArrayStruct FLATBUFFERS_FINAL_CLASS {
 };
 FLATBUFFERS_STRUCT_END(ArrayStruct, 92);
 
-inline bool operator==(const ArrayStruct &lhs, const ArrayStruct &rhs) {
-  return
-      (lhs.a() == rhs.a()) &&
-      (lhs.b() == rhs.b()) &&
-      (lhs.c() == rhs.c()) &&
-      (lhs.d() == rhs.d());
-}
-
-inline bool operator!=(const ArrayStruct &lhs, const ArrayStruct &rhs) {
-    return !(lhs == rhs);
-}
-
-
 struct ArrayTableT : public flatbuffers::NativeTable {
   typedef ArrayTable TableType;
   flatbuffers::unique_ptr<MyGame::Example::ArrayStruct> a;
   ArrayTableT() {
   }
 };
-
-inline bool operator==(const ArrayTableT &lhs, const ArrayTableT &rhs) {
-  return
-      (lhs.a == rhs.a);
-}
-
-inline bool operator!=(const ArrayTableT &lhs, const ArrayTableT &rhs) {
-    return !(lhs == rhs);
-}
-
 
 struct ArrayTable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef ArrayTableT NativeTableType;
@@ -257,7 +215,7 @@ inline ArrayTableT *ArrayTable::UnPack(const flatbuffers::resolver_function_t *_
 inline void ArrayTable::UnPackTo(ArrayTableT *_o, const flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = a(); if (_e) _o->a = flatbuffers::unique_ptr<MyGame::Example::ArrayStruct>(new MyGame::Example::ArrayStruct(*_e)); };
+  { auto _e = a(); if (_e) _o->a = flatbuffers::unique_ptr<MyGame::Example::ArrayStruct>(new MyGame::Example::ArrayStruct(*_e)); }
 }
 
 inline flatbuffers::Offset<ArrayTable> ArrayTable::Pack(flatbuffers::FlatBufferBuilder &_fbb, const ArrayTableT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
