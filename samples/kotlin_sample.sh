@@ -56,5 +56,5 @@ echo Running test
 kotlin -cp ${sampledir}/kotlin/kotlin_sample.jar SampleBinary
 
 # Cleanup temporary files.
-# rm -rf MyGame/
+rm -rf MyGame/
 # rm -rf ${sampledir}/kotlin
