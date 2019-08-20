@@ -24,7 +24,7 @@ set -e
 ../flatc --cpp --java --kotlin --csharp --python --gen-mutable --reflect-names --gen-object-api --gen-compare --no-includes monster_extra.fbs monsterdata_extra.json
 ../flatc --cpp --java --csharp --python --gen-mutable --reflect-names --gen-object-api --gen-compare --no-includes --scoped-enums --jsonschema --cpp-ptr-type flatbuffers::unique_ptr arrays_test.fbs
 cd ../samples
-../flatc --cpp --kotlin --lobster --gen-mutable --reflect-names --gen-object-api --gen-compare --cpp-ptr-type flatbuffers::unique_ptr monster.fbs
+../flatc --cpp --lobster --gen-mutable --reflect-names --gen-object-api --gen-compare --cpp-ptr-type flatbuffers::unique_ptr monster.fbs
 ../flatc -b --schema --bfbs-comments --bfbs-builtins monster.fbs
 cd ../reflection
 ./generate_code.sh
