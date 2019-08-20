@@ -377,12 +377,11 @@ class Reference {
   bool IsNumeric() const { return IsIntOrUint() || IsFloat(); }
   bool IsString() const { return type_ == FBT_STRING; }
   bool IsKey() const { return type_ == FBT_KEY; }
-  bool IsVector() const { return type_ == FBT_VECTOR; }
+  bool IsVector() const { return type_ == FBT_VECTOR || type_ == FBT_MAP; }
   bool IsTypedVector() const { return flexbuffers::IsTypedVector(type_); }
   bool IsFixedTypedVector() const { return flexbuffers::IsFixedTypedVector(type_); }
   bool IsAnyVector() const { return (IsTypedVector() || IsFixedTypedVector() || IsVector());}
   bool IsMap() const { return type_ == FBT_MAP; }
-  bool IsVectorOrMap() const { return type_ == FBT_VECTOR || type_ == FBT_MAP; }
   bool IsBlob() const { return type_ == FBT_BLOB; }
 
   bool AsBool() const {
