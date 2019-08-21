@@ -17,6 +17,10 @@
 package com.google.flatbuffers;
 
 
+import static com.google.flatbuffers.FlexBuffers.Unsigned.byteToUnsignedInt;
+import static com.google.flatbuffers.FlexBuffers.Unsigned.intToUnsignedLong;
+import static com.google.flatbuffers.FlexBuffers.Unsigned.shortToUnsignedInt;
+
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -123,18 +127,11 @@ public class FlexBuffers {
     // read unsigned int with size byteWidth and return as a 64-bit integer
     private static long readUInt(ByteBuffer buff, int end, int byteWidth) {
         switch (byteWidth) {
-            case 1: return Byte.toUnsignedInt(buff.get(end));
-            case 2: return Short.toUnsignedInt(buff.getShort(end));
-            case 4: return Integer.toUnsignedLong(buff.getInt(end));
-            //TODO: who should we treat a possible ulong? throw exception?
-            case 8: {
-                long l = buff.getLong(end);
-                if (l < 0)
-                    throw new FlexBufferException("This is probably a unsigned 64-bit integer. Use readULong if you store 64-bit longs");
-                return l;
-            }
-            default:
-                throw new FlexBufferException(String.format("Invalid bit width of %d for scalar int", byteWidth));
+            case 1: return byteToUnsignedInt(buff.get(end));
+            case 2: return shortToUnsignedInt(buff.getShort(end));
+            case 4: return intToUnsignedLong(buff.getInt(end));
+            case 8: return buff.getLong(end); // We are passing signed long here. Losing information (user should know)
+            default: return -1; // we should never reach here
         }
     }
 
@@ -150,19 +147,7 @@ public class FlexBuffers {
             case 2: return buff.getShort(end);
             case 4: return buff.getInt(end);
             case 8: return buff.getLong(end);
-            default:
-                throw new FlexBufferException(String.format("Invalid bit width of %d for scalar long", byteWidth));
-        }
-    }
-
-    private static BigInteger readULong(ByteBuffer buff, int end, int byteWidth) {
-        switch (byteWidth) {
-            case 1: return BigInteger.valueOf(Byte.toUnsignedInt(buff.get(end)));
-            case 2: return BigInteger.valueOf(Short.toUnsignedInt(buff.getShort(end)));
-            case 4: return BigInteger.valueOf(Integer.toUnsignedLong(buff.getInt(end)));
-            case 8: return new BigInteger(Long.toUnsignedString(buff.getLong(end))); // TODO: slow op
-            default:
-                throw new FlexBufferException(String.format("Invalid bit width of %d for scalar int", byteWidth));
+            default: return -1; // we should never reach here
         }
     }
 
@@ -170,8 +155,7 @@ public class FlexBuffers {
         switch (byteWidth) {
             case 4: return buff.getFloat(end);
             case 8: return buff.getDouble(end);
-            default:
-                throw new FlexBufferException(String.format("Invalid bit width of %d for scalar long", byteWidth));
+            default: return -1; // we should never reach here
         }
     }
 
@@ -186,26 +170,9 @@ public class FlexBuffers {
         // The root ends at the end of the buffer, so we parse backwards from there.
         int end = buffer.limit();
         int byteWidth = buffer.get(--end);
-        int packetType = Byte.toUnsignedInt(buffer.get(--end));
+        int packetType = byteToUnsignedInt(buffer.get(--end));
         end -= byteWidth;  // The root data item.
         return new Reference(buffer, end, byteWidth, packetType);
-    }
-
-    enum BitWidth {
-        WIDTH_8(0),
-        WIDTH_16(1),
-        WIDTH_32(2),
-        WIDTH_64(3);
-
-        final int val;
-
-        BitWidth(int val) {
-            this.val = val;
-        }
-
-        public static BitWidth max(BitWidth a, BitWidth b) {
-            return (a.val >= b.val) ? a : b;
-        }
     }
 
     public static class Reference {
@@ -287,52 +254,94 @@ public class FlexBuffers {
         }
 
         public int asInt() {
-            if (type != FBT_INDIRECT_INT && type != FBT_INT)
-                throw new InvalidTypeConversionFlexBufferException(type, FBT_INT);
-            int pos = type == FBT_INDIRECT_INT ? indirect(bb, end, parentWidth) : end;
-            return readInt(bb, pos, parentWidth);
+            if (type == FBT_INT) {
+                // A fast path for the common case.
+                return readInt(bb, end, parentWidth);
+            } else
+                switch (type) {
+                    case FBT_INDIRECT_INT: return readInt(bb, indirect(bb, end, parentWidth), byteWidth);
+                    case FBT_UINT: return (int) readUInt(bb, end, parentWidth);
+                    case FBT_INDIRECT_UINT: return (int) readUInt(bb, indirect(bb, end, parentWidth), parentWidth);
+                    case FBT_FLOAT: return (int) readDouble(bb, end, parentWidth);
+                    case FBT_INDIRECT_FLOAT: return (int) readDouble(bb, indirect(bb, end, parentWidth), byteWidth);
+                    case FBT_NULL: return 0;
+                    case FBT_STRING: return Integer.parseInt(asString());
+                    case FBT_VECTOR: return asVector().size();
+                    case FBT_BOOL: return readInt(bb, end, parentWidth);
+                    default:
+                        // Convert other things to int.
+                        return 0;
+                }
         }
 
         public long asUInt() {
-            if (type != FBT_INDIRECT_UINT && type != FBT_UINT)
-                throw new InvalidTypeConversionFlexBufferException(type, FBT_UINT);
-            int pos = type == FBT_INDIRECT_UINT ? indirect(bb, end, parentWidth) : end;
-            return readUInt(bb, pos, parentWidth);
-        }
-
-        public BigInteger asUInt64() {
-            if (type != FBT_INDIRECT_INT && type != FBT_INT)
-                throw new InvalidTypeConversionFlexBufferException(type, FBT_INT);
-            int pos = type == FBT_INDIRECT_INT ? indirect(bb, end, parentWidth) : end;
-            return readULong(bb, pos, parentWidth);
+            if (type == FBT_UINT) {
+                // A fast path for the common case.
+                return readUInt(bb, end, parentWidth);
+            } else
+                switch (type) {
+                    case FBT_INDIRECT_UINT: return readUInt(bb, indirect(bb, end, parentWidth), byteWidth);
+                    case FBT_INT: return readLong(bb, end, parentWidth);
+                    case FBT_INDIRECT_INT: return readLong(bb, indirect(bb, end, parentWidth), byteWidth);
+                    case FBT_FLOAT: return (long) readDouble(bb, end, parentWidth);
+                    case FBT_INDIRECT_FLOAT: return (long) readDouble(bb,  indirect(bb, end, parentWidth), parentWidth);
+                    case FBT_NULL: return 0;
+                    case FBT_STRING: return Long.parseLong(asString());
+                    case FBT_VECTOR: return asVector().size();
+                    case FBT_BOOL: readInt(bb, end, parentWidth);
+                    default:
+                        // Convert other things to uint.
+                        return 0;
+                }
         }
 
         public long asLong() {
-            if (type != FBT_INDIRECT_INT && type != FBT_INT)
-                throw new InvalidTypeConversionFlexBufferException(type, FBT_INT);
-            int pos = type == FBT_INDIRECT_INT ? indirect(bb, end, parentWidth) : end;
-            return readLong(bb, pos, parentWidth);
+            if (type == FBT_INT) {
+                // A fast path for the common case.
+                return readLong(bb, end, parentWidth);
+            } else
+                switch (type) {
+                    case FBT_INDIRECT_INT: return readLong(bb, indirect(bb, end, parentWidth), byteWidth);
+                    case FBT_UINT: return readUInt(bb, end, parentWidth);
+                    case FBT_INDIRECT_UINT: return readUInt(bb, indirect(bb, end, parentWidth), parentWidth);
+                    case FBT_FLOAT: return (long) readDouble(bb, end, parentWidth);
+                    case FBT_INDIRECT_FLOAT: return (long) readDouble(bb, indirect(bb, end, parentWidth), byteWidth);
+                    case FBT_NULL: return 0;
+                    case FBT_STRING: {
+                        try {
+                            return Long.parseLong(asString());
+                        }catch (NumberFormatException nfe) {
+                            return 0; //same as C++ implementation
+                        }
+                    }
+                    case FBT_VECTOR: return asVector().size();
+                    case FBT_BOOL: return readInt(bb, end, parentWidth);
+                    default:
+                        // Convert other things to int.
+                        return 0;
+                }
         }
 
-        public BigInteger asULong() {
-            if (type != FBT_INDIRECT_UINT && type != FBT_UINT)
-                throw new InvalidTypeConversionFlexBufferException(type, FBT_UINT);
-            int pos = type == FBT_INDIRECT_UINT ? indirect(bb, end, parentWidth) : end;
-            return new BigInteger(Long.toUnsignedString(readLong(bb, pos, parentWidth)));
-        }
-
-        public float asFloat() {
-            if (type != FBT_FLOAT && type != FBT_INDIRECT_FLOAT)
-                throw new InvalidTypeConversionFlexBufferException(type, FBT_FLOAT);
-            int pos = type == FBT_INDIRECT_FLOAT ? indirect(bb, end, parentWidth) : end;
-            return (float) readDouble(bb, pos, parentWidth);
-        }
-
-        public double asDouble() {
-            if (type != FBT_FLOAT && type != FBT_INDIRECT_FLOAT)
-                throw new InvalidTypeConversionFlexBufferException(type, FBT_FLOAT);
-            int pos = type == FBT_INDIRECT_FLOAT ? indirect(bb, end, parentWidth) : end;
-            return readDouble(bb, pos, parentWidth);
+        public double asFloat() {
+            if (type == FBT_FLOAT) {
+                // A fast path for the common case.
+                return readDouble(bb, end, parentWidth);
+            } else
+                switch (type) {
+                    case FBT_INDIRECT_FLOAT: return readDouble(bb, indirect(bb, end, parentWidth), byteWidth);
+                    case FBT_INT: return readInt(bb, end, parentWidth);
+                    case FBT_UINT:
+                    case FBT_BOOL:
+                        return readUInt(bb, end, parentWidth);
+                    case FBT_INDIRECT_INT: return readInt(bb, indirect(bb, end, parentWidth), byteWidth);
+                    case FBT_INDIRECT_UINT: return readUInt(bb, indirect(bb, end, parentWidth), byteWidth);
+                    case FBT_NULL: return 0.0;
+                    case FBT_STRING: return Double.parseDouble(asString());
+                    case FBT_VECTOR: return asVector().size();
+                    default:
+                        // Convert strings and other things to float.
+                        return 0;
+                }
         }
 
         public Key asKey() {
@@ -386,7 +395,7 @@ public class FlexBuffers {
             if (type == FBT_BOOL) {
                 return bb.get(end) != 0;
             }
-            throw new InvalidTypeConversionFlexBufferException(type, FBT_INT);
+            return asUInt() != 0;
         }
 
         @Override
@@ -405,10 +414,10 @@ public class FlexBuffers {
                     return sb.append(asLong());
                 case FBT_UINT:
                 case FBT_INDIRECT_UINT:
-                    return sb.append(asULong());
+                    return sb.append(asUInt());
                 case FBT_INDIRECT_FLOAT:
                 case FBT_FLOAT:
-                    return sb.append(asDouble());
+                    return sb.append(asFloat());
                 case FBT_KEY:
                     return asKey().toString(sb.append('"')).append('"');
                 case FBT_STRING:
@@ -512,6 +521,11 @@ public class FlexBuffers {
             return result;
         }
 
+        public byte get(int pos) {
+            assert pos >=0 && pos <= size();
+            return bb.get(end + pos);
+        }
+
         @Override
         public String toString() {
             return Utf8.getDefault().decodeUtf8(bb, end, size());
@@ -599,9 +613,17 @@ public class FlexBuffers {
          * @return reference to value in map
          */
         public Reference get(String key) {
+            return get(key.getBytes(StandardCharsets.UTF_8));
+        }
+
+        /**
+         * @param key access key to element on map. Keys are assumed to be encoded in UTF-8
+         * @return reference to value in map
+         */
+        public Reference get(byte[] key) {
             KeyVector keys = keys();
             int size = keys.size();
-            int index = binarySearch(keys, key.getBytes(StandardCharsets.UTF_8));
+            int index = binarySearch(keys, key);
             if (index >= 0 && index < size) {
                 return get(index);
             }
@@ -638,7 +660,7 @@ public class FlexBuffers {
         public StringBuilder toString(StringBuilder builder) {
             builder.append("{ ");
             KeyVector keys = keys();
-            int size = (int) size();
+            int size = size();
             Vector vals = values();
             for (int i = 0; i < size; i++) {
                 builder.append('"')
@@ -716,7 +738,7 @@ public class FlexBuffers {
             if (index >= len) {
                 return Reference.NULL_REFERENCE;
             }
-            int packedType = Byte.toUnsignedInt(bb.get((int) (end + (len * byteWidth) + index)));
+            int packedType = byteToUnsignedInt(bb.get((int) (end + (len * byteWidth) + index)));
             int obj_end = end + index * byteWidth;
             return new Reference(bb, obj_end, byteWidth, packedType);
         }
@@ -791,7 +813,10 @@ public class FlexBuffers {
          * @return key
          */
         public Key get(int pos) {
-            return vec.get(pos).asKey();
+            int len = size();
+            if (pos >= len) return Key.EMPTY;
+            int childPos = vec.end + pos * vec.byteWidth;
+            return new Key(vec.bb, indirect(vec.bb, childPos, vec.byteWidth), 1);
         }
 
         /**
@@ -822,9 +847,18 @@ public class FlexBuffers {
         }
     }
 
-    public static class InvalidTypeConversionFlexBufferException extends FlexBufferException {
-        InvalidTypeConversionFlexBufferException(int from, int to) {
-            super(String.format("Unable to convert type %s to %s", from, to));
+    static class Unsigned {
+
+        static int byteToUnsignedInt(byte x) {
+            return ((int) x) & 0xff;
+        }
+
+        static int shortToUnsignedInt(short x) {
+            return ((int) x) & 0xffff;
+        }
+
+        static long intToUnsignedLong(int x) {
+            return ((long) x) & 0xffffffffL;
         }
     }
 }
