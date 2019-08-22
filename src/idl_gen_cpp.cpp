@@ -581,7 +581,7 @@ class CppGenerator : public BaseGenerator {
     } else if (is_constructor) {
       return "";
     } else {
-      return type + "*";
+      return type + " *";
     }
   }
 
@@ -595,44 +595,60 @@ class CppGenerator : public BaseGenerator {
 
   std::string GenTypeNative(const Type &type, const FieldDef &field,
                             bool invector = false) {
-    auto cpp_type = field.attributes.Lookup("cpp_type");
-    if (cpp_type && !invector) {
-      if (field.value.type.base_type == BASE_TYPE_VECTOR)
-        return "std::vector<" + GenTypeNativePtr(cpp_type->constant, &field, false) + ">";
-      else
-        return GenTypeNativePtr(cpp_type->constant, &field, false);
-    } else if (type.base_type == BASE_TYPE_STRING) {
-      return NativeString(&field);
-    } else if (type.base_type == BASE_TYPE_VECTOR) {
-      const auto type_name = GenTypeNative(type.VectorType(), field, true);
-      if (type.struct_def &&
-          type.struct_def->attributes.Lookup("native_custom_alloc")) {
-        auto native_custom_alloc =
-            type.struct_def->attributes.Lookup("native_custom_alloc");
-        return "std::vector<" + type_name + "," +
-               native_custom_alloc->constant + "<" + type_name + ">>";
-      } else
-        return "std::vector<" + type_name + ">";
-    } else if (type.base_type == BASE_TYPE_STRUCT) {
-      auto type_name = WrapInNameSpace(*type.struct_def);
-      if (IsStruct(type)) {
-        auto native_type = type.struct_def->attributes.Lookup("native_type");
-        if (native_type) { type_name = native_type->constant; }
-        if (invector || field.native_inline) {
-          return type_name;
-        } else {
-          return GenTypeNativePtr(type_name, &field, false);
-        }
-      } else {
-        return GenTypeNativePtr(
-            NativeName(type_name, type.struct_def, parser_.opts), &field,
-            false);
+    std::string result;
+    switch (type.base_type) {
+      case BASE_TYPE_STRING: {
+        result = NativeString(&field);
+        break;
       }
-    } else if (type.base_type == BASE_TYPE_UNION) {
-      return type.enum_def->name + "Union";
-    } else {
-      return GenTypeBasic(type, true);
+      case BASE_TYPE_VECTOR: {
+        const auto type_name = GenTypeNative(type.VectorType(), field, true);
+        if (type.struct_def &&
+            type.struct_def->attributes.Lookup("native_custom_alloc")) {
+          auto native_custom_alloc =
+              type.struct_def->attributes.Lookup("native_custom_alloc");
+          result = "std::vector<" + type_name + "," +
+                 native_custom_alloc->constant + "<" + type_name + ">>";
+        } else
+          result = "std::vector<" + type_name + ">";
+        break;
+      }
+      case BASE_TYPE_STRUCT: {
+        auto type_name = WrapInNameSpace(*type.struct_def);
+        if (IsStruct(type)) {
+          auto native_type = type.struct_def->attributes.Lookup("native_type");
+          if (native_type) { type_name = native_type->constant; }
+          if (invector || field.native_inline) {
+            result = type_name;
+          } else {
+            result = GenTypeNativePtr(type_name, &field, false);
+          }
+        } else {
+          result = GenTypeNativePtr(
+              NativeName(type_name, type.struct_def, parser_.opts), &field,
+              false);
+        }
+        break;
+      }
+      case BASE_TYPE_UNION: {
+        result = type.enum_def->name + "Union";
+        break;
+      }
+      default: {
+        result = GenTypeBasic(type, true);
+      }
     }
+
+    auto cpp_type = field.attributes.Lookup("cpp_type");
+
+    if (invector)
+      return result;
+    else if (cpp_type) {
+      return field.value.type.base_type == BASE_TYPE_VECTOR
+        ? "std::vector<" + GenTypeNativePtr(cpp_type->constant, &field, false) + "> "
+        : GenTypeNativePtr(cpp_type->constant, &field, false);
+    } else
+      return result + " ";
   }
 
   // Return a C++ type for any type (scalar/pointer) specifically for
@@ -1457,7 +1473,7 @@ class CppGenerator : public BaseGenerator {
       auto type = GenTypeNative(field.value.type, field);
       code_.SetValue("FIELD_TYPE", type);
       code_.SetValue("FIELD_NAME", Name(field));
-      code_ += "  {{FIELD_TYPE}} {{FIELD_NAME}};";
+      code_ += "  {{FIELD_TYPE}}{{FIELD_NAME}};";
     }
   }
 

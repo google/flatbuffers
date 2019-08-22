@@ -1033,7 +1033,7 @@ struct MonsterT : public flatbuffers::NativeTable {
   int64_t testhashs64_fnv1;
   uint64_t testhashu64_fnv1;
   int32_t testhashs32_fnv1a;
-  Stat* testhashu32_fnv1a;
+  Stat *testhashu32_fnv1a;
   int64_t testhashs64_fnv1a;
   uint64_t testhashu64_fnv1a;
   std::vector<bool> testarrayofbools;
@@ -1048,13 +1048,13 @@ struct MonsterT : public flatbuffers::NativeTable {
   std::vector<double> vector_of_doubles;
   flatbuffers::unique_ptr<MyGame::InParentNamespaceT> parent_namespace_test;
   std::vector<flatbuffers::unique_ptr<ReferrableT>> vector_of_referrables;
-  ReferrableT* single_weak_reference;
-  std::vector<ReferrableT*> vector_of_weak_references;
+  ReferrableT *single_weak_reference;
+  std::vector<ReferrableT *> vector_of_weak_references;
   std::vector<flatbuffers::unique_ptr<ReferrableT>> vector_of_strong_referrables;
-  ReferrableT* co_owning_reference;
+  ReferrableT *co_owning_reference;
   std::vector<flatbuffers::unique_ptr<ReferrableT>> vector_of_co_owning_references;
-  ReferrableT* non_owning_reference;
-  std::vector<ReferrableT*> vector_of_non_owning_references;
+  ReferrableT *non_owning_reference;
+  std::vector<ReferrableT *> vector_of_non_owning_references;
   AnyUniqueAliasesUnion any_unique;
   AnyAmbiguousAliasesUnion any_ambiguous;
   std::vector<Color> vector_of_enums;
