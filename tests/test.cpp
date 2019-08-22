@@ -2810,6 +2810,9 @@ void FixedLengthArrayTest() {
   TEST_NOTNULL(nStruct0.mutable_c());
   nStruct0.mutable_c()->Mutate(0, MyGame::Example::TestEnum::C);
   nStruct0.mutable_c()->Mutate(1, MyGame::Example::TestEnum::A);
+  TEST_NOTNULL(nStruct0.mutable_d());
+  nStruct0.mutable_d()->Mutate(0, flatbuffers::numeric_limits<int64_t>::max());
+  nStruct0.mutable_d()->Mutate(1, flatbuffers::numeric_limits<int64_t>::min());
   MyGame::Example::NestedStruct nStruct1(MyGame::Example::TestEnum::C);
   TEST_NOTNULL(nStruct1.mutable_a());
   nStruct1.mutable_a()->Mutate(0, 3);
@@ -2817,10 +2820,14 @@ void FixedLengthArrayTest() {
   TEST_NOTNULL(nStruct1.mutable_c());
   nStruct1.mutable_c()->Mutate(0, MyGame::Example::TestEnum::C);
   nStruct1.mutable_c()->Mutate(1, MyGame::Example::TestEnum::A);
-  MyGame::Example::ArrayStruct aStruct(2, 12);
+  TEST_NOTNULL(nStruct1.mutable_d());
+  nStruct1.mutable_d()->Mutate(0, flatbuffers::numeric_limits<int64_t>::min());
+  nStruct1.mutable_d()->Mutate(1, flatbuffers::numeric_limits<int64_t>::max());
+  MyGame::Example::ArrayStruct aStruct(2, 12, 1);
   TEST_NOTNULL(aStruct.b());
   TEST_NOTNULL(aStruct.mutable_b());
   TEST_NOTNULL(aStruct.mutable_d());
+  TEST_NOTNULL(aStruct.mutable_f());
   for (int i = 0; i < aStruct.b()->size(); i++)
     aStruct.mutable_b()->Mutate(i, i + 1);
   aStruct.mutable_d()->Mutate(0, nStruct0);
@@ -2836,8 +2843,10 @@ void FixedLengthArrayTest() {
   TEST_NOTNULL(mArStruct);
   TEST_NOTNULL(mArStruct->b());
   TEST_NOTNULL(mArStruct->d());
+  TEST_NOTNULL(mArStruct->f());
   TEST_NOTNULL(mArStruct->mutable_b());
   TEST_NOTNULL(mArStruct->mutable_d());
+  TEST_NOTNULL(mArStruct->mutable_f());
   mArStruct->mutable_b()->Mutate(14, -14);
   TEST_EQ(mArStruct->a(), 2);
   TEST_EQ(mArStruct->b()->size(), 15);
@@ -2859,14 +2868,25 @@ void FixedLengthArrayTest() {
           true);
   TEST_EQ(mArStruct->d()->Get(0).c()->Get(1) == MyGame::Example::TestEnum::A,
           true);
+  TEST_EQ(mArStruct->d()->Get(0).d()->Get(0),
+          flatbuffers::numeric_limits<int64_t>::max());
+  TEST_EQ(mArStruct->d()->Get(0).d()->Get(1),
+          flatbuffers::numeric_limits<int64_t>::min());
   TEST_EQ(mArStruct->d()->Get(1).b() == MyGame::Example::TestEnum::C, true);
   TEST_NOTNULL(mArStruct->d()->Get(1).c());
   TEST_EQ(mArStruct->d()->Get(1).c()->Get(0) == MyGame::Example::TestEnum::C,
           true);
   TEST_EQ(mArStruct->d()->Get(1).c()->Get(1) == MyGame::Example::TestEnum::A,
           true);
+  TEST_EQ(mArStruct->d()->Get(1).d()->Get(0),
+          flatbuffers::numeric_limits<int64_t>::min());
+  TEST_EQ(mArStruct->d()->Get(1).d()->Get(1),
+          flatbuffers::numeric_limits<int64_t>::max());
   for (int i = 0; i < mArStruct->b()->size() - 1; i++)
     TEST_EQ(mArStruct->b()->Get(i), i + 1);
+  // Check alignment
+  TEST_EQ(reinterpret_cast<uintptr_t>(mArStruct->d()) % 8, 0);
+  TEST_EQ(reinterpret_cast<uintptr_t>(mArStruct->f()) % 8, 0);
 #endif
 }
 

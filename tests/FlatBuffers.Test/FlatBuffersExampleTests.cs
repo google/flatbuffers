@@ -342,6 +342,9 @@ namespace FlatBuffers.Test
             int[,]  d_a = new int[2, 2];
             TestEnum[]  d_b = new TestEnum[2];
             TestEnum[,] d_c = new TestEnum[2, 2];
+            long[,]     d_d = new long[2, 2];
+            int         e;
+            long[]      f = new long[2];
 
             a = 0.5f;
             for (int i = 0; i < 15; i++) b[i] = i;
@@ -356,9 +359,16 @@ namespace FlatBuffers.Test
             d_c[0, 1] = TestEnum.B;
             d_c[1, 0] = TestEnum.C;
             d_c[1, 1] = TestEnum.B;
+            d_d[0, 0] = -1;
+            d_d[0, 1] = 1;
+            d_d[1, 0] = -2;
+            d_d[1, 1] = 2;
+            e = 2;
+            f[0] = -1;
+            f[1] = 1;
 
             Offset<ArrayStruct> arrayOffset = ArrayStruct.CreateArrayStruct(
-                builder, a, b, c, d_a, d_b, d_c);
+                builder, a, b, c, d_a, d_b, d_c, d_d, e, f);
 
             // Create a table with the ArrayStruct.
             ArrayTable.StartArrayTable(builder);
@@ -382,6 +392,13 @@ namespace FlatBuffers.Test
             Assert.AreEqual(table.A?.D(0).C(1), TestEnum.B);
             Assert.AreEqual(table.A?.D(1).C(0), TestEnum.C);
             Assert.AreEqual(table.A?.D(1).C(1), TestEnum.B);
+            Assert.AreEqual(table.A?.D(0).D(0), -1);
+            Assert.AreEqual(table.A?.D(0).D(1), 1);
+            Assert.AreEqual(table.A?.D(1).D(0), -2);
+            Assert.AreEqual(table.A?.D(1).D(1), 2);
+            Assert.AreEqual(table.A?.E, 2);
+            Assert.AreEqual(table.A?.F(0), -1);
+            Assert.AreEqual(table.A?.F(1), 1);
         }
     }
 }
