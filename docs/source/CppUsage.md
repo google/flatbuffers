@@ -35,7 +35,7 @@ The test code itself is located in
 [test.cpp](https://github.com/google/flatbuffers/blob/master/tests/test.cpp).
 
 This test file is built alongside `flatc`. To review how to build the project,
-please read the [Building](@ref flatbuffers_guide_building) documenation.
+please read the [Building](@ref flatbuffers_guide_building) documentation.
 
 To run the tests, execute `flattests` from the root `flatbuffers/` directory.
 For example, on [Linux](https://en.wikipedia.org/wiki/Linux), you would simply
@@ -88,6 +88,14 @@ convenient accessors for all fields, e.g. `hp()`, `mana()`, etc:
 
 *Note: That we never stored a `mana` value, so it will return the default.*
 
+The following attributes are supported:
+
+-   `shared` (on a field): For string fields, this enables the usage of string
+    pooling (i.e. `CreateSharedString`) as default serialization behavior.
+
+    Specifically, `CreateXxxDirect` functions and `Pack` functions for object
+    based API (see below) will use `CreateSharedString` to create strings.
+
 ## Object based API.  {#flatbuffers_cpp_object_based_api}
 
 FlatBuffers is all about memory efficiency, which is why its base API is written
@@ -130,10 +138,10 @@ The following attributes are specific to the object-based API code generation:
     verbatim in the class constructor initializer list for this member.
 
 -   `native_custom_alloc`:"custom_allocator" (on a table or struct): When using the
-    object-based API all generated NativeTables that  are allocated when unpacking 
-    your  flatbuffer will use "custom allocator". The allocator is also used by 
-    any std::vector that appears in a table defined with `native_custom_alloc`. 
-    This can be  used to provide allocation from a pool for example, for faster 
+    object-based API all generated NativeTables that  are allocated when unpacking
+    your  flatbuffer will use "custom allocator". The allocator is also used by
+    any std::vector that appears in a table defined with `native_custom_alloc`.
+    This can be  used to provide allocation from a pool for example, for faster
     unpacking when using the object-based API.
 
     Minimal Example:
@@ -151,8 +159,8 @@ The following attributes are specific to the object-based API code generation:
       typedef T *pointer;
 
       template <class U>
-      struct rebind { 
-        typedef custom_allocator<U> other; 
+      struct rebind {
+        typedef custom_allocator<U> other;
       };
 
       pointer allocate(const std::size_t n) {
@@ -164,7 +172,7 @@ The following attributes are specific to the object-based API code generation:
       }
 
       custom_allocator() throw() {}
-      template <class U> 
+      template <class U>
       custom_allocator(const custom_allocator<U>&) throw() {}
     };
 
@@ -208,11 +216,14 @@ The following attributes are specific to the object-based API code generation:
 
 Finally, the following top-level attribute
 
--   native_include: "path" (at file level): Because the `native_type` attribute
+-   `native_include`: "path" (at file level): Because the `native_type` attribute
     can be used to introduce types that are unknown to flatbuffers, it may be
     necessary to include "external" header files in the generated code.  This
     attribute can be used to directly add an #include directive to the top of
     the generated code that includes the specified path directly.
+
+-   `force_align`: this attribute may not be respected in the object API,
+    depending on the aligned of the allocator used with `new`.
 
 # External references.
 
@@ -244,14 +255,24 @@ you, so you'll have to manage their lifecycles manually.  To reference the
 pointer type specified by the `--cpp-ptr-type` argument to `flatc` from a
 flatbuffer field set the `cpp_ptr_type` attribute to `default_ptr_type`.
 
-
 # Using different string type.
 
 By default the object tree is built out of `std::string`, but you can
 influence this either globally (using the `--cpp-str-type` argument to
 `flatc`) or per field using the `cpp_str_type` attribute.
 
-The type must support T::c_str() and T::length() as member functions.
+The type must support T::c_str(), T::length() and T::empty() as member functions.
+
+Further, the type must be constructible from std::string, as by default a
+std::string instance is constructed and then used to initialize the custom
+string type. This behavior impedes efficient and zero-copy construction of
+custom string types; the `--cpp-str-flex-ctor` argument to `flatc` or the
+per field attribute `cpp_str_flex_ctor` can be used to change this behavior,
+so that the custom string type is constructed by passing the pointer and
+length of the FlatBuffers String. The custom string class will require a
+constructor in the following format: custom_str_class(const char *, size_t).
+Please note that the character array is not guaranteed to be NULL terminated,
+you should always use the provided size to determine end of string.
 
 ## Reflection (& Resizing)
 
@@ -499,47 +520,89 @@ To use scalars, simply wrap them in a struct.
 
 ## Depth limit of nested objects and stack-overflow control
 The parser of Flatbuffers schema or json-files is kind of recursive parser.
-To avoid stack-overflow problem the parser has a built-in limiter of 
-recursion depth. Number of nested declarations in a schema or number of 
+To avoid stack-overflow problem the parser has a built-in limiter of
+recursion depth. Number of nested declarations in a schema or number of
 nested json-objects is limited. By default, this depth limit set to `64`.
-It is possible to override this limit with `FLATBUFFERS_MAX_PARSING_DEPTH` 
-definition. This definition can be helpful for testing purposes or embedded 
-applications. For details see [build](@ref flatbuffers_guide_building) of 
+It is possible to override this limit with `FLATBUFFERS_MAX_PARSING_DEPTH`
+definition. This definition can be helpful for testing purposes or embedded
+applications. For details see [build](@ref flatbuffers_guide_building) of
 CMake-based projects.
 
 ## Dependence from C-locale {#flatbuffers_locale_cpp}
-The Flatbuffers [grammar](@ref flatbuffers grammar) uses ASCII 
+The Flatbuffers [grammar](@ref flatbuffers grammar) uses ASCII
 character set for identifiers, alphanumeric literals, reserved words.
 
-Internal implementation of the Flatbuffers depends from functions which 
+Internal implementation of the Flatbuffers depends from functions which
 depend from C-locale: `strtod()` or `strtof()`, for example.
-The library expects the dot `.` symbol as the separator of an integer 
+The library expects the dot `.` symbol as the separator of an integer
 part from the fractional part of a float number.
-Another separator symbols (`,` for example) will break the compatibility 
+Another separator symbols (`,` for example) will break the compatibility
 and may lead to an error while parsing a Flatbuffers schema or a json file.
 
-The Standard C locale is a global resource, there is only one locale for 
-the entire application. Some modern compilers and platforms have 
-locale-independent or locale-narrow functions `strtof_l`, `strtod_l`, 
-`strtoll_l`, `strtoull_l` to resolve this dependency. 
-These functions use specified locale rather than the global or per-thread 
-locale instead. They are part of POSIX-2008 but not part of the C/C++ 
+The Standard C locale is a global resource, there is only one locale for
+the entire application. Some modern compilers and platforms have
+locale-independent or locale-narrow functions `strtof_l`, `strtod_l`,
+`strtoll_l`, `strtoull_l` to resolve this dependency.
+These functions use specified locale rather than the global or per-thread
+locale instead. They are part of POSIX-2008 but not part of the C/C++
 standard library, therefore, may be missing on some platforms.
-
-The Flatbuffers library try to detect these functions at configuration and 
+The Flatbuffers library try to detect these functions at configuration and
 compile time:
-- `_MSC_VER >= 1900`: check MSVC2012 or higher for MSVC buid
-- `_XOPEN_SOURCE>=700`: check POSIX-2008 for GCC/Clang build
-- `check_cxx_symbol_exists(strtof_l stdlib.h)`: CMake check of `strtod_f`
+- CMake `"CMakeLists.txt"`:
+  - Check existence of `strtol_l` and `strtod_l` in the `<stdlib.h>`.
+- Compile-time `"/include/base.h"`:
+  - `_MSC_VER >= 1900`: MSVC2012 or higher if build with MSVC.
+  - `_XOPEN_SOURCE>=700`: POSIX-2008 if build with GCC/Clang.
 
-After detection, the definition `FLATBUFFERS_LOCALE_INDEPENDENT` will be 
+After detection, the definition `FLATBUFFERS_LOCALE_INDEPENDENT` will be
 set to `0` or `1`.
+To override or stop this detection use CMake `-DFLATBUFFERS_LOCALE_INDEPENDENT={0|1}`
+or predefine `FLATBUFFERS_LOCALE_INDEPENDENT` symbol.
 
-It is possible to test the compatibility of the Flatbuffers library with 
-a specific locale using the environment variable `FLATBUFFERS_TEST_LOCALE`:
+To test the compatibility of the Flatbuffers library with
+a specific locale use the environment variable `FLATBUFFERS_TEST_LOCALE`:
 ```sh
 >FLATBUFFERS_TEST_LOCALE="" ./flattests
 >FLATBUFFERS_TEST_LOCALE="ru_RU.CP1251" ./flattests
 ```
+
+## Support of floating-point numbers
+The Flatbuffers library assumes that a C++ compiler and a CPU are 
+compatible with the `IEEE-754` floating-point standard.
+The schema and json parser may fail if `fast-math` or `/fp:fast` mode is active.
+
+### Support of hexadecimal and special floating-point numbers
+According to the [grammar](@ref flatbuffers_grammar) `fbs` and `json` files 
+may use hexadecimal and special (`NaN`, `Inf`) floating-point literals.
+The Flatbuffers uses `strtof` and `strtod` functions to parse floating-point
+literals. The Flatbuffers library has a code to detect a compiler compatibility 
+with the literals. If necessary conditions are met the preprocessor constant
+`FLATBUFFERS_HAS_NEW_STRTOD` will be set to `1`.
+The support of floating-point literals will be limited at compile time
+if `FLATBUFFERS_HAS_NEW_STRTOD` constant is less than `1`.
+In this case, schemas with hexadecimal or special literals cannot be used.
+
+### Comparison of floating-point NaN values
+The floating-point `NaN` (`not a number`) is special value which 
+representing an undefined or unrepresentable value.
+`NaN` may be explicitly assigned to variables, typically as a representation 
+for missing values or may be a result of a mathematical operation.
+The `IEEE-754` defines two kind of `NaNs`:
+- Quiet NaNs, or `qNaNs`.
+- Signaling NaNs, or `sNaNs`.
+
+According to the `IEEE-754`, a comparison with `NaN` always returns 
+an unordered result even when compared with itself. As a result, a whole 
+Flatbuffers object will be not equal to itself if has one or more `NaN`.
+Flatbuffers scalar fields that have the default value are not actually stored 
+in the serialized data but are generated in code (see [Writing a schema](@ref flatbuffers_guide_writing_schema)).
+Scalar fields with `NaN` defaults break this behavior.
+If a schema has a lot of `NaN` defaults the Flatbuffers can override 
+the unordered comparison by the ordered: `(NaN==NaN)->true`.
+This ordered comparison is enabled when compiling a program with the symbol
+`FLATBUFFERS_NAN_DEFAULTS` defined.
+Additional computations added by `FLATBUFFERS_NAN_DEFAULTS` are very cheap
+if GCC or Clang used. These compilers have a compile-time implementation 
+of `isnan` checking which MSVC does not.
 
 <br>

@@ -15,6 +15,7 @@
  */
 
 #include "flatbuffers/flatc.h"
+#include "flatbuffers/util.h"
 
 static const char *g_program_name = nullptr;
 
@@ -34,6 +35,9 @@ static void Error(const flatbuffers::FlatCompiler *flatc,
 }
 
 int main(int argc, const char *argv[]) {
+  // Prevent Appveyor-CI hangs.
+  flatbuffers::SetupDefaultCRTReportMode();
+
   g_program_name = argv[0];
 
   const flatbuffers::FlatCompiler::Generator generators[] = {
@@ -88,6 +92,9 @@ int main(int argc, const char *argv[]) {
       flatbuffers::RustMakeRule },
     { flatbuffers::GeneratePhp, nullptr, "--php", "PHP", true, nullptr,
       flatbuffers::IDLOptions::kPhp, "Generate PHP files for tables/structs",
+      flatbuffers::GeneralMakeRule },
+    { flatbuffers::GenerateKotlin, nullptr, "--kotlin", "Kotlin", true, nullptr,
+      flatbuffers::IDLOptions::kKotlin, "Generate Kotlin classes for tables/structs",
       flatbuffers::GeneralMakeRule },
     { flatbuffers::GenerateJsonSchema, nullptr, "--jsonschema", "JsonSchema",
       true, nullptr, flatbuffers::IDLOptions::kJsonSchema,

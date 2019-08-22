@@ -21,6 +21,7 @@ PY_VERSION = sys.version_info[:2]
 import ctypes
 from collections import defaultdict
 import math
+import random
 import timeit
 import unittest
 
@@ -41,7 +42,10 @@ import MyGame.Example.Test  # refers to generated code
 import MyGame.Example.Stat  # refers to generated code
 import MyGame.Example.Vec3  # refers to generated code
 import MyGame.MonsterExtra  # refers to generated code
-
+import MyGame.Example.ArrayTable  # refers to generated code
+import MyGame.Example.ArrayStruct  # refers to generated code
+import MyGame.Example.NestedStruct  # refers to generated code
+import MyGame.Example.TestEnum  # refers to generated code
 
 def assertRaises(test_case, fn, exception_class):
     ''' Backwards-compatible assertion for exceptions raised. '''
@@ -61,8 +65,9 @@ class TestWireFormat(unittest.TestCase):
         # returning errors, and is interpreted correctly, for size prefixed
         # representation and regular:
         for sizePrefix in [True, False]:
-            gen_buf, gen_off = make_monster_from_generated_code(sizePrefix = sizePrefix)
-            CheckReadBuffer(gen_buf, gen_off, sizePrefix = sizePrefix)
+            for file_identifier in [None, b"MONS"]:
+                gen_buf, gen_off = make_monster_from_generated_code(sizePrefix=sizePrefix, file_identifier=file_identifier)
+                CheckReadBuffer(gen_buf, gen_off, sizePrefix=sizePrefix, file_identifier=file_identifier)
 
         # Verify that the canonical flatbuffer file is readable by the
         # generated Python code. Note that context managers are not part of
@@ -70,7 +75,7 @@ class TestWireFormat(unittest.TestCase):
         f = open('monsterdata_test.mon', 'rb')
         canonicalWireData = f.read()
         f.close()
-        CheckReadBuffer(bytearray(canonicalWireData), 0)
+        CheckReadBuffer(bytearray(canonicalWireData), 0, file_identifier=b'MONS')
 
         # Write the generated buffer out to a file:
         f = open('monsterdata_python_wire.mon', 'wb')
@@ -78,7 +83,7 @@ class TestWireFormat(unittest.TestCase):
         f.close()
 
 
-def CheckReadBuffer(buf, offset, sizePrefix = False):
+def CheckReadBuffer(buf, offset, sizePrefix=False, file_identifier=None):
     ''' CheckReadBuffer checks that the given buffer is evaluated correctly
         as the example Monster. '''
 
@@ -86,12 +91,18 @@ def CheckReadBuffer(buf, offset, sizePrefix = False):
         ''' An assertion helper that is separated from TestCase classes. '''
         if not stmt:
             raise AssertionError('CheckReadBuffer case failed')
-
+    if file_identifier:
+        # test prior to removal of size_prefix
+        asserter(util.GetBufferIdentifier(buf, offset, size_prefixed=sizePrefix) == file_identifier)
+        asserter(util.BufferHasIdentifier(buf, offset, file_identifier=file_identifier, size_prefixed=sizePrefix))
     if sizePrefix:
         size = util.GetSizePrefix(buf, offset)
-        # taken from the size of monsterdata_python_wire.mon, minus 4
-        asserter(size == 348)
+        asserter(size == len(buf[offset:])-4)
         buf, offset = util.RemoveSizePrefix(buf, offset)
+    if file_identifier:
+        asserter(MyGame.Example.Monster.Monster.MonsterBufferHasIdentifier(buf, offset))
+    else:
+        asserter(not MyGame.Example.Monster.Monster.MonsterBufferHasIdentifier(buf, offset))
     monster = MyGame.Example.Monster.Monster.GetRootAsMonster(buf, offset)
 
     asserter(monster.Hp() == 80)
@@ -1079,7 +1090,7 @@ class TestByteLayout(unittest.TestCase):
         ])
 
 
-def make_monster_from_generated_code(sizePrefix = False):
+def make_monster_from_generated_code(sizePrefix = False, file_identifier=None):
     ''' Use generated code to build the example Monster. '''
 
     b = flatbuffers.Builder(0)
@@ -1141,9 +1152,9 @@ def make_monster_from_generated_code(sizePrefix = False):
     mon = MyGame.Example.Monster.MonsterEnd(b)
 
     if sizePrefix:
-        b.FinishSizePrefixed(mon)
+        b.FinishSizePrefixed(mon, file_identifier)
     else:
-        b.Finish(mon)
+        b.Finish(mon, file_identifier)
 
     return b.Bytes, b.Head()
 
@@ -1408,13 +1419,13 @@ class TestAllCodePathsOfMonsterExtraSchema(unittest.TestCase):
         self.mon = MyGame.MonsterExtra.MonsterExtra.GetRootAsMonsterExtra(b.Bytes, b.Head())
 
     def test_default_nan_inf(self):
-        self.assertTrue(math.isnan(self.mon.TestfNan()))
-        self.assertEqual(self.mon.TestfPinf(), float("inf"))
-        self.assertEqual(self.mon.TestfNinf(), float("-inf"))
+        self.assertTrue(math.isnan(self.mon.F1()))
+        self.assertEqual(self.mon.F2(), float("inf"))
+        self.assertEqual(self.mon.F3(), float("-inf"))
 
-        self.assertTrue(math.isnan(self.mon.TestdNan()))
-        self.assertEqual(self.mon.TestdPinf(), float("inf"))
-        self.assertEqual(self.mon.TestdNinf(), float("-inf"))
+        self.assertTrue(math.isnan(self.mon.D1()))
+        self.assertEqual(self.mon.D2(), float("inf"))
+        self.assertEqual(self.mon.D3(), float("-inf"))
 
 
 class TestVtableDeduplication(unittest.TestCase):
@@ -1543,6 +1554,55 @@ class TestExceptions(unittest.TestCase):
                      flatbuffers.builder.BuilderNotFinishedError)
 
 
+class TestFixedLengthArrays(unittest.TestCase):
+    def test_fixed_length_array(self):
+        builder = flatbuffers.Builder(0)
+
+        a = 0.5
+        b = range(0, 15)
+        c = 1
+        d_a = [[1, 2], [3, 4]]
+        d_b = [MyGame.Example.TestEnum.TestEnum.B, \
+                MyGame.Example.TestEnum.TestEnum.C]
+        d_c = [[MyGame.Example.TestEnum.TestEnum.A, \
+                MyGame.Example.TestEnum.TestEnum.B], \
+                [MyGame.Example.TestEnum.TestEnum.C, \
+                 MyGame.Example.TestEnum.TestEnum.B]]
+
+        arrayOffset = MyGame.Example.ArrayStruct.CreateArrayStruct(builder, \
+            a, b, c, d_a, d_b, d_c)
+
+        # Create a table with the ArrayStruct.
+        MyGame.Example.ArrayTable.ArrayTableStart(builder)
+        MyGame.Example.ArrayTable.ArrayTableAddA(builder, arrayOffset)
+        tableOffset = MyGame.Example.ArrayTable.ArrayTableEnd(builder)
+
+        builder.Finish(tableOffset)
+
+        buf = builder.Output()
+
+        table = MyGame.Example.ArrayTable.ArrayTable.GetRootAsArrayTable(buf, 0)
+
+        # Verify structure.
+        nested = MyGame.Example.NestedStruct.NestedStruct()
+        self.assertEqual(table.A().A(), 0.5)
+        self.assertEqual(table.A().B(), \
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14])
+        self.assertEqual(table.A().C(), 1)
+        self.assertEqual(table.A().D(nested, 0).A(), [1, 2])
+        self.assertEqual(table.A().D(nested, 1).A(), [3, 4])
+        self.assertEqual(table.A().D(nested, 0).B(), \
+            MyGame.Example.TestEnum.TestEnum.B)
+        self.assertEqual(table.A().D(nested, 1).B(), \
+            MyGame.Example.TestEnum.TestEnum.C)
+        self.assertEqual(table.A().D(nested, 0).C(), \
+            [MyGame.Example.TestEnum.TestEnum.A, \
+             MyGame.Example.TestEnum.TestEnum.B])
+        self.assertEqual(table.A().D(nested, 1).C(), \
+            [MyGame.Example.TestEnum.TestEnum.C, \
+             MyGame.Example.TestEnum.TestEnum.B])
+
+
 def CheckAgainstGoldDataGo():
     try:
         gen_buf, gen_off = make_monster_from_generated_code()
@@ -1617,26 +1677,40 @@ def BenchmarkVtableDeduplication(count):
     When count is large (as in long benchmarks), memory usage may be high.
     '''
 
-    prePop = 10
-    builder = flatbuffers.Builder(0)
+    for prePop in (1, 10, 100, 1000):
+        builder = flatbuffers.Builder(0)
+        n = 1 + int(math.log(prePop, 1.5))
 
-    # pre-populate some vtables:
-    for i in compat_range(prePop):
-        builder.StartObject(i)
-        for j in compat_range(i):
-            builder.PrependInt16Slot(j, j, 0)
-        builder.EndObject()
+        # generate some layouts:
+        layouts = set()
+        r = list(compat_range(n))
+        while len(layouts) < prePop:
+            layouts.add(tuple(sorted(random.sample(r, int(max(1, n / 2))))))
 
-    # benchmark deduplication of a new vtable:
-    def f():
-        builder.StartObject(prePop)
-        for j in compat_range(prePop):
-            builder.PrependInt16Slot(j, j, 0)
-        builder.EndObject()
+        layouts = list(layouts)
 
-    duration = timeit.timeit(stmt=f, number=count)
-    rate = float(count) / duration
-    print(('vtable deduplication rate: %.2f/sec' % rate))
+        # pre-populate vtables:
+        for layout in layouts:
+            builder.StartObject(n)
+            for j in layout:
+                builder.PrependInt16Slot(j, j, 0)
+            builder.EndObject()
+
+        # benchmark deduplication of a new vtable:
+        def f():
+            layout = random.choice(layouts)
+            builder.StartObject(n)
+            for j in layout:
+                builder.PrependInt16Slot(j, j, 0)
+            builder.EndObject()
+
+        duration = timeit.timeit(stmt=f, number=count)
+        rate = float(count) / duration
+        print(('vtable deduplication rate (n=%d, vtables=%d): %.2f sec' % (
+            prePop,
+            len(builder.vtables),
+            rate))
+        )
 
 
 def BenchmarkCheckReadBuffer(count, buf, off):

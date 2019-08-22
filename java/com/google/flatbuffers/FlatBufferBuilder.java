@@ -65,6 +65,7 @@ public class FlatBufferBuilder {
      * @param initial_size The initial size of the internal buffer to use.
      * @param bb_factory The factory to be used for allocating the internal buffer
      * @param existing_bb The byte buffer to reuse.
+     * @param utf8 The Utf8 codec
      */
     public FlatBufferBuilder(int initial_size, ByteBufferFactory bb_factory,
                              ByteBuffer existing_bb, Utf8 utf8) {
@@ -76,10 +77,10 @@ public class FlatBufferBuilder {
         if (existing_bb != null) {
           bb = existing_bb;
           bb.clear();
+          bb.order(ByteOrder.LITTLE_ENDIAN);
         } else {
           bb = bb_factory.newByteBuffer(initial_size);
         }
-        bb.order(ByteOrder.LITTLE_ENDIAN);
         this.utf8 = utf8;
     }
 
@@ -89,7 +90,7 @@ public class FlatBufferBuilder {
     * @param initial_size The initial size of the internal buffer to use.
     */
     public FlatBufferBuilder(int initial_size) {
-        this(initial_size, new HeapByteBufferFactory(), null, Utf8.getDefault());
+        this(initial_size, HeapByteBufferFactory.INSTANCE, null, Utf8.getDefault());
     }
 
     /**
@@ -159,14 +160,15 @@ public class FlatBufferBuilder {
      * preserve the default behavior in the event that the user does not provide
      * their own implementation of this interface.
      */
-    public interface ByteBufferFactory {
+    public static abstract class ByteBufferFactory {
         /**
          * Create a `ByteBuffer` with a given capacity.
+         * The returned ByteBuf must have a ByteOrder.LITTLE_ENDIAN ByteOrder.
          *
          * @param capacity The size of the `ByteBuffer` to allocate.
          * @return Returns the new `ByteBuffer` that was allocated.
          */
-        ByteBuffer newByteBuffer(int capacity);
+        public abstract ByteBuffer newByteBuffer(int capacity);
 
         /**
          * Release a ByteBuffer. Current {@link FlatBufferBuilder}
@@ -177,7 +179,7 @@ public class FlatBufferBuilder {
          *
          * @param bb the buffer to release
          */
-        default void releaseByteBuffer(ByteBuffer bb) {
+        public void releaseByteBuffer(ByteBuffer bb) {
         }
     }
 
@@ -187,12 +189,26 @@ public class FlatBufferBuilder {
      *
      * Allocate memory for a new byte-array backed `ByteBuffer` array inside the JVM.
      */
-    public static final class HeapByteBufferFactory implements ByteBufferFactory {
+    public static final class HeapByteBufferFactory extends ByteBufferFactory {
+
+        public static final HeapByteBufferFactory INSTANCE = new HeapByteBufferFactory();
+
         @Override
         public ByteBuffer newByteBuffer(int capacity) {
             return ByteBuffer.allocate(capacity).order(ByteOrder.LITTLE_ENDIAN);
         }
     }
+
+   /**
+   * Helper function to test if a field is present in the table
+   *
+   * @param table Flatbuffer table
+   * @param offset virtual table offset
+   * @return true if the filed is present
+   */
+   public static boolean isFieldPresent(Table table, int offset) {
+     return table.__offset(offset) != 0;
+   }
 
     /**
      * Reset the FlatBufferBuilder by purging all data that it holds.
@@ -627,7 +643,7 @@ public class FlatBufferBuilder {
     *
     * @param numfields The number of fields found in this object.
     */
-    public void startObject(int numfields) {
+    public void startTable(int numfields) {
         notNested();
         if (vtable == null || vtable.length < numfields) vtable = new int[numfields];
         vtable_in_use = numfields;
@@ -752,11 +768,11 @@ public class FlatBufferBuilder {
     * Finish off writing the object that is under construction.
     *
     * @return The offset to the object inside {@link #dataBuffer()}.
-    * @see #startObject(int)
+    * @see #startTable(int)
     */
-    public int endObject() {
+    public int endTable() {
         if (vtable == null || !nested)
-            throw new AssertionError("FlatBuffers: endObject called without startObject");
+            throw new AssertionError("FlatBuffers: endTable called without startTable");
         addInt(0);
         int vtableloc = offset();
         // Write out the current vtable.

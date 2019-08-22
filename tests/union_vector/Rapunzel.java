@@ -7,10 +7,11 @@ import com.google.flatbuffers.*;
 
 @SuppressWarnings("unused")
 public final class Rapunzel extends Struct {
-  public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
+  public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }
   public Rapunzel __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public int hairLength() { return bb.getInt(bb_pos + 0); }
+  public void mutateHairLength(int hair_length) { bb.putInt(bb_pos + 0, hair_length); }
 
   public static int createRapunzel(FlatBufferBuilder builder, int hairLength) {
     builder.prep(4, 4);

@@ -25,16 +25,21 @@
 
 namespace flatbuffers {
 // Generic 'operator==' with conditional specialisations.
+// T e - new value of a scalar field.
+// T def - default of scalar (is known at compile-time).
 template<typename T> inline bool IsTheSameAs(T e, T def) { return e == def; }
 
 #if defined(FLATBUFFERS_NAN_DEFAULTS) && \
-    (!defined(_MSC_VER) || _MSC_VER >= 1800)
+    defined(FLATBUFFERS_HAS_NEW_STRTOD) && (FLATBUFFERS_HAS_NEW_STRTOD > 0)
 // Like `operator==(e, def)` with weak NaN if T=(float|double).
+template<typename T> inline bool IsFloatTheSameAs(T e, T def) {
+  return (e == def) || ((def != def) && (e != e));
+}
 template<> inline bool IsTheSameAs<float>(float e, float def) {
-  return (e == def) || (std::isnan(def) && std::isnan(e));
+  return IsFloatTheSameAs(e, def);
 }
 template<> inline bool IsTheSameAs<double>(double e, double def) {
-  return (e == def) || (std::isnan(def) && std::isnan(e));
+  return IsFloatTheSameAs(e, def);
 }
 #endif
 
@@ -201,14 +206,16 @@ template<typename T, typename IT> struct VectorIterator {
 template<typename Iterator> struct VectorReverseIterator :
   public std::reverse_iterator<Iterator> {
 
-  explicit VectorReverseIterator(Iterator iter) : iter_(iter) {}
+  explicit VectorReverseIterator(Iterator iter) :
+    std::reverse_iterator<Iterator>(iter) {}
 
-  typename Iterator::value_type operator*() const { return *(iter_ - 1); }
+  typename Iterator::value_type operator*() const {
+    return *(std::reverse_iterator<Iterator>::current);
+  }
 
-  typename Iterator::value_type operator->() const { return *(iter_ - 1); }
-
- private:
-  Iterator iter_;
+  typename Iterator::value_type operator->() const {
+    return *(std::reverse_iterator<Iterator>::current);
+  }
 };
 
 struct String;
@@ -269,11 +276,11 @@ template<typename T> class Vector {
   iterator end() { return iterator(Data(), size()); }
   const_iterator end() const { return const_iterator(Data(), size()); }
 
-  reverse_iterator rbegin() { return reverse_iterator(end()); }
-  const_reverse_iterator rbegin() const { return const_reverse_iterator(end()); }
+  reverse_iterator rbegin() { return reverse_iterator(end() - 1); }
+  const_reverse_iterator rbegin() const { return const_reverse_iterator(end() - 1); }
 
-  reverse_iterator rend() { return reverse_iterator(end()); }
-  const_reverse_iterator rend() const { return const_reverse_iterator(end()); }
+  reverse_iterator rend() { return reverse_iterator(begin() - 1); }
+  const_reverse_iterator rend() const { return const_reverse_iterator(begin() - 1); }
 
   const_iterator cbegin() const { return begin(); }
 
@@ -392,6 +399,83 @@ const Vector<Offset<T>> *VectorCast(const Vector<Offset<U>> *ptr) {
 template<typename T> static inline size_t VectorLength(const Vector<T> *v) {
   return v ? v->size() : 0;
 }
+
+// This is used as a helper type for accessing arrays.
+template<typename T, uint16_t length> class Array {
+ public:
+  typedef VectorIterator<T, typename IndirectHelper<T>::return_type>
+      const_iterator;
+  typedef VectorReverseIterator<const_iterator> const_reverse_iterator;
+
+  typedef typename IndirectHelper<T>::return_type return_type;
+
+  FLATBUFFERS_CONSTEXPR uint16_t size() const { return length; }
+
+  return_type Get(uoffset_t i) const {
+    FLATBUFFERS_ASSERT(i < size());
+    return IndirectHelper<T>::Read(Data(), i);
+  }
+
+  return_type operator[](uoffset_t i) const { return Get(i); }
+
+  const_iterator begin() const { return const_iterator(Data(), 0); }
+  const_iterator end() const { return const_iterator(Data(), size()); }
+
+  const_reverse_iterator rbegin() const {
+    return const_reverse_iterator(end());
+  }
+  const_reverse_iterator rend() const { return const_reverse_iterator(end()); }
+
+  const_iterator cbegin() const { return begin(); }
+  const_iterator cend() const { return end(); }
+
+  const_reverse_iterator crbegin() const { return rbegin(); }
+  const_reverse_iterator crend() const { return rend(); }
+
+  // Change elements if you have a non-const pointer to this object.
+  void Mutate(uoffset_t i, const T &val) {
+    FLATBUFFERS_ASSERT(i < size());
+    WriteScalar(data() + i, val);
+  }
+
+  // Get a mutable pointer to elements inside this array.
+  // @note This method should be only used to mutate arrays of structs followed
+  //  by a @p Mutate operation. For primitive types use @p Mutate directly.
+  // @warning Assignments and reads to/from the dereferenced pointer are not
+  //  automatically converted to the correct endianness.
+  T *GetMutablePointer(uoffset_t i) const {
+    FLATBUFFERS_ASSERT(i < size());
+    return const_cast<T *>(&data()[i]);
+  }
+
+  // The raw data in little endian format. Use with care.
+  const uint8_t *Data() const { return data_; }
+
+  uint8_t *Data() { return data_; }
+
+  // Similarly, but typed, much like std::vector::data
+  const T *data() const { return reinterpret_cast<const T *>(Data()); }
+  T *data() { return reinterpret_cast<T *>(Data()); }
+
+ protected:
+  // This class is only used to access pre-existing data. Don't ever
+  // try to construct these manually.
+  // 'constexpr' allows us to use 'size()' at compile time.
+  // @note Must not use 'FLATBUFFERS_CONSTEXPR' here, as const is not allowed on
+  //  a constructor.
+#if defined(__cpp_constexpr)
+  constexpr Array();
+#else
+  Array();
+#endif
+
+  uint8_t data_[length * sizeof(T)];
+
+ private:
+  // This class is a pointer. Copying will therefore create an invalid object.
+  // Private and unimplemented copy constructor.
+  Array(const Array &);
+};
 
 // Lexicographically compare two strings (possibly containing nulls), and
 // return true if the first is less than the second.
@@ -801,7 +885,7 @@ class vector_downward {
   uint8_t *data_at(size_t offset) const { return buf_ + reserved_ - offset; }
 
   void push(const uint8_t *bytes, size_t num) {
-    memcpy(make_space(num), bytes, num);
+    if (num > 0) { memcpy(make_space(num), bytes, num); }
   }
 
   // Specialized version of push() that avoids memcpy call for small data.
@@ -824,6 +908,7 @@ class vector_downward {
   }
 
   // Version for when we know the size is larger.
+  // Precondition: zero_pad_bytes > 0
   void fill_big(size_t zero_pad_bytes) {
     memset(make_space(zero_pad_bytes), 0, zero_pad_bytes);
   }
@@ -890,10 +975,16 @@ inline voffset_t FieldIndexToOffset(voffset_t field_id) {
 
 template<typename T, typename Alloc>
 const T *data(const std::vector<T, Alloc> &v) {
-  return v.empty() ? nullptr : &v.front();
+  // Eventually the returned pointer gets passed down to memcpy, so
+  // we need it to be non-null to avoid undefined behavior.
+  static uint8_t t;
+  return v.empty() ? reinterpret_cast<const T*>(&t) : &v.front();
 }
 template<typename T, typename Alloc> T *data(std::vector<T, Alloc> &v) {
-  return v.empty() ? nullptr : &v.front();
+  // Eventually the returned pointer gets passed down to memcpy, so
+  // we need it to be non-null to avoid undefined behavior.
+  static uint8_t t;
+  return v.empty() ? reinterpret_cast<T*>(&t) : &v.front();
 }
 
 /// @endcond
@@ -1562,9 +1653,8 @@ class FlatBufferBuilder {
   Offset<Vector<const T *>> CreateVectorOfNativeStructs(const S *v,
                                                         size_t len) {
     extern T Pack(const S &);
-    typedef T (*Pack_t)(const S &);
     std::vector<T> vv(len);
-    std::transform(v, v + len, vv.begin(), static_cast<Pack_t&>(Pack));
+    std::transform(v, v + len, vv.begin(), Pack);
     return CreateVectorOfStructs<T>(vv.data(), vv.size());
   }
 
@@ -1977,13 +2067,9 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
         depth_(0),
         max_depth_(_max_depth),
         num_tables_(0),
-        max_tables_(_max_tables)
-  // clang-format off
-    #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
-        , upper_bound_(0)
-    #endif
-        , check_alignment_(_check_alignment)
-  // clang-format on
+        max_tables_(_max_tables),
+        upper_bound_(0),
+        check_alignment_(_check_alignment)
   {
     FLATBUFFERS_ASSERT(size_ < FLATBUFFERS_MAX_BUFFER_SIZE);
   }
@@ -2174,17 +2260,22 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     return true;
   }
 
-  // clang-format off
-  #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
   // Returns the message size in bytes
   size_t GetComputedSize() const {
-    uintptr_t size = upper_bound_;
-    // Align the size to uoffset_t
-    size = (size - 1 + sizeof(uoffset_t)) & ~(sizeof(uoffset_t) - 1);
-    return (size > size_) ?  0 : size;
+    // clang-format off
+    #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
+      uintptr_t size = upper_bound_;
+      // Align the size to uoffset_t
+      size = (size - 1 + sizeof(uoffset_t)) & ~(sizeof(uoffset_t) - 1);
+      return (size > size_) ?  0 : size;
+    #else
+      // Must turn on FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE for this to work.
+      (void)upper_bound_;
+      FLATBUFFERS_ASSERT(false);
+      return 0;
+    #endif
+    // clang-format on
   }
-  #endif
-  // clang-format on
 
  private:
   const uint8_t *buf_;
@@ -2193,11 +2284,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   uoffset_t max_depth_;
   uoffset_t num_tables_;
   uoffset_t max_tables_;
-  // clang-format off
-  #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
-    mutable size_t upper_bound_;
-  #endif
-  // clang-format on
+  mutable size_t upper_bound_;
   bool check_alignment_;
 };
 
@@ -2471,12 +2558,12 @@ inline int LookupEnum(const char **names, const char *name) {
 // clang-format off
 #if defined(_MSC_VER)
   #define FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(alignment) \
-    __pragma(pack(1)); \
+    __pragma(pack(1)) \
     struct __declspec(align(alignment))
   #define FLATBUFFERS_STRUCT_END(name, size) \
-    __pragma(pack()); \
+    __pragma(pack()) \
     static_assert(sizeof(name) == size, "compiler breaks packing rules")
-#elif defined(__GNUC__) || defined(__clang__)
+#elif defined(__GNUC__) || defined(__clang__) || defined(__ICCARM__)
   #define FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(alignment) \
     _Pragma("pack(1)") \
     struct __attribute__((aligned(alignment)))

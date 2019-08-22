@@ -7,10 +7,10 @@ namespace MyGame.Example
 
 public enum AnyUniqueAliases : byte
 {
- NONE = 0,
- M = 1,
- T = 2,
- M2 = 3,
+  NONE = 0,
+  M = 1,
+  TS = 2,
+  M2 = 3,
 };
 
 

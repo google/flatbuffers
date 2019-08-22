@@ -16,7 +16,7 @@
 
 use std::ptr::write_bytes;
 
-use endian_scalar::{emplace_scalar, read_scalar};
+use endian_scalar::{emplace_scalar, read_scalar_at};
 use primitives::*;
 
 /// VTableWriter compartmentalizes actions needed to create a vtable.
@@ -57,7 +57,7 @@ impl<'a> VTableWriter<'a> {
     #[inline(always)]
     pub fn get_field_offset(&self, vtable_offset: VOffsetT) -> VOffsetT {
         let idx = vtable_offset as usize;
-        read_scalar::<VOffsetT>(&self.buf[idx..idx + SIZE_VOFFSET])
+        read_scalar_at::<VOffsetT>(&self.buf, idx)
     }
 
     /// Writes an object field offset into the vtable.
@@ -82,4 +82,3 @@ impl<'a> VTableWriter<'a> {
         }
     }
 }
-

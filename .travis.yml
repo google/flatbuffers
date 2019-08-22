@@ -22,6 +22,21 @@ conan-linux: &conan-linux
     - ./conan/travis/build.sh
   if: tag IS present
 
+conan-linux-master: &conan-linux-master
+  os: linux
+  dist: xenial
+  language: python
+  python: "3.7"
+  services:
+    - docker
+  install:
+    - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then bash ./conan/travis/install.sh; fi'
+  script:
+    - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then bash ./conan/travis/build.sh; fi'
+  branches:
+    only:
+    - master
+
 conan-osx: &conan-osx
   os: osx
   language: generic
@@ -78,7 +93,7 @@ matrix:
       env:
         matrix:
           - BUILD_TYPE=Debug
-          - BUILD_TYPE=Release CONAN=true
+          - BUILD_TYPE=Release
 
       before_install:
       - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; fi
@@ -89,17 +104,17 @@ matrix:
       - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which gcc-$GCC_VERSION) /usr/bin/gcc; fi
 
       script:
+      - bash .travis/check-sources.sh
       - bash grpc/build_grpc.sh
-      - cmake . 
-        -DCMAKE_BUILD_TYPE=$BUILD_TYPE 
-        -DFLATBUFFERS_BUILD_GRPCTEST=ON 
-        -DGRPC_INSTALL_PATH=$TRAVIS_BUILD_DIR/google/grpc/install 
+      - cmake .
+        -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+        -DFLATBUFFERS_BUILD_GRPCTEST=ON
+        -DGRPC_INSTALL_PATH=$TRAVIS_BUILD_DIR/google/grpc/install
         -DPROTOBUF_DOWNLOAD_PATH=$TRAVIS_BUILD_DIR/google/grpc/third_party/protobuf
         -DFLATBUFFERS_CODE_SANITIZE=ON
       - cmake --build . -- -j${JOBS}
       - LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/google/grpc/install/lib ctest --extra-verbose --output-on-failure
       - bash .travis/check-generate-code.sh
-      - if [ "$CONAN" == "true" ] && [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo pip install conan && conan create . flatbuffers/${TRAVIS_BRANCH}@google/testing -s build_type=$BUILD_TYPE -tf conan/test_package; fi
 
     - language: cpp
       os: osx
@@ -108,19 +123,21 @@ matrix:
         matrix:
           - BUILD_TYPE=Debug
           - BUILD_TYPE=Release
-      
+
       script:
       - bash grpc/build_grpc.sh
       - cmake .
-        -DCMAKE_BUILD_TYPE=$BUILD_TYPE 
-        -DFLATBUFFERS_BUILD_GRPCTEST=ON 
-        -DGRPC_INSTALL_PATH=$TRAVIS_BUILD_DIR/google/grpc/install 
+        -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+        -DFLATBUFFERS_BUILD_GRPCTEST=ON
+        -DGRPC_INSTALL_PATH=$TRAVIS_BUILD_DIR/google/grpc/install
         -DPROTOBUF_DOWNLOAD_PATH=$TRAVIS_BUILD_DIR/google/grpc/third_party/protobuf
         -DFLATBUFFERS_CODE_SANITIZE=ON
       - cmake --build . -- -j${JOBS}
       - DYLD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/google/grpc/install/lib ctest --extra-verbose --output-on-failure
       - bash .travis/check-generate-code.sh
 
+    - <<: *conan-linux-master
+      env: CONAN_GCC_VERSIONS=8 CONAN_DOCKER_IMAGE=conanio/gcc8
     - <<: *conan-linux
       env: CONAN_GCC_VERSIONS=4.9 CONAN_DOCKER_IMAGE=conanio/gcc49
     - <<: *conan-linux
@@ -132,6 +149,8 @@ matrix:
     - <<: *conan-linux
       env: CONAN_GCC_VERSIONS=8 CONAN_DOCKER_IMAGE=conanio/gcc8
     - <<: *conan-linux
+      env: CONAN_GCC_VERSIONS=9 CONAN_DOCKER_IMAGE=conanio/gcc9
+    - <<: *conan-linux
       env: CONAN_CLANG_VERSIONS=3.9 CONAN_DOCKER_IMAGE=conanio/clang39
     - <<: *conan-linux
       env: CONAN_CLANG_VERSIONS=4.0 CONAN_DOCKER_IMAGE=conanio/clang40
@@ -139,6 +158,10 @@ matrix:
       env: CONAN_CLANG_VERSIONS=5.0 CONAN_DOCKER_IMAGE=conanio/clang50
     - <<: *conan-linux
       env: CONAN_CLANG_VERSIONS=6.0 CONAN_DOCKER_IMAGE=conanio/clang60
+    - <<: *conan-linux
+      env: CONAN_CLANG_VERSIONS=7.0 CONAN_DOCKER_IMAGE=conanio/clang7
+    - <<: *conan-linux
+      env: CONAN_CLANG_VERSIONS=8 CONAN_DOCKER_IMAGE=conanio/clang8
     - <<: *conan-osx
       osx_image: xcode7.3
       env: CONAN_APPLE_CLANG_VERSIONS=7.3
@@ -152,11 +175,12 @@ matrix:
       osx_image: xcode9.4
       env: CONAN_APPLE_CLANG_VERSIONS=9.1
     - <<: *conan-osx
-      osx_image: xcode10
+      osx_image: xcode10.2
       env: CONAN_APPLE_CLANG_VERSIONS=10.0
 
     - language: android
       sudo: true
+      dist: trusty
       android:
         components:
           - tools
@@ -168,8 +192,22 @@ matrix:
         - gcc
 
       before_install:
-        - git clone https://github.com/urho3d/android-ndk.git $HOME/android-ndk-root
-        - export ANDROID_NDK_HOME=$HOME/android-ndk-root
+        # Output something every 10 minutes or Travis kills the job
+        - while sleep 540; do echo "=====[ $SECONDS seconds still running ]====="; done &
+        # Install the r17c version of the NDK that still so that we can continue to test with gnustl
+        # and stlport.
+        - export ANDROID_NDK_HOME=$HOME/android-ndk
+        - NDK_ZIP=$ANDROID_NDK_HOME/ndk.zip
+        - mkdir -p $ANDROID_NDK_HOME
+        - curl -o $NDK_ZIP https://dl.google.com/android/repository/android-ndk-r17c-linux-x86_64.zip
+        - unzip -q -d $ANDROID_NDK_HOME $NDK_ZIP
+        - rm $NDK_ZIP
+        - mv $ANDROID_NDK_HOME/android-ndk-*/* $ANDROID_NDK_HOME
+        - rmdir $ANDROID_NDK_HOME/android-ndk-*
+        - export CMAKE=$(which cmake)
+        # libc required for prebuilt llvm toolchain the NDK r17c.
+        - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get update -qq; fi
+        - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install -qq libc6; fi
         # Setup environment for Linux build which is required to build the sample.
         - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; fi
         - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get update -qq; fi
@@ -179,3 +217,5 @@ matrix:
         - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which gcc-$GCC_VERSION) /usr/bin/gcc; fi
       script:
         - failed=0; for build_gradle in $(git ls-files | grep build.gradle); do ( cd "$(dirname "${build_gradle}")" && ./gradlew build ) || failed=1; done; exit $((failed))
+        # Kill the sleep loop
+        - kill %1

@@ -56,13 +56,13 @@ inline bool dependsOnUnion(const flatbuffers::Definition &a,
                            const flatbuffers::EnumDef &b) {
   if(!b.is_union) return false;
   return std::find_if(
-             b.vals.vec.begin(), b.vals.vec.end(),
+             b.Vals().begin(), b.Vals().end(),
              [&](flatbuffers::EnumVal *ev) {
                if (ev->union_type.base_type == flatbuffers::BASE_TYPE_STRUCT)
                  return getFullName(a) == getFullName(*(ev->union_type.struct_def));
                else
                  return false;
-             }) != b.vals.vec.end();
+             }) != b.Vals().end();
 }
 
 inline bool dependsOn(const flatbuffers::Definition *a,
@@ -405,15 +405,15 @@ class CppNativeGenerator : public BaseGenerator {
 
   // Return a C++ type from the table in idl.h
   std::string GenTypeBasic(const Type &type, bool user_facing_type) const {
-    static const char * const ctypename[] = {
     // clang-format off
-    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, \
-                           RTYPE) \
+    static const char *const ctypename[] = {
+#define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, \
+                           RTYPE, KTYPE) \
             #CTYPE,
-        FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
-    #undef FLATBUFFERS_TD
-      // clang-format on
+      FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
+#undef FLATBUFFERS_TD
     };
+    // clang-format on
     if (user_facing_type) {
       if (type.enum_def) return WrapInNameSpace(*type.enum_def);
       if (type.base_type == BASE_TYPE_BOOL) return "bool";
@@ -754,10 +754,10 @@ class CppNativeGenerator : public BaseGenerator {
 
   void GenNativeUnion(const EnumDef &enum_def) {
     std::string variants = "std::variant<flatbuffers::NoneType";
-    for (auto it = enum_def.vals.vec.begin();
-                  it != enum_def.vals.vec.end(); ++it) {
+    for (auto it = enum_def.Vals().begin();
+                  it != enum_def.Vals().end(); ++it) {
       const auto &ev = **it;
-      if (!ev.value) { continue; }
+      if (ev.IsZero()) { continue; }
 
       const auto native_type = GetUnionElementNative(ev);
       variants += ", " + native_type;
@@ -1104,10 +1104,10 @@ class CppNativeGenerator : public BaseGenerator {
     code_ += "  (void)_o;";
     code_ += "  (void)_rehasher;";
 
-    for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
+    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
          ++it) {
       const auto &ev = **it;
-      if (!ev.value) { continue; }
+      if (ev.IsZero()) { continue; }
       const auto native_type = GetUnionElementNative(ev);
       code_ += "  if (auto pval = std::get_if<" + native_type + ">(&_o))";
       if (ev.union_type.base_type != BASE_TYPE_STRING)
@@ -1126,10 +1126,10 @@ class CppNativeGenerator : public BaseGenerator {
     code_ += "  (void)_resolver;";
 
 
-    for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
+    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
          ++it) {
       const auto &ev = **it;
-      if (!ev.value) { continue; }
+      if (ev.IsZero()) { continue; }
 
       code_ += "  if (type == " +
                WrapInNameSpace(enum_def.defined_namespace,

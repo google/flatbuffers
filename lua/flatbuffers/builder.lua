@@ -34,7 +34,7 @@ local function vtableEqual(a, objectStart, b)
     end
 
     for i, elem in ipairs(a) do
-        local x = VOffsetT:Unpack(b, i * VOffsetT.bytewidth)
+        local x = string.unpack(VOffsetT.packFmt, b, 1 + (i - 1) * VOffsetT.bytewidth)
         if x ~= 0 or elem ~= 0 then
             local y = objectStart - elem
             if x ~= y then
@@ -96,11 +96,13 @@ function mt:WriteVtable()
         i = i - 1
     end
 
+    i = #self.vtables
     while i >= 1 do
 
         local vt2Offset = self.vtables[i]
         local vt2Start = #self.bytes - vt2Offset
-        local vt2len = VOffsetT:Unpack(self.bytes, vt2Start)
+        local vt2lenstr = self.bytes:Slice(vt2Start, vt2Start+1)
+        local vt2Len = string.unpack(VOffsetT.packFmt, vt2lenstr, 1)
 
         local metadata = VtableMetadataFields * VOffsetT.bytewidth
         local vt2End = vt2Start + vt2Len

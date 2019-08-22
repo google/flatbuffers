@@ -4,7 +4,7 @@
 
 local flatbuffers = require('flatbuffers')
 
--- /// an example documentation comment: monster object
+-- an example documentation comment: monster object
 local Monster = {} -- the module
 local Monster_mt = {} -- the class metatable
 
@@ -69,7 +69,7 @@ end
 function Monster_mt:Color()
     local o = self.view:Offset(16)
     if o ~= 0 then
-        return self.view:Get(flatbuffers.N.Int8, o + self.view.pos)
+        return self.view:Get(flatbuffers.N.Uint8, o + self.view.pos)
     end
     return 8
 end
@@ -120,8 +120,8 @@ function Monster_mt:TestarrayofstringLength()
     end
     return 0
 end
--- /// an example documentation comment: this will end up in the generated code
--- /// multiline too
+-- an example documentation comment: this will end up in the generated code
+-- multiline too
 function Monster_mt:Testarrayoftables(j)
     local o = self.view:Offset(26)
     if o ~= 0 then
@@ -511,7 +511,7 @@ function Monster_mt:VectorOfEnums(j)
     local o = self.view:Offset(98)
     if o ~= 0 then
         local a = self.view:Vector(o)
-        return self.view:Get(flatbuffers.N.Int8, a + ((j-1) * 1))
+        return self.view:Get(flatbuffers.N.Uint8, a + ((j-1) * 1))
     end
     return 0
 end
@@ -529,7 +529,7 @@ function Monster.AddHp(builder, hp) builder:PrependInt16Slot(2, hp, 100) end
 function Monster.AddName(builder, name) builder:PrependUOffsetTRelativeSlot(3, name, 0) end
 function Monster.AddInventory(builder, inventory) builder:PrependUOffsetTRelativeSlot(5, inventory, 0) end
 function Monster.StartInventoryVector(builder, numElems) return builder:StartVector(1, numElems, 1) end
-function Monster.AddColor(builder, color) builder:PrependInt8Slot(6, color, 8) end
+function Monster.AddColor(builder, color) builder:PrependUint8Slot(6, color, 8) end
 function Monster.AddTestType(builder, testType) builder:PrependUint8Slot(7, testType, 0) end
 function Monster.AddTest(builder, test) builder:PrependUOffsetTRelativeSlot(8, test, 0) end
 function Monster.AddTest4(builder, test4) builder:PrependUOffsetTRelativeSlot(9, test4, 0) end

@@ -10,9 +10,9 @@ class EnumInNestedNS
     const C = 2;
 
     private static $names = array(
-        "A",
-        "B",
-        "C",
+        EnumInNestedNS::A=>"A",
+        EnumInNestedNS::B=>"B",
+        EnumInNestedNS::C=>"C",
     );
 
     public static function Name($e)

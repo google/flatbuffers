@@ -73,6 +73,10 @@ class JavaTest {
 
         TestSizedInputStream();
 
+        TestVectorOfUnions();
+
+        TestFixedLengthArrays();
+
         System.out.println("FlatBuffers test: completed successfully");
     }
 
@@ -99,7 +103,8 @@ class JavaTest {
         TestEq(pos.y(), 2.0f);
         TestEq(pos.z(), 3.0f);
         TestEq(pos.test1(), 3.0);
-        TestEq(pos.test2(), Color.Green);
+        // issue: int != byte
+        TestEq(pos.test2(), (int) Color.Green);
         Test t = pos.test3();
         TestEq(t.a(), (short)5);
         TestEq(t.b(), (byte)6);
@@ -232,7 +237,7 @@ class JavaTest {
     }
 
     static void TestByteBufferFactory() {
-        final class MappedByteBufferFactory implements FlatBufferBuilder.ByteBufferFactory {
+        final class MappedByteBufferFactory extends FlatBufferBuilder.ByteBufferFactory {
             @Override
             public ByteBuffer newByteBuffer(int capacity) {
                 ByteBuffer bb;
@@ -413,6 +418,92 @@ class JavaTest {
         TestEq(pos.x(), 55.0f);
         pos.mutateX(1.0f);
         TestEq(pos.x(), 1.0f);
+    }
+
+    static void TestVectorOfUnions() {
+        final FlatBufferBuilder fbb = new FlatBufferBuilder();
+
+        final int swordAttackDamage = 1;
+
+        final int[] characterVector = new int[] {
+            Attacker.createAttacker(fbb, swordAttackDamage),
+        };
+
+        final byte[] characterTypeVector = new byte[]{
+            Character.MuLan,
+        };
+
+        Movie.finishMovieBuffer(
+            fbb,
+            Movie.createMovie(
+                fbb,
+                (byte)0,
+                (byte)0,
+                Movie.createCharactersTypeVector(fbb, characterTypeVector),
+                Movie.createCharactersVector(fbb, characterVector)
+            )
+        );
+
+        final Movie movie = Movie.getRootAsMovie(fbb.dataBuffer());
+
+        TestEq(movie.charactersTypeLength(), characterTypeVector.length);
+        TestEq(movie.charactersLength(), characterVector.length);
+
+        TestEq(movie.charactersType(0), characterTypeVector[0]);
+
+        TestEq(((Attacker)movie.characters(new Attacker(), 0)).swordAttackDamage(), swordAttackDamage);
+    }
+
+    static void TestFixedLengthArrays() {
+        FlatBufferBuilder builder = new FlatBufferBuilder(0);
+
+        float       a;
+        int[]       b = new int[15];
+        byte        c;
+        int[][]     d_a = new int[2][2];
+        byte[]      d_b = new byte[2];
+        byte[][]    d_c = new byte[2][2];
+
+        a = 0.5f;
+        for (int i = 0; i < 15; i++) b[i] = i;
+        c = 1;
+        d_a[0][0] = 1;
+        d_a[0][1] = 2;
+        d_a[1][0] = 3;
+        d_a[1][1] = 4;
+        d_b[0] = TestEnum.B;
+        d_b[1] = TestEnum.C;
+        d_c[0][0] = TestEnum.A;
+        d_c[0][1] = TestEnum.B;
+        d_c[1][0] = TestEnum.C;
+        d_c[1][1] = TestEnum.B;
+
+        int arrayOffset = ArrayStruct.createArrayStruct(builder,
+            a, b, c, d_a, d_b, d_c);
+
+        // Create a table with the ArrayStruct.
+        ArrayTable.startArrayTable(builder);
+        ArrayTable.addA(builder, arrayOffset);
+        int tableOffset = ArrayTable.endArrayTable(builder);
+
+        ArrayTable.finishArrayTableBuffer(builder, tableOffset);
+
+        ArrayTable table = ArrayTable.getRootAsArrayTable(builder.dataBuffer());
+        NestedStruct nested = new NestedStruct();
+
+        TestEq(table.a().a(), 0.5f);
+        for (int i = 0; i < 15; i++) TestEq(table.a().b(i), i);
+        TestEq(table.a().c(), (byte)1);
+        TestEq(table.a().d(nested, 0).a(0), 1);
+        TestEq(table.a().d(nested, 0).a(1), 2);
+        TestEq(table.a().d(nested, 1).a(0), 3);
+        TestEq(table.a().d(nested, 1).a(1), 4);
+        TestEq(table.a().d(nested, 0).b(), TestEnum.B);
+        TestEq(table.a().d(nested, 1).b(), TestEnum.C);
+        TestEq(table.a().d(nested, 0).c(0), TestEnum.A);
+        TestEq(table.a().d(nested, 0).c(1), TestEnum.B);
+        TestEq(table.a().d(nested, 1).c(0), TestEnum.C);
+        TestEq(table.a().d(nested, 1).c(1), TestEnum.B);
     }
 
     static <T> void TestEq(T a, T b) {

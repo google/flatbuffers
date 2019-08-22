@@ -274,7 +274,7 @@ impl<'a, T: Follow<'a> + 'a> Follow<'a> for SkipFileIdentifier<T> {
 /// EndianScalar, but implementing Follow that way causes a conflict with
 /// other impls.
 macro_rules! impl_follow_for_endian_scalar {
-    ($ty:ident) => (
+    ($ty:ident) => {
         impl<'a> Follow<'a> for $ty {
             type Inner = $ty;
             #[inline(always)]
@@ -282,7 +282,7 @@ macro_rules! impl_follow_for_endian_scalar {
                 read_scalar_at::<$ty>(buf, loc)
             }
         }
-    )
+    };
 }
 
 impl_follow_for_endian_scalar!(bool);

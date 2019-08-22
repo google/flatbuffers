@@ -14,11 +14,19 @@ namespace MyGame.Example;
 
 attribute "priority";
 
-enum Color:byte (bit_flags) { Red = 0, Green, Blue = 3, }
+/// Composite components of Monster color.
+enum Color:ubyte (bit_flags) { 
+  Red = 0, // color Red = (1u << 0)
+  /// \brief color Green
+  /// Green is bit_flag with value (1u << 1)
+  Green, 
+  /// \brief color Blue (1u << 3)
+  Blue = 3, 
+}
 
 union Any { Monster, TestSimpleTableWithEnum, MyGame.Example2.Monster }
 
-union AnyUniqueAliases { M: Monster, T: TestSimpleTableWithEnum, M2: MyGame.Example2.Monster }
+union AnyUniqueAliases { M: Monster, TS: TestSimpleTableWithEnum, M2: MyGame.Example2.Monster }
 union AnyAmbiguousAliases { M1: Monster, M2: Monster, M3: Monster }
 
 struct Test { a:short; b:byte; }
@@ -27,7 +35,7 @@ table TestSimpleTableWithEnum (csharp_partial, private) {
   color: Color = Green;
 }
 
-struct Vec3 (force_align: 16) {
+struct Vec3 (force_align: 8) {
   x:float;
   y:float;
   z:float;

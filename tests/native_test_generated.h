@@ -70,7 +70,7 @@ inline const BundleSize (&EnumValuesBundleSize())[3] {
 }
 
 inline const char * const *EnumNamesBundleSize() {
-  static const char * const names[] = {
+  static const char * const names[4] = {
     "Size2",
     "Size3",
     "Size6",
@@ -81,7 +81,7 @@ inline const char * const *EnumNamesBundleSize() {
 
 inline const char *EnumNameBundleSize(BundleSize e) {
   if (e < BundleSize_Size2 || e > BundleSize_Size6) return "";
-  const size_t index = static_cast<int>(e);
+  const size_t index = static_cast<size_t>(e);
   return EnumNamesBundleSize()[index];
 }
 
@@ -103,7 +103,7 @@ inline const MyUnion (&EnumValuesMyUnion())[3] {
 }
 
 inline const char * const *EnumNamesMyUnion() {
-  static const char * const names[] = {
+  static const char * const names[4] = {
     "NONE",
     "Mat",
     "DefindeBeforeUnion",
@@ -114,7 +114,7 @@ inline const char * const *EnumNamesMyUnion() {
 
 inline const char *EnumNameMyUnion(MyUnion e) {
   if (e < MyUnion_NONE || e > MyUnion_DefindeBeforeUnion) return "";
-  const size_t index = static_cast<int>(e);
+  const size_t index = static_cast<size_t>(e);
   return EnumNamesMyUnion()[index];
 }
 
@@ -139,8 +139,11 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Complex FLATBUFFERS_FINAL_CLASS {
   double q_;
 
  public:
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return ComplexTypeTable();
+  }
   Complex() {
-    memset(this, 0, sizeof(Complex));
+    memset(static_cast<void *>(this), 0, sizeof(Complex));
   }
   Complex(double _i, double _q)
       : i_(flatbuffers::EndianScalar(_i)),
@@ -161,14 +164,22 @@ inline bool operator==(const Complex &lhs, const Complex &rhs) {
       (lhs.q() == rhs.q());
 }
 
+inline bool operator!=(const Complex &lhs, const Complex &rhs) {
+    return !(lhs == rhs);
+}
+
+
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Comp FLATBUFFERS_FINAL_CLASS {
  private:
   double i_;
   double q_;
 
  public:
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return CompTypeTable();
+  }
   Comp() {
-    memset(this, 0, sizeof(Comp));
+    memset(static_cast<void *>(this), 0, sizeof(Comp));
   }
   Comp(double _i, double _q)
       : i_(flatbuffers::EndianScalar(_i)),
@@ -188,6 +199,11 @@ inline bool operator==(const Comp &lhs, const Comp &rhs) {
       (lhs.i() == rhs.i()) &&
       (lhs.q() == rhs.q());
 }
+
+inline bool operator!=(const Comp &lhs, const Comp &rhs) {
+    return !(lhs == rhs);
+}
+
 
 struct Mat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {

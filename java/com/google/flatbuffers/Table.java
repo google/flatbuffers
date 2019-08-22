@@ -37,6 +37,10 @@ public class Table {
   protected int bb_pos;
   /** The underlying ByteBuffer to hold the data of the Table. */
   protected ByteBuffer bb;
+  /** Used to hold the vtable position. */
+  private int vtable_start;
+  /** Used to hold the vtable size. */
+  private int vtable_size;
   Utf8 utf8 = Utf8.getDefault();
 
   /**
@@ -53,8 +57,7 @@ public class Table {
    * @return Returns an offset into the object, or `0` if the field is not present.
    */
   protected int __offset(int vtable_offset) {
-    int vtable = bb_pos - bb.getInt(bb_pos);
-    return vtable_offset < bb.getShort(vtable) ? bb.getShort(vtable + vtable_offset) : 0;
+    return vtable_offset < vtable_size ? bb.getShort(vtable_start + vtable_offset) : 0;
   }
 
   protected static int __offset(int vtable_offset, int offset, ByteBuffer bb) {
@@ -89,8 +92,7 @@ public class Table {
    */
   protected String __string(int offset) {
     offset += bb.getInt(offset);
-    ByteBuffer src = bb.duplicate().order(ByteOrder.LITTLE_ENDIAN);
-    int length = src.getInt(offset);
+    int length = bb.getInt(offset);
     return utf8.decodeUtf8(bb, offset + SIZEOF_INT, length);
   }
 
@@ -170,6 +172,8 @@ public class Table {
     offset += bb_pos;
     t.bb_pos = offset + bb.getInt(offset);
     t.bb = bb;
+    t.vtable_start = t.bb_pos - bb.getInt(t.bb_pos);
+    t.vtable_size = bb.getShort(t.vtable_start);
     return t;
   }
 
@@ -260,6 +264,25 @@ public class Table {
   }
 
   /**
+   * Re-init the internal state with an external buffer {@code ByteBuffer} and an offset within.
+   *
+   * This method exists primarily to allow recycling Table instances without risking memory leaks
+   * due to {@code ByteBuffer} references.
+   */
+  protected void __reset(int _i, ByteBuffer _bb) { 
+    bb = _bb;
+    if (bb != null) {
+      bb_pos = _i;
+      vtable_start = bb_pos - bb.getInt(bb_pos);
+      vtable_size = bb.getShort(vtable_start);
+    } else {
+      bb_pos = 0;
+      vtable_start = 0;
+      vtable_size = 0;
+    }
+  }
+
+  /**
    * Resets the internal state with a null {@code ByteBuffer} and a zero position.
    *
    * This method exists primarily to allow recycling Table instances without risking memory leaks
@@ -267,8 +290,7 @@ public class Table {
    * again to a {@code ByteBuffer}.
    */
   public void __reset() {
-    bb = null;
-    bb_pos = 0;
+    __reset(0, null);
   }
 }
 

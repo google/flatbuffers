@@ -14,6 +14,10 @@ class InParentNamespace(object):
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def InParentNamespaceBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
+        return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x4D\x4F\x4E\x53", size_prefixed=size_prefixed)
+
     # InParentNamespace
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)

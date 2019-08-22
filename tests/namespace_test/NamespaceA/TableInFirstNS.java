@@ -7,10 +7,12 @@ import java.lang.*;
 import java.util.*;
 import com.google.flatbuffers.*;
 
-@SuppressWarnings("unused")public final class TableInFirstNS extends Table {
+@SuppressWarnings("unused")
+public final class TableInFirstNS extends Table {
+  public static void ValidateVersion() { Constants.FLATBUFFERS_1_11_1(); }
   public static TableInFirstNS getRootAsTableInFirstNS(ByteBuffer _bb) { return getRootAsTableInFirstNS(_bb, new TableInFirstNS()); }
   public static TableInFirstNS getRootAsTableInFirstNS(ByteBuffer _bb, TableInFirstNS obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
-  public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
+  public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }
   public TableInFirstNS __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public NamespaceA.NamespaceB.TableInNestedNS fooTable() { return fooTable(new NamespaceA.NamespaceB.TableInNestedNS()); }
@@ -20,12 +22,12 @@ import com.google.flatbuffers.*;
   public NamespaceA.NamespaceB.StructInNestedNS fooStruct() { return fooStruct(new NamespaceA.NamespaceB.StructInNestedNS()); }
   public NamespaceA.NamespaceB.StructInNestedNS fooStruct(NamespaceA.NamespaceB.StructInNestedNS obj) { int o = __offset(8); return o != 0 ? obj.__assign(o + bb_pos, bb) : null; }
 
-  public static void startTableInFirstNS(FlatBufferBuilder builder) { builder.startObject(3); }
+  public static void startTableInFirstNS(FlatBufferBuilder builder) { builder.startTable(3); }
   public static void addFooTable(FlatBufferBuilder builder, int fooTableOffset) { builder.addOffset(0, fooTableOffset, 0); }
   public static void addFooEnum(FlatBufferBuilder builder, byte fooEnum) { builder.addByte(1, fooEnum, 0); }
   public static void addFooStruct(FlatBufferBuilder builder, int fooStructOffset) { builder.addStruct(2, fooStructOffset, 0); }
   public static int endTableInFirstNS(FlatBufferBuilder builder) {
-    int o = builder.endObject();
+    int o = builder.endTable();
     return o;
   }
 }

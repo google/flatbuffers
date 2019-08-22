@@ -18,9 +18,9 @@
 
 #include <list>
 
-#define FLATC_VERSION "1.10.0"
-
 namespace flatbuffers {
+
+const char *FLATC_VERSION() { return FLATBUFFERS_VERSION(); }
 
 void FlatCompiler::ParseFile(
     flatbuffers::Parser &parser, const std::string &filename,
@@ -30,8 +30,10 @@ void FlatCompiler::ParseFile(
   include_directories.push_back(local_include_directory.c_str());
   include_directories.push_back(nullptr);
   if (!parser.Parse(contents.c_str(), &include_directories[0],
-                    filename.c_str()))
+                    filename.c_str())) {
     Error(parser.error_, false, false);
+  }
+  if (!parser.error_.empty()) { Warn(parser.error_, false); }
   include_directories.pop_back();
   include_directories.pop_back();
 }
@@ -98,38 +100,48 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --gen-name-strings Generate type name functions for C++.\n"
     "  --gen-object-api   Generate an additional object-based API.\n"
     "  --gen-compare      Generate operator== for object-based API types.\n"
-    "  --cpp-ptr-type T   Set object API pointer type (default std::unique_ptr)\n"
-    "  --cpp-str-type T   Set object API string type (default std::string)\n"
-    "                     T::c_str() and T::length() must be supported\n"
     "  --gen-nullable     Add Clang _Nullable for C++ pointer. or @Nullable for Java\n"
     "  --gen-generated    Add @Generated annotation for Java\n"
+    "  --gen-all          Generate not just code for the current schema files,\n"
+    "                     but for all files it includes as well.\n"
+    "                     If the language uses a single file for output (by default\n"
+    "                     the case for C++ and JS), all code will end up in this one\n"
+    "                     file.\n"
+    "  --cpp-include      Adds an #include in generated file.\n"
+    "  --cpp-ptr-type T   Set object API pointer type (default std::unique_ptr).\n"
+    "  --cpp-str-type T   Set object API string type (default std::string).\n"
+    "                     T::c_str(), T::length() and T::empty() must be supported.\n"
+    "                     The custom type also needs to be constructible from std::string\n"
+    "                     (see the --cpp-str-flex-ctor option to change this behavior).\n"
+    "  --cpp-str-flex-ctor Don't construct custom string types by passing std::string\n"
+    "                     from Flatbuffers, but (char* + length).\n"
     "  --object-prefix    Customise class prefix for C++ object-based API.\n"
     "  --object-suffix    Customise class suffix for C++ object-based API.\n"
-    "                     Default value is \"T\"\n"
+    "                     Default value is \"T\".\n"
     "  --no-js-exports    Removes Node.js style export lines in JS.\n"
     "  --goog-js-export   Uses goog.exports* for closure compiler exporting in JS.\n"
     "  --es6-js-export    Uses ECMAScript 6 export style lines in JS.\n"
     "  --go-namespace     Generate the overrided namespace in Golang.\n"
-    "  --go-import        Generate the overrided import for flatbuffers in Golang.\n"
-    "                     (default is \"github.com/google/flatbuffers/go\")\n"
+    "  --go-import        Generate the overrided import for flatbuffers in Golang\n"
+    "                     (default is \"github.com/google/flatbuffers/go\").\n"
     "  --raw-binary       Allow binaries without file_indentifier to be read.\n"
     "                     This may crash flatc given a mismatched schema.\n"
     "  --size-prefixed    Input binaries are size prefixed buffers.\n"
     "  --proto            Input is a .proto, translate to .fbs.\n"
     "  --oneof-union      Translate .proto oneofs to flatbuffer unions.\n"
-    "  --grpc             Generate GRPC interfaces for the specified languages\n"
-    "  --schema           Serialize schemas instead of JSON (use with -b)\n"
+    "  --grpc             Generate GRPC interfaces for the specified languages.\n"
+    "  --schema           Serialize schemas instead of JSON (use with -b).\n"
     "  --bfbs-comments    Add doc comments to the binary schema files.\n"
     "  --bfbs-builtins    Add builtin attributes to the binary schema files.\n"
     "  --conform FILE     Specify a schema the following schemas should be\n"
     "                     an evolution of. Gives errors if not.\n"
-    "  --conform-includes Include path for the schema given with --conform\n"
-    "    PATH             \n"
+    "  --conform-includes Include path for the schema given with --conform PATH\n"
     "  --include-prefix   Prefix this path to any generated include statements.\n"
     "    PATH\n"
     "  --keep-prefix      Keep original prefix of schema include statement.\n"
     "  --no-fb-import     Don't include flatbuffers import statement for TypeScript.\n"
     "  --no-ts-reexport   Don't re-export imported dependencies for TypeScript.\n"
+    "  --short-names      Use short function names for JS and TypeScript.\n"
     "  --reflect-types    Add minimal type reflection to code generation.\n"
     "  --reflect-names    Add minimal type/name reflection.\n"
     "  --root-type T      Select or override the default root_type\n"
@@ -236,12 +248,17 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.generate_object_based_api = true;
       } else if (arg == "--gen-compare") {
         opts.gen_compare = true;
+      } else if (arg == "--cpp-include") {
+        if (++argi >= argc) Error("missing include following" + arg, true);
+        opts.cpp_includes.push_back(argv[argi]);
       } else if (arg == "--cpp-ptr-type") {
         if (++argi >= argc) Error("missing type following" + arg, true);
         opts.cpp_object_api_pointer_type = argv[argi];
       } else if (arg == "--cpp-str-type") {
         if (++argi >= argc) Error("missing type following" + arg, true);
         opts.cpp_object_api_string_type = argv[argi];
+      } else if (arg == "--cpp-str-flex-ctor") {
+        opts.cpp_object_api_string_flexible_constructor = true;
       } else if (arg == "--gen-nullable") {
         opts.gen_nullable = true;
       } else if (arg == "--gen-generated") {
@@ -277,7 +294,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       } else if (arg == "-M") {
         print_make_rules = true;
       } else if (arg == "--version") {
-        printf("flatc version %s\n", FLATC_VERSION);
+        printf("flatc version %s\n", FLATC_VERSION());
         exit(0);
       } else if (arg == "--grpc") {
         grpc_enabled = true;
@@ -289,6 +306,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.skip_flatbuffers_import = true;
       } else if (arg == "--no-ts-reexport") {
         opts.reexport_ts_modules = false;
+      } else if (arg == "--short-names") {
+        opts.js_ts_short_names = true;
       } else if (arg == "--reflect-types") {
         opts.mini_reflect = IDLOptions::kTypes;
       } else if (arg == "--reflect-names") {
@@ -300,6 +319,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.force_defaults = true;
       } else if (arg == "--force-empty") {
         opts.set_empty_to_null = false;
+      } else if (arg == "--java-primitive-has-method") {
+        opts.java_primitive_has_method = true;
       } else {
         for (size_t i = 0; i < params_.num_generators; ++i) {
           if (arg == params_.generators[i].generator_opt_long ||

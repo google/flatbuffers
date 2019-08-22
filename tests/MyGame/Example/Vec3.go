@@ -48,10 +48,10 @@ func (rcv *Vec3) MutateTest1(n float64) bool {
 }
 
 func (rcv *Vec3) Test2() Color {
-	return rcv._tab.GetInt8(rcv._tab.Pos + flatbuffers.UOffsetT(24))
+	return Color(rcv._tab.GetByte(rcv._tab.Pos + flatbuffers.UOffsetT(24)))
 }
 func (rcv *Vec3) MutateTest2(n Color) bool {
-	return rcv._tab.MutateInt8(rcv._tab.Pos+flatbuffers.UOffsetT(24), n)
+	return rcv._tab.MutateByte(rcv._tab.Pos+flatbuffers.UOffsetT(24), byte(n))
 }
 
 func (rcv *Vec3) Test3(obj *Test) *Test {
@@ -62,15 +62,15 @@ func (rcv *Vec3) Test3(obj *Test) *Test {
 	return obj
 }
 
-func CreateVec3(builder *flatbuffers.Builder, x float32, y float32, z float32, test1 float64, test2 int8, test3_a int16, test3_b int8) flatbuffers.UOffsetT {
-	builder.Prep(16, 32)
+func CreateVec3(builder *flatbuffers.Builder, x float32, y float32, z float32, test1 float64, test2 Color, test3_a int16, test3_b int8) flatbuffers.UOffsetT {
+	builder.Prep(8, 32)
 	builder.Pad(2)
 	builder.Prep(2, 4)
 	builder.Pad(1)
 	builder.PrependInt8(test3_b)
 	builder.PrependInt16(test3_a)
 	builder.Pad(1)
-	builder.PrependInt8(test2)
+	builder.PrependByte(byte(test2))
 	builder.PrependFloat64(test1)
 	builder.Pad(4)
 	builder.PrependFloat32(z)

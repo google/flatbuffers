@@ -25,5 +25,13 @@ namespace FlatBuffers
     {
         public const int FileIdentifierLength = 4;
         public const int SizePrefixLength = 4;
+        /** A version identifier to force a compile error if someone
+        accidentally tries to build generated code with a runtime of
+        two mismatched version. Versions need to always match, as
+        the runtime and generated code are modified in sync.
+        Changes to the C# implementation need to be sure to change
+        the version here and in the code generator on every possible
+        incompatible change */
+        public static void FLATBUFFERS_1_11_1() {}
     }
 }
