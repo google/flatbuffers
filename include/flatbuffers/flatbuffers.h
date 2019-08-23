@@ -1655,7 +1655,7 @@ class FlatBufferBuilder {
     extern T Pack(const S &);
     std::vector<T> vv(len);
     std::transform(v, v + len, vv.begin(), Pack);
-    return CreateVectorOfStructs<T>(vv.data(), vv.size());
+    return CreateVectorOfStructs<T>(data(vv), vv.size());
   }
 
   // clang-format off
