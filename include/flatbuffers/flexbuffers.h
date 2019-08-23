@@ -378,12 +378,12 @@ class Reference {
   bool IsString() const { return type_ == FBT_STRING; }
   bool IsKey() const { return type_ == FBT_KEY; }
   bool IsVector() const { return type_ == FBT_VECTOR || type_ == FBT_MAP; }
+  bool IsUntypedVector() const { return type_ == FBT_VECTOR; }
   bool IsTypedVector() const { return flexbuffers::IsTypedVector(type_); }
   bool IsFixedTypedVector() const { return flexbuffers::IsFixedTypedVector(type_); }
   bool IsAnyVector() const { return (IsTypedVector() || IsFixedTypedVector() || IsVector());}
   bool IsMap() const { return type_ == FBT_MAP; }
   bool IsBlob() const { return type_ == FBT_BLOB; }
-
   bool AsBool() const {
     return (type_ == FBT_BOOL ? ReadUInt64(data_, parent_width_)
                                : AsUInt64()) != 0;
