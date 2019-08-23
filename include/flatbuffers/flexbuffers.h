@@ -384,7 +384,6 @@ class Reference {
   bool IsAnyVector() const { return (IsTypedVector() || IsFixedTypedVector() || IsVector());}
   bool IsMap() const { return type_ == FBT_MAP; }
   bool IsBlob() const { return type_ == FBT_BLOB; }
-  bool IsVectorOrMap() const { return type_ == FBT_VECTOR || type_ == FBT_MAP; }
   bool AsBool() const {
     return (type_ == FBT_BOOL ? ReadUInt64(data_, parent_width_)
                                : AsUInt64()) != 0;
