@@ -20,6 +20,11 @@
                 "$ref" : "#/definitions/MyGame_Example_TestEnum",
                 "minItems": 2,
                 "maxItems": 2
+              },
+        "d" : {
+                "type" : "array", "items" : { "type" : "number" },
+                "minItems": 2,
+                "maxItems": 2
               }
       },
       "additionalProperties" : false
@@ -40,6 +45,14 @@
               },
         "d" : {
                 "type" : "array", "items" : { "$ref" : "#/definitions/MyGame_Example_NestedStruct" },
+                "minItems": 2,
+                "maxItems": 2
+              },
+        "e" : {
+                "type" : "number"
+              },
+        "f" : {
+                "type" : "array", "items" : { "type" : "number" },
                 "minItems": 2,
                 "maxItems": 2
               }

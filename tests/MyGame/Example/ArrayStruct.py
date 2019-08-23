@@ -19,21 +19,31 @@ class ArrayStruct(object):
     def C(self): return self._tab.Get(flatbuffers.number_types.Int8Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(64))
     # ArrayStruct
     def D(self, obj, i):
-        obj.Init(self._tab.Bytes, self._tab.Pos + 68 + i * 12)
+        obj.Init(self._tab.Bytes, self._tab.Pos + 72 + i * 32)
         return obj
 
+    # ArrayStruct
+    def E(self): return self._tab.Get(flatbuffers.number_types.Int32Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(136))
+    # ArrayStruct
+    def F(self): return [self._tab.Get(flatbuffers.number_types.Int64Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(144 + i * 8)) for i in range(2)]
 
-def CreateArrayStruct(builder, a, b, c, d_a, d_b, d_c):
-    builder.Prep(4, 92)
+def CreateArrayStruct(builder, a, b, c, d_a, d_b, d_c, d_d, e, f):
+    builder.Prep(8, 160)
     for _idx0 in range(2 , 0, -1):
-        builder.Prep(4, 12)
-        builder.Pad(1)
+        builder.PrependInt64(f[_idx0-1])
+    builder.Pad(4)
+    builder.PrependInt32(e)
+    for _idx0 in range(2 , 0, -1):
+        builder.Prep(8, 32)
+        for _idx1 in range(2 , 0, -1):
+            builder.PrependInt64(d_d[_idx0-1][_idx1-1])
+        builder.Pad(5)
         for _idx1 in range(2 , 0, -1):
             builder.PrependInt8(d_c[_idx0-1][_idx1-1])
         builder.PrependInt8(d_b[_idx0-1])
         for _idx1 in range(2 , 0, -1):
             builder.PrependInt32(d_a[_idx0-1][_idx1-1])
-    builder.Pad(3)
+    builder.Pad(7)
     builder.PrependInt8(c)
     for _idx0 in range(15 , 0, -1):
         builder.PrependInt32(b[_idx0-1])

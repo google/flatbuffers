@@ -6,6 +6,7 @@ struct NestedStruct{
   a:[int:2];
   b:TestEnum;
   c:[TestEnum:2];
+  d:[int64:2];
 }
 
 struct ArrayStruct{
@@ -13,6 +14,8 @@ struct ArrayStruct{
   b:[int:0xF];
   c:byte;
   d:[NestedStruct:2];
+  e:int32;
+  f:[int64:2];
 }
 
 table ArrayTable{

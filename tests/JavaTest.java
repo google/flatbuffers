@@ -463,6 +463,9 @@ class JavaTest {
         int[][]     d_a = new int[2][2];
         byte[]      d_b = new byte[2];
         byte[][]    d_c = new byte[2][2];
+        long[][]    d_d = new long[2][2];
+        int         e;
+        long[]      f = new long[2];
 
         a = 0.5f;
         for (int i = 0; i < 15; i++) b[i] = i;
@@ -477,9 +480,16 @@ class JavaTest {
         d_c[0][1] = TestEnum.B;
         d_c[1][0] = TestEnum.C;
         d_c[1][1] = TestEnum.B;
+        d_d[0][0] = -1;
+        d_d[0][1] = 1;
+        d_d[1][0] = -2;
+        d_d[1][1] = 2;
+        e = 2;
+        f[0] = -1;
+        f[1] = 1;
 
         int arrayOffset = ArrayStruct.createArrayStruct(builder,
-            a, b, c, d_a, d_b, d_c);
+            a, b, c, d_a, d_b, d_c, d_d, e, f);
 
         // Create a table with the ArrayStruct.
         ArrayTable.startArrayTable(builder);
@@ -504,6 +514,13 @@ class JavaTest {
         TestEq(table.a().d(nested, 0).c(1), TestEnum.B);
         TestEq(table.a().d(nested, 1).c(0), TestEnum.C);
         TestEq(table.a().d(nested, 1).c(1), TestEnum.B);
+        TestEq(table.a().d(nested, 0).d(0), (long)-1);
+        TestEq(table.a().d(nested, 0).d(1), (long)1);
+        TestEq(table.a().d(nested, 1).d(0), (long)-2);
+        TestEq(table.a().d(nested, 1).d(1), (long)2);
+        TestEq(table.a().e(), 2);
+        TestEq(table.a().f(0), (long)-1);
+        TestEq(table.a().f(1), (long)1);
     }
 
     static <T> void TestEq(T a, T b) {

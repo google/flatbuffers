@@ -367,9 +367,14 @@ inline size_t InlineSize(const Type &type) {
 }
 
 inline size_t InlineAlignment(const Type &type) {
-  return IsStruct(type)
-             ? type.struct_def->minalign
-             : (SizeOf(IsArray(type) ? type.element : type.base_type));
+  if (IsStruct(type)) {
+    return type.struct_def->minalign;
+  } else if (IsArray(type)) {
+    return IsStruct(type.VectorType()) ? type.struct_def->minalign
+                                       : SizeOf(type.element);
+  } else {
+    return SizeOf(type.base_type);
+  }
 }
 
 struct EnumDef;

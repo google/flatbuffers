@@ -21,10 +21,15 @@ public struct NestedStruct : IFlatbufferObject
   public void MutateB(MyGame.Example.TestEnum b) { __p.bb.PutSbyte(__p.bb_pos + 8, (sbyte)b); }
   public MyGame.Example.TestEnum C(int j) { return (MyGame.Example.TestEnum)__p.bb.GetSbyte(__p.bb_pos + 9 + j * 1); }
   public void MutateC(int j, MyGame.Example.TestEnum c) { __p.bb.PutSbyte(__p.bb_pos + 9 + j * 1, (sbyte)c); }
+  public long D(int j) { return __p.bb.GetLong(__p.bb_pos + 16 + j * 8); }
+  public void MutateD(int j, long d) { __p.bb.PutLong(__p.bb_pos + 16 + j * 8, d); }
 
-  public static Offset<MyGame.Example.NestedStruct> CreateNestedStruct(FlatBufferBuilder builder, int[] A, MyGame.Example.TestEnum B, MyGame.Example.TestEnum[] C) {
-    builder.Prep(4, 12);
-    builder.Pad(1);
+  public static Offset<MyGame.Example.NestedStruct> CreateNestedStruct(FlatBufferBuilder builder, int[] A, MyGame.Example.TestEnum B, MyGame.Example.TestEnum[] C, long[] D) {
+    builder.Prep(8, 32);
+    for (int _idx0 = 2; _idx0 > 0; _idx0--) {
+      builder.PutLong(D[_idx0-1]);
+    }
+    builder.Pad(5);
     for (int _idx0 = 2; _idx0 > 0; _idx0--) {
       builder.PutSbyte((sbyte)C[_idx0-1]);
     }

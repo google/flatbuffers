@@ -17,10 +17,14 @@ class NestedStruct(object):
     def B(self): return self._tab.Get(flatbuffers.number_types.Int8Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(8))
     # NestedStruct
     def C(self): return [self._tab.Get(flatbuffers.number_types.Int8Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(9 + i * 1)) for i in range(2)]
+    # NestedStruct
+    def D(self): return [self._tab.Get(flatbuffers.number_types.Int64Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(16 + i * 8)) for i in range(2)]
 
-def CreateNestedStruct(builder, a, b, c):
-    builder.Prep(4, 12)
-    builder.Pad(1)
+def CreateNestedStruct(builder, a, b, c, d):
+    builder.Prep(8, 32)
+    for _idx0 in range(2 , 0, -1):
+        builder.PrependInt64(d[_idx0-1])
+    builder.Pad(5)
     for _idx0 in range(2 , 0, -1):
         builder.PrependInt8(c[_idx0-1])
     builder.PrependInt8(b)

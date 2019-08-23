@@ -1568,9 +1568,12 @@ class TestFixedLengthArrays(unittest.TestCase):
                 MyGame.Example.TestEnum.TestEnum.B], \
                 [MyGame.Example.TestEnum.TestEnum.C, \
                  MyGame.Example.TestEnum.TestEnum.B]]
+        d_d = [[-1, 1], [-2, 2]]
+        e = 2
+        f = [-1, 1]
 
         arrayOffset = MyGame.Example.ArrayStruct.CreateArrayStruct(builder, \
-            a, b, c, d_a, d_b, d_c)
+            a, b, c, d_a, d_b, d_c, d_d, e, f)
 
         # Create a table with the ArrayStruct.
         MyGame.Example.ArrayTable.ArrayTableStart(builder)
@@ -1601,6 +1604,10 @@ class TestFixedLengthArrays(unittest.TestCase):
         self.assertEqual(table.A().D(nested, 1).C(), \
             [MyGame.Example.TestEnum.TestEnum.C, \
              MyGame.Example.TestEnum.TestEnum.B])
+        self.assertEqual(table.A().D(nested, 0).D(), [-1, 1])
+        self.assertEqual(table.A().D(nested, 1).D(), [-2, 2])
+        self.assertEqual(table.A().E(), 2)
+        self.assertEqual(table.A().F(), [-1, 1])
 
 
 def CheckAgainstGoldDataGo():

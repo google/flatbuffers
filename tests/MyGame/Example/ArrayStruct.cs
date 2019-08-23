@@ -21,13 +21,25 @@ public struct ArrayStruct : IFlatbufferObject
   public void MutateB(int j, int b) { __p.bb.PutInt(__p.bb_pos + 4 + j * 4, b); }
   public sbyte C { get { return __p.bb.GetSbyte(__p.bb_pos + 64); } }
   public void MutateC(sbyte c) { __p.bb.PutSbyte(__p.bb_pos + 64, c); }
-  public MyGame.Example.NestedStruct D(int j) { return (new MyGame.Example.NestedStruct()).__assign(__p.bb_pos + 68 + j * 12, __p.bb); }
+  public MyGame.Example.NestedStruct D(int j) { return (new MyGame.Example.NestedStruct()).__assign(__p.bb_pos + 72 + j * 32, __p.bb); }
+  public int E { get { return __p.bb.GetInt(__p.bb_pos + 136); } }
+  public void MutateE(int e) { __p.bb.PutInt(__p.bb_pos + 136, e); }
+  public long F(int j) { return __p.bb.GetLong(__p.bb_pos + 144 + j * 8); }
+  public void MutateF(int j, long f) { __p.bb.PutLong(__p.bb_pos + 144 + j * 8, f); }
 
-  public static Offset<MyGame.Example.ArrayStruct> CreateArrayStruct(FlatBufferBuilder builder, float A, int[] B, sbyte C, int[,] d_A, MyGame.Example.TestEnum[] d_B, MyGame.Example.TestEnum[,] d_C) {
-    builder.Prep(4, 92);
+  public static Offset<MyGame.Example.ArrayStruct> CreateArrayStruct(FlatBufferBuilder builder, float A, int[] B, sbyte C, int[,] d_A, MyGame.Example.TestEnum[] d_B, MyGame.Example.TestEnum[,] d_C, long[,] d_D, int E, long[] F) {
+    builder.Prep(8, 160);
     for (int _idx0 = 2; _idx0 > 0; _idx0--) {
-      builder.Prep(4, 12);
-      builder.Pad(1);
+      builder.PutLong(F[_idx0-1]);
+    }
+    builder.Pad(4);
+    builder.PutInt(E);
+    for (int _idx0 = 2; _idx0 > 0; _idx0--) {
+      builder.Prep(8, 32);
+      for (int _idx1 = 2; _idx1 > 0; _idx1--) {
+        builder.PutLong(d_D[_idx0-1,_idx1-1]);
+      }
+      builder.Pad(5);
       for (int _idx1 = 2; _idx1 > 0; _idx1--) {
         builder.PutSbyte((sbyte)d_C[_idx0-1,_idx1-1]);
       }
@@ -36,7 +48,7 @@ public struct ArrayStruct : IFlatbufferObject
         builder.PutInt(d_A[_idx0-1,_idx1-1]);
       }
     }
-    builder.Pad(3);
+    builder.Pad(7);
     builder.PutSbyte(C);
     for (int _idx0 = 15; _idx0 > 0; _idx0--) {
       builder.PutInt(B[_idx0-1]);
