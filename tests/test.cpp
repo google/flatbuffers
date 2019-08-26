@@ -2514,9 +2514,11 @@ void FlexBuffersTest() {
         slb += -100;  // Equivalent to slb.Add(-100) or slb.Int(-100);
         slb += "Fred";
         slb.IndirectFloat(4.0f);
+        auto i_f = slb.LastValue();
         uint8_t blob[] = { 77 };
         slb.Blob(blob, 1);
         slb += false;
+        slb.ReuseValue(i_f);
       });
       int ints[] = { 1, 2, 3 };
       slb.Vector("bar", ints, 3);
@@ -2537,9 +2539,11 @@ void FlexBuffersTest() {
         slb3 += -100;  // Equivalent to slb.Add(-100) or slb.Int(-100);
         slb3 += "Fred";
         slb3.IndirectFloat(4.0f);
+        auto i_f = slb3.LastValue();
         uint8_t blob[] = { 77 };
         slb3.Blob(blob, 1);
         slb3 += false;
+        slb3.ReuseValue(i_f);
       }, slb2);
       int ints[] = { 1, 2, 3 };
       slb2.Vector("bar", ints, 3);
@@ -2563,7 +2567,7 @@ void FlexBuffersTest() {
   auto map = flexbuffers::GetRoot(slb.GetBuffer()).AsMap();
   TEST_EQ(map.size(), 7);
   auto vec = map["vec"].AsVector();
-  TEST_EQ(vec.size(), 5);
+  TEST_EQ(vec.size(), 6);
   TEST_EQ(vec[0].AsInt64(), -100);
   TEST_EQ_STR(vec[1].AsString().c_str(), "Fred");
   TEST_EQ(vec[1].AsInt64(), 0);  // Number parsing failed.
@@ -2571,13 +2575,11 @@ void FlexBuffersTest() {
   TEST_EQ(vec[2].AsString().IsTheEmptyString(), true);  // Wrong Type.
   TEST_EQ_STR(vec[2].AsString().c_str(), "");     // This still works though.
   TEST_EQ_STR(vec[2].ToString().c_str(), "4.0");  // Or have it converted.
-
   // Few tests for templated version of As.
   TEST_EQ(vec[0].As<int64_t>(), -100);
   TEST_EQ_STR(vec[1].As<std::string>().c_str(), "Fred");
   TEST_EQ(vec[1].As<int64_t>(), 0);  // Number parsing failed.
   TEST_EQ(vec[2].As<double>(), 4.0);
-
   // Test that the blob can be accessed.
   TEST_EQ(vec[3].IsBlob(), true);
   auto blob = vec[3].AsBlob();
@@ -2585,6 +2587,7 @@ void FlexBuffersTest() {
   TEST_EQ(blob.data()[0], 77);
   TEST_EQ(vec[4].IsBool(), true);   // Check if type is a bool
   TEST_EQ(vec[4].AsBool(), false);  // Check if value is false
+  TEST_EQ(vec[5].AsDouble(), 4.0);  // This is shared with vec[2] !
   auto tvec = map["bar"].AsTypedVector();
   TEST_EQ(tvec.size(), 3);
   TEST_EQ(tvec[2].AsInt8(), 3);
@@ -2913,7 +2916,7 @@ void NativeTypeTest() {
   }
 }
 
-void FixedLengthArrayJsonTest(bool binary) {  
+void FixedLengthArrayJsonTest(bool binary) {
   // VS10 does not support typed enums, exclude from tests
 #if !defined(_MSC_VER) || _MSC_VER >= 1700
   // load FlatBuffer schema (.fbs) and JSON from disk

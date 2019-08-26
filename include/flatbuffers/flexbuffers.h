@@ -914,7 +914,9 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     Bool(b);
   }
 
-  void IndirectInt(int64_t i) { PushIndirect(i, FBT_INDIRECT_INT, WidthI(i)); }
+  void IndirectInt(int64_t i) {
+    PushIndirect(i, FBT_INDIRECT_INT, WidthI(i));
+  }
   void IndirectInt(const char *key, int64_t i) {
     Key(key);
     IndirectInt(i);
@@ -1194,6 +1196,26 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     EndMap(start);
   }
 
+  // If you wish to share a value explicitly (a value not shared automatically
+  // through one of the BUILDER_FLAG_SHARE_* flags) you can do so with these
+  // functions. Or if you wish to turn those flags off for performance reasons
+  // and still do some explicit sharing. For example:
+  // builder.IndirectDouble(M_PI);
+  // auto id = builder.LastValue();  // Remember where we stored it.
+  // .. more code goes here ..
+  // builder.ReuseValue(id);  // Refers to same double by offset.
+  // LastValue works regardless of wether the value has a key or not.
+  // Works on any data type.
+  struct Value;
+  Value LastValue() { return stack_.back(); }
+  void ReuseValue(Value v) {
+    stack_.push_back(v);
+  }
+  void ReuseValue(const char *key, Value v) {
+    Key(key);
+    ReuseValue(v);
+  }
+
   // Overloaded Add that tries to call the correct function above.
   void Add(int8_t i) { Int(i); }
   void Add(int16_t i) { Int(i); }
@@ -1319,6 +1341,8 @@ class Builder FLATBUFFERS_FINAL_CLASS {
                                                            : FBT_INT);
   }
 
+ public:
+  // This was really intended to be private, except for LastValue/ReuseValue.
   struct Value {
     union {
       int64_t i_;
@@ -1388,6 +1412,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     }
   };
 
+ private:
   void WriteAny(const Value &val, uint8_t byte_width) {
     switch (val.type_) {
       case FBT_NULL:
