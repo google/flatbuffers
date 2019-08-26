@@ -22,6 +22,7 @@ import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 
 import static com.google.flatbuffers.FlexBuffers.*;
@@ -86,11 +87,30 @@ public class FlexBuffersBuilder {
     public static final int BUILDER_FLAG_SHARE_ALL = 7;
 
     private final ByteBuffer bb;
-    private final ArrayList<KeyValue> stack = new ArrayList<>();
+    private final ArrayList<Value> stack = new ArrayList<>();
     private final HashMap<String, Integer> keyPool = new HashMap<>();
     private final HashMap<String, Integer> stringPool = new HashMap<>();
     private final int flags;
     private boolean finished = false;
+
+    private Comparator<Value> valueComparator = new Comparator<Value>() {
+        @Override
+        public int compare(Value o1, Value o2) {
+            int ia = o1.key;
+            int io =  o2.key;
+            byte c1, c2;
+            do {
+                c1 = bb.get(ia);
+                c2 = bb.get(io);
+                if (c1 == 0)
+                    return c1 - c2;
+                ia++;
+                io++;
+            }
+            while (c1 == c2);
+            return c1 - c2;
+        }
+    };
 
     /**
      * Constructs a newly allocated {@code FlexBuffersBuilder} with {@link #BUILDER_FLAG_SHARE_KEYS} set.
@@ -141,8 +161,7 @@ public class FlexBuffersBuilder {
     }
 
     public void putBoolean(String key, boolean val) {
-        int kKey = putKey(key);
-        stack.add(new KeyValue(kKey, Value.bool(val)));
+        stack.add(Value.bool(putKey(key), val));
     }
 
     private int putKey(String key) {
@@ -179,18 +198,16 @@ public class FlexBuffersBuilder {
     }
 
     public void putInt(String key, long val) {
-        int vKey = putKey(key);
-        Value vVal;
+        int iKey = putKey(key);
         if (Byte.MIN_VALUE <= val && val <= Byte.MAX_VALUE) {
-            vVal = Value.int8((int) val);
+            stack.add(Value.int8(iKey, (int) val));
         } else if (Short.MIN_VALUE <= val && val <= Short.MAX_VALUE) {
-            vVal = Value.int16((int) val);
+            stack.add(Value.int16(iKey, (int) val));
         } else if (Integer.MIN_VALUE <= val && val <= Integer.MAX_VALUE) {
-            vVal = Value.int32((int) val);
+            stack.add(Value.int32(iKey, (int) val));
         } else {
-            vVal = Value.int64(val);
+            stack.add(Value.int64(iKey, val));
         }
-        stack.add(new KeyValue(vKey, vVal));
     }
 
     /**
@@ -227,27 +244,25 @@ public class FlexBuffersBuilder {
     }
 
     private void putUInt64(String key, long value) {
-        int vKey = putKey(key);
-        Value vVal = Value.uInt64(value);
-        stack.add(new KeyValue(vKey, vVal));
+        stack.add(Value.uInt64(putKey(key), value));
     }
 
     private void putUInt(String key, long value) {
-        int vKey = putKey(key);
+        int iKey = putKey(key);
         Value vVal;
 
         int width = widthUInBits(value);
 
         if (width == WIDTH_8) {
-            vVal = Value.uInt8((int)value);
+            vVal = Value.uInt8(iKey, (int)value);
         } else if (width == WIDTH_16) {
-            vVal = Value.uInt16((int)value);
+            vVal = Value.uInt16(iKey, (int)value);
         } else if (width == WIDTH_32) {
-            vVal = Value.uInt32((int)value);
+            vVal = Value.uInt32(iKey, (int)value);
         } else {
-            vVal = Value.uInt64(value);
+            vVal = Value.uInt64(iKey, value);
         }
-        stack.add(new KeyValue(vKey, vVal));
+        stack.add(vVal);
     }
 
     /**
@@ -259,8 +274,7 @@ public class FlexBuffersBuilder {
     }
 
     public void putFloat(String key, float val) {
-        int vKey = putKey(key);
-        stack.add(new KeyValue(vKey, Value.float32(val)));
+        stack.add(Value.float32(putKey(key), val));
     }
 
     /**
@@ -272,8 +286,7 @@ public class FlexBuffersBuilder {
     }
 
     public void putFloat(String key, double val) {
-        int vKey = putKey(key);
-        stack.add(new KeyValue(vKey, Value.float64(val)));
+        stack.add(Value.float64(putKey(key), val));
     }
 
     /**
@@ -286,29 +299,28 @@ public class FlexBuffersBuilder {
     }
 
     public int putString(String key, String val) {
-        int vKey = putKey(key);
+        int iKey = putKey(key);
         if ((flags & FlexBuffersBuilder.BUILDER_FLAG_SHARE_STRINGS) != 0) {
             Integer i = stringPool.get(val);
             if (i == null) {
-                Value vValue = writeString(val);
-                stringPool.put(val, (int) vValue.iValue);
-                stack.add(new KeyValue(vKey, vValue));
-                return (int) vValue.iValue;
+                Value value = writeString(iKey, val);
+                stringPool.put(val, (int) value.iValue);
+                stack.add(value);
+                return (int) value.iValue;
             } else {
                 int bitWidth = widthUInBits(val.length());
-                Value vValue = Value.blob(i, FBT_STRING, bitWidth);
-                stack.add(new KeyValue(vKey, vValue));
+                stack.add(Value.blob(iKey, i, FBT_STRING, bitWidth));
                 return i;
             }
         } else {
-            Value vValue = writeString(val);
-            stack.add(new KeyValue(vKey, vValue));
-            return (int) vValue.iValue;
+            Value value = writeString(iKey, val);
+            stack.add(value);
+            return (int) value.iValue;
         }
     }
 
-    private Value writeString(String s) {
-        return writeBlob(s.getBytes(StandardCharsets.UTF_8), FBT_STRING);
+    private Value writeString(int key, String s) {
+        return writeBlob(key, s.getBytes(StandardCharsets.UTF_8), FBT_STRING);
     }
 
     // in bits to fit a unsigned int
@@ -319,7 +331,7 @@ public class FlexBuffersBuilder {
         return WIDTH_64;
     }
 
-    private Value writeBlob(byte[] blob, int type) {
+    private Value writeBlob(int key, byte[] blob, int type) {
         int bitWidth = widthUInBits(blob.length);
         int byteWidth = align(bitWidth);
         writeInt(blob.length, byteWidth);
@@ -328,7 +340,7 @@ public class FlexBuffersBuilder {
         if (type == FBT_STRING) {
             bb.put((byte) 0);
         }
-        return Value.blob(sloc, type, bitWidth);
+        return Value.blob(key, sloc, type, bitWidth);
     }
 
     // Align to prepare for writing a scalar with a certain size.
@@ -360,10 +372,10 @@ public class FlexBuffersBuilder {
     }
 
     public int putBlob(String key, byte[] val) {
-        int vKey = putKey(key);
-        Value vValue = writeBlob(val, FBT_BLOB);
-        stack.add(new KeyValue(vKey, vValue));
-        return (int) vValue.iValue;
+        int iKey = putKey(key);
+        Value value = writeBlob(iKey, val, FBT_BLOB);
+        stack.add(value);
+        return (int) value.iValue;
     }
 
     public int startVector() {
@@ -371,13 +383,13 @@ public class FlexBuffersBuilder {
     }
 
     public int endVector(String key, int start, boolean typed, boolean fixed) {
-        int vKey = putKey(key);
-        Value vec = createVector(start, stack.size() - start, typed, fixed, null);
+        int iKey = putKey(key);
+        Value vec = createVector(iKey, start, stack.size() - start, typed, fixed, null);
         // Remove temp elements and return vector.
         while (stack.size() > start) {
             stack.remove(stack.size() - 1);
         }
-        stack.add(new KeyValue(vKey, vec));
+        stack.add(vec);
         return (int) vec.iValue;
     }
 
@@ -394,10 +406,10 @@ public class FlexBuffersBuilder {
         // some other object.
         assert (stack.size() == 1);
         // Write root value.
-        int byteWidth = align(stack.get(0).value.elemWidth(bb.position(), 0));
-        writeAny(stack.get(0).value, byteWidth);
+        int byteWidth = align(stack.get(0).elemWidth(bb.position(), 0));
+        writeAny(stack.get(0), byteWidth);
         // Write root type.
-        bb.put(stack.get(0).value.storedPackedType());
+        bb.put(stack.get(0).storedPackedType());
         // Write root size. Normally determined by parent, but root has no parent :)
         bb.put((byte) byteWidth);
         bb.limit(bb.position());
@@ -408,35 +420,37 @@ public class FlexBuffersBuilder {
     /*
      * Create a vector based on the elements stored in the stack
      *
+     * @param key reference to its key
      * @param start  element in the stack
      * @param length size of the vector
      * @param typed  whether is TypedVector or not
      * @param fixed  whether is Fixed vector or not
+     * @param keys Value representing key vector
      * @return Value representing the created vector
      */
-    private Value createVector(int start, int length, boolean typed, boolean fixed, Value key) {
+    private Value createVector(int key, int start, int length, boolean typed, boolean fixed, Value keys) {
         assert (!fixed || typed); // typed=false, fixed=true combination is not supported.
         // Figure out smallest bit width we can store this vector with.
         int bitWidth = Math.max(WIDTH_8, widthUInBits(length));
         int prefixElems = 1;
-        if (key != null) {
+        if (keys != null) {
             // If this vector is part of a map, we will pre-fix an offset to the keys
             // to this vector.
-            bitWidth = Math.max(bitWidth, key.elemWidth(bb.position(), 0));
+            bitWidth = Math.max(bitWidth, keys.elemWidth(bb.position(), 0));
             prefixElems += 2;
         }
         int vectorType = FBT_KEY;
         // Check bit widths and types for all elements.
         for (int i = start; i < stack.size(); i++) {
-            int elemWidth = stack.get(i).value.elemWidth(bb.position(), i + prefixElems);
+            int elemWidth = stack.get(i).elemWidth(bb.position(), i + prefixElems);
             bitWidth = Math.max(bitWidth, elemWidth);
             if (typed) {
                 if (i == start) {
-                    vectorType = stack.get(i).value.type;
+                    vectorType = stack.get(i).type;
                 } else {
                     // If you get this assert, you are writing a typed vector with
                     // elements that are not all the same type.
-                    assert (vectorType == stack.get(i).value.type);
+                    assert (vectorType == stack.get(i).type);
                 }
             }
         }
@@ -446,9 +460,9 @@ public class FlexBuffersBuilder {
 
         int byteWidth = align(bitWidth);
         // Write vector. First the keys width/offset if available, and size.
-        if (key != null) {
-            writeOffset(key.iValue, byteWidth);
-            writeInt(1L << key.minBitWidth, byteWidth);
+        if (keys != null) {
+            writeOffset(keys.iValue, byteWidth);
+            writeInt(1L << keys.minBitWidth, byteWidth);
         }
         if (!fixed) {
             writeInt(length, byteWidth);
@@ -456,15 +470,15 @@ public class FlexBuffersBuilder {
         // Then the actual data.
         int vloc = bb.position();
         for (int i = start; i < stack.size(); i++) {
-            writeAny(stack.get(i).value, byteWidth);
+            writeAny(stack.get(i), byteWidth);
         }
         // Then the types.
         if (!typed) {
             for (int i = start; i < stack.size(); i++) {
-                bb.put(stack.get(i).value.storedPackedType(bitWidth));
+                bb.put(stack.get(i).storedPackedType(bitWidth));
             }
         }
-        return new Value(key != null ? FBT_MAP
+        return new Value(key, keys != null ? FBT_MAP
                 : (typed ? FlexBuffers.toTypedVector(vectorType, fixed ? length : 0)
                 : FBT_VECTOR), bitWidth, vloc);
     }
@@ -505,17 +519,17 @@ public class FlexBuffersBuilder {
     }
 
     public int endMap(String key, int start) {
-        int vKey = putKey(key);
+        int iKey = putKey(key);
 
-        Collections.sort(stack.subList(start, stack.size()));
+        Collections.sort(stack.subList(start, stack.size()), valueComparator);
 
         Value keys = createKeyVector(start, stack.size() - start);
-        Value vec = createVector(start, stack.size() - start, false, false, keys);
+        Value vec = createVector(iKey, start, stack.size() - start, false, false, keys);
         // Remove temp elements and return map.
         while (stack.size() > start) {
             stack.remove(stack.size() - 1);
         }
-        stack.add(new KeyValue(vKey, vec));
+        stack.add(vec);
         return (int) vec.iValue;
     }
 
@@ -540,230 +554,7 @@ public class FlexBuffersBuilder {
             writeOffset(stack.get(i).key, byteWidth);
         }
         // Then the types.
-        return new Value(FlexBuffers.toTypedVector(FBT_KEY,0), bitWidth, vloc);
-    }
-
-    /**
-     * Callback interface used to add elements to a vector
-     */
-    public interface VectorBuilderCallback {
-        void run(VectorBuilder vb);
-    }
-
-    /**
-     * Callback interface used to add elements to a map
-     */
-    public interface MapBuilderCallback {
-        void run(MapBuilder vb);
-    }
-
-    /**
-     * This class will be use to construct vectors in a FlexBuffer message
-     */
-    public static class VectorBuilder {
-        final FlexBuffersBuilder builder;
-        boolean typed = true;
-        int elementType = -1;
-
-        private VectorBuilder(FlexBuffersBuilder builder) {
-            this.builder = builder;
-        }
-
-        private void checkType(int nextElementType) {
-            if (!typed) {
-                // we already no its know typed, so no need to check
-                return;
-            }
-            if (FlexBuffers.isTypedVectorElementType(nextElementType) && elementType == -1) {
-                // we keep first element type, to check whether we can make the vector typed or not
-                elementType = nextElementType;
-                return;
-            }
-            if (!FlexBuffers.isTypedVectorElementType(nextElementType) || nextElementType != elementType) {
-                typed = false;
-            }
-        }
-
-        /**
-         * Puts a boolean into the current vector
-         *
-         * @param value true or false
-         */
-        public void putBoolean(boolean value) {
-            checkType(FBT_BOOL);
-            builder.putBoolean(null, value);
-        }
-
-        /**
-         * Puts a integer into the current vector
-         *
-         * @param value 32 bits or less int
-         */
-        public void putInt(int value) {
-            checkType(FBT_INT);
-            builder.putInt(null, value);
-        }
-
-        /**
-         * Puts a long (64bits) into the current vector
-         *
-         * @param value 64 bits or less int
-         */
-        public void putInt(long value) {
-            checkType(FBT_INT);
-            builder.putInt(null, value);
-        }
-
-        /**
-         * Put a 64bits float into the current vector
-         *
-         * @param value double value
-         */
-        public void putFloat(double value) {
-            checkType(FBT_FLOAT);
-            builder.putFloat(null, value);
-        }
-
-        /**
-         * Put a 32bits float into the current vector
-         *
-         * @param value float value
-         */
-        public void putFloat(float value) {
-            checkType(FBT_FLOAT);
-            builder.putFloat(null, value);
-        }
-
-        /**
-         * Puts a string into the current vector
-         *
-         * @param value string to be inserted
-         * @return position in buffer where string is stored.
-         */
-        public int putString(String value) {
-            checkType(FBT_STRING);
-            return builder.putString(null, value);
-        }
-
-        /**
-         * Puts a blob (array of bytes) into the current vector
-         *
-         * @param value byte array to be inserted
-         * @return position in buffer where blob is stored.
-         */
-        public long putBlob(byte[] value) {
-            checkType(FBT_BLOB);
-            return builder.putBlob(null, value);
-        }
-
-        /**
-         * Puts a new map into the current vector
-         *
-         * @param mbc callback to be used to add elements to the inserted map
-         * @return position in buffer where map is stored.
-         */
-        public int putMap(MapBuilderCallback mbc) {
-            checkType(FBT_MAP);
-            int start = builder.stack.size();
-            mbc.run(new MapBuilder(builder));
-            return builder.endMap(null, start);
-        }
-    }
-
-    /**
-     * Helper class to add key value style map into the FlexBuffer message
-     */
-    public static class MapBuilder {
-        final FlexBuffersBuilder builder;
-
-        private MapBuilder(FlexBuffersBuilder builder) {
-            this.builder = builder;
-        }
-
-        /**
-         * Puts a boolean into the current map
-         *
-         * @param key key string associated
-         * @param value true or false
-         */
-        public void putBoolean(String key, boolean value) {
-            builder.putBoolean(key, value);
-        }
-
-        /**
-         * Puts a integer into the current map
-         *
-         * @param key key string associated
-         * @param value 32 bits or less int
-         */
-        public void putInt(String key, int value) {
-            builder.putInt(key, value);
-        }
-
-        /**
-         * Puts a long (64bits) into the current map
-         *
-         * @param key key string associated
-         * @param value 64 bits or less int
-         */
-        public void putInt(String key, long value) {
-            builder.putInt(key, value);
-        }
-
-        /**
-         * Put a 32bits float into the current map
-         *
-         * @param key key string associated
-         * @param value float value
-         */
-        public void putFloat(String key, float value) {
-            builder.putFloat(key, value);
-        }
-
-        /**
-         * Put a 64bits float into the current map
-         *
-         * @param key key string associated
-         * @param value double value
-         */
-        public void putFloat(String key, double value) {
-            builder.putFloat(key, value);
-        }
-
-        /**
-         * Puts a string into the current map
-         *
-         * @param key key string associated
-         * @param value string to be inserted
-         * @return position in buffer where string is stored.
-         */
-        public void putString(String key, String value) {
-            builder.putString(key, value);
-        }
-
-        /**
-         * Puts a blob (array of bytes) into the current vector
-         *
-         * @param key key string associated
-         * @param value byte array to be inserted
-         * @return position in buffer where blob is stored.
-         */
-        public long putBlob(String key, byte[] value) {
-            return builder.putBlob(key, value);
-        }
-
-        /**
-         * Puts a new map into the current vector
-         *
-         * @param key key string associated
-         * @param mbc callback to be used to add elements to the inserted map
-         * @return position in buffer where map is stored.
-         */
-        public int putMap(String key, MapBuilderCallback mbc) {
-            int start = builder.stack.size();
-            mbc.run(new MapBuilder(builder));
-            return builder.endMap(key, start);
-        }
+        return new Value(-1, FlexBuffers.toTypedVector(FBT_KEY,0), bitWidth, vloc);
     }
 
     public static class Value {
@@ -776,71 +567,71 @@ public class FlexBuffersBuilder {
         final double dValue;
         // integer value
         long iValue;
+        // position of the key associated with this value in buffer
+        int key;
 
-        Value(int type, int bitWidth, long iValue) {
+        Value(int key, int type, int bitWidth, long iValue) {
+            this.key = key;
             this.type = type;
             this.minBitWidth = bitWidth;
             this.iValue = iValue;
             this.dValue = Double.MIN_VALUE;
         }
 
-        Value(int type, int bitWidth, double dValue) {
+        Value(int key, int type, int bitWidth, double dValue) {
+            this.key = key;
             this.type = type;
             this.minBitWidth = bitWidth;
             this.dValue = dValue;
             this.iValue = Long.MIN_VALUE;
         }
 
-        static Value key(int position) {
-            return new Value(FBT_KEY, WIDTH_8, position);
+        static Value bool(int key, boolean b) {
+            return new Value(key, FBT_BOOL, WIDTH_8, b ? 1 : 0);
         }
 
-        static Value bool(boolean b) {
-            return new Value(FBT_BOOL, WIDTH_8, b ? 1 : 0);
+        static Value blob(int key, int position, int type, int bitWidth) {
+            return new Value(key, type, WIDTH_8, position);
         }
 
-        static Value blob(int position, int type, int bitWidth) {
-            return new Value(type, WIDTH_8, position);
+        static Value int8(int key, int value) {
+            return new Value(key, FBT_INT, WIDTH_8, value);
         }
 
-        static Value int8(int value) {
-            return new Value(FBT_INT, WIDTH_8, value);
+        static Value int16(int key, int value) {
+            return new Value(key, FBT_INT, WIDTH_16, value);
         }
 
-        static Value int16(int value) {
-            return new Value(FBT_INT, WIDTH_16, value);
+        static Value int32(int key, int value) {
+            return new Value(key, FBT_INT, WIDTH_32, value);
         }
 
-        static Value int32(int value) {
-            return new Value(FBT_INT, WIDTH_32, value);
+        static Value int64(int key, long value) {
+            return new Value(key, FBT_INT, WIDTH_64, value);
         }
 
-        static Value int64(long value) {
-            return new Value(FBT_INT, WIDTH_64, value);
+        static Value uInt8(int key, int value) {
+            return new Value(key, FBT_UINT, WIDTH_8, value);
         }
 
-        static Value uInt8(int value) {
-            return new Value(FBT_UINT, WIDTH_8, value);
+        static Value uInt16(int key, int value) {
+            return new Value(key, FBT_UINT, WIDTH_16, value);
         }
 
-        static Value uInt16(int value) {
-            return new Value(FBT_UINT, WIDTH_16, value);
+        static Value uInt32(int key, int value) {
+            return new Value(key, FBT_UINT, WIDTH_32, value);
         }
 
-        static Value uInt32(int value) {
-            return new Value(FBT_UINT, WIDTH_32, value);
+        static Value uInt64(int key, long value) {
+            return new Value(key, FBT_UINT, WIDTH_64, value);
         }
 
-        static Value uInt64(long value) {
-            return new Value(FBT_UINT, WIDTH_64, value);
+        static Value float32(int key, float value) {
+            return new Value(key, FBT_FLOAT, WIDTH_32, value);
         }
 
-        static Value float32(float value) {
-            return new Value(FBT_FLOAT, WIDTH_32, value);
-        }
-
-        static Value float64(double value) {
-            return new Value(FBT_FLOAT, WIDTH_64, value);
+        static Value float64(int key, double value) {
+            return new Value(key, FBT_FLOAT, WIDTH_64, value);
         }
 
         private byte storedPackedType() {
@@ -896,37 +687,6 @@ public class FlexBuffersBuilder {
 
         private static int paddingBytes(int bufSize, int scalarSize) {
             return ((~bufSize) + 1) & (scalarSize - 1);
-        }
-    }
-
-    /**
-     * Represents a FlexBuffer element.
-     * can be an scalars, vector or strings
-     */
-    private class KeyValue implements Comparable<KeyValue> {
-        int key;
-        Value value;
-
-        KeyValue(int key, Value value) {
-            this.key = key;
-            this.value = value;
-        }
-
-        @Override
-        public int compareTo(KeyValue o) {
-            int ia = key;
-            int io = o.key;
-            byte c1, c2;
-            do {
-                c1 = bb.get(ia);
-                c2 = bb.get(io);
-                if (c1 == '\0')
-                    return c1 - c2;
-                ia++;
-                io++;
-            }
-            while (c1 == c2);
-            return c1 - c2;
         }
     }
 }

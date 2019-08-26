@@ -310,7 +310,7 @@ public class FlexBuffers {
                     case FBT_STRING: {
                         try {
                             return Long.parseLong(asString());
-                        }catch (NumberFormatException nfe) {
+                        } catch (NumberFormatException nfe) {
                             return 0; //same as C++ implementation
                         }
                     }
@@ -345,7 +345,7 @@ public class FlexBuffers {
         }
 
         public Key asKey() {
-            if (type == FBT_KEY) {
+            if (isKey()) {
                 return new Key(bb, indirect(bb, end, parentWidth), byteWidth);
             } else {
                 return Key.empty();
@@ -353,7 +353,12 @@ public class FlexBuffers {
         }
 
         public String asString() {
-            if (type == FBT_KEY || type == FBT_STRING || type == FBT_BLOB) {
+            if (isString()) {
+                int start = indirect(bb, end, byteWidth);
+                int size = readInt(bb, start - byteWidth, byteWidth);
+                return Utf8.getDefault().decodeUtf8(bb, start, size);
+            }
+            else if (isKey()){
                 int start = indirect(bb, end, byteWidth);
                 for (int i = start; ; i++) {
                     if (bb.get(i) == 0) {
@@ -366,7 +371,7 @@ public class FlexBuffers {
         }
 
         public Map asMap() {
-            if (type == FBT_MAP) {
+            if (isMap()) {
                 return new Map(bb, indirect(bb, end, parentWidth), byteWidth);
             } else {
                 return Map.empty();
@@ -374,7 +379,7 @@ public class FlexBuffers {
         }
 
         public Vector asVector() {
-            if (type == FBT_VECTOR || type == FBT_MAP) {
+            if (isVector()) {
                 return new Vector(bb, indirect(bb, end, parentWidth), byteWidth);
             } else if (FlexBuffers.isTypedVector(type)) {
                 return new TypedVector(bb, indirect(bb, end, parentWidth), byteWidth, FlexBuffers.toTypedVectorElementType(type));
@@ -384,7 +389,7 @@ public class FlexBuffers {
         }
 
         public Blob asBlob() {
-            if (type == FBT_BLOB || type == FBT_STRING) {
+            if (isBlob() || isString()) {
                 return new Blob(bb, indirect(bb, end, parentWidth), byteWidth);
             } else {
                 return Blob.empty();
@@ -392,7 +397,7 @@ public class FlexBuffers {
         }
 
         public boolean asBoolean() {
-            if (type == FBT_BOOL) {
+            if (isBoolean()) {
                 return bb.get(end) != 0;
             }
             return asUInt() != 0;
