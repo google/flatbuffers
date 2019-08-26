@@ -341,7 +341,7 @@ endfunction()
 if(FLATBUFFERS_BUILD_TESTS)
   compile_flatbuffers_schema_to_cpp(tests/monster_test.fbs)
   compile_flatbuffers_schema_to_cpp_opt(tests/native_type_test.fbs "")
-  compile_flatbuffers_schema_to_cpp_opt(tests/arrays_test.fbs --scoped-enums)
+  compile_flatbuffers_schema_to_cpp_opt(tests/arrays_test.fbs "--scoped-enums;--gen-compare")
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/tests)
   add_executable(flattests ${FlatBuffers_Tests_SRCS})
   set_property(TARGET flattests
