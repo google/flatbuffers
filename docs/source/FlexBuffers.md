@@ -98,10 +98,10 @@ allows a single type, and uses a bit less memory.
 `IndirectFloat` is an interesting feature that allows you to store values
 by offset rather than inline. Though that doesn't make any visible change
 to the user, the consequence is that large values (especially doubles or
-64 bit ints) that occur more than once can be shared. Another use case is
-inside of vectors, where the largest element makes up the size of all elements
-(e.g. a single double forces all elements to 64bit), so storing a lot of small
-integers together with a double is more efficient if the double is indirect.
+64 bit ints) that occur more than once can be shared (see ReuseValue).
+Another use case is inside of vectors, where the largest element makes
+up the size of all elements (e.g. a single double forces all elements to
+64bit), so storing a lot of small integers together with a double is more efficient if the double is indirect.
 
 Accessing it:
 
