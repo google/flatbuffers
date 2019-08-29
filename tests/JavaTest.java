@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import java.util.Arrays;
+import java.math.BigInteger;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -24,6 +26,8 @@ import NamespaceA.NamespaceB.*;
 import com.google.flatbuffers.ByteBufferUtil;
 import static com.google.flatbuffers.Constants.*;
 import com.google.flatbuffers.FlatBufferBuilder;
+import com.google.flatbuffers.FlexBuffersBuilder;
+import com.google.flatbuffers.FlexBuffers;
 import MyGame.MonsterExtra;
 
 class JavaTest {
@@ -76,6 +80,8 @@ class JavaTest {
         TestVectorOfUnions();
 
         TestFixedLengthArrays();
+
+        TestFlexBuffers();
 
         System.out.println("FlatBuffers test: completed successfully");
     }
@@ -242,7 +248,9 @@ class JavaTest {
             public ByteBuffer newByteBuffer(int capacity) {
                 ByteBuffer bb;
                 try {
-                    bb =  new RandomAccessFile("javatest.bin", "rw").getChannel().map(FileChannel.MapMode.READ_WRITE, 0, capacity).order(ByteOrder.LITTLE_ENDIAN);
+                    RandomAccessFile f = new RandomAccessFile("javatest.bin", "rw");
+                    bb =  f.getChannel().map(FileChannel.MapMode.READ_WRITE, 0, capacity).order(ByteOrder.LITTLE_ENDIAN);
+                    f.close();
                 } catch(Throwable e) {
                     System.out.println("FlatBuffers test: couldn't map ByteBuffer to a file");
                     bb = null;
@@ -523,10 +531,336 @@ class JavaTest {
         TestEq(table.a().f(1), (long)1);
     }
 
+    public static void testFlexBuffersTest() {
+        FlexBuffersBuilder builder = new FlexBuffersBuilder(ByteBuffer.allocate(512),
+                FlexBuffersBuilder.BUILDER_FLAG_SHARE_KEYS_AND_STRINGS);
+
+        // Write the equivalent of:
+        // { vec: [ -100, "Fred", 4.0, false ], bar: [ 1, 2, 3 ], bar3: [ 1, 2, 3 ],
+        // foo: 100, bool: true, mymap: { foo: "Fred" } }
+        // It's possible to do this without std::function support as well.
+        int map1 = builder.startMap();
+
+        int vec1 = builder.startVector();
+        builder.putInt(-100);
+        builder.putString("Fred");
+        builder.putBlob(new byte[]{(byte) 77});
+        builder.putBoolean(false);
+        builder.putInt(Long.MAX_VALUE);
+
+        int map2 = builder.startMap();
+        builder.putInt("test", 200);
+        builder.endMap(null, map2);
+
+        builder.putFloat(150.9);
+        builder.putFloat(150.9999998);
+        builder.endVector("vec", vec1, false, false);
+
+        vec1 = builder.startVector();
+        builder.putInt(1);
+        builder.putInt(2);
+        builder.putInt(3);
+        builder.endVector("bar", vec1, true, false);
+
+        vec1 = builder.startVector();
+        builder.putBoolean(true);
+        builder.putBoolean(false);
+        builder.putBoolean(true);
+        builder.putBoolean(false);
+        builder.endVector("bools", vec1, true, false);
+
+        builder.putBoolean("bool", true);
+        builder.putFloat("foo", 100);
+
+        map2 = builder.startMap();
+        builder.putString("bar", "Fred");  // Testing key and string reuse.
+        builder.putInt("int", -120);
+        builder.putFloat("float", -123.0f);
+        builder.putBlob("blob", new byte[]{ 65, 67 });
+        builder.endMap("mymap", map2);
+
+        builder.endMap(null, map1);
+        builder.finish();
+
+        FlexBuffers.Map m = FlexBuffers.getRoot(builder.getBuffer()).asMap();
+
+        TestEq(m.size(), 6);
+
+        // test empty (an null)
+        TestEq(m.get("no_key").asString(), ""); // empty if fail
+        TestEq(m.get("no_key").asMap(), FlexBuffers.Map.empty()); // empty if fail
+        TestEq(m.get("no_key").asKey(), FlexBuffers.Key.empty()); // empty if fail
+        TestEq(m.get("no_key").asVector(), FlexBuffers.Vector.empty()); // empty if fail
+        TestEq(m.get("no_key").asBlob(), FlexBuffers.Blob.empty()); // empty if fail
+        assert(m.get("no_key").asVector().isEmpty()); // empty if fail
+
+        // testing "vec" field
+        FlexBuffers.Vector vec = m.get("vec").asVector();
+        TestEq(vec.size(), 8);
+        TestEq(vec.get(0).asLong(), (long) -100);
+        TestEq(vec.get(1).asString(), "Fred");
+        TestEq(vec.get(2).isBlob(), true);
+        TestEq(vec.get(2).asBlob().size(), 1);
+        TestEq(vec.get(2).asBlob().data().get(0), (byte) 77);
+        TestEq(vec.get(3).isBoolean(), true);   // Check if type is a bool
+        TestEq(vec.get(3).asBoolean(), false);  // Check if value is false
+        TestEq(vec.get(4).asLong(), Long.MAX_VALUE);
+        TestEq(vec.get(5).isMap(), true);
+        TestEq(vec.get(5).asMap().get("test").asInt(), 200);
+        TestEq(Float.compare((float)vec.get(6).asFloat(), 150.9f), 0);
+        TestEq(Double.compare(vec.get(7).asFloat(), 150.9999998), 0);
+        TestEq((long)0, (long)vec.get(1).asLong()); //conversion fail returns 0 as C++
+
+        // bar vector
+        FlexBuffers.Vector tvec = m.get("bar").asVector();
+        TestEq(tvec.size(), 3);
+        TestEq(tvec.get(0).asInt(), 1);
+        TestEq(tvec.get(1).asInt(), 2);
+        TestEq(tvec.get(2).asInt(), 3);
+        TestEq(((FlexBuffers.TypedVector) tvec).getElemType(), FlexBuffers.FBT_INT);
+
+        // bools vector
+        FlexBuffers.Vector bvec = m.get("bools").asVector();
+        TestEq(bvec.size(), 4);
+        TestEq(bvec.get(0).asBoolean(), true);
+        TestEq(bvec.get(1).asBoolean(), false);
+        TestEq(bvec.get(2).asBoolean(), true);
+        TestEq(bvec.get(3).asBoolean(), false);
+        TestEq(((FlexBuffers.TypedVector) bvec).getElemType(), FlexBuffers.FBT_BOOL);
+
+
+        TestEq((float)m.get("foo").asFloat(), (float) 100);
+        TestEq(m.get("unknown").isNull(), true);
+
+        // mymap vector
+        FlexBuffers.Map mymap = m.get("mymap").asMap();
+        TestEq(mymap.keys().get(0), m.keys().get(0)); // These should be equal by pointer equality, since key and value are shared.
+        TestEq(mymap.values().get(0).asString(), vec.get(1).asString());
+        TestEq(mymap.get("int").asInt(), -120);
+        TestEq((float)mymap.get("float").asFloat(), -123.0f);
+        TestEq(Arrays.equals(mymap.get("blob").asBlob().getBytes(), new byte[]{ 65, 67 }), true);
+        TestEq(mymap.get("blob").asBlob().toString(), "AC");
+        TestEq(mymap.get("blob").toString(), "\"AC\"");
+    }
+
+    public static void testSingleElementBoolean() {
+        FlexBuffersBuilder builder = new FlexBuffersBuilder(ByteBuffer.allocate(100));
+        builder.putBoolean(true);
+        ByteBuffer b = builder.finish();
+        assert(FlexBuffers.getRoot(b).asBoolean());
+    }
+
+    public static void testSingleElementByte() {
+        FlexBuffersBuilder builder = new FlexBuffersBuilder();
+        builder.putInt(10);
+        ByteBuffer b = builder.finish();
+        TestEq(10, FlexBuffers.getRoot(b).asInt());
+    }
+
+    public static void testSingleElementShort() {
+        FlexBuffersBuilder builder = new FlexBuffersBuilder();
+        builder.putInt(Short.MAX_VALUE);
+        ByteBuffer b = builder.finish();
+        TestEq(Short.MAX_VALUE, (short)FlexBuffers.getRoot(b).asInt());
+    }
+
+    public static void testSingleElementInt() {
+        FlexBuffersBuilder builder = new FlexBuffersBuilder();
+        builder.putInt(Integer.MIN_VALUE);
+        ByteBuffer b = builder.finish();
+        TestEq(Integer.MIN_VALUE, FlexBuffers.getRoot(b).asInt());
+    }
+
+    public static void testSingleElementLong() {
+        FlexBuffersBuilder builder = new FlexBuffersBuilder();
+        builder.putInt(Long.MAX_VALUE);
+        ByteBuffer b = builder.finish();
+        TestEq(Long.MAX_VALUE, FlexBuffers.getRoot(b).asLong());
+    }
+
+    public static void testSingleElementFloat() {
+        FlexBuffersBuilder builder = new FlexBuffersBuilder();
+        builder.putFloat(Float.MAX_VALUE);
+        ByteBuffer b = builder.finish();
+        TestEq(Float.compare(Float.MAX_VALUE, (float) FlexBuffers.getRoot(b).asFloat()), 0);
+    }
+
+    public static void testSingleElementDouble() {
+        FlexBuffersBuilder builder = new FlexBuffersBuilder();
+        builder.putFloat(Double.MAX_VALUE);
+        ByteBuffer b = builder.finish();
+        TestEq(Double.compare(Double.MAX_VALUE, FlexBuffers.getRoot(b).asFloat()), 0);
+    }
+
+    public static void testSingleElementString() {
+        FlexBuffersBuilder builder = new FlexBuffersBuilder();
+        builder.putString("wow");
+        ByteBuffer b = builder.finish();
+        FlexBuffers.Reference r = FlexBuffers.getRoot(b);
+        TestEq(FlexBuffers.FBT_STRING, r.getType());
+        TestEq("wow", r.asString());
+    }
+
+    public static void testSingleElementBlob() {
+        FlexBuffersBuilder builder = new FlexBuffersBuilder();
+        builder.putBlob(new byte[]{5, 124, 118, -1});
+        ByteBuffer b = builder.finish();
+        FlexBuffers.Reference r = FlexBuffers.getRoot(b);
+        byte[] result = r.asBlob().getBytes();
+        TestEq((byte)5, result[0]);
+        TestEq((byte)124, result[1]);
+        TestEq((byte)118, result[2]);
+        TestEq((byte)-1, result[3]);
+    }
+
+    public static void testSingleElementUByte() {
+        FlexBuffersBuilder builder = new FlexBuffersBuilder();
+        builder.putUInt(0xFF);
+        ByteBuffer b = builder.finish();
+        FlexBuffers.Reference r = FlexBuffers.getRoot(b);
+        TestEq(255, (int)r.asUInt());
+    }
+
+    public static void testSingleElementUShort() {
+        FlexBuffersBuilder builder = new FlexBuffersBuilder();
+        builder.putUInt(0xFFFF);
+        ByteBuffer b = builder.finish();
+        FlexBuffers.Reference r = FlexBuffers.getRoot(b);
+        TestEq(65535, (int)r.asUInt());
+    }
+
+    public static void testSingleElementUInt() {
+        FlexBuffersBuilder builder = new FlexBuffersBuilder();
+        builder.putUInt(0xFFFF_FFFFL);
+        ByteBuffer b = builder.finish();
+        FlexBuffers.Reference r = FlexBuffers.getRoot(b);
+        TestEq(4294967295L, r.asUInt());
+    }
+
+    public static void testSingleFixedTypeVector() {
+
+        int[] ints = new int[]{5, 124, 118, -1};
+        float[] floats = new float[]{5.5f, 124.124f, 118.118f, -1.1f};
+        String[] strings = new String[]{"This", "is", "a", "typed", "array"};
+        boolean[] booleans = new boolean[]{false, true, true, false};
+
+
+        FlexBuffersBuilder builder = new FlexBuffersBuilder(ByteBuffer.allocate(512),
+                FlexBuffersBuilder.BUILDER_FLAG_NONE);
+
+        int mapPos = builder.startMap();
+
+        int vecPos = builder.startVector();
+        for (final int i : ints) {
+            builder.putInt(i);
+        }
+        builder.endVector("ints", vecPos, true, false);
+
+        vecPos = builder.startVector();
+        for (final float i : floats) {
+            builder.putFloat(i);
+        }
+        builder.endVector("floats", vecPos, true, false);
+
+        vecPos = builder.startVector();
+        for (final String i : strings) {
+            builder.putString(i);
+        }
+        builder.endVector("strings", vecPos, true, false);
+
+        vecPos = builder.startVector();
+        for (final boolean i : booleans) {
+            builder.putBoolean(i);
+        }
+        builder.endVector("booleans", vecPos, true, false);
+
+        builder.endMap(null, mapPos);
+
+
+        ByteBuffer b = builder.finish();
+        FlexBuffers.Reference r = FlexBuffers.getRoot(b);
+        assert(r.asMap().get("ints").isTypedVector());
+        assert(r.asMap().get("floats").isTypedVector());
+        assert(r.asMap().get("strings").isTypedVector());
+        assert(r.asMap().get("booleans").isTypedVector());
+    }
+
+    public static void testSingleElementVector() {
+        FlexBuffersBuilder b = new FlexBuffersBuilder();
+
+        int vecPos = b.startVector();
+        b.putInt(99);
+        b.putString("wow");
+        int vecpos2 = b.startVector();
+        b.putInt(99);
+        b.putString("wow");
+        b.endVector(null, vecpos2, false, false);
+        b.endVector(null, vecPos, false, false);
+        b.finish();
+
+        FlexBuffers.Reference r = FlexBuffers.getRoot(b.getBuffer());
+        TestEq(FlexBuffers.FBT_VECTOR, r.getType());
+        FlexBuffers.Vector vec = FlexBuffers.getRoot(b.getBuffer()).asVector();
+        TestEq(3, vec.size());
+        TestEq(99, vec.get(0).asInt());
+        TestEq("wow", vec.get(1).asString());
+        TestEq("[ 99, \"wow\" ]", vec.get(2).toString());
+        TestEq("[ 99, \"wow\", [ 99, \"wow\" ] ]", FlexBuffers.getRoot(b.getBuffer()).toString());
+    }
+
+    public static void testSingleElementMap() {
+        FlexBuffersBuilder b = new FlexBuffersBuilder();
+
+        int mapPost = b.startMap();
+        b.putInt("myInt", 0x7fffffbbbfffffffL);
+        b.putString("myString", "wow");
+        b.putString("myString2", "incredible");
+        int start = b.startVector();
+        b.putInt(99);
+        b.putString("wow");
+        b.endVector("myVec", start, false, false);
+
+        b.putFloat("double", 0x1.ffffbbbffffffP+1023);
+        b.endMap(null, mapPost);
+        b.finish();
+
+        FlexBuffers.Reference r = FlexBuffers.getRoot(b.getBuffer());
+        TestEq(FlexBuffers.FBT_MAP, r.getType());
+        FlexBuffers.Map map = FlexBuffers.getRoot(b.getBuffer()).asMap();
+        TestEq(5, map.size());
+        TestEq(0x7fffffbbbfffffffL, map.get("myInt").asLong());
+        TestEq("wow", map.get("myString").asString());
+        TestEq("incredible", map.get("myString2").asString());
+        TestEq(99, map.get("myVec").asVector().get(0).asInt());
+        TestEq("wow", map.get("myVec").asVector().get(1).asString());
+        TestEq(Double.compare(0x1.ffffbbbffffffP+1023, map.get("double").asFloat()), 0);
+        TestEq("{ \"double\" : 1.7976894783391937E308, \"myInt\" : 9223371743723257855, \"myString\" : \"wow\", \"myString2\" : \"incredible\", \"myVec\" : [ 99, \"wow\" ] }",
+                FlexBuffers.getRoot(b.getBuffer()).toString());
+    }
+
+    public static void TestFlexBuffers() {
+        testSingleElementByte();
+        testSingleElementShort();
+        testSingleElementInt();
+        testSingleElementLong();
+        testSingleElementFloat();
+        testSingleElementDouble();
+        testSingleElementString();
+        testSingleElementBlob();
+        testSingleElementVector();
+        testSingleFixedTypeVector();
+        testSingleElementUShort();
+        testSingleElementUInt();
+        testSingleElementUByte();
+        testSingleElementMap();
+	testFlexBuffersTest();
+    }
+
     static <T> void TestEq(T a, T b) {
         if (!a.equals(b)) {
             System.out.println("" + a.getClass().getName() + " " + b.getClass().getName());
             System.out.println("FlatBuffers test FAILED: \'" + a + "\' != \'" + b + "\'");
+            new Throwable().printStackTrace();
             assert false;
             System.exit(1);
         }
