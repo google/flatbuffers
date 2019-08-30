@@ -72,7 +72,6 @@ public class FlatBufferBuilder {
         if (initial_size <= 0) {
           initial_size = 1;
         }
-        space = initial_size;
         this.bb_factory = bb_factory;
         if (existing_bb != null) {
           bb = existing_bb;
@@ -82,6 +81,7 @@ public class FlatBufferBuilder {
           bb = bb_factory.newByteBuffer(initial_size);
         }
         this.utf8 = utf8;
+        space = bb.capacity();
     }
 
    /**
