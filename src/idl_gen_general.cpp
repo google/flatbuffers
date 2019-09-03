@@ -1238,12 +1238,31 @@ class GeneralGenerator : public BaseGenerator {
             code += GenTypeBasic(field.value.type.VectorType());
             code += "[] Get";
             code += MakeCamel(field.name, lang_.first_camel_upper);
-            code += "Array() { return ";
-            code += lang_.accessor_prefix + "__vector_as_array<";
-            code += GenTypeBasic(field.value.type.VectorType());
-            code += ">(";
-            code += NumToString(field.value.offset);
-            code += "); }\n";
+            code += "Array() { ";
+            if (IsEnum(field.value.type.VectorType())) {
+              // Since __vector_as_array does not work for enum types,
+              // fill array using an explicit loop.
+              code += "int o = " + lang_.accessor_prefix + "__offset(";
+              code += NumToString(field.value.offset);
+              code += "); if (o == 0) return null; int p = ";
+              code += lang_.accessor_prefix + "__vector(o); int l = ";
+              code += lang_.accessor_prefix + "__vector_len(o); ";
+              code += GenTypeBasic(field.value.type.VectorType());
+              code += "[] a = new ";
+              code += GenTypeBasic(field.value.type.VectorType());
+              code += "[l]; for (int i = 0; i < l; i++) { a[i] = " + getter;
+              code += "(p + i * ";
+              code += NumToString(InlineSize(field.value.type.VectorType()));
+              code += "); } return a;";
+            } else {
+              code += "return ";
+              code += lang_.accessor_prefix + "__vector_as_array<";
+              code += GenTypeBasic(field.value.type.VectorType());
+              code += ">(";
+              code += NumToString(field.value.offset);
+              code += ");";
+            }
+            code += " }\n";
             break;
           default: break;
         }
@@ -1476,7 +1495,10 @@ class GeneralGenerator : public BaseGenerator {
             code += "); return ";
             code += "builder." + FunctionStart('E') + "ndVector(); }\n";
             // For C#, include a block copy method signature.
-            if (lang_.language == IDLOptions::kCSharp) {
+            // Skip if the vector is of enums, because builder.Add
+            // throws an exception when supplied an enum array.
+            if (lang_.language == IDLOptions::kCSharp &&
+                !IsEnum(vector_type)) {
               code += "  public static " + GenVectorOffsetType() + " ";
               code += FunctionStart('C') + "reate";
               code += MakeCamel(field.name);
