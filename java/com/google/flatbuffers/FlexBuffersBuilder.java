@@ -30,33 +30,25 @@ import static com.google.flatbuffers.FlexBuffers.Unsigned.byteToUnsignedInt;
 import static com.google.flatbuffers.FlexBuffers.Unsigned.intToUnsignedLong;
 import static com.google.flatbuffers.FlexBuffers.Unsigned.shortToUnsignedInt;
 
+/// @file
+/// @addtogroup flatbuffers_java_api
+/// @{
+
 /**
- * A class that generates FlexBuffers
- * <p>
- * This class presents all necessary APIs to create FlexBuffers. The {@link ByteBuffer } buffer used to store the
- * data can be created internally, or passed down in the constructor.
- * <p>
- * Because it uses {@link ByteBuffer} internally, this impose some limitations in generating FlexBuffers. Mostly noted,
- * the maximum size limitation on FlexBuffer message, which is {@link Integer#MAX_VALUE}.
+ * Helper class that builds FlexBuffers
+ * <p> This class presents all necessary APIs to create FlexBuffers. A `ByteBuffer` will be used to store the
+ * data. It can be created internally, or passed down in the constructor.</p>
  *
- * <p>There is also some differences from the original implementation in C++. It can changed in future updates.
+ * <p>There are some limitations when compared to original implementation in C++. Most notably:
  * <ul>
- *
- *   <li><p>No support for mutations (might change in the future).</p></li>
- *
- *   <li><p>Size of message limited to {@link Integer#MAX_VALUE}</p></li>
- *
- *   <li><p>Since Java does not support unsigned type, all unsigned operations accepts a immediate higher representation
- *   of similar type. Unsigned long is not supported</p></li>
+ *   <li><p> No support for mutations (might change in the future).</p></li>
+ *   <li><p> Buffer size limited to {@link Integer#MAX_VALUE}</p></li>
+ *   <li><p> Since Java does not support unsigned type, all unsigned operations accepts an immediate higher representation
+ *   of similar type.</p></li>
  * </ul>
  * </p>
  */
 public class FlexBuffersBuilder {
-
-    private static final int WIDTH_8 = 0;
-    private static final int WIDTH_16 = 1;
-    private static final int WIDTH_32 = 2;
-    private static final int WIDTH_64 = 3;
 
     /**
      * No keys or strings will be shared
@@ -86,6 +78,11 @@ public class FlexBuffersBuilder {
      */
     public static final int BUILDER_FLAG_SHARE_ALL = 7;
 
+    /// @cond FLATBUFFERS_INTERNAL
+    private static final int WIDTH_8 = 0;
+    private static final int WIDTH_16 = 1;
+    private static final int WIDTH_32 = 2;
+    private static final int WIDTH_64 = 3;
     private final ByteBuffer bb;
     private final ArrayList<Value> stack = new ArrayList<>();
     private final HashMap<String, Integer> keyPool = new HashMap<>();
@@ -93,7 +90,8 @@ public class FlexBuffersBuilder {
     private final int flags;
     private boolean finished = false;
 
-    private Comparator<Value> valueComparator = new Comparator<Value>() {
+    // A lambda to sort map keys
+    private Comparator<Value> keyComparator = new Comparator<Value>() {
         @Override
         public int compare(Value o1, Value o2) {
             int ia = o1.key;
@@ -111,18 +109,27 @@ public class FlexBuffersBuilder {
             return c1 - c2;
         }
     };
+    /// @endcond
+
+    /**
+     * Constructs a newly allocated {@code FlexBuffersBuilder} with {@link #BUILDER_FLAG_SHARE_KEYS} set.
+     * @param bufSize size of buffer in bytes.
+     */
+    public FlexBuffersBuilder(int bufSize) {
+        this(ByteBuffer.allocate(bufSize), BUILDER_FLAG_SHARE_KEYS);
+    }
 
     /**
      * Constructs a newly allocated {@code FlexBuffersBuilder} with {@link #BUILDER_FLAG_SHARE_KEYS} set.
      */
     public FlexBuffersBuilder() {
-        this(ByteBuffer.allocate(256), BUILDER_FLAG_SHARE_KEYS);
+        this(256);
     }
 
     /**
      * Constructs a newly allocated {@code FlexBuffersBuilder}.
      *
-     * @param bb    ByteBuffer that will hold the message
+     * @param bb    `ByteBuffer` that will hold the message
      * @param flags Share flags
      */
     public FlexBuffersBuilder(ByteBuffer bb, int flags) {
@@ -134,18 +141,18 @@ public class FlexBuffersBuilder {
 
     /**
      * Constructs a newly allocated {@code FlexBuffersBuilder}.
-     *
-     * @param bb ByteBuffer that will hold the message
+     * By default same keys will be serialized only once
+     * @param bb `ByteBuffer` that will hold the message
      */
     public FlexBuffersBuilder(ByteBuffer bb) {
         this(bb, BUILDER_FLAG_SHARE_KEYS);
     }
 
     /**
-     * Return {@code ByteBuffer} containing FlexBuffer message. {@code #finish()} must be called before calling this
+     * Return `ByteBuffer` containing FlexBuffer message. {@code #finish()} must be called before calling this
      * function otherwise an assert will trigger.
      *
-     * @return {@code ByteBuffer} with finished message
+     * @return `ByteBuffer` with finished message
      */
     public ByteBuffer getBuffer() {
         assert (finished);
@@ -160,6 +167,11 @@ public class FlexBuffersBuilder {
         putBoolean(null, val);
     }
 
+    /**
+     * Insert a single boolean into the buffer
+     * @param key key used to store element in map
+     * @param val true or false
+     */
     public void putBoolean(String key, boolean val) {
         stack.add(Value.bool(putKey(key), val));
     }
@@ -193,10 +205,20 @@ public class FlexBuffersBuilder {
         putInt(null, val);
     }
 
+    /**
+     * Adds a integer into the buff
+     * @param key key used to store element in map
+     * @param val integer
+     */
     public void putInt(String key, int val) {
         putInt(key, (long) val);
     }
 
+    /**
+     * Adds a integer into the buff
+     * @param key key used to store element in map
+     * @param val 64-bit integer
+     */
     public void putInt(String key, long val) {
         int iKey = putKey(key);
         if (Byte.MIN_VALUE <= val && val <= Byte.MAX_VALUE) {
@@ -273,6 +295,11 @@ public class FlexBuffersBuilder {
         putFloat(null, value);
     }
 
+    /**
+     * Adds a 32-bit float into the buff.
+     * @param key key used to store element in map
+     * @param value float representing value
+     */
     public void putFloat(String key, float val) {
         stack.add(Value.float32(putKey(key), val));
     }
@@ -285,6 +312,11 @@ public class FlexBuffersBuilder {
         putFloat(null, value);
     }
 
+    /**
+     * Adds a 64-bit float into the buff.
+     * @param key key used to store element in map
+     * @param value float representing value
+     */
     public void putFloat(String key, double val) {
         stack.add(Value.float64(putKey(key), val));
     }
@@ -298,6 +330,12 @@ public class FlexBuffersBuilder {
         return putString(null, value);
     }
 
+    /**
+     * Adds a String into the buffer
+     * @param key key used to store element in map
+     * @param value string
+     * @return start position of string in the buffer
+     */
     public int putString(String key, String val) {
         int iKey = putKey(key);
         if ((flags & FlexBuffersBuilder.BUILDER_FLAG_SHARE_STRINGS) != 0) {
@@ -371,6 +409,12 @@ public class FlexBuffersBuilder {
         return putBlob(null, value);
     }
 
+    /**
+     * Adds a byte array into the message
+     * @param key key used to store element in map
+     * @param value byte array
+     * @return position in buffer as the start of byte array
+     */
     public int putBlob(String key, byte[] val) {
         int iKey = putKey(key);
         Value value = writeBlob(iKey, val, FBT_BLOB);
@@ -378,10 +422,23 @@ public class FlexBuffersBuilder {
         return (int) value.iValue;
     }
 
+    /**
+     * Start a new vector in the buffer.
+     * @return a reference indicating position of the vector in buffer. This
+     * reference must be passed along when the vector is finished using endVector()
+     */
     public int startVector() {
         return stack.size();
     }
 
+    /**
+     * Finishes a vector, but writing the information in the buffer
+     * @param key   key used to store element in map
+     * @param start reference for begining of the vector. Returned by {@link startVector()}
+     * @param typed boolean indicating wether vector is typed
+     * @param fixed boolean indicating wether vector is fixed
+     * @return      Reference to the vector
+     */
     public int endVector(String key, int start, boolean typed, boolean fixed) {
         int iKey = putKey(key);
         Value vec = createVector(iKey, start, stack.size() - start, typed, fixed, null);
@@ -397,7 +454,7 @@ public class FlexBuffersBuilder {
      * Finish writing the message into the buffer. After that no other element must
      * be inserted into the buffer. Also, you must call this function before start using the
      * FlexBuffer message
-     * @return ByteBuffer containing the FlexBuffer message
+     * @return `ByteBuffer` containing the FlexBuffer message
      */
     public ByteBuffer finish() {
         // If you hit this assert, you likely have objects that were never included
@@ -420,12 +477,12 @@ public class FlexBuffersBuilder {
     /*
      * Create a vector based on the elements stored in the stack
      *
-     * @param key reference to its key
+     * @param key    reference to its key
      * @param start  element in the stack
      * @param length size of the vector
      * @param typed  whether is TypedVector or not
      * @param fixed  whether is Fixed vector or not
-     * @param keys Value representing key vector
+     * @param keys   Value representing key vector
      * @return Value representing the created vector
      */
     private Value createVector(int key, int start, int length, boolean typed, boolean fixed, Value keys) {
@@ -514,14 +571,25 @@ public class FlexBuffersBuilder {
         }
     }
 
+    /**
+     * Start a new map in the buffer.
+     * @return a reference indicating position of the map in buffer. This
+     * reference must be passed along when the map is finished using endMap()
+     */
     public int startMap() {
         return stack.size();
     }
 
+    /**
+     * Finishes a map, but writing the information in the buffer
+     * @param key   key used to store element in map
+     * @param start reference for begining of the map. Returned by {@link startMap()}
+     * @return      Reference to the map
+     */
     public int endMap(String key, int start) {
         int iKey = putKey(key);
 
-        Collections.sort(stack.subList(start, stack.size()), valueComparator);
+        Collections.sort(stack.subList(start, stack.size()), keyComparator);
 
         Value keys = createKeyVector(start, stack.size() - start);
         Value vec = createVector(iKey, start, stack.size() - start, false, false, keys);
@@ -557,7 +625,7 @@ public class FlexBuffersBuilder {
         return new Value(-1, FlexBuffers.toTypedVector(FBT_KEY,0), bitWidth, vloc);
     }
 
-    public static class Value {
+    private static class Value {
         final int type;
         // for scalars, represents scalar size in bytes
         // for vectors, represents the size
@@ -690,3 +758,5 @@ public class FlexBuffersBuilder {
         }
     }
 }
+
+/// @}
