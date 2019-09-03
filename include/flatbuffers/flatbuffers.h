@@ -1132,9 +1132,9 @@ class FlatBufferBuilder {
   }
 
   /// @brief Get the released pointer to the serialized buffer.
-  /// @param The size of the memory block containing
+  /// @param size The size of the memory block containing
   /// the serialized `FlatBuffer`.
-  /// @param The offset from the released pointer where the finished
+  /// @param offset The offset from the released pointer where the finished
   /// `FlatBuffer` starts.
   /// @return A raw pointer to the start of the memory block containing
   /// the serialized `FlatBuffer`.
@@ -1167,12 +1167,12 @@ class FlatBufferBuilder {
 
   /// @brief In order to save space, fields that are set to their default value
   /// don't get serialized into the buffer.
-  /// @param[in] bool fd When set to `true`, always serializes default values that are set.
+  /// @param[in] fd When set to `true`, always serializes default values that are set.
   /// Optional fields which are not set explicitly, will still not be serialized.
   void ForceDefaults(bool fd) { force_defaults_ = fd; }
 
   /// @brief By default vtables are deduped in order to save space.
-  /// @param[in] bool dedup When set to `true`, dedup vtables.
+  /// @param[in] dedup When set to `true`, dedup vtables.
   void DedupVtables(bool dedup) { dedup_vtables_ = dedup; }
 
   /// @cond FLATBUFFERS_INTERNAL
@@ -1662,7 +1662,7 @@ class FlatBufferBuilder {
   #ifndef FLATBUFFERS_CPP98_STL
   /// @brief Serialize an array of structs into a FlatBuffer `vector`.
   /// @tparam T The data type of the struct array elements.
-  /// @param[in] f A function that takes the current iteration 0..vector_size-1
+  /// @param[in] filler A function that takes the current iteration 0..vector_size-1
   /// and a pointer to the struct that must be filled.
   /// @return Returns a typed `Offset` into the serialized data indicating
   /// where the vector is stored.
@@ -1702,7 +1702,7 @@ class FlatBufferBuilder {
 
   /// @brief Serialize a `std::vector` of structs into a FlatBuffer `vector`.
   /// @tparam T The data type of the `std::vector` struct elements.
-  /// @param[in]] v A const reference to the `std::vector` of structs to
+  /// @param[in] v A const reference to the `std::vector` of structs to
   /// serialize into the buffer as a `vector`.
   /// @return Returns a typed `Offset` into the serialized data indicating
   /// where the vector is stored.
@@ -1740,7 +1740,7 @@ class FlatBufferBuilder {
   /// @brief Serialize a `std::vector` of structs into a FlatBuffer `vector`
   /// in sorted order.
   /// @tparam T The data type of the `std::vector` struct elements.
-  /// @param[in]] v A const reference to the `std::vector` of structs to
+  /// @param[in] v A const reference to the `std::vector` of structs to
   /// serialize into the buffer as a `vector`.
   /// @return Returns a typed `Offset` into the serialized data indicating
   /// where the vector is stored.
@@ -1753,7 +1753,7 @@ class FlatBufferBuilder {
   /// `vector` in sorted order.
   /// @tparam T The data type of the `std::vector` struct elements.
   /// @tparam S The data type of the `std::vector` native struct elements.
-  /// @param[in]] v A const reference to the `std::vector` of structs to
+  /// @param[in] v A const reference to the `std::vector` of structs to
   /// serialize into the buffer as a `vector`.
   /// @return Returns a typed `Offset` into the serialized data indicating
   /// where the vector is stored.
