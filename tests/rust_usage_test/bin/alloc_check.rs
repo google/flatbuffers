@@ -106,6 +106,9 @@ fn main() {
             assert_eq!("MyMonster", m.name());
 
             let pos = m.pos().unwrap();
+            // We know the bits should be exactly equal here but compilers may
+            // optimize floats in subtle ways so we're playing it safe and using
+            // epsilon comparison
             assert!((pos.x() - 1.0f32).abs() < std::f32::EPSILON);
             assert!((pos.y() - 2.0f32).abs() < std::f32::EPSILON);
             assert!((pos.z() - 3.0f32).abs() < std::f32::EPSILON);
@@ -126,8 +129,8 @@ fn main() {
 
             let test4 = m.test4().unwrap();
             assert_eq!(test4.len(), 2);
-            assert_eq!(i32::from(test4[0].a() + test4[1].a()) +
-                       i32::from(test4[0].b() + test4[1].b()), 100);
+            assert_eq!(i32::from(test4[0].a()) + i32::from(test4[1].a()) +
+                       i32::from(test4[0].b()) + i32::from(test4[1].b()), 100);
 
             let testarrayofstring = m.testarrayofstring().unwrap();
             assert_eq!(testarrayofstring.len(), 2);
