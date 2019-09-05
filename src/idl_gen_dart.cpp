@@ -71,7 +71,9 @@ class DartGenerator : public BaseGenerator {
              "// ignore_for_file: unused_import, unused_field, "
              "unused_local_variable\n\n";
 
-      code += "library " + kv->first + ";\n\n";
+      if (kv->first != "") {
+        code += "library " + kv->first + ";\n\n";
+      }
 
       code += "import 'dart:typed_data' show Uint8List;\n";
       code += "import 'package:flat_buffers/flat_buffers.dart' as " + _kFb +
@@ -85,15 +87,15 @@ class DartGenerator : public BaseGenerator {
            ++kv2) {
         if (kv2->first != kv->first) {
           code += "import '" +
-                  GeneratedFileName("./", file_name_ + "_" + kv2->first) +
-                  "' as " + ImportAliasName(kv2->first) + ";\n";
+                  GeneratedFileName("./", file_name_ + (kv->first != "" ? "_" + kv2->first : "") +
+                  "' as " + ImportAliasName(kv2->first) + ";\n");
         }
       }
       code += "\n";
       code += kv->second;
 
       if (!SaveFile(
-              GeneratedFileName(path_, file_name_ + "_" + kv->first).c_str(),
+              GeneratedFileName(path_, file_name_ + (kv->first != "" ? "_" + kv2->first : ""),
               code, false)) {
         return false;
       }
@@ -115,6 +117,9 @@ class DartGenerator : public BaseGenerator {
   }
 
   static std::string BuildNamespaceName(const Namespace &ns) {
+    if (ns.components.empty()) {
+      return "";
+    }
     std::stringstream sstream;
     std::copy(ns.components.begin(), ns.components.end() - 1,
               std::ostream_iterator<std::string>(sstream, "."));
