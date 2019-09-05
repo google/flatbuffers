@@ -815,8 +815,20 @@ func (rcv *Monster) MutateVectorOfEnums(j int, n Color) bool {
 	return false
 }
 
+func (rcv *Monster) SignedEnum() Race {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(100))
+	if o != 0 {
+		return Race(rcv._tab.GetInt8(o + rcv._tab.Pos))
+	}
+	return -1
+}
+
+func (rcv *Monster) MutateSignedEnum(n Race) bool {
+	return rcv._tab.MutateInt8Slot(100, int8(n))
+}
+
 func MonsterStart(builder *flatbuffers.Builder) {
-	builder.StartObject(48)
+	builder.StartObject(49)
 }
 func MonsterAddPos(builder *flatbuffers.Builder, pos flatbuffers.UOffsetT) {
 	builder.PrependStructSlot(0, flatbuffers.UOffsetT(pos), 0)
@@ -1012,6 +1024,9 @@ func MonsterAddVectorOfEnums(builder *flatbuffers.Builder, vectorOfEnums flatbuf
 }
 func MonsterStartVectorOfEnumsVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.StartVector(1, numElems, 1)
+}
+func MonsterAddSignedEnum(builder *flatbuffers.Builder, signedEnum Race) {
+	builder.PrependInt8Slot(48, int8(signedEnum), -1)
 }
 func MonsterEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()

@@ -141,6 +141,42 @@ inline const char *EnumNameColor(Color e) {
   return EnumNamesColor()[index];
 }
 
+enum Race {
+  Race_None = -1,
+  Race_Human = 0,
+  Race_Dwarf = 1,
+  Race_Elf = 2,
+  Race_MIN = Race_None,
+  Race_MAX = Race_Elf
+};
+
+inline const Race (&EnumValuesRace())[4] {
+  static const Race values[] = {
+    Race_None,
+    Race_Human,
+    Race_Dwarf,
+    Race_Elf
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesRace() {
+  static const char * const names[5] = {
+    "None",
+    "Human",
+    "Dwarf",
+    "Elf",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameRace(Race e) {
+  if (e < Race_None || e > Race_Elf) return "";
+  const size_t index = static_cast<size_t>(e) - static_cast<size_t>(Race_None);
+  return EnumNamesRace()[index];
+}
+
 enum Any {
   Any_NONE = 0,
   Any_Monster = 1,
@@ -1138,6 +1174,7 @@ struct MonsterT : public flatbuffers::NativeTable {
   AnyUniqueAliasesUnion any_unique;
   AnyAmbiguousAliasesUnion any_ambiguous;
   std::vector<MyGame::Example::Color> vector_of_enums;
+  MyGame::Example::Race signed_enum;
   MonsterT()
       : mana(150),
         hp(100),
@@ -1156,7 +1193,8 @@ struct MonsterT : public flatbuffers::NativeTable {
         testf3(0.0f),
         single_weak_reference(nullptr),
         co_owning_reference(nullptr),
-        non_owning_reference(nullptr) {
+        non_owning_reference(nullptr),
+        signed_enum(MyGame::Example::Race_None) {
   }
 };
 
@@ -1205,7 +1243,8 @@ inline bool operator==(const MonsterT &lhs, const MonsterT &rhs) {
       (lhs.vector_of_non_owning_references == rhs.vector_of_non_owning_references) &&
       (lhs.any_unique == rhs.any_unique) &&
       (lhs.any_ambiguous == rhs.any_ambiguous) &&
-      (lhs.vector_of_enums == rhs.vector_of_enums);
+      (lhs.vector_of_enums == rhs.vector_of_enums) &&
+      (lhs.signed_enum == rhs.signed_enum);
 }
 
 inline bool operator!=(const MonsterT &lhs, const MonsterT &rhs) {
@@ -1266,7 +1305,8 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_ANY_UNIQUE = 92,
     VT_ANY_AMBIGUOUS_TYPE = 94,
     VT_ANY_AMBIGUOUS = 96,
-    VT_VECTOR_OF_ENUMS = 98
+    VT_VECTOR_OF_ENUMS = 98,
+    VT_SIGNED_ENUM = 100
   };
   const MyGame::Example::Vec3 *pos() const {
     return GetStruct<const MyGame::Example::Vec3 *>(VT_POS);
@@ -1593,6 +1633,12 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   flatbuffers::Vector<uint8_t> *mutable_vector_of_enums() {
     return GetPointer<flatbuffers::Vector<uint8_t> *>(VT_VECTOR_OF_ENUMS);
   }
+  MyGame::Example::Race signed_enum() const {
+    return static_cast<MyGame::Example::Race>(GetField<int8_t>(VT_SIGNED_ENUM, -1));
+  }
+  bool mutate_signed_enum(MyGame::Example::Race _signed_enum) {
+    return SetField<int8_t>(VT_SIGNED_ENUM, static_cast<int8_t>(_signed_enum), -1);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<MyGame::Example::Vec3>(verifier, VT_POS) &&
@@ -1672,6 +1718,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyAnyAmbiguousAliases(verifier, any_ambiguous(), any_ambiguous_type()) &&
            VerifyOffset(verifier, VT_VECTOR_OF_ENUMS) &&
            verifier.VerifyVector(vector_of_enums()) &&
+           VerifyField<int8_t>(verifier, VT_SIGNED_ENUM) &&
            verifier.EndTable();
   }
   MonsterT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -1847,6 +1894,9 @@ struct MonsterBuilder {
   void add_vector_of_enums(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> vector_of_enums) {
     fbb_.AddOffset(Monster::VT_VECTOR_OF_ENUMS, vector_of_enums);
   }
+  void add_signed_enum(MyGame::Example::Race signed_enum) {
+    fbb_.AddElement<int8_t>(Monster::VT_SIGNED_ENUM, static_cast<int8_t>(signed_enum), -1);
+  }
   explicit MonsterBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -1908,7 +1958,8 @@ inline flatbuffers::Offset<Monster> CreateMonster(
     flatbuffers::Offset<void> any_unique = 0,
     MyGame::Example::AnyAmbiguousAliases any_ambiguous_type = MyGame::Example::AnyAmbiguousAliases_NONE,
     flatbuffers::Offset<void> any_ambiguous = 0,
-    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> vector_of_enums = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> vector_of_enums = 0,
+    MyGame::Example::Race signed_enum = MyGame::Example::Race_None) {
   MonsterBuilder builder_(_fbb);
   builder_.add_non_owning_reference(non_owning_reference);
   builder_.add_co_owning_reference(co_owning_reference);
@@ -1952,6 +2003,7 @@ inline flatbuffers::Offset<Monster> CreateMonster(
   builder_.add_pos(pos);
   builder_.add_hp(hp);
   builder_.add_mana(mana);
+  builder_.add_signed_enum(signed_enum);
   builder_.add_any_ambiguous_type(any_ambiguous_type);
   builder_.add_any_unique_type(any_unique_type);
   builder_.add_testbool(testbool);
@@ -2008,7 +2060,8 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
     flatbuffers::Offset<void> any_unique = 0,
     MyGame::Example::AnyAmbiguousAliases any_ambiguous_type = MyGame::Example::AnyAmbiguousAliases_NONE,
     flatbuffers::Offset<void> any_ambiguous = 0,
-    const std::vector<uint8_t> *vector_of_enums = nullptr) {
+    const std::vector<uint8_t> *vector_of_enums = nullptr,
+    MyGame::Example::Race signed_enum = MyGame::Example::Race_None) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto inventory__ = inventory ? _fbb.CreateVector<uint8_t>(*inventory) : 0;
   auto test4__ = test4 ? _fbb.CreateVectorOfStructs<MyGame::Example::Test>(*test4) : 0;
@@ -2076,7 +2129,8 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
       any_unique,
       any_ambiguous_type,
       any_ambiguous,
-      vector_of_enums__);
+      vector_of_enums__,
+      signed_enum);
 }
 
 flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -2560,6 +2614,7 @@ if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->vector_of_non_owning_
   { auto _e = any_ambiguous_type(); _o->any_ambiguous.type = _e; }
   { auto _e = any_ambiguous(); if (_e) _o->any_ambiguous.value = AnyAmbiguousAliasesUnion::UnPack(_e, any_ambiguous_type(), _resolver); }
   { auto _e = vector_of_enums(); if (_e) { _o->vector_of_enums.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vector_of_enums[_i] = static_cast<MyGame::Example::Color>(_e->Get(_i)); } } }
+  { auto _e = signed_enum(); _o->signed_enum = _e; }
 }
 
 inline flatbuffers::Offset<Monster> Monster::Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
@@ -2617,6 +2672,7 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
   auto _any_ambiguous_type = _o->any_ambiguous.type;
   auto _any_ambiguous = _o->any_ambiguous.Pack(_fbb);
   auto _vector_of_enums = _o->vector_of_enums.size() ? _fbb.CreateVectorScalarCast<uint8_t>(flatbuffers::data(_o->vector_of_enums), _o->vector_of_enums.size()) : 0;
+  auto _signed_enum = _o->signed_enum;
   return MyGame::Example::CreateMonster(
       _fbb,
       _pos,
@@ -2665,7 +2721,8 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
       _any_unique,
       _any_ambiguous_type,
       _any_ambiguous,
-      _vector_of_enums);
+      _vector_of_enums,
+      _signed_enum);
 }
 
 inline TypeAliasesT *TypeAliases::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
@@ -3081,6 +3138,29 @@ inline const flatbuffers::TypeTable *ColorTypeTable() {
   return &tt;
 }
 
+inline const flatbuffers::TypeTable *RaceTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_CHAR, 0, 0 },
+    { flatbuffers::ET_CHAR, 0, 0 },
+    { flatbuffers::ET_CHAR, 0, 0 },
+    { flatbuffers::ET_CHAR, 0, 0 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    MyGame::Example::RaceTypeTable
+  };
+  static const int64_t values[] = { -1, 0, 1, 2 };
+  static const char * const names[] = {
+    "None",
+    "Human",
+    "Dwarf",
+    "Elf"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_ENUM, 4, type_codes, type_refs, values, names
+  };
+  return &tt;
+}
+
 inline const flatbuffers::TypeTable *AnyTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_SEQUENCE, 0, -1 },
@@ -3328,7 +3408,8 @@ inline const flatbuffers::TypeTable *MonsterTypeTable() {
     { flatbuffers::ET_SEQUENCE, 0, 9 },
     { flatbuffers::ET_UTYPE, 0, 10 },
     { flatbuffers::ET_SEQUENCE, 0, 10 },
-    { flatbuffers::ET_UCHAR, 1, 1 }
+    { flatbuffers::ET_UCHAR, 1, 1 },
+    { flatbuffers::ET_CHAR, 0, 11 }
   };
   static const flatbuffers::TypeFunction type_refs[] = {
     MyGame::Example::Vec3TypeTable,
@@ -3341,7 +3422,8 @@ inline const flatbuffers::TypeTable *MonsterTypeTable() {
     MyGame::InParentNamespaceTypeTable,
     MyGame::Example::ReferrableTypeTable,
     MyGame::Example::AnyUniqueAliasesTypeTable,
-    MyGame::Example::AnyAmbiguousAliasesTypeTable
+    MyGame::Example::AnyAmbiguousAliasesTypeTable,
+    MyGame::Example::RaceTypeTable
   };
   static const char * const names[] = {
     "pos",
@@ -3391,10 +3473,11 @@ inline const flatbuffers::TypeTable *MonsterTypeTable() {
     "any_unique",
     "any_ambiguous_type",
     "any_ambiguous",
-    "vector_of_enums"
+    "vector_of_enums",
+    "signed_enum"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 48, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_TABLE, 49, type_codes, type_refs, nullptr, names
   };
   return &tt;
 }

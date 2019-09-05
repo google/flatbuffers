@@ -24,6 +24,13 @@ enum Color:ubyte (bit_flags) {
   Blue = 3, 
 }
 
+enum Race:byte {
+  None = -1,
+  Human = 0,
+  Dwarf,
+  Elf,
+}
+
 union Any { Monster, TestSimpleTableWithEnum, MyGame.Example2.Monster }
 
 union AnyUniqueAliases { M: Monster, TS: TestSimpleTableWithEnum, M2: MyGame.Example2.Monster }
@@ -108,6 +115,7 @@ table Monster {
   any_unique:AnyUniqueAliases(id:44);
   any_ambiguous:AnyAmbiguousAliases (id:46);
   vector_of_enums:[Color] (id:47);
+  signed_enum:Race = None (id:48);
 }
 
 table TypeAliases {

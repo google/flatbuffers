@@ -25,9 +25,9 @@ NamespaceA.NamespaceB.EnumInNestedNS = {
  * @enum {string}
  */
 NamespaceA.NamespaceB.EnumInNestedNSName = {
-  0: 'A',
-  1: 'B',
-  2: 'C'
+  '0': 'A',
+  '1': 'B',
+  '2': 'C'
 };
 
 /**

@@ -188,8 +188,10 @@ public struct Monster : IFlatbufferObject
 #endif
   public MyGame.Example.Color[] GetVectorOfEnumsArray() { int o = __p.__offset(98); if (o == 0) return null; int p = __p.__vector(o); int l = __p.__vector_len(o); MyGame.Example.Color[] a = new MyGame.Example.Color[l]; for (int i = 0; i < l; i++) { a[i] = (MyGame.Example.Color)__p.bb.Get(p + i * 1); } return a; }
   public bool MutateVectorOfEnums(int j, MyGame.Example.Color vector_of_enums) { int o = __p.__offset(98); if (o != 0) { __p.bb.Put(__p.__vector(o) + j * 1, (byte)vector_of_enums); return true; } else { return false; } }
+  public MyGame.Example.Race SignedEnum { get { int o = __p.__offset(100); return o != 0 ? (MyGame.Example.Race)__p.bb.GetSbyte(o + __p.bb_pos) : MyGame.Example.Race.None; } }
+  public bool MutateSignedEnum(MyGame.Example.Race signed_enum) { int o = __p.__offset(100); if (o != 0) { __p.bb.PutSbyte(o + __p.bb_pos, (sbyte)signed_enum); return true; } else { return false; } }
 
-  public static void StartMonster(FlatBufferBuilder builder) { builder.StartTable(48); }
+  public static void StartMonster(FlatBufferBuilder builder) { builder.StartTable(49); }
   public static void AddPos(FlatBufferBuilder builder, Offset<MyGame.Example.Vec3> posOffset) { builder.AddStruct(0, posOffset.Value, 0); }
   public static void AddMana(FlatBufferBuilder builder, short mana) { builder.AddShort(1, mana, 150); }
   public static void AddHp(FlatBufferBuilder builder, short hp) { builder.AddShort(2, hp, 100); }
@@ -284,6 +286,7 @@ public struct Monster : IFlatbufferObject
   public static void AddVectorOfEnums(FlatBufferBuilder builder, VectorOffset vectorOfEnumsOffset) { builder.AddOffset(47, vectorOfEnumsOffset.Value, 0); }
   public static VectorOffset CreateVectorOfEnumsVector(FlatBufferBuilder builder, MyGame.Example.Color[] data) { builder.StartVector(1, data.Length, 1); for (int i = data.Length - 1; i >= 0; i--) builder.AddByte((byte)data[i]); return builder.EndVector(); }
   public static void StartVectorOfEnumsVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(1, numElems, 1); }
+  public static void AddSignedEnum(FlatBufferBuilder builder, MyGame.Example.Race signedEnum) { builder.AddSbyte(48, (sbyte)signedEnum, -1); }
   public static Offset<MyGame.Example.Monster> EndMonster(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     builder.Required(o, 10);  // name
