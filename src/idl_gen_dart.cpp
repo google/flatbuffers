@@ -95,7 +95,7 @@ class DartGenerator : public BaseGenerator {
       code += kv->second;
 
       if (!SaveFile(
-              GeneratedFileName(path_, file_name_ + (kv->first != "" ? "_" + kv2->first : ""),
+              GeneratedFileName(path_, file_name_ + (kv->first != "" ? "_" + kv->first : ""),
               code, false)) {
         return false;
       }
