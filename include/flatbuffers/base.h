@@ -306,7 +306,7 @@ typedef uintmax_t largest_scalar_t;
   #pragma warning(disable: 4127) // C4127: conditional expression is constant
 #endif
 
-template<typename T> T EndianSwap(T t) {
+template<typename T> T EndianSwap(const T &t) {
   #if defined(_MSC_VER)
     #define FLATBUFFERS_BYTESWAP16 _byteswap_ushort
     #define FLATBUFFERS_BYTESWAP32 _byteswap_ulong
@@ -330,23 +330,22 @@ template<typename T> T EndianSwap(T t) {
   if (sizeof(T) == 1) {   // Compile-time if-then's.
     return t;
   } else if (sizeof(T) == 2) {
-    union { T t; uint16_t i; } u;
-    u.t = t;
+    union { T t; uint16_t i; } u = { t };
     u.i = FLATBUFFERS_BYTESWAP16(u.i);
     return u.t;
   } else if (sizeof(T) == 4) {
-    union { T t; uint32_t i; } u;
-    u.t = t;
+    union { T t; uint32_t i; } u = { t };
     u.i = FLATBUFFERS_BYTESWAP32(u.i);
     return u.t;
   } else if (sizeof(T) == 8) {
-    union { T t; uint64_t i; } u;
-    u.t = t;
+    union { T t; uint64_t i; } u = { t };
     u.i = FLATBUFFERS_BYTESWAP64(u.i);
     return u.t;
   } else {
     FLATBUFFERS_ASSERT(0);
   }
+  // Workaround MSVC: C4715 - not all control paths return a value
+  return t;
 }
 
 #if defined(_MSC_VER)
@@ -354,7 +353,7 @@ template<typename T> T EndianSwap(T t) {
 #endif
 
 
-template<typename T> T EndianScalar(T t) {
+template<typename T> T EndianScalar(const T &t) {
   #if FLATBUFFERS_LITTLEENDIAN
     return t;
   #else
@@ -372,7 +371,7 @@ T ReadScalar(const void *p) {
 template<typename T>
 // UBSAN: C++ aliasing type rules, see std::bit_cast<> for details.
 __supress_ubsan__("alignment")
-void WriteScalar(void *p, T t) {
+void WriteScalar(void *p, const T &t) {
   *reinterpret_cast<T *>(p) = EndianScalar(t);
 }
 
