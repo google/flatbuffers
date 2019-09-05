@@ -87,8 +87,8 @@ class DartGenerator : public BaseGenerator {
            ++kv2) {
         if (kv2->first != kv->first) {
           code += "import '" +
-                  GeneratedFileName("./", file_name_ + (kv2->first != "" ? "_" + kv2->first : "") +
-                  "' as " + ImportAliasName(kv2->first) + ";\n");
+                  GeneratedFileName("./", file_name_ + (kv2->first != "" ? "_" + kv2->first : "")) +
+                  "' as " + ImportAliasName(kv2->first) + ";\n";
         }
       }
       code += "\n";
