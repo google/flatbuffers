@@ -359,7 +359,7 @@ class JsTsGenerator : public BaseGenerator {
 
       // Generate mapping between EnumName: EnumValue(int)
       if (reverse) {
-        code += "  " + enum_def.ToString(ev);
+        code += "  '" + enum_def.ToString(ev) + "'";
         code += lang_.language == IDLOptions::kTs ? "= " : ": ";
         code += "'" + ev.name + "'";
       } else {

@@ -17,13 +17,13 @@ var Character = {
  * @enum {string}
  */
 var CharacterName = {
-  0: 'NONE',
-  1: 'MuLan',
-  2: 'Rapunzel',
-  3: 'Belle',
-  4: 'BookFan',
-  5: 'Other',
-  6: 'Unused'
+  '0': 'NONE',
+  '1': 'MuLan',
+  '2': 'Rapunzel',
+  '3': 'Belle',
+  '4': 'BookFan',
+  '5': 'Other',
+  '6': 'Unused'
 };
 
 /**

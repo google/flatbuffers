@@ -12,6 +12,12 @@ enum Color:
     /// \brief color Blue (1u << 3)
     Color_Blue = 8
 
+enum Race:
+    Race_None = -1
+    Race_Human = 0
+    Race_Dwarf = 1
+    Race_Elf = 2
+
 enum Any:
     Any_NONE = 0
     Any_Monster = 1
@@ -352,13 +358,15 @@ class Monster : flatbuffers_handle
         return buf_.read_int8_le(buf_.flatbuffers_field_vector(pos_, 98) + i * 1)
     def vector_of_enums_length():
         return buf_.flatbuffers_field_vector_len(pos_, 98)
+    def signed_enum():
+        return Race(buf_.flatbuffers_field_int8(pos_, 100, -1))
 
 def GetRootAsMonster(buf:string): return Monster { buf, buf.flatbuffers_indirect(0) }
 
 struct MonsterBuilder:
     b_:flatbuffers_builder
     def start():
-        b_.StartObject(48)
+        b_.StartObject(49)
         return this
     def add_pos(pos:flatbuffers_offset):
         b_.PrependStructSlot(0, pos)
@@ -500,6 +508,9 @@ struct MonsterBuilder:
         return this
     def add_vector_of_enums(vector_of_enums:flatbuffers_offset):
         b_.PrependUOffsetTRelativeSlot(47, vector_of_enums)
+        return this
+    def add_signed_enum(signed_enum:Race):
+        b_.PrependInt8Slot(48, signed_enum, -1)
         return this
     def end():
         return b_.EndObject()
