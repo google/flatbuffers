@@ -434,8 +434,12 @@ template<typename T, uint16_t length> class Array {
 
   // Change elements if you have a non-const pointer to this object.
   void Mutate(uoffset_t i, const T &val) {
-    FLATBUFFERS_ASSERT(i < size());
-    WriteScalar(data() + i, val);
+    if (flatbuffers::is_scalar<T>::value) {
+      FLATBUFFERS_ASSERT(i < size());
+      WriteScalar(data() + i, val);
+    } else {
+      *(GetMutablePointer(i)) = val;
+    }
   }
 
   // Get a mutable pointer to elements inside this array.

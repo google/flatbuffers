@@ -343,9 +343,8 @@ template<typename T> T EndianSwap(const T &t) {
     return u.t;
   } else {
     FLATBUFFERS_ASSERT(0);
+    return t;
   }
-  // Workaround MSVC: C4715 - not all control paths return a value
-  return t;
 }
 
 #if defined(_MSC_VER)
