@@ -71,7 +71,7 @@ class DartGenerator : public BaseGenerator {
              "// ignore_for_file: unused_import, unused_field, "
              "unused_local_variable\n\n";
 
-      if (kv->first != "") {
+      if (!kv->first.empty()) {
         code += "library " + kv->first + ";\n\n";
       }
 
@@ -87,7 +87,7 @@ class DartGenerator : public BaseGenerator {
            ++kv2) {
         if (kv2->first != kv->first) {
           code += "import '" +
-                  GeneratedFileName("./", file_name_ + (kv2->first != "" ? "_" + kv2->first : "")) +
+                  GeneratedFileName("./", file_name_ + (!kv2->first.empty() ? "_" + kv2->first : "")) +
                   "' as " + ImportAliasName(kv2->first) + ";\n";
         }
       }
@@ -95,7 +95,7 @@ class DartGenerator : public BaseGenerator {
       code += kv->second;
 
       if (!SaveFile(
-              GeneratedFileName(path_, file_name_ + (kv->first != "" ? "_" + kv->first : "")).c_str(),
+              GeneratedFileName(path_, file_name_ + (!kv->first.empty() ? "_" + kv->first : "")).c_str(),
               code, false)) {
         return false;
       }
