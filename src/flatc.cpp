@@ -101,6 +101,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --gen-object-api   Generate an additional object-based API.\n"
     "  --gen-compare      Generate operator== for object-based API types.\n"
     "  --gen-nullable     Add Clang _Nullable for C++ pointer. or @Nullable for Java\n"
+    "  --java-checkerframework Add @Pure for Java.\n"
     "  --gen-generated    Add @Generated annotation for Java\n"
     "  --gen-all          Generate not just code for the current schema files,\n"
     "                     but for all files it includes as well.\n"
@@ -261,6 +262,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.cpp_object_api_string_flexible_constructor = true;
       } else if (arg == "--gen-nullable") {
         opts.gen_nullable = true;
+      } else if (arg == "--java-checkerframework") {
+        opts.java_checkerframework = true;
       } else if (arg == "--gen-generated") {
         opts.gen_generated = true;
       } else if (arg == "--object-prefix") {
