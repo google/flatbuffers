@@ -434,14 +434,7 @@ template<typename T, uint16_t length> class Array {
 
   // Change elements if you have a non-const pointer to this object.
   void Mutate(uoffset_t i, const T &val) {
-    #if defined(_MSC_VER)
-	  __pragma(warning(push))
-	  __pragma(warning(disable:4127)) // C4127: conditional expression is constant
-    #endif
-    if (flatbuffers::is_scalar<T>::value) {
-    #if defined(_MSC_VER)
-	  __pragma(warning(pop))
-    #endif
+    if (IsConstTrue(flatbuffers::is_scalar<T>::value)) {
       FLATBUFFERS_ASSERT(i < size());
       WriteScalar(data() + i, val);
     } else {
