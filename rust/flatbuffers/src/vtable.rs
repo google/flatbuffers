@@ -34,7 +34,7 @@ impl<'a> PartialEq for VTable<'a> {
 
 impl<'a> VTable<'a> {
     pub fn init(buf: &'a [u8], loc: usize) -> Self {
-        VTable { buf: buf, loc: loc }
+        VTable { buf, loc }
     }
     pub fn num_fields(&self) -> usize {
         (self.num_bytes() / SIZE_VOFFSET) - 2

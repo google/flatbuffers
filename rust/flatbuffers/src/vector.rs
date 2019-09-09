@@ -25,7 +25,7 @@ use endian_scalar::{read_scalar, read_scalar_at};
 use follow::Follow;
 use primitives::*;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Vector<'a, T: 'a>(&'a [u8], usize, PhantomData<T>);
 
 impl<'a, T: 'a> Vector<'a, T> {
@@ -41,6 +41,10 @@ impl<'a, T: 'a> Vector<'a, T> {
     #[inline(always)]
     pub fn len(&self) -> usize {
         read_scalar::<UOffsetT>(&self.0[self.1 as usize..]) as usize
+    }
+    #[inline(always)]
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 }
 
@@ -102,8 +106,7 @@ impl<'a> Follow<'a> for &'a str {
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
         let len = read_scalar_at::<UOffsetT>(&buf, loc) as usize;
         let slice = &buf[loc + SIZE_UOFFSET..loc + SIZE_UOFFSET + len];
-        let s = unsafe { from_utf8_unchecked(slice) };
-        s
+        unsafe { from_utf8_unchecked(slice) }
     }
 }
 
