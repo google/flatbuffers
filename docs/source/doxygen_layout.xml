@@ -48,7 +48,7 @@
       <tab type="user" url="@ref flatbuffers_guide_use_rust"
           title="Use in Rust"/>
       <tab type="user" url="@ref flexbuffers"
-          title="Schema-less version"/>
+          title="FlexBuffers (Schema-less version)"/>
       <tab type="usergroup" url="" title="gRPC">
         <tab type="user" url="@ref flatbuffers_grpc_guide_use_cpp"
             title="Use in C++"/>
