@@ -228,6 +228,9 @@ class GeneralGenerator : public BaseGenerator {
       if (parser_.opts.gen_nullable) {
         code += "\nimport javax.annotation.Nullable;\n";
       }
+      if (parser_.opts.java_checkerframework) {
+        code += "\nimport org.checkerframework.dataflow.qual.Pure;\n";
+      }
       code += lang_.class_annotation;
     }
     if (parser_.opts.gen_generated) {
@@ -251,6 +254,14 @@ class GeneralGenerator : public BaseGenerator {
     return lang_.language == IDLOptions::kJava && parser_.opts.gen_nullable &&
                    !IsScalar(DestinationType(t, true).base_type)
                ? " @Nullable "
+               : "";
+  }
+
+  std::string GenPureAnnotation(const Type &t) const {
+    return lang_.language == IDLOptions::kJava &&
+                   parser_.opts.java_checkerframework &&
+                   !IsScalar(DestinationType(t, true).base_type)
+               ? " @Pure "
                : "";
   }
 
@@ -969,10 +980,11 @@ class GeneralGenerator : public BaseGenerator {
       std::string dest_mask = DestinationMask(field.value.type, true);
       std::string dest_cast = DestinationCast(field.value.type);
       std::string src_cast = SourceCast(field.value.type);
-      std::string method_start = "  public " +
-                                 (field.required ? "" : GenNullableAnnotation(field.value.type)) +
-                                 type_name_dest + optional + " " +
-                                 MakeCamel(field.name, lang_.first_camel_upper);
+      std::string method_start =
+          "  public " +
+          (field.required ? "" : GenNullableAnnotation(field.value.type)) +
+          GenPureAnnotation(field.value.type) + type_name_dest + optional +
+          " " + MakeCamel(field.name, lang_.first_camel_upper);
       std::string obj = lang_.language == IDLOptions::kCSharp
                             ? "(new " + type_name + "())"
                             : "obj";

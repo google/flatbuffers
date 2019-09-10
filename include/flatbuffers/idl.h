@@ -514,6 +514,7 @@ struct IDLOptions {
   std::string cpp_object_api_string_type;
   bool cpp_object_api_string_flexible_constructor;
   bool gen_nullable;
+  bool java_checkerframework;
   bool gen_generated;
   std::string object_prefix;
   std::string object_suffix;
@@ -594,6 +595,7 @@ struct IDLOptions {
         cpp_object_api_pointer_type("std::unique_ptr"),
         cpp_object_api_string_flexible_constructor(false),
         gen_nullable(false),
+        java_checkerframework(false),
         gen_generated(false),
         object_suffix("T"),
         union_value_namespacing(true),
