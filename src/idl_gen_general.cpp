@@ -1223,6 +1223,7 @@ class GeneralGenerator : public BaseGenerator {
             code += "Bytes() { return ";
             code += lang_.accessor_prefix + "__vector_as_span(";
             code += NumToString(field.value.offset);
+            code += ", " + NumToString(SizeOf(field.value.type.VectorType().base_type));
             code += "); }\n";
             code += "#else\n";
             code += "  public ArraySegment<byte>? Get";

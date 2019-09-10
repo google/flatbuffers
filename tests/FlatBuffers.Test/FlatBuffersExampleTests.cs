@@ -260,6 +260,12 @@ namespace FlatBuffers.Test
             {
                 Assert.IsTrue(monster.GetTestarrayofboolsBytes().Length != 0);
             }
+
+            var longArrayBytes = monster.GetVectorOfLongsBytes();
+            Assert.IsTrue(monster.VectorOfLongsLength * 8 == longArrayBytes.Length);
+
+            var doubleArrayBytes = monster.GetVectorOfDoublesBytes();
+            Assert.IsTrue(monster.VectorOfDoublesLength * 8 == doubleArrayBytes.Length);
 #else
             var nameBytes = monster.GetNameBytes().Value;
             Assert.AreEqual("MyMonster", Encoding.UTF8.GetString(nameBytes.Array, nameBytes.Offset, nameBytes.Count));
@@ -273,7 +279,7 @@ namespace FlatBuffers.Test
                 Assert.IsTrue(monster.GetTestarrayofboolsBytes().HasValue);
             }
 #endif
-        }
+    }
 
         [FlatBuffersTestMethod]
         public void CanReadCppGeneratedWireFile()
