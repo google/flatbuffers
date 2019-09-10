@@ -41,7 +41,7 @@ public struct TypeAliases : IFlatbufferObject
   public sbyte V8(int j) { int o = __p.__offset(24); return o != 0 ? __p.bb.GetSbyte(__p.__vector(o) + j * 1) : (sbyte)0; }
   public int V8Length { get { int o = __p.__offset(24); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetV8Bytes() { return __p.__vector_as_span(24, 1); }
+  public Span<sbyte> GetV8Bytes() { return __p.__vector_as_span<sbyte>(24, 1); }
 #else
   public ArraySegment<byte>? GetV8Bytes() { return __p.__vector_as_arraysegment(24); }
 #endif
@@ -50,7 +50,7 @@ public struct TypeAliases : IFlatbufferObject
   public double Vf64(int j) { int o = __p.__offset(26); return o != 0 ? __p.bb.GetDouble(__p.__vector(o) + j * 8) : (double)0; }
   public int Vf64Length { get { int o = __p.__offset(26); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetVf64Bytes() { return __p.__vector_as_span(26, 8); }
+  public Span<double> GetVf64Bytes() { return __p.__vector_as_span<double>(26, 8); }
 #else
   public ArraySegment<byte>? GetVf64Bytes() { return __p.__vector_as_arraysegment(26); }
 #endif

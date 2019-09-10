@@ -1223,13 +1223,14 @@ class GeneralGenerator : public BaseGenerator {
             code += "Bytes() { return ";
             code += lang_.accessor_prefix + "__vector_as_span<"+ GenTypeBasic(field.value.type.VectorType()) +">(";
             code += NumToString(field.value.offset);
+            code += ", " + NumToString(SizeOf(field.value.type.VectorType().base_type));
             code += "); }\n";
             code += "#else\n";
             code += "  public ArraySegment<byte>? Get";
             code += MakeCamel(field.name, lang_.first_camel_upper);
             code += "Bytes() { return ";
             code += lang_.accessor_prefix + "__vector_as_arraysegment(";
-            code += NumToString(field.value.offset);
+            code += NumToString(field.value.offset);           
             code += "); }\n";
             code += "#endif\n";
 

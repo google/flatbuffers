@@ -22,7 +22,7 @@ public struct Movie : IFlatbufferObject
   public Character CharactersType(int j) { int o = __p.__offset(8); return o != 0 ? (Character)__p.bb.Get(__p.__vector(o) + j * 1) : (Character)0; }
   public int CharactersTypeLength { get { int o = __p.__offset(8); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetCharactersTypeBytes() { return __p.__vector_as_span(8, 1); }
+  public Span<Character> GetCharactersTypeBytes() { return __p.__vector_as_span<Character>(8, 1); }
 #else
   public ArraySegment<byte>? GetCharactersTypeBytes() { return __p.__vector_as_arraysegment(8); }
 #endif
