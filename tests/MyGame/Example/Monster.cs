@@ -27,7 +27,7 @@ public struct Monster : IFlatbufferObject
   public bool MutateHp(short hp) { int o = __p.__offset(8); if (o != 0) { __p.bb.PutShort(o + __p.bb_pos, hp); return true; } else { return false; } }
   public string Name { get { int o = __p.__offset(10); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetNameBytes() { return __p.__vector_as_span(10); }
+  public Span<byte> GetNameBytes() { return __p.__vector_as_span<byte>(10, 1); }
 #else
   public ArraySegment<byte>? GetNameBytes() { return __p.__vector_as_arraysegment(10); }
 #endif
@@ -35,7 +35,7 @@ public struct Monster : IFlatbufferObject
   public byte Inventory(int j) { int o = __p.__offset(14); return o != 0 ? __p.bb.Get(__p.__vector(o) + j * 1) : (byte)0; }
   public int InventoryLength { get { int o = __p.__offset(14); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetInventoryBytes() { return __p.__vector_as_span(14); }
+  public Span<byte> GetInventoryBytes() { return __p.__vector_as_span<byte>(14, 1); }
 #else
   public ArraySegment<byte>? GetInventoryBytes() { return __p.__vector_as_arraysegment(14); }
 #endif
@@ -59,7 +59,7 @@ public struct Monster : IFlatbufferObject
   public byte Testnestedflatbuffer(int j) { int o = __p.__offset(30); return o != 0 ? __p.bb.Get(__p.__vector(o) + j * 1) : (byte)0; }
   public int TestnestedflatbufferLength { get { int o = __p.__offset(30); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetTestnestedflatbufferBytes() { return __p.__vector_as_span(30); }
+  public Span<byte> GetTestnestedflatbufferBytes() { return __p.__vector_as_span<byte>(30, 1); }
 #else
   public ArraySegment<byte>? GetTestnestedflatbufferBytes() { return __p.__vector_as_arraysegment(30); }
 #endif
@@ -88,7 +88,7 @@ public struct Monster : IFlatbufferObject
   public bool Testarrayofbools(int j) { int o = __p.__offset(52); return o != 0 ? 0!=__p.bb.Get(__p.__vector(o) + j * 1) : false; }
   public int TestarrayofboolsLength { get { int o = __p.__offset(52); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetTestarrayofboolsBytes() { return __p.__vector_as_span(52); }
+  public Span<bool> GetTestarrayofboolsBytes() { return __p.__vector_as_span<bool>(52, 1); }
 #else
   public ArraySegment<byte>? GetTestarrayofboolsBytes() { return __p.__vector_as_arraysegment(52); }
 #endif
@@ -107,7 +107,7 @@ public struct Monster : IFlatbufferObject
   public byte Flex(int j) { int o = __p.__offset(64); return o != 0 ? __p.bb.Get(__p.__vector(o) + j * 1) : (byte)0; }
   public int FlexLength { get { int o = __p.__offset(64); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetFlexBytes() { return __p.__vector_as_span(64); }
+  public Span<byte> GetFlexBytes() { return __p.__vector_as_span<byte>(64, 1); }
 #else
   public ArraySegment<byte>? GetFlexBytes() { return __p.__vector_as_arraysegment(64); }
 #endif
@@ -118,7 +118,7 @@ public struct Monster : IFlatbufferObject
   public long VectorOfLongs(int j) { int o = __p.__offset(68); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
   public int VectorOfLongsLength { get { int o = __p.__offset(68); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetVectorOfLongsBytes() { return __p.__vector_as_span(68); }
+  public Span<long> GetVectorOfLongsBytes() { return __p.__vector_as_span<long>(68, 8); }
 #else
   public ArraySegment<byte>? GetVectorOfLongsBytes() { return __p.__vector_as_arraysegment(68); }
 #endif
@@ -127,7 +127,7 @@ public struct Monster : IFlatbufferObject
   public double VectorOfDoubles(int j) { int o = __p.__offset(70); return o != 0 ? __p.bb.GetDouble(__p.__vector(o) + j * 8) : (double)0; }
   public int VectorOfDoublesLength { get { int o = __p.__offset(70); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetVectorOfDoublesBytes() { return __p.__vector_as_span(70); }
+  public Span<double> GetVectorOfDoublesBytes() { return __p.__vector_as_span<double>(70, 8); }
 #else
   public ArraySegment<byte>? GetVectorOfDoublesBytes() { return __p.__vector_as_arraysegment(70); }
 #endif
@@ -142,7 +142,7 @@ public struct Monster : IFlatbufferObject
   public ulong VectorOfWeakReferences(int j) { int o = __p.__offset(78); return o != 0 ? __p.bb.GetUlong(__p.__vector(o) + j * 8) : (ulong)0; }
   public int VectorOfWeakReferencesLength { get { int o = __p.__offset(78); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetVectorOfWeakReferencesBytes() { return __p.__vector_as_span(78); }
+  public Span<ulong> GetVectorOfWeakReferencesBytes() { return __p.__vector_as_span<ulong>(78, 8); }
 #else
   public ArraySegment<byte>? GetVectorOfWeakReferencesBytes() { return __p.__vector_as_arraysegment(78); }
 #endif
@@ -156,7 +156,7 @@ public struct Monster : IFlatbufferObject
   public ulong VectorOfCoOwningReferences(int j) { int o = __p.__offset(84); return o != 0 ? __p.bb.GetUlong(__p.__vector(o) + j * 8) : (ulong)0; }
   public int VectorOfCoOwningReferencesLength { get { int o = __p.__offset(84); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetVectorOfCoOwningReferencesBytes() { return __p.__vector_as_span(84); }
+  public Span<ulong> GetVectorOfCoOwningReferencesBytes() { return __p.__vector_as_span<ulong>(84, 8); }
 #else
   public ArraySegment<byte>? GetVectorOfCoOwningReferencesBytes() { return __p.__vector_as_arraysegment(84); }
 #endif
@@ -167,7 +167,7 @@ public struct Monster : IFlatbufferObject
   public ulong VectorOfNonOwningReferences(int j) { int o = __p.__offset(88); return o != 0 ? __p.bb.GetUlong(__p.__vector(o) + j * 8) : (ulong)0; }
   public int VectorOfNonOwningReferencesLength { get { int o = __p.__offset(88); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetVectorOfNonOwningReferencesBytes() { return __p.__vector_as_span(88); }
+  public Span<ulong> GetVectorOfNonOwningReferencesBytes() { return __p.__vector_as_span<ulong>(88, 8); }
 #else
   public ArraySegment<byte>? GetVectorOfNonOwningReferencesBytes() { return __p.__vector_as_arraysegment(88); }
 #endif
@@ -182,7 +182,7 @@ public struct Monster : IFlatbufferObject
   public MyGame.Example.Color VectorOfEnums(int j) { int o = __p.__offset(98); return o != 0 ? (MyGame.Example.Color)__p.bb.Get(__p.__vector(o) + j * 1) : (MyGame.Example.Color)0; }
   public int VectorOfEnumsLength { get { int o = __p.__offset(98); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetVectorOfEnumsBytes() { return __p.__vector_as_span(98); }
+  public Span<MyGame.Example.Color> GetVectorOfEnumsBytes() { return __p.__vector_as_span<MyGame.Example.Color>(98, 1); }
 #else
   public ArraySegment<byte>? GetVectorOfEnumsBytes() { return __p.__vector_as_arraysegment(98); }
 #endif
