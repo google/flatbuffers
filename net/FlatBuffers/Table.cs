@@ -16,6 +16,7 @@
 
 using System;
 using System.Text;
+using System.Runtime.InteropServices;
 
 namespace FlatBuffers
 {
@@ -89,17 +90,23 @@ namespace FlatBuffers
         // Get the data of a vector whoses offset is stored at "offset" in this object as an
         // Spant&lt;byte&gt;. If the vector is not present in the ByteBuffer,
         // then an empty span will be returned.
-        public Span<byte> __vector_as_span(int offset)
+        public Span<T> __vector_as_span<T>(int offset, int elementSize) where T : struct
         {
+            if (!BitConverter.IsLittleEndian)
+            {
+               throw new NotSupportedException("Getting typed span on a Big Endian " +
+                                               "system is not support");
+            }
+
             var o = this.__offset(offset);
             if (0 == o)
             {
-                return new Span<byte>();
+                return new Span<T>();
             }
 
             var pos = this.__vector(o);
             var len = this.__vector_len(o);
-            return bb.ToSpan(pos, len);
+            return MemoryMarshal.Cast<byte, T>(bb.ToSpan(pos, len * elementSize));
         }
 #else
         // Get the data of a vector whoses offset is stored at "offset" in this object as an
