@@ -401,19 +401,20 @@ template<typename T> static inline size_t VectorLength(const Vector<T> *v) {
 }
 
 // This is used as a helper type for accessing arrays.
-template<typename T, uint16_t length> class Array {
+template<typename T, uint16_t length,
+         bool is_scalar = flatbuffers::is_scalar<T>::value>
+class Array {
  public:
-  typedef VectorIterator<T, typename IndirectHelper<T>::return_type>
-      const_iterator;
+  typedef IndirectHelper<T> IndirectHelperThis;
+  typedef typename IndirectHelperThis::return_type return_type;
+  typedef VectorIterator<T, return_type> const_iterator;
   typedef VectorReverseIterator<const_iterator> const_reverse_iterator;
-
-  typedef typename IndirectHelper<T>::return_type return_type;
 
   FLATBUFFERS_CONSTEXPR uint16_t size() const { return length; }
 
   return_type Get(uoffset_t i) const {
     FLATBUFFERS_ASSERT(i < size());
-    return IndirectHelper<T>::Read(Data(), i);
+    return IndirectHelperThis::Read(Data(), i);
   }
 
   return_type operator[](uoffset_t i) const { return Get(i); }
@@ -433,19 +434,9 @@ template<typename T, uint16_t length> class Array {
   const_reverse_iterator crend() const { return rend(); }
 
   // Change elements if you have a non-const pointer to this object.
-  void Mutate(uoffset_t i, const T &val) {
+  void Mutate(uoffset_t i, T val) {
     FLATBUFFERS_ASSERT(i < size());
     WriteScalar(data() + i, val);
-  }
-
-  // Get a mutable pointer to elements inside this array.
-  // @note This method should be only used to mutate arrays of structs followed
-  //  by a @p Mutate operation. For primitive types use @p Mutate directly.
-  // @warning Assignments and reads to/from the dereferenced pointer are not
-  //  automatically converted to the correct endianness.
-  T *GetMutablePointer(uoffset_t i) const {
-    FLATBUFFERS_ASSERT(i < size());
-    return const_cast<T *>(&data()[i]);
   }
 
   // The raw data in little endian format. Use with care.
@@ -469,6 +460,118 @@ template<typename T, uint16_t length> class Array {
   Array();
 #endif
 
+  uint8_t data_[length * sizeof(T)];
+
+ private:
+  // This class is a pointer. Copying will therefore create an invalid object.
+  // Private and unimplemented copy constructor.
+  Array(const Array &);
+};
+
+// Specialization for Array[struct] with access using Offset<void> pointer.
+// This specialization used by idl_gen_text.cpp.
+template<typename T, uint16_t length> class Array<Offset<T>, length, false> {
+  static_assert(flatbuffers::is_same<T, void>::value, "unexpected type T");
+
+ public:
+  typedef const T *return_type;
+  return_type Get(uoffset_t) const;
+  return_type operator[](uoffset_t) const {
+    FLATBUFFERS_ASSERT(false);
+    return nullptr;
+  }
+  const uint8_t *Data() const { return data_; }
+
+ protected:
+  // This class is only used to access pre-existing data.
+  Array();
+
+  uint8_t data_[1];
+
+ private:
+  // This class is a pointer. Copying will therefore create an invalid object.
+  // Private and unimplemented copy constructor.
+  Array(const Array &);
+};
+
+// Array specialization for Array[struct].
+template<typename T, uint16_t length> class Array<T, length, false> {
+ public:
+  typedef IndirectHelper<const T *> IndirectHelperThis;
+  typedef typename IndirectHelperThis::return_type return_type;
+  typedef VectorIterator<T, return_type> const_iterator;
+  typedef VectorReverseIterator<const_iterator> const_reverse_iterator;
+
+  FLATBUFFERS_CONSTEXPR uint16_t size() const { return length; }
+
+  return_type Get(uoffset_t i) const {
+    FLATBUFFERS_ASSERT(i < size());
+    return IndirectHelperThis::Read(Data(), i);
+  }
+
+  return_type operator[](uoffset_t i) const { return Get(i); }
+
+  const_iterator begin() const { return const_iterator(Data(), 0); }
+  const_iterator end() const { return const_iterator(Data(), size()); }
+
+  const_reverse_iterator rbegin() const {
+    return const_reverse_iterator(end());
+  }
+  const_reverse_iterator rend() const { return const_reverse_iterator(end()); }
+
+  const_iterator cbegin() const { return begin(); }
+  const_iterator cend() const { return end(); }
+
+  const_reverse_iterator crbegin() const { return rbegin(); }
+  const_reverse_iterator crend() const { return rend(); }
+
+  // Change elements if you have a non-const pointer to this object.
+  void Mutate(uoffset_t i, const T &val) { *(GetMutablePointer(i)) = val; }
+
+  // Get a mutable pointer to elements inside this array.
+  // @note This method should be only used to mutate arrays of structs followed
+  //  by a @p Mutate operation. For primitive types use @p Mutate directly.
+  // @warning Assignments and reads to/from the dereferenced pointer are not
+  //  automatically converted to the correct endianness.
+  T *GetMutablePointer(uoffset_t i) const {
+    FLATBUFFERS_ASSERT(i < size());
+    return const_cast<T *>(&data()[i]);
+  }
+
+  const uint8_t *Data() const { return data_; }
+  uint8_t *Data() { return data_; }
+
+  const T *data() const { return reinterpret_cast<const T *>(Data()); }
+  T *data() {
+#if defined(FLATBUFFERS_ALIGN_CHECK) && !defined(FLATBUFFERS_CPP98_STL)
+    // The data_ is aligned as this Array<T,length>.
+    // But this Array<T,length> themself must be aligned not stricker than T.
+    // Flatbuffers uses reinterpret_cast from T-aligned memory data_ to a
+    // reference of the Array<T, lenght>.
+    static_assert(
+        alignof(std::remove_reference<decltype(*this)>::type) <= alignof(T),
+        "Invalid alignment");
+
+    // The idl_gent_text.cpp uses reintepret_cast from the data_ memory to
+    // Array<Offset<void>, lenght>.
+    static_assert(alignof(Array<Offset<void>, length, false>) <= alignof(T),
+                  "Invalid alignment");
+#endif
+    return reinterpret_cast<T *>(Data());
+  }
+
+ protected:
+// This class is only used to access pre-existing data. Don't ever
+// try to construct these manually.
+// 'constexpr' allows us to use 'size()' at compile time.
+// @note Must not use 'FLATBUFFERS_CONSTEXPR' here, as const is not allowed on
+//  a constructor.
+#if defined(__cpp_constexpr)
+  constexpr Array();
+#else
+  Array();
+#endif
+  // Alignment of data_ is equal to alignment of this Array<T,lenght>.
   uint8_t data_[length * sizeof(T)];
 
  private:
