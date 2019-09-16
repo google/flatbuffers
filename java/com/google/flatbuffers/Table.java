@@ -169,11 +169,7 @@ public class Table {
    * @return Returns the Table that points to the union at `offset`.
    */
   protected Table __union(Table t, int offset) {
-    offset += bb_pos;
-    t.bb_pos = offset + bb.getInt(offset);
-    t.bb = bb;
-    t.vtable_start = t.bb_pos - bb.getInt(t.bb_pos);
-    t.vtable_size = bb.getShort(t.vtable_start);
+    t.__reset(__indirect(offset), bb);
     return t;
   }
 

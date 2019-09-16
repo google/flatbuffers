@@ -1125,8 +1125,6 @@ class GeneralGenerator : public BaseGenerator {
                           ? index
                           : lang_.accessor_prefix + "__indirect(" + index + ")";
               code += ", " + lang_.accessor_prefix + "bb";
-            } else if (vectortype.base_type == BASE_TYPE_UNION) {
-              code += index + " - " + lang_.accessor_prefix +  "bb_pos";
             } else {
               code += index;
             }
@@ -1146,10 +1144,10 @@ class GeneralGenerator : public BaseGenerator {
             if (lang_.language == IDLOptions::kCSharp) {
               code += "() where TTable : struct, IFlatbufferObject";
               code += offset_prefix + "(TTable?)" + getter;
-              code += "<TTable>(o) : null";
+              code += "<TTable>(o + " + lang_.accessor_prefix + "bb_pos) : null";
             } else {
               code += "(" + type_name + " obj)" + offset_prefix + getter;
-              code += "(obj, o) : null";
+              code += "(obj, o + " + lang_.accessor_prefix + "bb_pos) : null";
             }
             break;
           default: FLATBUFFERS_ASSERT(0);

@@ -16,13 +16,13 @@ public final class Movie extends Table {
 
   public byte mainCharacterType() { int o = __offset(4); return o != 0 ? bb.get(o + bb_pos) : 0; }
   public boolean mutateMainCharacterType(byte main_character_type) { int o = __offset(4); if (o != 0) { bb.put(o + bb_pos, main_character_type); return true; } else { return false; } }
-  public Table mainCharacter(Table obj) { int o = __offset(6); return o != 0 ? __union(obj, o) : null; }
+  public Table mainCharacter(Table obj) { int o = __offset(6); return o != 0 ? __union(obj, o + bb_pos) : null; }
   public byte charactersType(int j) { int o = __offset(8); return o != 0 ? bb.get(__vector(o) + j * 1) : 0; }
   public int charactersTypeLength() { int o = __offset(8); return o != 0 ? __vector_len(o) : 0; }
   public ByteBuffer charactersTypeAsByteBuffer() { return __vector_as_bytebuffer(8, 1); }
   public ByteBuffer charactersTypeInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 8, 1); }
   public boolean mutateCharactersType(int j, byte characters_type) { int o = __offset(8); if (o != 0) { bb.put(__vector(o) + j * 1, characters_type); return true; } else { return false; } }
-  public Table characters(Table obj, int j) { int o = __offset(10); return o != 0 ? __union(obj, __vector(o) + j * 4 - bb_pos) : null; }
+  public Table characters(Table obj, int j) { int o = __offset(10); return o != 0 ? __union(obj, __vector(o) + j * 4) : null; }
   public int charactersLength() { int o = __offset(10); return o != 0 ? __vector_len(o) : 0; }
 
   public static int createMovie(FlatBufferBuilder builder,
