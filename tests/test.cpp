@@ -2410,6 +2410,7 @@ void UnionVectorTest() {
 
   TestMovie(repacked_movie);
 
+  // Generate text using mini-reflection.
   auto s =
       flatbuffers::FlatBufferToString(fbb.GetBufferPointer(), MovieTypeTable());
   TEST_EQ_STR(
@@ -2450,6 +2451,39 @@ void UnionVectorTest() {
       "    \"Unused\"\n"
       "  ]\n"
       "}");
+
+  // Generate text using parsed schema.
+  std::string jsongen;
+  auto result = GenerateText(parser, fbb.GetBufferPointer(), &jsongen);
+  TEST_EQ(result, true);
+  TEST_EQ_STR(
+      jsongen.c_str(),
+      "{\n"
+      "  main_character_type: \"Rapunzel\",\n"
+      "  main_character: {\n"
+      "    hair_length: 6\n"
+      "  },\n"
+      "  characters_type: [\n"
+      "    \"Belle\",\n"
+      "    \"MuLan\",\n"
+      "    \"BookFan\",\n"
+      "    \"Other\",\n"
+      "    \"Unused\"\n"
+      "  ],\n"
+      "  characters: [\n"
+      "    {\n"
+      "      books_read: 7\n"
+      "    },\n"
+      "    {\n"
+      "      sword_attack_damage: 5\n"
+      "    },\n"
+      "    {\n"
+      "      books_read: 2\n"
+      "    },\n"
+      "    \"Other\",\n"
+      "    \"Unused\"\n"
+      "  ]\n"
+      "}\n");
 
   flatbuffers::Parser parser2(idl_opts);
   TEST_EQ(parser2.Parse("struct Bool { b:bool; }"
