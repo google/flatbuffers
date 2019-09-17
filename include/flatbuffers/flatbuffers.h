@@ -2109,6 +2109,11 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     return VerifyAlignment<T>(elem) && Verify(elem, sizeof(T));
   }
 
+  bool VerifyFromPointer(const uint8_t *p, size_t len) {
+    auto o = static_cast<size_t>(p - buf_);
+    return Verify(o, len);
+  }
+
   // Verify relative to a known-good base pointer.
   bool Verify(const uint8_t *base, voffset_t elem_off, size_t elem_len) const {
     return Verify(static_cast<size_t>(base - buf_) + elem_off, elem_len);
