@@ -1,5 +1,7 @@
 licenses(["notice"])
 
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
 package(
     default_visibility = ["//visibility:public"],
     features = [
@@ -86,11 +88,11 @@ cc_binary(
         "src/idl_gen_cpp.cpp",
         "src/idl_gen_dart.cpp",
         "src/idl_gen_general.cpp",
-        "src/idl_gen_kotlin.cpp",
         "src/idl_gen_go.cpp",
         "src/idl_gen_grpc.cpp",
         "src/idl_gen_js_ts.cpp",
         "src/idl_gen_json_schema.cpp",
+        "src/idl_gen_kotlin.cpp",
         "src/idl_gen_lobster.cpp",
         "src/idl_gen_lua.cpp",
         "src/idl_gen_php.cpp",
@@ -137,8 +139,8 @@ cc_test(
         "src/util.cpp",
         "tests/namespace_test/namespace_test1_generated.h",
         "tests/namespace_test/namespace_test2_generated.h",
-        "tests/native_type_test_impl.h",
         "tests/native_type_test_impl.cpp",
+        "tests/native_type_test_impl.h",
         "tests/test.cpp",
         "tests/test_assert.cpp",
         "tests/test_assert.h",
@@ -152,12 +154,18 @@ cc_test(
         "-DBAZEL_TEST_DATA_PATH",
     ],
     data = [
+        ":tests/arrays_test.bfbs",
+        ":tests/arrays_test.fbs",
+        ":tests/arrays_test.golden",
         ":tests/include_test/include_test1.fbs",
         ":tests/include_test/sub/include_test2.fbs",
+        ":tests/monster_extra.fbs",
         ":tests/monster_test.bfbs",
         ":tests/monster_test.fbs",
+        ":tests/monsterdata_extra.json",
         ":tests/monsterdata_test.golden",
         ":tests/monsterdata_test.json",
+        ":tests/native_type_test.fbs",
         ":tests/prototest/imported.proto",
         ":tests/prototest/test.golden",
         ":tests/prototest/test.proto",
@@ -165,21 +173,15 @@ cc_test(
         ":tests/unicode_test.json",
         ":tests/union_vector/union_vector.fbs",
         ":tests/union_vector/union_vector.json",
-        ":tests/monster_extra.fbs",
-        ":tests/monsterdata_extra.json",
-        ":tests/arrays_test.bfbs",
-        ":tests/arrays_test.fbs",
-        ":tests/arrays_test.golden",
-        ":tests/native_type_test.fbs",
     ],
     includes = [
         "include/",
         "tests/",
     ],
     deps = [
+        ":arrays_test_cc_fbs",
         ":monster_extra_cc_fbs",
         ":monster_test_cc_fbs",
-        ":arrays_test_cc_fbs",
         ":native_type_test_cc_fbs",
     ],
 )
@@ -211,7 +213,8 @@ flatbuffer_cc_library(
         "--gen-mutable",
         "--reflect-names",
         "--cpp-ptr-type flatbuffers::unique_ptr",
-        "--scoped-enums" ],
+        "--scoped-enums",
+    ],
 )
 
 flatbuffer_cc_library(
@@ -220,6 +223,6 @@ flatbuffer_cc_library(
     flatc_args = [
         "--gen-object-api",
         "--gen-mutable",
-        "--cpp-ptr-type flatbuffers::unique_ptr" ],
+        "--cpp-ptr-type flatbuffers::unique_ptr",
+    ],
 )
-
