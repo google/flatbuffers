@@ -46,7 +46,7 @@ public final class UnionVector extends BaseVector {
    * @param j An `int` index into the union vector.
    * @return Returns the Table that points to the union at `index`.
    */
-  public Table get(Table obj, int j) {
+  public <T extends Struct> T get(T obj, int j) {
     return Table.__union(obj, __element(j), bb);
   }
 }

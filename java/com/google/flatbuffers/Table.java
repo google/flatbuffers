@@ -25,11 +25,7 @@ import java.nio.ByteOrder;
 /**
  * All tables in the generated code derive from this class, and add their own accessors.
  */
-public class Table {
-  /** Used to hold the position of the `bb` buffer. */
-  protected int bb_pos;
-  /** The underlying ByteBuffer to hold the data of the Table. */
-  protected ByteBuffer bb;
+public class Table extends Struct {
   /** Used to hold the vtable position. */
   private int vtable_start;
   /** Used to hold the vtable size. */
@@ -179,27 +175,26 @@ public class Table {
   }
 
   /**
-   * Initialize any Table-derived type to point to the union at the given `offset`.
+   * Initialize any Struct-derived type to point to the union at the given `offset`.
    *
-   * @param t A `Table`-derived type that should point to the union at `offset`.
+   * @param s A `Struct`-derived type that should point to the union at `offset`.
    * @param offset An `int` index into the Table's ByteBuffer.
    * @return Returns the Table that points to the union at `offset`.
    */
-  protected Table __union(Table t, int offset) {
-    return __union(t, offset, bb);
+  protected <T extends Struct> T __union(T s, int offset) {
+    return __union(s, offset, bb);
   }
 
   /**
-   * Initialize any Table-derived type to point to the union at the given `offset`.
+   * Initialize any Struct-derived type to point to the union at the given `offset`.
    *
-   * @param t A `Table`-derived type that should point to the union at `offset`.
+   * @param s A `Struct`-derived type that should point to the union at `offset`.
    * @param offset An `int` index into the Table's ByteBuffer.
-   * @param bb Table ByteBuffer used to initialize the object Table-derived type.
    * @return Returns the Table that points to the union at `offset`.
    */
-  protected static Table __union(Table t, int offset, ByteBuffer bb) {
-    t.__reset(__indirect(offset, bb), bb);
-    return t;
+  protected static <T extends Struct> T __union(T s, int offset, ByteBuffer bb) {
+    s.__reset(__indirect(offset, bb), bb);
+    return s;
   }
 
   /**
@@ -294,7 +289,7 @@ public class Table {
    * This method exists primarily to allow recycling Table instances without risking memory leaks
    * due to {@code ByteBuffer} references.
    */
-  protected void __reset(int _i, ByteBuffer _bb) { 
+  protected void __reset(int _i, ByteBuffer _bb) {
     bb = _bb;
     if (bb != null) {
       bb_pos = _i;
@@ -305,17 +300,6 @@ public class Table {
       vtable_start = 0;
       vtable_size = 0;
     }
-  }
-
-  /**
-   * Resets the internal state with a null {@code ByteBuffer} and a zero position.
-   *
-   * This method exists primarily to allow recycling Table instances without risking memory leaks
-   * due to {@code ByteBuffer} references. The instance will be unusable until it is assigned
-   * again to a {@code ByteBuffer}.
-   */
-  public void __reset() {
-    __reset(0, null);
   }
 }
 

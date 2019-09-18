@@ -157,7 +157,7 @@ class JavaGenerator : public BaseGenerator {
       case BASE_TYPE_STRING: return "String";
       case BASE_TYPE_VECTOR: return GenTypeGet(type.VectorType());
       case BASE_TYPE_STRUCT: return WrapInNameSpace(*type.struct_def);
-      case BASE_TYPE_UNION: FLATBUFFERS_FALLTHROUGH();  // else fall thru
+      case BASE_TYPE_UNION: return "T"; // <T extends Struct>
       default: return "Table";
     }
   }
@@ -196,6 +196,9 @@ class JavaGenerator : public BaseGenerator {
 
   // Generate destination type name
   std::string GenTypeNameDest(const Type &type) const {
+    if (type.base_type == BASE_TYPE_UNION) {
+      return "<T extends Struct> " + GenTypeGet(DestinationType(type, true));
+    }
     return GenTypeGet(DestinationType(type, true));
   }
 
