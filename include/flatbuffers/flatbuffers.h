@@ -638,6 +638,9 @@ class DetachedBuffer {
   #if !defined(FLATBUFFERS_CPP98_STL)
   // clang-format on
   DetachedBuffer &operator=(DetachedBuffer &&other) {
+    if (this == &other)
+      return *this;
+
     destroy();
 
     allocator_ = other.allocator_;
