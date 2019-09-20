@@ -401,15 +401,16 @@ template<typename T> static inline size_t VectorLength(const Vector<T> *v) {
 }
 
 // This is used as a helper type for accessing arrays.
-template<typename T, uint16_t length>
-class Array {
-  // Use <T> for scalars and <T*> for structs.
-  typedef typename std::conditional<flatbuffers::is_scalar<T>::value, T,
-                                    const T *>::type IndirectHelperType;
-  typedef IndirectHelper<IndirectHelperType> IndirectHelperThis;
+template<typename T, uint16_t length> class Array {
+  typedef
+      typename flatbuffers::integral_constant<bool, flatbuffers::is_scalar<T>::value>
+          scalar_tag;
+  typedef
+      typename flatbuffers::conditional<scalar_tag::value, T, const T *>::type
+          IndirectHelperType;
 
  public:
-  typedef typename IndirectHelperThis::return_type return_type;
+  typedef typename IndirectHelper<IndirectHelperType>::return_type return_type;
   typedef VectorIterator<T, return_type> const_iterator;
   typedef VectorReverseIterator<const_iterator> const_reverse_iterator;
 
@@ -417,7 +418,7 @@ class Array {
 
   return_type Get(uoffset_t i) const {
     FLATBUFFERS_ASSERT(i < size());
-    return IndirectHelperThis::Read(Data(), i);
+    return IndirectHelper<IndirectHelperType>::Read(Data(), i);
   }
 
   return_type operator[](uoffset_t i) const { return Get(i); }
@@ -441,29 +442,29 @@ class Array {
   // operation. For primitive types use @p Mutate directly.
   // @warning Assignments and reads to/from the dereferenced pointer are not
   //  automatically converted to the correct endianness.
-  template<typename U = T>
-  typename std::enable_if<false == flatbuffers::is_scalar<T>::value, U *>::type
+  typename flatbuffers::conditional<scalar_tag::value, void, T *>::type
   GetMutablePointer(uoffset_t i) const {
+    #if defined(FLATBUFFERS_ALIGN_CHECK) && !defined(FLATBUFFERS_CPP98_STL)
+    // The data_ is aligned as this Array<T,length>.
+    // The Array<T,length> themself must be aligned not stricker than <T>.
+    // Flatbuffers uses reinterpret_cast from T-aligned memory to
+    // a reference of the Array<T, lenght>.
+    using this_type = typename std::remove_reference<decltype(*this)>::type;
+    static_assert(alignof(this_type) <= alignof(T), "Invalid alignment");
+
+    // The idl_gent_text.cpp uses reintepret_cast from the data_ memory to
+    // Array<Offset<void>, lenght>.
+    using print_type = Array<Offset<void>, length>;
+    static_assert(alignof(print_type) <= alignof(T), "Invalid alignment");
+    #endif
+
     FLATBUFFERS_ASSERT(i < size());
     return const_cast<T *>(&data()[i]);
   }
 
-  // Change scalar elements if you have a non-const pointer to this object.
-  template<typename U = T>
-  void Mutate(uoffset_t i,
-              typename std::enable_if<flatbuffers::is_scalar<T>::value &&
-                                          std::is_same<T, U>::value,
-                                      U>::type val) {
-    FLATBUFFERS_ASSERT(i < size());
-    WriteScalar(data() + i, val);
-  }
-
-  // Change struct elements if you have a non-const pointer to this object.
-  template<typename U = T>
-  void Mutate(uoffset_t i,
-              typename std::enable_if<false == flatbuffers::is_scalar<T>::value,
-                                      const U &>::type val) {
-    *(GetMutablePointer(i)) = val;
+  // Change elements if you have a non-const pointer to this object.
+  void Mutate(uoffset_t i, const T &val) {
+    MutateImpl(scalar_tag(), i, val);
   }
 
   // The raw data in little endian format. Use with care.
@@ -473,26 +474,22 @@ class Array {
 
   // Similarly, but typed, much like std::vector::data
   const T *data() const { return reinterpret_cast<const T *>(Data()); }
-  T *data() {
-    #if defined(FLATBUFFERS_ALIGN_CHECK) && !defined(FLATBUFFERS_CPP98_STL)
-    // The data_ is aligned as this Array<T,length>.
-    // But this Array<T,length> themself must be aligned not stricker than T.
-    // Flatbuffers uses reinterpret_cast from T-aligned memory data_ to a
-    // reference of the Array<T, lenght>.
-    static_assert(
-        alignof(std::remove_reference<decltype(*this)>::type) <= alignof(T),
-        "Invalid alignment");
-
-    // The idl_gent_text.cpp uses reintepret_cast from the data_ memory to
-    // Array<Offset<void>, lenght>.
-    static_assert(alignof(Array<Offset<void>, length, false>) <= alignof(T),
-                  "Invalid alignment");
-    #endif
-
-    return reinterpret_cast<T *>(Data());
-  }
+  T *data() { return reinterpret_cast<T *>(Data()); }
 
  protected:
+  void MutateImpl(flatbuffers::integral_constant<bool, true> tag, uoffset_t i,
+                  const T &val) {
+    (void)tag;
+    FLATBUFFERS_ASSERT(i < size());
+    WriteScalar(data() + i, val);
+  }
+
+  void MutateImpl(flatbuffers::integral_constant<bool, false> tag, uoffset_t i,
+                  const T &val) {
+    (void)tag;
+    *(GetMutablePointer(i)) = val;
+  }
+
   // This class is only used to access pre-existing data. Don't ever
   // try to construct these manually.
   // 'constexpr' allows us to use 'size()' at compile time.
@@ -510,6 +507,7 @@ class Array {
   // This class is a pointer. Copying will therefore create an invalid object.
   // Private and unimplemented copy constructor.
   Array(const Array &);
+  Array &operator=(const Array &);
 };
 
 // Specialization for Array[struct] with access using Offset<void> pointer.
@@ -518,24 +516,21 @@ template<typename T, uint16_t length> class Array<Offset<T>, length> {
   static_assert(flatbuffers::is_same<T, void>::value, "unexpected type T");
 
  public:
-  typedef const T *return_type;
-  return_type Get(uoffset_t) const;
-  return_type operator[](uoffset_t) const {
+  const uint8_t *Data() const { return data_; }
+
+  // Make idl_gen_text.cpp::PrintContainer happy.
+  const void *operator[](uoffset_t) const {
     FLATBUFFERS_ASSERT(false);
     return nullptr;
   }
-  const uint8_t *Data() const { return data_; }
-
- protected:
-  // This class is only used to access pre-existing data.
-  Array();
-
-  uint8_t data_[1];
 
  private:
-  // This class is a pointer. Copying will therefore create an invalid object.
-  // Private and unimplemented copy constructor.
+  // This class is only used to access pre-existing data.
+  Array();
   Array(const Array &);
+  Array &operator=(const Array &);
+
+  uint8_t data_[1];
 };
 
 // Lexicographically compare two strings (possibly containing nulls), and
