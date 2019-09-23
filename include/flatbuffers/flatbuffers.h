@@ -444,20 +444,6 @@ template<typename T, uint16_t length> class Array {
   //  automatically converted to the correct endianness.
   typename flatbuffers::conditional<scalar_tag::value, void, T *>::type
   GetMutablePointer(uoffset_t i) const {
-    #if defined(FLATBUFFERS_ALIGN_CHECK) && !defined(FLATBUFFERS_CPP98_STL)
-    // The data_ is aligned as this Array<T,length>.
-    // The Array<T,length> themself must be aligned not stricker than <T>.
-    // Flatbuffers uses reinterpret_cast from T-aligned memory to
-    // a reference of the Array<T, lenght>.
-    using this_type = typename std::remove_reference<decltype(*this)>::type;
-    static_assert(alignof(this_type) <= alignof(T), "Invalid alignment");
-
-    // The idl_gent_text.cpp uses reintepret_cast from the data_ memory to
-    // Array<Offset<void>, lenght>.
-    using print_type = Array<Offset<void>, length>;
-    static_assert(alignof(print_type) <= alignof(T), "Invalid alignment");
-    #endif
-
     FLATBUFFERS_ASSERT(i < size());
     return const_cast<T *>(&data()[i]);
   }
@@ -477,16 +463,14 @@ template<typename T, uint16_t length> class Array {
   T *data() { return reinterpret_cast<T *>(Data()); }
 
  protected:
-  void MutateImpl(flatbuffers::integral_constant<bool, true> tag, uoffset_t i,
+  void MutateImpl(flatbuffers::integral_constant<bool, true>, uoffset_t i,
                   const T &val) {
-    (void)tag;
     FLATBUFFERS_ASSERT(i < size());
     WriteScalar(data() + i, val);
   }
 
-  void MutateImpl(flatbuffers::integral_constant<bool, false> tag, uoffset_t i,
+  void MutateImpl(flatbuffers::integral_constant<bool, false>, uoffset_t i,
                   const T &val) {
-    (void)tag;
     *(GetMutablePointer(i)) = val;
   }
 
