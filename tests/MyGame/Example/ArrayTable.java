@@ -27,5 +27,12 @@ public final class ArrayTable extends Table {
   }
   public static void finishArrayTableBuffer(FlatBufferBuilder builder, int offset) { builder.finish(offset, "ARRT"); }
   public static void finishSizePrefixedArrayTableBuffer(FlatBufferBuilder builder, int offset) { builder.finishSizePrefixed(offset, "ARRT"); }
+
+  public static final class Vector extends BaseVector {
+    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
+
+    public ArrayTable get(int j) { return get(new ArrayTable(), j); }
+    public ArrayTable get(ArrayTable obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }
+  }
 }
 

@@ -95,6 +95,12 @@ class SampleBinary {
       assert monster.weapons(i).damage() == expectedWeaponDamages[i];
     }
 
+    Weapon.Vector weaponsVector = monster.weaponsVector();
+    for (int i = 0; i < weaponsVector.length(); i++) {
+      assert weaponsVector.get(i).name().equals(expectedWeaponNames[i]);
+      assert weaponsVector.get(i).damage() == expectedWeaponDamages[i];
+    }
+
     // Get and test the `equipped` FlatBuffer `union`.
     assert monster.equippedType() == Equipment.Weapon;
     Weapon equipped = (Weapon)monster.equipped(new Weapon());

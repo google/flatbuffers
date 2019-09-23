@@ -41,5 +41,12 @@ public final class Vec3 extends Struct {
     builder.putFloat(x);
     return builder.offset();
   }
+
+  public static final class Vector extends BaseVector {
+    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
+
+    public Vec3 get(int j) { return get(new Vec3(), j); }
+    public Vec3 get(Vec3 obj, int j) {  return obj.__assign(__element(j), bb); }
+  }
 }
 

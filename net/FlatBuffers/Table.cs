@@ -152,9 +152,8 @@ namespace FlatBuffers
         // Initialize any Table-derived type to point to the union at the given offset.
         public T __union<T>(int offset) where T : struct, IFlatbufferObject
         {
-            offset += bb_pos;
             T t = new T();
-            t.__init(offset + bb.GetInt(offset), bb);
+            t.__init(__indirect(offset), bb);
             return t;
         }
 
