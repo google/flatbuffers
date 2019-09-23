@@ -402,18 +402,23 @@ template<typename T> static inline size_t VectorLength(const Vector<T> *v) {
 
 // This is used as a helper type for accessing arrays.
 template<typename T, uint16_t length> class Array {
- public:
-  typedef VectorIterator<T, typename IndirectHelper<T>::return_type>
-      const_iterator;
-  typedef VectorReverseIterator<const_iterator> const_reverse_iterator;
+  typedef
+      typename flatbuffers::integral_constant<bool, flatbuffers::is_scalar<T>::value>
+          scalar_tag;
+  typedef
+      typename flatbuffers::conditional<scalar_tag::value, T, const T *>::type
+          IndirectHelperType;
 
-  typedef typename IndirectHelper<T>::return_type return_type;
+ public:
+  typedef typename IndirectHelper<IndirectHelperType>::return_type return_type;
+  typedef VectorIterator<T, return_type> const_iterator;
+  typedef VectorReverseIterator<const_iterator> const_reverse_iterator;
 
   FLATBUFFERS_CONSTEXPR uint16_t size() const { return length; }
 
   return_type Get(uoffset_t i) const {
     FLATBUFFERS_ASSERT(i < size());
-    return IndirectHelper<T>::Read(Data(), i);
+    return IndirectHelper<IndirectHelperType>::Read(Data(), i);
   }
 
   return_type operator[](uoffset_t i) const { return Get(i); }
@@ -432,20 +437,20 @@ template<typename T, uint16_t length> class Array {
   const_reverse_iterator crbegin() const { return rbegin(); }
   const_reverse_iterator crend() const { return rend(); }
 
-  // Change elements if you have a non-const pointer to this object.
-  void Mutate(uoffset_t i, const T &val) {
-    FLATBUFFERS_ASSERT(i < size());
-    WriteScalar(data() + i, val);
-  }
-
   // Get a mutable pointer to elements inside this array.
-  // @note This method should be only used to mutate arrays of structs followed
-  //  by a @p Mutate operation. For primitive types use @p Mutate directly.
+  // This method used to mutate arrays of structs followed by a @p Mutate
+  // operation. For primitive types use @p Mutate directly.
   // @warning Assignments and reads to/from the dereferenced pointer are not
   //  automatically converted to the correct endianness.
-  T *GetMutablePointer(uoffset_t i) const {
+  typename flatbuffers::conditional<scalar_tag::value, void, T *>::type
+  GetMutablePointer(uoffset_t i) const {
     FLATBUFFERS_ASSERT(i < size());
     return const_cast<T *>(&data()[i]);
+  }
+
+  // Change elements if you have a non-const pointer to this object.
+  void Mutate(uoffset_t i, const T &val) {
+    MutateImpl(scalar_tag(), i, val);
   }
 
   // The raw data in little endian format. Use with care.
@@ -458,6 +463,17 @@ template<typename T, uint16_t length> class Array {
   T *data() { return reinterpret_cast<T *>(Data()); }
 
  protected:
+  void MutateImpl(flatbuffers::integral_constant<bool, true>, uoffset_t i,
+                  const T &val) {
+    FLATBUFFERS_ASSERT(i < size());
+    WriteScalar(data() + i, val);
+  }
+
+  void MutateImpl(flatbuffers::integral_constant<bool, false>, uoffset_t i,
+                  const T &val) {
+    *(GetMutablePointer(i)) = val;
+  }
+
   // This class is only used to access pre-existing data. Don't ever
   // try to construct these manually.
   // 'constexpr' allows us to use 'size()' at compile time.
@@ -475,6 +491,30 @@ template<typename T, uint16_t length> class Array {
   // This class is a pointer. Copying will therefore create an invalid object.
   // Private and unimplemented copy constructor.
   Array(const Array &);
+  Array &operator=(const Array &);
+};
+
+// Specialization for Array[struct] with access using Offset<void> pointer.
+// This specialization used by idl_gen_text.cpp.
+template<typename T, uint16_t length> class Array<Offset<T>, length> {
+  static_assert(flatbuffers::is_same<T, void>::value, "unexpected type T");
+
+ public:
+  const uint8_t *Data() const { return data_; }
+
+  // Make idl_gen_text.cpp::PrintContainer happy.
+  const void *operator[](uoffset_t) const {
+    FLATBUFFERS_ASSERT(false);
+    return nullptr;
+  }
+
+ private:
+  // This class is only used to access pre-existing data.
+  Array();
+  Array(const Array &);
+  Array &operator=(const Array &);
+
+  uint8_t data_[1];
 };
 
 // Lexicographically compare two strings (possibly containing nulls), and
