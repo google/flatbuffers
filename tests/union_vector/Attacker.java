@@ -29,5 +29,12 @@ public final class Attacker extends Table {
     int o = builder.endTable();
     return o;
   }
+
+  public static final class Vector extends BaseVector {
+    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
+
+    public Attacker get(int j) { return get(new Attacker(), j); }
+    public Attacker get(Attacker obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }
+  }
 }
 
