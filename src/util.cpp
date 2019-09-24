@@ -16,7 +16,7 @@
 
 // clang-format off
 // Dont't remove `format off`, it prevent reordering of win-includes.
-#define _POSIX_C_SOURCE 199309L // For stat from stat/stat.h (POSIX extension).
+#define _POSIX_C_SOURCE 200112L // For stat from stat/stat.h and fseeko() (POSIX extensions).
 #ifdef _WIN32
 #  ifndef WIN32_LEAN_AND_MEAN
 #    define WIN32_LEAN_AND_MEAN
@@ -32,7 +32,7 @@
 #  include <winbase.h>
 #  undef interface  // This is also important because of reasons
 #else
-#  define _XOPEN_SOURCE 500 // For PATH_MAX from limits.h (SUSv2 extension) 
+#  define _XOPEN_SOURCE 600 // For PATH_MAX from limits.h (SUSv2 extension) 
 #  include <limits.h>
 #endif
 // clang-format on
