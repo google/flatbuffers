@@ -681,6 +681,7 @@ class JavaTest {
         // mymap vector
         FlexBuffers.Map mymap = m.get("mymap").asMap();
         TestEq(mymap.keys().get(0), m.keys().get(0)); // These should be equal by pointer equality, since key and value are shared.
+        TestEq(mymap.keys().get(0).toString(), "bar");
         TestEq(mymap.values().get(0).asString(), vec.get(1).asString());
         TestEq(mymap.get("int").asInt(), -120);
         TestEq((float)mymap.get("float").asFloat(), -123.0f);
