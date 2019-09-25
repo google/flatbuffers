@@ -740,6 +740,11 @@ public class FlexBuffers {
          */
         @Override
         public StringBuilder toString(StringBuilder sb) {
+            return sb.append(toString());
+        }
+
+        @Override
+        public String toString() {
             int size;
             for (int i = end; ; i++) {
                 if (bb.get(i) == 0) {
@@ -747,8 +752,7 @@ public class FlexBuffers {
                     break;
                 }
             }
-            sb.append(Utf8.getDefault().decodeUtf8(bb, end, size));
-            return sb;
+            return Utf8.getDefault().decodeUtf8(bb, end, size);
         }
 
         int compareTo(byte[] other) {
