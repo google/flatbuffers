@@ -20,6 +20,8 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
+import java.util.Map;
+import java.util.HashMap;
 import MyGame.Example.*;
 import NamespaceA.*;
 import NamespaceA.NamespaceB.*;
@@ -884,6 +886,43 @@ class JavaTest {
                 FlexBuffers.getRoot(b.getBuffer()).toString());
     }
 
+    public static void testHashMapToMap() {
+        int entriesCount = 12;
+
+        HashMap<String, String> source =  new HashMap<>();
+        for (int i = 0; i < entriesCount; i++) {
+            source.put("foo_param_" + i, "foo_value_" + i);
+        }
+
+        FlexBuffersBuilder builder = new FlexBuffersBuilder(1000);
+        int mapStart = builder.startMap();
+        for (Map.Entry<String, String> entry : source.entrySet()) {
+            builder.putString(entry.getKey(), entry.getValue());
+        }
+        builder.endMap(null, mapStart);
+        ByteBuffer bb = builder.finish();
+        bb.rewind();
+
+        FlexBuffers.Reference rootReference = FlexBuffers.getRoot(bb);
+
+        TestEq(rootReference.isMap(), true);
+
+        FlexBuffers.Map flexMap = rootReference.asMap();
+
+        FlexBuffers.KeyVector keys = flexMap.keys();
+        FlexBuffers.Vector values = flexMap.values();
+
+        TestEq(entriesCount, keys.size());
+        TestEq(entriesCount, values.size());
+
+        HashMap<String, String> result =  new HashMap<>();
+        for (int i = 0; i < keys.size(); i++) {
+            result.put(keys.get(i).toString(), values.get(i).asString());
+        }
+
+        TestEq(source, result);
+    }
+
     public static void TestFlexBuffers() {
         testSingleElementByte();
         testSingleElementShort();
@@ -899,7 +938,8 @@ class JavaTest {
         testSingleElementUInt();
         testSingleElementUByte();
         testSingleElementMap();
-	testFlexBuffersTest();
+        testFlexBuffersTest();
+        testHashMapToMap();
     }
 
     static <T> void TestEq(T a, T b) {
