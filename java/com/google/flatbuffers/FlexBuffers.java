@@ -481,7 +481,7 @@ public class FlexBuffers {
          */
         public String asString() {
             if (isString()) {
-                int start = indirect(bb, end, byteWidth);
+                int start = indirect(bb, end, parentWidth);
                 int size = readInt(bb, start - byteWidth, byteWidth);
                 return Utf8.getDefault().decodeUtf8(bb, start, size);
             }

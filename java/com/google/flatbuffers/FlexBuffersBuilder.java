@@ -64,7 +64,7 @@ public class FlexBuffersBuilder {
      * But serialization performance might be slower and consumes more memory. This is ideal if you expect many repeated
      * strings on the message.
      */
-    public static final int BUILDER_FLAG_SHARE_STRINGS = 1;
+    public static final int BUILDER_FLAG_SHARE_STRINGS = 2;
     /**
      * Strings and keys will be shared between elements.
      */
