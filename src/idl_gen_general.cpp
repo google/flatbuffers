@@ -1782,6 +1782,14 @@ std::string BinaryFileName(const Parser &parser, const std::string &path,
 
 bool GenerateBinary(const Parser &parser, const std::string &path,
                     const std::string &file_name) {
+  if (parser.opts.use_flexbuffers) {
+    auto data_vec = parser.flex_builder_.GetBuffer();
+    auto data_ptr = reinterpret_cast<char *>(data_vec.data());
+    return !parser.flex_builder_.GetSize() ||
+           flatbuffers::SaveFile(
+               BinaryFileName(parser, path, file_name).c_str(), data_ptr,
+               parser.flex_builder_.GetSize(), true);
+  }
   return !parser.builder_.GetSize() ||
          flatbuffers::SaveFile(
              BinaryFileName(parser, path, file_name).c_str(),
