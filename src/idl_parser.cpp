@@ -2710,7 +2710,13 @@ bool Parser::ParseFlexBuffer(const char *source, const char *source_filename,
 bool Parser::Parse(const char *source, const char **include_paths,
                    const char *source_filename) {
   FLATBUFFERS_ASSERT(0 == recurse_protection_counter);
-  auto r = !ParseRoot(source, include_paths, source_filename).Check();
+  bool r;
+
+  if (opts.use_flexbuffers) {
+    r = ParseFlexBuffer(source, source_filename, &flex_builder_);
+  } else {
+    r = !ParseRoot(source, include_paths, source_filename).Check();
+  }
   FLATBUFFERS_ASSERT(0 == recurse_protection_counter);
   return r;
 }
