@@ -677,7 +677,7 @@ CheckedError Parser::AddField(StructDef &struct_def, const std::string &name,
 CheckedError Parser::ParseField(StructDef &struct_def) {
   std::string name = attribute_;
 
-  if (LookupStruct(name))
+  if (LookupCreateStruct(name, false, false))
     return Error("field name can not be the same as table/struct name");
 
   std::vector<std::string> dc = doc_comment_;
