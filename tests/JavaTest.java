@@ -887,6 +887,17 @@ class JavaTest {
                 FlexBuffers.getRoot(b.getBuffer()).toString());
     }
 
+    public static void testFlexBuferEmpty() {
+        FlexBuffers.Blob blob = FlexBuffers.Blob.empty();
+        FlexBuffers.Map ary = FlexBuffers.Map.empty();
+        FlexBuffers.Vector map = FlexBuffers.Vector.empty();
+        FlexBuffers.TypedVector typedAry = FlexBuffers.TypedVector.empty();
+        TestEq(blob.size(), 0);
+        TestEq(map.size(), 0);
+        TestEq(ary.size(), 0);
+        TestEq(typedAry.size(), 0);
+    }
+
     public static void testHashMapToMap() {
         int entriesCount = 12;
 
@@ -941,6 +952,7 @@ class JavaTest {
         testSingleElementMap();
         testFlexBuffersTest();
         testHashMapToMap();
+        testFlexBuferEmpty();
     }
 
     static <T> void TestEq(T a, T b) {

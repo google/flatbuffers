@@ -98,7 +98,7 @@ public class FlexBuffers {
     /** Represent a vector of booleans type */
     public static final int FBT_VECTOR_BOOL = 36;  // To Allow the same type of conversion of type to vector type
 
-    private static final ByteBuffer EMPTY_BB = ByteBuffer.allocate(0).asReadOnlyBuffer();
+    private static final ByteBuffer EMPTY_BB = ByteBuffer.allocate(1).asReadOnlyBuffer();
 
     /**
      * Checks where a type is a typed vector
@@ -652,7 +652,7 @@ public class FlexBuffers {
      * have individual bytes accessed individually using {@link get(int)}</p>
      */
     public static class Blob extends Sized {
-        static final Blob EMPTY = new Blob(EMPTY_BB, 0, 1);
+        static final Blob EMPTY = new Blob(EMPTY_BB, 1, 1);
 
         Blob(ByteBuffer buff, int end, int byteWidth) {
             super(buff, end, byteWidth);
@@ -794,7 +794,7 @@ public class FlexBuffers {
      * Map object representing a set of key-value pairs.
      */
     public static class Map extends Vector {
-        private static final Map EMPTY_MAP = new Map(EMPTY_BB, 0, 0);
+        private static final Map EMPTY_MAP = new Map(EMPTY_BB, 1, 1);
 
         Map(ByteBuffer bb, int end, int byteWidth) {
             super(bb, end, byteWidth);
@@ -899,7 +899,7 @@ public class FlexBuffers {
      */
     public static class Vector extends Sized {
 
-        private static final Vector EMPTY_VECTOR = new Vector(ByteBuffer.allocate(0), 1, 1);
+        private static final Vector EMPTY_VECTOR = new Vector(EMPTY_BB, 1, 1);
 
         Vector(ByteBuffer bb, int end, int byteWidth) {
             super(bb, end, byteWidth);
@@ -960,7 +960,7 @@ public class FlexBuffers {
      */
     public static class TypedVector extends Vector {
 
-        private static final TypedVector EMPTY_VECTOR = new TypedVector(EMPTY_BB, 0, 1, FBT_INT);
+        private static final TypedVector EMPTY_VECTOR = new TypedVector(EMPTY_BB, 1, 1, FBT_INT);
 
         private final int elemType;
 
