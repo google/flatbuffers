@@ -9,9 +9,7 @@ local function checkReadBuffer(buf, offset, sizePrefix)
     
     if sizePrefix then               
         local size = flatbuffers.N.Int32:Unpack(buf, offset)
-        -- no longer matches python tests, but the latest 'monsterdata_test.mon'
-        -- is 448 bytes, minus 4 to arrive at the 444
-        assert(size == 444)
+        assert(size == #buf - offset - 4)
         offset = offset + flatbuffers.N.Int32.bytewidth
     end    
     
@@ -136,6 +134,10 @@ local function generateMonster(sizePrefix)
     monster.AddTestType(b, 1)
     monster.AddTest(b, mon2)
     monster.AddTest4(b, test4)
+    monster.AddTestbool(b, true)
+    monster.AddTestbool(b, false)
+    monster.AddTestbool(b, null)
+    monster.AddTestbool(b,"true")
     monster.AddTestarrayofstring(b, testArrayOfString)
     monster.AddVectorOfLongs(b, vectorOfLongs)
     monster.AddVectorOfDoubles(b, vectorOfDoubles)

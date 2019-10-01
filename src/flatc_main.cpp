@@ -15,6 +15,7 @@
  */
 
 #include "flatbuffers/flatc.h"
+#include "flatbuffers/util.h"
 
 static const char *g_program_name = nullptr;
 
@@ -34,6 +35,9 @@ static void Error(const flatbuffers::FlatCompiler *flatc,
 }
 
 int main(int argc, const char *argv[]) {
+  // Prevent Appveyor-CI hangs.
+  flatbuffers::SetupDefaultCRTReportMode();
+
   g_program_name = argv[0];
 
   const flatbuffers::FlatCompiler::Generator generators[] = {
@@ -55,15 +59,15 @@ int main(int argc, const char *argv[]) {
       flatbuffers::GenerateJavaGRPC, flatbuffers::IDLOptions::kJava,
       "Generate Java classes for tables/structs",
       flatbuffers::GeneralMakeRule },
-    { flatbuffers::GenerateJS, "-s", "--js", "JavaScript", true, nullptr,
+    { flatbuffers::GenerateJSTS, "-s", "--js", "JavaScript", true, nullptr,
       flatbuffers::IDLOptions::kJs,
-      "Generate JavaScript code for tables/structs", flatbuffers::JSMakeRule },
+      "Generate JavaScript code for tables/structs", flatbuffers::JSTSMakeRule },
     { flatbuffers::GenerateDart, "-d", "--dart", "Dart", true, nullptr,
       flatbuffers::IDLOptions::kDart,
       "Generate Dart classes for tables/structs", flatbuffers::DartMakeRule },
-    { flatbuffers::GenerateJS, "-T", "--ts", "TypeScript", true, nullptr,
+    { flatbuffers::GenerateJSTS, "-T", "--ts", "TypeScript", true, nullptr,
       flatbuffers::IDLOptions::kTs,
-      "Generate TypeScript code for tables/structs", flatbuffers::JSMakeRule },
+      "Generate TypeScript code for tables/structs", flatbuffers::JSTSMakeRule },
     { flatbuffers::GenerateGeneral, "-n", "--csharp", "C#", true, nullptr,
       flatbuffers::IDLOptions::kCSharp,
       "Generate C# classes for tables/structs", flatbuffers::GeneralMakeRule },
@@ -85,6 +89,9 @@ int main(int argc, const char *argv[]) {
       flatbuffers::RustMakeRule },
     { flatbuffers::GeneratePhp, nullptr, "--php", "PHP", true, nullptr,
       flatbuffers::IDLOptions::kPhp, "Generate PHP files for tables/structs",
+      flatbuffers::GeneralMakeRule },
+    { flatbuffers::GenerateKotlin, nullptr, "--kotlin", "Kotlin", true, nullptr,
+      flatbuffers::IDLOptions::kKotlin, "Generate Kotlin classes for tables/structs",
       flatbuffers::GeneralMakeRule },
     { flatbuffers::GenerateJsonSchema, nullptr, "--jsonschema", "JsonSchema",
       true, nullptr, flatbuffers::IDLOptions::kJsonSchema,

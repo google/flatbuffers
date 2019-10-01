@@ -1,5 +1,7 @@
 licenses(["notice"])
 
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
 package(
     default_visibility = ["//visibility:public"],
     features = [
@@ -11,6 +13,8 @@ package(
 exports_files([
     "LICENSE",
 ])
+
+load(":build_defs.bzl", "flatbuffer_cc_library")
 
 # Public flatc library to compile flatbuffer files at runtime.
 cc_library(
@@ -86,14 +90,16 @@ cc_binary(
         "src/idl_gen_general.cpp",
         "src/idl_gen_go.cpp",
         "src/idl_gen_grpc.cpp",
-        "src/idl_gen_js.cpp",
+        "src/idl_gen_js_ts.cpp",
         "src/idl_gen_json_schema.cpp",
-        "src/idl_gen_lua.cpp",
+        "src/idl_gen_kotlin.cpp",
         "src/idl_gen_lobster.cpp",
+        "src/idl_gen_lua.cpp",
         "src/idl_gen_php.cpp",
         "src/idl_gen_python.cpp",
         "src/idl_gen_rust.cpp",
         "src/idl_gen_text.cpp",
+        "src/util.cpp",
     ],
     includes = [
         "grpc/",
@@ -109,6 +115,7 @@ cc_library(
     hdrs = [
         "include/flatbuffers/base.h",
         "include/flatbuffers/flatbuffers.h",
+        "include/flatbuffers/flexbuffers.h",
         "include/flatbuffers/stl_emulation.h",
         "include/flatbuffers/util.h",
     ],
@@ -130,14 +137,15 @@ cc_test(
         "src/idl_parser.cpp",
         "src/reflection.cpp",
         "src/util.cpp",
-        "tests/monster_test_generated.h",
         "tests/namespace_test/namespace_test1_generated.h",
         "tests/namespace_test/namespace_test2_generated.h",
+        "tests/native_type_test_impl.cpp",
+        "tests/native_type_test_impl.h",
         "tests/test.cpp",
-        "tests/test_builder.h",
+        "tests/test_assert.cpp",
         "tests/test_assert.h",
         "tests/test_builder.cpp",
-        "tests/test_assert.cpp",
+        "tests/test_builder.h",
         "tests/union_vector/union_vector_generated.h",
         ":public_headers",
     ],
@@ -146,17 +154,75 @@ cc_test(
         "-DBAZEL_TEST_DATA_PATH",
     ],
     data = [
+        ":tests/arrays_test.bfbs",
+        ":tests/arrays_test.fbs",
+        ":tests/arrays_test.golden",
         ":tests/include_test/include_test1.fbs",
         ":tests/include_test/sub/include_test2.fbs",
+        ":tests/monster_extra.fbs",
         ":tests/monster_test.bfbs",
         ":tests/monster_test.fbs",
+        ":tests/monsterdata_extra.json",
         ":tests/monsterdata_test.golden",
+        ":tests/monsterdata_test.json",
+        ":tests/native_type_test.fbs",
         ":tests/prototest/imported.proto",
         ":tests/prototest/test.golden",
         ":tests/prototest/test.proto",
         ":tests/prototest/test_union.golden",
-        ":tests/union_vector/union_vector.fbs",
         ":tests/unicode_test.json",
+        ":tests/union_vector/union_vector.fbs",
+        ":tests/union_vector/union_vector.json",
     ],
-    includes = ["include/"],
+    includes = [
+        "include/",
+        "tests/",
+    ],
+    deps = [
+        ":arrays_test_cc_fbs",
+        ":monster_extra_cc_fbs",
+        ":monster_test_cc_fbs",
+        ":native_type_test_cc_fbs",
+    ],
+)
+
+# Test bzl rules
+
+flatbuffer_cc_library(
+    name = "monster_test_cc_fbs",
+    srcs = ["tests/monster_test.fbs"],
+    include_paths = ["tests/include_test"],
+    includes = [
+        "tests/include_test/include_test1.fbs",
+        "tests/include_test/sub/include_test2.fbs",
+    ],
+)
+
+flatbuffer_cc_library(
+    name = "monster_extra_cc_fbs",
+    srcs = ["tests/monster_extra.fbs"],
+)
+
+flatbuffer_cc_library(
+    name = "arrays_test_cc_fbs",
+    srcs = ["tests/arrays_test.fbs"],
+    flatc_args = [
+        "--gen-object-api",
+        "--gen-compare",
+        "--no-includes",
+        "--gen-mutable",
+        "--reflect-names",
+        "--cpp-ptr-type flatbuffers::unique_ptr",
+        "--scoped-enums",
+    ],
+)
+
+flatbuffer_cc_library(
+    name = "native_type_test_cc_fbs",
+    srcs = ["tests/native_type_test.fbs"],
+    flatc_args = [
+        "--gen-object-api",
+        "--gen-mutable",
+        "--cpp-ptr-type flatbuffers::unique_ptr",
+    ],
 )

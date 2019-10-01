@@ -7,14 +7,14 @@ class AnyUniqueAliases
 {
     const NONE = 0;
     const M = 1;
-    const T = 2;
+    const TS = 2;
     const M2 = 3;
 
     private static $names = array(
-        "NONE",
-        "M",
-        "T",
-        "M2",
+        AnyUniqueAliases::NONE=>"NONE",
+        AnyUniqueAliases::M=>"M",
+        AnyUniqueAliases::TS=>"TS",
+        AnyUniqueAliases::M2=>"M2",
     );
 
     public static function Name($e)

@@ -1,8 +1,10 @@
-#include <assert.h>
 #include "test_assert.h"
+
+#include <assert.h>
 
 #ifdef _MSC_VER
 #  include <crtdbg.h>
+#  include <windows.h>
 #endif
 
 int testing_fails = 0;
@@ -27,13 +29,9 @@ void TestEqStr(const char *expval, const char *val, const char *exp,
   if (strcmp(expval, val) != 0) { TestFail(expval, val, exp, file, line); }
 }
 
-#ifdef _MSC_VER
-// Without this hook function the message box not suppressed.
-int msvc_no_dialog_box_on_assert(int rpt_type, char *msg, int *ret_val) {
-  (void)ret_val;
-  TEST_OUTPUT_LINE("TEST ASSERTED: %d: %s", rpt_type, msg);
-  return 1;
-}
+#if defined(FLATBUFFERS_MEMORY_LEAK_TRACKING) && defined(_MSC_VER) && \
+    defined(_DEBUG)
+#define FLATBUFFERS_MEMORY_LEAK_TRACKING_MSVC
 #endif
 
 void InitTestEngine(TestFailEventListener listener) {
@@ -43,17 +41,29 @@ void InitTestEngine(TestFailEventListener listener) {
   setvbuf(stdout, NULL, _IONBF, 0);
   setvbuf(stderr, NULL, _IONBF, 0);
 
+  flatbuffers::SetupDefaultCRTReportMode();
+
   // clang-format off
 
-  #ifdef _MSC_VER
-    // Suppress pop-up message box on assertion (MSVC2010, MSVC2012).
-    // This message box hangs CI-test on the hour until timeout expired.
-    // Default mode is file, file is stderr.
-    _CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_FILE | _CRTDBG_MODE_DEBUG);
-    _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);
-    _CrtSetReportHook(msvc_no_dialog_box_on_assert);
+  #if defined(FLATBUFFERS_MEMORY_LEAK_TRACKING_MSVC)
+    // For more thorough checking:
+    // _CRTDBG_DELAY_FREE_MEM_DF | _CRTDBG_CHECK_ALWAYS_DF
+    auto flags = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+    _CrtSetDbgFlag(flags | _CRTDBG_ALLOC_MEM_DF);
   #endif
   // clang-format on
 
   fail_listener_ = listener;
+}
+
+int CloseTestEngine(bool force_report) {
+  if (!testing_fails || force_report) {
+  #if defined(FLATBUFFERS_MEMORY_LEAK_TRACKING_MSVC)
+      auto flags = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+      flags &= ~_CRTDBG_DELAY_FREE_MEM_DF;
+      flags |= _CRTDBG_LEAK_CHECK_DF;
+      _CrtSetDbgFlag(flags);
+  #endif
+  }
+  return (0 != testing_fails);
 }

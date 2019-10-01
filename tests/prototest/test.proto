@@ -7,9 +7,15 @@ package proto.test;
 
 /// Enum doc comment.
 enum ProtoEnum {
+  option allow_alias = true;
+  NUL = 0;
   FOO = 1;
-/// Enum 2nd value doc comment misaligned.
+  /// Enum 2nd value doc comment misaligned.
   BAR = 5;
+  // Aliases
+  FOO_A1 = 1;
+  BAR_A1 = 5;
+  FOO_A2 = 1;
 }
 
 /// 2nd table doc comment with

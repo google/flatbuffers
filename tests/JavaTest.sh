@@ -20,7 +20,7 @@ echo Compile then run the Java test.
 
 java -version
 
-testdir="$(readlink -fn "$(dirname "$0")")"
+testdir=$(dirname $0)
 
 targetdir="${testdir}/target"
 
@@ -36,7 +36,7 @@ if ! find "${testdir}/../java" -type f -name "*.class" -delete; then
     exit 1
 fi
 
-javac -d "${targetdir}" -classpath "${testdir}/../java:${testdir}:${testdir}/namespace_test" "${testdir}/JavaTest.java"
+javac -d "${targetdir}" -classpath "${testdir}/../java:${testdir}:${testdir}/namespace_test:${testdir}/union_vector" "${testdir}/JavaTest.java"
 
 (cd "${testdir}" && java -classpath "${targetdir}" JavaTest )
 
