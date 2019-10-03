@@ -635,12 +635,16 @@ public class FlexBuffers {
 
     // Stores size in `byte_width_` bytes before end position.
     private static abstract class Sized extends Object {
+
+        private final int size;
+
         Sized(ByteBuffer buff, int end, int byteWidth) {
             super(buff, end, byteWidth);
+            size = readInt(bb, end - byteWidth, byteWidth);
         }
 
         public int size() {
-            return readInt(bb, end - byteWidth, byteWidth);
+            return size;
         }
     }
 
