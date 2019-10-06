@@ -6,7 +6,6 @@ import (
 	flatbuffers "github.com/google/flatbuffers/go"
 
 	MyGame "MyGame"
-	MyGame__Example2 "MyGame/Example2"
 )
 
 /// an example documentation comment: monster object
@@ -64,17 +63,8 @@ func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT
 	if t.Inventory != nil {
 		inventoryOffset = builder.CreateByteString(t.Inventory)
 	}
-	testOffset := flatbuffers.UOffsetT(0)
-	if t.Test != nil {
-		switch t.Test.Type {
-		case AnyMonster:
-			testOffset = MonsterPack(builder, t.Test.Value.(*MonsterT))
-		case AnyTestSimpleTableWithEnum:
-			testOffset = TestSimpleTableWithEnumPack(builder, t.Test.Value.(*TestSimpleTableWithEnumT))
-		case AnyMyGame_Example2_Monster:
-			testOffset = MyGame__Example2.MonsterPack(builder, t.Test.Value.(*MyGame__Example2.MonsterT))
-		}
-	}
+	testOffset := AnyPack(builder, t.Test)
+	
 	test4Offset := flatbuffers.UOffsetT(0)
 	if t.Test4 != nil {
 		test4Length := len(t.Test4)
@@ -87,9 +77,9 @@ func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT
 	testarrayofstringOffset := flatbuffers.UOffsetT(0)
 	if t.Testarrayofstring != nil {
 		testarrayofstringLength := len(t.Testarrayofstring)
-		testarrayofstringOffsets := []flatbuffers.UOffsetT{}
+		testarrayofstringOffsets := make([]flatbuffers.UOffsetT, testarrayofstringLength)
 		for j := 0; j < testarrayofstringLength; j++ {
-			testarrayofstringOffsets = append(testarrayofstringOffsets, builder.CreateString(t.Testarrayofstring[j]))
+			testarrayofstringOffsets[j] = builder.CreateString(t.Testarrayofstring[j])
 		}
 		MonsterStartTestarrayofstringVector(builder, testarrayofstringLength)
 		for j := testarrayofstringLength - 1; j >= 0; j-- {
@@ -100,9 +90,9 @@ func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT
 	testarrayoftablesOffset := flatbuffers.UOffsetT(0)
 	if t.Testarrayoftables != nil {
 		testarrayoftablesLength := len(t.Testarrayoftables)
-		testarrayoftablesOffsets := []flatbuffers.UOffsetT{}
+		testarrayoftablesOffsets := make([]flatbuffers.UOffsetT, testarrayoftablesLength)
 		for j := 0; j < testarrayoftablesLength; j++ {
-			testarrayoftablesOffsets = append(testarrayoftablesOffsets, MonsterPack(builder, t.Testarrayoftables[j]))
+			testarrayoftablesOffsets[j] = MonsterPack(builder, t.Testarrayoftables[j])
 		}
 		MonsterStartTestarrayoftablesVector(builder, testarrayoftablesLength)
 		for j := testarrayoftablesLength - 1; j >= 0; j-- {
@@ -128,9 +118,9 @@ func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT
 	testarrayofstring2Offset := flatbuffers.UOffsetT(0)
 	if t.Testarrayofstring2 != nil {
 		testarrayofstring2Length := len(t.Testarrayofstring2)
-		testarrayofstring2Offsets := []flatbuffers.UOffsetT{}
+		testarrayofstring2Offsets := make([]flatbuffers.UOffsetT, testarrayofstring2Length)
 		for j := 0; j < testarrayofstring2Length; j++ {
-			testarrayofstring2Offsets = append(testarrayofstring2Offsets, builder.CreateString(t.Testarrayofstring2[j]))
+			testarrayofstring2Offsets[j] = builder.CreateString(t.Testarrayofstring2[j])
 		}
 		MonsterStartTestarrayofstring2Vector(builder, testarrayofstring2Length)
 		for j := testarrayofstring2Length - 1; j >= 0; j-- {
@@ -182,9 +172,9 @@ func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT
 	vectorOfReferrablesOffset := flatbuffers.UOffsetT(0)
 	if t.VectorOfReferrables != nil {
 		vectorOfReferrablesLength := len(t.VectorOfReferrables)
-		vectorOfReferrablesOffsets := []flatbuffers.UOffsetT{}
+		vectorOfReferrablesOffsets := make([]flatbuffers.UOffsetT, vectorOfReferrablesLength)
 		for j := 0; j < vectorOfReferrablesLength; j++ {
-			vectorOfReferrablesOffsets = append(vectorOfReferrablesOffsets, ReferrablePack(builder, t.VectorOfReferrables[j]))
+			vectorOfReferrablesOffsets[j] = ReferrablePack(builder, t.VectorOfReferrables[j])
 		}
 		MonsterStartVectorOfReferrablesVector(builder, vectorOfReferrablesLength)
 		for j := vectorOfReferrablesLength - 1; j >= 0; j-- {
@@ -204,9 +194,9 @@ func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT
 	vectorOfStrongReferrablesOffset := flatbuffers.UOffsetT(0)
 	if t.VectorOfStrongReferrables != nil {
 		vectorOfStrongReferrablesLength := len(t.VectorOfStrongReferrables)
-		vectorOfStrongReferrablesOffsets := []flatbuffers.UOffsetT{}
+		vectorOfStrongReferrablesOffsets := make([]flatbuffers.UOffsetT, vectorOfStrongReferrablesLength)
 		for j := 0; j < vectorOfStrongReferrablesLength; j++ {
-			vectorOfStrongReferrablesOffsets = append(vectorOfStrongReferrablesOffsets, ReferrablePack(builder, t.VectorOfStrongReferrables[j]))
+			vectorOfStrongReferrablesOffsets[j] = ReferrablePack(builder, t.VectorOfStrongReferrables[j])
 		}
 		MonsterStartVectorOfStrongReferrablesVector(builder, vectorOfStrongReferrablesLength)
 		for j := vectorOfStrongReferrablesLength - 1; j >= 0; j-- {
@@ -232,28 +222,10 @@ func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT
 		}
 		vectorOfNonOwningReferencesOffset = builder.EndVector(vectorOfNonOwningReferencesLength)
 	}
-	anyUniqueOffset := flatbuffers.UOffsetT(0)
-	if t.AnyUnique != nil {
-		switch t.AnyUnique.Type {
-		case AnyUniqueAliasesM:
-			anyUniqueOffset = MonsterPack(builder, t.AnyUnique.Value.(*MonsterT))
-		case AnyUniqueAliasesTS:
-			anyUniqueOffset = TestSimpleTableWithEnumPack(builder, t.AnyUnique.Value.(*TestSimpleTableWithEnumT))
-		case AnyUniqueAliasesM2:
-			anyUniqueOffset = MyGame__Example2.MonsterPack(builder, t.AnyUnique.Value.(*MyGame__Example2.MonsterT))
-		}
-	}
-	anyAmbiguousOffset := flatbuffers.UOffsetT(0)
-	if t.AnyAmbiguous != nil {
-		switch t.AnyAmbiguous.Type {
-		case AnyAmbiguousAliasesM1:
-			anyAmbiguousOffset = MonsterPack(builder, t.AnyAmbiguous.Value.(*MonsterT))
-		case AnyAmbiguousAliasesM2:
-			anyAmbiguousOffset = MonsterPack(builder, t.AnyAmbiguous.Value.(*MonsterT))
-		case AnyAmbiguousAliasesM3:
-			anyAmbiguousOffset = MonsterPack(builder, t.AnyAmbiguous.Value.(*MonsterT))
-		}
-	}
+	anyUniqueOffset := AnyUniqueAliasesPack(builder, t.AnyUnique)
+	
+	anyAmbiguousOffset := AnyAmbiguousAliasesPack(builder, t.AnyAmbiguous)
+	
 	vectorOfEnumsOffset := flatbuffers.UOffsetT(0)
 	if t.VectorOfEnums != nil {
 		vectorOfEnumsLength := len(t.VectorOfEnums)
@@ -330,35 +302,28 @@ func (rcv *Monster) UnPack() *MonsterT {
 	t.Name = string(rcv.Name())
 	t.Inventory = rcv.InventoryBytes()
 	t.Color = rcv.Color()
-	switch rcv.TestType() {
-	case AnyMonster:
-		x := Monster{}
-		if rcv.Test(&x._tab) {
-			t.Test = &AnyT{ Type: AnyMonster, Value: x.UnPack() }
-		}
-	case AnyTestSimpleTableWithEnum:
-		x := TestSimpleTableWithEnum{}
-		if rcv.Test(&x._tab) {
-			t.Test = &AnyT{ Type: AnyTestSimpleTableWithEnum, Value: x.UnPack() }
-		}
-	case AnyMyGame_Example2_Monster:
-		x := Monster{}
-		if rcv.Test(&x._tab) {
-			t.Test = &AnyT{ Type: AnyMyGame_Example2_Monster, Value: x.UnPack() }
-		}
+	testTable := flatbuffers.Table{}
+	if rcv.Test(&testTable) {
+		t.Test = AnyUnPack(rcv.TestType(), testTable)
 	}
-	for j := 0; j < rcv.Test4Length(); j++ {
+	test4Length := rcv.Test4Length()
+	t.Test4 = make([]*TestT, test4Length)
+	for j := 0; j < test4Length; j++ {
 		x := Test{}
 		rcv.Test4(&x, j)
-		t.Test4 = append(t.Test4, x.UnPack())
+		t.Test4[j] = x.UnPack()
 	}
-	for j := 0; j < rcv.TestarrayofstringLength(); j++ {
-		t.Testarrayofstring = append(t.Testarrayofstring, string(rcv.Testarrayofstring(j)))
+	testarrayofstringLength := rcv.TestarrayofstringLength()
+	t.Testarrayofstring = make([]string, testarrayofstringLength)
+	for j := 0; j < testarrayofstringLength; j++ {
+		t.Testarrayofstring[j] = string(rcv.Testarrayofstring(j))
 	}
-	for j := 0; j < rcv.TestarrayoftablesLength(); j++ {
+	testarrayoftablesLength := rcv.TestarrayoftablesLength()
+	t.Testarrayoftables = make([]*MonsterT, testarrayoftablesLength)
+	for j := 0; j < testarrayoftablesLength; j++ {
 		x := Monster{}
 		rcv.Testarrayoftables(&x, j)
-		t.Testarrayoftables = append(t.Testarrayoftables, x.UnPack())
+		t.Testarrayoftables[j] = x.UnPack()
 	}
 	t.Enemy = rcv.Enemy(nil).UnPack()
 	t.Testnestedflatbuffer = rcv.TestnestedflatbufferBytes()
@@ -372,91 +337,89 @@ func (rcv *Monster) UnPack() *MonsterT {
 	t.Testhashu32Fnv1a = rcv.Testhashu32Fnv1a()
 	t.Testhashs64Fnv1a = rcv.Testhashs64Fnv1a()
 	t.Testhashu64Fnv1a = rcv.Testhashu64Fnv1a()
-	for j := 0; j < rcv.TestarrayofboolsLength(); j++ {
-		t.Testarrayofbools = append(t.Testarrayofbools, rcv.Testarrayofbools(j))
+	testarrayofboolsLength := rcv.TestarrayofboolsLength()
+	t.Testarrayofbools = make([]bool, testarrayofboolsLength)
+	for j := 0; j < testarrayofboolsLength; j++ {
+		t.Testarrayofbools[j] = rcv.Testarrayofbools(j)
 	}
 	t.Testf = rcv.Testf()
 	t.Testf2 = rcv.Testf2()
 	t.Testf3 = rcv.Testf3()
-	for j := 0; j < rcv.Testarrayofstring2Length(); j++ {
-		t.Testarrayofstring2 = append(t.Testarrayofstring2, string(rcv.Testarrayofstring2(j)))
+	testarrayofstring2Length := rcv.Testarrayofstring2Length()
+	t.Testarrayofstring2 = make([]string, testarrayofstring2Length)
+	for j := 0; j < testarrayofstring2Length; j++ {
+		t.Testarrayofstring2[j] = string(rcv.Testarrayofstring2(j))
 	}
-	for j := 0; j < rcv.TestarrayofsortedstructLength(); j++ {
+	testarrayofsortedstructLength := rcv.TestarrayofsortedstructLength()
+	t.Testarrayofsortedstruct = make([]*AbilityT, testarrayofsortedstructLength)
+	for j := 0; j < testarrayofsortedstructLength; j++ {
 		x := Ability{}
 		rcv.Testarrayofsortedstruct(&x, j)
-		t.Testarrayofsortedstruct = append(t.Testarrayofsortedstruct, x.UnPack())
+		t.Testarrayofsortedstruct[j] = x.UnPack()
 	}
 	t.Flex = rcv.FlexBytes()
-	for j := 0; j < rcv.Test5Length(); j++ {
+	test5Length := rcv.Test5Length()
+	t.Test5 = make([]*TestT, test5Length)
+	for j := 0; j < test5Length; j++ {
 		x := Test{}
 		rcv.Test5(&x, j)
-		t.Test5 = append(t.Test5, x.UnPack())
+		t.Test5[j] = x.UnPack()
 	}
-	for j := 0; j < rcv.VectorOfLongsLength(); j++ {
-		t.VectorOfLongs = append(t.VectorOfLongs, rcv.VectorOfLongs(j))
+	vectorOfLongsLength := rcv.VectorOfLongsLength()
+	t.VectorOfLongs = make([]int64, vectorOfLongsLength)
+	for j := 0; j < vectorOfLongsLength; j++ {
+		t.VectorOfLongs[j] = rcv.VectorOfLongs(j)
 	}
-	for j := 0; j < rcv.VectorOfDoublesLength(); j++ {
-		t.VectorOfDoubles = append(t.VectorOfDoubles, rcv.VectorOfDoubles(j))
+	vectorOfDoublesLength := rcv.VectorOfDoublesLength()
+	t.VectorOfDoubles = make([]float64, vectorOfDoublesLength)
+	for j := 0; j < vectorOfDoublesLength; j++ {
+		t.VectorOfDoubles[j] = rcv.VectorOfDoubles(j)
 	}
 	t.ParentNamespaceTest = rcv.ParentNamespaceTest(nil).UnPack()
-	for j := 0; j < rcv.VectorOfReferrablesLength(); j++ {
+	vectorOfReferrablesLength := rcv.VectorOfReferrablesLength()
+	t.VectorOfReferrables = make([]*ReferrableT, vectorOfReferrablesLength)
+	for j := 0; j < vectorOfReferrablesLength; j++ {
 		x := Referrable{}
 		rcv.VectorOfReferrables(&x, j)
-		t.VectorOfReferrables = append(t.VectorOfReferrables, x.UnPack())
+		t.VectorOfReferrables[j] = x.UnPack()
 	}
 	t.SingleWeakReference = rcv.SingleWeakReference()
-	for j := 0; j < rcv.VectorOfWeakReferencesLength(); j++ {
-		t.VectorOfWeakReferences = append(t.VectorOfWeakReferences, rcv.VectorOfWeakReferences(j))
+	vectorOfWeakReferencesLength := rcv.VectorOfWeakReferencesLength()
+	t.VectorOfWeakReferences = make([]uint64, vectorOfWeakReferencesLength)
+	for j := 0; j < vectorOfWeakReferencesLength; j++ {
+		t.VectorOfWeakReferences[j] = rcv.VectorOfWeakReferences(j)
 	}
-	for j := 0; j < rcv.VectorOfStrongReferrablesLength(); j++ {
+	vectorOfStrongReferrablesLength := rcv.VectorOfStrongReferrablesLength()
+	t.VectorOfStrongReferrables = make([]*ReferrableT, vectorOfStrongReferrablesLength)
+	for j := 0; j < vectorOfStrongReferrablesLength; j++ {
 		x := Referrable{}
 		rcv.VectorOfStrongReferrables(&x, j)
-		t.VectorOfStrongReferrables = append(t.VectorOfStrongReferrables, x.UnPack())
+		t.VectorOfStrongReferrables[j] = x.UnPack()
 	}
 	t.CoOwningReference = rcv.CoOwningReference()
-	for j := 0; j < rcv.VectorOfCoOwningReferencesLength(); j++ {
-		t.VectorOfCoOwningReferences = append(t.VectorOfCoOwningReferences, rcv.VectorOfCoOwningReferences(j))
+	vectorOfCoOwningReferencesLength := rcv.VectorOfCoOwningReferencesLength()
+	t.VectorOfCoOwningReferences = make([]uint64, vectorOfCoOwningReferencesLength)
+	for j := 0; j < vectorOfCoOwningReferencesLength; j++ {
+		t.VectorOfCoOwningReferences[j] = rcv.VectorOfCoOwningReferences(j)
 	}
 	t.NonOwningReference = rcv.NonOwningReference()
-	for j := 0; j < rcv.VectorOfNonOwningReferencesLength(); j++ {
-		t.VectorOfNonOwningReferences = append(t.VectorOfNonOwningReferences, rcv.VectorOfNonOwningReferences(j))
+	vectorOfNonOwningReferencesLength := rcv.VectorOfNonOwningReferencesLength()
+	t.VectorOfNonOwningReferences = make([]uint64, vectorOfNonOwningReferencesLength)
+	for j := 0; j < vectorOfNonOwningReferencesLength; j++ {
+		t.VectorOfNonOwningReferences[j] = rcv.VectorOfNonOwningReferences(j)
 	}
-	switch rcv.AnyUniqueType() {
-	case AnyUniqueAliasesM:
-		x := Monster{}
-		if rcv.AnyUnique(&x._tab) {
-			t.AnyUnique = &AnyUniqueAliasesT{ Type: AnyUniqueAliasesM, Value: x.UnPack() }
-		}
-	case AnyUniqueAliasesTS:
-		x := TestSimpleTableWithEnum{}
-		if rcv.AnyUnique(&x._tab) {
-			t.AnyUnique = &AnyUniqueAliasesT{ Type: AnyUniqueAliasesTS, Value: x.UnPack() }
-		}
-	case AnyUniqueAliasesM2:
-		x := Monster{}
-		if rcv.AnyUnique(&x._tab) {
-			t.AnyUnique = &AnyUniqueAliasesT{ Type: AnyUniqueAliasesM2, Value: x.UnPack() }
-		}
+	anyUniqueTable := flatbuffers.Table{}
+	if rcv.AnyUnique(&anyUniqueTable) {
+		t.AnyUnique = AnyUniqueAliasesUnPack(rcv.AnyUniqueType(), anyUniqueTable)
 	}
-	switch rcv.AnyAmbiguousType() {
-	case AnyAmbiguousAliasesM1:
-		x := Monster{}
-		if rcv.AnyAmbiguous(&x._tab) {
-			t.AnyAmbiguous = &AnyAmbiguousAliasesT{ Type: AnyAmbiguousAliasesM1, Value: x.UnPack() }
-		}
-	case AnyAmbiguousAliasesM2:
-		x := Monster{}
-		if rcv.AnyAmbiguous(&x._tab) {
-			t.AnyAmbiguous = &AnyAmbiguousAliasesT{ Type: AnyAmbiguousAliasesM2, Value: x.UnPack() }
-		}
-	case AnyAmbiguousAliasesM3:
-		x := Monster{}
-		if rcv.AnyAmbiguous(&x._tab) {
-			t.AnyAmbiguous = &AnyAmbiguousAliasesT{ Type: AnyAmbiguousAliasesM3, Value: x.UnPack() }
-		}
+	anyAmbiguousTable := flatbuffers.Table{}
+	if rcv.AnyAmbiguous(&anyAmbiguousTable) {
+		t.AnyAmbiguous = AnyAmbiguousAliasesUnPack(rcv.AnyAmbiguousType(), anyAmbiguousTable)
 	}
-	for j := 0; j < rcv.VectorOfEnumsLength(); j++ {
-		t.VectorOfEnums = append(t.VectorOfEnums, rcv.VectorOfEnums(j))
+	vectorOfEnumsLength := rcv.VectorOfEnumsLength()
+	t.VectorOfEnums = make([]Color, vectorOfEnumsLength)
+	for j := 0; j < vectorOfEnumsLength; j++ {
+		t.VectorOfEnums[j] = rcv.VectorOfEnums(j)
 	}
 	return t
 }

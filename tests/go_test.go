@@ -466,7 +466,7 @@ func CheckObjectAPI(buf []byte, offset flatbuffers.UOffsetT, fail func(string, .
 	builder.Finish(example.MonsterPack(builder, monster))
 	monster2 := example.GetRootAsMonster(builder.FinishedBytes(), 0).UnPack()
 	if !reflect.DeepEqual(monster, monster2) {
-		fail("monsters not equal")
+		fail(FailString("Pack/Unpack()", monster, monster2))
 	}
 }
 

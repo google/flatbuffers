@@ -70,11 +70,15 @@ func (rcv *TypeAliases) UnPack() *TypeAliasesT {
 	t.U64 = rcv.U64()
 	t.F32 = rcv.F32()
 	t.F64 = rcv.F64()
-	for j := 0; j < rcv.V8Length(); j++ {
-		t.V8 = append(t.V8, rcv.V8(j))
+	v8Length := rcv.V8Length()
+	t.V8 = make([]int8, v8Length)
+	for j := 0; j < v8Length; j++ {
+		t.V8[j] = rcv.V8(j)
 	}
-	for j := 0; j < rcv.Vf64Length(); j++ {
-		t.Vf64 = append(t.Vf64, rcv.Vf64(j))
+	vf64Length := rcv.Vf64Length()
+	t.Vf64 = make([]float64, vf64Length)
+	for j := 0; j < vf64Length; j++ {
+		t.Vf64[j] = rcv.Vf64(j)
 	}
 	return t
 }
