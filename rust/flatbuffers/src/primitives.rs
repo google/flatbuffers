@@ -263,6 +263,14 @@ impl<'a, T: Follow<'a> + 'a> Follow<'a> for SkipFileIdentifier<T> {
     }
 }
 
+impl<'a> Follow<'a> for bool {
+    type Inner = bool;
+    #[inline(always)]
+    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+        read_scalar_at::<u8>(buf, loc) != 0
+    }
+}
+
 /// Follow trait impls for primitive types.
 ///
 /// Ideally, these would be implemented as a single impl using trait bounds on
@@ -280,7 +288,6 @@ macro_rules! impl_follow_for_endian_scalar {
     };
 }
 
-impl_follow_for_endian_scalar!(bool);
 impl_follow_for_endian_scalar!(u8);
 impl_follow_for_endian_scalar!(u16);
 impl_follow_for_endian_scalar!(u32);
