@@ -528,18 +528,16 @@ class CppGenerator : public BaseGenerator {
   }
 
   bool TypeHasKey(const Type &type) {
-    bool has_key = false;
     if (type.base_type == BASE_TYPE_STRUCT) {
       for (auto it = type.struct_def->fields.vec.begin();
            it != type.struct_def->fields.vec.end(); ++it) {
         const auto &field = **it;
         if (field.key) {
-          has_key = true;
-          break;
+          return true;
         }
       }
     }
-    return has_key;
+    return false;
   }
 
   void GenComment(const std::vector<std::string> &dc, const char *prefix = "") {
@@ -2220,8 +2218,7 @@ class CppGenerator : public BaseGenerator {
             bool has_key = TypeHasKey(vtype);
             if (IsStruct(vtype)) {
               const auto type = WrapInNameSpace(*vtype.struct_def);
-              if (has_key)
-              {
+              if (has_key) {
                 code_ += "_fbb.CreateVectorOfSortedStructs<" + type + ">\\";
               } else {
                 code_ += "_fbb.CreateVectorOfStructs<" + type + ">\\";
