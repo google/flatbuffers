@@ -528,14 +528,11 @@ class CppGenerator : public BaseGenerator {
   }
 
   bool TypeHasKey(const Type &type) {
-    if (type.base_type == BASE_TYPE_STRUCT) {
-      for (auto it = type.struct_def->fields.vec.begin();
-           it != type.struct_def->fields.vec.end(); ++it) {
-        const auto &field = **it;
-        if (field.key) {
-          return true;
-        }
-      }
+    if (type.base_type != BASE_TYPE_STRUCT) { return false; }
+    for (auto it = type.struct_def->fields.vec.begin();
+         it != type.struct_def->fields.vec.end(); ++it) {
+      const auto &field = **it;
+      if (field.key) { return true; }
     }
     return false;
   }
@@ -1541,7 +1538,7 @@ class CppGenerator : public BaseGenerator {
       } else {
         type = GenTypeWire(vtype, "", false);
       }
-      if (TypeHasKey(vtype)){
+      if (TypeHasKey(vtype)) {
         code_.SetValue("PARAM_TYPE", "std::vector<" + type + "> *");
       } else {
         code_.SetValue("PARAM_TYPE", "const std::vector<" + type + "> *");
@@ -2215,14 +2212,12 @@ class CppGenerator : public BaseGenerator {
           } else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
             code_ += "  auto {{FIELD_NAME}}__ = {{FIELD_NAME}} ? \\";
             const auto vtype = field.value.type.VectorType();
-            bool has_key = TypeHasKey(vtype);
+            const auto has_key = TypeHasKey(vtype);
             if (IsStruct(vtype)) {
               const auto type = WrapInNameSpace(*vtype.struct_def);
-              if (has_key) {
-                code_ += "_fbb.CreateVectorOfSortedStructs<" + type + ">\\";
-              } else {
-                code_ += "_fbb.CreateVectorOfStructs<" + type + ">\\";
-              }
+              code_ += (has_key ? "_fbb.CreateVectorOfSortedStructs<"
+                                : "_fbb.CreateVectorOfStructs<") +
+                       type + ">\\";
             } else if (has_key) {
               const auto type = WrapInNameSpace(*vtype.struct_def);
               code_ += "_fbb.CreateVectorOfSortedTables<" + type + ">\\";
@@ -2230,11 +2225,8 @@ class CppGenerator : public BaseGenerator {
               const auto type = GenTypeWire(vtype, "", false);
               code_ += "_fbb.CreateVector<" + type + ">\\";
             }
-            if (has_key) {
-              code_ += "({{FIELD_NAME}}) : 0;";
-            } else {
-              code_ += "(*{{FIELD_NAME}}) : 0;";
-            }
+            code_ +=
+                has_key ? "({{FIELD_NAME}}) : 0;" : "(*{{FIELD_NAME}}) : 0;";
           }
         }
       }
