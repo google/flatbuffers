@@ -508,6 +508,7 @@ public class FlatBufferBuilder {
      *
      * @param obj Instance of the table subclass.
      * @param offsets Offsets of the tables.
+     * @param <T> Subclass of {@link Table} that the vector will contain instances of.
      * @return Returns offset of the sorted vector.
      */
     public <T extends Table> int createSortedVectorOfTables(T obj, int[] offsets) {
