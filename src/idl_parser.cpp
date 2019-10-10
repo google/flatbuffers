@@ -677,7 +677,7 @@ CheckedError Parser::AddField(StructDef &struct_def, const std::string &name,
 CheckedError Parser::ParseField(StructDef &struct_def) {
   std::string name = attribute_;
 
-  if (LookupStruct(name))
+  if (LookupCreateStruct(name, false, false))
     return Error("field name can not be the same as table/struct name");
 
   std::vector<std::string> dc = doc_comment_;
@@ -2710,7 +2710,13 @@ bool Parser::ParseFlexBuffer(const char *source, const char *source_filename,
 bool Parser::Parse(const char *source, const char **include_paths,
                    const char *source_filename) {
   FLATBUFFERS_ASSERT(0 == recurse_protection_counter);
-  auto r = !ParseRoot(source, include_paths, source_filename).Check();
+  bool r;
+
+  if (opts.use_flexbuffers) {
+    r = ParseFlexBuffer(source, source_filename, &flex_builder_);
+  } else {
+    r = !ParseRoot(source, include_paths, source_filename).Check();
+  }
   FLATBUFFERS_ASSERT(0 == recurse_protection_counter);
   return r;
 }

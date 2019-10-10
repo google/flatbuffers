@@ -25,37 +25,61 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
+/// @file
+/// @addtogroup flatbuffers_java_api
+/// @{
+
 /**
  * This class can be used to parse FlexBuffer messages.
  * <p>
  * For generating FlexBuffer messages, use {@link FlexBuffersBuilder}.
  * <p>
  * Example of usage:
+ * <pre>
  * ByteBuffer bb = ... // load message from file or network
  * FlexBuffers.Reference r = FlexBuffers.getRoot(bb); // Reads the root element
  * FlexBuffers.Map map = r.asMap(); // We assumed root object is a map
  * System.out.println(map.get("name").asString()); // prints element with key "name"
+ * </pre>
  */
 public class FlexBuffers {
 
     // These are used as the upper 6 bits of a type field to indicate the actual
     // type.
+    /** Represent a null type */
     public static final int FBT_NULL = 0;
+    /** Represent a signed integer type */
     public static final int FBT_INT = 1;
+    /** Represent a unsigned type */
     public static final int FBT_UINT = 2;
+    /** Represent a float type */
     public static final int FBT_FLOAT = 3; // Types above stored inline, types below store an offset.
+    /** Represent a key to a map type */
     public static final int FBT_KEY = 4;
+    /** Represent a string type */
     public static final int FBT_STRING = 5;
+    /** Represent a indirect signed integer type */
     public static final int FBT_INDIRECT_INT = 6;
+    /** Represent a indirect unsigned integer type */
     public static final int FBT_INDIRECT_UINT = 7;
+    /** Represent a indirect float type */
     public static final int FBT_INDIRECT_FLOAT = 8;
+    /** Represent a map type */
     public static final int FBT_MAP = 9;
+    /** Represent a vector type */
     public static final int FBT_VECTOR = 10; // Untyped.
+    /** Represent a vector of signed integers type */
     public static final int FBT_VECTOR_INT = 11;  // Typed any size  = stores no type table).
+    /** Represent a vector of unsigned integers type */
     public static final int FBT_VECTOR_UINT = 12;
+    /** Represent a vector of floats type */
     public static final int FBT_VECTOR_FLOAT = 13;
+    /** Represent a vector of keys type */
     public static final int FBT_VECTOR_KEY = 14;
+    /** Represent a vector of strings type */
     public static final int FBT_VECTOR_STRING = 15;
+
+    /// @cond FLATBUFFERS_INTERNAL
     public static final int FBT_VECTOR_INT2 = 16;  // Typed tuple  = no type table; no size field).
     public static final int FBT_VECTOR_UINT2 = 17;
     public static final int FBT_VECTOR_FLOAT2 = 18;
@@ -65,10 +89,16 @@ public class FlexBuffers {
     public static final int FBT_VECTOR_INT4 = 22;  // Typed quad  = no type table; no size field).
     public static final int FBT_VECTOR_UINT4 = 23;
     public static final int FBT_VECTOR_FLOAT4 = 24;
+    /// @endcond FLATBUFFERS_INTERNAL
+
+    /** Represent a blob type */
     public static final int FBT_BLOB = 25;
+    /** Represent a boolean type */
     public static final int FBT_BOOL = 26;
+    /** Represent a vector of booleans type */
     public static final int FBT_VECTOR_BOOL = 36;  // To Allow the same type of conversion of type to vector type
-    private static final ByteBuffer EMPTY_BB = ByteBuffer.allocate(0).asReadOnlyBuffer();
+
+    private static final ByteBuffer EMPTY_BB = ByteBuffer.allocate(1).asReadOnlyBuffer();
 
     /**
      * Checks where a type is a typed vector
@@ -98,7 +128,7 @@ public class FlexBuffers {
      * Return a vector type our of a original element type
      *
      * @param type        element type
-     * @param fixedLength size of elment
+     * @param fixedLength size of element
      * @return typed vector type
      */
     static int toTypedVector(int type, int fixedLength) {
@@ -120,7 +150,7 @@ public class FlexBuffers {
 
     // return position of the element that the offset is pointing to
     private static int indirect(ByteBuffer bb, int offset, int byteWidth) {
-        //TODO: we assume all offset fits on a int, since ByteBuffer operates with that assumption
+        // we assume all offset fits on a int, since ByteBuffer operates with that assumption
         return (int) (offset - readUInt(bb, offset, byteWidth));
     }
 
@@ -175,6 +205,9 @@ public class FlexBuffers {
         return new Reference(buffer, end, byteWidth, packetType);
     }
 
+    /**
+     * Represents an generic element in the buffer.
+     */
     public static class Reference {
 
         private static final Reference NULL_REFERENCE = new Reference(EMPTY_BB, 0, 1, 0);
@@ -196,63 +229,127 @@ public class FlexBuffers {
             this.type = type;
         }
 
+        /**
+         * Return element type
+         * @return element type as integer
+         */
         public int getType() {
             return type;
         }
 
+        /**
+         * Checks whether the element is null type
+         * @return true if null type
+         */
         public boolean isNull() {
             return type == FBT_NULL;
         }
-
+         
+        /**
+         * Checks whether the element is boolean type
+         * @return true if boolean type
+         */
         public boolean isBoolean() {
             return type == FBT_BOOL;
         }
 
+        /**
+         * Checks whether the element type is numeric (signed/unsigned integers and floats)
+         * @return true if numeric type
+         */
         public boolean isNumeric() {
             return isIntOrUInt() || isFloat();
         }
 
+        /**
+         * Checks whether the element type is signed or unsigned integers
+         * @return true if an integer type
+         */
         public boolean isIntOrUInt() {
             return isInt() || isUInt();
         }
 
+        /**
+         * Checks whether the element type is float
+         * @return true if a float type
+         */
         public boolean isFloat() {
             return type == FBT_FLOAT || type == FBT_INDIRECT_FLOAT;
         }
 
+        /**
+         * Checks whether the element type is signed integer
+         * @return true if a signed integer type
+         */
         public boolean isInt() {
             return type == FBT_INT || type == FBT_INDIRECT_INT;
         }
 
+        /**
+         * Checks whether the element type is signed integer
+         * @return true if a signed integer type
+         */
         public boolean isUInt() {
             return type == FBT_UINT || type == FBT_INDIRECT_UINT;
         }
 
+        /**
+         * Checks whether the element type is string
+         * @return true if a string type
+         */
         public boolean isString() {
             return type == FBT_STRING;
         }
 
+        /**
+         * Checks whether the element type is key
+         * @return true if a key type
+         */
         public boolean isKey() {
             return type == FBT_KEY;
         }
 
+        /**
+         * Checks whether the element type is vector
+         * @return true if a vector type
+         */
         public boolean isVector() {
             return type == FBT_VECTOR || type == FBT_MAP;
         }
 
+        /**
+         * Checks whether the element type is typed vector
+         * @return true if a typed vector type
+         */
         public boolean isTypedVector() {
             return (type >= FBT_VECTOR_INT && type <= FBT_VECTOR_STRING) ||
                     type == FBT_VECTOR_BOOL;
         }
 
+        /**
+         * Checks whether the element type is a map
+         * @return true if a map type
+         */
         public boolean isMap() {
             return type == FBT_MAP;
         }
 
+        /**
+         * Checks whether the element type is a blob
+         * @return true if a blob type
+         */
         public boolean isBlob() {
             return type == FBT_BLOB;
         }
 
+        /**
+         * Returns element as 32-bit integer.
+         * <p> For vector element, it will return size of the vector</p>
+         * <p> For String element, it will type to be parsed as integer</p>
+         * <p> Unsigned elements will become negative</p>
+         * <p> Float elements will be casted to integer </p>
+         * @return 32-bit integer or 0 if fail to convert element to integer.
+         */
         public int asInt() {
             if (type == FBT_INT) {
                 // A fast path for the common case.
@@ -274,6 +371,14 @@ public class FlexBuffers {
                 }
         }
 
+        /**
+         * Returns element as unsigned 64-bit integer.
+         * <p> For vector element, it will return size of the vector</p>
+         * <p> For String element, it will type to be parsed as integer</p>
+         * <p> Negative signed elements will become unsigned counterpart</p>
+         * <p> Float elements will be casted to integer </p>
+         * @return 64-bit integer or 0 if fail to convert element to integer.
+         */
         public long asUInt() {
             if (type == FBT_UINT) {
                 // A fast path for the common case.
@@ -295,6 +400,14 @@ public class FlexBuffers {
                 }
         }
 
+        /**
+         * Returns element as 64-bit integer.
+         * <p> For vector element, it will return size of the vector</p>
+         * <p> For String element, it will type to be parsed as integer</p>
+         * <p> Unsigned elements will become negative</p>
+         * <p> Float elements will be casted to integer </p>
+         * @return 64-bit integer or 0 if fail to convert element to long.
+         */
         public long asLong() {
             if (type == FBT_INT) {
                 // A fast path for the common case.
@@ -322,6 +435,12 @@ public class FlexBuffers {
                 }
         }
 
+        /**
+         * Returns element as 64-bit integer.
+         * <p> For vector element, it will return size of the vector</p>
+         * <p> For String element, it will type to be parsed as integer</p>
+         * @return 64-bit integer or 0 if fail to convert element to long.
+         */
         public double asFloat() {
             if (type == FBT_FLOAT) {
                 // A fast path for the common case.
@@ -344,6 +463,10 @@ public class FlexBuffers {
                 }
         }
 
+        /**
+         * Returns element as a {@link Key}
+         * @return key or {@link Key#empty()} if element is not a key
+         */
         public Key asKey() {
             if (isKey()) {
                 return new Key(bb, indirect(bb, end, parentWidth), byteWidth);
@@ -352,9 +475,13 @@ public class FlexBuffers {
             }
         }
 
+        /**
+         * Returns element as a `String`
+         * @return element as `String` or empty `String` if fail
+         */
         public String asString() {
             if (isString()) {
-                int start = indirect(bb, end, byteWidth);
+                int start = indirect(bb, end, parentWidth);
                 int size = readInt(bb, start - byteWidth, byteWidth);
                 return Utf8.getDefault().decodeUtf8(bb, start, size);
             }
@@ -370,6 +497,10 @@ public class FlexBuffers {
             }
         }
 
+        /**
+         * Returns element as a {@link Map}
+         * @return element as {@link Map} or empty {@link Map} if fail
+         */
         public Map asMap() {
             if (isMap()) {
                 return new Map(bb, indirect(bb, end, parentWidth), byteWidth);
@@ -378,6 +509,10 @@ public class FlexBuffers {
             }
         }
 
+        /**
+         * Returns element as a {@link Vector}
+         * @return element as {@link Vector} or empty {@link Vector} if fail
+         */
         public Vector asVector() {
             if (isVector()) {
                 return new Vector(bb, indirect(bb, end, parentWidth), byteWidth);
@@ -388,6 +523,10 @@ public class FlexBuffers {
             }
         }
 
+        /**
+         * Returns element as a {@link Blob}
+         * @return element as {@link Blob} or empty {@link Blob} if fail
+         */
         public Blob asBlob() {
             if (isBlob() || isString()) {
                 return new Blob(bb, indirect(bb, end, parentWidth), byteWidth);
@@ -396,6 +535,11 @@ public class FlexBuffers {
             }
         }
 
+        /**
+         * Returns element as a boolean
+         * <p>If element type is not boolean, it will be casted to integer and compared against 0</p>
+         * @return element as boolean
+         */
         public boolean asBoolean() {
             if (isBoolean()) {
                 return bb.get(end) != 0;
@@ -403,11 +547,18 @@ public class FlexBuffers {
             return asUInt() != 0;
         }
 
+        /**
+         * Returns text representation of the element (JSON)
+         * @return String containing text representation of the element
+         */
         @Override
         public String toString() {
             return toString(new StringBuilder(128)).toString();
         }
 
+        /**
+         * Appends a text(JSON) representation to a `StringBuilder`
+         */
         StringBuilder toString(StringBuilder sb) {
             //TODO: Original C++ implementation escape strings.
             // probably we should do it as well.
@@ -484,28 +635,41 @@ public class FlexBuffers {
 
     // Stores size in `byte_width_` bytes before end position.
     private static abstract class Sized extends Object {
+
+        private final int size;
+
         Sized(ByteBuffer buff, int end, int byteWidth) {
             super(buff, end, byteWidth);
+            size = readInt(bb, end - byteWidth, byteWidth);
         }
 
         public int size() {
-            return readInt(bb, end - byteWidth, byteWidth);
+            return size;
         }
     }
 
+    /**
+     * Represents a array of bytes element in the buffer
+     *
+     * <p>It can be converted to `ByteBuffer` using {@link data()},
+     * copied into a byte[] using {@link getBytes()} or
+     * have individual bytes accessed individually using {@link get(int)}</p>
+     */
     public static class Blob extends Sized {
-        static final Blob EMPTY = new Blob(EMPTY_BB, 0, 1);
+        static final Blob EMPTY = new Blob(EMPTY_BB, 1, 1);
 
         Blob(ByteBuffer buff, int end, int byteWidth) {
             super(buff, end, byteWidth);
         }
 
+        /** Return an empty {@link Blob} */
         public static Blob empty() {
             return EMPTY;
         }
 
         /**
-         * @return blob as a {@link ByteBuffer}
+         * Return {@link Blob} as `ByteBuffer`
+         * @return blob as `ByteBuffer`
          */
         public ByteBuffer data() {
             ByteBuffer dup = bb.duplicate();
@@ -515,7 +679,8 @@ public class FlexBuffers {
         }
 
         /**
-         * @return blob as a byte array
+         * Copy blob into a byte[]
+         * @return blob as a byte[]
          */
         public byte[] getBytes() {
             int size = size();
@@ -526,16 +691,26 @@ public class FlexBuffers {
             return result;
         }
 
+        /**
+         * Return individual byte at a given position
+         * @param pos position of the byte to be read
+         */
         public byte get(int pos) {
             assert pos >=0 && pos <= size();
             return bb.get(end + pos);
         }
 
+        /**
+         * Returns a text(JSON) representation of the {@link Blob}
+         */
         @Override
         public String toString() {
             return Utf8.getDefault().decodeUtf8(bb, end, size());
         }
 
+        /**
+         * Append a text(JSON) representation of the {@link Blob} into a `StringBuilder`
+         */
         @Override
         public StringBuilder toString(StringBuilder sb) {
             sb.append('"');
@@ -544,6 +719,10 @@ public class FlexBuffers {
         }
     }
 
+    /**
+     * Represents a key element in the buffer. Keys are
+     * used to reference objects in a {@link Map}
+     */
     public static class Key extends Object {
 
         private static final Key EMPTY = new Key(EMPTY_BB, 0, 0);
@@ -552,12 +731,24 @@ public class FlexBuffers {
             super(buff, end, byteWidth);
         }
 
+        /**
+         * Return an empty {@link Key}
+         * @return empty {@link Key}
+         * */
         public static Key empty() {
             return Key.EMPTY;
         }
 
+        /**
+         * Appends a text(JSON) representation to a `StringBuilder`
+         */
         @Override
         public StringBuilder toString(StringBuilder sb) {
+            return sb.append(toString());
+        }
+
+        @Override
+        public String toString() {
             int size;
             for (int i = end; ; i++) {
                 if (bb.get(i) == 0) {
@@ -565,8 +756,7 @@ public class FlexBuffers {
                     break;
                 }
             }
-            sb.append(Utf8.getDefault().decodeUtf8(bb, end, size));
-            return sb;
+            return Utf8.getDefault().decodeUtf8(bb, end, size);
         }
 
         int compareTo(byte[] other) {
@@ -590,6 +780,11 @@ public class FlexBuffers {
             return c1 - c2;
         }
 
+        /**
+         *  Compare keys
+         *  @param obj other key to compare
+         *  @return true if keys are the same
+         */
         @Override
         public boolean equals(java.lang.Object obj) {
             if (!(obj instanceof Key))
@@ -603,12 +798,16 @@ public class FlexBuffers {
      * Map object representing a set of key-value pairs.
      */
     public static class Map extends Vector {
-        private static final Map EMPTY_MAP = new Map(EMPTY_BB, 0, 0);
+        private static final Map EMPTY_MAP = new Map(EMPTY_BB, 1, 1);
 
         Map(ByteBuffer bb, int end, int byteWidth) {
             super(bb, end, byteWidth);
         }
 
+        /**
+         * Returns an empty {@link Map}
+         * @return an empty {@link Map}
+         */
         public static Map empty() {
             return EMPTY_MAP;
         }
@@ -704,20 +903,31 @@ public class FlexBuffers {
      */
     public static class Vector extends Sized {
 
-        private static final Vector EMPTY_VECTOR = new Vector(ByteBuffer.allocate(0), 1, 1);
+        private static final Vector EMPTY_VECTOR = new Vector(EMPTY_BB, 1, 1);
 
         Vector(ByteBuffer bb, int end, int byteWidth) {
             super(bb, end, byteWidth);
         }
 
+        /**
+         * Returns an empty {@link Map}
+         * @return an empty {@link Map}
+         */
         public static Vector empty() {
             return EMPTY_VECTOR;
         }
 
+        /**
+         * Checks if the vector is empty
+         * @return true if vector is empty
+         */
         public boolean isEmpty() {
             return this == EMPTY_VECTOR;
         }
 
+        /**
+         * Appends a text(JSON) representation to a `StringBuilder`
+         */
         @Override
         public StringBuilder toString(StringBuilder sb) {
             sb.append("[ ");
@@ -754,7 +964,7 @@ public class FlexBuffers {
      */
     public static class TypedVector extends Vector {
 
-        private static final TypedVector EMPTY_VECTOR = new TypedVector(EMPTY_BB, 0, 1, FBT_INT);
+        private static final TypedVector EMPTY_VECTOR = new TypedVector(EMPTY_BB, 1, 1, FBT_INT);
 
         private final int elemType;
 
@@ -833,6 +1043,9 @@ public class FlexBuffers {
             return vec.size();
         }
 
+        /**
+         * Returns a text(JSON) representation
+         */
         public String toString() {
             StringBuilder b = new StringBuilder();
             b.append('[');
@@ -867,3 +1080,4 @@ public class FlexBuffers {
         }
     }
 }
+/// @}

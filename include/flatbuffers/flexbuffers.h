@@ -349,6 +349,12 @@ void AppendToString(std::string &s, T &&v, bool keys_quoted) {
 
 class Reference {
  public:
+  Reference()
+      : data_(nullptr),
+        parent_width_(0),
+        byte_width_(BIT_WIDTH_8),
+        type_(FBT_NULL) {}
+
   Reference(const uint8_t *data, uint8_t parent_width, uint8_t byte_width,
             Type type)
       : data_(data),

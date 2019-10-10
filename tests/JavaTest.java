@@ -20,14 +20,19 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
+import java.util.Map;
+import java.util.HashMap;
 import MyGame.Example.*;
 import NamespaceA.*;
 import NamespaceA.NamespaceB.*;
 import com.google.flatbuffers.ByteBufferUtil;
 import static com.google.flatbuffers.Constants.*;
 import com.google.flatbuffers.FlatBufferBuilder;
+import com.google.flatbuffers.ByteVector;
 import com.google.flatbuffers.FlexBuffersBuilder;
 import com.google.flatbuffers.FlexBuffers;
+import com.google.flatbuffers.StringVector;
+import com.google.flatbuffers.UnionVector;
 import MyGame.MonsterExtra;
 
 class JavaTest {
@@ -126,6 +131,14 @@ class JavaTest {
             invsum += monster.inventory(i);
         TestEq(invsum, 10);
 
+        // Method using a vector access object:
+        ByteVector inventoryVector = monster.inventoryVector();
+        TestEq(inventoryVector.length(), 5);
+        invsum = 0;
+        for (int i = 0; i < inventoryVector.length(); i++)
+            invsum += inventoryVector.getAsUnsigned(i);
+        TestEq(invsum, 10);
+
         // Alternative way of accessing a vector:
         ByteBuffer ibb = monster.inventoryAsByteBuffer();
         invsum = 0;
@@ -138,9 +151,21 @@ class JavaTest {
         TestEq(monster.test4Length(), 2);
         TestEq(test_0.a() + test_0.b() + test_1.a() + test_1.b(), 100);
 
+        Test.Vector test4Vector = monster.test4Vector();
+        test_0 = test4Vector.get(0);
+        test_1 = test4Vector.get(1);
+        TestEq(test4Vector.length(), 2);
+        TestEq(test_0.a() + test_0.b() + test_1.a() + test_1.b(), 100);
+
         TestEq(monster.testarrayofstringLength(), 2);
         TestEq(monster.testarrayofstring(0),"test1");
         TestEq(monster.testarrayofstring(1),"test2");
+
+        // Method using a vector access object:
+        StringVector testarrayofstringVector = monster.testarrayofstringVector();
+        TestEq(testarrayofstringVector.length(), 2);
+        TestEq(testarrayofstringVector.get(0),"test1");
+        TestEq(testarrayofstringVector.get(1),"test2");
 
         TestEq(monster.testbool(), true);
     }
@@ -218,6 +243,10 @@ class JavaTest {
 
         TestEq(monsterObject.inventory(1), (int)inventory[1]);
         TestEq(monsterObject.inventoryLength(), inventory.length);
+        ByteVector inventoryVector = monsterObject.inventoryVector();
+        TestEq(inventoryVector.getAsUnsigned(1), (int)inventory[1]);
+        TestEq(inventoryVector.length(), inventory.length);
+
         TestEq(ByteBuffer.wrap(inventory), monsterObject.inventoryAsByteBuffer());
     }
 
@@ -239,6 +268,9 @@ class JavaTest {
 
         TestEq(monsterObject.inventory(1), (int)inventory[1]);
         TestEq(monsterObject.inventoryLength(), inventory.length);
+        ByteVector inventoryVector = monsterObject.inventoryVector();
+        TestEq(inventoryVector.getAsUnsigned(1), (int)inventory[1]);
+        TestEq(inventoryVector.length(), inventory.length);
         TestEq(ByteBuffer.wrap(inventory), monsterObject.inventoryAsByteBuffer());
     }
 
@@ -388,11 +420,18 @@ class JavaTest {
         TestEq(monster.testarrayoftables(0).name(), "Barney");
         TestEq(monster.testarrayoftables(1).name(), "Frodo");
         TestEq(monster.testarrayoftables(2).name(), "Wilma");
+        Monster.Vector testarrayoftablesVector = monster.testarrayoftablesVector();
+        TestEq(testarrayoftablesVector.get(0).name(), "Barney");
+        TestEq(testarrayoftablesVector.get(1).name(), "Frodo");
+        TestEq(testarrayoftablesVector.get(2).name(), "Wilma");
 
         // Example of searching for a table by the key
         TestEq(monster.testarrayoftablesByKey("Frodo").name(), "Frodo");
         TestEq(monster.testarrayoftablesByKey("Barney").name(), "Barney");
         TestEq(monster.testarrayoftablesByKey("Wilma").name(), "Wilma");
+        TestEq(testarrayoftablesVector.getByKey("Frodo").name(), "Frodo");
+        TestEq(testarrayoftablesVector.getByKey("Barney").name(), "Barney");
+        TestEq(testarrayoftablesVector.getByKey("Wilma").name(), "Wilma");
 
         // testType is an existing field and mutating it should succeed
         TestEq(monster.testType(), (byte)Any.Monster);
@@ -410,6 +449,10 @@ class JavaTest {
 
         for (int i = 0; i < monster.inventoryLength(); i++) {
             TestEq(monster.inventory(i), i + 1);
+        }
+        ByteVector inventoryVector =  monster.inventoryVector();
+        for (int i = 0; i < inventoryVector.length(); i++) {
+            TestEq((int)inventoryVector.get(i), i + 1);
         }
 
         //reverse mutation
@@ -453,11 +496,16 @@ class JavaTest {
         );
 
         final Movie movie = Movie.getRootAsMovie(fbb.dataBuffer());
+        ByteVector charactersTypeByteVector = movie.charactersTypeVector();
+        UnionVector charactersVector = movie.charactersVector();
 
         TestEq(movie.charactersTypeLength(), characterTypeVector.length);
+        TestEq(charactersTypeByteVector.length(), characterTypeVector.length);
         TestEq(movie.charactersLength(), characterVector.length);
+        TestEq(charactersVector.length(), characterVector.length);
 
         TestEq(movie.charactersType(0), characterTypeVector[0]);
+        TestEq(charactersTypeByteVector.get(0), characterTypeVector[0]);
 
         TestEq(((Attacker)movie.characters(new Attacker(), 0)).swordAttackDamage(), swordAttackDamage);
     }
@@ -635,6 +683,7 @@ class JavaTest {
         // mymap vector
         FlexBuffers.Map mymap = m.get("mymap").asMap();
         TestEq(mymap.keys().get(0), m.keys().get(0)); // These should be equal by pointer equality, since key and value are shared.
+        TestEq(mymap.keys().get(0).toString(), "bar");
         TestEq(mymap.values().get(0).asString(), vec.get(1).asString());
         TestEq(mymap.get("int").asInt(), -120);
         TestEq((float)mymap.get("float").asFloat(), -123.0f);
@@ -838,6 +887,54 @@ class JavaTest {
                 FlexBuffers.getRoot(b.getBuffer()).toString());
     }
 
+    public static void testFlexBuferEmpty() {
+        FlexBuffers.Blob blob = FlexBuffers.Blob.empty();
+        FlexBuffers.Map ary = FlexBuffers.Map.empty();
+        FlexBuffers.Vector map = FlexBuffers.Vector.empty();
+        FlexBuffers.TypedVector typedAry = FlexBuffers.TypedVector.empty();
+        TestEq(blob.size(), 0);
+        TestEq(map.size(), 0);
+        TestEq(ary.size(), 0);
+        TestEq(typedAry.size(), 0);
+    }
+
+    public static void testHashMapToMap() {
+        int entriesCount = 12;
+
+        HashMap<String, String> source =  new HashMap<>();
+        for (int i = 0; i < entriesCount; i++) {
+            source.put("foo_param_" + i, "foo_value_" + i);
+        }
+
+        FlexBuffersBuilder builder = new FlexBuffersBuilder(1000);
+        int mapStart = builder.startMap();
+        for (Map.Entry<String, String> entry : source.entrySet()) {
+            builder.putString(entry.getKey(), entry.getValue());
+        }
+        builder.endMap(null, mapStart);
+        ByteBuffer bb = builder.finish();
+        bb.rewind();
+
+        FlexBuffers.Reference rootReference = FlexBuffers.getRoot(bb);
+
+        TestEq(rootReference.isMap(), true);
+
+        FlexBuffers.Map flexMap = rootReference.asMap();
+
+        FlexBuffers.KeyVector keys = flexMap.keys();
+        FlexBuffers.Vector values = flexMap.values();
+
+        TestEq(entriesCount, keys.size());
+        TestEq(entriesCount, values.size());
+
+        HashMap<String, String> result =  new HashMap<>();
+        for (int i = 0; i < keys.size(); i++) {
+            result.put(keys.get(i).toString(), values.get(i).asString());
+        }
+
+        TestEq(source, result);
+    }
+
     public static void TestFlexBuffers() {
         testSingleElementByte();
         testSingleElementShort();
@@ -853,7 +950,9 @@ class JavaTest {
         testSingleElementUInt();
         testSingleElementUByte();
         testSingleElementMap();
-	testFlexBuffersTest();
+        testFlexBuffersTest();
+        testHashMapToMap();
+        testFlexBuferEmpty();
     }
 
     static <T> void TestEq(T a, T b) {

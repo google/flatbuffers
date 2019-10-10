@@ -2348,12 +2348,11 @@ void UnionVectorTest() {
                   fbb.CreateStruct(Rapunzel(/*hair_length=*/6)).Union(),
                   fbb.CreateVector(types), fbb.CreateVector(characters));
   FinishMovieBuffer(fbb, movie_offset);
-  auto buf = fbb.GetBufferPointer();
 
-  flatbuffers::Verifier verifier(buf, fbb.GetSize());
+  flatbuffers::Verifier verifier(fbb.GetBufferPointer(), fbb.GetSize());
   TEST_EQ(VerifyMovieBuffer(verifier), true);
 
-  auto flat_movie = GetMovie(buf);
+  auto flat_movie = GetMovie(fbb.GetBufferPointer());
 
   auto TestMovie = [](const Movie *movie) {
     TEST_EQ(movie->main_character_type() == Character_Rapunzel, true);
@@ -2410,6 +2409,7 @@ void UnionVectorTest() {
 
   TestMovie(repacked_movie);
 
+  // Generate text using mini-reflection.
   auto s =
       flatbuffers::FlatBufferToString(fbb.GetBufferPointer(), MovieTypeTable());
   TEST_EQ_STR(
@@ -2450,6 +2450,46 @@ void UnionVectorTest() {
       "    \"Unused\"\n"
       "  ]\n"
       "}");
+
+  // Generate text using parsed schema.
+  std::string jsongen;
+  auto result = GenerateText(parser, fbb.GetBufferPointer(), &jsongen);
+  TEST_EQ(result, true);
+  TEST_EQ_STR(
+      jsongen.c_str(),
+      "{\n"
+      "  main_character_type: \"Rapunzel\",\n"
+      "  main_character: {\n"
+      "    hair_length: 6\n"
+      "  },\n"
+      "  characters_type: [\n"
+      "    \"Belle\",\n"
+      "    \"MuLan\",\n"
+      "    \"BookFan\",\n"
+      "    \"Other\",\n"
+      "    \"Unused\"\n"
+      "  ],\n"
+      "  characters: [\n"
+      "    {\n"
+      "      books_read: 7\n"
+      "    },\n"
+      "    {\n"
+      "      sword_attack_damage: 5\n"
+      "    },\n"
+      "    {\n"
+      "      books_read: 2\n"
+      "    },\n"
+      "    \"Other\",\n"
+      "    \"Unused\"\n"
+      "  ]\n"
+      "}\n");
+
+  // Simple test with reflection.
+  parser.Serialize();
+  auto schema = reflection::GetSchema(parser.builder_.GetBufferPointer());
+  auto ok = flatbuffers::Verify(*schema, *schema->root_table(),
+                                fbb.GetBufferPointer(), fbb.GetSize());
+  TEST_EQ(ok, true);
 
   flatbuffers::Parser parser2(idl_opts);
   TEST_EQ(parser2.Parse("struct Bool { b:bool; }"
@@ -2855,35 +2895,37 @@ void FixedLengthArrayTest() {
   TEST_EQ(mArStruct->b()->size(), 15);
   TEST_EQ(mArStruct->b()->Get(aStruct.b()->size() - 1), -14);
   TEST_EQ(mArStruct->c(), 12);
-  TEST_NOTNULL(mArStruct->d()->Get(0).a());
-  TEST_EQ(mArStruct->d()->Get(0).a()->Get(0), 1);
-  TEST_EQ(mArStruct->d()->Get(0).a()->Get(1), 2);
-  TEST_NOTNULL(mArStruct->d()->Get(1).a());
-  TEST_EQ(mArStruct->d()->Get(1).a()->Get(0), 3);
-  TEST_EQ(mArStruct->d()->Get(1).a()->Get(1), 4);
+  TEST_NOTNULL(mArStruct->d()->Get(0));
+  TEST_NOTNULL(mArStruct->d()->Get(0)->a());
+  TEST_EQ(mArStruct->d()->Get(0)->a()->Get(0), 1);
+  TEST_EQ(mArStruct->d()->Get(0)->a()->Get(1), 2);
+  TEST_NOTNULL(mArStruct->d()->Get(1));
+  TEST_NOTNULL(mArStruct->d()->Get(1)->a());
+  TEST_EQ(mArStruct->d()->Get(1)->a()->Get(0), 3);
+  TEST_EQ(mArStruct->d()->Get(1)->a()->Get(1), 4);
   TEST_NOTNULL(mArStruct->mutable_d()->GetMutablePointer(1));
   TEST_NOTNULL(mArStruct->mutable_d()->GetMutablePointer(1)->mutable_a());
   mArStruct->mutable_d()->GetMutablePointer(1)->mutable_a()->Mutate(1, 5);
-  TEST_EQ(mArStruct->d()->Get(1).a()->Get(1), 5);
-  TEST_EQ(mArStruct->d()->Get(0).b() == MyGame::Example::TestEnum::B, true);
-  TEST_NOTNULL(mArStruct->d()->Get(0).c());
-  TEST_EQ(mArStruct->d()->Get(0).c()->Get(0) == MyGame::Example::TestEnum::C,
+  TEST_EQ(mArStruct->d()->Get(1)->a()->Get(1), 5);
+  TEST_EQ(mArStruct->d()->Get(0)->b() == MyGame::Example::TestEnum::B, true);
+  TEST_NOTNULL(mArStruct->d()->Get(0)->c());
+  TEST_EQ(mArStruct->d()->Get(0)->c()->Get(0) == MyGame::Example::TestEnum::C,
           true);
-  TEST_EQ(mArStruct->d()->Get(0).c()->Get(1) == MyGame::Example::TestEnum::A,
+  TEST_EQ(mArStruct->d()->Get(0)->c()->Get(1) == MyGame::Example::TestEnum::A,
           true);
-  TEST_EQ(mArStruct->d()->Get(0).d()->Get(0),
+  TEST_EQ(mArStruct->d()->Get(0)->d()->Get(0),
           flatbuffers::numeric_limits<int64_t>::max());
-  TEST_EQ(mArStruct->d()->Get(0).d()->Get(1),
+  TEST_EQ(mArStruct->d()->Get(0)->d()->Get(1),
           flatbuffers::numeric_limits<int64_t>::min());
-  TEST_EQ(mArStruct->d()->Get(1).b() == MyGame::Example::TestEnum::C, true);
-  TEST_NOTNULL(mArStruct->d()->Get(1).c());
-  TEST_EQ(mArStruct->d()->Get(1).c()->Get(0) == MyGame::Example::TestEnum::C,
+  TEST_EQ(mArStruct->d()->Get(1)->b() == MyGame::Example::TestEnum::C, true);
+  TEST_NOTNULL(mArStruct->d()->Get(1)->c());
+  TEST_EQ(mArStruct->d()->Get(1)->c()->Get(0) == MyGame::Example::TestEnum::C,
           true);
-  TEST_EQ(mArStruct->d()->Get(1).c()->Get(1) == MyGame::Example::TestEnum::A,
+  TEST_EQ(mArStruct->d()->Get(1)->c()->Get(1) == MyGame::Example::TestEnum::A,
           true);
-  TEST_EQ(mArStruct->d()->Get(1).d()->Get(0),
+  TEST_EQ(mArStruct->d()->Get(1)->d()->Get(0),
           flatbuffers::numeric_limits<int64_t>::min());
-  TEST_EQ(mArStruct->d()->Get(1).d()->Get(1),
+  TEST_EQ(mArStruct->d()->Get(1)->d()->Get(1),
           flatbuffers::numeric_limits<int64_t>::max());
   for (int i = 0; i < mArStruct->b()->size() - 1; i++)
     TEST_EQ(mArStruct->b()->Get(i), i + 1);
