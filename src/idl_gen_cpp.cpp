@@ -1514,7 +1514,8 @@ class CppGenerator : public BaseGenerator {
     }
   }
 
-  void GenParam(const FieldDef &field, bool direct, const char *prefix) {
+  void GenParam(const FieldDef &field, bool direct, const char *prefix,
+                bool include_default) {
     code_.SetValue("PRE", prefix);
     code_.SetValue("PARAM_NAME", Name(field));
     if (direct && field.value.type.base_type == BASE_TYPE_STRING) {
@@ -1534,27 +1535,10 @@ class CppGenerator : public BaseGenerator {
       code_.SetValue("PARAM_TYPE", GenTypeWire(field.value.type, " ", true));
       code_.SetValue("PARAM_VALUE", GetDefaultScalarValue(field, false));
     }
-    code_ += "{{PRE}}{{PARAM_TYPE}}{{PARAM_NAME}} = {{PARAM_VALUE}}\\";
-  }
-
-  void GenParamNoDefault(const FieldDef &field, bool direct, const char *prefix) {
-    code_.SetValue("PRE", prefix);
-    code_.SetValue("PARAM_NAME", Name(field));
-    if (direct && field.value.type.base_type == BASE_TYPE_STRING) {
-      code_.SetValue("PARAM_TYPE", "const char *");
-    } else if (direct && field.value.type.base_type == BASE_TYPE_VECTOR) {
-      const auto vtype = field.value.type.VectorType();
-      std::string type;
-      if (IsStruct(vtype)) {
-        type = WrapInNameSpace(*vtype.struct_def);
-      } else {
-        type = GenTypeWire(vtype, "", false);
-      }
-      code_.SetValue("PARAM_TYPE", "const std::vector<" + type + "> *");
-    } else {
-      code_.SetValue("PARAM_TYPE", GenTypeWire(field.value.type, " ", true));
-    }
     code_ += "{{PRE}}{{PARAM_TYPE}}{{PARAM_NAME}}\\";
+    if (include_default) {
+      code_ += " = {{PARAM_VALUE}}\\";
+    }
   }
 
   // Generate a member, including a default value for scalars and raw pointers.
@@ -1864,7 +1848,7 @@ class CppGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
-      if (!field.deprecated) { GenParam(field, false, ",\n    "); }
+      if (!field.deprecated) { GenParam(field, false, ",\n    ", true); }
     }
     code_ += ");";
 
@@ -2176,7 +2160,7 @@ class CppGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
-      if (!field.deprecated) { GenParam(field, false, ",\n    "); }
+      if (!field.deprecated) { GenParam(field, false, ",\n    ", true); }
     }
     code_ += ") {";
 
@@ -2205,7 +2189,7 @@ class CppGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
-      if (!field.deprecated) { GenParamNoDefault(field, false, ",\n    "); }
+      if (!field.deprecated) { GenParam(field, false, ",\n    ", false); }
     }
     code_ += ") {";
 
@@ -2231,7 +2215,7 @@ class CppGenerator : public BaseGenerator {
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
         const auto &field = **it;
-        if (!field.deprecated) { GenParam(field, true, ",\n    "); }
+        if (!field.deprecated) { GenParam(field, true, ",\n    ", true); }
       }
       // Need to call "Create" with the struct namespace.
       const auto qualified_create_name =
