@@ -1537,6 +1537,26 @@ class CppGenerator : public BaseGenerator {
     code_ += "{{PRE}}{{PARAM_TYPE}}{{PARAM_NAME}} = {{PARAM_VALUE}}\\";
   }
 
+  void GenParamNoDefault(const FieldDef &field, bool direct, const char *prefix) {
+    code_.SetValue("PRE", prefix);
+    code_.SetValue("PARAM_NAME", Name(field));
+    if (direct && field.value.type.base_type == BASE_TYPE_STRING) {
+      code_.SetValue("PARAM_TYPE", "const char *");
+    } else if (direct && field.value.type.base_type == BASE_TYPE_VECTOR) {
+      const auto vtype = field.value.type.VectorType();
+      std::string type;
+      if (IsStruct(vtype)) {
+        type = WrapInNameSpace(*vtype.struct_def);
+      } else {
+        type = GenTypeWire(vtype, "", false);
+      }
+      code_.SetValue("PARAM_TYPE", "const std::vector<" + type + "> *");
+    } else {
+      code_.SetValue("PARAM_TYPE", GenTypeWire(field.value.type, " ", true));
+    }
+    code_ += "{{PRE}}{{PARAM_TYPE}}{{PARAM_NAME}}\\";
+  }
+
   // Generate a member, including a default value for scalars and raw pointers.
   void GenMember(const FieldDef &field) {
     if (!field.deprecated &&  // Deprecated fields won't be accessible.
@@ -1835,6 +1855,18 @@ class CppGenerator : public BaseGenerator {
       code_ += "";
       code_ += "  };";
     }
+
+    // Declare a static Create function.  The implementation body will
+    // be defined later on because it depends on the corresponding
+    // "CreateX" function to be defined.
+    code_ += "  static flatbuffers::Offset<{{STRUCT_NAME}}> Create(";
+    code_ += "    flatbuffers::FlatBufferBuilder &_fbb\\";
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      const auto &field = **it;
+      if (!field.deprecated) { GenParam(field, false, ",\n    "); }
+    }
+    code_ += ");";
 
     // Generate the accessors.
     for (auto it = struct_def.fields.vec.begin();
@@ -2163,6 +2195,31 @@ class CppGenerator : public BaseGenerator {
     }
     code_ += "  return builder_.Finish();";
     code_ += "}";
+    code_ += "";
+
+    // Generate the body of the static Create function.  This simply
+    // forwards the arguments to the above "CreateX" function.
+    code_ += "inline flatbuffers::Offset<{{STRUCT_NAME}}> "
+             "{{STRUCT_NAME}}::Create(";
+    code_ += "    flatbuffers::FlatBufferBuilder &_fbb\\";
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      const auto &field = **it;
+      if (!field.deprecated) { GenParamNoDefault(field, false, ",\n    "); }
+    }
+    code_ += ") {";
+
+    code_ += "  return Create{{STRUCT_NAME}}(";
+    code_ += "           _fbb\\";
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      const auto &field = **it;
+      if (!field.deprecated) {
+        code_ += ",\n           \\";
+        code_ += Name(field) + "\\";
+      }
+    }
+    code_ += ");\n}";
     code_ += "";
 
     // Generate a CreateXDirect function with vector types as parameters
