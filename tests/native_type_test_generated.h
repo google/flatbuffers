@@ -73,6 +73,9 @@ struct ApplicationData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_VECTORS = 4
   };
+  static flatbuffers::Offset<ApplicationData> Create(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::Vector<const Geometry::Vector3D *>> vectors = 0);
   const flatbuffers::Vector<const Geometry::Vector3D *> *vectors() const {
     return GetPointer<const flatbuffers::Vector<const Geometry::Vector3D *> *>(VT_VECTORS);
   }
@@ -114,6 +117,14 @@ inline flatbuffers::Offset<ApplicationData> CreateApplicationData(
   ApplicationDataBuilder builder_(_fbb);
   builder_.add_vectors(vectors);
   return builder_.Finish();
+}
+
+inline flatbuffers::Offset<ApplicationData> ApplicationData::Create(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::Vector<const Geometry::Vector3D *>> vectors) {
+  return CreateApplicationData(
+           _fbb,
+           vectors);
 }
 
 inline flatbuffers::Offset<ApplicationData> CreateApplicationDataDirect(

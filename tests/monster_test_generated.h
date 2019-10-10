@@ -777,6 +777,8 @@ struct InParentNamespace FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return InParentNamespaceTypeTable();
   }
+  static flatbuffers::Offset<InParentNamespace> Create(
+    flatbuffers::FlatBufferBuilder &_fbb);
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            verifier.EndTable();
@@ -807,6 +809,12 @@ inline flatbuffers::Offset<InParentNamespace> CreateInParentNamespace(
   return builder_.Finish();
 }
 
+inline flatbuffers::Offset<InParentNamespace> InParentNamespace::Create(
+    flatbuffers::FlatBufferBuilder &_fbb) {
+  return CreateInParentNamespace(
+           _fbb);
+}
+
 flatbuffers::Offset<InParentNamespace> CreateInParentNamespace(flatbuffers::FlatBufferBuilder &_fbb, const InParentNamespaceT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 namespace Example2 {
@@ -831,6 +839,8 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return MonsterTypeTable();
   }
+  static flatbuffers::Offset<Monster> Create(
+    flatbuffers::FlatBufferBuilder &_fbb);
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            verifier.EndTable();
@@ -859,6 +869,12 @@ inline flatbuffers::Offset<Monster> CreateMonster(
     flatbuffers::FlatBufferBuilder &_fbb) {
   MonsterBuilder builder_(_fbb);
   return builder_.Finish();
+}
+
+inline flatbuffers::Offset<Monster> Monster::Create(
+    flatbuffers::FlatBufferBuilder &_fbb) {
+  return CreateMonster(
+           _fbb);
 }
 
 flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -893,6 +909,9 @@ struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Ta
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_COLOR = 4
   };
+  static flatbuffers::Offset<TestSimpleTableWithEnum> Create(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    MyGame::Example::Color color = MyGame::Example::Color_Green);
   MyGame::Example::Color color() const {
     return static_cast<MyGame::Example::Color>(GetField<uint8_t>(VT_COLOR, 2));
   }
@@ -935,6 +954,14 @@ inline flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnu
   return builder_.Finish();
 }
 
+inline flatbuffers::Offset<TestSimpleTableWithEnum> TestSimpleTableWithEnum::Create(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    MyGame::Example::Color color) {
+  return CreateTestSimpleTableWithEnum(
+           _fbb,
+           color);
+}
+
 flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnum(flatbuffers::FlatBufferBuilder &_fbb, const TestSimpleTableWithEnumT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 struct StatT : public flatbuffers::NativeTable {
@@ -970,6 +997,11 @@ struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_VAL = 6,
     VT_COUNT = 8
   };
+  static flatbuffers::Offset<Stat> Create(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> id = 0,
+    int64_t val = 0,
+    uint16_t count = 0);
   const flatbuffers::String *id() const {
     return GetPointer<const flatbuffers::String *>(VT_ID);
   }
@@ -1037,6 +1069,18 @@ inline flatbuffers::Offset<Stat> CreateStat(
   return builder_.Finish();
 }
 
+inline flatbuffers::Offset<Stat> Stat::Create(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> id,
+    int64_t val,
+    uint16_t count) {
+  return CreateStat(
+           _fbb,
+           id,
+           val,
+           count);
+}
+
 inline flatbuffers::Offset<Stat> CreateStatDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *id = nullptr,
@@ -1078,6 +1122,9 @@ struct Referrable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_ID = 4
   };
+  static flatbuffers::Offset<Referrable> Create(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    uint64_t id = 0);
   uint64_t id() const {
     return GetField<uint64_t>(VT_ID, 0);
   }
@@ -1124,6 +1171,14 @@ inline flatbuffers::Offset<Referrable> CreateReferrable(
   ReferrableBuilder builder_(_fbb);
   builder_.add_id(id);
   return builder_.Finish();
+}
+
+inline flatbuffers::Offset<Referrable> Referrable::Create(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    uint64_t id) {
+  return CreateReferrable(
+           _fbb,
+           id);
 }
 
 flatbuffers::Offset<Referrable> CreateReferrable(flatbuffers::FlatBufferBuilder &_fbb, const ReferrableT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -1308,6 +1363,56 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_VECTOR_OF_ENUMS = 98,
     VT_SIGNED_ENUM = 100
   };
+  static flatbuffers::Offset<Monster> Create(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const MyGame::Example::Vec3 *pos = 0,
+    int16_t mana = 150,
+    int16_t hp = 100,
+    flatbuffers::Offset<flatbuffers::String> name = 0,
+    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> inventory = 0,
+    MyGame::Example::Color color = MyGame::Example::Color_Blue,
+    MyGame::Example::Any test_type = MyGame::Example::Any_NONE,
+    flatbuffers::Offset<void> test = 0,
+    flatbuffers::Offset<flatbuffers::Vector<const MyGame::Example::Test *>> test4 = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> testarrayofstring = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::Monster>>> testarrayoftables = 0,
+    flatbuffers::Offset<MyGame::Example::Monster> enemy = 0,
+    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> testnestedflatbuffer = 0,
+    flatbuffers::Offset<MyGame::Example::Stat> testempty = 0,
+    bool testbool = false,
+    int32_t testhashs32_fnv1 = 0,
+    uint32_t testhashu32_fnv1 = 0,
+    int64_t testhashs64_fnv1 = 0,
+    uint64_t testhashu64_fnv1 = 0,
+    int32_t testhashs32_fnv1a = 0,
+    uint32_t testhashu32_fnv1a = 0,
+    int64_t testhashs64_fnv1a = 0,
+    uint64_t testhashu64_fnv1a = 0,
+    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> testarrayofbools = 0,
+    float testf = 3.14159f,
+    float testf2 = 3.0f,
+    float testf3 = 0.0f,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> testarrayofstring2 = 0,
+    flatbuffers::Offset<flatbuffers::Vector<const MyGame::Example::Ability *>> testarrayofsortedstruct = 0,
+    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> flex = 0,
+    flatbuffers::Offset<flatbuffers::Vector<const MyGame::Example::Test *>> test5 = 0,
+    flatbuffers::Offset<flatbuffers::Vector<int64_t>> vector_of_longs = 0,
+    flatbuffers::Offset<flatbuffers::Vector<double>> vector_of_doubles = 0,
+    flatbuffers::Offset<MyGame::InParentNamespace> parent_namespace_test = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::Referrable>>> vector_of_referrables = 0,
+    uint64_t single_weak_reference = 0,
+    flatbuffers::Offset<flatbuffers::Vector<uint64_t>> vector_of_weak_references = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::Referrable>>> vector_of_strong_referrables = 0,
+    uint64_t co_owning_reference = 0,
+    flatbuffers::Offset<flatbuffers::Vector<uint64_t>> vector_of_co_owning_references = 0,
+    uint64_t non_owning_reference = 0,
+    flatbuffers::Offset<flatbuffers::Vector<uint64_t>> vector_of_non_owning_references = 0,
+    MyGame::Example::AnyUniqueAliases any_unique_type = MyGame::Example::AnyUniqueAliases_NONE,
+    flatbuffers::Offset<void> any_unique = 0,
+    MyGame::Example::AnyAmbiguousAliases any_ambiguous_type = MyGame::Example::AnyAmbiguousAliases_NONE,
+    flatbuffers::Offset<void> any_ambiguous = 0,
+    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> vector_of_enums = 0,
+    MyGame::Example::Race signed_enum = MyGame::Example::Race_None);
   const MyGame::Example::Vec3 *pos() const {
     return GetStruct<const MyGame::Example::Vec3 *>(VT_POS);
   }
@@ -2012,6 +2117,108 @@ inline flatbuffers::Offset<Monster> CreateMonster(
   return builder_.Finish();
 }
 
+inline flatbuffers::Offset<Monster> Monster::Create(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const MyGame::Example::Vec3 *pos,
+    int16_t mana,
+    int16_t hp,
+    flatbuffers::Offset<flatbuffers::String> name,
+    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> inventory,
+    MyGame::Example::Color color,
+    MyGame::Example::Any test_type,
+    flatbuffers::Offset<void> test,
+    flatbuffers::Offset<flatbuffers::Vector<const MyGame::Example::Test *>> test4,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> testarrayofstring,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::Monster>>> testarrayoftables,
+    flatbuffers::Offset<MyGame::Example::Monster> enemy,
+    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> testnestedflatbuffer,
+    flatbuffers::Offset<MyGame::Example::Stat> testempty,
+    bool testbool,
+    int32_t testhashs32_fnv1,
+    uint32_t testhashu32_fnv1,
+    int64_t testhashs64_fnv1,
+    uint64_t testhashu64_fnv1,
+    int32_t testhashs32_fnv1a,
+    uint32_t testhashu32_fnv1a,
+    int64_t testhashs64_fnv1a,
+    uint64_t testhashu64_fnv1a,
+    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> testarrayofbools,
+    float testf,
+    float testf2,
+    float testf3,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> testarrayofstring2,
+    flatbuffers::Offset<flatbuffers::Vector<const MyGame::Example::Ability *>> testarrayofsortedstruct,
+    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> flex,
+    flatbuffers::Offset<flatbuffers::Vector<const MyGame::Example::Test *>> test5,
+    flatbuffers::Offset<flatbuffers::Vector<int64_t>> vector_of_longs,
+    flatbuffers::Offset<flatbuffers::Vector<double>> vector_of_doubles,
+    flatbuffers::Offset<MyGame::InParentNamespace> parent_namespace_test,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::Referrable>>> vector_of_referrables,
+    uint64_t single_weak_reference,
+    flatbuffers::Offset<flatbuffers::Vector<uint64_t>> vector_of_weak_references,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::Referrable>>> vector_of_strong_referrables,
+    uint64_t co_owning_reference,
+    flatbuffers::Offset<flatbuffers::Vector<uint64_t>> vector_of_co_owning_references,
+    uint64_t non_owning_reference,
+    flatbuffers::Offset<flatbuffers::Vector<uint64_t>> vector_of_non_owning_references,
+    MyGame::Example::AnyUniqueAliases any_unique_type,
+    flatbuffers::Offset<void> any_unique,
+    MyGame::Example::AnyAmbiguousAliases any_ambiguous_type,
+    flatbuffers::Offset<void> any_ambiguous,
+    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> vector_of_enums,
+    MyGame::Example::Race signed_enum) {
+  return CreateMonster(
+           _fbb,
+           pos,
+           mana,
+           hp,
+           name,
+           inventory,
+           color,
+           test_type,
+           test,
+           test4,
+           testarrayofstring,
+           testarrayoftables,
+           enemy,
+           testnestedflatbuffer,
+           testempty,
+           testbool,
+           testhashs32_fnv1,
+           testhashu32_fnv1,
+           testhashs64_fnv1,
+           testhashu64_fnv1,
+           testhashs32_fnv1a,
+           testhashu32_fnv1a,
+           testhashs64_fnv1a,
+           testhashu64_fnv1a,
+           testarrayofbools,
+           testf,
+           testf2,
+           testf3,
+           testarrayofstring2,
+           testarrayofsortedstruct,
+           flex,
+           test5,
+           vector_of_longs,
+           vector_of_doubles,
+           parent_namespace_test,
+           vector_of_referrables,
+           single_weak_reference,
+           vector_of_weak_references,
+           vector_of_strong_referrables,
+           co_owning_reference,
+           vector_of_co_owning_references,
+           non_owning_reference,
+           vector_of_non_owning_references,
+           any_unique_type,
+           any_unique,
+           any_ambiguous_type,
+           any_ambiguous,
+           vector_of_enums,
+           signed_enum);
+}
+
 inline flatbuffers::Offset<Monster> CreateMonsterDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const MyGame::Example::Vec3 *pos = 0,
@@ -2203,6 +2410,20 @@ struct TypeAliases FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_V8 = 24,
     VT_VF64 = 26
   };
+  static flatbuffers::Offset<TypeAliases> Create(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    int8_t i8 = 0,
+    uint8_t u8 = 0,
+    int16_t i16 = 0,
+    uint16_t u16 = 0,
+    int32_t i32 = 0,
+    uint32_t u32 = 0,
+    int64_t i64 = 0,
+    uint64_t u64 = 0,
+    float f32 = 0.0f,
+    double f64 = 0.0,
+    flatbuffers::Offset<flatbuffers::Vector<int8_t>> v8 = 0,
+    flatbuffers::Offset<flatbuffers::Vector<double>> vf64 = 0);
   int8_t i8() const {
     return GetField<int8_t>(VT_I8, 0);
   }
@@ -2377,6 +2598,36 @@ inline flatbuffers::Offset<TypeAliases> CreateTypeAliases(
   builder_.add_u8(u8);
   builder_.add_i8(i8);
   return builder_.Finish();
+}
+
+inline flatbuffers::Offset<TypeAliases> TypeAliases::Create(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    int8_t i8,
+    uint8_t u8,
+    int16_t i16,
+    uint16_t u16,
+    int32_t i32,
+    uint32_t u32,
+    int64_t i64,
+    uint64_t u64,
+    float f32,
+    double f64,
+    flatbuffers::Offset<flatbuffers::Vector<int8_t>> v8,
+    flatbuffers::Offset<flatbuffers::Vector<double>> vf64) {
+  return CreateTypeAliases(
+           _fbb,
+           i8,
+           u8,
+           i16,
+           u16,
+           i32,
+           u32,
+           i64,
+           u64,
+           f32,
+           f64,
+           v8,
+           vf64);
 }
 
 inline flatbuffers::Offset<TypeAliases> CreateTypeAliasesDirect(

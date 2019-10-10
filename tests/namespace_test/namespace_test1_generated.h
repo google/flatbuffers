@@ -88,6 +88,9 @@ struct TableInNestedNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_FOO = 4
   };
+  static flatbuffers::Offset<TableInNestedNS> Create(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    int32_t foo = 0);
   int32_t foo() const {
     return GetField<int32_t>(VT_FOO, 0);
   }
@@ -125,6 +128,14 @@ inline flatbuffers::Offset<TableInNestedNS> CreateTableInNestedNS(
   TableInNestedNSBuilder builder_(_fbb);
   builder_.add_foo(foo);
   return builder_.Finish();
+}
+
+inline flatbuffers::Offset<TableInNestedNS> TableInNestedNS::Create(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    int32_t foo) {
+  return CreateTableInNestedNS(
+           _fbb,
+           foo);
 }
 
 inline const flatbuffers::TypeTable *EnumInNestedNSTypeTable() {

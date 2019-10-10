@@ -235,6 +235,9 @@ struct ArrayTable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_A = 4
   };
+  static flatbuffers::Offset<ArrayTable> Create(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const MyGame::Example::ArrayStruct *a = 0);
   const MyGame::Example::ArrayStruct *a() const {
     return GetStruct<const MyGame::Example::ArrayStruct *>(VT_A);
   }
@@ -275,6 +278,14 @@ inline flatbuffers::Offset<ArrayTable> CreateArrayTable(
   ArrayTableBuilder builder_(_fbb);
   builder_.add_a(a);
   return builder_.Finish();
+}
+
+inline flatbuffers::Offset<ArrayTable> ArrayTable::Create(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const MyGame::Example::ArrayStruct *a) {
+  return CreateArrayTable(
+           _fbb,
+           a);
 }
 
 flatbuffers::Offset<ArrayTable> CreateArrayTable(flatbuffers::FlatBufferBuilder &_fbb, const ArrayTableT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);

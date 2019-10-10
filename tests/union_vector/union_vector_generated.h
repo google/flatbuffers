@@ -284,6 +284,9 @@ struct Attacker FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_SWORD_ATTACK_DAMAGE = 4
   };
+  static flatbuffers::Offset<Attacker> Create(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    int32_t sword_attack_damage = 0);
   int32_t sword_attack_damage() const {
     return GetField<int32_t>(VT_SWORD_ATTACK_DAMAGE, 0);
   }
@@ -326,6 +329,14 @@ inline flatbuffers::Offset<Attacker> CreateAttacker(
   return builder_.Finish();
 }
 
+inline flatbuffers::Offset<Attacker> Attacker::Create(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    int32_t sword_attack_damage) {
+  return CreateAttacker(
+           _fbb,
+           sword_attack_damage);
+}
+
 flatbuffers::Offset<Attacker> CreateAttacker(flatbuffers::FlatBufferBuilder &_fbb, const AttackerT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 struct MovieT : public flatbuffers::NativeTable {
@@ -358,6 +369,12 @@ struct Movie FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_CHARACTERS_TYPE = 8,
     VT_CHARACTERS = 10
   };
+  static flatbuffers::Offset<Movie> Create(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    Character main_character_type = Character_NONE,
+    flatbuffers::Offset<void> main_character = 0,
+    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> characters_type = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<void>>> characters = 0);
   Character main_character_type() const {
     return static_cast<Character>(GetField<uint8_t>(VT_MAIN_CHARACTER_TYPE, 0));
   }
@@ -456,6 +473,20 @@ inline flatbuffers::Offset<Movie> CreateMovie(
   builder_.add_main_character(main_character);
   builder_.add_main_character_type(main_character_type);
   return builder_.Finish();
+}
+
+inline flatbuffers::Offset<Movie> Movie::Create(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    Character main_character_type,
+    flatbuffers::Offset<void> main_character,
+    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> characters_type,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<void>>> characters) {
+  return CreateMovie(
+           _fbb,
+           main_character_type,
+           main_character,
+           characters_type,
+           characters);
 }
 
 inline flatbuffers::Offset<Movie> CreateMovieDirect(

@@ -271,6 +271,18 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_EQUIPPED = 22,
     VT_PATH = 24
   };
+  static flatbuffers::Offset<Monster> Create(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const MyGame::Sample::Vec3 *pos = 0,
+    int16_t mana = 150,
+    int16_t hp = 100,
+    flatbuffers::Offset<flatbuffers::String> name = 0,
+    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> inventory = 0,
+    MyGame::Sample::Color color = MyGame::Sample::Color_Blue,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<MyGame::Sample::Weapon>>> weapons = 0,
+    MyGame::Sample::Equipment equipped_type = MyGame::Sample::Equipment_NONE,
+    flatbuffers::Offset<void> equipped = 0,
+    flatbuffers::Offset<flatbuffers::Vector<const MyGame::Sample::Vec3 *>> path = 0);
   const MyGame::Sample::Vec3 *pos() const {
     return GetStruct<const MyGame::Sample::Vec3 *>(VT_POS);
   }
@@ -435,6 +447,32 @@ inline flatbuffers::Offset<Monster> CreateMonster(
   return builder_.Finish();
 }
 
+inline flatbuffers::Offset<Monster> Monster::Create(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const MyGame::Sample::Vec3 *pos,
+    int16_t mana,
+    int16_t hp,
+    flatbuffers::Offset<flatbuffers::String> name,
+    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> inventory,
+    MyGame::Sample::Color color,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<MyGame::Sample::Weapon>>> weapons,
+    MyGame::Sample::Equipment equipped_type,
+    flatbuffers::Offset<void> equipped,
+    flatbuffers::Offset<flatbuffers::Vector<const MyGame::Sample::Vec3 *>> path) {
+  return CreateMonster(
+           _fbb,
+           pos,
+           mana,
+           hp,
+           name,
+           inventory,
+           color,
+           weapons,
+           equipped_type,
+           equipped,
+           path);
+}
+
 inline flatbuffers::Offset<Monster> CreateMonsterDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const MyGame::Sample::Vec3 *pos = 0,
@@ -496,6 +534,10 @@ struct Weapon FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_NAME = 4,
     VT_DAMAGE = 6
   };
+  static flatbuffers::Offset<Weapon> Create(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> name = 0,
+    int16_t damage = 0);
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
@@ -549,6 +591,16 @@ inline flatbuffers::Offset<Weapon> CreateWeapon(
   builder_.add_name(name);
   builder_.add_damage(damage);
   return builder_.Finish();
+}
+
+inline flatbuffers::Offset<Weapon> Weapon::Create(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> name,
+    int16_t damage) {
+  return CreateWeapon(
+           _fbb,
+           name,
+           damage);
 }
 
 inline flatbuffers::Offset<Weapon> CreateWeaponDirect(

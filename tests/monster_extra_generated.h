@@ -76,6 +76,18 @@ struct MonsterExtra FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_DVEC = 20,
     VT_FVEC = 22
   };
+  static flatbuffers::Offset<MonsterExtra> Create(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    double d0 = std::numeric_limits<double>::quiet_NaN(),
+    double d1 = std::numeric_limits<double>::quiet_NaN(),
+    double d2 = std::numeric_limits<double>::infinity(),
+    double d3 = -std::numeric_limits<double>::infinity(),
+    float f0 = std::numeric_limits<float>::quiet_NaN(),
+    float f1 = std::numeric_limits<float>::quiet_NaN(),
+    float f2 = std::numeric_limits<float>::infinity(),
+    float f3 = -std::numeric_limits<float>::infinity(),
+    flatbuffers::Offset<flatbuffers::Vector<double>> dvec = 0,
+    flatbuffers::Offset<flatbuffers::Vector<float>> fvec = 0);
   double d0() const {
     return GetField<double>(VT_D0, std::numeric_limits<double>::quiet_NaN());
   }
@@ -226,6 +238,32 @@ inline flatbuffers::Offset<MonsterExtra> CreateMonsterExtra(
   builder_.add_f1(f1);
   builder_.add_f0(f0);
   return builder_.Finish();
+}
+
+inline flatbuffers::Offset<MonsterExtra> MonsterExtra::Create(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    double d0,
+    double d1,
+    double d2,
+    double d3,
+    float f0,
+    float f1,
+    float f2,
+    float f3,
+    flatbuffers::Offset<flatbuffers::Vector<double>> dvec,
+    flatbuffers::Offset<flatbuffers::Vector<float>> fvec) {
+  return CreateMonsterExtra(
+           _fbb,
+           d0,
+           d1,
+           d2,
+           d3,
+           f0,
+           f1,
+           f2,
+           f3,
+           dvec,
+           fvec);
 }
 
 inline flatbuffers::Offset<MonsterExtra> CreateMonsterExtraDirect(
