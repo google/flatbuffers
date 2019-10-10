@@ -242,8 +242,9 @@ public class FlatBufferBuilder {
         int new_buf_size = old_buf_size == 0 ? 1 : old_buf_size << 1;
         bb.position(0);
         ByteBuffer nbb = bb_factory.newByteBuffer(new_buf_size);
+        new_buf_size = nbb.capacity(); // TODO - Maybe we get the buffer's `limit()`
         nbb.position(new_buf_size - old_buf_size);
-        nbb.put(bb);
+       nbb.put(bb);
         return nbb;
     }
 
