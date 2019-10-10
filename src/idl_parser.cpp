@@ -1257,6 +1257,44 @@ CheckedError Parser::ParseVectorDelimiters(uoffset_t &count, F body) {
   return NoError();
 }
 
+static int CompareType(const uint8_t *a, const uint8_t *b, BaseType ftype) {
+  switch (ftype) {
+    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, \
+                           PTYPE, RTYPE, KTYPE) \
+    case BASE_TYPE_ ## ENUM: \
+      return ReadScalar<CTYPE>(a) < ReadScalar<CTYPE>(b);
+    FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
+    #undef FLATBUFFERS_TD
+    case BASE_TYPE_STRING:
+      // Indirect offset pointer to string pointer.
+      a += ReadScalar<uoffset_t>(a);
+      b += ReadScalar<uoffset_t>(b);
+      return *reinterpret_cast<const String *>(a) <
+             *reinterpret_cast<const String *>(b);
+    default: return false;
+  }
+}
+
+// See below for why we need our own sort :(
+template<typename T, typename F, typename S>
+void SimpleQsort(T *begin, T *end, size_t width, F comparator, S swapper) {
+    if (end - begin <= static_cast<ptrdiff_t>(width)) return;
+    auto l = begin + width;
+    auto r = end;
+    while (l < r) {
+      if (comparator(begin, l)) {
+        r -= width;
+        swapper(l, r);
+      } else {
+        l++;
+      }
+    }
+    l -= width;
+    swapper(begin, l);
+    SimpleQsort(begin, l, width, comparator, swapper);
+    SimpleQsort(r, end, width, comparator, swapper);
+}
+
 CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
                                  FieldDef *field, size_t fieldn) {
   uoffset_t count = 0;
@@ -1297,6 +1335,71 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
 
   builder_.ClearOffsets();
   *ovalue = builder_.EndVector(count);
+
+  if (type.base_type == BASE_TYPE_STRUCT && type.struct_def->has_key) {
+    // We should sort this vector. Find the key first.
+    const FieldDef *key = nullptr;
+    for (auto it = type.struct_def->fields.vec.begin();
+         it != type.struct_def->fields.vec.end(); ++it) {
+      if ((*it)->key) {
+        key = (*it);
+        break;
+      }
+    }
+    assert(key);
+    // Now sort it.
+    // We can't use std::sort because for structs the size is not known at
+    // compile time, and for tables our iterators dereference offsets, so can't
+    // be used to swap elements.
+    // And we can't use C qsort either, since that would force use to use
+    // globals, making parsing thread-unsafe.
+    // So for now, we use SimpleQsort above.
+    // TODO: replace with something better, preferably not recursive.
+    static voffset_t offset = key->value.offset;
+    static BaseType ftype = key->value.type.base_type;
+
+    if (type.struct_def->fixed) {
+      auto v = reinterpret_cast<VectorOfAny *>(
+                                  builder_.GetCurrentBufferPointer());
+      SimpleQsort<uint8_t>(v->Data(),
+                           v->Data() + v->size() * type.struct_def->bytesize,
+                           type.struct_def->bytesize,
+                 [](const uint8_t *a, const uint8_t *b) -> bool {
+        return CompareType(a + offset, b + offset, ftype);
+      }, [&](uint8_t *a, uint8_t *b) {
+        // FIXME: faster?
+        for (size_t i = 0; i < type.struct_def->bytesize; i++) {
+          std::swap(a[i], b[i]);
+        }
+      });
+    } else {
+      auto v = reinterpret_cast<Vector<Offset<Table>> *>(
+                                  builder_.GetCurrentBufferPointer());
+      // Here also can't use std::sort. We do have an iterator type for it,
+      // but it is non-standard as it will dereference the offsets, and thus
+      // can't be used to swap elements.
+      SimpleQsort<Offset<Table>>(v->data(), v->data() + v->size(), 1,
+                 [](const Offset<Table> *_a, const Offset<Table> *_b) -> bool {
+        // Indirect offset pointer to table pointer.
+        auto a = reinterpret_cast<const uint8_t *>(_a) +
+                 ReadScalar<uoffset_t>(_a);
+        auto b = reinterpret_cast<const uint8_t *>(_b) +
+                 ReadScalar<uoffset_t>(_b);
+        // Fetch field address from table.
+        a = reinterpret_cast<const Table *>(a)->GetAddressOf(offset);
+        b = reinterpret_cast<const Table *>(b)->GetAddressOf(offset);
+        return CompareType(a, b, ftype);
+      }, [&](Offset<Table> *a, Offset<Table> *b) {
+        // These are serialized offsets, so are relative where they are
+        // stored in memory, so compute the distance between these pointers:
+        ptrdiff_t diff = (b - a) * sizeof(Offset<Table>);
+        assert(diff >= 0);  // Guaranteed by SimpleQsort.
+        a->o = EndianScalar(ReadScalar<uoffset_t>(a) - diff);
+        b->o = EndianScalar(ReadScalar<uoffset_t>(b) + diff);
+        std::swap(*a, *b);
+      });
+    }
+  }
   return NoError();
 }
 

@@ -339,8 +339,9 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length,
   // Example of accessing a vector of tables:
   auto vecoftables = monster->testarrayoftables();
   TEST_EQ(vecoftables->size(), 3U);
-  for (auto it = vecoftables->begin(); it != vecoftables->end(); ++it)
+  for (auto it = vecoftables->begin(); it != vecoftables->end(); ++it) {
     TEST_EQ(strlen(it->name()->c_str()) >= 4, true);
+  }
   TEST_EQ_STR(vecoftables->Get(0)->name()->c_str(), "Barney");
   TEST_EQ(vecoftables->Get(0)->hp(), 1000);
   TEST_EQ_STR(vecoftables->Get(1)->name()->c_str(), "Fred");
