@@ -66,6 +66,21 @@ table Referrable {
   id:ulong(key, hash:"fnv1a_64");
 }
 
+table KeyValStringInt {
+  key:string;
+  val:int;
+}
+
+table KeyValStringBool {
+  key:string;
+  val:bool;
+}
+
+table TwoMaps {
+  map_from_string_to_int:[KeyValStringInt];
+  map_from_string_to_bool:[KeyValStringBool];
+}
+
 /// an example documentation comment: monster object
 table Monster {
   pos:Vec3 (id: 0);

@@ -36,6 +36,15 @@ struct StatT;
 struct Referrable;
 struct ReferrableT;
 
+struct KeyValStringInt;
+struct KeyValStringIntT;
+
+struct KeyValStringBool;
+struct KeyValStringBoolT;
+
+struct TwoMaps;
+struct TwoMapsT;
+
 struct Monster;
 struct MonsterT;
 
@@ -66,6 +75,12 @@ bool operator==(const StatT &lhs, const StatT &rhs);
 bool operator!=(const StatT &lhs, const StatT &rhs);
 bool operator==(const ReferrableT &lhs, const ReferrableT &rhs);
 bool operator!=(const ReferrableT &lhs, const ReferrableT &rhs);
+bool operator==(const KeyValStringIntT &lhs, const KeyValStringIntT &rhs);
+bool operator!=(const KeyValStringIntT &lhs, const KeyValStringIntT &rhs);
+bool operator==(const KeyValStringBoolT &lhs, const KeyValStringBoolT &rhs);
+bool operator!=(const KeyValStringBoolT &lhs, const KeyValStringBoolT &rhs);
+bool operator==(const TwoMapsT &lhs, const TwoMapsT &rhs);
+bool operator!=(const TwoMapsT &lhs, const TwoMapsT &rhs);
 bool operator==(const MonsterT &lhs, const MonsterT &rhs);
 bool operator!=(const MonsterT &lhs, const MonsterT &rhs);
 bool operator==(const TypeAliasesT &lhs, const TypeAliasesT &rhs);
@@ -94,6 +109,12 @@ inline const flatbuffers::TypeTable *AbilityTypeTable();
 inline const flatbuffers::TypeTable *StatTypeTable();
 
 inline const flatbuffers::TypeTable *ReferrableTypeTable();
+
+inline const flatbuffers::TypeTable *KeyValStringIntTypeTable();
+
+inline const flatbuffers::TypeTable *KeyValStringBoolTypeTable();
+
+inline const flatbuffers::TypeTable *TwoMapsTypeTable();
 
 inline const flatbuffers::TypeTable *MonsterTypeTable();
 
@@ -1182,6 +1203,342 @@ inline flatbuffers::Offset<Referrable> Referrable::Create(
 }
 
 flatbuffers::Offset<Referrable> CreateReferrable(flatbuffers::FlatBufferBuilder &_fbb, const ReferrableT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+
+struct KeyValStringIntT : public flatbuffers::NativeTable {
+  typedef KeyValStringInt TableType;
+  std::string key;
+  int32_t val;
+  KeyValStringIntT()
+      : val(0) {
+  }
+};
+
+inline bool operator==(const KeyValStringIntT &lhs, const KeyValStringIntT &rhs) {
+  return
+      (lhs.key == rhs.key) &&
+      (lhs.val == rhs.val);
+}
+
+inline bool operator!=(const KeyValStringIntT &lhs, const KeyValStringIntT &rhs) {
+    return !(lhs == rhs);
+}
+
+
+struct KeyValStringInt FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef KeyValStringIntT NativeTableType;
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return KeyValStringIntTypeTable();
+  }
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_KEY = 4,
+    VT_VAL = 6
+  };
+  static flatbuffers::Offset<KeyValStringInt> Create(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> key = 0,
+    int32_t val = 0);
+  const flatbuffers::String *key() const {
+    return GetPointer<const flatbuffers::String *>(VT_KEY);
+  }
+  flatbuffers::String *mutable_key() {
+    return GetPointer<flatbuffers::String *>(VT_KEY);
+  }
+  int32_t val() const {
+    return GetField<int32_t>(VT_VAL, 0);
+  }
+  bool mutate_val(int32_t _val) {
+    return SetField<int32_t>(VT_VAL, _val, 0);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_KEY) &&
+           verifier.VerifyString(key()) &&
+           VerifyField<int32_t>(verifier, VT_VAL) &&
+           verifier.EndTable();
+  }
+  KeyValStringIntT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(KeyValStringIntT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  static flatbuffers::Offset<KeyValStringInt> Pack(flatbuffers::FlatBufferBuilder &_fbb, const KeyValStringIntT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+};
+
+struct KeyValStringIntBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_key(flatbuffers::Offset<flatbuffers::String> key) {
+    fbb_.AddOffset(KeyValStringInt::VT_KEY, key);
+  }
+  void add_val(int32_t val) {
+    fbb_.AddElement<int32_t>(KeyValStringInt::VT_VAL, val, 0);
+  }
+  explicit KeyValStringIntBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  KeyValStringIntBuilder &operator=(const KeyValStringIntBuilder &);
+  flatbuffers::Offset<KeyValStringInt> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<KeyValStringInt>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<KeyValStringInt> CreateKeyValStringInt(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> key = 0,
+    int32_t val = 0) {
+  KeyValStringIntBuilder builder_(_fbb);
+  builder_.add_val(val);
+  builder_.add_key(key);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<KeyValStringInt> KeyValStringInt::Create(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> key,
+    int32_t val) {
+  return CreateKeyValStringInt(
+           _fbb,
+           key,
+           val);
+}
+
+inline flatbuffers::Offset<KeyValStringInt> CreateKeyValStringIntDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const char *key = nullptr,
+    int32_t val = 0) {
+  auto key__ = key ? _fbb.CreateString(key) : 0;
+  return MyGame::Example::CreateKeyValStringInt(
+      _fbb,
+      key__,
+      val);
+}
+
+flatbuffers::Offset<KeyValStringInt> CreateKeyValStringInt(flatbuffers::FlatBufferBuilder &_fbb, const KeyValStringIntT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+
+struct KeyValStringBoolT : public flatbuffers::NativeTable {
+  typedef KeyValStringBool TableType;
+  std::string key;
+  bool val;
+  KeyValStringBoolT()
+      : val(false) {
+  }
+};
+
+inline bool operator==(const KeyValStringBoolT &lhs, const KeyValStringBoolT &rhs) {
+  return
+      (lhs.key == rhs.key) &&
+      (lhs.val == rhs.val);
+}
+
+inline bool operator!=(const KeyValStringBoolT &lhs, const KeyValStringBoolT &rhs) {
+    return !(lhs == rhs);
+}
+
+
+struct KeyValStringBool FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef KeyValStringBoolT NativeTableType;
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return KeyValStringBoolTypeTable();
+  }
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_KEY = 4,
+    VT_VAL = 6
+  };
+  static flatbuffers::Offset<KeyValStringBool> Create(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> key = 0,
+    bool val = false);
+  const flatbuffers::String *key() const {
+    return GetPointer<const flatbuffers::String *>(VT_KEY);
+  }
+  flatbuffers::String *mutable_key() {
+    return GetPointer<flatbuffers::String *>(VT_KEY);
+  }
+  bool val() const {
+    return GetField<uint8_t>(VT_VAL, 0) != 0;
+  }
+  bool mutate_val(bool _val) {
+    return SetField<uint8_t>(VT_VAL, static_cast<uint8_t>(_val), 0);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_KEY) &&
+           verifier.VerifyString(key()) &&
+           VerifyField<uint8_t>(verifier, VT_VAL) &&
+           verifier.EndTable();
+  }
+  KeyValStringBoolT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(KeyValStringBoolT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  static flatbuffers::Offset<KeyValStringBool> Pack(flatbuffers::FlatBufferBuilder &_fbb, const KeyValStringBoolT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+};
+
+struct KeyValStringBoolBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_key(flatbuffers::Offset<flatbuffers::String> key) {
+    fbb_.AddOffset(KeyValStringBool::VT_KEY, key);
+  }
+  void add_val(bool val) {
+    fbb_.AddElement<uint8_t>(KeyValStringBool::VT_VAL, static_cast<uint8_t>(val), 0);
+  }
+  explicit KeyValStringBoolBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  KeyValStringBoolBuilder &operator=(const KeyValStringBoolBuilder &);
+  flatbuffers::Offset<KeyValStringBool> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<KeyValStringBool>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<KeyValStringBool> CreateKeyValStringBool(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> key = 0,
+    bool val = false) {
+  KeyValStringBoolBuilder builder_(_fbb);
+  builder_.add_key(key);
+  builder_.add_val(val);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<KeyValStringBool> KeyValStringBool::Create(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> key,
+    bool val) {
+  return CreateKeyValStringBool(
+           _fbb,
+           key,
+           val);
+}
+
+inline flatbuffers::Offset<KeyValStringBool> CreateKeyValStringBoolDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const char *key = nullptr,
+    bool val = false) {
+  auto key__ = key ? _fbb.CreateString(key) : 0;
+  return MyGame::Example::CreateKeyValStringBool(
+      _fbb,
+      key__,
+      val);
+}
+
+flatbuffers::Offset<KeyValStringBool> CreateKeyValStringBool(flatbuffers::FlatBufferBuilder &_fbb, const KeyValStringBoolT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+
+struct TwoMapsT : public flatbuffers::NativeTable {
+  typedef TwoMaps TableType;
+  std::vector<flatbuffers::unique_ptr<MyGame::Example::KeyValStringIntT>> map_from_string_to_int;
+  std::vector<flatbuffers::unique_ptr<MyGame::Example::KeyValStringBoolT>> map_from_string_to_bool;
+  TwoMapsT() {
+  }
+};
+
+inline bool operator==(const TwoMapsT &lhs, const TwoMapsT &rhs) {
+  return
+      (lhs.map_from_string_to_int == rhs.map_from_string_to_int) &&
+      (lhs.map_from_string_to_bool == rhs.map_from_string_to_bool);
+}
+
+inline bool operator!=(const TwoMapsT &lhs, const TwoMapsT &rhs) {
+    return !(lhs == rhs);
+}
+
+
+struct TwoMaps FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef TwoMapsT NativeTableType;
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return TwoMapsTypeTable();
+  }
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_MAP_FROM_STRING_TO_INT = 4,
+    VT_MAP_FROM_STRING_TO_BOOL = 6
+  };
+  static flatbuffers::Offset<TwoMaps> Create(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::KeyValStringInt>>> map_from_string_to_int = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::KeyValStringBool>>> map_from_string_to_bool = 0);
+  const flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::KeyValStringInt>> *map_from_string_to_int() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::KeyValStringInt>> *>(VT_MAP_FROM_STRING_TO_INT);
+  }
+  flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::KeyValStringInt>> *mutable_map_from_string_to_int() {
+    return GetPointer<flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::KeyValStringInt>> *>(VT_MAP_FROM_STRING_TO_INT);
+  }
+  const flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::KeyValStringBool>> *map_from_string_to_bool() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::KeyValStringBool>> *>(VT_MAP_FROM_STRING_TO_BOOL);
+  }
+  flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::KeyValStringBool>> *mutable_map_from_string_to_bool() {
+    return GetPointer<flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::KeyValStringBool>> *>(VT_MAP_FROM_STRING_TO_BOOL);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_MAP_FROM_STRING_TO_INT) &&
+           verifier.VerifyVector(map_from_string_to_int()) &&
+           verifier.VerifyVectorOfTables(map_from_string_to_int()) &&
+           VerifyOffset(verifier, VT_MAP_FROM_STRING_TO_BOOL) &&
+           verifier.VerifyVector(map_from_string_to_bool()) &&
+           verifier.VerifyVectorOfTables(map_from_string_to_bool()) &&
+           verifier.EndTable();
+  }
+  TwoMapsT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(TwoMapsT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  static flatbuffers::Offset<TwoMaps> Pack(flatbuffers::FlatBufferBuilder &_fbb, const TwoMapsT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+};
+
+struct TwoMapsBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_map_from_string_to_int(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::KeyValStringInt>>> map_from_string_to_int) {
+    fbb_.AddOffset(TwoMaps::VT_MAP_FROM_STRING_TO_INT, map_from_string_to_int);
+  }
+  void add_map_from_string_to_bool(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::KeyValStringBool>>> map_from_string_to_bool) {
+    fbb_.AddOffset(TwoMaps::VT_MAP_FROM_STRING_TO_BOOL, map_from_string_to_bool);
+  }
+  explicit TwoMapsBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  TwoMapsBuilder &operator=(const TwoMapsBuilder &);
+  flatbuffers::Offset<TwoMaps> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<TwoMaps>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<TwoMaps> CreateTwoMaps(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::KeyValStringInt>>> map_from_string_to_int = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::KeyValStringBool>>> map_from_string_to_bool = 0) {
+  TwoMapsBuilder builder_(_fbb);
+  builder_.add_map_from_string_to_bool(map_from_string_to_bool);
+  builder_.add_map_from_string_to_int(map_from_string_to_int);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<TwoMaps> TwoMaps::Create(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::KeyValStringInt>>> map_from_string_to_int,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::KeyValStringBool>>> map_from_string_to_bool) {
+  return CreateTwoMaps(
+           _fbb,
+           map_from_string_to_int,
+           map_from_string_to_bool);
+}
+
+inline flatbuffers::Offset<TwoMaps> CreateTwoMapsDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const std::vector<flatbuffers::Offset<MyGame::Example::KeyValStringInt>> *map_from_string_to_int = nullptr,
+    const std::vector<flatbuffers::Offset<MyGame::Example::KeyValStringBool>> *map_from_string_to_bool = nullptr) {
+  auto map_from_string_to_int__ = map_from_string_to_int ? _fbb.CreateVector<flatbuffers::Offset<MyGame::Example::KeyValStringInt>>(*map_from_string_to_int) : 0;
+  auto map_from_string_to_bool__ = map_from_string_to_bool ? _fbb.CreateVector<flatbuffers::Offset<MyGame::Example::KeyValStringBool>>(*map_from_string_to_bool) : 0;
+  return MyGame::Example::CreateTwoMaps(
+      _fbb,
+      map_from_string_to_int__,
+      map_from_string_to_bool__);
+}
+
+flatbuffers::Offset<TwoMaps> CreateTwoMaps(flatbuffers::FlatBufferBuilder &_fbb, const TwoMapsT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 struct MonsterT : public flatbuffers::NativeTable {
   typedef Monster TableType;
@@ -2802,6 +3159,93 @@ inline flatbuffers::Offset<Referrable> CreateReferrable(flatbuffers::FlatBufferB
       _id);
 }
 
+inline KeyValStringIntT *KeyValStringInt::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
+  auto _o = new KeyValStringIntT();
+  UnPackTo(_o, _resolver);
+  return _o;
+}
+
+inline void KeyValStringInt::UnPackTo(KeyValStringIntT *_o, const flatbuffers::resolver_function_t *_resolver) const {
+  (void)_o;
+  (void)_resolver;
+  { auto _e = key(); if (_e) _o->key = _e->str(); }
+  { auto _e = val(); _o->val = _e; }
+}
+
+inline flatbuffers::Offset<KeyValStringInt> KeyValStringInt::Pack(flatbuffers::FlatBufferBuilder &_fbb, const KeyValStringIntT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
+  return CreateKeyValStringInt(_fbb, _o, _rehasher);
+}
+
+inline flatbuffers::Offset<KeyValStringInt> CreateKeyValStringInt(flatbuffers::FlatBufferBuilder &_fbb, const KeyValStringIntT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
+  (void)_rehasher;
+  (void)_o;
+  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const KeyValStringIntT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
+  auto _key = _o->key.empty() ? 0 : _fbb.CreateString(_o->key);
+  auto _val = _o->val;
+  return MyGame::Example::CreateKeyValStringInt(
+      _fbb,
+      _key,
+      _val);
+}
+
+inline KeyValStringBoolT *KeyValStringBool::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
+  auto _o = new KeyValStringBoolT();
+  UnPackTo(_o, _resolver);
+  return _o;
+}
+
+inline void KeyValStringBool::UnPackTo(KeyValStringBoolT *_o, const flatbuffers::resolver_function_t *_resolver) const {
+  (void)_o;
+  (void)_resolver;
+  { auto _e = key(); if (_e) _o->key = _e->str(); }
+  { auto _e = val(); _o->val = _e; }
+}
+
+inline flatbuffers::Offset<KeyValStringBool> KeyValStringBool::Pack(flatbuffers::FlatBufferBuilder &_fbb, const KeyValStringBoolT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
+  return CreateKeyValStringBool(_fbb, _o, _rehasher);
+}
+
+inline flatbuffers::Offset<KeyValStringBool> CreateKeyValStringBool(flatbuffers::FlatBufferBuilder &_fbb, const KeyValStringBoolT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
+  (void)_rehasher;
+  (void)_o;
+  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const KeyValStringBoolT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
+  auto _key = _o->key.empty() ? 0 : _fbb.CreateString(_o->key);
+  auto _val = _o->val;
+  return MyGame::Example::CreateKeyValStringBool(
+      _fbb,
+      _key,
+      _val);
+}
+
+inline TwoMapsT *TwoMaps::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
+  auto _o = new TwoMapsT();
+  UnPackTo(_o, _resolver);
+  return _o;
+}
+
+inline void TwoMaps::UnPackTo(TwoMapsT *_o, const flatbuffers::resolver_function_t *_resolver) const {
+  (void)_o;
+  (void)_resolver;
+  { auto _e = map_from_string_to_int(); if (_e) { _o->map_from_string_to_int.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->map_from_string_to_int[_i] = flatbuffers::unique_ptr<MyGame::Example::KeyValStringIntT>(_e->Get(_i)->UnPack(_resolver)); } } }
+  { auto _e = map_from_string_to_bool(); if (_e) { _o->map_from_string_to_bool.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->map_from_string_to_bool[_i] = flatbuffers::unique_ptr<MyGame::Example::KeyValStringBoolT>(_e->Get(_i)->UnPack(_resolver)); } } }
+}
+
+inline flatbuffers::Offset<TwoMaps> TwoMaps::Pack(flatbuffers::FlatBufferBuilder &_fbb, const TwoMapsT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
+  return CreateTwoMaps(_fbb, _o, _rehasher);
+}
+
+inline flatbuffers::Offset<TwoMaps> CreateTwoMaps(flatbuffers::FlatBufferBuilder &_fbb, const TwoMapsT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
+  (void)_rehasher;
+  (void)_o;
+  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const TwoMapsT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
+  auto _map_from_string_to_int = _o->map_from_string_to_int.size() ? _fbb.CreateVector<flatbuffers::Offset<MyGame::Example::KeyValStringInt>> (_o->map_from_string_to_int.size(), [](size_t i, _VectorArgs *__va) { return CreateKeyValStringInt(*__va->__fbb, __va->__o->map_from_string_to_int[i].get(), __va->__rehasher); }, &_va ) : 0;
+  auto _map_from_string_to_bool = _o->map_from_string_to_bool.size() ? _fbb.CreateVector<flatbuffers::Offset<MyGame::Example::KeyValStringBool>> (_o->map_from_string_to_bool.size(), [](size_t i, _VectorArgs *__va) { return CreateKeyValStringBool(*__va->__fbb, __va->__o->map_from_string_to_bool[i].get(), __va->__rehasher); }, &_va ) : 0;
+  return MyGame::Example::CreateTwoMaps(
+      _fbb,
+      _map_from_string_to_int,
+      _map_from_string_to_bool);
+}
+
 inline MonsterT *Monster::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
   auto _o = new MonsterT();
   UnPackTo(_o, _resolver);
@@ -3606,6 +4050,55 @@ inline const flatbuffers::TypeTable *ReferrableTypeTable() {
   };
   static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_TABLE, 1, type_codes, nullptr, nullptr, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *KeyValStringIntTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_STRING, 0, -1 },
+    { flatbuffers::ET_INT, 0, -1 }
+  };
+  static const char * const names[] = {
+    "key",
+    "val"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 2, type_codes, nullptr, nullptr, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *KeyValStringBoolTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_STRING, 0, -1 },
+    { flatbuffers::ET_BOOL, 0, -1 }
+  };
+  static const char * const names[] = {
+    "key",
+    "val"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 2, type_codes, nullptr, nullptr, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *TwoMapsTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_SEQUENCE, 1, 0 },
+    { flatbuffers::ET_SEQUENCE, 1, 1 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    MyGame::Example::KeyValStringIntTypeTable,
+    MyGame::Example::KeyValStringBoolTypeTable
+  };
+  static const char * const names[] = {
+    "map_from_string_to_int",
+    "map_from_string_to_bool"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 2, type_codes, type_refs, nullptr, names
   };
   return &tt;
 }

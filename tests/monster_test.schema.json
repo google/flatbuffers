@@ -145,6 +145,42 @@
       },
       "additionalProperties" : false
     },
+    "MyGame_Example_KeyValStringInt" : {
+      "type" : "object",
+      "properties" : {
+        "key" : {
+                "type" : "string"
+              },
+        "val" : {
+                "type" : "number"
+              }
+      },
+      "additionalProperties" : false
+    },
+    "MyGame_Example_KeyValStringBool" : {
+      "type" : "object",
+      "properties" : {
+        "key" : {
+                "type" : "string"
+              },
+        "val" : {
+                "type" : "boolean"
+              }
+      },
+      "additionalProperties" : false
+    },
+    "MyGame_Example_TwoMaps" : {
+      "type" : "object",
+      "properties" : {
+        "map_from_string_to_int" : {
+                "type" : "array", "items" : { "$ref" : "#/definitions/MyGame_Example_KeyValStringInt" }
+              },
+        "map_from_string_to_bool" : {
+                "type" : "array", "items" : { "$ref" : "#/definitions/MyGame_Example_KeyValStringBool" }
+              }
+      },
+      "additionalProperties" : false
+    },
     "MyGame_Example_Monster" : {
       "type" : "object",
       "description" : " an example documentation comment: monster object",

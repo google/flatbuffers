@@ -833,6 +833,383 @@ static createReferrable(builder:flatbuffers.Builder, id:flatbuffers.Long):flatbu
 }
 }
 /**
+ * @constructor
+ */
+export namespace MyGame.Example{
+export class KeyValStringInt {
+  bb: flatbuffers.ByteBuffer|null = null;
+
+  bb_pos:number = 0;
+/**
+ * @param number i
+ * @param flatbuffers.ByteBuffer bb
+ * @returns KeyValStringInt
+ */
+__init(i:number, bb:flatbuffers.ByteBuffer):KeyValStringInt {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+};
+
+/**
+ * @param flatbuffers.ByteBuffer bb
+ * @param KeyValStringInt= obj
+ * @returns KeyValStringInt
+ */
+static getRootAsKeyValStringInt(bb:flatbuffers.ByteBuffer, obj?:KeyValStringInt):KeyValStringInt {
+  return (obj || new KeyValStringInt).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param flatbuffers.ByteBuffer bb
+ * @param KeyValStringInt= obj
+ * @returns KeyValStringInt
+ */
+static getSizePrefixedRootAsKeyValStringInt(bb:flatbuffers.ByteBuffer, obj?:KeyValStringInt):KeyValStringInt {
+  return (obj || new KeyValStringInt).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param flatbuffers.Encoding= optionalEncoding
+ * @returns string|Uint8Array|null
+ */
+key():string|null
+key(optionalEncoding:flatbuffers.Encoding):string|Uint8Array|null
+key(optionalEncoding?:any):string|Uint8Array|null {
+  var offset = this.bb!.__offset(this.bb_pos, 4);
+  return offset ? this.bb!.__string(this.bb_pos + offset, optionalEncoding) : null;
+};
+
+/**
+ * @returns number
+ */
+val():number {
+  var offset = this.bb!.__offset(this.bb_pos, 6);
+  return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param number value
+ * @returns boolean
+ */
+mutate_val(value:number):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 6);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeInt32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ */
+static startKeyValStringInt(builder:flatbuffers.Builder) {
+  builder.startObject(2);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset keyOffset
+ */
+static addKey(builder:flatbuffers.Builder, keyOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(0, keyOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param number val
+ */
+static addVal(builder:flatbuffers.Builder, val:number) {
+  builder.addFieldInt32(1, val, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @returns flatbuffers.Offset
+ */
+static endKeyValStringInt(builder:flatbuffers.Builder):flatbuffers.Offset {
+  var offset = builder.endObject();
+  return offset;
+};
+
+static createKeyValStringInt(builder:flatbuffers.Builder, keyOffset:flatbuffers.Offset, val:number):flatbuffers.Offset {
+  KeyValStringInt.startKeyValStringInt(builder);
+  KeyValStringInt.addKey(builder, keyOffset);
+  KeyValStringInt.addVal(builder, val);
+  return KeyValStringInt.endKeyValStringInt(builder);
+}
+}
+}
+/**
+ * @constructor
+ */
+export namespace MyGame.Example{
+export class KeyValStringBool {
+  bb: flatbuffers.ByteBuffer|null = null;
+
+  bb_pos:number = 0;
+/**
+ * @param number i
+ * @param flatbuffers.ByteBuffer bb
+ * @returns KeyValStringBool
+ */
+__init(i:number, bb:flatbuffers.ByteBuffer):KeyValStringBool {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+};
+
+/**
+ * @param flatbuffers.ByteBuffer bb
+ * @param KeyValStringBool= obj
+ * @returns KeyValStringBool
+ */
+static getRootAsKeyValStringBool(bb:flatbuffers.ByteBuffer, obj?:KeyValStringBool):KeyValStringBool {
+  return (obj || new KeyValStringBool).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param flatbuffers.ByteBuffer bb
+ * @param KeyValStringBool= obj
+ * @returns KeyValStringBool
+ */
+static getSizePrefixedRootAsKeyValStringBool(bb:flatbuffers.ByteBuffer, obj?:KeyValStringBool):KeyValStringBool {
+  return (obj || new KeyValStringBool).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param flatbuffers.Encoding= optionalEncoding
+ * @returns string|Uint8Array|null
+ */
+key():string|null
+key(optionalEncoding:flatbuffers.Encoding):string|Uint8Array|null
+key(optionalEncoding?:any):string|Uint8Array|null {
+  var offset = this.bb!.__offset(this.bb_pos, 4);
+  return offset ? this.bb!.__string(this.bb_pos + offset, optionalEncoding) : null;
+};
+
+/**
+ * @returns boolean
+ */
+val():boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 6);
+  return offset ? !!this.bb!.readInt8(this.bb_pos + offset) : false;
+};
+
+/**
+ * @param boolean value
+ * @returns boolean
+ */
+mutate_val(value:boolean):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 6);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeInt8(this.bb_pos + offset, +value);
+  return true;
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ */
+static startKeyValStringBool(builder:flatbuffers.Builder) {
+  builder.startObject(2);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset keyOffset
+ */
+static addKey(builder:flatbuffers.Builder, keyOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(0, keyOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param boolean val
+ */
+static addVal(builder:flatbuffers.Builder, val:boolean) {
+  builder.addFieldInt8(1, +val, +false);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @returns flatbuffers.Offset
+ */
+static endKeyValStringBool(builder:flatbuffers.Builder):flatbuffers.Offset {
+  var offset = builder.endObject();
+  return offset;
+};
+
+static createKeyValStringBool(builder:flatbuffers.Builder, keyOffset:flatbuffers.Offset, val:boolean):flatbuffers.Offset {
+  KeyValStringBool.startKeyValStringBool(builder);
+  KeyValStringBool.addKey(builder, keyOffset);
+  KeyValStringBool.addVal(builder, val);
+  return KeyValStringBool.endKeyValStringBool(builder);
+}
+}
+}
+/**
+ * @constructor
+ */
+export namespace MyGame.Example{
+export class TwoMaps {
+  bb: flatbuffers.ByteBuffer|null = null;
+
+  bb_pos:number = 0;
+/**
+ * @param number i
+ * @param flatbuffers.ByteBuffer bb
+ * @returns TwoMaps
+ */
+__init(i:number, bb:flatbuffers.ByteBuffer):TwoMaps {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+};
+
+/**
+ * @param flatbuffers.ByteBuffer bb
+ * @param TwoMaps= obj
+ * @returns TwoMaps
+ */
+static getRootAsTwoMaps(bb:flatbuffers.ByteBuffer, obj?:TwoMaps):TwoMaps {
+  return (obj || new TwoMaps).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param flatbuffers.ByteBuffer bb
+ * @param TwoMaps= obj
+ * @returns TwoMaps
+ */
+static getSizePrefixedRootAsTwoMaps(bb:flatbuffers.ByteBuffer, obj?:TwoMaps):TwoMaps {
+  return (obj || new TwoMaps).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param number index
+ * @param MyGame.Example.KeyValStringInt= obj
+ * @returns MyGame.Example.KeyValStringInt
+ */
+mapFromStringToInt(index: number, obj?:MyGame.Example.KeyValStringInt):MyGame.Example.KeyValStringInt|null {
+  var offset = this.bb!.__offset(this.bb_pos, 4);
+  return offset ? (obj || new MyGame.Example.KeyValStringInt).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
+};
+
+/**
+ * @returns number
+ */
+mapFromStringToIntLength():number {
+  var offset = this.bb!.__offset(this.bb_pos, 4);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param number index
+ * @param MyGame.Example.KeyValStringBool= obj
+ * @returns MyGame.Example.KeyValStringBool
+ */
+mapFromStringToBool(index: number, obj?:MyGame.Example.KeyValStringBool):MyGame.Example.KeyValStringBool|null {
+  var offset = this.bb!.__offset(this.bb_pos, 6);
+  return offset ? (obj || new MyGame.Example.KeyValStringBool).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
+};
+
+/**
+ * @returns number
+ */
+mapFromStringToBoolLength():number {
+  var offset = this.bb!.__offset(this.bb_pos, 6);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ */
+static startTwoMaps(builder:flatbuffers.Builder) {
+  builder.startObject(2);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset mapFromStringToIntOffset
+ */
+static addMapFromStringToInt(builder:flatbuffers.Builder, mapFromStringToIntOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(0, mapFromStringToIntOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param Array.<flatbuffers.Offset> data
+ * @returns flatbuffers.Offset
+ */
+static createMapFromStringToIntVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
+  builder.startVector(4, data.length, 4);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param number numElems
+ */
+static startMapFromStringToIntVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(4, numElems, 4);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset mapFromStringToBoolOffset
+ */
+static addMapFromStringToBool(builder:flatbuffers.Builder, mapFromStringToBoolOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(1, mapFromStringToBoolOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param Array.<flatbuffers.Offset> data
+ * @returns flatbuffers.Offset
+ */
+static createMapFromStringToBoolVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
+  builder.startVector(4, data.length, 4);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param number numElems
+ */
+static startMapFromStringToBoolVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(4, numElems, 4);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @returns flatbuffers.Offset
+ */
+static endTwoMaps(builder:flatbuffers.Builder):flatbuffers.Offset {
+  var offset = builder.endObject();
+  return offset;
+};
+
+static createTwoMaps(builder:flatbuffers.Builder, mapFromStringToIntOffset:flatbuffers.Offset, mapFromStringToBoolOffset:flatbuffers.Offset):flatbuffers.Offset {
+  TwoMaps.startTwoMaps(builder);
+  TwoMaps.addMapFromStringToInt(builder, mapFromStringToIntOffset);
+  TwoMaps.addMapFromStringToBool(builder, mapFromStringToBoolOffset);
+  return TwoMaps.endTwoMaps(builder);
+}
+}
+}
+/**
  * an example documentation comment: monster object
  *
  * @constructor

@@ -980,6 +980,415 @@ MyGame.Example.Referrable.createReferrable = function(builder, id) {
 }
 
 /**
+ * @constructor
+ */
+MyGame.Example.KeyValStringInt = function() {
+  /**
+   * @type {flatbuffers.ByteBuffer}
+   */
+  this.bb = null;
+
+  /**
+   * @type {number}
+   */
+  this.bb_pos = 0;
+};
+
+/**
+ * @param {number} i
+ * @param {flatbuffers.ByteBuffer} bb
+ * @returns {MyGame.Example.KeyValStringInt}
+ */
+MyGame.Example.KeyValStringInt.prototype.__init = function(i, bb) {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+};
+
+/**
+ * @param {flatbuffers.ByteBuffer} bb
+ * @param {MyGame.Example.KeyValStringInt=} obj
+ * @returns {MyGame.Example.KeyValStringInt}
+ */
+MyGame.Example.KeyValStringInt.getRootAsKeyValStringInt = function(bb, obj) {
+  return (obj || new MyGame.Example.KeyValStringInt).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param {flatbuffers.ByteBuffer} bb
+ * @param {MyGame.Example.KeyValStringInt=} obj
+ * @returns {MyGame.Example.KeyValStringInt}
+ */
+MyGame.Example.KeyValStringInt.getSizePrefixedRootAsKeyValStringInt = function(bb, obj) {
+  return (obj || new MyGame.Example.KeyValStringInt).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param {flatbuffers.Encoding=} optionalEncoding
+ * @returns {string|Uint8Array|null}
+ */
+MyGame.Example.KeyValStringInt.prototype.key = function(optionalEncoding) {
+  var offset = this.bb.__offset(this.bb_pos, 4);
+  return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.KeyValStringInt.prototype.val = function() {
+  var offset = this.bb.__offset(this.bb_pos, 6);
+  return offset ? this.bb.readInt32(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+MyGame.Example.KeyValStringInt.prototype.mutate_val = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 6);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ */
+MyGame.Example.KeyValStringInt.startKeyValStringInt = function(builder) {
+  builder.startObject(2);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} keyOffset
+ */
+MyGame.Example.KeyValStringInt.addKey = function(builder, keyOffset) {
+  builder.addFieldOffset(0, keyOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} val
+ */
+MyGame.Example.KeyValStringInt.addVal = function(builder, val) {
+  builder.addFieldInt32(1, val, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.KeyValStringInt.endKeyValStringInt = function(builder) {
+  var offset = builder.endObject();
+  return offset;
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} keyOffset
+ * @param {number} val
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.KeyValStringInt.createKeyValStringInt = function(builder, keyOffset, val) {
+  MyGame.Example.KeyValStringInt.startKeyValStringInt(builder);
+  MyGame.Example.KeyValStringInt.addKey(builder, keyOffset);
+  MyGame.Example.KeyValStringInt.addVal(builder, val);
+  return MyGame.Example.KeyValStringInt.endKeyValStringInt(builder);
+}
+
+/**
+ * @constructor
+ */
+MyGame.Example.KeyValStringBool = function() {
+  /**
+   * @type {flatbuffers.ByteBuffer}
+   */
+  this.bb = null;
+
+  /**
+   * @type {number}
+   */
+  this.bb_pos = 0;
+};
+
+/**
+ * @param {number} i
+ * @param {flatbuffers.ByteBuffer} bb
+ * @returns {MyGame.Example.KeyValStringBool}
+ */
+MyGame.Example.KeyValStringBool.prototype.__init = function(i, bb) {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+};
+
+/**
+ * @param {flatbuffers.ByteBuffer} bb
+ * @param {MyGame.Example.KeyValStringBool=} obj
+ * @returns {MyGame.Example.KeyValStringBool}
+ */
+MyGame.Example.KeyValStringBool.getRootAsKeyValStringBool = function(bb, obj) {
+  return (obj || new MyGame.Example.KeyValStringBool).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param {flatbuffers.ByteBuffer} bb
+ * @param {MyGame.Example.KeyValStringBool=} obj
+ * @returns {MyGame.Example.KeyValStringBool}
+ */
+MyGame.Example.KeyValStringBool.getSizePrefixedRootAsKeyValStringBool = function(bb, obj) {
+  return (obj || new MyGame.Example.KeyValStringBool).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param {flatbuffers.Encoding=} optionalEncoding
+ * @returns {string|Uint8Array|null}
+ */
+MyGame.Example.KeyValStringBool.prototype.key = function(optionalEncoding) {
+  var offset = this.bb.__offset(this.bb_pos, 4);
+  return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+};
+
+/**
+ * @returns {boolean}
+ */
+MyGame.Example.KeyValStringBool.prototype.val = function() {
+  var offset = this.bb.__offset(this.bb_pos, 6);
+  return offset ? !!this.bb.readInt8(this.bb_pos + offset) : false;
+};
+
+/**
+ * @param {boolean} value
+ * @returns {boolean}
+ */
+MyGame.Example.KeyValStringBool.prototype.mutate_val = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 6);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt8(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ */
+MyGame.Example.KeyValStringBool.startKeyValStringBool = function(builder) {
+  builder.startObject(2);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} keyOffset
+ */
+MyGame.Example.KeyValStringBool.addKey = function(builder, keyOffset) {
+  builder.addFieldOffset(0, keyOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {boolean} val
+ */
+MyGame.Example.KeyValStringBool.addVal = function(builder, val) {
+  builder.addFieldInt8(1, +val, +false);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.KeyValStringBool.endKeyValStringBool = function(builder) {
+  var offset = builder.endObject();
+  return offset;
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} keyOffset
+ * @param {boolean} val
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.KeyValStringBool.createKeyValStringBool = function(builder, keyOffset, val) {
+  MyGame.Example.KeyValStringBool.startKeyValStringBool(builder);
+  MyGame.Example.KeyValStringBool.addKey(builder, keyOffset);
+  MyGame.Example.KeyValStringBool.addVal(builder, val);
+  return MyGame.Example.KeyValStringBool.endKeyValStringBool(builder);
+}
+
+/**
+ * @constructor
+ */
+MyGame.Example.TwoMaps = function() {
+  /**
+   * @type {flatbuffers.ByteBuffer}
+   */
+  this.bb = null;
+
+  /**
+   * @type {number}
+   */
+  this.bb_pos = 0;
+};
+
+/**
+ * @param {number} i
+ * @param {flatbuffers.ByteBuffer} bb
+ * @returns {MyGame.Example.TwoMaps}
+ */
+MyGame.Example.TwoMaps.prototype.__init = function(i, bb) {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+};
+
+/**
+ * @param {flatbuffers.ByteBuffer} bb
+ * @param {MyGame.Example.TwoMaps=} obj
+ * @returns {MyGame.Example.TwoMaps}
+ */
+MyGame.Example.TwoMaps.getRootAsTwoMaps = function(bb, obj) {
+  return (obj || new MyGame.Example.TwoMaps).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param {flatbuffers.ByteBuffer} bb
+ * @param {MyGame.Example.TwoMaps=} obj
+ * @returns {MyGame.Example.TwoMaps}
+ */
+MyGame.Example.TwoMaps.getSizePrefixedRootAsTwoMaps = function(bb, obj) {
+  return (obj || new MyGame.Example.TwoMaps).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param {number} index
+ * @param {MyGame.Example.KeyValStringInt=} obj
+ * @returns {MyGame.Example.KeyValStringInt}
+ */
+MyGame.Example.TwoMaps.prototype.mapFromStringToInt = function(index, obj) {
+  var offset = this.bb.__offset(this.bb_pos, 4);
+  return offset ? (obj || new MyGame.Example.KeyValStringInt).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos + offset) + index * 4), this.bb) : null;
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.TwoMaps.prototype.mapFromStringToIntLength = function() {
+  var offset = this.bb.__offset(this.bb_pos, 4);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} index
+ * @param {MyGame.Example.KeyValStringBool=} obj
+ * @returns {MyGame.Example.KeyValStringBool}
+ */
+MyGame.Example.TwoMaps.prototype.mapFromStringToBool = function(index, obj) {
+  var offset = this.bb.__offset(this.bb_pos, 6);
+  return offset ? (obj || new MyGame.Example.KeyValStringBool).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos + offset) + index * 4), this.bb) : null;
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.TwoMaps.prototype.mapFromStringToBoolLength = function() {
+  var offset = this.bb.__offset(this.bb_pos, 6);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ */
+MyGame.Example.TwoMaps.startTwoMaps = function(builder) {
+  builder.startObject(2);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} mapFromStringToIntOffset
+ */
+MyGame.Example.TwoMaps.addMapFromStringToInt = function(builder, mapFromStringToIntOffset) {
+  builder.addFieldOffset(0, mapFromStringToIntOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<flatbuffers.Offset>} data
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.TwoMaps.createMapFromStringToIntVector = function(builder, data) {
+  builder.startVector(4, data.length, 4);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+MyGame.Example.TwoMaps.startMapFromStringToIntVector = function(builder, numElems) {
+  builder.startVector(4, numElems, 4);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} mapFromStringToBoolOffset
+ */
+MyGame.Example.TwoMaps.addMapFromStringToBool = function(builder, mapFromStringToBoolOffset) {
+  builder.addFieldOffset(1, mapFromStringToBoolOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<flatbuffers.Offset>} data
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.TwoMaps.createMapFromStringToBoolVector = function(builder, data) {
+  builder.startVector(4, data.length, 4);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+MyGame.Example.TwoMaps.startMapFromStringToBoolVector = function(builder, numElems) {
+  builder.startVector(4, numElems, 4);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.TwoMaps.endTwoMaps = function(builder) {
+  var offset = builder.endObject();
+  return offset;
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} mapFromStringToIntOffset
+ * @param {flatbuffers.Offset} mapFromStringToBoolOffset
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.TwoMaps.createTwoMaps = function(builder, mapFromStringToIntOffset, mapFromStringToBoolOffset) {
+  MyGame.Example.TwoMaps.startTwoMaps(builder);
+  MyGame.Example.TwoMaps.addMapFromStringToInt(builder, mapFromStringToIntOffset);
+  MyGame.Example.TwoMaps.addMapFromStringToBool(builder, mapFromStringToBoolOffset);
+  return MyGame.Example.TwoMaps.endTwoMaps(builder);
+}
+
+/**
  * an example documentation comment: monster object
  *
  * @constructor

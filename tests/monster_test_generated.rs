@@ -985,6 +985,270 @@ impl<'a: 'b, 'b> ReferrableBuilder<'a, 'b> {
   }
 }
 
+pub enum KeyValStringIntOffset {}
+#[derive(Copy, Clone, Debug, PartialEq)]
+
+pub struct KeyValStringInt<'a> {
+  pub _tab: flatbuffers::Table<'a>,
+}
+
+impl<'a> flatbuffers::Follow<'a> for KeyValStringInt<'a> {
+    type Inner = KeyValStringInt<'a>;
+    #[inline]
+    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+        Self {
+            _tab: flatbuffers::Table { buf: buf, loc: loc },
+        }
+    }
+}
+
+impl<'a> KeyValStringInt<'a> {
+    #[inline]
+    pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+        KeyValStringInt {
+            _tab: table,
+        }
+    }
+    #[allow(unused_mut)]
+    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
+        _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+        args: &'args KeyValStringIntArgs<'args>) -> flatbuffers::WIPOffset<KeyValStringInt<'bldr>> {
+      let mut builder = KeyValStringIntBuilder::new(_fbb);
+      builder.add_val(args.val);
+      if let Some(x) = args.key { builder.add_key(x); }
+      builder.finish()
+    }
+
+    pub const VT_KEY: flatbuffers::VOffsetT = 4;
+    pub const VT_VAL: flatbuffers::VOffsetT = 6;
+
+  #[inline]
+  pub fn key(&self) -> Option<&'a str> {
+    self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(KeyValStringInt::VT_KEY, None)
+  }
+  #[inline]
+  pub fn val(&self) -> i32 {
+    self._tab.get::<i32>(KeyValStringInt::VT_VAL, Some(0)).unwrap()
+  }
+}
+
+pub struct KeyValStringIntArgs<'a> {
+    pub key: Option<flatbuffers::WIPOffset<&'a  str>>,
+    pub val: i32,
+}
+impl<'a> Default for KeyValStringIntArgs<'a> {
+    #[inline]
+    fn default() -> Self {
+        KeyValStringIntArgs {
+            key: None,
+            val: 0,
+        }
+    }
+}
+pub struct KeyValStringIntBuilder<'a: 'b, 'b> {
+  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
+  start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
+}
+impl<'a: 'b, 'b> KeyValStringIntBuilder<'a, 'b> {
+  #[inline]
+  pub fn add_key(&mut self, key: flatbuffers::WIPOffset<&'b  str>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(KeyValStringInt::VT_KEY, key);
+  }
+  #[inline]
+  pub fn add_val(&mut self, val: i32) {
+    self.fbb_.push_slot::<i32>(KeyValStringInt::VT_VAL, val, 0);
+  }
+  #[inline]
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> KeyValStringIntBuilder<'a, 'b> {
+    let start = _fbb.start_table();
+    KeyValStringIntBuilder {
+      fbb_: _fbb,
+      start_: start,
+    }
+  }
+  #[inline]
+  pub fn finish(self) -> flatbuffers::WIPOffset<KeyValStringInt<'a>> {
+    let o = self.fbb_.end_table(self.start_);
+    flatbuffers::WIPOffset::new(o.value())
+  }
+}
+
+pub enum KeyValStringBoolOffset {}
+#[derive(Copy, Clone, Debug, PartialEq)]
+
+pub struct KeyValStringBool<'a> {
+  pub _tab: flatbuffers::Table<'a>,
+}
+
+impl<'a> flatbuffers::Follow<'a> for KeyValStringBool<'a> {
+    type Inner = KeyValStringBool<'a>;
+    #[inline]
+    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+        Self {
+            _tab: flatbuffers::Table { buf: buf, loc: loc },
+        }
+    }
+}
+
+impl<'a> KeyValStringBool<'a> {
+    #[inline]
+    pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+        KeyValStringBool {
+            _tab: table,
+        }
+    }
+    #[allow(unused_mut)]
+    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
+        _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+        args: &'args KeyValStringBoolArgs<'args>) -> flatbuffers::WIPOffset<KeyValStringBool<'bldr>> {
+      let mut builder = KeyValStringBoolBuilder::new(_fbb);
+      if let Some(x) = args.key { builder.add_key(x); }
+      builder.add_val(args.val);
+      builder.finish()
+    }
+
+    pub const VT_KEY: flatbuffers::VOffsetT = 4;
+    pub const VT_VAL: flatbuffers::VOffsetT = 6;
+
+  #[inline]
+  pub fn key(&self) -> Option<&'a str> {
+    self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(KeyValStringBool::VT_KEY, None)
+  }
+  #[inline]
+  pub fn val(&self) -> bool {
+    self._tab.get::<bool>(KeyValStringBool::VT_VAL, Some(false)).unwrap()
+  }
+}
+
+pub struct KeyValStringBoolArgs<'a> {
+    pub key: Option<flatbuffers::WIPOffset<&'a  str>>,
+    pub val: bool,
+}
+impl<'a> Default for KeyValStringBoolArgs<'a> {
+    #[inline]
+    fn default() -> Self {
+        KeyValStringBoolArgs {
+            key: None,
+            val: false,
+        }
+    }
+}
+pub struct KeyValStringBoolBuilder<'a: 'b, 'b> {
+  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
+  start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
+}
+impl<'a: 'b, 'b> KeyValStringBoolBuilder<'a, 'b> {
+  #[inline]
+  pub fn add_key(&mut self, key: flatbuffers::WIPOffset<&'b  str>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(KeyValStringBool::VT_KEY, key);
+  }
+  #[inline]
+  pub fn add_val(&mut self, val: bool) {
+    self.fbb_.push_slot::<bool>(KeyValStringBool::VT_VAL, val, false);
+  }
+  #[inline]
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> KeyValStringBoolBuilder<'a, 'b> {
+    let start = _fbb.start_table();
+    KeyValStringBoolBuilder {
+      fbb_: _fbb,
+      start_: start,
+    }
+  }
+  #[inline]
+  pub fn finish(self) -> flatbuffers::WIPOffset<KeyValStringBool<'a>> {
+    let o = self.fbb_.end_table(self.start_);
+    flatbuffers::WIPOffset::new(o.value())
+  }
+}
+
+pub enum TwoMapsOffset {}
+#[derive(Copy, Clone, Debug, PartialEq)]
+
+pub struct TwoMaps<'a> {
+  pub _tab: flatbuffers::Table<'a>,
+}
+
+impl<'a> flatbuffers::Follow<'a> for TwoMaps<'a> {
+    type Inner = TwoMaps<'a>;
+    #[inline]
+    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+        Self {
+            _tab: flatbuffers::Table { buf: buf, loc: loc },
+        }
+    }
+}
+
+impl<'a> TwoMaps<'a> {
+    #[inline]
+    pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+        TwoMaps {
+            _tab: table,
+        }
+    }
+    #[allow(unused_mut)]
+    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
+        _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+        args: &'args TwoMapsArgs<'args>) -> flatbuffers::WIPOffset<TwoMaps<'bldr>> {
+      let mut builder = TwoMapsBuilder::new(_fbb);
+      if let Some(x) = args.map_from_string_to_bool { builder.add_map_from_string_to_bool(x); }
+      if let Some(x) = args.map_from_string_to_int { builder.add_map_from_string_to_int(x); }
+      builder.finish()
+    }
+
+    pub const VT_MAP_FROM_STRING_TO_INT: flatbuffers::VOffsetT = 4;
+    pub const VT_MAP_FROM_STRING_TO_BOOL: flatbuffers::VOffsetT = 6;
+
+  #[inline]
+  pub fn map_from_string_to_int(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<KeyValStringInt<'a>>>> {
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<flatbuffers::ForwardsUOffset<KeyValStringInt<'a>>>>>(TwoMaps::VT_MAP_FROM_STRING_TO_INT, None)
+  }
+  #[inline]
+  pub fn map_from_string_to_bool(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<KeyValStringBool<'a>>>> {
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<flatbuffers::ForwardsUOffset<KeyValStringBool<'a>>>>>(TwoMaps::VT_MAP_FROM_STRING_TO_BOOL, None)
+  }
+}
+
+pub struct TwoMapsArgs<'a> {
+    pub map_from_string_to_int: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a , flatbuffers::ForwardsUOffset<KeyValStringInt<'a >>>>>,
+    pub map_from_string_to_bool: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a , flatbuffers::ForwardsUOffset<KeyValStringBool<'a >>>>>,
+}
+impl<'a> Default for TwoMapsArgs<'a> {
+    #[inline]
+    fn default() -> Self {
+        TwoMapsArgs {
+            map_from_string_to_int: None,
+            map_from_string_to_bool: None,
+        }
+    }
+}
+pub struct TwoMapsBuilder<'a: 'b, 'b> {
+  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
+  start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
+}
+impl<'a: 'b, 'b> TwoMapsBuilder<'a, 'b> {
+  #[inline]
+  pub fn add_map_from_string_to_int(&mut self, map_from_string_to_int: flatbuffers::WIPOffset<flatbuffers::Vector<'b , flatbuffers::ForwardsUOffset<KeyValStringInt<'b >>>>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(TwoMaps::VT_MAP_FROM_STRING_TO_INT, map_from_string_to_int);
+  }
+  #[inline]
+  pub fn add_map_from_string_to_bool(&mut self, map_from_string_to_bool: flatbuffers::WIPOffset<flatbuffers::Vector<'b , flatbuffers::ForwardsUOffset<KeyValStringBool<'b >>>>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(TwoMaps::VT_MAP_FROM_STRING_TO_BOOL, map_from_string_to_bool);
+  }
+  #[inline]
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> TwoMapsBuilder<'a, 'b> {
+    let start = _fbb.start_table();
+    TwoMapsBuilder {
+      fbb_: _fbb,
+      start_: start,
+    }
+  }
+  #[inline]
+  pub fn finish(self) -> flatbuffers::WIPOffset<TwoMaps<'a>> {
+    let o = self.fbb_.end_table(self.start_);
+    flatbuffers::WIPOffset::new(o.value())
+  }
+}
+
 pub enum MonsterOffset {}
 #[derive(Copy, Clone, Debug, PartialEq)]
 

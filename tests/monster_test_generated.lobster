@@ -58,6 +58,12 @@ class Stat
 
 class Referrable
 
+class KeyValStringInt
+
+class KeyValStringBool
+
+class TwoMaps
+
 class Monster
 
 class TypeAliases
@@ -207,6 +213,90 @@ struct ReferrableBuilder:
         return this
     def end():
         return b_.EndObject()
+
+class KeyValStringInt : flatbuffers_handle
+    def key():
+        return buf_.flatbuffers_field_string(pos_, 4)
+    def val():
+        return buf_.flatbuffers_field_int32(pos_, 6, 0)
+
+def GetRootAsKeyValStringInt(buf:string): return KeyValStringInt { buf, buf.flatbuffers_indirect(0) }
+
+struct KeyValStringIntBuilder:
+    b_:flatbuffers_builder
+    def start():
+        b_.StartObject(2)
+        return this
+    def add_key(key:flatbuffers_offset):
+        b_.PrependUOffsetTRelativeSlot(0, key)
+        return this
+    def add_val(val:int):
+        b_.PrependInt32Slot(1, val, 0)
+        return this
+    def end():
+        return b_.EndObject()
+
+class KeyValStringBool : flatbuffers_handle
+    def key():
+        return buf_.flatbuffers_field_string(pos_, 4)
+    def val():
+        return buf_.flatbuffers_field_int8(pos_, 6, 0)
+
+def GetRootAsKeyValStringBool(buf:string): return KeyValStringBool { buf, buf.flatbuffers_indirect(0) }
+
+struct KeyValStringBoolBuilder:
+    b_:flatbuffers_builder
+    def start():
+        b_.StartObject(2)
+        return this
+    def add_key(key:flatbuffers_offset):
+        b_.PrependUOffsetTRelativeSlot(0, key)
+        return this
+    def add_val(val:int):
+        b_.PrependBoolSlot(1, val, 0)
+        return this
+    def end():
+        return b_.EndObject()
+
+class TwoMaps : flatbuffers_handle
+    def map_from_string_to_int(i:int):
+        return MyGame_Example_KeyValStringInt { buf_, buf_.flatbuffers_indirect(buf_.flatbuffers_field_vector(pos_, 4) + i * 4) }
+    def map_from_string_to_int_length():
+        return buf_.flatbuffers_field_vector_len(pos_, 4)
+    def map_from_string_to_bool(i:int):
+        return MyGame_Example_KeyValStringBool { buf_, buf_.flatbuffers_indirect(buf_.flatbuffers_field_vector(pos_, 6) + i * 4) }
+    def map_from_string_to_bool_length():
+        return buf_.flatbuffers_field_vector_len(pos_, 6)
+
+def GetRootAsTwoMaps(buf:string): return TwoMaps { buf, buf.flatbuffers_indirect(0) }
+
+struct TwoMapsBuilder:
+    b_:flatbuffers_builder
+    def start():
+        b_.StartObject(2)
+        return this
+    def add_map_from_string_to_int(map_from_string_to_int:flatbuffers_offset):
+        b_.PrependUOffsetTRelativeSlot(0, map_from_string_to_int)
+        return this
+    def add_map_from_string_to_bool(map_from_string_to_bool:flatbuffers_offset):
+        b_.PrependUOffsetTRelativeSlot(1, map_from_string_to_bool)
+        return this
+    def end():
+        return b_.EndObject()
+
+def TwoMapsStartMapFromStringToIntVector(b_:flatbuffers_builder, n_:int):
+    b_.StartVector(4, n_, 4)
+def TwoMapsCreateMapFromStringToIntVector(b_:flatbuffers_builder, v_:[flatbuffers_offset]):
+    b_.StartVector(4, v_.length, 4)
+    reverse(v_) e_: b_.PrependUOffsetTRelative(e_)
+    return b_.EndVector(v_.length)
+
+def TwoMapsStartMapFromStringToBoolVector(b_:flatbuffers_builder, n_:int):
+    b_.StartVector(4, n_, 4)
+def TwoMapsCreateMapFromStringToBoolVector(b_:flatbuffers_builder, v_:[flatbuffers_offset]):
+    b_.StartVector(4, v_.length, 4)
+    reverse(v_) e_: b_.PrependUOffsetTRelative(e_)
+    return b_.EndVector(v_.length)
 
 /// an example documentation comment: monster object
 class Monster : flatbuffers_handle

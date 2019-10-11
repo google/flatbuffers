@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include <cmath>
+#include <map>
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/minireflect.h"
@@ -578,6 +579,48 @@ void SizePrefixedTest() {
   TEST_EQ(m->mana(), 200);
   TEST_EQ(m->hp(), 300);
   TEST_EQ_STR(m->name()->c_str(), "bob");
+}
+
+// Helper to serialize a std::map as a list of key/value pairs.
+template<typename FlatbufType, typename MapT>
+flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatbufType>>>
+SerializeMapHelper(flatbuffers::FlatBufferBuilder& fbb, const MapT& map ) {
+  std::vector<flatbuffers::Offset<FlatbufType>> elements;
+  for (const auto& key_val : map) {
+    auto key_str = fbb.CreateString(key_val.first);
+    elements.push_back(FlatbufType::Create(fbb, key_str, key_val.second));
+  }
+  return fbb.CreateVector(elements);
+}
+
+// Call the table's static Create factory method.
+void StaticTableCreateMethodTest() {
+  // Create size prefixed buffer.
+  flatbuffers::FlatBufferBuilder fbb;
+
+  std::map<std::string, int> map1{{"one",1},{"two",2}};
+  std::map<std::string, bool> map2{{"true",true},{"false",false}};
+
+  // Here we use the accessibility of the Create method given the
+  // flatbuffers type to serialize a std::map to different flat-
+  // buffers types.
+  auto fb_map1 = SerializeMapHelper<KeyValStringInt>(fbb, map1);
+  auto fb_map2 = SerializeMapHelper<KeyValStringBool>(fbb, map2);
+
+  auto two_maps = TwoMaps::Create(fbb, fb_map1, fb_map2);
+  fbb.Finish(two_maps);
+
+  // Access it.
+  auto maps = flatbuffers::GetRoot<TwoMaps>(fbb.GetBufferPointer());
+  (void)maps;
+  TEST_EQ_STR(maps->map_from_string_to_int()->Get(0)->key()->c_str(), "one");
+  TEST_EQ_STR(maps->map_from_string_to_int()->Get(1)->key()->c_str(), "two");
+  TEST_EQ_STR(maps->map_from_string_to_bool()->Get(1)->key()->c_str(), "true");
+  TEST_EQ_STR(maps->map_from_string_to_bool()->Get(0)->key()->c_str(), "false");
+  TEST_EQ(maps->map_from_string_to_int()->Get(0)->val(), 1);
+  TEST_EQ(maps->map_from_string_to_int()->Get(1)->val(), 2);
+  TEST_EQ(maps->map_from_string_to_bool()->Get(1)->val(), true);
+  TEST_EQ(maps->map_from_string_to_bool()->Get(0)->val(), false);
 }
 
 void TriviallyCopyableTest() {
@@ -3048,6 +3091,8 @@ int FlatBufferTests() {
   MiniReflectFlatBuffersTest(flatbuf.data());
 
   SizePrefixedTest();
+
+  StaticTableCreateMethodTest();
 
   #ifndef FLATBUFFERS_NO_FILE_TESTS
     #ifdef FLATBUFFERS_TEST_PATH_PREFIX

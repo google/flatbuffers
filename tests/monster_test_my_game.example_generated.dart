@@ -717,6 +717,277 @@ class ReferrableObjectBuilder extends fb.ObjectBuilder {
     return fbBuilder.finish(offset, fileIdentifier);
   }
 }
+class KeyValStringInt {
+  KeyValStringInt._(this._bc, this._bcOffset);
+  factory KeyValStringInt(List<int> bytes) {
+    fb.BufferContext rootRef = new fb.BufferContext.fromBytes(bytes);
+    return reader.read(rootRef, 0);
+  }
+
+  static const fb.Reader<KeyValStringInt> reader = const _KeyValStringIntReader();
+
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  String get key => const fb.StringReader().vTableGet(_bc, _bcOffset, 4, null);
+  int get val => const fb.Int32Reader().vTableGet(_bc, _bcOffset, 6, 0);
+
+  @override
+  String toString() {
+    return 'KeyValStringInt{key: $key, val: $val}';
+  }
+}
+
+class _KeyValStringIntReader extends fb.TableReader<KeyValStringInt> {
+  const _KeyValStringIntReader();
+
+  @override
+  KeyValStringInt createObject(fb.BufferContext bc, int offset) => 
+    new KeyValStringInt._(bc, offset);
+}
+
+class KeyValStringIntBuilder {
+  KeyValStringIntBuilder(this.fbBuilder) {
+    assert(fbBuilder != null);
+  }
+
+  final fb.Builder fbBuilder;
+
+  void begin() {
+    fbBuilder.startTable();
+  }
+
+  int addKeyOffset(int offset) {
+    fbBuilder.addOffset(0, offset);
+    return fbBuilder.offset;
+  }
+  int addVal(int val) {
+    fbBuilder.addInt32(1, val);
+    return fbBuilder.offset;
+  }
+
+  int finish() {
+    return fbBuilder.endTable();
+  }
+}
+
+class KeyValStringIntObjectBuilder extends fb.ObjectBuilder {
+  final String _key;
+  final int _val;
+
+  KeyValStringIntObjectBuilder({
+    String key,
+    int val,
+  })
+      : _key = key,
+        _val = val;
+
+  /// Finish building, and store into the [fbBuilder].
+  @override
+  int finish(
+    fb.Builder fbBuilder) {
+    assert(fbBuilder != null);
+    final int keyOffset = fbBuilder.writeString(_key);
+
+    fbBuilder.startTable();
+    if (keyOffset != null) {
+      fbBuilder.addOffset(0, keyOffset);
+    }
+    fbBuilder.addInt32(1, _val);
+    return fbBuilder.endTable();
+  }
+
+  /// Convenience method to serialize to byte list.
+  @override
+  Uint8List toBytes([String fileIdentifier]) {
+    fb.Builder fbBuilder = new fb.Builder();
+    int offset = finish(fbBuilder);
+    return fbBuilder.finish(offset, fileIdentifier);
+  }
+}
+class KeyValStringBool {
+  KeyValStringBool._(this._bc, this._bcOffset);
+  factory KeyValStringBool(List<int> bytes) {
+    fb.BufferContext rootRef = new fb.BufferContext.fromBytes(bytes);
+    return reader.read(rootRef, 0);
+  }
+
+  static const fb.Reader<KeyValStringBool> reader = const _KeyValStringBoolReader();
+
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  String get key => const fb.StringReader().vTableGet(_bc, _bcOffset, 4, null);
+  bool get val => const fb.BoolReader().vTableGet(_bc, _bcOffset, 6, false);
+
+  @override
+  String toString() {
+    return 'KeyValStringBool{key: $key, val: $val}';
+  }
+}
+
+class _KeyValStringBoolReader extends fb.TableReader<KeyValStringBool> {
+  const _KeyValStringBoolReader();
+
+  @override
+  KeyValStringBool createObject(fb.BufferContext bc, int offset) => 
+    new KeyValStringBool._(bc, offset);
+}
+
+class KeyValStringBoolBuilder {
+  KeyValStringBoolBuilder(this.fbBuilder) {
+    assert(fbBuilder != null);
+  }
+
+  final fb.Builder fbBuilder;
+
+  void begin() {
+    fbBuilder.startTable();
+  }
+
+  int addKeyOffset(int offset) {
+    fbBuilder.addOffset(0, offset);
+    return fbBuilder.offset;
+  }
+  int addVal(bool val) {
+    fbBuilder.addBool(1, val);
+    return fbBuilder.offset;
+  }
+
+  int finish() {
+    return fbBuilder.endTable();
+  }
+}
+
+class KeyValStringBoolObjectBuilder extends fb.ObjectBuilder {
+  final String _key;
+  final bool _val;
+
+  KeyValStringBoolObjectBuilder({
+    String key,
+    bool val,
+  })
+      : _key = key,
+        _val = val;
+
+  /// Finish building, and store into the [fbBuilder].
+  @override
+  int finish(
+    fb.Builder fbBuilder) {
+    assert(fbBuilder != null);
+    final int keyOffset = fbBuilder.writeString(_key);
+
+    fbBuilder.startTable();
+    if (keyOffset != null) {
+      fbBuilder.addOffset(0, keyOffset);
+    }
+    fbBuilder.addBool(1, _val);
+    return fbBuilder.endTable();
+  }
+
+  /// Convenience method to serialize to byte list.
+  @override
+  Uint8List toBytes([String fileIdentifier]) {
+    fb.Builder fbBuilder = new fb.Builder();
+    int offset = finish(fbBuilder);
+    return fbBuilder.finish(offset, fileIdentifier);
+  }
+}
+class TwoMaps {
+  TwoMaps._(this._bc, this._bcOffset);
+  factory TwoMaps(List<int> bytes) {
+    fb.BufferContext rootRef = new fb.BufferContext.fromBytes(bytes);
+    return reader.read(rootRef, 0);
+  }
+
+  static const fb.Reader<TwoMaps> reader = const _TwoMapsReader();
+
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  List<KeyValStringInt> get mapFromStringToInt => const fb.ListReader<KeyValStringInt>(KeyValStringInt.reader).vTableGet(_bc, _bcOffset, 4, null);
+  List<KeyValStringBool> get mapFromStringToBool => const fb.ListReader<KeyValStringBool>(KeyValStringBool.reader).vTableGet(_bc, _bcOffset, 6, null);
+
+  @override
+  String toString() {
+    return 'TwoMaps{mapFromStringToInt: $mapFromStringToInt, mapFromStringToBool: $mapFromStringToBool}';
+  }
+}
+
+class _TwoMapsReader extends fb.TableReader<TwoMaps> {
+  const _TwoMapsReader();
+
+  @override
+  TwoMaps createObject(fb.BufferContext bc, int offset) => 
+    new TwoMaps._(bc, offset);
+}
+
+class TwoMapsBuilder {
+  TwoMapsBuilder(this.fbBuilder) {
+    assert(fbBuilder != null);
+  }
+
+  final fb.Builder fbBuilder;
+
+  void begin() {
+    fbBuilder.startTable();
+  }
+
+  int addMapFromStringToIntOffset(int offset) {
+    fbBuilder.addOffset(0, offset);
+    return fbBuilder.offset;
+  }
+  int addMapFromStringToBoolOffset(int offset) {
+    fbBuilder.addOffset(1, offset);
+    return fbBuilder.offset;
+  }
+
+  int finish() {
+    return fbBuilder.endTable();
+  }
+}
+
+class TwoMapsObjectBuilder extends fb.ObjectBuilder {
+  final List<KeyValStringIntObjectBuilder> _mapFromStringToInt;
+  final List<KeyValStringBoolObjectBuilder> _mapFromStringToBool;
+
+  TwoMapsObjectBuilder({
+    List<KeyValStringIntObjectBuilder> mapFromStringToInt,
+    List<KeyValStringBoolObjectBuilder> mapFromStringToBool,
+  })
+      : _mapFromStringToInt = mapFromStringToInt,
+        _mapFromStringToBool = mapFromStringToBool;
+
+  /// Finish building, and store into the [fbBuilder].
+  @override
+  int finish(
+    fb.Builder fbBuilder) {
+    assert(fbBuilder != null);
+    final int mapFromStringToIntOffset = _mapFromStringToInt?.isNotEmpty == true
+        ? fbBuilder.writeList(_mapFromStringToInt.map((b) => b.getOrCreateOffset(fbBuilder)).toList())
+        : null;
+    final int mapFromStringToBoolOffset = _mapFromStringToBool?.isNotEmpty == true
+        ? fbBuilder.writeList(_mapFromStringToBool.map((b) => b.getOrCreateOffset(fbBuilder)).toList())
+        : null;
+
+    fbBuilder.startTable();
+    if (mapFromStringToIntOffset != null) {
+      fbBuilder.addOffset(0, mapFromStringToIntOffset);
+    }
+    if (mapFromStringToBoolOffset != null) {
+      fbBuilder.addOffset(1, mapFromStringToBoolOffset);
+    }
+    return fbBuilder.endTable();
+  }
+
+  /// Convenience method to serialize to byte list.
+  @override
+  Uint8List toBytes([String fileIdentifier]) {
+    fb.Builder fbBuilder = new fb.Builder();
+    int offset = finish(fbBuilder);
+    return fbBuilder.finish(offset, fileIdentifier);
+  }
+}
 ///  an example documentation comment: monster object
 class Monster {
   Monster._(this._bc, this._bcOffset);
