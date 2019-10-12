@@ -1165,13 +1165,16 @@ class TestBuilderForceDefaults(unittest.TestCase):
     test_flags = [N.BoolFlags(), N.Uint8Flags(), N.Uint16Flags(), \
                   N.Uint32Flags(), N.Uint64Flags(), N.Int8Flags(), \
                   N.Int16Flags(), N.Int32Flags(), N.Int64Flags(), \
-                  N.Float32Flags(), N.Float64Flags()]
+                  N.Float32Flags(), N.Float64Flags(), N.UOffsetTFlags()]
     def test_default_force_defaults(self):
         for flag in self.test_flags:
             b = flatbuffers.Builder(0)
             b.StartObject(1)
             stored_offset = b.Offset()
-            b.PrependSlot(flag, 0, 0, 0)
+            if flag != N.UOffsetTFlags():
+                b.PrependSlot(flag, 0, 0, 0)
+            else:
+                b.PrependUOffsetTRelativeSlot(0, 0, 0)
             end_offset = b.Offset()
             b.EndObject()
             self.assertEqual(0, end_offset - stored_offset)
@@ -1182,7 +1185,10 @@ class TestBuilderForceDefaults(unittest.TestCase):
             b.ForceDefaults(True)
             b.StartObject(1)
             stored_offset = b.Offset()
-            b.PrependSlot(flag, 0, 0, 0)
+            if flag != N.UOffsetTFlags():
+                b.PrependSlot(flag, 0, 0, 0)
+            else:
+                b.PrependUOffsetTRelativeSlot(0, 0, 0)
             end_offset = b.Offset()
             b.EndObject()
             self.assertEqual(flag.bytewidth, end_offset - stored_offset)
