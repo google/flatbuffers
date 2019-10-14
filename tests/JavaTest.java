@@ -722,9 +722,9 @@ class JavaTest {
 
     public static void testSingleElementLong() {
         FlexBuffersBuilder builder = new FlexBuffersBuilder();
-        builder.putInt(Long.MAX_VALUE);
+        builder.putInt( 0x00000000_ffffffffL);
         ByteBuffer b = builder.finish();
-        TestEq(Long.MAX_VALUE, FlexBuffers.getRoot(b).asLong());
+        TestEq(0x00000000_ffffffffL, FlexBuffers.getRoot(b).asLong());
     }
 
     public static void testSingleElementFloat() {

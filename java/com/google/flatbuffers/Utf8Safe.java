@@ -123,7 +123,8 @@ final public class Utf8Safe extends Utf8 {
     return utf8Length;
   }
 
-  private static String decodeUtf8Array(byte[] bytes, int index, int size) {
+  @Override
+  public String decodeUtf8Array(byte[] bytes, int index, int size) {
     // Bitwise OR combines the sign bits so any negative value fails the check.
     if ((index | size | bytes.length - index - size) < 0) {
       throw new ArrayIndexOutOfBoundsException(
@@ -292,7 +293,6 @@ final public class Utf8Safe extends Utf8 {
       return decodeUtf8Buffer(buffer, offset, length);
     }
   }
-
 
   private static void encodeUtf8Buffer(CharSequence in, ByteBuffer out) {
     final int inLength = in.length();

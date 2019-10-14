@@ -52,6 +52,51 @@ public abstract class Utf8 {
    */
   public abstract String decodeUtf8(ByteBuffer buffer, int offset, int length);
 
+  /**
+   * Decodes the given UTF-8 portion of the byte array into a {@link String}.
+   *
+   * @throws IllegalArgumentException if the input is not valid UTF-8.
+   */
+  public abstract String decodeUtf8Array(byte[] bytes, int index, int size);
+
+    // Read a UTF-8 codepoint starting at position start.
+    // it will be saved in out.
+    //
+    // Useful for reading a codepoint and compare against Java's char,
+    // instead of converting the whole data into a String
+    // Returns the size in bytes of the codepoint
+  public static int decodeCodePoint(ReadBuf buffer, int start, char[] out) {
+    byte b = buffer.get(start);
+    int size = 4;
+    if (b == 0) {
+        size = 0;
+    } else if (DecodeUtil.isOneByte(b)) {
+        size = 1;
+        out[0] = (char) b;
+    } else if (DecodeUtil.isTwoBytes(b)) {
+        size = 2;
+        DecodeUtil.handleTwoBytes(b, buffer.get(start + 1), out, 0);
+    } else if (DecodeUtil.isThreeBytes(b)) {
+        size = 3;
+        Utf8.DecodeUtil.handleThreeBytes(
+            b,
+            buffer.get(start + 1),
+            buffer.get(start + 2),
+            out,
+            0);
+    } else {
+        DecodeUtil.handleFourBytes(
+            b,
+            buffer.get(start + 1),
+            buffer.get(start + 2),
+            buffer.get(start + 3),
+            out,
+            0);
+    }
+
+    return size;
+  }
+
   private static Utf8 DEFAULT;
 
   /**
