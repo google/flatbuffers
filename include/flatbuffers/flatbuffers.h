@@ -23,12 +23,6 @@
 #include <cmath>
 #endif
 
-#if __clang_major__ >= 4 || (__clang_major__ == 3 && __clang_minor__ >= 8)
-#define FLATBUFFERS_NOSANITIZE_UNSIGNED_INT_OVERFLOW __attribute__((no_sanitize("unsigned-integer-overflow")))
-#else
-#define FLATBUFFERS_NOSANITIZE_UNSIGNED_INT_OVERFLOW
-#endif
-
 namespace flatbuffers {
 // Generic 'operator==' with conditional specialisations.
 // T e - new value of a scalar field.
@@ -2236,7 +2230,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     return true;
   }
 
-  FLATBUFFERS_NOSANITIZE_UNSIGNED_INT_OVERFLOW
+  __supress_ubsan__("unsigned-integer-overflow")
   bool VerifyTableStart(const uint8_t *table) {
     // Check the vtable offset.
     auto tableo = static_cast<size_t>(table - buf_);
