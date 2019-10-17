@@ -1159,6 +1159,41 @@ def make_monster_from_generated_code(sizePrefix = False, file_identifier=None):
     return b.Bytes, b.Head()
 
 
+class TestBuilderForceDefaults(unittest.TestCase):
+    """Verify that the builder adds default values when forced."""
+
+    test_flags = [N.BoolFlags(), N.Uint8Flags(), N.Uint16Flags(), \
+                  N.Uint32Flags(), N.Uint64Flags(), N.Int8Flags(), \
+                  N.Int16Flags(), N.Int32Flags(), N.Int64Flags(), \
+                  N.Float32Flags(), N.Float64Flags(), N.UOffsetTFlags()]
+    def test_default_force_defaults(self):
+        for flag in self.test_flags:
+            b = flatbuffers.Builder(0)
+            b.StartObject(1)
+            stored_offset = b.Offset()
+            if flag != N.UOffsetTFlags():
+                b.PrependSlot(flag, 0, 0, 0)
+            else:
+                b.PrependUOffsetTRelativeSlot(0, 0, 0)
+            end_offset = b.Offset()
+            b.EndObject()
+            self.assertEqual(0, end_offset - stored_offset)
+
+    def test_force_defaults_true(self):
+        for flag in self.test_flags:
+            b = flatbuffers.Builder(0)
+            b.ForceDefaults(True)
+            b.StartObject(1)
+            stored_offset = b.Offset()
+            if flag != N.UOffsetTFlags():
+                b.PrependSlot(flag, 0, 0, 0)
+            else:
+                b.PrependUOffsetTRelativeSlot(0, 0, 0)
+            end_offset = b.Offset()
+            b.EndObject()
+            self.assertEqual(flag.bytewidth, end_offset - stored_offset)
+
+
 class TestAllCodePathsOfExampleSchema(unittest.TestCase):
     def setUp(self, *args, **kwargs):
         super(TestAllCodePathsOfExampleSchema, self).setUp(*args, **kwargs)
