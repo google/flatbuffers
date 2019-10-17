@@ -252,7 +252,8 @@ class GeneralGenerator : public BaseGenerator {
 
   std::string GenNullableAnnotation(const Type &t) const {
     return lang_.language == IDLOptions::kJava && parser_.opts.gen_nullable &&
-                   !IsScalar(DestinationType(t, true).base_type)
+                   !IsScalar(DestinationType(t, true).base_type) &&
+                   t.base_type != BASE_TYPE_VECTOR
                ? " @Nullable "
                : "";
   }
