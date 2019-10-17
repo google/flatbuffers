@@ -205,7 +205,7 @@ class CppGenerator : public BaseGenerator {
   }
 
   void GenExtraIncludes() {
-    for(std::size_t i = 0; i < parser_.opts.cpp_includes.size(); ++i) {
+    for (std::size_t i = 0; i < parser_.opts.cpp_includes.size(); ++i) {
       code_ += "#include \"" + parser_.opts.cpp_includes[i] + "\"";
     }
     if (!parser_.opts.cpp_includes.empty()) {
@@ -278,7 +278,7 @@ class CppGenerator : public BaseGenerator {
           code_ += "bool operator==(const " + nativeName + " &lhs, const " +
                    nativeName + " &rhs);";
           code_ += "bool operator!=(const " + nativeName + " &lhs, const " +
-              nativeName + " &rhs);";
+                   nativeName + " &rhs);";
         }
       }
       code_ += "";
@@ -525,6 +525,16 @@ class CppGenerator : public BaseGenerator {
       cpp_qualified_name.replace(start_pos, 1, "::");
     }
     return cpp_qualified_name;
+  }
+
+  bool TypeHasKey(const Type &type) {
+    if (type.base_type != BASE_TYPE_STRUCT) { return false; }
+    for (auto it = type.struct_def->fields.vec.begin();
+         it != type.struct_def->fields.vec.end(); ++it) {
+      const auto &field = **it;
+      if (field.key) { return true; }
+    }
+    return false;
   }
 
   void GenComment(const std::vector<std::string> &dc, const char *prefix = "") {
@@ -1267,7 +1277,7 @@ class CppGenerator : public BaseGenerator {
         if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
           if (ev.union_type.struct_def->fixed) {
             code_ += "      return verifier.Verify<{{TYPE}}>(static_cast<const "
-                     "uint8_t *>(obj), 0);";
+                "uint8_t *>(obj), 0);";
           } else {
             code_ += getptr;
             code_ += "      return verifier.VerifyTable(ptr);";
@@ -1528,7 +1538,11 @@ class CppGenerator : public BaseGenerator {
       } else {
         type = GenTypeWire(vtype, "", false);
       }
-      code_.SetValue("PARAM_TYPE", "const std::vector<" + type + "> *");
+      if (TypeHasKey(vtype)) {
+        code_.SetValue("PARAM_TYPE", "std::vector<" + type + "> *");
+      } else {
+        code_.SetValue("PARAM_TYPE", "const std::vector<" + type + "> *");
+      }
       code_.SetValue("PARAM_VALUE", "nullptr");
     } else {
       code_.SetValue("PARAM_TYPE", GenTypeWire(field.value.type, " ", true));
@@ -2198,14 +2212,21 @@ class CppGenerator : public BaseGenerator {
           } else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
             code_ += "  auto {{FIELD_NAME}}__ = {{FIELD_NAME}} ? \\";
             const auto vtype = field.value.type.VectorType();
+            const auto has_key = TypeHasKey(vtype);
             if (IsStruct(vtype)) {
               const auto type = WrapInNameSpace(*vtype.struct_def);
-              code_ += "_fbb.CreateVectorOfStructs<" + type + ">\\";
+              code_ += (has_key ? "_fbb.CreateVectorOfSortedStructs<"
+                                : "_fbb.CreateVectorOfStructs<") +
+                       type + ">\\";
+            } else if (has_key) {
+              const auto type = WrapInNameSpace(*vtype.struct_def);
+              code_ += "_fbb.CreateVectorOfSortedTables<" + type + ">\\";
             } else {
               const auto type = GenTypeWire(vtype, "", false);
               code_ += "_fbb.CreateVector<" + type + ">\\";
             }
-            code_ += "(*{{FIELD_NAME}}) : 0;";
+            code_ +=
+                has_key ? "({{FIELD_NAME}}) : 0;" : "(*{{FIELD_NAME}}) : 0;";
           }
         }
       }
