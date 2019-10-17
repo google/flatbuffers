@@ -2230,6 +2230,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     return true;
   }
 
+  __supress_ubsan__("unsigned-integer-overflow")
   bool VerifyTableStart(const uint8_t *table) {
     // Check the vtable offset.
     auto tableo = static_cast<size_t>(table - buf_);
