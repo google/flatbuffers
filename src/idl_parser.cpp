@@ -1257,7 +1257,7 @@ CheckedError Parser::ParseVectorDelimiters(uoffset_t &count, F body) {
   return NoError();
 }
 
-static int CompareType(const uint8_t *a, const uint8_t *b, BaseType ftype) {
+static bool CompareType(const uint8_t *a, const uint8_t *b, BaseType ftype) {
   switch (ftype) {
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, \
                            PTYPE, RTYPE, KTYPE) \
@@ -1394,8 +1394,9 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
         // stored in memory, so compute the distance between these pointers:
         ptrdiff_t diff = (b - a) * sizeof(Offset<Table>);
         assert(diff >= 0);  // Guaranteed by SimpleQsort.
-        a->o = EndianScalar(ReadScalar<uoffset_t>(a) - diff);
-        b->o = EndianScalar(ReadScalar<uoffset_t>(b) + diff);
+        auto udiff = static_cast<uoffset_t>(diff);
+        a->o = EndianScalar(ReadScalar<uoffset_t>(a) - udiff);
+        b->o = EndianScalar(ReadScalar<uoffset_t>(b) + udiff);
         std::swap(*a, *b);
       });
     }
