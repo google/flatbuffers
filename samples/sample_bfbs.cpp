@@ -17,7 +17,6 @@
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
-#include "monster_test_generated.h"
 #include "monster_generated.h" // Already includes "flatbuffers/flatbuffers.h".
 
 using namespace MyGame::Sample;
