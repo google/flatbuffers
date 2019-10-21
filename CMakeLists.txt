@@ -126,6 +126,8 @@ set(FlatBuffers_Tests_SRCS
   ${CMAKE_CURRENT_BINARY_DIR}/tests/arrays_test_generated.h
   # file generate by running compiler on tests/native_type_test.fbs
   ${CMAKE_CURRENT_BINARY_DIR}/tests/native_type_test_generated.h
+  # file generate by running compiler on tests/monster_extra.fbs
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_extra_generated.h
 )
 
 set(FlatBuffers_Sample_Binary_SRCS
@@ -311,6 +313,7 @@ if(FLATBUFFERS_BUILD_SHAREDLIB)
 endif()
 
 function(compile_flatbuffers_schema_to_cpp_opt SRC_FBS OPT)
+  message(STATUS "Add the code-generation command for the `${SRC_FBS}` schema.")
   get_filename_component(SRC_FBS_DIR ${SRC_FBS} PATH)
   string(REGEX REPLACE "\\.fbs$" "_generated.h" GEN_HEADER ${SRC_FBS})
   add_custom_command(
@@ -342,6 +345,9 @@ if(FLATBUFFERS_BUILD_TESTS)
   compile_flatbuffers_schema_to_cpp(tests/monster_test.fbs)
   compile_flatbuffers_schema_to_cpp_opt(tests/native_type_test.fbs "")
   compile_flatbuffers_schema_to_cpp_opt(tests/arrays_test.fbs "--scoped-enums;--gen-compare")
+  if(NOT (MSVC AND MSVC_VERSION LESS 1900))
+    compile_flatbuffers_schema_to_cpp(tests/monster_extra.fbs) # Test floating-point NAN/INF.
+  endif()
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/tests)
   add_executable(flattests ${FlatBuffers_Tests_SRCS})
   set_property(TARGET flattests
