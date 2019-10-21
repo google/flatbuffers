@@ -112,7 +112,7 @@ matrix:
         -DGRPC_INSTALL_PATH=$TRAVIS_BUILD_DIR/google/grpc/install
         -DPROTOBUF_DOWNLOAD_PATH=$TRAVIS_BUILD_DIR/google/grpc/third_party/protobuf
         -DFLATBUFFERS_CODE_SANITIZE=ON
-      - cmake --build . -- -j${JOBS}
+      - cmake --build . --target all --clean-first -- -j${JOBS}
       - LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/google/grpc/install/lib ctest --extra-verbose --output-on-failure
       - bash .travis/check-generate-code.sh
 
