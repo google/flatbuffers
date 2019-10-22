@@ -25,8 +25,18 @@ use endian_scalar::{read_scalar, read_scalar_at};
 use follow::Follow;
 use primitives::*;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug)]
 pub struct Vector<'a, T: 'a>(&'a [u8], usize, PhantomData<T>);
+
+// We cannot use derive for these two impls, as it would only implement Copy
+// and Clone for `T: Copy` and `T: Clone` respectively. However `Vector<'a, T>`
+// can always be copied, no matter that `T` you have.
+impl<'a, T> Copy for Vector<'a, T> {}
+impl<'a, T> Clone for Vector<'a, T> {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
 
 impl<'a, T: 'a> Vector<'a, T> {
     #[inline(always)]
