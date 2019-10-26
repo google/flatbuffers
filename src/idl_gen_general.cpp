@@ -1513,44 +1513,58 @@ class GeneralGenerator : public BaseGenerator {
           auto alignment = InlineAlignment(vector_type);
           auto elem_size = InlineSize(vector_type);
           if (!IsStruct(vector_type)) {
-            // Generate a method to create a vector from a Java array.
-            code += "  public static " + GenVectorOffsetType() + " ";
-            code += FunctionStart('C') + "reate";
-            code += MakeCamel(field.name);
-            code += "Vector(FlatBufferBuilder builder, ";
-            code += GenTypeBasic(vector_type) + "[] data) ";
-            code += "{ builder." + FunctionStart('S') + "tartVector(";
-            code += NumToString(elem_size);
-            code += ", data." + FunctionStart('L') + "ength, ";
-            code += NumToString(alignment);
-            code += "); for (int i = data.";
-            code += FunctionStart('L') + "ength - 1; i >= 0; i--) builder.";
-            code += FunctionStart('A') + "dd";
-            code += GenMethod(vector_type);
-            code += "(";
-            code += SourceCastBasic(vector_type, false);
-            code += "data[i]";
-            if (lang_.language == IDLOptions::kCSharp &&
-                (vector_type.base_type == BASE_TYPE_STRUCT ||
-                 vector_type.base_type == BASE_TYPE_STRING))
-              code += ".Value";
-            code += "); return ";
-            code += "builder." + FunctionStart('E') + "ndVector(); }\n";
-            // For C#, include a block copy method signature.
-            // Skip if the vector is of enums, because builder.Add
-            // throws an exception when supplied an enum array.
-            if (lang_.language == IDLOptions::kCSharp &&
-                !IsEnum(vector_type)) {
+            // generate a method to create a vector from a java array.
+            if (lang_.language == IDLOptions::kJava &&
+                (vector_type.base_type == BASE_TYPE_CHAR ||
+                 vector_type.base_type == BASE_TYPE_UCHAR)) {
+              // Handle byte[] and ByteBuffers separately for Java
               code += "  public static " + GenVectorOffsetType() + " ";
               code += FunctionStart('C') + "reate";
               code += MakeCamel(field.name);
-              code += "VectorBlock(FlatBufferBuilder builder, ";
+              code += "Vector(FlatBufferBuilder builder, byte[] data) ";
+              code += "{ return builder.createByteVector(data); }\n";
+
+              code += "  public static " + GenVectorOffsetType() + " ";
+              code += FunctionStart('C') + "reate";
+              code += MakeCamel(field.name);
+              code += "Vector(FlatBufferBuilder builder, ByteBuffer data) ";
+              code += "{ return builder.createByteVector(data); }\n";
+            } else {
+              code += "  public static " + GenVectorOffsetType() + " ";
+              code += FunctionStart('C') + "reate";
+              code += MakeCamel(field.name);
+              code += "Vector(FlatBufferBuilder builder, ";
               code += GenTypeBasic(vector_type) + "[] data) ";
               code += "{ builder." + FunctionStart('S') + "tartVector(";
               code += NumToString(elem_size);
               code += ", data." + FunctionStart('L') + "ength, ";
               code += NumToString(alignment);
-              code += "); builder.Add(data); return builder.EndVector(); }\n";
+              code += "); for (int i = data.";
+              code += FunctionStart('L') + "ength - 1; i >= 0; i--) builder.";
+              code += FunctionStart('A') + "dd";
+              code += GenMethod(vector_type);
+              code += "(";
+              code += SourceCastBasic(vector_type, false);
+              code += "data[i]";
+              if (lang_.language == IDLOptions::kCSharp &&
+                  (vector_type.base_type == BASE_TYPE_STRUCT ||
+                   vector_type.base_type == BASE_TYPE_STRING))
+                code += ".Value";
+              code += "); return ";
+              code += "builder." + FunctionStart('E') + "ndVector(); }\n";
+              // For C#, include a block copy method signature.
+              if (lang_.language == IDLOptions::kCSharp) {
+                code += "  public static " + GenVectorOffsetType() + " ";
+                code += FunctionStart('C') + "reate";
+                code += MakeCamel(field.name);
+                code += "VectorBlock(FlatBufferBuilder builder, ";
+                code += GenTypeBasic(vector_type) + "[] data) ";
+                code += "{ builder." + FunctionStart('S') + "tartVector(";
+                code += NumToString(elem_size);
+                code += ", data." + FunctionStart('L') + "ength, ";
+                code += NumToString(alignment);
+                code += "); builder.Add(data); return builder.EndVector(); }\n";
+              }
             }
           }
           // Generate a method to start a vector, data to be added manually

@@ -91,7 +91,8 @@ public final class TypeAliases extends Table {
   public static void addF32(FlatBufferBuilder builder, float f32) { builder.addFloat(8, f32, 0.0f); }
   public static void addF64(FlatBufferBuilder builder, double f64) { builder.addDouble(9, f64, 0.0); }
   public static void addV8(FlatBufferBuilder builder, int v8Offset) { builder.addOffset(10, v8Offset, 0); }
-  public static int createV8Vector(FlatBufferBuilder builder, byte[] data) { builder.startVector(1, data.length, 1); for (int i = data.length - 1; i >= 0; i--) builder.addByte(data[i]); return builder.endVector(); }
+  public static int createV8Vector(FlatBufferBuilder builder, byte[] data) { return builder.createByteVector(data); }
+  public static int createV8Vector(FlatBufferBuilder builder, ByteBuffer data) { return builder.createByteVector(data); }
   public static void startV8Vector(FlatBufferBuilder builder, int numElems) { builder.startVector(1, numElems, 1); }
   public static void addVf64(FlatBufferBuilder builder, int vf64Offset) { builder.addOffset(11, vf64Offset, 0); }
   public static int createVf64Vector(FlatBufferBuilder builder, double[] data) { builder.startVector(8, data.length, 8); for (int i = data.length - 1; i >= 0; i--) builder.addDouble(data[i]); return builder.endVector(); }

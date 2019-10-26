@@ -49,6 +49,7 @@ public struct Movie : IFlatbufferObject
   public static void AddMainCharacter(FlatBufferBuilder builder, int mainCharacterOffset) { builder.AddOffset(1, mainCharacterOffset, 0); }
   public static void AddCharactersType(FlatBufferBuilder builder, VectorOffset charactersTypeOffset) { builder.AddOffset(2, charactersTypeOffset.Value, 0); }
   public static VectorOffset CreateCharactersTypeVector(FlatBufferBuilder builder, Character[] data) { builder.StartVector(1, data.Length, 1); for (int i = data.Length - 1; i >= 0; i--) builder.AddByte((byte)data[i]); return builder.EndVector(); }
+  public static VectorOffset CreateCharactersTypeVectorBlock(FlatBufferBuilder builder, Character[] data) { builder.StartVector(1, data.Length, 1); builder.Add(data); return builder.EndVector(); }
   public static void StartCharactersTypeVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(1, numElems, 1); }
   public static void AddCharacters(FlatBufferBuilder builder, VectorOffset charactersOffset) { builder.AddOffset(3, charactersOffset.Value, 0); }
   public static VectorOffset CreateCharactersVector(FlatBufferBuilder builder, int[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddOffset(data[i]); return builder.EndVector(); }
