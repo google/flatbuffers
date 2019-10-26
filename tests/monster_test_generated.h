@@ -2801,7 +2801,7 @@ inline bool VerifyAny(flatbuffers::Verifier &verifier, const void *obj, Any type
       auto ptr = reinterpret_cast<const MyGame::Example2::Monster *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    default: return false;
+    default: return true;
   }
 }
 
@@ -2912,7 +2912,7 @@ inline bool VerifyAnyUniqueAliases(flatbuffers::Verifier &verifier, const void *
       auto ptr = reinterpret_cast<const MyGame::Example2::Monster *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    default: return false;
+    default: return true;
   }
 }
 
@@ -3023,7 +3023,7 @@ inline bool VerifyAnyAmbiguousAliases(flatbuffers::Verifier &verifier, const voi
       auto ptr = reinterpret_cast<const MyGame::Example::Monster *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    default: return false;
+    default: return true;
   }
 }
 
