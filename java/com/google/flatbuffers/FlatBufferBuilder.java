@@ -572,6 +572,38 @@ public class FlatBufferBuilder {
         return endVector();
     }
 
+    /**
+     * Create a byte array in the buffer.
+     *
+     * @param arr a source array with data.
+     * @param offset the offset in the source array to start copying from.
+     * @param length the number of bytes to copy from the source array.
+     * @return The offset in the buffer where the encoded array starts.
+     */
+    public int createByteVector(byte[] arr, int offset, int length) {
+        startVector(1, length, 1);
+        bb.position(space -= length);
+        bb.put(arr, offset, length);
+        return endVector();
+    }
+
+    /**
+     * Create a byte array in the buffer.
+     *
+     * The source {@link ByteBuffer} position is advanced by {@link ByteBuffer#remaining()} places
+     * after this call.
+     *
+     * @param byteBuffer A source {@link ByteBuffer} with data.
+     * @return The offset in the buffer where the encoded array starts.
+     */
+    public int createByteVector(ByteBuffer byteBuffer) {
+        int length = byteBuffer.remaining();
+        startVector(1, length, 1);
+        bb.position(space -= length);
+        bb.put(byteBuffer);
+        return endVector();
+    }
+
    /// @cond FLATBUFFERS_INTERNAL
    /**
     * Should not be accessing the final buffer before it is finished.
