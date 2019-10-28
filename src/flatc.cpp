@@ -127,6 +127,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --go-namespace     Generate the overrided namespace in Golang.\n"
     "  --go-import        Generate the overrided import for flatbuffers in Golang\n"
     "                     (default is \"github.com/google/flatbuffers/go\").\n"
+    "  --go-enum-sep      String used to separate go enum name and value\n"
     "  --raw-binary       Allow binaries without file_indentifier to be read.\n"
     "                     This may crash flatc given a mismatched schema.\n"
     "  --size-prefixed    Input binaries are size prefixed buffers.\n"
@@ -234,6 +235,9 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       } else if (arg == "--go-import") {
         if (++argi >= argc) Error("missing golang import" + arg, true);
         opts.go_import = argv[argi];
+      } else if (arg == "--go-enum-sep") {
+        if (++argi >= argc) Error("missing golang enum sep" + arg, true);
+        opts.go_enum_sep = argv[argi];
       } else if (arg == "--defaults-json") {
         opts.output_default_scalars_in_json = true;
       } else if (arg == "--unknown-json") {

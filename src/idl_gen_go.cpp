@@ -174,6 +174,7 @@ class GoGenerator : public BaseGenerator {
     std::string &code = *code_ptr;
     code += "\t";
     code += enum_def.name;
+    code += parser_.opts.go_enum_sep;
     code += ev.name;
     code += " ";
     code += std::string(max_name_length - ev.name.length(), ' ');
@@ -202,6 +203,7 @@ class GoGenerator : public BaseGenerator {
     std::string &code = *code_ptr;
     code += "\t";
     code += enum_def.name;
+    code += parser_.opts.go_enum_sep;
     code += ev.name;
     code += ": ";
     code += std::string(max_name_length - ev.name.length(), ' ');
@@ -245,6 +247,7 @@ class GoGenerator : public BaseGenerator {
     code += "\": ";
     code += std::string(max_name_length - ev.name.length(), ' ');
     code += enum_def.name;
+    code += parser_.opts.go_enum_sep;
     code += ev.name;
     code += ",\n";
   }
@@ -825,7 +828,8 @@ class GoGenerator : public BaseGenerator {
          ++it2) {
       const EnumVal &ev = **it2;
       if (ev.IsZero()) continue;
-      code += "\tcase " + enum_def.name + ev.name + ":\n";
+      code += "\tcase " + enum_def.name + parser_.opts.go_enum_sep + ev.name +
+              ":\n";
       code += "\t\treturn " +
               WrapInNameSpaceAndTrack(*ev.union_type.struct_def) +
               "Pack(builder, t.Value.(" + NativeType(ev.union_type) + "))\n";
@@ -846,13 +850,15 @@ class GoGenerator : public BaseGenerator {
          ++it2) {
       const EnumVal &ev = **it2;
       if (ev.IsZero()) continue;
-      code += "\tcase " + enum_def.name + ev.name + ":\n";
+      code += "\tcase " + enum_def.name + parser_.opts.go_enum_sep + ev.name +
+              ":\n";
       code += "\t\tx := " + ReceiverName(*ev.union_type.struct_def) +
               "{_tab: table}\n";
       code += "\t\treturn &" +
               WrapInNameSpaceAndTrack(enum_def.defined_namespace,
                                       NativeName(enum_def)) +
-              "{ Type: " + enum_def.name + ev.name + ", Value: x.UnPack() }\n";
+              "{ Type: " + enum_def.name + parser_.opts.go_enum_sep + ev.name +
+              ", Value: x.UnPack() }\n";
     }
     code += "\t}\n";
     code += "\treturn nil\n";
