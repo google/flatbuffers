@@ -204,7 +204,8 @@ public final class Monster extends Table {
   public static void addHp(FlatBufferBuilder builder, short hp) { builder.addShort(2, hp, 100); }
   public static void addName(FlatBufferBuilder builder, int nameOffset) { builder.addOffset(3, nameOffset, 0); }
   public static void addInventory(FlatBufferBuilder builder, int inventoryOffset) { builder.addOffset(5, inventoryOffset, 0); }
-  public static int createInventoryVector(FlatBufferBuilder builder, byte[] data) { builder.startVector(1, data.length, 1); for (int i = data.length - 1; i >= 0; i--) builder.addByte(data[i]); return builder.endVector(); }
+  public static int createInventoryVector(FlatBufferBuilder builder, byte[] data) { return builder.createByteVector(data); }
+  public static int createInventoryVector(FlatBufferBuilder builder, ByteBuffer data) { return builder.createByteVector(data); }
   public static void startInventoryVector(FlatBufferBuilder builder, int numElems) { builder.startVector(1, numElems, 1); }
   public static void addColor(FlatBufferBuilder builder, int color) { builder.addByte(6, (byte)color, (byte)8); }
   public static void addTestType(FlatBufferBuilder builder, byte testType) { builder.addByte(7, testType, 0); }
@@ -219,7 +220,8 @@ public final class Monster extends Table {
   public static void startTestarrayoftablesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
   public static void addEnemy(FlatBufferBuilder builder, int enemyOffset) { builder.addOffset(12, enemyOffset, 0); }
   public static void addTestnestedflatbuffer(FlatBufferBuilder builder, int testnestedflatbufferOffset) { builder.addOffset(13, testnestedflatbufferOffset, 0); }
-  public static int createTestnestedflatbufferVector(FlatBufferBuilder builder, byte[] data) { builder.startVector(1, data.length, 1); for (int i = data.length - 1; i >= 0; i--) builder.addByte(data[i]); return builder.endVector(); }
+  public static int createTestnestedflatbufferVector(FlatBufferBuilder builder, byte[] data) { return builder.createByteVector(data); }
+  public static int createTestnestedflatbufferVector(FlatBufferBuilder builder, ByteBuffer data) { return builder.createByteVector(data); }
   public static void startTestnestedflatbufferVector(FlatBufferBuilder builder, int numElems) { builder.startVector(1, numElems, 1); }
   public static void addTestempty(FlatBufferBuilder builder, int testemptyOffset) { builder.addOffset(14, testemptyOffset, 0); }
   public static void addTestbool(FlatBufferBuilder builder, boolean testbool) { builder.addBoolean(15, testbool, false); }
@@ -243,7 +245,8 @@ public final class Monster extends Table {
   public static void addTestarrayofsortedstruct(FlatBufferBuilder builder, int testarrayofsortedstructOffset) { builder.addOffset(29, testarrayofsortedstructOffset, 0); }
   public static void startTestarrayofsortedstructVector(FlatBufferBuilder builder, int numElems) { builder.startVector(8, numElems, 4); }
   public static void addFlex(FlatBufferBuilder builder, int flexOffset) { builder.addOffset(30, flexOffset, 0); }
-  public static int createFlexVector(FlatBufferBuilder builder, byte[] data) { builder.startVector(1, data.length, 1); for (int i = data.length - 1; i >= 0; i--) builder.addByte(data[i]); return builder.endVector(); }
+  public static int createFlexVector(FlatBufferBuilder builder, byte[] data) { return builder.createByteVector(data); }
+  public static int createFlexVector(FlatBufferBuilder builder, ByteBuffer data) { return builder.createByteVector(data); }
   public static void startFlexVector(FlatBufferBuilder builder, int numElems) { builder.startVector(1, numElems, 1); }
   public static void addTest5(FlatBufferBuilder builder, int test5Offset) { builder.addOffset(31, test5Offset, 0); }
   public static void startTest5Vector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 2); }
@@ -277,7 +280,8 @@ public final class Monster extends Table {
   public static void addAnyAmbiguousType(FlatBufferBuilder builder, byte anyAmbiguousType) { builder.addByte(45, anyAmbiguousType, 0); }
   public static void addAnyAmbiguous(FlatBufferBuilder builder, int anyAmbiguousOffset) { builder.addOffset(46, anyAmbiguousOffset, 0); }
   public static void addVectorOfEnums(FlatBufferBuilder builder, int vectorOfEnumsOffset) { builder.addOffset(47, vectorOfEnumsOffset, 0); }
-  public static int createVectorOfEnumsVector(FlatBufferBuilder builder, byte[] data) { builder.startVector(1, data.length, 1); for (int i = data.length - 1; i >= 0; i--) builder.addByte(data[i]); return builder.endVector(); }
+  public static int createVectorOfEnumsVector(FlatBufferBuilder builder, byte[] data) { return builder.createByteVector(data); }
+  public static int createVectorOfEnumsVector(FlatBufferBuilder builder, ByteBuffer data) { return builder.createByteVector(data); }
   public static void startVectorOfEnumsVector(FlatBufferBuilder builder, int numElems) { builder.startVector(1, numElems, 1); }
   public static void addSignedEnum(FlatBufferBuilder builder, byte signedEnum) { builder.addByte(48, signedEnum, -1); }
   public static int endMonster(FlatBufferBuilder builder) {

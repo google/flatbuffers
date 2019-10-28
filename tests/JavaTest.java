@@ -14,26 +14,27 @@
  * limitations under the License.
  */
 
-import java.util.Arrays;
-import java.math.BigInteger;
-import java.io.*;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.channels.FileChannel;
-import java.util.Map;
-import java.util.HashMap;
+import static com.google.flatbuffers.Constants.*;
+
 import MyGame.Example.*;
+import MyGame.MonsterExtra;
 import NamespaceA.*;
 import NamespaceA.NamespaceB.*;
 import com.google.flatbuffers.ByteBufferUtil;
-import static com.google.flatbuffers.Constants.*;
-import com.google.flatbuffers.FlatBufferBuilder;
 import com.google.flatbuffers.ByteVector;
-import com.google.flatbuffers.FlexBuffersBuilder;
+import com.google.flatbuffers.FlatBufferBuilder;
 import com.google.flatbuffers.FlexBuffers;
+import com.google.flatbuffers.FlexBuffersBuilder;
 import com.google.flatbuffers.StringVector;
 import com.google.flatbuffers.UnionVector;
-import MyGame.MonsterExtra;
+import java.io.*;
+import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.channels.FileChannel;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 class JavaTest {
     public static void main(String[] args) {
@@ -87,6 +88,8 @@ class JavaTest {
         TestFixedLengthArrays();
 
         TestFlexBuffers();
+
+        TestVectorOfBytes();
 
         System.out.println("FlatBuffers test: completed successfully");
     }
@@ -953,6 +956,124 @@ class JavaTest {
         testFlexBuffersTest();
         testHashMapToMap();
         testFlexBuferEmpty();
+    }
+
+    static void TestVectorOfBytes() {
+        FlatBufferBuilder fbb = new FlatBufferBuilder(16);
+        int str = fbb.createString("ByteMonster");
+        byte[] data = new byte[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+        int offset = Monster.createInventoryVector(fbb, data);
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, str);
+        Monster.addInventory(fbb, offset);
+        int monster1 = Monster.endMonster(fbb);
+        Monster.finishMonsterBuffer(fbb, monster1);
+        Monster monsterObject = Monster.getRootAsMonster(fbb.dataBuffer());
+
+        TestEq(monsterObject.inventoryLength(), data.length);
+        TestEq(monsterObject.inventory(4), (int) data[4]);
+        TestEq(ByteBuffer.wrap(data), monsterObject.inventoryAsByteBuffer());
+
+        fbb.clear();
+        ByteBuffer bb = ByteBuffer.wrap(data);
+        offset = fbb.createByteVector(bb);
+        str = fbb.createString("ByteMonster");
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, str);
+        Monster.addInventory(fbb, offset);
+        monster1 = Monster.endMonster(fbb);
+        Monster.finishMonsterBuffer(fbb, monster1);
+        Monster monsterObject2 = Monster.getRootAsMonster(fbb.dataBuffer());
+
+        TestEq(monsterObject2.inventoryLength(), data.length);
+        for (int i = 0; i < data.length; i++) {
+          TestEq(monsterObject2.inventory(i), (int) bb.get(i));
+        }
+
+        fbb.clear();
+        offset = fbb.createByteVector(data, 3, 4);
+        str = fbb.createString("ByteMonster");
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, str);
+        Monster.addInventory(fbb, offset);
+        monster1 = Monster.endMonster(fbb);
+        Monster.finishMonsterBuffer(fbb, monster1);
+        Monster monsterObject3 = Monster.getRootAsMonster(fbb.dataBuffer());
+
+        TestEq(monsterObject3.inventoryLength(), 4);
+        TestEq(monsterObject3.inventory(0), (int) data[3]);
+
+        fbb.clear();
+        bb = ByteBuffer.wrap(data);
+        offset = Monster.createInventoryVector(fbb, bb);
+        str = fbb.createString("ByteMonster");
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, str);
+        Monster.addInventory(fbb, offset);
+        monster1 = Monster.endMonster(fbb);
+        Monster.finishMonsterBuffer(fbb, monster1);
+        Monster monsterObject4 = Monster.getRootAsMonster(fbb.dataBuffer());
+
+        TestEq(monsterObject4.inventoryLength(), data.length);
+        TestEq(monsterObject4.inventory(8), (int) 8);
+
+        fbb.clear();
+        byte[] largeData = new byte[1024];
+        offset = fbb.createByteVector(largeData);
+        str = fbb.createString("ByteMonster");
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, str);
+        Monster.addInventory(fbb, offset);
+        monster1 = Monster.endMonster(fbb);
+        Monster.finishMonsterBuffer(fbb, monster1);
+        Monster monsterObject5 = Monster.getRootAsMonster(fbb.dataBuffer());
+
+        TestEq(monsterObject5.inventoryLength(), largeData.length);
+        TestEq(monsterObject5.inventory(25), (int) largeData[25]);
+
+        fbb.clear();
+        bb = ByteBuffer.wrap(largeData);
+        bb.position(512);
+        ByteBuffer bb2 = bb.slice();
+        TestEq(bb2.arrayOffset(), 512);
+        offset = fbb.createByteVector(bb2);
+        str = fbb.createString("ByteMonster");
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, str);
+        Monster.addInventory(fbb, offset);
+        monster1 = Monster.endMonster(fbb);
+        Monster.finishMonsterBuffer(fbb, monster1);
+        Monster monsterObject6 = Monster.getRootAsMonster(fbb.dataBuffer());
+
+        TestEq(monsterObject6.inventoryLength(), 512);
+        TestEq(monsterObject6.inventory(0), (int) largeData[512]);
+
+        fbb.clear();
+        bb = ByteBuffer.wrap(largeData);
+        bb.limit(256);
+        offset = fbb.createByteVector(bb);
+        str = fbb.createString("ByteMonster");
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, str);
+        Monster.addInventory(fbb, offset);
+        monster1 = Monster.endMonster(fbb);
+        Monster.finishMonsterBuffer(fbb, monster1);
+        Monster monsterObject7 = Monster.getRootAsMonster(fbb.dataBuffer());
+
+        TestEq(monsterObject7.inventoryLength(), 256);
+
+        fbb.clear();
+        bb = ByteBuffer.allocateDirect(2048);
+        offset = fbb.createByteVector(bb);
+        str = fbb.createString("ByteMonster");
+        Monster.startMonster(fbb);
+        Monster.addName(fbb, str);
+        Monster.addInventory(fbb, offset);
+        monster1 = Monster.endMonster(fbb);
+        Monster.finishMonsterBuffer(fbb, monster1);
+        Monster monsterObject8 = Monster.getRootAsMonster(fbb.dataBuffer());
+
+        TestEq(monsterObject8.inventoryLength(), 2048);
     }
 
     static <T> void TestEq(T a, T b) {
