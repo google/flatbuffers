@@ -167,6 +167,9 @@ impl<'a, T: 'a> VectorIter<'a, T> {
     pub fn new(inner: Vector<'a, T>) -> Self {
         VectorIter {
             buf: inner.0,
+            // inner.1 is the location of the data for the vector.
+            // The first SIZE_UOFFSET bytes is the length. We skip
+            // that to get to the actual vector content.
             loc: inner.1 + SIZE_UOFFSET,
             remaining: inner.len(),
             phantom: PhantomData,
@@ -210,7 +213,11 @@ impl<'a, T: Follow<'a> + 'a> Iterator for VectorIter<'a, T> {
         debug_assert!(sz > 0);
 
         self.remaining = self.remaining.saturating_sub(n);
+
+        // Note that this might overflow, but that is okay because
+        // in that case self.remaining will have been set to zero.
         self.loc = self.loc.wrapping_add(sz * n);
+
         self.next()
     }
 
