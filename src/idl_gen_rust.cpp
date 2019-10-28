@@ -1310,6 +1310,7 @@ class RustGenerator : public BaseGenerator {
       auto u = field.value.type.enum_def;
 
       code_.SetValue("FIELD_NAME", Name(field));
+      code_.SetValue("FIELD_TYPE_FIELD_NAME", field.name);
 
       for (auto u_it = u->Vals().begin(); u_it != u->Vals().end(); ++u_it) {
         auto &ev = **u_it;
@@ -1328,7 +1329,7 @@ class RustGenerator : public BaseGenerator {
         code_ += "  #[allow(non_snake_case)]";
         code_ += "  pub fn {{FIELD_NAME}}_as_{{U_ELEMENT_NAME}}(&self) -> "
                  "Option<{{U_ELEMENT_TABLE_TYPE}}<'a>> {";
-        code_ += "    if self.{{FIELD_NAME}}_type() == {{U_ELEMENT_ENUM_TYPE}} {";
+        code_ += "    if self.{{FIELD_TYPE_FIELD_NAME}}_type() == {{U_ELEMENT_ENUM_TYPE}} {";
         code_ += "      self.{{FIELD_NAME}}().map(|u| "
                  "{{U_ELEMENT_TABLE_TYPE}}::init_from_table(u))";
         code_ += "    } else {";
