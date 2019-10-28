@@ -563,7 +563,7 @@ inline bool VerifyCharacter(flatbuffers::Verifier &verifier, const void *obj, Ch
       auto ptr = reinterpret_cast<const flatbuffers::String *>(obj);
       return verifier.VerifyString(ptr);
     }
-    default: return false;
+    default: return true;
   }
 }
 

@@ -1295,7 +1295,7 @@ class CppGenerator : public BaseGenerator {
         code_ += "    }";
       }
     }
-    code_ += "    default: return false;";
+    code_ += "    default: return true;"; // unknown values are OK.
     code_ += "  }";
     code_ += "}";
     code_ += "";
