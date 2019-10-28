@@ -240,6 +240,12 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.go_enum_sep = argv[argi];
       } else if (arg == "--go-object-marshal") {
         opts.go_object_marshal = true;
+      } else if (arg == "--go-protobuf-compat") {
+        opts.go_protobuf_compat = true;
+        opts.receiver_suffix = "Receiver";
+        opts.object_suffix = "";
+        opts.go_enum_sep = "_";
+        opts.go_object_marshal = true;
       } else if (arg == "--defaults-json") {
         opts.output_default_scalars_in_json = true;
       } else if (arg == "--unknown-json") {
@@ -368,6 +374,12 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       Error("cannot generate code directly from .proto files", true);
   } else if (!any_generator && conform_to_schema.empty()) {
     Error("no options: specify at least one generator.", true);
+  }
+
+  if (opts.go_protobuf_compat) {
+    if (opts.lang_to_generate != IDLOptions::kGo) {
+      Error("--go-protobuf-compat must only be used with --go.", false, false);
+    }
   }
 
   flatbuffers::Parser conform_parser;
