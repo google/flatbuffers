@@ -807,6 +807,19 @@ class GoGenerator : public BaseGenerator {
       GenNativeStructPack(struct_def, code_ptr);
       GenNativeStructUnPack(struct_def, code_ptr);
     }
+
+    if (parser_.opts.go_object_marshal) {
+      code += "func (t *" + NativeName(struct_def) + ") Marshal() ([]byte, error) {\n";
+      code += "\tb := flatbuffers.NewBuilder(0)\n";
+      code += "\tb.Finish(" + struct_def.name + "Pack(b, t))\n";
+      code += "\treturn b.FinishedBytes(), nil\n";
+      code += "}\n\n";
+
+      code += "func (t *" + NativeName(struct_def) + ") Unmarshal(data []byte) error {\n";
+      code += "\tGetRootAs" + ReceiverName(struct_def) + "(data, 0).UnPackTo(t)\n";
+      code += "\treturn nil\n";
+      code += "}\n\n";
+    }
   }
 
   void GenNativeUnion(const EnumDef &enum_def, std::string *code_ptr) {

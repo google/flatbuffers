@@ -551,6 +551,7 @@ struct IDLOptions {
   std::string go_import;
   std::string go_namespace;
   std::string go_enum_sep;
+  bool go_object_marshal;
   bool reexport_ts_modules;
   bool js_ts_short_names;
   bool protobuf_ascii_alike;
@@ -629,6 +630,7 @@ struct IDLOptions {
         binary_schema_comments(false),
         binary_schema_builtins(false),
         skip_flatbuffers_import(false),
+        go_object_marshal(false),
         reexport_ts_modules(true),
         js_ts_short_names(false),
         protobuf_ascii_alike(false),

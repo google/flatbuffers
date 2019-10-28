@@ -238,6 +238,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       } else if (arg == "--go-enum-sep") {
         if (++argi >= argc) Error("missing golang enum sep" + arg, true);
         opts.go_enum_sep = argv[argi];
+      } else if (arg == "--go-object-marshal") {
+        opts.go_object_marshal = true;
       } else if (arg == "--defaults-json") {
         opts.output_default_scalars_in_json = true;
       } else if (arg == "--unknown-json") {
