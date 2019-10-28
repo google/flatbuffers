@@ -2235,7 +2235,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     // Check the vtable offset.
     auto tableo = static_cast<size_t>(table - buf_);
     if (!Verify<soffset_t>(tableo)) return false;
-    // This offset may be signed, but doing the substraction unsigned always
+    // This offset may be signed, but doing the subtraction unsigned always
     // gives the result we want.
     auto vtableo = tableo - static_cast<size_t>(ReadScalar<soffset_t>(table));
     // Check the vtable size field, then check vtable fits in its entirety.

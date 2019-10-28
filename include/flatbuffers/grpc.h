@@ -274,7 +274,7 @@ template<class T> class SerializationTraits<flatbuffers::grpc::Message<T>> {
                                 grpc_byte_buffer **buffer, bool *own_buffer) {
     // We are passed in a `Message<T>`, which is a wrapper around a
     // `grpc_slice`. We extract it here using `BorrowSlice()`. The const cast
-    // is necesary because the `grpc_raw_byte_buffer_create` func expects
+    // is necessary because the `grpc_raw_byte_buffer_create` func expects
     // non-const slices in order to increment their refcounts.
     grpc_slice *slice = const_cast<grpc_slice *>(&msg.BorrowSlice());
     // Now use `grpc_raw_byte_buffer_create` to package the single slice into a
@@ -306,7 +306,7 @@ template<class T> class SerializationTraits<flatbuffers::grpc::Message<T>> {
       grpc_byte_buffer_reader_init(&reader, buffer);
       grpc_slice slice = grpc_byte_buffer_reader_readall(&reader);
       grpc_byte_buffer_reader_destroy(&reader);
-      // We wrap a `Message<T>` around the slice, but dont increment refcount
+      // We wrap a `Message<T>` around the slice, but don't increment refcount
       *msg = flatbuffers::grpc::Message<T>(slice, false);
     }
     grpc_byte_buffer_destroy(buffer);
