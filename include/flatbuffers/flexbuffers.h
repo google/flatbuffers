@@ -1054,7 +1054,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     for (auto key = start; key < stack_.size(); key += 2) {
       FLATBUFFERS_ASSERT(stack_[key].type_ == FBT_KEY);
     }
-    // Now sort values, so later we can do a binary seach lookup.
+    // Now sort values, so later we can do a binary search lookup.
     // We want to sort 2 array elements at a time.
     struct TwoValue {
       Value key;

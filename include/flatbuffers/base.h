@@ -99,7 +99,7 @@
 #if !defined(__clang__) && \
     defined(__GNUC__) && \
     (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__ < 40600)
-  // Backwards compatability for g++ 4.4, and 4.5 which don't have the nullptr
+  // Backwards compatibility for g++ 4.4, and 4.5 which don't have the nullptr
   // and constexpr keywords. Note the __clang__ check is needed, because clang
   // presents itself as an older GNUC compiler.
   #ifndef nullptr_t
