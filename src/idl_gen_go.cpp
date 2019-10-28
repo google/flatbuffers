@@ -141,7 +141,7 @@ class GoGenerator : public BaseGenerator {
   void BeginClass(const StructDef &struct_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
 
-    code += "type " + struct_def.name + " struct {\n\t";
+    code += "type " + ReceiverName(struct_def) + " struct {\n\t";
 
     // _ is reserved in flatbuffers field names, so no chance of name conflict:
     code += "_tab ";
@@ -261,12 +261,12 @@ class GoGenerator : public BaseGenerator {
     std::string &code = *code_ptr;
 
     code += "func GetRootAs";
-    code += struct_def.name;
+    code += ReceiverName(struct_def);
     code += "(buf []byte, offset flatbuffers.UOffsetT) ";
-    code += "*" + struct_def.name + "";
+    code += "*" + ReceiverName(struct_def) + "";
     code += " {\n";
     code += "\tn := flatbuffers.GetUOffsetT(buf[offset:])\n";
-    code += "\tx := &" + struct_def.name + "{}\n";
+    code += "\tx := &" + ReceiverName(struct_def) + "{}\n";
     code += "\tx.Init(buf, n+offset)\n";
     code += "\treturn x\n";
     code += "}\n\n";
@@ -606,7 +606,7 @@ class GoGenerator : public BaseGenerator {
   // Generate the receiver for function signatures.
   void GenReceiver(const StructDef &struct_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
-    code += "func (rcv *" + struct_def.name + ")";
+    code += "func (rcv *" + ReceiverName(struct_def) + ")";
   }
 
   // Generate a struct field getter, conditioned on its child type(s).
@@ -847,8 +847,8 @@ class GoGenerator : public BaseGenerator {
       const EnumVal &ev = **it2;
       if (ev.IsZero()) continue;
       code += "\tcase " + enum_def.name + ev.name + ":\n";
-      code += "\t\tx := " + ev.union_type.struct_def->name + "{_tab: table}\n";
-
+      code += "\t\tx := " + ReceiverName(*ev.union_type.struct_def) +
+              "{_tab: table}\n";
       code += "\t\treturn &" +
               WrapInNameSpaceAndTrack(enum_def.defined_namespace,
                                       NativeName(enum_def)) +
@@ -981,7 +981,7 @@ class GoGenerator : public BaseGenerator {
                             std::string *code_ptr) {
     std::string &code = *code_ptr;
 
-    code += "func (rcv *" + struct_def.name + ") UnPackTo(t *" +
+    code += "func (rcv *" + ReceiverName(struct_def) + ") UnPackTo(t *" +
             NativeName(struct_def) + ") {\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
@@ -1008,22 +1008,22 @@ class GoGenerator : public BaseGenerator {
         code += "\tt." + field_name_camel + " = make(" +
                 NativeType(field.value.type) + ", " + length + ")\n";
         code += "\tfor j := 0; j < " + length + "; j++ {\n";
-        if (field.value.type.element == BASE_TYPE_STRUCT) {
-          code += "\t\tx := " + field.value.type.struct_def->name + "{}\n";
-          code += "\t\trcv." + field_name_camel + "(&x, j)\n";
-        }
-        code += "\t\tt." + field_name_camel + "[j] = ";
         if (IsScalar(field.value.type.element)) {
-          code += "rcv." + field_name_camel + "(j)";
+          code += "\t\tt." + field_name_camel + "[j] = ";
+          code += "rcv." + field_name_camel + "(j)\n";
         } else if (field.value.type.element == BASE_TYPE_STRING) {
-          code += "string(rcv." + field_name_camel + "(j))";
+          code += "\t\tt." + field_name_camel + "[j] = ";
+          code += "string(rcv." + field_name_camel + "(j))\n";
         } else if (field.value.type.element == BASE_TYPE_STRUCT) {
-          code += "x.UnPack()";
+          code += "\t\tx := " + ReceiverName(*field.value.type.struct_def) +
+                  "{}\n";
+          code += "\t\tif rcv." + field_name_camel + "(&x, j) {\n";
+          code += "\t\t\tt." + field_name_camel + "[j] = x.UnPack()\n";
+          code += "\t\t}\n";
         } else {
           // TODO(iceboy): Support vector of unions.
           FLATBUFFERS_ASSERT(0);
         }
-        code += "\n";
         code += "\t}\n";
       } else if (field.value.type.base_type == BASE_TYPE_STRUCT) {
         code += "\tt." + field_name_camel + " = rcv." + field_name_camel +
@@ -1044,7 +1044,7 @@ class GoGenerator : public BaseGenerator {
     }
     code += "}\n\n";
 
-    code += "func (rcv *" + struct_def.name + ") UnPack() *" +
+    code += "func (rcv *" + ReceiverName(struct_def) + ") UnPack() *" +
             NativeName(struct_def) + " {\n";
     code += "\tif rcv == nil { return nil }\n";
     code += "\tt := &" + NativeName(struct_def) + "{}\n";
@@ -1086,7 +1086,7 @@ class GoGenerator : public BaseGenerator {
                              std::string *code_ptr) {
     std::string &code = *code_ptr;
 
-    code += "func (rcv *" + struct_def.name + ") UnPackTo(t *" +
+    code += "func (rcv *" + ReceiverName(struct_def) + ") UnPackTo(t *" +
             NativeName(struct_def) + ") {\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
@@ -1101,7 +1101,7 @@ class GoGenerator : public BaseGenerator {
     }
     code += "}\n\n";
 
-    code += "func (rcv *" + struct_def.name + ") UnPack() *" +
+    code += "func (rcv *" + ReceiverName(struct_def) + ") UnPack() *" +
             NativeName(struct_def) + " {\n";
     code += "\tif rcv == nil { return nil }\n";
     code += "\tt := &" + NativeName(struct_def) + "{}\n";
@@ -1177,7 +1177,10 @@ class GoGenerator : public BaseGenerator {
     switch (type.base_type) {
       case BASE_TYPE_STRING: return "[]byte";
       case BASE_TYPE_VECTOR: return GenTypeGet(type.VectorType());
-      case BASE_TYPE_STRUCT: return WrapInNameSpaceAndTrack(*type.struct_def);
+      case BASE_TYPE_STRUCT: {
+        return WrapInNameSpaceAndTrack(type.struct_def->defined_namespace,
+                                       ReceiverName(*type.struct_def));
+      }
       case BASE_TYPE_UNION:
         // fall through
       default: return "*flatbuffers.Table";
@@ -1219,6 +1222,11 @@ class GoGenerator : public BaseGenerator {
         return field.value.constant == "0" ? "false" : "true";
       default: return field.value.constant;
     }
+  }
+
+  std::string ReceiverName(const StructDef &struct_def) {
+    return parser_.opts.receiver_prefix + struct_def.name +
+           parser_.opts.receiver_suffix;
   }
 
   std::string NativeName(const StructDef &struct_def) {

@@ -310,8 +310,9 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 	t.Test4 = make([]*TestT, test4Length)
 	for j := 0; j < test4Length; j++ {
 		x := Test{}
-		rcv.Test4(&x, j)
-		t.Test4[j] = x.UnPack()
+		if rcv.Test4(&x, j) {
+			t.Test4[j] = x.UnPack()
+		}
 	}
 	testarrayofstringLength := rcv.TestarrayofstringLength()
 	t.Testarrayofstring = make([]string, testarrayofstringLength)
@@ -322,8 +323,9 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 	t.Testarrayoftables = make([]*MonsterT, testarrayoftablesLength)
 	for j := 0; j < testarrayoftablesLength; j++ {
 		x := Monster{}
-		rcv.Testarrayoftables(&x, j)
-		t.Testarrayoftables[j] = x.UnPack()
+		if rcv.Testarrayoftables(&x, j) {
+			t.Testarrayoftables[j] = x.UnPack()
+		}
 	}
 	t.Enemy = rcv.Enemy(nil).UnPack()
 	t.Testnestedflatbuffer = rcv.TestnestedflatbufferBytes()
@@ -354,16 +356,18 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 	t.Testarrayofsortedstruct = make([]*AbilityT, testarrayofsortedstructLength)
 	for j := 0; j < testarrayofsortedstructLength; j++ {
 		x := Ability{}
-		rcv.Testarrayofsortedstruct(&x, j)
-		t.Testarrayofsortedstruct[j] = x.UnPack()
+		if rcv.Testarrayofsortedstruct(&x, j) {
+			t.Testarrayofsortedstruct[j] = x.UnPack()
+		}
 	}
 	t.Flex = rcv.FlexBytes()
 	test5Length := rcv.Test5Length()
 	t.Test5 = make([]*TestT, test5Length)
 	for j := 0; j < test5Length; j++ {
 		x := Test{}
-		rcv.Test5(&x, j)
-		t.Test5[j] = x.UnPack()
+		if rcv.Test5(&x, j) {
+			t.Test5[j] = x.UnPack()
+		}
 	}
 	vectorOfLongsLength := rcv.VectorOfLongsLength()
 	t.VectorOfLongs = make([]int64, vectorOfLongsLength)
@@ -380,8 +384,9 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 	t.VectorOfReferrables = make([]*ReferrableT, vectorOfReferrablesLength)
 	for j := 0; j < vectorOfReferrablesLength; j++ {
 		x := Referrable{}
-		rcv.VectorOfReferrables(&x, j)
-		t.VectorOfReferrables[j] = x.UnPack()
+		if rcv.VectorOfReferrables(&x, j) {
+			t.VectorOfReferrables[j] = x.UnPack()
+		}
 	}
 	t.SingleWeakReference = rcv.SingleWeakReference()
 	vectorOfWeakReferencesLength := rcv.VectorOfWeakReferencesLength()
@@ -393,8 +398,9 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 	t.VectorOfStrongReferrables = make([]*ReferrableT, vectorOfStrongReferrablesLength)
 	for j := 0; j < vectorOfStrongReferrablesLength; j++ {
 		x := Referrable{}
-		rcv.VectorOfStrongReferrables(&x, j)
-		t.VectorOfStrongReferrables[j] = x.UnPack()
+		if rcv.VectorOfStrongReferrables(&x, j) {
+			t.VectorOfStrongReferrables[j] = x.UnPack()
+		}
 	}
 	t.CoOwningReference = rcv.CoOwningReference()
 	vectorOfCoOwningReferencesLength := rcv.VectorOfCoOwningReferencesLength()

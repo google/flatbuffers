@@ -536,6 +536,8 @@ struct IDLOptions {
   bool gen_nullable;
   bool java_checkerframework;
   bool gen_generated;
+  std::string receiver_prefix;
+  std::string receiver_suffix;
   std::string object_prefix;
   std::string object_suffix;
   bool union_value_namespacing;

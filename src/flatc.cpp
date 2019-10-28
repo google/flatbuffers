@@ -116,6 +116,8 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "                     (see the --cpp-str-flex-ctor option to change this behavior).\n"
     "  --cpp-str-flex-ctor Don't construct custom string types by passing std::string\n"
     "                     from Flatbuffers, but (char* + length).\n"
+    "  --receiver-prefix  Customise class prefix for go receiver.\n"
+    "  --receiver-suffix  Customise class suffix for go receiver.\n"
     "  --object-prefix    Customise class prefix for C++ object-based API.\n"
     "  --object-suffix    Customise class suffix for C++ object-based API.\n"
     "                     Default value is \"T\".\n"
@@ -268,6 +270,12 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.java_checkerframework = true;
       } else if (arg == "--gen-generated") {
         opts.gen_generated = true;
+      } else if (arg == "--receiver-prefix") {
+        if (++argi >= argc) Error("missing prefix following" + arg, true);
+        opts.receiver_prefix = argv[argi];
+      } else if (arg == "--receiver-suffix") {
+        if (++argi >= argc) Error("missing suffix following" + arg, true);
+        opts.receiver_suffix = argv[argi];
       } else if (arg == "--object-prefix") {
         if (++argi >= argc) Error("missing prefix following" + arg, true);
         opts.object_prefix = argv[argi];
