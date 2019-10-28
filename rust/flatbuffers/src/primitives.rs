@@ -79,8 +79,20 @@ pub struct VTableWIPOffset {}
 /// data relative to the *end* of an in-progress FlatBuffer. The
 /// FlatBufferBuilder uses this to track the location of objects in an absolute
 /// way. The impl of Push converts a WIPOffset into a ForwardsUOffset.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug)]
 pub struct WIPOffset<T>(UOffsetT, PhantomData<T>);
+
+// We cannot use derive for these two impls, as the derived impls would only
+// implement `Copy` and `Clone` for `T: Copy` and `T: Clone` respectively.
+// However `WIPOffset<T>` can always be copied, no matter that `T` you
+// have.
+impl<T> Copy for WIPOffset<T> {}
+impl<T> Clone for WIPOffset<T> {
+    #[inline(always)]
+    fn clone(&self) -> Self {
+        *self
+    }
+}
 
 impl<T> PartialEq for WIPOffset<T> {
     fn eq(&self, o: &WIPOffset<T>) -> bool {
@@ -108,12 +120,12 @@ impl<'a, T: 'a> WIPOffset<T> {
     /// Return a wrapped value that brings its meaning as a union WIPOffset
     /// into the type system.
     #[inline(always)]
-    pub fn as_union_value(&self) -> WIPOffset<UnionWIPOffset> {
+    pub fn as_union_value(self) -> WIPOffset<UnionWIPOffset> {
         WIPOffset::new(self.0)
     }
     /// Get the underlying value.
     #[inline(always)]
-    pub fn value(&self) -> UOffsetT {
+    pub fn value(self) -> UOffsetT {
         self.0
     }
 }
@@ -139,11 +151,24 @@ impl<T> Push for ForwardsUOffset<T> {
 
 /// ForwardsUOffset is used by Follow to traverse a FlatBuffer: the pointer
 /// is incremented by the value contained in this type.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug)]
 pub struct ForwardsUOffset<T>(UOffsetT, PhantomData<T>);
+
+// We cannot use derive for these two impls, as the derived impls would only
+// implement `Copy` and `Clone` for `T: Copy` and `T: Clone` respectively.
+// However `ForwardsUOffset<T>` can always be copied, no matter that `T` you
+// have.
+impl<T> Copy for ForwardsUOffset<T> {}
+impl<T> Clone for ForwardsUOffset<T> {
+    #[inline(always)]
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+
 impl<T> ForwardsUOffset<T> {
     #[inline(always)]
-    pub fn value(&self) -> UOffsetT {
+    pub fn value(self) -> UOffsetT {
         self.0
     }
 }

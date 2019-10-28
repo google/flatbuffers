@@ -19,6 +19,7 @@ path = "bin/alloc_check.rs"
 quickcheck = "0.6"
 # TODO(rw): look into moving to criterion.rs
 bencher = "0.1.5"
+static_assertions = "1.0.0"
 
 [[bench]]
 # setup for bencher
