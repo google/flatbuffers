@@ -655,7 +655,7 @@ inline bool VerifyEquipment(flatbuffers::Verifier &verifier, const void *obj, Eq
       auto ptr = reinterpret_cast<const MyGame::Sample::Weapon *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    default: return false;
+    default: return true;
   }
 }
 
