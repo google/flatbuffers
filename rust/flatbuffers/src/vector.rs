@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
+use std::iter::{DoubleEndedIterator, ExactSizeIterator, FusedIterator};
 use std::marker::PhantomData;
 use std::mem::size_of;
 use std::slice::from_raw_parts;
 use std::str::from_utf8_unchecked;
 
+use endian_scalar::read_scalar_at;
 #[cfg(target_endian = "little")]
 use endian_scalar::EndianScalar;
-use endian_scalar::{read_scalar, read_scalar_at};
 use follow::Follow;
 use primitives::*;
 
@@ -50,7 +51,7 @@ impl<'a, T: 'a> Vector<'a, T> {
 
     #[inline(always)]
     pub fn len(&self) -> usize {
-        read_scalar::<UOffsetT>(&self.0[self.1 as usize..]) as usize
+        read_scalar_at::<UOffsetT>(&self.0, self.1) as usize
     }
     #[inline(always)]
     pub fn is_empty(&self) -> bool {
@@ -61,10 +62,15 @@ impl<'a, T: 'a> Vector<'a, T> {
 impl<'a, T: Follow<'a> + 'a> Vector<'a, T> {
     #[inline(always)]
     pub fn get(&self, idx: usize) -> T::Inner {
-        debug_assert!(idx < read_scalar::<u32>(&self.0[self.1 as usize..]) as usize);
+        debug_assert!(idx < read_scalar_at::<u32>(&self.0, self.1) as usize);
         let sz = size_of::<T>();
         debug_assert!(sz > 0);
         T::follow(self.0, self.1 as usize + SIZE_UOFFSET + sz * idx)
+    }
+
+    #[inline(always)]
+    pub fn iter(&self) -> VectorIter<'a, T> {
+        VectorIter::new(*self)
     }
 }
 
@@ -145,5 +151,125 @@ impl<'a, T: Follow<'a> + 'a> Follow<'a> for Vector<'a, T> {
     type Inner = Vector<'a, T>;
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
         Vector::new(buf, loc)
+    }
+}
+
+#[derive(Debug)]
+pub struct VectorIter<'a, T: 'a> {
+    buf: &'a [u8],
+    loc: usize,
+    remaining: usize,
+    phantom: PhantomData<T>,
+}
+
+impl<'a, T: 'a> VectorIter<'a, T> {
+    #[inline]
+    pub fn new(inner: Vector<'a, T>) -> Self {
+        VectorIter {
+            buf: inner.0,
+            // inner.1 is the location of the data for the vector.
+            // The first SIZE_UOFFSET bytes is the length. We skip
+            // that to get to the actual vector content.
+            loc: inner.1 + SIZE_UOFFSET,
+            remaining: inner.len(),
+            phantom: PhantomData,
+        }
+    }
+}
+
+impl<'a, T: Follow<'a> + 'a> Clone for VectorIter<'a, T> {
+    #[inline]
+    fn clone(&self) -> Self {
+        VectorIter {
+            buf: self.buf,
+            loc: self.loc,
+            remaining: self.remaining,
+            phantom: self.phantom,
+        }
+    }
+}
+
+impl<'a, T: Follow<'a> + 'a> Iterator for VectorIter<'a, T> {
+    type Item = T::Inner;
+
+    #[inline]
+    fn next(&mut self) -> Option<T::Inner> {
+        let sz = size_of::<T>();
+        debug_assert!(sz > 0);
+
+        if self.remaining == 0 {
+            None
+        } else {
+            let result = T::follow(self.buf, self.loc);
+            self.loc += sz;
+            self.remaining -= 1;
+            Some(result)
+        }
+    }
+
+    #[inline]
+    fn nth(&mut self, n: usize) -> Option<T::Inner> {
+        let sz = size_of::<T>();
+        debug_assert!(sz > 0);
+
+        self.remaining = self.remaining.saturating_sub(n);
+
+        // Note that this might overflow, but that is okay because
+        // in that case self.remaining will have been set to zero.
+        self.loc = self.loc.wrapping_add(sz * n);
+
+        self.next()
+    }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (self.remaining, Some(self.remaining))
+    }
+}
+
+impl<'a, T: Follow<'a> + 'a> DoubleEndedIterator for VectorIter<'a, T> {
+    #[inline]
+    fn next_back(&mut self) -> Option<T::Inner> {
+        let sz = size_of::<T>();
+        debug_assert!(sz > 0);
+
+        if self.remaining == 0 {
+            None
+        } else {
+            self.remaining -= 1;
+            Some(T::follow(self.buf, self.loc + sz * self.remaining))
+        }
+    }
+
+    #[inline]
+    fn nth_back(&mut self, n: usize) -> Option<T::Inner> {
+        self.remaining = self.remaining.saturating_sub(n);
+        self.next_back()
+    }
+}
+
+impl<'a, T: 'a + Follow<'a>> ExactSizeIterator for VectorIter<'a, T> {
+    #[inline]
+    fn len(&self) -> usize {
+        self.remaining
+    }
+}
+
+impl<'a, T: 'a + Follow<'a>> FusedIterator for VectorIter<'a, T> {}
+
+impl<'a, T: Follow<'a> + 'a> IntoIterator for Vector<'a, T> {
+    type Item = T::Inner;
+    type IntoIter = VectorIter<'a, T>;
+    #[inline]
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
+impl<'a, 'b, T: Follow<'a> + 'a> IntoIterator for &'b Vector<'a, T> {
+    type Item = T::Inner;
+    type IntoIter = VectorIter<'a, T>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
     }
 }
