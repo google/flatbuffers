@@ -54,6 +54,7 @@ type MonsterT struct {
 	AnyUnique *AnyUniqueAliasesT
 	AnyAmbiguous *AnyAmbiguousAliasesT
 	VectorOfEnums []Color
+	SignedEnum Race
 }
 
 func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT {
@@ -290,6 +291,7 @@ func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT
 	}
 	MonsterAddAnyAmbiguous(builder, anyAmbiguousOffset)
 	MonsterAddVectorOfEnums(builder, vectorOfEnumsOffset)
+	MonsterAddSignedEnum(builder, t.SignedEnum)
 	return MonsterEnd(builder)
 }
 
@@ -421,6 +423,7 @@ func (rcv *Monster) UnPack() *MonsterT {
 	for j := 0; j < vectorOfEnumsLength; j++ {
 		t.VectorOfEnums[j] = rcv.VectorOfEnums(j)
 	}
+	t.SignedEnum = rcv.SignedEnum()
 	return t
 }
 
