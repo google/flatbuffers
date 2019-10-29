@@ -30,7 +30,7 @@ int main(int /*argc*/, const char * /*argv*/ []) {
   bool ok = flatbuffers::LoadFile("samples/monster.fbs", false, &schemafile) &&
             flatbuffers::LoadFile("samples/monsterdata.json", false, &jsonfile);
   if (!ok) {
-    std::cout<<"couldn't load files!"<<endl;
+    std::cout<<"couldn't load files!"<<endl; //using standard cout function
     return 1;
   }
 
