@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#include<bits/stdc++.h>
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
@@ -30,7 +30,7 @@ int main(int /*argc*/, const char * /*argv*/ []) {
   bool ok = flatbuffers::LoadFile("samples/monster.fbs", false, &schemafile) &&
             flatbuffers::LoadFile("samples/monsterdata.json", false, &jsonfile);
   if (!ok) {
-    printf("couldn't load files!\n");
+    std::cout<<"couldn't load files!"<<endl;
     return 1;
   }
 
