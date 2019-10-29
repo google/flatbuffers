@@ -71,7 +71,9 @@ class DartGenerator : public BaseGenerator {
              "// ignore_for_file: unused_import, unused_field, "
              "unused_local_variable\n\n";
 
-      code += "library " + kv->first + ";\n\n";
+      if (!kv->first.empty()) {
+        code += "library " + kv->first + ";\n\n";
+      }
 
       code += "import 'dart:typed_data' show Uint8List;\n";
       code += "import 'package:flat_buffers/flat_buffers.dart' as " + _kFb +
@@ -85,7 +87,7 @@ class DartGenerator : public BaseGenerator {
            ++kv2) {
         if (kv2->first != kv->first) {
           code += "import '" +
-                  GeneratedFileName("./", file_name_ + "_" + kv2->first) +
+                  GeneratedFileName("./", file_name_ + (!kv2->first.empty() ? "_" + kv2->first : "")) +
                   "' as " + ImportAliasName(kv2->first) + ";\n";
         }
       }
@@ -93,7 +95,7 @@ class DartGenerator : public BaseGenerator {
       code += kv->second;
 
       if (!SaveFile(
-              GeneratedFileName(path_, file_name_ + "_" + kv->first).c_str(),
+              GeneratedFileName(path_, file_name_ + (!kv->first.empty() ? "_" + kv->first : "")).c_str(),
               code, false)) {
         return false;
       }
@@ -105,16 +107,19 @@ class DartGenerator : public BaseGenerator {
   static std::string ImportAliasName(const std::string &ns) {
     std::string ret;
     ret.assign(ns);
-    size_t pos = ret.find(".");
+    size_t pos = ret.find('.');
     while (pos != std::string::npos) {
       ret.replace(pos, 1, "_");
-      pos = ret.find(".", pos + 1);
+      pos = ret.find('.', pos + 1);
     }
 
     return ret;
   }
 
   static std::string BuildNamespaceName(const Namespace &ns) {
+    if (ns.components.empty()) {
+      return "";
+    }
     std::stringstream sstream;
     std::copy(ns.components.begin(), ns.components.end() - 1,
               std::ostream_iterator<std::string>(sstream, "."));
@@ -142,7 +147,7 @@ class DartGenerator : public BaseGenerator {
       auto noext = flatbuffers::StripExtension(it->second);
       auto basename = flatbuffers::StripPath(noext);
 
-      *code += "import '" + GeneratedFileName("", basename + "_" + the_namespace) + "';\n";
+      *code += "import '" + GeneratedFileName("", basename + (the_namespace == "" ? "" : "_" + the_namespace)) + "';\n";
     }
   }
 
@@ -181,7 +186,6 @@ class DartGenerator : public BaseGenerator {
     }
 
     auto &code = *code_ptr;
-    if (indent) code += indent;
 
     for (auto it = dc.begin(); it != dc.end(); ++it) {
       if (indent) code += indent;
@@ -410,23 +414,23 @@ class DartGenerator : public BaseGenerator {
     auto object_namespace = BuildNamespaceName(*struct_def.defined_namespace);
     std::string code;
 
-    auto object_name = struct_def.name;
+    const auto &object_name = struct_def.name;
 
     // Emit constructor
 
     GenDocComment(struct_def.doc_comment, &code, "");
 
-    auto reader_name = "_" + struct_def.name + "Reader";
-    auto builder_name = struct_def.name + "Builder";
-    auto object_builder_name = struct_def.name + "ObjectBuilder";
+    auto reader_name = "_" + object_name + "Reader";
+    auto builder_name = object_name + "Builder";
+    auto object_builder_name = object_name + "ObjectBuilder";
 
     std::string reader_code, builder_code;
 
-    code += "class " + struct_def.name + " {\n";
+    code += "class " + object_name + " {\n";
 
-    code += "  " + struct_def.name + "._(this._bc, this._bcOffset);\n";
+    code += "  " + object_name + "._(this._bc, this._bcOffset);\n";
     if (!struct_def.fixed) {
-      code += "  factory " + struct_def.name + "(List<int> bytes) {\n";
+      code += "  factory " + object_name + "(List<int> bytes) {\n";
       code += "    " + _kFb + ".BufferContext rootRef = new " + _kFb +
               ".BufferContext.fromBytes(bytes);\n";
       code += "    return reader.read(rootRef, 0);\n";
@@ -434,7 +438,7 @@ class DartGenerator : public BaseGenerator {
     }
 
     code += "\n";
-    code += "  static const " + _kFb + ".Reader<" + struct_def.name +
+    code += "  static const " + _kFb + ".Reader<" + object_name +
             "> reader = const " + reader_name + "();\n\n";
 
     code += "  final " + _kFb + ".BufferContext _bc;\n";
@@ -455,7 +459,7 @@ class DartGenerator : public BaseGenerator {
   }
 
   std::string NamespaceAliasFromUnionType(const std::string &in) {
-    if (in.find("_") == std::string::npos) { return in; }
+    if (in.find('_') == std::string::npos) { return in; }
 
     std::stringstream ss(in);
     std::string item;
@@ -495,7 +499,7 @@ class DartGenerator : public BaseGenerator {
       std::string type_name = GenDartTypeName(
           field.value.type, struct_def.defined_namespace, field, false);
 
-      GenDocComment(field.doc_comment, &code, "");
+      GenDocComment(field.doc_comment, &code, "", "  ");
 
       code += "  " + type_name + " get " + field_name;
       if (field.value.type.base_type == BASE_TYPE_UNION) {

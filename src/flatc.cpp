@@ -18,9 +18,9 @@
 
 #include <list>
 
-#define FLATC_VERSION "1.11.0"
-
 namespace flatbuffers {
+
+const char *FLATC_VERSION() { return FLATBUFFERS_VERSION(); }
 
 void FlatCompiler::ParseFile(
     flatbuffers::Parser &parser, const std::string &filename,
@@ -101,12 +101,14 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --gen-object-api   Generate an additional object-based API.\n"
     "  --gen-compare      Generate operator== for object-based API types.\n"
     "  --gen-nullable     Add Clang _Nullable for C++ pointer. or @Nullable for Java\n"
+    "  --java-checkerframework Add @Pure for Java.\n"
     "  --gen-generated    Add @Generated annotation for Java\n"
     "  --gen-all          Generate not just code for the current schema files,\n"
     "                     but for all files it includes as well.\n"
     "                     If the language uses a single file for output (by default\n"
     "                     the case for C++ and JS), all code will end up in this one\n"
     "                     file.\n"
+    "  --cpp-include      Adds an #include in generated file.\n"
     "  --cpp-ptr-type T   Set object API pointer type (default std::unique_ptr).\n"
     "  --cpp-str-type T   Set object API string type (default std::string).\n"
     "                     T::c_str(), T::length() and T::empty() must be supported.\n"
@@ -147,6 +149,8 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --force-defaults   Emit default values in binary output from JSON\n"
     "  --force-empty      When serializing from object API representation,\n"
     "                     force strings and vectors to empty rather than null.\n"
+    "  --flexbuffers      Used with \"binary\" and \"json\" options, it generates\n"
+    "                     data using schema-less FlexBuffers.\n"
     "FILEs may be schemas (must end in .fbs), binary schemas (must end in .bfbs),\n"
     "or JSON files (conforming to preceding schema). FILEs after the -- must be\n"
     "binary flatbuffer format files.\n"
@@ -247,6 +251,9 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.generate_object_based_api = true;
       } else if (arg == "--gen-compare") {
         opts.gen_compare = true;
+      } else if (arg == "--cpp-include") {
+        if (++argi >= argc) Error("missing include following" + arg, true);
+        opts.cpp_includes.push_back(argv[argi]);
       } else if (arg == "--cpp-ptr-type") {
         if (++argi >= argc) Error("missing type following" + arg, true);
         opts.cpp_object_api_pointer_type = argv[argi];
@@ -257,6 +264,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.cpp_object_api_string_flexible_constructor = true;
       } else if (arg == "--gen-nullable") {
         opts.gen_nullable = true;
+      } else if (arg == "--java-checkerframework") {
+        opts.java_checkerframework = true;
       } else if (arg == "--gen-generated") {
         opts.gen_generated = true;
       } else if (arg == "--object-prefix") {
@@ -290,7 +299,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       } else if (arg == "-M") {
         print_make_rules = true;
       } else if (arg == "--version") {
-        printf("flatc version %s\n", FLATC_VERSION);
+        printf("flatc version %s\n", FLATC_VERSION());
         exit(0);
       } else if (arg == "--grpc") {
         grpc_enabled = true;
@@ -315,6 +324,10 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.force_defaults = true;
       } else if (arg == "--force-empty") {
         opts.set_empty_to_null = false;
+      } else if (arg == "--java-primitive-has-method") {
+        opts.java_primitive_has_method = true;
+      } else if (arg == "--flexbuffers") {
+        opts.use_flexbuffers = true;
       } else {
         for (size_t i = 0; i < params_.num_generators; ++i) {
           if (arg == params_.generators[i].generator_opt_long ||
@@ -398,7 +411,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       }
     } else {
       // Check if file contains 0 bytes.
-      if (!is_binary_schema && contents.length() != strlen(contents.c_str())) {
+      if (!opts.use_flexbuffers && !is_binary_schema &&
+          contents.length() != strlen(contents.c_str())) {
         Error("input file appears to be binary: " + filename, true);
       }
       if (is_schema) {
@@ -409,9 +423,20 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       }
       if (is_binary_schema) {
         LoadBinarySchema(*parser.get(), filename, contents);
+      }
+      if (opts.use_flexbuffers) {
+        if (opts.lang_to_generate == IDLOptions::kJson) {
+          parser->flex_root_ = flexbuffers::GetRoot(
+              reinterpret_cast<const uint8_t *>(contents.c_str()),
+              contents.size());
+        } else {
+          parser->flex_builder_.Clear();
+          ParseFile(*parser.get(), filename, contents, include_directories);
+        }
       } else {
         ParseFile(*parser.get(), filename, contents, include_directories);
-        if (!is_schema && !parser->builder_.GetSize()) {
+        if (!opts.use_flexbuffers && !is_schema &&
+            !parser->builder_.GetSize()) {
           // If a file doesn't end in .fbs, it must be json/binary. Ensure we
           // didn't just parse a schema with a different extension.
           Error("input file is neither json nor a .fbs (schema) file: " +

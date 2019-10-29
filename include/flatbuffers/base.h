@@ -99,7 +99,7 @@
 #if !defined(__clang__) && \
     defined(__GNUC__) && \
     (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__ < 40600)
-  // Backwards compatability for g++ 4.4, and 4.5 which don't have the nullptr
+  // Backwards compatibility for g++ 4.4, and 4.5 which don't have the nullptr
   // and constexpr keywords. Note the __clang__ check is needed, because clang
   // presents itself as an older GNUC compiler.
   #ifndef nullptr_t
@@ -144,6 +144,10 @@
 #define FLATBUFFERS_VERSION_REVISION 0
 #define FLATBUFFERS_STRING_EXPAND(X) #X
 #define FLATBUFFERS_STRING(X) FLATBUFFERS_STRING_EXPAND(X)
+namespace flatbuffers {
+  // Returns version as string  "MAJOR.MINOR.REVISION".
+  const char* FLATBUFFERS_VERSION();
+}
 
 #if (!defined(_MSC_VER) || _MSC_VER > 1600) && \
     (!defined(__GNUC__) || (__GNUC__ * 100 + __GNUC_MINOR__ >= 407)) || \
@@ -195,7 +199,7 @@
   // to detect a header that provides an implementation
   #if defined(__has_include)
     // Check for std::string_view (in c++17)
-    #if __has_include(<string_view>) && (__cplusplus >= 201606 || _HAS_CXX17)
+    #if __has_include(<string_view>) && (__cplusplus >= 201606 || (defined(_HAS_CXX17) && _HAS_CXX17))
       #include <string_view>
       namespace flatbuffers {
         typedef std::string_view string_view;
@@ -326,22 +330,20 @@ template<typename T> T EndianSwap(T t) {
   if (sizeof(T) == 1) {   // Compile-time if-then's.
     return t;
   } else if (sizeof(T) == 2) {
-    union { T t; uint16_t i; } u;
-    u.t = t;
+    union { T t; uint16_t i; } u = { t };
     u.i = FLATBUFFERS_BYTESWAP16(u.i);
     return u.t;
   } else if (sizeof(T) == 4) {
-    union { T t; uint32_t i; } u;
-    u.t = t;
+    union { T t; uint32_t i; } u = { t };
     u.i = FLATBUFFERS_BYTESWAP32(u.i);
     return u.t;
   } else if (sizeof(T) == 8) {
-    union { T t; uint64_t i; } u;
-    u.t = t;
+    union { T t; uint64_t i; } u = { t };
     u.i = FLATBUFFERS_BYTESWAP64(u.i);
     return u.t;
   } else {
     FLATBUFFERS_ASSERT(0);
+    return t;
   }
 }
 

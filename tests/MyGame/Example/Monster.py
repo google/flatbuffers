@@ -4,7 +4,7 @@
 
 import flatbuffers
 
-# /// an example documentation comment: monster object
+# an example documentation comment: monster object
 class Monster(object):
     __slots__ = ['_tab']
 
@@ -14,6 +14,10 @@ class Monster(object):
         x = Monster()
         x.Init(buf, n + offset)
         return x
+
+    @classmethod
+    def MonsterBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
+        return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x4D\x4F\x4E\x53", size_prefixed=size_prefixed)
 
     # Monster
     def Init(self, buf, pos):
@@ -131,8 +135,8 @@ class Monster(object):
             return self._tab.VectorLen(o)
         return 0
 
-# /// an example documentation comment: this will end up in the generated code
-# /// multiline too
+    # an example documentation comment: this will end up in the generated code
+    # multiline too
     # Monster
     def Testarrayoftables(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(26))
@@ -616,7 +620,14 @@ class Monster(object):
             return self._tab.VectorLen(o)
         return 0
 
-def MonsterStart(builder): builder.StartObject(48)
+    # Monster
+    def SignedEnum(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(100))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Int8Flags, o + self._tab.Pos)
+        return -1
+
+def MonsterStart(builder): builder.StartObject(49)
 def MonsterAddPos(builder, pos): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(pos), 0)
 def MonsterAddMana(builder, mana): builder.PrependInt16Slot(1, mana, 150)
 def MonsterAddHp(builder, hp): builder.PrependInt16Slot(2, hp, 100)
@@ -682,4 +693,5 @@ def MonsterAddAnyAmbiguousType(builder, anyAmbiguousType): builder.PrependUint8S
 def MonsterAddAnyAmbiguous(builder, anyAmbiguous): builder.PrependUOffsetTRelativeSlot(46, flatbuffers.number_types.UOffsetTFlags.py_type(anyAmbiguous), 0)
 def MonsterAddVectorOfEnums(builder, vectorOfEnums): builder.PrependUOffsetTRelativeSlot(47, flatbuffers.number_types.UOffsetTFlags.py_type(vectorOfEnums), 0)
 def MonsterStartVectorOfEnumsVector(builder, numElems): return builder.StartVector(1, numElems, 1)
+def MonsterAddSignedEnum(builder, signedEnum): builder.PrependInt8Slot(48, signedEnum, -1)
 def MonsterEnd(builder): return builder.EndObject()

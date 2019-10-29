@@ -20,7 +20,7 @@ echo Compile then run the Java test.
 
 java -version
 
-testdir="$(readlink -fn "$(dirname "$0")")"
+testdir=$(dirname $0)
 
 targetdir="${testdir}/target"
 

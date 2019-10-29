@@ -47,25 +47,26 @@ namespace flatbuffers {
 // of type tokens.
 // clang-format off
 #define FLATBUFFERS_GEN_TYPES_SCALAR(TD) \
-  TD(NONE,   "",       uint8_t,  byte,   byte,    byte,   uint8,   u8) \
-  TD(UTYPE,  "",       uint8_t,  byte,   byte,    byte,   uint8,   u8) /* begin scalar/int */ \
-  TD(BOOL,   "bool",   uint8_t,  boolean,bool,    bool,   bool,    bool) \
-  TD(CHAR,   "byte",   int8_t,   byte,   int8,    sbyte,  int8,    i8) \
-  TD(UCHAR,  "ubyte",  uint8_t,  byte,   byte,    byte,   uint8,   u8) \
-  TD(SHORT,  "short",  int16_t,  short,  int16,   short,  int16,   i16) \
-  TD(USHORT, "ushort", uint16_t, short,  uint16,  ushort, uint16,  u16) \
-  TD(INT,    "int",    int32_t,  int,    int32,   int,    int32,   i32) \
-  TD(UINT,   "uint",   uint32_t, int,    uint32,  uint,   uint32,  u32) \
-  TD(LONG,   "long",   int64_t,  long,   int64,   long,   int64,   i64) \
-  TD(ULONG,  "ulong",  uint64_t, long,   uint64,  ulong,  uint64,  u64) /* end int */ \
-  TD(FLOAT,  "float",  float,    float,  float32, float,  float32, f32) /* begin float */ \
-  TD(DOUBLE, "double", double,   double, float64, double, float64, f64) /* end float/scalar */
+  TD(NONE,   "",       uint8_t,  byte,   byte,    byte,   uint8,   u8,   UByte) \
+  TD(UTYPE,  "",       uint8_t,  byte,   byte,    byte,   uint8,   u8,   UByte) /* begin scalar/int */ \
+  TD(BOOL,   "bool",   uint8_t,  boolean,bool,    bool,   bool,    bool, Boolean) \
+  TD(CHAR,   "byte",   int8_t,   byte,   int8,    sbyte,  int8,    i8,   Byte) \
+  TD(UCHAR,  "ubyte",  uint8_t,  byte,   byte,    byte,   uint8,   u8,   UByte) \
+  TD(SHORT,  "short",  int16_t,  short,  int16,   short,  int16,   i16,  Short) \
+  TD(USHORT, "ushort", uint16_t, short,  uint16,  ushort, uint16,  u16,  UShort) \
+  TD(INT,    "int",    int32_t,  int,    int32,   int,    int32,   i32,  Int) \
+  TD(UINT,   "uint",   uint32_t, int,    uint32,  uint,   uint32,  u32,  UInt) \
+  TD(LONG,   "long",   int64_t,  long,   int64,   long,   int64,   i64,  Long) \
+  TD(ULONG,  "ulong",  uint64_t, long,   uint64,  ulong,  uint64,  u64,  ULong) /* end int */ \
+  TD(FLOAT,  "float",  float,    float,  float32, float,  float32, f32,  Float) /* begin float */ \
+  TD(DOUBLE, "double", double,   double, float64, double, float64, f64,  Double) /* end float/scalar */
 #define FLATBUFFERS_GEN_TYPES_POINTER(TD) \
-  TD(STRING, "string", Offset<void>, int, int, StringOffset, int, unused) \
-  TD(VECTOR, "",       Offset<void>, int, int, VectorOffset, int, unused) \
-  TD(STRUCT, "",       Offset<void>, int, int, int,          int, unused) \
-  TD(UNION,  "",       Offset<void>, int, int, int,          int, unused)
-
+  TD(STRING, "string", Offset<void>, int, int, StringOffset, int, unused, Int) \
+  TD(VECTOR, "",       Offset<void>, int, int, VectorOffset, int, unused, Int) \
+  TD(STRUCT, "",       Offset<void>, int, int, int,          int, unused, Int) \
+  TD(UNION,  "",       Offset<void>, int, int, int,          int, unused, Int)
+#define FLATBUFFERS_GEN_TYPE_ARRAY(TD) \
+  TD(ARRAY,  "",       int,          int, int, int,          int, unused, Int)
 // The fields are:
 // - enum
 // - FlatBuffers schema type.
@@ -75,13 +76,14 @@ namespace flatbuffers {
 // - C# / .Net type.
 // - Python type.
 // - Rust type.
+// - Kotlin type.
 
 // using these macros, we can now write code dealing with types just once, e.g.
 
 /*
 switch (type) {
   #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, \
-                         RTYPE) \
+                         RTYPE, KTYPE) \
     case BASE_TYPE_ ## ENUM: \
       // do something specific to CTYPE here
     FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
@@ -91,7 +93,8 @@ switch (type) {
 
 #define FLATBUFFERS_GEN_TYPES(TD) \
         FLATBUFFERS_GEN_TYPES_SCALAR(TD) \
-        FLATBUFFERS_GEN_TYPES_POINTER(TD)
+        FLATBUFFERS_GEN_TYPES_POINTER(TD) \
+        FLATBUFFERS_GEN_TYPE_ARRAY(TD)
 
 // Create an enum for all the types above.
 #ifdef __GNUC__
@@ -99,14 +102,14 @@ __extension__  // Stop GCC complaining about trailing comma with -Wpendantic.
 #endif
 enum BaseType {
   #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, \
-                         RTYPE) \
+                         RTYPE, KTYPE) \
       BASE_TYPE_ ## ENUM,
     FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
   #undef FLATBUFFERS_TD
 };
 
 #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, \
-                       RTYPE) \
+                       RTYPE, KTYPE) \
     static_assert(sizeof(CTYPE) <= sizeof(largest_scalar_t), \
                   "define largest_scalar_t as " #CTYPE);
   FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
@@ -145,18 +148,21 @@ class Parser;
 // and additional information for vectors/structs_.
 struct Type {
   explicit Type(BaseType _base_type = BASE_TYPE_NONE, StructDef *_sd = nullptr,
-                EnumDef *_ed = nullptr)
+                EnumDef *_ed = nullptr, uint16_t _fixed_length = 0)
       : base_type(_base_type),
         element(BASE_TYPE_NONE),
         struct_def(_sd),
-        enum_def(_ed) {}
+        enum_def(_ed),
+        fixed_length(_fixed_length) {}
 
   bool operator==(const Type &o) {
     return base_type == o.base_type && element == o.element &&
            struct_def == o.struct_def && enum_def == o.enum_def;
   }
 
-  Type VectorType() const { return Type(element, struct_def, enum_def); }
+  Type VectorType() const {
+    return Type(element, struct_def, enum_def, fixed_length);
+  }
 
   Offset<reflection::Type> Serialize(FlatBufferBuilder *builder) const;
 
@@ -167,6 +173,7 @@ struct Type {
   StructDef *struct_def;  // only set if t or element == BASE_TYPE_STRUCT
   EnumDef *enum_def;      // set if t == BASE_TYPE_UNION / BASE_TYPE_UTYPE,
                           // or for an integral type derived from an enum.
+  uint16_t fixed_length;  // only set if t == BASE_TYPE_ARRAY
 };
 
 // Represents a parsed scalar value, it's type, and field offset.
@@ -335,12 +342,39 @@ inline bool IsStruct(const Type &type) {
   return type.base_type == BASE_TYPE_STRUCT && type.struct_def->fixed;
 }
 
+inline bool IsVector(const Type &type) {
+  return type.base_type == BASE_TYPE_VECTOR;
+}
+
+inline bool IsArray(const Type &type) {
+  return type.base_type == BASE_TYPE_ARRAY;
+}
+
+inline bool IsSeries(const Type &type) {
+  return IsVector(type) || IsArray(type);
+}
+
+inline bool IsEnum(const Type &type) {
+  return type.enum_def != nullptr && IsInteger(type.base_type);
+}
+
 inline size_t InlineSize(const Type &type) {
-  return IsStruct(type) ? type.struct_def->bytesize : SizeOf(type.base_type);
+  return IsStruct(type)
+             ? type.struct_def->bytesize
+             : (IsArray(type)
+                    ? InlineSize(type.VectorType()) * type.fixed_length
+                    : SizeOf(type.base_type));
 }
 
 inline size_t InlineAlignment(const Type &type) {
-  return IsStruct(type) ? type.struct_def->minalign : SizeOf(type.base_type);
+  if (IsStruct(type)) {
+    return type.struct_def->minalign;
+  } else if (IsArray(type)) {
+    return IsStruct(type.VectorType()) ? type.struct_def->minalign
+                                       : SizeOf(type.element);
+  } else {
+    return SizeOf(type.base_type);
+  }
 }
 
 struct EnumDef;
@@ -457,6 +491,8 @@ struct ServiceDef : public Definition {
 
 // Container of options that may apply to any of the source/text generators.
 struct IDLOptions {
+  // Use flexbuffers instead for binary and text generation
+  bool use_flexbuffers;
   bool strict_json;
   bool skip_js_exports;
   bool use_goog_js_export_format;
@@ -480,6 +516,7 @@ struct IDLOptions {
   std::string cpp_object_api_string_type;
   bool cpp_object_api_string_flexible_constructor;
   bool gen_nullable;
+  bool java_checkerframework;
   bool gen_generated;
   std::string object_prefix;
   std::string object_suffix;
@@ -499,6 +536,8 @@ struct IDLOptions {
   bool size_prefixed;
   std::string root_type;
   bool force_defaults;
+  bool java_primitive_has_method;
+  std::vector<std::string> cpp_includes;
 
   // Possible options for the more general generator below.
   enum Language {
@@ -517,6 +556,7 @@ struct IDLOptions {
     kLua = 1 << 12,
     kLobster = 1 << 13,
     kRust = 1 << 14,
+    kKotlin = 1 << 15,
     kMAX
   };
 
@@ -535,7 +575,8 @@ struct IDLOptions {
   bool set_empty_to_null;
 
   IDLOptions()
-      : strict_json(false),
+      : use_flexbuffers(false),
+        strict_json(false),
         skip_js_exports(false),
         use_goog_js_export_format(false),
         use_ES6_js_export_format(false),
@@ -557,6 +598,7 @@ struct IDLOptions {
         cpp_object_api_pointer_type("std::unique_ptr"),
         cpp_object_api_string_flexible_constructor(false),
         gen_nullable(false),
+        java_checkerframework(false),
         gen_generated(false),
         object_suffix("T"),
         union_value_namespacing(true),
@@ -571,6 +613,7 @@ struct IDLOptions {
         protobuf_ascii_alike(false),
         size_prefixed(false),
         force_defaults(false),
+        java_primitive_has_method(false),
         lang(IDLOptions::kJava),
         mini_reflect(IDLOptions::kNone),
         lang_to_generate(0),
@@ -667,6 +710,7 @@ class Parser : public ParserState {
   explicit Parser(const IDLOptions &options = IDLOptions())
       : current_namespace_(nullptr),
         empty_namespace_(nullptr),
+        flex_builder_(256, flexbuffers::BUILDER_FLAG_SHARE_ALL),
         root_struct_def_(nullptr),
         opts(options),
         uses_flexbuffers_(false),
@@ -761,7 +805,7 @@ class Parser : public ParserState {
 
   StructDef *LookupStruct(const std::string &id) const;
 
-  std::string UnqualifiedName(std::string fullQualifiedName);
+  std::string UnqualifiedName(const std::string &fullQualifiedName);
 
   FLATBUFFERS_CHECKED_ERROR Error(const std::string &msg);
 
@@ -798,10 +842,13 @@ class Parser : public ParserState {
   FLATBUFFERS_CHECKED_ERROR ParseTable(const StructDef &struct_def,
                                        std::string *value, uoffset_t *ovalue);
   void SerializeStruct(const StructDef &struct_def, const Value &val);
+  void SerializeStruct(FlatBufferBuilder &builder, const StructDef &struct_def,
+                       const Value &val);
   template<typename F>
   FLATBUFFERS_CHECKED_ERROR ParseVectorDelimiters(uoffset_t &count, F body);
   FLATBUFFERS_CHECKED_ERROR ParseVector(const Type &type, uoffset_t *ovalue,
                                         FieldDef *field, size_t fieldn);
+  FLATBUFFERS_CHECKED_ERROR ParseArray(Value &array);
   FLATBUFFERS_CHECKED_ERROR ParseNestedFlatbuffer(Value &val, FieldDef *field,
                                                   size_t fieldn,
                                                   const StructDef *parent_struct_def);
@@ -848,6 +895,7 @@ class Parser : public ParserState {
                                        BaseType baseType);
 
   bool SupportsAdvancedUnionFeatures() const;
+  bool SupportsAdvancedArrayFeatures() const;
   Namespace *UniqueNamespace(Namespace *ns);
 
   FLATBUFFERS_CHECKED_ERROR RecurseError();
@@ -864,6 +912,8 @@ class Parser : public ParserState {
   std::string error_;         // User readable error_ if Parse() == false
 
   FlatBufferBuilder builder_;  // any data contained in the file
+  flexbuffers::Builder flex_builder_;
+  flexbuffers::Reference flex_root_;
   StructDef *root_struct_def_;
   std::string file_identifier_;
   std::string file_extension_;
@@ -891,6 +941,8 @@ class Parser : public ParserState {
 // Utility functions for multiple generators:
 
 extern std::string MakeCamel(const std::string &in, bool first = true);
+
+extern std::string MakeScreamingCamel(const std::string &in);
 
 // Generate text (JSON) from a given FlatBuffer, and a given Parser
 // object that has been populated with the corresponding schema.
@@ -974,6 +1026,9 @@ extern bool GenerateRust(const Parser &parser,
 // See idl_gen_json_schema.cpp.
 extern bool GenerateJsonSchema(const Parser &parser,
                            const std::string &path,
+                           const std::string &file_name);
+
+extern bool GenerateKotlin(const Parser &parser, const std::string &path,
                            const std::string &file_name);
 
 // Generate Java/C#/.. files from the definitions in the Parser object.

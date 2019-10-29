@@ -3,7 +3,7 @@ Using the schema compiler    {#flatbuffers_guide_using_schema_compiler}
 
 Usage:
 
-    flatc [ GENERATOR OPTIONS ] [ -o PATH ] [ -I PATH ] [ -S ] FILES...
+    flatc [ GENERATOR OPTIONS ] [ -o PATH ] [ -I PATH ] FILES...
           [ -- FILES...]
 
 The files are read and parsed in order, and can contain either schemas
@@ -22,6 +22,8 @@ For any schema input files, one or more generators can be specified:
     `filename_generated.h`).
 
 -   `--java`, `-j` : Generate Java code.
+
+-   `--kotlin`, `-k` : Generate Kotlin code.
 
 -   `--csharp`, `-n` : Generate C# code.
 
@@ -116,6 +118,8 @@ Additional options:
     for all files it includes as well. If the language uses a single file for
     output (by default the case for C++ and JS), all code will end up in
     this one file.
+
+-   `--cpp-include` : Adds an #include in generated file
 
 -   `--cpp-ptr-type T` : Set object API pointer type (default std::unique_ptr)
 

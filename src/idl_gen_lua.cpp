@@ -29,6 +29,7 @@ namespace flatbuffers {
 namespace lua {
 
   // Hardcode spaces per indentation.
+  const CommentConfig def_comment = { nullptr, "--", nullptr };
   const char * Indent = "    ";
   const char * Comment = "-- ";
   const char * End = "end\n";
@@ -87,7 +88,7 @@ namespace lua {
     }
 
     // Begin enum code with a class declaration.
-    void BeginEnum(const std::string class_name, std::string *code_ptr) {
+    void BeginEnum(const std::string &class_name, std::string *code_ptr) {
       std::string &code = *code_ptr;
       code += "local " + class_name + " = {\n";
     }
@@ -472,7 +473,7 @@ namespace lua {
     // Generate a struct field, conditioned on its child type(s).
     void GenStructAccessor(const StructDef &struct_def,
       const FieldDef &field, std::string *code_ptr) {
-      GenComment(field.doc_comment, code_ptr, nullptr, Comment);
+      GenComment(field.doc_comment, code_ptr, &def_comment);
       if (IsScalar(field.value.type.base_type)) {
         if (struct_def.fixed) {
           GetScalarFieldOfStruct(struct_def, field, code_ptr);
@@ -535,7 +536,7 @@ namespace lua {
     void GenStruct(const StructDef &struct_def, std::string *code_ptr) {
       if (struct_def.generated) return;
 
-      GenComment(struct_def.doc_comment, code_ptr, nullptr, Comment);
+      GenComment(struct_def.doc_comment, code_ptr, &def_comment);
       BeginClass(struct_def, code_ptr);
 
       GenerateNewObjectPrototype(struct_def, code_ptr);
@@ -571,12 +572,12 @@ namespace lua {
     void GenEnum(const EnumDef &enum_def, std::string *code_ptr) {
       if (enum_def.generated) return;
 
-      GenComment(enum_def.doc_comment, code_ptr, nullptr, Comment);
+      GenComment(enum_def.doc_comment, code_ptr, &def_comment);
       BeginEnum(NormalizedName(enum_def), code_ptr);
       for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
            ++it) {
         auto &ev = **it;
-        GenComment(ev.doc_comment, code_ptr, nullptr, Comment);
+        GenComment(ev.doc_comment, code_ptr, &def_comment, Indent);
         EnumMember(enum_def, ev, code_ptr);
       }
       EndEnum(code_ptr);
@@ -605,7 +606,7 @@ namespace lua {
       static const char *ctypename[] = {
         // clang-format off
           #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
+            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
             #PTYPE,
             FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
           #undef FLATBUFFERS_TD
@@ -682,7 +683,7 @@ namespace lua {
     }
 
     // Begin by declaring namespace and imports.
-    void BeginFile(const std::string name_space_name, const bool needs_imports,
+    void BeginFile(const std::string &name_space_name, const bool needs_imports,
       std::string *code_ptr) {
       std::string &code = *code_ptr;
       code += std::string(Comment) + FlatBuffersGeneratedWarning() + "\n\n";

@@ -214,7 +214,7 @@ class JsTsGenerator : public BaseGenerator {
     std::string &code = *code_ptr;
     std::string &exports = *exports_ptr;
     for (auto it = sorted_namespaces.begin(); it != sorted_namespaces.end();
-         it++) {
+         ++it) {
       if (lang_.language == IDLOptions::kTs) {
         if (it->find('.') == std::string::npos) {
           code += "import { flatbuffers } from \"./flatbuffers\"\n";
@@ -359,7 +359,7 @@ class JsTsGenerator : public BaseGenerator {
 
       // Generate mapping between EnumName: EnumValue(int)
       if (reverse) {
-        code += "  " + enum_def.ToString(ev);
+        code += "  '" + enum_def.ToString(ev) + "'";
         code += lang_.language == IDLOptions::kTs ? "= " : ": ";
         code += "'" + ev.name + "'";
       } else {

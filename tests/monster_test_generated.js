@@ -25,21 +25,63 @@ MyGame.Example2 = MyGame.Example2 || {};
 MyGame.OtherNameSpace = MyGame.OtherNameSpace || {};
 
 /**
+ * Composite components of Monster color.
+ *
  * @enum {number}
  */
 MyGame.Example.Color = {
   Red: 1,
+
+  /**
+   * \brief color Green
+   * Green is bit_flag with value (1u << 1)
+   */
   Green: 2,
+
+  /**
+   * \brief color Blue (1u << 3)
+   */
   Blue: 8
+};
+
+/**
+ * Composite components of Monster color.
+ *
+ * @enum {string}
+ */
+MyGame.Example.ColorName = {
+  '1': 'Red',
+
+  /**
+   * \brief color Green
+   * Green is bit_flag with value (1u << 1)
+   */
+  '2': 'Green',
+
+  /**
+   * \brief color Blue (1u << 3)
+   */
+  '8': 'Blue'
+};
+
+/**
+ * @enum {number}
+ */
+MyGame.Example.Race = {
+  None: -1,
+  Human: 0,
+  Dwarf: 1,
+  Elf: 2
 };
 
 /**
  * @enum {string}
  */
-MyGame.Example.ColorName = {
-  1: 'Red',
-  2: 'Green',
-  8: 'Blue'
+MyGame.Example.RaceName = {
+  '-1': 'None',
+  '0': 'Human',
+  '1': 'Dwarf',
+  '2': 'Elf'
 };
 
 /**
@@ -56,10 +98,10 @@ MyGame.Example.Any = {
  * @enum {string}
  */
 MyGame.Example.AnyName = {
-  0: 'NONE',
-  1: 'Monster',
-  2: 'TestSimpleTableWithEnum',
-  3: 'MyGame_Example2_Monster'
+  '0': 'NONE',
+  '1': 'Monster',
+  '2': 'TestSimpleTableWithEnum',
+  '3': 'MyGame_Example2_Monster'
 };
 
 /**
@@ -76,10 +118,10 @@ MyGame.Example.AnyUniqueAliases = {
  * @enum {string}
  */
 MyGame.Example.AnyUniqueAliasesName = {
-  0: 'NONE',
-  1: 'M',
-  2: 'TS',
-  3: 'M2'
+  '0': 'NONE',
+  '1': 'M',
+  '2': 'TS',
+  '3': 'M2'
 };
 
 /**
@@ -96,10 +138,10 @@ MyGame.Example.AnyAmbiguousAliases = {
  * @enum {string}
  */
 MyGame.Example.AnyAmbiguousAliasesName = {
-  0: 'NONE',
-  1: 'M1',
-  2: 'M2',
-  3: 'M3'
+  '0': 'NONE',
+  '1': 'M1',
+  '2': 'M2',
+  '3': 'M3'
 };
 
 /**
@@ -1912,10 +1954,33 @@ MyGame.Example.Monster.prototype.vectorOfEnumsArray = function() {
 };
 
 /**
+ * @returns {MyGame.Example.Race}
+ */
+MyGame.Example.Monster.prototype.signedEnum = function() {
+  var offset = this.bb.__offset(this.bb_pos, 100);
+  return offset ? /** @type {MyGame.Example.Race} */ (this.bb.readInt8(this.bb_pos + offset)) : MyGame.Example.Race.None;
+};
+
+/**
+ * @param {MyGame.Example.Race} value
+ * @returns {boolean}
+ */
+MyGame.Example.Monster.prototype.mutate_signed_enum = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 100);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt8(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @param {flatbuffers.Builder} builder
  */
 MyGame.Example.Monster.startMonster = function(builder) {
-  builder.startObject(48);
+  builder.startObject(49);
 };
 
 /**
@@ -2635,6 +2700,14 @@ MyGame.Example.Monster.startVectorOfEnumsVector = function(builder, numElems) {
 
 /**
  * @param {flatbuffers.Builder} builder
+ * @param {MyGame.Example.Race} signedEnum
+ */
+MyGame.Example.Monster.addSignedEnum = function(builder, signedEnum) {
+  builder.addFieldInt8(48, signedEnum, MyGame.Example.Race.None);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
  * @returns {flatbuffers.Offset}
  */
 MyGame.Example.Monster.endMonster = function(builder) {
@@ -2708,9 +2781,10 @@ MyGame.Example.Monster.finishSizePrefixedMonsterBuffer = function(builder, offse
  * @param {MyGame.Example.AnyAmbiguousAliases} anyAmbiguousType
  * @param {flatbuffers.Offset} anyAmbiguousOffset
  * @param {flatbuffers.Offset} vectorOfEnumsOffset
+ * @param {MyGame.Example.Race} signedEnum
  * @returns {flatbuffers.Offset}
  */
-MyGame.Example.Monster.createMonster = function(builder, posOffset, mana, hp, nameOffset, inventoryOffset, color, testType, testOffset, test4Offset, testarrayofstringOffset, testarrayoftablesOffset, enemyOffset, testnestedflatbufferOffset, testemptyOffset, testbool, testhashs32Fnv1, testhashu32Fnv1, testhashs64Fnv1, testhashu64Fnv1, testhashs32Fnv1a, testhashu32Fnv1a, testhashs64Fnv1a, testhashu64Fnv1a, testarrayofboolsOffset, testf, testf2, testf3, testarrayofstring2Offset, testarrayofsortedstructOffset, flexOffset, test5Offset, vectorOfLongsOffset, vectorOfDoublesOffset, parentNamespaceTestOffset, vectorOfReferrablesOffset, singleWeakReference, vectorOfWeakReferencesOffset, vectorOfStrongReferrablesOffset, coOwningReference, vectorOfCoOwningReferencesOffset, nonOwningReference, vectorOfNonOwningReferencesOffset, anyUniqueType, anyUniqueOffset, anyAmbiguousType, anyAmbiguousOffset, vectorOfEnumsOffset) {
+MyGame.Example.Monster.createMonster = function(builder, posOffset, mana, hp, nameOffset, inventoryOffset, color, testType, testOffset, test4Offset, testarrayofstringOffset, testarrayoftablesOffset, enemyOffset, testnestedflatbufferOffset, testemptyOffset, testbool, testhashs32Fnv1, testhashu32Fnv1, testhashs64Fnv1, testhashu64Fnv1, testhashs32Fnv1a, testhashu32Fnv1a, testhashs64Fnv1a, testhashu64Fnv1a, testarrayofboolsOffset, testf, testf2, testf3, testarrayofstring2Offset, testarrayofsortedstructOffset, flexOffset, test5Offset, vectorOfLongsOffset, vectorOfDoublesOffset, parentNamespaceTestOffset, vectorOfReferrablesOffset, singleWeakReference, vectorOfWeakReferencesOffset, vectorOfStrongReferrablesOffset, coOwningReference, vectorOfCoOwningReferencesOffset, nonOwningReference, vectorOfNonOwningReferencesOffset, anyUniqueType, anyUniqueOffset, anyAmbiguousType, anyAmbiguousOffset, vectorOfEnumsOffset, signedEnum) {
   MyGame.Example.Monster.startMonster(builder);
   MyGame.Example.Monster.addPos(builder, posOffset);
   MyGame.Example.Monster.addMana(builder, mana);
@@ -2759,6 +2833,7 @@ MyGame.Example.Monster.createMonster = function(builder, posOffset, mana, hp, na
   MyGame.Example.Monster.addAnyAmbiguousType(builder, anyAmbiguousType);
   MyGame.Example.Monster.addAnyAmbiguous(builder, anyAmbiguousOffset);
   MyGame.Example.Monster.addVectorOfEnums(builder, vectorOfEnumsOffset);
+  MyGame.Example.Monster.addSignedEnum(builder, signedEnum);
   return MyGame.Example.Monster.endMonster(builder);
 }
 

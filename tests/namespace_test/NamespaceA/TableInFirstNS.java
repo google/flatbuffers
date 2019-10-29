@@ -9,9 +9,10 @@ import com.google.flatbuffers.*;
 
 @SuppressWarnings("unused")
 public final class TableInFirstNS extends Table {
+  public static void ValidateVersion() { Constants.FLATBUFFERS_1_11_1(); }
   public static TableInFirstNS getRootAsTableInFirstNS(ByteBuffer _bb) { return getRootAsTableInFirstNS(_bb, new TableInFirstNS()); }
   public static TableInFirstNS getRootAsTableInFirstNS(ByteBuffer _bb, TableInFirstNS obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
-  public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; vtable_start = bb_pos - bb.getInt(bb_pos); vtable_size = bb.getShort(vtable_start); }
+  public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }
   public TableInFirstNS __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public NamespaceA.NamespaceB.TableInNestedNS fooTable() { return fooTable(new NamespaceA.NamespaceB.TableInNestedNS()); }
@@ -21,13 +22,20 @@ public final class TableInFirstNS extends Table {
   public NamespaceA.NamespaceB.StructInNestedNS fooStruct() { return fooStruct(new NamespaceA.NamespaceB.StructInNestedNS()); }
   public NamespaceA.NamespaceB.StructInNestedNS fooStruct(NamespaceA.NamespaceB.StructInNestedNS obj) { int o = __offset(8); return o != 0 ? obj.__assign(o + bb_pos, bb) : null; }
 
-  public static void startTableInFirstNS(FlatBufferBuilder builder) { builder.startObject(3); }
+  public static void startTableInFirstNS(FlatBufferBuilder builder) { builder.startTable(3); }
   public static void addFooTable(FlatBufferBuilder builder, int fooTableOffset) { builder.addOffset(0, fooTableOffset, 0); }
   public static void addFooEnum(FlatBufferBuilder builder, byte fooEnum) { builder.addByte(1, fooEnum, 0); }
   public static void addFooStruct(FlatBufferBuilder builder, int fooStructOffset) { builder.addStruct(2, fooStructOffset, 0); }
   public static int endTableInFirstNS(FlatBufferBuilder builder) {
-    int o = builder.endObject();
+    int o = builder.endTable();
     return o;
+  }
+
+  public static final class Vector extends BaseVector {
+    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
+
+    public TableInFirstNS get(int j) { return get(new TableInFirstNS(), j); }
+    public TableInFirstNS get(TableInFirstNS obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }
   }
 }
 

@@ -21,6 +21,7 @@ cd ..
 
 # TODO: Linux and macos builds produce differences here for some reason.
 git checkout HEAD -- tests/monster_test.bfbs
+git checkout HEAD -- tests/arrays_test.bfbs
 
 if ! git diff --quiet; then
   echo >&2

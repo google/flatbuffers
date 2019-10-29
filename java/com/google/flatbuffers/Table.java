@@ -38,9 +38,9 @@ public class Table {
   /** The underlying ByteBuffer to hold the data of the Table. */
   protected ByteBuffer bb;
   /** Used to hold the vtable position. */
-  protected int vtable_start;
+  private int vtable_start;
   /** Used to hold the vtable size. */
-  protected int vtable_size;
+  private int vtable_size;
   Utf8 utf8 = Utf8.getDefault();
 
   /**
@@ -75,6 +75,13 @@ public class Table {
     return offset + bb.getInt(offset);
   }
 
+  /**
+   * Retrieve a relative offset.
+   *
+   * @param offset An `int` index into a ByteBuffer containing the relative offset.
+   * @param bb from which the relative offset will be retrieved.
+   * @return Returns the relative offset stored at `offset`.
+   */
   protected static int __indirect(int offset, ByteBuffer bb) {
     return offset + bb.getInt(offset);
   }
@@ -91,6 +98,23 @@ public class Table {
    * @return Returns a `String` from the data stored inside the FlatBuffer at `offset`.
    */
   protected String __string(int offset) {
+    return __string(offset, bb, utf8);
+  }
+
+  /**
+   * Create a Java `String` from UTF-8 data stored inside the FlatBuffer.
+   *
+   * This allocates a new string and converts to wide chars upon each access,
+   * which is not very efficient. Instead, each FlatBuffer string also comes with an
+   * accessor based on __vector_as_bytebuffer below, which is much more efficient,
+   * assuming your Java program can handle UTF-8 data directly.
+   *
+   * @param offset An `int` index into the Table's ByteBuffer.
+   * @param bb Table ByteBuffer used to read a string at given offset.
+   * @param utf8 decoder that creates a Java `String` from UTF-8 characters.
+   * @return Returns a `String` from the data stored inside the FlatBuffer at `offset`.
+   */
+  protected static String __string(int offset, ByteBuffer bb, Utf8 utf8) {
     offset += bb.getInt(offset);
     int length = bb.getInt(offset);
     return utf8.decodeUtf8(bb, offset + SIZEOF_INT, length);
@@ -169,11 +193,19 @@ public class Table {
    * @return Returns the Table that points to the union at `offset`.
    */
   protected Table __union(Table t, int offset) {
-    offset += bb_pos;
-    t.bb_pos = offset + bb.getInt(offset);
-    t.bb = bb;
-    t.vtable_start = t.bb_pos - bb.getInt(t.bb_pos);
-    t.vtable_size = bb.getShort(t.vtable_start);
+    return __union(t, offset, bb);
+  }
+
+  /**
+   * Initialize any Table-derived type to point to the union at the given `offset`.
+   *
+   * @param t A `Table`-derived type that should point to the union at `offset`.
+   * @param offset An `int` index into the Table's ByteBuffer.
+   * @param bb Table ByteBuffer used to initialize the object Table-derived type.
+   * @return Returns the Table that points to the union at `offset`.
+   */
+  protected static Table __union(Table t, int offset, ByteBuffer bb) {
+    t.__reset(__indirect(offset, bb), bb);
     return t;
   }
 
@@ -264,6 +296,25 @@ public class Table {
   }
 
   /**
+   * Re-init the internal state with an external buffer {@code ByteBuffer} and an offset within.
+   *
+   * This method exists primarily to allow recycling Table instances without risking memory leaks
+   * due to {@code ByteBuffer} references.
+   */
+  protected void __reset(int _i, ByteBuffer _bb) { 
+    bb = _bb;
+    if (bb != null) {
+      bb_pos = _i;
+      vtable_start = bb_pos - bb.getInt(bb_pos);
+      vtable_size = bb.getShort(vtable_start);
+    } else {
+      bb_pos = 0;
+      vtable_start = 0;
+      vtable_size = 0;
+    }
+  }
+
+  /**
    * Resets the internal state with a null {@code ByteBuffer} and a zero position.
    *
    * This method exists primarily to allow recycling Table instances without risking memory leaks
@@ -271,10 +322,7 @@ public class Table {
    * again to a {@code ByteBuffer}.
    */
   public void __reset() {
-    bb = null;
-    bb_pos = 0;
-    vtable_start = 0;
-    vtable_size = 0;
+    __reset(0, null);
   }
 }
 

@@ -67,7 +67,9 @@ fi
 
 NOT_FMT_FILES=$(gofmt -l MyGame)
 if [[ ${NOT_FMT_FILES} != "" ]]; then
-    echo "These files are not well gofmt'ed:\n\n${NOT_FMT_FILES}"
+    echo "These files are not well gofmt'ed:"
+    echo
+    echo "${NOT_FMT_FILES}"
     # enable this when enums are properly formated
     # exit 1
 fi
