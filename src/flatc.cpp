@@ -134,6 +134,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --proto            Input is a .proto, translate to .fbs.\n"
     "  --oneof-union      Translate .proto oneofs to flatbuffer unions.\n"
     "  --grpc             Generate GRPC interfaces for the specified languages.\n"
+    "  --grpc-object-api  Use the object API for gRPC.\n"
     "  --schema           Serialize schemas instead of JSON (use with -b).\n"
     "  --bfbs-comments    Add doc comments to the binary schema files.\n"
     "  --bfbs-builtins    Add builtin attributes to the binary schema files.\n"
@@ -323,6 +324,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         exit(0);
       } else if (arg == "--grpc") {
         grpc_enabled = true;
+      } else if (arg == "--grpc-object-api") {
+        opts.grpc_object_api = true;
       } else if (arg == "--bfbs-comments") {
         opts.binary_schema_comments = true;
       } else if (arg == "--bfbs-builtins") {

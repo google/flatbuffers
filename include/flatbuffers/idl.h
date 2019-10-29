@@ -545,6 +545,7 @@ struct IDLOptions {
   bool natural_utf8;
   std::string include_prefix;
   bool keep_include_path;
+  bool grpc_object_api;
   bool binary_schema_comments;
   bool binary_schema_builtins;
   bool skip_flatbuffers_import;
@@ -628,6 +629,7 @@ struct IDLOptions {
         allow_non_utf8(false),
         natural_utf8(false),
         keep_include_path(false),
+        grpc_object_api(false),
         binary_schema_comments(false),
         binary_schema_builtins(false),
         skip_flatbuffers_import(false),

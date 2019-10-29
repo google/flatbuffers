@@ -52,6 +52,12 @@ struct Parameters {
 
   //Prefix for RPC Calls
   grpc::string service_prefix;
+
+  //Naming adjustments to match non-grpc generator
+  grpc::string receiver_prefix;
+  grpc::string receiver_suffix;
+  grpc::string object_prefix;
+  grpc::string object_suffix = "T";
 };
 
 // Return the source of the generated service file.

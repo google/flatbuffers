@@ -38,7 +38,8 @@ class FlatBufMethod : public grpc_generator::Method {
  public:
   enum Streaming { kNone, kClient, kServer, kBiDi };
 
-  FlatBufMethod(const RPCCall *method) : method_(method) {
+  FlatBufMethod(const Parser &parser, const RPCCall *method)
+      : parser_(parser), method_(method) {
     streaming_ = kNone;
     auto val = method_->attributes.Lookup("streaming");
     if (val) {
@@ -62,9 +63,29 @@ class FlatBufMethod : public grpc_generator::Method {
     return "flatbuffers::grpc::Message<" + sd.name + ">";
   }
 
-  std::string get_input_type_name() const { return (*method_->request).name; }
+  std::string get_input_type_name() const {
+    if (parser_.opts.grpc_object_api) {
+      return parser_.opts.object_prefix +
+          (*method_->request).name +
+          parser_.opts.object_suffix;
+    } else {
+      return parser_.opts.receiver_prefix +
+          (*method_->request).name +
+          parser_.opts.receiver_suffix;
+    }
+  }
 
-  std::string get_output_type_name() const { return (*method_->response).name; }
+  std::string get_output_type_name() const {
+    if (parser_.opts.grpc_object_api) {
+      return parser_.opts.object_prefix +
+          (*method_->response).name +
+          parser_.opts.object_suffix;
+    } else {
+      return parser_.opts.receiver_prefix +
+          (*method_->response).name +
+          parser_.opts.receiver_suffix;
+    }
+  }
 
   bool get_module_and_message_path_input(grpc::string * /*str*/,
                                          grpc::string /*generator_file_name*/,
@@ -96,13 +117,15 @@ class FlatBufMethod : public grpc_generator::Method {
   bool BidiStreaming() const { return streaming_ == kBiDi; }
 
  private:
+  const Parser &parser_;
   const RPCCall *method_;
   Streaming streaming_;
 };
 
 class FlatBufService : public grpc_generator::Service {
  public:
-  FlatBufService(const ServiceDef *service) : service_(service) {}
+  FlatBufService(const Parser &parser, const ServiceDef *service)
+      : parser_(parser), service_(service) {}
 
   grpc::string GetLeadingComments(const grpc::string) const { return ""; }
 
@@ -120,10 +143,11 @@ class FlatBufService : public grpc_generator::Service {
 
   std::unique_ptr<const grpc_generator::Method> method(int i) const {
     return std::unique_ptr<const grpc_generator::Method>(
-        new FlatBufMethod(service_->calls.vec[i]));
+        new FlatBufMethod(parser_, service_->calls.vec[i]));
   }
 
  private:
+  const Parser &parser_;
   const ServiceDef *service_;
 };
 
@@ -227,7 +251,11 @@ class FlatBufFile : public grpc_generator::File {
         return "#include \"flatbuffers/grpc.h\"\n";
       }
       case kLanguageGo: {
-        return "import \"github.com/google/flatbuffers/go\"";
+        if (parser_.opts.grpc_object_api) {
+          return "";
+        } else {
+          return "import \"github.com/google/flatbuffers/go\"";
+        }
       }
       case kLanguageJava: {
         return "import com.google.flatbuffers.grpc.FlatbuffersUtils;";
@@ -245,7 +273,7 @@ class FlatBufFile : public grpc_generator::File {
 
   std::unique_ptr<const grpc_generator::Service> service(int i) const {
     return std::unique_ptr<const grpc_generator::Service>(
-        new FlatBufService(parser_.services_.vec[i]));
+        new FlatBufService(parser_, parser_.services_.vec[i]));
   }
 
   std::unique_ptr<grpc_generator::Printer> CreatePrinter(
@@ -271,7 +299,9 @@ class GoGRPCGenerator : public flatbuffers::BaseGenerator {
   bool generate() {
     FlatBufFile file(parser_, file_name_, FlatBufFile::kLanguageGo);
     grpc_go_generator::Parameters p;
-    p.custom_method_io_type = "flatbuffers.Builder";
+    if (!parser_.opts.grpc_object_api) {
+      p.custom_method_io_type = "flatbuffers.Builder";
+    }
     for (int i = 0; i < file.service_count(); i++) {
       auto service = file.service(i);
       const Definition *def = parser_.services_.vec[i];
