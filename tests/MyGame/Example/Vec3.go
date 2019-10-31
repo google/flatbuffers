@@ -6,6 +6,31 @@ import (
 	flatbuffers "github.com/google/flatbuffers/go"
 )
 
+type Vec3T struct {
+	X float32
+	Y float32
+	Z float32
+	Test1 float64
+	Test2 Color
+	Test3 *TestT
+}
+
+func Vec3Pack(builder *flatbuffers.Builder, t *Vec3T) flatbuffers.UOffsetT {
+	if t == nil { return 0 }
+	return CreateVec3(builder, t.X, t.Y, t.Z, t.Test1, t.Test2, t.Test3.A, t.Test3.B)
+}
+func (rcv *Vec3) UnPack() *Vec3T {
+	if rcv == nil { return nil }
+	t := &Vec3T{}
+	t.X = rcv.X()
+	t.Y = rcv.Y()
+	t.Z = rcv.Z()
+	t.Test1 = rcv.Test1()
+	t.Test2 = rcv.Test2()
+	t.Test3 = rcv.Test3(nil).UnPack()
+	return t
+}
+
 type Vec3 struct {
 	_tab flatbuffers.Struct
 }

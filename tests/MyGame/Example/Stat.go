@@ -6,6 +6,31 @@ import (
 	flatbuffers "github.com/google/flatbuffers/go"
 )
 
+type StatT struct {
+	Id string
+	Val int64
+	Count uint16
+}
+
+func StatPack(builder *flatbuffers.Builder, t *StatT) flatbuffers.UOffsetT {
+	if t == nil { return 0 }
+	idOffset := builder.CreateString(t.Id)
+	StatStart(builder)
+	StatAddId(builder, idOffset)
+	StatAddVal(builder, t.Val)
+	StatAddCount(builder, t.Count)
+	return StatEnd(builder)
+}
+
+func (rcv *Stat) UnPack() *StatT {
+	if rcv == nil { return nil }
+	t := &StatT{}
+	t.Id = string(rcv.Id())
+	t.Val = rcv.Val()
+	t.Count = rcv.Count()
+	return t
+}
+
 type Stat struct {
 	_tab flatbuffers.Table
 }
