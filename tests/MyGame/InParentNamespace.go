@@ -6,6 +6,21 @@ import (
 	flatbuffers "github.com/google/flatbuffers/go"
 )
 
+type InParentNamespaceT struct {
+}
+
+func InParentNamespacePack(builder *flatbuffers.Builder, t *InParentNamespaceT) flatbuffers.UOffsetT {
+	if t == nil { return 0 }
+	InParentNamespaceStart(builder)
+	return InParentNamespaceEnd(builder)
+}
+
+func (rcv *InParentNamespace) UnPack() *InParentNamespaceT {
+	if rcv == nil { return nil }
+	t := &InParentNamespaceT{}
+	return t
+}
+
 type InParentNamespace struct {
 	_tab flatbuffers.Table
 }
