@@ -1925,7 +1925,7 @@ class CppGenerator : public BaseGenerator {
         }
       }
 
-      if (parser_.opts.mutable_buffer) {
+      if (parser_.opts.mutable_buffer && !(is_scalar && IsUnion(field.value.type))) {
         if (is_scalar) {
           const auto type = GenTypeWire(field.value.type, "", false);
           code_.SetValue("SET_FN", "SetField<" + type + ">");

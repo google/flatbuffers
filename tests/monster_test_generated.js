@@ -1154,21 +1154,6 @@ MyGame.Example.Monster.prototype.testType = function() {
 };
 
 /**
- * @param {MyGame.Example.Any} value
- * @returns {boolean}
- */
-MyGame.Example.Monster.prototype.mutate_test_type = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 18);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb.writeUint8(this.bb_pos + offset, value);
-  return true;
-};
-
-/**
  * @param {flatbuffers.Table} obj
  * @returns {?flatbuffers.Table}
  */
@@ -1873,21 +1858,6 @@ MyGame.Example.Monster.prototype.anyUniqueType = function() {
 };
 
 /**
- * @param {MyGame.Example.AnyUniqueAliases} value
- * @returns {boolean}
- */
-MyGame.Example.Monster.prototype.mutate_any_unique_type = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 90);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb.writeUint8(this.bb_pos + offset, value);
-  return true;
-};
-
-/**
  * @param {flatbuffers.Table} obj
  * @returns {?flatbuffers.Table}
  */
@@ -1902,21 +1872,6 @@ MyGame.Example.Monster.prototype.anyUnique = function(obj) {
 MyGame.Example.Monster.prototype.anyAmbiguousType = function() {
   var offset = this.bb.__offset(this.bb_pos, 94);
   return offset ? /** @type {MyGame.Example.AnyAmbiguousAliases} */ (this.bb.readUint8(this.bb_pos + offset)) : MyGame.Example.AnyAmbiguousAliases.NONE;
-};
-
-/**
- * @param {MyGame.Example.AnyAmbiguousAliases} value
- * @returns {boolean}
- */
-MyGame.Example.Monster.prototype.mutate_any_ambiguous_type = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 94);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb.writeUint8(this.bb_pos + offset, value);
-  return true;
 };
 
 /**

@@ -259,21 +259,6 @@ mainCharacterType():Character {
 };
 
 /**
- * @param Character value
- * @returns boolean
- */
-mutate_main_character_type(value:Character):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 4);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint8(this.bb_pos + offset, value);
-  return true;
-};
-
-/**
  * @param flatbuffers.Table obj
  * @returns ?flatbuffers.Table
  */

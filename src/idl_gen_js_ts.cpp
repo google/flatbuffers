@@ -1015,7 +1015,7 @@ class JsTsGenerator : public BaseGenerator {
       }
 
       // Adds the mutable scalar value to the output
-      if (IsScalar(field.value.type.base_type) && parser.opts.mutable_buffer) {
+      if (IsScalar(field.value.type.base_type) && parser.opts.mutable_buffer && !IsUnion(field.value.type)) {
         std::string annotations = GenTypeAnnotation(
             kParam, GenTypeName(field.value.type, true), "value");
         GenDocComment(

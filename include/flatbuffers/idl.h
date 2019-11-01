@@ -338,44 +338,7 @@ struct StructDef : public Definition {
   flatbuffers::unique_ptr<std::string> original_location;
 };
 
-inline bool IsStruct(const Type &type) {
-  return type.base_type == BASE_TYPE_STRUCT && type.struct_def->fixed;
-}
 
-inline bool IsVector(const Type &type) {
-  return type.base_type == BASE_TYPE_VECTOR;
-}
-
-inline bool IsArray(const Type &type) {
-  return type.base_type == BASE_TYPE_ARRAY;
-}
-
-inline bool IsSeries(const Type &type) {
-  return IsVector(type) || IsArray(type);
-}
-
-inline bool IsEnum(const Type &type) {
-  return type.enum_def != nullptr && IsInteger(type.base_type);
-}
-
-inline size_t InlineSize(const Type &type) {
-  return IsStruct(type)
-             ? type.struct_def->bytesize
-             : (IsArray(type)
-                    ? InlineSize(type.VectorType()) * type.fixed_length
-                    : SizeOf(type.base_type));
-}
-
-inline size_t InlineAlignment(const Type &type) {
-  if (IsStruct(type)) {
-    return type.struct_def->minalign;
-  } else if (IsArray(type)) {
-    return IsStruct(type.VectorType()) ? type.struct_def->minalign
-                                       : SizeOf(type.element);
-  } else {
-    return SizeOf(type.base_type);
-  }
-}
 
 struct EnumDef;
 struct EnumValBuilder;
@@ -460,6 +423,48 @@ struct EnumDef : public Definition {
   SymbolTable<EnumVal> vals;
 };
 
+inline bool IsStruct(const Type &type) {
+  return type.base_type == BASE_TYPE_STRUCT && type.struct_def->fixed;
+}
+
+inline bool IsUnion(const Type &type) {
+  return type.enum_def != nullptr && type.enum_def->is_union;
+}
+
+inline bool IsVector(const Type &type) {
+  return type.base_type == BASE_TYPE_VECTOR;
+}
+
+inline bool IsArray(const Type &type) {
+  return type.base_type == BASE_TYPE_ARRAY;
+}
+
+inline bool IsSeries(const Type &type) {
+  return IsVector(type) || IsArray(type);
+}
+
+inline bool IsEnum(const Type &type) {
+  return type.enum_def != nullptr && IsInteger(type.base_type);
+}
+
+inline size_t InlineSize(const Type &type) {
+  return IsStruct(type)
+    ? type.struct_def->bytesize
+      : (IsArray(type)
+        ? InlineSize(type.VectorType()) * type.fixed_length
+        : SizeOf(type.base_type));
+}
+
+inline size_t InlineAlignment(const Type &type) {
+    if (IsStruct(type)) {
+        return type.struct_def->minalign;
+    } else if (IsArray(type)) {
+        return IsStruct(type.VectorType()) ? type.struct_def->minalign
+                                           : SizeOf(type.element);
+    } else {
+        return SizeOf(type.base_type);
+    }
+}
 inline bool operator==(const EnumVal &lhs, const EnumVal &rhs) {
   return lhs.value == rhs.value;
 }
