@@ -60,6 +60,23 @@ function m.New(initialSize)
     return o
 end
 
+-- Clears the builder and resets the state. It does not actually clear the backing binary array, it just reuses it as
+-- needed. This is a performant way to use the builder for multiple constructions without the overhead of multiple
+-- builder allocations.
+function mt:Clear()
+    self.finished = false
+    self.nested = false
+    self.minalign = 1
+    self.currentVTable = nil
+    self.objectEnd = nil
+    self.head = #self.bytes -- place the head at the end of the binary array
+
+    -- clear vtables instead of making a new table
+    local vtable = self.vtables
+    local vtableCount = #vtable
+    for i=1,vtableCount do vtable[i] = nil end
+end
+
 function mt:Output(full)
     assert(self.finished, "Builder Not Finished")
     if full then
