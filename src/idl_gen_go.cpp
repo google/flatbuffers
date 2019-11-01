@@ -218,7 +218,7 @@ class GoGenerator : public BaseGenerator {
   // Generate String() method on enum type.
   void EnumStringer(const EnumDef &enum_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
-    code += "func (v " + enum_def.name + ") String() string {\n";
+    code += "func (v " + GetEnumTypeName(enum_def) + ") String() string {\n";
     code += "\tif s, ok := EnumNames" + enum_def.name + "[v]; ok {\n";
     code += "\t\treturn s\n";
     code += "\t}\n";
