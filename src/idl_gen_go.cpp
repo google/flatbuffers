@@ -81,13 +81,13 @@ class GoGenerator : public BaseGenerator {
       tracked_imported_namespaces_.clear();
       needs_imports = false;
       std::string enumcode;
+      GenEnum(**it, &enumcode);
       if ((*it)->is_union && parser_.opts.generate_object_based_api) {
         GenNativeUnion(**it, &enumcode);
         GenNativeUnionPack(**it, &enumcode);
         GenNativeUnionUnPack(**it, &enumcode);
         needs_imports = true;
       }
-      GenEnum(**it, &enumcode);
       if (parser_.opts.one_file) {
         one_file_code += enumcode;
       } else {
@@ -218,7 +218,7 @@ class GoGenerator : public BaseGenerator {
   // Generate String() method on enum type.
   void EnumStringer(const EnumDef &enum_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
-    code += "func (v " + GetEnumTypeName(enum_def) + ") String() string {\n";
+    code += "func (v " + enum_def.name + ") String() string {\n";
     code += "\tif s, ok := EnumNames" + enum_def.name + "[v]; ok {\n";
     code += "\t\treturn s\n";
     code += "\t}\n";
