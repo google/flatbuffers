@@ -975,9 +975,6 @@ class KotlinGenerator : public BaseGenerator {
                         params = "obj: " + field_type + ", j: Int";
                     }
 
-
-                    writer.SetValue("toType", "YYYYY");
-
                     auto ret_type = return_type + nullable;
                     GenerateFun(writer, field_name, params, ret_type, [&](){
                         auto inline_size = NumToString(InlineSize(vectortype));
@@ -1008,7 +1005,7 @@ class KotlinGenerator : public BaseGenerator {
                     GenerateFun(writer, field_name, "obj: " + field_type,
                                 return_type + "?", [&](){
                         writer += OffsetWrapperOneLine(offset_val,
-                                                       bbgetter + "(obj, o)",
+                                                       bbgetter + "(obj, o + bb_pos)",
                                                        "null");
                     });
                     break;
