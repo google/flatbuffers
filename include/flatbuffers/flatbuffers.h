@@ -1759,7 +1759,7 @@ class FlatBufferBuilder {
   /// `vector`.
   /// @tparam T The data type of the `std::vector` struct elements.
   /// @tparam S The data type of the `std::vector` native struct elements.
-  /// @param[in]] v A const reference to the `std::vector` of structs to
+  /// @param[in] v A const reference to the `std::vector` of structs to
   /// serialize into the buffer as a `vector`.
   /// @return Returns a typed `Offset` into the serialized data indicating
   /// where the vector is stored.
