@@ -242,9 +242,9 @@ bool SetGlobalTestLocale(const char *locale_name, std::string *_value) {
 }
 
 bool ReadEnvironmentVariable(const char *var_name, std::string *_value) {
-  #ifdef _MSC_VER
-  __pragma(warning(disable : 4996)); // _CRT_SECURE_NO_WARNINGS
-  #endif
+#ifdef _MSC_VER
+  __pragma(warning(disable : 4996));  // _CRT_SECURE_NO_WARNINGS
+#endif
   auto env_str = std::getenv(var_name);
   if (!env_str) return false;
   if (_value) *_value = std::string(env_str);

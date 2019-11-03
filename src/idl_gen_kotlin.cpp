@@ -18,12 +18,13 @@
 
 #include <functional>
 #include <unordered_set>
+
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 #if defined(FLATBUFFERS_CPP98_STL)
-#include <cctype>
+#  include <cctype>
 #endif  // defined(FLATBUFFERS_CPP98_STL)
 
 namespace flatbuffers {
@@ -35,21 +36,20 @@ static TypedFloatConstantGenerator KotlinFloatGen("Double.", "Float.", "NaN",
                                                   "POSITIVE_INFINITY",
                                                   "NEGATIVE_INFINITY");
 
-static const CommentConfig comment_config = {"/**", " *", " */"};
+static const CommentConfig comment_config = { "/**", " *", " */" };
 static const std::string ident_pad = "    ";
 static const char *keywords[] = {
-    "package",  "as",     "typealias", "class",  "this",   "super",
-    "val",      "var",    "fun",       "for",    "null",   "true",
-    "false",    "is",     "in",        "throw",  "return", "break",
-    "continue", "object", "if",        "try",    "else",   "while",
-    "do",       "when",   "interface", "typeof", "Any",    "Character"};
+  "package",  "as",     "typealias", "class",  "this",   "super",
+  "val",      "var",    "fun",       "for",    "null",   "true",
+  "false",    "is",     "in",        "throw",  "return", "break",
+  "continue", "object", "if",        "try",    "else",   "while",
+  "do",       "when",   "interface", "typeof", "Any",    "Character"
+};
 
 // Escape Keywords
 static std::string Esc(const std::string &name) {
   for (size_t i = 0; i < sizeof(keywords) / sizeof(keywords[0]); i++) {
-    if (name == keywords[i]) {
-      return MakeCamel(name + "_", false);
-    }
+    if (name == keywords[i]) { return MakeCamel(name + "_", false); }
   }
 
   return MakeCamel(name, false);
