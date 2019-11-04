@@ -30,7 +30,7 @@ class Movie : Table() {
         }
     }
     fun mainCharacter(obj: Table) : Table? {
-        val o = __offset(6); return if (o != 0) __union(obj, o) else null
+        val o = __offset(6); return if (o != 0) __union(obj, o + bb_pos) else null
     }
     fun charactersType(j: Int) : UByte {
         val o = __offset(8)

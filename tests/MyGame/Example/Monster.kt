@@ -116,7 +116,7 @@ class Monster : Table() {
         }
     }
     fun test(obj: Table) : Table? {
-        val o = __offset(20); return if (o != 0) __union(obj, o) else null
+        val o = __offset(20); return if (o != 0) __union(obj, o + bb_pos) else null
     }
     fun test4(j: Int) : MyGame.Example.Test? = test4(MyGame.Example.Test(), j)
     fun test4(obj: MyGame.Example.Test, j: Int) : MyGame.Example.Test? {
@@ -717,7 +717,7 @@ class Monster : Table() {
         }
     }
     fun anyUnique(obj: Table) : Table? {
-        val o = __offset(92); return if (o != 0) __union(obj, o) else null
+        val o = __offset(92); return if (o != 0) __union(obj, o + bb_pos) else null
     }
     val anyAmbiguousType : UByte
         get() {
@@ -734,7 +734,7 @@ class Monster : Table() {
         }
     }
     fun anyAmbiguous(obj: Table) : Table? {
-        val o = __offset(96); return if (o != 0) __union(obj, o) else null
+        val o = __offset(96); return if (o != 0) __union(obj, o + bb_pos) else null
     }
     fun vectorOfEnums(j: Int) : UByte {
         val o = __offset(98)
