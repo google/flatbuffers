@@ -1353,9 +1353,6 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   MyGame::Example::Any test_type() const {
     return static_cast<MyGame::Example::Any>(GetField<uint8_t>(VT_TEST_TYPE, 0));
   }
-  bool mutate_test_type(MyGame::Example::Any _test_type) {
-    return SetField<uint8_t>(VT_TEST_TYPE, static_cast<uint8_t>(_test_type), 0);
-  }
   const void *test() const {
     return GetPointer<const void *>(VT_TEST);
   }
@@ -1587,9 +1584,6 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   MyGame::Example::AnyUniqueAliases any_unique_type() const {
     return static_cast<MyGame::Example::AnyUniqueAliases>(GetField<uint8_t>(VT_ANY_UNIQUE_TYPE, 0));
   }
-  bool mutate_any_unique_type(MyGame::Example::AnyUniqueAliases _any_unique_type) {
-    return SetField<uint8_t>(VT_ANY_UNIQUE_TYPE, static_cast<uint8_t>(_any_unique_type), 0);
-  }
   const void *any_unique() const {
     return GetPointer<const void *>(VT_ANY_UNIQUE);
   }
@@ -1608,9 +1602,6 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   MyGame::Example::AnyAmbiguousAliases any_ambiguous_type() const {
     return static_cast<MyGame::Example::AnyAmbiguousAliases>(GetField<uint8_t>(VT_ANY_AMBIGUOUS_TYPE, 0));
-  }
-  bool mutate_any_ambiguous_type(MyGame::Example::AnyAmbiguousAliases _any_ambiguous_type) {
-    return SetField<uint8_t>(VT_ANY_AMBIGUOUS_TYPE, static_cast<uint8_t>(_any_ambiguous_type), 0);
   }
   const void *any_ambiguous() const {
     return GetPointer<const void *>(VT_ANY_AMBIGUOUS);

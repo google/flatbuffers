@@ -361,9 +361,6 @@ struct Movie FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   Character main_character_type() const {
     return static_cast<Character>(GetField<uint8_t>(VT_MAIN_CHARACTER_TYPE, 0));
   }
-  bool mutate_main_character_type(Character _main_character_type) {
-    return SetField<uint8_t>(VT_MAIN_CHARACTER_TYPE, static_cast<uint8_t>(_main_character_type), 0);
-  }
   const void *main_character() const {
     return GetPointer<const void *>(VT_MAIN_CHARACTER);
   }

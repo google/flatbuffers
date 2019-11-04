@@ -38,7 +38,6 @@ public final class Monster extends Table {
   public int color() { int o = __offset(16); return o != 0 ? bb.get(o + bb_pos) & 0xFF : 8; }
   public boolean mutateColor(int color) { int o = __offset(16); if (o != 0) { bb.put(o + bb_pos, (byte)color); return true; } else { return false; } }
   public byte testType() { int o = __offset(18); return o != 0 ? bb.get(o + bb_pos) : 0; }
-  public boolean mutateTestType(byte test_type) { int o = __offset(18); if (o != 0) { bb.put(o + bb_pos, test_type); return true; } else { return false; } }
   public Table test(Table obj) { int o = __offset(20); return o != 0 ? __union(obj, o + bb_pos) : null; }
   public MyGame.Example.Test test4(int j) { return test4(new MyGame.Example.Test(), j); }
   public MyGame.Example.Test test4(MyGame.Example.Test obj, int j) { int o = __offset(22); return o != 0 ? obj.__assign(__vector(o) + j * 4, bb) : null; }
@@ -183,10 +182,8 @@ public final class Monster extends Table {
   public ByteBuffer vectorOfNonOwningReferencesInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 88, 8); }
   public boolean mutateVectorOfNonOwningReferences(int j, long vector_of_non_owning_references) { int o = __offset(88); if (o != 0) { bb.putLong(__vector(o) + j * 8, vector_of_non_owning_references); return true; } else { return false; } }
   public byte anyUniqueType() { int o = __offset(90); return o != 0 ? bb.get(o + bb_pos) : 0; }
-  public boolean mutateAnyUniqueType(byte any_unique_type) { int o = __offset(90); if (o != 0) { bb.put(o + bb_pos, any_unique_type); return true; } else { return false; } }
   public Table anyUnique(Table obj) { int o = __offset(92); return o != 0 ? __union(obj, o + bb_pos) : null; }
   public byte anyAmbiguousType() { int o = __offset(94); return o != 0 ? bb.get(o + bb_pos) : 0; }
-  public boolean mutateAnyAmbiguousType(byte any_ambiguous_type) { int o = __offset(94); if (o != 0) { bb.put(o + bb_pos, any_ambiguous_type); return true; } else { return false; } }
   public Table anyAmbiguous(Table obj) { int o = __offset(96); return o != 0 ? __union(obj, o + bb_pos) : null; }
   public int vectorOfEnums(int j) { int o = __offset(98); return o != 0 ? bb.get(__vector(o) + j * 1) & 0xFF : 0; }
   public int vectorOfEnumsLength() { int o = __offset(98); return o != 0 ? __vector_len(o) : 0; }

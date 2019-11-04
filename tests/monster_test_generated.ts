@@ -1002,21 +1002,6 @@ testType():MyGame.Example.Any {
 };
 
 /**
- * @param MyGame.Example.Any value
- * @returns boolean
- */
-mutate_test_type(value:MyGame.Example.Any):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 18);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint8(this.bb_pos + offset, value);
-  return true;
-};
-
-/**
  * @param flatbuffers.Table obj
  * @returns ?flatbuffers.Table
  */
@@ -1725,21 +1710,6 @@ anyUniqueType():MyGame.Example.AnyUniqueAliases {
 };
 
 /**
- * @param MyGame.Example.AnyUniqueAliases value
- * @returns boolean
- */
-mutate_any_unique_type(value:MyGame.Example.AnyUniqueAliases):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 90);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint8(this.bb_pos + offset, value);
-  return true;
-};
-
-/**
  * @param flatbuffers.Table obj
  * @returns ?flatbuffers.Table
  */
@@ -1754,21 +1724,6 @@ anyUnique<T extends flatbuffers.Table>(obj:T):T|null {
 anyAmbiguousType():MyGame.Example.AnyAmbiguousAliases {
   var offset = this.bb!.__offset(this.bb_pos, 94);
   return offset ? /**  */ (this.bb!.readUint8(this.bb_pos + offset)) : MyGame.Example.AnyAmbiguousAliases.NONE;
-};
-
-/**
- * @param MyGame.Example.AnyAmbiguousAliases value
- * @returns boolean
- */
-mutate_any_ambiguous_type(value:MyGame.Example.AnyAmbiguousAliases):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 94);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint8(this.bb_pos + offset, value);
-  return true;
 };
 
 /**
