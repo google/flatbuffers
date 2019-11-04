@@ -316,9 +316,6 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   MyGame::Sample::Equipment equipped_type() const {
     return static_cast<MyGame::Sample::Equipment>(GetField<uint8_t>(VT_EQUIPPED_TYPE, 0));
   }
-  bool mutate_equipped_type(MyGame::Sample::Equipment _equipped_type) {
-    return SetField<uint8_t>(VT_EQUIPPED_TYPE, static_cast<uint8_t>(_equipped_type), 0);
-  }
   const void *equipped() const {
     return GetPointer<const void *>(VT_EQUIPPED);
   }

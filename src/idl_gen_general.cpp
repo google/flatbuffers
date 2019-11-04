@@ -1367,7 +1367,7 @@ class GeneralGenerator : public BaseGenerator {
                        ? lang_.accessor_prefix + "bb_pos + " +
                              NumToString(field.value.offset)
                        : "o + " + lang_.accessor_prefix + "bb_pos");
-        if (IsScalar(underlying_type.base_type)) {
+        if (IsScalar(underlying_type.base_type) && !IsUnion(field.value.type)) {
           code += "  public ";
           code += struct_def.fixed ? "void " : lang_.bool_type;
           code += mutator_prefix + MakeCamel(field.name, true);
