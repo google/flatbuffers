@@ -15,11 +15,15 @@ func TestPack(builder *flatbuffers.Builder, t *TestT) flatbuffers.UOffsetT {
 	if t == nil { return 0 }
 	return CreateTest(builder, t.A, t.B)
 }
+func (rcv *Test) UnPackTo(t *TestT) {
+	t.A = rcv.A()
+	t.B = rcv.B()
+}
+
 func (rcv *Test) UnPack() *TestT {
 	if rcv == nil { return nil }
 	t := &TestT{}
-	t.A = rcv.A()
-	t.B = rcv.B()
+	rcv.UnPackTo(t)
 	return t
 }
 

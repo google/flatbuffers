@@ -295,9 +295,7 @@ func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT
 	return MonsterEnd(builder)
 }
 
-func (rcv *Monster) UnPack() *MonsterT {
-	if rcv == nil { return nil }
-	t := &MonsterT{}
+func (rcv *Monster) UnPackTo(t *MonsterT) {
 	t.Pos = rcv.Pos(nil).UnPack()
 	t.Mana = rcv.Mana()
 	t.Hp = rcv.Hp()
@@ -424,6 +422,12 @@ func (rcv *Monster) UnPack() *MonsterT {
 		t.VectorOfEnums[j] = rcv.VectorOfEnums(j)
 	}
 	t.SignedEnum = rcv.SignedEnum()
+}
+
+func (rcv *Monster) UnPack() *MonsterT {
+	if rcv == nil { return nil }
+	t := &MonsterT{}
+	rcv.UnPackTo(t)
 	return t
 }
 

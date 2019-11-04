@@ -15,9 +15,13 @@ func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT
 	return MonsterEnd(builder)
 }
 
+func (rcv *Monster) UnPackTo(t *MonsterT) {
+}
+
 func (rcv *Monster) UnPack() *MonsterT {
 	if rcv == nil { return nil }
 	t := &MonsterT{}
+	rcv.UnPackTo(t)
 	return t
 }
 

@@ -17,10 +17,14 @@ func TestSimpleTableWithEnumPack(builder *flatbuffers.Builder, t *TestSimpleTabl
 	return TestSimpleTableWithEnumEnd(builder)
 }
 
+func (rcv *TestSimpleTableWithEnum) UnPackTo(t *TestSimpleTableWithEnumT) {
+	t.Color = rcv.Color()
+}
+
 func (rcv *TestSimpleTableWithEnum) UnPack() *TestSimpleTableWithEnumT {
 	if rcv == nil { return nil }
 	t := &TestSimpleTableWithEnumT{}
-	t.Color = rcv.Color()
+	rcv.UnPackTo(t)
 	return t
 }
 
