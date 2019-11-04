@@ -435,8 +435,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         }
       } else {
         ParseFile(*parser.get(), filename, contents, include_directories);
-        if (!opts.use_flexbuffers && !is_schema &&
-            !parser->builder_.GetSize()) {
+        if (!is_schema && !parser->builder_.GetSize()) {
           // If a file doesn't end in .fbs, it must be json/binary. Ensure we
           // didn't just parse a schema with a different extension.
           Error("input file is neither json nor a .fbs (schema) file: " +
