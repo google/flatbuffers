@@ -33,6 +33,8 @@
 #include "monster_test_generated.h"
 #include "namespace_test/namespace_test1_generated.h"
 #include "namespace_test/namespace_test2_generated.h"
+#include "evolution_test/evolution_v1_generated.h"
+#include "evolution_test/evolution_v2_generated.h"
 #include "union_vector/union_vector_generated.h"
 #include "monster_extra_generated.h"
 #if !defined(_MSC_VER) || _MSC_VER >= 1700
@@ -2311,6 +2313,77 @@ void InvalidNestedFlatbufferTest() {
   // Check that Parser is destroyed correctly after parsing invalid json
 }
 
+void EvolutionTest() {
+    const int NUM_VERSIONS = 2;
+    std::string schemas[NUM_VERSIONS];
+    std::string jsonfiles[NUM_VERSIONS];
+    std::vector<uint8_t> binaries[NUM_VERSIONS];
+    flatbuffers::Verifier *verifiers[NUM_VERSIONS];
+
+    // storage for generating filenames
+    char filename_buffer[100];
+
+    flatbuffers::IDLOptions idl_opts;
+    idl_opts.lang_to_generate |= flatbuffers::IDLOptions::kBinary;
+    flatbuffers::Parser parser(idl_opts);
+
+    // Load all the schema versions and their associated data.
+    for (int i = 0; i < NUM_VERSIONS; ++i) {
+        snprintf(filename_buffer, sizeof(filename_buffer),
+                "%sevolution_test/evolution_v%d.fbs", test_data_path.c_str(),i+1);
+        TEST_ASSERT(flatbuffers::LoadFile(filename_buffer, false, &schemas[i]));
+        snprintf(filename_buffer, sizeof(filename_buffer),
+                "%sevolution_test/evolution_v%d.json", test_data_path.c_str(),i+1);
+        TEST_ASSERT(flatbuffers::LoadFile(filename_buffer, false, &jsonfiles[i]));
+
+        TEST_ASSERT(parser.Parse(schemas[i].c_str()));
+        TEST_ASSERT(parser.Parse(jsonfiles[i].c_str()));
+
+        auto bufLen = parser.builder_.GetSize();
+        auto buf = parser.builder_.GetBufferPointer();
+        binaries[i].reserve(bufLen);
+        std::copy(buf, buf + bufLen, std::back_inserter(binaries[i]));
+
+        verifiers[i] = new flatbuffers::Verifier(binaries[i].data(), bufLen);
+    }
+
+    // Assert that all the verifiers for the different schema versions properly verify any version data.
+    for (auto & verifier : verifiers) {
+        TEST_ASSERT(Evolution::V1::VerifyRootBuffer(*verifier));
+        TEST_ASSERT(Evolution::V2::VerifyRootBuffer(*verifier));
+    }
+
+    // Test backwards compatibility by reading old data with an evolved schema.
+    auto root_v1_viewed_from_v2 = Evolution::V2::GetRoot(binaries[0].data());
+    // field 'j' is new in version 2, so it should be null.
+    TEST_EQ(root_v1_viewed_from_v2->j(), NULL);
+    // field 'k' is new in version 2 with a default of 56.
+    TEST_EQ(root_v1_viewed_from_v2->k(), 56);
+    // field 'c' of 'TableA' is new in version 2, so it should be null.
+    TEST_EQ(root_v1_viewed_from_v2->e()->c(), NULL);
+    // 'TableC' was added to field 'c' union in version 2, so it should be null.
+    TEST_EQ(root_v1_viewed_from_v2->c_as_TableC(), NULL);
+    // The field 'c' union should be of type 'TableB' regardless of schema version
+    TEST_EQ(root_v1_viewed_from_v2->c_type(), Evolution::V1::Union_TableB);
+    TEST_EQ(root_v1_viewed_from_v2->c_type(), Evolution::V2::Union_TableB);
+    // The field 'f' was renamed to 'ff' in version 2, it should still be readable.
+    TEST_EQ(root_v1_viewed_from_v2->ff()->a(), 16);
+
+    // Test forwards compatibility by reading new data with an old schema.
+    auto root_v2_viewed_from_v1 = Evolution::V1::GetRoot(binaries[1].data());
+    // The field 'c' union in version 2 is a new table (index = 3) and should still be accessible,
+    // but not interpretable.
+    TEST_EQ(root_v2_viewed_from_v1->c_type(), 3);
+    TEST_NOTNULL(root_v2_viewed_from_v1->c());
+    // The field 'd' enum in verison 2 has new members and should still be accessible, but not interpretable.
+    TEST_EQ(root_v2_viewed_from_v1->d(), 3);
+    // The field 'a' in version 2 is deprecated and should return the default value (0) instead of the value stored in
+    // the in the buffer (42).
+    TEST_EQ(root_v2_viewed_from_v1->a(), 0);
+    // The field 'ff' was originally named 'f' in version 1, it should still be readable.
+    TEST_EQ(root_v2_viewed_from_v1->f()->a(), 35);
+}
+
 void UnionVectorTest() {
   // load FlatBuffer fbs schema and json.
   std::string schemafile, jsonfile;
@@ -3071,6 +3144,7 @@ int FlatBufferTests() {
     FixedLengthArrayJsonTest(true);
     ReflectionTest(flatbuf.data(), flatbuf.size());
     ParseProtoTest();
+    EvolutionTest();
     UnionVectorTest();
     LoadVerifyBinaryTest();
     GenerateTableTextTest();
