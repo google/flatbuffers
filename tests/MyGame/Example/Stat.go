@@ -22,12 +22,16 @@ func StatPack(builder *flatbuffers.Builder, t *StatT) flatbuffers.UOffsetT {
 	return StatEnd(builder)
 }
 
-func (rcv *Stat) UnPack() *StatT {
-	if rcv == nil { return nil }
-	t := &StatT{}
+func (rcv *Stat) UnPackTo(t *StatT) {
 	t.Id = string(rcv.Id())
 	t.Val = rcv.Val()
 	t.Count = rcv.Count()
+}
+
+func (rcv *Stat) UnPack() *StatT {
+	if rcv == nil { return nil }
+	t := &StatT{}
+	rcv.UnPackTo(t)
 	return t
 }
 

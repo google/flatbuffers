@@ -983,10 +983,8 @@ class GoGenerator : public BaseGenerator {
     const StructDef &struct_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
 
-    code += "func (rcv *" + struct_def.name + ") UnPack() *" +
-            NativeName(struct_def) + " {\n";
-    code += "\tif rcv == nil { return nil }\n";
-    code += "\tt := &" + NativeName(struct_def) + "{}\n";
+    code += "func (rcv *" + struct_def.name + ") UnPackTo(t *" +
+            NativeName(struct_def) + ") {\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const FieldDef &field = **it;
@@ -1046,6 +1044,13 @@ class GoGenerator : public BaseGenerator {
         FLATBUFFERS_ASSERT(0);
       }
     }
+    code += "}\n\n";
+
+    code += "func (rcv *" + struct_def.name + ") UnPack() *" +
+            NativeName(struct_def) + " {\n";
+    code += "\tif rcv == nil { return nil }\n";
+    code += "\tt := &" + NativeName(struct_def) + "{}\n";
+    code += "\trcv.UnPackTo(t)\n";
     code += "\treturn t\n";
     code += "}\n\n";
   }
@@ -1083,10 +1088,8 @@ class GoGenerator : public BaseGenerator {
     const StructDef &struct_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
 
-    code += "func (rcv *" + struct_def.name + ") UnPack() *" +
-            NativeName(struct_def) + " {\n";
-    code += "\tif rcv == nil { return nil }\n";
-    code += "\tt := &" + NativeName(struct_def) + "{}\n";
+    code += "func (rcv *" + struct_def.name + ") UnPackTo(t *" +
+            NativeName(struct_def) + ") {\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const FieldDef &field = **it;
@@ -1098,6 +1101,13 @@ class GoGenerator : public BaseGenerator {
                 MakeCamel(field.name) + "()\n";
       }
     }
+    code += "}\n\n";
+
+    code += "func (rcv *" + struct_def.name + ") UnPack() *" +
+            NativeName(struct_def) + " {\n";
+    code += "\tif rcv == nil { return nil }\n";
+    code += "\tt := &" + NativeName(struct_def) + "{}\n";
+    code += "\trcv.UnPackTo(t)\n";
     code += "\treturn t\n";
     code += "}\n\n";
   }
