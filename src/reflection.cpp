@@ -23,7 +23,7 @@
 namespace flatbuffers {
 
 int64_t GetAnyValueI(reflection::BaseType type, const uint8_t *data) {
-// clang-format off
+  // clang-format off
   #define FLATBUFFERS_GET(T) static_cast<int64_t>(ReadScalar<T>(data))
   switch (type) {
     case reflection::UType:
@@ -115,7 +115,7 @@ std::string GetAnyValueS(reflection::BaseType type, const uint8_t *data,
 }
 
 void SetAnyValueI(reflection::BaseType type, uint8_t *data, int64_t val) {
-// clang-format off
+  // clang-format off
   #define FLATBUFFERS_SET(T) WriteScalar(data, static_cast<T>(val))
   switch (type) {
     case reflection::UType:

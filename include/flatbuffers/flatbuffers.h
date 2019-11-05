@@ -62,7 +62,7 @@ inline void EndianCheck() {
 }
 
 template<typename T> FLATBUFFERS_CONSTEXPR size_t AlignOf() {
-// clang-format off
+  // clang-format off
   #ifdef _MSC_VER
     return __alignof(T);
   #else
@@ -128,7 +128,7 @@ template<typename T, typename IT> struct VectorIterator {
     return *this;
   }
 
-// clang-format off
+  // clang-format off
   #if !defined(FLATBUFFERS_CPP98_STL)
   VectorIterator &operator=(VectorIterator &&other) {
     data_ = other.data_;
@@ -531,7 +531,7 @@ struct String : public Vector<char> {
   const char *c_str() const { return reinterpret_cast<const char *>(Data()); }
   std::string str() const { return std::string(c_str(), size()); }
 
-// clang-format off
+  // clang-format off
   #ifdef FLATBUFFERS_HAS_STRING_VIEW
   flatbuffers::string_view string_view() const {
     return flatbuffers::string_view(c_str(), size());
@@ -657,7 +657,7 @@ class DetachedBuffer {
         cur_(cur),
         size_(sz) {}
 
-// clang-format off
+  // clang-format off
   #if !defined(FLATBUFFERS_CPP98_STL)
   // clang-format on
   DetachedBuffer(DetachedBuffer &&other)
@@ -669,11 +669,11 @@ class DetachedBuffer {
         size_(other.size_) {
     other.reset();
   }
-// clang-format off
+  // clang-format off
   #endif  // !defined(FLATBUFFERS_CPP98_STL)
-// clang-format on
+  // clang-format on
 
-// clang-format off
+  // clang-format off
   #if !defined(FLATBUFFERS_CPP98_STL)
   // clang-format on
   DetachedBuffer &operator=(DetachedBuffer &&other) {
@@ -692,7 +692,7 @@ class DetachedBuffer {
 
     return *this;
   }
-// clang-format off
+  // clang-format off
   #endif  // !defined(FLATBUFFERS_CPP98_STL)
   // clang-format on
 
@@ -704,7 +704,7 @@ class DetachedBuffer {
 
   size_t size() const { return size_; }
 
-// clang-format off
+  // clang-format off
   #if 0  // disabled for now due to the ordering of classes in this header
   template <class T>
   bool Verify() const {
@@ -722,16 +722,16 @@ class DetachedBuffer {
     return flatbuffers::GetRoot<T>(data());
   }
   #endif
-// clang-format on
+  // clang-format on
 
-// clang-format off
+  // clang-format off
   #if !defined(FLATBUFFERS_CPP98_STL)
   // clang-format on
   // These may change access mode, leave these at end of public section
   FLATBUFFERS_DELETE_FUNC(DetachedBuffer(const DetachedBuffer &other))
   FLATBUFFERS_DELETE_FUNC(
       DetachedBuffer &operator=(const DetachedBuffer &other))
-// clang-format off
+  // clang-format off
   #endif  // !defined(FLATBUFFERS_CPP98_STL)
   // clang-format on
 
@@ -778,7 +778,7 @@ class vector_downward {
         cur_(nullptr),
         scratch_(nullptr) {}
 
-// clang-format off
+  // clang-format off
   #if !defined(FLATBUFFERS_CPP98_STL)
   vector_downward(vector_downward &&other)
   #else
@@ -803,7 +803,7 @@ class vector_downward {
     other.scratch_ = nullptr;
   }
 
-// clang-format off
+  // clang-format off
   #if !defined(FLATBUFFERS_CPP98_STL)
   // clang-format on
   vector_downward &operator=(vector_downward &&other) {
@@ -812,7 +812,7 @@ class vector_downward {
     swap(temp);
     return *this;
   }
-// clang-format off
+  // clang-format off
   #endif  // defined(FLATBUFFERS_CPP98_STL)
   // clang-format on
 
@@ -1064,7 +1064,7 @@ class FlatBufferBuilder {
     EndianCheck();
   }
 
-// clang-format off
+  // clang-format off
   /// @brief Move constructor for FlatBufferBuilder.
   #if !defined(FLATBUFFERS_CPP98_STL)
   FlatBufferBuilder(FlatBufferBuilder &&other)
@@ -1085,9 +1085,9 @@ class FlatBufferBuilder {
     // Lack of delegating constructors in vs2010 makes it more verbose than needed.
     Swap(other);
   }
-// clang-format on
+  // clang-format on
 
-// clang-format off
+  // clang-format off
   #if !defined(FLATBUFFERS_CPP98_STL)
   // clang-format on
   /// @brief Move assignment operator for FlatBufferBuilder.
@@ -1097,7 +1097,7 @@ class FlatBufferBuilder {
     Swap(temp);
     return *this;
   }
-// clang-format off
+  // clang-format off
   #endif  // defined(FLATBUFFERS_CPP98_STL)
   // clang-format on
 
@@ -1454,7 +1454,7 @@ class FlatBufferBuilder {
     return CreateString(str.c_str(), str.length());
   }
 
-// clang-format off
+  // clang-format off
   #ifdef FLATBUFFERS_HAS_STRING_VIEW
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// @param[in] str A const string_view to copy in to the buffer.
@@ -1574,7 +1574,7 @@ class FlatBufferBuilder {
     // causing the wrong overload to be selected, remove it.
     AssertScalarT<T>();
     StartVector(len, sizeof(T));
-// clang-format off
+    // clang-format off
     #if FLATBUFFERS_LITTLEENDIAN
       PushBytes(reinterpret_cast<const uint8_t *>(v), len * sizeof(T));
     #else
@@ -1618,7 +1618,7 @@ class FlatBufferBuilder {
     return Offset<Vector<uint8_t>>(EndVector(v.size()));
   }
 
-// clang-format off
+  // clang-format off
   #ifndef FLATBUFFERS_CPP98_STL
   /// @brief Serialize values returned by a function into a FlatBuffer `vector`.
   /// This is a convenience function that takes care of iteration for you.
@@ -1696,7 +1696,7 @@ class FlatBufferBuilder {
     return CreateVectorOfStructs<T>(data(vv), vv.size());
   }
 
-// clang-format off
+  // clang-format off
   #ifndef FLATBUFFERS_CPP98_STL
   /// @brief Serialize an array of structs into a FlatBuffer `vector`.
   /// @tparam T The data type of the struct array elements.
@@ -2114,7 +2114,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 
   // Central location where any verification failures register.
   bool Check(bool ok) const {
-// clang-format off
+    // clang-format off
     #ifdef FLATBUFFERS_DEBUG_VERIFICATION_FAILURE
       FLATBUFFERS_ASSERT(ok);
     #endif
@@ -2128,7 +2128,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 
   // Verify any range within the buffer.
   bool Verify(size_t elem, size_t elem_len) const {
-// clang-format off
+    // clang-format off
     #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
       auto upper_bound = elem + elem_len;
       if (upper_bound_ < upper_bound)
@@ -2248,7 +2248,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     // Call T::Verify, which must be in the generated code for this type.
     auto o = VerifyOffset(start);
     return o && reinterpret_cast<const T *>(buf_ + start + o)->Verify(*this)
-// clang-format off
+    // clang-format off
     #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
            && GetComputedSize()
     #endif
@@ -2304,7 +2304,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 
   // Returns the message size in bytes
   size_t GetComputedSize() const {
-// clang-format off
+    // clang-format off
     #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
       uintptr_t size = upper_bound_;
       // Align the size to uoffset_t

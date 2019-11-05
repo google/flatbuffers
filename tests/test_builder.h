@@ -78,7 +78,7 @@ void builder_move_assign_after_releaseraw_test(
 
 template<class DestBuilder, class SrcBuilder = DestBuilder>
 struct BuilderTests {
-// clang-format off
+  // clang-format off
   #if !defined(FLATBUFFERS_CPP98_STL)
   // clang-format on
   static void empty_builder_movector_test() {
@@ -162,7 +162,7 @@ struct BuilderTests {
     TEST_ASSERT_FUNC(release_n_verify(dst, m2_name, m2_color));
     TEST_EQ_FUNC(src.GetSize(), 0);
   }
-// clang-format off
+  // clang-format off
   #endif  // !defined(FLATBUFFERS_CPP98_STL)
   // clang-format on
 
@@ -207,7 +207,7 @@ struct BuilderTests {
   }
 
   static void all_tests() {
-// clang-format off
+    // clang-format off
     #if !defined(FLATBUFFERS_CPP98_STL)
     // clang-format on
     empty_builder_movector_test();
@@ -218,7 +218,7 @@ struct BuilderTests {
     builder_move_assign_after_finish_test();
     builder_move_assign_after_release_test();
     builder_move_assign_after_releaseraw_test(DestBuilder());
-// clang-format off
+    // clang-format off
     #endif   // !defined(FLATBUFFERS_CPP98_STL)
     // clang-format on
     builder_swap_before_finish_test();
@@ -265,7 +265,7 @@ template<class DestBuilder, class SrcBuilder> struct BuilderReuseTests {
     }
   }
 
-// clang-format off
+  // clang-format off
   #if !defined(FLATBUFFERS_CPP98_STL)
   // clang-format on
   static void builder_reusable_after_release_and_move_assign_test(
@@ -302,19 +302,19 @@ template<class DestBuilder, class SrcBuilder> struct BuilderReuseTests {
       TEST_EQ_FUNC(src.GetSize(), 0);
     }
   }
-// clang-format off
+  // clang-format off
   #endif  // !defined(FLATBUFFERS_CPP98_STL)
   // clang-format on
 
   static void run_tests(TestSelector selector) {
     builder_reusable_after_release_test(selector);
     builder_reusable_after_releaseraw_test(selector);
-// clang-format off
+    // clang-format off
     #if !defined(FLATBUFFERS_CPP98_STL)
     // clang-format on
     builder_reusable_after_release_and_move_assign_test(selector);
     builder_reusable_after_releaseraw_and_move_assign_test(selector);
-// clang-format off
+    // clang-format off
     #endif  // !defined(FLATBUFFERS_CPP98_STL)
     // clang-format on
   }

@@ -285,7 +285,7 @@ static bool GenStruct(const StructDef &struct_def, const Table *table,
         text += ":";
       text += " ";
       switch (fd.value.type.base_type) {
-// clang-format off
+        // clang-format off
           #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
             CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
             case BASE_TYPE_ ## ENUM: \

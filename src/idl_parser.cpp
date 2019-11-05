@@ -1178,7 +1178,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
       if (!struct_def.sortbysize ||
           size == SizeOf(field_value.type.base_type)) {
         switch (field_value.type.base_type) {
-// clang-format off
+          // clang-format off
           #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
             CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
             case BASE_TYPE_ ## ENUM: \
@@ -1313,7 +1313,7 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
     // start at the back, since we're building the data backwards.
     auto &val = field_stack_.back().first;
     switch (val.type.base_type) {
-// clang-format off
+      // clang-format off
       #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
         CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
         case BASE_TYPE_ ## ENUM: \
@@ -1676,7 +1676,7 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
     double x, y = 0.0;
     ECHECK(atot(e.constant.c_str(), *this, &x));
     auto func_match = false;
-// clang-format off
+    // clang-format off
     #define FLATBUFFERS_FN_DOUBLE(name, op) \
       if (!func_match && functionname == name) { y = op; func_match = true; }
     FLATBUFFERS_FN_DOUBLE("deg", x / kPi * 180);
@@ -1701,7 +1701,7 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
 
   auto match = false;
   const auto in_type = e.type.base_type;
-// clang-format off
+  // clang-format off
   #define IF_ECHECK_(force, dtoken, check, req)    \
     if (!match && ((check) || IsConstTrue(force))) \
     ECHECK(TryTypedValue(name, dtoken, check, e, req, &match))

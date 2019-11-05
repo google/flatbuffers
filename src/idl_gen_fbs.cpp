@@ -68,7 +68,7 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
   std::string schema;
   schema += "// Generated from " + file_name + ".proto\n\n";
   if (parser.opts.include_dependence_headers) {
-// clang-format off
+    // clang-format off
     #ifdef FBS_GEN_INCLUDES  // TODO: currently all in one file.
     int num_includes = 0;
     for (auto it = parser.included_files_.begin();

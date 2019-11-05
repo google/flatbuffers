@@ -338,8 +338,6 @@ struct StructDef : public Definition {
   flatbuffers::unique_ptr<std::string> original_location;
 };
 
-
-
 struct EnumDef;
 struct EnumValBuilder;
 
@@ -450,21 +448,21 @@ inline bool IsEnum(const Type &type) {
 
 inline size_t InlineSize(const Type &type) {
   return IsStruct(type)
-    ? type.struct_def->bytesize
-      : (IsArray(type)
-        ? InlineSize(type.VectorType()) * type.fixed_length
-        : SizeOf(type.base_type));
+             ? type.struct_def->bytesize
+             : (IsArray(type)
+                    ? InlineSize(type.VectorType()) * type.fixed_length
+                    : SizeOf(type.base_type));
 }
 
 inline size_t InlineAlignment(const Type &type) {
-    if (IsStruct(type)) {
-        return type.struct_def->minalign;
-    } else if (IsArray(type)) {
-        return IsStruct(type.VectorType()) ? type.struct_def->minalign
-                                           : SizeOf(type.element);
-    } else {
-        return SizeOf(type.base_type);
-    }
+  if (IsStruct(type)) {
+    return type.struct_def->minalign;
+  } else if (IsArray(type)) {
+    return IsStruct(type.VectorType()) ? type.struct_def->minalign
+                                       : SizeOf(type.element);
+  } else {
+    return SizeOf(type.base_type);
+  }
 }
 inline bool operator==(const EnumVal &lhs, const EnumVal &rhs) {
   return lhs.value == rhs.value;
