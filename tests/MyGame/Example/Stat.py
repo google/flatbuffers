@@ -48,3 +48,44 @@ def StatAddId(builder, id): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.n
 def StatAddVal(builder, val): builder.PrependInt64Slot(1, val, 0)
 def StatAddCount(builder, count): builder.PrependUint16Slot(2, count, 0)
 def StatEnd(builder): return builder.EndObject()
+
+
+class StatT(object):
+
+    # StatT
+    def __init__(self):
+        self.id = None  # type: str
+        self.val = 0  # type: int
+        self.count = 0  # type: int
+
+    @classmethod
+    def InitFromBuf(cls, buf, pos):
+        stat = Stat()
+        stat.Init(buf, pos)
+        return cls.InitFromObj(stat)
+
+    @classmethod
+    def InitFromObj(cls, stat):
+        x = StatT()
+        x._UnPack(stat)
+        return x
+
+    # StatT
+    def _UnPack(self, stat):
+        if stat is None:
+            return
+        self.id = stat.Id()
+        self.val = stat.Val()
+        self.count = stat.Count()
+
+    # StatT
+    def Pack(self, builder):
+        if self.id is not None:
+            id = builder.CreateString(self.id)
+        StatStart(builder)
+        if self.id is not None:
+            StatAddId(builder, id)
+        StatAddVal(builder, self.val)
+        StatAddCount(builder, self.count)
+        stat = StatEnd(builder)
+        return stat

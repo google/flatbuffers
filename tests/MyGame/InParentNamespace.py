@@ -24,3 +24,33 @@ class InParentNamespace(object):
 
 def InParentNamespaceStart(builder): builder.StartObject(0)
 def InParentNamespaceEnd(builder): return builder.EndObject()
+
+
+class InParentNamespaceT(object):
+
+    # InParentNamespaceT
+    def __init__(self):
+        pass
+
+    @classmethod
+    def InitFromBuf(cls, buf, pos):
+        inParentNamespace = InParentNamespace()
+        inParentNamespace.Init(buf, pos)
+        return cls.InitFromObj(inParentNamespace)
+
+    @classmethod
+    def InitFromObj(cls, inParentNamespace):
+        x = InParentNamespaceT()
+        x._UnPack(inParentNamespace)
+        return x
+
+    # InParentNamespaceT
+    def _UnPack(self, inParentNamespace):
+        if inParentNamespace is None:
+            return
+
+    # InParentNamespaceT
+    def Pack(self, builder):
+        InParentNamespaceStart(builder)
+        inParentNamespace = InParentNamespaceEnd(builder)
+        return inParentNamespace

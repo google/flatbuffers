@@ -42,3 +42,45 @@ def CreateVec3(builder, x, y, z, test1, test2, test3_a, test3_b):
     builder.PrependFloat32(y)
     builder.PrependFloat32(x)
     return builder.Offset()
+
+from typing import Optional
+import MyGame.Example.Test
+
+class Vec3T(object):
+
+    # Vec3T
+    def __init__(self):
+        self.x = 0.0  # type: float
+        self.y = 0.0  # type: float
+        self.z = 0.0  # type: float
+        self.test1 = 0.0  # type: float
+        self.test2 = 0  # type: int
+        self.test3 = None  # type: Optional[MyGame.Example.Test.TestT]
+
+    @classmethod
+    def InitFromBuf(cls, buf, pos):
+        vec3 = Vec3()
+        vec3.Init(buf, pos)
+        return cls.InitFromObj(vec3)
+
+    @classmethod
+    def InitFromObj(cls, vec3):
+        x = Vec3T()
+        x._UnPack(vec3)
+        return x
+
+    # Vec3T
+    def _UnPack(self, vec3):
+        if vec3 is None:
+            return
+        self.x = vec3.X()
+        self.y = vec3.Y()
+        self.z = vec3.Z()
+        self.test1 = vec3.Test1()
+        self.test2 = vec3.Test2()
+        if vec3.Test3(MyGame.Example.Test.Test()) is not None:
+            self.test3 = MyGame.Example.Test.TestT.InitFromObj(vec3.Test3(MyGame.Example.Test.Test()))
+
+    # Vec3T
+    def Pack(self, builder):
+        return CreateVec3(builder, self.x, self.y, self.z, self.test1, self.test2, self.test3.a, self.test3.b)

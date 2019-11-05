@@ -94,7 +94,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "                     If the original behavior is required (no include\n"
     "                     statements) use --no-includes.\n"
     "  --no-includes      Don\'t generate include statements for included\n"
-    "                     schemas the generated file depends on (C++).\n"
+    "                     schemas the generated file depends on (C++ / Python).\n"
     "  --gen-mutable      Generate accessors that can mutate buffers in-place.\n"
     "  --gen-onefile      Generate single output file for C# and Go.\n"
     "  --gen-name-strings Generate type name functions for C++.\n"

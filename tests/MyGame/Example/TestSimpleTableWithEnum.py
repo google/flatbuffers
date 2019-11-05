@@ -32,3 +32,35 @@ class TestSimpleTableWithEnum(object):
 def TestSimpleTableWithEnumStart(builder): builder.StartObject(1)
 def TestSimpleTableWithEnumAddColor(builder, color): builder.PrependUint8Slot(0, color, 2)
 def TestSimpleTableWithEnumEnd(builder): return builder.EndObject()
+
+
+class TestSimpleTableWithEnumT(object):
+
+    # TestSimpleTableWithEnumT
+    def __init__(self):
+        self.color = 2  # type: int
+
+    @classmethod
+    def InitFromBuf(cls, buf, pos):
+        testSimpleTableWithEnum = TestSimpleTableWithEnum()
+        testSimpleTableWithEnum.Init(buf, pos)
+        return cls.InitFromObj(testSimpleTableWithEnum)
+
+    @classmethod
+    def InitFromObj(cls, testSimpleTableWithEnum):
+        x = TestSimpleTableWithEnumT()
+        x._UnPack(testSimpleTableWithEnum)
+        return x
+
+    # TestSimpleTableWithEnumT
+    def _UnPack(self, testSimpleTableWithEnum):
+        if testSimpleTableWithEnum is None:
+            return
+        self.color = testSimpleTableWithEnum.Color()
+
+    # TestSimpleTableWithEnumT
+    def Pack(self, builder):
+        TestSimpleTableWithEnumStart(builder)
+        TestSimpleTableWithEnumAddColor(builder, self.color)
+        testSimpleTableWithEnum = TestSimpleTableWithEnumEnd(builder)
+        return testSimpleTableWithEnum
