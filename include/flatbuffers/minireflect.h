@@ -88,7 +88,8 @@ inline size_t InlineSize(ElementaryType type, const TypeTable *type_table) {
       switch (type_table->st) {
         case ST_TABLE:
         case ST_UNION: return 4;
-        case ST_STRUCT: return static_cast<size_t>(type_table->values[type_table->num_elems]);
+        case ST_STRUCT:
+          return static_cast<size_t>(type_table->values[type_table->num_elems]);
         default: FLATBUFFERS_ASSERT(false); return 1;
       }
     default: FLATBUFFERS_ASSERT(false); return 1;

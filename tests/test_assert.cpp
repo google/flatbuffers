@@ -31,7 +31,7 @@ void TestEqStr(const char *expval, const char *val, const char *exp,
 
 #if defined(FLATBUFFERS_MEMORY_LEAK_TRACKING) && defined(_MSC_VER) && \
     defined(_DEBUG)
-#define FLATBUFFERS_MEMORY_LEAK_TRACKING_MSVC
+#  define FLATBUFFERS_MEMORY_LEAK_TRACKING_MSVC
 #endif
 
 void InitTestEngine(TestFailEventListener listener) {
@@ -58,12 +58,12 @@ void InitTestEngine(TestFailEventListener listener) {
 
 int CloseTestEngine(bool force_report) {
   if (!testing_fails || force_report) {
-  #if defined(FLATBUFFERS_MEMORY_LEAK_TRACKING_MSVC)
-      auto flags = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
-      flags &= ~_CRTDBG_DELAY_FREE_MEM_DF;
-      flags |= _CRTDBG_LEAK_CHECK_DF;
-      _CrtSetDbgFlag(flags);
-  #endif
+#if defined(FLATBUFFERS_MEMORY_LEAK_TRACKING_MSVC)
+    auto flags = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+    flags &= ~_CRTDBG_DELAY_FREE_MEM_DF;
+    flags |= _CRTDBG_LEAK_CHECK_DF;
+    _CrtSetDbgFlag(flags);
+#endif
   }
   return (0 != testing_fails);
 }

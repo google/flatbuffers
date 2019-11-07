@@ -826,7 +826,8 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + "private static $names = array(\n";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
-      code += Indent + Indent + enum_def.name + "::" + ev.name + "=>" + "\"" + ev.name + "\",\n";
+      code += Indent + Indent + enum_def.name + "::" + ev.name + "=>" + "\"" +
+              ev.name + "\",\n";
     }
 
     code += Indent + ");\n\n";
