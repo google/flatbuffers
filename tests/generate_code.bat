@@ -26,7 +26,7 @@ if "%1"=="-b" set buildtype=%2
 
 IF NOT "%MONSTER_EXTRA%"=="skip" (
   @echo Generate MosterExtra
-  ..\%buildtype%\flatc.exe --cpp --java --csharp --python --gen-mutable --reflect-names --gen-object-api --gen-compare --no-includes monster_extra.fbs monsterdata_extra.json || goto FAIL
+  ..\%buildtype%\flatc.exe --cpp --java --csharp --python --gen-mutable --reflect-names --gen-object-api --gen-compare --no-includes --cpp-ptr-type flatbuffers::unique_ptr monster_extra.fbs monsterdata_extra.json || goto FAIL
 ) else (
   @echo monster_extra.fbs skipped (the strtod function from MSVC2013 or older doesn't support NaN/Inf arguments)
 )
