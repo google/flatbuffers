@@ -17,9 +17,9 @@
 #ifndef FLATBUFFERS_UTIL_H_
 #define FLATBUFFERS_UTIL_H_
 
-#include "flatbuffers/base.h"
-
 #include <errno.h>
+
+#include "flatbuffers/base.h"
 
 #ifndef FLATBUFFERS_PREFER_PRINTF
 #  include <sstream>

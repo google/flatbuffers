@@ -339,12 +339,12 @@ class Map : public Vector {
 
 template<typename T>
 void AppendToString(std::string &s, T &&v, bool keys_quoted) {
-    s += "[ ";
-    for (size_t i = 0; i < v.size(); i++) {
-      if (i) s += ", ";
-      v[i].ToString(true, keys_quoted, s);
-    }
-    s += " ]";
+  s += "[ ";
+  for (size_t i = 0; i < v.size(); i++) {
+    if (i) s += ", ";
+    v[i].ToString(true, keys_quoted, s);
+  }
+  s += " ]";
 }
 
 class Reference {
@@ -386,13 +386,17 @@ class Reference {
   bool IsVector() const { return type_ == FBT_VECTOR || type_ == FBT_MAP; }
   bool IsUntypedVector() const { return type_ == FBT_VECTOR; }
   bool IsTypedVector() const { return flexbuffers::IsTypedVector(type_); }
-  bool IsFixedTypedVector() const { return flexbuffers::IsFixedTypedVector(type_); }
-  bool IsAnyVector() const { return (IsTypedVector() || IsFixedTypedVector() || IsVector());}
+  bool IsFixedTypedVector() const {
+    return flexbuffers::IsFixedTypedVector(type_);
+  }
+  bool IsAnyVector() const {
+    return (IsTypedVector() || IsFixedTypedVector() || IsVector());
+  }
   bool IsMap() const { return type_ == FBT_MAP; }
   bool IsBlob() const { return type_ == FBT_BLOB; }
   bool AsBool() const {
     return (type_ == FBT_BOOL ? ReadUInt64(data_, parent_width_)
-                               : AsUInt64()) != 0;
+                              : AsUInt64()) != 0;
   }
 
   // Reads any type as a int64_t. Never fails, does most sensible conversion.
@@ -555,7 +559,8 @@ class Reference {
       AppendToString<FixedTypedVector>(s, AsFixedTypedVector(), keys_quoted);
     } else if (IsBlob()) {
       auto blob = AsBlob();
-      flatbuffers::EscapeString(reinterpret_cast<const char*>(blob.data()), blob.size(), &s, true, false);
+      flatbuffers::EscapeString(reinterpret_cast<const char *>(blob.data()),
+                                blob.size(), &s, true, false);
     } else {
       s += "(?)";
     }
@@ -729,9 +734,15 @@ template<> inline int32_t Reference::As<int32_t>() const { return AsInt32(); }
 template<> inline int64_t Reference::As<int64_t>() const { return AsInt64(); }
 
 template<> inline uint8_t Reference::As<uint8_t>() const { return AsUInt8(); }
-template<> inline uint16_t Reference::As<uint16_t>() const { return AsUInt16(); }
-template<> inline uint32_t Reference::As<uint32_t>() const { return AsUInt32(); }
-template<> inline uint64_t Reference::As<uint64_t>() const { return AsUInt64(); }
+template<> inline uint16_t Reference::As<uint16_t>() const {
+  return AsUInt16();
+}
+template<> inline uint32_t Reference::As<uint32_t>() const {
+  return AsUInt32();
+}
+template<> inline uint64_t Reference::As<uint64_t>() const {
+  return AsUInt64();
+}
 
 template<> inline double Reference::As<double>() const { return AsDouble(); }
 template<> inline float Reference::As<float>() const { return AsFloat(); }
@@ -920,9 +931,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     Bool(b);
   }
 
-  void IndirectInt(int64_t i) {
-    PushIndirect(i, FBT_INDIRECT_INT, WidthI(i));
-  }
+  void IndirectInt(int64_t i) { PushIndirect(i, FBT_INDIRECT_INT, WidthI(i)); }
   void IndirectInt(const char *key, int64_t i) {
     Key(key);
     IndirectInt(i);
@@ -1214,9 +1223,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
   // Works on any data type.
   struct Value;
   Value LastValue() { return stack_.back(); }
-  void ReuseValue(Value v) {
-    stack_.push_back(v);
-  }
+  void ReuseValue(Value v) { stack_.push_back(v); }
   void ReuseValue(const char *key, Value v) {
     Key(key);
     ReuseValue(v);
@@ -1462,7 +1469,9 @@ class Builder FLATBUFFERS_FINAL_CLASS {
 
   Value CreateVector(size_t start, size_t vec_len, size_t step, bool typed,
                      bool fixed, const Value *keys = nullptr) {
-    FLATBUFFERS_ASSERT(!fixed || typed); // typed=false, fixed=true combination is not supported.
+    FLATBUFFERS_ASSERT(
+        !fixed ||
+        typed);  // typed=false, fixed=true combination is not supported.
     // Figure out smallest bit width we can store this vector with.
     auto bit_width = (std::max)(force_min_bit_width_, WidthU(vec_len));
     auto prefix_elems = 1;
@@ -1542,7 +1551,8 @@ class Builder FLATBUFFERS_FINAL_CLASS {
 
   typedef std::pair<size_t, size_t> StringOffset;
   struct StringOffsetCompare {
-    explicit StringOffsetCompare(const std::vector<uint8_t> &buf) : buf_(&buf) {}
+    explicit StringOffsetCompare(const std::vector<uint8_t> &buf)
+        : buf_(&buf) {}
     bool operator()(const StringOffset &a, const StringOffset &b) const {
       auto stra = reinterpret_cast<const char *>(
           flatbuffers::vector_data(*buf_) + a.first);
@@ -1562,8 +1572,8 @@ class Builder FLATBUFFERS_FINAL_CLASS {
 
 }  // namespace flexbuffers
 
-#  if defined(_MSC_VER)
-#    pragma warning(pop)
-#  endif
+#if defined(_MSC_VER)
+#  pragma warning(pop)
+#endif
 
 #endif  // FLATBUFFERS_FLEXBUFFERS_H_

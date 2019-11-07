@@ -19,6 +19,7 @@
 
 #include <map>
 #include <sstream>
+
 #include "flatbuffers/idl.h"
 
 namespace flatbuffers {
@@ -95,8 +96,7 @@ class BaseGenerator {
 
  protected:
   BaseGenerator(const Parser &parser, const std::string &path,
-                const std::string &file_name,
-                std::string qualifying_start,
+                const std::string &file_name, std::string qualifying_start,
                 std::string qualifying_separator)
       : parser_(parser),
         path_(path),
