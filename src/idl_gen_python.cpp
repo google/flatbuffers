@@ -832,7 +832,7 @@ class PythonGenerator : public BaseGenerator {
     }
   }
 
-  void GenStructInit(const StructDef &struct_def, const FieldDef &field,
+  void GenStructInit(const FieldDef &field,
                      std::string *field_type_ptr,
                      std::unordered_set<std::string> *import_list,
                      std::unordered_set<std::string> *import_typing_list) {
@@ -922,7 +922,7 @@ class PythonGenerator : public BaseGenerator {
     if (!import_typing_list.empty()) {
       std::string typing_imports = "from typing import ";
       std::string separator_string = ", ";
-      for (auto im : import_typing_list) {
+      for (std::string& im in import_typing_list) {
         typing_imports += im + separator_string;
       }
       // Removes the last separator_string.
@@ -1431,7 +1431,7 @@ class PythonGenerator : public BaseGenerator {
     // Adds the imports at top.
     auto &code_base = *code_ptr;
     code_base += "\n";
-    for (auto im : import_list) {
+    for (std::string& im in import_list) {
       code_base += im + "\n";
     }
     code_base += code;
