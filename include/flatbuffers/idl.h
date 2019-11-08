@@ -976,12 +976,17 @@ extern bool GenerateBinary(const Parser &parser, const std::string &path,
 extern bool GenerateCPP(const Parser &parser, const std::string &path,
                         const std::string &file_name);
 
-// Generate C# files from the definitions in the Parser object
+// Generate C# files from the definitions in the Parser object.
 // See idl_gen_csharp.cpp.
 extern bool GenerateCSharp(const Parser &parser, const std::string &path,
                            const std::string &file_name);
 
 extern bool GenerateDart(const Parser &parser, const std::string &path,
+                         const std::string &file_name);
+
+// Generate Java files from the definitions in the Parser object.
+// See idl_gen_java.cpp.
+extern bool GenerateJava(const Parser &parser, const std::string &path,
                          const std::string &file_name);
 
 // Generate JavaScript or TypeScript code from the definitions in the Parser

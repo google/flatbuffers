@@ -55,7 +55,7 @@ int main(int argc, const char *argv[]) {
     { flatbuffers::GenerateGo, "-g", "--go", "Go", true,
       flatbuffers::GenerateGoGRPC, flatbuffers::IDLOptions::kGo,
       "Generate Go files for tables/structs", flatbuffers::GeneralMakeRule },
-    { flatbuffers::GenerateGeneral, "-j", "--java", "Java", true,
+    { flatbuffers::GenerateJava, "-j", "--java", "Java", true,
       flatbuffers::GenerateJavaGRPC, flatbuffers::IDLOptions::kJava,
       "Generate Java classes for tables/structs",
       flatbuffers::GeneralMakeRule },
