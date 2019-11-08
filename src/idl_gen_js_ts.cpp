@@ -127,9 +127,7 @@ class JsTsGenerator : public BaseGenerator {
       const auto &file = *it;
       const auto basename =
           flatbuffers::StripPath(flatbuffers::StripExtension(file));
-      if (basename != file_name_) {
-        code += GenPrefixedImport(file, basename);
-      }
+      if (basename != file_name_) { code += GenPrefixedImport(file, basename); }
     }
   }
 
@@ -309,14 +307,12 @@ class JsTsGenerator : public BaseGenerator {
         result += " " + type_name;
         break;
       }
-      default: { result += " {" + type_name + "}"; }
+      default: {
+        result += " {" + type_name + "}";
+      }
     }
-    if (!arg_name.empty()) {
-      result += " " + arg_name;
-    }
-    if (include_newline) {
-      result += "\n";
-    }
+    if (!arg_name.empty()) { result += " " + arg_name; }
+    if (include_newline) { result += "\n"; }
 
     return result;
   }
@@ -605,7 +601,8 @@ class JsTsGenerator : public BaseGenerator {
   }
 
   void GenerateRootAccessor(StructDef &struct_def, std::string *code_ptr,
-                 std::string &code, std::string &object_name, bool size_prefixed) {
+                            std::string &code, std::string &object_name,
+                            bool size_prefixed) {
     if (!struct_def.fixed) {
       GenDocComment(code_ptr,
                     GenTypeAnnotation(kParam, "flatbuffers.ByteBuffer", "bb") +
@@ -613,11 +610,13 @@ class JsTsGenerator : public BaseGenerator {
                         GenTypeAnnotation(kReturns, object_name, "", false));
       std::string sizePrefixed("SizePrefixed");
       if (lang_.language == IDLOptions::kTs) {
-        code += "static get" + (size_prefixed ? sizePrefixed : "") + "Root" + Verbose(struct_def, "As");
+        code += "static get" + (size_prefixed ? sizePrefixed : "") + "Root" +
+                Verbose(struct_def, "As");
         code += "(bb:flatbuffers.ByteBuffer, obj?:" + object_name +
                 "):" + object_name + " {\n";
       } else {
-        code += object_name + ".get" + (size_prefixed ? sizePrefixed : "") + "Root" + Verbose(struct_def, "As");
+        code += object_name + ".get" + (size_prefixed ? sizePrefixed : "") +
+                "Root" + Verbose(struct_def, "As");
         code += " = function(bb, obj) {\n";
       }
       code += "  return (obj || new " + object_name;
@@ -627,21 +626,22 @@ class JsTsGenerator : public BaseGenerator {
   }
 
   void GenerateFinisher(StructDef &struct_def, std::string *code_ptr,
-                 std::string &code, std::string &object_name, bool size_prefixed) {
+                        std::string &code, std::string &object_name,
+                        bool size_prefixed) {
     if (parser_.root_struct_def_ == &struct_def) {
       std::string sizePrefixed("SizePrefixed");
       GenDocComment(
           code_ptr,
           GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder") +
-              GenTypeAnnotation(kParam, "flatbuffers.Offset", "offset",
-                                false));
+              GenTypeAnnotation(kParam, "flatbuffers.Offset", "offset", false));
 
       if (lang_.language == IDLOptions::kTs) {
-        code += "static finish" + (size_prefixed ? sizePrefixed : "") + Verbose(struct_def) + "Buffer";
-        code +=
-            "(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {\n";
+        code += "static finish" + (size_prefixed ? sizePrefixed : "") +
+                Verbose(struct_def) + "Buffer";
+        code += "(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {\n";
       } else {
-        code += object_name + ".finish" + (size_prefixed ? sizePrefixed : "") + Verbose(struct_def) + "Buffer";
+        code += object_name + ".finish" + (size_prefixed ? sizePrefixed : "") +
+                Verbose(struct_def) + "Buffer";
         code += " = function(builder, offset) {\n";
       }
 
@@ -650,9 +650,7 @@ class JsTsGenerator : public BaseGenerator {
         code += ", '" + parser_.file_identifier_ + "'";
       }
       if (size_prefixed) {
-        if (parser_.file_identifier_.empty()) {
-          code += ", undefined";
-        }
+        if (parser_.file_identifier_.empty()) { code += ", undefined"; }
         code += ", true";
       }
       code += ");\n";
@@ -682,7 +680,8 @@ class JsTsGenerator : public BaseGenerator {
       code += " {\n";
       if (lang_.language != IDLOptions::kTs) {
         code += "  /**\n";
-        code += "   * " + GenTypeAnnotation(kType, "flatbuffers.ByteBuffer", "");
+        code +=
+            "   * " + GenTypeAnnotation(kType, "flatbuffers.ByteBuffer", "");
         code += "   */\n";
       }
       code += "  bb: flatbuffers.ByteBuffer|null = null;\n";
@@ -752,10 +751,9 @@ class JsTsGenerator : public BaseGenerator {
     // Generate the identifier check method
     if (!struct_def.fixed && parser_.root_struct_def_ == &struct_def &&
         !parser_.file_identifier_.empty()) {
-      GenDocComment(
-          code_ptr,
-          GenTypeAnnotation(kParam, "flatbuffers.ByteBuffer", "bb") +
-              GenTypeAnnotation(kReturns, "boolean", "", false));
+      GenDocComment(code_ptr,
+                    GenTypeAnnotation(kParam, "flatbuffers.ByteBuffer", "bb") +
+                        GenTypeAnnotation(kReturns, "boolean", "", false));
       if (lang_.language == IDLOptions::kTs) {
         code +=
             "static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean "
@@ -872,7 +870,8 @@ class JsTsGenerator : public BaseGenerator {
               code += ", " + GenBBAccess() + ") : null;\n";
             }
 
-            if (lang_.language == IDLOptions::kTs && !parser_.opts.generate_all) {
+            if (lang_.language == IDLOptions::kTs &&
+                !parser_.opts.generate_all) {
               imported_files.insert(field.value.type.struct_def->file);
             }
 
@@ -1015,7 +1014,7 @@ class JsTsGenerator : public BaseGenerator {
       }
 
       // Adds the mutable scalar value to the output
-      if (IsScalar(field.value.type.base_type) && parser.opts.mutable_buffer) {
+      if (IsScalar(field.value.type.base_type) && parser.opts.mutable_buffer && !IsUnion(field.value.type)) {
         std::string annotations = GenTypeAnnotation(
             kParam, GenTypeName(field.value.type, true), "value");
         GenDocComment(
@@ -1290,8 +1289,7 @@ class JsTsGenerator : public BaseGenerator {
         for (auto it = struct_def.fields.vec.begin();
              it != struct_def.fields.vec.end(); ++it) {
           const auto &field = **it;
-          if (field.deprecated)
-            continue;
+          if (field.deprecated) continue;
           paramDoc +=
               GenTypeAnnotation(kParam, GetArgType(field), GetArgName(field));
         }
@@ -1311,8 +1309,7 @@ class JsTsGenerator : public BaseGenerator {
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
         const auto &field = **it;
-        if (field.deprecated)
-          continue;
+        if (field.deprecated) continue;
 
         if (lang_.language == IDLOptions::kTs) {
           code += ", " + GetArgName(field) + ":" + GetArgType(field);
@@ -1336,8 +1333,7 @@ class JsTsGenerator : public BaseGenerator {
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
         const auto &field = **it;
-        if (field.deprecated)
-          continue;
+        if (field.deprecated) continue;
 
         code += "  " + methodPrefix + ".add" + MakeCamel(field.name) + "(";
         code += "builder, " + GetArgName(field) + ");\n";
@@ -1346,14 +1342,11 @@ class JsTsGenerator : public BaseGenerator {
       code += "  return " + methodPrefix + ".end" + Verbose(struct_def) +
               "(builder);\n";
       code += "}\n";
-      if (lang_.language == IDLOptions::kJs)
-        code += "\n";
+      if (lang_.language == IDLOptions::kJs) code += "\n";
     }
 
     if (lang_.language == IDLOptions::kTs) {
-      if (!object_namespace.empty()) {
-        code += "}\n";
-      }
+      if (!object_namespace.empty()) { code += "}\n"; }
       code += "}\n";
     }
   }
@@ -1372,9 +1365,7 @@ class JsTsGenerator : public BaseGenerator {
     return argname;
   }
 
-  std::string Verbose(const StructDef &struct_def,
-                      const char* prefix = "")
-  {
+  std::string Verbose(const StructDef &struct_def, const char *prefix = "") {
     return parser_.opts.js_ts_short_names ? "" : prefix + struct_def.name;
   }
 };

@@ -17,10 +17,14 @@ func ReferrablePack(builder *flatbuffers.Builder, t *ReferrableT) flatbuffers.UO
 	return ReferrableEnd(builder)
 }
 
+func (rcv *Referrable) UnPackTo(t *ReferrableT) {
+	t.Id = rcv.Id()
+}
+
 func (rcv *Referrable) UnPack() *ReferrableT {
 	if rcv == nil { return nil }
 	t := &ReferrableT{}
-	t.Id = rcv.Id()
+	rcv.UnPackTo(t)
 	return t
 }
 

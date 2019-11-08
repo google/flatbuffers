@@ -57,9 +57,7 @@ func TypeAliasesPack(builder *flatbuffers.Builder, t *TypeAliasesT) flatbuffers.
 	return TypeAliasesEnd(builder)
 }
 
-func (rcv *TypeAliases) UnPack() *TypeAliasesT {
-	if rcv == nil { return nil }
-	t := &TypeAliasesT{}
+func (rcv *TypeAliases) UnPackTo(t *TypeAliasesT) {
 	t.I8 = rcv.I8()
 	t.U8 = rcv.U8()
 	t.I16 = rcv.I16()
@@ -80,6 +78,12 @@ func (rcv *TypeAliases) UnPack() *TypeAliasesT {
 	for j := 0; j < vf64Length; j++ {
 		t.Vf64[j] = rcv.Vf64(j)
 	}
+}
+
+func (rcv *TypeAliases) UnPack() *TypeAliasesT {
+	if rcv == nil { return nil }
+	t := &TypeAliasesT{}
+	rcv.UnPackTo(t)
 	return t
 }
 

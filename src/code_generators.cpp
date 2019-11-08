@@ -15,11 +15,13 @@
  */
 
 #include "flatbuffers/code_generators.h"
+
 #include <assert.h>
-#include "flatbuffers/base.h"
-#include "flatbuffers/util.h"
 
 #include <cmath>
+
+#include "flatbuffers/base.h"
+#include "flatbuffers/util.h"
 
 #if defined(_MSC_VER)
 #  pragma warning(push)

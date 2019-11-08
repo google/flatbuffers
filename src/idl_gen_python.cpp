@@ -40,40 +40,12 @@ class PythonGenerator : public BaseGenerator {
       : BaseGenerator(parser, path, file_name, "" /* not used */,
                       "" /* not used */),
         float_const_gen_("float('nan')", "float('inf')", "float('-inf')") {
-    static const char * const keywords[] = {
-      "False",
-      "None",
-      "True",
-      "and",
-      "as",
-      "assert",
-      "break",
-      "class",
-      "continue",
-      "def",
-      "del",
-      "elif",
-      "else",
-      "except",
-      "finally",
-      "for",
-      "from",
-      "global",
-      "if",
-      "import",
-      "in",
-      "is",
-      "lambda",
-      "nonlocal",
-      "not",
-      "or",
-      "pass",
-      "raise",
-      "return",
-      "try",
-      "while",
-      "with",
-      "yield"
+    static const char *const keywords[] = {
+      "False",   "None",     "True",     "and",    "as",   "assert", "break",
+      "class",   "continue", "def",      "del",    "elif", "else",   "except",
+      "finally", "for",      "from",     "global", "if",   "import", "in",
+      "is",      "lambda",   "nonlocal", "not",    "or",   "pass",   "raise",
+      "return",  "try",      "while",    "with",   "yield"
     };
     keywords_.insert(std::begin(keywords), std::end(keywords));
   }
@@ -82,9 +54,9 @@ class PythonGenerator : public BaseGenerator {
   // this is the prefix code for that.
   std::string OffsetPrefix(const FieldDef &field) {
     return "\n" + Indent + Indent +
-          "o = flatbuffers.number_types.UOffsetTFlags.py_type" +
-          "(self._tab.Offset(" + NumToString(field.value.offset) + "))\n" +
-          Indent + Indent + "if o != 0:\n";
+           "o = flatbuffers.number_types.UOffsetTFlags.py_type" +
+           "(self._tab.Offset(" + NumToString(field.value.offset) + "))\n" +
+           Indent + Indent + "if o != 0:\n";
   }
 
   // Begin a class declaration.
@@ -217,8 +189,7 @@ class PythonGenerator : public BaseGenerator {
   }
 
   // Get the value of a table's scalar.
-  void GetScalarFieldOfTable(const StructDef &struct_def,
-                             const FieldDef &field,
+  void GetScalarFieldOfTable(const StructDef &struct_def, const FieldDef &field,
                              std::string *code_ptr) {
     auto &code = *code_ptr;
     std::string getter = GenGetter(field.value.type);
@@ -228,9 +199,7 @@ class PythonGenerator : public BaseGenerator {
     code += OffsetPrefix(field);
     getter += "o + self._tab.Pos)";
     auto is_bool = IsBool(field.value.type.base_type);
-    if (is_bool) {
-      getter = "bool(" + getter + ")";
-    }
+    if (is_bool) { getter = "bool(" + getter + ")"; }
     code += Indent + Indent + Indent + "return " + getter + "\n";
     std::string default_value;
     if (is_bool) {
@@ -283,8 +252,7 @@ class PythonGenerator : public BaseGenerator {
 
   // Get a struct by initializing an existing struct.
   // Specific to Table.
-  void GetStructFieldOfTable(const StructDef &struct_def,
-                             const FieldDef &field,
+  void GetStructFieldOfTable(const StructDef &struct_def, const FieldDef &field,
                              std::string *code_ptr) {
     auto &code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
@@ -500,7 +468,7 @@ class PythonGenerator : public BaseGenerator {
         indent + "    builder.Prep(" + NumToString(struct_def.minalign) + ", ";
     code += NumToString(struct_def.bytesize) + ")\n";
     for (auto it = struct_def.fields.vec.rbegin();
-        it != struct_def.fields.vec.rend(); ++it) {
+         it != struct_def.fields.vec.rend(); ++it) {
       auto &field = **it;
       const auto &field_type = field.value.type;
       const auto &type =
@@ -613,8 +581,8 @@ class PythonGenerator : public BaseGenerator {
   }
 
   // Generate a struct field, conditioned on its child type(s).
-  void GenStructAccessor(const StructDef &struct_def,
-                         const FieldDef &field, std::string *code_ptr) {
+  void GenStructAccessor(const StructDef &struct_def, const FieldDef &field,
+                         std::string *code_ptr) {
     GenComment(field.doc_comment, code_ptr, &def_comment, Indent.c_str());
     if (IsScalar(field.value.type.base_type)) {
       if (struct_def.fixed) {
@@ -633,7 +601,9 @@ class PythonGenerator : public BaseGenerator {
             GetStructFieldOfTable(struct_def, field, code_ptr);
           }
           break;
-        case BASE_TYPE_STRING: GetStringField(struct_def, field, code_ptr); break;
+        case BASE_TYPE_STRING:
+          GetStringField(struct_def, field, code_ptr);
+          break;
         case BASE_TYPE_VECTOR: {
           auto vectortype = field.value.type.VectorType();
           if (vectortype.base_type == BASE_TYPE_STRUCT) {
@@ -655,12 +625,11 @@ class PythonGenerator : public BaseGenerator {
   }
 
   // Generate table constructors, conditioned on its members' types.
-  void GenTableBuilders(const StructDef &struct_def,
-                        std::string *code_ptr) {
+  void GenTableBuilders(const StructDef &struct_def, std::string *code_ptr) {
     GetStartOfTable(struct_def, code_ptr);
 
     for (auto it = struct_def.fields.vec.begin();
-        it != struct_def.fields.vec.end(); ++it) {
+         it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
       if (field.deprecated) continue;
 
@@ -708,7 +677,7 @@ class PythonGenerator : public BaseGenerator {
       // Generate a special accessor for the table that has been declared as
       // the root type.
       NewRootTypeFromBuffer(struct_def, code_ptr);
-      if (parser_.file_identifier_.length()){
+      if (parser_.file_identifier_.length()) {
         // Generate a special function to test file_identifier
         GenHasFileIdentifier(struct_def, code_ptr);
       }
@@ -717,7 +686,7 @@ class PythonGenerator : public BaseGenerator {
     // accessor object. This is to allow object reuse.
     InitializeExisting(struct_def, code_ptr);
     for (auto it = struct_def.fields.vec.begin();
-        it != struct_def.fields.vec.end(); ++it) {
+         it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
       if (field.deprecated) continue;
 
@@ -1520,7 +1489,7 @@ class PythonGenerator : public BaseGenerator {
       case BASE_TYPE_VECTOR: return GenGetter(type.VectorType());
       default:
         return "self._tab.Get(flatbuffers.number_types." +
-              MakeCamel(GenTypeGet(type)) + "Flags, ";
+               MakeCamel(GenTypeGet(type)) + "Flags, ";
     }
   }
 
@@ -1565,8 +1534,7 @@ class PythonGenerator : public BaseGenerator {
   }
 
   // Create a struct with a builder and the struct's arguments.
-  void GenStructBuilder(const StructDef &struct_def,
-                              std::string *code_ptr) {
+  void GenStructBuilder(const StructDef &struct_def, std::string *code_ptr) {
     BeginBuilderArgs(struct_def, code_ptr);
     StructBuilderArgs(struct_def,
                       /* nameprefix = */ "",

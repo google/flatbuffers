@@ -156,11 +156,7 @@ namespace FlatBuffers.Test
             Assert.IsTrue(monster.TestarrayoftablesByKey("Barney") != null);
             Assert.IsTrue(monster.TestarrayoftablesByKey("Wilma") != null);
 
-            // testType is an existing field and mutating it should succeed
-            Assert.AreEqual(monster.TestType, Any.Monster);
-            Assert.AreEqual(monster.MutateTestType(Any.NONE), true);
-            Assert.AreEqual(monster.TestType, Any.NONE);
-            Assert.AreEqual(monster.MutateTestType(Any.Monster), true);
+            // testType is an existing field
             Assert.AreEqual(monster.TestType, Any.Monster);
 
             //mutate the inventory vector
