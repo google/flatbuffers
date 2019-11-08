@@ -886,8 +886,7 @@ class PythonGenerator : public BaseGenerator {
           break;
         }
         case BASE_TYPE_STRUCT: {
-          GenStructInit(struct_def, field, &field_type, import_list,
-                        &import_typing_list);
+          GenStructInit(field, &field_type, import_list, &import_typing_list);
           break;
         }
         case BASE_TYPE_VECTOR: {
@@ -922,7 +921,9 @@ class PythonGenerator : public BaseGenerator {
     if (!import_typing_list.empty()) {
       std::string typing_imports = "from typing import ";
       std::string separator_string = ", ";
-      for (std::string& im in import_typing_list) {
+      for (auto it = import_typing_list.begin(); it != import_typing_list.end();
+           ++it) {
+        auto im = *it;
         typing_imports += im + separator_string;
       }
       // Removes the last separator_string.
@@ -1431,7 +1432,8 @@ class PythonGenerator : public BaseGenerator {
     // Adds the imports at top.
     auto &code_base = *code_ptr;
     code_base += "\n";
-    for (std::string& im in import_list) {
+    for (auto it = import_list.begin(); it != import_list.end(); it++) {
+      auto im = *it;
       code_base += im + "\n";
     }
     code_base += code;
