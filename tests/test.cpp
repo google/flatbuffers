@@ -2308,7 +2308,6 @@ void InvalidNestedFlatbufferTest() {
   TEST_EQ(parser1.Parse("{ name: \"Bender\", testnestedflatbuffer: { name: "
                         "\"Leela\", color: \"nonexistent\"}}"),
           false);
-  // Check that Parser is destroyed correctly after parsing invalid json
 }
 
 void UnionVectorTest() {
