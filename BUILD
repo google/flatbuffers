@@ -86,6 +86,7 @@ cc_binary(
         "grpc/src/compiler/schema_interface.h",
         "src/flatc_main.cpp",
         "src/idl_gen_cpp.cpp",
+        "src/idl_gen_csharp.cpp",
         "src/idl_gen_dart.cpp",
         "src/idl_gen_general.cpp",
         "src/idl_gen_go.cpp",

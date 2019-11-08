@@ -976,6 +976,11 @@ extern bool GenerateBinary(const Parser &parser, const std::string &path,
 extern bool GenerateCPP(const Parser &parser, const std::string &path,
                         const std::string &file_name);
 
+// Generate C# files from the definitions in the Parser object
+// See idl_gen_csharp.cpp.
+extern bool GenerateCSharp(const Parser &parser, const std::string &path,
+                           const std::string &file_name);
+
 extern bool GenerateDart(const Parser &parser, const std::string &path,
                          const std::string &file_name);
 

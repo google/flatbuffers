@@ -70,7 +70,7 @@ int main(int argc, const char *argv[]) {
       flatbuffers::IDLOptions::kTs,
       "Generate TypeScript code for tables/structs",
       flatbuffers::JSTSMakeRule },
-    { flatbuffers::GenerateGeneral, "-n", "--csharp", "C#", true, nullptr,
+    { flatbuffers::GenerateCSharp, "-n", "--csharp", "C#", true, nullptr,
       flatbuffers::IDLOptions::kCSharp,
       "Generate C# classes for tables/structs", flatbuffers::GeneralMakeRule },
     { flatbuffers::GeneratePython, "-p", "--python", "Python", true, nullptr,
