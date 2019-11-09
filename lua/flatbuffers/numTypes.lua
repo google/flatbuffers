@@ -34,6 +34,20 @@ function type_mt:EnforceNumber(n)
     error("Number is not in the valid range") 
 end
 
+function type_mt:EnforceNumbers(a,b)
+   -- duplicate code since the overhead of function calls
+    -- for such a popular method is time consuming
+    if not self.min_value and not self.max_value then
+        return
+    end
+
+    if self.min_value <= a and a <= self.max_value and self.min_value <= b and b <= self.max_value then
+        return
+    end
+
+    error("Number is not in the valid range")
+end
+
 function type_mt:EnforceNumberAndPack(n)
     return bpack(self.packFmt, n)    
 end
@@ -58,6 +72,7 @@ local bool_mt =
     Unpack = function(self, buf, pos) return buf[pos] == "1" end,
     ValidNumber = function(self, n) return true end, -- anything is a valid boolean in Lua
     EnforceNumber = function(self, n) end, -- anything is a valid boolean in Lua
+    EnforceNumbers = function(self, a, b) end, -- anything is a valid boolean in Lua
     EnforceNumberAndPack = function(self, n) return self:Pack(value) end,
 }
 
