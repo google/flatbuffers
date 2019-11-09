@@ -20,11 +20,13 @@ PY_VERSION = sys.version_info[:2]
 
 import ctypes
 from collections import defaultdict
+import math
+import random
 import timeit
 import unittest
 
-
 from flatbuffers import compat
+from flatbuffers import util
 from flatbuffers.compat import range_func as compat_range
 from flatbuffers.compat import NumpyRequiredForThisFeature
 
@@ -39,7 +41,11 @@ import MyGame.Example.Monster  # refers to generated code
 import MyGame.Example.Test  # refers to generated code
 import MyGame.Example.Stat  # refers to generated code
 import MyGame.Example.Vec3  # refers to generated code
-
+import MyGame.MonsterExtra  # refers to generated code
+import MyGame.Example.ArrayTable  # refers to generated code
+import MyGame.Example.ArrayStruct  # refers to generated code
+import MyGame.Example.NestedStruct  # refers to generated code
+import MyGame.Example.TestEnum  # refers to generated code
 
 def assertRaises(test_case, fn, exception_class):
     ''' Backwards-compatible assertion for exceptions raised. '''
@@ -56,9 +62,12 @@ def assertRaises(test_case, fn, exception_class):
 class TestWireFormat(unittest.TestCase):
     def test_wire_format(self):
         # Verify that using the generated Python code builds a buffer without
-        # returning errors, and is interpreted correctly:
-        gen_buf, gen_off = make_monster_from_generated_code()
-        CheckReadBuffer(gen_buf, gen_off)
+        # returning errors, and is interpreted correctly, for size prefixed
+        # representation and regular:
+        for sizePrefix in [True, False]:
+            for file_identifier in [None, b"MONS"]:
+                gen_buf, gen_off = make_monster_from_generated_code(sizePrefix=sizePrefix, file_identifier=file_identifier)
+                CheckReadBuffer(gen_buf, gen_off, sizePrefix=sizePrefix, file_identifier=file_identifier)
 
         # Verify that the canonical flatbuffer file is readable by the
         # generated Python code. Note that context managers are not part of
@@ -66,7 +75,7 @@ class TestWireFormat(unittest.TestCase):
         f = open('monsterdata_test.mon', 'rb')
         canonicalWireData = f.read()
         f.close()
-        CheckReadBuffer(bytearray(canonicalWireData), 0)
+        CheckReadBuffer(bytearray(canonicalWireData), 0, file_identifier=b'MONS')
 
         # Write the generated buffer out to a file:
         f = open('monsterdata_python_wire.mon', 'wb')
@@ -74,7 +83,7 @@ class TestWireFormat(unittest.TestCase):
         f.close()
 
 
-def CheckReadBuffer(buf, offset):
+def CheckReadBuffer(buf, offset, sizePrefix=False, file_identifier=None):
     ''' CheckReadBuffer checks that the given buffer is evaluated correctly
         as the example Monster. '''
 
@@ -82,7 +91,18 @@ def CheckReadBuffer(buf, offset):
         ''' An assertion helper that is separated from TestCase classes. '''
         if not stmt:
             raise AssertionError('CheckReadBuffer case failed')
-
+    if file_identifier:
+        # test prior to removal of size_prefix
+        asserter(util.GetBufferIdentifier(buf, offset, size_prefixed=sizePrefix) == file_identifier)
+        asserter(util.BufferHasIdentifier(buf, offset, file_identifier=file_identifier, size_prefixed=sizePrefix))
+    if sizePrefix:
+        size = util.GetSizePrefix(buf, offset)
+        asserter(size == len(buf[offset:])-4)
+        buf, offset = util.RemoveSizePrefix(buf, offset)
+    if file_identifier:
+        asserter(MyGame.Example.Monster.Monster.MonsterBufferHasIdentifier(buf, offset))
+    else:
+        asserter(not MyGame.Example.Monster.Monster.MonsterBufferHasIdentifier(buf, offset))
     monster = MyGame.Example.Monster.Monster.GetRootAsMonster(buf, offset)
 
     asserter(monster.Hp() == 80)
@@ -470,6 +490,266 @@ class TestByteLayout(unittest.TestCase):
         # 1-byte pad:
         self.assertBuilderEquals(b, [3, 0, 0, 0, 1, 2, 3, 0])
 
+    def test_create_numpy_vector_int8(self):
+        try:
+            imp.find_module('numpy')
+            # if numpy exists, then we should be able to get the
+            # vector as a numpy array
+            import numpy as np
+
+            # Systems endian:
+            b = flatbuffers.Builder(0)
+            x = np.array([1, 2, -3], dtype=np.int8)
+            b.CreateNumpyVector(x)
+            self.assertBuilderEquals(b, [
+                3, 0, 0, 0,  # vector length
+                1, 2, 256 - 3, 0   # vector value + padding
+            ])
+
+            # Reverse endian:
+            b = flatbuffers.Builder(0)
+            x_other_endian = x.byteswap().newbyteorder()
+            b.CreateNumpyVector(x_other_endian)
+            self.assertBuilderEquals(b, [
+                3, 0, 0, 0,  # vector length
+                1, 2, 256 - 3, 0   # vector value + padding
+            ])
+        except ImportError:
+            b = flatbuffers.Builder(0)
+            x = 0
+            assertRaises(
+                self,
+                lambda: b.CreateNumpyVector(x),
+                NumpyRequiredForThisFeature)
+
+    def test_create_numpy_vector_uint16(self):
+        try:
+            imp.find_module('numpy')
+            # if numpy exists, then we should be able to get the
+            # vector as a numpy array
+            import numpy as np
+
+            # Systems endian:
+            b = flatbuffers.Builder(0)
+            x = np.array([1, 2, 312], dtype=np.uint16)
+            b.CreateNumpyVector(x)
+            self.assertBuilderEquals(b, [
+                3, 0, 0, 0,     # vector length
+                1, 0,           # 1
+                2, 0,           # 2
+                312 - 256, 1,   # 312
+                0, 0            # padding
+            ])
+
+            # Reverse endian:
+            b = flatbuffers.Builder(0)
+            x_other_endian = x.byteswap().newbyteorder()
+            b.CreateNumpyVector(x_other_endian)
+            self.assertBuilderEquals(b, [
+                3, 0, 0, 0,     # vector length
+                1, 0,           # 1
+                2, 0,           # 2
+                312 - 256, 1,   # 312
+                0, 0            # padding
+            ])
+        except ImportError:
+            b = flatbuffers.Builder(0)
+            x = 0
+            assertRaises(
+                self,
+                lambda: b.CreateNumpyVector(x),
+                NumpyRequiredForThisFeature)
+
+    def test_create_numpy_vector_int64(self):
+        try:
+            imp.find_module('numpy')
+            # if numpy exists, then we should be able to get the
+            # vector as a numpy array
+            import numpy as np
+
+            # Systems endian:
+            b = flatbuffers.Builder(0)
+            x = np.array([1, 2, -12], dtype=np.int64)
+            b.CreateNumpyVector(x)
+            self.assertBuilderEquals(b, [
+                3, 0, 0, 0,                     # vector length
+                1, 0, 0, 0, 0, 0, 0, 0,         # 1
+                2, 0, 0, 0, 0, 0, 0, 0,         # 2
+                256 - 12, 255, 255, 255, 255, 255, 255, 255   # -12
+            ])
+
+            # Reverse endian:
+            b = flatbuffers.Builder(0)
+            x_other_endian = x.byteswap().newbyteorder()
+            b.CreateNumpyVector(x_other_endian)
+            self.assertBuilderEquals(b, [
+                3, 0, 0, 0,                     # vector length
+                1, 0, 0, 0, 0, 0, 0, 0,         # 1
+                2, 0, 0, 0, 0, 0, 0, 0,         # 2
+                256 - 12, 255, 255, 255, 255, 255, 255, 255   # -12
+            ])
+
+        except ImportError:
+            b = flatbuffers.Builder(0)
+            x = 0
+            assertRaises(
+                self,
+                lambda: b.CreateNumpyVector(x),
+                NumpyRequiredForThisFeature)
+
+    def test_create_numpy_vector_float32(self):
+        try:
+            imp.find_module('numpy')
+            # if numpy exists, then we should be able to get the
+            # vector as a numpy array
+            import numpy as np
+
+            # Systems endian:
+            b = flatbuffers.Builder(0)
+            x = np.array([1, 2, -12], dtype=np.float32)
+            b.CreateNumpyVector(x)
+            self.assertBuilderEquals(b, [
+                3, 0, 0, 0,                     # vector length
+                0, 0, 128, 63,                  # 1
+                0, 0, 0, 64,                    # 2
+                0, 0, 64, 193                   # -12
+            ])
+
+            # Reverse endian:
+            b = flatbuffers.Builder(0)
+            x_other_endian = x.byteswap().newbyteorder()
+            b.CreateNumpyVector(x_other_endian)
+            self.assertBuilderEquals(b, [
+                3, 0, 0, 0,                     # vector length
+                0, 0, 128, 63,                  # 1
+                0, 0, 0, 64,                    # 2
+                0, 0, 64, 193                   # -12
+            ])
+
+        except ImportError:
+            b = flatbuffers.Builder(0)
+            x = 0
+            assertRaises(
+                self,
+                lambda: b.CreateNumpyVector(x),
+                NumpyRequiredForThisFeature)
+
+    def test_create_numpy_vector_float64(self):
+        try:
+            imp.find_module('numpy')
+            # if numpy exists, then we should be able to get the
+            # vector as a numpy array
+            import numpy as np
+
+            # Systems endian:
+            b = flatbuffers.Builder(0)
+            x = np.array([1, 2, -12], dtype=np.float64)
+            b.CreateNumpyVector(x)
+            self.assertBuilderEquals(b, [
+                3, 0, 0, 0,                     # vector length
+                0, 0, 0, 0, 0, 0, 240, 63,                  # 1
+                0, 0, 0, 0, 0, 0, 0, 64,                    # 2
+                0, 0, 0, 0, 0, 0, 40, 192                   # -12
+            ])
+
+            # Reverse endian:
+            b = flatbuffers.Builder(0)
+            x_other_endian = x.byteswap().newbyteorder()
+            b.CreateNumpyVector(x_other_endian)
+            self.assertBuilderEquals(b, [
+                3, 0, 0, 0,                     # vector length
+                0, 0, 0, 0, 0, 0, 240, 63,                  # 1
+                0, 0, 0, 0, 0, 0, 0, 64,                    # 2
+                0, 0, 0, 0, 0, 0, 40, 192                   # -12
+            ])
+
+        except ImportError:
+            b = flatbuffers.Builder(0)
+            x = 0
+            assertRaises(
+                self,
+                lambda: b.CreateNumpyVector(x),
+                NumpyRequiredForThisFeature)
+
+    def test_create_numpy_vector_bool(self):
+        try:
+            imp.find_module('numpy')
+            # if numpy exists, then we should be able to get the
+            # vector as a numpy array
+            import numpy as np
+
+            # Systems endian:
+            b = flatbuffers.Builder(0)
+            x = np.array([True, False, True], dtype=np.bool)
+            b.CreateNumpyVector(x)
+            self.assertBuilderEquals(b, [
+                3, 0, 0, 0, # vector length
+                1, 0, 1, 0  # vector values + padding
+            ])
+
+            # Reverse endian:
+            b = flatbuffers.Builder(0)
+            x_other_endian = x.byteswap().newbyteorder()
+            b.CreateNumpyVector(x_other_endian)
+            self.assertBuilderEquals(b, [
+                3, 0, 0, 0, # vector length
+                1, 0, 1, 0  # vector values + padding
+            ])
+
+        except ImportError:
+            b = flatbuffers.Builder(0)
+            x = 0
+            assertRaises(
+                self,
+                lambda: b.CreateNumpyVector(x),
+                NumpyRequiredForThisFeature)
+
+    def test_create_numpy_vector_reject_strings(self):
+        try:
+            imp.find_module('numpy')
+            # if numpy exists, then we should be able to get the
+            # vector as a numpy array
+            import numpy as np
+
+            # Create String array
+            b = flatbuffers.Builder(0)
+            x = np.array(["hello", "fb", "testing"])
+            assertRaises(
+                self,
+                lambda: b.CreateNumpyVector(x),
+                TypeError)
+
+        except ImportError:
+            b = flatbuffers.Builder(0)
+            x = 0
+            assertRaises(
+                self,
+                lambda: b.CreateNumpyVector(x),
+                NumpyRequiredForThisFeature)
+
+    def test_create_numpy_vector_reject_object(self):
+        try:
+            imp.find_module('numpy')
+            # if numpy exists, then we should be able to get the
+            # vector as a numpy array
+            import numpy as np
+
+            # Create String array
+            b = flatbuffers.Builder(0)
+            x = np.array([{"m": 0}, {"as": -2.1, 'c': 'c'}])
+            assertRaises(
+                self,
+                lambda: b.CreateNumpyVector(x),
+                TypeError)
+
+        except ImportError:
+            b = flatbuffers.Builder(0)
+            x = 0
+            assertRaises(
+                self,
+                lambda: b.CreateNumpyVector(x),
+                NumpyRequiredForThisFeature)
+
     def test_empty_vtable(self):
         b = flatbuffers.Builder(0)
         b.StartObject(0)
@@ -810,7 +1090,7 @@ class TestByteLayout(unittest.TestCase):
         ])
 
 
-def make_monster_from_generated_code():
+def make_monster_from_generated_code(sizePrefix = False, file_identifier=None):
     ''' Use generated code to build the example Monster. '''
 
     b = flatbuffers.Builder(0)
@@ -871,9 +1151,47 @@ def make_monster_from_generated_code():
     MyGame.Example.Monster.MonsterAddVectorOfDoubles(b, VectorOfDoubles)
     mon = MyGame.Example.Monster.MonsterEnd(b)
 
-    b.Finish(mon)
+    if sizePrefix:
+        b.FinishSizePrefixed(mon, file_identifier)
+    else:
+        b.Finish(mon, file_identifier)
 
     return b.Bytes, b.Head()
+
+
+class TestBuilderForceDefaults(unittest.TestCase):
+    """Verify that the builder adds default values when forced."""
+
+    test_flags = [N.BoolFlags(), N.Uint8Flags(), N.Uint16Flags(), \
+                  N.Uint32Flags(), N.Uint64Flags(), N.Int8Flags(), \
+                  N.Int16Flags(), N.Int32Flags(), N.Int64Flags(), \
+                  N.Float32Flags(), N.Float64Flags(), N.UOffsetTFlags()]
+    def test_default_force_defaults(self):
+        for flag in self.test_flags:
+            b = flatbuffers.Builder(0)
+            b.StartObject(1)
+            stored_offset = b.Offset()
+            if flag != N.UOffsetTFlags():
+                b.PrependSlot(flag, 0, 0, 0)
+            else:
+                b.PrependUOffsetTRelativeSlot(0, 0, 0)
+            end_offset = b.Offset()
+            b.EndObject()
+            self.assertEqual(0, end_offset - stored_offset)
+
+    def test_force_defaults_true(self):
+        for flag in self.test_flags:
+            b = flatbuffers.Builder(0)
+            b.ForceDefaults(True)
+            b.StartObject(1)
+            stored_offset = b.Offset()
+            if flag != N.UOffsetTFlags():
+                b.PrependSlot(flag, 0, 0, 0)
+            else:
+                b.PrependUOffsetTRelativeSlot(0, 0, 0)
+            end_offset = b.Offset()
+            b.EndObject()
+            self.assertEqual(flag.bytewidth, end_offset - stored_offset)
 
 
 class TestAllCodePathsOfExampleSchema(unittest.TestCase):
@@ -906,7 +1224,7 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
         self.assertEqual(100, self.mon.Hp())
 
     def test_default_monster_name(self):
-        self.assertEqual(b'', self.mon.Name())
+        self.assertEqual(None, self.mon.Name())
 
     def test_default_monster_inventory_item(self):
         self.assertEqual(0, self.mon.Inventory(0))
@@ -1124,6 +1442,27 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
         self.assertEqual(12345, stat2.Count())
 
 
+class TestAllCodePathsOfMonsterExtraSchema(unittest.TestCase):
+    def setUp(self, *args, **kwargs):
+        super(TestAllCodePathsOfMonsterExtraSchema, self).setUp(*args, **kwargs)
+
+        b = flatbuffers.Builder(0)
+        MyGame.MonsterExtra.MonsterExtraStart(b)
+        gen_mon = MyGame.MonsterExtra.MonsterExtraEnd(b)
+        b.Finish(gen_mon)
+
+        self.mon = MyGame.MonsterExtra.MonsterExtra.GetRootAsMonsterExtra(b.Bytes, b.Head())
+
+    def test_default_nan_inf(self):
+        self.assertTrue(math.isnan(self.mon.F1()))
+        self.assertEqual(self.mon.F2(), float("inf"))
+        self.assertEqual(self.mon.F3(), float("-inf"))
+
+        self.assertTrue(math.isnan(self.mon.D1()))
+        self.assertEqual(self.mon.D2(), float("inf"))
+        self.assertEqual(self.mon.D3(), float("-inf"))
+
+
 class TestVtableDeduplication(unittest.TestCase):
     ''' TestVtableDeduplication verifies that vtables are deduplicated. '''
 
@@ -1250,6 +1589,62 @@ class TestExceptions(unittest.TestCase):
                      flatbuffers.builder.BuilderNotFinishedError)
 
 
+class TestFixedLengthArrays(unittest.TestCase):
+    def test_fixed_length_array(self):
+        builder = flatbuffers.Builder(0)
+
+        a = 0.5
+        b = range(0, 15)
+        c = 1
+        d_a = [[1, 2], [3, 4]]
+        d_b = [MyGame.Example.TestEnum.TestEnum.B, \
+                MyGame.Example.TestEnum.TestEnum.C]
+        d_c = [[MyGame.Example.TestEnum.TestEnum.A, \
+                MyGame.Example.TestEnum.TestEnum.B], \
+                [MyGame.Example.TestEnum.TestEnum.C, \
+                 MyGame.Example.TestEnum.TestEnum.B]]
+        d_d = [[-1, 1], [-2, 2]]
+        e = 2
+        f = [-1, 1]
+
+        arrayOffset = MyGame.Example.ArrayStruct.CreateArrayStruct(builder, \
+            a, b, c, d_a, d_b, d_c, d_d, e, f)
+
+        # Create a table with the ArrayStruct.
+        MyGame.Example.ArrayTable.ArrayTableStart(builder)
+        MyGame.Example.ArrayTable.ArrayTableAddA(builder, arrayOffset)
+        tableOffset = MyGame.Example.ArrayTable.ArrayTableEnd(builder)
+
+        builder.Finish(tableOffset)
+
+        buf = builder.Output()
+
+        table = MyGame.Example.ArrayTable.ArrayTable.GetRootAsArrayTable(buf, 0)
+
+        # Verify structure.
+        nested = MyGame.Example.NestedStruct.NestedStruct()
+        self.assertEqual(table.A().A(), 0.5)
+        self.assertEqual(table.A().B(), \
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14])
+        self.assertEqual(table.A().C(), 1)
+        self.assertEqual(table.A().D(nested, 0).A(), [1, 2])
+        self.assertEqual(table.A().D(nested, 1).A(), [3, 4])
+        self.assertEqual(table.A().D(nested, 0).B(), \
+            MyGame.Example.TestEnum.TestEnum.B)
+        self.assertEqual(table.A().D(nested, 1).B(), \
+            MyGame.Example.TestEnum.TestEnum.C)
+        self.assertEqual(table.A().D(nested, 0).C(), \
+            [MyGame.Example.TestEnum.TestEnum.A, \
+             MyGame.Example.TestEnum.TestEnum.B])
+        self.assertEqual(table.A().D(nested, 1).C(), \
+            [MyGame.Example.TestEnum.TestEnum.C, \
+             MyGame.Example.TestEnum.TestEnum.B])
+        self.assertEqual(table.A().D(nested, 0).D(), [-1, 1])
+        self.assertEqual(table.A().D(nested, 1).D(), [-2, 2])
+        self.assertEqual(table.A().E(), 2)
+        self.assertEqual(table.A().F(), [-1, 1])
+
+
 def CheckAgainstGoldDataGo():
     try:
         gen_buf, gen_off = make_monster_from_generated_code()
@@ -1324,26 +1719,40 @@ def BenchmarkVtableDeduplication(count):
     When count is large (as in long benchmarks), memory usage may be high.
     '''
 
-    prePop = 10
-    builder = flatbuffers.Builder(0)
+    for prePop in (1, 10, 100, 1000):
+        builder = flatbuffers.Builder(0)
+        n = 1 + int(math.log(prePop, 1.5))
 
-    # pre-populate some vtables:
-    for i in compat_range(prePop):
-        builder.StartObject(i)
-        for j in compat_range(i):
-            builder.PrependInt16Slot(j, j, 0)
-        builder.EndObject()
+        # generate some layouts:
+        layouts = set()
+        r = list(compat_range(n))
+        while len(layouts) < prePop:
+            layouts.add(tuple(sorted(random.sample(r, int(max(1, n / 2))))))
 
-    # benchmark deduplication of a new vtable:
-    def f():
-        builder.StartObject(prePop)
-        for j in compat_range(prePop):
-            builder.PrependInt16Slot(j, j, 0)
-        builder.EndObject()
+        layouts = list(layouts)
 
-    duration = timeit.timeit(stmt=f, number=count)
-    rate = float(count) / duration
-    print(('vtable deduplication rate: %.2f/sec' % rate))
+        # pre-populate vtables:
+        for layout in layouts:
+            builder.StartObject(n)
+            for j in layout:
+                builder.PrependInt16Slot(j, j, 0)
+            builder.EndObject()
+
+        # benchmark deduplication of a new vtable:
+        def f():
+            layout = random.choice(layouts)
+            builder.StartObject(n)
+            for j in layout:
+                builder.PrependInt16Slot(j, j, 0)
+            builder.EndObject()
+
+        duration = timeit.timeit(stmt=f, number=count)
+        rate = float(count) / duration
+        print(('vtable deduplication rate (n=%d, vtables=%d): %.2f sec' % (
+            prePop,
+            len(builder.vtables),
+            rate))
+        )
 
 
 def BenchmarkCheckReadBuffer(count, buf, off):

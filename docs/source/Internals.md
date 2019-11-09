@@ -15,6 +15,12 @@ all commonly used CPUs today. FlatBuffers will also work on big-endian
 machines, but will be slightly slower because of additional
 byte-swap intrinsics.
 
+It is assumed that the following conditions are met, to ensure
+cross-platform interoperability:
+- The binary `IEEE-754` format is used for floating-point numbers.
+- The `two's complemented` representation is used for signed integers.
+- The endianness is the same for floating-point numbers as for integers.
+
 On purpose, the format leaves a lot of details about where exactly
 things live in memory undefined, e.g. fields in a table can have any
 order, and objects to some extent can be stored in many orders. This is
@@ -169,7 +175,7 @@ Unions share a lot with enums.
 Predeclare all data types since circular references between types are allowed
 (circular references between object are not, though).
 
-    MANUALLY_ALIGNED_STRUCT(4) Vec3 {
+    FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vec3 {
      private:
       float x_;
       float y_;
@@ -183,7 +189,7 @@ Predeclare all data types since circular references between types are allowed
       float y() const { return flatbuffers::EndianScalar(y_); }
       float z() const { return flatbuffers::EndianScalar(z_); }
     };
-    STRUCT_END(Vec3, 12);
+    FLATBUFFERS_STRUCT_END(Vec3, 12);
 
 These ugly macros do a couple of things: they turn off any padding the compiler
 might normally do, since we add padding manually (though none in this example),

@@ -49,6 +49,9 @@ struct Parameters {
 
   //Package name for the service
   grpc::string package_name;
+
+  //Prefix for RPC Calls
+  grpc::string service_prefix;
 };
 
 // Return the source of the generated service file.

@@ -4,7 +4,7 @@ FlatBuffers    {#flatbuffers_index}
 # Overview {#flatbuffers_overview}
 
 [FlatBuffers](@ref flatbuffers_overview) is an efficient cross platform
-serialization library for C++, C#, C, Go, Java, JavaScript, PHP, and Python.
+serialization library for C++, C#, C, Go, Java, Kotlin, JavaScript, Lobster, Lua, TypeScript, PHP, Python, and Rust.
 It was originally created at Google for game development and other
 performance-critical applications.
 
@@ -51,7 +51,7 @@ under the Apache license, v2 (see LICENSE.txt).
     needed (faster and more memory efficient than other JSON
     parsers).
 
-    Java and Go code supports object-reuse. C# has efficient struct based
+    Java, Kotlin and Go code supports object-reuse. C# has efficient struct based
     accessors.
 
 -   **Cross platform code with no dependencies** - C++ code will work
@@ -108,7 +108,7 @@ sections provide a more in-depth usage guide.
     present for every object instance.
 
 -   Use `flatc` (the FlatBuffer compiler) to generate a C++ header (or
-    Java/C#/Go/Python.. classes) with helper classes to access and construct
+    Java/Kotlin/C#/Go/Python.. classes) with helper classes to access and construct
     serialized data. This header (say `mydata_generated.h`) only depends on
     `flatbuffers.h`, which defines the core functionality.
 
@@ -132,9 +132,21 @@ sections provide a more in-depth usage guide.
     own programs.
 -   How to [use the generated Java/C# code](@ref flatbuffers_guide_use_java_c-sharp)
     in your own programs.
+-   How to [use the generated Kotlin code](@ref flatbuffers_guide_use_kotlin)
+        in your own programs.
 -   How to [use the generated Go code](@ref flatbuffers_guide_use_go) in your
     own programs.
+-   How to [use the generated Lua code](@ref flatbuffers_guide_use_lua) in your
+    own programs.
+-   How to [use the generated JavaScript code](@ref flatbuffers_guide_use_javascript) in your
+    own programs.
+-   How to [use the generated TypeScript code](@ref flatbuffers_guide_use_typescript) in your
+    own programs.
 -   How to [use FlatBuffers in C with `flatcc`](@ref flatbuffers_guide_use_c) in your
+    own programs.
+-   How to [use the generated Lobster code](@ref flatbuffers_guide_use_lobster) in your
+    own programs.
+-   How to [use the generated Rust code](@ref flatbuffers_guide_use_rust) in your
     own programs.
 -   [Support matrix](@ref flatbuffers_support) for platforms/languages/features.
 -   Some [benchmarks](@ref flatbuffers_benchmarks) showing the advantage of

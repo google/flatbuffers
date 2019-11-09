@@ -28,6 +28,34 @@ public class Struct {
   protected int bb_pos;
   /** The underlying ByteBuffer to hold the data of the Struct. */
   protected ByteBuffer bb;
+
+  /**
+   * Re-init the internal state with an external buffer {@code ByteBuffer} and an offset within.
+   *
+   * This method exists primarily to allow recycling Table instances without risking memory leaks
+   * due to {@code ByteBuffer} references.
+   */
+  protected void __reset(int _i, ByteBuffer _bb) { 
+    bb = _bb;
+    if (bb != null) {
+      bb_pos = _i;
+    } else {
+      bb_pos = 0;
+    }
+  }
+
+  /**
+   * Resets internal state with a null {@code ByteBuffer} and a zero position.
+   *
+   * This method exists primarily to allow recycling Struct instances without risking memory leaks
+   * due to {@code ByteBuffer} references. The instance will be unusable until it is assigned
+   * again to a {@code ByteBuffer}.
+   *
+   * @param struct the instance to reset to initial state
+   */
+  public void __reset() {
+    __reset(0, null);
+  }
 }
 
 /// @endcond

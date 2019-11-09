@@ -14,25 +14,30 @@
  * limitations under the License.
  */
 
+#include <stdio.h>
+
 #include <iostream>
 #include <sstream>
 #include <string>
+
 #include "flatbuffers/hash.h"
-#include <stdio.h>
 
-enum OutputFormat {
-  kDecimal,
-  kHexadecimal,
-  kHexadecimal0x
-};
+enum OutputFormat { kDecimal, kHexadecimal, kHexadecimal0x };
 
-int main(int argc, char* argv[]) {
-  const char* name = argv[0];
+int main(int argc, char *argv[]) {
+  const char *name = argv[0];
   if (argc <= 1) {
-    printf("%s HASH [OPTION]... STRING... [-- STRING...]\n", name);
-    printf("Available hashing algorithms:\n  32 bit:\n");
-    size_t size = sizeof(flatbuffers::kHashFunctions32) /
-                  sizeof(flatbuffers::kHashFunctions32[0]);
+    printf("%s HASH [OPTION]... [--] STRING...\n", name);
+    printf("Available hashing algorithms:\n");
+    printf("  16 bit:\n");
+    size_t size = sizeof(flatbuffers::kHashFunctions16) /
+                  sizeof(flatbuffers::kHashFunctions16[0]);
+    for (size_t i = 0; i < size; ++i) {
+      printf("    * %s\n", flatbuffers::kHashFunctions16[i].name);
+    }
+    printf("  32 bit:\n");
+    size = sizeof(flatbuffers::kHashFunctions32) /
+           sizeof(flatbuffers::kHashFunctions32[0]);
     for (size_t i = 0; i < size; ++i) {
       printf("    * %s\n", flatbuffers::kHashFunctions32[i].name);
     }
@@ -47,34 +52,42 @@ int main(int argc, char* argv[]) {
         "  -x         Output hash in hexadecimal.\n"
         "  -0x        Output hash in hexadecimal and prefix with 0x.\n"
         "  -c         Append the string to the output in a c-style comment.\n");
-    return 0;
+    return 1;
   }
 
-  const char* hash_algorithm = argv[1];
+  const char *hash_algorithm = argv[1];
 
+  flatbuffers::NamedHashFunction<uint16_t>::HashFunction hash_function16 =
+      flatbuffers::FindHashFunction16(hash_algorithm);
   flatbuffers::NamedHashFunction<uint32_t>::HashFunction hash_function32 =
       flatbuffers::FindHashFunction32(hash_algorithm);
   flatbuffers::NamedHashFunction<uint64_t>::HashFunction hash_function64 =
       flatbuffers::FindHashFunction64(hash_algorithm);
 
-  if (!hash_function32 && !hash_function64) {
+  if (!hash_function16 && !hash_function32 && !hash_function64) {
     printf("\"%s\" is not a known hash algorithm.\n", hash_algorithm);
-    return 0;
+    return 1;
   }
 
   OutputFormat output_format = kHexadecimal;
   bool annotate = false;
   bool escape_dash = false;
   for (int i = 2; i < argc; i++) {
-    const char* arg = argv[i];
+    const char *arg = argv[i];
     if (!escape_dash && arg[0] == '-') {
       std::string opt = arg;
-      if (opt == "-d")       output_format = kDecimal;
-      else if (opt == "-x")  output_format = kHexadecimal;
-      else if (opt == "-0x") output_format = kHexadecimal0x;
-      else if (opt == "-c")  annotate = true;
-      else if (opt == "--")  escape_dash = true;
-      else printf("Unrecognized argument: \"%s\"\n", arg);
+      if (opt == "-d")
+        output_format = kDecimal;
+      else if (opt == "-x")
+        output_format = kHexadecimal;
+      else if (opt == "-0x")
+        output_format = kHexadecimal0x;
+      else if (opt == "-c")
+        annotate = true;
+      else if (opt == "--")
+        escape_dash = true;
+      else
+        printf("Unrecognized argument: \"%s\"\n", arg);
     } else {
       std::stringstream ss;
       if (output_format == kDecimal) {
@@ -85,13 +98,14 @@ int main(int argc, char* argv[]) {
         ss << std::hex;
         ss << "0x";
       }
-      if (hash_function32)
+      if (hash_function16)
+        ss << hash_function16(arg);
+      else if (hash_function32)
         ss << hash_function32(arg);
       else if (hash_function64)
         ss << hash_function64(arg);
 
-      if (annotate)
-        ss << " /* \"" << arg << "\" */";
+      if (annotate) ss << " /* \"" << arg << "\" */";
 
       ss << "\n";
 
@@ -100,4 +114,3 @@ int main(int argc, char* argv[]) {
   }
   return 0;
 }
-

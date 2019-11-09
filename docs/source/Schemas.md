@@ -84,15 +84,19 @@ parent object, and use no virtual table).
 
 ### Types
 
-Built-in scalar types are:
+Built-in scalar types are
 
--   8 bit: `byte`, `ubyte`, `bool`
+-   8 bit: `byte` (`int8`), `ubyte` (`uint8`), `bool`
 
--   16 bit: `short`, `ushort`
+-   16 bit: `short` (`int16`), `ushort` (`uint16`)
 
--   32 bit: `int`, `uint`, `float`
+-   32 bit: `int` (`int32`), `uint` (`uint32`), `float` (`float32`)
 
--   64 bit: `long`, `ulong`, `double`
+-   64 bit: `long` (`int64`), `ulong` (`uint64`), `double` (`float64`)
+
+The type names in parentheses are alias names such that for example
+`uint8` can be used in place of `ubyte`, and `int32` can be used in
+place of `int` without affecting code generation.
 
 Built-in non-scalar types:
 
@@ -109,6 +113,27 @@ You can't change types of fields once they're used, with the exception
 of same-size data where a `reinterpret_cast` would give you a desirable result,
 e.g. you could change a `uint` to an `int` if no values in current data use the
 high bit yet.
+
+### Arrays
+
+Arrays are a convenience short-hand for a fixed-length collection of elements.
+Arrays can be used to replace the following schema:
+
+    struct Vec3 {
+        x:float;
+        y:float;
+        z:float;
+    }
+
+with the following schema:
+
+    struct Vec3 {
+        v:[float:3];
+    }
+
+Both representations are binary equivalent.
+
+Arrays are currently only supported in a `struct`.
 
 ### (Default) Values
 
@@ -137,6 +162,9 @@ is `0`. As you can see in the enum declaration, you specify the underlying
 integral type of the enum with `:` (in this case `byte`), which then determines
 the type of any fields declared with this enum type.
 
+Only integer types are allowed, i.e. `byte`, `ubyte`, `short` `ushort`, `int`,
+`uint`, `long` and `ulong`.
+
 Typically, enum values should only ever be added, never removed (there is no
 deprecation for enums). This requires code to handle forwards compatibility
 itself, by handling unknown enum values.
@@ -146,9 +174,23 @@ itself, by handling unknown enum values.
 Unions share a lot of properties with enums, but instead of new names
 for constants, you use names of tables. You can then declare
 a union field, which can hold a reference to any of those types, and
-additionally a hidden field with the suffix `_type` is generated that
-holds the corresponding enum value, allowing you to know which type to
-cast to at runtime.
+additionally a field with the suffix `_type` is generated that holds
+the corresponding enum value, allowing you to know which type to cast
+to at runtime.
+
+It's possible to give an alias name to a type union. This way a type can even be
+used to mean different things depending on the name used:
+
+    table PointPosition { x:uint; y:uint; }
+    table MarkerPosition {}
+    union Position {
+      Start:MarkerPosition,
+      Point:PointPosition,
+      Finish:MarkerPosition
+    }
+
+Unions contain a special `NONE` marker to denote that no value is stored so that
+name cannot be used as an alias.
 
 Unions are a good way to be able to send multiple message types as a FlatBuffer.
 Note that because a union field is really two fields, it must always be
@@ -300,8 +342,11 @@ Current understood attributes:
     these structs to be aligned to that amount inside a buffer, IF that
     buffer is allocated with that alignment (which is not necessarily
     the case for buffers accessed directly inside a `FlatBufferBuilder`).
--   `bit_flags` (on an enum): the values of this field indicate bits,
-    meaning that any value N specified in the schema will end up
+    Note: currently not guaranteed to have an effect when used with
+    `--object-api`, since that may allocate objects at alignments less than
+    what you specify with `force_align`.
+-   `bit_flags` (on an unsigned enum): the values of this field indicate bits,
+    meaning that any unsigned value N specified in the schema will end up
     representing 1<<N, or if you don't specify values at all, you'll get
     the sequence 1, 2, 4, 8, ...
 -   `nested_flatbuffer: "table_name"` (on a field): this indicates that the field
@@ -380,6 +425,36 @@ When parsing JSON, it recognizes the following escape codes in strings:
 
 It also generates these escape codes back again when generating JSON from a
 binary representation.
+
+When parsing numbers, the parser is more flexible than JSON.
+A format of numeric literals is more close to the C/C++.
+According to the [grammar](@ref flatbuffers_grammar), it accepts the following
+numerical literals:
+
+-   An integer literal can have any number of leading zero `0` digits.
+    Unlike C/C++, the parser ignores a leading zero, not interpreting it as the
+    beginning of the octal number.
+    The numbers `[081, -00094]` are equal to `[81, -94]`  decimal integers.
+-   The parser accepts unsigned and signed hexadecimal integer numbers.
+    For example: `[0x123, +0x45, -0x67]` are equal to `[291, 69, -103]` decimals.
+-   The format of float-point numbers is fully compatible with C/C++ format.
+    If a modern C++ compiler is used the parser accepts hexadecimal and special
+    floating-point literals as well:
+    `[-1.0, 2., .3e0, 3.e4, 0x21.34p-5, -inf, nan]`.
+
+    The following conventions for floating-point numbers are used:
+    - The exponent suffix of hexadecimal floating-point number is mandatory.
+    - Parsed `NaN` converted to unsigned IEEE-754 `quiet-NaN` value.
+
+    Extended floating-point support was tested with:
+    - x64 Windows: `MSVC2015` and higher.
+    - x64 Linux: `LLVM 6.0`, `GCC 4.9` and higher.
+
+    For details, see [Use in C++](@ref flatbuffers_guide_use_cpp) section.
+
+-   For compatibility with a JSON lint tool all numeric literals of scalar
+    fields can be wrapped to quoted string:
+    `"1", "2.0", "0x48A", "0x0C.0Ep-1", "-inf", "true"`.
 
 ## Guidelines
 

@@ -751,11 +751,16 @@ INPUT = "FlatBuffers.md" \
         "Schemas.md" \
         "CppUsage.md" \
         "CUsage.md" \
+        "DartUsage.md" \
         "GoUsage.md" \
         "JavaCsharpUsage.md" \
         "JavaScriptUsage.md" \
+        "TypeScriptUsage.md" \
         "PHPUsage.md" \
         "PythonUsage.md" \
+        "LuaUsage.md" \
+        "LobsterUsage.md" \
+        "RustUsage.md" \
         "Support.md" \
         "Benchmarks.md" \
         "WhitePaper.md" \
@@ -773,7 +778,8 @@ INPUT = "FlatBuffers.md" \
         "../../php/FlatbufferBuilder.php" \
         "../../net/FlatBuffers/FlatBufferBuilder.cs" \
         "../../include/flatbuffers/flatbuffers.h" \
-        "../../go/builder.go"
+        "../../go/builder.go" \
+        "../../rust/flatbuffers/src/builder.rs"
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses

@@ -4,6 +4,7 @@ namespace proto.test;
 
 /// Enum doc comment.
 enum ProtoEnum : int {
+  NUL = 0,
   FOO = 1,
   /// Enum 2nd value doc comment misaligned.
   BAR = 5,
@@ -36,6 +37,8 @@ table ProtoMessage {
   n:proto.test.ProtoMessage_.OtherMessage;
   o:[string];
   z:proto.test.ImportedMessage;
+  /// doc comment for r.
+  r:proto.test.ProtoMessage_.Anonymous0;
 }
 
 namespace proto.test.ProtoMessage_;
@@ -44,5 +47,13 @@ table OtherMessage {
   a:double;
   /// doc comment for b.
   b:float = 3.14149;
+}
+
+table Anonymous0 {
+  /// doc comment for s.
+  s:proto.test.ImportedMessage;
+  /// doc comment for t on 2
+  /// lines.
+  t:proto.test.ProtoMessage_.OtherMessage;
 }
 

@@ -20,16 +20,19 @@ go_path=${test_dir}/go_gen
 go_src=${go_path}/src
 
 # Emit Go code for the example schema in the test dir:
-../flatc -g -I include_test monster_test.fbs
+../flatc -g --gen-object-api -I include_test monster_test.fbs
 
 # Go requires a particular layout of files in order to link multiple packages.
 # Copy flatbuffer Go files to their own package directories to compile the
 # test binary:
 mkdir -p ${go_src}/MyGame/Example
+mkdir -p ${go_src}/MyGame/Example2
 mkdir -p ${go_src}/github.com/google/flatbuffers/go
 mkdir -p ${go_src}/flatbuffers_test
 
+cp -a MyGame/*.go ./go_gen/src/MyGame/
 cp -a MyGame/Example/*.go ./go_gen/src/MyGame/Example/
+cp -a MyGame/Example2/*.go ./go_gen/src/MyGame/Example2/
 # do not compile the gRPC generated files, which are not tested by go_test.go
 # below, but have their own test.
 rm ./go_gen/src/MyGame/Example/*_grpc.go
@@ -64,7 +67,9 @@ fi
 
 NOT_FMT_FILES=$(gofmt -l MyGame)
 if [[ ${NOT_FMT_FILES} != "" ]]; then
-    echo "These files are not well gofmt'ed:\n\n${NOT_FMT_FILES}"
+    echo "These files are not well gofmt'ed:"
+    echo
+    echo "${NOT_FMT_FILES}"
     # enable this when enums are properly formated
     # exit 1
 fi

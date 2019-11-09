@@ -9,9 +9,10 @@ import com.google.flatbuffers.*;
 
 @SuppressWarnings("unused")
 public final class TableInC extends Table {
+  public static void ValidateVersion() { Constants.FLATBUFFERS_1_11_1(); }
   public static TableInC getRootAsTableInC(ByteBuffer _bb) { return getRootAsTableInC(_bb, new TableInC()); }
   public static TableInC getRootAsTableInC(ByteBuffer _bb, TableInC obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
-  public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
+  public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }
   public TableInC __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public NamespaceA.TableInFirstNS referToA1() { return referToA1(new NamespaceA.TableInFirstNS()); }
@@ -22,18 +23,25 @@ public final class TableInC extends Table {
   public static int createTableInC(FlatBufferBuilder builder,
       int refer_to_a1Offset,
       int refer_to_a2Offset) {
-    builder.startObject(2);
+    builder.startTable(2);
     TableInC.addReferToA2(builder, refer_to_a2Offset);
     TableInC.addReferToA1(builder, refer_to_a1Offset);
     return TableInC.endTableInC(builder);
   }
 
-  public static void startTableInC(FlatBufferBuilder builder) { builder.startObject(2); }
+  public static void startTableInC(FlatBufferBuilder builder) { builder.startTable(2); }
   public static void addReferToA1(FlatBufferBuilder builder, int referToA1Offset) { builder.addOffset(0, referToA1Offset, 0); }
   public static void addReferToA2(FlatBufferBuilder builder, int referToA2Offset) { builder.addOffset(1, referToA2Offset, 0); }
   public static int endTableInC(FlatBufferBuilder builder) {
-    int o = builder.endObject();
+    int o = builder.endTable();
     return o;
+  }
+
+  public static final class Vector extends BaseVector {
+    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
+
+    public TableInC get(int j) { return get(new TableInC(), j); }
+    public TableInC get(TableInC obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }
   }
 }
 
