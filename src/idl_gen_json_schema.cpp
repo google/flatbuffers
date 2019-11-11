@@ -122,6 +122,7 @@ class JsonSchemaGenerator : public BaseGenerator {
       : BaseGenerator(base_generator) {}
 
   bool generate() {
+    if (parser_.root_struct_def_ == nullptr) { return false; }
     code_.Clear();
     code_ += "{";
     code_ += "  \"$schema\": \"http://json-schema.org/draft-04/schema#\",";
