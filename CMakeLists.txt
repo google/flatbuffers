@@ -81,10 +81,12 @@ set(FlatBuffers_Library_SRCS
 set(FlatBuffers_Compiler_SRCS
   ${FlatBuffers_Library_SRCS}
   src/idl_gen_cpp.cpp
+  src/idl_gen_csharp.cpp
   src/idl_gen_dart.cpp
   src/idl_gen_general.cpp
   src/idl_gen_kotlin.cpp
   src/idl_gen_go.cpp
+  src/idl_gen_java.cpp
   src/idl_gen_js_ts.cpp
   src/idl_gen_php.cpp
   src/idl_gen_python.cpp
