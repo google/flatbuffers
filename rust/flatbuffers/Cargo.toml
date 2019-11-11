@@ -10,4 +10,4 @@ keywords = ["flatbuffers", "serialization", "zero-copy"]
 categories = ["encoding", "data-structures", "memory-management"]
 
 [dependencies]
-smallvec = "0.6"
+smallvec = "1.0"
