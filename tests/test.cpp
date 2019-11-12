@@ -33,12 +33,12 @@
 #include "monster_test_generated.h"
 #include "namespace_test/namespace_test1_generated.h"
 #include "namespace_test/namespace_test2_generated.h"
-#include "evolution_test/evolution_v1_generated.h"
-#include "evolution_test/evolution_v2_generated.h"
 #include "union_vector/union_vector_generated.h"
 #include "monster_extra_generated.h"
 #if !defined(_MSC_VER) || _MSC_VER >= 1700
 #  include "arrays_test_generated.h"
+#  include "evolution_test/evolution_v1_generated.h"
+#  include "evolution_test/evolution_v2_generated.h"
 #endif
 
 #include "native_type_test_generated.h"
@@ -2314,6 +2314,8 @@ void InvalidNestedFlatbufferTest() {
 }
 
 void EvolutionTest() {
+  // VS10 does not support typed enums, exclude from tests
+#if !defined(_MSC_VER) || _MSC_VER >= 1700
     const int NUM_VERSIONS = 2;
     std::string schemas[NUM_VERSIONS];
     std::string jsonfiles[NUM_VERSIONS];
@@ -2361,8 +2363,7 @@ void EvolutionTest() {
     // 'TableC' was added to field 'c' union in version 2, so it should be null.
     TEST_EQ(root_v1_viewed_from_v2->c_as_TableC(), NULL);
     // The field 'c' union should be of type 'TableB' regardless of schema version
-    TEST_EQ(root_v1_viewed_from_v2->c_type(), Evolution::V1::Union_TableB);
-    TEST_EQ(root_v1_viewed_from_v2->c_type(), Evolution::V2::Union_TableB);
+    TEST_ASSERT(root_v1_viewed_from_v2->c_type() == Evolution::V2::Union::TableB);
     // The field 'f' was renamed to 'ff' in version 2, it should still be readable.
     TEST_EQ(root_v1_viewed_from_v2->ff()->a(), 16);
 
@@ -2379,6 +2380,7 @@ void EvolutionTest() {
     TEST_EQ(root_v2_viewed_from_v1->a(), 0);
     // The field 'ff' was originally named 'f' in version 1, it should still be readable.
     TEST_EQ(root_v2_viewed_from_v1->f()->a(), 35);
+#endif
 }
 
 void UnionVectorTest() {

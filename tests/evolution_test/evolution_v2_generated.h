@@ -19,21 +19,21 @@ struct Struct;
 
 struct Root;
 
-enum Enum {
-  Enum_King = 0,
-  Enum_Queen = 1,
-  Enum_Rook = 2,
-  Enum_Bishop = 3,
-  Enum_MIN = Enum_King,
-  Enum_MAX = Enum_Bishop
+enum class Enum : int8_t {
+  King = 0,
+  Queen = 1,
+  Rook = 2,
+  Bishop = 3,
+  MIN = King,
+  MAX = Bishop
 };
 
 inline const Enum (&EnumValuesEnum())[4] {
   static const Enum values[] = {
-    Enum_King,
-    Enum_Queen,
-    Enum_Rook,
-    Enum_Bishop
+    Enum::King,
+    Enum::Queen,
+    Enum::Rook,
+    Enum::Bishop
   };
   return values;
 }
@@ -50,26 +50,26 @@ inline const char * const *EnumNamesEnum() {
 }
 
 inline const char *EnumNameEnum(Enum e) {
-  if (e < Enum_King || e > Enum_Bishop) return "";
+  if (e < Enum::King || e > Enum::Bishop) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesEnum()[index];
 }
 
-enum Union {
-  Union_NONE = 0,
-  Union_TableA = 1,
-  Union_TableB = 2,
-  Union_TableC = 3,
-  Union_MIN = Union_NONE,
-  Union_MAX = Union_TableC
+enum class Union : uint8_t {
+  NONE = 0,
+  TableA = 1,
+  TableB = 2,
+  TableC = 3,
+  MIN = NONE,
+  MAX = TableC
 };
 
 inline const Union (&EnumValuesUnion())[4] {
   static const Union values[] = {
-    Union_NONE,
-    Union_TableA,
-    Union_TableB,
-    Union_TableC
+    Union::NONE,
+    Union::TableA,
+    Union::TableB,
+    Union::TableC
   };
   return values;
 }
@@ -86,25 +86,25 @@ inline const char * const *EnumNamesUnion() {
 }
 
 inline const char *EnumNameUnion(Union e) {
-  if (e < Union_NONE || e > Union_TableC) return "";
+  if (e < Union::NONE || e > Union::TableC) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesUnion()[index];
 }
 
 template<typename T> struct UnionTraits {
-  static const Union enum_value = Union_NONE;
+  static const Union enum_value = Union::NONE;
 };
 
 template<> struct UnionTraits<Evolution::V2::TableA> {
-  static const Union enum_value = Union_TableA;
+  static const Union enum_value = Union::TableA;
 };
 
 template<> struct UnionTraits<Evolution::V2::TableB> {
-  static const Union enum_value = Union_TableB;
+  static const Union enum_value = Union::TableB;
 };
 
 template<> struct UnionTraits<Evolution::V2::TableC> {
-  static const Union enum_value = Union_TableC;
+  static const Union enum_value = Union::TableC;
 };
 
 bool VerifyUnion(flatbuffers::Verifier &verifier, const void *obj, Union type);
@@ -336,13 +336,13 @@ struct Root FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   template<typename T> const T *c_as() const;
   const Evolution::V2::TableA *c_as_TableA() const {
-    return c_type() == Evolution::V2::Union_TableA ? static_cast<const Evolution::V2::TableA *>(c()) : nullptr;
+    return c_type() == Evolution::V2::Union::TableA ? static_cast<const Evolution::V2::TableA *>(c()) : nullptr;
   }
   const Evolution::V2::TableB *c_as_TableB() const {
-    return c_type() == Evolution::V2::Union_TableB ? static_cast<const Evolution::V2::TableB *>(c()) : nullptr;
+    return c_type() == Evolution::V2::Union::TableB ? static_cast<const Evolution::V2::TableB *>(c()) : nullptr;
   }
   const Evolution::V2::TableC *c_as_TableC() const {
-    return c_type() == Evolution::V2::Union_TableC ? static_cast<const Evolution::V2::TableC *>(c()) : nullptr;
+    return c_type() == Evolution::V2::Union::TableC ? static_cast<const Evolution::V2::TableC *>(c()) : nullptr;
   }
   Evolution::V2::Enum d() const {
     return static_cast<Evolution::V2::Enum>(GetField<int8_t>(VT_D, 0));
@@ -454,9 +454,9 @@ struct RootBuilder {
 inline flatbuffers::Offset<Root> CreateRoot(
     flatbuffers::FlatBufferBuilder &_fbb,
     bool b = false,
-    Evolution::V2::Union c_type = Evolution::V2::Union_NONE,
+    Evolution::V2::Union c_type = Evolution::V2::Union::NONE,
     flatbuffers::Offset<void> c = 0,
-    Evolution::V2::Enum d = Evolution::V2::Enum_King,
+    Evolution::V2::Enum d = Evolution::V2::Enum::King,
     flatbuffers::Offset<Evolution::V2::TableA> e = 0,
     const Evolution::V2::Struct *ff = 0,
     flatbuffers::Offset<flatbuffers::Vector<int32_t>> g = 0,
@@ -482,9 +482,9 @@ inline flatbuffers::Offset<Root> CreateRoot(
 inline flatbuffers::Offset<Root> CreateRootDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     bool b = false,
-    Evolution::V2::Union c_type = Evolution::V2::Union_NONE,
+    Evolution::V2::Union c_type = Evolution::V2::Union::NONE,
     flatbuffers::Offset<void> c = 0,
-    Evolution::V2::Enum d = Evolution::V2::Enum_King,
+    Evolution::V2::Enum d = Evolution::V2::Enum::King,
     flatbuffers::Offset<Evolution::V2::TableA> e = 0,
     const Evolution::V2::Struct *ff = 0,
     const std::vector<int32_t> *g = nullptr,
@@ -511,18 +511,18 @@ inline flatbuffers::Offset<Root> CreateRootDirect(
 
 inline bool VerifyUnion(flatbuffers::Verifier &verifier, const void *obj, Union type) {
   switch (type) {
-    case Union_NONE: {
+    case Union::NONE: {
       return true;
     }
-    case Union_TableA: {
+    case Union::TableA: {
       auto ptr = reinterpret_cast<const Evolution::V2::TableA *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case Union_TableB: {
+    case Union::TableB: {
       auto ptr = reinterpret_cast<const Evolution::V2::TableB *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case Union_TableC: {
+    case Union::TableC: {
       auto ptr = reinterpret_cast<const Evolution::V2::TableC *>(obj);
       return verifier.VerifyTable(ptr);
     }
