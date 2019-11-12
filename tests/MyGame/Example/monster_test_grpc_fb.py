@@ -20,6 +20,16 @@ class MonsterStorageStub(object):
         
         
         )
+    self.GetMaxHitPoint = channel.stream_unary(
+        '/MyGame.Example.MonsterStorage/GetMaxHitPoint',
+        
+        
+        )
+    self.GetMinMaxHitPoints = channel.unary_unary(
+        '/MyGame.Example.MonsterStorage/GetMinMaxHitPoints',
+        
+        
+        )
 
 
 class MonsterStorageServicer(object):
@@ -30,6 +40,16 @@ class MonsterStorageServicer(object):
     raise NotImplementedError('Method not implemented!')
   
   def Retrieve(self, request, context):
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+  
+  def GetMaxHitPoint(self, request_iterator, context):
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+  
+  def GetMinMaxHitPoints(self, request, context):
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
@@ -44,6 +64,16 @@ def add_MonsterStorageServicer_to_server(servicer, server):
       ),
       'Retrieve': grpc.unary_stream_rpc_method_handler(
           servicer.Retrieve,
+          
+          
+      ),
+      'GetMaxHitPoint': grpc.stream_unary_rpc_method_handler(
+          servicer.GetMaxHitPoint,
+          
+          
+      ),
+      'GetMinMaxHitPoints': grpc.unary_unary_rpc_method_handler(
+          servicer.GetMinMaxHitPoints,
           
           
       ),
@@ -79,6 +109,16 @@ try:
           
           
           )
+      self.GetMaxHitPoint = channel.stream_unary(
+          '/MyGame.Example.MonsterStorage/GetMaxHitPoint',
+          
+          
+          )
+      self.GetMinMaxHitPoints = channel.unary_unary(
+          '/MyGame.Example.MonsterStorage/GetMinMaxHitPoints',
+          
+          
+          )
   
   
   class MonsterStorageServicer(object):
@@ -89,6 +129,16 @@ try:
       raise NotImplementedError('Method not implemented!')
     
     def Retrieve(self, request, context):
+      context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+      context.set_details('Method not implemented!')
+      raise NotImplementedError('Method not implemented!')
+    
+    def GetMaxHitPoint(self, request_iterator, context):
+      context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+      context.set_details('Method not implemented!')
+      raise NotImplementedError('Method not implemented!')
+    
+    def GetMinMaxHitPoints(self, request, context):
       context.set_code(grpc.StatusCode.UNIMPLEMENTED)
       context.set_details('Method not implemented!')
       raise NotImplementedError('Method not implemented!')
@@ -103,6 +153,16 @@ try:
         ),
         'Retrieve': grpc.unary_stream_rpc_method_handler(
             servicer.Retrieve,
+            
+            
+        ),
+        'GetMaxHitPoint': grpc.stream_unary_rpc_method_handler(
+            servicer.GetMaxHitPoint,
+            
+            
+        ),
+        'GetMinMaxHitPoints': grpc.unary_unary_rpc_method_handler(
+            servicer.GetMinMaxHitPoints,
             
             
         ),
@@ -122,6 +182,10 @@ try:
       context.code(beta_interfaces.StatusCode.UNIMPLEMENTED)
     def Retrieve(self, request, context):
       context.code(beta_interfaces.StatusCode.UNIMPLEMENTED)
+    def GetMaxHitPoint(self, request_iterator, context):
+      context.code(beta_interfaces.StatusCode.UNIMPLEMENTED)
+    def GetMinMaxHitPoints(self, request, context):
+      context.code(beta_interfaces.StatusCode.UNIMPLEMENTED)
   
   
   class BetaMonsterStorageStub(object):
@@ -135,6 +199,12 @@ try:
     Store.future = None
     def Retrieve(self, request, timeout, metadata=None, with_call=False, protocol_options=None):
       raise NotImplementedError()
+    def GetMaxHitPoint(self, request_iterator, timeout, metadata=None, with_call=False, protocol_options=None):
+      raise NotImplementedError()
+    GetMaxHitPoint.future = None
+    def GetMinMaxHitPoints(self, request, timeout, metadata=None, with_call=False, protocol_options=None):
+      raise NotImplementedError()
+    GetMinMaxHitPoints.future = None
   
   
   def beta_create_MonsterStorage_server(servicer, pool=None, pool_size=None, default_timeout=None, maximum_timeout=None):
@@ -144,6 +214,8 @@ try:
     file not marked beta) for all further purposes. This function was
     generated only to ease transition from grpcio<0.15.0 to grpcio>=0.15.0"""
     method_implementations = {
+      ('MyGame.Example.MonsterStorage', 'GetMaxHitPoint'): face_utilities.stream_unary_inline(servicer.GetMaxHitPoint),
+      ('MyGame.Example.MonsterStorage', 'GetMinMaxHitPoints'): face_utilities.unary_unary_inline(servicer.GetMinMaxHitPoints),
       ('MyGame.Example.MonsterStorage', 'Retrieve'): face_utilities.unary_stream_inline(servicer.Retrieve),
       ('MyGame.Example.MonsterStorage', 'Store'): face_utilities.unary_unary_inline(servicer.Store),
     }
@@ -158,6 +230,8 @@ try:
     file not marked beta) for all further purposes. This function was
     generated only to ease transition from grpcio<0.15.0 to grpcio>=0.15.0"""
     cardinalities = {
+      'GetMaxHitPoint': cardinality.Cardinality.STREAM_UNARY,
+      'GetMinMaxHitPoints': cardinality.Cardinality.UNARY_UNARY,
       'Retrieve': cardinality.Cardinality.UNARY_STREAM,
       'Store': cardinality.Cardinality.UNARY_UNARY,
     }
