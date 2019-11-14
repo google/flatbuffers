@@ -287,6 +287,80 @@ std::string SimpleFloatConstantGenerator::NaN(float v) const {
   return this->NaN(static_cast<double>(v));
 }
 
+std::string JavaCSharpMakeRule(const Parser &parser, const std::string &path,
+                               const std::string &file_name) {
+  FLATBUFFERS_ASSERT(parser.opts.lang == IDLOptions::kJava ||
+                     parser.opts.lang == IDLOptions::kCSharp);
+
+  std::string file_extension =
+      (parser.opts.lang == IDLOptions::kJava) ? ".java" : ".cs";
+
+  std::string make_rule;
+
+  for (auto it = parser.enums_.vec.begin(); it != parser.enums_.vec.end();
+       ++it) {
+    auto &enum_def = **it;
+    if (!make_rule.empty()) make_rule += " ";
+    std::string directory =
+        BaseGenerator::NamespaceDir(parser, path, *enum_def.defined_namespace);
+    make_rule += directory + enum_def.name + file_extension;
+  }
+
+  for (auto it = parser.structs_.vec.begin(); it != parser.structs_.vec.end();
+       ++it) {
+    auto &struct_def = **it;
+    if (!make_rule.empty()) make_rule += " ";
+    std::string directory = BaseGenerator::NamespaceDir(
+        parser, path, *struct_def.defined_namespace);
+    make_rule += directory + struct_def.name + file_extension;
+  }
+
+  make_rule += ": ";
+  auto included_files = parser.GetIncludedFilesRecursive(file_name);
+  for (auto it = included_files.begin(); it != included_files.end(); ++it) {
+    make_rule += " " + *it;
+  }
+  return make_rule;
+}
+
+std::string BinaryFileName(const Parser &parser, const std::string &path,
+                           const std::string &file_name) {
+  auto ext = parser.file_extension_.length() ? parser.file_extension_ : "bin";
+  return path + file_name + "." + ext;
+}
+
+bool GenerateBinary(const Parser &parser, const std::string &path,
+                    const std::string &file_name) {
+  if (parser.opts.use_flexbuffers) {
+    auto data_vec = parser.flex_builder_.GetBuffer();
+    auto data_ptr = reinterpret_cast<char *>(data(data_vec));
+    return !parser.flex_builder_.GetSize() ||
+           flatbuffers::SaveFile(
+               BinaryFileName(parser, path, file_name).c_str(), data_ptr,
+               parser.flex_builder_.GetSize(), true);
+  }
+  return !parser.builder_.GetSize() ||
+         flatbuffers::SaveFile(
+             BinaryFileName(parser, path, file_name).c_str(),
+             reinterpret_cast<char *>(parser.builder_.GetBufferPointer()),
+             parser.builder_.GetSize(), true);
+}
+
+std::string BinaryMakeRule(const Parser &parser, const std::string &path,
+                           const std::string &file_name) {
+  if (!parser.builder_.GetSize()) return "";
+  std::string filebase =
+      flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
+  std::string make_rule =
+      BinaryFileName(parser, path, filebase) + ": " + file_name;
+  auto included_files =
+      parser.GetIncludedFilesRecursive(parser.root_struct_def_->file);
+  for (auto it = included_files.begin(); it != included_files.end(); ++it) {
+    make_rule += " " + *it;
+  }
+  return make_rule;
+}
+
 }  // namespace flatbuffers
 
 #if defined(_MSC_VER)

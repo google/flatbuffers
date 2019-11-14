@@ -22,7 +22,6 @@ cc_library(
     srcs = [
         "src/code_generators.cpp",
         "src/idl_gen_fbs.cpp",
-        "src/idl_gen_general.cpp",
         "src/idl_gen_text.cpp",
         "src/idl_parser.cpp",
         "src/reflection.cpp",
@@ -88,7 +87,6 @@ cc_binary(
         "src/idl_gen_cpp.cpp",
         "src/idl_gen_csharp.cpp",
         "src/idl_gen_dart.cpp",
-        "src/idl_gen_general.cpp",
         "src/idl_gen_go.cpp",
         "src/idl_gen_grpc.cpp",
         "src/idl_gen_java.cpp",
@@ -134,7 +132,6 @@ cc_test(
         "include/flatbuffers/registry.h",
         "src/code_generators.cpp",
         "src/idl_gen_fbs.cpp",
-        "src/idl_gen_general.cpp",
         "src/idl_gen_text.cpp",
         "src/idl_parser.cpp",
         "src/reflection.cpp",
