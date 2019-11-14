@@ -6,69 +6,83 @@ local mt_name = "flatbuffers.view.mt"
 local N = require("flatbuffers.numTypes")
 local binaryarray = require("flatbuffers.binaryarray")
 
+local function enforceOffset(off)
+    if off < 0 or off > 42949672951 then
+        error("Offset is not valid")
+    end
+end
+
+local unpack = string.unpack
+local function unPackUoffset(bytes, off)
+    return unpack("<I4", bytes.str, off + 1)
+end
+
+local function unPackVoffset(bytes, off)
+    return unpack("<I2", bytes.str, off + 1)
+end
+
 function m.New(buf, pos)
-    N.UOffsetT:EnforceNumber(pos)
-    
+    enforceOffset(pos)
     -- need to convert from a string buffer into
     -- a binary array
 
     local o = {
         bytes = type(buf) == "string" and binaryarray.New(buf) or buf,
-        pos = pos
+        pos = pos,
     }
     setmetatable(o, {__index = mt, __metatable = mt_name})
     return o
 end
 
 function mt:Offset(vtableOffset)
-    local vtable = self.pos - self:Get(N.SOffsetT, self.pos)
-    local vtableEnd = self:Get(N.VOffsetT, vtable)
-    if vtableOffset < vtableEnd then
-        return self:Get(N.VOffsetT, vtable + vtableOffset)
+    local vtable = self.vtable
+    if not vtable then
+        vtable = self.pos - self:Get(N.SOffsetT, self.pos)
+        self.vtable = vtable
+        self.vtableEnd = self:Get(N.VOffsetT, vtable)
+    end
+    if vtableOffset < self.vtableEnd then
+        return unPackVoffset(self.bytes, vtable + vtableOffset)
     end
     return 0
 end
 
 function mt:Indirect(off)
-    N.UOffsetT:EnforceNumber(off)
-    return off + N.UOffsetT:Unpack(self.bytes, off)
+    enforceOffset(off)
+    return off + unPackUoffset(self.bytes, off)
 end
 
 function mt:String(off)
-    N.UOffsetT:EnforceNumber(off)
-    off = off + N.UOffsetT:Unpack(self.bytes, off)
-    local start = off + N.UOffsetT.bytewidth
-    local length = N.UOffsetT:Unpack(self.bytes, off)
+    enforceOffset(off)
+    off = off + unPackUoffset(self.bytes, off)
+    local start = off + 4
+    local length = unPackUoffset(self.bytes, off)
     return self.bytes:Slice(start, start+length)
 end
 
 function mt:VectorLen(off)
-    N.UOffsetT:EnforceNumber(off)
+    enforceOffset(off)
     off = off + self.pos
-    off = off + N.UOffsetT:Unpack(self.bytes, off)
-    return N.UOffsetT:Unpack(self.bytes, off)
+    off = off + unPackUoffset(self.bytes, off)
+    return unPackUoffset(self.bytes, off)
 end
 
 function mt:Vector(off)
-    N.UOffsetT:EnforceNumber(off)
-    
+    enforceOffset(off)
     off = off + self.pos
-    local x = off + self:Get(N.UOffsetT, off)
-    x = x + N.UOffsetT.bytewidth
-    return x
+    return off + self:Get(N.UOffsetT, off) + 4
 end
 
 function mt:Union(t2, off)
     assert(getmetatable(t2) == mt_name)
-    N.UOffsetT:EnforceNumber(off)
-    
+    enforceOffset(off)
     off = off + self.pos
     t2.pos = off + self:Get(N.UOffsetT, off)
     t2.bytes = self.bytes
 end
 
 function mt:Get(flags, off)
-    N.UOffsetT:EnforceNumber(off)
+    enforceOffset(off)
     return flags:Unpack(self.bytes, off)
 end
 
@@ -85,8 +99,7 @@ function mt:GetSlot(slot, d, validatorFlags)
 end
 
 function mt:GetVOffsetTSlot(slot, d)
-    N.VOffsetT:EnforceNumber(slot)
-    N.VOffsetT:EnforceNumber(d)
+    N.VOffsetT:EnforceNumbers(slot, d)
     local off = self:Offset(slot)
     if off == 0 then
         return d
