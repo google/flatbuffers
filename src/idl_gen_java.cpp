@@ -599,8 +599,7 @@ class JavaGenerator : public BaseGenerator {
 
       // Generate a special accessor for the table that when used as the root
       // of a FlatBuffer
-      std::string method_name =
-          "getRootAs" + struct_def.name;
+      std::string method_name = "getRootAs" + struct_def.name;
       std::string method_signature =
           "  public static " + struct_def.name + " " + method_name;
 
@@ -1112,8 +1111,7 @@ class JavaGenerator : public BaseGenerator {
           code += "finish" + size_prefix[i] + struct_def.name;
           code += "Buffer(FlatBufferBuilder builder, " + GenOffsetType();
           code += " offset) {";
-          code += " builder.finish" + size_prefix[i] +
-                  "(offset";
+          code += " builder.finish" + size_prefix[i] + "(offset";
 
           if (parser_.file_identifier_.length())
             code += ", \"" + parser_.file_identifier_ + "\"";
@@ -1185,8 +1183,7 @@ class JavaGenerator : public BaseGenerator {
     code += "__reset(_vector, _element_size, _bb); return this; }\n\n";
 
     auto type_name = struct_def.name;
-    auto method_start =
-        method_indent + "public " + type_name + " get";
+    auto method_start = method_indent + "public " + type_name + " get";
     // Generate the accessors that don't do object reuse.
     code += method_start + "(int j) { return get";
     code += "(new " + type_name + "(), j); }\n";
