@@ -93,7 +93,7 @@ class PythonGenerator : public BaseGenerator {
   // Converts the name of a definition into lower Camel format.
   std::string MakeLowerCamel(const Definition &definition) const {
     auto name = MakeCamel(NormalizedName(definition), false);
-    name[0] = tolower(name[0]);
+    name[0] = (char) tolower(name[0]);
     return name;
   }
 
@@ -430,7 +430,10 @@ class PythonGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
-      if (IsStruct(field.value.type)) {
+      const auto &field_type = field.value.type;
+      const auto &type =
+          IsArray(field_type) ? field_type.VectorType() : field_type;
+      if (IsStruct(type)) {
         // Generate arguments for a struct inside a struct. To ensure names
         // don't clash, and to make it obvious these arguments are constructing
         // a nested struct, prefix the name with the field name.
@@ -618,7 +621,8 @@ class PythonGenerator : public BaseGenerator {
         default: FLATBUFFERS_ASSERT(0);
       }
     }
-    if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+    if (field.value.type.base_type == BASE_TYPE_VECTOR ||
+        field.value.type.base_type == BASE_TYPE_ARRAY) {
       GetVectorLen(struct_def, field, code_ptr);
       GetVectorIsNone(struct_def, field, code_ptr);
     }
@@ -824,10 +828,12 @@ class PythonGenerator : public BaseGenerator {
     auto &field_type = *field_type_ptr;
     auto base_type = field.value.type.VectorType().base_type;
     if (base_type == BASE_TYPE_STRUCT) {
-      field_type = TypeName(field) + "T]";
+      field_type = GenTypeGet(field.value.type.VectorType()) + "T]";
       if (parser_.opts.include_dependence_headers) {
-        auto package_reference = GenPackageReference(field.value.type);
-        field_type = package_reference + "." + TypeName(field) + "T]";
+        auto package_reference =
+            GenPackageReference(field.value.type.VectorType());
+        field_type = package_reference + "." +
+                     GenTypeGet(field.value.type.VectorType()) + "T]";
         import_list->insert("import " + package_reference);
       }
       field_type = "List[" + field_type;
@@ -858,7 +864,8 @@ class PythonGenerator : public BaseGenerator {
           GenStructInit(field, &field_type, import_list, &import_typing_list);
           break;
         }
-        case BASE_TYPE_VECTOR: {
+        case BASE_TYPE_VECTOR:
+        case BASE_TYPE_ARRAY: {
           GenVectorInit(field, &field_type, import_list, &import_typing_list);
           break;
         }
@@ -1017,7 +1024,7 @@ class PythonGenerator : public BaseGenerator {
             one_instance + ")";
   }
 
-  void GenUnPackForScalerVector(const StructDef &struct_def,
+  void GenUnPackForScalarVector(const StructDef &struct_def,
                                 const FieldDef &field, std::string *code_ptr) {
     auto &code = *code_ptr;
     auto field_instance_name = MakeLowerCamel(field);
@@ -1070,8 +1077,12 @@ class PythonGenerator : public BaseGenerator {
           if (vectortype.base_type == BASE_TYPE_STRUCT) {
             GenUnPackForStructVector(struct_def, field, &code);
           } else {
-            GenUnPackForScalerVector(struct_def, field, &code);
+            GenUnPackForScalarVector(struct_def, field, &code);
           }
+          break;
+        }
+        case BASE_TYPE_ARRAY: {
+          GenUnPackForScalarVector(struct_def, field, &code);
           break;
         }
         default:
@@ -1342,6 +1353,10 @@ class PythonGenerator : public BaseGenerator {
           } else {
             GenPackForScalarVectorField(struct_def, field, &code_prefix, &code);
           }
+          break;
+        }
+        case BASE_TYPE_ARRAY: {
+          GenPackForScalarVectorField(struct_def, field, &code_prefix, &code);
           break;
         }
         case BASE_TYPE_STRING: {
