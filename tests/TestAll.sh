@@ -2,6 +2,10 @@ echo "************************ Java:"
 
 sh JavaTest.sh
 
+echo "************************ Kotlin:"
+
+sh KotlinTest.sh
+
 echo "************************ Go:"
 
 sh GoTest.sh

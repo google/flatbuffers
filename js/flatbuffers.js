@@ -49,6 +49,12 @@ flatbuffers.SIZEOF_INT = 4;
 flatbuffers.FILE_IDENTIFIER_LENGTH = 4;
 
 /**
+ * @type {number}
+ * @const
+ */
+flatbuffers.SIZE_PREFIX_LENGTH = 4;
+
+/**
  * @enum {number}
  */
 flatbuffers.Encoding = {
@@ -223,6 +229,19 @@ flatbuffers.Builder = function(opt_initial_size) {
    * @type {boolean}
    * @private
    */
+  this.force_defaults = false;
+};
+
+flatbuffers.Builder.prototype.clear = function() {
+  this.bb.clear();
+  this.space = this.bb.capacity();
+  this.minalign = 1;
+  this.vtable = null;
+  this.vtable_in_use = 0;
+  this.isNested = false;
+  this.object_start = 0;
+  this.vtables = [];
+  this.vector_num_elems = 0;
   this.force_defaults = false;
 };
 
@@ -663,12 +682,14 @@ outer_loop:
  *
  * @param {flatbuffers.Offset} root_table
  * @param {string=} opt_file_identifier
+ * @param {boolean=} opt_size_prefix
  */
-flatbuffers.Builder.prototype.finish = function(root_table, opt_file_identifier) {
+flatbuffers.Builder.prototype.finish = function(root_table, opt_file_identifier, opt_size_prefix) {
+  var size_prefix = opt_size_prefix ? flatbuffers.SIZE_PREFIX_LENGTH : 0;
   if (opt_file_identifier) {
     var file_identifier = opt_file_identifier;
     this.prep(this.minalign, flatbuffers.SIZEOF_INT +
-      flatbuffers.FILE_IDENTIFIER_LENGTH);
+      flatbuffers.FILE_IDENTIFIER_LENGTH + size_prefix);
     if (file_identifier.length != flatbuffers.FILE_IDENTIFIER_LENGTH) {
       throw new Error('FlatBuffers: file identifier must be length ' +
         flatbuffers.FILE_IDENTIFIER_LENGTH);
@@ -677,9 +698,22 @@ flatbuffers.Builder.prototype.finish = function(root_table, opt_file_identifier)
       this.writeInt8(file_identifier.charCodeAt(i));
     }
   }
-  this.prep(this.minalign, flatbuffers.SIZEOF_INT);
+  this.prep(this.minalign, flatbuffers.SIZEOF_INT + size_prefix);
   this.addOffset(root_table);
+  if (size_prefix) {
+    this.addInt32(this.bb.capacity() - this.space);
+  }
   this.bb.setPosition(this.space);
+};
+
+/**
+ * Finalize a size prefixed buffer, pointing to the given `root_table`.
+ *
+ * @param {flatbuffers.Offset} root_table
+ * @param {string=} opt_file_identifier
+ */
+flatbuffers.Builder.prototype.finishSizePrefixed = function (root_table, opt_file_identifier) {
+  this.finish(root_table, opt_file_identifier, true);
 };
 
 /// @cond FLATBUFFERS_INTERNAL
@@ -826,6 +860,10 @@ flatbuffers.ByteBuffer = function(bytes) {
  */
 flatbuffers.ByteBuffer.allocate = function(byte_size) {
   return new flatbuffers.ByteBuffer(new Uint8Array(byte_size));
+};
+
+flatbuffers.ByteBuffer.prototype.clear = function() {
+  this.position_ = 0;
 };
 
 /**

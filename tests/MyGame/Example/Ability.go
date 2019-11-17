@@ -6,6 +6,27 @@ import (
 	flatbuffers "github.com/google/flatbuffers/go"
 )
 
+type AbilityT struct {
+	Id uint32
+	Distance uint32
+}
+
+func AbilityPack(builder *flatbuffers.Builder, t *AbilityT) flatbuffers.UOffsetT {
+	if t == nil { return 0 }
+	return CreateAbility(builder, t.Id, t.Distance)
+}
+func (rcv *Ability) UnPackTo(t *AbilityT) {
+	t.Id = rcv.Id()
+	t.Distance = rcv.Distance()
+}
+
+func (rcv *Ability) UnPack() *AbilityT {
+	if rcv == nil { return nil }
+	t := &AbilityT{}
+	rcv.UnPackTo(t)
+	return t
+}
+
 type Ability struct {
 	_tab flatbuffers.Struct
 }

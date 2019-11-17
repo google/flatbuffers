@@ -29,9 +29,7 @@ FlexBuffers is still slower than regular FlatBuffers though, so we recommend to
 only use it if you need it.
 
 
-# Usage
-
-This is for C++, other languages may follow.
+# Usage in C++
 
 Include the header `flexbuffers.h`, which in turn depends on `flatbuffers.h`
 and `util.h`.
@@ -98,10 +96,10 @@ allows a single type, and uses a bit less memory.
 `IndirectFloat` is an interesting feature that allows you to store values
 by offset rather than inline. Though that doesn't make any visible change
 to the user, the consequence is that large values (especially doubles or
-64 bit ints) that occur more than once can be shared. Another use case is
-inside of vectors, where the largest element makes up the size of all elements
-(e.g. a single double forces all elements to 64bit), so storing a lot of small
-integers together with a double is more efficient if the double is indirect.
+64 bit ints) that occur more than once can be shared (see ReuseValue).
+Another use case is inside of vectors, where the largest element makes
+up the size of all elements (e.g. a single double forces all elements to
+64bit), so storing a lot of small integers together with a double is more efficient if the double is indirect.
 
 Accessing it:
 
@@ -119,6 +117,46 @@ vec[2].AsString().c_str();  // "" (This still works though).
 vec[2].ToString().c_str();  // "4" (Or have it converted).
 map["foo"].AsUInt8();  // 100
 map["unknown"].IsNull();  // true
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+# Usage in Java
+
+Java implementation follows the C++ one, closely.
+
+For creating the equivalent of the same JSON `{ vec: [ -100, "Fred", 4.0 ], foo: 100 }`,
+one could use the following code:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.java}
+FlexBuffersBuilder builder = new FlexBuffersBuilder(ByteBuffer.allocate(512),
+		                                                FlexBuffersBuilder.BUILDER_FLAG_SHARE_KEYS_AND_STRINGS);
+int smap = builder.startMap();
+int svec = builder.startVector();
+builder.putInt(-100);
+builder.putString("Fred");
+builder.putFloat(4.0);
+builder.endVector("vec", svec, false, false);
+builder.putInt("foo", 100);
+builder.endMap(null, smap);
+ByteBuffer bb = builder.finish();
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Similarly, to read the data, just:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.java}
+FlexBuffers.Map map = FlexBuffers.getRoot(bb).asMap();
+map.size();  // 2
+FlexBuffers.Vector vec = map.get("vec").asVector();
+vec.size();  // 3
+vec.get(0).asLong();  // -100;
+vec.get(1).asString();  // "Fred";
+vec.get(1).asLong();  // 0 (Number parsing failed).
+vec.get(2).asFloat();  // 4.0
+vec.get(2).asString().isEmpty();  // true (Wrong Type).
+vec.get(2).asString();  // "" (This still works though).
+vec.get(2).toString();  // "4.0" (Or have it converted).
+map.get("foo").asUInt();  // 100
+map.get("unknown").isNull();  // true
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 

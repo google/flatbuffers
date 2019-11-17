@@ -12,9 +12,10 @@ public struct TypeAliases : IFlatbufferObject
 {
   private Table __p;
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
+  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_1_11_1(); }
   public static TypeAliases GetRootAsTypeAliases(ByteBuffer _bb) { return GetRootAsTypeAliases(_bb, new TypeAliases()); }
   public static TypeAliases GetRootAsTypeAliases(ByteBuffer _bb, TypeAliases obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
-  public void __init(int _i, ByteBuffer _bb) { __p.bb_pos = _i; __p.bb = _bb; }
+  public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
   public TypeAliases __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public sbyte I8 { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetSbyte(o + __p.bb_pos) : (sbyte)0; } }
@@ -40,7 +41,7 @@ public struct TypeAliases : IFlatbufferObject
   public sbyte V8(int j) { int o = __p.__offset(24); return o != 0 ? __p.bb.GetSbyte(__p.__vector(o) + j * 1) : (sbyte)0; }
   public int V8Length { get { int o = __p.__offset(24); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetV8Bytes() { return __p.__vector_as_span(24); }
+  public Span<sbyte> GetV8Bytes() { return __p.__vector_as_span<sbyte>(24, 1); }
 #else
   public ArraySegment<byte>? GetV8Bytes() { return __p.__vector_as_arraysegment(24); }
 #endif
@@ -49,14 +50,14 @@ public struct TypeAliases : IFlatbufferObject
   public double Vf64(int j) { int o = __p.__offset(26); return o != 0 ? __p.bb.GetDouble(__p.__vector(o) + j * 8) : (double)0; }
   public int Vf64Length { get { int o = __p.__offset(26); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetVf64Bytes() { return __p.__vector_as_span(26); }
+  public Span<double> GetVf64Bytes() { return __p.__vector_as_span<double>(26, 8); }
 #else
   public ArraySegment<byte>? GetVf64Bytes() { return __p.__vector_as_arraysegment(26); }
 #endif
   public double[] GetVf64Array() { return __p.__vector_as_array<double>(26); }
   public bool MutateVf64(int j, double vf64) { int o = __p.__offset(26); if (o != 0) { __p.bb.PutDouble(__p.__vector(o) + j * 8, vf64); return true; } else { return false; } }
 
-  public static Offset<TypeAliases> CreateTypeAliases(FlatBufferBuilder builder,
+  public static Offset<MyGame.Example.TypeAliases> CreateTypeAliases(FlatBufferBuilder builder,
       sbyte i8 = 0,
       byte u8 = 0,
       short i16 = 0,
@@ -69,7 +70,7 @@ public struct TypeAliases : IFlatbufferObject
       double f64 = 0.0,
       VectorOffset v8Offset = default(VectorOffset),
       VectorOffset vf64Offset = default(VectorOffset)) {
-    builder.StartObject(12);
+    builder.StartTable(12);
     TypeAliases.AddF64(builder, f64);
     TypeAliases.AddU64(builder, u64);
     TypeAliases.AddI64(builder, i64);
@@ -85,7 +86,7 @@ public struct TypeAliases : IFlatbufferObject
     return TypeAliases.EndTypeAliases(builder);
   }
 
-  public static void StartTypeAliases(FlatBufferBuilder builder) { builder.StartObject(12); }
+  public static void StartTypeAliases(FlatBufferBuilder builder) { builder.StartTable(12); }
   public static void AddI8(FlatBufferBuilder builder, sbyte i8) { builder.AddSbyte(0, i8, 0); }
   public static void AddU8(FlatBufferBuilder builder, byte u8) { builder.AddByte(1, u8, 0); }
   public static void AddI16(FlatBufferBuilder builder, short i16) { builder.AddShort(2, i16, 0); }
@@ -104,9 +105,9 @@ public struct TypeAliases : IFlatbufferObject
   public static VectorOffset CreateVf64Vector(FlatBufferBuilder builder, double[] data) { builder.StartVector(8, data.Length, 8); for (int i = data.Length - 1; i >= 0; i--) builder.AddDouble(data[i]); return builder.EndVector(); }
   public static VectorOffset CreateVf64VectorBlock(FlatBufferBuilder builder, double[] data) { builder.StartVector(8, data.Length, 8); builder.Add(data); return builder.EndVector(); }
   public static void StartVf64Vector(FlatBufferBuilder builder, int numElems) { builder.StartVector(8, numElems, 8); }
-  public static Offset<TypeAliases> EndTypeAliases(FlatBufferBuilder builder) {
-    int o = builder.EndObject();
-    return new Offset<TypeAliases>(o);
+  public static Offset<MyGame.Example.TypeAliases> EndTypeAliases(FlatBufferBuilder builder) {
+    int o = builder.EndTable();
+    return new Offset<MyGame.Example.TypeAliases>(o);
   }
 };
 

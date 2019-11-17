@@ -15,6 +15,7 @@
  */
 
 #include <iostream>
+
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
@@ -42,6 +43,7 @@ std::string GenNativeType(BaseType type) {
     case BASE_TYPE_FLOAT:
     case BASE_TYPE_DOUBLE: return "number";
     case BASE_TYPE_STRING: return "string";
+    case BASE_TYPE_ARRAY: return "array";
     default: return "";
   }
 }
@@ -70,6 +72,7 @@ std::string GenType(const Type &type) {
     return GenTypeRef(type.enum_def);
   }
   switch (type.base_type) {
+    case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();  // fall thru
     case BASE_TYPE_VECTOR: {
       std::string typeline;
       typeline.append("\"type\" : \"array\", \"items\" : { ");
@@ -86,7 +89,7 @@ std::string GenType(const Type &type) {
     }
     case BASE_TYPE_UNION: {
       std::string union_type_string("\"anyOf\": [");
-      const auto &union_types = type.enum_def->vals.vec;
+      const auto &union_types = type.enum_def->Vals();
       for (auto ut = union_types.cbegin(); ut < union_types.cend(); ++ut) {
         auto &union_type = *ut;
         if (union_type->union_type.base_type == BASE_TYPE_NONE) { continue; }
@@ -94,7 +97,7 @@ std::string GenType(const Type &type) {
           union_type_string.append(
               "{ " + GenTypeRef(union_type->union_type.struct_def) + " }");
         }
-        if (union_type != *type.enum_def->vals.vec.rbegin()) {
+        if (union_type != *type.enum_def->Vals().rbegin()) {
           union_type_string.append(",");
         }
       }
@@ -119,6 +122,7 @@ class JsonSchemaGenerator : public BaseGenerator {
       : BaseGenerator(base_generator) {}
 
   bool generate() {
+    if (parser_.root_struct_def_ == nullptr) { return false; }
     code_.Clear();
     code_ += "{";
     code_ += "  \"$schema\": \"http://json-schema.org/draft-04/schema#\",";
@@ -128,10 +132,10 @@ class JsonSchemaGenerator : public BaseGenerator {
       code_ += "    \"" + GenFullName(*e) + "\" : {";
       code_ += "      " + GenType("string") + ",";
       std::string enumdef("      \"enum\": [");
-      for (auto enum_value = (*e)->vals.vec.begin();
-           enum_value != (*e)->vals.vec.end(); ++enum_value) {
+      for (auto enum_value = (*e)->Vals().begin();
+           enum_value != (*e)->Vals().end(); ++enum_value) {
         enumdef.append("\"" + (*enum_value)->name + "\"");
-        if (*enum_value != (*e)->vals.vec.back()) { enumdef.append(", "); }
+        if (*enum_value != (*e)->Vals().back()) { enumdef.append(", "); }
       }
       enumdef.append("]");
       code_ += enumdef;
@@ -156,8 +160,16 @@ class JsonSchemaGenerator : public BaseGenerator {
       const auto &properties = structure->fields.vec;
       for (auto prop = properties.cbegin(); prop != properties.cend(); ++prop) {
         const auto &property = *prop;
-        std::string typeLine("        \"" + property->name + "\" : { " +
-                             GenType(property->value.type) + " }");
+        std::string arrayInfo = "";
+        if (IsArray(property->value.type)) {
+          arrayInfo = ",\n                \"minItems\": " +
+                      NumToString(property->value.type.fixed_length) +
+                      ",\n                \"maxItems\": " +
+                      NumToString(property->value.type.fixed_length);
+        }
+        std::string typeLine =
+            "        \"" + property->name + "\" : {\n" + "                " +
+            GenType(property->value.type) + arrayInfo + "\n              }";
         if (property != properties.back()) { typeLine.append(","); }
         code_ += typeLine;
       }

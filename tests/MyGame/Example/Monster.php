@@ -107,12 +107,12 @@ class Monster extends Table
     }
 
     /**
-     * @return sbyte
+     * @return byte
      */
     public function getColor()
     {
         $o = $this->__offset(16);
-        return $o != 0 ? $this->bb->getSbyte($o + $this->bb_pos) : \MyGame\Example\Color::Blue;
+        return $o != 0 ? $this->bb->getByte($o + $this->bb_pos) : \MyGame\Example\Color::Blue;
     }
 
     /**
@@ -171,8 +171,8 @@ class Monster extends Table
         return $o != 0 ? $this->__vector_len($o) : 0;
     }
 
-/// an example documentation comment: this will end up in the generated code
-/// multiline too
+    /// an example documentation comment: this will end up in the generated code
+    /// multiline too
     /**
      * @returnVectorOffset
      */
@@ -649,12 +649,12 @@ class Monster extends Table
 
     /**
      * @param int offset
-     * @return sbyte
+     * @return byte
      */
     public function getVectorOfEnums($j)
     {
         $o = $this->__offset(98);
-        return $o != 0 ? $this->bb->getSbyte($this->__vector($o) + $j * 1) : 0;
+        return $o != 0 ? $this->bb->getByte($this->__vector($o) + $j * 1) : 0;
     }
 
     /**
@@ -667,21 +667,38 @@ class Monster extends Table
     }
 
     /**
+     * @return string
+     */
+    public function getVectorOfEnumsBytes()
+    {
+        return $this->__vector_as_bytes(98);
+    }
+
+    /**
+     * @return sbyte
+     */
+    public function getSignedEnum()
+    {
+        $o = $this->__offset(100);
+        return $o != 0 ? $this->bb->getSbyte($o + $this->bb_pos) : \MyGame\Example\Race::None;
+    }
+
+    /**
      * @param FlatBufferBuilder $builder
      * @return void
      */
     public static function startMonster(FlatBufferBuilder $builder)
     {
-        $builder->StartObject(48);
+        $builder->StartObject(49);
     }
 
     /**
      * @param FlatBufferBuilder $builder
      * @return Monster
      */
-    public static function createMonster(FlatBufferBuilder $builder, $pos, $mana, $hp, $name, $inventory, $color, $test_type, $test, $test4, $testarrayofstring, $testarrayoftables, $enemy, $testnestedflatbuffer, $testempty, $testbool, $testhashs32_fnv1, $testhashu32_fnv1, $testhashs64_fnv1, $testhashu64_fnv1, $testhashs32_fnv1a, $testhashu32_fnv1a, $testhashs64_fnv1a, $testhashu64_fnv1a, $testarrayofbools, $testf, $testf2, $testf3, $testarrayofstring2, $testarrayofsortedstruct, $flex, $test5, $vector_of_longs, $vector_of_doubles, $parent_namespace_test, $vector_of_referrables, $single_weak_reference, $vector_of_weak_references, $vector_of_strong_referrables, $co_owning_reference, $vector_of_co_owning_references, $non_owning_reference, $vector_of_non_owning_references, $any_unique_type, $any_unique, $any_ambiguous_type, $any_ambiguous, $vector_of_enums)
+    public static function createMonster(FlatBufferBuilder $builder, $pos, $mana, $hp, $name, $inventory, $color, $test_type, $test, $test4, $testarrayofstring, $testarrayoftables, $enemy, $testnestedflatbuffer, $testempty, $testbool, $testhashs32_fnv1, $testhashu32_fnv1, $testhashs64_fnv1, $testhashu64_fnv1, $testhashs32_fnv1a, $testhashu32_fnv1a, $testhashs64_fnv1a, $testhashu64_fnv1a, $testarrayofbools, $testf, $testf2, $testf3, $testarrayofstring2, $testarrayofsortedstruct, $flex, $test5, $vector_of_longs, $vector_of_doubles, $parent_namespace_test, $vector_of_referrables, $single_weak_reference, $vector_of_weak_references, $vector_of_strong_referrables, $co_owning_reference, $vector_of_co_owning_references, $non_owning_reference, $vector_of_non_owning_references, $any_unique_type, $any_unique, $any_ambiguous_type, $any_ambiguous, $vector_of_enums, $signed_enum)
     {
-        $builder->startObject(48);
+        $builder->startObject(49);
         self::addPos($builder, $pos);
         self::addMana($builder, $mana);
         self::addHp($builder, $hp);
@@ -729,6 +746,7 @@ class Monster extends Table
         self::addAnyAmbiguousType($builder, $any_ambiguous_type);
         self::addAnyAmbiguous($builder, $any_ambiguous);
         self::addVectorOfEnums($builder, $vector_of_enums);
+        self::addSignedEnum($builder, $signed_enum);
         $o = $builder->endObject();
         $builder->required($o, 10);  // name
         return $o;
@@ -810,12 +828,12 @@ class Monster extends Table
 
     /**
      * @param FlatBufferBuilder $builder
-     * @param sbyte
+     * @param byte
      * @return void
      */
     public static function addColor(FlatBufferBuilder $builder, $color)
     {
-        $builder->addSbyteX(6, $color, 8);
+        $builder->addByteX(6, $color, 8);
     }
 
     /**
@@ -1606,7 +1624,7 @@ class Monster extends Table
     {
         $builder->startVector(1, count($data), 1);
         for ($i = count($data) - 1; $i >= 0; $i--) {
-            $builder->putSbyte($data[$i]);
+            $builder->putByte($data[$i]);
         }
         return $builder->endVector();
     }
@@ -1619,6 +1637,16 @@ class Monster extends Table
     public static function startVectorOfEnumsVector(FlatBufferBuilder $builder, $numElems)
     {
         $builder->startVector(1, $numElems, 1);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param sbyte
+     * @return void
+     */
+    public static function addSignedEnum(FlatBufferBuilder $builder, $signedEnum)
+    {
+        $builder->addSbyteX(48, $signedEnum, -1);
     }
 
     /**

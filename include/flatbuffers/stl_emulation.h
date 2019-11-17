@@ -139,7 +139,11 @@ inline void vector_emplace_back(std::vector<T> *vector, V &&data) {
     template <typename T> using is_floating_point = std::is_floating_point<T>;
     template <typename T> using is_unsigned = std::is_unsigned<T>;
     template <typename T> using make_unsigned = std::make_unsigned<T>;
-  #else
+    template<bool B, class T, class F>
+    using conditional = std::conditional<B, T, F>;
+    template<class T, T v>
+    using integral_constant = std::integral_constant<T, v>;
+#else
     // Map C++ TR1 templates defined by stlport.
     template <typename T> using is_scalar = std::tr1::is_scalar<T>;
     template <typename T, typename U> using is_same = std::tr1::is_same<T,U>;
@@ -148,12 +152,20 @@ inline void vector_emplace_back(std::vector<T> *vector, V &&data) {
     template <typename T> using is_unsigned = std::tr1::is_unsigned<T>;
     // Android NDK doesn't have std::make_unsigned or std::tr1::make_unsigned.
     template<typename T> struct make_unsigned {
-      static_assert(is_unsigned<T>::value, "Specialization not impelented!");
+      static_assert(is_unsigned<T>::value, "Specialization not implemented!");
       using type = T;
     };
     template<> struct make_unsigned<char> { using type = unsigned char; };
-    template<> struct make_unsigned<int>  { using type = unsigned int;  };
-  #endif  // !FLATBUFFERS_CPP98_STL
+    template<> struct make_unsigned<short> { using type = unsigned short; };
+    template<> struct make_unsigned<int> { using type = unsigned int; };
+    template<> struct make_unsigned<long> { using type = unsigned long; };
+    template<>
+    struct make_unsigned<long long> { using type = unsigned long long; };
+    template<bool B, class T, class F>
+    using conditional = std::tr1::conditional<B, T, F>;
+    template<class T, T v>
+    using integral_constant = std::tr1::integral_constant<T, v>;
+#endif  // !FLATBUFFERS_CPP98_STL
 #else
   // MSVC 2010 doesn't support C++11 aliases.
   template <typename T> struct is_scalar : public std::is_scalar<T> {};
@@ -162,6 +174,10 @@ inline void vector_emplace_back(std::vector<T> *vector, V &&data) {
         public std::is_floating_point<T> {};
   template <typename T> struct is_unsigned : public std::is_unsigned<T> {};
   template <typename T> struct make_unsigned : public std::make_unsigned<T> {};
+  template<bool B, class T, class F>
+  struct conditional : public std::conditional<B, T, F> {};
+  template<class T, T v>
+  struct integral_constant : public std::integral_constant<T, v> {};
 #endif  // defined(FLATBUFFERS_TEMPLATES_ALIASES)
 
 #ifndef FLATBUFFERS_CPP98_STL

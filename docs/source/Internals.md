@@ -15,6 +15,12 @@ all commonly used CPUs today. FlatBuffers will also work on big-endian
 machines, but will be slightly slower because of additional
 byte-swap intrinsics.
 
+It is assumed that the following conditions are met, to ensure
+cross-platform interoperability:
+- The binary `IEEE-754` format is used for floating-point numbers.
+- The `two's complemented` representation is used for signed integers.
+- The endianness is the same for floating-point numbers as for integers.
+
 On purpose, the format leaves a lot of details about where exactly
 things live in memory undefined, e.g. fields in a table can have any
 order, and objects to some extent can be stored in many orders. This is

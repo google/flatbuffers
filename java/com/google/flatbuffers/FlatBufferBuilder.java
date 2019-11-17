@@ -65,22 +65,23 @@ public class FlatBufferBuilder {
      * @param initial_size The initial size of the internal buffer to use.
      * @param bb_factory The factory to be used for allocating the internal buffer
      * @param existing_bb The byte buffer to reuse.
+     * @param utf8 The Utf8 codec
      */
     public FlatBufferBuilder(int initial_size, ByteBufferFactory bb_factory,
                              ByteBuffer existing_bb, Utf8 utf8) {
         if (initial_size <= 0) {
           initial_size = 1;
         }
-        space = initial_size;
         this.bb_factory = bb_factory;
         if (existing_bb != null) {
           bb = existing_bb;
           bb.clear();
+          bb.order(ByteOrder.LITTLE_ENDIAN);
         } else {
           bb = bb_factory.newByteBuffer(initial_size);
         }
-        bb.order(ByteOrder.LITTLE_ENDIAN);
         this.utf8 = utf8;
+        space = bb.capacity();
     }
 
    /**
@@ -89,7 +90,7 @@ public class FlatBufferBuilder {
     * @param initial_size The initial size of the internal buffer to use.
     */
     public FlatBufferBuilder(int initial_size) {
-        this(initial_size, new HeapByteBufferFactory(), null, Utf8.getDefault());
+        this(initial_size, HeapByteBufferFactory.INSTANCE, null, Utf8.getDefault());
     }
 
     /**
@@ -159,14 +160,15 @@ public class FlatBufferBuilder {
      * preserve the default behavior in the event that the user does not provide
      * their own implementation of this interface.
      */
-    public interface ByteBufferFactory {
+    public static abstract class ByteBufferFactory {
         /**
          * Create a `ByteBuffer` with a given capacity.
+         * The returned ByteBuf must have a ByteOrder.LITTLE_ENDIAN ByteOrder.
          *
          * @param capacity The size of the `ByteBuffer` to allocate.
          * @return Returns the new `ByteBuffer` that was allocated.
          */
-        ByteBuffer newByteBuffer(int capacity);
+        public abstract ByteBuffer newByteBuffer(int capacity);
 
         /**
          * Release a ByteBuffer. Current {@link FlatBufferBuilder}
@@ -177,7 +179,7 @@ public class FlatBufferBuilder {
          *
          * @param bb the buffer to release
          */
-        default void releaseByteBuffer(ByteBuffer bb) {
+        public void releaseByteBuffer(ByteBuffer bb) {
         }
     }
 
@@ -187,12 +189,26 @@ public class FlatBufferBuilder {
      *
      * Allocate memory for a new byte-array backed `ByteBuffer` array inside the JVM.
      */
-    public static final class HeapByteBufferFactory implements ByteBufferFactory {
+    public static final class HeapByteBufferFactory extends ByteBufferFactory {
+
+        public static final HeapByteBufferFactory INSTANCE = new HeapByteBufferFactory();
+
         @Override
         public ByteBuffer newByteBuffer(int capacity) {
             return ByteBuffer.allocate(capacity).order(ByteOrder.LITTLE_ENDIAN);
         }
     }
+
+   /**
+   * Helper function to test if a field is present in the table
+   *
+   * @param table Flatbuffer table
+   * @param offset virtual table offset
+   * @return true if the filed is present
+   */
+   public static boolean isFieldPresent(Table table, int offset) {
+     return table.__offset(offset) != 0;
+   }
 
     /**
      * Reset the FlatBufferBuilder by purging all data that it holds.
@@ -226,6 +242,7 @@ public class FlatBufferBuilder {
         int new_buf_size = old_buf_size == 0 ? 1 : old_buf_size << 1;
         bb.position(0);
         ByteBuffer nbb = bb_factory.newByteBuffer(new_buf_size);
+        new_buf_size = nbb.clear().capacity(); // Ensure the returned buffer is treated as empty
         nbb.position(new_buf_size - old_buf_size);
         nbb.put(bb);
         return nbb;
@@ -555,6 +572,38 @@ public class FlatBufferBuilder {
         return endVector();
     }
 
+    /**
+     * Create a byte array in the buffer.
+     *
+     * @param arr a source array with data.
+     * @param offset the offset in the source array to start copying from.
+     * @param length the number of bytes to copy from the source array.
+     * @return The offset in the buffer where the encoded array starts.
+     */
+    public int createByteVector(byte[] arr, int offset, int length) {
+        startVector(1, length, 1);
+        bb.position(space -= length);
+        bb.put(arr, offset, length);
+        return endVector();
+    }
+
+    /**
+     * Create a byte array in the buffer.
+     *
+     * The source {@link ByteBuffer} position is advanced by {@link ByteBuffer#remaining()} places
+     * after this call.
+     *
+     * @param byteBuffer A source {@link ByteBuffer} with data.
+     * @return The offset in the buffer where the encoded array starts.
+     */
+    public int createByteVector(ByteBuffer byteBuffer) {
+        int length = byteBuffer.remaining();
+        startVector(1, length, 1);
+        bb.position(space -= length);
+        bb.put(byteBuffer);
+        return endVector();
+    }
+
    /// @cond FLATBUFFERS_INTERNAL
    /**
     * Should not be accessing the final buffer before it is finished.
@@ -627,7 +676,7 @@ public class FlatBufferBuilder {
     *
     * @param numfields The number of fields found in this object.
     */
-    public void startObject(int numfields) {
+    public void startTable(int numfields) {
         notNested();
         if (vtable == null || vtable.length < numfields) vtable = new int[numfields];
         vtable_in_use = numfields;
@@ -752,11 +801,11 @@ public class FlatBufferBuilder {
     * Finish off writing the object that is under construction.
     *
     * @return The offset to the object inside {@link #dataBuffer()}.
-    * @see #startObject(int)
+    * @see #startTable(int)
     */
-    public int endObject() {
+    public int endTable() {
         if (vtable == null || !nested)
-            throw new AssertionError("FlatBuffers: endObject called without startObject");
+            throw new AssertionError("FlatBuffers: endTable called without startTable");
         addInt(0);
         int vtableloc = offset();
         // Write out the current vtable.

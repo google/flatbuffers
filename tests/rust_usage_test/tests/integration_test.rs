@@ -19,6 +19,7 @@ extern crate quickcheck;
 
 extern crate flatbuffers;
 
+#[allow(dead_code, unused_imports)]
 #[path = "../../monster_test_generated.rs"]
 mod monster_test_generated;
 pub use monster_test_generated::my_game;
@@ -183,6 +184,7 @@ fn serialized_example_is_accessible_and_correct(bytes: &[u8], identifier_require
     let inv = m.inventory().unwrap();
     check_eq!(inv.len(), 5)?;
     check_eq!(inv.iter().sum::<u8>(), 10u8)?;
+    check_eq!(inv.iter().rev().sum::<u8>(), 10u8)?;
 
     check_is_some!(m.test4())?;
     let test4 = m.test4().unwrap();
@@ -508,6 +510,18 @@ mod roundtrip_generated_code {
         assert_eq!(m.testarrayofstring().unwrap().len(), 2);
         assert_eq!(m.testarrayofstring().unwrap().get(0), "foobar");
         assert_eq!(m.testarrayofstring().unwrap().get(1), "baz");
+
+        let rust_vec_inst = m.testarrayofstring().unwrap();
+        let rust_vec_iter_collect = rust_vec_inst.iter().collect::<Vec<_>>();
+        assert_eq!(rust_vec_iter_collect.len(), 2);
+        assert_eq!(rust_vec_iter_collect[0], "foobar");
+        assert_eq!(rust_vec_iter_collect[1], "baz");
+
+        let rust_vec_iter_rev_collect = rust_vec_inst.iter().rev().collect::<Vec<_>>();
+        assert_eq!(rust_vec_iter_rev_collect.len(), 2);
+        assert_eq!(rust_vec_iter_rev_collect[1], "foobar");
+        assert_eq!(rust_vec_iter_rev_collect[0], "baz");
+
     }
     #[test]
     fn vector_of_string_store_manual_build() {
@@ -522,6 +536,17 @@ mod roundtrip_generated_code {
         assert_eq!(m.testarrayofstring().unwrap().len(), 2);
         assert_eq!(m.testarrayofstring().unwrap().get(0), "foobar");
         assert_eq!(m.testarrayofstring().unwrap().get(1), "baz");
+
+        let rust_vec_inst = m.testarrayofstring().unwrap();
+        let rust_vec_iter_collect = rust_vec_inst.iter().collect::<Vec<_>>();
+        assert_eq!(rust_vec_iter_collect.len(), 2);
+        assert_eq!(rust_vec_iter_collect[0], "foobar");
+        assert_eq!(rust_vec_iter_collect[1], "baz");
+
+        let rust_vec_iter_rev_collect = rust_vec_inst.iter().rev().collect::<Vec<_>>();
+        assert_eq!(rust_vec_iter_rev_collect.len(), 2);
+        assert_eq!(rust_vec_iter_rev_collect[0], "baz");
+        assert_eq!(rust_vec_iter_rev_collect[1], "foobar");
     }
     #[test]
     fn vector_of_ubyte_store() {
@@ -542,6 +567,13 @@ mod roundtrip_generated_code {
             name: Some(name),
             testarrayofbools: Some(v), ..Default::default()});
         assert_eq!(m.testarrayofbools().unwrap(), &[false, true, false, true][..]);
+
+        let rust_vec_inst = m.testarrayofbools().unwrap();
+        let rust_vec_iter_collect = rust_vec_inst.iter().collect::<Vec<_>>();
+        assert_eq!(rust_vec_iter_collect, &[&false, &true, &false, &true][..]);
+
+        let rust_vec_iter_rev_collect = rust_vec_inst.iter().rev().collect::<Vec<_>>();
+        assert_eq!(rust_vec_iter_rev_collect, &[&true, &false, &true, &false][..]);
     }
     #[test]
     fn vector_of_f64_store() {
@@ -553,6 +585,15 @@ mod roundtrip_generated_code {
             vector_of_doubles: Some(v), ..Default::default()});
         assert_eq!(m.vector_of_doubles().unwrap().len(), 1);
         assert_eq!(m.vector_of_doubles().unwrap().get(0), 3.14159265359f64);
+
+        let rust_vec_inst = m.vector_of_doubles().unwrap();
+        let rust_vec_iter_collect = rust_vec_inst.iter().collect::<Vec<_>>();
+        assert_eq!(rust_vec_iter_collect.len(), 1);
+        assert_eq!(rust_vec_iter_collect[0], 3.14159265359f64);
+
+        let rust_vec_iter_rev_collect = rust_vec_inst.iter().rev().collect::<Vec<_>>();
+        assert_eq!(rust_vec_iter_rev_collect.len(), 1);
+        assert_eq!(rust_vec_iter_rev_collect[0], 3.14159265359f64);
     }
     #[test]
     fn vector_of_struct_store() {
@@ -563,6 +604,13 @@ mod roundtrip_generated_code {
             name: Some(name),
             test4: Some(v), ..Default::default()});
         assert_eq!(m.test4().unwrap(), &[my_game::example::Test::new(127, -128), my_game::example::Test::new(3, 123)][..]);
+
+        let rust_vec_inst = m.test4().unwrap();
+        let rust_vec_iter_collect = rust_vec_inst.iter().collect::<Vec<_>>();
+        assert_eq!(rust_vec_iter_collect, &[&my_game::example::Test::new(127, -128), &my_game::example::Test::new(3, 123)][..]);
+
+        let rust_vec_iter_rev_collect = rust_vec_inst.iter().rev().collect::<Vec<_>>();
+        assert_eq!(rust_vec_iter_rev_collect, &[&my_game::example::Test::new(3, 123), &my_game::example::Test::new(127, -128)][..]);
     }
     #[test]
     fn vector_of_struct_store_with_type_inference() {
@@ -612,6 +660,21 @@ mod roundtrip_generated_code {
         assert_eq!(m.testarrayoftables().unwrap().get(0).name(), "foo");
         assert_eq!(m.testarrayoftables().unwrap().get(1).hp(), 100);
         assert_eq!(m.testarrayoftables().unwrap().get(1).name(), "bar");
+
+        let rust_vec_inst = m.testarrayoftables().unwrap();
+        let rust_vec_iter_collect = rust_vec_inst.iter().collect::<Vec<_>>();
+        assert_eq!(rust_vec_iter_collect.len(), 2);
+        assert_eq!(rust_vec_iter_collect[0].hp(), 55);
+        assert_eq!(rust_vec_iter_collect[0].name(), "foo");
+        assert_eq!(rust_vec_iter_collect[1].hp(), 100);
+        assert_eq!(rust_vec_iter_collect[1].name(), "bar");
+
+        let rust_vec_iter_rev_collect = rust_vec_inst.iter().rev().collect::<Vec<_>>();
+        assert_eq!(rust_vec_iter_rev_collect.len(), 2);
+        assert_eq!(rust_vec_iter_rev_collect[0].hp(), 100);
+        assert_eq!(rust_vec_iter_rev_collect[0].name(), "bar");
+        assert_eq!(rust_vec_iter_rev_collect[1].hp(), 55);
+        assert_eq!(rust_vec_iter_rev_collect[1].name(), "foo");
     }
 }
 
@@ -656,8 +719,8 @@ mod generated_code_alignment_and_padding {
     }
 
     #[test]
-    fn struct_vec3_is_aligned_to_16() {
-        assert_eq!(16, ::std::mem::align_of::<my_game::example::Vec3>());
+    fn struct_vec3_is_aligned_to_8() {
+        assert_eq!(8, ::std::mem::align_of::<my_game::example::Vec3>());
     }
 
     #[test]
@@ -715,6 +778,12 @@ mod generated_code_alignment_and_padding {
 
         let start_ptr = buf.as_ptr() as usize;
         for a in abilities.iter() {
+            let a_ptr = a as *const my_game::example::Ability as usize;
+            assert!(a_ptr > start_ptr);
+            let aln = ::std::mem::align_of::<my_game::example::Ability>();
+            assert_eq!((a_ptr - start_ptr) % aln, 0);
+        }
+        for a in abilities.iter().rev() {
             let a_ptr = a as *const my_game::example::Ability as usize;
             assert!(a_ptr > start_ptr);
             let aln = ::std::mem::align_of::<my_game::example::Ability>();
@@ -780,7 +849,13 @@ mod roundtrip_vectors {
 
         const N: u64 = 20;
 
-        fn prop<T: PartialEq + ::std::fmt::Debug + Copy + flatbuffers::EndianScalar + flatbuffers::Push>(xs: Vec<T>) {
+        fn prop<T>(xs: Vec<T>)
+        where
+            T: for<'a> flatbuffers::Follow<'a, Inner = T>
+                + flatbuffers::EndianScalar
+                + flatbuffers::Push
+                + ::std::fmt::Debug,
+        {
             use flatbuffers::Follow;
 
             let mut b = flatbuffers::FlatBufferBuilder::new();
@@ -793,8 +868,19 @@ mod roundtrip_vectors {
 
             let buf = b.finished_data();
 
-            let got = <flatbuffers::ForwardsUOffset<&[T]>>::follow(buf, 0);
-            assert_eq!(got, &xs[..]);
+            let got = <flatbuffers::ForwardsUOffset<flatbuffers::Vector<T>>>::follow(&buf[..], 0);
+            let mut result_vec: Vec<T> = Vec::with_capacity(got.len());
+            for i in 0..got.len() {
+                result_vec.push(got.get(i));
+            }
+            assert_eq!(result_vec, xs);
+
+            let rust_vec_iter = got.iter().collect::<Vec<T>>();
+            assert_eq!(rust_vec_iter, xs);
+
+            let mut rust_vec_rev_iter = got.iter().rev().collect::<Vec<T>>();
+            rust_vec_rev_iter.reverse();
+            assert_eq!(rust_vec_rev_iter, xs);
         }
 
         #[test]
@@ -1139,8 +1225,10 @@ mod roundtrip_table {
             let tab = <flatbuffers::ForwardsUOffset<flatbuffers::Table>>::follow(buf, 0);
 
             for i in 0..xs.len() {
-                let v = tab.get::<flatbuffers::ForwardsUOffset<&[u8]>>(fi2fo(i as flatbuffers::VOffsetT), None);
-                assert_eq!(v, Some(&xs[i][..]));
+                let v = tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<u8>>>(fi2fo(i as flatbuffers::VOffsetT), None);
+                assert!(v.is_some());
+                let v2 = v.unwrap().safe_slice();
+                assert_eq!(v2, &xs[i][..]);
             }
         }
         prop(vec![vec![1,2,3]]);
@@ -1187,7 +1275,13 @@ mod roundtrip_table {
 
         const N: u64 = 20;
 
-        fn prop<'a, T: flatbuffers::Follow<'a> + 'a + flatbuffers::EndianScalar + flatbuffers::Push + ::std::fmt::Debug>(vecs: Vec<Vec<T>>) {
+        fn prop<T>(vecs: Vec<Vec<T>>)
+        where
+            T: for<'a> flatbuffers::Follow<'a, Inner = T>
+                + flatbuffers::EndianScalar
+                + flatbuffers::Push
+                + ::std::fmt::Debug,
+        {
             use flatbuffers::field_index_to_field_offset as fi2fo;
             use flatbuffers::Follow;
 
@@ -1218,10 +1312,14 @@ mod roundtrip_table {
             let tab = <flatbuffers::ForwardsUOffset<flatbuffers::Table>>::follow(buf, 0);
 
             for i in 0..vecs.len() {
-                let got = tab.get::<flatbuffers::ForwardsUOffset<&[T]>>(fi2fo(i as flatbuffers::VOffsetT), None);
+                let got = tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<T>>>(fi2fo(i as flatbuffers::VOffsetT), None);
                 assert!(got.is_some());
                 let got2 = got.unwrap();
-                assert_eq!(&vecs[i][..], got2);
+                let mut got3: Vec<T> = Vec::with_capacity(got2.len());
+                for i in 0..got2.len() {
+                    got3.push(got2.get(i));
+                }
+                assert_eq!(vecs[i], got3);
             }
         }
 
@@ -1631,6 +1729,43 @@ mod follow_impls {
     use flatbuffers::Follow;
     use flatbuffers::field_index_to_field_offset as fi2fo;
 
+    // Define a test struct to use in a few tests. This replicates the work that the code generator
+    // would normally do when defining a FlatBuffer struct. For reference, compare the following
+    // `FooStruct` code with the code generated for the `Vec3` struct in
+    // `../../monster_test_generated.rs`.
+    use flatbuffers::EndianScalar;
+    #[derive(Copy, Clone, Debug, PartialEq)]
+    #[repr(C, packed)]
+    struct FooStruct {
+        a: i8,
+        b: u8,
+        c: i16,
+    }
+    impl FooStruct {
+        fn new(_a: i8, _b: u8, _c: i16) -> Self {
+            FooStruct {
+                a: _a.to_little_endian(),
+                b: _b.to_little_endian(),
+                c: _c.to_little_endian(),
+            }
+        }
+    }
+    impl flatbuffers::SafeSliceAccess for FooStruct {}
+    impl<'a> flatbuffers::Follow<'a> for FooStruct {
+        type Inner = &'a FooStruct;
+        #[inline(always)]
+        fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+            <&'a FooStruct>::follow(buf, loc)
+        }
+    }
+    impl<'a> flatbuffers::Follow<'a> for &'a FooStruct {
+        type Inner = &'a FooStruct;
+        #[inline(always)]
+        fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+            flatbuffers::follow_cast_ref::<FooStruct>(buf, loc)
+        }
+    }
+
     #[test]
     fn to_u8() {
         let vec: Vec<u8> = vec![255, 3];
@@ -1662,8 +1797,8 @@ mod follow_impls {
     #[test]
     fn to_byte_slice() {
         let vec: Vec<u8> = vec![255, 255, 255, 255, 4, 0, 0, 0, 1, 2, 3, 4];
-        let off: flatbuffers::FollowStart<&[u8]> = flatbuffers::FollowStart::new();
-        assert_eq!(off.self_follow(&vec[..], 4), &[1, 2, 3, 4][..]);
+        let off: flatbuffers::FollowStart<flatbuffers::Vector<u8>> = flatbuffers::FollowStart::new();
+        assert_eq!(off.self_follow(&vec[..], 4).safe_slice(), &[1, 2, 3, 4][..]);
     }
 
     #[test]
@@ -1676,8 +1811,8 @@ mod follow_impls {
     #[test]
     fn to_byte_string_zero_teriminated() {
         let vec: Vec<u8> = vec![255, 255, 255, 255, 3, 0, 0, 0, 1, 2, 3, 0];
-        let off: flatbuffers::FollowStart<&[u8]> = flatbuffers::FollowStart::new();
-        assert_eq!(off.self_follow(&vec[..], 4), &[1, 2, 3][..]);
+        let off: flatbuffers::FollowStart<flatbuffers::Vector<u8>> = flatbuffers::FollowStart::new();
+        assert_eq!(off.self_follow(&vec[..], 4).safe_slice(), &[1, 2, 3][..]);
     }
 
     #[cfg(target_endian = "little")]
@@ -1699,24 +1834,9 @@ mod follow_impls {
 
     #[test]
     fn to_struct() {
-        #[derive(Copy, Clone, Debug, PartialEq)]
-        #[repr(C, packed)]
-        struct FooStruct {
-            a: i8,
-            b: u8,
-            c: i16,
-        }
-        impl<'a> flatbuffers::Follow<'a> for &'a FooStruct {
-            type Inner = &'a FooStruct;
-            #[inline(always)]
-            fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-                flatbuffers::follow_cast_ref::<FooStruct>(buf, loc)
-            }
-        }
-
         let vec: Vec<u8> = vec![255, 255, 255, 255, 1, 2, 3, 4];
         let off: flatbuffers::FollowStart<&FooStruct> = flatbuffers::FollowStart::new();
-        assert_eq!(*off.self_follow(&vec[..], 4), FooStruct{a: 1, b: 2, c: 1027});
+        assert_eq!(*off.self_follow(&vec[..], 4), FooStruct::new(1, 2, 1027));
     }
 
     #[test]
@@ -1729,48 +1849,17 @@ mod follow_impls {
 
     #[test]
     fn to_slice_of_struct_elements() {
-        #[derive(Copy, Clone, Debug, PartialEq)]
-        #[repr(C, packed)]
-        struct FooStruct {
-            a: i8,
-            b: u8,
-            c: i16,
-        }
-        impl flatbuffers::SafeSliceAccess for FooStruct {}
-        impl<'a> flatbuffers::Follow<'a> for FooStruct {
-            type Inner = &'a FooStruct;
-            #[inline(always)]
-            fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-                flatbuffers::follow_cast_ref::<FooStruct>(buf, loc)
-            }
-        }
-
         let buf: Vec<u8> = vec![1, 0, 0, 0, /* struct data */ 1, 2, 3, 4];
         let fs: flatbuffers::FollowStart<flatbuffers::Vector<FooStruct>> = flatbuffers::FollowStart::new();
-        assert_eq!(fs.self_follow(&buf[..], 0).safe_slice(), &vec![FooStruct{a: 1, b: 2, c: 1027}][..]);
+        assert_eq!(fs.self_follow(&buf[..], 0).safe_slice(), &vec![FooStruct::new(1, 2, 1027)][..]);
     }
 
     #[test]
     fn to_vector_of_struct_elements() {
-        #[derive(Copy, Clone, Debug, PartialEq)]
-        #[repr(C, packed)]
-        struct FooStruct {
-            a: i8,
-            b: u8,
-            c: i16,
-        }
-        impl<'a> flatbuffers::Follow<'a> for FooStruct {
-            type Inner = &'a FooStruct;
-            #[inline(always)]
-            fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-                flatbuffers::follow_cast_ref::<FooStruct>(buf, loc)
-            }
-        }
-
         let buf: Vec<u8> = vec![1, 0, 0, 0, /* struct data */ 1, 2, 3, 4];
         let fs: flatbuffers::FollowStart<flatbuffers::Vector<FooStruct>> = flatbuffers::FollowStart::new();
         assert_eq!(fs.self_follow(&buf[..], 0).len(), 1);
-        assert_eq!(fs.self_follow(&buf[..], 0).get(0), &FooStruct{a: 1, b: 2, c: 1027});
+        assert_eq!(fs.self_follow(&buf[..], 0).get(0), &FooStruct::new(1, 2, 1027));
     }
 
     #[test]
@@ -1858,7 +1947,8 @@ mod follow_impls {
         ];
         let tab = <flatbuffers::ForwardsUOffset<flatbuffers::Table>>::follow(&buf[..], 0);
         assert_eq!(tab.get::<flatbuffers::ForwardsUOffset<&str>>(fi2fo(0), None), Some("moo"));
-        assert_eq!(tab.get::<flatbuffers::ForwardsUOffset<&[u8]>>(fi2fo(0), None), Some(&vec![109, 111, 111][..]));
+        let byte_vec = tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<u8>>>(fi2fo(0), None).unwrap().safe_slice();
+        assert_eq!(byte_vec, &vec![109, 111, 111][..]);
         let v = tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<u8>>>(fi2fo(0), None).unwrap();
         assert_eq!(v.len(), 3);
         assert_eq!(v.get(0), 109);
@@ -1879,7 +1969,10 @@ mod follow_impls {
         ];
         let tab = <flatbuffers::ForwardsUOffset<flatbuffers::Table>>::follow(&buf[..], 0);
         assert_eq!(tab.get::<flatbuffers::ForwardsUOffset<&str>>(fi2fo(0), Some("abc")), Some("abc"));
-        assert_eq!(tab.get::<flatbuffers::ForwardsUOffset<&[u8]>>(fi2fo(0), Some(&vec![70, 71, 72][..])), Some(&vec![70, 71, 72][..]));
+        #[cfg(target_endian = "little")]
+        {
+            assert_eq!(tab.get::<flatbuffers::ForwardsUOffset<&[u8]>>(fi2fo(0), Some(&vec![70, 71, 72][..])), Some(&vec![70, 71, 72][..]));
+        }
 
         let default_vec_buf: Vec<u8> = vec![3, 0, 0, 0, 70, 71, 72, 0];
         let default_vec = flatbuffers::Vector::new(&default_vec_buf[..], 0);
@@ -1904,7 +1997,10 @@ mod follow_impls {
         ];
         let tab = <flatbuffers::ForwardsUOffset<flatbuffers::Table>>::follow(&buf[..], 0);
         assert_eq!(tab.get::<flatbuffers::ForwardsUOffset<&str>>(fi2fo(0), Some("abc")), Some("abc"));
-        assert_eq!(tab.get::<flatbuffers::ForwardsUOffset<&[u8]>>(fi2fo(0), Some(&vec![70, 71, 72][..])), Some(&vec![70, 71, 72][..]));
+        #[cfg(target_endian = "little")]
+        {
+            assert_eq!(tab.get::<flatbuffers::ForwardsUOffset<&[u8]>>(fi2fo(0), Some(&vec![70, 71, 72][..])), Some(&vec![70, 71, 72][..]));
+        }
 
         let default_vec_buf: Vec<u8> = vec![3, 0, 0, 0, 70, 71, 72, 0];
         let default_vec = flatbuffers::Vector::new(&default_vec_buf[..], 0);
@@ -2670,6 +2766,21 @@ mod byte_layouts {
               0, 2, // value #1 => 2 (u8)
               1, 0, // value #0 => 1 (int16)
         ]);
+    }
+}
+
+#[cfg(test)]
+mod copy_clone_traits {
+    #[test]
+    fn follow_types_implement_copy_and_clone() {
+        static_assertions::assert_impl_all!(flatbuffers::WIPOffset<u32>: Copy, Clone);
+        static_assertions::assert_impl_all!(flatbuffers::WIPOffset<Vec<u32>>: Copy, Clone);
+
+        static_assertions::assert_impl_all!(flatbuffers::ForwardsUOffset<u32>: Copy, Clone);
+        static_assertions::assert_impl_all!(flatbuffers::ForwardsUOffset<Vec<u32>>: Copy, Clone);
+
+        static_assertions::assert_impl_all!(flatbuffers::Vector<'static, u32>: Copy, Clone);
+        static_assertions::assert_impl_all!(flatbuffers::Vector<'static, Vec<u32>>: Copy, Clone);
     }
 }
 

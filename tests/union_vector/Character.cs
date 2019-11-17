@@ -4,12 +4,12 @@
 
 public enum Character : byte
 {
- NONE = 0,
- MuLan = 1,
- Rapunzel = 2,
- Belle = 3,
- BookFan = 4,
- Other = 5,
- Unused = 6,
+  NONE = 0,
+  MuLan = 1,
+  Rapunzel = 2,
+  Belle = 3,
+  BookFan = 4,
+  Other = 5,
+  Unused = 6,
 };
 

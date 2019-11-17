@@ -30,6 +30,15 @@ static getRootAsTableInFirstNS(bb:flatbuffers.ByteBuffer, obj?:TableInFirstNS):T
 };
 
 /**
+ * @param flatbuffers.ByteBuffer bb
+ * @param TableInFirstNS= obj
+ * @returns TableInFirstNS
+ */
+static getSizePrefixedRootAsTableInFirstNS(bb:flatbuffers.ByteBuffer, obj?:TableInFirstNS):TableInFirstNS {
+  return (obj || new TableInFirstNS).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
  * @param NamespaceA.NamespaceB.TableInNestedNS= obj
  * @returns NamespaceA.NamespaceB.TableInNestedNS|null
  */
@@ -148,6 +157,15 @@ static getRootAsTableInC(bb:flatbuffers.ByteBuffer, obj?:TableInC):TableInC {
 };
 
 /**
+ * @param flatbuffers.ByteBuffer bb
+ * @param TableInC= obj
+ * @returns TableInC
+ */
+static getSizePrefixedRootAsTableInC(bb:flatbuffers.ByteBuffer, obj?:TableInC):TableInC {
+  return (obj || new TableInC).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
  * @param NamespaceA.TableInFirstNS= obj
  * @returns NamespaceA.TableInFirstNS|null
  */
@@ -230,6 +248,15 @@ __init(i:number, bb:flatbuffers.ByteBuffer):SecondTableInA {
  * @returns SecondTableInA
  */
 static getRootAsSecondTableInA(bb:flatbuffers.ByteBuffer, obj?:SecondTableInA):SecondTableInA {
+  return (obj || new SecondTableInA).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param flatbuffers.ByteBuffer bb
+ * @param SecondTableInA= obj
+ * @returns SecondTableInA
+ */
+static getSizePrefixedRootAsSecondTableInA(bb:flatbuffers.ByteBuffer, obj?:SecondTableInA):SecondTableInA {
   return (obj || new SecondTableInA).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 

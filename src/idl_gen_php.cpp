@@ -31,7 +31,7 @@ class PhpGenerator : public BaseGenerator {
  public:
   PhpGenerator(const Parser &parser, const std::string &path,
                const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "\\", "\\"){};
+      : BaseGenerator(parser, path, file_name, "\\", "\\") {}
   bool generate() {
     if (!GenerateEnums()) return false;
     if (!GenerateStructs()) return false;
@@ -119,12 +119,13 @@ class PhpGenerator : public BaseGenerator {
   }
 
   // A single enum member.
-  static void EnumMember(const EnumVal ev, std::string *code_ptr) {
+  static void EnumMember(const EnumDef &enum_def, const EnumVal &ev,
+                         std::string *code_ptr) {
     std::string &code = *code_ptr;
     code += Indent + "const ";
     code += ev.name;
     code += " = ";
-    code += NumToString(ev.value) + ";\n";
+    code += enum_def.ToString(ev) + ";\n";
   }
 
   // End enum code.
@@ -231,7 +232,6 @@ class PhpGenerator : public BaseGenerator {
   // Get the value of a table's scalar.
   void GetScalarFieldOfTable(const FieldDef &field, std::string *code_ptr) {
     std::string &code = *code_ptr;
-    std::string getter = GenGetter(field.value.type);
 
     code += Indent + "/**\n";
     code += Indent + " * @return " + GenTypeGet(field.value.type) + "\n";
@@ -672,7 +672,7 @@ class PhpGenerator : public BaseGenerator {
   // Generate a struct field, conditioned on its child type(s).
   void GenStructAccessor(const StructDef &struct_def, const FieldDef &field,
                          std::string *code_ptr) {
-    GenComment(field.doc_comment, code_ptr, nullptr);
+    GenComment(field.doc_comment, code_ptr, nullptr, Indent.c_str());
 
     if (IsScalar(field.value.type.base_type)) {
       if (struct_def.fixed) {
@@ -815,20 +815,19 @@ class PhpGenerator : public BaseGenerator {
 
     GenComment(enum_def.doc_comment, code_ptr, nullptr);
     BeginEnum(enum_def.name, code_ptr);
-    for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
-         ++it) {
+    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
-      GenComment(ev.doc_comment, code_ptr, nullptr);
-      EnumMember(ev, code_ptr);
+      GenComment(ev.doc_comment, code_ptr, nullptr, Indent.c_str());
+      EnumMember(enum_def, ev, code_ptr);
     }
 
     std::string &code = *code_ptr;
     code += "\n";
     code += Indent + "private static $names = array(\n";
-    for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
-         ++it) {
+    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
-      code += Indent + Indent + "\"" + ev.name + "\",\n";
+      code += Indent + Indent + enum_def.name + "::" + ev.name + "=>" + "\"" +
+              ev.name + "\",\n";
     }
 
     code += Indent + ");\n\n";
@@ -864,7 +863,7 @@ class PhpGenerator : public BaseGenerator {
     static const char *ctypename[] = {
     // clang-format off
         #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, JLTYPE) \
+            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE, JLTYPE) \
             #NTYPE,
                 FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
         #undef FLATBUFFERS_TD
@@ -875,8 +874,7 @@ class PhpGenerator : public BaseGenerator {
 
   std::string GenDefaultValue(const Value &value) {
     if (value.type.enum_def) {
-      if (auto val = value.type.enum_def->ReverseLookup(
-              StringToInt(value.constant.c_str()), false)) {
+      if (auto val = value.type.enum_def->FindByValue(value.constant)) {
         return WrapInNameSpace(*value.type.enum_def) + "::" + val->name;
       }
     }

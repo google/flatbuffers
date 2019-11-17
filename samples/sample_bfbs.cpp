@@ -16,9 +16,7 @@
 
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
-
-#include "monster_test_generated.h"
-#include "monster_generated.h" // Already includes "flatbuffers/flatbuffers.h".
+#include "monster_generated.h"  // Already includes "flatbuffers/flatbuffers.h".
 
 using namespace MyGame::Sample;
 
@@ -31,7 +29,8 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   std::string bfbs_file;
   bool ok =
       flatbuffers::LoadFile("tests/monster_test.fbs", false, &schema_file) &&
-      flatbuffers::LoadFile("tests/monsterdata_test.golden", false, &json_file) &&
+      flatbuffers::LoadFile("tests/monsterdata_test.golden", false,
+                            &json_file) &&
       flatbuffers::LoadFile("tests/monster_test.bfbs", true, &bfbs_file);
   if (!ok) {
     printf("couldn't load files!\n");
@@ -44,7 +43,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   flatbuffers::Parser parser1;
   ok = parser1.Parse(schema_file.c_str(), include_directories);
   assert(ok);
-  
+
   // inizialize parser by deserializing bfbs schema
   flatbuffers::Parser parser2;
   ok = parser2.Deserialize((uint8_t *)bfbs_file.c_str(), bfbs_file.length());
@@ -52,6 +51,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
 
   // parse json in parser from fbs and bfbs
   ok = parser1.Parse(json_file.c_str(), include_directories);
+  assert(ok);
   ok = parser2.Parse(json_file.c_str(), include_directories);
   assert(ok);
 

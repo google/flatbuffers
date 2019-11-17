@@ -9,9 +9,7 @@ local function checkReadBuffer(buf, offset, sizePrefix)
     
     if sizePrefix then               
         local size = flatbuffers.N.Int32:Unpack(buf, offset)
-        -- no longer matches python tests, but the latest 'monsterdata_test.mon'
-        -- is 448 bytes, minus 4 to arrive at the 444
-        assert(size == 444)
+        assert(size == #buf - offset - 4)
         offset = offset + flatbuffers.N.Int32.bytewidth
     end    
     
@@ -83,8 +81,9 @@ local function checkReadBuffer(buf, offset, sizePrefix)
     assert(mon:Testempty() == nil)
 end
 
-local function generateMonster(sizePrefix)
-    local b = flatbuffers.Builder(0)
+local function generateMonster(sizePrefix, b)
+    if b then b:Clear() end
+    b = b or flatbuffers.Builder(0)
     local str = b:CreateString("MyMonster")
     local test1 = b:CreateString("test1")
     local test2 = b:CreateString("test2")
@@ -136,6 +135,10 @@ local function generateMonster(sizePrefix)
     monster.AddTestType(b, 1)
     monster.AddTest(b, mon2)
     monster.AddTest4(b, test4)
+    monster.AddTestbool(b, true)
+    monster.AddTestbool(b, false)
+    monster.AddTestbool(b, null)
+    monster.AddTestbool(b,"true")
     monster.AddTestarrayofstring(b, testArrayOfString)
     monster.AddVectorOfLongs(b, vectorOfLongs)
     monster.AddVectorOfDoubles(b, vectorOfDoubles)
@@ -154,6 +157,51 @@ local function sizePrefix(sizePrefix)
     checkReadBuffer(buf, offset, sizePrefix)
 end
 
+local function fbbClear()
+    -- Generate a builder that will be 'cleared' and reused to create two different objects.
+    local fbb = flatbuffers.Builder(0)
+
+    -- First use the builder to read the normal monster data and verify it works
+    local buf, offset = generateMonster(false, fbb)
+    checkReadBuffer(buf, offset, false)
+
+    -- Then clear the builder to be used again
+    fbb:Clear()
+
+    -- Storage for the built monsters
+    local monsters = {}
+    local lastBuf
+
+    -- Make another builder that will be use identically to the 'cleared' one so outputs can be compared. Build both the
+    -- Cleared builder and new builder in the exact same way, so we can compare their results
+    for i, builder in ipairs({fbb, flatbuffers.Builder(0)}) do
+        local strOffset = builder:CreateString("Hi there")
+        monster.Start(builder)
+        monster.AddPos(builder, vec3.CreateVec3(builder, 3.0, 2.0, 1.0, 17.0, 3, 100, 123))
+        monster.AddName(builder, strOffset)
+        monster.AddMana(builder, 123)
+        builder:Finish(monster.End(builder))
+        local buf = builder:Output(false)
+        if not lastBuf then
+            lastBuf = buf
+        else
+            -- the output, sized-buffer should be identical
+            assert(lastBuf == buf, "Monster output buffers are not identical")
+        end
+        monsters[i] = monster.GetRootAsMonster(flatbuffers.binaryArray.New(buf), 0)
+    end
+
+    -- Check that all the fields for the generated monsters are as we expect
+    for i, monster in ipairs(monsters) do
+        assert(monster:Name() == "Hi there", "Monster Name is not 'Hi There' for monster "..i)
+        -- HP is default to 100 in the schema, but we change it in generateMonster to 80, so this is a good test to
+        -- see if the cleared builder really clears the data.
+        assert(monster:Hp() == 100, "HP doesn't equal the default value for monster "..i)
+        assert(monster:Mana() == 123, "Monster Mana is not '123' for monster "..i)
+        assert(monster:Pos():X() == 3.0, "Monster vec3.X is not '3' for monster "..i)
+    end
+end
+
 local function testCanonicalData()
     local f = assert(io.open('monsterdata_test.mon', 'rb'))
     local wireData = f:read("*a")
@@ -161,26 +209,16 @@ local function testCanonicalData()
     checkReadBuffer(wireData)  
 end    
     
-local function benchmarkMakeMonster(count)
-    local length = #(generateMonster())
-    
-    --require("flatbuffers.profiler")
-    --profiler = newProfiler("call")
-    --profiler:start()
-    
+local function benchmarkMakeMonster(count, reuseBuilder)
+    local fbb = reuseBuilder and flatbuffers.Builder(0)
+    local length = #(generateMonster(false, fbb))
+
     local s = os.clock()
     for i=1,count do
-        generateMonster()
+        generateMonster(false, fbb)
     end
     local e = os.clock()    
-    
-    --profiler:stop()
 
-    --local outfile = io.open( "profile.txt", "w+" )
-    --profiler:report( outfile, true)
-    --outfile:close()
-    
-    
     local dur = (e - s)
     local rate = count / (dur * 1000)
     local data = (length * count) / (1024 * 1024)
@@ -217,6 +255,10 @@ local tests =
         d = "Test size prefix",
         args = {{true}, {false}}
     },
+    {
+        f = fbbClear,
+        d = "FlatBufferBuilder Clear",
+    },
     {   
         f = testCanonicalData, 
         d = "Tests Canonical flatbuffer file included in repo"       
@@ -228,6 +270,7 @@ local tests =
             {100}, 
             {1000},
             {10000},
+            {10000, true}
         }
     },   
     {
@@ -239,7 +282,7 @@ local tests =
             {10000},
             -- uncomment following to run 1 million to compare. 
             -- Took ~141 seconds on my machine
-            --{1000000}, 
+            --{1000000},
         }
     }, 
 }

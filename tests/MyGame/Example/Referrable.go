@@ -6,6 +6,28 @@ import (
 	flatbuffers "github.com/google/flatbuffers/go"
 )
 
+type ReferrableT struct {
+	Id uint64
+}
+
+func ReferrablePack(builder *flatbuffers.Builder, t *ReferrableT) flatbuffers.UOffsetT {
+	if t == nil { return 0 }
+	ReferrableStart(builder)
+	ReferrableAddId(builder, t.Id)
+	return ReferrableEnd(builder)
+}
+
+func (rcv *Referrable) UnPackTo(t *ReferrableT) {
+	t.Id = rcv.Id()
+}
+
+func (rcv *Referrable) UnPack() *ReferrableT {
+	if rcv == nil { return nil }
+	t := &ReferrableT{}
+	rcv.UnPackTo(t)
+	return t
+}
+
 type Referrable struct {
 	_tab flatbuffers.Table
 }

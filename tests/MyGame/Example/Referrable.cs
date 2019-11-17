@@ -12,26 +12,27 @@ public struct Referrable : IFlatbufferObject
 {
   private Table __p;
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
+  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_1_11_1(); }
   public static Referrable GetRootAsReferrable(ByteBuffer _bb) { return GetRootAsReferrable(_bb, new Referrable()); }
   public static Referrable GetRootAsReferrable(ByteBuffer _bb, Referrable obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
-  public void __init(int _i, ByteBuffer _bb) { __p.bb_pos = _i; __p.bb = _bb; }
+  public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
   public Referrable __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public ulong Id { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetUlong(o + __p.bb_pos) : (ulong)0; } }
   public bool MutateId(ulong id) { int o = __p.__offset(4); if (o != 0) { __p.bb.PutUlong(o + __p.bb_pos, id); return true; } else { return false; } }
 
-  public static Offset<Referrable> CreateReferrable(FlatBufferBuilder builder,
+  public static Offset<MyGame.Example.Referrable> CreateReferrable(FlatBufferBuilder builder,
       ulong id = 0) {
-    builder.StartObject(1);
+    builder.StartTable(1);
     Referrable.AddId(builder, id);
     return Referrable.EndReferrable(builder);
   }
 
-  public static void StartReferrable(FlatBufferBuilder builder) { builder.StartObject(1); }
+  public static void StartReferrable(FlatBufferBuilder builder) { builder.StartTable(1); }
   public static void AddId(FlatBufferBuilder builder, ulong id) { builder.AddUlong(0, id, 0); }
-  public static Offset<Referrable> EndReferrable(FlatBufferBuilder builder) {
-    int o = builder.EndObject();
-    return new Offset<Referrable>(o);
+  public static Offset<MyGame.Example.Referrable> EndReferrable(FlatBufferBuilder builder) {
+    int o = builder.EndTable();
+    return new Offset<MyGame.Example.Referrable>(o);
   }
 
   public static VectorOffset CreateSortedVectorOfReferrable(FlatBufferBuilder builder, Offset<Referrable>[] offsets) {

@@ -94,7 +94,7 @@ class Builder(object):
     It holds the following internal state:
         - Bytes: an array of bytes.
         - current_vtable: a list of integers.
-        - vtables: a list of vtable entries (i.e. a list of list of integers).
+        - vtables: a hash of vtable entries.
 
     Attributes:
       Bytes: The internal `bytearray` for the Builder.
@@ -103,7 +103,7 @@ class Builder(object):
 
     ## @cond FLATBUFFERS_INTENRAL
     __slots__ = ("Bytes", "current_vtable", "head", "minalign", "objectEnd",
-                 "vtables", "nested", "finished")
+                 "vtables", "nested", "forceDefaults", "finished")
 
     """Maximum buffer size constant, in bytes.
 
@@ -129,11 +129,11 @@ class Builder(object):
         self.head = UOffsetTFlags.py_type(initialSize)
         self.minalign = 1
         self.objectEnd = None
-        self.vtables = []
+        self.vtables = {}
         self.nested = False
+        self.forceDefaults = False
         ## @endcond
         self.finished = False
-
 
     def Output(self):
         """Return the portion of the buffer that has been used for writing data.
@@ -191,52 +191,45 @@ class Builder(object):
         self.PrependSOffsetTRelative(0)
 
         objectOffset = self.Offset()
-        existingVtable = None
 
-        # Trim trailing 0 offsets.
-        while self.current_vtable and self.current_vtable[-1] == 0:
-            self.current_vtable.pop()
+        vtKey = []
+        trim = True
+        for elem in reversed(self.current_vtable):
+            if elem == 0:
+                if trim:
+                    continue
+            else:
+                elem = objectOffset - elem
+                trim = False
 
-        # Search backwards through existing vtables, because similar vtables
-        # are likely to have been recently appended. See
-        # BenchmarkVtableDeduplication for a case in which this heuristic
-        # saves about 30% of the time used in writing objects with duplicate
-        # tables.
+            vtKey.append(elem)
 
-        i = len(self.vtables) - 1
-        while i >= 0:
-            # Find the other vtable, which is associated with `i`:
-            vt2Offset = self.vtables[i]
-            vt2Start = len(self.Bytes) - vt2Offset
-            vt2Len = encode.Get(packer.voffset, self.Bytes, vt2Start)
-
-            metadata = VtableMetadataFields * N.VOffsetTFlags.bytewidth
-            vt2End = vt2Start + vt2Len
-            vt2 = self.Bytes[vt2Start+metadata:vt2End]
-
-            # Compare the other vtable to the one under consideration.
-            # If they are equal, store the offset and break:
-            if vtableEqual(self.current_vtable, objectOffset, vt2):
-                existingVtable = vt2Offset
-                break
-
-            i -= 1
-
-        if existingVtable is None:
+        vtKey = tuple(vtKey)
+        vt2Offset = self.vtables.get(vtKey)
+        if vt2Offset is None:
             # Did not find a vtable, so write this one to the buffer.
 
             # Write out the current vtable in reverse , because
             # serialization occurs in last-first order:
             i = len(self.current_vtable) - 1
+            trailing = 0
+            trim = True
             while i >= 0:
                 off = 0
-                if self.current_vtable[i] != 0:
+                elem = self.current_vtable[i]
+                i -= 1
+
+                if elem == 0:
+                    if trim:
+                        trailing += 1
+                        continue
+                else:
                     # Forward reference to field;
                     # use 32bit number to ensure no overflow:
-                    off = objectOffset - self.current_vtable[i]
+                    off = objectOffset - elem
+                    trim = False
 
                 self.PrependVOffsetT(off)
-                i -= 1
 
             # The two metadata fields are written last.
 
@@ -245,7 +238,7 @@ class Builder(object):
             self.PrependVOffsetT(VOffsetTFlags.py_type(objectSize))
 
             # Second, store the vtable bytesize:
-            vBytes = len(self.current_vtable) + VtableMetadataFields
+            vBytes = len(self.current_vtable) - trailing + VtableMetadataFields
             vBytes *= N.VOffsetTFlags.bytewidth
             self.PrependVOffsetT(VOffsetTFlags.py_type(vBytes))
 
@@ -257,17 +250,16 @@ class Builder(object):
 
             # Finally, store this vtable in memory for future
             # deduplication:
-            self.vtables.append(self.Offset())
+            self.vtables[vtKey] = self.Offset()
         else:
             # Found a duplicate vtable.
-
             objectStart = SOffsetTFlags.py_type(len(self.Bytes) - objectOffset)
             self.head = UOffsetTFlags.py_type(objectStart)
 
             # Write the offset to the found vtable in the
             # already-allocated SOffsetT at the beginning of this object:
             encode.Write(packer.soffset, self.Bytes, self.Head(),
-                         SOffsetTFlags.py_type(existingVtable - objectOffset))
+                         SOffsetTFlags.py_type(vt2Offset - objectOffset))
 
         self.current_vtable = None
         return objectOffset
@@ -518,13 +510,21 @@ class Builder(object):
         self.current_vtable[slotnum] = self.Offset()
     ## @endcond
 
-    def __Finish(self, rootTable, sizePrefix):
+    def __Finish(self, rootTable, sizePrefix, file_identifier=None):
         """Finish finalizes a buffer, pointing to the given `rootTable`."""
         N.enforce_number(rootTable, N.UOffsetTFlags)
-        prepSize = N.UOffsetTFlags.bytewidth
-        if sizePrefix:
-            prepSize += N.Int32Flags.bytewidth
-        self.Prep(self.minalign, prepSize)
+
+        if file_identifier is not None:
+            self.Prep(N.UOffsetTFlags.bytewidth, N.Uint8Flags.bytewidth*4)
+            
+            # Convert bytes object file_identifier to an array of 4 8-bit integers,
+            # and use big-endian to enforce size compliance.
+            # https://docs.python.org/2/library/struct.html#format-characters
+            file_identifier = N.struct.unpack(">BBBB", file_identifier)
+            for i in range(encode.FILE_IDENTIFIER_LENGTH-1, -1, -1):
+                # Place the bytes of the file_identifer in reverse order:
+                self.Place(file_identifier[i], N.Uint8Flags)   
+                
         self.PrependUOffsetTRelative(rootTable)
         if sizePrefix:
             size = len(self.Bytes) - self.Head()
@@ -533,16 +533,16 @@ class Builder(object):
         self.finished = True
         return self.Head()
 
-    def Finish(self, rootTable):
+    def Finish(self, rootTable, file_identifier=None):
         """Finish finalizes a buffer, pointing to the given `rootTable`."""
-        return self.__Finish(rootTable, False)
+        return self.__Finish(rootTable, False, file_identifier=file_identifier)
 
-    def FinishSizePrefixed(self, rootTable):
+    def FinishSizePrefixed(self, rootTable, file_identifier=None):
         """
         Finish finalizes a buffer, pointing to the given `rootTable`,
         with the size prefixed.
         """
-        return self.__Finish(rootTable, True)
+        return self.__Finish(rootTable, True, file_identifier=file_identifier)
 
     ## @cond FLATBUFFERS_INTERNAL
     def Prepend(self, flags, off):
@@ -552,7 +552,7 @@ class Builder(object):
     def PrependSlot(self, flags, o, x, d):
         N.enforce_number(x, flags)
         N.enforce_number(d, flags)
-        if x != d:
+        if x != d or self.forceDefaults:
             self.Prepend(flags, x)
             self.Slot(o)
 
@@ -589,7 +589,7 @@ class Builder(object):
         be set to zero and no other data will be written.
         """
 
-        if x != d:
+        if x != d or self.forceDefaults:
             self.PrependUOffsetTRelative(x)
             self.Slot(o)
 
@@ -690,6 +690,15 @@ class Builder(object):
         Note: aligns and checks for space.
         """
         self.Prepend(N.Float64Flags, x)
+
+    def ForceDefaults(self, forceDefaults):
+        """
+        In order to save space, fields that are set to their default value
+        don't get serialized into the buffer. Forcing defaults provides a
+        way to manually disable this optimization. When set to `True`, will
+        always serialize default values.
+        """
+        self.forceDefaults = forceDefaults
 
 ##############################################################
 

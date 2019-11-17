@@ -6,6 +6,87 @@ import (
 	flatbuffers "github.com/google/flatbuffers/go"
 )
 
+type TypeAliasesT struct {
+	I8 int8
+	U8 byte
+	I16 int16
+	U16 uint16
+	I32 int32
+	U32 uint32
+	I64 int64
+	U64 uint64
+	F32 float32
+	F64 float64
+	V8 []int8
+	Vf64 []float64
+}
+
+func TypeAliasesPack(builder *flatbuffers.Builder, t *TypeAliasesT) flatbuffers.UOffsetT {
+	if t == nil { return 0 }
+	v8Offset := flatbuffers.UOffsetT(0)
+	if t.V8 != nil {
+		v8Length := len(t.V8)
+		TypeAliasesStartV8Vector(builder, v8Length)
+		for j := v8Length - 1; j >= 0; j-- {
+			builder.PrependInt8(t.V8[j])
+		}
+		v8Offset = builder.EndVector(v8Length)
+	}
+	vf64Offset := flatbuffers.UOffsetT(0)
+	if t.Vf64 != nil {
+		vf64Length := len(t.Vf64)
+		TypeAliasesStartVf64Vector(builder, vf64Length)
+		for j := vf64Length - 1; j >= 0; j-- {
+			builder.PrependFloat64(t.Vf64[j])
+		}
+		vf64Offset = builder.EndVector(vf64Length)
+	}
+	TypeAliasesStart(builder)
+	TypeAliasesAddI8(builder, t.I8)
+	TypeAliasesAddU8(builder, t.U8)
+	TypeAliasesAddI16(builder, t.I16)
+	TypeAliasesAddU16(builder, t.U16)
+	TypeAliasesAddI32(builder, t.I32)
+	TypeAliasesAddU32(builder, t.U32)
+	TypeAliasesAddI64(builder, t.I64)
+	TypeAliasesAddU64(builder, t.U64)
+	TypeAliasesAddF32(builder, t.F32)
+	TypeAliasesAddF64(builder, t.F64)
+	TypeAliasesAddV8(builder, v8Offset)
+	TypeAliasesAddVf64(builder, vf64Offset)
+	return TypeAliasesEnd(builder)
+}
+
+func (rcv *TypeAliases) UnPackTo(t *TypeAliasesT) {
+	t.I8 = rcv.I8()
+	t.U8 = rcv.U8()
+	t.I16 = rcv.I16()
+	t.U16 = rcv.U16()
+	t.I32 = rcv.I32()
+	t.U32 = rcv.U32()
+	t.I64 = rcv.I64()
+	t.U64 = rcv.U64()
+	t.F32 = rcv.F32()
+	t.F64 = rcv.F64()
+	v8Length := rcv.V8Length()
+	t.V8 = make([]int8, v8Length)
+	for j := 0; j < v8Length; j++ {
+		t.V8[j] = rcv.V8(j)
+	}
+	vf64Length := rcv.Vf64Length()
+	t.Vf64 = make([]float64, vf64Length)
+	for j := 0; j < vf64Length; j++ {
+		t.Vf64[j] = rcv.Vf64(j)
+	}
+}
+
+func (rcv *TypeAliases) UnPack() *TypeAliasesT {
+	if rcv == nil { return nil }
+	t := &TypeAliasesT{}
+	rcv.UnPackTo(t)
+	return t
+}
+
 type TypeAliases struct {
 	_tab flatbuffers.Table
 }
@@ -163,6 +244,15 @@ func (rcv *TypeAliases) V8Length() int {
 	return 0
 }
 
+func (rcv *TypeAliases) MutateV8(j int, n int8) bool {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(24))
+	if o != 0 {
+		a := rcv._tab.Vector(o)
+		return rcv._tab.MutateInt8(a+flatbuffers.UOffsetT(j*1), n)
+	}
+	return false
+}
+
 func (rcv *TypeAliases) Vf64(j int) float64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(26))
 	if o != 0 {
@@ -178,6 +268,15 @@ func (rcv *TypeAliases) Vf64Length() int {
 		return rcv._tab.VectorLen(o)
 	}
 	return 0
+}
+
+func (rcv *TypeAliases) MutateVf64(j int, n float64) bool {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(26))
+	if o != 0 {
+		a := rcv._tab.Vector(o)
+		return rcv._tab.MutateFloat64(a+flatbuffers.UOffsetT(j*8), n)
+	}
+	return false
 }
 
 func TypeAliasesStart(builder *flatbuffers.Builder) {

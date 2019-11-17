@@ -2,18 +2,75 @@
 
 package Example
 
-type Any = byte
+import (
+	"strconv"
+
+	flatbuffers "github.com/google/flatbuffers/go"
+
+	MyGame__Example2 "MyGame/Example2"
+)
+
+type AnyT struct {
+	Type Any
+	Value interface{}
+}
+
+func AnyPack(builder *flatbuffers.Builder, t *AnyT) flatbuffers.UOffsetT {
+	if t == nil {
+		return 0
+	}
+	switch t.Type {
+	case AnyMonster:
+		return MonsterPack(builder, t.Value.(*MonsterT))
+	case AnyTestSimpleTableWithEnum:
+		return TestSimpleTableWithEnumPack(builder, t.Value.(*TestSimpleTableWithEnumT))
+	case AnyMyGame_Example2_Monster:
+		return MyGame__Example2.MonsterPack(builder, t.Value.(*MyGame__Example2.MonsterT))
+	}
+	return 0
+}
+
+func AnyUnPack(t Any, table flatbuffers.Table) *AnyT {
+	switch t {
+	case AnyMonster:
+		x := Monster{_tab: table}
+		return &AnyT{ Type: AnyMonster, Value: x.UnPack() }
+	case AnyTestSimpleTableWithEnum:
+		x := TestSimpleTableWithEnum{_tab: table}
+		return &AnyT{ Type: AnyTestSimpleTableWithEnum, Value: x.UnPack() }
+	case AnyMyGame_Example2_Monster:
+		x := Monster{_tab: table}
+		return &AnyT{ Type: AnyMyGame_Example2_Monster, Value: x.UnPack() }
+	}
+	return nil
+}
+
+type Any byte
+
 const (
-	AnyNONE Any = 0
-	AnyMonster Any = 1
+	AnyNONE                    Any = 0
+	AnyMonster                 Any = 1
 	AnyTestSimpleTableWithEnum Any = 2
 	AnyMyGame_Example2_Monster Any = 3
 )
 
 var EnumNamesAny = map[Any]string{
-	AnyNONE:"NONE",
-	AnyMonster:"Monster",
-	AnyTestSimpleTableWithEnum:"TestSimpleTableWithEnum",
-	AnyMyGame_Example2_Monster:"MyGame_Example2_Monster",
+	AnyNONE:                    "NONE",
+	AnyMonster:                 "Monster",
+	AnyTestSimpleTableWithEnum: "TestSimpleTableWithEnum",
+	AnyMyGame_Example2_Monster: "MyGame_Example2_Monster",
 }
 
+var EnumValuesAny = map[string]Any{
+	"NONE":                    AnyNONE,
+	"Monster":                 AnyMonster,
+	"TestSimpleTableWithEnum": AnyTestSimpleTableWithEnum,
+	"MyGame_Example2_Monster": AnyMyGame_Example2_Monster,
+}
+
+func (v Any) String() string {
+	if s, ok := EnumNamesAny[v]; ok {
+		return s
+	}
+	return "Any(" + strconv.FormatInt(int64(v), 10) + ")"
+}
