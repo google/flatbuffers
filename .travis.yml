@@ -83,6 +83,21 @@ matrix:
       script:
         - bash .travis/build-and-run-docker-test-containers.sh
 
+    # run separately from build-and-run-docker-test-containers.sh because of build timeouts
+    - language: cpp
+      os:
+        - linux
+
+      addons:
+        apt:
+          packages:
+            - docker-ce
+      env:
+        - TESTING_SUFFIX=cpp.clang_3_8_1
+
+      script:
+        - docker build --build-arg JOBS=${JOBS} -f tests/docker/Dockerfile.testing.${TESTING_SUFFIX} .
+
     - language: cpp
       os:
         - linux

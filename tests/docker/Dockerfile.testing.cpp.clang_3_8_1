@@ -1,0 +1,34 @@
+FROM debian:9.6-slim as base
+RUN apt -qq update >/dev/null
+RUN apt -qq install -y cmake make build-essential >/dev/null
+RUN apt -qq install -y autoconf git libtool >/dev/null
+FROM base
+WORKDIR /code
+ARG JOBS=1
+ENV UBSAN_OPTIONS "halt_on_error=1"
+ENV ASAN_OPTIONS "halt_on_error=1"
+
+# Uncomment once bug #5099 (https://github.com/google/flatbuffers/issues/5099) is fixed.
+#ADD grpc/build_grpc.sh grpc/build_grpc.sh
+#RUN bash grpc/build_grpc.sh
+
+RUN apt -qq install -y clang >/dev/null
+ENV CC /usr/bin/clang
+ENV CXX /usr/bin/clang++
+ADD . .
+RUN cmake \
+   -DCMAKE_BUILD_TYPE=Release  \
+   -DFLATBUFFERS_BUILD_TESTS=ON \
+   -DGRPC_INSTALL_PATH=/code/google/grpc/install  \
+   -DPROTOBUF_DOWNLOAD_PATH=/code/google/grpc/third_party/protobuf \
+   -DFLATBUFFERS_CODE_SANITIZE=ON \
+   -j${JOBS} \
+   .
+RUN cmake --build . -- -j${JOBS}
+RUN LD_LIBRARY_PATH=/code/google/grpc/install/lib ctest --extra-verbose --output-on-failure -j${JOBS}
+RUN bash .travis/check-generate-code.sh
+
+# Once bug #5099 (https://github.com/google/flatbuffers/issues/5099)
+# is fixed, insert this line in the cmake above:
+#   -DFLATBUFFERS_BUILD_GRPCTEST=ON  \
+#
