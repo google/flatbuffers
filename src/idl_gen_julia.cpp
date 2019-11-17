@@ -347,10 +347,10 @@ class JuliaGenerator : public BaseGenerator {
     *code_ptr += "@enum " + enum_name + "::" + enum_type + " begin\n";
   }
 
-  void EnumMember(const std::string enum_name, const EnumVal ev,
+  void EnumMember(const EnumDef &enum_def, const std::string &enum_name, const EnumVal ev,
                   std::string *code_ptr) {
     *code_ptr += Indent + enum_name + NormalizedName(ev);
-    *code_ptr += " = " + NumToString(ev.value) + "\n";
+    *code_ptr += " = " + enum_def.ToString(ev) + "\n";
   }
 
   static void EndEnum(std::string *code_ptr) { *code_ptr += "end\n\n"; }
@@ -600,7 +600,7 @@ class JuliaGenerator : public BaseGenerator {
     std::set<std::string> imports;
     auto union_name = NormalizedName(enum_def);
     BeginUnion(union_name, code_ptr);
-    for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
+    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
          ++it) {
       auto &ev = **it;
       std::string type_name = GenTypeGet(ev.union_type, &enum_def);
@@ -620,11 +620,11 @@ class JuliaGenerator : public BaseGenerator {
     GenComment(enum_def.doc_comment, code_ptr, &JuliaCommentConfig);
     auto enum_name = NormalizedName(enum_def);
     BeginEnum(enum_name, GenTypeBasic(enum_def.underlying_type), code_ptr);
-    for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
+    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
          ++it) {
       auto &ev = **it;
       GenComment(ev.doc_comment, code_ptr, &JuliaCommentConfig);
-      EnumMember(enum_name, ev, code_ptr);
+      EnumMember(enum_def, enum_name, ev, code_ptr);
     }
     EndEnum(code_ptr);
   }
@@ -633,7 +633,7 @@ class JuliaGenerator : public BaseGenerator {
     static const char *ctypename[] = {
     // clang-format off
       #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, JLTYPE) \
+        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE, JLTYPE) \
         #JLTYPE,
         FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
       #undef FLATBUFFERS_TD

@@ -66,7 +66,7 @@ int main(int argc, const char *argv[]) {
     { flatbuffers::GenerateJulia, nullptr, "--julia", "Julia", true, nullptr,
       flatbuffers::IDLOptions::kJulia,
       "Generate Julia modules for tables/structs",
-      flatbuffers::GeneralMakeRule },
+      nullptr },
     { flatbuffers::GenerateDart, "-d", "--dart", "Dart", true, nullptr,
       flatbuffers::IDLOptions::kDart,
       "Generate Dart classes for tables/structs", flatbuffers::DartMakeRule },

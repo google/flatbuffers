@@ -141,7 +141,7 @@ class KotlinGenerator : public BaseGenerator {
     // clang-format off
         static const char * const kotlin_typename[] = {
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
+        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE, JLTYPE) \
     #KTYPE,
         FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD

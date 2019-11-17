@@ -1259,7 +1259,7 @@ CheckedError Parser::ParseVectorDelimiters(uoffset_t &count, F body) {
 static bool CompareType(const uint8_t *a, const uint8_t *b, BaseType ftype) {
   switch (ftype) {
 #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, \
-                       RTYPE, KTYPE)                                     \
+                       RTYPE, KTYPE, JLTYPE)                             \
   case BASE_TYPE_##ENUM: return ReadScalar<CTYPE>(a) < ReadScalar<CTYPE>(b);
     FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
 #undef FLATBUFFERS_TD
@@ -1430,7 +1430,7 @@ CheckedError Parser::ParseArray(Value &array) {
     // clang-format off
     switch (val.type.base_type) {
       #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
+        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE, JLTYPE) \
         case BASE_TYPE_ ## ENUM: \
           if (IsStruct(val.type)) { \
             SerializeStruct(builder, *val.type.struct_def, val); \
@@ -2019,7 +2019,7 @@ struct EnumValBuilder {
     // clang-format off
     switch (enum_def.underlying_type.base_type) {
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE,   \
-                           PTYPE, RTYPE, KTYPE)                         \
+                           PTYPE, RTYPE, KTYPE, JLTYPE)                 \
       case BASE_TYPE_##ENUM: {                                          \
         if (!IsInteger(BASE_TYPE_##ENUM)) break;                        \
         return ValidateImpl<BASE_TYPE_##ENUM, CTYPE>(ev, next ? 1 : 0); \

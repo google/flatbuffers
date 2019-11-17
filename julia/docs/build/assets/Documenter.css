@@ -1,0 +1,18 @@
+div.wy-menu-vertical ul.current li.toctree-l3 a {
+  font-weight: bold;
+}
+
+a.documenter-source {
+  float: right;
+}
+
+.documenter-methodtable pre {
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-top:  0px;
+    padding:     0px;
+}
+
+.documenter-methodtable pre.documenter-inline {
+    display: inline;
+}

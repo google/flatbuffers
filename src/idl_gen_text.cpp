@@ -188,7 +188,7 @@ bool Print<const void *>(const void *val, Type type, int indent,
       // clang-format off
       switch (vec_type.base_type) {
         #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
+        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE, JLTYPE) \
         case BASE_TYPE_ ## ENUM: \
           if (!PrintArray<CTYPE>( \
               *reinterpret_cast<const Array<CTYPE, 0xFFFF> *>(val), \
@@ -285,31 +285,31 @@ static bool GenStruct(const StructDef &struct_def, const Table *table,
         text += ":";
       text += " ";
       switch (fd.value.type.base_type) {
-        // clang-format off
-          #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-
-            case BASE_TYPE_ ## ENUM: \
-              if (!GenField<CTYPE>(fd, table, struct_def.fixed, \
-                                   opts, indent + Indent(opts), _text)) { \
-                return false; \
-              } \
-              break;
-          FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
-        #undef FLATBUFFERS_TD
-        // Generate drop-thru case statements for all pointer types:
+      // clang-format off
         #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-
-          case BASE_TYPE_ ## ENUM:
-          FLATBUFFERS_GEN_TYPES_POINTER(FLATBUFFERS_TD)
-          FLATBUFFERS_GEN_TYPE_ARRAY(FLATBUFFERS_TD)
-        #undef FLATBUFFERS_TD
-            if (!GenFieldOffset(fd, table, struct_def.fixed, indent + Indent(opts),
-                                prev_val, opts, _text)) {
-              return false;
-            }
+          CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE, JLTYPE) \
+          case BASE_TYPE_ ## ENUM: \
+            if (!GenField<CTYPE>(fd, table, struct_def.fixed, \
+                                 opts, indent + Indent(opts), _text)) { \
+              return false; \
+            } \
             break;
-        // clang-format on
-      }
+        FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
+      #undef FLATBUFFERS_TD
+        // Generate drop-thru case statements for all pointer types:
+          #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
+            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE, JLTYPE) \
+            case BASE_TYPE_ ## ENUM:
+            FLATBUFFERS_GEN_TYPES_POINTER(FLATBUFFERS_TD)
+            FLATBUFFERS_GEN_TYPE_ARRAY(FLATBUFFERS_TD)
+          #undef FLATBUFFERS_TD
+              if (!GenFieldOffset(fd, table, struct_def.fixed, indent + Indent(opts),
+                                  prev_val, opts, _text)) {
+                return false;
+              }
+              break;
+          // clang-format on
+        }
       // Track prev val for use with union types.
       if (struct_def.fixed) {
         prev_val = reinterpret_cast<const uint8_t *>(table) + fd.value.offset;
