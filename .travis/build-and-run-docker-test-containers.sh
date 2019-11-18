@@ -15,10 +15,15 @@
 # limitations under the License.
 set -e
 
-# build flatc on debian once to speed up the test loop below
-docker build -t build_flatc_debian_stretch -f tests/docker/Dockerfile.testing.build_flatc_debian_stretch .
-BUILD_CONTAINER_ID=$(docker create --read-only build_flatc_debian_stretch)
-docker cp ${BUILD_CONTAINER_ID}:/code/flatc flatc_debian_stretch
+docker build -t build_cpp_image -f tests/docker/Dockerfile.testing.cpp.debian_buster .
+# Run tests with sanitizers  (--cap-add SYS_PTRACE), both GCC and Clang.
+cpp_test_args="--cap-add SYS_PTRACE build_cpp_image sh ./tests/docker/cpp_test.run.sh Debug"
+docker run --rm $cpp_test_args
+docker run --rm --env CC=/usr/bin/clang --env CXX=/usr/bin/clang++ $cpp_test_args
+# Build flatc on debian once to speed up the test loop below.
+docker run --name flatc_container build_cpp_image sh ./tests/docker/build_flatc.run.sh Debug
+# All dependent dockers refer to 'flatc_debian_stretch'.
+docker cp flatc_container:/flatbuffers/flatc flatc_debian_stretch
 
 for f in $(ls tests/docker/languages | sort)
 do
