@@ -296,7 +296,7 @@ typedef uint16_t voffset_t;
 typedef uintmax_t largest_scalar_t;
 
 // In 32bits, this evaluates to 2GB - 1
-#define FLATBUFFERS_MAX_BUFFER_SIZE ((1ULL << (sizeof(soffset_t) * 8 - 1)) - 1)
+#define FLATBUFFERS_MAX_BUFFER_SIZE ((1ULL << (sizeof(::flatbuffers::soffset_t) * 8 - 1)) - 1)
 
 // We support aligning the contents of buffers up to this size.
 #define FLATBUFFERS_MAX_ALIGNMENT 16
