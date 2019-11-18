@@ -1,0 +1,11 @@
+name = "FlatBuffers"
+uuid = "53afe959-3a16-52fa-a8da-cf864710bae9"
+version = "0.5.4"
+
+[deps]
+Parameters = "d96e819e-fc66-5662-9728-84c9c7592b0a"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[compat]
+julia = "1"
+Parameters = "0.12.0"

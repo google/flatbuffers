@@ -3,9 +3,10 @@
 
 *A Julia implementation of google flatbuffers*
 
-| **Documentation**                                                               | **PackageEvaluator**                                            | **Build Status**                                                                                |
-|:-------------------------------------------------------------------------------:|:---------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------:|
-| [![][docs-stable-img]][docs-stable-url] [![][docs-latest-img]][docs-latest-url] | [![][pkg-0.4-img]][pkg-0.4-url] [![][pkg-0.5-img]][pkg-0.5-url] | [![][travis-img]][travis-url] [![][appveyor-img]][appveyor-url] [![][codecov-img]][codecov-url] |
+
+| **Documentation**                                                               | **Build Status**                                                                                
+|:-------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------:|
+| [![][docs-stable-img]][docs-stable-url] [![][docs-latest-img]][docs-latest-url] | [![][travis-img]][travis-url] [![][appveyor-img]][appveyor-url] [![][codecov-img]][codecov-url] |
 
 
 ## Installation
@@ -23,7 +24,7 @@ julia> Pkg.add("FlatBuffers")
 
 ## Project Status
 
-The package is tested against Julia `0.4` and *current* `0.5-dev` on Linux, OS X, and Windows.
+The package is tested against Julia `1.0`, `1.1`, `1.2`, `1.3`, and nightly on Linux, OS X, and Windows.
 
 ## Contributing and Questions
 
@@ -49,7 +50,7 @@ Contributions are very welcome, as are feature requests and suggestions. Please 
 
 [issues-url]: https://github.com/JuliaData/FlatBuffers.jl/issues
 
-[pkg-0.4-img]: http://pkg.julialang.org/badges/FlatBuffers_0.4.svg
-[pkg-0.4-url]: http://pkg.julialang.org/?pkg=FlatBuffers
-[pkg-0.5-img]: http://pkg.julialang.org/badges/FlatBuffers_0.5.svg
-[pkg-0.5-url]: http://pkg.julialang.org/?pkg=FlatBuffers
+[pkg-0.6-img]: https://pkg.julialang.org/badges/FlatBuffers_0.6.svg
+[pkg-0.6-url]: https://pkg.julialang.org/?pkg=FlatBuffers
+[pkg-0.7-img]: https://pkg.julialang.org/badges/FlatBuffers_0.7.svg
+[pkg-0.7-url]: https://pkg.julialang.org/?pkg=FlatBuffers

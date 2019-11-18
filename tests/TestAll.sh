@@ -6,6 +6,10 @@ echo "************************ Kotlin:"
 
 sh KotlinTest.sh
 
+echo "************************ Julia:"
+
+sh JuliaTest.sh
+
 echo "************************ Go:"
 
 sh GoTest.sh

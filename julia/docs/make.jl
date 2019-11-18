@@ -1,3 +1,5 @@
+import Pkg
+Pkg.instantiate()
 using Documenter, FlatBuffers
 
 makedocs(
@@ -11,7 +13,5 @@ deploydocs(
     repo = "github.com/JuliaData/FlatBuffers.jl.git",
     target = "build",
     deps = nothing,
-    make = nothing,
-    julia = "0.5",
-    osname = "linux"
+    make = nothing
 )

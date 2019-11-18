@@ -2213,7 +2213,7 @@ bool Parser::SupportsAdvancedUnionFeatures() const {
          (opts.lang_to_generate &
           ~(IDLOptions::kCpp | IDLOptions::kJs | IDLOptions::kTs |
             IDLOptions::kPhp | IDLOptions::kJava | IDLOptions::kCSharp |
-            IDLOptions::kKotlin | IDLOptions::kBinary)) == 0;
+            IDLOptions::kKotlin | IDLOptions::kJulia | IDLOptions::kBinary)) == 0;
 }
 
 bool Parser::SupportsAdvancedArrayFeatures() const {

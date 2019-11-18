@@ -59,6 +59,7 @@ FlatBuffers.@with_kw mutable struct Monster
     any_ambiguous_type::UInt8 = 0
     any_ambiguous::AnyAmbiguousAliases = nothing
     vector_of_enums::Vector{Color} = []
+    signed_enum::Race = -1
 end
 FlatBuffers.@ALIGN(Monster, 1)
 FlatBuffers.slot_offsets(::Type{T}) where {T<:Monster} = [
@@ -73,7 +74,7 @@ FlatBuffers.slot_offsets(::Type{T}) where {T<:Monster} = [
     0x00000046, 0x00000048, 0x0000004A, 0x0000004C, 
     0x0000004E, 0x00000050, 0x00000052, 0x00000054, 
     0x00000056, 0x00000058, 0x0000005A, 0x0000005C, 
-    0x0000005E, 0x00000060, 0x00000062
+    0x0000005E, 0x00000060, 0x00000062, 0x00000064
 ]
 FlatBuffers.root_type(::Type{T}) where {T<:Monster} = true
 FlatBuffers.file_identifier(::Type{T}) where {T<:Monster} = "MONS"

@@ -6,7 +6,7 @@ const TableOrBuilder = Union{Table,Builder}
 const Bytes2Type = Dict{Int, DataType}(1=>UInt8, 2=>UInt16, 4=>UInt32, 8=>UInt64)
 
 Base.get(t::TableOrBuilder, pos, ::Type{T}) where {T} = read(IOBuffer(view(t.bytes, (pos+1):length(t.bytes))), T)
-readbuffer(t::Vector{UInt8}, pos::Int, ::Type{T}) where {T} = read(IOBuffer(view(t, (pos+1):length(t))), T)
+readbuffer(t::AbstractVector{UInt8}, pos::Int, ::Type{T}) where {T} = read(IOBuffer(view(t, (pos+1):length(t))), T)
 Base.get(t::TableOrBuilder, pos, ::Type{T}) where {T <: Enum} = T(read(IOBuffer(view(t.bytes, (pos+1):length(t.bytes))), Bytes2Type[sizeof(T)]))
 
 """
@@ -15,8 +15,8 @@ Base.get(t::TableOrBuilder, pos, ::Type{T}) where {T <: Enum} = T(read(IOBuffer(
 Deprecated fields are ignored by checking against the vtable's length.
 """
 function offset(t::Table, vtableoffset)
-    vtable = t.pos - get(t, t.pos, Int32)
-    return vtableoffset < get(t, vtable, Int16) ? get(t, vtable + vtableoffset, Int16) : 0
+	vtable = t.pos - get(t, t.pos, Int32)
+	return vtableoffset < get(t, vtable, Int16) ? get(t, vtable + vtableoffset, Int16) : 0
 end
 
 "`indirect` retrieves the relative offset stored at `offset`."
@@ -40,7 +40,7 @@ function vector(t::Table, off)
 	off += t.pos
 	off += get(t, off, Int32)
 	# data starts after metadata containing the vector length
-    return off + sizeof(Int32)
+	return off + sizeof(Int32)
 end
 
 """
@@ -75,8 +75,8 @@ value(x::T) where {T <: Enum} = length(T.types) == 0 ? Int(x) : getfield(x,1)
 
 Base.write(sink::Builder, o, x::Union{Bool,UInt8}) = sink.bytes[o+1] = UInt8(x)
 function Base.write(sink::Builder, off, x::T) where {T}
-    off += 1
-    for (i,ind) = enumerate(off:(off + sizeof(T) - 1))
+	off += 1
+	for (i,ind) = enumerate(off:(off + sizeof(T) - 1))
 		sink.bytes[ind] = (x >> ((i-1) * 8)) % UInt8
 	end
 end
@@ -95,27 +95,27 @@ Panics if the builder is not in a finished state (which is caused by calling
 `finish!()`).
 """
 function finishedbytes(b::Builder)
-    assertfinished(b)
-    return b.bytes[b.head+1:end]
+	assertfinished(b)
+	return b.bytes[b.head+1:end]
 end
 
-function startobject(b::Builder, numfields)
-    assertnotnested(b)
-    b.nested = true
-    b.vtable = zeros(Int, numfields)
-    b.objectend = offset(b)
-    b.minalign = 1
-    return b
+function startobject(b::Builder, numslots)
+	assertnotnested(b)
+	b.nested = true
+	b.vtable = zeros(Int, numslots)
+	b.objectend = offset(b)
+	b.minalign = 1
+	return b
 end
 
 """
 `endobject` writes data necessary to finish object construction.
 """
-function endobject(b::Builder)
-    assertnested(b)
-    n = writevtable!(b)
-    b.nested = false
-    return n
+function endobject(b::Builder{T}) where {T}
+	assertnested(b)
+	n = writevtable!(b)
+	b.nested = false
+	return n
 end
 
 """
@@ -132,17 +132,17 @@ function prep!(b::Builder, size, additionalbytes)
 	end
 	# Find the amount of alignment needed such that `size` is properly
 	# aligned after `additionalBytes`:
-    alignsize = xor(Int(-1), (length(b.bytes) - b.head) + additionalbytes) + 1
+	alignsize = xor(Int(-1), (length(b.bytes) - b.head) + additionalbytes) + 1
 	alignsize &= (size - 1)
 
 	# Reallocate the buffer if needed:
-    totalsize = alignsize + size + additionalbytes
-    if b.head <= totalsize
-        len = length(b.bytes)
-        prepend!(b.bytes, zeros(UInt8, totalsize))
-        b.head += length(b.bytes) - len
-    end
-    pad!(b, alignsize)
+	totalsize = alignsize + size + additionalbytes
+	if b.head <= totalsize
+		len = length(b.bytes)
+		prepend!(b.bytes, zeros(UInt8, totalsize))
+		b.head += length(b.bytes) - len
+	end
+	pad!(b, alignsize)
 	return
 end
 
@@ -153,7 +153,7 @@ Aligns and checks for space.
 function Base.prepend!(b::Builder, x::T) where {T}
 	prep!(b, sizeof(T), 0)
 	place!(b, x)
-    return
+	return
 end
 
 """
@@ -161,40 +161,33 @@ end
 """
 function place!(b::Builder, x::T) where {T}
 	b.head -= sizeof(T)
-    write(b, b.head, x)
-    return
+	write(b, b.head, x)
+	return
 end
 
 """
 `startvector` initializes bookkeeping for writing a new vector.
 
 A vector has the following format:
-  <UOffsetT: number of elements in this vector>
-  <T: data>+, where T is the type of elements of this vector.
+<UOffsetT: number of elements in this vector>
+<T: data>+, where T is the type of elements of this vector.
 """
 function startvector(b::Builder, elemSize, numElems, alignment)
-    assertnotnested(b)
-    b.nested = true
-    prep!(b, sizeof(UInt32), elemSize * numElems)
-    prep!(b, alignment, elemSize * numElems)
-    return offset(b)
+	assertnotnested(b)
+	b.nested = true
+	prep!(b, sizeof(UInt32), elemSize * numElems)
+	prep!(b, alignment, elemSize * numElems)
+	return offset(b)
 end
 
 """
 `endvector` writes data necessary to finish vector construction.
 """
 function endvector(b::Builder, vectorNumElems)
-    assertnested(b)
-    place!(b, UInt32(vectorNumElems))
-    b.nested = false
-    return offset(b)
-end
-
-if !isdefined(Base, :codeunits)
-	codeunits = Vector{UInt8}
-end
-if !isdefined(Base, :copyto!)
-	copyto! = copy!
+	assertnested(b)
+	place!(b, UInt32(vectorNumElems))
+	b.nested = false
+	return offset(b)
 end
 
 """
@@ -203,16 +196,14 @@ end
 function createstring(b::Builder, s::AbstractString)
 	assertnotnested(b)
 	b.nested = true
-    s = codeunits(s)
-
+	s = codeunits(s)
 	prep!(b, sizeof(UInt32), length(s) + 1)
-    place!(b, UInt8(0))
+	place!(b, UInt8(0))
 
 	l = length(s)
 
 	b.head -= l
-    copyto!(b.bytes, b.head+1, s, 1, l)
-
+	copyto!(b.bytes, b.head+1, s, 1, l)
 	return endvector(b, length(s))
 end
 
@@ -220,7 +211,7 @@ end
 `createbytevector` writes a byte vector
 """
 function createbytevector(b::Builder, v::AbstractVector{UInt8})
-    assertnotnested(b)
+	assertnotnested(b)
 	b.nested = true
 
 	prep!(b, sizeof(UInt32), length(v))
@@ -228,7 +219,7 @@ function createbytevector(b::Builder, v::AbstractVector{UInt8})
 	l = length(v)
 
 	b.head -= l
-    copyto!(b.bytes, b.head+1, v, 1, l)
+	copyto!(b.bytes, b.head+1, v, 1, l)
 
 	return endvector(b, length(v))
 end
@@ -243,15 +234,15 @@ function prependoffset!(b::Builder, off)
 	end
 	off2 = offset(b) - off + sizeof(Int32)
 	place!(b, Int32(off2))
-    return
+	return
 end
 
-function prependoffsetslot!(b::Builder, o::Int, x::T, d::T) where {T}
-	if x != d
+function prependoffsetslot!(b::Builder, o::Int, x::T, d) where {T}
+	if x != T(d)
 		prependoffset!(b, x)
 		slot!(b, o)
 	end
-    return
+	return
 end
 
 """
@@ -259,12 +250,12 @@ end
 If value `x` equals default `d`, then the slot will be set to zero and no
 other data will be written.
 """
-function prependslot!(b::Builder, o::Int, x::T, d::T) where {T}
-	if x != d
+function prependslot!(b::Builder, o::Int, x::T, d) where {T}
+	if x != T(d)
 		prepend!(b, x)
 		slot!(b, o)
 	end
-    return
+	return
 end
 
 """
@@ -280,7 +271,7 @@ function prependstructslot!(b::Builder, voffset, x, d)
 		end
 		slot!(b, voffset)
 	end
-    return
+	return
 end
 
 """
@@ -293,12 +284,17 @@ end
 """
 `finish!` finalizes a buffer, pointing to the given `rootTable`.
 """
-function finish!(b::Builder, rootTable)
+function finish!(b::Builder{T}, rootTable) where {T}
 	assertnotnested(b)
+	identifier = file_identifier(T)
+	n = length(identifier)
 	prep!(b, b.minalign, sizeof(UInt32))
+	for i = 0:(n-1)
+		prepend!(b, UInt8(identifier[n - i]))
+	end
 	prependoffset!(b, Int32(rootTable))
 	b.finished = true
-    return
+	return
 end
 
 function assertnested(b::Builder)
@@ -309,7 +305,7 @@ function assertnested(b::Builder)
 	if !b.nested
 		throw(ArgumentError("Incorrect creation order: must be inside object."))
 	end
-    return
+	return
 end
 
 function assertnotnested(b::Builder)
@@ -324,7 +320,7 @@ function assertnotnested(b::Builder)
 	if b.nested
 		throw(ArgumentError("Incorrect creation order: object must not be nested."))
 	end
-    return
+	return
 end
 
 function assertfinished(b::Builder)
@@ -339,30 +335,30 @@ function assertfinished(b::Builder)
 end
 
 """
- WriteVtable serializes the vtable for the current object, if applicable.
+WriteVtable serializes the vtable for the current object, if applicable.
 
- Before writing out the vtable, this checks pre-existing vtables for equality
- to this one. If an equal vtable is found, point the object to the existing
- vtable and return.
+Before writing out the vtable, this checks pre-existing vtables for equality
+to this one. If an equal vtable is found, point the object to the existing
+vtable and return.
 
- Because vtable values are sensitive to alignment of object data, not all
- logically-equal vtables will be deduplicated.
+Because vtable values are sensitive to alignment of object data, not all
+logically-equal vtables will be deduplicated.
 
- A vtable has the following format:
-   <VOffsetT: size of the vtable in bytes, including this value>
-   <VOffsetT: size of the object in bytes, including the vtable offset>
-   <VOffsetT: offset for a field> * N, where N is the number of fields in
-	        the schema for this type. Includes deprecated fields.
- Thus, a vtable is made of 2 + N elements, each SizeVOffsetT bytes wide.
+A vtable has the following format:
+<VOffsetT: size of the vtable in bytes, including this value>
+<VOffsetT: size of the object in bytes, including the vtable offset>
+<VOffsetT: offset for a field> * N, where N is the number of fields in
+the schema for this type. Includes deprecated fields.
+Thus, a vtable is made of 2 + N elements, each SizeVOffsetT bytes wide.
 
- An object has the following format:
-   <SOffsetT: offset to this object's vtable (may be negative)>
-   <byte: data>+
+An object has the following format:
+<SOffsetT: offset to this object's vtable (may be negative)>
+<byte: data>+
 """
-function writevtable!(b::Builder)
+function writevtable!(b::Builder{T}) where {T}
 	# Prepend a zero scalar to the object. Later in this function we'll
 	# write an offset here that points to the object's vtable:
-    prepend!(b, Int32(0))
+	prepend!(b, Int32(0))
 
 	objectOffset = offset(b)
 	existingVtable = 0
@@ -372,11 +368,11 @@ function writevtable!(b::Builder)
 	# BenchmarkVtableDeduplication for a case in which this heuristic
 	# saves about 30% of the time used in writing objects with duplicate
 	# tables.
-    for i = length(b.vtables):-1:1
+	for i = length(b.vtables):-1:1
 		# Find the other vtable, which is associated with `i`:
 		vt2Offset = b.vtables[i]
 		vt2Start = length(b.bytes) - vt2Offset
-        vt2Len = readbuffer(b.bytes, vt2Start, Int16)
+		vt2Len = readbuffer(b.bytes, vt2Start, Int16)
 
 		metadata = VtableMetadataFields * sizeof(Int16)
 		vt2End = vt2Start + vt2Len
@@ -395,15 +391,14 @@ function writevtable!(b::Builder)
 
 		# Write out the current vtable in reverse , because
 		# serialization occurs in last-first order:
-        for i = length(b.vtable):-1:1
-            off::Int16 = 0
+		for i = length(b.vtable):-1:1
+			off::Int16 = 0
 			if b.vtable[i] != 0
 				# Forward reference to field;
 				# use 32bit number to assert no overflow:
 				off = objectOffset - b.vtable[i]
 			end
-
-			prepend!(b, off)
+			prepend!(b, Int16(off))
 		end
 
 		# The two metadata fields are written last.
@@ -419,7 +414,7 @@ function writevtable!(b::Builder)
 		# Next, write the offset to the new vtable in the
 		# already-allocated SOffsetT at the beginning of this object:
 		objectStart::Int32 = length(b.bytes) - objectOffset
-        write(b, objectStart, Int32(offset(b) - objectOffset))
+		write(b, objectStart, Int32(offset(b) - objectOffset))
 
 		# Finally, store this vtable in memory for future
 		# deduplication:
@@ -432,7 +427,7 @@ function writevtable!(b::Builder)
 
 		# Write the offset to the found vtable in the
 		# already-allocated SOffsetT at the beginning of this object:
-        write(b, b.head, Int32(existingVtable - objectOffset))
+		write(b, b.head, Int32(existingVtable - objectOffset))
 	end
 
 	empty!(b.vtable)
@@ -445,8 +440,8 @@ function vtableEqual(a::Vector{Int}, objectStart, b::AbstractVector{UInt8})
 		return false
 	end
 
-    for i = 0:(length(a)-1)
-        x = read(IOBuffer(view(b, (i * sizeof(Int16) + 1):length(b))), Int16)
+	for i = 0:(length(a)-1)
+		x = read(IOBuffer(view(b, (i * sizeof(Int16) + 1):length(b))), Int16)
 
 		# Skip vtable entries that indicate a default value.
 		x == 0 && a[i+1] == 0 && continue

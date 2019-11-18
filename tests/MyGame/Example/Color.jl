@@ -2,9 +2,19 @@
 
 MyGame.Example.eval(quote
 
-@enum Color::Int8 begin
+#=
+#  Composite components of Monster color.
+=#
+@enum Color::UInt8 begin
     ColorRed = 1
+#=
+#  \brief color Green
+#  Green is bit_flag with value (1u << 1)
+=#
     ColorGreen = 2
+#=
+#  \brief color Blue (1u << 3)
+=#
     ColorBlue = 8
 end
 

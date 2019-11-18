@@ -11,7 +11,7 @@ FlatBuffers.@STRUCT struct Vec3
     test2::Color
     test3::Test
 end
-FlatBuffers.@ALIGN(Vec3, 16)
+FlatBuffers.@ALIGN(Vec3, 8)
 
 Vec3(buf::AbstractVector{UInt8}) = FlatBuffers.read(Vec3, buf)
 Vec3(io::IO) = FlatBuffers.deserialize(io, Vec3)

@@ -4,3 +4,5 @@
 /deps/builds
 /deps/usr
 CMakeLists.txt.user
+docs/build/**
+*~
