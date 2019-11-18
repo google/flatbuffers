@@ -13,6 +13,8 @@ option(FLATBUFFERS_BUILD_FLATLIB "Enable the build of the flatbuffers library"
        ON)
 option(FLATBUFFERS_BUILD_FLATC "Enable the build of the flatbuffers compiler"
        ON)
+option(FLATBUFFERS_STATIC_FLATC "Build flatbuffers compiler with -static flag"
+       OFF)
 option(FLATBUFFERS_BUILD_FLATHASH "Enable the build of flathash" ON)
 option(FLATBUFFERS_BUILD_GRPCTEST "Enable the build of grpctest" OFF)
 option(FLATBUFFERS_BUILD_SHAREDLIB
@@ -294,6 +296,9 @@ if(FLATBUFFERS_BUILD_FLATC)
   if(MSVC)
     # Make flatc.exe not depend on runtime dlls for easy distribution.
     target_compile_options(flatc PUBLIC $<$<CONFIG:Release>:/MT>)
+  endif()
+  if(FLATBUFFERS_STATIC_FLATC AND NOT MSVC)
+    target_link_libraries(flatc PRIVATE -static)
   endif()
 endif()
 
