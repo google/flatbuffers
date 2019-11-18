@@ -2,7 +2,7 @@ using Test
 import FlatBuffers
 
 # generated code
-include(joinpath(@__DIR_, "..", "..", "tests", "MyGame", "MyGame.jl"))
+include(joinpath(@__DIR__, "..", "..", "tests", "monster_test_generated.jl"))
 import .MyGame
 import .MyGame.Example
 import .MyGame.Example2
@@ -10,13 +10,7 @@ import .MyGame.Example.Any_
 import .MyGame.Example.Monster
 import .MyGame.Example.TestSimpleTableWithEnum
 
-# override the typeorder function, since we are working around
-# circular type definitions using type parameters
-FlatBuffers.typeorder(::Type{Any_}, i::Integer) = [Nothing, Monster{Any_}, TestSimpleTableWithEnum, Example2.Monster][i+1]
-
-function loadmonsterfile(filename)
-    open(joinpath(@__DIR__, filename), "r") do f Monster{Any_}(f) end
-end
+loadmonsterfile(filename) = open(joinpath(@__DIR__, filename), "r") do f Monster(f) end
 
 function checkmonster(monster)
     @test monster.hp == 80
@@ -53,11 +47,11 @@ function checkmonster(monster)
 end
 
 function checkpassthrough(monster)
-    b = FlatBuffers.Builder(Monster{Any_})
+    b = FlatBuffers.Builder(Monster)
     FlatBuffers.build!(b, monster)
     bytes = FlatBuffers.bytes(b)
-    @test FlatBuffers.has_identifier(Monster{Any_}, bytes)
-    newmonster = FlatBuffers.read(Monster{Any_}, bytes)
+    @test FlatBuffers.has_identifier(Monster, bytes)
+    newmonster = FlatBuffers.read(Monster, bytes)
     checkmonster(newmonster)
 end
 
@@ -65,7 +59,7 @@ function checkserialize(monster)
     io = IOBuffer()
     FlatBuffers.serialize(io, monster)
     bytes = take!(io)
-    newmonster = FlatBuffers.deserialize(IOBuffer(bytes), Monster{Any_})
+    newmonster = FlatBuffers.deserialize(IOBuffer(bytes), Monster)
     checkmonster(newmonster)
 end
 
@@ -82,7 +76,7 @@ end
 
 # test printing
 mon = loadmonsterfile("monsterdata_test.mon")
-b = FlatBuffers.Builder(Monster{Any_})
+b = FlatBuffers.Builder(Monster)
 FlatBuffers.build!(b, mon)
 io = IOBuffer()
 show(io, b)

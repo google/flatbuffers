@@ -120,6 +120,53 @@ class DepGraph {
   size_t size() { return adj.size(); }
 };
 
+class TypeVariableTable {
+public:
+  std::string GetOrCreate(std::string type_name) {
+    if (variables_.find(type_name) != variables_.end())
+      return (*variables_.find(type_name)).first;
+    variables_[current_name_] = type_name;
+    std::string ret = current_name_;
+    int i = current_name_.length() - 1;
+    while (i >= 0) {
+      if (current_name_[i] == 'Z') {
+        current_name_[i] = 'A';
+        i--;
+        continue;
+      }
+      current_name_[i]++;
+      break;
+    }
+    if (i < 0)
+      current_name_.append("A");
+    return ret;
+  }
+  
+  std::string TypeSignature(bool concrete = false) {
+    std::string signature = "";
+    if (variables_.size() == 0) {
+      return signature;
+    }
+    signature += "{";
+    bool first = true;
+    for (auto it = variables_.begin(); it != variables_.end(); ++it) {
+      if (!first)
+        signature += ", ";
+      signature += concrete ? (*it).second : (*it).first;
+      first = false;
+    }
+    signature += "}";
+    return signature;
+  }
+
+  TypeVariableTable() : current_name_("A") {}
+  ~TypeVariableTable() {}
+  
+private:
+  std::string current_name_;
+  std::map<std::string, std::string> variables_;
+};
+
 class ModuleTable {
  public:
   bool IsModule(const std::string &m) {
@@ -273,7 +320,7 @@ class JuliaGenerator : public BaseGenerator {
   }
 
   // Begin an object declaration.
-  void BeginObject(const StructDef &struct_def, std::string *code_ptr,
+  void BeginObject(TypeVariableTable &vars, const StructDef &struct_def, std::string *code_ptr,
                    bool has_defaults) {
     auto &code = *code_ptr;
     if (has_defaults) code += JuliaPackageName + ".@with_kw ";
@@ -281,7 +328,8 @@ class JuliaGenerator : public BaseGenerator {
       code += "mutable struct ";
     else
       code += JuliaPackageName + ".@STRUCT struct ";
-    code += NormalizedName(struct_def) + "\n";
+    code += NormalizedName(struct_def);
+    code += vars.TypeSignature() + "\n";
   }
 
   void EndObject(const StructDef &struct_def,
@@ -365,13 +413,13 @@ class JuliaGenerator : public BaseGenerator {
 
   static void EndUnion(std::string *code_ptr) { *code_ptr += "))\n\n"; }
 
-  void NewObjectFromBuffer(const StructDef &struct_def, std::string *code_ptr) {
+  void NewObjectFromBuffer(TypeVariableTable &vars, const StructDef &struct_def, std::string *code_ptr) {
     auto &code = *code_ptr;
     code += NormalizedName(struct_def) + "(buf::AbstractVector{UInt8})";
-    code += " = " + JuliaPackageName + ".read(" + NormalizedName(struct_def) +
+    code += " = " + JuliaPackageName + ".read(" + NormalizedName(struct_def) + vars.TypeSignature(true) +
             ", buf)\n";
     code += NormalizedName(struct_def) + "(io::IO) = " + JuliaPackageName;
-    code += ".deserialize(io, " + NormalizedName(struct_def) + ")\n";
+    code += ".deserialize(io, " + NormalizedName(struct_def) + vars.TypeSignature(true) + ")\n";
   }
 
   void GenScalarField(const StructDef &struct_def, const FieldDef &field,
@@ -495,12 +543,19 @@ class JuliaGenerator : public BaseGenerator {
   }
 
   // generate a field which depends upon generated types
-  void GenDependentField(const StructDef &struct_def, const FieldDef &field,
+  void GenDependentField(TypeVariableTable &vars,
+                         const StructDef &struct_def, const FieldDef &field,
                          std::string *code_ptr, bool *has_defaults,
                          std::set<std::string> *imports_ptr) {
-    std::string type_name = GenTypeGet(field.value.type, &struct_def);
-
+    
     BaseType bt = field.value.type.base_type;
+    Type vartype = (bt == BASE_TYPE_VECTOR) ? field.value.type.VectorType() : field.value.type;
+    std::string type_name = GenTypeGet(field.value.type, &struct_def);
+    if (!struct_def.fixed && !IsScalar(vartype.base_type) && vartype.base_type != BASE_TYPE_STRING) {
+      std::string type_variable = vars.GetOrCreate(GenTypeGet(vartype, &struct_def));
+      type_name = (bt == BASE_TYPE_VECTOR) ? "Vector{" + type_variable + "}" : type_variable;
+    }
+    
     if (bt == BASE_TYPE_STRUCT && !struct_def.fixed) {
       type_name = "Union{" + type_name + ", Nothing}";
     }
@@ -533,7 +588,7 @@ class JuliaGenerator : public BaseGenerator {
   }
 
   // Generate a field, conditioned on its child type(s).
-  void GenField(const StructDef &struct_def, const FieldDef &field,
+  void GenField(TypeVariableTable &vars, const StructDef &struct_def, const FieldDef &field,
                 std::string *code_ptr, std::set<std::string> *imports_ptr,
                 bool *has_defaults) {
     GenComment(field.doc_comment, code_ptr, &JuliaCommentConfig);
@@ -547,7 +602,7 @@ class JuliaGenerator : public BaseGenerator {
         case BASE_TYPE_STRUCT:
         case BASE_TYPE_VECTOR:
         case BASE_TYPE_UNION:
-          GenDependentField(struct_def, field, code_ptr, has_defaults,
+          GenDependentField(vars, struct_def, field, code_ptr, has_defaults,
                             imports_ptr);
           break;
         default: FLATBUFFERS_ASSERT(0);
@@ -573,12 +628,13 @@ class JuliaGenerator : public BaseGenerator {
     // generate all the fields
     std::vector<std::string> offsets;
 
+    TypeVariableTable vars;
     GenComment(struct_def.doc_comment, code_ptr, &JuliaCommentConfig);
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
       if (field.deprecated) continue;
-      GenField(struct_def, field, code_ptr, &imports, &has_defaults);
+      GenField(vars, struct_def, field, code_ptr, &imports, &has_defaults);
       offsets.push_back("0x" + IntToStringHex(field.value.offset, 8));
     }
     EndObject(struct_def, offsets, code_ptr);
@@ -586,12 +642,12 @@ class JuliaGenerator : public BaseGenerator {
     // need to call BeginObject after EndObject because we don't know
     // the defaults until we've looked at all the fields.
     std::string struct_begin;
-    BeginObject(struct_def, &struct_begin, has_defaults);
+    BeginObject(vars, struct_def, &struct_begin, has_defaults);
 
     *code_ptr = GenImports(imports) + "\n" + struct_begin + *code_ptr;
 
     // Generate a functions for constructing the object from a buffer
-    NewObjectFromBuffer(struct_def, code_ptr);
+    NewObjectFromBuffer(vars, struct_def, code_ptr);
   }
 
   void GenUnion(const EnumDef &enum_def, std::string *code_ptr) {
@@ -599,12 +655,21 @@ class JuliaGenerator : public BaseGenerator {
 
     std::set<std::string> imports;
     auto union_name = NormalizedName(enum_def);
+    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
+         ++it) {
+      auto &ev = **it;
+      if (ev.name == "NONE") continue;
+      GenComment(ev.doc_comment, code_ptr, &JuliaCommentConfig);
+      std::string val_type = union_name + NormalizedName(ev);
+      *code_ptr += "struct " + val_type + " end\n";
+      std::string type_name = GenTypeGet(ev.union_type, &enum_def);
+      *code_ptr += val_type + "(args...; kwargs...) = " + type_name + "(args...; kwargs...)\n\n";
+    }
     BeginUnion(union_name, code_ptr);
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
          ++it) {
       auto &ev = **it;
-      std::string type_name = GenTypeGet(ev.union_type, &enum_def);
-      GenComment(ev.doc_comment, code_ptr, &JuliaCommentConfig);
+      std::string type_name = ev.name == "NONE" ? GenTypeGet(ev.union_type, &enum_def) : union_name + NormalizedName(ev);
       UnionMember(type_name, code_ptr);
       // special case, instead make every Union a union with Nothing
       if (ev.name == "NONE") continue;
@@ -719,15 +784,14 @@ class JuliaGenerator : public BaseGenerator {
     for (auto it = sorted_children.rbegin(); it != sorted_children.rend();
          ++it) {
       std::string child = *it;
-
+      
       if (included.find(child) != included.end()) continue;
-
-      included.insert(child);
 
       // if this module depends on another module, go and generate that module
       // first
       if (module_table_.IsModule(child)) {
         GenIncludes(child, included, code_ptr);
+        included.insert(child);
         continue;
       }
 
@@ -735,8 +799,10 @@ class JuliaGenerator : public BaseGenerator {
       if (child.find(mod) == std::string::npos ||
           child.length() < (mod.length() + 1) ||
           child.substr(mod.length() + 1).find(kPathSeparator) !=
-              std::string::npos)
+          std::string::npos) {
         continue;
+      }
+      
       // If the file doesn't exist, don't include it
       // TODO: this doesn't allow types which reference each other,
       // but Julia doesn't support this yet anyway
@@ -744,6 +810,8 @@ class JuliaGenerator : public BaseGenerator {
       std::string fullpath = ConCatPathFileName(path_, toinclude);
       if (!module_table_.IsFile(fullpath.c_str())) continue;
       code += "include(\"" + toinclude + "\")\n";
+      
+      included.insert(child);
     }
     return true;
   }

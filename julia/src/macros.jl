@@ -183,7 +183,7 @@ end
 
 function getkwtype(defs, name)
 	for d in defs
-		if :args in propertynames(d) && d.args[1] == name
+		if :args in propertynames(d) && d.args[1] == name && d.args[end] isa Symbol
 			return d.args[end]
 		end
 	end

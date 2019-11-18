@@ -273,6 +273,11 @@ function typetoread(prevfield, ::Type{T}, ::Type{TT}) where {T, TT}
         R = TT.b
     end
 
+    # if it's a self-referential UnionAll, use the more specific type
+    if isa(R, UnionAll) && T <: R
+        R = T
+    end
+
     # if it's a Union type, use the previous arg to figure out the true type that was serialized
     if !isunionwithnothing(R) && R isa Union
         R = typeorder(R, prevfield)
@@ -280,7 +285,7 @@ function typetoread(prevfield, ::Type{T}, ::Type{TT}) where {T, TT}
 
     if R <: AbstractVector
         # hacks! if it's a union all, assume it's because we're working around circular dependencies
-        if isa(eltype(R), UnionAll)
+        if isa(eltype(R), UnionAll) && T <: eltype(R)
             return Vector{T}, false, nullable
         # if it's a vector of Unions, use the previous field to figure out the types of all the elements
         elseif isa(eltype(R), Union)
@@ -289,6 +294,7 @@ function typetoread(prevfield, ::Type{T}, ::Type{TT}) where {T, TT}
             return R, true, nullable
         end
     end
+
     return R, false, nullable
 end
 

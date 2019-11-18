@@ -3,11 +3,20 @@
 MyGame.Example.eval(quote
 
 
+struct AnyAmbiguousAliasesM1 end
+AnyAmbiguousAliasesM1(args...; kwargs...) = Monster(args...; kwargs...)
+
+struct AnyAmbiguousAliasesM2 end
+AnyAmbiguousAliasesM2(args...; kwargs...) = Monster(args...; kwargs...)
+
+struct AnyAmbiguousAliasesM3 end
+AnyAmbiguousAliasesM3(args...; kwargs...) = Monster(args...; kwargs...)
+
 FlatBuffers.@UNION(AnyAmbiguousAliases, (
     Nothing,
-    Monster,
-    Monster,
-    Monster,
+    AnyAmbiguousAliasesM1,
+    AnyAmbiguousAliasesM2,
+    AnyAmbiguousAliasesM3,
 ))
 
 

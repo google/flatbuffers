@@ -4,11 +4,20 @@ MyGame.Example.eval(quote
 
 import ..Example2
 
+struct AnyUniqueAliasesM end
+AnyUniqueAliasesM(args...; kwargs...) = Monster(args...; kwargs...)
+
+struct AnyUniqueAliasesTS end
+AnyUniqueAliasesTS(args...; kwargs...) = TestSimpleTableWithEnum(args...; kwargs...)
+
+struct AnyUniqueAliasesM2 end
+AnyUniqueAliasesM2(args...; kwargs...) = Example2.Monster(args...; kwargs...)
+
 FlatBuffers.@UNION(AnyUniqueAliases, (
     Nothing,
-    Monster,
-    TestSimpleTableWithEnum,
-    Example2.Monster,
+    AnyUniqueAliasesM,
+    AnyUniqueAliasesTS,
+    AnyUniqueAliasesM2,
 ))
 
 

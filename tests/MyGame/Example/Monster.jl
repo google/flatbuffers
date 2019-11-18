@@ -4,28 +4,28 @@ MyGame.Example.eval(quote
 
 import ..InParentNamespace
 
-FlatBuffers.@with_kw mutable struct Monster
+FlatBuffers.@with_kw mutable struct Monster{A, B, C, D, E, F, G, H, I, J, K, L, M}
 #=
 #  an example documentation comment: monster object
 =#
-    pos::Union{Vec3, Nothing} = nothing
+    pos::Union{A, Nothing} = nothing
     mana::Int16 = 150
     hp::Int16 = 100
     name::String = ""
     inventory::Vector{UInt8} = []
     color::Color = 8
     test_type::UInt8 = 0
-    test::Any_ = nothing
-    test4::Vector{Test} = []
+    test::B = nothing
+    test4::Vector{C} = []
     testarrayofstring::Vector{String} = []
 #=
 #  an example documentation comment: this will end up in the generated code
 #  multiline too
 =#
-    testarrayoftables::Vector{Monster} = []
-    enemy::Union{Monster, Nothing} = nothing
+    testarrayoftables::Vector{D} = []
+    enemy::Union{E, Nothing} = nothing
     testnestedflatbuffer::Vector{UInt8} = []
-    testempty::Union{Stat, Nothing} = nothing
+    testempty::Union{F, Nothing} = nothing
     testbool::Bool = false
     testhashs32_fnv1::Int32 = 0
     testhashu32_fnv1::UInt32 = 0
@@ -40,24 +40,24 @@ FlatBuffers.@with_kw mutable struct Monster
     testf2::Float32 = 3.0
     testf3::Float32 = 0.0
     testarrayofstring2::Vector{String} = []
-    testarrayofsortedstruct::Vector{Ability} = []
+    testarrayofsortedstruct::Vector{G} = []
     flex::Vector{UInt8} = []
-    test5::Vector{Test} = []
+    test5::Vector{H} = []
     vector_of_longs::Vector{Int64} = []
     vector_of_doubles::Vector{Float64} = []
-    parent_namespace_test::Union{InParentNamespace, Nothing} = nothing
-    vector_of_referrables::Vector{Referrable} = []
+    parent_namespace_test::Union{I, Nothing} = nothing
+    vector_of_referrables::Vector{J} = []
     single_weak_reference::UInt64 = 0
     vector_of_weak_references::Vector{UInt64} = []
-    vector_of_strong_referrables::Vector{Referrable} = []
+    vector_of_strong_referrables::Vector{K} = []
     co_owning_reference::UInt64 = 0
     vector_of_co_owning_references::Vector{UInt64} = []
     non_owning_reference::UInt64 = 0
     vector_of_non_owning_references::Vector{UInt64} = []
     any_unique_type::UInt8 = 0
-    any_unique::AnyUniqueAliases = nothing
+    any_unique::L = nothing
     any_ambiguous_type::UInt8 = 0
-    any_ambiguous::AnyAmbiguousAliases = nothing
+    any_ambiguous::M = nothing
     vector_of_enums::Vector{Color} = []
     signed_enum::Race = -1
 end
@@ -80,8 +80,8 @@ FlatBuffers.root_type(::Type{T}) where {T<:Monster} = true
 FlatBuffers.file_identifier(::Type{T}) where {T<:Monster} = "MONS"
 FlatBuffers.file_extension(::Type{T}) where {T<:Monster} = "mon"
 
-Monster(buf::AbstractVector{UInt8}) = FlatBuffers.read(Monster, buf)
-Monster(io::IO) = FlatBuffers.deserialize(io, Monster)
+Monster(buf::AbstractVector{UInt8}) = FlatBuffers.read(Monster{Vec3, Any_, Test, Monster, Monster, Stat, Ability, Test, InParentNamespace, Referrable, Referrable, AnyUniqueAliases, AnyAmbiguousAliases}, buf)
+Monster(io::IO) = FlatBuffers.deserialize(io, Monster{Vec3, Any_, Test, Monster, Monster, Stat, Ability, Test, InParentNamespace, Referrable, Referrable, AnyUniqueAliases, AnyAmbiguousAliases})
 
 end)
 

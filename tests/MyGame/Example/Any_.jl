@@ -4,11 +4,20 @@ MyGame.Example.eval(quote
 
 import ..Example2
 
+struct Any_Monster end
+Any_Monster(args...; kwargs...) = Monster(args...; kwargs...)
+
+struct Any_TestSimpleTableWithEnum end
+Any_TestSimpleTableWithEnum(args...; kwargs...) = TestSimpleTableWithEnum(args...; kwargs...)
+
+struct Any_MyGame_Example2_Monster end
+Any_MyGame_Example2_Monster(args...; kwargs...) = Example2.Monster(args...; kwargs...)
+
 FlatBuffers.@UNION(Any_, (
     Nothing,
-    Monster,
-    TestSimpleTableWithEnum,
-    Example2.Monster,
+    Any_Monster,
+    Any_TestSimpleTableWithEnum,
+    Any_MyGame_Example2_Monster,
 ))
 
 
