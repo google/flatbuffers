@@ -895,15 +895,21 @@ class PythonGenerator : public BaseGenerator {
 
     // Merges the typing imports into import_list.
     if (!import_typing_list.empty()) {
-      std::string typing_imports = "from typing import ";
+      std::string typing_imports = "try:";
+      typing_imports += GenIndents(1) + "from typing import ";
       std::string separator_string = ", ";
-      for (auto it = import_typing_list.begin(); it != import_typing_list.end();
-           ++it) {
-        auto im = *it;
+      for (auto im : import_typing_list) {
         typing_imports += im + separator_string;
       }
       // Removes the last separator_string.
       typing_imports.erase(typing_imports.length() - separator_string.size());
+
+      // Adds the except statment.
+      typing_imports += "\n";
+      typing_imports += "except ImportError as error:";
+      typing_imports +=
+          GenIndents(1) +
+          "print(error.__class__.__name__ + \": \" + error.message)";
       import_list->insert(typing_imports);
     }
 

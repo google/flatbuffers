@@ -163,7 +163,10 @@ def TypeAliasesAddVf64(builder, vf64): builder.PrependUOffsetTRelativeSlot(11, f
 def TypeAliasesStartVf64Vector(builder, numElems): return builder.StartVector(8, numElems, 8)
 def TypeAliasesEnd(builder): return builder.EndObject()
 
-from typing import List
+try:
+    from typing import List
+except ImportError as error:
+    print(error.__class__.__name__ + ": " + error.message)
 
 class TypeAliasesT(object):
 

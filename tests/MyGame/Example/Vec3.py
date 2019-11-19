@@ -43,7 +43,10 @@ def CreateVec3(builder, x, y, z, test1, test2, test3_a, test3_b):
     builder.PrependFloat32(x)
     return builder.Offset()
 
-from typing import Optional
+try:
+    from typing import Optional
+except ImportError as error:
+    print(error.__class__.__name__ + ": " + error.message)
 import MyGame.Example.Test
 
 class Vec3T(object):

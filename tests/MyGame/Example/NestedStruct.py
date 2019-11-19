@@ -68,7 +68,10 @@ def CreateNestedStruct(builder, a, b, c, d):
         builder.PrependInt32(a[_idx0-1])
     return builder.Offset()
 
-from typing import List
+try:
+    from typing import List
+except ImportError as error:
+    print(error.__class__.__name__ + ": " + error.message)
 
 class NestedStructT(object):
 

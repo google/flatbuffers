@@ -86,8 +86,10 @@ def CreateArrayStruct(builder, a, b, c, d_a, d_b, d_c, d_d, e, f):
     builder.PrependFloat32(a)
     return builder.Offset()
 
-from typing import List
-import MyGame.Example.NestedStruct
+try:
+    from typing import List
+except ImportError as error:
+    print(error.__class__.__name__ + ": " + error.message)
 
 class ArrayStructT(object):
 
@@ -96,7 +98,7 @@ class ArrayStructT(object):
         self.a = 0.0  # type: float
         self.b = None  # type: List[int]
         self.c = 0  # type: int
-        self.d = None  # type: List[MyGame.Example.NestedStruct.NestedStructT]
+        self.d = None  # type: List[NestedStructT]
         self.e = 0  # type: int
         self.f = None  # type: List[int]
 

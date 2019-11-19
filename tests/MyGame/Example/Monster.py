@@ -787,7 +787,6 @@ def MonsterAddSignedEnum(builder, signedEnum): builder.PrependInt8Slot(48, signe
 def MonsterEnd(builder): return builder.EndObject()
 
 import MyGame.Example.Referrable
-from typing import Union, Optional, List
 import MyGame.Example.AnyAmbiguousAliases
 import MyGame.InParentNamespace
 import MyGame.Example.AnyUniqueAliases
@@ -797,6 +796,10 @@ import MyGame.Example.Ability
 import MyGame.Example.TestSimpleTableWithEnum
 import MyGame.Example2.Monster
 import MyGame.Example.Any
+try:
+    from typing import Union, Optional, List
+except ImportError as error:
+    print(error.__class__.__name__ + ": " + error.message)
 import MyGame.Example.Test
 
 class MonsterT(object):
