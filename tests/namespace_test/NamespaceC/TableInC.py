@@ -23,7 +23,7 @@ class TableInC(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             x = self._tab.Indirect(o + self._tab.Pos)
-            from .TableInFirstNS import TableInFirstNS
+            from NamespaceA.TableInFirstNS import TableInFirstNS
             obj = TableInFirstNS()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -34,7 +34,7 @@ class TableInC(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             x = self._tab.Indirect(o + self._tab.Pos)
-            from .SecondTableInA import SecondTableInA
+            from NamespaceA.SecondTableInA import SecondTableInA
             obj = SecondTableInA()
             obj.Init(self._tab.Bytes, x)
             return obj
