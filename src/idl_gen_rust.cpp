@@ -457,12 +457,12 @@ class RustGenerator : public BaseGenerator {
     // clang-format off
     static const char * const ctypename[] = {
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, \
-                           RTYPE, KTYPE) \
-            #RTYPE,
-        FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
+                           RTYPE, ...) \
+      #RTYPE,
+      FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
-      // clang-format on
     };
+    // clang-format on
 
     if (type.enum_def) { return WrapInNameSpace(*type.enum_def); }
     return ctypename[type.base_type];
@@ -476,15 +476,15 @@ class RustGenerator : public BaseGenerator {
       FLATBUFFERS_ASSERT(false && "precondition failed in GetEnumTypeForDecl");
     }
 
-    static const char *ctypename[] = {
     // clang-format off
+    static const char *ctypename[] = {
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, \
-                           RTYPE, KTYPE) \
-            #RTYPE,
-        FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
+                           RTYPE, ...) \
+      #RTYPE,
+      FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
-      // clang-format on
     };
+    // clang-format on
 
     // Enums can be bools, but their Rust representation must be a u8, as used
     // in the repr attribute (#[repr(bool)] is an invalid attribute).

@@ -142,15 +142,13 @@ class JavaGenerator : public BaseGenerator {
 
   std::string GenTypeBasic(const Type &type) const {
     // clang-format off
-  static const char * const java_typename[] = {
-    #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
+    static const char * const java_typename[] = {
+      #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, ...) \
         #JTYPE,
-      FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
-    #undef FLATBUFFERS_TD
-  };
+        FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
+      #undef FLATBUFFERS_TD
+    };
     // clang-format on
-
     return java_typename[type.base_type];
   }
 
