@@ -470,11 +470,16 @@ int FlatCompiler::Compile(int argc, const char **argv) {
                   params_.generators[i].lang_name + " for " + filebase);
           }
         } else {
-          std::string make_rule = params_.generators[i].make_rule(
-              *parser.get(), output_path, filename);
-          if (!make_rule.empty())
-            printf("%s\n",
-                   flatbuffers::WordWrap(make_rule, 80, " ", " \\").c_str());
+          if (params_.generators[i].make_rule == nullptr) {
+            Error(std::string("Cannot generate make rule for ") +
+                  params_.generators[i].lang_name);
+          } else {
+            std::string make_rule = params_.generators[i].make_rule(
+                *parser.get(), output_path, filename);
+            if (!make_rule.empty())
+              printf("%s\n",
+                     flatbuffers::WordWrap(make_rule, 80, " ", " \\").c_str());
+          }
         }
         if (grpc_enabled) {
           if (params_.generators[i].generateGRPC != nullptr) {
