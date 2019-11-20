@@ -777,7 +777,7 @@ def MonsterAddSignedEnum(builder, signedEnum): builder.PrependInt8Slot(48, signe
 def MonsterEnd(builder): return builder.EndObject()
 
 try:
-    from typing import Union, Optional, List
+    from typing import List, Optional, Union
 except ImportError as error:
     print(error.__class__.__name__ + ": " + error.message)
 

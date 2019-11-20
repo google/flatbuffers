@@ -17,6 +17,7 @@
 // independent from idl_parser, since this code is not needed for most clients
 
 #include <cctype>
+#include <set>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -754,7 +755,7 @@ class PythonGenerator : public BaseGenerator {
 
   void GenUnionInit(const FieldDef &field, std::string *field_types_ptr,
                     std::unordered_set<std::string> *import_list,
-                    std::unordered_set<std::string> *import_typing_list) {
+                    std::set<std::string> *import_typing_list) {
     // Gets all possible types in the union.
     import_typing_list->insert("Union");
     auto &field_types = *field_types_ptr;
@@ -808,7 +809,7 @@ class PythonGenerator : public BaseGenerator {
   void GenStructInit(const FieldDef &field,
                      std::string *field_type_ptr,
                      std::unordered_set<std::string> *import_list,
-                     std::unordered_set<std::string> *import_typing_list) {
+                     std::set<std::string> *import_typing_list) {
     import_typing_list->insert("Optional");
     auto &field_type = *field_type_ptr;
     if (parser_.opts.include_dependence_headers) {
@@ -823,7 +824,7 @@ class PythonGenerator : public BaseGenerator {
 
   void GenVectorInit(const FieldDef &field, std::string *field_type_ptr,
                      std::unordered_set<std::string> *import_list,
-                     std::unordered_set<std::string> *import_typing_list) {
+                     std::set<std::string> *import_typing_list) {
     import_typing_list->insert("List");
     auto &field_type = *field_type_ptr;
     auto base_type = field.value.type.VectorType().base_type;
@@ -846,7 +847,7 @@ class PythonGenerator : public BaseGenerator {
   void GenInitialize(const StructDef &struct_def, std::string *code_ptr,
                      std::unordered_set<std::string> *import_list) {
     std::string code;
-    std::unordered_set<std::string> import_typing_list;
+    std::set<std::string> import_typing_list;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
