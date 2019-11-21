@@ -2319,7 +2319,6 @@ void EvolutionTest() {
     std::string schemas[NUM_VERSIONS];
     std::string jsonfiles[NUM_VERSIONS];
     std::vector<uint8_t> binaries[NUM_VERSIONS];
-    flatbuffers::Verifier *verifiers[NUM_VERSIONS];
 
     flatbuffers::IDLOptions idl_opts;
     idl_opts.lang_to_generate |= flatbuffers::IDLOptions::kBinary;
@@ -2341,26 +2340,25 @@ void EvolutionTest() {
       auto buf = parser.builder_.GetBufferPointer();
       binaries[i].reserve(bufLen);
       std::copy(buf, buf + bufLen, std::back_inserter(binaries[i]));
-
-      verifiers[i] = new flatbuffers::Verifier(&binaries[i].front(), bufLen);
     }
 
     // Assert that all the verifiers for the different schema versions properly verify any version data.
     for (int i = 0; i < NUM_VERSIONS; ++i) {
-      TEST_ASSERT(Evolution::V1::VerifyRootBuffer(*verifiers[i]));
-      TEST_ASSERT(Evolution::V2::VerifyRootBuffer(*verifiers[i]));
+      flatbuffers::Verifier verifier(&binaries[i].front(), binaries[i].size());
+      TEST_ASSERT(Evolution::V1::VerifyRootBuffer(verifier));
+      TEST_ASSERT(Evolution::V2::VerifyRootBuffer(verifier));
     }
 
     // Test backwards compatibility by reading old data with an evolved schema.
     auto root_v1_viewed_from_v2 = Evolution::V2::GetRoot(&binaries[0].front());
     // field 'j' is new in version 2, so it should be null.
-    TEST_EQ(root_v1_viewed_from_v2->j(), NULL);
+    TEST_ASSERT(nullptr == root_v1_viewed_from_v2->j());
     // field 'k' is new in version 2 with a default of 56.
     TEST_EQ(root_v1_viewed_from_v2->k(), 56);
     // field 'c' of 'TableA' is new in version 2, so it should be null.
-    TEST_EQ(root_v1_viewed_from_v2->e()->c(), NULL);
+    TEST_ASSERT(nullptr == root_v1_viewed_from_v2->e()->c());
     // 'TableC' was added to field 'c' union in version 2, so it should be null.
-    TEST_EQ(root_v1_viewed_from_v2->c_as_TableC(), NULL);
+    TEST_ASSERT(nullptr == root_v1_viewed_from_v2->c_as_TableC());
     // The field 'c' union should be of type 'TableB' regardless of schema version
     TEST_ASSERT(root_v1_viewed_from_v2->c_type() == Evolution::V2::Union::TableB);
     // The field 'f' was renamed to 'ff' in version 2, it should still be readable.
