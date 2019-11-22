@@ -788,21 +788,21 @@ def MonsterStartVectorOfEnumsVector(builder, numElems): return builder.StartVect
 def MonsterAddSignedEnum(builder, signedEnum): builder.PrependInt8Slot(48, signedEnum, -1)
 def MonsterEnd(builder): return builder.EndObject()
 
+import MyGame.Example.Ability
+import MyGame.Example.Any
+import MyGame.Example.AnyAmbiguousAliases
+import MyGame.Example.AnyUniqueAliases
+import MyGame.Example.Referrable
+import MyGame.Example.Stat
+import MyGame.Example.Test
+import MyGame.Example.TestSimpleTableWithEnum
+import MyGame.Example.Vec3
+import MyGame.Example2.Monster
+import MyGame.InParentNamespace
 try:
     from typing import List, Optional, Union
 except ImportError as error:
     print(error.__class__.__name__ + ": " + error.message)
-import MyGame.Example.Referrable
-import MyGame.Example.AnyAmbiguousAliases
-import MyGame.InParentNamespace
-import MyGame.Example.AnyUniqueAliases
-import MyGame.Example.Stat
-import MyGame.Example.Vec3
-import MyGame.Example.Ability
-import MyGame.Example.TestSimpleTableWithEnum
-import MyGame.Example2.Monster
-import MyGame.Example.Any
-import MyGame.Example.Test
 
 class MonsterT(object):
 

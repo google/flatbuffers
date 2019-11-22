@@ -754,7 +754,7 @@ class PythonGenerator : public BaseGenerator {
   }
 
   void GenUnionInit(const FieldDef &field, std::string *field_types_ptr,
-                    std::unordered_set<std::string> *import_list,
+                    std::set<std::string> *import_list,
                     std::set<std::string> *import_typing_list) {
     // Gets all possible types in the union.
     import_typing_list->insert("Union");
@@ -808,7 +808,7 @@ class PythonGenerator : public BaseGenerator {
 
   void GenStructInit(const FieldDef &field,
                      std::string *field_type_ptr,
-                     std::unordered_set<std::string> *import_list,
+                     std::set<std::string> *import_list,
                      std::set<std::string> *import_typing_list) {
     import_typing_list->insert("Optional");
     auto &field_type = *field_type_ptr;
@@ -823,7 +823,7 @@ class PythonGenerator : public BaseGenerator {
   }
 
   void GenVectorInit(const FieldDef &field, std::string *field_type_ptr,
-                     std::unordered_set<std::string> *import_list,
+                     std::set<std::string> *import_list,
                      std::set<std::string> *import_typing_list) {
     import_typing_list->insert("List");
     auto &field_type = *field_type_ptr;
@@ -845,7 +845,7 @@ class PythonGenerator : public BaseGenerator {
   }
 
   void GenInitialize(const StructDef &struct_def, std::string *code_ptr,
-                     std::unordered_set<std::string> *import_list) {
+                     std::set<std::string> *import_list) {
     std::string code;
     std::set<std::string> import_typing_list;
     for (auto it = struct_def.fields.vec.begin();
@@ -1090,7 +1090,7 @@ class PythonGenerator : public BaseGenerator {
   void GenUnPack(const StructDef &struct_def, std::string *code_ptr) {
     std::string code;
     // Items that needs to be imported. No duplicate modules will be imported.
-    std::unordered_set<std::string> import_list;
+    std::set<std::string> import_list;
 
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
@@ -1136,7 +1136,7 @@ class PythonGenerator : public BaseGenerator {
     code_base += GenIndents(3) + "return";
 
     // Write the import statements.
-    for (std::unordered_set<std::string>::iterator it = import_list.begin();
+    for (std::set<std::string>::iterator it = import_list.begin();
          it != import_list.end(); ++it) {
       code_base += GenIndents(2) + *it;
     }
@@ -1428,7 +1428,7 @@ class PythonGenerator : public BaseGenerator {
                              std::string *code_ptr) {
     if (struct_def.generated) return;
 
-    std::unordered_set<std::string> import_list;
+    std::set<std::string> import_list;
     std::string code;
 
     // Creates an object class for a struct or a table
@@ -1509,6 +1509,7 @@ class PythonGenerator : public BaseGenerator {
           break;
         case BASE_TYPE_STRING:
           GenUnionCreatorForString(enum_def, ev, &code);
+          break;
         default:
           break;
       }

@@ -39,11 +39,11 @@ def ArrayTableStart(builder): builder.StartObject(1)
 def ArrayTableAddA(builder, a): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(a), 0)
 def ArrayTableEnd(builder): return builder.EndObject()
 
+import MyGame.Example.ArrayStruct
 try:
     from typing import Optional
 except ImportError as error:
     print(error.__class__.__name__ + ": " + error.message)
-import MyGame.Example.ArrayStruct
 
 class ArrayTableT(object):
 
