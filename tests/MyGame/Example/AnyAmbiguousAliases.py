@@ -14,9 +14,12 @@ def AnyAmbiguousAliasesCreator(unionType, table):
     if not isinstance(table, Table):
         return None
     if unionType == AnyAmbiguousAliases().M1:
-        return MonsterT.InitFromBuf(table.Bytes, table.Pos)
+        import MyGame.Example.Monster
+        return MyGame.Example.Monster.MonsterT.InitFromBuf(table.Bytes, table.Pos)
     if unionType == AnyAmbiguousAliases().M2:
-        return MonsterT.InitFromBuf(table.Bytes, table.Pos)
+        import MyGame.Example.Monster
+        return MyGame.Example.Monster.MonsterT.InitFromBuf(table.Bytes, table.Pos)
     if unionType == AnyAmbiguousAliases().M3:
-        return MonsterT.InitFromBuf(table.Bytes, table.Pos)
+        import MyGame.Example.Monster
+        return MyGame.Example.Monster.MonsterT.InitFromBuf(table.Bytes, table.Pos)
     return None

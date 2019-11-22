@@ -3,6 +3,8 @@
 # namespace: Example2
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class Monster(object):
     __slots__ = ['_tab']

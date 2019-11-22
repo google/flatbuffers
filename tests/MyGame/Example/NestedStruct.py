@@ -3,6 +3,8 @@
 # namespace: Example
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class NestedStruct(object):
     __slots__ = ['_tab']
@@ -99,18 +101,27 @@ class NestedStructT(object):
         if nestedStruct is None:
             return
         if not nestedStruct.AIsNone():
-            self.a = []
-            for i in range(nestedStruct.ALength()):
-                self.a.append(nestedStruct.A(i))
+            if np is None:
+                self.a = []
+                for i in range(nestedStruct.ALength()):
+                    self.a.append(nestedStruct.A(i))
+            else:
+                self.a = nestedStruct.AAsNumpy()
         self.b = nestedStruct.B()
         if not nestedStruct.CIsNone():
-            self.c = []
-            for i in range(nestedStruct.CLength()):
-                self.c.append(nestedStruct.C(i))
+            if np is None:
+                self.c = []
+                for i in range(nestedStruct.CLength()):
+                    self.c.append(nestedStruct.C(i))
+            else:
+                self.c = nestedStruct.CAsNumpy()
         if not nestedStruct.DIsNone():
-            self.d = []
-            for i in range(nestedStruct.DLength()):
-                self.d.append(nestedStruct.D(i))
+            if np is None:
+                self.d = []
+                for i in range(nestedStruct.DLength()):
+                    self.d.append(nestedStruct.D(i))
+            else:
+                self.d = nestedStruct.DAsNumpy()
 
     # NestedStructT
     def Pack(self, builder):

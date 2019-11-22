@@ -3,6 +3,8 @@
 # namespace: Example
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class Vec3(object):
     __slots__ = ['_tab']
@@ -47,6 +49,7 @@ try:
     from typing import Optional
 except ImportError as error:
     print(error.__class__.__name__ + ": " + error.message)
+import MyGame.Example.Test
 
 class Vec3T(object):
 
@@ -57,7 +60,7 @@ class Vec3T(object):
         self.z = 0.0  # type: float
         self.test1 = 0.0  # type: float
         self.test2 = 0  # type: int
-        self.test3 = None  # type: Optional[TestT]
+        self.test3 = None  # type: Optional[MyGame.Example.Test.TestT]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -80,8 +83,8 @@ class Vec3T(object):
         self.z = vec3.Z()
         self.test1 = vec3.Test1()
         self.test2 = vec3.Test2()
-        if vec3.Test3(Test()) is not None:
-            self.test3 = TestT.InitFromObj(vec3.Test3(Test()))
+        if vec3.Test3(MyGame.Example.Test.Test()) is not None:
+            self.test3 = MyGame.Example.Test.TestT.InitFromObj(vec3.Test3(MyGame.Example.Test.Test()))
 
     # Vec3T
     def Pack(self, builder):

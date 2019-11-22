@@ -3,6 +3,8 @@
 # namespace: MyGame
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class MonsterExtra(object):
     __slots__ = ['_tab']
@@ -192,13 +194,19 @@ class MonsterExtraT(object):
         self.f2 = monsterExtra.F2()
         self.f3 = monsterExtra.F3()
         if not monsterExtra.DvecIsNone():
-            self.dvec = []
-            for i in range(monsterExtra.DvecLength()):
-                self.dvec.append(monsterExtra.Dvec(i))
+            if np is None:
+                self.dvec = []
+                for i in range(monsterExtra.DvecLength()):
+                    self.dvec.append(monsterExtra.Dvec(i))
+            else:
+                self.dvec = monsterExtra.DvecAsNumpy()
         if not monsterExtra.FvecIsNone():
-            self.fvec = []
-            for i in range(monsterExtra.FvecLength()):
-                self.fvec.append(monsterExtra.Fvec(i))
+            if np is None:
+                self.fvec = []
+                for i in range(monsterExtra.FvecLength()):
+                    self.fvec.append(monsterExtra.Fvec(i))
+            else:
+                self.fvec = monsterExtra.FvecAsNumpy()
 
     # MonsterExtraT
     def Pack(self, builder):

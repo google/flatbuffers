@@ -14,9 +14,12 @@ def AnyCreator(unionType, table):
     if not isinstance(table, Table):
         return None
     if unionType == Any().Monster:
-        return MonsterT.InitFromBuf(table.Bytes, table.Pos)
+        import MyGame.Example.Monster
+        return MyGame.Example.Monster.MonsterT.InitFromBuf(table.Bytes, table.Pos)
     if unionType == Any().TestSimpleTableWithEnum:
-        return TestSimpleTableWithEnumT.InitFromBuf(table.Bytes, table.Pos)
+        import MyGame.Example.TestSimpleTableWithEnum
+        return MyGame.Example.TestSimpleTableWithEnum.TestSimpleTableWithEnumT.InitFromBuf(table.Bytes, table.Pos)
     if unionType == Any().MyGame_Example2_Monster:
-        return MonsterT.InitFromBuf(table.Bytes, table.Pos)
+        import MyGame.Example2.Monster
+        return MyGame.Example2.Monster.MonsterT.InitFromBuf(table.Bytes, table.Pos)
     return None

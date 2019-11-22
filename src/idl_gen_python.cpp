@@ -1034,6 +1034,22 @@ class PythonGenerator : public BaseGenerator {
             one_instance + ")";
   }
 
+  void GenUnpackforScalarVectorHelper(const StructDef &struct_def,
+                                      const FieldDef &field,
+                                      std::string *code_ptr, int indents) {
+    auto &code = *code_ptr;
+    auto field_instance_name = MakeLowerCamel(field);
+    auto field_accessor_name = MakeUpperCamel(field);
+    auto struct_instance_name = MakeLowerCamel(struct_def);
+
+    code += GenIndents(indents) + "self." + field_instance_name + " = []";
+    code += GenIndents(indents) + "for i in range(" + struct_instance_name +
+            "." + field_accessor_name + "Length()):";
+    code += GenIndents(indents + 1) + "self." + field_instance_name +
+            ".append(" + struct_instance_name + "." + field_accessor_name +
+            "(i))";
+  }
+
   void GenUnPackForScalarVector(const StructDef &struct_def,
                                 const FieldDef &field, std::string *code_ptr) {
     auto &code = *code_ptr;
@@ -1043,11 +1059,20 @@ class PythonGenerator : public BaseGenerator {
 
     code += GenIndents(2) + "if not " + struct_instance_name + "." +
             field_accessor_name + "IsNone():";
-    code += GenIndents(3) + "self." + field_instance_name + " = []";
-    code += GenIndents(3) + "for i in range(" + struct_instance_name + "." +
-            field_accessor_name + "Length()):";
-    code += GenIndents(4) + "self." + field_instance_name + ".append(" +
-            struct_instance_name + "." + field_accessor_name + "(i))";
+
+    // String does not have the AsNumpy method.
+    if (!(IsScalar(field.value.type.VectorType().base_type))) {
+      GenUnpackforScalarVectorHelper(struct_def, field, code_ptr, 3);
+      return;
+    }
+
+    code += GenIndents(3) + "if np is None:";
+    GenUnpackforScalarVectorHelper(struct_def, field, code_ptr, 4);
+
+    // If numpy exists, use the AsNumpy method to optimize the unpack speed.
+    code += GenIndents(3) + "else:";
+    code += GenIndents(4) + "self." + field_instance_name + " = " +
+            struct_instance_name + "." + field_accessor_name + "AsNumpy()";
   }
 
   void GenUnPackForScalar(const StructDef &struct_def, const FieldDef &field,
@@ -1613,7 +1638,11 @@ class PythonGenerator : public BaseGenerator {
     auto &code = *code_ptr;
     code = code + "# " + FlatBuffersGeneratedWarning() + "\n\n";
     code += "# namespace: " + name_space_name + "\n\n";
-    if (needs_imports) { code += "import flatbuffers\n\n"; }
+    if (needs_imports) {
+      code += "import flatbuffers\n";
+      code += "from flatbuffers.compat import import_numpy\n";
+      code += "np = import_numpy()\n\n";
+    }
   }
 
   // Save out the generated code for a Python Table type.

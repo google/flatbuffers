@@ -3,6 +3,8 @@
 # namespace: Example
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class TestSimpleTableWithEnum(object):
     __slots__ = ['_tab']

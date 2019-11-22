@@ -3,6 +3,8 @@
 # namespace: NamespaceA
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class TableInFirstNS(object):
     __slots__ = ['_tab']

@@ -14,9 +14,12 @@ def AnyUniqueAliasesCreator(unionType, table):
     if not isinstance(table, Table):
         return None
     if unionType == AnyUniqueAliases().M:
-        return MonsterT.InitFromBuf(table.Bytes, table.Pos)
+        import MyGame.Example.Monster
+        return MyGame.Example.Monster.MonsterT.InitFromBuf(table.Bytes, table.Pos)
     if unionType == AnyUniqueAliases().TS:
-        return TestSimpleTableWithEnumT.InitFromBuf(table.Bytes, table.Pos)
+        import MyGame.Example.TestSimpleTableWithEnum
+        return MyGame.Example.TestSimpleTableWithEnum.TestSimpleTableWithEnumT.InitFromBuf(table.Bytes, table.Pos)
     if unionType == AnyUniqueAliases().M2:
-        return MonsterT.InitFromBuf(table.Bytes, table.Pos)
+        import MyGame.Example2.Monster
+        return MyGame.Example2.Monster.MonsterT.InitFromBuf(table.Bytes, table.Pos)
     return None

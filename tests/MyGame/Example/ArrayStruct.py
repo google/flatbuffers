@@ -3,6 +3,8 @@
 # namespace: Example
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class ArrayStruct(object):
     __slots__ = ['_tab']
@@ -90,6 +92,7 @@ try:
     from typing import List
 except ImportError as error:
     print(error.__class__.__name__ + ": " + error.message)
+import MyGame.Example.NestedStruct
 
 class ArrayStructT(object):
 
@@ -98,7 +101,7 @@ class ArrayStructT(object):
         self.a = 0.0  # type: float
         self.b = None  # type: List[int]
         self.c = 0  # type: int
-        self.d = None  # type: List[NestedStructT]
+        self.d = None  # type: List[MyGame.Example.NestedStruct.NestedStructT]
         self.e = 0  # type: int
         self.f = None  # type: List[int]
 
@@ -120,9 +123,12 @@ class ArrayStructT(object):
             return
         self.a = arrayStruct.A()
         if not arrayStruct.BIsNone():
-            self.b = []
-            for i in range(arrayStruct.BLength()):
-                self.b.append(arrayStruct.B(i))
+            if np is None:
+                self.b = []
+                for i in range(arrayStruct.BLength()):
+                    self.b.append(arrayStruct.B(i))
+            else:
+                self.b = arrayStruct.BAsNumpy()
         self.c = arrayStruct.C()
         if not arrayStruct.DIsNone():
             self.d = []
@@ -130,9 +136,12 @@ class ArrayStructT(object):
                 self.d.append(arrayStruct.D(i))
         self.e = arrayStruct.E()
         if not arrayStruct.FIsNone():
-            self.f = []
-            for i in range(arrayStruct.FLength()):
-                self.f.append(arrayStruct.F(i))
+            if np is None:
+                self.f = []
+                for i in range(arrayStruct.FLength()):
+                    self.f.append(arrayStruct.F(i))
+            else:
+                self.f = arrayStruct.FAsNumpy()
 
     # ArrayStructT
     def Pack(self, builder):

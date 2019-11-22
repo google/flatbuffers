@@ -3,6 +3,8 @@
 # namespace: Example
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class TypeAliases(object):
     __slots__ = ['_tab']
@@ -212,13 +214,19 @@ class TypeAliasesT(object):
         self.f32 = typeAliases.F32()
         self.f64 = typeAliases.F64()
         if not typeAliases.V8IsNone():
-            self.v8 = []
-            for i in range(typeAliases.V8Length()):
-                self.v8.append(typeAliases.V8(i))
+            if np is None:
+                self.v8 = []
+                for i in range(typeAliases.V8Length()):
+                    self.v8.append(typeAliases.V8(i))
+            else:
+                self.v8 = typeAliases.V8AsNumpy()
         if not typeAliases.Vf64IsNone():
-            self.vf64 = []
-            for i in range(typeAliases.Vf64Length()):
-                self.vf64.append(typeAliases.Vf64(i))
+            if np is None:
+                self.vf64 = []
+                for i in range(typeAliases.Vf64Length()):
+                    self.vf64.append(typeAliases.Vf64(i))
+            else:
+                self.vf64 = typeAliases.Vf64AsNumpy()
 
     # TypeAliasesT
     def Pack(self, builder):

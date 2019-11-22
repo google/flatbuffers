@@ -3,6 +3,8 @@
 # namespace: NamespaceC
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class TableInC(object):
     __slots__ = ['_tab']

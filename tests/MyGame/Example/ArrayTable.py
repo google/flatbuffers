@@ -3,6 +3,8 @@
 # namespace: Example
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class ArrayTable(object):
     __slots__ = ['_tab']
@@ -27,6 +29,7 @@ class ArrayTable(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             x = o + self._tab.Pos
+            from MyGame.Example.ArrayStruct import ArrayStruct
             obj = ArrayStruct()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -40,12 +43,13 @@ try:
     from typing import Optional
 except ImportError as error:
     print(error.__class__.__name__ + ": " + error.message)
+import MyGame.Example.ArrayStruct
 
 class ArrayTableT(object):
 
     # ArrayTableT
     def __init__(self):
-        self.a = None  # type: Optional[ArrayStructT]
+        self.a = None  # type: Optional[MyGame.Example.ArrayStruct.ArrayStructT]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -64,7 +68,7 @@ class ArrayTableT(object):
         if arrayTable is None:
             return
         if arrayTable.A() is not None:
-            self.a = ArrayStructT.InitFromObj(arrayTable.A())
+            self.a = MyGame.Example.ArrayStruct.ArrayStructT.InitFromObj(arrayTable.A())
 
     # ArrayTableT
     def Pack(self, builder):
