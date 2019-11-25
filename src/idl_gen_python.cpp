@@ -667,15 +667,15 @@ class PythonGenerator : public BaseGenerator {
   }
 
   std::string GenTypeBasic(const Type &type) {
-    static const char *ctypename[] = {
     // clang-format off
+    static const char *ctypename[] = {
       #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
+              CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, ...) \
         #PTYPE,
         FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
       #undef FLATBUFFERS_TD
-      // clang-format on
     };
+    // clang-format on
     return ctypename[IsArray(type) ? type.VectorType().base_type
                                    : type.base_type];
   }
