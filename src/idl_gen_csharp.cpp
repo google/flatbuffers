@@ -119,11 +119,10 @@ class CSharpGenerator : public BaseGenerator {
   std::string GenTypeBasic(const Type &type, bool enableLangOverrides) const {
     // clang-format off
     static const char * const csharp_typename[] = {
-    #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
+      #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, ...) \
         #NTYPE,
-      FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
-    #undef FLATBUFFERS_TD
+        FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
+      #undef FLATBUFFERS_TD
     };
     // clang-format on
 

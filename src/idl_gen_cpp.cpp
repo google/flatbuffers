@@ -545,11 +545,10 @@ class CppGenerator : public BaseGenerator {
   std::string GenTypeBasic(const Type &type, bool user_facing_type) const {
     // clang-format off
     static const char *const ctypename[] = {
-    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, \
-                           RTYPE, KTYPE) \
-            #CTYPE,
+      #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
+        #CTYPE,
         FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
-    #undef FLATBUFFERS_TD
+      #undef FLATBUFFERS_TD
     };
     // clang-format on
     if (user_facing_type) {

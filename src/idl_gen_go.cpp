@@ -1162,15 +1162,14 @@ class GoGenerator : public BaseGenerator {
   }
 
   std::string GenTypeBasic(const Type &type) {
-    static const char *ctypename[] = {
     // clang-format off
-      #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
+    static const char *ctypename[] = {
+      #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, ...) \
         #GTYPE,
         FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
       #undef FLATBUFFERS_TD
-      // clang-format on
     };
+    // clang-format on
     return ctypename[type.base_type];
   }
 

@@ -37,26 +37,22 @@ const char *FLATBUFFERS_VERSION() {
 
 const double kPi = 3.14159265358979323846;
 
-const char *const kTypeNames[] = {
 // clang-format off
-  #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-    CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
+const char *const kTypeNames[] = {
+  #define FLATBUFFERS_TD(ENUM, IDLTYPE, ...) \
     IDLTYPE,
     FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
   #undef FLATBUFFERS_TD
-  // clang-format on
   nullptr
 };
 
 const char kTypeSizes[] = {
-// clang-format off
-  #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-      CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
-      sizeof(CTYPE),
+  #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
+    sizeof(CTYPE),
     FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
   #undef FLATBUFFERS_TD
-  // clang-format on
 };
+// clang-format on
 
 // The enums in the reflection schema should match the ones we use internally.
 // Compare the last element to check if these go out of sync.
@@ -222,8 +218,7 @@ static std::string TokenToString(int t) {
     #define FLATBUFFERS_TOKEN(NAME, VALUE, STRING) STRING,
       FLATBUFFERS_GEN_TOKENS(FLATBUFFERS_TOKEN)
     #undef FLATBUFFERS_TOKEN
-    #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-      CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
+    #define FLATBUFFERS_TD(ENUM, IDLTYPE, ...) \
       IDLTYPE,
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
@@ -1179,8 +1174,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
           size == SizeOf(field_value.type.base_type)) {
         switch (field_value.type.base_type) {
           // clang-format off
-          #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
+          #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
             case BASE_TYPE_ ## ENUM: \
               builder_.Pad(field->padding); \
               if (struct_def.fixed) { \
@@ -1194,10 +1188,9 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
                 builder_.AddElement(field_value.offset, val, valdef); \
               } \
               break;
-            FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD);
+            FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
           #undef FLATBUFFERS_TD
-          #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
+          #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
             case BASE_TYPE_ ## ENUM: \
               builder_.Pad(field->padding); \
               if (IsStruct(field->value.type)) { \
@@ -1208,7 +1201,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
                 builder_.AddOffset(field_value.offset, val); \
               } \
               break;
-            FLATBUFFERS_GEN_TYPES_POINTER(FLATBUFFERS_TD);
+            FLATBUFFERS_GEN_TYPES_POINTER(FLATBUFFERS_TD)
           #undef FLATBUFFERS_TD
             case BASE_TYPE_ARRAY:
               builder_.Pad(field->padding);
@@ -1258,8 +1251,7 @@ CheckedError Parser::ParseVectorDelimiters(uoffset_t &count, F body) {
 
 static bool CompareType(const uint8_t *a, const uint8_t *b, BaseType ftype) {
   switch (ftype) {
-#define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, \
-                       RTYPE, KTYPE)                                     \
+#define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
   case BASE_TYPE_##ENUM: return ReadScalar<CTYPE>(a) < ReadScalar<CTYPE>(b);
     FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
 #undef FLATBUFFERS_TD
@@ -1314,8 +1306,7 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
     auto &val = field_stack_.back().first;
     switch (val.type.base_type) {
       // clang-format off
-      #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
+      #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE,...) \
         case BASE_TYPE_ ## ENUM: \
           if (IsStruct(val.type)) SerializeStruct(*val.type.struct_def, val); \
           else { \
@@ -1429,8 +1420,7 @@ CheckedError Parser::ParseArray(Value &array) {
     auto &val = *it;
     // clang-format off
     switch (val.type.base_type) {
-      #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
+      #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
         case BASE_TYPE_ ## ENUM: \
           if (IsStruct(val.type)) { \
             SerializeStruct(builder, *val.type.struct_def, val); \
@@ -1782,14 +1772,13 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
   if (check_now && IsScalar(match_type)) {
     // clang-format off
     switch (match_type) {
-    #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
-            case BASE_TYPE_ ## ENUM: {\
-                CTYPE val; \
-                ECHECK(atot(e.constant.c_str(), *this, &val)); \
-                SingleValueRepack(e, val); \
-              break; }
-    FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD);
+    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
+      case BASE_TYPE_ ## ENUM: {\
+          CTYPE val; \
+          ECHECK(atot(e.constant.c_str(), *this, &val)); \
+          SingleValueRepack(e, val); \
+        break; }
+    FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
     default: break;
     }
@@ -2018,13 +2007,12 @@ struct EnumValBuilder {
   FLATBUFFERS_CHECKED_ERROR ValidateValue(int64_t *ev, bool next) {
     // clang-format off
     switch (enum_def.underlying_type.base_type) {
-    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE,   \
-                           PTYPE, RTYPE, KTYPE)                         \
+    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...)                   \
       case BASE_TYPE_##ENUM: {                                          \
         if (!IsInteger(BASE_TYPE_##ENUM)) break;                        \
         return ValidateImpl<BASE_TYPE_##ENUM, CTYPE>(ev, next ? 1 : 0); \
       }
-      FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD);
+      FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
     default: break;
     }
