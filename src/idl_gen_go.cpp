@@ -81,13 +81,13 @@ class GoGenerator : public BaseGenerator {
       tracked_imported_namespaces_.clear();
       needs_imports = false;
       std::string enumcode;
+      GenEnum(**it, &enumcode);
       if ((*it)->is_union && parser_.opts.generate_object_based_api) {
         GenNativeUnion(**it, &enumcode);
         GenNativeUnionPack(**it, &enumcode);
         GenNativeUnionUnPack(**it, &enumcode);
         needs_imports = true;
       }
-      GenEnum(**it, &enumcode);
       if (parser_.opts.one_file) {
         one_file_code += enumcode;
       } else {
