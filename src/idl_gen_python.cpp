@@ -910,10 +910,8 @@ class PythonGenerator : public BaseGenerator {
 
       // Adds the except statement.
       typing_imports += "\n";
-      typing_imports += "except ImportError as error:";
-      typing_imports +=
-          GenIndents(1) +
-          "print(error.__class__.__name__ + \": \" + error.message)";
+      typing_imports += "except:";
+      typing_imports += GenIndents(1) + "pass";
       import_list->insert(typing_imports);
     }
 

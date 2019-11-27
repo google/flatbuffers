@@ -167,8 +167,8 @@ def TypeAliasesEnd(builder): return builder.EndObject()
 
 try:
     from typing import List
-except ImportError as error:
-    print(error.__class__.__name__ + ": " + error.message)
+except:
+    pass
 
 class TypeAliasesT(object):
 

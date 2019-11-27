@@ -801,8 +801,8 @@ import MyGame.Example2.Monster
 import MyGame.InParentNamespace
 try:
     from typing import List, Optional, Union
-except ImportError as error:
-    print(error.__class__.__name__ + ": " + error.message)
+except:
+    pass
 
 class MonsterT(object):
 

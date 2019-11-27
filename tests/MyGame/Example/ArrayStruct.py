@@ -91,8 +91,8 @@ def CreateArrayStruct(builder, a, b, c, d_a, d_b, d_c, d_d, e, f):
 import MyGame.Example.NestedStruct
 try:
     from typing import List
-except ImportError as error:
-    print(error.__class__.__name__ + ": " + error.message)
+except:
+    pass
 
 class ArrayStructT(object):
 

@@ -42,8 +42,8 @@ def ArrayTableEnd(builder): return builder.EndObject()
 import MyGame.Example.ArrayStruct
 try:
     from typing import Optional
-except ImportError as error:
-    print(error.__class__.__name__ + ": " + error.message)
+except:
+    pass
 
 class ArrayTableT(object):
 

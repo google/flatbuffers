@@ -72,8 +72,8 @@ def CreateNestedStruct(builder, a, b, c, d):
 
 try:
     from typing import List
-except ImportError as error:
-    print(error.__class__.__name__ + ": " + error.message)
+except:
+    pass
 
 class NestedStructT(object):
 
