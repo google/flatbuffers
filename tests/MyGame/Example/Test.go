@@ -6,6 +6,27 @@ import (
 	flatbuffers "github.com/google/flatbuffers/go"
 )
 
+type TestT struct {
+	A int16
+	B int8
+}
+
+func TestPack(builder *flatbuffers.Builder, t *TestT) flatbuffers.UOffsetT {
+	if t == nil { return 0 }
+	return CreateTest(builder, t.A, t.B)
+}
+func (rcv *Test) UnPackTo(t *TestT) {
+	t.A = rcv.A()
+	t.B = rcv.B()
+}
+
+func (rcv *Test) UnPack() *TestT {
+	if rcv == nil { return nil }
+	t := &TestT{}
+	rcv.UnPackTo(t)
+	return t
+}
+
 type Test struct {
 	_tab flatbuffers.Struct
 }

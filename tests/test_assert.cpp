@@ -12,8 +12,8 @@ static TestFailEventListener fail_listener_ = nullptr;
 
 void TestFail(const char *expval, const char *val, const char *exp,
               const char *file, int line, const char *func) {
-  TEST_OUTPUT_LINE("VALUE: \"%s\"", expval);
-  TEST_OUTPUT_LINE("EXPECTED: \"%s\"", val);
+  TEST_OUTPUT_LINE("EXPECTED: \"%s\"", expval);
+  TEST_OUTPUT_LINE("VALUE: \"%s\"", val);
   TEST_OUTPUT_LINE("TEST FAILED: %s:%d, %s in %s", file, line, exp,
                    func ? func : "");
   testing_fails++;
@@ -25,13 +25,13 @@ void TestFail(const char *expval, const char *val, const char *exp,
 }
 
 void TestEqStr(const char *expval, const char *val, const char *exp,
-               const char *file, int line) {
-  if (strcmp(expval, val) != 0) { TestFail(expval, val, exp, file, line); }
+               const char *file, int line, const char *func) {
+  if (strcmp(expval, val) != 0) { TestFail(expval, val, exp, file, line, func); }
 }
 
 #if defined(FLATBUFFERS_MEMORY_LEAK_TRACKING) && defined(_MSC_VER) && \
     defined(_DEBUG)
-#define FLATBUFFERS_MEMORY_LEAK_TRACKING_MSVC
+#  define FLATBUFFERS_MEMORY_LEAK_TRACKING_MSVC
 #endif
 
 void InitTestEngine(TestFailEventListener listener) {
@@ -58,12 +58,12 @@ void InitTestEngine(TestFailEventListener listener) {
 
 int CloseTestEngine(bool force_report) {
   if (!testing_fails || force_report) {
-  #if defined(FLATBUFFERS_MEMORY_LEAK_TRACKING_MSVC)
-      auto flags = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
-      flags &= ~_CRTDBG_DELAY_FREE_MEM_DF;
-      flags |= _CRTDBG_LEAK_CHECK_DF;
-      _CrtSetDbgFlag(flags);
-  #endif
+#if defined(FLATBUFFERS_MEMORY_LEAK_TRACKING_MSVC)
+    auto flags = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+    flags &= ~_CRTDBG_DELAY_FREE_MEM_DF;
+    flags |= _CRTDBG_LEAK_CHECK_DF;
+    _CrtSetDbgFlag(flags);
+#endif
   }
   return (0 != testing_fails);
 }

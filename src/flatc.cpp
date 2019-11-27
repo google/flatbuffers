@@ -42,7 +42,7 @@ void FlatCompiler::LoadBinarySchema(flatbuffers::Parser &parser,
                                     const std::string &filename,
                                     const std::string &contents) {
   if (!parser.Deserialize(reinterpret_cast<const uint8_t *>(contents.c_str()),
-      contents.size())) {
+                          contents.size())) {
     Error("failed to load binary schema: " + filename, false, false);
   }
 }
@@ -402,7 +402,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
                 "\" matches the schema, use --raw-binary to read this file"
                 " anyway.");
         } else if (!flatbuffers::BufferHasIdentifier(
-                       contents.c_str(), parser->file_identifier_.c_str(), opts.size_prefixed)) {
+                       contents.c_str(), parser->file_identifier_.c_str(),
+                       opts.size_prefixed)) {
           Error("binary \"" + filename +
                 "\" does not have expected file_identifier \"" +
                 parser->file_identifier_ +
@@ -435,8 +436,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         }
       } else {
         ParseFile(*parser.get(), filename, contents, include_directories);
-        if (!opts.use_flexbuffers && !is_schema &&
-            !parser->builder_.GetSize()) {
+        if (!is_schema && !parser->builder_.GetSize()) {
           // If a file doesn't end in .fbs, it must be json/binary. Ensure we
           // didn't just parse a schema with a different extension.
           Error("input file is neither json nor a .fbs (schema) file: " +
@@ -470,11 +470,16 @@ int FlatCompiler::Compile(int argc, const char **argv) {
                   params_.generators[i].lang_name + " for " + filebase);
           }
         } else {
-          std::string make_rule = params_.generators[i].make_rule(
-              *parser.get(), output_path, filename);
-          if (!make_rule.empty())
-            printf("%s\n",
-                   flatbuffers::WordWrap(make_rule, 80, " ", " \\").c_str());
+          if (params_.generators[i].make_rule == nullptr) {
+            Error(std::string("Cannot generate make rule for ") +
+                  params_.generators[i].lang_name);
+          } else {
+            std::string make_rule = params_.generators[i].make_rule(
+                *parser.get(), output_path, filename);
+            if (!make_rule.empty())
+              printf("%s\n",
+                     flatbuffers::WordWrap(make_rule, 80, " ", " \\").c_str());
+          }
         }
         if (grpc_enabled) {
           if (params_.generators[i].generateGRPC != nullptr) {

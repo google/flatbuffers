@@ -142,8 +142,8 @@ bool Print<const void *>(const void *val, Type type, int indent,
       FLATBUFFERS_ASSERT(prev_val);
       auto union_type_byte = *prev_val;  // Always a uint8_t.
       if (vector_index >= 0) {
-        auto type_vec = reinterpret_cast<const Vector<uint8_t> *>(prev_val +
-                                               ReadScalar<uoffset_t>(prev_val));
+        auto type_vec = reinterpret_cast<const Vector<uint8_t> *>(
+            prev_val + ReadScalar<uoffset_t>(prev_val));
         union_type_byte = type_vec->Get(static_cast<uoffset_t>(vector_index));
       }
       auto enum_val = type.enum_def->ReverseLookup(union_type_byte, true);
@@ -167,8 +167,7 @@ bool Print<const void *>(const void *val, Type type, int indent,
       // Call PrintVector above specifically for each element type:
       // clang-format off
       switch (vec_type.base_type) {
-        #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-          CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
+        #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
           case BASE_TYPE_ ## ENUM: \
             if (!PrintVector<CTYPE>( \
                   *reinterpret_cast<const Vector<CTYPE> *>(val), \
@@ -187,8 +186,7 @@ bool Print<const void *>(const void *val, Type type, int indent,
       // Call PrintArray above specifically for each element type:
       // clang-format off
       switch (vec_type.base_type) {
-        #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
+        #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
         case BASE_TYPE_ ## ENUM: \
           if (!PrintArray<CTYPE>( \
               *reinterpret_cast<const Array<CTYPE, 0xFFFF> *>(val), \
@@ -198,6 +196,7 @@ bool Print<const void *>(const void *val, Type type, int indent,
           } \
           break;
         FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
+        // Arrays of scalars or structs are only possible.
         FLATBUFFERS_GEN_TYPES_POINTER(FLATBUFFERS_TD)
         #undef FLATBUFFERS_TD
         case BASE_TYPE_ARRAY: FLATBUFFERS_ASSERT(0);
@@ -205,9 +204,7 @@ bool Print<const void *>(const void *val, Type type, int indent,
       // clang-format on
       return true;
     }
-    default:
-      FLATBUFFERS_ASSERT(0);
-      return false;
+    default: FLATBUFFERS_ASSERT(0); return false;
   }
 }
 
@@ -287,20 +284,18 @@ static bool GenStruct(const StructDef &struct_def, const Table *table,
         text += ":";
       text += " ";
       switch (fd.value.type.base_type) {
-          // clang-format off
-          #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
-            case BASE_TYPE_ ## ENUM: \
-              if (!GenField<CTYPE>(fd, table, struct_def.fixed, \
-                                   opts, indent + Indent(opts), _text)) { \
-                return false; \
-              } \
-              break;
+        // clang-format off
+        #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
+          case BASE_TYPE_ ## ENUM: \
+            if (!GenField<CTYPE>(fd, table, struct_def.fixed, \
+                                  opts, indent + Indent(opts), _text)) { \
+              return false; \
+            } \
+            break;
           FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
         #undef FLATBUFFERS_TD
         // Generate drop-thru case statements for all pointer types:
-        #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-          CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
+        #define FLATBUFFERS_TD(ENUM, ...) \
           case BASE_TYPE_ ## ENUM:
           FLATBUFFERS_GEN_TYPES_POINTER(FLATBUFFERS_TD)
           FLATBUFFERS_GEN_TYPE_ARRAY(FLATBUFFERS_TD)
@@ -310,7 +305,7 @@ static bool GenStruct(const StructDef &struct_def, const Table *table,
               return false;
             }
             break;
-          // clang-format on
+        // clang-format on
       }
       // Track prev val for use with union types.
       if (struct_def.fixed) {
@@ -330,15 +325,11 @@ static bool GenStruct(const StructDef &struct_def, const Table *table,
 bool GenerateTextFromTable(const Parser &parser, const void *table,
                            const std::string &table_name, std::string *_text) {
   auto struct_def = parser.LookupStruct(table_name);
-  if (struct_def == nullptr) {
-    return false;
-  }
+  if (struct_def == nullptr) { return false; }
   auto &text = *_text;
   text.reserve(1024);  // Reduce amount of inevitable reallocs.
   auto root = static_cast<const Table *>(table);
-  if (!GenStruct(*struct_def, root, 0, parser.opts, &text)) {
-    return false;
-  }
+  if (!GenStruct(*struct_def, root, 0, parser.opts, &text)) { return false; }
   text += NewLine(parser.opts);
   return true;
 }
@@ -348,9 +339,9 @@ bool GenerateText(const Parser &parser, const void *flatbuffer,
                   std::string *_text) {
   std::string &text = *_text;
   FLATBUFFERS_ASSERT(parser.root_struct_def_);  // call SetRootType()
-  text.reserve(1024);               // Reduce amount of inevitable reallocs.
-  auto root = parser.opts.size_prefixed ?
-      GetSizePrefixedRoot<Table>(flatbuffer) : GetRoot<Table>(flatbuffer);
+  text.reserve(1024);  // Reduce amount of inevitable reallocs.
+  auto root = parser.opts.size_prefixed ? GetSizePrefixedRoot<Table>(flatbuffer)
+                                        : GetRoot<Table>(flatbuffer);
   if (!GenStruct(*parser.root_struct_def_, root, 0, parser.opts, _text)) {
     return false;
   }

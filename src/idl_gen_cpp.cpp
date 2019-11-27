@@ -16,12 +16,12 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 
+#include <unordered_set>
+
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
-
-#include <unordered_set>
 
 namespace flatbuffers {
 
@@ -208,9 +208,7 @@ class CppGenerator : public BaseGenerator {
     for (std::size_t i = 0; i < parser_.opts.cpp_includes.size(); ++i) {
       code_ += "#include \"" + parser_.opts.cpp_includes[i] + "\"";
     }
-    if (!parser_.opts.cpp_includes.empty()) {
-      code_ += "";
-    }
+    if (!parser_.opts.cpp_includes.empty()) { code_ += ""; }
   }
 
   std::string EscapeKeyword(const std::string &name) const {
@@ -547,11 +545,10 @@ class CppGenerator : public BaseGenerator {
   std::string GenTypeBasic(const Type &type, bool user_facing_type) const {
     // clang-format off
     static const char *const ctypename[] = {
-    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, \
-                           RTYPE, KTYPE) \
-            #CTYPE,
+      #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
+        #CTYPE,
         FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
-    #undef FLATBUFFERS_TD
+      #undef FLATBUFFERS_TD
     };
     // clang-format on
     if (user_facing_type) {
@@ -577,7 +574,9 @@ class CppGenerator : public BaseGenerator {
       }
       case BASE_TYPE_UNION:
       // fall through
-      default: { return "void"; }
+      default: {
+        return "void";
+      }
     }
   }
 
@@ -696,7 +695,9 @@ class CppGenerator : public BaseGenerator {
       case BASE_TYPE_UNION: {
         return type.enum_def->name + "Union";
       }
-      default: { return GenTypeBasic(type, true); }
+      default: {
+        return GenTypeBasic(type, true);
+      }
     }
   }
 
@@ -1163,7 +1164,8 @@ class CppGenerator : public BaseGenerator {
         code_ += "  void Set(T&& val) {";
         code_ += "    using RT = typename std::remove_reference<T>::type;";
         code_ += "    Reset();";
-        code_ += "    type = {{NAME}}Traits<typename RT::TableType>::enum_value;";
+        code_ +=
+            "    type = {{NAME}}Traits<typename RT::TableType>::enum_value;";
         code_ += "    if (type != {{NONE}}) {";
         code_ += "      value = new RT(std::forward<T>(val));";
         code_ += "    }";
@@ -1276,7 +1278,8 @@ class CppGenerator : public BaseGenerator {
             "      auto ptr = reinterpret_cast<const {{TYPE}} *>(obj);";
         if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
           if (ev.union_type.struct_def->fixed) {
-            code_ += "      return verifier.Verify<{{TYPE}}>(static_cast<const "
+            code_ +=
+                "      return verifier.Verify<{{TYPE}}>(static_cast<const "
                 "uint8_t *>(obj), 0);";
           } else {
             code_ += getptr;
@@ -1295,7 +1298,7 @@ class CppGenerator : public BaseGenerator {
         code_ += "    }";
       }
     }
-    code_ += "    default: return true;"; // unknown values are OK.
+    code_ += "    default: return true;";  // unknown values are OK.
     code_ += "  }";
     code_ += "}";
     code_ += "";
@@ -1763,7 +1766,9 @@ class CppGenerator : public BaseGenerator {
         }
         break;
       }
-      default: { break; }
+      default: {
+        break;
+      }
     }
   }
 
@@ -1925,7 +1930,8 @@ class CppGenerator : public BaseGenerator {
         }
       }
 
-      if (parser_.opts.mutable_buffer) {
+      if (parser_.opts.mutable_buffer &&
+          !(is_scalar && IsUnion(field.value.type))) {
         if (is_scalar) {
           const auto type = GenTypeWire(field.value.type, "", false);
           code_.SetValue("SET_FN", "SetField<" + type + ">");
@@ -2901,8 +2907,8 @@ class CppGenerator : public BaseGenerator {
         } else if (IsArray(field.value.type)) {
           auto underlying = GenTypeGet(field.value.type, "", "", "", false);
           code_ += "  flatbuffers::Array<" + mut_field_type + ", " +
-                   NumToString(field.value.type.fixed_length) +
-                   "> *" + "mutable_{{FIELD_NAME}}() {";
+                   NumToString(field.value.type.fixed_length) + "> *" +
+                   "mutable_{{FIELD_NAME}}() {";
           code_ += "    return reinterpret_cast<flatbuffers::Array<" +
                    mut_field_type + ", " +
                    NumToString(field.value.type.fixed_length) +

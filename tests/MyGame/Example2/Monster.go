@@ -6,6 +6,25 @@ import (
 	flatbuffers "github.com/google/flatbuffers/go"
 )
 
+type MonsterT struct {
+}
+
+func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT {
+	if t == nil { return 0 }
+	MonsterStart(builder)
+	return MonsterEnd(builder)
+}
+
+func (rcv *Monster) UnPackTo(t *MonsterT) {
+}
+
+func (rcv *Monster) UnPack() *MonsterT {
+	if rcv == nil { return nil }
+	t := &MonsterT{}
+	rcv.UnPackTo(t)
+	return t
+}
+
 type Monster struct {
 	_tab flatbuffers.Table
 }

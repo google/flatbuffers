@@ -6,6 +6,28 @@ import (
 	flatbuffers "github.com/google/flatbuffers/go"
 )
 
+type TestSimpleTableWithEnumT struct {
+	Color Color
+}
+
+func TestSimpleTableWithEnumPack(builder *flatbuffers.Builder, t *TestSimpleTableWithEnumT) flatbuffers.UOffsetT {
+	if t == nil { return 0 }
+	TestSimpleTableWithEnumStart(builder)
+	TestSimpleTableWithEnumAddColor(builder, t.Color)
+	return TestSimpleTableWithEnumEnd(builder)
+}
+
+func (rcv *TestSimpleTableWithEnum) UnPackTo(t *TestSimpleTableWithEnumT) {
+	t.Color = rcv.Color()
+}
+
+func (rcv *TestSimpleTableWithEnum) UnPack() *TestSimpleTableWithEnumT {
+	if rcv == nil { return nil }
+	t := &TestSimpleTableWithEnumT{}
+	rcv.UnPackTo(t)
+	return t
+}
+
 type TestSimpleTableWithEnum struct {
 	_tab flatbuffers.Table
 }
