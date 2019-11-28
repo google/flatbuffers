@@ -23,7 +23,18 @@ cc_library(
 filegroup(
     name = "public_headers",
     srcs = [
-        "//include:public_headers",
+        "include/flatbuffers/base.h",
+        "include/flatbuffers/code_generators.h",
+        "include/flatbuffers/flatbuffers.h",
+        "include/flatbuffers/flexbuffers.h",
+        "include/flatbuffers/hash.h",
+        "include/flatbuffers/idl.h",
+        "include/flatbuffers/minireflect.h",
+        "include/flatbuffers/reflection.h",
+        "include/flatbuffers/reflection_generated.h",
+        "include/flatbuffers/registry.h",
+        "include/flatbuffers/stl_emulation.h",
+        "include/flatbuffers/util.h",
     ],
 )
 
@@ -44,11 +55,24 @@ cc_binary(
     ],
 )
 
+filegroup(
+    name = "flatc_headers",
+    srcs = [
+        "include/flatbuffers/flatc.h",
+    ],
+    visibility = ["//:__subpackages__"],
+)
+
 # Library used by flatbuffer_cc_library rules.
 cc_library(
     name = "runtime_cc",
-    linkstatic = 1,
-    deps = [
-        "//include:runtime_cc",
+    hdrs = [
+        "include/flatbuffers/base.h",
+        "include/flatbuffers/flatbuffers.h",
+        "include/flatbuffers/flexbuffers.h",
+        "include/flatbuffers/stl_emulation.h",
+        "include/flatbuffers/util.h",
     ],
+    linkstatic = 1,
+    strip_include_prefix = "/include",
 )

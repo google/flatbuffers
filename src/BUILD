@@ -27,7 +27,7 @@ cc_library(
         "flatc.cpp",
     ],
     hdrs = [
-        "//include:flatc",
+        "//:flatc_headers",
     ],
     strip_include_prefix = "/include",
     visibility = ["//:__pkg__"],
@@ -59,7 +59,7 @@ cc_library(
         "util.cpp",
     ],
     hdrs = [
-        "//include:flatc",
+        "//:flatc_headers",
     ],
     strip_include_prefix = "/include",
     visibility = ["//:__pkg__"],
