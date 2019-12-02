@@ -5,10 +5,6 @@
 #include "fuzzer_assert.h"
 #include "test_assert.h"
 
-static_assert(__has_feature(memory_sanitizer) ||
-                  __has_feature(address_sanitizer),
-              "sanitizer disabled");
-
 // Utility for test run.
 struct OneTimeTestInit {
   // Declare trap for the Flatbuffers test engine.
