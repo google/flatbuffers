@@ -3,6 +3,8 @@
 # namespace: Example
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class Referrable(object):
     __slots__ = ['_tab']
@@ -32,3 +34,35 @@ class Referrable(object):
 def ReferrableStart(builder): builder.StartObject(1)
 def ReferrableAddId(builder, id): builder.PrependUint64Slot(0, id, 0)
 def ReferrableEnd(builder): return builder.EndObject()
+
+
+class ReferrableT(object):
+
+    # ReferrableT
+    def __init__(self):
+        self.id = 0  # type: int
+
+    @classmethod
+    def InitFromBuf(cls, buf, pos):
+        referrable = Referrable()
+        referrable.Init(buf, pos)
+        return cls.InitFromObj(referrable)
+
+    @classmethod
+    def InitFromObj(cls, referrable):
+        x = ReferrableT()
+        x._UnPack(referrable)
+        return x
+
+    # ReferrableT
+    def _UnPack(self, referrable):
+        if referrable is None:
+            return
+        self.id = referrable.Id()
+
+    # ReferrableT
+    def Pack(self, builder):
+        ReferrableStart(builder)
+        ReferrableAddId(builder, self.id)
+        referrable = ReferrableEnd(builder)
+        return referrable
