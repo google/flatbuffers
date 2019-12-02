@@ -3,6 +3,8 @@
 # namespace: Example2
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class Monster(object):
     __slots__ = ['_tab']
@@ -24,3 +26,33 @@ class Monster(object):
 
 def MonsterStart(builder): builder.StartObject(0)
 def MonsterEnd(builder): return builder.EndObject()
+
+
+class MonsterT(object):
+
+    # MonsterT
+    def __init__(self):
+        pass
+
+    @classmethod
+    def InitFromBuf(cls, buf, pos):
+        monster = Monster()
+        monster.Init(buf, pos)
+        return cls.InitFromObj(monster)
+
+    @classmethod
+    def InitFromObj(cls, monster):
+        x = MonsterT()
+        x._UnPack(monster)
+        return x
+
+    # MonsterT
+    def _UnPack(self, monster):
+        if monster is None:
+            return
+
+    # MonsterT
+    def Pack(self, builder):
+        MonsterStart(builder)
+        monster = MonsterEnd(builder)
+        return monster
