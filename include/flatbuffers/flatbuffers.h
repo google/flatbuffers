@@ -1837,6 +1837,7 @@ class FlatBufferBuilder {
   /// @cond FLATBUFFERS_INTERNAL
   template<typename T> struct TableKeyComparator {
     TableKeyComparator(vector_downward &buf) : buf_(buf) {}
+    TableKeyComparator(const TableKeyComparator &other) : buf_(other.buf_) {}
     bool operator()(const Offset<T> &a, const Offset<T> &b) const {
       auto table_a = reinterpret_cast<T *>(buf_.data_at(a.o));
       auto table_b = reinterpret_cast<T *>(buf_.data_at(b.o));
@@ -1845,7 +1846,10 @@ class FlatBufferBuilder {
     vector_downward &buf_;
 
    private:
-    TableKeyComparator &operator=(const TableKeyComparator &);
+    TableKeyComparator &operator=(const TableKeyComparator &other) {
+      buf_ = other.buf_;
+      return *this;
+    }
   };
   /// @endcond
 
