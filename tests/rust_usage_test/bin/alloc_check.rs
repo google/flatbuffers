@@ -33,7 +33,7 @@ extern crate flatbuffers;
 pub mod include_test1_generated;
 
 #[allow(dead_code, unused_imports)]
-#[path = "../../include_test/include_test2_generated.rs"]
+#[path = "../../include_test/sub/include_test2_generated.rs"]
 pub mod include_test2_generated;
 
 #[allow(dead_code, unused_imports)]
