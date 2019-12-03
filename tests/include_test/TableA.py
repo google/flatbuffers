@@ -3,6 +3,8 @@
 # namespace: 
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class TableA(object):
     __slots__ = ['_tab']
@@ -23,7 +25,7 @@ class TableA(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             x = self._tab.Indirect(o + self._tab.Pos)
-            from .TableB import TableB
+            from MyGame.OtherNameSpace.TableB import TableB
             obj = TableB()
             obj.Init(self._tab.Bytes, x)
             return obj
