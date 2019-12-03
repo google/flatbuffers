@@ -1,9 +1,18 @@
 extern crate flatbuffers;
 
 #[allow(dead_code, unused_imports)]
+#[path = "../../include_test/include_test1_generated.rs"]
+pub mod include_test1_generated;
+
+#[allow(dead_code, unused_imports)]
+#[path = "../../include_test/include_test2_generated.rs"]
+pub mod include_test2_generated;
+
+#[allow(dead_code, unused_imports)]
 #[path = "../../monster_test_generated.rs"]
 mod monster_test_generated;
 pub use monster_test_generated::my_game;
+
 
 use std::io::Read;
 
