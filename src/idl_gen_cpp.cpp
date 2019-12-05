@@ -1010,11 +1010,11 @@ class CppGenerator : public BaseGenerator {
         code_ += "{{SEP}}  {{KEY}} = {{VALUE}}\\";
       } else {  // MIN & MAX are useless for bit_flags
         code_.SetValue("KEY", GenEnumValDecl(enum_def, "MIN"));
-        code_.SetValue("VALUE", GenEnumValDecl(enum_def, minv->name));
+        code_.SetValue("VALUE", GenEnumValDecl(enum_def, Name(*minv)));
         code_ += "{{SEP}}  {{KEY}} = {{VALUE}}\\";
 
         code_.SetValue("KEY", GenEnumValDecl(enum_def, "MAX"));
-        code_.SetValue("VALUE", GenEnumValDecl(enum_def, maxv->name));
+        code_.SetValue("VALUE", GenEnumValDecl(enum_def, Name(*maxv)));
         code_ += "{{SEP}}  {{KEY}} = {{VALUE}}\\";
       }
     }
