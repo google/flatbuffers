@@ -203,5 +203,8 @@ Additional options:
 -   `--force-empty` : When serializing from object API representation, force
      strings and vectors to empty rather than null.
 
+-   `--force-empty-vectors` : When serializing from object API representation, force
+     vectors to empty rather than null.
+
 NOTE: short-form options for generators are deprecated, use the long form
 whenever possible.
