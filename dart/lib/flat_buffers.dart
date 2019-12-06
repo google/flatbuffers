@@ -522,7 +522,7 @@ class Builder {
   /// Write the given list of signed 64-bit integer [values].
   int writeListInt64(List<int> values) {
     _ensureNoVTable();
-    _prepare(_sizeofUint32, 2 * values.length);
+    _prepare(_sizeofUint32, 1 + (2 * values.length));
     final int result = _tail;
     int tail = _tail;
     _setUint32AtTail(_buf, tail, values.length);
@@ -537,7 +537,7 @@ class Builder {
   /// Write the given list of signed 64-bit integer [values].
   int writeListUint64(List<int> values) {
     _ensureNoVTable();
-    _prepare(_sizeofUint32, 2 * values.length);
+    _prepare(_sizeofUint32, 1 + (2 * values.length));
     final int result = _tail;
     int tail = _tail;
     _setUint32AtTail(_buf, tail, values.length);
