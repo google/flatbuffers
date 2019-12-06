@@ -1326,6 +1326,17 @@ class RustGenerator : public BaseGenerator {
         code_ +=
             "  pub fn {{FIELD_NAME}}_as_{{U_ELEMENT_NAME}}(&self) -> "
             "Option<{{U_ELEMENT_TABLE_TYPE}}<'a>> {";
+        // If the user defined schemas name a field that clashes with a
+        // language reserved word, flatc will try to escape the field name by
+        // appending an underscore. This works well for most cases, except
+        // one. When generating union accessors (and referring to them 
+        // internally within the code generated here), an extra underscore
+        // will be appended to the name, causing build failures. 
+        //
+        // This only happens when unions have members that overlap with
+        // language reserved words. 
+        // 
+        // To avoid this problem the type field name is used unescaped here:
         code_ +=
             "    if self.{{FIELD_TYPE_FIELD_NAME}}_type() == {{U_ELEMENT_ENUM_TYPE}} {";
         code_ +=
@@ -1752,14 +1763,6 @@ class RustGenerator : public BaseGenerator {
   void GenNamespaceImports(const int white_spaces) {
     std::string indent = std::string(white_spaces, ' ');
     code_ += "";
-    for (auto it = parser_.included_files_.begin();
-        it != parser_.included_files_.end(); ++it) {
-      if (it->second.empty()) continue;
-      auto noext = flatbuffers::StripExtension(it->second);
-      auto basename = flatbuffers::StripPath(noext);
-
-      code_ += indent + "use crate::" + basename + "_generated::*;";
-    }
     code_ += indent + "use std::mem;";
     code_ += indent + "use std::cmp::Ordering;";
     code_ += "";
@@ -1841,3 +1844,6 @@ std::string RustMakeRule(const Parser &parser, const std::string &path,
 // TODO(rw): Generated code should generate endian-safe Debug impls.
 // TODO(rw): Generated code could use a Rust-only enum type to access unions,
 //           instead of making the user use _type() to manually switch.
+// TODO(maxburke): There should be tests added that use language keywords as
+//           fields of structs, tables, unions, enums, to make sure that
+//           internal code generated references escaped names correctly. 
