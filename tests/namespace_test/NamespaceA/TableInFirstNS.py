@@ -3,6 +3,8 @@
 # namespace: NamespaceA
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class TableInFirstNS(object):
     __slots__ = ['_tab']
@@ -23,7 +25,7 @@ class TableInFirstNS(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             x = self._tab.Indirect(o + self._tab.Pos)
-            from .TableInNestedNS import TableInNestedNS
+            from NamespaceA.NamespaceB.TableInNestedNS import TableInNestedNS
             obj = TableInNestedNS()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -41,7 +43,7 @@ class TableInFirstNS(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             x = o + self._tab.Pos
-            from .StructInNestedNS import StructInNestedNS
+            from NamespaceA.NamespaceB.StructInNestedNS import StructInNestedNS
             obj = StructInNestedNS()
             obj.Init(self._tab.Bytes, x)
             return obj

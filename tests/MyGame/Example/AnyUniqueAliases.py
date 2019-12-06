@@ -8,3 +8,18 @@ class AnyUniqueAliases(object):
     TS = 2
     M2 = 3
 
+
+def AnyUniqueAliasesCreator(unionType, table):
+    from flatbuffers.table import Table
+    if not isinstance(table, Table):
+        return None
+    if unionType == AnyUniqueAliases().M:
+        import MyGame.Example.Monster
+        return MyGame.Example.Monster.MonsterT.InitFromBuf(table.Bytes, table.Pos)
+    if unionType == AnyUniqueAliases().TS:
+        import MyGame.Example.TestSimpleTableWithEnum
+        return MyGame.Example.TestSimpleTableWithEnum.TestSimpleTableWithEnumT.InitFromBuf(table.Bytes, table.Pos)
+    if unionType == AnyUniqueAliases().M2:
+        import MyGame.Example2.Monster
+        return MyGame.Example2.Monster.MonsterT.InitFromBuf(table.Bytes, table.Pos)
+    return None
