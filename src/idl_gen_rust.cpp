@@ -1763,6 +1763,14 @@ class RustGenerator : public BaseGenerator {
   void GenNamespaceImports(const int white_spaces) {
     std::string indent = std::string(white_spaces, ' ');
     code_ += "";
+    for (auto it = parser_.included_files_.begin();
+        it != parser_.included_files_.end(); ++it) {
+      if (it->second.empty()) continue;
+      auto noext = flatbuffers::StripExtension(it->second);
+      auto basename = flatbuffers::StripPath(noext);
+
+      code_ += indent + "use crate::" + basename + "_generated::*;";
+    }
     code_ += indent + "use std::mem;";
     code_ += indent + "use std::cmp::Ordering;";
     code_ += "";
