@@ -1852,6 +1852,6 @@ std::string RustMakeRule(const Parser &parser, const std::string &path,
 // TODO(rw): Generated code should generate endian-safe Debug impls.
 // TODO(rw): Generated code could use a Rust-only enum type to access unions,
 //           instead of making the user use _type() to manually switch.
-// TODO(maxburke): There should be tests added that use language keywords as
-//           fields of structs, tables, unions, enums, to make sure that
-//           internal code generated references escaped names correctly. 
+// TODO(maxburke): There should be tests schemas added that use language 
+//           keywords as fields of structs, tables, unions, enums, to make sure
+//           that internal code generated references escaped names correctly. 
