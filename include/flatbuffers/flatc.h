@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+#ifndef FLATBUFFERS_FLATC_H_
+#define FLATBUFFERS_FLATC_H_
+
 #include <functional>
 #include <limits>
 #include <string>
@@ -22,10 +25,17 @@
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
-#ifndef FLATC_H_
-#  define FLATC_H_
-
 namespace flatbuffers {
+
+class FlatCompilerLogger {
+  FlatCompilerLogger() {}
+public:
+  // There is no way to notify about an error from a code-generator
+  // except `assert` call.
+  // TODO: re-design interface to code generators.
+  static void Warn(const std::string &warn);
+  static void Error(const std::string &err);
+};
 
 class FlatCompiler {
  public:
@@ -94,4 +104,4 @@ class FlatCompiler {
 
 }  // namespace flatbuffers
 
-#endif  // FLATC_H_
+#endif  // FLATBUFFERS_FLATC_H_

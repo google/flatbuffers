@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.12)
 # generate compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include(CheckCXXSymbolExists)
@@ -30,6 +30,13 @@ option(FLATBUFFERS_PACKAGE_REDHAT
        OFF)
 option(FLATBUFFERS_PACKAGE_DEBIAN
        "Build an deb using the 'package' target."
+       OFF)
+option(FLATBUFFERS_BUILD_CPP17
+       "Enable the build of c++17 test target. \"
+       Requirements: Clang6, GCC7, MSVC2017 (_MSC_VER >= 1914)  or higher."
+       OFF)
+option(FLATBUFFERS_BUILD_LEGACY
+       "Run C++ code generator with '--cpp-std legacy' switch."
        OFF)
 
 if(NOT FLATBUFFERS_BUILD_FLATC AND FLATBUFFERS_BUILD_TESTS)
@@ -128,12 +135,25 @@ set(FlatBuffers_Tests_SRCS
   tests/native_type_test_impl.cpp
   # file generate by running compiler on tests/monster_test.fbs
   ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_test_generated.h
+  # file generate by running compiler on namespace_test/namespace_test1.fbs
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/namespace_test/namespace_test1_generated.h
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/namespace_test/namespace_test2_generated.h
+  # file generate by running compiler on union_vector/union_vector.fbs
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/union_vector/union_vector_generated.h
   # file generate by running compiler on tests/arrays_test.fbs
   ${CMAKE_CURRENT_BINARY_DIR}/tests/arrays_test_generated.h
   # file generate by running compiler on tests/native_type_test.fbs
   ${CMAKE_CURRENT_BINARY_DIR}/tests/native_type_test_generated.h
   # file generate by running compiler on tests/monster_extra.fbs
   ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_extra_generated.h
+)
+
+set(FlatBuffers_Tests_CPP17_SRCS
+  ${FlatBuffers_Library_SRCS}
+  tests/cpp17/test_cpp17.cpp
+  # file generate by running compiler on tests/monster_test.fbs
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/cpp17/generated_cpp17/monster_test_generated.h
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_test_generated.h
 )
 
 set(FlatBuffers_Sample_Binary_SRCS
@@ -278,7 +298,7 @@ include_directories(grpc)
 
 if(FLATBUFFERS_BUILD_FLATLIB)
   add_library(flatbuffers STATIC ${FlatBuffers_Library_SRCS})
-  # CMake > 2.8.11: Attach header directory for when build via add_subdirectory().
+  # Attach header directory for when build via add_subdirectory().
   target_include_directories(flatbuffers INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
   target_compile_options(flatbuffers PRIVATE "${FLATBUFFERS_PRIVATE_CXX_FLAGS}")
@@ -321,7 +341,10 @@ if(FLATBUFFERS_BUILD_SHAREDLIB)
 endif()
 
 function(compile_flatbuffers_schema_to_cpp_opt SRC_FBS OPT)
-  message(STATUS "Add the code-generation command for the `${SRC_FBS}` schema.")
+  if(FLATBUFFERS_BUILD_LEGACY)
+    set(OPT ${OPT};--cpp-std legacy)
+  endif()
+  message(STATUS "Add the code-generation command for the `${SRC_FBS}` schema with '${OPT}'")
   get_filename_component(SRC_FBS_DIR ${SRC_FBS} PATH)
   string(REGEX REPLACE "\\.fbs$" "_generated.h" GEN_HEADER ${SRC_FBS})
   add_custom_command(
@@ -336,7 +359,7 @@ function(compile_flatbuffers_schema_to_cpp_opt SRC_FBS OPT)
 endfunction()
 
 function(compile_flatbuffers_schema_to_cpp SRC_FBS)
-    compile_flatbuffers_schema_to_cpp_opt(${SRC_FBS} "--no-includes;--gen-compare")
+  compile_flatbuffers_schema_to_cpp_opt(${SRC_FBS} "--no-includes;--gen-compare")
 endfunction()
 
 function(compile_flatbuffers_schema_to_binary SRC_FBS)
@@ -351,9 +374,12 @@ endfunction()
 
 if(FLATBUFFERS_BUILD_TESTS)
   compile_flatbuffers_schema_to_cpp(tests/monster_test.fbs)
+  compile_flatbuffers_schema_to_cpp(tests/namespace_test/namespace_test1.fbs)
+  compile_flatbuffers_schema_to_cpp(tests/namespace_test/namespace_test2.fbs)
+  compile_flatbuffers_schema_to_cpp(tests/union_vector/union_vector.fbs)
   compile_flatbuffers_schema_to_cpp_opt(tests/native_type_test.fbs "")
   compile_flatbuffers_schema_to_cpp_opt(tests/arrays_test.fbs "--scoped-enums;--gen-compare")
-  if(NOT (MSVC AND MSVC_VERSION LESS 1900))
+  if(NOT (MSVC AND (MSVC_VERSION LESS 1900)))
     compile_flatbuffers_schema_to_cpp(tests/monster_extra.fbs) # Test floating-point NAN/INF.
   endif()
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/tests)
@@ -375,6 +401,19 @@ if(FLATBUFFERS_BUILD_TESTS)
   add_executable(flatsamplebinary ${FlatBuffers_Sample_Binary_SRCS})
   add_executable(flatsampletext ${FlatBuffers_Sample_Text_SRCS})
   add_executable(flatsamplebfbs ${FlatBuffers_Sample_BFBS_SRCS})
+
+  if(FLATBUFFERS_BUILD_CPP17)
+    add_executable(flattests_cpp17 ${FlatBuffers_Tests_CPP17_SRCS})
+    target_compile_features(flattests_cpp17 PRIVATE cxx_std_17)
+    target_compile_definitions(flattests_cpp17 PRIVATE
+      FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
+      FLATBUFFERS_DEBUG_VERIFICATION_FAILURE=1
+    )
+
+    if(NOT WIN32 AND FLATBUFFERS_CODE_SANITIZE)
+      add_fsanitize_to_target(flattests_cpp17 ${FLATBUFFERS_CODE_SANITIZE})
+    endif()
+  endif(FLATBUFFERS_BUILD_CPP17)
 endif()
 
 if(FLATBUFFERS_BUILD_GRPCTEST)

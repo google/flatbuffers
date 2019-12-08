@@ -15,4 +15,4 @@
 # limitations under the License.
 set -e
 
-../flatc -c --no-prefix -o ../include/flatbuffers reflection.fbs
+../flatc -c --cpp-std legacy --no-prefix -o ../include/flatbuffers reflection.fbs

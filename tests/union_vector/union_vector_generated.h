@@ -33,7 +33,7 @@ inline const flatbuffers::TypeTable *BookReaderTypeTable();
 
 inline const flatbuffers::TypeTable *MovieTypeTable();
 
-enum Character {
+enum Character : uint8_t {
   Character_NONE = 0,
   Character_MuLan = 1,
   Character_Rapunzel = 2,
@@ -73,7 +73,7 @@ inline const char * const *EnumNamesCharacter() {
 }
 
 inline const char *EnumNameCharacter(Character e) {
-  if (e < Character_NONE || e > Character_Unused) return "";
+  if (flatbuffers::IsOutRange(e, Character_NONE, Character_Unused)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesCharacter()[index];
 }

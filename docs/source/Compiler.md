@@ -132,6 +132,11 @@ Additional options:
     std::string from Flatbuffers, but (char* + length). This allows efficient
 	construction of custom string types, including zero-copy construction.
 
+-   `--cpp-std CPP_STD` : Generate a C++ code using features of selected C++ standard.
+     Supported `CPP_STD` values:
+    * `c++` - use a standard code generation rules;
+    * `legacy` - generate code compatible with old compilers (VS2010).
+
 -   `--object-prefix` : Customise class prefix for C++ object-based API.
 
 -   `--object-suffix` : Customise class suffix for C++ object-based API.

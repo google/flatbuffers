@@ -627,12 +627,6 @@ CheckedError Parser::ParseType(Type &type) {
             "length of fixed-length array must be positive and fit to "
             "uint16_t type");
       }
-      // Check if enum arrays are used in C++ without specifying --scoped-enums
-      if ((opts.lang_to_generate & IDLOptions::kCpp) && !opts.scoped_enums &&
-          IsEnum(subtype)) {
-        return Error(
-            "--scoped-enums must be enabled to use enum arrays in C++\n");
-      }
       type = Type(BASE_TYPE_ARRAY, subtype.struct_def, subtype.enum_def,
                   fixed_length);
       NEXT();

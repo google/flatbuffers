@@ -12,32 +12,55 @@
 :: See the License for the specific language governing permissions and
 :: limitations under the License.
 
+@SETLOCAL
+
 set buildtype=Release
 if "%1"=="-b" set buildtype=%2
 
-..\%buildtype%\flatc.exe --cpp --java --csharp --dart --go --binary --lobster --lua --js --ts --php --rust --grpc --gen-mutable --reflect-names --gen-object-api --gen-compare --no-includes --cpp-ptr-type flatbuffers::unique_ptr  --no-fb-import -I include_test monster_test.fbs monsterdata_test.json || goto FAIL
-..\%buildtype%\flatc.exe --python --gen-mutable --reflect-names --gen-object-api --gen-compare --cpp-ptr-type flatbuffers::unique_ptr  --no-fb-import -I include_test monster_test.fbs monsterdata_test.json || goto FAIL
-..\%buildtype%\flatc.exe --cpp --java --csharp --dart --go --binary --lobster --lua --python --js --ts --php --rust --gen-mutable --reflect-names --no-fb-import --cpp-ptr-type flatbuffers::unique_ptr  -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs || goto FAIL
-..\%buildtype%\flatc.exe --cpp --java --csharp --js --ts --php --gen-mutable --reflect-names --gen-object-api --gen-compare --cpp-ptr-type flatbuffers::unique_ptr -o union_vector ./union_vector/union_vector.fbs || goto FAIL
-..\%buildtype%\flatc.exe --cpp --scoped-enums -o evolution_test ./evolution_test/evolution_v1.fbs ./evolution_test/evolution_v2.fbs|| goto FAIL
+set commandline=%*
+set TEST_CPP_FLAGS=
+if NOT "%commandline%"=="%commandline:--cpp-std legacy=%" set TEST_CPP_FLAGS=--cpp-std legacy %TEST_CPP_FLAGS%
+
+set TEST_CPP_FLAGS=--gen-compare --cpp-ptr-type flatbuffers::unique_ptr %TEST_CPP_FLAGS%
+set TEST_BASE_FLAGS=--reflect-names --gen-mutable --gen-object-api
+set TEST_NOINCL_FLAGS=%TEST_BASE_FLAGS% --no-includes --no-fb-import
+
+..\%buildtype%\flatc.exe --binary --cpp --java --kotlin --csharp --dart --go --lobster --lua --js --ts --php --rust --grpc ^
+%TEST_NOINCL_FLAGS% %TEST_CPP_FLAGS% -I include_test monster_test.fbs monsterdata_test.json || goto FAIL
+
+..\%buildtype%\flatc.exe --python %TEST_BASE_FLAGS% --no-fb-import -I include_test monster_test.fbs monsterdata_test.json || goto FAIL
+
+..\%buildtype%\flatc.exe --binary --cpp --java --csharp --dart --go --lobster --lua --js --ts --php --python --rust ^
+%TEST_NOINCL_FLAGS% %TEST_CPP_FLAGS% -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs || goto FAIL
+
+..\%buildtype%\flatc.exe --cpp --java --csharp --js --ts --php %TEST_BASE_FLAGS% %TEST_CPP_FLAGS% -o union_vector ./union_vector/union_vector.fbs || goto FAIL
 ..\%buildtype%\flatc.exe -b --schema --bfbs-comments --bfbs-builtins -I include_test monster_test.fbs || goto FAIL
 ..\%buildtype%\flatc.exe -b --schema --bfbs-comments --bfbs-builtins -I include_test arrays_test.fbs || goto FAIL
 ..\%buildtype%\flatc.exe --jsonschema --schema -I include_test monster_test.fbs || goto FAIL
-..\%buildtype%\flatc.exe --cpp --java --csharp --gen-mutable --reflect-names --gen-object-api --gen-compare --no-includes --scoped-enums --jsonschema --cpp-ptr-type flatbuffers::unique_ptr arrays_test.fbs || goto FAIL
-..\%buildtype%\flatc.exe --python --gen-mutable --reflect-names --gen-object-api --gen-compare --scoped-enums --jsonschema --cpp-ptr-type flatbuffers::unique_ptr arrays_test.fbs || goto FAIL
-..\%buildtype%\flatc.exe --cpp --gen-mutable --gen-object-api --reflect-names --cpp-ptr-type flatbuffers::unique_ptr native_type_test.fbs || goto FAIL
+..\%buildtype%\flatc.exe --cpp --java --csharp --jsonschema %TEST_NOINCL_FLAGS% %TEST_CPP_FLAGS% --scoped-enums arrays_test.fbs || goto FAIL
+..\%buildtype%\flatc.exe --python %TEST_BASE_FLAGS% arrays_test.fbs || goto FAIL
+..\%buildtype%\flatc.exe --cpp %TEST_BASE_FLAGS% --cpp-ptr-type flatbuffers::unique_ptr native_type_test.fbs || goto FAIL
 
-IF NOT "%MONSTER_EXTRA%"=="skip" (
+if NOT "%MONSTER_EXTRA%"=="skip" (
   @echo Generate MosterExtra
-  ..\%buildtype%\flatc.exe --cpp --java --csharp --gen-mutable --reflect-names --gen-object-api --gen-compare --no-includes --cpp-ptr-type flatbuffers::unique_ptr monster_extra.fbs monsterdata_extra.json || goto FAIL
-  ..\%buildtype%\flatc.exe --python --gen-mutable --reflect-names --gen-object-api --gen-compare --cpp-ptr-type flatbuffers::unique_ptr monster_extra.fbs monsterdata_extra.json || goto FAIL
-
+  ..\%buildtype%\flatc.exe --cpp --java --csharp %TEST_NOINCL_FLAGS% %TEST_CPP_FLAGS% monster_extra.fbs monsterdata_extra.json || goto FAIL
+  ..\%buildtype%\flatc.exe --python %TEST_BASE_FLAGS% monster_extra.fbs monsterdata_extra.json || goto FAIL
 ) else (
   @echo monster_extra.fbs skipped (the strtod function from MSVC2013 or older doesn't support NaN/Inf arguments)
 )
 
+set TEST_CPP17_FLAGS=--cpp --cpp-std c++17 -o ./cpp17/generated_cpp17 %TEST_NOINCL_FLAGS%
+if NOT "%MONSTER_EXTRA%"=="skip" (
+  @rem Flag c++17 requires Clang6, GCC7, MSVC2017 (_MSC_VER >= 1914)  or higher.
+  ..\%buildtype%\flatc.exe %TEST_CPP17_FLAGS% -I include_test monster_test.fbs  || goto FAIL
+  @rem..\%buildtype%\flatc.exe %TEST_CPP17_FLAGS% arrays_test.fbs                   || goto FAIL
+  @rem..\%buildtype%\flatc.exe %TEST_CPP17_FLAGS% native_type_test.fbs              || goto FAIL
+  @rem..\%buildtype%\flatc.exe %TEST_CPP17_FLAGS% monster_extra.fbs                 || goto FAIL
+  @rem..\%buildtype%\flatc.exe %TEST_CPP17_FLAGS% ./union_vector/union_vector.fbs   || goto FAIL
+)
+
 cd ../samples
-..\%buildtype%\flatc.exe --cpp --lobster --gen-mutable --reflect-names --gen-object-api --gen-compare --cpp-ptr-type flatbuffers::unique_ptr monster.fbs || goto FAIL
+..\%buildtype%\flatc.exe --cpp --lobster %TEST_BASE_FLAGS% %TEST_CPP_FLAGS% monster.fbs || goto FAIL
 ..\%buildtype%\flatc.exe -b --schema --bfbs-comments --bfbs-builtins monster.fbs || goto FAIL
 cd ../reflection
 call generate_code.bat %1 %2 || goto FAIL

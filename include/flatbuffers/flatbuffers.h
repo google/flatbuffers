@@ -43,6 +43,20 @@ template<> inline bool IsTheSameAs<double>(double e, double def) {
 }
 #endif
 
+// Check 'v' is out of closed range [low; high].
+// Workaround for GCC warning [-Werror=type-limits]:
+// comparison is always true due to limited range of data type.
+template<typename T>
+inline bool IsOutRange(const T &v, const T &low, const T &high) {
+  return (v < low) || (high < v);
+}
+
+// Check 'v' is in closed range [low; high].
+template<typename T>
+inline bool IsInRange(const T &v, const T &low, const T &high) {
+  return !IsOutRange(v, low, high);
+}
+
 // Wrapper for uoffset_t to allow safe template specialization.
 // Value is allowed to be 0 to indicate a null object (see e.g. AddOffset).
 template<typename T> struct Offset {
@@ -351,6 +365,7 @@ template<typename T> class Vector {
   // This class is a pointer. Copying will therefore create an invalid object.
   // Private and unimplemented copy constructor.
   Vector(const Vector &);
+  Vector& operator=(const Vector&);
 
   template<typename K> static int KeyCompare(const void *ap, const void *bp) {
     const K *key = reinterpret_cast<const K *>(ap);
@@ -381,6 +396,7 @@ class VectorOfAny {
 
  private:
   VectorOfAny(const VectorOfAny &);
+  VectorOfAny &operator=(const VectorOfAny &);
 };
 
 #ifndef FLATBUFFERS_CPP98_STL
@@ -2377,6 +2393,12 @@ class Struct FLATBUFFERS_FINAL_CLASS {
   uint8_t *GetAddressOf(uoffset_t o) { return &data_[o]; }
 
  private:
+  // private constructor & copy constructor: you obtain instances of this
+  // class by pointing to existing data only
+  Struct();
+  Struct(const Struct &);
+  Struct &operator=(const Struct &);
+
   uint8_t data_[1];
 };
 
@@ -2489,6 +2511,7 @@ class Table {
   // class by pointing to existing data only
   Table();
   Table(const Table &other);
+  Table &operator=(const Table &);
 
   uint8_t data_[1];
 };

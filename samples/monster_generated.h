@@ -30,7 +30,7 @@ inline const flatbuffers::TypeTable *MonsterTypeTable();
 
 inline const flatbuffers::TypeTable *WeaponTypeTable();
 
-enum Color {
+enum Color : int8_t {
   Color_Red = 0,
   Color_Green = 1,
   Color_Blue = 2,
@@ -58,12 +58,12 @@ inline const char * const *EnumNamesColor() {
 }
 
 inline const char *EnumNameColor(Color e) {
-  if (e < Color_Red || e > Color_Blue) return "";
+  if (flatbuffers::IsOutRange(e, Color_Red, Color_Blue)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesColor()[index];
 }
 
-enum Equipment {
+enum Equipment : uint8_t {
   Equipment_NONE = 0,
   Equipment_Weapon = 1,
   Equipment_MIN = Equipment_NONE,
@@ -88,7 +88,7 @@ inline const char * const *EnumNamesEquipment() {
 }
 
 inline const char *EnumNameEquipment(Equipment e) {
-  if (e < Equipment_NONE || e > Equipment_Weapon) return "";
+  if (flatbuffers::IsOutRange(e, Equipment_NONE, Equipment_Weapon)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesEquipment()[index];
 }
