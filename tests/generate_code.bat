@@ -50,6 +50,7 @@ set TEST_NOINCL_FLAGS=%TEST_BASE_FLAGS% --no-includes --no-fb-import
 ..\%buildtype%\flatc.exe --cpp --java --csharp --jsonschema %TEST_NOINCL_FLAGS% %TEST_CPP_FLAGS% %TEST_CS_FLAGS% --scoped-enums arrays_test.fbs || goto FAIL
 ..\%buildtype%\flatc.exe --python %TEST_BASE_FLAGS% arrays_test.fbs || goto FAIL
 ..\%buildtype%\flatc.exe --cpp %TEST_BASE_FLAGS% --cpp-ptr-type flatbuffers::unique_ptr native_type_test.fbs || goto FAIL
+..\%buildtype%\flatc.exe --rust %TEST_BASE_FLAGS% required_fields.fbs || goto FAIL
 
 if NOT "%MONSTER_EXTRA%"=="skip" (
   @echo Generate MosterExtra

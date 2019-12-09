@@ -1,0 +1,22 @@
+union Events {
+  MouseMoveEvent,
+  KeyboardEvent,
+}
+
+table MouseMoveEvent {
+  x: uint32;
+  y: uint32;
+}
+
+table KeyboardEvent {
+  keycode: uint32;
+}
+
+table AdditionalData {
+  data: string;
+}
+
+table UserEvent {
+  event: Events (required);
+  additional_data: [ubyte] (required, nested_flatbuffer: "AdditionalData");
+}

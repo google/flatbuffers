@@ -65,6 +65,7 @@ fi
 TEST_CPP17_FLAGS="--cpp --cpp-std c++17 -o ./cpp17/generated_cpp17 $TEST_NOINCL_FLAGS"
 ../flatc $TEST_CPP17_FLAGS -I include_test monster_test.fbs
 
+../flatc --rust $TEST_BASE_FLAGS required_fields.fbs
 cd ../samples
 ../flatc --cpp --lobster $TEST_BASE_FLAGS $TEST_CPP_FLAGS monster.fbs
 ../flatc -b --schema --bfbs-comments --bfbs-builtins monster.fbs

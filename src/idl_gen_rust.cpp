@@ -1274,17 +1274,26 @@ class RustGenerator : public BaseGenerator {
         code_.SetValue("OFFSET_NAME",
                        offset_prefix + "::" + GetFieldOffsetName(field));
         code_ +=
-            "  pub fn {{FIELD_NAME}}_nested_flatbuffer(&'a self) -> "
-            " Option<{{STRUCT_NAME}}<'a>> {";
-        code_ += "     match self.{{FIELD_NAME}}() {";
-        code_ += "         None => { None }";
-        code_ += "         Some(data) => {";
-        code_ += "             use self::flatbuffers::Follow;";
-        code_ +=
-            "             Some(<flatbuffers::ForwardsUOffset"
-            "<{{STRUCT_NAME}}<'a>>>::follow(data, 0))";
-        code_ += "         },";
-        code_ += "     }";
+            "  pub fn {{FIELD_NAME}}_nested_flatbuffer(&'a self) -> " +
+            WrapInOptionIfNotRequired("{{STRUCT_NAME}}<'a>", field.required) +
+            "{";
+        if (!field.required) {
+          code_ += "     match self.{{FIELD_NAME}}() {";
+          code_ += "         None => { None }";
+          code_ += "         Some(data) => {";
+          code_ += "             use self::flatbuffers::Follow;";
+          code_ +=
+              "             Some(<flatbuffers::ForwardsUOffset"
+              "<{{STRUCT_NAME}}<'a>>>::follow(data, 0))";
+          code_ += "         },";
+          code_ += "     }";
+        } else {
+          code_ += "     use self::flatbuffers::Follow;";
+          code_ +=
+              "     "
+              "<flatbuffers::ForwardsUOffset<{{STRUCT_NAME}}<'a>>>::follow("
+              "self.{{FIELD_NAME}}(), 0)";
+        }
         code_ += "  }";
       }
     }
@@ -1335,9 +1344,15 @@ class RustGenerator : public BaseGenerator {
         code_ +=
             "    if self.{{FIELD_TYPE_FIELD_NAME}}_type() == "
             "{{U_ELEMENT_ENUM_TYPE}} {";
-        code_ +=
-            "      self.{{FIELD_NAME}}().map(|u| "
-            "{{U_ELEMENT_TABLE_TYPE}}::init_from_table(u))";
+        if (!field.required) {
+          code_ +=
+              "      self.{{FIELD_NAME}}().map(|u| "
+              "{{U_ELEMENT_TABLE_TYPE}}::init_from_table(u))";
+        } else {
+          code_ +=
+              "      Some({{U_ELEMENT_TABLE_TYPE}}"
+			  "::init_from_table(self.{{FIELD_NAME}}()))";
+        }
         code_ += "    } else {";
         code_ += "      None";
         code_ += "    }";
