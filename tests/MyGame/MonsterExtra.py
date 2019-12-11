@@ -211,15 +211,21 @@ class MonsterExtraT(object):
     # MonsterExtraT
     def Pack(self, builder):
         if self.dvec is not None:
-            MonsterExtraStartDvecVector(builder, len(self.dvec))
-            for i in reversed(range(len(self.dvec))):
-                builder.PrependFloat64(self.dvec[i])
-            dvec =  builder.EndVector(len(self.dvec))
+            if np is not None and type(self.dvec) is np.ndarray:
+                dvec = builder.CreateNumpyVector(self.dvec)
+            else:
+                MonsterExtraStartDvecVector(builder, len(self.dvec))
+                for i in reversed(range(len(self.dvec))):
+                    builder.PrependFloat64(self.dvec[i])
+                dvec = builder.EndVector(len(self.dvec))
         if self.fvec is not None:
-            MonsterExtraStartFvecVector(builder, len(self.fvec))
-            for i in reversed(range(len(self.fvec))):
-                builder.PrependFloat32(self.fvec[i])
-            fvec =  builder.EndVector(len(self.fvec))
+            if np is not None and type(self.fvec) is np.ndarray:
+                fvec = builder.CreateNumpyVector(self.fvec)
+            else:
+                MonsterExtraStartFvecVector(builder, len(self.fvec))
+                for i in reversed(range(len(self.fvec))):
+                    builder.PrependFloat32(self.fvec[i])
+                fvec = builder.EndVector(len(self.fvec))
         MonsterExtraStart(builder)
         MonsterExtraAddD0(builder, self.d0)
         MonsterExtraAddD1(builder, self.d1)
