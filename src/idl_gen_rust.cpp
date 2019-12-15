@@ -1305,6 +1305,7 @@ class RustGenerator : public BaseGenerator {
       auto u = field.value.type.enum_def;
 
       code_.SetValue("FIELD_NAME", Name(field));
+      code_.SetValue("FIELD_TYPE_FIELD_NAME", field.name);
 
       for (auto u_it = u->Vals().begin(); u_it != u->Vals().end(); ++u_it) {
         auto &ev = **u_it;
@@ -1325,8 +1326,19 @@ class RustGenerator : public BaseGenerator {
         code_ +=
             "  pub fn {{FIELD_NAME}}_as_{{U_ELEMENT_NAME}}(&self) -> "
             "Option<{{U_ELEMENT_TABLE_TYPE}}<'a>> {";
+        // If the user defined schemas name a field that clashes with a
+        // language reserved word, flatc will try to escape the field name by
+        // appending an underscore. This works well for most cases, except
+        // one. When generating union accessors (and referring to them 
+        // internally within the code generated here), an extra underscore
+        // will be appended to the name, causing build failures. 
+        //
+        // This only happens when unions have members that overlap with
+        // language reserved words. 
+        // 
+        // To avoid this problem the type field name is used unescaped here:
         code_ +=
-            "    if self.{{FIELD_NAME}}_type() == {{U_ELEMENT_ENUM_TYPE}} {";
+            "    if self.{{FIELD_TYPE_FIELD_NAME}}_type() == {{U_ELEMENT_ENUM_TYPE}} {";
         code_ +=
             "      self.{{FIELD_NAME}}().map(|u| "
             "{{U_ELEMENT_TABLE_TYPE}}::init_from_table(u))";
@@ -1832,3 +1844,6 @@ std::string RustMakeRule(const Parser &parser, const std::string &path,
 // TODO(rw): Generated code should generate endian-safe Debug impls.
 // TODO(rw): Generated code could use a Rust-only enum type to access unions,
 //           instead of making the user use _type() to manually switch.
+// TODO(maxburke): There should be test schemas added that use language
+//           keywords as fields of structs, tables, unions, enums, to make sure
+//           that internal code generated references escaped names correctly.
