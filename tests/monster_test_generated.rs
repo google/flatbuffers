@@ -177,8 +177,8 @@ pub enum Color {
 
 }
 
-const ENUM_MIN_COLOR: u8 = 1;
-const ENUM_MAX_COLOR: u8 = 8;
+pub const ENUM_MIN_COLOR: u8 = 1;
+pub const ENUM_MAX_COLOR: u8 = 8;
 
 impl<'a> flatbuffers::Follow<'a> for Color {
   type Inner = Self;
@@ -246,8 +246,8 @@ pub enum Race {
 
 }
 
-const ENUM_MIN_RACE: i8 = -1;
-const ENUM_MAX_RACE: i8 = 2;
+pub const ENUM_MIN_RACE: i8 = -1;
+pub const ENUM_MAX_RACE: i8 = 2;
 
 impl<'a> flatbuffers::Follow<'a> for Race {
   type Inner = Self;
@@ -312,8 +312,8 @@ pub enum Any {
 
 }
 
-const ENUM_MIN_ANY: u8 = 0;
-const ENUM_MAX_ANY: u8 = 3;
+pub const ENUM_MIN_ANY: u8 = 0;
+pub const ENUM_MAX_ANY: u8 = 3;
 
 impl<'a> flatbuffers::Follow<'a> for Any {
   type Inner = Self;
@@ -379,8 +379,8 @@ pub enum AnyUniqueAliases {
 
 }
 
-const ENUM_MIN_ANY_UNIQUE_ALIASES: u8 = 0;
-const ENUM_MAX_ANY_UNIQUE_ALIASES: u8 = 3;
+pub const ENUM_MIN_ANY_UNIQUE_ALIASES: u8 = 0;
+pub const ENUM_MAX_ANY_UNIQUE_ALIASES: u8 = 3;
 
 impl<'a> flatbuffers::Follow<'a> for AnyUniqueAliases {
   type Inner = Self;
@@ -446,8 +446,8 @@ pub enum AnyAmbiguousAliases {
 
 }
 
-const ENUM_MIN_ANY_AMBIGUOUS_ALIASES: u8 = 0;
-const ENUM_MAX_ANY_AMBIGUOUS_ALIASES: u8 = 3;
+pub const ENUM_MIN_ANY_AMBIGUOUS_ALIASES: u8 = 0;
+pub const ENUM_MAX_ANY_AMBIGUOUS_ALIASES: u8 = 3;
 
 impl<'a> flatbuffers::Follow<'a> for AnyAmbiguousAliases {
   type Inner = Self;

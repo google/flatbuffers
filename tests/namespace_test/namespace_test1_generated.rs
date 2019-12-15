@@ -35,8 +35,8 @@ pub enum EnumInNestedNS {
 
 }
 
-const ENUM_MIN_ENUM_IN_NESTED_NS: i8 = 0;
-const ENUM_MAX_ENUM_IN_NESTED_NS: i8 = 2;
+pub const ENUM_MIN_ENUM_IN_NESTED_NS: i8 = 0;
+pub const ENUM_MAX_ENUM_IN_NESTED_NS: i8 = 2;
 
 impl<'a> flatbuffers::Follow<'a> for EnumInNestedNS {
   type Inner = Self;
