@@ -558,9 +558,9 @@ class RustGenerator : public BaseGenerator {
     code_.SetValue("ENUM_MAX_BASE_VALUE", enum_def.ToString(*maxv));
 
     // Generate enum constants, and impls for Follow, EndianScalar, and Push.
-    code_ += "const ENUM_MIN_{{ENUM_NAME_CAPS}}: {{BASE_TYPE}} = \\";
+    code_ += "pub const ENUM_MIN_{{ENUM_NAME_CAPS}}: {{BASE_TYPE}} = \\";
     code_ += "{{ENUM_MIN_BASE_VALUE}};";
-    code_ += "const ENUM_MAX_{{ENUM_NAME_CAPS}}: {{BASE_TYPE}} = \\";
+    code_ += "pub const ENUM_MAX_{{ENUM_NAME_CAPS}}: {{BASE_TYPE}} = \\";
     code_ += "{{ENUM_MAX_BASE_VALUE}};";
     code_ += "";
     code_ += "impl<'a> flatbuffers::Follow<'a> for {{ENUM_NAME}} {";
