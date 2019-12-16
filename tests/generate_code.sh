@@ -17,8 +17,8 @@ set -e
 
 commandline="'$*'"
 TEST_CPP_FLAGS=
-if [[ $commandline == *"--cpp-std legacy"* ]]; then
-  TEST_CPP_FLAGS="--cpp-std legacy $TEST_CPP_FLAGS"
+if [[ $commandline == *"--cpp-std c++0x"* ]]; then
+  TEST_CPP_FLAGS="--cpp-std c++0x $TEST_CPP_FLAGS"
 fi
 
 TEST_CPP_FLAGS="--gen-compare --cpp-ptr-type flatbuffers::unique_ptr $TEST_CPP_FLAGS"
@@ -49,4 +49,4 @@ cd ../samples
 ../flatc --cpp --lobster $TEST_BASE_FLAGS $TEST_CPP_FLAGS monster.fbs
 ../flatc -b --schema --bfbs-comments --bfbs-builtins monster.fbs
 cd ../reflection
-./generate_code.sh --cpp-std legacy
+./generate_code.sh --cpp-std c++0x

@@ -27,15 +27,8 @@
 
 namespace flatbuffers {
 
-class FlatCompilerLogger {
-  FlatCompilerLogger() {}
-public:
-  // There is no way to notify about an error from a code-generator
-  // except `assert` call.
-  // TODO: re-design interface to code generators.
-  static void Warn(const std::string &warn);
-  static void Error(const std::string &err);
-};
+extern void LogCompilerWarn(const std::string &warn);
+extern void LogCompilerError(const std::string &err);
 
 class FlatCompiler {
  public:

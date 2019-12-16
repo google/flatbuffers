@@ -35,12 +35,12 @@ static void Error(const flatbuffers::FlatCompiler *flatc,
 }
 
 namespace flatbuffers {
-void FlatCompilerLogger::Warn(const std::string &warn) {
-  ::Warn(static_cast<const flatbuffers::FlatCompiler *>(nullptr), warn, true);
+void LogCompilerWarn(const std::string &warn) {
+  Warn(static_cast<const flatbuffers::FlatCompiler *>(nullptr), warn, true);
 }
-void FlatCompilerLogger::Error(const std::string &err) {
-  ::Error(static_cast<const flatbuffers::FlatCompiler *>(nullptr), err, false,
-          true);
+void LogCompilerError(const std::string &err) {
+  Error(static_cast<const flatbuffers::FlatCompiler *>(nullptr), err, false,
+        true);
 }
 }  // namespace flatbuffers
 

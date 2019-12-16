@@ -36,7 +36,7 @@ option(FLATBUFFERS_BUILD_CPP17
        Requirements: Clang6, GCC7, MSVC2017 (_MSC_VER >= 1914)  or higher."
        OFF)
 option(FLATBUFFERS_BUILD_LEGACY
-       "Run C++ code generator with '--cpp-std legacy' switch."
+       "Run C++ code generator with '--cpp-std c++0x' switch."
        OFF)
 
 if(NOT FLATBUFFERS_BUILD_FLATC AND FLATBUFFERS_BUILD_TESTS)
@@ -342,7 +342,7 @@ endif()
 
 function(compile_flatbuffers_schema_to_cpp_opt SRC_FBS OPT)
   if(FLATBUFFERS_BUILD_LEGACY)
-    set(OPT ${OPT};--cpp-std legacy)
+    set(OPT ${OPT};--cpp-std c++0x)
   endif()
   message(STATUS "Add the code-generation command for the `${SRC_FBS}` schema with '${OPT}'")
   get_filename_component(SRC_FBS_DIR ${SRC_FBS} PATH)

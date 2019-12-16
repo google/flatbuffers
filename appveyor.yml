@@ -16,7 +16,7 @@ environment:
   matrix:
     - CMAKE_VS_VERSION: "10 2010"
       CMAKE_OPTIONS: "-DFLATBUFFERS_BUILD_LEGACY=1"
-      CPP_TEST_OPTIONS: "--std-cpp legacy"
+      CPP_TEST_OPTIONS: "--std-cpp c++0x"
       MONSTER_EXTRA: "skip"
 
     - CMAKE_VS_VERSION: "12 2013"

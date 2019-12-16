@@ -58,12 +58,12 @@ namespace cpp {
 // Extension of IDLOptions for cpp-generator.
 struct IDLOptionsCpp : public IDLOptions {
   // All fields start with 'g_' prefix to distinguish from the base IDLOptions.
-  int g_cpp_std;  // base version of C++ standard (0, 17)
-  bool g_only_fixed_enums;
+  int g_cpp_std;  // Base version of C++ standard (0, 11, 17).
+  bool g_only_fixed_enums; // Generate underlaying type for all enums.
   // clang-format off
   IDLOptionsCpp(const IDLOptions &opts)
       : IDLOptions(opts),
-        g_cpp_std(0),
+        g_cpp_std(11),
         g_only_fixed_enums(true)
       {}
   // clang-format on
@@ -728,7 +728,7 @@ class CppGenerator : public BaseGenerator {
       auto element_type = type.VectorType();
       // Check if enum arrays are used in C++ without specifying --scoped-enums
       if (IsEnum(element_type) && !opts_.g_only_fixed_enums) {
-        FlatCompilerLogger::Error(
+        LogCompilerError(
             "--scoped-enums must be enabled to use enum arrays in C++");
         FLATBUFFERS_ASSERT(true);
       }
@@ -2985,19 +2985,23 @@ bool GenerateCPP(const Parser &parser, const std::string &path,
   cpp::IDLOptionsCpp opts(parser.opts);
   // The '--cpp_std' argument could be extended (like ASAN):
   // Example: "flatc --cpp_std c++17:option1:option2".
-  if (opts.cpp_std.empty() || opts.cpp_std == "c++") {
-    // Use a `standard` code generator.
-  } else if (opts.cpp_std == "c++17") {
+  auto cpp_std = opts.cpp_std;
+  std::transform(cpp_std.begin(), cpp_std.end(), cpp_std.begin(), ToUpper);
+  if (cpp_std.empty() || cpp_std == "C++11") {
+    // Use the standard C++11 code generator.
+    opts.g_cpp_std = 11;
+  } else if (cpp_std == "C++0X") {
+    opts.g_cpp_std = 0;
+    opts.g_only_fixed_enums = false;
+  } else if (cpp_std == "C++17") {
     opts.g_cpp_std = 17;
     // With c++17 generate strong enums only.
     opts.scoped_enums = true;
+    // By default, prefixed_enums==true, reset it.
     opts.prefixed_enums = false;
-  } else if (opts.cpp_std == "legacy") {
-    opts.g_cpp_std = -1;
-    opts.g_only_fixed_enums = false;
   } else {
-    FlatCompilerLogger::Error("Unknown value of the '--cpp-std' switch: " +
-                              opts.cpp_std);
+    LogCompilerError("Unknown value of the '--cpp-std' switch: " +
+                     opts.cpp_std);
     return false;
   }
   // The opts.scoped_enums has priority.

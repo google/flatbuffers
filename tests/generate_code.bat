@@ -19,7 +19,7 @@ if "%1"=="-b" set buildtype=%2
 
 set commandline=%*
 set TEST_CPP_FLAGS=
-if NOT "%commandline%"=="%commandline:--cpp-std legacy=%" set TEST_CPP_FLAGS=--cpp-std legacy %TEST_CPP_FLAGS%
+if NOT "%commandline%"=="%commandline:--cpp-std c++0x=%" set TEST_CPP_FLAGS=--cpp-std c++0x %TEST_CPP_FLAGS%
 
 set TEST_CPP_FLAGS=--gen-compare --cpp-ptr-type flatbuffers::unique_ptr %TEST_CPP_FLAGS%
 set TEST_BASE_FLAGS=--reflect-names --gen-mutable --gen-object-api
