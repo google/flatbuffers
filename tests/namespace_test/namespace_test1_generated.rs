@@ -35,8 +35,8 @@ pub enum EnumInNestedNS {
 
 }
 
-const ENUM_MIN_ENUM_IN_NESTED_NS: i8 = 0;
-const ENUM_MAX_ENUM_IN_NESTED_NS: i8 = 2;
+pub const ENUM_MIN_ENUM_IN_NESTED_NS: i8 = 0;
+pub const ENUM_MAX_ENUM_IN_NESTED_NS: i8 = 2;
 
 impl<'a> flatbuffers::Follow<'a> for EnumInNestedNS {
   type Inner = Self;
@@ -70,7 +70,7 @@ impl flatbuffers::Push for EnumInNestedNS {
 }
 
 #[allow(non_camel_case_types)]
-const ENUM_VALUES_ENUM_IN_NESTED_NS:[EnumInNestedNS; 3] = [
+pub const ENUM_VALUES_ENUM_IN_NESTED_NS:[EnumInNestedNS; 3] = [
   EnumInNestedNS::A,
   EnumInNestedNS::B,
   EnumInNestedNS::C

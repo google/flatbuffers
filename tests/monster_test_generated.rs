@@ -177,8 +177,8 @@ pub enum Color {
 
 }
 
-const ENUM_MIN_COLOR: u8 = 1;
-const ENUM_MAX_COLOR: u8 = 8;
+pub const ENUM_MIN_COLOR: u8 = 1;
+pub const ENUM_MAX_COLOR: u8 = 8;
 
 impl<'a> flatbuffers::Follow<'a> for Color {
   type Inner = Self;
@@ -212,7 +212,7 @@ impl flatbuffers::Push for Color {
 }
 
 #[allow(non_camel_case_types)]
-const ENUM_VALUES_COLOR:[Color; 3] = [
+pub const ENUM_VALUES_COLOR:[Color; 3] = [
   Color::Red,
   Color::Green,
   Color::Blue
@@ -246,8 +246,8 @@ pub enum Race {
 
 }
 
-const ENUM_MIN_RACE: i8 = -1;
-const ENUM_MAX_RACE: i8 = 2;
+pub const ENUM_MIN_RACE: i8 = -1;
+pub const ENUM_MAX_RACE: i8 = 2;
 
 impl<'a> flatbuffers::Follow<'a> for Race {
   type Inner = Self;
@@ -281,7 +281,7 @@ impl flatbuffers::Push for Race {
 }
 
 #[allow(non_camel_case_types)]
-const ENUM_VALUES_RACE:[Race; 4] = [
+pub const ENUM_VALUES_RACE:[Race; 4] = [
   Race::None,
   Race::Human,
   Race::Dwarf,
@@ -312,8 +312,8 @@ pub enum Any {
 
 }
 
-const ENUM_MIN_ANY: u8 = 0;
-const ENUM_MAX_ANY: u8 = 3;
+pub const ENUM_MIN_ANY: u8 = 0;
+pub const ENUM_MAX_ANY: u8 = 3;
 
 impl<'a> flatbuffers::Follow<'a> for Any {
   type Inner = Self;
@@ -347,7 +347,7 @@ impl flatbuffers::Push for Any {
 }
 
 #[allow(non_camel_case_types)]
-const ENUM_VALUES_ANY:[Any; 4] = [
+pub const ENUM_VALUES_ANY:[Any; 4] = [
   Any::NONE,
   Any::Monster,
   Any::TestSimpleTableWithEnum,
@@ -379,8 +379,8 @@ pub enum AnyUniqueAliases {
 
 }
 
-const ENUM_MIN_ANY_UNIQUE_ALIASES: u8 = 0;
-const ENUM_MAX_ANY_UNIQUE_ALIASES: u8 = 3;
+pub const ENUM_MIN_ANY_UNIQUE_ALIASES: u8 = 0;
+pub const ENUM_MAX_ANY_UNIQUE_ALIASES: u8 = 3;
 
 impl<'a> flatbuffers::Follow<'a> for AnyUniqueAliases {
   type Inner = Self;
@@ -414,7 +414,7 @@ impl flatbuffers::Push for AnyUniqueAliases {
 }
 
 #[allow(non_camel_case_types)]
-const ENUM_VALUES_ANY_UNIQUE_ALIASES:[AnyUniqueAliases; 4] = [
+pub const ENUM_VALUES_ANY_UNIQUE_ALIASES:[AnyUniqueAliases; 4] = [
   AnyUniqueAliases::NONE,
   AnyUniqueAliases::M,
   AnyUniqueAliases::TS,
@@ -446,8 +446,8 @@ pub enum AnyAmbiguousAliases {
 
 }
 
-const ENUM_MIN_ANY_AMBIGUOUS_ALIASES: u8 = 0;
-const ENUM_MAX_ANY_AMBIGUOUS_ALIASES: u8 = 3;
+pub const ENUM_MIN_ANY_AMBIGUOUS_ALIASES: u8 = 0;
+pub const ENUM_MAX_ANY_AMBIGUOUS_ALIASES: u8 = 3;
 
 impl<'a> flatbuffers::Follow<'a> for AnyAmbiguousAliases {
   type Inner = Self;
@@ -481,7 +481,7 @@ impl flatbuffers::Push for AnyAmbiguousAliases {
 }
 
 #[allow(non_camel_case_types)]
-const ENUM_VALUES_ANY_AMBIGUOUS_ALIASES:[AnyAmbiguousAliases; 4] = [
+pub const ENUM_VALUES_ANY_AMBIGUOUS_ALIASES:[AnyAmbiguousAliases; 4] = [
   AnyAmbiguousAliases::NONE,
   AnyAmbiguousAliases::M1,
   AnyAmbiguousAliases::M2,
