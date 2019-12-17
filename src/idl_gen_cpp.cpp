@@ -55,15 +55,17 @@ static std::string GeneratedFileName(const std::string &path,
 
 namespace cpp {
 
+enum CppStandard { CPP_STD_X0 = 0, CPP_STD_11, CPP_STD_17 };
+
 // Extension of IDLOptions for cpp-generator.
 struct IDLOptionsCpp : public IDLOptions {
   // All fields start with 'g_' prefix to distinguish from the base IDLOptions.
-  int g_cpp_std;  // Base version of C++ standard (0, 11, 17).
-  bool g_only_fixed_enums; // Generate underlaying type for all enums.
+  CppStandard g_cpp_std;    // Base version of C++ standard.
+  bool g_only_fixed_enums;  // Generate underlaying type for all enums.
   // clang-format off
   IDLOptionsCpp(const IDLOptions &opts)
       : IDLOptions(opts),
-        g_cpp_std(11),
+        g_cpp_std(CPP_STD_11),
         g_only_fixed_enums(true)
       {}
   // clang-format on
@@ -2989,12 +2991,13 @@ bool GenerateCPP(const Parser &parser, const std::string &path,
   std::transform(cpp_std.begin(), cpp_std.end(), cpp_std.begin(), ToUpper);
   if (cpp_std.empty() || cpp_std == "C++11") {
     // Use the standard C++11 code generator.
-    opts.g_cpp_std = 11;
+    opts.g_cpp_std = cpp::CppStandard::CPP_STD_11;
+    opts.g_only_fixed_enums = true;
   } else if (cpp_std == "C++0X") {
-    opts.g_cpp_std = 0;
+    opts.g_cpp_std = cpp::CppStandard::CPP_STD_X0;
     opts.g_only_fixed_enums = false;
   } else if (cpp_std == "C++17") {
-    opts.g_cpp_std = 17;
+    opts.g_cpp_std = cpp::CppStandard::CPP_STD_17;
     // With c++17 generate strong enums only.
     opts.scoped_enums = true;
     // By default, prefixed_enums==true, reset it.
