@@ -227,7 +227,7 @@ struct MonsterT : public flatbuffers::NativeTable {
   std::vector<uint8_t> inventory;
   MyGame::Sample::Color color;
   std::vector<flatbuffers::unique_ptr<MyGame::Sample::WeaponT>> weapons;
-  EquipmentUnion equipped;
+  MyGame::Sample::EquipmentUnion equipped;
   std::vector<MyGame::Sample::Vec3> path;
   MonsterT()
       : mana(150),
@@ -578,7 +578,7 @@ inline void Monster::UnPackTo(MonsterT *_o, const flatbuffers::resolver_function
   { auto _e = color(); _o->color = _e; }
   { auto _e = weapons(); if (_e) { _o->weapons.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->weapons[_i] = flatbuffers::unique_ptr<MyGame::Sample::WeaponT>(_e->Get(_i)->UnPack(_resolver)); } } }
   { auto _e = equipped_type(); _o->equipped.type = _e; }
-  { auto _e = equipped(); if (_e) _o->equipped.value = EquipmentUnion::UnPack(_e, equipped_type(), _resolver); }
+  { auto _e = equipped(); if (_e) _o->equipped.value = MyGame::Sample::EquipmentUnion::UnPack(_e, equipped_type(), _resolver); }
   { auto _e = path(); if (_e) { _o->path.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->path[_i] = *_e->Get(_i); } } }
 }
 
