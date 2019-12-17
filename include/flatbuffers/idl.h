@@ -588,9 +588,13 @@ struct IDLOptions {
   // for code generation.
   unsigned long lang_to_generate;
 
-  // If set (default behavior), empty string and vector fields will be set to
-  // nullptr to make the flatbuffer more compact.
-  bool set_empty_to_null;
+  // If set (default behavior), empty string fields will be set to nullptr to make
+  // the flatbuffer more compact.
+  bool set_empty_strings_to_null;
+
+  // If set (default behavior), empty vector fields will be set to nullptr to make
+  // the flatbuffer more compact.
+  bool set_empty_vectors_to_null;
 
   IDLOptions()
       : use_flexbuffers(false),
@@ -635,7 +639,8 @@ struct IDLOptions {
         lang(IDLOptions::kJava),
         mini_reflect(IDLOptions::kNone),
         lang_to_generate(0),
-        set_empty_to_null(true) {}
+        set_empty_strings_to_null(true),
+        set_empty_vectors_to_null(true) {}
 };
 
 // This encapsulates where the parser is in the current source file.
