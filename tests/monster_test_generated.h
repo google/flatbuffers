@@ -1136,7 +1136,7 @@ struct MonsterT : public flatbuffers::NativeTable {
   std::string name;
   std::vector<uint8_t> inventory;
   MyGame::Example::Color color;
-  AnyUnion test;
+  MyGame::Example::AnyUnion test;
   std::vector<MyGame::Example::Test> test4;
   std::vector<std::string> testarrayofstring;
   std::vector<flatbuffers::unique_ptr<MyGame::Example::MonsterT>> testarrayoftables;
@@ -1171,8 +1171,8 @@ struct MonsterT : public flatbuffers::NativeTable {
   std::vector<flatbuffers::unique_ptr<ReferrableT>> vector_of_co_owning_references;
   ReferrableT *non_owning_reference;
   std::vector<ReferrableT *> vector_of_non_owning_references;
-  AnyUniqueAliasesUnion any_unique;
-  AnyAmbiguousAliasesUnion any_ambiguous;
+  MyGame::Example::AnyUniqueAliasesUnion any_unique;
+  MyGame::Example::AnyAmbiguousAliasesUnion any_ambiguous;
   std::vector<MyGame::Example::Color> vector_of_enums;
   MyGame::Example::Race signed_enum;
   MonsterT()
@@ -2558,7 +2558,7 @@ inline void Monster::UnPackTo(MonsterT *_o, const flatbuffers::resolver_function
   { auto _e = inventory(); if (_e) { _o->inventory.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->inventory[_i] = _e->Get(_i); } } }
   { auto _e = color(); _o->color = _e; }
   { auto _e = test_type(); _o->test.type = _e; }
-  { auto _e = test(); if (_e) _o->test.value = AnyUnion::UnPack(_e, test_type(), _resolver); }
+  { auto _e = test(); if (_e) _o->test.value = MyGame::Example::AnyUnion::UnPack(_e, test_type(), _resolver); }
   { auto _e = test4(); if (_e) { _o->test4.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->test4[_i] = *_e->Get(_i); } } }
   { auto _e = testarrayofstring(); if (_e) { _o->testarrayofstring.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testarrayofstring[_i] = _e->Get(_i)->str(); } } }
   { auto _e = testarrayoftables(); if (_e) { _o->testarrayoftables.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testarrayoftables[_i] = flatbuffers::unique_ptr<MyGame::Example::MonsterT>(_e->Get(_i)->UnPack(_resolver)); } } }
@@ -2601,9 +2601,9 @@ if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->non_owning_reference)
   { auto _e = vector_of_non_owning_references(); if (_e) { _o->vector_of_non_owning_references.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { //vector resolver, naked
 if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->vector_of_non_owning_references[_i]), static_cast<flatbuffers::hash_value_t>(_e->Get(_i))); else _o->vector_of_non_owning_references[_i] = nullptr; } } }
   { auto _e = any_unique_type(); _o->any_unique.type = _e; }
-  { auto _e = any_unique(); if (_e) _o->any_unique.value = AnyUniqueAliasesUnion::UnPack(_e, any_unique_type(), _resolver); }
+  { auto _e = any_unique(); if (_e) _o->any_unique.value = MyGame::Example::AnyUniqueAliasesUnion::UnPack(_e, any_unique_type(), _resolver); }
   { auto _e = any_ambiguous_type(); _o->any_ambiguous.type = _e; }
-  { auto _e = any_ambiguous(); if (_e) _o->any_ambiguous.value = AnyAmbiguousAliasesUnion::UnPack(_e, any_ambiguous_type(), _resolver); }
+  { auto _e = any_ambiguous(); if (_e) _o->any_ambiguous.value = MyGame::Example::AnyAmbiguousAliasesUnion::UnPack(_e, any_ambiguous_type(), _resolver); }
   { auto _e = vector_of_enums(); if (_e) { _o->vector_of_enums.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vector_of_enums[_i] = static_cast<MyGame::Example::Color>(_e->Get(_i)); } } }
   { auto _e = signed_enum(); _o->signed_enum = _e; }
 }
