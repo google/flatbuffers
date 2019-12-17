@@ -235,6 +235,53 @@ mod generated_constants {
     fn monster_file_extension() {
         assert_eq!("mon", my_game::example::MONSTER_EXTENSION);
     }
+
+    #[test]
+    fn enum_constants_are_public() {
+        assert_eq!(1, my_game::example::ENUM_MIN_COLOR);
+        assert_eq!(8, my_game::example::ENUM_MAX_COLOR);
+        assert_eq!(my_game::example::ENUM_VALUES_COLOR, [
+            my_game::example::Color::Red,
+            my_game::example::Color::Green,
+            my_game::example::Color::Blue,
+        ]);
+
+        assert_eq!(-1, my_game::example::ENUM_MIN_RACE);
+        assert_eq!(2, my_game::example::ENUM_MAX_RACE);
+        assert_eq!(my_game::example::ENUM_VALUES_RACE, [
+            my_game::example::Race::None,
+            my_game::example::Race::Human,
+            my_game::example::Race::Dwarf,
+            my_game::example::Race::Elf,
+        ]);
+
+        assert_eq!(0, my_game::example::ENUM_MIN_ANY);
+        assert_eq!(3, my_game::example::ENUM_MAX_ANY);
+        assert_eq!(my_game::example::ENUM_VALUES_ANY, [
+            my_game::example::Any::NONE,
+            my_game::example::Any::Monster,
+            my_game::example::Any::TestSimpleTableWithEnum,
+            my_game::example::Any::MyGame_Example2_Monster,
+        ]);
+
+        assert_eq!(0, my_game::example::ENUM_MIN_ANY_UNIQUE_ALIASES);
+        assert_eq!(3, my_game::example::ENUM_MAX_ANY_UNIQUE_ALIASES);
+        assert_eq!(my_game::example::ENUM_VALUES_ANY_UNIQUE_ALIASES, [
+            my_game::example::AnyUniqueAliases::NONE,
+            my_game::example::AnyUniqueAliases::M,
+            my_game::example::AnyUniqueAliases::TS,
+            my_game::example::AnyUniqueAliases::M2,
+        ]);
+
+        assert_eq!(0, my_game::example::ENUM_MIN_ANY_AMBIGUOUS_ALIASES);
+        assert_eq!(3, my_game::example::ENUM_MAX_ANY_AMBIGUOUS_ALIASES);
+        assert_eq!(my_game::example::ENUM_VALUES_ANY_AMBIGUOUS_ALIASES, [
+            my_game::example::AnyAmbiguousAliases::NONE,
+            my_game::example::AnyAmbiguousAliases::M1,
+            my_game::example::AnyAmbiguousAliases::M2,
+            my_game::example::AnyAmbiguousAliases::M3,
+        ]);
+    }
 }
 
 #[cfg(test)]
