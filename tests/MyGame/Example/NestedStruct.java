@@ -18,10 +18,15 @@ public final class NestedStruct extends Struct {
   public void mutateB(byte b) { bb.put(bb_pos + 8, b); }
   public byte c(int j) { return bb.get(bb_pos + 9 + j * 1); }
   public void mutateC(int j, byte c) { bb.put(bb_pos + 9 + j * 1, c); }
+  public long d(int j) { return bb.getLong(bb_pos + 16 + j * 8); }
+  public void mutateD(int j, long d) { bb.putLong(bb_pos + 16 + j * 8, d); }
 
-  public static int createNestedStruct(FlatBufferBuilder builder, int[] a, byte b, byte[] c) {
-    builder.prep(4, 12);
-    builder.pad(1);
+  public static int createNestedStruct(FlatBufferBuilder builder, int[] a, byte b, byte[] c, long[] d) {
+    builder.prep(8, 32);
+    for (int _idx0 = 2; _idx0 > 0; _idx0--) {
+      builder.putLong(d[_idx0-1]);
+    }
+    builder.pad(5);
     for (int _idx0 = 2; _idx0 > 0; _idx0--) {
       builder.putByte(c[_idx0-1]);
     }
@@ -30,6 +35,13 @@ public final class NestedStruct extends Struct {
       builder.putInt(a[_idx0-1]);
     }
     return builder.offset();
+  }
+
+  public static final class Vector extends BaseVector {
+    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
+
+    public NestedStruct get(int j) { return get(new NestedStruct(), j); }
+    public NestedStruct get(NestedStruct obj, int j) {  return obj.__assign(__element(j), bb); }
   }
 }
 

@@ -156,11 +156,7 @@ namespace FlatBuffers.Test
             Assert.IsTrue(monster.TestarrayoftablesByKey("Barney") != null);
             Assert.IsTrue(monster.TestarrayoftablesByKey("Wilma") != null);
 
-            // testType is an existing field and mutating it should succeed
-            Assert.AreEqual(monster.TestType, Any.Monster);
-            Assert.AreEqual(monster.MutateTestType(Any.NONE), true);
-            Assert.AreEqual(monster.TestType, Any.NONE);
-            Assert.AreEqual(monster.MutateTestType(Any.Monster), true);
+            // testType is an existing field
             Assert.AreEqual(monster.TestType, Any.Monster);
 
             //mutate the inventory vector
@@ -260,6 +256,12 @@ namespace FlatBuffers.Test
             {
                 Assert.IsTrue(monster.GetTestarrayofboolsBytes().Length != 0);
             }
+
+            var longArrayBytes = monster.GetVectorOfLongsBytes();
+            Assert.IsTrue(monster.VectorOfLongsLength * 8 == longArrayBytes.Length);
+
+            var doubleArrayBytes = monster.GetVectorOfDoublesBytes();
+            Assert.IsTrue(monster.VectorOfDoublesLength * 8 == doubleArrayBytes.Length);
 #else
             var nameBytes = monster.GetNameBytes().Value;
             Assert.AreEqual("MyMonster", Encoding.UTF8.GetString(nameBytes.Array, nameBytes.Offset, nameBytes.Count));
@@ -273,7 +275,7 @@ namespace FlatBuffers.Test
                 Assert.IsTrue(monster.GetTestarrayofboolsBytes().HasValue);
             }
 #endif
-        }
+    }
 
         [FlatBuffersTestMethod]
         public void CanReadCppGeneratedWireFile()
@@ -290,6 +292,25 @@ namespace FlatBuffers.Test
             Assert.AreEqual("Blue", Color.Blue.ToString());
             Assert.AreEqual("NONE", Any.NONE.ToString());
             Assert.AreEqual("Monster", Any.Monster.ToString());
+        }
+
+        [FlatBuffersTestMethod]
+        public void TestVectorOfEnums()
+        {
+            const string monsterName = "TestVectorOfEnumsMonster";
+            var colorVec = new Color[] { Color.Red, Color.Green, Color.Blue };
+            var fbb = new FlatBufferBuilder(32);
+            var str1 = fbb.CreateString(monsterName);
+            var vec1 = Monster.CreateVectorOfEnumsVector(fbb, colorVec);
+            Monster.StartMonster(fbb);
+            Monster.AddName(fbb, str1);
+            Monster.AddVectorOfEnums(fbb, vec1);
+            var monster1 = Monster.EndMonster(fbb);
+            Monster.FinishMonsterBuffer(fbb, monster1);
+
+            var mons = Monster.GetRootAsMonster(fbb.DataBuffer);
+            var colors = mons.GetVectorOfEnumsArray();
+            Assert.ArrayEqual(colorVec, colors);
         }
 
         [FlatBuffersTestMethod]
@@ -342,6 +363,9 @@ namespace FlatBuffers.Test
             int[,]  d_a = new int[2, 2];
             TestEnum[]  d_b = new TestEnum[2];
             TestEnum[,] d_c = new TestEnum[2, 2];
+            long[,]     d_d = new long[2, 2];
+            int         e;
+            long[]      f = new long[2];
 
             a = 0.5f;
             for (int i = 0; i < 15; i++) b[i] = i;
@@ -356,9 +380,16 @@ namespace FlatBuffers.Test
             d_c[0, 1] = TestEnum.B;
             d_c[1, 0] = TestEnum.C;
             d_c[1, 1] = TestEnum.B;
+            d_d[0, 0] = -1;
+            d_d[0, 1] = 1;
+            d_d[1, 0] = -2;
+            d_d[1, 1] = 2;
+            e = 2;
+            f[0] = -1;
+            f[1] = 1;
 
             Offset<ArrayStruct> arrayOffset = ArrayStruct.CreateArrayStruct(
-                builder, a, b, c, d_a, d_b, d_c);
+                builder, a, b, c, d_a, d_b, d_c, d_d, e, f);
 
             // Create a table with the ArrayStruct.
             ArrayTable.StartArrayTable(builder);
@@ -382,6 +413,13 @@ namespace FlatBuffers.Test
             Assert.AreEqual(table.A?.D(0).C(1), TestEnum.B);
             Assert.AreEqual(table.A?.D(1).C(0), TestEnum.C);
             Assert.AreEqual(table.A?.D(1).C(1), TestEnum.B);
+            Assert.AreEqual(table.A?.D(0).D(0), -1);
+            Assert.AreEqual(table.A?.D(0).D(1), 1);
+            Assert.AreEqual(table.A?.D(1).D(0), -2);
+            Assert.AreEqual(table.A?.D(1).D(1), 2);
+            Assert.AreEqual(table.A?.E, 2);
+            Assert.AreEqual(table.A?.F(0), -1);
+            Assert.AreEqual(table.A?.F(1), 1);
         }
     }
 }

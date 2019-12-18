@@ -37,11 +37,15 @@ public final class TypeAliases extends Table {
   public boolean mutateF64(double f64) { int o = __offset(22); if (o != 0) { bb.putDouble(o + bb_pos, f64); return true; } else { return false; } }
   public byte v8(int j) { int o = __offset(24); return o != 0 ? bb.get(__vector(o) + j * 1) : 0; }
   public int v8Length() { int o = __offset(24); return o != 0 ? __vector_len(o) : 0; }
+  public ByteVector v8Vector() { return v8Vector(new ByteVector()); }
+  public ByteVector v8Vector(ByteVector obj) { int o = __offset(24); return o != 0 ? obj.__assign(__vector(o), bb) : null; }
   public ByteBuffer v8AsByteBuffer() { return __vector_as_bytebuffer(24, 1); }
   public ByteBuffer v8InByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 24, 1); }
   public boolean mutateV8(int j, byte v8) { int o = __offset(24); if (o != 0) { bb.put(__vector(o) + j * 1, v8); return true; } else { return false; } }
   public double vf64(int j) { int o = __offset(26); return o != 0 ? bb.getDouble(__vector(o) + j * 8) : 0; }
   public int vf64Length() { int o = __offset(26); return o != 0 ? __vector_len(o) : 0; }
+  public DoubleVector vf64Vector() { return vf64Vector(new DoubleVector()); }
+  public DoubleVector vf64Vector(DoubleVector obj) { int o = __offset(26); return o != 0 ? obj.__assign(__vector(o), bb) : null; }
   public ByteBuffer vf64AsByteBuffer() { return __vector_as_bytebuffer(26, 8); }
   public ByteBuffer vf64InByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 26, 8); }
   public boolean mutateVf64(int j, double vf64) { int o = __offset(26); if (o != 0) { bb.putDouble(__vector(o) + j * 8, vf64); return true; } else { return false; } }
@@ -87,7 +91,8 @@ public final class TypeAliases extends Table {
   public static void addF32(FlatBufferBuilder builder, float f32) { builder.addFloat(8, f32, 0.0f); }
   public static void addF64(FlatBufferBuilder builder, double f64) { builder.addDouble(9, f64, 0.0); }
   public static void addV8(FlatBufferBuilder builder, int v8Offset) { builder.addOffset(10, v8Offset, 0); }
-  public static int createV8Vector(FlatBufferBuilder builder, byte[] data) { builder.startVector(1, data.length, 1); for (int i = data.length - 1; i >= 0; i--) builder.addByte(data[i]); return builder.endVector(); }
+  public static int createV8Vector(FlatBufferBuilder builder, byte[] data) { return builder.createByteVector(data); }
+  public static int createV8Vector(FlatBufferBuilder builder, ByteBuffer data) { return builder.createByteVector(data); }
   public static void startV8Vector(FlatBufferBuilder builder, int numElems) { builder.startVector(1, numElems, 1); }
   public static void addVf64(FlatBufferBuilder builder, int vf64Offset) { builder.addOffset(11, vf64Offset, 0); }
   public static int createVf64Vector(FlatBufferBuilder builder, double[] data) { builder.startVector(8, data.length, 8); for (int i = data.length - 1; i >= 0; i--) builder.addDouble(data[i]); return builder.endVector(); }
@@ -95,6 +100,13 @@ public final class TypeAliases extends Table {
   public static int endTypeAliases(FlatBufferBuilder builder) {
     int o = builder.endTable();
     return o;
+  }
+
+  public static final class Vector extends BaseVector {
+    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
+
+    public TypeAliases get(int j) { return get(new TypeAliases(), j); }
+    public TypeAliases get(TypeAliases obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }
   }
 }
 

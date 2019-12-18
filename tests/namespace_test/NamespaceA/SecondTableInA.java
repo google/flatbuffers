@@ -31,5 +31,12 @@ public final class SecondTableInA extends Table {
     int o = builder.endTable();
     return o;
   }
+
+  public static final class Vector extends BaseVector {
+    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
+
+    public SecondTableInA get(int j) { return get(new SecondTableInA(), j); }
+    public SecondTableInA get(SecondTableInA obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }
+  }
 }
 

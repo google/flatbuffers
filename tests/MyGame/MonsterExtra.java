@@ -34,11 +34,15 @@ public final class MonsterExtra extends Table {
   public boolean mutateF3(float f3) { int o = __offset(18); if (o != 0) { bb.putFloat(o + bb_pos, f3); return true; } else { return false; } }
   public double dvec(int j) { int o = __offset(20); return o != 0 ? bb.getDouble(__vector(o) + j * 8) : 0; }
   public int dvecLength() { int o = __offset(20); return o != 0 ? __vector_len(o) : 0; }
+  public DoubleVector dvecVector() { return dvecVector(new DoubleVector()); }
+  public DoubleVector dvecVector(DoubleVector obj) { int o = __offset(20); return o != 0 ? obj.__assign(__vector(o), bb) : null; }
   public ByteBuffer dvecAsByteBuffer() { return __vector_as_bytebuffer(20, 8); }
   public ByteBuffer dvecInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 20, 8); }
   public boolean mutateDvec(int j, double dvec) { int o = __offset(20); if (o != 0) { bb.putDouble(__vector(o) + j * 8, dvec); return true; } else { return false; } }
   public float fvec(int j) { int o = __offset(22); return o != 0 ? bb.getFloat(__vector(o) + j * 4) : 0; }
   public int fvecLength() { int o = __offset(22); return o != 0 ? __vector_len(o) : 0; }
+  public FloatVector fvecVector() { return fvecVector(new FloatVector()); }
+  public FloatVector fvecVector(FloatVector obj) { int o = __offset(22); return o != 0 ? obj.__assign(__vector(o), bb) : null; }
   public ByteBuffer fvecAsByteBuffer() { return __vector_as_bytebuffer(22, 4); }
   public ByteBuffer fvecInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 22, 4); }
   public boolean mutateFvec(int j, float fvec) { int o = __offset(22); if (o != 0) { bb.putFloat(__vector(o) + j * 4, fvec); return true; } else { return false; } }
@@ -89,5 +93,12 @@ public final class MonsterExtra extends Table {
   }
   public static void finishMonsterExtraBuffer(FlatBufferBuilder builder, int offset) { builder.finish(offset, "MONE"); }
   public static void finishSizePrefixedMonsterExtraBuffer(FlatBufferBuilder builder, int offset) { builder.finishSizePrefixed(offset, "MONE"); }
+
+  public static final class Vector extends BaseVector {
+    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
+
+    public MonsterExtra get(int j) { return get(new MonsterExtra(), j); }
+    public MonsterExtra get(MonsterExtra obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }
+  }
 }
 

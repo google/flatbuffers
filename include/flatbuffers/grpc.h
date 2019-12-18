@@ -88,8 +88,7 @@ class SliceAllocator : public Allocator {
   SliceAllocator(const SliceAllocator &other) = delete;
   SliceAllocator &operator=(const SliceAllocator &other) = delete;
 
-  SliceAllocator(SliceAllocator &&other)
-    : slice_(grpc_empty_slice()) {
+  SliceAllocator(SliceAllocator &&other) : slice_(grpc_empty_slice()) {
     // default-construct and swap idiom
     swap(other);
   }
@@ -164,34 +163,36 @@ class MessageBuilder : private detail::SliceAllocatorMember,
                        public FlatBufferBuilder {
  public:
   explicit MessageBuilder(uoffset_t initial_size = 1024)
-    : FlatBufferBuilder(initial_size, &slice_allocator_, false) {}
+      : FlatBufferBuilder(initial_size, &slice_allocator_, false) {}
 
   MessageBuilder(const MessageBuilder &other) = delete;
   MessageBuilder &operator=(const MessageBuilder &other) = delete;
 
   MessageBuilder(MessageBuilder &&other)
-    : FlatBufferBuilder(1024, &slice_allocator_, false) {
+      : FlatBufferBuilder(1024, &slice_allocator_, false) {
     // Default construct and swap idiom.
     Swap(other);
   }
 
   /// Create a MessageBuilder from a FlatBufferBuilder.
-  explicit MessageBuilder(FlatBufferBuilder &&src, void (*dealloc)(void*, size_t) = &DefaultAllocator::dealloc)
-    : FlatBufferBuilder(1024, &slice_allocator_, false) {
+  explicit MessageBuilder(FlatBufferBuilder &&src,
+                          void (*dealloc)(void *,
+                                          size_t) = &DefaultAllocator::dealloc)
+      : FlatBufferBuilder(1024, &slice_allocator_, false) {
     src.Swap(*this);
     src.SwapBufAllocator(*this);
     if (buf_.capacity()) {
-      uint8_t *buf = buf_.scratch_data();       // pointer to memory
-      size_t capacity = buf_.capacity();        // size of memory
+      uint8_t *buf = buf_.scratch_data();  // pointer to memory
+      size_t capacity = buf_.capacity();   // size of memory
       slice_allocator_.slice_ = grpc_slice_new_with_len(buf, capacity, dealloc);
-    }
-    else {
+    } else {
       slice_allocator_.slice_ = grpc_empty_slice();
     }
   }
 
   /// Move-assign a FlatBufferBuilder to a MessageBuilder.
-  /// Only FlatBufferBuilder with default allocator (basically, nullptr) is supported.
+  /// Only FlatBufferBuilder with default allocator (basically, nullptr) is
+  /// supported.
   MessageBuilder &operator=(FlatBufferBuilder &&src) {
     // Move construct a temporary and swap
     MessageBuilder temp(std::move(src));
@@ -209,10 +210,11 @@ class MessageBuilder : private detail::SliceAllocatorMember,
   void Swap(MessageBuilder &other) {
     slice_allocator_.swap(other.slice_allocator_);
     FlatBufferBuilder::Swap(other);
-    // After swapping the FlatBufferBuilder, we swap back the allocator, which restores
-    // the original allocator back in place. This is necessary because MessageBuilder's
-    // allocator is its own member (SliceAllocatorMember). The allocator passed to
-    // FlatBufferBuilder::vector_downward must point to this member.
+    // After swapping the FlatBufferBuilder, we swap back the allocator, which
+    // restores the original allocator back in place. This is necessary because
+    // MessageBuilder's allocator is its own member (SliceAllocatorMember). The
+    // allocator passed to FlatBufferBuilder::vector_downward must point to this
+    // member.
     buf_.swap_allocator(other.buf_);
   }
 
@@ -232,10 +234,10 @@ class MessageBuilder : private detail::SliceAllocatorMember,
   // flatbuffers-encoded region and wraps it in a `Message<T>` to handle buffer
   // ownership.
   template<class T> Message<T> GetMessage() {
-    auto buf_data = buf_.scratch_data();       // pointer to memory
-    auto buf_size = buf_.capacity();  // size of memory
-    auto msg_data = buf_.data();      // pointer to msg
-    auto msg_size = buf_.size();      // size of msg
+    auto buf_data = buf_.scratch_data();  // pointer to memory
+    auto buf_size = buf_.capacity();      // size of memory
+    auto msg_data = buf_.data();          // pointer to msg
+    auto msg_size = buf_.size();          // size of msg
     // Do some sanity checks on data/size
     FLATBUFFERS_ASSERT(msg_data);
     FLATBUFFERS_ASSERT(msg_size);
@@ -274,7 +276,7 @@ template<class T> class SerializationTraits<flatbuffers::grpc::Message<T>> {
                                 grpc_byte_buffer **buffer, bool *own_buffer) {
     // We are passed in a `Message<T>`, which is a wrapper around a
     // `grpc_slice`. We extract it here using `BorrowSlice()`. The const cast
-    // is necesary because the `grpc_raw_byte_buffer_create` func expects
+    // is necessary because the `grpc_raw_byte_buffer_create` func expects
     // non-const slices in order to increment their refcounts.
     grpc_slice *slice = const_cast<grpc_slice *>(&msg.BorrowSlice());
     // Now use `grpc_raw_byte_buffer_create` to package the single slice into a
@@ -306,7 +308,7 @@ template<class T> class SerializationTraits<flatbuffers::grpc::Message<T>> {
       grpc_byte_buffer_reader_init(&reader, buffer);
       grpc_slice slice = grpc_byte_buffer_reader_readall(&reader);
       grpc_byte_buffer_reader_destroy(&reader);
-      // We wrap a `Message<T>` around the slice, but dont increment refcount
+      // We wrap a `Message<T>` around the slice, but don't increment refcount
       *msg = flatbuffers::grpc::Message<T>(slice, false);
     }
     grpc_byte_buffer_destroy(buffer);

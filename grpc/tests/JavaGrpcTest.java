@@ -96,7 +96,7 @@ public class JavaGrpcTest {
               if (monster.hp() > maxHp.get()) {
                 // Found a monster of higher hit points.
                 maxHp.set(monster.hp());
-                maxHpMonsterName.set(monster.name()); 
+                maxHpMonsterName.set(monster.name());
                 maxHpCount.set(1);
               }
               else if (monster.hp() == maxHp.get()) {
@@ -141,7 +141,7 @@ public class JavaGrpcTest {
         channel = ManagedChannelBuilder.forAddress("localhost", port)
                 // Channels are secure by default (via SSL/TLS). For the example we disable TLS to avoid
                 // needing certificates.
-                .usePlaintext(true)
+                .usePlaintext()
                 .directExecutor()
                 .build();
         blockingStub = MonsterStorageGrpc.newBlockingStub(channel);
@@ -177,7 +177,7 @@ public class JavaGrpcTest {
       final CountDownLatch streamAlive = new CountDownLatch(1);
 
       StreamObserver<Stat> statObserver = new StreamObserver<Stat>() {
-        public void onCompleted() { 
+        public void onCompleted() {
           streamAlive.countDown();
         }
         public void onError(Throwable ex) { }

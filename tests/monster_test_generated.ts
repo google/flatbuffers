@@ -25,6 +25,17 @@ export enum Color{
  * @enum {number}
  */
 export namespace MyGame.Example{
+export enum Race{
+  None= -1,
+  Human= 0,
+  Dwarf= 1,
+  Elf= 2
+}};
+
+/**
+ * @enum {number}
+ */
+export namespace MyGame.Example{
 export enum Any{
   NONE= 0,
   Monster= 1,
@@ -991,21 +1002,6 @@ testType():MyGame.Example.Any {
 };
 
 /**
- * @param MyGame.Example.Any value
- * @returns boolean
- */
-mutate_test_type(value:MyGame.Example.Any):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 18);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint8(this.bb_pos + offset, value);
-  return true;
-};
-
-/**
  * @param flatbuffers.Table obj
  * @returns ?flatbuffers.Table
  */
@@ -1714,21 +1710,6 @@ anyUniqueType():MyGame.Example.AnyUniqueAliases {
 };
 
 /**
- * @param MyGame.Example.AnyUniqueAliases value
- * @returns boolean
- */
-mutate_any_unique_type(value:MyGame.Example.AnyUniqueAliases):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 90);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint8(this.bb_pos + offset, value);
-  return true;
-};
-
-/**
  * @param flatbuffers.Table obj
  * @returns ?flatbuffers.Table
  */
@@ -1743,21 +1724,6 @@ anyUnique<T extends flatbuffers.Table>(obj:T):T|null {
 anyAmbiguousType():MyGame.Example.AnyAmbiguousAliases {
   var offset = this.bb!.__offset(this.bb_pos, 94);
   return offset ? /**  */ (this.bb!.readUint8(this.bb_pos + offset)) : MyGame.Example.AnyAmbiguousAliases.NONE;
-};
-
-/**
- * @param MyGame.Example.AnyAmbiguousAliases value
- * @returns boolean
- */
-mutate_any_ambiguous_type(value:MyGame.Example.AnyAmbiguousAliases):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 94);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint8(this.bb_pos + offset, value);
-  return true;
 };
 
 /**
@@ -1795,10 +1761,33 @@ vectorOfEnumsArray():Uint8Array|null {
 };
 
 /**
+ * @returns MyGame.Example.Race
+ */
+signedEnum():MyGame.Example.Race {
+  var offset = this.bb!.__offset(this.bb_pos, 100);
+  return offset ? /**  */ (this.bb!.readInt8(this.bb_pos + offset)) : MyGame.Example.Race.None;
+};
+
+/**
+ * @param MyGame.Example.Race value
+ * @returns boolean
+ */
+mutate_signed_enum(value:MyGame.Example.Race):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 100);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeInt8(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @param flatbuffers.Builder builder
  */
 static startMonster(builder:flatbuffers.Builder) {
-  builder.startObject(48);
+  builder.startObject(49);
 };
 
 /**
@@ -2518,6 +2507,14 @@ static startVectorOfEnumsVector(builder:flatbuffers.Builder, numElems:number) {
 
 /**
  * @param flatbuffers.Builder builder
+ * @param MyGame.Example.Race signedEnum
+ */
+static addSignedEnum(builder:flatbuffers.Builder, signedEnum:MyGame.Example.Race) {
+  builder.addFieldInt8(48, signedEnum, MyGame.Example.Race.None);
+};
+
+/**
+ * @param flatbuffers.Builder builder
  * @returns flatbuffers.Offset
  */
 static endMonster(builder:flatbuffers.Builder):flatbuffers.Offset {
@@ -2542,7 +2539,7 @@ static finishSizePrefixedMonsterBuffer(builder:flatbuffers.Builder, offset:flatb
   builder.finish(offset, 'MONS', true);
 };
 
-static createMonster(builder:flatbuffers.Builder, posOffset:flatbuffers.Offset, mana:number, hp:number, nameOffset:flatbuffers.Offset, inventoryOffset:flatbuffers.Offset, color:MyGame.Example.Color, testType:MyGame.Example.Any, testOffset:flatbuffers.Offset, test4Offset:flatbuffers.Offset, testarrayofstringOffset:flatbuffers.Offset, testarrayoftablesOffset:flatbuffers.Offset, enemyOffset:flatbuffers.Offset, testnestedflatbufferOffset:flatbuffers.Offset, testemptyOffset:flatbuffers.Offset, testbool:boolean, testhashs32Fnv1:number, testhashu32Fnv1:number, testhashs64Fnv1:flatbuffers.Long, testhashu64Fnv1:flatbuffers.Long, testhashs32Fnv1a:number, testhashu32Fnv1a:number, testhashs64Fnv1a:flatbuffers.Long, testhashu64Fnv1a:flatbuffers.Long, testarrayofboolsOffset:flatbuffers.Offset, testf:number, testf2:number, testf3:number, testarrayofstring2Offset:flatbuffers.Offset, testarrayofsortedstructOffset:flatbuffers.Offset, flexOffset:flatbuffers.Offset, test5Offset:flatbuffers.Offset, vectorOfLongsOffset:flatbuffers.Offset, vectorOfDoublesOffset:flatbuffers.Offset, parentNamespaceTestOffset:flatbuffers.Offset, vectorOfReferrablesOffset:flatbuffers.Offset, singleWeakReference:flatbuffers.Long, vectorOfWeakReferencesOffset:flatbuffers.Offset, vectorOfStrongReferrablesOffset:flatbuffers.Offset, coOwningReference:flatbuffers.Long, vectorOfCoOwningReferencesOffset:flatbuffers.Offset, nonOwningReference:flatbuffers.Long, vectorOfNonOwningReferencesOffset:flatbuffers.Offset, anyUniqueType:MyGame.Example.AnyUniqueAliases, anyUniqueOffset:flatbuffers.Offset, anyAmbiguousType:MyGame.Example.AnyAmbiguousAliases, anyAmbiguousOffset:flatbuffers.Offset, vectorOfEnumsOffset:flatbuffers.Offset):flatbuffers.Offset {
+static createMonster(builder:flatbuffers.Builder, posOffset:flatbuffers.Offset, mana:number, hp:number, nameOffset:flatbuffers.Offset, inventoryOffset:flatbuffers.Offset, color:MyGame.Example.Color, testType:MyGame.Example.Any, testOffset:flatbuffers.Offset, test4Offset:flatbuffers.Offset, testarrayofstringOffset:flatbuffers.Offset, testarrayoftablesOffset:flatbuffers.Offset, enemyOffset:flatbuffers.Offset, testnestedflatbufferOffset:flatbuffers.Offset, testemptyOffset:flatbuffers.Offset, testbool:boolean, testhashs32Fnv1:number, testhashu32Fnv1:number, testhashs64Fnv1:flatbuffers.Long, testhashu64Fnv1:flatbuffers.Long, testhashs32Fnv1a:number, testhashu32Fnv1a:number, testhashs64Fnv1a:flatbuffers.Long, testhashu64Fnv1a:flatbuffers.Long, testarrayofboolsOffset:flatbuffers.Offset, testf:number, testf2:number, testf3:number, testarrayofstring2Offset:flatbuffers.Offset, testarrayofsortedstructOffset:flatbuffers.Offset, flexOffset:flatbuffers.Offset, test5Offset:flatbuffers.Offset, vectorOfLongsOffset:flatbuffers.Offset, vectorOfDoublesOffset:flatbuffers.Offset, parentNamespaceTestOffset:flatbuffers.Offset, vectorOfReferrablesOffset:flatbuffers.Offset, singleWeakReference:flatbuffers.Long, vectorOfWeakReferencesOffset:flatbuffers.Offset, vectorOfStrongReferrablesOffset:flatbuffers.Offset, coOwningReference:flatbuffers.Long, vectorOfCoOwningReferencesOffset:flatbuffers.Offset, nonOwningReference:flatbuffers.Long, vectorOfNonOwningReferencesOffset:flatbuffers.Offset, anyUniqueType:MyGame.Example.AnyUniqueAliases, anyUniqueOffset:flatbuffers.Offset, anyAmbiguousType:MyGame.Example.AnyAmbiguousAliases, anyAmbiguousOffset:flatbuffers.Offset, vectorOfEnumsOffset:flatbuffers.Offset, signedEnum:MyGame.Example.Race):flatbuffers.Offset {
   Monster.startMonster(builder);
   Monster.addPos(builder, posOffset);
   Monster.addMana(builder, mana);
@@ -2591,6 +2588,7 @@ static createMonster(builder:flatbuffers.Builder, posOffset:flatbuffers.Offset, 
   Monster.addAnyAmbiguousType(builder, anyAmbiguousType);
   Monster.addAnyAmbiguous(builder, anyAmbiguousOffset);
   Monster.addVectorOfEnums(builder, vectorOfEnumsOffset);
+  Monster.addSignedEnum(builder, signedEnum);
   return Monster.endMonster(builder);
 }
 }

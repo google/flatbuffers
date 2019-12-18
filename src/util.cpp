@@ -16,6 +16,7 @@
 
 // clang-format off
 // Dont't remove `format off`, it prevent reordering of win-includes.
+#define _POSIX_C_SOURCE 200112L // For stat from stat/stat.h and fseeko() (POSIX extensions).
 #ifdef _WIN32
 #  ifndef WIN32_LEAN_AND_MEAN
 #    define WIN32_LEAN_AND_MEAN
@@ -31,6 +32,7 @@
 #  include <winbase.h>
 #  undef interface  // This is also important because of reasons
 #else
+#  define _XOPEN_SOURCE 600 // For PATH_MAX from limits.h (SUSv2 extension) 
 #  include <limits.h>
 #endif
 // clang-format on
@@ -240,9 +242,9 @@ bool SetGlobalTestLocale(const char *locale_name, std::string *_value) {
 }
 
 bool ReadEnvironmentVariable(const char *var_name, std::string *_value) {
-  #ifdef _MSC_VER
-  __pragma(warning(disable : 4996)); // _CRT_SECURE_NO_WARNINGS
-  #endif
+#ifdef _MSC_VER
+  __pragma(warning(disable : 4996));  // _CRT_SECURE_NO_WARNINGS
+#endif
   auto env_str = std::getenv(var_name);
   if (!env_str) return false;
   if (_value) *_value = std::string(env_str);

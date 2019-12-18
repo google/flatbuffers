@@ -15,16 +15,19 @@
 # limitations under the License.
 set -e
 
-../flatc --cpp --java --kotlin  --csharp --dart --go --binary --lobster --lua --python --js --ts --php --rust --grpc --gen-mutable --reflect-names --gen-object-api --gen-compare --no-includes --cpp-ptr-type flatbuffers::unique_ptr  --no-fb-import -I include_test monster_test.fbs monsterdata_test.json
+../flatc --cpp --java --kotlin  --csharp --dart --go --binary --lobster --lua --js --ts --php --rust --grpc --gen-mutable --reflect-names --gen-object-api --gen-compare --no-includes --cpp-ptr-type flatbuffers::unique_ptr  --no-fb-import -I include_test monster_test.fbs monsterdata_test.json
+../flatc --python --gen-mutable --reflect-names --gen-object-api --gen-compare --cpp-ptr-type flatbuffers::unique_ptr  --no-fb-import -I include_test monster_test.fbs monsterdata_test.json
 ../flatc --cpp --java --kotlin --csharp --dart --go --binary --lobster --lua --python --js --ts --php --rust --gen-mutable --reflect-names --no-fb-import --cpp-ptr-type flatbuffers::unique_ptr  -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs
 ../flatc --cpp --java --kotlin --csharp --js --ts --php --gen-mutable --reflect-names --gen-object-api --gen-compare --cpp-ptr-type flatbuffers::unique_ptr -o union_vector ./union_vector/union_vector.fbs
+../flatc --cpp --scoped-enums -o evolution_test ./evolution_test/evolution_v*.fbs
 ../flatc -b --schema --bfbs-comments --bfbs-builtins -I include_test monster_test.fbs
 ../flatc -b --schema --bfbs-comments --bfbs-builtins -I include_test arrays_test.fbs
 ../flatc --jsonschema --schema -I include_test monster_test.fbs
-../flatc --cpp --java --kotlin --csharp --python --gen-mutable --reflect-names --gen-object-api --gen-compare --no-includes monster_extra.fbs monsterdata_extra.json
-../flatc --cpp --java --csharp --python --gen-mutable --reflect-names --gen-object-api --gen-compare --no-includes --scoped-enums --jsonschema --cpp-ptr-type flatbuffers::unique_ptr arrays_test.fbs
+../flatc --cpp --java --kotlin --csharp --python --gen-mutable --reflect-names --gen-object-api --gen-compare --no-includes --cpp-ptr-type flatbuffers::unique_ptr monster_extra.fbs monsterdata_extra.json
+../flatc --cpp --java --csharp --gen-mutable --reflect-names --gen-object-api --gen-compare --no-includes --scoped-enums --jsonschema --cpp-ptr-type flatbuffers::unique_ptr arrays_test.fbs
+../flatc --python --gen-mutable --reflect-names --gen-object-api --gen-compare --scoped-enums --jsonschema --cpp-ptr-type flatbuffers::unique_ptr arrays_test.fbs
 cd ../samples
-../flatc --cpp --kotlin --lobster --gen-mutable --reflect-names --gen-object-api --gen-compare --cpp-ptr-type flatbuffers::unique_ptr monster.fbs
+../flatc --cpp --lobster --gen-mutable --reflect-names --gen-object-api --gen-compare --cpp-ptr-type flatbuffers::unique_ptr monster.fbs
 ../flatc -b --schema --bfbs-comments --bfbs-builtins monster.fbs
 cd ../reflection
 ./generate_code.sh

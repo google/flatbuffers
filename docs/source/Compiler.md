@@ -94,7 +94,7 @@ Additional options:
 	                   statements) use `--no-includes.`
 
 -   `--no-includes` : Don't generate include statements for included schemas the
-    generated file depends on (C++).
+    generated file depends on (C++ / Python).
 
 -   `--gen-mutable` : Generate additional non-const accessors for mutating
     FlatBuffers in-place.
@@ -202,6 +202,9 @@ Additional options:
 
 -   `--force-empty` : When serializing from object API representation, force
      strings and vectors to empty rather than null.
+
+-   `--force-empty-vectors` : When serializing from object API representation, force
+     vectors to empty rather than null.
 
 NOTE: short-form options for generators are deprecated, use the long form
 whenever possible.

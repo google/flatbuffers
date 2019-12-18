@@ -9,6 +9,10 @@
       "type" : "string",
       "enum": ["Red", "Green", "Blue"]
     },
+    "MyGame_Example_Race" : {
+      "type" : "string",
+      "enum": ["None", "Human", "Dwarf", "Elf"]
+    },
     "MyGame_Example_Any" : {
       "type" : "string",
       "enum": ["NONE", "Monster", "TestSimpleTableWithEnum", "MyGame_Example2_Monster"]
@@ -288,6 +292,9 @@
               },
         "vector_of_enums" : {
                 "$ref" : "#/definitions/MyGame_Example_Color"
+              },
+        "signed_enum" : {
+                "$ref" : "#/definitions/MyGame_Example_Race"
               }
       },
       "required" : ["name"],

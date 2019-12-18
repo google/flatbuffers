@@ -30,5 +30,12 @@ public final class TableInFirstNS extends Table {
     int o = builder.endTable();
     return o;
   }
+
+  public static final class Vector extends BaseVector {
+    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
+
+    public TableInFirstNS get(int j) { return get(new TableInFirstNS(), j); }
+    public TableInFirstNS get(TableInFirstNS obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }
+  }
 }
 

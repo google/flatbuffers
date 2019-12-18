@@ -3,6 +3,8 @@
 # namespace: MyGame
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class MonsterExtra(object):
     __slots__ = ['_tab']
@@ -101,6 +103,11 @@ class MonsterExtra(object):
         return 0
 
     # MonsterExtra
+    def DvecIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(20))
+        return o == 0
+
+    # MonsterExtra
     def Fvec(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
         if o != 0:
@@ -122,6 +129,11 @@ class MonsterExtra(object):
             return self._tab.VectorLen(o)
         return 0
 
+    # MonsterExtra
+    def FvecIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
+        return o == 0
+
 def MonsterExtraStart(builder): builder.StartObject(10)
 def MonsterExtraAddD0(builder, d0): builder.PrependFloat64Slot(0, d0, float('nan'))
 def MonsterExtraAddD1(builder, d1): builder.PrependFloat64Slot(1, d1, float('nan'))
@@ -136,3 +148,90 @@ def MonsterExtraStartDvecVector(builder, numElems): return builder.StartVector(8
 def MonsterExtraAddFvec(builder, fvec): builder.PrependUOffsetTRelativeSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(fvec), 0)
 def MonsterExtraStartFvecVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def MonsterExtraEnd(builder): return builder.EndObject()
+
+try:
+    from typing import List
+except:
+    pass
+
+class MonsterExtraT(object):
+
+    # MonsterExtraT
+    def __init__(self):
+        self.d0 = float('nan')  # type: float
+        self.d1 = float('nan')  # type: float
+        self.d2 = float('inf')  # type: float
+        self.d3 = float('-inf')  # type: float
+        self.f0 = float('nan')  # type: float
+        self.f1 = float('nan')  # type: float
+        self.f2 = float('inf')  # type: float
+        self.f3 = float('-inf')  # type: float
+        self.dvec = None  # type: List[float]
+        self.fvec = None  # type: List[float]
+
+    @classmethod
+    def InitFromBuf(cls, buf, pos):
+        monsterExtra = MonsterExtra()
+        monsterExtra.Init(buf, pos)
+        return cls.InitFromObj(monsterExtra)
+
+    @classmethod
+    def InitFromObj(cls, monsterExtra):
+        x = MonsterExtraT()
+        x._UnPack(monsterExtra)
+        return x
+
+    # MonsterExtraT
+    def _UnPack(self, monsterExtra):
+        if monsterExtra is None:
+            return
+        self.d0 = monsterExtra.D0()
+        self.d1 = monsterExtra.D1()
+        self.d2 = monsterExtra.D2()
+        self.d3 = monsterExtra.D3()
+        self.f0 = monsterExtra.F0()
+        self.f1 = monsterExtra.F1()
+        self.f2 = monsterExtra.F2()
+        self.f3 = monsterExtra.F3()
+        if not monsterExtra.DvecIsNone():
+            if np is None:
+                self.dvec = []
+                for i in range(monsterExtra.DvecLength()):
+                    self.dvec.append(monsterExtra.Dvec(i))
+            else:
+                self.dvec = monsterExtra.DvecAsNumpy()
+        if not monsterExtra.FvecIsNone():
+            if np is None:
+                self.fvec = []
+                for i in range(monsterExtra.FvecLength()):
+                    self.fvec.append(monsterExtra.Fvec(i))
+            else:
+                self.fvec = monsterExtra.FvecAsNumpy()
+
+    # MonsterExtraT
+    def Pack(self, builder):
+        if self.dvec is not None:
+            MonsterExtraStartDvecVector(builder, len(self.dvec))
+            for i in reversed(range(len(self.dvec))):
+                builder.PrependFloat64(self.dvec[i])
+            dvec =  builder.EndVector(len(self.dvec))
+        if self.fvec is not None:
+            MonsterExtraStartFvecVector(builder, len(self.fvec))
+            for i in reversed(range(len(self.fvec))):
+                builder.PrependFloat32(self.fvec[i])
+            fvec =  builder.EndVector(len(self.fvec))
+        MonsterExtraStart(builder)
+        MonsterExtraAddD0(builder, self.d0)
+        MonsterExtraAddD1(builder, self.d1)
+        MonsterExtraAddD2(builder, self.d2)
+        MonsterExtraAddD3(builder, self.d3)
+        MonsterExtraAddF0(builder, self.f0)
+        MonsterExtraAddF1(builder, self.f1)
+        MonsterExtraAddF2(builder, self.f2)
+        MonsterExtraAddF3(builder, self.f3)
+        if self.dvec is not None:
+            MonsterExtraAddDvec(builder, dvec)
+        if self.fvec is not None:
+            MonsterExtraAddFvec(builder, fvec)
+        monsterExtra = MonsterExtraEnd(builder)
+        return monsterExtra

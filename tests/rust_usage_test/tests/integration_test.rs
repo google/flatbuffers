@@ -184,6 +184,7 @@ fn serialized_example_is_accessible_and_correct(bytes: &[u8], identifier_require
     let inv = m.inventory().unwrap();
     check_eq!(inv.len(), 5)?;
     check_eq!(inv.iter().sum::<u8>(), 10u8)?;
+    check_eq!(inv.iter().rev().sum::<u8>(), 10u8)?;
 
     check_is_some!(m.test4())?;
     let test4 = m.test4().unwrap();
@@ -233,6 +234,53 @@ mod generated_constants {
     #[test]
     fn monster_file_extension() {
         assert_eq!("mon", my_game::example::MONSTER_EXTENSION);
+    }
+
+    #[test]
+    fn enum_constants_are_public() {
+        assert_eq!(1, my_game::example::ENUM_MIN_COLOR);
+        assert_eq!(8, my_game::example::ENUM_MAX_COLOR);
+        assert_eq!(my_game::example::ENUM_VALUES_COLOR, [
+            my_game::example::Color::Red,
+            my_game::example::Color::Green,
+            my_game::example::Color::Blue,
+        ]);
+
+        assert_eq!(-1, my_game::example::ENUM_MIN_RACE);
+        assert_eq!(2, my_game::example::ENUM_MAX_RACE);
+        assert_eq!(my_game::example::ENUM_VALUES_RACE, [
+            my_game::example::Race::None,
+            my_game::example::Race::Human,
+            my_game::example::Race::Dwarf,
+            my_game::example::Race::Elf,
+        ]);
+
+        assert_eq!(0, my_game::example::ENUM_MIN_ANY);
+        assert_eq!(3, my_game::example::ENUM_MAX_ANY);
+        assert_eq!(my_game::example::ENUM_VALUES_ANY, [
+            my_game::example::Any::NONE,
+            my_game::example::Any::Monster,
+            my_game::example::Any::TestSimpleTableWithEnum,
+            my_game::example::Any::MyGame_Example2_Monster,
+        ]);
+
+        assert_eq!(0, my_game::example::ENUM_MIN_ANY_UNIQUE_ALIASES);
+        assert_eq!(3, my_game::example::ENUM_MAX_ANY_UNIQUE_ALIASES);
+        assert_eq!(my_game::example::ENUM_VALUES_ANY_UNIQUE_ALIASES, [
+            my_game::example::AnyUniqueAliases::NONE,
+            my_game::example::AnyUniqueAliases::M,
+            my_game::example::AnyUniqueAliases::TS,
+            my_game::example::AnyUniqueAliases::M2,
+        ]);
+
+        assert_eq!(0, my_game::example::ENUM_MIN_ANY_AMBIGUOUS_ALIASES);
+        assert_eq!(3, my_game::example::ENUM_MAX_ANY_AMBIGUOUS_ALIASES);
+        assert_eq!(my_game::example::ENUM_VALUES_ANY_AMBIGUOUS_ALIASES, [
+            my_game::example::AnyAmbiguousAliases::NONE,
+            my_game::example::AnyAmbiguousAliases::M1,
+            my_game::example::AnyAmbiguousAliases::M2,
+            my_game::example::AnyAmbiguousAliases::M3,
+        ]);
     }
 }
 
@@ -509,6 +557,18 @@ mod roundtrip_generated_code {
         assert_eq!(m.testarrayofstring().unwrap().len(), 2);
         assert_eq!(m.testarrayofstring().unwrap().get(0), "foobar");
         assert_eq!(m.testarrayofstring().unwrap().get(1), "baz");
+
+        let rust_vec_inst = m.testarrayofstring().unwrap();
+        let rust_vec_iter_collect = rust_vec_inst.iter().collect::<Vec<_>>();
+        assert_eq!(rust_vec_iter_collect.len(), 2);
+        assert_eq!(rust_vec_iter_collect[0], "foobar");
+        assert_eq!(rust_vec_iter_collect[1], "baz");
+
+        let rust_vec_iter_rev_collect = rust_vec_inst.iter().rev().collect::<Vec<_>>();
+        assert_eq!(rust_vec_iter_rev_collect.len(), 2);
+        assert_eq!(rust_vec_iter_rev_collect[1], "foobar");
+        assert_eq!(rust_vec_iter_rev_collect[0], "baz");
+
     }
     #[test]
     fn vector_of_string_store_manual_build() {
@@ -523,6 +583,17 @@ mod roundtrip_generated_code {
         assert_eq!(m.testarrayofstring().unwrap().len(), 2);
         assert_eq!(m.testarrayofstring().unwrap().get(0), "foobar");
         assert_eq!(m.testarrayofstring().unwrap().get(1), "baz");
+
+        let rust_vec_inst = m.testarrayofstring().unwrap();
+        let rust_vec_iter_collect = rust_vec_inst.iter().collect::<Vec<_>>();
+        assert_eq!(rust_vec_iter_collect.len(), 2);
+        assert_eq!(rust_vec_iter_collect[0], "foobar");
+        assert_eq!(rust_vec_iter_collect[1], "baz");
+
+        let rust_vec_iter_rev_collect = rust_vec_inst.iter().rev().collect::<Vec<_>>();
+        assert_eq!(rust_vec_iter_rev_collect.len(), 2);
+        assert_eq!(rust_vec_iter_rev_collect[0], "baz");
+        assert_eq!(rust_vec_iter_rev_collect[1], "foobar");
     }
     #[test]
     fn vector_of_ubyte_store() {
@@ -543,6 +614,13 @@ mod roundtrip_generated_code {
             name: Some(name),
             testarrayofbools: Some(v), ..Default::default()});
         assert_eq!(m.testarrayofbools().unwrap(), &[false, true, false, true][..]);
+
+        let rust_vec_inst = m.testarrayofbools().unwrap();
+        let rust_vec_iter_collect = rust_vec_inst.iter().collect::<Vec<_>>();
+        assert_eq!(rust_vec_iter_collect, &[&false, &true, &false, &true][..]);
+
+        let rust_vec_iter_rev_collect = rust_vec_inst.iter().rev().collect::<Vec<_>>();
+        assert_eq!(rust_vec_iter_rev_collect, &[&true, &false, &true, &false][..]);
     }
     #[test]
     fn vector_of_f64_store() {
@@ -554,6 +632,15 @@ mod roundtrip_generated_code {
             vector_of_doubles: Some(v), ..Default::default()});
         assert_eq!(m.vector_of_doubles().unwrap().len(), 1);
         assert_eq!(m.vector_of_doubles().unwrap().get(0), 3.14159265359f64);
+
+        let rust_vec_inst = m.vector_of_doubles().unwrap();
+        let rust_vec_iter_collect = rust_vec_inst.iter().collect::<Vec<_>>();
+        assert_eq!(rust_vec_iter_collect.len(), 1);
+        assert_eq!(rust_vec_iter_collect[0], 3.14159265359f64);
+
+        let rust_vec_iter_rev_collect = rust_vec_inst.iter().rev().collect::<Vec<_>>();
+        assert_eq!(rust_vec_iter_rev_collect.len(), 1);
+        assert_eq!(rust_vec_iter_rev_collect[0], 3.14159265359f64);
     }
     #[test]
     fn vector_of_struct_store() {
@@ -564,6 +651,13 @@ mod roundtrip_generated_code {
             name: Some(name),
             test4: Some(v), ..Default::default()});
         assert_eq!(m.test4().unwrap(), &[my_game::example::Test::new(127, -128), my_game::example::Test::new(3, 123)][..]);
+
+        let rust_vec_inst = m.test4().unwrap();
+        let rust_vec_iter_collect = rust_vec_inst.iter().collect::<Vec<_>>();
+        assert_eq!(rust_vec_iter_collect, &[&my_game::example::Test::new(127, -128), &my_game::example::Test::new(3, 123)][..]);
+
+        let rust_vec_iter_rev_collect = rust_vec_inst.iter().rev().collect::<Vec<_>>();
+        assert_eq!(rust_vec_iter_rev_collect, &[&my_game::example::Test::new(3, 123), &my_game::example::Test::new(127, -128)][..]);
     }
     #[test]
     fn vector_of_struct_store_with_type_inference() {
@@ -613,6 +707,21 @@ mod roundtrip_generated_code {
         assert_eq!(m.testarrayoftables().unwrap().get(0).name(), "foo");
         assert_eq!(m.testarrayoftables().unwrap().get(1).hp(), 100);
         assert_eq!(m.testarrayoftables().unwrap().get(1).name(), "bar");
+
+        let rust_vec_inst = m.testarrayoftables().unwrap();
+        let rust_vec_iter_collect = rust_vec_inst.iter().collect::<Vec<_>>();
+        assert_eq!(rust_vec_iter_collect.len(), 2);
+        assert_eq!(rust_vec_iter_collect[0].hp(), 55);
+        assert_eq!(rust_vec_iter_collect[0].name(), "foo");
+        assert_eq!(rust_vec_iter_collect[1].hp(), 100);
+        assert_eq!(rust_vec_iter_collect[1].name(), "bar");
+
+        let rust_vec_iter_rev_collect = rust_vec_inst.iter().rev().collect::<Vec<_>>();
+        assert_eq!(rust_vec_iter_rev_collect.len(), 2);
+        assert_eq!(rust_vec_iter_rev_collect[0].hp(), 100);
+        assert_eq!(rust_vec_iter_rev_collect[0].name(), "bar");
+        assert_eq!(rust_vec_iter_rev_collect[1].hp(), 55);
+        assert_eq!(rust_vec_iter_rev_collect[1].name(), "foo");
     }
 }
 
@@ -721,6 +830,12 @@ mod generated_code_alignment_and_padding {
             let aln = ::std::mem::align_of::<my_game::example::Ability>();
             assert_eq!((a_ptr - start_ptr) % aln, 0);
         }
+        for a in abilities.iter().rev() {
+            let a_ptr = a as *const my_game::example::Ability as usize;
+            assert!(a_ptr > start_ptr);
+            let aln = ::std::mem::align_of::<my_game::example::Ability>();
+            assert_eq!((a_ptr - start_ptr) % aln, 0);
+        }
     }
 }
 
@@ -806,6 +921,13 @@ mod roundtrip_vectors {
                 result_vec.push(got.get(i));
             }
             assert_eq!(result_vec, xs);
+
+            let rust_vec_iter = got.iter().collect::<Vec<T>>();
+            assert_eq!(rust_vec_iter, xs);
+
+            let mut rust_vec_rev_iter = got.iter().rev().collect::<Vec<T>>();
+            rust_vec_rev_iter.reverse();
+            assert_eq!(rust_vec_rev_iter, xs);
         }
 
         #[test]
@@ -2691,6 +2813,21 @@ mod byte_layouts {
               0, 2, // value #1 => 2 (u8)
               1, 0, // value #0 => 1 (int16)
         ]);
+    }
+}
+
+#[cfg(test)]
+mod copy_clone_traits {
+    #[test]
+    fn follow_types_implement_copy_and_clone() {
+        static_assertions::assert_impl_all!(flatbuffers::WIPOffset<u32>: Copy, Clone);
+        static_assertions::assert_impl_all!(flatbuffers::WIPOffset<Vec<u32>>: Copy, Clone);
+
+        static_assertions::assert_impl_all!(flatbuffers::ForwardsUOffset<u32>: Copy, Clone);
+        static_assertions::assert_impl_all!(flatbuffers::ForwardsUOffset<Vec<u32>>: Copy, Clone);
+
+        static_assertions::assert_impl_all!(flatbuffers::Vector<'static, u32>: Copy, Clone);
+        static_assertions::assert_impl_all!(flatbuffers::Vector<'static, Vec<u32>>: Copy, Clone);
     }
 }
 

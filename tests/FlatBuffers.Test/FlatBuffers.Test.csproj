@@ -78,6 +78,9 @@
     <Compile Include="..\MyGame\Example\Color.cs">
       <Link>MyGame\Example\Color.cs</Link>
     </Compile>
+    <Compile Include="..\MyGame\Example\Race.cs">
+      <Link>MyGame\Example\Race.cs</Link>
+    </Compile>
     <Compile Include="..\MyGame\Example\Monster.cs">
       <Link>MyGame\Example\Monster.cs</Link>
     </Compile>
