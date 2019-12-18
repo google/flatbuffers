@@ -21,3 +21,4 @@ cd rust_usage_test
 cargo test -- --quiet || exit /b 1
 cargo run --bin=alloc_check || exit /b 1
 cd ..
+cargo test --manifest-path "../rust/flatbuffers/Cargo.toml" || exit /b 1

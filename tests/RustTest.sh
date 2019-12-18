@@ -41,3 +41,7 @@ else
 fi
 
 cargo bench $TARGET_FLAG
+
+cd ..
+
+cargo test --manifest-path "../rust/flatbuffers/Cargo.toml"
