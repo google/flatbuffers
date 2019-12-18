@@ -1,0 +1,17 @@
+[package]
+name = "flexbuffers"
+version = "0.1.0"
+authors = ["Casper Neo <cneo@google.com>"]
+edition = "2018"
+license = "Apache-2.0"
+
+[dependencies]
+serde = "1.0.103"
+byteorder = "1.3.2"
+num_enum = "0.4.1"
+debug_stub_derive = "0.3.0"
+
+[dev-dependencies]
+serde_derive = "*"
+bencher = "*"
+quickcheck = "*"
