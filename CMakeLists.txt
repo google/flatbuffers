@@ -150,6 +150,8 @@ set(FlatBuffers_Tests_SRCS
 
 set(FlatBuffers_Tests_CPP17_SRCS
   ${FlatBuffers_Library_SRCS}
+  tests/test_assert.h
+  tests/test_assert.cpp
   tests/cpp17/test_cpp17.cpp
   # file generate by running compiler on tests/monster_test.fbs
   ${CMAKE_CURRENT_BINARY_DIR}/tests/cpp17/generated_cpp17/monster_test_generated.h
@@ -268,23 +270,28 @@ if(FLATBUFFERS_CODE_COVERAGE)
 endif()
 
 function(add_fsanitize_to_target _target _sanitizer)
-  # FLATBUFFERS_CODE_SANITIZE: boolean {ON,OFF,YES,NO} or string with list of sanitizer.
-  # List of sanitizer is string starts with '=': "=address,undefined,thread,memory".
-  if((${CMAKE_CXX_COMPILER_ID} MATCHES "Clang") OR
-    ((${CMAKE_CXX_COMPILER_ID} MATCHES "GNU") AND NOT (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.9"))
-  )
-    set(_sanitizer_flags "=address,undefined")
-    if(_sanitizer MATCHES "=.*")
-      # override default by user-defined sanitizer list
-      set(_sanitizer_flags ${_sanitizer})
+  if(WIN32)
+    target_compile_definitions(${_target} PRIVATE FLATBUFFERS_MEMORY_LEAK_TRACKING)
+    message(STATUS "Sanitizer MSVC::_CrtDumpMemoryLeaks added to ${_target}")
+  else()
+    # FLATBUFFERS_CODE_SANITIZE: boolean {ON,OFF,YES,NO} or string with list of sanitizer.
+    # List of sanitizer is string starts with '=': "=address,undefined,thread,memory".
+    if((${CMAKE_CXX_COMPILER_ID} MATCHES "Clang") OR
+      ((${CMAKE_CXX_COMPILER_ID} MATCHES "GNU") AND NOT (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.9"))
+    )
+      set(_sanitizer_flags "=address,undefined")
+      if(_sanitizer MATCHES "=.*")
+        # override default by user-defined sanitizer list
+        set(_sanitizer_flags ${_sanitizer})
+      endif()
+      target_compile_options(${_target} PRIVATE
+        -g -fsigned-char -fno-omit-frame-pointer
+        "-fsanitize${_sanitizer_flags}")
+      target_link_libraries(${_target} PRIVATE
+        "-fsanitize${_sanitizer_flags}")
+      set_property(TARGET ${_target} PROPERTY POSITION_INDEPENDENT_CODE ON)
+      message(STATUS "Sanitizer ${_sanitizer_flags} added to ${_target}")
     endif()
-    target_compile_options(${_target} PRIVATE
-      -g -fsigned-char -fno-omit-frame-pointer
-      "-fsanitize${_sanitizer_flags}")
-    target_link_libraries(${_target} PRIVATE
-      "-fsanitize${_sanitizer_flags}")
-    set_property(TARGET ${_target} PROPERTY POSITION_INDEPENDENT_CODE ON)
-    message(STATUS "Sanitizer ${_sanitizer_flags} added to ${_target}")
   endif()
 endfunction()
 
@@ -388,12 +395,7 @@ if(FLATBUFFERS_BUILD_TESTS)
     PROPERTY COMPILE_DEFINITIONS FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
     FLATBUFFERS_DEBUG_VERIFICATION_FAILURE=1)
   if(FLATBUFFERS_CODE_SANITIZE)
-    if(WIN32)
-      target_compile_definitions(flattests PRIVATE FLATBUFFERS_MEMORY_LEAK_TRACKING)
-      message(STATUS "Sanitizer MSVC::_CrtDumpMemoryLeaks added to flattests")
-    else()
       add_fsanitize_to_target(flattests ${FLATBUFFERS_CODE_SANITIZE})
-    endif()
   endif()
 
   compile_flatbuffers_schema_to_cpp(samples/monster.fbs)
@@ -410,7 +412,7 @@ if(FLATBUFFERS_BUILD_TESTS)
       FLATBUFFERS_DEBUG_VERIFICATION_FAILURE=1
     )
 
-    if(NOT WIN32 AND FLATBUFFERS_CODE_SANITIZE)
+    if(FLATBUFFERS_CODE_SANITIZE)
       add_fsanitize_to_target(flattests_cpp17 ${FLATBUFFERS_CODE_SANITIZE})
     endif()
   endif(FLATBUFFERS_BUILD_CPP17)

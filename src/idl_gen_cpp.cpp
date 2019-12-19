@@ -2991,13 +2991,13 @@ bool GenerateCPP(const Parser &parser, const std::string &path,
   std::transform(cpp_std.begin(), cpp_std.end(), cpp_std.begin(), ToUpper);
   if (cpp_std.empty() || cpp_std == "C++11") {
     // Use the standard C++11 code generator.
-    opts.g_cpp_std = cpp::CppStandard::CPP_STD_11;
+    opts.g_cpp_std = cpp::CPP_STD_11;
     opts.g_only_fixed_enums = true;
   } else if (cpp_std == "C++0X") {
-    opts.g_cpp_std = cpp::CppStandard::CPP_STD_X0;
+    opts.g_cpp_std = cpp::CPP_STD_X0;
     opts.g_only_fixed_enums = false;
   } else if (cpp_std == "C++17") {
-    opts.g_cpp_std = cpp::CppStandard::CPP_STD_17;
+    opts.g_cpp_std = cpp::CPP_STD_17;
     // With c++17 generate strong enums only.
     opts.scoped_enums = true;
     // By default, prefixed_enums==true, reset it.
