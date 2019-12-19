@@ -363,7 +363,7 @@ impl<'a> UserEvent<'a> {
   pub fn additional_data(&self) -> &'a [u8] {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(UserEvent::VT_ADDITIONAL_DATA, None).map(|v| v.safe_slice()).unwrap()
   }
-  pub fn additional_data_nested_flatbuffer(&'a self) -> UserEvent<'a>{
+  pub fn additional_data_nested_flatbuffer(&'a self) -> UserEvent<'a> {
      use self::flatbuffers::Follow;
      <flatbuffers::ForwardsUOffset<UserEvent<'a>>>::follow(self.additional_data(), 0)
   }
