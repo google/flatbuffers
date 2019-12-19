@@ -16,9 +16,11 @@
 set -e
 
 commandline="'$*'"
-TEST_CPP_FLAGS=
+
 if [[ $commandline == *"--cpp-std c++0x"* ]]; then
-  TEST_CPP_FLAGS="--cpp-std c++0x $TEST_CPP_FLAGS"
+  TEST_CPP_FLAGS="--cpp-std c++0x"
+else
+  TEST_CPP_FLAGS="--cpp-std c++11"
 fi
 
 TEST_CPP_FLAGS="--gen-compare --cpp-ptr-type flatbuffers::unique_ptr $TEST_CPP_FLAGS"
