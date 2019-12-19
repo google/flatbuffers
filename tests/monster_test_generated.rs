@@ -1187,7 +1187,7 @@ impl<'a> Monster<'a> {
   pub fn testnestedflatbuffer(&self) -> Option<&'a [u8]> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(Monster::VT_TESTNESTEDFLATBUFFER, None).map(|v| v.safe_slice())
   }
-  pub fn testnestedflatbuffer_nested_flatbuffer(&'a self) -> Option<Monster<'a>>{
+  pub fn testnestedflatbuffer_nested_flatbuffer(&'a self) -> Option<Monster<'a>> {
      match self.testnestedflatbuffer() {
          None => { None }
          Some(data) => {

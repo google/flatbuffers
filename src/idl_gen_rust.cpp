@@ -1276,7 +1276,7 @@ class RustGenerator : public BaseGenerator {
         code_ +=
             "  pub fn {{FIELD_NAME}}_nested_flatbuffer(&'a self) -> " +
             WrapInOptionIfNotRequired("{{STRUCT_NAME}}<'a>", field.required) +
-            "{";
+            " {";
         if (!field.required) {
           code_ += "     match self.{{FIELD_NAME}}() {";
           code_ += "         None => { None }";
