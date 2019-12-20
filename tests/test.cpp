@@ -1127,6 +1127,71 @@ void ParseProtoTest() {
   TEST_EQ_STR(fbs_union.c_str(), goldenunionfile.c_str());
 }
 
+// Parse a .proto schema, output as .fbs
+void ParseProtoTestWithIncludes() {
+  // load the .proto and the golden file from disk
+  std::string protofile;
+  std::string goldenfile;
+  std::string goldenunionfile;
+  std::string importprotofile;
+  TEST_EQ(
+      flatbuffers::LoadFile((test_data_path + "prototest/test.proto").c_str(),
+                            false, &protofile),
+      true);
+  TEST_EQ(
+      flatbuffers::LoadFile((test_data_path + "prototest/imported.proto").c_str(),
+                            false, &importprotofile),
+      true);
+  TEST_EQ(
+      flatbuffers::LoadFile((test_data_path + "prototest/test_include.golden").c_str(),
+                            false, &goldenfile),
+      true);
+  TEST_EQ(flatbuffers::LoadFile(
+              (test_data_path + "prototest/test_union_include.golden").c_str(), false,
+              &goldenunionfile),
+          true);
+
+  flatbuffers::IDLOptions opts;
+  opts.include_dependence_headers = true;
+  opts.proto_mode = true;
+
+  // Parse proto.
+  flatbuffers::Parser parser(opts);
+  auto protopath = test_data_path + "prototest/";
+  const char *include_directories[] = { protopath.c_str(), nullptr };
+  TEST_EQ(parser.Parse(protofile.c_str(), include_directories), true);
+
+  // Generate fbs.
+  auto fbs = flatbuffers::GenerateFBS(parser, "test");
+
+  // Generate fbs from import.proto
+  flatbuffers::Parser import_parser(opts);
+  TEST_EQ(import_parser.Parse(importprotofile.c_str(), include_directories), true);
+  auto import_fbs = flatbuffers::GenerateFBS(import_parser, "test");
+
+  // Ensure generated file is parsable.
+  flatbuffers::Parser parser2;
+  TEST_EQ(parser2.Parse(import_fbs.c_str(), include_directories, "imported.fbs"), true);
+  TEST_EQ(parser2.Parse(fbs.c_str(), nullptr), true);
+  //printf("Golden\n%s\n", goldenfile.c_str());
+  printf("FBS\n%s\n", fbs.c_str());
+  TEST_EQ_STR(fbs.c_str(), goldenfile.c_str());
+
+  // Parse proto with --oneof-union option.
+  opts.proto_oneof_union = true;
+  flatbuffers::Parser parser3(opts);
+  TEST_EQ(parser3.Parse(protofile.c_str(), include_directories), true);
+
+  // Generate fbs.
+  auto fbs_union = flatbuffers::GenerateFBS(parser3, "test");
+
+  // Ensure generated file is parsable.
+  flatbuffers::Parser parser4;
+  TEST_EQ(parser4.Parse(import_fbs.c_str(), nullptr, "imported.fbs"), true);
+  TEST_EQ(parser4.Parse(fbs_union.c_str(), nullptr), true);
+  TEST_EQ_STR(fbs_union.c_str(), goldenunionfile.c_str());
+}
+
 template<typename T>
 void CompareTableFieldValue(flatbuffers::Table *table,
                             flatbuffers::voffset_t voffset, T val) {
@@ -3136,6 +3201,7 @@ int FlatBufferTests() {
     FixedLengthArrayJsonTest(true);
     ReflectionTest(flatbuf.data(), flatbuf.size());
     ParseProtoTest();
+    ParseProtoTestWithIncludes();
     EvolutionTest();
     UnionVectorTest();
     LoadVerifyBinaryTest();
