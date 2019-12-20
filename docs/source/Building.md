@@ -177,6 +177,14 @@ for you; see the comments at the top of that file for an example.  Many users,
 however, will prefer to add the Custom Commands directly since it is ultimately
 more flexible.
 
+However, this is an important shortcoming of the above methodology: specifically,
+the custom targets are not aware of dependencies among schema files via include
+statements.  In other words, if schema file `A.fbs` includes `B.fbs` then the
+correct rebuilding process is to recompile both files when `B.fbs` changes.  The
+above method will not do this, and thus can lead to incorrect rebuilding.  One
+solution would be to hardcode the dependencies in the CMake file `DEPENDS` part
+of the custom command, though this is not ideal for reasons of maintenance.
+
 #### Override default depth limit of nested objects
 To override [the depth limit of recursion](@ref flatbuffers_guide_use_cpp), 
 add this directive:
