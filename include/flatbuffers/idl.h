@@ -533,6 +533,7 @@ struct IDLOptions {
   std::string cpp_object_api_pointer_type;
   std::string cpp_object_api_string_type;
   bool cpp_object_api_string_flexible_constructor;
+  int cpp_extra_language_standard;
   bool gen_nullable;
   bool java_checkerframework;
   bool gen_generated;
@@ -619,6 +620,7 @@ struct IDLOptions {
         gen_compare(false),
         cpp_object_api_pointer_type("std::unique_ptr"),
         cpp_object_api_string_flexible_constructor(false),
+        cpp_extra_language_standard(0),
         gen_nullable(false),
         java_checkerframework(false),
         gen_generated(false),

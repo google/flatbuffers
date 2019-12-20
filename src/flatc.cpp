@@ -17,10 +17,27 @@
 #include "flatbuffers/flatc.h"
 
 #include <list>
+#include <sstream>
 
 namespace flatbuffers {
 
 const char *FLATC_VERSION() { return FLATBUFFERS_VERSION(); }
+
+// Returns true only on successful parse AND valid value.
+bool ParseCppExtraLanguageStandard(const std::string &number, int* result) {
+  std::istringstream iss(number);
+  int standard = 0;
+  if (!(iss >> standard)) {
+    return false;
+  }
+  // The C++ standard is on a three-year cycle since C++11.  So allow 11, 14,
+  // 17, 20, 23, etc.  This should cover us for the foreseeable future.
+  if ((standard-11) % 3 != 0) {
+      return false;
+  }
+  *result = standard;
+  return true;
+}
 
 void FlatCompiler::ParseFile(
     flatbuffers::Parser &parser, const std::string &filename,
@@ -116,6 +133,9 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "                         (see the --cpp-str-flex-ctor option to change this behavior).\n"
     "  --cpp-str-flex-ctor     Don't construct custom string types by passing std::string\n"
     "                         from Flatbuffers, but (char* + length).\n"
+    "  --cpp-extra N          Enables additional (experimental) code to be generated that is\n"
+    "                         useful for code bases that allow full use of the C++ standard\n"
+    "                         indicated.  Supported values are: 11, 14, 17, 20, 23, etc.\n"
     "  --object-prefix        Customise class prefix for C++ object-based API.\n"
     "  --object-suffix        Customise class suffix for C++ object-based API.\n"
     "                         Default value is \"T\".\n"
@@ -264,6 +284,11 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.cpp_object_api_string_type = argv[argi];
       } else if (arg == "--cpp-str-flex-ctor") {
         opts.cpp_object_api_string_flexible_constructor = true;
+      } else if (arg == "--cpp-extra") {
+        if (++argi >= argc) Error("missing language version following" + arg, true);
+        if (!ParseCppExtraLanguageStandard(argv[argi], &opts.cpp_extra_language_standard)) {
+          Error("failed to parse C++ standard number: invalid value", true);
+        }
       } else if (arg == "--gen-nullable") {
         opts.gen_nullable = true;
       } else if (arg == "--java-checkerframework") {
