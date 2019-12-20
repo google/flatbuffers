@@ -2186,6 +2186,19 @@ class CppGenerator : public BaseGenerator {
     code_ += "}";
     code_ += "";
 
+    // Generate a convenient CreateByTagType function that allows creating
+    // tables in a generic way by specifying only their type.
+    if (parser_.opts.cpp_extra_language_standard >= 14) {
+      code_ += "template<typename... Args>";
+      code_ += "auto CreateByTagType({{STRUCT_NAME}}*, "
+               "flatbuffers::FlatBufferBuilder &_fbb,";
+      code_ += "                     Args&&... args\\";
+      code_ += ") {";
+      code_ += "  return Create{{STRUCT_NAME}}(_fbb, std::forward<Args>(args)...);";
+      code_ += "}";
+      code_ += "";
+    }
+
     // Generate a CreateXDirect function with vector types as parameters
     if (has_string_or_vector_fields) {
       code_ +=
