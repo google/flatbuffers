@@ -139,14 +139,14 @@ class KotlinGenerator : public BaseGenerator {
 
   static std::string GenTypeBasic(const BaseType &type) {
     // clang-format off
-        static const char * const kotlin_typename[] = {
-    #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
-    #KTYPE,
+    static const char * const kotlin_typename[] = {
+      #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
+              CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
+        #KTYPE,
         FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
-    #undef FLATBUFFERS_TD
-      // clang-format on
+      #undef FLATBUFFERS_TD
     };
+    // clang-format on
     return kotlin_typename[type];
   }
 

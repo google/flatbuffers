@@ -91,6 +91,20 @@ switch (type) {
 }
 */
 
+// If not all FLATBUFFERS_GEN_() arguments are necessary for implementation 
+// of FLATBUFFERS_TD, you can use a variadic macro (with __VA_ARGS__ if needed).
+// In the above example, only CTYPE is used to generate the code, it can be rewritten:
+
+/*
+switch (type) {
+  #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
+    case BASE_TYPE_ ## ENUM: \
+      // do something specific to CTYPE here
+    FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
+  #undef FLATBUFFERS_TD
+}
+*/
+
 #define FLATBUFFERS_GEN_TYPES(TD) \
         FLATBUFFERS_GEN_TYPES_SCALAR(TD) \
         FLATBUFFERS_GEN_TYPES_POINTER(TD) \
@@ -101,17 +115,15 @@ switch (type) {
 __extension__  // Stop GCC complaining about trailing comma with -Wpendantic.
 #endif
 enum BaseType {
-  #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, \
-                         RTYPE, KTYPE) \
-      BASE_TYPE_ ## ENUM,
+  #define FLATBUFFERS_TD(ENUM, ...) \
+    BASE_TYPE_ ## ENUM,
     FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
   #undef FLATBUFFERS_TD
 };
 
-#define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, \
-                       RTYPE, KTYPE) \
-    static_assert(sizeof(CTYPE) <= sizeof(largest_scalar_t), \
-                  "define largest_scalar_t as " #CTYPE);
+#define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
+  static_assert(sizeof(CTYPE) <= sizeof(largest_scalar_t), \
+                "define largest_scalar_t as " #CTYPE);
   FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
 #undef FLATBUFFERS_TD
 
@@ -576,9 +588,13 @@ struct IDLOptions {
   // for code generation.
   unsigned long lang_to_generate;
 
-  // If set (default behavior), empty string and vector fields will be set to
-  // nullptr to make the flatbuffer more compact.
-  bool set_empty_to_null;
+  // If set (default behavior), empty string fields will be set to nullptr to make
+  // the flatbuffer more compact.
+  bool set_empty_strings_to_null;
+
+  // If set (default behavior), empty vector fields will be set to nullptr to make
+  // the flatbuffer more compact.
+  bool set_empty_vectors_to_null;
 
   IDLOptions()
       : use_flexbuffers(false),
@@ -623,7 +639,8 @@ struct IDLOptions {
         lang(IDLOptions::kJava),
         mini_reflect(IDLOptions::kNone),
         lang_to_generate(0),
-        set_empty_to_null(true) {}
+        set_empty_strings_to_null(true),
+        set_empty_vectors_to_null(true) {}
 };
 
 // This encapsulates where the parser is in the current source file.
@@ -967,7 +984,7 @@ extern bool GenerateTextFile(const Parser &parser, const std::string &path,
 
 // Generate binary files from a given FlatBuffer, and a given Parser
 // object that has been populated with the corresponding schema.
-// See idl_gen_general.cpp.
+// See code_generators.cpp.
 extern bool GenerateBinary(const Parser &parser, const std::string &path,
                            const std::string &file_name);
 
@@ -976,7 +993,17 @@ extern bool GenerateBinary(const Parser &parser, const std::string &path,
 extern bool GenerateCPP(const Parser &parser, const std::string &path,
                         const std::string &file_name);
 
+// Generate C# files from the definitions in the Parser object.
+// See idl_gen_csharp.cpp.
+extern bool GenerateCSharp(const Parser &parser, const std::string &path,
+                           const std::string &file_name);
+
 extern bool GenerateDart(const Parser &parser, const std::string &path,
+                         const std::string &file_name);
+
+// Generate Java files from the definitions in the Parser object.
+// See idl_gen_java.cpp.
+extern bool GenerateJava(const Parser &parser, const std::string &path,
                          const std::string &file_name);
 
 // Generate JavaScript or TypeScript code from the definitions in the Parser
@@ -1022,11 +1049,6 @@ extern bool GenerateJsonSchema(const Parser &parser, const std::string &path,
 extern bool GenerateKotlin(const Parser &parser, const std::string &path,
                            const std::string &file_name);
 
-// Generate Java/C#/.. files from the definitions in the Parser object.
-// See idl_gen_general.cpp.
-extern bool GenerateGeneral(const Parser &parser, const std::string &path,
-                            const std::string &file_name);
-
 // Generate a schema file from the internal representation, useful after
 // parsing a .proto schema.
 extern std::string GenerateFBS(const Parser &parser,
@@ -1054,11 +1076,11 @@ extern std::string DartMakeRule(const Parser &parser, const std::string &path,
 extern std::string RustMakeRule(const Parser &parser, const std::string &path,
                                 const std::string &file_name);
 
-// Generate a make rule for the generated Java/C#/... files.
-// See idl_gen_general.cpp.
-extern std::string GeneralMakeRule(const Parser &parser,
-                                   const std::string &path,
-                                   const std::string &file_name);
+// Generate a make rule for generated Java or C# files.
+// See code_generators.cpp.
+extern std::string JavaCSharpMakeRule(const Parser &parser,
+                                      const std::string &path,
+                                      const std::string &file_name);
 
 // Generate a make rule for the generated text (JSON) files.
 // See idl_gen_text.cpp.
@@ -1066,7 +1088,7 @@ extern std::string TextMakeRule(const Parser &parser, const std::string &path,
                                 const std::string &file_names);
 
 // Generate a make rule for the generated binary files.
-// See idl_gen_general.cpp.
+// See code_generators.cpp.
 extern std::string BinaryMakeRule(const Parser &parser, const std::string &path,
                                   const std::string &file_name);
 
@@ -1084,6 +1106,12 @@ bool GenerateGoGRPC(const Parser &parser, const std::string &path,
 // See idl_gen_grpc.cpp
 bool GenerateJavaGRPC(const Parser &parser, const std::string &path,
                       const std::string &file_name);
+
+// Generate GRPC Python interfaces.
+// See idl_gen_grpc.cpp.
+bool GeneratePythonGRPC(const Parser &parser,
+                    const std::string &path,
+                    const std::string &file_name);
 
 }  // namespace flatbuffers
 

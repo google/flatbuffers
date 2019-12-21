@@ -82,6 +82,7 @@ local function checkReadBuffer(buf, offset, sizePrefix)
 end
 
 local function generateMonster(sizePrefix, b)
+    if b then b:Clear() end
     b = b or flatbuffers.Builder(0)
     local str = b:CreateString("MyMonster")
     local test1 = b:CreateString("test1")
@@ -208,26 +209,16 @@ local function testCanonicalData()
     checkReadBuffer(wireData)  
 end    
     
-local function benchmarkMakeMonster(count)
-    local length = #(generateMonster())
-    
-    --require("flatbuffers.profiler")
-    --profiler = newProfiler("call")
-    --profiler:start()
-    
+local function benchmarkMakeMonster(count, reuseBuilder)
+    local fbb = reuseBuilder and flatbuffers.Builder(0)
+    local length = #(generateMonster(false, fbb))
+
     local s = os.clock()
     for i=1,count do
-        generateMonster()
+        generateMonster(false, fbb)
     end
     local e = os.clock()    
-    
-    --profiler:stop()
 
-    --local outfile = io.open( "profile.txt", "w+" )
-    --profiler:report( outfile, true)
-    --outfile:close()
-    
-    
     local dur = (e - s)
     local rate = count / (dur * 1000)
     local data = (length * count) / (1024 * 1024)
@@ -279,6 +270,7 @@ local tests =
             {100}, 
             {1000},
             {10000},
+            {10000, true}
         }
     },   
     {
@@ -290,7 +282,7 @@ local tests =
             {10000},
             -- uncomment following to run 1 million to compare. 
             -- Took ~141 seconds on my machine
-            --{1000000}, 
+            --{1000000},
         }
     }, 
 }

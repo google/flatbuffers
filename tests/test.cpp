@@ -37,6 +37,8 @@
 #include "monster_extra_generated.h"
 #if !defined(_MSC_VER) || _MSC_VER >= 1700
 #  include "arrays_test_generated.h"
+#  include "evolution_test/evolution_v1_generated.h"
+#  include "evolution_test/evolution_v2_generated.h"
 #endif
 
 #include "native_type_test_generated.h"
@@ -1392,7 +1394,7 @@ void FuzzTest2() {
         break;
       }
     }
-    TEST_NOTNULL(NULL);
+    TEST_NOTNULL(nullptr);
   }
 
   // clang-format off
@@ -2308,7 +2310,74 @@ void InvalidNestedFlatbufferTest() {
   TEST_EQ(parser1.Parse("{ name: \"Bender\", testnestedflatbuffer: { name: "
                         "\"Leela\", color: \"nonexistent\"}}"),
           false);
-  // Check that Parser is destroyed correctly after parsing invalid json
+}
+
+void EvolutionTest() {
+  // VS10 does not support typed enums, exclude from tests
+#if !defined(_MSC_VER) || _MSC_VER >= 1700
+    const int NUM_VERSIONS = 2;
+    std::string schemas[NUM_VERSIONS];
+    std::string jsonfiles[NUM_VERSIONS];
+    std::vector<uint8_t> binaries[NUM_VERSIONS];
+
+    flatbuffers::IDLOptions idl_opts;
+    idl_opts.lang_to_generate |= flatbuffers::IDLOptions::kBinary;
+    flatbuffers::Parser parser(idl_opts);
+
+    // Load all the schema versions and their associated data.
+    for (int i = 0; i < NUM_VERSIONS; ++i) {
+      std::string schema = test_data_path + "evolution_test/evolution_v" +
+                           flatbuffers::NumToString(i + 1) + ".fbs";
+      TEST_ASSERT(flatbuffers::LoadFile(schema.c_str(), false, &schemas[i]));
+      std::string json = test_data_path + "evolution_test/evolution_v" +
+                         flatbuffers::NumToString(i + 1) + ".json";
+      TEST_ASSERT(flatbuffers::LoadFile(json.c_str(), false, &jsonfiles[i]));
+
+      TEST_ASSERT(parser.Parse(schemas[i].c_str()));
+      TEST_ASSERT(parser.Parse(jsonfiles[i].c_str()));
+
+      auto bufLen = parser.builder_.GetSize();
+      auto buf = parser.builder_.GetBufferPointer();
+      binaries[i].reserve(bufLen);
+      std::copy(buf, buf + bufLen, std::back_inserter(binaries[i]));
+    }
+
+    // Assert that all the verifiers for the different schema versions properly verify any version data.
+    for (int i = 0; i < NUM_VERSIONS; ++i) {
+      flatbuffers::Verifier verifier(&binaries[i].front(), binaries[i].size());
+      TEST_ASSERT(Evolution::V1::VerifyRootBuffer(verifier));
+      TEST_ASSERT(Evolution::V2::VerifyRootBuffer(verifier));
+    }
+
+    // Test backwards compatibility by reading old data with an evolved schema.
+    auto root_v1_viewed_from_v2 = Evolution::V2::GetRoot(&binaries[0].front());
+    // field 'j' is new in version 2, so it should be null.
+    TEST_ASSERT(nullptr == root_v1_viewed_from_v2->j());
+    // field 'k' is new in version 2 with a default of 56.
+    TEST_EQ(root_v1_viewed_from_v2->k(), 56);
+    // field 'c' of 'TableA' is new in version 2, so it should be null.
+    TEST_ASSERT(nullptr == root_v1_viewed_from_v2->e()->c());
+    // 'TableC' was added to field 'c' union in version 2, so it should be null.
+    TEST_ASSERT(nullptr == root_v1_viewed_from_v2->c_as_TableC());
+    // The field 'c' union should be of type 'TableB' regardless of schema version
+    TEST_ASSERT(root_v1_viewed_from_v2->c_type() == Evolution::V2::Union::TableB);
+    // The field 'f' was renamed to 'ff' in version 2, it should still be readable.
+    TEST_EQ(root_v1_viewed_from_v2->ff()->a(), 16);
+
+    // Test forwards compatibility by reading new data with an old schema.
+    auto root_v2_viewed_from_v1 = Evolution::V1::GetRoot(&binaries[1].front());
+    // The field 'c' union in version 2 is a new table (index = 3) and should still be accessible,
+    // but not interpretable.
+    TEST_EQ(static_cast<uint8_t>(root_v2_viewed_from_v1->c_type()), 3);
+    TEST_NOTNULL(root_v2_viewed_from_v1->c());
+    // The field 'd' enum in verison 2 has new members and should still be accessible, but not interpretable.
+    TEST_EQ(static_cast<int8_t>(root_v2_viewed_from_v1->d()), 3);
+    // The field 'a' in version 2 is deprecated and should return the default value (0) instead of the value stored in
+    // the in the buffer (42).
+    TEST_EQ(root_v2_viewed_from_v1->a(), 0);
+    // The field 'ff' was originally named 'f' in version 1, it should still be readable.
+    TEST_EQ(root_v2_viewed_from_v1->f()->a(), 35);
+#endif
 }
 
 void UnionVectorTest() {
@@ -2916,32 +2985,28 @@ void FixedLengthArrayTest() {
   TEST_NOTNULL(mArStruct->mutable_d()->GetMutablePointer(1));
   TEST_NOTNULL(mArStruct->mutable_d()->GetMutablePointer(1)->mutable_a());
   mArStruct->mutable_d()->GetMutablePointer(1)->mutable_a()->Mutate(1, 5);
-  TEST_EQ(mArStruct->d()->Get(1)->a()->Get(1), 5);
-  TEST_EQ(mArStruct->d()->Get(0)->b() == MyGame::Example::TestEnum::B, true);
+  TEST_EQ(5, mArStruct->d()->Get(1)->a()->Get(1));
+  TEST_EQ(MyGame::Example::TestEnum::B, mArStruct->d()->Get(0)->b());
   TEST_NOTNULL(mArStruct->d()->Get(0)->c());
-  TEST_EQ(mArStruct->d()->Get(0)->c()->Get(0) == MyGame::Example::TestEnum::C,
-          true);
-  TEST_EQ(mArStruct->d()->Get(0)->c()->Get(1) == MyGame::Example::TestEnum::A,
-          true);
-  TEST_EQ(mArStruct->d()->Get(0)->d()->Get(0),
-          flatbuffers::numeric_limits<int64_t>::max());
-  TEST_EQ(mArStruct->d()->Get(0)->d()->Get(1),
-          flatbuffers::numeric_limits<int64_t>::min());
-  TEST_EQ(mArStruct->d()->Get(1)->b() == MyGame::Example::TestEnum::C, true);
+  TEST_EQ(MyGame::Example::TestEnum::C, mArStruct->d()->Get(0)->c()->Get(0));
+  TEST_EQ(MyGame::Example::TestEnum::A, mArStruct->d()->Get(0)->c()->Get(1));
+  TEST_EQ(flatbuffers::numeric_limits<int64_t>::max(),
+          mArStruct->d()->Get(0)->d()->Get(0));
+  TEST_EQ(flatbuffers::numeric_limits<int64_t>::min(),
+          mArStruct->d()->Get(0)->d()->Get(1));
+  TEST_EQ(MyGame::Example::TestEnum::C, mArStruct->d()->Get(1)->b());
   TEST_NOTNULL(mArStruct->d()->Get(1)->c());
-  TEST_EQ(mArStruct->d()->Get(1)->c()->Get(0) == MyGame::Example::TestEnum::C,
-          true);
-  TEST_EQ(mArStruct->d()->Get(1)->c()->Get(1) == MyGame::Example::TestEnum::A,
-          true);
-  TEST_EQ(mArStruct->d()->Get(1)->d()->Get(0),
-          flatbuffers::numeric_limits<int64_t>::min());
-  TEST_EQ(mArStruct->d()->Get(1)->d()->Get(1),
-          flatbuffers::numeric_limits<int64_t>::max());
+  TEST_EQ(MyGame::Example::TestEnum::C, mArStruct->d()->Get(1)->c()->Get(0));
+  TEST_EQ(MyGame::Example::TestEnum::A, mArStruct->d()->Get(1)->c()->Get(1));
+  TEST_EQ(flatbuffers::numeric_limits<int64_t>::min(),
+          mArStruct->d()->Get(1)->d()->Get(0));
+  TEST_EQ(flatbuffers::numeric_limits<int64_t>::max(),
+          mArStruct->d()->Get(1)->d()->Get(1));
   for (int i = 0; i < mArStruct->b()->size() - 1; i++)
     TEST_EQ(mArStruct->b()->Get(i), i + 1);
   // Check alignment
-  TEST_EQ(reinterpret_cast<uintptr_t>(mArStruct->d()) % 8, 0);
-  TEST_EQ(reinterpret_cast<uintptr_t>(mArStruct->f()) % 8, 0);
+  TEST_EQ(0, reinterpret_cast<uintptr_t>(mArStruct->d()) % 8);
+  TEST_EQ(0, reinterpret_cast<uintptr_t>(mArStruct->f()) % 8);
 #endif
 }
 
@@ -3071,6 +3136,7 @@ int FlatBufferTests() {
     FixedLengthArrayJsonTest(true);
     ReflectionTest(flatbuf.data(), flatbuf.size());
     ParseProtoTest();
+    EvolutionTest();
     UnionVectorTest();
     LoadVerifyBinaryTest();
     GenerateTableTextTest();

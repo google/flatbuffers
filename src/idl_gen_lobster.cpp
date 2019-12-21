@@ -83,15 +83,15 @@ class LobsterGenerator : public BaseGenerator {
 
   // This uses Python names for now..
   std::string GenTypeBasic(const Type &type) {
-    static const char *ctypename[] = {
     // clang-format off
+    static const char *ctypename[] = {
       #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
+              CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, ...) \
         #PTYPE,
-      FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
+        FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
       #undef FLATBUFFERS_TD
-      // clang-format on
     };
+    // clang-format on
     return ctypename[type.base_type];
   }
 

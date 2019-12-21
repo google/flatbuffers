@@ -34,10 +34,10 @@
 #ifndef GRPC_INTERNAL_COMPILER_SCHEMA_INTERFACE_H
 #define GRPC_INTERNAL_COMPILER_SCHEMA_INTERFACE_H
 
-#include "src/compiler/config.h"
-
 #include <memory>
 #include <vector>
+
+#include "src/compiler/config.h"
 
 #ifndef GRPC_CUSTOM_STRING
 #  include <string>
@@ -79,6 +79,9 @@ struct Method : public CommentHolder {
 
   virtual grpc::string get_input_type_name() const = 0;
   virtual grpc::string get_output_type_name() const = 0;
+
+  virtual grpc::string get_fb_builder() const = 0;
+
   virtual bool NoStreaming() const = 0;
   virtual bool ClientStreaming() const = 0;
   virtual bool ServerStreaming() const = 0;

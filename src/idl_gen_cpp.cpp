@@ -545,11 +545,10 @@ class CppGenerator : public BaseGenerator {
   std::string GenTypeBasic(const Type &type, bool user_facing_type) const {
     // clang-format off
     static const char *const ctypename[] = {
-    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, \
-                           RTYPE, KTYPE) \
-            #CTYPE,
+      #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
+        #CTYPE,
         FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
-    #undef FLATBUFFERS_TD
+      #undef FLATBUFFERS_TD
     };
     // clang-format on
     if (user_facing_type) {
@@ -694,7 +693,8 @@ class CppGenerator : public BaseGenerator {
         }
       }
       case BASE_TYPE_UNION: {
-        return type.enum_def->name + "Union";
+        auto type_name = WrapInNameSpace(*type.enum_def);
+        return type_name + "Union";
       }
       default: {
         return GenTypeBasic(type, true);
@@ -1011,11 +1011,11 @@ class CppGenerator : public BaseGenerator {
         code_ += "{{SEP}}  {{KEY}} = {{VALUE}}\\";
       } else {  // MIN & MAX are useless for bit_flags
         code_.SetValue("KEY", GenEnumValDecl(enum_def, "MIN"));
-        code_.SetValue("VALUE", GenEnumValDecl(enum_def, minv->name));
+        code_.SetValue("VALUE", GenEnumValDecl(enum_def, Name(*minv)));
         code_ += "{{SEP}}  {{KEY}} = {{VALUE}}\\";
 
         code_.SetValue("KEY", GenEnumValDecl(enum_def, "MAX"));
-        code_.SetValue("VALUE", GenEnumValDecl(enum_def, maxv->name));
+        code_.SetValue("VALUE", GenEnumValDecl(enum_def, Name(*maxv)));
         code_ += "{{SEP}}  {{KEY}} = {{VALUE}}\\";
       }
     }
@@ -2260,7 +2260,8 @@ class CppGenerator : public BaseGenerator {
   std::string GenUnionUnpackVal(const FieldDef &afield,
                                 const char *vec_elem_access,
                                 const char *vec_type_access) {
-    return afield.value.type.enum_def->name + "Union::UnPack(" + "_e" +
+    auto type_name = WrapInNameSpace(*afield.value.type.enum_def);
+    return type_name + "Union::UnPack(" + "_e" +
            vec_elem_access + ", " +
            EscapeKeyword(afield.name + UnionTypeFieldSuffix()) + "()" +
            vec_type_access + ", _resolver)";
@@ -2453,10 +2454,10 @@ class CppGenerator : public BaseGenerator {
 
         // For optional fields, check to see if there actually is any data
         // in _o->field before attempting to access it. If there isn't,
-        // depending on set_empty_to_null either set it to 0 or an empty string.
+        // depending on set_empty_strings_to_null either set it to 0 or an empty string.
         if (!field.required) {
           auto empty_value =
-              opts.set_empty_to_null ? "0" : "_fbb.CreateSharedString(\"\")";
+              opts.set_empty_strings_to_null ? "0" : "_fbb.CreateSharedString(\"\")";
           code = value + ".empty() ? " + empty_value + " : " + code;
         }
         break;
@@ -2558,10 +2559,10 @@ class CppGenerator : public BaseGenerator {
           }
         }
 
-        // If set_empty_to_null option is enabled, for optional fields, check to
+        // If set_empty_vectors_to_null option is enabled, for optional fields, check to
         // see if there actually is any data in _o->field before attempting to
         // access it.
-        if (opts.set_empty_to_null && !field.required) {
+        if (opts.set_empty_vectors_to_null && !field.required) {
           code = value + ".size() ? " + code + " : 0";
         }
         break;
