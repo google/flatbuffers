@@ -21,10 +21,19 @@ template<class T, class U> struct is_same { static const bool value = false; };
 
 template<class T> struct is_same<T, T> { static const bool value = true; };
 
-extern const std::string m1_name;
-extern const Color m1_color;
-extern const std::string m2_name;
-extern const Color m2_color;
+inline std::string m1_name() { return "Cyberdemon"; }
+inline std::string m2_name() { return "Imp"; }
+inline MyGame::Example::Color m1_color() {
+  return MyGame::Example::Color_Red;
+}
+inline MyGame::Example::Color m2_color() {
+  return MyGame::Example::Color_Green;
+}
+inline void m1_color_check() {
+  // Ensure that all compilation units see the same monster_test_generated.h.
+  extern void CheckTestGeneratedIsValid(const MyGame::Example::Color&);
+  CheckTestGeneratedIsValid(m1_color());
+}
 
 flatbuffers::Offset<Monster> populate1(flatbuffers::FlatBufferBuilder &builder);
 flatbuffers::Offset<Monster> populate2(flatbuffers::FlatBufferBuilder &builder);
@@ -66,7 +75,7 @@ void builder_move_assign_after_releaseraw_test(Builder b1) {
   // Move into a released builder.
   b1 = std::move(src);
   TEST_EQ_FUNC(b1.GetSize(), src_size);
-  TEST_ASSERT_FUNC(release_n_verify(b1, m2_name, m2_color));
+  TEST_ASSERT_FUNC(release_n_verify(b1, m2_name(), m2_color()));
   TEST_EQ_FUNC(src.GetSize(), 0);
 }
 // clang-format off
@@ -104,7 +113,7 @@ struct BuilderTests {
     auto root_offset1 = populate1(src);
     DestBuilder dst(std::move(src));
     dst.Finish(root_offset1);
-    TEST_ASSERT_FUNC(release_n_verify(dst, m1_name, m1_color));
+    TEST_ASSERT_FUNC(release_n_verify(dst, m1_name(), m1_color()));
     TEST_EQ_FUNC(src.GetSize(), 0);
   }
 
@@ -115,7 +124,7 @@ struct BuilderTests {
     auto src_size = src.GetSize();
     DestBuilder dst(std::move(src));
     TEST_EQ_FUNC(dst.GetSize(), src_size);
-    TEST_ASSERT_FUNC(release_n_verify(dst, m1_name, m1_color));
+    TEST_ASSERT_FUNC(release_n_verify(dst, m1_name(), m1_color()));
     TEST_EQ_FUNC(src.GetSize(), 0);
   }
 
@@ -126,7 +135,7 @@ struct BuilderTests {
     populate2(dst);
     dst = std::move(src);
     dst.Finish(root_offset1);
-    TEST_ASSERT_FUNC(release_n_verify(dst, m1_name, m1_color));
+    TEST_ASSERT_FUNC(release_n_verify(dst, m1_name(), m1_color()));
     TEST_EQ_FUNC(src.GetSize(), 0);
   }
 
@@ -140,7 +149,7 @@ struct BuilderTests {
     dst.Finish(root_offset2);
     dst = std::move(src);
     TEST_EQ_FUNC(dst.GetSize(), src_size);
-    TEST_ASSERT_FUNC(release_n_verify(dst, m1_name, m1_color));
+    TEST_ASSERT_FUNC(release_n_verify(dst, m1_name(), m1_color()));
     TEST_EQ_FUNC(src.GetSize(), 0);
   }
 
@@ -159,7 +168,7 @@ struct BuilderTests {
     // Move into a released builder.
     dst = std::move(src);
     TEST_EQ_FUNC(dst.GetSize(), src_size);
-    TEST_ASSERT_FUNC(release_n_verify(dst, m2_name, m2_color));
+    TEST_ASSERT_FUNC(release_n_verify(dst, m2_name(), m2_color()));
     TEST_EQ_FUNC(src.GetSize(), 0);
   }
   // clang-format off
@@ -181,8 +190,8 @@ struct BuilderTests {
       dst.Finish(root_offset1);
       TEST_EQ_FUNC(src.GetSize() > size2, true);
       TEST_EQ_FUNC(dst.GetSize() > size1, true);
-      TEST_ASSERT_FUNC(release_n_verify(src, m2_name, m2_color));
-      TEST_ASSERT_FUNC(release_n_verify(dst, m1_name, m1_color));
+      TEST_ASSERT_FUNC(release_n_verify(src, m2_name(), m2_color()));
+      TEST_ASSERT_FUNC(release_n_verify(dst, m1_name(), m1_color()));
     }
   }
 
@@ -201,8 +210,8 @@ struct BuilderTests {
       src.Swap(dst);
       TEST_EQ_FUNC(src.GetSize(), size2);
       TEST_EQ_FUNC(dst.GetSize(), size1);
-      TEST_ASSERT_FUNC(release_n_verify(src, m2_name, m2_color));
-      TEST_ASSERT_FUNC(release_n_verify(dst, m1_name, m1_color));
+      TEST_ASSERT_FUNC(release_n_verify(src, m2_name(), m2_color()));
+      TEST_ASSERT_FUNC(release_n_verify(dst, m1_name(), m1_color()));
     }
   }
 
@@ -247,7 +256,7 @@ template<class DestBuilder, class SrcBuilder> struct BuilderReuseTests {
       auto root_offset1 = populate1(fbb);
       fbb.Finish(root_offset1);
       buffers.push_back(fbb.Release());
-      TEST_ASSERT_FUNC(verify(buffers[i], m1_name, m1_color));
+      TEST_ASSERT_FUNC(verify(buffers[i], m1_name(), m1_color()));
     }
   }
 
@@ -260,7 +269,7 @@ template<class DestBuilder, class SrcBuilder> struct BuilderReuseTests {
       fbb.Finish(root_offset1);
       size_t size, offset;
       uint8_t *buf = release_raw_base(fbb, size, offset);
-      TEST_ASSERT_FUNC(verify(buf, offset, m1_name, m1_color));
+      TEST_ASSERT_FUNC(verify(buf, offset, m1_name(), m1_color()));
       free_raw(fbb, buf);
     }
   }
@@ -278,7 +287,7 @@ template<class DestBuilder, class SrcBuilder> struct BuilderReuseTests {
       auto root_offset1 = populate1(dst);
       dst.Finish(root_offset1);
       buffers.push_back(dst.Release());
-      TEST_ASSERT_FUNC(verify(buffers[i], m1_name, m1_color));
+      TEST_ASSERT_FUNC(verify(buffers[i], m1_name(), m1_color()));
       SrcBuilder src;
       dst = std::move(src);
       TEST_EQ_FUNC(src.GetSize(), 0);
@@ -295,7 +304,7 @@ template<class DestBuilder, class SrcBuilder> struct BuilderReuseTests {
       dst.Finish(root_offset1);
       size_t size, offset;
       uint8_t *buf = release_raw_base(dst, size, offset);
-      TEST_ASSERT_FUNC(verify(buf, offset, m1_name, m1_color));
+      TEST_ASSERT_FUNC(verify(buf, offset, m1_name(), m1_color()));
       free_raw(dst, buf);
       SrcBuilder src;
       dst = std::move(src);
