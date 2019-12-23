@@ -2143,7 +2143,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   }
 
   template<typename T> bool VerifyAlignment(size_t elem) const {
-    return (elem & (sizeof(T) - 1)) == 0 || !check_alignment_;
+    return Check((elem & (sizeof(T) - 1)) == 0 || !check_alignment_);
   }
 
   // Verify a range indicated by sizeof(T).
