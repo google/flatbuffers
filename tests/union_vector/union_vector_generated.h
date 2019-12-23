@@ -33,7 +33,7 @@ inline const flatbuffers::TypeTable *BookReaderTypeTable();
 
 inline const flatbuffers::TypeTable *MovieTypeTable();
 
-enum Character : uint8_t {
+enum Character {
   Character_NONE = 0,
   Character_MuLan = 1,
   Character_Rapunzel = 2,

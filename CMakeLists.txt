@@ -351,7 +351,7 @@ function(compile_flatbuffers_schema_to_cpp_opt SRC_FBS OPT)
   if(FLATBUFFERS_BUILD_LEGACY)
     set(OPT ${OPT};--cpp-std c++0x)
   else()
-    set(OPT ${OPT};--cpp-std c++11)
+    # --cpp-std is defined by flatc default settings.
   endif()
   message(STATUS "Add the code-generation command for the `${SRC_FBS}` schema with '${OPT}'")
   get_filename_component(SRC_FBS_DIR ${SRC_FBS} PATH)

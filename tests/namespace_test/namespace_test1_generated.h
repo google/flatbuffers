@@ -23,7 +23,7 @@ inline const flatbuffers::TypeTable *TableInNestedNSTypeTable();
 
 inline const flatbuffers::TypeTable *StructInNestedNSTypeTable();
 
-enum EnumInNestedNS : int8_t {
+enum EnumInNestedNS {
   EnumInNestedNS_A = 0,
   EnumInNestedNS_B = 1,
   EnumInNestedNS_C = 2,

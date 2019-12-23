@@ -100,7 +100,7 @@ inline const flatbuffers::TypeTable *MonsterTypeTable();
 inline const flatbuffers::TypeTable *TypeAliasesTypeTable();
 
 /// Composite components of Monster color.
-enum Color : uint8_t {
+enum Color {
   Color_Red = 1,
   /// \brief color Green
   /// Green is bit_flag with value (1u << 1)
@@ -141,7 +141,7 @@ inline const char *EnumNameColor(Color e) {
   return EnumNamesColor()[index];
 }
 
-enum Race : int8_t {
+enum Race {
   Race_None = -1,
   Race_Human = 0,
   Race_Dwarf = 1,
@@ -177,7 +177,7 @@ inline const char *EnumNameRace(Race e) {
   return EnumNamesRace()[index];
 }
 
-enum Any : uint8_t {
+enum Any {
   Any_NONE = 0,
   Any_Monster = 1,
   Any_TestSimpleTableWithEnum = 2,
@@ -319,7 +319,7 @@ inline bool operator!=(const AnyUnion &lhs, const AnyUnion &rhs) {
 bool VerifyAny(flatbuffers::Verifier &verifier, const void *obj, Any type);
 bool VerifyAnyVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
 
-enum AnyUniqueAliases : uint8_t {
+enum AnyUniqueAliases {
   AnyUniqueAliases_NONE = 0,
   AnyUniqueAliases_M = 1,
   AnyUniqueAliases_TS = 2,
@@ -461,7 +461,7 @@ inline bool operator!=(const AnyUniqueAliasesUnion &lhs, const AnyUniqueAliasesU
 bool VerifyAnyUniqueAliases(flatbuffers::Verifier &verifier, const void *obj, AnyUniqueAliases type);
 bool VerifyAnyUniqueAliasesVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
 
-enum AnyAmbiguousAliases : uint8_t {
+enum AnyAmbiguousAliases {
   AnyAmbiguousAliases_NONE = 0,
   AnyAmbiguousAliases_M1 = 1,
   AnyAmbiguousAliases_M2 = 2,

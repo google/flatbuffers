@@ -20,7 +20,8 @@ commandline="'$*'"
 if [[ $commandline == *"--cpp-std c++0x"* ]]; then
   TEST_CPP_FLAGS="--cpp-std c++0x"
 else
-  TEST_CPP_FLAGS="--cpp-std c++11"
+  # --cpp-std is defined by flatc default settings.
+  TEST_CPP_FLAGS=
 fi
 
 TEST_CPP_FLAGS="--gen-compare --cpp-ptr-type flatbuffers::unique_ptr $TEST_CPP_FLAGS"

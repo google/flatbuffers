@@ -30,7 +30,7 @@ inline const flatbuffers::TypeTable *MonsterTypeTable();
 
 inline const flatbuffers::TypeTable *WeaponTypeTable();
 
-enum Color : int8_t {
+enum Color {
   Color_Red = 0,
   Color_Green = 1,
   Color_Blue = 2,
@@ -63,7 +63,7 @@ inline const char *EnumNameColor(Color e) {
   return EnumNamesColor()[index];
 }
 
-enum Equipment : uint8_t {
+enum Equipment {
   Equipment_NONE = 0,
   Equipment_Weapon = 1,
   Equipment_MIN = Equipment_NONE,
