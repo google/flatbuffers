@@ -1173,8 +1173,6 @@ void ParseProtoTestWithIncludes() {
   flatbuffers::Parser parser2;
   TEST_EQ(parser2.Parse(import_fbs.c_str(), include_directories, "imported.fbs"), true);
   TEST_EQ(parser2.Parse(fbs.c_str(), nullptr), true);
-  //printf("Golden\n%s\n", goldenfile.c_str());
-  printf("FBS\n%s\n", fbs.c_str());
   TEST_EQ_STR(fbs.c_str(), goldenfile.c_str());
 
   // Parse proto with --oneof-union option.
