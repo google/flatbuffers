@@ -2813,6 +2813,68 @@ void FlexBuffersTest() {
   TEST_EQ_STR(jsontest, jsonback.c_str());
 }
 
+void FlexBuffersDeprecatedTest() {
+  // FlexBuffers as originally designed had a flaw involving the
+  // FBT_VECTOR_STRING datatype, and this test documents/tests the fix for it.
+  // Discussion: https://github.com/google/flatbuffers/issues/5627
+  flexbuffers::Builder slb;
+  // FBT_VECTOR_* are "typed vectors" where all elements are of the same type.
+  // Problem is, when storing FBT_STRING elements, it relies on that type to
+  // get the bit-width for the size field of the string, which in this case
+  // isn't present, and instead defaults to 8-bit. This means that any strings
+  // stored inside such a vector, when accessed thru the old API that returns
+  // a String reference, will appear to be truncated if the string stored is
+  // actually >=256 bytes.
+  std::string test_data(300, 'A');
+  auto start = slb.StartVector();
+  // This one will have a 16-bit size field.
+  slb.String(test_data);
+  // This one will have an 8-bit size field.
+  slb.String("hello");
+  // We're asking this to be serialized as a typed vector (true), but not
+  // fixed size (false). The type will be FBT_VECTOR_STRING with a bit-width
+  // of whatever the offsets in the vector need, the bit-widths of the strings
+  // are not stored(!) <- the actual design flaw.
+  // Note that even in the fixed code, we continue to serialize the elements of
+  // FBT_VECTOR_STRING as FBT_STRING, since there may be old code out there
+  // reading new data that we want to continue to function.
+  // Thus, FBT_VECTOR_STRING, while deprecated, will always be represented the
+  // same way, the fix lies on the reading side.
+  slb.EndVector(start, true, false);
+  slb.Finish();
+  // So now lets read this data back.
+  // For existing data, since we have no way of knowing what the actual
+  // bit-width of the size field of the string is, we are going to ignore this
+  // field, and instead treat these strings as FBT_KEY (null-terminated), so we
+  // can deal with strings of arbitrary length. This of course truncates strings
+  // with embedded nulls, but we think that that is preferrable over truncating
+  // strings >= 256 bytes.
+  auto vec = flexbuffers::GetRoot(slb.GetBuffer()).AsTypedVector();
+  // Even though this was serialized as FBT_VECTOR_STRING, it is read as
+  // FBT_VECTOR_KEY:
+  TEST_EQ(vec.ElementType(), flexbuffers::FBT_KEY);
+  // Access the long string. Previously, this would return a string of size 1,
+  // since it would read the high-byte of the 16-bit length.
+  // This should now correctly test the full 300 bytes, using AsKey():
+  TEST_EQ_STR(vec[0].AsKey(), test_data.c_str());
+  // Old code that called AsString will continue to work, as the String
+  // accessor objects now use a cached size that can come from a key as well.
+  TEST_EQ_STR(vec[0].AsString().c_str(), test_data.c_str());
+  // Short strings work as before:
+  TEST_EQ_STR(vec[1].AsKey(), "hello");
+  TEST_EQ_STR(vec[1].AsString().c_str(), "hello");
+  // So, while existing code and data mostly "just work" with the fixes applied
+  // to AsTypedVector and AsString, what do you do going forward?
+  // Code accessing existing data doesn't necessarily need to change, though
+  // you could consider using AsKey instead of AsString for a) documenting
+  // that you are accessing keys, or b) a speedup if you don't actually use
+  // the string size.
+  // For new data, or data that doesn't need to be backwards compatible,
+  // instead serialize as FBT_VECTOR (call EndVector with typed = false, then
+  // read elements with AsString), or, for maximum compactness, use
+  // FBT_VECTOR_KEY (call slb.Key above instead, read with AsKey or AsString).
+}
+
 void TypeAliasesTest() {
   flatbuffers::FlatBufferBuilder builder;
 
@@ -3237,6 +3299,7 @@ int FlatBufferTests() {
   JsonDefaultTest();
   JsonEnumsTest();
   FlexBuffersTest();
+  FlexBuffersDeprecatedTest();
   UninitializedVectorTest();
   EqualOperatorTest();
   NumericUtilsTest();
