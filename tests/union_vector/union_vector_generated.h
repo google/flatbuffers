@@ -73,7 +73,7 @@ inline const char * const *EnumNamesCharacter() {
 }
 
 inline const char *EnumNameCharacter(Character e) {
-  if (e < Character_NONE || e > Character_Unused) return "";
+  if (flatbuffers::IsOutRange(e, Character_NONE, Character_Unused)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesCharacter()[index];
 }

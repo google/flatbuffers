@@ -57,7 +57,7 @@ inline const char * const *EnumNamesTestEnum() {
 }
 
 inline const char *EnumNameTestEnum(TestEnum e) {
-  if (e < TestEnum::A || e > TestEnum::C) return "";
+  if (flatbuffers::IsOutRange(e, TestEnum::A, TestEnum::C)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesTestEnum()[index];
 }

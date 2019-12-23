@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+#ifndef FLATBUFFERS_FLATC_H_
+#define FLATBUFFERS_FLATC_H_
+
 #include <functional>
 #include <limits>
 #include <string>
@@ -22,10 +25,10 @@
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
-#ifndef FLATC_H_
-#  define FLATC_H_
-
 namespace flatbuffers {
+
+extern void LogCompilerWarn(const std::string &warn);
+extern void LogCompilerError(const std::string &err);
 
 class FlatCompiler {
  public:
@@ -94,4 +97,4 @@ class FlatCompiler {
 
 }  // namespace flatbuffers
 
-#endif  // FLATC_H_
+#endif  // FLATBUFFERS_FLATC_H_

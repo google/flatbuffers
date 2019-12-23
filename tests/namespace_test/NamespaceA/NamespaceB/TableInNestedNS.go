@@ -6,6 +6,28 @@ import (
 	flatbuffers "github.com/google/flatbuffers/go"
 )
 
+type TableInNestedNST struct {
+	Foo int32
+}
+
+func TableInNestedNSPack(builder *flatbuffers.Builder, t *TableInNestedNST) flatbuffers.UOffsetT {
+	if t == nil { return 0 }
+	TableInNestedNSStart(builder)
+	TableInNestedNSAddFoo(builder, t.Foo)
+	return TableInNestedNSEnd(builder)
+}
+
+func (rcv *TableInNestedNS) UnPackTo(t *TableInNestedNST) {
+	t.Foo = rcv.Foo()
+}
+
+func (rcv *TableInNestedNS) UnPack() *TableInNestedNST {
+	if rcv == nil { return nil }
+	t := &TableInNestedNST{}
+	rcv.UnPackTo(t)
+	return t
+}
+
 type TableInNestedNS struct {
 	_tab flatbuffers.Table
 }

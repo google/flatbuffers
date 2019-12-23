@@ -8,18 +8,19 @@ using MyGame::Example::CreateStat;
 using MyGame::Example::Vec3;
 
 bool verify(flatbuffers::grpc::Message<Monster> &msg,
-            const std::string &expected_name, Color color) {
+            const std::string &expected_name, Color expected_color) {
   const Monster *monster = msg.GetRoot();
-  return (monster->name()->str() == expected_name) &&
-         (monster->color() == color);
+  const auto name = monster->name()->str();
+  const auto color = monster->color();
+  TEST_EQ(name, expected_name);
+  TEST_EQ(color, expected_color);
+  return (name == expected_name) && (color == expected_color);
 }
 
 bool release_n_verify(flatbuffers::grpc::MessageBuilder &mbb,
-                      const std::string &expected_name, Color color) {
+                      const std::string &expected_name, Color expected_color) {
   flatbuffers::grpc::Message<Monster> msg = mbb.ReleaseMessage<Monster>();
-  const Monster *monster = msg.GetRoot();
-  return (monster->name()->str() == expected_name) &&
-         (monster->color() == color);
+  return verify(msg, expected_name, expected_color);
 }
 
 void builder_move_assign_after_releaseraw_test(
@@ -36,7 +37,7 @@ void builder_move_assign_after_releaseraw_test(
   // Move into a released builder.
   dst = std::move(src);
   TEST_EQ(dst.GetSize(), src_size);
-  TEST_ASSERT(release_n_verify(dst, m2_name, m2_color));
+  TEST_ASSERT(release_n_verify(dst, m2_name(), m2_color()));
   TEST_EQ(src.GetSize(), 0);
   grpc_slice_unref(slice);
 }
@@ -53,7 +54,7 @@ struct BuilderReuseTests<flatbuffers::grpc::MessageBuilder, SrcBuilder> {
       auto root_offset1 = populate1(mb);
       mb.Finish(root_offset1);
       buffers.push_back(mb.ReleaseMessage<Monster>());
-      TEST_ASSERT_FUNC(verify(buffers[i], m1_name, m1_color));
+      TEST_ASSERT_FUNC(verify(buffers[i], m1_name(), m1_color()));
     }
   }
 
@@ -69,7 +70,7 @@ struct BuilderReuseTests<flatbuffers::grpc::MessageBuilder, SrcBuilder> {
       auto root_offset1 = populate1(mb);
       mb.Finish(root_offset1);
       buffers.push_back(mb.Release());
-      TEST_ASSERT_FUNC(verify(buffers[i], m1_name, m1_color));
+      TEST_ASSERT_FUNC(verify(buffers[i], m1_name(), m1_color()));
     }
   }
 
@@ -83,7 +84,7 @@ struct BuilderReuseTests<flatbuffers::grpc::MessageBuilder, SrcBuilder> {
       size_t size, offset;
       grpc_slice slice;
       const uint8_t *buf = mb.ReleaseRaw(size, offset, slice);
-      TEST_ASSERT_FUNC(verify(buf, offset, m1_name, m1_color));
+      TEST_ASSERT_FUNC(verify(buf, offset, m1_name(), m1_color()));
       grpc_slice_unref(slice);
     }
   }
@@ -103,7 +104,7 @@ struct BuilderReuseTests<flatbuffers::grpc::MessageBuilder, SrcBuilder> {
       auto root_offset1 = populate1(dst);
       dst.Finish(root_offset1);
       buffers.push_back(dst.Release());
-      TEST_ASSERT_FUNC(verify(buffers[i], m1_name, m1_color));
+      TEST_ASSERT_FUNC(verify(buffers[i], m1_name(), m1_color()));
 
       // bring dst back to life.
       SrcBuilder src;
@@ -126,7 +127,7 @@ struct BuilderReuseTests<flatbuffers::grpc::MessageBuilder, SrcBuilder> {
       auto root_offset1 = populate1(dst);
       dst.Finish(root_offset1);
       buffers.push_back(dst.ReleaseMessage<Monster>());
-      TEST_ASSERT_FUNC(verify(buffers[i], m1_name, m1_color));
+      TEST_ASSERT_FUNC(verify(buffers[i], m1_name(), m1_color()));
 
       // bring dst back to life.
       SrcBuilder src;
@@ -147,7 +148,7 @@ struct BuilderReuseTests<flatbuffers::grpc::MessageBuilder, SrcBuilder> {
       size_t size, offset;
       grpc_slice slice = grpc_empty_slice();
       const uint8_t *buf = dst.ReleaseRaw(size, offset, slice);
-      TEST_ASSERT_FUNC(verify(buf, offset, m1_name, m1_color));
+      TEST_ASSERT_FUNC(verify(buf, offset, m1_name(), m1_color()));
       grpc_slice_unref(slice);
 
       SrcBuilder src;
@@ -199,7 +200,7 @@ void slice_allocator_tests() {
 void populate_first_half(MyGame::Example::MonsterBuilder &wrapper,
                          flatbuffers::Offset<flatbuffers::String> name_offset) {
   wrapper.add_name(name_offset);
-  wrapper.add_color(m1_color);
+  wrapper.add_color(m1_color());
 }
 
 /// This function does not populate exactly the second half of the table. But it
@@ -230,7 +231,7 @@ void test_only_hack_update_fbb_reference(
 void builder_move_ctor_conversion_before_finish_half_n_half_table_test() {
   for (size_t initial_size = 4; initial_size <= 2048; initial_size *= 2) {
     flatbuffers::FlatBufferBuilder fbb(initial_size);
-    auto name_offset = fbb.CreateString(m1_name);
+    auto name_offset = fbb.CreateString(m1_name());
     MyGame::Example::MonsterBuilder monsterBuilder(
         fbb);  // starts a table in FlatBufferBuilder
     populate_first_half(monsterBuilder, name_offset);
@@ -238,7 +239,7 @@ void builder_move_ctor_conversion_before_finish_half_n_half_table_test() {
     test_only_hack_update_fbb_reference(monsterBuilder, mb);  // hack
     populate_second_half(monsterBuilder);
     mb.Finish(monsterBuilder.Finish());  // ends the table in MessageBuilder
-    TEST_ASSERT_FUNC(release_n_verify(mb, m1_name, m1_color));
+    TEST_ASSERT_FUNC(release_n_verify(mb, m1_name(), m1_color()));
     TEST_EQ_FUNC(fbb.GetSize(), 0);
   }
 }
@@ -246,15 +247,24 @@ void builder_move_ctor_conversion_before_finish_half_n_half_table_test() {
 /// This test populates a COMPLETE inner table before move conversion and later
 /// populates more members in the outer table.
 void builder_move_ctor_conversion_before_finish_test() {
-  for (size_t initial_size = 4; initial_size <= 2048; initial_size *= 2) {
+  for (size_t initial_size = 1; initial_size <= 2048; initial_size += 1) {
     flatbuffers::FlatBufferBuilder fbb(initial_size);
     auto stat_offset = CreateStat(fbb, fbb.CreateString("SomeId"), 0, 0);
     flatbuffers::grpc::MessageBuilder mb(std::move(fbb));
     auto monster_offset =
-        CreateMonster(mb, 0, 150, 100, mb.CreateString(m1_name), 0, m1_color,
+        CreateMonster(mb, 0, 150, 100, mb.CreateString(m1_name()), 0, m1_color(),
                       Any_NONE, 0, 0, 0, 0, 0, 0, stat_offset);
     mb.Finish(monster_offset);
-    TEST_ASSERT_FUNC(release_n_verify(mb, m1_name, m1_color));
+    {
+      auto mon = flatbuffers::GetRoot<Monster>(mb.GetBufferPointer());
+      TEST_NOTNULL(mon);
+      TEST_NOTNULL(mon->name());
+      TEST_EQ_STR(mon->name()->c_str(), m1_name().c_str());
+      TEST_EQ(mon->color(), m1_color());
+    }
+    TEST_EQ(1, MyGame::Example::Color_Red);    
+    TEST_EQ(1, m1_color());
+    TEST_ASSERT_FUNC(release_n_verify(mb, m1_name(), m1_color()));
     TEST_EQ_FUNC(fbb.GetSize(), 0);
   }
 }
@@ -269,7 +279,7 @@ void builder_move_assign_conversion_before_finish_half_n_half_table_test() {
 
   for (int i = 0; i < 5; ++i) {
     flatbuffers::FlatBufferBuilder fbb;
-    auto name_offset = fbb.CreateString(m1_name);
+    auto name_offset = fbb.CreateString(m1_name());
     MyGame::Example::MonsterBuilder monsterBuilder(
         fbb);  // starts a table in FlatBufferBuilder
     populate_first_half(monsterBuilder, name_offset);
@@ -277,7 +287,7 @@ void builder_move_assign_conversion_before_finish_half_n_half_table_test() {
     test_only_hack_update_fbb_reference(monsterBuilder, mb);  // hack
     populate_second_half(monsterBuilder);
     mb.Finish(monsterBuilder.Finish());  // ends the table in MessageBuilder
-    TEST_ASSERT_FUNC(release_n_verify(mb, m1_name, m1_color));
+    TEST_ASSERT_FUNC(release_n_verify(mb, m1_name(), m1_color()));
     TEST_EQ_FUNC(fbb.GetSize(), 0);
   }
 }
@@ -292,10 +302,10 @@ void builder_move_assign_conversion_before_finish_test() {
     auto stat_offset = CreateStat(fbb, fbb.CreateString("SomeId"), 0, 0);
     mb = std::move(fbb);
     auto monster_offset =
-        CreateMonster(mb, 0, 150, 100, mb.CreateString(m1_name), 0, m1_color,
+        CreateMonster(mb, 0, 150, 100, mb.CreateString(m1_name()), 0, m1_color(),
                       Any_NONE, 0, 0, 0, 0, 0, 0, stat_offset);
     mb.Finish(monster_offset);
-    TEST_ASSERT_FUNC(release_n_verify(mb, m1_name, m1_color));
+    TEST_ASSERT_FUNC(release_n_verify(mb, m1_name(), m1_color()));
     TEST_EQ_FUNC(fbb.GetSize(), 0);
   }
 }
@@ -306,7 +316,7 @@ void builder_move_ctor_conversion_after_finish_test() {
   flatbuffers::FlatBufferBuilder fbb;
   fbb.Finish(populate1(fbb));
   flatbuffers::grpc::MessageBuilder mb(std::move(fbb));
-  TEST_ASSERT_FUNC(release_n_verify(mb, m1_name, m1_color));
+  TEST_ASSERT_FUNC(release_n_verify(mb, m1_name(), m1_color()));
   TEST_EQ_FUNC(fbb.GetSize(), 0);
 }
 
@@ -319,7 +329,7 @@ void builder_move_assign_conversion_after_finish_test() {
   for (int i = 0; i < 5; ++i) {
     fbb.Finish(populate1(fbb));
     mb = std::move(fbb);
-    TEST_ASSERT_FUNC(release_n_verify(mb, m1_name, m1_color));
+    TEST_ASSERT_FUNC(release_n_verify(mb, m1_name(), m1_color()));
     TEST_EQ_FUNC(fbb.GetSize(), 0);
   }
 }

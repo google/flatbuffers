@@ -58,7 +58,7 @@ inline const char * const *EnumNamesColor() {
 }
 
 inline const char *EnumNameColor(Color e) {
-  if (e < Color_Red || e > Color_Blue) return "";
+  if (flatbuffers::IsOutRange(e, Color_Red, Color_Blue)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesColor()[index];
 }
@@ -88,7 +88,7 @@ inline const char * const *EnumNamesEquipment() {
 }
 
 inline const char *EnumNameEquipment(Equipment e) {
-  if (e < Equipment_NONE || e > Equipment_Weapon) return "";
+  if (flatbuffers::IsOutRange(e, Equipment_NONE, Equipment_Weapon)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesEquipment()[index];
 }

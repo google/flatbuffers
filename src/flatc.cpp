@@ -116,6 +116,11 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "                         (see the --cpp-str-flex-ctor option to change this behavior).\n"
     "  --cpp-str-flex-ctor     Don't construct custom string types by passing std::string\n"
     "                         from Flatbuffers, but (char* + length).\n"
+    "  --cpp-std CPP_STD      Generate a C++ code using features of selected C++ standard.\n"
+    "                         Supported CPP_STD values:\n"
+    "                          * 'c++0x' - generate code compatible with old compilers;\n"
+    "                          * 'c++11' - use C++11 code generator (default);\n"
+    "                          * 'c++17' - use C++17 features in generated code (experimental).\n"
     "  --object-prefix        Customise class prefix for C++ object-based API.\n"
     "  --object-suffix        Customise class suffix for C++ object-based API.\n"
     "                         Default value is \"T\".\n"
@@ -281,7 +286,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.include_dependence_headers = false;
       } else if (arg == "--gen-includes") {
         // Deprecated, remove this option some time in the future.
-        printf("warning: --gen-includes is deprecated (it is now default)\n");
+        Warn("warning: --gen-includes is deprecated (it is now default)\n");
       } else if (arg == "--no-includes") {
         opts.include_dependence_headers = false;
       } else if (arg == "--gen-onefile") {
@@ -333,6 +338,9 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.java_primitive_has_method = true;
       } else if (arg == "--flexbuffers") {
         opts.use_flexbuffers = true;
+      } else if(arg == "--cpp-std") {
+        if (++argi >= argc) Error("missing C++ standard specification" + arg, true);
+        opts.cpp_std = argv[argi];
       } else {
         for (size_t i = 0; i < params_.num_generators; ++i) {
           if (arg == params_.generators[i].generator_opt_long ||
