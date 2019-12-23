@@ -556,6 +556,7 @@ struct IDLOptions {
   bool force_defaults;
   bool java_primitive_has_method;
   std::vector<std::string> cpp_includes;
+  std::string cpp_std;
 
   // Possible options for the more general generator below.
   enum Language {

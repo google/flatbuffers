@@ -97,7 +97,7 @@ inline const char * const *EnumNamesBaseType() {
 }
 
 inline const char *EnumNameBaseType(BaseType e) {
-  if (e < None || e > Array) return "";
+  if (flatbuffers::IsOutRange(e, None, Array)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesBaseType()[index];
 }

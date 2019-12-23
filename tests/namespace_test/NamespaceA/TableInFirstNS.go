@@ -8,6 +8,36 @@ import (
 	NamespaceA__NamespaceB "NamespaceA/NamespaceB"
 )
 
+type TableInFirstNST struct {
+	FooTable *NamespaceA__NamespaceB.TableInNestedNST
+	FooEnum NamespaceA__NamespaceB.EnumInNestedNS
+	FooStruct *NamespaceA__NamespaceB.StructInNestedNST
+}
+
+func TableInFirstNSPack(builder *flatbuffers.Builder, t *TableInFirstNST) flatbuffers.UOffsetT {
+	if t == nil { return 0 }
+	fooTableOffset := NamespaceA__NamespaceB.TableInNestedNSPack(builder, t.FooTable)
+	TableInFirstNSStart(builder)
+	TableInFirstNSAddFooTable(builder, fooTableOffset)
+	TableInFirstNSAddFooEnum(builder, t.FooEnum)
+	fooStructOffset := NamespaceA__NamespaceB.StructInNestedNSPack(builder, t.FooStruct)
+	TableInFirstNSAddFooStruct(builder, fooStructOffset)
+	return TableInFirstNSEnd(builder)
+}
+
+func (rcv *TableInFirstNS) UnPackTo(t *TableInFirstNST) {
+	t.FooTable = rcv.FooTable(nil).UnPack()
+	t.FooEnum = rcv.FooEnum()
+	t.FooStruct = rcv.FooStruct(nil).UnPack()
+}
+
+func (rcv *TableInFirstNS) UnPack() *TableInFirstNST {
+	if rcv == nil { return nil }
+	t := &TableInFirstNST{}
+	rcv.UnPackTo(t)
+	return t
+}
+
 type TableInFirstNS struct {
 	_tab flatbuffers.Table
 }

@@ -30,3 +30,35 @@ class TableInNestedNS(object):
 def TableInNestedNSStart(builder): builder.StartObject(1)
 def TableInNestedNSAddFoo(builder, foo): builder.PrependInt32Slot(0, foo, 0)
 def TableInNestedNSEnd(builder): return builder.EndObject()
+
+
+class TableInNestedNST(object):
+
+    # TableInNestedNST
+    def __init__(self):
+        self.foo = 0  # type: int
+
+    @classmethod
+    def InitFromBuf(cls, buf, pos):
+        tableInNestedNS = TableInNestedNS()
+        tableInNestedNS.Init(buf, pos)
+        return cls.InitFromObj(tableInNestedNS)
+
+    @classmethod
+    def InitFromObj(cls, tableInNestedNS):
+        x = TableInNestedNST()
+        x._UnPack(tableInNestedNS)
+        return x
+
+    # TableInNestedNST
+    def _UnPack(self, tableInNestedNS):
+        if tableInNestedNS is None:
+            return
+        self.foo = tableInNestedNS.Foo()
+
+    # TableInNestedNST
+    def Pack(self, builder):
+        TableInNestedNSStart(builder)
+        TableInNestedNSAddFoo(builder, self.foo)
+        tableInNestedNS = TableInNestedNSEnd(builder)
+        return tableInNestedNS

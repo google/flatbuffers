@@ -1459,7 +1459,7 @@ void FuzzTest2() {
         break;
       }
     }
-    TEST_NOTNULL(nullptr);
+    TEST_NOTNULL(nullptr); //-V501 (this comment supresses CWE-570 warning)
   }
 
   // clang-format off

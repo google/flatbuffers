@@ -25,7 +25,6 @@ class TableInFirstNS(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             x = self._tab.Indirect(o + self._tab.Pos)
-            from NamespaceA.NamespaceB.TableInNestedNS import TableInNestedNS
             obj = TableInNestedNS()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -43,7 +42,6 @@ class TableInFirstNS(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             x = o + self._tab.Pos
-            from NamespaceA.NamespaceB.StructInNestedNS import StructInNestedNS
             obj = StructInNestedNS()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -54,3 +52,52 @@ def TableInFirstNSAddFooTable(builder, fooTable): builder.PrependUOffsetTRelativ
 def TableInFirstNSAddFooEnum(builder, fooEnum): builder.PrependInt8Slot(1, fooEnum, 0)
 def TableInFirstNSAddFooStruct(builder, fooStruct): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(fooStruct), 0)
 def TableInFirstNSEnd(builder): return builder.EndObject()
+
+try:
+    from typing import Optional
+except:
+    pass
+
+class TableInFirstNST(object):
+
+    # TableInFirstNST
+    def __init__(self):
+        self.fooTable = None  # type: Optional[TableInNestedNST]
+        self.fooEnum = 0  # type: int
+        self.fooStruct = None  # type: Optional[StructInNestedNST]
+
+    @classmethod
+    def InitFromBuf(cls, buf, pos):
+        tableInFirstNS = TableInFirstNS()
+        tableInFirstNS.Init(buf, pos)
+        return cls.InitFromObj(tableInFirstNS)
+
+    @classmethod
+    def InitFromObj(cls, tableInFirstNS):
+        x = TableInFirstNST()
+        x._UnPack(tableInFirstNS)
+        return x
+
+    # TableInFirstNST
+    def _UnPack(self, tableInFirstNS):
+        if tableInFirstNS is None:
+            return
+        if tableInFirstNS.FooTable() is not None:
+            self.fooTable = TableInNestedNST.InitFromObj(tableInFirstNS.FooTable())
+        self.fooEnum = tableInFirstNS.FooEnum()
+        if tableInFirstNS.FooStruct() is not None:
+            self.fooStruct = StructInNestedNST.InitFromObj(tableInFirstNS.FooStruct())
+
+    # TableInFirstNST
+    def Pack(self, builder):
+        if self.fooTable is not None:
+            fooTable = self.fooTable.Pack(builder)
+        TableInFirstNSStart(builder)
+        if self.fooTable is not None:
+            TableInFirstNSAddFooTable(builder, fooTable)
+        TableInFirstNSAddFooEnum(builder, self.fooEnum)
+        if self.fooStruct is not None:
+            fooStruct = self.fooStruct.Pack(builder)
+            TableInFirstNSAddFooStruct(builder, fooStruct)
+        tableInFirstNS = TableInFirstNSEnd(builder)
+        return tableInFirstNS
