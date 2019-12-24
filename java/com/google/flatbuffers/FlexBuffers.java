@@ -244,7 +244,7 @@ public class FlexBuffers {
         public boolean isNull() {
             return type == FBT_NULL;
         }
-         
+
         /**
          * Checks whether the element is boolean type
          * @return true if boolean type
@@ -393,7 +393,7 @@ public class FlexBuffers {
                     case FBT_NULL: return 0;
                     case FBT_STRING: return Long.parseLong(asString());
                     case FBT_VECTOR: return asVector().size();
-                    case FBT_BOOL: readInt(bb, end, parentWidth);
+                    case FBT_BOOL: return readInt(bb, end, parentWidth);
                     default:
                         // Convert other things to uint.
                         return 0;
@@ -791,6 +791,10 @@ public class FlexBuffers {
                 return false;
 
             return ((Key) obj).end == end && ((Key) obj).byteWidth == byteWidth;
+        }
+
+        public int hashCode() {
+          return end ^ byteWidth;
         }
     }
 
