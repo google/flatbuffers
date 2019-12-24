@@ -655,6 +655,12 @@ inline flatbuffers::Offset<InParentNamespace> CreateInParentNamespace(
   return builder_.Finish();
 }
 
+template<typename... Args>
+auto CreateByTagType(InParentNamespace*, flatbuffers::FlatBufferBuilder &_fbb,
+                     Args&&... args) {
+  return CreateInParentNamespace(_fbb, std::forward<Args>(args)...);
+}
+
 flatbuffers::Offset<InParentNamespace> CreateInParentNamespace(flatbuffers::FlatBufferBuilder &_fbb, const InParentNamespaceT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 namespace Example2 {
@@ -700,6 +706,12 @@ inline flatbuffers::Offset<Monster> CreateMonster(
     flatbuffers::FlatBufferBuilder &_fbb) {
   MonsterBuilder builder_(_fbb);
   return builder_.Finish();
+}
+
+template<typename... Args>
+auto CreateByTagType(Monster*, flatbuffers::FlatBufferBuilder &_fbb,
+                     Args&&... args) {
+  return CreateMonster(_fbb, std::forward<Args>(args)...);
 }
 
 flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -766,6 +778,12 @@ inline flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnu
   TestSimpleTableWithEnumBuilder builder_(_fbb);
   builder_.add_color(color);
   return builder_.Finish();
+}
+
+template<typename... Args>
+auto CreateByTagType(TestSimpleTableWithEnum*, flatbuffers::FlatBufferBuilder &_fbb,
+                     Args&&... args) {
+  return CreateTestSimpleTableWithEnum(_fbb, std::forward<Args>(args)...);
 }
 
 flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnum(flatbuffers::FlatBufferBuilder &_fbb, const TestSimpleTableWithEnumT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -860,6 +878,12 @@ inline flatbuffers::Offset<Stat> CreateStat(
   return builder_.Finish();
 }
 
+template<typename... Args>
+auto CreateByTagType(Stat*, flatbuffers::FlatBufferBuilder &_fbb,
+                     Args&&... args) {
+  return CreateStat(_fbb, std::forward<Args>(args)...);
+}
+
 inline flatbuffers::Offset<Stat> CreateStatDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *id = nullptr,
@@ -939,6 +963,12 @@ inline flatbuffers::Offset<Referrable> CreateReferrable(
   ReferrableBuilder builder_(_fbb);
   builder_.add_id(id);
   return builder_.Finish();
+}
+
+template<typename... Args>
+auto CreateByTagType(Referrable*, flatbuffers::FlatBufferBuilder &_fbb,
+                     Args&&... args) {
+  return CreateReferrable(_fbb, std::forward<Args>(args)...);
 }
 
 flatbuffers::Offset<Referrable> CreateReferrable(flatbuffers::FlatBufferBuilder &_fbb, const ReferrableT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -1766,6 +1796,12 @@ inline flatbuffers::Offset<Monster> CreateMonster(
   return builder_.Finish();
 }
 
+template<typename... Args>
+auto CreateByTagType(Monster*, flatbuffers::FlatBufferBuilder &_fbb,
+                     Args&&... args) {
+  return CreateMonster(_fbb, std::forward<Args>(args)...);
+}
+
 inline flatbuffers::Offset<Monster> CreateMonsterDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const MyGame::Example::Vec3 *pos = 0,
@@ -2112,6 +2148,12 @@ inline flatbuffers::Offset<TypeAliases> CreateTypeAliases(
   builder_.add_u8(u8);
   builder_.add_i8(i8);
   return builder_.Finish();
+}
+
+template<typename... Args>
+auto CreateByTagType(TypeAliases*, flatbuffers::FlatBufferBuilder &_fbb,
+                     Args&&... args) {
+  return CreateTypeAliases(_fbb, std::forward<Args>(args)...);
 }
 
 inline flatbuffers::Offset<TypeAliases> CreateTypeAliasesDirect(

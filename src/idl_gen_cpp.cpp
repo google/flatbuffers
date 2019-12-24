@@ -2198,6 +2198,21 @@ class CppGenerator : public BaseGenerator {
     code_ += "}";
     code_ += "";
 
+    // Generate a convenient CreateByTagType function that allows creating ta-
+    // bles in a generic way by specifying only their type. In fact, even the
+    // namespace is not necessary when calling this function since it will be
+    // found through ADL.
+    if (opts_.g_cpp_std >= cpp::CPP_STD_17) {
+      code_ += "template<typename... Args>";
+      code_ += "auto CreateByTagType({{STRUCT_NAME}}*, "
+               "flatbuffers::FlatBufferBuilder &_fbb,";
+      code_ += "                     Args&&... args\\";
+      code_ += ") {";
+      code_ += "  return Create{{STRUCT_NAME}}(_fbb, std::forward<Args>(args)...);";
+      code_ += "}";
+      code_ += "";
+    }
+
     // Generate a CreateXDirect function with vector types as parameters
     if (has_string_or_vector_fields) {
       code_ +=

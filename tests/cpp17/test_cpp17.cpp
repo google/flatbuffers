@@ -36,8 +36,35 @@ namespace cpp11 {
 #include "../monster_test_generated.h"
 }  // namespace cpp11
 
+void CreateByTagTypeTest() {
+  flatbuffers::FlatBufferBuilder builder;
+
+  // We will create an object of this type using only the type.
+  using type_to_create_t = cpp17::MyGame::Example::Stat;
+
+  {
+    // Note that we do not need to attach the cpp17::MyGame::Example namespace
+    // to the CreateFromTagType function because it should be found through ADL
+    // given that we specify the namespace of the tag pointer type!
+    auto table = CreateByTagType((type_to_create_t *)nullptr, builder,
+                                 builder.CreateString("my_id"), 42, 7);
+    // Be sure that the correct return type was inferred since the CreateByTag-
+    // Type function uses auto.
+    static_assert(
+        std::is_same_v<decltype(table), flatbuffers::Offset<type_to_create_t>>);
+    builder.Finish(table);
+  }
+
+  // Access it.
+  auto stat =
+      flatbuffers::GetRoot<type_to_create_t>(builder.GetBufferPointer());
+  TEST_EQ_STR(stat->id()->c_str(), "my_id");
+  TEST_EQ(stat->val(), 42);
+  TEST_EQ(stat->count(), 7);
+}
+
 int FlatBufferCpp17Tests() {
-  TEST_ASSERT(true);
+  CreateByTagTypeTest();
   return 0;
 }
 
