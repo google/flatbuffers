@@ -2368,6 +2368,13 @@ def main():
 
     kwargs = dict(argv=sys.argv[:-3])
 
+    # show whether numpy is present, as it changes the test logic:
+    try:
+        import numpy
+        print('numpy available')
+    except ImportError:
+        print('numpy not available')
+
     # run tests, and run some language comparison checks if needed:
     success = backward_compatible_run_tests(**kwargs)
     if success and os.environ.get('COMPARE_GENERATED_TO_GO', 0) == "1":
