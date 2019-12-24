@@ -31,7 +31,7 @@ namespace FlatBuffers
         public ByteBuffer ByteBuffer { get { return bb; } }
 
         // Re-init the internal state with an external buffer {@code ByteBuffer} and an offset within.
-        public Table(int _i, ByteBuffer _bb)
+        public Table(int _i, ByteBuffer _bb) : this()
         {
             bb = _bb;
             bb_pos = _i;
