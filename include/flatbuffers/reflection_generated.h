@@ -9,22 +9,31 @@
 namespace reflection {
 
 struct Type;
+struct TypeBuilder;
 
 struct KeyValue;
+struct KeyValueBuilder;
 
 struct EnumVal;
+struct EnumValBuilder;
 
 struct Enum;
+struct EnumBuilder;
 
 struct Field;
+struct FieldBuilder;
 
 struct Object;
+struct ObjectBuilder;
 
 struct RPCCall;
+struct RPCCallBuilder;
 
 struct Service;
+struct ServiceBuilder;
 
 struct Schema;
+struct SchemaBuilder;
 
 enum BaseType {
   None = 0,
@@ -103,6 +112,7 @@ inline const char *EnumNameBaseType(BaseType e) {
 }
 
 struct Type FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef TypeBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_BASE_TYPE = 4,
     VT_ELEMENT = 6,
@@ -132,6 +142,7 @@ struct Type FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct TypeBuilder {
+  typedef Type Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_base_type(reflection::BaseType base_type) {
@@ -173,6 +184,7 @@ inline flatbuffers::Offset<Type> CreateType(
 }
 
 struct KeyValue FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef KeyValueBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_KEY = 4,
     VT_VALUE = 6
@@ -200,6 +212,7 @@ struct KeyValue FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct KeyValueBuilder {
+  typedef KeyValue Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_key(flatbuffers::Offset<flatbuffers::String> key) {
@@ -244,6 +257,7 @@ inline flatbuffers::Offset<KeyValue> CreateKeyValueDirect(
 }
 
 struct EnumVal FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef EnumValBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_VALUE = 6,
@@ -289,6 +303,7 @@ struct EnumVal FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct EnumValBuilder {
+  typedef EnumVal Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
@@ -354,6 +369,7 @@ inline flatbuffers::Offset<EnumVal> CreateEnumValDirect(
 }
 
 struct Enum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef EnumBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_VALUES = 6,
@@ -407,6 +423,7 @@ struct Enum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct EnumBuilder {
+  typedef Enum Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
@@ -483,6 +500,7 @@ inline flatbuffers::Offset<Enum> CreateEnumDirect(
 }
 
 struct Field FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef FieldBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_TYPE = 6,
@@ -559,6 +577,7 @@ struct Field FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct FieldBuilder {
+  typedef Field Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
@@ -668,6 +687,7 @@ inline flatbuffers::Offset<Field> CreateFieldDirect(
 }
 
 struct Object FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef ObjectBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_FIELDS = 6,
@@ -725,6 +745,7 @@ struct Object FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct ObjectBuilder {
+  typedef Object Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
@@ -807,6 +828,7 @@ inline flatbuffers::Offset<Object> CreateObjectDirect(
 }
 
 struct RPCCall FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef RPCCallBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_REQUEST = 6,
@@ -854,6 +876,7 @@ struct RPCCall FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct RPCCallBuilder {
+  typedef RPCCall Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
@@ -922,6 +945,7 @@ inline flatbuffers::Offset<RPCCall> CreateRPCCallDirect(
 }
 
 struct Service FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef ServiceBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_CALLS = 6,
@@ -964,6 +988,7 @@ struct Service FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct ServiceBuilder {
+  typedef Service Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
@@ -1024,6 +1049,7 @@ inline flatbuffers::Offset<Service> CreateServiceDirect(
 }
 
 struct Schema FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef SchemaBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_OBJECTS = 4,
     VT_ENUMS = 6,
@@ -1072,6 +1098,7 @@ struct Schema FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct SchemaBuilder {
+  typedef Schema Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_objects(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<reflection::Object>>> objects) {

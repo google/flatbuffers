@@ -14,6 +14,7 @@ struct NestedStruct;
 struct ArrayStruct;
 
 struct ArrayTable;
+struct ArrayTableBuilder;
 struct ArrayTableT;
 
 bool operator==(const NestedStruct &lhs, const NestedStruct &rhs);
@@ -229,6 +230,7 @@ inline bool operator!=(const ArrayTableT &lhs, const ArrayTableT &rhs) {
 
 struct ArrayTable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef ArrayTableT NativeTableType;
+  typedef ArrayTableBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return ArrayTableTypeTable();
   }
@@ -252,6 +254,7 @@ struct ArrayTable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct ArrayTableBuilder {
+  typedef ArrayTable Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_a(const MyGame::Example::ArrayStruct *a) {
