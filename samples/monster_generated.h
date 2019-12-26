@@ -12,9 +12,11 @@ namespace Sample {
 struct Vec3;
 
 struct Monster;
+struct MonsterBuilder;
 struct MonsterT;
 
 struct Weapon;
+struct WeaponBuilder;
 struct WeaponT;
 
 bool operator==(const Vec3 &lhs, const Vec3 &rhs);
@@ -256,6 +258,7 @@ inline bool operator!=(const MonsterT &lhs, const MonsterT &rhs) {
 
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MonsterT NativeTableType;
+  typedef MonsterBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return MonsterTypeTable();
   }
@@ -362,6 +365,7 @@ template<> inline const MyGame::Sample::Weapon *Monster::equipped_as<MyGame::Sam
 }
 
 struct MonsterBuilder {
+  typedef Monster Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_pos(const MyGame::Sample::Vec3 *pos) {
@@ -486,6 +490,7 @@ inline bool operator!=(const WeaponT &lhs, const WeaponT &rhs) {
 
 struct Weapon FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef WeaponT NativeTableType;
+  typedef WeaponBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return WeaponTypeTable();
   }
@@ -518,6 +523,7 @@ struct Weapon FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct WeaponBuilder {
+  typedef Weapon Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {

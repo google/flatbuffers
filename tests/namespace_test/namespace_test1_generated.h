@@ -10,6 +10,7 @@ namespace NamespaceA {
 namespace NamespaceB {
 
 struct TableInNestedNS;
+struct TableInNestedNSBuilder;
 struct TableInNestedNST;
 
 struct StructInNestedNS;
@@ -118,6 +119,7 @@ inline bool operator!=(const TableInNestedNST &lhs, const TableInNestedNST &rhs)
 
 struct TableInNestedNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef TableInNestedNST NativeTableType;
+  typedef TableInNestedNSBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return TableInNestedNSTypeTable();
   }
@@ -141,6 +143,7 @@ struct TableInNestedNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct TableInNestedNSBuilder {
+  typedef TableInNestedNS Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_foo(int32_t foo) {

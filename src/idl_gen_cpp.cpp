@@ -273,6 +273,9 @@ class CppGenerator : public BaseGenerator {
       if (!struct_def.generated) {
         SetNameSpace(struct_def.defined_namespace);
         code_ += "struct " + Name(struct_def) + ";";
+        if (!struct_def.fixed) {
+          code_ += "struct " + Name(struct_def) + "Builder;";
+        }
         if (opts_.generate_object_based_api) {
           auto nativeName = NativeName(Name(struct_def), &struct_def, opts_);
           if (!struct_def.fixed) { code_ += "struct " + nativeName + ";"; }
@@ -1833,6 +1836,7 @@ class CppGenerator : public BaseGenerator {
     if (opts_.generate_object_based_api) {
       code_ += "  typedef {{NATIVE_NAME}} NativeTableType;";
     }
+    code_ += "  typedef {{STRUCT_NAME}}Builder Builder;";
     if (opts_.mini_reflect != IDLOptions::kNone) {
       code_ +=
           "  static const flatbuffers::TypeTable *MiniReflectTypeTable() {";
@@ -2085,6 +2089,7 @@ class CppGenerator : public BaseGenerator {
 
     // Generate a builder struct:
     code_ += "struct {{STRUCT_NAME}}Builder {";
+    code_ += "  typedef {{STRUCT_NAME}} Table;";
     code_ += "  flatbuffers::FlatBufferBuilder &fbb_;";
     code_ += "  flatbuffers::uoffset_t start_;";
 
