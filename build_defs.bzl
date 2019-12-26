@@ -54,6 +54,11 @@ def flatbuffer_library_public(
         reflection binaries for the schemas.
       reflection_visibility: The visibility of the generated reflection Fileset.
       output_to_bindir: Passed to genrule for output to bin directory.
+      compatible_with: Optional, The list of environments this rule can be
+        built for, in addition to default-supported environments.
+      restricted_to: Optional, The list of environments this rule can be built
+        for, instead of default-supported environments.
+      output_to_bindir: Passed to genrule for output to bin directory.
 
 
     This rule creates a filegroup(name) with all generated source files, and
@@ -160,6 +165,10 @@ def flatbuffer_cc_library(
           By default, use the value of the visibility parameter above.
       gen_reflections: Optional, if true this will generate the flatbuffer
         reflection binaries for the schemas.
+      compatible_with: Optional, The list of environments this rule can be built
+        for, in addition to default-supported environments.
+      restricted_to: Optional, The list of environments this rule can be built
+        for, instead of default-supported environments.
 
     This produces:
       filegroup([name]_srcs): all generated .h files.
