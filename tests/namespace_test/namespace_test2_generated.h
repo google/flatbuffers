@@ -9,6 +9,7 @@
 namespace NamespaceA {
 
 struct TableInFirstNS;
+struct TableInFirstNSBuilder;
 struct TableInFirstNST;
 
 }  // namespace NamespaceA
@@ -16,6 +17,7 @@ struct TableInFirstNST;
 namespace NamespaceC {
 
 struct TableInC;
+struct TableInCBuilder;
 struct TableInCT;
 
 }  // namespace NamespaceC
@@ -23,6 +25,7 @@ struct TableInCT;
 namespace NamespaceA {
 
 struct SecondTableInA;
+struct SecondTableInABuilder;
 struct SecondTableInAT;
 
 bool operator==(const TableInFirstNST &lhs, const TableInFirstNST &rhs);
@@ -78,6 +81,7 @@ inline bool operator!=(const TableInFirstNST &lhs, const TableInFirstNST &rhs) {
 
 struct TableInFirstNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef TableInFirstNST NativeTableType;
+  typedef TableInFirstNSBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return TableInFirstNSTypeTable();
   }
@@ -118,6 +122,7 @@ struct TableInFirstNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct TableInFirstNSBuilder {
+  typedef TableInFirstNS Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_foo_table(flatbuffers::Offset<NamespaceA::NamespaceB::TableInNestedNS> foo_table) {
@@ -180,6 +185,7 @@ inline bool operator!=(const TableInCT &lhs, const TableInCT &rhs) {
 
 struct TableInC FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef TableInCT NativeTableType;
+  typedef TableInCBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return TableInCTypeTable();
   }
@@ -213,6 +219,7 @@ struct TableInC FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct TableInCBuilder {
+  typedef TableInC Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_refer_to_a1(flatbuffers::Offset<NamespaceA::TableInFirstNS> refer_to_a1) {
@@ -268,6 +275,7 @@ inline bool operator!=(const SecondTableInAT &lhs, const SecondTableInAT &rhs) {
 
 struct SecondTableInA FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef SecondTableInAT NativeTableType;
+  typedef SecondTableInABuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return SecondTableInATypeTable();
   }
@@ -292,6 +300,7 @@ struct SecondTableInA FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct SecondTableInABuilder {
+  typedef SecondTableInA Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_refer_to_c(flatbuffers::Offset<NamespaceC::TableInC> refer_to_c) {
