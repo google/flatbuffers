@@ -114,7 +114,7 @@ To use:
     MonsterT monsterobj;
 
     // Deserialize from buffer into object.
-    UnPackTo(&monsterobj, flatbuffer);
+    GetMonster(flatbuffer)->UnPackTo(&monsterobj);
 
     // Update object directly like a C++ class instance.
     cout << monsterobj->name;  // This is now a std::string!
@@ -122,7 +122,7 @@ To use:
 
     // Serialize into new flatbuffer.
     FlatBufferBuilder fbb;
-    Pack(fbb, &monsterobj);
+    fbb.Finish(Monster::Pack(fbb, &monsterobj));
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following attributes are specific to the object-based API code generation:
@@ -567,15 +567,15 @@ a specific locale use the environment variable `FLATBUFFERS_TEST_LOCALE`:
 ```
 
 ## Support of floating-point numbers
-The Flatbuffers library assumes that a C++ compiler and a CPU are 
+The Flatbuffers library assumes that a C++ compiler and a CPU are
 compatible with the `IEEE-754` floating-point standard.
 The schema and json parser may fail if `fast-math` or `/fp:fast` mode is active.
 
 ### Support of hexadecimal and special floating-point numbers
-According to the [grammar](@ref flatbuffers_grammar) `fbs` and `json` files 
+According to the [grammar](@ref flatbuffers_grammar) `fbs` and `json` files
 may use hexadecimal and special (`NaN`, `Inf`) floating-point literals.
 The Flatbuffers uses `strtof` and `strtod` functions to parse floating-point
-literals. The Flatbuffers library has a code to detect a compiler compatibility 
+literals. The Flatbuffers library has a code to detect a compiler compatibility
 with the literals. If necessary conditions are met the preprocessor constant
 `FLATBUFFERS_HAS_NEW_STRTOD` will be set to `1`.
 The support of floating-point literals will be limited at compile time
@@ -583,26 +583,26 @@ if `FLATBUFFERS_HAS_NEW_STRTOD` constant is less than `1`.
 In this case, schemas with hexadecimal or special literals cannot be used.
 
 ### Comparison of floating-point NaN values
-The floating-point `NaN` (`not a number`) is special value which 
+The floating-point `NaN` (`not a number`) is special value which
 representing an undefined or unrepresentable value.
-`NaN` may be explicitly assigned to variables, typically as a representation 
+`NaN` may be explicitly assigned to variables, typically as a representation
 for missing values or may be a result of a mathematical operation.
 The `IEEE-754` defines two kind of `NaNs`:
 - Quiet NaNs, or `qNaNs`.
 - Signaling NaNs, or `sNaNs`.
 
-According to the `IEEE-754`, a comparison with `NaN` always returns 
-an unordered result even when compared with itself. As a result, a whole 
+According to the `IEEE-754`, a comparison with `NaN` always returns
+an unordered result even when compared with itself. As a result, a whole
 Flatbuffers object will be not equal to itself if has one or more `NaN`.
-Flatbuffers scalar fields that have the default value are not actually stored 
+Flatbuffers scalar fields that have the default value are not actually stored
 in the serialized data but are generated in code (see [Writing a schema](@ref flatbuffers_guide_writing_schema)).
 Scalar fields with `NaN` defaults break this behavior.
-If a schema has a lot of `NaN` defaults the Flatbuffers can override 
+If a schema has a lot of `NaN` defaults the Flatbuffers can override
 the unordered comparison by the ordered: `(NaN==NaN)->true`.
 This ordered comparison is enabled when compiling a program with the symbol
 `FLATBUFFERS_NAN_DEFAULTS` defined.
 Additional computations added by `FLATBUFFERS_NAN_DEFAULTS` are very cheap
-if GCC or Clang used. These compilers have a compile-time implementation 
+if GCC or Clang used. These compilers have a compile-time implementation
 of `isnan` checking which MSVC does not.
 
 <br>

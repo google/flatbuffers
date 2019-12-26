@@ -163,6 +163,7 @@ sections provide a more in-depth usage guide.
 -   [GitHub repository](http://github.com/google/flatbuffers)
 -   [Landing page](http://google.github.io/flatbuffers)
 -   [FlatBuffers Google Group](https://groups.google.com/forum/#!forum/flatbuffers)
+-   [Discord](https://discord.gg/6qgKs3R) and [Gitter](https://gitter.im/lobster_programming_language/community) chat.
 -   [FlatBuffers Issues Tracker](http://github.com/google/flatbuffers/issues)
 -   Independent implementations & tools:
     - [FlatCC](https://github.com/dvidelabs/flatcc) Alternative FlatBuffers
@@ -178,3 +179,6 @@ sections provide a more in-depth usage guide.
     - [FlatBuffers in Android](http://frogermcs.github.io/flatbuffers-in-android-introdution/)
     - [Parsing JSON to FlatBuffers in Java](http://frogermcs.github.io/json-parsing-with-flatbuffers-in-android/)
     - [FlatBuffers in Unity](http://exiin.com/blog/flatbuffers-for-unity-sample-code/)
+    - [FlexBuffers C#](https://github.com/mzaks/FlexBuffers-CSharp) and
+      [article](https://medium.com/@icex33/flexbuffers-for-unity3d-4d1ab5c53fbe?)
+      on its use.
