@@ -36,8 +36,8 @@ pub enum FromInclude {
 
 }
 
-const ENUM_MIN_FROM_INCLUDE: i64 = 0;
-const ENUM_MAX_FROM_INCLUDE: i64 = 0;
+pub const ENUM_MIN_FROM_INCLUDE: i64 = 0;
+pub const ENUM_MAX_FROM_INCLUDE: i64 = 0;
 
 impl<'a> flatbuffers::Follow<'a> for FromInclude {
   type Inner = Self;
@@ -71,7 +71,7 @@ impl flatbuffers::Push for FromInclude {
 }
 
 #[allow(non_camel_case_types)]
-const ENUM_VALUES_FROM_INCLUDE:[FromInclude; 1] = [
+pub const ENUM_VALUES_FROM_INCLUDE:[FromInclude; 1] = [
   FromInclude::IncludeVal
 ];
 

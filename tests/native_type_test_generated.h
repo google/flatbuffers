@@ -13,6 +13,7 @@ namespace Geometry {
 struct Vector3D;
 
 struct ApplicationData;
+struct ApplicationDataBuilder;
 struct ApplicationDataT;
 
 inline const flatbuffers::TypeTable *Vector3DTypeTable();
@@ -67,6 +68,7 @@ struct ApplicationDataT : public flatbuffers::NativeTable {
 
 struct ApplicationData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef ApplicationDataT NativeTableType;
+  typedef ApplicationDataBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return ApplicationDataTypeTable();
   }
@@ -91,6 +93,7 @@ struct ApplicationData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct ApplicationDataBuilder {
+  typedef ApplicationData Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_vectors(flatbuffers::Offset<flatbuffers::Vector<const Geometry::Vector3D *>> vectors) {
