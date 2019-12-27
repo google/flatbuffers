@@ -199,10 +199,7 @@ public final class ByteBuffer {
     ///   - def: Type of the object
     ///   - position: the index of the object in the buffer
     public func read<T>(def: T.Type, position: Int) -> T {
-        let size = MemoryLayout<T>.size
-        let r = UnsafeMutableRawPointer.allocate(byteCount: size, alignment: size)
-        r.copyMemory(from: _memory.advanced(by: position), byteCount: size)
-        return r.load(as: T.self)
+        return _memory.advanced(by: position).load(as: T.self)
     }
     
     /// Reads a slice from the memory assuming a type of T
