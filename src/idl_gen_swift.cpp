@@ -18,10 +18,8 @@ inline std::string GenArrayMainBody(const std::string optional) {
          optional + " { ";
 }
 
-inline void LowerCase(std::string *value) {
-  transform(value->begin(), value->end(), value->begin(), [](char c) {
-    return static_cast<char>(::tolower(static_cast<unsigned char>(c)));
-  });
+inline char LowerCase(char c) {
+  return static_cast<char>(::tolower(static_cast<unsigned char>(c)));
 }
 
 class SwiftGenerator : public BaseGenerator {
@@ -504,7 +502,7 @@ class SwiftGenerator : public BaseGenerator {
       auto key = "KEY" + NumToString(keyCount);
       auto value = "VALUE" + NumToString(keyCount);
       auto name = Name(ev);
-      LowerCase(&name);
+      std::transform(name.begin(), name.end(), name.begin(), LowerCase);
       code_.SetValue(key, name);
       code_.SetValue(value, enum_def.ToString(ev));
       enum_code += "{{" + key + "}} = {{" + value + "}}, ";
