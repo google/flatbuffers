@@ -9,30 +9,34 @@ namespace flatbuffers {
 
 namespace swift {
 
-inline std::string GenIndirect(std::string reading) {
+inline std::string GenIndirect(const std::string reading) {
   return "{{ACCESS}}.indirect(" + reading + ")";
 }
 
-inline std::string GenArrayMainBody(std::string optional = "") {
+inline std::string GenArrayMainBody(const std::string optional) {
   return "\tpublic func {{VALUENAME}}(at index: Int32) -> {{VALUETYPE}}" +
          optional + " { ";
 }
 
 inline void LowerCase(std::string *value) {
-  transform(value->begin(), value->end(), value->begin(),
-            [](unsigned char c) { return std::tolower(c); });
+  transform(value->begin(), value->end(), value->begin(), [](char c) {
+    return static_cast<char>(::tolower(static_cast<unsigned char>(c)));
+  });
 }
 
 class SwiftGenerator : public BaseGenerator {
  private:
   CodeWriter code_;
   std::unordered_set<std::string> keywords_;
+  std::set<std::string> namespaces_;
+  int namespace_depth;
 
  public:
   SwiftGenerator(const Parser &parser, const std::string &path,
                  const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", "."),
         cur_name_space_(nullptr) {
+    namespace_depth = 0;
     static const char *const keywords[] = {
       "enum", "private", "public", "internal", "fileprivate", "static", "var",
       "URL",  "struct",  "let",    "class",    "Any",         "nil",    nullptr,
@@ -41,7 +45,6 @@ class SwiftGenerator : public BaseGenerator {
   }
 
   bool generate() {
-    namespace_depth = 0;
     code_.Clear();
     code_.SetValue("ACCESS", "_accessor");
     code_ += "// " + std::string(FlatBuffersGeneratedWarning()) + "\n";
@@ -91,7 +94,7 @@ class SwiftGenerator : public BaseGenerator {
     return SaveFile(filename.c_str(), final_code, false);
   }
 
-  void mark(const std::string str) {
+  void mark(const std::string &str) {
     code_.SetValue("MARKVALUE", str);
     code_ += "\n// MARK: - {{MARKVALUE}}\n";
   }
@@ -116,8 +119,8 @@ class SwiftGenerator : public BaseGenerator {
     code_ += "}\n";
   }
 
-  void GenerateStructBody(const StructDef &struct_def, std::string nameprefix,
-                          int offset = 0) {
+  void GenerateStructBody(const StructDef &struct_def,
+                          const std::string nameprefix, int offset = 0) {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
@@ -139,7 +142,7 @@ class SwiftGenerator : public BaseGenerator {
   }
 
   void GenerateStructArgs(const StructDef &struct_def, std::string *code_ptr,
-                          std::string nameprefix) {
+                          const std::string nameprefix) {
     std::string &code = *code_ptr;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
@@ -465,15 +468,17 @@ class SwiftGenerator : public BaseGenerator {
       if (IsScalar(field.value.type.base_type) && !IsEnum(field.value.type)) {
         code_ +=
             GenReaderMainBody() + "return " + GenReader("VALUETYPE") + " }";
-        if (parser_.opts.mutable_buffer) code_ += GenMutate("{{OFFSET}}");
+        if (parser_.opts.mutable_buffer) code_ += GenMutate("{{OFFSET}}", "");
       } else if (IsEnum(field.value.type)) {
         code_.SetValue("CONSTANT", field.value.constant);
         code_.SetValue("BASEVALUE", GenTypeBasic(field.value.type, false));
-        code_ += GenReaderMainBody() + "return " + GenEnumConstructor() +
-                 "?? " + GenEnumBaseContructor() + " }";
+        code_ += GenReaderMainBody() + "return " +
+                 GenEnumConstructor("{{OFFSET}}") + "?? " +
+                 GenEnumBaseContructor() + " }";
       } else if (IsStruct(field.value.type)) {
         code_.SetValue("VALUETYPE", GenType(field.value.type));
-        code_ += GenReaderMainBody() + "return " + GenConstructor();
+        code_ += GenReaderMainBody() + "return " +
+                 GenConstructor("{{ACCESS}}.postion + {{OFFSET}}");
       }
     }
 
@@ -557,20 +562,20 @@ class SwiftGenerator : public BaseGenerator {
 
   std::string GenOffset() { return "let o = {{ACCESS}}.offset({{OFFSET}}); "; }
 
-  std::string GenReaderMainBody(std::string optional = "") {
+  std::string GenReaderMainBody(const std::string optional = "") {
     return "\tpublic var {{VALUENAME}}: {{VALUETYPE}}" + optional + " { ";
   }
 
-  std::string GenReader(std::string type, std::string at = "{{OFFSET}}") {
+  std::string GenReader(const std::string type,
+                        const std::string at = "{{OFFSET}}") {
     return "{{ACCESS}}.readBuffer(of: {{" + type + "}}.self, at: " + at + ")";
   }
 
-  std::string GenConstructor(
-      std::string offset = "{{ACCESS}}.postion + {{OFFSET}}") {
+  std::string GenConstructor(const std::string offset) {
     return "{{VALUETYPE}}({{ACCESS}}.bb, o: " + offset + ") }";
   }
 
-  std::string GenMutate(std::string offset, std::string get_offset = "",
+  std::string GenMutate(const std::string offset, const std::string get_offset,
                         bool isRaw = false) {
     return "\tpublic func mutate({{VALUENAME}}: {{VALUETYPE}}) -> Bool {" +
            get_offset + " return {{ACCESS}}.mutate({{VALUENAME}}" +
@@ -589,7 +594,7 @@ class SwiftGenerator : public BaseGenerator {
     return "{{VALUETYPE}}(rawValue: {{CONSTANT}})!";
   }
 
-  std::string GenEnumConstructor(std::string at = "{{OFFSET}}") {
+  std::string GenEnumConstructor(const std::string at) {
     return "{{VALUETYPE}}(rawValue: " + GenReader("BASEVALUE", at) + ") ";
   }
 
@@ -630,7 +635,7 @@ class SwiftGenerator : public BaseGenerator {
                                Name(*type.enum_def));
       if (type.base_type == BASE_TYPE_BOOL) return "Bool";
     }
-    return swift_type[type.base_type];
+    return swift_type[static_cast<int>(type.base_type)];
   }
 
   std::string GenEnumDecl(const EnumDef &enum_def) const {
@@ -656,7 +661,6 @@ class SwiftGenerator : public BaseGenerator {
   // MARK: - Copied from the cpp implementation, needs revisiting
   void SetNameSpace(const Namespace *ns) {
     if (cur_name_space_ == ns) { return; }
-    if (*should_generate_extension) { return; }
     // Compute the size of the longest common namespace prefix.
     // If cur_name_space is A::B::C::D and ns is A::B::E::F::G,
     // the common prefix is A::B:: and we have old_size = 4, new_size = 5
@@ -696,19 +700,13 @@ class SwiftGenerator : public BaseGenerator {
         is_extension = true;
       }
     }
-    if (*should_generate_extension) {
+    if (is_extension) {
       code_.SetValue("EXTENSION", FullNamespace(".", *ns));
       code_ += "extension {{EXTENSION}} {";
     }
     if (new_size != common_prefix_size) { code_ += ""; }
-    should_generate_extension = &is_extension;
     cur_name_space_ = ns;
   }
-
- private:
-  const bool *should_generate_extension;
-  std::set<std::string> namespaces_;
-  const int *namespace_depth;
 };
 }  // namespace swift
 bool GenerateSwift(const Parser &parser, const std::string &path,
