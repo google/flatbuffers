@@ -231,15 +231,21 @@ class TypeAliasesT(object):
     # TypeAliasesT
     def Pack(self, builder):
         if self.v8 is not None:
-            TypeAliasesStartV8Vector(builder, len(self.v8))
-            for i in reversed(range(len(self.v8))):
-                builder.PrependByte(self.v8[i])
-            v8 =  builder.EndVector(len(self.v8))
+            if np is not None and type(self.v8) is np.ndarray:
+                v8 = builder.CreateNumpyVector(self.v8)
+            else:
+                TypeAliasesStartV8Vector(builder, len(self.v8))
+                for i in reversed(range(len(self.v8))):
+                    builder.PrependByte(self.v8[i])
+                v8 = builder.EndVector(len(self.v8))
         if self.vf64 is not None:
-            TypeAliasesStartVf64Vector(builder, len(self.vf64))
-            for i in reversed(range(len(self.vf64))):
-                builder.PrependFloat64(self.vf64[i])
-            vf64 =  builder.EndVector(len(self.vf64))
+            if np is not None and type(self.vf64) is np.ndarray:
+                vf64 = builder.CreateNumpyVector(self.vf64)
+            else:
+                TypeAliasesStartVf64Vector(builder, len(self.vf64))
+                for i in reversed(range(len(self.vf64))):
+                    builder.PrependFloat64(self.vf64[i])
+                vf64 = builder.EndVector(len(self.vf64))
         TypeAliasesStart(builder)
         TypeAliasesAddI8(builder, self.i8)
         TypeAliasesAddU8(builder, self.u8)
