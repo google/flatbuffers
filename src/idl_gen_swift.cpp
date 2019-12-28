@@ -229,7 +229,8 @@ class SwiftGenerator : public BaseGenerator {
       if (field.required)
         require_fields.push_back(NumToString(field.value.offset));
 
-      GenTableWriterFields(field, it - struct_def.fields.vec.begin());
+      GenTableWriterFields(
+          field, static_cast<int>(it - struct_def.fields.vec.begin()));
     }
     code_ +=
         "\tpublic static func end{{STRUCTNAME}}(_ fbb: FlatBufferBuilder, "
