@@ -334,11 +334,11 @@ class SwiftGenerator : public BaseGenerator {
     }
 
     if (IsEnum(field.value.type)) {
+      auto default_value = GenEnumDefaultValue(field);
       code_.SetValue("BASEVALUE", GenTypeBasic(field.value.type, false));
       code_ += GenReaderMainBody() + "\\";
-      code_ += GenOffset() + "return o == 0 ? " + GenEnumBaseContructor() +
-               " : " + GenEnumConstructor("o") + "?? " +
-               GenEnumBaseContructor() + " }";
+      code_ += GenOffset() + "return o == 0 ? " + default_value + " : " +
+               GenEnumConstructor("o") + "?? " + default_value + " }";
       if (parser_.opts.mutable_buffer)
         code_ += GenMutate("o", GenOffset(), true);
       return;
@@ -438,7 +438,7 @@ class SwiftGenerator : public BaseGenerator {
 
     if (IsEnum(vectortype)) {
       code_.SetValue("BASEVALUE", GenTypeBasic(vectortype, false));
-      code_ += "return o == 0 ? " + GenEnumBaseContructor() +
+      code_ += "return o == 0 ? " + GenEnumDefaultValue(field) +
                " : {{VALUETYPE}}(rawValue: {{ACCESS}}.directRead(of: "
                "{{BASEVALUE}}.self, offset: {{ACCESS}}.vector(at: o) + "
                "index * {{SIZE}})) }";
@@ -495,11 +495,10 @@ class SwiftGenerator : public BaseGenerator {
             GenReaderMainBody() + "return " + GenReader("VALUETYPE") + " }";
         if (parser_.opts.mutable_buffer) code_ += GenMutate("{{OFFSET}}", "");
       } else if (IsEnum(field.value.type)) {
-        code_.SetValue("CONSTANT", field.value.constant);
         code_.SetValue("BASEVALUE", GenTypeBasic(field.value.type, false));
         code_ += GenReaderMainBody() + "return " +
                  GenEnumConstructor("{{OFFSET}}") + "?? " +
-                 GenEnumBaseContructor() + " }";
+                 GenEnumDefaultValue(field) + " }";
       } else if (IsStruct(field.value.type)) {
         code_.SetValue("VALUETYPE", GenType(field.value.type));
         code_ += GenReaderMainBody() + "return " +
@@ -615,8 +614,20 @@ class SwiftGenerator : public BaseGenerator {
            "{{ACCESS}}.vector(at: o) + index * {{SIZE}}) }";
   }
 
-  std::string GenEnumBaseContructor() {
-    return "{{VALUETYPE}}(rawValue: {{CONSTANT}})!";
+  std::string GenEnumDefaultValue(const FieldDef &field) {
+    auto &value = field.value;
+    FLATBUFFERS_ASSERT(value.type.enum_def);
+    auto &enum_def = *value.type.enum_def;
+    auto enum_val = enum_def.FindByValue(value.constant);
+    std::string name;
+    if (enum_val) {
+      name = enum_val->name;
+    } else {
+      const auto &ev = **enum_def.Vals().begin();
+      name = ev.name;
+    }
+    std::transform(name.begin(), name.end(), name.begin(), LowerCase);
+    return "{{VALUETYPE}}." + name;
   }
 
   std::string GenEnumConstructor(const std::string &at) {

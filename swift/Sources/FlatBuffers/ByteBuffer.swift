@@ -99,9 +99,8 @@ public final class ByteBuffer {
     ///   - len: Offset to subtract from the WriterIndex
     func push<T: Scalar>(value: T, len: Int) {
         ensureSpace(size: UInt8(len))
-        _memory.storeBytes(of: value.convertedEndian,
-                           toByteOffset: writerIndex - len,
-                           as: T.NumericValue.self)
+        var v = value.convertedEndian
+        memcpy(_memory.advanced(by: writerIndex - len), &v, len)
         _writerSize += len
     }
     

@@ -66,7 +66,7 @@ public struct Vec3: Readable {
     public func mutate(z: Float32) -> Bool { return _accessor.mutate(z, index: 8) }
     public var test1: Double { return _accessor.readBuffer(of: Double.self, at: 16) }
     public func mutate(test1: Double) -> Bool { return _accessor.mutate(test1, index: 16) }
-    public var test2: MyGame.Example.Color { return MyGame.Example.Color(rawValue: _accessor.readBuffer(of: UInt8.self, at: 24)) ?? MyGame.Example.Color(rawValue: 0)! }
+    public var test2: MyGame.Example.Color { return MyGame.Example.Color(rawValue: _accessor.readBuffer(of: UInt8.self, at: 24)) ?? MyGame.Example.Color.red }
     public var test3: MyGame.Example.Test { return MyGame.Example.Test(_accessor.bb, o: _accessor.postion + 26) }
 }
 
@@ -158,7 +158,7 @@ public struct TestSimpleTableWithEnum: FlatBufferObject {
     private init(_ t: Table) { _accessor = t }
     public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
-    public var color: MyGame.Example.Color { let o = _accessor.offset(4); return o == 0 ? MyGame.Example.Color(rawValue: 2)! : MyGame.Example.Color(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? MyGame.Example.Color(rawValue: 2)! }
+    public var color: MyGame.Example.Color { let o = _accessor.offset(4); return o == 0 ? MyGame.Example.Color.green : MyGame.Example.Color(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? MyGame.Example.Color.green }
     public func mutate(color: MyGame.Example.Color) -> Bool {let o = _accessor.offset(4);  return _accessor.mutate(color.rawValue, index: o) }
     public static func startTestSimpleTableWithEnum(_ fbb: FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
     public static func add(color: MyGame.Example.Color, _ fbb: FlatBufferBuilder) { fbb.add(element: color.rawValue, def: 2, at: 0) }
@@ -244,9 +244,9 @@ public struct Monster: FlatBufferObject {
     public func inventory(at index: Int32) -> UInt8 { let o = _accessor.offset(14); return o == 0 ? 0 : _accessor.directRead(of: UInt8.self, offset: _accessor.vector(at: o) + index * 1) }
     public var inventory: [UInt8] { return _accessor.getVector(at: 14) ?? [] }
     public func mutate(inventory: UInt8, at index: Int32) -> Bool { let o = _accessor.offset(14); return _accessor.directMutate(inventory, index: _accessor.vector(at: o) + index * 1) }
-    public var color: MyGame.Example.Color { let o = _accessor.offset(16); return o == 0 ? MyGame.Example.Color(rawValue: 8)! : MyGame.Example.Color(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? MyGame.Example.Color(rawValue: 8)! }
+    public var color: MyGame.Example.Color { let o = _accessor.offset(16); return o == 0 ? MyGame.Example.Color.blue : MyGame.Example.Color(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? MyGame.Example.Color.blue }
     public func mutate(color: MyGame.Example.Color) -> Bool {let o = _accessor.offset(16);  return _accessor.mutate(color.rawValue, index: o) }
-    public var testType: MyGame.Example.Any_ { let o = _accessor.offset(18); return o == 0 ? MyGame.Example.Any_(rawValue: 0)! : MyGame.Example.Any_(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? MyGame.Example.Any_(rawValue: 0)! }
+    public var testType: MyGame.Example.Any_ { let o = _accessor.offset(18); return o == 0 ? MyGame.Example.Any_.none : MyGame.Example.Any_(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? MyGame.Example.Any_.none }
     public func mutate(testType: MyGame.Example.Any_) -> Bool {let o = _accessor.offset(18);  return _accessor.mutate(testType.rawValue, index: o) }
     public func test<T: FlatBufferObject>(type: T.Type) -> T? { let o = _accessor.offset(20); return o == 0 ? nil : _accessor.union(o) }
     public var test4Count: Int32 { let o = _accessor.offset(22); return o == 0 ? 0 : _accessor.vector(count: o) }
@@ -333,15 +333,15 @@ public struct Monster: FlatBufferObject {
     public func vectorOfNonOwningReferences(at index: Int32) -> UInt64 { let o = _accessor.offset(88); return o == 0 ? 0 : _accessor.directRead(of: UInt64.self, offset: _accessor.vector(at: o) + index * 8) }
     public var vectorOfNonOwningReferences: [UInt64] { return _accessor.getVector(at: 88) ?? [] }
     public func mutate(vectorOfNonOwningReferences: UInt64, at index: Int32) -> Bool { let o = _accessor.offset(88); return _accessor.directMutate(vectorOfNonOwningReferences, index: _accessor.vector(at: o) + index * 8) }
-    public var anyUniqueType: MyGame.Example.AnyUniqueAliases { let o = _accessor.offset(90); return o == 0 ? MyGame.Example.AnyUniqueAliases(rawValue: 0)! : MyGame.Example.AnyUniqueAliases(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? MyGame.Example.AnyUniqueAliases(rawValue: 0)! }
+    public var anyUniqueType: MyGame.Example.AnyUniqueAliases { let o = _accessor.offset(90); return o == 0 ? MyGame.Example.AnyUniqueAliases.none : MyGame.Example.AnyUniqueAliases(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? MyGame.Example.AnyUniqueAliases.none }
     public func mutate(anyUniqueType: MyGame.Example.AnyUniqueAliases) -> Bool {let o = _accessor.offset(90);  return _accessor.mutate(anyUniqueType.rawValue, index: o) }
     public func anyUnique<T: FlatBufferObject>(type: T.Type) -> T? { let o = _accessor.offset(92); return o == 0 ? nil : _accessor.union(o) }
-    public var anyAmbiguousType: MyGame.Example.AnyAmbiguousAliases { let o = _accessor.offset(94); return o == 0 ? MyGame.Example.AnyAmbiguousAliases(rawValue: 0)! : MyGame.Example.AnyAmbiguousAliases(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? MyGame.Example.AnyAmbiguousAliases(rawValue: 0)! }
+    public var anyAmbiguousType: MyGame.Example.AnyAmbiguousAliases { let o = _accessor.offset(94); return o == 0 ? MyGame.Example.AnyAmbiguousAliases.none : MyGame.Example.AnyAmbiguousAliases(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? MyGame.Example.AnyAmbiguousAliases.none }
     public func mutate(anyAmbiguousType: MyGame.Example.AnyAmbiguousAliases) -> Bool {let o = _accessor.offset(94);  return _accessor.mutate(anyAmbiguousType.rawValue, index: o) }
     public func anyAmbiguous<T: FlatBufferObject>(type: T.Type) -> T? { let o = _accessor.offset(96); return o == 0 ? nil : _accessor.union(o) }
     public var vectorOfEnumsCount: Int32 { let o = _accessor.offset(98); return o == 0 ? 0 : _accessor.vector(count: o) }
-    public func vectorOfEnums(at index: Int32) -> MyGame.Example.Color? { let o = _accessor.offset(98); return o == 0 ? MyGame.Example.Color(rawValue: 0)! : MyGame.Example.Color(rawValue: _accessor.directRead(of: UInt8.self, offset: _accessor.vector(at: o) + index * 1)) }
-    public var signedEnum: MyGame.Example.Race { let o = _accessor.offset(100); return o == 0 ? MyGame.Example.Race(rawValue: -1)! : MyGame.Example.Race(rawValue: _accessor.readBuffer(of: Int8.self, at: o)) ?? MyGame.Example.Race(rawValue: -1)! }
+    public func vectorOfEnums(at index: Int32) -> MyGame.Example.Color? { let o = _accessor.offset(98); return o == 0 ? MyGame.Example.Color.red : MyGame.Example.Color(rawValue: _accessor.directRead(of: UInt8.self, offset: _accessor.vector(at: o) + index * 1)) }
+    public var signedEnum: MyGame.Example.Race { let o = _accessor.offset(100); return o == 0 ? MyGame.Example.Race.none : MyGame.Example.Race(rawValue: _accessor.readBuffer(of: Int8.self, at: o)) ?? MyGame.Example.Race.none }
     public func mutate(signedEnum: MyGame.Example.Race) -> Bool {let o = _accessor.offset(100);  return _accessor.mutate(signedEnum.rawValue, index: o) }
     public static func startMonster(_ fbb: FlatBufferBuilder) -> UOffset { fbb.startTable(with: 49) }
     public static func add(pos: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(structOffset: 0) }
