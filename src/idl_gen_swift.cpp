@@ -149,7 +149,7 @@ class SwiftGenerator : public BaseGenerator {
       const auto &field_type = field.value.type;
       if (IsStruct(field.value.type)) {
         GenerateStructArgs(*field_type.struct_def, code_ptr,
-                           (nameprefix + field.name.c_str()));
+                           (nameprefix + field.name));
       } else {
         auto name = Name(field);
         auto type = GenType(field.value.type);
