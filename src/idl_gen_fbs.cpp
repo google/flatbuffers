@@ -76,10 +76,10 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
         continue;
       std::string basename;
       if(parser.opts.keep_include_path) {
+        basename = flatbuffers::StripExtension(it->second);
+      } else {
         basename = flatbuffers::StripPath(
                 flatbuffers::StripExtension(it->second));
-      } else {
-        basename = flatbuffers::StripExtension(it->second);
       }
       schema += "include \"" + basename + ".fbs\";\n";
       num_includes++;
