@@ -558,9 +558,9 @@ class RustGenerator : public BaseGenerator {
     code_.SetValue("ENUM_MAX_BASE_VALUE", enum_def.ToString(*maxv));
 
     // Generate enum constants, and impls for Follow, EndianScalar, and Push.
-    code_ += "const ENUM_MIN_{{ENUM_NAME_CAPS}}: {{BASE_TYPE}} = \\";
+    code_ += "pub const ENUM_MIN_{{ENUM_NAME_CAPS}}: {{BASE_TYPE}} = \\";
     code_ += "{{ENUM_MIN_BASE_VALUE}};";
-    code_ += "const ENUM_MAX_{{ENUM_NAME_CAPS}}: {{BASE_TYPE}} = \\";
+    code_ += "pub const ENUM_MAX_{{ENUM_NAME_CAPS}}: {{BASE_TYPE}} = \\";
     code_ += "{{ENUM_MAX_BASE_VALUE}};";
     code_ += "";
     code_ += "impl<'a> flatbuffers::Follow<'a> for {{ENUM_NAME}} {";
@@ -600,7 +600,7 @@ class RustGenerator : public BaseGenerator {
     // Generate an array of all enumeration values.
     auto num_fields = NumToString(enum_def.size());
     code_ += "#[allow(non_camel_case_types)]";
-    code_ += "const ENUM_VALUES_{{ENUM_NAME_CAPS}}:[{{ENUM_NAME}}; " +
+    code_ += "pub const ENUM_VALUES_{{ENUM_NAME_CAPS}}:[{{ENUM_NAME}}; " +
              num_fields + "] = [";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       const auto &ev = **it;
