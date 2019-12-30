@@ -1201,7 +1201,7 @@ class PythonGenerator : public BaseGenerator {
       code_prefix += GenIndents(4) + "builder.PrependUOffsetTRelative" + "(" +
                      field_instance_name + "list[i])";
       code_prefix += GenIndents(3) + field_instance_name +
-                     " =  builder.EndVector(len(self." + field_instance_name +
+                     " = builder.EndVector(len(self." + field_instance_name +
                      "))";
     }
 
@@ -1211,38 +1211,20 @@ class PythonGenerator : public BaseGenerator {
             "(builder, " + field_instance_name + ")";
   }
 
-  void GenPackForScalarVectorField(const StructDef &struct_def,
-                                   const FieldDef &field,
-                                   std::string *code_prefix_ptr,
-                                   std::string *code_ptr) {
-    auto &code_prefix = *code_prefix_ptr;
+  void GenPackForScalarVectorFieldHelper(const StructDef &struct_def,
+                                         const FieldDef &field,
+                                         std::string *code_ptr, int indents) {
     auto &code = *code_ptr;
     auto field_instance_name = MakeLowerCamel(field);
-
     auto field_accessor_name = MakeUpperCamel(field);
     auto struct_name = NormalizedName(struct_def);
-
-    // Creates the field.
-    code_prefix +=
-        GenIndents(2) + "if self." + field_instance_name + " is not None:";
-    // If the vector is a string vector, we need to first build accessor for
-    // each string element. And this generated code, needs to be
-    // placed ahead of code+prefix.
     auto vectortype = field.value.type.VectorType();
-    if (vectortype.base_type == BASE_TYPE_STRING) {
-      code_prefix += GenIndents(3) + MakeLowerCamel(field) + "list = []";
-      code_prefix += GenIndents(3);
-      code_prefix += "for i in range(len(self." + field_instance_name + ")):";
-      code_prefix += GenIndents(4) + MakeLowerCamel(field) +
-                     "list.append(builder.CreateString(self." +
-                     field_instance_name + "[i]))";
-    }
 
-    code_prefix += GenIndents(3) + struct_name + "Start" + field_accessor_name +
-                   "Vector(builder, len(self." + field_instance_name + "))";
-    code_prefix += GenIndents(3) + "for i in reversed(range(len(self." +
-                   field_instance_name + "))):";
-    code_prefix += GenIndents(4) + "builder.Prepend";
+    code += GenIndents(indents) + struct_name + "Start" + field_accessor_name +
+            "Vector(builder, len(self." + field_instance_name + "))";
+    code += GenIndents(indents) + "for i in reversed(range(len(self." +
+            field_instance_name + "))):";
+    code += GenIndents(indents + 1) + "builder.Prepend";
 
     std::string type_name;
     switch (vectortype.base_type) {
@@ -1286,20 +1268,57 @@ class PythonGenerator : public BaseGenerator {
         type_name = "VOffsetT";
         break;
     }
+    code += type_name;
+  }
 
-    if (vectortype.base_type == BASE_TYPE_STRING) {
-      code_prefix += type_name + "(" + MakeLowerCamel(field) + "list[i])";
-    } else {
-      code_prefix += type_name + "(self." + field_instance_name + "[i])";
-    }
-    code_prefix += GenIndents(3) + field_instance_name +
-                   " =  builder.EndVector(len(self." + field_instance_name +
-                   "))";
+  void GenPackForScalarVectorField(const StructDef &struct_def,
+                                   const FieldDef &field,
+                                   std::string *code_prefix_ptr,
+                                   std::string *code_ptr) {
+    auto &code = *code_ptr;
+    auto &code_prefix = *code_prefix_ptr;
+    auto field_instance_name = MakeLowerCamel(field);
+    auto field_accessor_name = MakeUpperCamel(field);
+    auto struct_name = NormalizedName(struct_def);
 
     // Adds the field into the struct.
     code += GenIndents(2) + "if self." + field_instance_name + " is not None:";
     code += GenIndents(3) + struct_name + "Add" + field_accessor_name +
             "(builder, " + field_instance_name + ")";
+
+    // Creates the field.
+    code_prefix +=
+        GenIndents(2) + "if self." + field_instance_name + " is not None:";
+    // If the vector is a string vector, we need to first build accessor for
+    // each string element. And this generated code, needs to be
+    // placed ahead of code_prefix.
+    auto vectortype = field.value.type.VectorType();
+    if (vectortype.base_type == BASE_TYPE_STRING) {
+      code_prefix += GenIndents(3) + MakeLowerCamel(field) + "list = []";
+      code_prefix += GenIndents(3) + "for i in range(len(self." +
+                     field_instance_name + ")):";
+      code_prefix += GenIndents(4) + MakeLowerCamel(field) +
+                     "list.append(builder.CreateString(self." +
+                     field_instance_name + "[i]))";
+      GenPackForScalarVectorFieldHelper(struct_def, field, code_prefix_ptr, 3);
+      code_prefix += "(" + MakeLowerCamel(field) + "list[i])";
+      code_prefix += GenIndents(3) + field_instance_name +
+                     " = builder.EndVector(len(self." + field_instance_name +
+                     "))";
+      return;
+    }
+
+    code_prefix += GenIndents(3) + "if np is not None and type(self." +
+                   field_instance_name + ") is np.ndarray:";
+    code_prefix += GenIndents(4) + field_instance_name +
+                   " = builder.CreateNumpyVector(self." + field_instance_name +
+                   ")";
+    code_prefix += GenIndents(3) + "else:";
+    GenPackForScalarVectorFieldHelper(struct_def, field, code_prefix_ptr, 4);
+    code_prefix += "(self." + field_instance_name + "[i])";
+    code_prefix += GenIndents(4) + field_instance_name +
+                   " = builder.EndVector(len(self." + field_instance_name +
+                   "))";
   }
 
   void GenPackForStructField(const StructDef &struct_def, const FieldDef &field,
