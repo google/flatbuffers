@@ -2037,7 +2037,6 @@ class CppGenerator : public BaseGenerator {
     // Forward declare a type traits for this table.
     if (opts_.g_cpp_std >= cpp::CPP_STD_17) {
       code_ += "  struct type_traits;";
-      code_ += "";
     }
 
     code_ += "};";  // End of table.

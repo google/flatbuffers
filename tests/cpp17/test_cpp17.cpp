@@ -43,13 +43,9 @@ void CreateTableByTypeTest() {
   using type_to_create_t = cpp17::MyGame::Example::Stat;
 
   {
-    // Note that we do not need to attach the cpp17::MyGame::Example namespace
-    // to the CreateFromTagType function because it should be found through ADL
-    // given that we specify the namespace of the tag pointer type!
     auto table = type_to_create_t::type_traits::Create(
         builder, builder.CreateString("my_id"), 42, 7);
-    // Be sure that the correct return type was inferred since the CreateByTag-
-    // Type function uses auto.
+    // Be sure that the correct return type was inferred.
     static_assert(
         std::is_same_v<decltype(table), flatbuffers::Offset<type_to_create_t>>);
     builder.Finish(table);

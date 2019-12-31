@@ -632,7 +632,6 @@ struct InParentNamespace FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   void UnPackTo(InParentNamespaceT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
   static flatbuffers::Offset<InParentNamespace> Pack(flatbuffers::FlatBufferBuilder &_fbb, const InParentNamespaceT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
   struct type_traits;
-
 };
 
 struct InParentNamespaceBuilder {
@@ -686,7 +685,6 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   void UnPackTo(MonsterT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
   static flatbuffers::Offset<Monster> Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
   struct type_traits;
-
 };
 
 struct MonsterBuilder {
@@ -754,7 +752,6 @@ struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Ta
   void UnPackTo(TestSimpleTableWithEnumT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
   static flatbuffers::Offset<TestSimpleTableWithEnum> Pack(flatbuffers::FlatBufferBuilder &_fbb, const TestSimpleTableWithEnumT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
   struct type_traits;
-
 };
 
 struct TestSimpleTableWithEnumBuilder {
@@ -843,7 +840,6 @@ struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   void UnPackTo(StatT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
   static flatbuffers::Offset<Stat> Pack(flatbuffers::FlatBufferBuilder &_fbb, const StatT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
   struct type_traits;
-
 };
 
 struct StatBuilder {
@@ -941,7 +937,6 @@ struct Referrable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   void UnPackTo(ReferrableT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
   static flatbuffers::Offset<Referrable> Pack(flatbuffers::FlatBufferBuilder &_fbb, const ReferrableT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
   struct type_traits;
-
 };
 
 struct ReferrableBuilder {
@@ -1513,7 +1508,6 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   void UnPackTo(MonsterT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
   static flatbuffers::Offset<Monster> Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
   struct type_traits;
-
 };
 
 template<> inline const MyGame::Example::Monster *Monster::test_as<MyGame::Example::Monster>() const {
@@ -2073,7 +2067,6 @@ struct TypeAliases FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   void UnPackTo(TypeAliasesT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
   static flatbuffers::Offset<TypeAliases> Pack(flatbuffers::FlatBufferBuilder &_fbb, const TypeAliasesT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
   struct type_traits;
-
 };
 
 struct TypeAliasesBuilder {
