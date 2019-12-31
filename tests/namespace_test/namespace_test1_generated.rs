@@ -77,7 +77,7 @@ pub const ENUM_VALUES_ENUM_IN_NESTED_NS:[EnumInNestedNS; 3] = [
 ];
 
 #[allow(non_camel_case_types)]
-const ENUM_NAMES_ENUM_IN_NESTED_NS:[&'static str; 3] = [
+pub const ENUM_NAMES_ENUM_IN_NESTED_NS:[&'static str; 3] = [
     "A",
     "B",
     "C"

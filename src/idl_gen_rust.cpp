@@ -621,7 +621,7 @@ class RustGenerator : public BaseGenerator {
     static const uint64_t kMaxSparseness = 5;
     if (range / static_cast<uint64_t>(enum_def.size()) < kMaxSparseness) {
       code_ += "#[allow(non_camel_case_types)]";
-      code_ += "const ENUM_NAMES_{{ENUM_NAME_CAPS}}:[&'static str; " +
+      code_ += "pub const ENUM_NAMES_{{ENUM_NAME_CAPS}}:[&'static str; " +
                NumToString(range + 1) + "] = [";
 
       auto val = enum_def.Vals().front();
