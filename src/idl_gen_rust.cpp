@@ -1855,3 +1855,7 @@ std::string RustMakeRule(const Parser &parser, const std::string &path,
 // TODO(maxburke): There should be test schemas added that use language
 //           keywords as fields of structs, tables, unions, enums, to make sure
 //           that internal code generated references escaped names correctly.
+// TODO(maxburke): We should see if there is a more flexible way of resolving
+//           module paths for use declarations. Right now if schemas refer to
+//           other flatbuffer files, the include paths in emitted Rust bindings
+//           are crate-relative which may undesirable.
