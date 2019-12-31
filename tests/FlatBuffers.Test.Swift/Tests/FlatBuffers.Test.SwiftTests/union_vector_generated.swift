@@ -66,11 +66,11 @@ public struct Movie: FlatBufferObject {
 	private init(_ t: Table) { _accessor = t }
 	public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
-	public var mainCharacterType: Character { let o = _accessor.offset(4); return o == 0 ? Character(rawValue: 0)! : Character(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? Character(rawValue: 0)! }
+	public var mainCharacterType: Character { let o = _accessor.offset(4); return o == 0 ? Character.none : Character(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? Character.none }
 	public func mutate(mainCharacterType: Character) -> Bool {let o = _accessor.offset(4);  return _accessor.mutate(mainCharacterType.rawValue, index: o) }
 	public func mainCharacter<T: FlatBufferObject>(type: T.Type) -> T? { let o = _accessor.offset(6); return o == 0 ? nil : _accessor.union(o) }
 	public var charactersTypeCount: Int32 { let o = _accessor.offset(8); return o == 0 ? 0 : _accessor.vector(count: o) }
-	public func charactersType(at index: Int32) -> Character? { let o = _accessor.offset(8); return o == 0 ? Character(rawValue: 0)! : Character(rawValue: _accessor.directRead(of: UInt8.self, offset: _accessor.vector(at: o) + index * 1)) }
+	public func charactersType(at index: Int32) -> Character? { let o = _accessor.offset(8); return o == 0 ? Character.none : Character(rawValue: _accessor.directRead(of: UInt8.self, offset: _accessor.vector(at: o) + index * 1)) }
 	public var charactersCount: Int32 { let o = _accessor.offset(10); return o == 0 ? 0 : _accessor.vector(count: o) }
 	public func characters<T: FlatBufferObject>(at index: Int32, type: T.Type) -> T? { let o = _accessor.offset(10); return o == 0 ? nil : _accessor.directUnion(_accessor.vector(at: o) + index * 4) }
 	public static func startMovie(_ fbb: FlatBufferBuilder) -> UOffset { fbb.startTable(with: 4) }
