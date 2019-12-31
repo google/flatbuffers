@@ -631,6 +631,8 @@ struct InParentNamespace FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   InParentNamespaceT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
   void UnPackTo(InParentNamespaceT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
   static flatbuffers::Offset<InParentNamespace> Pack(flatbuffers::FlatBufferBuilder &_fbb, const InParentNamespaceT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+  struct type_traits;
+
 };
 
 struct InParentNamespaceBuilder {
@@ -655,11 +657,10 @@ inline flatbuffers::Offset<InParentNamespace> CreateInParentNamespace(
   return builder_.Finish();
 }
 
-template<typename... Args>
-auto CreateByTagType(InParentNamespace*, flatbuffers::FlatBufferBuilder &_fbb,
-                     Args&&... args) {
-  return CreateInParentNamespace(_fbb, std::forward<Args>(args)...);
-}
+struct InParentNamespace::type_traits {
+  using type = InParentNamespace;
+  static auto constexpr Create = CreateInParentNamespace;
+};
 
 flatbuffers::Offset<InParentNamespace> CreateInParentNamespace(flatbuffers::FlatBufferBuilder &_fbb, const InParentNamespaceT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
@@ -684,6 +685,8 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   MonsterT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
   void UnPackTo(MonsterT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
   static flatbuffers::Offset<Monster> Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+  struct type_traits;
+
 };
 
 struct MonsterBuilder {
@@ -708,11 +711,10 @@ inline flatbuffers::Offset<Monster> CreateMonster(
   return builder_.Finish();
 }
 
-template<typename... Args>
-auto CreateByTagType(Monster*, flatbuffers::FlatBufferBuilder &_fbb,
-                     Args&&... args) {
-  return CreateMonster(_fbb, std::forward<Args>(args)...);
-}
+struct Monster::type_traits {
+  using type = Monster;
+  static auto constexpr Create = CreateMonster;
+};
 
 flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
@@ -751,6 +753,8 @@ struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Ta
   TestSimpleTableWithEnumT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
   void UnPackTo(TestSimpleTableWithEnumT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
   static flatbuffers::Offset<TestSimpleTableWithEnum> Pack(flatbuffers::FlatBufferBuilder &_fbb, const TestSimpleTableWithEnumT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+  struct type_traits;
+
 };
 
 struct TestSimpleTableWithEnumBuilder {
@@ -780,11 +784,10 @@ inline flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnu
   return builder_.Finish();
 }
 
-template<typename... Args>
-auto CreateByTagType(TestSimpleTableWithEnum*, flatbuffers::FlatBufferBuilder &_fbb,
-                     Args&&... args) {
-  return CreateTestSimpleTableWithEnum(_fbb, std::forward<Args>(args)...);
-}
+struct TestSimpleTableWithEnum::type_traits {
+  using type = TestSimpleTableWithEnum;
+  static auto constexpr Create = CreateTestSimpleTableWithEnum;
+};
 
 flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnum(flatbuffers::FlatBufferBuilder &_fbb, const TestSimpleTableWithEnumT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
@@ -839,6 +842,8 @@ struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   StatT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
   void UnPackTo(StatT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
   static flatbuffers::Offset<Stat> Pack(flatbuffers::FlatBufferBuilder &_fbb, const StatT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+  struct type_traits;
+
 };
 
 struct StatBuilder {
@@ -878,11 +883,10 @@ inline flatbuffers::Offset<Stat> CreateStat(
   return builder_.Finish();
 }
 
-template<typename... Args>
-auto CreateByTagType(Stat*, flatbuffers::FlatBufferBuilder &_fbb,
-                     Args&&... args) {
-  return CreateStat(_fbb, std::forward<Args>(args)...);
-}
+struct Stat::type_traits {
+  using type = Stat;
+  static auto constexpr Create = CreateStat;
+};
 
 inline flatbuffers::Offset<Stat> CreateStatDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
@@ -936,6 +940,8 @@ struct Referrable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   ReferrableT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
   void UnPackTo(ReferrableT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
   static flatbuffers::Offset<Referrable> Pack(flatbuffers::FlatBufferBuilder &_fbb, const ReferrableT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+  struct type_traits;
+
 };
 
 struct ReferrableBuilder {
@@ -965,11 +971,10 @@ inline flatbuffers::Offset<Referrable> CreateReferrable(
   return builder_.Finish();
 }
 
-template<typename... Args>
-auto CreateByTagType(Referrable*, flatbuffers::FlatBufferBuilder &_fbb,
-                     Args&&... args) {
-  return CreateReferrable(_fbb, std::forward<Args>(args)...);
-}
+struct Referrable::type_traits {
+  using type = Referrable;
+  static auto constexpr Create = CreateReferrable;
+};
 
 flatbuffers::Offset<Referrable> CreateReferrable(flatbuffers::FlatBufferBuilder &_fbb, const ReferrableT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
@@ -1507,6 +1512,8 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   MonsterT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
   void UnPackTo(MonsterT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
   static flatbuffers::Offset<Monster> Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+  struct type_traits;
+
 };
 
 template<> inline const MyGame::Example::Monster *Monster::test_as<MyGame::Example::Monster>() const {
@@ -1796,11 +1803,10 @@ inline flatbuffers::Offset<Monster> CreateMonster(
   return builder_.Finish();
 }
 
-template<typename... Args>
-auto CreateByTagType(Monster*, flatbuffers::FlatBufferBuilder &_fbb,
-                     Args&&... args) {
-  return CreateMonster(_fbb, std::forward<Args>(args)...);
-}
+struct Monster::type_traits {
+  using type = Monster;
+  static auto constexpr Create = CreateMonster;
+};
 
 inline flatbuffers::Offset<Monster> CreateMonsterDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
@@ -2066,6 +2072,8 @@ struct TypeAliases FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   TypeAliasesT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
   void UnPackTo(TypeAliasesT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
   static flatbuffers::Offset<TypeAliases> Pack(flatbuffers::FlatBufferBuilder &_fbb, const TypeAliasesT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+  struct type_traits;
+
 };
 
 struct TypeAliasesBuilder {
@@ -2150,11 +2158,10 @@ inline flatbuffers::Offset<TypeAliases> CreateTypeAliases(
   return builder_.Finish();
 }
 
-template<typename... Args>
-auto CreateByTagType(TypeAliases*, flatbuffers::FlatBufferBuilder &_fbb,
-                     Args&&... args) {
-  return CreateTypeAliases(_fbb, std::forward<Args>(args)...);
-}
+struct TypeAliases::type_traits {
+  using type = TypeAliases;
+  static auto constexpr Create = CreateTypeAliases;
+};
 
 inline flatbuffers::Offset<TypeAliases> CreateTypeAliasesDirect(
     flatbuffers::FlatBufferBuilder &_fbb,

@@ -36,7 +36,7 @@ namespace cpp11 {
 #include "../monster_test_generated.h"
 }  // namespace cpp11
 
-void CreateByTagTypeTest() {
+void CreateTableByTypeTest() {
   flatbuffers::FlatBufferBuilder builder;
 
   // We will create an object of this type using only the type.
@@ -46,8 +46,8 @@ void CreateByTagTypeTest() {
     // Note that we do not need to attach the cpp17::MyGame::Example namespace
     // to the CreateFromTagType function because it should be found through ADL
     // given that we specify the namespace of the tag pointer type!
-    auto table = CreateByTagType((type_to_create_t *)nullptr, builder,
-                                 builder.CreateString("my_id"), 42, 7);
+    auto table = type_to_create_t::type_traits::Create(
+        builder, builder.CreateString("my_id"), 42, 7);
     // Be sure that the correct return type was inferred since the CreateByTag-
     // Type function uses auto.
     static_assert(
@@ -64,7 +64,7 @@ void CreateByTagTypeTest() {
 }
 
 int FlatBufferCpp17Tests() {
-  CreateByTagTypeTest();
+  CreateTableByTypeTest();
   return 0;
 }
 

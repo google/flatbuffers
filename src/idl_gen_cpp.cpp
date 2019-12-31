@@ -2034,6 +2034,12 @@ class CppGenerator : public BaseGenerator {
       code_ += "  " + TablePackSignature(struct_def, true, opts_) + ";";
     }
 
+    // Forward declare a type traits for this table.
+    if (opts_.g_cpp_std >= cpp::CPP_STD_17) {
+      code_ += "  struct type_traits;";
+      code_ += "";
+    }
+
     code_ += "};";  // End of table.
     code_ += "";
 
@@ -2198,18 +2204,13 @@ class CppGenerator : public BaseGenerator {
     code_ += "}";
     code_ += "";
 
-    // Generate a convenient CreateByTagType function that allows creating ta-
-    // bles in a generic way by specifying only their type. In fact, even the
-    // namespace is not necessary when calling this function since it will be
-    // found through ADL.
+    // Definition for type traits for this table type. This allows querying var-
+    // ious compile-time traits of the table.
     if (opts_.g_cpp_std >= cpp::CPP_STD_17) {
-      code_ += "template<typename... Args>";
-      code_ += "auto CreateByTagType({{STRUCT_NAME}}*, "
-               "flatbuffers::FlatBufferBuilder &_fbb,";
-      code_ += "                     Args&&... args\\";
-      code_ += ") {";
-      code_ += "  return Create{{STRUCT_NAME}}(_fbb, std::forward<Args>(args)...);";
-      code_ += "}";
+      code_ += "struct {{STRUCT_NAME}}::type_traits {";
+      code_ += "  using type = {{STRUCT_NAME}};";
+      code_ += "  static auto constexpr Create = Create{{STRUCT_NAME}};";
+      code_ += "};";
       code_ += "";
     }
 
