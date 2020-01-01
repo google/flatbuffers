@@ -1837,6 +1837,9 @@ class CppGenerator : public BaseGenerator {
       code_ += "  typedef {{NATIVE_NAME}} NativeTableType;";
     }
     code_ += "  typedef {{STRUCT_NAME}}Builder Builder;";
+    if (opts_.g_cpp_std >= cpp::CPP_STD_17) {
+      code_ += "  struct Traits;";
+    }
     if (opts_.mini_reflect != IDLOptions::kNone) {
       code_ +=
           "  static const flatbuffers::TypeTable *MiniReflectTypeTable() {";
@@ -2034,11 +2037,6 @@ class CppGenerator : public BaseGenerator {
       code_ += "  " + TablePackSignature(struct_def, true, opts_) + ";";
     }
 
-    // Forward declare a type traits for this table.
-    if (opts_.g_cpp_std >= cpp::CPP_STD_17) {
-      code_ += "  struct type_traits;";
-    }
-
     code_ += "};";  // End of table.
     code_ += "";
 
@@ -2206,7 +2204,7 @@ class CppGenerator : public BaseGenerator {
     // Definition for type traits for this table type. This allows querying var-
     // ious compile-time traits of the table.
     if (opts_.g_cpp_std >= cpp::CPP_STD_17) {
-      code_ += "struct {{STRUCT_NAME}}::type_traits {";
+      code_ += "struct {{STRUCT_NAME}}::Traits {";
       code_ += "  using type = {{STRUCT_NAME}};";
       code_ += "  static auto constexpr Create = Create{{STRUCT_NAME}};";
       code_ += "};";

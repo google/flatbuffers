@@ -43,7 +43,7 @@ void CreateTableByTypeTest() {
   using type_to_create_t = cpp17::MyGame::Example::Stat;
 
   {
-    auto table = type_to_create_t::type_traits::Create(
+    auto table = type_to_create_t::Traits::Create(
         builder, builder.CreateString("my_id"), 42, 7);
     // Be sure that the correct return type was inferred.
     static_assert(
