@@ -42,14 +42,14 @@ void CreateTableByTypeTest() {
   // We will create an object of this type using only the type.
   using type_to_create_t = cpp17::MyGame::Example::Stat;
 
-  {
-    auto table = type_to_create_t::Traits::Create(
-        builder, builder.CreateString("my_id"), 42, 7);
+  [&builder] {
+    auto id_str = builder.CreateString("my_id");
+    auto table = type_to_create_t::Traits::Create(builder, id_str, 42, 7);
     // Be sure that the correct return type was inferred.
     static_assert(
         std::is_same_v<decltype(table), flatbuffers::Offset<type_to_create_t>>);
     builder.Finish(table);
-  }
+  }();
 
   // Access it.
   auto stat =
