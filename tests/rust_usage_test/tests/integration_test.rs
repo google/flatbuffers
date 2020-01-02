@@ -253,6 +253,16 @@ mod generated_constants {
             my_game::example::Color::Green,
             my_game::example::Color::Blue,
         ]);
+        assert_eq!(my_game::example::ENUM_NAMES_COLOR, [
+            "Red",
+            "Green",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Blue"
+        ]);
 
         assert_eq!(-1, my_game::example::ENUM_MIN_RACE);
         assert_eq!(2, my_game::example::ENUM_MAX_RACE);
@@ -261,6 +271,12 @@ mod generated_constants {
             my_game::example::Race::Human,
             my_game::example::Race::Dwarf,
             my_game::example::Race::Elf,
+        ]);
+        assert_eq!(my_game::example::ENUM_NAMES_RACE, [
+            "None",
+            "Human",
+            "Dwarf",
+            "Elf"
         ]);
 
         assert_eq!(0, my_game::example::ENUM_MIN_ANY);
@@ -271,6 +287,12 @@ mod generated_constants {
             my_game::example::Any::TestSimpleTableWithEnum,
             my_game::example::Any::MyGame_Example2_Monster,
         ]);
+        assert_eq!(my_game::example::ENUM_NAMES_ANY, [
+            "NONE",
+            "Monster",
+            "TestSimpleTableWithEnum",
+            "MyGame_Example2_Monster"
+        ]);
 
         assert_eq!(0, my_game::example::ENUM_MIN_ANY_UNIQUE_ALIASES);
         assert_eq!(3, my_game::example::ENUM_MAX_ANY_UNIQUE_ALIASES);
@@ -280,6 +302,12 @@ mod generated_constants {
             my_game::example::AnyUniqueAliases::TS,
             my_game::example::AnyUniqueAliases::M2,
         ]);
+        assert_eq!(my_game::example::ENUM_NAMES_ANY_UNIQUE_ALIASES, [
+            "NONE",
+            "M",
+            "TS",
+            "M2"
+        ]);
 
         assert_eq!(0, my_game::example::ENUM_MIN_ANY_AMBIGUOUS_ALIASES);
         assert_eq!(3, my_game::example::ENUM_MAX_ANY_AMBIGUOUS_ALIASES);
@@ -288,6 +316,12 @@ mod generated_constants {
             my_game::example::AnyAmbiguousAliases::M1,
             my_game::example::AnyAmbiguousAliases::M2,
             my_game::example::AnyAmbiguousAliases::M3,
+        ]);
+        assert_eq!(my_game::example::ENUM_NAMES_ANY_AMBIGUOUS_ALIASES, [
+            "NONE",
+            "M1",
+            "M2",
+            "M3"
         ]);
     }
 }
