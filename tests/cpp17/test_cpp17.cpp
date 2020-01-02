@@ -36,8 +36,31 @@ namespace cpp11 {
 #include "../monster_test_generated.h"
 }  // namespace cpp11
 
+void CreateTableByTypeTest() {
+  flatbuffers::FlatBufferBuilder builder;
+
+  // We will create an object of this type using only the type.
+  using type_to_create_t = cpp17::MyGame::Example::Stat;
+
+  [&builder] {
+    auto id_str = builder.CreateString("my_id");
+    auto table = type_to_create_t::Traits::Create(builder, id_str, 42, 7);
+    // Be sure that the correct return type was inferred.
+    static_assert(
+        std::is_same_v<decltype(table), flatbuffers::Offset<type_to_create_t>>);
+    builder.Finish(table);
+  }();
+
+  // Access it.
+  auto stat =
+      flatbuffers::GetRoot<type_to_create_t>(builder.GetBufferPointer());
+  TEST_EQ_STR(stat->id()->c_str(), "my_id");
+  TEST_EQ(stat->val(), 42);
+  TEST_EQ(stat->count(), 7);
+}
+
 int FlatBufferCpp17Tests() {
-  TEST_ASSERT(true);
+  CreateTableByTypeTest();
   return 0;
 }
 
