@@ -68,7 +68,6 @@ endif()
 add_definitions(-DFLATBUFFERS_LOCALE_INDEPENDENT=$<BOOL:${FLATBUFFERS_LOCALE_INDEPENDENT}>)
 
 set(FlatBuffers_Library_SRCS
-  include/flatbuffers/code_generators.h
   include/flatbuffers/base.h
   include/flatbuffers/flatbuffers.h
   include/flatbuffers/hash.h
@@ -80,7 +79,6 @@ set(FlatBuffers_Library_SRCS
   include/flatbuffers/flexbuffers.h
   include/flatbuffers/registry.h
   include/flatbuffers/minireflect.h
-  src/code_generators.cpp
   src/idl_parser.cpp
   src/idl_gen_text.cpp
   src/reflection.cpp
@@ -106,6 +104,8 @@ set(FlatBuffers_Compiler_SRCS
   src/idl_gen_json_schema.cpp
   src/flatc.cpp
   src/flatc_main.cpp
+  include/flatbuffers/code_generators.h
+  src/code_generators.cpp
   grpc/src/compiler/schema_interface.h
   grpc/src/compiler/cpp_generator.h
   grpc/src/compiler/cpp_generator.cc
@@ -133,6 +133,8 @@ set(FlatBuffers_Tests_SRCS
   tests/test_builder.cpp
   tests/native_type_test_impl.h
   tests/native_type_test_impl.cpp
+  include/flatbuffers/code_generators.h
+  src/code_generators.cpp
   # file generate by running compiler on tests/monster_test.fbs
   ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_test_generated.h
   # file generate by running compiler on namespace_test/namespace_test1.fbs
