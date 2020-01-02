@@ -76,7 +76,7 @@ pub const ENUM_VALUES_FROM_INCLUDE:[FromInclude; 1] = [
 ];
 
 #[allow(non_camel_case_types)]
-const ENUM_NAMES_FROM_INCLUDE:[&'static str; 1] = [
+pub const ENUM_NAMES_FROM_INCLUDE:[&'static str; 1] = [
     "IncludeVal"
 ];
 
