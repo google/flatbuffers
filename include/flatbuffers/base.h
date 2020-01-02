@@ -212,6 +212,13 @@ namespace flatbuffers {
         typedef std::experimental::string_view string_view;
       }
       #define FLATBUFFERS_HAS_STRING_VIEW 1
+    // Check for absl::string_view
+    #elif __has_include("absl/strings/string_view.h")
+      #include "absl/strings/string_view.h"
+      namespace flatbuffers {
+        typedef absl::string_view string_view;
+      }
+      #define FLATBUFFERS_HAS_STRING_VIEW 1
     #endif
   #endif // __has_include
 #endif // !FLATBUFFERS_HAS_STRING_VIEW
@@ -382,6 +389,7 @@ template<typename T> __supress_ubsan__("alignment") void WriteScalar(void *p, Of
 // Computes how many bytes you'd have to pad to be able to write an
 // "scalar_size" scalar if the buffer had grown to "buf_size" (downwards in
 // memory).
+__supress_ubsan__("unsigned-integer-overflow")
 inline size_t PaddingBytes(size_t buf_size, size_t scalar_size) {
   return ((~buf_size) + 1) & (scalar_size - 1);
 }

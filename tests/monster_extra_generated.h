@@ -9,6 +9,7 @@
 namespace MyGame {
 
 struct MonsterExtra;
+struct MonsterExtraBuilder;
 struct MonsterExtraT;
 
 bool operator==(const MonsterExtraT &lhs, const MonsterExtraT &rhs);
@@ -61,6 +62,7 @@ inline bool operator!=(const MonsterExtraT &lhs, const MonsterExtraT &rhs) {
 
 struct MonsterExtra FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MonsterExtraT NativeTableType;
+  typedef MonsterExtraBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return MonsterExtraTypeTable();
   }
@@ -158,6 +160,7 @@ struct MonsterExtra FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct MonsterExtraBuilder {
+  typedef MonsterExtra Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_d0(double d0) {

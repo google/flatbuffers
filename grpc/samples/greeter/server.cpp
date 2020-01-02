@@ -12,7 +12,8 @@ class GreeterServiceImpl final : public Greeter::Service {
       grpc::ServerContext *context,
       const flatbuffers::grpc::Message<HelloRequest> *request_msg,
       flatbuffers::grpc::Message<HelloReply> *response_msg) override {
-    // flatbuffers::grpc::MessageBuilder mb_;
+    flatbuffers::grpc::MessageBuilder mb_;
+
     // We call GetRoot to "parse" the message. Verification is already
     // performed by default. See the notes below for more details.
     const HelloRequest *request = request_msg->GetRoot();
