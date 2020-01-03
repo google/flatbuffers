@@ -964,7 +964,7 @@ class Monster : Table() {
         fun finishMonsterBuffer(builder: FlatBufferBuilder, offset: Int) = builder.finish(offset, "MONS")
         fun finishSizePrefixedMonsterBuffer(builder: FlatBufferBuilder, offset: Int) = builder.finishSizePrefixed(offset, "MONS")
         fun __lookup_by_key(obj: Monster?, vectorLocation: Int, key: String, bb: ByteBuffer) : Monster? {
-            val byteKey = key.toByteArray(Table.UTF8_CHARSET.get()!!)
+            val byteKey = key.toByteArray(java.nio.charset.StandardCharsets.UTF_8)
             var span = bb.getInt(vectorLocation - 4)
             var start = 0
             while (span != 0) {
