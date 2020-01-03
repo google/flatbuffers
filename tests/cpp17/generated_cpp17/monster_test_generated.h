@@ -621,6 +621,7 @@ struct InParentNamespaceT : public flatbuffers::NativeTable {
 struct InParentNamespace FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef InParentNamespaceT NativeTableType;
   typedef InParentNamespaceBuilder Builder;
+  struct Traits;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return InParentNamespaceTypeTable();
   }
@@ -655,6 +656,11 @@ inline flatbuffers::Offset<InParentNamespace> CreateInParentNamespace(
   return builder_.Finish();
 }
 
+struct InParentNamespace::Traits {
+  using type = InParentNamespace;
+  static auto constexpr Create = CreateInParentNamespace;
+};
+
 flatbuffers::Offset<InParentNamespace> CreateInParentNamespace(flatbuffers::FlatBufferBuilder &_fbb, const InParentNamespaceT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 namespace Example2 {
@@ -668,6 +674,7 @@ struct MonsterT : public flatbuffers::NativeTable {
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MonsterT NativeTableType;
   typedef MonsterBuilder Builder;
+  struct Traits;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return MonsterTypeTable();
   }
@@ -702,6 +709,11 @@ inline flatbuffers::Offset<Monster> CreateMonster(
   return builder_.Finish();
 }
 
+struct Monster::Traits {
+  using type = Monster;
+  static auto constexpr Create = CreateMonster;
+};
+
 flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 }  // namespace Example2
@@ -719,6 +731,7 @@ struct TestSimpleTableWithEnumT : public flatbuffers::NativeTable {
 struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef TestSimpleTableWithEnumT NativeTableType;
   typedef TestSimpleTableWithEnumBuilder Builder;
+  struct Traits;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return TestSimpleTableWithEnumTypeTable();
   }
@@ -768,6 +781,11 @@ inline flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnu
   return builder_.Finish();
 }
 
+struct TestSimpleTableWithEnum::Traits {
+  using type = TestSimpleTableWithEnum;
+  static auto constexpr Create = CreateTestSimpleTableWithEnum;
+};
+
 flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnum(flatbuffers::FlatBufferBuilder &_fbb, const TestSimpleTableWithEnumT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 struct StatT : public flatbuffers::NativeTable {
@@ -784,6 +802,7 @@ struct StatT : public flatbuffers::NativeTable {
 struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef StatT NativeTableType;
   typedef StatBuilder Builder;
+  struct Traits;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return StatTypeTable();
   }
@@ -860,6 +879,11 @@ inline flatbuffers::Offset<Stat> CreateStat(
   return builder_.Finish();
 }
 
+struct Stat::Traits {
+  using type = Stat;
+  static auto constexpr Create = CreateStat;
+};
+
 inline flatbuffers::Offset<Stat> CreateStatDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *id = nullptr,
@@ -886,6 +910,7 @@ struct ReferrableT : public flatbuffers::NativeTable {
 struct Referrable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef ReferrableT NativeTableType;
   typedef ReferrableBuilder Builder;
+  struct Traits;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return ReferrableTypeTable();
   }
@@ -940,6 +965,11 @@ inline flatbuffers::Offset<Referrable> CreateReferrable(
   builder_.add_id(id);
   return builder_.Finish();
 }
+
+struct Referrable::Traits {
+  using type = Referrable;
+  static auto constexpr Create = CreateReferrable;
+};
 
 flatbuffers::Offset<Referrable> CreateReferrable(flatbuffers::FlatBufferBuilder &_fbb, const ReferrableT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
@@ -1017,6 +1047,7 @@ struct MonsterT : public flatbuffers::NativeTable {
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MonsterT NativeTableType;
   typedef MonsterBuilder Builder;
+  struct Traits;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return MonsterTypeTable();
   }
@@ -1766,6 +1797,11 @@ inline flatbuffers::Offset<Monster> CreateMonster(
   return builder_.Finish();
 }
 
+struct Monster::Traits {
+  using type = Monster;
+  static auto constexpr Create = CreateMonster;
+};
+
 inline flatbuffers::Offset<Monster> CreateMonsterDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const MyGame::Example::Vec3 *pos = 0,
@@ -1920,6 +1956,7 @@ struct TypeAliasesT : public flatbuffers::NativeTable {
 struct TypeAliases FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef TypeAliasesT NativeTableType;
   typedef TypeAliasesBuilder Builder;
+  struct Traits;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return TypeAliasesTypeTable();
   }
@@ -2113,6 +2150,11 @@ inline flatbuffers::Offset<TypeAliases> CreateTypeAliases(
   builder_.add_i8(i8);
   return builder_.Finish();
 }
+
+struct TypeAliases::Traits {
+  using type = TypeAliases;
+  static auto constexpr Create = CreateTypeAliases;
+};
 
 inline flatbuffers::Offset<TypeAliases> CreateTypeAliasesDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
