@@ -90,6 +90,7 @@ public final class ByteBuffer {
     func push(struct value: UnsafeMutableRawPointer, size: Int) {
         ensureSpace(size: UInt8(size))
         _memory.advanced(by: writerIndex - size).copyMemory(from: value, byteCount: size)
+        defer { value.deallocate() }
         _writerSize += size
     }
     
