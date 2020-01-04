@@ -2067,9 +2067,13 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef **dest) {
   const auto strict_ascending = (false == opts.proto_mode);
   EnumValBuilder evb(*this, *enum_def, strict_ascending);
   EXPECT('{');
-  // A lot of code generatos expect that an enum is not-empty.
-  if ((is_union || Is('}')) && !opts.proto_mode) {
-    evb.CreateEnumerator("NONE");
+  if(is_union && !opts.proto_mode) {
+    // Every union has the NONE field, mapped to a special `void` type.
+    evb.CreateEnumerator("NONE", BASE_TYPE_NONE);
+    ECHECK(evb.AcceptEnumerator());
+  } else if (Is('}') && !opts.proto_mode) {
+    // Most code generators expect that an enum is not-empty.
+    evb.CreateEnumerator("NONE", 0);
     ECHECK(evb.AcceptEnumerator());
   }
   std::set<std::pair<BaseType, StructDef *>> union_types;
