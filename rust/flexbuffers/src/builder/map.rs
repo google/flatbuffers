@@ -67,13 +67,6 @@ impl<'a> Drop for MapBuilder<'a> {
     }
 }
 
-// Read a known key or string inside the buffer.
-pub(super) unsafe fn read_trusted_str(buffer: &[u8], idx: usize, len: usize) -> &str {
-    let str_ptr = buffer.as_ptr().add(idx);
-    let slice = std::slice::from_raw_parts(str_ptr, len);
-    std::str::from_utf8_unchecked(slice)
-}
-
 // `values` is assumed to be of the format [key1, value1, ..., keyN, valueN].
 // The keys refer to cstrings in `buffer`. When this function returns,
 // `values` is sorted in place by key.
@@ -88,10 +81,16 @@ pub(super) fn sort_map_by_keys(values: &mut [Value], buffer: &[u8]) {
     pairs.sort_unstable_by(|[key1, _], [key2, _]| {
         if let Value::Key { address: a1, length: l1 } = *key1 {
             if let Value::Key { address: a2, length: l2 } = *key2 {
-                let s1 = unsafe { read_trusted_str(&buffer, a1, l1) };
-                let s2 = unsafe { read_trusted_str(&buffer, a2, l2) };
+                // Directly compare a known key or string that we've placed in in the buffer.
+                // This skips the utf8 and strlen of str and CStr.
+                let s1 = &buffer[a1..a1 + l1];
+                let s2 = &buffer[a2..a2 + l2];
                 let ord = s1.cmp(s2);
-                assert!(ord != std::cmp::Ordering::Equal, "Duplicated keys in map.");
+                assert!(
+                    ord != std::cmp::Ordering::Equal,
+                    "Duplicated key in map: {:?}",
+                    unsafe { std::str::from_utf8_unchecked(s1) },
+                );
                 return ord;
             }
         }

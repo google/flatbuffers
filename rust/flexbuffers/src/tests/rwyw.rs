@@ -124,6 +124,83 @@ quickcheck! {
             |(i, x)| r.idx(i).get_blob().unwrap().0.iter().eq(x.iter())
         )
     }
+    fn qc_serde_ints(
+        u8s: Vec<u8>,
+        u16s: Vec<u16>,
+        u32s: Vec<u32>,
+        u64s: Vec<u64>,
+        i8s: Vec<i8>,
+        i16s: Vec<i16>,
+        i32s: Vec<i32>,
+        i64s: Vec<i64>
+    ) -> bool {
+        #[derive(Serialize, Deserialize, PartialEq)]
+        struct Foo {
+            u8s: Vec<u8>,
+            u16s: Vec<u16>,
+            u32s: Vec<u32>,
+            u64s: Vec<u64>,
+            i8s: Vec<i8>,
+            i16s: Vec<i16>,
+            i32s: Vec<i32>,
+            i64s: Vec<i64>,
+        }
+        let mut ser = FlexbufferSerializer::new();
+        let foo1 = Foo { u8s, u16s, u32s, u64s, i8s, i16s, i32s, i64s };
+        foo1.serialize(&mut ser).unwrap();
+        let r = Reader::get_root(ser.view()).unwrap();
+        let foo2 = Foo::deserialize(r).unwrap();
+        foo1 == foo2
+    }
+    fn qc_serde_others(
+        bools: Vec<bool>,
+        strings: Vec<String>,
+        f32s: Vec<f32>,
+        f64s: Vec<f64>
+    ) -> bool {
+        #[derive(Serialize, Deserialize, PartialEq)]
+        struct Foo {
+            bools: Vec<bool>,
+            strings: Vec<String>,
+            f32s: Vec<f32>,
+            f64s: Vec<f64>,
+        }
+        let mut ser = FlexbufferSerializer::new();
+        let foo1 = Foo { bools, strings, f32s, f64s };
+        foo1.serialize(&mut ser).unwrap();
+        let r = Reader::get_root(ser.view()).unwrap();
+        let foo2 = Foo::deserialize(r).unwrap();
+        foo1 == foo2
+    }
+    fn qc_serde_others2(
+        bools: Vec<bool>,
+        strings: Vec<String>,
+        f32s: Vec<f32>,
+        f64s: Vec<f64>
+    ) -> bool {
+        #[derive(Serialize, Deserialize, PartialEq)]
+        struct Foo (Vec<bool>, Vec<String>, Vec<f32>, Vec<f64>);
+        let mut ser = FlexbufferSerializer::new();
+        let foo1 = Foo(bools, strings, f32s, f64s);
+        foo1.serialize(&mut ser).unwrap();
+        let r = Reader::get_root(ser.view()).unwrap();
+        let foo2 = Foo::deserialize(r).unwrap();
+        foo1 == foo2
+    }
+
+}
+
+#[test]
+fn empty_vectors() {
+    #[derive(PartialEq, Serialize, Deserialize, Default, Debug)]
+    struct Foo(Vec<u8>, Vec<i8>);
+    let foo1 = Foo::default();
+    let mut s = FlexbufferSerializer::new();
+    foo1.serialize(&mut s).unwrap();
+    dbg!(s.view());
+    let r = Reader::get_root(s.view()).unwrap();
+    let foo2 = Foo::deserialize(r).unwrap();
+    assert_eq!(foo1, foo2);
 }
 
 #[test]

@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
+#![allow(deprecated)]
 /// Represents all the valid types in a flexbuffer. Flexbuffers supports
 /// heterogenous maps, heterogenous vectors, typed vectors, and fixed length
 /// typed vectors for some lengths and types. Rust types are converted into
@@ -72,6 +72,9 @@ pub enum FlexBufferType {
     /// Homogenous Vector of Keys.
     VectorKey = 14,
     /// Homogenous Vector of Strings.
+    #[deprecated(
+        note="Please use Vector or VectorKey instead. See https://github.com/google/flatbuffers/issues/5627"
+    )]
     VectorString = 15,
     /// Since the elements of a vector use the same `BitWidth` as the length,
     /// Blob is more efficient for >255 element boolean vectors.
@@ -138,7 +141,9 @@ impl FlexBufferType {
             VectorUInt | VectorUInt2 | VectorUInt3 | VectorUInt4 => Some(UInt),
             VectorFloat | VectorFloat2 | VectorFloat3 | VectorFloat4 => Some(Float),
             VectorKey => Some(Key),
-            VectorString => Some(String),
+            // Treat them as keys because we do not know width of length slot.
+            // see deprecation link.
+            VectorString => Some(Key),
             VectorBool => Some(Bool),
             _ => None,
         }

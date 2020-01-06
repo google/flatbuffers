@@ -56,7 +56,7 @@ impl FlexbufferSerializer {
         Ok(())
     }
     fn nest(&mut self) {
-        if self.builder.values.is_empty() {
+        if self.nesting.is_empty() {
             // The root is a vector.
             self.nesting.push(None);
         } else {

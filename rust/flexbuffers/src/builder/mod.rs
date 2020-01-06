@@ -22,7 +22,7 @@ mod push;
 mod ser;
 mod vector;
 pub use map::MapBuilder;
-use map::{read_trusted_str, sort_map_by_keys};
+use map::sort_map_by_keys;
 pub use push::Pushable;
 pub use ser::FlexbufferSerializer;
 pub use vector::VectorBuilder;
@@ -120,6 +120,7 @@ impl Default for Builder {
 
 impl<'a> Builder {
     pub fn new() -> Self {
+        // TODO(cneo): Give people initialization options.
         Self::default()
     }
     /// Shows the internal flexbuffer. It will be empty on initialization or if `reset` was called.
@@ -144,8 +145,8 @@ impl<'a> Builder {
         // Search key pool if there is one.
         let found = self.key_pool.as_ref().map(|pool| {
             pool.binary_search_by(|ck| {
-                let old_key = unsafe { read_trusted_str(&self.buffer, ck.address, ck.length) };
-                old_key.cmp(key)
+                let old_key = self.buffer[ck.address..ck.address + ck.length].iter().cloned();
+                old_key.cmp(key.bytes())
             })
         });
         let address = if let Some(Ok(idx)) = found {
@@ -337,12 +338,15 @@ pub fn store_vector(buffer: &mut Vec<u8>, values: &[Value], opt: StoreOption) ->
         width = max(width, val.width_in_vector(buffer.len(), i + prefix_length));
     }
     align(buffer, width);
-    debug_assert_ne!(
-        result.fxb_type(),
-        FlexBufferType::VectorString,
-        "VectorString is deprecated and cannot be written.\
-         (https://github.com/google/flatbuffers/issues/5627)"
-    );
+    #[allow(deprecated)]
+    {
+        debug_assert_ne!(
+            result.fxb_type(),
+            FlexBufferType::VectorString,
+            "VectorString is deprecated and cannot be written.\
+             (https://github.com/google/flatbuffers/issues/5627)"
+        );
+    }
     // Write Prefix.
     if let StoreOption::Map(keys) = opt {
         let key_width = Value::UInt(keys.width_or_child_width() as u64);
