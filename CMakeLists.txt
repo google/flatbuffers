@@ -349,24 +349,42 @@ if(FLATBUFFERS_BUILD_SHAREDLIB)
                         VERSION "${FlatBuffers_Library_SONAME_FULL}")
 endif()
 
+# Global list of generated files.
+# Use the global property to be independent of PARENT_SCOPE.
+set_property(GLOBAL PROPERTY FBS_GENERATED_OUTPUTS)
+
+function(get_generated_output generated_files)
+  get_property(tmp GLOBAL PROPERTY FBS_GENERATED_OUTPUTS)
+  set(${generated_files} ${tmp} PARENT_SCOPE)
+endfunction(get_generated_output)
+
+function(register_generated_output file_name)
+  get_property(tmp GLOBAL PROPERTY FBS_GENERATED_OUTPUTS)
+  list(APPEND tmp ${file_name})
+  set_property(GLOBAL PROPERTY FBS_GENERATED_OUTPUTS ${tmp})
+endfunction(register_generated_output)
+
 function(compile_flatbuffers_schema_to_cpp_opt SRC_FBS OPT)
   if(FLATBUFFERS_BUILD_LEGACY)
     set(OPT ${OPT};--cpp-std c++0x)
   else()
     # --cpp-std is defined by flatc default settings.
   endif()
-  message(STATUS "Add the code-generation command for the `${SRC_FBS}` schema with '${OPT}'")
+  message(STATUS "`${SRC_FBS}`: add generation of C++ code with '${OPT}'")
   get_filename_component(SRC_FBS_DIR ${SRC_FBS} PATH)
   string(REGEX REPLACE "\\.fbs$" "_generated.h" GEN_HEADER ${SRC_FBS})
   add_custom_command(
     OUTPUT ${GEN_HEADER}
-    COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}" -c --gen-mutable
-            --gen-object-api -o "${SRC_FBS_DIR}"
+    COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}"
+            --cpp --gen-mutable --gen-object-api --reflect-names
             --cpp-ptr-type flatbuffers::unique_ptr # Used to test with C++98 STLs
-            --reflect-names ${OPT}
+            ${OPT}
             -I "${CMAKE_CURRENT_SOURCE_DIR}/tests/include_test"
+            -o "${SRC_FBS_DIR}"
             "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
-    DEPENDS flatc)
+    DEPENDS flatc
+    COMMENT "Run generation: '${GEN_HEADER}'")
+  register_generated_output(${GEN_HEADER})
 endfunction()
 
 function(compile_flatbuffers_schema_to_cpp SRC_FBS)
@@ -374,52 +392,69 @@ function(compile_flatbuffers_schema_to_cpp SRC_FBS)
 endfunction()
 
 function(compile_flatbuffers_schema_to_binary SRC_FBS)
+  message(STATUS "`${SRC_FBS}`: add generation of binary (.bfbs) schema")
   get_filename_component(SRC_FBS_DIR ${SRC_FBS} PATH)
   string(REGEX REPLACE "\\.fbs$" ".bfbs" GEN_BINARY_SCHEMA ${SRC_FBS})
+  # For details about flags see generate_code.bat(sh)
   add_custom_command(
     OUTPUT ${GEN_BINARY_SCHEMA}
-    COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}" -b --schema -o "${SRC_FBS_DIR}"
+    COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}"
+            -b --schema --bfbs-comments --bfbs-builtins
+            -I "${CMAKE_CURRENT_SOURCE_DIR}/tests/include_test"
+            -o "${SRC_FBS_DIR}"
             "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
-    DEPENDS flatc)
+    DEPENDS flatc
+    COMMENT "Run generation: '${GEN_BINARY_SCHEMA}'")
+  register_generated_output(${GEN_BINARY_SCHEMA})
 endfunction()
 
 if(FLATBUFFERS_BUILD_TESTS)
-  # TODO: Replace this sequence by custom_target which calls the generate_code.bat(sh).
+  file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/tests" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+  file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/samples" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+
+  # TODO Add (monster_test.fbs monsterdata_test.json)->monsterdata_test.mon
   compile_flatbuffers_schema_to_cpp(tests/monster_test.fbs)
+  compile_flatbuffers_schema_to_binary(tests/monster_test.fbs)
   compile_flatbuffers_schema_to_cpp(tests/namespace_test/namespace_test1.fbs)
   compile_flatbuffers_schema_to_cpp(tests/namespace_test/namespace_test2.fbs)
   compile_flatbuffers_schema_to_cpp(tests/union_vector/union_vector.fbs)
   compile_flatbuffers_schema_to_cpp_opt(tests/native_type_test.fbs "")
   compile_flatbuffers_schema_to_cpp_opt(tests/arrays_test.fbs "--scoped-enums;--gen-compare")
+  compile_flatbuffers_schema_to_binary(tests/arrays_test.fbs)
   if(NOT (MSVC AND (MSVC_VERSION LESS 1900)))
     compile_flatbuffers_schema_to_cpp(tests/monster_extra.fbs) # Test floating-point NAN/INF.
   endif()
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/tests)
   add_executable(flattests ${FlatBuffers_Tests_SRCS})
+  add_dependencies(flattests generated_code)
   set_property(TARGET flattests
     PROPERTY COMPILE_DEFINITIONS FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
     FLATBUFFERS_DEBUG_VERIFICATION_FAILURE=1)
   if(FLATBUFFERS_CODE_SANITIZE)
-      add_fsanitize_to_target(flattests ${FLATBUFFERS_CODE_SANITIZE})
+    add_fsanitize_to_target(flattests ${FLATBUFFERS_CODE_SANITIZE})
   endif()
 
   compile_flatbuffers_schema_to_cpp(samples/monster.fbs)
+  compile_flatbuffers_schema_to_binary(samples/monster.fbs)
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/samples)
   add_executable(flatsamplebinary ${FlatBuffers_Sample_Binary_SRCS})
+  add_dependencies(flatsamplebinary generated_code)
   add_executable(flatsampletext ${FlatBuffers_Sample_Text_SRCS})
+  add_dependencies(flatsampletext generated_code)
   add_executable(flatsamplebfbs ${FlatBuffers_Sample_BFBS_SRCS})
+  add_dependencies(flatsamplebfbs generated_code)
 
   if(FLATBUFFERS_BUILD_CPP17)
     # Don't generate header for flattests_cpp17 target.
     # This target uses "generated_cpp17/monster_test_generated.h"
     # produced by direct call of generate_code.bat(sh) script.
     add_executable(flattests_cpp17 ${FlatBuffers_Tests_CPP17_SRCS})
+    add_dependencies(flattests_cpp17 generated_code)
     target_compile_features(flattests_cpp17 PRIVATE cxx_std_17)
     target_compile_definitions(flattests_cpp17 PRIVATE
       FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
       FLATBUFFERS_DEBUG_VERIFICATION_FAILURE=1
     )
-
     if(FLATBUFFERS_CODE_SANITIZE)
       add_fsanitize_to_target(flattests_cpp17 ${FLATBUFFERS_CODE_SANITIZE})
     endif()
@@ -440,8 +475,9 @@ if(FLATBUFFERS_BUILD_GRPCTEST)
   INCLUDE_DIRECTORIES(${PROTOBUF_DOWNLOAD_PATH}/src)
   LINK_DIRECTORIES(${GRPC_INSTALL_PATH}/lib)
   add_executable(grpctest ${FlatBuffers_GRPCTest_SRCS})
+  add_dependencies(grpctest generated_code)
   target_link_libraries(grpctest PRIVATE grpc++_unsecure grpc_unsecure gpr pthread dl)
-  if(NOT WIN32 AND FLATBUFFERS_CODE_SANITIZE)
+  if(FLATBUFFERS_CODE_SANITIZE AND NOT WIN32)
     # GRPC test has problems with alignment and will fail under ASAN/UBSAN.
     # add_fsanitize_to_target(grpctest ${FLATBUFFERS_CODE_SANITIZE})
   endif()
@@ -527,8 +563,6 @@ endif()
 if(FLATBUFFERS_BUILD_TESTS)
   enable_testing()
 
-  file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/tests" DESTINATION
-       "${CMAKE_CURRENT_BINARY_DIR}")
   add_test(NAME flattests COMMAND flattests)
   if(FLATBUFFERS_BUILD_CPP17)
     add_test(NAME flattests_cpp17 COMMAND flattests_cpp17)
@@ -536,6 +570,16 @@ if(FLATBUFFERS_BUILD_TESTS)
   if(FLATBUFFERS_BUILD_GRPCTEST)
     add_test(NAME grpctest COMMAND grpctest)
   endif()
+endif()
+
+# This target is sync-barrier.
+# Other generate-dependent targets can depend on 'generated_code' only.
+get_generated_output(fbs_generated)
+if(fbs_generated)
+  # message(STATUS "Add generated_code target with files:${fbs_generated}")
+  add_custom_target(generated_code
+    DEPENDS ${fbs_generated}
+    COMMENT "All generated files were updated.")
 endif()
 
 include(CMake/BuildFlatBuffers.cmake)
