@@ -63,6 +63,13 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
     for (size_t i = 0; i < ns.from_table; i++) {
       ns.components[ns.components.size() - 1 - i] += "_";
     }
+
+    if (parser.opts.proto_mode && !parser.opts.proto_namespace_suffix.empty()) {
+      // Since we know that all these namespaces come from a .proto, and all are
+      // being converted, we can simply apply this suffix to all of them.
+      ns.components.insert(ns.components.end() - ns.from_table,
+                           parser.opts.proto_namespace_suffix);
+    }
   }
 
   std::string schema;

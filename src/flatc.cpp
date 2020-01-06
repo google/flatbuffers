@@ -134,6 +134,8 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "                         This may crash flatc given a mismatched schema.\n"
     "  --size-prefixed        Input binaries are size prefixed buffers.\n"
     "  --proto                Input is a .proto, translate to .fbs.\n"
+    "  --proto-namespace-suffix Add this namespace to any flatbuffers generated\n"
+    "    SUFFIX                 from protobufs.\n"
     "  --oneof-union          Translate .proto oneofs to flatbuffer unions.\n"
     "  --grpc                 Generate GRPC interfaces for the specified languages.\n"
     "  --schema               Serialize schemas instead of JSON (use with -b).\n"
@@ -299,6 +301,9 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         binary_files_from = filenames.size();
       } else if (arg == "--proto") {
         opts.proto_mode = true;
+      } else if (arg == "--proto-namespace-suffix") {
+        if (++argi >= argc) Error("missing namespace suffix" + arg, true);
+        opts.proto_namespace_suffix = argv[argi];
       } else if (arg == "--oneof-union") {
         opts.proto_oneof_union = true;
       } else if (arg == "--schema") {
