@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-#![cfg_attr(not(feature = "std"), no_std)]
+mod table;
+mod traits;
 
-pub mod deserialize;
-pub mod errors;
-pub mod serialize;
+mod string;
+mod vector;
 
-pub use serialize::{Flatbuffer, FlatbufferBuilder};
+pub use string::Str;
+pub use table::Table;
+pub use traits::{FromStructField, FromTableField, FromTableFieldUnion};
+pub use vector::{Vector, VectorIter};

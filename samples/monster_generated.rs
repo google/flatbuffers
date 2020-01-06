@@ -2,506 +2,828 @@
 
 
 pub mod my_game {
-  #![allow(dead_code)]
-  #![allow(unused_imports)]
-
-  use std::mem;
-  use std::marker::PhantomData;
-  use std::cmp::Ordering;
-
-  extern crate flatbuffers;
-  use self::flatbuffers::EndianScalar;
-pub mod sample {
-  #![allow(dead_code)]
-  #![allow(unused_imports)]
-
-  use std::mem;
-  use std::marker::PhantomData;
-  use std::cmp::Ordering;
-
-  extern crate flatbuffers;
-  use self::flatbuffers::EndianScalar;
-
-#[allow(non_camel_case_types)]
-#[repr(i8)]
-#[derive(Clone, Copy, PartialEq, Debug)]
-pub enum Color {
-  Red = 0,
-  Green = 1,
-  Blue = 2
-}
-
-const ENUM_MIN_COLOR: i8 = 0;
-const ENUM_MAX_COLOR: i8 = 2;
-
-impl<'a> flatbuffers::Follow<'a> for Color {
-  type Inner = Self;
-  #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    flatbuffers::read_scalar_at::<Self>(buf, loc)
-  }
-}
-
-impl flatbuffers::EndianScalar for Color {
-  #[inline]
-  fn to_little_endian(self) -> Self {
-    let n = i8::to_le(self as i8);
-    let p = &n as *const i8 as *const Color;
-    unsafe { *p }
-  }
-  #[inline]
-  fn from_little_endian(self) -> Self {
-    let n = i8::from_le(self as i8);
-    let p = &n as *const i8 as *const Color;
-    unsafe { *p }
-  }
-}
-
-impl flatbuffers::Push for Color {
-    type Output = Color;
-    #[inline]
-    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        flatbuffers::emplace_scalar::<Color>(dst, *self);
-    }
-}
-
-#[allow(non_camel_case_types)]
-const ENUM_VALUES_COLOR:[Color; 3] = [
-  Color::Red,
-  Color::Green,
-  Color::Blue
-];
-
-#[allow(non_camel_case_types)]
-const ENUM_NAMES_COLOR:[&'static str; 3] = [
-    "Red",
-    "Green",
-    "Blue"
-];
-
-pub fn enum_name_color(e: Color) -> &'static str {
-  let index: usize = e as usize;
-  ENUM_NAMES_COLOR[index]
-}
-
-#[allow(non_camel_case_types)]
-#[repr(u8)]
-#[derive(Clone, Copy, PartialEq, Debug)]
-pub enum Equipment {
-  NONE = 0,
-  Weapon = 1
-}
-
-const ENUM_MIN_EQUIPMENT: u8 = 0;
-const ENUM_MAX_EQUIPMENT: u8 = 1;
-
-impl<'a> flatbuffers::Follow<'a> for Equipment {
-  type Inner = Self;
-  #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    flatbuffers::read_scalar_at::<Self>(buf, loc)
-  }
-}
-
-impl flatbuffers::EndianScalar for Equipment {
-  #[inline]
-  fn to_little_endian(self) -> Self {
-    let n = u8::to_le(self as u8);
-    let p = &n as *const u8 as *const Equipment;
-    unsafe { *p }
-  }
-  #[inline]
-  fn from_little_endian(self) -> Self {
-    let n = u8::from_le(self as u8);
-    let p = &n as *const u8 as *const Equipment;
-    unsafe { *p }
-  }
-}
-
-impl flatbuffers::Push for Equipment {
-    type Output = Equipment;
-    #[inline]
-    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        flatbuffers::emplace_scalar::<Equipment>(dst, *self);
-    }
-}
-
-#[allow(non_camel_case_types)]
-const ENUM_VALUES_EQUIPMENT:[Equipment; 2] = [
-  Equipment::NONE,
-  Equipment::Weapon
-];
-
-#[allow(non_camel_case_types)]
-const ENUM_NAMES_EQUIPMENT:[&'static str; 2] = [
-    "NONE",
-    "Weapon"
-];
-
-pub fn enum_name_equipment(e: Equipment) -> &'static str {
-  let index: usize = e as usize;
-  ENUM_NAMES_EQUIPMENT[index]
-}
-
-pub struct EquipmentUnionTableOffset {}
-// struct Vec3, aligned to 4
-#[repr(C, align(4))]
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct Vec3 {
-  x_: f32,
-  y_: f32,
-  z_: f32,
-} // pub struct Vec3
-impl flatbuffers::SafeSliceAccess for Vec3 {}
-impl<'a> flatbuffers::Follow<'a> for Vec3 {
-  type Inner = &'a Vec3;
-  #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    <&'a Vec3>::follow(buf, loc)
-    //flatbuffers::follow_cast_ref::<Vec3>(buf, loc)
-  }
-}
-impl<'a> flatbuffers::Follow<'a> for &'a Vec3 {
-  type Inner = &'a Vec3;
-  #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    flatbuffers::follow_cast_ref::<Vec3>(buf, loc)
-  }
-}
-impl<'b> flatbuffers::Push for Vec3 {
-    type Output = Vec3;
-    #[inline]
-    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        let src = unsafe {
-            ::std::slice::from_raw_parts(self as *const Vec3 as *const u8, Self::size())
+    pub mod sample {
+        #![allow(unused_imports, irrefutable_let_patterns, dead_code, unused_mut)]
+        use flatbuffers::{
+            deserialize::{FromStructField, FromTableField, FromTableFieldUnion, Str, Table, Vector},
+            errors::{InvalidFlatbuffer, OutOfBufferSpace, TryFromEnumError},
+            serialize::{
+                builder::FlatbufferWriter, FlatbufferPrimitive, FlatbufferTable, Offset, RawOffset,
+            },
         };
-        dst.copy_from_slice(src);
-    }
-}
-impl<'b> flatbuffers::Push for &'b Vec3 {
-    type Output = Vec3;
-
-    #[inline]
-    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        let src = unsafe {
-            ::std::slice::from_raw_parts(*self as *const Vec3 as *const u8, Self::size())
+        use core::{
+            convert::{TryFrom, TryInto},
+            fmt, ptr,
         };
-        dst.copy_from_slice(src);
-    }
-}
 
+        /// Enum for the flatbuffer `Color` enum
+        ///
+        #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+        pub enum Color {
+            Red = 0,
+            Green = 1,
+            Blue = 2,
+        }
 
-impl Vec3 {
-  pub fn new<'a>(_x: f32, _y: f32, _z: f32) -> Self {
-    Vec3 {
-      x_: _x.to_little_endian(),
-      y_: _y.to_little_endian(),
-      z_: _z.to_little_endian(),
+        impl From<Color> for i8 {
+            #[inline]
+            fn from(value: Color) -> i8 {
+                value as i8
+            }
+        }
 
-    }
-  }
-  pub fn x<'a>(&'a self) -> f32 {
-    self.x_.from_little_endian()
-  }
-  pub fn y<'a>(&'a self) -> f32 {
-    self.y_.from_little_endian()
-  }
-  pub fn z<'a>(&'a self) -> f32 {
-    self.z_.from_little_endian()
-  }
-}
+        impl TryFrom<i8> for Color {
+            type Error = TryFromEnumError;
+            #[inline]
+            fn try_from(value: i8) -> Result<Color, TryFromEnumError> {
+                match value {
+                    0 => Ok(Color::Red),
+                    1 => Ok(Color::Green),
+                    2 => Ok(Color::Blue),
+                    _ => Err(TryFromEnumError),
+                }
+            }
+        }
 
-pub enum MonsterOffset {}
-#[derive(Copy, Clone, Debug, PartialEq)]
+        #[doc(hidden)]
+        impl<'a> FromTableField<'a> for Color {
+            const INLINE_SIZE: usize = 1;
 
-pub struct Monster<'a> {
-  pub _tab: flatbuffers::Table<'a>,
-}
+            #[inline]
+            fn from_field(buf: &'a [u8], offset: usize) -> Result<Color, InvalidFlatbuffer> {
+                i8::from_field(buf, offset)?
+                    .try_into()
+                    .or(Err(InvalidFlatbuffer))
+            }
+        }
 
-impl<'a> flatbuffers::Follow<'a> for Monster<'a> {
-    type Inner = Monster<'a>;
-    #[inline]
-    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self {
-            _tab: flatbuffers::Table { buf: buf, loc: loc },
+        #[doc(hidden)]
+        unsafe impl<'a> FromStructField<'a> for Color {
+            type Input = [u8; 1];
+
+            #[inline]
+            fn from_struct_field(buf: &'a Self::Input) -> Result<Color, InvalidFlatbuffer> {
+                i8::from_struct_field(buf)?
+                    .try_into()
+                    .or(Err(InvalidFlatbuffer))
+            }
+        }
+
+        unsafe impl FlatbufferPrimitive for Color {
+            const SIZE: usize = 1;
+            const ALIGNMENT: usize = 1;
+
+            #[inline]
+            unsafe fn serialize(&self, buffer: *mut u8, offset: RawOffset) {
+                FlatbufferPrimitive::serialize(&(*self as i8), buffer, offset)
+            }
+        }
+
+        #[derive(Copy, Clone)]
+        enum EquipmentTag {
+            NONE = 0,
+            Weapon = 1,
+        }
+
+        impl<'a> FromTableField<'a> for EquipmentTag {
+            const INLINE_SIZE: usize = 1;
+
+            #[inline]
+            fn from_field(buf: &'a [u8], offset: usize) -> Result<EquipmentTag, InvalidFlatbuffer> {
+                match u8::from_field(buf, offset)? {
+                    1 => Ok(EquipmentTag::Weapon),
+                    _ => Ok(EquipmentTag::NONE),
+                }
+            }
+        }
+
+        unsafe impl FlatbufferPrimitive for EquipmentTag {
+            const SIZE: usize = 1;
+            const ALIGNMENT: usize = 1;
+
+            #[inline]
+            unsafe fn serialize(&self, buffer: *mut u8, offset: RawOffset) {
+                FlatbufferPrimitive::serialize(&(*self as u8), buffer, offset)
+            }
+        }
+
+        /// View of a flatbuffer `Equipment` object
+        ///
+        /// This enum is used for deserializing. For serializing see [`Equipment`](enum.Equipment.html).
+        ///
+        #[derive(Copy, Clone, Debug)]
+        pub enum EquipmentView<'a> {
+            Weapon(WeaponView<'a>),
+        }
+
+        #[doc(hidden)]
+        impl<'a> FromTableFieldUnion<'a> for EquipmentView<'a> {
+            #[inline]
+            fn from_field_union(
+                buf: &'a [u8],
+                tag_offset: usize,
+                value_offset: usize,
+            ) -> Result<Option<Self>, InvalidFlatbuffer> {
+                match EquipmentTag::from_field(buf, tag_offset)? {
+                    EquipmentTag::NONE => Ok(None),
+                    EquipmentTag::Weapon => Ok(Some(EquipmentView::Weapon(FromTableField::from_field(
+                        buf,
+                        value_offset,
+                    )?))),
+                }
+            }
+        }
+
+        impl<'a> EquipmentView<'a> {
+            #[inline]
+            pub fn as_weapon(self) -> Option<WeaponView<'a>> {
+                if let EquipmentView::Weapon(inner) = self {
+                    Some(inner)
+                } else {
+                    None
+                }
+            }
+
+        }
+
+        /// Builder for a flatbuffer `Equipment` object
+        ///
+        /// This enum is used for serializing. For deserializing see [`EquipmentView`](enum.EquipmentView.html).
+        ///
+        #[derive(Copy, Clone, Debug, PartialEq)]
+        pub enum Equipment {
+            Weapon(Offset<Weapon>),
+        }
+
+        impl Equipment {
+            #[inline]
+            fn tag(&self) -> EquipmentTag {
+                match self {
+                    Equipment::Weapon(_) => EquipmentTag::Weapon,
+                }
+            }
+
+            #[inline]
+            fn offset(&self) -> RawOffset {
+                match self {
+                    Equipment::Weapon(offset) => offset.raw_offset(),
+                }
+            }
+        }
+
+        /// View of a flatbuffer `Vec3` object
+        ///
+        /// This struct is used for deserializing. For serializing see [`Vec3`](struct.Vec3.html).
+        ///
+        #[derive(Copy, Clone)]
+        pub struct Vec3View<'a> {
+            slice: &'a [u8; 12],
+        }
+
+        #[doc(hidden)]
+        impl<'a> FromTableField<'a> for Vec3View<'a> {
+            const INLINE_SIZE: usize = 12;
+
+            #[inline]
+            fn from_field(buf: &'a [u8], offset: usize) -> Result<Self, InvalidFlatbuffer> {
+                let slice = buf.get(offset..offset + 12).ok_or(InvalidFlatbuffer)?;
+                Ok(Self {
+                    slice: unsafe { &*(slice.as_ptr() as *const [u8; 12]) },
+                })
+            }
+        }
+
+        #[doc(hidden)]
+        unsafe impl<'a> FromStructField<'a> for Vec3View<'a> {
+            type Input = [u8; 12];
+
+            #[inline]
+            fn from_struct_field(slice: &'a Self::Input) -> Result<Self, InvalidFlatbuffer> {
+                Ok(Self { slice })
+            }
+        }
+
+        impl<'a> Vec3View<'a> {
+            /// Getter for the `x` field.
+            ///
+            ///
+            /// # Panics
+            ///
+            /// If the value cannot be deserialized.
+            #[inline]
+            pub fn x(self) -> f32 {
+                self.try_get_x().unwrap()
+            }
+
+            /// Getter for the `x` field.
+            ///
+            #[inline]
+            pub fn try_get_x(self) -> Result<f32, InvalidFlatbuffer> {
+                type SliceType<'a> = <f32 as FromStructField<'a>>::Input;
+                const OFFSET: usize = 0;
+                const SIZE: usize = core::mem::size_of::<SliceType>();
+                let slice = self.slice.get(OFFSET..OFFSET+SIZE).unwrap();
+                let slice: &'a SliceType<'a> = unsafe { &*(slice.as_ptr() as *const SliceType<'a>) };
+                <f32 as FromStructField<'a>>::from_struct_field(slice)
+            }
+
+            /// Getter for the `y` field.
+            ///
+            ///
+            /// # Panics
+            ///
+            /// If the value cannot be deserialized.
+            #[inline]
+            pub fn y(self) -> f32 {
+                self.try_get_y().unwrap()
+            }
+
+            /// Getter for the `y` field.
+            ///
+            #[inline]
+            pub fn try_get_y(self) -> Result<f32, InvalidFlatbuffer> {
+                type SliceType<'a> = <f32 as FromStructField<'a>>::Input;
+                const OFFSET: usize = 4;
+                const SIZE: usize = core::mem::size_of::<SliceType>();
+                let slice = self.slice.get(OFFSET..OFFSET+SIZE).unwrap();
+                let slice: &'a SliceType<'a> = unsafe { &*(slice.as_ptr() as *const SliceType<'a>) };
+                <f32 as FromStructField<'a>>::from_struct_field(slice)
+            }
+
+            /// Getter for the `z` field.
+            ///
+            ///
+            /// # Panics
+            ///
+            /// If the value cannot be deserialized.
+            #[inline]
+            pub fn z(self) -> f32 {
+                self.try_get_z().unwrap()
+            }
+
+            /// Getter for the `z` field.
+            ///
+            #[inline]
+            pub fn try_get_z(self) -> Result<f32, InvalidFlatbuffer> {
+                type SliceType<'a> = <f32 as FromStructField<'a>>::Input;
+                const OFFSET: usize = 8;
+                const SIZE: usize = core::mem::size_of::<SliceType>();
+                let slice = self.slice.get(OFFSET..OFFSET+SIZE).unwrap();
+                let slice: &'a SliceType<'a> = unsafe { &*(slice.as_ptr() as *const SliceType<'a>) };
+                <f32 as FromStructField<'a>>::from_struct_field(slice)
+            }
+
+        }
+
+        impl<'a> fmt::Debug for Vec3View<'a> {
+            fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+                formatter
+                    .debug_struct("Vec3View")
+                    .field("x", &self.try_get_x())
+                    .field("y", &self.try_get_y())
+                    .field("z", &self.try_get_z())
+                    .finish()
+            }
+        }
+
+        impl<'a> PartialEq for Vec3View<'a> {
+            #[inline]
+            fn eq(&self, other: &Self) -> bool {
+                self.slice[..] == other.slice[..]
+            }
+        }
+
+        /// Builder for a flatbuffer `Vec3` object
+        ///
+        /// This struct is used for serializing. For deserializing see [`Vec3View`](struct.Vec3View.html).
+        ///
+        #[derive(Copy, Clone, Debug, PartialEq)]
+        pub struct Vec3 {
+            pub x: f32,
+            pub y: f32,
+            pub z: f32,
+        }
+
+        unsafe impl FlatbufferPrimitive for Vec3 {
+            const SIZE: usize = 12;
+            const ALIGNMENT: usize = 4;
+
+            #[inline]
+            unsafe fn serialize(&self, buffer: *mut u8, offset: RawOffset) {
+                FlatbufferPrimitive::serialize(&self.x, buffer.add(0), offset + 0);
+                FlatbufferPrimitive::serialize(&self.y, buffer.add(4), offset + 4);
+                FlatbufferPrimitive::serialize(&self.z, buffer.add(8), offset + 8);
+            }
+        }
+
+        /// View of a flatbuffer `Monster` object
+        ///
+        /// This struct is used for deserializing. For serializing see [`Monster`](struct.Monster.html).
+        ///
+        #[derive(Copy, Clone)]
+        pub struct MonsterView<'a> {
+            table: Table<'a>,
+        }
+
+        #[doc(hidden)]
+        impl<'a> FromTableField<'a> for MonsterView<'a> {
+            const INLINE_SIZE: usize = Table::INLINE_SIZE;
+
+            #[inline]
+            fn from_field(buf: &'a [u8], offset: usize) -> Result<Self, InvalidFlatbuffer> {
+                FromTableField::from_field(buf, offset).map(|table| Self { table })
+            }
+        }
+
+        impl<'a> MonsterView<'a> {
+            /// Getter for the `pos` field.
+            ///
+            ///
+            /// # Panics
+            ///
+            /// If the value cannot be deserialized.
+            #[inline]
+            pub fn pos(&self) -> Option<Vec3View<'a>> {
+                self.try_get_pos().unwrap()
+            }
+
+            /// Getter for the `pos` field.
+            ///
+            #[inline]
+            pub fn try_get_pos(&self) ->  Result<Option<Vec3View<'a>>, InvalidFlatbuffer> {
+                self.table.get_field(4)
+            }
+
+            /// Getter for the `mana` field.
+            ///
+            ///
+            /// # Panics
+            ///
+            /// If the value cannot be deserialized.
+            #[inline]
+            pub fn mana(&self) -> i16 {
+                self.try_get_mana().unwrap()
+            }
+
+            /// Getter for the `mana` field.
+            ///
+            #[inline]
+            pub fn try_get_mana(&self) -> Result<i16, InvalidFlatbuffer> {
+                self.table.get_field(6).map(|value| value.unwrap_or(150))
+            }
+
+            /// Getter for the `hp` field.
+            ///
+            ///
+            /// # Panics
+            ///
+            /// If the value cannot be deserialized.
+            #[inline]
+            pub fn hp(&self) -> i16 {
+                self.try_get_hp().unwrap()
+            }
+
+            /// Getter for the `hp` field.
+            ///
+            #[inline]
+            pub fn try_get_hp(&self) -> Result<i16, InvalidFlatbuffer> {
+                self.table.get_field(8).map(|value| value.unwrap_or(100))
+            }
+
+            /// Getter for the `name` field.
+            ///
+            ///
+            /// # Panics
+            ///
+            /// If the value cannot be deserialized.
+            #[inline]
+            pub fn name(&self) -> Option<Str<'a>> {
+                self.try_get_name().unwrap()
+            }
+
+            /// Getter for the `name` field.
+            ///
+            #[inline]
+            pub fn try_get_name(&self) ->  Result<Option<Str<'a>>, InvalidFlatbuffer> {
+                self.table.get_field(10)
+            }
+
+            /// Getter for the `inventory` field.
+            ///
+            ///
+            /// # Panics
+            ///
+            /// If the value cannot be deserialized.
+            #[inline]
+            pub fn inventory(&self) -> Option<Vector<'a, u8>> {
+                self.try_get_inventory().unwrap()
+            }
+
+            /// Getter for the `inventory` field.
+            ///
+            #[inline]
+            pub fn try_get_inventory(&self) ->  Result<Option<Vector<'a, u8>>, InvalidFlatbuffer> {
+                self.table.get_field(14)
+            }
+
+            /// Getter for the `color` field.
+            ///
+            ///
+            /// # Panics
+            ///
+            /// If the value cannot be deserialized.
+            #[inline]
+            pub fn color(&self) -> Color {
+                self.try_get_color().unwrap()
+            }
+
+            /// Getter for the `color` field.
+            ///
+            #[inline]
+            pub fn try_get_color(&self) -> Result<Color, InvalidFlatbuffer> {
+                self.table.get_field(16).map(|value| value.unwrap_or(Color::Blue))
+            }
+
+            /// Getter for the `weapons` field.
+            ///
+            ///
+            /// # Panics
+            ///
+            /// If the value cannot be deserialized.
+            #[inline]
+            pub fn weapons(&self) -> Option<Vector<'a, WeaponView<'a>>> {
+                self.try_get_weapons().unwrap()
+            }
+
+            /// Getter for the `weapons` field.
+            ///
+            #[inline]
+            pub fn try_get_weapons(&self) ->  Result<Option<Vector<'a, WeaponView<'a>>>, InvalidFlatbuffer> {
+                self.table.get_field(18)
+            }
+
+            /// Getter for the `equipped` field.
+            ///
+            ///
+            /// # Panics
+            ///
+            /// If the value cannot be deserialized.
+            #[inline]
+            pub fn equipped(&self) -> Option<EquipmentView<'a>> {
+                self.try_get_equipped().unwrap()
+            }
+
+            /// Getter for the `equipped` field.
+            ///
+            #[inline]
+            pub fn try_get_equipped(&self) ->  Result<Option<EquipmentView<'a>>, InvalidFlatbuffer> {
+                self.table.get_field_union(20, 22)
+            }
+
+            /// Getter for the `path` field.
+            ///
+            ///
+            /// # Panics
+            ///
+            /// If the value cannot be deserialized.
+            #[inline]
+            pub fn path(&self) -> Option<Vector<'a, Vec3View<'a>>> {
+                self.try_get_path().unwrap()
+            }
+
+            /// Getter for the `path` field.
+            ///
+            #[inline]
+            pub fn try_get_path(&self) ->  Result<Option<Vector<'a, Vec3View<'a>>>, InvalidFlatbuffer> {
+                self.table.get_field(24)
+            }
+
+            /// Begin parsing a flatbuffer with a `Weapon` as the root object
+            #[inline]
+            pub fn from_buffer_as_root(buffer: &'a [u8]) -> Result<Self, InvalidFlatbuffer> {
+                FromTableField::from_field(buffer, 0)
+            }
+        }
+
+        #[inline]
+        pub fn get_root_as_monster<'a>(buffer: &'a [u8]) -> Result<MonsterView<'a>, InvalidFlatbuffer> {
+            MonsterView::from_buffer_as_root(buffer)
+        }
+
+        impl<'a> fmt::Debug for MonsterView<'a> {
+            fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+                formatter.debug_struct("MonsterView")
+                    .field("pos", &self.try_get_pos())
+                    .field("mana", &self.try_get_mana())
+                    .field("hp", &self.try_get_hp())
+                    .field("name", &self.try_get_name())
+                    .field("inventory", &self.try_get_inventory())
+                    .field("color", &self.try_get_color())
+                    .field("weapons", &self.try_get_weapons())
+                    .field("equipped", &self.try_get_equipped())
+                    .field("path", &self.try_get_path())
+                    .finish()
+            }
+        }
+
+        /// Builder for a flatbuffer `Monster` object
+        ///
+        /// This struct is used for serializing. For deserializing see [`MonsterView`](struct.MonsterView.html).
+        ///
+        #[derive(Copy, Clone, Debug, PartialEq)]
+        pub struct Monster {
+            pub pos: Option<Vec3>,
+            pub mana: i16,
+            pub hp: i16,
+            pub name: Option<Offset<str>>,
+            pub inventory: Option<Offset<[u8]>>,
+            pub color: Color,
+            pub weapons: Option<Offset<[Offset<Weapon>]>>,
+            pub equipped: Option<Equipment>,
+            pub path: Option<Offset<[Vec3]>>,
+        }
+
+        impl Default for Monster {
+            #[inline]
+            fn default() -> Monster {
+                Monster {
+                    pos: None,
+                    mana: 150,
+                    hp: 100,
+                    name: None,
+                    inventory: None,
+                    color: Color::Blue,
+                    weapons: None,
+                    equipped: None,
+                    path: None,
+                }
+            }
+        }
+
+        unsafe impl FlatbufferTable for Monster {
+            #[inline]
+            fn validate_required(&self) {
+            }
+
+            #[inline]
+            fn serialize<F: FlatbufferWriter>(
+                &self,
+                flatbuffer: &mut F,
+            ) -> Result<RawOffset, OutOfBufferSpace> {
+                let mut vtable = [0u8; 26];
+
+                let mut size = 0;
+                let mut alignment = 4;
+                let mut vtable_len = 4;
+
+                if self.pos != None {
+                    vtable_len = vtable_len.max(4 + 2);
+                    const CUR_ALIGN: usize = <Vec3 as FlatbufferPrimitive>::ALIGNMENT;
+                    alignment = alignment.max(CUR_ALIGN);
+                    vtable[4..4+2].copy_from_slice(
+                        &((size + 4) as u16).to_le_bytes());
+                    size += <Vec3 as FlatbufferPrimitive>::SIZE;
+                }
+                if self.name != None {
+                    vtable_len = vtable_len.max(10 + 2);
+                    const CUR_ALIGN: usize = <Offset<str> as FlatbufferPrimitive>::ALIGNMENT;
+                    alignment = alignment.max(CUR_ALIGN);
+                    vtable[10..10+2].copy_from_slice(
+                        &((size + 4) as u16).to_le_bytes());
+                    size += <Offset<str> as FlatbufferPrimitive>::SIZE;
+                }
+                if self.inventory != None {
+                    vtable_len = vtable_len.max(14 + 2);
+                    const CUR_ALIGN: usize = <Offset<[u8]> as FlatbufferPrimitive>::ALIGNMENT;
+                    alignment = alignment.max(CUR_ALIGN);
+                    vtable[14..14+2].copy_from_slice(
+                        &((size + 4) as u16).to_le_bytes());
+                    size += <Offset<[u8]> as FlatbufferPrimitive>::SIZE;
+                }
+                if self.weapons != None {
+                    vtable_len = vtable_len.max(18 + 2);
+                    const CUR_ALIGN: usize = <Offset<[Offset<Weapon>]> as FlatbufferPrimitive>::ALIGNMENT;
+                    alignment = alignment.max(CUR_ALIGN);
+                    vtable[18..18+2].copy_from_slice(
+                        &((size + 4) as u16).to_le_bytes());
+                    size += <Offset<[Offset<Weapon>]> as FlatbufferPrimitive>::SIZE;
+                }
+                if self.equipped != None {
+                    vtable_len = vtable_len.max(22 + 2);
+                    const CUR_ALIGN: usize = <Offset<()> as FlatbufferPrimitive>::ALIGNMENT;
+                    alignment = alignment.max(CUR_ALIGN);
+                    vtable[22..22+2].copy_from_slice(
+                        &((size + 4) as u16).to_le_bytes());
+                    size += <Offset<()> as FlatbufferPrimitive>::SIZE;
+                }
+                if self.path != None {
+                    vtable_len = vtable_len.max(24 + 2);
+                    const CUR_ALIGN: usize = <Offset<[Vec3]> as FlatbufferPrimitive>::ALIGNMENT;
+                    alignment = alignment.max(CUR_ALIGN);
+                    vtable[24..24+2].copy_from_slice(
+                        &((size + 4) as u16).to_le_bytes());
+                    size += <Offset<[Vec3]> as FlatbufferPrimitive>::SIZE;
+                }
+                if self.mana != 150 {
+                    vtable_len = vtable_len.max(6 + 2);
+                    const CUR_ALIGN: usize = <i16 as FlatbufferPrimitive>::ALIGNMENT;
+                    alignment = alignment.max(CUR_ALIGN);
+                    vtable[6..6+2].copy_from_slice(
+                        &((size + 4) as u16).to_le_bytes());
+                    size += <i16 as FlatbufferPrimitive>::SIZE;
+                }
+                if self.hp != 100 {
+                    vtable_len = vtable_len.max(8 + 2);
+                    const CUR_ALIGN: usize = <i16 as FlatbufferPrimitive>::ALIGNMENT;
+                    alignment = alignment.max(CUR_ALIGN);
+                    vtable[8..8+2].copy_from_slice(
+                        &((size + 4) as u16).to_le_bytes());
+                    size += <i16 as FlatbufferPrimitive>::SIZE;
+                }
+                if self.color != Color::Blue {
+                    vtable_len = vtable_len.max(16 + 2);
+                    const CUR_ALIGN: usize = <Color as FlatbufferPrimitive>::ALIGNMENT;
+                    alignment = alignment.max(CUR_ALIGN);
+                    vtable[16..16+2].copy_from_slice(
+                        &((size + 4) as u16).to_le_bytes());
+                    size += <Color as FlatbufferPrimitive>::SIZE;
+                }
+                if self.equipped != None {
+                    vtable_len = vtable_len.max(20 + 2);
+                    const CUR_ALIGN: usize = <EquipmentTag as FlatbufferPrimitive>::ALIGNMENT;
+                    alignment = alignment.max(CUR_ALIGN);
+                    vtable[20..20+2].copy_from_slice(
+                        &((size + 4) as u16).to_le_bytes());
+                    size += <EquipmentTag as FlatbufferPrimitive>::SIZE;
+                }
+                flatbuffer.align_before_write(size, alignment - 1)?;
+                if let Some(ref value) = self.equipped {
+                    flatbuffer.write_primitive(&value.tag())?;
+                }
+                if self.color != Color::Blue {
+                    flatbuffer.write_primitive(&self.color)?;
+                }
+                if self.hp != 100 {
+                    flatbuffer.write_primitive(&self.hp)?;
+                }
+                if self.mana != 150 {
+                    flatbuffer.write_primitive(&self.mana)?;
+                }
+                if let Some(ref value) = self.path {
+                    flatbuffer.write_primitive(value)?;
+                }
+                if let Some(ref value) = self.equipped {
+                    flatbuffer.write_primitive(&value.offset())?;
+                }
+                if let Some(ref value) = self.weapons {
+                    flatbuffer.write_primitive(value)?;
+                }
+                if let Some(ref value) = self.inventory {
+                    flatbuffer.write_primitive(value)?;
+                }
+                if let Some(ref value) = self.name {
+                    flatbuffer.write_primitive(value)?;
+                }
+                if let Some(ref value) = self.pos {
+                    flatbuffer.write_primitive(value)?;
+                }
+                flatbuffer.write_vtable_and_offset(&mut vtable[..vtable_len], size + 4)
+            }
+        }
+
+        /// View of a flatbuffer `Weapon` object
+        ///
+        /// This struct is used for deserializing. For serializing see [`Weapon`](struct.Weapon.html).
+        ///
+        #[derive(Copy, Clone)]
+        pub struct WeaponView<'a> {
+            table: Table<'a>,
+        }
+
+        #[doc(hidden)]
+        impl<'a> FromTableField<'a> for WeaponView<'a> {
+            const INLINE_SIZE: usize = Table::INLINE_SIZE;
+
+            #[inline]
+            fn from_field(buf: &'a [u8], offset: usize) -> Result<Self, InvalidFlatbuffer> {
+                FromTableField::from_field(buf, offset).map(|table| Self { table })
+            }
+        }
+
+        impl<'a> WeaponView<'a> {
+            /// Getter for the `name` field.
+            ///
+            ///
+            /// # Panics
+            ///
+            /// If the value cannot be deserialized.
+            #[inline]
+            pub fn name(&self) -> Option<Str<'a>> {
+                self.try_get_name().unwrap()
+            }
+
+            /// Getter for the `name` field.
+            ///
+            #[inline]
+            pub fn try_get_name(&self) ->  Result<Option<Str<'a>>, InvalidFlatbuffer> {
+                self.table.get_field(4)
+            }
+
+            /// Getter for the `damage` field.
+            ///
+            ///
+            /// # Panics
+            ///
+            /// If the value cannot be deserialized.
+            #[inline]
+            pub fn damage(&self) -> i16 {
+                self.try_get_damage().unwrap()
+            }
+
+            /// Getter for the `damage` field.
+            ///
+            #[inline]
+            pub fn try_get_damage(&self) -> Result<i16, InvalidFlatbuffer> {
+                self.table.get_field(6).map(|value| value.unwrap_or(0))
+            }
+
+            /// Begin parsing a flatbuffer with a `Weapon` as the root object
+            #[inline]
+            pub fn from_buffer_as_root(buffer: &'a [u8]) -> Result<Self, InvalidFlatbuffer> {
+                FromTableField::from_field(buffer, 0)
+            }
+        }
+
+        impl<'a> fmt::Debug for WeaponView<'a> {
+            fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+                formatter.debug_struct("WeaponView")
+                    .field("name", &self.try_get_name())
+                    .field("damage", &self.try_get_damage())
+                    .finish()
+            }
+        }
+
+        /// Builder for a flatbuffer `Weapon` object
+        ///
+        /// This struct is used for serializing. For deserializing see [`WeaponView`](struct.WeaponView.html).
+        ///
+        #[derive(Copy, Clone, Debug, PartialEq)]
+        pub struct Weapon {
+            pub name: Option<Offset<str>>,
+            pub damage: i16,
+        }
+
+        impl Default for Weapon {
+            #[inline]
+            fn default() -> Weapon {
+                Weapon {
+                    name: None,
+                    damage: 0,
+                }
+            }
+        }
+
+        unsafe impl FlatbufferTable for Weapon {
+            #[inline]
+            fn validate_required(&self) {
+            }
+
+            #[inline]
+            fn serialize<F: FlatbufferWriter>(
+                &self,
+                flatbuffer: &mut F,
+            ) -> Result<RawOffset, OutOfBufferSpace> {
+                let mut vtable = [0u8; 8];
+
+                let mut size = 0;
+                let mut alignment = 4;
+                let mut vtable_len = 4;
+
+                if self.name != None {
+                    vtable_len = vtable_len.max(4 + 2);
+                    const CUR_ALIGN: usize = <Offset<str> as FlatbufferPrimitive>::ALIGNMENT;
+                    alignment = alignment.max(CUR_ALIGN);
+                    vtable[4..4+2].copy_from_slice(
+                        &((size + 4) as u16).to_le_bytes());
+                    size += <Offset<str> as FlatbufferPrimitive>::SIZE;
+                }
+                if self.damage != 0 {
+                    vtable_len = vtable_len.max(6 + 2);
+                    const CUR_ALIGN: usize = <i16 as FlatbufferPrimitive>::ALIGNMENT;
+                    alignment = alignment.max(CUR_ALIGN);
+                    vtable[6..6+2].copy_from_slice(
+                        &((size + 4) as u16).to_le_bytes());
+                    size += <i16 as FlatbufferPrimitive>::SIZE;
+                }
+                flatbuffer.align_before_write(size, alignment - 1)?;
+                if self.damage != 0 {
+                    flatbuffer.write_primitive(&self.damage)?;
+                }
+                if let Some(ref value) = self.name {
+                    flatbuffer.write_primitive(value)?;
+                }
+                flatbuffer.write_vtable_and_offset(&mut vtable[..vtable_len], size + 4)
+            }
         }
     }
 }
-
-impl<'a> Monster<'a> {
-    #[inline]
-    pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-        Monster {
-            _tab: table,
-        }
-    }
-    #[allow(unused_mut)]
-    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-        _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-        args: &'args MonsterArgs<'args>) -> flatbuffers::WIPOffset<Monster<'bldr>> {
-      let mut builder = MonsterBuilder::new(_fbb);
-      if let Some(x) = args.equipped { builder.add_equipped(x); }
-      if let Some(x) = args.weapons { builder.add_weapons(x); }
-      if let Some(x) = args.inventory { builder.add_inventory(x); }
-      if let Some(x) = args.name { builder.add_name(x); }
-      if let Some(x) = args.pos { builder.add_pos(x); }
-      builder.add_hp(args.hp);
-      builder.add_mana(args.mana);
-      builder.add_equipped_type(args.equipped_type);
-      builder.add_color(args.color);
-      builder.finish()
-    }
-
-    pub const VT_POS: flatbuffers::VOffsetT = 4;
-    pub const VT_MANA: flatbuffers::VOffsetT = 6;
-    pub const VT_HP: flatbuffers::VOffsetT = 8;
-    pub const VT_NAME: flatbuffers::VOffsetT = 10;
-    pub const VT_INVENTORY: flatbuffers::VOffsetT = 14;
-    pub const VT_COLOR: flatbuffers::VOffsetT = 16;
-    pub const VT_WEAPONS: flatbuffers::VOffsetT = 18;
-    pub const VT_EQUIPPED_TYPE: flatbuffers::VOffsetT = 20;
-    pub const VT_EQUIPPED: flatbuffers::VOffsetT = 22;
-
-  #[inline]
-  pub fn pos(&'a self) -> Option<&'a Vec3> {
-    self._tab.get::<Vec3>(Monster::VT_POS, None)
-  }
-  #[inline]
-  pub fn mana(&'a self) -> i16 {
-    self._tab.get::<i16>(Monster::VT_MANA, Some(150)).unwrap()
-  }
-  #[inline]
-  pub fn hp(&'a self) -> i16 {
-    self._tab.get::<i16>(Monster::VT_HP, Some(100)).unwrap()
-  }
-  #[inline]
-  pub fn name(&'a self) -> Option<&'a str> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Monster::VT_NAME, None)
-  }
-  #[inline]
-  pub fn inventory(&'a self) -> Option<&'a [u8]> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(Monster::VT_INVENTORY, None).map(|v| v.safe_slice())
-  }
-  #[inline]
-  pub fn color(&'a self) -> Color {
-    self._tab.get::<Color>(Monster::VT_COLOR, Some(Color::Blue)).unwrap()
-  }
-  #[inline]
-  pub fn weapons(&'a self) -> Option<flatbuffers::Vector<flatbuffers::ForwardsUOffset<Weapon<'a>>>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<flatbuffers::ForwardsUOffset<Weapon<'a>>>>>(Monster::VT_WEAPONS, None)
-  }
-  #[inline]
-  pub fn equipped_type(&'a self) -> Equipment {
-    self._tab.get::<Equipment>(Monster::VT_EQUIPPED_TYPE, Some(Equipment::NONE)).unwrap()
-  }
-  #[inline]
-  pub fn equipped(&'a self) -> Option<flatbuffers::Table<'a>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Table<'a>>>(Monster::VT_EQUIPPED, None)
-  }
-  #[inline]
-  #[allow(non_snake_case)]
-  pub fn equipped_as_weapon(&'a self) -> Option<Weapon> {
-    if self.equipped_type() == Equipment::Weapon {
-      self.equipped().map(|u| Weapon::init_from_table(u))
-    } else {
-      None
-    }
-  }
-
-}
-
-pub struct MonsterArgs<'a> {
-    pub pos: Option<&'a  Vec3>,
-    pub mana: i16,
-    pub hp: i16,
-    pub name: Option<flatbuffers::WIPOffset<&'a  str>>,
-    pub inventory: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a ,  u8>>>,
-    pub color: Color,
-    pub weapons: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a , flatbuffers::ForwardsUOffset<Weapon<'a >>>>>,
-    pub equipped_type: Equipment,
-    pub equipped: Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>>,
-}
-impl<'a> Default for MonsterArgs<'a> {
-    #[inline]
-    fn default() -> Self {
-        MonsterArgs {
-            pos: None,
-            mana: 150,
-            hp: 100,
-            name: None,
-            inventory: None,
-            color: Color::Blue,
-            weapons: None,
-            equipped_type: Equipment::NONE,
-            equipped: None,
-        }
-    }
-}
-pub struct MonsterBuilder<'a: 'b, 'b> {
-  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
-  start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
-}
-impl<'a: 'b, 'b> MonsterBuilder<'a, 'b> {
-  #[inline]
-  pub fn add_pos(&mut self, pos: &'b  Vec3) {
-    self.fbb_.push_slot_always::<&Vec3>(Monster::VT_POS, pos);
-  }
-  #[inline]
-  pub fn add_mana(&mut self, mana: i16) {
-    self.fbb_.push_slot::<i16>(Monster::VT_MANA, mana, 150);
-  }
-  #[inline]
-  pub fn add_hp(&mut self, hp: i16) {
-    self.fbb_.push_slot::<i16>(Monster::VT_HP, hp, 100);
-  }
-  #[inline]
-  pub fn add_name(&mut self, name: flatbuffers::WIPOffset<&'b  str>) {
-    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Monster::VT_NAME, name);
-  }
-  #[inline]
-  pub fn add_inventory(&mut self, inventory: flatbuffers::WIPOffset<flatbuffers::Vector<'b , u8>>) {
-    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Monster::VT_INVENTORY, inventory);
-  }
-  #[inline]
-  pub fn add_color(&mut self, color: Color) {
-    self.fbb_.push_slot::<Color>(Monster::VT_COLOR, color, Color::Blue);
-  }
-  #[inline]
-  pub fn add_weapons(&mut self, weapons: flatbuffers::WIPOffset<flatbuffers::Vector<'b , flatbuffers::ForwardsUOffset<Weapon<'b >>>>) {
-    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Monster::VT_WEAPONS, weapons);
-  }
-  #[inline]
-  pub fn add_equipped_type(&mut self, equipped_type: Equipment) {
-    self.fbb_.push_slot::<Equipment>(Monster::VT_EQUIPPED_TYPE, equipped_type, Equipment::NONE);
-  }
-  #[inline]
-  pub fn add_equipped(&mut self, equipped: flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>) {
-    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Monster::VT_EQUIPPED, equipped);
-  }
-  #[inline]
-  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> MonsterBuilder<'a, 'b> {
-    let start = _fbb.start_table();
-    MonsterBuilder {
-      fbb_: _fbb,
-      start_: start,
-    }
-  }
-  #[inline]
-  pub fn finish(self) -> flatbuffers::WIPOffset<Monster<'a>> {
-    let o = self.fbb_.end_table(self.start_);
-    flatbuffers::WIPOffset::new(o.value())
-  }
-}
-
-pub enum WeaponOffset {}
-#[derive(Copy, Clone, Debug, PartialEq)]
-
-pub struct Weapon<'a> {
-  pub _tab: flatbuffers::Table<'a>,
-}
-
-impl<'a> flatbuffers::Follow<'a> for Weapon<'a> {
-    type Inner = Weapon<'a>;
-    #[inline]
-    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self {
-            _tab: flatbuffers::Table { buf: buf, loc: loc },
-        }
-    }
-}
-
-impl<'a> Weapon<'a> {
-    #[inline]
-    pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-        Weapon {
-            _tab: table,
-        }
-    }
-    #[allow(unused_mut)]
-    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-        _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-        args: &'args WeaponArgs<'args>) -> flatbuffers::WIPOffset<Weapon<'bldr>> {
-      let mut builder = WeaponBuilder::new(_fbb);
-      if let Some(x) = args.name { builder.add_name(x); }
-      builder.add_damage(args.damage);
-      builder.finish()
-    }
-
-    pub const VT_NAME: flatbuffers::VOffsetT = 4;
-    pub const VT_DAMAGE: flatbuffers::VOffsetT = 6;
-
-  #[inline]
-  pub fn name(&'a self) -> Option<&'a str> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Weapon::VT_NAME, None)
-  }
-  #[inline]
-  pub fn damage(&'a self) -> i16 {
-    self._tab.get::<i16>(Weapon::VT_DAMAGE, Some(0)).unwrap()
-  }
-}
-
-pub struct WeaponArgs<'a> {
-    pub name: Option<flatbuffers::WIPOffset<&'a  str>>,
-    pub damage: i16,
-}
-impl<'a> Default for WeaponArgs<'a> {
-    #[inline]
-    fn default() -> Self {
-        WeaponArgs {
-            name: None,
-            damage: 0,
-        }
-    }
-}
-pub struct WeaponBuilder<'a: 'b, 'b> {
-  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
-  start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
-}
-impl<'a: 'b, 'b> WeaponBuilder<'a, 'b> {
-  #[inline]
-  pub fn add_name(&mut self, name: flatbuffers::WIPOffset<&'b  str>) {
-    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Weapon::VT_NAME, name);
-  }
-  #[inline]
-  pub fn add_damage(&mut self, damage: i16) {
-    self.fbb_.push_slot::<i16>(Weapon::VT_DAMAGE, damage, 0);
-  }
-  #[inline]
-  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> WeaponBuilder<'a, 'b> {
-    let start = _fbb.start_table();
-    WeaponBuilder {
-      fbb_: _fbb,
-      start_: start,
-    }
-  }
-  #[inline]
-  pub fn finish(self) -> flatbuffers::WIPOffset<Weapon<'a>> {
-    let o = self.fbb_.end_table(self.start_);
-    flatbuffers::WIPOffset::new(o.value())
-  }
-}
-
-#[inline]
-pub fn get_root_as_monster<'a>(buf: &'a [u8]) -> Monster<'a> {
-  flatbuffers::get_root::<Monster<'a>>(buf)
-}
-
-#[inline]
-pub fn get_size_prefixed_root_as_monster<'a>(buf: &'a [u8]) -> Monster<'a> {
-  flatbuffers::get_size_prefixed_root::<Monster<'a>>(buf)
-}
-
-#[inline]
-pub fn finish_monster_buffer<'a, 'b>(
-    fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>,
-    root: flatbuffers::WIPOffset<Monster<'a>>) {
-  fbb.finish(root, None);
-}
-
-#[inline]
-pub fn finish_size_prefixed_monster_buffer<'a, 'b>(fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>, root: flatbuffers::WIPOffset<Monster<'a>>) {
-  fbb.finish_size_prefixed(root, None);
-}
-}  // pub mod Sample
-}  // pub mod MyGame
-

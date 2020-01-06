@@ -8,6 +8,13 @@ homepage = "https://google.github.io/flatbuffers/"
 repository = "https://github.com/google/flatbuffers"
 keywords = ["flatbuffers", "serialization", "zero-copy"]
 categories = ["encoding", "data-structures", "memory-management"]
+edition = "2018"
 
 [dependencies]
-smallvec = "1.0"
+bumpalo = { version = "3.0.0", optional = true }
+lru-cache = { version = "0.1.2", optional = true }
+uluru = { version = "0.4.0", optional = true }
+static_assertions = "1.1.0"
+
+[features]
+std = []

@@ -41,38 +41,63 @@ pub mod include_test2_generated;
 mod monster_test_generated;
 pub use monster_test_generated::my_game;
 
+use flatbuffers::serialize::buffer::{Buffer, BumpaloBuffer, SliceBuffer};
+use flatbuffers::serialize::cache::{Cache, HashMapCache, UluruCache};
+use flatbuffers::serialize::{Flatbuffer, FlatbufferBuilder};
+
 // verbatim from the test suite:
-fn create_serialized_example_with_generated_code(builder: &mut flatbuffers::FlatBufferBuilder) {
+fn create_serialized_example_with_generated_code<'a, B, C>(
+    mut builder: FlatbufferBuilder<'a, B, C>,
+) -> Result<(), flatbuffers::errors::OutOfBufferSpace>
+where
+    B: Buffer<'a>,
+    C: Cache<'a, 'a>,
+{
     let mon = {
-        let _ = builder.create_vector_of_strings(&["these", "unused", "strings", "check", "the", "create_vector_of_strings", "function"]);
+        let strings = [
+            builder.create_string("these")?,
+            builder.create_string("unused")?,
+            builder.create_string("strings")?,
+            builder.create_string("check")?,
+            builder.create_string("the")?,
+            builder.create_string("create_vector_of_strings")?,
+            builder.create_string("function")?,
+        ];
+        builder.create_vector(&strings)?;
 
-        let s0 = builder.create_string("test1");
-        let s1 = builder.create_string("test2");
-        let fred_name = builder.create_string("Fred");
+        let s0 = builder.create_string("test1")?;
+        let s1 = builder.create_string("test2")?;
+        let fred_name = builder.create_string("Fred")?;
 
-        // can't inline creation of this Vec3 because we refer to it by reference, so it must live
-        // long enough to be used by MonsterArgs.
-        let pos = my_game::example::Vec3::new(1.0, 2.0, 3.0, 3.0, my_game::example::Color::Green, &my_game::example::Test::new(5i16, 6i8));
-
-        let args = my_game::example::MonsterArgs{
+        let args = my_game::example::Monster {
             hp: 80,
             mana: 150,
-            name: Some(builder.create_string("MyMonster")),
-            pos: Some(&pos),
-            test_type: my_game::example::Any::Monster,
-            test: Some(my_game::example::Monster::create(builder, &my_game::example::MonsterArgs{
-                name: Some(fred_name),
-                ..Default::default()
-            }).as_union_value()),
-            inventory: Some(builder.create_vector_direct(&[0u8, 1, 2, 3, 4][..])),
-            test4: Some(builder.create_vector_direct(&[my_game::example::Test::new(10, 20),
-            my_game::example::Test::new(30, 40)])),
-            testarrayofstring: Some(builder.create_vector(&[s0, s1])),
+            name: Some(builder.create_string("MyMonster")?),
+            pos: Some(my_game::example::Vec3 {
+                x: 1.0,
+                y: 2.0,
+                z: 3.0,
+                test1: 3.0,
+                test2: my_game::example::Color::Green,
+                test3: my_game::example::Test { a: 5i16, b: 6i8 },
+            }),
+            test: Some(my_game::example::Any::Monster(builder.create_table(
+                &my_game::example::Monster {
+                    name: Some(fred_name),
+                    ..Default::default()
+                },
+            )?)),
+            inventory: Some(builder.create_vector(&[0u8, 1, 2, 3, 4][..])?),
+            test4: Some(builder.create_vector(&[
+                my_game::example::Test { a: 10, b: 20 },
+                my_game::example::Test { a: 30, b: 40 },
+            ])?),
+            testarrayofstring: Some(builder.create_vector(&[s0, s1])?),
             ..Default::default()
         };
-        my_game::example::Monster::create(builder, &args)
+        builder.create_table(&args)?
     };
-    my_game::example::finish_monster_buffer(builder, mon);
+    builder.finish(mon)
 }
 
 fn main() {
@@ -84,23 +109,38 @@ fn main() {
         assert_eq!(before + 1, after);
     }
 
-    let builder = &mut flatbuffers::FlatBufferBuilder::new();
+    // When using SliceBuffer and UluruCache, no heap allocations ever occur, even on warmup
     {
-        // warm up the builder (it can make small allocs internally, such as for storing vtables):
-        create_serialized_example_with_generated_code(builder);
-    }
-
-    // reset the builder, clearing its heap-allocated memory:
-    builder.reset();
-
-    {
+        let mut output_slice = [0; 4096];
+        let mut flatbuffer =
+            Flatbuffer::new(SliceBuffer::new(&mut output_slice), UluruCache::default());
         let before = A.n_allocs();
-        create_serialized_example_with_generated_code(builder);
+        create_serialized_example_with_generated_code(flatbuffer.new_message()).unwrap();
         let after = A.n_allocs();
         assert_eq!(before, after, "KO: Heap allocs occurred in Rust write path");
     }
 
-    let buf = builder.finished_data();
+    // With a BumpaloBuffer and UluruCache we might need a bit of warm up
+    let mut flatbuffer = Flatbuffer::new(BumpaloBuffer::default(), HashMapCache::default());
+    create_serialized_example_with_generated_code(flatbuffer.new_message()).unwrap();
+    create_serialized_example_with_generated_code(flatbuffer.new_message()).unwrap();
+
+    let before = A.n_allocs();
+    create_serialized_example_with_generated_code(flatbuffer.new_message()).unwrap();
+    let after = A.n_allocs();
+    assert_eq!(before, after, "KO: Heap allocs occurred in Rust write path");
+
+    // Alternatively we can just pre-allocate sufficient size
+    let mut flatbuffer = Flatbuffer::new(
+        BumpaloBuffer::with_capacity(4000),
+        HashMapCache::with_capacity(64),
+    );
+    let before = A.n_allocs();
+    create_serialized_example_with_generated_code(flatbuffer.new_message()).unwrap();
+    let after = A.n_allocs();
+    assert_eq!(before, after, "KO: Heap allocs occurred in Rust write path");
+
+    let buf = flatbuffer.collect_last_message().unwrap();
 
     // use the allocation tracking on the read path:
     {
@@ -108,10 +148,10 @@ fn main() {
 
         // do many reads, forcing them to execute by using assert_eq:
         {
-            let m = my_game::example::get_root_as_monster(buf);
+            let m = my_game::example::get_root_as_monster(&buf).unwrap();
             assert_eq!(80, m.hp());
             assert_eq!(150, m.mana());
-            assert_eq!("MyMonster", m.name());
+            assert_eq!("MyMonster", m.name().as_str());
 
             let pos = m.pos().unwrap();
             // We know the bits should be exactly equal here but compilers may
@@ -125,11 +165,9 @@ fn main() {
             let pos_test3 = pos.test3();
             assert_eq!(pos_test3.a(), 5i16);
             assert_eq!(pos_test3.b(), 6i8);
-            assert_eq!(m.test_type(), my_game::example::Any::Monster);
-            let table2 = m.test().unwrap();
-            let m2 = my_game::example::Monster::init_from_table(table2);
+            let m2 = m.test().unwrap().as_monster().unwrap();
 
-            assert_eq!(m2.name(), "Fred");
+            assert_eq!(m2.name().as_str(), "Fred");
 
             let inv = m.inventory().unwrap();
             assert_eq!(inv.len(), 5);
@@ -137,13 +175,18 @@ fn main() {
 
             let test4 = m.test4().unwrap();
             assert_eq!(test4.len(), 2);
-            assert_eq!(i32::from(test4[0].a()) + i32::from(test4[1].a()) +
-                       i32::from(test4[0].b()) + i32::from(test4[1].b()), 100);
+            assert_eq!(
+                i32::from(test4.get(0).a())
+                    + i32::from(test4.get(1).a())
+                    + i32::from(test4.get(0).b())
+                    + i32::from(test4.get(1).b()),
+                100
+            );
 
             let testarrayofstring = m.testarrayofstring().unwrap();
             assert_eq!(testarrayofstring.len(), 2);
-            assert_eq!(testarrayofstring.get(0), "test1");
-            assert_eq!(testarrayofstring.get(1), "test2");
+            assert_eq!(testarrayofstring.get(0).as_str(), "test1");
+            assert_eq!(testarrayofstring.get(1).as_str(), "test2");
         }
 
         // assert that no allocs occurred:

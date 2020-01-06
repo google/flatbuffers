@@ -2,9 +2,10 @@
 name = "rust_usage_test"
 version = "0.1.0"
 authors = ["Robert Winslow <hello@rwinslow.com>", "FlatBuffers Maintainers"]
+edition = "2018"
 
 [dependencies]
-flatbuffers = { path = "../../rust/flatbuffers" }
+flatbuffers = { path = "../../rust/flatbuffers", features = ["std", "uluru", "bumpalo"] }
 
 [[bin]]
 name = "monster_example"
