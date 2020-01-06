@@ -107,6 +107,30 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
     else
       schema += "enum " + enum_def.name + " : ";
     schema += GenType(enum_def.underlying_type, true) + " {\n";
+
+    if (parser.opts.proto_mode && !enum_def.is_union) {
+      // If the enum doesn't have 0 as a value, then insert it.
+      bool found_zero = false;
+      for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
+           ++it) {
+        auto &ev = **it;
+        if (ev.IsZero()) {
+          found_zero = true;
+          break;
+        }
+      }
+      if (!found_zero) {
+        GenComment(
+            std::vector<std::string>(1,
+                                     "flatc-added default enum entry added to "
+                                     "ensure a valid schema was generated."),
+            &schema, nullptr, "  ");
+        schema += "  " + enum_def.name +
+                  "_FLATBUFFERS_DEFAULT_VALUE = " + NumToString(0) + ",\n";
+      }
+    }
+
+    // If the enum doesn't have 0 as a value, then insert it.
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
       GenComment(ev.doc_comment, &schema, nullptr, "  ");

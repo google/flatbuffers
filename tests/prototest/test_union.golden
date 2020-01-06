@@ -22,6 +22,13 @@ union RUnion {
 
 namespace proto.test;
 
+enum ProtoEnumMissingDefault : int {
+  ///flatc-added default enum entry added to ensure a valid schema was generated.
+  ProtoEnumMissingDefault_FLATBUFFERS_DEFAULT_VALUE = 0,
+  FOO = 1,
+  BAR = 2,
+}
+
 table ImportedMessage {
   a:int;
 }

@@ -12,6 +12,13 @@ enum ProtoEnum : int {
   BAR = 5,
 }
 
+enum ProtoEnumMissingDefault : int {
+  ///flatc-added default enum entry added to ensure a valid schema was generated.
+  ProtoEnumMissingDefault_FLATBUFFERS_DEFAULT_VALUE = 0,
+  FOO = 1,
+  BAR = 2,
+}
+
 /// 2nd table doc comment with
 /// many lines.
 table ProtoMessage {

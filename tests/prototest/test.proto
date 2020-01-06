@@ -57,3 +57,10 @@ message ProtoMessage {
     OtherMessage t = 18;
   }
 }
+
+enum ProtoEnumMissingDefault {
+  FOO = 1;
+  BAR = 2;
+}
+
+
