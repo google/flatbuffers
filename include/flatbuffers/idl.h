@@ -557,6 +557,7 @@ struct IDLOptions {
   bool java_primitive_has_method;
   std::vector<std::string> cpp_includes;
   std::string cpp_std;
+  std::string proto_namespace_suffix;
 
   // Possible options for the more general generator below.
   enum Language {
