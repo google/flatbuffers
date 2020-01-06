@@ -19,7 +19,6 @@ package com.google.flatbuffers;
 import static com.google.flatbuffers.Constants.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.charset.Charset;
 
 /// @cond FLATBUFFERS_INTERNAL
 
@@ -27,12 +26,6 @@ import java.nio.charset.Charset;
  * All tables in the generated code derive from this class, and add their own accessors.
  */
 public class Table {
-  public final static ThreadLocal<Charset> UTF8_CHARSET = new ThreadLocal<Charset>() {
-    @Override
-    protected Charset initialValue() {
-      return Charset.forName("UTF-8");
-    }
-  };
   /** Used to hold the position of the `bb` buffer. */
   protected int bb_pos;
   /** The underlying ByteBuffer to hold the data of the Table. */

@@ -293,7 +293,7 @@ public final class Monster extends Table {
   protected int keysCompare(Integer o1, Integer o2, ByteBuffer _bb) { return compareStrings(__offset(10, o1, _bb), __offset(10, o2, _bb), _bb); }
 
   public static Monster __lookup_by_key(Monster obj, int vectorLocation, String key, ByteBuffer bb) {
-    byte[] byteKey = key.getBytes(Table.UTF8_CHARSET.get());
+    byte[] byteKey = key.getBytes(java.nio.charset.StandardCharsets.UTF_8);
     int span = bb.getInt(vectorLocation - 4);
     int start = 0;
     while (span != 0) {
