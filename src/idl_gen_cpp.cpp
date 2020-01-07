@@ -299,6 +299,7 @@ class CppGenerator : public BaseGenerator {
       code_ += "#endif  // " + include_guard;
     }
 
+    // We are just adding "_bfbs" to the generated filename. 
     const auto file_path = GeneratedFileName(path_, file_name_ + "_bfbs");
     const auto final_code = code_.ToString();
 
