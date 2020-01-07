@@ -37,6 +37,7 @@ table ProtoMessage {
   z:proto.test.ImportedMessage;
   /// doc comment for r.
   r:proto.test.ProtoMessage_.Anonymous0;
+  enum_field:proto.test.ProtoEnum;
 }
 
 namespace proto.test.ProtoMessage_;

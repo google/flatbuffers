@@ -56,4 +56,5 @@ message ProtoMessage {
     /// lines.
     OtherMessage t = 18;
   }
+  required ProtoEnum enum_field = 19;
 }

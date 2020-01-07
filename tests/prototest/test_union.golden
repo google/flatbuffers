@@ -51,6 +51,7 @@ table ProtoMessage {
   z:proto.test.ImportedMessage;
   /// doc comment for r.
   r:proto.test.ProtoMessage_.RUnion;
+  enum_field:proto.test.ProtoEnum;
 }
 
 namespace proto.test.ProtoMessage_;
