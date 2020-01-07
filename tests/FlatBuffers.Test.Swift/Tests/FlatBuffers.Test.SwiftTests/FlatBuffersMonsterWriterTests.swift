@@ -42,13 +42,6 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
 
         let newBuf = FlatBuffersUtils.removeSizePrefix(bb: bytes.buffer)
         readMonster(fb: newBuf)
-        let monster = Monster1.getRootAsMonster(bb: newBuf)
-        let secondaryBuf = ByteBuffer(bytes: bytes.sizedByteArray)
-        _ = monster.mutate(testType: .none)
-        let sBuf = FlatBuffersUtils.removeSizePrefix(bb: secondaryBuf)
-        readMonster(fb: sBuf)
-        _ = monster.mutate(testType: .monster)
-        readMonster(fb: newBuf)
     }
 
     func createMonster(withPrefix prefix: Bool) -> FlatBufferBuilder {
@@ -88,13 +81,13 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
         Monster1.add(pos: posOffset, fbb)
         Monster1.add(hp: 80, fbb)
         Monster1.add(name: str, fbb)
-        Monster1.add(inventory: inv, fbb)
+        Monster1.addVectorOf(inventory: inv, fbb)
         Monster1.add(testType: .monster, fbb)
         Monster1.add(test: mon2, fbb)
-        Monster1.add(test4: test4, fbb)
-        Monster1.add(testarrayofstring: stringTestVector, fbb)
+        Monster1.addVectorOf(test4: test4, fbb)
+        Monster1.addVectorOf(testarrayofstring: stringTestVector, fbb)
         Monster1.add(testbool: true, fbb)
-        Monster1.add(testarrayoftables: sortedArray, fbb)
+        Monster1.addVectorOf(testarrayoftables: sortedArray, fbb)
         let end = Monster1.endMonster(fbb, start: mStart)
         Monster1.finish(fbb, end: end, prefix: prefix)
         return fbb
@@ -112,10 +105,6 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
         XCTAssertNotNil(monster.testarrayoftablesBy(key: "Barney"))
         XCTAssertNotNil(monster.testarrayoftablesBy(key: "Wilma"))
 
-        XCTAssertEqual(monster.testType, .monster)
-        XCTAssertEqual(monster.mutate(testType: .none), true)
-        XCTAssertEqual(monster.testType, .none)
-        XCTAssertEqual(monster.mutate(testType: .monster), true)
         XCTAssertEqual(monster.testType, .monster)
 
         XCTAssertEqual(monster.mutate(inventory: 1, at: 0), true)
@@ -163,9 +152,6 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
         let monster2 = monster.test(type: Monster1.self)
         XCTAssertEqual(monster2?.name, "Fred")
         
-        XCTAssertEqual(monster.mutate(testType: .none), true)
-        XCTAssertNotEqual(monster.testType, .monster)
-        XCTAssertEqual(monster.mutate(testType: .monster), true)
         XCTAssertEqual(monster.mutate(mana: 10), false)
         
         XCTAssertEqual(monster.mana, 150)

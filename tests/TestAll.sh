@@ -62,3 +62,4 @@ echo "************************ Swift:"
 
 cd FlatBuffers.Test.Swift
 sh SwiftTest.sh
+cd ..

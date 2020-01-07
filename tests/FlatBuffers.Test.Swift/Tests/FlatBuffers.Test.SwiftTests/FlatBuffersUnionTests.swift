@@ -90,8 +90,8 @@ final class FlatBuffersUnionTests: XCTestCase {
         let characterVector = fb.createVector(ofOffsets: characters)
         
         let movieStart = Movie.startMovie(fb)
-        Movie.add(charactersType: types, fb)
-        Movie.add(characters: characterVector, fb)
+        Movie.addVectorOf(charactersType: types, fb)
+        Movie.addVectorOf(characters: characterVector, fb)
         let end = Movie.endMovie(fb, start: movieStart)
         Movie.finish(fb, end: end)
         

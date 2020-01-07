@@ -8,4 +8,3 @@ mv *_generated.swift ${swift_dir}/Tests/FlatBuffers.Test.SwiftTests
 cd ${swift_dir}
 swift build --build-tests
 swift test
-cd ..

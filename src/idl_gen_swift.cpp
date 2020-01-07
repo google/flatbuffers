@@ -276,7 +276,13 @@ class SwiftGenerator : public BaseGenerator {
     code_.SetValue("VALUETYPE", type);
     code_.SetValue("OFFSET", NumToString(position));
     code_.SetValue("CONSTANT", field.value.constant);
-    code_ += "\tpublic static func add({{VALUENAME}}: \\";
+    std::string check_if_vector =
+        (field.value.type.base_type == BASE_TYPE_VECTOR ||
+         field.value.type.base_type == BASE_TYPE_ARRAY)
+            ? "VectorOf"
+            : "";
+    code_ +=
+        "\tpublic static func add" + check_if_vector + "({{VALUENAME}}: \\";
 
     if (IsScalar(field.value.type.base_type) &&
         !IsBool(field.value.type.base_type)) {
@@ -339,7 +345,7 @@ class SwiftGenerator : public BaseGenerator {
       code_ += GenReaderMainBody() + "\\";
       code_ += GenOffset() + "return o == 0 ? " + default_value + " : " +
                GenEnumConstructor("o") + "?? " + default_value + " }";
-      if (parser_.opts.mutable_buffer)
+      if (parser_.opts.mutable_buffer && !IsUnion(field.value.type))
         code_ += GenMutate("o", GenOffset(), true);
       return;
     }
@@ -548,7 +554,8 @@ class SwiftGenerator : public BaseGenerator {
 
     code_.SetValue("TYPE", GenType(key_field.value.type));
     code_ +=
-        "\tpublic static func lookupByKey(vector: Int32, key: {{TYPE}}, fbb: "
+        "\tfileprivate static func lookupByKey(vector: Int32, key: {{TYPE}}, "
+        "fbb: "
         "ByteBuffer) -> {{VALUENAME}}? {";
 
     if (key_field.value.type.base_type == BASE_TYPE_STRING)

@@ -67,7 +67,6 @@ public struct Movie: FlatBufferObject {
 	public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
 	public var mainCharacterType: Character { let o = _accessor.offset(4); return o == 0 ? Character.none : Character(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? Character.none }
-	public func mutate(mainCharacterType: Character) -> Bool {let o = _accessor.offset(4);  return _accessor.mutate(mainCharacterType.rawValue, index: o) }
 	public func mainCharacter<T: FlatBufferObject>(type: T.Type) -> T? { let o = _accessor.offset(6); return o == 0 ? nil : _accessor.union(o) }
 	public var charactersTypeCount: Int32 { let o = _accessor.offset(8); return o == 0 ? 0 : _accessor.vector(count: o) }
 	public func charactersType(at index: Int32) -> Character? { let o = _accessor.offset(8); return o == 0 ? Character.none : Character(rawValue: _accessor.directRead(of: UInt8.self, offset: _accessor.vector(at: o) + index * 1)) }
@@ -76,8 +75,8 @@ public struct Movie: FlatBufferObject {
 	public static func startMovie(_ fbb: FlatBufferBuilder) -> UOffset { fbb.startTable(with: 4) }
 	public static func add(mainCharacterType: Character, _ fbb: FlatBufferBuilder) { fbb.add(element: mainCharacterType.rawValue, def: 0, at: 0) }
 	public static func add(mainCharacter: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: mainCharacter, at: 1)  }
-	public static func add(charactersType: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: charactersType, at: 2)  }
-	public static func add(characters: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: characters, at: 3)  }
+	public static func addVectorOf(charactersType: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: charactersType, at: 2)  }
+	public static func addVectorOf(characters: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: characters, at: 3)  }
 	public static func endMovie(_ fbb: FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
 }
 

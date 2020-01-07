@@ -204,7 +204,7 @@ public struct Referrable: FlatBufferObject {
 		off.sort { Table.compare(Table.offset(Int32($1.o), vOffset: 4, fbb: fbb.buffer), Table.offset(Int32($0.o), vOffset: 4, fbb: fbb.buffer), fbb: fbb.buffer) < 0 } 
 		return fbb.createVector(ofOffsets: off)
 	}
-	public static func lookupByKey(vector: Int32, key: UInt64, fbb: ByteBuffer) -> Referrable? {
+	fileprivate static func lookupByKey(vector: Int32, key: UInt64, fbb: ByteBuffer) -> Referrable? {
 		var span = fbb.read(def: Int32.self, position: Int(vector - 4))
 		var start: Int32 = 0
 		while span != 0 {
@@ -247,7 +247,6 @@ public struct Monster: FlatBufferObject {
 	public var color: MyGame.Example.Color { let o = _accessor.offset(16); return o == 0 ? MyGame.Example.Color.blue : MyGame.Example.Color(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? MyGame.Example.Color.blue }
 	public func mutate(color: MyGame.Example.Color) -> Bool {let o = _accessor.offset(16);  return _accessor.mutate(color.rawValue, index: o) }
 	public var testType: MyGame.Example.Any_ { let o = _accessor.offset(18); return o == 0 ? MyGame.Example.Any_.none : MyGame.Example.Any_(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? MyGame.Example.Any_.none }
-	public func mutate(testType: MyGame.Example.Any_) -> Bool {let o = _accessor.offset(18);  return _accessor.mutate(testType.rawValue, index: o) }
 	public func test<T: FlatBufferObject>(type: T.Type) -> T? { let o = _accessor.offset(20); return o == 0 ? nil : _accessor.union(o) }
 	public var test4Count: Int32 { let o = _accessor.offset(22); return o == 0 ? 0 : _accessor.vector(count: o) }
 	public func test4(at index: Int32) -> MyGame.Example.Test? { let o = _accessor.offset(22); return o == 0 ? nil : MyGame.Example.Test(_accessor.bb, o: _accessor.vector(at: o) + index * 4) }
@@ -334,10 +333,8 @@ public struct Monster: FlatBufferObject {
 	public var vectorOfNonOwningReferences: [UInt64] { return _accessor.getVector(at: 88) ?? [] }
 	public func mutate(vectorOfNonOwningReferences: UInt64, at index: Int32) -> Bool { let o = _accessor.offset(88); return _accessor.directMutate(vectorOfNonOwningReferences, index: _accessor.vector(at: o) + index * 8) }
 	public var anyUniqueType: MyGame.Example.AnyUniqueAliases { let o = _accessor.offset(90); return o == 0 ? MyGame.Example.AnyUniqueAliases.none : MyGame.Example.AnyUniqueAliases(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? MyGame.Example.AnyUniqueAliases.none }
-	public func mutate(anyUniqueType: MyGame.Example.AnyUniqueAliases) -> Bool {let o = _accessor.offset(90);  return _accessor.mutate(anyUniqueType.rawValue, index: o) }
 	public func anyUnique<T: FlatBufferObject>(type: T.Type) -> T? { let o = _accessor.offset(92); return o == 0 ? nil : _accessor.union(o) }
 	public var anyAmbiguousType: MyGame.Example.AnyAmbiguousAliases { let o = _accessor.offset(94); return o == 0 ? MyGame.Example.AnyAmbiguousAliases.none : MyGame.Example.AnyAmbiguousAliases(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? MyGame.Example.AnyAmbiguousAliases.none }
-	public func mutate(anyAmbiguousType: MyGame.Example.AnyAmbiguousAliases) -> Bool {let o = _accessor.offset(94);  return _accessor.mutate(anyAmbiguousType.rawValue, index: o) }
 	public func anyAmbiguous<T: FlatBufferObject>(type: T.Type) -> T? { let o = _accessor.offset(96); return o == 0 ? nil : _accessor.union(o) }
 	public var vectorOfEnumsCount: Int32 { let o = _accessor.offset(98); return o == 0 ? 0 : _accessor.vector(count: o) }
 	public func vectorOfEnums(at index: Int32) -> MyGame.Example.Color? { let o = _accessor.offset(98); return o == 0 ? MyGame.Example.Color.red : MyGame.Example.Color(rawValue: _accessor.directRead(of: UInt8.self, offset: _accessor.vector(at: o) + index * 1)) }
@@ -348,15 +345,15 @@ public struct Monster: FlatBufferObject {
 	public static func add(mana: Int16, _ fbb: FlatBufferBuilder) { fbb.add(element: mana, def: 150, at: 1) }
 	public static func add(hp: Int16, _ fbb: FlatBufferBuilder) { fbb.add(element: hp, def: 100, at: 2) }
 	public static func add(name: Offset<String>, _ fbb: FlatBufferBuilder) { fbb.add(offset: name, at: 3)  }
-	public static func add(inventory: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: inventory, at: 5)  }
+	public static func addVectorOf(inventory: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: inventory, at: 5)  }
 	public static func add(color: MyGame.Example.Color, _ fbb: FlatBufferBuilder) { fbb.add(element: color.rawValue, def: 8, at: 6) }
 	public static func add(testType: MyGame.Example.Any_, _ fbb: FlatBufferBuilder) { fbb.add(element: testType.rawValue, def: 0, at: 7) }
 	public static func add(test: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: test, at: 8)  }
-	public static func add(test4: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: test4, at: 9)  }
-	public static func add(testarrayofstring: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: testarrayofstring, at: 10)  }
-	public static func add(testarrayoftables: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: testarrayoftables, at: 11)  }
+	public static func addVectorOf(test4: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: test4, at: 9)  }
+	public static func addVectorOf(testarrayofstring: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: testarrayofstring, at: 10)  }
+	public static func addVectorOf(testarrayoftables: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: testarrayoftables, at: 11)  }
 	public static func add(enemy: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: enemy, at: 12)  }
-	public static func add(testnestedflatbuffer: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: testnestedflatbuffer, at: 13)  }
+	public static func addVectorOf(testnestedflatbuffer: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: testnestedflatbuffer, at: 13)  }
 	public static func add(testempty: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: testempty, at: 14)  }
 	public static func add(testbool: Bool, _ fbb: FlatBufferBuilder) { fbb.add(condition: testbool, def: false, at: 15) }
 	public static func add(testhashs32Fnv1: Int32, _ fbb: FlatBufferBuilder) { fbb.add(element: testhashs32Fnv1, def: 0, at: 16) }
@@ -367,30 +364,30 @@ public struct Monster: FlatBufferObject {
 	public static func add(testhashu32Fnv1a: UInt32, _ fbb: FlatBufferBuilder) { fbb.add(element: testhashu32Fnv1a, def: 0, at: 21) }
 	public static func add(testhashs64Fnv1a: Int64, _ fbb: FlatBufferBuilder) { fbb.add(element: testhashs64Fnv1a, def: 0, at: 22) }
 	public static func add(testhashu64Fnv1a: UInt64, _ fbb: FlatBufferBuilder) { fbb.add(element: testhashu64Fnv1a, def: 0, at: 23) }
-	public static func add(testarrayofbools: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: testarrayofbools, at: 24)  }
+	public static func addVectorOf(testarrayofbools: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: testarrayofbools, at: 24)  }
 	public static func add(testf: Float32, _ fbb: FlatBufferBuilder) { fbb.add(element: testf, def: 3.14159, at: 25) }
 	public static func add(testf2: Float32, _ fbb: FlatBufferBuilder) { fbb.add(element: testf2, def: 3.0, at: 26) }
 	public static func add(testf3: Float32, _ fbb: FlatBufferBuilder) { fbb.add(element: testf3, def: 0.0, at: 27) }
-	public static func add(testarrayofstring2: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: testarrayofstring2, at: 28)  }
-	public static func add(testarrayofsortedstruct: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: testarrayofsortedstruct, at: 29)  }
-	public static func add(flex: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: flex, at: 30)  }
-	public static func add(test5: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: test5, at: 31)  }
-	public static func add(vectorOfLongs: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: vectorOfLongs, at: 32)  }
-	public static func add(vectorOfDoubles: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: vectorOfDoubles, at: 33)  }
+	public static func addVectorOf(testarrayofstring2: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: testarrayofstring2, at: 28)  }
+	public static func addVectorOf(testarrayofsortedstruct: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: testarrayofsortedstruct, at: 29)  }
+	public static func addVectorOf(flex: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: flex, at: 30)  }
+	public static func addVectorOf(test5: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: test5, at: 31)  }
+	public static func addVectorOf(vectorOfLongs: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: vectorOfLongs, at: 32)  }
+	public static func addVectorOf(vectorOfDoubles: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: vectorOfDoubles, at: 33)  }
 	public static func add(parentNamespaceTest: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: parentNamespaceTest, at: 34)  }
-	public static func add(vectorOfReferrables: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: vectorOfReferrables, at: 35)  }
+	public static func addVectorOf(vectorOfReferrables: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: vectorOfReferrables, at: 35)  }
 	public static func add(singleWeakReference: UInt64, _ fbb: FlatBufferBuilder) { fbb.add(element: singleWeakReference, def: 0, at: 36) }
-	public static func add(vectorOfWeakReferences: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: vectorOfWeakReferences, at: 37)  }
-	public static func add(vectorOfStrongReferrables: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: vectorOfStrongReferrables, at: 38)  }
+	public static func addVectorOf(vectorOfWeakReferences: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: vectorOfWeakReferences, at: 37)  }
+	public static func addVectorOf(vectorOfStrongReferrables: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: vectorOfStrongReferrables, at: 38)  }
 	public static func add(coOwningReference: UInt64, _ fbb: FlatBufferBuilder) { fbb.add(element: coOwningReference, def: 0, at: 39) }
-	public static func add(vectorOfCoOwningReferences: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: vectorOfCoOwningReferences, at: 40)  }
+	public static func addVectorOf(vectorOfCoOwningReferences: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: vectorOfCoOwningReferences, at: 40)  }
 	public static func add(nonOwningReference: UInt64, _ fbb: FlatBufferBuilder) { fbb.add(element: nonOwningReference, def: 0, at: 41) }
-	public static func add(vectorOfNonOwningReferences: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: vectorOfNonOwningReferences, at: 42)  }
+	public static func addVectorOf(vectorOfNonOwningReferences: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: vectorOfNonOwningReferences, at: 42)  }
 	public static func add(anyUniqueType: MyGame.Example.AnyUniqueAliases, _ fbb: FlatBufferBuilder) { fbb.add(element: anyUniqueType.rawValue, def: 0, at: 43) }
 	public static func add(anyUnique: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: anyUnique, at: 44)  }
 	public static func add(anyAmbiguousType: MyGame.Example.AnyAmbiguousAliases, _ fbb: FlatBufferBuilder) { fbb.add(element: anyAmbiguousType.rawValue, def: 0, at: 45) }
 	public static func add(anyAmbiguous: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: anyAmbiguous, at: 46)  }
-	public static func add(vectorOfEnums: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: vectorOfEnums, at: 47)  }
+	public static func addVectorOf(vectorOfEnums: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: vectorOfEnums, at: 47)  }
 	public static func add(signedEnum: MyGame.Example.Race, _ fbb: FlatBufferBuilder) { fbb.add(element: signedEnum.rawValue, def: -1, at: 48) }
 	public static func endMonster(_ fbb: FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); fbb.require(table: end, fields: [10]); return end }
 	public static func sortVectorOfMonster(offsets:[Offset<UOffset>], _ fbb: FlatBufferBuilder) -> Offset<UOffset> {
@@ -398,7 +395,7 @@ public struct Monster: FlatBufferObject {
 		off.sort { Table.compare(Table.offset(Int32($1.o), vOffset: 10, fbb: fbb.buffer), Table.offset(Int32($0.o), vOffset: 10, fbb: fbb.buffer), fbb: fbb.buffer) < 0 } 
 		return fbb.createVector(ofOffsets: off)
 	}
-	public static func lookupByKey(vector: Int32, key: String, fbb: ByteBuffer) -> Monster? {
+	fileprivate static func lookupByKey(vector: Int32, key: String, fbb: ByteBuffer) -> Monster? {
 		let key = key.utf8.map { $0 }
 		var span = fbb.read(def: Int32.self, position: Int(vector - 4))
 		var start: Int32 = 0
@@ -467,8 +464,8 @@ public struct TypeAliases: FlatBufferObject {
 	public static func add(u64: UInt64, _ fbb: FlatBufferBuilder) { fbb.add(element: u64, def: 0, at: 7) }
 	public static func add(f32: Float32, _ fbb: FlatBufferBuilder) { fbb.add(element: f32, def: 0.0, at: 8) }
 	public static func add(f64: Double, _ fbb: FlatBufferBuilder) { fbb.add(element: f64, def: 0.0, at: 9) }
-	public static func add(v8: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: v8, at: 10)  }
-	public static func add(vf64: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: vf64, at: 11)  }
+	public static func addVectorOf(v8: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: v8, at: 10)  }
+	public static func addVectorOf(vf64: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: vf64, at: 11)  }
 	public static func endTypeAliases(_ fbb: FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
 }
 
