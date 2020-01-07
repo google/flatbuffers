@@ -17,8 +17,9 @@
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 #include "monster_generated.h"  // Already includes "flatbuffers/flatbuffers.h".
+#include "monster_test_bfbs_generated.h" // Generated using --bfbs-comments --bfbs-builtins --cpp --bfbs-gen-embed
 
-using namespace MyGame::Sample;
+using namespace MyGame::Example;
 
 // This is an example of parsing text straight into a buffer and then
 // generating flatbuffer (JSON) text from the buffer.
@@ -49,10 +50,17 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   ok = parser2.Deserialize((uint8_t *)bfbs_file.c_str(), bfbs_file.length());
   assert(ok);
 
+  // inizialize parser by deserializing bfbs schema
+  flatbuffers::Parser parser3;
+  ok = parser3.Deserialize(MonsterBinarySchema::data(), MonsterBinarySchema::size());
+  assert(ok);
+
   // parse json in parser from fbs and bfbs
   ok = parser1.Parse(json_file.c_str(), include_directories);
   assert(ok);
   ok = parser2.Parse(json_file.c_str(), include_directories);
+  assert(ok);
+  ok = parser3.Parse(json_file.c_str(), include_directories);
   assert(ok);
 
   // to ensure it is correct, we now generate text back from the binary,
@@ -69,8 +77,18 @@ int main(int /*argc*/, const char * /*argv*/[]) {
     return 1;
   }
 
+  std::string jsongen3;
+  if (!GenerateText(parser3, parser3.builder_.GetBufferPointer(), &jsongen3)) {
+    printf("Couldn't serialize parsed data to JSON!\n");
+    return 1;
+  }
+
   if (jsongen1 != jsongen2) {
     printf("%s----------------\n%s", jsongen1.c_str(), jsongen2.c_str());
+  }
+
+  if (jsongen1 != jsongen3) {
+    printf("%s----------------\n%s", jsongen1.c_str(), jsongen3.c_str());
   }
 
   printf("The FlatBuffer has been parsed from JSON successfully.\n");
