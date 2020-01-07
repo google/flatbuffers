@@ -38,6 +38,7 @@ table ProtoMessage {
   /// doc comment for r.
   r:proto.test.ProtoMessage_.Anonymous0;
   enum_field:proto.test.ProtoEnum;
+  enum_field_with_default:proto.test.ProtoEnum = BAR;
 }
 
 namespace proto.test.ProtoMessage_;

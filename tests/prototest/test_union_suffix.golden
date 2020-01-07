@@ -52,6 +52,7 @@ table ProtoMessage {
   /// doc comment for r.
   r:proto.test.test_namespace_suffix.ProtoMessage_.RUnion;
   enum_field:proto.test.test_namespace_suffix.ProtoEnum;
+  enum_field_with_default:proto.test.test_namespace_suffix.ProtoEnum = BAR;
 }
 
 namespace proto.test.test_namespace_suffix.ProtoMessage_;

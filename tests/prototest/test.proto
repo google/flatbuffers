@@ -57,4 +57,5 @@ message ProtoMessage {
     OtherMessage t = 18;
   }
   required ProtoEnum enum_field = 19;
+  required ProtoEnum enum_field_with_default = 20 [default = BAR];
 }

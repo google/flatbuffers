@@ -2576,10 +2576,18 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
           auto val = attribute_;
           ECHECK(ParseProtoCurliesOrIdent());
           if (key == "default") {
-            // Temp: skip non-numeric defaults (enums).
             auto numeric = strpbrk(val.c_str(), "0123456789-+.");
-            if (IsScalar(type.base_type) && numeric == val.c_str())
+            if (IsScalar(type.base_type) && numeric == val.c_str()) {
               field->value.constant = val;
+            } else if (type.enum_def) {
+              const EnumVal* ev = type.enum_def->Lookup(val);
+              if(!ev) {
+                return Error("Unknown default enum value \"" + val +
+                             "\" for field \"" + name + "\" in \"" +
+                             struct_def->name + "\"");
+              }
+              field->value.constant = ev->name;
+            }
           } else if (key == "deprecated") {
             field->deprecated = val == "true";
           }
