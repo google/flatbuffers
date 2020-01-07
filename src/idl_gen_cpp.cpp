@@ -53,6 +53,33 @@ static std::string GeneratedFileName(const std::string &path,
   return path + file_name + "_generated.h";
 }
 
+static std::string GenIncludeGuard(const std::string &file_name,
+                                   const Namespace &name_space,
+                                   const std::string &postfix= "")  {
+    // Generate include guard.
+    std::string guard = file_name;
+    // Remove any non-alpha-numeric characters that may appear in a filename.
+    struct IsAlnum {
+        bool operator()(char c) const { return !is_alnum(c); }
+    };
+    guard.erase(std::remove_if(guard.begin(), guard.end(), IsAlnum()),
+                guard.end());
+    guard = "FLATBUFFERS_GENERATED_" + guard;
+    guard += "_";
+    // For further uniqueness, also add the namespace.
+    for (auto it = name_space.components.begin();
+         it != name_space.components.end(); ++it) {
+        guard += *it + "_";
+    }
+    // Anything extra to add to the guard?
+    if (!postfix.empty()) {
+        guard += postfix + "_";
+    }
+    guard += "H_";
+    std::transform(guard.begin(), guard.end(), guard.begin(), ToUpper);
+    return guard;
+}
+
 namespace cpp {
 
 enum CppStandard { CPP_STD_X0 = 0, CPP_STD_11, CPP_STD_17 };
@@ -182,28 +209,6 @@ class CppGenerator : public BaseGenerator {
     for (auto kw = keywords; *kw; kw++) keywords_.insert(*kw);
   }
 
-  std::string GenIncludeGuard() const {
-    // Generate include guard.
-    std::string guard = file_name_;
-    // Remove any non-alpha-numeric characters that may appear in a filename.
-    struct IsAlnum {
-      bool operator()(char c) const { return !is_alnum(c); }
-    };
-    guard.erase(std::remove_if(guard.begin(), guard.end(), IsAlnum()),
-                guard.end());
-    guard = "FLATBUFFERS_GENERATED_" + guard;
-    guard += "_";
-    // For further uniqueness, also add the namespace.
-    auto name_space = parser_.current_namespace_;
-    for (auto it = name_space->components.begin();
-         it != name_space->components.end(); ++it) {
-      guard += *it + "_";
-    }
-    guard += "H_";
-    std::transform(guard.begin(), guard.end(), guard.begin(), ToUpper);
-    return guard;
-  }
-
   void GenIncludeDependencies() {
     int num_includes = 0;
     for (auto it = parser_.native_included_files_.begin();
@@ -241,13 +246,72 @@ class CppGenerator : public BaseGenerator {
 
   std::string Name(const EnumVal &ev) const { return EscapeKeyword(ev.name); }
 
+  bool generate_bfbs_embed() {
+    code_.Clear();
+    code_ += "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
+
+    // If we don't have a root struct definition,
+    if (!parser_.root_struct_def_) {
+      // put a comment in the output why there is no code generated.
+      code_ += "// Binary schema not generated, no root struct found";
+    } else {
+      auto &struct_def = *parser_.root_struct_def_;
+      const auto include_guard = GenIncludeGuard(file_name_, *struct_def.defined_namespace, "bfbs");
+
+      code_ += "#ifndef " + include_guard;
+      code_ += "#define " + include_guard;
+      code_ += "";
+      if (parser_.opts.gen_nullable) {
+        code_ += "#pragma clang system_header\n\n";
+      }
+
+      SetNameSpace(struct_def.defined_namespace);
+      auto name = Name(struct_def);
+      code_.SetValue("STRUCT_NAME", name);
+
+      // Create code to return the binary schema data.
+      std::string escapedBinarySchemaBuffer = EscapeAndWrapBuffer(parser_.builder_.GetBufferPointer(),
+          parser_.builder_.GetSize(), 105, "      ", "");
+
+      code_ += "struct {{STRUCT_NAME}}BinarySchema {";
+      code_ += "  static const uint8_t *data() {";
+      code_ += "    // Buffer containing the binary schema.";
+      code_ += "    static const uint8_t bfbsData[" + NumToString(parser_.builder_.GetSize()) + "] = {";
+      code_ += escapedBinarySchemaBuffer;
+      code_ += "    };";
+      code_ += "    return bfbsData;";
+      code_ += "  }";
+      code_ += "  static size_t size() {";
+      code_ += "    return " + NumToString(parser_.builder_.GetSize()) + ";";
+      code_ += "  }";
+      code_ += "  const uint8_t *begin() {";
+      code_ += "    return data();";
+      code_ += "  }";
+      code_ += "  const uint8_t *end() {";
+      code_ += "    return data() + size();";
+      code_ += "  }";
+      code_ += "};";
+      code_ += "";
+
+      if (cur_name_space_) SetNameSpace(nullptr);
+
+      // Close the include guard.
+      code_ += "#endif  // " + include_guard;
+    }
+
+    const auto file_path = GeneratedFileName(path_, file_name_ + "_bfbs");
+    const auto final_code = code_.ToString();
+
+    return SaveFile(file_path.c_str(), final_code, false);
+  }
+
   // Iterate through all definitions we haven't generate code for (enums,
   // structs, and tables) and output them to a single file.
   bool generate() {
     code_.Clear();
     code_ += "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
 
-    const auto include_guard = GenIncludeGuard();
+    const auto include_guard = GenIncludeGuard(file_name_, *parser_.current_namespace_);
     code_ += "#ifndef " + include_guard;
     code_ += "#define " + include_guard;
     code_ += "";
@@ -519,7 +583,10 @@ class CppGenerator : public BaseGenerator {
 
     const auto file_path = GeneratedFileName(path_, file_name_);
     const auto final_code = code_.ToString();
-    return SaveFile(file_path.c_str(), final_code, false);
+
+    // Save the file and optionally generate the binary schema code.
+    return SaveFile(file_path.c_str(), final_code, false) &&
+            (!parser_.opts.binary_schema_gen_embed || generate_bfbs_embed());
   }
 
  private:
