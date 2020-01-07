@@ -18,6 +18,11 @@ enum ProtoEnum {
   FOO_A2 = 1;
 }
 
+enum ProtoEnumNoZero {
+  FOO = 1;
+  BAR = 2;
+}
+
 /// 2nd table doc comment with
 /// many lines.
 message ProtoMessage {
@@ -58,4 +63,6 @@ message ProtoMessage {
   }
   required ProtoEnum enum_field = 19;
   required ProtoEnum enum_field_with_default = 20 [default = BAR];
+  required ProtoEnumNoZero enum_field_no_zero = 21;
+  required ProtoEnumNoZero enum_field_with_default_no_zero = 22 [default = BAR];
 }

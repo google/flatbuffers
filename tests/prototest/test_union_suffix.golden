@@ -10,6 +10,11 @@ enum ProtoEnum : int {
   BAR = 5,
 }
 
+enum ProtoEnumNoZero : int {
+  FOO = 1,
+  BAR = 2,
+}
+
 namespace proto.test.test_namespace_suffix.ProtoMessage_;
 
 union RUnion {
@@ -53,6 +58,8 @@ table ProtoMessage {
   r:proto.test.test_namespace_suffix.ProtoMessage_.RUnion;
   enum_field:proto.test.test_namespace_suffix.ProtoEnum;
   enum_field_with_default:proto.test.test_namespace_suffix.ProtoEnum = BAR;
+  enum_field_no_zero:proto.test.test_namespace_suffix.ProtoEnumNoZero = FOO;
+  enum_field_with_default_no_zero:proto.test.test_namespace_suffix.ProtoEnumNoZero = BAR;
 }
 
 namespace proto.test.test_namespace_suffix.ProtoMessage_;

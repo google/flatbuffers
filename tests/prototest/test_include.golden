@@ -12,6 +12,11 @@ enum ProtoEnum : int {
   BAR = 5,
 }
 
+enum ProtoEnumNoZero : int {
+  FOO = 1,
+  BAR = 2,
+}
+
 /// 2nd table doc comment with
 /// many lines.
 table ProtoMessage {
@@ -39,6 +44,8 @@ table ProtoMessage {
   r:proto.test.ProtoMessage_.Anonymous0;
   enum_field:proto.test.ProtoEnum;
   enum_field_with_default:proto.test.ProtoEnum = BAR;
+  enum_field_no_zero:proto.test.ProtoEnumNoZero = FOO;
+  enum_field_with_default_no_zero:proto.test.ProtoEnumNoZero = BAR;
 }
 
 namespace proto.test.ProtoMessage_;

@@ -556,6 +556,7 @@ CheckedError Parser::ParseTypeIdent(Type &type) {
   auto enum_def = LookupEnum(id);
   if (enum_def) {
     type = enum_def->underlying_type;
+    type.enum_def = enum_def;
     if (enum_def->is_union) type.base_type = BASE_TYPE_UNION;
   } else {
     type.base_type = BASE_TYPE_STRUCT;
@@ -2577,7 +2578,8 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
           ECHECK(ParseProtoCurliesOrIdent());
           if (key == "default") {
             auto numeric = strpbrk(val.c_str(), "0123456789-+.");
-            if (IsScalar(type.base_type) && numeric == val.c_str()) {
+            bool is_numeric = IsScalar(type.base_type) && numeric == val.c_str();
+            if (is_numeric) {
               field->value.constant = val;
             } else if (type.enum_def) {
               const EnumVal* ev = type.enum_def->Lookup(val);
@@ -2596,6 +2598,20 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
         }
         EXPECT(']');
       }
+
+      if(type.enum_def && type.base_type != BASE_TYPE_UNION && field->value.constant == "0") {
+          if(!type.enum_def->FindByValue("0")) {
+              // Enum doesn't contain an implicit default, and a default was not
+              // provided. Set a default value.
+              const EnumVal* min_ev = type.enum_def->MinValue();
+              if(!min_ev) {
+                  return Error("No minimum value for enum \"" + type.enum_def->name + "\"");
+              }
+              field->value.constant = min_ev->name;
+          }
+      }
+
+
       if (anonymous_struct) {
         ECHECK(ParseProtoFields(anonymous_struct, false, oneof));
         if (Is(';')) NEXT();
