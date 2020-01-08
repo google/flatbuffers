@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use super::{unpack_type, Error, Reader};
+use super::{unpack_type, Error, Reader, ReaderIterator};
 use crate::{BitWidth, FlexBufferType};
 
 #[derive(Default, Clone)]
@@ -60,5 +60,8 @@ impl<'de> VectorReader<'de> {
             bw,
             self.reader.width,
         )
+    }
+    pub fn iter(&self) -> ReaderIterator<'de> {
+        ReaderIterator::new(self.clone())
     }
 }

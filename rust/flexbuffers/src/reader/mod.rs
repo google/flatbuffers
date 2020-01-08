@@ -478,11 +478,6 @@ impl<'de> Reader<'de> {
     as_default!(as_f32s, get_f32s, &'de [f32]);
     as_default!(as_f64s, get_f64s, &'de [f64]);
 
-    /// Iterates over the values of a Vector or map.
-    /// Any errors are defaulted to Null Readers.
-    pub fn iter(&self) -> ReaderIterator<'de> {
-        ReaderIterator::new(self.as_vector())
-    }
     pub fn get_vector(&self) -> Result<VectorReader<'de>, Error> {
         if !self.fxb_type.is_vector() {
             self.expect_type(FlexBufferType::Vector)?;
@@ -521,12 +516,10 @@ impl<'de> fmt::Display for Reader<'de> {
             Map => {
                 write!(f, "{{")?;
                 let m = self.as_map();
-                let mut first = true;
-                for (k, v) in m.iter_keys().zip(m.iter_values()) {
-                    if first {
-                        write!(f, "{:?}: {}", k, v)?;
-                        first = false;
-                    } else {
+                let mut pairs = m.iter_keys().zip(m.iter_values());
+                if let Some((k, v)) = pairs.next() {
+                    write!(f, "{:?}: {}", k, v)?;
+                    for (k, v) in pairs {
                         write!(f, ", {:?}: {}", k, v)?;
                     }
                 }
@@ -534,13 +527,11 @@ impl<'de> fmt::Display for Reader<'de> {
             }
             t if t.is_vector() => {
                 write!(f, "[")?;
-                let mut first = true;
-                for r in self.iter() {
-                    if first {
-                        write!(f, "{}", r)?;
-                        first = false;
-                    } else {
-                        write!(f, ", {}", r)?;
+                let mut elems = self.as_vector().iter();
+                if let Some(first) = elems.next() {
+                    write!(f, "{}", first)?;
+                    for e in elems {
+                        write!(f, ", {}", e)?;
                     }
                 }
                 write!(f, "]")

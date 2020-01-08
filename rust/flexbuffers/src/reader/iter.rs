@@ -77,7 +77,7 @@ mod tests {
 
         let r = Reader::get_root(fxb.view()).unwrap();
 
-        let v: Vec<u32> = r.iter().map(|x| x.as_u32()).collect();
+        let v: Vec<u32> = r.as_vector().iter().map(|x| x.as_u32()).collect();
         assert_eq!(&v, &[42, 250, 5000]);
     }
 }

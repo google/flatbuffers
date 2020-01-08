@@ -124,6 +124,7 @@ fn main() {
     let monster_coins = read_monster.idx(0);
     // Maps and Vectors can be iterated over.
     assert!(monster_coins
+        .as_vector()
         .iter()
         .map(|r| r.as_u8())
         .eq(vec![5, 10, 25, 25, 25, 100].into_iter()));

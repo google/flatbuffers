@@ -102,7 +102,7 @@ impl<'de> VariantAccess<'de> for Reader<'de> {
     where
         V: Visitor<'de>,
     {
-        visitor.visit_seq(self.iter())
+        visitor.visit_seq(self.as_vector().iter())
     }
     // Struct variants have an internally tagged representation. They are vectors where Index 0 is
     // the discriminant and index N is field N-1.
@@ -154,7 +154,7 @@ impl<'de> Deserializer<'de> for crate::Reader<'de> {
                 })
             }
             (ty, _) if ty.is_vector() => {
-                visitor.visit_seq(self.iter())
+                visitor.visit_seq(self.as_vector().iter())
             }
             (ty, bw) => unreachable!("TODO deserialize_any {:?} {:?}.", ty, bw),
         }
