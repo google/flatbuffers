@@ -21,8 +21,8 @@ mod map;
 mod push;
 mod ser;
 mod vector;
-pub use map::MapBuilder;
 use map::sort_map_by_keys;
+pub use map::MapBuilder;
 pub use push::Pushable;
 pub use ser::FlexbufferSerializer;
 pub use vector::VectorBuilder;
@@ -117,7 +117,6 @@ impl Default for Builder {
     }
 }
 
-
 impl<'a> Builder {
     pub fn new() -> Self {
         // TODO(cneo): Give people initialization options.
@@ -145,7 +144,9 @@ impl<'a> Builder {
         // Search key pool if there is one.
         let found = self.key_pool.as_ref().map(|pool| {
             pool.binary_search_by(|ck| {
-                let old_key = self.buffer[ck.address..ck.address + ck.length].iter().cloned();
+                let old_key = self.buffer[ck.address..ck.address + ck.length]
+                    .iter()
+                    .cloned();
                 old_key.cmp(key.bytes())
             })
         });

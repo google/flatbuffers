@@ -63,17 +63,13 @@ fn main() {
     let mut s = flexbuffers::FlexbufferSerializer::new();
     monster.serialize(&mut s).unwrap();
 
-    // With serde, structs are stored in a vector (not a map) without field names. This example
-    // is stored in fewer bytes than  the other monster example. However, this flexbuffer is less
-    // descriptive, which could be a problem for your other applications that don't have access to
-    // the underlying struct.
-    //
-    // Eventually, we plan on optionally storing the field and/or type names. For now, if language
-    // neutral interoprability is a concern, we recommend building and reading the flexbuffer
-    // without serde as per the other example.
-    assert_eq!(s.view().len(), 105); // bytes
-
     let r = flexbuffers::Reader::get_root(s.view()).unwrap();
+
+    // Serialization is similar to JSON. Field names are stored in the buffer but are reused
+    // between all maps and structs.
+    println!("Monster stored in {:?} bytes.", s.view().len());
+    println!("{}", r);
+
     let monster2 = Monster::deserialize(r).unwrap();
 
     assert_eq!(monster, monster2);

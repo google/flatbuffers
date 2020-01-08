@@ -17,6 +17,7 @@ use crate::flexbuffer_type::FlexBufferType;
 use crate::Blob;
 use byteorder::{ByteOrder, LittleEndian};
 use std::convert::{From, TryFrom, TryInto};
+use std::fmt;
 use std::ops::Rem;
 use std::str::FromStr;
 mod de;
@@ -492,15 +493,60 @@ impl<'de> Reader<'de> {
         })
     }
 
-    pub fn get_map_key_vector(&self) -> Result<Self, Error> {
+    pub fn get_map_key_vector(&self) -> Result<VectorReader<'de>, Error> {
         let (keys_offset_address, keys_width) = self.get_map_info()?;
-        Reader::new(
+        let reader = Self::new(
             self.buffer,
             keys_offset_address,
             FlexBufferType::VectorKey,
             keys_width,
             self.width,
-        )
+        )?;
+        let length = self.length();
+        Ok(VectorReader { reader, length })
+    }
+}
+
+impl<'de> fmt::Display for Reader<'de> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use FlexBufferType::*;
+        match self.flexbuffer_type() {
+            Null => write!(f, "null"),
+            UInt => write!(f, "{}", self.as_u64()),
+            Int => write!(f, "{}", self.as_i64()),
+            Float => write!(f, "{}", self.as_f64()),
+            Key|String => write!(f, "{:?}", self.as_str()),
+            Bool => write!(f, "{}", self.as_bool()),
+            Blob => write!(f, "blob"),
+            Map => {
+                write!(f, "{{")?;
+                let m = self.as_map();
+                let mut first = true;
+                for (k, v) in m.iter_keys().zip(m.iter_values()) {
+                    if first {
+                        write!(f, "{:?}: {}", k, v)?;
+                        first = false;
+                    } else {
+                        write!(f, ", {:?}: {}", k, v)?;
+                    }
+                }
+                write!(f, "}}")
+            }
+            t if t.is_vector() => {
+                write!(f, "[")?;
+                let mut first = true;
+                for r in self.iter() {
+                    if first {
+                        write!(f, "{}", r)?;
+                        first = false;
+                    } else {
+                        write!(f, ", {}", r)?;
+                    }
+                }
+                write!(f, "]")
+            }
+            _ => unreachable!("Display not implemented for {:?}", self)
+        }
     }
 }
 

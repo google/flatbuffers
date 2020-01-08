@@ -61,7 +61,4 @@ impl<'de> VectorReader<'de> {
             self.reader.width,
         )
     }
-    pub(super) fn reader(&self) -> Reader<'de> {
-        self.reader.clone()
-    }
 }

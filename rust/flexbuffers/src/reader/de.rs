@@ -12,18 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::reader::ReaderIterator;
 use crate::Error;
-use serde::de::{DeserializeSeed, Deserializer, EnumAccess, SeqAccess, VariantAccess, Visitor};
+use crate::{FlexBufferType, Reader, ReaderIterator};
+use serde::de::{
+    DeserializeSeed, Deserializer, EnumAccess, IntoDeserializer, SeqAccess, VariantAccess, Visitor,
+    MapAccess
+};
 
 impl<'de> SeqAccess<'de> for ReaderIterator<'de> {
-    type Error = crate::Error;
+    type Error = Error;
     fn next_element_seed<T>(
         &mut self,
         seed: T,
     ) -> Result<Option<<T as DeserializeSeed<'de>>::Value>, Error>
     where
-        T: serde::de::DeserializeSeed<'de>,
+        T: DeserializeSeed<'de>,
     {
         if let Some(elem) = self.next() {
             seed.deserialize(elem).map(Some)
@@ -36,18 +39,53 @@ impl<'de> SeqAccess<'de> for ReaderIterator<'de> {
     }
 }
 
-impl<'de> EnumAccess<'de> for ReaderIterator<'de> {
+struct EnumReader<'de> {
+    variant: &'de str,
+    value: Option<Reader<'de>>,
+}
+
+impl<'de> EnumAccess<'de> for EnumReader<'de> {
     type Error = Error;
-    type Variant = Self;
+    type Variant = Reader<'de>;
     fn variant_seed<V>(self, seed: V) -> Result<(V::Value, Self::Variant), Self::Error>
     where
         V: DeserializeSeed<'de>,
     {
-        let val = seed.deserialize(self.reader.reader())?;
-        Ok((val, self))
+        seed.deserialize(self.variant.into_deserializer())
+            .map(|v| (v, self.value.unwrap_or_default()))
     }
 }
-impl<'de> VariantAccess<'de> for ReaderIterator<'de> {
+
+struct MapAccessor<'de, T>
+    where
+    T: Iterator<Item=&'de str>
+ {
+    keys: T,
+    vals: ReaderIterator<'de>,
+}
+impl<'de, T: Iterator<Item=&'de str>> MapAccess<'de> for MapAccessor<'de, T> {
+    type Error = Error;
+
+    fn next_key_seed<K>(&mut self, seed: K) -> Result<Option<K::Value>, Error>
+    where
+        K: DeserializeSeed<'de>
+    {
+        if let Some(k) = self.keys.next() {
+            seed.deserialize(k.into_deserializer()).map(Some)
+        } else {
+            Ok(None)
+        }
+    }
+    fn next_value_seed<V>(&mut self, seed: V) -> Result<V::Value, Error>
+    where
+        V: DeserializeSeed<'de>,
+    {
+        let val = self.vals.next().ok_or(Error::IndexOutOfBounds)?;
+        seed.deserialize(val)
+    }
+}
+
+impl<'de> VariantAccess<'de> for Reader<'de> {
     type Error = Error;
     fn unit_variant(self) -> Result<(), Error> {
         Ok(())
@@ -56,30 +94,31 @@ impl<'de> VariantAccess<'de> for ReaderIterator<'de> {
     where
         T: DeserializeSeed<'de>,
     {
-        // index 0 is discriminant, index 1 is the newtype.
-        seed.deserialize(self.reader.index(1)?)
+        seed.deserialize(self)
     }
     // Tuple variants have an internally tagged representation. They are vectors where Index 0 is
     // the discriminant and index N is field N-1.
-    fn tuple_variant<V>(mut self, _len: usize, visitor: V) -> Result<V::Value, Error>
+    fn tuple_variant<V>(self, _len: usize, visitor: V) -> Result<V::Value, Error>
     where
         V: Visitor<'de>,
     {
-        self.front += 1;
-        visitor.visit_seq(self)
+        visitor.visit_seq(self.iter())
     }
     // Struct variants have an internally tagged representation. They are vectors where Index 0 is
     // the discriminant and index N is field N-1.
     fn struct_variant<V>(
-        mut self,
+        self,
         _fields: &'static [&'static str],
         visitor: V,
     ) -> Result<V::Value, Error>
     where
         V: Visitor<'de>,
     {
-        self.front += 1;
-        visitor.visit_seq(self)
+        let m = self.get_map()?;
+        visitor.visit_map(MapAccessor{
+            keys: m.iter_keys(),
+            vals: m.iter_values()
+        })
     }
 }
 
@@ -107,25 +146,29 @@ impl<'de> Deserializer<'de> for crate::Reader<'de> {
             (Null, _) => visitor.visit_unit(),
             (String, _) => visitor.visit_borrowed_str(self.as_str()),
             (Blob, _) => visitor.visit_borrowed_bytes(self.get_blob()?.0),
-            (ty, bw) => unimplemented!("TODO deserialize_any {:?} {:?}.", ty, bw),
+            (Map, _) => {
+                let m = self.get_map()?;
+                visitor.visit_map(MapAccessor{
+                    keys: m.iter_keys(),
+                    vals: m.iter_values()
+                })
+            }
+            (ty, _) if ty.is_vector() => {
+                visitor.visit_seq(self.iter())
+            }
+            (ty, bw) => unreachable!("TODO deserialize_any {:?} {:?}.", ty, bw),
         }
     }
     // TODO(cneo): Use type hints instead of deserialize_any for tiny efficiency gains.
     serde::forward_to_deserialize_any! {
         bool i8 i16 i32 i64 u8 u16 u32 u64 f32 f64 str unit unit_struct bytes
-        ignored_any
+        ignored_any map identifier struct tuple tuple_struct seq string
     }
     fn deserialize_char<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
         visitor.visit_char(self.as_u8() as char)
-    }
-    fn deserialize_string<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: Visitor<'de>,
-    {
-        visitor.visit_string(self.as_str().to_string())
     }
     fn deserialize_byte_buf<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
@@ -137,7 +180,7 @@ impl<'de> Deserializer<'de> for crate::Reader<'de> {
     where
         V: Visitor<'de>,
     {
-        if self.flexbuffer_type() == crate::FlexBufferType::Null {
+        if self.flexbuffer_type() == FlexBufferType::Null {
             visitor.visit_none()
         } else {
             visitor.visit_some(self)
@@ -153,46 +196,6 @@ impl<'de> Deserializer<'de> for crate::Reader<'de> {
     {
         visitor.visit_newtype_struct(self)
     }
-    fn deserialize_seq<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: Visitor<'de>,
-    {
-        visitor.visit_seq(self.iter())
-    }
-    fn deserialize_tuple<V>(self, _len: usize, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: Visitor<'de>,
-    {
-        self.deserialize_seq(visitor)
-    }
-    fn deserialize_tuple_struct<V>(
-        self,
-        _name: &'static str,
-        _len: usize,
-        visitor: V,
-    ) -> Result<V::Value, Self::Error>
-    where
-        V: Visitor<'de>,
-    {
-        self.deserialize_seq(visitor)
-    }
-    fn deserialize_map<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: Visitor<'de>,
-    {
-        unimplemented!()
-    }
-    fn deserialize_struct<V>(
-        self,
-        _name: &'static str,
-        _fields: &'static [&'static str],
-        visitor: V,
-    ) -> Result<V::Value, Self::Error>
-    where
-        V: Visitor<'de>,
-    {
-        self.deserialize_seq(visitor)
-    }
     fn deserialize_enum<V>(
         self,
         _name: &'static str,
@@ -202,18 +205,23 @@ impl<'de> Deserializer<'de> for crate::Reader<'de> {
     where
         V: Visitor<'de>,
     {
-        visitor.visit_enum(self.iter())
-    }
-    fn deserialize_identifier<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: Visitor<'de>,
-    {
-        let discriminant = if self.flexbuffer_type().is_vector() {
-            self.get_vector()?.index(0)?.as_u8()
-        } else {
-            self.as_u8()
+        let (variant, value) = match self.fxb_type {
+            FlexBufferType::String => (self.as_str(), None),
+            FlexBufferType::Map => {
+                let ks = self.get_map_key_vector()?;
+                let vs = self.get_vector()?;
+                let variant = ks.idx(0).as_str();
+                let value = Some(vs.idx(0));
+                (variant, value)
+            }
+            _ => {
+                return Err(Error::UnexpectedFlexbufferType {
+                    expected: FlexBufferType::Map,
+                    actual: self.fxb_type,
+                });
+            }
         };
-        visitor.visit_u8(discriminant)
+        visitor.visit_enum(EnumReader { variant, value })
     }
 }
 
@@ -269,24 +277,5 @@ mod tests {
         assert_eq!(foo.1, 2);
         assert_eq!(foo.2, 3);
         assert_eq!(foo.3, 4);
-    }
-    #[test]
-    #[rustfmt::skip]
-    fn enum_struct_to_vec_uint4() {
-        #[derive(Deserialize, PartialEq, Debug)]
-        enum Foo {
-            _A(u32),
-            B(u8, u16, u32),
-            _C
-        };
-        let data = [
-            1, 2, 3, 4, // The vector.
-            4,          // Root data (offset).
-            23 << 2,    // Root type: VectorUInt4, W8.
-            0,          // Root width: W8.
-        ];
-        let r = Reader::get_root(&data).unwrap();
-        let foo = Foo::deserialize(r).unwrap();
-        assert_eq!(foo, Foo::B(2, 3, 4));
     }
 }

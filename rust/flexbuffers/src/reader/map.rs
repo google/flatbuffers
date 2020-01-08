@@ -112,7 +112,7 @@ impl<'de> MapReader<'de> {
             },
             length: self.length,
         });
-        ri.map(|k| k.as_str())
+        ri.map(|k: Reader<'de>| k.as_str())
     }
 }
 pub trait MapReaderIndexer {

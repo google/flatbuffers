@@ -73,7 +73,7 @@ pub enum FlexBufferType {
     VectorKey = 14,
     /// Homogenous Vector of Strings.
     #[deprecated(
-        note="Please use Vector or VectorKey instead. See https://github.com/google/flatbuffers/issues/5627"
+        note = "Please use Vector or VectorKey instead. See https://github.com/google/flatbuffers/issues/5627"
     )]
     VectorString = 15,
     /// Since the elements of a vector use the same `BitWidth` as the length,

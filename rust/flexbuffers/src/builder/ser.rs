@@ -36,33 +36,37 @@ impl FlexbufferSerializer {
     }
     fn finish_if_not_nested(&mut self) -> Result<(), Error> {
         if self.nesting.is_empty() {
-            self.unnest()
-        } else {
-            Ok(())
-        }
-    }
-    fn unnest(&mut self) -> Result<(), Error> {
-        match self.nesting.pop() {
-            // Singleton root.
-            None => {
-                let root = self.builder.values.pop().unwrap();
-                super::store_root(&mut self.builder.buffer, root);
-            }
-            // Nested vector.
-            Some(previous_end) => {
-                self.builder.end_map_or_vector(false, previous_end);
-            }
+            assert_eq!(self.builder.values.len(), 1);
+            let root = self.builder.values.pop().unwrap();
+            super::store_root(&mut self.builder.buffer, root);
         }
         Ok(())
     }
-    fn nest(&mut self) {
-        if self.nesting.is_empty() {
-            // The root is a vector.
-            self.nesting.push(None);
+    fn start_vector(&mut self) {
+        let previous_end = if self.nesting.is_empty() {
+            None
         } else {
-            // This is a nested vector.
-            self.nesting.push(Some(self.builder.values.len()));
-        }
+            Some(self.builder.values.len())
+        };
+        self.nesting.push(previous_end);
+    }
+    fn start_map(&mut self) {
+        let previous_end = if self.nesting.is_empty() {
+            None
+        } else {
+            Some(self.builder.values.len())
+        };
+        self.nesting.push(previous_end);
+    }
+    fn end_vector(&mut self) -> Result<(), Error> {
+        let previous_end = self.nesting.pop().unwrap();
+        self.builder.end_map_or_vector(false, previous_end);
+        Ok(())
+    }
+    fn end_map(&mut self) -> Result<(), Error> {
+        let previous_end = self.nesting.pop().unwrap();
+        self.builder.end_map_or_vector(true, previous_end);
+        Ok(())
     }
 }
 
@@ -94,7 +98,7 @@ impl<'a> ser::SerializeSeq for &mut FlexbufferSerializer {
         value.serialize(&mut **self)
     }
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        self.unnest()
+        self.end_vector()
     }
 }
 // This is unlike a flexbuffers map which requires CString like keys.
@@ -115,7 +119,7 @@ impl<'a> ser::SerializeMap for &'a mut FlexbufferSerializer {
         value.serialize(&mut **self)
     }
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        self.unnest()
+        self.end_vector()
     }
 }
 impl<'a> ser::SerializeTuple for &mut FlexbufferSerializer {
@@ -128,7 +132,7 @@ impl<'a> ser::SerializeTuple for &mut FlexbufferSerializer {
         value.serialize(&mut **self)
     }
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        self.unnest()
+        self.end_vector()
     }
 }
 impl<'a> ser::SerializeTupleStruct for &mut FlexbufferSerializer {
@@ -141,7 +145,7 @@ impl<'a> ser::SerializeTupleStruct for &mut FlexbufferSerializer {
         value.serialize(&mut **self)
     }
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        self.unnest()
+        self.end_vector()
     }
 }
 impl<'a> ser::SerializeStruct for &mut FlexbufferSerializer {
@@ -149,16 +153,17 @@ impl<'a> ser::SerializeStruct for &mut FlexbufferSerializer {
     type Error = Error;
     fn serialize_field<T: ?Sized>(
         &mut self,
-        _key: &'static str,
+        key: &'static str,
         value: &T,
     ) -> Result<(), Self::Error>
     where
         T: Serialize,
     {
+        self.builder.push_key(key);
         value.serialize(&mut **self)
     }
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        self.unnest()
+        self.end_map()
     }
 }
 impl<'a> ser::SerializeTupleVariant for &mut FlexbufferSerializer {
@@ -171,7 +176,8 @@ impl<'a> ser::SerializeTupleVariant for &mut FlexbufferSerializer {
         value.serialize(&mut **self)
     }
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        self.unnest()
+        self.end_vector()?;
+        self.end_map()
     }
 }
 impl<'a> ser::SerializeStructVariant for &mut FlexbufferSerializer {
@@ -179,16 +185,18 @@ impl<'a> ser::SerializeStructVariant for &mut FlexbufferSerializer {
     type Error = Error;
     fn serialize_field<T: ?Sized>(
         &mut self,
-        _key: &'static str,
+        key: &'static str,
         value: &T,
     ) -> Result<(), Self::Error>
     where
         T: Serialize,
     {
+        self.builder.push_key(key);
         value.serialize(&mut **self)
     }
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        self.unnest()
+        self.end_map()?;
+        self.end_map()
     }
     // TODO: skip field?
 }
@@ -280,10 +288,10 @@ impl<'a> ser::Serializer for &'a mut FlexbufferSerializer {
     fn serialize_unit_variant(
         self,
         _name: &'static str,
-        variant_index: u32,
-        _variant: &'static str,
+        _variant_index: u32,
+        variant: &'static str,
     ) -> Result<Self::Ok, Self::Error> {
-        self.builder.push(variant_index);
+        self.builder.push(variant);
         self.finish_if_not_nested()
     }
     fn serialize_newtype_struct<T: ?Sized>(
@@ -299,24 +307,24 @@ impl<'a> ser::Serializer for &'a mut FlexbufferSerializer {
     fn serialize_newtype_variant<T: ?Sized>(
         self,
         _name: &'static str,
-        variant_index: u32,
-        _variant: &'static str,
+        _variant_index: u32,
+        variant: &'static str,
         value: &T,
     ) -> Result<Self::Ok, Self::Error>
     where
         T: Serialize,
     {
-        self.nest();
-        self.builder.push(variant_index);
+        self.start_map();
+        self.builder.push_key(variant);
         value.serialize(&mut *self)?;
-        self.unnest()
+        self.end_map()
     }
     fn serialize_seq(self, _len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
-        self.nest();
+        self.start_vector();
         Ok(self)
     }
     fn serialize_tuple(self, _len: usize) -> Result<Self::SerializeTuple, Self::Error> {
-        self.nest();
+        self.start_vector();
         Ok(self)
     }
     fn serialize_tuple_struct(
@@ -324,22 +332,23 @@ impl<'a> ser::Serializer for &'a mut FlexbufferSerializer {
         _name: &'static str,
         _len: usize,
     ) -> Result<Self::SerializeTupleStruct, Self::Error> {
-        self.nest();
+        self.start_map();
         Ok(self)
     }
     fn serialize_tuple_variant(
         self,
         _name: &'static str,
-        variant_index: u32,
-        _variant: &'static str,
+        _variant_index: u32,
+        variant: &'static str,
         _len: usize,
     ) -> Result<Self::SerializeTupleVariant, Self::Error> {
-        self.nest();
-        self.builder.push(variant_index);
+        self.start_map();
+        self.builder.push_key(variant);
+        self.start_vector();
         Ok(self)
     }
     fn serialize_map(self, _len: Option<usize>) -> Result<Self::SerializeMap, Self::Error> {
-        self.nest();
+        self.start_vector();
         Ok(self)
     }
     fn serialize_struct(
@@ -347,18 +356,19 @@ impl<'a> ser::Serializer for &'a mut FlexbufferSerializer {
         _name: &'static str,
         _len: usize,
     ) -> Result<Self::SerializeStruct, Self::Error> {
-        self.nest();
+        self.start_map();
         Ok(self)
     }
     fn serialize_struct_variant(
         self,
         _name: &'static str,
-        variant_index: u32,
-        _variant: &'static str,
+        _variant_index: u32,
+        variant: &'static str,
         _len: usize,
     ) -> Result<Self::SerializeStructVariant, Self::Error> {
-        self.nest();
-        self.builder.push(variant_index);
+        self.start_map();
+        self.builder.push_key(variant);
+        self.start_map();
         Ok(self)
     }
 }
@@ -398,111 +408,5 @@ mod tests {
         let mut s = FlexbufferSerializer::new();
         Bar(Foo(13)).serialize(&mut s).unwrap();
         assert_eq!(s.view(), &[13, 4, 0]);
-    }
-    #[test] // TODO: should this be inlined or not?
-    fn struct_i8() {
-        #[derive(Serialize)]
-        struct Foo {
-            a: i32,
-        };
-        let mut s = FlexbufferSerializer::new();
-        Foo { a: 13 }.serialize(&mut s).unwrap();
-        // VecInt
-        assert_eq!(s.view(), &[1, 13, 1, 44, 0]);
-    }
-    #[test]
-    #[rustfmt::skip]
-    fn struct_4u16() {
-        #[derive(Serialize)]
-        struct Foo {
-            a: u8,
-            b: u16,
-            c: u32,
-            d: u64,
-        }
-        let mut s = FlexbufferSerializer::new();
-        let res = Foo {
-            a: 4,
-            b: 16,
-            c: 64,
-            d: 256,
-        }
-        .serialize(&mut s);
-        res.unwrap();
-        assert_eq!(
-            s.view(),
-            &[
-                4, 0, 16, 0, 64, 0, 0, 1, // Data
-                8,           // Vector offset.
-                23 << 2 | 1, // (VectorUInt, W16 - referring to data).
-                0,           // Root width W8 - referring to vector.
-            ]
-        );
-    }
-    #[test]
-    #[rustfmt::skip]
-    fn array_in_struct() {
-        #[derive(Serialize)]
-        struct Foo {
-            a: u64,
-            b: [u32; 3],
-            c: i64,
-        }
-        let mut s = FlexbufferSerializer::new();
-        Foo {
-            a: 0,
-            b: [1, 2, 3],
-            c: -42,
-        }
-        .serialize(&mut s)
-        .unwrap();
-        assert_eq!(
-            s.view(),
-            &[
-                1, 2, 3,      // Nested vector
-                3, 0, 5, 214, // Root Vector: size, v[0], v[1] (offset), v[2] as u8
-                2 << 2 | 0,   // v[0]: (UInt, W8)
-                20 << 2 | 0,  // v[1]: (VectorUInt3, W8)
-                1 << 2 | 0,   // v[2]: (Int, W8)
-                6,            // Root points to Root vector
-                10 << 2 | 0,  // Root type and width (Vector, W8)
-                0,            // Root bit width
-            ]
-        );
-    }
-    #[test]
-    #[rustfmt::skip]
-    fn enum_struct() {
-        #[derive(Serialize)]
-        enum Foo {
-            _A, B { a: u32, b: [i16; 3], c: String }, _C
-        }
-        let mut s = FlexbufferSerializer::new();
-        Foo::B {
-            a: 12,
-            b: [1, 2, 3],
-            c: "hello".to_string(),
-        }
-        .serialize(&mut s)
-        .unwrap();
-        assert_eq!(
-            s.view(),
-            [
-                1, 2, 3,
-                5, b'h', b'e', b'l', b'l', b'o', b'\0',
-                4,
-                1,  // variant (Foo::B)
-                12, // a
-                13, // offset to b
-                10, // offset to c
-                2 << 2,  // variant: UInt
-                2 << 2,  // a: UInt
-                19 << 2, // b: VectorInt3
-                5 << 2,  // String
-                8,       // offset to Vector
-                10 << 2, // root: Vector
-                0,       // root width
-            ]
-        )
     }
 }
