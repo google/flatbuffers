@@ -56,7 +56,13 @@ double GetAnyValueF(reflection::BaseType type, const uint8_t *data) {
     case reflection::String: {
       auto s =
           reinterpret_cast<const String *>(ReadScalar<uoffset_t>(data) + data);
-      return s ? strtod(s->c_str(), nullptr) : 0.0;
+      if (s) {
+        double d;
+        StringToNumber(s->c_str(), &d);
+        return d;
+      } else {
+        return 0.0;
+      }
     }
     default: return static_cast<double>(GetAnyValueI(type, data));
   }
@@ -149,9 +155,12 @@ void SetAnyValueF(reflection::BaseType type, uint8_t *data, double val) {
 void SetAnyValueS(reflection::BaseType type, uint8_t *data, const char *val) {
   switch (type) {
     case reflection::Float:
-    case reflection::Double:
-      SetAnyValueF(type, data, strtod(val, nullptr));
+    case reflection::Double: {
+      double d;
+      StringToNumber(val, &d);
+      SetAnyValueF(type, data, d);
       break;
+    }
     // TODO: support strings.
     default: SetAnyValueI(type, data, StringToInt(val)); break;
   }

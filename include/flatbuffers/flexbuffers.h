@@ -491,7 +491,11 @@ class Reference {
         case FBT_INDIRECT_UINT:
           return static_cast<double>(ReadUInt64(Indirect(), byte_width_));
         case FBT_NULL: return 0.0;
-        case FBT_STRING: return strtod(AsString().c_str(), nullptr);
+        case FBT_STRING: {
+          double d;
+          flatbuffers::StringToNumber(AsString().c_str(), &d);
+          return d;
+        }
         case FBT_VECTOR: return static_cast<double>(AsVector().size());
         case FBT_BOOL:
           return static_cast<double>(ReadUInt64(data_, parent_width_));
