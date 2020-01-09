@@ -60,4 +60,6 @@ echo "(in a different repo)"
 
 echo "************************ Swift:"
 
-echo "(in a different repo)"
+cd FlatBuffers.Test.Swift
+sh SwiftTest.sh
+cd ..

@@ -102,6 +102,7 @@ set(FlatBuffers_Compiler_SRCS
   src/idl_gen_fbs.cpp
   src/idl_gen_grpc.cpp
   src/idl_gen_json_schema.cpp
+  src/idl_gen_swift.cpp
   src/flatc.cpp
   src/flatc_main.cpp
   include/flatbuffers/code_generators.h

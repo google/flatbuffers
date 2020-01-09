@@ -4,7 +4,7 @@ FlatBuffers    {#flatbuffers_index}
 # Overview {#flatbuffers_overview}
 
 [FlatBuffers](@ref flatbuffers_overview) is an efficient cross platform
-serialization library for C++, C#, C, Go, Java, Kotlin, JavaScript, Lobster, Lua, TypeScript, PHP, Python, and Rust.
+serialization library for C++, C#, C, Go, Java, Kotlin, JavaScript, Lobster, Lua, TypeScript, PHP, Python, Rust and Swift.
 It was originally created at Google for game development and other
 performance-critical applications.
 
@@ -147,6 +147,8 @@ sections provide a more in-depth usage guide.
 -   How to [use the generated Lobster code](@ref flatbuffers_guide_use_lobster) in your
     own programs.
 -   How to [use the generated Rust code](@ref flatbuffers_guide_use_rust) in your
+    own programs.
+-   How to [use the generated Swift code](@ref flatbuffers_guide_use_swift) in your
     own programs.
 -   [Support matrix](@ref flatbuffers_support) for platforms/languages/features.
 -   Some [benchmarks](@ref flatbuffers_benchmarks) showing the advantage of
