@@ -977,23 +977,25 @@ class GoGenerator : public BaseGenerator {
     code += "}\n\n";
 
     // shortcut of native object to flatbuffers Builder
-    code+= "func (rcv *" + NativeName(struct_def) + ") Builder() *flatbuffers.Builder {\n";
-    code+= "\tb := flatbuffers.NewBuilder(0)\n";
-    code+= "\tb.Finish(" + struct_def.name + "Pack(b, rcv))\n";
-    code+= "\treturn b\n";
-    code+= "}\n\n";
+    code += "func (rcv *" + NativeName(struct_def) +
+            ") Builder() *flatbuffers.Builder {\n";
+    code += "\tb := flatbuffers.NewBuilder(0)\n";
+    code += "\tb.Finish(" + struct_def.name + "Pack(b, rcv))\n";
+    code += "\treturn b\n";
+    code += "}\n\n";
 
     // shortcut of native object Pack, serialized object to binary array
-    code+= "func (rcv *" + NativeName(struct_def) + ") Marshal() []byte  {\n";
-    code+= "\t b := flatbuffers.NewBuilder(0)\n";
-    code+= "\t b.Finish(" + struct_def.name + "Pack(b, rcv))\n";
-    code+= "\treturn b.FinishedBytes()\n";
-    code+= "}\n\n";
+    code += "func (rcv *" + NativeName(struct_def) + ") Marshal() []byte  {\n";
+    code += "\t b := flatbuffers.NewBuilder(0)\n";
+    code += "\t b.Finish(" + struct_def.name + "Pack(b, rcv))\n";
+    code += "\treturn b.FinishedBytes()\n";
+    code += "}\n\n";
 
     // shortcut of native object UnPack , un-serialize from binary array
-    code+= "func Unmarshal"  + NativeName(struct_def) + " (b []byte) *" + NativeName(struct_def) + " {\n";
-    code+= "\treturn GetRootAs" + struct_def.name + "(b, 0).UnPack()\n";
-    code+= "}\n\n";
+    code += "func Unmarshal" + NativeName(struct_def) + " (b []byte) *" +
+            NativeName(struct_def) + " {\n";
+    code += "\treturn GetRootAs" + struct_def.name + "(b, 0).UnPack()\n";
+    code += "}\n\n";
   }
 
   void GenNativeTableUnPack(const StructDef &struct_def,
