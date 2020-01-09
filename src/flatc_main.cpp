@@ -105,6 +105,9 @@ int main(int argc, const char *argv[]) {
     { flatbuffers::GenerateJsonSchema, nullptr, "--jsonschema", "JsonSchema",
       true, nullptr, flatbuffers::IDLOptions::kJsonSchema,
       "Generate Json schema", nullptr },
+    { flatbuffers::GenerateSwift, nullptr, "--swift", "swift",
+      true, nullptr, flatbuffers::IDLOptions::kSwift,
+      "Generate Swift files for tables/structs", nullptr },
   };
 
   flatbuffers::FlatCompiler::InitParams params;
