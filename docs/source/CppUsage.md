@@ -426,6 +426,8 @@ it, this will provide you an easy way to use that data directly.
 (see the schema documentation for some specifics on the JSON format
 accepted).
 
+Schema evolution compatibility for the JSON format follows the same rules as the binary format (JSON formatted data will be forwards/backwards compatible with schemas that evolve in a compatible way).
+
 There are two ways to use text formats:
 
 #### Using the compiler as a conversion tool
