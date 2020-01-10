@@ -816,8 +816,7 @@ class GoGenerator : public BaseGenerator {
 
   void GenNativeUnionPack(const EnumDef &enum_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
-    code += "func " + enum_def.name + "Pack(builder *flatbuffers.Builder, t *" +
-            NativeName(enum_def) + ") flatbuffers.UOffsetT {\n";
+    code += "func (t *" + NativeName(enum_def)  + ") Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {\n";
     code += "\tif t == nil {\n\t\treturn 0\n\t}\n";
 
     code += "\tswitch t.Type {\n";
@@ -833,6 +832,17 @@ class GoGenerator : public BaseGenerator {
     code += "\t}\n";
     code += "\treturn 0\n";
     code += "}\n\n";
+
+    code += "// " + enum_def.name + "Pack()  \n";
+    code += "// \n";
+    code +="// DEPRECATED: Use " + NativeName(enum_def)  + ".Park() instead.\n";
+    code += "func " + enum_def.name + "Pack(builder *flatbuffers.Builder, t *" +
+              NativeName(enum_def) + ") flatbuffers.UOffsetT {\n";
+    code += "\tif t == nil {\n\t\treturn 0\n\t}\n";
+    code += "\treturn t.Pack(builder)\n";
+    code += "}\n\n";
+
+
   }
 
   void GenNativeUnionUnPack(const EnumDef &enum_def, std::string *code_ptr) {
