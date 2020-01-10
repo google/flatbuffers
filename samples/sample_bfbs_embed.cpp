@@ -17,6 +17,7 @@
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 #include "monster_generated.h"  // Already includes "flatbuffers/flatbuffers.h".
+#include "monster_test_bfbs_generated.h" // Generated using --bfbs-comments --bfbs-builtins --cpp --bfbs-gen-embed
 
 using namespace MyGame::Example;
 
@@ -46,7 +47,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
 
   // inizialize parser by deserializing bfbs schema
   flatbuffers::Parser parser2;
-  ok = parser2.Deserialize((uint8_t *)bfbs_file.c_str(), bfbs_file.length());
+  ok = parser2.Deserialize(MonsterBinarySchema::data(), MonsterBinarySchema::size());
   assert(ok);
 
   // parse json in parser from fbs and bfbs
