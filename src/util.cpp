@@ -227,8 +227,8 @@ ClassicLocale ClassicLocale::instance_;
 #endif  // !FLATBUFFERS_LOCALE_INDEPENDENT
 
 std::string EscapeAndWrapBuffer(const void *buffer, size_t buffer_size,  size_t max_length,
-                                const std::string wrapped_line_prefix,
-                                const std::string wrapped_line_suffix) {
+                                const std::string &wrapped_line_prefix,
+                                const std::string &wrapped_line_suffix) {
     std::string text = wrapped_line_prefix;
     size_t start_offset = 0;
     const char *s = reinterpret_cast<const char *>(buffer);

@@ -637,8 +637,8 @@ inline bool EscapeString(const char *s, size_t length, std::string *_text,
 }
 
 std::string EscapeAndWrapBuffer(const void *buffer, size_t buffer_size,  size_t max_length,
-                                       const std::string wrapped_line_prefix,
-                                       const std::string wrapped_line_suffix);
+                                       const std::string &wrapped_line_prefix,
+                                       const std::string &wrapped_line_suffix);
 
 // Remove paired quotes in a string: "text"|'text' -> text.
 std::string RemoveStringQuotes(const std::string &s);
