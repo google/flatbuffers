@@ -825,9 +825,8 @@ class GoGenerator : public BaseGenerator {
       const EnumVal &ev = **it2;
       if (ev.IsZero()) continue;
       code += "\tcase " + enum_def.name + ev.name + ":\n";
-      code += "\t\treturn " +
-              WrapInNameSpaceAndTrack(*ev.union_type.struct_def) +
-              "Pack(builder, t.Value.(" + NativeType(ev.union_type) + "))\n";
+      code += "\t\treturn t.Value.(" + NativeType(ev.union_type) + ")" +
+              ".Pack(builder)\n";
     }
     code += "\t}\n";
     code += "\treturn 0\n";
@@ -912,9 +911,8 @@ class GoGenerator : public BaseGenerator {
           code += "\t\t" + offsets + " := make([]flatbuffers.UOffsetT, " +
                   length + ")\n";
           code += "\t\tfor j := 0; j < " + length + "; j++ {\n";
-          code += "\t\t\t" + offsets + "[j] = " +
-                  WrapInNameSpaceAndTrack(*field.value.type.struct_def) +
-                  "Pack(builder, t." + MakeCamel(field.name) + "[j])\n";
+          code += "\t\t\t" + offsets + "[j] = t." + MakeCamel(field.name) + "[j]" +
+                  ".Pack(builder)\n";
           code += "\t\t}\n";
         }
         code += "\t\t" + struct_def.name + "Start" + MakeCamel(field.name) +
@@ -928,9 +926,8 @@ class GoGenerator : public BaseGenerator {
                   ")\n";
         } else if (field.value.type.element == BASE_TYPE_STRUCT &&
                    field.value.type.struct_def->fixed) {
-          code += "\t\t\t" +
-                  WrapInNameSpaceAndTrack(*field.value.type.struct_def) +
-                  "Pack(builder, t." + MakeCamel(field.name) + "[j])\n";
+          code += "\t\t\tt." + MakeCamel(field.name) + "[j]" +
+                  ".Pack(builder)\n";
         } else {
           code += "\t\t\tbuilder.PrependUOffsetT(" + offsets + "[j])\n";
         }
@@ -940,12 +937,12 @@ class GoGenerator : public BaseGenerator {
       } else if (field.value.type.base_type == BASE_TYPE_STRUCT) {
         if (field.value.type.struct_def->fixed) continue;
         code += "\t" + offset +
-                " := " + WrapInNameSpaceAndTrack(*field.value.type.struct_def) +
-                "Pack(builder, t." + MakeCamel(field.name) + ")\n";
+                " := t." + MakeCamel(field.name) +
+                ".Pack(builder)\n";
       } else if (field.value.type.base_type == BASE_TYPE_UNION) {
         code += "\t" + offset +
-                " := " + WrapInNameSpaceAndTrack(*field.value.type.enum_def) +
-                "Pack(builder, t." + MakeCamel(field.name) + ")\n";
+                " := t." + MakeCamel(field.name) +
+                ".Pack(builder)\n";
         code += "\t\n";
       } else {
         FLATBUFFERS_ASSERT(0);
@@ -967,9 +964,8 @@ class GoGenerator : public BaseGenerator {
       } else {
         if (field.value.type.base_type == BASE_TYPE_STRUCT &&
             field.value.type.struct_def->fixed) {
-          code += "\t" + offset + " := " +
-                  WrapInNameSpaceAndTrack(*field.value.type.struct_def) +
-                  "Pack(builder, t." + MakeCamel(field.name) + ")\n";
+          code += "\t" + offset + " := t." + MakeCamel(field.name) +
+                  ".Pack(builder)\n";
         } else if (field.value.type.enum_def != nullptr &&
                    field.value.type.enum_def->is_union) {
           code += "\tif t." + MakeCamel(field.name) + " != nil {\n";
@@ -985,6 +981,7 @@ class GoGenerator : public BaseGenerator {
     code += "\treturn " + struct_def.name + "End(builder)\n";
     code += "}\n\n";
 
+    // keep old style xxxxxPack() name
     code += "// " + struct_def.name + "Pack()  \n";
     code += "// \n";
     code +="// DEPRECATED: Use " + NativeName(struct_def) + ".Park() instead.\n";
@@ -993,6 +990,7 @@ class GoGenerator : public BaseGenerator {
               ") flatbuffers.UOffsetT {\n";
     code += "\treturn t.Pack(builder)\n";
     code += "}\n\n";
+
     // shortcut of native object to flatbuffers Builder
     code += "func (rcv *" + NativeName(struct_def) +
             ") Builder() *flatbuffers.Builder {\n";
