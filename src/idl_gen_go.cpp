@@ -831,17 +831,6 @@ class GoGenerator : public BaseGenerator {
     code += "\t}\n";
     code += "\treturn 0\n";
     code += "}\n\n";
-
-    code += "// " + enum_def.name + "Pack()  \n";
-    code += "// \n";
-    code +="// DEPRECATED: Use " + NativeName(enum_def)  + ".Park() instead.\n";
-    code += "func " + enum_def.name + "Pack(builder *flatbuffers.Builder, t *" +
-              NativeName(enum_def) + ") flatbuffers.UOffsetT {\n";
-    code += "\tif t == nil {\n\t\treturn 0\n\t}\n";
-    code += "\treturn t.Pack(builder)\n";
-    code += "}\n\n";
-
-
   }
 
   void GenNativeUnionUnPack(const EnumDef &enum_def, std::string *code_ptr) {
@@ -981,16 +970,6 @@ class GoGenerator : public BaseGenerator {
     code += "\treturn " + struct_def.name + "End(builder)\n";
     code += "}\n\n";
 
-    // keep old style xxxxxPack() name
-    code += "// " + struct_def.name + "Pack()  \n";
-    code += "// \n";
-    code +="// DEPRECATED: Use " + NativeName(struct_def) + ".Park() instead.\n";
-    code += "func " + struct_def.name +
-              "Pack(builder *flatbuffers.Builder, t *" + NativeName(struct_def) +
-              ") flatbuffers.UOffsetT {\n";
-    code += "\treturn t.Pack(builder)\n";
-    code += "}\n\n";
-
     // shortcut of native object to flatbuffers Builder
     code += "func (rcv *" + NativeName(struct_def) +
             ") Builder() *flatbuffers.Builder {\n";
@@ -1099,13 +1078,6 @@ class GoGenerator : public BaseGenerator {
     StructPackArgs(struct_def, "", code_ptr);
     code += ")\n";
     code += "}\n";
-
-    code +="// DEPRECATED: Use "  + NativeName(struct_def) + ".Park instead.\n";
-    code += "func " + struct_def.name +
-              "Pack(builder *flatbuffers.Builder, t *" + NativeName(struct_def) +
-              ") flatbuffers.UOffsetT {\n";
-    code += "\treturn t.Pack(builder)\n";
-    code += "}\n\n";
   }
 
   void StructPackArgs(const StructDef &struct_def, const char *nameprefix,
