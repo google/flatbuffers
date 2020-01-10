@@ -872,9 +872,8 @@ class GoGenerator : public BaseGenerator {
   void GenNativeTablePack(const StructDef &struct_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
 
-    code += "func " + struct_def.name +
-            "Pack(builder *flatbuffers.Builder, t *" + NativeName(struct_def) +
-            ") flatbuffers.UOffsetT {\n";
+    code += "func (t *" + NativeName(struct_def) +
+            ") Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {\n";
     code += "\tif t == nil { return 0 }\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
@@ -986,18 +985,26 @@ class GoGenerator : public BaseGenerator {
     code += "\treturn " + struct_def.name + "End(builder)\n";
     code += "}\n\n";
 
+    code += "// " + struct_def.name + "Pack()  \n";
+    code += "// \n";
+    code +="// DEPRECATED: Use " + NativeName(struct_def) + ".Park() instead.\n";
+    code += "func " + struct_def.name +
+              "Pack(builder *flatbuffers.Builder, t *" + NativeName(struct_def) +
+              ") flatbuffers.UOffsetT {\n";
+    code += "\treturn t.Pack(builder)\n";
+    code += "}\n\n";
     // shortcut of native object to flatbuffers Builder
     code += "func (rcv *" + NativeName(struct_def) +
             ") Builder() *flatbuffers.Builder {\n";
     code += "\tb := flatbuffers.NewBuilder(0)\n";
-    code += "\tb.Finish(" + struct_def.name + "Pack(b, rcv))\n";
+    code += "\tb.Finish(rcv.Pack(b))\n";
     code += "\treturn b\n";
     code += "}\n\n";
 
     // shortcut of native object Pack, serialized object to binary array
     code += "func (rcv *" + NativeName(struct_def) + ") Marshal() []byte  {\n";
     code += "\t b := flatbuffers.NewBuilder(0)\n";
-    code += "\t b.Finish(" + struct_def.name + "Pack(b, rcv))\n";
+    code += "\t b.Finish(rcv.Pack(b))\n";
     code += "\treturn b.FinishedBytes()\n";
     code += "}\n\n";
 
@@ -1087,14 +1094,20 @@ class GoGenerator : public BaseGenerator {
   void GenNativeStructPack(const StructDef &struct_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
 
-    code += "func " + struct_def.name +
-            "Pack(builder *flatbuffers.Builder, t *" + NativeName(struct_def) +
-            ") flatbuffers.UOffsetT {\n";
+    code += "func (t *" + NativeName(struct_def) +
+            ") Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {\n";
     code += "\tif t == nil { return 0 }\n";
     code += "\treturn Create" + struct_def.name + "(builder";
     StructPackArgs(struct_def, "", code_ptr);
     code += ")\n";
     code += "}\n";
+
+    code +="// DEPRECATED: Use "  + NativeName(struct_def) + ".Park instead.\n";
+    code += "func " + struct_def.name +
+              "Pack(builder *flatbuffers.Builder, t *" + NativeName(struct_def) +
+              ") flatbuffers.UOffsetT {\n";
+    code += "\treturn t.Pack(builder)\n";
+    code += "}\n\n";
   }
 
   void StructPackArgs(const StructDef &struct_def, const char *nameprefix,
