@@ -18,7 +18,7 @@
 #include "flatbuffers/util.h"
 #include "monster_generated.h"  // Already includes "flatbuffers/flatbuffers.h".
 
-using namespace MyGame::Example;
+using namespace MyGame::Sample;
 
 // This is an example of parsing text straight into a buffer and then
 // generating flatbuffer (JSON) text from the buffer.
