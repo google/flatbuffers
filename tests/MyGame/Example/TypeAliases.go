@@ -57,6 +57,22 @@ func TypeAliasesPack(builder *flatbuffers.Builder, t *TypeAliasesT) flatbuffers.
 	return TypeAliasesEnd(builder)
 }
 
+func (rcv *TypeAliasesT) Builder() *flatbuffers.Builder {
+	b := flatbuffers.NewBuilder(0)
+	b.Finish(TypeAliasesPack(b, rcv))
+	return b
+}
+
+func (rcv *TypeAliasesT) Marshal() []byte  {
+	 b := flatbuffers.NewBuilder(0)
+	 b.Finish(TypeAliasesPack(b, rcv))
+	return b.FinishedBytes()
+}
+
+func UnmarshalTypeAliasesT (b []byte) *TypeAliasesT {
+	return GetRootAsTypeAliases(b, 0).UnPack()
+}
+
 func (rcv *TypeAliases) UnPackTo(t *TypeAliasesT) {
 	t.I8 = rcv.I8()
 	t.U8 = rcv.U8()

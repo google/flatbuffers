@@ -20,6 +20,22 @@ func SecondTableInAPack(builder *flatbuffers.Builder, t *SecondTableInAT) flatbu
 	return SecondTableInAEnd(builder)
 }
 
+func (rcv *SecondTableInAT) Builder() *flatbuffers.Builder {
+	b := flatbuffers.NewBuilder(0)
+	b.Finish(SecondTableInAPack(b, rcv))
+	return b
+}
+
+func (rcv *SecondTableInAT) Marshal() []byte  {
+	 b := flatbuffers.NewBuilder(0)
+	 b.Finish(SecondTableInAPack(b, rcv))
+	return b.FinishedBytes()
+}
+
+func UnmarshalSecondTableInAT (b []byte) *SecondTableInAT {
+	return GetRootAsSecondTableInA(b, 0).UnPack()
+}
+
 func (rcv *SecondTableInA) UnPackTo(t *SecondTableInAT) {
 	t.ReferToC = rcv.ReferToC(nil).UnPack()
 }

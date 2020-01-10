@@ -25,6 +25,22 @@ func TableInFirstNSPack(builder *flatbuffers.Builder, t *TableInFirstNST) flatbu
 	return TableInFirstNSEnd(builder)
 }
 
+func (rcv *TableInFirstNST) Builder() *flatbuffers.Builder {
+	b := flatbuffers.NewBuilder(0)
+	b.Finish(TableInFirstNSPack(b, rcv))
+	return b
+}
+
+func (rcv *TableInFirstNST) Marshal() []byte  {
+	 b := flatbuffers.NewBuilder(0)
+	 b.Finish(TableInFirstNSPack(b, rcv))
+	return b.FinishedBytes()
+}
+
+func UnmarshalTableInFirstNST (b []byte) *TableInFirstNST {
+	return GetRootAsTableInFirstNS(b, 0).UnPack()
+}
+
 func (rcv *TableInFirstNS) UnPackTo(t *TableInFirstNST) {
 	t.FooTable = rcv.FooTable(nil).UnPack()
 	t.FooEnum = rcv.FooEnum()

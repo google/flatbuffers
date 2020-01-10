@@ -22,6 +22,22 @@ func StatPack(builder *flatbuffers.Builder, t *StatT) flatbuffers.UOffsetT {
 	return StatEnd(builder)
 }
 
+func (rcv *StatT) Builder() *flatbuffers.Builder {
+	b := flatbuffers.NewBuilder(0)
+	b.Finish(StatPack(b, rcv))
+	return b
+}
+
+func (rcv *StatT) Marshal() []byte  {
+	 b := flatbuffers.NewBuilder(0)
+	 b.Finish(StatPack(b, rcv))
+	return b.FinishedBytes()
+}
+
+func UnmarshalStatT (b []byte) *StatT {
+	return GetRootAsStat(b, 0).UnPack()
+}
+
 func (rcv *Stat) UnPackTo(t *StatT) {
 	t.Id = string(rcv.Id())
 	t.Val = rcv.Val()

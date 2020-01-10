@@ -17,6 +17,22 @@ func ReferrablePack(builder *flatbuffers.Builder, t *ReferrableT) flatbuffers.UO
 	return ReferrableEnd(builder)
 }
 
+func (rcv *ReferrableT) Builder() *flatbuffers.Builder {
+	b := flatbuffers.NewBuilder(0)
+	b.Finish(ReferrablePack(b, rcv))
+	return b
+}
+
+func (rcv *ReferrableT) Marshal() []byte  {
+	 b := flatbuffers.NewBuilder(0)
+	 b.Finish(ReferrablePack(b, rcv))
+	return b.FinishedBytes()
+}
+
+func UnmarshalReferrableT (b []byte) *ReferrableT {
+	return GetRootAsReferrable(b, 0).UnPack()
+}
+
 func (rcv *Referrable) UnPackTo(t *ReferrableT) {
 	t.Id = rcv.Id()
 }

@@ -17,6 +17,22 @@ func TestSimpleTableWithEnumPack(builder *flatbuffers.Builder, t *TestSimpleTabl
 	return TestSimpleTableWithEnumEnd(builder)
 }
 
+func (rcv *TestSimpleTableWithEnumT) Builder() *flatbuffers.Builder {
+	b := flatbuffers.NewBuilder(0)
+	b.Finish(TestSimpleTableWithEnumPack(b, rcv))
+	return b
+}
+
+func (rcv *TestSimpleTableWithEnumT) Marshal() []byte  {
+	 b := flatbuffers.NewBuilder(0)
+	 b.Finish(TestSimpleTableWithEnumPack(b, rcv))
+	return b.FinishedBytes()
+}
+
+func UnmarshalTestSimpleTableWithEnumT (b []byte) *TestSimpleTableWithEnumT {
+	return GetRootAsTestSimpleTableWithEnum(b, 0).UnPack()
+}
+
 func (rcv *TestSimpleTableWithEnum) UnPackTo(t *TestSimpleTableWithEnumT) {
 	t.Color = rcv.Color()
 }

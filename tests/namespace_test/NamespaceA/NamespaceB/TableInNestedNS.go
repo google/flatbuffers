@@ -17,6 +17,22 @@ func TableInNestedNSPack(builder *flatbuffers.Builder, t *TableInNestedNST) flat
 	return TableInNestedNSEnd(builder)
 }
 
+func (rcv *TableInNestedNST) Builder() *flatbuffers.Builder {
+	b := flatbuffers.NewBuilder(0)
+	b.Finish(TableInNestedNSPack(b, rcv))
+	return b
+}
+
+func (rcv *TableInNestedNST) Marshal() []byte  {
+	 b := flatbuffers.NewBuilder(0)
+	 b.Finish(TableInNestedNSPack(b, rcv))
+	return b.FinishedBytes()
+}
+
+func UnmarshalTableInNestedNST (b []byte) *TableInNestedNST {
+	return GetRootAsTableInNestedNS(b, 0).UnPack()
+}
+
 func (rcv *TableInNestedNS) UnPackTo(t *TableInNestedNST) {
 	t.Foo = rcv.Foo()
 }

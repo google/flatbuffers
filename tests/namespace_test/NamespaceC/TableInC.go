@@ -23,6 +23,22 @@ func TableInCPack(builder *flatbuffers.Builder, t *TableInCT) flatbuffers.UOffse
 	return TableInCEnd(builder)
 }
 
+func (rcv *TableInCT) Builder() *flatbuffers.Builder {
+	b := flatbuffers.NewBuilder(0)
+	b.Finish(TableInCPack(b, rcv))
+	return b
+}
+
+func (rcv *TableInCT) Marshal() []byte  {
+	 b := flatbuffers.NewBuilder(0)
+	 b.Finish(TableInCPack(b, rcv))
+	return b.FinishedBytes()
+}
+
+func UnmarshalTableInCT (b []byte) *TableInCT {
+	return GetRootAsTableInC(b, 0).UnPack()
+}
+
 func (rcv *TableInC) UnPackTo(t *TableInCT) {
 	t.ReferToA1 = rcv.ReferToA1(nil).UnPack()
 	t.ReferToA2 = rcv.ReferToA2(nil).UnPack()

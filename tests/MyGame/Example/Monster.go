@@ -295,6 +295,22 @@ func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT
 	return MonsterEnd(builder)
 }
 
+func (rcv *MonsterT) Builder() *flatbuffers.Builder {
+	b := flatbuffers.NewBuilder(0)
+	b.Finish(MonsterPack(b, rcv))
+	return b
+}
+
+func (rcv *MonsterT) Marshal() []byte  {
+	 b := flatbuffers.NewBuilder(0)
+	 b.Finish(MonsterPack(b, rcv))
+	return b.FinishedBytes()
+}
+
+func UnmarshalMonsterT (b []byte) *MonsterT {
+	return GetRootAsMonster(b, 0).UnPack()
+}
+
 func (rcv *Monster) UnPackTo(t *MonsterT) {
 	t.Pos = rcv.Pos(nil).UnPack()
 	t.Mana = rcv.Mana()

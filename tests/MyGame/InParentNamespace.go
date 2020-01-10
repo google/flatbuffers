@@ -15,6 +15,22 @@ func InParentNamespacePack(builder *flatbuffers.Builder, t *InParentNamespaceT) 
 	return InParentNamespaceEnd(builder)
 }
 
+func (rcv *InParentNamespaceT) Builder() *flatbuffers.Builder {
+	b := flatbuffers.NewBuilder(0)
+	b.Finish(InParentNamespacePack(b, rcv))
+	return b
+}
+
+func (rcv *InParentNamespaceT) Marshal() []byte  {
+	 b := flatbuffers.NewBuilder(0)
+	 b.Finish(InParentNamespacePack(b, rcv))
+	return b.FinishedBytes()
+}
+
+func UnmarshalInParentNamespaceT (b []byte) *InParentNamespaceT {
+	return GetRootAsInParentNamespace(b, 0).UnPack()
+}
+
 func (rcv *InParentNamespace) UnPackTo(t *InParentNamespaceT) {
 }
 
