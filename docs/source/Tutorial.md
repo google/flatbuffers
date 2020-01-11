@@ -1699,16 +1699,15 @@ can serialize the monster itself:
 </div>
 <div class="language-swift">
 ~~~{.swift}
-  let start = Monster.startMonster(builder)
-  Monster.add(pos: pos, builder)
-  Monster.add(hp: 300, builder)
-  Monster.add(name: name, builder)
-  Monster.add(inventory: inventoryOffset, builder)
-  Monster.add(color: .red, builder)
-  Monster.add(weapons: weaponsOffset, builder)
-  Monster.add(equippedType: .weapon, builder)
-  Monster.add(equipped: axe, builder)
-  var orc = Monster.endMonster(builder, start: start)
+  let orc = Monster.createMonster(builder, 
+                                  offsetOfPos: pos,
+                                  hp: 300,
+                                  offsetOfName: name,
+                                  vectorOfInventory: inventoryOffset,
+                                  color: .red,
+                                  vectorOfWeapons: weaponsOffset,
+                                  equippedType: .weapon,
+                                  offsetOfEquipped: axe)
 ~~~
 </div>
 
@@ -1773,6 +1772,21 @@ a bit more flexibility.
   ns(Monster_equipped_add(B, equipped));
   // Complete the monster object and make it the buffer root object.
   ns(Monster_end_as_root(B));
+~~~
+</div>
+
+<div class="language-swift">
+~~~{.swift}
+  let start = Monster.startMonster(builder)
+  Monster.add(pos: pos, builder)
+  Monster.add(hp: 300, builder)
+  Monster.add(name: name, builder)
+  Monster.addVectorOf(inventory: inventoryOffset, builder)
+  Monster.add(color: .red, builder)
+  Monster.addVectorOf(weapons: weaponsOffset, builder)
+  Monster.add(equippedType: .weapon, builder)
+  Monster.add(equipped: axe, builder)
+  var orc = Monster.endMonster(builder, start: start)
 ~~~
 </div>
 
