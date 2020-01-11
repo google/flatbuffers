@@ -283,6 +283,11 @@ template<typename T> class Vector {
     return reinterpret_cast<const void *>(Data() + o);
   }
 
+  template<typename S>
+  const void *GetAsStruct(const S &sd, uoffset_t i) const {
+    return reinterpret_cast<const void *>(Data() + sd.bytesize * i);
+  }
+
   iterator begin() { return iterator(Data(), 0); }
   const_iterator begin() const { return const_iterator(Data(), 0); }
 
@@ -443,6 +448,13 @@ template<typename T, uint16_t length> class Array {
 
   return_type operator[](uoffset_t i) const { return Get(i); }
 
+  // If this is a Vector of enums, T will be its storage type, not the enum
+  // type. This function makes it convenient to retrieve value with enum
+  // type E.
+  template<typename E> E GetEnum(uoffset_t i) const {
+    return static_cast<E>(Get(i));
+  }
+
   const_iterator begin() const { return const_iterator(Data(), 0); }
   const_iterator end() const { return const_iterator(Data(), size()); }
 
@@ -518,12 +530,19 @@ template<typename T, uint16_t length> class Array<Offset<T>, length> {
   static_assert(flatbuffers::is_same<T, void>::value, "unexpected type T");
 
  public:
+  typedef const void* return_type;
+
   const uint8_t *Data() const { return data_; }
 
   // Make idl_gen_text.cpp::PrintContainer happy.
-  const void *operator[](uoffset_t) const {
+  return_type operator[](uoffset_t) const {
     FLATBUFFERS_ASSERT(false);
     return nullptr;
+  }
+
+  template<typename S>
+  const void *GetAsStruct(const S &sd, uoffset_t i) const {
+    return reinterpret_cast<const void *>(Data() + sd.bytesize * i);
   }
 
  private:
