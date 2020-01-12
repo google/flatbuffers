@@ -18,20 +18,18 @@ use quickcheck;
 use serde::{Deserialize, Serialize};
 
 // TODO(cneo): Upstream this to the quickcheck crate. Also, write a macro to derive Arbitrary.
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Debug)]
-struct CString(std::ffi::CString);
-impl quickcheck::Arbitrary for CString {
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Serialize, Deserialize)]
+pub struct NonNullString(String);
+impl quickcheck::Arbitrary for NonNullString {
     fn arbitrary<G: quickcheck::Gen>(g: &mut G) -> Self {
-        let size = std::cmp::min(2048, usize::arbitrary(g));
-        let mut vec = Vec::with_capacity(size);
-        while vec.len() < size {
-            let c = u8::arbitrary(g);
-            if c != b'\0' {
-                vec.push(c);
-            }
-        }
-        // We checked for null byte ourselves.
-        CString(unsafe { std::ffi::CString::from_vec_unchecked(vec) })
+        let size = std::cmp::min(1, usize::arbitrary(g));
+        NonNullString(
+            (0..)
+                .map(|_| <char>::arbitrary(g))
+                .filter(|&b| b != '\0')
+                .take(size)
+                .collect(),
+        )
     }
 }
 
@@ -86,30 +84,28 @@ quickcheck! {
         let r = Reader::get_root(&builder.view()).unwrap().as_vector();
         xs.iter().enumerate().all(|(i, x)| (r.idx(i).as_str() == x))
     }
-    // We use CString since Flexbuffer keys are more or less Cstrings despite the API taking str.
-    fn qc_map_int(xs: std::collections::BTreeMap<CString, i64>) -> bool {
+    fn qc_map_int(xs: std::collections::BTreeMap<NonNullString, i64>) -> bool {
         let mut builder = Builder::default();
         let mut m = builder.build_map();
         for (k, &v) in &xs {
-            m.push(&k.0.to_str().unwrap(), v);
+            m.push(&k.0, v);
         }
         m.end();
         let r = Reader::get_root(&builder.view()).unwrap().as_map();
         xs.iter().enumerate().all(|(i, (k, &v))| {
-            r.idx(i).as_i64() == v && r.idx(k.0.to_str().unwrap()).as_i64() == v
+            r.idx(i).as_i64() == v && r.idx(k.0.as_str()).as_i64() == v
         })
     }
-    // We use CString since Flexbuffer keys are more or less Cstrings despite the API taking str.
-    fn qc_map_string(xs: std::collections::BTreeMap<CString, String>) -> bool {
+    fn qc_map_string(xs: std::collections::BTreeMap<NonNullString, String>) -> bool {
         let mut builder = Builder::default();
         let mut m = builder.build_map();
         for (k, v) in &xs {
-            m.push(&k.0.to_str().unwrap(), v as &str);
+            m.push(&k.0, v as &str);
         }
         m.end();
         let r = Reader::get_root(&builder.view()).unwrap().as_map();
         xs.iter().enumerate().all(|(i, (k, v))| {
-            r.idx(i).as_str() == v && r.idx(k.0.to_str().unwrap()).as_str() == v
+            r.idx(i).as_str() == v && r.idx(k.0.as_str()).as_str() == v
         })
     }
     fn qc_blob(xs: Vec<Vec<u8>>) -> bool {

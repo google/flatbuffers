@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::Error;
+use super::Error;
 use crate::{FlexBufferType, Reader, ReaderIterator};
 use serde::de::{
-    DeserializeSeed, Deserializer, EnumAccess, IntoDeserializer, SeqAccess, VariantAccess, Visitor,
-    MapAccess
+    DeserializeSeed, Deserializer, EnumAccess, IntoDeserializer, MapAccess, SeqAccess,
+    VariantAccess, Visitor,
 };
 
 impl<'de> SeqAccess<'de> for ReaderIterator<'de> {
@@ -56,22 +56,19 @@ impl<'de> EnumAccess<'de> for EnumReader<'de> {
     }
 }
 
-struct MapAccessor<'de, T>
-    where
-    T: Iterator<Item=&'de str>
- {
-    keys: T,
+struct MapAccessor<'de> {
+    keys: ReaderIterator<'de>,
     vals: ReaderIterator<'de>,
 }
-impl<'de, T: Iterator<Item=&'de str>> MapAccess<'de> for MapAccessor<'de, T> {
+impl<'de> MapAccess<'de> for MapAccessor<'de> {
     type Error = Error;
 
     fn next_key_seed<K>(&mut self, seed: K) -> Result<Option<K::Value>, Error>
     where
-        K: DeserializeSeed<'de>
+        K: DeserializeSeed<'de>,
     {
         if let Some(k) = self.keys.next() {
-            seed.deserialize(k.into_deserializer()).map(Some)
+            seed.deserialize(k).map(Some)
         } else {
             Ok(None)
         }
@@ -115,15 +112,15 @@ impl<'de> VariantAccess<'de> for Reader<'de> {
         V: Visitor<'de>,
     {
         let m = self.get_map()?;
-        visitor.visit_map(MapAccessor{
-            keys: m.iter_keys(),
-            vals: m.iter_values()
+        visitor.visit_map(MapAccessor {
+            keys: m.keys_vector().iter(),
+            vals: m.iter_values(),
         })
     }
 }
 
 impl<'de> Deserializer<'de> for crate::Reader<'de> {
-    type Error = crate::Error;
+    type Error = Error;
     fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
@@ -144,22 +141,19 @@ impl<'de> Deserializer<'de> for crate::Reader<'de> {
             (Float, W64) => visitor.visit_f64(self.as_f64()),
             (Float, _) => Err(Error::InvalidPackedType), // f8 and f16 are not supported.
             (Null, _) => visitor.visit_unit(),
-            (String, _) => visitor.visit_borrowed_str(self.as_str()),
+            (String, _) | (Key, _) => visitor.visit_borrowed_str(self.as_str()),
             (Blob, _) => visitor.visit_borrowed_bytes(self.get_blob()?.0),
             (Map, _) => {
                 let m = self.get_map()?;
-                visitor.visit_map(MapAccessor{
-                    keys: m.iter_keys(),
-                    vals: m.iter_values()
+                visitor.visit_map(MapAccessor {
+                    keys: m.keys_vector().iter(),
+                    vals: m.iter_values(),
                 })
             }
-            (ty, _) if ty.is_vector() => {
-                visitor.visit_seq(self.as_vector().iter())
-            }
+            (ty, _) if ty.is_vector() => visitor.visit_seq(self.as_vector().iter()),
             (ty, bw) => unreachable!("TODO deserialize_any {:?} {:?}.", ty, bw),
         }
     }
-    // TODO(cneo): Use type hints instead of deserialize_any for tiny efficiency gains.
     serde::forward_to_deserialize_any! {
         bool i8 i16 i32 i64 u8 u16 u32 u64 f32 f64 str unit unit_struct bytes
         ignored_any map identifier struct tuple tuple_struct seq string

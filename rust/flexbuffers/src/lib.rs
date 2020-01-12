@@ -40,6 +40,11 @@ extern crate quickcheck;
 extern crate serde;
 #[cfg(test)]
 extern crate test;
+#[cfg(test)]
+#[macro_use]
+extern crate quickcheck_derive;
+#[cfg(test)]
+extern crate rand;
 
 mod bitwidth;
 mod builder;
@@ -47,11 +52,24 @@ mod flexbuffer_type;
 mod reader;
 pub use bitwidth::BitWidth;
 pub use builder::{singleton, Builder, FlexbufferSerializer, MapBuilder, Pushable, VectorBuilder};
+pub use builder::Error as SerializationError;
 pub use flexbuffer_type::FlexBufferType;
-pub use reader::{Error, MapReader, Reader, ReaderIterator, VectorReader};
+pub use reader::{MapReader, Reader, ReaderIterator, VectorReader};
+pub use reader::Error as ReaderError;
+use serde::{Deserialize, Serialize};
 
 mod private {
     pub trait Sealed {}
+}
+
+pub fn to_vec<T: Serialize>(x: T) -> Result<Vec<u8>, SerializationError> {
+    let mut s = FlexbufferSerializer::new();
+    x.serialize(&mut s).unwrap(); // TODO(cneo): DO NOT SUBMIT unwrap.
+    Ok(s.take_buffer())
+}
+pub fn from_vec<'de, T: Deserialize<'de>>(buf: &'de [u8]) -> Result<T, ReaderError> {
+    let r = Reader::get_root(buf)?;
+    T::deserialize(r)
 }
 
 /// This struct, when pushed will be serialized as a `FlexBufferType::Blob`.
@@ -83,4 +101,5 @@ mod tests {
 #[rustfmt::skip] // Manually formatting Arrays has better readability.
     mod binary_format;
     mod benches;
+    mod qc_serious;
 }

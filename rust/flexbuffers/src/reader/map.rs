@@ -88,7 +88,7 @@ impl<'de> MapReader<'de> {
     }
     /// Iterate over the values of the map. If any error occurs, Null Readers are returned.
     pub fn iter_values(&self) -> ReaderIterator<'de> {
-        ReaderIterator::new(super::VectorReader {
+        ReaderIterator::new(VectorReader {
             reader: Reader {
                 buffer: self.buffer,
                 fxb_type: crate::FlexBufferType::Map,
@@ -103,7 +103,10 @@ impl<'de> MapReader<'de> {
         &self,
     ) -> impl Iterator<Item = &'de str> + DoubleEndedIterator + ExactSizeIterator + FusedIterator
     {
-        let ri = ReaderIterator::new(VectorReader {
+        self.keys_vector().iter().map(|k| k.as_str())
+    }
+    pub fn keys_vector(&self) -> VectorReader<'de> {
+        VectorReader {
             reader: Reader {
                 buffer: self.buffer,
                 fxb_type: crate::FlexBufferType::VectorKey,
@@ -111,8 +114,7 @@ impl<'de> MapReader<'de> {
                 address: self.keys_address,
             },
             length: self.length,
-        });
-        ri.map(|k: Reader<'de>| k.as_str())
+        }
     }
 }
 pub trait MapReaderIndexer {

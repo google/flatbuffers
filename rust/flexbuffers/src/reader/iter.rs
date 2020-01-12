@@ -15,7 +15,6 @@
 use super::{Reader, VectorReader};
 use std::iter::{DoubleEndedIterator, ExactSizeIterator, FusedIterator, Iterator};
 
-// TODO(cneo): MapReader.iter_values, MapReader.iter_keys, VectorReader.iter
 /// Iterates over a flexbuffer vector, typed vector, or map. Yields Readers.
 pub struct ReaderIterator<'de> {
     pub(super) reader: VectorReader<'de>,

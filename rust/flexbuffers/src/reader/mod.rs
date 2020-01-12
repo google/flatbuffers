@@ -379,15 +379,17 @@ impl<'de> Reader<'de> {
     }
 
     pub fn as_bool(&self) -> bool {
+        use FlexBufferType::*;
         match self.fxb_type {
-            FlexBufferType::Bool => self.get_bool().unwrap_or_default(),
-            FlexBufferType::UInt => self.as_u64() != 0,
-            FlexBufferType::Int => self.as_i64() != 0,
-            FlexBufferType::Float => self.as_f64().abs() > std::f64::EPSILON,
-            FlexBufferType::String => !self.as_str().is_empty(),
-            FlexBufferType::Null => false,
+            Bool => self.get_bool().unwrap_or_default(),
+            UInt => self.as_u64() != 0,
+            Int => self.as_i64() != 0,
+            Float => self.as_f64().abs() > std::f64::EPSILON,
+            String | Key => !self.as_str().is_empty(),
+            Null => false,
+            Blob => self.length() != 0,
             ty if ty.is_vector() => self.length() != 0,
-            ty => unimplemented!("TODO(cneo): as_bool for {:?}", ty),
+            _ => unreachable!(),
         }
     }
     /// Returns a u64, casting if necessary. For Maps and Vectors, their length is
@@ -510,7 +512,7 @@ impl<'de> fmt::Display for Reader<'de> {
             UInt => write!(f, "{}", self.as_u64()),
             Int => write!(f, "{}", self.as_i64()),
             Float => write!(f, "{}", self.as_f64()),
-            Key|String => write!(f, "{:?}", self.as_str()),
+            Key | String => write!(f, "{:?}", self.as_str()),
             Bool => write!(f, "{}", self.as_bool()),
             Blob => write!(f, "blob"),
             Map => {
@@ -536,7 +538,7 @@ impl<'de> fmt::Display for Reader<'de> {
                 }
                 write!(f, "]")
             }
-            _ => unreachable!("Display not implemented for {:?}", self)
+            _ => unreachable!("Display not implemented for {:?}", self),
         }
     }
 }

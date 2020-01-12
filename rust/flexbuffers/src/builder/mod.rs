@@ -24,7 +24,7 @@ mod vector;
 use map::sort_map_by_keys;
 pub use map::MapBuilder;
 pub use push::Pushable;
-pub use ser::FlexbufferSerializer;
+pub use ser::{FlexbufferSerializer, Error};
 pub use vector::VectorBuilder;
 
 macro_rules! push_slice {
@@ -122,18 +122,24 @@ impl<'a> Builder {
         // TODO(cneo): Give people initialization options.
         Self::default()
     }
-    /// Shows the internal flexbuffer. It will be empty on initialization or if `reset` was called.
-    /// Otherwise after `build_map`, `build_vector`, or `build_singleton` the internal flexbuffer
-    /// will be completed.
+    /// Shows the internal flexbuffer. It will either be empty or populated with the most
+    /// recently built flexbuffer.
     pub fn view(&self) -> &[u8] {
         &self.buffer
     }
+    /// Returns the internal buffer, replacing it with a new vector. The returned buffer will
+    /// either be empty or populated with the most recently built flexbuffer.
+    pub fn take_buffer(&mut self) -> Vec<u8> {
+        let mut b = Vec::new();
+        std::mem::swap(&mut self.buffer, &mut b);
+        b
+    }
     /// Resets the internal state. Automatically called before building a new flexbuffer.
     pub fn reset(&mut self) {
-        self.buffer.truncate(0);
-        self.values.truncate(0);
+        self.buffer.clear();
+        self.values.clear();
         if let Some(pool) = self.key_pool.as_mut() {
-            pool.truncate(0);
+            pool.clear();
         }
     }
     fn push_key(&mut self, key: &str) {

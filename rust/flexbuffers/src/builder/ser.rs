@@ -20,7 +20,6 @@ use std::fmt::Display;
 // This struct internally tracks the nested vectors representing
 // nested structs and such.
 // TODO: Add an option field names in a map.
-// TODO: Rename this to something better.
 /// Flexbuffer Serializer. This should be used to serialize structs.
 #[derive(Debug, Default)]
 pub struct FlexbufferSerializer {
@@ -33,6 +32,9 @@ impl FlexbufferSerializer {
     }
     pub fn view(&self) -> &[u8] {
         self.builder.view()
+    }
+    pub fn take_buffer(&mut self) -> Vec<u8> {
+        self.builder.take_buffer()
     }
     fn finish_if_not_nested(&mut self) -> Result<(), Error> {
         if self.nesting.is_empty() {
@@ -72,11 +74,15 @@ impl FlexbufferSerializer {
 
 // TODO: What actual errors will we have?
 #[derive(Debug)]
-pub struct Error(String);
+pub enum Error {
+    /// Only `str` and `String` can be serialized as keys in serde maps.
+    KeyMustBeString,
+    Serde(String),
+}
 
 impl std::fmt::Display for Error {
-    fn fmt(&self, _: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
-        unimplemented!()
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
+        write!(f, "{:?}", self)
     }
 }
 impl std::error::Error for Error {}
@@ -85,7 +91,7 @@ impl ser::Error for Error {
     where
         T: Display,
     {
-        Error(format!("{}", msg))
+        Self::Serde(format!("{}", msg))
     }
 }
 impl<'a> ser::SerializeSeq for &mut FlexbufferSerializer {
@@ -110,7 +116,7 @@ impl<'a> ser::SerializeMap for &'a mut FlexbufferSerializer {
     where
         T: Serialize,
     {
-        key.serialize(&mut **self)
+        key.serialize(MapKeySerializer(&mut **self))
     }
     fn serialize_value<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
     where
@@ -119,7 +125,7 @@ impl<'a> ser::SerializeMap for &'a mut FlexbufferSerializer {
         value.serialize(&mut **self)
     }
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        self.end_vector()
+        self.end_map()
     }
 }
 impl<'a> ser::SerializeTuple for &mut FlexbufferSerializer {
@@ -348,7 +354,7 @@ impl<'a> ser::Serializer for &'a mut FlexbufferSerializer {
         Ok(self)
     }
     fn serialize_map(self, _len: Option<usize>) -> Result<Self::SerializeMap, Self::Error> {
-        self.start_vector();
+        self.start_map();
         Ok(self)
     }
     fn serialize_struct(
@@ -373,6 +379,155 @@ impl<'a> ser::Serializer for &'a mut FlexbufferSerializer {
     }
 }
 
+fn key_must_be_a_string<T>() -> Result<T, Error> {
+    Err(Error::KeyMustBeString)
+}
+struct MapKeySerializer<'a>(&'a mut FlexbufferSerializer);
+impl<'a> Serializer for MapKeySerializer<'a> {
+    type Ok = ();
+    type Error = Error;
+    #[inline]
+    fn serialize_str(self, value: &str) -> Result<(), Error> {
+        self.0.builder.push_key(value);
+        Ok(())
+    }
+    #[inline]
+    fn serialize_unit_variant(
+        self,
+        _name: &'static str,
+        _variant_index: u32,
+        variant: &'static str,
+    ) -> Result<(), Error> {
+        self.0.builder.push_key(variant);
+        Ok(())
+    }
+    #[inline]
+    fn serialize_newtype_struct<T: ?Sized>(
+        self,
+        _name: &'static str,
+        value: &T,
+    ) -> Result<(), Error>
+    where
+        T: Serialize,
+    {
+        value.serialize(self)
+    }
+    type SerializeSeq = Impossible<(), Error>;
+    type SerializeTuple = Impossible<(), Error>;
+    type SerializeTupleStruct = Impossible<(), Error>;
+    type SerializeTupleVariant = Impossible<(), Error>;
+    type SerializeMap = Impossible<(), Error>;
+    type SerializeStruct = Impossible<(), Error>;
+    type SerializeStructVariant = Impossible<(), Error>;
+
+    fn serialize_bool(self, _value: bool) -> Result<(), Error> {
+        key_must_be_a_string()
+    }
+    fn serialize_i8(self, _value: i8) -> Result<(), Error> {
+        key_must_be_a_string()
+    }
+    fn serialize_i16(self, _value: i16) -> Result<(), Error> {
+        key_must_be_a_string()
+    }
+    fn serialize_i32(self, _value: i32) -> Result<(), Error> {
+        key_must_be_a_string()
+    }
+    fn serialize_i64(self, _value: i64) -> Result<(), Error> {
+        key_must_be_a_string()
+    }
+    fn serialize_u8(self, _value: u8) -> Result<(), Error> {
+        key_must_be_a_string()
+    }
+    fn serialize_u16(self, _value: u16) -> Result<(), Error> {
+        key_must_be_a_string()
+    }
+    fn serialize_u32(self, _value: u32) -> Result<(), Error> {
+        key_must_be_a_string()
+    }
+    fn serialize_u64(self, _value: u64) -> Result<(), Error> {
+        key_must_be_a_string()
+    }
+    fn serialize_f32(self, _value: f32) -> Result<(), Error> {
+        key_must_be_a_string()
+    }
+    fn serialize_f64(self, _value: f64) -> Result<(), Error> {
+        key_must_be_a_string()
+    }
+    fn serialize_char(self, _value: char) -> Result<(), Error> {
+        key_must_be_a_string()
+    }
+    fn serialize_bytes(self, _value: &[u8]) -> Result<(), Error> {
+        key_must_be_a_string()
+    }
+    fn serialize_unit(self) -> Result<(), Error> {
+        key_must_be_a_string()
+    }
+    fn serialize_unit_struct(self, _name: &'static str) -> Result<(), Error> {
+        key_must_be_a_string()
+    }
+    fn serialize_newtype_variant<T: ?Sized>(
+        self,
+        _name: &'static str,
+        _variant_index: u32,
+        _variant: &'static str,
+        _value: &T,
+    ) -> Result<(), Error>
+    where
+        T: Serialize,
+    {
+        key_must_be_a_string()
+    }
+    fn serialize_none(self) -> Result<(), Error> {
+        key_must_be_a_string()
+    }
+    fn serialize_some<T: ?Sized>(self, _value: &T) -> Result<(), Error>
+    where
+        T: Serialize,
+    {
+        key_must_be_a_string()
+    }
+    fn serialize_seq(self, _len: Option<usize>) -> Result<Self::SerializeSeq, Error> {
+        key_must_be_a_string()
+    }
+    fn serialize_tuple(self, _len: usize) -> Result<Self::SerializeTuple, Error> {
+        key_must_be_a_string()
+    }
+    fn serialize_tuple_struct(
+        self,
+        _name: &'static str,
+        _len: usize,
+    ) -> Result<Self::SerializeTupleStruct, Error> {
+        key_must_be_a_string()
+    }
+    fn serialize_tuple_variant(
+        self,
+        _name: &'static str,
+        _variant_index: u32,
+        _variant: &'static str,
+        _len: usize,
+    ) -> Result<Self::SerializeTupleVariant, Error> {
+        key_must_be_a_string()
+    }
+    fn serialize_map(self, _len: Option<usize>) -> Result<Self::SerializeMap, Error> {
+        key_must_be_a_string()
+    }
+    fn serialize_struct(
+        self,
+        _name: &'static str,
+        _len: usize,
+    ) -> Result<Self::SerializeStruct, Error> {
+        key_must_be_a_string()
+    }
+    fn serialize_struct_variant(
+        self,
+        _name: &'static str,
+        _variant_index: u32,
+        _variant: &'static str,
+        _len: usize,
+    ) -> Result<Self::SerializeStructVariant, Error> {
+        key_must_be_a_string()
+    }
+}
 #[cfg(test)]
 mod tests {
     use super::*;

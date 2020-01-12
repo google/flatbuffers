@@ -14,7 +14,7 @@
 
 extern crate flexbuffers;
 
-use flexbuffers::{BitWidth, Builder, Error, FlexBufferType, Reader};
+use flexbuffers::{BitWidth, Builder, ReaderError, FlexBufferType, Reader};
 
 fn main() {
     // Create a new Flexbuffer builder.
@@ -118,7 +118,7 @@ fn main() {
 
     // Analogously, the `index` method is the safe version of `idx`.
     assert!(read_monster.index("hp").is_ok());
-    assert_eq!(read_monster.index("foo").unwrap_err(), Error::KeyNotFound);
+    assert_eq!(read_monster.index("foo").unwrap_err(), ReaderError::KeyNotFound);
 
     // Maps can also be indexed by usize. They're stored by key so `coins` are the first element.
     let monster_coins = read_monster.idx(0);
