@@ -56,6 +56,12 @@ public struct Attacker: FlatBufferObject {
 	public static func startAttacker(_ fbb: FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
 	public static func add(swordAttackDamage: Int32, _ fbb: FlatBufferBuilder) { fbb.add(element: swordAttackDamage, def: 0, at: 0) }
 	public static func endAttacker(_ fbb: FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
+	public static func createAttacker(_ fbb: FlatBufferBuilder,
+		swordAttackDamage: Int32 = 0) -> Offset<UOffset> {
+		let start = Attacker.startAttacker(fbb)
+		Attacker.add(swordAttackDamage: swordAttackDamage, fbb)
+		return Attacker.endAttacker(fbb, start: start)
+	}
 }
 
 public struct Movie: FlatBufferObject {
@@ -66,7 +72,7 @@ public struct Movie: FlatBufferObject {
 	private init(_ t: Table) { _accessor = t }
 	public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
-	public var mainCharacterType: Character { let o = _accessor.offset(4); return o == 0 ? Character.none : Character(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? Character.none }
+	public var mainCharacterType: Character { let o = _accessor.offset(4); return o == 0 ? .none : Character(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? .none }
 	public func mainCharacter<T: FlatBufferObject>(type: T.Type) -> T? { let o = _accessor.offset(6); return o == 0 ? nil : _accessor.union(o) }
 	public var charactersTypeCount: Int32 { let o = _accessor.offset(8); return o == 0 ? 0 : _accessor.vector(count: o) }
 	public func charactersType(at index: Int32) -> Character? { let o = _accessor.offset(8); return o == 0 ? Character.none : Character(rawValue: _accessor.directRead(of: UInt8.self, offset: _accessor.vector(at: o) + index * 1)) }
@@ -78,5 +84,17 @@ public struct Movie: FlatBufferObject {
 	public static func addVectorOf(charactersType: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: charactersType, at: 2)  }
 	public static func addVectorOf(characters: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: characters, at: 3)  }
 	public static func endMovie(_ fbb: FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
+	public static func createMovie(_ fbb: FlatBufferBuilder,
+		mainCharacterType: Character = .none,
+		offsetOfMainCharacter mainCharacter: Offset<UOffset> = Offset(),
+		vectorOfCharactersType charactersType: Offset<UOffset> = Offset(),
+		vectorOfCharacters characters: Offset<UOffset> = Offset()) -> Offset<UOffset> {
+		let start = Movie.startMovie(fbb)
+		Movie.add(mainCharacterType: mainCharacterType, fbb)
+		Movie.add(mainCharacter: mainCharacter, fbb)
+		Movie.addVectorOf(charactersType: charactersType, fbb)
+		Movie.addVectorOf(characters: characters, fbb)
+		return Movie.endMovie(fbb, start: start)
+	}
 }
 
