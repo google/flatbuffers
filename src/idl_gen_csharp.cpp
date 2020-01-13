@@ -1608,7 +1608,7 @@ class CSharpGenerator : public BaseGenerator {
 
         code += std::to_string(tmp_array_length_vec[0]);
 
-        for (auto i = 1; i < tmp_array_length_vec.size(); ++i) {
+        for (size_t i = 1; i < tmp_array_length_vec.size(); ++i) {
           auto array_length = tmp_array_length_vec[i];
           code += "," + std::to_string(array_length);
         }
@@ -1616,7 +1616,7 @@ class CSharpGenerator : public BaseGenerator {
         code += "];";
 
         // initialize array
-        for (auto i = 0; i < tmp_array_length_vec.size(); ++i) {
+        for (size_t i = 0; i < tmp_array_length_vec.size(); ++i) {
           auto array_length = tmp_array_length_vec[i];
           auto idx = "idx" + std::to_string(i);
           code += " for (var " + idx + " = 0; " + idx + " < " +
@@ -1624,20 +1624,20 @@ class CSharpGenerator : public BaseGenerator {
         }
 
         code += name + "[idx0";
-        for (auto i = 1; i < tmp_array_length_vec.size(); ++i) {
+        for (size_t i = 1; i < tmp_array_length_vec.size(); ++i) {
           auto idx = "idx" + std::to_string(i);
           code += "," + idx;
         }
         code += "] = _o";
 
-        for (auto i = 0; i < tmp_array_length_vec.size(); ++i) {
+        for (size_t i = 0; i < tmp_array_length_vec.size(); ++i) {
           auto idx = "idx" + std::to_string(i);
           code += "." + MakeCamel(tmp_name_vec[i]) + "[" + idx + "]";
         }
         if (!is_array) { code += "." + MakeCamel(field->name); }
         code += ";";
 
-        for (auto i = 0; i < tmp_array_length_vec.size(); ++i) { code += "}"; }
+        for (size_t i = 0; i < tmp_array_length_vec.size(); ++i) { code += "}"; }
 
         code += "\n";
       }
