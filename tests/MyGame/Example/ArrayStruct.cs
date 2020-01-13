@@ -6,6 +6,8 @@ namespace MyGame.Example
 {
 
 using global::System;
+using global::System.Collections.Generic;
+using global::System.Linq;
 using global::FlatBuffers;
 
 public struct ArrayStruct : IFlatbufferObject
@@ -56,6 +58,49 @@ public struct ArrayStruct : IFlatbufferObject
     builder.PutFloat(A);
     return new Offset<MyGame.Example.ArrayStruct>(builder.Offset);
   }
+  public ArrayStructT UnPack() {
+    var _o = new ArrayStructT();
+    this.UnPackTo(_o);
+    return _o;
+  }
+  public void UnPackTo(ArrayStructT _o) {
+    _o.A = this.A;
+    _o.B = new int[15]; for (var _j = 0; _j < 15; ++_j) { _o.B[_j] = this.B(_j); }
+    _o.C = this.C;
+    _o.D = new MyGame.Example.NestedStructT[2]; for (var _j = 0; _j < 2; ++_j) { _o.D[_j] = this.D(_j).UnPack(); }
+    _o.E = this.E;
+    _o.F = new long[2]; for (var _j = 0; _j < 2; ++_j) { _o.F[_j] = this.F(_j); }
+  }
+  public static Offset<MyGame.Example.ArrayStruct> Pack(FlatBufferBuilder builder, ArrayStructT _o) {
+  if (_o == null) return default(Offset<MyGame.Example.ArrayStruct>);
+    var _b = _o.B;
+    var _d_a = new int[2,2]; for (var idx0 = 0; idx0 < 2; ++idx0) { for (var idx1 = 0; idx1 < 2; ++idx1) {_d_a[idx0,idx1] = _o.D[idx0].A[idx1];}}
+    var _d_b = new MyGame.Example.TestEnum[2]; for (var idx0 = 0; idx0 < 2; ++idx0) {_d_b[idx0] = _o.D[idx0].B;}
+    var _d_c = new MyGame.Example.TestEnum[2,2]; for (var idx0 = 0; idx0 < 2; ++idx0) { for (var idx1 = 0; idx1 < 2; ++idx1) {_d_c[idx0,idx1] = _o.D[idx0].C[idx1];}}
+    var _d_d = new long[2,2]; for (var idx0 = 0; idx0 < 2; ++idx0) { for (var idx1 = 0; idx1 < 2; ++idx1) {_d_d[idx0,idx1] = _o.D[idx0].D[idx1];}}
+    var _f = _o.F;
+    return CreateArrayStruct(
+      builder,
+      _o.A,
+      _b,
+      _o.C,
+      _d_a,
+      _d_b,
+      _d_c,
+      _d_d,
+      _o.E,
+      _f);
+  }
+};
+
+public class ArrayStructT
+{
+  public float A { get; set; } = 0.0f;
+  public int[] B { get; set; } = new int[15];
+  public sbyte C { get; set; } = 0;
+  public MyGame.Example.NestedStructT[] D { get; set; } = new MyGame.Example.NestedStructT[2];
+  public int E { get; set; } = 0;
+  public long[] F { get; set; } = new long[2];
 };
 
 

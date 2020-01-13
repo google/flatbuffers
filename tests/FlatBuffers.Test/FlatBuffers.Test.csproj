@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -66,6 +66,9 @@
     <Compile Include="..\..\net\FlatBuffers\Table.cs">
       <Link>FlatBuffers\Table.cs</Link>
     </Compile>
+    <Compile Include="..\MyGame\Example2\Monster.cs">
+      <Link>MyGame\Example2\Monster.cs</Link>
+    </Compile>
     <Compile Include="..\MyGame\Example\Any.cs">
       <Link>MyGame\Example\Any.cs</Link>
     </Compile>
@@ -95,6 +98,9 @@
     </Compile>
     <Compile Include="..\MyGame\Example\TestSimpleTableWithEnum.cs">
       <Link>MyGame\Example\TestSimpleTableWithEnum.cs</Link>
+    </Compile>
+    <Compile Include="..\MyGame\Example\TypeAliases.cs">
+      <Link>MyGame\Example\TypeAliases.cs</Link>
     </Compile>
     <Compile Include="..\MyGame\Example\Vec3.cs">
       <Link>MyGame\Example\Vec3.cs</Link>

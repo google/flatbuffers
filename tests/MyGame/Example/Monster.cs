@@ -6,6 +6,8 @@ namespace MyGame.Example
 {
 
 using global::System;
+using global::System.Collections.Generic;
+using global::System.Linq;
 using global::FlatBuffers;
 
 /// an example documentation comment: monster object
@@ -318,6 +320,239 @@ public struct Monster : IFlatbufferObject
     }
     return null;
   }
+  public MonsterT UnPack() {
+    var _o = new MonsterT();
+    this.UnPackTo(_o);
+    return _o;
+  }
+  public void UnPackTo(MonsterT _o) {
+    _o.Pos = this.Pos?.UnPack();
+    _o.Mana = this.Mana;
+    _o.Hp = this.Hp;
+    _o.Name = this.Name;
+    _o.Inventory = new List<byte>(); for (var _j = 0; _j < this.InventoryLength; ++_j) { _o.Inventory.Add(this.Inventory(_j)); }
+    _o.Color = this.Color;
+    _o.Test = new MyGame.Example.AnyUnion();
+    _o.Test.Type = this.TestType;
+    switch (this.TestType) {
+      default: break;
+      case MyGame.Example.Any.Monster:
+        _o.Test.Value = this.Test<MyGame.Example.Monster>()?.UnPack();
+        break;
+      case MyGame.Example.Any.TestSimpleTableWithEnum:
+        _o.Test.Value = this.Test<MyGame.Example.TestSimpleTableWithEnum>()?.UnPack();
+        break;
+      case MyGame.Example.Any.MyGame_Example2_Monster:
+        _o.Test.Value = this.Test<MyGame.Example2.Monster>()?.UnPack();
+        break;
+    }
+    _o.Test4 = new List<MyGame.Example.TestT>(); for (var _j = 0; _j < this.Test4Length; ++_j) { _o.Test4.Add(this.Test4(_j)?.UnPack()); }
+    _o.Testarrayofstring = new List<string>(); for (var _j = 0; _j < this.TestarrayofstringLength; ++_j) { _o.Testarrayofstring.Add(this.Testarrayofstring(_j)); }
+    _o.Testarrayoftables = new List<MyGame.Example.MonsterT>(); for (var _j = 0; _j < this.TestarrayoftablesLength; ++_j) { _o.Testarrayoftables.Add(this.Testarrayoftables(_j)?.UnPack()); }
+    _o.Enemy = this.Enemy?.UnPack();
+    _o.Testnestedflatbuffer = new List<byte>(); for (var _j = 0; _j < this.TestnestedflatbufferLength; ++_j) { _o.Testnestedflatbuffer.Add(this.Testnestedflatbuffer(_j)); }
+    _o.Testempty = this.Testempty?.UnPack();
+    _o.Testbool = this.Testbool;
+    _o.Testhashs32Fnv1 = this.Testhashs32Fnv1;
+    _o.Testhashu32Fnv1 = this.Testhashu32Fnv1;
+    _o.Testhashs64Fnv1 = this.Testhashs64Fnv1;
+    _o.Testhashu64Fnv1 = this.Testhashu64Fnv1;
+    _o.Testhashs32Fnv1a = this.Testhashs32Fnv1a;
+    _o.Testhashu32Fnv1a = this.Testhashu32Fnv1a;
+    _o.Testhashs64Fnv1a = this.Testhashs64Fnv1a;
+    _o.Testhashu64Fnv1a = this.Testhashu64Fnv1a;
+    _o.Testarrayofbools = new List<bool>(); for (var _j = 0; _j < this.TestarrayofboolsLength; ++_j) { _o.Testarrayofbools.Add(this.Testarrayofbools(_j)); }
+    _o.Testf = this.Testf;
+    _o.Testf2 = this.Testf2;
+    _o.Testf3 = this.Testf3;
+    _o.Testarrayofstring2 = new List<string>(); for (var _j = 0; _j < this.Testarrayofstring2Length; ++_j) { _o.Testarrayofstring2.Add(this.Testarrayofstring2(_j)); }
+    _o.Testarrayofsortedstruct = new List<MyGame.Example.AbilityT>(); for (var _j = 0; _j < this.TestarrayofsortedstructLength; ++_j) { _o.Testarrayofsortedstruct.Add(this.Testarrayofsortedstruct(_j)?.UnPack()); }
+    _o.Flex = new List<byte>(); for (var _j = 0; _j < this.FlexLength; ++_j) { _o.Flex.Add(this.Flex(_j)); }
+    _o.Test5 = new List<MyGame.Example.TestT>(); for (var _j = 0; _j < this.Test5Length; ++_j) { _o.Test5.Add(this.Test5(_j)?.UnPack()); }
+    _o.VectorOfLongs = new List<long>(); for (var _j = 0; _j < this.VectorOfLongsLength; ++_j) { _o.VectorOfLongs.Add(this.VectorOfLongs(_j)); }
+    _o.VectorOfDoubles = new List<double>(); for (var _j = 0; _j < this.VectorOfDoublesLength; ++_j) { _o.VectorOfDoubles.Add(this.VectorOfDoubles(_j)); }
+    _o.ParentNamespaceTest = this.ParentNamespaceTest?.UnPack();
+    _o.VectorOfReferrables = new List<MyGame.Example.ReferrableT>(); for (var _j = 0; _j < this.VectorOfReferrablesLength; ++_j) { _o.VectorOfReferrables.Add(this.VectorOfReferrables(_j)?.UnPack()); }
+    _o.SingleWeakReference = this.SingleWeakReference;
+    _o.VectorOfWeakReferences = new List<ulong>(); for (var _j = 0; _j < this.VectorOfWeakReferencesLength; ++_j) { _o.VectorOfWeakReferences.Add(this.VectorOfWeakReferences(_j)); }
+    _o.VectorOfStrongReferrables = new List<MyGame.Example.ReferrableT>(); for (var _j = 0; _j < this.VectorOfStrongReferrablesLength; ++_j) { _o.VectorOfStrongReferrables.Add(this.VectorOfStrongReferrables(_j)?.UnPack()); }
+    _o.CoOwningReference = this.CoOwningReference;
+    _o.VectorOfCoOwningReferences = new List<ulong>(); for (var _j = 0; _j < this.VectorOfCoOwningReferencesLength; ++_j) { _o.VectorOfCoOwningReferences.Add(this.VectorOfCoOwningReferences(_j)); }
+    _o.NonOwningReference = this.NonOwningReference;
+    _o.VectorOfNonOwningReferences = new List<ulong>(); for (var _j = 0; _j < this.VectorOfNonOwningReferencesLength; ++_j) { _o.VectorOfNonOwningReferences.Add(this.VectorOfNonOwningReferences(_j)); }
+    _o.AnyUnique = new MyGame.Example.AnyUniqueAliasesUnion();
+    _o.AnyUnique.Type = this.AnyUniqueType;
+    switch (this.AnyUniqueType) {
+      default: break;
+      case MyGame.Example.AnyUniqueAliases.M:
+        _o.AnyUnique.Value = this.AnyUnique<MyGame.Example.Monster>()?.UnPack();
+        break;
+      case MyGame.Example.AnyUniqueAliases.TS:
+        _o.AnyUnique.Value = this.AnyUnique<MyGame.Example.TestSimpleTableWithEnum>()?.UnPack();
+        break;
+      case MyGame.Example.AnyUniqueAliases.M2:
+        _o.AnyUnique.Value = this.AnyUnique<MyGame.Example2.Monster>()?.UnPack();
+        break;
+    }
+    _o.AnyAmbiguous = new MyGame.Example.AnyAmbiguousAliasesUnion();
+    _o.AnyAmbiguous.Type = this.AnyAmbiguousType;
+    switch (this.AnyAmbiguousType) {
+      default: break;
+      case MyGame.Example.AnyAmbiguousAliases.M1:
+        _o.AnyAmbiguous.Value = this.AnyAmbiguous<MyGame.Example.Monster>()?.UnPack();
+        break;
+      case MyGame.Example.AnyAmbiguousAliases.M2:
+        _o.AnyAmbiguous.Value = this.AnyAmbiguous<MyGame.Example.Monster>()?.UnPack();
+        break;
+      case MyGame.Example.AnyAmbiguousAliases.M3:
+        _o.AnyAmbiguous.Value = this.AnyAmbiguous<MyGame.Example.Monster>()?.UnPack();
+        break;
+    }
+    _o.VectorOfEnums = new List<MyGame.Example.Color>(); for (var _j = 0; _j < this.VectorOfEnumsLength; ++_j) { _o.VectorOfEnums.Add(this.VectorOfEnums(_j)); }
+    _o.SignedEnum = this.SignedEnum;
+  }
+  public static Offset<MyGame.Example.Monster> Pack(FlatBufferBuilder builder, MonsterT _o) {
+  if (_o == null) return default(Offset<MyGame.Example.Monster>);
+    var _name = _o.Name == null ? default(StringOffset) : builder.CreateSharedString(_o.Name);
+    var _inventory = _o.Inventory == null ? default(VectorOffset) : CreateInventoryVector(builder, _o.Inventory.ToArray());
+    var _test = _o.Test == null ? 0 : MyGame.Example.AnyUnion.Pack(builder, _o.Test);
+    var _test4 = default(VectorOffset);
+    if (_o.Test4 != null) {
+      StartTest4Vector(builder, _o.Test4.Count);
+      for (var _j = _o.Test4.Count - 1; _j >= 0; --_j) { MyGame.Example.Test.Pack(builder, _o.Test4[_j]); }
+      _test4 = builder.EndVector();
+    }
+    var _testarrayofstring = _o.Testarrayofstring == null ? default(VectorOffset) : CreateTestarrayofstringVector(builder, _o.Testarrayofstring.Select(builder.CreateSharedString).ToArray());
+    var _testarrayoftables = _o.Testarrayoftables == null ? default(VectorOffset) : CreateTestarrayoftablesVector(builder, _o.Testarrayoftables.Select(__o => MyGame.Example.Monster.Pack(builder, __o)).ToArray());
+    var _enemy = _o.Enemy == null ? default(Offset<MyGame.Example.Monster>) : MyGame.Example.Monster.Pack(builder, _o.Enemy);
+    var _testnestedflatbuffer = _o.Testnestedflatbuffer == null ? default(VectorOffset) : CreateTestnestedflatbufferVector(builder, _o.Testnestedflatbuffer.ToArray());
+    var _testempty = _o.Testempty == null ? default(Offset<MyGame.Example.Stat>) : MyGame.Example.Stat.Pack(builder, _o.Testempty);
+    var _testarrayofbools = _o.Testarrayofbools == null ? default(VectorOffset) : CreateTestarrayofboolsVector(builder, _o.Testarrayofbools.ToArray());
+    var _testarrayofstring2 = _o.Testarrayofstring2 == null ? default(VectorOffset) : CreateTestarrayofstring2Vector(builder, _o.Testarrayofstring2.Select(builder.CreateSharedString).ToArray());
+    var _testarrayofsortedstruct = default(VectorOffset);
+    if (_o.Testarrayofsortedstruct != null) {
+      StartTestarrayofsortedstructVector(builder, _o.Testarrayofsortedstruct.Count);
+      for (var _j = _o.Testarrayofsortedstruct.Count - 1; _j >= 0; --_j) { MyGame.Example.Ability.Pack(builder, _o.Testarrayofsortedstruct[_j]); }
+      _testarrayofsortedstruct = builder.EndVector();
+    }
+    var _flex = _o.Flex == null ? default(VectorOffset) : CreateFlexVector(builder, _o.Flex.ToArray());
+    var _test5 = default(VectorOffset);
+    if (_o.Test5 != null) {
+      StartTest5Vector(builder, _o.Test5.Count);
+      for (var _j = _o.Test5.Count - 1; _j >= 0; --_j) { MyGame.Example.Test.Pack(builder, _o.Test5[_j]); }
+      _test5 = builder.EndVector();
+    }
+    var _vector_of_longs = _o.VectorOfLongs == null ? default(VectorOffset) : CreateVectorOfLongsVector(builder, _o.VectorOfLongs.ToArray());
+    var _vector_of_doubles = _o.VectorOfDoubles == null ? default(VectorOffset) : CreateVectorOfDoublesVector(builder, _o.VectorOfDoubles.ToArray());
+    var _parent_namespace_test = _o.ParentNamespaceTest == null ? default(Offset<MyGame.InParentNamespace>) : MyGame.InParentNamespace.Pack(builder, _o.ParentNamespaceTest);
+    var _vector_of_referrables = _o.VectorOfReferrables == null ? default(VectorOffset) : CreateVectorOfReferrablesVector(builder, _o.VectorOfReferrables.Select(__o => MyGame.Example.Referrable.Pack(builder, __o)).ToArray());
+    var _vector_of_weak_references = _o.VectorOfWeakReferences == null ? default(VectorOffset) : CreateVectorOfWeakReferencesVector(builder, _o.VectorOfWeakReferences.ToArray());
+    var _vector_of_strong_referrables = _o.VectorOfStrongReferrables == null ? default(VectorOffset) : CreateVectorOfStrongReferrablesVector(builder, _o.VectorOfStrongReferrables.Select(__o => MyGame.Example.Referrable.Pack(builder, __o)).ToArray());
+    var _vector_of_co_owning_references = _o.VectorOfCoOwningReferences == null ? default(VectorOffset) : CreateVectorOfCoOwningReferencesVector(builder, _o.VectorOfCoOwningReferences.ToArray());
+    var _vector_of_non_owning_references = _o.VectorOfNonOwningReferences == null ? default(VectorOffset) : CreateVectorOfNonOwningReferencesVector(builder, _o.VectorOfNonOwningReferences.ToArray());
+    var _any_unique = _o.AnyUnique == null ? 0 : MyGame.Example.AnyUniqueAliasesUnion.Pack(builder, _o.AnyUnique);
+    var _any_ambiguous = _o.AnyAmbiguous == null ? 0 : MyGame.Example.AnyAmbiguousAliasesUnion.Pack(builder, _o.AnyAmbiguous);
+    var _vector_of_enums = _o.VectorOfEnums == null ? default(VectorOffset) : CreateVectorOfEnumsVector(builder, _o.VectorOfEnums.ToArray());
+    StartMonster(builder);
+    AddPos(builder, MyGame.Example.Vec3.Pack(builder, _o.Pos));
+    AddMana(builder, _o.Mana);
+    AddHp(builder, _o.Hp);
+    AddName(builder, _name);
+    AddInventory(builder, _inventory);
+    AddColor(builder, _o.Color);
+    AddTestType(builder, _o.Test.Type);
+    AddTest(builder, _test);
+    AddTest4(builder, _test4);
+    AddTestarrayofstring(builder, _testarrayofstring);
+    AddTestarrayoftables(builder, _testarrayoftables);
+    AddEnemy(builder, _enemy);
+    AddTestnestedflatbuffer(builder, _testnestedflatbuffer);
+    AddTestempty(builder, _testempty);
+    AddTestbool(builder, _o.Testbool);
+    AddTesthashs32Fnv1(builder, _o.Testhashs32Fnv1);
+    AddTesthashu32Fnv1(builder, _o.Testhashu32Fnv1);
+    AddTesthashs64Fnv1(builder, _o.Testhashs64Fnv1);
+    AddTesthashu64Fnv1(builder, _o.Testhashu64Fnv1);
+    AddTesthashs32Fnv1a(builder, _o.Testhashs32Fnv1a);
+    AddTesthashu32Fnv1a(builder, _o.Testhashu32Fnv1a);
+    AddTesthashs64Fnv1a(builder, _o.Testhashs64Fnv1a);
+    AddTesthashu64Fnv1a(builder, _o.Testhashu64Fnv1a);
+    AddTestarrayofbools(builder, _testarrayofbools);
+    AddTestf(builder, _o.Testf);
+    AddTestf2(builder, _o.Testf2);
+    AddTestf3(builder, _o.Testf3);
+    AddTestarrayofstring2(builder, _testarrayofstring2);
+    AddTestarrayofsortedstruct(builder, _testarrayofsortedstruct);
+    AddFlex(builder, _flex);
+    AddTest5(builder, _test5);
+    AddVectorOfLongs(builder, _vector_of_longs);
+    AddVectorOfDoubles(builder, _vector_of_doubles);
+    AddParentNamespaceTest(builder, _parent_namespace_test);
+    AddVectorOfReferrables(builder, _vector_of_referrables);
+    AddSingleWeakReference(builder, _o.SingleWeakReference);
+    AddVectorOfWeakReferences(builder, _vector_of_weak_references);
+    AddVectorOfStrongReferrables(builder, _vector_of_strong_referrables);
+    AddCoOwningReference(builder, _o.CoOwningReference);
+    AddVectorOfCoOwningReferences(builder, _vector_of_co_owning_references);
+    AddNonOwningReference(builder, _o.NonOwningReference);
+    AddVectorOfNonOwningReferences(builder, _vector_of_non_owning_references);
+    AddAnyUniqueType(builder, _o.AnyUnique.Type);
+    AddAnyUnique(builder, _any_unique);
+    AddAnyAmbiguousType(builder, _o.AnyAmbiguous.Type);
+    AddAnyAmbiguous(builder, _any_ambiguous);
+    AddVectorOfEnums(builder, _vector_of_enums);
+    AddSignedEnum(builder, _o.SignedEnum);
+    return EndMonster(builder);
+  }
+};
+
+public class MonsterT
+{
+  public MyGame.Example.Vec3T Pos { get; set; } = new MyGame.Example.Vec3T();
+  public short Mana { get; set; } = 150;
+  public short Hp { get; set; } = 100;
+  public string Name { get; set; } 
+  public List<byte> Inventory { get; set; } 
+  public MyGame.Example.Color Color { get; set; } = MyGame.Example.Color.Blue;
+  public MyGame.Example.AnyUnion Test { get; set; } 
+  public List<MyGame.Example.TestT> Test4 { get; set; } 
+  public List<string> Testarrayofstring { get; set; } 
+  public List<MyGame.Example.MonsterT> Testarrayoftables { get; set; } 
+  public MyGame.Example.MonsterT Enemy { get; set; } 
+  public List<byte> Testnestedflatbuffer { get; set; } 
+  public MyGame.Example.StatT Testempty { get; set; } 
+  public bool Testbool { get; set; } = false;
+  public int Testhashs32Fnv1 { get; set; } = 0;
+  public uint Testhashu32Fnv1 { get; set; } = 0;
+  public long Testhashs64Fnv1 { get; set; } = 0;
+  public ulong Testhashu64Fnv1 { get; set; } = 0;
+  public int Testhashs32Fnv1a { get; set; } = 0;
+  public uint Testhashu32Fnv1a { get; set; } = 0;
+  public long Testhashs64Fnv1a { get; set; } = 0;
+  public ulong Testhashu64Fnv1a { get; set; } = 0;
+  public List<bool> Testarrayofbools { get; set; } 
+  public float Testf { get; set; } = 3.14159f;
+  public float Testf2 { get; set; } = 3.0f;
+  public float Testf3 { get; set; } = 0.0f;
+  public List<string> Testarrayofstring2 { get; set; } 
+  public List<MyGame.Example.AbilityT> Testarrayofsortedstruct { get; set; } 
+  public List<byte> Flex { get; set; } 
+  public List<MyGame.Example.TestT> Test5 { get; set; } 
+  public List<long> VectorOfLongs { get; set; } 
+  public List<double> VectorOfDoubles { get; set; } 
+  public MyGame.InParentNamespaceT ParentNamespaceTest { get; set; } 
+  public List<MyGame.Example.ReferrableT> VectorOfReferrables { get; set; } 
+  public ulong SingleWeakReference { get; set; } = 0;
+  public List<ulong> VectorOfWeakReferences { get; set; } 
+  public List<MyGame.Example.ReferrableT> VectorOfStrongReferrables { get; set; } 
+  public ulong CoOwningReference { get; set; } = 0;
+  public List<ulong> VectorOfCoOwningReferences { get; set; } 
+  public ulong NonOwningReference { get; set; } = 0;
+  public List<ulong> VectorOfNonOwningReferences { get; set; } 
+  public MyGame.Example.AnyUniqueAliasesUnion AnyUnique { get; set; } 
+  public MyGame.Example.AnyAmbiguousAliasesUnion AnyAmbiguous { get; set; } 
+  public List<MyGame.Example.Color> VectorOfEnums { get; set; } 
+  public MyGame.Example.Race SignedEnum { get; set; } = MyGame.Example.Race.None;
 };
 
 

@@ -55,7 +55,7 @@ class CSharpGenerator : public BaseGenerator {
       std::string enumcode;
       auto &enum_def = **it;
       if (!parser_.opts.one_file) cur_name_space_ = enum_def.defined_namespace;
-      GenEnum(enum_def, &enumcode);
+      GenEnum(enum_def, &enumcode, parser_.opts);
       if (parser_.opts.one_file) {
         one_file_code += enumcode;
       } else {
@@ -71,7 +71,7 @@ class CSharpGenerator : public BaseGenerator {
       auto &struct_def = **it;
       if (!parser_.opts.one_file)
         cur_name_space_ = struct_def.defined_namespace;
-      GenStruct(struct_def, &declcode);
+      GenStruct(struct_def, &declcode, parser_.opts);
       if (parser_.opts.one_file) {
         one_file_code += declcode;
       } else {
@@ -106,7 +106,10 @@ class CSharpGenerator : public BaseGenerator {
       code += "namespace " + namespace_name + "\n{\n\n";
     }
     if (needs_includes) {
-      code += "using global::System;\nusing global::FlatBuffers;\n\n";
+      code += "using global::System;\n";
+      code += "using global::System.Collections.Generic;\n";
+      code += "using global::System.Linq;\n";
+      code += "using global::FlatBuffers;\n\n";
     }
     code += classcode;
     if (!namespace_name.empty()) { code += "\n}\n"; }
@@ -257,7 +260,8 @@ class CSharpGenerator : public BaseGenerator {
     return GenDefaultValueBasic(field, true);
   }
 
-  void GenEnum(EnumDef &enum_def, std::string *code_ptr) const {
+  void GenEnum(EnumDef &enum_def, std::string *code_ptr,
+               const IDLOptions &opts) const {
     std::string &code = *code_ptr;
     if (enum_def.generated) return;
 
@@ -290,6 +294,10 @@ class CSharpGenerator : public BaseGenerator {
     }
     // Close the class
     code += "};\n\n";
+
+    if (opts.generate_object_based_api) {
+      GenEnum_ObjectAPI(enum_def, code_ptr, opts);
+    }
   }
 
   // Returns the function name that is able to read a value of the given type.
@@ -488,7 +496,8 @@ class CSharpGenerator : public BaseGenerator {
     return key_getter;
   }
 
-  void GenStruct(StructDef &struct_def, std::string *code_ptr) const {
+  void GenStruct(StructDef &struct_def, std::string *code_ptr,
+                 const IDLOptions &opts) const {
     if (struct_def.generated) return;
     std::string &code = *code_ptr;
 
@@ -876,8 +885,11 @@ class CSharpGenerator : public BaseGenerator {
       }
     }
     code += "\n";
+    bool struct_has_create = false;
+    std::set<flatbuffers::FieldDef *> field_has_create_set;
     flatbuffers::FieldDef *key_field = nullptr;
     if (struct_def.fixed) {
+      struct_has_create = true;
       // create a struct constructor function
       code += "  public static " + GenOffsetType(struct_def) + " ";
       code += "Create";
@@ -907,6 +919,7 @@ class CSharpGenerator : public BaseGenerator {
       // JVM specifications restrict default constructor params to be < 255.
       // Longs and doubles take up 2 units, so we set the limit to be < 127.
       if (has_no_struct_fields && num_fields && num_fields < 127) {
+        struct_has_create = true;
         // Generate a table constructor of the form:
         // public static int createName(FlatBufferBuilder builder, args...)
         code += "  public static " + GenOffsetType(struct_def) + " ";
@@ -986,6 +999,7 @@ class CSharpGenerator : public BaseGenerator {
           auto alignment = InlineAlignment(vector_type);
           auto elem_size = InlineSize(vector_type);
           if (!IsStruct(vector_type)) {
+            field_has_create_set.insert(&field);
             code += "  public static VectorOffset ";
             code += "Create";
             code += MakeCamel(field.name);
@@ -1105,7 +1119,16 @@ class CSharpGenerator : public BaseGenerator {
       code += "    return null;\n";
       code += "  }\n";
     }
+
+    if (opts.generate_object_based_api) {
+      GenPackUnPack_ObjectAPI(struct_def, code_ptr, opts, struct_has_create,
+                              field_has_create_set);
+    }
     code += "};\n\n";
+
+    if (opts.generate_object_based_api) {
+      GenStruct_ObjectAPI(struct_def, code_ptr, opts);
+    }
   }
 
   void GenVectorAccessObject(StructDef &struct_def,
@@ -1164,6 +1187,580 @@ class CSharpGenerator : public BaseGenerator {
       }
     }
     code += "  }\n";
+  }
+
+  void GenEnum_ObjectAPI(EnumDef &enum_def, std::string *code_ptr,
+                         const IDLOptions &opts) const {
+    std::string &code = *code_ptr;
+    if (enum_def.generated) return;
+    if (!enum_def.is_union) return;
+
+    if (enum_def.attributes.Lookup("private")) {
+      code += "internal ";
+    } else {
+      code += "public ";
+    }
+
+    auto union_name = enum_def.name + "Union";
+    code += "class " + union_name + " {\n";
+
+    // Type
+    code += "  public " + enum_def.name +
+            " Type { get; set; } = " + enum_def.name + "." +
+            enum_def.Vals()[0]->name + ";\n";
+
+    // Value
+    code += "  public object Value { get; set; } = null;\n";
+    code += "\n";
+
+    // As<T>
+    code += "  public T As<T>() where T : class\n";
+    code += "    => this.Value is T _o ? _o : null;\n";
+
+    // As
+    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      auto &ev = **it;
+      if (ev.union_type.struct_def == nullptr) continue;
+
+      auto type_name = GenTypeGet_ObjectAPI(ev.union_type, opts);
+
+      if (ev.union_type.struct_def->attributes.Lookup("private")) {
+        code += "  internal ";
+      } else {
+        code += "  public ";
+      }
+
+      code +=
+          type_name + " As" + ev.name + "() => this.As<" + type_name + ">();\n";
+    }
+
+    code += "\n";
+
+    // Pack()
+    code += "  public static int Pack(FlatBuffers.FlatBufferBuilder builder, " +
+            union_name + " _o) {\n";
+    code += "    switch (_o.Type) {\n";
+
+    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      auto &ev = **it;
+      if (ev.union_type.struct_def == nullptr) {
+        code += "      default: return 0;\n";
+      } else {
+        code += "      case " + enum_def.name + "." + ev.name + ": return " +
+                GenTypeGet(ev.union_type) + ".Pack(builder, _o.As" + ev.name +
+                "()).Value;\n";
+      }
+    }
+
+    code += "    }\n";
+    code += "  }\n";
+
+    code += "}\n\n";
+  }
+
+  std::string GenTypeName_ObjectAPI(const std::string &name,
+                                    const IDLOptions &opts) const {
+    return opts.object_prefix + name + opts.object_suffix;
+  }
+
+  void GenPackUnPack_ObjectAPI(
+      StructDef &struct_def, std::string *code_ptr, const IDLOptions &opts,
+      bool struct_has_create,
+      const std::set<FieldDef *> &field_has_create) const {
+    std::string &code = *code_ptr;
+
+    auto struct_name = GenTypeName_ObjectAPI(struct_def.name, opts);
+
+    // UnPack()
+    code += "  public " + struct_name + " UnPack() {\n";
+    code += "    var _o = new " + struct_name + "();\n";
+    code += "    this.UnPackTo(_o);\n";
+    code += "    return _o;\n";
+    code += "  }\n";
+
+    // UnPackTo()
+    code += "  public void UnPackTo(" + struct_name + " _o) {\n";
+
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto &field = **it;
+      if (field.deprecated) continue;
+
+      auto camel_name = MakeCamel(field.name);
+      auto start = "    _o." + camel_name + " = ";
+
+      switch (field.value.type.base_type) {
+        case BASE_TYPE_STRUCT: {
+          auto nullable =
+              struct_def.fixed && field.value.type.struct_def->fixed ? "" : "?";
+          code += start + "this." + camel_name + nullable + ".UnPack();\n";
+          break;
+        }
+
+        case BASE_TYPE_ARRAY: {
+          auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts);
+          auto length_str = std::to_string(field.value.type.fixed_length);
+          auto unpack_method = field.value.type.struct_def == nullptr
+                                  ? ""
+                                  : field.value.type.struct_def->fixed
+                                        ? ".UnPack()"
+                                        : "?.UnPack()";
+          code += start + "new " + type_name.substr(0, type_name.length() - 1) +
+                  length_str + "]; for (var _j = 0; _j < " + length_str +
+                  "; ++_j) { _o." + camel_name + "[_j] = this." + camel_name +
+                  "(_j)" + unpack_method + "; }\n";
+          break;
+        }
+
+        case BASE_TYPE_VECTOR: {
+          auto unpack_method =
+              field.value.type.struct_def == nullptr ? "" : "?.UnPack()";
+          code += start + "new " +
+                  GenTypeGet_ObjectAPI(field.value.type, opts) +
+                  "(); for (var _j = 0; _j < this." + camel_name +
+                  "Length; ++_j) { _o." + camel_name + ".Add(this." +
+                  camel_name + "(_j)" + unpack_method + "); }\n";
+          break;
+        }
+
+        case BASE_TYPE_UTYPE: break;
+        case BASE_TYPE_UNION: {
+          auto &enum_def = *field.value.type.enum_def;
+          code += "    _o." + camel_name + " = new " +
+                  WrapInNameSpace(enum_def) + "Union();\n";
+          code +=
+              "    _o." + camel_name + ".Type = this." + camel_name + "Type;\n";
+          code += "    switch (this." + camel_name + "Type) {\n";
+          for (auto eit = enum_def.Vals().begin(); eit != enum_def.Vals().end();
+               ++eit) {
+            auto &ev = **eit;
+            if (ev.union_type.struct_def == nullptr) {
+              code += "      default: break;\n";
+            } else {
+              code += "      case " + WrapInNameSpace(enum_def) + "." +
+                      ev.name + ":\n";
+              code += "        _o." + camel_name + ".Value = this." +
+                      camel_name + "<" + GenTypeGet(ev.union_type) +
+                      ">()?.UnPack();\n";
+              code += "        break;\n";
+            }
+          }
+
+          code += "    }\n";
+          break;
+        }
+
+        default: {
+          code += start + "this." + camel_name + ";\n";
+          break;
+        }
+      }
+    }
+
+    code += "  }\n";
+
+    // Pack()
+    code += "  public static " + GenOffsetType(struct_def) +
+            " Pack(FlatBufferBuilder builder, " + struct_name + " _o) {\n";
+    code += "  if (_o == null) return default(" + GenOffsetType(struct_def) +
+            ");\n";
+
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto &field = **it;
+      if (field.deprecated) continue;
+
+      auto camel_name = MakeCamel(field.name);
+
+      // pre
+      switch (field.value.type.base_type) {
+        case BASE_TYPE_STRUCT: {
+          if (!field.value.type.struct_def->fixed) {
+            code += "    var _" + field.name + " = _o." + camel_name +
+                    " == null ? default(" +
+                    GenOffsetType(*field.value.type.struct_def) +
+                    ") : " + GenTypeGet(field.value.type) +
+                    ".Pack(builder, _o." + camel_name + ");\n";
+          }
+          break;
+        }
+        case BASE_TYPE_STRING: {
+          code += "    var _" + field.name + " = _o." + camel_name +
+                  " == null ? default(StringOffset) : "
+                  "builder.CreateSharedString(_o." +
+                  camel_name + ");\n";
+          break;
+        }
+
+        case BASE_TYPE_VECTOR: {
+          if (field_has_create.find(&field) != field_has_create.end()) {
+            auto pack_method = field.value.type.struct_def != nullptr
+                                  ? ".Select(__o => " +
+                                        GenTypeGet(field.value.type) +
+                                        ".Pack(builder, __o))"
+                                  : field.value.type.element == BASE_TYPE_STRING
+                                        ? ".Select(builder.CreateSharedString)"
+                                        : "";
+
+            code += "    var _" + field.name + " = _o." + camel_name +
+                    " == null ? default(VectorOffset) : Create" + camel_name +
+                    "Vector(builder, _o." + camel_name + pack_method +
+                    ".ToArray());\n";
+          } else {
+            auto pack_method =
+                field.value.type.struct_def == nullptr
+                    ? "builder.Add" + GenMethod(field.value.type.VectorType()) +
+                          "(_o." + camel_name + "[_j]);"
+                    : GenTypeGet(field.value.type) + ".Pack(builder, _o." +
+                          camel_name + "[_j]);";
+
+            code += "    var _" + field.name + " = default(VectorOffset);\n";
+            code += "    if (_o." + camel_name + " != null) {\n";
+            code += "      Start" + camel_name + "Vector(builder, _o." +
+                    camel_name + ".Count);\n";
+            code += "      for (var _j = _o." + camel_name +
+                    ".Count - 1; _j >= 0; --_j) { " + pack_method + " }\n";
+            code += "      _" + field.name + " = builder.EndVector();\n";
+            code += "    }\n";
+          }
+          break;
+        }
+
+        case BASE_TYPE_ARRAY: {
+          if (field.value.type.struct_def != nullptr) {
+            std::vector<std::string> name_vec;
+            name_vec.push_back(field.name);
+
+            std::vector<int> array_length_vec;
+            array_length_vec.push_back(field.value.type.fixed_length);
+
+            GenArrayPackDecl_ObjectAPI(*field.value.type.struct_def, code_ptr,
+                                       name_vec, array_length_vec);
+          } else {
+            code += "    var _" + field.name + " = _o." + camel_name + ";\n";
+          }
+
+          break;
+        }
+
+        case BASE_TYPE_UNION: {
+          code +=
+              "    var _" + field.name + " = _o." + camel_name +
+              " == null ? 0 : " + GenTypeGet_ObjectAPI(field.value.type, opts) +
+              ".Pack(builder, _o." + camel_name + ");\n";
+          break;
+        }
+
+        default: break;
+      }
+    }
+
+    if (struct_has_create) {
+      // Create
+      code += "    return Create" + struct_def.name + "(\n";
+      code += "      builder";
+
+      for (auto it = struct_def.fields.vec.begin();
+           it != struct_def.fields.vec.end(); ++it) {
+        auto &field = **it;
+        if (field.deprecated) continue;
+
+        auto camel_name = MakeCamel(field.name);
+
+        switch (field.value.type.base_type) {
+          case BASE_TYPE_STRUCT: {
+            if (struct_def.fixed) {
+              GenStructArgs_ObjectAPI(*field.value.type.struct_def, code_ptr,
+                                      "      _o." + camel_name + ".");
+            } else {
+              code += ",\n";
+              if (field.value.type.struct_def->fixed) {
+                code += "      " + GenTypeGet(field.value.type) +
+                        ".Pack(builder, _o." + camel_name + ")";
+              } else {
+                code += "      _" + field.name;
+              }
+            }
+            break;
+          }
+
+          case BASE_TYPE_ARRAY: {
+            if (field.value.type.struct_def != nullptr) {
+              GenArrayPackCall_ObjectAPI(*field.value.type.struct_def, code_ptr,
+                                         "      _" + field.name + "_");
+            } else {
+              code += ",\n";
+              code += "      _" + field.name;
+            }
+            break;
+          }
+
+          case BASE_TYPE_STRING: FLATBUFFERS_FALLTHROUGH();  // fall thru
+          case BASE_TYPE_VECTOR: {
+            code += ",\n";
+            code += "      _" + field.name;
+            break;
+          }
+
+          default:  // scalar
+            code += ",\n";
+            code += "      _o." + camel_name;
+            break;
+        }
+      }
+      code += ");\n";
+    } else {
+      // Start, End
+      code += "    Start" + struct_def.name + "(builder);\n";
+
+      for (auto it = struct_def.fields.vec.begin();
+           it != struct_def.fields.vec.end(); ++it) {
+        auto &field = **it;
+        if (field.deprecated) continue;
+
+        auto camel_name = MakeCamel(field.name);
+
+        switch (field.value.type.base_type) {
+          case BASE_TYPE_STRUCT: {
+            if (field.value.type.struct_def->fixed) {
+              code += "    Add" + camel_name + "(builder, " +
+                      GenTypeGet(field.value.type) + ".Pack(builder, _o." +
+                      camel_name + "));\n";
+            } else {
+              code +=
+                  "    Add" + camel_name + "(builder, _" + field.name + ");\n";
+            }
+            break;
+          }
+
+          case BASE_TYPE_STRING: FLATBUFFERS_FALLTHROUGH();  // fall thru
+          case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();   // fall thru
+          case BASE_TYPE_VECTOR: {
+            code +=
+                "    Add" + camel_name + "(builder, _" + field.name + ");\n";
+            break;
+          }
+
+          case BASE_TYPE_UTYPE: break;
+          case BASE_TYPE_UNION: {
+            code += "    Add" + camel_name + "Type(builder, _o." + camel_name +
+                    ".Type);\n";
+            code +=
+                "    Add" + camel_name + "(builder, _" + field.name + ");\n";
+            break;
+          }
+
+          // scalar
+          default: {
+            code +=
+                "    Add" + camel_name + "(builder, _o." + camel_name + ");\n";
+            break;
+          }
+        }
+      }
+
+      code += "    return End" + struct_def.name + "(builder);\n";
+    }
+    code += "  }\n";
+  }
+
+  void GenStructArgs_ObjectAPI(const StructDef &struct_def,
+                               std::string *code_ptr,
+                               std::string prefix) const {
+    std::string &code = *code_ptr;
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto &field = **it;
+      const auto &field_type = field.value.type;
+      if (IsStruct(field_type)) {
+        GenStructArgs_ObjectAPI(*field_type.struct_def, code_ptr,
+                                prefix + "." + MakeCamel(field.name) + ".");
+      } else {
+        code += ",\n";
+        code += prefix + MakeCamel(field.name);
+      }
+    }
+  }
+
+  void GenArrayPackDecl_ObjectAPI(const StructDef &struct_def,
+                                  std::string *code_ptr,
+                                  std::vector<std::string> name_vec,
+                                  std::vector<int> array_length_vec) const {
+    std::string &code = *code_ptr;
+    for (auto field : struct_def.fields.vec) {
+      auto is_array = IsArray(field->value.type);
+      const auto &field_type =
+          is_array ? field->value.type.VectorType() : field->value.type;
+      if (IsStruct(field_type)) {
+      } else {
+        auto tmp_name_vec = name_vec;
+        tmp_name_vec.push_back(field->name);
+
+        auto tmp_array_length_vec = array_length_vec;
+        if (is_array) {
+          tmp_array_length_vec.push_back(field_type.fixed_length);
+        }
+
+        std::string name;
+        for (auto &tmp : tmp_name_vec) { name += "_" + tmp; }
+
+        code += "    var " + name + " = new " + GenTypeBasic(field_type) + "[";
+
+        code += std::to_string(tmp_array_length_vec[0]);
+
+        for (auto i = 1; i < tmp_array_length_vec.size(); ++i) {
+          auto array_length = tmp_array_length_vec[i];
+          code += "," + std::to_string(array_length);
+        }
+
+        code += "];";
+
+        // initialize array
+        for (auto i = 0; i < tmp_array_length_vec.size(); ++i) {
+          auto array_length = tmp_array_length_vec[i];
+          auto idx = "idx" + std::to_string(i);
+          code += " for (var " + idx + " = 0; " + idx + " < " +
+                  std::to_string(array_length) + "; ++" + idx + ") {";
+        }
+
+        code += name + "[idx0";
+        for (auto i = 1; i < tmp_array_length_vec.size(); ++i) {
+          auto idx = "idx" + std::to_string(i);
+          code += "," + idx;
+        }
+        code += "] = _o";
+
+        for (auto i = 0; i < tmp_array_length_vec.size(); ++i) {
+          auto idx = "idx" + std::to_string(i);
+          code += "." + MakeCamel(tmp_name_vec[i]) + "[" + idx + "]";
+        }
+        if (!is_array) { code += "." + MakeCamel(field->name); }
+        code += ";";
+
+        for (auto i = 0; i < tmp_array_length_vec.size(); ++i) { code += "}"; }
+
+        code += "\n";
+      }
+    }
+  }
+
+  void GenArrayPackCall_ObjectAPI(const StructDef &struct_def,
+                                  std::string *code_ptr,
+                                  std::string prefix) const {
+    std::string &code = *code_ptr;
+    for (auto field : struct_def.fields.vec) {
+      const auto &field_type = field->value.type;
+      if (IsStruct(field_type)) {
+        GenArrayPackCall_ObjectAPI(*field_type.struct_def, code_ptr,
+                                   prefix + field->name + "_");
+      } else {
+        code += ",\n";
+        code += prefix + field->name;
+      }
+    }
+  }
+
+  std::string GenTypeGet_ObjectAPI(flatbuffers::Type type,
+                                   const IDLOptions &opts) const {
+    auto type_name = GenTypeGet(type);
+
+    // Replace to ObjectBaseAPI Type Name
+    switch (type.base_type) {
+      case BASE_TYPE_STRUCT: FLATBUFFERS_FALLTHROUGH();  // fall thru
+      case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();   // fall thru
+      case BASE_TYPE_VECTOR: {
+        if (type.struct_def != nullptr) {
+          auto type_name_length = type.struct_def->name.length();
+          auto new_type_name =
+              GenTypeName_ObjectAPI(type.struct_def->name, opts);
+          type_name.replace(type_name.length() - type_name_length,
+                            type_name_length, new_type_name);
+        }
+        break;
+      }
+
+      case BASE_TYPE_UNION: {
+        type_name = WrapInNameSpace(*type.enum_def) + "Union";
+        break;
+      }
+
+      default: break;
+    }
+
+    switch (type.base_type) {
+      // case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();  // fall thru
+      case BASE_TYPE_ARRAY: {
+        type_name = type_name + "[]";
+        break;
+      }
+      case BASE_TYPE_VECTOR: {
+        type_name = "List<" + type_name + ">";
+        break;
+      }
+
+      default: break;
+    }
+
+    return type_name;
+  }
+
+  void GenStruct_ObjectAPI(StructDef &struct_def, std::string *code_ptr,
+                           const IDLOptions &opts) const {
+    std::string &code = *code_ptr;
+
+    if (struct_def.attributes.Lookup("private")) {
+      code += "internal ";
+    } else {
+      code += "public ";
+    }
+    if (struct_def.attributes.Lookup("csharp_partial")) {
+      // generate a partial class for this C# struct/table
+      code += "partial ";
+    }
+    code += "class " + GenTypeName_ObjectAPI(struct_def.name, opts);
+    code += "\n{\n";
+
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto &field = **it;
+      if (field.deprecated) continue;
+      if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
+
+      std::string type_name = GenTypeGet_ObjectAPI(field.value.type, opts);
+      std::string method_start = "  public " + type_name + " " +
+                                 MakeCamel(field.name, true) +
+                                 " { get; set; } ";
+
+      code += method_start;
+      switch (field.value.type.base_type) {
+        case BASE_TYPE_STRING: FLATBUFFERS_FALLTHROUGH();  // fall thru
+        case BASE_TYPE_UNION: FLATBUFFERS_FALLTHROUGH();   // fall thru
+        case BASE_TYPE_VECTOR: {
+          break;
+        }
+
+        case BASE_TYPE_STRUCT: {
+          if (IsStruct(field.value.type)) {
+            code += "= new " + type_name + "();";
+          }
+          break;
+        }
+
+        case BASE_TYPE_ARRAY: {
+          code += "= new " + type_name.substr(0, type_name.length() - 1) +
+                  std::to_string(field.value.type.fixed_length) + "];";
+          break;
+        }
+
+        // scalar
+        default: {
+          code += "= " + GenDefaultValue(field) + ";";
+          break;
+        }
+      }
+      code += "\n";
+    }
+    code += "};\n\n";
   }
 
   // This tracks the current namespace used to determine if a type need to be

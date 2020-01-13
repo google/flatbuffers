@@ -3,6 +3,8 @@
 // </auto-generated>
 
 using global::System;
+using global::System.Collections.Generic;
+using global::System.Linq;
 using global::FlatBuffers;
 
 public struct BookReader : IFlatbufferObject
@@ -20,5 +22,24 @@ public struct BookReader : IFlatbufferObject
     builder.PutInt(BooksRead);
     return new Offset<BookReader>(builder.Offset);
   }
+  public BookReaderT UnPack() {
+    var _o = new BookReaderT();
+    this.UnPackTo(_o);
+    return _o;
+  }
+  public void UnPackTo(BookReaderT _o) {
+    _o.BooksRead = this.BooksRead;
+  }
+  public static Offset<BookReader> Pack(FlatBufferBuilder builder, BookReaderT _o) {
+  if (_o == null) return default(Offset<BookReader>);
+    return CreateBookReader(
+      builder,
+      _o.BooksRead);
+  }
+};
+
+public class BookReaderT
+{
+  public int BooksRead { get; set; } = 0;
 };
 

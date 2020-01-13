@@ -6,6 +6,8 @@ namespace MyGame.Example
 {
 
 using global::System;
+using global::System.Collections.Generic;
+using global::System.Linq;
 using global::FlatBuffers;
 
 public struct Vec3 : IFlatbufferObject
@@ -43,6 +45,41 @@ public struct Vec3 : IFlatbufferObject
     builder.PutFloat(X);
     return new Offset<MyGame.Example.Vec3>(builder.Offset);
   }
+  public Vec3T UnPack() {
+    var _o = new Vec3T();
+    this.UnPackTo(_o);
+    return _o;
+  }
+  public void UnPackTo(Vec3T _o) {
+    _o.X = this.X;
+    _o.Y = this.Y;
+    _o.Z = this.Z;
+    _o.Test1 = this.Test1;
+    _o.Test2 = this.Test2;
+    _o.Test3 = this.Test3.UnPack();
+  }
+  public static Offset<MyGame.Example.Vec3> Pack(FlatBufferBuilder builder, Vec3T _o) {
+  if (_o == null) return default(Offset<MyGame.Example.Vec3>);
+    return CreateVec3(
+      builder,
+      _o.X,
+      _o.Y,
+      _o.Z,
+      _o.Test1,
+      _o.Test2,
+      _o.Test3.A,
+      _o.Test3.B);
+  }
+};
+
+public class Vec3T
+{
+  public float X { get; set; } = 0.0f;
+  public float Y { get; set; } = 0.0f;
+  public float Z { get; set; } = 0.0f;
+  public double Test1 { get; set; } = 0.0;
+  public MyGame.Example.Color Test2 { get; set; } = 0;
+  public MyGame.Example.TestT Test3 { get; set; } = new MyGame.Example.TestT();
 };
 
 

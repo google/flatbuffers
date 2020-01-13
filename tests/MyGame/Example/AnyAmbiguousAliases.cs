@@ -13,5 +13,25 @@ public enum AnyAmbiguousAliases : byte
   M3 = 3,
 };
 
+public class AnyAmbiguousAliasesUnion {
+  public AnyAmbiguousAliases Type { get; set; } = AnyAmbiguousAliases.NONE;
+  public object Value { get; set; } = null;
+
+  public T As<T>() where T : class
+    => this.Value is T _o ? _o : null;
+  public MyGame.Example.MonsterT AsM1() => this.As<MyGame.Example.MonsterT>();
+  public MyGame.Example.MonsterT AsM2() => this.As<MyGame.Example.MonsterT>();
+  public MyGame.Example.MonsterT AsM3() => this.As<MyGame.Example.MonsterT>();
+
+  public static int Pack(FlatBuffers.FlatBufferBuilder builder, AnyAmbiguousAliasesUnion _o) {
+    switch (_o.Type) {
+      default: return 0;
+      case AnyAmbiguousAliases.M1: return MyGame.Example.Monster.Pack(builder, _o.AsM1()).Value;
+      case AnyAmbiguousAliases.M2: return MyGame.Example.Monster.Pack(builder, _o.AsM2()).Value;
+      case AnyAmbiguousAliases.M3: return MyGame.Example.Monster.Pack(builder, _o.AsM3()).Value;
+    }
+  }
+}
+
 
 }

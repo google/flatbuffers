@@ -13,3 +13,27 @@ public enum Character : byte
   Unused = 6,
 };
 
+public class CharacterUnion {
+  public Character Type { get; set; } = Character.NONE;
+  public object Value { get; set; } = null;
+
+  public T As<T>() where T : class
+    => this.Value is T _o ? _o : null;
+  public AttackerT AsMuLan() => this.As<AttackerT>();
+  public RapunzelT AsRapunzel() => this.As<RapunzelT>();
+  public BookReaderT AsBelle() => this.As<BookReaderT>();
+  public BookReaderT AsBookFan() => this.As<BookReaderT>();
+
+  public static int Pack(FlatBuffers.FlatBufferBuilder builder, CharacterUnion _o) {
+    switch (_o.Type) {
+      default: return 0;
+      case Character.MuLan: return Attacker.Pack(builder, _o.AsMuLan()).Value;
+      case Character.Rapunzel: return Rapunzel.Pack(builder, _o.AsRapunzel()).Value;
+      case Character.Belle: return BookReader.Pack(builder, _o.AsBelle()).Value;
+      case Character.BookFan: return BookReader.Pack(builder, _o.AsBookFan()).Value;
+      default: return 0;
+      default: return 0;
+    }
+  }
+}
+

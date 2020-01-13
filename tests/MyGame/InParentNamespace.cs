@@ -6,6 +6,8 @@ namespace MyGame
 {
 
 using global::System;
+using global::System.Collections.Generic;
+using global::System.Linq;
 using global::FlatBuffers;
 
 public struct InParentNamespace : IFlatbufferObject
@@ -24,6 +26,22 @@ public struct InParentNamespace : IFlatbufferObject
     int o = builder.EndTable();
     return new Offset<MyGame.InParentNamespace>(o);
   }
+  public InParentNamespaceT UnPack() {
+    var _o = new InParentNamespaceT();
+    this.UnPackTo(_o);
+    return _o;
+  }
+  public void UnPackTo(InParentNamespaceT _o) {
+  }
+  public static Offset<MyGame.InParentNamespace> Pack(FlatBufferBuilder builder, InParentNamespaceT _o) {
+  if (_o == null) return default(Offset<MyGame.InParentNamespace>);
+    StartInParentNamespace(builder);
+    return EndInParentNamespace(builder);
+  }
+};
+
+public class InParentNamespaceT
+{
 };
 
 

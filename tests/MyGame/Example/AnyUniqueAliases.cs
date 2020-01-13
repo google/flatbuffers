@@ -13,5 +13,25 @@ public enum AnyUniqueAliases : byte
   M2 = 3,
 };
 
+public class AnyUniqueAliasesUnion {
+  public AnyUniqueAliases Type { get; set; } = AnyUniqueAliases.NONE;
+  public object Value { get; set; } = null;
+
+  public T As<T>() where T : class
+    => this.Value is T _o ? _o : null;
+  public MyGame.Example.MonsterT AsM() => this.As<MyGame.Example.MonsterT>();
+  internal MyGame.Example.TestSimpleTableWithEnumT AsTS() => this.As<MyGame.Example.TestSimpleTableWithEnumT>();
+  public MyGame.Example2.MonsterT AsM2() => this.As<MyGame.Example2.MonsterT>();
+
+  public static int Pack(FlatBuffers.FlatBufferBuilder builder, AnyUniqueAliasesUnion _o) {
+    switch (_o.Type) {
+      default: return 0;
+      case AnyUniqueAliases.M: return MyGame.Example.Monster.Pack(builder, _o.AsM()).Value;
+      case AnyUniqueAliases.TS: return MyGame.Example.TestSimpleTableWithEnum.Pack(builder, _o.AsTS()).Value;
+      case AnyUniqueAliases.M2: return MyGame.Example2.Monster.Pack(builder, _o.AsM2()).Value;
+    }
+  }
+}
+
 
 }

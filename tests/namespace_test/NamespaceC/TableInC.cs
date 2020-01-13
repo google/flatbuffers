@@ -6,6 +6,8 @@ namespace NamespaceC
 {
 
 using global::System;
+using global::System.Collections.Generic;
+using global::System.Linq;
 using global::FlatBuffers;
 
 public struct TableInC : IFlatbufferObject
@@ -37,6 +39,30 @@ public struct TableInC : IFlatbufferObject
     int o = builder.EndTable();
     return new Offset<NamespaceC.TableInC>(o);
   }
+  public TableInCT UnPack() {
+    var _o = new TableInCT();
+    this.UnPackTo(_o);
+    return _o;
+  }
+  public void UnPackTo(TableInCT _o) {
+    _o.ReferToA1 = this.ReferToA1?.UnPack();
+    _o.ReferToA2 = this.ReferToA2?.UnPack();
+  }
+  public static Offset<NamespaceC.TableInC> Pack(FlatBufferBuilder builder, TableInCT _o) {
+  if (_o == null) return default(Offset<NamespaceC.TableInC>);
+    var _refer_to_a1 = _o.ReferToA1 == null ? default(Offset<NamespaceA.TableInFirstNS>) : NamespaceA.TableInFirstNS.Pack(builder, _o.ReferToA1);
+    var _refer_to_a2 = _o.ReferToA2 == null ? default(Offset<NamespaceA.SecondTableInA>) : NamespaceA.SecondTableInA.Pack(builder, _o.ReferToA2);
+    return CreateTableInC(
+      builder,
+      _refer_to_a1,
+      _refer_to_a2);
+  }
+};
+
+public class TableInCT
+{
+  public NamespaceA.TableInFirstNST ReferToA1 { get; set; } 
+  public NamespaceA.SecondTableInAT ReferToA2 { get; set; } 
 };
 
 

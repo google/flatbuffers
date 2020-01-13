@@ -3,6 +3,8 @@
 // </auto-generated>
 
 using global::System;
+using global::System.Collections.Generic;
+using global::System.Linq;
 using global::FlatBuffers;
 
 public struct Movie : IFlatbufferObject
@@ -59,5 +61,52 @@ public struct Movie : IFlatbufferObject
   }
   public static void FinishMovieBuffer(FlatBufferBuilder builder, Offset<Movie> offset) { builder.Finish(offset.Value, "MOVI"); }
   public static void FinishSizePrefixedMovieBuffer(FlatBufferBuilder builder, Offset<Movie> offset) { builder.FinishSizePrefixed(offset.Value, "MOVI"); }
+  public MovieT UnPack() {
+    var _o = new MovieT();
+    this.UnPackTo(_o);
+    return _o;
+  }
+  public void UnPackTo(MovieT _o) {
+    _o.MainCharacter = new CharacterUnion();
+    _o.MainCharacter.Type = this.MainCharacterType;
+    switch (this.MainCharacterType) {
+      default: break;
+      case Character.MuLan:
+        _o.MainCharacter.Value = this.MainCharacter<Attacker>()?.UnPack();
+        break;
+      case Character.Rapunzel:
+        _o.MainCharacter.Value = this.MainCharacter<Rapunzel>()?.UnPack();
+        break;
+      case Character.Belle:
+        _o.MainCharacter.Value = this.MainCharacter<BookReader>()?.UnPack();
+        break;
+      case Character.BookFan:
+        _o.MainCharacter.Value = this.MainCharacter<BookReader>()?.UnPack();
+        break;
+      default: break;
+      default: break;
+    }
+    _o.CharactersType = new List<Character>(); for (var _j = 0; _j < this.CharactersTypeLength; ++_j) { _o.CharactersType.Add(this.CharactersType(_j)); }
+    _o.Characters = new List<TTable>(); for (var _j = 0; _j < this.CharactersLength; ++_j) { _o.Characters.Add(this.Characters(_j)); }
+  }
+  public static Offset<Movie> Pack(FlatBufferBuilder builder, MovieT _o) {
+  if (_o == null) return default(Offset<Movie>);
+    var _main_character = _o.MainCharacter == null ? 0 : CharacterUnion.Pack(builder, _o.MainCharacter);
+    var _characters_type = _o.CharactersType == null ? default(VectorOffset) : CreateCharactersTypeVector(builder, _o.CharactersType.ToArray());
+    var _characters = _o.Characters == null ? default(VectorOffset) : CreateCharactersVector(builder, _o.Characters.ToArray());
+    return CreateMovie(
+      builder,
+      _o.MainCharacterType,
+      _o.MainCharacter,
+      _characters_type,
+      _characters);
+  }
+};
+
+public class MovieT
+{
+  public CharacterUnion MainCharacter { get; set; } 
+  public List<Character> CharactersType { get; set; } 
+  public List<TTable> Characters { get; set; } 
 };
 

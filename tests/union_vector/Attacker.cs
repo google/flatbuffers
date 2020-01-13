@@ -3,6 +3,8 @@
 // </auto-generated>
 
 using global::System;
+using global::System.Collections.Generic;
+using global::System.Linq;
 using global::FlatBuffers;
 
 public struct Attacker : IFlatbufferObject
@@ -31,5 +33,24 @@ public struct Attacker : IFlatbufferObject
     int o = builder.EndTable();
     return new Offset<Attacker>(o);
   }
+  public AttackerT UnPack() {
+    var _o = new AttackerT();
+    this.UnPackTo(_o);
+    return _o;
+  }
+  public void UnPackTo(AttackerT _o) {
+    _o.SwordAttackDamage = this.SwordAttackDamage;
+  }
+  public static Offset<Attacker> Pack(FlatBufferBuilder builder, AttackerT _o) {
+  if (_o == null) return default(Offset<Attacker>);
+    return CreateAttacker(
+      builder,
+      _o.SwordAttackDamage);
+  }
+};
+
+public class AttackerT
+{
+  public int SwordAttackDamage { get; set; } = 0;
 };
 

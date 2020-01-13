@@ -6,6 +6,8 @@ namespace MyGame.Example
 {
 
 using global::System;
+using global::System.Collections.Generic;
+using global::System.Linq;
 using global::FlatBuffers;
 
 public struct Test : IFlatbufferObject
@@ -27,6 +29,28 @@ public struct Test : IFlatbufferObject
     builder.PutShort(A);
     return new Offset<MyGame.Example.Test>(builder.Offset);
   }
+  public TestT UnPack() {
+    var _o = new TestT();
+    this.UnPackTo(_o);
+    return _o;
+  }
+  public void UnPackTo(TestT _o) {
+    _o.A = this.A;
+    _o.B = this.B;
+  }
+  public static Offset<MyGame.Example.Test> Pack(FlatBufferBuilder builder, TestT _o) {
+  if (_o == null) return default(Offset<MyGame.Example.Test>);
+    return CreateTest(
+      builder,
+      _o.A,
+      _o.B);
+  }
+};
+
+public class TestT
+{
+  public short A { get; set; } = 0;
+  public sbyte B { get; set; } = 0;
 };
 
 

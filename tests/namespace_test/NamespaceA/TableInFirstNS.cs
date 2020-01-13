@@ -6,6 +6,8 @@ namespace NamespaceA
 {
 
 using global::System;
+using global::System.Collections.Generic;
+using global::System.Linq;
 using global::FlatBuffers;
 
 public struct TableInFirstNS : IFlatbufferObject
@@ -31,6 +33,32 @@ public struct TableInFirstNS : IFlatbufferObject
     int o = builder.EndTable();
     return new Offset<NamespaceA.TableInFirstNS>(o);
   }
+  public TableInFirstNST UnPack() {
+    var _o = new TableInFirstNST();
+    this.UnPackTo(_o);
+    return _o;
+  }
+  public void UnPackTo(TableInFirstNST _o) {
+    _o.FooTable = this.FooTable?.UnPack();
+    _o.FooEnum = this.FooEnum;
+    _o.FooStruct = this.FooStruct?.UnPack();
+  }
+  public static Offset<NamespaceA.TableInFirstNS> Pack(FlatBufferBuilder builder, TableInFirstNST _o) {
+  if (_o == null) return default(Offset<NamespaceA.TableInFirstNS>);
+    var _foo_table = _o.FooTable == null ? default(Offset<NamespaceA.NamespaceB.TableInNestedNS>) : NamespaceA.NamespaceB.TableInNestedNS.Pack(builder, _o.FooTable);
+    StartTableInFirstNS(builder);
+    AddFooTable(builder, _foo_table);
+    AddFooEnum(builder, _o.FooEnum);
+    AddFooStruct(builder, NamespaceA.NamespaceB.StructInNestedNS.Pack(builder, _o.FooStruct));
+    return EndTableInFirstNS(builder);
+  }
+};
+
+public class TableInFirstNST
+{
+  public NamespaceA.NamespaceB.TableInNestedNST FooTable { get; set; } 
+  public NamespaceA.NamespaceB.EnumInNestedNS FooEnum { get; set; } = NamespaceA.NamespaceB.EnumInNestedNS.A;
+  public NamespaceA.NamespaceB.StructInNestedNST FooStruct { get; set; } = new NamespaceA.NamespaceB.StructInNestedNST();
 };
 
 

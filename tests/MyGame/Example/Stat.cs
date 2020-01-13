@@ -6,6 +6,8 @@ namespace MyGame.Example
 {
 
 using global::System;
+using global::System.Collections.Generic;
+using global::System.Linq;
 using global::FlatBuffers;
 
 public struct Stat : IFlatbufferObject
@@ -49,6 +51,32 @@ public struct Stat : IFlatbufferObject
     int o = builder.EndTable();
     return new Offset<MyGame.Example.Stat>(o);
   }
+  public StatT UnPack() {
+    var _o = new StatT();
+    this.UnPackTo(_o);
+    return _o;
+  }
+  public void UnPackTo(StatT _o) {
+    _o.Id = this.Id;
+    _o.Val = this.Val;
+    _o.Count = this.Count;
+  }
+  public static Offset<MyGame.Example.Stat> Pack(FlatBufferBuilder builder, StatT _o) {
+  if (_o == null) return default(Offset<MyGame.Example.Stat>);
+    var _id = _o.Id == null ? default(StringOffset) : builder.CreateSharedString(_o.Id);
+    return CreateStat(
+      builder,
+      _id,
+      _o.Val,
+      _o.Count);
+  }
+};
+
+public class StatT
+{
+  public string Id { get; set; } 
+  public long Val { get; set; } = 0;
+  public ushort Count { get; set; } = 0;
 };
 
 

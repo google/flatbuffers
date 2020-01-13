@@ -6,6 +6,8 @@ namespace MyGame
 {
 
 using global::System;
+using global::System.Collections.Generic;
+using global::System.Linq;
 using global::FlatBuffers;
 
 public struct MonsterExtra : IFlatbufferObject
@@ -102,6 +104,54 @@ public struct MonsterExtra : IFlatbufferObject
   }
   public static void FinishMonsterExtraBuffer(FlatBufferBuilder builder, Offset<MyGame.MonsterExtra> offset) { builder.Finish(offset.Value, "MONE"); }
   public static void FinishSizePrefixedMonsterExtraBuffer(FlatBufferBuilder builder, Offset<MyGame.MonsterExtra> offset) { builder.FinishSizePrefixed(offset.Value, "MONE"); }
+  public MonsterExtraT UnPack() {
+    var _o = new MonsterExtraT();
+    this.UnPackTo(_o);
+    return _o;
+  }
+  public void UnPackTo(MonsterExtraT _o) {
+    _o.D0 = this.D0;
+    _o.D1 = this.D1;
+    _o.D2 = this.D2;
+    _o.D3 = this.D3;
+    _o.F0 = this.F0;
+    _o.F1 = this.F1;
+    _o.F2 = this.F2;
+    _o.F3 = this.F3;
+    _o.Dvec = new List<double>(); for (var _j = 0; _j < this.DvecLength; ++_j) { _o.Dvec.Add(this.Dvec(_j)); }
+    _o.Fvec = new List<float>(); for (var _j = 0; _j < this.FvecLength; ++_j) { _o.Fvec.Add(this.Fvec(_j)); }
+  }
+  public static Offset<MyGame.MonsterExtra> Pack(FlatBufferBuilder builder, MonsterExtraT _o) {
+  if (_o == null) return default(Offset<MyGame.MonsterExtra>);
+    var _dvec = _o.Dvec == null ? default(VectorOffset) : CreateDvecVector(builder, _o.Dvec.ToArray());
+    var _fvec = _o.Fvec == null ? default(VectorOffset) : CreateFvecVector(builder, _o.Fvec.ToArray());
+    return CreateMonsterExtra(
+      builder,
+      _o.D0,
+      _o.D1,
+      _o.D2,
+      _o.D3,
+      _o.F0,
+      _o.F1,
+      _o.F2,
+      _o.F3,
+      _dvec,
+      _fvec);
+  }
+};
+
+public class MonsterExtraT
+{
+  public double D0 { get; set; } = Double.NaN;
+  public double D1 { get; set; } = Double.NaN;
+  public double D2 { get; set; } = Double.PositiveInfinity;
+  public double D3 { get; set; } = Double.NegativeInfinity;
+  public float F0 { get; set; } = Single.NaN;
+  public float F1 { get; set; } = Single.NaN;
+  public float F2 { get; set; } = Single.PositiveInfinity;
+  public float F3 { get; set; } = Single.NegativeInfinity;
+  public List<double> Dvec { get; set; } 
+  public List<float> Fvec { get; set; } 
 };
 
 

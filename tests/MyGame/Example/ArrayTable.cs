@@ -6,6 +6,8 @@ namespace MyGame.Example
 {
 
 using global::System;
+using global::System.Collections.Generic;
+using global::System.Linq;
 using global::FlatBuffers;
 
 public struct ArrayTable : IFlatbufferObject
@@ -29,6 +31,25 @@ public struct ArrayTable : IFlatbufferObject
   }
   public static void FinishArrayTableBuffer(FlatBufferBuilder builder, Offset<MyGame.Example.ArrayTable> offset) { builder.Finish(offset.Value, "ARRT"); }
   public static void FinishSizePrefixedArrayTableBuffer(FlatBufferBuilder builder, Offset<MyGame.Example.ArrayTable> offset) { builder.FinishSizePrefixed(offset.Value, "ARRT"); }
+  public ArrayTableT UnPack() {
+    var _o = new ArrayTableT();
+    this.UnPackTo(_o);
+    return _o;
+  }
+  public void UnPackTo(ArrayTableT _o) {
+    _o.A = this.A?.UnPack();
+  }
+  public static Offset<MyGame.Example.ArrayTable> Pack(FlatBufferBuilder builder, ArrayTableT _o) {
+  if (_o == null) return default(Offset<MyGame.Example.ArrayTable>);
+    StartArrayTable(builder);
+    AddA(builder, MyGame.Example.ArrayStruct.Pack(builder, _o.A));
+    return EndArrayTable(builder);
+  }
+};
+
+public class ArrayTableT
+{
+  public MyGame.Example.ArrayStructT A { get; set; } = new MyGame.Example.ArrayStructT();
 };
 
 
