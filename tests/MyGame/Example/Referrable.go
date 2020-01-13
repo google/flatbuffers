@@ -10,7 +10,7 @@ type ReferrableT struct {
 	Id uint64
 }
 
-func ReferrablePack(builder *flatbuffers.Builder, t *ReferrableT) flatbuffers.UOffsetT {
+func (t *ReferrableT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil { return 0 }
 	ReferrableStart(builder)
 	ReferrableAddId(builder, t.Id)

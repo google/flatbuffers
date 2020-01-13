@@ -13,10 +13,10 @@ type TableInCT struct {
 	ReferToA2 *NamespaceA.SecondTableInAT
 }
 
-func TableInCPack(builder *flatbuffers.Builder, t *TableInCT) flatbuffers.UOffsetT {
+func (t *TableInCT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil { return 0 }
-	referToA1Offset := NamespaceA.TableInFirstNSPack(builder, t.ReferToA1)
-	referToA2Offset := NamespaceA.SecondTableInAPack(builder, t.ReferToA2)
+	referToA1Offset := t.ReferToA1.Pack(builder)
+	referToA2Offset := t.ReferToA2.Pack(builder)
 	TableInCStart(builder)
 	TableInCAddReferToA1(builder, referToA1Offset)
 	TableInCAddReferToA2(builder, referToA2Offset)
