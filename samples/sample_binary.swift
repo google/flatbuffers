@@ -1,10 +1,10 @@
  // THIS IS JUST TO SHOW THE CODE, PLEASE DO IMPORT FLATBUFFERS WITH SPM..
 import Flatbuffers
 
-typealias Monster = MyGame1.Sample.Monster
-typealias Weapon = MyGame1.Sample.Weapon
-typealias Color = MyGame1.Sample.Color
-typealias Vec3 = MyGame1.Sample.Vec3
+typealias Monster = MyGame.Sample.Monster
+typealias Weapon = MyGame.Sample.Weapon
+typealias Color = MyGame.Sample.Color
+typealias Vec3 = MyGame.Sample.Vec3
 
 func main() {
     let expectedDMG: [Int16] = [3, 5]
@@ -30,16 +30,16 @@ func main() {
     let weaponsOffset = builder.createVector(ofOffsets: [sword, axe])
     let pos = builder.create(struct: MyGame.Sample.createVec3(x: 1, y: 2, z: 3), type: Vec3.self)
     
-    let start = Monster.startMonster(builder)
-    Monster.add(pos: pos, builder)
-    Monster.add(hp: 300, builder)
-    Monster.add(name: name, builder)
-    Monster.add(inventory: inventoryOffset, builder)
-    Monster.add(color: .red, builder)
-    Monster.add(weapons: weaponsOffset, builder)
-    Monster.add(equippedType: .weapon, builder)
-    Monster.add(equipped: axe, builder)
-    var orc = Monster.endMonster(builder, start: start)
+    
+    let orc = Monster.createMonster(builder, 
+                                    offsetOfPos: pos,
+                                    hp: 300,
+                                    offsetOfName: name,
+                                    vectorOfInventory: inventoryOffset,
+                                    color: .red,
+                                    vectorOfWeapons: weaponsOffset,
+                                    equippedType: .weapon,
+                                    offsetOfEquipped: axe)
     builder.finish(offset: orc)
     
     var buf = builder.sizedByteArray
@@ -48,7 +48,7 @@ func main() {
     assert(monster.mana == 150)
     assert(monster.hp == 300)
     assert(monster.name == "Orc")
-    assert(monster.color == MyGame1.Sample.Color.red)
+    assert(monster.color == MyGame.Sample.Color.red)
     assert(monster.pos != nil)
     for i in 0..<monster.inventoryCount {
         assert(i == monster.inventory(at: i))

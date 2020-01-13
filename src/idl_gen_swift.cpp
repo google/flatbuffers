@@ -213,13 +213,15 @@ class SwiftGenerator : public BaseGenerator {
 
   void GenTableWriter(const StructDef &struct_def) {
     flatbuffers::FieldDef *key_field = nullptr;
+    std::vector<std::string> require_fields;
+    std::string create_func_body;
+    std::string create_func_header;
+    auto should_generate_create = struct_def.fields.vec.size() != 0;
 
     code_.SetValue("NUMBEROFFIELDS", NumToString(struct_def.fields.vec.size()));
     code_ +=
         "\tpublic static func start{{STRUCTNAME}}(_ fbb: FlatBufferBuilder) -> "
         "UOffset { fbb.startTable(with: {{NUMBEROFFIELDS}}) }";
-
-    std::vector<std::string> require_fields;
 
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
@@ -230,7 +232,8 @@ class SwiftGenerator : public BaseGenerator {
         require_fields.push_back(NumToString(field.value.offset));
 
       GenTableWriterFields(
-          field, static_cast<int>(it - struct_def.fields.vec.begin()));
+          field, &create_func_body, &create_func_header,
+          static_cast<int>(it - struct_def.fields.vec.begin()));
     }
     code_ +=
         "\tpublic static func end{{STRUCTNAME}}(_ fbb: FlatBufferBuilder, "
@@ -245,6 +248,19 @@ class SwiftGenerator : public BaseGenerator {
       code_ += "; fbb.require(table: end, fields: [{{FIELDS}}])\\";
     }
     code_ += "; return end }";
+
+    code_ +=
+        "\tpublic static func create{{STRUCTNAME}}(_ fbb: FlatBufferBuilder\\";
+    if (should_generate_create)
+      code_ += ",\n" +
+               create_func_header.substr(0, create_func_header.size() - 2) +
+               "\\";
+    code_ += ") -> Offset<UOffset> {";
+    code_ += "\t\tlet start = {{STRUCTNAME}}.start{{STRUCTNAME}}(fbb)";
+    if (should_generate_create)
+      code_ += create_func_body.substr(0, create_func_body.size() - 1);
+    code_ += "\t\treturn {{STRUCTNAME}}.end{{STRUCTNAME}}(fbb, start: start)";
+    code_ += "\t}";
 
     std::string spacing = "\t\t";
 
@@ -268,8 +284,11 @@ class SwiftGenerator : public BaseGenerator {
     }
   }
 
-  void GenTableWriterFields(const FieldDef &field, const int position) {
+  void GenTableWriterFields(const FieldDef &field, std::string *create_body,
+                            std::string *create_header, const int position) {
     std::string builder_string = ", _ fbb: FlatBufferBuilder) { fbb.add(";
+    auto &create_func_body = *create_body;
+    auto &create_func_header = *create_header;
     auto name = Name(field);
     auto type = GenType(field.value.type);
     code_.SetValue("VALUENAME", name);
@@ -279,30 +298,48 @@ class SwiftGenerator : public BaseGenerator {
     std::string check_if_vector =
         (field.value.type.base_type == BASE_TYPE_VECTOR ||
          field.value.type.base_type == BASE_TYPE_ARRAY)
-            ? "VectorOf"
-            : "";
-    code_ +=
-        "\tpublic static func add" + check_if_vector + "({{VALUENAME}}: \\";
+            ? "VectorOf("
+            : "(";
+    std::string body = "add" + check_if_vector + name + ": ";
+    code_ += "\tpublic static func " + body + "\\";
+
+    create_func_body += "\t\t{{STRUCTNAME}}." + body + name + ", fbb)\n";
 
     if (IsScalar(field.value.type.base_type) &&
         !IsBool(field.value.type.base_type)) {
+      auto default_value = IsEnum(field.value.type) ? GenEnumDefaultValue(field)
+                                                    : field.value.constant;
       auto is_enum = IsEnum(field.value.type) ? ".rawValue" : "";
       code_ += "{{VALUETYPE}}" + builder_string + "element: {{VALUENAME}}" +
                is_enum + ", def: {{CONSTANT}}, at: {{OFFSET}}) }";
+      create_func_header +=
+          "\t\t" + name + ": " + type + " = " + default_value + ",\n";
       return;
     }
+
     if (IsBool(field.value.type.base_type)) {
+      std::string default_value =
+          "0" == field.value.constant ? "false" : "true";
       code_.SetValue("VALUETYPE", "Bool");
-      code_.SetValue("CONSTANT",
-                     "0" == field.value.constant ? "false" : "true");
+      code_.SetValue("CONSTANT", default_value);
       code_ += "{{VALUETYPE}}" + builder_string +
                "condition: {{VALUENAME}}, def: {{CONSTANT}}, at: {{OFFSET}}) }";
+      create_func_header +=
+          "\t\t" + name + ": " + type + " = " + default_value + ",\n";
       return;
     }
 
     auto offset_type = field.value.type.base_type == BASE_TYPE_STRING
                            ? "Offset<String>"
                            : "Offset<UOffset>";
+    auto camel_case_name =
+        (field.value.type.base_type == BASE_TYPE_VECTOR ||
+                 field.value.type.base_type == BASE_TYPE_ARRAY
+             ? "vectorOf"
+             : "offsetOf") +
+        MakeCamel(name, true);
+    create_func_header += "\t\t" + camel_case_name + " " + name + ": " +
+                          offset_type + " = Offset(),\n";
     auto reader_type =
         IsStruct(field.value.type) && field.value.type.struct_def->fixed
             ? "structOffset: {{OFFSET}}) }"
@@ -444,7 +481,7 @@ class SwiftGenerator : public BaseGenerator {
 
     if (IsEnum(vectortype)) {
       code_.SetValue("BASEVALUE", GenTypeBasic(vectortype, false));
-      code_ += "return o == 0 ? " + GenEnumDefaultValue(field) +
+      code_ += "return o == 0 ? {{VALUETYPE}}" + GenEnumDefaultValue(field) +
                " : {{VALUETYPE}}(rawValue: {{ACCESS}}.directRead(of: "
                "{{BASEVALUE}}.self, offset: {{ACCESS}}.vector(at: o) + "
                "index * {{SIZE}})) }";
@@ -634,7 +671,7 @@ class SwiftGenerator : public BaseGenerator {
       name = ev.name;
     }
     std::transform(name.begin(), name.end(), name.begin(), LowerCase);
-    return "{{VALUETYPE}}." + name;
+    return "." + name;
   }
 
   std::string GenEnumConstructor(const std::string &at) {
