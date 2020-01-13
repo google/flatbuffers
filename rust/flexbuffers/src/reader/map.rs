@@ -17,7 +17,7 @@ use crate::BitWidth;
 use std::cmp::Ordering;
 use std::iter::{DoubleEndedIterator, ExactSizeIterator, FusedIterator, Iterator};
 
-/// Allows indexing on a flexbuffer map.
+/// Allows indexing on a flexbuffer map. Flexbuffers maps are analogous to BTreeMaps.
 #[derive(DebugStub, Default, Clone)]
 pub struct MapReader<'de> {
     #[debug_stub = "&[..]"]
@@ -44,19 +44,21 @@ impl<'de> MapReader<'de> {
         let k = self.buffer[key_addr..].iter().take_while(|&&b| b != b'\0');
         k.cmp(key.as_bytes().iter())
     }
-    fn binary_search(&self, key: &str) -> Result<usize, Error> {
+    /// Returns the index of a given key in the map.
+    pub fn index_key(&self, key: &str) -> Option<usize> {
         let (mut low, mut high) = (0, self.length);
         while low < high {
             let i = (low + high) / 2;
             let key_offset_address = self.keys_address + i * self.keys_width.n_bytes();
-            let key_address = deref_offset(self.buffer, key_offset_address, self.keys_width)?;
+            let key_address =
+                deref_offset(self.buffer, key_offset_address, self.keys_width).ok()?;
             match self.lazy_strcmp(key_address, key) {
-                Ordering::Equal => return Ok(i),
+                Ordering::Equal => return Some(i),
                 Ordering::Less => low = if i == low { i + 1 } else { i },
                 Ordering::Greater => high = i,
             }
         }
-        Err(Error::KeyNotFound)
+        None
     }
     /// Index into a map with a key or usize.
     pub fn index<I: MapReaderIndexer>(&self, i: I) -> Result<Reader<'de>, Error> {
@@ -72,8 +74,11 @@ impl<'de> MapReader<'de> {
         }
         let data_address = self.values_address + self.values_width.n_bytes() * i;
         let type_address = self.values_address + self.values_width.n_bytes() * self.length + i;
-        // TODO(cneo): This can totally be out of bounds.
-        let (fxb_type, width) = unpack_type(self.buffer[type_address])?;
+        let (fxb_type, width) = self
+            .buffer
+            .get(type_address)
+            .ok_or(Error::FlexbufferOutOfBounds)
+            .and_then(|&b| unpack_type(b))?;
         Reader::new(
             &self.buffer,
             data_address,
@@ -83,7 +88,7 @@ impl<'de> MapReader<'de> {
         )
     }
     fn key_index(&self, k: &str) -> Result<Reader<'de>, Error> {
-        let i = self.binary_search(k)?;
+        let i = self.index_key(k).ok_or(Error::KeyNotFound)?;
         self.usize_index(i)
     }
     /// Iterate over the values of the map. If any error occurs, Null Readers are returned.
@@ -98,7 +103,7 @@ impl<'de> MapReader<'de> {
             length: self.length,
         })
     }
-    /// Iterate over the keys of the map. If any error occurs, empty strings are returned.
+    /// Iterate over the keys of the map.
     pub fn iter_keys(
         &self,
     ) -> impl Iterator<Item = &'de str> + DoubleEndedIterator + ExactSizeIterator + FusedIterator
@@ -121,11 +126,13 @@ pub trait MapReaderIndexer {
     fn index_map_reader<'de>(self, r: &MapReader<'de>) -> Result<Reader<'de>, Error>;
 }
 impl MapReaderIndexer for usize {
+    #[inline]
     fn index_map_reader<'de>(self, r: &MapReader<'de>) -> Result<Reader<'de>, Error> {
         r.usize_index(self)
     }
 }
 impl MapReaderIndexer for &str {
+    #[inline]
     fn index_map_reader<'de>(self, r: &MapReader<'de>) -> Result<Reader<'de>, Error> {
         r.key_index(self)
     }

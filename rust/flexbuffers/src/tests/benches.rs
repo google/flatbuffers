@@ -24,23 +24,23 @@ fn push_vec_u64_to_map(b: &mut Bencher) {
 
     b.iter(|| {
         let mut fxb = Builder::default();
-        let mut m = fxb.build_map();
-        let mut ma = m.nest_vector("a");
+        let mut m = fxb.start_map();
+        let mut ma = m.start_vector("a");
         for &a in va.iter() {
             ma.push(a);
         }
-        ma.end();
-        let mut mb = m.nest_vector("b");
+        ma.end_vector();
+        let mut mb = m.start_vector("b");
         for &b in vb.iter() {
             mb.push(b);
         }
-        mb.end();
-        let mut mc = m.nest_vector("c");
+        mb.end_vector();
+        let mut mc = m.start_vector("c");
         for &c in vc.iter() {
             mc.push(c);
         }
-        mc.end();
-        m.end();
+        mc.end_vector();
+        m.end_map();
         n = fxb.view().len();
     });
     b.bytes = n as u64;
@@ -53,23 +53,23 @@ fn push_vec_u64_to_map_reused(b: &mut Bencher) {
     let mut fxb = Builder::default();
     let mut n = 0;
     let mut go = || {
-        let mut m = fxb.build_map();
-        let mut ma = m.nest_vector("a");
+        let mut m = fxb.start_map();
+        let mut ma = m.start_vector("a");
         for &a in va.iter() {
             ma.push(a);
         }
-        ma.end();
-        let mut mb = m.nest_vector("b");
+        ma.end_vector();
+        let mut mb = m.start_vector("b");
         for &b in vb.iter() {
             mb.push(b);
         }
-        mb.end();
-        let mut mc = m.nest_vector("c");
+        mb.end_vector();
+        let mut mc = m.start_vector("c");
         for &c in vc.iter() {
             mc.push(c);
         }
-        mc.end();
-        m.end();
+        mc.end_vector();
+        m.end_map();
         n = fxb.view().len();
     };
     go(); // warm up allocations.
@@ -85,11 +85,11 @@ fn push_vec_u64_to_map_direct(b: &mut Bencher) {
 
     b.iter(|| {
         let mut fxb = Builder::default();
-        let mut m = fxb.build_map();
+        let mut m = fxb.start_map();
         m.push("a", &va);
         m.push("b", &vb);
         m.push("c", &vc);
-        m.end();
+        m.end_map();
         n = fxb.view().len();
     });
     b.bytes = n as u64;
@@ -102,11 +102,11 @@ fn push_vec_u64_to_map_direct_reused(b: &mut Bencher) {
     let mut n = 0;
     let mut fxb = Builder::default();
     let mut go = || {
-        let mut m = fxb.build_map();
+        let mut m = fxb.start_map();
         m.push("a", &va);
         m.push("b", &vb);
         m.push("c", &vc);
-        m.end();
+        m.end_map();
         n = fxb.view().len();
     };
     go(); // warm up allocations.
@@ -119,12 +119,12 @@ fn push_vec_without_indirect(b: &mut Bencher) {
     let mut builder = Builder::default();
     let mut n = 0;
     let mut go = || {
-        let mut b = builder.build_vector();
+        let mut b = builder.start_vector();
         for i in 0..1024u16 {
             b.push(i);
         }
         b.push(i64::max_value());
-        b.end();
+        b.end_vector();
         n = builder.view().len();
     };
     go(); // warm up allocations.
@@ -138,12 +138,12 @@ fn push_vec_with_indirect(b: &mut Bencher) {
     let mut builder = Builder::default();
     let mut n = 0;
     let mut go = || {
-        let mut b = builder.build_vector();
+        let mut b = builder.start_vector();
         for i in 0..1024u16 {
             b.push(i);
         }
         b.push(IndirectInt(i64::max_value()));
-        b.end();
+        b.end_vector();
         n = builder.view().len();
     };
     go(); // warm up allocations.
@@ -162,11 +162,11 @@ fn hundred_maps(b: &mut Bencher) {
     let mut builder = Builder::default();
     let mut n = 0;
     let mut go = || {
-        let mut v = builder.build_vector();
+        let mut v = builder.start_vector();
         for _ in 0..100 {
-            example_map(&mut v.nest_map());
+            example_map(&mut v.start_map());
         }
-        v.end();
+        v.end_vector();
         n = builder.view().len();
     };
     go(); // Warm up allocations.
@@ -178,11 +178,11 @@ fn hundred_maps_pooled(b: &mut Bencher) {
     let mut builder = Builder::new();
     let mut n = 0;
     let mut go = || {
-        let mut v = builder.build_vector();
+        let mut v = builder.start_vector();
         for _ in 0..100 {
-            example_map(&mut v.nest_map());
+            example_map(&mut v.start_map());
         }
-        v.end();
+        v.end_vector();
         n = builder.view().len();
     };
     go(); // Warm up allocations.
@@ -196,22 +196,22 @@ fn make_monster(mut monster: MapBuilder) {
     monster.push("coins", &[1, 25, 50, 100, 250]);
     monster.push("color", &[255u8, 0, 0, 0]);
     {
-        let mut weapons = monster.nest_vector("weapons");
+        let mut weapons = monster.start_vector("weapons");
         {
-            let mut hammer = weapons.nest_map();
+            let mut hammer = weapons.start_map();
             hammer.push("name", "hammer");
             hammer.push("damage type", "crush");
             hammer.push("damage", 20);
         }
         {
-            let mut axe = weapons.nest_map();
+            let mut axe = weapons.start_map();
             axe.push("name", "Great Axe");
             axe.push("damage type", "slash");
             axe.push("damage", 30);
         }
     }
     {
-        let mut sounds = monster.nest_vector("sounds");
+        let mut sounds = monster.start_vector("sounds");
         sounds.push("grr");
         sounds.push("rawr");
         sounds.push("muahaha");
@@ -222,11 +222,11 @@ fn serialize_monsters(b: &mut Bencher) {
     let mut builder = Builder::new();
     let mut n = 0;
     let mut go = || {
-        let mut monsters = builder.build_vector();
+        let mut monsters = builder.start_vector();
         for _ in 0..100 {
-            make_monster(monsters.nest_map())
+            make_monster(monsters.start_map())
         }
-        monsters.end();
+        monsters.end_vector();
         n = builder.view().len();
     };
     go(); // Warm up allocations.
@@ -237,8 +237,11 @@ fn validate_monster(r: MapReader) {
     assert_eq!(r.idx("type").as_str(), "great orc");
     assert_eq!(r.idx("age").as_u8(), 100);
     assert_eq!(r.idx("name").as_str(), "Mr. Orc");
-    assert_eq!(r.idx("coins").as_i16s(), [1, 25, 50, 100, 250]);
-    assert_eq!(r.idx("color").as_u8s(), [255, 0, 0, 0]);
+    assert_eq!(
+        r.idx("coins").get_slice::<i16>().unwrap(),
+        [1, 25, 50, 100, 250]
+    );
+    assert_eq!(r.idx("color").get_slice::<u8>().unwrap(), [255, 0, 0, 0]);
 
     let weapons = r.idx("weapons").as_vector();
     assert_eq!(weapons.len(), 2);
@@ -261,11 +264,11 @@ fn validate_monster(r: MapReader) {
 #[bench]
 fn read_monsters(b: &mut Bencher) {
     let mut builder = Builder::new();
-    let mut monsters = builder.build_vector();
+    let mut monsters = builder.start_vector();
     for _ in 0..100 {
-        make_monster(monsters.nest_map());
+        make_monster(monsters.start_map());
     }
-    monsters.end();
+    monsters.end_vector();
     b.bytes = builder.view().len() as u64;
     let go = || {
         let r = Reader::get_root(builder.view()).unwrap().as_vector();

@@ -36,61 +36,61 @@ impl quickcheck::Arbitrary for NonNullString {
 quickcheck! {
     fn qc_vec_bool(xs: Vec<bool>) -> bool {
         let mut builder = Builder::default();
-        let mut v = builder.build_vector();
+        let mut v = builder.start_vector();
         for &x in &xs {
             v.push(x);
         }
-        v.end();
+        v.end_vector();
         let r = Reader::get_root(&builder.view()).unwrap().as_vector();
         xs.iter().enumerate().all(|(i, &x)| r.index(i).unwrap().get_bool().unwrap() == x)
     }
     fn qc_vec_uint(xs: Vec<u64>) -> bool {
         let mut builder = Builder::default();
-        let mut v = builder.build_vector();
+        let mut v = builder.start_vector();
         for &x in &xs {
             v.push(x);
         }
-        v.end();
+        v.end_vector();
         let r = Reader::get_root(&builder.view()).unwrap().as_vector();
         xs.iter().enumerate().all(|(i, &x)| r.idx(i).as_u64() == x)
     }
     fn qc_vec_int(xs: Vec<i64>) -> bool {
         let mut builder = Builder::default();
-        let mut v = builder.build_vector();
+        let mut v = builder.start_vector();
         for &x in &xs {
             v.push(x);
         }
-        v.end();
+        v.end_vector();
         let r = Reader::get_root(&builder.view()).unwrap().as_vector();
         xs.iter().enumerate().all(|(i, &x)| r.idx(i).as_i64() == x)
     }
     fn qc_vec_float(xs: Vec<f64>) -> bool {
         let mut builder = Builder::default();
-        let mut v = builder.build_vector();
+        let mut v = builder.start_vector();
         for &x in &xs {
             v.push(x);
         }
-        v.end();
+        v.end_vector();
         let r = Reader::get_root(&builder.view()).unwrap().as_vector();
         xs.iter().enumerate().all(|(i, &x)| (r.idx(i).as_f64() - x).abs() < std::f64::EPSILON)
     }
     fn qc_vec_string(xs: Vec<String>) -> bool {
         let mut builder = Builder::default();
-        let mut v = builder.build_vector();
+        let mut v = builder.start_vector();
         for x in &xs {
             v.push(x as &str);
         }
-        v.end();
+        v.end_vector();
         let r = Reader::get_root(&builder.view()).unwrap().as_vector();
         xs.iter().enumerate().all(|(i, x)| (r.idx(i).as_str() == x))
     }
     fn qc_map_int(xs: std::collections::BTreeMap<NonNullString, i64>) -> bool {
         let mut builder = Builder::default();
-        let mut m = builder.build_map();
+        let mut m = builder.start_map();
         for (k, &v) in &xs {
             m.push(&k.0, v);
         }
-        m.end();
+        m.end_map();
         let r = Reader::get_root(&builder.view()).unwrap().as_map();
         xs.iter().enumerate().all(|(i, (k, &v))| {
             r.idx(i).as_i64() == v && r.idx(k.0.as_str()).as_i64() == v
@@ -98,11 +98,11 @@ quickcheck! {
     }
     fn qc_map_string(xs: std::collections::BTreeMap<NonNullString, String>) -> bool {
         let mut builder = Builder::default();
-        let mut m = builder.build_map();
+        let mut m = builder.start_map();
         for (k, v) in &xs {
             m.push(&k.0, v as &str);
         }
-        m.end();
+        m.end_map();
         let r = Reader::get_root(&builder.view()).unwrap().as_map();
         xs.iter().enumerate().all(|(i, (k, v))| {
             r.idx(i).as_str() == v && r.idx(k.0.as_str()).as_str() == v
@@ -110,11 +110,11 @@ quickcheck! {
     }
     fn qc_blob(xs: Vec<Vec<u8>>) -> bool {
         let mut builder = Builder::default();
-        let mut v = builder.build_vector();
+        let mut v = builder.start_vector();
         for x in &xs {
             v.push(Blob(&x));
         }
-        v.end();
+        v.end_vector();
         let r = Reader::get_root(&builder.view()).unwrap().as_vector();
         xs.iter().enumerate().all(
             |(i, x)| r.idx(i).get_blob().unwrap().0.iter().eq(x.iter())
@@ -202,11 +202,11 @@ fn empty_vectors() {
 #[test]
 fn string() {
     let mut builder = Builder::default();
-    let mut v = builder.build_vector();
+    let mut v = builder.start_vector();
     v.push("foo");
     v.push("barrr");
     v.push("bazzzzzz");
-    v.end();
+    v.end_vector();
     let r = Reader::get_root(&builder.view()).unwrap().as_vector();
     assert_eq!(r.idx(0).as_str(), "foo");
     assert_eq!(r.idx(1).as_str(), "barrr");
@@ -222,46 +222,46 @@ fn store_13() {
 #[test]
 fn singleton_vector_uint_4_16bit() {
     let mut builder = Builder::default();
-    let mut v = builder.build_vector();
+    let mut v = builder.start_vector();
     v.push(2u8);
     v.push(3u8);
     v.push(5u8);
-    v.end();
+    v.end_vector();
     let buf1 = builder.view();
     let buf2 = singleton(&[2u8, 3, 5]);
     assert_eq!(buf1, buf2.as_slice());
 
     let r = Reader::get_root(&buf1).unwrap().as_vector();
-    assert_eq!(r.idx(0).get_u8(), Ok(2u8));
-    assert_eq!(r.idx(1).get_u8(), Ok(3u8));
-    assert_eq!(r.idx(2).get_u8(), Ok(5u8));
+    assert_eq!(r.idx(0).get_u64(), Ok(2));
+    assert_eq!(r.idx(1).get_u64(), Ok(3));
+    assert_eq!(r.idx(2).get_u64(), Ok(5));
     assert_eq!(r.index(3).unwrap_err(), reader::Error::IndexOutOfBounds);
 }
 #[test]
 fn vector_uint4() {
     let mut fxb = Builder::default();
-    let mut v = fxb.build_vector();
+    let mut v = fxb.start_vector();
     v.push(2u8);
     v.push(3u8);
     v.push(5u8);
     v.push(7u8);
-    v.end();
+    v.end_vector();
     let r = Reader::get_root(&fxb.view()).unwrap();
     let v = r.as_vector();
-    assert_eq!(v.idx(0).get_u8(), Ok(2u8));
-    assert_eq!(v.idx(1).get_u8(), Ok(3u8));
-    assert_eq!(v.idx(2).get_u8(), Ok(5u8));
-    assert_eq!(v.idx(3).get_u8(), Ok(7u8));
+    assert_eq!(v.idx(0).get_u64(), Ok(2));
+    assert_eq!(v.idx(1).get_u64(), Ok(3));
+    assert_eq!(v.idx(2).get_u64(), Ok(5));
+    assert_eq!(v.idx(3).get_u64(), Ok(7));
     assert!(v.index(4).is_err());
-    assert_eq!(r.get_u8s().unwrap(), [2, 3, 5, 7]);
+    assert_eq!(r.get_slice::<u8>().unwrap(), [2, 3, 5, 7]);
 }
 #[test]
 fn store_and_read_blob() {
     let mut fxb = Builder::default();
-    let mut v = fxb.build_vector();
+    let mut v = fxb.start_vector();
     v.push(Blob(&[1, 2, 3, 4]));
     v.push(Blob(&[5, 6, 7]));
-    v.end();
+    v.end_vector();
 
     let r = Reader::get_root(&fxb.view()).unwrap().as_vector();
     assert_eq!(r.idx(0).get_blob(), Ok(Blob(&[1, 2, 3, 4])));
@@ -270,10 +270,10 @@ fn store_and_read_blob() {
 #[test]
 fn map_64bit() {
     let mut fxb = Builder::default();
-    let mut m = fxb.build_map();
+    let mut m = fxb.start_map();
     m.push("a", 257u16);
     m.push("b", u64::max_value() - 3);
-    m.end();
+    m.end_map();
 
     let r = Reader::get_root(&fxb.view()).unwrap().as_map();
     assert_eq!(r.idx("a").as_u16(), 257);
@@ -282,15 +282,15 @@ fn map_64bit() {
 #[test]
 fn index_map() {
     let mut fxb = Builder::default();
-    let mut m = fxb.build_map();
+    let mut m = fxb.start_map();
     m.push("foo", 17u8);
     m.push("bar", 33u16);
     m.push("baz", 41u32);
-    m.end();
+    m.end_map();
 
     let r = Reader::get_root(fxb.view()).unwrap().as_map();
-    assert_eq!(r.idx(0).get_u8(), Ok(33u8));
-    assert_eq!(r.idx(1).get_u8(), Ok(41u8));
+    assert_eq!(r.idx(0).get_u64(), Ok(33));
+    assert_eq!(r.idx(1).get_u64(), Ok(41));
     assert_eq!(r.idx(2).as_u8(), 17);
     assert_eq!(r.index(3).unwrap_err(), reader::Error::IndexOutOfBounds);
 
@@ -304,13 +304,13 @@ fn index_map() {
 fn map_strings() {
     let mut fxb = Builder::default();
     {
-        let mut m = fxb.build_map();
-        let mut a = m.nest_vector("a");
+        let mut m = fxb.start_map();
+        let mut a = m.start_vector("a");
         for &s in ["b", "c", "d", "e"].iter() {
             a.push(s);
         }
-        a.end();
-        let mut f = m.nest_vector("f");
+        a.end_vector();
+        let mut f = m.start_vector("f");
         for &s in ["gh", "ij"].iter() {
             f.push(s);
         }
@@ -342,14 +342,14 @@ fn store_u64() {
 #[test]
 fn store_indirects() {
     let mut b = Builder::new();
-    let mut v = b.build_vector();
+    let mut v = b.start_vector();
     v.push(IndirectInt(-42));
     v.push(IndirectUInt(9000));
     v.push(IndirectFloat(3.14));
-    v.end();
+    v.end_vector();
     let r = Reader::get_root(b.view()).unwrap().as_vector();
-    assert_eq!(r.idx(0).get_i8().unwrap(), -42);
-    assert_eq!(r.idx(1).get_u16().unwrap(), 9000);
+    assert_eq!(r.idx(0).get_i64().unwrap(), -42);
+    assert_eq!(r.idx(1).get_u64().unwrap(), 9000);
     assert_eq!(r.idx(2).get_f64().unwrap(), 3.14);
 }
 

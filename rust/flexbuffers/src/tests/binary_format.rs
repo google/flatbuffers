@@ -51,11 +51,11 @@ fn heterogenous_vector_of_string_because_width() {
         "7aaabbbbccccddddeeeeffffgggghhh",
     ];
     let mut fxb = Builder::default();
-    let mut v = fxb.build_vector();
+    let mut v = fxb.start_vector();
     for &s in test_data.iter() {
         v.push(s);
     }
-    v.end();
+    v.end_vector();
     let mut expected = vec!();
     for &s in test_data.iter() {
         expected.push(s.len() as u8);
@@ -80,13 +80,13 @@ fn heterogenous_vector_of_string_because_width() {
 #[test]
 fn store_vec_uint_16() {
     let mut fxb = Builder::default();
-    let mut v = fxb.build_vector();
+    let mut v = fxb.start_vector();
     v.push(256u16);
     v.push(257u16);
     v.push(258u16);
     v.push(259u16);
     v.push(0u8);  // This still becomes u16.
-    v.end();
+    v.end_vector();
     assert_eq!(
         fxb.view(),
         &[
@@ -138,12 +138,12 @@ fn store_u64() {
 #[test]
 fn vector_uint4() {
     let mut fxb = Builder::default();
-    let mut v = fxb.build_vector();
+    let mut v = fxb.start_vector();
     v.push(2u8);
     v.push(3u8);
     v.push(5u8);
     v.push(7u8);
-    v.end();
+    v.end_vector();
     assert_eq!(
         &fxb.view(),
         &[
@@ -157,16 +157,16 @@ fn vector_uint4() {
 #[test]
 fn nested_vector() {
     let mut fxb = Builder::default();
-    let mut v = fxb.build_vector();
+    let mut v = fxb.start_vector();
     v.push(0u8);
     {
-        let mut nested = v.nest_vector();
+        let mut nested = v.start_vector();
         nested.push(1u8);
         nested.push(2u8);
         nested.push(3u8);
     }
     v.push(-42i8);
-    v.end();
+    v.end_vector();
     assert_eq!(
         fxb.view(),
         &[
@@ -185,11 +185,11 @@ fn nested_vector() {
 #[test]
 fn nested_vector_push_direct() {
     let mut fxb = Builder::default();
-    let mut v = fxb.build_vector();
+    let mut v = fxb.start_vector();
     v.push(0u8);
     v.push(&[1u8, 2, 3]);
     v.push(-42i8);
-    v.end();
+    v.end_vector();
     assert_eq!(
         fxb.view(),
         &[
@@ -208,7 +208,7 @@ fn nested_vector_push_direct() {
 fn store_map_index_into_it() {
     let mut fxb = Builder::default();
     {
-    let mut m = fxb.build_map();
+    let mut m = fxb.start_map();
     m.push("foo", 17u8);
     m.push("bar", 33u16);
     m.push("baz", 41u32);
@@ -251,13 +251,13 @@ fn utf8_snowman() {
 #[test]
 fn indirect_numbers() {
     let mut fxb = Builder::default();
-    let mut v = fxb.build_vector();
+    let mut v = fxb.start_vector();
     v.push(IndirectUInt(u64::max_value()));
     v.push(IndirectInt(i64::min_value()));
     // TODO(cneo): Something about Float EPSILON and casting leads to a different binary format.
     v.push(IndirectFloat(std::f64::consts::PI));
     v.push(0u32);  // This is stored in 8 bits instead of 64 because of indirection.
-    v.end();
+    v.end_vector();
     assert_eq!(
         fxb.view(),
         vec![
@@ -279,20 +279,20 @@ fn indirect_numbers() {
 #[test]
 fn indirect_2p5x_smaller() {
     let mut builder = Builder::default();
-    let mut v = builder.build_vector();
+    let mut v = builder.start_vector();
     for i in 0..512 {
         v.push(i);
     }
     v.push(i64::max_value());
-    v.end();
+    v.end_vector();
     let len_without_indirect = builder.view().len() as f32;
 
-    let mut v = builder.build_vector();
+    let mut v = builder.start_vector();
     for i in 0..512 {
         v.push(i);
     }
     v.push(IndirectInt(i64::max_value()));
-    v.end();
+    v.end_vector();
     let len_with_indirect = builder.view().len() as f32;
     dbg!(len_with_indirect, len_without_indirect);
     assert!(len_with_indirect * 2.5 < len_without_indirect);
@@ -300,14 +300,14 @@ fn indirect_2p5x_smaller() {
 #[test]
 fn key_pool() {
     let mut builder = Builder::new();
-    let mut vector = builder.build_vector();
+    let mut vector = builder.start_vector();
     for _ in 0..2 {
-        let mut m = vector.nest_map();
+        let mut m = vector.start_map();
         m.push("a", 42u8);
         m.push("b", 42u8);
         m.push("c", 42u8);
     }
-    vector.end();
+    vector.end_vector();
 
     assert_eq!(
         builder.view(),

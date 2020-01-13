@@ -14,7 +14,7 @@
 
 extern crate flexbuffers;
 
-use flexbuffers::{BitWidth, Builder, ReaderError, FlexBufferType, Reader};
+use flexbuffers::{BitWidth, Builder, Reader, ReaderError};
 
 fn main() {
     // Create a new Flexbuffer builder.
@@ -22,7 +22,7 @@ fn main() {
 
     // The root of the builder can be a singleton, map or vector.
     // Our monster will be represented with a map.
-    let mut monster = builder.build_map();
+    let mut monster = builder.start_map();
 
     // Use `push` to add elements to a vector or map. Note that it up to the programmer to ensure
     // duplicate keys are avoided and the key has no null bytes.
@@ -30,31 +30,31 @@ fn main() {
     monster.push("mana", 200);
     monster.push("enraged", true);
 
-    // Let's give our monster some weapons. Use `nest_vector` to store a vector.
-    let mut weapons = monster.nest_vector("weapons");
+    // Let's give our monster some weapons. Use `start_vector` to store a vector.
+    let mut weapons = monster.start_vector("weapons");
 
     // The first weapon is a fist which has no damage so we'll store it as a string.
     // Strings in Flexbuffers are utf8 encoded and are distinct from map Keys which are c strings.
     weapons.push("fist");
 
     // The monster also has an axe. We'll store it as a map to make it more interesting.
-    let mut axe = weapons.nest_map();
+    let mut axe = weapons.start_map();
     axe.push("name", "great axe");
     axe.push("damage", 15);
     // We're done adding to the axe.
-    axe.end();
+    axe.end_map();
 
     // The monster also has a hammer.
     {
-        let mut hammer = weapons.nest_map();
+        let mut hammer = weapons.start_map();
         hammer.push("name", "hammer");
         hammer.push("damage", 5);
-        // Instead of calling `hammer.end()`, we can just drop the `hammer` for the same effect.
-        // Nested vectors and maps are completed and serialized when their builders are dropped.
+        // Instead of calling `hammer.end_map()`, we can just drop the `hammer` for the same effect.
+        // Vectors and maps are completed and serialized when their builders are dropped.
     }
 
     // We're done adding weapons.
-    weapons.end();
+    weapons.end_vector();
 
     // Give the monster some money. Flexbuffers has typed vectors which are smaller than
     // heterogenous vectors. Elements of typed vectors can be pushed one at a time, as above, or
@@ -72,14 +72,16 @@ fn main() {
     monster.push("color", &[255, 0, 0, 255u8]);
 
     // End the map at the root of the builder. This finishes the Flexbuffer.
-    monster.end();
+    monster.end_map();
 
     // Now the buffer is free to be reused. Let's see the final buffer.
     let data = builder.view();
-    assert_eq!(data.len(), 201); // Bytes.
+    println!("The monster was serialized in {:?} bytes.", data.len());
 
     // Let's read and verify the data.
     let root = Reader::get_root(data).unwrap();
+    println!("The monster: {}", root);
+
     let read_monster = root.as_map();
 
     // What attributes does this monster have?
@@ -104,21 +106,24 @@ fn main() {
     assert_eq!(read_monster.idx("foo").as_i32(), 0); // `foo` is not a monster attribute.
 
     // To examine how your data is stored, check the flexbuffer type and bitwidth.
-    assert_eq!(read_hp.flexbuffer_type(), FlexBufferType::Int);
-    assert_eq!(read_mana.flexbuffer_type(), FlexBufferType::Int);
+    assert!(read_hp.flexbuffer_type().is_int());
+    assert!(read_mana.flexbuffer_type().is_int());
     // Note that mana=200 is bigger than the maximum i8 so everything in the top layer of the
     // monster map is stored in 16 bits.
     assert_eq!(read_hp.bitwidth(), BitWidth::W16);
     assert_eq!(read_monster.idx("mana").bitwidth(), BitWidth::W16);
 
-    // Use get_T functions if you want to ensure the type and bitwidth match what you expect.
-    assert_eq!(read_hp.get_i16(), Ok(80));
-    assert!(read_hp.get_u16().is_err());
+    // Use get_T functions if you want to ensure the flexbuffer type matches what you expect.
+    assert_eq!(read_hp.get_i64(), Ok(80));
+    assert!(read_hp.get_u64().is_err());
     assert!(read_hp.get_vector().is_err());
 
     // Analogously, the `index` method is the safe version of `idx`.
     assert!(read_monster.index("hp").is_ok());
-    assert_eq!(read_monster.index("foo").unwrap_err(), ReaderError::KeyNotFound);
+    assert_eq!(
+        read_monster.index("foo").unwrap_err(),
+        ReaderError::KeyNotFound
+    );
 
     // Maps can also be indexed by usize. They're stored by key so `coins` are the first element.
     let monster_coins = read_monster.idx(0);
@@ -140,7 +145,10 @@ fn main() {
     #[cfg(target_endian = "little")]
     {
         if monster_coins.is_aligned() {
-            assert_eq!(monster_coins.as_i8s(), &[5, 10, 25, 25, 25, 100]);
+            assert_eq!(
+                monster_coins.get_slice::<i8>().unwrap(),
+                &[5, 10, 25, 25, 25, 100]
+            );
         }
     }
 

@@ -108,6 +108,15 @@ impl Default for FlexBufferType {
     }
 }
 
+macro_rules! is_ty {
+    ($is_T: ident, $FTy: ident) => {
+        #[inline(always)]
+        pub fn $is_T(self) -> bool {
+            self == $FTy
+        }
+    };
+}
+
 impl FlexBufferType {
     /// Returns true for flexbuffer types that are stored inline.
     pub fn is_inline(self) -> bool {
@@ -164,10 +173,66 @@ impl FlexBufferType {
     /// If `self` is an indirect scalar, remap it to the scalar. Otherwise do nothing.
     pub fn to_direct(self) -> Option<Self> {
         match self {
-            FlexBufferType::IndirectInt => Some(FlexBufferType::Int),
-            FlexBufferType::IndirectUInt => Some(FlexBufferType::UInt),
-            FlexBufferType::IndirectFloat => Some(FlexBufferType::Float),
+            IndirectInt => Some(Int),
+            IndirectUInt => Some(UInt),
+            IndirectFloat => Some(Float),
             _ => None,
         }
     }
+    /// returns true if and only if the flexbuffer type is `Null`.
+    is_ty!(is_null, Null);
+    /// returns true if and only if the flexbuffer type is `Int`.
+    is_ty!(is_int, Int);
+    /// returns true if and only if the flexbuffer type is `UInt`.
+    is_ty!(is_uint, UInt);
+    /// returns true if and only if the flexbuffer type is `Float`.
+    is_ty!(is_float, Float);
+    /// returns true if and only if the flexbuffer type is `Bool`.
+    is_ty!(is_bool, Bool);
+    /// returns true if and only if the flexbuffer type is `Key`.
+    is_ty!(is_key, Key);
+    /// returns true if and only if the flexbuffer type is `String`.
+    is_ty!(is_string, String);
+    /// returns true if and only if the flexbuffer type is `IndirectInt`.
+    is_ty!(is_indirect_int, IndirectInt);
+    /// returns true if and only if the flexbuffer type is `IndirectUInt`.
+    is_ty!(is_indirect_uint, IndirectUInt);
+    /// returns true if and only if the flexbuffer type is `IndirectFloat`.
+    is_ty!(is_indirect_float, IndirectFloat);
+    /// returns true if and only if the flexbuffer type is `Map`.
+    is_ty!(is_map, Map);
+    /// returns true if and only if the flexbuffer type is `Vector`.
+    is_ty!(is_heterogenous_vector, Vector);
+    /// returns true if and only if the flexbuffer type is `VectorInt`.
+    is_ty!(is_vector_int, VectorInt);
+    /// returns true if and only if the flexbuffer type is `VectorUInt`.
+    is_ty!(is_vector_uint, VectorUInt);
+    /// returns true if and only if the flexbuffer type is `VectorFloat`.
+    is_ty!(is_vector_float, VectorFloat);
+    /// returns true if and only if the flexbuffer type is `VectorKey`.
+    is_ty!(is_vector_key, VectorKey);
+    /// returns true if and only if the flexbuffer type is `VectorString`.
+    is_ty!(is_vector_string, VectorString);
+    /// returns true if and only if the flexbuffer type is `VectorBool`.
+    is_ty!(is_vector_bool, VectorBool);
+    /// returns true if and only if the flexbuffer type is `VectorInt2`.
+    is_ty!(is_vector_int2, VectorInt2);
+    /// returns true if and only if the flexbuffer type is `VectorUInt2`.
+    is_ty!(is_vector_uint2, VectorUInt2);
+    /// returns true if and only if the flexbuffer type is `VectorFloat2`.
+    is_ty!(is_vector_float2, VectorFloat2);
+    /// returns true if and only if the flexbuffer type is `VectorInt3`.
+    is_ty!(is_vector_int3, VectorInt3);
+    /// returns true if and only if the flexbuffer type is `VectorUInt3`.
+    is_ty!(is_vector_uint3, VectorUInt3);
+    /// returns true if and only if the flexbuffer type is `VectorFloat3`.
+    is_ty!(is_vector_float3, VectorFloat3);
+    /// returns true if and only if the flexbuffer type is `VectorInt4`.
+    is_ty!(is_vector_int4, VectorInt4);
+    /// returns true if and only if the flexbuffer type is `VectorUInt4`.
+    is_ty!(is_vector_uint4, VectorUInt4);
+    /// returns true if and only if the flexbuffer type is `VectorFloat4`.
+    is_ty!(is_vector_float4, VectorFloat4);
+    /// returns true if and only if the flexbuffer type is `Blob`.
+    is_ty!(is_blob, Blob);
 }

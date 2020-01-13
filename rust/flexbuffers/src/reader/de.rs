@@ -202,10 +202,9 @@ impl<'de> Deserializer<'de> for crate::Reader<'de> {
         let (variant, value) = match self.fxb_type {
             FlexBufferType::String => (self.as_str(), None),
             FlexBufferType::Map => {
-                let ks = self.get_map_key_vector()?;
-                let vs = self.get_vector()?;
-                let variant = ks.idx(0).as_str();
-                let value = Some(vs.idx(0));
+                let m = self.get_map()?;
+                let variant = m.keys_vector().idx(0).get_key()?;
+                let value = Some(m.idx(0));
                 (variant, value)
             }
             _ => {

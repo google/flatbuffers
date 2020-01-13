@@ -24,7 +24,7 @@ mod vector;
 use map::sort_map_by_keys;
 pub use map::MapBuilder;
 pub use push::Pushable;
-pub use ser::{FlexbufferSerializer, Error};
+pub use ser::{Error, FlexbufferSerializer};
 pub use vector::VectorBuilder;
 
 macro_rules! push_slice {
@@ -37,9 +37,7 @@ macro_rules! push_slice {
             let mut value = Value::$new_vec(xs.as_ref().len());
             let mut width = xs.as_ref()
                 .iter()
-                .map(|x| {
-                    BitWidth::from((*x).into())
-                })
+                .map(|x| BitWidth::from((*x).into()))
                 .max()
                 .unwrap_or_default();
             if !value.is_fixed_length_vector() {
@@ -87,10 +85,10 @@ struct CachedKey {
 /// Flexbuffers may only have a single root value, which may be constructed
 /// with  one of the following functions.
 /// * `build_singleton` will push 1 value to the buffer and serialize it as the root.
-/// * `build_vector` returns a `VectorBuilder`, into which many (potentially
+/// * `start_vector` returns a `VectorBuilder`, into which many (potentially
 /// heterogenous) values can be pushed. The vector itself is the root and is serialized
 /// when the `VectorBuilder` is dropped (or `end` is called).
-/// * `build_map` returns a `MapBuilder`, which is similar to a `VectorBuilder` except
+/// * `start_map` returns a `MapBuilder`, which is similar to a `VectorBuilder` except
 /// every value must be pushed with an associated key. The map is serialized when the
 /// `MapBuilder` is dropped (or `end` is called).
 ///
@@ -240,7 +238,7 @@ impl<'a> Builder {
 
     /// Resets the builder and starts a new flexbuffer with a vector at the root.
     /// The exact Flexbuffer vector type is dynamically inferred.
-    pub fn build_vector(&'a mut self) -> VectorBuilder<'a> {
+    pub fn start_vector(&'a mut self) -> VectorBuilder<'a> {
         self.reset();
         VectorBuilder {
             builder: self,
@@ -248,7 +246,7 @@ impl<'a> Builder {
         }
     }
     /// Resets the builder and builds a new flexbuffer with a map at the root.
-    pub fn build_map(&'a mut self) -> MapBuilder<'a> {
+    pub fn start_map(&'a mut self) -> MapBuilder<'a> {
         self.reset();
         MapBuilder {
             builder: self,

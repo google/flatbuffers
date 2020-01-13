@@ -68,12 +68,12 @@ mod tests {
     #[test]
     fn iter() {
         let mut fxb = Builder::default();
-        let mut m = fxb.build_map();
-        m.push("a", "42");
-        m.push("b", 250i64);
-        m.push("c", 5000u16);
-        m.end();
-
+        {
+            let mut m = fxb.start_map();
+            m.push("a", "42");
+            m.push("b", 250i64);
+            m.push("c", 5000u16);
+        }
         let r = Reader::get_root(fxb.view()).unwrap();
 
         let v: Vec<u32> = r.as_vector().iter().map(|x| x.as_u32()).collect();

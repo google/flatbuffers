@@ -34,7 +34,7 @@ impl<'a> MapBuilder<'a> {
     /// Starts a nested vector which will be pushed onto this map
     /// with key `key`.
     /// This will panic if `key` contains internal nulls.
-    pub fn nest_vector(&mut self, key: &str) -> VectorBuilder {
+    pub fn start_vector(&mut self, key: &str) -> VectorBuilder {
         // Push the key that refers to this nested vector.
         self.builder.push_key(key);
         // Nested vector.
@@ -47,7 +47,7 @@ impl<'a> MapBuilder<'a> {
     /// Starts a nested map which which will be pushed onto this map
     /// with key `key`.
     /// This will panic if `key` contains internal nulls.
-    pub fn nest_map(&mut self, key: &str) -> MapBuilder {
+    pub fn start_map(&mut self, key: &str) -> MapBuilder {
         // Push the key that refers to this nested vector.
         self.builder.push_key(key);
         // Nested map.
@@ -57,9 +57,9 @@ impl<'a> MapBuilder<'a> {
             start,
         }
     }
-    /// `end` sorts the map by key and writes it to the buffer. This happens anyway
+    /// `end_map` sorts the map by key and writes it to the buffer. This happens anyway
     /// when the map builder is dropped.
-    pub fn end(self) {}
+    pub fn end_map(self) {}
 }
 impl<'a> Drop for MapBuilder<'a> {
     fn drop(&mut self) {
@@ -105,17 +105,17 @@ mod tests {
     #[should_panic]
     fn panic_on_repeated_key() {
         let mut b = Builder::default();
-        let mut m = b.build_map();
+        let mut m = b.start_map();
         m.push("foo", 5u8);
         m.push("foo", 6u8);
-        m.end();
+        m.end_map();
     }
     #[test]
     #[should_panic]
     fn panic_on_internal_null() {
         let mut b = Builder::default();
-        let mut m = b.build_map();
+        let mut m = b.start_map();
         m.push("foo\0", 5u8);
-        m.end();
+        m.end_map();
     }
 }
