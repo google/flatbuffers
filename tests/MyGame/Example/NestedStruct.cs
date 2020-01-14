@@ -47,10 +47,13 @@ public struct NestedStruct : IFlatbufferObject
     return _o;
   }
   public void UnPackTo(NestedStructT _o) {
-    _o.A = new int[2]; for (var _j = 0; _j < 2; ++_j) { _o.A[_j] = this.A(_j); }
+    _o.A = new int[2];
+    for (var _j = 0; _j < 2; ++_j) { _o.A[_j] = this.A(_j); }
     _o.B = this.B;
-    _o.C = new MyGame.Example.TestEnum[2]; for (var _j = 0; _j < 2; ++_j) { _o.C[_j] = this.C(_j); }
-    _o.D = new long[2]; for (var _j = 0; _j < 2; ++_j) { _o.D[_j] = this.D(_j); }
+    _o.C = new MyGame.Example.TestEnum[2];
+    for (var _j = 0; _j < 2; ++_j) { _o.C[_j] = this.C(_j); }
+    _o.D = new long[2];
+    for (var _j = 0; _j < 2; ++_j) { _o.D[_j] = this.D(_j); }
   }
   public static Offset<MyGame.Example.NestedStruct> Pack(FlatBufferBuilder builder, NestedStructT _o) {
     if (_o == null) return default(Offset<MyGame.Example.NestedStruct>);

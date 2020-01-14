@@ -86,8 +86,10 @@ public struct Movie : IFlatbufferObject
       default: break;
       default: break;
     }
-    _o.CharactersType = new List<Character>(); for (var _j = 0; _j < this.CharactersTypeLength; ++_j) { _o.CharactersType.Add(this.CharactersType(_j)); }
-    _o.Characters = new List<TTable>(); for (var _j = 0; _j < this.CharactersLength; ++_j) { _o.Characters.Add(this.Characters(_j)); }
+    _o.CharactersType = new List<Character>();
+    for (var _j = 0; _j < this.CharactersTypeLength; ++_j) { _o.CharactersType.Add(this.CharactersType(_j)); }
+    _o.Characters = new List<TTable>();
+    for (var _j = 0; _j < this.CharactersLength; ++_j) { _o.Characters.Add(this.Characters(_j)); }
   }
   public static Offset<Movie> Pack(FlatBufferBuilder builder, MovieT _o) {
     if (_o == null) return default(Offset<Movie>);

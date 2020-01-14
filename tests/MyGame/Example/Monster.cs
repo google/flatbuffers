@@ -330,7 +330,8 @@ public struct Monster : IFlatbufferObject
     _o.Mana = this.Mana;
     _o.Hp = this.Hp;
     _o.Name = this.Name;
-    _o.Inventory = new List<byte>(); for (var _j = 0; _j < this.InventoryLength; ++_j) { _o.Inventory.Add(this.Inventory(_j)); }
+    _o.Inventory = new List<byte>();
+    for (var _j = 0; _j < this.InventoryLength; ++_j) { _o.Inventory.Add(this.Inventory(_j)); }
     _o.Color = this.Color;
     _o.Test = new MyGame.Example.AnyUnion();
     _o.Test.Type = this.TestType;
@@ -346,11 +347,15 @@ public struct Monster : IFlatbufferObject
         _o.Test.Value = this.Test<MyGame.Example2.Monster>()?.UnPack();
         break;
     }
-    _o.Test4 = new List<MyGame.Example.TestT>(); for (var _j = 0; _j < this.Test4Length; ++_j) { _o.Test4.Add(this.Test4(_j)?.UnPack()); }
-    _o.Testarrayofstring = new List<string>(); for (var _j = 0; _j < this.TestarrayofstringLength; ++_j) { _o.Testarrayofstring.Add(this.Testarrayofstring(_j)); }
-    _o.Testarrayoftables = new List<MyGame.Example.MonsterT>(); for (var _j = 0; _j < this.TestarrayoftablesLength; ++_j) { _o.Testarrayoftables.Add(this.Testarrayoftables(_j)?.UnPack()); }
+    _o.Test4 = new List<MyGame.Example.TestT>();
+    for (var _j = 0; _j < this.Test4Length; ++_j) { _o.Test4.Add(this.Test4(_j)?.UnPack()); }
+    _o.Testarrayofstring = new List<string>();
+    for (var _j = 0; _j < this.TestarrayofstringLength; ++_j) { _o.Testarrayofstring.Add(this.Testarrayofstring(_j)); }
+    _o.Testarrayoftables = new List<MyGame.Example.MonsterT>();
+    for (var _j = 0; _j < this.TestarrayoftablesLength; ++_j) { _o.Testarrayoftables.Add(this.Testarrayoftables(_j)?.UnPack()); }
     _o.Enemy = this.Enemy?.UnPack();
-    _o.Testnestedflatbuffer = new List<byte>(); for (var _j = 0; _j < this.TestnestedflatbufferLength; ++_j) { _o.Testnestedflatbuffer.Add(this.Testnestedflatbuffer(_j)); }
+    _o.Testnestedflatbuffer = new List<byte>();
+    for (var _j = 0; _j < this.TestnestedflatbufferLength; ++_j) { _o.Testnestedflatbuffer.Add(this.Testnestedflatbuffer(_j)); }
     _o.Testempty = this.Testempty?.UnPack();
     _o.Testbool = this.Testbool;
     _o.Testhashs32Fnv1 = this.Testhashs32Fnv1;
@@ -361,25 +366,37 @@ public struct Monster : IFlatbufferObject
     _o.Testhashu32Fnv1a = this.Testhashu32Fnv1a;
     _o.Testhashs64Fnv1a = this.Testhashs64Fnv1a;
     _o.Testhashu64Fnv1a = this.Testhashu64Fnv1a;
-    _o.Testarrayofbools = new List<bool>(); for (var _j = 0; _j < this.TestarrayofboolsLength; ++_j) { _o.Testarrayofbools.Add(this.Testarrayofbools(_j)); }
+    _o.Testarrayofbools = new List<bool>();
+    for (var _j = 0; _j < this.TestarrayofboolsLength; ++_j) { _o.Testarrayofbools.Add(this.Testarrayofbools(_j)); }
     _o.Testf = this.Testf;
     _o.Testf2 = this.Testf2;
     _o.Testf3 = this.Testf3;
-    _o.Testarrayofstring2 = new List<string>(); for (var _j = 0; _j < this.Testarrayofstring2Length; ++_j) { _o.Testarrayofstring2.Add(this.Testarrayofstring2(_j)); }
-    _o.Testarrayofsortedstruct = new List<MyGame.Example.AbilityT>(); for (var _j = 0; _j < this.TestarrayofsortedstructLength; ++_j) { _o.Testarrayofsortedstruct.Add(this.Testarrayofsortedstruct(_j)?.UnPack()); }
-    _o.Flex = new List<byte>(); for (var _j = 0; _j < this.FlexLength; ++_j) { _o.Flex.Add(this.Flex(_j)); }
-    _o.Test5 = new List<MyGame.Example.TestT>(); for (var _j = 0; _j < this.Test5Length; ++_j) { _o.Test5.Add(this.Test5(_j)?.UnPack()); }
-    _o.VectorOfLongs = new List<long>(); for (var _j = 0; _j < this.VectorOfLongsLength; ++_j) { _o.VectorOfLongs.Add(this.VectorOfLongs(_j)); }
-    _o.VectorOfDoubles = new List<double>(); for (var _j = 0; _j < this.VectorOfDoublesLength; ++_j) { _o.VectorOfDoubles.Add(this.VectorOfDoubles(_j)); }
+    _o.Testarrayofstring2 = new List<string>();
+    for (var _j = 0; _j < this.Testarrayofstring2Length; ++_j) { _o.Testarrayofstring2.Add(this.Testarrayofstring2(_j)); }
+    _o.Testarrayofsortedstruct = new List<MyGame.Example.AbilityT>();
+    for (var _j = 0; _j < this.TestarrayofsortedstructLength; ++_j) { _o.Testarrayofsortedstruct.Add(this.Testarrayofsortedstruct(_j)?.UnPack()); }
+    _o.Flex = new List<byte>();
+    for (var _j = 0; _j < this.FlexLength; ++_j) { _o.Flex.Add(this.Flex(_j)); }
+    _o.Test5 = new List<MyGame.Example.TestT>();
+    for (var _j = 0; _j < this.Test5Length; ++_j) { _o.Test5.Add(this.Test5(_j)?.UnPack()); }
+    _o.VectorOfLongs = new List<long>();
+    for (var _j = 0; _j < this.VectorOfLongsLength; ++_j) { _o.VectorOfLongs.Add(this.VectorOfLongs(_j)); }
+    _o.VectorOfDoubles = new List<double>();
+    for (var _j = 0; _j < this.VectorOfDoublesLength; ++_j) { _o.VectorOfDoubles.Add(this.VectorOfDoubles(_j)); }
     _o.ParentNamespaceTest = this.ParentNamespaceTest?.UnPack();
-    _o.VectorOfReferrables = new List<MyGame.Example.ReferrableT>(); for (var _j = 0; _j < this.VectorOfReferrablesLength; ++_j) { _o.VectorOfReferrables.Add(this.VectorOfReferrables(_j)?.UnPack()); }
+    _o.VectorOfReferrables = new List<MyGame.Example.ReferrableT>();
+    for (var _j = 0; _j < this.VectorOfReferrablesLength; ++_j) { _o.VectorOfReferrables.Add(this.VectorOfReferrables(_j)?.UnPack()); }
     _o.SingleWeakReference = this.SingleWeakReference;
-    _o.VectorOfWeakReferences = new List<ulong>(); for (var _j = 0; _j < this.VectorOfWeakReferencesLength; ++_j) { _o.VectorOfWeakReferences.Add(this.VectorOfWeakReferences(_j)); }
-    _o.VectorOfStrongReferrables = new List<MyGame.Example.ReferrableT>(); for (var _j = 0; _j < this.VectorOfStrongReferrablesLength; ++_j) { _o.VectorOfStrongReferrables.Add(this.VectorOfStrongReferrables(_j)?.UnPack()); }
+    _o.VectorOfWeakReferences = new List<ulong>();
+    for (var _j = 0; _j < this.VectorOfWeakReferencesLength; ++_j) { _o.VectorOfWeakReferences.Add(this.VectorOfWeakReferences(_j)); }
+    _o.VectorOfStrongReferrables = new List<MyGame.Example.ReferrableT>();
+    for (var _j = 0; _j < this.VectorOfStrongReferrablesLength; ++_j) { _o.VectorOfStrongReferrables.Add(this.VectorOfStrongReferrables(_j)?.UnPack()); }
     _o.CoOwningReference = this.CoOwningReference;
-    _o.VectorOfCoOwningReferences = new List<ulong>(); for (var _j = 0; _j < this.VectorOfCoOwningReferencesLength; ++_j) { _o.VectorOfCoOwningReferences.Add(this.VectorOfCoOwningReferences(_j)); }
+    _o.VectorOfCoOwningReferences = new List<ulong>();
+    for (var _j = 0; _j < this.VectorOfCoOwningReferencesLength; ++_j) { _o.VectorOfCoOwningReferences.Add(this.VectorOfCoOwningReferences(_j)); }
     _o.NonOwningReference = this.NonOwningReference;
-    _o.VectorOfNonOwningReferences = new List<ulong>(); for (var _j = 0; _j < this.VectorOfNonOwningReferencesLength; ++_j) { _o.VectorOfNonOwningReferences.Add(this.VectorOfNonOwningReferences(_j)); }
+    _o.VectorOfNonOwningReferences = new List<ulong>();
+    for (var _j = 0; _j < this.VectorOfNonOwningReferencesLength; ++_j) { _o.VectorOfNonOwningReferences.Add(this.VectorOfNonOwningReferences(_j)); }
     _o.AnyUnique = new MyGame.Example.AnyUniqueAliasesUnion();
     _o.AnyUnique.Type = this.AnyUniqueType;
     switch (this.AnyUniqueType) {
@@ -408,7 +425,8 @@ public struct Monster : IFlatbufferObject
         _o.AnyAmbiguous.Value = this.AnyAmbiguous<MyGame.Example.Monster>()?.UnPack();
         break;
     }
-    _o.VectorOfEnums = new List<MyGame.Example.Color>(); for (var _j = 0; _j < this.VectorOfEnumsLength; ++_j) { _o.VectorOfEnums.Add(this.VectorOfEnums(_j)); }
+    _o.VectorOfEnums = new List<MyGame.Example.Color>();
+    for (var _j = 0; _j < this.VectorOfEnumsLength; ++_j) { _o.VectorOfEnums.Add(this.VectorOfEnums(_j)); }
     _o.SignedEnum = this.SignedEnum;
   }
   public static Offset<MyGame.Example.Monster> Pack(FlatBufferBuilder builder, MonsterT _o) {

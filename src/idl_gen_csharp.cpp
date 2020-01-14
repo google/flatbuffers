@@ -1301,14 +1301,15 @@ class CSharpGenerator : public BaseGenerator {
           auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts);
           auto length_str = std::to_string(field.value.type.fixed_length);
           auto unpack_method = field.value.type.struct_def == nullptr
-                                  ? ""
-                                  : field.value.type.struct_def->fixed
-                                        ? ".UnPack()"
-                                        : "?.UnPack()";
+                                   ? ""
+                                   : field.value.type.struct_def->fixed
+                                         ? ".UnPack()"
+                                         : "?.UnPack()";
           code += start + "new " + type_name.substr(0, type_name.length() - 1) +
-                  length_str + "]; for (var _j = 0; _j < " + length_str +
-                  "; ++_j) { _o." + camel_name + "[_j] = this." + camel_name +
-                  "(_j)" + unpack_method + "; }\n";
+                  length_str + "];\n";
+          code += "    for (var _j = 0; _j < " + length_str + "; ++_j) { _o." +
+                  camel_name + "[_j] = this." + camel_name + "(_j)" +
+                  unpack_method + "; }\n";
           break;
         }
 
@@ -1316,8 +1317,8 @@ class CSharpGenerator : public BaseGenerator {
           auto unpack_method =
               field.value.type.struct_def == nullptr ? "" : "?.UnPack()";
           code += start + "new " +
-                  GenTypeGet_ObjectAPI(field.value.type, opts) +
-                  "(); for (var _j = 0; _j < this." + camel_name +
+                  GenTypeGet_ObjectAPI(field.value.type, opts) + "();\n";
+          code += "    for (var _j = 0; _j < this." + camel_name +
                   "Length; ++_j) { _o." + camel_name + ".Add(this." +
                   camel_name + "(_j)" + unpack_method + "); }\n";
           break;
@@ -1394,13 +1395,13 @@ class CSharpGenerator : public BaseGenerator {
 
         case BASE_TYPE_VECTOR: {
           if (field_has_create.find(&field) != field_has_create.end()) {
-            auto pack_method = field.value.type.struct_def != nullptr
-                                  ? ".Select(__o => " +
-                                        GenTypeGet(field.value.type) +
-                                        ".Pack(builder, __o))"
-                                  : field.value.type.element == BASE_TYPE_STRING
-                                        ? ".Select(builder.CreateSharedString)"
-                                        : "";
+            auto pack_method =
+                field.value.type.struct_def != nullptr
+                    ? ".Select(__o => " + GenTypeGet(field.value.type) +
+                          ".Pack(builder, __o))"
+                    : field.value.type.element == BASE_TYPE_STRING
+                          ? ".Select(builder.CreateSharedString)"
+                          : "";
 
             code += "    var _" + field.name + " = _o." + camel_name +
                     " == null ? default(VectorOffset) : Create" + camel_name +
@@ -1613,13 +1614,14 @@ class CSharpGenerator : public BaseGenerator {
           code += "," + std::to_string(array_length);
         }
 
-        code += "];";
+        code += "];\n";
+        code += "    ";
 
         // initialize array
         for (size_t i = 0; i < tmp_array_length_vec.size(); ++i) {
           auto array_length = tmp_array_length_vec[i];
           auto idx = "idx" + std::to_string(i);
-          code += " for (var " + idx + " = 0; " + idx + " < " +
+          code += "for (var " + idx + " = 0; " + idx + " < " +
                   std::to_string(array_length) + "; ++" + idx + ") {";
         }
 
@@ -1637,7 +1639,9 @@ class CSharpGenerator : public BaseGenerator {
         if (!is_array) { code += "." + MakeCamel(field->name); }
         code += ";";
 
-        for (size_t i = 0; i < tmp_array_length_vec.size(); ++i) { code += "}"; }
+        for (size_t i = 0; i < tmp_array_length_vec.size(); ++i) {
+          code += "}";
+        }
 
         code += "\n";
       }

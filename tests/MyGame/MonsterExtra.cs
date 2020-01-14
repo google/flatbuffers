@@ -118,8 +118,10 @@ public struct MonsterExtra : IFlatbufferObject
     _o.F1 = this.F1;
     _o.F2 = this.F2;
     _o.F3 = this.F3;
-    _o.Dvec = new List<double>(); for (var _j = 0; _j < this.DvecLength; ++_j) { _o.Dvec.Add(this.Dvec(_j)); }
-    _o.Fvec = new List<float>(); for (var _j = 0; _j < this.FvecLength; ++_j) { _o.Fvec.Add(this.Fvec(_j)); }
+    _o.Dvec = new List<double>();
+    for (var _j = 0; _j < this.DvecLength; ++_j) { _o.Dvec.Add(this.Dvec(_j)); }
+    _o.Fvec = new List<float>();
+    for (var _j = 0; _j < this.FvecLength; ++_j) { _o.Fvec.Add(this.Fvec(_j)); }
   }
   public static Offset<MyGame.MonsterExtra> Pack(FlatBufferBuilder builder, MonsterExtraT _o) {
     if (_o == null) return default(Offset<MyGame.MonsterExtra>);

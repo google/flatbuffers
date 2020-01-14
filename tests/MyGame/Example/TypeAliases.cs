@@ -127,8 +127,10 @@ public struct TypeAliases : IFlatbufferObject
     _o.U64 = this.U64;
     _o.F32 = this.F32;
     _o.F64 = this.F64;
-    _o.V8 = new List<sbyte>(); for (var _j = 0; _j < this.V8Length; ++_j) { _o.V8.Add(this.V8(_j)); }
-    _o.Vf64 = new List<double>(); for (var _j = 0; _j < this.Vf64Length; ++_j) { _o.Vf64.Add(this.Vf64(_j)); }
+    _o.V8 = new List<sbyte>();
+    for (var _j = 0; _j < this.V8Length; ++_j) { _o.V8.Add(this.V8(_j)); }
+    _o.Vf64 = new List<double>();
+    for (var _j = 0; _j < this.Vf64Length; ++_j) { _o.Vf64.Add(this.Vf64(_j)); }
   }
   public static Offset<MyGame.Example.TypeAliases> Pack(FlatBufferBuilder builder, TypeAliasesT _o) {
     if (_o == null) return default(Offset<MyGame.Example.TypeAliases>);
