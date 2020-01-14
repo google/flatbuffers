@@ -31,7 +31,7 @@ public struct Rapunzel : IFlatbufferObject
     _o.HairLength = this.HairLength;
   }
   public static Offset<Rapunzel> Pack(FlatBufferBuilder builder, RapunzelT _o) {
-  if (_o == null) return default(Offset<Rapunzel>);
+    if (_o == null) return default(Offset<Rapunzel>);
     return CreateRapunzel(
       builder,
       _o.HairLength);

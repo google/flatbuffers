@@ -90,7 +90,7 @@ public struct Movie : IFlatbufferObject
     _o.Characters = new List<TTable>(); for (var _j = 0; _j < this.CharactersLength; ++_j) { _o.Characters.Add(this.Characters(_j)); }
   }
   public static Offset<Movie> Pack(FlatBufferBuilder builder, MovieT _o) {
-  if (_o == null) return default(Offset<Movie>);
+    if (_o == null) return default(Offset<Movie>);
     var _main_character = _o.MainCharacter == null ? 0 : CharacterUnion.Pack(builder, _o.MainCharacter);
     var _characters_type = _o.CharactersType == null ? default(VectorOffset) : CreateCharactersTypeVector(builder, _o.CharactersType.ToArray());
     var _characters = _o.Characters == null ? default(VectorOffset) : CreateCharactersVector(builder, _o.Characters.ToArray());

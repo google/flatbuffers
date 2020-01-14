@@ -59,7 +59,7 @@ public struct Vec3 : IFlatbufferObject
     _o.Test3 = this.Test3.UnPack();
   }
   public static Offset<MyGame.Example.Vec3> Pack(FlatBufferBuilder builder, Vec3T _o) {
-  if (_o == null) return default(Offset<MyGame.Example.Vec3>);
+    if (_o == null) return default(Offset<MyGame.Example.Vec3>);
     return CreateVec3(
       builder,
       _o.X,

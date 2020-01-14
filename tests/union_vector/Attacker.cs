@@ -42,7 +42,7 @@ public struct Attacker : IFlatbufferObject
     _o.SwordAttackDamage = this.SwordAttackDamage;
   }
   public static Offset<Attacker> Pack(FlatBufferBuilder builder, AttackerT _o) {
-  if (_o == null) return default(Offset<Attacker>);
+    if (_o == null) return default(Offset<Attacker>);
     return CreateAttacker(
       builder,
       _o.SwordAttackDamage);

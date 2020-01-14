@@ -45,7 +45,7 @@ internal partial struct TestSimpleTableWithEnum : IFlatbufferObject
     _o.Color = this.Color;
   }
   public static Offset<MyGame.Example.TestSimpleTableWithEnum> Pack(FlatBufferBuilder builder, TestSimpleTableWithEnumT _o) {
-  if (_o == null) return default(Offset<MyGame.Example.TestSimpleTableWithEnum>);
+    if (_o == null) return default(Offset<MyGame.Example.TestSimpleTableWithEnum>);
     return CreateTestSimpleTableWithEnum(
       builder,
       _o.Color);

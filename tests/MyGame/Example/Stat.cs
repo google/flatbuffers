@@ -62,7 +62,7 @@ public struct Stat : IFlatbufferObject
     _o.Count = this.Count;
   }
   public static Offset<MyGame.Example.Stat> Pack(FlatBufferBuilder builder, StatT _o) {
-  if (_o == null) return default(Offset<MyGame.Example.Stat>);
+    if (_o == null) return default(Offset<MyGame.Example.Stat>);
     var _id = _o.Id == null ? default(StringOffset) : builder.CreateSharedString(_o.Id);
     return CreateStat(
       builder,

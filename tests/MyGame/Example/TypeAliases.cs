@@ -131,7 +131,7 @@ public struct TypeAliases : IFlatbufferObject
     _o.Vf64 = new List<double>(); for (var _j = 0; _j < this.Vf64Length; ++_j) { _o.Vf64.Add(this.Vf64(_j)); }
   }
   public static Offset<MyGame.Example.TypeAliases> Pack(FlatBufferBuilder builder, TypeAliasesT _o) {
-  if (_o == null) return default(Offset<MyGame.Example.TypeAliases>);
+    if (_o == null) return default(Offset<MyGame.Example.TypeAliases>);
     var _v8 = _o.V8 == null ? default(VectorOffset) : CreateV8Vector(builder, _o.V8.ToArray());
     var _vf64 = _o.Vf64 == null ? default(VectorOffset) : CreateVf64Vector(builder, _o.Vf64.ToArray());
     return CreateTypeAliases(

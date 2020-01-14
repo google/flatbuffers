@@ -34,7 +34,7 @@ public struct InParentNamespace : IFlatbufferObject
   public void UnPackTo(InParentNamespaceT _o) {
   }
   public static Offset<MyGame.InParentNamespace> Pack(FlatBufferBuilder builder, InParentNamespaceT _o) {
-  if (_o == null) return default(Offset<MyGame.InParentNamespace>);
+    if (_o == null) return default(Offset<MyGame.InParentNamespace>);
     StartInParentNamespace(builder);
     return EndInParentNamespace(builder);
   }

@@ -38,7 +38,7 @@ public struct Ability : IFlatbufferObject
     _o.Distance = this.Distance;
   }
   public static Offset<MyGame.Example.Ability> Pack(FlatBufferBuilder builder, AbilityT _o) {
-  if (_o == null) return default(Offset<MyGame.Example.Ability>);
+    if (_o == null) return default(Offset<MyGame.Example.Ability>);
     return CreateAbility(
       builder,
       _o.Id,

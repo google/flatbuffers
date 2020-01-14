@@ -122,7 +122,7 @@ public struct MonsterExtra : IFlatbufferObject
     _o.Fvec = new List<float>(); for (var _j = 0; _j < this.FvecLength; ++_j) { _o.Fvec.Add(this.Fvec(_j)); }
   }
   public static Offset<MyGame.MonsterExtra> Pack(FlatBufferBuilder builder, MonsterExtraT _o) {
-  if (_o == null) return default(Offset<MyGame.MonsterExtra>);
+    if (_o == null) return default(Offset<MyGame.MonsterExtra>);
     var _dvec = _o.Dvec == null ? default(VectorOffset) : CreateDvecVector(builder, _o.Dvec.ToArray());
     var _fvec = _o.Fvec == null ? default(VectorOffset) : CreateFvecVector(builder, _o.Fvec.ToArray());
     return CreateMonsterExtra(

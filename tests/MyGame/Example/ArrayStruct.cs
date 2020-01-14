@@ -72,7 +72,7 @@ public struct ArrayStruct : IFlatbufferObject
     _o.F = new long[2]; for (var _j = 0; _j < 2; ++_j) { _o.F[_j] = this.F(_j); }
   }
   public static Offset<MyGame.Example.ArrayStruct> Pack(FlatBufferBuilder builder, ArrayStructT _o) {
-  if (_o == null) return default(Offset<MyGame.Example.ArrayStruct>);
+    if (_o == null) return default(Offset<MyGame.Example.ArrayStruct>);
     var _b = _o.B;
     var _d_a = new int[2,2]; for (var idx0 = 0; idx0 < 2; ++idx0) { for (var idx1 = 0; idx1 < 2; ++idx1) {_d_a[idx0,idx1] = _o.D[idx0].A[idx1];}}
     var _d_b = new MyGame.Example.TestEnum[2]; for (var idx0 = 0; idx0 < 2; ++idx0) {_d_b[idx0] = _o.D[idx0].B;}

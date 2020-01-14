@@ -70,7 +70,7 @@ public struct Referrable : IFlatbufferObject
     _o.Id = this.Id;
   }
   public static Offset<MyGame.Example.Referrable> Pack(FlatBufferBuilder builder, ReferrableT _o) {
-  if (_o == null) return default(Offset<MyGame.Example.Referrable>);
+    if (_o == null) return default(Offset<MyGame.Example.Referrable>);
     return CreateReferrable(
       builder,
       _o.Id);

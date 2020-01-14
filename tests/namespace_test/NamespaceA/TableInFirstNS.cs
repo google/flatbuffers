@@ -44,7 +44,7 @@ public struct TableInFirstNS : IFlatbufferObject
     _o.FooStruct = this.FooStruct?.UnPack();
   }
   public static Offset<NamespaceA.TableInFirstNS> Pack(FlatBufferBuilder builder, TableInFirstNST _o) {
-  if (_o == null) return default(Offset<NamespaceA.TableInFirstNS>);
+    if (_o == null) return default(Offset<NamespaceA.TableInFirstNS>);
     var _foo_table = _o.FooTable == null ? default(Offset<NamespaceA.NamespaceB.TableInNestedNS>) : NamespaceA.NamespaceB.TableInNestedNS.Pack(builder, _o.FooTable);
     StartTableInFirstNS(builder);
     AddFooTable(builder, _foo_table);

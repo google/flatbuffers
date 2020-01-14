@@ -31,7 +31,7 @@ public struct BookReader : IFlatbufferObject
     _o.BooksRead = this.BooksRead;
   }
   public static Offset<BookReader> Pack(FlatBufferBuilder builder, BookReaderT _o) {
-  if (_o == null) return default(Offset<BookReader>);
+    if (_o == null) return default(Offset<BookReader>);
     return CreateBookReader(
       builder,
       _o.BooksRead);

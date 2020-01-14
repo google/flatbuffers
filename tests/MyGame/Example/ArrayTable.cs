@@ -40,7 +40,7 @@ public struct ArrayTable : IFlatbufferObject
     _o.A = this.A?.UnPack();
   }
   public static Offset<MyGame.Example.ArrayTable> Pack(FlatBufferBuilder builder, ArrayTableT _o) {
-  if (_o == null) return default(Offset<MyGame.Example.ArrayTable>);
+    if (_o == null) return default(Offset<MyGame.Example.ArrayTable>);
     StartArrayTable(builder);
     AddA(builder, MyGame.Example.ArrayStruct.Pack(builder, _o.A));
     return EndArrayTable(builder);

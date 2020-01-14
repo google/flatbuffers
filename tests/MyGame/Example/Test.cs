@@ -39,7 +39,7 @@ public struct Test : IFlatbufferObject
     _o.B = this.B;
   }
   public static Offset<MyGame.Example.Test> Pack(FlatBufferBuilder builder, TestT _o) {
-  if (_o == null) return default(Offset<MyGame.Example.Test>);
+    if (_o == null) return default(Offset<MyGame.Example.Test>);
     return CreateTest(
       builder,
       _o.A,

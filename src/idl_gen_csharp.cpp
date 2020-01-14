@@ -1362,7 +1362,7 @@ class CSharpGenerator : public BaseGenerator {
     // Pack()
     code += "  public static " + GenOffsetType(struct_def) +
             " Pack(FlatBufferBuilder builder, " + struct_name + " _o) {\n";
-    code += "  if (_o == null) return default(" + GenOffsetType(struct_def) +
+    code += "    if (_o == null) return default(" + GenOffsetType(struct_def) +
             ");\n";
 
     for (auto it = struct_def.fields.vec.begin();

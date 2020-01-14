@@ -412,7 +412,7 @@ public struct Monster : IFlatbufferObject
     _o.SignedEnum = this.SignedEnum;
   }
   public static Offset<MyGame.Example.Monster> Pack(FlatBufferBuilder builder, MonsterT _o) {
-  if (_o == null) return default(Offset<MyGame.Example.Monster>);
+    if (_o == null) return default(Offset<MyGame.Example.Monster>);
     var _name = _o.Name == null ? default(StringOffset) : builder.CreateSharedString(_o.Name);
     var _inventory = _o.Inventory == null ? default(VectorOffset) : CreateInventoryVector(builder, _o.Inventory.ToArray());
     var _test = _o.Test == null ? 0 : MyGame.Example.AnyUnion.Pack(builder, _o.Test);

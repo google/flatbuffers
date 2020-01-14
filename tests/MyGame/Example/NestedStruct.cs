@@ -53,7 +53,7 @@ public struct NestedStruct : IFlatbufferObject
     _o.D = new long[2]; for (var _j = 0; _j < 2; ++_j) { _o.D[_j] = this.D(_j); }
   }
   public static Offset<MyGame.Example.NestedStruct> Pack(FlatBufferBuilder builder, NestedStructT _o) {
-  if (_o == null) return default(Offset<MyGame.Example.NestedStruct>);
+    if (_o == null) return default(Offset<MyGame.Example.NestedStruct>);
     var _a = _o.A;
     var _c = _o.C;
     var _d = _o.D;

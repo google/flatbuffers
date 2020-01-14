@@ -45,7 +45,7 @@ public struct TableInNestedNS : IFlatbufferObject
     _o.Foo = this.Foo;
   }
   public static Offset<NamespaceA.NamespaceB.TableInNestedNS> Pack(FlatBufferBuilder builder, TableInNestedNST _o) {
-  if (_o == null) return default(Offset<NamespaceA.NamespaceB.TableInNestedNS>);
+    if (_o == null) return default(Offset<NamespaceA.NamespaceB.TableInNestedNS>);
     return CreateTableInNestedNS(
       builder,
       _o.Foo);

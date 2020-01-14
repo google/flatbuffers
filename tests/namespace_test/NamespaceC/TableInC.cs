@@ -49,7 +49,7 @@ public struct TableInC : IFlatbufferObject
     _o.ReferToA2 = this.ReferToA2?.UnPack();
   }
   public static Offset<NamespaceC.TableInC> Pack(FlatBufferBuilder builder, TableInCT _o) {
-  if (_o == null) return default(Offset<NamespaceC.TableInC>);
+    if (_o == null) return default(Offset<NamespaceC.TableInC>);
     var _refer_to_a1 = _o.ReferToA1 == null ? default(Offset<NamespaceA.TableInFirstNS>) : NamespaceA.TableInFirstNS.Pack(builder, _o.ReferToA1);
     var _refer_to_a2 = _o.ReferToA2 == null ? default(Offset<NamespaceA.SecondTableInA>) : NamespaceA.SecondTableInA.Pack(builder, _o.ReferToA2);
     return CreateTableInC(

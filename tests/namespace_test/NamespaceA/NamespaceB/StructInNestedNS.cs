@@ -38,7 +38,7 @@ public struct StructInNestedNS : IFlatbufferObject
     _o.B = this.B;
   }
   public static Offset<NamespaceA.NamespaceB.StructInNestedNS> Pack(FlatBufferBuilder builder, StructInNestedNST _o) {
-  if (_o == null) return default(Offset<NamespaceA.NamespaceB.StructInNestedNS>);
+    if (_o == null) return default(Offset<NamespaceA.NamespaceB.StructInNestedNS>);
     return CreateStructInNestedNS(
       builder,
       _o.A,
