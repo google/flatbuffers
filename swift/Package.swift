@@ -18,8 +18,5 @@ let package = Package(
         .target(
             name: "FlatBuffers",
             dependencies: []),
-        .testTarget(
-            name: "FlatBuffersTests",
-            dependencies: ["FlatBuffers"]),
     ]
 )
