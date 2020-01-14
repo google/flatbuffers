@@ -885,7 +885,7 @@ class CSharpGenerator : public BaseGenerator {
       }
     }
     code += "\n";
-    bool struct_has_create = false;
+    auto struct_has_create = false;
     std::set<flatbuffers::FieldDef *> field_has_create_set;
     flatbuffers::FieldDef *key_field = nullptr;
     if (struct_def.fixed) {
@@ -1191,7 +1191,7 @@ class CSharpGenerator : public BaseGenerator {
 
   void GenEnum_ObjectAPI(EnumDef &enum_def, std::string *code_ptr,
                          const IDLOptions &opts) const {
-    std::string &code = *code_ptr;
+    auto &code = *code_ptr;
     if (enum_def.generated) return;
     if (!enum_def.is_union) return;
 
@@ -1267,7 +1267,7 @@ class CSharpGenerator : public BaseGenerator {
       StructDef &struct_def, std::string *code_ptr, const IDLOptions &opts,
       bool struct_has_create,
       const std::set<FieldDef *> &field_has_create) const {
-    std::string &code = *code_ptr;
+    auto &code = *code_ptr;
 
     auto struct_name = GenTypeName_ObjectAPI(struct_def.name, opts);
 
@@ -1568,7 +1568,7 @@ class CSharpGenerator : public BaseGenerator {
   void GenStructArgs_ObjectAPI(const StructDef &struct_def,
                                std::string *code_ptr,
                                std::string prefix) const {
-    std::string &code = *code_ptr;
+    auto &code = *code_ptr;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
@@ -1587,7 +1587,7 @@ class CSharpGenerator : public BaseGenerator {
                                   std::string *code_ptr,
                                   std::vector<std::string> name_vec,
                                   std::vector<int> array_length_vec) const {
-    std::string &code = *code_ptr;
+    auto &code = *code_ptr;
     for (auto field : struct_def.fields.vec) {
       auto is_array = IsArray(field->value.type);
       const auto &field_type =
@@ -1651,7 +1651,7 @@ class CSharpGenerator : public BaseGenerator {
   void GenArrayPackCall_ObjectAPI(const StructDef &struct_def,
                                   std::string *code_ptr,
                                   std::string prefix) const {
-    std::string &code = *code_ptr;
+    auto &code = *code_ptr;
     for (auto field : struct_def.fields.vec) {
       const auto &field_type = field->value.type;
       if (IsStruct(field_type)) {
@@ -1692,7 +1692,6 @@ class CSharpGenerator : public BaseGenerator {
     }
 
     switch (type.base_type) {
-      // case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();  // fall thru
       case BASE_TYPE_ARRAY: {
         type_name = type_name + "[]";
         break;
@@ -1710,7 +1709,7 @@ class CSharpGenerator : public BaseGenerator {
 
   void GenStruct_ObjectAPI(StructDef &struct_def, std::string *code_ptr,
                            const IDLOptions &opts) const {
-    std::string &code = *code_ptr;
+    auto &code = *code_ptr;
 
     if (struct_def.attributes.Lookup("private")) {
       code += "internal ";
@@ -1730,8 +1729,8 @@ class CSharpGenerator : public BaseGenerator {
       if (field.deprecated) continue;
       if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
 
-      std::string type_name = GenTypeGet_ObjectAPI(field.value.type, opts);
-      std::string method_start = "  public " + type_name + " " +
+      auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts);
+      auto method_start = "  public " + type_name + " " +
                                  MakeCamel(field.name, true) +
                                  " { get; set; } ";
 
