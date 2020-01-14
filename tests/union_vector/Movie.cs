@@ -20,6 +20,7 @@ public struct Movie : IFlatbufferObject
 
   public Character MainCharacterType { get { int o = __p.__offset(4); return o != 0 ? (Character)__p.bb.Get(o + __p.bb_pos) : Character.NONE; } }
   public TTable? MainCharacter<TTable>() where TTable : struct, IFlatbufferObject { int o = __p.__offset(6); return o != 0 ? (TTable?)__p.__union<TTable>(o + __p.bb_pos) : null; }
+  public string MainCharacterAsString() { int o = __p.__offset(6); return o != 0 ? __p.__string(o + __p.bb_pos) : null; }
   public Character CharactersType(int j) { int o = __p.__offset(8); return o != 0 ? (Character)__p.bb.Get(__p.__vector(o) + j * 1) : (Character)0; }
   public int CharactersTypeLength { get { int o = __p.__offset(8); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
@@ -83,12 +84,14 @@ public struct Movie : IFlatbufferObject
       case Character.BookFan:
         _o.MainCharacter.Value = this.MainCharacter<BookReader>()?.UnPack();
         break;
-      default: break;
-      default: break;
+      case Character.Other:
+        _o.MainCharacter.Value = this.MainCharacterAsString();
+        break;
+      case Character.Unused:
+        _o.MainCharacter.Value = this.MainCharacterAsString();
+        break;
     }
-    _o.CharactersType = new List<Character>();
-    for (var _j = 0; _j < this.CharactersTypeLength; ++_j) { _o.CharactersType.Add(this.CharactersType(_j)); }
-    _o.Characters = new List<TTable>();
+    _o.Characters = new List<CharacterUnion>();
     for (var _j = 0; _j < this.CharactersLength; ++_j) { _o.Characters.Add(this.Characters(_j)); }
   }
   public static Offset<Movie> Pack(FlatBufferBuilder builder, MovieT _o) {
@@ -108,7 +111,6 @@ public struct Movie : IFlatbufferObject
 public class MovieT
 {
   public CharacterUnion MainCharacter { get; set; } 
-  public List<Character> CharactersType { get; set; } 
-  public List<TTable> Characters { get; set; } 
+  public List<CharacterUnion> Characters { get; set; } 
 };
 

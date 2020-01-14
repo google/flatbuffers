@@ -23,6 +23,8 @@ public class CharacterUnion {
   public RapunzelT AsRapunzel() => this.As<RapunzelT>();
   public BookReaderT AsBelle() => this.As<BookReaderT>();
   public BookReaderT AsBookFan() => this.As<BookReaderT>();
+  public string AsOther() => this.As<string>();
+  public string AsUnused() => this.As<string>();
 
   public static int Pack(FlatBuffers.FlatBufferBuilder builder, CharacterUnion _o) {
     switch (_o.Type) {
@@ -31,8 +33,8 @@ public class CharacterUnion {
       case Character.Rapunzel: return Rapunzel.Pack(builder, _o.AsRapunzel()).Value;
       case Character.Belle: return BookReader.Pack(builder, _o.AsBelle()).Value;
       case Character.BookFan: return BookReader.Pack(builder, _o.AsBookFan()).Value;
-      default: return 0;
-      default: return 0;
+      case Character.Other: return builder.CreateSharedString(_o.AsOther()).Value;
+      case Character.Unused: return builder.CreateSharedString(_o.AsUnused()).Value;
     }
   }
 }

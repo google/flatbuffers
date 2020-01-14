@@ -300,6 +300,14 @@ class CSharpGenerator : public BaseGenerator {
     }
   }
 
+  bool HasUnionStringValue(const EnumDef &enum_def) const {
+    if (!enum_def.is_union) return false;
+    for (auto val : enum_def.Vals()) {
+      if (val->union_type.base_type == BASE_TYPE_STRING) { return true; }
+    }
+    return false;
+  }
+
   // Returns the function name that is able to read a value of the given type.
   std::string GenGetter(const Type &type) const {
     switch (type.base_type) {
@@ -722,6 +730,14 @@ class CSharpGenerator : public BaseGenerator {
             code += "() where TTable : struct, IFlatbufferObject";
             code += offset_prefix + "(TTable?)" + getter;
             code += "<TTable>(o + __p.bb_pos) : null";
+            if (HasUnionStringValue(*field.value.type.enum_def)) {
+              code += member_suffix;
+              code += "}\n";
+              code += "  public string " + MakeCamel(field.name, true) +
+                      "AsString()";
+              code += offset_prefix + GenGetter(Type(BASE_TYPE_STRING));
+              code += "(o + __p.bb_pos) : null";
+            }
             break;
           default: FLATBUFFERS_ASSERT(0);
         }
@@ -1214,9 +1230,10 @@ class CSharpGenerator : public BaseGenerator {
     // As
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
-      if (ev.union_type.struct_def == nullptr) continue;
+      if (ev.union_type.base_type == BASE_TYPE_NONE) continue;
       auto type_name = GenTypeGet_ObjectAPI(ev.union_type, opts);
-      if (ev.union_type.struct_def->attributes.Lookup("private")) {
+      if (ev.union_type.base_type == BASE_TYPE_STRUCT &&
+          ev.union_type.struct_def->attributes.Lookup("private")) {
         code += "  internal ";
       } else {
         code += "  public ";
@@ -1231,12 +1248,16 @@ class CSharpGenerator : public BaseGenerator {
     code += "    switch (_o.Type) {\n";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
-      if (ev.union_type.struct_def == nullptr) {
+      if (ev.union_type.base_type == BASE_TYPE_NONE) {
         code += "      default: return 0;\n";
       } else {
-        code += "      case " + enum_def.name + "." + ev.name + ": return " +
-                GenTypeGet(ev.union_type) + ".Pack(builder, _o.As" + ev.name +
-                "()).Value;\n";
+        code += "      case " + enum_def.name + "." + ev.name + ": return ";
+        if (ev.union_type.base_type == BASE_TYPE_STRING) {
+          code += "builder.CreateSharedString(_o.As" + ev.name + "()).Value;\n";
+        } else {
+          code += GenTypeGet(ev.union_type) + ".Pack(builder, _o.As" + ev.name +
+                  "()).Value;\n";
+        }
       }
     }
     code += "    }\n";
@@ -1291,16 +1312,17 @@ class CSharpGenerator : public BaseGenerator {
                   unpack_method + "; }\n";
           break;
         }
-        case BASE_TYPE_VECTOR: {
-          auto unpack_method =
-              field.value.type.struct_def == nullptr ? "" : "?.UnPack()";
-          code += start + "new " +
-                  GenTypeGet_ObjectAPI(field.value.type, opts) + "();\n";
-          code += "    for (var _j = 0; _j < this." + camel_name +
-                  "Length; ++_j) { _o." + camel_name + ".Add(this." +
-                  camel_name + "(_j)" + unpack_method + "); }\n";
+        case BASE_TYPE_VECTOR:
+          if (field.value.type.element != BASE_TYPE_UTYPE) {
+            auto unpack_method =
+                field.value.type.struct_def == nullptr ? "" : "?.UnPack()";
+            code += start + "new " +
+                    GenTypeGet_ObjectAPI(field.value.type, opts) + "();\n";
+            code += "    for (var _j = 0; _j < this." + camel_name +
+                    "Length; ++_j) { _o." + camel_name + ".Add(this." +
+                    camel_name + "(_j)" + unpack_method + "); }\n";
+          }
           break;
-        }
         case BASE_TYPE_UTYPE: break;
         case BASE_TYPE_UNION: {
           auto &enum_def = *field.value.type.enum_def;
@@ -1312,14 +1334,18 @@ class CSharpGenerator : public BaseGenerator {
           for (auto eit = enum_def.Vals().begin(); eit != enum_def.Vals().end();
                ++eit) {
             auto &ev = **eit;
-            if (ev.union_type.struct_def == nullptr) {
+            if (ev.union_type.base_type == BASE_TYPE_NONE) {
               code += "      default: break;\n";
             } else {
               code += "      case " + WrapInNameSpace(enum_def) + "." +
                       ev.name + ":\n";
-              code += "        _o." + camel_name + ".Value = this." +
-                      camel_name + "<" + GenTypeGet(ev.union_type) +
-                      ">()?.UnPack();\n";
+              code +=
+                  "        _o." + camel_name + ".Value = this." + camel_name;
+              if (ev.union_type.base_type == BASE_TYPE_STRING) {
+                code += "AsString();\n";
+              } else {
+                code += "<" + GenTypeGet(ev.union_type) + ">()?.UnPack();\n";
+              }
               code += "        break;\n";
             }
           }
@@ -1613,6 +1639,8 @@ class CSharpGenerator : public BaseGenerator {
               GenTypeName_ObjectAPI(type.struct_def->name, opts);
           type_name.replace(type_name.length() - type_name_length,
                             type_name_length, new_type_name);
+        } else if (type.element == BASE_TYPE_UNION) {
+          type_name = WrapInNameSpace(*type.enum_def) + "Union";
         }
         break;
       }
@@ -1657,6 +1685,7 @@ class CSharpGenerator : public BaseGenerator {
       auto &field = **it;
       if (field.deprecated) continue;
       if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
+      if (field.value.type.element == BASE_TYPE_UTYPE) continue;
       auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts);
       auto method_start = "  public " + type_name + " " +
                           MakeCamel(field.name, true) + " { get; set; } ";
