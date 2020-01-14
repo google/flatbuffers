@@ -1134,7 +1134,7 @@ class JavaGenerator : public BaseGenerator {
       code += " key, ByteBuffer bb) {\n";
       if (key_field->value.type.base_type == BASE_TYPE_STRING) {
         code += "    byte[] byteKey = ";
-        code += "key.getBytes(Table.UTF8_CHARSET.get());\n";
+        code += "key.getBytes(java.nio.charset.StandardCharsets.UTF_8);\n";
       }
       code += "    int span = ";
       code += "bb.getInt(vectorLocation - 4);\n";

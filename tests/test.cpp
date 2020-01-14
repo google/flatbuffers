@@ -1128,6 +1128,58 @@ void ParseProtoTest() {
 }
 
 // Parse a .proto schema, output as .fbs
+void ParseProtoTestWithSuffix() {
+  // load the .proto and the golden file from disk
+  std::string protofile;
+  std::string goldenfile;
+  std::string goldenunionfile;
+  TEST_EQ(
+      flatbuffers::LoadFile((test_data_path + "prototest/test.proto").c_str(),
+                            false, &protofile),
+      true);
+  TEST_EQ(
+      flatbuffers::LoadFile((test_data_path + "prototest/test_suffix.golden").c_str(),
+                            false, &goldenfile),
+      true);
+  TEST_EQ(flatbuffers::LoadFile(
+              (test_data_path + "prototest/test_union_suffix.golden").c_str(), false,
+              &goldenunionfile),
+          true);
+
+  flatbuffers::IDLOptions opts;
+  opts.include_dependence_headers = false;
+  opts.proto_mode = true;
+  opts.proto_namespace_suffix = "test_namespace_suffix";
+
+  // Parse proto.
+  flatbuffers::Parser parser(opts);
+  auto protopath = test_data_path + "prototest/";
+  const char *include_directories[] = { protopath.c_str(), nullptr };
+  TEST_EQ(parser.Parse(protofile.c_str(), include_directories), true);
+
+  // Generate fbs.
+  auto fbs = flatbuffers::GenerateFBS(parser, "test");
+
+  // Ensure generated file is parsable.
+  flatbuffers::Parser parser2;
+  TEST_EQ(parser2.Parse(fbs.c_str(), nullptr), true);
+  TEST_EQ_STR(fbs.c_str(), goldenfile.c_str());
+
+  // Parse proto with --oneof-union option.
+  opts.proto_oneof_union = true;
+  flatbuffers::Parser parser3(opts);
+  TEST_EQ(parser3.Parse(protofile.c_str(), include_directories), true);
+
+  // Generate fbs.
+  auto fbs_union = flatbuffers::GenerateFBS(parser3, "test");
+
+  // Ensure generated file is parsable.
+  flatbuffers::Parser parser4;
+  TEST_EQ(parser4.Parse(fbs_union.c_str(), nullptr), true);
+  TEST_EQ_STR(fbs_union.c_str(), goldenunionfile.c_str());
+}
+
+// Parse a .proto schema, output as .fbs
 void ParseProtoTestWithIncludes() {
   // load the .proto and the golden file from disk
   std::string protofile;
@@ -3261,6 +3313,7 @@ int FlatBufferTests() {
     FixedLengthArrayJsonTest(true);
     ReflectionTest(flatbuf.data(), flatbuf.size());
     ParseProtoTest();
+    ParseProtoTestWithSuffix();
     ParseProtoTestWithIncludes();
     EvolutionTest();
     UnionVectorTest();
