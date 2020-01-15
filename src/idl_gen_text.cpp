@@ -132,7 +132,9 @@ struct JsonPrinter {
         AddNewLine();
       }
       AddIndent(elem_indent);
-      auto ptr = is_struct ? c.GetAsStruct(*type.struct_def, i) : c[i];
+      auto ptr = is_struct ? reinterpret_cast<const void *>(
+                                 c.Data() + type.struct_def->bytesize * i)
+                           : c[i];
       if (!PrintOffset(ptr, type, elem_indent, prev_val,
                        static_cast<soffset_t>(i))) {
         return false;
