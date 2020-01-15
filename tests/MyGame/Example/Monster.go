@@ -304,7 +304,7 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 	t.Color = rcv.Color()
 	testTable := flatbuffers.Table{}
 	if rcv.Test(&testTable) {
-		t.Test = AnyUnPack(rcv.TestType(), testTable)
+		t.Test = rcv.TestType().UnPack(testTable)
 	}
 	test4Length := rcv.Test4Length()
 	t.Test4 = make([]*TestT, test4Length)
@@ -410,11 +410,11 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 	}
 	anyUniqueTable := flatbuffers.Table{}
 	if rcv.AnyUnique(&anyUniqueTable) {
-		t.AnyUnique = AnyUniqueAliasesUnPack(rcv.AnyUniqueType(), anyUniqueTable)
+		t.AnyUnique = rcv.AnyUniqueType().UnPack(anyUniqueTable)
 	}
 	anyAmbiguousTable := flatbuffers.Table{}
 	if rcv.AnyAmbiguous(&anyAmbiguousTable) {
-		t.AnyAmbiguous = AnyAmbiguousAliasesUnPack(rcv.AnyAmbiguousType(), anyAmbiguousTable)
+		t.AnyAmbiguous = rcv.AnyAmbiguousType().UnPack(anyAmbiguousTable)
 	}
 	vectorOfEnumsLength := rcv.VectorOfEnumsLength()
 	t.VectorOfEnums = make([]Color, vectorOfEnumsLength)

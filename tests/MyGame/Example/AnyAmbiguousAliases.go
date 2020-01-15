@@ -58,8 +58,8 @@ func (t *AnyAmbiguousAliasesT) Pack(builder *flatbuffers.Builder) flatbuffers.UO
 	return 0
 }
 
-func AnyAmbiguousAliasesUnPack(t AnyAmbiguousAliases, table flatbuffers.Table) *AnyAmbiguousAliasesT {
-	switch t {
+func (rcv AnyAmbiguousAliases) UnPack(table flatbuffers.Table) *AnyAmbiguousAliasesT {
+	switch rcv {
 	case AnyAmbiguousAliasesM1:
 		x := Monster{_tab: table}
 		return &AnyAmbiguousAliasesT{ Type: AnyAmbiguousAliasesM1, Value: x.UnPack() }

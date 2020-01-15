@@ -837,9 +837,10 @@ class GoGenerator : public BaseGenerator {
   void GenNativeUnionUnPack(const EnumDef &enum_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
 
-    code += "func " + enum_def.name + "UnPack(t " + enum_def.name +
-            ", table flatbuffers.Table) *" + NativeName(enum_def) + " {\n";
-    code += "\tswitch t {\n";
+    code += "func (rcv " + enum_def.name +
+            ") UnPack(table flatbuffers.Table) *" + NativeName(enum_def) +
+            " {\n";
+    code += "\tswitch rcv {\n";
 
     for (auto it2 = enum_def.Vals().begin(); it2 != enum_def.Vals().end();
          ++it2) {
@@ -1021,14 +1022,13 @@ class GoGenerator : public BaseGenerator {
         code += "\tt." + field_name_camel + " = rcv." + field_name_camel +
                 "(nil).UnPack()\n";
       } else if (field.value.type.base_type == BASE_TYPE_UNION) {
-        const EnumDef &enum_def = *field.value.type.enum_def;
         std::string field_table = MakeCamel(field.name, false) + "Table";
         code += "\t" + field_table + " := flatbuffers.Table{}\n";
         code +=
             "\tif rcv." + MakeCamel(field.name) + "(&" + field_table + ") {\n";
-        code += "\t\tt." + field_name_camel + " = " + enum_def.name +
-                "UnPack(rcv." + MakeCamel(field.name + UnionTypeFieldSuffix()) +
-                "(), " + field_table + ")\n";
+        code += "\t\tt." + field_name_camel + " = rcv." +
+                MakeCamel(field.name + UnionTypeFieldSuffix()) + "().UnPack(" +
+                field_table + ")\n";
         code += "\t}\n";
       } else {
         FLATBUFFERS_ASSERT(0);

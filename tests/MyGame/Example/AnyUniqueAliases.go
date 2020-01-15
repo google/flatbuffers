@@ -60,8 +60,8 @@ func (t *AnyUniqueAliasesT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffs
 	return 0
 }
 
-func AnyUniqueAliasesUnPack(t AnyUniqueAliases, table flatbuffers.Table) *AnyUniqueAliasesT {
-	switch t {
+func (rcv AnyUniqueAliases) UnPack(table flatbuffers.Table) *AnyUniqueAliasesT {
+	switch rcv {
 	case AnyUniqueAliasesM:
 		x := Monster{_tab: table}
 		return &AnyUniqueAliasesT{ Type: AnyUniqueAliasesM, Value: x.UnPack() }

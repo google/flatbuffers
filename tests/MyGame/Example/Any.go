@@ -60,8 +60,8 @@ func (t *AnyT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return 0
 }
 
-func AnyUnPack(t Any, table flatbuffers.Table) *AnyT {
-	switch t {
+func (rcv Any) UnPack(table flatbuffers.Table) *AnyT {
+	switch rcv {
 	case AnyMonster:
 		x := Monster{_tab: table}
 		return &AnyT{ Type: AnyMonster, Value: x.UnPack() }
