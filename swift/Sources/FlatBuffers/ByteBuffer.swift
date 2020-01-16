@@ -69,7 +69,7 @@ public final class ByteBuffer {
     /// Fills the buffer with padding by adding to the writersize
     /// - Parameter padding: Amount of padding between two to be serialized objects
     func fill(padding: UInt32) {
-        ensureSpace(size: UInt8(padding))
+        ensureSpace(size: padding)
         _writerSize += (MemoryLayout<UInt8>.size * Int(padding))
     }
     
@@ -77,7 +77,7 @@ public final class ByteBuffer {
     /// - Parameter elements: An array of Scalars
     func push<T: Scalar>(elements: [T]) {
         let size = elements.count * MemoryLayout<T>.size
-        ensureSpace(size: UInt8(size))
+        ensureSpace(size: UInt32(size))
         elements.lazy.reversed().forEach { (s) in
             push(value: s, len: MemoryLayout.size(ofValue: s))
         }
@@ -88,7 +88,7 @@ public final class ByteBuffer {
     ///   - value: Pointer to the object in memory
     ///   - size: Size of Value being written to the buffer
     func push(struct value: UnsafeMutableRawPointer, size: Int) {
-        ensureSpace(size: UInt8(size))
+        ensureSpace(size: UInt32(size))
         _memory.advanced(by: writerIndex - size).copyMemory(from: value, byteCount: size)
         defer { value.deallocate() }
         _writerSize += size
@@ -99,7 +99,7 @@ public final class ByteBuffer {
     ///   - value: Object  that will be written to the buffer
     ///   - len: Offset to subtract from the WriterIndex
     func push<T: Scalar>(value: T, len: Int) {
-        ensureSpace(size: UInt8(len))
+        ensureSpace(size: UInt32(len))
         var v = value.convertedEndian
         memcpy(_memory.advanced(by: writerIndex - len), &v, len)
         _writerSize += len
@@ -109,7 +109,7 @@ public final class ByteBuffer {
     /// - Parameter str: String that will be added to the buffer
     /// - Parameter len: length of the string
     func push(string str: String, len: Int) {
-        ensureSpace(size: UInt8(len))
+        ensureSpace(size: UInt32(len))
         if str.utf8.withContiguousStorageIfAvailable({ self.push(bytes: $0, len: len) }) != nil {
         } else {
             let utf8View = str.utf8
@@ -149,7 +149,7 @@ public final class ByteBuffer {
     /// Makes sure that buffer has enouch space for each of the objects that will be written into it
     /// - Parameter size: size of object
     @discardableResult
-    func ensureSpace(size: UInt8) -> UInt8 {
+    func ensureSpace(size: UInt32) -> UInt32 {
         if Int(size) + _writerSize > _capacity { reallocate(size) }
         assert(size < FlatBufferMaxSize, "Buffer can't grow beyond 2 Gigabytes")
         return size
@@ -157,7 +157,7 @@ public final class ByteBuffer {
     
     /// Reallocates the buffer incase the object to be written doesnt fit in the current buffer
     /// - Parameter size: Size of the current object
-    fileprivate func reallocate(_ size: UInt8) {
+    fileprivate func reallocate(_ size: UInt32) {
         let currentWritingIndex = writerIndex
         while _capacity <= _writerSize + Int(size) {
             _capacity = _capacity << 1

@@ -22,6 +22,8 @@ final class FlatBuffersTests: XCTestCase {
         b.clear()
         XCTAssertEqual(b.create(string: helloWorld).o, 20)
         XCTAssertEqual(b.create(string: country).o, 32)
+        b.clear()
+        XCTAssertEqual(b.create(string: String(repeating: "a", count: 257)).o, 264)
     }
     
     func testStartTable() {
