@@ -619,6 +619,9 @@ class JsTsGenerator : public BaseGenerator {
                 "Root" + Verbose(struct_def, "As");
         code += " = function(bb, obj) {\n";
       }
+      if (size_prefixed) {
+        code += "  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);\n";
+      }
       code += "  return (obj || new " + object_name;
       code += ").__init(bb.readInt32(bb.position()) + bb.position(), bb);\n";
       code += "};\n\n";
