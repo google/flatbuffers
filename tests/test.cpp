@@ -650,6 +650,19 @@ void JsonEnumsTest() {
   auto result = GenerateText(parser, builder.GetBufferPointer(), &jsongen);
   TEST_EQ(result, true);
   TEST_EQ(std::string::npos != jsongen.find("color: \"Red Blue\""), true);
+  // Test forward compatibility with 'output_enum_identifiers = true'.
+  // Current Color doesn't have '(1u << 2)' field, let's add it.
+  builder.Clear();
+  std::string future_json;
+  auto future_name = builder.CreateString("future bitflag_enum");
+  MonsterBuilder future_color(builder);
+  future_color.add_name(future_name);
+  future_color.add_color(
+      static_cast<Color>((1u << 2) | Color_Blue | Color_Red));
+  FinishMonsterBuffer(builder, future_color.Finish());
+  result = GenerateText(parser, builder.GetBufferPointer(), &future_json);
+  TEST_EQ(result, true);
+  TEST_EQ(std::string::npos != future_json.find("color: 13"), true);
 }
 
 #if defined(FLATBUFFERS_HAS_NEW_STRTOD) && (FLATBUFFERS_HAS_NEW_STRTOD > 0)
