@@ -157,7 +157,7 @@ impl<'a> Builder {
         } else {
             // Key not in pool (or no pool).
             let address = self.buffer.len();
-            self.buffer.extend(key.bytes());
+            self.buffer.extend_from_slice(key.as_bytes());
             self.buffer.push(b'\0');
             address
         };
@@ -189,7 +189,7 @@ impl<'a> Builder {
         align(&mut self.buffer, width);
         store_value(&mut self.buffer, length, width);
         let address = self.buffer.len();
-        self.buffer.extend(xs);
+        self.buffer.extend_from_slice(xs);
         Value::Reference {
             fxb_type: FlexBufferType::Blob,
             address,
