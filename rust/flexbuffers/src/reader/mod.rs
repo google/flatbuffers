@@ -15,8 +15,7 @@
 use crate::bitwidth::BitWidth;
 use crate::flexbuffer_type::FlexBufferType;
 use crate::Blob;
-use byteorder::{ByteOrder, LittleEndian};
-use std::convert::{From, TryFrom, TryInto};
+use std::convert::{TryFrom, TryInto};
 use std::fmt;
 use std::ops::Rem;
 use std::str::FromStr;
@@ -64,42 +63,28 @@ pub enum Error {
     AlignmentError,
 }
 
-// TODO(cneo): Either to do this trait or use byteorder reader functions consistently.
-pub trait ReadLE: crate::private::Sealed {
-    fn read_le(sl: &[u8]) -> Self;
+pub trait ReadLE: crate::private::Sealed + std::marker::Sized {
     const VECTOR_TYPE: FlexBufferType;
     const WIDTH: BitWidth;
 }
 macro_rules! rle {
-    ($T: ty, $read: path, $VECTOR_TYPE: ident, $WIDTH: ident) => {
+    ($T: ty, $VECTOR_TYPE: ident, $WIDTH: ident) => {
         impl ReadLE for $T {
             const VECTOR_TYPE: FlexBufferType = FlexBufferType::$VECTOR_TYPE;
             const WIDTH: BitWidth = BitWidth::$WIDTH;
-            fn read_le(sl: &[u8]) -> Self {
-                $read(sl)
-            }
-        }
-    };
-    ($T: ty, $VECTOR_TYPE: ident) => {
-        impl ReadLE for $T {
-            const VECTOR_TYPE: FlexBufferType = FlexBufferType::$VECTOR_TYPE;
-            const WIDTH: BitWidth = BitWidth::W8;
-            fn read_le(sl: &[u8]) -> Self {
-                sl[0] as Self
-            }
         }
     };
 }
-rle!(u8, VectorUInt);
-rle!(u16, LittleEndian::read_u16, VectorUInt, W16);
-rle!(u32, LittleEndian::read_u32, VectorUInt, W32);
-rle!(u64, LittleEndian::read_u64, VectorUInt, W64);
-rle!(i8, VectorInt);
-rle!(i16, LittleEndian::read_i16, VectorInt, W16);
-rle!(i32, LittleEndian::read_i32, VectorInt, W32);
-rle!(i64, LittleEndian::read_i64, VectorInt, W64);
-rle!(f32, LittleEndian::read_f32, VectorFloat, W32);
-rle!(f64, LittleEndian::read_f64, VectorFloat, W64);
+rle!(u8, VectorUInt, W8);
+rle!(u16, VectorUInt, W16);
+rle!(u32, VectorUInt, W32);
+rle!(u64, VectorUInt, W64);
+rle!(i8, VectorInt, W8);
+rle!(i16, VectorInt, W16);
+rle!(i32, VectorInt, W32);
+rle!(i64, VectorInt, W64);
+rle!(f32, VectorFloat, W32);
+rle!(f64, VectorFloat, W64);
 
 macro_rules! as_default {
     ($as: ident, $get: ident, $T: ty) => {
@@ -136,7 +121,7 @@ fn safe_sub(a: usize, b: usize) -> Result<usize, Error> {
 }
 
 fn deref_offset(buffer: &[u8], address: usize, width: BitWidth) -> Result<usize, Error> {
-    let off = read_usize(buffer, address, width)?;
+    let off = read_usize(buffer, address, width);
     safe_sub(address, off)
 }
 
@@ -192,7 +177,6 @@ impl<'de> Reader<'de> {
             len
         } else if self.fxb_type.has_length_slot() && self.address >= self.width.n_bytes() {
             read_usize(self.buffer, self.address - self.width.n_bytes(), self.width)
-                .unwrap_or_default()
         } else {
             0
         }
@@ -229,6 +213,7 @@ impl<'de> Reader<'de> {
     /// Directly reads a slice of type `T`where `T` is one of `u8,u16,u32,u64,i8,i16,i32,i64,f32,f64`.
     /// Returns Err if the type, bitwidth, or memory alignment does not match. Since the bitwidth is
     /// dynamic, its better to use a VectorReader unless you know your data and performance is critical.
+    #[cfg(target_endian = "little")]
     pub fn get_slice<T: ReadLE>(&self) -> Result<&'de [T], Error> {
         if self.flexbuffer_type().typed_vector_type() != T::VECTOR_TYPE.typed_vector_type() {
             self.expect_type(T::VECTOR_TYPE)?;
@@ -304,47 +289,67 @@ impl<'de> Reader<'de> {
     /// address is out of bounds.
     pub fn get_u64(&self) -> Result<u64, Error> {
         self.expect_type(FlexBufferType::UInt)?;
-        let cursor = &self
+        let cursor = self
             .buffer
-            .get(self.address..)
-            .ok_or(Error::FlexbufferOutOfBounds)?;
-        Ok(match self.width {
-            BitWidth::W8 => <u64>::from(<u8>::read_le(cursor)),
-            BitWidth::W16 => <u64>::from(<u16>::read_le(cursor)),
-            BitWidth::W32 => <u64>::from(<u32>::read_le(cursor)),
-            BitWidth::W64 => <u64>::read_le(cursor),
-        })
+            .get(self.address..self.address + self.width.n_bytes());
+        match self.width {
+            BitWidth::W8 => cursor.map(|s| s[0] as u8).map(Into::into),
+            BitWidth::W16 => cursor
+                .and_then(|s| s.try_into().ok())
+                .map(<u16>::from_le_bytes)
+                .map(Into::into),
+            BitWidth::W32 => cursor
+                .and_then(|s| s.try_into().ok())
+                .map(<u32>::from_le_bytes)
+                .map(Into::into),
+            BitWidth::W64 => cursor
+                .and_then(|s| s.try_into().ok())
+                .map(<u64>::from_le_bytes),
+        }
+        .ok_or(Error::FlexbufferOutOfBounds)
     }
     /// Tries to read a FlexBufferType::Int. Returns Err if the type is not a UInt or if the
     /// address is out of bounds.
     pub fn get_i64(&self) -> Result<i64, Error> {
         self.expect_type(FlexBufferType::Int)?;
-        let cursor = &self
+        let cursor = self
             .buffer
-            .get(self.address..)
-            .ok_or(Error::FlexbufferOutOfBounds)?;
-        Ok(match self.width {
-            BitWidth::W8 => <i64>::from(<i8>::read_le(cursor)),
-            BitWidth::W16 => <i64>::from(<i16>::read_le(cursor)),
-            BitWidth::W32 => <i64>::from(<i32>::read_le(cursor)),
-            BitWidth::W64 => <i64>::read_le(cursor),
-        })
+            .get(self.address..self.address + self.width.n_bytes());
+        match self.width {
+            BitWidth::W8 => cursor.map(|s| s[0] as i8).map(Into::into),
+            BitWidth::W16 => cursor
+                .and_then(|s| s.try_into().ok())
+                .map(<i16>::from_le_bytes)
+                .map(Into::into),
+            BitWidth::W32 => cursor
+                .and_then(|s| s.try_into().ok())
+                .map(<i32>::from_le_bytes)
+                .map(Into::into),
+            BitWidth::W64 => cursor
+                .and_then(|s| s.try_into().ok())
+                .map(<i64>::from_le_bytes),
+        }
+        .ok_or(Error::FlexbufferOutOfBounds)
     }
     /// Tries to read a FlexBufferType::Float. Returns Err if the type is not a UInt, if the
     /// address is out of bounds, or if its a f16 or f8 (not currently supported).
     pub fn get_f64(&self) -> Result<f64, Error> {
         self.expect_type(FlexBufferType::Float)?;
-        let cursor = &self
+        let cursor = self
             .buffer
-            .get(self.address..)
-            .ok_or(Error::FlexbufferOutOfBounds)?;
-        Ok(match self.width {
-            BitWidth::W32 => <f64>::from(<f32>::read_le(cursor)),
-            BitWidth::W64 => <f64>::read_le(cursor),
-            _ => return Err(Error::InvalidPackedType), // f8, f16 not supported.
-        })
+            .get(self.address..self.address + self.width.n_bytes());
+        match self.width {
+            BitWidth::W8 | BitWidth::W16 => return Err(Error::InvalidPackedType),
+            BitWidth::W32 => cursor
+                .and_then(|s| s.try_into().ok())
+                .map(<f32>::from_le_bytes)
+                .map(Into::into),
+            BitWidth::W64 => cursor
+                .and_then(|s| s.try_into().ok())
+                .map(<f64>::from_le_bytes),
+        }
+        .ok_or(Error::FlexbufferOutOfBounds)
     }
-
     pub fn as_bool(&self) -> bool {
         use FlexBufferType::*;
         match self.fxb_type {
@@ -494,21 +499,25 @@ impl<'de> fmt::Display for Reader<'de> {
     }
 }
 
-fn read_usize(buffer: &[u8], address: usize, width: BitWidth) -> Result<usize, Error> {
+fn read_usize(buffer: &[u8], address: usize, width: BitWidth) -> usize {
     let cursor = &buffer[address..];
     match width {
-        BitWidth::W8 => {
-            <usize>::try_from(<u8>::read_le(cursor)).map_err(|_| Error::ReadUsizeOverflowed)
-        }
-        BitWidth::W16 => {
-            <usize>::try_from(<u16>::read_le(cursor)).map_err(|_| Error::ReadUsizeOverflowed)
-        }
-        BitWidth::W32 => {
-            <usize>::try_from(<u32>::read_le(cursor)).map_err(|_| Error::ReadUsizeOverflowed)
-        }
-        BitWidth::W64 => {
-            <usize>::try_from(<u64>::read_le(cursor)).map_err(|_| Error::ReadUsizeOverflowed)
-        }
+        BitWidth::W8 => cursor[0] as usize,
+        BitWidth::W16 => cursor
+            .get(0..2)
+            .and_then(|s| s.try_into().ok())
+            .map(<u16>::from_le_bytes)
+            .unwrap_or_default() as usize,
+        BitWidth::W32 => cursor
+            .get(0..4)
+            .and_then(|s| s.try_into().ok())
+            .map(<u32>::from_le_bytes)
+            .unwrap_or_default() as usize,
+        BitWidth::W64 => cursor
+            .get(0..8)
+            .and_then(|s| s.try_into().ok())
+            .map(<u64>::from_le_bytes)
+            .unwrap_or_default() as usize,
     }
 }
 
@@ -658,5 +667,25 @@ mod tests {
         assert!(n.as_map().is_empty());
         assert_eq!(n.as_vector().idx(1).flexbuffer_type(), FlexBufferType::Null);
         assert_eq!(n.as_map().idx("1").flexbuffer_type(), FlexBufferType::Null);
+    }
+    #[test]
+    fn get_root_deref_oob() {
+        let s = &[
+            4, // Deref out of bounds
+            (FlexBufferType::Vector as u8) << 2 | BitWidth::W8 as u8,
+            BitWidth::W8 as u8,
+        ];
+        assert!(Reader::get_root(s).is_err());
+    }
+    #[test]
+    fn get_root_deref_u64() {
+        let s = &[
+            0,
+            0,
+            (FlexBufferType::IndirectUInt as u8) << 2 | BitWidth::W64 as u8,
+            BitWidth::W8 as u8,
+        ];
+        // The risk of crashing is reading 8 bytes from index 0.
+        assert_eq!(Reader::get_root(s).unwrap().as_u64(), 0);
     }
 }

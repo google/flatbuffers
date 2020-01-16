@@ -41,6 +41,7 @@ impl<'de> MapReader<'de> {
     // Using &CStr will eagerly compute the length of the key. &str needs length info AND utf8
     // validation. This version is faster than both.
     fn lazy_strcmp(&self, key_addr: usize, key: &str) -> Ordering {
+        // TODO: Can we know this won't OOB and panic?
         let k = self.buffer[key_addr..].iter().take_while(|&&b| b != b'\0');
         k.cmp(key.as_bytes().iter())
     }

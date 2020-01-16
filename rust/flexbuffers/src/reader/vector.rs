@@ -38,6 +38,7 @@ impl<'de> VectorReader<'de> {
             Ok((ty, self.reader.width))
         } else {
             let types_addr = self.reader.address + self.length * self.reader.width.n_bytes();
+            // TODO: Can we confirm this won't OOB?
             let packed = self.reader.buffer[types_addr + i];
             unpack_type(packed)
         }
