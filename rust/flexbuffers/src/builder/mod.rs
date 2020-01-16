@@ -75,11 +75,10 @@ macro_rules! push_indirect {
         }
     }
 }
-#[derive(Debug, Clone)]
-struct CachedKey {
-    address: usize,
-    length: usize,
-}
+#[derive(Debug, Clone, Copy)]
+// Address of a Key inside of the buffer.
+struct CachedKey(usize);
+
 /// **Use this struct to build a Flexbuffer.**
 ///
 /// Flexbuffers may only have a single root value, which may be constructed
@@ -147,16 +146,14 @@ impl<'a> Builder {
         );
         // Search key pool if there is one.
         let found = self.key_pool.as_ref().map(|pool| {
-            pool.binary_search_by(|ck| {
-                let old_key = self.buffer[ck.address..ck.address + ck.length]
-                    .iter()
-                    .cloned();
-                old_key.cmp(key.bytes())
+            pool.binary_search_by(|&CachedKey(addr)| {
+                let old_key = map::get_key(&self.buffer, addr);
+                old_key.cloned().cmp(key.bytes())
             })
         });
         let address = if let Some(Ok(idx)) = found {
             // Found key in key pool.
-            self.key_pool.as_ref().unwrap()[idx].address
+            self.key_pool.as_ref().unwrap()[idx].0
         } else {
             // Key not in pool (or no pool).
             let address = self.buffer.len();
@@ -164,13 +161,12 @@ impl<'a> Builder {
             self.buffer.push(b'\0');
             address
         };
-        let length = key.len();
         if let Some(Err(idx)) = found {
             // Insert into key pool.
             let pool = self.key_pool.as_mut().unwrap();
-            pool.insert(idx, CachedKey { address, length });
+            pool.insert(idx, CachedKey(address));
         }
-        self.values.push(Value::Key { address, length });
+        self.values.push(Value::Key(address));
     }
     fn push_uint<T: Into<u64>>(&mut self, x: T) {
         self.values.push(Value::UInt(x.into()));

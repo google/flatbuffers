@@ -55,7 +55,7 @@ pub use builder::Error as SerializationError;
 pub use builder::{singleton, Builder, FlexbufferSerializer, MapBuilder, Pushable, VectorBuilder};
 pub use flexbuffer_type::FlexBufferType;
 pub use reader::Error as ReaderError;
-pub use reader::{MapReader, Reader, ReaderIterator, VectorReader};
+pub use reader::{DeserializationError, MapReader, Reader, ReaderIterator, VectorReader};
 use serde::{Deserialize, Serialize};
 
 mod private {
@@ -67,7 +67,7 @@ pub fn to_vec<T: Serialize>(x: T) -> Result<Vec<u8>, SerializationError> {
     x.serialize(&mut s).unwrap(); // TODO(cneo): DO NOT SUBMIT unwrap.
     Ok(s.take_buffer())
 }
-pub fn from_vec<'de, T: Deserialize<'de>>(buf: &'de [u8]) -> Result<T, ReaderError> {
+pub fn from_vec<'de, T: Deserialize<'de>>(buf: &'de [u8]) -> Result<T, DeserializationError> {
     let r = Reader::get_root(buf)?;
     T::deserialize(r)
 }

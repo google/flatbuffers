@@ -24,6 +24,7 @@ mod de;
 mod iter;
 mod map;
 mod vector;
+pub use de::DeserializationError;
 pub use iter::ReaderIterator;
 pub use map::{MapReader, MapReaderIndexer};
 pub use vector::VectorReader;
@@ -58,32 +59,9 @@ pub enum Error {
     /// A Map was indexed with a key that it did not contain.
     KeyNotFound,
     /// Failed to parse a Utf8 string.
-    Utf8Error(std::str::Utf8Error),
-    /// Catch all for Serde errors.
-    Serde(String),
-    /// Catch all for std::io Errors.
-    IO(String),
+    Utf8Error,
     /// get_slice failed because the given data buffer is misaligned.
     AlignmentError,
-}
-impl From<std::io::Error> for Error {
-    fn from(err: std::io::Error) -> Self {
-        Error::IO(format!("IO error: {}", err))
-    }
-}
-impl std::fmt::Display for Error {
-    fn fmt(&self, _: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
-        unimplemented!()
-    }
-}
-impl std::error::Error for Error {}
-impl serde::de::Error for Error {
-    fn custom<T>(msg: T) -> Self
-    where
-        T: std::fmt::Display,
-    {
-        Error::Serde(format!("Serde error: {}", msg))
-    }
 }
 
 // TODO(cneo): Either to do this trait or use byteorder reader functions consistently.
@@ -287,7 +265,7 @@ impl<'de> Reader<'de> {
             .find(|(_, &b)| b == b'\0')
             .unwrap_or((0, &0));
         std::str::from_utf8(&self.buffer[self.address..self.address + length])
-            .map_err(Error::Utf8Error)
+            .map_err(|_| Error::Utf8Error)
     }
     pub fn get_blob(&self) -> Result<Blob<'de>, Error> {
         self.expect_type(FlexBufferType::Blob)?;
@@ -298,7 +276,7 @@ impl<'de> Reader<'de> {
     pub fn get_str(&self) -> Result<&'de str, Error> {
         self.expect_type(FlexBufferType::String)?;
         std::str::from_utf8(&self.buffer[self.address..self.address + self.length()])
-            .map_err(Error::Utf8Error)
+            .map_err(|_| Error::Utf8Error)
     }
     fn get_map_info(&self) -> Result<(usize, BitWidth), Error> {
         self.expect_type(FlexBufferType::Map)?;

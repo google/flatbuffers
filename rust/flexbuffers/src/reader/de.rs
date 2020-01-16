@@ -19,12 +19,35 @@ use serde::de::{
     VariantAccess, Visitor,
 };
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DeserializationError(String);
+
+impl std::error::Error for DeserializationError {}
+impl std::fmt::Display for DeserializationError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
+        write!(f, "FlexbufferDeserializationError: {}", self.0)
+    }
+}
+impl serde::de::Error for DeserializationError {
+    fn custom<T>(msg: T) -> Self
+    where
+        T: std::fmt::Display,
+    {
+        Self(format!("Serde error: {}", msg))
+    }
+}
+impl std::convert::From<super::Error> for DeserializationError {
+    fn from(e: super::Error) -> Self {
+        Self(format!("{:?}", e))
+    }
+}
+
 impl<'de> SeqAccess<'de> for ReaderIterator<'de> {
-    type Error = Error;
+    type Error = DeserializationError;
     fn next_element_seed<T>(
         &mut self,
         seed: T,
-    ) -> Result<Option<<T as DeserializeSeed<'de>>::Value>, Error>
+    ) -> Result<Option<<T as DeserializeSeed<'de>>::Value>, Self::Error>
     where
         T: DeserializeSeed<'de>,
     {
@@ -45,7 +68,7 @@ struct EnumReader<'de> {
 }
 
 impl<'de> EnumAccess<'de> for EnumReader<'de> {
-    type Error = Error;
+    type Error = DeserializationError;
     type Variant = Reader<'de>;
     fn variant_seed<V>(self, seed: V) -> Result<(V::Value, Self::Variant), Self::Error>
     where
@@ -61,9 +84,9 @@ struct MapAccessor<'de> {
     vals: ReaderIterator<'de>,
 }
 impl<'de> MapAccess<'de> for MapAccessor<'de> {
-    type Error = Error;
+    type Error = DeserializationError;
 
-    fn next_key_seed<K>(&mut self, seed: K) -> Result<Option<K::Value>, Error>
+    fn next_key_seed<K>(&mut self, seed: K) -> Result<Option<K::Value>, Self::Error>
     where
         K: DeserializeSeed<'de>,
     {
@@ -73,7 +96,7 @@ impl<'de> MapAccess<'de> for MapAccessor<'de> {
             Ok(None)
         }
     }
-    fn next_value_seed<V>(&mut self, seed: V) -> Result<V::Value, Error>
+    fn next_value_seed<V>(&mut self, seed: V) -> Result<V::Value, Self::Error>
     where
         V: DeserializeSeed<'de>,
     {
@@ -83,11 +106,11 @@ impl<'de> MapAccess<'de> for MapAccessor<'de> {
 }
 
 impl<'de> VariantAccess<'de> for Reader<'de> {
-    type Error = Error;
-    fn unit_variant(self) -> Result<(), Error> {
+    type Error = DeserializationError;
+    fn unit_variant(self) -> Result<(), Self::Error> {
         Ok(())
     }
-    fn newtype_variant_seed<T>(self, seed: T) -> Result<T::Value, Error>
+    fn newtype_variant_seed<T>(self, seed: T) -> Result<T::Value, Self::Error>
     where
         T: DeserializeSeed<'de>,
     {
@@ -95,7 +118,7 @@ impl<'de> VariantAccess<'de> for Reader<'de> {
     }
     // Tuple variants have an internally tagged representation. They are vectors where Index 0 is
     // the discriminant and index N is field N-1.
-    fn tuple_variant<V>(self, _len: usize, visitor: V) -> Result<V::Value, Error>
+    fn tuple_variant<V>(self, _len: usize, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
@@ -107,7 +130,7 @@ impl<'de> VariantAccess<'de> for Reader<'de> {
         self,
         _fields: &'static [&'static str],
         visitor: V,
-    ) -> Result<V::Value, Error>
+    ) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
@@ -120,7 +143,7 @@ impl<'de> VariantAccess<'de> for Reader<'de> {
 }
 
 impl<'de> Deserializer<'de> for crate::Reader<'de> {
-    type Error = Error;
+    type Error = DeserializationError;
     fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
@@ -139,7 +162,7 @@ impl<'de> Deserializer<'de> for crate::Reader<'de> {
             (Int, W64) => visitor.visit_i64(self.as_i64()),
             (Float, W32) => visitor.visit_f32(self.as_f32()),
             (Float, W64) => visitor.visit_f64(self.as_f64()),
-            (Float, _) => Err(Error::InvalidPackedType), // f8 and f16 are not supported.
+            (Float, _) => Err(Error::InvalidPackedType.into()), // f8 and f16 are not supported.
             (Null, _) => visitor.visit_unit(),
             (String, _) | (Key, _) => visitor.visit_borrowed_str(self.as_str()),
             (Blob, _) => visitor.visit_borrowed_bytes(self.get_blob()?.0),
@@ -211,7 +234,8 @@ impl<'de> Deserializer<'de> for crate::Reader<'de> {
                 return Err(Error::UnexpectedFlexbufferType {
                     expected: FlexBufferType::Map,
                     actual: self.fxb_type,
-                });
+                }
+                .into());
             }
         };
         visitor.visit_enum(EnumReader { variant, value })

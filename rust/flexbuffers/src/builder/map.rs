@@ -67,6 +67,11 @@ impl<'a> Drop for MapBuilder<'a> {
     }
 }
 
+// Read known keys / strings as iterators over bytes -- skipping utf8 validation and strlen.
+pub(super) fn get_key(buffer: &[u8], address: usize) -> impl Iterator<Item = &u8> {
+    buffer[address..].iter().take_while(|&&b| b != b'\0')
+}
+
 // `values` is assumed to be of the format [key1, value1, ..., keyN, valueN].
 // The keys refer to cstrings in `buffer`. When this function returns,
 // `values` is sorted in place by key.
@@ -79,18 +84,15 @@ pub(super) fn sort_map_by_keys(values: &mut [Value], buffer: &[u8]) {
     };
     #[rustfmt::skip]
     pairs.sort_unstable_by(|[key1, _], [key2, _]| {
-        if let Value::Key { address: a1, length: l1 } = *key1 {
-            if let Value::Key { address: a2, length: l2 } = *key2 {
-                // Directly compare a known key or string that we've placed in in the buffer.
-                // This skips the utf8 and strlen of str and CStr.
-                let s1 = &buffer[a1..a1 + l1];
-                let s2 = &buffer[a2..a2 + l2];
+        if let Value::Key(a1) = *key1 {
+            if let Value::Key(a2) = *key2 {
+                let s1 = get_key(buffer, a1);
+                let s2 = get_key(buffer, a2);
                 let ord = s1.cmp(s2);
-                assert!(
-                    ord != std::cmp::Ordering::Equal,
-                    "Duplicated key in map: {:?}",
-                    unsafe { std::str::from_utf8_unchecked(s1) },
-                );
+                if ord == std::cmp::Ordering::Equal {
+                    let dup: String = get_key(buffer, a1).map(|&b| b as char).collect();
+                    panic!("Duplicated key in map {:?}", dup);
+                }
                 return ord;
             }
         }

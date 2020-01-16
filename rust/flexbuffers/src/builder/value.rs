@@ -30,11 +30,7 @@ pub enum Value {
     Float(f64),
     Bool(bool),
     /// Null termintated, c_string. Only used with `Map`s.
-    // Its not `Reference` because keys not have 'child_width'.
-    Key {
-        address: usize,
-        length: usize,
-    },
+    Key(usize),
     /// The other ~20 or so types.
     Reference {
         address: usize,
@@ -119,7 +115,7 @@ impl Value {
             Value::UInt(_) => UInt,
             Value::Float(_) => Float,
             Value::Bool(_) => Bool,
-            Value::Key { .. } => Key,
+            Value::Key(_) => Key,
             Value::Reference { fxb_type, .. } => fxb_type,
         }
     }
@@ -134,7 +130,7 @@ impl Value {
     }
     pub fn is_key(&self) -> bool {
         match self {
-            Value::Key { .. } => true,
+            Value::Key(_) => true,
             _ => false,
         }
     }
@@ -171,14 +167,14 @@ impl Value {
         }
     }
     pub fn get_address(&self) -> Option<usize> {
-        if let Value::Reference { address, .. } | Value::Key { address, .. } = self {
+        if let Value::Reference { address, .. } | Value::Key(address) = self {
             Some(*address)
         } else {
             None
         }
     }
     pub fn set_address_or_panic(&mut self, new_address: usize) {
-        if let Value::Reference { address, .. } | Value::Key { address, .. } = self {
+        if let Value::Reference { address, .. } | Value::Key(address) = self {
             *address = new_address;
         } else {
             panic!("`set_address_or_panic` called on {:?}", self);
@@ -192,7 +188,7 @@ impl Value {
             Value::Int(x) => x.into(),
             Value::UInt(x) => x.into(),
             Value::Float(x) => x.into(),
-            Value::Key { .. } | Value::Bool(_) | Value::Null => W8,
+            Value::Key(_) | Value::Bool(_) | Value::Null => W8,
             Value::Reference { child_width, .. } => child_width,
         }
     }
