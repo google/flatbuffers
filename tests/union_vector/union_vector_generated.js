@@ -67,6 +67,7 @@ Attacker.getRootAsAttacker = function(bb, obj) {
  * @returns {Attacker}
  */
 Attacker.getSizePrefixedRootAsAttacker = function(bb, obj) {
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
   return (obj || new Attacker).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
@@ -287,6 +288,7 @@ Movie.getRootAsMovie = function(bb, obj) {
  * @returns {Movie}
  */
 Movie.getSizePrefixedRootAsMovie = function(bb, obj) {
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
   return (obj || new Movie).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
