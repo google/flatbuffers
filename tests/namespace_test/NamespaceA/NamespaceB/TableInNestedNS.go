@@ -10,7 +10,7 @@ type TableInNestedNST struct {
 	Foo int32
 }
 
-func TableInNestedNSPack(builder *flatbuffers.Builder, t *TableInNestedNST) flatbuffers.UOffsetT {
+func (t *TableInNestedNST) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil { return 0 }
 	TableInNestedNSStart(builder)
 	TableInNestedNSAddFoo(builder, t.Foo)

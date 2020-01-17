@@ -45,23 +45,23 @@ type AnyUniqueAliasesT struct {
 	Value interface{}
 }
 
-func AnyUniqueAliasesPack(builder *flatbuffers.Builder, t *AnyUniqueAliasesT) flatbuffers.UOffsetT {
+func (t *AnyUniqueAliasesT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil {
 		return 0
 	}
 	switch t.Type {
 	case AnyUniqueAliasesM:
-		return MonsterPack(builder, t.Value.(*MonsterT))
+		return t.Value.(*MonsterT).Pack(builder)
 	case AnyUniqueAliasesTS:
-		return TestSimpleTableWithEnumPack(builder, t.Value.(*TestSimpleTableWithEnumT))
+		return t.Value.(*TestSimpleTableWithEnumT).Pack(builder)
 	case AnyUniqueAliasesM2:
-		return MyGame__Example2.MonsterPack(builder, t.Value.(*MyGame__Example2.MonsterT))
+		return t.Value.(*MyGame__Example2.MonsterT).Pack(builder)
 	}
 	return 0
 }
 
-func AnyUniqueAliasesUnPack(t AnyUniqueAliases, table flatbuffers.Table) *AnyUniqueAliasesT {
-	switch t {
+func (rcv AnyUniqueAliases) UnPack(table flatbuffers.Table) *AnyUniqueAliasesT {
+	switch rcv {
 	case AnyUniqueAliasesM:
 		x := Monster{_tab: table}
 		return &AnyUniqueAliasesT{ Type: AnyUniqueAliasesM, Value: x.UnPack() }

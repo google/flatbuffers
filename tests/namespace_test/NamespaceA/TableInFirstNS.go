@@ -14,13 +14,13 @@ type TableInFirstNST struct {
 	FooStruct *NamespaceA__NamespaceB.StructInNestedNST
 }
 
-func TableInFirstNSPack(builder *flatbuffers.Builder, t *TableInFirstNST) flatbuffers.UOffsetT {
+func (t *TableInFirstNST) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil { return 0 }
-	fooTableOffset := NamespaceA__NamespaceB.TableInNestedNSPack(builder, t.FooTable)
+	fooTableOffset := t.FooTable.Pack(builder)
 	TableInFirstNSStart(builder)
 	TableInFirstNSAddFooTable(builder, fooTableOffset)
 	TableInFirstNSAddFooEnum(builder, t.FooEnum)
-	fooStructOffset := NamespaceA__NamespaceB.StructInNestedNSPack(builder, t.FooStruct)
+	fooStructOffset := t.FooStruct.Pack(builder)
 	TableInFirstNSAddFooStruct(builder, fooStructOffset)
 	return TableInFirstNSEnd(builder)
 }

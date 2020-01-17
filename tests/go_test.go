@@ -463,7 +463,7 @@ func CheckObjectAPI(buf []byte, offset flatbuffers.UOffsetT, fail func(string, .
 	}
 
 	builder := flatbuffers.NewBuilder(0)
-	builder.Finish(example.MonsterPack(builder, monster))
+	builder.Finish(monster.Pack(builder))
 	monster2 := example.GetRootAsMonster(builder.FinishedBytes(), 0).UnPack()
 	if !reflect.DeepEqual(monster, monster2) {
 		fail(FailString("Pack/Unpack()", monster, monster2))

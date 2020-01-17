@@ -45,23 +45,23 @@ type AnyT struct {
 	Value interface{}
 }
 
-func AnyPack(builder *flatbuffers.Builder, t *AnyT) flatbuffers.UOffsetT {
+func (t *AnyT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil {
 		return 0
 	}
 	switch t.Type {
 	case AnyMonster:
-		return MonsterPack(builder, t.Value.(*MonsterT))
+		return t.Value.(*MonsterT).Pack(builder)
 	case AnyTestSimpleTableWithEnum:
-		return TestSimpleTableWithEnumPack(builder, t.Value.(*TestSimpleTableWithEnumT))
+		return t.Value.(*TestSimpleTableWithEnumT).Pack(builder)
 	case AnyMyGame_Example2_Monster:
-		return MyGame__Example2.MonsterPack(builder, t.Value.(*MyGame__Example2.MonsterT))
+		return t.Value.(*MyGame__Example2.MonsterT).Pack(builder)
 	}
 	return 0
 }
 
-func AnyUnPack(t Any, table flatbuffers.Table) *AnyT {
-	switch t {
+func (rcv Any) UnPack(table flatbuffers.Table) *AnyT {
+	switch rcv {
 	case AnyMonster:
 		x := Monster{_tab: table}
 		return &AnyT{ Type: AnyMonster, Value: x.UnPack() }
