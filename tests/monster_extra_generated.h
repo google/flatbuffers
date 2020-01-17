@@ -325,7 +325,8 @@ inline const flatbuffers::TypeTable *MonsterExtraTypeTable() {
     { flatbuffers::ET_FLOAT, 0, -1 },
     { flatbuffers::ET_FLOAT, 0, -1 },
     { flatbuffers::ET_DOUBLE, 1, -1 },
-    { flatbuffers::ET_FLOAT, 1, -1 }
+    { flatbuffers::ET_FLOAT, 1, -1 },
+    { flatbuffers::ET_INT, 0, -1 }
   };
   static const char * const names[] = {
     "d0",
@@ -337,10 +338,11 @@ inline const flatbuffers::TypeTable *MonsterExtraTypeTable() {
     "f2",
     "f3",
     "dvec",
-    "fvec"
+    "fvec",
+    "deprec"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 10, type_codes, nullptr, nullptr, names
+    flatbuffers::ST_TABLE, 11, type_codes, nullptr, nullptr, names
   };
   return &tt;
 }

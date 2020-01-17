@@ -65,7 +65,7 @@ public struct MonsterExtra : IFlatbufferObject
       float f3 = Single.NegativeInfinity,
       VectorOffset dvecOffset = default(VectorOffset),
       VectorOffset fvecOffset = default(VectorOffset)) {
-    builder.StartTable(10);
+    builder.StartTable(11);
     MonsterExtra.AddD3(builder, d3);
     MonsterExtra.AddD2(builder, d2);
     MonsterExtra.AddD1(builder, d1);
@@ -79,7 +79,7 @@ public struct MonsterExtra : IFlatbufferObject
     return MonsterExtra.EndMonsterExtra(builder);
   }
 
-  public static void StartMonsterExtra(FlatBufferBuilder builder) { builder.StartTable(10); }
+  public static void StartMonsterExtra(FlatBufferBuilder builder) { builder.StartTable(11); }
   public static void AddD0(FlatBufferBuilder builder, double d0) { builder.AddDouble(0, d0, Double.NaN); }
   public static void AddD1(FlatBufferBuilder builder, double d1) { builder.AddDouble(1, d1, Double.NaN); }
   public static void AddD2(FlatBufferBuilder builder, double d2) { builder.AddDouble(2, d2, Double.PositiveInfinity); }
