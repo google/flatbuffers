@@ -43,23 +43,23 @@ type AnyAmbiguousAliasesT struct {
 	Value interface{}
 }
 
-func AnyAmbiguousAliasesPack(builder *flatbuffers.Builder, t *AnyAmbiguousAliasesT) flatbuffers.UOffsetT {
+func (t *AnyAmbiguousAliasesT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil {
 		return 0
 	}
 	switch t.Type {
 	case AnyAmbiguousAliasesM1:
-		return MonsterPack(builder, t.Value.(*MonsterT))
+		return t.Value.(*MonsterT).Pack(builder)
 	case AnyAmbiguousAliasesM2:
-		return MonsterPack(builder, t.Value.(*MonsterT))
+		return t.Value.(*MonsterT).Pack(builder)
 	case AnyAmbiguousAliasesM3:
-		return MonsterPack(builder, t.Value.(*MonsterT))
+		return t.Value.(*MonsterT).Pack(builder)
 	}
 	return 0
 }
 
-func AnyAmbiguousAliasesUnPack(t AnyAmbiguousAliases, table flatbuffers.Table) *AnyAmbiguousAliasesT {
-	switch t {
+func (rcv AnyAmbiguousAliases) UnPack(table flatbuffers.Table) *AnyAmbiguousAliasesT {
+	switch rcv {
 	case AnyAmbiguousAliasesM1:
 		x := Monster{_tab: table}
 		return &AnyAmbiguousAliasesT{ Type: AnyAmbiguousAliasesM1, Value: x.UnPack() }

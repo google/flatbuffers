@@ -11,7 +11,7 @@ type StructInNestedNST struct {
 	B int32
 }
 
-func StructInNestedNSPack(builder *flatbuffers.Builder, t *StructInNestedNST) flatbuffers.UOffsetT {
+func (t *StructInNestedNST) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil { return 0 }
 	return CreateStructInNestedNS(builder, t.A, t.B)
 }
