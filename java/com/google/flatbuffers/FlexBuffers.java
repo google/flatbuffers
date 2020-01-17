@@ -77,7 +77,9 @@ public class FlexBuffers {
     /** Represent a vector of keys type */
     public static final int FBT_VECTOR_KEY = 14;
     /** Represent a vector of strings type */
-    public static final int FBT_VECTOR_STRING = 15;
+    // DEPRECATED, use FBT_VECTOR or FBT_VECTOR_KEY instead.
+    // more info on thttps://github.com/google/flatbuffers/issues/5627.
+    public static final int FBT_VECTOR_STRING_DEPRECATED = 15;
 
     /// @cond FLATBUFFERS_INTERNAL
     public static final int FBT_VECTOR_INT2 = 16;  // Typed tuple  = no type table; no size field).
@@ -107,7 +109,7 @@ public class FlexBuffers {
      * @return true if typed vector
      */
     static boolean isTypedVector(int type) {
-        return (type >= FBT_VECTOR_INT && type <= FBT_VECTOR_STRING) || type == FBT_VECTOR_BOOL;
+        return (type >= FBT_VECTOR_INT && type <= FBT_VECTOR_KEY) || type == FBT_VECTOR_BOOL;
     }
 
     /**
@@ -145,7 +147,7 @@ public class FlexBuffers {
     }
 
     static boolean isTypedVectorElementType(int type) {
-        return (type >= FBT_INT && type <= FBT_STRING) || type == FBT_BOOL;
+        return (type >= FBT_INT && type <= FBT_KEY) || type == FBT_BOOL;
     }
 
     // return position of the element that the offset is pointing to
@@ -322,8 +324,7 @@ public class FlexBuffers {
          * @return true if a typed vector type
          */
         public boolean isTypedVector() {
-            return (type >= FBT_VECTOR_INT && type <= FBT_VECTOR_STRING) ||
-                    type == FBT_VECTOR_BOOL;
+            return FlexBuffers.isTypedVector(type);
         }
 
         /**
@@ -482,7 +483,7 @@ public class FlexBuffers {
         public String asString() {
             if (isString()) {
                 int start = indirect(bb, end, parentWidth);
-                int size = readInt(bb, start - byteWidth, byteWidth);
+                int size = (int) readUInt(bb, start - byteWidth, byteWidth);
                 return Utf8.getDefault().decodeUtf8(bb, start, size);
             }
             else if (isKey()){
@@ -518,6 +519,9 @@ public class FlexBuffers {
                 return new Vector(bb, indirect(bb, end, parentWidth), byteWidth);
             } else if (FlexBuffers.isTypedVector(type)) {
                 return new TypedVector(bb, indirect(bb, end, parentWidth), byteWidth, FlexBuffers.toTypedVectorElementType(type));
+            } else if(type == FlexBuffers.FBT_VECTOR_STRING_DEPRECATED) {
+                // deprecated. Should be treated as key vector
+                return new TypedVector(bb, indirect(bb, end, parentWidth), byteWidth, FlexBuffers.FBT_KEY);
             } else {
                 return Vector.empty();
             }
@@ -590,7 +594,7 @@ public class FlexBuffers {
                 case FBT_VECTOR_UINT:
                 case FBT_VECTOR_FLOAT:
                 case FBT_VECTOR_KEY:
-                case FBT_VECTOR_STRING:
+                case FBT_VECTOR_STRING_DEPRECATED:
                 case FBT_VECTOR_BOOL:
                     return sb.append(asVector());
                 case FBT_VECTOR_INT2:

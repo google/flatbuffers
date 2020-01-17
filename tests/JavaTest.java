@@ -12,6 +12,10 @@ import com.google.flatbuffers.FlexBuffers;
 import com.google.flatbuffers.FlexBuffersBuilder;
 import com.google.flatbuffers.StringVector;
 import com.google.flatbuffers.UnionVector;
+import com.google.flatbuffers.FlexBuffers.FlexBufferException;
+import com.google.flatbuffers.FlexBuffers.Reference;
+import com.google.flatbuffers.FlexBuffers.Vector;
+
 import java.io.*;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -694,6 +698,60 @@ class JavaTest {
         TestEq(mymap.get("blob").toString(), "\"AC\"");
     }
 
+    public static void testFlexBufferVectorStrings() {
+        FlexBuffersBuilder builder = new FlexBuffersBuilder(ByteBuffer.allocate(10000000));
+
+        int size = 3000;
+        StringBuilder sb = new StringBuilder();
+        for (int i=0; i< size; i++) {
+            sb.append("a");
+        }
+
+        String text = sb.toString();
+        TestEq(text.length(), size);
+
+        int pos = builder.startVector();
+
+        for (int i=0; i<size; i++) {
+            builder.putString(text);
+        }
+
+        try {
+            builder.endVector(null, pos, true, false);
+            // this should raise an exception as
+            // typed vector of string was deprecated
+            assert false;
+        } catch(FlexBufferException fb) {
+            // no op
+        }
+        // we finish the vector again as non-typed
+        builder.endVector(null, pos, false, false);
+
+        ByteBuffer b = builder.finish();
+        Vector v = FlexBuffers.getRoot(b).asVector();
+
+        TestEq(v.size(), size);
+
+        for (int i=0; i<size; i++) {
+            TestEq(v.get(i).asString().length(), size);
+            TestEq(v.get(i).asString(), text);
+        }
+    }
+
+    public static void testDeprecatedTypedVectorString() {
+        // tests whether we are able to support reading deprecated typed vector string
+        // data is equivalent to [ "abc", "abc", "abc", "abc"]
+        byte[] data = new byte[] {0x03, 0x61, 0x62, 0x63, 0x00, 0x03, 0x61, 0x62, 0x63, 0x00,
+            0x03, 0x61, 0x62, 0x63, 0x00, 0x03, 0x61, 0x62, 0x63, 0x00, 0x04, 0x14, 0x10,
+             0x0c, 0x08, 0x04, 0x3c, 0x01};
+        Reference ref = FlexBuffers.getRoot(ByteBuffer.wrap(data));
+        TestEq(ref.getType(), FlexBuffers.FBT_VECTOR_STRING_DEPRECATED);
+        Vector vec = ref.asVector();
+        for (int i=0; i< vec.size(); i++) {
+            TestEq("abc", vec.get(i).asString());
+        }
+    }
+
     public static void testSingleElementBoolean() {
         FlexBuffersBuilder builder = new FlexBuffersBuilder(ByteBuffer.allocate(100));
         builder.putBoolean(true);
@@ -743,13 +801,32 @@ class JavaTest {
         TestEq(Double.compare(Double.MAX_VALUE, FlexBuffers.getRoot(b).asFloat()), 0);
     }
 
-    public static void testSingleElementString() {
-        FlexBuffersBuilder builder = new FlexBuffersBuilder();
-        builder.putString("wow");
+    public static void testSingleElementBigString() {
+        FlexBuffersBuilder builder = new FlexBuffersBuilder(ByteBuffer.allocate(10000));
+        StringBuilder sb = new StringBuilder();
+
+        for (int i=0; i< 3000; i++) {
+            sb.append("a");
+        }
+
+        builder.putString(sb.toString());
+        ByteBuffer b = builder.finish();
+
+        FlexBuffers.Reference r = FlexBuffers.getRoot(b);
+
+        TestEq(FlexBuffers.FBT_STRING, r.getType());
+        TestEq(sb.toString(), r.asString());
+    }
+
+    public static void testSingleElementSmallString() {
+        FlexBuffersBuilder builder = new FlexBuffersBuilder(ByteBuffer.allocate(10000));
+
+        builder.putString("aa");
         ByteBuffer b = builder.finish();
         FlexBuffers.Reference r = FlexBuffers.getRoot(b);
+
         TestEq(FlexBuffers.FBT_STRING, r.getType());
-        TestEq("wow", r.asString());
+        TestEq("aa", r.asString());
     }
 
     public static void testSingleElementBlob() {
@@ -814,12 +891,6 @@ class JavaTest {
         builder.endVector("floats", vecPos, true, false);
 
         vecPos = builder.startVector();
-        for (final String i : strings) {
-            builder.putString(i);
-        }
-        builder.endVector("strings", vecPos, true, false);
-
-        vecPos = builder.startVector();
         for (final boolean i : booleans) {
             builder.putBoolean(i);
         }
@@ -832,7 +903,6 @@ class JavaTest {
         FlexBuffers.Reference r = FlexBuffers.getRoot(b);
         assert(r.asMap().get("ints").isTypedVector());
         assert(r.asMap().get("floats").isTypedVector());
-        assert(r.asMap().get("strings").isTypedVector());
         assert(r.asMap().get("booleans").isTypedVector());
     }
 
@@ -944,7 +1014,8 @@ class JavaTest {
         testSingleElementLong();
         testSingleElementFloat();
         testSingleElementDouble();
-        testSingleElementString();
+        testSingleElementSmallString();
+        testSingleElementBigString();
         testSingleElementBlob();
         testSingleElementVector();
         testSingleFixedTypeVector();
@@ -955,6 +1026,8 @@ class JavaTest {
         testFlexBuffersTest();
         testHashMapToMap();
         testFlexBuferEmpty();
+        testFlexBufferVectorStrings();
+        testDeprecatedTypedVectorString();
     }
 
     static void TestVectorOfBytes() {
