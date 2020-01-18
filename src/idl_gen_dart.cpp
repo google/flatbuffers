@@ -838,9 +838,9 @@ class DartGenerator : public BaseGenerator {
 
     code += "\n";
     if (struct_def.fixed) {
-      StructObjectBuilderBody(struct_def, non_deprecated_fields, code_ptr);
+      StructObjectBuilderBody(non_deprecated_fields, code_ptr);
     } else {
-      TableObjectBuilderBody(struct_def, non_deprecated_fields, code_ptr);
+      TableObjectBuilderBody(non_deprecated_fields, code_ptr);
     }
     code += "  }\n\n";
 
@@ -855,8 +855,7 @@ class DartGenerator : public BaseGenerator {
     code += "}\n";
   }
 
-  void StructObjectBuilderBody(const StructDef &struct_def,
-                               std::vector<std::pair<int, FieldDef*>> non_deprecated_fields,
+  void StructObjectBuilderBody(std::vector<std::pair<int, FieldDef*>> non_deprecated_fields,
                                std::string *code_ptr,
                                bool prependUnderscore = true) {
     auto &code = *code_ptr;
@@ -886,8 +885,7 @@ class DartGenerator : public BaseGenerator {
     code += "    return fbBuilder.offset;\n";
   }
 
-  void TableObjectBuilderBody(const StructDef &struct_def,
-                              std::vector<std::pair<int, FieldDef*>> non_deprecated_fields,
+  void TableObjectBuilderBody(std::vector<std::pair<int, FieldDef*>> non_deprecated_fields,
                               std::string *code_ptr,
                               bool prependUnderscore = true) {
     std::string &code = *code_ptr;
