@@ -21,11 +21,11 @@ class MonsterExtra {
 
   double get d0 => const fb.Float64Reader().vTableGet(_bc, _bcOffset, 4, double.nan);
   double get d1 => const fb.Float64Reader().vTableGet(_bc, _bcOffset, 6, double.nan);
-  double get d2 => const fb.Float64Reader().vTableGet(_bc, _bcOffset, 8, +inf);
+  double get d2 => const fb.Float64Reader().vTableGet(_bc, _bcOffset, 8, double.infinity);
   double get d3 => const fb.Float64Reader().vTableGet(_bc, _bcOffset, 10, double.negativeInfinity);
   double get f0 => const fb.Float32Reader().vTableGet(_bc, _bcOffset, 12, double.nan);
   double get f1 => const fb.Float32Reader().vTableGet(_bc, _bcOffset, 14, double.nan);
-  double get f2 => const fb.Float32Reader().vTableGet(_bc, _bcOffset, 16, +inf);
+  double get f2 => const fb.Float32Reader().vTableGet(_bc, _bcOffset, 16, double.infinity);
   double get f3 => const fb.Float32Reader().vTableGet(_bc, _bcOffset, 18, double.negativeInfinity);
   List<double> get dvec => const fb.ListReader<double>(const fb.Float64Reader()).vTableGet(_bc, _bcOffset, 20, null);
   List<double> get fvec => const fb.ListReader<double>(const fb.Float32Reader()).vTableGet(_bc, _bcOffset, 22, null);
