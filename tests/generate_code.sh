@@ -37,6 +37,8 @@ $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS -I include_test monster_test.fbs monsterdata_
 $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs
 
 ../flatc --cpp --java --kotlin --csharp --js --ts --php $TEST_BASE_FLAGS $TEST_CPP_FLAGS -o union_vector ./union_vector/union_vector.fbs
+../flatc --rust -I include_test -o include_test include_test/include_test1.fbs
+../flatc --rust -I include_test -o include_test/sub include_test/sub/include_test2.fbs
 ../flatc -b --schema --bfbs-comments --bfbs-builtins -I include_test monster_test.fbs
 ../flatc -b --schema --bfbs-comments --bfbs-builtins -I include_test arrays_test.fbs
 ../flatc --jsonschema --schema -I include_test monster_test.fbs
