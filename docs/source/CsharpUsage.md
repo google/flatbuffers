@@ -125,4 +125,30 @@ from C#, though you could use the C++ parser through native call
 interfaces available to each language. Please see the
 C++ documentation for more on text parsing.
 
+## Object based API
+
+FlatBuffers is all about memory efficiency, which is why its base API is written
+around using as little as possible of it. This does make the API clumsier
+(requiring pre-order construction of all data, and making mutation harder).
+
+For times when efficiency is less important a more convenient object based API
+can be used (through `--gen-object-api`) that is able to unpack & pack a
+FlatBuffer into objects and standard System.Collections.Generic containers, allowing for convenient
+construction, access and mutation.
+
+To use:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cs}
+    // Deserialize from buffer into object.
+    MonsterT monsterobj = GetMonster(flatbuffer).UnPack();
+
+    // Update object directly like a C# class instance.
+    Console.WriteLine(monsterobj.Name);
+    monsterobj.Name = "Bob";  // Change the name.
+
+    // Serialize into new flatbuffer.
+    FlatBufferBuilder fbb = new FlatBufferBuilder(1);
+    fbb.Finish(Monster.Pack(fbb, monsterobj).Value);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 <br>
