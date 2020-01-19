@@ -1637,19 +1637,24 @@ class CSharpGenerator : public BaseGenerator {
                                   std::vector<std::string> name_vec,
                                   std::vector<int> array_length_vec) const {
     auto &code = *code_ptr;
-    for (auto field : struct_def.fields.vec) {
-      auto is_array = IsArray(field->value.type);
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto &field = **it;
+      auto is_array = IsArray(field.value.type);
       const auto &field_type =
-          is_array ? field->value.type.VectorType() : field->value.type;
+          is_array ? field.value.type.VectorType() : field.value.type;
       if (!IsStruct(field_type)) {
         auto tmp_name_vec = name_vec;
-        tmp_name_vec.push_back(field->name);
+        tmp_name_vec.push_back(field.name);
         auto tmp_array_length_vec = array_length_vec;
         if (is_array) {
           tmp_array_length_vec.push_back(field_type.fixed_length);
         }
         std::string name;
-        for (auto &tmp : tmp_name_vec) { name += "_" + tmp; }
+        for (size_t tmp_name_index = 0; tmp_name_index < tmp_name_vec.size();
+             ++tmp_name_index) {
+          name += "_" + tmp_name_vec[tmp_name_index];
+        }
         code += "    var " + name + " = new " + GenTypeBasic(field_type) + "[";
         code += NumToString(tmp_array_length_vec[0]);
         for (size_t i = 1; i < tmp_array_length_vec.size(); ++i) {
@@ -1675,7 +1680,7 @@ class CSharpGenerator : public BaseGenerator {
           auto idx = "idx" + NumToString(i);
           code += "." + MakeCamel(tmp_name_vec[i]) + "[" + idx + "]";
         }
-        if (!is_array) { code += "." + MakeCamel(field->name); }
+        if (!is_array) { code += "." + MakeCamel(field.name); }
         code += ";";
         for (size_t i = 0; i < tmp_array_length_vec.size(); ++i) {
           code += "}";
@@ -1689,14 +1694,16 @@ class CSharpGenerator : public BaseGenerator {
                                   std::string *code_ptr,
                                   std::string prefix) const {
     auto &code = *code_ptr;
-    for (auto field : struct_def.fields.vec) {
-      const auto &field_type = field->value.type;
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto &field = **it;
+      const auto &field_type = field.value.type;
       if (IsStruct(field_type)) {
         GenArrayPackCall_ObjectAPI(*field_type.struct_def, code_ptr,
-                                   prefix + field->name + "_");
+                                   prefix + field.name + "_");
       } else {
         code += ",\n";
-        code += prefix + field->name;
+        code += prefix + field.name;
       }
     }
   }
