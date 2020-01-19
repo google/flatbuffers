@@ -48,9 +48,14 @@ public struct Ability : IFlatbufferObject
 
 public class AbilityT
 {
-  public uint Id { get; set; } = 0;
-  public uint Distance { get; set; } = 0;
-};
+  public uint Id { get; set; }
+  public uint Distance { get; set; }
+
+  public AbilityT() {
+    this.Id = 0;
+    this.Distance = 0;
+  }
+}
 
 
 }

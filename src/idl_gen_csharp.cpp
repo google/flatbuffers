@@ -1226,15 +1226,18 @@ class CSharpGenerator : public BaseGenerator {
     auto union_name = enum_def.name + "Union";
     code += "class " + union_name + " {\n";
     // Type
-    code += "  public " + enum_def.name +
-            " Type { get; set; } = " + enum_def.name + "." +
-            enum_def.Vals()[0]->name + ";\n";
+    code += "  public " + enum_def.name + " Type { get; set; }\n";
     // Value
-    code += "  public object Value { get; set; } = null;\n";
+    code += "  public object Value { get; set; }\n";
     code += "\n";
+    // Constructor
+    code += "  public " + union_name + "() {\n";
+    code += "    this.Type = " + enum_def.name + "." +
+            enum_def.Vals()[0]->name + ";\n";
+    code += "    this.Value = null;\n";
+    code += "}\n\n";
     // As<T>
-    code += "  public T As<T>() where T : class\n";
-    code += "    => this.Value is T _o ? _o : null;\n";
+    code += "  public T As<T>() where T : class { return this.Value as T; }\n";
     // As
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
@@ -1246,8 +1249,8 @@ class CSharpGenerator : public BaseGenerator {
       } else {
         code += "  public ";
       }
-      code +=
-          type_name + " As" + ev.name + "() => this.As<" + type_name + ">();\n";
+      code += type_name + " As" + ev.name + "() { return this.As<" + type_name +
+              ">(); }\n";
     }
     code += "\n";
     // Pack()
@@ -1314,8 +1317,10 @@ class CSharpGenerator : public BaseGenerator {
         if (ev.union_type.base_type == BASE_TYPE_STRING) {
           code += "AsString" + func_suffix + ";\n";
         } else {
+          code += "<" + GenTypeGet(ev.union_type) + ">" + func_suffix;
+          code += ".HasValue ? this." + camel_name;
           code += "<" + GenTypeGet(ev.union_type) + ">" + func_suffix +
-                  "?.UnPack();\n";
+                  ".Value.UnPack() : null;\n";
         }
         code += indent + "    break;\n";
       }
@@ -1348,9 +1353,13 @@ class CSharpGenerator : public BaseGenerator {
       auto start = "    _o." + camel_name + " = ";
       switch (field.value.type.base_type) {
         case BASE_TYPE_STRUCT: {
-          auto nullable =
-              struct_def.fixed && field.value.type.struct_def->fixed ? "" : "?";
-          code += start + "this." + camel_name + nullable + ".UnPack();\n";
+          auto fixed = struct_def.fixed && field.value.type.struct_def->fixed;
+          if (fixed) {
+            code += start + "this." + camel_name + ".UnPack();\n";
+          } else {
+            code += start + "this." + camel_name + ".HasValue ? this." +
+                    camel_name + ".Value.UnPack() : null;\n";
+          }
           break;
         }
         case BASE_TYPE_ARRAY: {
@@ -1378,13 +1387,19 @@ class CSharpGenerator : public BaseGenerator {
                                      camel_name, true);
             code += "    }\n";
           } else if (field.value.type.element != BASE_TYPE_UTYPE) {
-            auto unpack_method =
-                field.value.type.struct_def == nullptr ? "" : "?.UnPack()";
+            auto fixed = field.value.type.struct_def == nullptr;
             code += start + "new " +
                     GenTypeGet_ObjectAPI(field.value.type, opts) + "();\n";
             code += "    for (var _j = 0; _j < this." + camel_name +
-                    "Length; ++_j) { _o." + camel_name + ".Add(this." +
-                    camel_name + "(_j)" + unpack_method + "); }\n";
+                    "Length; ++_j) {";
+            code += "_o." + camel_name + ".Add(";
+            if (fixed) {
+              code += "this." + camel_name + "(_j)";
+            } else {
+              code += "this." + camel_name + "(_j).HasValue ? this." +
+                      camel_name + "(_j).Value.UnPack() : null";
+            }
+            code += ");}\n";
           }
           break;
         case BASE_TYPE_UTYPE: break;
@@ -1738,8 +1753,10 @@ class CSharpGenerator : public BaseGenerator {
       // generate a partial class for this C# struct/table
       code += "partial ";
     }
-    code += "class " + GenTypeName_ObjectAPI(struct_def.name, opts);
+    auto class_name = GenTypeName_ObjectAPI(struct_def.name, opts);
+    code += "class " + class_name;
     code += "\n{\n";
+    // Generate Properties
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
@@ -1747,35 +1764,46 @@ class CSharpGenerator : public BaseGenerator {
       if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
       if (field.value.type.element == BASE_TYPE_UTYPE) continue;
       auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts);
-      auto method_start = "  public " + type_name + " " +
-                          MakeCamel(field.name, true) + " { get; set; } ";
-      code += method_start;
-      switch (field.value.type.base_type) {
-        case BASE_TYPE_STRING: FLATBUFFERS_FALLTHROUGH();  // fall thru
-        case BASE_TYPE_UNION: FLATBUFFERS_FALLTHROUGH();   // fall thru
-        case BASE_TYPE_VECTOR: {
-          break;
-        }
-        case BASE_TYPE_STRUCT: {
-          if (IsStruct(field.value.type)) {
-            code += "= new " + type_name + "();";
+      code += "  public " + type_name + " " + MakeCamel(field.name, true) +
+              " { get; set; }\n";
+    }
+    // Generate Constructor
+    code += "\n";
+    code += "  public " + class_name + "() {\n";
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto &field = **it;
+      if (field.deprecated) continue;
+      if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
+      if (field.value.type.element == BASE_TYPE_UTYPE) continue;
+      code += "    this." + MakeCamel(field.name) + " = ";
+      auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts);
+      if (IsScalar(field.value.type.base_type)) {
+        code += GenDefaultValue(field) + ";\n";
+      } else {
+        switch (field.value.type.base_type) {
+          case BASE_TYPE_STRUCT: {
+            if (IsStruct(field.value.type)) {
+              code += "new " + type_name + "();\n";
+            } else {
+              code += "null;\n";
+            }
+            break;
           }
-          break;
-        }
-        case BASE_TYPE_ARRAY: {
-          code += "= new " + type_name.substr(0, type_name.length() - 1) +
-                  std::to_string(field.value.type.fixed_length) + "];";
-          break;
-        }
-        // scalar
-        default: {
-          code += "= " + GenDefaultValue(field) + ";";
-          break;
+          case BASE_TYPE_ARRAY: {
+            code += "new " + type_name.substr(0, type_name.length() - 1) +
+                    std::to_string(field.value.type.fixed_length) + "];\n";
+            break;
+          }
+          default: {
+            code += "null;\n";
+            break;
+          }
         }
       }
-      code += "\n";
     }
-    code += "};\n\n";
+    code += "  }\n";
+    code += "}\n\n";
   }
 
   // This tracks the current namespace used to determine if a type need to be

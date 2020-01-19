@@ -74,10 +74,16 @@ public struct Stat : IFlatbufferObject
 
 public class StatT
 {
-  public string Id { get; set; } 
-  public long Val { get; set; } = 0;
-  public ushort Count { get; set; } = 0;
-};
+  public string Id { get; set; }
+  public long Val { get; set; }
+  public ushort Count { get; set; }
+
+  public StatT() {
+    this.Id = null;
+    this.Val = 0;
+    this.Count = 0;
+  }
+}
 
 
 }

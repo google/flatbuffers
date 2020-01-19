@@ -51,6 +51,10 @@ public struct Attacker : IFlatbufferObject
 
 public class AttackerT
 {
-  public int SwordAttackDamage { get; set; } = 0;
-};
+  public int SwordAttackDamage { get; set; }
+
+  public AttackerT() {
+    this.SwordAttackDamage = 0;
+  }
+}
 

@@ -40,6 +40,10 @@ public struct Rapunzel : IFlatbufferObject
 
 public class RapunzelT
 {
-  public int HairLength { get; set; } = 0;
-};
+  public int HairLength { get; set; }
+
+  public RapunzelT() {
+    this.HairLength = 0;
+  }
+}
 

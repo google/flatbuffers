@@ -71,11 +71,18 @@ public struct NestedStruct : IFlatbufferObject
 
 public class NestedStructT
 {
-  public int[] A { get; set; } = new int[2];
-  public MyGame.Example.TestEnum B { get; set; } = MyGame.Example.TestEnum.A;
-  public MyGame.Example.TestEnum[] C { get; set; } = new MyGame.Example.TestEnum[2];
-  public long[] D { get; set; } = new long[2];
-};
+  public int[] A { get; set; }
+  public MyGame.Example.TestEnum B { get; set; }
+  public MyGame.Example.TestEnum[] C { get; set; }
+  public long[] D { get; set; }
+
+  public NestedStructT() {
+    this.A = new int[2];
+    this.B = MyGame.Example.TestEnum.A;
+    this.C = new MyGame.Example.TestEnum[2];
+    this.D = new long[2];
+  }
+}
 
 
 }

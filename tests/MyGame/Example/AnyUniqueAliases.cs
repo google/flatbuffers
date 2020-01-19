@@ -14,14 +14,18 @@ public enum AnyUniqueAliases : byte
 };
 
 public class AnyUniqueAliasesUnion {
-  public AnyUniqueAliases Type { get; set; } = AnyUniqueAliases.NONE;
-  public object Value { get; set; } = null;
+  public AnyUniqueAliases Type { get; set; }
+  public object Value { get; set; }
 
-  public T As<T>() where T : class
-    => this.Value is T _o ? _o : null;
-  public MyGame.Example.MonsterT AsM() => this.As<MyGame.Example.MonsterT>();
-  internal MyGame.Example.TestSimpleTableWithEnumT AsTS() => this.As<MyGame.Example.TestSimpleTableWithEnumT>();
-  public MyGame.Example2.MonsterT AsM2() => this.As<MyGame.Example2.MonsterT>();
+  public AnyUniqueAliasesUnion() {
+    this.Type = AnyUniqueAliases.NONE;
+    this.Value = null;
+}
+
+  public T As<T>() where T : class { return this.Value as T; }
+  public MyGame.Example.MonsterT AsM() { return this.As<MyGame.Example.MonsterT>(); }
+  internal MyGame.Example.TestSimpleTableWithEnumT AsTS() { return this.As<MyGame.Example.TestSimpleTableWithEnumT>(); }
+  public MyGame.Example2.MonsterT AsM2() { return this.As<MyGame.Example2.MonsterT>(); }
 
   public static int Pack(FlatBuffers.FlatBufferBuilder builder, AnyUniqueAliasesUnion _o) {
     switch (_o.Type) {

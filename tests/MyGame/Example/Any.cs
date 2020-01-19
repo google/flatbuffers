@@ -14,14 +14,18 @@ public enum Any : byte
 };
 
 public class AnyUnion {
-  public Any Type { get; set; } = Any.NONE;
-  public object Value { get; set; } = null;
+  public Any Type { get; set; }
+  public object Value { get; set; }
 
-  public T As<T>() where T : class
-    => this.Value is T _o ? _o : null;
-  public MyGame.Example.MonsterT AsMonster() => this.As<MyGame.Example.MonsterT>();
-  internal MyGame.Example.TestSimpleTableWithEnumT AsTestSimpleTableWithEnum() => this.As<MyGame.Example.TestSimpleTableWithEnumT>();
-  public MyGame.Example2.MonsterT AsMyGame_Example2_Monster() => this.As<MyGame.Example2.MonsterT>();
+  public AnyUnion() {
+    this.Type = Any.NONE;
+    this.Value = null;
+}
+
+  public T As<T>() where T : class { return this.Value as T; }
+  public MyGame.Example.MonsterT AsMonster() { return this.As<MyGame.Example.MonsterT>(); }
+  internal MyGame.Example.TestSimpleTableWithEnumT AsTestSimpleTableWithEnum() { return this.As<MyGame.Example.TestSimpleTableWithEnumT>(); }
+  public MyGame.Example2.MonsterT AsMyGame_Example2_Monster() { return this.As<MyGame.Example2.MonsterT>(); }
 
   public static int Pack(FlatBuffers.FlatBufferBuilder builder, AnyUnion _o) {
     switch (_o.Type) {

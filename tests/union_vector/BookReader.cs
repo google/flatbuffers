@@ -40,6 +40,10 @@ public struct BookReader : IFlatbufferObject
 
 public class BookReaderT
 {
-  public int BooksRead { get; set; } = 0;
-};
+  public int BooksRead { get; set; }
+
+  public BookReaderT() {
+    this.BooksRead = 0;
+  }
+}
 

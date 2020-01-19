@@ -14,14 +14,18 @@ public enum AnyAmbiguousAliases : byte
 };
 
 public class AnyAmbiguousAliasesUnion {
-  public AnyAmbiguousAliases Type { get; set; } = AnyAmbiguousAliases.NONE;
-  public object Value { get; set; } = null;
+  public AnyAmbiguousAliases Type { get; set; }
+  public object Value { get; set; }
 
-  public T As<T>() where T : class
-    => this.Value is T _o ? _o : null;
-  public MyGame.Example.MonsterT AsM1() => this.As<MyGame.Example.MonsterT>();
-  public MyGame.Example.MonsterT AsM2() => this.As<MyGame.Example.MonsterT>();
-  public MyGame.Example.MonsterT AsM3() => this.As<MyGame.Example.MonsterT>();
+  public AnyAmbiguousAliasesUnion() {
+    this.Type = AnyAmbiguousAliases.NONE;
+    this.Value = null;
+}
+
+  public T As<T>() where T : class { return this.Value as T; }
+  public MyGame.Example.MonsterT AsM1() { return this.As<MyGame.Example.MonsterT>(); }
+  public MyGame.Example.MonsterT AsM2() { return this.As<MyGame.Example.MonsterT>(); }
+  public MyGame.Example.MonsterT AsM3() { return this.As<MyGame.Example.MonsterT>(); }
 
   public static int Pack(FlatBuffers.FlatBufferBuilder builder, AnyAmbiguousAliasesUnion _o) {
     switch (_o.Type) {

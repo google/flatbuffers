@@ -42,7 +42,10 @@ public struct Monster : IFlatbufferObject
 
 public class MonsterT
 {
-};
+
+  public MonsterT() {
+  }
+}
 
 
 }

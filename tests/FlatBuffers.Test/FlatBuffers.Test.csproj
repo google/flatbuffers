@@ -9,6 +9,7 @@
     <RootNamespace>FlatBuffers.Test</RootNamespace>
     <AssemblyName>FlatBuffers.Test</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <LangVersion>4</LangVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">

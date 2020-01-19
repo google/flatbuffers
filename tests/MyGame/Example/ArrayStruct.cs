@@ -102,13 +102,22 @@ public struct ArrayStruct : IFlatbufferObject
 
 public class ArrayStructT
 {
-  public float A { get; set; } = 0.0f;
-  public int[] B { get; set; } = new int[15];
-  public sbyte C { get; set; } = 0;
-  public MyGame.Example.NestedStructT[] D { get; set; } = new MyGame.Example.NestedStructT[2];
-  public int E { get; set; } = 0;
-  public long[] F { get; set; } = new long[2];
-};
+  public float A { get; set; }
+  public int[] B { get; set; }
+  public sbyte C { get; set; }
+  public MyGame.Example.NestedStructT[] D { get; set; }
+  public int E { get; set; }
+  public long[] F { get; set; }
+
+  public ArrayStructT() {
+    this.A = 0.0f;
+    this.B = new int[15];
+    this.C = 0;
+    this.D = new MyGame.Example.NestedStructT[2];
+    this.E = 0;
+    this.F = new long[2];
+  }
+}
 
 
 }

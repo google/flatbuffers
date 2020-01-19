@@ -74,13 +74,22 @@ public struct Vec3 : IFlatbufferObject
 
 public class Vec3T
 {
-  public float X { get; set; } = 0.0f;
-  public float Y { get; set; } = 0.0f;
-  public float Z { get; set; } = 0.0f;
-  public double Test1 { get; set; } = 0.0;
-  public MyGame.Example.Color Test2 { get; set; } = 0;
-  public MyGame.Example.TestT Test3 { get; set; } = new MyGame.Example.TestT();
-};
+  public float X { get; set; }
+  public float Y { get; set; }
+  public float Z { get; set; }
+  public double Test1 { get; set; }
+  public MyGame.Example.Color Test2 { get; set; }
+  public MyGame.Example.TestT Test3 { get; set; }
+
+  public Vec3T() {
+    this.X = 0.0f;
+    this.Y = 0.0f;
+    this.Z = 0.0f;
+    this.Test1 = 0.0;
+    this.Test2 = 0;
+    this.Test3 = new MyGame.Example.TestT();
+  }
+}
 
 
 }

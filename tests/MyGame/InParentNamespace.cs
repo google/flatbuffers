@@ -42,7 +42,10 @@ public struct InParentNamespace : IFlatbufferObject
 
 public class InParentNamespaceT
 {
-};
+
+  public InParentNamespaceT() {
+  }
+}
 
 
 }

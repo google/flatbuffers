@@ -74,16 +74,16 @@ public struct Movie : IFlatbufferObject
     switch (this.MainCharacterType) {
       default: break;
       case Character.MuLan:
-        _o.MainCharacter.Value = this.MainCharacter<Attacker>()?.UnPack();
+        _o.MainCharacter.Value = this.MainCharacter<Attacker>().HasValue ? this.MainCharacter<Attacker>().Value.UnPack() : null;
         break;
       case Character.Rapunzel:
-        _o.MainCharacter.Value = this.MainCharacter<Rapunzel>()?.UnPack();
+        _o.MainCharacter.Value = this.MainCharacter<Rapunzel>().HasValue ? this.MainCharacter<Rapunzel>().Value.UnPack() : null;
         break;
       case Character.Belle:
-        _o.MainCharacter.Value = this.MainCharacter<BookReader>()?.UnPack();
+        _o.MainCharacter.Value = this.MainCharacter<BookReader>().HasValue ? this.MainCharacter<BookReader>().Value.UnPack() : null;
         break;
       case Character.BookFan:
-        _o.MainCharacter.Value = this.MainCharacter<BookReader>()?.UnPack();
+        _o.MainCharacter.Value = this.MainCharacter<BookReader>().HasValue ? this.MainCharacter<BookReader>().Value.UnPack() : null;
         break;
       case Character.Other:
         _o.MainCharacter.Value = this.MainCharacterAsString();
@@ -99,16 +99,16 @@ public struct Movie : IFlatbufferObject
       switch (this.CharactersType(_j)) {
         default: break;
         case Character.MuLan:
-          _o_Characters.Value = this.Characters<Attacker>(_j)?.UnPack();
+          _o_Characters.Value = this.Characters<Attacker>(_j).HasValue ? this.Characters<Attacker>(_j).Value.UnPack() : null;
           break;
         case Character.Rapunzel:
-          _o_Characters.Value = this.Characters<Rapunzel>(_j)?.UnPack();
+          _o_Characters.Value = this.Characters<Rapunzel>(_j).HasValue ? this.Characters<Rapunzel>(_j).Value.UnPack() : null;
           break;
         case Character.Belle:
-          _o_Characters.Value = this.Characters<BookReader>(_j)?.UnPack();
+          _o_Characters.Value = this.Characters<BookReader>(_j).HasValue ? this.Characters<BookReader>(_j).Value.UnPack() : null;
           break;
         case Character.BookFan:
-          _o_Characters.Value = this.Characters<BookReader>(_j)?.UnPack();
+          _o_Characters.Value = this.Characters<BookReader>(_j).HasValue ? this.Characters<BookReader>(_j).Value.UnPack() : null;
           break;
         case Character.Other:
           _o_Characters.Value = this.CharactersAsString(_j);
@@ -137,7 +137,12 @@ public struct Movie : IFlatbufferObject
 
 public class MovieT
 {
-  public CharacterUnion MainCharacter { get; set; } 
-  public List<CharacterUnion> Characters { get; set; } 
-};
+  public CharacterUnion MainCharacter { get; set; }
+  public List<CharacterUnion> Characters { get; set; }
+
+  public MovieT() {
+    this.MainCharacter = null;
+    this.Characters = null;
+  }
+}
 

@@ -54,8 +54,12 @@ public struct TableInNestedNS : IFlatbufferObject
 
 public class TableInNestedNST
 {
-  public int Foo { get; set; } = 0;
-};
+  public int Foo { get; set; }
+
+  public TableInNestedNST() {
+    this.Foo = 0;
+  }
+}
 
 
 }

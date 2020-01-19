@@ -39,9 +39,9 @@ public struct TableInFirstNS : IFlatbufferObject
     return _o;
   }
   public void UnPackTo(TableInFirstNST _o) {
-    _o.FooTable = this.FooTable?.UnPack();
+    _o.FooTable = this.FooTable.HasValue ? this.FooTable.Value.UnPack() : null;
     _o.FooEnum = this.FooEnum;
-    _o.FooStruct = this.FooStruct?.UnPack();
+    _o.FooStruct = this.FooStruct.HasValue ? this.FooStruct.Value.UnPack() : null;
   }
   public static Offset<NamespaceA.TableInFirstNS> Pack(FlatBufferBuilder builder, TableInFirstNST _o) {
     if (_o == null) return default(Offset<NamespaceA.TableInFirstNS>);
@@ -56,10 +56,16 @@ public struct TableInFirstNS : IFlatbufferObject
 
 public class TableInFirstNST
 {
-  public NamespaceA.NamespaceB.TableInNestedNST FooTable { get; set; } 
-  public NamespaceA.NamespaceB.EnumInNestedNS FooEnum { get; set; } = NamespaceA.NamespaceB.EnumInNestedNS.A;
-  public NamespaceA.NamespaceB.StructInNestedNST FooStruct { get; set; } = new NamespaceA.NamespaceB.StructInNestedNST();
-};
+  public NamespaceA.NamespaceB.TableInNestedNST FooTable { get; set; }
+  public NamespaceA.NamespaceB.EnumInNestedNS FooEnum { get; set; }
+  public NamespaceA.NamespaceB.StructInNestedNST FooStruct { get; set; }
+
+  public TableInFirstNST() {
+    this.FooTable = null;
+    this.FooEnum = NamespaceA.NamespaceB.EnumInNestedNS.A;
+    this.FooStruct = new NamespaceA.NamespaceB.StructInNestedNST();
+  }
+}
 
 
 }

@@ -79,8 +79,12 @@ public struct Referrable : IFlatbufferObject
 
 public class ReferrableT
 {
-  public ulong Id { get; set; } = 0;
-};
+  public ulong Id { get; set; }
+
+  public ReferrableT() {
+    this.Id = 0;
+  }
+}
 
 
 }

@@ -128,9 +128,9 @@ public struct TypeAliases : IFlatbufferObject
     _o.F32 = this.F32;
     _o.F64 = this.F64;
     _o.V8 = new List<sbyte>();
-    for (var _j = 0; _j < this.V8Length; ++_j) { _o.V8.Add(this.V8(_j)); }
+    for (var _j = 0; _j < this.V8Length; ++_j) {_o.V8.Add(this.V8(_j));}
     _o.Vf64 = new List<double>();
-    for (var _j = 0; _j < this.Vf64Length; ++_j) { _o.Vf64.Add(this.Vf64(_j)); }
+    for (var _j = 0; _j < this.Vf64Length; ++_j) {_o.Vf64.Add(this.Vf64(_j));}
   }
   public static Offset<MyGame.Example.TypeAliases> Pack(FlatBufferBuilder builder, TypeAliasesT _o) {
     if (_o == null) return default(Offset<MyGame.Example.TypeAliases>);
@@ -155,19 +155,34 @@ public struct TypeAliases : IFlatbufferObject
 
 public class TypeAliasesT
 {
-  public sbyte I8 { get; set; } = 0;
-  public byte U8 { get; set; } = 0;
-  public short I16 { get; set; } = 0;
-  public ushort U16 { get; set; } = 0;
-  public int I32 { get; set; } = 0;
-  public uint U32 { get; set; } = 0;
-  public long I64 { get; set; } = 0;
-  public ulong U64 { get; set; } = 0;
-  public float F32 { get; set; } = 0.0f;
-  public double F64 { get; set; } = 0.0;
-  public List<sbyte> V8 { get; set; } 
-  public List<double> Vf64 { get; set; } 
-};
+  public sbyte I8 { get; set; }
+  public byte U8 { get; set; }
+  public short I16 { get; set; }
+  public ushort U16 { get; set; }
+  public int I32 { get; set; }
+  public uint U32 { get; set; }
+  public long I64 { get; set; }
+  public ulong U64 { get; set; }
+  public float F32 { get; set; }
+  public double F64 { get; set; }
+  public List<sbyte> V8 { get; set; }
+  public List<double> Vf64 { get; set; }
+
+  public TypeAliasesT() {
+    this.I8 = 0;
+    this.U8 = 0;
+    this.I16 = 0;
+    this.U16 = 0;
+    this.I32 = 0;
+    this.U32 = 0;
+    this.I64 = 0;
+    this.U64 = 0;
+    this.F32 = 0.0f;
+    this.F64 = 0.0;
+    this.V8 = null;
+    this.Vf64 = null;
+  }
+}
 
 
 }

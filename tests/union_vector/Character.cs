@@ -14,17 +14,21 @@ public enum Character : byte
 };
 
 public class CharacterUnion {
-  public Character Type { get; set; } = Character.NONE;
-  public object Value { get; set; } = null;
+  public Character Type { get; set; }
+  public object Value { get; set; }
 
-  public T As<T>() where T : class
-    => this.Value is T _o ? _o : null;
-  public AttackerT AsMuLan() => this.As<AttackerT>();
-  public RapunzelT AsRapunzel() => this.As<RapunzelT>();
-  public BookReaderT AsBelle() => this.As<BookReaderT>();
-  public BookReaderT AsBookFan() => this.As<BookReaderT>();
-  public string AsOther() => this.As<string>();
-  public string AsUnused() => this.As<string>();
+  public CharacterUnion() {
+    this.Type = Character.NONE;
+    this.Value = null;
+}
+
+  public T As<T>() where T : class { return this.Value as T; }
+  public AttackerT AsMuLan() { return this.As<AttackerT>(); }
+  public RapunzelT AsRapunzel() { return this.As<RapunzelT>(); }
+  public BookReaderT AsBelle() { return this.As<BookReaderT>(); }
+  public BookReaderT AsBookFan() { return this.As<BookReaderT>(); }
+  public string AsOther() { return this.As<string>(); }
+  public string AsUnused() { return this.As<string>(); }
 
   public static int Pack(FlatBuffers.FlatBufferBuilder builder, CharacterUnion _o) {
     switch (_o.Type) {

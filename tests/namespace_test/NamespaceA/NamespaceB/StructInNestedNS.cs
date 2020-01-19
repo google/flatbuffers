@@ -48,9 +48,14 @@ public struct StructInNestedNS : IFlatbufferObject
 
 public class StructInNestedNST
 {
-  public int A { get; set; } = 0;
-  public int B { get; set; } = 0;
-};
+  public int A { get; set; }
+  public int B { get; set; }
+
+  public StructInNestedNST() {
+    this.A = 0;
+    this.B = 0;
+  }
+}
 
 
 }

@@ -41,7 +41,7 @@ public struct SecondTableInA : IFlatbufferObject
     return _o;
   }
   public void UnPackTo(SecondTableInAT _o) {
-    _o.ReferToC = this.ReferToC?.UnPack();
+    _o.ReferToC = this.ReferToC.HasValue ? this.ReferToC.Value.UnPack() : null;
   }
   public static Offset<NamespaceA.SecondTableInA> Pack(FlatBufferBuilder builder, SecondTableInAT _o) {
     if (_o == null) return default(Offset<NamespaceA.SecondTableInA>);
@@ -54,8 +54,12 @@ public struct SecondTableInA : IFlatbufferObject
 
 public class SecondTableInAT
 {
-  public NamespaceC.TableInCT ReferToC { get; set; } 
-};
+  public NamespaceC.TableInCT ReferToC { get; set; }
+
+  public SecondTableInAT() {
+    this.ReferToC = null;
+  }
+}
 
 
 }

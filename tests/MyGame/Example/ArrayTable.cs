@@ -37,7 +37,7 @@ public struct ArrayTable : IFlatbufferObject
     return _o;
   }
   public void UnPackTo(ArrayTableT _o) {
-    _o.A = this.A?.UnPack();
+    _o.A = this.A.HasValue ? this.A.Value.UnPack() : null;
   }
   public static Offset<MyGame.Example.ArrayTable> Pack(FlatBufferBuilder builder, ArrayTableT _o) {
     if (_o == null) return default(Offset<MyGame.Example.ArrayTable>);
@@ -49,8 +49,12 @@ public struct ArrayTable : IFlatbufferObject
 
 public class ArrayTableT
 {
-  public MyGame.Example.ArrayStructT A { get; set; } = new MyGame.Example.ArrayStructT();
-};
+  public MyGame.Example.ArrayStructT A { get; set; }
+
+  public ArrayTableT() {
+    this.A = new MyGame.Example.ArrayStructT();
+  }
+}
 
 
 }

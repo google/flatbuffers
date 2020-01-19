@@ -54,8 +54,12 @@ internal partial struct TestSimpleTableWithEnum : IFlatbufferObject
 
 internal partial class TestSimpleTableWithEnumT
 {
-  public MyGame.Example.Color Color { get; set; } = MyGame.Example.Color.Green;
-};
+  public MyGame.Example.Color Color { get; set; }
+
+  public TestSimpleTableWithEnumT() {
+    this.Color = MyGame.Example.Color.Green;
+  }
+}
 
 
 }

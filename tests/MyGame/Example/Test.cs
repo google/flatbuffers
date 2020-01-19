@@ -49,9 +49,14 @@ public struct Test : IFlatbufferObject
 
 public class TestT
 {
-  public short A { get; set; } = 0;
-  public sbyte B { get; set; } = 0;
-};
+  public short A { get; set; }
+  public sbyte B { get; set; }
+
+  public TestT() {
+    this.A = 0;
+    this.B = 0;
+  }
+}
 
 
 }
