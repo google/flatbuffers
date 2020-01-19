@@ -3360,13 +3360,13 @@ For your chosen language, see:
 [Use in C++](@ref flatbuffers_guide_use_cpp)
 </div>
 <div class="language-java">
-[Use in Java/C#](@ref flatbuffers_guide_use_java_c-sharp)
+[Use in Java](@ref flatbuffers_guide_use_java)
 </div>
 <div class="language-kotlin">
 [Use in Kotlin](@ref flatbuffers_guide_use_kotlin)
 </div>
 <div class="language-csharp">
-[Use in Java/C#](@ref flatbuffers_guide_use_java_c-sharp)
+[Use in C#](@ref flatbuffers_guide_use_c-sharp)
 </div>
 <div class="language-go">
 [Use in Go](@ref flatbuffers_guide_use_go)

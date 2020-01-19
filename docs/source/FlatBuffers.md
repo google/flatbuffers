@@ -130,7 +130,9 @@ sections provide a more in-depth usage guide.
 -   How to [write a schema](@ref flatbuffers_guide_writing_schema).
 -   How to [use the generated C++ code](@ref flatbuffers_guide_use_cpp) in your
     own programs.
--   How to [use the generated Java/C# code](@ref flatbuffers_guide_use_java_c-sharp)
+-   How to [use the generated Java code](@ref flatbuffers_guide_use_java)
+    in your own programs.
+-   How to [use the generated C# code](@ref flatbuffers_guide_use_c-sharp)
     in your own programs.
 -   How to [use the generated Kotlin code](@ref flatbuffers_guide_use_kotlin)
         in your own programs.
