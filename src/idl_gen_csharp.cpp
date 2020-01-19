@@ -302,8 +302,9 @@ class CSharpGenerator : public BaseGenerator {
 
   bool HasUnionStringValue(const EnumDef &enum_def) const {
     if (!enum_def.is_union) return false;
-    for (auto val : enum_def.Vals()) {
-      if (val->union_type.base_type == BASE_TYPE_STRING) { return true; }
+    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      auto &val = **it;
+      if (val.union_type.base_type == BASE_TYPE_STRING) { return true; }
     }
     return false;
   }
@@ -1364,7 +1365,7 @@ class CSharpGenerator : public BaseGenerator {
         }
         case BASE_TYPE_ARRAY: {
           auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts);
-          auto length_str = std::to_string(field.value.type.fixed_length);
+          auto length_str = NumToString(field.value.type.fixed_length);
           auto unpack_method = field.value.type.struct_def == nullptr
                                    ? ""
                                    : field.value.type.struct_def->fixed
@@ -1650,28 +1651,28 @@ class CSharpGenerator : public BaseGenerator {
         std::string name;
         for (auto &tmp : tmp_name_vec) { name += "_" + tmp; }
         code += "    var " + name + " = new " + GenTypeBasic(field_type) + "[";
-        code += std::to_string(tmp_array_length_vec[0]);
+        code += NumToString(tmp_array_length_vec[0]);
         for (size_t i = 1; i < tmp_array_length_vec.size(); ++i) {
           auto array_length = tmp_array_length_vec[i];
-          code += "," + std::to_string(array_length);
+          code += "," + NumToString(array_length);
         }
         code += "];\n";
         code += "    ";
         // initialize array
         for (size_t i = 0; i < tmp_array_length_vec.size(); ++i) {
           auto array_length = tmp_array_length_vec[i];
-          auto idx = "idx" + std::to_string(i);
+          auto idx = "idx" + NumToString(i);
           code += "for (var " + idx + " = 0; " + idx + " < " +
-                  std::to_string(array_length) + "; ++" + idx + ") {";
+                  NumToString(array_length) + "; ++" + idx + ") {";
         }
         code += name + "[idx0";
         for (size_t i = 1; i < tmp_array_length_vec.size(); ++i) {
-          auto idx = "idx" + std::to_string(i);
+          auto idx = "idx" + NumToString(i);
           code += "," + idx;
         }
         code += "] = _o";
         for (size_t i = 0; i < tmp_array_length_vec.size(); ++i) {
-          auto idx = "idx" + std::to_string(i);
+          auto idx = "idx" + NumToString(i);
           code += "." + MakeCamel(tmp_name_vec[i]) + "[" + idx + "]";
         }
         if (!is_array) { code += "." + MakeCamel(field->name); }
@@ -1792,7 +1793,7 @@ class CSharpGenerator : public BaseGenerator {
           }
           case BASE_TYPE_ARRAY: {
             code += "new " + type_name.substr(0, type_name.length() - 1) +
-                    std::to_string(field.value.type.fixed_length) + "];\n";
+                    NumToString(field.value.type.fixed_length) + "];\n";
             break;
           }
           default: {
