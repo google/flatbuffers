@@ -431,6 +431,51 @@ namespace FlatBuffers.Test
             TestObjectAPI(table);
         }
 
+        [FlatBuffersTestMethod]
+        public void TestUnionVector()
+        {
+            var fbb = new FlatBufferBuilder(100);
+            var rapunzel = Rapunzel.CreateRapunzel(fbb, 40).Value;
+
+            var characterTypes = new[]
+            {
+                Character.MuLan,
+                Character.Belle,
+                Character.Other,
+            };
+            var characterTypesOffset = Movie.CreateCharactersTypeVector(fbb, characterTypes);
+
+            var characters = new[]
+            {
+                Attacker.CreateAttacker(fbb, 10).Value,
+                BookReader.CreateBookReader(fbb, 20).Value,
+                fbb.CreateSharedString("Chip").Value,
+            };
+            var charactersOffset = Movie.CreateCharactersVector(fbb, characters);
+
+            var movieOffset = Movie.CreateMovie(
+                fbb,
+                Character.Rapunzel,
+                rapunzel,
+                characterTypesOffset,
+                charactersOffset);
+            Movie.FinishMovieBuffer(fbb, movieOffset);
+
+            var movie = Movie.GetRootAsMovie(fbb.DataBuffer);
+            Assert.AreEqual(Character.Rapunzel, movie.MainCharacterType);
+            Assert.AreEqual(40, movie.MainCharacter<Rapunzel>()?.HairLength);
+
+            Assert.AreEqual(3, movie.CharactersLength);
+            Assert.AreEqual(Character.MuLan, movie.CharactersType(0));
+            Assert.AreEqual(10, movie.Characters<Attacker>(0)?.SwordAttackDamage);
+            Assert.AreEqual(Character.Belle, movie.CharactersType(1));
+            Assert.AreEqual(20, movie.Characters<BookReader>(1)?.BooksRead);
+            Assert.AreEqual(Character.Other, movie.CharactersType(2));
+            Assert.AreEqual("Chip", movie.CharactersAsString(2));
+
+            TestObjectAPI(movie);
+        }
+
         private void AreEqual(Monster a, MonsterT b)
         {
             Assert.AreEqual(a.Hp, b.Hp);
@@ -702,6 +747,45 @@ namespace FlatBuffers.Test
             var fbb = new FlatBufferBuilder(1);
             fbb.Finish(ArrayTable.Pack(fbb, b).Value);
             var c = ArrayTable.GetRootAsArrayTable(fbb.DataBuffer);
+            AreEqual(a, c);
+        }
+
+        private void AreEqual(Movie a, MovieT b)
+        {
+            Assert.AreEqual(a.MainCharacterType, b.MainCharacter.Type);
+            Assert.AreEqual(a.MainCharacter<Rapunzel>()?.HairLength, b.MainCharacter.AsRapunzel().HairLength);
+
+            Assert.AreEqual(a.CharactersLength, b.Characters.Count);
+            Assert.AreEqual(a.CharactersType(0), b.Characters[0].Type);
+            Assert.AreEqual(a.Characters<Attacker>(0)?.SwordAttackDamage, b.Characters[0].AsMuLan().SwordAttackDamage);
+            Assert.AreEqual(a.CharactersType(1), b.Characters[1].Type);
+            Assert.AreEqual(a.Characters<BookReader>(1)?.BooksRead, b.Characters[1].AsBelle().BooksRead);
+            Assert.AreEqual(a.CharactersType(2), b.Characters[2].Type);
+            Assert.AreEqual(a.CharactersAsString(2), b.Characters[2].AsOther());
+        }
+
+        private void AreEqual(Movie a, Movie b)
+        {
+            Assert.AreEqual(a.MainCharacterType, b.MainCharacterType);
+            Assert.AreEqual(a.MainCharacter<Rapunzel>()?.HairLength, b.MainCharacter<Rapunzel>()?.HairLength);
+
+            Assert.AreEqual(a.CharactersLength, b.CharactersLength);
+            Assert.AreEqual(a.CharactersType(0), b.CharactersType(0));
+            Assert.AreEqual(a.Characters<Attacker>(0)?.SwordAttackDamage, b.Characters<Attacker>(0)?.SwordAttackDamage);
+            Assert.AreEqual(a.CharactersType(1), b.CharactersType(1));
+            Assert.AreEqual(a.Characters<BookReader>(1)?.BooksRead, b.Characters<BookReader>(1)?.BooksRead);
+            Assert.AreEqual(a.CharactersType(2), b.CharactersType(2));
+            Assert.AreEqual(a.CharactersAsString(2), b.CharactersAsString(2));
+        }
+
+        private void TestObjectAPI(Movie a)
+        {
+            var b = a.UnPack();
+            AreEqual(a, b);
+
+            var fbb = new FlatBufferBuilder(1);
+            fbb.Finish(Movie.Pack(fbb, b).Value);
+            var c = Movie.GetRootAsMovie(fbb.DataBuffer);
             AreEqual(a, c);
         }
     }

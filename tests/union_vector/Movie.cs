@@ -30,6 +30,7 @@ public struct Movie : IFlatbufferObject
 #endif
   public Character[] GetCharactersTypeArray() { int o = __p.__offset(8); if (o == 0) return null; int p = __p.__vector(o); int l = __p.__vector_len(o); Character[] a = new Character[l]; for (int i = 0; i < l; i++) { a[i] = (Character)__p.bb.Get(p + i * 1); } return a; }
   public TTable? Characters<TTable>(int j) where TTable : struct, IFlatbufferObject { int o = __p.__offset(10); return o != 0 ? (TTable?)__p.__union<TTable>(__p.__vector(o) + j * 4) : null; }
+  public string CharactersAsString(int j) { int o = __p.__offset(10); return o != 0 ? __p.__string(__p.__vector(o) + j * 4) : null; }
   public int CharactersLength { get { int o = __p.__offset(10); return o != 0 ? __p.__vector_len(o) : 0; } }
 
   public static Offset<Movie> CreateMovie(FlatBufferBuilder builder,
@@ -92,17 +93,43 @@ public struct Movie : IFlatbufferObject
         break;
     }
     _o.Characters = new List<CharacterUnion>();
-    for (var _j = 0; _j < this.CharactersLength; ++_j) { _o.Characters.Add(this.Characters(_j)); }
+    for (var _j = 0; _j < this.CharactersLength; ++_j) {
+      var _o_Characters = new CharacterUnion();
+      _o_Characters.Type = this.CharactersType(_j);
+      switch (this.CharactersType(_j)) {
+        default: break;
+        case Character.MuLan:
+          _o_Characters.Value = this.Characters<Attacker>(_j)?.UnPack();
+          break;
+        case Character.Rapunzel:
+          _o_Characters.Value = this.Characters<Rapunzel>(_j)?.UnPack();
+          break;
+        case Character.Belle:
+          _o_Characters.Value = this.Characters<BookReader>(_j)?.UnPack();
+          break;
+        case Character.BookFan:
+          _o_Characters.Value = this.Characters<BookReader>(_j)?.UnPack();
+          break;
+        case Character.Other:
+          _o_Characters.Value = this.CharactersAsString(_j);
+          break;
+        case Character.Unused:
+          _o_Characters.Value = this.CharactersAsString(_j);
+          break;
+      }
+      _o.Characters.Add(_o_Characters);
+    }
   }
   public static Offset<Movie> Pack(FlatBufferBuilder builder, MovieT _o) {
     if (_o == null) return default(Offset<Movie>);
+    var _main_character_type = _o.MainCharacter == null ? Character.NONE : _o.MainCharacter.Type;
     var _main_character = _o.MainCharacter == null ? 0 : CharacterUnion.Pack(builder, _o.MainCharacter);
-    var _characters_type = _o.CharactersType == null ? default(VectorOffset) : CreateCharactersTypeVector(builder, _o.CharactersType.ToArray());
-    var _characters = _o.Characters == null ? default(VectorOffset) : CreateCharactersVector(builder, _o.Characters.ToArray());
+    var _characters_type = _o.Characters == null ? default(VectorOffset) : CreateCharactersTypeVector(builder, _o.Characters.Select(__o => __o.Type).ToArray());
+    var _characters = _o.Characters == null ? default(VectorOffset) : CreateCharactersVector(builder, _o.Characters.Select(__o => CharacterUnion.Pack(builder, __o)).ToArray());
     return CreateMovie(
       builder,
-      _o.MainCharacterType,
-      _o.MainCharacter,
+      _main_character_type,
+      _main_character,
       _characters_type,
       _characters);
   }

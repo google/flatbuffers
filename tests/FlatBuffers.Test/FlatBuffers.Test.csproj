@@ -135,6 +135,21 @@
     <Compile Include="..\namespace_test\NamespaceA\TableInFirstNS.cs">
       <Link>NamespaceA\TableInFirstNS.cs</Link>
     </Compile>
+    <Compile Include="..\union_vector\Attacker.cs">
+      <Link>union_vector\Attacker.cs</Link>
+    </Compile>
+    <Compile Include="..\union_vector\BookReader.cs">
+      <Link>union_vector\BookReader.cs</Link>
+    </Compile>
+    <Compile Include="..\union_vector\Character.cs">
+      <Link>union_vector\Character.cs</Link>
+    </Compile>
+    <Compile Include="..\union_vector\Movie.cs">
+      <Link>union_vector\Movie.cs</Link>
+    </Compile>
+    <Compile Include="..\union_vector\Rapunzel.cs">
+      <Link>union_vector\Rapunzel.cs</Link>
+    </Compile>
     <Compile Include="Assert.cs" />
     <Compile Include="ByteBufferTests.cs" />
     <Compile Include="FlatBufferBuilderTests.cs" />

@@ -723,7 +723,15 @@ class CSharpGenerator : public BaseGenerator {
                       : (IsScalar(field.value.type.element) ? default_cast + "0"
                                                             : "null");
             }
-
+            if (vectortype.base_type == BASE_TYPE_UNION &&
+                HasUnionStringValue(*vectortype.enum_def)) {
+              code += member_suffix;
+              code += "}\n";
+              code += "  public string " + MakeCamel(field.name, true) +
+                      "AsString(int j)";
+              code += offset_prefix + GenGetter(Type(BASE_TYPE_STRING));
+              code += "(" + index + ") : null";
+            }
             break;
           }
           case BASE_TYPE_UNION:
@@ -1270,6 +1278,54 @@ class CSharpGenerator : public BaseGenerator {
     return opts.object_prefix + name + opts.object_suffix;
   }
 
+  void GenUnionUnPack_ObjectAPI(const EnumDef &enum_def, std::string *code_ptr,
+                                const std::string &camel_name,
+                                bool is_vector) const {
+    auto &code = *code_ptr;
+    std::string varialbe_name = "_o." + camel_name;
+    std::string type_suffix = "";
+    std::string func_suffix = "()";
+    std::string indent = "    ";
+    if (is_vector) {
+      varialbe_name = "_o_" + camel_name;
+      type_suffix = "(_j)";
+      func_suffix = "(_j)";
+      indent = "      ";
+    }
+    if (is_vector) {
+      code += indent + "var " + varialbe_name + " = new ";
+    } else {
+      code += indent + varialbe_name + " = new ";
+    }
+    code += WrapInNameSpace(enum_def) + "Union();\n";
+    code += indent + varialbe_name + ".Type = this." + camel_name + "Type" +
+            type_suffix + ";\n";
+    code +=
+        indent + "switch (this." + camel_name + "Type" + type_suffix + ") {\n";
+    for (auto eit = enum_def.Vals().begin(); eit != enum_def.Vals().end();
+         ++eit) {
+      auto &ev = **eit;
+      if (ev.union_type.base_type == BASE_TYPE_NONE) {
+        code += indent + "  default: break;\n";
+      } else {
+        code += indent + "  case " + WrapInNameSpace(enum_def) + "." + ev.name +
+                ":\n";
+        code += indent + "    " + varialbe_name + ".Value = this." + camel_name;
+        if (ev.union_type.base_type == BASE_TYPE_STRING) {
+          code += "AsString" + func_suffix + ";\n";
+        } else {
+          code += "<" + GenTypeGet(ev.union_type) + ">" + func_suffix +
+                  "?.UnPack();\n";
+        }
+        code += indent + "    break;\n";
+      }
+    }
+    code += indent + "}\n";
+    if (is_vector) {
+      code += indent + "_o." + camel_name + ".Add(" + varialbe_name + ");\n";
+    }
+  }
+
   void GenPackUnPack_ObjectAPI(
       StructDef &struct_def, std::string *code_ptr, const IDLOptions &opts,
       bool struct_has_create,
@@ -1313,7 +1369,15 @@ class CSharpGenerator : public BaseGenerator {
           break;
         }
         case BASE_TYPE_VECTOR:
-          if (field.value.type.element != BASE_TYPE_UTYPE) {
+          if (field.value.type.element == BASE_TYPE_UNION) {
+            code += start + "new " +
+                    GenTypeGet_ObjectAPI(field.value.type, opts) + "();\n";
+            code += "    for (var _j = 0; _j < this." + camel_name +
+                    "Length; ++_j) {\n";
+            GenUnionUnPack_ObjectAPI(*field.value.type.enum_def, code_ptr,
+                                     camel_name, true);
+            code += "    }\n";
+          } else if (field.value.type.element != BASE_TYPE_UTYPE) {
             auto unpack_method =
                 field.value.type.struct_def == nullptr ? "" : "?.UnPack()";
             code += start + "new " +
@@ -1325,31 +1389,8 @@ class CSharpGenerator : public BaseGenerator {
           break;
         case BASE_TYPE_UTYPE: break;
         case BASE_TYPE_UNION: {
-          auto &enum_def = *field.value.type.enum_def;
-          code += "    _o." + camel_name + " = new " +
-                  WrapInNameSpace(enum_def) + "Union();\n";
-          code +=
-              "    _o." + camel_name + ".Type = this." + camel_name + "Type;\n";
-          code += "    switch (this." + camel_name + "Type) {\n";
-          for (auto eit = enum_def.Vals().begin(); eit != enum_def.Vals().end();
-               ++eit) {
-            auto &ev = **eit;
-            if (ev.union_type.base_type == BASE_TYPE_NONE) {
-              code += "      default: break;\n";
-            } else {
-              code += "      case " + WrapInNameSpace(enum_def) + "." +
-                      ev.name + ":\n";
-              code +=
-                  "        _o." + camel_name + ".Value = this." + camel_name;
-              if (ev.union_type.base_type == BASE_TYPE_STRING) {
-                code += "AsString();\n";
-              } else {
-                code += "<" + GenTypeGet(ev.union_type) + ">()?.UnPack();\n";
-              }
-              code += "        break;\n";
-            }
-          }
-          code += "    }\n";
+          GenUnionUnPack_ObjectAPI(*field.value.type.enum_def, code_ptr,
+                                   camel_name, false);
           break;
         }
         default: {
@@ -1390,16 +1431,30 @@ class CSharpGenerator : public BaseGenerator {
         }
         case BASE_TYPE_VECTOR: {
           if (field_has_create.find(&field) != field_has_create.end()) {
-            auto pack_method =
-                field.value.type.struct_def != nullptr
-                    ? ".Select(__o => " + GenTypeGet(field.value.type) +
-                          ".Pack(builder, __o))"
-                    : field.value.type.element == BASE_TYPE_STRING
-                          ? ".Select(builder.CreateSharedString)"
-                          : "";
-            code += "    var _" + field.name + " = _o." + camel_name +
+            auto property_name = camel_name;
+            std::string pack_method = "";
+            switch (field.value.type.element) {
+              case BASE_TYPE_STRING:
+                pack_method = ".Select(builder.CreateSharedString)";
+                break;
+              case BASE_TYPE_STRUCT:
+                pack_method = ".Select(__o => " + GenTypeGet(field.value.type) +
+                              ".Pack(builder, __o))";
+                break;
+              case BASE_TYPE_UTYPE:
+                property_name = camel_name.substr(0, camel_name.size() - 4);
+                pack_method = ".Select(__o => __o.Type)";
+                break;
+              case BASE_TYPE_UNION:
+                pack_method = ".Select(__o => " +
+                              WrapInNameSpace(*field.value.type.enum_def) +
+                              "Union.Pack(builder, __o))";
+                break;
+              default: break;
+            }
+            code += "    var _" + field.name + " = _o." + property_name +
                     " == null ? default(VectorOffset) : Create" + camel_name +
-                    "Vector(builder, _o." + camel_name + pack_method +
+                    "Vector(builder, _o." + property_name + pack_method +
                     ".ToArray());\n";
           } else {
             auto pack_method =
@@ -1433,6 +1488,9 @@ class CSharpGenerator : public BaseGenerator {
           break;
         }
         case BASE_TYPE_UNION: {
+          code += "    var _" + field.name + "_type = _o." + camel_name +
+                  " == null ? " + WrapInNameSpace(*field.value.type.enum_def) +
+                  ".NONE : " + "_o." + camel_name + ".Type;\n";
           code +=
               "    var _" + field.name + " = _o." + camel_name +
               " == null ? 0 : " + GenTypeGet_ObjectAPI(field.value.type, opts) +
@@ -1477,6 +1535,8 @@ class CSharpGenerator : public BaseGenerator {
             }
             break;
           }
+          case BASE_TYPE_UNION: FLATBUFFERS_FALLTHROUGH();   // fall thru
+          case BASE_TYPE_UTYPE: FLATBUFFERS_FALLTHROUGH();   // fall thru
           case BASE_TYPE_STRING: FLATBUFFERS_FALLTHROUGH();  // fall thru
           case BASE_TYPE_VECTOR: {
             code += ",\n";
@@ -1519,8 +1579,8 @@ class CSharpGenerator : public BaseGenerator {
           }
           case BASE_TYPE_UTYPE: break;
           case BASE_TYPE_UNION: {
-            code += "    Add" + camel_name + "Type(builder, _o." + camel_name +
-                    ".Type);\n";
+            code += "    Add" + camel_name + "Type(builder, _" + field.name +
+                    "_type);\n";
             code +=
                 "    Add" + camel_name + "(builder, _" + field.name + ");\n";
             break;

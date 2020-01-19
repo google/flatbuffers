@@ -433,6 +433,7 @@ public struct Monster : IFlatbufferObject
     if (_o == null) return default(Offset<MyGame.Example.Monster>);
     var _name = _o.Name == null ? default(StringOffset) : builder.CreateSharedString(_o.Name);
     var _inventory = _o.Inventory == null ? default(VectorOffset) : CreateInventoryVector(builder, _o.Inventory.ToArray());
+    var _test_type = _o.Test == null ? MyGame.Example.Any.NONE : _o.Test.Type;
     var _test = _o.Test == null ? 0 : MyGame.Example.AnyUnion.Pack(builder, _o.Test);
     var _test4 = default(VectorOffset);
     if (_o.Test4 != null) {
@@ -468,7 +469,9 @@ public struct Monster : IFlatbufferObject
     var _vector_of_strong_referrables = _o.VectorOfStrongReferrables == null ? default(VectorOffset) : CreateVectorOfStrongReferrablesVector(builder, _o.VectorOfStrongReferrables.Select(__o => MyGame.Example.Referrable.Pack(builder, __o)).ToArray());
     var _vector_of_co_owning_references = _o.VectorOfCoOwningReferences == null ? default(VectorOffset) : CreateVectorOfCoOwningReferencesVector(builder, _o.VectorOfCoOwningReferences.ToArray());
     var _vector_of_non_owning_references = _o.VectorOfNonOwningReferences == null ? default(VectorOffset) : CreateVectorOfNonOwningReferencesVector(builder, _o.VectorOfNonOwningReferences.ToArray());
+    var _any_unique_type = _o.AnyUnique == null ? MyGame.Example.AnyUniqueAliases.NONE : _o.AnyUnique.Type;
     var _any_unique = _o.AnyUnique == null ? 0 : MyGame.Example.AnyUniqueAliasesUnion.Pack(builder, _o.AnyUnique);
+    var _any_ambiguous_type = _o.AnyAmbiguous == null ? MyGame.Example.AnyAmbiguousAliases.NONE : _o.AnyAmbiguous.Type;
     var _any_ambiguous = _o.AnyAmbiguous == null ? 0 : MyGame.Example.AnyAmbiguousAliasesUnion.Pack(builder, _o.AnyAmbiguous);
     var _vector_of_enums = _o.VectorOfEnums == null ? default(VectorOffset) : CreateVectorOfEnumsVector(builder, _o.VectorOfEnums.ToArray());
     StartMonster(builder);
@@ -478,7 +481,7 @@ public struct Monster : IFlatbufferObject
     AddName(builder, _name);
     AddInventory(builder, _inventory);
     AddColor(builder, _o.Color);
-    AddTestType(builder, _o.Test.Type);
+    AddTestType(builder, _test_type);
     AddTest(builder, _test);
     AddTest4(builder, _test4);
     AddTestarrayofstring(builder, _testarrayofstring);
@@ -514,9 +517,9 @@ public struct Monster : IFlatbufferObject
     AddVectorOfCoOwningReferences(builder, _vector_of_co_owning_references);
     AddNonOwningReference(builder, _o.NonOwningReference);
     AddVectorOfNonOwningReferences(builder, _vector_of_non_owning_references);
-    AddAnyUniqueType(builder, _o.AnyUnique.Type);
+    AddAnyUniqueType(builder, _any_unique_type);
     AddAnyUnique(builder, _any_unique);
-    AddAnyAmbiguousType(builder, _o.AnyAmbiguous.Type);
+    AddAnyAmbiguousType(builder, _any_ambiguous_type);
     AddAnyAmbiguous(builder, _any_ambiguous);
     AddVectorOfEnums(builder, _vector_of_enums);
     AddSignedEnum(builder, _o.SignedEnum);
