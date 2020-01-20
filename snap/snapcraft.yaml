@@ -26,8 +26,6 @@ parts:
       - -DCMAKE_BUILD_TYPE=Release
     build-packages:
       - g++
-      # used to set version number
-      - git
 
 apps:
   flatc:
