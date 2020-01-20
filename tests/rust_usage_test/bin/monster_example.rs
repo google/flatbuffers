@@ -1,5 +1,4 @@
-extern crate flatbuffers;
-
+/*
 #[allow(dead_code, unused_imports)]
 #[path = "../../include_test/include_test1_generated.rs"]
 pub mod include_test1_generated;
@@ -7,6 +6,7 @@ pub mod include_test1_generated;
 #[allow(dead_code, unused_imports)]
 #[path = "../../include_test/sub/include_test2_generated.rs"]
 pub mod include_test2_generated;
+*/
 
 #[allow(dead_code, unused_imports)]
 #[path = "../../monster_test_generated.rs"]
