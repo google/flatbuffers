@@ -27,6 +27,7 @@ pub struct MapBuilder<'a> {
 impl<'a> MapBuilder<'a> {
     /// Push `p` onto this map with key `key`.
     /// This will panic if `key` contains internal nulls.
+    #[inline]
     pub fn push<P: Pushable>(&mut self, key: &str, p: P) {
         self.builder.push_key(key);
         self.builder.push(p);
@@ -34,6 +35,7 @@ impl<'a> MapBuilder<'a> {
     /// Starts a nested vector which will be pushed onto this map
     /// with key `key`.
     /// This will panic if `key` contains internal nulls.
+    #[inline]
     pub fn start_vector(&mut self, key: &str) -> VectorBuilder {
         // Push the key that refers to this nested vector.
         self.builder.push_key(key);
@@ -47,6 +49,7 @@ impl<'a> MapBuilder<'a> {
     /// Starts a nested map which which will be pushed onto this map
     /// with key `key`.
     /// This will panic if `key` contains internal nulls.
+    #[inline]
     pub fn start_map(&mut self, key: &str) -> MapBuilder {
         // Push the key that refers to this nested vector.
         self.builder.push_key(key);
@@ -59,9 +62,11 @@ impl<'a> MapBuilder<'a> {
     }
     /// `end_map` sorts the map by key and writes it to the buffer. This happens anyway
     /// when the map builder is dropped.
+    #[inline]
     pub fn end_map(self) {}
 }
 impl<'a> Drop for MapBuilder<'a> {
+    #[inline]
     fn drop(&mut self) {
         self.builder.end_map_or_vector(true, self.start);
     }

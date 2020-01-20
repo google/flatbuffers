@@ -18,10 +18,7 @@ use quickcheck;
 #[test]
 fn store_13() {
     let buf = singleton(13i32);
-    assert_eq!(
-        &buf,
-        &[13, 4, 0] // TODO(cneo): Documentation says root width is 1. I don't belive it.
-    );
+    assert_eq!(&buf, &[13, 4, 1]);
 }
 #[test]
 fn store_2pow20() {
@@ -31,7 +28,7 @@ fn store_2pow20() {
         &[
             0, 0, 16, 0,  // 2^20 in LE bytes.
             1 << 2 | 2,  // Int 32bit
-            2  // Root width 32 bit
+            4  // Root width 32 bit
         ]
     );
 }
@@ -72,7 +69,7 @@ fn heterogenous_vector_of_string_because_width() {
     }
     expected.push(24); // Offset to Vector.
     expected.push(10 << 2 | 1);  // Vector, W16.
-    expected.push(0);  // Root width W8.
+    expected.push(1);  // Root width W8.
     assert_eq!(fxb.view(), expected.as_slice());
 }
 
@@ -93,7 +90,7 @@ fn store_vec_uint_16() {
             5, 0, 0, 1, 1, 1, 2, 1, 3, 1, 0, 0,  // Data
             10,             // Vector offset.
             12 << 2 | 1,    // (VectorUInt, W16 - referring to data).
-            0,              // Root width W8 - referring to vector.
+            1,              // Root width W8 - referring to vector.
         ]
     );
 }
@@ -103,7 +100,7 @@ quickcheck! {
         let fxb = singleton(x);
         let mut expected = x.to_le_bytes().to_vec();
         expected.push(3 << 2 | 2);  // Float W32.
-        expected.push(2); // Root width W32.
+        expected.push(4); // Root width W32.
         println!("{:?}: {:?} vs {:?} cmp {:?}", x, &fxb, &expected, fxb==expected);
         fxb == expected
     }
@@ -119,7 +116,7 @@ fn singleton_vector_uint_4_16bit() {
             4, 0, 16, 0, 64, 0, 0, 1,  // Data
             8,              // Vector offset.
             23 << 2 | 1,    // (VectorUInt, W16 - referring to data).
-            0,              // Root width W8 - referring to vector.
+            1,              // Root width W8 - referring to vector.
         ]
     );
 }
@@ -131,7 +128,7 @@ fn store_u64() {
         &[
             245, 255, 255, 255, 255, 255, 255, 255,  // max value - 10.
             2 << 2 | 3,                             // (UInt, W64)
-            3,                                      // Root width W64.
+            8,                                      // Root width W64.
         ]
     );
 }
@@ -150,7 +147,7 @@ fn vector_uint4() {
             2, 3, 5, 7,  // data
             4,           // Root (offset)
             23 << 2 | 0,  // Root type VectorUInt4, BitWidth::W8
-            0,           // Root bitwidth W8
+            1,           // Root bitwidth W8
         ]
     );
 }
@@ -177,7 +174,7 @@ fn nested_vector() {
             1 << 2 | 0,     // v[2]: (Int, W8)
             6,              // Root points to Root vector
             10 << 2 | 0,    // Root type and width (Vector, W8)
-            0,              // Root bit width
+            1,              // Root bytes
         ]
     )
 }
@@ -200,7 +197,7 @@ fn nested_vector_push_direct() {
             1 << 2 | 0,     // v[2]: (Int, W8)
             6,              // Root points to Root vector
             10 << 2 | 0,    // Root type and width (Vector, W8)
-            0,              // Root bit width
+            1,              // Root bytes
         ]
     )
 }
@@ -220,12 +217,12 @@ fn store_map_index_into_it() {
             b'b', b'a', b'r', b'\0',
             b'b', b'a', b'z', b'\0',
             3, 9, 6, 15,    // Keys vector (note "bar" < "baz" < "foo").
-            3, 0, 3,        // map prefix
+            3, 1, 3,        // map prefix
             33, 41, 17,     // values
             8, 8, 8,        // types (UInt, W8) ~ (2 << 2 | 0)
             6,              // Offset to map (root)
             9 << 2 | 0,     // Root type (map)
-            0,              // Root width
+            1,              // Root bytes
         ]
     );
 }
@@ -242,7 +239,7 @@ fn utf8_snowman() {
             0,      // extra null terminator.
             15,     // Offset to string start.
             5 << 2,  // String, W8
-            0       // Root width
+            1,       // Root bytes
         ]
     );
     let r = Reader::get_root(&buf).unwrap();
@@ -272,7 +269,7 @@ fn indirect_numbers() {
             2 << 2 | 0,  // (inline) UInt 8 bit
             8,  // Offset to Root.
             10 << 2 | 0,  // Vector 8 bit
-            0u8,  // 8 bit root
+            1,            // 1 byte root
         ].as_slice()
     )
 }
@@ -316,11 +313,11 @@ fn key_pool() {
             b'b', b'\0',
             b'c', b'\0',
             3, 7, 6, 5,  // Key vector 0
-            3, 0, 3, 42, 42, 42, 2<<2, 2<<2, 2<<2,  // Map 0.
+            3, 1, 3, 42, 42, 42, 2<<2, 2<<2, 2<<2,  // Map 0.
             3, 20, 19, 18,  // Key vector 1 (shares keys with key vector 0).
-            3, 0, 3, 42, 42, 42, 2<<2, 2<<2, 2<<2,  // Map 1.
+            3, 1, 3, 42, 42, 42, 2<<2, 2<<2, 2<<2,  // Map 1.
             2, 20, 8, 9<<2, 9<<2,  // Vector containing the maps.
-            4, 10 << 2, 0,  // Root.
+            4, 10 << 2, 1,  // Root.
         ].as_slice()
     );
 }

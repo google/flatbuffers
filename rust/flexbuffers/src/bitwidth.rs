@@ -33,6 +33,15 @@ impl BitWidth {
     pub fn n_bytes(self) -> usize {
         1 << self as usize
     }
+    pub fn from_nbytes(n: impl std::convert::Into<usize>) -> Option<Self> {
+        match n.into() {
+            1 => Some(W8),
+            2 => Some(W16),
+            4 => Some(W32),
+            8 => Some(W64),
+            _ => None,
+        }
+    }
 }
 
 impl Default for BitWidth {

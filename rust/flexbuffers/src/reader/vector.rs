@@ -38,9 +38,11 @@ impl<'de> VectorReader<'de> {
             Ok((ty, self.reader.width))
         } else {
             let types_addr = self.reader.address + self.length * self.reader.width.n_bytes();
-            // TODO: Can we confirm this won't OOB?
-            let packed = self.reader.buffer[types_addr + i];
-            unpack_type(packed)
+            self.reader
+                .buffer
+                .get(types_addr + i)
+                .ok_or(Error::FlexbufferOutOfBounds)
+                .and_then(|&t| unpack_type(t))
         }
     }
     /// Index into a flexbuffer vector. Any errors are defaulted to Null Readers.

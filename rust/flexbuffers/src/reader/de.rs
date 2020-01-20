@@ -250,7 +250,7 @@ mod tests {
     fn newtype_i8() {
         #[derive(Deserialize)]
         struct Foo(u8);
-        let data = [13, 4, 0];
+        let data = [13, 4, 1];
         let r = Reader::get_root(&data).unwrap();
         let foo = Foo::deserialize(r).unwrap();
         assert_eq!(foo.0, 13);
@@ -259,7 +259,7 @@ mod tests {
     fn newtype_str() {
         #[derive(Deserialize)]
         struct Foo<'a>(&'a str);
-        let data = [5, b'h', b'e', b'l', b'l', b'o', b'\0', 6, 5 << 2, 0];
+        let data = [5, b'h', b'e', b'l', b'l', b'o', b'\0', 6, 5 << 2, 1];
         let r = Reader::get_root(&data).unwrap();
         let foo = Foo::deserialize(r).unwrap();
         assert_eq!(foo.0, "hello");
@@ -273,7 +273,7 @@ mod tests {
             4, 0, 16, 0, 64, 0, 0, 1, // Data
             8,              // Vector offset.
             23 << 2 | 1,    // (VectorUInt4, W16 - referring to data).
-            0,              // Root width W8 - referring to vector.
+            1,              // Root width W8 - referring to vector.
         ];
         let r = Reader::get_root(&data).unwrap();
         let foo = Foo::deserialize(r).unwrap();
@@ -286,7 +286,7 @@ mod tests {
             1, 2, 3, 4, // The vector.
             4,          // Root data (offset).
             23 << 2,    // Root type: VectorUInt4, W8.
-            0,          // Root width: W8.
+            1,          // Root width: W8.
         ];
         let r = Reader::get_root(&data).unwrap();
         let foo = Foo::deserialize(r).unwrap();

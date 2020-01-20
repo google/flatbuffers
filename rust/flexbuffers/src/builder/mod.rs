@@ -296,7 +296,7 @@ fn store_root(buffer: &mut Vec<u8>, root: Value) {
     align(buffer, root_width);
     store_value(buffer, root, root_width);
     buffer.push(root.packed_type(root_width));
-    buffer.push(root_width as u8);
+    buffer.push(root_width.n_bytes() as u8);
 }
 
 pub enum StoreOption {
@@ -350,7 +350,7 @@ pub fn store_vector(buffer: &mut Vec<u8>, values: &[Value], opt: StoreOption) ->
     }
     // Write Prefix.
     if let StoreOption::Map(keys) = opt {
-        let key_width = Value::UInt(keys.width_or_child_width() as u64);
+        let key_width = Value::UInt(keys.width_or_child_width().n_bytes() as u64);
         store_value(buffer, keys, width);
         store_value(buffer, key_width, width);
     }

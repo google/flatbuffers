@@ -61,6 +61,8 @@ pub enum Error {
     Utf8Error,
     /// get_slice failed because the given data buffer is misaligned.
     AlignmentError,
+    InvalidRootWidth,
+    InvalidMapKeysVectorWidth,
 }
 
 pub trait ReadLE: crate::private::Sealed + std::marker::Sized {
@@ -155,7 +157,7 @@ impl<'de> Reader<'de> {
             return Err(Error::FlexbufferOutOfBounds);
         }
         // Last byte is the root width.
-        let (_, root_width) = unpack_type(buffer[end - 1])?;
+        let root_width = BitWidth::from_nbytes(buffer[end - 1]).ok_or(Error::InvalidRootWidth)?;
         // Second last byte is root type.
         let (fxb_type, width) = unpack_type(buffer[end - 2])?;
         // Location of root data. (BitWidth bits before root type)
@@ -269,7 +271,11 @@ impl<'de> Reader<'de> {
             return Err(Error::FlexbufferOutOfBounds);
         }
         let keys_offset_address = self.address - 3 * self.width.n_bytes();
-        let keys_width = unpack_type(self.buffer[self.address - 2 * self.width.n_bytes()])?.1;
+        let keys_width = {
+            let kw_addr = self.address - 2 * self.width.n_bytes();
+            let kw = read_usize(self.buffer, kw_addr, self.width);
+            BitWidth::from_nbytes(kw).ok_or(Error::InvalidMapKeysVectorWidth)
+        }?;
         Ok((keys_offset_address, keys_width))
     }
     pub fn get_map(&self) -> Result<MapReader<'de>, Error> {
@@ -673,7 +679,7 @@ mod tests {
         let s = &[
             4, // Deref out of bounds
             (FlexBufferType::Vector as u8) << 2 | BitWidth::W8 as u8,
-            BitWidth::W8 as u8,
+            1,
         ];
         assert!(Reader::get_root(s).is_err());
     }
@@ -683,7 +689,7 @@ mod tests {
             0,
             0,
             (FlexBufferType::IndirectUInt as u8) << 2 | BitWidth::W64 as u8,
-            BitWidth::W8 as u8,
+            1,
         ];
         // The risk of crashing is reading 8 bytes from index 0.
         assert_eq!(Reader::get_root(s).unwrap().as_u64(), 0);

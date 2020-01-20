@@ -537,14 +537,14 @@ mod tests {
         struct Foo;
         let mut s = FlexbufferSerializer::new();
         Foo.serialize(&mut s).unwrap();
-        assert_eq!(s.view(), &[0, 0, 0]);
+        assert_eq!(s.view(), &[0, 0, 1]);
     }
 
     #[test]
     fn i8() {
         let mut s = FlexbufferSerializer::new();
         13i8.serialize(&mut s).unwrap();
-        assert_eq!(s.view(), &[13, 4, 0]);
+        assert_eq!(s.view(), &[13, 4, 1]);
     }
     #[test]
     fn tuple_struct_i8() {
@@ -552,7 +552,7 @@ mod tests {
         struct Foo(i32);
         let mut s = FlexbufferSerializer::new();
         Foo(13).serialize(&mut s).unwrap();
-        assert_eq!(s.view(), &[13, 4, 0]);
+        assert_eq!(s.view(), &[13, 4, 1]);
     }
     #[test]
     fn tuple_tuple_struct_i8_is_inlined() {
@@ -562,6 +562,6 @@ mod tests {
         struct Bar(Foo);
         let mut s = FlexbufferSerializer::new();
         Bar(Foo(13)).serialize(&mut s).unwrap();
-        assert_eq!(s.view(), &[13, 4, 0]);
+        assert_eq!(s.view(), &[13, 4, 1]);
     }
 }
