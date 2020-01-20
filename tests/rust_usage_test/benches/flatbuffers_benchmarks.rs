@@ -33,6 +33,11 @@ pub mod include_test2_generated;
 mod monster_test_generated;
 pub use monster_test_generated::my_game;
 
+#[allow(dead_code, unused_imports)]
+#[path = "../../vtable_test/vtable_test_generated.rs"]
+mod vtable_test_generated;
+pub use vtable_test_generated::vtable_test;
+
 use flatbuffers::serialize::buffer::{Buffer, BumpaloBuffer};
 use flatbuffers::serialize::cache::{Cache, HashMapCache};
 use flatbuffers::{Flatbuffer, FlatbufferBuilder};
@@ -167,6 +172,18 @@ fn create_string_10(bench: &mut Bencher) {
         BumpaloBuffer::with_capacity(1 << 20),
         HashMapCache::default(),
     );
+    bench.iter(|| {
+        flatbuffer.new_message().create_string("foobarbaz").unwrap(); // zero-terminated -> 10 bytes
+    });
+
+    bench.bytes = 10;
+}
+
+fn create_string_10_no_reset(bench: &mut Bencher) {
+    let mut flatbuffer = Flatbuffer::new(
+        BumpaloBuffer::with_capacity(1 << 20),
+        HashMapCache::default(),
+    );
     let mut builder = flatbuffer.new_message();
     bench.iter(|| {
         builder.create_string("foobarbaz").unwrap(); // zero-terminated -> 10 bytes
@@ -268,6 +285,166 @@ fn create_byte_vector_100_optimal_no_reset(bench: &mut Bencher) {
     bench.bytes = v.len() as u64;
 }
 
+fn vtable_test_2tables(bench: &mut Bencher) {
+    let mut flatbuffer = Flatbuffer::new(
+        BumpaloBuffer::with_capacity(1 << 20),
+        HashMapCache::default(),
+    );
+
+    bench.iter(|| {
+        let mut builder = flatbuffer.new_message();
+        for _ in 0..1000 {
+            for x in 0..2 {
+                builder
+                    .create_table(&vtable_test::VtableTester {
+                        bit1: x & 1,
+                        bit2: x & 2,
+                        bit4: x & 4,
+                        bit8: x & 8,
+                        bit16: x & 16,
+                        bit32: x & 32,
+                        ..Default::default()
+                    })
+                    .unwrap();
+            }
+        }
+        let table = builder
+            .create_table(&vtable_test::VtableTester::default())
+            .unwrap();
+        builder.finish(table).unwrap();
+    });
+
+    bench.bytes = flatbuffer.last_message_size().unwrap() as u64;
+}
+
+fn vtable_test_10tables(bench: &mut Bencher) {
+    let mut flatbuffer = Flatbuffer::new(
+        BumpaloBuffer::with_capacity(1 << 20),
+        HashMapCache::default(),
+    );
+
+    bench.iter(|| {
+        let mut builder = flatbuffer.new_message();
+        for _ in 0..1000 {
+            for x in 0..10 {
+                builder
+                    .create_table(&vtable_test::VtableTester {
+                        bit1: x & 1,
+                        bit2: x & 2,
+                        bit4: x & 4,
+                        bit8: x & 8,
+                        bit16: x & 16,
+                        bit32: x & 32,
+                        ..Default::default()
+                    })
+                    .unwrap();
+            }
+        }
+        let table = builder
+            .create_table(&vtable_test::VtableTester::default())
+            .unwrap();
+        builder.finish(table).unwrap();
+    });
+
+    bench.bytes = flatbuffer.last_message_size().unwrap() as u64;
+}
+
+fn vtable_test_20tables(bench: &mut Bencher) {
+    let mut flatbuffer = Flatbuffer::new(
+        BumpaloBuffer::with_capacity(1 << 20),
+        HashMapCache::default(),
+    );
+
+    bench.iter(|| {
+        let mut builder = flatbuffer.new_message();
+        for _ in 0..1000 {
+            for x in 0..20 {
+                builder
+                    .create_table(&vtable_test::VtableTester {
+                        bit1: x & 1,
+                        bit2: x & 2,
+                        bit4: x & 4,
+                        bit8: x & 8,
+                        bit16: x & 16,
+                        bit32: x & 32,
+                        ..Default::default()
+                    })
+                    .unwrap();
+            }
+        }
+        let table = builder
+            .create_table(&vtable_test::VtableTester::default())
+            .unwrap();
+        builder.finish(table).unwrap();
+    });
+
+    bench.bytes = flatbuffer.last_message_size().unwrap() as u64;
+}
+
+fn vtable_test_30tables(bench: &mut Bencher) {
+    let mut flatbuffer = Flatbuffer::new(
+        BumpaloBuffer::with_capacity(1 << 20),
+        HashMapCache::default(),
+    );
+
+    bench.iter(|| {
+        let mut builder = flatbuffer.new_message();
+        for _ in 0..1000 {
+            for x in 0..30 {
+                builder
+                    .create_table(&vtable_test::VtableTester {
+                        bit1: x & 1,
+                        bit2: x & 2,
+                        bit4: x & 4,
+                        bit8: x & 8,
+                        bit16: x & 16,
+                        bit32: x & 32,
+                        ..Default::default()
+                    })
+                    .unwrap();
+            }
+        }
+        let table = builder
+            .create_table(&vtable_test::VtableTester::default())
+            .unwrap();
+        builder.finish(table).unwrap();
+    });
+
+    bench.bytes = flatbuffer.last_message_size().unwrap() as u64;
+}
+
+fn vtable_test_40tables(bench: &mut Bencher) {
+    let mut flatbuffer = Flatbuffer::new(
+        BumpaloBuffer::with_capacity(1 << 20),
+        HashMapCache::default(),
+    );
+
+    bench.iter(|| {
+        let mut builder = flatbuffer.new_message();
+        for _ in 0..1000 {
+            for x in 0..40 {
+                builder
+                    .create_table(&vtable_test::VtableTester {
+                        bit1: x & 1,
+                        bit2: x & 2,
+                        bit4: x & 4,
+                        bit8: x & 8,
+                        bit16: x & 16,
+                        bit32: x & 32,
+                        ..Default::default()
+                    })
+                    .unwrap();
+            }
+        }
+        let table = builder
+            .create_table(&vtable_test::VtableTester::default())
+            .unwrap();
+        builder.finish(table).unwrap();
+    });
+
+    bench.bytes = flatbuffer.last_message_size().unwrap() as u64;
+}
+
 benchmark_group!(
     benches,
     create_byte_vector_100_naive,
@@ -277,7 +454,13 @@ benchmark_group!(
     traverse_canonical_buffer,
     create_canonical_buffer_then_reset,
     create_string_10,
+    create_string_10_no_reset,
     create_string_100,
-    create_string_100_no_reset
+    create_string_100_no_reset,
+    vtable_test_2tables,
+    vtable_test_10tables,
+    vtable_test_20tables,
+    vtable_test_30tables,
+    vtable_test_40tables,
 );
 benchmark_main!(benches);

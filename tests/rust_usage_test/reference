@@ -1,0 +1,6 @@
+test create_byte_vector_100_naive       ... bench:         783 ns/iter (+/- 17) = 127 MB/s
+test create_byte_vector_100_optimal     ... bench:          28 ns/iter (+/- 1) = 3571 MB/s
+test create_canonical_buffer_then_reset ... bench:       1,027 ns/iter (+/- 53) = 296 MB/s
+test create_string_10                   ... bench:          27 ns/iter (+/- 1) = 370 MB/s
+test create_string_100                  ... bench:          34 ns/iter (+/- 0) = 2911 MB/s
+test traverse_canonical_buffer          ... bench:         130 ns/iter (+/- 1) = 2338 MB/s

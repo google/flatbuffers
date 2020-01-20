@@ -1,0 +1,15 @@
+namespace VtableTest;
+
+/// an example documentation comment: monster object
+table VtableTester {
+  bit1: uint8;
+  bit2: uint8;
+  bit4: uint8;
+  bit8: uint8;
+  bit16: uint8;
+  bit32: uint8;
+  bit64: uint8;
+  bit128: uint8;
+}
+
+root_type VtableTester;
