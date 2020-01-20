@@ -140,7 +140,7 @@ impl<'a> Builder {
         }
     }
     fn push_key(&mut self, key: &str) {
-        assert!(
+        debug_assert!(
             key.bytes().all(|b| b != b'\0'),
             "Keys must not have internal nulls."
         );
@@ -306,6 +306,7 @@ pub enum StoreOption {
 }
 /// Writes a Flexbuffer Vector or Map.
 /// StoreOption::Map(Keys) must be a Value::Key or this will panic.
+// #[inline(always)]
 pub fn store_vector(buffer: &mut Vec<u8>, values: &[Value], opt: StoreOption) -> Value {
     let (skip, stride) = match opt {
         StoreOption::Vector => (0, 1),

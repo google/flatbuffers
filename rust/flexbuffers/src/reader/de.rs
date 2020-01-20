@@ -19,13 +19,20 @@ use serde::de::{
     VariantAccess, Visitor,
 };
 
+/// Errors that may happen when deserializing a flexbuffer with serde.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct DeserializationError(String);
+pub enum DeserializationError {
+    Reader(Error),
+    Serde(String),
+}
 
 impl std::error::Error for DeserializationError {}
 impl std::fmt::Display for DeserializationError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
-        write!(f, "FlexbufferDeserializationError: {}", self.0)
+        match self {
+            Self::Reader(r) => write!(f, "Flexbuffer Read Error: {:?}", r),
+            Self::Serde(s) => write!(f, "Serde Error: {}", s),
+        }
     }
 }
 impl serde::de::Error for DeserializationError {
@@ -33,12 +40,12 @@ impl serde::de::Error for DeserializationError {
     where
         T: std::fmt::Display,
     {
-        Self(format!("Serde error: {}", msg))
+        Self::Serde(format!("{}", msg))
     }
 }
 impl std::convert::From<super::Error> for DeserializationError {
     fn from(e: super::Error) -> Self {
-        Self(format!("{:?}", e))
+        Self::Reader(e)
     }
 }
 

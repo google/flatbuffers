@@ -72,8 +72,8 @@ impl FlexbufferSerializer {
     }
 }
 
-// TODO: What actual errors will we have?
 #[derive(Debug)]
+/// Errors that may happen with Serde.
 pub enum Error {
     /// Only `str` and `String` can be serialized as keys in serde maps.
     KeyMustBeString,

@@ -29,7 +29,7 @@ pub use map::{MapReader, MapReaderIndexer};
 pub use vector::VectorReader;
 
 /// All the possible errors when reading a flexbuffer.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Error {
     /// One of the following data errors occured:
     ///

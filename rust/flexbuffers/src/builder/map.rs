@@ -14,10 +14,13 @@
 
 use super::{Builder, Pushable, Value, VectorBuilder};
 
-/// Builds a Flexbuffer map. When this is dropped, or `end` is called, the map is
+/// Builds a Flexbuffer map. When this is dropped, or `end_map` is called, the map is
 /// commited to the buffer. If this map is the root of the flexbuffer then the
 /// root is written and the flexbuffer is complete.
-/// WARNING: Duplicate keys results in a panic.
+/// ## Panics:
+/// -  Duplicate keys results in a panic.
+/// -  Keys with internal nulls results in a panic in debug mode and result in silent truncaction
+///    in release mode.
 pub struct MapBuilder<'a> {
     pub(super) builder: &'a mut Builder,
     // If the root is this map then start == None. Otherwise start is the
@@ -26,7 +29,7 @@ pub struct MapBuilder<'a> {
 }
 impl<'a> MapBuilder<'a> {
     /// Push `p` onto this map with key `key`.
-    /// This will panic if `key` contains internal nulls.
+    /// This will panic (in debug mode) if `key` contains internal nulls.
     #[inline]
     pub fn push<P: Pushable>(&mut self, key: &str, p: P) {
         self.builder.push_key(key);
@@ -34,7 +37,7 @@ impl<'a> MapBuilder<'a> {
     }
     /// Starts a nested vector which will be pushed onto this map
     /// with key `key`.
-    /// This will panic if `key` contains internal nulls.
+    /// This will panic (in debug mode) if `key` contains internal nulls.
     #[inline]
     pub fn start_vector(&mut self, key: &str) -> VectorBuilder {
         // Push the key that refers to this nested vector.
@@ -48,7 +51,7 @@ impl<'a> MapBuilder<'a> {
     }
     /// Starts a nested map which which will be pushed onto this map
     /// with key `key`.
-    /// This will panic if `key` contains internal nulls.
+    /// This will panic (in debug mode) if `key` contains internal nulls.
     #[inline]
     pub fn start_map(&mut self, key: &str) -> MapBuilder {
         // Push the key that refers to this nested vector.

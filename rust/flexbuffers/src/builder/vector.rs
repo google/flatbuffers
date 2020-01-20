@@ -14,7 +14,7 @@
 
 use super::{Builder, MapBuilder, Pushable};
 
-/// Builds a Flexbuffer vector. When this is dropped, or `end` is called, the vector is
+/// Builds a Flexbuffer vector. When this is dropped, or `end_vector` is called, the vector is
 /// commited to the buffer. If this vector is the root of the flexbuffer then the
 /// root is written and the flexbuffer is complete. The FlexBufferType of this vector
 /// is determined by the pushed values when this is dropped.

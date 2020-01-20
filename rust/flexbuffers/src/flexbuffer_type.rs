@@ -15,12 +15,14 @@
 /// Represents all the valid types in a flexbuffer. Flexbuffers supports
 /// heterogenous maps, heterogenous vectors, typed vectors, and fixed length
 /// typed vectors for some lengths and types. Rust types are converted into
-/// Flexbuffers via the `Pushable` trait.
+/// Flexbuffers via the [Pushable](trait.Pushable.html) trait.
 ///
+/// For exact details see the [internals document](
+/// https://google.github.io/flatbuffers/flatbuffers_internals.html)
+///
+/// ### Notes:
 /// * In the binary format, Each element of a `Map` or (heterogenous) `Vector`
-/// is stored with 1 byte describing its FlexBufferType and BitWidth. They also
-/// both have store a variable sized uint describing the length and `Map`s
-/// store a reference to a `VectorKey`
+/// is stored with a byte describing its FlexBufferType and BitWidth.
 ///
 /// * Typed vectors do not store this extra type information and fixed length
 /// typed vectors do not store length. Whether a vector is stored as a typed
@@ -30,9 +32,7 @@
 /// * Indirect numbers are stored as an offset instead of inline. Using
 /// indirect numbers instead of their inline counterparts in maps and typed
 /// vectors can reduce the minimum element width and therefore bytes used.
-///
-/// For exact details see the [internals document](
-/// https://google.github.io/flatbuffers/flatbuffers_internals.html)
+
 #[repr(u8)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, num_enum::TryFromPrimitive)]
 pub enum FlexBufferType {

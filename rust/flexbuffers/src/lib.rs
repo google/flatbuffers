@@ -62,11 +62,13 @@ mod private {
     pub trait Sealed {}
 }
 
+/// Serialize as a flexbuffer into a vector.
 pub fn to_vec<T: Serialize>(x: T) -> Result<Vec<u8>, SerializationError> {
     let mut s = FlexbufferSerializer::new();
-    x.serialize(&mut s).unwrap(); // TODO(cneo): DO NOT SUBMIT unwrap.
+    x.serialize(&mut s)?;
     Ok(s.take_buffer())
 }
+/// Deserialize a type from a flexbuffer.
 pub fn from_vec<'de, T: Deserialize<'de>>(buf: &'de [u8]) -> Result<T, DeserializationError> {
     let r = Reader::get_root(buf)?;
     T::deserialize(r)

@@ -16,14 +16,14 @@ use super::{unpack_type, Error, Reader, ReaderIterator};
 use crate::{BitWidth, FlexBufferType};
 
 #[derive(Default, Clone)]
+/// Allows indexing on any flexbuffer vector type, (heterogenous vector, typed vector, or fixed
+/// length typed vector).
 pub struct VectorReader<'de> {
     pub(super) reader: Reader<'de>,
     // Cache the length because read_usize can be slow.
     pub(super) length: usize,
 }
 
-/// Allows indexing on any flexbuffer vector type, (heterogenous vector, typed vector, or fixed
-/// length typed vector).
 impl<'de> VectorReader<'de> {
     /// Returns the number of elements in the vector.
     pub fn len(&self) -> usize {
