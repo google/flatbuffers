@@ -5,7 +5,7 @@ authors = ["Robert Winslow <hello@rwinslow.com>", "FlatBuffers Maintainers"]
 edition = "2018"
 
 [dependencies]
-flatbuffers = { path = "../../rust/flatbuffers", features = ["std", "uluru", "bumpalo"] }
+flatbuffers = { path = "../../rust/flatbuffers", features = ["hashbrown", "uluru", "bumpalo", "std"] }
 
 [[bin]]
 name = "monster_example"

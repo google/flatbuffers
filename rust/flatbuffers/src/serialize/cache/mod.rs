@@ -16,16 +16,16 @@
 
 use crate::serialize::offsets::VtableOffset;
 
-#[cfg(feature = "std")]
-mod hashmap;
+#[cfg(feature = "hashbrown")]
+mod hashbrown;
 #[cfg(feature = "lru-cache")]
 mod lru_cache;
 mod noop;
 #[cfg(feature = "uluru")]
 mod uluru;
 
-#[cfg(feature = "std")]
-pub use crate::serialize::cache::hashmap::HashMapCache;
+#[cfg(feature = "hashbrown")]
+pub use crate::serialize::cache::hashbrown::HashMapCache;
 #[cfg(feature = "lru-cache")]
 pub use crate::serialize::cache::lru_cache::LruCache;
 pub use crate::serialize::cache::noop::NoopCache;

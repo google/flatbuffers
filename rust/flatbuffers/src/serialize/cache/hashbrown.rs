@@ -18,8 +18,7 @@ use crate::serialize::{
     cache::{Cache, CacheAllocator},
     offsets::VtableOffset,
 };
-use static_assertions::assert_not_impl_any;
-use std::collections::HashMap;
+use hashbrown::HashMap;
 
 type Map<'allocator> = HashMap<&'allocator [u8], VtableOffset>;
 
@@ -47,7 +46,8 @@ pub struct HashMapAllocator<'allocator, 'cache> {
     map: Map<'allocator>,
 }
 
-assert_not_impl_any!(HashMapAllocator<'static, 'static>: std::panic::UnwindSafe);
+#[cfg(feature = "std")]
+static_assertions::assert_not_impl_any!(HashMapAllocator<'static, 'static>: std::panic::UnwindSafe);
 
 impl<'allocator, 'cache> Cache<'allocator, 'cache> for HashMapCache {
     type Allocator = HashMapAllocator<'allocator, 'cache>;
