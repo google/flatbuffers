@@ -20,10 +20,10 @@ use crate::{
         buffer::{Buffer, BufferAllocator},
         cache::{Cache, CacheAllocator},
         offsets::{Offset, RawOffset, VtableOffset},
-        traits::{FlatbufferPrimitive, FlatbufferTable},
+        traits::{FlatbufferPrimitive, FlatbufferTable, MemcpySafe},
     },
 };
-use core::{borrow::Borrow, convert::TryInto, mem::MaybeUninit, num::NonZeroUsize};
+use core::{borrow::Borrow, convert::TryInto, mem, num::NonZeroUsize};
 
 pub struct FlatbufferBuilder<'a, B, C>
 where
@@ -80,6 +80,14 @@ where
         T: FlatbufferPrimitive,
     {
         self.writer.create_vector_reverse_iter(slice.iter().rev())
+    }
+
+    #[inline]
+    pub fn create_vector_direct<T>(&mut self, slice: &[T]) -> Result<Offset<[T]>, OutOfBufferSpace>
+    where
+        T: MemcpySafe,
+    {
+        self.writer.create_vector_direct(slice)
     }
 
     #[inline]
@@ -175,17 +183,28 @@ where
 
     #[inline]
     fn create_string(&mut self, s: &str) -> Result<Offset<str>, OutOfBufferSpace> {
-        let s = s.as_bytes();
-        let len = s.len();
-        let len_u32: u32 = s.len().try_into().map_err(|_| OutOfBufferSpace)?;
-
         // Write at least one null byte
         self.write_raw_slice(&[0])?;
-        // But potentially more, because we need to have the count field be 4-byte
-        // aligned
-        self.align_before_write(len, 3)?;
 
-        self.write_raw_slice(s)?;
+        self.create_vector_direct(s.as_bytes())?;
+        Ok(self.make_offset_at_current_position())
+    }
+
+    #[inline]
+    fn create_vector_direct<T: MemcpySafe>(
+        &mut self,
+        s: &[T],
+    ) -> Result<Offset<[T]>, OutOfBufferSpace> {
+        debug_assert_eq!(T::SIZE, mem::size_of::<T>());
+        let byte_len = s
+            .len()
+            .checked_mul(mem::size_of::<T>())
+            .ok_or(OutOfBufferSpace)?;
+        let len_u32: u32 = s.len().try_into().map_err(|_| OutOfBufferSpace)?;
+
+        self.align_before_write(byte_len, T::ALIGNMENT.max(4) - 1)?;
+        let byte_slice = unsafe { core::slice::from_raw_parts(s.as_ptr() as *const u8, byte_len) };
+        self.write_raw_slice(byte_slice)?;
         self.write_raw_slice(&len_u32.to_le_bytes())?;
 
         debug_assert_eq!(self.current_alignment_offset % 4, 0);
@@ -206,7 +225,7 @@ where
         // `&'allocated [MaybeUinit<u8>]` to `&'allocated [u8]`, which is also safe,
         // since we just initialized it
         unsafe {
-            let slice: &'allocator mut [MaybeUninit<u8>] =
+            let slice: &'allocator mut [mem::MaybeUninit<u8>] =
                 self.allocate_uninitialized(data.len())?;
 
             // This can safely be removed, but we keep it to make sure that the
@@ -225,7 +244,7 @@ where
     unsafe fn allocate_uninitialized(
         &mut self,
         size: usize,
-    ) -> Result<&'allocator mut [MaybeUninit<u8>], OutOfBufferSpace> {
+    ) -> Result<&'allocator mut [mem::MaybeUninit<u8>], OutOfBufferSpace> {
         let new_bytes_written = self
             .bytes_written
             .checked_add(size)
@@ -363,7 +382,8 @@ where
         // The allocate_uninitialized function requires that we immediately initialize
         // the slice which we do
         unsafe {
-            let slice: &'allocator mut [MaybeUninit<u8>] = self.allocate_uninitialized(count)?;
+            let slice: &'allocator mut [mem::MaybeUninit<u8>] =
+                self.allocate_uninitialized(count)?;
 
             // This can safely be removed, but we keep it to make sure that the
             // compiler optimizes out a panic. If we turn it into a assert_eq, then

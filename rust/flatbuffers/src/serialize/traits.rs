@@ -82,6 +82,15 @@ pub unsafe trait FlatbufferPrimitive {
     unsafe fn serialize(&self, buffer: *mut u8, offset: RawOffset);
 }
 
+/// Marker trait for primitive flatbuffer types for which it is safe to
+/// simply mempy the value into the target buffer.
+///
+/// Note that this depends on the endianness of the host machine, so any
+/// code using these functions might not be portable.
+///
+/// It is used as a trait bound for some methods on the `FlatbufferBuilder`.
+pub unsafe trait MemcpySafe: FlatbufferPrimitive {}
+
 macro_rules! number_impl {
     ($typ:ty) => {
         unsafe impl FlatbufferPrimitive for $typ {
@@ -93,6 +102,9 @@ macro_rules! number_impl {
                 buffer.copy_from(self.to_le_bytes().as_ptr(), Self::SIZE);
             }
         }
+
+        #[cfg(target_endian = "little")]
+        unsafe impl MemcpySafe for $typ {}
     };
 }
 
@@ -109,6 +121,12 @@ number_impl!(i64);
 number_impl!(f32);
 number_impl!(f64);
 
+#[cfg(not(target_endian = "little"))]
+unsafe impl MemcpySafe for u8 {}
+
+#[cfg(not(target_endian = "little"))]
+unsafe impl MemcpySafe for u8 {}
+
 unsafe impl FlatbufferPrimitive for bool {
     const SIZE: usize = 1;
     const ALIGNMENT: usize = 1;
@@ -119,12 +137,4 @@ unsafe impl FlatbufferPrimitive for bool {
     }
 }
 
-unsafe impl<'a, T: FlatbufferPrimitive> FlatbufferPrimitive for &'a T {
-    const SIZE: usize = T::SIZE;
-    const ALIGNMENT: usize = T::ALIGNMENT;
-
-    #[inline(always)]
-    unsafe fn serialize(&self, buffer: *mut u8, offset: RawOffset) {
-        T::serialize(*self, buffer, offset);
-    }
-}
+unsafe impl MemcpySafe for bool {}
