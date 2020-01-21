@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 #![allow(deprecated)]
-/// Represents all the valid types in a flexbuffer. Flexbuffers supports
+/// Represents all the valid types in a flexbuffer.
+///
+/// Flexbuffers supports
 /// heterogenous maps, heterogenous vectors, typed vectors, and fixed length
 /// typed vectors for some lengths and types. Rust types are converted into
 /// Flexbuffers via the [Pushable](trait.Pushable.html) trait.

@@ -96,9 +96,10 @@ macro_rules! as_default {
     };
 }
 
-/// `Reader`s allow access to data stored in a Flexbuffer. Each reader represents a single address
-/// in the buffer so data is read lazily. Start a reader by calling `get_root` on your flexbuffer
-/// `&[u8]`. 
+/// `Reader`s allow access to data stored in a Flexbuffer.
+///
+/// Each reader represents a single address in the buffer so data is read lazily. Start a reader
+/// by calling `get_root` on your flexbuffer `&[u8]`.
 ///
 /// - The `get_T` methods return a `Result<T, Error>`. They return an OK value if and only if the
 /// flexbuffer type matches `T`. This is analogous to the behavior of Rust's json library, though

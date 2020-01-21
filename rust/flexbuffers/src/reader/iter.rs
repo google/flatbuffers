@@ -16,11 +16,12 @@ use super::{Reader, VectorReader};
 use std::iter::{DoubleEndedIterator, ExactSizeIterator, FusedIterator, Iterator};
 
 /// Iterates over a flexbuffer vector, typed vector, or map. Yields [Readers](struct.Reader.html).
+///
 /// If any error occurs, the Reader is defaulted to a Null flexbuffer Reader.
 pub struct ReaderIterator<'de> {
     pub(super) reader: VectorReader<'de>,
     pub(super) front: usize,
-    end: usize, // TODO redundant?
+    end: usize,
 }
 impl<'de> ReaderIterator<'de> {
     pub(super) fn new(reader: VectorReader<'de>) -> Self {

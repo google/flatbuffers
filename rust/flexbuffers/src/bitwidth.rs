@@ -15,8 +15,9 @@
 use crate::bitwidth::BitWidth::*;
 use std::slice::Iter;
 
-/// This represents the size of Flexbuffers data. For numbers the bitwidth refers to
-/// precision. Flexbuffers automatically compresses numbers to the smallest possible width
+/// Represents the size of Flexbuffers data.
+///
+/// Flexbuffers automatically compresses numbers to the smallest possible width
 /// (`250u64` is stored as `250u8`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, num_enum::TryFromPrimitive)]
 #[repr(u8)]

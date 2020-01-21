@@ -20,8 +20,8 @@
 //!
 //! * [See the examples for usage.](https://github.com/CasperN/flexbuffers/tree/master/examples)
 //!
-//! This rust implementation is in progress and breaking API changes may happen between minor
-//! version changes.
+//! This rust implementation is in progress and, until the 1.0 release, breaking API changes may
+/// happen between minor versions.
 // TODO(cneo): serde stuff are behind a default-on feature flag
 //             Reader to Json is behind a default-off feature flag
 //             Serializable structs are Pushable
