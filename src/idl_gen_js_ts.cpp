@@ -600,6 +600,10 @@ class JsTsGenerator : public BaseGenerator {
     }
   }
 
+  std::string GenerateNewExpression(const std::string &object_name) {
+    return "new " + object_name + (lang_.language == IDLOptions::kTs ? "()" : "");
+  }
+
   void GenerateRootAccessor(StructDef &struct_def, std::string *code_ptr,
                             std::string &code, std::string &object_name,
                             bool size_prefixed) {
@@ -619,7 +623,10 @@ class JsTsGenerator : public BaseGenerator {
                 "Root" + Verbose(struct_def, "As");
         code += " = function(bb, obj) {\n";
       }
-      code += "  return (obj || new " + object_name;
+      if (size_prefixed) {
+        code += "  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);\n";
+      }
+      code += "  return (obj || " + GenerateNewExpression(object_name);
       code += ").__init(bb.readInt32(bb.position()) + bb.position(), bb);\n";
       code += "};\n\n";
     }
@@ -858,12 +865,12 @@ class JsTsGenerator : public BaseGenerator {
             }
 
             if (struct_def.fixed) {
-              code += "  return (obj || new " + type;
+              code += "  return (obj || " + GenerateNewExpression(type);
               code += ").__init(this.bb_pos";
               code +=
                   MaybeAdd(field.value.offset) + ", " + GenBBAccess() + ");\n";
             } else {
-              code += offset_prefix + "(obj || new " + type + ").__init(";
+              code += offset_prefix + "(obj || " + GenerateNewExpression(type) + ").__init(";
               code += field.value.type.struct_def->fixed
                           ? "this.bb_pos + offset"
                           : GenBBAccess() + ".__indirect(this.bb_pos + offset)";
@@ -945,7 +952,7 @@ class JsTsGenerator : public BaseGenerator {
             }
 
             if (vectortype.base_type == BASE_TYPE_STRUCT) {
-              code += offset_prefix + "(obj || new " + vectortypename;
+              code += offset_prefix + "(obj || " + GenerateNewExpression(vectortypename);
               code += ").__init(";
               code += vectortype.struct_def->fixed
                           ? index
