@@ -341,7 +341,7 @@ fn store_u64() {
 }
 #[test]
 fn store_indirects() {
-    let mut b = Builder::new();
+    let mut b = Builder::default();
     let mut v = b.start_vector();
     v.push(IndirectInt(-42));
     v.push(IndirectUInt(9000));

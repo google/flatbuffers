@@ -18,7 +18,7 @@ use flexbuffers::{BitWidth, Builder, Reader, ReaderError};
 
 fn main() {
     // Create a new Flexbuffer builder.
-    let mut builder = Builder::new();
+    let mut builder = Builder::default();
 
     // The root of the builder can be a singleton, map or vector.
     // Our monster will be represented with a map.

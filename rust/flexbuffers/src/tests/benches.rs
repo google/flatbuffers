@@ -175,7 +175,7 @@ fn hundred_maps(b: &mut Bencher) {
 }
 #[bench]
 fn hundred_maps_pooled(b: &mut Bencher) {
-    let mut builder = Builder::new();
+    let mut builder = Builder::default();
     let mut n = 0;
     let mut go = || {
         let mut v = builder.start_vector();
@@ -219,7 +219,7 @@ fn make_monster(mut monster: MapBuilder) {
 }
 #[bench]
 fn serialize_monsters(b: &mut Bencher) {
-    let mut builder = Builder::new();
+    let mut builder = Builder::default();
     let mut n = 0;
     let mut go = || {
         let mut monsters = builder.start_vector();
@@ -263,7 +263,7 @@ fn validate_monster(r: MapReader) {
 }
 #[bench]
 fn read_monsters(b: &mut Bencher) {
-    let mut builder = Builder::new();
+    let mut builder = Builder::default();
     let mut monsters = builder.start_vector();
     for _ in 0..100 {
         make_monster(monsters.start_map());

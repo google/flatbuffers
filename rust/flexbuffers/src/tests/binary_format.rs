@@ -296,7 +296,7 @@ fn indirect_2p5x_smaller() {
 }
 #[test]
 fn key_pool() {
-    let mut builder = Builder::new();
+    let mut builder = Builder::default();
     let mut vector = builder.start_vector();
     for _ in 0..2 {
         let mut m = vector.start_map();

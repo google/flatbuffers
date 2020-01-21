@@ -96,7 +96,7 @@ fn bench(name: &str, n: usize, mut go: impl (FnMut() -> ())) {
 // This seems to give slower results than the version in benches...
 // Its probably a higher fidelity profile though.
 fn main() {
-    let mut b = Builder::new();
+    let mut b = Builder::default();
     let ser = || {
         let mut v = b.start_vector();
         for _ in 0..100 {

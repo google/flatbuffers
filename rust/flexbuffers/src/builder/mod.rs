@@ -75,6 +75,31 @@ macro_rules! push_indirect {
         }
     }
 }
+
+bitflags! {
+    /// Options for sharing data within a flexbuffer. These increase serialization time but
+    /// decrease the size of the resulting buffer. By default, `SHARE_KEYS`. You may wish to turn
+    /// on `SHARE_STRINGS` if you know your data has many duplicate strings or `SHARE_KEY_VECTORS`
+    /// if your data has many maps with identical keys.
+    ///
+    /// ## Not Yet Implemented
+    /// - `SHARE_STRINGS`
+    /// - `SHARE_KEY_VECTORS`
+    pub struct BuilderOptions: u8 {
+        const SHARE_NONE = 0;
+        const SHARE_KEYS = 1;
+        const SHARE_STRINGS = 2;
+        const SHARE_KEYS_AND_STRINGS = 3;
+        const SHARE_KEY_VECTORS = 4;
+        const SHARE_ALL = 7;
+    }
+}
+impl Default for BuilderOptions {
+    fn default() -> Self {
+        Self::SHARE_KEYS
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 // Address of a Key inside of the buffer.
 struct CachedKey(usize);
@@ -94,10 +119,6 @@ struct CachedKey(usize);
 /// These functions reset and overwrite the Builder which means, while there are no
 /// active `MapBuilder` or `VectorBuilder`, the internal buffer is empty or contains a
 /// finished Flexbuffer. The internal buffer is accessed with `view`.
-///
-/// The default builder interns keys. In the future, there should be string interning,
-/// and potentially key-vector interning.
-// TODO(cneo): Stablize options before 1.0.
 #[derive(Debug, Clone)]
 pub struct Builder {
     buffer: Vec<u8>,
@@ -106,18 +127,23 @@ pub struct Builder {
 }
 impl Default for Builder {
     fn default() -> Self {
-        Builder {
-            key_pool: Some(Vec::new()),
-            values: Vec::new(),
-            buffer: Vec::new(),
-        }
+        let opts = Default::default();
+        Builder::new(opts)
     }
 }
 
 impl<'a> Builder {
-    pub fn new() -> Self {
-        // TODO(cneo): Give people initialization options.
-        Self::default()
+    pub fn new(opts: BuilderOptions) -> Self {
+        let key_pool = if opts.contains(BuilderOptions::SHARE_KEYS) {
+            Some(vec![])
+        } else {
+            None
+        };
+        Builder {
+            key_pool,
+            values: Vec::new(),
+            buffer: Vec::new(),
+        }
     }
     /// Shows the internal flexbuffer. It will either be empty or populated with the most
     /// recently built flexbuffer.
@@ -283,7 +309,7 @@ impl<'a> Builder {
 
 /// Builds a Flexbuffer with the single pushed value as the root.
 pub fn singleton<P: Pushable>(p: P) -> Vec<u8> {
-    let mut b = Builder::new();
+    let mut b = Builder::default();
     b.build_singleton(p);
     let Builder { buffer, .. } = b;
     buffer

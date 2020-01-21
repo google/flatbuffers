@@ -105,7 +105,7 @@ fn main() {
     let start_up = current_allocs();
 
     // Let's build a flexbuffer from a new (cold) flexbuffer builder.
-    let mut builder = Builder::new();
+    let mut builder = Builder::default();
     make_monster(builder.start_map());
     let after_warmup = current_allocs();
 

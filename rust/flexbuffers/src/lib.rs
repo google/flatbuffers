@@ -27,6 +27,8 @@
 //             Serializable structs are Pushable
 //             Serde with maps - field names and type names.
 
+#[macro_use]
+extern crate bitflags;
 extern crate byteorder;
 #[cfg(test)]
 #[macro_use]
@@ -52,7 +54,9 @@ mod flexbuffer_type;
 mod reader;
 pub use bitwidth::BitWidth;
 pub use builder::Error as SerializationError;
-pub use builder::{singleton, Builder, FlexbufferSerializer, MapBuilder, Pushable, VectorBuilder};
+pub use builder::{
+    singleton, Builder, BuilderOptions, FlexbufferSerializer, MapBuilder, Pushable, VectorBuilder,
+};
 pub use flexbuffer_type::FlexBufferType;
 pub use reader::Error as ReaderError;
 pub use reader::{DeserializationError, MapReader, Reader, ReaderIterator, VectorReader};
