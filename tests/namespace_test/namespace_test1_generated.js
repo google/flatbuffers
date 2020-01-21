@@ -71,6 +71,7 @@ NamespaceA.NamespaceB.TableInNestedNS.getRootAsTableInNestedNS = function(bb, ob
  * @returns {NamespaceA.NamespaceB.TableInNestedNS}
  */
 NamespaceA.NamespaceB.TableInNestedNS.getSizePrefixedRootAsTableInNestedNS = function(bb, obj) {
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
   return (obj || new NamespaceA.NamespaceB.TableInNestedNS).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 

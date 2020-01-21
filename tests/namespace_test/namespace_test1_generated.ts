@@ -35,7 +35,7 @@ __init(i:number, bb:flatbuffers.ByteBuffer):TableInNestedNS {
  * @returns TableInNestedNS
  */
 static getRootAsTableInNestedNS(bb:flatbuffers.ByteBuffer, obj?:TableInNestedNS):TableInNestedNS {
-  return (obj || new TableInNestedNS).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  return (obj || new TableInNestedNS()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
 /**
@@ -44,7 +44,8 @@ static getRootAsTableInNestedNS(bb:flatbuffers.ByteBuffer, obj?:TableInNestedNS)
  * @returns TableInNestedNS
  */
 static getSizePrefixedRootAsTableInNestedNS(bb:flatbuffers.ByteBuffer, obj?:TableInNestedNS):TableInNestedNS {
-  return (obj || new TableInNestedNS).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new TableInNestedNS()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
 /**
