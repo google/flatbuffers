@@ -14,11 +14,14 @@
 
 use super::{Builder, Pushable, Value, VectorBuilder};
 
-/// Builds a Flexbuffer map. When this is dropped, or `end_map` is called, the map is
-/// commited to the buffer. If this map is the root of the flexbuffer then the
+/// Builds a Flexbuffer map, returned by a [Builder](struct.Builder.html).
+///
+/// ## Side effect when dropped:
+/// When this is dropped, or `end_map` is called, the map is
+/// commited to the buffer. If this map is the root of the flexbuffer, then the
 /// root is written and the flexbuffer is complete.
 /// ## Panics:
-/// -  Duplicate keys results in a panic.
+/// -  Duplicate keys will result in a panic in both debug and release mode.
 /// -  Keys with internal nulls results in a panic in debug mode and result in silent truncaction
 ///    in release mode.
 pub struct MapBuilder<'a> {
@@ -35,8 +38,9 @@ impl<'a> MapBuilder<'a> {
         self.builder.push_key(key);
         self.builder.push(p);
     }
-    /// Starts a nested vector which will be pushed onto this map
-    /// with key `key`.
+    /// Starts a nested vector that will be pushed onto this map
+    /// with key `key` when it is dropped.
+    ///
     /// This will panic (in debug mode) if `key` contains internal nulls.
     #[inline]
     pub fn start_vector(&mut self, key: &str) -> VectorBuilder {
@@ -49,8 +53,9 @@ impl<'a> MapBuilder<'a> {
             start,
         }
     }
-    /// Starts a nested map which which will be pushed onto this map
-    /// with key `key`.
+    /// Starts a nested map which that will be pushed onto this map
+    /// with key `key` when it is dropped.
+    ///
     /// This will panic (in debug mode) if `key` contains internal nulls.
     #[inline]
     pub fn start_map(&mut self, key: &str) -> MapBuilder {

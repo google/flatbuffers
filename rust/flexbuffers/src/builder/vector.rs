@@ -14,10 +14,14 @@
 
 use super::{Builder, MapBuilder, Pushable};
 
-/// Builds a Flexbuffer vector. When this is dropped, or `end_vector` is called, the vector is
-/// commited to the buffer. If this vector is the root of the flexbuffer then the
+/// Builds a Flexbuffer vector, returned by a [Builder](struct.Builder.html).
+///
+/// ## Side effect when dropped:
+/// When this is dropped, or `end_vector` is called, the vector is
+/// commited to the buffer. If this vector is the root of the flexbuffer, then the
 /// root is written and the flexbuffer is complete. The FlexBufferType of this vector
-/// is determined by the pushed values when this is dropped.
+/// is determined by the pushed values when this is dropped. The most compact vector type is
+/// automatically chosen.
 pub struct VectorBuilder<'a> {
     pub(crate) builder: &'a mut Builder,
     // If the root is this vector then start == None. Otherwise start is the
@@ -30,7 +34,7 @@ impl<'a> VectorBuilder<'a> {
     pub fn push<P: Pushable>(&mut self, p: P) {
         self.builder.push(p);
     }
-    /// Starts a nested vector which is pushed onto this vector when dropped.
+    /// Starts a nested vector that will be pushed onto this vector when it is dropped.
     #[inline]
     pub fn start_vector(&mut self) -> VectorBuilder {
         let start = Some(self.builder.values.len());
@@ -39,7 +43,7 @@ impl<'a> VectorBuilder<'a> {
             start,
         }
     }
-    /// Starts a nested map which is pushed onto this vector when dropped.
+    /// Starts a nested map that will be pushed onto this vector when it is dropped.
     #[inline]
     pub fn start_map(&mut self) -> MapBuilder {
         let start = Some(self.builder.values.len());

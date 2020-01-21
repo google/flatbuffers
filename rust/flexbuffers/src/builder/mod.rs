@@ -77,10 +77,12 @@ macro_rules! push_indirect {
 }
 
 bitflags! {
-    /// Options for sharing data within a flexbuffer. These increase serialization time but
-    /// decrease the size of the resulting buffer. By default, `SHARE_KEYS`. You may wish to turn
-    /// on `SHARE_STRINGS` if you know your data has many duplicate strings or `SHARE_KEY_VECTORS`
-    /// if your data has many maps with identical keys.
+    /// Options for sharing data within a flexbuffer.
+    ///
+    /// These increase serialization time but decrease the size of the resulting buffer. By
+    /// default, `SHARE_KEYS`. You may wish to turn on `SHARE_STRINGS` if you know your data has
+    /// many duplicate strings or `SHARE_KEY_VECTORS` if your data has many maps with identical
+    /// keys.
     ///
     /// ## Not Yet Implemented
     /// - `SHARE_STRINGS`

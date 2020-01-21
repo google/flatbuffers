@@ -18,6 +18,10 @@ use crate::{BitWidth, FlexBufferType};
 #[derive(Default, Clone)]
 /// Allows indexing on any flexbuffer vector type, (heterogenous vector, typed vector, or fixed
 /// length typed vector).
+///
+/// VectorReaders may be indexed with usize, `index` returns a result type
+/// which may indicate failure due to indexing out of bounds or bad data. `idx` returns a
+/// Null Reader in the event of any failure.
 pub struct VectorReader<'de> {
     pub(super) reader: Reader<'de>,
     // Cache the length because read_usize can be slow.

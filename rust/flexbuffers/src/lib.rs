@@ -79,24 +79,28 @@ pub fn from_vec<'de, T: Deserialize<'de>>(buf: &'de [u8]) -> Result<T, Deseriali
 }
 
 /// This struct, when pushed will be serialized as a `FlexBufferType::Blob`.
+///
 /// A `Blob` is a variable width `length` followed by that many bytes of data.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct Blob<'a>(pub &'a [u8]);
 
 /// This struct, when pushed, will be serialized as a `FlexBufferType::IndirectUInt`.
-/// Unsigned integer stored by reference in the flexbuffer. This can reduce the
+///
+/// It is an unsigned integer stored by reference in the flexbuffer. This can reduce the
 /// size of vectors and maps containing the `IndirectUInt`.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct IndirectUInt(pub u64);
 
-/// This struct, when pushed, will be serialized as a `FlexBufferType::IndirectInt`,
-/// a signed integer stored by reference in the flexbuffer. This can reduce the
+/// This struct, when pushed, will be serialized as a `FlexBufferType::IndirectInt`.
+///
+/// It is a signed integer stored by reference in the flexbuffer. This can reduce the
 /// size of vectors and maps containing the `IndirectInt`.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct IndirectInt(pub i64);
 
-/// This struct, when pushed, will be serialized as a `FlexBufferType::IndirectFloat`,
-/// a floating point stored by reference in the flexbuffer. This can reduce the
+/// This struct, when pushed, will be serialized as a `FlexBufferType::IndirectFloat`.
+///
+/// It is a floating point stored by reference in the flexbuffer. This can reduce the
 /// size of vectors and maps containing the `IndirectFloat`.
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct IndirectFloat(pub f64);

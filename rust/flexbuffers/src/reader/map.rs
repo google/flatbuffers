@@ -17,7 +17,11 @@ use crate::BitWidth;
 use std::cmp::Ordering;
 use std::iter::{DoubleEndedIterator, ExactSizeIterator, FusedIterator, Iterator};
 
-/// Allows indexing on a flexbuffer map. Flexbuffers maps are analogous to BTreeMaps.
+/// Allows indexing on a flexbuffer map.
+///
+/// MapReaders may be indexed with strings or usizes. `index` returns a result type,
+/// which may indicate failure due to a missing key or bad data, `idx` returns an Null Reader in
+/// cases of error.
 #[derive(DebugStub, Default, Clone)]
 pub struct MapReader<'de> {
     #[debug_stub = "&[..]"]
@@ -92,7 +96,7 @@ impl<'de> MapReader<'de> {
         let i = self.index_key(k).ok_or(Error::KeyNotFound)?;
         self.usize_index(i)
     }
-    /// Iterate over the values of the map. If any error occurs, Null Readers are returned.
+    /// Iterate over the values of the map.
     pub fn iter_values(&self) -> ReaderIterator<'de> {
         ReaderIterator::new(VectorReader {
             reader: Reader {

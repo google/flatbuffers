@@ -96,11 +96,16 @@ macro_rules! as_default {
     };
 }
 
-/// Lazily parses a flexbuffer, one value at a time. Start a reader with
-/// `get_root`. The `get_T` methods succeeds if and only if both
-/// the flexbuffer type and bitwidth match `T`. The `as_T` methods will try
-/// their best to return a value of type `T` (by casting or even parsing a
-/// string if necessary) but ultimately returns `T::default` if it fails.
+/// `Reader`s allow access to data stored in a Flexbuffer. Each reader represents a single address
+/// in the buffer so data is read lazily. Start a reader by calling `get_root` on your flexbuffer
+/// `&[u8]`. 
+///
+/// - The `get_T` methods return a `Result<T, Error>`. They return an OK value if and only if the
+/// flexbuffer type matches `T`. This is analogous to the behavior of Rust's json library, though
+/// with Result instead of Option.
+/// - The `as_T` methods will try their best to return to a value of type `T`
+/// (by casting or even parsing a string if necessary) but ultimately returns `T::default` if it
+/// fails. This behavior is analogous to that of flexbuffers C++.
 #[derive(DebugStub, Default, Clone)]
 pub struct Reader<'de> {
     fxb_type: FlexBufferType,
