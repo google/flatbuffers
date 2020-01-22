@@ -29,7 +29,7 @@ Building should also produce two sample executables, `flatsamplebinary` and
 *Note that you MUST be in the root of the FlatBuffers distribution when you
 run 'flattests' or `flatsampletext`, or it will fail to load its files.*
 
-### Building with VCPKG
+## Building with VCPKG
 
 You can download and install flatbuffers using the [vcpkg](https://github.com/Microsoft/vcpkg/) dependency manager:
 
