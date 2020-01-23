@@ -45,6 +45,7 @@ $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS -o namespace_test namespace_test/namespace_te
 ../flatc --cpp --java --kotlin --csharp --python $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS monster_extra.fbs monsterdata_extra.json
 ../flatc --cpp --java --csharp --jsonschema $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS --scoped-enums arrays_test.fbs
 ../flatc --python $TEST_BASE_FLAGS arrays_test.fbs
+../flatc --dart monster_extra.fbs
 
 # Flag c++17 requires Clang6, GCC7, MSVC2017 (_MSC_VER >= 1914)  or higher.
 TEST_CPP17_FLAGS="--cpp --cpp-std c++17 -o ./cpp17/generated_cpp17 $TEST_NOINCL_FLAGS"

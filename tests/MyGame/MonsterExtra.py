@@ -134,7 +134,7 @@ class MonsterExtra(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
         return o == 0
 
-def MonsterExtraStart(builder): builder.StartObject(10)
+def MonsterExtraStart(builder): builder.StartObject(11)
 def MonsterExtraAddD0(builder, d0): builder.PrependFloat64Slot(0, d0, float('nan'))
 def MonsterExtraAddD1(builder, d1): builder.PrependFloat64Slot(1, d1, float('nan'))
 def MonsterExtraAddD2(builder, d2): builder.PrependFloat64Slot(2, d2, float('inf'))
