@@ -184,7 +184,7 @@ class MonsterExtra : Table() {
         }
         fun MonsterExtraBufferHasIdentifier(_bb: ByteBuffer) : Boolean = __has_identifier(_bb, "MONE")
         fun createMonsterExtra(builder: FlatBufferBuilder, d0: Double, d1: Double, d2: Double, d3: Double, f0: Float, f1: Float, f2: Float, f3: Float, dvecOffset: Int, fvecOffset: Int) : Int {
-            builder.startTable(10)
+            builder.startTable(11)
             addD3(builder, d3)
             addD2(builder, d2)
             addD1(builder, d1)
@@ -197,7 +197,7 @@ class MonsterExtra : Table() {
             addF0(builder, f0)
             return endMonsterExtra(builder)
         }
-        fun startMonsterExtra(builder: FlatBufferBuilder) = builder.startTable(10)
+        fun startMonsterExtra(builder: FlatBufferBuilder) = builder.startTable(11)
         fun addD0(builder: FlatBufferBuilder, d0: Double) = builder.addDouble(0, d0, Double.NaN)
         fun addD1(builder: FlatBufferBuilder, d1: Double) = builder.addDouble(1, d1, Double.NaN)
         fun addD2(builder: FlatBufferBuilder, d2: Double) = builder.addDouble(2, d2, Double.POSITIVE_INFINITY)

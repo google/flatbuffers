@@ -13,6 +13,7 @@ table MonsterExtra {
   f3:float = -inf;
   dvec : [double];
   fvec : [float];
+  deprec:int (deprecated);
 }
 
 root_type MonsterExtra;
