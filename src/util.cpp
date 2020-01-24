@@ -274,4 +274,5 @@ void SetupDefaultCRTReportMode() {
   // clang-format on
 }
 
+
 }  // namespace flatbuffers
