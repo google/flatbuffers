@@ -269,15 +269,11 @@ class CppGenerator : public BaseGenerator {
       auto name = Name(struct_def);
       code_.SetValue("STRUCT_NAME", name);
 
-      // Create code to return the binary schema data.
-      std::string binary_schema_hex_text = BufferToHexText(parser_.builder_.GetBufferPointer(),
-          parser_.builder_.GetSize(), 105, "      ", "");
-
       code_ += "struct {{STRUCT_NAME}}BinarySchema {";
       code_ += "  static const uint8_t *data() {";
       code_ += "    // Buffer containing the binary schema.";
       code_ += "    static const uint8_t bfbsData[" + NumToString(parser_.builder_.GetSize()) + "] = {";
-      code_ += binary_schema_hex_text;
+      code_ +=  BufferToHexText(parser_.builder_.GetBufferPointer(), parser_.builder_.GetSize(), 105, "      ", "");
       code_ += "    };";
       code_ += "    return bfbsData;";
       code_ += "  }";
