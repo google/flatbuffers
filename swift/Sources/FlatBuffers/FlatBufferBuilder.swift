@@ -219,7 +219,7 @@ extension FlatBufferBuilder {
     ///   - bufSize: Current size of the buffer + the offset of the object to be written
     ///   - elementSize: Element size
     fileprivate func padding(bufSize: UInt32, elementSize: UInt32) -> UInt32 {
-        (bufSize == 0 ? 0 : ((~bufSize) + 1)) & (elementSize - 1)
+        ((~bufSize) &+ 1) & (elementSize - 1)
     }
     
     /// Prealigns the buffer before writting a new object into the buffer
