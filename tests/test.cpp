@@ -45,6 +45,7 @@
 #include "test_assert.h"
 
 #include "flatbuffers/flexbuffers.h"
+#include "monster_test_bfbs_generated.h" // Generated using --bfbs-comments --bfbs-builtins --cpp --bfbs-gen-embed
 
 // clang-format off
 // Check that char* and uint8_t* are interoperable types.
@@ -3274,8 +3275,6 @@ void FixedLengthArrayJsonTest(bool binary) {
   (void)binary;
 #endif
 }
-
-#include "monster_test_bfbs_generated.h" // Generated using --bfbs-comments --bfbs-builtins --cpp --bfbs-gen-embed
 
 void TestEmbeddedBinarySchema() {
     // load JSON from disk

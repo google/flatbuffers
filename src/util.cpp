@@ -226,7 +226,7 @@ ClassicLocale ClassicLocale::instance_;
 
 #endif  // !FLATBUFFERS_LOCALE_INDEPENDENT
 
-std::string EscapeAndWrapBuffer(const void *buffer, size_t buffer_size,  size_t max_length,
+std::string BufferToHexText(const void *buffer, size_t buffer_size,  size_t max_length,
                                 const std::string &wrapped_line_prefix,
                                 const std::string &wrapped_line_suffix) {
     std::string text = wrapped_line_prefix;

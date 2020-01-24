@@ -270,14 +270,14 @@ class CppGenerator : public BaseGenerator {
       code_.SetValue("STRUCT_NAME", name);
 
       // Create code to return the binary schema data.
-      std::string escapedBinarySchemaBuffer = EscapeAndWrapBuffer(parser_.builder_.GetBufferPointer(),
+      std::string binary_schema_hex_text = BufferToHexText(parser_.builder_.GetBufferPointer(),
           parser_.builder_.GetSize(), 105, "      ", "");
 
       code_ += "struct {{STRUCT_NAME}}BinarySchema {";
       code_ += "  static const uint8_t *data() {";
       code_ += "    // Buffer containing the binary schema.";
       code_ += "    static const uint8_t bfbsData[" + NumToString(parser_.builder_.GetSize()) + "] = {";
-      code_ += escapedBinarySchemaBuffer;
+      code_ += binary_schema_hex_text;
       code_ += "    };";
       code_ += "    return bfbsData;";
       code_ += "  }";
@@ -299,7 +299,7 @@ class CppGenerator : public BaseGenerator {
       code_ += "#endif  // " + include_guard;
     }
 
-    // We are just adding "_bfbs" to the generated filename. 
+    // We are just adding "_bfbs" to the generated filename.
     const auto file_path = GeneratedFileName(path_, file_name_ + "_bfbs");
     const auto final_code = code_.ToString();
 
