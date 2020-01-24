@@ -1378,11 +1378,24 @@ func CheckStringIsNestedError(fail func(string, ...interface{})) {
 }
 
 func CheckSharedStrings(fail func(string, ...interface{})) {
-	b := flatbuffers.NewBuilder(0)
-	add := func(s string) flatbuffers.UOffsetT {
-		return b.CreateSharedString(s)
+	f := func(strings []string) bool {
+		b := flatbuffers.NewBuilder(0)
+		for _, s1 := range strings {
+			for _, s2 := range strings {
+				off1 := b.CreateSharedString(s1)
+				off2 := b.CreateSharedString(s2)
+
+				if (s1 == s2) && (off1 != off2) {
+					return false
+				}
+				if (s1 != s2) && (off1 == off2) {
+					return false
+				}
+			}
+		}
+		return true
 	}
-	if err := quick.CheckEqual(add, add, nil); err != nil{
+	if err := quick.Check(f, nil); err != nil {
 		fail("expected same offset")
 	}
 }
