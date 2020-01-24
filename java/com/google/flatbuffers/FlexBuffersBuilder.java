@@ -358,24 +358,24 @@ public class FlexBuffersBuilder {
     }
 
     private Value writeString(int key, String s) {
-        return writeBlob(key, s.getBytes(StandardCharsets.UTF_8), FBT_STRING);
+        return writeBlob(key, s.getBytes(StandardCharsets.UTF_8), FBT_STRING, true);
     }
 
     // in bits to fit a unsigned int
-    private static int widthUInBits(long len) {
+    static int widthUInBits(long len) {
         if (len <= byteToUnsignedInt((byte)0xff)) return WIDTH_8;
         if (len <= shortToUnsignedInt((short)0xffff)) return WIDTH_16;
         if (len <= intToUnsignedLong(0xffff_ffff)) return WIDTH_32;
         return WIDTH_64;
     }
 
-    private Value writeBlob(int key, byte[] blob, int type) {
+    private Value writeBlob(int key, byte[] blob, int type, boolean trailing) {
         int bitWidth = widthUInBits(blob.length);
         int byteWidth = align(bitWidth);
         writeInt(blob.length, byteWidth);
         int sloc = bb.position();
         bb.put(blob);
-        if (type == FBT_STRING) {
+        if (trailing) {
             bb.put((byte) 0);
         }
         return Value.blob(key, sloc, type, bitWidth);
@@ -384,7 +384,7 @@ public class FlexBuffersBuilder {
     // Align to prepare for writing a scalar with a certain size.
     private int align(int alignment) {
         int byteWidth = 1 << alignment;
-        int padBytes = Value.paddingBytes(bb.capacity(), byteWidth);
+        int padBytes = Value.paddingBytes(bb.position(), byteWidth);
         while (padBytes-- != 0) {
             bb.put((byte) 0);
         }
@@ -417,7 +417,7 @@ public class FlexBuffersBuilder {
      */
     public int putBlob(String key, byte[] val) {
         int iKey = putKey(key);
-        Value value = writeBlob(iKey, val, FBT_BLOB);
+        Value value = writeBlob(iKey, val, FBT_BLOB, false);
         stack.add(value);
         return (int) value.iValue;
     }
@@ -504,6 +504,9 @@ public class FlexBuffersBuilder {
             if (typed) {
                 if (i == start) {
                     vectorType = stack.get(i).type;
+                    if (!FlexBuffers.isTypedVectorElementType(vectorType)) {
+                        throw new FlexBufferException("TypedVector does not support this element type");
+                    }
                 } else {
                     // If you get this assert, you are writing a typed vector with
                     // elements that are not all the same type.
@@ -659,7 +662,7 @@ public class FlexBuffersBuilder {
         }
 
         static Value blob(int key, int position, int type, int bitWidth) {
-            return new Value(key, type, WIDTH_8, position);
+            return new Value(key, type, bitWidth, position);
         }
 
         static Value int8(int key, int value) {
