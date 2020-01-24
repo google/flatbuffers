@@ -19,6 +19,7 @@ cc_test(
         "test_builder.cpp",
         "test_builder.h",
         "union_vector/union_vector_generated.h",
+        "monster_test_bfbs_generated.h",
     ],
     copts = [
         "-DFLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE",

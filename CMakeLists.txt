@@ -149,6 +149,8 @@ set(FlatBuffers_Tests_SRCS
   ${CMAKE_CURRENT_BINARY_DIR}/tests/native_type_test_generated.h
   # file generate by running compiler on tests/monster_extra.fbs
   ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_extra_generated.h
+  # file generate by running compiler on tests/monster_test.fbs
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_test_bfbs_generated.h
 )
 
 set(FlatBuffers_Tests_CPP17_SRCS
@@ -409,6 +411,31 @@ function(compile_flatbuffers_schema_to_binary SRC_FBS)
   register_generated_output(${GEN_BINARY_SCHEMA})
 endfunction()
 
+function(compile_flatbuffers_schema_to_embedded_binary SRC_FBS OPT)
+  if(FLATBUFFERS_BUILD_LEGACY)
+    set(OPT ${OPT};--cpp-std c++0x)
+  else()
+    # --cpp-std is defined by flatc default settings.
+  endif()
+  message(STATUS "`${SRC_FBS}`: add generation of C++ embedded binary schema code with '${OPT}'")
+  get_filename_component(SRC_FBS_DIR ${SRC_FBS} PATH)
+  string(REGEX REPLACE "\\.fbs$" "_bfbs_generated.h" GEN_BFBS_HEADER ${SRC_FBS})
+  # For details about flags see generate_code.bat(sh)
+  add_custom_command(
+          OUTPUT ${GEN_BFBS_HEADER}
+          COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}"
+          --cpp --gen-mutable --gen-object-api --reflect-names
+          --cpp-ptr-type flatbuffers::unique_ptr # Used to test with C++98 STLs
+          ${OPT}
+          --bfbs-comments --bfbs-builtins --bfbs-gen-embed
+          -I "${CMAKE_CURRENT_SOURCE_DIR}/tests/include_test"
+          -o "${SRC_FBS_DIR}"
+          "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
+          DEPENDS flatc
+          COMMENT "Run generation: '${GEN_BFBS_HEADER}'")
+  register_generated_output(${GEN_BFBS_HEADER})
+endfunction()
+
 if(FLATBUFFERS_BUILD_TESTS)
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/tests" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/samples" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
@@ -422,6 +449,7 @@ if(FLATBUFFERS_BUILD_TESTS)
   compile_flatbuffers_schema_to_cpp_opt(tests/native_type_test.fbs "")
   compile_flatbuffers_schema_to_cpp_opt(tests/arrays_test.fbs "--scoped-enums;--gen-compare")
   compile_flatbuffers_schema_to_binary(tests/arrays_test.fbs)
+  compile_flatbuffers_schema_to_embedded_binary(tests/monster_test.fbs "--no-includes;--gen-compare")
   if(NOT (MSVC AND (MSVC_VERSION LESS 1900)))
     compile_flatbuffers_schema_to_cpp(tests/monster_extra.fbs) # Test floating-point NAN/INF.
   endif()

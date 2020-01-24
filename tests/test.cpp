@@ -45,6 +45,7 @@
 #include "test_assert.h"
 
 #include "flatbuffers/flexbuffers.h"
+#include "monster_test_bfbs_generated.h" // Generated using --bfbs-comments --bfbs-builtins --cpp --bfbs-gen-embed
 
 // clang-format off
 // Check that char* and uint8_t* are interoperable types.
@@ -3288,6 +3289,48 @@ void FixedLengthArrayJsonTest(bool binary) {
 #endif
 }
 
+void TestEmbeddedBinarySchema() {
+    // load JSON from disk
+    std::string jsonfile;
+    TEST_EQ(flatbuffers::LoadFile((test_data_path + "monsterdata_test.golden").c_str(),
+                                  false, &jsonfile), true);
+
+    // parse schema first, so we can use it to parse the data after
+    flatbuffers::Parser parserOrg, parserGen;
+    flatbuffers::Verifier verifier(MyGame::Example::MonsterBinarySchema::data(),
+                                   MyGame::Example::MonsterBinarySchema::size());
+    TEST_EQ(reflection::VerifySchemaBuffer(verifier), true);
+    TEST_EQ(parserOrg.Deserialize(MyGame::Example::MonsterBinarySchema::data(),
+                                  MyGame::Example::MonsterBinarySchema::size()), true);
+    TEST_EQ(parserGen.Deserialize(MyGame::Example::MonsterBinarySchema::data(),
+                                  MyGame::Example::MonsterBinarySchema::size()), true);
+    TEST_EQ(parserOrg.Parse(jsonfile.c_str()), true);
+
+    // First, verify it, just in case:
+    flatbuffers::Verifier verifierOrg(parserOrg.builder_.GetBufferPointer(),
+                                      parserOrg.builder_.GetSize());
+    TEST_EQ(VerifyMonsterBuffer(verifierOrg), true);
+
+    // Export to JSON
+    std::string jsonGen;
+    TEST_EQ(GenerateText(parserOrg, parserOrg.builder_.GetBufferPointer(), &jsonGen), true);
+
+    // Import from JSON
+    TEST_EQ(parserGen.Parse(jsonGen.c_str()), true);
+
+    // Verify buffer from generated JSON
+    flatbuffers::Verifier verifierGen(parserGen.builder_.GetBufferPointer(),
+                                      parserGen.builder_.GetSize());
+    TEST_EQ(VerifyMonsterBuffer(verifierGen), true);
+
+    // Compare generated buffer to original
+    TEST_EQ(parserOrg.builder_.GetSize(), parserGen.builder_.GetSize());
+    TEST_EQ(std::memcmp(parserOrg.builder_.GetBufferPointer(),
+                        parserGen.builder_.GetBufferPointer(),
+                        parserOrg.builder_.GetSize()),
+            0);
+}
+
 int FlatBufferTests() {
   // clang-format off
 
@@ -3332,6 +3375,7 @@ int FlatBufferTests() {
     UnionVectorTest();
     LoadVerifyBinaryTest();
     GenerateTableTextTest();
+    TestEmbeddedBinarySchema();
   #endif
   // clang-format on
 
