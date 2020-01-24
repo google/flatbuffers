@@ -28,6 +28,7 @@ import (
 	"reflect"
 	"sort"
 	"testing"
+	"testing/quick"
 
 	flatbuffers "github.com/google/flatbuffers/go"
 )
@@ -77,7 +78,8 @@ func TestAll(t *testing.T) {
 	CheckByteStringIsNestedError(t.Fatalf)
 	CheckStructIsNotInlineError(t.Fatalf)
 	CheckFinishedBytesError(t.Fatalf)
-
+	CheckSharedStrings(t.Fatalf)
+	
 	// Verify that GetRootAs works for non-root tables
 	CheckGetRootAsForNonRootTable(t.Fatalf)
 	CheckTableAccessors(t.Fatalf)
@@ -1373,6 +1375,29 @@ func CheckStringIsNestedError(fail func(string, ...interface{})) {
 		}
 	}()
 	b.CreateString("foo")
+}
+
+func CheckSharedStrings(fail func(string, ...interface{})) {
+	f := func(strings []string) bool {
+		b := flatbuffers.NewBuilder(0)
+		for _, s1 := range strings {
+			for _, s2 := range strings {
+				off1 := b.CreateSharedString(s1)
+				off2 := b.CreateSharedString(s2)
+
+				if (s1 == s2) && (off1 != off2) {
+					return false
+				}
+				if (s1 != s2) && (off1 == off2) {
+					return false
+				}
+			}
+		}
+		return true
+	}
+	if err := quick.Check(f, nil); err != nil {
+		fail("expected same offset")
+	}
 }
 
 // CheckByteStringIsNestedError verifies that a bytestring can not be created
