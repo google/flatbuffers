@@ -109,7 +109,7 @@ public class FlexBuffers {
      * @return true if typed vector
      */
     static boolean isTypedVector(int type) {
-        return (type >= FBT_VECTOR_INT && type <= FBT_VECTOR_KEY) || type == FBT_VECTOR_BOOL;
+        return (type >= FBT_VECTOR_INT && type <= FBT_VECTOR_STRING_DEPRECATED) || type == FBT_VECTOR_BOOL;
     }
 
     /**
@@ -517,11 +517,11 @@ public class FlexBuffers {
         public Vector asVector() {
             if (isVector()) {
                 return new Vector(bb, indirect(bb, end, parentWidth), byteWidth);
-            } else if (FlexBuffers.isTypedVector(type)) {
-                return new TypedVector(bb, indirect(bb, end, parentWidth), byteWidth, FlexBuffers.toTypedVectorElementType(type));
             } else if(type == FlexBuffers.FBT_VECTOR_STRING_DEPRECATED) {
                 // deprecated. Should be treated as key vector
                 return new TypedVector(bb, indirect(bb, end, parentWidth), byteWidth, FlexBuffers.FBT_KEY);
+            } else if (FlexBuffers.isTypedVector(type)) {
+                return new TypedVector(bb, indirect(bb, end, parentWidth), byteWidth, FlexBuffers.toTypedVectorElementType(type));
             } else {
                 return Vector.empty();
             }

@@ -731,7 +731,6 @@ class JavaTest {
         Vector v = FlexBuffers.getRoot(b).asVector();
 
         TestEq(v.size(), size);
-
         for (int i=0; i<size; i++) {
             TestEq(v.get(i).asString().length(), size);
             TestEq(v.get(i).asString(), text);
@@ -746,6 +745,7 @@ class JavaTest {
              0x0c, 0x08, 0x04, 0x3c, 0x01};
         Reference ref = FlexBuffers.getRoot(ByteBuffer.wrap(data));
         TestEq(ref.getType(), FlexBuffers.FBT_VECTOR_STRING_DEPRECATED);
+        TestEq(ref.isTypedVector(), true);
         Vector vec = ref.asVector();
         for (int i=0; i< vec.size(); i++) {
             TestEq("abc", vec.get(i).asString());
