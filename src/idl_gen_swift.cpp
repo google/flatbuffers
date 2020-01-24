@@ -164,8 +164,9 @@ class SwiftGenerator : public BaseGenerator {
     code_.SetValue("PROTOCOL",
                    struct_def.fixed ? "Readable" : "FlatBufferObject");
     code_.SetValue("OBJECTTYPE", struct_def.fixed ? "Struct" : "Table");
-    code_ += "public struct {{STRUCTNAME}}: {{PROTOCOL}} {";
-    code_ += "\tprivate var {{ACCESS}}: {{OBJECTTYPE}}";
+    code_ += "public struct {{STRUCTNAME}}: {{PROTOCOL}} {\n";
+    code_ += ValidateFunc();
+    code_ += "\n\tprivate var {{ACCESS}}: {{OBJECTTYPE}}";
     if (struct_def.fixed) {
       code_.SetValue("BYTESIZE", NumToString(struct_def.bytesize));
       code_.SetValue("MINALIGN", NumToString(struct_def.minalign));
@@ -256,10 +257,10 @@ class SwiftGenerator : public BaseGenerator {
                create_func_header.substr(0, create_func_header.size() - 2) +
                "\\";
     code_ += ") -> Offset<UOffset> {";
-    code_ += "\t\tlet start = {{STRUCTNAME}}.start{{STRUCTNAME}}(fbb)";
+    code_ += "\t\tlet __start = {{STRUCTNAME}}.start{{STRUCTNAME}}(fbb)";
     if (should_generate_create)
       code_ += create_func_body.substr(0, create_func_body.size() - 1);
-    code_ += "\t\treturn {{STRUCTNAME}}.end{{STRUCTNAME}}(fbb, start: start)";
+    code_ += "\t\treturn {{STRUCTNAME}}.end{{STRUCTNAME}}(fbb, start: __start)";
     code_ += "\t}";
 
     std::string spacing = "\t\t";
@@ -676,6 +677,10 @@ class SwiftGenerator : public BaseGenerator {
 
   std::string GenEnumConstructor(const std::string &at) {
     return "{{VALUETYPE}}(rawValue: " + GenReader("BASEVALUE", at) + ") ";
+  }
+
+  std::string ValidateFunc() {
+    return "\tstatic func validateVersion() { FlatBuffersVersion_1_11_1() }";
   }
 
   std::string GenType(const Type &type) const {
