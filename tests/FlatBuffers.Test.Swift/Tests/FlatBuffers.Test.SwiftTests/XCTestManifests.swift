@@ -72,6 +72,7 @@ extension FlatBuffersVectors {
     //   `swift test --generate-linuxmain`
     // to regenerate.
     static let __allTests__FlatBuffersVectors = [
+        ("testCreateEmptyIntArray", testCreateEmptyIntArray),
         ("testCreateIntArray", testCreateIntArray),
         ("testCreateSharedStringVector", testCreateSharedStringVector),
         ("testCreateVectorOfStrings", testCreateVectorOfStrings),

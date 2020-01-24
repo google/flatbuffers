@@ -25,6 +25,14 @@ final class FlatBuffersVectors: XCTestCase {
         XCTAssertEqual(b.sizedByteArray, [4, 0, 0, 0, 5, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0, 4, 0, 0, 0, 5, 0, 0, 0])
     }
     
+    func testCreateEmptyIntArray() {
+        let numbers: [Int32] = []
+        let b = FlatBufferBuilder(initialSize: 20)
+        let o = b.createVector(numbers, size: numbers.count)
+        b.finish(offset: o)
+        XCTAssertEqual(b.sizedByteArray, [4, 0, 0, 0, 0, 0, 0, 0])
+    }
+
     func testCreateVectorOfStrings() {
         let strs = ["Denmark", "Norway"]
         let b = FlatBufferBuilder(initialSize: 20)
