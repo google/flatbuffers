@@ -1323,6 +1323,9 @@ class GoGenerator : public BaseGenerator {
         s += "/" + *it;
       }
     }
+    if (!parser_.opts.go_nsimport_prefix.empty()) {
+      s = parser_.opts.go_nsimport_prefix + s;
+    }
     return s;
   }
 

@@ -548,6 +548,7 @@ struct IDLOptions {
   bool skip_flatbuffers_import;
   std::string go_import;
   std::string go_namespace;
+  std::string go_nsimport_prefix;
   bool reexport_ts_modules;
   bool js_ts_short_names;
   bool protobuf_ascii_alike;
