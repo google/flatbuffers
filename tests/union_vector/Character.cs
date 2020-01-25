@@ -20,7 +20,7 @@ public class CharacterUnion {
   public CharacterUnion() {
     this.Type = Character.NONE;
     this.Value = null;
-}
+  }
 
   public T As<T>() where T : class { return this.Value as T; }
   public AttackerT AsMuLan() { return this.As<AttackerT>(); }

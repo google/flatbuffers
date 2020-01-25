@@ -1235,7 +1235,7 @@ class CSharpGenerator : public BaseGenerator {
     code += "    this.Type = " + enum_def.name + "." +
             enum_def.Vals()[0]->name + ";\n";
     code += "    this.Value = null;\n";
-    code += "}\n\n";
+    code += "  }\n\n";
     // As<T>
     code += "  public T As<T>() where T : class { return this.Value as T; }\n";
     // As

@@ -20,7 +20,7 @@ public class AnyAmbiguousAliasesUnion {
   public AnyAmbiguousAliasesUnion() {
     this.Type = AnyAmbiguousAliases.NONE;
     this.Value = null;
-}
+  }
 
   public T As<T>() where T : class { return this.Value as T; }
   public MyGame.Example.MonsterT AsM1() { return this.As<MyGame.Example.MonsterT>(); }

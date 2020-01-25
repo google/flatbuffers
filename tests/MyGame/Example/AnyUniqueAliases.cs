@@ -20,7 +20,7 @@ public class AnyUniqueAliasesUnion {
   public AnyUniqueAliasesUnion() {
     this.Type = AnyUniqueAliases.NONE;
     this.Value = null;
-}
+  }
 
   public T As<T>() where T : class { return this.Value as T; }
   public MyGame.Example.MonsterT AsM() { return this.As<MyGame.Example.MonsterT>(); }

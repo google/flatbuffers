@@ -20,7 +20,7 @@ public class AnyUnion {
   public AnyUnion() {
     this.Type = Any.NONE;
     this.Value = null;
-}
+  }
 
   public T As<T>() where T : class { return this.Value as T; }
   public MyGame.Example.MonsterT AsMonster() { return this.As<MyGame.Example.MonsterT>(); }
