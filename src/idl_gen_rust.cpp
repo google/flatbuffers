@@ -18,6 +18,7 @@
 
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
+#include "flatbuffers/flatc.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
@@ -238,6 +239,7 @@ class RustGenerator : public BaseGenerator {
     // Generate imports for the global scope in case no namespace is used
     // in the schema file.
     GenNamespaceImports(0);
+    GenNamespaceEnumImports(0, nullptr);
     code_ += "";
 
     // Generate all code in their namespaces, once, because Rust does not
@@ -470,7 +472,8 @@ class RustGenerator : public BaseGenerator {
 
   // Look up the native type for an enum. This will always be an integer like
   // u8, i32, etc.
-  std::string GetEnumTypeForDecl(const Type &type) {
+  std::string GetEnumTypeForDecl(const EnumDef &ed) {
+    const auto& type = ed.underlying_type;
     const auto ft = GetFullType(type);
     if (!(ft == ftEnumKey || ft == ftUnionKey)) {
       FLATBUFFERS_ASSERT(false && "precondition failed in GetEnumTypeForDecl");
@@ -526,7 +529,7 @@ class RustGenerator : public BaseGenerator {
   // and an enum array of values
   void GenEnum(const EnumDef &enum_def) {
     code_.SetValue("ENUM_NAME", Name(enum_def));
-    code_.SetValue("BASE_TYPE", GetEnumTypeForDecl(enum_def.underlying_type));
+    code_.SetValue("BASE_TYPE", GetEnumTypeForDecl(enum_def));
 
     GenComment(enum_def.doc_comment);
     code_ += "#[allow(non_camel_case_types)]";
@@ -537,7 +540,6 @@ class RustGenerator : public BaseGenerator {
 
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       const auto &ev = **it;
-
       GenComment(ev.doc_comment, "  ");
       code_.SetValue("KEY", Name(ev));
       code_.SetValue("VALUE", enum_def.ToString(ev));
@@ -563,36 +565,41 @@ class RustGenerator : public BaseGenerator {
     code_ += "pub const ENUM_MAX_{{ENUM_NAME_CAPS}}: {{BASE_TYPE}} = \\";
     code_ += "{{ENUM_MAX_BASE_VALUE}};";
     code_ += "";
-    code_ += "impl<'a> flatbuffers::Follow<'a> for {{ENUM_NAME}} {";
-    code_ += "  type Inner = Self;";
-    code_ += "  #[inline]";
-    code_ += "  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {";
-    code_ += "    flatbuffers::read_scalar_at::<Self>(buf, loc)";
+    code_ += "impl std::convert::TryFrom<{{BASE_TYPE}}> for {{ENUM_NAME}} {";
+    code_ += "  type Error = ();";
+    code_ += "  fn try_from(v: {{BASE_TYPE}}) -> Result<Self, Self::Error> {";
+    code_ += "    match v {";
+    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      const auto &ev = **it;
+      code_ += "      " + enum_def.ToString(ev) +
+               " => Some({{ENUM_NAME}}::" + Name(ev) + "),";
+    }
+    code_ += "      _ => None,";
+    code_ += "    }.ok_or(())";
     code_ += "  }";
     code_ += "}";
     code_ += "";
-    code_ += "impl flatbuffers::EndianScalar for {{ENUM_NAME}} {";
-    code_ += "  #[inline]";
-    code_ += "  fn to_little_endian(self) -> Self {";
-    code_ += "    let n = {{BASE_TYPE}}::to_le(self as {{BASE_TYPE}});";
-    code_ += "    let p = &n as *const {{BASE_TYPE}} as *const {{ENUM_NAME}};";
-    code_ += "    unsafe { *p }";
+    code_ += "impl std::convert::From<{{ENUM_NAME}}> for {{BASE_TYPE}} {";
+    code_ += "  fn from(e : {{ENUM_NAME}}) -> Self {";
+    code_ += "    e as {{BASE_TYPE}}";
     code_ += "  }";
+    code_ += "}";
+    code_ += "";
+    code_ += "impl<'a> flatbuffers::Follow<'a> for {{ENUM_NAME}} {";
+    code_ += "  type Inner = Option<Self>;";
     code_ += "  #[inline]";
-    code_ += "  fn from_little_endian(self) -> Self {";
-    code_ += "    let n = {{BASE_TYPE}}::from_le(self as {{BASE_TYPE}});";
-    code_ += "    let p = &n as *const {{BASE_TYPE}} as *const {{ENUM_NAME}};";
-    code_ += "    unsafe { *p }";
+    code_ += "  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {";
+    code_ += "    let scalar = flatbuffers::read_scalar_at::<{{BASE_TYPE}}>(buf, loc);";
+    code_ += "    Self::try_from(scalar).ok()";
     code_ += "  }";
     code_ += "}";
     code_ += "";
     code_ += "impl flatbuffers::Push for {{ENUM_NAME}} {";
-    code_ += "    type Output = {{ENUM_NAME}};";
+    code_ += "    type Output = {{BASE_TYPE}};";
     code_ += "    #[inline]";
     code_ += "    fn push(&self, dst: &mut [u8], _rest: &[u8]) {";
     code_ +=
-        "        flatbuffers::emplace_scalar::<{{ENUM_NAME}}>"
-        "(dst, *self);";
+        "        flatbuffers::emplace_scalar(dst, Self::Output::from(*self));";
     code_ += "    }";
     code_ += "}";
     code_ += "";
@@ -685,10 +692,16 @@ class RustGenerator : public BaseGenerator {
       }
       case ftUnionKey:
       case ftEnumKey: {
-        auto ev = field.value.type.enum_def->FindByValue(field.value.constant);
-        assert(ev);
-        return WrapInNameSpace(field.value.type.enum_def->defined_namespace,
-                               GetEnumValUse(*field.value.type.enum_def, *ev));
+        auto ed = field.value.type.enum_def;
+        auto ev = ed->FindByValue(field.value.constant);
+        if (ev) {
+          return WrapInNameSpace(ed->defined_namespace,
+                                 GetEnumValUse(*ed, *ev));
+        } else {
+          LogCompilerError("Default value '" + field.value.constant +
+                           "' not found in declaration of enum " + ed->name);
+          return "None";
+        }
       }
 
       // All pointer-ish types have a default value of None, because they are
@@ -948,7 +961,7 @@ class RustGenerator : public BaseGenerator {
       }
       case ftEnumKey:
       case ftUnionKey: {
-        const auto typname = WrapInNameSpace(*type.enum_def);
+        const auto typname = "Option<" + WrapInNameSpace(*type.enum_def) + ">";
         return typname;
       }
 
@@ -1047,11 +1060,12 @@ class RustGenerator : public BaseGenerator {
       }
       case ftUnionKey:
       case ftEnumKey: {
-        const auto underlying_typname = GetTypeBasic(type);  //<- never used
         const auto typname = WrapInNameSpace(*type.enum_def);
-        const auto default_value = GetDefaultScalarValue(field);
-        return "self._tab.get::<" + typname + ">(" + offset_name + ", Some(" +
-               default_value + ")).unwrap()";
+        auto def_val = GetDefaultScalarValue(field);
+        const auto &def_opt =
+            ("None" == def_val) ? def_val : "Some(" + def_val + ")";
+        return "self._tab.get_opt::<" + typname + ">(" + offset_name + ", " +
+               def_opt + ")";
       }
       case ftString: {
         return AddUnwrapIfRequired(
@@ -1320,7 +1334,7 @@ class RustGenerator : public BaseGenerator {
             WrapInNameSpace(u->defined_namespace, GetEnumValUse(*u, ev)));
         code_.SetValue("U_ELEMENT_TABLE_TYPE", table_init_type);
         code_.SetValue("U_ELEMENT_NAME", MakeSnakeCase(Name(ev)));
-
+        // clang-format off
         code_ += "  #[inline]";
         code_ += "  #[allow(non_snake_case)]";
         code_ +=
@@ -1337,16 +1351,15 @@ class RustGenerator : public BaseGenerator {
         // language reserved words. 
         // 
         // To avoid this problem the type field name is used unescaped here:
-        code_ +=
-            "    if self.{{FIELD_TYPE_FIELD_NAME}}_type() == {{U_ELEMENT_ENUM_TYPE}} {";
-        code_ +=
-            "      self.{{FIELD_NAME}}().map(|u| "
-            "{{U_ELEMENT_TABLE_TYPE}}::init_from_table(u))";
-        code_ += "    } else {";
-        code_ += "      None";
+        code_ += "    match self.{{FIELD_TYPE_FIELD_NAME}}_type() {";
+        code_ += "      Some({{U_ELEMENT_ENUM_TYPE}}) => "
+                 "self.{{FIELD_NAME}}()"
+                 ".map({{U_ELEMENT_TABLE_TYPE}}::init_from_table),";
+        code_ += "      _ => None,";
         code_ += "    }";
         code_ += "  }";
         code_ += "";
+        // clang-format on
       }
     }
 
@@ -1630,9 +1643,19 @@ class RustGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
-      code_.SetValue("FIELD_TYPE", GetTypeGet(field.value.type));
+      auto& value_type = field.value.type;
       code_.SetValue("FIELD_NAME", Name(field));
-      code_ += "  {{FIELD_NAME}}_: {{FIELD_TYPE}},";
+      std::string doc;
+      if (ftEnumKey == GetFullType(value_type)) {
+        // Use underlying type for enums to avoid UB with invalid values.
+        auto &enum_def = *value_type.enum_def;
+        doc = " // enum " + WrapInNameSpace(enum_def);
+        code_.SetValue("FIELD_TYPE", GetEnumTypeForDecl(enum_def));
+      }
+      else {
+        code_.SetValue("FIELD_TYPE", GetTypeGet(value_type));
+      }
+      code_ += "  {{FIELD_NAME}}_: {{FIELD_TYPE}}," + doc;
 
       if (field.padding) {
         std::string padding;
@@ -1697,18 +1720,27 @@ class RustGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
+      const auto &value_type = field.value.type;
       const auto member_name = Name(field) + "_";
       const auto reference =
           StructMemberAccessNeedsCopy(field.value.type) ? "" : "&'a ";
       const auto arg_name = "_" + Name(field);
-      const auto arg_type = reference + GetTypeGet(field.value.type);
+      const auto arg_type = reference + GetTypeGet(value_type);
 
       if (it != struct_def.fields.vec.begin()) { arg_list += ", "; }
       arg_list += arg_name + ": ";
       arg_list += arg_type;
       init_list += "      " + member_name;
-      if (StructMemberAccessNeedsCopy(field.value.type)) {
-        init_list += ": " + arg_name + ".to_little_endian(),\n";
+      if (StructMemberAccessNeedsCopy(value_type)) {
+        init_list += ": ";
+        if (ftEnumKey == GetFullType(value_type)) {
+          init_list += GetEnumTypeForDecl(*value_type.enum_def);
+          init_list += "::from(" + arg_name + ")";
+        }
+        else {
+          init_list += arg_name;
+        }
+        init_list += ".to_little_endian(),\n";
       } else {
         init_list += ": *" + arg_name + ",\n";
       }
@@ -1739,14 +1771,22 @@ class RustGenerator : public BaseGenerator {
 
       auto field_type = TableBuilderArgsAddFuncType(field, "'a");
       auto member = "self." + Name(field) + "_";
-      auto value = StructMemberAccessNeedsCopy(field.value.type)
-                       ? member + ".from_little_endian()"
-                       : member;
+      auto& value_type = field.value.type;
+      auto value = member;
+      if(StructMemberAccessNeedsCopy(value_type))
+      {
+        value += ".from_little_endian()";
+        if (ftEnumKey == GetFullType(value_type)) {
+          field_type = "Option<" + field_type + ">";
+          auto enum_type = WrapInNameSpace(*value_type.enum_def);
+          value = enum_type + "::try_from(" + value + ").ok()";
+        }
+       }
 
       code_.SetValue("FIELD_NAME", Name(field));
       code_.SetValue("FIELD_TYPE", field_type);
       code_.SetValue("FIELD_VALUE", value);
-      code_.SetValue("REF", IsStruct(field.value.type) ? "&" : "");
+      code_.SetValue("REF", IsStruct(value_type) ? "&" : "");
 
       GenComment(field.doc_comment, "  ");
       code_ += "  pub fn {{FIELD_NAME}}<'a>(&'a self) -> {{FIELD_TYPE}} {";
@@ -1776,6 +1816,18 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
     code_ += indent + "extern crate flatbuffers;";
     code_ += indent + "use self::flatbuffers::EndianScalar;";
+  }
+
+  void GenNamespaceEnumImports(const int white_spaces, const Namespace *ns) {
+    const auto enums = parser_.enums_.vec;
+    const auto it = std::find_if(
+        enums.begin(), enums.end(),
+        [ns](const EnumDef *e) { return e->defined_namespace == ns; });
+    if (enums.end() == it) return;
+
+    auto indent = std::string(white_spaces, ' ');
+    code_ += "";
+    code_ += indent + "use std::convert::{From, TryFrom};";
   }
 
   // Set up the correct namespace. This opens a namespace if the current
@@ -1815,6 +1867,7 @@ class RustGenerator : public BaseGenerator {
       code_ += "pub mod " + MakeSnakeCase(ns->components[j]) + " {";
       // Generate local namespace imports.
       GenNamespaceImports(2);
+      GenNamespaceEnumImports(2, ns);
     }
     if (new_size != common_prefix_size) { code_ += ""; }
 

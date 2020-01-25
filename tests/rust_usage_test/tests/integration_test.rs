@@ -175,13 +175,13 @@ fn serialized_example_is_accessible_and_correct(bytes: &[u8], identifier_require
     check_eq!(pos.y(), 2.0f32)?;
     check_eq!(pos.z(), 3.0f32)?;
     check_eq!(pos.test1(), 3.0f64)?;
-    check_eq!(pos.test2(), my_game::example::Color::Green)?;
+    check_eq!(pos.test2(), Some(my_game::example::Color::Green))?;
 
     let pos_test3 = pos.test3();
     check_eq!(pos_test3.a(), 5i16)?;
     check_eq!(pos_test3.b(), 6i8)?;
 
-    check_eq!(m.test_type(), my_game::example::Any::Monster)?;
+    check_eq!(m.test_type(), Some(my_game::example::Any::Monster))?;
     check_is_some!(m.test())?;
     let table2 = m.test().unwrap();
     let monster2 = my_game::example::Monster::init_from_table(table2);
@@ -434,14 +434,14 @@ mod roundtrip_generated_code {
         let mut b = flatbuffers::FlatBufferBuilder::new();
         let name = b.create_string("foo");
         let m = build_mon(&mut b, &my_game::example::MonsterArgs{name: Some(name), color: my_game::example::Color::Red, ..Default::default()});
-        assert_eq!(m.color(), my_game::example::Color::Red);
+        assert_eq!(m.color(), Some(my_game::example::Color::Red));
     }
     #[test]
     fn enum_default() {
         let mut b = flatbuffers::FlatBufferBuilder::new();
         let name = b.create_string("foo");
         let m = build_mon(&mut b, &my_game::example::MonsterArgs{name: Some(name), ..Default::default()});
-        assert_eq!(m.color(), my_game::example::Color::Blue);
+        assert_eq!(m.color(), Some(my_game::example::Color::Blue));
     }
     #[test]
     fn union_store() {
@@ -465,7 +465,7 @@ mod roundtrip_generated_code {
 
         let mon = my_game::example::get_root_as_monster(b.finished_data());
         assert_eq!(mon.name(), "bar");
-        assert_eq!(mon.test_type(), my_game::example::Any::Monster);
+        assert_eq!(mon.test_type(), Some(my_game::example::Any::Monster));
         assert_eq!(my_game::example::Monster::init_from_table(mon.test().unwrap()).name(),
                    "foo");
         assert_eq!(mon.test_as_monster().unwrap().name(), "foo");
@@ -477,7 +477,7 @@ mod roundtrip_generated_code {
         let mut b = flatbuffers::FlatBufferBuilder::new();
         let name = b.create_string("foo");
         let m = build_mon(&mut b, &my_game::example::MonsterArgs{name: Some(name), ..Default::default()});
-        assert_eq!(m.test_type(), my_game::example::Any::NONE);
+        assert_eq!(m.test_type(), Some(my_game::example::Any::NONE));
         assert_eq!(m.test(), None);
     }
     #[test]
@@ -2886,6 +2886,17 @@ fn write_example_wire_data_to_file() {
     use ::std::io::Write;
     let mut f = std::fs::File::create("../monsterdata_rust_wire.mon").unwrap();
     f.write_all(b.finished_data()).unwrap();
+}
+
+#[test]
+fn binary_data_from_future_source() {
+    let bytes = load_file("../monsterdata_unknown.mon").expect("missing monsterdata_unknown.mon");
+    let correct = my_game::example::monster_buffer_has_identifier(&bytes);
+    assert!(correct);
+
+    let m = my_game::example::get_root_as_monster(&bytes);
+    assert_eq!(m.name(), "FromFuture");
+    assert!(m.signed_enum().is_none());
 }
 
 fn load_file(filename: &str) -> Result<Vec<u8>, std::io::Error> {

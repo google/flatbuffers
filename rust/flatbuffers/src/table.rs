@@ -45,6 +45,21 @@ impl<'a> Table<'a> {
         }
         Some(<T>::follow(self.buf, self.loc + o))
     }
+
+    /// This is a specialization for optional scalars (enum).
+    /// T::Inner -> Option<T>.
+    #[inline]
+    pub fn get_opt<T: Follow<'a> + 'a>(
+        &self,
+        slot_byte_loc: VOffsetT,
+        default: T::Inner,
+    ) -> T::Inner {
+        let o = self.vtable().get(slot_byte_loc) as usize;
+        if o == 0 {
+            return default;
+        }
+        <T>::follow(self.buf, self.loc + o)
+    }
 }
 
 impl<'a> Follow<'a> for Table<'a> {

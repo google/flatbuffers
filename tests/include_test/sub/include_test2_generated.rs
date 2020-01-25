@@ -18,6 +18,8 @@ pub mod my_game {
 
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
+
+  use std::convert::{From, TryFrom};
 #[allow(unused_imports, dead_code)]
 pub mod other_name_space {
 
@@ -27,6 +29,8 @@ pub mod other_name_space {
 
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
+
+  use std::convert::{From, TryFrom};
 
 #[allow(non_camel_case_types)]
 #[repr(i64)]
@@ -39,34 +43,36 @@ pub enum FromInclude {
 pub const ENUM_MIN_FROM_INCLUDE: i64 = 0;
 pub const ENUM_MAX_FROM_INCLUDE: i64 = 0;
 
-impl<'a> flatbuffers::Follow<'a> for FromInclude {
-  type Inner = Self;
-  #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    flatbuffers::read_scalar_at::<Self>(buf, loc)
+impl std::convert::TryFrom<i64> for FromInclude {
+  type Error = ();
+  fn try_from(v: i64) -> Result<Self, Self::Error> {
+    match v {
+      0 => Some(FromInclude::IncludeVal),
+      _ => None,
+    }.ok_or(())
   }
 }
 
-impl flatbuffers::EndianScalar for FromInclude {
-  #[inline]
-  fn to_little_endian(self) -> Self {
-    let n = i64::to_le(self as i64);
-    let p = &n as *const i64 as *const FromInclude;
-    unsafe { *p }
+impl std::convert::From<FromInclude> for i64 {
+  fn from(e : FromInclude) -> Self {
+    e as i64
   }
+}
+
+impl<'a> flatbuffers::Follow<'a> for FromInclude {
+  type Inner = Option<Self>;
   #[inline]
-  fn from_little_endian(self) -> Self {
-    let n = i64::from_le(self as i64);
-    let p = &n as *const i64 as *const FromInclude;
-    unsafe { *p }
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    let scalar = flatbuffers::read_scalar_at::<i64>(buf, loc);
+    Self::try_from(scalar).ok()
   }
 }
 
 impl flatbuffers::Push for FromInclude {
-    type Output = FromInclude;
+    type Output = i64;
     #[inline]
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        flatbuffers::emplace_scalar::<FromInclude>(dst, *self);
+        flatbuffers::emplace_scalar(dst, Self::Output::from(*self));
     }
 }
 

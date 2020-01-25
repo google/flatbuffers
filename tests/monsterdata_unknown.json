@@ -1,0 +1,5 @@
+{
+  name: "FromFuture",
+  // Race=-127 is unknown Race, not defined in the monster_test.fbs schema.
+  signed_enum: -127,
+}

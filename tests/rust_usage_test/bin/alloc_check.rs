@@ -121,11 +121,11 @@ fn main() {
             assert!((pos.y() - 2.0f32).abs() < std::f32::EPSILON);
             assert!((pos.z() - 3.0f32).abs() < std::f32::EPSILON);
             assert!((pos.test1() - 3.0f64).abs() < std::f64::EPSILON);
-            assert_eq!(pos.test2(), my_game::example::Color::Green);
+            assert_eq!(pos.test2(), Some(my_game::example::Color::Green));
             let pos_test3 = pos.test3();
             assert_eq!(pos_test3.a(), 5i16);
             assert_eq!(pos_test3.b(), 6i8);
-            assert_eq!(m.test_type(), my_game::example::Any::Monster);
+            assert_eq!(m.test_type(), Some(my_game::example::Any::Monster));
             let table2 = m.test().unwrap();
             let m2 = my_game::example::Monster::init_from_table(table2);
 

@@ -171,6 +171,8 @@ pub mod example {
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
 
+  use std::convert::{From, TryFrom};
+
 /// Composite components of Monster color.
 #[allow(non_camel_case_types)]
 #[repr(u8)]
@@ -188,34 +190,38 @@ pub enum Color {
 pub const ENUM_MIN_COLOR: u8 = 1;
 pub const ENUM_MAX_COLOR: u8 = 8;
 
-impl<'a> flatbuffers::Follow<'a> for Color {
-  type Inner = Self;
-  #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    flatbuffers::read_scalar_at::<Self>(buf, loc)
+impl std::convert::TryFrom<u8> for Color {
+  type Error = ();
+  fn try_from(v: u8) -> Result<Self, Self::Error> {
+    match v {
+      1 => Some(Color::Red),
+      2 => Some(Color::Green),
+      8 => Some(Color::Blue),
+      _ => None,
+    }.ok_or(())
   }
 }
 
-impl flatbuffers::EndianScalar for Color {
-  #[inline]
-  fn to_little_endian(self) -> Self {
-    let n = u8::to_le(self as u8);
-    let p = &n as *const u8 as *const Color;
-    unsafe { *p }
+impl std::convert::From<Color> for u8 {
+  fn from(e : Color) -> Self {
+    e as u8
   }
+}
+
+impl<'a> flatbuffers::Follow<'a> for Color {
+  type Inner = Option<Self>;
   #[inline]
-  fn from_little_endian(self) -> Self {
-    let n = u8::from_le(self as u8);
-    let p = &n as *const u8 as *const Color;
-    unsafe { *p }
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    let scalar = flatbuffers::read_scalar_at::<u8>(buf, loc);
+    Self::try_from(scalar).ok()
   }
 }
 
 impl flatbuffers::Push for Color {
-    type Output = Color;
+    type Output = u8;
     #[inline]
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        flatbuffers::emplace_scalar::<Color>(dst, *self);
+        flatbuffers::emplace_scalar(dst, Self::Output::from(*self));
     }
 }
 
@@ -257,34 +263,39 @@ pub enum Race {
 pub const ENUM_MIN_RACE: i8 = -1;
 pub const ENUM_MAX_RACE: i8 = 2;
 
-impl<'a> flatbuffers::Follow<'a> for Race {
-  type Inner = Self;
-  #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    flatbuffers::read_scalar_at::<Self>(buf, loc)
+impl std::convert::TryFrom<i8> for Race {
+  type Error = ();
+  fn try_from(v: i8) -> Result<Self, Self::Error> {
+    match v {
+      -1 => Some(Race::None),
+      0 => Some(Race::Human),
+      1 => Some(Race::Dwarf),
+      2 => Some(Race::Elf),
+      _ => None,
+    }.ok_or(())
   }
 }
 
-impl flatbuffers::EndianScalar for Race {
-  #[inline]
-  fn to_little_endian(self) -> Self {
-    let n = i8::to_le(self as i8);
-    let p = &n as *const i8 as *const Race;
-    unsafe { *p }
+impl std::convert::From<Race> for i8 {
+  fn from(e : Race) -> Self {
+    e as i8
   }
+}
+
+impl<'a> flatbuffers::Follow<'a> for Race {
+  type Inner = Option<Self>;
   #[inline]
-  fn from_little_endian(self) -> Self {
-    let n = i8::from_le(self as i8);
-    let p = &n as *const i8 as *const Race;
-    unsafe { *p }
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    let scalar = flatbuffers::read_scalar_at::<i8>(buf, loc);
+    Self::try_from(scalar).ok()
   }
 }
 
 impl flatbuffers::Push for Race {
-    type Output = Race;
+    type Output = i8;
     #[inline]
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        flatbuffers::emplace_scalar::<Race>(dst, *self);
+        flatbuffers::emplace_scalar(dst, Self::Output::from(*self));
     }
 }
 
@@ -323,34 +334,39 @@ pub enum Any {
 pub const ENUM_MIN_ANY: u8 = 0;
 pub const ENUM_MAX_ANY: u8 = 3;
 
-impl<'a> flatbuffers::Follow<'a> for Any {
-  type Inner = Self;
-  #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    flatbuffers::read_scalar_at::<Self>(buf, loc)
+impl std::convert::TryFrom<u8> for Any {
+  type Error = ();
+  fn try_from(v: u8) -> Result<Self, Self::Error> {
+    match v {
+      0 => Some(Any::NONE),
+      1 => Some(Any::Monster),
+      2 => Some(Any::TestSimpleTableWithEnum),
+      3 => Some(Any::MyGame_Example2_Monster),
+      _ => None,
+    }.ok_or(())
   }
 }
 
-impl flatbuffers::EndianScalar for Any {
-  #[inline]
-  fn to_little_endian(self) -> Self {
-    let n = u8::to_le(self as u8);
-    let p = &n as *const u8 as *const Any;
-    unsafe { *p }
+impl std::convert::From<Any> for u8 {
+  fn from(e : Any) -> Self {
+    e as u8
   }
+}
+
+impl<'a> flatbuffers::Follow<'a> for Any {
+  type Inner = Option<Self>;
   #[inline]
-  fn from_little_endian(self) -> Self {
-    let n = u8::from_le(self as u8);
-    let p = &n as *const u8 as *const Any;
-    unsafe { *p }
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    let scalar = flatbuffers::read_scalar_at::<u8>(buf, loc);
+    Self::try_from(scalar).ok()
   }
 }
 
 impl flatbuffers::Push for Any {
-    type Output = Any;
+    type Output = u8;
     #[inline]
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        flatbuffers::emplace_scalar::<Any>(dst, *self);
+        flatbuffers::emplace_scalar(dst, Self::Output::from(*self));
     }
 }
 
@@ -390,34 +406,39 @@ pub enum AnyUniqueAliases {
 pub const ENUM_MIN_ANY_UNIQUE_ALIASES: u8 = 0;
 pub const ENUM_MAX_ANY_UNIQUE_ALIASES: u8 = 3;
 
-impl<'a> flatbuffers::Follow<'a> for AnyUniqueAliases {
-  type Inner = Self;
-  #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    flatbuffers::read_scalar_at::<Self>(buf, loc)
+impl std::convert::TryFrom<u8> for AnyUniqueAliases {
+  type Error = ();
+  fn try_from(v: u8) -> Result<Self, Self::Error> {
+    match v {
+      0 => Some(AnyUniqueAliases::NONE),
+      1 => Some(AnyUniqueAliases::M),
+      2 => Some(AnyUniqueAliases::TS),
+      3 => Some(AnyUniqueAliases::M2),
+      _ => None,
+    }.ok_or(())
   }
 }
 
-impl flatbuffers::EndianScalar for AnyUniqueAliases {
-  #[inline]
-  fn to_little_endian(self) -> Self {
-    let n = u8::to_le(self as u8);
-    let p = &n as *const u8 as *const AnyUniqueAliases;
-    unsafe { *p }
+impl std::convert::From<AnyUniqueAliases> for u8 {
+  fn from(e : AnyUniqueAliases) -> Self {
+    e as u8
   }
+}
+
+impl<'a> flatbuffers::Follow<'a> for AnyUniqueAliases {
+  type Inner = Option<Self>;
   #[inline]
-  fn from_little_endian(self) -> Self {
-    let n = u8::from_le(self as u8);
-    let p = &n as *const u8 as *const AnyUniqueAliases;
-    unsafe { *p }
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    let scalar = flatbuffers::read_scalar_at::<u8>(buf, loc);
+    Self::try_from(scalar).ok()
   }
 }
 
 impl flatbuffers::Push for AnyUniqueAliases {
-    type Output = AnyUniqueAliases;
+    type Output = u8;
     #[inline]
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        flatbuffers::emplace_scalar::<AnyUniqueAliases>(dst, *self);
+        flatbuffers::emplace_scalar(dst, Self::Output::from(*self));
     }
 }
 
@@ -457,34 +478,39 @@ pub enum AnyAmbiguousAliases {
 pub const ENUM_MIN_ANY_AMBIGUOUS_ALIASES: u8 = 0;
 pub const ENUM_MAX_ANY_AMBIGUOUS_ALIASES: u8 = 3;
 
-impl<'a> flatbuffers::Follow<'a> for AnyAmbiguousAliases {
-  type Inner = Self;
-  #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    flatbuffers::read_scalar_at::<Self>(buf, loc)
+impl std::convert::TryFrom<u8> for AnyAmbiguousAliases {
+  type Error = ();
+  fn try_from(v: u8) -> Result<Self, Self::Error> {
+    match v {
+      0 => Some(AnyAmbiguousAliases::NONE),
+      1 => Some(AnyAmbiguousAliases::M1),
+      2 => Some(AnyAmbiguousAliases::M2),
+      3 => Some(AnyAmbiguousAliases::M3),
+      _ => None,
+    }.ok_or(())
   }
 }
 
-impl flatbuffers::EndianScalar for AnyAmbiguousAliases {
-  #[inline]
-  fn to_little_endian(self) -> Self {
-    let n = u8::to_le(self as u8);
-    let p = &n as *const u8 as *const AnyAmbiguousAliases;
-    unsafe { *p }
+impl std::convert::From<AnyAmbiguousAliases> for u8 {
+  fn from(e : AnyAmbiguousAliases) -> Self {
+    e as u8
   }
+}
+
+impl<'a> flatbuffers::Follow<'a> for AnyAmbiguousAliases {
+  type Inner = Option<Self>;
   #[inline]
-  fn from_little_endian(self) -> Self {
-    let n = u8::from_le(self as u8);
-    let p = &n as *const u8 as *const AnyAmbiguousAliases;
-    unsafe { *p }
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    let scalar = flatbuffers::read_scalar_at::<u8>(buf, loc);
+    Self::try_from(scalar).ok()
   }
 }
 
 impl flatbuffers::Push for AnyAmbiguousAliases {
-    type Output = AnyAmbiguousAliases;
+    type Output = u8;
     #[inline]
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        flatbuffers::emplace_scalar::<AnyAmbiguousAliases>(dst, *self);
+        flatbuffers::emplace_scalar(dst, Self::Output::from(*self));
     }
 }
 
@@ -582,7 +608,7 @@ pub struct Vec3 {
   z_: f32,
   padding0__: u32,
   test1_: f64,
-  test2_: Color,
+  test2_: u8, // enum Color
   padding1__: u8,
   test3_: Test,
   padding2__: u16,
@@ -632,7 +658,7 @@ impl Vec3 {
       y_: _y.to_little_endian(),
       z_: _z.to_little_endian(),
       test1_: _test1.to_little_endian(),
-      test2_: _test2.to_little_endian(),
+      test2_: u8::from(_test2).to_little_endian(),
       test3_: *_test3,
 
       padding0__: 0,
@@ -652,8 +678,8 @@ impl Vec3 {
   pub fn test1<'a>(&'a self) -> f64 {
     self.test1_.from_little_endian()
   }
-  pub fn test2<'a>(&'a self) -> Color {
-    self.test2_.from_little_endian()
+  pub fn test2<'a>(&'a self) -> Option<Color> {
+    Color::try_from(self.test2_.from_little_endian()).ok()
   }
   pub fn test3<'a>(&'a self) -> &'a Test {
     &self.test3_
@@ -767,8 +793,8 @@ impl<'a> TestSimpleTableWithEnum<'a> {
     pub const VT_COLOR: flatbuffers::VOffsetT = 4;
 
   #[inline]
-  pub fn color(&self) -> Color {
-    self._tab.get::<Color>(TestSimpleTableWithEnum::VT_COLOR, Some(Color::Green)).unwrap()
+  pub fn color(&self) -> Option<Color> {
+    self._tab.get_opt::<Color>(TestSimpleTableWithEnum::VT_COLOR, Some(Color::Green))
   }
 }
 
@@ -1154,12 +1180,12 @@ impl<'a> Monster<'a> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(Monster::VT_INVENTORY, None).map(|v| v.safe_slice())
   }
   #[inline]
-  pub fn color(&self) -> Color {
-    self._tab.get::<Color>(Monster::VT_COLOR, Some(Color::Blue)).unwrap()
+  pub fn color(&self) -> Option<Color> {
+    self._tab.get_opt::<Color>(Monster::VT_COLOR, Some(Color::Blue))
   }
   #[inline]
-  pub fn test_type(&self) -> Any {
-    self._tab.get::<Any>(Monster::VT_TEST_TYPE, Some(Any::NONE)).unwrap()
+  pub fn test_type(&self) -> Option<Any> {
+    self._tab.get_opt::<Any>(Monster::VT_TEST_TYPE, Some(Any::NONE))
   }
   #[inline]
   pub fn test(&self) -> Option<flatbuffers::Table<'a>> {
@@ -1313,16 +1339,16 @@ impl<'a> Monster<'a> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u64>>>(Monster::VT_VECTOR_OF_NON_OWNING_REFERENCES, None)
   }
   #[inline]
-  pub fn any_unique_type(&self) -> AnyUniqueAliases {
-    self._tab.get::<AnyUniqueAliases>(Monster::VT_ANY_UNIQUE_TYPE, Some(AnyUniqueAliases::NONE)).unwrap()
+  pub fn any_unique_type(&self) -> Option<AnyUniqueAliases> {
+    self._tab.get_opt::<AnyUniqueAliases>(Monster::VT_ANY_UNIQUE_TYPE, Some(AnyUniqueAliases::NONE))
   }
   #[inline]
   pub fn any_unique(&self) -> Option<flatbuffers::Table<'a>> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Table<'a>>>(Monster::VT_ANY_UNIQUE, None)
   }
   #[inline]
-  pub fn any_ambiguous_type(&self) -> AnyAmbiguousAliases {
-    self._tab.get::<AnyAmbiguousAliases>(Monster::VT_ANY_AMBIGUOUS_TYPE, Some(AnyAmbiguousAliases::NONE)).unwrap()
+  pub fn any_ambiguous_type(&self) -> Option<AnyAmbiguousAliases> {
+    self._tab.get_opt::<AnyAmbiguousAliases>(Monster::VT_ANY_AMBIGUOUS_TYPE, Some(AnyAmbiguousAliases::NONE))
   }
   #[inline]
   pub fn any_ambiguous(&self) -> Option<flatbuffers::Table<'a>> {
@@ -1333,96 +1359,87 @@ impl<'a> Monster<'a> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, Color>>>(Monster::VT_VECTOR_OF_ENUMS, None)
   }
   #[inline]
-  pub fn signed_enum(&self) -> Race {
-    self._tab.get::<Race>(Monster::VT_SIGNED_ENUM, Some(Race::None)).unwrap()
+  pub fn signed_enum(&self) -> Option<Race> {
+    self._tab.get_opt::<Race>(Monster::VT_SIGNED_ENUM, Some(Race::None))
   }
   #[inline]
   #[allow(non_snake_case)]
   pub fn test_as_monster(&self) -> Option<Monster<'a>> {
-    if self.test_type() == Any::Monster {
-      self.test().map(|u| Monster::init_from_table(u))
-    } else {
-      None
+    match self.test_type() {
+      Some(Any::Monster) => self.test().map(Monster::init_from_table),
+      _ => None,
     }
   }
 
   #[inline]
   #[allow(non_snake_case)]
   pub fn test_as_test_simple_table_with_enum(&self) -> Option<TestSimpleTableWithEnum<'a>> {
-    if self.test_type() == Any::TestSimpleTableWithEnum {
-      self.test().map(|u| TestSimpleTableWithEnum::init_from_table(u))
-    } else {
-      None
+    match self.test_type() {
+      Some(Any::TestSimpleTableWithEnum) => self.test().map(TestSimpleTableWithEnum::init_from_table),
+      _ => None,
     }
   }
 
   #[inline]
   #[allow(non_snake_case)]
   pub fn test_as_my_game_example_2_monster(&self) -> Option<super::example_2::Monster<'a>> {
-    if self.test_type() == Any::MyGame_Example2_Monster {
-      self.test().map(|u| super::example_2::Monster::init_from_table(u))
-    } else {
-      None
+    match self.test_type() {
+      Some(Any::MyGame_Example2_Monster) => self.test().map(super::example_2::Monster::init_from_table),
+      _ => None,
     }
   }
 
   #[inline]
   #[allow(non_snake_case)]
   pub fn any_unique_as_m(&self) -> Option<Monster<'a>> {
-    if self.any_unique_type() == AnyUniqueAliases::M {
-      self.any_unique().map(|u| Monster::init_from_table(u))
-    } else {
-      None
+    match self.any_unique_type() {
+      Some(AnyUniqueAliases::M) => self.any_unique().map(Monster::init_from_table),
+      _ => None,
     }
   }
 
   #[inline]
   #[allow(non_snake_case)]
   pub fn any_unique_as_ts(&self) -> Option<TestSimpleTableWithEnum<'a>> {
-    if self.any_unique_type() == AnyUniqueAliases::TS {
-      self.any_unique().map(|u| TestSimpleTableWithEnum::init_from_table(u))
-    } else {
-      None
+    match self.any_unique_type() {
+      Some(AnyUniqueAliases::TS) => self.any_unique().map(TestSimpleTableWithEnum::init_from_table),
+      _ => None,
     }
   }
 
   #[inline]
   #[allow(non_snake_case)]
   pub fn any_unique_as_m2(&self) -> Option<super::example_2::Monster<'a>> {
-    if self.any_unique_type() == AnyUniqueAliases::M2 {
-      self.any_unique().map(|u| super::example_2::Monster::init_from_table(u))
-    } else {
-      None
+    match self.any_unique_type() {
+      Some(AnyUniqueAliases::M2) => self.any_unique().map(super::example_2::Monster::init_from_table),
+      _ => None,
     }
   }
 
   #[inline]
   #[allow(non_snake_case)]
   pub fn any_ambiguous_as_m1(&self) -> Option<Monster<'a>> {
-    if self.any_ambiguous_type() == AnyAmbiguousAliases::M1 {
-      self.any_ambiguous().map(|u| Monster::init_from_table(u))
-    } else {
-      None
+    match self.any_ambiguous_type() {
+      Some(AnyAmbiguousAliases::M1) => self.any_ambiguous().map(Monster::init_from_table),
+      _ => None,
     }
   }
 
   #[inline]
   #[allow(non_snake_case)]
   pub fn any_ambiguous_as_m2(&self) -> Option<Monster<'a>> {
-    if self.any_ambiguous_type() == AnyAmbiguousAliases::M2 {
-      self.any_ambiguous().map(|u| Monster::init_from_table(u))
-    } else {
-      None
+    match self.any_ambiguous_type() {
+      Some(AnyAmbiguousAliases::M2) => self.any_ambiguous().map(Monster::init_from_table),
+      _ => None,
     }
   }
 
   #[inline]
   #[allow(non_snake_case)]
   pub fn any_ambiguous_as_m3(&self) -> Option<Monster<'a>> {
-    if self.any_ambiguous_type() == AnyAmbiguousAliases::M3 {
-      self.any_ambiguous().map(|u| Monster::init_from_table(u))
-    } else {
-      None
+    match self.any_ambiguous_type() {
+      Some(AnyAmbiguousAliases::M3) => self.any_ambiguous().map(Monster::init_from_table),
+      _ => None,
     }
   }
 

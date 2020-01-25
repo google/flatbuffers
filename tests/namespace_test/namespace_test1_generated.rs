@@ -16,6 +16,8 @@ pub mod namespace_a {
 
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
+
+  use std::convert::{From, TryFrom};
 #[allow(unused_imports, dead_code)]
 pub mod namespace_b {
 
@@ -24,6 +26,8 @@ pub mod namespace_b {
 
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
+
+  use std::convert::{From, TryFrom};
 
 #[allow(non_camel_case_types)]
 #[repr(i8)]
@@ -38,34 +42,38 @@ pub enum EnumInNestedNS {
 pub const ENUM_MIN_ENUM_IN_NESTED_NS: i8 = 0;
 pub const ENUM_MAX_ENUM_IN_NESTED_NS: i8 = 2;
 
-impl<'a> flatbuffers::Follow<'a> for EnumInNestedNS {
-  type Inner = Self;
-  #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    flatbuffers::read_scalar_at::<Self>(buf, loc)
+impl std::convert::TryFrom<i8> for EnumInNestedNS {
+  type Error = ();
+  fn try_from(v: i8) -> Result<Self, Self::Error> {
+    match v {
+      0 => Some(EnumInNestedNS::A),
+      1 => Some(EnumInNestedNS::B),
+      2 => Some(EnumInNestedNS::C),
+      _ => None,
+    }.ok_or(())
   }
 }
 
-impl flatbuffers::EndianScalar for EnumInNestedNS {
-  #[inline]
-  fn to_little_endian(self) -> Self {
-    let n = i8::to_le(self as i8);
-    let p = &n as *const i8 as *const EnumInNestedNS;
-    unsafe { *p }
+impl std::convert::From<EnumInNestedNS> for i8 {
+  fn from(e : EnumInNestedNS) -> Self {
+    e as i8
   }
+}
+
+impl<'a> flatbuffers::Follow<'a> for EnumInNestedNS {
+  type Inner = Option<Self>;
   #[inline]
-  fn from_little_endian(self) -> Self {
-    let n = i8::from_le(self as i8);
-    let p = &n as *const i8 as *const EnumInNestedNS;
-    unsafe { *p }
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    let scalar = flatbuffers::read_scalar_at::<i8>(buf, loc);
+    Self::try_from(scalar).ok()
   }
 }
 
 impl flatbuffers::Push for EnumInNestedNS {
-    type Output = EnumInNestedNS;
+    type Output = i8;
     #[inline]
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        flatbuffers::emplace_scalar::<EnumInNestedNS>(dst, *self);
+        flatbuffers::emplace_scalar(dst, Self::Output::from(*self));
     }
 }
 

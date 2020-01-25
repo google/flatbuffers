@@ -63,8 +63,8 @@ impl<'a> TableInFirstNS<'a> {
     self._tab.get::<flatbuffers::ForwardsUOffset<namespace_b::TableInNestedNS<'a>>>(TableInFirstNS::VT_FOO_TABLE, None)
   }
   #[inline]
-  pub fn foo_enum(&self) -> namespace_b::EnumInNestedNS {
-    self._tab.get::<namespace_b::EnumInNestedNS>(TableInFirstNS::VT_FOO_ENUM, Some(namespace_b::EnumInNestedNS::A)).unwrap()
+  pub fn foo_enum(&self) -> Option<namespace_b::EnumInNestedNS> {
+    self._tab.get_opt::<namespace_b::EnumInNestedNS>(TableInFirstNS::VT_FOO_ENUM, Some(namespace_b::EnumInNestedNS::A))
   }
   #[inline]
   pub fn foo_struct(&self) -> Option<&'a namespace_b::StructInNestedNS> {
