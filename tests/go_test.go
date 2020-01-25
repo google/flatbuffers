@@ -39,7 +39,7 @@ var (
 	fuzzFields, fuzzObjects    int
 )
 
-func init() {
+func TestMain(m *testing.M) {
 	flag.StringVar(&cppData, "cpp_data", "",
 		"location of monsterdata_test.mon to verify against (required)")
 	flag.StringVar(&javaData, "java_data", "",
@@ -56,6 +56,7 @@ func init() {
 		fmt.Fprintf(os.Stderr, "cpp_data argument is required\n")
 		os.Exit(1)
 	}
+	os.Exit(m.Run())
 }
 
 // Store specific byte patterns in these variables for the fuzzer. These
