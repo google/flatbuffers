@@ -7,7 +7,6 @@ namespace MyGame.Example
 
 using global::System;
 using global::System.Collections.Generic;
-using global::System.Linq;
 using global::FlatBuffers;
 
 public struct TypeAliases : IFlatbufferObject
@@ -134,8 +133,16 @@ public struct TypeAliases : IFlatbufferObject
   }
   public static Offset<MyGame.Example.TypeAliases> Pack(FlatBufferBuilder builder, TypeAliasesT _o) {
     if (_o == null) return default(Offset<MyGame.Example.TypeAliases>);
-    var _v8 = _o.V8 == null ? default(VectorOffset) : CreateV8Vector(builder, _o.V8.ToArray());
-    var _vf64 = _o.Vf64 == null ? default(VectorOffset) : CreateVf64Vector(builder, _o.Vf64.ToArray());
+    var _v8 = default(VectorOffset);
+    if (_o.V8 != null) {
+      var __v8 = _o.V8.ToArray();
+      _v8 = CreateV8Vector(builder, __v8);
+    }
+    var _vf64 = default(VectorOffset);
+    if (_o.Vf64 != null) {
+      var __vf64 = _o.Vf64.ToArray();
+      _vf64 = CreateVf64Vector(builder, __vf64);
+    }
     return CreateTypeAliases(
       builder,
       _o.I8,

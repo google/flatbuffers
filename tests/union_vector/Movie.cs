@@ -4,7 +4,6 @@
 
 using global::System;
 using global::System.Collections.Generic;
-using global::System.Linq;
 using global::FlatBuffers;
 
 public struct Movie : IFlatbufferObject
@@ -124,8 +123,18 @@ public struct Movie : IFlatbufferObject
     if (_o == null) return default(Offset<Movie>);
     var _main_character_type = _o.MainCharacter == null ? Character.NONE : _o.MainCharacter.Type;
     var _main_character = _o.MainCharacter == null ? 0 : CharacterUnion.Pack(builder, _o.MainCharacter);
-    var _characters_type = _o.Characters == null ? default(VectorOffset) : CreateCharactersTypeVector(builder, _o.Characters.Select(__o => __o.Type).ToArray());
-    var _characters = _o.Characters == null ? default(VectorOffset) : CreateCharactersVector(builder, _o.Characters.Select(__o => CharacterUnion.Pack(builder, __o)).ToArray());
+    var _characters_type = default(VectorOffset);
+    if (_o.Characters != null) {
+      var __characters_type = new Character[_o.Characters.Count];
+      for (var _j = 0; _j < __characters_type.Length; ++_j) { __characters_type[_j] = _o.Characters[_j].Type; }
+      _characters_type = CreateCharactersTypeVector(builder, __characters_type);
+    }
+    var _characters = default(VectorOffset);
+    if (_o.Characters != null) {
+      var __characters = new int[_o.Characters.Count];
+      for (var _j = 0; _j < __characters.Length; ++_j) { __characters[_j] = CharacterUnion.Pack(builder,  _o.Characters[_j]); }
+      _characters = CreateCharactersVector(builder, __characters);
+    }
     return CreateMovie(
       builder,
       _main_character_type,

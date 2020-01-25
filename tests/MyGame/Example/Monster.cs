@@ -7,7 +7,6 @@ namespace MyGame.Example
 
 using global::System;
 using global::System.Collections.Generic;
-using global::System.Linq;
 using global::FlatBuffers;
 
 /// an example documentation comment: monster object
@@ -432,7 +431,11 @@ public struct Monster : IFlatbufferObject
   public static Offset<MyGame.Example.Monster> Pack(FlatBufferBuilder builder, MonsterT _o) {
     if (_o == null) return default(Offset<MyGame.Example.Monster>);
     var _name = _o.Name == null ? default(StringOffset) : builder.CreateSharedString(_o.Name);
-    var _inventory = _o.Inventory == null ? default(VectorOffset) : CreateInventoryVector(builder, _o.Inventory.ToArray());
+    var _inventory = default(VectorOffset);
+    if (_o.Inventory != null) {
+      var __inventory = _o.Inventory.ToArray();
+      _inventory = CreateInventoryVector(builder, __inventory);
+    }
     var _test_type = _o.Test == null ? MyGame.Example.Any.NONE : _o.Test.Type;
     var _test = _o.Test == null ? 0 : MyGame.Example.AnyUnion.Pack(builder, _o.Test);
     var _test4 = default(VectorOffset);
@@ -441,39 +444,100 @@ public struct Monster : IFlatbufferObject
       for (var _j = _o.Test4.Count - 1; _j >= 0; --_j) { MyGame.Example.Test.Pack(builder, _o.Test4[_j]); }
       _test4 = builder.EndVector();
     }
-    var _testarrayofstring = _o.Testarrayofstring == null ? default(VectorOffset) : CreateTestarrayofstringVector(builder, _o.Testarrayofstring.Select(builder.CreateSharedString).ToArray());
-    var _testarrayoftables = _o.Testarrayoftables == null ? default(VectorOffset) : CreateTestarrayoftablesVector(builder, _o.Testarrayoftables.Select(__o => MyGame.Example.Monster.Pack(builder, __o)).ToArray());
+    var _testarrayofstring = default(VectorOffset);
+    if (_o.Testarrayofstring != null) {
+      var __testarrayofstring = new StringOffset[_o.Testarrayofstring.Count];
+      for (var _j = 0; _j < __testarrayofstring.Length; ++_j) { __testarrayofstring[_j] = builder.CreateSharedString(_o.Testarrayofstring[_j]); }
+      _testarrayofstring = CreateTestarrayofstringVector(builder, __testarrayofstring);
+    }
+    var _testarrayoftables = default(VectorOffset);
+    if (_o.Testarrayoftables != null) {
+      var __testarrayoftables = new Offset<MyGame.Example.Monster>[_o.Testarrayoftables.Count];
+      for (var _j = 0; _j < __testarrayoftables.Length; ++_j) { __testarrayoftables[_j] = MyGame.Example.Monster.Pack(builder, _o.Testarrayoftables[_j]); }
+      _testarrayoftables = CreateTestarrayoftablesVector(builder, __testarrayoftables);
+    }
     var _enemy = _o.Enemy == null ? default(Offset<MyGame.Example.Monster>) : MyGame.Example.Monster.Pack(builder, _o.Enemy);
-    var _testnestedflatbuffer = _o.Testnestedflatbuffer == null ? default(VectorOffset) : CreateTestnestedflatbufferVector(builder, _o.Testnestedflatbuffer.ToArray());
+    var _testnestedflatbuffer = default(VectorOffset);
+    if (_o.Testnestedflatbuffer != null) {
+      var __testnestedflatbuffer = _o.Testnestedflatbuffer.ToArray();
+      _testnestedflatbuffer = CreateTestnestedflatbufferVector(builder, __testnestedflatbuffer);
+    }
     var _testempty = _o.Testempty == null ? default(Offset<MyGame.Example.Stat>) : MyGame.Example.Stat.Pack(builder, _o.Testempty);
-    var _testarrayofbools = _o.Testarrayofbools == null ? default(VectorOffset) : CreateTestarrayofboolsVector(builder, _o.Testarrayofbools.ToArray());
-    var _testarrayofstring2 = _o.Testarrayofstring2 == null ? default(VectorOffset) : CreateTestarrayofstring2Vector(builder, _o.Testarrayofstring2.Select(builder.CreateSharedString).ToArray());
+    var _testarrayofbools = default(VectorOffset);
+    if (_o.Testarrayofbools != null) {
+      var __testarrayofbools = _o.Testarrayofbools.ToArray();
+      _testarrayofbools = CreateTestarrayofboolsVector(builder, __testarrayofbools);
+    }
+    var _testarrayofstring2 = default(VectorOffset);
+    if (_o.Testarrayofstring2 != null) {
+      var __testarrayofstring2 = new StringOffset[_o.Testarrayofstring2.Count];
+      for (var _j = 0; _j < __testarrayofstring2.Length; ++_j) { __testarrayofstring2[_j] = builder.CreateSharedString(_o.Testarrayofstring2[_j]); }
+      _testarrayofstring2 = CreateTestarrayofstring2Vector(builder, __testarrayofstring2);
+    }
     var _testarrayofsortedstruct = default(VectorOffset);
     if (_o.Testarrayofsortedstruct != null) {
       StartTestarrayofsortedstructVector(builder, _o.Testarrayofsortedstruct.Count);
       for (var _j = _o.Testarrayofsortedstruct.Count - 1; _j >= 0; --_j) { MyGame.Example.Ability.Pack(builder, _o.Testarrayofsortedstruct[_j]); }
       _testarrayofsortedstruct = builder.EndVector();
     }
-    var _flex = _o.Flex == null ? default(VectorOffset) : CreateFlexVector(builder, _o.Flex.ToArray());
+    var _flex = default(VectorOffset);
+    if (_o.Flex != null) {
+      var __flex = _o.Flex.ToArray();
+      _flex = CreateFlexVector(builder, __flex);
+    }
     var _test5 = default(VectorOffset);
     if (_o.Test5 != null) {
       StartTest5Vector(builder, _o.Test5.Count);
       for (var _j = _o.Test5.Count - 1; _j >= 0; --_j) { MyGame.Example.Test.Pack(builder, _o.Test5[_j]); }
       _test5 = builder.EndVector();
     }
-    var _vector_of_longs = _o.VectorOfLongs == null ? default(VectorOffset) : CreateVectorOfLongsVector(builder, _o.VectorOfLongs.ToArray());
-    var _vector_of_doubles = _o.VectorOfDoubles == null ? default(VectorOffset) : CreateVectorOfDoublesVector(builder, _o.VectorOfDoubles.ToArray());
+    var _vector_of_longs = default(VectorOffset);
+    if (_o.VectorOfLongs != null) {
+      var __vector_of_longs = _o.VectorOfLongs.ToArray();
+      _vector_of_longs = CreateVectorOfLongsVector(builder, __vector_of_longs);
+    }
+    var _vector_of_doubles = default(VectorOffset);
+    if (_o.VectorOfDoubles != null) {
+      var __vector_of_doubles = _o.VectorOfDoubles.ToArray();
+      _vector_of_doubles = CreateVectorOfDoublesVector(builder, __vector_of_doubles);
+    }
     var _parent_namespace_test = _o.ParentNamespaceTest == null ? default(Offset<MyGame.InParentNamespace>) : MyGame.InParentNamespace.Pack(builder, _o.ParentNamespaceTest);
-    var _vector_of_referrables = _o.VectorOfReferrables == null ? default(VectorOffset) : CreateVectorOfReferrablesVector(builder, _o.VectorOfReferrables.Select(__o => MyGame.Example.Referrable.Pack(builder, __o)).ToArray());
-    var _vector_of_weak_references = _o.VectorOfWeakReferences == null ? default(VectorOffset) : CreateVectorOfWeakReferencesVector(builder, _o.VectorOfWeakReferences.ToArray());
-    var _vector_of_strong_referrables = _o.VectorOfStrongReferrables == null ? default(VectorOffset) : CreateVectorOfStrongReferrablesVector(builder, _o.VectorOfStrongReferrables.Select(__o => MyGame.Example.Referrable.Pack(builder, __o)).ToArray());
-    var _vector_of_co_owning_references = _o.VectorOfCoOwningReferences == null ? default(VectorOffset) : CreateVectorOfCoOwningReferencesVector(builder, _o.VectorOfCoOwningReferences.ToArray());
-    var _vector_of_non_owning_references = _o.VectorOfNonOwningReferences == null ? default(VectorOffset) : CreateVectorOfNonOwningReferencesVector(builder, _o.VectorOfNonOwningReferences.ToArray());
+    var _vector_of_referrables = default(VectorOffset);
+    if (_o.VectorOfReferrables != null) {
+      var __vector_of_referrables = new Offset<MyGame.Example.Referrable>[_o.VectorOfReferrables.Count];
+      for (var _j = 0; _j < __vector_of_referrables.Length; ++_j) { __vector_of_referrables[_j] = MyGame.Example.Referrable.Pack(builder, _o.VectorOfReferrables[_j]); }
+      _vector_of_referrables = CreateVectorOfReferrablesVector(builder, __vector_of_referrables);
+    }
+    var _vector_of_weak_references = default(VectorOffset);
+    if (_o.VectorOfWeakReferences != null) {
+      var __vector_of_weak_references = _o.VectorOfWeakReferences.ToArray();
+      _vector_of_weak_references = CreateVectorOfWeakReferencesVector(builder, __vector_of_weak_references);
+    }
+    var _vector_of_strong_referrables = default(VectorOffset);
+    if (_o.VectorOfStrongReferrables != null) {
+      var __vector_of_strong_referrables = new Offset<MyGame.Example.Referrable>[_o.VectorOfStrongReferrables.Count];
+      for (var _j = 0; _j < __vector_of_strong_referrables.Length; ++_j) { __vector_of_strong_referrables[_j] = MyGame.Example.Referrable.Pack(builder, _o.VectorOfStrongReferrables[_j]); }
+      _vector_of_strong_referrables = CreateVectorOfStrongReferrablesVector(builder, __vector_of_strong_referrables);
+    }
+    var _vector_of_co_owning_references = default(VectorOffset);
+    if (_o.VectorOfCoOwningReferences != null) {
+      var __vector_of_co_owning_references = _o.VectorOfCoOwningReferences.ToArray();
+      _vector_of_co_owning_references = CreateVectorOfCoOwningReferencesVector(builder, __vector_of_co_owning_references);
+    }
+    var _vector_of_non_owning_references = default(VectorOffset);
+    if (_o.VectorOfNonOwningReferences != null) {
+      var __vector_of_non_owning_references = _o.VectorOfNonOwningReferences.ToArray();
+      _vector_of_non_owning_references = CreateVectorOfNonOwningReferencesVector(builder, __vector_of_non_owning_references);
+    }
     var _any_unique_type = _o.AnyUnique == null ? MyGame.Example.AnyUniqueAliases.NONE : _o.AnyUnique.Type;
     var _any_unique = _o.AnyUnique == null ? 0 : MyGame.Example.AnyUniqueAliasesUnion.Pack(builder, _o.AnyUnique);
     var _any_ambiguous_type = _o.AnyAmbiguous == null ? MyGame.Example.AnyAmbiguousAliases.NONE : _o.AnyAmbiguous.Type;
     var _any_ambiguous = _o.AnyAmbiguous == null ? 0 : MyGame.Example.AnyAmbiguousAliasesUnion.Pack(builder, _o.AnyAmbiguous);
-    var _vector_of_enums = _o.VectorOfEnums == null ? default(VectorOffset) : CreateVectorOfEnumsVector(builder, _o.VectorOfEnums.ToArray());
+    var _vector_of_enums = default(VectorOffset);
+    if (_o.VectorOfEnums != null) {
+      var __vector_of_enums = _o.VectorOfEnums.ToArray();
+      _vector_of_enums = CreateVectorOfEnumsVector(builder, __vector_of_enums);
+    }
     StartMonster(builder);
     AddPos(builder, MyGame.Example.Vec3.Pack(builder, _o.Pos));
     AddMana(builder, _o.Mana);

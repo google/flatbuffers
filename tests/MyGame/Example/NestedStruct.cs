@@ -7,7 +7,6 @@ namespace MyGame.Example
 
 using global::System;
 using global::System.Collections.Generic;
-using global::System.Linq;
 using global::FlatBuffers;
 
 public struct NestedStruct : IFlatbufferObject

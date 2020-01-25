@@ -108,7 +108,6 @@ class CSharpGenerator : public BaseGenerator {
     if (needs_includes) {
       code += "using global::System;\n";
       code += "using global::System.Collections.Generic;\n";
-      code += "using global::System.Linq;\n";
       code += "using global::FlatBuffers;\n\n";
     }
     code += classcode;
@@ -1448,30 +1447,48 @@ class CSharpGenerator : public BaseGenerator {
         case BASE_TYPE_VECTOR: {
           if (field_has_create.find(&field) != field_has_create.end()) {
             auto property_name = camel_name;
-            std::string pack_method = "";
+            auto gen_for_loop = true;
+            std::string array_name = "__" + field.name;
+            std::string array_type = "";
+            std::string to_array = "";
             switch (field.value.type.element) {
               case BASE_TYPE_STRING:
-                pack_method = ".Select(builder.CreateSharedString)";
+                array_type = "StringOffset";
+                to_array +=
+                    "builder.CreateSharedString(_o." + property_name + "[_j])";
                 break;
               case BASE_TYPE_STRUCT:
-                pack_method = ".Select(__o => " + GenTypeGet(field.value.type) +
-                              ".Pack(builder, __o))";
+                array_type = "Offset<" + GenTypeGet(field.value.type) + ">";
+                to_array = GenTypeGet(field.value.type) + ".Pack(builder, _o." +
+                           property_name + "[_j])";
                 break;
               case BASE_TYPE_UTYPE:
                 property_name = camel_name.substr(0, camel_name.size() - 4);
-                pack_method = ".Select(__o => __o.Type)";
+                array_type = WrapInNameSpace(*field.value.type.enum_def);
+                to_array = "_o." + property_name + "[_j].Type";
                 break;
               case BASE_TYPE_UNION:
-                pack_method = ".Select(__o => " +
-                              WrapInNameSpace(*field.value.type.enum_def) +
-                              "Union.Pack(builder, __o))";
+                array_type = "int";
+                to_array = WrapInNameSpace(*field.value.type.enum_def) +
+                           "Union.Pack(builder,  _o." + property_name + "[_j])";
                 break;
-              default: break;
+              default: gen_for_loop = false; break;
             }
-            code += "    var _" + field.name + " = _o." + property_name +
-                    " == null ? default(VectorOffset) : Create" + camel_name +
-                    "Vector(builder, _o." + property_name + pack_method +
-                    ".ToArray());\n";
+            code += "    var _" + field.name + " = default(VectorOffset);\n";
+            code += "    if (_o." + property_name + " != null) {\n";
+            if (gen_for_loop) {
+              code += "      var " + array_name + " = new " + array_type +
+                      "[_o." + property_name + ".Count];\n";
+              code += "      for (var _j = 0; _j < " + array_name +
+                      ".Length; ++_j) { ";
+              code += array_name + "[_j] = " + to_array + "; }\n";
+            } else {
+              code += "      var " + array_name + " = _o." + property_name +
+                      ".ToArray();\n";
+            }
+            code += "      _" + field.name + " = Create" + camel_name +
+                    "Vector(builder, " + array_name + ");\n";
+            code += "    }\n";
           } else {
             auto pack_method =
                 field.value.type.struct_def == nullptr

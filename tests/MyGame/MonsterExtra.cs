@@ -7,7 +7,6 @@ namespace MyGame
 
 using global::System;
 using global::System.Collections.Generic;
-using global::System.Linq;
 using global::FlatBuffers;
 
 public struct MonsterExtra : IFlatbufferObject
@@ -125,8 +124,16 @@ public struct MonsterExtra : IFlatbufferObject
   }
   public static Offset<MyGame.MonsterExtra> Pack(FlatBufferBuilder builder, MonsterExtraT _o) {
     if (_o == null) return default(Offset<MyGame.MonsterExtra>);
-    var _dvec = _o.Dvec == null ? default(VectorOffset) : CreateDvecVector(builder, _o.Dvec.ToArray());
-    var _fvec = _o.Fvec == null ? default(VectorOffset) : CreateFvecVector(builder, _o.Fvec.ToArray());
+    var _dvec = default(VectorOffset);
+    if (_o.Dvec != null) {
+      var __dvec = _o.Dvec.ToArray();
+      _dvec = CreateDvecVector(builder, __dvec);
+    }
+    var _fvec = default(VectorOffset);
+    if (_o.Fvec != null) {
+      var __fvec = _o.Fvec.ToArray();
+      _fvec = CreateFvecVector(builder, __fvec);
+    }
     return CreateMonsterExtra(
       builder,
       _o.D0,
