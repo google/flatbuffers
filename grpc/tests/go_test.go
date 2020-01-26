@@ -7,6 +7,7 @@ import (
 	"fake.flatbuffers.moduleroot/tests/MyGame/Example"
 
 	"context"
+	"fmt"
 	"net"
 	"testing"
 
@@ -32,13 +33,25 @@ func (s *server) Store(context context.Context, in *Example.Monster) (*flatbuffe
 }
 
 // gRPC server retrieve method
-func (s *server) Retrieve(context context.Context, in *Example.Stat) (*flatbuffers.Builder, error) {
+func (s *server) Retrieve(in *Example.Stat, m Example.MonsterStorage_RetrieveServer) error {
 	b := flatbuffers.NewBuilder(0)
 	i := b.CreateString(test)
 	Example.MonsterStart(b)
 	Example.MonsterAddName(b, i)
 	b.Finish(Example.MonsterEnd(b))
-	return b, nil
+	return m.Send(b)
+}
+
+func (s *server) GetMaxHitPoint(_ Example.MonsterStorage_GetMaxHitPointServer) error {
+	// TODO: impement this properly for testing. Current barebones implimentation
+	// is just to minimally satisfy Example.MonsterStorageServer interface
+	panic(fmt.Errorf("GetMaxHitPoint Procedure Unimplimented"))
+}
+
+func (s *server) GetMinMaxHitPoints(_ Example.MonsterStorage_GetMinMaxHitPointsServer) error {
+	// TODO: impement this properly for testing. Current barebones implimentation
+	// is just to minimally satisfy Example.MonsterStorageServer interface
+	panic(fmt.Errorf("GetMinMaxHitPoints Procedure Unimplimented"))
 }
 
 func StoreClient(c Example.MonsterStorageClient, t *testing.T) {
@@ -63,9 +76,13 @@ func RetrieveClient(c Example.MonsterStorageClient, t *testing.T) {
 	Example.StatStart(b)
 	Example.StatAddId(b, i)
 	b.Finish(Example.StatEnd(b))
-	out, err := c.Retrieve(context.Background(), b)
+	x, err := c.Retrieve(context.Background(), b)
 	if err != nil {
 		t.Fatalf("Retrieve client failed: %v", err)
+	}
+	out, err := x.Recv()
+	if err != nil {
+		t.Fatalf("MonsterStorage_RetrieveClient recv failed: %v", err)
 	}
 	if string(out.Name()) != test {
 		t.Errorf("RetrieveClient failed: expected=%s, got=%s\n", test, out.Name())
