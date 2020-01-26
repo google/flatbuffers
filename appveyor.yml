@@ -2,7 +2,7 @@ branches:
   only:
     - master
 
-os: Visual Studio 2015
+os: Visual Studio 2019
 
 environment:
 
@@ -23,6 +23,12 @@ environment:
       MONSTER_EXTRA: "skip"
 
     - CMAKE_VS_VERSION: "14 2015"
+      MONSTER_EXTRA: ""
+
+    - CMAKE_VS_VERSION: "15 2017"
+      MONSTER_EXTRA: ""
+
+    - CMAKE_VS_VERSION: "16 2019"
       MONSTER_EXTRA: ""
 
 platform:
