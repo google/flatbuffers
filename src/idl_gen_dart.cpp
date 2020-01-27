@@ -454,7 +454,7 @@ class DartGenerator : public BaseGenerator {
            it != struct_def.fields.vec.end(); ++it) {
         auto &field = **it;
         if (field.deprecated) continue;
-        auto offset = it - struct_def.fields.vec.begin();
+        auto offset = static_cast<int>(it - struct_def.fields.vec.begin());
         non_deprecated_fields.push_back(std::make_pair(offset, &field));
     }
 
