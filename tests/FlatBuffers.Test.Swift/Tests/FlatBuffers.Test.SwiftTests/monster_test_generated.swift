@@ -5,39 +5,77 @@ import FlatBuffers
 public enum MyGame {
 public enum Example {
 
+/// Composite components of Monster color.
 public enum Color: UInt8, Enum { 
 	public typealias T = UInt8
 	public static var byteSize: Int { return MemoryLayout<UInt8>.size }
 	public var value: UInt8 { return self.rawValue }
-	case red = 1, green = 2, blue = 8
+	case red = 1
+	/// \brief color Green
+	/// Green is bit_flag with value (1u << 1)
+	case green = 2
+	/// \brief color Blue (1u << 3)
+	case blue = 8
+
+
+	public static var max: Color { return .blue }
+	public static var min: Color { return .red }
 }
 
 public enum Race: Int8, Enum { 
 	public typealias T = Int8
 	public static var byteSize: Int { return MemoryLayout<Int8>.size }
 	public var value: Int8 { return self.rawValue }
-	case none = -1, human = 0, dwarf = 1, elf = 2
+	case none = -1
+	case human = 0
+	case dwarf = 1
+	case elf = 2
+
+
+	public static var max: Race { return .elf }
+	public static var min: Race { return .none }
 }
 
 public enum Any_: UInt8, Enum { 
 	public typealias T = UInt8
 	public static var byteSize: Int { return MemoryLayout<UInt8>.size }
 	public var value: UInt8 { return self.rawValue }
-	case none = 0, monster = 1, testsimpletablewithenum = 2, mygame_example2_monster = 3
+	case none = 0
+	case monster = 1
+	case testsimpletablewithenum = 2
+	case mygame_example2_monster = 3
+
+
+	public static var max: Any_ { return .mygame_example2_monster }
+	public static var min: Any_ { return .none }
 }
 
 public enum AnyUniqueAliases: UInt8, Enum { 
 	public typealias T = UInt8
 	public static var byteSize: Int { return MemoryLayout<UInt8>.size }
 	public var value: UInt8 { return self.rawValue }
-	case none = 0, m = 1, ts = 2, m2 = 3
+	case none = 0
+	case m = 1
+	case ts = 2
+	case m2 = 3
+
+
+	public static var max: AnyUniqueAliases { return .m2 }
+	public static var min: AnyUniqueAliases { return .none }
 }
 
 public enum AnyAmbiguousAliases: UInt8, Enum { 
 	public typealias T = UInt8
 	public static var byteSize: Int { return MemoryLayout<UInt8>.size }
 	public var value: UInt8 { return self.rawValue }
-	case none = 0, m1 = 1, m2 = 2, m3 = 3
+	case none = 0
+	case m1 = 1
+	case m2 = 2
+	case m3 = 3
+
+
+	public static var max: AnyAmbiguousAliases { return .m3 }
+	public static var min: AnyAmbiguousAliases { return .none }
 }
 
 public struct Test: Readable {
@@ -279,6 +317,7 @@ public struct Referrable: FlatBufferObject {
 	}
 }
 
+/// an example documentation comment: monster object
 public struct Monster: FlatBufferObject {
 
 	static func validateVersion() { FlatBuffersVersion_1_11_1() }
@@ -309,6 +348,8 @@ public struct Monster: FlatBufferObject {
 	public func test4(at index: Int32) -> MyGame.Example.Test? { let o = _accessor.offset(22); return o == 0 ? nil : MyGame.Example.Test(_accessor.bb, o: _accessor.vector(at: o) + index * 4) }
 	public var testarrayofstringCount: Int32 { let o = _accessor.offset(24); return o == 0 ? 0 : _accessor.vector(count: o) }
 	public func testarrayofstring(at index: Int32) -> String? { let o = _accessor.offset(24); return o == 0 ? nil : _accessor.directString(at: _accessor.vector(at: o) + index * 4) }
+	/// an example documentation comment: this will end up in the generated code
+	/// multiline too
 	public var testarrayoftablesCount: Int32 { let o = _accessor.offset(26); return o == 0 ? 0 : _accessor.vector(count: o) }
 	public func testarrayoftables(at index: Int32) -> MyGame.Example.Monster? { let o = _accessor.offset(26); return o == 0 ? nil : MyGame.Example.Monster(_accessor.bb, o: _accessor.indirect(_accessor.vector(at: o) + index * 4)) }
 	public func testarrayoftablesBy(key: String) -> MyGame.Example.Monster? { let o = _accessor.offset(26); return o == 0 ? nil : MyGame.Example.Monster.lookupByKey(vector: _accessor.vector(at: o), key: key, fbb: _accessor.bb) }
