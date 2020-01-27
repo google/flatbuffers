@@ -77,11 +77,8 @@ public final class FlatBufferBuilder {
     public func clearOffsets() {
         _vtable = []
     }
-}
-
-// MARK: - Create Tables
-
-extension FlatBufferBuilder {
+    
+    // MARK: - Create Tables
     
     /// Checks if the required fields were serialized into the buffer
     /// - Parameters:
@@ -476,11 +473,16 @@ extension FlatBufferBuilder {
         _bb.push(value: element, len: MemoryLayout<T>.size)
         return _bb.size
     }
+}
+
+extension FlatBufferBuilder: CustomDebugStringConvertible {
     
-    #if DEBUG
-    /// Used to debug the buffer and the implementation
-    public func debug(str: String = "normal memory: ") {
-        _bb.debugMemory(str: str)
+    public var debugDescription: String {
+        """
+        buffer debug:
+        \(_bb)
+        builder debug:
+        { finished: \(finished), serializeDefaults: \(serializeDefaults), isNested: \(isNested) }
+        """
     }
-    #endif
 }
