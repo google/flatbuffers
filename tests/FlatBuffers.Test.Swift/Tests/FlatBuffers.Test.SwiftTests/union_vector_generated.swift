@@ -6,7 +6,17 @@ public enum Character: UInt8, Enum {
 	public typealias T = UInt8
 	public static var byteSize: Int { return MemoryLayout<UInt8>.size }
 	public var value: UInt8 { return self.rawValue }
-	case none = 0, mulan = 1, rapunzel = 2, belle = 3, bookfan = 4, other = 5, unused = 6
+	case none = 0
+	case mulan = 1
+	case rapunzel = 2
+	case belle = 3
+	case bookfan = 4
+	case other = 5
+	case unused = 6
+
+
+	public static var max: Character { return .unused }
+	public static var min: Character { return .none }
 }
 
 public struct Rapunzel: Readable {

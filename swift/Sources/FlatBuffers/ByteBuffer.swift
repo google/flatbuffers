@@ -231,13 +231,14 @@ public final class ByteBuffer {
     public func duplicate(removing removeBytes: Int = 0) -> ByteBuffer {
         return ByteBuffer(memory: _memory, count: _capacity, removing: _writerSize - removeBytes)
     }
+}
+
+extension ByteBuffer: CustomDebugStringConvertible {
     
-    #if DEBUG
-    func debugMemory(str: String) {
-        let bufprt = UnsafeBufferPointer(start: _memory.assumingMemoryBound(to: UInt8.self),
-                                         count: _capacity)
-        let a = Array(bufprt)
-        print(str, a, " \nwith buffer size: \(a.count) and writer size: \(_writerSize)")
+    public var debugDescription: String {
+        """
+        buffer located at: \(_memory), with capacity of \(_capacity)
+        { writerSize: \(_writerSize), readerSize: \(reader), writerIndex: \(writerIndex) }
+        """
     }
-    #endif
 }
