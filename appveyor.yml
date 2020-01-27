@@ -2,12 +2,6 @@ branches:
   only:
     - master
 
-image:
-- Visual Studio 2013
-- Visual Studio 2015
-- Visual Studio 2017
-- Visual Studio 2019
-
 environment:
 
   global:
@@ -18,13 +12,13 @@ environment:
     CPP_TEST_OPTIONS: ""
 
   matrix:
-    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
       CMAKE_VS_VERSION: "10 2010"
       CMAKE_OPTIONS: "-DFLATBUFFERS_BUILD_LEGACY=1"
       CPP_TEST_OPTIONS: "--std-cpp c++0x"
       MONSTER_EXTRA: "skip"
 
-    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
       CMAKE_VS_VERSION: "12 2013"
       MONSTER_EXTRA: "skip"
 
