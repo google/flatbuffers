@@ -430,7 +430,7 @@ public struct Monster : IFlatbufferObject
   }
   public static Offset<MyGame.Example.Monster> Pack(FlatBufferBuilder builder, MonsterT _o) {
     if (_o == null) return default(Offset<MyGame.Example.Monster>);
-    var _name = _o.Name == null ? default(StringOffset) : builder.CreateSharedString(_o.Name);
+    var _name = _o.Name == null ? default(StringOffset) : builder.CreateString(_o.Name);
     var _inventory = default(VectorOffset);
     if (_o.Inventory != null) {
       var __inventory = _o.Inventory.ToArray();
@@ -447,7 +447,7 @@ public struct Monster : IFlatbufferObject
     var _testarrayofstring = default(VectorOffset);
     if (_o.Testarrayofstring != null) {
       var __testarrayofstring = new StringOffset[_o.Testarrayofstring.Count];
-      for (var _j = 0; _j < __testarrayofstring.Length; ++_j) { __testarrayofstring[_j] = builder.CreateSharedString(_o.Testarrayofstring[_j]); }
+      for (var _j = 0; _j < __testarrayofstring.Length; ++_j) { __testarrayofstring[_j] = builder.CreateString(_o.Testarrayofstring[_j]); }
       _testarrayofstring = CreateTestarrayofstringVector(builder, __testarrayofstring);
     }
     var _testarrayoftables = default(VectorOffset);
@@ -471,7 +471,7 @@ public struct Monster : IFlatbufferObject
     var _testarrayofstring2 = default(VectorOffset);
     if (_o.Testarrayofstring2 != null) {
       var __testarrayofstring2 = new StringOffset[_o.Testarrayofstring2.Count];
-      for (var _j = 0; _j < __testarrayofstring2.Length; ++_j) { __testarrayofstring2[_j] = builder.CreateSharedString(_o.Testarrayofstring2[_j]); }
+      for (var _j = 0; _j < __testarrayofstring2.Length; ++_j) { __testarrayofstring2[_j] = builder.CreateString(_o.Testarrayofstring2[_j]); }
       _testarrayofstring2 = CreateTestarrayofstring2Vector(builder, __testarrayofstring2);
     }
     var _testarrayofsortedstruct = default(VectorOffset);

@@ -37,8 +37,8 @@ public class CharacterUnion {
       case Character.Rapunzel: return Rapunzel.Pack(builder, _o.AsRapunzel()).Value;
       case Character.Belle: return BookReader.Pack(builder, _o.AsBelle()).Value;
       case Character.BookFan: return BookReader.Pack(builder, _o.AsBookFan()).Value;
-      case Character.Other: return builder.CreateSharedString(_o.AsOther()).Value;
-      case Character.Unused: return builder.CreateSharedString(_o.AsUnused()).Value;
+      case Character.Other: return builder.CreateString(_o.AsOther()).Value;
+      case Character.Unused: return builder.CreateString(_o.AsUnused()).Value;
     }
   }
 }

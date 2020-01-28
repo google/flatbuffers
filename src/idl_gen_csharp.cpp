@@ -1264,7 +1264,7 @@ class CSharpGenerator : public BaseGenerator {
       } else {
         code += "      case " + enum_def.name + "." + ev.name + ": return ";
         if (ev.union_type.base_type == BASE_TYPE_STRING) {
-          code += "builder.CreateSharedString(_o.As" + ev.name + "()).Value;\n";
+          code += "builder.CreateString(_o.As" + ev.name + "()).Value;\n";
         } else {
           code += GenTypeGet(ev.union_type) + ".Pack(builder, _o.As" + ev.name +
                   "()).Value;\n";
@@ -1440,7 +1440,7 @@ class CSharpGenerator : public BaseGenerator {
         case BASE_TYPE_STRING: {
           code += "    var _" + field.name + " = _o." + camel_name +
                   " == null ? default(StringOffset) : "
-                  "builder.CreateSharedString(_o." +
+                  "builder.CreateString(_o." +
                   camel_name + ");\n";
           break;
         }
@@ -1455,7 +1455,7 @@ class CSharpGenerator : public BaseGenerator {
               case BASE_TYPE_STRING:
                 array_type = "StringOffset";
                 to_array +=
-                    "builder.CreateSharedString(_o." + property_name + "[_j])";
+                    "builder.CreateString(_o." + property_name + "[_j])";
                 break;
               case BASE_TYPE_STRUCT:
                 array_type = "Offset<" + GenTypeGet(field.value.type) + ">";
