@@ -1438,9 +1438,10 @@ class CSharpGenerator : public BaseGenerator {
           break;
         }
         case BASE_TYPE_STRING: {
+          std::string createString = field.shared ? "CreateSharedString" : "CreateString";
           code += "    var _" + field.name + " = _o." + camel_name +
                   " == null ? default(StringOffset) : "
-                  "builder.CreateString(_o." +
+                  "builder." + createString + "(_o." +
                   camel_name + ");\n";
           break;
         }
@@ -1452,11 +1453,13 @@ class CSharpGenerator : public BaseGenerator {
             std::string array_type = "";
             std::string to_array = "";
             switch (field.value.type.element) {
-              case BASE_TYPE_STRING:
+              case BASE_TYPE_STRING: {
+                std::string createString = field.shared ? "CreateSharedString" : "CreateString";
                 array_type = "StringOffset";
-                to_array +=
-                    "builder.CreateString(_o." + property_name + "[_j])";
+                to_array += 
+                    "builder." + createString + "(_o." + property_name + "[_j])";
                 break;
+              }
               case BASE_TYPE_STRUCT:
                 array_type = "Offset<" + GenTypeGet(field.value.type) + ">";
                 to_array = GenTypeGet(field.value.type) + ".Pack(builder, _o." +
