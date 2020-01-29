@@ -1438,11 +1438,12 @@ class CSharpGenerator : public BaseGenerator {
           break;
         }
         case BASE_TYPE_STRING: {
-          std::string createString = field.shared ? "CreateSharedString" : "CreateString";
+          std::string create_string =
+              field.shared ? "CreateSharedString" : "CreateString";
           code += "    var _" + field.name + " = _o." + camel_name +
                   " == null ? default(StringOffset) : "
-                  "builder." + createString + "(_o." +
-                  camel_name + ");\n";
+                  "builder." +
+                  create_string + "(_o." + camel_name + ");\n";
           break;
         }
         case BASE_TYPE_VECTOR: {
@@ -1454,10 +1455,11 @@ class CSharpGenerator : public BaseGenerator {
             std::string to_array = "";
             switch (field.value.type.element) {
               case BASE_TYPE_STRING: {
-                std::string createString = field.shared ? "CreateSharedString" : "CreateString";
+                std::string create_string =
+                    field.shared ? "CreateSharedString" : "CreateString";
                 array_type = "StringOffset";
-                to_array += 
-                    "builder." + createString + "(_o." + property_name + "[_j])";
+                to_array += "builder." + create_string + "(_o." +
+                            property_name + "[_j])";
                 break;
               }
               case BASE_TYPE_STRUCT:
