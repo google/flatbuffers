@@ -6,6 +6,7 @@ namespace MyGame.Example
 {
 
 using global::System;
+using global::System.Collections.Generic;
 using global::FlatBuffers;
 
 public struct Referrable : IFlatbufferObject
@@ -59,7 +60,30 @@ public struct Referrable : IFlatbufferObject
     }
     return null;
   }
+  public ReferrableT UnPack() {
+    var _o = new ReferrableT();
+    this.UnPackTo(_o);
+    return _o;
+  }
+  public void UnPackTo(ReferrableT _o) {
+    _o.Id = this.Id;
+  }
+  public static Offset<MyGame.Example.Referrable> Pack(FlatBufferBuilder builder, ReferrableT _o) {
+    if (_o == null) return default(Offset<MyGame.Example.Referrable>);
+    return CreateReferrable(
+      builder,
+      _o.Id);
+  }
 };
+
+public class ReferrableT
+{
+  public ulong Id { get; set; }
+
+  public ReferrableT() {
+    this.Id = 0;
+  }
+}
 
 
 }

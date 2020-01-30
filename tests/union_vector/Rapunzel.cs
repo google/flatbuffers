@@ -3,6 +3,7 @@
 // </auto-generated>
 
 using global::System;
+using global::System.Collections.Generic;
 using global::FlatBuffers;
 
 public struct Rapunzel : IFlatbufferObject
@@ -20,5 +21,28 @@ public struct Rapunzel : IFlatbufferObject
     builder.PutInt(HairLength);
     return new Offset<Rapunzel>(builder.Offset);
   }
+  public RapunzelT UnPack() {
+    var _o = new RapunzelT();
+    this.UnPackTo(_o);
+    return _o;
+  }
+  public void UnPackTo(RapunzelT _o) {
+    _o.HairLength = this.HairLength;
+  }
+  public static Offset<Rapunzel> Pack(FlatBufferBuilder builder, RapunzelT _o) {
+    if (_o == null) return default(Offset<Rapunzel>);
+    return CreateRapunzel(
+      builder,
+      _o.HairLength);
+  }
 };
+
+public class RapunzelT
+{
+  public int HairLength { get; set; }
+
+  public RapunzelT() {
+    this.HairLength = 0;
+  }
+}
 

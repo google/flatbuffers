@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -9,6 +9,7 @@
     <RootNamespace>FlatBuffers.Test</RootNamespace>
     <AssemblyName>FlatBuffers.Test</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <LangVersion>4</LangVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -66,6 +67,9 @@
     <Compile Include="..\..\net\FlatBuffers\Table.cs">
       <Link>FlatBuffers\Table.cs</Link>
     </Compile>
+    <Compile Include="..\MyGame\Example2\Monster.cs">
+      <Link>MyGame\Example2\Monster.cs</Link>
+    </Compile>
     <Compile Include="..\MyGame\Example\Any.cs">
       <Link>MyGame\Example\Any.cs</Link>
     </Compile>
@@ -95,6 +99,9 @@
     </Compile>
     <Compile Include="..\MyGame\Example\TestSimpleTableWithEnum.cs">
       <Link>MyGame\Example\TestSimpleTableWithEnum.cs</Link>
+    </Compile>
+    <Compile Include="..\MyGame\Example\TypeAliases.cs">
+      <Link>MyGame\Example\TypeAliases.cs</Link>
     </Compile>
     <Compile Include="..\MyGame\Example\Vec3.cs">
       <Link>MyGame\Example\Vec3.cs</Link>
@@ -128,6 +135,21 @@
     </Compile>
     <Compile Include="..\namespace_test\NamespaceA\TableInFirstNS.cs">
       <Link>NamespaceA\TableInFirstNS.cs</Link>
+    </Compile>
+    <Compile Include="..\union_vector\Attacker.cs">
+      <Link>union_vector\Attacker.cs</Link>
+    </Compile>
+    <Compile Include="..\union_vector\BookReader.cs">
+      <Link>union_vector\BookReader.cs</Link>
+    </Compile>
+    <Compile Include="..\union_vector\Character.cs">
+      <Link>union_vector\Character.cs</Link>
+    </Compile>
+    <Compile Include="..\union_vector\Movie.cs">
+      <Link>union_vector\Movie.cs</Link>
+    </Compile>
+    <Compile Include="..\union_vector\Rapunzel.cs">
+      <Link>union_vector\Rapunzel.cs</Link>
     </Compile>
     <Compile Include="Assert.cs" />
     <Compile Include="ByteBufferTests.cs" />

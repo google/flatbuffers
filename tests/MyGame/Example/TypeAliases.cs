@@ -6,6 +6,7 @@ namespace MyGame.Example
 {
 
 using global::System;
+using global::System.Collections.Generic;
 using global::FlatBuffers;
 
 public struct TypeAliases : IFlatbufferObject
@@ -109,7 +110,86 @@ public struct TypeAliases : IFlatbufferObject
     int o = builder.EndTable();
     return new Offset<MyGame.Example.TypeAliases>(o);
   }
+  public TypeAliasesT UnPack() {
+    var _o = new TypeAliasesT();
+    this.UnPackTo(_o);
+    return _o;
+  }
+  public void UnPackTo(TypeAliasesT _o) {
+    _o.I8 = this.I8;
+    _o.U8 = this.U8;
+    _o.I16 = this.I16;
+    _o.U16 = this.U16;
+    _o.I32 = this.I32;
+    _o.U32 = this.U32;
+    _o.I64 = this.I64;
+    _o.U64 = this.U64;
+    _o.F32 = this.F32;
+    _o.F64 = this.F64;
+    _o.V8 = new List<sbyte>();
+    for (var _j = 0; _j < this.V8Length; ++_j) {_o.V8.Add(this.V8(_j));}
+    _o.Vf64 = new List<double>();
+    for (var _j = 0; _j < this.Vf64Length; ++_j) {_o.Vf64.Add(this.Vf64(_j));}
+  }
+  public static Offset<MyGame.Example.TypeAliases> Pack(FlatBufferBuilder builder, TypeAliasesT _o) {
+    if (_o == null) return default(Offset<MyGame.Example.TypeAliases>);
+    var _v8 = default(VectorOffset);
+    if (_o.V8 != null) {
+      var __v8 = _o.V8.ToArray();
+      _v8 = CreateV8Vector(builder, __v8);
+    }
+    var _vf64 = default(VectorOffset);
+    if (_o.Vf64 != null) {
+      var __vf64 = _o.Vf64.ToArray();
+      _vf64 = CreateVf64Vector(builder, __vf64);
+    }
+    return CreateTypeAliases(
+      builder,
+      _o.I8,
+      _o.U8,
+      _o.I16,
+      _o.U16,
+      _o.I32,
+      _o.U32,
+      _o.I64,
+      _o.U64,
+      _o.F32,
+      _o.F64,
+      _v8,
+      _vf64);
+  }
 };
+
+public class TypeAliasesT
+{
+  public sbyte I8 { get; set; }
+  public byte U8 { get; set; }
+  public short I16 { get; set; }
+  public ushort U16 { get; set; }
+  public int I32 { get; set; }
+  public uint U32 { get; set; }
+  public long I64 { get; set; }
+  public ulong U64 { get; set; }
+  public float F32 { get; set; }
+  public double F64 { get; set; }
+  public List<sbyte> V8 { get; set; }
+  public List<double> Vf64 { get; set; }
+
+  public TypeAliasesT() {
+    this.I8 = 0;
+    this.U8 = 0;
+    this.I16 = 0;
+    this.U16 = 0;
+    this.I32 = 0;
+    this.U32 = 0;
+    this.I64 = 0;
+    this.U64 = 0;
+    this.F32 = 0.0f;
+    this.F64 = 0.0;
+    this.V8 = null;
+    this.Vf64 = null;
+  }
+}
 
 
 }
