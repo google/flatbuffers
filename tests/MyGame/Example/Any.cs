@@ -13,5 +13,29 @@ public enum Any : byte
   MyGame_Example2_Monster = 3,
 };
 
+public class AnyUnion {
+  public Any Type { get; set; }
+  public object Value { get; set; }
+
+  public AnyUnion() {
+    this.Type = Any.NONE;
+    this.Value = null;
+  }
+
+  public T As<T>() where T : class { return this.Value as T; }
+  public MyGame.Example.MonsterT AsMonster() { return this.As<MyGame.Example.MonsterT>(); }
+  internal MyGame.Example.TestSimpleTableWithEnumT AsTestSimpleTableWithEnum() { return this.As<MyGame.Example.TestSimpleTableWithEnumT>(); }
+  public MyGame.Example2.MonsterT AsMyGame_Example2_Monster() { return this.As<MyGame.Example2.MonsterT>(); }
+
+  public static int Pack(FlatBuffers.FlatBufferBuilder builder, AnyUnion _o) {
+    switch (_o.Type) {
+      default: return 0;
+      case Any.Monster: return MyGame.Example.Monster.Pack(builder, _o.AsMonster()).Value;
+      case Any.TestSimpleTableWithEnum: return MyGame.Example.TestSimpleTableWithEnum.Pack(builder, _o.AsTestSimpleTableWithEnum()).Value;
+      case Any.MyGame_Example2_Monster: return MyGame.Example2.Monster.Pack(builder, _o.AsMyGame_Example2_Monster()).Value;
+    }
+  }
+}
+
 
 }

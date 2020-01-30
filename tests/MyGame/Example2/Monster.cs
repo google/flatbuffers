@@ -6,6 +6,7 @@ namespace MyGame.Example2
 {
 
 using global::System;
+using global::System.Collections.Generic;
 using global::FlatBuffers;
 
 public struct Monster : IFlatbufferObject
@@ -24,7 +25,26 @@ public struct Monster : IFlatbufferObject
     int o = builder.EndTable();
     return new Offset<MyGame.Example2.Monster>(o);
   }
+  public MonsterT UnPack() {
+    var _o = new MonsterT();
+    this.UnPackTo(_o);
+    return _o;
+  }
+  public void UnPackTo(MonsterT _o) {
+  }
+  public static Offset<MyGame.Example2.Monster> Pack(FlatBufferBuilder builder, MonsterT _o) {
+    if (_o == null) return default(Offset<MyGame.Example2.Monster>);
+    StartMonster(builder);
+    return EndMonster(builder);
+  }
 };
+
+public class MonsterT
+{
+
+  public MonsterT() {
+  }
+}
 
 
 }
