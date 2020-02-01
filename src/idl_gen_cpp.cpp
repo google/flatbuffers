@@ -625,6 +625,13 @@ class CppGenerator : public BaseGenerator {
     return false;
   }
 
+  bool VectorElementUserFacing(const Type& type) const {
+    // Normally, in non-Object-API, we use the non-user-facing type when
+    // emitting the Vector element type, however in the case of enums
+    // we want to avoid that when using scoped-enums.
+    return opts_.scoped_enums && IsEnum(type);
+  }
+
   void GenComment(const std::vector<std::string> &dc, const char *prefix = "") {
     std::string text;
     ::flatbuffers::GenComment(dc, &text, nullptr, prefix);
@@ -656,7 +663,8 @@ class CppGenerator : public BaseGenerator {
         return "flatbuffers::String";
       }
       case BASE_TYPE_VECTOR: {
-        const auto type_name = GenTypeWire(type.VectorType(), "", false);
+        const auto type_name = GenTypeWire(type.VectorType(), "",
+                VectorElementUserFacing(type.VectorType()));
         return "flatbuffers::Vector<" + type_name + ">";
       }
       case BASE_TYPE_STRUCT: {
@@ -1622,7 +1630,7 @@ class CppGenerator : public BaseGenerator {
       if (IsStruct(vtype)) {
         type = WrapInNameSpace(*vtype.struct_def);
       } else {
-        type = GenTypeWire(vtype, "", false);
+        type = GenTypeWire(vtype, "", VectorElementUserFacing(vtype));
       }
       if (TypeHasKey(vtype)) {
         code_.SetValue("PARAM_TYPE", "std::vector<" + type + "> *");
@@ -2322,7 +2330,8 @@ class CppGenerator : public BaseGenerator {
               const auto type = WrapInNameSpace(*vtype.struct_def);
               code_ += "_fbb.CreateVectorOfSortedTables<" + type + ">\\";
             } else {
-              const auto type = GenTypeWire(vtype, "", false);
+              const auto type = GenTypeWire(
+                      vtype, "", VectorElementUserFacing(vtype));
               code_ += "_fbb.CreateVector<" + type + ">\\";
             }
             code_ +=
@@ -2627,7 +2636,7 @@ class CppGenerator : public BaseGenerator {
             break;
           }
           default: {
-            if (field.value.type.enum_def) {
+            if (field.value.type.enum_def && !opts_.scoped_enums) {
               // For enumerations, we need to get access to the array data for
               // the underlying storage type (eg. uint8_t).
               const auto basetype = GenTypeBasic(
