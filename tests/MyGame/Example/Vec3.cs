@@ -73,11 +73,29 @@ public struct Vec3 : IFlatbufferObject
 
 public class Vec3T
 {
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("x")]
+#endif
   public float X { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("y")]
+#endif
   public float Y { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("z")]
+#endif
   public float Z { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("test1")]
+#endif
   public double Test1 { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("test2")]
+#endif
   public MyGame.Example.Color Test2 { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("test3")]
+#endif
   public MyGame.Example.TestT Test3 { get; set; }
 
   public Vec3T() {

@@ -593,50 +593,232 @@ public struct Monster : IFlatbufferObject
 
 public class MonsterT
 {
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("pos")]
+#endif
   public MyGame.Example.Vec3T Pos { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("mana")]
+#endif
   public short Mana { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("hp")]
+#endif
   public short Hp { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("name")]
+#endif
   public string Name { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("inventory")]
+#endif
   public List<byte> Inventory { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("color")]
+#endif
   public MyGame.Example.Color Color { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("test_type")]
+  private MyGame.Example.Any TestType {
+    get {
+      return this.Test != null ? this.Test.Type : MyGame.Example.Any.NONE;
+    }
+    set {
+      this.Test = new MyGame.Example.AnyUnion();
+      this.Test.Type = value;
+    }
+  }
+  [Newtonsoft.Json.JsonProperty("test")]
+  [Newtonsoft.Json.JsonConverter(typeof(MyGame.Example.AnyUnion_JsonConverter))]
+#endif
   public MyGame.Example.AnyUnion Test { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("test4")]
+#endif
   public List<MyGame.Example.TestT> Test4 { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("testarrayofstring")]
+#endif
   public List<string> Testarrayofstring { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("testarrayoftables")]
+#endif
   public List<MyGame.Example.MonsterT> Testarrayoftables { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("enemy")]
+#endif
   public MyGame.Example.MonsterT Enemy { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("testnestedflatbuffer")]
+#endif
   public List<byte> Testnestedflatbuffer { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("testempty")]
+#endif
   public MyGame.Example.StatT Testempty { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("testbool")]
+#endif
   public bool Testbool { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("testhashs32_fnv1")]
+  [Newtonsoft.Json.JsonIgnore()]
+#endif
   public int Testhashs32Fnv1 { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("testhashu32_fnv1")]
+  [Newtonsoft.Json.JsonIgnore()]
+#endif
   public uint Testhashu32Fnv1 { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("testhashs64_fnv1")]
+  [Newtonsoft.Json.JsonIgnore()]
+#endif
   public long Testhashs64Fnv1 { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("testhashu64_fnv1")]
+  [Newtonsoft.Json.JsonIgnore()]
+#endif
   public ulong Testhashu64Fnv1 { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("testhashs32_fnv1a")]
+  [Newtonsoft.Json.JsonIgnore()]
+#endif
   public int Testhashs32Fnv1a { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("testhashu32_fnv1a")]
+  [Newtonsoft.Json.JsonIgnore()]
+#endif
   public uint Testhashu32Fnv1a { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("testhashs64_fnv1a")]
+  [Newtonsoft.Json.JsonIgnore()]
+#endif
   public long Testhashs64Fnv1a { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("testhashu64_fnv1a")]
+  [Newtonsoft.Json.JsonIgnore()]
+#endif
   public ulong Testhashu64Fnv1a { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("testarrayofbools")]
+#endif
   public List<bool> Testarrayofbools { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("testf")]
+#endif
   public float Testf { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("testf2")]
+#endif
   public float Testf2 { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("testf3")]
+#endif
   public float Testf3 { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("testarrayofstring2")]
+#endif
   public List<string> Testarrayofstring2 { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("testarrayofsortedstruct")]
+#endif
   public List<MyGame.Example.AbilityT> Testarrayofsortedstruct { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("flex")]
+#endif
   public List<byte> Flex { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("test5")]
+#endif
   public List<MyGame.Example.TestT> Test5 { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("vector_of_longs")]
+#endif
   public List<long> VectorOfLongs { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("vector_of_doubles")]
+#endif
   public List<double> VectorOfDoubles { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("parent_namespace_test")]
+#endif
   public MyGame.InParentNamespaceT ParentNamespaceTest { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("vector_of_referrables")]
+#endif
   public List<MyGame.Example.ReferrableT> VectorOfReferrables { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("single_weak_reference")]
+  [Newtonsoft.Json.JsonIgnore()]
+#endif
   public ulong SingleWeakReference { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("vector_of_weak_references")]
+  [Newtonsoft.Json.JsonIgnore()]
+#endif
   public List<ulong> VectorOfWeakReferences { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("vector_of_strong_referrables")]
+#endif
   public List<MyGame.Example.ReferrableT> VectorOfStrongReferrables { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("co_owning_reference")]
+  [Newtonsoft.Json.JsonIgnore()]
+#endif
   public ulong CoOwningReference { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("vector_of_co_owning_references")]
+  [Newtonsoft.Json.JsonIgnore()]
+#endif
   public List<ulong> VectorOfCoOwningReferences { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("non_owning_reference")]
+  [Newtonsoft.Json.JsonIgnore()]
+#endif
   public ulong NonOwningReference { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("vector_of_non_owning_references")]
+  [Newtonsoft.Json.JsonIgnore()]
+#endif
   public List<ulong> VectorOfNonOwningReferences { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("any_unique_type")]
+  private MyGame.Example.AnyUniqueAliases AnyUniqueType {
+    get {
+      return this.AnyUnique != null ? this.AnyUnique.Type : MyGame.Example.AnyUniqueAliases.NONE;
+    }
+    set {
+      this.AnyUnique = new MyGame.Example.AnyUniqueAliasesUnion();
+      this.AnyUnique.Type = value;
+    }
+  }
+  [Newtonsoft.Json.JsonProperty("any_unique")]
+  [Newtonsoft.Json.JsonConverter(typeof(MyGame.Example.AnyUniqueAliasesUnion_JsonConverter))]
+#endif
   public MyGame.Example.AnyUniqueAliasesUnion AnyUnique { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("any_ambiguous_type")]
+  private MyGame.Example.AnyAmbiguousAliases AnyAmbiguousType {
+    get {
+      return this.AnyAmbiguous != null ? this.AnyAmbiguous.Type : MyGame.Example.AnyAmbiguousAliases.NONE;
+    }
+    set {
+      this.AnyAmbiguous = new MyGame.Example.AnyAmbiguousAliasesUnion();
+      this.AnyAmbiguous.Type = value;
+    }
+  }
+  [Newtonsoft.Json.JsonProperty("any_ambiguous")]
+  [Newtonsoft.Json.JsonConverter(typeof(MyGame.Example.AnyAmbiguousAliasesUnion_JsonConverter))]
+#endif
   public MyGame.Example.AnyAmbiguousAliasesUnion AnyAmbiguous { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("vector_of_enums")]
+#endif
   public List<MyGame.Example.Color> VectorOfEnums { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("signed_enum")]
+#endif
   public MyGame.Example.Race SignedEnum { get; set; }
 
   public MonsterT() {
@@ -686,6 +868,15 @@ public class MonsterT
     this.VectorOfEnums = null;
     this.SignedEnum = MyGame.Example.Race.None;
   }
+
+#if ENABLE_JSON_SERIALIZATION
+  public static MonsterT DeserializeFromJson(string jsonText) {
+    return Newtonsoft.Json.JsonConvert.DeserializeObject<MonsterT>(jsonText);
+  }
+  public string SerializeToJson() {
+    return Newtonsoft.Json.JsonConvert.SerializeObject(this, Newtonsoft.Json.Formatting.Indented);
+  }
+#endif
 }
 
 

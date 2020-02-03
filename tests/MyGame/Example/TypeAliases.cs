@@ -162,17 +162,53 @@ public struct TypeAliases : IFlatbufferObject
 
 public class TypeAliasesT
 {
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("i8")]
+#endif
   public sbyte I8 { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("u8")]
+#endif
   public byte U8 { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("i16")]
+#endif
   public short I16 { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("u16")]
+#endif
   public ushort U16 { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("i32")]
+#endif
   public int I32 { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("u32")]
+#endif
   public uint U32 { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("i64")]
+#endif
   public long I64 { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("u64")]
+#endif
   public ulong U64 { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("f32")]
+#endif
   public float F32 { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("f64")]
+#endif
   public double F64 { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("v8")]
+#endif
   public List<sbyte> V8 { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("vf64")]
+#endif
   public List<double> Vf64 { get; set; }
 
   public TypeAliasesT() {

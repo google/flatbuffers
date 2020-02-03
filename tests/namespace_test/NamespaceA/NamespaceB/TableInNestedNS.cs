@@ -53,6 +53,9 @@ public struct TableInNestedNS : IFlatbufferObject
 
 public class TableInNestedNST
 {
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("foo")]
+#endif
   public int Foo { get; set; }
 
   public TableInNestedNST() {

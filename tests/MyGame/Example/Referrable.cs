@@ -78,6 +78,10 @@ public struct Referrable : IFlatbufferObject
 
 public class ReferrableT
 {
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("id")]
+  [Newtonsoft.Json.JsonIgnore()]
+#endif
   public ulong Id { get; set; }
 
   public ReferrableT() {

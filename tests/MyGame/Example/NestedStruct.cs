@@ -70,9 +70,21 @@ public struct NestedStruct : IFlatbufferObject
 
 public class NestedStructT
 {
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("a")]
+#endif
   public int[] A { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("b")]
+#endif
   public MyGame.Example.TestEnum B { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("c")]
+#endif
   public MyGame.Example.TestEnum[] C { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("d")]
+#endif
   public long[] D { get; set; }
 
   public NestedStructT() {

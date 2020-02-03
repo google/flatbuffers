@@ -146,12 +146,56 @@ public struct Movie : IFlatbufferObject
 
 public class MovieT
 {
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("main_character_type")]
+  private Character MainCharacterType {
+    get {
+      return this.MainCharacter != null ? this.MainCharacter.Type : Character.NONE;
+    }
+    set {
+      this.MainCharacter = new CharacterUnion();
+      this.MainCharacter.Type = value;
+    }
+  }
+  [Newtonsoft.Json.JsonProperty("main_character")]
+  [Newtonsoft.Json.JsonConverter(typeof(CharacterUnion_JsonConverter))]
+#endif
   public CharacterUnion MainCharacter { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("characters_type")]
+  private Character[] CharactersType {
+    get {
+      if (this.Characters == null) return null;
+      var _o = new Character[this.Characters.Count];
+      for (var _j = 0; _j < _o.Length; ++_j) { _o[_j] = this.Characters[_j].Type; }
+      return _o;
+    }
+    set {
+      this.Characters = new List<CharacterUnion>();
+      for (var _j = 0; _j < value.Length; ++_j) {
+        var _o = new CharacterUnion();
+        _o.Type = value[_j];
+        this.Characters.Add(_o);
+      }
+    }
+  }
+  [Newtonsoft.Json.JsonProperty("characters")]
+  [Newtonsoft.Json.JsonConverter(typeof(CharacterUnion_JsonConverter))]
+#endif
   public List<CharacterUnion> Characters { get; set; }
 
   public MovieT() {
     this.MainCharacter = null;
     this.Characters = null;
   }
+
+#if ENABLE_JSON_SERIALIZATION
+  public static MovieT DeserializeFromJson(string jsonText) {
+    return Newtonsoft.Json.JsonConvert.DeserializeObject<MovieT>(jsonText);
+  }
+  public string SerializeToJson() {
+    return Newtonsoft.Json.JsonConvert.SerializeObject(this, Newtonsoft.Json.Formatting.Indented);
+  }
+#endif
 }
 

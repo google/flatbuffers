@@ -39,6 +39,9 @@ public struct Rapunzel : IFlatbufferObject
 
 public class RapunzelT
 {
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("hair_length")]
+#endif
   public int HairLength { get; set; }
 
   public RapunzelT() {

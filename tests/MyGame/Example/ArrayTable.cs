@@ -48,11 +48,23 @@ public struct ArrayTable : IFlatbufferObject
 
 public class ArrayTableT
 {
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("a")]
+#endif
   public MyGame.Example.ArrayStructT A { get; set; }
 
   public ArrayTableT() {
     this.A = new MyGame.Example.ArrayStructT();
   }
+
+#if ENABLE_JSON_SERIALIZATION
+  public static ArrayTableT DeserializeFromJson(string jsonText) {
+    return Newtonsoft.Json.JsonConvert.DeserializeObject<ArrayTableT>(jsonText);
+  }
+  public string SerializeToJson() {
+    return Newtonsoft.Json.JsonConvert.SerializeObject(this, Newtonsoft.Json.Formatting.Indented);
+  }
+#endif
 }
 
 

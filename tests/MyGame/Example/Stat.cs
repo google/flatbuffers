@@ -73,8 +73,17 @@ public struct Stat : IFlatbufferObject
 
 public class StatT
 {
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("id")]
+#endif
   public string Id { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("val")]
+#endif
   public long Val { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("count")]
+#endif
   public ushort Count { get; set; }
 
   public StatT() {

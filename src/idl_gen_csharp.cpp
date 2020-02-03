@@ -270,7 +270,14 @@ class CSharpGenerator : public BaseGenerator {
     // to map directly to how they're used in C/C++ and file formats.
     // That, and Java Enums are expensive, and not universally liked.
     GenComment(enum_def.doc_comment, code_ptr, &comment_config);
-
+    if (opts.generate_object_based_api) {
+      code += "#if ENABLE_JSON_SERIALIZATION\n";
+      code +=
+          "  "
+          "[Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters."
+          "StringEnumConverter))]\n";
+      code += "#endif\n";
+    }
     // In C# this indicates enumeration values can be treated as bit flags.
     if (enum_def.attributes.Lookup("bit_flags")) {
       code += "[System.FlagsAttribute]\n";
@@ -1274,6 +1281,85 @@ class CSharpGenerator : public BaseGenerator {
     code += "    }\n";
     code += "  }\n";
     code += "}\n\n";
+    // JsonConverter
+    code += "#if ENABLE_JSON_SERIALIZATION\n";
+    if (enum_def.attributes.Lookup("private")) {
+      code += "internal ";
+    } else {
+      code += "public ";
+    }
+    code += "class " + union_name +
+            "_JsonConverter : Newtonsoft.Json.JsonConverter {\n";
+    code += "  public override bool CanConvert(System.Type objectType) {\n";
+    code += "    return objectType == typeof(" + union_name +
+            ") || objectType == typeof(System.Collections.Generic.List<" +
+            union_name + ">);\n";
+    code += "  }\n";
+    code +=
+        "  public override void WriteJson(Newtonsoft.Json.JsonWriter writer, "
+        "object value, "
+        "Newtonsoft.Json.JsonSerializer serializer) {\n";
+    code += "    var _olist = value as System.Collections.Generic.List<" +
+            union_name + ">;\n";
+    code += "    if (_olist != null) {\n";
+    code += "      writer.WriteStartArray();\n";
+    code +=
+        "      foreach (var _o in _olist) { this.WriteJson(writer, _o, "
+        "serializer); }\n";
+    code += "      writer.WriteEndArray();\n";
+    code += "    } else {\n";
+    code += "      this.WriteJson(writer, value as " + union_name +
+            ", serializer);\n";
+    code += "    }\n";
+    code += "  }\n";
+    code += "  public void WriteJson(Newtonsoft.Json.JsonWriter writer, " +
+            union_name +
+            " _o, "
+            "Newtonsoft.Json.JsonSerializer serializer) {\n";
+    code += "    if (_o == null) return;\n";
+    code += "    serializer.Serialize(writer, _o.Value);\n";
+    code += "  }\n";
+    code +=
+        "  public override object ReadJson(Newtonsoft.Json.JsonReader reader, "
+        "System.Type objectType, "
+        "object existingValue, Newtonsoft.Json.JsonSerializer serializer) {\n";
+    code +=
+        "    var _olist = existingValue as System.Collections.Generic.List<" +
+        union_name + ">;\n";
+    code += "    if (_olist != null) {\n";
+    code += "      for (var _j = 0; _j < _olist.Count; ++_j) {\n";
+    code += "        reader.Read();\n";
+    code +=
+        "        _olist[_j] = this.ReadJson(reader, _olist[_j], serializer);\n";
+    code += "      }\n";
+    code += "      reader.Read();\n";
+    code += "      return _olist;\n";
+    code += "    } else {\n";
+    code += "      return this.ReadJson(reader, existingValue as " +
+            union_name + ", serializer);\n";
+    code += "    }\n";
+    code += "  }\n";
+    code += "  public " + union_name +
+            " ReadJson(Newtonsoft.Json.JsonReader reader, " + union_name +
+            " _o, Newtonsoft.Json.JsonSerializer serializer) {\n";
+    code += "    if (_o == null) return null;\n";
+    code += "    switch (_o.Type) {\n";
+    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      auto &ev = **it;
+      if (ev.union_type.base_type == BASE_TYPE_NONE) {
+        code += "      default: break;\n";
+      } else {
+        auto type_name = GenTypeGet_ObjectAPI(ev.union_type, opts);
+        code += "      case " + enum_def.name + "." + ev.name +
+                ": _o.Value = serializer.Deserialize<" + type_name +
+                ">(reader); break;\n";
+      }
+    }
+    code += "    }\n";
+    code += "    return _o;\n";
+    code += "  }\n";
+    code += "}\n";
+    code += "#endif\n\n";
   }
 
   std::string GenTypeName_ObjectAPI(const std::string &name,
@@ -1794,8 +1880,61 @@ class CSharpGenerator : public BaseGenerator {
       if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
       if (field.value.type.element == BASE_TYPE_UTYPE) continue;
       auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts);
-      code += "  public " + type_name + " " + MakeCamel(field.name, true) +
-              " { get; set; }\n";
+      auto camel_name = MakeCamel(field.name, true);
+      code += "#if ENABLE_JSON_SERIALIZATION\n";
+      if (IsUnion(field.value.type)) {
+        auto utype_name = WrapInNameSpace(*field.value.type.enum_def);
+        code +=
+            "  [Newtonsoft.Json.JsonProperty(\"" + field.name + "_type\")]\n";
+        if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+          code += "  private " + utype_name + "[] " + camel_name + "Type {\n";
+          code += "    get {\n";
+          code += "      if (this." + camel_name + " == null) return null;\n";
+          code += "      var _o = new " + utype_name + "[this." + camel_name +
+                  ".Count];\n";
+          code +=
+              "      for (var _j = 0; _j < _o.Length; ++_j) { _o[_j] = this." +
+              camel_name + "[_j].Type; }\n";
+          code += "      return _o;\n";
+          code += "    }\n";
+          code += "    set {\n";
+          code += "      this." + camel_name + " = new List<" + utype_name +
+                  "Union>();\n";
+          code += "      for (var _j = 0; _j < value.Length; ++_j) {\n";
+          code += "        var _o = new " + utype_name + "Union();\n";
+          code += "        _o.Type = value[_j];\n";
+          code += "        this." + camel_name + ".Add(_o);\n";
+          code += "      }\n";
+          code += "    }\n";
+          code += "  }\n";
+        } else {
+          code += "  private " + utype_name + " " + camel_name + "Type {\n";
+          code += "    get {\n";
+          code += "      return this." + camel_name + " != null ? this." +
+                  camel_name + ".Type : " + utype_name + ".NONE;\n";
+          code += "    }\n";
+          code += "    set {\n";
+          code += "      this." + camel_name + " = new " + utype_name +
+                  "Union();\n";
+          code += "      this." + camel_name + ".Type = value;\n";
+          code += "    }\n";
+          code += "  }\n";
+        }
+      }
+      code += "  [Newtonsoft.Json.JsonProperty(\"" + field.name + "\")]\n";
+      if (IsUnion(field.value.type)) {
+        auto union_name =
+            (field.value.type.base_type == BASE_TYPE_VECTOR)
+                ? GenTypeGet_ObjectAPI(field.value.type.VectorType(), opts)
+                : type_name;
+        code += "  [Newtonsoft.Json.JsonConverter(typeof(" + union_name +
+                "_JsonConverter))]\n";
+      }
+      if (field.attributes.Lookup("hash")) {
+        code += "  [Newtonsoft.Json.JsonIgnore()]\n";
+      }
+      code += "#endif\n";
+      code += "  public " + type_name + " " + camel_name + " { get; set; }\n";
     }
     // Generate Constructor
     code += "\n";
@@ -1833,6 +1972,22 @@ class CSharpGenerator : public BaseGenerator {
       }
     }
     code += "  }\n";
+    // Generate Serialization
+    if (parser_.root_struct_def_ == &struct_def) {
+      code += "\n";
+      code += "#if ENABLE_JSON_SERIALIZATION\n";
+      code += "  public static " + class_name +
+              " DeserializeFromJson(string jsonText) {\n";
+      code += "    return Newtonsoft.Json.JsonConvert.DeserializeObject<" +
+              class_name + ">(jsonText);\n";
+      code += "  }\n";
+      code += "  public string SerializeToJson() {\n";
+      code +=
+          "    return Newtonsoft.Json.JsonConvert.SerializeObject(this, "
+          "Newtonsoft.Json.Formatting.Indented);\n";
+      code += "  }\n";
+      code += "#endif\n";
+    }
     code += "}\n\n";
   }
 

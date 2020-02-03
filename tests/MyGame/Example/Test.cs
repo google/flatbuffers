@@ -48,7 +48,13 @@ public struct Test : IFlatbufferObject
 
 public class TestT
 {
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("a")]
+#endif
   public short A { get; set; }
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonProperty("b")]
+#endif
   public sbyte B { get; set; }
 
   public TestT() {

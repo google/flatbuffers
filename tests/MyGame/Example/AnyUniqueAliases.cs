@@ -5,6 +5,9 @@
 namespace MyGame.Example
 {
 
+#if ENABLE_JSON_SERIALIZATION
+  [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
+#endif
 public enum AnyUniqueAliases : byte
 {
   NONE = 0,
@@ -36,6 +39,51 @@ public class AnyUniqueAliasesUnion {
     }
   }
 }
+
+#if ENABLE_JSON_SERIALIZATION
+public class AnyUniqueAliasesUnion_JsonConverter : Newtonsoft.Json.JsonConverter {
+  public override bool CanConvert(System.Type objectType) {
+    return objectType == typeof(AnyUniqueAliasesUnion) || objectType == typeof(System.Collections.Generic.List<AnyUniqueAliasesUnion>);
+  }
+  public override void WriteJson(Newtonsoft.Json.JsonWriter writer, object value, Newtonsoft.Json.JsonSerializer serializer) {
+    var _olist = value as System.Collections.Generic.List<AnyUniqueAliasesUnion>;
+    if (_olist != null) {
+      writer.WriteStartArray();
+      foreach (var _o in _olist) { this.WriteJson(writer, _o, serializer); }
+      writer.WriteEndArray();
+    } else {
+      this.WriteJson(writer, value as AnyUniqueAliasesUnion, serializer);
+    }
+  }
+  public void WriteJson(Newtonsoft.Json.JsonWriter writer, AnyUniqueAliasesUnion _o, Newtonsoft.Json.JsonSerializer serializer) {
+    if (_o == null) return;
+    serializer.Serialize(writer, _o.Value);
+  }
+  public override object ReadJson(Newtonsoft.Json.JsonReader reader, System.Type objectType, object existingValue, Newtonsoft.Json.JsonSerializer serializer) {
+    var _olist = existingValue as System.Collections.Generic.List<AnyUniqueAliasesUnion>;
+    if (_olist != null) {
+      for (var _j = 0; _j < _olist.Count; ++_j) {
+        reader.Read();
+        _olist[_j] = this.ReadJson(reader, _olist[_j], serializer);
+      }
+      reader.Read();
+      return _olist;
+    } else {
+      return this.ReadJson(reader, existingValue as AnyUniqueAliasesUnion, serializer);
+    }
+  }
+  public AnyUniqueAliasesUnion ReadJson(Newtonsoft.Json.JsonReader reader, AnyUniqueAliasesUnion _o, Newtonsoft.Json.JsonSerializer serializer) {
+    if (_o == null) return null;
+    switch (_o.Type) {
+      default: break;
+      case AnyUniqueAliases.M: _o.Value = serializer.Deserialize<MyGame.Example.MonsterT>(reader); break;
+      case AnyUniqueAliases.TS: _o.Value = serializer.Deserialize<MyGame.Example.TestSimpleTableWithEnumT>(reader); break;
+      case AnyUniqueAliases.M2: _o.Value = serializer.Deserialize<MyGame.Example2.MonsterT>(reader); break;
+    }
+    return _o;
+  }
+}
+#endif
 
 
 }
