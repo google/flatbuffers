@@ -7,7 +7,7 @@ namespace MyGame.Example
 
 /// Composite components of Monster color.
 #if ENABLE_JSON_SERIALIZATION
-  [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
+[Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
 #endif
 [System.FlagsAttribute]
 public enum Color : byte

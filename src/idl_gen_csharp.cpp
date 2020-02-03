@@ -270,10 +270,10 @@ class CSharpGenerator : public BaseGenerator {
     // to map directly to how they're used in C/C++ and file formats.
     // That, and Java Enums are expensive, and not universally liked.
     GenComment(enum_def.doc_comment, code_ptr, &comment_config);
+
     if (opts.generate_object_based_api) {
       code += "#if ENABLE_JSON_SERIALIZATION\n";
       code +=
-          "  "
           "[Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters."
           "StringEnumConverter))]\n";
       code += "#endif\n";
