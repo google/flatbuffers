@@ -629,7 +629,9 @@ class CppGenerator : public BaseGenerator {
     // Normally, in non-Object-API, we use the non-user-facing type when
     // emitting the Vector element type, however in the case of enums
     // we want to avoid that when using scoped-enums.
-    return opts_.scoped_enums && IsEnum(type);
+    return opts_.g_cpp_std >= cpp::CPP_STD_17 &&
+           opts_.scoped_enums &&
+           IsEnum(type);
   }
 
   void GenComment(const std::vector<std::string> &dc, const char *prefix = "") {
