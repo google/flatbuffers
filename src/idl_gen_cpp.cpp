@@ -2638,7 +2638,8 @@ class CppGenerator : public BaseGenerator {
             break;
           }
           default: {
-            if (field.value.type.enum_def && !opts_.scoped_enums) {
+            if (field.value.type.enum_def &&
+                !VectorElementUserFacing(vector_type)) {
               // For enumerations, we need to get access to the array data for
               // the underlying storage type (eg. uint8_t).
               const auto basetype = GenTypeBasic(
