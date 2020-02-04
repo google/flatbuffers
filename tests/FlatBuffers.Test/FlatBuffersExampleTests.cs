@@ -287,7 +287,7 @@ namespace FlatBuffers.Test
             TestObjectAPI(Monster.GetRootAsMonster(bb));
         }
 
-        #if ENABLE_JSON_SERIALIZATION
+        #if ENABLE_JSON_SERIALIZATION_TEST
         [FlatBuffersTestMethod]
         public void CanReadJsonFile()
         {
@@ -716,7 +716,7 @@ namespace FlatBuffers.Test
             var c = Monster.GetRootAsMonster(fbb.DataBuffer);
             AreEqual(a, c);
 
-            #if ENABLE_JSON_SERIALIZATION
+            #if ENABLE_JSON_SERIALIZATION_TEST
             var jsonText = b.SerializeToJson();
             var d = MonsterT.DeserializeFromJson(jsonText);
             AreEqual(a, d);
@@ -817,7 +817,7 @@ namespace FlatBuffers.Test
             var c = ArrayTable.GetRootAsArrayTable(fbb.DataBuffer);
             AreEqual(a, c);
 
-            #if ENABLE_JSON_SERIALIZATION
+            #if ENABLE_JSON_SERIALIZATION_TEST
             var jsonText = b.SerializeToJson();
             var d = ArrayTableT.DeserializeFromJson(jsonText);
             AreEqual(a, d);
@@ -862,7 +862,7 @@ namespace FlatBuffers.Test
             var c = Movie.GetRootAsMovie(fbb.DataBuffer);
             AreEqual(a, c);
 
-            #if ENABLE_JSON_SERIALIZATION
+            #if ENABLE_JSON_SERIALIZATION_TEST
             var jsonText = b.SerializeToJson();
             var d = MovieT.DeserializeFromJson(jsonText);
             AreEqual(a, d);
