@@ -151,45 +151,25 @@ public struct MonsterExtra : IFlatbufferObject
 
 public class MonsterExtraT
 {
-#if ENABLE_JSON_SERIALIZATION
   [Newtonsoft.Json.JsonProperty("d0")]
-#endif
   public double D0 { get; set; }
-#if ENABLE_JSON_SERIALIZATION
   [Newtonsoft.Json.JsonProperty("d1")]
-#endif
   public double D1 { get; set; }
-#if ENABLE_JSON_SERIALIZATION
   [Newtonsoft.Json.JsonProperty("d2")]
-#endif
   public double D2 { get; set; }
-#if ENABLE_JSON_SERIALIZATION
   [Newtonsoft.Json.JsonProperty("d3")]
-#endif
   public double D3 { get; set; }
-#if ENABLE_JSON_SERIALIZATION
   [Newtonsoft.Json.JsonProperty("f0")]
-#endif
   public float F0 { get; set; }
-#if ENABLE_JSON_SERIALIZATION
   [Newtonsoft.Json.JsonProperty("f1")]
-#endif
   public float F1 { get; set; }
-#if ENABLE_JSON_SERIALIZATION
   [Newtonsoft.Json.JsonProperty("f2")]
-#endif
   public float F2 { get; set; }
-#if ENABLE_JSON_SERIALIZATION
   [Newtonsoft.Json.JsonProperty("f3")]
-#endif
   public float F3 { get; set; }
-#if ENABLE_JSON_SERIALIZATION
   [Newtonsoft.Json.JsonProperty("dvec")]
-#endif
   public List<double> Dvec { get; set; }
-#if ENABLE_JSON_SERIALIZATION
   [Newtonsoft.Json.JsonProperty("fvec")]
-#endif
   public List<float> Fvec { get; set; }
 
   public MonsterExtraT() {
@@ -205,14 +185,12 @@ public class MonsterExtraT
     this.Fvec = null;
   }
 
-#if ENABLE_JSON_SERIALIZATION
   public static MonsterExtraT DeserializeFromJson(string jsonText) {
     return Newtonsoft.Json.JsonConvert.DeserializeObject<MonsterExtraT>(jsonText);
   }
   public string SerializeToJson() {
     return Newtonsoft.Json.JsonConvert.SerializeObject(this, Newtonsoft.Json.Formatting.Indented);
   }
-#endif
 }
 
 

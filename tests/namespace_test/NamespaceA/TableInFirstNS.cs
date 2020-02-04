@@ -55,17 +55,11 @@ public struct TableInFirstNS : IFlatbufferObject
 
 public class TableInFirstNST
 {
-#if ENABLE_JSON_SERIALIZATION
   [Newtonsoft.Json.JsonProperty("foo_table")]
-#endif
   public NamespaceA.NamespaceB.TableInNestedNST FooTable { get; set; }
-#if ENABLE_JSON_SERIALIZATION
   [Newtonsoft.Json.JsonProperty("foo_enum")]
-#endif
   public NamespaceA.NamespaceB.EnumInNestedNS FooEnum { get; set; }
-#if ENABLE_JSON_SERIALIZATION
   [Newtonsoft.Json.JsonProperty("foo_struct")]
-#endif
   public NamespaceA.NamespaceB.StructInNestedNST FooStruct { get; set; }
 
   public TableInFirstNST() {

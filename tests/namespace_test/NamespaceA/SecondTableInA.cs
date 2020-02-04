@@ -53,9 +53,7 @@ public struct SecondTableInA : IFlatbufferObject
 
 public class SecondTableInAT
 {
-#if ENABLE_JSON_SERIALIZATION
   [Newtonsoft.Json.JsonProperty("refer_to_c")]
-#endif
   public NamespaceC.TableInCT ReferToC { get; set; }
 
   public SecondTableInAT() {

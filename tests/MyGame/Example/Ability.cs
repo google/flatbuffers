@@ -47,13 +47,9 @@ public struct Ability : IFlatbufferObject
 
 public class AbilityT
 {
-#if ENABLE_JSON_SERIALIZATION
   [Newtonsoft.Json.JsonProperty("id")]
-#endif
   public uint Id { get; set; }
-#if ENABLE_JSON_SERIALIZATION
   [Newtonsoft.Json.JsonProperty("distance")]
-#endif
   public uint Distance { get; set; }
 
   public AbilityT() {

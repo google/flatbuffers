@@ -39,9 +39,7 @@ public struct BookReader : IFlatbufferObject
 
 public class BookReaderT
 {
-#if ENABLE_JSON_SERIALIZATION
   [Newtonsoft.Json.JsonProperty("books_read")]
-#endif
   public int BooksRead { get; set; }
 
   public BookReaderT() {

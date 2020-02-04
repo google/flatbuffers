@@ -50,9 +50,7 @@ public struct Attacker : IFlatbufferObject
 
 public class AttackerT
 {
-#if ENABLE_JSON_SERIALIZATION
   [Newtonsoft.Json.JsonProperty("sword_attack_damage")]
-#endif
   public int SwordAttackDamage { get; set; }
 
   public AttackerT() {

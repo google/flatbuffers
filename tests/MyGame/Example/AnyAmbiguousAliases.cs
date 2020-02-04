@@ -5,9 +5,7 @@
 namespace MyGame.Example
 {
 
-#if ENABLE_JSON_SERIALIZATION
 [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
-#endif
 public enum AnyAmbiguousAliases : byte
 {
   NONE = 0,
@@ -40,7 +38,6 @@ public class AnyAmbiguousAliasesUnion {
   }
 }
 
-#if ENABLE_JSON_SERIALIZATION
 public class AnyAmbiguousAliasesUnion_JsonConverter : Newtonsoft.Json.JsonConverter {
   public override bool CanConvert(System.Type objectType) {
     return objectType == typeof(AnyAmbiguousAliasesUnion) || objectType == typeof(System.Collections.Generic.List<AnyAmbiguousAliasesUnion>);
@@ -83,7 +80,6 @@ public class AnyAmbiguousAliasesUnion_JsonConverter : Newtonsoft.Json.JsonConver
     return _o;
   }
 }
-#endif
 
 
 }

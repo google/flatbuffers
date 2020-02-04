@@ -146,7 +146,6 @@ public struct Movie : IFlatbufferObject
 
 public class MovieT
 {
-#if ENABLE_JSON_SERIALIZATION
   [Newtonsoft.Json.JsonProperty("main_character_type")]
   private Character MainCharacterType {
     get {
@@ -159,9 +158,7 @@ public class MovieT
   }
   [Newtonsoft.Json.JsonProperty("main_character")]
   [Newtonsoft.Json.JsonConverter(typeof(CharacterUnion_JsonConverter))]
-#endif
   public CharacterUnion MainCharacter { get; set; }
-#if ENABLE_JSON_SERIALIZATION
   [Newtonsoft.Json.JsonProperty("characters_type")]
   private Character[] CharactersType {
     get {
@@ -181,7 +178,6 @@ public class MovieT
   }
   [Newtonsoft.Json.JsonProperty("characters")]
   [Newtonsoft.Json.JsonConverter(typeof(CharacterUnion_JsonConverter))]
-#endif
   public List<CharacterUnion> Characters { get; set; }
 
   public MovieT() {
@@ -189,13 +185,11 @@ public class MovieT
     this.Characters = null;
   }
 
-#if ENABLE_JSON_SERIALIZATION
   public static MovieT DeserializeFromJson(string jsonText) {
     return Newtonsoft.Json.JsonConvert.DeserializeObject<MovieT>(jsonText);
   }
   public string SerializeToJson() {
     return Newtonsoft.Json.JsonConvert.SerializeObject(this, Newtonsoft.Json.Formatting.Indented);
   }
-#endif
 }
 
