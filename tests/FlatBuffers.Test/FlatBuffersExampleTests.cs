@@ -293,53 +293,9 @@ namespace FlatBuffers.Test
         {
             var jsonText = File.ReadAllText(@"Resources/monsterdata_test.json");
             var mon = MonsterT.DeserializeFromJson(jsonText);
-
-            Assert.AreEqual(1.0f, mon.Pos.X);
-            Assert.AreEqual(2.0f, mon.Pos.Y);
-            Assert.AreEqual(3.0f, mon.Pos.Z);
-            Assert.AreEqual(3.0, mon.Pos.Test1);
-            Assert.AreEqual(Color.Green, mon.Pos.Test2);
-            Assert.AreEqual(5, mon.Pos.Test3.A);
-            Assert.AreEqual(6, mon.Pos.Test3.B);
-            Assert.AreEqual(80, mon.Hp);
-            Assert.AreEqual("MyMonster", mon.Name);
-            Assert.AreEqual(5, mon.Inventory.Count);
-            Assert.AreEqual(0, mon.Inventory[0]);
-            Assert.AreEqual(1, mon.Inventory[1]);
-            Assert.AreEqual(2, mon.Inventory[2]);
-            Assert.AreEqual(3, mon.Inventory[3]);
-            Assert.AreEqual(4, mon.Inventory[4]);
-            Assert.AreEqual(5, mon.VectorOfLongs.Count);
-            Assert.AreEqual(1L, mon.VectorOfLongs[0]);
-            Assert.AreEqual(100L, mon.VectorOfLongs[1]);
-            Assert.AreEqual(10000L, mon.VectorOfLongs[2]);
-            Assert.AreEqual(1000000L, mon.VectorOfLongs[3]);
-            Assert.AreEqual(100000000L, mon.VectorOfLongs[4]);
-            Assert.AreEqual(3, mon.VectorOfDoubles.Count);
-            Assert.AreEqual(-1.7976931348623157e+308, mon.VectorOfDoubles[0]);
-            Assert.AreEqual(0.0, mon.VectorOfDoubles[1]);
-            Assert.AreEqual(1.7976931348623157e+308, mon.VectorOfDoubles[2]);
-            Assert.AreEqual(Any.Monster, mon.Test.Type);
-            Assert.AreEqual("Fred", mon.Test.AsMonster().Name);
-            Assert.IsTrue(null == mon.Test.AsMonster().Pos);
-            Assert.AreEqual(2, mon.Test4.Count);
-            Assert.AreEqual(10, mon.Test4[0].A);
-            Assert.AreEqual(20, mon.Test4[0].B);
-            Assert.AreEqual(30, mon.Test4[1].A);
-            Assert.AreEqual(40, mon.Test4[1].B);
-            Assert.AreEqual(10, mon.Test5[0].A);
-            Assert.AreEqual(20, mon.Test5[0].B);
-            Assert.AreEqual(30, mon.Test5[1].A);
-            Assert.AreEqual(40, mon.Test5[1].B);
-            Assert.AreEqual(2, mon.Testarrayofstring.Count);
-            Assert.AreEqual("test1", mon.Testarrayofstring[0]);
-            Assert.AreEqual("test2", mon.Testarrayofstring[1]);
-            Assert.AreEqual("Fred", mon.Enemy.Name);
-            Assert.AreEqual(3, mon.Testarrayofbools.Count);
-            Assert.AreEqual(true, mon.Testarrayofbools[0]);
-            Assert.AreEqual(false, mon.Testarrayofbools[1]);
-            Assert.AreEqual(true, mon.Testarrayofbools[2]);
-            Assert.AreEqual(true, mon.Testbool);
+            var fbb = new FlatBufferBuilder(1);
+            fbb.Finish(Monster.Pack(fbb, mon).Value);
+            TestBuffer(fbb.DataBuffer);
         }
         #endif
 
