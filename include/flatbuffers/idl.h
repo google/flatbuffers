@@ -1124,6 +1124,12 @@ bool GenerateJavaGRPC(const Parser &parser, const std::string &path,
 bool GeneratePythonGRPC(const Parser &parser, const std::string &path,
                         const std::string &file_name);
 
+// Generate GRPC Swift interfaces.
+// See idl_gen_grpc.cpp.
+extern bool GenerateSwiftGRPC(const Parser &parser,
+                    const std::string &path,
+                    const std::string &file_name);
+
 }  // namespace flatbuffers
 
 #endif  // FLATBUFFERS_IDL_H_
