@@ -1132,6 +1132,14 @@ class RustGenerator : public BaseGenerator {
     }
   }
 
+  // Generates a fully-qualified name getter for use with --gen-name-strings
+  void GenFullyQualifiedNameGetter(const std::string &name) {
+    code_ += "    const fn get_fully_qualified_name() -> &'static str {";
+    code_ += "        \"" + parser_.namespaces_.back()->GetFullyQualifiedName(name) + "\"";
+    code_ += "    }";
+    code_ += "";
+  }
+
   // Generate an accessor struct, builder struct, and create function for a
   // table.
   void GenTable(const StructDef &struct_def) {
@@ -1162,6 +1170,11 @@ class RustGenerator : public BaseGenerator {
     code_ += "}";
     code_ += "";
     code_ += "impl<'a> {{STRUCT_NAME}}<'a> {";
+
+    if (parser_.opts.generate_name_strings) {
+      GenFullyQualifiedNameGetter(struct_def.name);
+    }
+
     code_ += "    #[inline]";
     code_ +=
         "    pub fn init_from_table(table: flatbuffers::Table<'a>) -> "
@@ -1731,6 +1744,10 @@ class RustGenerator : public BaseGenerator {
     }
     code_ += "    }";
     code_ += "  }";
+
+    if (parser_.opts.generate_name_strings) {
+      GenFullyQualifiedNameGetter(struct_def.name);
+    }
 
     // Generate accessor methods for the struct.
     for (auto it = struct_def.fields.vec.begin();
