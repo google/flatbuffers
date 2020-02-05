@@ -5,7 +5,7 @@ package NamespaceA
 import (
 	flatbuffers "github.com/google/flatbuffers/go"
 
-	NamespaceC "NamespaceC"
+	NamespaceC "fake.flatbuffers.moduleroot/tests/namespace_test/NamespaceC"
 )
 
 type SecondTableInAT struct {
