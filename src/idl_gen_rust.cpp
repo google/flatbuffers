@@ -1135,7 +1135,8 @@ class RustGenerator : public BaseGenerator {
   // Generates a fully-qualified name getter for use with --gen-name-strings
   void GenFullyQualifiedNameGetter(const std::string &name) {
     code_ += "    const fn get_fully_qualified_name() -> &'static str {";
-    code_ += "        \"" + parser_.namespaces_.back()->GetFullyQualifiedName(name) + "\"";
+    code_ += "        \"" +
+             parser_.namespaces_.back()->GetFullyQualifiedName(name) + "\"";
     code_ += "    }";
     code_ += "";
   }
