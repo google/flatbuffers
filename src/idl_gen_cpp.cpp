@@ -626,11 +626,8 @@ class CppGenerator : public BaseGenerator {
   }
 
   bool VectorElementUserFacing(const Type& type) const {
-    // Normally, in non-Object-API, we use the non-user-facing type when
-    // emitting the Vector element type, however in the case of enums
-    // we want to avoid that when using scoped-enums.
     return opts_.g_cpp_std >= cpp::CPP_STD_17 &&
-           opts_.scoped_enums &&
+           opts_.g_only_fixed_enums &&
            IsEnum(type);
   }
 
