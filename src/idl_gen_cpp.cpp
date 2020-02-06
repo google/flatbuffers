@@ -2705,14 +2705,21 @@ class CppGenerator : public BaseGenerator {
     code_.SetValue("STRUCT_NAME", Name(struct_def));
     code_.SetValue("NATIVE_NAME",
                    NativeName(Name(struct_def), &struct_def, opts_));
+    auto native_name =
+        NativeName(WrapInNameSpace(struct_def), &struct_def, parser_.opts);
+    code_.SetValue("POINTER_TYPE",
+                   GenTypeNativePtr(native_name, nullptr, false));
 
     if (opts_.generate_object_based_api) {
       // Generate the X::UnPack() method.
       code_ +=
           "inline " + TableUnPackSignature(struct_def, false, opts_) + " {";
-      code_ += "  auto _o = new {{NATIVE_NAME}}();";
-      code_ += "  UnPackTo(_o, _resolver);";
-      code_ += "  return _o;";
+
+      code_ +=
+          "  {{POINTER_TYPE}} _o = {{POINTER_TYPE}}(new {{NATIVE_NAME}}());";
+      code_ += "  UnPackTo(_o.get(), _resolver);";
+      code_ += "  return _o.release();";
+
       code_ += "}";
       code_ += "";
 

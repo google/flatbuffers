@@ -172,9 +172,9 @@ inline flatbuffers::Offset<TableInNestedNS> CreateTableInNestedNS(
 flatbuffers::Offset<TableInNestedNS> CreateTableInNestedNS(flatbuffers::FlatBufferBuilder &_fbb, const TableInNestedNST *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 inline TableInNestedNST *TableInNestedNS::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new TableInNestedNST();
-  UnPackTo(_o, _resolver);
-  return _o;
+  flatbuffers::unique_ptr<NamespaceA::NamespaceB::TableInNestedNST> _o = flatbuffers::unique_ptr<NamespaceA::NamespaceB::TableInNestedNST>(new TableInNestedNST());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void TableInNestedNS::UnPackTo(TableInNestedNST *_o, const flatbuffers::resolver_function_t *_resolver) const {
