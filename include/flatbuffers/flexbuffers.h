@@ -1494,6 +1494,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     // TODO: instead of asserting, could write vector with larger elements
     // instead, though that would be wasteful.
     FLATBUFFERS_ASSERT(WidthU(len) <= bit_width);
+    Align(bit_width);
     if (!fixed) Write<uint64_t>(len, byte_width);
     auto vloc = buf_.size();
     for (size_t i = 0; i < len; i++) Write(elems[i], byte_width);
