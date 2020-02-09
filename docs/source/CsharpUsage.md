@@ -151,4 +151,25 @@ To use:
     fbb.Finish(Monster.Pack(fbb, monsterobj).Value);
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+### Json Serialization
+
+An additional feature of the object API is the ability to allow you to
+serialize & deserialize a JSON text. 
+To use Json Serialization, add `--gen-json-serializer` option to `flatc` and
+add `Newtonsoft.Json` nuget package to csproj.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cs}
+    // Deserialize MonsterT from json
+    string jsonText = File.ReadAllText(@"Resources/monsterdata_test.json");
+    MonsterT mon = MonsterT.DeserializeFromJson(jsonText);
+
+    // Serialize MonsterT to json
+    string jsonText2 = mon.SerializeToJson();
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* Limitation
+  * `hash` attribute currentry not supported.
+* NuGet package Dependency
+  * [Newtonsoft.Json](https://github.com/JamesNK/Newtonsoft.Json)
+
 <br>
