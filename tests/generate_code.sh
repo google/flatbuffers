@@ -24,7 +24,7 @@ else
   TEST_CPP_FLAGS=
 fi
 
-TEST_CPP_FLAGS="--gen-compare --cpp-ptr-type flatbuffers::unique_ptr $TEST_CPP_FLAGS"
+TEST_CPP_FLAGS="--gen-compare --gen-name-strings --cpp-ptr-type flatbuffers::unique_ptr $TEST_CPP_FLAGS"
 TEST_CS_FLAGS="--cs-gen-json-serializer"
 TEST_BASE_FLAGS="--reflect-names --gen-mutable --gen-object-api"
 TEST_NOINCL_FLAGS="$TEST_BASE_FLAGS --no-includes --no-fb-import"

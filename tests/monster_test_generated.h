@@ -592,6 +592,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(2) Test FLATBUFFERS_FINAL_CLASS {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return TestTypeTable();
   }
+  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+    return "MyGame.Example.Test";
+  }
   Test() {
     memset(static_cast<void *>(this), 0, sizeof(Test));
   }
@@ -642,6 +645,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vec3 FLATBUFFERS_FINAL_CLASS {
  public:
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return Vec3TypeTable();
+  }
+  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+    return "MyGame.Example.Vec3";
   }
   Vec3() {
     memset(static_cast<void *>(this), 0, sizeof(Vec3));
@@ -723,6 +729,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Ability FLATBUFFERS_FINAL_CLASS {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return AbilityTypeTable();
   }
+  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+    return "MyGame.Example.Ability";
+  }
   Ability() {
     memset(static_cast<void *>(this), 0, sizeof(Ability));
   }
@@ -766,6 +775,9 @@ inline bool operator!=(const Ability &lhs, const Ability &rhs) {
 
 struct InParentNamespaceT : public flatbuffers::NativeTable {
   typedef InParentNamespace TableType;
+  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+    return "MyGame.InParentNamespaceT";
+  }
   InParentNamespaceT() {
   }
 };
@@ -784,6 +796,9 @@ struct InParentNamespace FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef InParentNamespaceBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return InParentNamespaceTypeTable();
+  }
+  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+    return "MyGame.InParentNamespace";
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -822,6 +837,9 @@ namespace Example2 {
 
 struct MonsterT : public flatbuffers::NativeTable {
   typedef Monster TableType;
+  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+    return "MyGame.Example2.MonsterT";
+  }
   MonsterT() {
   }
 };
@@ -840,6 +858,9 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MonsterBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return MonsterTypeTable();
+  }
+  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+    return "MyGame.Example2.Monster";
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -880,6 +901,9 @@ namespace Example {
 
 struct TestSimpleTableWithEnumT : public flatbuffers::NativeTable {
   typedef TestSimpleTableWithEnum TableType;
+  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+    return "MyGame.Example.TestSimpleTableWithEnumT";
+  }
   MyGame::Example::Color color;
   TestSimpleTableWithEnumT()
       : color(MyGame::Example::Color_Green) {
@@ -901,6 +925,9 @@ struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Ta
   typedef TestSimpleTableWithEnumBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return TestSimpleTableWithEnumTypeTable();
+  }
+  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+    return "MyGame.Example.TestSimpleTableWithEnum";
   }
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_COLOR = 4
@@ -952,6 +979,9 @@ flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnum(flatb
 
 struct StatT : public flatbuffers::NativeTable {
   typedef Stat TableType;
+  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+    return "MyGame.Example.StatT";
+  }
   std::string id;
   int64_t val;
   uint16_t count;
@@ -978,6 +1008,9 @@ struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef StatBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return StatTypeTable();
+  }
+  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+    return "MyGame.Example.Stat";
   }
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_ID = 4,
@@ -1069,6 +1102,9 @@ flatbuffers::Offset<Stat> CreateStat(flatbuffers::FlatBufferBuilder &_fbb, const
 
 struct ReferrableT : public flatbuffers::NativeTable {
   typedef Referrable TableType;
+  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+    return "MyGame.Example.ReferrableT";
+  }
   uint64_t id;
   ReferrableT()
       : id(0) {
@@ -1090,6 +1126,9 @@ struct Referrable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef ReferrableBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return ReferrableTypeTable();
+  }
+  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+    return "MyGame.Example.Referrable";
   }
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_ID = 4
@@ -1147,6 +1186,9 @@ flatbuffers::Offset<Referrable> CreateReferrable(flatbuffers::FlatBufferBuilder 
 
 struct MonsterT : public flatbuffers::NativeTable {
   typedef Monster TableType;
+  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+    return "MyGame.Example.MonsterT";
+  }
   flatbuffers::unique_ptr<MyGame::Example::Vec3> pos;
   int16_t mana;
   int16_t hp;
@@ -1275,6 +1317,9 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MonsterBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return MonsterTypeTable();
+  }
+  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+    return "MyGame.Example.Monster";
   }
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_POS = 4,
@@ -2147,6 +2192,9 @@ flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb,
 
 struct TypeAliasesT : public flatbuffers::NativeTable {
   typedef TypeAliases TableType;
+  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+    return "MyGame.Example.TypeAliasesT";
+  }
   int8_t i8;
   uint8_t u8;
   int16_t i16;
@@ -2199,6 +2247,9 @@ struct TypeAliases FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef TypeAliasesBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return TypeAliasesTypeTable();
+  }
+  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+    return "MyGame.Example.TypeAliases";
   }
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_I8 = 4,
