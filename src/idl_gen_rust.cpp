@@ -1136,7 +1136,8 @@ class RustGenerator : public BaseGenerator {
   void GenFullyQualifiedNameGetter(const StructDef &struct_def,
                                    const std::string &name) {
     code_ += "    pub const fn get_fully_qualified_name() -> &'static str {";
-    code_ += "        \"" + struct_def.defined_namespace->GetFullyQualifiedName(name) + "\"";
+    code_ += "        \"" +
+             struct_def.defined_namespace->GetFullyQualifiedName(name) + "\"";
     code_ += "    }";
     code_ += "";
   }
@@ -1343,16 +1344,17 @@ class RustGenerator : public BaseGenerator {
         // If the user defined schemas name a field that clashes with a
         // language reserved word, flatc will try to escape the field name by
         // appending an underscore. This works well for most cases, except
-        // one. When generating union accessors (and referring to them 
+        // one. When generating union accessors (and referring to them
         // internally within the code generated here), an extra underscore
-        // will be appended to the name, causing build failures. 
+        // will be appended to the name, causing build failures.
         //
         // This only happens when unions have members that overlap with
-        // language reserved words. 
-        // 
+        // language reserved words.
+        //
         // To avoid this problem the type field name is used unescaped here:
         code_ +=
-            "    if self.{{FIELD_TYPE_FIELD_NAME}}_type() == {{U_ELEMENT_ENUM_TYPE}} {";
+            "    if self.{{FIELD_TYPE_FIELD_NAME}}_type() == "
+            "{{U_ELEMENT_ENUM_TYPE}} {";
         code_ +=
             "      self.{{FIELD_NAME}}().map(|u| "
             "{{U_ELEMENT_TABLE_TYPE}}::init_from_table(u))";
@@ -1782,7 +1784,7 @@ class RustGenerator : public BaseGenerator {
     std::string indent = std::string(white_spaces, ' ');
     code_ += "";
     for (auto it = parser_.included_files_.begin();
-        it != parser_.included_files_.end(); ++it) {
+         it != parser_.included_files_.end(); ++it) {
       if (it->second.empty()) continue;
       auto noext = flatbuffers::StripExtension(it->second);
       auto basename = flatbuffers::StripPath(noext);
