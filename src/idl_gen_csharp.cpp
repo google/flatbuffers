@@ -1657,7 +1657,7 @@ class CSharpGenerator : public BaseGenerator {
           case BASE_TYPE_STRUCT: {
             if (struct_def.fixed) {
               GenStructArgs_ObjectAPI(*field.value.type.struct_def, code_ptr,
-                                      "      _o." + camel_name + ".");
+                                      "      _o." + camel_name);
             } else {
               code += ",\n";
               if (field.value.type.struct_def->fixed) {
@@ -1755,10 +1755,10 @@ class CSharpGenerator : public BaseGenerator {
       const auto &field_type = field.value.type;
       if (IsStruct(field_type)) {
         GenStructArgs_ObjectAPI(*field_type.struct_def, code_ptr,
-                                prefix + "." + MakeCamel(field.name) + ".");
+                                prefix + "." + MakeCamel(field.name));
       } else {
         code += ",\n";
-        code += prefix + MakeCamel(field.name);
+        code += prefix + "." + MakeCamel(field.name);
       }
     }
   }
@@ -1774,9 +1774,12 @@ class CSharpGenerator : public BaseGenerator {
       auto is_array = IsArray(field.value.type);
       const auto &field_type =
           is_array ? field.value.type.VectorType() : field.value.type;
-      if (!IsStruct(field_type)) {
-        auto tmp_name_vec = name_vec;
-        tmp_name_vec.push_back(field.name);
+      auto tmp_name_vec = name_vec;
+      tmp_name_vec.push_back(field.name);
+      if (IsStruct(field_type)) {
+        GenArrayPackDecl_ObjectAPI(*field_type.struct_def, code_ptr,
+                                   tmp_name_vec, array_length_vec);
+      } else {
         auto tmp_array_length_vec = array_length_vec;
         if (is_array) {
           tmp_array_length_vec.push_back(field_type.fixed_length);
@@ -1811,7 +1814,11 @@ class CSharpGenerator : public BaseGenerator {
           auto idx = "idx" + NumToString(i);
           code += "." + MakeCamel(tmp_name_vec[i]) + "[" + idx + "]";
         }
-        if (!is_array) { code += "." + MakeCamel(field.name); }
+        if (!is_array) {
+          for (size_t i = 1; i < tmp_name_vec.size(); i++) {
+            code += "." + MakeCamel(tmp_name_vec[i]);
+          }
+        }
         code += ";";
         for (size_t i = 0; i < tmp_array_length_vec.size(); ++i) {
           code += "}";
