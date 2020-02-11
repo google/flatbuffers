@@ -47,7 +47,9 @@ public struct Ability : IFlatbufferObject
 
 public class AbilityT
 {
+  [Newtonsoft.Json.JsonProperty("id")]
   public uint Id { get; set; }
+  [Newtonsoft.Json.JsonProperty("distance")]
   public uint Distance { get; set; }
 
   public AbilityT() {

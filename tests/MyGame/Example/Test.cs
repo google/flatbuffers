@@ -48,7 +48,9 @@ public struct Test : IFlatbufferObject
 
 public class TestT
 {
+  [Newtonsoft.Json.JsonProperty("a")]
   public short A { get; set; }
+  [Newtonsoft.Json.JsonProperty("b")]
   public sbyte B { get; set; }
 
   public TestT() {

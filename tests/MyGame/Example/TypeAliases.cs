@@ -162,17 +162,29 @@ public struct TypeAliases : IFlatbufferObject
 
 public class TypeAliasesT
 {
+  [Newtonsoft.Json.JsonProperty("i8")]
   public sbyte I8 { get; set; }
+  [Newtonsoft.Json.JsonProperty("u8")]
   public byte U8 { get; set; }
+  [Newtonsoft.Json.JsonProperty("i16")]
   public short I16 { get; set; }
+  [Newtonsoft.Json.JsonProperty("u16")]
   public ushort U16 { get; set; }
+  [Newtonsoft.Json.JsonProperty("i32")]
   public int I32 { get; set; }
+  [Newtonsoft.Json.JsonProperty("u32")]
   public uint U32 { get; set; }
+  [Newtonsoft.Json.JsonProperty("i64")]
   public long I64 { get; set; }
+  [Newtonsoft.Json.JsonProperty("u64")]
   public ulong U64 { get; set; }
+  [Newtonsoft.Json.JsonProperty("f32")]
   public float F32 { get; set; }
+  [Newtonsoft.Json.JsonProperty("f64")]
   public double F64 { get; set; }
+  [Newtonsoft.Json.JsonProperty("v8")]
   public List<sbyte> V8 { get; set; }
+  [Newtonsoft.Json.JsonProperty("vf64")]
   public List<double> Vf64 { get; set; }
 
   public TypeAliasesT() {

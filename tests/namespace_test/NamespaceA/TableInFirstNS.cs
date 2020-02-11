@@ -55,8 +55,11 @@ public struct TableInFirstNS : IFlatbufferObject
 
 public class TableInFirstNST
 {
+  [Newtonsoft.Json.JsonProperty("foo_table")]
   public NamespaceA.NamespaceB.TableInNestedNST FooTable { get; set; }
+  [Newtonsoft.Json.JsonProperty("foo_enum")]
   public NamespaceA.NamespaceB.EnumInNestedNS FooEnum { get; set; }
+  [Newtonsoft.Json.JsonProperty("foo_struct")]
   public NamespaceA.NamespaceB.StructInNestedNST FooStruct { get; set; }
 
   public TableInFirstNST() {

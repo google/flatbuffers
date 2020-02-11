@@ -73,11 +73,17 @@ public struct Vec3 : IFlatbufferObject
 
 public class Vec3T
 {
+  [Newtonsoft.Json.JsonProperty("x")]
   public float X { get; set; }
+  [Newtonsoft.Json.JsonProperty("y")]
   public float Y { get; set; }
+  [Newtonsoft.Json.JsonProperty("z")]
   public float Z { get; set; }
+  [Newtonsoft.Json.JsonProperty("test1")]
   public double Test1 { get; set; }
+  [Newtonsoft.Json.JsonProperty("test2")]
   public MyGame.Example.Color Test2 { get; set; }
+  [Newtonsoft.Json.JsonProperty("test3")]
   public MyGame.Example.TestT Test3 { get; set; }
 
   public Vec3T() {

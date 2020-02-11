@@ -111,18 +111,18 @@ namespace FlatBuffers.Test
             }
 
             // Dump to output directory so we can inspect later, if needed
-#if ENABLE_SPAN_T
+            #if ENABLE_SPAN_T
             var data = fbb.DataBuffer.ToSizedArray();
             string filename = @"Resources/monsterdata_cstest" + (sizePrefix ? "_sp" : "") + ".mon";
             File.WriteAllBytes(filename, data);
-#else
+            #else
             using (var ms = fbb.DataBuffer.ToMemoryStream(fbb.DataBuffer.Position, fbb.Offset))
             {
                 var data = ms.ToArray();
                 string filename = @"Resources/monsterdata_cstest" + (sizePrefix ? "_sp" : "") + ".mon";
                 File.WriteAllBytes(filename, data);
             }
-#endif
+            #endif
 
             // Remove the size prefix if necessary for further testing
             ByteBuffer dataBuffer = fbb.DataBuffer;
@@ -245,7 +245,7 @@ namespace FlatBuffers.Test
 
             Assert.AreEqual(true, monster.Testbool);
 
-#if ENABLE_SPAN_T
+            #if ENABLE_SPAN_T
             var nameBytes = monster.GetNameBytes();
             Assert.AreEqual("MyMonster", Encoding.UTF8.GetString(nameBytes.ToArray(), 0, nameBytes.Length));
 
@@ -263,7 +263,7 @@ namespace FlatBuffers.Test
 
             var doubleArrayBytes = monster.GetVectorOfDoublesBytes();
             Assert.IsTrue(monster.VectorOfDoublesLength * 8 == doubleArrayBytes.Length);
-#else
+            #else
             var nameBytes = monster.GetNameBytes().Value;
             Assert.AreEqual("MyMonster", Encoding.UTF8.GetString(nameBytes.Array, nameBytes.Offset, nameBytes.Count));
 
@@ -275,7 +275,7 @@ namespace FlatBuffers.Test
             {
                 Assert.IsTrue(monster.GetTestarrayofboolsBytes().HasValue);
             }
-#endif
+            #endif
         }
 
         [FlatBuffersTestMethod]
@@ -285,6 +285,16 @@ namespace FlatBuffers.Test
             var bb = new ByteBuffer(data);
             TestBuffer(bb);
             TestObjectAPI(Monster.GetRootAsMonster(bb));
+        }
+
+        [FlatBuffersTestMethod]
+        public void CanReadJsonFile()
+        {
+            var jsonText = File.ReadAllText(@"Resources/monsterdata_test.json");
+            var mon = MonsterT.DeserializeFromJson(jsonText);
+            var fbb = new FlatBufferBuilder(1);
+            fbb.Finish(Monster.Pack(fbb, mon).Value);
+            TestBuffer(fbb.DataBuffer);
         }
 
         [FlatBuffersTestMethod]
@@ -659,6 +669,10 @@ namespace FlatBuffers.Test
             fbb.Finish(Monster.Pack(fbb, b).Value);
             var c = Monster.GetRootAsMonster(fbb.DataBuffer);
             AreEqual(a, c);
+
+            var jsonText = b.SerializeToJson();
+            var d = MonsterT.DeserializeFromJson(jsonText);
+            AreEqual(a, d);
         }
 
         private void AreEqual(ArrayTable a, ArrayTableT b)
@@ -754,6 +768,10 @@ namespace FlatBuffers.Test
             fbb.Finish(ArrayTable.Pack(fbb, b).Value);
             var c = ArrayTable.GetRootAsArrayTable(fbb.DataBuffer);
             AreEqual(a, c);
+
+            var jsonText = b.SerializeToJson();
+            var d = ArrayTableT.DeserializeFromJson(jsonText);
+            AreEqual(a, d);
         }
 
         private void AreEqual(Movie a, MovieT b)
@@ -793,6 +811,10 @@ namespace FlatBuffers.Test
             fbb.Finish(Movie.Pack(fbb, b).Value);
             var c = Movie.GetRootAsMovie(fbb.DataBuffer);
             AreEqual(a, c);
+
+            var jsonText = b.SerializeToJson();
+            var d = MovieT.DeserializeFromJson(jsonText);
+            AreEqual(a, d);
         }
     }
 }

@@ -60,7 +60,9 @@ public struct TableInC : IFlatbufferObject
 
 public class TableInCT
 {
+  [Newtonsoft.Json.JsonProperty("refer_to_a1")]
   public NamespaceA.TableInFirstNST ReferToA1 { get; set; }
+  [Newtonsoft.Json.JsonProperty("refer_to_a2")]
   public NamespaceA.SecondTableInAT ReferToA2 { get; set; }
 
   public TableInCT() {

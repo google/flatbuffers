@@ -101,11 +101,17 @@ public struct ArrayStruct : IFlatbufferObject
 
 public class ArrayStructT
 {
+  [Newtonsoft.Json.JsonProperty("a")]
   public float A { get; set; }
+  [Newtonsoft.Json.JsonProperty("b")]
   public int[] B { get; set; }
+  [Newtonsoft.Json.JsonProperty("c")]
   public sbyte C { get; set; }
+  [Newtonsoft.Json.JsonProperty("d")]
   public MyGame.Example.NestedStructT[] D { get; set; }
+  [Newtonsoft.Json.JsonProperty("e")]
   public int E { get; set; }
+  [Newtonsoft.Json.JsonProperty("f")]
   public long[] F { get; set; }
 
   public ArrayStructT() {
