@@ -53,6 +53,7 @@ internal partial struct TestSimpleTableWithEnum : IFlatbufferObject
 
 internal partial class TestSimpleTableWithEnumT
 {
+  [Newtonsoft.Json.JsonProperty("color")]
   public MyGame.Example.Color Color { get; set; }
 
   public TestSimpleTableWithEnumT() {

@@ -50,6 +50,7 @@ public struct Attacker : IFlatbufferObject
 
 public class AttackerT
 {
+  [Newtonsoft.Json.JsonProperty("sword_attack_damage")]
   public int SwordAttackDamage { get; set; }
 
   public AttackerT() {

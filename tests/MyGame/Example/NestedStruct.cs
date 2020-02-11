@@ -70,9 +70,13 @@ public struct NestedStruct : IFlatbufferObject
 
 public class NestedStructT
 {
+  [Newtonsoft.Json.JsonProperty("a")]
   public int[] A { get; set; }
+  [Newtonsoft.Json.JsonProperty("b")]
   public MyGame.Example.TestEnum B { get; set; }
+  [Newtonsoft.Json.JsonProperty("c")]
   public MyGame.Example.TestEnum[] C { get; set; }
+  [Newtonsoft.Json.JsonProperty("d")]
   public long[] D { get; set; }
 
   public NestedStructT() {

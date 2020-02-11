@@ -6,6 +6,7 @@ namespace MyGame.Example
 {
 
 /// Composite components of Monster color.
+[Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
 [System.FlagsAttribute]
 public enum Color : byte
 {

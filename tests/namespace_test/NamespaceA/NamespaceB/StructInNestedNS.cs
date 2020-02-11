@@ -47,7 +47,9 @@ public struct StructInNestedNS : IFlatbufferObject
 
 public class StructInNestedNST
 {
+  [Newtonsoft.Json.JsonProperty("a")]
   public int A { get; set; }
+  [Newtonsoft.Json.JsonProperty("b")]
   public int B { get; set; }
 
   public StructInNestedNST() {

@@ -5,6 +5,7 @@
 namespace MyGame.Example
 {
 
+[Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
 public enum TestEnum : sbyte
 {
   A = 0,

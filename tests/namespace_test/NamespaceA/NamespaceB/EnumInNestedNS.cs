@@ -5,6 +5,7 @@
 namespace NamespaceA.NamespaceB
 {
 
+[Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
 public enum EnumInNestedNS : sbyte
 {
   A = 0,
