@@ -539,6 +539,7 @@ def CheckReadBuffer(buf, offset, sizePrefix=False, file_identifier=None):
         # test prior to removal of size_prefix
         asserter(util.GetBufferIdentifier(buf, offset, size_prefixed=sizePrefix) == file_identifier)
         asserter(util.BufferHasIdentifier(buf, offset, file_identifier=file_identifier, size_prefixed=sizePrefix))
+        asserter(MyGame.Example.Monster.Monster.MonsterBufferHasIdentifier(buf, offset, size_prefixed=sizePrefix))
     if sizePrefix:
         size = util.GetSizePrefix(buf, offset)
         asserter(size == len(buf[offset:])-4)
