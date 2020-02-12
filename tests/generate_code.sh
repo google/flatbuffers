@@ -24,13 +24,15 @@ else
   TEST_CPP_FLAGS=
 fi
 
-TEST_CPP_FLAGS="--gen-compare --gen-name-strings --cpp-ptr-type flatbuffers::unique_ptr $TEST_CPP_FLAGS"
+TEST_CPP_FLAGS="--gen-compare --cpp-ptr-type flatbuffers::unique_ptr $TEST_CPP_FLAGS"
 TEST_CS_FLAGS="--cs-gen-json-serializer"
 TEST_BASE_FLAGS="--reflect-names --gen-mutable --gen-object-api"
+TEST_RUST_FLAGS="$TEST_BASE_FLAGS --gen-name-strings"
 TEST_NOINCL_FLAGS="$TEST_BASE_FLAGS --no-includes --no-fb-import"
 
-../flatc --binary --cpp --java --kotlin  --csharp --dart --go --lobster --lua --js --ts --php --rust --grpc \
+../flatc --binary --cpp --java --kotlin  --csharp --dart --go --lobster --lua --js --ts --php --grpc \
 $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS -I include_test monster_test.fbs monsterdata_test.json
+../flatc --rust $TEST_RUST_FLAGS -I include_test monster_test.fbs monsterdata_test.json
 
 ../flatc --python $TEST_BASE_FLAGS -I include_test monster_test.fbs monsterdata_test.json
 

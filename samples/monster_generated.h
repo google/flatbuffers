@@ -179,9 +179,6 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vec3 FLATBUFFERS_FINAL_CLASS {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return Vec3TypeTable();
   }
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
-    return "MyGame.Sample.Vec3";
-  }
   Vec3() {
     memset(static_cast<void *>(this), 0, sizeof(Vec3));
   }
@@ -225,9 +222,6 @@ inline bool operator!=(const Vec3 &lhs, const Vec3 &rhs) {
 
 struct MonsterT : public flatbuffers::NativeTable {
   typedef Monster TableType;
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
-    return "MyGame.Sample.MonsterT";
-  }
   flatbuffers::unique_ptr<MyGame::Sample::Vec3> pos;
   int16_t mana;
   int16_t hp;
@@ -267,9 +261,6 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MonsterBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return MonsterTypeTable();
-  }
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
-    return "MyGame.Sample.Monster";
   }
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_POS = 4,
@@ -479,9 +470,6 @@ flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb,
 
 struct WeaponT : public flatbuffers::NativeTable {
   typedef Weapon TableType;
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
-    return "MyGame.Sample.WeaponT";
-  }
   std::string name;
   int16_t damage;
   WeaponT()
@@ -505,9 +493,6 @@ struct Weapon FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef WeaponBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return WeaponTypeTable();
-  }
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
-    return "MyGame.Sample.Weapon";
   }
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,

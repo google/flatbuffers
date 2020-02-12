@@ -19,9 +19,6 @@ inline const flatbuffers::TypeTable *MonsterExtraTypeTable();
 
 struct MonsterExtraT : public flatbuffers::NativeTable {
   typedef MonsterExtra TableType;
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
-    return "MyGame.MonsterExtraT";
-  }
   double d0;
   double d1;
   double d2;
@@ -68,9 +65,6 @@ struct MonsterExtra FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MonsterExtraBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return MonsterExtraTypeTable();
-  }
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
-    return "MyGame.MonsterExtra";
   }
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_D0 = 4,

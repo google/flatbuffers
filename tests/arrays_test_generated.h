@@ -75,9 +75,6 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) NestedStruct FLATBUFFERS_FINAL_CLASS {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return NestedStructTypeTable();
   }
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
-    return "MyGame.Example.NestedStruct";
-  }
   NestedStruct() {
     memset(static_cast<void *>(this), 0, sizeof(NestedStruct));
   }
@@ -142,9 +139,6 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) ArrayStruct FLATBUFFERS_FINAL_CLASS {
  public:
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return ArrayStructTypeTable();
-  }
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
-    return "MyGame.Example.ArrayStruct";
   }
   ArrayStruct() {
     memset(static_cast<void *>(this), 0, sizeof(ArrayStruct));
@@ -219,9 +213,6 @@ inline bool operator!=(const ArrayStruct &lhs, const ArrayStruct &rhs) {
 
 struct ArrayTableT : public flatbuffers::NativeTable {
   typedef ArrayTable TableType;
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
-    return "MyGame.Example.ArrayTableT";
-  }
   flatbuffers::unique_ptr<MyGame::Example::ArrayStruct> a;
   ArrayTableT() {
   }
@@ -242,9 +233,6 @@ struct ArrayTable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef ArrayTableBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return ArrayTableTypeTable();
-  }
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
-    return "MyGame.Example.ArrayTable";
   }
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_A = 4

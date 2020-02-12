@@ -141,10 +141,6 @@ impl StructInNestedNS {
 
     }
   }
-    pub const fn get_fully_qualified_name() -> &'static str {
-        "NamespaceA.NamespaceB.StructInNestedNS"
-    }
-
   pub fn a<'a>(&'a self) -> i32 {
     self.a_.from_little_endian()
   }
@@ -171,10 +167,6 @@ impl<'a> flatbuffers::Follow<'a> for TableInNestedNS<'a> {
 }
 
 impl<'a> TableInNestedNS<'a> {
-    pub const fn get_fully_qualified_name() -> &'static str {
-        "NamespaceA.NamespaceB.TableInNestedNS"
-    }
-
     #[inline]
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
         TableInNestedNS {
