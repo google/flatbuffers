@@ -283,9 +283,9 @@ inline flatbuffers::Offset<ArrayTable> CreateArrayTable(
 flatbuffers::Offset<ArrayTable> CreateArrayTable(flatbuffers::FlatBufferBuilder &_fbb, const ArrayTableT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 inline ArrayTableT *ArrayTable::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new ArrayTableT();
-  UnPackTo(_o, _resolver);
-  return _o;
+  flatbuffers::unique_ptr<MyGame::Example::ArrayTableT> _o = flatbuffers::unique_ptr<MyGame::Example::ArrayTableT>(new ArrayTableT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void ArrayTable::UnPackTo(ArrayTableT *_o, const flatbuffers::resolver_function_t *_resolver) const {

@@ -568,9 +568,9 @@ inline flatbuffers::Offset<Weapon> CreateWeaponDirect(
 flatbuffers::Offset<Weapon> CreateWeapon(flatbuffers::FlatBufferBuilder &_fbb, const WeaponT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 inline MonsterT *Monster::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new MonsterT();
-  UnPackTo(_o, _resolver);
-  return _o;
+  flatbuffers::unique_ptr<MyGame::Sample::MonsterT> _o = flatbuffers::unique_ptr<MyGame::Sample::MonsterT>(new MonsterT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void Monster::UnPackTo(MonsterT *_o, const flatbuffers::resolver_function_t *_resolver) const {
@@ -621,9 +621,9 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
 }
 
 inline WeaponT *Weapon::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new WeaponT();
-  UnPackTo(_o, _resolver);
-  return _o;
+  flatbuffers::unique_ptr<MyGame::Sample::WeaponT> _o = flatbuffers::unique_ptr<MyGame::Sample::WeaponT>(new WeaponT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void Weapon::UnPackTo(WeaponT *_o, const flatbuffers::resolver_function_t *_resolver) const {

@@ -329,9 +329,9 @@ inline flatbuffers::Offset<SecondTableInA> CreateSecondTableInA(
 flatbuffers::Offset<SecondTableInA> CreateSecondTableInA(flatbuffers::FlatBufferBuilder &_fbb, const SecondTableInAT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 inline TableInFirstNST *TableInFirstNS::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new TableInFirstNST();
-  UnPackTo(_o, _resolver);
-  return _o;
+  flatbuffers::unique_ptr<NamespaceA::TableInFirstNST> _o = flatbuffers::unique_ptr<NamespaceA::TableInFirstNST>(new TableInFirstNST());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void TableInFirstNS::UnPackTo(TableInFirstNST *_o, const flatbuffers::resolver_function_t *_resolver) const {
@@ -365,9 +365,9 @@ inline flatbuffers::Offset<TableInFirstNS> CreateTableInFirstNS(flatbuffers::Fla
 namespace NamespaceC {
 
 inline TableInCT *TableInC::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new TableInCT();
-  UnPackTo(_o, _resolver);
-  return _o;
+  flatbuffers::unique_ptr<NamespaceC::TableInCT> _o = flatbuffers::unique_ptr<NamespaceC::TableInCT>(new TableInCT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void TableInC::UnPackTo(TableInCT *_o, const flatbuffers::resolver_function_t *_resolver) const {
@@ -398,9 +398,9 @@ inline flatbuffers::Offset<TableInC> CreateTableInC(flatbuffers::FlatBufferBuild
 namespace NamespaceA {
 
 inline SecondTableInAT *SecondTableInA::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new SecondTableInAT();
-  UnPackTo(_o, _resolver);
-  return _o;
+  flatbuffers::unique_ptr<NamespaceA::SecondTableInAT> _o = flatbuffers::unique_ptr<NamespaceA::SecondTableInAT>(new SecondTableInAT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void SecondTableInA::UnPackTo(SecondTableInAT *_o, const flatbuffers::resolver_function_t *_resolver) const {
