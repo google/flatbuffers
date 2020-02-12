@@ -131,9 +131,9 @@ inline flatbuffers::Offset<ApplicationData> CreateApplicationDataDirect(
 flatbuffers::Offset<ApplicationData> CreateApplicationData(flatbuffers::FlatBufferBuilder &_fbb, const ApplicationDataT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 inline ApplicationDataT *ApplicationData::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new ApplicationDataT();
-  UnPackTo(_o, _resolver);
-  return _o;
+  flatbuffers::unique_ptr<Geometry::ApplicationDataT> _o = flatbuffers::unique_ptr<Geometry::ApplicationDataT>(new ApplicationDataT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void ApplicationData::UnPackTo(ApplicationDataT *_o, const flatbuffers::resolver_function_t *_resolver) const {

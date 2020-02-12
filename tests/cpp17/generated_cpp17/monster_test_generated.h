@@ -2193,9 +2193,9 @@ flatbuffers::Offset<TypeAliases> CreateTypeAliases(flatbuffers::FlatBufferBuilde
 }  // namespace Example
 
 inline InParentNamespaceT *InParentNamespace::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new InParentNamespaceT();
-  UnPackTo(_o, _resolver);
-  return _o;
+  std::unique_ptr<MyGame::InParentNamespaceT> _o = std::unique_ptr<MyGame::InParentNamespaceT>(new InParentNamespaceT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void InParentNamespace::UnPackTo(InParentNamespaceT *_o, const flatbuffers::resolver_function_t *_resolver) const {
@@ -2218,9 +2218,9 @@ inline flatbuffers::Offset<InParentNamespace> CreateInParentNamespace(flatbuffer
 namespace Example2 {
 
 inline MonsterT *Monster::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new MonsterT();
-  UnPackTo(_o, _resolver);
-  return _o;
+  std::unique_ptr<MyGame::Example2::MonsterT> _o = std::unique_ptr<MyGame::Example2::MonsterT>(new MonsterT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void Monster::UnPackTo(MonsterT *_o, const flatbuffers::resolver_function_t *_resolver) const {
@@ -2245,9 +2245,9 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
 namespace Example {
 
 inline TestSimpleTableWithEnumT *TestSimpleTableWithEnum::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new TestSimpleTableWithEnumT();
-  UnPackTo(_o, _resolver);
-  return _o;
+  std::unique_ptr<MyGame::Example::TestSimpleTableWithEnumT> _o = std::unique_ptr<MyGame::Example::TestSimpleTableWithEnumT>(new TestSimpleTableWithEnumT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void TestSimpleTableWithEnum::UnPackTo(TestSimpleTableWithEnumT *_o, const flatbuffers::resolver_function_t *_resolver) const {
@@ -2271,9 +2271,9 @@ inline flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnu
 }
 
 inline StatT *Stat::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new StatT();
-  UnPackTo(_o, _resolver);
-  return _o;
+  std::unique_ptr<MyGame::Example::StatT> _o = std::unique_ptr<MyGame::Example::StatT>(new StatT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void Stat::UnPackTo(StatT *_o, const flatbuffers::resolver_function_t *_resolver) const {
@@ -2303,9 +2303,9 @@ inline flatbuffers::Offset<Stat> CreateStat(flatbuffers::FlatBufferBuilder &_fbb
 }
 
 inline ReferrableT *Referrable::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new ReferrableT();
-  UnPackTo(_o, _resolver);
-  return _o;
+  std::unique_ptr<MyGame::Example::ReferrableT> _o = std::unique_ptr<MyGame::Example::ReferrableT>(new ReferrableT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void Referrable::UnPackTo(ReferrableT *_o, const flatbuffers::resolver_function_t *_resolver) const {
@@ -2329,9 +2329,9 @@ inline flatbuffers::Offset<Referrable> CreateReferrable(flatbuffers::FlatBufferB
 }
 
 inline MonsterT *Monster::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new MonsterT();
-  UnPackTo(_o, _resolver);
-  return _o;
+  std::unique_ptr<MyGame::Example::MonsterT> _o = std::unique_ptr<MyGame::Example::MonsterT>(new MonsterT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void Monster::UnPackTo(MonsterT *_o, const flatbuffers::resolver_function_t *_resolver) const {
@@ -2503,9 +2503,9 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
 }
 
 inline TypeAliasesT *TypeAliases::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new TypeAliasesT();
-  UnPackTo(_o, _resolver);
-  return _o;
+  std::unique_ptr<MyGame::Example::TypeAliasesT> _o = std::unique_ptr<MyGame::Example::TypeAliasesT>(new TypeAliasesT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void TypeAliases::UnPackTo(TypeAliasesT *_o, const flatbuffers::resolver_function_t *_resolver) const {

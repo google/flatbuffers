@@ -480,9 +480,9 @@ inline flatbuffers::Offset<Movie> CreateMovieDirect(
 flatbuffers::Offset<Movie> CreateMovie(flatbuffers::FlatBufferBuilder &_fbb, const MovieT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 inline AttackerT *Attacker::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new AttackerT();
-  UnPackTo(_o, _resolver);
-  return _o;
+  flatbuffers::unique_ptr<AttackerT> _o = flatbuffers::unique_ptr<AttackerT>(new AttackerT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void Attacker::UnPackTo(AttackerT *_o, const flatbuffers::resolver_function_t *_resolver) const {
@@ -506,9 +506,9 @@ inline flatbuffers::Offset<Attacker> CreateAttacker(flatbuffers::FlatBufferBuild
 }
 
 inline MovieT *Movie::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new MovieT();
-  UnPackTo(_o, _resolver);
-  return _o;
+  flatbuffers::unique_ptr<MovieT> _o = flatbuffers::unique_ptr<MovieT>(new MovieT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void Movie::UnPackTo(MovieT *_o, const flatbuffers::resolver_function_t *_resolver) const {
