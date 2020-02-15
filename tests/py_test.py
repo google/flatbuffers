@@ -59,6 +59,49 @@ def assertRaises(test_case, fn, exception_class):
     test_case.assertTrue(exc is not None)
     test_case.assertTrue(isinstance(exc, exception_class))
 
+class TestProxyTable(object):
+    """ TestProxyTable wraps Table and verifies its alignment """
+
+    @classmethod
+    def wrapMonster(cls, monster, bufferOffset):
+        """
+            wraps a monster's table with a TestProxyTable
+
+            Although it returns the new monster, the original monster is also
+            modified
+        """
+        newTable = cls(monster, bufferOffset)
+        monster._tab = newTable
+        return monster
+
+    def __init__(self, monster, bufferOffset):
+        self.monster = monster
+        self._tab = monster._tab
+        self._off = bufferOffset
+
+    def __getattr__(self, name):
+        return getattr(self._tab, name)
+
+    def assertAlignment(self, elemOffset, flags):
+        """
+            Assert that an element is properly alligned
+
+            Veries alignment of an element of number_types flags at elemOffset
+            from start of buffer, relative to the start of the containing object
+            at rootOffset from the start of the buffer
+        """
+
+        relativeOffset = elemOffset - self._off
+        misalignment = relativeOffset % flags.bytewidth
+        if misalignment != 0:
+            raise AssertionError("Address %d is not alligned to %d. Off by %d" \
+               % (relativeOffset, flags.bytewidth, misalignment))
+
+    def Get(self, flags, off):
+        """ Assert that an offset is properly aligned prior to Table.Get """
+        N.enforce_number(off, N.UOffsetTFlags)
+        self.assertAlignment(off, flags)
+        return self._tab.Get(flags, off)
 
 class TestWireFormat(unittest.TestCase):
     def test_wire_format(self):
@@ -540,15 +583,26 @@ def CheckReadBuffer(buf, offset, sizePrefix=False, file_identifier=None):
         asserter(util.GetBufferIdentifier(buf, offset, size_prefixed=sizePrefix) == file_identifier)
         asserter(util.BufferHasIdentifier(buf, offset, file_identifier=file_identifier, size_prefixed=sizePrefix))
         asserter(MyGame.Example.Monster.Monster.MonsterBufferHasIdentifier(buf, offset, size_prefixed=sizePrefix))
+    else:
+        # test may fail if size_prefix equals the Identifier, but this is very unlikely
+        asserter(not MyGame.Example.Monster.Monster.MonsterBufferHasIdentifier(buf, offset))
+
+    oldoffset = offset
     if sizePrefix:
         size = util.GetSizePrefix(buf, offset)
         asserter(size == len(buf[offset:])-4)
         buf, offset = util.RemoveSizePrefix(buf, offset)
     if file_identifier:
+        # test again after removal of size_prefix
+        asserter(util.GetBufferIdentifier(buf, offset) == file_identifier)
+        asserter(util.BufferHasIdentifier(buf, offset, file_identifier=file_identifier))
         asserter(MyGame.Example.Monster.Monster.MonsterBufferHasIdentifier(buf, offset))
     else:
+        # test may fail if vtable offset equals the Identifier, but this is very unlikely
         asserter(not MyGame.Example.Monster.Monster.MonsterBufferHasIdentifier(buf, offset))
     monster = MyGame.Example.Monster.Monster.GetRootAs(buf, offset)
+    # wrap moster objects _tab with one that verifies alignment
+    monster = TestProxyTable.wrapMonster(monster, oldoffset)
 
     asserter(monster.Hp() == 80)
     asserter(monster.Mana() == 150)
