@@ -661,6 +661,12 @@ class JsTsGenerator : public BaseGenerator {
     }
   }
 
+  // Generate an object based api struct
+  void GenObjStruct(const Parser &parser, StructDef &struct_def,
+                    std::string *code_ptr) {
+    std::string &code = *code_ptr;
+  }
+
   // Generate an accessor struct with constructor for a flatbuffers struct.
   void GenStruct(const Parser &parser, StructDef &struct_def,
                  std::string *code_ptr, std::string *exports_ptr,
@@ -1349,6 +1355,10 @@ class JsTsGenerator : public BaseGenerator {
               "(builder);\n";
       code += "}\n";
       if (lang_.language == IDLOptions::kJs) code += "\n";
+    }
+
+    if (parser_.opts.generate_object_based_api) {
+      GenObjStruct(parser_, struct_def, decl_code_ptr);
     }
 
     if (lang_.language == IDLOptions::kTs) {
