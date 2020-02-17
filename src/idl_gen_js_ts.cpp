@@ -665,6 +665,249 @@ class JsTsGenerator : public BaseGenerator {
   void GenObjStruct(const Parser &parser, StructDef &struct_def,
                     std::string *code_ptr) {
     std::string &code = *code_ptr;
+    const auto class_name = struct_def.name + "T";
+
+    if (lang_.language == IDLOptions::kTs) {
+      code += "export class " + class_name + " {\n";
+
+      for (auto it = struct_def.fields.vec.begin();
+           it != struct_def.fields.vec.end(); ++it) {
+        auto &field = **it;
+        if (field.deprecated) continue;
+
+        // Emit a scalar field
+        if (IsScalar(field.value.type.base_type) ||
+            field.value.type.base_type == BASE_TYPE_STRING) {
+          if (lang_.language == IDLOptions::kTs) {
+            std::string prefix = MakeCamel(field.name, false) + ":";
+            if (field.value.type.base_type == BASE_TYPE_STRING) {
+              code +=
+                  prefix + GenTypeName(field.value.type, false, true) + "\n";
+            } else {
+              code += prefix;
+            }
+            if (field.value.type.enum_def) {
+              code += GenPrefixedTypeName(
+                          GenTypeName(field.value.type, false, true),
+                          field.value.type.enum_def->file) +
+                      " {\n";
+            } else {
+              code += GenTypeName(field.value.type, false, true) + " {\n";
+            }
+          } else {
+            // code += object_name + ".prototype." + MakeCamel(field.name,
+            // false); code += " = function("; if (field.value.type.base_type ==
+            // BASE_TYPE_STRING) {
+            //   code += "optionalEncoding";
+            // }
+            // code += ") {\n";
+          }
+        }
+
+        // Emit an object field
+        else {
+          switch (field.value.type.base_type) {
+            case BASE_TYPE_STRUCT: {
+              auto type = WrapInNameSpace(*field.value.type.struct_def);
+              if (lang_.language == IDLOptions::kTs) {
+                type = GenPrefixedTypeName(type,
+                                           field.value.type.struct_def->file);
+                code += MakeCamel(field.name, false);
+                code += ":" + type + "|null \n";
+              } else {
+                // code +=
+                //     object_name + ".prototype." + MakeCamel(field.name,
+                //     false);
+                // code += " = function(obj) {\n";
+              }
+
+              break;
+            }
+
+            case BASE_TYPE_VECTOR: {
+              auto vectortype = field.value.type.VectorType();
+              auto vectortypename = GenTypeName(vectortype, false);
+              std::string ret_type;
+              bool is_union = false;
+
+              switch (vectortype.base_type) {
+                case BASE_TYPE_STRUCT:
+                  //   args +=
+                  //       GenTypeAnnotation(kParam, vectortypename + "=",
+                  //       "obj");
+                  ret_type = vectortypename;
+                  break;
+                case BASE_TYPE_STRING:
+                  //   args += GenTypeAnnotation(
+                  //       kParam, "flatbuffers.Encoding=", "optionalEncoding");
+                  ret_type = vectortypename;
+                  break;
+                case BASE_TYPE_UNION:
+                  //   args +=
+                  //       GenTypeAnnotation(kParam, "flatbuffers.Table=",
+                  //       "obj");
+                  ret_type = "?flatbuffers.Table";
+                  is_union = true;
+                  break;
+                default: ret_type = vectortypename;
+              }
+              //   GenDocComment(
+              //       field.doc_comment, code_ptr,
+              //       args + GenTypeAnnotation(kReturns, ret_type, "", false));
+              if (lang_.language == IDLOptions::kTs) {
+                std::string prefix = MakeCamel(field.name, false) + ":";
+                if (is_union) {
+                  vectortypename = "T";
+                  code += prefix + ", obj:T";
+                } else if (vectortype.base_type == BASE_TYPE_STRUCT) {
+                  vectortypename = GenPrefixedTypeName(
+                      vectortypename, vectortype.struct_def->file);
+                  code += prefix + vectortypename;
+
+                } else if (vectortype.base_type == BASE_TYPE_STRING) {
+                  code += prefix + "):string\n";
+                  code += prefix + ",optionalEncoding:flatbuffers.Encoding" +
+                          "):" + vectortypename + "\n";
+                  code += prefix + ",optionalEncoding?:any";
+                } else {
+                  code += prefix;
+                }
+                code += "):" + vectortypename + "|null {\n";
+              } else {
+                code +=
+                    object_name + ".prototype." + MakeCamel(field.name, false);
+                code += " = function(index";
+                if (vectortype.base_type == BASE_TYPE_STRUCT || is_union) {
+                  code += ", obj";
+                } else if (vectortype.base_type == BASE_TYPE_STRING) {
+                  code += ", optionalEncoding";
+                }
+                code += ") {\n";
+              }
+
+              if (vectortype.base_type == BASE_TYPE_STRUCT) {
+                code += offset_prefix + "(obj || " +
+                        GenerateNewExpression(vectortypename);
+                code += ").__init(";
+                code += vectortype.struct_def->fixed
+                            ? index
+                            : GenBBAccess() + ".__indirect(" + index + ")";
+                code += ", " + GenBBAccess() + ")";
+              } else {
+                if (is_union) {
+                  index = "obj, " + index;
+                } else if (vectortype.base_type == BASE_TYPE_STRING) {
+                  index += ", optionalEncoding";
+                }
+                code +=
+                    offset_prefix + GenGetter(vectortype, "(" + index + ")");
+              }
+              code += " : ";
+              if (field.value.type.element == BASE_TYPE_BOOL) {
+                code += "false";
+              } else if (field.value.type.element == BASE_TYPE_LONG ||
+                         field.value.type.element == BASE_TYPE_ULONG) {
+                code += GenBBAccess() + ".createLong(0, 0)";
+              } else if (IsScalar(field.value.type.element)) {
+                if (field.value.type.enum_def) {
+                  code +=
+                      "/** " +
+                      GenTypeAnnotation(
+                          kType, WrapInNameSpace(*field.value.type.enum_def),
+                          "", false) +
+                      " */ (" + field.value.constant + ")";
+                } else {
+                  code += "0";
+                }
+              } else {
+                code += "null";
+              }
+              code += ";\n";
+              break;
+            }
+
+            case BASE_TYPE_UNION:
+              GenDocComment(
+                  field.doc_comment, code_ptr,
+                  GenTypeAnnotation(kParam, "flatbuffers.Table", "obj") +
+                      GenTypeAnnotation(kReturns, "?flatbuffers.Table", "",
+                                        false));
+              if (lang_.language == IDLOptions::kTs) {
+                code += MakeCamel(field.name, false);
+                code += "<T extends flatbuffers.Table>(obj:T):T|null {\n";
+              } else {
+                code +=
+                    object_name + ".prototype." + MakeCamel(field.name, false);
+                code += " = function(obj) {\n";
+              }
+
+              code +=
+                  offset_prefix +
+                  GenGetter(field.value.type, "(obj, this.bb_pos + offset)") +
+                  " : null;\n";
+              break;
+
+            default: FLATBUFFERS_ASSERT(0);
+          }
+        }
+        code += "};\n\n";
+
+        // Emit vector helpers
+        if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+          // Emit a length helper
+          GenDocComment(code_ptr,
+                        GenTypeAnnotation(kReturns, "number", "", false));
+          if (lang_.language == IDLOptions::kTs) {
+            code += MakeCamel(field.name, false);
+            code += "Length():number {\n" + offset_prefix;
+          } else {
+            code += object_name + ".prototype." + MakeCamel(field.name, false);
+            code += "Length = function() {\n" + offset_prefix;
+          }
+
+          code += GenBBAccess() +
+                  ".__vector_len(this.bb_pos + offset) : 0;\n};\n\n";
+
+          if (parser_.opts.use_goog_js_export_format) {
+            exports += "goog.exportProperty(" + object_name + ".prototype, '" +
+                       MakeCamel(field.name, false) + "Length', " +
+                       object_name + ".prototype." +
+                       MakeCamel(field.name, false) + "Length);\n";
+          }
+
+          // For scalar types, emit a typed array helper
+          auto vectorType = field.value.type.VectorType();
+          if (IsScalar(vectorType.base_type) && !IsLong(vectorType.base_type)) {
+            GenDocComment(code_ptr, GenTypeAnnotation(
+                                        kReturns, GenType(vectorType) + "Array",
+                                        "", false));
+
+            if (lang_.language == IDLOptions::kTs) {
+              code += MakeCamel(field.name, false);
+              code += "Array():" + GenType(vectorType) + "Array|null {\n" +
+                      offset_prefix;
+            } else {
+              code +=
+                  object_name + ".prototype." + MakeCamel(field.name, false);
+              code += "Array = function() {\n" + offset_prefix;
+            }
+
+            code += "new " + GenType(vectorType) + "Array(" + GenBBAccess() +
+                    ".bytes().buffer, " + GenBBAccess() +
+                    ".bytes().byteOffset + " + GenBBAccess() +
+                    ".__vector(this.bb_pos + offset), " + GenBBAccess() +
+                    ".__vector_len(this.bb_pos + offset)) : null;\n};\n\n";
+
+            if (parser_.opts.use_goog_js_export_format) {
+              exports += "goog.exportProperty(" + object_name +
+                         ".prototype, '" + MakeCamel(field.name, false) +
+                         "Array', " + object_name + ".prototype." +
+                         MakeCamel(field.name, false) + "Array);\n";
+            }
+          }
+        }
+      }
+    }
   }
 
   // Generate an accessor struct with constructor for a flatbuffers struct.
