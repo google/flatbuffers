@@ -690,22 +690,19 @@ class JsTsGenerator : public BaseGenerator {
     }
   }
 
-  // Generate an object based api struct
-  void GenObjStruct(const Parser &parser, StructDef &struct_def,
-                    std::string *code_ptr) {
+  void GenAllFieldDec(const Parser &parser, StructDef &struct_def,
+                      std::string *code_ptr,
+                      const std::string &decl_prefix = "",
+                      const std::string &delimiter = "\n") {
     std::string &code = *code_ptr;
-    const auto class_name = struct_def.name + "T";
-
     if (lang_.language == IDLOptions::kTs) {
-      code += "export class " + class_name + " {\n";
-
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
         auto &field = **it;
         if (field.deprecated) continue;
 
-        const auto prefix = MakeCamel(field.name, false) + ":";
-        code += prefix;
+        code += decl_prefix + " " + MakeCamel(field.name, false) + ":";
+        // const auto fieldName =
 
         // Emit a scalar field
         if (IsScalar(field.value.type.base_type) ||
@@ -713,13 +710,9 @@ class JsTsGenerator : public BaseGenerator {
           if (field.value.type.enum_def) {
             code +=
                 GenPrefixedTypeName(GenTypeName(field.value.type, false, true),
-                                    field.value.type.enum_def->file) +
-                "\n";
+                                    field.value.type.enum_def->file);
           } else {
-            //   if (field.value.type.base_type == BASE_TYPE_STRING) {
-            //     code += GenTypeName(field.value.type, false, true) + "\n";
-            //   }
-            code += GenTypeName(field.value.type, false, true) + " \n";
+            code += GenTypeName(field.value.type, false, true);
           }
         }
 
@@ -746,13 +739,15 @@ class JsTsGenerator : public BaseGenerator {
               auto vectortype = field.value.type.VectorType();
               auto vectortypename = GenTypeName(vectortype, false);
 
+              code += "(";
               switch (vectortype.base_type) {
                 case BASE_TYPE_STRUCT: {
                   code += GenPrefixedTypeName(vectortypename,
                                               vectortype.struct_def->file);
+                  code += "|null";
                   break;
                 }
-                case BASE_TYPE_STRING: code += "string"; break;
+                case BASE_TYPE_STRING: code += "string|null"; break;
                 case BASE_TYPE_UNION: {
                   auto &union_enum = *(vectortype.enum_def);
                   for (auto uit = union_enum.Vals().begin();
@@ -765,10 +760,14 @@ class JsTsGenerator : public BaseGenerator {
                     code += native_type +
                             ((uit != union_enum.Vals().end() - 1) ? "| " : "");
                   }
+                  code += "|null";
                   break;
                 }
                 default: code += vectortypename; break;
               }
+              code += ")";
+
+              code += "[]";
               break;
             }
 
@@ -789,11 +788,26 @@ class JsTsGenerator : public BaseGenerator {
 
             default: FLATBUFFERS_ASSERT(0); break;
           }
-          code += "|null\n";
+          code += "|null";
         }
+
+        code += (it != struct_def.fields.vec.end() - 1) ? delimiter : "";
       }
-      code += "}\n";
     }
+  }
+
+  // Generate an object based api struct
+  void GenObjStruct(const Parser &parser, StructDef &struct_def,
+                    std::string *code_ptr) {
+    std::string &code = *code_ptr;
+    const auto class_name = struct_def.name + "T";
+    code += "export class " + class_name + " {\n";
+    code += "constructor(\n";
+
+    GenAllFieldDec(parser, struct_def, code_ptr, "  public ", ",\n");
+
+    code += "\n){}\n";
+    code += "}\n";
   }
 
   // Generate an accessor struct with constructor for a flatbuffers struct.
@@ -1486,12 +1500,11 @@ class JsTsGenerator : public BaseGenerator {
       if (lang_.language == IDLOptions::kJs) code += "\n";
     }
 
-    if (parser_.opts.generate_object_based_api) {
-      GenObjStruct(parser_, struct_def, code_ptr);
-    }
-
     if (lang_.language == IDLOptions::kTs) {
       if (!object_namespace.empty()) { code += "}\n"; }
+      if (parser_.opts.generate_object_based_api) {
+        GenObjStruct(parser_, struct_def, code_ptr);
+      }
       code += "}\n";
     }
   }
