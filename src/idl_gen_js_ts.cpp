@@ -668,6 +668,11 @@ class JsTsGenerator : public BaseGenerator {
                             : name;
   }
 
+  static std::string GetObjApiClassName(const StructDef &sd,
+                                        const IDLOptions &opts) {
+    return opts.object_prefix + sd.name + opts.object_suffix;
+  }
+
   //   std::string EscapeKeyword(const std::string &name) const {
   //     return keywords_.find(name) == keywords_.end() ? name : name + "_";
   //   }
@@ -691,16 +696,70 @@ class JsTsGenerator : public BaseGenerator {
     }
   }
 
+  std::string getUnionTypes(const IDLOptions &opts, const EnumDef &union_enum) {
+    std::string ret = "";
+    for (auto uit = union_enum.Vals().begin(); uit != union_enum.Vals().end();
+         ++uit) {
+      const auto &ev = **uit;
+      if (ev.IsZero()) { continue; }
+      const auto native_type = NativeName(GetUnionElement(ev, true, true),
+                                          ev.union_type.struct_def, opts);
+      ret += native_type + ((uit != union_enum.Vals().end() - 1) ? "| " : "");
+    }
+
+    return ret;
+  }
+
+  std::string GenStructFieldVal(const std::string &field_name) {
+    return std::string{ "this." } + field_name + "().Unpack()";
+  }
+
+  std::string GenUnionFieldVal(const std::string &field_name,
+                               const IDLOptions &opts, const Type &union_type) {
+    (void)(opts);
+    if (union_type.enum_def) {
+      const auto enum_type = GenPrefixedTypeName(union_type.enum_def->name,
+                                                 union_type.enum_def->file);
+      std::string field_val = " (() => {\n";
+      field_val += " const field_type = this." + field_name + "Type()\n";
+
+      const auto &union_enum = *(union_type.enum_def);
+      for (auto uit = union_enum.Vals().begin(); uit != union_enum.Vals().end();
+           ++uit) {
+        const auto &ev = **uit;
+        if (ev.IsZero()) { continue; }
+
+        const auto type_name = GetUnionElement(ev, true, true);
+        const auto full_enum_type = enum_type + "." + ev.name;
+
+        field_val += "if(field_type === " + full_enum_type + ") {\n";
+        field_val += "return this." + field_name + "(new " + type_name +
+                     "()).Unpack()\n";
+        field_val += "}\n";
+      }
+      field_val += "return null\n";
+      field_val += "  })()";
+
+      return field_val;
+    }
+    return "";
+  }
+
   /**
    * @brief Loop through all member of struct and find the name and type of the
-   * field and create a custom string based on fmt
+   * field and create a custom string based on fmt. Assuming global this of
+   * generated code is the non object api type
    *
    * For example, with fmt being "public $name: $type", every struct member will
-   * have a string created and added to code_ptr in that format
+   * have a string created and added to code_ptr in that format.
+   *
+   * $name for name
+   * $type for type
+   * $val for the value
    */
   void GenAllFieldUtil(const Parser &parser, StructDef &struct_def,
                        std::string *code_ptr, const std::string &fmt,
-                       const std::string &delimiter = "\n") {
+                       const std::string &delimiter) {
     std::string &code = *code_ptr;
     if (lang_.language == IDLOptions::kTs) {
       for (auto it = struct_def.fields.vec.begin();
@@ -708,28 +767,34 @@ class JsTsGenerator : public BaseGenerator {
         auto &field = **it;
         if (field.deprecated) continue;
 
-        const auto fieldName = MakeCamel(field.name, false);
-        std::string fieldType = "";
+        const auto field_name = MakeCamel(field.name, false);
+        std::string field_val = "";
+        std::string field_type = "";
 
         // Emit a scalar field
         if (IsScalar(field.value.type.base_type) ||
             field.value.type.base_type == BASE_TYPE_STRING) {
           if (field.value.type.enum_def) {
-            fieldType +=
+            field_type +=
                 GenPrefixedTypeName(GenTypeName(field.value.type, false, true),
                                     field.value.type.enum_def->file);
           } else {
-            fieldType += GenTypeName(field.value.type, false, true);
+            field_type += GenTypeName(field.value.type, false, true);
           }
+          field_val += std::string{ "this." } + field_name + "()";
         }
 
         // Emit an object field
         else {
           switch (field.value.type.base_type) {
             case BASE_TYPE_STRUCT: {
-              fieldType += GenPrefixedTypeName(
-                  WrapInNameSpace(*field.value.type.struct_def),
+              const auto &sd = *field.value.type.struct_def;
+              field_type += GenPrefixedTypeName(
+                  WrapInNameSpace(sd.defined_namespace,
+                                  GetObjApiClassName(sd, parser.opts)),
                   field.value.type.struct_def->file);
+
+              field_val += GenStructFieldVal(field_name);
 
               break;
             }
@@ -738,72 +803,82 @@ class JsTsGenerator : public BaseGenerator {
               auto vectortype = field.value.type.VectorType();
               auto vectortypename = GenTypeName(vectortype, false);
 
-              fieldType += "(";
+              field_type += "(";
+              std::string field_val_handling = "ret.push(val)\n";
+
               switch (vectortype.base_type) {
                 case BASE_TYPE_STRUCT: {
-                  fieldType += GenPrefixedTypeName(vectortypename,
-                                                   vectortype.struct_def->file);
-                  fieldType += "|null";
-                  break;
-                }
-                case BASE_TYPE_STRING: fieldType += "string|null"; break;
-                case BASE_TYPE_UNION: {
-                  auto &union_enum = *(vectortype.enum_def);
-                  for (auto uit = union_enum.Vals().begin();
-                       uit != union_enum.Vals().end(); ++uit) {
-                    const auto &ev = **uit;
-                    if (ev.IsZero()) { continue; }
-                    const auto native_type =
-                        NativeName(GetUnionElement(ev, true, true),
-                                   ev.union_type.struct_def, parser.opts);
-                    fieldType +=
-                        native_type +
-                        ((uit != union_enum.Vals().end() - 1) ? "| " : "");
-                  }
-                  fieldType += "|null";
-                  break;
-                }
-                default: fieldType += vectortypename; break;
-              }
-              fieldType += ")";
+                  const auto &sd = *field.value.type.struct_def;
+                  field_type += GenPrefixedTypeName(
+                      WrapInNameSpace(sd.defined_namespace,
+                                      GetObjApiClassName(sd, parser.opts)),
+                      field.value.type.struct_def->file);
+                  field_type += "|null";
 
-              fieldType += "[]";
+                  field_val_handling =
+                      "ret.push(val !== null ? val.Unpack() : null)\n";
+                  break;
+                }
+
+                case BASE_TYPE_STRING: field_type += "string|null"; break;
+
+                case BASE_TYPE_UNION: {
+                  // TODO(khoi): Handle union array
+                  field_type +=
+                      getUnionTypes(parser.opts, *(vectortype.enum_def));
+                  field_type += "|null";
+                  field_val +=
+                      GenUnionFieldVal(field_name, parser.opts, vectortype);
+
+                  break;
+                }
+                default: field_type += vectortypename; break;
+              }
+              field_type += ")[]";
+
+              field_val = " (() => {\n";
+              field_val += "    let ret = [] as " + field_type + "\n";
+              field_val += "    for(let i = 0; i < this." + field_name +
+                           "Length(); ++i) {\n";
+              field_val += "    const val = this." + field_name + "(i)\n";
+              field_val += field_val_handling;
+              field_val += "    }\n";
+              field_val += "    return ret\n";
+              field_val += "  })()";
+
               break;
             }
 
             case BASE_TYPE_UNION: {
-              const auto &union_enum = *(field.value.type.enum_def);
-              for (auto uit = union_enum.Vals().begin();
-                   uit != union_enum.Vals().end(); ++uit) {
-                const auto &ev = **uit;
-                if (ev.IsZero()) { continue; }
-                const auto native_type =
-                    NativeName(GetUnionElement(ev, true, true),
-                               ev.union_type.struct_def, parser.opts);
-                fieldType += native_type;
-                fieldType += (uit != union_enum.Vals().end() - 1) ? "| " : "";
-              }
+              field_type +=
+                  getUnionTypes(parser.opts, *(field.value.type.enum_def));
+              field_type += "|null";
+
+              field_val +=
+                  GenUnionFieldVal(field_name, parser.opts, field.value.type);
               break;
             }
 
             default: FLATBUFFERS_ASSERT(0); break;
           }
-          fieldType += "|null";
+          field_type += "|null";
         }
 
         code += std::regex_replace(
-            std::regex_replace(fmt, std::regex{ R"(\$type)" }, fieldType),
-            std::regex{ R"(\$name)" }, fieldName);
+            std::regex_replace(
+                std::regex_replace(fmt, std::regex{ R"(\$type)" }, field_type),
+                std::regex{ R"(\$name)" }, field_name),
+            std::regex{ R"(\$val)" }, field_val);
         code += (it != struct_def.fields.vec.end() - 1) ? delimiter : "";
       }
     }
   }
 
   // Generate an object based api struct
-  void GenObjStruct(const Parser &parser, StructDef &struct_def,
-                    std::string *code_ptr) {
+  void GenObjApiClass(const Parser &parser, StructDef &struct_def,
+                      std::string *code_ptr) {
     std::string &code = *code_ptr;
-    const auto class_name = struct_def.name + "T";
+    const auto class_name = GetObjApiClassName(struct_def, parser.opts);
     code += "export class " + class_name + " {\n";
     code += "constructor(\n";
 
@@ -812,6 +887,17 @@ class JsTsGenerator : public BaseGenerator {
 
     code += "\n){}\n";
     code += "}\n";
+  }
+
+  void GenUnpackFunctions(const Parser &parser, StructDef &struct_def,
+                          std::string *code_ptr) {
+    std::string &code = *code_ptr;
+    const auto class_name = GetObjApiClassName(struct_def, parser.opts);
+
+    code += "Unpack() {\n";
+    code += "  return new " + class_name + "(\n";
+    GenAllFieldUtil(parser, struct_def, code_ptr, "  $val", ",\n");
+    code += "\n)}\n";
   }
 
   // Generate an accessor struct with constructor for a flatbuffers struct.
@@ -1505,9 +1591,10 @@ class JsTsGenerator : public BaseGenerator {
     }
 
     if (lang_.language == IDLOptions::kTs) {
+      GenUnpackFunctions(parser_, struct_def, code_ptr);
       if (!object_namespace.empty()) { code += "}\n"; }
       if (parser_.opts.generate_object_based_api) {
-        GenObjStruct(parser_, struct_def, code_ptr);
+        GenObjApiClass(parser_, struct_def, code_ptr);
       }
       code += "}\n";
     }
@@ -1530,7 +1617,7 @@ class JsTsGenerator : public BaseGenerator {
   std::string Verbose(const StructDef &struct_def, const char *prefix = "") {
     return parser_.opts.js_ts_short_names ? "" : prefix + struct_def.name;
   }
-};
+};  // namespace jsts
 }  // namespace jsts
 
 bool GenerateJSTS(const Parser &parser, const std::string &path,
