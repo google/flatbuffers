@@ -16,6 +16,7 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 #include <cassert>
+#include <regex>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -691,8 +692,7 @@ class JsTsGenerator : public BaseGenerator {
   }
 
   void GenAllFieldDec(const Parser &parser, StructDef &struct_def,
-                      std::string *code_ptr,
-                      const std::string &decl_prefix = "",
+                      std::string *code_ptr, const std::string &fmt,
                       const std::string &delimiter = "\n") {
     std::string &code = *code_ptr;
     if (lang_.language == IDLOptions::kTs) {
@@ -701,18 +701,18 @@ class JsTsGenerator : public BaseGenerator {
         auto &field = **it;
         if (field.deprecated) continue;
 
-        code += decl_prefix + " " + MakeCamel(field.name, false) + ":";
-        // const auto fieldName =
+        const auto fieldName = MakeCamel(field.name, false);
+        std::string fieldType = "";
 
         // Emit a scalar field
         if (IsScalar(field.value.type.base_type) ||
             field.value.type.base_type == BASE_TYPE_STRING) {
           if (field.value.type.enum_def) {
-            code +=
+            fieldType +=
                 GenPrefixedTypeName(GenTypeName(field.value.type, false, true),
                                     field.value.type.enum_def->file);
           } else {
-            code += GenTypeName(field.value.type, false, true);
+            fieldType += GenTypeName(field.value.type, false, true);
           }
         }
 
@@ -720,17 +720,9 @@ class JsTsGenerator : public BaseGenerator {
         else {
           switch (field.value.type.base_type) {
             case BASE_TYPE_STRUCT: {
-              auto type = WrapInNameSpace(*field.value.type.struct_def);
-              if (lang_.language == IDLOptions::kTs) {
-                type = GenPrefixedTypeName(type,
-                                           field.value.type.struct_def->file);
-                code += type;
-              } else {
-                // code +=
-                //     object_name + ".prototype." + MakeCamel(field.name,
-                //     false);
-                // code += " = function(obj) {\n";
-              }
+              fieldType += GenPrefixedTypeName(
+                  WrapInNameSpace(*field.value.type.struct_def),
+                  field.value.type.struct_def->file);
 
               break;
             }
@@ -739,15 +731,15 @@ class JsTsGenerator : public BaseGenerator {
               auto vectortype = field.value.type.VectorType();
               auto vectortypename = GenTypeName(vectortype, false);
 
-              code += "(";
+              fieldType += "(";
               switch (vectortype.base_type) {
                 case BASE_TYPE_STRUCT: {
-                  code += GenPrefixedTypeName(vectortypename,
-                                              vectortype.struct_def->file);
-                  code += "|null";
+                  fieldType += GenPrefixedTypeName(vectortypename,
+                                                   vectortype.struct_def->file);
+                  fieldType += "|null";
                   break;
                 }
-                case BASE_TYPE_STRING: code += "string|null"; break;
+                case BASE_TYPE_STRING: fieldType += "string|null"; break;
                 case BASE_TYPE_UNION: {
                   auto &union_enum = *(vectortype.enum_def);
                   for (auto uit = union_enum.Vals().begin();
@@ -757,17 +749,18 @@ class JsTsGenerator : public BaseGenerator {
                     const auto native_type =
                         NativeName(GetUnionElement(ev, true, true),
                                    ev.union_type.struct_def, parser.opts);
-                    code += native_type +
-                            ((uit != union_enum.Vals().end() - 1) ? "| " : "");
+                    fieldType +=
+                        native_type +
+                        ((uit != union_enum.Vals().end() - 1) ? "| " : "");
                   }
-                  code += "|null";
+                  fieldType += "|null";
                   break;
                 }
-                default: code += vectortypename; break;
+                default: fieldType += vectortypename; break;
               }
-              code += ")";
+              fieldType += ")";
 
-              code += "[]";
+              fieldType += "[]";
               break;
             }
 
@@ -780,17 +773,20 @@ class JsTsGenerator : public BaseGenerator {
                 const auto native_type =
                     NativeName(GetUnionElement(ev, true, true),
                                ev.union_type.struct_def, parser.opts);
-                code += native_type;
-                code += (uit != union_enum.Vals().end() - 1) ? "| " : "";
+                fieldType += native_type;
+                fieldType += (uit != union_enum.Vals().end() - 1) ? "| " : "";
               }
               break;
             }
 
             default: FLATBUFFERS_ASSERT(0); break;
           }
-          code += "|null";
+          fieldType += "|null";
         }
 
+        code += std::regex_replace(
+            std::regex_replace(fmt, std::regex{ R"(\$type)" }, fieldType),
+            std::regex{ R"(\$name)" }, fieldName);
         code += (it != struct_def.fields.vec.end() - 1) ? delimiter : "";
       }
     }
@@ -804,7 +800,8 @@ class JsTsGenerator : public BaseGenerator {
     code += "export class " + class_name + " {\n";
     code += "constructor(\n";
 
-    GenAllFieldDec(parser, struct_def, code_ptr, "  public ", ",\n");
+    GenAllFieldDec(parser, struct_def, code_ptr, "  public $name: $type",
+                   ",\n");
 
     code += "\n){}\n";
     code += "}\n";
