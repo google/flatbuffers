@@ -691,9 +691,16 @@ class JsTsGenerator : public BaseGenerator {
     }
   }
 
-  void GenAllFieldDec(const Parser &parser, StructDef &struct_def,
-                      std::string *code_ptr, const std::string &fmt,
-                      const std::string &delimiter = "\n") {
+  /**
+   * @brief Loop through all member of struct and find the name and type of the
+   * field and create a custom string based on fmt
+   *
+   * For example, with fmt being "public $name: $type", every struct member will
+   * have a string created and added to code_ptr in that format
+   */
+  void GenAllFieldUtil(const Parser &parser, StructDef &struct_def,
+                       std::string *code_ptr, const std::string &fmt,
+                       const std::string &delimiter = "\n") {
     std::string &code = *code_ptr;
     if (lang_.language == IDLOptions::kTs) {
       for (auto it = struct_def.fields.vec.begin();
@@ -800,8 +807,8 @@ class JsTsGenerator : public BaseGenerator {
     code += "export class " + class_name + " {\n";
     code += "constructor(\n";
 
-    GenAllFieldDec(parser, struct_def, code_ptr, "  public $name: $type",
-                   ",\n");
+    GenAllFieldUtil(parser, struct_def, code_ptr, "  public $name: $type",
+                    ",\n");
 
     code += "\n){}\n";
     code += "}\n";
