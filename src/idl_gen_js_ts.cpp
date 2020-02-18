@@ -702,8 +702,10 @@ class JsTsGenerator : public BaseGenerator {
          ++uit) {
       const auto &ev = **uit;
       if (ev.IsZero()) { continue; }
-      const auto native_type = NativeName(GetUnionElement(ev, true, true),
-                                          ev.union_type.struct_def, opts);
+      const auto native_type =
+          GenPrefixedTypeName(NativeName(GetUnionElement(ev, true, true),
+                                         ev.union_type.struct_def, opts),
+                              union_enum.file);
       ret += native_type + ((uit != union_enum.Vals().end() - 1) ? "| " : "");
     }
 
@@ -715,13 +717,16 @@ class JsTsGenerator : public BaseGenerator {
   }
 
   std::string GenUnionFieldVal(const std::string &field_name,
-                               const IDLOptions &opts, const Type &union_type) {
-    (void)(opts);
+                               const Type &union_type,
+                               const std::string &array_index = "") {
     if (union_type.enum_def) {
-      const auto enum_type = GenPrefixedTypeName(union_type.enum_def->name,
-                                                 union_type.enum_def->file);
+      const auto enum_type = GenPrefixedTypeName(
+          WrapInNameSpace(*(union_type.enum_def)), union_type.enum_def->file);
+      const bool is_array = !array_index.empty();
+
       std::string field_val = " (() => {\n";
-      field_val += " const field_type = this." + field_name + "Type()\n";
+      field_val += " const field_type = this." + field_name + "Type(" +
+                   array_index + ")\n";
 
       const auto &union_enum = *(union_type.enum_def);
       for (auto uit = union_enum.Vals().begin(); uit != union_enum.Vals().end();
@@ -729,16 +734,18 @@ class JsTsGenerator : public BaseGenerator {
         const auto &ev = **uit;
         if (ev.IsZero()) { continue; }
 
-        const auto type_name = GetUnionElement(ev, true, true);
+        const auto type_name = GenPrefixedTypeName(
+            GetUnionElement(ev, true, true), union_type.enum_def->file);
         const auto full_enum_type = enum_type + "." + ev.name;
 
-        field_val += "if(field_type === " + full_enum_type + ") {\n";
-        field_val += "return this." + field_name + "(new " + type_name +
+        field_val += "  if(field_type === " + full_enum_type + ") {\n";
+        field_val += "  return this." + field_name + "(" +
+                     (is_array ? array_index + ", " : "") + "new " + type_name +
                      "()).Unpack()\n";
-        field_val += "}\n";
+        field_val += "  }\n";
       }
-      field_val += "return null\n";
-      field_val += "  })()";
+      field_val += "  return null\n";
+      field_val += "  })()\n";
 
       return field_val;
     }
@@ -804,7 +811,8 @@ class JsTsGenerator : public BaseGenerator {
               auto vectortypename = GenTypeName(vectortype, false);
 
               field_type += "(";
-              std::string field_val_handling = "ret.push(val)\n";
+              //   std::string field_val_handling = "ret.push(val)\n";
+              //   auto is_union = false;
 
               switch (vectortype.base_type) {
                 case BASE_TYPE_STRUCT: {
@@ -813,38 +821,62 @@ class JsTsGenerator : public BaseGenerator {
                       WrapInNameSpace(sd.defined_namespace,
                                       GetObjApiClassName(sd, parser.opts)),
                       field.value.type.struct_def->file);
-                  field_type += "|null";
+                  field_type += "|null)[]";
 
-                  field_val_handling =
-                      "ret.push(val !== null ? val.Unpack() : null)\n";
+                  //  field_val_handling =
+                  //   "ret.push(val !== null ? val.Unpack() : null)\n";
+                  field_val = "this.bb.createObjList<" + vectortypename + ", " +
+                              field_type + ">(this." + field_name + ", this." +
+                              field_name + "Length())";
                   break;
                 }
 
-                case BASE_TYPE_STRING: field_type += "string|null"; break;
+                case BASE_TYPE_STRING: {
+                  field_type += "string|null)[]";
+                  field_val = "this.bb.createStringList(this." + field_name +
+                              ", this." + field_name + "Length())";
+                  break;
+                }
 
                 case BASE_TYPE_UNION: {
-                  // TODO(khoi): Handle union array
+                  //   is_union = true;
                   field_type +=
                       getUnionTypes(parser.opts, *(vectortype.enum_def));
-                  field_type += "|null";
-                  field_val +=
-                      GenUnionFieldVal(field_name, parser.opts, vectortype);
+                  field_type += "|null)[]";
+                  field_val = "this";
+                  //   field_val_handling =
+                  //       GenUnionFieldVal(field_name, vectortype, "i");
 
                   break;
                 }
-                default: field_type += vectortypename; break;
+                default: {
+                  if (vectortype.enum_def) {
+                    field_type += GenPrefixedTypeName(
+                        GenTypeName(vectortype, false, true),
+                        vectortype.enum_def->file);
+                  } else {
+                    field_type += vectortypename;
+                  }
+                  field_type += ")[]";
+                  field_val = "this.bb.createScalarList(this." + field_name +
+                              ", this." + field_name + "Length())";
+                  break;
+                }
               }
-              field_type += ")[]";
 
-              field_val = " (() => {\n";
-              field_val += "    let ret = [] as " + field_type + "\n";
-              field_val += "    for(let i = 0; i < this." + field_name +
-                           "Length(); ++i) {\n";
-              field_val += "    const val = this." + field_name + "(i)\n";
-              field_val += field_val_handling;
-              field_val += "    }\n";
-              field_val += "    return ret\n";
-              field_val += "  })()";
+              //   field_val = "(() => {\n";
+              //   field_val += "// creating " + field_name + "\n";
+              //   field_val += "    let ret = [] as " + field_type + "\n";
+              //   field_val += "    for(let i = 0; i < this." + field_name +
+              //                "Length(); ++i) {\n";
+              //   field_val += is_union
+              //                    ? ""
+              //                    : "    const val = this." + field_name +
+              //                    "(i)\n";
+              //   field_val += field_val_handling;
+              //   field_val += "    }\n";
+              //   field_val += "    return ret\n";
+              //   field_val += "  })()";
 
               break;
             }
@@ -854,8 +886,7 @@ class JsTsGenerator : public BaseGenerator {
                   getUnionTypes(parser.opts, *(field.value.type.enum_def));
               field_type += "|null";
 
-              field_val +=
-                  GenUnionFieldVal(field_name, parser.opts, field.value.type);
+              field_val += GenUnionFieldVal(field_name, field.value.type);
               break;
             }
 
@@ -874,7 +905,6 @@ class JsTsGenerator : public BaseGenerator {
     }
   }
 
-  // Generate an object based api struct
   void GenObjApiClass(const Parser &parser, StructDef &struct_def,
                       std::string *code_ptr) {
     std::string &code = *code_ptr;

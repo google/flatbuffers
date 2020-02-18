@@ -1252,6 +1252,44 @@ flatbuffers.ByteBuffer.prototype.createLong = function(low, high) {
   return flatbuffers.Long.create(low, high);
 };
 
+/**
+ * A helper function for generating list for obj api
+ * @param listAccessor function that accepts an index and return data at that index
+ * @param listLength {number} listLength
+ * @returns {any[]}
+ */
+flatbuffers.ByteBuffer.prototype.createScalarList = function(listAccessor, listLength) {
+    let ret = [];
+    for(let i = 0; i < listLength; ++i) {
+        ret.push(listAccessor(i));
+    }
+
+    return ret;
+};
+
+/**
+ * This function is here only to get around typescript type system
+ */
+flatbuffers.ByteBuffer.prototype.createStringList = function(listAccessor, listLength) {
+    return this.createScalarList(listAccessor, listLength);
+};
+
+/**
+ * A helper function for generating list for obj api
+ * @param listAccessor function that accepts an index and return data at that index
+ * @param listLength {number} listLength
+ * @param res any[] result list
+ */
+flatbuffers.ByteBuffer.prototype.createObjList = function(listAccessor, listLength) {
+  let ret = [];
+  for(let i = 0; i < listLength; ++i) {
+    let val = listAccessor(i);
+    ret.push(val === null ? null : val.Unpack());
+  }
+
+  return ret;
+};
+
 // Exports for Node.js and RequireJS
 this.flatbuffers = flatbuffers;
 
