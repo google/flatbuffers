@@ -543,6 +543,10 @@ class JsTsGenerator : public BaseGenerator {
     return GenFileNamespacePrefix(file) + "." + typeName;
   }
 
+  std::string GenFullNameSpace(const Definition &def, const std::string &file) {
+    return GenPrefixedTypeName(GetNameSpace(def), file);
+  }
+
   void GenStructArgs(const StructDef &struct_def, std::string *annotations,
                      std::string *arguments, const std::string &nameprefix) {
     for (auto it = struct_def.fields.vec.begin();
@@ -718,36 +722,57 @@ class JsTsGenerator : public BaseGenerator {
 
   std::string GenUnionFieldVal(const std::string &field_name,
                                const Type &union_type,
-                               const std::string &array_index = "") {
+                               const bool is_array = false) {
     if (union_type.enum_def) {
+      //   const auto enum_type = ;
+      //   const bool is_array = !array_index.empty();
+
+      const auto name_space =
+          GenFullNameSpace(*(union_type.enum_def), union_type.enum_def->file);
       const auto enum_type = GenPrefixedTypeName(
           WrapInNameSpace(*(union_type.enum_def)), union_type.enum_def->file);
-      const bool is_array = !array_index.empty();
+      const std::string union_accessor = "this." + field_name;
 
-      std::string field_val = " (() => {\n";
-      field_val += " const field_type = this." + field_name + "Type(" +
-                   array_index + ")\n";
+      if (!is_array) {
+        const std::string target_enum = "this." + field_name + "Type()";
 
-      const auto &union_enum = *(union_type.enum_def);
-      for (auto uit = union_enum.Vals().begin(); uit != union_enum.Vals().end();
-           ++uit) {
-        const auto &ev = **uit;
-        if (ev.IsZero()) { continue; }
-
-        const auto type_name = GenPrefixedTypeName(
-            GetUnionElement(ev, true, true), union_type.enum_def->file);
-        const auto full_enum_type = enum_type + "." + ev.name;
-
-        field_val += "  if(field_type === " + full_enum_type + ") {\n";
-        field_val += "  return this." + field_name + "(" +
-                     (is_array ? array_index + ", " : "") + "new " + type_name +
-                     "()).Unpack()\n";
-        field_val += "  }\n";
+        return "this.bb.createObjFromUnion(" + name_space + ", " + enum_type +
+               ", " + target_enum + ", " + union_accessor + ")";
       }
-      field_val += "  return null\n";
-      field_val += "  })()\n";
 
-      return field_val;
+      const std::string target_enum_accesor = "this." + field_name + "Type";
+      const auto target_enum_length = target_enum_accesor + "Length()";
+
+      return "this.bb.createObjListFromUnionList(" + name_space + ", " +
+             enum_type + ", " + target_enum_accesor + ", " +
+             target_enum_length + ", " + union_accessor + ")";
+
+      //   std::string field_val = " (() => {\n";
+      //   field_val += " const field_type = this." + field_name + "Type(" +
+      //                array_index + ")\n";
+
+      //   const auto &union_enum = *(union_type.enum_def);
+      //   for (auto uit = union_enum.Vals().begin(); uit !=
+      //   union_enum.Vals().end();
+      //        ++uit) {
+      //     const auto &ev = **uit;
+      //     if (ev.IsZero()) { continue; }
+
+      //     const auto type_name = GenPrefixedTypeName(
+      //         GetUnionElement(ev, true, true), union_type.enum_def->file);
+      //     const auto full_enum_type = enum_type + "." + ev.name;
+
+      //     field_val += "  if(field_type === " + full_enum_type + ") {\n";
+      //     field_val += "  return this." + field_name + "(" +
+      //                  (is_array ? array_index + ", " : "") + "new " +
+      //                  type_name +
+      //                  "()).Unpack()\n";
+      //     field_val += "  }\n";
+      //   }
+      //   field_val += "  return null\n";
+      //   field_val += "  })()\n";
+
+      //   return field_val;
     }
     return "";
   }
@@ -843,7 +868,7 @@ class JsTsGenerator : public BaseGenerator {
                   field_type +=
                       getUnionTypes(parser.opts, *(vectortype.enum_def));
                   field_type += "|null)[]";
-                  field_val = "this";
+                  field_val = GenUnionFieldVal(field_name, vectortype, true);
                   //   field_val_handling =
                   //       GenUnionFieldVal(field_name, vectortype, "i");
 

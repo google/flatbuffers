@@ -1281,13 +1281,55 @@ flatbuffers.ByteBuffer.prototype.createStringList = function(listAccessor, listL
  * @param res any[] result list
  */
 flatbuffers.ByteBuffer.prototype.createObjList = function(listAccessor, listLength) {
-  let ret = [];
-  for(let i = 0; i < listLength; ++i) {
-    let val = listAccessor(i);
-    ret.push(val === null ? null : val.Unpack());
-  }
+    let ret = [];
+    for(let i = 0; i < listLength; ++i) {
+        let val = listAccessor(i);
+        ret.push(val === null ? null : val.Unpack());
+    }
+    
+    return ret;
+};
 
-  return ret;
+
+flatbuffers.ByteBuffer.prototype.createObjFromUnion = function(nameSpace, enumType, targetEnum, unionAccessor) {
+    if(enumType[targetEnum] === 'NONE') {
+        return null;
+    }
+
+    for(let i in enumType) {
+        if(enumType[targetEnum] === i){
+            return unionAccessor(new nameSpace[i]()).Unpack();
+        }
+    }
+
+    return null;
+};
+
+flatbuffers.ByteBuffer.prototype.createObjListFromUnionList = function(nameSpace, enumType, targetEnumAccessor, targetEnumLength, unionAccessor) {
+    let ret = []
+    
+    for(let i = 0; i < targetEnumLength; ++i) {
+        let targetEnum = targetEnumAccessor(i);
+        if(enumType[targetEnum] === 'NONE') {
+            ret.push(null);
+            continue;
+        }
+
+        let foundType = false
+        for(let j in enumType) {
+            if(enumType[targetEnum] === j){
+                ret.push(unionAccessor(i, new nameSpace[j]()).Unpack());
+                foundType = true
+                break;
+            }
+        }
+        
+        if(!foundType) {
+            ret.push(null)
+        }
+    }
+
+    return ret;
 };
 
 // Exports for Node.js and RequireJS
