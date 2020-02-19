@@ -716,10 +716,6 @@ class JsTsGenerator : public BaseGenerator {
     return ret;
   }
 
-  std::string GenStructFieldVal(const std::string &field_name) {
-    return std::string{ "this." } + field_name + "().Unpack()";
-  }
-
   std::string GenUnionFieldVal(const std::string &field_name,
                                const Type &union_type,
                                const bool is_array = false) {
@@ -779,19 +775,21 @@ class JsTsGenerator : public BaseGenerator {
 
   /**
    * @brief Loop through all member of struct and find the name and type of the
-   * field and create a custom string based on fmt. Assuming global this of
-   * generated code is the non object api type
+   * field and create a custom string based on fmt.
    *
    * For example, with fmt being "public $name: $type", every struct member will
    * have a string created and added to code_ptr in that format.
    *
    * $name for name
    * $type for type
-   * $val for the value
+   * $val for the value after unpacking, assuming global this of generated code
+   * is the non object api type $offset offset of the type for packing, assuming
+   * global this is the object being packed
    */
   void GenAllFieldUtil(const Parser &parser, StructDef &struct_def,
                        std::string *code_ptr, const std::string &fmt,
-                       const std::string &delimiter) {
+                       const std::string &delimiter,
+                       const std::string &flatbuilderName = "builder") {
     std::string &code = *code_ptr;
     if (lang_.language == IDLOptions::kTs) {
       for (auto it = struct_def.fields.vec.begin();
@@ -802,6 +800,7 @@ class JsTsGenerator : public BaseGenerator {
         const auto field_name = MakeCamel(field.name, false);
         std::string field_val = "";
         std::string field_type = "";
+        std::string field_offset = "";
 
         // Emit a scalar field
         if (IsScalar(field.value.type.base_type) ||
@@ -813,7 +812,14 @@ class JsTsGenerator : public BaseGenerator {
           } else {
             field_type += GenTypeName(field.value.type, false, true);
           }
-          field_val += std::string{ "this." } + field_name + "()";
+          field_val = "this." + field_name + "()";
+
+          if (field.value.type.base_type != BASE_TYPE_STRING) {
+            field_offset = "this." + field_name;
+          } else {
+            field_offset =
+                flatbuilderName + ".createString(" + "this." + field_name + ")";
+          }
         }
 
         // Emit an object field
@@ -827,7 +833,9 @@ class JsTsGenerator : public BaseGenerator {
                                   GetObjApiClassName(sd, parser.opts)),
                   field.value.type.struct_def->file);
 
-              field_val += GenStructFieldVal(field_name);
+              field_val = "this." + field_name + "().unpack()";
+              field_offset =
+                  "this." + field_name + ".pack(" + flatbuilderName + ")";
 
               break;
             }
@@ -837,7 +845,7 @@ class JsTsGenerator : public BaseGenerator {
               auto vectortypename = GenTypeName(vectortype, false);
               is_vector = true;
 
-              field_type += "(";
+              field_type = "(";
               //   std::string field_val_handling = "ret.push(val)\n";
               //   auto is_union = false;
 
@@ -855,6 +863,25 @@ class JsTsGenerator : public BaseGenerator {
                   field_val = "this.bb.createObjList<" + vectortypename + ", " +
                               field_type + ">(this." + field_name + ", this." +
                               field_name + "Length())";
+
+                  const auto table_offset =
+                      Verbose(struct_def) + ".create" + MakeCamel(field_name) +
+                      "Vector(" + flatbuilderName + ".createObjectOffsetList(" +
+                      "this." + field_name + "))";
+
+                  std::string struct_offset = "(() => {\n";
+                  struct_offset += "    " + Verbose(struct_def) + ".start" +
+                                   MakeCamel(field_name) + "Vector(" +
+                                   flatbuilderName + ", this." + field_name +
+                                   ".length)\n";
+                  struct_offset += "    " + flatbuilderName +
+                                   ".createObjectOffsetList(this." +
+                                   field_name + ")\n";
+                  struct_offset +=
+                      "    return " + flatbuilderName + ".endVector()\n";
+                  struct_offset += "  })()";
+
+                  field_offset = sd.fixed ? struct_offset : table_offset;
                   break;
                 }
 
@@ -862,6 +889,10 @@ class JsTsGenerator : public BaseGenerator {
                   field_type += "string|null)[]";
                   field_val = "this.bb.createStringList(this." + field_name +
                               ", this." + field_name + "Length())";
+                  field_offset =
+                      Verbose(struct_def) + ".create" + MakeCamel(field_name) +
+                      "Vector(" + flatbuilderName + ", " + flatbuilderName +
+                      ".createStringOffsetList(" + "this." + field_name + "))";
                   break;
                 }
 
@@ -873,6 +904,9 @@ class JsTsGenerator : public BaseGenerator {
                   field_val = GenUnionFieldVal(field_name, vectortype, true);
                   //   field_val_handling =
                   //       GenUnionFieldVal(field_name, vectortype, "i");
+
+                  field_offset = flatbuilderName + ".createObjectOffsetList(" +
+                                 "this." + field_name + ")";
 
                   break;
                 }
@@ -887,6 +921,12 @@ class JsTsGenerator : public BaseGenerator {
                   field_type += ")[]";
                   field_val = "this.bb.createScalarList(this." + field_name +
                               ", this." + field_name + "Length())";
+
+                  field_offset = Verbose(struct_def) + ".create" +
+                                 MakeCamel(field_name) + "Vector(" +
+                                 flatbuilderName + ", " + "this." + field_name +
+                                 ")";
+
                   break;
                 }
               }
@@ -913,7 +953,9 @@ class JsTsGenerator : public BaseGenerator {
                   getUnionTypes(parser.opts, *(field.value.type.enum_def));
               field_type += "|null";
 
-              field_val += GenUnionFieldVal(field_name, field.value.type);
+              field_val = GenUnionFieldVal(field_name, field.value.type);
+              field_offset =
+                  "this." + field_name + ".pack(" + flatbuilderName + ")";
               break;
             }
 
@@ -926,9 +968,12 @@ class JsTsGenerator : public BaseGenerator {
 
         code += std::regex_replace(
             std::regex_replace(
-                std::regex_replace(fmt, std::regex{ R"(\$type)" }, field_type),
-                std::regex{ R"(\$name)" }, field_name),
-            std::regex{ R"(\$val)" }, field_val);
+                std::regex_replace(
+                    std::regex_replace(fmt, std::regex{ R"(\$type)" },
+                                       field_type),
+                    std::regex{ R"(\$name)" }, field_name),
+                std::regex{ R"(\$val)" }, field_val),
+            std::regex{ R"(\$offset)" }, field_offset);
         code += (it != struct_def.fields.vec.end() - 1) ? delimiter : "";
       }
     }
@@ -946,9 +991,11 @@ class JsTsGenerator : public BaseGenerator {
     code += "\n){}\n";
 
     code += "pack(builder:flatbuffers.Builder) {\n";
-    code += "  " + Verbose(struct_def) + ".create" + Verbose(struct_def) +
-            "(builder, \n";
-    GenAllFieldUtil(parser, struct_def, code_ptr, "    this.$name", ",\n");
+    GenAllFieldUtil(parser, struct_def, code_ptr, "  const $name = $offset",
+                    "\n");
+    code += "\n\n  return " + Verbose(struct_def) + ".create" +
+            Verbose(struct_def) + "(builder, \n";
+    GenAllFieldUtil(parser, struct_def, code_ptr, "    $name", ",\n");
     code += "\n  )}\n";
 
     code += "}\n";

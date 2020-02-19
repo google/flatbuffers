@@ -830,6 +830,29 @@ flatbuffers.Builder.prototype.createString = function(s) {
 flatbuffers.Builder.prototype.createLong = function(low, high) {
   return flatbuffers.Long.create(low, high);
 };
+
+flatbuffers.Builder.prototype.createObjectOffsetList = function(list) {
+  ret = [];
+  for(let i = 0; i < list.length; ++i) {
+      if(list[i] !== null) {
+          ret.push(list[i].pack(this));
+      }
+  }
+  
+  return ret;
+};
+
+flatbuffers.Builder.prototype.createStringOffsetList = function(list) {
+  ret = []
+
+  for(let i = 0; i < list.length; ++i) {
+    if(list[i] !== null) {
+      ret.push(this.createString(list[i]));
+    }
+  }
+
+  return ret;
+};
 ////////////////////////////////////////////////////////////////////////////////
 /// @cond FLATBUFFERS_INTERNAL
 /**
