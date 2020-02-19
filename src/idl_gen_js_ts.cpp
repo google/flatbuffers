@@ -818,6 +818,7 @@ class JsTsGenerator : public BaseGenerator {
 
         // Emit an object field
         else {
+          auto is_vector = false;
           switch (field.value.type.base_type) {
             case BASE_TYPE_STRUCT: {
               const auto &sd = *field.value.type.struct_def;
@@ -834,6 +835,7 @@ class JsTsGenerator : public BaseGenerator {
             case BASE_TYPE_VECTOR: {
               auto vectortype = field.value.type.VectorType();
               auto vectortypename = GenTypeName(vectortype, false);
+              is_vector = true;
 
               field_type += "(";
               //   std::string field_val_handling = "ret.push(val)\n";
@@ -917,7 +919,9 @@ class JsTsGenerator : public BaseGenerator {
 
             default: FLATBUFFERS_ASSERT(0); break;
           }
-          field_type += "|null";
+
+          // length 0 vector is simply empty instead of null
+          field_type += is_vector ? "" : "|null";
         }
 
         code += std::regex_replace(
@@ -934,25 +938,37 @@ class JsTsGenerator : public BaseGenerator {
                       std::string *code_ptr) {
     std::string &code = *code_ptr;
     const auto class_name = GetObjApiClassName(struct_def, parser.opts);
+
     code += "export class " + class_name + " {\n";
     code += "constructor(\n";
-
     GenAllFieldUtil(parser, struct_def, code_ptr, "  public $name: $type",
                     ",\n");
-
     code += "\n){}\n";
+
+    code += "pack(builder:flatbuffers.Builder) {\n";
+    code += "  " + Verbose(struct_def) + ".create" + Verbose(struct_def) +
+            "(builder, \n";
+    GenAllFieldUtil(parser, struct_def, code_ptr, "    this.$name", ",\n");
+    code += "\n  )}\n";
+
     code += "}\n";
   }
-
   void GenUnpackFunctions(const Parser &parser, StructDef &struct_def,
                           std::string *code_ptr) {
     std::string &code = *code_ptr;
     const auto class_name = GetObjApiClassName(struct_def, parser.opts);
+    // const auto full_class_name = GenPrefixedTypeName(
+    //           WrapInNameSpace(struct_def.defined_namespace, class_name),
+    //           union_type.enum_def->file);
 
-    code += "Unpack() {\n";
+    code += "unpack() {\n";
     code += "  return new " + class_name + "(\n";
     GenAllFieldUtil(parser, struct_def, code_ptr, "  $val", ",\n");
     code += "\n)}\n";
+
+    code += "unpackTo(_o: " + class_name + ") {\n";
+    GenAllFieldUtil(parser, struct_def, code_ptr, "  _o.$name = $val", "\n");
+    code += "\n}\n";
   }
 
   // Generate an accessor struct with constructor for a flatbuffers struct.
