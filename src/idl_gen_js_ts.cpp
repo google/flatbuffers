@@ -870,10 +870,10 @@ class JsTsGenerator : public BaseGenerator {
                       "this." + field_name + "))";
 
                   std::string struct_offset = "(() => {\n";
+                  struct_offset += "    let length = this." + field_name + ".reduce((res, val) => { return res + (val !== null ? 1 : 0); }, 0);\n";
                   struct_offset += "    " + Verbose(struct_def) + ".start" +
                                    MakeCamel(field_name) + "Vector(" +
-                                   flatbuilderName + ", this." + field_name +
-                                   ".length)\n";
+                                   flatbuilderName + ", length)\n";
                   struct_offset += "    " + flatbuilderName +
                                    ".createObjectOffsetList(this." +
                                    field_name + ")\n";
