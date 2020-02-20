@@ -843,6 +843,8 @@ class JsTsGenerator : public BaseGenerator {
         if (field.deprecated) continue;
 
         const auto field_name = MakeCamel(field.name, false);
+        const std::string field_binded_method =
+            "this." + field_name + ".bind(this)";
         std::string field_val = "";
         std::string field_type = "";
         std::string field_offset = "";
@@ -913,8 +915,9 @@ class JsTsGenerator : public BaseGenerator {
                   //  field_val_handling =
                   //   "ret.push(val !== null ? val.Unpack() : null)\n";
                   field_val = GenBBAccess() + ".createObjList<" +
-                              vectortypename + ", " + field_type + ">(this." +
-                              field_name + ", this." + field_name + "Length())";
+                              vectortypename + ", " + field_type + ">(" +
+                              field_binded_method + ", this." + field_name +
+                              "Length())";
 
                   if (sd.fixed) {
                     field_offset = "(() => {\n";
@@ -943,8 +946,9 @@ class JsTsGenerator : public BaseGenerator {
 
                 case BASE_TYPE_STRING: {
                   field_type += "string)[]";
-                  field_val = GenBBAccess() + ".createStringList(this." +
-                              field_name + ", this." + field_name + "Length())";
+                  field_val = GenBBAccess() + ".createStringList(" +
+                              field_binded_method + ", this." + field_name +
+                              "Length())";
                   field_offset =
                       Verbose(struct_def) + ".create" + MakeCamel(field_name) +
                       "Vector(" + flatbuilderName + ", " + flatbuilderName +
@@ -979,8 +983,9 @@ class JsTsGenerator : public BaseGenerator {
                     field_type += vectortypename;
                   }
                   field_type += ")[]";
-                  field_val = GenBBAccess() + ".createScalarList(this." +
-                              field_name + ", this." + field_name + "Length())";
+                  field_val = GenBBAccess() + ".createScalarList(" +
+                              field_binded_method + ", this." + field_name +
+                              "Length())";
 
                   field_offset = Verbose(struct_def) + ".create" +
                                  MakeCamel(field_name) + "Vector(" +
@@ -1075,8 +1080,8 @@ class JsTsGenerator : public BaseGenerator {
     if (!struct_def.fields.vec.empty()) {
       code += "/**\n";
       code += " * @constructor\n";
-      GenAllFieldUtil(parser, struct_def, code_ptr,
-                      " * @param $type $name", "\n");
+      GenAllFieldUtil(parser, struct_def, code_ptr, " * @param $type $name",
+                      "\n");
       code += "\n */\n";
       code += "constructor(\n";
       GenAllFieldUtil(parser, struct_def, code_ptr, "  public $name: $type",

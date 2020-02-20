@@ -1308,7 +1308,7 @@ flatbuffers.ByteBuffer.prototype.createLong = function(low, high) {
 /**
  * A helper function for generating list for obj api
  * @param listAccessor function that accepts an index and return data at that index
- * @param listLength {number} listLength
+ * @param {number} listLength
  * @returns {any[]}
  */
 flatbuffers.ByteBuffer.prototype.createScalarList = function(listAccessor, listLength) {
