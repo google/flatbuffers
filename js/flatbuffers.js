@@ -831,28 +831,58 @@ flatbuffers.Builder.prototype.createLong = function(low, high) {
   return flatbuffers.Long.create(low, high);
 };
 
+/**
+ * A helper function to pack an object
+ * 
+ * @returns offset of obj
+ */
+flatbuffers.Builder.prototype.createObjectOffset = function(obj) {
+  if(obj === null) {
+    return 0
+  }
+
+  if(typeof obj === 'string') {
+    return this.createString(obj);
+  } else {
+    return obj.pack(this);
+  }
+}
+
+/**
+ * A helper function to pack a list of object
+ * 
+ * @returns list of offsets of each non null object
+ */
 flatbuffers.Builder.prototype.createObjectOffsetList = function(list) {
-  ret = [];
+  let ret = [];
+
   for(let i = 0; i < list.length; ++i) {
-      if(list[i] !== null) {
-          ret.push(list[i].pack(this));
-      }
+    let val = list[i];
+
+    if(val !== null) {
+      ret.push(this.createObjectOffset(val));
+    }
   }
   
   return ret;
 };
 
-flatbuffers.Builder.prototype.createStringOffsetList = function(list) {
-  ret = []
+// /**
+//  * A helper function to create a list of offset from a list of strings
+//  * 
+//  * @returns list of offsets of each non null string
+//  */
+// flatbuffers.Builder.prototype.createStringOffsetList = function(list) {
+//   ret = []
 
-  for(let i = 0; i < list.length; ++i) {
-    if(list[i] !== null) {
-      ret.push(this.createString(list[i]));
-    }
-  }
+//   for(let i = 0; i < list.length; ++i) {
+//     if(list[i] !== null) {
+//       ret.push(this.createString(list[i]));
+//     }
+//   }
 
-  return ret;
-};
+//   return ret;
+// };
 ////////////////////////////////////////////////////////////////////////////////
 /// @cond FLATBUFFERS_INTERNAL
 /**
@@ -1282,10 +1312,12 @@ flatbuffers.ByteBuffer.prototype.createLong = function(low, high) {
  * @returns {any[]}
  */
 flatbuffers.ByteBuffer.prototype.createScalarList = function(listAccessor, listLength) {
-    let ret = [];
-    for(let i = 0; i < listLength; ++i) {
-        ret.push(listAccessor(i));
+  let ret = [];
+  for(let i = 0; i < listLength; ++i) {
+    if(listAccessor(i) !== null) {
+      ret.push(listAccessor(i));
     }
+  }
 
     return ret;
 };
@@ -1294,7 +1326,7 @@ flatbuffers.ByteBuffer.prototype.createScalarList = function(listAccessor, listL
  * This function is here only to get around typescript type system
  */
 flatbuffers.ByteBuffer.prototype.createStringList = function(listAccessor, listLength) {
-    return this.createScalarList(listAccessor, listLength);
+  return this.createScalarList(listAccessor, listLength);
 };
 
 /**
@@ -1304,55 +1336,43 @@ flatbuffers.ByteBuffer.prototype.createStringList = function(listAccessor, listL
  * @param res any[] result list
  */
 flatbuffers.ByteBuffer.prototype.createObjList = function(listAccessor, listLength) {
-    let ret = [];
-    for(let i = 0; i < listLength; ++i) {
-        let val = listAccessor(i);
-        ret.push(val === null ? null : val.Unpack());
+  let ret = [];
+  for(let i = 0; i < listLength; ++i) {
+    let val = listAccessor(i);
+    if(val !== null) {
+      ret.push(val.unpack());
     }
-    
-    return ret;
+  }
+  
+  return ret;
 };
 
 
 flatbuffers.ByteBuffer.prototype.createObjFromUnion = function(nameSpace, enumType, targetEnum, unionAccessor) {
-    if(enumType[targetEnum] === 'NONE') {
-        return null;
-    }
-
-    for(let i in enumType) {
-        if(enumType[targetEnum] === i){
-            return unionAccessor(new nameSpace[i]()).Unpack();
-        }
-    }
-
+  if(enumType[targetEnum] === 'NONE') {
     return null;
+  }
+
+  if(nameSpace !== null) {
+    return unionAccessor(new nameSpace[enumType[targetEnum]]()).unpack();
+  } else {
+    return unionAccessor(eval(`new ${enumType[targetEnum]}()`)).unpack();
+  }
 };
 
 flatbuffers.ByteBuffer.prototype.createObjListFromUnionList = function(nameSpace, enumType, targetEnumAccessor, targetEnumLength, unionAccessor) {
-    let ret = []
-    
-    for(let i = 0; i < targetEnumLength; ++i) {
-        let targetEnum = targetEnumAccessor(i);
-        if(enumType[targetEnum] === 'NONE') {
-            ret.push(null);
-            continue;
-        }
-
-        let foundType = false
-        for(let j in enumType) {
-            if(enumType[targetEnum] === j){
-                ret.push(unionAccessor(i, new nameSpace[j]()).Unpack());
-                foundType = true
-                break;
-            }
-        }
-        
-        if(!foundType) {
-            ret.push(null)
-        }
+  let ret = []
+  
+  for(let targetEnumIndex = 0; targetEnumIndex < targetEnumLength; ++targetEnumIndex) {
+    let targetEnum = targetEnumAccessor(targetEnumIndex);
+    if(enumType[targetEnum] === 'NONE') {
+      continue;
     }
 
-    return ret;
+    ret.push(unionAccessor(targetEnumIndex, new nameSpace[enumType[targetEnum]]()).unpack());
+  }
+
+  return ret;
 };
 
 // Exports for Node.js and RequireJS
