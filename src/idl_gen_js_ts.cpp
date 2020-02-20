@@ -1073,6 +1073,11 @@ class JsTsGenerator : public BaseGenerator {
                                     "(builder";
 
     if (!struct_def.fields.vec.empty()) {
+      code += "/**\n";
+      code += " * @constructor\n";
+      GenAllFieldUtil(parser, struct_def, code_ptr,
+                      " * @param $type $name", "\n");
+      code += "\n */\n";
       code += "constructor(\n";
       GenAllFieldUtil(parser, struct_def, code_ptr, "  public $name: $type",
                       ",\n");
@@ -1112,8 +1117,7 @@ class JsTsGenerator : public BaseGenerator {
     const auto class_name = GetObjApiClassName(struct_def, parser.opts);
 
     std::string base_unpack_to_func = "/**\n";
-    base_unpack_to_func +=
-        " * " + GenTypeAnnotation(kParam, class_name, "_o");
+    base_unpack_to_func += " * " + GenTypeAnnotation(kParam, class_name, "_o");
     base_unpack_to_func += " */\n";
     base_unpack_to_func += "unpackTo(_o: " + class_name + "): void {";
 
