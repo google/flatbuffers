@@ -1065,8 +1065,8 @@ class JsTsGenerator : public BaseGenerator {
   void GenObjApiClass(const Parser &parser, StructDef &struct_def,
                       std::string *code_ptr) {
     std::string &code = *code_ptr;
-    code +=
-        "\nexport class " + GetObjApiClassName(struct_def, parser.opts) + " {\n";
+    code += "\nexport class " + GetObjApiClassName(struct_def, parser.opts) +
+            " {\n";
 
     const std::string create_func = "  return " + Verbose(struct_def) +
                                     ".create" + Verbose(struct_def) +
@@ -1110,20 +1110,27 @@ class JsTsGenerator : public BaseGenerator {
                           std::string *code_ptr) {
     std::string &code = *code_ptr;
     const auto class_name = GetObjApiClassName(struct_def, parser.opts);
-    // const auto full_class_name = GenPrefixedTypeName(
-    //           WrapInNameSpace(struct_def.defined_namespace, class_name),
-    //           union_type.enum_def->file);
+
+    std::string base_unpack_to_func = "/**\n";
+    base_unpack_to_func +=
+        " * " + GenTypeAnnotation(kParam, class_name, "_o");
+    base_unpack_to_func += " */\n";
+    base_unpack_to_func += "unpackTo(_o: " + class_name + "): void {";
+
+    code += "\n/**\n";
+    code += " * " + GenTypeAnnotation(kReturns, class_name, "");
+    code += " */\n";
+    code += "unpack(): " + class_name + " {\n";
+
     if (struct_def.fields.vec.empty()) {
-      code += "\nunpack(): " + class_name + " {\n";
-      code += "  return new " + class_name + "()\n}\n\n";
-      code += "unpackTo(_o: " + class_name + "): void {}\n";
+      code += "  return new " + class_name + "();\n}\n\n";
+      code += base_unpack_to_func + "}\n";
     } else {
-      code += "\nunpack(): " + class_name + " {\n";
       code += "  return new " + class_name + "(\n";
       GenAllFieldUtil(parser, struct_def, code_ptr, "  $val", ",\n");
       code += "\n)}\n\n";
 
-      code += "unpackTo(_o: " + class_name + "): void {\n";
+      code += base_unpack_to_func + "\n";
       GenAllFieldUtil(parser, struct_def, code_ptr, "  _o.$name = $val", "\n");
       code += "\n}\n";
     }
