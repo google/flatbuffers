@@ -18,16 +18,17 @@ pushd "$(dirname $0)" >/dev/null
 
 npm install @types/flatbuffers
 
-../flatc --ts --no-fb-import --gen-mutable -o ts -I include_test monster_test.fbs
-../flatc -b -I include_test monster_test.fbs unicode_test.json
+export FB_TS_TEST="TRUE"
+
+../flatc --ts --no-fb-import --gen-mutable --gen-object-api -o ts -I include_test monster_test.fbs
+../flatc --gen-object-api -b -I include_test monster_test.fbs unicode_test.json
 tsc --strict --noUnusedParameters --noUnusedLocals --noImplicitReturns --strictNullChecks ts/monster_test_generated.ts
 node JavaScriptTest ./ts/monster_test_generated
 
-../flatc --ts --js --no-fb-import -o ts union_vector/union_vector.fbs
-
-# test JS version first, then transpile and rerun for TS
-node JavaScriptUnionVectorTest ./ts/union_vector_generated
+../flatc --ts --js --no-fb-import --gen-object-api -o ts union_vector/union_vector.fbs
 tsc --strict --noUnusedParameters --noUnusedLocals --noImplicitReturns --strictNullChecks ts/union_vector_generated.ts
 node JavaScriptUnionVectorTest ./ts/union_vector_generated
+
+unset FB_TS_TEST
 
 npm uninstall @types/flatbuffers

@@ -125,3 +125,5 @@ Cargo.lock
 grpc/google/
 **/Package.resolved
 .clangd/**
+
+tests/union_vector_generated.js

@@ -17,3 +17,6 @@
 pushd "$(dirname $0)" >/dev/null
 ../flatc -b -I include_test monster_test.fbs unicode_test.json
 node JavaScriptTest ./monster_test_generated
+
+../flatc --js --no-fb-import union_vector/union_vector.fbs
+node JavaScriptUnionVectorTest ./union_vector_generated
