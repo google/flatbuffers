@@ -24,6 +24,8 @@ function main() {
   createMonster(fbb);
   serializeAndTest(fbb);
 
+  testObjApiPack(fbb);
+  
   // clear the builder, repeat tests
   var clearIterations = 100;
   var startingCapacity = fbb.bb.capacity();
@@ -31,6 +33,8 @@ function main() {
     fbb.clear();
     createMonster(fbb);
     serializeAndTest(fbb);
+
+    testObjApiPack(fbb);
   }
   // the capacity of our buffer shouldn't increase with the same size payload
   assert.strictEqual(fbb.bb.capacity(), startingCapacity);
@@ -109,9 +113,16 @@ function testMutation(bb) {
   // TODO: There is not the availability to mutate structs or vectors.
 }
 
-function testObjApi(bb) {
-  let monster = MyGame.Example.Monster.getRootAsMonster(bb).unpack();
+function testObjApiPack(fbb) {
+  fbb.clear();
+  createMonster(fbb);
+  let monster_t = MyGame.Example.Monster.getRootAsMonster(fbb.dataBuffer()).unpack();
+  fbb.clear();
+  MyGame.Example.Monster.finishMonsterBuffer(fbb, monster_t.pack(fbb));
+  serializeAndTest(fbb);
+}
 
+function testObjApiUnpack(monster) {
   assert.strictEqual(monster.hp, 80);
   assert.strictEqual(monster.mana, 150); // default
 
@@ -202,7 +213,12 @@ function testBuffer(bb) {
 
   assert.strictEqual(monster.testbool(), true);
 
-  testObjApi(bb);
+  let monster_t = monster.unpack();
+  testObjApiUnpack(monster_t);
+
+  let monster2_t = new MyGame.Example.MonsterT();
+  monster.unpackTo(monster2_t);
+  testObjApiUnpack(monster2_t);
 }
 
 function test64bit() {
