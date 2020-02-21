@@ -867,6 +867,12 @@ flatbuffers.Builder.prototype.createObjectOffsetList = function(list) {
   return ret;
 };
 
+flatbuffers.Builder.prototype.createStructOffsetList = function(list, startFunc) {
+  startFunc(this, list.length);
+  this.createObjectOffsetList(list);
+  return this.endVector();
+}
+
 // /**
 //  * A helper function to create a list of offset from a list of strings
 //  * 

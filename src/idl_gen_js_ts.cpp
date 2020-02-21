@@ -914,20 +914,10 @@ class JsTsGenerator : public BaseGenerator {
                             ", this." + field_name + "Length())";
 
                 if (sd.fixed) {
-                  // TODO(khoi): Refactor this into a function
-                  field_pre_offset = "(() => {\n";
-                  field_pre_offset +=
-                      "    let length = this." + field_name +
-                      ".reduce((res, val) => { return res + (val "
-                      "!== null ? 1 : 0); }, 0);\n";
-                  field_pre_offset += "    " + Verbose(struct_def) + ".start" +
-                                      MakeCamel(field_name) +
-                                      "Vector(builder, length)\n";
-                  field_pre_offset +=
-                      "    builder.createObjectOffsetList(this." + field_name +
-                      ")\n";
-                  field_pre_offset += "    return builder.endVector()\n";
-                  field_pre_offset += "  })()";
+                  field_pre_offset = "builder.createStructOffsetList(this." +
+                                     field_name + ", " + Verbose(struct_def) +
+                                     ".start" + MakeCamel(field_name) +
+                                     "Vector)";
                 } else {
                   field_pre_offset =
                       Verbose(struct_def) + ".create" + MakeCamel(field_name) +
