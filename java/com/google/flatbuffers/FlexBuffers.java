@@ -36,7 +36,7 @@ import java.nio.charset.StandardCharsets;
  * <p>
  * Example of usage:
  * <pre>
- * ByteBuffer bb = ... // load message from file or network
+ * ReadBuf bb = ... // load message from file or network
  * FlexBuffers.Reference r = FlexBuffers.getRoot(bb); // Reads the root element
  * FlexBuffers.Map map = r.asMap(); // We assumed root object is a map
  * System.out.println(map.get("name").asString()); // prints element with key "name"
@@ -100,7 +100,7 @@ public class FlexBuffers {
     /** Represent a vector of booleans type */
     public static final int FBT_VECTOR_BOOL = 36;  // To Allow the same type of conversion of type to vector type
 
-    private static final ByteBuffer EMPTY_BB = ByteBuffer.allocate(1).asReadOnlyBuffer();
+    private static final ReadBuf EMPTY_BB = new ArrayReadWriteBuf(new byte[] {0}, 1);
 
     /**
      * Checks where a type is a typed vector
@@ -151,13 +151,13 @@ public class FlexBuffers {
     }
 
     // return position of the element that the offset is pointing to
-    private static int indirect(ByteBuffer bb, int offset, int byteWidth) {
-        // we assume all offset fits on a int, since ByteBuffer operates with that assumption
+    private static int indirect(ReadBuf bb, int offset, int byteWidth) {
+        // we assume all offset fits on a int, since ReadBuf operates with that assumption
         return (int) (offset - readUInt(bb, offset, byteWidth));
     }
 
     // read unsigned int with size byteWidth and return as a 64-bit integer
-    private static long readUInt(ByteBuffer buff, int end, int byteWidth) {
+    private static long readUInt(ReadBuf buff, int end, int byteWidth) {
         switch (byteWidth) {
             case 1: return byteToUnsignedInt(buff.get(end));
             case 2: return shortToUnsignedInt(buff.getShort(end));
@@ -168,12 +168,12 @@ public class FlexBuffers {
     }
 
     // read signed int of size byteWidth and return as 32-bit int
-    private static int readInt(ByteBuffer buff, int end, int byteWidth) {
+    private static int readInt(ReadBuf buff, int end, int byteWidth) {
         return (int) readLong(buff, end, byteWidth);
     }
 
     // read signed int of size byteWidth and return as 64-bit int
-    private static long readLong(ByteBuffer buff, int end, int byteWidth) {
+    private static long readLong(ReadBuf buff, int end, int byteWidth) {
         switch (byteWidth) {
             case 1: return buff.get(end);
             case 2: return buff.getShort(end);
@@ -183,7 +183,7 @@ public class FlexBuffers {
         }
     }
 
-    private static double readDouble(ByteBuffer buff, int end, int byteWidth) {
+    private static double readDouble(ReadBuf buff, int end, int byteWidth) {
         switch (byteWidth) {
             case 4: return buff.getFloat(end);
             case 8: return buff.getDouble(end);
@@ -192,12 +192,23 @@ public class FlexBuffers {
     }
 
     /**
-     * Reads a FlexBuffer message in ByteBuffer and returns {@link Reference} to
+     * Reads a FlexBuffer message in ReadBuf and returns {@link Reference} to
      * the root element.
-     * @param buffer ByteBuffer containing FlexBuffer message
+     * @param buffer ReadBuf containing FlexBuffer message
      * @return {@link Reference} to the root object
      */
+    @Deprecated
     public static Reference getRoot(ByteBuffer buffer) {
+        return getRoot( buffer.hasArray() ? new ArrayReadWriteBuf(buffer.array(), buffer.limit()) : new ByteBufferReadWriteBuf(buffer));
+    }
+
+        /**
+     * Reads a FlexBuffer message in ReadBuf and returns {@link Reference} to
+     * the root element.
+     * @param buffer ReadBuf containing FlexBuffer message
+     * @return {@link Reference} to the root object
+     */
+    public static Reference getRoot(ReadBuf buffer) {
         // See Finish() below for the serialization counterpart of this.
         // The root ends at the end of the buffer, so we parse backwards from there.
         int end = buffer.limit();
@@ -213,17 +224,17 @@ public class FlexBuffers {
     public static class Reference {
 
         private static final Reference NULL_REFERENCE = new Reference(EMPTY_BB, 0, 1, 0);
-        private ByteBuffer bb;
+        private ReadBuf bb;
         private int end;
         private int parentWidth;
         private int byteWidth;
         private int type;
 
-        Reference(ByteBuffer bb, int end, int parentWidth, int packedType) {
+        Reference(ReadBuf bb, int end, int parentWidth, int packedType) {
             this(bb, end, parentWidth, (1 << (packedType & 3)), packedType >> 2);
         }
 
-        Reference(ByteBuffer bb, int end, int parentWidth, int byteWidth, int type) {
+        Reference(ReadBuf bb, int end, int parentWidth, int byteWidth, int type) {
             this.bb = bb;
             this.end = end;
             this.parentWidth = parentWidth;
@@ -484,13 +495,13 @@ public class FlexBuffers {
             if (isString()) {
                 int start = indirect(bb, end, parentWidth);
                 int size = (int) readUInt(bb, start - byteWidth, byteWidth);
-                return Utf8.getDefault().decodeUtf8(bb, start, size);
+                return bb.getString(start, size);
             }
             else if (isKey()){
                 int start = indirect(bb, end, byteWidth);
                 for (int i = start; ; i++) {
                     if (bb.get(i) == 0) {
-                        return Utf8.getDefault().decodeUtf8(bb, start, i - start);
+                        return bb.getString(start, i - start);
                     }
                 }
             } else {
@@ -619,11 +630,11 @@ public class FlexBuffers {
      * Points into the data buffer and allows access to one type.
      */
     private static abstract class Object {
-        ByteBuffer bb;
+        ReadBuf bb;
         int end;
         int byteWidth;
 
-        Object(ByteBuffer buff, int end, int byteWidth) {
+        Object(ReadBuf buff, int end, int byteWidth) {
             this.bb = buff;
             this.end = end;
             this.byteWidth = byteWidth;
@@ -640,9 +651,9 @@ public class FlexBuffers {
     // Stores size in `byte_width_` bytes before end position.
     private static abstract class Sized extends Object {
 
-        private final int size;
+        protected final int size;
 
-        Sized(ByteBuffer buff, int end, int byteWidth) {
+        Sized(ReadBuf buff, int end, int byteWidth) {
             super(buff, end, byteWidth);
             size = readInt(bb, end - byteWidth, byteWidth);
         }
@@ -655,14 +666,14 @@ public class FlexBuffers {
     /**
      * Represents a array of bytes element in the buffer
      *
-     * <p>It can be converted to `ByteBuffer` using {@link data()},
+     * <p>It can be converted to `ReadBuf` using {@link data()},
      * copied into a byte[] using {@link getBytes()} or
      * have individual bytes accessed individually using {@link get(int)}</p>
      */
     public static class Blob extends Sized {
         static final Blob EMPTY = new Blob(EMPTY_BB, 1, 1);
 
-        Blob(ByteBuffer buff, int end, int byteWidth) {
+        Blob(ReadBuf buff, int end, int byteWidth) {
             super(buff, end, byteWidth);
         }
 
@@ -672,11 +683,11 @@ public class FlexBuffers {
         }
 
         /**
-         * Return {@link Blob} as `ByteBuffer`
-         * @return blob as `ByteBuffer`
+         * Return {@link Blob} as `ReadBuf`
+         * @return blob as `ReadBuf`
          */
         public ByteBuffer data() {
-            ByteBuffer dup = bb.duplicate();
+            ByteBuffer dup = ByteBuffer.wrap(bb.data());
             dup.position(end);
             dup.limit(end + size());
             return dup.asReadOnlyBuffer().slice();
@@ -709,7 +720,7 @@ public class FlexBuffers {
          */
         @Override
         public String toString() {
-            return Utf8.getDefault().decodeUtf8(bb, end, size());
+            return bb.getString(end, size());
         }
 
         /**
@@ -718,7 +729,7 @@ public class FlexBuffers {
         @Override
         public StringBuilder toString(StringBuilder sb) {
             sb.append('"');
-            sb.append(Utf8.getDefault().decodeUtf8(bb, end, size()));
+            sb.append(bb.getString(end, size()));
             return sb.append('"');
         }
     }
@@ -731,7 +742,7 @@ public class FlexBuffers {
 
         private static final Key EMPTY = new Key(EMPTY_BB, 0, 0);
 
-        Key(ByteBuffer buff, int end, int byteWidth) {
+        Key(ReadBuf buff, int end, int byteWidth) {
             super(buff, end, byteWidth);
         }
 
@@ -760,7 +771,7 @@ public class FlexBuffers {
                     break;
                 }
             }
-            return Utf8.getDefault().decodeUtf8(bb, end, size);
+            return bb.getString(end, size);
         }
 
         int compareTo(byte[] other) {
@@ -808,7 +819,7 @@ public class FlexBuffers {
     public static class Map extends Vector {
         private static final Map EMPTY_MAP = new Map(EMPTY_BB, 1, 1);
 
-        Map(ByteBuffer bb, int end, int byteWidth) {
+        Map(ReadBuf bb, int end, int byteWidth) {
             super(bb, end, byteWidth);
         }
 
@@ -913,7 +924,7 @@ public class FlexBuffers {
 
         private static final Vector EMPTY_VECTOR = new Vector(EMPTY_BB, 1, 1);
 
-        Vector(ByteBuffer bb, int end, int byteWidth) {
+        Vector(ReadBuf bb, int end, int byteWidth) {
             super(bb, end, byteWidth);
         }
 
@@ -976,7 +987,7 @@ public class FlexBuffers {
 
         private final int elemType;
 
-        TypedVector(ByteBuffer bb, int end, int byteWidth, int elemType) {
+        TypedVector(ReadBuf bb, int end, int byteWidth, int elemType) {
             super(bb, end, byteWidth);
             this.elemType = elemType;
         }
