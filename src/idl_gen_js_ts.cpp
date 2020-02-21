@@ -1345,8 +1345,8 @@ class JsTsGenerator : public BaseGenerator {
               if (is_union) { prefix += "<T extends flatbuffers.Table>"; }
               prefix += "(index: number";
               if (is_union) {
-                vectortypename = "T";
-                code += prefix + ", obj:T";
+                vectortypename = "T|string";
+                code += prefix + ", obj:T | string";
               } else if (vectortype.base_type == BASE_TYPE_STRUCT) {
                 vectortypename = GenPrefixedTypeName(
                     vectortypename, vectortype.struct_def->file);
@@ -1386,6 +1386,13 @@ class JsTsGenerator : public BaseGenerator {
               code += ", " + GenBBAccess() + ")";
             } else {
               if (is_union) {
+                if (lang_.language == IDLOptions::kTs) {
+                  code += "  if(typeof obj === 'string') {\n";
+                  code += offset_prefix + GenBBAccess() + ".__string" + "(" +
+                          index + ")" + " as string : null;\n";
+                  code += "  }\n";
+                }
+
                 index = "obj, " + index;
               } else if (vectortype.base_type == BASE_TYPE_STRING) {
                 index += ", optionalEncoding";
@@ -1423,7 +1430,13 @@ class JsTsGenerator : public BaseGenerator {
                                       false));
             if (lang_.language == IDLOptions::kTs) {
               code += MakeCamel(field.name, false);
-              code += "<T extends flatbuffers.Table>(obj:T):T|null {\n";
+              code +=
+                  "<T extends flatbuffers.Table>(obj:T|string):T|string|null "
+                  "{\n";
+              code += "  if(typeof obj === 'string') {\n";
+              code += "  " + offset_prefix + GenBBAccess() + ".__string" +
+                      "(this.bb_pos + offset) as string : null;\n";
+              code += "  }\n";
             } else {
               code +=
                   object_name + ".prototype." + MakeCamel(field.name, false);
