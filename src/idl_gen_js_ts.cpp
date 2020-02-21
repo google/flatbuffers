@@ -721,37 +721,82 @@ class JsTsGenerator : public BaseGenerator {
           WrapInNameSpace(*(union_type.enum_def)), union_type.enum_def->file);
       const std::string union_accessor = "this." + field_name;
 
+      std::string ret = "";
+
       if (!is_array) {
         const std::string target_enum = "this." + field_name + "Type()";
 
-        return "(" + enum_type + "[" + target_enum +
-               "] === 'NONE' ? null : " + union_accessor + "(eval(`new " +
-               "${" + enum_type + "[" + target_enum + "]" + "}()`)).unpack())";
+        ret = "(() => {\n";
+        ret +=
+            "    let targetEnumStr = " + enum_type + "[" + target_enum + "];\n";
+        ret += "    if(targetEnumStr === 'NONE') { return null; } \n\n";
+
+        const auto &union_enum = *(union_type.enum_def);
+        for (auto it = union_enum.Vals().begin(); it != union_enum.Vals().end();
+             ++it) {
+          const auto &ev = **it;
+          if (ev.IsZero()) { continue; }
+
+          ret += "    if(targetEnumStr === '" + ev.name + "') { ";
+
+          if (ev.union_type.base_type == BASE_TYPE_STRING) {
+            ret += "return " + union_accessor + "('') as string;";
+          } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
+            const auto type = GenPrefixedTypeName(
+                WrapInNameSpace(*(ev.union_type.struct_def)), union_enum.file);
+            ret += "return (" + union_accessor + "(new " + type + "())! as " +
+                   type + ").unpack();";
+          } else {
+            FLATBUFFERS_ASSERT(false);
+          }
+          ret += "}\n";
+        }
+
+        ret += "    return null;\n";
+        ret += "  })()";
+      } else {
+        const std::string target_enum_accesor = "this." + field_name + "Type";
+        const auto target_enum_length = target_enum_accesor + "Length()";
+
+        ret = " (()=> {\n";
+        ret += "    let ret = []\n";
+
+        ret += "    for(let targetEnumIndex = 0; targetEnumIndex < " +
+               target_enum_length +
+               "; "
+               "++targetEnumIndex) {\n";
+        ret += "      let targetEnum = " + target_enum_accesor +
+               "(targetEnumIndex);\n";
+        ret += "      if(targetEnum === null || " + enum_type +
+               "[targetEnum!] === 'NONE') { "
+               "continue; }\n";
+        ret += "  let targetEnumStr = " + enum_type + "[targetEnum!];\n";
+
+        const auto &union_enum = *(union_type.enum_def);
+        for (auto it = union_enum.Vals().begin(); it != union_enum.Vals().end();
+             ++it) {
+          const auto &ev = **it;
+          if (ev.IsZero()) { continue; }
+
+          ret += "    if(targetEnumStr === '" + ev.name + "') { ";
+
+          if (ev.union_type.base_type == BASE_TYPE_STRING) {
+            ret += "ret.push(" + union_accessor +
+                   "(targetEnumIndex, '') as string);";
+          } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
+            const auto type = GenPrefixedTypeName(
+                WrapInNameSpace(*(ev.union_type.struct_def)), union_enum.file);
+            ret += "ret.push((" + union_accessor + "(targetEnumIndex, new " +
+                   type + "())! as " + type + ").unpack());";
+          } else {
+            FLATBUFFERS_ASSERT(false);
+          }
+          ret += "}\n";
+        }
+        ret += "    }\n";
+        ret += "    return ret;\n";
+        ret += "  })()";
       }
-
-      const std::string target_enum_accesor = "this." + field_name + "Type";
-      const auto target_enum_length = target_enum_accesor + "Length()";
-
-      std::string ret = "";
-      ret += " (()=> {\n";
-      ret += "    let ret = []\n";
-
-      ret += "    for(let targetEnumIndex = 0; targetEnumIndex < " +
-             target_enum_length +
-             "; "
-             "++targetEnumIndex) {\n";
-      ret += "      let targetEnum = " + target_enum_accesor +
-             "(targetEnumIndex);\n";
-      ret += "      if(targetEnum === null || " + enum_type +
-             "[targetEnum!] === 'NONE') {\n";
-      ret += "        continue;\n";
-      ret += "      }\n";
-      ret += "      ret.push(" + union_accessor +
-             "(targetEnumIndex, (eval(`new " + "${" + enum_type +
-             "[targetEnum!]" + "}()`))));\n";
-      ret += "    }\n";
-      ret += "    return ret;\n";
-      ret += "  })()";
 
       return ret;
     }
