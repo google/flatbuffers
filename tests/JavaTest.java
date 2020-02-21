@@ -15,6 +15,7 @@ import com.google.flatbuffers.UnionVector;
 import com.google.flatbuffers.FlexBuffers.FlexBufferException;
 import com.google.flatbuffers.FlexBuffers.Reference;
 import com.google.flatbuffers.FlexBuffers.Vector;
+import com.google.flatbuffers.ArrayReadWriteBuf;
 
 import java.io.*;
 import java.math.BigInteger;
@@ -1007,6 +1008,23 @@ class JavaTest {
         TestEq(source, result);
     }
 
+    public static void testBuilderGrowth() {
+        FlexBuffersBuilder builder = new FlexBuffersBuilder();
+        builder.putString("This is a small string");
+        ByteBuffer b = builder.finish();
+        TestEq("This is a small string", FlexBuffers.getRoot(b).asString());
+
+        FlexBuffersBuilder failBuilder = new FlexBuffersBuilder(ByteBuffer.allocate(1));
+        try {
+            failBuilder.putString("This is a small string");
+            // This should never be reached, it should throw an exception
+            // since ByteBuffers do not grow
+            assert(false);
+        } catch (java.lang.ArrayIndexOutOfBoundsException exception) {
+            // It should throw exception
+        }
+    }
+
     public static void TestFlexBuffers() {
         testSingleElementByte();
         testSingleElementShort();
@@ -1028,6 +1046,7 @@ class JavaTest {
         testFlexBuferEmpty();
         testFlexBufferVectorStrings();
         testDeprecatedTypedVectorString();
+        testBuilderGrowth();
     }
 
     static void TestVectorOfBytes() {
