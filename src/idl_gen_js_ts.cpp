@@ -666,12 +666,6 @@ class JsTsGenerator : public BaseGenerator {
     }
   }
 
-  static std::string NativeName(const std::string &name, const StructDef *sd,
-                                const IDLOptions &opts) {
-    return sd && !sd->fixed ? opts.object_prefix + name + opts.object_suffix
-                            : name;
-  }
-
   static std::string GetObjApiClassName(const StructDef &sd,
                                         const IDLOptions &opts) {
     return GetObjApiClassName(sd.name, opts);
@@ -682,30 +676,9 @@ class JsTsGenerator : public BaseGenerator {
     return opts.object_prefix + name + opts.object_suffix;
   }
 
-  //   std::string EscapeKeyword(const std::string &name) const {
-  //     return keywords_.find(name) == keywords_.end() ? name : name + "_";
-  //   }
-
-  std::string Name(const EnumVal &ev) const {
-    return ev.name;
-    //   return EscapeKeyword(ev.name);
-  }
-
-  std::string GetUnionElement(const EnumVal &ev, bool wrap, bool actual_type) {
-    if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
-      auto name = actual_type ? ev.union_type.struct_def->name : Name(ev);
-      return wrap ? WrapInNameSpace(ev.union_type.struct_def->defined_namespace,
-                                    name)
-                  : name;
-    } else if (ev.union_type.base_type == BASE_TYPE_STRING) {
-      return actual_type ? "string" : Name(ev);
-    } else {
-      FLATBUFFERS_ASSERT(false);
-      return Name(ev);
-    }
-  }
-
-  std::string getUnionTypes(const IDLOptions &opts, const EnumDef &union_enum) {
+  // Generate a TS union type based on a union's enum
+  std::string GetObjApiUnionTypeTS(const IDLOptions &opts,
+                                   const EnumDef &union_enum) {
     std::string ret = "";
     std::set<std::string> typeList;
 
@@ -716,11 +689,14 @@ class JsTsGenerator : public BaseGenerator {
 
       std::string type = "";
       if (ev.union_type.base_type == BASE_TYPE_STRING) {
-        type = "string";
-      } else {
+        type = "string";  // no need to wrap string type in namespace
+      } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
         type = GenPrefixedTypeName(
-            GetObjApiClassName(GetUnionElement(ev, true, true), opts),
+            GetObjApiClassName(WrapInNameSpace(*(ev.union_type.struct_def)),
+                               opts),
             union_enum.file);
+      } else {
+        FLATBUFFERS_ASSERT(false);
       }
       typeList.insert(type);
     }
@@ -734,13 +710,13 @@ class JsTsGenerator : public BaseGenerator {
     return ret;
   }
 
-  std::string GenUnionFieldVal(const std::string &field_name,
-                               const Type &union_type,
-                               const bool is_array = false) {
+  // Used for generating a short function that returns the correct class
+  // based on union enum type. Assume the context is inside the non object api
+  // type
+  std::string GenUnionValTS(const std::string &field_name,
+                            const Type &union_type,
+                            const bool is_array = false) {
     if (union_type.enum_def) {
-      //   const auto enum_type = ;
-      //   const bool is_array = !array_index.empty();
-
       const auto enum_type = GenPrefixedTypeName(
           WrapInNameSpace(*(union_type.enum_def)), union_type.enum_def->file);
       const std::string union_accessor = "this." + field_name;
@@ -778,33 +754,6 @@ class JsTsGenerator : public BaseGenerator {
       ret += "  })()";
 
       return ret;
-
-      //   std::string field_val = " (() => {\n";
-      //   field_val += " const field_type = this." + field_name + "Type(" +
-      //                array_index + ")\n";
-
-      //   const auto &union_enum = *(union_type.enum_def);
-      //   for (auto uit = union_enum.Vals().begin(); uit !=
-      //   union_enum.Vals().end();
-      //        ++uit) {
-      //     const auto &ev = **uit;
-      //     if (ev.IsZero()) { continue; }
-
-      //     const auto type_name = GenPrefixedTypeName(
-      //         GetUnionElement(ev, true, true), union_type.enum_def->file);
-      //     const auto full_enum_type = enum_type + "." + ev.name;
-
-      //     field_val += "  if(field_type === " + full_enum_type + ") {\n";
-      //     field_val += "  return this." + field_name + "(" +
-      //                  (is_array ? array_index + ", " : "") + "new " +
-      //                  type_name +
-      //                  "()).Unpack()\n";
-      //     field_val += "  }\n";
-      //   }
-      //   field_val += "  return null\n";
-      //   field_val += "  })()\n";
-
-      //   return field_val;
     }
 
     FLATBUFFERS_ASSERT(0);
@@ -818,226 +767,226 @@ class JsTsGenerator : public BaseGenerator {
            ")";
   }
 
-  /**
-   * @brief Loop through all member of struct and find the name and type of the
-   * field and create a custom string based on fmt.
-   *
-   * For example, with fmt being "public $name: $type", every struct member will
-   * have a string created and added to code_ptr in that format.
-   *
-   * $name for name
-   * $type for object api types
-   * $val for the value after unpacking, assuming global this of generated code
-   * is the non object api type $offset offset of the type for packing, assuming
-   * global this is the object being packed
-   */
+  // Loop through all member of struct and find various information about
+  // the struct and create a string for each member based on fmt.
+  //
+  // For example, with fmt being "public $name: $type", every struct member will
+  // have a string created and added to code_ptr in that format.
+  //
+  // $name for name of the member in camel case
+  //
+  // $type for object api type if it's struct or table, o.t.w it's scalar types
+  //
+  // $val for the value after unpacking, assuming global this of generated code
+  // is the non object api type $offset offset of the type for packing, assuming
+  // global this is the object being packed
+  //
+  // $pre_offset will be a declaration of a variable with name $name and will be
+  // non-empty and contain the offset for things that can't be serialized inline
+  // such as table
+  //
+  // $post_offset will include the value of variable declared in pre_offset as
+  // well as offset(or values) of things that can be serialized inline such as
+  // offset for struct or value for scalar
   void GenAllFieldUtilTS(const Parser &parser, StructDef &struct_def,
-                       std::string *code_ptr, const std::string &fmt,
-                       const std::string &delimiter,
-                       const std::string &flatbuilderName = "builder") {
+                         std::string *code_ptr, const std::string &fmt,
+                         const std::string &delimiter,
+                         const std::string &flatbuilderName = "builder") {
     std::string &code = *code_ptr;
-    if (lang_.language == IDLOptions::kTs) {
-      for (auto it = struct_def.fields.vec.begin();
-           it != struct_def.fields.vec.end(); ++it) {
-        auto &field = **it;
-        if (field.deprecated) continue;
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto &field = **it;
+      if (field.deprecated) continue;
 
-        const auto field_name = MakeCamel(field.name, false);
-        const std::string field_binded_method =
-            "this." + field_name + ".bind(this)";
-        std::string field_val = "";
-        std::string field_type = "";
-        std::string field_pre_offset = "";
-        std::string field_post_offset = "";
+      const auto field_name = MakeCamel(field.name, false);
+      const std::string field_binded_method =
+          "this." + field_name + ".bind(this)";
+      std::string field_val = "";
+      std::string field_type = "";
+      std::string field_pre_offset = "";
+      std::string field_post_offset = "";
 
-        // Emit a scalar field
-        if (IsScalar(field.value.type.base_type) ||
-            field.value.type.base_type == BASE_TYPE_STRING) {
-          if (field.value.type.enum_def) {
-            field_type +=
-                GenPrefixedTypeName(GenTypeName(field.value.type, false, true),
-                                    field.value.type.enum_def->file);
-          } else {
-            field_type += GenTypeName(field.value.type, false, true);
-          }
-          field_val = "this." + field_name + "()";
-
-          if (field.value.type.base_type != BASE_TYPE_STRING) {
-            field_post_offset = "this." + field_name;
-          } else {
-            field_pre_offset =
-                GenNullCheckConditional("this." + field_name,
-                                        flatbuilderName + ".createString(" +
-                                            "this." + field_name + "!)",
-                                        "0");
-          }
+      // Emit a scalar field
+      if (IsScalar(field.value.type.base_type) ||
+          field.value.type.base_type == BASE_TYPE_STRING) {
+        if (field.value.type.enum_def) {
+          field_type +=
+              GenPrefixedTypeName(GenTypeName(field.value.type, false, true),
+                                  field.value.type.enum_def->file);
+        } else {
+          field_type += GenTypeName(field.value.type, false, true);
         }
+        field_val = "this." + field_name + "()";
 
-        // Emit an object field
-        else {
-          auto is_vector = false;
-          switch (field.value.type.base_type) {
-            case BASE_TYPE_STRUCT: {
-              const auto &sd = *field.value.type.struct_def;
-              field_type += GenPrefixedTypeName(
-                  WrapInNameSpace(sd.defined_namespace,
-                                  GetObjApiClassName(sd, parser.opts)),
-                  field.value.type.struct_def->file);
+        if (field.value.type.base_type != BASE_TYPE_STRING) {
+          field_post_offset = "this." + field_name;
+        } else {
+          field_pre_offset = GenNullCheckConditional(
+              "this." + field_name,
+              flatbuilderName + ".createString(" + "this." + field_name + "!)",
+              "0");
+        }
+      }
 
-              const std::string field_accessor = "this." + field_name + "()";
-              field_val = GenNullCheckConditional(
-                  field_accessor, field_accessor + "!.unpack()");
-              field_post_offset = GenNullCheckConditional(
-                  "this." + field_name,
-                  "this." + field_name + "!.pack(" + flatbuilderName + ")",
-                  "0");
+      // Emit an object field
+      else {
+        auto is_vector = false;
+        switch (field.value.type.base_type) {
+          case BASE_TYPE_STRUCT: {
+            const auto &sd = *field.value.type.struct_def;
+            field_type += GenPrefixedTypeName(
+                WrapInNameSpace(sd.defined_namespace,
+                                GetObjApiClassName(sd, parser.opts)),
+                field.value.type.struct_def->file);
 
-              break;
-            }
+            const std::string field_accessor = "this." + field_name + "()";
+            field_val = GenNullCheckConditional(field_accessor,
+                                                field_accessor + "!.unpack()");
+            field_post_offset = GenNullCheckConditional(
+                "this." + field_name,
+                "this." + field_name + "!.pack(" + flatbuilderName + ")", "0");
 
-            case BASE_TYPE_VECTOR: {
-              auto vectortype = field.value.type.VectorType();
-              auto vectortypename = GenTypeName(vectortype, false);
-              is_vector = true;
+            break;
+          }
 
-              field_type = "(";
+          case BASE_TYPE_VECTOR: {
+            auto vectortype = field.value.type.VectorType();
+            auto vectortypename = GenTypeName(vectortype, false);
+            is_vector = true;
 
-              switch (vectortype.base_type) {
-                case BASE_TYPE_STRUCT: {
-                  const auto &sd = *field.value.type.struct_def;
-                  field_type += GenPrefixedTypeName(
-                      WrapInNameSpace(sd.defined_namespace,
-                                      GetObjApiClassName(sd, parser.opts)),
-                      field.value.type.struct_def->file);
-                  field_type += ")[]";
+            field_type = "(";
 
-                  field_val = GenBBAccess() + ".createObjList<" +
-                              vectortypename + ", " + field_type + ">(" +
-                              field_binded_method + ", this." + field_name +
-                              "Length())";
+            switch (vectortype.base_type) {
+              case BASE_TYPE_STRUCT: {
+                const auto &sd = *field.value.type.struct_def;
+                field_type += GenPrefixedTypeName(
+                    WrapInNameSpace(sd.defined_namespace,
+                                    GetObjApiClassName(sd, parser.opts)),
+                    field.value.type.struct_def->file);
+                field_type += ")[]";
 
-                  if (sd.fixed) {
-                    field_pre_offset = "(() => {\n";
-                    field_pre_offset +=
-                        "    let length = this." + field_name +
-                        ".reduce((res, val) => { return res + (val "
-                        "!== null ? 1 : 0); }, 0);\n";
-                    field_pre_offset += "    " + Verbose(struct_def) +
-                                        ".start" + MakeCamel(field_name) +
-                                        "Vector(" + flatbuilderName +
-                                        ", length)\n";
-                    field_pre_offset += "    " + flatbuilderName +
-                                        ".createObjectOffsetList(this." +
-                                        field_name + ")\n";
-                    field_pre_offset +=
-                        "    return " + flatbuilderName + ".endVector()\n";
-                    field_pre_offset += "  })()";
-                  } else {
-                    field_pre_offset =
-                        Verbose(struct_def) + ".create" +
-                        MakeCamel(field_name) + "Vector(" + flatbuilderName +
-                        ", " + flatbuilderName + ".createObjectOffsetList(" +
-                        "this." + field_name + "))";
-                  }
+                field_val = GenBBAccess() + ".createObjList<" + vectortypename +
+                            ", " + field_type + ">(" + field_binded_method +
+                            ", this." + field_name + "Length())";
 
-                  break;
-                }
-
-                case BASE_TYPE_STRING: {
-                  field_type += "string)[]";
-                  field_val = GenBBAccess() + ".createStringList(" +
-                              field_binded_method + ", this." + field_name +
-                              "Length())";
+                if (sd.fixed) {
+                  field_pre_offset = "(() => {\n";
+                  field_pre_offset +=
+                      "    let length = this." + field_name +
+                      ".reduce((res, val) => { return res + (val "
+                      "!== null ? 1 : 0); }, 0);\n";
+                  field_pre_offset += "    " + Verbose(struct_def) + ".start" +
+                                      MakeCamel(field_name) + "Vector(" +
+                                      flatbuilderName + ", length)\n";
+                  field_pre_offset += "    " + flatbuilderName +
+                                      ".createObjectOffsetList(this." +
+                                      field_name + ")\n";
+                  field_pre_offset +=
+                      "    return " + flatbuilderName + ".endVector()\n";
+                  field_pre_offset += "  })()";
+                } else {
                   field_pre_offset =
                       Verbose(struct_def) + ".create" + MakeCamel(field_name) +
                       "Vector(" + flatbuilderName + ", " + flatbuilderName +
                       ".createObjectOffsetList(" + "this." + field_name + "))";
-                  break;
                 }
 
-                case BASE_TYPE_UNION: {
-                  field_type +=
-                      getUnionTypes(parser.opts, *(vectortype.enum_def));
-                  field_type += "|null)[]";
-                  field_val = GenUnionFieldVal(field_name, vectortype, true);
-
-                  field_pre_offset =
-                      Verbose(struct_def) + ".create" + MakeCamel(field_name) +
-                      "Vector(" + flatbuilderName + ", " + flatbuilderName +
-                      ".createObjectOffsetList(" + "this." + field_name + "))";
-
-                  break;
-                }
-                default: {
-                  if (vectortype.enum_def) {
-                    field_type += GenPrefixedTypeName(
-                        GenTypeName(vectortype, false, true),
-                        vectortype.enum_def->file);
-                  } else {
-                    field_type += vectortypename;
-                  }
-                  field_type += ")[]";
-                  field_val = GenBBAccess() + ".createScalarList(" +
-                              field_binded_method + ", this." + field_name +
-                              "Length())";
-
-                  field_pre_offset = Verbose(struct_def) + ".create" +
-                                     MakeCamel(field_name) + "Vector(" +
-                                     flatbuilderName + ", " + "this." +
-                                     field_name + ")";
-
-                  break;
-                }
+                break;
               }
 
-              break;
+              case BASE_TYPE_STRING: {
+                field_type += "string)[]";
+                field_val = GenBBAccess() + ".createStringList(" +
+                            field_binded_method + ", this." + field_name +
+                            "Length())";
+                field_pre_offset =
+                    Verbose(struct_def) + ".create" + MakeCamel(field_name) +
+                    "Vector(" + flatbuilderName + ", " + flatbuilderName +
+                    ".createObjectOffsetList(" + "this." + field_name + "))";
+                break;
+              }
+
+              case BASE_TYPE_UNION: {
+                field_type +=
+                    GetObjApiUnionTypeTS(parser.opts, *(vectortype.enum_def));
+                field_type += "|null)[]";
+                field_val = GenUnionValTS(field_name, vectortype, true);
+
+                field_pre_offset =
+                    Verbose(struct_def) + ".create" + MakeCamel(field_name) +
+                    "Vector(" + flatbuilderName + ", " + flatbuilderName +
+                    ".createObjectOffsetList(" + "this." + field_name + "))";
+
+                break;
+              }
+              default: {
+                if (vectortype.enum_def) {
+                  field_type +=
+                      GenPrefixedTypeName(GenTypeName(vectortype, false, true),
+                                          vectortype.enum_def->file);
+                } else {
+                  field_type += vectortypename;
+                }
+                field_type += ")[]";
+                field_val = GenBBAccess() + ".createScalarList(" +
+                            field_binded_method + ", this." + field_name +
+                            "Length())";
+
+                field_pre_offset = Verbose(struct_def) + ".create" +
+                                   MakeCamel(field_name) + "Vector(" +
+                                   flatbuilderName + ", " + "this." +
+                                   field_name + ")";
+
+                break;
+              }
             }
 
-            case BASE_TYPE_UNION: {
-              field_type +=
-                  getUnionTypes(parser.opts, *(field.value.type.enum_def));
-              // field_type += "|null";
-
-              field_val = GenUnionFieldVal(field_name, field.value.type);
-              field_pre_offset = flatbuilderName + ".createObjectOffset(this." +
-                                 field_name + ")";
-              break;
-            }
-
-            default: FLATBUFFERS_ASSERT(0); break;
+            break;
           }
 
-          // length 0 vector is simply empty instead of null
-          field_type += is_vector ? "" : "|null";
+          case BASE_TYPE_UNION: {
+            field_type +=
+                GetObjApiUnionTypeTS(parser.opts, *(field.value.type.enum_def));
+
+            field_val = GenUnionValTS(field_name, field.value.type);
+            field_pre_offset = flatbuilderName + ".createObjectOffset(this." +
+                               field_name + ")";
+            break;
+          }
+
+          default: FLATBUFFERS_ASSERT(0); break;
         }
 
-        if (!field_pre_offset.empty()) {
-          field_pre_offset =
-              "  const " + field_name + " = " + field_pre_offset + ";";
-        }
-        if (field_post_offset.empty()) { field_post_offset = field_name; }
-
-        const auto new_line = std::regex_replace(
-            std::regex_replace(
-                std::regex_replace(
-                    std::regex_replace(
-                        std::regex_replace(fmt, std::regex{ R"(\$type)" },
-                                           field_type),
-                        std::regex{ R"(\$name)" }, field_name),
-                    std::regex{ R"(\$val)" }, field_val),
-                std::regex{ R"(\$pre_offset)" }, field_pre_offset),
-            std::regex{ R"(\$post_offset)" }, field_post_offset);
-
-        code += new_line;
-        code += (new_line.find_first_not_of(' ') != std::string::npos &&
-                 it != struct_def.fields.vec.end() - 1)
-                    ? delimiter
-                    : "";
+        // length 0 vector is simply empty instead of null
+        field_type += is_vector ? "" : "|null";
       }
+
+      if (!field_pre_offset.empty()) {
+        field_pre_offset =
+            "  const " + field_name + " = " + field_pre_offset + ";";
+      }
+      if (field_post_offset.empty()) { field_post_offset = field_name; }
+
+      const auto new_line = std::regex_replace(
+          std::regex_replace(
+              std::regex_replace(
+                  std::regex_replace(
+                      std::regex_replace(fmt, std::regex{ R"(\$type)" },
+                                         field_type),
+                      std::regex{ R"(\$name)" }, field_name),
+                  std::regex{ R"(\$val)" }, field_val),
+              std::regex{ R"(\$pre_offset)" }, field_pre_offset),
+          std::regex{ R"(\$post_offset)" }, field_post_offset);
+
+      code += new_line;
+      code += (new_line.find_first_not_of(' ') != std::string::npos &&
+               it != struct_def.fields.vec.end() - 1)
+                  ? delimiter
+                  : "";
     }
   }
 
-  void GenStructMembersAccess(const StructDef &struct_def, std::string &code,
+  void GenStructMemberValueTS(const StructDef &struct_def, std::string &code,
                               const std::string &prefix,
                               const bool nullCheck = true) {
     for (auto it = struct_def.fields.vec.begin();
@@ -1047,7 +996,7 @@ class JsTsGenerator : public BaseGenerator {
       const auto curr_member_accessor =
           prefix + "." + MakeCamel(field.name, false);
       if (IsStruct(field.value.type)) {
-        GenStructMembersAccess(*field.value.type.struct_def, code,
+        GenStructMemberValueTS(*field.value.type.struct_def, code,
                                curr_member_accessor);
       } else {
         if (nullCheck) {
@@ -1074,11 +1023,11 @@ class JsTsGenerator : public BaseGenerator {
       code += "/**\n";
       code += " * @constructor\n";
       GenAllFieldUtilTS(parser, struct_def, code_ptr, " * @param $type $name",
-                      "\n");
+                        "\n");
       code += "\n */\n";
       code += "constructor(\n";
       GenAllFieldUtilTS(parser, struct_def, code_ptr, "  public $name: $type",
-                      ",\n");
+                        ",\n");
       code += "\n){}\n\n";
     }
 
@@ -1093,13 +1042,13 @@ class JsTsGenerator : public BaseGenerator {
         GenAllFieldUtilTS(parser, struct_def, code_ptr, "$pre_offset", "\n");
         code += "\n\n" + create_func + ", \n";
         GenAllFieldUtilTS(parser, struct_def, code_ptr, "    $post_offset",
-                        ",\n");
+                          ",\n");
         code += "\n  );";
       } else {
         code += "\n\n" + create_func;
         // when packing struct, nested struct's members instead of the struct's
         // offset are used
-        GenStructMembersAccess(struct_def, code, "this", false);
+        GenStructMemberValueTS(struct_def, code, "this", false);
         code += ");";
       }
     } else {
@@ -1109,8 +1058,9 @@ class JsTsGenerator : public BaseGenerator {
     code += "\n}\n";
     code += "}\n";
   }
-  void GenUnpackFunctions(const Parser &parser, StructDef &struct_def,
-                          std::string *code_ptr) {
+
+  void GenObjectApiUnpackFunctions(const Parser &parser, StructDef &struct_def,
+                                   std::string *code_ptr) {
     std::string &code = *code_ptr;
     const auto class_name = GetObjApiClassName(struct_def, parser.opts);
 
@@ -1133,7 +1083,8 @@ class JsTsGenerator : public BaseGenerator {
       code += "\n)}\n\n";
 
       code += base_unpack_to_func + "\n";
-      GenAllFieldUtilTS(parser, struct_def, code_ptr, "  _o.$name = $val", "\n");
+      GenAllFieldUtilTS(parser, struct_def, code_ptr, "  _o.$name = $val",
+                        "\n");
       code += "\n}\n";
     }
   }
@@ -1830,7 +1781,7 @@ class JsTsGenerator : public BaseGenerator {
 
     if (lang_.language == IDLOptions::kTs) {
       if (parser_.opts.generate_object_based_api) {
-        GenUnpackFunctions(parser_, struct_def, code_ptr);
+        GenObjectApiUnpackFunctions(parser_, struct_def, code_ptr);
       }
       code += "}\n";
       if (parser_.opts.generate_object_based_api) {
