@@ -13,6 +13,7 @@ namespace Geometry {
 struct Vector3D;
 
 struct ApplicationData;
+struct ApplicationDataBuilder;
 struct ApplicationDataT;
 
 inline const flatbuffers::TypeTable *Vector3DTypeTable();
@@ -67,6 +68,7 @@ struct ApplicationDataT : public flatbuffers::NativeTable {
 
 struct ApplicationData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef ApplicationDataT NativeTableType;
+  typedef ApplicationDataBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return ApplicationDataTypeTable();
   }
@@ -91,6 +93,7 @@ struct ApplicationData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct ApplicationDataBuilder {
+  typedef ApplicationData Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_vectors(flatbuffers::Offset<flatbuffers::Vector<const Geometry::Vector3D *>> vectors) {
@@ -128,9 +131,9 @@ inline flatbuffers::Offset<ApplicationData> CreateApplicationDataDirect(
 flatbuffers::Offset<ApplicationData> CreateApplicationData(flatbuffers::FlatBufferBuilder &_fbb, const ApplicationDataT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 inline ApplicationDataT *ApplicationData::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new ApplicationDataT();
-  UnPackTo(_o, _resolver);
-  return _o;
+  flatbuffers::unique_ptr<Geometry::ApplicationDataT> _o = flatbuffers::unique_ptr<Geometry::ApplicationDataT>(new ApplicationDataT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void ApplicationData::UnPackTo(ApplicationDataT *_o, const flatbuffers::resolver_function_t *_resolver) const {

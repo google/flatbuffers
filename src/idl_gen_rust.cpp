@@ -621,7 +621,7 @@ class RustGenerator : public BaseGenerator {
     static const uint64_t kMaxSparseness = 5;
     if (range / static_cast<uint64_t>(enum_def.size()) < kMaxSparseness) {
       code_ += "#[allow(non_camel_case_types)]";
-      code_ += "const ENUM_NAMES_{{ENUM_NAME_CAPS}}:[&'static str; " +
+      code_ += "pub const ENUM_NAMES_{{ENUM_NAME_CAPS}}:[&'static str; " +
                NumToString(range + 1) + "] = [";
 
       auto val = enum_def.Vals().front();
@@ -1763,6 +1763,14 @@ class RustGenerator : public BaseGenerator {
   void GenNamespaceImports(const int white_spaces) {
     std::string indent = std::string(white_spaces, ' ');
     code_ += "";
+    for (auto it = parser_.included_files_.begin();
+        it != parser_.included_files_.end(); ++it) {
+      if (it->second.empty()) continue;
+      auto noext = flatbuffers::StripExtension(it->second);
+      auto basename = flatbuffers::StripPath(noext);
+
+      code_ += indent + "use crate::" + basename + "_generated::*;";
+    }
     code_ += indent + "use std::mem;";
     code_ += indent + "use std::cmp::Ordering;";
     code_ += "";
@@ -1847,3 +1855,7 @@ std::string RustMakeRule(const Parser &parser, const std::string &path,
 // TODO(maxburke): There should be test schemas added that use language
 //           keywords as fields of structs, tables, unions, enums, to make sure
 //           that internal code generated references escaped names correctly.
+// TODO(maxburke): We should see if there is a more flexible way of resolving
+//           module paths for use declarations. Right now if schemas refer to
+//           other flatbuffer files, the include paths in emitted Rust bindings
+//           are crate-relative which may undesirable.

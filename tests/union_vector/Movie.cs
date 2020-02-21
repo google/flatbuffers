@@ -3,6 +3,7 @@
 // </auto-generated>
 
 using global::System;
+using global::System.Collections.Generic;
 using global::FlatBuffers;
 
 public struct Movie : IFlatbufferObject
@@ -18,6 +19,7 @@ public struct Movie : IFlatbufferObject
 
   public Character MainCharacterType { get { int o = __p.__offset(4); return o != 0 ? (Character)__p.bb.Get(o + __p.bb_pos) : Character.NONE; } }
   public TTable? MainCharacter<TTable>() where TTable : struct, IFlatbufferObject { int o = __p.__offset(6); return o != 0 ? (TTable?)__p.__union<TTable>(o + __p.bb_pos) : null; }
+  public string MainCharacterAsString() { int o = __p.__offset(6); return o != 0 ? __p.__string(o + __p.bb_pos) : null; }
   public Character CharactersType(int j) { int o = __p.__offset(8); return o != 0 ? (Character)__p.bb.Get(__p.__vector(o) + j * 1) : (Character)0; }
   public int CharactersTypeLength { get { int o = __p.__offset(8); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
@@ -27,6 +29,7 @@ public struct Movie : IFlatbufferObject
 #endif
   public Character[] GetCharactersTypeArray() { int o = __p.__offset(8); if (o == 0) return null; int p = __p.__vector(o); int l = __p.__vector_len(o); Character[] a = new Character[l]; for (int i = 0; i < l; i++) { a[i] = (Character)__p.bb.Get(p + i * 1); } return a; }
   public TTable? Characters<TTable>(int j) where TTable : struct, IFlatbufferObject { int o = __p.__offset(10); return o != 0 ? (TTable?)__p.__union<TTable>(__p.__vector(o) + j * 4) : null; }
+  public string CharactersAsString(int j) { int o = __p.__offset(10); return o != 0 ? __p.__string(__p.__vector(o) + j * 4) : null; }
   public int CharactersLength { get { int o = __p.__offset(10); return o != 0 ? __p.__vector_len(o) : 0; } }
 
   public static Offset<Movie> CreateMovie(FlatBufferBuilder builder,
@@ -59,5 +62,134 @@ public struct Movie : IFlatbufferObject
   }
   public static void FinishMovieBuffer(FlatBufferBuilder builder, Offset<Movie> offset) { builder.Finish(offset.Value, "MOVI"); }
   public static void FinishSizePrefixedMovieBuffer(FlatBufferBuilder builder, Offset<Movie> offset) { builder.FinishSizePrefixed(offset.Value, "MOVI"); }
+  public MovieT UnPack() {
+    var _o = new MovieT();
+    this.UnPackTo(_o);
+    return _o;
+  }
+  public void UnPackTo(MovieT _o) {
+    _o.MainCharacter = new CharacterUnion();
+    _o.MainCharacter.Type = this.MainCharacterType;
+    switch (this.MainCharacterType) {
+      default: break;
+      case Character.MuLan:
+        _o.MainCharacter.Value = this.MainCharacter<Attacker>().HasValue ? this.MainCharacter<Attacker>().Value.UnPack() : null;
+        break;
+      case Character.Rapunzel:
+        _o.MainCharacter.Value = this.MainCharacter<Rapunzel>().HasValue ? this.MainCharacter<Rapunzel>().Value.UnPack() : null;
+        break;
+      case Character.Belle:
+        _o.MainCharacter.Value = this.MainCharacter<BookReader>().HasValue ? this.MainCharacter<BookReader>().Value.UnPack() : null;
+        break;
+      case Character.BookFan:
+        _o.MainCharacter.Value = this.MainCharacter<BookReader>().HasValue ? this.MainCharacter<BookReader>().Value.UnPack() : null;
+        break;
+      case Character.Other:
+        _o.MainCharacter.Value = this.MainCharacterAsString();
+        break;
+      case Character.Unused:
+        _o.MainCharacter.Value = this.MainCharacterAsString();
+        break;
+    }
+    _o.Characters = new List<CharacterUnion>();
+    for (var _j = 0; _j < this.CharactersLength; ++_j) {
+      var _o_Characters = new CharacterUnion();
+      _o_Characters.Type = this.CharactersType(_j);
+      switch (this.CharactersType(_j)) {
+        default: break;
+        case Character.MuLan:
+          _o_Characters.Value = this.Characters<Attacker>(_j).HasValue ? this.Characters<Attacker>(_j).Value.UnPack() : null;
+          break;
+        case Character.Rapunzel:
+          _o_Characters.Value = this.Characters<Rapunzel>(_j).HasValue ? this.Characters<Rapunzel>(_j).Value.UnPack() : null;
+          break;
+        case Character.Belle:
+          _o_Characters.Value = this.Characters<BookReader>(_j).HasValue ? this.Characters<BookReader>(_j).Value.UnPack() : null;
+          break;
+        case Character.BookFan:
+          _o_Characters.Value = this.Characters<BookReader>(_j).HasValue ? this.Characters<BookReader>(_j).Value.UnPack() : null;
+          break;
+        case Character.Other:
+          _o_Characters.Value = this.CharactersAsString(_j);
+          break;
+        case Character.Unused:
+          _o_Characters.Value = this.CharactersAsString(_j);
+          break;
+      }
+      _o.Characters.Add(_o_Characters);
+    }
+  }
+  public static Offset<Movie> Pack(FlatBufferBuilder builder, MovieT _o) {
+    if (_o == null) return default(Offset<Movie>);
+    var _main_character_type = _o.MainCharacter == null ? Character.NONE : _o.MainCharacter.Type;
+    var _main_character = _o.MainCharacter == null ? 0 : CharacterUnion.Pack(builder, _o.MainCharacter);
+    var _characters_type = default(VectorOffset);
+    if (_o.Characters != null) {
+      var __characters_type = new Character[_o.Characters.Count];
+      for (var _j = 0; _j < __characters_type.Length; ++_j) { __characters_type[_j] = _o.Characters[_j].Type; }
+      _characters_type = CreateCharactersTypeVector(builder, __characters_type);
+    }
+    var _characters = default(VectorOffset);
+    if (_o.Characters != null) {
+      var __characters = new int[_o.Characters.Count];
+      for (var _j = 0; _j < __characters.Length; ++_j) { __characters[_j] = CharacterUnion.Pack(builder,  _o.Characters[_j]); }
+      _characters = CreateCharactersVector(builder, __characters);
+    }
+    return CreateMovie(
+      builder,
+      _main_character_type,
+      _main_character,
+      _characters_type,
+      _characters);
+  }
 };
+
+public class MovieT
+{
+  [Newtonsoft.Json.JsonProperty("main_character_type")]
+  private Character MainCharacterType {
+    get {
+      return this.MainCharacter != null ? this.MainCharacter.Type : Character.NONE;
+    }
+    set {
+      this.MainCharacter = new CharacterUnion();
+      this.MainCharacter.Type = value;
+    }
+  }
+  [Newtonsoft.Json.JsonProperty("main_character")]
+  [Newtonsoft.Json.JsonConverter(typeof(CharacterUnion_JsonConverter))]
+  public CharacterUnion MainCharacter { get; set; }
+  [Newtonsoft.Json.JsonProperty("characters_type")]
+  private Character[] CharactersType {
+    get {
+      if (this.Characters == null) return null;
+      var _o = new Character[this.Characters.Count];
+      for (var _j = 0; _j < _o.Length; ++_j) { _o[_j] = this.Characters[_j].Type; }
+      return _o;
+    }
+    set {
+      this.Characters = new List<CharacterUnion>();
+      for (var _j = 0; _j < value.Length; ++_j) {
+        var _o = new CharacterUnion();
+        _o.Type = value[_j];
+        this.Characters.Add(_o);
+      }
+    }
+  }
+  [Newtonsoft.Json.JsonProperty("characters")]
+  [Newtonsoft.Json.JsonConverter(typeof(CharacterUnion_JsonConverter))]
+  public List<CharacterUnion> Characters { get; set; }
+
+  public MovieT() {
+    this.MainCharacter = null;
+    this.Characters = null;
+  }
+
+  public static MovieT DeserializeFromJson(string jsonText) {
+    return Newtonsoft.Json.JsonConvert.DeserializeObject<MovieT>(jsonText);
+  }
+  public string SerializeToJson() {
+    return Newtonsoft.Json.JsonConvert.SerializeObject(this, Newtonsoft.Json.Formatting.Indented);
+  }
+}
 

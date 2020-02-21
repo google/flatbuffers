@@ -1,6 +1,6 @@
-package(
-    default_visibility = ["//visibility:private"],
-)
+load("@rules_cc//cc:defs.bzl", "cc_test")
+
+package(default_visibility = ["//visibility:private"])
 
 # Test binary.
 cc_test(
@@ -19,6 +19,7 @@ cc_test(
         "test_builder.cpp",
         "test_builder.h",
         "union_vector/union_vector_generated.h",
+        "monster_test_bfbs_generated.h",
     ],
     copts = [
         "-DFLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE",
@@ -44,7 +45,11 @@ cc_test(
         ":prototest/imported.proto",
         ":prototest/test.golden",
         ":prototest/test.proto",
+        ":prototest/test_include.golden",
+        ":prototest/test_suffix.golden",
         ":prototest/test_union.golden",
+        ":prototest/test_union_include.golden",
+        ":prototest/test_union_suffix.golden",
         ":unicode_test.json",
         ":union_vector/union_vector.fbs",
         ":union_vector/union_vector.json",

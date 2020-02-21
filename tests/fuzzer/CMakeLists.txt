@@ -40,7 +40,6 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld")
 set(FLATBUFFERS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../")
 
 set(FlatBuffers_Library_SRCS
-  ${FLATBUFFERS_DIR}/include/flatbuffers/code_generators.h
   ${FLATBUFFERS_DIR}/include/flatbuffers/base.h
   ${FLATBUFFERS_DIR}/include/flatbuffers/flatbuffers.h
   ${FLATBUFFERS_DIR}/include/flatbuffers/hash.h
@@ -52,7 +51,6 @@ set(FlatBuffers_Library_SRCS
   ${FLATBUFFERS_DIR}/include/flatbuffers/flexbuffers.h
   ${FLATBUFFERS_DIR}/include/flatbuffers/registry.h
   ${FLATBUFFERS_DIR}/include/flatbuffers/minireflect.h
-  ${FLATBUFFERS_DIR}/src/code_generators.cpp
   ${FLATBUFFERS_DIR}/src/idl_parser.cpp
   ${FLATBUFFERS_DIR}/src/idl_gen_text.cpp
   ${FLATBUFFERS_DIR}/src/reflection.cpp

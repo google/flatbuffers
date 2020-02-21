@@ -627,12 +627,6 @@ CheckedError Parser::ParseType(Type &type) {
             "length of fixed-length array must be positive and fit to "
             "uint16_t type");
       }
-      // Check if enum arrays are used in C++ without specifying --scoped-enums
-      if ((opts.lang_to_generate & IDLOptions::kCpp) && !opts.scoped_enums &&
-          IsEnum(subtype)) {
-        return Error(
-            "--scoped-enums must be enabled to use enum arrays in C++\n");
-      }
       type = Type(BASE_TYPE_ARRAY, subtype.struct_def, subtype.enum_def,
                   fixed_length);
       NEXT();
@@ -2201,7 +2195,8 @@ bool Parser::SupportsAdvancedUnionFeatures() const {
          (opts.lang_to_generate &
           ~(IDLOptions::kCpp | IDLOptions::kJs | IDLOptions::kTs |
             IDLOptions::kPhp | IDLOptions::kJava | IDLOptions::kCSharp |
-            IDLOptions::kKotlin | IDLOptions::kBinary)) == 0;
+            IDLOptions::kKotlin | IDLOptions::kBinary | IDLOptions::kSwift)) ==
+             0;
 }
 
 bool Parser::SupportsAdvancedArrayFeatures() const {
@@ -2770,10 +2765,13 @@ CheckedError Parser::ParseFlexBufferValue(flexbuffers::Builder *builder) {
       builder->Int(StringToInt(attribute_.c_str()));
       EXPECT(kTokenIntegerConstant);
       break;
-    case kTokenFloatConstant:
-      builder->Double(strtod(attribute_.c_str(), nullptr));
+    case kTokenFloatConstant: {
+      double d;
+      StringToNumber(attribute_.c_str(), &d);
+      builder->Double(d);
       EXPECT(kTokenFloatConstant);
       break;
+    }
     default:
       if (IsIdent("true")) {
         builder->Bool(true);
@@ -3226,13 +3224,14 @@ Offset<reflection::Field> FieldDef::Serialize(FlatBufferBuilder *builder,
   auto docs__ = parser.opts.binary_schema_comments
                     ? builder->CreateVectorOfStrings(doc_comment)
                     : 0;
+  double d;
+  StringToNumber(value.constant.c_str(), &d);
   return reflection::CreateField(
       *builder, name__, type__, id, value.offset,
       // Is uint64>max(int64) tested?
       IsInteger(value.type.base_type) ? StringToInt(value.constant.c_str()) : 0,
       // result may be platform-dependent if underlying is float (not double)
-      IsFloat(value.type.base_type) ? strtod(value.constant.c_str(), nullptr)
-                                    : 0.0,
+      IsFloat(value.type.base_type) ? d : 0.0,
       deprecated, required, key, attr__, docs__);
   // TODO: value.constant is almost always "0", we could save quite a bit of
   // space by sharing it. Same for common values of value.type.

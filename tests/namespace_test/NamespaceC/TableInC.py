@@ -25,7 +25,6 @@ class TableInC(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             x = self._tab.Indirect(o + self._tab.Pos)
-            from NamespaceA.TableInFirstNS import TableInFirstNS
             obj = TableInFirstNS()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -36,7 +35,6 @@ class TableInC(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             x = self._tab.Indirect(o + self._tab.Pos)
-            from NamespaceA.SecondTableInA import SecondTableInA
             obj = SecondTableInA()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -46,3 +44,50 @@ def TableInCStart(builder): builder.StartObject(2)
 def TableInCAddReferToA1(builder, referToA1): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(referToA1), 0)
 def TableInCAddReferToA2(builder, referToA2): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(referToA2), 0)
 def TableInCEnd(builder): return builder.EndObject()
+
+try:
+    from typing import Optional
+except:
+    pass
+
+class TableInCT(object):
+
+    # TableInCT
+    def __init__(self):
+        self.referToA1 = None  # type: Optional[TableInFirstNST]
+        self.referToA2 = None  # type: Optional[SecondTableInAT]
+
+    @classmethod
+    def InitFromBuf(cls, buf, pos):
+        tableInC = TableInC()
+        tableInC.Init(buf, pos)
+        return cls.InitFromObj(tableInC)
+
+    @classmethod
+    def InitFromObj(cls, tableInC):
+        x = TableInCT()
+        x._UnPack(tableInC)
+        return x
+
+    # TableInCT
+    def _UnPack(self, tableInC):
+        if tableInC is None:
+            return
+        if tableInC.ReferToA1() is not None:
+            self.referToA1 = TableInFirstNST.InitFromObj(tableInC.ReferToA1())
+        if tableInC.ReferToA2() is not None:
+            self.referToA2 = SecondTableInAT.InitFromObj(tableInC.ReferToA2())
+
+    # TableInCT
+    def Pack(self, builder):
+        if self.referToA1 is not None:
+            referToA1 = self.referToA1.Pack(builder)
+        if self.referToA2 is not None:
+            referToA2 = self.referToA2.Pack(builder)
+        TableInCStart(builder)
+        if self.referToA1 is not None:
+            TableInCAddReferToA1(builder, referToA1)
+        if self.referToA2 is not None:
+            TableInCAddReferToA2(builder, referToA2)
+        tableInC = TableInCEnd(builder)
+        return tableInC

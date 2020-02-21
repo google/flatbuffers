@@ -6,6 +6,7 @@ namespace MyGame.Example
 {
 
 using global::System;
+using global::System.Collections.Generic;
 using global::FlatBuffers;
 
 /// an example documentation comment: monster object
@@ -318,7 +319,473 @@ public struct Monster : IFlatbufferObject
     }
     return null;
   }
+  public MonsterT UnPack() {
+    var _o = new MonsterT();
+    this.UnPackTo(_o);
+    return _o;
+  }
+  public void UnPackTo(MonsterT _o) {
+    _o.Pos = this.Pos.HasValue ? this.Pos.Value.UnPack() : null;
+    _o.Mana = this.Mana;
+    _o.Hp = this.Hp;
+    _o.Name = this.Name;
+    _o.Inventory = new List<byte>();
+    for (var _j = 0; _j < this.InventoryLength; ++_j) {_o.Inventory.Add(this.Inventory(_j));}
+    _o.Color = this.Color;
+    _o.Test = new MyGame.Example.AnyUnion();
+    _o.Test.Type = this.TestType;
+    switch (this.TestType) {
+      default: break;
+      case MyGame.Example.Any.Monster:
+        _o.Test.Value = this.Test<MyGame.Example.Monster>().HasValue ? this.Test<MyGame.Example.Monster>().Value.UnPack() : null;
+        break;
+      case MyGame.Example.Any.TestSimpleTableWithEnum:
+        _o.Test.Value = this.Test<MyGame.Example.TestSimpleTableWithEnum>().HasValue ? this.Test<MyGame.Example.TestSimpleTableWithEnum>().Value.UnPack() : null;
+        break;
+      case MyGame.Example.Any.MyGame_Example2_Monster:
+        _o.Test.Value = this.Test<MyGame.Example2.Monster>().HasValue ? this.Test<MyGame.Example2.Monster>().Value.UnPack() : null;
+        break;
+    }
+    _o.Test4 = new List<MyGame.Example.TestT>();
+    for (var _j = 0; _j < this.Test4Length; ++_j) {_o.Test4.Add(this.Test4(_j).HasValue ? this.Test4(_j).Value.UnPack() : null);}
+    _o.Testarrayofstring = new List<string>();
+    for (var _j = 0; _j < this.TestarrayofstringLength; ++_j) {_o.Testarrayofstring.Add(this.Testarrayofstring(_j));}
+    _o.Testarrayoftables = new List<MyGame.Example.MonsterT>();
+    for (var _j = 0; _j < this.TestarrayoftablesLength; ++_j) {_o.Testarrayoftables.Add(this.Testarrayoftables(_j).HasValue ? this.Testarrayoftables(_j).Value.UnPack() : null);}
+    _o.Enemy = this.Enemy.HasValue ? this.Enemy.Value.UnPack() : null;
+    _o.Testnestedflatbuffer = new List<byte>();
+    for (var _j = 0; _j < this.TestnestedflatbufferLength; ++_j) {_o.Testnestedflatbuffer.Add(this.Testnestedflatbuffer(_j));}
+    _o.Testempty = this.Testempty.HasValue ? this.Testempty.Value.UnPack() : null;
+    _o.Testbool = this.Testbool;
+    _o.Testhashs32Fnv1 = this.Testhashs32Fnv1;
+    _o.Testhashu32Fnv1 = this.Testhashu32Fnv1;
+    _o.Testhashs64Fnv1 = this.Testhashs64Fnv1;
+    _o.Testhashu64Fnv1 = this.Testhashu64Fnv1;
+    _o.Testhashs32Fnv1a = this.Testhashs32Fnv1a;
+    _o.Testhashu32Fnv1a = this.Testhashu32Fnv1a;
+    _o.Testhashs64Fnv1a = this.Testhashs64Fnv1a;
+    _o.Testhashu64Fnv1a = this.Testhashu64Fnv1a;
+    _o.Testarrayofbools = new List<bool>();
+    for (var _j = 0; _j < this.TestarrayofboolsLength; ++_j) {_o.Testarrayofbools.Add(this.Testarrayofbools(_j));}
+    _o.Testf = this.Testf;
+    _o.Testf2 = this.Testf2;
+    _o.Testf3 = this.Testf3;
+    _o.Testarrayofstring2 = new List<string>();
+    for (var _j = 0; _j < this.Testarrayofstring2Length; ++_j) {_o.Testarrayofstring2.Add(this.Testarrayofstring2(_j));}
+    _o.Testarrayofsortedstruct = new List<MyGame.Example.AbilityT>();
+    for (var _j = 0; _j < this.TestarrayofsortedstructLength; ++_j) {_o.Testarrayofsortedstruct.Add(this.Testarrayofsortedstruct(_j).HasValue ? this.Testarrayofsortedstruct(_j).Value.UnPack() : null);}
+    _o.Flex = new List<byte>();
+    for (var _j = 0; _j < this.FlexLength; ++_j) {_o.Flex.Add(this.Flex(_j));}
+    _o.Test5 = new List<MyGame.Example.TestT>();
+    for (var _j = 0; _j < this.Test5Length; ++_j) {_o.Test5.Add(this.Test5(_j).HasValue ? this.Test5(_j).Value.UnPack() : null);}
+    _o.VectorOfLongs = new List<long>();
+    for (var _j = 0; _j < this.VectorOfLongsLength; ++_j) {_o.VectorOfLongs.Add(this.VectorOfLongs(_j));}
+    _o.VectorOfDoubles = new List<double>();
+    for (var _j = 0; _j < this.VectorOfDoublesLength; ++_j) {_o.VectorOfDoubles.Add(this.VectorOfDoubles(_j));}
+    _o.ParentNamespaceTest = this.ParentNamespaceTest.HasValue ? this.ParentNamespaceTest.Value.UnPack() : null;
+    _o.VectorOfReferrables = new List<MyGame.Example.ReferrableT>();
+    for (var _j = 0; _j < this.VectorOfReferrablesLength; ++_j) {_o.VectorOfReferrables.Add(this.VectorOfReferrables(_j).HasValue ? this.VectorOfReferrables(_j).Value.UnPack() : null);}
+    _o.SingleWeakReference = this.SingleWeakReference;
+    _o.VectorOfWeakReferences = new List<ulong>();
+    for (var _j = 0; _j < this.VectorOfWeakReferencesLength; ++_j) {_o.VectorOfWeakReferences.Add(this.VectorOfWeakReferences(_j));}
+    _o.VectorOfStrongReferrables = new List<MyGame.Example.ReferrableT>();
+    for (var _j = 0; _j < this.VectorOfStrongReferrablesLength; ++_j) {_o.VectorOfStrongReferrables.Add(this.VectorOfStrongReferrables(_j).HasValue ? this.VectorOfStrongReferrables(_j).Value.UnPack() : null);}
+    _o.CoOwningReference = this.CoOwningReference;
+    _o.VectorOfCoOwningReferences = new List<ulong>();
+    for (var _j = 0; _j < this.VectorOfCoOwningReferencesLength; ++_j) {_o.VectorOfCoOwningReferences.Add(this.VectorOfCoOwningReferences(_j));}
+    _o.NonOwningReference = this.NonOwningReference;
+    _o.VectorOfNonOwningReferences = new List<ulong>();
+    for (var _j = 0; _j < this.VectorOfNonOwningReferencesLength; ++_j) {_o.VectorOfNonOwningReferences.Add(this.VectorOfNonOwningReferences(_j));}
+    _o.AnyUnique = new MyGame.Example.AnyUniqueAliasesUnion();
+    _o.AnyUnique.Type = this.AnyUniqueType;
+    switch (this.AnyUniqueType) {
+      default: break;
+      case MyGame.Example.AnyUniqueAliases.M:
+        _o.AnyUnique.Value = this.AnyUnique<MyGame.Example.Monster>().HasValue ? this.AnyUnique<MyGame.Example.Monster>().Value.UnPack() : null;
+        break;
+      case MyGame.Example.AnyUniqueAliases.TS:
+        _o.AnyUnique.Value = this.AnyUnique<MyGame.Example.TestSimpleTableWithEnum>().HasValue ? this.AnyUnique<MyGame.Example.TestSimpleTableWithEnum>().Value.UnPack() : null;
+        break;
+      case MyGame.Example.AnyUniqueAliases.M2:
+        _o.AnyUnique.Value = this.AnyUnique<MyGame.Example2.Monster>().HasValue ? this.AnyUnique<MyGame.Example2.Monster>().Value.UnPack() : null;
+        break;
+    }
+    _o.AnyAmbiguous = new MyGame.Example.AnyAmbiguousAliasesUnion();
+    _o.AnyAmbiguous.Type = this.AnyAmbiguousType;
+    switch (this.AnyAmbiguousType) {
+      default: break;
+      case MyGame.Example.AnyAmbiguousAliases.M1:
+        _o.AnyAmbiguous.Value = this.AnyAmbiguous<MyGame.Example.Monster>().HasValue ? this.AnyAmbiguous<MyGame.Example.Monster>().Value.UnPack() : null;
+        break;
+      case MyGame.Example.AnyAmbiguousAliases.M2:
+        _o.AnyAmbiguous.Value = this.AnyAmbiguous<MyGame.Example.Monster>().HasValue ? this.AnyAmbiguous<MyGame.Example.Monster>().Value.UnPack() : null;
+        break;
+      case MyGame.Example.AnyAmbiguousAliases.M3:
+        _o.AnyAmbiguous.Value = this.AnyAmbiguous<MyGame.Example.Monster>().HasValue ? this.AnyAmbiguous<MyGame.Example.Monster>().Value.UnPack() : null;
+        break;
+    }
+    _o.VectorOfEnums = new List<MyGame.Example.Color>();
+    for (var _j = 0; _j < this.VectorOfEnumsLength; ++_j) {_o.VectorOfEnums.Add(this.VectorOfEnums(_j));}
+    _o.SignedEnum = this.SignedEnum;
+  }
+  public static Offset<MyGame.Example.Monster> Pack(FlatBufferBuilder builder, MonsterT _o) {
+    if (_o == null) return default(Offset<MyGame.Example.Monster>);
+    var _name = _o.Name == null ? default(StringOffset) : builder.CreateString(_o.Name);
+    var _inventory = default(VectorOffset);
+    if (_o.Inventory != null) {
+      var __inventory = _o.Inventory.ToArray();
+      _inventory = CreateInventoryVector(builder, __inventory);
+    }
+    var _test_type = _o.Test == null ? MyGame.Example.Any.NONE : _o.Test.Type;
+    var _test = _o.Test == null ? 0 : MyGame.Example.AnyUnion.Pack(builder, _o.Test);
+    var _test4 = default(VectorOffset);
+    if (_o.Test4 != null) {
+      StartTest4Vector(builder, _o.Test4.Count);
+      for (var _j = _o.Test4.Count - 1; _j >= 0; --_j) { MyGame.Example.Test.Pack(builder, _o.Test4[_j]); }
+      _test4 = builder.EndVector();
+    }
+    var _testarrayofstring = default(VectorOffset);
+    if (_o.Testarrayofstring != null) {
+      var __testarrayofstring = new StringOffset[_o.Testarrayofstring.Count];
+      for (var _j = 0; _j < __testarrayofstring.Length; ++_j) { __testarrayofstring[_j] = builder.CreateString(_o.Testarrayofstring[_j]); }
+      _testarrayofstring = CreateTestarrayofstringVector(builder, __testarrayofstring);
+    }
+    var _testarrayoftables = default(VectorOffset);
+    if (_o.Testarrayoftables != null) {
+      var __testarrayoftables = new Offset<MyGame.Example.Monster>[_o.Testarrayoftables.Count];
+      for (var _j = 0; _j < __testarrayoftables.Length; ++_j) { __testarrayoftables[_j] = MyGame.Example.Monster.Pack(builder, _o.Testarrayoftables[_j]); }
+      _testarrayoftables = CreateTestarrayoftablesVector(builder, __testarrayoftables);
+    }
+    var _enemy = _o.Enemy == null ? default(Offset<MyGame.Example.Monster>) : MyGame.Example.Monster.Pack(builder, _o.Enemy);
+    var _testnestedflatbuffer = default(VectorOffset);
+    if (_o.Testnestedflatbuffer != null) {
+      var __testnestedflatbuffer = _o.Testnestedflatbuffer.ToArray();
+      _testnestedflatbuffer = CreateTestnestedflatbufferVector(builder, __testnestedflatbuffer);
+    }
+    var _testempty = _o.Testempty == null ? default(Offset<MyGame.Example.Stat>) : MyGame.Example.Stat.Pack(builder, _o.Testempty);
+    var _testarrayofbools = default(VectorOffset);
+    if (_o.Testarrayofbools != null) {
+      var __testarrayofbools = _o.Testarrayofbools.ToArray();
+      _testarrayofbools = CreateTestarrayofboolsVector(builder, __testarrayofbools);
+    }
+    var _testarrayofstring2 = default(VectorOffset);
+    if (_o.Testarrayofstring2 != null) {
+      var __testarrayofstring2 = new StringOffset[_o.Testarrayofstring2.Count];
+      for (var _j = 0; _j < __testarrayofstring2.Length; ++_j) { __testarrayofstring2[_j] = builder.CreateString(_o.Testarrayofstring2[_j]); }
+      _testarrayofstring2 = CreateTestarrayofstring2Vector(builder, __testarrayofstring2);
+    }
+    var _testarrayofsortedstruct = default(VectorOffset);
+    if (_o.Testarrayofsortedstruct != null) {
+      StartTestarrayofsortedstructVector(builder, _o.Testarrayofsortedstruct.Count);
+      for (var _j = _o.Testarrayofsortedstruct.Count - 1; _j >= 0; --_j) { MyGame.Example.Ability.Pack(builder, _o.Testarrayofsortedstruct[_j]); }
+      _testarrayofsortedstruct = builder.EndVector();
+    }
+    var _flex = default(VectorOffset);
+    if (_o.Flex != null) {
+      var __flex = _o.Flex.ToArray();
+      _flex = CreateFlexVector(builder, __flex);
+    }
+    var _test5 = default(VectorOffset);
+    if (_o.Test5 != null) {
+      StartTest5Vector(builder, _o.Test5.Count);
+      for (var _j = _o.Test5.Count - 1; _j >= 0; --_j) { MyGame.Example.Test.Pack(builder, _o.Test5[_j]); }
+      _test5 = builder.EndVector();
+    }
+    var _vector_of_longs = default(VectorOffset);
+    if (_o.VectorOfLongs != null) {
+      var __vector_of_longs = _o.VectorOfLongs.ToArray();
+      _vector_of_longs = CreateVectorOfLongsVector(builder, __vector_of_longs);
+    }
+    var _vector_of_doubles = default(VectorOffset);
+    if (_o.VectorOfDoubles != null) {
+      var __vector_of_doubles = _o.VectorOfDoubles.ToArray();
+      _vector_of_doubles = CreateVectorOfDoublesVector(builder, __vector_of_doubles);
+    }
+    var _parent_namespace_test = _o.ParentNamespaceTest == null ? default(Offset<MyGame.InParentNamespace>) : MyGame.InParentNamespace.Pack(builder, _o.ParentNamespaceTest);
+    var _vector_of_referrables = default(VectorOffset);
+    if (_o.VectorOfReferrables != null) {
+      var __vector_of_referrables = new Offset<MyGame.Example.Referrable>[_o.VectorOfReferrables.Count];
+      for (var _j = 0; _j < __vector_of_referrables.Length; ++_j) { __vector_of_referrables[_j] = MyGame.Example.Referrable.Pack(builder, _o.VectorOfReferrables[_j]); }
+      _vector_of_referrables = CreateVectorOfReferrablesVector(builder, __vector_of_referrables);
+    }
+    var _vector_of_weak_references = default(VectorOffset);
+    if (_o.VectorOfWeakReferences != null) {
+      var __vector_of_weak_references = _o.VectorOfWeakReferences.ToArray();
+      _vector_of_weak_references = CreateVectorOfWeakReferencesVector(builder, __vector_of_weak_references);
+    }
+    var _vector_of_strong_referrables = default(VectorOffset);
+    if (_o.VectorOfStrongReferrables != null) {
+      var __vector_of_strong_referrables = new Offset<MyGame.Example.Referrable>[_o.VectorOfStrongReferrables.Count];
+      for (var _j = 0; _j < __vector_of_strong_referrables.Length; ++_j) { __vector_of_strong_referrables[_j] = MyGame.Example.Referrable.Pack(builder, _o.VectorOfStrongReferrables[_j]); }
+      _vector_of_strong_referrables = CreateVectorOfStrongReferrablesVector(builder, __vector_of_strong_referrables);
+    }
+    var _vector_of_co_owning_references = default(VectorOffset);
+    if (_o.VectorOfCoOwningReferences != null) {
+      var __vector_of_co_owning_references = _o.VectorOfCoOwningReferences.ToArray();
+      _vector_of_co_owning_references = CreateVectorOfCoOwningReferencesVector(builder, __vector_of_co_owning_references);
+    }
+    var _vector_of_non_owning_references = default(VectorOffset);
+    if (_o.VectorOfNonOwningReferences != null) {
+      var __vector_of_non_owning_references = _o.VectorOfNonOwningReferences.ToArray();
+      _vector_of_non_owning_references = CreateVectorOfNonOwningReferencesVector(builder, __vector_of_non_owning_references);
+    }
+    var _any_unique_type = _o.AnyUnique == null ? MyGame.Example.AnyUniqueAliases.NONE : _o.AnyUnique.Type;
+    var _any_unique = _o.AnyUnique == null ? 0 : MyGame.Example.AnyUniqueAliasesUnion.Pack(builder, _o.AnyUnique);
+    var _any_ambiguous_type = _o.AnyAmbiguous == null ? MyGame.Example.AnyAmbiguousAliases.NONE : _o.AnyAmbiguous.Type;
+    var _any_ambiguous = _o.AnyAmbiguous == null ? 0 : MyGame.Example.AnyAmbiguousAliasesUnion.Pack(builder, _o.AnyAmbiguous);
+    var _vector_of_enums = default(VectorOffset);
+    if (_o.VectorOfEnums != null) {
+      var __vector_of_enums = _o.VectorOfEnums.ToArray();
+      _vector_of_enums = CreateVectorOfEnumsVector(builder, __vector_of_enums);
+    }
+    StartMonster(builder);
+    AddPos(builder, MyGame.Example.Vec3.Pack(builder, _o.Pos));
+    AddMana(builder, _o.Mana);
+    AddHp(builder, _o.Hp);
+    AddName(builder, _name);
+    AddInventory(builder, _inventory);
+    AddColor(builder, _o.Color);
+    AddTestType(builder, _test_type);
+    AddTest(builder, _test);
+    AddTest4(builder, _test4);
+    AddTestarrayofstring(builder, _testarrayofstring);
+    AddTestarrayoftables(builder, _testarrayoftables);
+    AddEnemy(builder, _enemy);
+    AddTestnestedflatbuffer(builder, _testnestedflatbuffer);
+    AddTestempty(builder, _testempty);
+    AddTestbool(builder, _o.Testbool);
+    AddTesthashs32Fnv1(builder, _o.Testhashs32Fnv1);
+    AddTesthashu32Fnv1(builder, _o.Testhashu32Fnv1);
+    AddTesthashs64Fnv1(builder, _o.Testhashs64Fnv1);
+    AddTesthashu64Fnv1(builder, _o.Testhashu64Fnv1);
+    AddTesthashs32Fnv1a(builder, _o.Testhashs32Fnv1a);
+    AddTesthashu32Fnv1a(builder, _o.Testhashu32Fnv1a);
+    AddTesthashs64Fnv1a(builder, _o.Testhashs64Fnv1a);
+    AddTesthashu64Fnv1a(builder, _o.Testhashu64Fnv1a);
+    AddTestarrayofbools(builder, _testarrayofbools);
+    AddTestf(builder, _o.Testf);
+    AddTestf2(builder, _o.Testf2);
+    AddTestf3(builder, _o.Testf3);
+    AddTestarrayofstring2(builder, _testarrayofstring2);
+    AddTestarrayofsortedstruct(builder, _testarrayofsortedstruct);
+    AddFlex(builder, _flex);
+    AddTest5(builder, _test5);
+    AddVectorOfLongs(builder, _vector_of_longs);
+    AddVectorOfDoubles(builder, _vector_of_doubles);
+    AddParentNamespaceTest(builder, _parent_namespace_test);
+    AddVectorOfReferrables(builder, _vector_of_referrables);
+    AddSingleWeakReference(builder, _o.SingleWeakReference);
+    AddVectorOfWeakReferences(builder, _vector_of_weak_references);
+    AddVectorOfStrongReferrables(builder, _vector_of_strong_referrables);
+    AddCoOwningReference(builder, _o.CoOwningReference);
+    AddVectorOfCoOwningReferences(builder, _vector_of_co_owning_references);
+    AddNonOwningReference(builder, _o.NonOwningReference);
+    AddVectorOfNonOwningReferences(builder, _vector_of_non_owning_references);
+    AddAnyUniqueType(builder, _any_unique_type);
+    AddAnyUnique(builder, _any_unique);
+    AddAnyAmbiguousType(builder, _any_ambiguous_type);
+    AddAnyAmbiguous(builder, _any_ambiguous);
+    AddVectorOfEnums(builder, _vector_of_enums);
+    AddSignedEnum(builder, _o.SignedEnum);
+    return EndMonster(builder);
+  }
 };
+
+public class MonsterT
+{
+  [Newtonsoft.Json.JsonProperty("pos")]
+  public MyGame.Example.Vec3T Pos { get; set; }
+  [Newtonsoft.Json.JsonProperty("mana")]
+  public short Mana { get; set; }
+  [Newtonsoft.Json.JsonProperty("hp")]
+  public short Hp { get; set; }
+  [Newtonsoft.Json.JsonProperty("name")]
+  public string Name { get; set; }
+  [Newtonsoft.Json.JsonProperty("inventory")]
+  public List<byte> Inventory { get; set; }
+  [Newtonsoft.Json.JsonProperty("color")]
+  public MyGame.Example.Color Color { get; set; }
+  [Newtonsoft.Json.JsonProperty("test_type")]
+  private MyGame.Example.Any TestType {
+    get {
+      return this.Test != null ? this.Test.Type : MyGame.Example.Any.NONE;
+    }
+    set {
+      this.Test = new MyGame.Example.AnyUnion();
+      this.Test.Type = value;
+    }
+  }
+  [Newtonsoft.Json.JsonProperty("test")]
+  [Newtonsoft.Json.JsonConverter(typeof(MyGame.Example.AnyUnion_JsonConverter))]
+  public MyGame.Example.AnyUnion Test { get; set; }
+  [Newtonsoft.Json.JsonProperty("test4")]
+  public List<MyGame.Example.TestT> Test4 { get; set; }
+  [Newtonsoft.Json.JsonProperty("testarrayofstring")]
+  public List<string> Testarrayofstring { get; set; }
+  [Newtonsoft.Json.JsonProperty("testarrayoftables")]
+  public List<MyGame.Example.MonsterT> Testarrayoftables { get; set; }
+  [Newtonsoft.Json.JsonProperty("enemy")]
+  public MyGame.Example.MonsterT Enemy { get; set; }
+  [Newtonsoft.Json.JsonProperty("testnestedflatbuffer")]
+  public List<byte> Testnestedflatbuffer { get; set; }
+  [Newtonsoft.Json.JsonProperty("testempty")]
+  public MyGame.Example.StatT Testempty { get; set; }
+  [Newtonsoft.Json.JsonProperty("testbool")]
+  public bool Testbool { get; set; }
+  [Newtonsoft.Json.JsonProperty("testhashs32_fnv1")]
+  [Newtonsoft.Json.JsonIgnore()]
+  public int Testhashs32Fnv1 { get; set; }
+  [Newtonsoft.Json.JsonProperty("testhashu32_fnv1")]
+  [Newtonsoft.Json.JsonIgnore()]
+  public uint Testhashu32Fnv1 { get; set; }
+  [Newtonsoft.Json.JsonProperty("testhashs64_fnv1")]
+  [Newtonsoft.Json.JsonIgnore()]
+  public long Testhashs64Fnv1 { get; set; }
+  [Newtonsoft.Json.JsonProperty("testhashu64_fnv1")]
+  [Newtonsoft.Json.JsonIgnore()]
+  public ulong Testhashu64Fnv1 { get; set; }
+  [Newtonsoft.Json.JsonProperty("testhashs32_fnv1a")]
+  [Newtonsoft.Json.JsonIgnore()]
+  public int Testhashs32Fnv1a { get; set; }
+  [Newtonsoft.Json.JsonProperty("testhashu32_fnv1a")]
+  [Newtonsoft.Json.JsonIgnore()]
+  public uint Testhashu32Fnv1a { get; set; }
+  [Newtonsoft.Json.JsonProperty("testhashs64_fnv1a")]
+  [Newtonsoft.Json.JsonIgnore()]
+  public long Testhashs64Fnv1a { get; set; }
+  [Newtonsoft.Json.JsonProperty("testhashu64_fnv1a")]
+  [Newtonsoft.Json.JsonIgnore()]
+  public ulong Testhashu64Fnv1a { get; set; }
+  [Newtonsoft.Json.JsonProperty("testarrayofbools")]
+  public List<bool> Testarrayofbools { get; set; }
+  [Newtonsoft.Json.JsonProperty("testf")]
+  public float Testf { get; set; }
+  [Newtonsoft.Json.JsonProperty("testf2")]
+  public float Testf2 { get; set; }
+  [Newtonsoft.Json.JsonProperty("testf3")]
+  public float Testf3 { get; set; }
+  [Newtonsoft.Json.JsonProperty("testarrayofstring2")]
+  public List<string> Testarrayofstring2 { get; set; }
+  [Newtonsoft.Json.JsonProperty("testarrayofsortedstruct")]
+  public List<MyGame.Example.AbilityT> Testarrayofsortedstruct { get; set; }
+  [Newtonsoft.Json.JsonProperty("flex")]
+  public List<byte> Flex { get; set; }
+  [Newtonsoft.Json.JsonProperty("test5")]
+  public List<MyGame.Example.TestT> Test5 { get; set; }
+  [Newtonsoft.Json.JsonProperty("vector_of_longs")]
+  public List<long> VectorOfLongs { get; set; }
+  [Newtonsoft.Json.JsonProperty("vector_of_doubles")]
+  public List<double> VectorOfDoubles { get; set; }
+  [Newtonsoft.Json.JsonProperty("parent_namespace_test")]
+  public MyGame.InParentNamespaceT ParentNamespaceTest { get; set; }
+  [Newtonsoft.Json.JsonProperty("vector_of_referrables")]
+  public List<MyGame.Example.ReferrableT> VectorOfReferrables { get; set; }
+  [Newtonsoft.Json.JsonProperty("single_weak_reference")]
+  [Newtonsoft.Json.JsonIgnore()]
+  public ulong SingleWeakReference { get; set; }
+  [Newtonsoft.Json.JsonProperty("vector_of_weak_references")]
+  [Newtonsoft.Json.JsonIgnore()]
+  public List<ulong> VectorOfWeakReferences { get; set; }
+  [Newtonsoft.Json.JsonProperty("vector_of_strong_referrables")]
+  public List<MyGame.Example.ReferrableT> VectorOfStrongReferrables { get; set; }
+  [Newtonsoft.Json.JsonProperty("co_owning_reference")]
+  [Newtonsoft.Json.JsonIgnore()]
+  public ulong CoOwningReference { get; set; }
+  [Newtonsoft.Json.JsonProperty("vector_of_co_owning_references")]
+  [Newtonsoft.Json.JsonIgnore()]
+  public List<ulong> VectorOfCoOwningReferences { get; set; }
+  [Newtonsoft.Json.JsonProperty("non_owning_reference")]
+  [Newtonsoft.Json.JsonIgnore()]
+  public ulong NonOwningReference { get; set; }
+  [Newtonsoft.Json.JsonProperty("vector_of_non_owning_references")]
+  [Newtonsoft.Json.JsonIgnore()]
+  public List<ulong> VectorOfNonOwningReferences { get; set; }
+  [Newtonsoft.Json.JsonProperty("any_unique_type")]
+  private MyGame.Example.AnyUniqueAliases AnyUniqueType {
+    get {
+      return this.AnyUnique != null ? this.AnyUnique.Type : MyGame.Example.AnyUniqueAliases.NONE;
+    }
+    set {
+      this.AnyUnique = new MyGame.Example.AnyUniqueAliasesUnion();
+      this.AnyUnique.Type = value;
+    }
+  }
+  [Newtonsoft.Json.JsonProperty("any_unique")]
+  [Newtonsoft.Json.JsonConverter(typeof(MyGame.Example.AnyUniqueAliasesUnion_JsonConverter))]
+  public MyGame.Example.AnyUniqueAliasesUnion AnyUnique { get; set; }
+  [Newtonsoft.Json.JsonProperty("any_ambiguous_type")]
+  private MyGame.Example.AnyAmbiguousAliases AnyAmbiguousType {
+    get {
+      return this.AnyAmbiguous != null ? this.AnyAmbiguous.Type : MyGame.Example.AnyAmbiguousAliases.NONE;
+    }
+    set {
+      this.AnyAmbiguous = new MyGame.Example.AnyAmbiguousAliasesUnion();
+      this.AnyAmbiguous.Type = value;
+    }
+  }
+  [Newtonsoft.Json.JsonProperty("any_ambiguous")]
+  [Newtonsoft.Json.JsonConverter(typeof(MyGame.Example.AnyAmbiguousAliasesUnion_JsonConverter))]
+  public MyGame.Example.AnyAmbiguousAliasesUnion AnyAmbiguous { get; set; }
+  [Newtonsoft.Json.JsonProperty("vector_of_enums")]
+  public List<MyGame.Example.Color> VectorOfEnums { get; set; }
+  [Newtonsoft.Json.JsonProperty("signed_enum")]
+  public MyGame.Example.Race SignedEnum { get; set; }
+
+  public MonsterT() {
+    this.Pos = new MyGame.Example.Vec3T();
+    this.Mana = 150;
+    this.Hp = 100;
+    this.Name = null;
+    this.Inventory = null;
+    this.Color = MyGame.Example.Color.Blue;
+    this.Test = null;
+    this.Test4 = null;
+    this.Testarrayofstring = null;
+    this.Testarrayoftables = null;
+    this.Enemy = null;
+    this.Testnestedflatbuffer = null;
+    this.Testempty = null;
+    this.Testbool = false;
+    this.Testhashs32Fnv1 = 0;
+    this.Testhashu32Fnv1 = 0;
+    this.Testhashs64Fnv1 = 0;
+    this.Testhashu64Fnv1 = 0;
+    this.Testhashs32Fnv1a = 0;
+    this.Testhashu32Fnv1a = 0;
+    this.Testhashs64Fnv1a = 0;
+    this.Testhashu64Fnv1a = 0;
+    this.Testarrayofbools = null;
+    this.Testf = 3.14159f;
+    this.Testf2 = 3.0f;
+    this.Testf3 = 0.0f;
+    this.Testarrayofstring2 = null;
+    this.Testarrayofsortedstruct = null;
+    this.Flex = null;
+    this.Test5 = null;
+    this.VectorOfLongs = null;
+    this.VectorOfDoubles = null;
+    this.ParentNamespaceTest = null;
+    this.VectorOfReferrables = null;
+    this.SingleWeakReference = 0;
+    this.VectorOfWeakReferences = null;
+    this.VectorOfStrongReferrables = null;
+    this.CoOwningReference = 0;
+    this.VectorOfCoOwningReferences = null;
+    this.NonOwningReference = 0;
+    this.VectorOfNonOwningReferences = null;
+    this.AnyUnique = null;
+    this.AnyAmbiguous = null;
+    this.VectorOfEnums = null;
+    this.SignedEnum = MyGame.Example.Race.None;
+  }
+
+  public static MonsterT DeserializeFromJson(string jsonText) {
+    return Newtonsoft.Json.JsonConvert.DeserializeObject<MonsterT>(jsonText);
+  }
+  public string SerializeToJson() {
+    return Newtonsoft.Json.JsonConvert.SerializeObject(this, Newtonsoft.Json.Formatting.Indented);
+  }
+}
 
 
 }

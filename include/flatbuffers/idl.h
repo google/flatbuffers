@@ -47,26 +47,26 @@ namespace flatbuffers {
 // of type tokens.
 // clang-format off
 #define FLATBUFFERS_GEN_TYPES_SCALAR(TD) \
-  TD(NONE,   "",       uint8_t,  byte,   byte,    byte,   uint8,   u8,   UByte) \
-  TD(UTYPE,  "",       uint8_t,  byte,   byte,    byte,   uint8,   u8,   UByte) /* begin scalar/int */ \
-  TD(BOOL,   "bool",   uint8_t,  boolean,bool,    bool,   bool,    bool, Boolean) \
-  TD(CHAR,   "byte",   int8_t,   byte,   int8,    sbyte,  int8,    i8,   Byte) \
-  TD(UCHAR,  "ubyte",  uint8_t,  byte,   byte,    byte,   uint8,   u8,   UByte) \
-  TD(SHORT,  "short",  int16_t,  short,  int16,   short,  int16,   i16,  Short) \
-  TD(USHORT, "ushort", uint16_t, short,  uint16,  ushort, uint16,  u16,  UShort) \
-  TD(INT,    "int",    int32_t,  int,    int32,   int,    int32,   i32,  Int) \
-  TD(UINT,   "uint",   uint32_t, int,    uint32,  uint,   uint32,  u32,  UInt) \
-  TD(LONG,   "long",   int64_t,  long,   int64,   long,   int64,   i64,  Long) \
-  TD(ULONG,  "ulong",  uint64_t, long,   uint64,  ulong,  uint64,  u64,  ULong) /* end int */ \
-  TD(FLOAT,  "float",  float,    float,  float32, float,  float32, f32,  Float) /* begin float */ \
-  TD(DOUBLE, "double", double,   double, float64, double, float64, f64,  Double) /* end float/scalar */
+  TD(NONE,   "",       uint8_t,  byte,   byte,    byte,   uint8,   u8,   UByte, UInt8) \
+  TD(UTYPE,  "",       uint8_t,  byte,   byte,    byte,   uint8,   u8,   UByte, UInt8) /* begin scalar/int */ \
+  TD(BOOL,   "bool",   uint8_t,  boolean,bool,    bool,   bool,    bool, Boolean, Bool) \
+  TD(CHAR,   "byte",   int8_t,   byte,   int8,    sbyte,  int8,    i8,   Byte, Int8) \
+  TD(UCHAR,  "ubyte",  uint8_t,  byte,   byte,    byte,   uint8,   u8,   UByte, UInt8) \
+  TD(SHORT,  "short",  int16_t,  short,  int16,   short,  int16,   i16,  Short, Int16) \
+  TD(USHORT, "ushort", uint16_t, short,  uint16,  ushort, uint16,  u16,  UShort, UInt16) \
+  TD(INT,    "int",    int32_t,  int,    int32,   int,    int32,   i32,  Int, Int32) \
+  TD(UINT,   "uint",   uint32_t, int,    uint32,  uint,   uint32,  u32,  UInt, UInt32) \
+  TD(LONG,   "long",   int64_t,  long,   int64,   long,   int64,   i64,  Long, Int64) \
+  TD(ULONG,  "ulong",  uint64_t, long,   uint64,  ulong,  uint64,  u64,  ULong, UInt64) /* end int */ \
+  TD(FLOAT,  "float",  float,    float,  float32, float,  float32, f32,  Float, Float32) /* begin float */ \
+  TD(DOUBLE, "double", double,   double, float64, double, float64, f64,  Double, Double) /* end float/scalar */
 #define FLATBUFFERS_GEN_TYPES_POINTER(TD) \
-  TD(STRING, "string", Offset<void>, int, int, StringOffset, int, unused, Int) \
-  TD(VECTOR, "",       Offset<void>, int, int, VectorOffset, int, unused, Int) \
-  TD(STRUCT, "",       Offset<void>, int, int, int,          int, unused, Int) \
-  TD(UNION,  "",       Offset<void>, int, int, int,          int, unused, Int)
+  TD(STRING, "string", Offset<void>, int, int, StringOffset, int, unused, Int, Offset<String>) \
+  TD(VECTOR, "",       Offset<void>, int, int, VectorOffset, int, unused, Int, Offset<UOffset>) \
+  TD(STRUCT, "",       Offset<void>, int, int, int,          int, unused, Int, Offset<UOffset>) \
+  TD(UNION,  "",       Offset<void>, int, int, int,          int, unused, Int, Offset<UOffset>)
 #define FLATBUFFERS_GEN_TYPE_ARRAY(TD) \
-  TD(ARRAY,  "",       int,          int, int, int,          int, unused, Int)
+  TD(ARRAY,  "",       int,          int, int, int,          int, unused, Int, Offset<UOffset>)
 // The fields are:
 // - enum
 // - FlatBuffers schema type.
@@ -545,6 +545,7 @@ struct IDLOptions {
   bool keep_include_path;
   bool binary_schema_comments;
   bool binary_schema_builtins;
+  bool binary_schema_gen_embed;
   bool skip_flatbuffers_import;
   std::string go_import;
   std::string go_namespace;
@@ -555,7 +556,10 @@ struct IDLOptions {
   std::string root_type;
   bool force_defaults;
   bool java_primitive_has_method;
+  bool cs_gen_json_serializer;
   std::vector<std::string> cpp_includes;
+  std::string cpp_std;
+  std::string proto_namespace_suffix;
 
   // Possible options for the more general generator below.
   enum Language {
@@ -575,6 +579,7 @@ struct IDLOptions {
     kLobster = 1 << 13,
     kRust = 1 << 14,
     kKotlin = 1 << 15,
+    kSwift = 1 << 16,
     kMAX
   };
 
@@ -588,12 +593,12 @@ struct IDLOptions {
   // for code generation.
   unsigned long lang_to_generate;
 
-  // If set (default behavior), empty string fields will be set to nullptr to make
-  // the flatbuffer more compact.
+  // If set (default behavior), empty string fields will be set to nullptr to
+  // make the flatbuffer more compact.
   bool set_empty_strings_to_null;
 
-  // If set (default behavior), empty vector fields will be set to nullptr to make
-  // the flatbuffer more compact.
+  // If set (default behavior), empty vector fields will be set to nullptr to
+  // make the flatbuffer more compact.
   bool set_empty_vectors_to_null;
 
   IDLOptions()
@@ -629,6 +634,7 @@ struct IDLOptions {
         keep_include_path(false),
         binary_schema_comments(false),
         binary_schema_builtins(false),
+        binary_schema_gen_embed(false),
         skip_flatbuffers_import(false),
         reexport_ts_modules(true),
         js_ts_short_names(false),
@@ -636,6 +642,7 @@ struct IDLOptions {
         size_prefixed(false),
         force_defaults(false),
         java_primitive_has_method(false),
+        cs_gen_json_serializer(false),
         lang(IDLOptions::kJava),
         mini_reflect(IDLOptions::kNone),
         lang_to_generate(0),
@@ -1049,6 +1056,11 @@ extern bool GenerateJsonSchema(const Parser &parser, const std::string &path,
 extern bool GenerateKotlin(const Parser &parser, const std::string &path,
                            const std::string &file_name);
 
+// Generate Swift classes.
+// See idl_gen_swift.cpp
+extern bool GenerateSwift(const Parser &parser, const std::string &path,
+                          const std::string &file_name);
+
 // Generate a schema file from the internal representation, useful after
 // parsing a .proto schema.
 extern std::string GenerateFBS(const Parser &parser,
@@ -1109,9 +1121,8 @@ bool GenerateJavaGRPC(const Parser &parser, const std::string &path,
 
 // Generate GRPC Python interfaces.
 // See idl_gen_grpc.cpp.
-bool GeneratePythonGRPC(const Parser &parser,
-                    const std::string &path,
-                    const std::string &file_name);
+bool GeneratePythonGRPC(const Parser &parser, const std::string &path,
+                        const std::string &file_name);
 
 }  // namespace flatbuffers
 

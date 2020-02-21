@@ -47,6 +47,8 @@ For any schema input files, one or more generators can be specified:
 
 -   `--rust`, `-r` : Generate Rust code.
 
+-   `--swift`: Generate Swift code.
+
 For any data input files:
 
 -   `--binary`, `-b` : If data is contained in this file, generate a
@@ -131,6 +133,11 @@ Additional options:
 -   `--cpp-str-flex-ctor` : Don't construct custom string types by passing
     std::string from Flatbuffers, but (char* + length). This allows efficient
 	construction of custom string types, including zero-copy construction.
+
+-   `--cpp-std CPP_STD` : Generate a C++ code using features of selected C++ standard.
+     Supported `CPP_STD` values:
+    * `c++0x` - generate code compatible with old compilers (VS2010).
+    * `c++11` - use C++11 code generator (default);
 
 -   `--object-prefix` : Customise class prefix for C++ object-based API.
 

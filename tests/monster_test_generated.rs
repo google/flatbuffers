@@ -2,6 +2,8 @@
 
 
 
+use crate::include_test1_generated::*;
+use crate::include_test2_generated::*;
 use std::mem;
 use std::cmp::Ordering;
 
@@ -11,6 +13,8 @@ use self::flatbuffers::EndianScalar;
 #[allow(unused_imports, dead_code)]
 pub mod my_game {
 
+  use crate::include_test1_generated::*;
+  use crate::include_test2_generated::*;
   use std::mem;
   use std::cmp::Ordering;
 
@@ -83,6 +87,8 @@ impl<'a: 'b, 'b> InParentNamespaceBuilder<'a, 'b> {
 #[allow(unused_imports, dead_code)]
 pub mod example_2 {
 
+  use crate::include_test1_generated::*;
+  use crate::include_test2_generated::*;
   use std::mem;
   use std::cmp::Ordering;
 
@@ -157,6 +163,8 @@ impl<'a: 'b, 'b> MonsterBuilder<'a, 'b> {
 #[allow(unused_imports, dead_code)]
 pub mod example {
 
+  use crate::include_test1_generated::*;
+  use crate::include_test2_generated::*;
   use std::mem;
   use std::cmp::Ordering;
 
@@ -219,7 +227,7 @@ pub const ENUM_VALUES_COLOR:[Color; 3] = [
 ];
 
 #[allow(non_camel_case_types)]
-const ENUM_NAMES_COLOR:[&'static str; 8] = [
+pub const ENUM_NAMES_COLOR:[&'static str; 8] = [
     "Red",
     "Green",
     "",
@@ -289,7 +297,7 @@ pub const ENUM_VALUES_RACE:[Race; 4] = [
 ];
 
 #[allow(non_camel_case_types)]
-const ENUM_NAMES_RACE:[&'static str; 4] = [
+pub const ENUM_NAMES_RACE:[&'static str; 4] = [
     "None",
     "Human",
     "Dwarf",
@@ -355,7 +363,7 @@ pub const ENUM_VALUES_ANY:[Any; 4] = [
 ];
 
 #[allow(non_camel_case_types)]
-const ENUM_NAMES_ANY:[&'static str; 4] = [
+pub const ENUM_NAMES_ANY:[&'static str; 4] = [
     "NONE",
     "Monster",
     "TestSimpleTableWithEnum",
@@ -422,7 +430,7 @@ pub const ENUM_VALUES_ANY_UNIQUE_ALIASES:[AnyUniqueAliases; 4] = [
 ];
 
 #[allow(non_camel_case_types)]
-const ENUM_NAMES_ANY_UNIQUE_ALIASES:[&'static str; 4] = [
+pub const ENUM_NAMES_ANY_UNIQUE_ALIASES:[&'static str; 4] = [
     "NONE",
     "M",
     "TS",
@@ -489,7 +497,7 @@ pub const ENUM_VALUES_ANY_AMBIGUOUS_ALIASES:[AnyAmbiguousAliases; 4] = [
 ];
 
 #[allow(non_camel_case_types)]
-const ENUM_NAMES_ANY_AMBIGUOUS_ALIASES:[&'static str; 4] = [
+pub const ENUM_NAMES_ANY_AMBIGUOUS_ALIASES:[&'static str; 4] = [
     "NONE",
     "M1",
     "M2",
