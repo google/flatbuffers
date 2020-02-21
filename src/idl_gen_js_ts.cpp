@@ -868,8 +868,7 @@ class JsTsGenerator : public BaseGenerator {
         } else {
           field_pre_offset = GenNullCheckConditional(
               "this." + field_name,
-              flatbuilderName + ".createString(" + "this." + field_name + "!)",
-              "0");
+              "builder.createString(this." + field_name + "!)", "0");
         }
       }
 
@@ -888,8 +887,8 @@ class JsTsGenerator : public BaseGenerator {
             field_val = GenNullCheckConditional(field_accessor,
                                                 field_accessor + "!.unpack()");
             field_post_offset = GenNullCheckConditional(
-                "this." + field_name,
-                "this." + field_name + "!.pack(" + flatbuilderName + ")", "0");
+                "this." + field_name, "this." + field_name + "!.pack(builder)",
+                "0");
 
             break;
           }
@@ -915,25 +914,25 @@ class JsTsGenerator : public BaseGenerator {
                             ", this." + field_name + "Length())";
 
                 if (sd.fixed) {
+                  // TODO(khoi): Refactor this into a function
                   field_pre_offset = "(() => {\n";
                   field_pre_offset +=
                       "    let length = this." + field_name +
                       ".reduce((res, val) => { return res + (val "
                       "!== null ? 1 : 0); }, 0);\n";
                   field_pre_offset += "    " + Verbose(struct_def) + ".start" +
-                                      MakeCamel(field_name) + "Vector(" +
-                                      flatbuilderName + ", length)\n";
-                  field_pre_offset += "    " + flatbuilderName +
-                                      ".createObjectOffsetList(this." +
-                                      field_name + ")\n";
+                                      MakeCamel(field_name) +
+                                      "Vector(builder, length)\n";
                   field_pre_offset +=
-                      "    return " + flatbuilderName + ".endVector()\n";
+                      "    builder.createObjectOffsetList(this." + field_name +
+                      ")\n";
+                  field_pre_offset += "    return builder.endVector()\n";
                   field_pre_offset += "  })()";
                 } else {
                   field_pre_offset =
                       Verbose(struct_def) + ".create" + MakeCamel(field_name) +
-                      "Vector(" + flatbuilderName + ", " + flatbuilderName +
-                      ".createObjectOffsetList(" + "this." + field_name + "))";
+                      "Vector(builder, builder.createObjectOffsetList(" +
+                      "this." + field_name + "))";
                 }
 
                 break;
@@ -946,8 +945,8 @@ class JsTsGenerator : public BaseGenerator {
                             "Length())";
                 field_pre_offset =
                     Verbose(struct_def) + ".create" + MakeCamel(field_name) +
-                    "Vector(" + flatbuilderName + ", " + flatbuilderName +
-                    ".createObjectOffsetList(" + "this." + field_name + "))";
+                    "Vector(builder, builder.createObjectOffsetList(" +
+                    "this." + field_name + "))";
                 break;
               }
 
@@ -959,8 +958,8 @@ class JsTsGenerator : public BaseGenerator {
 
                 field_pre_offset =
                     Verbose(struct_def) + ".create" + MakeCamel(field_name) +
-                    "Vector(" + flatbuilderName + ", " + flatbuilderName +
-                    ".createObjectOffsetList(" + "this." + field_name + "))";
+                    "Vector(builder, builder.createObjectOffsetList(" +
+                    "this." + field_name + "))";
 
                 break;
               }
@@ -978,9 +977,8 @@ class JsTsGenerator : public BaseGenerator {
                             "Length())";
 
                 field_pre_offset = Verbose(struct_def) + ".create" +
-                                   MakeCamel(field_name) + "Vector(" +
-                                   flatbuilderName + ", " + "this." +
-                                   field_name + ")";
+                                   MakeCamel(field_name) +
+                                   "Vector(builder, this." + field_name + ")";
 
                 break;
               }
@@ -994,8 +992,8 @@ class JsTsGenerator : public BaseGenerator {
                 GetObjApiUnionTypeTS(parser.opts, *(field.value.type.enum_def));
 
             field_val = GenUnionValTS(field_name, field.value.type);
-            field_pre_offset = flatbuilderName + ".createObjectOffset(this." +
-                               field_name + ")";
+            field_pre_offset =
+                "builder.createObjectOffset(this." + field_name + ")";
             break;
           }
 
