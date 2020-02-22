@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::*;
-use test::Bencher;
 
-#[bench]
+use bencher::Bencher;
+use flexbuffers::*;
+
 fn push_vec_u64_to_map(b: &mut Bencher) {
     let va = vec![u64::max_value() - 10; 512];
     let vb = vec![u64::max_value() - 20; 512];
@@ -45,7 +45,6 @@ fn push_vec_u64_to_map(b: &mut Bencher) {
     });
     b.bytes = n as u64;
 }
-#[bench]
 fn push_vec_u64_to_map_reused(b: &mut Bencher) {
     let va = vec![u64::max_value() - 10; 512];
     let vb = vec![u64::max_value() - 20; 512];
@@ -76,7 +75,6 @@ fn push_vec_u64_to_map_reused(b: &mut Bencher) {
     b.iter(go);
     b.bytes = n as u64;
 }
-#[bench]
 fn push_vec_u64_to_map_direct(b: &mut Bencher) {
     let va = vec![u64::max_value() - 10; 512];
     let vb = vec![u64::max_value() - 20; 512];
@@ -94,7 +92,6 @@ fn push_vec_u64_to_map_direct(b: &mut Bencher) {
     });
     b.bytes = n as u64;
 }
-#[bench]
 fn push_vec_u64_to_map_direct_reused(b: &mut Bencher) {
     let va = vec![u64::max_value() - 10; 512];
     let vb = vec![u64::max_value() - 20; 512];
@@ -114,7 +111,6 @@ fn push_vec_u64_to_map_direct_reused(b: &mut Bencher) {
     b.bytes = n as u64;
 }
 
-#[bench]
 fn push_vec_without_indirect(b: &mut Bencher) {
     let mut builder = Builder::default();
     let mut n = 0;
@@ -133,7 +129,6 @@ fn push_vec_without_indirect(b: &mut Bencher) {
 }
 // This isn't actually faster than the alternative but it is a lot smaller.
 // Based on the above benchmarks a lot of time is stuck in the `values` stack.
-#[bench]
 fn push_vec_with_indirect(b: &mut Bencher) {
     let mut builder = Builder::default();
     let mut n = 0;
@@ -157,7 +152,6 @@ fn example_map<'a>(m: &mut MapBuilder<'a>) {
     m.push("some_floats", &[256f32; 5]);
     m.push("some_strings", "muahahahahaha");
 }
-#[bench]
 fn hundred_maps(b: &mut Bencher) {
     let mut builder = Builder::default();
     let mut n = 0;
@@ -173,7 +167,6 @@ fn hundred_maps(b: &mut Bencher) {
     b.iter(go);
     b.bytes = n as u64;
 }
-#[bench]
 fn hundred_maps_pooled(b: &mut Bencher) {
     let mut builder = Builder::default();
     let mut n = 0;
@@ -217,7 +210,6 @@ fn make_monster(mut monster: MapBuilder) {
         sounds.push("muahaha");
     }
 }
-#[bench]
 fn serialize_monsters(b: &mut Bencher) {
     let mut builder = Builder::default();
     let mut n = 0;
@@ -261,7 +253,6 @@ fn validate_monster(r: MapReader) {
         assert_eq!(sounds.idx(i).as_str(), s);
     }
 }
-#[bench]
 fn read_monsters(b: &mut Bencher) {
     let mut builder = Builder::default();
     let mut monsters = builder.start_vector();
@@ -279,3 +270,18 @@ fn read_monsters(b: &mut Bencher) {
     };
     b.iter(go);
 }
+
+benchmark_group!(
+    benches,
+    push_vec_u64_to_map,
+    push_vec_u64_to_map_reused,
+    push_vec_u64_to_map_direct,
+    push_vec_u64_to_map_direct_reused,
+    push_vec_without_indirect,
+    push_vec_with_indirect,
+    hundred_maps,
+    hundred_maps_pooled,
+    serialize_monsters,
+    read_monsters,
+);
+benchmark_main!(benches);

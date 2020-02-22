@@ -111,5 +111,6 @@ mod tests {
 #[rustfmt::skip] // Manually formatting Arrays has better readability.
     mod binary_format;
     mod benches;
+    mod other_api;
     mod qc_serious;
 }

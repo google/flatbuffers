@@ -61,24 +61,3 @@ impl<'de> DoubleEndedIterator for ReaderIterator<'de> {
 }
 impl<'de> ExactSizeIterator for ReaderIterator<'de> {}
 impl<'de> FusedIterator for ReaderIterator<'de> {}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::Builder;
-
-    #[test]
-    fn iter() {
-        let mut fxb = Builder::default();
-        {
-            let mut m = fxb.start_map();
-            m.push("a", "42");
-            m.push("b", 250i64);
-            m.push("c", 5000u16);
-        }
-        let r = Reader::get_root(fxb.view()).unwrap();
-
-        let v: Vec<u32> = r.as_vector().iter().map(|x| x.as_u32()).collect();
-        assert_eq!(&v, &[42, 250, 5000]);
-    }
-}

@@ -51,6 +51,7 @@ impl Default for BitWidth {
     }
 }
 
+// TODO(cneo): Overloading with `from` is probably not the most readable idea in hindsight.
 macro_rules! impl_bitwidth_from {
     ($from: ident, $w64: ident, $w32: ident, $w16: ident, $w8: ident) => {
         impl From<$from> for BitWidth {
@@ -74,10 +75,10 @@ impl_bitwidth_from!(u64, u64, u32, u16, u8);
 impl_bitwidth_from!(usize, u64, u32, u16, u8);
 impl_bitwidth_from!(i64, i64, i32, i16, i8);
 
-#[allow(clippy::cast_lossless)]
+#[allow(clippy::float_cmp)]
 impl From<f64> for BitWidth {
     fn from(x: f64) -> BitWidth {
-        if (x - x as f32 as f64).abs() >= std::f64::EPSILON {
+        if x != x as f32 as f64 {
             W64
         } else {
             W32
@@ -97,52 +98,5 @@ pub fn align(buffer: &mut Vec<u8>, width: BitWidth) {
     // Profiling reveals the loop is faster than Vec::resize.
     for _ in 0..alignment as usize {
         buffer.push(0);
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn align_8byte() {
-        let mut v = vec![1, 2, 3];
-        align(&mut v, W64);
-        assert_eq!(v, vec![1, 2, 3, 0, 0, 0, 0, 0]);
-    }
-    #[test]
-    fn align_4byte() {
-        let mut v = vec![1, 2, 3];
-        align(&mut v, W32);
-        assert_eq!(v, vec![1, 2, 3, 0]);
-    }
-    #[test]
-    fn align_2byte() {
-        let mut v = vec![1];
-        align(&mut v, W16);
-        assert_eq!(v, vec![1, 0]);
-    }
-    #[test]
-    fn align_1byte() {
-        let mut v = vec![1];
-        align(&mut v, W8);
-        assert_eq!(v, vec![1]);
-    }
-    #[test]
-    fn test_f32_width() {
-        assert_eq!(W32, BitWidth::from(std::f32::consts::FRAC_1_PI));
-        assert_eq!(W32, BitWidth::from(std::f32::consts::E));
-        assert_eq!(W32, BitWidth::from(std::f32::consts::SQRT_2));
-    }
-    #[test]
-    fn test_f64_width() {
-        println!(
-            "{:?} {:?}",
-            std::f64::consts::FRAC_1_PI.to_le_bytes(),
-            (std::f64::consts::FRAC_1_PI as f32 as f64).to_le_bytes()
-        );
-        assert_eq!(W64, BitWidth::from(std::f64::consts::FRAC_1_PI));
-        assert_eq!(W64, BitWidth::from(std::f64::consts::E));
-        assert_eq!(W64, BitWidth::from(std::f64::consts::SQRT_2));
     }
 }

@@ -1,4 +1,5 @@
 use super::rwyw::NonNullString;
+use flexbuffers::*;
 use quickcheck::{Arbitrary, Gen};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -77,9 +78,9 @@ impl<A: Arbitrary> Arbitrary for Array4<A> {
 
 quickcheck! {
     fn qc_serious(x: Struct) -> bool {
-        let mut s = crate::FlexbufferSerializer::new();
+        let mut s = FlexbufferSerializer::new();
         x.serialize(&mut s).unwrap();
-        let r = crate::Reader::get_root(s.view()).unwrap();
+        let r = Reader::get_root(s.view()).unwrap();
         println!("{}", r);
         let x2 = Struct::deserialize(r).unwrap();
         x == x2

@@ -112,25 +112,3 @@ pub(super) fn sort_map_by_keys(values: &mut [Value], buffer: &[u8]) {
         unreachable!();
     });
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    #[should_panic]
-    fn panic_on_repeated_key() {
-        let mut b = Builder::default();
-        let mut m = b.start_map();
-        m.push("foo", 5u8);
-        m.push("foo", 6u8);
-        m.end_map();
-    }
-    #[test]
-    #[should_panic]
-    fn panic_on_internal_null() {
-        let mut b = Builder::default();
-        let mut m = b.start_map();
-        m.push("foo\0", 5u8);
-        m.end_map();
-    }
-}

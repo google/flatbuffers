@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+extern crate flexbuffers;
+
 use flexbuffers::*;
 use std::alloc::{GlobalAlloc, Layout, System};
 
@@ -20,8 +22,8 @@ static mut NUM_ALLOCS: usize = 0;
 fn current_allocs() -> usize {
     unsafe { NUM_ALLOCS }
 }
-struct Tracker;
-unsafe impl GlobalAlloc for Tracker {
+struct TrackingAllocator;
+unsafe impl GlobalAlloc for TrackingAllocator {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
         NUM_ALLOCS += 1;
         System.alloc(layout)
@@ -31,7 +33,7 @@ unsafe impl GlobalAlloc for Tracker {
     }
 }
 #[global_allocator]
-static T: Tracker = Tracker;
+static T: TrackingAllocator = TrackingAllocator;
 
 /// Make some example data
 fn make_monster(mut monster: MapBuilder) {

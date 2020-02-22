@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // Read what you wrote.
-use crate::*;
+use flexbuffers::*;
 use quickcheck;
 use serde::{Deserialize, Serialize};
 
@@ -235,7 +235,7 @@ fn singleton_vector_uint_4_16bit() {
     assert_eq!(r.idx(0).get_u64(), Ok(2));
     assert_eq!(r.idx(1).get_u64(), Ok(3));
     assert_eq!(r.idx(2).get_u64(), Ok(5));
-    assert_eq!(r.index(3).unwrap_err(), reader::Error::IndexOutOfBounds);
+    assert_eq!(r.index(3).unwrap_err(), ReaderError::IndexOutOfBounds);
 }
 #[test]
 fn vector_uint4() {
@@ -292,12 +292,12 @@ fn index_map() {
     assert_eq!(r.idx(0).get_u64(), Ok(33));
     assert_eq!(r.idx(1).get_u64(), Ok(41));
     assert_eq!(r.idx(2).as_u8(), 17);
-    assert_eq!(r.index(3).unwrap_err(), reader::Error::IndexOutOfBounds);
+    assert_eq!(r.index(3).unwrap_err(), ReaderError::IndexOutOfBounds);
 
     assert_eq!(r.idx("bar").as_u64(), 33);
     assert_eq!(r.idx("baz").as_u32(), 41);
     assert_eq!(r.idx("foo").as_u16(), 17);
-    assert_eq!(r.index("???").unwrap_err(), reader::Error::KeyNotFound);
+    assert_eq!(r.index("???").unwrap_err(), ReaderError::KeyNotFound);
 }
 
 #[test]
@@ -365,7 +365,7 @@ quickcheck! {
     b: f64,
     c: Vec<u32>,
     d: String) -> bool {
-        let mut s = crate::FlexbufferSerializer::new();
+        let mut s = FlexbufferSerializer::new();
         let data = Foo { a, b, c, d };
         data.serialize(&mut s).unwrap();
 
@@ -422,10 +422,75 @@ fn serde_serious() {
         ],
     );
 
-    let mut s = crate::FlexbufferSerializer::new();
+    let mut s = FlexbufferSerializer::new();
     data.serialize(&mut s).unwrap();
 
     let reader = Reader::get_root(s.view()).unwrap();
     let read = MyTupleStruct::deserialize(reader).unwrap();
     assert_eq!(data, read);
+}
+
+#[test]
+fn iter() {
+    let mut fxb = Builder::default();
+    {
+        let mut m = fxb.start_map();
+        m.push("a", "42");
+        m.push("b", 250i64);
+        m.push("c", 5000u16);
+    }
+    let r = Reader::get_root(fxb.view()).unwrap();
+
+    let v: Vec<u32> = r.as_vector().iter().map(|x| x.as_u32()).collect();
+    assert_eq!(&v, &[42, 250, 5000]);
+}
+
+#[test]
+fn deserialize_newtype_i8() {
+    #[derive(Deserialize)]
+    struct Foo(u8);
+    let data = [13, 4, 1];
+    let r = Reader::get_root(&data).unwrap();
+    let foo = Foo::deserialize(r).unwrap();
+    assert_eq!(foo.0, 13);
+}
+#[test]
+fn deserialize_newtype_str() {
+    #[derive(Deserialize)]
+    struct Foo<'a>(&'a str);
+    let data = [5, b'h', b'e', b'l', b'l', b'o', b'\0', 6, 5 << 2, 1];
+    let r = Reader::get_root(&data).unwrap();
+    let foo = Foo::deserialize(r).unwrap();
+    assert_eq!(foo.0, "hello");
+}
+#[test]
+#[rustfmt::skip]
+fn deserialize_tuple_struct_to_vec_uint4() {
+    #[derive(Deserialize)]
+    struct Foo(u8, u16, u32, u64);
+    let data = [
+        4, 0, 16, 0, 64, 0, 0, 1, // Data
+        8,              // Vector offset.
+        23 << 2 | 1,    // (VectorUInt4, W16 - referring to data).
+        1,              // Root width W8 - referring to vector.
+    ];
+    let r = Reader::get_root(&data).unwrap();
+    let foo = Foo::deserialize(r).unwrap();
+    assert_eq!(foo.0, 4);
+    assert_eq!(foo.1, 16);
+    assert_eq!(foo.2, 64);
+    assert_eq!(foo.3, 256);
+
+    let data = [
+        1, 2, 3, 4, // The vector.
+        4,          // Root data (offset).
+        23 << 2,    // Root type: VectorUInt4, W8.
+        1,          // Root width: W8.
+    ];
+    let r = Reader::get_root(&data).unwrap();
+    let foo = Foo::deserialize(r).unwrap();
+    assert_eq!(foo.0, 1);
+    assert_eq!(foo.1, 2);
+    assert_eq!(foo.2, 3);
+    assert_eq!(foo.3, 4);
 }

@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-#[macro_use]
-extern crate bencher;
 use bencher::Bencher;
-
-extern crate flatbuffers;
 
 #[allow(dead_code, unused_imports)]
 #[path = "../../include_test/include_test1_generated.rs"]
@@ -224,4 +220,3 @@ fn create_byte_vector_100_optimal(bench: &mut Bencher) {
 }
 
 benchmark_group!(benches, create_byte_vector_100_naive, create_byte_vector_100_optimal, traverse_canonical_buffer, create_canonical_buffer_then_reset, create_string_10, create_string_100);
-benchmark_main!(benches);
