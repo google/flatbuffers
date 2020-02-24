@@ -115,6 +115,8 @@ enum RGB: Int32, Enum {
 }
 
 struct Monster: FlatBufferObject {
+    var __buffer: ByteBuffer! { _accessor.bb }
+        
     private var _accessor: Table
     static func getRootAsMonster(bb: ByteBuffer) -> Monster { return Monster(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
 
@@ -189,8 +191,9 @@ struct Monster {
     }
 }
 
-
 struct Weapon: FlatBufferObject {
+    
+    var __buffer: ByteBuffer! { __t.bb }
 
     static let offsets: (name: VOffset, dmg: VOffset) = (0, 1)
     private var __t: Table
