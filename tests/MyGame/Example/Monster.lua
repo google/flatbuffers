@@ -4,7 +4,7 @@
 
 local flatbuffers = require('flatbuffers')
 
--- an example documentation comment: monster object
+-- an example documentation comment: "monster object"
 local Monster = {} -- the module
 local Monster_mt = {} -- the class metatable
 

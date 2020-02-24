@@ -147,7 +147,7 @@
     },
     "MyGame_Example_Monster" : {
       "type" : "object",
-      "description" : " an example documentation comment: monster object",
+      "description" : " an example documentation comment: \"monster object\"",
       "properties" : {
         "pos" : {
                 "$ref" : "#/definitions/MyGame_Example_Vec3"
