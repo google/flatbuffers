@@ -70,5 +70,6 @@ cc_library(
         "//grpc/src/compiler:go_generator",
         "//grpc/src/compiler:java_generator",
         "//grpc/src/compiler:python_generator",
+        "//grpc/src/compiler:swift_generator",
     ],
 )

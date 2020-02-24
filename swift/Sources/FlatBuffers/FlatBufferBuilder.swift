@@ -50,6 +50,12 @@ public final class FlatBufferBuilder {
     /// Returns the buffer
     public var buffer: ByteBuffer { return _bb }
     
+    /// Returns A sized Buffer from the readable bytes
+    public var sizedBuffer: ByteBuffer {
+        assert(finished, "Data shouldn't be called before finish()")
+        return ByteBuffer(memory: _bb.memory.advanced(by: _bb.reader), count: _bb.reader)
+    }
+    
     // MARK: - Init
     
     /// initialize the buffer with a size

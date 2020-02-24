@@ -2,6 +2,7 @@ import Foundation
 
 /// FlatbufferObject structures all the Flatbuffers objects
 public protocol FlatBufferObject {
+    var __buffer: ByteBuffer! { get }
     init(_ bb: ByteBuffer, o: Int32)
 }
 
