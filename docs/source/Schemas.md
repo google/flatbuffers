@@ -563,7 +563,7 @@ with the new schema now cannot read nor write `a` anymore (any existing code
 that tries to do so will result in compile errors), but can still read
 old data (they will ignore the field).
 
-    table { c:int a:int; b:int; }
+    table { c:int; a:int; b:int; }
 
 This is NOT ok, as this makes the schemas incompatible. Old code reading newer
 data will interpret `c` as if it was `a`, and new code reading old data

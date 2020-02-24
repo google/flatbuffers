@@ -5,11 +5,6 @@
 
 using namespace MyGame::Example;
 
-const std::string m1_name = "Cyberdemon";
-const Color m1_color = Color_Red;
-const std::string m2_name = "Imp";
-const Color m2_color = Color_Green;
-
 struct OwnedAllocator : public flatbuffers::DefaultAllocator {};
 
 class TestHeapBuilder : public flatbuffers::FlatBufferBuilder {
@@ -88,14 +83,14 @@ struct GrpcLikeMessageBuilder : private AllocatorMember,
 
 flatbuffers::Offset<Monster> populate1(
     flatbuffers::FlatBufferBuilder &builder) {
-  auto name_offset = builder.CreateString(m1_name);
-  return CreateMonster(builder, nullptr, 0, 0, name_offset, 0, m1_color);
+  auto name_offset = builder.CreateString(m1_name());
+  return CreateMonster(builder, nullptr, 0, 0, name_offset, 0, m1_color());
 }
 
 flatbuffers::Offset<Monster> populate2(
     flatbuffers::FlatBufferBuilder &builder) {
-  auto name_offset = builder.CreateString(m2_name);
-  return CreateMonster(builder, nullptr, 0, 0, name_offset, 0, m2_color);
+  auto name_offset = builder.CreateString(m2_name());
+  return CreateMonster(builder, nullptr, 0, 0, name_offset, 0, m2_color());
 }
 
 uint8_t *release_raw_base(flatbuffers::FlatBufferBuilder &fbb, size_t &size,
@@ -158,3 +153,7 @@ void FlatBufferBuilderTest() {
   BuilderReuseTests<GrpcLikeMessageBuilder, GrpcLikeMessageBuilder>::run_tests(
       TestSelector(tests, tests + 4));
 }
+
+// Link-time check using pointer type.
+void CheckTestGeneratedIsValid(const MyGame::Example::Color&)
+{}

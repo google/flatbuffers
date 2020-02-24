@@ -26,7 +26,7 @@ __init(i:number, bb:flatbuffers.ByteBuffer):TableInFirstNS {
  * @returns TableInFirstNS
  */
 static getRootAsTableInFirstNS(bb:flatbuffers.ByteBuffer, obj?:TableInFirstNS):TableInFirstNS {
-  return (obj || new TableInFirstNS).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  return (obj || new TableInFirstNS()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
 /**
@@ -35,7 +35,8 @@ static getRootAsTableInFirstNS(bb:flatbuffers.ByteBuffer, obj?:TableInFirstNS):T
  * @returns TableInFirstNS
  */
 static getSizePrefixedRootAsTableInFirstNS(bb:flatbuffers.ByteBuffer, obj?:TableInFirstNS):TableInFirstNS {
-  return (obj || new TableInFirstNS).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new TableInFirstNS()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
 /**
@@ -44,7 +45,7 @@ static getSizePrefixedRootAsTableInFirstNS(bb:flatbuffers.ByteBuffer, obj?:Table
  */
 fooTable(obj?:NS8755221360535654258.NamespaceA.NamespaceB.TableInNestedNS):NS8755221360535654258.NamespaceA.NamespaceB.TableInNestedNS|null {
   var offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? (obj || new NS8755221360535654258.NamespaceA.NamespaceB.TableInNestedNS).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
+  return offset ? (obj || new NS8755221360535654258.NamespaceA.NamespaceB.TableInNestedNS()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
 };
 
 /**
@@ -76,7 +77,7 @@ mutate_foo_enum(value:NS8755221360535654258.NamespaceA.NamespaceB.EnumInNestedNS
  */
 fooStruct(obj?:NS8755221360535654258.NamespaceA.NamespaceB.StructInNestedNS):NS8755221360535654258.NamespaceA.NamespaceB.StructInNestedNS|null {
   var offset = this.bb!.__offset(this.bb_pos, 8);
-  return offset ? (obj || new NS8755221360535654258.NamespaceA.NamespaceB.StructInNestedNS).__init(this.bb_pos + offset, this.bb!) : null;
+  return offset ? (obj || new NS8755221360535654258.NamespaceA.NamespaceB.StructInNestedNS()).__init(this.bb_pos + offset, this.bb!) : null;
 };
 
 /**
@@ -153,7 +154,7 @@ __init(i:number, bb:flatbuffers.ByteBuffer):TableInC {
  * @returns TableInC
  */
 static getRootAsTableInC(bb:flatbuffers.ByteBuffer, obj?:TableInC):TableInC {
-  return (obj || new TableInC).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  return (obj || new TableInC()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
 /**
@@ -162,7 +163,8 @@ static getRootAsTableInC(bb:flatbuffers.ByteBuffer, obj?:TableInC):TableInC {
  * @returns TableInC
  */
 static getSizePrefixedRootAsTableInC(bb:flatbuffers.ByteBuffer, obj?:TableInC):TableInC {
-  return (obj || new TableInC).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new TableInC()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
 /**
@@ -171,7 +173,7 @@ static getSizePrefixedRootAsTableInC(bb:flatbuffers.ByteBuffer, obj?:TableInC):T
  */
 referToA1(obj?:NamespaceA.TableInFirstNS):NamespaceA.TableInFirstNS|null {
   var offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? (obj || new NamespaceA.TableInFirstNS).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
+  return offset ? (obj || new NamespaceA.TableInFirstNS()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
 };
 
 /**
@@ -180,7 +182,7 @@ referToA1(obj?:NamespaceA.TableInFirstNS):NamespaceA.TableInFirstNS|null {
  */
 referToA2(obj?:NamespaceA.SecondTableInA):NamespaceA.SecondTableInA|null {
   var offset = this.bb!.__offset(this.bb_pos, 6);
-  return offset ? (obj || new NamespaceA.SecondTableInA).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
+  return offset ? (obj || new NamespaceA.SecondTableInA()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
 };
 
 /**
@@ -248,7 +250,7 @@ __init(i:number, bb:flatbuffers.ByteBuffer):SecondTableInA {
  * @returns SecondTableInA
  */
 static getRootAsSecondTableInA(bb:flatbuffers.ByteBuffer, obj?:SecondTableInA):SecondTableInA {
-  return (obj || new SecondTableInA).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  return (obj || new SecondTableInA()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
 /**
@@ -257,7 +259,8 @@ static getRootAsSecondTableInA(bb:flatbuffers.ByteBuffer, obj?:SecondTableInA):S
  * @returns SecondTableInA
  */
 static getSizePrefixedRootAsSecondTableInA(bb:flatbuffers.ByteBuffer, obj?:SecondTableInA):SecondTableInA {
-  return (obj || new SecondTableInA).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new SecondTableInA()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
 /**
@@ -266,7 +269,7 @@ static getSizePrefixedRootAsSecondTableInA(bb:flatbuffers.ByteBuffer, obj?:Secon
  */
 referToC(obj?:NamespaceC.TableInC):NamespaceC.TableInC|null {
   var offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? (obj || new NamespaceC.TableInC).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
+  return offset ? (obj || new NamespaceC.TableInC()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
 };
 
 /**

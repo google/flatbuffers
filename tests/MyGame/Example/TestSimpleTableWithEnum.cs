@@ -6,6 +6,7 @@ namespace MyGame.Example
 {
 
 using global::System;
+using global::System.Collections.Generic;
 using global::FlatBuffers;
 
 internal partial struct TestSimpleTableWithEnum : IFlatbufferObject
@@ -34,7 +35,31 @@ internal partial struct TestSimpleTableWithEnum : IFlatbufferObject
     int o = builder.EndTable();
     return new Offset<MyGame.Example.TestSimpleTableWithEnum>(o);
   }
+  public TestSimpleTableWithEnumT UnPack() {
+    var _o = new TestSimpleTableWithEnumT();
+    this.UnPackTo(_o);
+    return _o;
+  }
+  public void UnPackTo(TestSimpleTableWithEnumT _o) {
+    _o.Color = this.Color;
+  }
+  public static Offset<MyGame.Example.TestSimpleTableWithEnum> Pack(FlatBufferBuilder builder, TestSimpleTableWithEnumT _o) {
+    if (_o == null) return default(Offset<MyGame.Example.TestSimpleTableWithEnum>);
+    return CreateTestSimpleTableWithEnum(
+      builder,
+      _o.Color);
+  }
 };
+
+internal partial class TestSimpleTableWithEnumT
+{
+  [Newtonsoft.Json.JsonProperty("color")]
+  public MyGame.Example.Color Color { get; set; }
+
+  public TestSimpleTableWithEnumT() {
+    this.Color = MyGame.Example.Color.Green;
+  }
+}
 
 
 }

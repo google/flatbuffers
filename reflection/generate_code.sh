@@ -19,7 +19,7 @@ tempDir="../include/flatbuffers/.tmp"
 originalFile="../include/flatbuffers/reflection_generated.h"
 newFile="$tempDir/reflection_generated.h"
 
-../flatc -c --no-prefix -o $tempDir reflection.fbs
+../flatc -c --cpp-std c++0x --no-prefix -o $tempDir reflection.fbs
 
 if [ -f "$newFile" ]; then
   if ! cmp -s "$originalFile" "$newFile"; then

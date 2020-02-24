@@ -83,7 +83,7 @@ public class FlexBuffersBuilder {
     private static final int WIDTH_16 = 1;
     private static final int WIDTH_32 = 2;
     private static final int WIDTH_64 = 3;
-    private final ByteBuffer bb;
+    private final ReadWriteBuf bb;
     private final ArrayList<Value> stack = new ArrayList<>();
     private final HashMap<String, Integer> keyPool = new HashMap<>();
     private final HashMap<String, Integer> stringPool = new HashMap<>();
@@ -116,7 +116,7 @@ public class FlexBuffersBuilder {
      * @param bufSize size of buffer in bytes.
      */
     public FlexBuffersBuilder(int bufSize) {
-        this(ByteBuffer.allocate(bufSize), BUILDER_FLAG_SHARE_KEYS);
+        this(new ArrayReadWriteBuf(bufSize), BUILDER_FLAG_SHARE_KEYS);
     }
 
     /**
@@ -132,11 +132,14 @@ public class FlexBuffersBuilder {
      * @param bb    `ByteBuffer` that will hold the message
      * @param flags Share flags
      */
+    @Deprecated
     public FlexBuffersBuilder(ByteBuffer bb, int flags) {
+        this(new ArrayReadWriteBuf(bb.array()), flags);
+    }
+
+    public FlexBuffersBuilder(ReadWriteBuf bb, int flags) {
         this.bb = bb;
         this.flags = flags;
-        bb.order(ByteOrder.LITTLE_ENDIAN);
-        bb.position(0);
     }
 
     /**
@@ -154,7 +157,7 @@ public class FlexBuffersBuilder {
      *
      * @return `ByteBuffer` with finished message
      */
-    public ByteBuffer getBuffer() {
+    public ReadWriteBuf getBuffer() {
         assert (finished);
         return bb;
     }
@@ -180,17 +183,20 @@ public class FlexBuffersBuilder {
         if (key == null) {
             return -1;
         }
-        int pos = bb.position();
+        int pos = bb.writePosition();
         if ((flags & BUILDER_FLAG_SHARE_KEYS) != 0) {
-            if (keyPool.get(key) == null) {
-                bb.put(key.getBytes(StandardCharsets.UTF_8));
+            Integer keyFromPool = keyPool.get(key);
+            if (keyFromPool == null) {
+                byte[]  keyBytes = key.getBytes(StandardCharsets.UTF_8);
+                bb.put(keyBytes, 0, keyBytes.length);
                 bb.put((byte) 0);
                 keyPool.put(key, pos);
             } else {
-                pos = keyPool.get(key);
+                pos = keyFromPool;
             }
         } else {
-            bb.put(key.getBytes(StandardCharsets.UTF_8));
+            byte[]  keyBytes = key.getBytes(StandardCharsets.UTF_8);
+            bb.put(keyBytes, 0, keyBytes.length);
             bb.put((byte) 0);
             keyPool.put(key, pos);
         }
@@ -358,24 +364,24 @@ public class FlexBuffersBuilder {
     }
 
     private Value writeString(int key, String s) {
-        return writeBlob(key, s.getBytes(StandardCharsets.UTF_8), FBT_STRING);
+        return writeBlob(key, s.getBytes(StandardCharsets.UTF_8), FBT_STRING, true);
     }
 
     // in bits to fit a unsigned int
-    private static int widthUInBits(long len) {
+    static int widthUInBits(long len) {
         if (len <= byteToUnsignedInt((byte)0xff)) return WIDTH_8;
         if (len <= shortToUnsignedInt((short)0xffff)) return WIDTH_16;
         if (len <= intToUnsignedLong(0xffff_ffff)) return WIDTH_32;
         return WIDTH_64;
     }
 
-    private Value writeBlob(int key, byte[] blob, int type) {
+    private Value writeBlob(int key, byte[] blob, int type, boolean trailing) {
         int bitWidth = widthUInBits(blob.length);
         int byteWidth = align(bitWidth);
         writeInt(blob.length, byteWidth);
-        int sloc = bb.position();
-        bb.put(blob);
-        if (type == FBT_STRING) {
+        int sloc = bb.writePosition();
+        bb.put(blob, 0, blob.length);
+        if (trailing) {
             bb.put((byte) 0);
         }
         return Value.blob(key, sloc, type, bitWidth);
@@ -384,7 +390,7 @@ public class FlexBuffersBuilder {
     // Align to prepare for writing a scalar with a certain size.
     private int align(int alignment) {
         int byteWidth = 1 << alignment;
-        int padBytes = Value.paddingBytes(bb.capacity(), byteWidth);
+        int padBytes = Value.paddingBytes(bb.writePosition(), byteWidth);
         while (padBytes-- != 0) {
             bb.put((byte) 0);
         }
@@ -417,7 +423,7 @@ public class FlexBuffersBuilder {
      */
     public int putBlob(String key, byte[] val) {
         int iKey = putKey(key);
-        Value value = writeBlob(iKey, val, FBT_BLOB);
+        Value value = writeBlob(iKey, val, FBT_BLOB, false);
         stack.add(value);
         return (int) value.iValue;
     }
@@ -463,15 +469,14 @@ public class FlexBuffersBuilder {
         // some other object.
         assert (stack.size() == 1);
         // Write root value.
-        int byteWidth = align(stack.get(0).elemWidth(bb.position(), 0));
+        int byteWidth = align(stack.get(0).elemWidth(bb.writePosition(), 0));
         writeAny(stack.get(0), byteWidth);
         // Write root type.
         bb.put(stack.get(0).storedPackedType());
         // Write root size. Normally determined by parent, but root has no parent :)
         bb.put((byte) byteWidth);
-        bb.limit(bb.position());
         this.finished = true;
-        return bb;
+        return ByteBuffer.wrap(bb.data(), 0, bb.writePosition());
     }
 
     /*
@@ -493,17 +498,20 @@ public class FlexBuffersBuilder {
         if (keys != null) {
             // If this vector is part of a map, we will pre-fix an offset to the keys
             // to this vector.
-            bitWidth = Math.max(bitWidth, keys.elemWidth(bb.position(), 0));
+            bitWidth = Math.max(bitWidth, keys.elemWidth(bb.writePosition(), 0));
             prefixElems += 2;
         }
         int vectorType = FBT_KEY;
         // Check bit widths and types for all elements.
         for (int i = start; i < stack.size(); i++) {
-            int elemWidth = stack.get(i).elemWidth(bb.position(), i + prefixElems);
+            int elemWidth = stack.get(i).elemWidth(bb.writePosition(), i + prefixElems);
             bitWidth = Math.max(bitWidth, elemWidth);
             if (typed) {
                 if (i == start) {
                     vectorType = stack.get(i).type;
+                    if (!FlexBuffers.isTypedVectorElementType(vectorType)) {
+                        throw new FlexBufferException("TypedVector does not support this element type");
+                    }
                 } else {
                     // If you get this assert, you are writing a typed vector with
                     // elements that are not all the same type.
@@ -525,7 +533,7 @@ public class FlexBuffersBuilder {
             writeInt(length, byteWidth);
         }
         // Then the actual data.
-        int vloc = bb.position();
+        int vloc = bb.writePosition();
         for (int i = start; i < stack.size(); i++) {
             writeAny(stack.get(i), byteWidth);
         }
@@ -541,7 +549,7 @@ public class FlexBuffersBuilder {
     }
 
     private void writeOffset(long val, int byteWidth) {
-        int reloff = (int) (bb.position() - val);
+        int reloff = (int) (bb.writePosition() - val);
         assert (byteWidth == 8 || reloff < 1L << (byteWidth * 8));
         writeInt(reloff, byteWidth);
     }
@@ -607,7 +615,7 @@ public class FlexBuffersBuilder {
         int prefixElems = 1;
         // Check bit widths and types for all elements.
         for (int i = start; i < stack.size(); i++) {
-            int elemWidth = Value.elemWidth(FBT_KEY, WIDTH_8, stack.get(i).key, bb.position(), i + prefixElems);
+            int elemWidth = Value.elemWidth(FBT_KEY, WIDTH_8, stack.get(i).key, bb.writePosition(), i + prefixElems);
             bitWidth = Math.max(bitWidth, elemWidth);
         }
 
@@ -615,7 +623,7 @@ public class FlexBuffersBuilder {
         // Write vector. First the keys width/offset if available, and size.
         writeInt(length, byteWidth);
         // Then the actual data.
-        int vloc = bb.position();
+        int vloc = bb.writePosition();
         for (int i = start; i < stack.size(); i++) {
             int pos = stack.get(i).key;
             assert(pos != -1);
@@ -659,7 +667,7 @@ public class FlexBuffersBuilder {
         }
 
         static Value blob(int key, int position, int type, int bitWidth) {
-            return new Value(key, type, WIDTH_8, position);
+            return new Value(key, type, bitWidth, position);
         }
 
         static Value int8(int key, int value) {

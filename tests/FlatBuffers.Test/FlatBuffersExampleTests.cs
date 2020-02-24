@@ -111,18 +111,18 @@ namespace FlatBuffers.Test
             }
 
             // Dump to output directory so we can inspect later, if needed
-#if ENABLE_SPAN_T
+            #if ENABLE_SPAN_T
             var data = fbb.DataBuffer.ToSizedArray();
             string filename = @"Resources/monsterdata_cstest" + (sizePrefix ? "_sp" : "") + ".mon";
             File.WriteAllBytes(filename, data);
-#else
+            #else
             using (var ms = fbb.DataBuffer.ToMemoryStream(fbb.DataBuffer.Position, fbb.Offset))
             {
                 var data = ms.ToArray();
                 string filename = @"Resources/monsterdata_cstest" + (sizePrefix ? "_sp" : "") + ".mon";
                 File.WriteAllBytes(filename, data);
             }
-#endif
+            #endif
 
             // Remove the size prefix if necessary for further testing
             ByteBuffer dataBuffer = fbb.DataBuffer;
@@ -187,6 +187,7 @@ namespace FlatBuffers.Test
             Assert.AreEqual(pos.X, 1.0f);
 
             TestBuffer(dataBuffer);
+            TestObjectAPI(Monster.GetRootAsMonster(dataBuffer));
         }
 
         private void TestBuffer(ByteBuffer bb)
@@ -244,7 +245,7 @@ namespace FlatBuffers.Test
 
             Assert.AreEqual(true, monster.Testbool);
 
-#if ENABLE_SPAN_T
+            #if ENABLE_SPAN_T
             var nameBytes = monster.GetNameBytes();
             Assert.AreEqual("MyMonster", Encoding.UTF8.GetString(nameBytes.ToArray(), 0, nameBytes.Length));
 
@@ -262,7 +263,7 @@ namespace FlatBuffers.Test
 
             var doubleArrayBytes = monster.GetVectorOfDoublesBytes();
             Assert.IsTrue(monster.VectorOfDoublesLength * 8 == doubleArrayBytes.Length);
-#else
+            #else
             var nameBytes = monster.GetNameBytes().Value;
             Assert.AreEqual("MyMonster", Encoding.UTF8.GetString(nameBytes.Array, nameBytes.Offset, nameBytes.Count));
 
@@ -274,8 +275,8 @@ namespace FlatBuffers.Test
             {
                 Assert.IsTrue(monster.GetTestarrayofboolsBytes().HasValue);
             }
-#endif
-    }
+            #endif
+        }
 
         [FlatBuffersTestMethod]
         public void CanReadCppGeneratedWireFile()
@@ -283,6 +284,17 @@ namespace FlatBuffers.Test
             var data = File.ReadAllBytes(@"Resources/monsterdata_test.mon");
             var bb = new ByteBuffer(data);
             TestBuffer(bb);
+            TestObjectAPI(Monster.GetRootAsMonster(bb));
+        }
+
+        [FlatBuffersTestMethod]
+        public void CanReadJsonFile()
+        {
+            var jsonText = File.ReadAllText(@"Resources/monsterdata_test.json");
+            var mon = MonsterT.DeserializeFromJson(jsonText);
+            var fbb = new FlatBufferBuilder(1);
+            fbb.Finish(Monster.Pack(fbb, mon).Value);
+            TestBuffer(fbb.DataBuffer);
         }
 
         [FlatBuffersTestMethod]
@@ -311,6 +323,8 @@ namespace FlatBuffers.Test
             var mons = Monster.GetRootAsMonster(fbb.DataBuffer);
             var colors = mons.GetVectorOfEnumsArray();
             Assert.ArrayEqual(colorVec, colors);
+
+            TestObjectAPI(mons);
         }
 
         [FlatBuffersTestMethod]
@@ -350,6 +364,9 @@ namespace FlatBuffers.Test
             Assert.AreEqual(nestedMonsterMana, nestedMonster.Mana);
             Assert.AreEqual(nestedMonsterHp, nestedMonster.Hp);
             Assert.AreEqual(nestedMonsterName, nestedMonster.Name);
+
+            TestObjectAPI(mons);
+            TestObjectAPI(nestedMonster);
         }
 
         [FlatBuffersTestMethod]
@@ -400,26 +417,404 @@ namespace FlatBuffers.Test
 
             ArrayTable table = ArrayTable.GetRootAsArrayTable(builder.DataBuffer);
 
-            Assert.AreEqual(table.A?.A, 0.5f);
-            for (int i = 0; i < 15; i++) Assert.AreEqual(table.A?.B(i), i);
-            Assert.AreEqual(table.A?.C, (sbyte)1);
-            Assert.AreEqual(table.A?.D(0).A(0), 1);
-            Assert.AreEqual(table.A?.D(0).A(1), 2);
-            Assert.AreEqual(table.A?.D(1).A(0), 3);
-            Assert.AreEqual(table.A?.D(1).A(1), 4);
-            Assert.AreEqual(table.A?.D(0).B, TestEnum.B);
-            Assert.AreEqual(table.A?.D(1).B, TestEnum.C);
-            Assert.AreEqual(table.A?.D(0).C(0), TestEnum.A);
-            Assert.AreEqual(table.A?.D(0).C(1), TestEnum.B);
-            Assert.AreEqual(table.A?.D(1).C(0), TestEnum.C);
-            Assert.AreEqual(table.A?.D(1).C(1), TestEnum.B);
-            Assert.AreEqual(table.A?.D(0).D(0), -1);
-            Assert.AreEqual(table.A?.D(0).D(1), 1);
-            Assert.AreEqual(table.A?.D(1).D(0), -2);
-            Assert.AreEqual(table.A?.D(1).D(1), 2);
-            Assert.AreEqual(table.A?.E, 2);
-            Assert.AreEqual(table.A?.F(0), -1);
-            Assert.AreEqual(table.A?.F(1), 1);
+            Assert.AreEqual(table.A.Value.A, 0.5f);
+            for (int i = 0; i < 15; i++) Assert.AreEqual(table.A.Value.B(i), i);
+            Assert.AreEqual(table.A.Value.C, (sbyte)1);
+            Assert.AreEqual(table.A.Value.D(0).A(0), 1);
+            Assert.AreEqual(table.A.Value.D(0).A(1), 2);
+            Assert.AreEqual(table.A.Value.D(1).A(0), 3);
+            Assert.AreEqual(table.A.Value.D(1).A(1), 4);
+            Assert.AreEqual(table.A.Value.D(0).B, TestEnum.B);
+            Assert.AreEqual(table.A.Value.D(1).B, TestEnum.C);
+            Assert.AreEqual(table.A.Value.D(0).C(0), TestEnum.A);
+            Assert.AreEqual(table.A.Value.D(0).C(1), TestEnum.B);
+            Assert.AreEqual(table.A.Value.D(1).C(0), TestEnum.C);
+            Assert.AreEqual(table.A.Value.D(1).C(1), TestEnum.B);
+            Assert.AreEqual(table.A.Value.D(0).D(0), -1);
+            Assert.AreEqual(table.A.Value.D(0).D(1), 1);
+            Assert.AreEqual(table.A.Value.D(1).D(0), -2);
+            Assert.AreEqual(table.A.Value.D(1).D(1), 2);
+            Assert.AreEqual(table.A.Value.E, 2);
+            Assert.AreEqual(table.A.Value.F(0), -1);
+            Assert.AreEqual(table.A.Value.F(1), 1);
+
+            TestObjectAPI(table);
+        }
+
+        [FlatBuffersTestMethod]
+        public void TestUnionVector()
+        {
+            var fbb = new FlatBufferBuilder(100);
+            var rapunzel = Rapunzel.CreateRapunzel(fbb, 40).Value;
+
+            var characterTypes = new[]
+            {
+                Character.MuLan,
+                Character.Belle,
+                Character.Other,
+            };
+            var characterTypesOffset = Movie.CreateCharactersTypeVector(fbb, characterTypes);
+
+            var characters = new[]
+            {
+                Attacker.CreateAttacker(fbb, 10).Value,
+                BookReader.CreateBookReader(fbb, 20).Value,
+                fbb.CreateSharedString("Chip").Value,
+            };
+            var charactersOffset = Movie.CreateCharactersVector(fbb, characters);
+
+            var movieOffset = Movie.CreateMovie(
+                fbb,
+                Character.Rapunzel,
+                rapunzel,
+                characterTypesOffset,
+                charactersOffset);
+            Movie.FinishMovieBuffer(fbb, movieOffset);
+
+            var movie = Movie.GetRootAsMovie(fbb.DataBuffer);
+            Assert.AreEqual(Character.Rapunzel, movie.MainCharacterType);
+            Assert.AreEqual(40, movie.MainCharacter<Rapunzel>().Value.HairLength);
+
+            Assert.AreEqual(3, movie.CharactersLength);
+            Assert.AreEqual(Character.MuLan, movie.CharactersType(0));
+            Assert.AreEqual(10, movie.Characters<Attacker>(0).Value.SwordAttackDamage);
+            Assert.AreEqual(Character.Belle, movie.CharactersType(1));
+            Assert.AreEqual(20, movie.Characters<BookReader>(1).Value.BooksRead);
+            Assert.AreEqual(Character.Other, movie.CharactersType(2));
+            Assert.AreEqual("Chip", movie.CharactersAsString(2));
+
+            TestObjectAPI(movie);
+        }
+
+        private void AreEqual(Monster a, MonsterT b)
+        {
+            Assert.AreEqual(a.Hp, b.Hp);
+            Assert.AreEqual(a.Mana, b.Mana);
+            Assert.AreEqual(a.Name, b.Name);
+
+            var posA = a.Pos;
+            var posB = b.Pos;
+            if (posA != null)
+            {
+                Assert.AreEqual(posA.Value.X, posB.X);
+                Assert.AreEqual(posA.Value.Y, posB.Y);
+                Assert.AreEqual(posA.Value.Z, posB.Z);
+
+                Assert.AreEqual(posA.Value.Test1, posB.Test1);
+                Assert.AreEqual(posA.Value.Test2, posB.Test2);
+                var tA = posA.Value.Test3;
+                var tB = posB.Test3;
+                Assert.AreEqual(tA.A, tB.A);
+                Assert.AreEqual(tA.B, tB.B);
+            }
+
+            Assert.AreEqual(a.TestType, b.Test.Type);
+            if (a.TestType == Any.Monster)
+            {
+                var monster2A = a.Test<Monster>().Value;
+                var monster2B = b.Test.AsMonster();
+                Assert.AreEqual(monster2A.Name, monster2B.Name);
+            }
+
+            Assert.AreEqual(a.InventoryLength, b.Inventory.Count);
+            for (var i = 0; i < a.InventoryLength; ++i)
+            {
+                Assert.AreEqual(a.Inventory(i), b.Inventory[i]);
+            }
+
+            var inventoryArray = a.GetInventoryArray();
+            var inventoryArrayLength = inventoryArray == null ? 0 : inventoryArray.Length;
+            Assert.AreEqual(inventoryArrayLength, b.Inventory.Count);
+            for (var i = 0; i < inventoryArrayLength; ++i)
+            {
+                Assert.AreEqual(inventoryArray[i], b.Inventory[i]);
+            }
+
+            Assert.AreEqual(a.Test4Length, b.Test4.Count);
+            for (var i = 0; i < a.Test4Length; ++i)
+            {
+                var t4A = a.Test4(i);
+                var t4B = b.Test4[i];
+                Assert.AreEqual(t4A.Value.A, t4B.A);
+                Assert.AreEqual(t4A.Value.B, t4B.B);
+            }
+
+            Assert.AreEqual(a.TestarrayofstringLength, b.Testarrayofstring.Count);
+            for (var i = 0; i < a.TestarrayofstringLength; ++i)
+            {
+                Assert.AreEqual(a.Testarrayofstring(i), b.Testarrayofstring[i]);
+            }
+
+            Assert.AreEqual(a.Testbool, b.Testbool);
+
+            Assert.AreEqual(a.TestarrayofboolsLength, b.Testarrayofbools.Count);
+            for (var i = 0; i < a.TestarrayofboolsLength; ++i)
+            {
+                Assert.AreEqual(a.Testarrayofbools(i), b.Testarrayofbools[i]);
+            }
+
+            Assert.AreEqual(a.VectorOfLongsLength, b.VectorOfLongs.Count);
+            for (var i = 0; i < a.VectorOfLongsLength; ++i)
+            {
+                Assert.AreEqual(a.VectorOfLongs(i), b.VectorOfLongs[i]);
+            }
+
+            Assert.AreEqual(a.VectorOfDoublesLength, b.VectorOfDoubles.Count);
+            for (var i = 0; i < a.VectorOfDoublesLength; ++i)
+            {
+                Assert.AreEqual(a.VectorOfDoubles(i), b.VectorOfDoubles[i]);
+            }
+
+            Assert.AreEqual(a.VectorOfEnumsLength, b.VectorOfEnums.Count);
+            for (var i = 0; i < a.VectorOfEnumsLength; ++i)
+            {
+                Assert.AreEqual(a.VectorOfEnums(i), b.VectorOfEnums[i]);
+            }
+        }
+
+        private void AreEqual(Monster a, Monster b)
+        {
+            Assert.AreEqual(a.Hp, b.Hp);
+            Assert.AreEqual(a.Mana, b.Mana);
+            Assert.AreEqual(a.Name, b.Name);
+
+            var posA = a.Pos;
+            var posB = b.Pos;
+            if (posA != null)
+            {
+                Assert.AreEqual(posA.Value.X, posB.Value.X);
+                Assert.AreEqual(posA.Value.Y, posB.Value.Y);
+                Assert.AreEqual(posA.Value.Z, posB.Value.Z);
+
+                Assert.AreEqual(posA.Value.Test1, posB.Value.Test1);
+                Assert.AreEqual(posA.Value.Test2, posB.Value.Test2);
+                var tA = posA.Value.Test3;
+                var tB = posB.Value.Test3;
+                Assert.AreEqual(tA.A, tB.A);
+                Assert.AreEqual(tA.B, tB.B);
+            }
+
+            Assert.AreEqual(a.TestType, b.TestType);
+            if (a.TestType == Any.Monster)
+            {
+                var monster2A = a.Test<Monster>().Value;
+                var monster2B = b.Test<Monster>().Value;
+                Assert.AreEqual(monster2A.Name, monster2B.Name);
+            }
+
+            Assert.AreEqual(a.InventoryLength, b.InventoryLength);
+            for (var i = 0; i < a.InventoryLength; ++i)
+            {
+                Assert.AreEqual(a.Inventory(i), b.Inventory(i));
+            }
+
+            var inventoryArrayA = a.GetInventoryArray();
+            var inventoryArrayALength = inventoryArrayA == null ? 0 : inventoryArrayA.Length;
+            var inventoryArrayB = b.GetInventoryArray();
+            var inventoryArrayBLength = inventoryArrayB == null ? 0 : inventoryArrayB.Length;
+            Assert.AreEqual(inventoryArrayALength, inventoryArrayBLength);
+            for (var i = 0; i < inventoryArrayALength; ++i)
+            {
+                Assert.AreEqual(inventoryArrayA[i], inventoryArrayB[i]);
+            }
+
+            Assert.AreEqual(a.Test4Length, b.Test4Length);
+            for (var i = 0; i < a.Test4Length; ++i)
+            {
+                var t4A = a.Test4(i);
+                var t4B = b.Test4(i);
+                Assert.AreEqual(t4A.Value.A, t4B.Value.A);
+                Assert.AreEqual(t4A.Value.B, t4B.Value.B);
+            }
+
+            Assert.AreEqual(a.TestarrayofstringLength, b.TestarrayofstringLength);
+            for (var i = 0; i < a.TestarrayofstringLength; ++i)
+            {
+                Assert.AreEqual(a.Testarrayofstring(i), b.Testarrayofstring(i));
+            }
+
+            Assert.AreEqual(a.Testbool, b.Testbool);
+
+            Assert.AreEqual(a.TestarrayofboolsLength, b.TestarrayofboolsLength);
+            for (var i = 0; i < a.TestarrayofboolsLength; ++i)
+            {
+                Assert.AreEqual(a.Testarrayofbools(i), b.Testarrayofbools(i));
+            }
+
+            Assert.AreEqual(a.VectorOfLongsLength, b.VectorOfLongsLength);
+            for (var i = 0; i < a.VectorOfLongsLength; ++i)
+            {
+                Assert.AreEqual(a.VectorOfLongs(i), b.VectorOfLongs(i));
+            }
+
+            Assert.AreEqual(a.VectorOfDoublesLength, b.VectorOfDoublesLength);
+            for (var i = 0; i < a.VectorOfDoublesLength; ++i)
+            {
+                Assert.AreEqual(a.VectorOfDoubles(i), b.VectorOfDoubles(i));
+            }
+
+            Assert.AreEqual(a.VectorOfEnumsLength, b.VectorOfEnumsLength);
+            for (var i = 0; i < a.VectorOfEnumsLength; ++i)
+            {
+                Assert.AreEqual(a.VectorOfEnums(i), b.VectorOfEnums(i));
+            }
+        }
+
+        private void TestObjectAPI(Monster a)
+        {
+            var b = a.UnPack();
+            AreEqual(a, b);
+
+            var fbb = new FlatBufferBuilder(1);
+            fbb.Finish(Monster.Pack(fbb, b).Value);
+            var c = Monster.GetRootAsMonster(fbb.DataBuffer);
+            AreEqual(a, c);
+
+            var jsonText = b.SerializeToJson();
+            var d = MonsterT.DeserializeFromJson(jsonText);
+            AreEqual(a, d);
+        }
+
+        private void AreEqual(ArrayTable a, ArrayTableT b)
+        {
+            Assert.AreEqual(a.A.Value.A, b.A.A);
+
+            for (int i = 0; i < 15; ++i)
+            {
+                Assert.AreEqual(a.A.Value.B(i), b.A.B[i]);
+            }
+
+            Assert.AreEqual(a.A.Value.C, b.A.C);
+
+            for (int i = 0; i < 2; ++i)
+            {
+                var ad = a.A.Value.D(i);
+                var bd = b.A.D[i];
+
+                for (int j = 0; j < 2; ++j)
+                {
+                    Assert.AreEqual(ad.A(j), bd.A[j]);
+                }
+
+                Assert.AreEqual(ad.B, bd.B);
+
+                for (int j = 0; j < 2; ++j)
+                {
+                    Assert.AreEqual(ad.C(j), bd.C[j]);
+                }
+
+                for (int j = 0; j < 2; ++j)
+                {
+                    Assert.AreEqual(ad.D(j), bd.D[j]);
+                }
+            }
+
+            Assert.AreEqual(a.A.Value.E, b.A.E);
+
+            for (int i = 0; i < 2; ++i)
+            {
+                Assert.AreEqual(a.A.Value.F(i), b.A.F[i]);
+            }
+        }
+
+        private void AreEqual(ArrayTable a, ArrayTable b)
+        {
+            Assert.AreEqual(a.A.Value.A, b.A.Value.A);
+
+            for (int i = 0; i < 15; ++i)
+            {
+                Assert.AreEqual(a.A.Value.B(i), b.A.Value.B(i));
+            }
+
+            Assert.AreEqual(a.A.Value.C, b.A.Value.C);
+
+            for (int i = 0; i < 2; ++i)
+            {
+                var ad = a.A.Value.D(i);
+                var bd = b.A.Value.D(i);
+
+                for (int j = 0; j < 2; ++j)
+                {
+                    Assert.AreEqual(ad.A(j), bd.A(j));
+                }
+
+                Assert.AreEqual(ad.B, bd.B);
+
+                for (int j = 0; j < 2; ++j)
+                {
+                    Assert.AreEqual(ad.C(j), bd.C(j));
+                }
+
+                for (int j = 0; j < 2; ++j)
+                {
+                    Assert.AreEqual(ad.D(j), bd.D(j));
+                }
+            }
+
+            Assert.AreEqual(a.A.Value.E, b.A.Value.E);
+
+            for (int i = 0; i < 2; ++i)
+            {
+                Assert.AreEqual(a.A.Value.F(i), b.A.Value.F(i));
+            }
+        }
+
+        private void TestObjectAPI(ArrayTable a)
+        {
+            var b = a.UnPack();
+            AreEqual(a, b);
+
+            var fbb = new FlatBufferBuilder(1);
+            fbb.Finish(ArrayTable.Pack(fbb, b).Value);
+            var c = ArrayTable.GetRootAsArrayTable(fbb.DataBuffer);
+            AreEqual(a, c);
+
+            var jsonText = b.SerializeToJson();
+            var d = ArrayTableT.DeserializeFromJson(jsonText);
+            AreEqual(a, d);
+        }
+
+        private void AreEqual(Movie a, MovieT b)
+        {
+            Assert.AreEqual(a.MainCharacterType, b.MainCharacter.Type);
+            Assert.AreEqual(a.MainCharacter<Rapunzel>().Value.HairLength, b.MainCharacter.AsRapunzel().HairLength);
+
+            Assert.AreEqual(a.CharactersLength, b.Characters.Count);
+            Assert.AreEqual(a.CharactersType(0), b.Characters[0].Type);
+            Assert.AreEqual(a.Characters<Attacker>(0).Value.SwordAttackDamage, b.Characters[0].AsMuLan().SwordAttackDamage);
+            Assert.AreEqual(a.CharactersType(1), b.Characters[1].Type);
+            Assert.AreEqual(a.Characters<BookReader>(1).Value.BooksRead, b.Characters[1].AsBelle().BooksRead);
+            Assert.AreEqual(a.CharactersType(2), b.Characters[2].Type);
+            Assert.AreEqual(a.CharactersAsString(2), b.Characters[2].AsOther());
+        }
+
+        private void AreEqual(Movie a, Movie b)
+        {
+            Assert.AreEqual(a.MainCharacterType, b.MainCharacterType);
+            Assert.AreEqual(a.MainCharacter<Rapunzel>().Value.HairLength, b.MainCharacter<Rapunzel>().Value.HairLength);
+
+            Assert.AreEqual(a.CharactersLength, b.CharactersLength);
+            Assert.AreEqual(a.CharactersType(0), b.CharactersType(0));
+            Assert.AreEqual(a.Characters<Attacker>(0).Value.SwordAttackDamage, b.Characters<Attacker>(0).Value.SwordAttackDamage);
+            Assert.AreEqual(a.CharactersType(1), b.CharactersType(1));
+            Assert.AreEqual(a.Characters<BookReader>(1).Value.BooksRead, b.Characters<BookReader>(1).Value.BooksRead);
+            Assert.AreEqual(a.CharactersType(2), b.CharactersType(2));
+            Assert.AreEqual(a.CharactersAsString(2), b.CharactersAsString(2));
+        }
+
+        private void TestObjectAPI(Movie a)
+        {
+            var b = a.UnPack();
+            AreEqual(a, b);
+
+            var fbb = new FlatBufferBuilder(1);
+            fbb.Finish(Movie.Pack(fbb, b).Value);
+            var c = Movie.GetRootAsMovie(fbb.DataBuffer);
+            AreEqual(a, c);
+
+            var jsonText = b.SerializeToJson();
+            var d = MovieT.DeserializeFromJson(jsonText);
+            AreEqual(a, d);
         }
     }
 }

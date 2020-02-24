@@ -6,6 +6,7 @@ namespace NamespaceA.NamespaceB
 {
 
 using global::System;
+using global::System.Collections.Generic;
 using global::FlatBuffers;
 
 public struct TableInNestedNS : IFlatbufferObject
@@ -34,7 +35,31 @@ public struct TableInNestedNS : IFlatbufferObject
     int o = builder.EndTable();
     return new Offset<NamespaceA.NamespaceB.TableInNestedNS>(o);
   }
+  public TableInNestedNST UnPack() {
+    var _o = new TableInNestedNST();
+    this.UnPackTo(_o);
+    return _o;
+  }
+  public void UnPackTo(TableInNestedNST _o) {
+    _o.Foo = this.Foo;
+  }
+  public static Offset<NamespaceA.NamespaceB.TableInNestedNS> Pack(FlatBufferBuilder builder, TableInNestedNST _o) {
+    if (_o == null) return default(Offset<NamespaceA.NamespaceB.TableInNestedNS>);
+    return CreateTableInNestedNS(
+      builder,
+      _o.Foo);
+  }
 };
+
+public class TableInNestedNST
+{
+  [Newtonsoft.Json.JsonProperty("foo")]
+  public int Foo { get; set; }
+
+  public TableInNestedNST() {
+    this.Foo = 0;
+  }
+}
 
 
 }

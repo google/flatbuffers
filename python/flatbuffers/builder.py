@@ -515,7 +515,7 @@ class Builder(object):
         N.enforce_number(rootTable, N.UOffsetTFlags)
 
         if file_identifier is not None:
-            self.Prep(N.UOffsetTFlags.bytewidth, N.Uint8Flags.bytewidth*4)
+            self.Prep(N.UOffsetTFlags.bytewidth, encode.FILE_IDENTIFIER_LENGTH)
             
             # Convert bytes object file_identifier to an array of 4 8-bit integers,
             # and use big-endian to enforce size compliance.
@@ -523,7 +523,7 @@ class Builder(object):
             file_identifier = N.struct.unpack(">BBBB", file_identifier)
             for i in range(encode.FILE_IDENTIFIER_LENGTH-1, -1, -1):
                 # Place the bytes of the file_identifer in reverse order:
-                self.Place(file_identifier[i], N.Uint8Flags)   
+                self.Place(file_identifier[i], N.Uint8Flags)
                 
         self.PrependUOffsetTRelative(rootTable)
         if sizePrefix:

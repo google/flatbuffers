@@ -6,6 +6,7 @@ namespace NamespaceA
 {
 
 using global::System;
+using global::System.Collections.Generic;
 using global::FlatBuffers;
 
 public struct TableInFirstNS : IFlatbufferObject
@@ -31,7 +32,42 @@ public struct TableInFirstNS : IFlatbufferObject
     int o = builder.EndTable();
     return new Offset<NamespaceA.TableInFirstNS>(o);
   }
+  public TableInFirstNST UnPack() {
+    var _o = new TableInFirstNST();
+    this.UnPackTo(_o);
+    return _o;
+  }
+  public void UnPackTo(TableInFirstNST _o) {
+    _o.FooTable = this.FooTable.HasValue ? this.FooTable.Value.UnPack() : null;
+    _o.FooEnum = this.FooEnum;
+    _o.FooStruct = this.FooStruct.HasValue ? this.FooStruct.Value.UnPack() : null;
+  }
+  public static Offset<NamespaceA.TableInFirstNS> Pack(FlatBufferBuilder builder, TableInFirstNST _o) {
+    if (_o == null) return default(Offset<NamespaceA.TableInFirstNS>);
+    var _foo_table = _o.FooTable == null ? default(Offset<NamespaceA.NamespaceB.TableInNestedNS>) : NamespaceA.NamespaceB.TableInNestedNS.Pack(builder, _o.FooTable);
+    StartTableInFirstNS(builder);
+    AddFooTable(builder, _foo_table);
+    AddFooEnum(builder, _o.FooEnum);
+    AddFooStruct(builder, NamespaceA.NamespaceB.StructInNestedNS.Pack(builder, _o.FooStruct));
+    return EndTableInFirstNS(builder);
+  }
 };
+
+public class TableInFirstNST
+{
+  [Newtonsoft.Json.JsonProperty("foo_table")]
+  public NamespaceA.NamespaceB.TableInNestedNST FooTable { get; set; }
+  [Newtonsoft.Json.JsonProperty("foo_enum")]
+  public NamespaceA.NamespaceB.EnumInNestedNS FooEnum { get; set; }
+  [Newtonsoft.Json.JsonProperty("foo_struct")]
+  public NamespaceA.NamespaceB.StructInNestedNST FooStruct { get; set; }
+
+  public TableInFirstNST() {
+    this.FooTable = null;
+    this.FooEnum = NamespaceA.NamespaceB.EnumInNestedNS.A;
+    this.FooStruct = new NamespaceA.NamespaceB.StructInNestedNST();
+  }
+}
 
 
 }

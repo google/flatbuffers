@@ -9,7 +9,7 @@ import (
 type MonsterT struct {
 }
 
-func MonsterPack(builder *flatbuffers.Builder, t *MonsterT) flatbuffers.UOffsetT {
+func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil { return 0 }
 	MonsterStart(builder)
 	return MonsterEnd(builder)

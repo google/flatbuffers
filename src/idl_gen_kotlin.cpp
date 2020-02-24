@@ -139,14 +139,14 @@ class KotlinGenerator : public BaseGenerator {
 
   static std::string GenTypeBasic(const BaseType &type) {
     // clang-format off
-        static const char * const kotlin_typename[] = {
-    #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
-    #KTYPE,
+    static const char * const kotlin_typename[] = {
+      #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
+              CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE, ...) \
+        #KTYPE,
         FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
-    #undef FLATBUFFERS_TD
-      // clang-format on
+      #undef FLATBUFFERS_TD
     };
+    // clang-format on
     return kotlin_typename[type];
   }
 
@@ -522,7 +522,7 @@ class KotlinGenerator : public BaseGenerator {
       if (base_type == BASE_TYPE_STRING) {
         writer +=
             "val byteKey = key."
-            "toByteArray(Table.UTF8_CHARSET.get()!!)";
+            "toByteArray(java.nio.charset.StandardCharsets.UTF_8)";
       }
       writer += "var span = bb.getInt(vectorLocation - 4)";
       writer += "var start = 0";

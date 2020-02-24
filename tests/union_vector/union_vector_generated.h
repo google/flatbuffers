@@ -7,6 +7,7 @@
 #include "flatbuffers/flatbuffers.h"
 
 struct Attacker;
+struct AttackerBuilder;
 struct AttackerT;
 
 struct Rapunzel;
@@ -14,6 +15,7 @@ struct Rapunzel;
 struct BookReader;
 
 struct Movie;
+struct MovieBuilder;
 struct MovieT;
 
 bool operator==(const AttackerT &lhs, const AttackerT &rhs);
@@ -73,7 +75,7 @@ inline const char * const *EnumNamesCharacter() {
 }
 
 inline const char *EnumNameCharacter(Character e) {
-  if (e < Character_NONE || e > Character_Unused) return "";
+  if (flatbuffers::IsOutRange(e, Character_NONE, Character_Unused)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesCharacter()[index];
 }
@@ -278,6 +280,7 @@ inline bool operator!=(const AttackerT &lhs, const AttackerT &rhs) {
 
 struct Attacker FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef AttackerT NativeTableType;
+  typedef AttackerBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return AttackerTypeTable();
   }
@@ -301,6 +304,7 @@ struct Attacker FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct AttackerBuilder {
+  typedef Attacker Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_sword_attack_damage(int32_t sword_attack_damage) {
@@ -349,6 +353,7 @@ inline bool operator!=(const MovieT &lhs, const MovieT &rhs) {
 
 struct Movie FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MovieT NativeTableType;
+  typedef MovieBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return MovieTypeTable();
   }
@@ -415,6 +420,7 @@ struct Movie FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct MovieBuilder {
+  typedef Movie Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_main_character_type(Character main_character_type) {
@@ -474,9 +480,9 @@ inline flatbuffers::Offset<Movie> CreateMovieDirect(
 flatbuffers::Offset<Movie> CreateMovie(flatbuffers::FlatBufferBuilder &_fbb, const MovieT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 inline AttackerT *Attacker::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new AttackerT();
-  UnPackTo(_o, _resolver);
-  return _o;
+  flatbuffers::unique_ptr<AttackerT> _o = flatbuffers::unique_ptr<AttackerT>(new AttackerT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void Attacker::UnPackTo(AttackerT *_o, const flatbuffers::resolver_function_t *_resolver) const {
@@ -500,9 +506,9 @@ inline flatbuffers::Offset<Attacker> CreateAttacker(flatbuffers::FlatBufferBuild
 }
 
 inline MovieT *Movie::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new MovieT();
-  UnPackTo(_o, _resolver);
-  return _o;
+  flatbuffers::unique_ptr<MovieT> _o = flatbuffers::unique_ptr<MovieT>(new MovieT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void Movie::UnPackTo(MovieT *_o, const flatbuffers::resolver_function_t *_resolver) const {

@@ -3,6 +3,8 @@
 # namespace: Example
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class ArrayTable(object):
     __slots__ = ['_tab']
@@ -27,7 +29,7 @@ class ArrayTable(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             x = o + self._tab.Pos
-            from .ArrayStruct import ArrayStruct
+            from MyGame.Example.ArrayStruct import ArrayStruct
             obj = ArrayStruct()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -36,3 +38,43 @@ class ArrayTable(object):
 def ArrayTableStart(builder): builder.StartObject(1)
 def ArrayTableAddA(builder, a): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(a), 0)
 def ArrayTableEnd(builder): return builder.EndObject()
+
+import MyGame.Example.ArrayStruct
+try:
+    from typing import Optional
+except:
+    pass
+
+class ArrayTableT(object):
+
+    # ArrayTableT
+    def __init__(self):
+        self.a = None  # type: Optional[MyGame.Example.ArrayStruct.ArrayStructT]
+
+    @classmethod
+    def InitFromBuf(cls, buf, pos):
+        arrayTable = ArrayTable()
+        arrayTable.Init(buf, pos)
+        return cls.InitFromObj(arrayTable)
+
+    @classmethod
+    def InitFromObj(cls, arrayTable):
+        x = ArrayTableT()
+        x._UnPack(arrayTable)
+        return x
+
+    # ArrayTableT
+    def _UnPack(self, arrayTable):
+        if arrayTable is None:
+            return
+        if arrayTable.A() is not None:
+            self.a = MyGame.Example.ArrayStruct.ArrayStructT.InitFromObj(arrayTable.A())
+
+    # ArrayTableT
+    def Pack(self, builder):
+        ArrayTableStart(builder)
+        if self.a is not None:
+            a = self.a.Pack(builder)
+            ArrayTableAddA(builder, a)
+        arrayTable = ArrayTableEnd(builder)
+        return arrayTable

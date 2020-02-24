@@ -37,26 +37,22 @@ const char *FLATBUFFERS_VERSION() {
 
 const double kPi = 3.14159265358979323846;
 
-const char *const kTypeNames[] = {
 // clang-format off
-  #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-    CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
+const char *const kTypeNames[] = {
+  #define FLATBUFFERS_TD(ENUM, IDLTYPE, ...) \
     IDLTYPE,
     FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
   #undef FLATBUFFERS_TD
-  // clang-format on
   nullptr
 };
 
 const char kTypeSizes[] = {
-// clang-format off
-  #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-      CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
-      sizeof(CTYPE),
+  #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
+    sizeof(CTYPE),
     FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
   #undef FLATBUFFERS_TD
-  // clang-format on
 };
+// clang-format on
 
 // The enums in the reflection schema should match the ones we use internally.
 // Compare the last element to check if these go out of sync.
@@ -222,8 +218,7 @@ static std::string TokenToString(int t) {
     #define FLATBUFFERS_TOKEN(NAME, VALUE, STRING) STRING,
       FLATBUFFERS_GEN_TOKENS(FLATBUFFERS_TOKEN)
     #undef FLATBUFFERS_TOKEN
-    #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-      CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
+    #define FLATBUFFERS_TD(ENUM, IDLTYPE, ...) \
       IDLTYPE,
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
@@ -631,12 +626,6 @@ CheckedError Parser::ParseType(Type &type) {
         return Error(
             "length of fixed-length array must be positive and fit to "
             "uint16_t type");
-      }
-      // Check if enum arrays are used in C++ without specifying --scoped-enums
-      if ((opts.lang_to_generate & IDLOptions::kCpp) && !opts.scoped_enums &&
-          IsEnum(subtype)) {
-        return Error(
-            "--scoped-enums must be enabled to use enum arrays in C++\n");
       }
       type = Type(BASE_TYPE_ARRAY, subtype.struct_def, subtype.enum_def,
                   fixed_length);
@@ -1179,8 +1168,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
           size == SizeOf(field_value.type.base_type)) {
         switch (field_value.type.base_type) {
           // clang-format off
-          #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
+          #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
             case BASE_TYPE_ ## ENUM: \
               builder_.Pad(field->padding); \
               if (struct_def.fixed) { \
@@ -1194,10 +1182,9 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
                 builder_.AddElement(field_value.offset, val, valdef); \
               } \
               break;
-            FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD);
+            FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
           #undef FLATBUFFERS_TD
-          #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
+          #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
             case BASE_TYPE_ ## ENUM: \
               builder_.Pad(field->padding); \
               if (IsStruct(field->value.type)) { \
@@ -1208,7 +1195,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
                 builder_.AddOffset(field_value.offset, val); \
               } \
               break;
-            FLATBUFFERS_GEN_TYPES_POINTER(FLATBUFFERS_TD);
+            FLATBUFFERS_GEN_TYPES_POINTER(FLATBUFFERS_TD)
           #undef FLATBUFFERS_TD
             case BASE_TYPE_ARRAY:
               builder_.Pad(field->padding);
@@ -1258,8 +1245,7 @@ CheckedError Parser::ParseVectorDelimiters(uoffset_t &count, F body) {
 
 static bool CompareType(const uint8_t *a, const uint8_t *b, BaseType ftype) {
   switch (ftype) {
-#define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, \
-                       RTYPE, KTYPE)                                     \
+#define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
   case BASE_TYPE_##ENUM: return ReadScalar<CTYPE>(a) < ReadScalar<CTYPE>(b);
     FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
 #undef FLATBUFFERS_TD
@@ -1314,8 +1300,7 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
     auto &val = field_stack_.back().first;
     switch (val.type.base_type) {
       // clang-format off
-      #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
+      #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE,...) \
         case BASE_TYPE_ ## ENUM: \
           if (IsStruct(val.type)) SerializeStruct(*val.type.struct_def, val); \
           else { \
@@ -1429,8 +1414,7 @@ CheckedError Parser::ParseArray(Value &array) {
     auto &val = *it;
     // clang-format off
     switch (val.type.base_type) {
-      #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
+      #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
         case BASE_TYPE_ ## ENUM: \
           if (IsStruct(val.type)) { \
             SerializeStruct(builder, *val.type.struct_def, val); \
@@ -1782,14 +1766,13 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
   if (check_now && IsScalar(match_type)) {
     // clang-format off
     switch (match_type) {
-    #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
-            case BASE_TYPE_ ## ENUM: {\
-                CTYPE val; \
-                ECHECK(atot(e.constant.c_str(), *this, &val)); \
-                SingleValueRepack(e, val); \
-              break; }
-    FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD);
+    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
+      case BASE_TYPE_ ## ENUM: {\
+          CTYPE val; \
+          ECHECK(atot(e.constant.c_str(), *this, &val)); \
+          SingleValueRepack(e, val); \
+        break; }
+    FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
     default: break;
     }
@@ -2018,13 +2001,12 @@ struct EnumValBuilder {
   FLATBUFFERS_CHECKED_ERROR ValidateValue(int64_t *ev, bool next) {
     // clang-format off
     switch (enum_def.underlying_type.base_type) {
-    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE,   \
-                           PTYPE, RTYPE, KTYPE)                         \
+    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...)                   \
       case BASE_TYPE_##ENUM: {                                          \
         if (!IsInteger(BASE_TYPE_##ENUM)) break;                        \
         return ValidateImpl<BASE_TYPE_##ENUM, CTYPE>(ev, next ? 1 : 0); \
       }
-      FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD);
+      FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
     default: break;
     }
@@ -2213,7 +2195,8 @@ bool Parser::SupportsAdvancedUnionFeatures() const {
          (opts.lang_to_generate &
           ~(IDLOptions::kCpp | IDLOptions::kJs | IDLOptions::kTs |
             IDLOptions::kPhp | IDLOptions::kJava | IDLOptions::kCSharp |
-            IDLOptions::kKotlin | IDLOptions::kBinary)) == 0;
+            IDLOptions::kKotlin | IDLOptions::kBinary | IDLOptions::kSwift)) ==
+             0;
 }
 
 bool Parser::SupportsAdvancedArrayFeatures() const {
@@ -2782,10 +2765,13 @@ CheckedError Parser::ParseFlexBufferValue(flexbuffers::Builder *builder) {
       builder->Int(StringToInt(attribute_.c_str()));
       EXPECT(kTokenIntegerConstant);
       break;
-    case kTokenFloatConstant:
-      builder->Double(strtod(attribute_.c_str(), nullptr));
+    case kTokenFloatConstant: {
+      double d;
+      StringToNumber(attribute_.c_str(), &d);
+      builder->Double(d);
       EXPECT(kTokenFloatConstant);
       break;
+    }
     default:
       if (IsIdent("true")) {
         builder->Bool(true);
@@ -3238,13 +3224,14 @@ Offset<reflection::Field> FieldDef::Serialize(FlatBufferBuilder *builder,
   auto docs__ = parser.opts.binary_schema_comments
                     ? builder->CreateVectorOfStrings(doc_comment)
                     : 0;
+  double d;
+  StringToNumber(value.constant.c_str(), &d);
   return reflection::CreateField(
       *builder, name__, type__, id, value.offset,
       // Is uint64>max(int64) tested?
       IsInteger(value.type.base_type) ? StringToInt(value.constant.c_str()) : 0,
       // result may be platform-dependent if underlying is float (not double)
-      IsFloat(value.type.base_type) ? strtod(value.constant.c_str(), nullptr)
-                                    : 0.0,
+      IsFloat(value.type.base_type) ? d : 0.0,
       deprecated, required, key, attr__, docs__);
   // TODO: value.constant is almost always "0", we could save quite a bit of
   // space by sharing it. Same for common values of value.type.

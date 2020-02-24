@@ -58,7 +58,7 @@ public final class MonsterExtra extends Table {
       float f3,
       int dvecOffset,
       int fvecOffset) {
-    builder.startTable(10);
+    builder.startTable(11);
     MonsterExtra.addD3(builder, d3);
     MonsterExtra.addD2(builder, d2);
     MonsterExtra.addD1(builder, d1);
@@ -72,7 +72,7 @@ public final class MonsterExtra extends Table {
     return MonsterExtra.endMonsterExtra(builder);
   }
 
-  public static void startMonsterExtra(FlatBufferBuilder builder) { builder.startTable(10); }
+  public static void startMonsterExtra(FlatBufferBuilder builder) { builder.startTable(11); }
   public static void addD0(FlatBufferBuilder builder, double d0) { builder.addDouble(0, d0, Double.NaN); }
   public static void addD1(FlatBufferBuilder builder, double d1) { builder.addDouble(1, d1, Double.NaN); }
   public static void addD2(FlatBufferBuilder builder, double d2) { builder.addDouble(2, d2, Double.POSITIVE_INFINITY); }
