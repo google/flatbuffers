@@ -23,8 +23,9 @@ newFile="$tempDir/reflection_generated.h"
 
 if [ -f "$newFile" ]; then
   if ! cmp -s "$originalFile" "$newFile"; then
-    mv $newFile $original
+    mv $newFile $originalFile
+  else
+    rm $newFile
   fi
-  rm $newFile
   rmdir $tempDir
 fi
