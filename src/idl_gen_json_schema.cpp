@@ -121,7 +121,7 @@ class JsonSchemaGenerator : public BaseGenerator {
                                 const IDLOptions &options /* unused */) const {
     (void)options;
     return path + file_name + ".schema.json";
-  };
+  }
 
   bool generate() {
     if (parser_.root_struct_def_ == nullptr) { return false; }
