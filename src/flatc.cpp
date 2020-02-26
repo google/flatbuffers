@@ -148,6 +148,10 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --conform FILE         Specify a schema the following schemas should be\n"
     "                         an evolution of. Gives errors if not.\n"
     "  --conform-includes     Include path for the schema given with --conform PATH\n"
+    "  --filename-suffix      The suffix appended to the generated file names.\n"
+    "                         Default is '_generated'.\n"
+    "  --filename-ext         The extension append to the generated file names.\n"
+    "                         Default is language-specific (e.g., '.h' for C++)\n"
     "  --include-prefix       Prefix this path to any generated include statements.\n"
     "    PATH\n"
     "  --keep-prefix          Keep original prefix of schema include statement.\n"
@@ -339,6 +343,12 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       } else if (arg == "--root-type") {
         if (++argi >= argc) Error("missing type following: " + arg, true);
         opts.root_type = argv[argi];
+      } else if (arg == "--filename-suffix") {
+        if (++argi >= argc) Error("missing filename suffix: " + arg, true);
+        opts.filename_suffix = argv[argi];
+      } else if (arg == "--filename-ext") {
+        if (++argi >= argc) Error("missing filename extension: " + arg, true);
+        opts.filename_extension = argv[argi];
       } else if (arg == "--force-defaults") {
         opts.force_defaults = true;
       } else if (arg == "--force-empty") {
@@ -353,7 +363,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       } else if (arg == "--flexbuffers") {
         opts.use_flexbuffers = true;
       } else if (arg == "--cpp-std") {
-        if (++argi >= argc) Error("missing C++ standard specification" + arg, true);
+        if (++argi >= argc)
+          Error("missing C++ standard specification" + arg, true);
         opts.cpp_std = argv[argi];
       } else {
         for (size_t i = 0; i < params_.num_generators; ++i) {

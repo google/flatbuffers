@@ -252,8 +252,8 @@ void builder_move_ctor_conversion_before_finish_test() {
     auto stat_offset = CreateStat(fbb, fbb.CreateString("SomeId"), 0, 0);
     flatbuffers::grpc::MessageBuilder mb(std::move(fbb));
     auto monster_offset =
-        CreateMonster(mb, 0, 150, 100, mb.CreateString(m1_name()), 0, m1_color(),
-                      Any_NONE, 0, 0, 0, 0, 0, 0, stat_offset);
+        CreateMonster(mb, 0, 150, 100, mb.CreateString(m1_name()), 0,
+                      m1_color(), Any_NONE, 0, 0, 0, 0, 0, 0, stat_offset);
     mb.Finish(monster_offset);
     {
       auto mon = flatbuffers::GetRoot<Monster>(mb.GetBufferPointer());
@@ -262,7 +262,7 @@ void builder_move_ctor_conversion_before_finish_test() {
       TEST_EQ_STR(mon->name()->c_str(), m1_name().c_str());
       TEST_EQ(mon->color(), m1_color());
     }
-    TEST_EQ(1, MyGame::Example::Color_Red);    
+    TEST_EQ(1, MyGame::Example::Color_Red);
     TEST_EQ(1, m1_color());
     TEST_ASSERT_FUNC(release_n_verify(mb, m1_name(), m1_color()));
     TEST_EQ_FUNC(fbb.GetSize(), 0);
@@ -302,8 +302,8 @@ void builder_move_assign_conversion_before_finish_test() {
     auto stat_offset = CreateStat(fbb, fbb.CreateString("SomeId"), 0, 0);
     mb = std::move(fbb);
     auto monster_offset =
-        CreateMonster(mb, 0, 150, 100, mb.CreateString(m1_name()), 0, m1_color(),
-                      Any_NONE, 0, 0, 0, 0, 0, 0, stat_offset);
+        CreateMonster(mb, 0, 150, 100, mb.CreateString(m1_name()), 0,
+                      m1_color(), Any_NONE, 0, 0, 0, 0, 0, 0, stat_offset);
     mb.Finish(monster_offset);
     TEST_ASSERT_FUNC(release_n_verify(mb, m1_name(), m1_color()));
     TEST_EQ_FUNC(fbb.GetSize(), 0);
