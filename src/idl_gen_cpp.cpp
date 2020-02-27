@@ -82,12 +82,9 @@ struct IDLOptionsCpp : public IDLOptions {
   // All fields start with 'g_' prefix to distinguish from the base IDLOptions.
   CppStandard g_cpp_std;    // Base version of C++ standard.
   bool g_only_fixed_enums;  // Generate underlaying type for all enums.
-  // clang-format off
-  IDLOptionsCpp(const IDLOptions& opts)
-      : IDLOptions(opts),
-        g_cpp_std(CPP_STD_11),
-        g_only_fixed_enums(true) {}
-  // clang-format on
+
+  IDLOptionsCpp(const IDLOptions &opts)
+      : IDLOptions(opts), g_cpp_std(CPP_STD_11), g_only_fixed_enums(true) {}
 };
 
 class CppGenerator : public BaseGenerator {
@@ -638,10 +635,10 @@ class CppGenerator : public BaseGenerator {
   std::string GenTypeBasic(const Type &type, bool user_facing_type) const {
     // clang-format off
     static const char* const ctypename[] = {
-#define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
+      #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
         #CTYPE,
         FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
-#undef FLATBUFFERS_TD
+      #undef FLATBUFFERS_TD
     };
     // clang-format on
     if (user_facing_type) {
