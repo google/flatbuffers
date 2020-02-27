@@ -1968,12 +1968,12 @@ struct EnumValBuilder {
     if (enum_def.IsUInt64()) {
       uint64_t u64;
       fit = StringToNumber(value.c_str(), &u64);
-      ascending = u64 > temp->GetAsUInt64();
+      ascending = u64 >= temp->GetAsUInt64();
       temp->value = static_cast<int64_t>(u64);  // well-defined since C++20.
     } else {
       int64_t i64;
       fit = StringToNumber(value.c_str(), &i64);
-      ascending = i64 > temp->GetAsInt64();
+      ascending = i64 >= temp->GetAsInt64();
       temp->value = i64;
     }
     if (!fit) return parser.Error("enum value does not fit, \"" + value + "\"");
