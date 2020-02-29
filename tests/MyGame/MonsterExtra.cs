@@ -191,6 +191,14 @@ public class MonsterExtraT
   public string SerializeToJson() {
     return Newtonsoft.Json.JsonConvert.SerializeObject(this, Newtonsoft.Json.Formatting.Indented);
   }
+  public static MonsterExtraT DeserializeFromFlatBuffers(byte[] fbBuffer) {
+    return MonsterExtra.GetRootAsMonsterExtra(new ByteBuffer(fbBuffer)).UnPack();
+  }
+  public byte[] SerializeToFlatBuffers() {
+    var fbb = new FlatBufferBuilder(1);
+    fbb.Finish(MonsterExtra.Pack(fbb, this).Value);
+    return fbb.DataBuffer.ToSizedArray();
+  }
 }
 
 

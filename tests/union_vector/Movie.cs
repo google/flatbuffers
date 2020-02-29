@@ -191,5 +191,13 @@ public class MovieT
   public string SerializeToJson() {
     return Newtonsoft.Json.JsonConvert.SerializeObject(this, Newtonsoft.Json.Formatting.Indented);
   }
+  public static MovieT DeserializeFromFlatBuffers(byte[] fbBuffer) {
+    return Movie.GetRootAsMovie(new ByteBuffer(fbBuffer)).UnPack();
+  }
+  public byte[] SerializeToFlatBuffers() {
+    var fbb = new FlatBufferBuilder(1);
+    fbb.Finish(Movie.Pack(fbb, this).Value);
+    return fbb.DataBuffer.ToSizedArray();
+  }
 }
 
