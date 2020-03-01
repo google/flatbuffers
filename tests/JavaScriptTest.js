@@ -3,6 +3,8 @@ var assert = require('assert');
 var fs = require('fs');
 
 var flatbuffers = require('../js/flatbuffers').flatbuffers;
+global.flatbuffers = flatbuffers;
+
 var MyGame = require(process.argv[2]).MyGame;
 
 var isTsTest = process.env.FB_TS_TEST ? true : false; 

@@ -55,6 +55,15 @@ flatbuffers.FILE_IDENTIFIER_LENGTH = 4;
 flatbuffers.SIZE_PREFIX_LENGTH = 4;
 
 /**
+ * @param {number} low
+ * @param {number} high
+ * @returns {flatbuffers.Long}
+ */
+flatbuffers.createLong = function(low, high) {
+  return flatbuffers.Long.create(low, high);
+};
+
+/**
  * @enum {number}
  */
 flatbuffers.Encoding = {
