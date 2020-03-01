@@ -420,7 +420,8 @@ class JsTsGenerator : public BaseGenerator {
   }
 
   std::string GenDefaultValue(const Value &value, const std::string &context) {
-    if (value.type.enum_def) {
+    if (value.type.enum_def && value.type.base_type != BASE_TYPE_UNION &&
+        value.type.base_type != BASE_TYPE_VECTOR) {
       if (auto val = value.type.enum_def->FindByValue(value.constant)) {
         if (lang_.language == IDLOptions::kTs) {
           return GenPrefixedTypeName(WrapInNameSpace(*value.type.enum_def),
@@ -440,7 +441,13 @@ class JsTsGenerator : public BaseGenerator {
     switch (value.type.base_type) {
       case BASE_TYPE_BOOL: return value.constant == "0" ? "false" : "true";
 
-      case BASE_TYPE_STRING: return "null";
+      case BASE_TYPE_STRING:
+      case BASE_TYPE_UNION:
+      case BASE_TYPE_STRUCT: {
+        return "null";
+      }
+
+      case BASE_TYPE_VECTOR: return "[]";
 
       case BASE_TYPE_LONG:
       case BASE_TYPE_ULONG: {
@@ -826,6 +833,8 @@ class JsTsGenerator : public BaseGenerator {
   // is the non object api type $offset offset of the type for packing, assuming
   // global this is the object being packed
   //
+  // $default_val for default value of the field
+  //
   // $pre_offset will be a declaration of a variable with name $name and will be
   // non-empty and contain the offset for things that can't be serialized inline
   // such as table
@@ -833,10 +842,10 @@ class JsTsGenerator : public BaseGenerator {
   // $post_offset will include the value of variable declared in pre_offset as
   // well as offset(or values) of things that can be serialized inline such as
   // offset for struct or value for scalar
+  // TODO(khoi): Make this single pass
   void GenAllFieldUtilTS(const Parser &parser, StructDef &struct_def,
                          std::string *code_ptr, const std::string &fmt,
-                         const std::string &delimiter,
-                         const std::string &flatbuilderName = "builder") {
+                         const std::string &delimiter) {
     std::string &code = *code_ptr;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
@@ -846,10 +855,13 @@ class JsTsGenerator : public BaseGenerator {
       const auto field_name = MakeCamel(field.name, false);
       const std::string field_binded_method =
           "this." + field_name + ".bind(this)";
+
       std::string field_val = "";
       std::string field_type = "";
       std::string field_pre_offset = "";
       std::string field_post_offset = "";
+      const auto field_default_val =
+          GenDefaultValue(field.value, "flatbuffers");
 
       // Emit a scalar field
       if (IsScalar(field.value.type.base_type) ||
@@ -1004,12 +1016,14 @@ class JsTsGenerator : public BaseGenerator {
           std::regex_replace(
               std::regex_replace(
                   std::regex_replace(
-                      std::regex_replace(fmt, std::regex{ R"(\$type)" },
-                                         field_type),
-                      std::regex{ R"(\$name)" }, field_name),
-                  std::regex{ R"(\$val)" }, field_val),
-              std::regex{ R"(\$pre_offset)" }, field_pre_offset),
-          std::regex{ R"(\$post_offset)" }, field_post_offset);
+                      std::regex_replace(
+                          std::regex_replace(fmt, std::regex{ R"(\$type)" },
+                                             field_type),
+                          std::regex{ R"(\$name)" }, field_name),
+                      std::regex{ R"(\$val)" }, field_val),
+                  std::regex{ R"(\$pre_offset)" }, field_pre_offset),
+              std::regex{ R"(\$post_offset)" }, field_post_offset),
+          std::regex{ R"(\$default_val)" }, field_default_val);
 
       code += new_line;
       code += (new_line.find_first_not_of(' ') != std::string::npos &&
@@ -1059,8 +1073,8 @@ class JsTsGenerator : public BaseGenerator {
                         "\n");
       code += "\n */\n";
       code += "constructor(\n";
-      GenAllFieldUtilTS(parser, struct_def, code_ptr, "  public $name: $type",
-                        ",\n");
+      GenAllFieldUtilTS(parser, struct_def, code_ptr,
+                        "  public $name: $type = $default_val", ",\n");
       code += "\n){}\n\n";
     }
 
