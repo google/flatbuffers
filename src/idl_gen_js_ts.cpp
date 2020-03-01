@@ -1025,16 +1025,16 @@ class JsTsGenerator : public BaseGenerator {
               std::regex{ R"(\$post_offset)" }, field_post_offset),
           std::regex{ R"(\$default_val)" }, field_default_val);
 
-      code += new_line;
-      code += (new_line.find_first_not_of(' ') != std::string::npos &&
-               it != struct_def.fields.vec.end() - 1)
-                  ? delimiter
-                  : "";
+      if (!std::all_of(new_line.begin(), new_line.end(), isspace)) {
+        code += new_line;
+        if (it != struct_def.fields.vec.end() - 1) { code += delimiter; }
+      }
     }
   }
 
   void GenStructMemberValueTS(const StructDef &struct_def, std::string &code,
                               const std::string &prefix,
+                              const std::string &delimiter,
                               const bool nullCheck = true) {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
@@ -1044,13 +1044,13 @@ class JsTsGenerator : public BaseGenerator {
           prefix + "." + MakeCamel(field.name, false);
       if (IsStruct(field.value.type)) {
         GenStructMemberValueTS(*field.value.type.struct_def, code,
-                               curr_member_accessor);
+                               curr_member_accessor, delimiter);
       } else {
         if (nullCheck) {
-          code +=
-              ", (" + prefix + " === null ? 0 : " + curr_member_accessor + "!)";
+          code += delimiter + "(" + prefix +
+                  " === null ? 0 : " + curr_member_accessor + "!)";
         } else {
-          code += ", " + curr_member_accessor;
+          code += delimiter + curr_member_accessor;
         }
       }
     }
@@ -1075,7 +1075,7 @@ class JsTsGenerator : public BaseGenerator {
       code += "constructor(\n";
       GenAllFieldUtilTS(parser, struct_def, code_ptr,
                         "  public $name: $type = $default_val", ",\n");
-      code += "\n){}\n\n";
+      code += "\n){};\n\n";
     }
 
     code += "/**\n";
@@ -1086,23 +1086,23 @@ class JsTsGenerator : public BaseGenerator {
 
     if (!struct_def.fields.vec.empty()) {
       if (!struct_def.fixed) {
-        GenAllFieldUtilTS(parser, struct_def, code_ptr, "$pre_offset", "\n");
-        code += "\n\n" + create_func + ", \n";
+        GenAllFieldUtilTS(parser, struct_def, code_ptr, "$pre_offset\n", "");
+        code += create_func + ", \n";
         GenAllFieldUtilTS(parser, struct_def, code_ptr, "    $post_offset",
                           ",\n");
         code += "\n  );";
       } else {
-        code += "\n\n" + create_func;
+        code += create_func;
         // when packing struct, nested struct's members instead of the struct's
         // offset are used
-        GenStructMemberValueTS(struct_def, code, "this", false);
-        code += ");";
+        GenStructMemberValueTS(struct_def, code, "this", ",\n    ", false);
+        code += "\n  );";
       }
     } else {
       code += create_func + ");";
     }
 
-    code += "\n}\n";
+    code += "\n};\n";
     code += "}\n";
   }
 
@@ -1122,17 +1122,17 @@ class JsTsGenerator : public BaseGenerator {
     code += "unpack(): " + class_name + " {\n";
 
     if (struct_def.fields.vec.empty()) {
-      code += "  return new " + class_name + "();\n}\n\n";
-      code += base_unpack_to_func + "}\n";
+      code += "  return new " + class_name + "();\n};\n\n";
+      code += base_unpack_to_func + "};\n";
     } else {
       code += "  return new " + class_name + "(\n";
-      GenAllFieldUtilTS(parser, struct_def, code_ptr, "  $val", ",\n");
-      code += "\n)}\n\n";
+      GenAllFieldUtilTS(parser, struct_def, code_ptr, "    $val", ",\n");
+      code += "\n  )\n};\n\n";
 
       code += base_unpack_to_func + "\n";
       GenAllFieldUtilTS(parser, struct_def, code_ptr, "  _o.$name = $val",
                         "\n");
-      code += "\n}\n";
+      code += "\n};\n";
     }
   }
 
