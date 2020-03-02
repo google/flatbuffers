@@ -35,11 +35,6 @@
 
 namespace flatbuffers {
 
-static std::string GeneratedFileName(const std::string &path,
-                                     const std::string &file_name) {
-  return path + file_name + "_generated.go";
-}
-
 namespace go {
 
 // see https://golang.org/ref/spec#Keywords
@@ -64,7 +59,7 @@ class GoGenerator : public BaseGenerator {
   GoGenerator(const Parser &parser, const std::string &path,
               const std::string &file_name, const std::string &go_namespace)
       : BaseGenerator(parser, path, file_name, "" /* not used*/,
-                      "" /* not used */),
+                      "" /* not used */, "go"),
         cur_name_space_(nullptr) {
     std::istringstream iss(go_namespace);
     std::string component;
@@ -112,7 +107,8 @@ class GoGenerator : public BaseGenerator {
       const bool is_enum = !parser_.enums_.vec.empty();
       BeginFile(LastNamespacePart(go_namespace_), true, is_enum, &code);
       code += one_file_code;
-      const std::string filename = GeneratedFileName(path_, file_name_);
+      const std::string filename =
+          GeneratedFileName(path_, file_name_, parser_.opts);
       return SaveFile(filename.c_str(), code, false);
     }
 

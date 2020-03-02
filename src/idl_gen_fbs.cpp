@@ -99,7 +99,9 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
   for (auto enum_def_it = parser.enums_.vec.begin();
        enum_def_it != parser.enums_.vec.end(); ++enum_def_it) {
     EnumDef &enum_def = **enum_def_it;
-    if (parser.opts.include_dependence_headers && enum_def.generated) { continue; }
+    if (parser.opts.include_dependence_headers && enum_def.generated) {
+      continue;
+    }
     GenNameSpace(*enum_def.defined_namespace, &schema, &last_namespace);
     GenComment(enum_def.doc_comment, &schema, nullptr);
     if (enum_def.is_union)
@@ -121,7 +123,9 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
   for (auto it = parser.structs_.vec.begin(); it != parser.structs_.vec.end();
        ++it) {
     StructDef &struct_def = **it;
-    if (parser.opts.include_dependence_headers && struct_def.generated) { continue; }
+    if (parser.opts.include_dependence_headers && struct_def.generated) {
+      continue;
+    }
     GenNameSpace(*struct_def.defined_namespace, &schema, &last_namespace);
     GenComment(struct_def.doc_comment, &schema, nullptr);
     schema += "table " + struct_def.name + " {\n";
