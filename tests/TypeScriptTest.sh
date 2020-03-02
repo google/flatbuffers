@@ -25,7 +25,7 @@ export FB_TS_TEST="TRUE"
 tsc --strict --noUnusedParameters --noUnusedLocals --noImplicitReturns --strictNullChecks ts/monster_test_generated.ts
 node JavaScriptTest ./ts/monster_test_generated
 
-../flatc --ts --js --no-fb-import --gen-object-api -o ts union_vector/union_vector.fbs
+../flatc --ts --no-fb-import --gen-object-api -o ts union_vector/union_vector.fbs
 tsc --strict --noUnusedParameters --noUnusedLocals --noImplicitReturns --strictNullChecks ts/union_vector_generated.ts
 node JavaScriptUnionVectorTest ./ts/union_vector_generated
 
