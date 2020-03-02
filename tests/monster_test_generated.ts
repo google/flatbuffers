@@ -123,6 +123,28 @@ static createInParentNamespace(builder:flatbuffers.Builder):flatbuffers.Offset {
   InParentNamespace.startInParentNamespace(builder);
   return InParentNamespace.endInParentNamespace(builder);
 }
+
+/**
+ * @returns InParentNamespaceT
+ */
+unpack(): InParentNamespaceT {
+  return new InParentNamespaceT();
+};
+
+/**
+ * @param InParentNamespaceT _o
+ */
+unpackTo(_o: InParentNamespaceT): void {};
+}
+
+export class InParentNamespaceT {
+/**
+ * @param flatbuffers.Builder builder
+ * @returns flatbuffers.Offset
+ */
+pack(builder:flatbuffers.Builder): flatbuffers.Offset {
+  return InParentNamespace.createInParentNamespace(builder);
+};
 }
 }
 /**
@@ -183,6 +205,28 @@ static createMonster(builder:flatbuffers.Builder):flatbuffers.Offset {
   Monster.startMonster(builder);
   return Monster.endMonster(builder);
 }
+
+/**
+ * @returns MonsterT
+ */
+unpack(): MonsterT {
+  return new MonsterT();
+};
+
+/**
+ * @param MonsterT _o
+ */
+unpackTo(_o: MonsterT): void {};
+}
+
+export class MonsterT {
+/**
+ * @param flatbuffers.Builder builder
+ * @returns flatbuffers.Offset
+ */
+pack(builder:flatbuffers.Builder): flatbuffers.Offset {
+  return Monster.createMonster(builder);
+};
 }
 }
 /**
@@ -262,6 +306,47 @@ static createTest(builder:flatbuffers.Builder, a: number, b: number):flatbuffers
   return builder.offset();
 };
 
+
+/**
+ * @returns TestT
+ */
+unpack(): TestT {
+  return new TestT(
+    this.a(),
+    this.b()
+  )
+};
+
+/**
+ * @param TestT _o
+ */
+unpackTo(_o: TestT): void {
+  _o.a = this.a()
+  _o.b = this.b()
+};
+}
+
+export class TestT {
+/**
+ * @constructor
+ * @param number a
+ * @param number b
+ */
+constructor(
+  public a: number = 0,
+  public b: number = 0
+){};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @returns flatbuffers.Offset
+ */
+pack(builder:flatbuffers.Builder): flatbuffers.Offset {
+  return Test.createTest(builder,
+    this.a,
+    this.b
+  );
+};
 }
 }
 /**
@@ -354,6 +439,42 @@ static createTestSimpleTableWithEnum(builder:flatbuffers.Builder, color:MyGame.E
   TestSimpleTableWithEnum.addColor(builder, color);
   return TestSimpleTableWithEnum.endTestSimpleTableWithEnum(builder);
 }
+
+/**
+ * @returns TestSimpleTableWithEnumT
+ */
+unpack(): TestSimpleTableWithEnumT {
+  return new TestSimpleTableWithEnumT(
+    this.color()
+  )
+};
+
+/**
+ * @param TestSimpleTableWithEnumT _o
+ */
+unpackTo(_o: TestSimpleTableWithEnumT): void {
+  _o.color = this.color()
+};
+}
+
+export class TestSimpleTableWithEnumT {
+/**
+ * @constructor
+ * @param MyGame.Example.Color color
+ */
+constructor(
+  public color: MyGame.Example.Color = MyGame.Example.Color.Green
+){};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @returns flatbuffers.Offset
+ */
+pack(builder:flatbuffers.Builder): flatbuffers.Offset {
+  return TestSimpleTableWithEnum.createTestSimpleTableWithEnum(builder, 
+    this.color
+  );
+};
 }
 }
 /**
@@ -521,6 +642,68 @@ static createVec3(builder:flatbuffers.Builder, x: number, y: number, z: number, 
   return builder.offset();
 };
 
+
+/**
+ * @returns Vec3T
+ */
+unpack(): Vec3T {
+  return new Vec3T(
+    this.x(),
+    this.y(),
+    this.z(),
+    this.test1(),
+    this.test2(),
+    ((this.test3() !== null) ? this.test3()!.unpack() : null)
+  )
+};
+
+/**
+ * @param Vec3T _o
+ */
+unpackTo(_o: Vec3T): void {
+  _o.x = this.x()
+  _o.y = this.y()
+  _o.z = this.z()
+  _o.test1 = this.test1()
+  _o.test2 = this.test2()
+  _o.test3 = ((this.test3() !== null) ? this.test3()!.unpack() : null)
+};
+}
+
+export class Vec3T {
+/**
+ * @constructor
+ * @param number x
+ * @param number y
+ * @param number z
+ * @param number test1
+ * @param MyGame.Example.Color test2
+ * @param MyGame.Example.TestT|null test3
+ */
+constructor(
+  public x: number = 0.0,
+  public y: number = 0.0,
+  public z: number = 0.0,
+  public test1: number = 0.0,
+  public test2: MyGame.Example.Color = /** } */ (0),
+  public test3: MyGame.Example.TestT|null = null
+){};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @returns flatbuffers.Offset
+ */
+pack(builder:flatbuffers.Builder): flatbuffers.Offset {
+  return Vec3.createVec3(builder,
+    this.x,
+    this.y,
+    this.z,
+    this.test1,
+    this.test2,
+    (this.test3 === null ? 0 : this.test3.a!),
+    (this.test3 === null ? 0 : this.test3.b!)
+  );
+};
 }
 }
 /**
@@ -599,6 +782,47 @@ static createAbility(builder:flatbuffers.Builder, id: number, distance: number):
   return builder.offset();
 };
 
+
+/**
+ * @returns AbilityT
+ */
+unpack(): AbilityT {
+  return new AbilityT(
+    this.id(),
+    this.distance()
+  )
+};
+
+/**
+ * @param AbilityT _o
+ */
+unpackTo(_o: AbilityT): void {
+  _o.id = this.id()
+  _o.distance = this.distance()
+};
+}
+
+export class AbilityT {
+/**
+ * @constructor
+ * @param number id
+ * @param number distance
+ */
+constructor(
+  public id: number = 0,
+  public distance: number = 0
+){};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @returns flatbuffers.Offset
+ */
+pack(builder:flatbuffers.Builder): flatbuffers.Offset {
+  return Ability.createAbility(builder,
+    this.id,
+    this.distance
+  );
+};
 }
 }
 /**
@@ -743,6 +967,53 @@ static createStat(builder:flatbuffers.Builder, idOffset:flatbuffers.Offset, val:
   Stat.addCount(builder, count);
   return Stat.endStat(builder);
 }
+
+/**
+ * @returns StatT
+ */
+unpack(): StatT {
+  return new StatT(
+    this.id(),
+    this.val(),
+    this.count()
+  )
+};
+
+/**
+ * @param StatT _o
+ */
+unpackTo(_o: StatT): void {
+  _o.id = this.id()
+  _o.val = this.val()
+  _o.count = this.count()
+};
+}
+
+export class StatT {
+/**
+ * @constructor
+ * @param string|Uint8Array|null id
+ * @param flatbuffers.Long val
+ * @param number count
+ */
+constructor(
+  public id: string|Uint8Array|null = null,
+  public val: flatbuffers.Long = flatbuffers.createLong(0, 0),
+  public count: number = 0
+){};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @returns flatbuffers.Offset
+ */
+pack(builder:flatbuffers.Builder): flatbuffers.Offset {
+  const id = ((this.id !== null) ? builder.createString(this.id!) : 0);
+  return Stat.createStat(builder, 
+    id,
+    this.val,
+    this.count
+  );
+};
 }
 }
 /**
@@ -835,6 +1106,42 @@ static createReferrable(builder:flatbuffers.Builder, id:flatbuffers.Long):flatbu
   Referrable.addId(builder, id);
   return Referrable.endReferrable(builder);
 }
+
+/**
+ * @returns ReferrableT
+ */
+unpack(): ReferrableT {
+  return new ReferrableT(
+    this.id()
+  )
+};
+
+/**
+ * @param ReferrableT _o
+ */
+unpackTo(_o: ReferrableT): void {
+  _o.id = this.id()
+};
+}
+
+export class ReferrableT {
+/**
+ * @constructor
+ * @param flatbuffers.Long id
+ */
+constructor(
+  public id: flatbuffers.Long = flatbuffers.createLong(0, 0)
+){};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @returns flatbuffers.Offset
+ */
+pack(builder:flatbuffers.Builder): flatbuffers.Offset {
+  return Referrable.createReferrable(builder, 
+    this.id
+  );
+};
 }
 }
 /**
@@ -1011,7 +1318,11 @@ testType():MyGame.Example.Any {
  * @param flatbuffers.Table obj
  * @returns ?flatbuffers.Table
  */
-test<T extends flatbuffers.Table>(obj:T):T|null {
+test<T extends flatbuffers.Table>(obj:T|string):T|string|null {
+  if(typeof obj === 'string') {
+    var offset = this.bb!.__offset(this.bb_pos, 20);
+  return offset ? this.bb!.__string(this.bb_pos + offset) as string : null;
+  }
   var offset = this.bb!.__offset(this.bb_pos, 20);
   return offset ? this.bb!.__union(obj, this.bb_pos + offset) : null;
 };
@@ -1719,7 +2030,11 @@ anyUniqueType():MyGame.Example.AnyUniqueAliases {
  * @param flatbuffers.Table obj
  * @returns ?flatbuffers.Table
  */
-anyUnique<T extends flatbuffers.Table>(obj:T):T|null {
+anyUnique<T extends flatbuffers.Table>(obj:T|string):T|string|null {
+  if(typeof obj === 'string') {
+    var offset = this.bb!.__offset(this.bb_pos, 92);
+  return offset ? this.bb!.__string(this.bb_pos + offset) as string : null;
+  }
   var offset = this.bb!.__offset(this.bb_pos, 92);
   return offset ? this.bb!.__union(obj, this.bb_pos + offset) : null;
 };
@@ -1736,7 +2051,11 @@ anyAmbiguousType():MyGame.Example.AnyAmbiguousAliases {
  * @param flatbuffers.Table obj
  * @returns ?flatbuffers.Table
  */
-anyAmbiguous<T extends flatbuffers.Table>(obj:T):T|null {
+anyAmbiguous<T extends flatbuffers.Table>(obj:T|string):T|string|null {
+  if(typeof obj === 'string') {
+    var offset = this.bb!.__offset(this.bb_pos, 96);
+  return offset ? this.bb!.__string(this.bb_pos + offset) as string : null;
+  }
   var offset = this.bb!.__offset(this.bb_pos, 96);
   return offset ? this.bb!.__union(obj, this.bb_pos + offset) : null;
 };
@@ -2597,6 +2916,347 @@ static createMonster(builder:flatbuffers.Builder, posOffset:flatbuffers.Offset, 
   Monster.addSignedEnum(builder, signedEnum);
   return Monster.endMonster(builder);
 }
+
+/**
+ * @returns MonsterT
+ */
+unpack(): MonsterT {
+  return new MonsterT(
+    ((this.pos() !== null) ? this.pos()!.unpack() : null),
+    this.mana(),
+    this.hp(),
+    this.name(),
+    this.bb!.createScalarList(this.inventory.bind(this), this.inventoryLength()),
+    this.color(),
+    this.testType(),
+    (() => {
+    let targetEnumStr = MyGame.Example.Any[this.testType()];
+    if(targetEnumStr === 'NONE') { return null; } 
+
+    if(targetEnumStr === 'Monster') { return (this.test(new MyGame.Example.Monster())! as MyGame.Example.Monster).unpack();}
+    if(targetEnumStr === 'TestSimpleTableWithEnum') { return (this.test(new MyGame.Example.TestSimpleTableWithEnum())! as MyGame.Example.TestSimpleTableWithEnum).unpack();}
+    if(targetEnumStr === 'MyGame_Example2_Monster') { return (this.test(new MyGame.Example2.Monster())! as MyGame.Example2.Monster).unpack();}
+    return null;
+  })(),
+    this.bb!.createObjList<MyGame.Example.Test, (MyGame.Example.TestT)[]>(this.test4.bind(this), this.test4Length()),
+    this.bb!.createStringList(this.testarrayofstring.bind(this), this.testarrayofstringLength()),
+    this.bb!.createObjList<MyGame.Example.Monster, (MyGame.Example.MonsterT)[]>(this.testarrayoftables.bind(this), this.testarrayoftablesLength()),
+    ((this.enemy() !== null) ? this.enemy()!.unpack() : null),
+    this.bb!.createScalarList(this.testnestedflatbuffer.bind(this), this.testnestedflatbufferLength()),
+    ((this.testempty() !== null) ? this.testempty()!.unpack() : null),
+    this.testbool(),
+    this.testhashs32Fnv1(),
+    this.testhashu32Fnv1(),
+    this.testhashs64Fnv1(),
+    this.testhashu64Fnv1(),
+    this.testhashs32Fnv1a(),
+    this.testhashu32Fnv1a(),
+    this.testhashs64Fnv1a(),
+    this.testhashu64Fnv1a(),
+    this.bb!.createScalarList(this.testarrayofbools.bind(this), this.testarrayofboolsLength()),
+    this.testf(),
+    this.testf2(),
+    this.testf3(),
+    this.bb!.createStringList(this.testarrayofstring2.bind(this), this.testarrayofstring2Length()),
+    this.bb!.createObjList<MyGame.Example.Ability, (MyGame.Example.AbilityT)[]>(this.testarrayofsortedstruct.bind(this), this.testarrayofsortedstructLength()),
+    this.bb!.createScalarList(this.flex.bind(this), this.flexLength()),
+    this.bb!.createObjList<MyGame.Example.Test, (MyGame.Example.TestT)[]>(this.test5.bind(this), this.test5Length()),
+    this.bb!.createScalarList(this.vectorOfLongs.bind(this), this.vectorOfLongsLength()),
+    this.bb!.createScalarList(this.vectorOfDoubles.bind(this), this.vectorOfDoublesLength()),
+    ((this.parentNamespaceTest() !== null) ? this.parentNamespaceTest()!.unpack() : null),
+    this.bb!.createObjList<MyGame.Example.Referrable, (MyGame.Example.ReferrableT)[]>(this.vectorOfReferrables.bind(this), this.vectorOfReferrablesLength()),
+    this.singleWeakReference(),
+    this.bb!.createScalarList(this.vectorOfWeakReferences.bind(this), this.vectorOfWeakReferencesLength()),
+    this.bb!.createObjList<MyGame.Example.Referrable, (MyGame.Example.ReferrableT)[]>(this.vectorOfStrongReferrables.bind(this), this.vectorOfStrongReferrablesLength()),
+    this.coOwningReference(),
+    this.bb!.createScalarList(this.vectorOfCoOwningReferences.bind(this), this.vectorOfCoOwningReferencesLength()),
+    this.nonOwningReference(),
+    this.bb!.createScalarList(this.vectorOfNonOwningReferences.bind(this), this.vectorOfNonOwningReferencesLength()),
+    this.anyUniqueType(),
+    (() => {
+    let targetEnumStr = MyGame.Example.AnyUniqueAliases[this.anyUniqueType()];
+    if(targetEnumStr === 'NONE') { return null; } 
+
+    if(targetEnumStr === 'M') { return (this.anyUnique(new MyGame.Example.Monster())! as MyGame.Example.Monster).unpack();}
+    if(targetEnumStr === 'TS') { return (this.anyUnique(new MyGame.Example.TestSimpleTableWithEnum())! as MyGame.Example.TestSimpleTableWithEnum).unpack();}
+    if(targetEnumStr === 'M2') { return (this.anyUnique(new MyGame.Example2.Monster())! as MyGame.Example2.Monster).unpack();}
+    return null;
+  })(),
+    this.anyAmbiguousType(),
+    (() => {
+    let targetEnumStr = MyGame.Example.AnyAmbiguousAliases[this.anyAmbiguousType()];
+    if(targetEnumStr === 'NONE') { return null; } 
+
+    if(targetEnumStr === 'M1') { return (this.anyAmbiguous(new MyGame.Example.Monster())! as MyGame.Example.Monster).unpack();}
+    if(targetEnumStr === 'M2') { return (this.anyAmbiguous(new MyGame.Example.Monster())! as MyGame.Example.Monster).unpack();}
+    if(targetEnumStr === 'M3') { return (this.anyAmbiguous(new MyGame.Example.Monster())! as MyGame.Example.Monster).unpack();}
+    return null;
+  })(),
+    this.bb!.createScalarList(this.vectorOfEnums.bind(this), this.vectorOfEnumsLength()),
+    this.signedEnum()
+  )
+};
+
+/**
+ * @param MonsterT _o
+ */
+unpackTo(_o: MonsterT): void {
+  _o.pos = ((this.pos() !== null) ? this.pos()!.unpack() : null)
+  _o.mana = this.mana()
+  _o.hp = this.hp()
+  _o.name = this.name()
+  _o.inventory = this.bb!.createScalarList(this.inventory.bind(this), this.inventoryLength())
+  _o.color = this.color()
+  _o.testType = this.testType()
+  _o.test = (() => {
+    let targetEnumStr = MyGame.Example.Any[this.testType()];
+    if(targetEnumStr === 'NONE') { return null; } 
+
+    if(targetEnumStr === 'Monster') { return (this.test(new MyGame.Example.Monster())! as MyGame.Example.Monster).unpack();}
+    if(targetEnumStr === 'TestSimpleTableWithEnum') { return (this.test(new MyGame.Example.TestSimpleTableWithEnum())! as MyGame.Example.TestSimpleTableWithEnum).unpack();}
+    if(targetEnumStr === 'MyGame_Example2_Monster') { return (this.test(new MyGame.Example2.Monster())! as MyGame.Example2.Monster).unpack();}
+    return null;
+  })()
+  _o.test4 = this.bb!.createObjList<MyGame.Example.Test, (MyGame.Example.TestT)[]>(this.test4.bind(this), this.test4Length())
+  _o.testarrayofstring = this.bb!.createStringList(this.testarrayofstring.bind(this), this.testarrayofstringLength())
+  _o.testarrayoftables = this.bb!.createObjList<MyGame.Example.Monster, (MyGame.Example.MonsterT)[]>(this.testarrayoftables.bind(this), this.testarrayoftablesLength())
+  _o.enemy = ((this.enemy() !== null) ? this.enemy()!.unpack() : null)
+  _o.testnestedflatbuffer = this.bb!.createScalarList(this.testnestedflatbuffer.bind(this), this.testnestedflatbufferLength())
+  _o.testempty = ((this.testempty() !== null) ? this.testempty()!.unpack() : null)
+  _o.testbool = this.testbool()
+  _o.testhashs32Fnv1 = this.testhashs32Fnv1()
+  _o.testhashu32Fnv1 = this.testhashu32Fnv1()
+  _o.testhashs64Fnv1 = this.testhashs64Fnv1()
+  _o.testhashu64Fnv1 = this.testhashu64Fnv1()
+  _o.testhashs32Fnv1a = this.testhashs32Fnv1a()
+  _o.testhashu32Fnv1a = this.testhashu32Fnv1a()
+  _o.testhashs64Fnv1a = this.testhashs64Fnv1a()
+  _o.testhashu64Fnv1a = this.testhashu64Fnv1a()
+  _o.testarrayofbools = this.bb!.createScalarList(this.testarrayofbools.bind(this), this.testarrayofboolsLength())
+  _o.testf = this.testf()
+  _o.testf2 = this.testf2()
+  _o.testf3 = this.testf3()
+  _o.testarrayofstring2 = this.bb!.createStringList(this.testarrayofstring2.bind(this), this.testarrayofstring2Length())
+  _o.testarrayofsortedstruct = this.bb!.createObjList<MyGame.Example.Ability, (MyGame.Example.AbilityT)[]>(this.testarrayofsortedstruct.bind(this), this.testarrayofsortedstructLength())
+  _o.flex = this.bb!.createScalarList(this.flex.bind(this), this.flexLength())
+  _o.test5 = this.bb!.createObjList<MyGame.Example.Test, (MyGame.Example.TestT)[]>(this.test5.bind(this), this.test5Length())
+  _o.vectorOfLongs = this.bb!.createScalarList(this.vectorOfLongs.bind(this), this.vectorOfLongsLength())
+  _o.vectorOfDoubles = this.bb!.createScalarList(this.vectorOfDoubles.bind(this), this.vectorOfDoublesLength())
+  _o.parentNamespaceTest = ((this.parentNamespaceTest() !== null) ? this.parentNamespaceTest()!.unpack() : null)
+  _o.vectorOfReferrables = this.bb!.createObjList<MyGame.Example.Referrable, (MyGame.Example.ReferrableT)[]>(this.vectorOfReferrables.bind(this), this.vectorOfReferrablesLength())
+  _o.singleWeakReference = this.singleWeakReference()
+  _o.vectorOfWeakReferences = this.bb!.createScalarList(this.vectorOfWeakReferences.bind(this), this.vectorOfWeakReferencesLength())
+  _o.vectorOfStrongReferrables = this.bb!.createObjList<MyGame.Example.Referrable, (MyGame.Example.ReferrableT)[]>(this.vectorOfStrongReferrables.bind(this), this.vectorOfStrongReferrablesLength())
+  _o.coOwningReference = this.coOwningReference()
+  _o.vectorOfCoOwningReferences = this.bb!.createScalarList(this.vectorOfCoOwningReferences.bind(this), this.vectorOfCoOwningReferencesLength())
+  _o.nonOwningReference = this.nonOwningReference()
+  _o.vectorOfNonOwningReferences = this.bb!.createScalarList(this.vectorOfNonOwningReferences.bind(this), this.vectorOfNonOwningReferencesLength())
+  _o.anyUniqueType = this.anyUniqueType()
+  _o.anyUnique = (() => {
+    let targetEnumStr = MyGame.Example.AnyUniqueAliases[this.anyUniqueType()];
+    if(targetEnumStr === 'NONE') { return null; } 
+
+    if(targetEnumStr === 'M') { return (this.anyUnique(new MyGame.Example.Monster())! as MyGame.Example.Monster).unpack();}
+    if(targetEnumStr === 'TS') { return (this.anyUnique(new MyGame.Example.TestSimpleTableWithEnum())! as MyGame.Example.TestSimpleTableWithEnum).unpack();}
+    if(targetEnumStr === 'M2') { return (this.anyUnique(new MyGame.Example2.Monster())! as MyGame.Example2.Monster).unpack();}
+    return null;
+  })()
+  _o.anyAmbiguousType = this.anyAmbiguousType()
+  _o.anyAmbiguous = (() => {
+    let targetEnumStr = MyGame.Example.AnyAmbiguousAliases[this.anyAmbiguousType()];
+    if(targetEnumStr === 'NONE') { return null; } 
+
+    if(targetEnumStr === 'M1') { return (this.anyAmbiguous(new MyGame.Example.Monster())! as MyGame.Example.Monster).unpack();}
+    if(targetEnumStr === 'M2') { return (this.anyAmbiguous(new MyGame.Example.Monster())! as MyGame.Example.Monster).unpack();}
+    if(targetEnumStr === 'M3') { return (this.anyAmbiguous(new MyGame.Example.Monster())! as MyGame.Example.Monster).unpack();}
+    return null;
+  })()
+  _o.vectorOfEnums = this.bb!.createScalarList(this.vectorOfEnums.bind(this), this.vectorOfEnumsLength())
+  _o.signedEnum = this.signedEnum()
+};
+}
+
+export class MonsterT {
+/**
+ * @constructor
+ * @param MyGame.Example.Vec3T|null pos
+ * @param number mana
+ * @param number hp
+ * @param string|Uint8Array|null name
+ * @param (number)[] inventory
+ * @param MyGame.Example.Color color
+ * @param MyGame.Example.Any testType
+ * @param MyGame.Example.MonsterT|MyGame.Example.TestSimpleTableWithEnumT|MyGame.Example2.MonsterT|null test
+ * @param (MyGame.Example.TestT)[] test4
+ * @param (string)[] testarrayofstring
+ * @param (MyGame.Example.MonsterT)[] testarrayoftables
+ * @param MyGame.Example.MonsterT|null enemy
+ * @param (number)[] testnestedflatbuffer
+ * @param MyGame.Example.StatT|null testempty
+ * @param boolean testbool
+ * @param number testhashs32Fnv1
+ * @param number testhashu32Fnv1
+ * @param flatbuffers.Long testhashs64Fnv1
+ * @param flatbuffers.Long testhashu64Fnv1
+ * @param number testhashs32Fnv1a
+ * @param number testhashu32Fnv1a
+ * @param flatbuffers.Long testhashs64Fnv1a
+ * @param flatbuffers.Long testhashu64Fnv1a
+ * @param (boolean)[] testarrayofbools
+ * @param number testf
+ * @param number testf2
+ * @param number testf3
+ * @param (string)[] testarrayofstring2
+ * @param (MyGame.Example.AbilityT)[] testarrayofsortedstruct
+ * @param (number)[] flex
+ * @param (MyGame.Example.TestT)[] test5
+ * @param (flatbuffers.Long)[] vectorOfLongs
+ * @param (number)[] vectorOfDoubles
+ * @param MyGame.InParentNamespaceT|null parentNamespaceTest
+ * @param (MyGame.Example.ReferrableT)[] vectorOfReferrables
+ * @param flatbuffers.Long singleWeakReference
+ * @param (flatbuffers.Long)[] vectorOfWeakReferences
+ * @param (MyGame.Example.ReferrableT)[] vectorOfStrongReferrables
+ * @param flatbuffers.Long coOwningReference
+ * @param (flatbuffers.Long)[] vectorOfCoOwningReferences
+ * @param flatbuffers.Long nonOwningReference
+ * @param (flatbuffers.Long)[] vectorOfNonOwningReferences
+ * @param MyGame.Example.AnyUniqueAliases anyUniqueType
+ * @param MyGame.Example.MonsterT|MyGame.Example.TestSimpleTableWithEnumT|MyGame.Example2.MonsterT|null anyUnique
+ * @param MyGame.Example.AnyAmbiguousAliases anyAmbiguousType
+ * @param MyGame.Example.MonsterT|null anyAmbiguous
+ * @param (MyGame.Example.Color)[] vectorOfEnums
+ * @param MyGame.Example.Race signedEnum
+ */
+constructor(
+  public pos: MyGame.Example.Vec3T|null = null,
+  public mana: number = 150,
+  public hp: number = 100,
+  public name: string|Uint8Array|null = null,
+  public inventory: (number)[] = [],
+  public color: MyGame.Example.Color = MyGame.Example.Color.Blue,
+  public testType: MyGame.Example.Any = MyGame.Example.Any.NONE,
+  public test: MyGame.Example.MonsterT|MyGame.Example.TestSimpleTableWithEnumT|MyGame.Example2.MonsterT|null = null,
+  public test4: (MyGame.Example.TestT)[] = [],
+  public testarrayofstring: (string)[] = [],
+  public testarrayoftables: (MyGame.Example.MonsterT)[] = [],
+  public enemy: MyGame.Example.MonsterT|null = null,
+  public testnestedflatbuffer: (number)[] = [],
+  public testempty: MyGame.Example.StatT|null = null,
+  public testbool: boolean = false,
+  public testhashs32Fnv1: number = 0,
+  public testhashu32Fnv1: number = 0,
+  public testhashs64Fnv1: flatbuffers.Long = flatbuffers.createLong(0, 0),
+  public testhashu64Fnv1: flatbuffers.Long = flatbuffers.createLong(0, 0),
+  public testhashs32Fnv1a: number = 0,
+  public testhashu32Fnv1a: number = 0,
+  public testhashs64Fnv1a: flatbuffers.Long = flatbuffers.createLong(0, 0),
+  public testhashu64Fnv1a: flatbuffers.Long = flatbuffers.createLong(0, 0),
+  public testarrayofbools: (boolean)[] = [],
+  public testf: number = 3.14159,
+  public testf2: number = 3.0,
+  public testf3: number = 0.0,
+  public testarrayofstring2: (string)[] = [],
+  public testarrayofsortedstruct: (MyGame.Example.AbilityT)[] = [],
+  public flex: (number)[] = [],
+  public test5: (MyGame.Example.TestT)[] = [],
+  public vectorOfLongs: (flatbuffers.Long)[] = [],
+  public vectorOfDoubles: (number)[] = [],
+  public parentNamespaceTest: MyGame.InParentNamespaceT|null = null,
+  public vectorOfReferrables: (MyGame.Example.ReferrableT)[] = [],
+  public singleWeakReference: flatbuffers.Long = flatbuffers.createLong(0, 0),
+  public vectorOfWeakReferences: (flatbuffers.Long)[] = [],
+  public vectorOfStrongReferrables: (MyGame.Example.ReferrableT)[] = [],
+  public coOwningReference: flatbuffers.Long = flatbuffers.createLong(0, 0),
+  public vectorOfCoOwningReferences: (flatbuffers.Long)[] = [],
+  public nonOwningReference: flatbuffers.Long = flatbuffers.createLong(0, 0),
+  public vectorOfNonOwningReferences: (flatbuffers.Long)[] = [],
+  public anyUniqueType: MyGame.Example.AnyUniqueAliases = MyGame.Example.AnyUniqueAliases.NONE,
+  public anyUnique: MyGame.Example.MonsterT|MyGame.Example.TestSimpleTableWithEnumT|MyGame.Example2.MonsterT|null = null,
+  public anyAmbiguousType: MyGame.Example.AnyAmbiguousAliases = MyGame.Example.AnyAmbiguousAliases.NONE,
+  public anyAmbiguous: MyGame.Example.MonsterT|null = null,
+  public vectorOfEnums: (MyGame.Example.Color)[] = [],
+  public signedEnum: MyGame.Example.Race = MyGame.Example.Race.None
+){};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @returns flatbuffers.Offset
+ */
+pack(builder:flatbuffers.Builder): flatbuffers.Offset {
+  const name = ((this.name !== null) ? builder.createString(this.name!) : 0);
+  const inventory = Monster.createInventoryVector(builder, this.inventory);
+  const test = builder.createObjectOffset(this.test);
+  const test4 = builder.createStructOffsetList(this.test4, Monster.startTest4Vector);
+  const testarrayofstring = Monster.createTestarrayofstringVector(builder, builder.createObjectOffsetList(this.testarrayofstring));
+  const testarrayoftables = Monster.createTestarrayoftablesVector(builder, builder.createObjectOffsetList(this.testarrayoftables));
+  const testnestedflatbuffer = Monster.createTestnestedflatbufferVector(builder, this.testnestedflatbuffer);
+  const testarrayofbools = Monster.createTestarrayofboolsVector(builder, this.testarrayofbools);
+  const testarrayofstring2 = Monster.createTestarrayofstring2Vector(builder, builder.createObjectOffsetList(this.testarrayofstring2));
+  const testarrayofsortedstruct = builder.createStructOffsetList(this.testarrayofsortedstruct, Monster.startTestarrayofsortedstructVector);
+  const flex = Monster.createFlexVector(builder, this.flex);
+  const test5 = builder.createStructOffsetList(this.test5, Monster.startTest5Vector);
+  const vectorOfLongs = Monster.createVectorOfLongsVector(builder, this.vectorOfLongs);
+  const vectorOfDoubles = Monster.createVectorOfDoublesVector(builder, this.vectorOfDoubles);
+  const vectorOfReferrables = Monster.createVectorOfReferrablesVector(builder, builder.createObjectOffsetList(this.vectorOfReferrables));
+  const vectorOfWeakReferences = Monster.createVectorOfWeakReferencesVector(builder, this.vectorOfWeakReferences);
+  const vectorOfStrongReferrables = Monster.createVectorOfStrongReferrablesVector(builder, builder.createObjectOffsetList(this.vectorOfStrongReferrables));
+  const vectorOfCoOwningReferences = Monster.createVectorOfCoOwningReferencesVector(builder, this.vectorOfCoOwningReferences);
+  const vectorOfNonOwningReferences = Monster.createVectorOfNonOwningReferencesVector(builder, this.vectorOfNonOwningReferences);
+  const anyUnique = builder.createObjectOffset(this.anyUnique);
+  const anyAmbiguous = builder.createObjectOffset(this.anyAmbiguous);
+  const vectorOfEnums = Monster.createVectorOfEnumsVector(builder, this.vectorOfEnums);
+  return Monster.createMonster(builder, 
+    ((this.pos !== null) ? this.pos!.pack(builder) : 0),
+    this.mana,
+    this.hp,
+    name,
+    inventory,
+    this.color,
+    this.testType,
+    test,
+    test4,
+    testarrayofstring,
+    testarrayoftables,
+    ((this.enemy !== null) ? this.enemy!.pack(builder) : 0),
+    testnestedflatbuffer,
+    ((this.testempty !== null) ? this.testempty!.pack(builder) : 0),
+    this.testbool,
+    this.testhashs32Fnv1,
+    this.testhashu32Fnv1,
+    this.testhashs64Fnv1,
+    this.testhashu64Fnv1,
+    this.testhashs32Fnv1a,
+    this.testhashu32Fnv1a,
+    this.testhashs64Fnv1a,
+    this.testhashu64Fnv1a,
+    testarrayofbools,
+    this.testf,
+    this.testf2,
+    this.testf3,
+    testarrayofstring2,
+    testarrayofsortedstruct,
+    flex,
+    test5,
+    vectorOfLongs,
+    vectorOfDoubles,
+    ((this.parentNamespaceTest !== null) ? this.parentNamespaceTest!.pack(builder) : 0),
+    vectorOfReferrables,
+    this.singleWeakReference,
+    vectorOfWeakReferences,
+    vectorOfStrongReferrables,
+    this.coOwningReference,
+    vectorOfCoOwningReferences,
+    this.nonOwningReference,
+    vectorOfNonOwningReferences,
+    this.anyUniqueType,
+    anyUnique,
+    this.anyAmbiguousType,
+    anyAmbiguous,
+    vectorOfEnums,
+    this.signedEnum
+  );
+};
 }
 }
 /**
@@ -3087,5 +3747,98 @@ static createTypeAliases(builder:flatbuffers.Builder, i8:number, u8:number, i16:
   TypeAliases.addVf64(builder, vf64Offset);
   return TypeAliases.endTypeAliases(builder);
 }
+
+/**
+ * @returns TypeAliasesT
+ */
+unpack(): TypeAliasesT {
+  return new TypeAliasesT(
+    this.i8(),
+    this.u8(),
+    this.i16(),
+    this.u16(),
+    this.i32(),
+    this.u32(),
+    this.i64(),
+    this.u64(),
+    this.f32(),
+    this.f64(),
+    this.bb!.createScalarList(this.v8.bind(this), this.v8Length()),
+    this.bb!.createScalarList(this.vf64.bind(this), this.vf64Length())
+  )
+};
+
+/**
+ * @param TypeAliasesT _o
+ */
+unpackTo(_o: TypeAliasesT): void {
+  _o.i8 = this.i8()
+  _o.u8 = this.u8()
+  _o.i16 = this.i16()
+  _o.u16 = this.u16()
+  _o.i32 = this.i32()
+  _o.u32 = this.u32()
+  _o.i64 = this.i64()
+  _o.u64 = this.u64()
+  _o.f32 = this.f32()
+  _o.f64 = this.f64()
+  _o.v8 = this.bb!.createScalarList(this.v8.bind(this), this.v8Length())
+  _o.vf64 = this.bb!.createScalarList(this.vf64.bind(this), this.vf64Length())
+};
+}
+
+export class TypeAliasesT {
+/**
+ * @constructor
+ * @param number i8
+ * @param number u8
+ * @param number i16
+ * @param number u16
+ * @param number i32
+ * @param number u32
+ * @param flatbuffers.Long i64
+ * @param flatbuffers.Long u64
+ * @param number f32
+ * @param number f64
+ * @param (number)[] v8
+ * @param (number)[] vf64
+ */
+constructor(
+  public i8: number = 0,
+  public u8: number = 0,
+  public i16: number = 0,
+  public u16: number = 0,
+  public i32: number = 0,
+  public u32: number = 0,
+  public i64: flatbuffers.Long = flatbuffers.createLong(0, 0),
+  public u64: flatbuffers.Long = flatbuffers.createLong(0, 0),
+  public f32: number = 0.0,
+  public f64: number = 0.0,
+  public v8: (number)[] = [],
+  public vf64: (number)[] = []
+){};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @returns flatbuffers.Offset
+ */
+pack(builder:flatbuffers.Builder): flatbuffers.Offset {
+  const v8 = TypeAliases.createV8Vector(builder, this.v8);
+  const vf64 = TypeAliases.createVf64Vector(builder, this.vf64);
+  return TypeAliases.createTypeAliases(builder, 
+    this.i8,
+    this.u8,
+    this.i16,
+    this.u16,
+    this.i32,
+    this.u32,
+    this.i64,
+    this.u64,
+    this.f32,
+    this.f64,
+    v8,
+    vf64
+  );
+};
 }
 }
