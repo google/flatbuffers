@@ -16,6 +16,7 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 #include <cassert>
+#include <list>
 #include <regex>
 #include <unordered_map>
 #include <unordered_set>
@@ -819,34 +820,21 @@ class JsTsGenerator : public BaseGenerator {
            ")";
   }
 
-  // Loop through all member of struct and find various information about
-  // the struct and create a string for each member based on fmt.
-  //
-  // For example, with fmt being "public $name: $type", every struct member will
-  // have a string created and added to code_ptr in that format.
-  //
-  // $name for name of the member in camel case
-  //
-  // $type for object api type if it's struct or table, o.t.w it's scalar types
-  //
-  // $val for the value after unpacking, assuming global this of generated code
-  // is the non object api type $offset offset of the type for packing, assuming
-  // global this is the object being packed
-  //
-  // $default_val for default value of the field
-  //
-  // $pre_offset will be a declaration of a variable with name $name and will be
-  // non-empty and contain the offset for things that can't be serialized inline
-  // such as table
-  //
-  // $post_offset will include the value of variable declared in pre_offset as
-  // well as offset(or values) of things that can be serialized inline such as
-  // offset for struct or value for scalar
-  // TODO(khoi): Make this single pass
-  void GenAllFieldUtilTS(const Parser &parser, StructDef &struct_def,
-                         std::string *code_ptr, const std::string &fmt,
-                         const std::string &delimiter) {
-    std::string &code = *code_ptr;
+  // contain data used for building obj api code
+  struct ObjApiData {
+    std::string field_name;
+    std::string field_val;
+    std::string field_type;
+    std::string field_pre_offset;
+    std::string field_post_offset;
+    std::string field_default_val;
+  };
+
+  // Loop through all member of struct and collect various information about
+  // them to be used with FmtObjApi
+  std::list<ObjApiData> ParseObjApiData(const Parser &parser,
+                                        const StructDef &struct_def) {
+    std::list<ObjApiData> ret;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
@@ -1012,22 +1000,56 @@ class JsTsGenerator : public BaseGenerator {
       }
       if (field_post_offset.empty()) { field_post_offset = field_name; }
 
+      ret.push_back(ObjApiData{ field_name, field_val, field_type,
+                                field_pre_offset, field_post_offset,
+                                field_default_val });
+    }
+
+    return ret;
+  }
+
+  // Create a string for each member in data based on fmt.
+  //
+  // For example, with fmt being "public $name: $type", every struct member
+  // will have a string created and added to code_ptr in that format.
+  //
+  // $name for name of the member in camel case
+  //
+  // $type for object api type if it's struct or table, o.t.w it's scalar
+  // types
+  //
+  // $val for the value after unpacking, assuming global this of generated
+  // code is the non object api type $offset offset of the type for packing,
+  // assuming global this is the object being packed
+  //
+  // $default_val for default value of the field
+  //
+  // $pre_offset will be a declaration of a variable with name $name and
+  // will be non-empty and contain the offset for things that can't be
+  // serialized inline such as table
+  //
+  // $post_offset will include the value of variable declared in pre_offset
+  // as well as offset(or values) of things that can be serialized inline
+  // such as offset for struct or value for scalar
+  void FmtObjApi(const std::list<ObjApiData> &data, std::string &code,
+                 const std::string &fmt, const std::string &delimiter) {
+    for (auto it = data.cbegin(); it != data.cend(); ++it) {
       const auto new_line = std::regex_replace(
           std::regex_replace(
               std::regex_replace(
                   std::regex_replace(
                       std::regex_replace(
                           std::regex_replace(fmt, std::regex{ R"(\$type)" },
-                                             field_type),
-                          std::regex{ R"(\$name)" }, field_name),
-                      std::regex{ R"(\$val)" }, field_val),
-                  std::regex{ R"(\$pre_offset)" }, field_pre_offset),
-              std::regex{ R"(\$post_offset)" }, field_post_offset),
-          std::regex{ R"(\$default_val)" }, field_default_val);
+                                             it->field_type),
+                          std::regex{ R"(\$name)" }, it->field_name),
+                      std::regex{ R"(\$val)" }, it->field_val),
+                  std::regex{ R"(\$pre_offset)" }, it->field_pre_offset),
+              std::regex{ R"(\$post_offset)" }, it->field_post_offset),
+          std::regex{ R"(\$default_val)" }, it->field_default_val);
 
       if (!std::all_of(new_line.begin(), new_line.end(), isspace)) {
         code += new_line;
-        if (it != struct_def.fields.vec.end() - 1) { code += delimiter; }
+        if (it != std::prev(data.cend())) { code += delimiter; }
       }
     }
   }
@@ -1056,9 +1078,8 @@ class JsTsGenerator : public BaseGenerator {
     }
   }
 
-  void GenObjApiClass(const Parser &parser, StructDef &struct_def,
-                      std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void GenObjApiClass(const std::list<ObjApiData> &data, const Parser &parser,
+                      StructDef &struct_def, std::string& code) {
     code += "\nexport class " + GetObjApiClassName(struct_def, parser.opts) +
             " {\n";
 
@@ -1069,12 +1090,10 @@ class JsTsGenerator : public BaseGenerator {
     if (!struct_def.fields.vec.empty()) {
       code += "/**\n";
       code += " * @constructor\n";
-      GenAllFieldUtilTS(parser, struct_def, code_ptr, " * @param $type $name",
-                        "\n");
+      FmtObjApi(data, code, " * @param $type $name", "\n");
       code += "\n */\n";
       code += "constructor(\n";
-      GenAllFieldUtilTS(parser, struct_def, code_ptr,
-                        "  public $name: $type = $default_val", ",\n");
+      FmtObjApi(data, code, "  public $name: $type = $default_val", ",\n");
       code += "\n){};\n\n";
     }
 
@@ -1086,10 +1105,9 @@ class JsTsGenerator : public BaseGenerator {
 
     if (!struct_def.fields.vec.empty()) {
       if (!struct_def.fixed) {
-        GenAllFieldUtilTS(parser, struct_def, code_ptr, "$pre_offset\n", "");
+        FmtObjApi(data, code, "$pre_offset\n", "");
         code += create_func + ", \n";
-        GenAllFieldUtilTS(parser, struct_def, code_ptr, "    $post_offset",
-                          ",\n");
+        FmtObjApi(data, code, "    $post_offset", ",\n");
         code += "\n  );";
       } else {
         code += create_func;
@@ -1106,9 +1124,10 @@ class JsTsGenerator : public BaseGenerator {
     code += "}\n";
   }
 
-  void GenObjectApiUnpackFunctions(const Parser &parser, StructDef &struct_def,
-                                   std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void GenObjectApiUnpackFunctions(const std::list<ObjApiData> data,
+                                   const Parser &parser,
+                                   const StructDef &struct_def,
+                                   std::string& code) {
     const auto class_name = GetObjApiClassName(struct_def, parser.opts);
 
     std::string base_unpack_to_func = "/**\n";
@@ -1126,12 +1145,11 @@ class JsTsGenerator : public BaseGenerator {
       code += base_unpack_to_func + "};\n";
     } else {
       code += "  return new " + class_name + "(\n";
-      GenAllFieldUtilTS(parser, struct_def, code_ptr, "    $val", ",\n");
+      FmtObjApi(data, code, "    $val", ",\n");
       code += "\n  )\n};\n\n";
 
       code += base_unpack_to_func + "\n";
-      GenAllFieldUtilTS(parser, struct_def, code_ptr, "  _o.$name = $val",
-                        "\n");
+      FmtObjApi(data, code, "  _o.$name = $val", "\n");
       code += "\n};\n";
     }
   }
@@ -1841,11 +1859,12 @@ class JsTsGenerator : public BaseGenerator {
 
     if (lang_.language == IDLOptions::kTs) {
       if (parser_.opts.generate_object_based_api) {
-        GenObjectApiUnpackFunctions(parser_, struct_def, code_ptr);
-      }
-      code += "}\n";
-      if (parser_.opts.generate_object_based_api) {
-        GenObjApiClass(parser_, struct_def, code_ptr);
+        const auto objApiData = ParseObjApiData(parser_, struct_def);
+        GenObjectApiUnpackFunctions(objApiData, parser_, struct_def, *code_ptr);
+        code += "}\n";
+        GenObjApiClass(objApiData, parser_, struct_def, *code_ptr);
+      } else {
+        code += "}\n";
       }
       if (!object_namespace.empty()) { code += "}\n"; }
     }
