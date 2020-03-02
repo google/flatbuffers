@@ -59,7 +59,7 @@ class KotlinGenerator : public BaseGenerator {
  public:
   KotlinGenerator(const Parser &parser, const std::string &path,
                   const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", "."),
+      : BaseGenerator(parser, path, file_name, "", ".", "kt"),
         cur_name_space_(nullptr) {}
 
   KotlinGenerator &operator=(const KotlinGenerator &);

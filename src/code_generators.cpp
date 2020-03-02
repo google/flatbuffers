@@ -145,6 +145,14 @@ std::string BaseGenerator::GetNameSpace(const Definition &def) const {
   return qualified_name;
 }
 
+std::string BaseGenerator::GeneratedFileName(const std::string &path,
+                                             const std::string &file_name,
+                                             const IDLOptions &options) const {
+  return path + file_name + options.filename_suffix + "." +
+         (options.filename_extension.empty() ? default_extension_
+                                             : options.filename_extension);
+}
+
 // Generate a documentation comment, if available.
 void GenComment(const std::vector<std::string> &dc, std::string *code_ptr,
                 const CommentConfig *config, const char *prefix) {

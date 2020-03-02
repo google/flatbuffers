@@ -155,5 +155,4 @@ void FlatBufferBuilderTest() {
 }
 
 // Link-time check using pointer type.
-void CheckTestGeneratedIsValid(const MyGame::Example::Color&)
-{}
+void CheckTestGeneratedIsValid(const MyGame::Example::Color &) {}

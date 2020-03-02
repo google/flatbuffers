@@ -636,30 +636,30 @@ inline bool EscapeString(const char *s, size_t length, std::string *_text,
   return true;
 }
 
-inline std::string BufferToHexText(const void *buffer, size_t buffer_size,  size_t max_length,
+inline std::string BufferToHexText(const void *buffer, size_t buffer_size,
+                                   size_t max_length,
                                    const std::string &wrapped_line_prefix,
                                    const std::string &wrapped_line_suffix) {
-    std::string text = wrapped_line_prefix;
-    size_t start_offset = 0;
-    const char *s = reinterpret_cast<const char *>(buffer);
-    for (size_t i = 0; s && i < buffer_size; i++) {
-        // Last iteration or do we have more?
-        bool have_more= i + 1 < buffer_size;
-        text += "0x";
-        text += IntToStringHex(static_cast<uint8_t>(s[i]), 2);
-        if (have_more) {
-            text += ',';
-        }
-        // If we have more to process and we reached max_length
-        if (have_more && text.size() + wrapped_line_suffix.size() >= start_offset + max_length) {
-            text += wrapped_line_suffix;
-            text += '\n';
-            start_offset = text.size();
-            text += wrapped_line_prefix;
-        }
+  std::string text = wrapped_line_prefix;
+  size_t start_offset = 0;
+  const char *s = reinterpret_cast<const char *>(buffer);
+  for (size_t i = 0; s && i < buffer_size; i++) {
+    // Last iteration or do we have more?
+    bool have_more = i + 1 < buffer_size;
+    text += "0x";
+    text += IntToStringHex(static_cast<uint8_t>(s[i]), 2);
+    if (have_more) { text += ','; }
+    // If we have more to process and we reached max_length
+    if (have_more &&
+        text.size() + wrapped_line_suffix.size() >= start_offset + max_length) {
+      text += wrapped_line_suffix;
+      text += '\n';
+      start_offset = text.size();
+      text += wrapped_line_prefix;
     }
-    text += wrapped_line_suffix;
-    return text;
+  }
+  text += wrapped_line_suffix;
+  return text;
 }
 
 // Remove paired quotes in a string: "text"|'text' -> text.

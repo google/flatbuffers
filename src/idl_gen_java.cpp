@@ -42,7 +42,7 @@ class JavaGenerator : public BaseGenerator {
  public:
   JavaGenerator(const Parser &parser, const std::string &path,
                 const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", "."),
+      : BaseGenerator(parser, path, file_name, "", ".", "java"),
         cur_name_space_(nullptr) {}
 
   JavaGenerator &operator=(const JavaGenerator &);

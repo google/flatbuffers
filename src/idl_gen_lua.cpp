@@ -42,7 +42,7 @@ class LuaGenerator : public BaseGenerator {
   LuaGenerator(const Parser &parser, const std::string &path,
                const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "" /* not used */,
-                      "" /* not used */) {
+                      "" /* not used */, "lua") {
     static const char *const keywords[] = {
       "and",      "break",  "do",   "else", "elseif", "end",  "false", "for",
       "function", "goto",   "if",   "in",   "local",  "nil",  "not",   "or",

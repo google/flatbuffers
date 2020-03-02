@@ -94,15 +94,20 @@ class BaseGenerator {
   static std::string NamespaceDir(const Parser &parser, const std::string &path,
                                   const Namespace &ns);
 
+  std::string GeneratedFileName(const std::string &path,
+                                const std::string &file_name,
+                                const IDLOptions &options) const;
+
  protected:
   BaseGenerator(const Parser &parser, const std::string &path,
                 const std::string &file_name, std::string qualifying_start,
-                std::string qualifying_separator)
+                std::string qualifying_separator, std::string default_extension)
       : parser_(parser),
         path_(path),
         file_name_(file_name),
         qualifying_start_(qualifying_start),
-        qualifying_separator_(qualifying_separator) {}
+        qualifying_separator_(qualifying_separator),
+        default_extension_(default_extension) {}
   virtual ~BaseGenerator() {}
 
   // No copy/assign.
@@ -138,6 +143,7 @@ class BaseGenerator {
   const std::string &file_name_;
   const std::string qualifying_start_;
   const std::string qualifying_separator_;
+  const std::string default_extension_;
 };
 
 struct CommentConfig {

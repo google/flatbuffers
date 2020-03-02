@@ -49,7 +49,7 @@ class SwiftGenerator : public BaseGenerator {
  public:
   SwiftGenerator(const Parser &parser, const std::string &path,
                  const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", "."),
+      : BaseGenerator(parser, path, file_name, "", ".", "swift"),
         cur_name_space_(nullptr) {
     namespace_depth = 0;
     static const char *const keywords[] = {
@@ -181,7 +181,7 @@ class SwiftGenerator : public BaseGenerator {
 
     if (cur_name_space_) SetNameSpace(nullptr);
 
-    const auto filename = GeneratedFileName(path_, file_name_);
+    const auto filename = GeneratedFileName(path_, file_name_, parser_.opts);
     const auto final_code = code_.ToString();
     return SaveFile(filename.c_str(), final_code, false);
   }
@@ -843,10 +843,6 @@ class SwiftGenerator : public BaseGenerator {
     return EscapeKeyword(MakeCamel(def.name, false));
   }
 
-  static std::string GeneratedFileName(const std::string &path,
-                                       const std::string &file_name) {
-    return path + file_name + "_generated.swift";
-  }
   // MARK: - Copied from the cpp implementation, needs revisiting
   void SetNameSpace(const Namespace *ns) {
     if (cur_name_space_ == ns) { return; }

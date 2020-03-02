@@ -365,7 +365,7 @@ template<typename T> class Vector {
   // This class is a pointer. Copying will therefore create an invalid object.
   // Private and unimplemented copy constructor.
   Vector(const Vector &);
-  Vector& operator=(const Vector&);
+  Vector &operator=(const Vector &);
 
   template<typename K> static int KeyCompare(const void *ap, const void *bp) {
     const K *key = reinterpret_cast<const K *>(ap);
@@ -525,7 +525,7 @@ template<typename T, uint16_t length> class Array<Offset<T>, length> {
   static_assert(flatbuffers::is_same<T, void>::value, "unexpected type T");
 
  public:
-  typedef const void* return_type;
+  typedef const void *return_type;
 
   const uint8_t *Data() const { return data_; }
 

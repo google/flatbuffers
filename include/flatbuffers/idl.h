@@ -560,6 +560,8 @@ struct IDLOptions {
   std::vector<std::string> cpp_includes;
   std::string cpp_std;
   std::string proto_namespace_suffix;
+  std::string filename_suffix;
+  std::string filename_extension;
 
   // Possible options for the more general generator below.
   enum Language {
@@ -643,6 +645,8 @@ struct IDLOptions {
         force_defaults(false),
         java_primitive_has_method(false),
         cs_gen_json_serializer(false),
+        filename_suffix("_generated"),
+        filename_extension(),
         lang(IDLOptions::kJava),
         mini_reflect(IDLOptions::kNone),
         lang_to_generate(0),
@@ -1126,9 +1130,8 @@ bool GeneratePythonGRPC(const Parser &parser, const std::string &path,
 
 // Generate GRPC Swift interfaces.
 // See idl_gen_grpc.cpp.
-extern bool GenerateSwiftGRPC(const Parser &parser,
-                    const std::string &path,
-                    const std::string &file_name);
+extern bool GenerateSwiftGRPC(const Parser &parser, const std::string &path,
+                              const std::string &file_name);
 
 }  // namespace flatbuffers
 

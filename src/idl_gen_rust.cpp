@@ -23,11 +23,6 @@
 
 namespace flatbuffers {
 
-static std::string GeneratedFileName(const std::string &path,
-                                     const std::string &file_name) {
-  return path + file_name + "_generated.rs";
-}
-
 // Convert a camelCaseIdentifier or CamelCaseIdentifier to a
 // snake_case_indentifier.
 std::string MakeSnakeCase(const std::string &in) {
@@ -188,7 +183,7 @@ class RustGenerator : public BaseGenerator {
  public:
   RustGenerator(const Parser &parser, const std::string &path,
                 const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", "::"),
+      : BaseGenerator(parser, path, file_name, "", "::", "rs"),
         cur_name_space_(nullptr) {
     const char *keywords[] = {
       // list taken from:
@@ -292,7 +287,7 @@ class RustGenerator : public BaseGenerator {
     }
     if (cur_name_space_) SetNameSpace(nullptr);
 
-    const auto file_path = GeneratedFileName(path_, file_name_);
+    const auto file_path = GeneratedFileName(path_, file_name_, parser_.opts);
     const auto final_code = code_.ToString();
     return SaveFile(file_path.c_str(), final_code, false);
   }
@@ -1329,16 +1324,17 @@ class RustGenerator : public BaseGenerator {
         // If the user defined schemas name a field that clashes with a
         // language reserved word, flatc will try to escape the field name by
         // appending an underscore. This works well for most cases, except
-        // one. When generating union accessors (and referring to them 
+        // one. When generating union accessors (and referring to them
         // internally within the code generated here), an extra underscore
-        // will be appended to the name, causing build failures. 
+        // will be appended to the name, causing build failures.
         //
         // This only happens when unions have members that overlap with
-        // language reserved words. 
-        // 
+        // language reserved words.
+        //
         // To avoid this problem the type field name is used unescaped here:
         code_ +=
-            "    if self.{{FIELD_TYPE_FIELD_NAME}}_type() == {{U_ELEMENT_ENUM_TYPE}} {";
+            "    if self.{{FIELD_TYPE_FIELD_NAME}}_type() == "
+            "{{U_ELEMENT_ENUM_TYPE}} {";
         code_ +=
             "      self.{{FIELD_NAME}}().map(|u| "
             "{{U_ELEMENT_TABLE_TYPE}}::init_from_table(u))";
@@ -1764,7 +1760,7 @@ class RustGenerator : public BaseGenerator {
     std::string indent = std::string(white_spaces, ' ');
     code_ += "";
     for (auto it = parser_.included_files_.begin();
-        it != parser_.included_files_.end(); ++it) {
+         it != parser_.included_files_.end(); ++it) {
       if (it->second.empty()) continue;
       auto noext = flatbuffers::StripExtension(it->second);
       auto basename = flatbuffers::StripPath(noext);
@@ -1834,7 +1830,9 @@ std::string RustMakeRule(const Parser &parser, const std::string &path,
                          const std::string &file_name) {
   std::string filebase =
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
-  std::string make_rule = GeneratedFileName(path, filebase) + ": ";
+  rust::RustGenerator generator(parser, path, file_name);
+  std::string make_rule =
+      generator.GeneratedFileName(path, filebase, parser.opts) + ": ";
 
   auto included_files = parser.GetIncludedFilesRecursive(file_name);
   for (auto it = included_files.begin(); it != included_files.end(); ++it) {
