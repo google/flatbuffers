@@ -30,7 +30,5 @@
     "url": "https://github.com/google/flatbuffers/issues"
   },
   "homepage": "https://google.github.io/flatbuffers/",
-  "dependencies": {
-    "@types/flatbuffers": "^1.10.0"
-  }
+  "dependencies": {}
 }
