@@ -1008,45 +1008,13 @@ class JsTsGenerator : public BaseGenerator {
     return ret;
   }
 
-  // Create a string for each member in data based on fmt.
-  //
-  // For example, with fmt being "public $name: $type", every struct member
-  // will have a string created and added to code_ptr in that format.
-  //
-  // $name for name of the member in camel case
-  //
-  // $type for object api type if it's struct or table, o.t.w it's scalar
-  // types
-  //
-  // $val for the value after unpacking, assuming global this of generated
-  // code is the non object api type $offset offset of the type for packing,
-  // assuming global this is the object being packed
-  //
-  // $default_val for default value of the field
-  //
-  // $pre_offset will be a declaration of a variable with name $name and
-  // will be non-empty and contain the offset for things that can't be
-  // serialized inline such as table
-  //
-  // $post_offset will include the value of variable declared in pre_offset
-  // as well as offset(or values) of things that can be serialized inline
-  // such as offset for struct or value for scalar
+  // loop through each member of list and use callback to generate string
+  // delimited by delimiter
   void FmtObjApi(const std::list<ObjApiData> &data, std::string &code,
-                 const std::string &fmt, const std::string &delimiter) {
+                 std::string (*callback)(const ObjApiData &data),
+                 const std::string &delimiter) {
     for (auto it = data.cbegin(); it != data.cend(); ++it) {
-      const auto new_line = std::regex_replace(
-          std::regex_replace(
-              std::regex_replace(
-                  std::regex_replace(
-                      std::regex_replace(
-                          std::regex_replace(fmt, std::regex{ R"(\$type)" },
-                                             it->field_type),
-                          std::regex{ R"(\$name)" }, it->field_name),
-                      std::regex{ R"(\$val)" }, it->field_val),
-                  std::regex{ R"(\$pre_offset)" }, it->field_pre_offset),
-              std::regex{ R"(\$post_offset)" }, it->field_post_offset),
-          std::regex{ R"(\$default_val)" }, it->field_default_val);
-
+      const auto new_line = callback(*it);
       if (!std::all_of(new_line.begin(), new_line.end(), isspace)) {
         code += new_line;
         if (it != std::prev(data.cend())) { code += delimiter; }
@@ -1079,7 +1047,7 @@ class JsTsGenerator : public BaseGenerator {
   }
 
   void GenObjApiClass(const std::list<ObjApiData> &data, const Parser &parser,
-                      StructDef &struct_def, std::string& code) {
+                      StructDef &struct_def, std::string &code) {
     code += "\nexport class " + GetObjApiClassName(struct_def, parser.opts) +
             " {\n";
 
@@ -1090,10 +1058,21 @@ class JsTsGenerator : public BaseGenerator {
     if (!struct_def.fields.vec.empty()) {
       code += "/**\n";
       code += " * @constructor\n";
-      FmtObjApi(data, code, " * @param $type $name", "\n");
+      FmtObjApi(
+          data, code,
+          [](const ObjApiData &d) {
+            return " * @param " + d.field_type + " " + d.field_name;
+          },
+          "\n");
       code += "\n */\n";
       code += "constructor(\n";
-      FmtObjApi(data, code, "  public $name: $type = $default_val", ",\n");
+      FmtObjApi(
+          data, code,
+          [](const ObjApiData &d) {
+            return "  public " + d.field_name + ": " + d.field_type + " = " +
+                   d.field_default_val;
+          },
+          ",\n");
       code += "\n){};\n\n";
     }
 
@@ -1105,9 +1084,14 @@ class JsTsGenerator : public BaseGenerator {
 
     if (!struct_def.fields.vec.empty()) {
       if (!struct_def.fixed) {
-        FmtObjApi(data, code, "$pre_offset\n", "");
+        FmtObjApi(
+            data, code,
+            [](const ObjApiData &d) { return d.field_pre_offset + "\n"; }, "");
         code += create_func + ", \n";
-        FmtObjApi(data, code, "    $post_offset", ",\n");
+        FmtObjApi(
+            data, code,
+            [](const ObjApiData &d) { return "    " + d.field_post_offset; },
+            ",\n");
         code += "\n  );";
       } else {
         code += create_func;
@@ -1127,7 +1111,7 @@ class JsTsGenerator : public BaseGenerator {
   void GenObjectApiUnpackFunctions(const std::list<ObjApiData> data,
                                    const Parser &parser,
                                    const StructDef &struct_def,
-                                   std::string& code) {
+                                   std::string &code) {
     const auto class_name = GetObjApiClassName(struct_def, parser.opts);
 
     std::string base_unpack_to_func = "/**\n";
@@ -1145,11 +1129,18 @@ class JsTsGenerator : public BaseGenerator {
       code += base_unpack_to_func + "};\n";
     } else {
       code += "  return new " + class_name + "(\n";
-      FmtObjApi(data, code, "    $val", ",\n");
+      FmtObjApi(
+          data, code, [](const ObjApiData &d) { return "    " + d.field_val; },
+          ",\n");
       code += "\n  )\n};\n\n";
 
       code += base_unpack_to_func + "\n";
-      FmtObjApi(data, code, "  _o.$name = $val", "\n");
+      FmtObjApi(
+          data, code,
+          [](const ObjApiData &d) {
+            return "  _o." + d.field_name + " = " + d.field_val;
+          },
+          "\n");
       code += "\n};\n";
     }
   }
