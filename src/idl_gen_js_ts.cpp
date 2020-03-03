@@ -909,9 +909,9 @@ class JsTsGenerator : public BaseGenerator {
                     field.value.type.struct_def->file);
                 field_type += ")[]";
 
-                field_val = GenBBAccess() + ".createObjList<" + vectortypename +
-                            ", " + field_type + ">(" + field_binded_method +
-                            ", this." + field_name + "Length())";
+                field_val = GenBBAccess() + ".createObjList(" +
+                            field_binded_method + ", this." + field_name +
+                            "Length())";
 
                 if (sd.fixed) {
                   field_pre_offset = "builder.createStructOffsetList(this." +

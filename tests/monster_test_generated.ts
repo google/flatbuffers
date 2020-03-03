@@ -2938,9 +2938,9 @@ unpack(): MonsterT {
     if(targetEnumStr === 'MyGame_Example2_Monster') { return (this.test(new MyGame.Example2.Monster())! as MyGame.Example2.Monster).unpack();}
     return null;
   })(),
-    this.bb!.createObjList<MyGame.Example.Test, (MyGame.Example.TestT)[]>(this.test4.bind(this), this.test4Length()),
+    this.bb!.createObjList(this.test4.bind(this), this.test4Length()),
     this.bb!.createStringList(this.testarrayofstring.bind(this), this.testarrayofstringLength()),
-    this.bb!.createObjList<MyGame.Example.Monster, (MyGame.Example.MonsterT)[]>(this.testarrayoftables.bind(this), this.testarrayoftablesLength()),
+    this.bb!.createObjList(this.testarrayoftables.bind(this), this.testarrayoftablesLength()),
     ((this.enemy() !== null) ? this.enemy()!.unpack() : null),
     this.bb!.createScalarList(this.testnestedflatbuffer.bind(this), this.testnestedflatbufferLength()),
     ((this.testempty() !== null) ? this.testempty()!.unpack() : null),
@@ -2958,16 +2958,16 @@ unpack(): MonsterT {
     this.testf2(),
     this.testf3(),
     this.bb!.createStringList(this.testarrayofstring2.bind(this), this.testarrayofstring2Length()),
-    this.bb!.createObjList<MyGame.Example.Ability, (MyGame.Example.AbilityT)[]>(this.testarrayofsortedstruct.bind(this), this.testarrayofsortedstructLength()),
+    this.bb!.createObjList(this.testarrayofsortedstruct.bind(this), this.testarrayofsortedstructLength()),
     this.bb!.createScalarList(this.flex.bind(this), this.flexLength()),
-    this.bb!.createObjList<MyGame.Example.Test, (MyGame.Example.TestT)[]>(this.test5.bind(this), this.test5Length()),
+    this.bb!.createObjList(this.test5.bind(this), this.test5Length()),
     this.bb!.createScalarList(this.vectorOfLongs.bind(this), this.vectorOfLongsLength()),
     this.bb!.createScalarList(this.vectorOfDoubles.bind(this), this.vectorOfDoublesLength()),
     ((this.parentNamespaceTest() !== null) ? this.parentNamespaceTest()!.unpack() : null),
-    this.bb!.createObjList<MyGame.Example.Referrable, (MyGame.Example.ReferrableT)[]>(this.vectorOfReferrables.bind(this), this.vectorOfReferrablesLength()),
+    this.bb!.createObjList(this.vectorOfReferrables.bind(this), this.vectorOfReferrablesLength()),
     this.singleWeakReference(),
     this.bb!.createScalarList(this.vectorOfWeakReferences.bind(this), this.vectorOfWeakReferencesLength()),
-    this.bb!.createObjList<MyGame.Example.Referrable, (MyGame.Example.ReferrableT)[]>(this.vectorOfStrongReferrables.bind(this), this.vectorOfStrongReferrablesLength()),
+    this.bb!.createObjList(this.vectorOfStrongReferrables.bind(this), this.vectorOfStrongReferrablesLength()),
     this.coOwningReference(),
     this.bb!.createScalarList(this.vectorOfCoOwningReferences.bind(this), this.vectorOfCoOwningReferencesLength()),
     this.nonOwningReference(),
@@ -3017,9 +3017,9 @@ unpackTo(_o: MonsterT): void {
     if(targetEnumStr === 'MyGame_Example2_Monster') { return (this.test(new MyGame.Example2.Monster())! as MyGame.Example2.Monster).unpack();}
     return null;
   })()
-  _o.test4 = this.bb!.createObjList<MyGame.Example.Test, (MyGame.Example.TestT)[]>(this.test4.bind(this), this.test4Length())
+  _o.test4 = this.bb!.createObjList(this.test4.bind(this), this.test4Length())
   _o.testarrayofstring = this.bb!.createStringList(this.testarrayofstring.bind(this), this.testarrayofstringLength())
-  _o.testarrayoftables = this.bb!.createObjList<MyGame.Example.Monster, (MyGame.Example.MonsterT)[]>(this.testarrayoftables.bind(this), this.testarrayoftablesLength())
+  _o.testarrayoftables = this.bb!.createObjList(this.testarrayoftables.bind(this), this.testarrayoftablesLength())
   _o.enemy = ((this.enemy() !== null) ? this.enemy()!.unpack() : null)
   _o.testnestedflatbuffer = this.bb!.createScalarList(this.testnestedflatbuffer.bind(this), this.testnestedflatbufferLength())
   _o.testempty = ((this.testempty() !== null) ? this.testempty()!.unpack() : null)
@@ -3037,16 +3037,16 @@ unpackTo(_o: MonsterT): void {
   _o.testf2 = this.testf2()
   _o.testf3 = this.testf3()
   _o.testarrayofstring2 = this.bb!.createStringList(this.testarrayofstring2.bind(this), this.testarrayofstring2Length())
-  _o.testarrayofsortedstruct = this.bb!.createObjList<MyGame.Example.Ability, (MyGame.Example.AbilityT)[]>(this.testarrayofsortedstruct.bind(this), this.testarrayofsortedstructLength())
+  _o.testarrayofsortedstruct = this.bb!.createObjList(this.testarrayofsortedstruct.bind(this), this.testarrayofsortedstructLength())
   _o.flex = this.bb!.createScalarList(this.flex.bind(this), this.flexLength())
-  _o.test5 = this.bb!.createObjList<MyGame.Example.Test, (MyGame.Example.TestT)[]>(this.test5.bind(this), this.test5Length())
+  _o.test5 = this.bb!.createObjList(this.test5.bind(this), this.test5Length())
   _o.vectorOfLongs = this.bb!.createScalarList(this.vectorOfLongs.bind(this), this.vectorOfLongsLength())
   _o.vectorOfDoubles = this.bb!.createScalarList(this.vectorOfDoubles.bind(this), this.vectorOfDoublesLength())
   _o.parentNamespaceTest = ((this.parentNamespaceTest() !== null) ? this.parentNamespaceTest()!.unpack() : null)
-  _o.vectorOfReferrables = this.bb!.createObjList<MyGame.Example.Referrable, (MyGame.Example.ReferrableT)[]>(this.vectorOfReferrables.bind(this), this.vectorOfReferrablesLength())
+  _o.vectorOfReferrables = this.bb!.createObjList(this.vectorOfReferrables.bind(this), this.vectorOfReferrablesLength())
   _o.singleWeakReference = this.singleWeakReference()
   _o.vectorOfWeakReferences = this.bb!.createScalarList(this.vectorOfWeakReferences.bind(this), this.vectorOfWeakReferencesLength())
-  _o.vectorOfStrongReferrables = this.bb!.createObjList<MyGame.Example.Referrable, (MyGame.Example.ReferrableT)[]>(this.vectorOfStrongReferrables.bind(this), this.vectorOfStrongReferrablesLength())
+  _o.vectorOfStrongReferrables = this.bb!.createObjList(this.vectorOfStrongReferrables.bind(this), this.vectorOfStrongReferrablesLength())
   _o.coOwningReference = this.coOwningReference()
   _o.vectorOfCoOwningReferences = this.bb!.createScalarList(this.vectorOfCoOwningReferences.bind(this), this.vectorOfCoOwningReferencesLength())
   _o.nonOwningReference = this.nonOwningReference()
