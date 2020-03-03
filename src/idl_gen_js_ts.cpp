@@ -1011,10 +1011,11 @@ class JsTsGenerator : public BaseGenerator {
   // loop through each member of list and use callback to generate string
   // delimited by delimiter
   void FmtObjApi(const std::list<ObjApiData> &data, std::string &code,
-                 std::string (*callback)(const ObjApiData &data),
+                 std::string (*callback)(const ObjApiData &data,
+                                         JsTsGenerator &generator),
                  const std::string &delimiter) {
     for (auto it = data.cbegin(); it != data.cend(); ++it) {
-      const auto new_line = callback(*it);
+      const auto new_line = callback(*it, *this);
       if (!std::all_of(new_line.begin(), new_line.end(), isspace)) {
         code += new_line;
         if (it != std::prev(data.cend())) { code += delimiter; }
@@ -1060,15 +1061,17 @@ class JsTsGenerator : public BaseGenerator {
       code += " * @constructor\n";
       FmtObjApi(
           data, code,
-          [](const ObjApiData &d) {
-            return " * @param " + d.field_type + " " + d.field_name;
+          [](const ObjApiData &d, JsTsGenerator &generator) {
+            return " * " + generator.GenTypeAnnotation(kParam, d.field_type,
+                                                       d.field_name, false);
           },
           "\n");
       code += "\n */\n";
       code += "constructor(\n";
       FmtObjApi(
           data, code,
-          [](const ObjApiData &d) {
+          [](const ObjApiData &d, JsTsGenerator &generator) {
+            (void)(generator);
             return "  public " + d.field_name + ": " + d.field_type + " = " +
                    d.field_default_val;
           },
@@ -1086,11 +1089,18 @@ class JsTsGenerator : public BaseGenerator {
       if (!struct_def.fixed) {
         FmtObjApi(
             data, code,
-            [](const ObjApiData &d) { return d.field_pre_offset + "\n"; }, "");
+            [](const ObjApiData &d, JsTsGenerator &generator) {
+              (void)(generator);
+              return d.field_pre_offset + "\n";
+            },
+            "");
         code += create_func + ", \n";
         FmtObjApi(
             data, code,
-            [](const ObjApiData &d) { return "    " + d.field_post_offset; },
+            [](const ObjApiData &d, JsTsGenerator &generator) {
+              (void)(generator);
+              return "    " + d.field_post_offset;
+            },
             ",\n");
         code += "\n  );";
       } else {
@@ -1130,14 +1140,19 @@ class JsTsGenerator : public BaseGenerator {
     } else {
       code += "  return new " + class_name + "(\n";
       FmtObjApi(
-          data, code, [](const ObjApiData &d) { return "    " + d.field_val; },
+          data, code,
+          [](const ObjApiData &d, JsTsGenerator &generator) {
+            (void)(generator);
+            return "    " + d.field_val;
+          },
           ",\n");
       code += "\n  )\n};\n\n";
 
       code += base_unpack_to_func + "\n";
       FmtObjApi(
           data, code,
-          [](const ObjApiData &d) {
+          [](const ObjApiData &d, JsTsGenerator &generator) {
+            (void)(generator);
             return "  _o." + d.field_name + " = " + d.field_val;
           },
           "\n");
