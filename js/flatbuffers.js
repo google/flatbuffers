@@ -882,22 +882,6 @@ flatbuffers.Builder.prototype.createStructOffsetList = function(list, startFunc)
   return this.endVector();
 }
 
-// /**
-//  * A helper function to create a list of offset from a list of strings
-//  * 
-//  * @returns list of offsets of each non null string
-//  */
-// flatbuffers.Builder.prototype.createStringOffsetList = function(list) {
-//   ret = []
-
-//   for(let i = 0; i < list.length; ++i) {
-//     if(list[i] !== null) {
-//       ret.push(this.createString(list[i]));
-//     }
-//   }
-
-//   return ret;
-// };
 ////////////////////////////////////////////////////////////////////////////////
 /// @cond FLATBUFFERS_INTERNAL
 /**
@@ -1359,34 +1343,6 @@ flatbuffers.ByteBuffer.prototype.createObjList = function(listAccessor, listLeng
     }
   }
   
-  return ret;
-};
-
-
-flatbuffers.ByteBuffer.prototype.createObjFromUnion = function(nameSpace, enumType, targetEnum, unionAccessor) {
-  if(enumType[targetEnum] === 'NONE') {
-    return null;
-  }
-
-  if(nameSpace !== null) {
-    return unionAccessor(new nameSpace[enumType[targetEnum]]()).unpack();
-  } else {
-    return unionAccessor(eval(`new ${enumType[targetEnum]}()`)).unpack();
-  }
-};
-
-flatbuffers.ByteBuffer.prototype.createObjListFromUnionList = function(nameSpace, enumType, targetEnumAccessor, targetEnumLength, unionAccessor) {
-  let ret = []
-  
-  for(let targetEnumIndex = 0; targetEnumIndex < targetEnumLength; ++targetEnumIndex) {
-    let targetEnum = targetEnumAccessor(targetEnumIndex);
-    if(enumType[targetEnum] === 'NONE') {
-      continue;
-    }
-
-    ret.push(unionAccessor(targetEnumIndex, new nameSpace[enumType[targetEnum]]()).unpack());
-  }
-
   return ret;
 };
 
