@@ -674,8 +674,8 @@ namespace FlatBuffers.Test
             var d = MonsterT.DeserializeFromJson(jsonText);
             AreEqual(a, d);
 
-            var fbBuffer = b.SerializeToFlatBuffers();
-            var e = MonsterT.DeserializeFromFlatBuffers(fbBuffer);
+            var fbBuffer = b.SerializeToBinary();
+            var e = MonsterT.DeserializeFromBinary(fbBuffer);
             AreEqual(a, e);
         }
 
@@ -777,8 +777,8 @@ namespace FlatBuffers.Test
             var d = ArrayTableT.DeserializeFromJson(jsonText);
             AreEqual(a, d);
 
-            var fbBuffer = b.SerializeToFlatBuffers();
-            var e = ArrayTableT.DeserializeFromFlatBuffers(fbBuffer);
+            var fbBuffer = b.SerializeToBinary();
+            var e = ArrayTableT.DeserializeFromBinary(fbBuffer);
             AreEqual(a, e);
         }
 
@@ -824,8 +824,8 @@ namespace FlatBuffers.Test
             var d = MovieT.DeserializeFromJson(jsonText);
             AreEqual(a, d);
 
-            var fbBuffer = b.SerializeToFlatBuffers();
-            var e = MovieT.DeserializeFromFlatBuffers(fbBuffer);
+            var fbBuffer = b.SerializeToBinary();
+            var e = MovieT.DeserializeFromBinary(fbBuffer);
             AreEqual(a, e);
         }
     }
