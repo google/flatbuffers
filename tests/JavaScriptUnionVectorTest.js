@@ -3,7 +3,7 @@ var assert = require('assert');
 var flatbuffers = require('../js/flatbuffers').flatbuffers;
 var Test = require(process.argv[2]);
 
-var isTsTest = process.env.FB_TS_TEST ? true : false; 
+var isTsTest = !!process.env.FB_TS_TEST; 
 
 var charTypes = [
   Test.Character.Belle,

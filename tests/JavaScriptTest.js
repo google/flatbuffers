@@ -7,7 +7,7 @@ global.flatbuffers = flatbuffers;
 
 var MyGame = require(process.argv[2]).MyGame;
 
-var isTsTest = process.env.FB_TS_TEST ? true : false; 
+var isTsTest = !!process.env.FB_TS_TEST; 
 
 function main() {
 
