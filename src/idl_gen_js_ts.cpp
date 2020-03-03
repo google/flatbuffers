@@ -1061,7 +1061,7 @@ class JsTsGenerator : public BaseGenerator {
       code += " * @constructor\n";
       FmtObjApi(
           data, code,
-          [](const ObjApiData &d, JsTsGenerator &generator) {
+          [](const ObjApiData &d, JsTsGenerator &generator) -> std::string {
             return " * " + generator.GenTypeAnnotation(kParam, d.field_type,
                                                        d.field_name, false);
           },
@@ -1070,7 +1070,7 @@ class JsTsGenerator : public BaseGenerator {
       code += "constructor(\n";
       FmtObjApi(
           data, code,
-          [](const ObjApiData &d, JsTsGenerator &generator) {
+          [](const ObjApiData &d, JsTsGenerator &generator) -> std::string {
             (void)(generator);
             return "  public " + d.field_name + ": " + d.field_type + " = " +
                    d.field_default_val;
@@ -1089,7 +1089,7 @@ class JsTsGenerator : public BaseGenerator {
       if (!struct_def.fixed) {
         FmtObjApi(
             data, code,
-            [](const ObjApiData &d, JsTsGenerator &generator) {
+            [](const ObjApiData &d, JsTsGenerator &generator) -> std::string {
               (void)(generator);
               return d.field_pre_offset + "\n";
             },
@@ -1097,7 +1097,7 @@ class JsTsGenerator : public BaseGenerator {
         code += create_func + ", \n";
         FmtObjApi(
             data, code,
-            [](const ObjApiData &d, JsTsGenerator &generator) {
+            [](const ObjApiData &d, JsTsGenerator &generator) -> std::string {
               (void)(generator);
               return "    " + d.field_post_offset;
             },
@@ -1141,7 +1141,7 @@ class JsTsGenerator : public BaseGenerator {
       code += "  return new " + class_name + "(\n";
       FmtObjApi(
           data, code,
-          [](const ObjApiData &d, JsTsGenerator &generator) {
+          [](const ObjApiData &d, JsTsGenerator &generator) -> std::string {
             (void)(generator);
             return "    " + d.field_val;
           },
@@ -1151,7 +1151,7 @@ class JsTsGenerator : public BaseGenerator {
       code += base_unpack_to_func + "\n";
       FmtObjApi(
           data, code,
-          [](const ObjApiData &d, JsTsGenerator &generator) {
+          [](const ObjApiData &d, JsTsGenerator &generator) -> std::string {
             (void)(generator);
             return "  _o." + d.field_name + " = " + d.field_val;
           },
