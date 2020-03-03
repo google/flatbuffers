@@ -195,7 +195,7 @@ public class MonsterExtraT
     return MonsterExtra.GetRootAsMonsterExtra(new ByteBuffer(fbBuffer)).UnPack();
   }
   public byte[] SerializeToFlatBuffers() {
-    var fbb = new FlatBufferBuilder(1);
+    var fbb = new FlatBufferBuilder(0x10000);
     fbb.Finish(MonsterExtra.Pack(fbb, this).Value);
     return fbb.DataBuffer.ToSizedArray();
   }

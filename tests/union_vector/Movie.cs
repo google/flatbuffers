@@ -195,7 +195,7 @@ public class MovieT
     return Movie.GetRootAsMovie(new ByteBuffer(fbBuffer)).UnPack();
   }
   public byte[] SerializeToFlatBuffers() {
-    var fbb = new FlatBufferBuilder(1);
+    var fbb = new FlatBufferBuilder(0x10000);
     fbb.Finish(Movie.Pack(fbb, this).Value);
     return fbb.DataBuffer.ToSizedArray();
   }

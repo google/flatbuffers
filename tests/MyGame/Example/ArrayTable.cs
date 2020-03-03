@@ -65,7 +65,7 @@ public class ArrayTableT
     return ArrayTable.GetRootAsArrayTable(new ByteBuffer(fbBuffer)).UnPack();
   }
   public byte[] SerializeToFlatBuffers() {
-    var fbb = new FlatBufferBuilder(1);
+    var fbb = new FlatBufferBuilder(0x10000);
     fbb.Finish(ArrayTable.Pack(fbb, this).Value);
     return fbb.DataBuffer.ToSizedArray();
   }

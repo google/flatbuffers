@@ -1997,7 +1997,7 @@ class CSharpGenerator : public BaseGenerator {
               "(new ByteBuffer(fbBuffer)).UnPack();\n";
       code += "  }\n";
       code += "  public byte[] SerializeToFlatBuffers() {\n";
-      code += "    var fbb = new FlatBufferBuilder(1);\n";
+      code += "    var fbb = new FlatBufferBuilder(0x10000);\n";
       code +=
           "    fbb.Finish(" + struct_def.name + ".Pack(fbb, this).Value);\n";
       code += "    return fbb.DataBuffer.ToSizedArray();\n";
