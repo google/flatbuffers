@@ -31,7 +31,8 @@
 #  include <winbase.h>
 #  undef interface  // This is also important because of reasons
 #else
-#  define _XOPEN_SOURCE 500 // For PATH_MAX from limits.h (SUSv2 extension) 
+#  define _XOPEN_SOURCE 700L
+#  define _POSIX_C_SOURCE 200809L
 #  include <limits.h>
 #endif
 // clang-format on
@@ -195,8 +196,15 @@ std::string AbsolutePath(const std::string &filepath) {
       char abs_path[MAX_PATH];
       return GetFullPathNameA(filepath.c_str(), MAX_PATH, abs_path, nullptr)
     #else
-      char abs_path[PATH_MAX];
-      return realpath(filepath.c_str(), abs_path)
+	  char* abs_path_temp = realpath(filepath.c_str(), nullptr);
+	  bool success = abs_path_temp != nullptr;
+	  std::string abs_path;
+	  if(success)
+	  {
+		  abs_path = abs_path_temp;
+		  free(abs_path_temp);
+	  }
+      return success
     #endif
       ? abs_path
       : filepath;
