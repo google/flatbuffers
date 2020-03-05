@@ -1990,6 +1990,19 @@ class CSharpGenerator : public BaseGenerator {
           "Newtonsoft.Json.Formatting.Indented);\n";
       code += "  }\n";
     }
+    if (parser_.root_struct_def_ == &struct_def) {
+      code += "  public static " + class_name +
+              " DeserializeFromBinary(byte[] fbBuffer) {\n";
+      code += "    return " + struct_def.name + ".GetRootAs" + struct_def.name +
+              "(new ByteBuffer(fbBuffer)).UnPack();\n";
+      code += "  }\n";
+      code += "  public byte[] SerializeToBinary() {\n";
+      code += "    var fbb = new FlatBufferBuilder(0x10000);\n";
+      code +=
+          "    fbb.Finish(" + struct_def.name + ".Pack(fbb, this).Value);\n";
+      code += "    return fbb.DataBuffer.ToSizedArray();\n";
+      code += "  }\n";
+    }
     code += "}\n\n";
   }
 

@@ -785,6 +785,14 @@ public class MonsterT
   public string SerializeToJson() {
     return Newtonsoft.Json.JsonConvert.SerializeObject(this, Newtonsoft.Json.Formatting.Indented);
   }
+  public static MonsterT DeserializeFromBinary(byte[] fbBuffer) {
+    return Monster.GetRootAsMonster(new ByteBuffer(fbBuffer)).UnPack();
+  }
+  public byte[] SerializeToBinary() {
+    var fbb = new FlatBufferBuilder(0x10000);
+    fbb.Finish(Monster.Pack(fbb, this).Value);
+    return fbb.DataBuffer.ToSizedArray();
+  }
 }
 
 
