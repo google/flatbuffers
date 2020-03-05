@@ -61,6 +61,14 @@ public class ArrayTableT
   public string SerializeToJson() {
     return Newtonsoft.Json.JsonConvert.SerializeObject(this, Newtonsoft.Json.Formatting.Indented);
   }
+  public static ArrayTableT DeserializeFromBinary(byte[] fbBuffer) {
+    return ArrayTable.GetRootAsArrayTable(new ByteBuffer(fbBuffer)).UnPack();
+  }
+  public byte[] SerializeToBinary() {
+    var fbb = new FlatBufferBuilder(0x10000);
+    fbb.Finish(ArrayTable.Pack(fbb, this).Value);
+    return fbb.DataBuffer.ToSizedArray();
+  }
 }
 
 
