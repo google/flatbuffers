@@ -16,6 +16,10 @@
 
 // clang-format off
 // Dont't remove `format off`, it prevent reordering of win-includes.
+
+#  define _XOPEN_SOURCE 700L
+#  define _POSIX_C_SOURCE 200809L
+
 #ifdef _WIN32
 #  ifndef WIN32_LEAN_AND_MEAN
 #    define WIN32_LEAN_AND_MEAN
@@ -30,10 +34,6 @@
 #  include <direct.h>
 #  include <winbase.h>
 #  undef interface  // This is also important because of reasons
-#else
-#  define _XOPEN_SOURCE 700L
-#  define _POSIX_C_SOURCE 200809L
-#  include <limits.h>
 #endif
 // clang-format on
 
