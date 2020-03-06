@@ -13,6 +13,7 @@ let package = Package(
         .package(path: "../../swift/")
     ],
     targets: [
+        .target(name: "SwiftFlatBuffers"),
         .testTarget(
             name: "FlatBuffers.Test.SwiftTests",
             dependencies: ["FlatBuffers"]),
