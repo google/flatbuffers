@@ -14,7 +14,7 @@ type Verify struct {
 	vTableOffset   flatbuffers.SOffsetT // value in first 4 byte of payload
 	PositionToData flatbuffers.UOffsetT // Always < 1<<31.
 	slotNumbers    int                  // how many slot ( object field ) in vTable
-	slotExited     bool                 // set true when slot numbers is zero
+	slotNoExited   bool                 // set true when slot numbers is zero, for reflect purpose
 	headVerified   bool                 // verified as avid header of serialized flatbuffers Header
 	parseFinished  bool                 // flag for streaming read
 }
@@ -42,7 +42,7 @@ func (t *Verify) parseSize(buf []byte) error {
 	t.payloadSize = flatbuffers.GetVOffsetT(buf[t.vTableStart+flatbuffers.SizeVOffsetT:])
 	if t.vTableSize > 0 && t.vTableSize > flatbuffers.SizeSOffsetT {
 		t.slotNumbers = (int(t.vTableSize) - flatbuffers.SizeSOffsetT) / flatbuffers.SizeVOffsetT
-		t.slotExited = true
+		t.slotNoExited = true
 	}
 	return nil
 }
@@ -126,7 +126,8 @@ func (t *Verify) Size() int {
 // Reset reset verifier
 func (t *Verify) Reset() {
 	t.headVerified = false
-	t.slotExited = false
+	t.slotNoExited = false
+	t.parseFinished = false
 	t.PositionToData = 0
 }
 
