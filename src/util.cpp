@@ -34,8 +34,6 @@
 #  include <direct.h>
 #  include <winbase.h>
 #  undef interface  // This is also important because of reasons
-#else
-#  include <cstdlib>
 #endif
 // clang-format on
 
@@ -44,6 +42,7 @@
 
 #include <sys/stat.h>
 #include <clocale>
+#include <cstdlib>
 #include <fstream>
 
 namespace flatbuffers {
