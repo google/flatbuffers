@@ -34,6 +34,8 @@
 #  include <direct.h>
 #  include <winbase.h>
 #  undef interface  // This is also important because of reasons
+#else
+#  include <cstdlib>
 #endif
 // clang-format on
 
@@ -196,13 +198,12 @@ std::string AbsolutePath(const std::string &filepath) {
       char abs_path[MAX_PATH];
       return GetFullPathNameA(filepath.c_str(), MAX_PATH, abs_path, nullptr)
     #else
-	  char* abs_path_temp = realpath(filepath.c_str(), nullptr);
+	  char *abs_path_temp = realpath(filepath.c_str(), nullptr);
 	  bool success = abs_path_temp != nullptr;
 	  std::string abs_path;
-	  if(success)
-	  {
-		  abs_path = abs_path_temp;
-		  free(abs_path_temp);
+	  if(success) {
+		abs_path = abs_path_temp;
+		free(abs_path_temp);
 	  }
       return success
     #endif
