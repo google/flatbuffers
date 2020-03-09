@@ -2875,6 +2875,18 @@ mod copy_clone_traits {
     }
 }
 
+#[cfg(test)]
+mod fully_qualified_name {
+    #[test]
+    fn fully_qualified_name_generated() {
+        assert!(check_eq!(::my_game::example::Monster::get_fully_qualified_name(), "MyGame.Example.Monster").is_ok());
+        assert!(check_eq!(::my_game::example_2::Monster::get_fully_qualified_name(), "MyGame.Example2.Monster").is_ok());
+
+        assert!(check_eq!(::my_game::example::Vec3::get_fully_qualified_name(), "MyGame.Example.Vec3").is_ok());
+        assert!(check_eq!(::my_game::example::Ability::get_fully_qualified_name(), "MyGame.Example.Ability").is_ok());
+    }
+}
+
 // this is not technically a test, but we want to always keep this generated
 // file up-to-date, and the simplest way to do that is to make sure that when
 // tests are run, the file is generated.

@@ -100,7 +100,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "                         schemas the generated file depends on (C++ / Python).\n"
     "  --gen-mutable          Generate accessors that can mutate buffers in-place.\n"
     "  --gen-onefile          Generate single output file for C# and Go.\n"
-    "  --gen-name-strings     Generate type name functions for C++.\n"
+    "  --gen-name-strings     Generate type name functions for C++ and Rust.\n"
     "  --gen-object-api       Generate an additional object-based API.\n"
     "  --gen-compare          Generate operator== for object-based API types.\n"
     "  --gen-nullable         Add Clang _Nullable for C++ pointer. or @Nullable for Java\n"
