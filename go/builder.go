@@ -160,7 +160,7 @@ func (b *Builder) WriteVtable() (n UOffsetT) {
 		// The two metadata fields are written last.
 
 		// First, store the object bytesize:
-		objectSize := objectOffset - b.objectEnd
+		objectSize := objectOffset // - b.objectEnd
 		b.PrependVOffsetT(VOffsetT(objectSize))
 
 		// Second, store the vtable bytesize:

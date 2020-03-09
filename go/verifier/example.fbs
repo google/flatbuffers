@@ -1,0 +1,53 @@
+namespace generated;
+
+attribute "priority";
+
+table Empty {
+
+}
+
+table  Int8 {
+    field:int8;
+}
+
+table  Int16 {
+    field:int16;
+}
+
+table  Int32 {
+    field:int32;
+}
+
+table  Int64 {
+    field:int64;
+}
+
+table String {
+    field:string;
+}
+
+table UByteSlice {
+  field:[ubyte];
+}
+
+enum EnumType:ubyte (bit_flags) { Male = 0, Female = 1 }
+
+table Complex {
+   field1:int8;
+   field2:int16;
+   field3:int32;
+   field4:int64;
+   field5:string(deprecated);
+   field6:[ubyte];
+   field7:EnumType;
+}
+
+union UnionObject { Complex, UByteSlice }
+
+table Nested {
+   field1:int8;
+   field2:string(deprecated);
+   field3:EnumType;
+   field4:[ubyte](nested_flatbuffer: "Complex");
+   field5:UnionObject;
+}

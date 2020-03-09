@@ -1,0 +1,1 @@
+flatc  --go --gen-object-api ./*.fbs
