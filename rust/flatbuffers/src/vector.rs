@@ -154,6 +154,7 @@ impl<'a, T: Follow<'a> + 'a> Follow<'a> for Vector<'a, T> {
     }
 }
 
+/// An iterator over a `Vector`.
 #[derive(Debug)]
 pub struct VectorIter<'a, T: 'a> {
     buf: &'a [u8],
