@@ -1299,9 +1299,7 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
                   : 1;
   const size_t len = count * InlineSize(type) / InlineAlignment(type);
   const size_t elemsize = InlineAlignment(type);
-  if (align > 1) {
-    builder_.ForceVectorAlignment(len, elemsize, align);
-  }
+  if (align > 1) { builder_.ForceVectorAlignment(len, elemsize, align); }
 
   builder_.StartVector(len, elemsize);
   for (uoffset_t i = 0; i < count; i++) {

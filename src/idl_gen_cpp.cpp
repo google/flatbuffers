@@ -2155,13 +2155,11 @@ class CppGenerator : public BaseGenerator {
   // Generate code to force vector alignment. Return empty string for vector
   // that doesn't need alignment code.
   std::string GenVectorForceAlign(const FieldDef &field,
-                           const std::string &field_size) {
+                                  const std::string &field_size) {
     FLATBUFFERS_ASSERT(field.value.type.base_type == BASE_TYPE_VECTOR);
     // Get the value of the force_align attribute.
     const auto *force_align = field.attributes.Lookup("force_align");
-    const size_t align =
-        force_align ? static_cast<size_t>(atoi(force_align->constant.c_str()))
-                    : 1;
+    const int align = force_align ? atoi(force_align->constant.c_str()) : 1;
     // Generate code to do force_align for the vector.
     if (align > 1) {
       const auto vtype = field.value.type.VectorType();
@@ -2795,9 +2793,7 @@ class CppGenerator : public BaseGenerator {
         if (field.value.type.base_type == BASE_TYPE_VECTOR) {
           const std::string force_align_code =
               GenVectorForceAlign(field, "_o->" + Name(field) + ".size()");
-          if (!force_align_code.empty()) {
-            code_ += "  " + force_align_code;
-          }
+          if (!force_align_code.empty()) { code_ += "  " + force_align_code; }
         }
         code_ += "  auto _" + Name(field) + " = " + GenCreateParam(field) + ";";
       }
