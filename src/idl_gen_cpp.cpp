@@ -2152,6 +2152,27 @@ class CppGenerator : public BaseGenerator {
     }
   }
 
+  // Generate code to force vector alignment. Return empty string for vector
+  // that doesn't need alignment code.
+  std::string GenVectorForceAlign(const FieldDef &field,
+                           const std::string &field_size) {
+    FLATBUFFERS_ASSERT(field.value.type.base_type == BASE_TYPE_VECTOR);
+    // Get the value of the force_align attribute.
+    const auto *force_align = field.attributes.Lookup("force_align");
+    const size_t align =
+        force_align ? static_cast<size_t>(atoi(force_align->constant.c_str()))
+                    : 1;
+    // Generate code to do force_align for the vector.
+    if (align > 1) {
+      const auto vtype = field.value.type.VectorType();
+      const auto type = IsStruct(vtype) ? WrapInNameSpace(*vtype.struct_def)
+                                        : GenTypeWire(vtype, "", false);
+      return "_fbb.ForceVectorAlignment(" + field_size + ", sizeof(" + type +
+             "), " + std::to_string(align) + ");";
+    }
+    return "";
+  }
+
   void GenBuilders(const StructDef &struct_def) {
     code_.SetValue("STRUCT_NAME", Name(struct_def));
 
@@ -2307,6 +2328,11 @@ class CppGenerator : public BaseGenerator {
                 "  auto {{FIELD_NAME}}__ = {{FIELD_NAME}} ? "
                 "_fbb.{{CREATE_STRING}}({{FIELD_NAME}}) : 0;";
           } else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+            const std::string force_align_code =
+                GenVectorForceAlign(field, Name(field) + "->size()");
+            if (!force_align_code.empty()) {
+              code_ += "  if ({{FIELD_NAME}}) { " + force_align_code + " }";
+            }
             code_ += "  auto {{FIELD_NAME}}__ = {{FIELD_NAME}} ? \\";
             const auto vtype = field.value.type.VectorType();
             const auto has_key = TypeHasKey(vtype);
@@ -2766,6 +2792,13 @@ class CppGenerator : public BaseGenerator {
            it != struct_def.fields.vec.end(); ++it) {
         auto &field = **it;
         if (field.deprecated) { continue; }
+        if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+          const std::string force_align_code =
+              GenVectorForceAlign(field, "_o->" + Name(field) + ".size()");
+          if (!force_align_code.empty()) {
+            code_ += "  " + force_align_code;
+          }
+        }
         code_ += "  auto _" + Name(field) + " = " + GenCreateParam(field) + ";";
       }
       // Need to call "Create" with the struct namespace.

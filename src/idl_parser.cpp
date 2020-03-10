@@ -1293,8 +1293,17 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
   });
   ECHECK(err);
 
-  builder_.StartVector(count * InlineSize(type) / InlineAlignment(type),
-                       InlineAlignment(type));
+  const auto *force_align = field->attributes.Lookup("force_align");
+  const size_t align =
+      force_align ? static_cast<size_t>(atoi(force_align->constant.c_str()))
+                  : 1;
+  const size_t len = count * InlineSize(type) / InlineAlignment(type);
+  const size_t elemsize = InlineAlignment(type);
+  if (align > 1) {
+    builder_.ForceVectorAlignment(len, elemsize, align);
+  }
+
+  builder_.StartVector(len, elemsize);
   for (uoffset_t i = 0; i < count; i++) {
     // start at the back, since we're building the data backwards.
     auto &val = field_stack_.back().first;
