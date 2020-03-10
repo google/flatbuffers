@@ -2166,7 +2166,7 @@ class CppGenerator : public BaseGenerator {
       const auto type = IsStruct(vtype) ? WrapInNameSpace(*vtype.struct_def)
                                         : GenTypeWire(vtype, "", false);
       return "_fbb.ForceVectorAlignment(" + field_size + ", sizeof(" + type +
-             "), " + std::to_string(align) + ");";
+             "), " + std::to_string(static_cast<long long>(align)) + ");";
     }
     return "";
   }
