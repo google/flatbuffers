@@ -1329,7 +1329,7 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
         break;
       }
     }
-    assert(key);
+    FLATBUFFERS_ASSERT(key);
     // Now sort it.
     // We can't use std::sort because for structs the size is not known at
     // compile time, and for tables our iterators dereference offsets, so can't
@@ -1379,7 +1379,7 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
             // These are serialized offsets, so are relative where they are
             // stored in memory, so compute the distance between these pointers:
             ptrdiff_t diff = (b - a) * sizeof(Offset<Table>);
-            assert(diff >= 0);  // Guaranteed by SimpleQsort.
+            FLATBUFFERS_ASSERT(diff >= 0);  // Guaranteed by SimpleQsort.
             auto udiff = static_cast<uoffset_t>(diff);
             a->o = EndianScalar(ReadScalar<uoffset_t>(a) - udiff);
             b->o = EndianScalar(ReadScalar<uoffset_t>(b) + udiff);
