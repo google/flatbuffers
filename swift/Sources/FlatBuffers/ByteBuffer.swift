@@ -118,7 +118,7 @@ public final class ByteBuffer {
     ///   - size: Size of Value being written to the buffer
     func push(struct value: UnsafeMutableRawPointer, size: Int) {
         ensureSpace(size: UInt32(size))
-        _memory.advanced(by: writerIndex - size).copyMemory(from: value, byteCount: size)
+        memcpy(_memory.advanced(by: writerIndex - size), value, size)
         defer { value.deallocate() }
         _writerSize += size
     }
