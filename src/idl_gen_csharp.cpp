@@ -37,6 +37,11 @@ static CommentConfig comment_config = {
 };
 
 namespace csharp {
+struct FieldInfo {
+  std::string name;
+  int array_length;
+};
+
 class CSharpGenerator : public BaseGenerator {
  public:
   CSharpGenerator(const Parser &parser, const std::string &path,
@@ -1540,6 +1545,15 @@ class CSharpGenerator : public BaseGenerator {
                     GenOffsetType(*field.value.type.struct_def) +
                     ") : " + GenTypeGet(field.value.type) +
                     ".Pack(builder, _o." + camel_name + ");\n";
+          } else if (struct_has_create) {
+            std::vector<FieldInfo> fields;
+            FieldInfo tmp_field = {
+              field.name,
+              field.value.type.fixed_length,
+            };
+            fields.push_back(tmp_field);
+            GenStructPackDecl_ObjectAPI(*field.value.type.struct_def, code_ptr,
+                                        fields);
           }
           break;
         }
@@ -1620,12 +1634,14 @@ class CSharpGenerator : public BaseGenerator {
         }
         case BASE_TYPE_ARRAY: {
           if (field.value.type.struct_def != nullptr) {
-            std::vector<std::string> name_vec;
-            name_vec.push_back(field.name);
-            std::vector<int> array_length_vec;
-            array_length_vec.push_back(field.value.type.fixed_length);
-            GenArrayPackDecl_ObjectAPI(*field.value.type.struct_def, code_ptr,
-                                       name_vec, array_length_vec);
+            std::vector<FieldInfo> fields;
+            FieldInfo tmp_field = {
+              field.name,
+              field.value.type.fixed_length,
+            };
+            fields.push_back(tmp_field);
+            GenStructPackDecl_ObjectAPI(*field.value.type.struct_def, code_ptr,
+                                        fields);
           } else {
             code += "    var _" + field.name + " = _o." + camel_name + ";\n";
           }
@@ -1656,8 +1672,9 @@ class CSharpGenerator : public BaseGenerator {
         switch (field.value.type.base_type) {
           case BASE_TYPE_STRUCT: {
             if (struct_def.fixed) {
-              GenStructArgs_ObjectAPI(*field.value.type.struct_def, code_ptr,
-                                      "      _o." + camel_name);
+              GenStructPackCall_ObjectAPI(*field.value.type.struct_def,
+                                          code_ptr,
+                                          "      _" + field.name + "_");
             } else {
               code += ",\n";
               if (field.value.type.struct_def->fixed) {
@@ -1674,8 +1691,9 @@ class CSharpGenerator : public BaseGenerator {
           }
           case BASE_TYPE_ARRAY: {
             if (field.value.type.struct_def != nullptr) {
-              GenArrayPackCall_ObjectAPI(*field.value.type.struct_def, code_ptr,
-                                         "      _" + field.name + "_");
+              GenStructPackCall_ObjectAPI(*field.value.type.struct_def,
+                                          code_ptr,
+                                          "      _" + field.name + "_");
             } else {
               code += ",\n";
               code += "      _" + field.name;
@@ -1745,28 +1763,9 @@ class CSharpGenerator : public BaseGenerator {
     code += "  }\n";
   }
 
-  void GenStructArgs_ObjectAPI(const StructDef &struct_def,
-                               std::string *code_ptr,
-                               std::string prefix) const {
-    auto &code = *code_ptr;
-    for (auto it = struct_def.fields.vec.begin();
-         it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
-      const auto &field_type = field.value.type;
-      if (IsStruct(field_type)) {
-        GenStructArgs_ObjectAPI(*field_type.struct_def, code_ptr,
-                                prefix + "." + MakeCamel(field.name));
-      } else {
-        code += ",\n";
-        code += prefix + "." + MakeCamel(field.name);
-      }
-    }
-  }
-
-  void GenArrayPackDecl_ObjectAPI(const StructDef &struct_def,
-                                  std::string *code_ptr,
-                                  std::vector<std::string> name_vec,
-                                  std::vector<int> array_length_vec) const {
+  void GenStructPackDecl_ObjectAPI(const StructDef &struct_def,
+                                   std::string *code_ptr,
+                                   const std::vector<FieldInfo> fields) const {
     auto &code = *code_ptr;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
@@ -1774,65 +1773,97 @@ class CSharpGenerator : public BaseGenerator {
       auto is_array = IsArray(field.value.type);
       const auto &field_type =
           is_array ? field.value.type.VectorType() : field.value.type;
-      auto tmp_name_vec = name_vec;
-      tmp_name_vec.push_back(field.name);
-      auto tmp_array_length_vec = array_length_vec;
-      if (is_array) { tmp_array_length_vec.push_back(field_type.fixed_length); }
+      auto tmp_fields = fields;
+      FieldInfo tmp_field = {
+        field.name,
+        field_type.fixed_length,
+      };
+      tmp_fields.push_back(tmp_field);
       if (field_type.struct_def != nullptr) {
-        GenArrayPackDecl_ObjectAPI(*field_type.struct_def, code_ptr,
-                                   tmp_name_vec, tmp_array_length_vec);
+        GenStructPackDecl_ObjectAPI(*field_type.struct_def, code_ptr,
+                                    tmp_fields);
       } else {
+        auto contains_array = false;
+        for (size_t i = 0; i < tmp_fields.size(); ++i) {
+          if (tmp_fields[i].array_length > 0) {
+            contains_array = true;
+            break;
+          }
+        }
         std::string name;
-        for (size_t tmp_name_index = 0; tmp_name_index < tmp_name_vec.size();
-             ++tmp_name_index) {
-          name += "_" + tmp_name_vec[tmp_name_index];
+        for (size_t i = 0; i < tmp_fields.size(); ++i) {
+          name += "_" + tmp_fields[i].name;
         }
-        code += "    var " + name + " = new " + GenTypeBasic(field_type) + "[";
-        code += NumToString(tmp_array_length_vec[0]);
-        for (size_t i = 1; i < tmp_array_length_vec.size(); ++i) {
-          auto array_length = tmp_array_length_vec[i];
-          code += "," + NumToString(array_length);
-        }
-        code += "];\n";
-        code += "    ";
-        // initialize array
-        for (size_t i = 0; i < tmp_array_length_vec.size(); ++i) {
-          auto array_length = tmp_array_length_vec[i];
-          auto idx = "idx" + NumToString(i);
-          code += "for (var " + idx + " = 0; " + idx + " < " +
-                  NumToString(array_length) + "; ++" + idx + ") {";
-        }
-        code += name + "[idx0";
-        for (size_t i = 1; i < tmp_array_length_vec.size(); ++i) {
-          auto idx = "idx" + NumToString(i);
-          code += "," + idx;
-        }
-        code += "] = _o";
-        for (size_t i = 0; i < tmp_array_length_vec.size(); ++i) {
-          auto idx = "idx" + NumToString(i);
-          code += "." + MakeCamel(tmp_name_vec[i]) + "[" + idx + "]";
-        }
-        if (!is_array) { code += "." + MakeCamel(field.name); }
-        code += ";";
-        for (size_t i = 0; i < tmp_array_length_vec.size(); ++i) {
-          code += "}";
+        code += "    var " + name + " = ";
+        if (contains_array) {
+          code += "new " + GenTypeBasic(field_type) + "[";
+          auto first_array = true;
+          for (size_t i = 0; i < tmp_fields.size(); ++i) {
+            auto array_length = tmp_fields[i].array_length;
+            if (array_length <= 0) continue;
+            if (first_array) {
+              first_array = false;
+            } else {
+              code += ",";
+            }
+            code += NumToString(array_length);
+          }
+          code += "];\n";
+          code += "    ";
+          // initialize array
+          for (size_t i = 0; i < tmp_fields.size(); ++i) {
+            auto array_length = tmp_fields[i].array_length;
+            if (array_length <= 0) continue;
+            auto idx = "idx" + NumToString(i);
+            code += "for (var " + idx + " = 0; " + idx + " < " +
+                    NumToString(array_length) + "; ++" + idx + ") {";
+          }
+          first_array = true;
+          for (size_t i = 0; i < tmp_fields.size(); ++i) {
+            if (tmp_fields[i].array_length <= 0) continue;
+            auto idx = "idx" + NumToString(i);
+            if (first_array) {
+              code += name + "[" + idx;
+              first_array = false;
+            } else {
+              code += "," + idx;
+            }
+          }
+          code += "] = _o";
+          for (size_t i = 0; i < tmp_fields.size(); ++i) {
+            code += "." + MakeCamel(tmp_fields[i].name);
+            if (tmp_fields[i].array_length <= 0) continue;
+            auto idx = "idx" + NumToString(i);
+            code += "[" + idx + "]";
+          }
+          code += ";";
+          for (size_t i = 0; i < tmp_fields.size(); ++i) {
+            if (tmp_fields[i].array_length <= 0) continue;
+            code += "}";
+          }
+        } else {
+          code += "_o";
+          for (size_t i = 0; i < tmp_fields.size(); ++i) {
+            code += "." + MakeCamel(tmp_fields[i].name);
+          }
+          code += ";";
         }
         code += "\n";
       }
     }
   }
 
-  void GenArrayPackCall_ObjectAPI(const StructDef &struct_def,
-                                  std::string *code_ptr,
-                                  std::string prefix) const {
+  void GenStructPackCall_ObjectAPI(const StructDef &struct_def,
+                                   std::string *code_ptr,
+                                   std::string prefix) const {
     auto &code = *code_ptr;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
       const auto &field_type = field.value.type;
       if (field_type.struct_def != nullptr) {
-        GenArrayPackCall_ObjectAPI(*field_type.struct_def, code_ptr,
-                                   prefix + field.name + "_");
+        GenStructPackCall_ObjectAPI(*field_type.struct_def, code_ptr,
+                                    prefix + field.name + "_");
       } else {
         code += ",\n";
         code += prefix + field.name;

@@ -531,6 +531,13 @@ public struct Monster : IFlatbufferObject
   }
   public static Offset<MyGame.Example.Monster> Pack(FlatBufferBuilder builder, MonsterT _o) {
     if (_o == null) return default(Offset<MyGame.Example.Monster>);
+    var _pos_x = _o.Pos.X;
+    var _pos_y = _o.Pos.Y;
+    var _pos_z = _o.Pos.Z;
+    var _pos_test1 = _o.Pos.Test1;
+    var _pos_test2 = _o.Pos.Test2;
+    var _pos_test3_a = _o.Pos.Test3.A;
+    var _pos_test3_b = _o.Pos.Test3.B;
     var _name = _o.Name == null ? default(StringOffset) : builder.CreateString(_o.Name);
     var _inventory = default(VectorOffset);
     if (_o.Inventory != null) {
