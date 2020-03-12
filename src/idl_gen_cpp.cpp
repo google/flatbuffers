@@ -1227,10 +1227,8 @@ class CppGenerator : public BaseGenerator {
       code_ += "  {{NAME}}Union({{NAME}}Union&& u) FLATBUFFERS_NOEXCEPT :";
       code_ += "    type({{NONE}}), value(nullptr)";
       code_ += "    { std::swap(type, u.type); std::swap(value, u.value); }";
-      code_ += "  {{NAME}}Union(const {{NAME}}Union &) FLATBUFFERS_NOEXCEPT;";
-      code_ +=
-          "  {{NAME}}Union &operator=(const {{NAME}}Union &u) "
-          "FLATBUFFERS_NOEXCEPT";
+      code_ += "  {{NAME}}Union(const {{NAME}}Union &);";
+      code_ += "  {{NAME}}Union &operator=(const {{NAME}}Union &u)";
       code_ +=
           "    { {{NAME}}Union t(u); std::swap(type, t.type); std::swap(value, "
           "t.value); return *this; }";
@@ -1469,8 +1467,7 @@ class CppGenerator : public BaseGenerator {
       // Union copy constructor
       code_ +=
           "inline {{ENUM_NAME}}Union::{{ENUM_NAME}}Union(const "
-          "{{ENUM_NAME}}Union &u) FLATBUFFERS_NOEXCEPT : type(u.type), "
-          "value(nullptr) {";
+          "{{ENUM_NAME}}Union &u) : type(u.type), value(nullptr) {";
       code_ += "  switch (type) {";
       for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
            ++it) {
