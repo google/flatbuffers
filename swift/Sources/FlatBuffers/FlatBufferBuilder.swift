@@ -174,19 +174,17 @@ public final class FlatBufferBuilder {
         
         var isAlreadyAdded: Int?
         
-        mainLoop: for table in _vtables {
-            let vt1 = _bb.capacity - Int(table)
-            let vt2 = _bb.writerIndex
-            let len = _bb.read(def: Int16.self, position: vt1)
-            guard len == _bb.read(def: Int16.self, position: vt2) else { break }
-            for i in stride(from: sizeofVoffset, to: Int(len), by: sizeofVoffset) {
-                let vt1ReadValue = _bb.read(def: Int16.self, position: vt1 + i)
-                let vt2ReadValue = _bb.read(def: Int16.self, position: vt2 + i)
-                if vt1ReadValue != vt2ReadValue {
-                    break mainLoop
-                }
-            }
+        let vt2 = _bb.memory.advanced(by: _bb.writerIndex)
+        let len2 = vt2.load(fromByteOffset: 0, as: Int16.self)
+
+        for table in _vtables {
+            let position = _bb.capacity - Int(table)
+            let vt1 = _bb.memory.advanced(by: position)
+            let len1 = _bb.read(def: Int16.self, position: position)
+            if (len2 != len1 || 0 != memcmp(vt1, vt2, Int(len2))) { continue }
+            
             isAlreadyAdded = Int(table)
+            break
         }
         
         if let offset = isAlreadyAdded {
