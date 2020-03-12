@@ -80,7 +80,7 @@ public enum AnyAmbiguousAliases: UInt8, Enum {
 
 public struct Test: Readable {
 
-	static func validateVersion() { FlatBuffersVersion_1_11_1() }
+	static func validateVersion() { FlatBuffersVersion_1_12_0() }
 	public var __buffer: ByteBuffer! { return _accessor.bb }
 
 	private var _accessor: Struct
@@ -96,7 +96,7 @@ public struct Test: Readable {
 
 public struct Vec3: Readable {
 
-	static func validateVersion() { FlatBuffersVersion_1_11_1() }
+	static func validateVersion() { FlatBuffersVersion_1_12_0() }
 	public var __buffer: ByteBuffer! { return _accessor.bb }
 
 	private var _accessor: Struct
@@ -118,7 +118,7 @@ public struct Vec3: Readable {
 
 public struct Ability: Readable {
 
-	static func validateVersion() { FlatBuffersVersion_1_11_1() }
+	static func validateVersion() { FlatBuffersVersion_1_12_0() }
 	public var __buffer: ByteBuffer! { return _accessor.bb }
 
 	private var _accessor: Struct
@@ -168,7 +168,7 @@ public static func createAbility(id: UInt32, distance: UInt32) -> UnsafeMutableR
 
 public struct InParentNamespace: FlatBufferObject {
 
-	static func validateVersion() { FlatBuffersVersion_1_11_1() }
+	static func validateVersion() { FlatBuffersVersion_1_12_0() }
 	public var __buffer: ByteBuffer! { return _accessor.bb }
 
 	private var _accessor: Table
@@ -190,7 +190,7 @@ public enum Example2 {
 
 public struct Monster: FlatBufferObject {
 
-	static func validateVersion() { FlatBuffersVersion_1_11_1() }
+	static func validateVersion() { FlatBuffersVersion_1_12_0() }
 	public var __buffer: ByteBuffer! { return _accessor.bb }
 
 	private var _accessor: Table
@@ -218,7 +218,7 @@ extension MyGame.Example {
 
 public struct TestSimpleTableWithEnum: FlatBufferObject {
 
-	static func validateVersion() { FlatBuffersVersion_1_11_1() }
+	static func validateVersion() { FlatBuffersVersion_1_12_0() }
 	public var __buffer: ByteBuffer! { return _accessor.bb }
 
 	private var _accessor: Table
@@ -243,7 +243,7 @@ public struct TestSimpleTableWithEnum: FlatBufferObject {
 
 public struct Stat: FlatBufferObject {
 
-	static func validateVersion() { FlatBuffersVersion_1_11_1() }
+	static func validateVersion() { FlatBuffersVersion_1_12_0() }
 	public var __buffer: ByteBuffer! { return _accessor.bb }
 
 	private var _accessor: Table
@@ -278,7 +278,7 @@ public struct Stat: FlatBufferObject {
 
 public struct Referrable: FlatBufferObject {
 
-	static func validateVersion() { FlatBuffersVersion_1_11_1() }
+	static func validateVersion() { FlatBuffersVersion_1_12_0() }
 	public var __buffer: ByteBuffer! { return _accessor.bb }
 
 	private var _accessor: Table
@@ -325,10 +325,10 @@ public struct Referrable: FlatBufferObject {
 	}
 }
 
-/// an example documentation comment: monster object
+/// an example documentation comment: "monster object"
 public struct Monster: FlatBufferObject {
 
-	static func validateVersion() { FlatBuffersVersion_1_11_1() }
+	static func validateVersion() { FlatBuffersVersion_1_12_0() }
 	public var __buffer: ByteBuffer! { return _accessor.bb }
 
 	private var _accessor: Table
@@ -626,7 +626,7 @@ public struct Monster: FlatBufferObject {
 
 public struct TypeAliases: FlatBufferObject {
 
-	static func validateVersion() { FlatBuffersVersion_1_11_1() }
+	static func validateVersion() { FlatBuffersVersion_1_12_0() }
 	public var __buffer: ByteBuffer! { return _accessor.bb }
 
 	private var _accessor: Table
