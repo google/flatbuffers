@@ -8,7 +8,7 @@ import (
 	MyGame "MyGame"
 )
 
-/// an example documentation comment: monster object
+/// an example documentation comment: "monster object"
 type MonsterT struct {
 	Pos *Vec3T
 	Mana int16

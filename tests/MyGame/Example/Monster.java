@@ -9,7 +9,7 @@ import com.google.flatbuffers.*;
 
 @SuppressWarnings("unused")
 /**
- * an example documentation comment: monster object
+ * an example documentation comment: "monster object"
  */
 public final class Monster extends Table {
   public static void ValidateVersion() { Constants.FLATBUFFERS_1_11_1(); }

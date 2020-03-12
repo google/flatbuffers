@@ -985,7 +985,7 @@ MyGame.Example.Referrable.createReferrable = function(builder, id) {
 }
 
 /**
- * an example documentation comment: monster object
+ * an example documentation comment: "monster object"
  *
  * @constructor
  */
