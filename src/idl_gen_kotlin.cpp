@@ -457,7 +457,7 @@ class KotlinGenerator : public BaseGenerator {
           // Force compile time error if not using the same version
           // runtime.
           GenerateFunOneLine(writer, "validateVersion", "", "", [&]() {
-            writer += "Constants.FLATBUFFERS_1_11_1()";
+            writer += "Constants.FLATBUFFERS_1_12_0()";
           });
 
           GenerateGetRootAsAccessors(Esc(struct_def.name), writer);

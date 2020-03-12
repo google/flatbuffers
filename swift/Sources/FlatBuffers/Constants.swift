@@ -88,4 +88,4 @@ extension UInt64: Scalar {
     public typealias NumericValue = UInt64
 }
 
-public func FlatBuffersVersion_1_11_1() {}
+public func FlatBuffersVersion_1_12_0() {}
