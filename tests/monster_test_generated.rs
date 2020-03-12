@@ -1028,7 +1028,7 @@ impl<'a: 'b, 'b> ReferrableBuilder<'a, 'b> {
 pub enum MonsterOffset {}
 #[derive(Copy, Clone, Debug, PartialEq)]
 
-/// an example documentation comment: monster object
+/// an example documentation comment: "monster object"
 pub struct Monster<'a> {
   pub _tab: flatbuffers::Table<'a>,
 }

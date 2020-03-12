@@ -9,7 +9,7 @@ using global::System;
 using global::System.Collections.Generic;
 using global::FlatBuffers;
 
-/// an example documentation comment: monster object
+/// an example documentation comment: "monster object"
 public struct Monster : IFlatbufferObject
 {
   private Table __p;

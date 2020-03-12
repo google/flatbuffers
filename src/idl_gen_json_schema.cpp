@@ -155,7 +155,12 @@ class JsonSchemaGenerator : public BaseGenerator {
         comment.append(*comment_line);
       }
       if (comment.size() > 0) {
-        code_ += "      \"description\" : \"" + comment + "\",";
+        std::string description;
+        if (!EscapeString(comment.c_str(), comment.length(), &description, true,
+                          true)) {
+          return false;
+        }
+        code_ += "      \"description\" : " + description + ",";
       }
       code_ += "      \"properties\" : {";
 
