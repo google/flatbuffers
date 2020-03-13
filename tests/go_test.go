@@ -17,8 +17,8 @@
 package main
 
 import (
-	mygame "MyGame"          // refers to generated code
-	example "MyGame/Example" // refers to generated code
+	mygame "fake.flatbuffers.moduleroot/tests/MyGame"          // refers to generated code
+	example "fake.flatbuffers.moduleroot/tests/MyGame/Example" // refers to generated code
 
 	"bytes"
 	"flag"
@@ -80,7 +80,7 @@ func TestAll(t *testing.T) {
 	CheckStructIsNotInlineError(t.Fatalf)
 	CheckFinishedBytesError(t.Fatalf)
 	CheckSharedStrings(t.Fatalf)
-	
+
 	// Verify that GetRootAs works for non-root tables
 	CheckGetRootAsForNonRootTable(t.Fatalf)
 	CheckTableAccessors(t.Fatalf)

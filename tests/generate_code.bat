@@ -11,7 +11,7 @@
 :: WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 :: See the License for the specific language governing permissions and
 :: limitations under the License.
-
+@echo off
 @SETLOCAL
 
 set buildtype=Release
@@ -29,18 +29,19 @@ if NOT "%commandline%"=="%commandline:--cpp-std c++0x=%" (
 
 set TEST_CPP_FLAGS=--gen-compare --cpp-ptr-type flatbuffers::unique_ptr %TEST_CPP_FLAGS%
 set TEST_CS_FLAGS=--cs-gen-json-serializer
+set TEST_GO_FLAGS=--go-nsimport-prefix fake.flatbuffers.moduleroot/tests
 set TEST_RUST_FLAGS=--gen-name-strings
 set TEST_BASE_FLAGS=--reflect-names --gen-mutable --gen-object-api
 set TEST_NOINCL_FLAGS=%TEST_BASE_FLAGS% --no-includes --no-fb-import
 
 ..\%buildtype%\flatc.exe --binary --cpp --java --kotlin --csharp --dart --go --lobster --lua --js --ts --php --grpc ^
-%TEST_NOINCL_FLAGS% %TEST_CPP_FLAGS% %TEST_CS_FLAGS% -I include_test monster_test.fbs monsterdata_test.json || goto FAIL
+%TEST_NOINCL_FLAGS% %TEST_CPP_FLAGS% %TEST_CS_FLAGS% %TEST_GO_FLAGS% -I include_test monster_test.fbs monsterdata_test.json || goto FAIL
 ..\%buildtype%\flatc.exe --rust %TEST_NOINCL_FLAGS% %TEST_RUST_FLAGS% -I include_test monster_test.fbs monsterdata_test.json || goto FAIL
 
 ..\%buildtype%\flatc.exe --python %TEST_BASE_FLAGS% --no-fb-import -I include_test monster_test.fbs monsterdata_test.json || goto FAIL
 
 ..\%buildtype%\flatc.exe --binary --cpp --java --csharp --dart --go --lobster --lua --js --ts --php --python --rust ^
-%TEST_NOINCL_FLAGS% %TEST_CPP_FLAGS% %TEST_CS_FLAGS% -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs || goto FAIL
+%TEST_NOINCL_FLAGS% %TEST_CPP_FLAGS% %TEST_CS_FLAGS% %TEST_GO_FLAGS%/namespace_test -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs || goto FAIL
 
 ..\%buildtype%\flatc.exe --cpp --java --csharp --js --ts --php %TEST_BASE_FLAGS% %TEST_CPP_FLAGS% %TEST_CS_FLAGS% -o union_vector ./union_vector/union_vector.fbs || goto FAIL
 ..\%buildtype%\flatc.exe --rust -I include_test -o include_test include_test/include_test1.fbs || goto FAIL
