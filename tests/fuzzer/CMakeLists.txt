@@ -1,96 +1,134 @@
 cmake_minimum_required(VERSION 3.9)
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
-
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 project(FlatBuffersFuzzerTests)
 
-set(CMAKE_CXX_FLAGS
-  "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -pedantic -Werror -Wextra -Wno-unused-parameter -fsigned-char")
-
-set(CMAKE_CXX_FLAGS
-  "${CMAKE_CXX_FLAGS} -g -fsigned-char -fno-omit-frame-pointer")
-
-# Typical slowdown introduced by MemorySanitizer (memory) is 3x.
-# '-fsanitize=address' not allowed with '-fsanitize=memory'
-if(YES)
-  set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -fsanitize=fuzzer,address,undefined")
-else()
-  # MemorySanitizer will not work out-of-the-box, and will instead report false positives coming from uninstrumented code.
-  # Need to re-build both C++ standard library:
-  # https://github.com/google/sanitizers/wiki/MemorySanitizerLibcxxHowTo
-  set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -fsanitize=fuzzer,memory,undefined -fsanitize-memory-track-origins=2")
-endif()
-
-set(CMAKE_CXX_FLAGS
-  "${CMAKE_CXX_FLAGS} -fsanitize-coverage=edge,trace-cmp")
-
-# Use clang linker
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld")
-
-# Use  Clang libc++ instead of GNU
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-
-# enable link-time optimisation
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto")
-
-# https://llvm.org/docs/Passes.html
-# save IR to see call graph
-# make one bitcode file:> llvm-link *.bc -o out.bc
-# print call-graph:> opt out.bc -analyze -print-callgraph &> callgraph.txt
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -save-temps -flto")
-
-set(FLATBUFFERS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../")
-
-set(FlatBuffers_Library_SRCS
-  ${FLATBUFFERS_DIR}/include/flatbuffers/base.h
-  ${FLATBUFFERS_DIR}/include/flatbuffers/flatbuffers.h
-  ${FLATBUFFERS_DIR}/include/flatbuffers/hash.h
-  ${FLATBUFFERS_DIR}/include/flatbuffers/idl.h
-  ${FLATBUFFERS_DIR}/include/flatbuffers/util.h
-  ${FLATBUFFERS_DIR}/include/flatbuffers/reflection.h
-  ${FLATBUFFERS_DIR}/include/flatbuffers/reflection_generated.h
-  ${FLATBUFFERS_DIR}/include/flatbuffers/stl_emulation.h
-  ${FLATBUFFERS_DIR}/include/flatbuffers/flexbuffers.h
-  ${FLATBUFFERS_DIR}/include/flatbuffers/registry.h
-  ${FLATBUFFERS_DIR}/include/flatbuffers/minireflect.h
-  ${FLATBUFFERS_DIR}/src/idl_parser.cpp
-  ${FLATBUFFERS_DIR}/src/idl_gen_text.cpp
-  ${FLATBUFFERS_DIR}/src/reflection.cpp
-  ${FLATBUFFERS_DIR}/src/util.cpp
-  ${FLATBUFFERS_DIR}/tests/test_assert.cpp
-)
-
-include_directories(${FLATBUFFERS_DIR}/include)
-include_directories(${FLATBUFFERS_DIR}/tests)
-add_library(flatbuffers STATIC ${FlatBuffers_Library_SRCS})
-
-# FLATBUFFERS_ASSERT should assert in Release as well.
-# Redefine FLATBUFFERS_ASSERT macro definition.
-# Declare as PUBLIC to cover asserts in all included header files.
-target_compile_definitions(flatbuffers PUBLIC
-   FLATBUFFERS_ASSERT=fuzzer_assert_impl)
-target_compile_definitions(flatbuffers PUBLIC
-   FLATBUFFERS_ASSERT_INCLUDE="${CMAKE_CURRENT_SOURCE_DIR}/fuzzer_assert.h")
+option(BUILD_DEBUGGER "Compile a debugger with main() and without libFuzzer"
+       OFF)
 
 if(NOT DEFINED FLATBUFFERS_MAX_PARSING_DEPTH)
   # Force checking of RecursionError in the test
   set(FLATBUFFERS_MAX_PARSING_DEPTH 8)
 endif()
-message(STATUS "FLATBUFFERS_MAX_PARSING_DEPTH: ${FLATBUFFERS_MAX_PARSING_DEPTH}")
-target_compile_definitions(flatbuffers PRIVATE FLATBUFFERS_MAX_PARSING_DEPTH=8)
+message(
+  STATUS "FLATBUFFERS_MAX_PARSING_DEPTH: ${FLATBUFFERS_MAX_PARSING_DEPTH}")
+
+# Usage '-fsanitize=address' doesn't allowed with '-fsanitize=memory'.
+# MemorySanitizer will not work out-of-the-box, and will instead report false
+# positives coming from uninstrumented code. Need to re-build both C++ standard
+# library: https://github.com/google/sanitizers/wiki/MemorySanitizerLibcxxHowTo
+option(USE_MSAN "Use MSAN instead of ASASN" OFF)
+
+# Use Clang linker.
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld")
+
+# add_link_options(-stdlib=libc++)
+
+add_compile_options(
+  # -stdlib=libc++ # Use Clang libc++ instead of GNU.
+  -std=c++14
+  -Wall
+  -pedantic
+  -Werror
+  -Wextra
+  -Wno-unused-parameter
+  -fsigned-char
+  -fno-omit-frame-pointer
+  -g # Generate source-level debug information
+  # -flto # enable link-time optimisation
+)
+
+# https://llvm.org/docs/Passes.html save IR to see call graph make one bitcode
+# file:> llvm-link *.bc -o out.bc print call-graph:> opt out.bc -analyze -print-
+# callgraph &> callgraph.txt set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -save-temps
+# -flto")
+
+# A special target with fuzzer+sanitizer flags.
+add_library(fuzzer_config INTERFACE)
+
+target_compile_options(
+  fuzzer_config
+  INTERFACE -fsanitize-coverage=edge,trace-cmp
+            $<$<BOOL:NOT
+            ${USE_MSAN}>:
+            -fsanitize=fuzzer,undefined,address
+            >
+            $<$<BOOL:${USE_MSAN}>:
+            -fsanitize=fuzzer,undefined,memory
+            -fsanitize-memory-track-origins=2
+            >)
+target_link_libraries(
+  fuzzer_config
+  INTERFACE $<$<BOOL:NOT
+            ${USE_MSAN}>:
+            -fsanitize=fuzzer,undefined,address
+            >
+            $<$<BOOL:${USE_MSAN}>:
+            -fsanitize=fuzzer,undefined,memory
+            >)
+
+set(FLATBUFFERS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../")
+
+set(FlatBuffers_Library_SRCS
+    ${FLATBUFFERS_DIR}/include/flatbuffers/base.h
+    ${FLATBUFFERS_DIR}/include/flatbuffers/flatbuffers.h
+    ${FLATBUFFERS_DIR}/include/flatbuffers/hash.h
+    ${FLATBUFFERS_DIR}/include/flatbuffers/idl.h
+    ${FLATBUFFERS_DIR}/include/flatbuffers/util.h
+    ${FLATBUFFERS_DIR}/include/flatbuffers/reflection.h
+    ${FLATBUFFERS_DIR}/include/flatbuffers/reflection_generated.h
+    ${FLATBUFFERS_DIR}/include/flatbuffers/stl_emulation.h
+    ${FLATBUFFERS_DIR}/include/flatbuffers/flexbuffers.h
+    ${FLATBUFFERS_DIR}/include/flatbuffers/registry.h
+    ${FLATBUFFERS_DIR}/include/flatbuffers/minireflect.h
+    ${FLATBUFFERS_DIR}/src/idl_parser.cpp
+    ${FLATBUFFERS_DIR}/src/idl_gen_text.cpp
+    ${FLATBUFFERS_DIR}/src/reflection.cpp
+    ${FLATBUFFERS_DIR}/src/util.cpp
+    ${FLATBUFFERS_DIR}/tests/test_assert.cpp)
+
+include_directories(${FLATBUFFERS_DIR}/include)
+include_directories(${FLATBUFFERS_DIR}/tests)
+
+add_library(flatbuffers_fuzzed STATIC ${FlatBuffers_Library_SRCS})
+# Use PUBLIC to force 'fuzzer_config' for all dependent targets
+target_link_libraries(flatbuffers_fuzzed PUBLIC fuzzer_config)
+
+# FLATBUFFERS_ASSERT should assert in Release as well. Redefine
+# FLATBUFFERS_ASSERT macro definition. Declare as PUBLIC to cover asserts in all
+# included header files.
+target_compile_definitions(
+  flatbuffers_fuzzed
+  PUBLIC
+    FLATBUFFERS_ASSERT=fuzzer_assert_impl
+    FLATBUFFERS_ASSERT_INCLUDE="${CMAKE_CURRENT_SOURCE_DIR}/fuzzer_assert.h"
+  PRIVATE FLATBUFFERS_MAX_PARSING_DEPTH=${FLATBUFFERS_MAX_PARSING_DEPTH})
 
 # Setup fuzzer tests.
 
 add_executable(scalar_fuzzer flatbuffers_scalar_fuzzer.cc)
-target_link_libraries(scalar_fuzzer PRIVATE flatbuffers)
+target_link_libraries(scalar_fuzzer PRIVATE flatbuffers_fuzzed)
 
 add_executable(parser_fuzzer flatbuffers_parser_fuzzer.cc)
-target_link_libraries(parser_fuzzer PRIVATE flatbuffers)
+target_link_libraries(parser_fuzzer PRIVATE flatbuffers_fuzzed)
 
 add_executable(verifier_fuzzer flatbuffers_verifier_fuzzer.cc)
-target_link_libraries(verifier_fuzzer PRIVATE flatbuffers)
+target_link_libraries(verifier_fuzzer PRIVATE flatbuffers_fuzzed)
+
+# Build debugger for weird cases found with fuzzer.
+if(BUILD_DEBUGGER)
+  add_library(flatbuffers_nonfuzz STATIC ${FlatBuffers_Library_SRCS})
+  target_compile_definitions(
+    flatbuffers_nonfuzz
+    PUBLIC
+      FLATBUFFERS_ASSERT=fuzzer_assert_impl
+      FLATBUFFERS_ASSERT_INCLUDE="${CMAKE_CURRENT_SOURCE_DIR}/fuzzer_assert.h"
+    PRIVATE FLATBUFFERS_MAX_PARSING_DEPTH=${FLATBUFFERS_MAX_PARSING_DEPTH})
+
+  add_executable(scalar_debug flatbuffers_scalar_fuzzer.cc scalar_debug.cpp)
+  target_link_libraries(scalar_debug PRIVATE flatbuffers_nonfuzz)
+
+endif(BUILD_DEBUGGER)
