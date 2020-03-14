@@ -19,12 +19,21 @@ if(YES)
   set(CMAKE_CXX_FLAGS
     "${CMAKE_CXX_FLAGS} -fsanitize=fuzzer,address,undefined")
 else()
+  # MemorySanitizer will not work out-of-the-box, and will instead report false positives coming from uninstrumented code.
+  # Need to re-build both C++ standard library:
+  # https://github.com/google/sanitizers/wiki/MemorySanitizerLibcxxHowTo
   set(CMAKE_CXX_FLAGS
     "${CMAKE_CXX_FLAGS} -fsanitize=fuzzer,memory,undefined -fsanitize-memory-track-origins=2")
 endif()
 
 set(CMAKE_CXX_FLAGS
   "${CMAKE_CXX_FLAGS} -fsanitize-coverage=edge,trace-cmp")
+
+# Use clang linker
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld")
+
+# Use  Clang libc++ instead of GNU
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
 
 # enable link-time optimisation
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto")
@@ -34,8 +43,6 @@ set(CMAKE_CXX_FLAGS
 # make one bitcode file:> llvm-link *.bc -o out.bc
 # print call-graph:> opt out.bc -analyze -print-callgraph &> callgraph.txt
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -save-temps -flto")
-
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld")
 
 set(FLATBUFFERS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../")
 
