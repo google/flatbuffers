@@ -345,6 +345,9 @@ Current understood attributes:
     Note: currently not guaranteed to have an effect when used with
     `--object-api`, since that may allocate objects at alignments less than
     what you specify with `force_align`.
+-   `force_align: size` (on a vector): force the alignment of this vector to be
+    something different than what the element size would normally dictate.
+    Note: Now only work for generated C++ code.
 -   `bit_flags` (on an unsigned enum): the values of this field indicate bits,
     meaning that any unsigned value N specified in the schema will end up
     representing 1<<N, or if you don't specify values at all, you'll get

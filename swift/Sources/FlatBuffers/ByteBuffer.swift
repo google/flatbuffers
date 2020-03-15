@@ -51,6 +51,35 @@ public final class ByteBuffer {
         _memory.initializeMemory(as: UInt8.self, repeating: 0, count: size)
         _capacity = size
     }
+
+#if swift(>=5.0)
+    /// Constructor that creates a Flatbuffer object from a ContiguousBytes
+    /// - Parameters:
+    ///   - contiguousBytes: Binary stripe to use as the buffer
+    ///   - count: amount of readable bytes
+    public init<Bytes: ContiguousBytes>(
+        contiguousBytes: Bytes,
+        count: Int
+    ) {
+        _memory = UnsafeMutableRawPointer.allocate(byteCount: count, alignment: alignment)
+        _capacity = count
+        _writerSize = _capacity
+        contiguousBytes.withUnsafeBytes { buf in
+            _memory.copyMemory(from: buf.baseAddress!, byteCount: buf.count)
+        }
+    }
+#endif
+    
+    /// Creates a copy of the buffer that's being built by calling sizedBuffer
+    /// - Parameters:
+    ///   - memory: Current memory of the buffer
+    ///   - count: count of bytes
+    internal init(memory: UnsafeMutableRawPointer, count: Int) {
+        _memory = UnsafeMutableRawPointer.allocate(byteCount: count, alignment: alignment)
+        _memory.copyMemory(from: memory, byteCount: count)
+        _capacity = count
+        _writerSize = _capacity
+    }
     
     /// Creates a copy of the existing flatbuffer, by copying it to a different memory.
     /// - Parameters:
@@ -89,7 +118,7 @@ public final class ByteBuffer {
     ///   - size: Size of Value being written to the buffer
     func push(struct value: UnsafeMutableRawPointer, size: Int) {
         ensureSpace(size: UInt32(size))
-        _memory.advanced(by: writerIndex - size).copyMemory(from: value, byteCount: size)
+        memcpy(_memory.advanced(by: writerIndex - size), value, size)
         defer { value.deallocate() }
         _writerSize += size
     }

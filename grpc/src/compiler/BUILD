@@ -89,3 +89,19 @@ cc_library(
         "//:flatbuffers",
     ],
 )
+
+cc_library(
+    name = "swift_generator",
+    srcs = [
+        "swift_generator.cc",
+    ],
+    hdrs = [
+        "swift_generator.h",
+        ":common_headers",
+    ],
+    include_prefix = "src/compiler",
+    strip_include_prefix = "/grpc/src/compiler",
+    deps = [
+        "//:flatbuffers",
+    ],
+)

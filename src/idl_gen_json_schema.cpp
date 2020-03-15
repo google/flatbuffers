@@ -22,11 +22,6 @@
 
 namespace flatbuffers {
 
-static std::string GeneratedFileName(const std::string &path,
-                                     const std::string &file_name) {
-  return path + file_name + ".schema.json";
-}
-
 namespace jsons {
 
 std::string GenNativeType(BaseType type) {
@@ -116,10 +111,17 @@ class JsonSchemaGenerator : public BaseGenerator {
  public:
   JsonSchemaGenerator(const Parser &parser, const std::string &path,
                       const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", "") {}
+      : BaseGenerator(parser, path, file_name, "", "", "json") {}
 
   explicit JsonSchemaGenerator(const BaseGenerator &base_generator)
       : BaseGenerator(base_generator) {}
+
+  std::string GeneratedFileName(const std::string &path,
+                                const std::string &file_name,
+                                const IDLOptions &options /* unused */) const {
+    (void)options;
+    return path + file_name + ".schema.json";
+  }
 
   bool generate() {
     if (parser_.root_struct_def_ == nullptr) { return false; }
@@ -153,7 +155,12 @@ class JsonSchemaGenerator : public BaseGenerator {
         comment.append(*comment_line);
       }
       if (comment.size() > 0) {
-        code_ += "      \"description\" : \"" + comment + "\",";
+        std::string description;
+        if (!EscapeString(comment.c_str(), comment.length(), &description, true,
+                          true)) {
+          return false;
+        }
+        code_ += "      \"description\" : " + description + ",";
       }
       code_ += "      \"properties\" : {";
 
@@ -203,7 +210,8 @@ class JsonSchemaGenerator : public BaseGenerator {
              GenFullName(parser_.root_struct_def_) + "\"";
 
     code_ += "}";  // close schema root
-    const std::string file_path = GeneratedFileName(path_, file_name_);
+    const std::string file_path =
+        GeneratedFileName(path_, file_name_, parser_.opts);
     const std::string final_code = code_.ToString();
     return SaveFile(file_path.c_str(), final_code, false);
   }

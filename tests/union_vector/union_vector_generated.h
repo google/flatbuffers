@@ -88,8 +88,8 @@ struct CharacterUnion {
   CharacterUnion(CharacterUnion&& u) FLATBUFFERS_NOEXCEPT :
     type(Character_NONE), value(nullptr)
     { std::swap(type, u.type); std::swap(value, u.value); }
-  CharacterUnion(const CharacterUnion &) FLATBUFFERS_NOEXCEPT;
-  CharacterUnion &operator=(const CharacterUnion &u) FLATBUFFERS_NOEXCEPT
+  CharacterUnion(const CharacterUnion &);
+  CharacterUnion &operator=(const CharacterUnion &u)
     { CharacterUnion t(u); std::swap(type, t.type); std::swap(value, t.value); return *this; }
   CharacterUnion &operator=(CharacterUnion &&u) FLATBUFFERS_NOEXCEPT
     { std::swap(type, u.type); std::swap(value, u.value); return *this; }
@@ -642,7 +642,7 @@ inline flatbuffers::Offset<void> CharacterUnion::Pack(flatbuffers::FlatBufferBui
   }
 }
 
-inline CharacterUnion::CharacterUnion(const CharacterUnion &u) FLATBUFFERS_NOEXCEPT : type(u.type), value(nullptr) {
+inline CharacterUnion::CharacterUnion(const CharacterUnion &u) : type(u.type), value(nullptr) {
   switch (type) {
     case Character_MuLan: {
       value = new AttackerT(*reinterpret_cast<AttackerT *>(u.value));

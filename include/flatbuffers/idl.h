@@ -91,7 +91,7 @@ switch (type) {
 }
 */
 
-// If not all FLATBUFFERS_GEN_() arguments are necessary for implementation 
+// If not all FLATBUFFERS_GEN_() arguments are necessary for implementation
 // of FLATBUFFERS_TD, you can use a variadic macro (with __VA_ARGS__ if needed).
 // In the above example, only CTYPE is used to generate the code, it can be rewritten:
 
@@ -411,7 +411,6 @@ struct EnumDef : public Definition {
   size_t size() const { return vals.vec.size(); }
 
   const std::vector<EnumVal *> &Vals() const {
-    FLATBUFFERS_ASSERT(false == vals.vec.empty());
     return vals.vec;
   }
 
@@ -560,6 +559,8 @@ struct IDLOptions {
   std::vector<std::string> cpp_includes;
   std::string cpp_std;
   std::string proto_namespace_suffix;
+  std::string filename_suffix;
+  std::string filename_extension;
 
   // Possible options for the more general generator below.
   enum Language {
@@ -643,6 +644,8 @@ struct IDLOptions {
         force_defaults(false),
         java_primitive_has_method(false),
         cs_gen_json_serializer(false),
+        filename_suffix("_generated"),
+        filename_extension(),
         lang(IDLOptions::kJava),
         mini_reflect(IDLOptions::kNone),
         lang_to_generate(0),
@@ -1123,6 +1126,11 @@ bool GenerateJavaGRPC(const Parser &parser, const std::string &path,
 // See idl_gen_grpc.cpp.
 bool GeneratePythonGRPC(const Parser &parser, const std::string &path,
                         const std::string &file_name);
+
+// Generate GRPC Swift interfaces.
+// See idl_gen_grpc.cpp.
+extern bool GenerateSwiftGRPC(const Parser &parser, const std::string &path,
+                              const std::string &file_name);
 
 }  // namespace flatbuffers
 

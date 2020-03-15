@@ -27,10 +27,12 @@ fi
 TEST_CPP_FLAGS="--gen-compare --cpp-ptr-type flatbuffers::unique_ptr $TEST_CPP_FLAGS"
 TEST_CS_FLAGS="--cs-gen-json-serializer"
 TEST_BASE_FLAGS="--reflect-names --gen-mutable --gen-object-api"
+TEST_RUST_FLAGS="$TEST_BASE_FLAGS --gen-name-strings"
 TEST_NOINCL_FLAGS="$TEST_BASE_FLAGS --no-includes --no-fb-import"
 
-../flatc --binary --cpp --java --kotlin  --csharp --dart --go --lobster --lua --js --ts --php --rust --grpc \
+../flatc --binary --cpp --java --kotlin  --csharp --dart --go --lobster --lua --js --ts --php --grpc \
 $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS -I include_test monster_test.fbs monsterdata_test.json
+../flatc --rust $TEST_RUST_FLAGS -I include_test monster_test.fbs monsterdata_test.json
 
 ../flatc --python $TEST_BASE_FLAGS -I include_test monster_test.fbs monsterdata_test.json
 
@@ -48,6 +50,18 @@ $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS -o namespace_test namespace_te
 ../flatc --cpp --java --csharp --jsonschema $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS --scoped-enums arrays_test.fbs
 ../flatc --python $TEST_BASE_FLAGS arrays_test.fbs
 ../flatc --dart monster_extra.fbs
+
+# Tests if the --filename-suffix and --filename-ext works and produces the same
+# outputs.
+../flatc --cpp --filename-suffix _suffix --filename-ext hpp $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS -I include_test monster_test.fbs
+if [ -f "monster_test_suffix.hpp" ]; then
+  if ! cmp -s "monster_test_suffix.hpp" "monster_test_generated.h"; then
+    echo "[Error] Filename suffix option did not produce identical results"
+  fi
+  rm "monster_test_suffix.hpp"
+else
+  echo "[Error] Filename suffix option did not produce a file"
+fi
 
 # Flag c++17 requires Clang6, GCC7, MSVC2017 (_MSC_VER >= 1914)  or higher.
 TEST_CPP17_FLAGS="--cpp --cpp-std c++17 -o ./cpp17/generated_cpp17 $TEST_NOINCL_FLAGS"

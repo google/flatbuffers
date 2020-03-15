@@ -123,3 +123,5 @@ Cargo.lock
 .corpus**
 .seed**
 grpc/google/
+**/Package.resolved
+.clangd/**

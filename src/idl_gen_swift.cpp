@@ -1,3 +1,19 @@
+/*
+ * Copyright 2020 Google Inc. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include <unordered_set>
 
 #include "flatbuffers/code_generators.h"
@@ -33,7 +49,7 @@ class SwiftGenerator : public BaseGenerator {
  public:
   SwiftGenerator(const Parser &parser, const std::string &path,
                  const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", "."),
+      : BaseGenerator(parser, path, file_name, "", ".", "swift"),
         cur_name_space_(nullptr) {
     namespace_depth = 0;
     static const char *const keywords[] = {
@@ -165,7 +181,7 @@ class SwiftGenerator : public BaseGenerator {
 
     if (cur_name_space_) SetNameSpace(nullptr);
 
-    const auto filename = GeneratedFileName(path_, file_name_);
+    const auto filename = GeneratedFileName(path_, file_name_, parser_.opts);
     const auto final_code = code_.ToString();
     return SaveFile(filename.c_str(), final_code, false);
   }
@@ -244,6 +260,7 @@ class SwiftGenerator : public BaseGenerator {
     code_.SetValue("OBJECTTYPE", struct_def.fixed ? "Struct" : "Table");
     code_ += "public struct {{STRUCTNAME}}: {{PROTOCOL}} {\n";
     code_ += ValidateFunc();
+    code_ += "\tpublic var __buffer: ByteBuffer! { return {{ACCESS}}.bb }";
     code_ += "\n\tprivate var {{ACCESS}}: {{OBJECTTYPE}}";
     if (struct_def.fixed) {
       code_.SetValue("BYTESIZE", NumToString(struct_def.bytesize));
@@ -773,7 +790,7 @@ class SwiftGenerator : public BaseGenerator {
   }
 
   std::string ValidateFunc() {
-    return "\tstatic func validateVersion() { FlatBuffersVersion_1_11_1() }";
+    return "\tstatic func validateVersion() { FlatBuffersVersion_1_12_0() }";
   }
 
   std::string GenType(const Type &type) const {
@@ -826,10 +843,6 @@ class SwiftGenerator : public BaseGenerator {
     return EscapeKeyword(MakeCamel(def.name, false));
   }
 
-  static std::string GeneratedFileName(const std::string &path,
-                                       const std::string &file_name) {
-    return path + file_name + "_generated.swift";
-  }
   // MARK: - Copied from the cpp implementation, needs revisiting
   void SetNameSpace(const Namespace *ns) {
     if (cur_name_space_ == ns) { return; }

@@ -76,6 +76,8 @@ func createVecWrite(x: Float32, y: Float32, z: Float32) -> UnsafeMutableRawPoint
 }
 
 struct Vec: Readable {
+    var __buffer: ByteBuffer! { __p.bb }
+    
     static var size = 12
     static var alignment = 4
     private var __p: Struct
@@ -144,6 +146,8 @@ func createVec2(x: Float32 = 0, y: Float32 = 0, z: Float32 = 0, color: Color2) -
 }
 
 struct Vec2: Readable {
+    var __buffer: ByteBuffer! { __p.bb }
+    
     static var size = 13
     static var alignment = 4
     private var __p: Struct

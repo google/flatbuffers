@@ -48,36 +48,29 @@ static inline std::string NumToStringCpp(std::string val, BaseType type) {
   }
 }
 
-static std::string GeneratedFileName(const std::string &path,
-                                     const std::string &file_name) {
-  return path + file_name + "_generated.h";
-}
-
 static std::string GenIncludeGuard(const std::string &file_name,
                                    const Namespace &name_space,
-                                   const std::string &postfix= "")  {
-    // Generate include guard.
-    std::string guard = file_name;
-    // Remove any non-alpha-numeric characters that may appear in a filename.
-    struct IsAlnum {
-        bool operator()(char c) const { return !is_alnum(c); }
-    };
-    guard.erase(std::remove_if(guard.begin(), guard.end(), IsAlnum()),
-                guard.end());
-    guard = "FLATBUFFERS_GENERATED_" + guard;
-    guard += "_";
-    // For further uniqueness, also add the namespace.
-    for (auto it = name_space.components.begin();
-         it != name_space.components.end(); ++it) {
-        guard += *it + "_";
-    }
-    // Anything extra to add to the guard?
-    if (!postfix.empty()) {
-        guard += postfix + "_";
-    }
-    guard += "H_";
-    std::transform(guard.begin(), guard.end(), guard.begin(), ToUpper);
-    return guard;
+                                   const std::string &postfix = "") {
+  // Generate include guard.
+  std::string guard = file_name;
+  // Remove any non-alpha-numeric characters that may appear in a filename.
+  struct IsAlnum {
+    bool operator()(char c) const { return !is_alnum(c); }
+  };
+  guard.erase(std::remove_if(guard.begin(), guard.end(), IsAlnum()),
+              guard.end());
+  guard = "FLATBUFFERS_GENERATED_" + guard;
+  guard += "_";
+  // For further uniqueness, also add the namespace.
+  for (auto it = name_space.components.begin();
+       it != name_space.components.end(); ++it) {
+    guard += *it + "_";
+  }
+  // Anything extra to add to the guard?
+  if (!postfix.empty()) { guard += postfix + "_"; }
+  guard += "H_";
+  std::transform(guard.begin(), guard.end(), guard.begin(), ToUpper);
+  return guard;
 }
 
 namespace cpp {
@@ -89,20 +82,16 @@ struct IDLOptionsCpp : public IDLOptions {
   // All fields start with 'g_' prefix to distinguish from the base IDLOptions.
   CppStandard g_cpp_std;    // Base version of C++ standard.
   bool g_only_fixed_enums;  // Generate underlaying type for all enums.
-  // clang-format off
+
   IDLOptionsCpp(const IDLOptions &opts)
-      : IDLOptions(opts),
-        g_cpp_std(CPP_STD_11),
-        g_only_fixed_enums(true)
-      {}
-  // clang-format on
+      : IDLOptions(opts), g_cpp_std(CPP_STD_11), g_only_fixed_enums(true) {}
 };
 
 class CppGenerator : public BaseGenerator {
  public:
   CppGenerator(const Parser &parser, const std::string &path,
                const std::string &file_name, IDLOptionsCpp opts)
-      : BaseGenerator(parser, path, file_name, "", "::"),
+      : BaseGenerator(parser, path, file_name, "", "::", "h"),
         cur_name_space_(nullptr),
         opts_(opts),
         float_const_gen_("std::numeric_limits<double>::",
@@ -221,9 +210,10 @@ class CppGenerator : public BaseGenerator {
       if (it->second.empty()) continue;
       auto noext = flatbuffers::StripExtension(it->second);
       auto basename = flatbuffers::StripPath(noext);
-
-      code_ += "#include \"" + opts_.include_prefix +
-               (opts_.keep_include_path ? noext : basename) + "_generated.h\"";
+      auto includeName =
+          GeneratedFileName(opts_.include_prefix,
+                            opts_.keep_include_path ? noext : basename, opts_);
+      code_ += "#include \"" + includeName + "\"";
       num_includes++;
     }
     if (num_includes) code_ += "";
@@ -256,7 +246,8 @@ class CppGenerator : public BaseGenerator {
       code_ += "// Binary schema not generated, no root struct found";
     } else {
       auto &struct_def = *parser_.root_struct_def_;
-      const auto include_guard = GenIncludeGuard(file_name_, *struct_def.defined_namespace, "bfbs");
+      const auto include_guard =
+          GenIncludeGuard(file_name_, *struct_def.defined_namespace, "bfbs");
 
       code_ += "#ifndef " + include_guard;
       code_ += "#define " + include_guard;
@@ -270,13 +261,15 @@ class CppGenerator : public BaseGenerator {
       code_.SetValue("STRUCT_NAME", name);
 
       // Create code to return the binary schema data.
-      auto binary_schema_hex_text = BufferToHexText(parser_.builder_.GetBufferPointer(),
-          parser_.builder_.GetSize(), 105, "      ", "");
+      auto binary_schema_hex_text =
+          BufferToHexText(parser_.builder_.GetBufferPointer(),
+                          parser_.builder_.GetSize(), 105, "      ", "");
 
       code_ += "struct {{STRUCT_NAME}}BinarySchema {";
       code_ += "  static const uint8_t *data() {";
       code_ += "    // Buffer containing the binary schema.";
-      code_ += "    static const uint8_t bfbsData[" + NumToString(parser_.builder_.GetSize()) + "] = {";
+      code_ += "    static const uint8_t bfbsData[" +
+               NumToString(parser_.builder_.GetSize()) + "] = {";
       code_ += binary_schema_hex_text;
       code_ += "    };";
       code_ += "    return bfbsData;";
@@ -300,7 +293,8 @@ class CppGenerator : public BaseGenerator {
     }
 
     // We are just adding "_bfbs" to the generated filename.
-    const auto file_path = GeneratedFileName(path_, file_name_ + "_bfbs");
+    const auto file_path =
+        GeneratedFileName(path_, file_name_ + "_bfbs", opts_);
     const auto final_code = code_.ToString();
 
     return SaveFile(file_path.c_str(), final_code, false);
@@ -312,7 +306,8 @@ class CppGenerator : public BaseGenerator {
     code_.Clear();
     code_ += "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
 
-    const auto include_guard = GenIncludeGuard(file_name_, *parser_.current_namespace_);
+    const auto include_guard =
+        GenIncludeGuard(file_name_, *parser_.current_namespace_);
     code_ += "#ifndef " + include_guard;
     code_ += "#define " + include_guard;
     code_ += "";
@@ -582,12 +577,12 @@ class CppGenerator : public BaseGenerator {
     // Close the include guard.
     code_ += "#endif  // " + include_guard;
 
-    const auto file_path = GeneratedFileName(path_, file_name_);
+    const auto file_path = GeneratedFileName(path_, file_name_, opts_);
     const auto final_code = code_.ToString();
 
     // Save the file and optionally generate the binary schema code.
     return SaveFile(file_path.c_str(), final_code, false) &&
-            (!parser_.opts.binary_schema_gen_embed || generate_bfbs_embed());
+           (!parser_.opts.binary_schema_gen_embed || generate_bfbs_embed());
   }
 
  private:
@@ -625,9 +620,8 @@ class CppGenerator : public BaseGenerator {
     return false;
   }
 
-  bool VectorElementUserFacing(const Type& type) const {
-    return opts_.g_cpp_std >= cpp::CPP_STD_17 &&
-           opts_.g_only_fixed_enums &&
+  bool VectorElementUserFacing(const Type &type) const {
+    return opts_.g_cpp_std >= cpp::CPP_STD_17 && opts_.g_only_fixed_enums &&
            IsEnum(type);
   }
 
@@ -662,15 +656,15 @@ class CppGenerator : public BaseGenerator {
         return "flatbuffers::String";
       }
       case BASE_TYPE_VECTOR: {
-        const auto type_name = GenTypeWire(type.VectorType(), "",
-                VectorElementUserFacing(type.VectorType()));
+        const auto type_name = GenTypeWire(
+            type.VectorType(), "", VectorElementUserFacing(type.VectorType()));
         return "flatbuffers::Vector<" + type_name + ">";
       }
       case BASE_TYPE_STRUCT: {
         return WrapInNameSpace(*type.struct_def);
       }
       case BASE_TYPE_UNION:
-      // fall through
+        // fall through
       default: {
         return "void";
       }
@@ -1065,9 +1059,7 @@ class CppGenerator : public BaseGenerator {
     GenComment(enum_def.doc_comment);
     code_ +=
         (opts_.scoped_enums ? "enum class " : "enum ") + Name(enum_def) + "\\";
-    if (opts_.g_only_fixed_enums) {
-      code_ += " : {{BASE_TYPE}}\\";
-    }
+    if (opts_.g_only_fixed_enums) { code_ += " : {{BASE_TYPE}}\\"; }
     code_ += " {";
 
     code_.SetValue("SEP", ",");
@@ -1235,10 +1227,8 @@ class CppGenerator : public BaseGenerator {
       code_ += "  {{NAME}}Union({{NAME}}Union&& u) FLATBUFFERS_NOEXCEPT :";
       code_ += "    type({{NONE}}), value(nullptr)";
       code_ += "    { std::swap(type, u.type); std::swap(value, u.value); }";
-      code_ += "  {{NAME}}Union(const {{NAME}}Union &) FLATBUFFERS_NOEXCEPT;";
-      code_ +=
-          "  {{NAME}}Union &operator=(const {{NAME}}Union &u) "
-          "FLATBUFFERS_NOEXCEPT";
+      code_ += "  {{NAME}}Union(const {{NAME}}Union &);";
+      code_ += "  {{NAME}}Union &operator=(const {{NAME}}Union &u)";
       code_ +=
           "    { {{NAME}}Union t(u); std::swap(type, t.type); std::swap(value, "
           "t.value); return *this; }";
@@ -1477,8 +1467,7 @@ class CppGenerator : public BaseGenerator {
       // Union copy constructor
       code_ +=
           "inline {{ENUM_NAME}}Union::{{ENUM_NAME}}Union(const "
-          "{{ENUM_NAME}}Union &u) FLATBUFFERS_NOEXCEPT : type(u.type), "
-          "value(nullptr) {";
+          "{{ENUM_NAME}}Union &u) : type(u.type), value(nullptr) {";
       code_ += "  switch (type) {";
       for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
            ++it) {
@@ -1912,9 +1901,7 @@ class CppGenerator : public BaseGenerator {
       code_ += "  typedef {{NATIVE_NAME}} NativeTableType;";
     }
     code_ += "  typedef {{STRUCT_NAME}}Builder Builder;";
-    if (opts_.g_cpp_std >= cpp::CPP_STD_17) {
-      code_ += "  struct Traits;";
-    }
+    if (opts_.g_cpp_std >= cpp::CPP_STD_17) { code_ += "  struct Traits;"; }
     if (opts_.mini_reflect != IDLOptions::kNone) {
       code_ +=
           "  static const flatbuffers::TypeTable *MiniReflectTypeTable() {";
@@ -2162,6 +2149,25 @@ class CppGenerator : public BaseGenerator {
     }
   }
 
+  // Generate code to force vector alignment. Return empty string for vector
+  // that doesn't need alignment code.
+  std::string GenVectorForceAlign(const FieldDef &field,
+                                  const std::string &field_size) {
+    FLATBUFFERS_ASSERT(field.value.type.base_type == BASE_TYPE_VECTOR);
+    // Get the value of the force_align attribute.
+    const auto *force_align = field.attributes.Lookup("force_align");
+    const int align = force_align ? atoi(force_align->constant.c_str()) : 1;
+    // Generate code to do force_align for the vector.
+    if (align > 1) {
+      const auto vtype = field.value.type.VectorType();
+      const auto type = IsStruct(vtype) ? WrapInNameSpace(*vtype.struct_def)
+                                        : GenTypeWire(vtype, "", false);
+      return "_fbb.ForceVectorAlignment(" + field_size + ", sizeof(" + type +
+             "), " + std::to_string(static_cast<long long>(align)) + ");";
+    }
+    return "";
+  }
+
   void GenBuilders(const StructDef &struct_def) {
     code_.SetValue("STRUCT_NAME", Name(struct_def));
 
@@ -2317,6 +2323,11 @@ class CppGenerator : public BaseGenerator {
                 "  auto {{FIELD_NAME}}__ = {{FIELD_NAME}} ? "
                 "_fbb.{{CREATE_STRING}}({{FIELD_NAME}}) : 0;";
           } else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+            const std::string force_align_code =
+                GenVectorForceAlign(field, Name(field) + "->size()");
+            if (!force_align_code.empty()) {
+              code_ += "  if ({{FIELD_NAME}}) { " + force_align_code + " }";
+            }
             code_ += "  auto {{FIELD_NAME}}__ = {{FIELD_NAME}} ? \\";
             const auto vtype = field.value.type.VectorType();
             const auto has_key = TypeHasKey(vtype);
@@ -2329,8 +2340,8 @@ class CppGenerator : public BaseGenerator {
               const auto type = WrapInNameSpace(*vtype.struct_def);
               code_ += "_fbb.CreateVectorOfSortedTables<" + type + ">\\";
             } else {
-              const auto type = GenTypeWire(
-                      vtype, "", VectorElementUserFacing(vtype));
+              const auto type =
+                  GenTypeWire(vtype, "", VectorElementUserFacing(vtype));
               code_ += "_fbb.CreateVector<" + type + ">\\";
             }
             code_ +=
@@ -2362,8 +2373,7 @@ class CppGenerator : public BaseGenerator {
                                 const char *vec_elem_access,
                                 const char *vec_type_access) {
     auto type_name = WrapInNameSpace(*afield.value.type.enum_def);
-    return type_name + "Union::UnPack(" + "_e" +
-           vec_elem_access + ", " +
+    return type_name + "Union::UnPack(" + "_e" + vec_elem_access + ", " +
            EscapeKeyword(afield.name + UnionTypeFieldSuffix()) + "()" +
            vec_type_access + ", _resolver)";
   }
@@ -2553,22 +2563,24 @@ class CppGenerator : public BaseGenerator {
 
         // For optional fields, check to see if there actually is any data
         // in _o->field before attempting to access it. If there isn't,
-        // depending on set_empty_strings_to_null either set it to 0 or an empty string.
+        // depending on set_empty_strings_to_null either set it to 0 or an empty
+        // string.
         if (!field.required) {
-          auto empty_value =
-              opts_.set_empty_strings_to_null ? "0" : "_fbb.CreateSharedString(\"\")";
+          auto empty_value = opts_.set_empty_strings_to_null
+                                 ? "0"
+                                 : "_fbb.CreateSharedString(\"\")";
           code = value + ".empty() ? " + empty_value + " : " + code;
         }
         break;
       }
-      // Vector fields come in several flavours, of the forms:
-      //   _fbb.CreateVector(_o->field);
-      //   _fbb.CreateVector((const utype*)_o->field.data(), _o->field.size());
-      //   _fbb.CreateVectorOfStrings(_o->field)
-      //   _fbb.CreateVectorOfStructs(_o->field)
-      //   _fbb.CreateVector<Offset<T>>(_o->field.size() [&](size_t i) {
-      //     return CreateT(_fbb, _o->Get(i), rehasher);
-      //   });
+        // Vector fields come in several flavours, of the forms:
+        //   _fbb.CreateVector(_o->field);
+        //   _fbb.CreateVector((const utype*)_o->field.data(),
+        //   _o->field.size()); _fbb.CreateVectorOfStrings(_o->field)
+        //   _fbb.CreateVectorOfStructs(_o->field)
+        //   _fbb.CreateVector<Offset<T>>(_o->field.size() [&](size_t i) {
+        //     return CreateT(_fbb, _o->Get(i), rehasher);
+        //   });
       case BASE_TYPE_VECTOR: {
         auto vector_type = field.value.type.VectorType();
         switch (vector_type.base_type) {
@@ -2659,9 +2671,9 @@ class CppGenerator : public BaseGenerator {
           }
         }
 
-        // If set_empty_vectors_to_null option is enabled, for optional fields, check to
-        // see if there actually is any data in _o->field before attempting to
-        // access it.
+        // If set_empty_vectors_to_null option is enabled, for optional fields,
+        // check to see if there actually is any data in _o->field before
+        // attempting to access it.
         if (opts_.set_empty_vectors_to_null && !field.required) {
           code = value + ".size() ? " + code + " : 0";
         }
@@ -2775,6 +2787,11 @@ class CppGenerator : public BaseGenerator {
            it != struct_def.fields.vec.end(); ++it) {
         auto &field = **it;
         if (field.deprecated) { continue; }
+        if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+          const std::string force_align_code =
+              GenVectorForceAlign(field, "_o->" + Name(field) + ".size()");
+          if (!force_align_code.empty()) { code_ += "  " + force_align_code; }
+        }
         code_ += "  auto _" + Name(field) + " = " + GenCreateParam(field) + ";";
       }
       // Need to call "Create" with the struct namespace.
@@ -3120,8 +3137,10 @@ std::string CPPMakeRule(const Parser &parser, const std::string &path,
                         const std::string &file_name) {
   const auto filebase =
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
+  cpp::CppGenerator geneartor(parser, path, file_name, parser.opts);
   const auto included_files = parser.GetIncludedFilesRecursive(file_name);
-  std::string make_rule = GeneratedFileName(path, filebase) + ": ";
+  std::string make_rule =
+      geneartor.GeneratedFileName(path, filebase, parser.opts) + ": ";
   for (auto it = included_files.begin(); it != included_files.end(); ++it) {
     make_rule += " " + *it;
   }

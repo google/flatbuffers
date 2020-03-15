@@ -188,6 +188,13 @@ Additional options:
 -   `--conform-includes PATH` : Include path for the schema given with
     `--conform PATH`.
 
+-   `--filename-suffix SUFFIX` : The suffix appended to the generated
+    file names. Default is '_generated'.
+
+-   `--filename-ext EXTENSION` : The extension appended to the generated
+    file names. Default is language-specific (e.g. "h" for C++). This
+    should not be used when multiple languages are specified.
+
 -   `--include-prefix PATH` : Prefix this path to any generated include
     statements.
 

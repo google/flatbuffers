@@ -39,6 +39,10 @@ impl<'a> flatbuffers::Follow<'a> for InParentNamespace<'a> {
 }
 
 impl<'a> InParentNamespace<'a> {
+    pub const fn get_fully_qualified_name() -> &'static str {
+        "MyGame.InParentNamespace"
+    }
+
     #[inline]
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
         InParentNamespace {
@@ -113,6 +117,10 @@ impl<'a> flatbuffers::Follow<'a> for Monster<'a> {
 }
 
 impl<'a> Monster<'a> {
+    pub const fn get_fully_qualified_name() -> &'static str {
+        "MyGame.Example2.Monster"
+    }
+
     #[inline]
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
         Monster {
@@ -565,6 +573,10 @@ impl Test {
       padding0__: 0,
     }
   }
+    pub const fn get_fully_qualified_name() -> &'static str {
+        "MyGame.Example.Test"
+    }
+
   pub fn a<'a>(&'a self) -> i16 {
     self.a_.from_little_endian()
   }
@@ -640,6 +652,10 @@ impl Vec3 {
       padding2__: 0,
     }
   }
+    pub const fn get_fully_qualified_name() -> &'static str {
+        "MyGame.Example.Vec3"
+    }
+
   pub fn x<'a>(&'a self) -> f32 {
     self.x_.from_little_endian()
   }
@@ -713,6 +729,10 @@ impl Ability {
 
     }
   }
+    pub const fn get_fully_qualified_name() -> &'static str {
+        "MyGame.Example.Ability"
+    }
+
   pub fn id<'a>(&'a self) -> u32 {
     self.id_.from_little_endian()
   }
@@ -749,6 +769,10 @@ impl<'a> flatbuffers::Follow<'a> for TestSimpleTableWithEnum<'a> {
 }
 
 impl<'a> TestSimpleTableWithEnum<'a> {
+    pub const fn get_fully_qualified_name() -> &'static str {
+        "MyGame.Example.TestSimpleTableWithEnum"
+    }
+
     #[inline]
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
         TestSimpleTableWithEnum {
@@ -825,6 +849,10 @@ impl<'a> flatbuffers::Follow<'a> for Stat<'a> {
 }
 
 impl<'a> Stat<'a> {
+    pub const fn get_fully_qualified_name() -> &'static str {
+        "MyGame.Example.Stat"
+    }
+
     #[inline]
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
         Stat {
@@ -925,6 +953,10 @@ impl<'a> flatbuffers::Follow<'a> for Referrable<'a> {
 }
 
 impl<'a> Referrable<'a> {
+    pub const fn get_fully_qualified_name() -> &'static str {
+        "MyGame.Example.Referrable"
+    }
+
     #[inline]
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
         Referrable {
@@ -996,7 +1028,7 @@ impl<'a: 'b, 'b> ReferrableBuilder<'a, 'b> {
 pub enum MonsterOffset {}
 #[derive(Copy, Clone, Debug, PartialEq)]
 
-/// an example documentation comment: monster object
+/// an example documentation comment: "monster object"
 pub struct Monster<'a> {
   pub _tab: flatbuffers::Table<'a>,
 }
@@ -1012,6 +1044,10 @@ impl<'a> flatbuffers::Follow<'a> for Monster<'a> {
 }
 
 impl<'a> Monster<'a> {
+    pub const fn get_fully_qualified_name() -> &'static str {
+        "MyGame.Example.Monster"
+    }
+
     #[inline]
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
         Monster {
@@ -1764,6 +1800,10 @@ impl<'a> flatbuffers::Follow<'a> for TypeAliases<'a> {
 }
 
 impl<'a> TypeAliases<'a> {
+    pub const fn get_fully_qualified_name() -> &'static str {
+        "MyGame.Example.TypeAliases"
+    }
+
     #[inline]
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
         TypeAliases {

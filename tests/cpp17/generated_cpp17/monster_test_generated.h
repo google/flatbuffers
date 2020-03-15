@@ -216,8 +216,8 @@ struct AnyUnion {
   AnyUnion(AnyUnion&& u) FLATBUFFERS_NOEXCEPT :
     type(Any::NONE), value(nullptr)
     { std::swap(type, u.type); std::swap(value, u.value); }
-  AnyUnion(const AnyUnion &) FLATBUFFERS_NOEXCEPT;
-  AnyUnion &operator=(const AnyUnion &u) FLATBUFFERS_NOEXCEPT
+  AnyUnion(const AnyUnion &);
+  AnyUnion &operator=(const AnyUnion &u)
     { AnyUnion t(u); std::swap(type, t.type); std::swap(value, t.value); return *this; }
   AnyUnion &operator=(AnyUnion &&u) FLATBUFFERS_NOEXCEPT
     { std::swap(type, u.type); std::swap(value, u.value); return *this; }
@@ -329,8 +329,8 @@ struct AnyUniqueAliasesUnion {
   AnyUniqueAliasesUnion(AnyUniqueAliasesUnion&& u) FLATBUFFERS_NOEXCEPT :
     type(AnyUniqueAliases::NONE), value(nullptr)
     { std::swap(type, u.type); std::swap(value, u.value); }
-  AnyUniqueAliasesUnion(const AnyUniqueAliasesUnion &) FLATBUFFERS_NOEXCEPT;
-  AnyUniqueAliasesUnion &operator=(const AnyUniqueAliasesUnion &u) FLATBUFFERS_NOEXCEPT
+  AnyUniqueAliasesUnion(const AnyUniqueAliasesUnion &);
+  AnyUniqueAliasesUnion &operator=(const AnyUniqueAliasesUnion &u)
     { AnyUniqueAliasesUnion t(u); std::swap(type, t.type); std::swap(value, t.value); return *this; }
   AnyUniqueAliasesUnion &operator=(AnyUniqueAliasesUnion &&u) FLATBUFFERS_NOEXCEPT
     { std::swap(type, u.type); std::swap(value, u.value); return *this; }
@@ -426,8 +426,8 @@ struct AnyAmbiguousAliasesUnion {
   AnyAmbiguousAliasesUnion(AnyAmbiguousAliasesUnion&& u) FLATBUFFERS_NOEXCEPT :
     type(AnyAmbiguousAliases::NONE), value(nullptr)
     { std::swap(type, u.type); std::swap(value, u.value); }
-  AnyAmbiguousAliasesUnion(const AnyAmbiguousAliasesUnion &) FLATBUFFERS_NOEXCEPT;
-  AnyAmbiguousAliasesUnion &operator=(const AnyAmbiguousAliasesUnion &u) FLATBUFFERS_NOEXCEPT
+  AnyAmbiguousAliasesUnion(const AnyAmbiguousAliasesUnion &);
+  AnyAmbiguousAliasesUnion &operator=(const AnyAmbiguousAliasesUnion &u)
     { AnyAmbiguousAliasesUnion t(u); std::swap(type, t.type); std::swap(value, t.value); return *this; }
   AnyAmbiguousAliasesUnion &operator=(AnyAmbiguousAliasesUnion &&u) FLATBUFFERS_NOEXCEPT
     { std::swap(type, u.type); std::swap(value, u.value); return *this; }
@@ -1043,7 +1043,7 @@ struct MonsterT : public flatbuffers::NativeTable {
   }
 };
 
-/// an example documentation comment: monster object
+/// an example documentation comment: "monster object"
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MonsterT NativeTableType;
   typedef MonsterBuilder Builder;
@@ -2630,7 +2630,7 @@ inline flatbuffers::Offset<void> AnyUnion::Pack(flatbuffers::FlatBufferBuilder &
   }
 }
 
-inline AnyUnion::AnyUnion(const AnyUnion &u) FLATBUFFERS_NOEXCEPT : type(u.type), value(nullptr) {
+inline AnyUnion::AnyUnion(const AnyUnion &u) : type(u.type), value(nullptr) {
   switch (type) {
     case Any::Monster: {
       FLATBUFFERS_ASSERT(false);  // MyGame::Example::MonsterT not copyable.
@@ -2741,7 +2741,7 @@ inline flatbuffers::Offset<void> AnyUniqueAliasesUnion::Pack(flatbuffers::FlatBu
   }
 }
 
-inline AnyUniqueAliasesUnion::AnyUniqueAliasesUnion(const AnyUniqueAliasesUnion &u) FLATBUFFERS_NOEXCEPT : type(u.type), value(nullptr) {
+inline AnyUniqueAliasesUnion::AnyUniqueAliasesUnion(const AnyUniqueAliasesUnion &u) : type(u.type), value(nullptr) {
   switch (type) {
     case AnyUniqueAliases::M: {
       FLATBUFFERS_ASSERT(false);  // MyGame::Example::MonsterT not copyable.
@@ -2852,7 +2852,7 @@ inline flatbuffers::Offset<void> AnyAmbiguousAliasesUnion::Pack(flatbuffers::Fla
   }
 }
 
-inline AnyAmbiguousAliasesUnion::AnyAmbiguousAliasesUnion(const AnyAmbiguousAliasesUnion &u) FLATBUFFERS_NOEXCEPT : type(u.type), value(nullptr) {
+inline AnyAmbiguousAliasesUnion::AnyAmbiguousAliasesUnion(const AnyAmbiguousAliasesUnion &u) : type(u.type), value(nullptr) {
   switch (type) {
     case AnyAmbiguousAliases::M1: {
       FLATBUFFERS_ASSERT(false);  // MyGame::Example::MonsterT not copyable.

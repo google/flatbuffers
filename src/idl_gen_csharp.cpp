@@ -41,7 +41,7 @@ class CSharpGenerator : public BaseGenerator {
  public:
   CSharpGenerator(const Parser &parser, const std::string &path,
                   const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", "."),
+      : BaseGenerator(parser, path, file_name, "", ".", "cs"),
         cur_name_space_(nullptr) {}
 
   CSharpGenerator &operator=(const CSharpGenerator &);
@@ -544,7 +544,7 @@ class CSharpGenerator : public BaseGenerator {
       // Force compile time error if not using the same version runtime.
       code += "  public static void ValidateVersion() {";
       code += " FlatBufferConstants.";
-      code += "FLATBUFFERS_1_11_1(); ";
+      code += "FLATBUFFERS_1_12_0(); ";
       code += "}\n";
 
       // Generate a special accessor for the table that when used as the root
@@ -1988,6 +1988,19 @@ class CSharpGenerator : public BaseGenerator {
       code +=
           "    return Newtonsoft.Json.JsonConvert.SerializeObject(this, "
           "Newtonsoft.Json.Formatting.Indented);\n";
+      code += "  }\n";
+    }
+    if (parser_.root_struct_def_ == &struct_def) {
+      code += "  public static " + class_name +
+              " DeserializeFromBinary(byte[] fbBuffer) {\n";
+      code += "    return " + struct_def.name + ".GetRootAs" + struct_def.name +
+              "(new ByteBuffer(fbBuffer)).UnPack();\n";
+      code += "  }\n";
+      code += "  public byte[] SerializeToBinary() {\n";
+      code += "    var fbb = new FlatBufferBuilder(0x10000);\n";
+      code +=
+          "    fbb.Finish(" + struct_def.name + ".Pack(fbb, this).Value);\n";
+      code += "    return fbb.DataBuffer.ToSizedArray();\n";
       code += "  }\n";
     }
     code += "}\n\n";

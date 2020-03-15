@@ -21,7 +21,8 @@ public enum Character: UInt8, Enum {
 
 public struct Rapunzel: Readable {
 
-	static func validateVersion() { FlatBuffersVersion_1_11_1() }
+	static func validateVersion() { FlatBuffersVersion_1_12_0() }
+	public var __buffer: ByteBuffer! { return _accessor.bb }
 
 	private var _accessor: Struct
 	public static var size = 4
@@ -34,7 +35,8 @@ public struct Rapunzel: Readable {
 
 public struct BookReader: Readable {
 
-	static func validateVersion() { FlatBuffersVersion_1_11_1() }
+	static func validateVersion() { FlatBuffersVersion_1_12_0() }
+	public var __buffer: ByteBuffer! { return _accessor.bb }
 
 	private var _accessor: Struct
 	public static var size = 4
@@ -61,7 +63,8 @@ public func createBookReader(booksRead: Int32) -> UnsafeMutableRawPointer {
 
 public struct Attacker: FlatBufferObject {
 
-	static func validateVersion() { FlatBuffersVersion_1_11_1() }
+	static func validateVersion() { FlatBuffersVersion_1_12_0() }
+	public var __buffer: ByteBuffer! { return _accessor.bb }
 
 	private var _accessor: Table
 	public static func finish(_ fbb: FlatBufferBuilder, end: Offset<UOffset>, prefix: Bool = false) { fbb.finish(offset: end, fileId: "MOVI", addPrefix: prefix) }
@@ -85,7 +88,8 @@ public struct Attacker: FlatBufferObject {
 
 public struct Movie: FlatBufferObject {
 
-	static func validateVersion() { FlatBuffersVersion_1_11_1() }
+	static func validateVersion() { FlatBuffersVersion_1_12_0() }
+	public var __buffer: ByteBuffer! { return _accessor.bb }
 
 	private var _accessor: Table
 	public static func finish(_ fbb: FlatBufferBuilder, end: Offset<UOffset>, prefix: Bool = false) { fbb.finish(offset: end, fileId: "MOVI", addPrefix: prefix) }

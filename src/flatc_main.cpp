@@ -30,7 +30,9 @@ static void Error(const flatbuffers::FlatCompiler *flatc,
                   const std::string &err, bool usage, bool show_exe_name) {
   if (show_exe_name) { printf("%s: ", g_program_name); }
   printf("error: %s\n", err.c_str());
-  if (usage && flatc) { printf("%s", flatc->GetUsageString(g_program_name).c_str()); }
+  if (usage && flatc) {
+    printf("%s", flatc->GetUsageString(g_program_name).c_str());
+  }
   exit(1);
 }
 
@@ -105,8 +107,8 @@ int main(int argc, const char *argv[]) {
     { flatbuffers::GenerateJsonSchema, nullptr, "--jsonschema", "JsonSchema",
       true, nullptr, flatbuffers::IDLOptions::kJsonSchema,
       "Generate Json schema", nullptr },
-    { flatbuffers::GenerateSwift, nullptr, "--swift", "swift",
-      true, nullptr, flatbuffers::IDLOptions::kSwift,
+    { flatbuffers::GenerateSwift, nullptr, "--swift", "swift", true,
+      flatbuffers::GenerateSwiftGRPC, flatbuffers::IDLOptions::kSwift,
       "Generate Swift files for tables/structs", nullptr },
   };
 
