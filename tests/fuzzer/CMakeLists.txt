@@ -6,15 +6,13 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 project(FlatBuffersFuzzerTests)
 
-option(BUILD_DEBUGGER "Compile a debugger with main() and without libFuzzer"
-       OFF)
+option(BUILD_DEBUGGER "Compile a debugger with main() and without libFuzzer" OFF)
 
 if(NOT DEFINED FLATBUFFERS_MAX_PARSING_DEPTH)
   # Force checking of RecursionError in the test
   set(FLATBUFFERS_MAX_PARSING_DEPTH 8)
 endif()
-message(
-  STATUS "FLATBUFFERS_MAX_PARSING_DEPTH: ${FLATBUFFERS_MAX_PARSING_DEPTH}")
+message(STATUS "FLATBUFFERS_MAX_PARSING_DEPTH: ${FLATBUFFERS_MAX_PARSING_DEPTH}")
 
 # Usage '-fsanitize=address' doesn't allowed with '-fsanitize=memory'.
 # MemorySanitizer will not work out-of-the-box, and will instead report false
@@ -51,24 +49,27 @@ add_library(fuzzer_config INTERFACE)
 
 target_compile_options(
   fuzzer_config
-  INTERFACE -fsanitize-coverage=edge,trace-cmp
-            $<$<BOOL:NOT
-            ${USE_MSAN}>:
-            -fsanitize=fuzzer,undefined,address
-            >
-            $<$<BOOL:${USE_MSAN}>:
-            -fsanitize=fuzzer,undefined,memory
-            -fsanitize-memory-track-origins=2
-            >)
+  INTERFACE
+    -fsanitize-coverage=edge,trace-cmp
+    $<$<BOOL:NOT ${USE_MSAN}>:
+      -fsanitize=fuzzer,undefined,address
+    >
+    $<$<BOOL:${USE_MSAN}>:
+      -fsanitize=fuzzer,undefined,memory
+      -fsanitize-memory-track-origins=2
+    >
+)
+
 target_link_libraries(
   fuzzer_config
-  INTERFACE $<$<BOOL:NOT
-            ${USE_MSAN}>:
-            -fsanitize=fuzzer,undefined,address
-            >
-            $<$<BOOL:${USE_MSAN}>:
-            -fsanitize=fuzzer,undefined,memory
-            >)
+  INTERFACE
+    $<$<BOOL:NOT ${USE_MSAN}>:
+      -fsanitize=fuzzer,undefined,address
+    >
+    $<$<BOOL:${USE_MSAN}>:
+      -fsanitize=fuzzer,undefined,memory
+    >
+)
 
 set(FLATBUFFERS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../")
 
@@ -88,7 +89,8 @@ set(FlatBuffers_Library_SRCS
     ${FLATBUFFERS_DIR}/src/idl_gen_text.cpp
     ${FLATBUFFERS_DIR}/src/reflection.cpp
     ${FLATBUFFERS_DIR}/src/util.cpp
-    ${FLATBUFFERS_DIR}/tests/test_assert.cpp)
+    ${FLATBUFFERS_DIR}/tests/test_assert.cpp
+)
 
 include_directories(${FLATBUFFERS_DIR}/include)
 include_directories(${FLATBUFFERS_DIR}/tests)
@@ -105,7 +107,9 @@ target_compile_definitions(
   PUBLIC
     FLATBUFFERS_ASSERT=fuzzer_assert_impl
     FLATBUFFERS_ASSERT_INCLUDE="${CMAKE_CURRENT_SOURCE_DIR}/fuzzer_assert.h"
-  PRIVATE FLATBUFFERS_MAX_PARSING_DEPTH=${FLATBUFFERS_MAX_PARSING_DEPTH})
+  PRIVATE
+    FLATBUFFERS_MAX_PARSING_DEPTH=${FLATBUFFERS_MAX_PARSING_DEPTH}
+)
 
 # Setup fuzzer tests.
 
@@ -126,9 +130,9 @@ if(BUILD_DEBUGGER)
     PUBLIC
       FLATBUFFERS_ASSERT=fuzzer_assert_impl
       FLATBUFFERS_ASSERT_INCLUDE="${CMAKE_CURRENT_SOURCE_DIR}/fuzzer_assert.h"
-    PRIVATE FLATBUFFERS_MAX_PARSING_DEPTH=${FLATBUFFERS_MAX_PARSING_DEPTH})
-
+    PRIVATE
+      FLATBUFFERS_MAX_PARSING_DEPTH=${FLATBUFFERS_MAX_PARSING_DEPTH}
+  )
   add_executable(scalar_debug flatbuffers_scalar_fuzzer.cc scalar_debug.cpp)
   target_link_libraries(scalar_debug PRIVATE flatbuffers_nonfuzz)
-
 endif(BUILD_DEBUGGER)
