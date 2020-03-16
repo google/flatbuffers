@@ -31,19 +31,16 @@
 extern crate bitflags;
 extern crate byteorder;
 #[cfg(test)]
-#[macro_use]
 extern crate serde_derive;
 #[macro_use]
 extern crate debug_stub_derive;
 extern crate num_enum;
 #[cfg(test)]
-#[macro_use]
 extern crate quickcheck;
 extern crate serde;
 #[cfg(test)]
 extern crate test;
 #[cfg(test)]
-#[macro_use]
 extern crate quickcheck_derive;
 #[cfg(test)]
 extern crate rand;
@@ -104,13 +101,3 @@ pub struct IndirectInt(pub i64);
 /// size of vectors and maps containing the `IndirectFloat`.
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct IndirectFloat(pub f64);
-
-#[cfg(test)]
-mod tests {
-    mod rwyw;
-#[rustfmt::skip] // Manually formatting Arrays has better readability.
-    mod binary_format;
-    mod benches;
-    mod other_api;
-    mod qc_serious;
-}
