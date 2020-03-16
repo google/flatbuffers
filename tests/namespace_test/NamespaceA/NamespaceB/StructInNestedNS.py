@@ -23,3 +23,34 @@ def CreateStructInNestedNS(builder, a, b):
     builder.PrependInt32(b)
     builder.PrependInt32(a)
     return builder.Offset()
+
+
+class StructInNestedNST(object):
+
+    # StructInNestedNST
+    def __init__(self):
+        self.a = 0  # type: int
+        self.b = 0  # type: int
+
+    @classmethod
+    def InitFromBuf(cls, buf, pos):
+        structInNestedNS = StructInNestedNS()
+        structInNestedNS.Init(buf, pos)
+        return cls.InitFromObj(structInNestedNS)
+
+    @classmethod
+    def InitFromObj(cls, structInNestedNS):
+        x = StructInNestedNST()
+        x._UnPack(structInNestedNS)
+        return x
+
+    # StructInNestedNST
+    def _UnPack(self, structInNestedNS):
+        if structInNestedNS is None:
+            return
+        self.a = structInNestedNS.A()
+        self.b = structInNestedNS.B()
+
+    # StructInNestedNST
+    def Pack(self, builder):
+        return CreateStructInNestedNS(builder, self.a, self.b)

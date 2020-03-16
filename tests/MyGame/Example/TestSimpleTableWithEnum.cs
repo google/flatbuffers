@@ -6,13 +6,14 @@ namespace MyGame.Example
 {
 
 using global::System;
+using global::System.Collections.Generic;
 using global::FlatBuffers;
 
 internal partial struct TestSimpleTableWithEnum : IFlatbufferObject
 {
   private Table __p;
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
-  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_1_11_1(); }
+  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_1_12_0(); }
   public static TestSimpleTableWithEnum GetRootAsTestSimpleTableWithEnum(ByteBuffer _bb) { return GetRootAsTestSimpleTableWithEnum(_bb, new TestSimpleTableWithEnum()); }
   public static TestSimpleTableWithEnum GetRootAsTestSimpleTableWithEnum(ByteBuffer _bb, TestSimpleTableWithEnum obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
@@ -34,7 +35,31 @@ internal partial struct TestSimpleTableWithEnum : IFlatbufferObject
     int o = builder.EndTable();
     return new Offset<MyGame.Example.TestSimpleTableWithEnum>(o);
   }
+  public TestSimpleTableWithEnumT UnPack() {
+    var _o = new TestSimpleTableWithEnumT();
+    this.UnPackTo(_o);
+    return _o;
+  }
+  public void UnPackTo(TestSimpleTableWithEnumT _o) {
+    _o.Color = this.Color;
+  }
+  public static Offset<MyGame.Example.TestSimpleTableWithEnum> Pack(FlatBufferBuilder builder, TestSimpleTableWithEnumT _o) {
+    if (_o == null) return default(Offset<MyGame.Example.TestSimpleTableWithEnum>);
+    return CreateTestSimpleTableWithEnum(
+      builder,
+      _o.Color);
+  }
 };
+
+internal partial class TestSimpleTableWithEnumT
+{
+  [Newtonsoft.Json.JsonProperty("color")]
+  public MyGame.Example.Color Color { get; set; }
+
+  public TestSimpleTableWithEnumT() {
+    this.Color = MyGame.Example.Color.Green;
+  }
+}
 
 
 }

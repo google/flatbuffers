@@ -42,7 +42,7 @@ class JavaGenerator : public BaseGenerator {
  public:
   JavaGenerator(const Parser &parser, const std::string &path,
                 const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", "."),
+      : BaseGenerator(parser, path, file_name, "", ".", "java"),
         cur_name_space_(nullptr) {}
 
   JavaGenerator &operator=(const JavaGenerator &);
@@ -592,7 +592,7 @@ class JavaGenerator : public BaseGenerator {
       // Force compile time error if not using the same version runtime.
       code += "  public static void ValidateVersion() {";
       code += " Constants.";
-      code += "FLATBUFFERS_1_11_1(); ";
+      code += "FLATBUFFERS_1_12_0(); ";
       code += "}\n";
 
       // Generate a special accessor for the table that when used as the root
@@ -1134,7 +1134,7 @@ class JavaGenerator : public BaseGenerator {
       code += " key, ByteBuffer bb) {\n";
       if (key_field->value.type.base_type == BASE_TYPE_STRING) {
         code += "    byte[] byteKey = ";
-        code += "key.getBytes(Table.UTF8_CHARSET.get());\n";
+        code += "key.getBytes(java.nio.charset.StandardCharsets.UTF_8);\n";
       }
       code += "    int span = ";
       code += "bb.getInt(vectorLocation - 4);\n";

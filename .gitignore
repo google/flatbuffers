@@ -1,6 +1,12 @@
 *_wire.txt
 *_wire.bin
 .DS_Store
+**/.build
+**/Packages
+/*.xcodeproj
+**/xcuserdata/
+**/xcshareddata/
+**/.swiftpm/
 *.o
 *.o.d
 *.class
@@ -116,3 +122,6 @@ dart/doc/api/
 Cargo.lock
 .corpus**
 .seed**
+grpc/google/
+**/Package.resolved
+.clangd/**

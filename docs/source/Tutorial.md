@@ -35,6 +35,7 @@ Please select your desired language for our quest:
   <input type="radio" name="language" value="lua">Lua</input>
   <input type="radio" name="language" value="lobster">Lobster</input>
   <input type="radio" name="language" value="rust">Rust</input>
+  <input type="radio" name="language" value="swift">Swift</input>
 </form>
 \endhtmlonly
 
@@ -151,6 +152,9 @@ For your chosen language, please cross-reference with:
 </div>
 <div class="language-rust">
 [sample_binary.rs](https://github.com/google/flatbuffers/blob/master/samples/sample_binary.rs)
+</div>
+<div class="language-swift">
+[sample_binary.swift](https://github.com/google/flatbuffers/blob/master/samples/sample_binary.swift)
 </div>
 
 
@@ -363,6 +367,12 @@ Please be aware of the difference between `flatc` and `flatcc` tools.
   ./../flatc --rust monster.fbs
 ~~~
 </div>
+<div class="language-swift">
+~~~{.sh}
+  cd flatbuffers/samples
+  ./../flatc --swift monster.fbs
+~~~
+</div>
 
 For a more complete guide to using the `flatc` compiler, please read the
 [Using the schema compiler](@ref flatbuffers_guide_using_schema_compiler)
@@ -523,6 +533,21 @@ The first step is to import/include the library, generated files, etc.
 ~~~
 </div>
 
+<div class="language-swift">
+~~~{.swift}
+  /**
+  // make sure that monster_generated.swift is included in your project
+  */
+  import Flatbuffers
+
+  // typealiases for convenience
+  typealias Monster = MyGame1.Sample.Monster
+  typealias Weapon = MyGame1.Sample.Weapon
+  typealias Color = MyGame1.Sample.Color
+  typealias Vec3 = MyGame1.Sample.Vec3
+~~~
+</div>
+
 Now we are ready to start building some buffers. In order to start, we need
 to create an instance of the `FlatBufferBuilder`, which will contain the buffer
 as it grows. You can pass an initial size of the buffer (here 1024 bytes),
@@ -625,6 +650,12 @@ which will grow automatically if needed:
   // Build up a serialized buffer algorithmically.
   // Initialize it with a capacity of 1024 bytes.
   let mut builder = flatbuffers::FlatBufferBuilder::new_with_capacity(1024);
+~~~
+</div>
+<div class="language-swift">
+~~~{.swift}
+  // create a `FlatBufferBuilder`, which will be used to serialize objects
+  let builder = FlatBufferBuilder(initialSize: 1024)
 ~~~
 </div>
 
@@ -878,6 +909,25 @@ our `orc` Monster, lets create some `Weapon`s: a `Sword` and an `Axe`.
 ~~~
 </div>
 
+<div class="language-swift">
+~~~{.swift}
+  let weapon1Name = builder.create(string: "Sword")
+  let weapon2Name = builder.create(string: "Axe")
+
+  // start creating the weapon by calling startWeapon
+  let weapon1Start = Weapon.startWeapon(builder)
+  Weapon.add(name: weapon1Name, builder)
+  Weapon.add(damage: 3, builder)
+  // end the object by passing the start point for the weapon 1
+  let sword = Weapon.endWeapon(builder, start: weapon1Start)
+
+  let weapon2Start = Weapon.startWeapon(builder)
+  Weapon.add(name: weapon2Name, builder)
+  Weapon.add(damage: 5, builder)
+  let axe = Weapon.endWeapon(builder, start: weapon2Start)
+~~~
+</div>
+
 Now let's create our monster, the `orc`. For this `orc`, lets make him
 `red` with rage, positioned at `(1.0, 2.0, 3.0)`, and give him
 a large pool of hit points with `300`. We can give him a vector of weapons
@@ -1068,6 +1118,16 @@ traversal. This is generally easy to do on any tree structures.
   let inventory = builder.create_vector(&[0u8, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
 ~~~
 </div>
+<div class="language-swift">
+~~~{.swift}
+  // Name of the Monster.
+  let name = builder.create(string: "Orc")
+
+  // create inventory
+  let inventory: [Byte] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+  let inventoryOffset = builder.createVector(inventory)
+~~~
+</div>
 
 We serialized two built-in data types (`string` and `vector`) and captured
 their return values. These values are offsets into the serialized data,
@@ -1212,6 +1272,13 @@ offsets.
   let weapons = builder.create_vector(&[sword, axe]);
 ~~~
 </div>
+<div class="language-swift">
+~~~{.swift}
+  // Create a FlatBuffer `vector` that contains offsets to the sword and axe
+  // we created above.
+  let weaponsOffset = builder.createVector(ofOffsets: [sword, axe])
+~~~
+</div>
 
 <br>
 Note there's additional convenience overloads of `CreateVector`, allowing you
@@ -1348,6 +1415,15 @@ for the `path` field above:
   // let path = builder.create_vector(&[&x, &y]);
 ~~~
 </div>
+<div class="language-swift">
+~~~{.swift}
+  //
+  let points = builder.createVector(structs: [MyGame.Sample.createVec3(x: 1, y: 2, z: 3), 
+                                              MyGame.Sample.createVec3(x: 4, y: 5, z: 6)],
+                                   type: Vec3.self)
+~~~
+</div>
+
 
 We have now serialized the non-scalar components of the orc, so we
 can serialize the monster itself:
@@ -1621,6 +1697,19 @@ can serialize the monster itself:
   });
 ~~~
 </div>
+<div class="language-swift">
+~~~{.swift}
+  let orc = Monster.createMonster(builder, 
+                                  offsetOfPos: pos,
+                                  hp: 300,
+                                  offsetOfName: name,
+                                  vectorOfInventory: inventoryOffset,
+                                  color: .red,
+                                  vectorOfWeapons: weaponsOffset,
+                                  equippedType: .weapon,
+                                  offsetOfEquipped: axe)
+~~~
+</div>
 
 Note how we create `Vec3` struct in-line in the table. Unlike tables, structs
 are simple combinations of scalars that are always stored inline, just like
@@ -1683,6 +1772,21 @@ a bit more flexibility.
   ns(Monster_equipped_add(B, equipped));
   // Complete the monster object and make it the buffer root object.
   ns(Monster_end_as_root(B));
+~~~
+</div>
+
+<div class="language-swift">
+~~~{.swift}
+  let start = Monster.startMonster(builder)
+  Monster.add(pos: pos, builder)
+  Monster.add(hp: 300, builder)
+  Monster.add(name: name, builder)
+  Monster.addVectorOf(inventory: inventoryOffset, builder)
+  Monster.add(color: .red, builder)
+  Monster.addVectorOf(weapons: weaponsOffset, builder)
+  Monster.add(equippedType: .weapon, builder)
+  Monster.add(equipped: axe, builder)
+  var orc = Monster.endMonster(builder, start: start)
 ~~~
 </div>
 
@@ -1789,6 +1893,13 @@ Here is a repetition these lines, to help highlight them more clearly:
     monster_builder.add_equipped(axe.as_union_value()); // Union data
   ~~~
 </div>
+<div class="language-swift">
+  ~~~{.swift}
+    Monster.add(equippedType: .weapon, builder) // Type of union
+    Monster.add(equipped: axe, builder) // Union data
+  ~~~
+</div>
+
 
 After you have created your buffer, you will have the offset to the root of the
 data in the `orc` variable, so you can finish the buffer by calling the
@@ -1882,6 +1993,12 @@ appropriate `finish` method.
 ~~~{.rs}
   // Call `finish()` to instruct the builder that this monster is complete.
   builder.finish(orc, None);
+~~~
+</div>
+<div class="language-swift">
+~~~{.swift}
+  // Call `finish(offset:)` to instruct the builder that this monster is complete.
+  builder.finish(offset: orc)
 ~~~
 </div>
 
@@ -2012,6 +2129,15 @@ like so:
 ~~~
 </div>
 
+<div class="language-swift">
+~~~{.swift}
+  // This must be called after `finish()`.
+  // `sizedByteArray` returns the finished buf of type [UInt8].
+  let buf = builder.sizedByteArray
+  // or you can use to get an object of type Data
+  let bufData = ByteBuffer(data: builder.data)
+~~~
+</div>
 
 Now you can write the bytes to a file, send them over the network..
 **Make sure your file mode (or transfer protocol) is set to BINARY, not text.**
@@ -2312,6 +2438,16 @@ myGame.Monster monster = new myGame.Monster(data);
 ~~~
 </div>
 
+<div class="language-swift">
+~~~{.swift}
+  // create a ByteBuffer(:) from an [UInt8] or Data()
+  let buf = // Get your data
+
+  // Get an accessor to the root object inside the buffer.
+  let monster = Monster.getRootAsMonster(bb: ByteBuffer(bytes: buf))
+~~~
+</div>
+
 If you look in the generated files from the schema compiler, you will see it generated
 accessors for all non-`deprecated` fields. For example:
 
@@ -2416,6 +2552,14 @@ accessors for all non-`deprecated` fields. For example:
   let hp = monster.hp();
   let mana = monster.mana();
   let name = monster.name();
+~~~
+</div>
+
+<div class="language-swift">
+~~~{.swift}
+  let hp = monster.hp
+  let mana = monster.mana
+  let name = monster.name // returns an optional string
 ~~~
 </div>
 
@@ -2544,6 +2688,15 @@ To access sub-objects, in the case of our `pos`, which is a `Vec3`:
 ~~~
 </div>
 
+<div class="language-swift">
+~~~{.swift}
+  let pos = monster.pos
+  let x = pos.x
+  let y = pos.y
+  let z = pos.z
+~~~
+</div>
+
 `x`, `y`, and `z` will contain `1.0`, `2.0`, and `3.0`, respectively.
 
 *Note: Had we not set `pos` during serialization, it would be a `NULL`-value.*
@@ -2641,6 +2794,20 @@ FlatBuffers `vector`.
   // Note that this vector is returned as a slice, because direct access for
   // this type, a `u8` vector, is safe on all platforms:
   let third_item = inv[2];
+~~~
+</div>
+
+<div class="language-swift">
+~~~{.swift}
+  // Get a the count of objects in the vector
+  let count = monster.inventoryCount
+
+  // get item at index 4
+  let object = monster.inventory(at: 4)
+
+  // or you can fetch the entire array
+  let inv = monster.inventory
+  // inv[4] should equal object
 ~~~
 </div>
 
@@ -2754,6 +2921,16 @@ except your need to handle the result as a FlatBuffer `table`:
   let wep2 = weps.get(1);
   let second_weapon_name = wep2.name();
   let second_weapon_damage = wep2.damage();
+~~~
+</div>
+<div class="language-swift">
+~~~{.swift}
+  // Get the count of weapon objects
+  let wepsCount = monster.weaponsCount
+
+  let weapon2 = monster.weapons(at: 1)
+  let weaponName = weapon2.name
+  let weaponDmg = weapon2.damage
 ~~~
 </div>
 
@@ -2943,6 +3120,17 @@ We can access the type to dynamically cast the data as needed (since the
 ~~~
 </div>
 
+<div class="language-swift">
+~~~{.swift}
+  // Get and check if the monster has an equipped item
+  if monster.equippedType == .weapon {
+    let _weapon = monster.equipped(type: Weapon.self)
+    let name = _weapon.name // should return "Axe"
+    let dmg = _weapon.damage // should return 5
+  }
+~~~
+</div>
+
 ## Mutating FlatBuffers
 
 As you saw above, typically once you have created a FlatBuffer, it is read-only
@@ -3043,6 +3231,15 @@ mutators like so:
 <div class="language-rust">
 ~~~{.rs}
   <API for mutating FlatBuffers is not yet available in Rust.>
+~~~
+</div>
+
+<div class="language-swift">
+~~~{.swift}
+  let monster = Monster.getRootAsMonster(bb: ByteBuffer(bytes: buf))
+  monster.mutate(hp: 10) // mutates a value in a table
+  monster.pos.mutate(z: 4) // mutates a value in a struct
+  monster.mutate(inventory: 6, at index: 0) // mutates a value in an Scalar array
 ~~~
 </div>
 
@@ -3177,13 +3374,13 @@ For your chosen language, see:
 [Use in C++](@ref flatbuffers_guide_use_cpp)
 </div>
 <div class="language-java">
-[Use in Java/C#](@ref flatbuffers_guide_use_java_c-sharp)
+[Use in Java](@ref flatbuffers_guide_use_java)
 </div>
 <div class="language-kotlin">
 [Use in Kotlin](@ref flatbuffers_guide_use_kotlin)
 </div>
 <div class="language-csharp">
-[Use in Java/C#](@ref flatbuffers_guide_use_java_c-sharp)
+[Use in C#](@ref flatbuffers_guide_use_c-sharp)
 </div>
 <div class="language-go">
 [Use in Go](@ref flatbuffers_guide_use_go)
@@ -3215,5 +3412,7 @@ For your chosen language, see:
 <div class="language-rust">
 [Use in Rust](@ref flatbuffers_guide_use_rust)
 </div>
-
+<div class="language-swift">
+[Use in Swift](@ref flatbuffers_guide_use_swift)
+</div>
 <br>

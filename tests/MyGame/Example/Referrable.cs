@@ -6,13 +6,14 @@ namespace MyGame.Example
 {
 
 using global::System;
+using global::System.Collections.Generic;
 using global::FlatBuffers;
 
 public struct Referrable : IFlatbufferObject
 {
   private Table __p;
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
-  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_1_11_1(); }
+  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_1_12_0(); }
   public static Referrable GetRootAsReferrable(ByteBuffer _bb) { return GetRootAsReferrable(_bb, new Referrable()); }
   public static Referrable GetRootAsReferrable(ByteBuffer _bb, Referrable obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
@@ -59,7 +60,32 @@ public struct Referrable : IFlatbufferObject
     }
     return null;
   }
+  public ReferrableT UnPack() {
+    var _o = new ReferrableT();
+    this.UnPackTo(_o);
+    return _o;
+  }
+  public void UnPackTo(ReferrableT _o) {
+    _o.Id = this.Id;
+  }
+  public static Offset<MyGame.Example.Referrable> Pack(FlatBufferBuilder builder, ReferrableT _o) {
+    if (_o == null) return default(Offset<MyGame.Example.Referrable>);
+    return CreateReferrable(
+      builder,
+      _o.Id);
+  }
 };
+
+public class ReferrableT
+{
+  [Newtonsoft.Json.JsonProperty("id")]
+  [Newtonsoft.Json.JsonIgnore()]
+  public ulong Id { get; set; }
+
+  public ReferrableT() {
+    this.Id = 0;
+  }
+}
 
 
 }

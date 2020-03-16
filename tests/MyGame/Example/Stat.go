@@ -12,7 +12,7 @@ type StatT struct {
 	Count uint16
 }
 
-func StatPack(builder *flatbuffers.Builder, t *StatT) flatbuffers.UOffsetT {
+func (t *StatT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil { return 0 }
 	idOffset := builder.CreateString(t.Id)
 	StatStart(builder)

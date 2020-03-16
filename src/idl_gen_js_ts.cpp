@@ -26,8 +26,6 @@
 
 namespace flatbuffers {
 
-const std::string kGeneratedFileNamePostfix = "_generated";
-
 struct JsTsLanguageParameters {
   IDLOptions::Language language;
   std::string file_extension;
@@ -61,12 +59,6 @@ const JsTsLanguageParameters &GetJsLangParams(IDLOptions::Language lang) {
   }
 }
 
-static std::string GeneratedFileName(const std::string &path,
-                                     const std::string &file_name,
-                                     const JsTsLanguageParameters &lang) {
-  return path + file_name + kGeneratedFileNamePostfix + lang.file_extension;
-}
-
 namespace jsts {
 // Iterate through all definitions we haven't generate code for (enums, structs,
 // and tables) and output them to a single file.
@@ -78,7 +70,8 @@ class JsTsGenerator : public BaseGenerator {
 
   JsTsGenerator(const Parser &parser, const std::string &path,
                 const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", "."),
+      : BaseGenerator(parser, path, file_name, "", ".",
+                      parser.opts.lang == IDLOptions::kJs ? "js" : "ts"),
         lang_(GetJsLangParams(parser_.opts.lang)) {}
   // Iterate through all definitions we haven't generate code for (enums,
   // structs, and tables) and output them to a single file.
@@ -112,8 +105,8 @@ class JsTsGenerator : public BaseGenerator {
       code += exports_code;
     }
 
-    return SaveFile(GeneratedFileName(path_, file_name_, lang_).c_str(), code,
-                    false);
+    return SaveFile(GeneratedFileName(path_, file_name_, parser_.opts).c_str(),
+                    code, false);
   }
 
  private:
@@ -524,10 +517,10 @@ class JsTsGenerator : public BaseGenerator {
     if (parser_.opts.keep_include_path) {
       auto it = parser_.included_files_.find(full_file_name);
       FLATBUFFERS_ASSERT(it != parser_.included_files_.end());
-      path =
-          flatbuffers::StripExtension(it->second) + kGeneratedFileNamePostfix;
+      path = flatbuffers::StripExtension(it->second) +
+             parser_.opts.filename_suffix;
     } else {
-      path = base_name + kGeneratedFileNamePostfix;
+      path = base_name + parser_.opts.filename_suffix;
     }
 
     // Add the include prefix and make the path always relative
@@ -600,6 +593,11 @@ class JsTsGenerator : public BaseGenerator {
     }
   }
 
+  std::string GenerateNewExpression(const std::string &object_name) {
+    return "new " + object_name +
+           (lang_.language == IDLOptions::kTs ? "()" : "");
+  }
+
   void GenerateRootAccessor(StructDef &struct_def, std::string *code_ptr,
                             std::string &code, std::string &object_name,
                             bool size_prefixed) {
@@ -619,7 +617,12 @@ class JsTsGenerator : public BaseGenerator {
                 "Root" + Verbose(struct_def, "As");
         code += " = function(bb, obj) {\n";
       }
-      code += "  return (obj || new " + object_name;
+      if (size_prefixed) {
+        code +=
+            "  bb.setPosition(bb.position() + "
+            "flatbuffers.SIZE_PREFIX_LENGTH);\n";
+      }
+      code += "  return (obj || " + GenerateNewExpression(object_name);
       code += ").__init(bb.readInt32(bb.position()) + bb.position(), bb);\n";
       code += "};\n\n";
     }
@@ -858,12 +861,13 @@ class JsTsGenerator : public BaseGenerator {
             }
 
             if (struct_def.fixed) {
-              code += "  return (obj || new " + type;
+              code += "  return (obj || " + GenerateNewExpression(type);
               code += ").__init(this.bb_pos";
               code +=
                   MaybeAdd(field.value.offset) + ", " + GenBBAccess() + ");\n";
             } else {
-              code += offset_prefix + "(obj || new " + type + ").__init(";
+              code += offset_prefix + "(obj || " + GenerateNewExpression(type) +
+                      ").__init(";
               code += field.value.type.struct_def->fixed
                           ? "this.bb_pos + offset"
                           : GenBBAccess() + ".__indirect(this.bb_pos + offset)";
@@ -945,7 +949,8 @@ class JsTsGenerator : public BaseGenerator {
             }
 
             if (vectortype.base_type == BASE_TYPE_STRUCT) {
-              code += offset_prefix + "(obj || new " + vectortypename;
+              code += offset_prefix + "(obj || " +
+                      GenerateNewExpression(vectortypename);
               code += ").__init(";
               code += vectortype.struct_def->fixed
                           ? index
@@ -1381,11 +1386,12 @@ bool GenerateJSTS(const Parser &parser, const std::string &path,
 std::string JSTSMakeRule(const Parser &parser, const std::string &path,
                          const std::string &file_name) {
   FLATBUFFERS_ASSERT(parser.opts.lang <= IDLOptions::kMAX);
-  const auto &lang = GetJsLangParams(parser.opts.lang);
 
   std::string filebase =
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
-  std::string make_rule = GeneratedFileName(path, filebase, lang) + ": ";
+  jsts::JsTsGenerator generator(parser, path, file_name);
+  std::string make_rule =
+      generator.GeneratedFileName(path, filebase, parser.opts) + ": ";
 
   auto included_files = parser.GetIncludedFilesRecursive(file_name);
   for (auto it = included_files.begin(); it != included_files.end(); ++it) {

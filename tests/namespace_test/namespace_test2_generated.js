@@ -59,6 +59,7 @@ NamespaceA.TableInFirstNS.getRootAsTableInFirstNS = function(bb, obj) {
  * @returns {NamespaceA.TableInFirstNS}
  */
 NamespaceA.TableInFirstNS.getSizePrefixedRootAsTableInFirstNS = function(bb, obj) {
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
   return (obj || new NamespaceA.TableInFirstNS).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
@@ -199,6 +200,7 @@ NamespaceC.TableInC.getRootAsTableInC = function(bb, obj) {
  * @returns {NamespaceC.TableInC}
  */
 NamespaceC.TableInC.getSizePrefixedRootAsTableInC = function(bb, obj) {
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
   return (obj || new NamespaceC.TableInC).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
@@ -306,6 +308,7 @@ NamespaceA.SecondTableInA.getRootAsSecondTableInA = function(bb, obj) {
  * @returns {NamespaceA.SecondTableInA}
  */
 NamespaceA.SecondTableInA.getSizePrefixedRootAsSecondTableInA = function(bb, obj) {
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
   return (obj || new NamespaceA.SecondTableInA).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 

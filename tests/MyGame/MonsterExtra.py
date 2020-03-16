@@ -134,7 +134,7 @@ class MonsterExtra(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
         return o == 0
 
-def MonsterExtraStart(builder): builder.StartObject(10)
+def MonsterExtraStart(builder): builder.StartObject(11)
 def MonsterExtraAddD0(builder, d0): builder.PrependFloat64Slot(0, d0, float('nan'))
 def MonsterExtraAddD1(builder, d1): builder.PrependFloat64Slot(1, d1, float('nan'))
 def MonsterExtraAddD2(builder, d2): builder.PrependFloat64Slot(2, d2, float('inf'))
@@ -211,15 +211,21 @@ class MonsterExtraT(object):
     # MonsterExtraT
     def Pack(self, builder):
         if self.dvec is not None:
-            MonsterExtraStartDvecVector(builder, len(self.dvec))
-            for i in reversed(range(len(self.dvec))):
-                builder.PrependFloat64(self.dvec[i])
-            dvec =  builder.EndVector(len(self.dvec))
+            if np is not None and type(self.dvec) is np.ndarray:
+                dvec = builder.CreateNumpyVector(self.dvec)
+            else:
+                MonsterExtraStartDvecVector(builder, len(self.dvec))
+                for i in reversed(range(len(self.dvec))):
+                    builder.PrependFloat64(self.dvec[i])
+                dvec = builder.EndVector(len(self.dvec))
         if self.fvec is not None:
-            MonsterExtraStartFvecVector(builder, len(self.fvec))
-            for i in reversed(range(len(self.fvec))):
-                builder.PrependFloat32(self.fvec[i])
-            fvec =  builder.EndVector(len(self.fvec))
+            if np is not None and type(self.fvec) is np.ndarray:
+                fvec = builder.CreateNumpyVector(self.fvec)
+            else:
+                MonsterExtraStartFvecVector(builder, len(self.fvec))
+                for i in reversed(range(len(self.fvec))):
+                    builder.PrependFloat32(self.fvec[i])
+                fvec = builder.EndVector(len(self.fvec))
         MonsterExtraStart(builder)
         MonsterExtraAddD0(builder, self.d0)
         MonsterExtraAddD1(builder, self.d1)

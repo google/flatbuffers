@@ -6,13 +6,14 @@ namespace MyGame
 {
 
 using global::System;
+using global::System.Collections.Generic;
 using global::FlatBuffers;
 
 public struct MonsterExtra : IFlatbufferObject
 {
   private Table __p;
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
-  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_1_11_1(); }
+  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_1_12_0(); }
   public static MonsterExtra GetRootAsMonsterExtra(ByteBuffer _bb) { return GetRootAsMonsterExtra(_bb, new MonsterExtra()); }
   public static MonsterExtra GetRootAsMonsterExtra(ByteBuffer _bb, MonsterExtra obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public static bool MonsterExtraBufferHasIdentifier(ByteBuffer _bb) { return Table.__has_identifier(_bb, "MONE"); }
@@ -65,7 +66,7 @@ public struct MonsterExtra : IFlatbufferObject
       float f3 = Single.NegativeInfinity,
       VectorOffset dvecOffset = default(VectorOffset),
       VectorOffset fvecOffset = default(VectorOffset)) {
-    builder.StartTable(10);
+    builder.StartTable(11);
     MonsterExtra.AddD3(builder, d3);
     MonsterExtra.AddD2(builder, d2);
     MonsterExtra.AddD1(builder, d1);
@@ -79,7 +80,7 @@ public struct MonsterExtra : IFlatbufferObject
     return MonsterExtra.EndMonsterExtra(builder);
   }
 
-  public static void StartMonsterExtra(FlatBufferBuilder builder) { builder.StartTable(10); }
+  public static void StartMonsterExtra(FlatBufferBuilder builder) { builder.StartTable(11); }
   public static void AddD0(FlatBufferBuilder builder, double d0) { builder.AddDouble(0, d0, Double.NaN); }
   public static void AddD1(FlatBufferBuilder builder, double d1) { builder.AddDouble(1, d1, Double.NaN); }
   public static void AddD2(FlatBufferBuilder builder, double d2) { builder.AddDouble(2, d2, Double.PositiveInfinity); }
@@ -102,7 +103,103 @@ public struct MonsterExtra : IFlatbufferObject
   }
   public static void FinishMonsterExtraBuffer(FlatBufferBuilder builder, Offset<MyGame.MonsterExtra> offset) { builder.Finish(offset.Value, "MONE"); }
   public static void FinishSizePrefixedMonsterExtraBuffer(FlatBufferBuilder builder, Offset<MyGame.MonsterExtra> offset) { builder.FinishSizePrefixed(offset.Value, "MONE"); }
+  public MonsterExtraT UnPack() {
+    var _o = new MonsterExtraT();
+    this.UnPackTo(_o);
+    return _o;
+  }
+  public void UnPackTo(MonsterExtraT _o) {
+    _o.D0 = this.D0;
+    _o.D1 = this.D1;
+    _o.D2 = this.D2;
+    _o.D3 = this.D3;
+    _o.F0 = this.F0;
+    _o.F1 = this.F1;
+    _o.F2 = this.F2;
+    _o.F3 = this.F3;
+    _o.Dvec = new List<double>();
+    for (var _j = 0; _j < this.DvecLength; ++_j) {_o.Dvec.Add(this.Dvec(_j));}
+    _o.Fvec = new List<float>();
+    for (var _j = 0; _j < this.FvecLength; ++_j) {_o.Fvec.Add(this.Fvec(_j));}
+  }
+  public static Offset<MyGame.MonsterExtra> Pack(FlatBufferBuilder builder, MonsterExtraT _o) {
+    if (_o == null) return default(Offset<MyGame.MonsterExtra>);
+    var _dvec = default(VectorOffset);
+    if (_o.Dvec != null) {
+      var __dvec = _o.Dvec.ToArray();
+      _dvec = CreateDvecVector(builder, __dvec);
+    }
+    var _fvec = default(VectorOffset);
+    if (_o.Fvec != null) {
+      var __fvec = _o.Fvec.ToArray();
+      _fvec = CreateFvecVector(builder, __fvec);
+    }
+    return CreateMonsterExtra(
+      builder,
+      _o.D0,
+      _o.D1,
+      _o.D2,
+      _o.D3,
+      _o.F0,
+      _o.F1,
+      _o.F2,
+      _o.F3,
+      _dvec,
+      _fvec);
+  }
 };
+
+public class MonsterExtraT
+{
+  [Newtonsoft.Json.JsonProperty("d0")]
+  public double D0 { get; set; }
+  [Newtonsoft.Json.JsonProperty("d1")]
+  public double D1 { get; set; }
+  [Newtonsoft.Json.JsonProperty("d2")]
+  public double D2 { get; set; }
+  [Newtonsoft.Json.JsonProperty("d3")]
+  public double D3 { get; set; }
+  [Newtonsoft.Json.JsonProperty("f0")]
+  public float F0 { get; set; }
+  [Newtonsoft.Json.JsonProperty("f1")]
+  public float F1 { get; set; }
+  [Newtonsoft.Json.JsonProperty("f2")]
+  public float F2 { get; set; }
+  [Newtonsoft.Json.JsonProperty("f3")]
+  public float F3 { get; set; }
+  [Newtonsoft.Json.JsonProperty("dvec")]
+  public List<double> Dvec { get; set; }
+  [Newtonsoft.Json.JsonProperty("fvec")]
+  public List<float> Fvec { get; set; }
+
+  public MonsterExtraT() {
+    this.D0 = Double.NaN;
+    this.D1 = Double.NaN;
+    this.D2 = Double.PositiveInfinity;
+    this.D3 = Double.NegativeInfinity;
+    this.F0 = Single.NaN;
+    this.F1 = Single.NaN;
+    this.F2 = Single.PositiveInfinity;
+    this.F3 = Single.NegativeInfinity;
+    this.Dvec = null;
+    this.Fvec = null;
+  }
+
+  public static MonsterExtraT DeserializeFromJson(string jsonText) {
+    return Newtonsoft.Json.JsonConvert.DeserializeObject<MonsterExtraT>(jsonText);
+  }
+  public string SerializeToJson() {
+    return Newtonsoft.Json.JsonConvert.SerializeObject(this, Newtonsoft.Json.Formatting.Indented);
+  }
+  public static MonsterExtraT DeserializeFromBinary(byte[] fbBuffer) {
+    return MonsterExtra.GetRootAsMonsterExtra(new ByteBuffer(fbBuffer)).UnPack();
+  }
+  public byte[] SerializeToBinary() {
+    var fbb = new FlatBufferBuilder(0x10000);
+    fbb.Finish(MonsterExtra.Pack(fbb, this).Value);
+    return fbb.DataBuffer.ToSizedArray();
+  }
+}
 
 
 }

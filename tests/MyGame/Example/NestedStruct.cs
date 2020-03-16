@@ -6,6 +6,7 @@ namespace MyGame.Example
 {
 
 using global::System;
+using global::System.Collections.Generic;
 using global::FlatBuffers;
 
 public struct NestedStruct : IFlatbufferObject
@@ -39,7 +40,52 @@ public struct NestedStruct : IFlatbufferObject
     }
     return new Offset<MyGame.Example.NestedStruct>(builder.Offset);
   }
+  public NestedStructT UnPack() {
+    var _o = new NestedStructT();
+    this.UnPackTo(_o);
+    return _o;
+  }
+  public void UnPackTo(NestedStructT _o) {
+    _o.A = new int[2];
+    for (var _j = 0; _j < 2; ++_j) { _o.A[_j] = this.A(_j); }
+    _o.B = this.B;
+    _o.C = new MyGame.Example.TestEnum[2];
+    for (var _j = 0; _j < 2; ++_j) { _o.C[_j] = this.C(_j); }
+    _o.D = new long[2];
+    for (var _j = 0; _j < 2; ++_j) { _o.D[_j] = this.D(_j); }
+  }
+  public static Offset<MyGame.Example.NestedStruct> Pack(FlatBufferBuilder builder, NestedStructT _o) {
+    if (_o == null) return default(Offset<MyGame.Example.NestedStruct>);
+    var _a = _o.A;
+    var _c = _o.C;
+    var _d = _o.D;
+    return CreateNestedStruct(
+      builder,
+      _a,
+      _o.B,
+      _c,
+      _d);
+  }
 };
+
+public class NestedStructT
+{
+  [Newtonsoft.Json.JsonProperty("a")]
+  public int[] A { get; set; }
+  [Newtonsoft.Json.JsonProperty("b")]
+  public MyGame.Example.TestEnum B { get; set; }
+  [Newtonsoft.Json.JsonProperty("c")]
+  public MyGame.Example.TestEnum[] C { get; set; }
+  [Newtonsoft.Json.JsonProperty("d")]
+  public long[] D { get; set; }
+
+  public NestedStructT() {
+    this.A = new int[2];
+    this.B = MyGame.Example.TestEnum.A;
+    this.C = new MyGame.Example.TestEnum[2];
+    this.D = new long[2];
+  }
+}
 
 
 }

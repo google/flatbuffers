@@ -10,11 +10,13 @@
 namespace MyGame {
 
 struct InParentNamespace;
+struct InParentNamespaceBuilder;
 struct InParentNamespaceT;
 
 namespace Example2 {
 
 struct Monster;
+struct MonsterBuilder;
 struct MonsterT;
 
 }  // namespace Example2
@@ -24,6 +26,7 @@ namespace Example {
 struct Test;
 
 struct TestSimpleTableWithEnum;
+struct TestSimpleTableWithEnumBuilder;
 struct TestSimpleTableWithEnumT;
 
 struct Vec3;
@@ -31,15 +34,19 @@ struct Vec3;
 struct Ability;
 
 struct Stat;
+struct StatBuilder;
 struct StatT;
 
 struct Referrable;
+struct ReferrableBuilder;
 struct ReferrableT;
 
 struct Monster;
+struct MonsterBuilder;
 struct MonsterT;
 
 struct TypeAliases;
+struct TypeAliasesBuilder;
 struct TypeAliasesT;
 
 }  // namespace Example
@@ -136,7 +143,7 @@ inline const char * const *EnumNamesColor() {
 }
 
 inline const char *EnumNameColor(Color e) {
-  if (e < Color_Red || e > Color_Blue) return "";
+  if (flatbuffers::IsOutRange(e, Color_Red, Color_Blue)) return "";
   const size_t index = static_cast<size_t>(e) - static_cast<size_t>(Color_Red);
   return EnumNamesColor()[index];
 }
@@ -172,7 +179,7 @@ inline const char * const *EnumNamesRace() {
 }
 
 inline const char *EnumNameRace(Race e) {
-  if (e < Race_None || e > Race_Elf) return "";
+  if (flatbuffers::IsOutRange(e, Race_None, Race_Elf)) return "";
   const size_t index = static_cast<size_t>(e) - static_cast<size_t>(Race_None);
   return EnumNamesRace()[index];
 }
@@ -208,7 +215,7 @@ inline const char * const *EnumNamesAny() {
 }
 
 inline const char *EnumNameAny(Any e) {
-  if (e < Any_NONE || e > Any_MyGame_Example2_Monster) return "";
+  if (flatbuffers::IsOutRange(e, Any_NONE, Any_MyGame_Example2_Monster)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesAny()[index];
 }
@@ -237,8 +244,8 @@ struct AnyUnion {
   AnyUnion(AnyUnion&& u) FLATBUFFERS_NOEXCEPT :
     type(Any_NONE), value(nullptr)
     { std::swap(type, u.type); std::swap(value, u.value); }
-  AnyUnion(const AnyUnion &) FLATBUFFERS_NOEXCEPT;
-  AnyUnion &operator=(const AnyUnion &u) FLATBUFFERS_NOEXCEPT
+  AnyUnion(const AnyUnion &);
+  AnyUnion &operator=(const AnyUnion &u)
     { AnyUnion t(u); std::swap(type, t.type); std::swap(value, t.value); return *this; }
   AnyUnion &operator=(AnyUnion &&u) FLATBUFFERS_NOEXCEPT
     { std::swap(type, u.type); std::swap(value, u.value); return *this; }
@@ -350,7 +357,7 @@ inline const char * const *EnumNamesAnyUniqueAliases() {
 }
 
 inline const char *EnumNameAnyUniqueAliases(AnyUniqueAliases e) {
-  if (e < AnyUniqueAliases_NONE || e > AnyUniqueAliases_M2) return "";
+  if (flatbuffers::IsOutRange(e, AnyUniqueAliases_NONE, AnyUniqueAliases_M2)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesAnyUniqueAliases()[index];
 }
@@ -379,8 +386,8 @@ struct AnyUniqueAliasesUnion {
   AnyUniqueAliasesUnion(AnyUniqueAliasesUnion&& u) FLATBUFFERS_NOEXCEPT :
     type(AnyUniqueAliases_NONE), value(nullptr)
     { std::swap(type, u.type); std::swap(value, u.value); }
-  AnyUniqueAliasesUnion(const AnyUniqueAliasesUnion &) FLATBUFFERS_NOEXCEPT;
-  AnyUniqueAliasesUnion &operator=(const AnyUniqueAliasesUnion &u) FLATBUFFERS_NOEXCEPT
+  AnyUniqueAliasesUnion(const AnyUniqueAliasesUnion &);
+  AnyUniqueAliasesUnion &operator=(const AnyUniqueAliasesUnion &u)
     { AnyUniqueAliasesUnion t(u); std::swap(type, t.type); std::swap(value, t.value); return *this; }
   AnyUniqueAliasesUnion &operator=(AnyUniqueAliasesUnion &&u) FLATBUFFERS_NOEXCEPT
     { std::swap(type, u.type); std::swap(value, u.value); return *this; }
@@ -492,7 +499,7 @@ inline const char * const *EnumNamesAnyAmbiguousAliases() {
 }
 
 inline const char *EnumNameAnyAmbiguousAliases(AnyAmbiguousAliases e) {
-  if (e < AnyAmbiguousAliases_NONE || e > AnyAmbiguousAliases_M3) return "";
+  if (flatbuffers::IsOutRange(e, AnyAmbiguousAliases_NONE, AnyAmbiguousAliases_M3)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesAnyAmbiguousAliases()[index];
 }
@@ -505,8 +512,8 @@ struct AnyAmbiguousAliasesUnion {
   AnyAmbiguousAliasesUnion(AnyAmbiguousAliasesUnion&& u) FLATBUFFERS_NOEXCEPT :
     type(AnyAmbiguousAliases_NONE), value(nullptr)
     { std::swap(type, u.type); std::swap(value, u.value); }
-  AnyAmbiguousAliasesUnion(const AnyAmbiguousAliasesUnion &) FLATBUFFERS_NOEXCEPT;
-  AnyAmbiguousAliasesUnion &operator=(const AnyAmbiguousAliasesUnion &u) FLATBUFFERS_NOEXCEPT
+  AnyAmbiguousAliasesUnion(const AnyAmbiguousAliasesUnion &);
+  AnyAmbiguousAliasesUnion &operator=(const AnyAmbiguousAliasesUnion &u)
     { AnyAmbiguousAliasesUnion t(u); std::swap(type, t.type); std::swap(value, t.value); return *this; }
   AnyAmbiguousAliasesUnion &operator=(AnyAmbiguousAliasesUnion &&u) FLATBUFFERS_NOEXCEPT
     { std::swap(type, u.type); std::swap(value, u.value); return *this; }
@@ -774,6 +781,7 @@ inline bool operator!=(const InParentNamespaceT &lhs, const InParentNamespaceT &
 
 struct InParentNamespace FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef InParentNamespaceT NativeTableType;
+  typedef InParentNamespaceBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return InParentNamespaceTypeTable();
   }
@@ -787,6 +795,7 @@ struct InParentNamespace FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct InParentNamespaceBuilder {
+  typedef InParentNamespace Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   explicit InParentNamespaceBuilder(flatbuffers::FlatBufferBuilder &_fbb)
@@ -828,6 +837,7 @@ inline bool operator!=(const MonsterT &lhs, const MonsterT &rhs) {
 
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MonsterT NativeTableType;
+  typedef MonsterBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return MonsterTypeTable();
   }
@@ -841,6 +851,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct MonsterBuilder {
+  typedef Monster Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   explicit MonsterBuilder(flatbuffers::FlatBufferBuilder &_fbb)
@@ -887,6 +898,7 @@ inline bool operator!=(const TestSimpleTableWithEnumT &lhs, const TestSimpleTabl
 
 struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef TestSimpleTableWithEnumT NativeTableType;
+  typedef TestSimpleTableWithEnumBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return TestSimpleTableWithEnumTypeTable();
   }
@@ -910,6 +922,7 @@ struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Ta
 };
 
 struct TestSimpleTableWithEnumBuilder {
+  typedef TestSimpleTableWithEnum Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_color(MyGame::Example::Color color) {
@@ -962,6 +975,7 @@ inline bool operator!=(const StatT &lhs, const StatT &rhs) {
 
 struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef StatT NativeTableType;
+  typedef StatBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return StatTypeTable();
   }
@@ -1002,6 +1016,7 @@ struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct StatBuilder {
+  typedef Stat Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_id(flatbuffers::Offset<flatbuffers::String> id) {
@@ -1072,6 +1087,7 @@ inline bool operator!=(const ReferrableT &lhs, const ReferrableT &rhs) {
 
 struct Referrable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef ReferrableT NativeTableType;
+  typedef ReferrableBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return ReferrableTypeTable();
   }
@@ -1101,6 +1117,7 @@ struct Referrable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct ReferrableBuilder {
+  typedef Referrable Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_id(uint64_t id) {
@@ -1252,9 +1269,10 @@ inline bool operator!=(const MonsterT &lhs, const MonsterT &rhs) {
 }
 
 
-/// an example documentation comment: monster object
+/// an example documentation comment: "monster object"
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MonsterT NativeTableType;
+  typedef MonsterBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return MonsterTypeTable();
   }
@@ -1742,6 +1760,7 @@ template<> inline const MyGame::Example2::Monster *Monster::any_unique_as<MyGame
 }
 
 struct MonsterBuilder {
+  typedef Monster Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_pos(const MyGame::Example::Vec3 *pos) {
@@ -2177,6 +2196,7 @@ inline bool operator!=(const TypeAliasesT &lhs, const TypeAliasesT &rhs) {
 
 struct TypeAliases FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef TypeAliasesT NativeTableType;
+  typedef TypeAliasesBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return TypeAliasesTypeTable();
   }
@@ -2290,6 +2310,7 @@ struct TypeAliases FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct TypeAliasesBuilder {
+  typedef TypeAliases Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_i8(int8_t i8) {
@@ -2407,9 +2428,9 @@ flatbuffers::Offset<TypeAliases> CreateTypeAliases(flatbuffers::FlatBufferBuilde
 }  // namespace Example
 
 inline InParentNamespaceT *InParentNamespace::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new InParentNamespaceT();
-  UnPackTo(_o, _resolver);
-  return _o;
+  flatbuffers::unique_ptr<MyGame::InParentNamespaceT> _o = flatbuffers::unique_ptr<MyGame::InParentNamespaceT>(new InParentNamespaceT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void InParentNamespace::UnPackTo(InParentNamespaceT *_o, const flatbuffers::resolver_function_t *_resolver) const {
@@ -2432,9 +2453,9 @@ inline flatbuffers::Offset<InParentNamespace> CreateInParentNamespace(flatbuffer
 namespace Example2 {
 
 inline MonsterT *Monster::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new MonsterT();
-  UnPackTo(_o, _resolver);
-  return _o;
+  flatbuffers::unique_ptr<MyGame::Example2::MonsterT> _o = flatbuffers::unique_ptr<MyGame::Example2::MonsterT>(new MonsterT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void Monster::UnPackTo(MonsterT *_o, const flatbuffers::resolver_function_t *_resolver) const {
@@ -2459,9 +2480,9 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
 namespace Example {
 
 inline TestSimpleTableWithEnumT *TestSimpleTableWithEnum::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new TestSimpleTableWithEnumT();
-  UnPackTo(_o, _resolver);
-  return _o;
+  flatbuffers::unique_ptr<MyGame::Example::TestSimpleTableWithEnumT> _o = flatbuffers::unique_ptr<MyGame::Example::TestSimpleTableWithEnumT>(new TestSimpleTableWithEnumT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void TestSimpleTableWithEnum::UnPackTo(TestSimpleTableWithEnumT *_o, const flatbuffers::resolver_function_t *_resolver) const {
@@ -2485,9 +2506,9 @@ inline flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnu
 }
 
 inline StatT *Stat::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new StatT();
-  UnPackTo(_o, _resolver);
-  return _o;
+  flatbuffers::unique_ptr<MyGame::Example::StatT> _o = flatbuffers::unique_ptr<MyGame::Example::StatT>(new StatT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void Stat::UnPackTo(StatT *_o, const flatbuffers::resolver_function_t *_resolver) const {
@@ -2517,9 +2538,9 @@ inline flatbuffers::Offset<Stat> CreateStat(flatbuffers::FlatBufferBuilder &_fbb
 }
 
 inline ReferrableT *Referrable::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new ReferrableT();
-  UnPackTo(_o, _resolver);
-  return _o;
+  flatbuffers::unique_ptr<MyGame::Example::ReferrableT> _o = flatbuffers::unique_ptr<MyGame::Example::ReferrableT>(new ReferrableT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void Referrable::UnPackTo(ReferrableT *_o, const flatbuffers::resolver_function_t *_resolver) const {
@@ -2543,9 +2564,9 @@ inline flatbuffers::Offset<Referrable> CreateReferrable(flatbuffers::FlatBufferB
 }
 
 inline MonsterT *Monster::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new MonsterT();
-  UnPackTo(_o, _resolver);
-  return _o;
+  flatbuffers::unique_ptr<MyGame::Example::MonsterT> _o = flatbuffers::unique_ptr<MyGame::Example::MonsterT>(new MonsterT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void Monster::UnPackTo(MonsterT *_o, const flatbuffers::resolver_function_t *_resolver) const {
@@ -2717,9 +2738,9 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
 }
 
 inline TypeAliasesT *TypeAliases::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new TypeAliasesT();
-  UnPackTo(_o, _resolver);
-  return _o;
+  flatbuffers::unique_ptr<MyGame::Example::TypeAliasesT> _o = flatbuffers::unique_ptr<MyGame::Example::TypeAliasesT>(new TypeAliasesT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void TypeAliases::UnPackTo(TypeAliasesT *_o, const flatbuffers::resolver_function_t *_resolver) const {
@@ -2844,7 +2865,7 @@ inline flatbuffers::Offset<void> AnyUnion::Pack(flatbuffers::FlatBufferBuilder &
   }
 }
 
-inline AnyUnion::AnyUnion(const AnyUnion &u) FLATBUFFERS_NOEXCEPT : type(u.type), value(nullptr) {
+inline AnyUnion::AnyUnion(const AnyUnion &u) : type(u.type), value(nullptr) {
   switch (type) {
     case Any_Monster: {
       FLATBUFFERS_ASSERT(false);  // MyGame::Example::MonsterT not copyable.
@@ -2955,7 +2976,7 @@ inline flatbuffers::Offset<void> AnyUniqueAliasesUnion::Pack(flatbuffers::FlatBu
   }
 }
 
-inline AnyUniqueAliasesUnion::AnyUniqueAliasesUnion(const AnyUniqueAliasesUnion &u) FLATBUFFERS_NOEXCEPT : type(u.type), value(nullptr) {
+inline AnyUniqueAliasesUnion::AnyUniqueAliasesUnion(const AnyUniqueAliasesUnion &u) : type(u.type), value(nullptr) {
   switch (type) {
     case AnyUniqueAliases_M: {
       FLATBUFFERS_ASSERT(false);  // MyGame::Example::MonsterT not copyable.
@@ -3066,7 +3087,7 @@ inline flatbuffers::Offset<void> AnyAmbiguousAliasesUnion::Pack(flatbuffers::Fla
   }
 }
 
-inline AnyAmbiguousAliasesUnion::AnyAmbiguousAliasesUnion(const AnyAmbiguousAliasesUnion &u) FLATBUFFERS_NOEXCEPT : type(u.type), value(nullptr) {
+inline AnyAmbiguousAliasesUnion::AnyAmbiguousAliasesUnion(const AnyAmbiguousAliasesUnion &u) : type(u.type), value(nullptr) {
   switch (type) {
     case AnyAmbiguousAliases_M1: {
       FLATBUFFERS_ASSERT(false);  // MyGame::Example::MonsterT not copyable.

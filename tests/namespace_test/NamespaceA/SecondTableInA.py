@@ -25,7 +25,6 @@ class SecondTableInA(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             x = self._tab.Indirect(o + self._tab.Pos)
-            from NamespaceC.TableInC import TableInC
             obj = TableInC()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -34,3 +33,43 @@ class SecondTableInA(object):
 def SecondTableInAStart(builder): builder.StartObject(1)
 def SecondTableInAAddReferToC(builder, referToC): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(referToC), 0)
 def SecondTableInAEnd(builder): return builder.EndObject()
+
+try:
+    from typing import Optional
+except:
+    pass
+
+class SecondTableInAT(object):
+
+    # SecondTableInAT
+    def __init__(self):
+        self.referToC = None  # type: Optional[TableInCT]
+
+    @classmethod
+    def InitFromBuf(cls, buf, pos):
+        secondTableInA = SecondTableInA()
+        secondTableInA.Init(buf, pos)
+        return cls.InitFromObj(secondTableInA)
+
+    @classmethod
+    def InitFromObj(cls, secondTableInA):
+        x = SecondTableInAT()
+        x._UnPack(secondTableInA)
+        return x
+
+    # SecondTableInAT
+    def _UnPack(self, secondTableInA):
+        if secondTableInA is None:
+            return
+        if secondTableInA.ReferToC() is not None:
+            self.referToC = TableInCT.InitFromObj(secondTableInA.ReferToC())
+
+    # SecondTableInAT
+    def Pack(self, builder):
+        if self.referToC is not None:
+            referToC = self.referToC.Pack(builder)
+        SecondTableInAStart(builder)
+        if self.referToC is not None:
+            SecondTableInAAddReferToC(builder, referToC)
+        secondTableInA = SecondTableInAEnd(builder)
+        return secondTableInA

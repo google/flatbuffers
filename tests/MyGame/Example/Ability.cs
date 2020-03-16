@@ -6,6 +6,7 @@ namespace MyGame.Example
 {
 
 using global::System;
+using global::System.Collections.Generic;
 using global::FlatBuffers;
 
 public struct Ability : IFlatbufferObject
@@ -26,7 +27,36 @@ public struct Ability : IFlatbufferObject
     builder.PutUint(Id);
     return new Offset<MyGame.Example.Ability>(builder.Offset);
   }
+  public AbilityT UnPack() {
+    var _o = new AbilityT();
+    this.UnPackTo(_o);
+    return _o;
+  }
+  public void UnPackTo(AbilityT _o) {
+    _o.Id = this.Id;
+    _o.Distance = this.Distance;
+  }
+  public static Offset<MyGame.Example.Ability> Pack(FlatBufferBuilder builder, AbilityT _o) {
+    if (_o == null) return default(Offset<MyGame.Example.Ability>);
+    return CreateAbility(
+      builder,
+      _o.Id,
+      _o.Distance);
+  }
 };
+
+public class AbilityT
+{
+  [Newtonsoft.Json.JsonProperty("id")]
+  public uint Id { get; set; }
+  [Newtonsoft.Json.JsonProperty("distance")]
+  public uint Distance { get; set; }
+
+  public AbilityT() {
+    this.Id = 0;
+    this.Distance = 0;
+  }
+}
 
 
 }

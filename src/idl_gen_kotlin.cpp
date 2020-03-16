@@ -59,7 +59,7 @@ class KotlinGenerator : public BaseGenerator {
  public:
   KotlinGenerator(const Parser &parser, const std::string &path,
                   const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", "."),
+      : BaseGenerator(parser, path, file_name, "", ".", "kt"),
         cur_name_space_(nullptr) {}
 
   KotlinGenerator &operator=(const KotlinGenerator &);
@@ -141,7 +141,7 @@ class KotlinGenerator : public BaseGenerator {
     // clang-format off
     static const char * const kotlin_typename[] = {
       #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-              CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE) \
+              CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE, ...) \
         #KTYPE,
         FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
       #undef FLATBUFFERS_TD
@@ -457,7 +457,7 @@ class KotlinGenerator : public BaseGenerator {
           // Force compile time error if not using the same version
           // runtime.
           GenerateFunOneLine(writer, "validateVersion", "", "", [&]() {
-            writer += "Constants.FLATBUFFERS_1_11_1()";
+            writer += "Constants.FLATBUFFERS_1_12_0()";
           });
 
           GenerateGetRootAsAccessors(Esc(struct_def.name), writer);
@@ -522,7 +522,7 @@ class KotlinGenerator : public BaseGenerator {
       if (base_type == BASE_TYPE_STRING) {
         writer +=
             "val byteKey = key."
-            "toByteArray(Table.UTF8_CHARSET.get()!!)";
+            "toByteArray(java.nio.charset.StandardCharsets.UTF_8)";
       }
       writer += "var span = bb.getInt(vectorLocation - 4)";
       writer += "var start = 0";

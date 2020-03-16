@@ -53,7 +53,7 @@ class Stat : Table() {
         }
     }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_1_11_1()
+        fun validateVersion() = Constants.FLATBUFFERS_1_12_0()
         fun getRootAsStat(_bb: ByteBuffer): Stat = getRootAsStat(_bb, Stat())
         fun getRootAsStat(_bb: ByteBuffer, obj: Stat): Stat {
             _bb.order(ByteOrder.LITTLE_ENDIAN)

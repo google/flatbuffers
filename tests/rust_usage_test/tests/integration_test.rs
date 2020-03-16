@@ -20,6 +20,14 @@ extern crate quickcheck;
 extern crate flatbuffers;
 
 #[allow(dead_code, unused_imports)]
+#[path = "../../include_test/include_test1_generated.rs"]
+pub mod include_test1_generated;
+
+#[allow(dead_code, unused_imports)]
+#[path = "../../include_test/sub/include_test2_generated.rs"]
+pub mod include_test2_generated;
+
+#[allow(dead_code, unused_imports)]
 #[path = "../../monster_test_generated.rs"]
 mod monster_test_generated;
 pub use monster_test_generated::my_game;
@@ -245,6 +253,16 @@ mod generated_constants {
             my_game::example::Color::Green,
             my_game::example::Color::Blue,
         ]);
+        assert_eq!(my_game::example::ENUM_NAMES_COLOR, [
+            "Red",
+            "Green",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Blue"
+        ]);
 
         assert_eq!(-1, my_game::example::ENUM_MIN_RACE);
         assert_eq!(2, my_game::example::ENUM_MAX_RACE);
@@ -253,6 +271,12 @@ mod generated_constants {
             my_game::example::Race::Human,
             my_game::example::Race::Dwarf,
             my_game::example::Race::Elf,
+        ]);
+        assert_eq!(my_game::example::ENUM_NAMES_RACE, [
+            "None",
+            "Human",
+            "Dwarf",
+            "Elf"
         ]);
 
         assert_eq!(0, my_game::example::ENUM_MIN_ANY);
@@ -263,6 +287,12 @@ mod generated_constants {
             my_game::example::Any::TestSimpleTableWithEnum,
             my_game::example::Any::MyGame_Example2_Monster,
         ]);
+        assert_eq!(my_game::example::ENUM_NAMES_ANY, [
+            "NONE",
+            "Monster",
+            "TestSimpleTableWithEnum",
+            "MyGame_Example2_Monster"
+        ]);
 
         assert_eq!(0, my_game::example::ENUM_MIN_ANY_UNIQUE_ALIASES);
         assert_eq!(3, my_game::example::ENUM_MAX_ANY_UNIQUE_ALIASES);
@@ -272,6 +302,12 @@ mod generated_constants {
             my_game::example::AnyUniqueAliases::TS,
             my_game::example::AnyUniqueAliases::M2,
         ]);
+        assert_eq!(my_game::example::ENUM_NAMES_ANY_UNIQUE_ALIASES, [
+            "NONE",
+            "M",
+            "TS",
+            "M2"
+        ]);
 
         assert_eq!(0, my_game::example::ENUM_MIN_ANY_AMBIGUOUS_ALIASES);
         assert_eq!(3, my_game::example::ENUM_MAX_ANY_AMBIGUOUS_ALIASES);
@@ -280,6 +316,12 @@ mod generated_constants {
             my_game::example::AnyAmbiguousAliases::M1,
             my_game::example::AnyAmbiguousAliases::M2,
             my_game::example::AnyAmbiguousAliases::M3,
+        ]);
+        assert_eq!(my_game::example::ENUM_NAMES_ANY_AMBIGUOUS_ALIASES, [
+            "NONE",
+            "M1",
+            "M2",
+            "M3"
         ]);
     }
 }
@@ -880,10 +922,12 @@ mod roundtrip_byteswap {
         assert_eq!(x, back_again);
     }
 
-    #[test]
-    fn fuzz_f32() { quickcheck::QuickCheck::new().max_tests(N).quickcheck(prop_f32 as fn(f32)); }
-    #[test]
-    fn fuzz_f64() { quickcheck::QuickCheck::new().max_tests(N).quickcheck(prop_f64 as fn(f64)); }
+    // TODO(rw): Replace the implementations with the new stdlib endian-conversion functions.
+    // TODO(rw): Re-enable these tests (currently, rare CI failures occur that seem spurious).
+    // #[test]
+    // fn fuzz_f32() { quickcheck::QuickCheck::new().max_tests(N).quickcheck(prop_f32 as fn(f32)); }
+    // #[test]
+    // fn fuzz_f64() { quickcheck::QuickCheck::new().max_tests(N).quickcheck(prop_f64 as fn(f64)); }
 }
 
 #[cfg(test)]
@@ -2828,6 +2872,18 @@ mod copy_clone_traits {
 
         static_assertions::assert_impl_all!(flatbuffers::Vector<'static, u32>: Copy, Clone);
         static_assertions::assert_impl_all!(flatbuffers::Vector<'static, Vec<u32>>: Copy, Clone);
+    }
+}
+
+#[cfg(test)]
+mod fully_qualified_name {
+    #[test]
+    fn fully_qualified_name_generated() {
+        assert!(check_eq!(::my_game::example::Monster::get_fully_qualified_name(), "MyGame.Example.Monster").is_ok());
+        assert!(check_eq!(::my_game::example_2::Monster::get_fully_qualified_name(), "MyGame.Example2.Monster").is_ok());
+
+        assert!(check_eq!(::my_game::example::Vec3::get_fully_qualified_name(), "MyGame.Example.Vec3").is_ok());
+        assert!(check_eq!(::my_game::example::Ability::get_fully_qualified_name(), "MyGame.Example.Ability").is_ok());
     }
 }
 

@@ -90,7 +90,7 @@ __init(i:number, bb:flatbuffers.ByteBuffer):InParentNamespace {
  * @returns InParentNamespace
  */
 static getRootAsInParentNamespace(bb:flatbuffers.ByteBuffer, obj?:InParentNamespace):InParentNamespace {
-  return (obj || new InParentNamespace).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  return (obj || new InParentNamespace()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
 /**
@@ -99,7 +99,8 @@ static getRootAsInParentNamespace(bb:flatbuffers.ByteBuffer, obj?:InParentNamesp
  * @returns InParentNamespace
  */
 static getSizePrefixedRootAsInParentNamespace(bb:flatbuffers.ByteBuffer, obj?:InParentNamespace):InParentNamespace {
-  return (obj || new InParentNamespace).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new InParentNamespace()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
 /**
@@ -149,7 +150,7 @@ __init(i:number, bb:flatbuffers.ByteBuffer):Monster {
  * @returns Monster
  */
 static getRootAsMonster(bb:flatbuffers.ByteBuffer, obj?:Monster):Monster {
-  return (obj || new Monster).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  return (obj || new Monster()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
 /**
@@ -158,7 +159,8 @@ static getRootAsMonster(bb:flatbuffers.ByteBuffer, obj?:Monster):Monster {
  * @returns Monster
  */
 static getSizePrefixedRootAsMonster(bb:flatbuffers.ByteBuffer, obj?:Monster):Monster {
-  return (obj || new Monster).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new Monster()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
 /**
@@ -287,7 +289,7 @@ __init(i:number, bb:flatbuffers.ByteBuffer):TestSimpleTableWithEnum {
  * @returns TestSimpleTableWithEnum
  */
 static getRootAsTestSimpleTableWithEnum(bb:flatbuffers.ByteBuffer, obj?:TestSimpleTableWithEnum):TestSimpleTableWithEnum {
-  return (obj || new TestSimpleTableWithEnum).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  return (obj || new TestSimpleTableWithEnum()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
 /**
@@ -296,7 +298,8 @@ static getRootAsTestSimpleTableWithEnum(bb:flatbuffers.ByteBuffer, obj?:TestSimp
  * @returns TestSimpleTableWithEnum
  */
 static getSizePrefixedRootAsTestSimpleTableWithEnum(bb:flatbuffers.ByteBuffer, obj?:TestSimpleTableWithEnum):TestSimpleTableWithEnum {
-  return (obj || new TestSimpleTableWithEnum).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new TestSimpleTableWithEnum()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
 /**
@@ -487,7 +490,7 @@ mutate_test2(value:MyGame.Example.Color):boolean {
  * @returns MyGame.Example.Test|null
  */
 test3(obj?:MyGame.Example.Test):MyGame.Example.Test|null {
-  return (obj || new MyGame.Example.Test).__init(this.bb_pos + 26, this.bb!);
+  return (obj || new MyGame.Example.Test()).__init(this.bb_pos + 26, this.bb!);
 };
 
 /**
@@ -623,7 +626,7 @@ __init(i:number, bb:flatbuffers.ByteBuffer):Stat {
  * @returns Stat
  */
 static getRootAsStat(bb:flatbuffers.ByteBuffer, obj?:Stat):Stat {
-  return (obj || new Stat).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  return (obj || new Stat()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
 /**
@@ -632,7 +635,8 @@ static getRootAsStat(bb:flatbuffers.ByteBuffer, obj?:Stat):Stat {
  * @returns Stat
  */
 static getSizePrefixedRootAsStat(bb:flatbuffers.ByteBuffer, obj?:Stat):Stat {
-  return (obj || new Stat).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new Stat()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
 /**
@@ -766,7 +770,7 @@ __init(i:number, bb:flatbuffers.ByteBuffer):Referrable {
  * @returns Referrable
  */
 static getRootAsReferrable(bb:flatbuffers.ByteBuffer, obj?:Referrable):Referrable {
-  return (obj || new Referrable).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  return (obj || new Referrable()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
 /**
@@ -775,7 +779,8 @@ static getRootAsReferrable(bb:flatbuffers.ByteBuffer, obj?:Referrable):Referrabl
  * @returns Referrable
  */
 static getSizePrefixedRootAsReferrable(bb:flatbuffers.ByteBuffer, obj?:Referrable):Referrable {
-  return (obj || new Referrable).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new Referrable()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
 /**
@@ -833,7 +838,7 @@ static createReferrable(builder:flatbuffers.Builder, id:flatbuffers.Long):flatbu
 }
 }
 /**
- * an example documentation comment: monster object
+ * an example documentation comment: "monster object"
  *
  * @constructor
  */
@@ -859,7 +864,7 @@ __init(i:number, bb:flatbuffers.ByteBuffer):Monster {
  * @returns Monster
  */
 static getRootAsMonster(bb:flatbuffers.ByteBuffer, obj?:Monster):Monster {
-  return (obj || new Monster).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  return (obj || new Monster()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
 /**
@@ -868,7 +873,8 @@ static getRootAsMonster(bb:flatbuffers.ByteBuffer, obj?:Monster):Monster {
  * @returns Monster
  */
 static getSizePrefixedRootAsMonster(bb:flatbuffers.ByteBuffer, obj?:Monster):Monster {
-  return (obj || new Monster).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new Monster()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
 /**
@@ -885,7 +891,7 @@ static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean {
  */
 pos(obj?:MyGame.Example.Vec3):MyGame.Example.Vec3|null {
   var offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? (obj || new MyGame.Example.Vec3).__init(this.bb_pos + offset, this.bb!) : null;
+  return offset ? (obj || new MyGame.Example.Vec3()).__init(this.bb_pos + offset, this.bb!) : null;
 };
 
 /**
@@ -1017,7 +1023,7 @@ test<T extends flatbuffers.Table>(obj:T):T|null {
  */
 test4(index: number, obj?:MyGame.Example.Test):MyGame.Example.Test|null {
   var offset = this.bb!.__offset(this.bb_pos, 22);
-  return offset ? (obj || new MyGame.Example.Test).__init(this.bb!.__vector(this.bb_pos + offset) + index * 4, this.bb!) : null;
+  return offset ? (obj || new MyGame.Example.Test()).__init(this.bb!.__vector(this.bb_pos + offset) + index * 4, this.bb!) : null;
 };
 
 /**
@@ -1058,7 +1064,7 @@ testarrayofstringLength():number {
  */
 testarrayoftables(index: number, obj?:MyGame.Example.Monster):MyGame.Example.Monster|null {
   var offset = this.bb!.__offset(this.bb_pos, 26);
-  return offset ? (obj || new MyGame.Example.Monster).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
+  return offset ? (obj || new MyGame.Example.Monster()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
 };
 
 /**
@@ -1075,7 +1081,7 @@ testarrayoftablesLength():number {
  */
 enemy(obj?:MyGame.Example.Monster):MyGame.Example.Monster|null {
   var offset = this.bb!.__offset(this.bb_pos, 28);
-  return offset ? (obj || new MyGame.Example.Monster).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
+  return offset ? (obj || new MyGame.Example.Monster()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
 };
 
 /**
@@ -1109,7 +1115,7 @@ testnestedflatbufferArray():Uint8Array|null {
  */
 testempty(obj?:MyGame.Example.Stat):MyGame.Example.Stat|null {
   var offset = this.bb!.__offset(this.bb_pos, 32);
-  return offset ? (obj || new MyGame.Example.Stat).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
+  return offset ? (obj || new MyGame.Example.Stat()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
 };
 
 /**
@@ -1440,7 +1446,7 @@ testarrayofstring2Length():number {
  */
 testarrayofsortedstruct(index: number, obj?:MyGame.Example.Ability):MyGame.Example.Ability|null {
   var offset = this.bb!.__offset(this.bb_pos, 62);
-  return offset ? (obj || new MyGame.Example.Ability).__init(this.bb!.__vector(this.bb_pos + offset) + index * 8, this.bb!) : null;
+  return offset ? (obj || new MyGame.Example.Ability()).__init(this.bb!.__vector(this.bb_pos + offset) + index * 8, this.bb!) : null;
 };
 
 /**
@@ -1483,7 +1489,7 @@ flexArray():Uint8Array|null {
  */
 test5(index: number, obj?:MyGame.Example.Test):MyGame.Example.Test|null {
   var offset = this.bb!.__offset(this.bb_pos, 66);
-  return offset ? (obj || new MyGame.Example.Test).__init(this.bb!.__vector(this.bb_pos + offset) + index * 4, this.bb!) : null;
+  return offset ? (obj || new MyGame.Example.Test()).__init(this.bb!.__vector(this.bb_pos + offset) + index * 4, this.bb!) : null;
 };
 
 /**
@@ -1542,7 +1548,7 @@ vectorOfDoublesArray():Float64Array|null {
  */
 parentNamespaceTest(obj?:MyGame.InParentNamespace):MyGame.InParentNamespace|null {
   var offset = this.bb!.__offset(this.bb_pos, 72);
-  return offset ? (obj || new MyGame.InParentNamespace).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
+  return offset ? (obj || new MyGame.InParentNamespace()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
 };
 
 /**
@@ -1552,7 +1558,7 @@ parentNamespaceTest(obj?:MyGame.InParentNamespace):MyGame.InParentNamespace|null
  */
 vectorOfReferrables(index: number, obj?:MyGame.Example.Referrable):MyGame.Example.Referrable|null {
   var offset = this.bb!.__offset(this.bb_pos, 74);
-  return offset ? (obj || new MyGame.Example.Referrable).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
+  return offset ? (obj || new MyGame.Example.Referrable()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
 };
 
 /**
@@ -1610,7 +1616,7 @@ vectorOfWeakReferencesLength():number {
  */
 vectorOfStrongReferrables(index: number, obj?:MyGame.Example.Referrable):MyGame.Example.Referrable|null {
   var offset = this.bb!.__offset(this.bb_pos, 80);
-  return offset ? (obj || new MyGame.Example.Referrable).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
+  return offset ? (obj || new MyGame.Example.Referrable()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
 };
 
 /**
@@ -2618,7 +2624,7 @@ __init(i:number, bb:flatbuffers.ByteBuffer):TypeAliases {
  * @returns TypeAliases
  */
 static getRootAsTypeAliases(bb:flatbuffers.ByteBuffer, obj?:TypeAliases):TypeAliases {
-  return (obj || new TypeAliases).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  return (obj || new TypeAliases()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
 /**
@@ -2627,7 +2633,8 @@ static getRootAsTypeAliases(bb:flatbuffers.ByteBuffer, obj?:TypeAliases):TypeAli
  * @returns TypeAliases
  */
 static getSizePrefixedRootAsTypeAliases(bb:flatbuffers.ByteBuffer, obj?:TypeAliases):TypeAliases {
-  return (obj || new TypeAliases).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new TypeAliases()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
 /**
