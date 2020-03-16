@@ -4,7 +4,7 @@ FlatBuffers swift can be found in both SPM
 
 and Cocoapods
 
-`pod 'FlatBuffers', :git => 'https://github.com/mustiikhalil/flatbuffers.git' :branch => 'swift'`
+`pod 'FlatBuffers', :git => 'https://github.com/mustiikhalil/flatbuffers.git', :branch => 'swift'`
 
 To report any error please use the main repository.
 

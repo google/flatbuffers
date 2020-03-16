@@ -49,6 +49,8 @@
           title="Use in Lobster"/>
       <tab type="user" url="@ref flatbuffers_guide_use_rust"
           title="Use in Rust"/>
+      <tab type="user" url="@ref flatbuffers_guide_use_swift"
+          title="Use in Swift"/>
       <tab type="user" url="@ref flexbuffers"
           title="FlexBuffers (Schema-less version)"/>
       <tab type="usergroup" url="" title="gRPC">
