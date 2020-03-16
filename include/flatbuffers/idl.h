@@ -891,6 +891,7 @@ class Parser : public ParserState {
   FLATBUFFERS_CHECKED_ERROR TokenError();
   FLATBUFFERS_CHECKED_ERROR ParseSingleValue(const std::string *name, Value &e,
                                              bool check_now);
+  FLATBUFFERS_CHECKED_ERROR ParseFunction(const std::string *name, Value &e);
   FLATBUFFERS_CHECKED_ERROR ParseEnumFromString(const Type &type,
                                                 std::string *result);
   StructDef *LookupCreateStruct(const std::string &name,

@@ -2019,6 +2019,9 @@ void InvalidFloatTest() {
   TestError("table T { F:float; } root_type T; { F:0x0 }", invalid_msg);
   TestError("table T { F:float; } root_type T; { F:-0x. }", invalid_msg);
   TestError("table T { F:float; } root_type T; { F:0x. }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:0Xe }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:\"0Xe\" }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:\"nan(1)\" }", invalid_msg);
   // eE not exponent in hex-float!
   TestError("table T { F:float; } root_type T; { F:0x0.0e+ }", invalid_msg);
   TestError("table T { F:float; } root_type T; { F:0x0.0e- }", invalid_msg);

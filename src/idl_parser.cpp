@@ -436,7 +436,7 @@ CheckedError Parser::Next() {
       default:
         const auto has_sign = (c == '+') || (c == '-');
         // '-'/'+' and following identifier - can be a predefined constant like:
-        // NAN, INF, PI, etc.
+        // NAN, INF, PI, etc or it can be a function name like cos/sin/deg.
         if (IsIdentifierStart(c) || (has_sign && IsIdentifierStart(*cursor_))) {
           // Collect all chars of an identifier:
           const char *start = cursor_ - 1;
@@ -1511,45 +1511,6 @@ CheckedError Parser::ParseMetaData(SymbolTable<Value> *attributes) {
   return NoError();
 }
 
-CheckedError Parser::TryTypedValue(const std::string *name, int dtoken,
-                                   bool check, Value &e, BaseType req,
-                                   bool *destmatch) {
-  bool match = dtoken == token_;
-  if (match) {
-    FLATBUFFERS_ASSERT(*destmatch == false);
-    *destmatch = true;
-    e.constant = attribute_;
-    // Check token match
-    if (!check) {
-      if (e.type.base_type == BASE_TYPE_NONE) {
-        e.type.base_type = req;
-      } else {
-        return Error(
-            std::string("type mismatch: expecting: ") +
-            kTypeNames[e.type.base_type] + ", found: " + kTypeNames[req] +
-            ", name: " + (name ? *name : "") + ", value: " + e.constant);
-      }
-    }
-    // The exponent suffix of hexadecimal float-point number is mandatory.
-    // A hex-integer constant is forbidden as an initializer of float number.
-    if ((kTokenFloatConstant != dtoken) && IsFloat(e.type.base_type)) {
-      const auto &s = e.constant;
-      const auto k = s.find_first_of("0123456789.");
-      if ((std::string::npos != k) && (s.length() > (k + 1)) &&
-          (s[k] == '0' && is_alpha_char(s[k + 1], 'X')) &&
-          (std::string::npos == s.find_first_of("pP", k + 2))) {
-        return Error(
-            "invalid number, the exponent suffix of hexadecimal "
-            "floating-point literals is mandatory: \"" +
-            s + "\"");
-      }
-    }
-
-    NEXT();
-  }
-  return NoError();
-}
-
 CheckedError Parser::ParseEnumFromString(const Type &type,
                                          std::string *result) {
   const auto base_type =
@@ -1638,7 +1599,8 @@ template<typename T> inline void SingleValueRepack(Value &e, T val) {
   if (IsInteger(e.type.base_type)) { e.constant = NumToString(val); }
 }
 #if defined(FLATBUFFERS_HAS_NEW_STRTOD) && (FLATBUFFERS_HAS_NEW_STRTOD > 0)
-// Normilaze defaults NaN to unsigned quiet-NaN(0).
+// Normalize defaults NaN to unsigned quiet-NaN(0) if value was parsed from
+// hex-float literal.
 static inline void SingleValueRepack(Value &e, float val) {
   if (val != val) e.constant = "nan";
 }
@@ -1647,52 +1609,98 @@ static inline void SingleValueRepack(Value &e, double val) {
 }
 #endif
 
-CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
-                                      bool check_now) {
-  // First see if this could be a conversion function:
-  if (token_ == kTokenIdentifier && *cursor_ == '(') {
-    // todo: Extract processing of conversion functions to ParseFunction.
-    const auto functionname = attribute_;
-    if (!IsFloat(e.type.base_type)) {
-      return Error(functionname + ": type of argument mismatch, expecting: " +
-                   kTypeNames[BASE_TYPE_DOUBLE] +
-                   ", found: " + kTypeNames[e.type.base_type] +
-                   ", name: " + (name ? *name : "") + ", value: " + e.constant);
+CheckedError Parser::ParseFunction(const std::string *name, Value &e) {
+  // Copy name, attribute will be changed on NEXT().
+  const auto functionname = attribute_;
+  if (!IsFloat(e.type.base_type)) {
+    return Error(functionname + ": type of argument mismatch, expecting: " +
+                 kTypeNames[BASE_TYPE_DOUBLE] +
+                 ", found: " + kTypeNames[e.type.base_type] +
+                 ", name: " + (name ? *name : "") + ", value: " + e.constant);
+  }
+  NEXT();
+  EXPECT('(');
+  ECHECK(Recurse([&]() { return ParseSingleValue(name, e, false); }));
+  EXPECT(')');
+  // calculate with double precision
+  double x, y = 0.0;
+  ECHECK(atot(e.constant.c_str(), *this, &x));
+  // clang-format off
+  auto func_match = false;
+  #define FLATBUFFERS_FN_DOUBLE(name, op) \
+    if (!func_match && functionname == name) { y = op; func_match = true; }
+  FLATBUFFERS_FN_DOUBLE("deg", x / kPi * 180);
+  FLATBUFFERS_FN_DOUBLE("rad", x * kPi / 180);
+  FLATBUFFERS_FN_DOUBLE("sin", sin(x));
+  FLATBUFFERS_FN_DOUBLE("cos", cos(x));
+  FLATBUFFERS_FN_DOUBLE("tan", tan(x));
+  FLATBUFFERS_FN_DOUBLE("asin", asin(x));
+  FLATBUFFERS_FN_DOUBLE("acos", acos(x));
+  FLATBUFFERS_FN_DOUBLE("atan", atan(x));
+  // TODO(wvo): add more useful conversion functions here.
+  #undef FLATBUFFERS_FN_DOUBLE
+  // clang-format on
+  if (true != func_match) {
+    return Error(std::string("Unknown conversion function: ") + functionname +
+                 ", field name: " + (name ? *name : "") +
+                 ", value: " + e.constant);
+  }
+  e.constant = NumToString(y);
+  return NoError();
+}
+
+CheckedError Parser::TryTypedValue(const std::string *name, int dtoken,
+                                   bool check, Value &e, BaseType req,
+                                   bool *destmatch) {
+  bool match = dtoken == token_;
+  if (match) {
+    FLATBUFFERS_ASSERT(*destmatch == false);
+    *destmatch = true;
+    e.constant = attribute_;
+    // Check token match
+    if (!check) {
+      if (e.type.base_type == BASE_TYPE_NONE) {
+        e.type.base_type = req;
+      } else {
+        return Error(
+            std::string("type mismatch: expecting: ") +
+            kTypeNames[e.type.base_type] + ", found: " + kTypeNames[req] +
+            ", name: " + (name ? *name : "") + ", value: " + e.constant);
+      }
+    }
+    // The exponent suffix of hexadecimal float-point number is mandatory.
+    // A hex-integer constant is forbidden as an initializer of float number.
+    if ((kTokenFloatConstant != dtoken) && IsFloat(e.type.base_type)) {
+      const auto &s = e.constant;
+      const auto k = s.find_first_of("0123456789.");
+      if ((std::string::npos != k) && (s.length() > (k + 1)) &&
+          (s[k] == '0' && is_alpha_char(s[k + 1], 'X')) &&
+          (std::string::npos == s.find_first_of("pP", k + 2))) {
+        return Error(
+            "invalid number, the exponent suffix of hexadecimal "
+            "floating-point literals is mandatory: \"" +
+            s + "\"");
+      }
     }
     NEXT();
-    EXPECT('(');
-    ECHECK(Recurse([&]() { return ParseSingleValue(name, e, false); }));
-    EXPECT(')');
-    // calculate with double precision
-    double x, y = 0.0;
-    ECHECK(atot(e.constant.c_str(), *this, &x));
-    auto func_match = false;
-    // clang-format off
-    #define FLATBUFFERS_FN_DOUBLE(name, op) \
-      if (!func_match && functionname == name) { y = op; func_match = true; }
-    FLATBUFFERS_FN_DOUBLE("deg", x / kPi * 180);
-    FLATBUFFERS_FN_DOUBLE("rad", x * kPi / 180);
-    FLATBUFFERS_FN_DOUBLE("sin", sin(x));
-    FLATBUFFERS_FN_DOUBLE("cos", cos(x));
-    FLATBUFFERS_FN_DOUBLE("tan", tan(x));
-    FLATBUFFERS_FN_DOUBLE("asin", asin(x));
-    FLATBUFFERS_FN_DOUBLE("acos", acos(x));
-    FLATBUFFERS_FN_DOUBLE("atan", atan(x));
-    // TODO(wvo): add more useful conversion functions here.
-    #undef FLATBUFFERS_FN_DOUBLE
-    // clang-format on
-    if (true != func_match) {
-      return Error(std::string("Unknown conversion function: ") + functionname +
-                   ", field name: " + (name ? *name : "") +
-                   ", value: " + e.constant);
-    }
-    e.constant = NumToString(y);
-    return NoError();
+  }
+  return NoError();
+}
+
+CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
+                                      bool check_now) {
+  const auto in_type = e.type.base_type;
+  const auto is_tok_ident = (token_ == kTokenIdentifier);
+  const auto is_tok_string = (token_ == kTokenStringConstant);
+
+  // First see if this could be a conversion function:
+  if (is_tok_ident && *cursor_ == '(') {
+      return ParseFunction(name, e);
   }
 
-  auto match = false;
-  const auto in_type = e.type.base_type;
   // clang-format off
+  auto match = false;
+
   #define IF_ECHECK_(force, dtoken, check, req)    \
     if (!match && ((check) || IsConstTrue(force))) \
     ECHECK(TryTypedValue(name, dtoken, check, e, req, &match))
@@ -1700,14 +1708,14 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
   #define FORCE_ECHECK(dtoken, check, req) IF_ECHECK_(true, dtoken, check, req)
   // clang-format on
 
-  if (token_ == kTokenStringConstant || token_ == kTokenIdentifier) {
+  if (is_tok_ident || is_tok_string) {
     const auto kTokenStringOrIdent = token_;
     // The string type is a most probable type, check it first.
     TRY_ECHECK(kTokenStringConstant, in_type == BASE_TYPE_STRING,
                BASE_TYPE_STRING);
 
     // avoid escaped and non-ascii in the string
-    if (!match && (token_ == kTokenStringConstant) && IsScalar(in_type) &&
+    if (!match && is_tok_string && IsScalar(in_type) &&
         !attr_is_trivial_ascii_string_) {
       return Error(
           std::string("type mismatch or invalid value, an initializer of "
@@ -1735,11 +1743,20 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
     }
     // Parse a float/integer number from the string.
     if (!match) check_now = true;  // Re-pack if parsed from string literal.
-    if (!match && (token_ == kTokenStringConstant) && IsScalar(in_type)) {
-      // remove trailing whitespaces from attribute_
-      auto last = attribute_.find_last_not_of(' ');
-      if (std::string::npos != last)  // has non-whitespace
-        attribute_.resize(last + 1);
+    // A "scalar-in-string" value needs extra checks.
+    if (!match && is_tok_string && IsScalar(in_type)) {
+      // Strip trailing whitespaces from attribute_.
+      auto last_non_ws = attribute_.find_last_not_of(' ');
+      if (std::string::npos != last_non_ws)
+        attribute_.resize(last_non_ws + 1);
+      if (IsFloat(e.type.base_type)) {
+        // The functions strtod() and strtof() accept both 'nan' and
+        // 'nan(number)' literals. While 'nan(number)' is rejected by the parser
+        // as an unsupported function if is_tok_ident is true.
+        if (attribute_.find_last_of(')') != std::string::npos) {
+          return Error("invalid number: " + attribute_);
+        }
+      }
     }
     // Float numbers or nan, inf, pi, etc.
     TRY_ECHECK(kTokenStringOrIdent, IsFloat(in_type), BASE_TYPE_FLOAT);

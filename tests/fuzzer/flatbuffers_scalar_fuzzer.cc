@@ -101,8 +101,8 @@ class IntegerRegex : public RegexMatcher {
     static const std::vector<std::regex> re_list = {
       std::regex{ R"(^[-+]?[0-9]+$)", std::regex_constants::optimize },
 
-      std::regex{
-          R"(^[-+]?0[xX][0-9a-fA-F]+$)", std::regex_constants::optimize }
+      std::regex{ R"(^[-+]?0[xX][0-9a-fA-F]+$)",
+                  std::regex_constants::optimize }
     };
     return MatchRegexList(input, re_list);
   }
@@ -117,8 +117,8 @@ class UIntegerRegex : public RegexMatcher {
   bool MatchNumber(const std::string &input) const override {
     static const std::vector<std::regex> re_list = {
       std::regex{ R"(^[+]?[0-9]+$)", std::regex_constants::optimize },
-      std::regex{
-          R"(^[+]?0[xX][0-9a-fA-F]+$)", std::regex_constants::optimize },
+      std::regex{ R"(^[+]?0[xX][0-9a-fA-F]+$)",
+                  std::regex_constants::optimize },
       // accept -0 number
       std::regex{ R"(^[-](?:0[xX])?0+$)", std::regex_constants::optimize }
     };
@@ -216,7 +216,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   if (size < 3) return 0;
   const uint8_t flags = data[0];
   // normalize to ascii alphabet
-  const int extra_rep_number = data[1] >= '0' ? (data[1] - '0') : 0;
+  const int extra_rep_number =
+      std::max(5, (data[1] < '0' ? (data[1] - '0') : 0));
   data += 2;
   size -= 2;  // bypass
 
@@ -232,6 +233,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   // We reject this by transform "/* text */ 12345" to "@* text */ 12345".
   BreakSequence(input, "//", '@');  // "//" -> "@/"
   BreakSequence(input, "/*", '@');  // "/*" -> "@*"
+  // { "$schema: "text" } is exceptional case.
+  // This key:value ignored by the parser. Numbers can not have $.
+  BreakSequence(input, "$schema", '@');  // "$schema" -> "@schema"
   // Break all known scalar functions (todo: add them to regex?):
   for (auto f : { "deg", "rad", "sin", "cos", "tan", "asin", "acos", "atan" }) {
     BreakSequence(input, f, '_');  // ident -> ident
