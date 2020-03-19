@@ -27,7 +27,7 @@ public struct TableInFirstNS : IFlatbufferObject
   public static Offset<NamespaceA.TableInFirstNS> CreateTableInFirstNS(FlatBufferBuilder builder,
       Offset<NamespaceA.NamespaceB.TableInNestedNS> foo_tableOffset = default(Offset<NamespaceA.NamespaceB.TableInNestedNS>),
       NamespaceA.NamespaceB.EnumInNestedNS foo_enum = NamespaceA.NamespaceB.EnumInNestedNS.A,
-      StructInNestedNST foo_struct = null) {
+      NamespaceA.NamespaceB.StructInNestedNST foo_struct = null) {
     builder.StartTable(3);
     TableInFirstNS.AddFooStruct(builder, NamespaceA.NamespaceB.StructInNestedNS.Pack(builder, foo_struct));
     TableInFirstNS.AddFooTable(builder, foo_tableOffset);

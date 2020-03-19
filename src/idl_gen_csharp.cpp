@@ -961,8 +961,9 @@ class CSharpGenerator : public BaseGenerator {
           if (field.deprecated) continue;
           code += ",\n      ";
           if (IsStruct(field.value.type) && opts.generate_object_based_api) {
-            code +=
-                GenTypeName_ObjectAPI(field.value.type.struct_def->name, opts);
+            code += WrapInNameSpace(
+                field.value.type.struct_def->defined_namespace,
+                GenTypeName_ObjectAPI(field.value.type.struct_def->name, opts));
             code += " ";
             code += field.name;
             code += " = null";

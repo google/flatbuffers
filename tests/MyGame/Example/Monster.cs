@@ -190,7 +190,7 @@ public struct Monster : IFlatbufferObject
   public bool MutateSignedEnum(MyGame.Example.Race signed_enum) { int o = __p.__offset(100); if (o != 0) { __p.bb.PutSbyte(o + __p.bb_pos, (sbyte)signed_enum); return true; } else { return false; } }
 
   public static Offset<MyGame.Example.Monster> CreateMonster(FlatBufferBuilder builder,
-      Vec3T pos = null,
+      MyGame.Example.Vec3T pos = null,
       short mana = 150,
       short hp = 100,
       StringOffset nameOffset = default(StringOffset),
