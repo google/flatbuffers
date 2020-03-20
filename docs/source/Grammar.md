@@ -35,7 +35,7 @@ enumval\_decl = ident [ `=` integer\_constant ]
 
 metadata = [ `(` commasep( ident [ `:` single\_value ] ) `)` ]
 
-scalar = integer\_constant | float\_constant
+scalar = boolean_constant | integer\_constant | float\_constant
 
 object = `{` commasep( ident `:` value ) `}`
 
@@ -71,4 +71,4 @@ special\_float\_constant = `[-+]?(nan|inf|infinity)`
 
 float\_constant = dec\_integer\_constant | hex\_integer\_constant | special\_float\_constant
 
-boolean\_constant = `(true|false)` | integer\_constant
+boolean\_constant = `true` | `false`
