@@ -38,6 +38,11 @@ option(FLATBUFFERS_BUILD_CPP17
 option(FLATBUFFERS_BUILD_LEGACY
        "Run C++ code generator with '--cpp-std c++0x' switch."
        OFF)
+option(FLATBUFFERS_ENABLE_PCH
+       "Enable precompile headers support for 'flatbuffers' and 'flatc'. \"
+        Only work if CMake support 'target_precompile_headers'. \"
+        This can speed up compilation time."
+       OFF)
 
 if(NOT FLATBUFFERS_BUILD_FLATC AND FLATBUFFERS_BUILD_TESTS)
     message(WARNING
@@ -316,10 +321,19 @@ if(FLATBUFFERS_BUILD_FLATLIB)
   target_include_directories(flatbuffers INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
   target_compile_options(flatbuffers PRIVATE "${FLATBUFFERS_PRIVATE_CXX_FLAGS}")
+  if(FLATBUFFERS_ENABLE_PCH AND COMMAND target_precompile_headers)
+    target_precompile_headers(flatbuffers PRIVATE include/flatbuffers/pch.h)
+    if(NOT MSVC)
+      set_source_files_properties(src/util.cpp PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+    endif()
+  endif()
 endif()
 
 if(FLATBUFFERS_BUILD_FLATC)
   add_executable(flatc ${FlatBuffers_Compiler_SRCS})
+  if(FLATBUFFERS_ENABLE_PCH AND COMMAND target_precompile_headers)
+    target_precompile_headers(flatc PRIVATE include/flatbuffers/flatc_pch.h)
+  endif()
   target_compile_options(flatc PRIVATE "${FLATBUFFERS_PRIVATE_CXX_FLAGS}")
   if(FLATBUFFERS_CODE_SANITIZE AND NOT WIN32)
     add_fsanitize_to_target(flatc ${FLATBUFFERS_CODE_SANITIZE})
@@ -352,6 +366,12 @@ if(FLATBUFFERS_BUILD_SHAREDLIB)
   set_target_properties(flatbuffers_shared PROPERTIES OUTPUT_NAME flatbuffers
                         SOVERSION "${FlatBuffers_Library_SONAME_MAJOR}"
                         VERSION "${FlatBuffers_Library_SONAME_FULL}")
+  if(FLATBUFFERS_ENABLE_PCH AND COMMAND target_precompile_headers)
+    target_precompile_headers(flatbuffers_shared PRIVATE include/flatbuffers/pch.h)
+    if(NOT MSVC)
+      set_source_files_properties(src/util.cpp PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+    endif()
+  endif()
 endif()
 
 # Global list of generated files.
