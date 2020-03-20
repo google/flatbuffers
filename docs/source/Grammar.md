@@ -35,7 +35,7 @@ enumval\_decl = ident [ `=` integer\_constant ]
 
 metadata = [ `(` commasep( ident [ `:` single\_value ] ) `)` ]
 
-scalar = boolean_constant | integer\_constant | float\_constant
+scalar = boolean\_constant | integer\_constant | float\_constant
 
 object = `{` commasep( ident `:` value ) `}`
 
