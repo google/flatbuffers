@@ -838,7 +838,7 @@ static createReferrable(builder:flatbuffers.Builder, id:flatbuffers.Long):flatbu
 }
 }
 /**
- * an example documentation comment: monster object
+ * an example documentation comment: "monster object"
  *
  * @constructor
  */

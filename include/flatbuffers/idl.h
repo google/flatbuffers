@@ -91,7 +91,7 @@ switch (type) {
 }
 */
 
-// If not all FLATBUFFERS_GEN_() arguments are necessary for implementation 
+// If not all FLATBUFFERS_GEN_() arguments are necessary for implementation
 // of FLATBUFFERS_TD, you can use a variadic macro (with __VA_ARGS__ if needed).
 // In the above example, only CTYPE is used to generate the code, it can be rewritten:
 
@@ -411,7 +411,6 @@ struct EnumDef : public Definition {
   size_t size() const { return vals.vec.size(); }
 
   const std::vector<EnumVal *> &Vals() const {
-    FLATBUFFERS_ASSERT(false == vals.vec.empty());
     return vals.vec;
   }
 

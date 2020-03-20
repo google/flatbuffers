@@ -208,7 +208,7 @@ struct ReferrableBuilder:
     def end():
         return b_.EndObject()
 
-/// an example documentation comment: monster object
+/// an example documentation comment: "monster object"
 class Monster : flatbuffers_handle
     def pos():
         let o = buf_.flatbuffers_field_struct(pos_, 4)

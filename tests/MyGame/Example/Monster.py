@@ -6,7 +6,7 @@ import flatbuffers
 from flatbuffers.compat import import_numpy
 np = import_numpy()
 
-# an example documentation comment: monster object
+# an example documentation comment: "monster object"
 class Monster(object):
     __slots__ = ['_tab']
 

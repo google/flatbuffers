@@ -4,7 +4,7 @@ import FlatBuffers
 
 public struct HelloReply: FlatBufferObject {
 
-	static func validateVersion() { FlatBuffersVersion_1_11_1() }
+	static func validateVersion() { FlatBuffersVersion_1_12_0() }
 	public var __buffer: ByteBuffer! { return _accessor.bb }
 
 	private var _accessor: Table
@@ -28,7 +28,7 @@ public struct HelloReply: FlatBufferObject {
 
 public struct HelloRequest: FlatBufferObject {
 
-	static func validateVersion() { FlatBuffersVersion_1_11_1() }
+	static func validateVersion() { FlatBuffersVersion_1_12_0() }
 	public var __buffer: ByteBuffer! { return _accessor.bb }
 
 	private var _accessor: Table
@@ -52,7 +52,7 @@ public struct HelloRequest: FlatBufferObject {
 
 public struct ManyHellosRequest: FlatBufferObject {
 
-	static func validateVersion() { FlatBuffersVersion_1_11_1() }
+	static func validateVersion() { FlatBuffersVersion_1_12_0() }
 	public var __buffer: ByteBuffer! { return _accessor.bb }
 
 	private var _accessor: Table
