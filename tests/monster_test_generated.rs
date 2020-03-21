@@ -2,6 +2,8 @@
 
 
 
+use crate::include_test1_generated::*;
+use crate::include_test2_generated::*;
 use std::mem;
 use std::cmp::Ordering;
 
@@ -11,6 +13,8 @@ use self::flatbuffers::EndianScalar;
 #[allow(unused_imports, dead_code)]
 pub mod my_game {
 
+  use crate::include_test1_generated::*;
+  use crate::include_test2_generated::*;
   use std::mem;
   use std::cmp::Ordering;
 
@@ -35,6 +39,10 @@ impl<'a> flatbuffers::Follow<'a> for InParentNamespace<'a> {
 }
 
 impl<'a> InParentNamespace<'a> {
+    pub const fn get_fully_qualified_name() -> &'static str {
+        "MyGame.InParentNamespace"
+    }
+
     #[inline]
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
         InParentNamespace {
@@ -83,6 +91,8 @@ impl<'a: 'b, 'b> InParentNamespaceBuilder<'a, 'b> {
 #[allow(unused_imports, dead_code)]
 pub mod example_2 {
 
+  use crate::include_test1_generated::*;
+  use crate::include_test2_generated::*;
   use std::mem;
   use std::cmp::Ordering;
 
@@ -107,6 +117,10 @@ impl<'a> flatbuffers::Follow<'a> for Monster<'a> {
 }
 
 impl<'a> Monster<'a> {
+    pub const fn get_fully_qualified_name() -> &'static str {
+        "MyGame.Example2.Monster"
+    }
+
     #[inline]
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
         Monster {
@@ -157,24 +171,30 @@ impl<'a: 'b, 'b> MonsterBuilder<'a, 'b> {
 #[allow(unused_imports, dead_code)]
 pub mod example {
 
+  use crate::include_test1_generated::*;
+  use crate::include_test2_generated::*;
   use std::mem;
   use std::cmp::Ordering;
 
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
 
+/// Composite components of Monster color.
 #[allow(non_camel_case_types)]
-#[repr(i8)]
+#[repr(u8)]
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub enum Color {
   Red = 1,
+  /// \brief color Green
+  /// Green is bit_flag with value (1u << 1)
   Green = 2,
+  /// \brief color Blue (1u << 3)
   Blue = 8,
 
 }
 
-const ENUM_MIN_COLOR: i8 = 1;
-const ENUM_MAX_COLOR: i8 = 8;
+pub const ENUM_MIN_COLOR: u8 = 1;
+pub const ENUM_MAX_COLOR: u8 = 8;
 
 impl<'a> flatbuffers::Follow<'a> for Color {
   type Inner = Self;
@@ -187,14 +207,14 @@ impl<'a> flatbuffers::Follow<'a> for Color {
 impl flatbuffers::EndianScalar for Color {
   #[inline]
   fn to_little_endian(self) -> Self {
-    let n = i8::to_le(self as i8);
-    let p = &n as *const i8 as *const Color;
+    let n = u8::to_le(self as u8);
+    let p = &n as *const u8 as *const Color;
     unsafe { *p }
   }
   #[inline]
   fn from_little_endian(self) -> Self {
-    let n = i8::from_le(self as i8);
-    let p = &n as *const i8 as *const Color;
+    let n = u8::from_le(self as u8);
+    let p = &n as *const u8 as *const Color;
     unsafe { *p }
   }
 }
@@ -208,14 +228,14 @@ impl flatbuffers::Push for Color {
 }
 
 #[allow(non_camel_case_types)]
-const ENUM_VALUES_COLOR:[Color; 3] = [
+pub const ENUM_VALUES_COLOR:[Color; 3] = [
   Color::Red,
   Color::Green,
   Color::Blue
 ];
 
 #[allow(non_camel_case_types)]
-const ENUM_NAMES_COLOR:[&'static str; 8] = [
+pub const ENUM_NAMES_COLOR:[&'static str; 8] = [
     "Red",
     "Green",
     "",
@@ -227,8 +247,74 @@ const ENUM_NAMES_COLOR:[&'static str; 8] = [
 ];
 
 pub fn enum_name_color(e: Color) -> &'static str {
-  let index = e as i8 - Color::Red as i8;
+  let index = e as u8 - Color::Red as u8;
   ENUM_NAMES_COLOR[index as usize]
+}
+
+#[allow(non_camel_case_types)]
+#[repr(i8)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+pub enum Race {
+  None = -1,
+  Human = 0,
+  Dwarf = 1,
+  Elf = 2,
+
+}
+
+pub const ENUM_MIN_RACE: i8 = -1;
+pub const ENUM_MAX_RACE: i8 = 2;
+
+impl<'a> flatbuffers::Follow<'a> for Race {
+  type Inner = Self;
+  #[inline]
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    flatbuffers::read_scalar_at::<Self>(buf, loc)
+  }
+}
+
+impl flatbuffers::EndianScalar for Race {
+  #[inline]
+  fn to_little_endian(self) -> Self {
+    let n = i8::to_le(self as i8);
+    let p = &n as *const i8 as *const Race;
+    unsafe { *p }
+  }
+  #[inline]
+  fn from_little_endian(self) -> Self {
+    let n = i8::from_le(self as i8);
+    let p = &n as *const i8 as *const Race;
+    unsafe { *p }
+  }
+}
+
+impl flatbuffers::Push for Race {
+    type Output = Race;
+    #[inline]
+    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
+        flatbuffers::emplace_scalar::<Race>(dst, *self);
+    }
+}
+
+#[allow(non_camel_case_types)]
+pub const ENUM_VALUES_RACE:[Race; 4] = [
+  Race::None,
+  Race::Human,
+  Race::Dwarf,
+  Race::Elf
+];
+
+#[allow(non_camel_case_types)]
+pub const ENUM_NAMES_RACE:[&'static str; 4] = [
+    "None",
+    "Human",
+    "Dwarf",
+    "Elf"
+];
+
+pub fn enum_name_race(e: Race) -> &'static str {
+  let index = e as i8 - Race::None as i8;
+  ENUM_NAMES_RACE[index as usize]
 }
 
 #[allow(non_camel_case_types)]
@@ -242,8 +328,8 @@ pub enum Any {
 
 }
 
-const ENUM_MIN_ANY: u8 = 0;
-const ENUM_MAX_ANY: u8 = 3;
+pub const ENUM_MIN_ANY: u8 = 0;
+pub const ENUM_MAX_ANY: u8 = 3;
 
 impl<'a> flatbuffers::Follow<'a> for Any {
   type Inner = Self;
@@ -277,7 +363,7 @@ impl flatbuffers::Push for Any {
 }
 
 #[allow(non_camel_case_types)]
-const ENUM_VALUES_ANY:[Any; 4] = [
+pub const ENUM_VALUES_ANY:[Any; 4] = [
   Any::NONE,
   Any::Monster,
   Any::TestSimpleTableWithEnum,
@@ -285,7 +371,7 @@ const ENUM_VALUES_ANY:[Any; 4] = [
 ];
 
 #[allow(non_camel_case_types)]
-const ENUM_NAMES_ANY:[&'static str; 4] = [
+pub const ENUM_NAMES_ANY:[&'static str; 4] = [
     "NONE",
     "Monster",
     "TestSimpleTableWithEnum",
@@ -304,13 +390,13 @@ pub struct AnyUnionTableOffset {}
 pub enum AnyUniqueAliases {
   NONE = 0,
   M = 1,
-  T = 2,
+  TS = 2,
   M2 = 3,
 
 }
 
-const ENUM_MIN_ANY_UNIQUE_ALIASES: u8 = 0;
-const ENUM_MAX_ANY_UNIQUE_ALIASES: u8 = 3;
+pub const ENUM_MIN_ANY_UNIQUE_ALIASES: u8 = 0;
+pub const ENUM_MAX_ANY_UNIQUE_ALIASES: u8 = 3;
 
 impl<'a> flatbuffers::Follow<'a> for AnyUniqueAliases {
   type Inner = Self;
@@ -344,18 +430,18 @@ impl flatbuffers::Push for AnyUniqueAliases {
 }
 
 #[allow(non_camel_case_types)]
-const ENUM_VALUES_ANY_UNIQUE_ALIASES:[AnyUniqueAliases; 4] = [
+pub const ENUM_VALUES_ANY_UNIQUE_ALIASES:[AnyUniqueAliases; 4] = [
   AnyUniqueAliases::NONE,
   AnyUniqueAliases::M,
-  AnyUniqueAliases::T,
+  AnyUniqueAliases::TS,
   AnyUniqueAliases::M2
 ];
 
 #[allow(non_camel_case_types)]
-const ENUM_NAMES_ANY_UNIQUE_ALIASES:[&'static str; 4] = [
+pub const ENUM_NAMES_ANY_UNIQUE_ALIASES:[&'static str; 4] = [
     "NONE",
     "M",
-    "T",
+    "TS",
     "M2"
 ];
 
@@ -376,8 +462,8 @@ pub enum AnyAmbiguousAliases {
 
 }
 
-const ENUM_MIN_ANY_AMBIGUOUS_ALIASES: u8 = 0;
-const ENUM_MAX_ANY_AMBIGUOUS_ALIASES: u8 = 3;
+pub const ENUM_MIN_ANY_AMBIGUOUS_ALIASES: u8 = 0;
+pub const ENUM_MAX_ANY_AMBIGUOUS_ALIASES: u8 = 3;
 
 impl<'a> flatbuffers::Follow<'a> for AnyAmbiguousAliases {
   type Inner = Self;
@@ -411,7 +497,7 @@ impl flatbuffers::Push for AnyAmbiguousAliases {
 }
 
 #[allow(non_camel_case_types)]
-const ENUM_VALUES_ANY_AMBIGUOUS_ALIASES:[AnyAmbiguousAliases; 4] = [
+pub const ENUM_VALUES_ANY_AMBIGUOUS_ALIASES:[AnyAmbiguousAliases; 4] = [
   AnyAmbiguousAliases::NONE,
   AnyAmbiguousAliases::M1,
   AnyAmbiguousAliases::M2,
@@ -419,7 +505,7 @@ const ENUM_VALUES_ANY_AMBIGUOUS_ALIASES:[AnyAmbiguousAliases; 4] = [
 ];
 
 #[allow(non_camel_case_types)]
-const ENUM_NAMES_ANY_AMBIGUOUS_ALIASES:[&'static str; 4] = [
+pub const ENUM_NAMES_ANY_AMBIGUOUS_ALIASES:[&'static str; 4] = [
     "NONE",
     "M1",
     "M2",
@@ -487,6 +573,10 @@ impl Test {
       padding0__: 0,
     }
   }
+    pub const fn get_fully_qualified_name() -> &'static str {
+        "MyGame.Example.Test"
+    }
+
   pub fn a<'a>(&'a self) -> i16 {
     self.a_.from_little_endian()
   }
@@ -562,6 +652,10 @@ impl Vec3 {
       padding2__: 0,
     }
   }
+    pub const fn get_fully_qualified_name() -> &'static str {
+        "MyGame.Example.Vec3"
+    }
+
   pub fn x<'a>(&'a self) -> f32 {
     self.x_.from_little_endian()
   }
@@ -635,6 +729,10 @@ impl Ability {
 
     }
   }
+    pub const fn get_fully_qualified_name() -> &'static str {
+        "MyGame.Example.Ability"
+    }
+
   pub fn id<'a>(&'a self) -> u32 {
     self.id_.from_little_endian()
   }
@@ -671,6 +769,10 @@ impl<'a> flatbuffers::Follow<'a> for TestSimpleTableWithEnum<'a> {
 }
 
 impl<'a> TestSimpleTableWithEnum<'a> {
+    pub const fn get_fully_qualified_name() -> &'static str {
+        "MyGame.Example.TestSimpleTableWithEnum"
+    }
+
     #[inline]
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
         TestSimpleTableWithEnum {
@@ -747,6 +849,10 @@ impl<'a> flatbuffers::Follow<'a> for Stat<'a> {
 }
 
 impl<'a> Stat<'a> {
+    pub const fn get_fully_qualified_name() -> &'static str {
+        "MyGame.Example.Stat"
+    }
+
     #[inline]
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
         Stat {
@@ -847,6 +953,10 @@ impl<'a> flatbuffers::Follow<'a> for Referrable<'a> {
 }
 
 impl<'a> Referrable<'a> {
+    pub const fn get_fully_qualified_name() -> &'static str {
+        "MyGame.Example.Referrable"
+    }
+
     #[inline]
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
         Referrable {
@@ -918,7 +1028,7 @@ impl<'a: 'b, 'b> ReferrableBuilder<'a, 'b> {
 pub enum MonsterOffset {}
 #[derive(Copy, Clone, Debug, PartialEq)]
 
-/// an example documentation comment: monster object
+/// an example documentation comment: "monster object"
 pub struct Monster<'a> {
   pub _tab: flatbuffers::Table<'a>,
 }
@@ -934,6 +1044,10 @@ impl<'a> flatbuffers::Follow<'a> for Monster<'a> {
 }
 
 impl<'a> Monster<'a> {
+    pub const fn get_fully_qualified_name() -> &'static str {
+        "MyGame.Example.Monster"
+    }
+
     #[inline]
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
         Monster {
@@ -987,6 +1101,7 @@ impl<'a> Monster<'a> {
       if let Some(x) = args.pos { builder.add_pos(x); }
       builder.add_hp(args.hp);
       builder.add_mana(args.mana);
+      builder.add_signed_enum(args.signed_enum);
       builder.add_any_ambiguous_type(args.any_ambiguous_type);
       builder.add_any_unique_type(args.any_unique_type);
       builder.add_testbool(args.testbool);
@@ -1042,6 +1157,7 @@ impl<'a> Monster<'a> {
     pub const VT_ANY_AMBIGUOUS_TYPE: flatbuffers::VOffsetT = 94;
     pub const VT_ANY_AMBIGUOUS: flatbuffers::VOffsetT = 96;
     pub const VT_VECTOR_OF_ENUMS: flatbuffers::VOffsetT = 98;
+    pub const VT_SIGNED_ENUM: flatbuffers::VOffsetT = 100;
 
   #[inline]
   pub fn pos(&self) -> Option<&'a Vec3> {
@@ -1253,6 +1369,10 @@ impl<'a> Monster<'a> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, Color>>>(Monster::VT_VECTOR_OF_ENUMS, None)
   }
   #[inline]
+  pub fn signed_enum(&self) -> Race {
+    self._tab.get::<Race>(Monster::VT_SIGNED_ENUM, Some(Race::None)).unwrap()
+  }
+  #[inline]
   #[allow(non_snake_case)]
   pub fn test_as_monster(&self) -> Option<Monster<'a>> {
     if self.test_type() == Any::Monster {
@@ -1294,8 +1414,8 @@ impl<'a> Monster<'a> {
 
   #[inline]
   #[allow(non_snake_case)]
-  pub fn any_unique_as_t(&self) -> Option<TestSimpleTableWithEnum<'a>> {
-    if self.any_unique_type() == AnyUniqueAliases::T {
+  pub fn any_unique_as_ts(&self) -> Option<TestSimpleTableWithEnum<'a>> {
+    if self.any_unique_type() == AnyUniqueAliases::TS {
       self.any_unique().map(|u| TestSimpleTableWithEnum::init_from_table(u))
     } else {
       None
@@ -1392,6 +1512,7 @@ pub struct MonsterArgs<'a> {
     pub any_ambiguous_type: AnyAmbiguousAliases,
     pub any_ambiguous: Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>>,
     pub vector_of_enums: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a , Color>>>,
+    pub signed_enum: Race,
 }
 impl<'a> Default for MonsterArgs<'a> {
     #[inline]
@@ -1444,6 +1565,7 @@ impl<'a> Default for MonsterArgs<'a> {
             any_ambiguous_type: AnyAmbiguousAliases::NONE,
             any_ambiguous: None,
             vector_of_enums: None,
+            signed_enum: Race::None,
         }
     }
 }
@@ -1641,6 +1763,10 @@ impl<'a: 'b, 'b> MonsterBuilder<'a, 'b> {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Monster::VT_VECTOR_OF_ENUMS, vector_of_enums);
   }
   #[inline]
+  pub fn add_signed_enum(&mut self, signed_enum: Race) {
+    self.fbb_.push_slot::<Race>(Monster::VT_SIGNED_ENUM, signed_enum, Race::None);
+  }
+  #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> MonsterBuilder<'a, 'b> {
     let start = _fbb.start_table();
     MonsterBuilder {
@@ -1674,6 +1800,10 @@ impl<'a> flatbuffers::Follow<'a> for TypeAliases<'a> {
 }
 
 impl<'a> TypeAliases<'a> {
+    pub const fn get_fully_qualified_name() -> &'static str {
+        "MyGame.Example.TypeAliases"
+    }
+
     #[inline]
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
         TypeAliases {

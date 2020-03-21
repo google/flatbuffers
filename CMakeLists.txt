@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.12)
 # generate compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include(CheckCXXSymbolExists)
@@ -13,6 +13,8 @@ option(FLATBUFFERS_BUILD_FLATLIB "Enable the build of the flatbuffers library"
        ON)
 option(FLATBUFFERS_BUILD_FLATC "Enable the build of the flatbuffers compiler"
        ON)
+option(FLATBUFFERS_STATIC_FLATC "Build flatbuffers compiler with -static flag"
+       OFF)
 option(FLATBUFFERS_BUILD_FLATHASH "Enable the build of flathash" ON)
 option(FLATBUFFERS_BUILD_GRPCTEST "Enable the build of grpctest" OFF)
 option(FLATBUFFERS_BUILD_SHAREDLIB
@@ -29,6 +31,13 @@ option(FLATBUFFERS_PACKAGE_REDHAT
 option(FLATBUFFERS_PACKAGE_DEBIAN
        "Build an deb using the 'package' target."
        OFF)
+option(FLATBUFFERS_BUILD_CPP17
+       "Enable the build of c++17 test target. \"
+       Requirements: Clang6, GCC7, MSVC2017 (_MSC_VER >= 1914)  or higher."
+       OFF)
+option(FLATBUFFERS_BUILD_LEGACY
+       "Run C++ code generator with '--cpp-std c++0x' switch."
+       OFF)
 
 if(NOT FLATBUFFERS_BUILD_FLATC AND FLATBUFFERS_BUILD_TESTS)
     message(WARNING
@@ -42,18 +51,23 @@ if(DEFINED FLATBUFFERS_MAX_PARSING_DEPTH)
   message(STATUS "FLATBUFFERS_MAX_PARSING_DEPTH: ${FLATBUFFERS_MAX_PARSING_DEPTH}")
 endif()
 
-# Auto-detect locale-narrow 'strtod_l' function.
+# Auto-detect locale-narrow 'strtod_l' and  'strtoull_l' functions.
 if(NOT DEFINED FLATBUFFERS_LOCALE_INDEPENDENT)
+  set(FLATBUFFERS_LOCALE_INDEPENDENT 0)
   if(MSVC)
-    check_cxx_symbol_exists(_strtof_l stdlib.h FLATBUFFERS_LOCALE_INDEPENDENT)
+    check_cxx_symbol_exists(_strtof_l stdlib.h FLATBUFFERS_HAS_STRTOF_L)
+    check_cxx_symbol_exists(_strtoui64_l stdlib.h FLATBUFFERS_HAS_STRTOULL_L)
   else()
-    check_cxx_symbol_exists(strtof_l stdlib.h FLATBUFFERS_LOCALE_INDEPENDENT)
+    check_cxx_symbol_exists(strtof_l stdlib.h FLATBUFFERS_HAS_STRTOF_L)
+    check_cxx_symbol_exists(strtoull_l stdlib.h FLATBUFFERS_HAS_STRTOULL_L)
+  endif()
+  if(FLATBUFFERS_HAS_STRTOF_L AND FLATBUFFERS_HAS_STRTOULL_L)
+    set(FLATBUFFERS_LOCALE_INDEPENDENT 1)
   endif()
 endif()
 add_definitions(-DFLATBUFFERS_LOCALE_INDEPENDENT=$<BOOL:${FLATBUFFERS_LOCALE_INDEPENDENT}>)
 
 set(FlatBuffers_Library_SRCS
-  include/flatbuffers/code_generators.h
   include/flatbuffers/base.h
   include/flatbuffers/flatbuffers.h
   include/flatbuffers/hash.h
@@ -65,7 +79,6 @@ set(FlatBuffers_Library_SRCS
   include/flatbuffers/flexbuffers.h
   include/flatbuffers/registry.h
   include/flatbuffers/minireflect.h
-  src/code_generators.cpp
   src/idl_parser.cpp
   src/idl_gen_text.cpp
   src/reflection.cpp
@@ -75,9 +88,11 @@ set(FlatBuffers_Library_SRCS
 set(FlatBuffers_Compiler_SRCS
   ${FlatBuffers_Library_SRCS}
   src/idl_gen_cpp.cpp
+  src/idl_gen_csharp.cpp
   src/idl_gen_dart.cpp
-  src/idl_gen_general.cpp
+  src/idl_gen_kotlin.cpp
   src/idl_gen_go.cpp
+  src/idl_gen_java.cpp
   src/idl_gen_js_ts.cpp
   src/idl_gen_php.cpp
   src/idl_gen_python.cpp
@@ -87,8 +102,11 @@ set(FlatBuffers_Compiler_SRCS
   src/idl_gen_fbs.cpp
   src/idl_gen_grpc.cpp
   src/idl_gen_json_schema.cpp
+  src/idl_gen_swift.cpp
   src/flatc.cpp
   src/flatc_main.cpp
+  include/flatbuffers/code_generators.h
+  src/code_generators.cpp
   grpc/src/compiler/schema_interface.h
   grpc/src/compiler/cpp_generator.h
   grpc/src/compiler/cpp_generator.cc
@@ -96,6 +114,11 @@ set(FlatBuffers_Compiler_SRCS
   grpc/src/compiler/go_generator.cc
   grpc/src/compiler/java_generator.h
   grpc/src/compiler/java_generator.cc
+  grpc/src/compiler/python_generator.h
+  grpc/src/compiler/python_private_generator.h
+  grpc/src/compiler/python_generator.cc
+  grpc/src/compiler/swift_generator.h
+  grpc/src/compiler/swift_generator.cc
 )
 
 set(FlatHash_SRCS
@@ -111,7 +134,34 @@ set(FlatBuffers_Tests_SRCS
   tests/test_assert.cpp
   tests/test_builder.h
   tests/test_builder.cpp
+  tests/native_type_test_impl.h
+  tests/native_type_test_impl.cpp
+  include/flatbuffers/code_generators.h
+  src/code_generators.cpp
   # file generate by running compiler on tests/monster_test.fbs
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_test_generated.h
+  # file generate by running compiler on namespace_test/namespace_test1.fbs
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/namespace_test/namespace_test1_generated.h
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/namespace_test/namespace_test2_generated.h
+  # file generate by running compiler on union_vector/union_vector.fbs
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/union_vector/union_vector_generated.h
+  # file generate by running compiler on tests/arrays_test.fbs
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/arrays_test_generated.h
+  # file generate by running compiler on tests/native_type_test.fbs
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/native_type_test_generated.h
+  # file generate by running compiler on tests/monster_extra.fbs
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_extra_generated.h
+  # file generate by running compiler on tests/monster_test.fbs
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_test_bfbs_generated.h
+)
+
+set(FlatBuffers_Tests_CPP17_SRCS
+  ${FlatBuffers_Library_SRCS}
+  tests/test_assert.h
+  tests/test_assert.cpp
+  tests/cpp17/test_cpp17.cpp
+  # file generate by running compiler on tests/monster_test.fbs
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/cpp17/generated_cpp17/monster_test_generated.h
   ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_test_generated.h
 )
 
@@ -131,7 +181,6 @@ set(FlatBuffers_Sample_Text_SRCS
 
 set(FlatBuffers_Sample_BFBS_SRCS
   ${FlatBuffers_Library_SRCS}
-  src/idl_gen_general.cpp
   samples/sample_bfbs.cpp
   # file generated by running compiler on samples/monster.fbs
   ${CMAKE_CURRENT_BINARY_DIR}/samples/monster_generated.h
@@ -140,6 +189,8 @@ set(FlatBuffers_Sample_BFBS_SRCS
 set(FlatBuffers_GRPCTest_SRCS
   include/flatbuffers/flatbuffers.h
   include/flatbuffers/grpc.h
+  include/flatbuffers/util.h
+  src/util.cpp
   tests/monster_test.grpc.fb.h
   tests/test_assert.h
   tests/test_builder.h
@@ -148,8 +199,8 @@ set(FlatBuffers_GRPCTest_SRCS
   tests/test_builder.cpp
   grpc/tests/grpctest.cpp
   grpc/tests/message_builder_test.cpp
-  # file generated by running compiler on samples/monster.fbs
-  ${CMAKE_CURRENT_BINARY_DIR}/samples/monster_generated.h
+  # file generate by running compiler on tests/monster_test.fbs
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_test_generated.h
 )
 
 # source_group(Compiler FILES ${FlatBuffers_Compiler_SRCS})
@@ -226,23 +277,28 @@ if(FLATBUFFERS_CODE_COVERAGE)
 endif()
 
 function(add_fsanitize_to_target _target _sanitizer)
-  # FLATBUFFERS_CODE_SANITIZE: boolean {ON,OFF,YES,NO} or string with list of sanitizer.
-  # List of sanitizer is string starts with '=': "=address,undefined,thread,memory".
-  if((${CMAKE_CXX_COMPILER_ID} MATCHES "Clang") OR
-    ((${CMAKE_CXX_COMPILER_ID} MATCHES "GNU") AND NOT (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.9"))
-  )
-    set(_sanitizer_flags "=address,undefined")
-    if(_sanitizer MATCHES "=.*")
-      # override default by user-defined sanitizer list
-      set(_sanitizer_flags ${_sanitizer})
+  if(WIN32)
+    target_compile_definitions(${_target} PRIVATE FLATBUFFERS_MEMORY_LEAK_TRACKING)
+    message(STATUS "Sanitizer MSVC::_CrtDumpMemoryLeaks added to ${_target}")
+  else()
+    # FLATBUFFERS_CODE_SANITIZE: boolean {ON,OFF,YES,NO} or string with list of sanitizer.
+    # List of sanitizer is string starts with '=': "=address,undefined,thread,memory".
+    if((${CMAKE_CXX_COMPILER_ID} MATCHES "Clang") OR
+      ((${CMAKE_CXX_COMPILER_ID} MATCHES "GNU") AND NOT (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.9"))
+    )
+      set(_sanitizer_flags "=address,undefined")
+      if(_sanitizer MATCHES "=.*")
+        # override default by user-defined sanitizer list
+        set(_sanitizer_flags ${_sanitizer})
+      endif()
+      target_compile_options(${_target} PRIVATE
+        -g -fsigned-char -fno-omit-frame-pointer
+        "-fsanitize${_sanitizer_flags}")
+      target_link_libraries(${_target} PRIVATE
+        "-fsanitize${_sanitizer_flags}")
+      set_property(TARGET ${_target} PROPERTY POSITION_INDEPENDENT_CODE ON)
+      message(STATUS "Sanitizer ${_sanitizer_flags} added to ${_target}")
     endif()
-    target_compile_options(${_target} PRIVATE
-      -g -fsigned-char -fno-omit-frame-pointer
-      "-fsanitize${_sanitizer_flags}")
-    target_link_libraries(${_target} PRIVATE
-      "-fsanitize${_sanitizer_flags}")
-    set_property(TARGET ${_target} PROPERTY POSITION_INDEPENDENT_CODE ON)
-    message(STATUS "Sanitizer ${_sanitizer_flags} added to ${_target}")
   endif()
 endfunction()
 
@@ -256,7 +312,7 @@ include_directories(grpc)
 
 if(FLATBUFFERS_BUILD_FLATLIB)
   add_library(flatbuffers STATIC ${FlatBuffers_Library_SRCS})
-  # CMake > 2.8.11: Attach header directory for when build via add_subdirectory().
+  # Attach header directory for when build via add_subdirectory().
   target_include_directories(flatbuffers INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
   target_compile_options(flatbuffers PRIVATE "${FLATBUFFERS_PRIVATE_CXX_FLAGS}")
@@ -275,6 +331,9 @@ if(FLATBUFFERS_BUILD_FLATC)
     # Make flatc.exe not depend on runtime dlls for easy distribution.
     target_compile_options(flatc PUBLIC $<$<CONFIG:Release>:/MT>)
   endif()
+  if(FLATBUFFERS_STATIC_FLATC AND NOT MSVC)
+    target_link_libraries(flatc PRIVATE -static)
+  endif()
 endif()
 
 if(FLATBUFFERS_BUILD_FLATHASH)
@@ -289,57 +348,148 @@ if(FLATBUFFERS_BUILD_SHAREDLIB)
   # - minor updated when there are additions in API/ABI
   # - major (ABI number) updated when there are changes in ABI (or removals)
   set(FlatBuffers_Library_SONAME_MAJOR "1")
-  set(FlatBuffers_Library_SONAME_FULL "${FlatBuffers_Library_SONAME_MAJOR}.11.0")
+  set(FlatBuffers_Library_SONAME_FULL "${FlatBuffers_Library_SONAME_MAJOR}.12.0")
   set_target_properties(flatbuffers_shared PROPERTIES OUTPUT_NAME flatbuffers
                         SOVERSION "${FlatBuffers_Library_SONAME_MAJOR}"
                         VERSION "${FlatBuffers_Library_SONAME_FULL}")
 endif()
 
-function(compile_flatbuffers_schema_to_cpp SRC_FBS)
+# Global list of generated files.
+# Use the global property to be independent of PARENT_SCOPE.
+set_property(GLOBAL PROPERTY FBS_GENERATED_OUTPUTS)
+
+function(get_generated_output generated_files)
+  get_property(tmp GLOBAL PROPERTY FBS_GENERATED_OUTPUTS)
+  set(${generated_files} ${tmp} PARENT_SCOPE)
+endfunction(get_generated_output)
+
+function(register_generated_output file_name)
+  get_property(tmp GLOBAL PROPERTY FBS_GENERATED_OUTPUTS)
+  list(APPEND tmp ${file_name})
+  set_property(GLOBAL PROPERTY FBS_GENERATED_OUTPUTS ${tmp})
+endfunction(register_generated_output)
+
+function(compile_flatbuffers_schema_to_cpp_opt SRC_FBS OPT)
+  if(FLATBUFFERS_BUILD_LEGACY)
+    set(OPT ${OPT};--cpp-std c++0x)
+  else()
+    # --cpp-std is defined by flatc default settings.
+  endif()
+  message(STATUS "`${SRC_FBS}`: add generation of C++ code with '${OPT}'")
   get_filename_component(SRC_FBS_DIR ${SRC_FBS} PATH)
   string(REGEX REPLACE "\\.fbs$" "_generated.h" GEN_HEADER ${SRC_FBS})
   add_custom_command(
     OUTPUT ${GEN_HEADER}
-    COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}" -c --no-includes --gen-mutable
-            --gen-object-api --gen-compare -o "${SRC_FBS_DIR}"
+    COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}"
+            --cpp --gen-mutable --gen-object-api --reflect-names
             --cpp-ptr-type flatbuffers::unique_ptr # Used to test with C++98 STLs
-            --reflect-names
+            ${OPT}
             -I "${CMAKE_CURRENT_SOURCE_DIR}/tests/include_test"
+            -o "${SRC_FBS_DIR}"
             "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
-    DEPENDS flatc)
+    DEPENDS flatc
+    COMMENT "Run generation: '${GEN_HEADER}'")
+  register_generated_output(${GEN_HEADER})
+endfunction()
+
+function(compile_flatbuffers_schema_to_cpp SRC_FBS)
+  compile_flatbuffers_schema_to_cpp_opt(${SRC_FBS} "--no-includes;--gen-compare")
 endfunction()
 
 function(compile_flatbuffers_schema_to_binary SRC_FBS)
+  message(STATUS "`${SRC_FBS}`: add generation of binary (.bfbs) schema")
   get_filename_component(SRC_FBS_DIR ${SRC_FBS} PATH)
   string(REGEX REPLACE "\\.fbs$" ".bfbs" GEN_BINARY_SCHEMA ${SRC_FBS})
+  # For details about flags see generate_code.bat(sh)
   add_custom_command(
     OUTPUT ${GEN_BINARY_SCHEMA}
-    COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}" -b --schema -o "${SRC_FBS_DIR}"
+    COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}"
+            -b --schema --bfbs-comments --bfbs-builtins
+            -I "${CMAKE_CURRENT_SOURCE_DIR}/tests/include_test"
+            -o "${SRC_FBS_DIR}"
             "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
-    DEPENDS flatc)
+    DEPENDS flatc
+    COMMENT "Run generation: '${GEN_BINARY_SCHEMA}'")
+  register_generated_output(${GEN_BINARY_SCHEMA})
+endfunction()
+
+function(compile_flatbuffers_schema_to_embedded_binary SRC_FBS OPT)
+  if(FLATBUFFERS_BUILD_LEGACY)
+    set(OPT ${OPT};--cpp-std c++0x)
+  else()
+    # --cpp-std is defined by flatc default settings.
+  endif()
+  message(STATUS "`${SRC_FBS}`: add generation of C++ embedded binary schema code with '${OPT}'")
+  get_filename_component(SRC_FBS_DIR ${SRC_FBS} PATH)
+  string(REGEX REPLACE "\\.fbs$" "_bfbs_generated.h" GEN_BFBS_HEADER ${SRC_FBS})
+  # For details about flags see generate_code.bat(sh)
+  add_custom_command(
+          OUTPUT ${GEN_BFBS_HEADER}
+          COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}"
+          --cpp --gen-mutable --gen-object-api --reflect-names
+          --cpp-ptr-type flatbuffers::unique_ptr # Used to test with C++98 STLs
+          ${OPT}
+          --bfbs-comments --bfbs-builtins --bfbs-gen-embed
+          -I "${CMAKE_CURRENT_SOURCE_DIR}/tests/include_test"
+          -o "${SRC_FBS_DIR}"
+          "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
+          DEPENDS flatc
+          COMMENT "Run generation: '${GEN_BFBS_HEADER}'")
+  register_generated_output(${GEN_BFBS_HEADER})
 endfunction()
 
 if(FLATBUFFERS_BUILD_TESTS)
+  file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/tests" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+  file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/samples" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+
+  # TODO Add (monster_test.fbs monsterdata_test.json)->monsterdata_test.mon
   compile_flatbuffers_schema_to_cpp(tests/monster_test.fbs)
+  compile_flatbuffers_schema_to_binary(tests/monster_test.fbs)
+  compile_flatbuffers_schema_to_cpp(tests/namespace_test/namespace_test1.fbs)
+  compile_flatbuffers_schema_to_cpp(tests/namespace_test/namespace_test2.fbs)
+  compile_flatbuffers_schema_to_cpp(tests/union_vector/union_vector.fbs)
+  compile_flatbuffers_schema_to_cpp_opt(tests/native_type_test.fbs "")
+  compile_flatbuffers_schema_to_cpp_opt(tests/arrays_test.fbs "--scoped-enums;--gen-compare")
+  compile_flatbuffers_schema_to_binary(tests/arrays_test.fbs)
+  compile_flatbuffers_schema_to_embedded_binary(tests/monster_test.fbs "--no-includes;--gen-compare")
+  if(NOT (MSVC AND (MSVC_VERSION LESS 1900)))
+    compile_flatbuffers_schema_to_cpp(tests/monster_extra.fbs) # Test floating-point NAN/INF.
+  endif()
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/tests)
   add_executable(flattests ${FlatBuffers_Tests_SRCS})
+  add_dependencies(flattests generated_code)
   set_property(TARGET flattests
     PROPERTY COMPILE_DEFINITIONS FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
     FLATBUFFERS_DEBUG_VERIFICATION_FAILURE=1)
   if(FLATBUFFERS_CODE_SANITIZE)
-    if(WIN32)
-      target_compile_definitions(flattests PRIVATE FLATBUFFERS_MEMORY_LEAK_TRACKING)
-      message(STATUS "Sanitizer MSVC::_CrtDumpMemoryLeaks added to flattests")
-    else()
-      add_fsanitize_to_target(flattests ${FLATBUFFERS_CODE_SANITIZE})
-    endif()
+    add_fsanitize_to_target(flattests ${FLATBUFFERS_CODE_SANITIZE})
   endif()
 
   compile_flatbuffers_schema_to_cpp(samples/monster.fbs)
+  compile_flatbuffers_schema_to_binary(samples/monster.fbs)
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/samples)
   add_executable(flatsamplebinary ${FlatBuffers_Sample_Binary_SRCS})
+  add_dependencies(flatsamplebinary generated_code)
   add_executable(flatsampletext ${FlatBuffers_Sample_Text_SRCS})
+  add_dependencies(flatsampletext generated_code)
   add_executable(flatsamplebfbs ${FlatBuffers_Sample_BFBS_SRCS})
+  add_dependencies(flatsamplebfbs generated_code)
+
+  if(FLATBUFFERS_BUILD_CPP17)
+    # Don't generate header for flattests_cpp17 target.
+    # This target uses "generated_cpp17/monster_test_generated.h"
+    # produced by direct call of generate_code.bat(sh) script.
+    add_executable(flattests_cpp17 ${FlatBuffers_Tests_CPP17_SRCS})
+    add_dependencies(flattests_cpp17 generated_code)
+    target_compile_features(flattests_cpp17 PRIVATE cxx_std_17)
+    target_compile_definitions(flattests_cpp17 PRIVATE
+      FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
+      FLATBUFFERS_DEBUG_VERIFICATION_FAILURE=1
+    )
+    if(FLATBUFFERS_CODE_SANITIZE)
+      add_fsanitize_to_target(flattests_cpp17 ${FLATBUFFERS_CODE_SANITIZE})
+    endif()
+  endif(FLATBUFFERS_BUILD_CPP17)
 endif()
 
 if(FLATBUFFERS_BUILD_GRPCTEST)
@@ -356,7 +506,12 @@ if(FLATBUFFERS_BUILD_GRPCTEST)
   INCLUDE_DIRECTORIES(${PROTOBUF_DOWNLOAD_PATH}/src)
   LINK_DIRECTORIES(${GRPC_INSTALL_PATH}/lib)
   add_executable(grpctest ${FlatBuffers_GRPCTest_SRCS})
-  target_link_libraries(grpctest grpc++_unsecure grpc_unsecure gpr pthread dl)
+  add_dependencies(grpctest generated_code)
+  target_link_libraries(grpctest PRIVATE grpc++_unsecure grpc_unsecure gpr pthread dl)
+  if(FLATBUFFERS_CODE_SANITIZE AND NOT WIN32)
+    # GRPC test has problems with alignment and will fail under ASAN/UBSAN.
+    # add_fsanitize_to_target(grpctest ${FLATBUFFERS_CODE_SANITIZE})
+  endif()
 endif()
 
 include(CMake/Version.cmake)
@@ -439,12 +594,23 @@ endif()
 if(FLATBUFFERS_BUILD_TESTS)
   enable_testing()
 
-  file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/tests" DESTINATION
-       "${CMAKE_CURRENT_BINARY_DIR}")
   add_test(NAME flattests COMMAND flattests)
+  if(FLATBUFFERS_BUILD_CPP17)
+    add_test(NAME flattests_cpp17 COMMAND flattests_cpp17)
+  endif()
   if(FLATBUFFERS_BUILD_GRPCTEST)
     add_test(NAME grpctest COMMAND grpctest)
   endif()
+endif()
+
+# This target is sync-barrier.
+# Other generate-dependent targets can depend on 'generated_code' only.
+get_generated_output(fbs_generated)
+if(fbs_generated)
+  # message(STATUS "Add generated_code target with files:${fbs_generated}")
+  add_custom_target(generated_code
+    DEPENDS ${fbs_generated}
+    COMMENT "All generated files were updated.")
 endif()
 
 include(CMake/BuildFlatBuffers.cmake)

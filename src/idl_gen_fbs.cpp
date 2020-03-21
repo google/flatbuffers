@@ -63,25 +63,35 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
     for (size_t i = 0; i < ns.from_table; i++) {
       ns.components[ns.components.size() - 1 - i] += "_";
     }
+
+    if (parser.opts.proto_mode && !parser.opts.proto_namespace_suffix.empty()) {
+      // Since we know that all these namespaces come from a .proto, and all are
+      // being converted, we can simply apply this suffix to all of them.
+      ns.components.insert(ns.components.end() - ns.from_table,
+                           parser.opts.proto_namespace_suffix);
+    }
   }
 
   std::string schema;
   schema += "// Generated from " + file_name + ".proto\n\n";
   if (parser.opts.include_dependence_headers) {
     // clang-format off
-    #ifdef FBS_GEN_INCLUDES  // TODO: currently all in one file.
     int num_includes = 0;
     for (auto it = parser.included_files_.begin();
          it != parser.included_files_.end(); ++it) {
       if (it->second.empty())
         continue;
-      auto basename = flatbuffers::StripPath(
-                        flatbuffers::StripExtension(it->second));
+      std::string basename;
+      if(parser.opts.keep_include_path) {
+        basename = flatbuffers::StripExtension(it->second);
+      } else {
+        basename = flatbuffers::StripPath(
+                flatbuffers::StripExtension(it->second));
+      }
       schema += "include \"" + basename + ".fbs\";\n";
       num_includes++;
     }
     if (num_includes) schema += "\n";
-    #endif
     // clang-format on
   }
   // Generate code for all the enum declarations.
@@ -89,6 +99,9 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
   for (auto enum_def_it = parser.enums_.vec.begin();
        enum_def_it != parser.enums_.vec.end(); ++enum_def_it) {
     EnumDef &enum_def = **enum_def_it;
+    if (parser.opts.include_dependence_headers && enum_def.generated) {
+      continue;
+    }
     GenNameSpace(*enum_def.defined_namespace, &schema, &last_namespace);
     GenComment(enum_def.doc_comment, &schema, nullptr);
     if (enum_def.is_union)
@@ -102,7 +115,7 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
       if (enum_def.is_union)
         schema += "  " + GenType(ev.union_type) + ",\n";
       else
-        schema += "  " + ev.name + " = " + NumToString(ev.value) + ",\n";
+        schema += "  " + ev.name + " = " + enum_def.ToString(ev) + ",\n";
     }
     schema += "}\n\n";
   }
@@ -110,6 +123,9 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
   for (auto it = parser.structs_.vec.begin(); it != parser.structs_.vec.end();
        ++it) {
     StructDef &struct_def = **it;
+    if (parser.opts.include_dependence_headers && struct_def.generated) {
+      continue;
+    }
     GenNameSpace(*struct_def.defined_namespace, &schema, &last_namespace);
     GenComment(struct_def.doc_comment, &schema, nullptr);
     schema += "table " + struct_def.name + " {\n";

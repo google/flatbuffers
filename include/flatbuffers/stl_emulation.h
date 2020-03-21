@@ -96,13 +96,13 @@ inline void vector_emplace_back(std::vector<T> *vector, V &&data) {
       }
   };
 
-  template <> class numeric_limits<float> : 
+  template <> class numeric_limits<float> :
       public std::numeric_limits<float> {
     public:
       static float lowest() { return -FLT_MAX; }
   };
 
-  template <> class numeric_limits<double> : 
+  template <> class numeric_limits<double> :
       public std::numeric_limits<double> {
     public:
       static double lowest() { return -DBL_MAX; }
@@ -138,7 +138,12 @@ inline void vector_emplace_back(std::vector<T> *vector, V &&data) {
     template <typename T, typename U> using is_same = std::is_same<T,U>;
     template <typename T> using is_floating_point = std::is_floating_point<T>;
     template <typename T> using is_unsigned = std::is_unsigned<T>;
+    template <typename T> using is_enum = std::is_enum<T>;
     template <typename T> using make_unsigned = std::make_unsigned<T>;
+    template<bool B, class T, class F>
+    using conditional = std::conditional<B, T, F>;
+    template<class T, T v>
+    using integral_constant = std::integral_constant<T, v>;
   #else
     // Map C++ TR1 templates defined by stlport.
     template <typename T> using is_scalar = std::tr1::is_scalar<T>;
@@ -146,6 +151,7 @@ inline void vector_emplace_back(std::vector<T> *vector, V &&data) {
     template <typename T> using is_floating_point =
         std::tr1::is_floating_point<T>;
     template <typename T> using is_unsigned = std::tr1::is_unsigned<T>;
+    template <typename T> using is_enum = std::tr1::is_enum<T>;
     // Android NDK doesn't have std::make_unsigned or std::tr1::make_unsigned.
     template<typename T> struct make_unsigned {
       static_assert(is_unsigned<T>::value, "Specialization not implemented!");
@@ -157,6 +163,10 @@ inline void vector_emplace_back(std::vector<T> *vector, V &&data) {
     template<> struct make_unsigned<long> { using type = unsigned long; };
     template<>
     struct make_unsigned<long long> { using type = unsigned long long; };
+    template<bool B, class T, class F>
+    using conditional = std::tr1::conditional<B, T, F>;
+    template<class T, T v>
+    using integral_constant = std::tr1::integral_constant<T, v>;
   #endif  // !FLATBUFFERS_CPP98_STL
 #else
   // MSVC 2010 doesn't support C++11 aliases.
@@ -165,7 +175,12 @@ inline void vector_emplace_back(std::vector<T> *vector, V &&data) {
   template <typename T> struct is_floating_point :
         public std::is_floating_point<T> {};
   template <typename T> struct is_unsigned : public std::is_unsigned<T> {};
+  template <typename T> struct is_enum : public std::is_enum<T> {};
   template <typename T> struct make_unsigned : public std::make_unsigned<T> {};
+  template<bool B, class T, class F>
+  struct conditional : public std::conditional<B, T, F> {};
+  template<class T, T v>
+  struct integral_constant : public std::integral_constant<T, v> {};
 #endif  // defined(FLATBUFFERS_TEMPLATES_ALIASES)
 
 #ifndef FLATBUFFERS_CPP98_STL
@@ -268,6 +283,23 @@ inline void vector_emplace_back(std::vector<T> *vector, V &&data) {
   template <class T> bool operator==(const unique_ptr<T>& x, intptr_t y) {
     return reinterpret_cast<intptr_t>(x.get()) == y;
   }
+
+  template <class T> bool operator!=(const unique_ptr<T>& x, decltype(nullptr)) {
+    return !!x;
+  }
+
+  template <class T> bool operator!=(decltype(nullptr), const unique_ptr<T>& x) {
+    return !!x;
+  }
+
+  template <class T> bool operator==(const unique_ptr<T>& x, decltype(nullptr)) {
+    return !x;
+  }
+
+  template <class T> bool operator==(decltype(nullptr), const unique_ptr<T>& x) {
+    return !x;
+  }
+
 #endif  // !FLATBUFFERS_CPP98_STL
 
 }  // namespace flatbuffers

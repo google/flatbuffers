@@ -17,9 +17,9 @@
 #ifndef FLATBUFFERS_UTIL_H_
 #define FLATBUFFERS_UTIL_H_
 
-#include "flatbuffers/base.h"
-
 #include <errno.h>
+
+#include "flatbuffers/base.h"
 
 #ifndef FLATBUFFERS_PREFER_PRINTF
 #  include <sstream>
@@ -102,7 +102,7 @@ std::string NumToStringImplWrapper(T t, const char *fmt, int precision = 0) {
   size_t string_width = NumToStringWidth(t, precision);
   std::string s(string_width, 0x00);
   // Allow snprintf to use std::string trailing null to detect buffer overflow
-  snprintf(const_cast<char *>(s.data()), (s.size() + 1), fmt, precision, t);
+  snprintf(const_cast<char *>(s.data()), (s.size() + 1), fmt, string_width, t);
   return s;
 }
 #endif  // FLATBUFFERS_PREFER_PRINTF
@@ -327,7 +327,7 @@ template<typename T> inline bool StringToNumber(const char *s, T *val) {
   int64_t i64;
   // The errno check isn't needed, will return MAX/MIN on overflow.
   if (StringToIntegerImpl(&i64, s, 0, false)) {
-    const int64_t max = flatbuffers::numeric_limits<T>::max();
+    const int64_t max = (flatbuffers::numeric_limits<T>::max)();
     const int64_t min = flatbuffers::numeric_limits<T>::lowest();
     if (i64 > max) {
       *val = static_cast<T>(max);
@@ -365,7 +365,7 @@ inline bool StringToNumber<uint64_t>(const char *str, uint64_t *val) {
     if (*s == '-') {
       // For unsigned types return the max to distinguish from
       // "no conversion can be performed".
-      *val = flatbuffers::numeric_limits<uint64_t>::max();
+      *val = (flatbuffers::numeric_limits<uint64_t>::max)();
       return false;
     }
   }
@@ -636,6 +636,32 @@ inline bool EscapeString(const char *s, size_t length, std::string *_text,
   return true;
 }
 
+inline std::string BufferToHexText(const void *buffer, size_t buffer_size,
+                                   size_t max_length,
+                                   const std::string &wrapped_line_prefix,
+                                   const std::string &wrapped_line_suffix) {
+  std::string text = wrapped_line_prefix;
+  size_t start_offset = 0;
+  const char *s = reinterpret_cast<const char *>(buffer);
+  for (size_t i = 0; s && i < buffer_size; i++) {
+    // Last iteration or do we have more?
+    bool have_more = i + 1 < buffer_size;
+    text += "0x";
+    text += IntToStringHex(static_cast<uint8_t>(s[i]), 2);
+    if (have_more) { text += ','; }
+    // If we have more to process and we reached max_length
+    if (have_more &&
+        text.size() + wrapped_line_suffix.size() >= start_offset + max_length) {
+      text += wrapped_line_suffix;
+      text += '\n';
+      start_offset = text.size();
+      text += wrapped_line_prefix;
+    }
+  }
+  text += wrapped_line_suffix;
+  return text;
+}
+
 // Remove paired quotes in a string: "text"|'text' -> text.
 std::string RemoveStringQuotes(const std::string &s);
 
@@ -648,6 +674,9 @@ bool SetGlobalTestLocale(const char *locale_name,
 // Read (or test) a value of environment variable.
 bool ReadEnvironmentVariable(const char *var_name,
                              std::string *_value = nullptr);
+
+// MSVC specific: Send all assert reports to STDOUT to prevent CI hangs.
+void SetupDefaultCRTReportMode();
 
 }  // namespace flatbuffers
 

@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-#include <thread>
-
 #include <grpc++/grpc++.h>
+
+#include <thread>
 
 #include "monster_test.grpc.fb.h"
 #include "monster_test_generated.h"
 #include "test_assert.h"
 
 using namespace MyGame::Example;
-using flatbuffers::grpc::MessageBuilder;
 using flatbuffers::FlatBufferBuilder;
+using flatbuffers::grpc::MessageBuilder;
 
 void message_builder_tests();
 
@@ -97,8 +97,7 @@ void RunServer() {
   server_instance->Wait();
 }
 
-template <class Builder>
-void StoreRPC(MonsterStorage::Stub *stub) {
+template<class Builder> void StoreRPC(MonsterStorage::Stub *stub) {
   Builder fbb;
   grpc::ClientContext context;
   // Build a request with the name set.
@@ -119,8 +118,7 @@ void StoreRPC(MonsterStorage::Stub *stub) {
   }
 }
 
-template <class Builder>
-void RetrieveRPC(MonsterStorage::Stub *stub) {
+template<class Builder> void RetrieveRPC(MonsterStorage::Stub *stub) {
   Builder fbb;
   grpc::ClientContext context;
   fbb.Clear();
@@ -155,7 +153,6 @@ int grpc_server_test() {
   RetrieveRPC<MessageBuilder>(stub.get());
   RetrieveRPC<FlatBufferBuilder>(stub.get());
 
-
 #if !FLATBUFFERS_GRPC_DISABLE_AUTO_VERIFICATION
   {
     // Test that an invalid request errors out correctly
@@ -181,7 +178,7 @@ int grpc_server_test() {
   return 0;
 }
 
-int main(int /*argc*/, const char * /*argv*/ []) {
+int main(int /*argc*/, const char * /*argv*/[]) {
   message_builder_tests();
   grpc_server_test();
 
@@ -193,4 +190,3 @@ int main(int /*argc*/, const char * /*argv*/ []) {
     return 1;
   }
 }
-

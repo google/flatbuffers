@@ -228,7 +228,7 @@ inline std::string GetAnyVectorElemS(const VectorOfAny *vec,
 template<typename T>
 T *GetAnyVectorElemPointer(const VectorOfAny *vec, size_t i) {
   auto elem_ptr = vec->Data() + sizeof(uoffset_t) * i;
-  return reinterpret_cast<T*>(elem_ptr + ReadScalar<uoffset_t>(elem_ptr));
+  return reinterpret_cast<T *>(elem_ptr + ReadScalar<uoffset_t>(elem_ptr));
 }
 
 // Get the inline-address of a vector element. Useful for Structs (pass Struct

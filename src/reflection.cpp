@@ -15,6 +15,7 @@
  */
 
 #include "flatbuffers/reflection.h"
+
 #include "flatbuffers/util.h"
 
 // Helper functionality for reflection.
@@ -55,7 +56,13 @@ double GetAnyValueF(reflection::BaseType type, const uint8_t *data) {
     case reflection::String: {
       auto s =
           reinterpret_cast<const String *>(ReadScalar<uoffset_t>(data) + data);
-      return s ? strtod(s->c_str(), nullptr) : 0.0;
+      if (s) {
+        double d;
+        StringToNumber(s->c_str(), &d);
+        return d;
+      } else {
+        return 0.0;
+      }
     }
     default: return static_cast<double>(GetAnyValueI(type, data));
   }
@@ -148,9 +155,12 @@ void SetAnyValueF(reflection::BaseType type, uint8_t *data, double val) {
 void SetAnyValueS(reflection::BaseType type, uint8_t *data, const char *val) {
   switch (type) {
     case reflection::Float:
-    case reflection::Double:
-      SetAnyValueF(type, data, strtod(val, nullptr));
+    case reflection::Double: {
+      double d;
+      StringToNumber(val, &d);
+      SetAnyValueF(type, data, d);
       break;
+    }
     // TODO: support strings.
     default: SetAnyValueI(type, data, StringToInt(val)); break;
   }
@@ -431,8 +441,8 @@ Offset<const Table *> CopyTable(FlatBufferBuilder &fbb,
               break;
             }
           }
-          FLATBUFFERS_FALLTHROUGH(); // fall thru
-          default: {  // Scalars and structs.
+            FLATBUFFERS_FALLTHROUGH();  // fall thru
+          default: {                    // Scalars and structs.
             auto element_size = GetTypeSize(element_base_type);
             if (elemobjectdef && elemobjectdef->is_struct())
               element_size = elemobjectdef->bytesize();
@@ -466,7 +476,7 @@ Offset<const Table *> CopyTable(FlatBufferBuilder &fbb,
           break;
         }
       }
-      FLATBUFFERS_FALLTHROUGH(); // fall thru
+        FLATBUFFERS_FALLTHROUGH();  // fall thru
       case reflection::Union:
       case reflection::String:
       case reflection::Vector:
@@ -495,9 +505,8 @@ bool VerifyStruct(flatbuffers::Verifier &v,
   auto offset = parent_table.GetOptionalFieldOffset(field_offset);
   if (required && !offset) { return false; }
 
-  return !offset ||
-         v.Verify(reinterpret_cast<const uint8_t *>(&parent_table), offset,
-                  obj.bytesize());
+  return !offset || v.Verify(reinterpret_cast<const uint8_t *>(&parent_table),
+                             offset, obj.bytesize());
 }
 
 bool VerifyVectorOfStructs(flatbuffers::Verifier &v,
@@ -515,6 +524,31 @@ bool VerifyObject(flatbuffers::Verifier &v, const reflection::Schema &schema,
                   const reflection::Object &obj,
                   const flatbuffers::Table *table, bool required);
 
+bool VerifyUnion(flatbuffers::Verifier &v, const reflection::Schema &schema,
+                 uint8_t utype, const uint8_t *elem,
+                 const reflection::Field &union_field) {
+  if (!utype) return true;  // Not present.
+  auto fb_enum = schema.enums()->Get(union_field.type()->index());
+  if (utype >= fb_enum->values()->size()) return false;
+  auto elem_type = fb_enum->values()->Get(utype)->union_type();
+  switch (elem_type->base_type()) {
+    case reflection::Obj: {
+      auto elem_obj = schema.objects()->Get(elem_type->index());
+      if (elem_obj->is_struct()) {
+        return v.VerifyFromPointer(elem, elem_obj->bytesize());
+      } else {
+        return VerifyObject(v, schema, *elem_obj,
+                            reinterpret_cast<const flatbuffers::Table *>(elem),
+                            true);
+      }
+    }
+    case reflection::String:
+      return v.VerifyString(
+          reinterpret_cast<const flatbuffers::String *>(elem));
+    default: return false;
+  }
+}
+
 bool VerifyVector(flatbuffers::Verifier &v, const reflection::Schema &schema,
                   const flatbuffers::Table &table,
                   const reflection::Field &vec_field) {
@@ -522,7 +556,6 @@ bool VerifyVector(flatbuffers::Verifier &v, const reflection::Schema &schema,
   if (!table.VerifyField<uoffset_t>(v, vec_field.offset())) return false;
 
   switch (vec_field.type()->element()) {
-    case reflection::None: FLATBUFFERS_ASSERT(false); break;
     case reflection::UType:
       return v.VerifyVector(flatbuffers::GetFieldV<uint8_t>(table, vec_field));
     case reflection::Bool:
@@ -552,48 +585,52 @@ bool VerifyVector(flatbuffers::Verifier &v, const reflection::Schema &schema,
         return false;
       }
     }
-    case reflection::Vector: FLATBUFFERS_ASSERT(false); break;
     case reflection::Obj: {
       auto obj = schema.objects()->Get(vec_field.type()->index());
       if (obj->is_struct()) {
-        if (!VerifyVectorOfStructs(v, table, vec_field.offset(), *obj,
-                                   vec_field.required())) {
-          return false;
-        }
+        return VerifyVectorOfStructs(v, table, vec_field.offset(), *obj,
+                                     vec_field.required());
       } else {
         auto vec =
             flatbuffers::GetFieldV<flatbuffers::Offset<flatbuffers::Table>>(
                 table, vec_field);
         if (!v.VerifyVector(vec)) return false;
-        if (vec) {
-          for (uoffset_t j = 0; j < vec->size(); j++) {
-            if (!VerifyObject(v, schema, *obj, vec->Get(j), true)) {
-              return false;
-            }
+        if (!vec) return true;
+        for (uoffset_t j = 0; j < vec->size(); j++) {
+          if (!VerifyObject(v, schema, *obj, vec->Get(j), true)) {
+            return false;
           }
         }
+        return true;
+      }
+    }
+    case reflection::Union: {
+      auto vec = flatbuffers::GetFieldV<flatbuffers::Offset<uint8_t>>(
+          table, vec_field);
+      if (!v.VerifyVector(vec)) return false;
+      if (!vec) return true;
+      auto type_vec = table.GetPointer<Vector<uint8_t> *>(vec_field.offset() -
+                                                          sizeof(voffset_t));
+      if (!v.VerifyVector(type_vec)) return false;
+      for (uoffset_t j = 0; j < vec->size(); j++) {
+        //  get union type from the prev field
+        auto utype = type_vec->Get(j);
+        auto elem = vec->Get(j);
+        if (!VerifyUnion(v, schema, utype, elem, vec_field)) return false;
       }
       return true;
     }
-    case reflection::Union: FLATBUFFERS_ASSERT(false); break;
-    default: FLATBUFFERS_ASSERT(false); break;
+    case reflection::Vector:
+    case reflection::None:
+    default: FLATBUFFERS_ASSERT(false); return false;
   }
-
-  return false;
 }
 
 bool VerifyObject(flatbuffers::Verifier &v, const reflection::Schema &schema,
                   const reflection::Object &obj,
                   const flatbuffers::Table *table, bool required) {
-  if (!table) {
-    if (!required)
-      return true;
-    else
-      return false;
-  }
-
+  if (!table) return !required;
   if (!table->VerifyTableStart(v)) return false;
-
   for (uoffset_t i = 0; i < obj.fields()->size(); i++) {
     auto field_def = obj.fields()->Get(i);
     switch (field_def->type()->base_type()) {
@@ -653,16 +690,9 @@ bool VerifyObject(flatbuffers::Verifier &v, const reflection::Schema &schema,
         //  get union type from the prev field
         voffset_t utype_offset = field_def->offset() - sizeof(voffset_t);
         auto utype = table->GetField<uint8_t>(utype_offset, 0);
-        if (utype != 0) {
-          // Means we have this union field present
-          auto fb_enum = schema.enums()->Get(field_def->type()->index());
-          auto child_obj = fb_enum->values()->Get(utype)->object();
-          if (!VerifyObject(v, schema, *child_obj,
-                            flatbuffers::GetFieldT(*table, *field_def),
-                            field_def->required())) {
-            return false;
-          }
-        }
+        auto uval = reinterpret_cast<const uint8_t *>(
+            flatbuffers::GetFieldT(*table, *field_def));
+        if (!VerifyUnion(v, schema, utype, uval, *field_def)) { return false; }
         break;
       }
       default: FLATBUFFERS_ASSERT(false); break;

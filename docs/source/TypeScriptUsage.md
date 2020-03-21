@@ -43,7 +43,7 @@ First, include the library and generated code. Then read the file into an
 the ByteBuffer to the `getRootAsMonster` function.
 
 ~~~{.ts}
-  // note: import flabuffers with your desired import method
+  // note: import flatbuffers with your desired import method
 
   import { MyGame } from './monster_generated';
 

@@ -778,7 +778,7 @@ INPUT = "FlatBuffers.md" \
         "../../php/FlatbufferBuilder.php" \
         "../../net/FlatBuffers/FlatBufferBuilder.cs" \
         "../../include/flatbuffers/flatbuffers.h" \
-        "../../go/builder.go"
+        "../../go/builder.go" \
         "../../rust/flatbuffers/src/builder.rs"
 
 # This tag can be used to specify the character encoding of the source files

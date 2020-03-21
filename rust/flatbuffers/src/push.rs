@@ -55,7 +55,7 @@ impl PushAlignment {
 
 /// Macro to implement Push for EndianScalar types.
 macro_rules! impl_push_for_endian_scalar {
-    ($ty:ident) => (
+    ($ty:ident) => {
         impl Push for $ty {
             type Output = $ty;
 
@@ -63,9 +63,8 @@ macro_rules! impl_push_for_endian_scalar {
             fn push(&self, dst: &mut [u8], _rest: &[u8]) {
                 emplace_scalar::<$ty>(dst, *self);
             }
-
         }
-    )
+    };
 }
 
 impl_push_for_endian_scalar!(bool);

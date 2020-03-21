@@ -49,6 +49,12 @@ flatbuffers.SIZEOF_INT = 4;
 flatbuffers.FILE_IDENTIFIER_LENGTH = 4;
 
 /**
+ * @type {number}
+ * @const
+ */
+flatbuffers.SIZE_PREFIX_LENGTH = 4;
+
+/**
  * @enum {number}
  */
 flatbuffers.Encoding = {
@@ -104,7 +110,7 @@ flatbuffers.Long = function(low, high) {
 /**
  * @param {number} low
  * @param {number} high
- * @returns {flatbuffers.Long}
+ * @returns {!flatbuffers.Long}
  */
 flatbuffers.Long.create = function(low, high) {
   // Special-case zero to avoid GC overhead for default values
@@ -127,7 +133,7 @@ flatbuffers.Long.prototype.equals = function(other) {
 };
 
 /**
- * @type {flatbuffers.Long}
+ * @type {!flatbuffers.Long}
  * @const
  */
 flatbuffers.Long.ZERO = new flatbuffers.Long(0, 0);
@@ -265,7 +271,7 @@ flatbuffers.Builder.prototype.dataBuffer = function() {
  * Get the bytes representing the FlatBuffer. Only call this after you've
  * called finish().
  *
- * @returns {Uint8Array}
+ * @returns {!Uint8Array}
  */
 flatbuffers.Builder.prototype.asUint8Array = function() {
   return this.bb.bytes().subarray(this.bb.position(), this.bb.position() + this.offset());
@@ -550,7 +556,7 @@ flatbuffers.Builder.prototype.offset = function() {
  * the end of the new buffer (since we build the buffer backwards).
  *
  * @param {flatbuffers.ByteBuffer} bb The current buffer with the existing data
- * @returns {flatbuffers.ByteBuffer} A new byte buffer with the old data copied
+ * @returns {!flatbuffers.ByteBuffer} A new byte buffer with the old data copied
  * to it. The data is located at the end of the buffer.
  *
  * uint8Array.set() formally takes {Array<number>|ArrayBufferView}, so to pass
@@ -676,12 +682,14 @@ outer_loop:
  *
  * @param {flatbuffers.Offset} root_table
  * @param {string=} opt_file_identifier
+ * @param {boolean=} opt_size_prefix
  */
-flatbuffers.Builder.prototype.finish = function(root_table, opt_file_identifier) {
+flatbuffers.Builder.prototype.finish = function(root_table, opt_file_identifier, opt_size_prefix) {
+  var size_prefix = opt_size_prefix ? flatbuffers.SIZE_PREFIX_LENGTH : 0;
   if (opt_file_identifier) {
     var file_identifier = opt_file_identifier;
     this.prep(this.minalign, flatbuffers.SIZEOF_INT +
-      flatbuffers.FILE_IDENTIFIER_LENGTH);
+      flatbuffers.FILE_IDENTIFIER_LENGTH + size_prefix);
     if (file_identifier.length != flatbuffers.FILE_IDENTIFIER_LENGTH) {
       throw new Error('FlatBuffers: file identifier must be length ' +
         flatbuffers.FILE_IDENTIFIER_LENGTH);
@@ -690,9 +698,22 @@ flatbuffers.Builder.prototype.finish = function(root_table, opt_file_identifier)
       this.writeInt8(file_identifier.charCodeAt(i));
     }
   }
-  this.prep(this.minalign, flatbuffers.SIZEOF_INT);
+  this.prep(this.minalign, flatbuffers.SIZEOF_INT + size_prefix);
   this.addOffset(root_table);
+  if (size_prefix) {
+    this.addInt32(this.bb.capacity() - this.space);
+  }
   this.bb.setPosition(this.space);
+};
+
+/**
+ * Finalize a size prefixed buffer, pointing to the given `root_table`.
+ *
+ * @param {flatbuffers.Offset} root_table
+ * @param {string=} opt_file_identifier
+ */
+flatbuffers.Builder.prototype.finishSizePrefixed = function (root_table, opt_file_identifier) {
+  this.finish(root_table, opt_file_identifier, true);
 };
 
 /// @cond FLATBUFFERS_INTERNAL
@@ -804,7 +825,7 @@ flatbuffers.Builder.prototype.createString = function(s) {
  *
  * @param {number} low
  * @param {number} high
- * @returns {flatbuffers.Long}
+ * @returns {!flatbuffers.Long}
  */
 flatbuffers.Builder.prototype.createLong = function(low, high) {
   return flatbuffers.Long.create(low, high);
@@ -835,7 +856,7 @@ flatbuffers.ByteBuffer = function(bytes) {
  * Create and allocate a new ByteBuffer with a given size.
  *
  * @param {number} byte_size
- * @returns {flatbuffers.ByteBuffer}
+ * @returns {!flatbuffers.ByteBuffer}
  */
 flatbuffers.ByteBuffer.allocate = function(byte_size) {
   return new flatbuffers.ByteBuffer(new Uint8Array(byte_size));
@@ -931,7 +952,7 @@ flatbuffers.ByteBuffer.prototype.readUint32 = function(offset) {
 
 /**
  * @param {number} offset
- * @returns {flatbuffers.Long}
+ * @returns {!flatbuffers.Long}
  */
 flatbuffers.ByteBuffer.prototype.readInt64 = function(offset) {
   return new flatbuffers.Long(this.readInt32(offset), this.readInt32(offset + 4));
@@ -939,7 +960,7 @@ flatbuffers.ByteBuffer.prototype.readInt64 = function(offset) {
 
 /**
  * @param {number} offset
- * @returns {flatbuffers.Long}
+ * @returns {!flatbuffers.Long}
  */
 flatbuffers.ByteBuffer.prototype.readUint64 = function(offset) {
   return new flatbuffers.Long(this.readUint32(offset), this.readUint32(offset + 4));
@@ -1114,7 +1135,7 @@ flatbuffers.ByteBuffer.prototype.__union = function(t, offset) {
  *
  * @param {number} offset
  * @param {flatbuffers.Encoding=} opt_encoding Defaults to UTF16_STRING
- * @returns {string|Uint8Array}
+ * @returns {string|!Uint8Array}
  */
 flatbuffers.ByteBuffer.prototype.__string = function(offset, opt_encoding) {
   offset += this.readInt32(offset);
@@ -1225,7 +1246,7 @@ flatbuffers.ByteBuffer.prototype.__has_identifier = function(ident) {
  *
  * @param {number} low
  * @param {number} high
- * @returns {flatbuffers.Long}
+ * @returns {!flatbuffers.Long}
  */
 flatbuffers.ByteBuffer.prototype.createLong = function(low, high) {
   return flatbuffers.Long.create(low, high);

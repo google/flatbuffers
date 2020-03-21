@@ -19,6 +19,7 @@
 
 #include <map>
 #include <sstream>
+
 #include "flatbuffers/idl.h"
 
 namespace flatbuffers {
@@ -26,7 +27,7 @@ namespace flatbuffers {
 // Utility class to assist in generating code through use of text templates.
 //
 // Example code:
-//   CodeWriter code;
+//   CodeWriter code("\t");
 //   code.SetValue("NAME", "Foo");
 //   code += "void {{NAME}}() { printf("%s", "{{NAME}}"); }";
 //   code.SetValue("NAME", "Bar");
@@ -38,7 +39,8 @@ namespace flatbuffers {
 //  void Bar() { printf("%s", "Bar"); }
 class CodeWriter {
  public:
-  CodeWriter() {}
+  CodeWriter(std::string pad = std::string())
+      : pad_(pad), cur_ident_lvl_(0), ignore_ident_(false) {}
 
   // Clears the current "written" code.
   void Clear() {
@@ -53,6 +55,11 @@ class CodeWriter {
     value_map_[key] = value;
   }
 
+  std::string GetValue(const std::string &key) const {
+    const auto it = value_map_.find(key);
+    return it == value_map_.end() ? "" : it->second;
+  }
+
   // Appends the given text to the generated code as well as a newline
   // character.  Any text within {{ and }} delimeters is replaced by values
   // previously stored in the CodeWriter by calling SetValue above.  The newline
@@ -62,9 +69,22 @@ class CodeWriter {
   // Returns the current contents of the CodeWriter as a std::string.
   std::string ToString() const { return stream_.str(); }
 
+  // Increase ident level for writing code
+  void IncrementIdentLevel() { cur_ident_lvl_++; }
+  // Decrease ident level for writing code
+  void DecrementIdentLevel() {
+    if (cur_ident_lvl_) cur_ident_lvl_--;
+  }
+
  private:
   std::map<std::string, std::string> value_map_;
   std::stringstream stream_;
+  std::string pad_;
+  int cur_ident_lvl_;
+  bool ignore_ident_;
+
+  // Add ident padding (tab or space) based on ident level
+  void AppendIdent(std::stringstream &stream);
 };
 
 class BaseGenerator {
@@ -74,16 +94,20 @@ class BaseGenerator {
   static std::string NamespaceDir(const Parser &parser, const std::string &path,
                                   const Namespace &ns);
 
+  std::string GeneratedFileName(const std::string &path,
+                                const std::string &file_name,
+                                const IDLOptions &options) const;
+
  protected:
   BaseGenerator(const Parser &parser, const std::string &path,
-                const std::string &file_name,
-                const std::string qualifying_start,
-                const std::string qualifying_separator)
+                const std::string &file_name, std::string qualifying_start,
+                std::string qualifying_separator, std::string default_extension)
       : parser_(parser),
         path_(path),
         file_name_(file_name),
         qualifying_start_(qualifying_start),
-        qualifying_separator_(qualifying_separator) {}
+        qualifying_separator_(qualifying_separator),
+        default_extension_(default_extension) {}
   virtual ~BaseGenerator() {}
 
   // No copy/assign.
@@ -104,8 +128,9 @@ class BaseGenerator {
   // which works for js and php
   virtual const Namespace *CurrentNameSpace() const { return nullptr; }
 
-  // Ensure that a type is prefixed with its namespace whenever it is used
-  // outside of its namespace.
+  // Ensure that a type is prefixed with its namespace even within
+  // its own namespace to avoid conflict between generated method
+  // names and similarly named classes or structs
   std::string WrapInNameSpace(const Namespace *ns,
                               const std::string &name) const;
 
@@ -118,6 +143,7 @@ class BaseGenerator {
   const std::string &file_name_;
   const std::string qualifying_start_;
   const std::string qualifying_separator_;
+  const std::string default_extension_;
 };
 
 struct CommentConfig {

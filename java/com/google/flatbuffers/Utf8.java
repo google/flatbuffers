@@ -110,9 +110,11 @@ public abstract class Utf8 {
         throws IllegalArgumentException {
       // Simultaneously checks for illegal trailing-byte in leading position (<= '11000000') and
       // overlong 2-byte, '11000001'.
-      if (byte1 < (byte) 0xC2
-              || isNotTrailingByte(byte2)) {
-        throw new IllegalArgumentException("Invalid UTF-8");
+      if (byte1 < (byte) 0xC2) {
+        throw new IllegalArgumentException("Invalid UTF-8: Illegal leading byte in 2 bytes utf");
+      }
+      if (isNotTrailingByte(byte2)) {
+        throw new IllegalArgumentException("Invalid UTF-8: Illegal trailing byte in 2 bytes utf");
       }
       resultArr[resultPos] = (char) (((byte1 & 0x1F) << 6) | trailingByteValue(byte2));
     }

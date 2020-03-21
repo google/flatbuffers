@@ -3,10 +3,14 @@
 
 namespace MyGame\Example;
 
+/// Composite components of Monster color.
 class Color
 {
     const Red = 1;
+    /// \brief color Green
+    /// Green is bit_flag with value (1u << 1)
     const Green = 2;
+    /// \brief color Blue (1u << 3)
     const Blue = 8;
 
     private static $names = array(

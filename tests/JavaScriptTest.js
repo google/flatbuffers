@@ -246,8 +246,10 @@ function testUnicode() {
   MyGame.Example.Monster.addTestarrayofstring(fbb, testarrayofstringOffset);
   MyGame.Example.Monster.addTestarrayoftables(fbb, testarrayoftablesOffset);
   MyGame.Example.Monster.addName(fbb, name);
-  MyGame.Example.Monster.finishMonsterBuffer(fbb, MyGame.Example.Monster.endMonster(fbb));
-  testReadingUnicode(new flatbuffers.ByteBuffer(fbb.asUint8Array()));
+  MyGame.Example.Monster.finishSizePrefixedMonsterBuffer(fbb, MyGame.Example.Monster.endMonster(fbb));
+  var bb = new flatbuffers.ByteBuffer(fbb.asUint8Array())
+  bb.setPosition(4);
+  testReadingUnicode(bb);
 }
 
 var __imul = Math.imul ? Math.imul : function(a, b) {

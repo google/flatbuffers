@@ -2,16 +2,35 @@
 
 package Example
 
-type Color = int8
+import "strconv"
+
+/// Composite components of Monster color.
+type Color byte
+
 const (
-	ColorRed Color = 1
+	ColorRed   Color = 1
+	/// \brief color Green
+	/// Green is bit_flag with value (1u << 1)
 	ColorGreen Color = 2
-	ColorBlue Color = 8
+	/// \brief color Blue (1u << 3)
+	ColorBlue  Color = 8
 )
 
 var EnumNamesColor = map[Color]string{
-	ColorRed:"Red",
-	ColorGreen:"Green",
-	ColorBlue:"Blue",
+	ColorRed:   "Red",
+	ColorGreen: "Green",
+	ColorBlue:  "Blue",
 }
 
+var EnumValuesColor = map[string]Color{
+	"Red":   ColorRed,
+	"Green": ColorGreen,
+	"Blue":  ColorBlue,
+}
+
+func (v Color) String() string {
+	if s, ok := EnumNamesColor[v]; ok {
+		return s
+	}
+	return "Color(" + strconv.FormatInt(int64(v), 10) + ")"
+}

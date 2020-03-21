@@ -8,6 +8,33 @@ import (
 	NamespaceA "NamespaceA"
 )
 
+type TableInCT struct {
+	ReferToA1 *NamespaceA.TableInFirstNST
+	ReferToA2 *NamespaceA.SecondTableInAT
+}
+
+func (t *TableInCT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
+	if t == nil { return 0 }
+	referToA1Offset := t.ReferToA1.Pack(builder)
+	referToA2Offset := t.ReferToA2.Pack(builder)
+	TableInCStart(builder)
+	TableInCAddReferToA1(builder, referToA1Offset)
+	TableInCAddReferToA2(builder, referToA2Offset)
+	return TableInCEnd(builder)
+}
+
+func (rcv *TableInC) UnPackTo(t *TableInCT) {
+	t.ReferToA1 = rcv.ReferToA1(nil).UnPack()
+	t.ReferToA2 = rcv.ReferToA2(nil).UnPack()
+}
+
+func (rcv *TableInC) UnPack() *TableInCT {
+	if rcv == nil { return nil }
+	t := &TableInCT{}
+	rcv.UnPackTo(t)
+	return t
+}
+
 type TableInC struct {
 	_tab flatbuffers.Table
 }
