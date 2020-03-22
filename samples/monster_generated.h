@@ -402,7 +402,6 @@ struct MonsterBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  MonsterBuilder &operator=(const MonsterBuilder &);
   flatbuffers::Offset<Monster> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Monster>(end);
@@ -536,7 +535,6 @@ struct WeaponBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  WeaponBuilder &operator=(const WeaponBuilder &);
   flatbuffers::Offset<Weapon> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Weapon>(end);
