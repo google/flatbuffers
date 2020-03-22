@@ -354,11 +354,11 @@ impl<'de> Reader<'de> {
             BitWidth::W8 | BitWidth::W16 => return Err(Error::InvalidPackedType),
             BitWidth::W32 => cursor
                 .and_then(|s| s.try_into().ok())
-                .map(<f32>::from_le_bytes)
+                .map(f32_from_le_bytes)
                 .map(Into::into),
             BitWidth::W64 => cursor
                 .and_then(|s| s.try_into().ok())
-                .map(<f64>::from_le_bytes),
+                .map(f64_from_le_bytes),
         }
         .ok_or(Error::FlexbufferOutOfBounds)
     }
@@ -509,6 +509,16 @@ impl<'de> fmt::Display for Reader<'de> {
             _ => unreachable!("Display not implemented for {:?}", self),
         }
     }
+}
+
+// TODO(cneo): Use <f..>::from_le_bytes when we move past rustc 1.39.
+fn f32_from_le_bytes(bytes: [u8; 4]) -> f32 {
+    let bits = <u32>::from_le_bytes(bytes);
+    <f32>::from_bits(bits)
+}
+fn f64_from_le_bytes(bytes: [u8; 8]) -> f64 {
+    let bits = <u64>::from_le_bytes(bytes);
+    <f64>::from_bits(bits)
 }
 
 fn read_usize(buffer: &[u8], address: usize, width: BitWidth) -> usize {
