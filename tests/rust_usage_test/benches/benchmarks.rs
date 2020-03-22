@@ -35,7 +35,6 @@ pub mod include_test2_generated;
 mod monster_test_generated;
 pub use monster_test_generated::my_game;
 
-
 benchmark_main!(
     flatbuffers_benchmarks::benches,
     flexbuffers_benchmarks::benches

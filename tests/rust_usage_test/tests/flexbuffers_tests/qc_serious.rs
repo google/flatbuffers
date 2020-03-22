@@ -1,10 +1,12 @@
+#![allow(unused_imports)]
+
 use super::rwyw::NonNullString;
 use flexbuffers::*;
 use quickcheck::{Arbitrary, Gen};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-#[derive(Debug, Clone, Arbitrary, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 enum Enum {
     Unit,
     U8(u8),
@@ -28,6 +30,62 @@ enum Enum {
         b: Array4<i32>,
         c: Array2<f64>,
     },
+}
+
+// There is some upstream bug in deriving Arbitrary for Enum so we manually implement it here.
+impl Arbitrary for Enum {
+    fn arbitrary<G: Gen>(g: &mut G) -> Self {
+        match g.gen_range(0, 18) {
+            0 => Enum::Unit,
+            1 => Enum::U8(<u8>::arbitrary(g)),
+            2 => Enum::U16(<u16>::arbitrary(g)),
+            3 => Enum::U32(<u32>::arbitrary(g)),
+            4 => Enum::U64(<u64>::arbitrary(g)),
+            5 => {
+                let (a, b, c, d) = <(u8, u16, u32, u64)>::arbitrary(g);
+                Enum::Us(a, b, c, d)
+            }
+            6 => Enum::I8(<i8>::arbitrary(g)),
+            7 => Enum::I16(<i16>::arbitrary(g)),
+            8 => Enum::I32(<i32>::arbitrary(g)),
+            9 => Enum::I64(<i64>::arbitrary(g)),
+            10 => {
+                let (a, b, c, d) = <(i8, i16, i32, i64)>::arbitrary(g);
+                Enum::Is(a, b, c, d)
+            }
+            11 => Enum::F32(<f32>::arbitrary(g)),
+            12 => Enum::F64(<f64>::arbitrary(g)),
+            13 => {
+                let (a, b) = <(f32, f64)>::arbitrary(g);
+                Enum::Fs(a, b)
+            }
+            14 => Enum::String(String::arbitrary(g)),
+            15 => {
+                let (a, b) = <(String, String)>::arbitrary(g);
+                Enum::Strings(a, b)
+            }
+            16 => Enum::Everything(
+                    <u8>::arbitrary(g),
+                    <u16>::arbitrary(g),
+                    <u32>::arbitrary(g),
+                    <u64>::arbitrary(g),
+                    <i8>::arbitrary(g),
+                    <i16>::arbitrary(g),
+                    <i32>::arbitrary(g),
+                    <i64>::arbitrary(g),
+                    <f32>::arbitrary(g),
+                    <f64>::arbitrary(g),
+                    <String>::arbitrary(g),
+                ),
+            17 => {
+                let a = Array3::arbitrary(g);
+                let b = Array4::arbitrary(g);
+                let c = Array2::arbitrary(g);
+                Enum::Arrays { a, b, c }
+            }
+            _ => unreachable!(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Arbitrary, PartialEq, Serialize, Deserialize)]

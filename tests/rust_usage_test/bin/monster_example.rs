@@ -13,7 +13,6 @@ pub mod include_test2_generated;
 mod monster_test_generated;
 pub use monster_test_generated::my_game;
 
-
 use std::io::Read;
 
 fn main() {
@@ -22,7 +21,7 @@ fn main() {
     f.read_to_end(&mut buf).expect("file reading failed");
 
     let monster = my_game::example::get_root_as_monster(&buf[..]);
-    println!("{}", monster.hp());     // `80`
-    println!("{}", monster.mana());   // default value of `150`
+    println!("{}", monster.hp()); // `80`
+    println!("{}", monster.mana()); // default value of `150`
     println!("{:?}", monster.name()); // Some("MyMonster")
 }
