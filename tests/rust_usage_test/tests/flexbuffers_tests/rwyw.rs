@@ -253,7 +253,10 @@ fn vector_uint4() {
     assert_eq!(v.idx(2).get_u64(), Ok(5));
     assert_eq!(v.idx(3).get_u64(), Ok(7));
     assert!(v.index(4).is_err());
-    assert_eq!(r.get_slice::<u8>().unwrap(), [2, 3, 5, 7]);
+    #[cfg(target_endian = "little")]
+    {
+        assert_eq!(r.get_slice::<u8>().unwrap(), [2, 3, 5, 7]);
+    }
 }
 #[test]
 fn store_and_read_blob() {
