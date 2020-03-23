@@ -296,8 +296,6 @@ class ResizeContext {
     }
   }
 
-  void operator=(const ResizeContext &rc);
-
  private:
   const reflection::Schema &schema_;
   uint8_t *startptr_;

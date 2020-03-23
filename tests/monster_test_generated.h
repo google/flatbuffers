@@ -802,7 +802,6 @@ struct InParentNamespaceBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  InParentNamespaceBuilder &operator=(const InParentNamespaceBuilder &);
   flatbuffers::Offset<InParentNamespace> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<InParentNamespace>(end);
@@ -858,7 +857,6 @@ struct MonsterBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  MonsterBuilder &operator=(const MonsterBuilder &);
   flatbuffers::Offset<Monster> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Monster>(end);
@@ -932,7 +930,6 @@ struct TestSimpleTableWithEnumBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  TestSimpleTableWithEnumBuilder &operator=(const TestSimpleTableWithEnumBuilder &);
   flatbuffers::Offset<TestSimpleTableWithEnum> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<TestSimpleTableWithEnum>(end);
@@ -1032,7 +1029,6 @@ struct StatBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  StatBuilder &operator=(const StatBuilder &);
   flatbuffers::Offset<Stat> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Stat>(end);
@@ -1127,7 +1123,6 @@ struct ReferrableBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ReferrableBuilder &operator=(const ReferrableBuilder &);
   flatbuffers::Offset<Referrable> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Referrable>(end);
@@ -1911,7 +1906,6 @@ struct MonsterBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  MonsterBuilder &operator=(const MonsterBuilder &);
   flatbuffers::Offset<Monster> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Monster>(end);
@@ -2353,7 +2347,6 @@ struct TypeAliasesBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  TypeAliasesBuilder &operator=(const TypeAliasesBuilder &);
   flatbuffers::Offset<TypeAliases> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<TypeAliases>(end);

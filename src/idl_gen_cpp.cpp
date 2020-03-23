@@ -2228,11 +2228,6 @@ class CppGenerator : public BaseGenerator {
     code_ += "    start_ = fbb_.StartTable();";
     code_ += "  }";
 
-    // Assignment operator;
-    code_ +=
-        "  {{STRUCT_NAME}}Builder &operator="
-        "(const {{STRUCT_NAME}}Builder &);";
-
     // Finish() function.
     code_ += "  flatbuffers::Offset<{{STRUCT_NAME}}> Finish() {";
     code_ += "    const auto end = fbb_.EndTable(start_);";

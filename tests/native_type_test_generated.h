@@ -103,7 +103,6 @@ struct ApplicationDataBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ApplicationDataBuilder &operator=(const ApplicationDataBuilder &);
   flatbuffers::Offset<ApplicationData> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<ApplicationData>(end);
