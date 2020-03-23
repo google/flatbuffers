@@ -40,7 +40,7 @@ option(FLATBUFFERS_BUILD_LEGACY
        OFF)
 option(FLATBUFFERS_ENABLE_PCH
        "Enable precompile headers support for 'flatbuffers' and 'flatc'. \"
-        Only work if CMake support 'target_precompile_headers'. \"
+        Only work if CMake supports 'target_precompile_headers'. \"
         This can speed up compilation time."
        OFF)
 
