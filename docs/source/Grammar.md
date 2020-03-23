@@ -69,6 +69,6 @@ hex\_float\_constant = `[-+]?0[xX](([.][:xdigit:]+)|([:xdigit:]+[.][:xdigit:]*)|
 
 special\_float\_constant = `[-+]?(nan|inf|infinity)`
 
-float\_constant = dec\_integer\_constant | hex\_integer\_constant | special\_float\_constant
+float\_constant = dec\_float\_constant | hex\_float\_constant | special\_float\_constant
 
 boolean\_constant = `true` | `false`
