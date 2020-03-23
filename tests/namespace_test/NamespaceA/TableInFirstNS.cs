@@ -24,6 +24,17 @@ public struct TableInFirstNS : IFlatbufferObject
   public bool MutateFooEnum(NamespaceA.NamespaceB.EnumInNestedNS foo_enum) { int o = __p.__offset(6); if (o != 0) { __p.bb.PutSbyte(o + __p.bb_pos, (sbyte)foo_enum); return true; } else { return false; } }
   public NamespaceA.NamespaceB.StructInNestedNS? FooStruct { get { int o = __p.__offset(8); return o != 0 ? (NamespaceA.NamespaceB.StructInNestedNS?)(new NamespaceA.NamespaceB.StructInNestedNS()).__assign(o + __p.bb_pos, __p.bb) : null; } }
 
+  public static Offset<NamespaceA.TableInFirstNS> CreateTableInFirstNS(FlatBufferBuilder builder,
+      Offset<NamespaceA.NamespaceB.TableInNestedNS> foo_tableOffset = default(Offset<NamespaceA.NamespaceB.TableInNestedNS>),
+      NamespaceA.NamespaceB.EnumInNestedNS foo_enum = NamespaceA.NamespaceB.EnumInNestedNS.A,
+      NamespaceA.NamespaceB.StructInNestedNST foo_struct = null) {
+    builder.StartTable(3);
+    TableInFirstNS.AddFooStruct(builder, NamespaceA.NamespaceB.StructInNestedNS.Pack(builder, foo_struct));
+    TableInFirstNS.AddFooTable(builder, foo_tableOffset);
+    TableInFirstNS.AddFooEnum(builder, foo_enum);
+    return TableInFirstNS.EndTableInFirstNS(builder);
+  }
+
   public static void StartTableInFirstNS(FlatBufferBuilder builder) { builder.StartTable(3); }
   public static void AddFooTable(FlatBufferBuilder builder, Offset<NamespaceA.NamespaceB.TableInNestedNS> fooTableOffset) { builder.AddOffset(0, fooTableOffset.Value, 0); }
   public static void AddFooEnum(FlatBufferBuilder builder, NamespaceA.NamespaceB.EnumInNestedNS fooEnum) { builder.AddSbyte(1, (sbyte)fooEnum, 0); }
@@ -45,11 +56,11 @@ public struct TableInFirstNS : IFlatbufferObject
   public static Offset<NamespaceA.TableInFirstNS> Pack(FlatBufferBuilder builder, TableInFirstNST _o) {
     if (_o == null) return default(Offset<NamespaceA.TableInFirstNS>);
     var _foo_table = _o.FooTable == null ? default(Offset<NamespaceA.NamespaceB.TableInNestedNS>) : NamespaceA.NamespaceB.TableInNestedNS.Pack(builder, _o.FooTable);
-    StartTableInFirstNS(builder);
-    AddFooTable(builder, _foo_table);
-    AddFooEnum(builder, _o.FooEnum);
-    AddFooStruct(builder, NamespaceA.NamespaceB.StructInNestedNS.Pack(builder, _o.FooStruct));
-    return EndTableInFirstNS(builder);
+    return CreateTableInFirstNS(
+      builder,
+      _foo_table,
+      _o.FooEnum,
+      _o.FooStruct);
   }
 };
 
