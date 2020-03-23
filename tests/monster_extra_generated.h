@@ -197,7 +197,6 @@ struct MonsterExtraBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  MonsterExtraBuilder &operator=(const MonsterExtraBuilder &);
   flatbuffers::Offset<MonsterExtra> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<MonsterExtra>(end);

@@ -362,7 +362,6 @@ template<typename T, typename U> class pointer_inside_vector {
         reinterpret_cast<uint8_t *>(flatbuffers::vector_data(vec_)) + offset_);
   }
   T *operator->() const { return operator*(); }
-  void operator=(const pointer_inside_vector &piv);
 
  private:
   size_t offset_;
