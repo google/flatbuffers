@@ -161,7 +161,6 @@ struct TypeBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  TypeBuilder &operator=(const TypeBuilder &);
   flatbuffers::Offset<Type> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Type>(end);
@@ -225,7 +224,6 @@ struct KeyValueBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  KeyValueBuilder &operator=(const KeyValueBuilder &);
   flatbuffers::Offset<KeyValue> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<KeyValue>(end);
@@ -325,7 +323,6 @@ struct EnumValBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  EnumValBuilder &operator=(const EnumValBuilder &);
   flatbuffers::Offset<EnumVal> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<EnumVal>(end);
@@ -448,7 +445,6 @@ struct EnumBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  EnumBuilder &operator=(const EnumBuilder &);
   flatbuffers::Offset<Enum> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Enum>(end);
@@ -617,7 +613,6 @@ struct FieldBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  FieldBuilder &operator=(const FieldBuilder &);
   flatbuffers::Offset<Field> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Field>(end);
@@ -773,7 +768,6 @@ struct ObjectBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ObjectBuilder &operator=(const ObjectBuilder &);
   flatbuffers::Offset<Object> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Object>(end);
@@ -898,7 +892,6 @@ struct RPCCallBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  RPCCallBuilder &operator=(const RPCCallBuilder &);
   flatbuffers::Offset<RPCCall> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<RPCCall>(end);
@@ -1007,7 +1000,6 @@ struct ServiceBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ServiceBuilder &operator=(const ServiceBuilder &);
   flatbuffers::Offset<Service> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Service>(end);
@@ -1123,7 +1115,6 @@ struct SchemaBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  SchemaBuilder &operator=(const SchemaBuilder &);
   flatbuffers::Offset<Schema> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Schema>(end);

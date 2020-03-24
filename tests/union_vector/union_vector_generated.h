@@ -314,7 +314,6 @@ struct AttackerBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  AttackerBuilder &operator=(const AttackerBuilder &);
   flatbuffers::Offset<Attacker> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Attacker>(end);
@@ -439,7 +438,6 @@ struct MovieBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  MovieBuilder &operator=(const MovieBuilder &);
   flatbuffers::Offset<Movie> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Movie>(end);

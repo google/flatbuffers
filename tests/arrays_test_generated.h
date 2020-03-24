@@ -264,7 +264,6 @@ struct ArrayTableBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ArrayTableBuilder &operator=(const ArrayTableBuilder &);
   flatbuffers::Offset<ArrayTable> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<ArrayTable>(end);

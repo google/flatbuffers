@@ -176,7 +176,6 @@ struct TableABuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  TableABuilder &operator=(const TableABuilder &);
   flatbuffers::Offset<TableA> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<TableA>(end);
@@ -233,7 +232,6 @@ struct TableBBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  TableBBuilder &operator=(const TableBBuilder &);
   flatbuffers::Offset<TableB> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<TableB>(end);
@@ -282,7 +280,6 @@ struct TableCBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  TableCBuilder &operator=(const TableCBuilder &);
   flatbuffers::Offset<TableC> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<TableC>(end);
@@ -443,7 +440,6 @@ struct RootBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  RootBuilder &operator=(const RootBuilder &);
   flatbuffers::Offset<Root> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Root>(end);

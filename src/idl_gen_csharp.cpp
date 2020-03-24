@@ -947,7 +947,8 @@ class CSharpGenerator : public BaseGenerator {
       }
       // JVM specifications restrict default constructor params to be < 255.
       // Longs and doubles take up 2 units, so we set the limit to be < 127.
-      if (has_no_struct_fields && num_fields && num_fields < 127) {
+      if ((has_no_struct_fields || opts.generate_object_based_api) &&
+          num_fields && num_fields < 127) {
         struct_has_create = true;
         // Generate a table constructor of the form:
         // public static int createName(FlatBufferBuilder builder, args...)
@@ -959,13 +960,22 @@ class CSharpGenerator : public BaseGenerator {
           auto &field = **it;
           if (field.deprecated) continue;
           code += ",\n      ";
-          code += GenTypeBasic(field.value.type);
-          code += " ";
-          code += field.name;
-          if (!IsScalar(field.value.type.base_type)) code += "Offset";
+          if (IsStruct(field.value.type) && opts.generate_object_based_api) {
+            code += WrapInNameSpace(
+                field.value.type.struct_def->defined_namespace,
+                GenTypeName_ObjectAPI(field.value.type.struct_def->name, opts));
+            code += " ";
+            code += field.name;
+            code += " = null";
+          } else {
+            code += GenTypeBasic(field.value.type);
+            code += " ";
+            code += field.name;
+            if (!IsScalar(field.value.type.base_type)) code += "Offset";
 
-          code += " = ";
-          code += GenDefaultValueBasic(field);
+            code += " = ";
+            code += GenDefaultValueBasic(field);
+          }
         }
         code += ") {\n    builder.";
         code += "StartTable(";
@@ -980,8 +990,16 @@ class CSharpGenerator : public BaseGenerator {
                  size == SizeOf(field.value.type.base_type))) {
               code += "    " + struct_def.name + ".";
               code += "Add";
-              code += MakeCamel(field.name) + "(builder, " + field.name;
-              if (!IsScalar(field.value.type.base_type)) code += "Offset";
+              code += MakeCamel(field.name) + "(builder, ";
+              if (IsStruct(field.value.type) &&
+                  opts.generate_object_based_api) {
+                code += GenTypePointer(field.value.type) + ".Pack(builder, " +
+                        field.name + ")";
+              } else {
+                code += field.name;
+                if (!IsScalar(field.value.type.base_type)) code += "Offset";
+              }
+
               code += ");\n";
             }
           }
@@ -1643,8 +1661,11 @@ class CSharpGenerator : public BaseGenerator {
             } else {
               code += ",\n";
               if (field.value.type.struct_def->fixed) {
-                code += "      " + GenTypeGet(field.value.type) +
-                        ".Pack(builder, _o." + camel_name + ")";
+                if (opts.generate_object_based_api)
+                  code += "      _o." + camel_name;
+                else
+                  code += "      " + GenTypeGet(field.value.type) +
+                          ".Pack(builder, _o." + camel_name + ")";
               } else {
                 code += "      _" + field.name;
               }
