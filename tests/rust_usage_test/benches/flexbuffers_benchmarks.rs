@@ -228,11 +228,18 @@ fn validate_monster(r: MapReader) {
     assert_eq!(r.idx("type").as_str(), "great orc");
     assert_eq!(r.idx("age").as_u8(), 100);
     assert_eq!(r.idx("name").as_str(), "Mr. Orc");
-    assert_eq!(
-        r.idx("coins").get_slice::<i16>().unwrap(),
-        [1, 25, 50, 100, 250]
-    );
-    assert_eq!(r.idx("color").get_slice::<u8>().unwrap(), [255, 0, 0, 0]);
+    assert!(r
+        .idx("coins")
+        .as_vector()
+        .iter()
+        .map(|c| c.as_i16())
+        .eq([1, 25, 50, 100, 250].iter().cloned()));
+    assert!(r
+        .idx("color")
+        .as_vector()
+        .iter()
+        .map(|c| c.as_u8())
+        .eq([255, 0, 0, 0].iter().cloned()));
 
     let weapons = r.idx("weapons").as_vector();
     assert_eq!(weapons.len(), 2);
@@ -247,10 +254,12 @@ fn validate_monster(r: MapReader) {
     assert_eq!(axe.idx("damage type").as_str(), "slash");
     assert_eq!(axe.idx("damage").as_u64(), 30);
 
-    let sounds = r.idx("sounds").as_vector();
-    for (i, &s) in ["grr", "rawr", "muahaha"].iter().enumerate() {
-        assert_eq!(sounds.idx(i).as_str(), s);
-    }
+    assert!(r
+        .idx("sounds")
+        .as_vector()
+        .iter()
+        .map(|s| s.as_str())
+        .eq(["grr", "rawr", "muahaha"].iter().cloned()));
 }
 fn read_monsters(b: &mut Bencher) {
     let mut builder = Builder::default();

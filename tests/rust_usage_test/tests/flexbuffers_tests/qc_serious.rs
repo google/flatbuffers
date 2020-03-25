@@ -65,18 +65,18 @@ impl Arbitrary for Enum {
                 Enum::Strings(a, b)
             }
             16 => Enum::Everything(
-                    <u8>::arbitrary(g),
-                    <u16>::arbitrary(g),
-                    <u32>::arbitrary(g),
-                    <u64>::arbitrary(g),
-                    <i8>::arbitrary(g),
-                    <i16>::arbitrary(g),
-                    <i32>::arbitrary(g),
-                    <i64>::arbitrary(g),
-                    <f32>::arbitrary(g),
-                    <f64>::arbitrary(g),
-                    <String>::arbitrary(g),
-                ),
+                <u8>::arbitrary(g),
+                <u16>::arbitrary(g),
+                <u32>::arbitrary(g),
+                <u64>::arbitrary(g),
+                <i8>::arbitrary(g),
+                <i16>::arbitrary(g),
+                <i32>::arbitrary(g),
+                <i64>::arbitrary(g),
+                <f32>::arbitrary(g),
+                <f64>::arbitrary(g),
+                <String>::arbitrary(g),
+            ),
             17 => {
                 let a = Array3::arbitrary(g);
                 let b = Array4::arbitrary(g);
