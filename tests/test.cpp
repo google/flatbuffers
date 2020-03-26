@@ -2885,6 +2885,17 @@ void FlexBuffersTest() {
   // And from FlexBuffer back to JSON:
   auto jsonback = jroot.ToString();
   TEST_EQ_STR(jsontest, jsonback.c_str());
+
+  slb.Clear();
+  slb.Vector([&]() {
+    for (int i = 0; i < 130; ++i) slb.Add(static_cast<uint8_t>(255));
+    slb.Vector([&]() {
+      for (int i = 0; i < 130; ++i) slb.Add(static_cast<uint8_t>(255));
+      slb.Vector([] {});
+    });
+  });
+  slb.Finish();
+  TEST_EQ(slb.GetSize(), 664);
 }
 
 void FlexBuffersDeprecatedTest() {
