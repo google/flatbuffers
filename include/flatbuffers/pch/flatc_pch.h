@@ -14,50 +14,26 @@
  * limitations under the License.
  */
 
-#ifndef FLATBUFFERS_PCH_H_
-#define FLATBUFFERS_PCH_H_
+#ifndef FLATBUFFERS_FLATC_PCH_H_
+#define FLATBUFFERS_FLATC_PCH_H_
 
-// hash.h
-#include <cstdint>
-
-// hash.h
-#include <cstring>
-
-// idl_parser.cpp
-#include <algorithm>
-
-// idl_parser.cpp
-#include <list>
-
-// stl_emulation.h
-// idl_parser.cpp
-#include <string>
-
-// idl_parser.cpp
-#include <utility>
-#include <iomanip>
-
-// flexbuffers.h
-// idl.h
-#include <map>
-
-// idl.h
-// stl_emulation.h
-#include <memory>
-
-// stl_emulation.h
-#include <limits>
-
-// idl.h
-#include <stack>
-
-// stl_emulation.h
-#include <vector>
-
-// stl_emulation.h
-#include <type_traits>
+// stl
+#include <cmath>
+#include <sstream>
+#include <cassert>
+#include <unordered_set>
+#include <unordered_map>
+#include <iostream>
+#include <functional>
+#include <set>
+#include <iterator>
+#include <tuple>
 
 // flatbuffers
-#include "flatbuffers/util.h"
+#include "flatbuffers/pch/pch.h"
+#include "flatbuffers/code_generators.h"
+#include "flatbuffers/flatbuffers.h"
+#include "flatbuffers/flexbuffers.h"
+#include "flatbuffers/idl.h"
 
-#endif // FLATBUFFERS_PCH_H_
+#endif // FLATBUFFERS_FLATC_PCH_H_
