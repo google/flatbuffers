@@ -1522,7 +1522,8 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     Type vector_type = FBT_KEY;
     // Check bit widths and types for all elements.
     for (size_t i = start; i < stack_.size(); i += step) {
-      auto elem_width = stack_[i].ElemWidth(buf_.size(), i + prefix_elems);
+      auto elem_width =
+          stack_[i].ElemWidth(buf_.size(), i - start + prefix_elems);
       bit_width = (std::max)(bit_width, elem_width);
       if (typed) {
         if (i == start) {
