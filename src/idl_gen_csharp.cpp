@@ -1545,7 +1545,7 @@ class CSharpGenerator : public BaseGenerator {
                     GenOffsetType(*field.value.type.struct_def) +
                     ") : " + GenTypeGet(field.value.type) +
                     ".Pack(builder, _o." + camel_name + ");\n";
-          } else if (struct_has_create) {
+          } else if (struct_def.fixed && struct_has_create) {
             std::vector<FieldInfo> fields;
             FieldInfo tmp_field = {
               field.name,
