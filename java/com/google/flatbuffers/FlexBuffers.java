@@ -818,6 +818,9 @@ public class FlexBuffers {
      */
     public static class Map extends Vector {
         private static final Map EMPTY_MAP = new Map(EMPTY_BB, 1, 1);
+        // cache for converting UTF-8 codepoints into
+        // Java chars. Used to speed up String comparison
+        private final byte[] comparisonBuffer = new byte[4];
 
         Map(ReadBuf bb, int end, int byteWidth) {
             super(bb, end, byteWidth);
@@ -836,7 +839,11 @@ public class FlexBuffers {
          * @return reference to value in map
          */
         public Reference get(String key) {
-            return get(key.getBytes(StandardCharsets.UTF_8));
+            int index = binarySearch(key);
+            if (index >= 0 && index < size) {
+                return get(index);
+            }
+            return Reference.NULL_REFERENCE;
         }
 
         /**
@@ -844,9 +851,7 @@ public class FlexBuffers {
          * @return reference to value in map
          */
         public Reference get(byte[] key) {
-            KeyVector keys = keys();
-            int size = keys.size();
-            int index = binarySearch(keys, key);
+            int index = binarySearch(key);
             if (index >= 0 && index < size) {
                 return get(index);
             }
@@ -898,14 +903,17 @@ public class FlexBuffers {
         }
 
         // Performs a binary search on a key vector and return index of the key in key vector
-        private int binarySearch(KeyVector keys, byte[] searchedKey) {
+        private int binarySearch(CharSequence searchedKey) {
             int low = 0;
-            int high = keys.size() - 1;
-
+            int high = size - 1;
+            final int num_prefixed_fields = 3;
+            int keysOffset = end - (byteWidth * num_prefixed_fields);
+            int keysStart = indirect(bb, keysOffset, byteWidth);
+            int keyByteWidth = readInt(bb, keysOffset + byteWidth, byteWidth);
             while (low <= high) {
                 int mid = (low + high) >>> 1;
-                Key k = keys.get(mid);
-                int cmp = k.compareTo(searchedKey);
+                int keyPos = indirect(bb, keysStart + mid * keyByteWidth, keyByteWidth);
+                int cmp = compareCharSequence(keyPos, searchedKey);
                 if (cmp < 0)
                     low = mid + 1;
                 else if (cmp > 0)
@@ -914,6 +922,107 @@ public class FlexBuffers {
                     return mid; // key found
             }
             return -(low + 1);  // key not found
+        }
+
+        private int binarySearch(byte[] searchedKey) {
+            int low = 0;
+            int high = size - 1;
+            final int num_prefixed_fields = 3;
+            int keysOffset = end - (byteWidth * num_prefixed_fields);
+            int keysStart = indirect(bb, keysOffset, byteWidth);
+            int keyByteWidth = readInt(bb, keysOffset + byteWidth, byteWidth);
+
+            while (low <= high) {
+                int mid = (low + high) >>> 1;
+                int keyPos = indirect(bb, keysStart + mid * keyByteWidth, keyByteWidth);
+                int cmp = compareBytes(bb, keyPos, searchedKey);
+                if (cmp < 0)
+                    low = mid + 1;
+                else if (cmp > 0)
+                    high = mid - 1;
+                else
+                    return mid; // key found
+            }
+            return -(low + 1);  // key not found
+        }
+
+        // compares a byte[] against a FBT_KEY
+        private int compareBytes(ReadBuf bb, int start, byte[] other) {
+            int l1 = start;
+            int l2 = 0;
+            byte c1, c2;
+            do {
+                c1 = bb.get(l1);
+                c2 = other[l2];
+                if (c1 == '\0')
+                    return c1 - c2;
+                l1++;
+                l2++;
+                if (l2 == other.length) {
+                    // in our buffer we have an additional \0 byte
+                    // but this does not exist in regular Java strings, so we return now
+                    return c1 - c2;
+                }
+            }
+            while (c1 == c2);
+            return c1 - c2;
+        }
+
+        // compares a CharSequence against a FBT_KEY
+        private int compareCharSequence(int start, CharSequence other) {
+            int bufferPos = start;
+            int otherPos = 0;
+            int limit = bb.limit();
+            int otherLimit = other.length();
+
+            // special loop for ASCII characters. Most of keys should be ASCII only, so this
+            // loop should be optimized for that.
+            // breaks if a multi-byte character is found
+            while (otherPos < otherLimit) {
+                char c2 = other.charAt(otherPos);
+
+                if (c2 >= 0x80) {
+                    // not a single byte codepoint
+                    break;
+                }
+
+                byte b = bb.get(bufferPos);
+
+                if (b == 0) {
+                    return -c2;
+                } else if (b < 0) {
+                    break;
+                } else if ((char) b != c2) {
+                    return b - c2;
+                }
+                ++bufferPos;
+                ++otherPos;
+            }
+
+            while (bufferPos < limit) {
+
+                int sizeInBuff = Utf8.encodeUtf8CodePoint(other, otherPos, comparisonBuffer);
+
+                if (sizeInBuff == 0) {
+                    // That means we finish with other and there are not more chars to
+                    // compare. String in the buffer is bigger.
+                    return bb.get(bufferPos);
+                }
+
+                for (int i = 0; i < sizeInBuff; i++) {
+                    byte bufferByte = bb.get(bufferPos++);
+                    byte otherByte = comparisonBuffer[i];
+                    if (bufferByte == 0) {
+                        // Our key is finished, so other is bigger
+                        return -otherByte;
+                    } else if (bufferByte != otherByte) {
+                        return bufferByte - otherByte;
+                    }
+                }
+
+                otherPos += sizeInBuff == 4 ? 2 : 1;
+            }
+            return 0;
         }
     }
 
