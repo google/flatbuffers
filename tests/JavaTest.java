@@ -12,10 +12,12 @@ import com.google.flatbuffers.FlexBuffers;
 import com.google.flatbuffers.FlexBuffersBuilder;
 import com.google.flatbuffers.StringVector;
 import com.google.flatbuffers.UnionVector;
+
 import com.google.flatbuffers.FlexBuffers.FlexBufferException;
 import com.google.flatbuffers.FlexBuffers.Reference;
 import com.google.flatbuffers.FlexBuffers.Vector;
 import com.google.flatbuffers.ArrayReadWriteBuf;
+import com.google.flatbuffers.FlexBuffers.KeyVector;
 
 import java.io.*;
 import java.math.BigInteger;
@@ -1024,6 +1026,41 @@ class JavaTest {
             // It should throw exception
         }
     }
+    
+    public static void testFlexBuffersUtf8Map() {
+        FlexBuffersBuilder builder = new FlexBuffersBuilder(ByteBuffer.allocate(512),
+                FlexBuffersBuilder.BUILDER_FLAG_SHARE_KEYS_AND_STRINGS);
+
+        String key0 = "😨 face1";
+        String key1 = "😩 face2";
+        String key2 = "😨 face3";
+        String key3 = "trademark ®";
+        String key4 = "€ euro";
+        String utf8keys[] = { "😨 face1", "😩 face2", "😨 face3", "trademark ®", "€ euro"};
+
+        int map = builder.startMap();
+
+        for (int i=0; i< utf8keys.length; i++) {
+            builder.putString(utf8keys[i], utf8keys[i]);  // Testing key and string reuse.
+        }
+        builder.endMap(null, map);
+        builder.finish();
+
+        FlexBuffers.Map m = FlexBuffers.getRoot(builder.getBuffer()).asMap();
+
+        TestEq(m.size(), 5);
+
+        KeyVector kv = m.keys();
+        for (int i=0; i< utf8keys.length; i++) {
+            TestEq(kv.get(i).toString(), m.get(i).asString());
+        }
+
+        TestEq(m.get(key0).asString(), utf8keys[0]);
+        TestEq(m.get(key1).asString(), utf8keys[1]);
+        TestEq(m.get(key2).asString(), utf8keys[2]);
+        TestEq(m.get(key3).asString(), utf8keys[3]);
+        TestEq(m.get(key4).asString(), utf8keys[4]);
+    }
 
     public static void TestFlexBuffers() {
         testSingleElementByte();
@@ -1047,6 +1084,7 @@ class JavaTest {
         testFlexBufferVectorStrings();
         testDeprecatedTypedVectorString();
         testBuilderGrowth();
+        testFlexBuffersUtf8Map();
     }
 
     static void TestVectorOfBytes() {
