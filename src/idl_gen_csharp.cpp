@@ -37,12 +37,12 @@ static CommentConfig comment_config = {
 };
 
 namespace csharp {
-struct FieldInfo {
-  std::string name;
-  int array_length;
-};
-
 class CSharpGenerator : public BaseGenerator {
+  struct FieldArrayLength {
+    std::string name;
+    int length;
+  };
+
  public:
   CSharpGenerator(const Parser &parser, const std::string &path,
                   const std::string &file_name)
@@ -1546,14 +1546,14 @@ class CSharpGenerator : public BaseGenerator {
                     ") : " + GenTypeGet(field.value.type) +
                     ".Pack(builder, _o." + camel_name + ");\n";
           } else if (struct_def.fixed && struct_has_create) {
-            std::vector<FieldInfo> fields;
-            FieldInfo tmp_field = {
+            std::vector<FieldArrayLength> array_lengths;
+            FieldArrayLength tmp_array_length = {
               field.name,
               field.value.type.fixed_length,
             };
-            fields.push_back(tmp_field);
+            array_lengths.push_back(tmp_array_length);
             GenStructPackDecl_ObjectAPI(*field.value.type.struct_def, code_ptr,
-                                        fields);
+                                        array_lengths);
           }
           break;
         }
@@ -1634,14 +1634,14 @@ class CSharpGenerator : public BaseGenerator {
         }
         case BASE_TYPE_ARRAY: {
           if (field.value.type.struct_def != nullptr) {
-            std::vector<FieldInfo> fields;
-            FieldInfo tmp_field = {
+            std::vector<FieldArrayLength> array_lengths;
+            FieldArrayLength tmp_array_length = {
               field.name,
               field.value.type.fixed_length,
             };
-            fields.push_back(tmp_field);
+            array_lengths.push_back(tmp_array_length);
             GenStructPackDecl_ObjectAPI(*field.value.type.struct_def, code_ptr,
-                                        fields);
+                                        array_lengths);
           } else {
             code += "    var _" + field.name + " = _o." + camel_name + ";\n";
           }
@@ -1763,9 +1763,9 @@ class CSharpGenerator : public BaseGenerator {
     code += "  }\n";
   }
 
-  void GenStructPackDecl_ObjectAPI(const StructDef &struct_def,
-                                   std::string *code_ptr,
-                                   const std::vector<FieldInfo> fields) const {
+  void GenStructPackDecl_ObjectAPI(
+      const StructDef &struct_def, std::string *code_ptr,
+      std::vector<FieldArrayLength> &array_lengths) const {
     auto &code = *code_ptr;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
@@ -1773,83 +1773,67 @@ class CSharpGenerator : public BaseGenerator {
       auto is_array = IsArray(field.value.type);
       const auto &field_type =
           is_array ? field.value.type.VectorType() : field.value.type;
-      auto tmp_fields = fields;
-      FieldInfo tmp_field = {
+      FieldArrayLength tmp_array_length = {
         field.name,
         field_type.fixed_length,
       };
-      tmp_fields.push_back(tmp_field);
+      array_lengths.push_back(tmp_array_length);
       if (field_type.struct_def != nullptr) {
         GenStructPackDecl_ObjectAPI(*field_type.struct_def, code_ptr,
-                                    tmp_fields);
+                                    array_lengths);
       } else {
-        auto contains_array = false;
-        for (size_t i = 0; i < tmp_fields.size(); ++i) {
-          if (tmp_fields[i].array_length > 0) {
-            contains_array = true;
-            break;
+        std::vector<FieldArrayLength> array_only_lengths;
+        for (size_t i = 0; i < array_lengths.size(); ++i) {
+          if (array_lengths[i].length > 0) {
+            array_only_lengths.push_back(array_lengths[i]);
           }
         }
         std::string name;
-        for (size_t i = 0; i < tmp_fields.size(); ++i) {
-          name += "_" + tmp_fields[i].name;
+        for (size_t i = 0; i < array_lengths.size(); ++i) {
+          name += "_" + array_lengths[i].name;
         }
         code += "    var " + name + " = ";
-        if (contains_array) {
+        if (array_only_lengths.size() > 0) {
           code += "new " + GenTypeBasic(field_type) + "[";
-          auto first_array = true;
-          for (size_t i = 0; i < tmp_fields.size(); ++i) {
-            auto array_length = tmp_fields[i].array_length;
-            if (array_length <= 0) continue;
-            if (first_array) {
-              first_array = false;
-            } else {
-              code += ",";
-            }
-            code += NumToString(array_length);
+          for (size_t i = 0; i < array_only_lengths.size(); ++i) {
+            if (i != 0) { code += ","; }
+            code += NumToString(array_only_lengths[i].length);
           }
           code += "];\n";
           code += "    ";
           // initialize array
-          for (size_t i = 0; i < tmp_fields.size(); ++i) {
-            auto array_length = tmp_fields[i].array_length;
-            if (array_length <= 0) continue;
+          for (size_t i = 0; i < array_only_lengths.size(); ++i) {
             auto idx = "idx" + NumToString(i);
             code += "for (var " + idx + " = 0; " + idx + " < " +
-                    NumToString(array_length) + "; ++" + idx + ") {";
+                    NumToString(array_only_lengths[i].length) + "; ++" + idx +
+                    ") {";
           }
-          first_array = true;
-          for (size_t i = 0; i < tmp_fields.size(); ++i) {
-            if (tmp_fields[i].array_length <= 0) continue;
+          for (size_t i = 0; i < array_only_lengths.size(); ++i) {
             auto idx = "idx" + NumToString(i);
-            if (first_array) {
+            if (i == 0) {
               code += name + "[" + idx;
-              first_array = false;
             } else {
               code += "," + idx;
             }
           }
           code += "] = _o";
-          for (size_t i = 0; i < tmp_fields.size(); ++i) {
-            code += "." + MakeCamel(tmp_fields[i].name);
-            if (tmp_fields[i].array_length <= 0) continue;
-            auto idx = "idx" + NumToString(i);
-            code += "[" + idx + "]";
+          for (size_t i = 0, j = 0; i < array_lengths.size(); ++i) {
+            code += "." + MakeCamel(array_lengths[i].name);
+            if (array_lengths[i].length <= 0) continue;
+            code += "[idx" + NumToString(j++) + "]";
           }
           code += ";";
-          for (size_t i = 0; i < tmp_fields.size(); ++i) {
-            if (tmp_fields[i].array_length <= 0) continue;
-            code += "}";
-          }
+          for (size_t i = 0; i < array_only_lengths.size(); ++i) { code += "}"; }
         } else {
           code += "_o";
-          for (size_t i = 0; i < tmp_fields.size(); ++i) {
-            code += "." + MakeCamel(tmp_fields[i].name);
+          for (size_t i = 0; i < array_lengths.size(); ++i) {
+            code += "." + MakeCamel(array_lengths[i].name);
           }
           code += ";";
         }
         code += "\n";
       }
+      array_lengths.pop_back();
     }
   }
 
