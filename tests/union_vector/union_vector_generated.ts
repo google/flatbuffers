@@ -109,14 +109,14 @@ static createAttacker(builder:flatbuffers.Builder, swordAttackDamage:number):fla
 unpack(): AttackerT {
   return new AttackerT(
     this.swordAttackDamage()
-  )
+  );
 };
 
 /**
  * @param AttackerT _o
  */
 unpackTo(_o: AttackerT): void {
-  _o.swordAttackDamage = this.swordAttackDamage()
+  _o.swordAttackDamage = this.swordAttackDamage();
 };
 }
 
@@ -134,7 +134,7 @@ constructor(
  * @returns flatbuffers.Offset
  */
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return Attacker.createAttacker(builder, 
+  return Attacker.createAttacker(builder,
     this.swordAttackDamage
   );
 };
@@ -197,14 +197,14 @@ static createRapunzel(builder:flatbuffers.Builder, hair_length: number):flatbuff
 unpack(): RapunzelT {
   return new RapunzelT(
     this.hairLength()
-  )
+  );
 };
 
 /**
  * @param RapunzelT _o
  */
 unpackTo(_o: RapunzelT): void {
-  _o.hairLength = this.hairLength()
+  _o.hairLength = this.hairLength();
 };
 }
 
@@ -285,14 +285,14 @@ static createBookReader(builder:flatbuffers.Builder, books_read: number):flatbuf
 unpack(): BookReaderT {
   return new BookReaderT(
     this.booksRead()
-  )
+  );
 };
 
 /**
  * @param BookReaderT _o
  */
 unpackTo(_o: BookReaderT): void {
-  _o.booksRead = this.booksRead()
+  _o.booksRead = this.booksRead();
 };
 }
 
@@ -577,14 +577,14 @@ unpack(): MovieT {
     }
     return ret;
   })()
-  )
+  );
 };
 
 /**
  * @param MovieT _o
  */
 unpackTo(_o: MovieT): void {
-  _o.mainCharacterType = this.mainCharacterType()
+  _o.mainCharacterType = this.mainCharacterType();
   _o.mainCharacter = (() => {
     let targetEnumStr = Character[this.mainCharacterType()];
     if(targetEnumStr === 'NONE') { return null; } 
@@ -596,8 +596,8 @@ unpackTo(_o: MovieT): void {
     if(targetEnumStr === 'Other') { return this.mainCharacter('') as string;}
     if(targetEnumStr === 'Unused') { return this.mainCharacter('') as string;}
     return null;
-  })()
-  _o.charactersType = this.bb!.createScalarList(this.charactersType.bind(this), this.charactersTypeLength())
+  })();
+  _o.charactersType = this.bb!.createScalarList(this.charactersType.bind(this), this.charactersTypeLength());
   _o.characters =  (()=> {
     let ret = []
     for(let targetEnumIndex = 0; targetEnumIndex < this.charactersTypeLength(); ++targetEnumIndex) {
@@ -612,7 +612,7 @@ unpackTo(_o: MovieT): void {
     if(targetEnumStr === 'Unused') { ret.push(this.characters(targetEnumIndex, '') as string);}
     }
     return ret;
-  })()
+  })();
 };
 }
 
@@ -639,7 +639,8 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   const mainCharacter = builder.createObjectOffset(this.mainCharacter);
   const charactersType = Movie.createCharactersTypeVector(builder, this.charactersType);
   const characters = Movie.createCharactersVector(builder, builder.createObjectOffsetList(this.characters));
-  return Movie.createMovie(builder, 
+
+  return Movie.createMovie(builder,
     this.mainCharacterType,
     mainCharacter,
     charactersType,

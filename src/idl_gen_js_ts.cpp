@@ -820,21 +820,69 @@ class JsTsGenerator : public BaseGenerator {
            ")";
   }
 
-  // contain data used for building obj api code
-  struct ObjApiData {
-    std::string field_name;
-    std::string field_val;
-    std::string field_type;
-    std::string field_pre_offset;
-    std::string field_post_offset;
-    std::string field_default_val;
-  };
+  std::string GenStructMemberValueTS(const StructDef &struct_def,
+                                     const std::string &prefix,
+                                     const std::string &delimiter,
+                                     const bool nullCheck = true) {
+    std::string ret;
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto &field = **it;
 
-  // Loop through all member of struct and collect various information about
-  // them to be used with FmtObjApi
-  std::list<ObjApiData> ParseObjApiData(const Parser &parser,
-                                        const StructDef &struct_def) {
-    std::list<ObjApiData> ret;
+      const auto curr_member_accessor =
+          prefix + "." + MakeCamel(field.name, false);
+      if (IsStruct(field.value.type)) {
+        ret += GenStructMemberValueTS(*field.value.type.struct_def,
+                                      curr_member_accessor, delimiter);
+      } else {
+        if (nullCheck) {
+          ret +=
+              "(" + prefix + " === null ? 0 : " + curr_member_accessor + "!)";
+        } else {
+          ret += curr_member_accessor;
+        }
+      }
+
+      if (std::next(it) != struct_def.fields.vec.end()) { ret += delimiter; }
+    }
+
+    return ret;
+  }
+
+  void GenObjApi(const Parser &parser, StructDef &struct_def,
+                 std::string &obj_api_unpack_func, std::string &obj_api_class) {
+    const auto class_name = GetObjApiClassName(struct_def, parser.opts);
+
+    std::string unpack_func =
+        "\n/**\n * " + GenTypeAnnotation(kReturns, class_name, "") +
+        " */\nunpack(): " + class_name + " {\n  return new " + class_name +
+        "(" + (struct_def.fields.vec.empty() ? "" : "\n");
+    std::string unpack_to_func =
+        "/**\n * " + GenTypeAnnotation(kParam, class_name, "_o") +
+        " */\nunpackTo(_o: " + class_name + "): void {" +
+        +(struct_def.fields.vec.empty() ? "" : "\n");
+
+    std::string constructor_annotation = "/**\n * @constructor";
+    constructor_annotation += (struct_def.fields.vec.empty() ? "" : "\n");
+    std::string constructor_func = "constructor(";
+    constructor_func += (struct_def.fields.vec.empty() ? "" : "\n");
+
+    std::string pack_func_prototype =
+        "/**\n * " +
+        GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder") + " * " +
+        GenTypeAnnotation(kReturns, "flatbuffers.Offset", "") +
+        " */\npack(builder:flatbuffers.Builder): flatbuffers.Offset {\n";
+    std::string pack_func_offset_decl;
+    std::string pack_func_create_call =
+        "  return " + Verbose(struct_def) + ".create" + Verbose(struct_def) +
+        "(builder" + (struct_def.fields.vec.empty() ? "" : ",\n    ");
+    if (struct_def.fixed) {
+      // when packing struct, nested struct's members instead of the struct's
+      // offset are used
+      pack_func_create_call +=
+          GenStructMemberValueTS(struct_def, "this", ",\n    ", false) + "\n  ";
+    }
+
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
@@ -844,10 +892,15 @@ class JsTsGenerator : public BaseGenerator {
       const std::string field_binded_method =
           "this." + field_name + ".bind(this)";
 
-      std::string field_val = "";
-      std::string field_type = "";
-      std::string field_pre_offset = "";
-      std::string field_post_offset = "";
+      std::string field_val;
+      std::string field_type;
+      // a string that declares a variable containing the
+      // offset for things that can't be generated inline
+      // empty otw
+      std::string field_offset_decl;
+      // a string that contains values for things that can be created inline or
+      // the variable name from field_offset_decl
+      std::string field_offset_val;
       const auto field_default_val =
           GenDefaultValue(field.value, "flatbuffers");
 
@@ -864,9 +917,9 @@ class JsTsGenerator : public BaseGenerator {
         field_val = "this." + field_name + "()";
 
         if (field.value.type.base_type != BASE_TYPE_STRING) {
-          field_post_offset = "this." + field_name;
+          field_offset_val = "this." + field_name;
         } else {
-          field_pre_offset = GenNullCheckConditional(
+          field_offset_decl = GenNullCheckConditional(
               "this." + field_name,
               "builder.createString(this." + field_name + "!)", "0");
         }
@@ -886,7 +939,7 @@ class JsTsGenerator : public BaseGenerator {
             const std::string field_accessor = "this." + field_name + "()";
             field_val = GenNullCheckConditional(field_accessor,
                                                 field_accessor + "!.unpack()");
-            field_post_offset = GenNullCheckConditional(
+            field_offset_val = GenNullCheckConditional(
                 "this." + field_name, "this." + field_name + "!.pack(builder)",
                 "0");
 
@@ -914,12 +967,12 @@ class JsTsGenerator : public BaseGenerator {
                             "Length())";
 
                 if (sd.fixed) {
-                  field_pre_offset = "builder.createStructOffsetList(this." +
-                                     field_name + ", " + Verbose(struct_def) +
-                                     ".start" + MakeCamel(field_name) +
-                                     "Vector)";
+                  field_offset_decl = "builder.createStructOffsetList(this." +
+                                      field_name + ", " + Verbose(struct_def) +
+                                      ".start" + MakeCamel(field_name) +
+                                      "Vector)";
                 } else {
-                  field_pre_offset =
+                  field_offset_decl =
                       Verbose(struct_def) + ".create" + MakeCamel(field_name) +
                       "Vector(builder, builder.createObjectOffsetList(" +
                       "this." + field_name + "))";
@@ -933,7 +986,7 @@ class JsTsGenerator : public BaseGenerator {
                 field_val = GenBBAccess() + ".createStringList(" +
                             field_binded_method + ", this." + field_name +
                             "Length())";
-                field_pre_offset =
+                field_offset_decl =
                     Verbose(struct_def) + ".create" + MakeCamel(field_name) +
                     "Vector(builder, builder.createObjectOffsetList(" +
                     "this." + field_name + "))";
@@ -946,7 +999,7 @@ class JsTsGenerator : public BaseGenerator {
                 field_type += "|null)[]";
                 field_val = GenUnionValTS(field_name, vectortype, true);
 
-                field_pre_offset =
+                field_offset_decl =
                     Verbose(struct_def) + ".create" + MakeCamel(field_name) +
                     "Vector(builder, builder.createObjectOffsetList(" +
                     "this." + field_name + "))";
@@ -966,9 +1019,9 @@ class JsTsGenerator : public BaseGenerator {
                             field_binded_method + ", this." + field_name +
                             "Length())";
 
-                field_pre_offset = Verbose(struct_def) + ".create" +
-                                   MakeCamel(field_name) +
-                                   "Vector(builder, this." + field_name + ")";
+                field_offset_decl = Verbose(struct_def) + ".create" +
+                                    MakeCamel(field_name) +
+                                    "Vector(builder, this." + field_name + ")";
 
                 break;
               }
@@ -982,7 +1035,7 @@ class JsTsGenerator : public BaseGenerator {
                 GetObjApiUnionTypeTS(parser.opts, *(field.value.type.enum_def));
 
             field_val = GenUnionValTS(field_name, field.value.type);
-            field_pre_offset =
+            field_offset_decl =
                 "builder.createObjectOffset(this." + field_name + ")";
             break;
           }
@@ -994,170 +1047,66 @@ class JsTsGenerator : public BaseGenerator {
         field_type += is_vector ? "" : "|null";
       }
 
-      if (!field_pre_offset.empty()) {
-        field_pre_offset =
-            "  const " + field_name + " = " + field_pre_offset + ";";
+      if (!field_offset_decl.empty()) {
+        field_offset_decl =
+            "  const " + field_name + " = " + field_offset_decl + ";";
       }
-      if (field_post_offset.empty()) { field_post_offset = field_name; }
+      if (field_offset_val.empty()) { field_offset_val = field_name; }
 
-      ret.push_back(ObjApiData{ field_name, field_val, field_type,
-                                field_pre_offset, field_post_offset,
-                                field_default_val });
-    }
+      unpack_func += "    " + field_val;
+      unpack_to_func += "  _o." + field_name + " = " + field_val + ";";
 
-    return ret;
-  }
+      constructor_annotation +=
+          " * " + GenTypeAnnotation(kParam, field_type, field_name, false);
+      constructor_func += "  public " + field_name + ": " + field_type + " = " +
+                          field_default_val;
 
-  // loop through each member of list and use callback to generate string
-  // delimited by delimiter
-  void FmtObjApi(const std::list<ObjApiData> &data, std::string &code,
-                 std::string (*callback)(const ObjApiData &data,
-                                         JsTsGenerator &generator),
-                 const std::string &delimiter) {
-    for (auto it = data.cbegin(); it != data.cend(); ++it) {
-      const auto new_line = callback(*it, *this);
-      if (!std::all_of(new_line.begin(), new_line.end(), isspace)) {
-        code += new_line;
-        if (it != std::prev(data.cend())) { code += delimiter; }
-      }
-    }
-  }
-
-  void GenStructMemberValueTS(const StructDef &struct_def, std::string &code,
-                              const std::string &prefix,
-                              const std::string &delimiter,
-                              const bool nullCheck = true) {
-    for (auto it = struct_def.fields.vec.begin();
-         it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
-
-      const auto curr_member_accessor =
-          prefix + "." + MakeCamel(field.name, false);
-      if (IsStruct(field.value.type)) {
-        GenStructMemberValueTS(*field.value.type.struct_def, code,
-                               curr_member_accessor, delimiter);
-      } else {
-        if (nullCheck) {
-          code += delimiter + "(" + prefix +
-                  " === null ? 0 : " + curr_member_accessor + "!)";
-        } else {
-          code += delimiter + curr_member_accessor;
-        }
-      }
-    }
-  }
-
-  void GenObjApiClass(const std::list<ObjApiData> &data, const Parser &parser,
-                      StructDef &struct_def, std::string &code) {
-    code += "\nexport class " + GetObjApiClassName(struct_def, parser.opts) +
-            " {\n";
-
-    const std::string create_func = "  return " + Verbose(struct_def) +
-                                    ".create" + Verbose(struct_def) +
-                                    "(builder";
-
-    if (!struct_def.fields.vec.empty()) {
-      code += "/**\n";
-      code += " * @constructor\n";
-      FmtObjApi(
-          data, code,
-          [](const ObjApiData &d, JsTsGenerator &generator) -> std::string {
-            return " * " + generator.GenTypeAnnotation(kParam, d.field_type,
-                                                       d.field_name, false);
-          },
-          "\n");
-      code += "\n */\n";
-      code += "constructor(\n";
-      FmtObjApi(
-          data, code,
-          [](const ObjApiData &d, JsTsGenerator &generator) -> std::string {
-            (void)(generator);
-            return "  public " + d.field_name + ": " + d.field_type + " = " +
-                   d.field_default_val;
-          },
-          ",\n");
-      code += "\n){};\n\n";
-    }
-
-    code += "/**\n";
-    code += " * " + GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder");
-    code += " * " + GenTypeAnnotation(kReturns, "flatbuffers.Offset", "");
-    code += " */\n";
-    code += "pack(builder:flatbuffers.Builder): flatbuffers.Offset {\n";
-
-    if (!struct_def.fields.vec.empty()) {
       if (!struct_def.fixed) {
-        FmtObjApi(
-            data, code,
-            [](const ObjApiData &d, JsTsGenerator &generator) -> std::string {
-              (void)(generator);
-              return d.field_pre_offset + "\n";
-            },
-            "");
-        code += create_func + ", \n";
-        FmtObjApi(
-            data, code,
-            [](const ObjApiData &d, JsTsGenerator &generator) -> std::string {
-              (void)(generator);
-              return "    " + d.field_post_offset;
-            },
-            ",\n");
-        code += "\n  );";
-      } else {
-        code += create_func;
-        // when packing struct, nested struct's members instead of the struct's
-        // offset are used
-        GenStructMemberValueTS(struct_def, code, "this", ",\n    ", false);
-        code += "\n  );";
+        if (!field_offset_decl.empty()) {
+          pack_func_offset_decl += field_offset_decl + "\n";
+        }
+        pack_func_create_call += field_offset_val;
       }
-    } else {
-      code += create_func + ");";
+
+      if (std::next(it) != struct_def.fields.vec.end()) {
+        constructor_annotation += "\n";
+        constructor_func += ",\n";
+
+        if (!struct_def.fixed) { pack_func_create_call += ",\n    "; }
+
+        unpack_func += ",\n";
+        unpack_to_func += "\n";
+      } else {
+        constructor_func += "\n";
+        if (!struct_def.fixed) {
+          pack_func_offset_decl += (pack_func_offset_decl.empty() ? "" : "\n");
+          pack_func_create_call += "\n  ";
+        }
+
+        unpack_func += "\n  ";
+        unpack_to_func += "\n";
+      }
     }
 
-    code += "\n};\n";
-    code += "}\n";
-  }
+    constructor_annotation += "\n */\n";
+    constructor_func += "){};\n\n";
 
-  void GenObjectApiUnpackFunctions(const std::list<ObjApiData> data,
-                                   const Parser &parser,
-                                   const StructDef &struct_def,
-                                   std::string &code) {
-    const auto class_name = GetObjApiClassName(struct_def, parser.opts);
+    pack_func_create_call += ");";
 
-    std::string base_unpack_to_func = "/**\n";
-    base_unpack_to_func += " * " + GenTypeAnnotation(kParam, class_name, "_o");
-    base_unpack_to_func += " */\n";
-    base_unpack_to_func += "unpackTo(_o: " + class_name + "): void {";
+    obj_api_class = "\nexport class " +
+                    GetObjApiClassName(struct_def, parser.opts) + " {\n";
 
-    code += "\n/**\n";
-    code += " * " + GenTypeAnnotation(kReturns, class_name, "");
-    code += " */\n";
-    code += "unpack(): " + class_name + " {\n";
+    obj_api_class += constructor_annotation + constructor_func;
 
-    if (struct_def.fields.vec.empty()) {
-      code += "  return new " + class_name + "();\n};\n\n";
-      code += base_unpack_to_func + "};\n";
-    } else {
-      code += "  return new " + class_name + "(\n";
-      FmtObjApi(
-          data, code,
-          [](const ObjApiData &d, JsTsGenerator &generator) -> std::string {
-            (void)(generator);
-            return "    " + d.field_val;
-          },
-          ",\n");
-      code += "\n  )\n};\n\n";
+    obj_api_class += pack_func_prototype + pack_func_offset_decl +
+                     pack_func_create_call + "\n};";
 
-      code += base_unpack_to_func + "\n";
-      FmtObjApi(
-          data, code,
-          [](const ObjApiData &d, JsTsGenerator &generator) -> std::string {
-            (void)(generator);
-            return "  _o." + d.field_name + " = " + d.field_val;
-          },
-          "\n");
-      code += "\n};\n";
-    }
+    obj_api_class += "\n}\n";
+
+    unpack_func += ");\n};";
+    unpack_to_func += "};\n";
+
+    obj_api_unpack_func = unpack_func + "\n\n" + unpack_to_func;
   }
 
   // Generate an accessor struct with constructor for a flatbuffers struct.
@@ -1865,10 +1814,11 @@ class JsTsGenerator : public BaseGenerator {
 
     if (lang_.language == IDLOptions::kTs) {
       if (parser_.opts.generate_object_based_api) {
-        const auto objApiData = ParseObjApiData(parser_, struct_def);
-        GenObjectApiUnpackFunctions(objApiData, parser_, struct_def, *code_ptr);
-        code += "}\n";
-        GenObjApiClass(objApiData, parser_, struct_def, *code_ptr);
+        std::string obj_api_class;
+        std::string obj_api_unpack_func;
+        GenObjApi(parser_, struct_def, obj_api_unpack_func, obj_api_class);
+
+        code += obj_api_unpack_func + "}\n" + obj_api_class;
       } else {
         code += "}\n";
       }

@@ -107,14 +107,14 @@ static createTableInNestedNS(builder:flatbuffers.Builder, foo:number):flatbuffer
 unpack(): TableInNestedNST {
   return new TableInNestedNST(
     this.foo()
-  )
+  );
 };
 
 /**
  * @param TableInNestedNST _o
  */
 unpackTo(_o: TableInNestedNST): void {
-  _o.foo = this.foo()
+  _o.foo = this.foo();
 };
 }
 
@@ -132,7 +132,7 @@ constructor(
  * @returns flatbuffers.Offset
  */
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return TableInNestedNS.createTableInNestedNS(builder, 
+  return TableInNestedNS.createTableInNestedNS(builder,
     this.foo
   );
 };
@@ -222,15 +222,15 @@ unpack(): StructInNestedNST {
   return new StructInNestedNST(
     this.a(),
     this.b()
-  )
+  );
 };
 
 /**
  * @param StructInNestedNST _o
  */
 unpackTo(_o: StructInNestedNST): void {
-  _o.a = this.a()
-  _o.b = this.b()
+  _o.a = this.a();
+  _o.b = this.b();
 };
 }
 

@@ -139,6 +139,11 @@ unpackTo(_o: InParentNamespaceT): void {};
 
 export class InParentNamespaceT {
 /**
+ * @constructor
+ */
+constructor(){};
+
+/**
  * @param flatbuffers.Builder builder
  * @returns flatbuffers.Offset
  */
@@ -220,6 +225,11 @@ unpackTo(_o: MonsterT): void {};
 }
 
 export class MonsterT {
+/**
+ * @constructor
+ */
+constructor(){};
+
 /**
  * @param flatbuffers.Builder builder
  * @returns flatbuffers.Offset
@@ -314,15 +324,15 @@ unpack(): TestT {
   return new TestT(
     this.a(),
     this.b()
-  )
+  );
 };
 
 /**
  * @param TestT _o
  */
 unpackTo(_o: TestT): void {
-  _o.a = this.a()
-  _o.b = this.b()
+  _o.a = this.a();
+  _o.b = this.b();
 };
 }
 
@@ -446,14 +456,14 @@ static createTestSimpleTableWithEnum(builder:flatbuffers.Builder, color:MyGame.E
 unpack(): TestSimpleTableWithEnumT {
   return new TestSimpleTableWithEnumT(
     this.color()
-  )
+  );
 };
 
 /**
  * @param TestSimpleTableWithEnumT _o
  */
 unpackTo(_o: TestSimpleTableWithEnumT): void {
-  _o.color = this.color()
+  _o.color = this.color();
 };
 }
 
@@ -471,7 +481,7 @@ constructor(
  * @returns flatbuffers.Offset
  */
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return TestSimpleTableWithEnum.createTestSimpleTableWithEnum(builder, 
+  return TestSimpleTableWithEnum.createTestSimpleTableWithEnum(builder,
     this.color
   );
 };
@@ -654,19 +664,19 @@ unpack(): Vec3T {
     this.test1(),
     this.test2(),
     ((this.test3() !== null) ? this.test3()!.unpack() : null)
-  )
+  );
 };
 
 /**
  * @param Vec3T _o
  */
 unpackTo(_o: Vec3T): void {
-  _o.x = this.x()
-  _o.y = this.y()
-  _o.z = this.z()
-  _o.test1 = this.test1()
-  _o.test2 = this.test2()
-  _o.test3 = ((this.test3() !== null) ? this.test3()!.unpack() : null)
+  _o.x = this.x();
+  _o.y = this.y();
+  _o.z = this.z();
+  _o.test1 = this.test1();
+  _o.test2 = this.test2();
+  _o.test3 = ((this.test3() !== null) ? this.test3()!.unpack() : null);
 };
 }
 
@@ -790,15 +800,15 @@ unpack(): AbilityT {
   return new AbilityT(
     this.id(),
     this.distance()
-  )
+  );
 };
 
 /**
  * @param AbilityT _o
  */
 unpackTo(_o: AbilityT): void {
-  _o.id = this.id()
-  _o.distance = this.distance()
+  _o.id = this.id();
+  _o.distance = this.distance();
 };
 }
 
@@ -976,16 +986,16 @@ unpack(): StatT {
     this.id(),
     this.val(),
     this.count()
-  )
+  );
 };
 
 /**
  * @param StatT _o
  */
 unpackTo(_o: StatT): void {
-  _o.id = this.id()
-  _o.val = this.val()
-  _o.count = this.count()
+  _o.id = this.id();
+  _o.val = this.val();
+  _o.count = this.count();
 };
 }
 
@@ -1008,7 +1018,8 @@ constructor(
  */
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   const id = ((this.id !== null) ? builder.createString(this.id!) : 0);
-  return Stat.createStat(builder, 
+
+  return Stat.createStat(builder,
     id,
     this.val,
     this.count
@@ -1113,14 +1124,14 @@ static createReferrable(builder:flatbuffers.Builder, id:flatbuffers.Long):flatbu
 unpack(): ReferrableT {
   return new ReferrableT(
     this.id()
-  )
+  );
 };
 
 /**
  * @param ReferrableT _o
  */
 unpackTo(_o: ReferrableT): void {
-  _o.id = this.id()
+  _o.id = this.id();
 };
 }
 
@@ -1138,7 +1149,7 @@ constructor(
  * @returns flatbuffers.Offset
  */
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return Referrable.createReferrable(builder, 
+  return Referrable.createReferrable(builder,
     this.id
   );
 };
@@ -2994,20 +3005,20 @@ unpack(): MonsterT {
   })(),
     this.bb!.createScalarList(this.vectorOfEnums.bind(this), this.vectorOfEnumsLength()),
     this.signedEnum()
-  )
+  );
 };
 
 /**
  * @param MonsterT _o
  */
 unpackTo(_o: MonsterT): void {
-  _o.pos = ((this.pos() !== null) ? this.pos()!.unpack() : null)
-  _o.mana = this.mana()
-  _o.hp = this.hp()
-  _o.name = this.name()
-  _o.inventory = this.bb!.createScalarList(this.inventory.bind(this), this.inventoryLength())
-  _o.color = this.color()
-  _o.testType = this.testType()
+  _o.pos = ((this.pos() !== null) ? this.pos()!.unpack() : null);
+  _o.mana = this.mana();
+  _o.hp = this.hp();
+  _o.name = this.name();
+  _o.inventory = this.bb!.createScalarList(this.inventory.bind(this), this.inventoryLength());
+  _o.color = this.color();
+  _o.testType = this.testType();
   _o.test = (() => {
     let targetEnumStr = MyGame.Example.Any[this.testType()];
     if(targetEnumStr === 'NONE') { return null; } 
@@ -3016,42 +3027,42 @@ unpackTo(_o: MonsterT): void {
     if(targetEnumStr === 'TestSimpleTableWithEnum') { return (this.test(new MyGame.Example.TestSimpleTableWithEnum())! as MyGame.Example.TestSimpleTableWithEnum).unpack();}
     if(targetEnumStr === 'MyGame_Example2_Monster') { return (this.test(new MyGame.Example2.Monster())! as MyGame.Example2.Monster).unpack();}
     return null;
-  })()
-  _o.test4 = this.bb!.createObjList(this.test4.bind(this), this.test4Length())
-  _o.testarrayofstring = this.bb!.createStringList(this.testarrayofstring.bind(this), this.testarrayofstringLength())
-  _o.testarrayoftables = this.bb!.createObjList(this.testarrayoftables.bind(this), this.testarrayoftablesLength())
-  _o.enemy = ((this.enemy() !== null) ? this.enemy()!.unpack() : null)
-  _o.testnestedflatbuffer = this.bb!.createScalarList(this.testnestedflatbuffer.bind(this), this.testnestedflatbufferLength())
-  _o.testempty = ((this.testempty() !== null) ? this.testempty()!.unpack() : null)
-  _o.testbool = this.testbool()
-  _o.testhashs32Fnv1 = this.testhashs32Fnv1()
-  _o.testhashu32Fnv1 = this.testhashu32Fnv1()
-  _o.testhashs64Fnv1 = this.testhashs64Fnv1()
-  _o.testhashu64Fnv1 = this.testhashu64Fnv1()
-  _o.testhashs32Fnv1a = this.testhashs32Fnv1a()
-  _o.testhashu32Fnv1a = this.testhashu32Fnv1a()
-  _o.testhashs64Fnv1a = this.testhashs64Fnv1a()
-  _o.testhashu64Fnv1a = this.testhashu64Fnv1a()
-  _o.testarrayofbools = this.bb!.createScalarList(this.testarrayofbools.bind(this), this.testarrayofboolsLength())
-  _o.testf = this.testf()
-  _o.testf2 = this.testf2()
-  _o.testf3 = this.testf3()
-  _o.testarrayofstring2 = this.bb!.createStringList(this.testarrayofstring2.bind(this), this.testarrayofstring2Length())
-  _o.testarrayofsortedstruct = this.bb!.createObjList(this.testarrayofsortedstruct.bind(this), this.testarrayofsortedstructLength())
-  _o.flex = this.bb!.createScalarList(this.flex.bind(this), this.flexLength())
-  _o.test5 = this.bb!.createObjList(this.test5.bind(this), this.test5Length())
-  _o.vectorOfLongs = this.bb!.createScalarList(this.vectorOfLongs.bind(this), this.vectorOfLongsLength())
-  _o.vectorOfDoubles = this.bb!.createScalarList(this.vectorOfDoubles.bind(this), this.vectorOfDoublesLength())
-  _o.parentNamespaceTest = ((this.parentNamespaceTest() !== null) ? this.parentNamespaceTest()!.unpack() : null)
-  _o.vectorOfReferrables = this.bb!.createObjList(this.vectorOfReferrables.bind(this), this.vectorOfReferrablesLength())
-  _o.singleWeakReference = this.singleWeakReference()
-  _o.vectorOfWeakReferences = this.bb!.createScalarList(this.vectorOfWeakReferences.bind(this), this.vectorOfWeakReferencesLength())
-  _o.vectorOfStrongReferrables = this.bb!.createObjList(this.vectorOfStrongReferrables.bind(this), this.vectorOfStrongReferrablesLength())
-  _o.coOwningReference = this.coOwningReference()
-  _o.vectorOfCoOwningReferences = this.bb!.createScalarList(this.vectorOfCoOwningReferences.bind(this), this.vectorOfCoOwningReferencesLength())
-  _o.nonOwningReference = this.nonOwningReference()
-  _o.vectorOfNonOwningReferences = this.bb!.createScalarList(this.vectorOfNonOwningReferences.bind(this), this.vectorOfNonOwningReferencesLength())
-  _o.anyUniqueType = this.anyUniqueType()
+  })();
+  _o.test4 = this.bb!.createObjList(this.test4.bind(this), this.test4Length());
+  _o.testarrayofstring = this.bb!.createStringList(this.testarrayofstring.bind(this), this.testarrayofstringLength());
+  _o.testarrayoftables = this.bb!.createObjList(this.testarrayoftables.bind(this), this.testarrayoftablesLength());
+  _o.enemy = ((this.enemy() !== null) ? this.enemy()!.unpack() : null);
+  _o.testnestedflatbuffer = this.bb!.createScalarList(this.testnestedflatbuffer.bind(this), this.testnestedflatbufferLength());
+  _o.testempty = ((this.testempty() !== null) ? this.testempty()!.unpack() : null);
+  _o.testbool = this.testbool();
+  _o.testhashs32Fnv1 = this.testhashs32Fnv1();
+  _o.testhashu32Fnv1 = this.testhashu32Fnv1();
+  _o.testhashs64Fnv1 = this.testhashs64Fnv1();
+  _o.testhashu64Fnv1 = this.testhashu64Fnv1();
+  _o.testhashs32Fnv1a = this.testhashs32Fnv1a();
+  _o.testhashu32Fnv1a = this.testhashu32Fnv1a();
+  _o.testhashs64Fnv1a = this.testhashs64Fnv1a();
+  _o.testhashu64Fnv1a = this.testhashu64Fnv1a();
+  _o.testarrayofbools = this.bb!.createScalarList(this.testarrayofbools.bind(this), this.testarrayofboolsLength());
+  _o.testf = this.testf();
+  _o.testf2 = this.testf2();
+  _o.testf3 = this.testf3();
+  _o.testarrayofstring2 = this.bb!.createStringList(this.testarrayofstring2.bind(this), this.testarrayofstring2Length());
+  _o.testarrayofsortedstruct = this.bb!.createObjList(this.testarrayofsortedstruct.bind(this), this.testarrayofsortedstructLength());
+  _o.flex = this.bb!.createScalarList(this.flex.bind(this), this.flexLength());
+  _o.test5 = this.bb!.createObjList(this.test5.bind(this), this.test5Length());
+  _o.vectorOfLongs = this.bb!.createScalarList(this.vectorOfLongs.bind(this), this.vectorOfLongsLength());
+  _o.vectorOfDoubles = this.bb!.createScalarList(this.vectorOfDoubles.bind(this), this.vectorOfDoublesLength());
+  _o.parentNamespaceTest = ((this.parentNamespaceTest() !== null) ? this.parentNamespaceTest()!.unpack() : null);
+  _o.vectorOfReferrables = this.bb!.createObjList(this.vectorOfReferrables.bind(this), this.vectorOfReferrablesLength());
+  _o.singleWeakReference = this.singleWeakReference();
+  _o.vectorOfWeakReferences = this.bb!.createScalarList(this.vectorOfWeakReferences.bind(this), this.vectorOfWeakReferencesLength());
+  _o.vectorOfStrongReferrables = this.bb!.createObjList(this.vectorOfStrongReferrables.bind(this), this.vectorOfStrongReferrablesLength());
+  _o.coOwningReference = this.coOwningReference();
+  _o.vectorOfCoOwningReferences = this.bb!.createScalarList(this.vectorOfCoOwningReferences.bind(this), this.vectorOfCoOwningReferencesLength());
+  _o.nonOwningReference = this.nonOwningReference();
+  _o.vectorOfNonOwningReferences = this.bb!.createScalarList(this.vectorOfNonOwningReferences.bind(this), this.vectorOfNonOwningReferencesLength());
+  _o.anyUniqueType = this.anyUniqueType();
   _o.anyUnique = (() => {
     let targetEnumStr = MyGame.Example.AnyUniqueAliases[this.anyUniqueType()];
     if(targetEnumStr === 'NONE') { return null; } 
@@ -3060,8 +3071,8 @@ unpackTo(_o: MonsterT): void {
     if(targetEnumStr === 'TS') { return (this.anyUnique(new MyGame.Example.TestSimpleTableWithEnum())! as MyGame.Example.TestSimpleTableWithEnum).unpack();}
     if(targetEnumStr === 'M2') { return (this.anyUnique(new MyGame.Example2.Monster())! as MyGame.Example2.Monster).unpack();}
     return null;
-  })()
-  _o.anyAmbiguousType = this.anyAmbiguousType()
+  })();
+  _o.anyAmbiguousType = this.anyAmbiguousType();
   _o.anyAmbiguous = (() => {
     let targetEnumStr = MyGame.Example.AnyAmbiguousAliases[this.anyAmbiguousType()];
     if(targetEnumStr === 'NONE') { return null; } 
@@ -3070,9 +3081,9 @@ unpackTo(_o: MonsterT): void {
     if(targetEnumStr === 'M2') { return (this.anyAmbiguous(new MyGame.Example.Monster())! as MyGame.Example.Monster).unpack();}
     if(targetEnumStr === 'M3') { return (this.anyAmbiguous(new MyGame.Example.Monster())! as MyGame.Example.Monster).unpack();}
     return null;
-  })()
-  _o.vectorOfEnums = this.bb!.createScalarList(this.vectorOfEnums.bind(this), this.vectorOfEnumsLength())
-  _o.signedEnum = this.signedEnum()
+  })();
+  _o.vectorOfEnums = this.bb!.createScalarList(this.vectorOfEnums.bind(this), this.vectorOfEnumsLength());
+  _o.signedEnum = this.signedEnum();
 };
 }
 
@@ -3206,7 +3217,8 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   const anyUnique = builder.createObjectOffset(this.anyUnique);
   const anyAmbiguous = builder.createObjectOffset(this.anyAmbiguous);
   const vectorOfEnums = Monster.createVectorOfEnumsVector(builder, this.vectorOfEnums);
-  return Monster.createMonster(builder, 
+
+  return Monster.createMonster(builder,
     ((this.pos !== null) ? this.pos!.pack(builder) : 0),
     this.mana,
     this.hp,
@@ -3765,25 +3777,25 @@ unpack(): TypeAliasesT {
     this.f64(),
     this.bb!.createScalarList(this.v8.bind(this), this.v8Length()),
     this.bb!.createScalarList(this.vf64.bind(this), this.vf64Length())
-  )
+  );
 };
 
 /**
  * @param TypeAliasesT _o
  */
 unpackTo(_o: TypeAliasesT): void {
-  _o.i8 = this.i8()
-  _o.u8 = this.u8()
-  _o.i16 = this.i16()
-  _o.u16 = this.u16()
-  _o.i32 = this.i32()
-  _o.u32 = this.u32()
-  _o.i64 = this.i64()
-  _o.u64 = this.u64()
-  _o.f32 = this.f32()
-  _o.f64 = this.f64()
-  _o.v8 = this.bb!.createScalarList(this.v8.bind(this), this.v8Length())
-  _o.vf64 = this.bb!.createScalarList(this.vf64.bind(this), this.vf64Length())
+  _o.i8 = this.i8();
+  _o.u8 = this.u8();
+  _o.i16 = this.i16();
+  _o.u16 = this.u16();
+  _o.i32 = this.i32();
+  _o.u32 = this.u32();
+  _o.i64 = this.i64();
+  _o.u64 = this.u64();
+  _o.f32 = this.f32();
+  _o.f64 = this.f64();
+  _o.v8 = this.bb!.createScalarList(this.v8.bind(this), this.v8Length());
+  _o.vf64 = this.bb!.createScalarList(this.vf64.bind(this), this.vf64Length());
 };
 }
 
@@ -3825,7 +3837,8 @@ constructor(
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   const v8 = TypeAliases.createV8Vector(builder, this.v8);
   const vf64 = TypeAliases.createVf64Vector(builder, this.vf64);
-  return TypeAliases.createTypeAliases(builder, 
+
+  return TypeAliases.createTypeAliases(builder,
     this.i8,
     this.u8,
     this.i16,
