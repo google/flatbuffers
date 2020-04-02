@@ -45,20 +45,20 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     }
 
     func createMonster(withPrefix prefix: Bool) -> FlatBufferBuilder {
-        let fbb = FlatBufferBuilder(initialSize: 1)
+        var fbb = FlatBufferBuilder(initialSize: 1)
         let names = [fbb.create(string: "Frodo"), fbb.create(string: "Barney"), fbb.create(string: "Wilma")]
         var offsets: [Offset<UOffset>] = []
-        let start1 = Monster1.startMonster(fbb)
-        Monster1.add(name: names[0], fbb)
-        offsets.append(Monster1.endMonster(fbb, start: start1))
-        let start2 = Monster1.startMonster(fbb)
-        Monster1.add(name: names[1], fbb)
-        offsets.append(Monster1.endMonster(fbb, start: start2))
-        let start3 = Monster1.startMonster(fbb)
-        Monster1.add(name: names[2], fbb)
-        offsets.append(Monster1.endMonster(fbb, start: start3))
+        let start1 = Monster1.startMonster(&fbb)
+        Monster1.add(name: names[0], &fbb)
+        offsets.append(Monster1.endMonster(&fbb, start: start1))
+        let start2 = Monster1.startMonster(&fbb)
+        Monster1.add(name: names[1], &fbb)
+        offsets.append(Monster1.endMonster(&fbb, start: start2))
+        let start3 = Monster1.startMonster(&fbb)
+        Monster1.add(name: names[2], &fbb)
+        offsets.append(Monster1.endMonster(&fbb, start: start3))
 
-        let sortedArray = Monster1.sortVectorOfMonster(offsets: offsets, fbb)
+        let sortedArray = Monster1.sortVectorOfMonster(offsets: offsets, &fbb)
 
         let str = fbb.create(string: "MyMonster")
         let test1 = fbb.create(string: "test1")
@@ -67,29 +67,29 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
         let inv = fbb.createVector(_inv)
 
         let fred = fbb.create(string: "Fred")
-        let mon1Start = Monster1.startMonster(fbb)
-        Monster1.add(name: fred, fbb)
-        let mon2 = Monster1.endMonster(fbb, start: mon1Start)
+        let mon1Start = Monster1.startMonster(&fbb)
+        Monster1.add(name: fred, &fbb)
+        let mon2 = Monster1.endMonster(&fbb, start: mon1Start)
         let test4 = fbb.createVector(structs: [MyGame.Example.createTest(a: 30, b: 40),
                                                MyGame.Example.createTest(a: 10, b: 20)],
                                      type: Test1.self)
 
         let stringTestVector = fbb.createVector(ofOffsets: [test1, test2])
 
-        let mStart = Monster1.startMonster(fbb)
+        let mStart = Monster1.startMonster(&fbb)
         let posOffset = fbb.create(struct: MyGame.Example.createVec3(x: 1, y: 2, z: 3, test1: 3, test2: .green, test3a: 5, test3b: 6), type: Vec3.self)
-        Monster1.add(pos: posOffset, fbb)
-        Monster1.add(hp: 80, fbb)
-        Monster1.add(name: str, fbb)
-        Monster1.addVectorOf(inventory: inv, fbb)
-        Monster1.add(testType: .monster, fbb)
-        Monster1.add(test: mon2, fbb)
-        Monster1.addVectorOf(test4: test4, fbb)
-        Monster1.addVectorOf(testarrayofstring: stringTestVector, fbb)
-        Monster1.add(testbool: true, fbb)
-        Monster1.addVectorOf(testarrayoftables: sortedArray, fbb)
-        let end = Monster1.endMonster(fbb, start: mStart)
-        Monster1.finish(fbb, end: end, prefix: prefix)
+        Monster1.add(pos: posOffset, &fbb)
+        Monster1.add(hp: 80, &fbb)
+        Monster1.add(name: str, &fbb)
+        Monster1.addVectorOf(inventory: inv, &fbb)
+        Monster1.add(testType: .monster, &fbb)
+        Monster1.add(test: mon2, &fbb)
+        Monster1.addVectorOf(test4: test4, &fbb)
+        Monster1.addVectorOf(testarrayofstring: stringTestVector, &fbb)
+        Monster1.add(testbool: true, &fbb)
+        Monster1.addVectorOf(testarrayoftables: sortedArray, &fbb)
+        let end = Monster1.endMonster(&fbb, start: mStart)
+        Monster1.finish(&fbb, end: end, prefix: prefix)
         return fbb
     }
 

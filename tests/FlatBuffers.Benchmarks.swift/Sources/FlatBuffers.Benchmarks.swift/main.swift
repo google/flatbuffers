@@ -34,21 +34,21 @@ func createDocument(Benchmarks: [Benchmark]) -> String {
 }
 
 @inlinable func create10Strings() {
-    let fb = FlatBufferBuilder(initialSize: 1<<20)
+    var fb = FlatBufferBuilder(initialSize: 1<<20)
     for _ in 0..<10_000 {
         _ = fb.create(string: "foobarbaz")
     }
 }
 
 @inlinable func create100Strings(str: String) {
-    let fb = FlatBufferBuilder(initialSize: 1<<20)
+    var fb = FlatBufferBuilder(initialSize: 1<<20)
     for _ in 0..<10_000 {
         _ = fb.create(string: str)
     }
 }
 
 @inlinable func benchmarkFiveHundredAdds() {
-    let fb = FlatBufferBuilder(initialSize: 1024 * 1024 * 32)
+    var fb = FlatBufferBuilder(initialSize: 1024 * 1024 * 32)
     for _ in 0..<500_000 {
         let off = fb.create(string: "T")
         let s = fb.startTable(with: 4)

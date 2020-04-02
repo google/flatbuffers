@@ -16,7 +16,7 @@ final class FlatBuffersTests: XCTestCase {
     
     func testCreateString() {
         let helloWorld = "Hello, world!"
-        let b = FlatBufferBuilder(initialSize: 16)
+        var b = FlatBufferBuilder(initialSize: 16)
         XCTAssertEqual(b.create(string: country).o, 12)
         XCTAssertEqual(b.create(string: helloWorld).o, 32)
         b.clear()
@@ -27,7 +27,7 @@ final class FlatBuffersTests: XCTestCase {
     }
     
     func testStartTable() {
-        let b = FlatBufferBuilder(initialSize: 16)
+        var b = FlatBufferBuilder(initialSize: 16)
         XCTAssertNoThrow(b.startTable(with: 0))
         b.clear()
         XCTAssertEqual(b.create(string: country).o, 12)
