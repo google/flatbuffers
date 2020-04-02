@@ -67,7 +67,7 @@ public struct Attacker: FlatBufferObject {
 	public var __buffer: ByteBuffer! { return _accessor.bb }
 
 	private var _accessor: Table
-	public static func finish(_ fbb: FlatBufferBuilder, end: Offset<UOffset>, prefix: Bool = false) { fbb.finish(offset: end, fileId: "MOVI", addPrefix: prefix) }
+	public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset<UOffset>, prefix: Bool = false) { fbb.finish(offset: end, fileId: "MOVI", addPrefix: prefix) }
 	public static func getRootAsAttacker(bb: ByteBuffer) -> Attacker { return Attacker(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
 
 	private init(_ t: Table) { _accessor = t }
@@ -75,14 +75,14 @@ public struct Attacker: FlatBufferObject {
 
 	public var swordAttackDamage: Int32 { let o = _accessor.offset(4); return o == 0 ? 0 : _accessor.readBuffer(of: Int32.self, at: o) }
 	public func mutate(swordAttackDamage: Int32) -> Bool {let o = _accessor.offset(4);  return _accessor.mutate(swordAttackDamage, index: o) }
-	public static func startAttacker(_ fbb: FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
-	public static func add(swordAttackDamage: Int32, _ fbb: FlatBufferBuilder) { fbb.add(element: swordAttackDamage, def: 0, at: 0) }
-	public static func endAttacker(_ fbb: FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
-	public static func createAttacker(_ fbb: FlatBufferBuilder,
+	public static func startAttacker(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
+	public static func add(swordAttackDamage: Int32, _ fbb: inout FlatBufferBuilder) { fbb.add(element: swordAttackDamage, def: 0, at: 0) }
+	public static func endAttacker(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
+	public static func createAttacker(_ fbb: inout FlatBufferBuilder,
 		swordAttackDamage: Int32 = 0) -> Offset<UOffset> {
-		let __start = Attacker.startAttacker(fbb)
-		Attacker.add(swordAttackDamage: swordAttackDamage, fbb)
-		return Attacker.endAttacker(fbb, start: __start)
+		let __start = Attacker.startAttacker(&fbb)
+		Attacker.add(swordAttackDamage: swordAttackDamage, &fbb)
+		return Attacker.endAttacker(&fbb, start: __start)
 	}
 }
 
@@ -92,7 +92,7 @@ public struct Movie: FlatBufferObject {
 	public var __buffer: ByteBuffer! { return _accessor.bb }
 
 	private var _accessor: Table
-	public static func finish(_ fbb: FlatBufferBuilder, end: Offset<UOffset>, prefix: Bool = false) { fbb.finish(offset: end, fileId: "MOVI", addPrefix: prefix) }
+	public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset<UOffset>, prefix: Bool = false) { fbb.finish(offset: end, fileId: "MOVI", addPrefix: prefix) }
 	public static func getRootAsMovie(bb: ByteBuffer) -> Movie { return Movie(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
 
 	private init(_ t: Table) { _accessor = t }
@@ -104,23 +104,23 @@ public struct Movie: FlatBufferObject {
 	public func charactersType(at index: Int32) -> Character? { let o = _accessor.offset(8); return o == 0 ? Character.none : Character(rawValue: _accessor.directRead(of: UInt8.self, offset: _accessor.vector(at: o) + index * 1)) }
 	public var charactersCount: Int32 { let o = _accessor.offset(10); return o == 0 ? 0 : _accessor.vector(count: o) }
 	public func characters<T: FlatBufferObject>(at index: Int32, type: T.Type) -> T? { let o = _accessor.offset(10); return o == 0 ? nil : _accessor.directUnion(_accessor.vector(at: o) + index * 4) }
-	public static func startMovie(_ fbb: FlatBufferBuilder) -> UOffset { fbb.startTable(with: 4) }
-	public static func add(mainCharacterType: Character, _ fbb: FlatBufferBuilder) { fbb.add(element: mainCharacterType.rawValue, def: 0, at: 0) }
-	public static func add(mainCharacter: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: mainCharacter, at: 1)  }
-	public static func addVectorOf(charactersType: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: charactersType, at: 2)  }
-	public static func addVectorOf(characters: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: characters, at: 3)  }
-	public static func endMovie(_ fbb: FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
-	public static func createMovie(_ fbb: FlatBufferBuilder,
+	public static func startMovie(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 4) }
+	public static func add(mainCharacterType: Character, _ fbb: inout FlatBufferBuilder) { fbb.add(element: mainCharacterType.rawValue, def: 0, at: 0) }
+	public static func add(mainCharacter: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: mainCharacter, at: 1)  }
+	public static func addVectorOf(charactersType: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: charactersType, at: 2)  }
+	public static func addVectorOf(characters: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: characters, at: 3)  }
+	public static func endMovie(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
+	public static func createMovie(_ fbb: inout FlatBufferBuilder,
 		mainCharacterType: Character = .none,
 		offsetOfMainCharacter mainCharacter: Offset<UOffset> = Offset(),
 		vectorOfCharactersType charactersType: Offset<UOffset> = Offset(),
 		vectorOfCharacters characters: Offset<UOffset> = Offset()) -> Offset<UOffset> {
-		let __start = Movie.startMovie(fbb)
-		Movie.add(mainCharacterType: mainCharacterType, fbb)
-		Movie.add(mainCharacter: mainCharacter, fbb)
-		Movie.addVectorOf(charactersType: charactersType, fbb)
-		Movie.addVectorOf(characters: characters, fbb)
-		return Movie.endMovie(fbb, start: __start)
+		let __start = Movie.startMovie(&fbb)
+		Movie.add(mainCharacterType: mainCharacterType, &fbb)
+		Movie.add(mainCharacter: mainCharacter, &fbb)
+		Movie.addVectorOf(charactersType: charactersType, &fbb)
+		Movie.addVectorOf(characters: characters, &fbb)
+		return Movie.endMovie(&fbb, start: __start)
 	}
 }
 

@@ -5,18 +5,18 @@ final class FlatBuffersStructsTests: XCTestCase {
     
     func testCreatingStruct() {
         let v = createVecWrite(x: 1.0, y: 2.0, z: 3.0)
-        let b = FlatBufferBuilder(initialSize: 20)
+        var b = FlatBufferBuilder(initialSize: 20)
         let o = b.create(struct: v, type: Vec.self)
-        let end = VPointerVec.createVPointer(b: b, o: o)
+        let end = VPointerVec.createVPointer(b: &b, o: o)
         b.finish(offset: end)
         XCTAssertEqual(b.sizedByteArray, [12, 0, 0, 0, 0, 0, 6, 0, 4, 0, 4, 0, 6, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 64, 0, 0, 64, 64])
     }
     
     func testReadingStruct() {
         let v = createVecWrite(x: 1.0, y: 2.0, z: 3.0)
-        let b = FlatBufferBuilder(initialSize: 20)
+        var b = FlatBufferBuilder(initialSize: 20)
         let o = b.create(struct: v, type: Vec.self)
-        let end = VPointerVec.createVPointer(b: b, o: o)
+        let end = VPointerVec.createVPointer(b: &b, o: o)
         b.finish(offset: end)
         let buffer = b.sizedByteArray
         XCTAssertEqual(buffer, [12, 0, 0, 0, 0, 0, 6, 0, 4, 0, 4, 0, 6, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 64, 0, 0, 64, 64])
@@ -25,34 +25,34 @@ final class FlatBuffersStructsTests: XCTestCase {
     }
     
     func testCreatingVectorStruct() {
-        let b = FlatBufferBuilder(initialSize: 20)
+        var b = FlatBufferBuilder(initialSize: 20)
         let path = b.createVector(structs: [createVecWrite(x: 1, y: 2, z: 3), createVecWrite(x: 4.0, y: 5.0, z: 6)], type: Vec.self)
-        let end = VPointerVectorVec.createVPointer(b: b, v: path)
+        let end = VPointerVectorVec.createVPointer(b: &b, v: path)
         b.finish(offset: end)
         XCTAssertEqual(b.sizedByteArray, [12, 0, 0, 0, 8, 0, 8, 0, 0, 0, 4, 0, 8, 0, 0, 0, 4, 0, 0, 0, 2, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 64, 0, 0, 64, 64, 0, 0, 128, 64, 0, 0, 160, 64, 0, 0, 192, 64])
     }
     
     func testCreatingVectorStructWithForcedDefaults() {
-        let b = FlatBufferBuilder(initialSize: 20, serializeDefaults: true)
+        var b = FlatBufferBuilder(initialSize: 20, serializeDefaults: true)
         let path = b.createVector(structs: [createVecWrite(x: 1, y: 2, z: 3), createVecWrite(x: 4.0, y: 5.0, z: 6)], type: Vec.self)
-        let end = VPointerVectorVec.createVPointer(b: b, v: path)
+        let end = VPointerVectorVec.createVPointer(b: &b, v: path)
         b.finish(offset: end)
         XCTAssertEqual(b.sizedByteArray, [12, 0, 0, 0, 8, 0, 12, 0, 4, 0, 8, 0, 8, 0, 0, 0, 1, 0, 0, 0, 4, 0, 0, 0, 2, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 64, 0, 0, 64, 64, 0, 0, 128, 64, 0, 0, 160, 64, 0, 0, 192, 64])
     }
     
     func testCreatingEnums() {
-        let b = FlatBufferBuilder(initialSize: 20)
+        var b = FlatBufferBuilder(initialSize: 20)
         let path = b.createVector(structs: [createVecWrite(x: 1, y: 2, z: 3), createVecWrite(x: 4, y: 5, z: 6)], type: Vec.self)
-        let end = VPointerVectorVec.createVPointer(b: b, color: .blue, v: path)
+        let end = VPointerVectorVec.createVPointer(b: &b, color: .blue, v: path)
         b.finish(offset: end)
         XCTAssertEqual(b.sizedByteArray, [12, 0, 0, 0, 8, 0, 12, 0, 4, 0, 8, 0, 8, 0, 0, 0, 2, 0, 0, 0, 4, 0, 0, 0, 2, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 64, 0, 0, 64, 64, 0, 0, 128, 64, 0, 0, 160, 64, 0, 0, 192, 64])
     }
     
     func testReadingStructWithEnums() {
-        let b = FlatBufferBuilder(initialSize: 20)
+        var b = FlatBufferBuilder(initialSize: 20)
         let vec = createVec2(x: 1, y: 2, z: 3, color: .red)
         let o = b.create(struct: vec, type: Vec2.self)
-        let end = VPointerVec2.createVPointer(b: b, o: o, type: .vec)
+        let end = VPointerVec2.createVPointer(b: &b, o: o, type: .vec)
         b.finish(offset: end)
         let buffer = b.sizedByteArray
         XCTAssertEqual(buffer, [16, 0, 0, 0, 0, 0, 10, 0, 12, 0, 12, 0, 11, 0, 4, 0, 10, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 1, 0, 0, 128, 63, 0, 0, 0, 64, 0, 0, 64, 64, 0, 0, 0, 0])
@@ -101,13 +101,13 @@ struct VPointerVec {
         return VPointerVec(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: 0))))
     }
     
-    static func startVPointer(b: FlatBufferBuilder) -> UOffset { b.startTable(with: 1) }
-    static func finish(b: FlatBufferBuilder, s: UOffset) -> Offset<UOffset> { return Offset(offset: b.endTable(at: s)) }
+    static func startVPointer(b: inout FlatBufferBuilder) -> UOffset { b.startTable(with: 1) }
+    static func finish(b: inout FlatBufferBuilder, s: UOffset) -> Offset<UOffset> { return Offset(offset: b.endTable(at: s)) }
     
-    static func createVPointer(b: FlatBufferBuilder, o: Offset<UOffset>) -> Offset<UOffset> {
-        let s = VPointerVec.startVPointer(b: b)
+    static func createVPointer(b: inout FlatBufferBuilder, o: Offset<UOffset>) -> Offset<UOffset> {
+        let s = VPointerVec.startVPointer(b: &b)
         b.add(structOffset: 0)
-        return VPointerVec.finish(b: b, s: s)
+        return VPointerVec.finish(b: &b, s: s)
     }
 }
 
@@ -117,19 +117,19 @@ private let VPointerVectorVecOffsets: (color: VOffset, vector: VOffset) = (0, 1)
 
 struct VPointerVectorVec {
     
-    static func startVPointer(b: FlatBufferBuilder) -> UOffset { b.startTable(with: 2) }
+    static func startVPointer(b: inout FlatBufferBuilder) -> UOffset { b.startTable(with: 2) }
     
-    static func addVector(b: FlatBufferBuilder, v: Offset<UOffset>) { b.add(offset: v, at: VPointerVectorVecOffsets.vector) }
+    static func addVector(b: inout FlatBufferBuilder, v: Offset<UOffset>) { b.add(offset: v, at: VPointerVectorVecOffsets.vector) }
     
-    static func addColor(b: FlatBufferBuilder, color: Color) { b.add(element: color.rawValue, def: 1, at: VPointerVectorVecOffsets.color) }
+    static func addColor(b: inout FlatBufferBuilder, color: Color) { b.add(element: color.rawValue, def: 1, at: VPointerVectorVecOffsets.color) }
     
-    static func finish(b: FlatBufferBuilder, s: UOffset) -> Offset<UOffset> { return Offset(offset: b.endTable(at: s)) }
+    static func finish(b: inout FlatBufferBuilder, s: UOffset) -> Offset<UOffset> { return Offset(offset: b.endTable(at: s)) }
     
-    static func createVPointer(b: FlatBufferBuilder, color: Color = .green, v: Offset<UOffset>) -> Offset<UOffset> {
-        let s = VPointerVectorVec.startVPointer(b: b)
-        VPointerVectorVec.addVector(b: b, v: v)
-        VPointerVectorVec.addColor(b: b, color: color)
-        return VPointerVectorVec.finish(b: b, s: s)
+    static func createVPointer(b: inout FlatBufferBuilder, color: Color = .green, v: Offset<UOffset>) -> Offset<UOffset> {
+        let s = VPointerVectorVec.startVPointer(b: &b)
+        VPointerVectorVec.addVector(b: &b, v: v)
+        VPointerVectorVec.addColor(b: &b, color: color)
+        return VPointerVectorVec.finish(b: &b, s: s)
     }
 }
 
@@ -174,14 +174,14 @@ struct VPointerVec2 {
         return VPointerVec2(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: 0))))
     }
     
-    static func startVPointer(b: FlatBufferBuilder) -> UOffset { b.startTable(with: 3) }
-    static func finish(b: FlatBufferBuilder, s: UOffset) -> Offset<UOffset> { return Offset(offset: b.endTable(at: s)) }
+    static func startVPointer(b: inout FlatBufferBuilder) -> UOffset { b.startTable(with: 3) }
+    static func finish(b: inout FlatBufferBuilder, s: UOffset) -> Offset<UOffset> { return Offset(offset: b.endTable(at: s)) }
     
-    static func createVPointer(b: FlatBufferBuilder, o: Offset<UOffset>, type: Test) -> Offset<UOffset> {
-        let s = VPointerVec2.startVPointer(b: b)
+    static func createVPointer(b: inout FlatBufferBuilder, o: Offset<UOffset>, type: Test) -> Offset<UOffset> {
+        let s = VPointerVec2.startVPointer(b: &b)
         b.add(structOffset: 0)
         b.add(element: type.rawValue, def: Test.none.rawValue, at: 1)
         b.add(offset: o, at: 2)
-        return VPointerVec2.finish(b: b, s: s)
+        return VPointerVec2.finish(b: &b, s: s)
     }
 }

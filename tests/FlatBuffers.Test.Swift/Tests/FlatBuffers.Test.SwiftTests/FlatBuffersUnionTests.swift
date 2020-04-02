@@ -59,11 +59,11 @@ final class FlatBuffersUnionTests: XCTestCase {
     func testEnumVector() {
         let vectorOfEnums: [ColorsNameSpace.RGB] = [.blue, .green]
         
-        let builder = FlatBufferBuilder(initialSize: 1)
+        var builder = FlatBufferBuilder(initialSize: 1)
         let off = builder.createVector(vectorOfEnums)
-        let start = ColorsNameSpace.Monster.startMonster(builder)
-        ColorsNameSpace.Monster.add(colors: off, builder)
-        let end = ColorsNameSpace.Monster.endMonster(builder, start: start)
+        let start = ColorsNameSpace.Monster.startMonster(&builder)
+        ColorsNameSpace.Monster.add(colors: off, &builder)
+        let end = ColorsNameSpace.Monster.endMonster(&builder, start: start)
         builder.finish(offset: end)
         XCTAssertEqual(builder.sizedByteArray, [12, 0, 0, 0, 0, 0, 6, 0, 8, 0, 4, 0, 6, 0, 0, 0, 4, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 1, 0, 0, 0])
         let monster = ColorsNameSpace.Monster.getRootAsMonster(bb: builder.buffer)
@@ -73,12 +73,12 @@ final class FlatBuffersUnionTests: XCTestCase {
     }
     
     func testUnionVector() {
-        let fb = FlatBufferBuilder()
+        var fb = FlatBufferBuilder()
         
         let swordDmg: Int32 = 8
-        let attackStart = Attacker.startAttacker(fb)
-        Attacker.add(swordAttackDamage: swordDmg, fb)
-        let attack = Attacker.endAttacker(fb, start: attackStart)
+        let attackStart = Attacker.startAttacker(&fb)
+        Attacker.add(swordAttackDamage: swordDmg, &fb)
+        let attack = Attacker.endAttacker(&fb, start: attackStart)
         
         let characterType: [Character] = [.belle, .mulan, .bookfan]
         let characters = [
@@ -88,8 +88,8 @@ final class FlatBuffersUnionTests: XCTestCase {
         ]
         let types = fb.createVector(characterType)
         let characterVector = fb.createVector(ofOffsets: characters)
-        let end = Movie.createMovie(fb, vectorOfCharactersType: types, vectorOfCharacters: characterVector)
-        Movie.finish(fb, end: end)
+        let end = Movie.createMovie(&fb, vectorOfCharactersType: types, vectorOfCharacters: characterVector)
+        Movie.finish(&fb, end: end)
         
         let movie = Movie.getRootAsMovie(bb: fb.buffer)
         XCTAssertEqual(movie.charactersTypeCount, Int32(characterType.count))
@@ -125,9 +125,9 @@ struct Monster: FlatBufferObject {
 
     public var colorsCount: Int32 { let o = _accessor.offset(4); return o == 0 ? 0 : _accessor.vector(count: o) }
     public func colors(at index: Int32) -> ColorsNameSpace.RGB? { let o = _accessor.offset(4); return o == 0 ? ColorsNameSpace.RGB(rawValue: 0)! : ColorsNameSpace.RGB(rawValue: _accessor.directRead(of: Int32.self, offset: _accessor.vector(at: o) + index * 4)) }
-    static func startMonster(_ fbb: FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
-    static func add(colors: Offset<UOffset>, _ fbb: FlatBufferBuilder) { fbb.add(offset: colors, at: 0)  }
-    static func endMonster(_ fbb: FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
+    static func startMonster(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
+    static func add(colors: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: colors, at: 0)  }
+    static func endMonster(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
 }
 }
 
