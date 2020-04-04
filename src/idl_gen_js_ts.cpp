@@ -16,8 +16,6 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 #include <cassert>
-#include <list>
-#include <regex>
 #include <unordered_map>
 #include <unordered_set>
 
