@@ -22,9 +22,16 @@ union Character {
   Unused: string
 }
 
+union StringOnlyCharacter {
+  Mickey: string,
+  Goofy: string,
+  Pluto: string
+}
+
 table Movie {
   main_character: Character;
   characters: [Character];
+  string_only_characters: [StringOnlyCharacter];
 }
 
 root_type Movie;
