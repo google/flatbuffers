@@ -13,6 +13,80 @@ export enum Character{
   Unused= 6
 };
 
+export type ValidCharacterType = Attacker|BookReader|Rapunzel|string;
+
+export function unionToCharacter(
+  type: Character,
+  accessor: (obj:ValidCharacterType) => ValidCharacterType|null
+): ValidCharacterType|null {
+  switch(Character[type]) {
+    case 'NONE': return null; 
+    case 'MuLan': return accessor(new Attacker())! as Attacker;
+    case 'Rapunzel': return accessor(new Rapunzel())! as Rapunzel;
+    case 'Belle': return accessor(new BookReader())! as BookReader;
+    case 'BookFan': return accessor(new BookReader())! as BookReader;
+    case 'Other': return accessor('') as string;
+    case 'Unused': return accessor('') as string;
+    default: return null;
+  }
+}
+
+export function unionListToCharacter(
+  type: Character, 
+  accessor: (index: number, obj:ValidCharacterType) => ValidCharacterType|null, 
+  index: number
+): ValidCharacterType|null {
+  switch(Character[type]) {
+    case 'NONE': return null; 
+    case 'MuLan': return accessor(index, new Attacker())! as Attacker;
+    case 'Rapunzel': return accessor(index, new Rapunzel())! as Rapunzel;
+    case 'Belle': return accessor(index, new BookReader())! as BookReader;
+    case 'BookFan': return accessor(index, new BookReader())! as BookReader;
+    case 'Other': return accessor(index, '') as string;
+    case 'Unused': return accessor(index, '') as string;
+    default: return null;
+  }
+}
+
+/**
+ * @enum {number}
+ */
+export enum StringOnlyCharacter{
+  NONE= 0,
+  Mickey= 1,
+  Goofy= 2,
+  Pluto= 3
+};
+
+export type ValidStringOnlyCharacterType = string;
+
+export function unionToStringOnlyCharacter(
+  type: StringOnlyCharacter,
+  accessor: (obj:ValidStringOnlyCharacterType) => ValidStringOnlyCharacterType|null
+): ValidStringOnlyCharacterType|null {
+  switch(StringOnlyCharacter[type]) {
+    case 'NONE': return null; 
+    case 'Mickey': return accessor('') as string;
+    case 'Goofy': return accessor('') as string;
+    case 'Pluto': return accessor('') as string;
+    default: return null;
+  }
+}
+
+export function unionListToStringOnlyCharacter(
+  type: StringOnlyCharacter, 
+  accessor: (index: number, obj:ValidStringOnlyCharacterType) => ValidStringOnlyCharacterType|null, 
+  index: number
+): ValidStringOnlyCharacterType|null {
+  switch(StringOnlyCharacter[type]) {
+    case 'NONE': return null; 
+    case 'Mickey': return accessor(index, '') as string;
+    case 'Goofy': return accessor(index, '') as string;
+    case 'Pluto': return accessor(index, '') as string;
+    default: return null;
+  }
+}
+
 /**
  * @constructor
  */
@@ -373,12 +447,8 @@ mainCharacterType():Character {
  * @returns ?flatbuffers.Table
  */
 mainCharacter<T extends flatbuffers.Table>(obj:T|string):T|string|null {
-  if(typeof obj === 'string') {
-    var offset = this.bb!.__offset(this.bb_pos, 6);
-  return offset ? this.bb!.__string(this.bb_pos + offset) as string : null;
-  }
   var offset = this.bb!.__offset(this.bb_pos, 6);
-  return offset ? this.bb!.__union(obj, this.bb_pos + offset) : null;
+  return offset ? this.bb!.__union_with_string(obj, this.bb_pos + offset) : null;
 };
 
 /**
@@ -411,13 +481,9 @@ charactersTypeArray():Uint8Array|null {
  * @param flatbuffers.Table= obj
  * @returns ?flatbuffers.Table
  */
-characters<T extends flatbuffers.Table>(index: number, obj:T | string):T|string|null {
-  if(typeof obj === 'string') {
+characters<T extends flatbuffers.Table>(index: number, obj:T|string):T|string|null {
   var offset = this.bb!.__offset(this.bb_pos, 10);
-  return offset ? this.bb!.__string(this.bb!.__vector(this.bb_pos + offset) + index * 4) as string : null;
-  }
-  var offset = this.bb!.__offset(this.bb_pos, 10);
-  return offset ? this.bb!.__union(obj, this.bb!.__vector(this.bb_pos + offset) + index * 4) : null;
+  return offset ? this.bb!.__union_with_string(obj, this.bb!.__vector(this.bb_pos + offset) + index * 4) : null;
 };
 
 /**
@@ -429,10 +495,53 @@ charactersLength():number {
 };
 
 /**
+ * @param number index
+ * @returns StringOnlyCharacter
+ */
+stringOnlyCharactersType(index: number):StringOnlyCharacter|null {
+  var offset = this.bb!.__offset(this.bb_pos, 12);
+  return offset ? /**  */ (this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index)) : /**  */ (0);
+};
+
+/**
+ * @returns number
+ */
+stringOnlyCharactersTypeLength():number {
+  var offset = this.bb!.__offset(this.bb_pos, 12);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @returns Uint8Array
+ */
+stringOnlyCharactersTypeArray():Uint8Array|null {
+  var offset = this.bb!.__offset(this.bb_pos, 12);
+  return offset ? new Uint8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
+};
+
+/**
+ * @param number index
+ * @param flatbuffers.Table= obj
+ * @returns ?flatbuffers.Table
+ */
+stringOnlyCharacters(index: number, obj:string):string|null {
+  var offset = this.bb!.__offset(this.bb_pos, 14);
+  return offset ? this.bb!.__union_with_string(obj, this.bb!.__vector(this.bb_pos + offset) + index * 4) : null;
+};
+
+/**
+ * @returns number
+ */
+stringOnlyCharactersLength():number {
+  var offset = this.bb!.__offset(this.bb_pos, 14);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
  * @param flatbuffers.Builder builder
  */
 static startMovie(builder:flatbuffers.Builder) {
-  builder.startObject(4);
+  builder.startObject(6);
 };
 
 /**
@@ -511,6 +620,64 @@ static startCharactersVector(builder:flatbuffers.Builder, numElems:number) {
 
 /**
  * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset stringOnlyCharactersTypeOffset
+ */
+static addStringOnlyCharactersType(builder:flatbuffers.Builder, stringOnlyCharactersTypeOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(4, stringOnlyCharactersTypeOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param Array.<StringOnlyCharacter> data
+ * @returns flatbuffers.Offset
+ */
+static createStringOnlyCharactersTypeVector(builder:flatbuffers.Builder, data:StringOnlyCharacter[]):flatbuffers.Offset {
+  builder.startVector(1, data.length, 1);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addInt8(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param number numElems
+ */
+static startStringOnlyCharactersTypeVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(1, numElems, 1);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset stringOnlyCharactersOffset
+ */
+static addStringOnlyCharacters(builder:flatbuffers.Builder, stringOnlyCharactersOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(5, stringOnlyCharactersOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param Array.<flatbuffers.Offset> data
+ * @returns flatbuffers.Offset
+ */
+static createStringOnlyCharactersVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
+  builder.startVector(4, data.length, 4);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param number numElems
+ */
+static startStringOnlyCharactersVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(4, numElems, 4);
+};
+
+/**
+ * @param flatbuffers.Builder builder
  * @returns flatbuffers.Offset
  */
 static endMovie(builder:flatbuffers.Builder):flatbuffers.Offset {
@@ -534,12 +701,14 @@ static finishSizePrefixedMovieBuffer(builder:flatbuffers.Builder, offset:flatbuf
   builder.finish(offset, 'MOVI', true);
 };
 
-static createMovie(builder:flatbuffers.Builder, mainCharacterType:Character, mainCharacterOffset:flatbuffers.Offset, charactersTypeOffset:flatbuffers.Offset, charactersOffset:flatbuffers.Offset):flatbuffers.Offset {
+static createMovie(builder:flatbuffers.Builder, mainCharacterType:Character, mainCharacterOffset:flatbuffers.Offset, charactersTypeOffset:flatbuffers.Offset, charactersOffset:flatbuffers.Offset, stringOnlyCharactersTypeOffset:flatbuffers.Offset, stringOnlyCharactersOffset:flatbuffers.Offset):flatbuffers.Offset {
   Movie.startMovie(builder);
   Movie.addMainCharacterType(builder, mainCharacterType);
   Movie.addMainCharacter(builder, mainCharacterOffset);
   Movie.addCharactersType(builder, charactersTypeOffset);
   Movie.addCharacters(builder, charactersOffset);
+  Movie.addStringOnlyCharactersType(builder, stringOnlyCharactersTypeOffset);
+  Movie.addStringOnlyCharacters(builder, stringOnlyCharactersOffset);
   return Movie.endMovie(builder);
 }
 
@@ -550,31 +719,35 @@ unpack(): MovieT {
   return new MovieT(
     this.mainCharacterType(),
     (() => {
-    let targetEnumStr = Character[this.mainCharacterType()];
-    if(targetEnumStr === 'NONE') { return null; } 
-
-    if(targetEnumStr === 'MuLan') { return (this.mainCharacter(new Attacker())! as Attacker).unpack();}
-    if(targetEnumStr === 'Rapunzel') { return (this.mainCharacter(new Rapunzel())! as Rapunzel).unpack();}
-    if(targetEnumStr === 'Belle') { return (this.mainCharacter(new BookReader())! as BookReader).unpack();}
-    if(targetEnumStr === 'BookFan') { return (this.mainCharacter(new BookReader())! as BookReader).unpack();}
-    if(targetEnumStr === 'Other') { return this.mainCharacter('') as string;}
-    if(targetEnumStr === 'Unused') { return this.mainCharacter('') as string;}
-    return null;
+      let temp = unionToCharacter(this.mainCharacterType(), this.mainCharacter.bind(this));
+      if(temp === null) { return null; }
+      if(typeof temp === 'string') { return temp; }
+      return temp.unpack()
   })(),
     this.bb!.createScalarList(this.charactersType.bind(this), this.charactersTypeLength()),
-     (()=> {
-    let ret = []
+    (() => {
+    let ret = [];
     for(let targetEnumIndex = 0; targetEnumIndex < this.charactersTypeLength(); ++targetEnumIndex) {
       let targetEnum = this.charactersType(targetEnumIndex);
       if(targetEnum === null || Character[targetEnum!] === 'NONE') { continue; }
-  let targetEnumStr = Character[targetEnum!];
-    if(targetEnumStr === 'MuLan') { ret.push((this.characters(targetEnumIndex, new Attacker())! as Attacker).unpack());}
-    if(targetEnumStr === 'Rapunzel') { ret.push((this.characters(targetEnumIndex, new Rapunzel())! as Rapunzel).unpack());}
-    if(targetEnumStr === 'Belle') { ret.push((this.characters(targetEnumIndex, new BookReader())! as BookReader).unpack());}
-    if(targetEnumStr === 'BookFan') { ret.push((this.characters(targetEnumIndex, new BookReader())! as BookReader).unpack());}
-    if(targetEnumStr === 'Other') { ret.push(this.characters(targetEnumIndex, '') as string);}
-    if(targetEnumStr === 'Unused') { ret.push(this.characters(targetEnumIndex, '') as string);}
+
+      let temp = unionListToCharacter(targetEnum, this.characters.bind(this), targetEnumIndex);
+      if(temp === null) { continue; }
+      if(typeof temp === 'string') { ret.push(temp); continue; }
+      ret.push(temp.unpack());
     }
+    return ret;
+  })(),
+    this.bb!.createScalarList(this.stringOnlyCharactersType.bind(this), this.stringOnlyCharactersTypeLength()),
+    (() => {
+    let ret = [];
+    for(let targetEnumIndex = 0; targetEnumIndex < this.stringOnlyCharactersTypeLength(); ++targetEnumIndex) {
+      let targetEnum = this.stringOnlyCharactersType(targetEnumIndex);
+      if(targetEnum === null || StringOnlyCharacter[targetEnum!] === 'NONE') { continue; }
+
+      let temp = unionListToStringOnlyCharacter(targetEnum, this.stringOnlyCharacters.bind(this), targetEnumIndex);
+      if(temp === null) { continue; }
+      ret.push(temp);    }
     return ret;
   })()
   );
@@ -586,31 +759,35 @@ unpack(): MovieT {
 unpackTo(_o: MovieT): void {
   _o.mainCharacterType = this.mainCharacterType();
   _o.mainCharacter = (() => {
-    let targetEnumStr = Character[this.mainCharacterType()];
-    if(targetEnumStr === 'NONE') { return null; } 
-
-    if(targetEnumStr === 'MuLan') { return (this.mainCharacter(new Attacker())! as Attacker).unpack();}
-    if(targetEnumStr === 'Rapunzel') { return (this.mainCharacter(new Rapunzel())! as Rapunzel).unpack();}
-    if(targetEnumStr === 'Belle') { return (this.mainCharacter(new BookReader())! as BookReader).unpack();}
-    if(targetEnumStr === 'BookFan') { return (this.mainCharacter(new BookReader())! as BookReader).unpack();}
-    if(targetEnumStr === 'Other') { return this.mainCharacter('') as string;}
-    if(targetEnumStr === 'Unused') { return this.mainCharacter('') as string;}
-    return null;
+      let temp = unionToCharacter(this.mainCharacterType(), this.mainCharacter.bind(this));
+      if(temp === null) { return null; }
+      if(typeof temp === 'string') { return temp; }
+      return temp.unpack()
   })();
   _o.charactersType = this.bb!.createScalarList(this.charactersType.bind(this), this.charactersTypeLength());
-  _o.characters =  (()=> {
-    let ret = []
+  _o.characters = (() => {
+    let ret = [];
     for(let targetEnumIndex = 0; targetEnumIndex < this.charactersTypeLength(); ++targetEnumIndex) {
       let targetEnum = this.charactersType(targetEnumIndex);
       if(targetEnum === null || Character[targetEnum!] === 'NONE') { continue; }
-  let targetEnumStr = Character[targetEnum!];
-    if(targetEnumStr === 'MuLan') { ret.push((this.characters(targetEnumIndex, new Attacker())! as Attacker).unpack());}
-    if(targetEnumStr === 'Rapunzel') { ret.push((this.characters(targetEnumIndex, new Rapunzel())! as Rapunzel).unpack());}
-    if(targetEnumStr === 'Belle') { ret.push((this.characters(targetEnumIndex, new BookReader())! as BookReader).unpack());}
-    if(targetEnumStr === 'BookFan') { ret.push((this.characters(targetEnumIndex, new BookReader())! as BookReader).unpack());}
-    if(targetEnumStr === 'Other') { ret.push(this.characters(targetEnumIndex, '') as string);}
-    if(targetEnumStr === 'Unused') { ret.push(this.characters(targetEnumIndex, '') as string);}
+
+      let temp = unionListToCharacter(targetEnum, this.characters.bind(this), targetEnumIndex);
+      if(temp === null) { continue; }
+      if(typeof temp === 'string') { ret.push(temp); continue; }
+      ret.push(temp.unpack());
     }
+    return ret;
+  })();
+  _o.stringOnlyCharactersType = this.bb!.createScalarList(this.stringOnlyCharactersType.bind(this), this.stringOnlyCharactersTypeLength());
+  _o.stringOnlyCharacters = (() => {
+    let ret = [];
+    for(let targetEnumIndex = 0; targetEnumIndex < this.stringOnlyCharactersTypeLength(); ++targetEnumIndex) {
+      let targetEnum = this.stringOnlyCharactersType(targetEnumIndex);
+      if(targetEnum === null || StringOnlyCharacter[targetEnum!] === 'NONE') { continue; }
+
+      let temp = unionListToStringOnlyCharacter(targetEnum, this.stringOnlyCharacters.bind(this), targetEnumIndex);
+      if(temp === null) { continue; }
+      ret.push(temp);    }
     return ret;
   })();
 };
@@ -623,12 +800,16 @@ export class MovieT {
  * @param AttackerT|BookReaderT|RapunzelT|string|null mainCharacter
  * @param (Character)[] charactersType
  * @param (AttackerT|BookReaderT|RapunzelT|string|null)[] characters
+ * @param (StringOnlyCharacter)[] stringOnlyCharactersType
+ * @param (string|null)[] stringOnlyCharacters
  */
 constructor(
   public mainCharacterType: Character = Character.NONE,
   public mainCharacter: AttackerT|BookReaderT|RapunzelT|string|null = null,
   public charactersType: (Character)[] = [],
-  public characters: (AttackerT|BookReaderT|RapunzelT|string|null)[] = []
+  public characters: (AttackerT|BookReaderT|RapunzelT|string|null)[] = [],
+  public stringOnlyCharactersType: (StringOnlyCharacter)[] = [],
+  public stringOnlyCharacters: (string|null)[] = []
 ){};
 
 /**
@@ -639,12 +820,16 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   const mainCharacter = builder.createObjectOffset(this.mainCharacter);
   const charactersType = Movie.createCharactersTypeVector(builder, this.charactersType);
   const characters = Movie.createCharactersVector(builder, builder.createObjectOffsetList(this.characters));
+  const stringOnlyCharactersType = Movie.createStringOnlyCharactersTypeVector(builder, this.stringOnlyCharactersType);
+  const stringOnlyCharacters = Movie.createStringOnlyCharactersVector(builder, builder.createObjectOffsetList(this.stringOnlyCharacters));
 
   return Movie.createMovie(builder,
     this.mainCharacterType,
     mainCharacter,
     charactersType,
-    characters
+    characters,
+    stringOnlyCharactersType,
+    stringOnlyCharacters
   );
 };
 }

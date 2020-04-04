@@ -133,9 +133,9 @@ static createTableInFirstNS(builder:flatbuffers.Builder, fooTableOffset:flatbuff
  */
 unpack(): TableInFirstNST {
   return new TableInFirstNST(
-    ((this.fooTable() !== null) ? this.fooTable()!.unpack() : null),
+    (this.fooTable() !== null ? this.fooTable()!.unpack() : null),
     this.fooEnum(),
-    ((this.fooStruct() !== null) ? this.fooStruct()!.unpack() : null)
+    (this.fooStruct() !== null ? this.fooStruct()!.unpack() : null)
   );
 };
 
@@ -143,9 +143,9 @@ unpack(): TableInFirstNST {
  * @param TableInFirstNST _o
  */
 unpackTo(_o: TableInFirstNST): void {
-  _o.fooTable = ((this.fooTable() !== null) ? this.fooTable()!.unpack() : null);
+  _o.fooTable = (this.fooTable() !== null ? this.fooTable()!.unpack() : null);
   _o.fooEnum = this.fooEnum();
-  _o.fooStruct = ((this.fooStruct() !== null) ? this.fooStruct()!.unpack() : null);
+  _o.fooStruct = (this.fooStruct() !== null ? this.fooStruct()!.unpack() : null);
 };
 }
 
@@ -168,9 +168,9 @@ constructor(
  */
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   return TableInFirstNS.createTableInFirstNS(builder,
-    ((this.fooTable !== null) ? this.fooTable!.pack(builder) : 0),
+    (this.fooTable !== null ? this.fooTable!.pack(builder) : 0),
     this.fooEnum,
-    ((this.fooStruct !== null) ? this.fooStruct!.pack(builder) : 0)
+    (this.fooStruct !== null ? this.fooStruct!.pack(builder) : 0)
   );
 };
 }
@@ -275,8 +275,8 @@ static createTableInC(builder:flatbuffers.Builder, referToA1Offset:flatbuffers.O
  */
 unpack(): TableInCT {
   return new TableInCT(
-    ((this.referToA1() !== null) ? this.referToA1()!.unpack() : null),
-    ((this.referToA2() !== null) ? this.referToA2()!.unpack() : null)
+    (this.referToA1() !== null ? this.referToA1()!.unpack() : null),
+    (this.referToA2() !== null ? this.referToA2()!.unpack() : null)
   );
 };
 
@@ -284,8 +284,8 @@ unpack(): TableInCT {
  * @param TableInCT _o
  */
 unpackTo(_o: TableInCT): void {
-  _o.referToA1 = ((this.referToA1() !== null) ? this.referToA1()!.unpack() : null);
-  _o.referToA2 = ((this.referToA2() !== null) ? this.referToA2()!.unpack() : null);
+  _o.referToA1 = (this.referToA1() !== null ? this.referToA1()!.unpack() : null);
+  _o.referToA2 = (this.referToA2() !== null ? this.referToA2()!.unpack() : null);
 };
 }
 
@@ -306,8 +306,8 @@ constructor(
  */
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   return TableInC.createTableInC(builder,
-    ((this.referToA1 !== null) ? this.referToA1!.pack(builder) : 0),
-    ((this.referToA2 !== null) ? this.referToA2!.pack(builder) : 0)
+    (this.referToA1 !== null ? this.referToA1!.pack(builder) : 0),
+    (this.referToA2 !== null ? this.referToA2!.pack(builder) : 0)
   );
 };
 }
@@ -394,7 +394,7 @@ static createSecondTableInA(builder:flatbuffers.Builder, referToCOffset:flatbuff
  */
 unpack(): SecondTableInAT {
   return new SecondTableInAT(
-    ((this.referToC() !== null) ? this.referToC()!.unpack() : null)
+    (this.referToC() !== null ? this.referToC()!.unpack() : null)
   );
 };
 
@@ -402,7 +402,7 @@ unpack(): SecondTableInAT {
  * @param SecondTableInAT _o
  */
 unpackTo(_o: SecondTableInAT): void {
-  _o.referToC = ((this.referToC() !== null) ? this.referToC()!.unpack() : null);
+  _o.referToC = (this.referToC() !== null ? this.referToC()!.unpack() : null);
 };
 }
 
@@ -421,7 +421,7 @@ constructor(
  */
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   return SecondTableInA.createSecondTableInA(builder,
-    ((this.referToC !== null) ? this.referToC!.pack(builder) : 0)
+    (this.referToC !== null ? this.referToC!.pack(builder) : 0)
   );
 };
 }

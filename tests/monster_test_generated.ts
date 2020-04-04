@@ -19,7 +19,8 @@ export enum Color{
    * \brief color Blue (1u << 3)
    */
   Blue= 8
-}};
+};
+}
 
 /**
  * @enum {number}
@@ -30,7 +31,8 @@ export enum Race{
   Human= 0,
   Dwarf= 1,
   Elf= 2
-}};
+};
+}
 
 /**
  * @enum {number}
@@ -41,7 +43,37 @@ export enum Any{
   Monster= 1,
   TestSimpleTableWithEnum= 2,
   MyGame_Example2_Monster= 3
-}};
+};
+
+export type ValidAnyType = MyGame.Example.Monster|MyGame.Example.TestSimpleTableWithEnum|MyGame.Example2.Monster;
+
+export function unionToAny(
+  type: Any,
+  accessor: (obj:ValidAnyType) => ValidAnyType|null
+): ValidAnyType|null {
+  switch(MyGame.Example.Any[type]) {
+    case 'NONE': return null; 
+    case 'Monster': return accessor(new MyGame.Example.Monster())! as MyGame.Example.Monster;
+    case 'TestSimpleTableWithEnum': return accessor(new MyGame.Example.TestSimpleTableWithEnum())! as MyGame.Example.TestSimpleTableWithEnum;
+    case 'MyGame_Example2_Monster': return accessor(new MyGame.Example2.Monster())! as MyGame.Example2.Monster;
+    default: return null;
+  }
+}
+
+export function unionListToAny(
+  type: Any, 
+  accessor: (index: number, obj:ValidAnyType) => ValidAnyType|null, 
+  index: number
+): ValidAnyType|null {
+  switch(MyGame.Example.Any[type]) {
+    case 'NONE': return null; 
+    case 'Monster': return accessor(index, new MyGame.Example.Monster())! as MyGame.Example.Monster;
+    case 'TestSimpleTableWithEnum': return accessor(index, new MyGame.Example.TestSimpleTableWithEnum())! as MyGame.Example.TestSimpleTableWithEnum;
+    case 'MyGame_Example2_Monster': return accessor(index, new MyGame.Example2.Monster())! as MyGame.Example2.Monster;
+    default: return null;
+  }
+}
+}
 
 /**
  * @enum {number}
@@ -52,7 +84,37 @@ export enum AnyUniqueAliases{
   M= 1,
   TS= 2,
   M2= 3
-}};
+};
+
+export type ValidAnyUniqueAliasesType = MyGame.Example.Monster|MyGame.Example.TestSimpleTableWithEnum|MyGame.Example2.Monster;
+
+export function unionToAnyUniqueAliases(
+  type: AnyUniqueAliases,
+  accessor: (obj:ValidAnyUniqueAliasesType) => ValidAnyUniqueAliasesType|null
+): ValidAnyUniqueAliasesType|null {
+  switch(MyGame.Example.AnyUniqueAliases[type]) {
+    case 'NONE': return null; 
+    case 'M': return accessor(new MyGame.Example.Monster())! as MyGame.Example.Monster;
+    case 'TS': return accessor(new MyGame.Example.TestSimpleTableWithEnum())! as MyGame.Example.TestSimpleTableWithEnum;
+    case 'M2': return accessor(new MyGame.Example2.Monster())! as MyGame.Example2.Monster;
+    default: return null;
+  }
+}
+
+export function unionListToAnyUniqueAliases(
+  type: AnyUniqueAliases, 
+  accessor: (index: number, obj:ValidAnyUniqueAliasesType) => ValidAnyUniqueAliasesType|null, 
+  index: number
+): ValidAnyUniqueAliasesType|null {
+  switch(MyGame.Example.AnyUniqueAliases[type]) {
+    case 'NONE': return null; 
+    case 'M': return accessor(index, new MyGame.Example.Monster())! as MyGame.Example.Monster;
+    case 'TS': return accessor(index, new MyGame.Example.TestSimpleTableWithEnum())! as MyGame.Example.TestSimpleTableWithEnum;
+    case 'M2': return accessor(index, new MyGame.Example2.Monster())! as MyGame.Example2.Monster;
+    default: return null;
+  }
+}
+}
 
 /**
  * @enum {number}
@@ -63,7 +125,37 @@ export enum AnyAmbiguousAliases{
   M1= 1,
   M2= 2,
   M3= 3
-}};
+};
+
+export type ValidAnyAmbiguousAliasesType = MyGame.Example.Monster;
+
+export function unionToAnyAmbiguousAliases(
+  type: AnyAmbiguousAliases,
+  accessor: (obj:ValidAnyAmbiguousAliasesType) => ValidAnyAmbiguousAliasesType|null
+): ValidAnyAmbiguousAliasesType|null {
+  switch(MyGame.Example.AnyAmbiguousAliases[type]) {
+    case 'NONE': return null; 
+    case 'M1': return accessor(new MyGame.Example.Monster())! as MyGame.Example.Monster;
+    case 'M2': return accessor(new MyGame.Example.Monster())! as MyGame.Example.Monster;
+    case 'M3': return accessor(new MyGame.Example.Monster())! as MyGame.Example.Monster;
+    default: return null;
+  }
+}
+
+export function unionListToAnyAmbiguousAliases(
+  type: AnyAmbiguousAliases, 
+  accessor: (index: number, obj:ValidAnyAmbiguousAliasesType) => ValidAnyAmbiguousAliasesType|null, 
+  index: number
+): ValidAnyAmbiguousAliasesType|null {
+  switch(MyGame.Example.AnyAmbiguousAliases[type]) {
+    case 'NONE': return null; 
+    case 'M1': return accessor(index, new MyGame.Example.Monster())! as MyGame.Example.Monster;
+    case 'M2': return accessor(index, new MyGame.Example.Monster())! as MyGame.Example.Monster;
+    case 'M3': return accessor(index, new MyGame.Example.Monster())! as MyGame.Example.Monster;
+    default: return null;
+  }
+}
+}
 
 /**
  * @constructor
@@ -663,7 +755,7 @@ unpack(): Vec3T {
     this.z(),
     this.test1(),
     this.test2(),
-    ((this.test3() !== null) ? this.test3()!.unpack() : null)
+    (this.test3() !== null ? this.test3()!.unpack() : null)
   );
 };
 
@@ -676,7 +768,7 @@ unpackTo(_o: Vec3T): void {
   _o.z = this.z();
   _o.test1 = this.test1();
   _o.test2 = this.test2();
-  _o.test3 = ((this.test3() !== null) ? this.test3()!.unpack() : null);
+  _o.test3 = (this.test3() !== null ? this.test3()!.unpack() : null);
 };
 }
 
@@ -1017,7 +1109,7 @@ constructor(
  * @returns flatbuffers.Offset
  */
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  const id = ((this.id !== null) ? builder.createString(this.id!) : 0);
+  const id = (this.id !== null ? builder.createString(this.id!) : 0);
 
   return Stat.createStat(builder,
     id,
@@ -1329,11 +1421,7 @@ testType():MyGame.Example.Any {
  * @param flatbuffers.Table obj
  * @returns ?flatbuffers.Table
  */
-test<T extends flatbuffers.Table>(obj:T|string):T|string|null {
-  if(typeof obj === 'string') {
-    var offset = this.bb!.__offset(this.bb_pos, 20);
-  return offset ? this.bb!.__string(this.bb_pos + offset) as string : null;
-  }
+test<T extends flatbuffers.Table>(obj:T):T|null {
   var offset = this.bb!.__offset(this.bb_pos, 20);
   return offset ? this.bb!.__union(obj, this.bb_pos + offset) : null;
 };
@@ -2041,11 +2129,7 @@ anyUniqueType():MyGame.Example.AnyUniqueAliases {
  * @param flatbuffers.Table obj
  * @returns ?flatbuffers.Table
  */
-anyUnique<T extends flatbuffers.Table>(obj:T|string):T|string|null {
-  if(typeof obj === 'string') {
-    var offset = this.bb!.__offset(this.bb_pos, 92);
-  return offset ? this.bb!.__string(this.bb_pos + offset) as string : null;
-  }
+anyUnique<T extends flatbuffers.Table>(obj:T):T|null {
   var offset = this.bb!.__offset(this.bb_pos, 92);
   return offset ? this.bb!.__union(obj, this.bb_pos + offset) : null;
 };
@@ -2062,11 +2146,7 @@ anyAmbiguousType():MyGame.Example.AnyAmbiguousAliases {
  * @param flatbuffers.Table obj
  * @returns ?flatbuffers.Table
  */
-anyAmbiguous<T extends flatbuffers.Table>(obj:T|string):T|string|null {
-  if(typeof obj === 'string') {
-    var offset = this.bb!.__offset(this.bb_pos, 96);
-  return offset ? this.bb!.__string(this.bb_pos + offset) as string : null;
-  }
+anyAmbiguous<T extends flatbuffers.Table>(obj:T):T|null {
   var offset = this.bb!.__offset(this.bb_pos, 96);
   return offset ? this.bb!.__union(obj, this.bb_pos + offset) : null;
 };
@@ -2933,7 +3013,7 @@ static createMonster(builder:flatbuffers.Builder, posOffset:flatbuffers.Offset, 
  */
 unpack(): MonsterT {
   return new MonsterT(
-    ((this.pos() !== null) ? this.pos()!.unpack() : null),
+    (this.pos() !== null ? this.pos()!.unpack() : null),
     this.mana(),
     this.hp(),
     this.name(),
@@ -2941,20 +3021,16 @@ unpack(): MonsterT {
     this.color(),
     this.testType(),
     (() => {
-    let targetEnumStr = MyGame.Example.Any[this.testType()];
-    if(targetEnumStr === 'NONE') { return null; } 
-
-    if(targetEnumStr === 'Monster') { return (this.test(new MyGame.Example.Monster())! as MyGame.Example.Monster).unpack();}
-    if(targetEnumStr === 'TestSimpleTableWithEnum') { return (this.test(new MyGame.Example.TestSimpleTableWithEnum())! as MyGame.Example.TestSimpleTableWithEnum).unpack();}
-    if(targetEnumStr === 'MyGame_Example2_Monster') { return (this.test(new MyGame.Example2.Monster())! as MyGame.Example2.Monster).unpack();}
-    return null;
+      let temp = MyGame.Example.unionToAny(this.testType(), this.test.bind(this));
+      if(temp === null) { return null; }
+      return temp.unpack()
   })(),
     this.bb!.createObjList(this.test4.bind(this), this.test4Length()),
     this.bb!.createStringList(this.testarrayofstring.bind(this), this.testarrayofstringLength()),
     this.bb!.createObjList(this.testarrayoftables.bind(this), this.testarrayoftablesLength()),
-    ((this.enemy() !== null) ? this.enemy()!.unpack() : null),
+    (this.enemy() !== null ? this.enemy()!.unpack() : null),
     this.bb!.createScalarList(this.testnestedflatbuffer.bind(this), this.testnestedflatbufferLength()),
-    ((this.testempty() !== null) ? this.testempty()!.unpack() : null),
+    (this.testempty() !== null ? this.testempty()!.unpack() : null),
     this.testbool(),
     this.testhashs32Fnv1(),
     this.testhashu32Fnv1(),
@@ -2974,7 +3050,7 @@ unpack(): MonsterT {
     this.bb!.createObjList(this.test5.bind(this), this.test5Length()),
     this.bb!.createScalarList(this.vectorOfLongs.bind(this), this.vectorOfLongsLength()),
     this.bb!.createScalarList(this.vectorOfDoubles.bind(this), this.vectorOfDoublesLength()),
-    ((this.parentNamespaceTest() !== null) ? this.parentNamespaceTest()!.unpack() : null),
+    (this.parentNamespaceTest() !== null ? this.parentNamespaceTest()!.unpack() : null),
     this.bb!.createObjList(this.vectorOfReferrables.bind(this), this.vectorOfReferrablesLength()),
     this.singleWeakReference(),
     this.bb!.createScalarList(this.vectorOfWeakReferences.bind(this), this.vectorOfWeakReferencesLength()),
@@ -2985,23 +3061,15 @@ unpack(): MonsterT {
     this.bb!.createScalarList(this.vectorOfNonOwningReferences.bind(this), this.vectorOfNonOwningReferencesLength()),
     this.anyUniqueType(),
     (() => {
-    let targetEnumStr = MyGame.Example.AnyUniqueAliases[this.anyUniqueType()];
-    if(targetEnumStr === 'NONE') { return null; } 
-
-    if(targetEnumStr === 'M') { return (this.anyUnique(new MyGame.Example.Monster())! as MyGame.Example.Monster).unpack();}
-    if(targetEnumStr === 'TS') { return (this.anyUnique(new MyGame.Example.TestSimpleTableWithEnum())! as MyGame.Example.TestSimpleTableWithEnum).unpack();}
-    if(targetEnumStr === 'M2') { return (this.anyUnique(new MyGame.Example2.Monster())! as MyGame.Example2.Monster).unpack();}
-    return null;
+      let temp = MyGame.Example.unionToAnyUniqueAliases(this.anyUniqueType(), this.anyUnique.bind(this));
+      if(temp === null) { return null; }
+      return temp.unpack()
   })(),
     this.anyAmbiguousType(),
     (() => {
-    let targetEnumStr = MyGame.Example.AnyAmbiguousAliases[this.anyAmbiguousType()];
-    if(targetEnumStr === 'NONE') { return null; } 
-
-    if(targetEnumStr === 'M1') { return (this.anyAmbiguous(new MyGame.Example.Monster())! as MyGame.Example.Monster).unpack();}
-    if(targetEnumStr === 'M2') { return (this.anyAmbiguous(new MyGame.Example.Monster())! as MyGame.Example.Monster).unpack();}
-    if(targetEnumStr === 'M3') { return (this.anyAmbiguous(new MyGame.Example.Monster())! as MyGame.Example.Monster).unpack();}
-    return null;
+      let temp = MyGame.Example.unionToAnyAmbiguousAliases(this.anyAmbiguousType(), this.anyAmbiguous.bind(this));
+      if(temp === null) { return null; }
+      return temp.unpack()
   })(),
     this.bb!.createScalarList(this.vectorOfEnums.bind(this), this.vectorOfEnumsLength()),
     this.signedEnum()
@@ -3012,7 +3080,7 @@ unpack(): MonsterT {
  * @param MonsterT _o
  */
 unpackTo(_o: MonsterT): void {
-  _o.pos = ((this.pos() !== null) ? this.pos()!.unpack() : null);
+  _o.pos = (this.pos() !== null ? this.pos()!.unpack() : null);
   _o.mana = this.mana();
   _o.hp = this.hp();
   _o.name = this.name();
@@ -3020,20 +3088,16 @@ unpackTo(_o: MonsterT): void {
   _o.color = this.color();
   _o.testType = this.testType();
   _o.test = (() => {
-    let targetEnumStr = MyGame.Example.Any[this.testType()];
-    if(targetEnumStr === 'NONE') { return null; } 
-
-    if(targetEnumStr === 'Monster') { return (this.test(new MyGame.Example.Monster())! as MyGame.Example.Monster).unpack();}
-    if(targetEnumStr === 'TestSimpleTableWithEnum') { return (this.test(new MyGame.Example.TestSimpleTableWithEnum())! as MyGame.Example.TestSimpleTableWithEnum).unpack();}
-    if(targetEnumStr === 'MyGame_Example2_Monster') { return (this.test(new MyGame.Example2.Monster())! as MyGame.Example2.Monster).unpack();}
-    return null;
+      let temp = MyGame.Example.unionToAny(this.testType(), this.test.bind(this));
+      if(temp === null) { return null; }
+      return temp.unpack()
   })();
   _o.test4 = this.bb!.createObjList(this.test4.bind(this), this.test4Length());
   _o.testarrayofstring = this.bb!.createStringList(this.testarrayofstring.bind(this), this.testarrayofstringLength());
   _o.testarrayoftables = this.bb!.createObjList(this.testarrayoftables.bind(this), this.testarrayoftablesLength());
-  _o.enemy = ((this.enemy() !== null) ? this.enemy()!.unpack() : null);
+  _o.enemy = (this.enemy() !== null ? this.enemy()!.unpack() : null);
   _o.testnestedflatbuffer = this.bb!.createScalarList(this.testnestedflatbuffer.bind(this), this.testnestedflatbufferLength());
-  _o.testempty = ((this.testempty() !== null) ? this.testempty()!.unpack() : null);
+  _o.testempty = (this.testempty() !== null ? this.testempty()!.unpack() : null);
   _o.testbool = this.testbool();
   _o.testhashs32Fnv1 = this.testhashs32Fnv1();
   _o.testhashu32Fnv1 = this.testhashu32Fnv1();
@@ -3053,7 +3117,7 @@ unpackTo(_o: MonsterT): void {
   _o.test5 = this.bb!.createObjList(this.test5.bind(this), this.test5Length());
   _o.vectorOfLongs = this.bb!.createScalarList(this.vectorOfLongs.bind(this), this.vectorOfLongsLength());
   _o.vectorOfDoubles = this.bb!.createScalarList(this.vectorOfDoubles.bind(this), this.vectorOfDoublesLength());
-  _o.parentNamespaceTest = ((this.parentNamespaceTest() !== null) ? this.parentNamespaceTest()!.unpack() : null);
+  _o.parentNamespaceTest = (this.parentNamespaceTest() !== null ? this.parentNamespaceTest()!.unpack() : null);
   _o.vectorOfReferrables = this.bb!.createObjList(this.vectorOfReferrables.bind(this), this.vectorOfReferrablesLength());
   _o.singleWeakReference = this.singleWeakReference();
   _o.vectorOfWeakReferences = this.bb!.createScalarList(this.vectorOfWeakReferences.bind(this), this.vectorOfWeakReferencesLength());
@@ -3064,23 +3128,15 @@ unpackTo(_o: MonsterT): void {
   _o.vectorOfNonOwningReferences = this.bb!.createScalarList(this.vectorOfNonOwningReferences.bind(this), this.vectorOfNonOwningReferencesLength());
   _o.anyUniqueType = this.anyUniqueType();
   _o.anyUnique = (() => {
-    let targetEnumStr = MyGame.Example.AnyUniqueAliases[this.anyUniqueType()];
-    if(targetEnumStr === 'NONE') { return null; } 
-
-    if(targetEnumStr === 'M') { return (this.anyUnique(new MyGame.Example.Monster())! as MyGame.Example.Monster).unpack();}
-    if(targetEnumStr === 'TS') { return (this.anyUnique(new MyGame.Example.TestSimpleTableWithEnum())! as MyGame.Example.TestSimpleTableWithEnum).unpack();}
-    if(targetEnumStr === 'M2') { return (this.anyUnique(new MyGame.Example2.Monster())! as MyGame.Example2.Monster).unpack();}
-    return null;
+      let temp = MyGame.Example.unionToAnyUniqueAliases(this.anyUniqueType(), this.anyUnique.bind(this));
+      if(temp === null) { return null; }
+      return temp.unpack()
   })();
   _o.anyAmbiguousType = this.anyAmbiguousType();
   _o.anyAmbiguous = (() => {
-    let targetEnumStr = MyGame.Example.AnyAmbiguousAliases[this.anyAmbiguousType()];
-    if(targetEnumStr === 'NONE') { return null; } 
-
-    if(targetEnumStr === 'M1') { return (this.anyAmbiguous(new MyGame.Example.Monster())! as MyGame.Example.Monster).unpack();}
-    if(targetEnumStr === 'M2') { return (this.anyAmbiguous(new MyGame.Example.Monster())! as MyGame.Example.Monster).unpack();}
-    if(targetEnumStr === 'M3') { return (this.anyAmbiguous(new MyGame.Example.Monster())! as MyGame.Example.Monster).unpack();}
-    return null;
+      let temp = MyGame.Example.unionToAnyAmbiguousAliases(this.anyAmbiguousType(), this.anyAmbiguous.bind(this));
+      if(temp === null) { return null; }
+      return temp.unpack()
   })();
   _o.vectorOfEnums = this.bb!.createScalarList(this.vectorOfEnums.bind(this), this.vectorOfEnumsLength());
   _o.signedEnum = this.signedEnum();
@@ -3195,7 +3251,7 @@ constructor(
  * @returns flatbuffers.Offset
  */
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  const name = ((this.name !== null) ? builder.createString(this.name!) : 0);
+  const name = (this.name !== null ? builder.createString(this.name!) : 0);
   const inventory = Monster.createInventoryVector(builder, this.inventory);
   const test = builder.createObjectOffset(this.test);
   const test4 = builder.createStructOffsetList(this.test4, Monster.startTest4Vector);
@@ -3219,7 +3275,7 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   const vectorOfEnums = Monster.createVectorOfEnumsVector(builder, this.vectorOfEnums);
 
   return Monster.createMonster(builder,
-    ((this.pos !== null) ? this.pos!.pack(builder) : 0),
+    (this.pos !== null ? this.pos!.pack(builder) : 0),
     this.mana,
     this.hp,
     name,
@@ -3230,9 +3286,9 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
     test4,
     testarrayofstring,
     testarrayoftables,
-    ((this.enemy !== null) ? this.enemy!.pack(builder) : 0),
+    (this.enemy !== null ? this.enemy!.pack(builder) : 0),
     testnestedflatbuffer,
-    ((this.testempty !== null) ? this.testempty!.pack(builder) : 0),
+    (this.testempty !== null ? this.testempty!.pack(builder) : 0),
     this.testbool,
     this.testhashs32Fnv1,
     this.testhashu32Fnv1,
@@ -3252,7 +3308,7 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
     test5,
     vectorOfLongs,
     vectorOfDoubles,
-    ((this.parentNamespaceTest !== null) ? this.parentNamespaceTest!.pack(builder) : 0),
+    (this.parentNamespaceTest !== null ? this.parentNamespaceTest!.pack(builder) : 0),
     vectorOfReferrables,
     this.singleWeakReference,
     vectorOfWeakReferences,
