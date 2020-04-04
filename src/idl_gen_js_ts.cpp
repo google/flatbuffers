@@ -371,7 +371,7 @@ class JsTsGenerator : public BaseGenerator {
 
     if (lang_.language == IDLOptions::kTs) {
       if (enum_def.is_union) {
-        code += GenUnionConversionFunction(enum_def.underlying_type);
+        code += GenUnionConvFunc(enum_def.underlying_type);
       }
       if (!ns.empty()) { code += "\n}"; }
     }
@@ -794,7 +794,7 @@ class JsTsGenerator : public BaseGenerator {
     return "unionListTo" + enum_def.name;
   }
 
-  std::string GenUnionConversionFunction(const Type &union_type) {
+  std::string GenUnionConvFunc(const Type &union_type) {
     if (union_type.enum_def) {
       const auto &enum_def = *union_type.enum_def;
 
