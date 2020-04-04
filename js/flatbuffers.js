@@ -1318,7 +1318,7 @@ flatbuffers.ByteBuffer.prototype.createScalarList = function(listAccessor, listL
     }
   }
 
-    return ret;
+  return ret;
 };
 
 /**
