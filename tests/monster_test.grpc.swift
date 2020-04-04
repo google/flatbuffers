@@ -28,11 +28,11 @@ public protocol MonsterStorageService {
 }
 
 public final class MonsterStorageServiceClient: GRPCClient, MonsterStorageService {
-	public let connection: ClientConnection
+	public let channel: GRPCChannel
 	public var defaultCallOptions: CallOptions
 
-	public init(connection: ClientConnection, defaultCallOptions: CallOptions = CallOptions()) {
-		self.connection = connection
+	public init(channel: GRPCChannel, defaultCallOptions: CallOptions = CallOptions()) {
+		self.channel = channel
 		self.defaultCallOptions = defaultCallOptions
 	}
 

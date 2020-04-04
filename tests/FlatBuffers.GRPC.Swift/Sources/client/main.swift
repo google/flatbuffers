@@ -31,7 +31,7 @@ func greet(name: String, client greeter: GreeterServiceClient) {
     // Form the request with the name, if one was provided.
     var builder = FlatBufferBuilder()
     let name = builder.create(string: name)
-    let root = HelloRequest.createHelloRequest(builder, offsetOfName: name)
+    let root = HelloRequest.createHelloRequest(&builder, offsetOfName: name)
     builder.finish(offset: root)
     
     // Make the RPC call to the server.
@@ -45,7 +45,7 @@ func greet(name: String, client greeter: GreeterServiceClient) {
     }
     
     let surname = builder.create(string: "Name")
-    let manyRoot = ManyHellosRequest.createManyHellosRequest(builder, offsetOfName: surname, numGreetings: 2)
+    let manyRoot = ManyHellosRequest.createManyHellosRequest(&builder, offsetOfName: surname, numGreetings: 2)
     builder.finish(offset: manyRoot)
     
     let call = greeter.SayManyHellos(Message(builder: &builder)) { message in
@@ -80,21 +80,15 @@ func main(args: [String]) {
             try! group.syncShutdownGracefully()
         }
         
-        // Provide some basic configuration for the connection, in this case we connect to an endpoint on
-        // localhost at the given port.
-        let configuration = ClientConnection.Configuration(
-            target: .hostAndPort("localhost", port),
-            eventLoopGroup: group
-        )
-        
-        // Create a connection using the configuration.
-        let connection = ClientConnection(configuration: configuration)
+        // Configure the channel, we're not using TLS so the connection is `insecure`.
+        let channel = ClientConnection.insecure(group: group)
+          .connect(host: "localhost", port: port)
         
         // Provide the connection to the generated client.
-        let greeter = GreeterServiceClient(connection: connection)
+        let greeter = GreeterServiceClient(channel: channel)
         
         // Do the greeting.
-        greet(name: "Hello FlatBuffers!", client: greeter)
+        greet(name: name ?? "Hello FlatBuffers!", client: greeter)
     }
 }
 
