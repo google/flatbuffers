@@ -1248,6 +1248,24 @@ flatbuffers.ByteBuffer.prototype.__string = function(offset, opt_encoding) {
 };
 
 /**
+ * Handle unions that can contain string as its member, if a Table-derived type then initialize it, 
+ * if a string then return a new one
+ * 
+ * WARNING: strings are immutable in JS so we can't change the string that the user gave us, this 
+ * makes the behaviour of __union_with_string different compared to __union
+ *
+ * @param {flatbuffers.Table|string} o
+ * @param {number} offset
+ * @returns {flatbuffers.Table|string}
+ */
+flatbuffers.ByteBuffer.prototype.__union_with_string = function(o, offset) {
+  if(typeof o === 'string') {
+    return this.__string(offset);
+  } 
+  return this.__union(o, offset);
+};
+
+/**
  * Retrieve the relative offset stored at "offset"
  * @param {number} offset
  * @returns {number}

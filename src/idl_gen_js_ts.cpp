@@ -367,9 +367,16 @@ class JsTsGenerator : public BaseGenerator {
             std::make_pair(ev.union_type.struct_def->file, std::move(desc)));
       }
     }
+    code += "};";
 
-    if (lang_.language == IDLOptions::kTs && !ns.empty()) { code += "}"; }
-    code += "};\n\n";
+    if (lang_.language == IDLOptions::kTs) {
+      if (enum_def.is_union) {
+        code += GenUnionConversionFunction(enum_def.underlying_type);
+      }
+      if (!ns.empty()) { code += "\n}"; }
+    }
+
+    code += "\n\n";
   }
 
   static std::string GenType(const Type &type) {
@@ -397,7 +404,11 @@ class JsTsGenerator : public BaseGenerator {
     switch (type.base_type) {
       case BASE_TYPE_STRING: return GenBBAccess() + ".__string" + arguments;
       case BASE_TYPE_STRUCT: return GenBBAccess() + ".__struct" + arguments;
-      case BASE_TYPE_UNION: return GenBBAccess() + ".__union" + arguments;
+      case BASE_TYPE_UNION:
+        if (!UnionHasStringType(*type.enum_def)) {
+          return GenBBAccess() + ".__union" + arguments;
+        }
+        return GenBBAccess() + ".__union_with_string" + arguments;
       case BASE_TYPE_VECTOR: return GenGetter(type.VectorType(), arguments);
       default: {
         auto getter =
@@ -682,11 +693,70 @@ class JsTsGenerator : public BaseGenerator {
     return opts.object_prefix + name + opts.object_suffix;
   }
 
+  bool UnionHasStringType(const EnumDef &union_enum) {
+    return std::any_of(union_enum.Vals().begin(), union_enum.Vals().end(),
+                       [](const EnumVal *ev) {
+                         return !(ev->IsZero()) &&
+                                (ev->union_type.base_type == BASE_TYPE_STRING);
+                       });
+  }
+
+  bool UnionHasOnlyStringType(const EnumDef &union_enum) {
+    return std::all_of(union_enum.Vals().begin(), union_enum.Vals().end(),
+                       [](const EnumVal *ev) {
+                         return (ev->IsZero()) ||
+                                (ev->IsNonZero() && (ev->union_type.base_type ==
+                                                     BASE_TYPE_STRING));
+                       });
+  }
+
+  std::string GenUnionGenericTypeTS(const EnumDef &union_enum) {
+    if (UnionHasOnlyStringType(union_enum)) { return "string"; }
+
+    return std::string{ "T" } +
+           (UnionHasStringType(union_enum) ? "|string" : "");
+  }
+
+  std::string GenUnionTypeTS(const EnumDef &union_enum) {
+    std::string ret = "";
+    std::set<std::string> type_list;
+
+    for (auto it = union_enum.Vals().begin(); it != union_enum.Vals().end();
+         ++it) {
+      const auto &ev = **it;
+      if (ev.IsZero()) { continue; }
+
+      std::string type = "";
+      if (ev.union_type.base_type == BASE_TYPE_STRING) {
+        type = "string";  // no need to wrap string type in namespace
+      } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
+        type = GenPrefixedTypeName(WrapInNameSpace(*(ev.union_type.struct_def)),
+                                   union_enum.file);
+      } else {
+        FLATBUFFERS_ASSERT(false);
+      }
+      type_list.insert(type);
+    }
+
+    size_t totalPrinted = 0;
+    for (auto it = type_list.begin(); it != type_list.end(); ++it) {
+      ++totalPrinted;
+      ret += *it + ((totalPrinted == type_list.size()) ? "" : "|");
+    }
+
+    return ret;
+  }
+
+  std::string GenUnionTypeGenericDeclarationTS(const EnumDef &union_enum) {
+    return UnionHasOnlyStringType(union_enum) ? ""
+                                              : "<T extends flatbuffers.Table>";
+  }
+
   // Generate a TS union type based on a union's enum
-  std::string GetObjApiUnionTypeTS(const IDLOptions &opts,
+  std::string GenObjApiUnionTypeTS(const IDLOptions &opts,
                                    const EnumDef &union_enum) {
     std::string ret = "";
-    std::set<std::string> typeList;
+    std::set<std::string> type_list;
 
     for (auto it = union_enum.Vals().begin(); it != union_enum.Vals().end();
          ++it) {
@@ -704,16 +774,88 @@ class JsTsGenerator : public BaseGenerator {
       } else {
         FLATBUFFERS_ASSERT(false);
       }
-      typeList.insert(type);
+      type_list.insert(type);
     }
 
     size_t totalPrinted = 0;
-    for (auto it = typeList.begin(); it != typeList.end(); ++it) {
+    for (auto it = type_list.begin(); it != type_list.end(); ++it) {
       ++totalPrinted;
-      ret += *it + ((totalPrinted == typeList.size()) ? "" : "|");
+      ret += *it + ((totalPrinted == type_list.size()) ? "" : "|");
     }
 
     return ret;
+  }
+
+  std::string GenUnionConvFuncName(const EnumDef &enum_def) {
+    return "unionTo" + enum_def.name;
+  }
+
+  std::string GenUnionListConvFuncName(const EnumDef &enum_def) {
+    return "unionListTo" + enum_def.name;
+  }
+
+  std::string GenUnionConversionFunction(const Type &union_type) {
+    if (union_type.enum_def) {
+      const auto &enum_def = *union_type.enum_def;
+
+      const auto valid_union_type = "Valid" + enum_def.name + "Type";
+      const auto valid_union_type_with_null = valid_union_type + "|null";
+
+      auto ret = "\n\nexport type " + valid_union_type + " = " +
+                 GenUnionTypeTS(enum_def) + ";";
+      ret += "\n\nexport function " + GenUnionConvFuncName(enum_def) +
+             "(\n  type: " + enum_def.name +
+             ",\n  accessor: (obj:" + valid_union_type + ") => " +
+             valid_union_type_with_null + "\n): " + valid_union_type_with_null +
+             " {\n";
+
+      const auto enum_type = GenPrefixedTypeName(
+          WrapInNameSpace(*(union_type.enum_def)), union_type.enum_def->file);
+      const auto &union_enum = *(union_type.enum_def);
+
+      const auto union_enum_loop = [&](const std::string &accessor_str) {
+        ret += "  switch(" + enum_type + "[type]) {\n";
+        ret += "    case 'NONE': return null; \n";
+
+        for (auto it = union_enum.Vals().begin(); it != union_enum.Vals().end();
+             ++it) {
+          const auto &ev = **it;
+          if (ev.IsZero()) { continue; }
+
+          ret += "    case '" + ev.name + "': ";
+
+          if (ev.union_type.base_type == BASE_TYPE_STRING) {
+            ret += "return " + accessor_str + "'') as string;";
+          } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
+            const auto type = GenPrefixedTypeName(
+                WrapInNameSpace(*(ev.union_type.struct_def)), union_enum.file);
+            ret += "return " + accessor_str + "new " + type + "())! as " +
+                   type + ";";
+          } else {
+            FLATBUFFERS_ASSERT(false);
+          }
+          ret += "\n";
+        }
+
+        ret += "    default: return null;\n";
+        ret += "  }\n";
+      };
+
+      union_enum_loop("accessor(");
+      ret += "}";
+
+      ret += "\n\nexport function " + GenUnionListConvFuncName(enum_def) +
+             "(\n  type: " + enum_def.name +
+             ", \n  accessor: (index: number, obj:" + valid_union_type +
+             ") => " + valid_union_type_with_null +
+             ", \n  index: number\n): " + valid_union_type_with_null + " {\n";
+      union_enum_loop("accessor(index, ");
+      ret += "}";
+
+      return ret;
+    }
+    FLATBUFFERS_ASSERT(0);
+    return "";
   }
 
   // Used for generating a short function that returns the correct class
@@ -723,50 +865,47 @@ class JsTsGenerator : public BaseGenerator {
                             const Type &union_type,
                             const bool is_array = false) {
     if (union_type.enum_def) {
-      const auto enum_type = GenPrefixedTypeName(
-          WrapInNameSpace(*(union_type.enum_def)), union_type.enum_def->file);
+      const auto &enum_def = *union_type.enum_def;
+      const auto enum_type =
+          GenPrefixedTypeName(WrapInNameSpace(enum_def), enum_def.file);
       const std::string union_accessor = "this." + field_name;
+
+      const auto union_has_only_string = UnionHasOnlyStringType(enum_def);
+      const auto union_has_string = UnionHasStringType(enum_def);
+      const auto field_binded_method = "this." + field_name + ".bind(this)";
 
       std::string ret = "";
 
       if (!is_array) {
-        const std::string target_enum = "this." + field_name + "Type()";
+        const auto conversion_function =
+            GenPrefixedTypeName(WrapInNameSpace(enum_def.defined_namespace,
+                                                GenUnionConvFuncName(enum_def)),
+                                enum_def.file);
+        const auto target_enum = "this." + field_name + "Type()";
 
         ret = "(() => {\n";
-        ret +=
-            "    let targetEnumStr = " + enum_type + "[" + target_enum + "];\n";
-        ret += "    if(targetEnumStr === 'NONE') { return null; } \n\n";
-
-        const auto &union_enum = *(union_type.enum_def);
-        for (auto it = union_enum.Vals().begin(); it != union_enum.Vals().end();
-             ++it) {
-          const auto &ev = **it;
-          if (ev.IsZero()) { continue; }
-
-          ret += "    if(targetEnumStr === '" + ev.name + "') { ";
-
-          if (ev.union_type.base_type == BASE_TYPE_STRING) {
-            ret += "return " + union_accessor + "('') as string;";
-          } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
-            const auto type = GenPrefixedTypeName(
-                WrapInNameSpace(*(ev.union_type.struct_def)), union_enum.file);
-            ret += "return (" + union_accessor + "(new " + type + "())! as " +
-                   type + ").unpack();";
-          } else {
-            FLATBUFFERS_ASSERT(false);
-          }
-          ret += "}\n";
+        ret += "      let temp = " + conversion_function + "(" + target_enum +
+               ", " + field_binded_method + ");\n";
+        ret += "      if(temp === null) { return null; }\n";
+        if (union_has_only_string) {
+          ret += "      return temp;";
+        } else {
+          ret += union_has_string
+                     ? "      if(typeof temp === 'string') { return temp; }\n"
+                     : "";
+          ret += "      return temp.unpack()\n";
         }
-
-        ret += "    return null;\n";
         ret += "  })()";
       } else {
-        const std::string target_enum_accesor = "this." + field_name + "Type";
+        const auto conversion_function = GenPrefixedTypeName(
+            WrapInNameSpace(enum_def.defined_namespace,
+                            GenUnionListConvFuncName(enum_def)),
+            enum_def.file);
+        const auto target_enum_accesor = "this." + field_name + "Type";
         const auto target_enum_length = target_enum_accesor + "Length()";
 
-        ret = " (()=> {\n";
-        ret += "    let ret = []\n";
-
+        ret = "(() => {\n";
+        ret += "    let ret = [];\n";
         ret += "    for(let targetEnumIndex = 0; targetEnumIndex < " +
                target_enum_length +
                "; "
@@ -775,29 +914,17 @@ class JsTsGenerator : public BaseGenerator {
                "(targetEnumIndex);\n";
         ret += "      if(targetEnum === null || " + enum_type +
                "[targetEnum!] === 'NONE') { "
-               "continue; }\n";
-        ret += "  let targetEnumStr = " + enum_type + "[targetEnum!];\n";
-
-        const auto &union_enum = *(union_type.enum_def);
-        for (auto it = union_enum.Vals().begin(); it != union_enum.Vals().end();
-             ++it) {
-          const auto &ev = **it;
-          if (ev.IsZero()) { continue; }
-
-          ret += "    if(targetEnumStr === '" + ev.name + "') { ";
-
-          if (ev.union_type.base_type == BASE_TYPE_STRING) {
-            ret += "ret.push(" + union_accessor +
-                   "(targetEnumIndex, '') as string);";
-          } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
-            const auto type = GenPrefixedTypeName(
-                WrapInNameSpace(*(ev.union_type.struct_def)), union_enum.file);
-            ret += "ret.push((" + union_accessor + "(targetEnumIndex, new " +
-                   type + "())! as " + type + ").unpack());";
-          } else {
-            FLATBUFFERS_ASSERT(false);
-          }
-          ret += "}\n";
+               "continue; }\n\n";
+        ret += "      let temp = " + conversion_function + "(targetEnum, " +
+               field_binded_method + ", targetEnumIndex);\n";
+        ret += "      if(temp === null) { continue; }\n";
+        if (union_has_only_string) {
+          ret += "      ret.push(temp);";
+        } else {
+          ret += union_has_string ? "      if(typeof temp === 'string') { "
+                                    "ret.push(temp); continue; }\n"
+                                  : "";
+          ret += "      ret.push(temp.unpack());\n";
         }
         ret += "    }\n";
         ret += "    return ret;\n";
@@ -814,7 +941,7 @@ class JsTsGenerator : public BaseGenerator {
   std::string GenNullCheckConditional(const std::string &nullCheckVar,
                                       const std::string &trueVal,
                                       const std::string &falseVal = "null") {
-    return "((" + nullCheckVar + " !== null) ? " + trueVal + " : " + falseVal +
+    return "(" + nullCheckVar + " !== null ? " + trueVal + " : " + falseVal +
            ")";
   }
 
@@ -993,7 +1120,7 @@ class JsTsGenerator : public BaseGenerator {
 
               case BASE_TYPE_UNION: {
                 field_type +=
-                    GetObjApiUnionTypeTS(parser.opts, *(vectortype.enum_def));
+                    GenObjApiUnionTypeTS(parser.opts, *(vectortype.enum_def));
                 field_type += "|null)[]";
                 field_val = GenUnionValTS(field_name, vectortype, true);
 
@@ -1030,7 +1157,7 @@ class JsTsGenerator : public BaseGenerator {
 
           case BASE_TYPE_UNION: {
             field_type +=
-                GetObjApiUnionTypeTS(parser.opts, *(field.value.type.enum_def));
+                GenObjApiUnionTypeTS(parser.opts, *(field.value.type.enum_def));
 
             field_val = GenUnionValTS(field_name, field.value.type);
             field_offset_decl =
@@ -1360,11 +1487,17 @@ class JsTsGenerator : public BaseGenerator {
                 args + GenTypeAnnotation(kReturns, ret_type, "", false));
             if (lang_.language == IDLOptions::kTs) {
               std::string prefix = MakeCamel(field.name, false);
-              if (is_union) { prefix += "<T extends flatbuffers.Table>"; }
+              if (is_union) {
+                prefix += GenUnionTypeGenericDeclarationTS(
+                    *(field.value.type.enum_def));
+              }
               prefix += "(index: number";
               if (is_union) {
-                vectortypename = "T|string";
-                code += prefix + ", obj:T | string";
+                const auto union_type =
+                    GenUnionGenericTypeTS(*(field.value.type.enum_def));
+
+                vectortypename = union_type;
+                code += prefix + ", obj:" + union_type;
               } else if (vectortype.base_type == BASE_TYPE_STRUCT) {
                 vectortypename = GenPrefixedTypeName(
                     vectortypename, vectortype.struct_def->file);
@@ -1404,13 +1537,6 @@ class JsTsGenerator : public BaseGenerator {
               code += ", " + GenBBAccess() + ")";
             } else {
               if (is_union) {
-                if (lang_.language == IDLOptions::kTs) {
-                  code += "  if(typeof obj === 'string') {\n";
-                  code += offset_prefix + GenBBAccess() + ".__string" + "(" +
-                          index + ")" + " as string : null;\n";
-                  code += "  }\n";
-                }
-
                 index = "obj, " + index;
               } else if (vectortype.base_type == BASE_TYPE_STRING) {
                 index += ", optionalEncoding";
@@ -1448,13 +1574,13 @@ class JsTsGenerator : public BaseGenerator {
                                       false));
             if (lang_.language == IDLOptions::kTs) {
               code += MakeCamel(field.name, false);
-              code +=
-                  "<T extends flatbuffers.Table>(obj:T|string):T|string|null "
-                  "{\n";
-              code += "  if(typeof obj === 'string') {\n";
-              code += "  " + offset_prefix + GenBBAccess() + ".__string" +
-                      "(this.bb_pos + offset) as string : null;\n";
-              code += "  }\n";
+
+              const auto &union_enum = *(field.value.type.enum_def);
+              const auto union_type = GenUnionGenericTypeTS(union_enum);
+              code += GenUnionTypeGenericDeclarationTS(union_enum) +
+                      "(obj:" + union_type + "):" + union_type +
+                      "|null "
+                      "{\n";
             } else {
               code +=
                   object_name + ".prototype." + MakeCamel(field.name, false);
