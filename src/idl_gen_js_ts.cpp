@@ -144,11 +144,18 @@ class JsTsGenerator : public BaseGenerator {
           imported_files.emplace(file.first);
         }
 
-        code += "export namespace " + file.second.target_namespace + " { \n";
+        if (!file.second.target_namespace.empty()) {
+          code += "export namespace " + file.second.target_namespace + " { \n";
+        }
         code += "export import " + file.second.symbol + " = ";
-        code += GenFileNamespacePrefix(file.first) + "." +
-                file.second.source_namespace + "." + file.second.symbol +
-                "; }\n";
+        code += GenFileNamespacePrefix(file.first) + ".";
+        if (!file.second.source_namespace.empty()) {
+          code += file.second.source_namespace + ".";
+        }
+        code += file.second.symbol + ";\n";
+        if (!file.second.target_namespace.empty()) {
+          code += "}\n";
+        }
       }
     }
   }
