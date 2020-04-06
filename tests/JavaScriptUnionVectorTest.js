@@ -32,13 +32,6 @@ function testMovieBuf(movie) {
   if(isTsTest) {
     var other = movie.characters(3, '');
     assert.strictEqual(other, "I am other");
-    
-    var mickey1 = movie.stringOnlyCharacters(0, '');
-    assert.strictEqual(mickey1, "I am Mickey 1");
-    var pluto = movie.stringOnlyCharacters(1, '');
-    assert.strictEqual(pluto, "I am Pluto");
-    var mickey2 = movie.stringOnlyCharacters(2, '');
-    assert.strictEqual(mickey2, "I am Mickey 2");
   }
 }
 
@@ -76,9 +69,6 @@ function createMovie(fbb) {
   var charTypesOffset = Test.Movie.createCharactersTypeVector(fbb, charTypes);
   var charsOffset = 0;
 
-  var stringOnlyCharTypesOffset = 0;
-  var stringOnlyCharsOffset = 0;
-
   if(isTsTest) {
     let otherOffset = fbb.createString("I am other");
 
@@ -89,28 +79,6 @@ function createMovie(fbb) {
         attackerOffset,
         Test.BookReader.createBookReader(fbb, 2),
         otherOffset
-      ]
-    );
-
-    let stringOnlyCharTypes = [
-      Test.StringOnlyCharacter.Mickey, 
-      Test.StringOnlyCharacter.Pluto, 
-      Test.StringOnlyCharacter.Mickey
-    ];
-    let mickey1Offset = fbb.createString("I am Mickey 1");
-    let plutoOffset = fbb.createString("I am Pluto");
-    let mickey2Offset = fbb.createString("I am Mickey 2");
-
-    stringOnlyCharTypesOffset = Test.Movie.createStringOnlyCharactersTypeVector(
-      fbb, 
-      stringOnlyCharTypes
-    );
-    stringOnlyCharsOffset = Test.Movie.createStringOnlyCharactersVector(
-      fbb, 
-      [
-        mickey1Offset,
-        plutoOffset,
-        mickey2Offset
       ]
     );
   } else {
@@ -127,8 +95,6 @@ function createMovie(fbb) {
   Test.Movie.startMovie(fbb);
   Test.Movie.addCharactersType(fbb, charTypesOffset);
   Test.Movie.addCharacters(fbb, charsOffset);
-  Test.Movie.addStringOnlyCharactersType(fbb, stringOnlyCharTypesOffset);
-  Test.Movie.addStringOnlyCharacters(fbb, stringOnlyCharsOffset);
   Test.Movie.finishMovieBuffer(fbb, Test.Movie.endMovie(fbb))
 }
 
