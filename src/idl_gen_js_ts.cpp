@@ -783,16 +783,14 @@ class JsTsGenerator : public BaseGenerator {
     if (union_type.enum_def) {
       const auto &enum_def = *union_type.enum_def;
 
-      const auto valid_union_type = "Valid" + enum_def.name + "Type";
+      const auto valid_union_type = GenUnionTypeTS(enum_def);
       const auto valid_union_type_with_null = valid_union_type + "|null";
 
-      auto ret = "\n\nexport type " + valid_union_type + " = " +
-                 GenUnionTypeTS(enum_def) + ";";
-      ret += "\n\nexport function " + GenUnionConvFuncName(enum_def) +
-             "(\n  type: " + enum_def.name +
-             ",\n  accessor: (obj:" + valid_union_type + ") => " +
-             valid_union_type_with_null + "\n): " + valid_union_type_with_null +
-             " {\n";
+      auto ret = "\n\nexport function " + GenUnionConvFuncName(enum_def) +
+                 "(\n  type: " + enum_def.name +
+                 ",\n  accessor: (obj:" + valid_union_type + ") => " +
+                 valid_union_type_with_null +
+                 "\n): " + valid_union_type_with_null + " {\n";
 
       const auto enum_type = GenPrefixedTypeName(
           WrapInNameSpace(*(union_type.enum_def)), union_type.enum_def->file);
@@ -1097,7 +1095,7 @@ class JsTsGenerator : public BaseGenerator {
               case BASE_TYPE_UNION: {
                 field_type +=
                     GenObjApiUnionTypeTS(parser.opts, *(vectortype.enum_def));
-                field_type += "|null)[]";
+                field_type += ")[]";
                 field_val = GenUnionValTS(field_name, vectortype, true);
 
                 field_offset_decl =

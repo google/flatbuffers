@@ -870,6 +870,9 @@ flatbuffers.Builder.prototype.createObjectOffsetList = function(list) {
 
     if(val !== null) {
       ret.push(this.createObjectOffset(val));
+    } else {
+      throw new Error(
+        'FlatBuffers: Argument for createObjectOffsetList cannot contain null.'); 
     }
   }
   
