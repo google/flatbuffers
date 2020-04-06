@@ -13,12 +13,10 @@ export enum Character{
   Unused= 6
 };
 
-export type ValidCharacterType = Attacker|BookReader|Rapunzel|string;
-
 export function unionToCharacter(
   type: Character,
-  accessor: (obj:ValidCharacterType) => ValidCharacterType|null
-): ValidCharacterType|null {
+  accessor: (obj:Attacker|BookReader|Rapunzel|string) => Attacker|BookReader|Rapunzel|string|null
+): Attacker|BookReader|Rapunzel|string|null {
   switch(Character[type]) {
     case 'NONE': return null; 
     case 'MuLan': return accessor(new Attacker())! as Attacker;
@@ -33,9 +31,9 @@ export function unionToCharacter(
 
 export function unionListToCharacter(
   type: Character, 
-  accessor: (index: number, obj:ValidCharacterType) => ValidCharacterType|null, 
+  accessor: (index: number, obj:Attacker|BookReader|Rapunzel|string) => Attacker|BookReader|Rapunzel|string|null, 
   index: number
-): ValidCharacterType|null {
+): Attacker|BookReader|Rapunzel|string|null {
   switch(Character[type]) {
     case 'NONE': return null; 
     case 'MuLan': return accessor(index, new Attacker())! as Attacker;
@@ -633,13 +631,13 @@ export class MovieT {
  * @param Character mainCharacterType
  * @param AttackerT|BookReaderT|RapunzelT|string|null mainCharacter
  * @param (Character)[] charactersType
- * @param (AttackerT|BookReaderT|RapunzelT|string|null)[] characters
+ * @param (AttackerT|BookReaderT|RapunzelT|string)[] characters
  */
 constructor(
   public mainCharacterType: Character = Character.NONE,
   public mainCharacter: AttackerT|BookReaderT|RapunzelT|string|null = null,
   public charactersType: (Character)[] = [],
-  public characters: (AttackerT|BookReaderT|RapunzelT|string|null)[] = []
+  public characters: (AttackerT|BookReaderT|RapunzelT|string)[] = []
 ){};
 
 /**

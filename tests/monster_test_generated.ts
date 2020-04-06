@@ -45,12 +45,10 @@ export enum Any{
   MyGame_Example2_Monster= 3
 };
 
-export type ValidAnyType = MyGame.Example.Monster|MyGame.Example.TestSimpleTableWithEnum|MyGame.Example2.Monster;
-
 export function unionToAny(
   type: Any,
-  accessor: (obj:ValidAnyType) => ValidAnyType|null
-): ValidAnyType|null {
+  accessor: (obj:MyGame.Example.Monster|MyGame.Example.TestSimpleTableWithEnum|MyGame.Example2.Monster) => MyGame.Example.Monster|MyGame.Example.TestSimpleTableWithEnum|MyGame.Example2.Monster|null
+): MyGame.Example.Monster|MyGame.Example.TestSimpleTableWithEnum|MyGame.Example2.Monster|null {
   switch(MyGame.Example.Any[type]) {
     case 'NONE': return null; 
     case 'Monster': return accessor(new MyGame.Example.Monster())! as MyGame.Example.Monster;
@@ -62,9 +60,9 @@ export function unionToAny(
 
 export function unionListToAny(
   type: Any, 
-  accessor: (index: number, obj:ValidAnyType) => ValidAnyType|null, 
+  accessor: (index: number, obj:MyGame.Example.Monster|MyGame.Example.TestSimpleTableWithEnum|MyGame.Example2.Monster) => MyGame.Example.Monster|MyGame.Example.TestSimpleTableWithEnum|MyGame.Example2.Monster|null, 
   index: number
-): ValidAnyType|null {
+): MyGame.Example.Monster|MyGame.Example.TestSimpleTableWithEnum|MyGame.Example2.Monster|null {
   switch(MyGame.Example.Any[type]) {
     case 'NONE': return null; 
     case 'Monster': return accessor(index, new MyGame.Example.Monster())! as MyGame.Example.Monster;
@@ -86,12 +84,10 @@ export enum AnyUniqueAliases{
   M2= 3
 };
 
-export type ValidAnyUniqueAliasesType = MyGame.Example.Monster|MyGame.Example.TestSimpleTableWithEnum|MyGame.Example2.Monster;
-
 export function unionToAnyUniqueAliases(
   type: AnyUniqueAliases,
-  accessor: (obj:ValidAnyUniqueAliasesType) => ValidAnyUniqueAliasesType|null
-): ValidAnyUniqueAliasesType|null {
+  accessor: (obj:MyGame.Example.Monster|MyGame.Example.TestSimpleTableWithEnum|MyGame.Example2.Monster) => MyGame.Example.Monster|MyGame.Example.TestSimpleTableWithEnum|MyGame.Example2.Monster|null
+): MyGame.Example.Monster|MyGame.Example.TestSimpleTableWithEnum|MyGame.Example2.Monster|null {
   switch(MyGame.Example.AnyUniqueAliases[type]) {
     case 'NONE': return null; 
     case 'M': return accessor(new MyGame.Example.Monster())! as MyGame.Example.Monster;
@@ -103,9 +99,9 @@ export function unionToAnyUniqueAliases(
 
 export function unionListToAnyUniqueAliases(
   type: AnyUniqueAliases, 
-  accessor: (index: number, obj:ValidAnyUniqueAliasesType) => ValidAnyUniqueAliasesType|null, 
+  accessor: (index: number, obj:MyGame.Example.Monster|MyGame.Example.TestSimpleTableWithEnum|MyGame.Example2.Monster) => MyGame.Example.Monster|MyGame.Example.TestSimpleTableWithEnum|MyGame.Example2.Monster|null, 
   index: number
-): ValidAnyUniqueAliasesType|null {
+): MyGame.Example.Monster|MyGame.Example.TestSimpleTableWithEnum|MyGame.Example2.Monster|null {
   switch(MyGame.Example.AnyUniqueAliases[type]) {
     case 'NONE': return null; 
     case 'M': return accessor(index, new MyGame.Example.Monster())! as MyGame.Example.Monster;
@@ -127,12 +123,10 @@ export enum AnyAmbiguousAliases{
   M3= 3
 };
 
-export type ValidAnyAmbiguousAliasesType = MyGame.Example.Monster;
-
 export function unionToAnyAmbiguousAliases(
   type: AnyAmbiguousAliases,
-  accessor: (obj:ValidAnyAmbiguousAliasesType) => ValidAnyAmbiguousAliasesType|null
-): ValidAnyAmbiguousAliasesType|null {
+  accessor: (obj:MyGame.Example.Monster) => MyGame.Example.Monster|null
+): MyGame.Example.Monster|null {
   switch(MyGame.Example.AnyAmbiguousAliases[type]) {
     case 'NONE': return null; 
     case 'M1': return accessor(new MyGame.Example.Monster())! as MyGame.Example.Monster;
@@ -144,9 +138,9 @@ export function unionToAnyAmbiguousAliases(
 
 export function unionListToAnyAmbiguousAliases(
   type: AnyAmbiguousAliases, 
-  accessor: (index: number, obj:ValidAnyAmbiguousAliasesType) => ValidAnyAmbiguousAliasesType|null, 
+  accessor: (index: number, obj:MyGame.Example.Monster) => MyGame.Example.Monster|null, 
   index: number
-): ValidAnyAmbiguousAliasesType|null {
+): MyGame.Example.Monster|null {
   switch(MyGame.Example.AnyAmbiguousAliases[type]) {
     case 'NONE': return null; 
     case 'M1': return accessor(index, new MyGame.Example.Monster())! as MyGame.Example.Monster;
