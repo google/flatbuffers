@@ -108,13 +108,13 @@ void GenerateClientClass(const grpc_generator::Service *service,
   printer->Print(vars,
                  "$ACCESS$ final class $ServiceName$ServiceClient: GRPCClient, "
                  "$ServiceName$Service {\n");
-  printer->Print(vars, "\t$ACCESS$ let connection: ClientConnection\n");
+  printer->Print(vars, "\t$ACCESS$ let channel: GRPCChannel\n");
   printer->Print(vars, "\t$ACCESS$ var defaultCallOptions: CallOptions\n");
   printer->Print("\n");
   printer->Print(vars,
-                 "\t$ACCESS$ init(connection: ClientConnection, "
+                 "\t$ACCESS$ init(channel: GRPCChannel, "
                  "defaultCallOptions: CallOptions = CallOptions()) {\n");
-  printer->Print("\t\tself.connection = connection\n");
+  printer->Print("\t\tself.channel = channel\n");
   printer->Print("\t\tself.defaultCallOptions = defaultCallOptions\n");
   printer->Print("\t}");
   printer->Print("\n");
