@@ -59,6 +59,8 @@ public struct Vec3 : IFlatbufferObject
   }
   public static Offset<MyGame.Example.Vec3> Pack(FlatBufferBuilder builder, Vec3T _o) {
     if (_o == null) return default(Offset<MyGame.Example.Vec3>);
+    var _test3_a = _o.Test3.A;
+    var _test3_b = _o.Test3.B;
     return CreateVec3(
       builder,
       _o.X,
@@ -66,8 +68,8 @@ public struct Vec3 : IFlatbufferObject
       _o.Z,
       _o.Test1,
       _o.Test2,
-      _o.Test3.A,
-      _o.Test3.B);
+      _test3_a,
+      _test3_b);
   }
 };
 
