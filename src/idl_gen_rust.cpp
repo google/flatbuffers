@@ -1350,9 +1350,14 @@ class RustGenerator : public BaseGenerator {
         code_ +=
             "    if self.{{FIELD_TYPE_FIELD_NAME}}_type() == "
             "{{U_ELEMENT_ENUM_TYPE}} {";
-        code_ +=
-            "      self.{{FIELD_NAME}}().map(|u| "
-            "{{U_ELEMENT_TABLE_TYPE}}::init_from_table(u))";
+        if (!field.required) {
+          code_ +=
+              "      self.{{FIELD_NAME}}().map(|u| "
+              "{{U_ELEMENT_TABLE_TYPE}}::init_from_table(u))";
+        } else {
+          code_ += "      let u = self.{{FIELD_NAME}}();";
+          code_ += "      Some({{U_ELEMENT_TABLE_TYPE}}::init_from_table(u))";
+        }
         code_ += "    } else {";
         code_ += "      None";
         code_ += "    }";
