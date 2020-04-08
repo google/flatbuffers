@@ -1694,9 +1694,7 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
   const auto is_tok_string = (token_ == kTokenStringConstant);
 
   // First see if this could be a conversion function:
-  if (is_tok_ident && *cursor_ == '(') {
-      return ParseFunction(name, e);
-  }
+  if (is_tok_ident && *cursor_ == '(') { return ParseFunction(name, e); }
 
   // clang-format off
   auto match = false;
@@ -1747,8 +1745,7 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
     if (!match && is_tok_string && IsScalar(in_type)) {
       // Strip trailing whitespaces from attribute_.
       auto last_non_ws = attribute_.find_last_not_of(' ');
-      if (std::string::npos != last_non_ws)
-        attribute_.resize(last_non_ws + 1);
+      if (std::string::npos != last_non_ws) attribute_.resize(last_non_ws + 1);
       if (IsFloat(e.type.base_type)) {
         // The functions strtod() and strtof() accept both 'nan' and
         // 'nan(number)' literals. While 'nan(number)' is rejected by the parser
@@ -2217,10 +2214,10 @@ CheckedError Parser::CheckClash(std::vector<FieldDef *> &fields,
 bool Parser::SupportsAdvancedUnionFeatures() const {
   return opts.lang_to_generate != 0 &&
          (opts.lang_to_generate &
-          ~(IDLOptions::kCpp | IDLOptions::kJs | IDLOptions::kTs |
-            IDLOptions::kPhp | IDLOptions::kJava | IDLOptions::kCSharp |
-            IDLOptions::kKotlin | IDLOptions::kBinary | IDLOptions::kSwift)) ==
-             0;
+          ~(IDLOptions::kCpp | IDLOptions::kGo | IDLOptions::kJs |
+            IDLOptions::kTs | IDLOptions::kPhp | IDLOptions::kJava |
+            IDLOptions::kCSharp | IDLOptions::kKotlin | IDLOptions::kBinary |
+            IDLOptions::kSwift)) == 0;
 }
 
 bool Parser::SupportsAdvancedArrayFeatures() const {
@@ -3064,9 +3061,29 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
       EXPECT(';');
     } else if (IsIdent("include")) {
       return Error("includes must come before declarations");
-    } else if (IsIdent("attribute")) {
+    }  //
+    else if (IsIdent("attribute")) {
       NEXT();
       auto name = attribute_;
+      // support go module define in attribute
+      // attribute "go_module:github.com/google/flatbuffers/go-example/";
+      //  then go code:
+      //  import ( example "MyGame/Example" )
+      // should be compile to
+      // import ( example
+      // "github.com/google/flatbuffers/go-example/MyGame/Example" )
+      if (name.length()) {
+        std::vector<std::string> kv;
+        split(name, kv, ":");
+        if (kv.size() == 2) {
+          std::string t1 = kv[0];
+          std::string t2 = kv[1];
+          if ((t1 == "go_module") && (t1.length()) && (t1.length())) {
+            go_module_ = t2;
+          }
+        }
+      }
+      //
       if (Is(kTokenIdentifier)) {
         NEXT();
       } else {
@@ -3074,7 +3091,8 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
       }
       EXPECT(';');
       known_attributes_[name] = false;
-    } else if (IsIdent("rpc_service")) {
+    }  //
+    else if (IsIdent("rpc_service")) {
       ECHECK(ParseService());
     } else {
       ECHECK(ParseDecl());
@@ -3628,6 +3646,17 @@ std::string Parser::ConformTo(const Parser &base) {
     }
   }
   return "";
+}
+// split func
+void Parser::split(const std::string &s, std::vector<std::string> &tokens,
+                   const std::string &delimiters = ":") {
+  std::string::size_type lastPos = s.find_first_not_of(delimiters, 0);
+  std::string::size_type pos = s.find_first_of(delimiters, lastPos);
+  while (std::string::npos != pos || std::string::npos != lastPos) {
+    tokens.push_back(s.substr(lastPos, pos - lastPos));
+    lastPos = s.find_first_not_of(delimiters, pos);
+    pos = s.find_first_of(delimiters, lastPos);
+  }
 }
 
 }  // namespace flatbuffers

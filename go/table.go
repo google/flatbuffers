@@ -38,6 +38,15 @@ func (t *Table) ByteVector(off UOffsetT) []byte {
 	return t.Bytes[start : start+length]
 }
 
+
+
+// ByteInUnion gets a byte slice from data stored inside the union.
+func (t *Table) StringsVector(off UOffsetT) []byte {
+	start := off + UOffsetT(SizeUOffsetT)
+	length := GetUOffsetT(t.Bytes[off:])
+	return t.Bytes[start : start+length]
+}
+
 // VectorLen retrieves the length of the vector whose offset is stored at
 // "off" in this object.
 func (t *Table) VectorLen(off UOffsetT) int {

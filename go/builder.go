@@ -284,6 +284,26 @@ func (b *Builder) PrependUOffsetT(off UOffsetT) {
 	b.PlaceUOffsetT(off2)
 }
 
+// VectorStrings  a shortcut to pack []string
+func (b *Builder) VectorStrings(off ...string) UOffsetT {
+	namesLength := len(off)
+	// --------------------- vector array of string
+	namesOffsets := make([]UOffsetT, namesLength)
+	for j := namesLength - 1; j >= 0; j-- {
+		namesOffsets[j] = b.CreateString(off[j])
+	}
+	return b.VectorArray(namesOffsets...)
+}
+
+// VectorArray  shortcut for vector array ( UOffset array ) like strings / tables / unions
+func (b *Builder) VectorArray(off ...UOffsetT) UOffsetT {
+	b.StartVector(4, len(off), 4)
+	for j := len(off) - 1; j >= 0; j-- {
+		b.PrependUOffsetT(off[j])
+	}
+	return b.EndVector(len(off))
+}
+
 // StartVector initializes bookkeeping for writing a new vector.
 //
 // A vector has the following format:
@@ -575,11 +595,12 @@ func (b *Builder) FinishWithFileIdentifier(rootTable UOffsetT, fid []byte) {
 }
 
 // Finish finalizes a buffer, pointing to the given `rootTable`.
-func (b *Builder) Finish(rootTable UOffsetT) {
+func (b *Builder) Finish(rootTable UOffsetT) *Builder {
 	b.assertNotNested()
 	b.Prep(b.minalign, SizeUOffsetT)
 	b.PrependUOffsetT(rootTable)
 	b.finished = true
+	return b
 }
 
 // vtableEqual compares an unwritten vtable to a written vtable.
