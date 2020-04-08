@@ -711,9 +711,8 @@ class JsTsGenerator : public BaseGenerator {
     std::string ret = "";
     std::set<std::string> type_list;
 
-    for (auto it = union_enum.Vals().begin(); it != union_enum.Vals().end();
-         ++it) {
-      const auto &ev = **it;
+    for (const auto &v : union_enum.Vals()) {
+      const auto &ev = *v;
       if (ev.IsZero()) { continue; }
 
       std::string type = "";
@@ -728,10 +727,8 @@ class JsTsGenerator : public BaseGenerator {
       type_list.insert(type);
     }
 
-    size_t totalPrinted = 0;
     for (auto it = type_list.begin(); it != type_list.end(); ++it) {
-      ++totalPrinted;
-      ret += *it + ((totalPrinted == type_list.size()) ? "" : "|");
+      ret += *it + ((std::next(it) == type_list.end()) ? "" : "|");
     }
 
     return ret;
