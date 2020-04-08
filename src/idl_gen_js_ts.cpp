@@ -703,16 +703,16 @@ class JsTsGenerator : public BaseGenerator {
   }
 
   std::string GenUnionGenericTypeTS(const EnumDef &union_enum) {
-    return std::string{ "T" } +
-           (UnionHasStringType(union_enum) ? "|string" : "");
+    return std::string("T") + (UnionHasStringType(union_enum) ? "|string" : "");
   }
 
   std::string GenUnionTypeTS(const EnumDef &union_enum) {
-    std::string ret = "";
+    std::string ret;
     std::set<std::string> type_list;
 
-    for (const auto &v : union_enum.Vals()) {
-      const auto &ev = *v;
+    for (auto it = union_enum.Vals().begin(); it != union_enum.Vals().end();
+         ++it) {
+      const auto &ev = **it;
       if (ev.IsZero()) { continue; }
 
       std::string type = "";
