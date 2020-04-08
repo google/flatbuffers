@@ -283,6 +283,9 @@ class GoGenerator : public BaseGenerator {
                              std::string *code_ptr) {
     std::string &code = *code_ptr;
 
+    code += "// GetRootAs";
+    code += struct_def.name;
+    code += " shortcut to access root table\n";
     code += "func GetRootAs";
     code += struct_def.name;
     code += "(buf []byte, offset flatbuffers.UOffsetT) ";
@@ -293,7 +296,11 @@ class GoGenerator : public BaseGenerator {
     code += "\tx.Init(buf, n+offset)\n";
     code += "\treturn x\n";
     code += "}\n\n";
+
     // add shortcut to access table in unions
+    code += "// GetTableVectorAs";
+    code += struct_def.name;
+    code += " shortcut to access table in vector of  unions\n";
     code += "func GetTableVectorAs";
     code += struct_def.name;
     code += "(table *flatbuffers.Table) ";
@@ -305,6 +312,9 @@ class GoGenerator : public BaseGenerator {
     code += "\treturn x\n";
     code += "}\n\n";
 
+    code += "// GetTableAs";
+    code += struct_def.name;
+    code += " shortcut to access table in single union field\n";
     code += "func GetTableAs";
     code += struct_def.name;
     code += "(table *flatbuffers.Table) ";
@@ -320,6 +330,9 @@ class GoGenerator : public BaseGenerator {
                                std::string *code_ptr) {
     std::string &code = *code_ptr;
     // add shortcut to access struct in unions
+    code += "// GetStructVectorAs";
+    code += struct_def.name;
+    code += " shortcut to access struct in vector of unions\n";
     code += "func GetStructVectorAs";
     code += struct_def.name;
     code += "(table *flatbuffers.Table) ";
@@ -331,6 +344,9 @@ class GoGenerator : public BaseGenerator {
     code += "\treturn x\n";
     code += "}\n\n";
 
+    code += "// GetStructAs";
+    code += struct_def.name;
+    code += " shortcut to access struct in single union field\n";
     code += "func GetStructAs";
     code += struct_def.name;
     code += "(table *flatbuffers.Table) ";
@@ -966,7 +982,7 @@ class GoGenerator : public BaseGenerator {
 
   void GenNativeUnionUnPack(const EnumDef &enum_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
-
+    code += "// UnPack use for single union field\n ";
     code +=
         "func (rcv " + enum_def.name + ") UnPack(table flatbuffers.Table) *";
     code += NativeName(enum_def) + " {\n";
@@ -987,7 +1003,7 @@ class GoGenerator : public BaseGenerator {
       } else
 
           if ((ev.union_type.base_type == BASE_TYPE_STRUCT) &&
-              (ev.union_type.struct_def->fixed)) {
+              (ev.union_type.struct_def->fixed)) {  // struct
         code += "\tcase " + enum_def.name + ev.name + ":\n";
         code += "\t\tx := GetStructAs" + ev.union_type.struct_def->name;
         code += "(&table)\n";
@@ -997,14 +1013,10 @@ class GoGenerator : public BaseGenerator {
         code +=
             "{ Type: " + enum_def.name + ev.name + ", Value: x.UnPack() }\n";
 
-      } else {
-        code += "\t// table ??\n";
+      } else {  // table
         code += "\tcase " + enum_def.name + ev.name + ":\n";
         code += "\t\tx := GetTableAs" + ev.union_type.struct_def->name;
-        //  code += "\t\toff := flatbuffers.GetUOffsetT(
-        //  table.Bytes[table.Pos:])\n";
         code += "(&table)\n";
-
         code +=
             "\t\treturn &" + WrapInNameSpaceAndTrack(enum_def.defined_namespace,
                                                      NativeName(enum_def));
@@ -1021,6 +1033,7 @@ class GoGenerator : public BaseGenerator {
   void GenNativeUnionUnPackIn(const EnumDef &enum_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
 
+    code += "// UnPackVector use for vector of unions \n";
     code += "func (rcv " + enum_def.name +
             ") UnPackVector(table flatbuffers.Table) *";
     code += NativeName(enum_def) + " {\n";
