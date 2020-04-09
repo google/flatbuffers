@@ -1323,7 +1323,6 @@ class SwiftGenerator : public BaseGenerator {
     // In the previous example, D then C are closed.
     for (size_t j = old_size; j > common_prefix_size; --j) {
       if (namespace_depth >= 0) {
-        Outdent();
         code_ += "}";
         namespace_depth -= 1;
       }
@@ -1337,13 +1336,11 @@ class SwiftGenerator : public BaseGenerator {
     for (auto j = common_prefix_size; j < new_size; ++j) {
       std::string name = ns->components[j];
       if (namespaces_.find(name) == namespaces_.end()) {
-        Outdent();
         code_ += "public enum " + name + " {";
         namespace_depth += 1;
         namespaces_.insert(name);
       } else {
         if (namespace_depth != 0) {
-          Outdent();
           code_ += "}";
           namespace_depth = 0;
         }
@@ -1353,10 +1350,8 @@ class SwiftGenerator : public BaseGenerator {
     if (is_extension) {
       code_.SetValue("EXTENSION", FullNamespace(".", *ns));
       code_ += "extension {{EXTENSION}} {";
-      Indent();
     }
     if (new_size != common_prefix_size) { code_ += ""; }
-    if (namespace_depth != 0) Indent();
     cur_name_space_ = ns;
   }
 };
