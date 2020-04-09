@@ -287,10 +287,6 @@ func (b *Builder) PrependUOffsetT(off UOffsetT) {
 // StringsVector  a shortcut to pack []string
 func (b *Builder) StringsVector(str ...string) UOffsetT {
 	l := len(str)
-	if l == 1 {
-		return b.CreateString(str[0])
-	}
-
 	namesOffsets := make([]UOffsetT, l)
 	for j := l - 1; j >= 0; j-- {
 		namesOffsets[j] = b.CreateString(str[j])
