@@ -81,7 +81,6 @@ class GoGenerator : public BaseGenerator {
       tracked_imported_namespaces_.clear();
       needs_imports = false;
       std::string enumcode;
-
       GenEnum(**it, &enumcode);
       if ((*it)->is_union && parser_.opts.generate_object_based_api) {
         GenNativeUnion(**it, &enumcode);
@@ -103,10 +102,6 @@ class GoGenerator : public BaseGenerator {
          it != parser_.structs_.vec.end(); ++it) {
       tracked_imported_namespaces_.clear();
       std::string declcode;
-      // bypass null table
-      auto &struct_def = **it;
-      if (struct_def.fields.vec.size() == 0) continue;
-
       GenStruct(**it, &declcode);
 
       if (parser_.opts.one_file) {
