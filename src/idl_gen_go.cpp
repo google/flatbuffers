@@ -1174,7 +1174,7 @@ class GoGenerator : public BaseGenerator {
           code += MakeCamel(field.name);
           code += "TypeVector(builder, " + length + ")\n";
           code += "\t\tfor j := " + length + " - 1; j >= 0; j-- {\n";
-          code += "\t\tbuilder.PrependByte(byte(t." + MakeCamel(field.name) +
+          code += "\t\t\tbuilder.PrependByte(byte(t." + MakeCamel(field.name) +
                   "[j].Type ))\n";
           code += "\t\t}\n";
           code += "\t\t" + struct_def.name + "End";
@@ -1218,7 +1218,8 @@ class GoGenerator : public BaseGenerator {
           code += "\t\t\tbuilder.PrependUOffsetT(" + offsets + "[j])\n";
           //    code += "\t// end vector \n";
           code += "\t\t}\n";
-          code += "\t\t" + offset + " = builder.EndVector(" + length + ")\n";
+          code += "\t\t" + struct_def.name + "End" + MakeCamel(field.name) +
+                  "Vector(builder, " + length + ")\n";
           code += "\t}\n";
         }
 
@@ -1241,7 +1242,8 @@ class GoGenerator : public BaseGenerator {
                   ")\n";
           //     code += "\t// end vector \n";
           code += "\t\t}\n";
-          code += "\t\t" + offset + " = builder.EndVector(" + length + ")\n";
+          code += "\t\t" + struct_def.name + "End" + MakeCamel(field.name) +
+                  "Vector(builder, " + length + ")\n";
           code += "\t}\n";
         } else if (field.value.type.element == BASE_TYPE_STRUCT &&
                    field.value.type.struct_def->fixed) {
@@ -1259,7 +1261,8 @@ class GoGenerator : public BaseGenerator {
           code += "\t\t\tt." + MakeCamel(field.name) + "[j].Pack(builder)\n";
           //   code += "\t// end vector \n";
           code += "\t\t}\n";
-          code += "\t\t" + offset + " = builder.EndVector(" + length + ")\n";
+          code += "\t\t" + struct_def.name + "End" + MakeCamel(field.name) +
+                  "Vector(builder, " + length + ")\n";
           code += "\t}\n";
         }
         // end vector
@@ -1317,7 +1320,7 @@ class GoGenerator : public BaseGenerator {
             (field_type.base_type == BASE_TYPE_ARRAY)) {
           //
           if (vectortype.base_type == BASE_TYPE_UNION) {
-          //  code += "\t\t\t// union in array ----------- \n";
+            //  code += "\t\t\t// union in array ----------- \n";
             std::string offset_type =
                 MakeCamel(field.name, false) + "TypeOffset";
             code += "\t" + struct_def.name + "Add" + MakeCamel(field.name) +
