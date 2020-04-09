@@ -127,6 +127,52 @@ static createTableInFirstNS(builder:flatbuffers.Builder, fooTableOffset:flatbuff
   TableInFirstNS.addFooStruct(builder, fooStructOffset);
   return TableInFirstNS.endTableInFirstNS(builder);
 }
+
+/**
+ * @returns TableInFirstNST
+ */
+unpack(): TableInFirstNST {
+  return new TableInFirstNST(
+    (this.fooTable() !== null ? this.fooTable()!.unpack() : null),
+    this.fooEnum(),
+    (this.fooStruct() !== null ? this.fooStruct()!.unpack() : null)
+  );
+};
+
+/**
+ * @param TableInFirstNST _o
+ */
+unpackTo(_o: TableInFirstNST): void {
+  _o.fooTable = (this.fooTable() !== null ? this.fooTable()!.unpack() : null);
+  _o.fooEnum = this.fooEnum();
+  _o.fooStruct = (this.fooStruct() !== null ? this.fooStruct()!.unpack() : null);
+};
+}
+
+export class TableInFirstNST {
+/**
+ * @constructor
+ * @param NS8755221360535654258.NamespaceA.NamespaceB.TableInNestedNST|null fooTable
+ * @param NS8755221360535654258.NamespaceA.NamespaceB.EnumInNestedNS fooEnum
+ * @param NS8755221360535654258.NamespaceA.NamespaceB.StructInNestedNST|null fooStruct
+ */
+constructor(
+  public fooTable: NS8755221360535654258.NamespaceA.NamespaceB.TableInNestedNST|null = null,
+  public fooEnum: NS8755221360535654258.NamespaceA.NamespaceB.EnumInNestedNS = NS8755221360535654258.NamespaceA.NamespaceB.EnumInNestedNS.A,
+  public fooStruct: NS8755221360535654258.NamespaceA.NamespaceB.StructInNestedNST|null = null
+){};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @returns flatbuffers.Offset
+ */
+pack(builder:flatbuffers.Builder): flatbuffers.Offset {
+  return TableInFirstNS.createTableInFirstNS(builder,
+    (this.fooTable !== null ? this.fooTable!.pack(builder) : 0),
+    this.fooEnum,
+    (this.fooStruct !== null ? this.fooStruct!.pack(builder) : 0)
+  );
+};
 }
 }
 /**
@@ -223,6 +269,47 @@ static createTableInC(builder:flatbuffers.Builder, referToA1Offset:flatbuffers.O
   TableInC.addReferToA2(builder, referToA2Offset);
   return TableInC.endTableInC(builder);
 }
+
+/**
+ * @returns TableInCT
+ */
+unpack(): TableInCT {
+  return new TableInCT(
+    (this.referToA1() !== null ? this.referToA1()!.unpack() : null),
+    (this.referToA2() !== null ? this.referToA2()!.unpack() : null)
+  );
+};
+
+/**
+ * @param TableInCT _o
+ */
+unpackTo(_o: TableInCT): void {
+  _o.referToA1 = (this.referToA1() !== null ? this.referToA1()!.unpack() : null);
+  _o.referToA2 = (this.referToA2() !== null ? this.referToA2()!.unpack() : null);
+};
+}
+
+export class TableInCT {
+/**
+ * @constructor
+ * @param NamespaceA.TableInFirstNST|null referToA1
+ * @param NamespaceA.SecondTableInAT|null referToA2
+ */
+constructor(
+  public referToA1: NamespaceA.TableInFirstNST|null = null,
+  public referToA2: NamespaceA.SecondTableInAT|null = null
+){};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @returns flatbuffers.Offset
+ */
+pack(builder:flatbuffers.Builder): flatbuffers.Offset {
+  return TableInC.createTableInC(builder,
+    (this.referToA1 !== null ? this.referToA1!.pack(builder) : 0),
+    (this.referToA2 !== null ? this.referToA2!.pack(builder) : 0)
+  );
+};
 }
 }
 /**
@@ -301,5 +388,41 @@ static createSecondTableInA(builder:flatbuffers.Builder, referToCOffset:flatbuff
   SecondTableInA.addReferToC(builder, referToCOffset);
   return SecondTableInA.endSecondTableInA(builder);
 }
+
+/**
+ * @returns SecondTableInAT
+ */
+unpack(): SecondTableInAT {
+  return new SecondTableInAT(
+    (this.referToC() !== null ? this.referToC()!.unpack() : null)
+  );
+};
+
+/**
+ * @param SecondTableInAT _o
+ */
+unpackTo(_o: SecondTableInAT): void {
+  _o.referToC = (this.referToC() !== null ? this.referToC()!.unpack() : null);
+};
+}
+
+export class SecondTableInAT {
+/**
+ * @constructor
+ * @param NamespaceC.TableInCT|null referToC
+ */
+constructor(
+  public referToC: NamespaceC.TableInCT|null = null
+){};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @returns flatbuffers.Offset
+ */
+pack(builder:flatbuffers.Builder): flatbuffers.Offset {
+  return SecondTableInA.createSecondTableInA(builder,
+    (this.referToC !== null ? this.referToC!.pack(builder) : 0)
+  );
+};
 }
 }

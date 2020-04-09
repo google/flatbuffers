@@ -55,6 +55,15 @@ flatbuffers.FILE_IDENTIFIER_LENGTH = 4;
 flatbuffers.SIZE_PREFIX_LENGTH = 4;
 
 /**
+ * @param {number} low
+ * @param {number} high
+ * @returns {flatbuffers.Long}
+ */
+flatbuffers.createLong = function(low, high) {
+  return flatbuffers.Long.create(low, high);
+};
+
+/**
  * @enum {number}
  */
 flatbuffers.Encoding = {
@@ -830,6 +839,52 @@ flatbuffers.Builder.prototype.createString = function(s) {
 flatbuffers.Builder.prototype.createLong = function(low, high) {
   return flatbuffers.Long.create(low, high);
 };
+
+/**
+ * A helper function to pack an object
+ * 
+ * @returns offset of obj
+ */
+flatbuffers.Builder.prototype.createObjectOffset = function(obj) {
+  if(obj === null) {
+    return 0
+  }
+
+  if(typeof obj === 'string') {
+    return this.createString(obj);
+  } else {
+    return obj.pack(this);
+  }
+}
+
+/**
+ * A helper function to pack a list of object
+ * 
+ * @returns list of offsets of each non null object
+ */
+flatbuffers.Builder.prototype.createObjectOffsetList = function(list) {
+  let ret = [];
+
+  for(let i = 0; i < list.length; ++i) {
+    let val = list[i];
+
+    if(val !== null) {
+      ret.push(this.createObjectOffset(val));
+    } else {
+      throw new Error(
+        'FlatBuffers: Argument for createObjectOffsetList cannot contain null.'); 
+    }
+  }
+  
+  return ret;
+};
+
+flatbuffers.Builder.prototype.createStructOffsetList = function(list, startFunc) {
+  startFunc(this, list.length);
+  this.createObjectOffsetList(list);
+  return this.endVector();
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 /// @cond FLATBUFFERS_INTERNAL
 /**
@@ -1196,6 +1251,24 @@ flatbuffers.ByteBuffer.prototype.__string = function(offset, opt_encoding) {
 };
 
 /**
+ * Handle unions that can contain string as its member, if a Table-derived type then initialize it, 
+ * if a string then return a new one
+ * 
+ * WARNING: strings are immutable in JS so we can't change the string that the user gave us, this 
+ * makes the behaviour of __union_with_string different compared to __union
+ *
+ * @param {flatbuffers.Table|string} o
+ * @param {number} offset
+ * @returns {flatbuffers.Table|string}
+ */
+flatbuffers.ByteBuffer.prototype.__union_with_string = function(o, offset) {
+  if(typeof o === 'string') {
+    return this.__string(offset);
+  } 
+  return this.__union(o, offset);
+};
+
+/**
  * Retrieve the relative offset stored at "offset"
  * @param {number} offset
  * @returns {number}
@@ -1250,6 +1323,48 @@ flatbuffers.ByteBuffer.prototype.__has_identifier = function(ident) {
  */
 flatbuffers.ByteBuffer.prototype.createLong = function(low, high) {
   return flatbuffers.Long.create(low, high);
+};
+
+/**
+ * A helper function for generating list for obj api
+ * @param listAccessor function that accepts an index and return data at that index
+ * @param {number} listLength
+ * @returns {any[]}
+ */
+flatbuffers.ByteBuffer.prototype.createScalarList = function(listAccessor, listLength) {
+  let ret = [];
+  for(let i = 0; i < listLength; ++i) {
+    if(listAccessor(i) !== null) {
+      ret.push(listAccessor(i));
+    }
+  }
+
+  return ret;
+};
+
+/**
+ * This function is here only to get around typescript type system
+ */
+flatbuffers.ByteBuffer.prototype.createStringList = function(listAccessor, listLength) {
+  return this.createScalarList(listAccessor, listLength);
+};
+
+/**
+ * A helper function for generating list for obj api
+ * @param listAccessor function that accepts an index and return data at that index
+ * @param listLength {number} listLength
+ * @param res any[] result list
+ */
+flatbuffers.ByteBuffer.prototype.createObjList = function(listAccessor, listLength) {
+  let ret = [];
+  for(let i = 0; i < listLength; ++i) {
+    let val = listAccessor(i);
+    if(val !== null) {
+      ret.push(val.unpack());
+    }
+  }
+  
+  return ret;
 };
 
 // Exports for Node.js and RequireJS
