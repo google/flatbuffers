@@ -19,7 +19,6 @@
 #include <sstream>
 #include <string>
 
-#include "../include/flatbuffers/idl.h"
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
