@@ -1145,7 +1145,7 @@ class GoGenerator : public BaseGenerator {
           code += "\t" + offset + " := flatbuffers.UOffsetT(0)\n";
           code += "\tif t." + MakeCamel(field.name) + " != nil {\n";
 
-          code += "\t\t" + offset + " = builder.VectorStrings( t." +
+          code += "\t\t" + offset + " = builder.StringsVector( t." +
                   MakeCamel(field.name) + "...)\n";
           code += "\t}\n";
 
@@ -1317,7 +1317,7 @@ class GoGenerator : public BaseGenerator {
             (field_type.base_type == BASE_TYPE_ARRAY)) {
           //
           if (vectortype.base_type == BASE_TYPE_UNION) {
-            code += "\t\t\t// union in array ----------- \n";
+          //  code += "\t\t\t// union in array ----------- \n";
             std::string offset_type =
                 MakeCamel(field.name, false) + "TypeOffset";
             code += "\t" + struct_def.name + "Add" + MakeCamel(field.name) +

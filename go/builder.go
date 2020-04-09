@@ -284,13 +284,16 @@ func (b *Builder) PrependUOffsetT(off UOffsetT) {
 	b.PlaceUOffsetT(off2)
 }
 
-// VectorStrings  a shortcut to pack []string
-func (b *Builder) VectorStrings(off ...string) UOffsetT {
-	namesLength := len(off)
-	// --------------------- vector array of string
-	namesOffsets := make([]UOffsetT, namesLength)
-	for j := namesLength - 1; j >= 0; j-- {
-		namesOffsets[j] = b.CreateString(off[j])
+// StringsVector  a shortcut to pack []string
+func (b *Builder) StringsVector(str ...string) UOffsetT {
+	l := len(str)
+	if l == 1 {
+		return b.CreateString(str[0])
+	}
+
+	namesOffsets := make([]UOffsetT, l)
+	for j := l - 1; j >= 0; j-- {
+		namesOffsets[j] = b.CreateString(str[j])
 	}
 	return b.VectorArray(namesOffsets...)
 }
