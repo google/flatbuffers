@@ -1177,7 +1177,7 @@ class GoGenerator : public BaseGenerator {
           code += "\t\t\tbuilder.PrependByte(byte(t." + MakeCamel(field.name) +
                   "[j].Type ))\n";
           code += "\t\t}\n";
-          code += "\t\t" + struct_def.name + "End";
+          code += "\t\t" + offset_type + " = " + struct_def.name + "End";
           code += MakeCamel(field.name);
           code += "TypeVector(builder, " + length + ")\n";
 
@@ -1190,7 +1190,7 @@ class GoGenerator : public BaseGenerator {
           code += "\t\t\tbuilder.PrependUOffsetT(" + offsets + "[j])\n";
           //    code += "\t// end vector \n";
           code += "\t\t}\n";
-          code += "\t\t" + struct_def.name + "End";
+          code += "\t\t" + offset + " = " + struct_def.name + "End";
           code += MakeCamel(field.name);
           code += "Vector(builder, " + length + ")\n";
           code += "\t}\n";
@@ -1218,8 +1218,8 @@ class GoGenerator : public BaseGenerator {
           code += "\t\t\tbuilder.PrependUOffsetT(" + offsets + "[j])\n";
           //    code += "\t// end vector \n";
           code += "\t\t}\n";
-          code += "\t\t" + struct_def.name + "End" + MakeCamel(field.name) +
-                  "Vector(builder, " + length + ")\n";
+          code += "\t\t" + offset + " = " + struct_def.name + "End" +
+                  MakeCamel(field.name) + "Vector(builder, " + length + ")\n";
           code += "\t}\n";
         }
 
@@ -1242,8 +1242,8 @@ class GoGenerator : public BaseGenerator {
                   ")\n";
           //     code += "\t// end vector \n";
           code += "\t\t}\n";
-          code += "\t\t" + struct_def.name + "End" + MakeCamel(field.name) +
-                  "Vector(builder, " + length + ")\n";
+          code += "\t\t" + offset + " = " + struct_def.name + "End" +
+                  MakeCamel(field.name) + "Vector(builder, " + length + ")\n";
           code += "\t}\n";
         } else if (field.value.type.element == BASE_TYPE_STRUCT &&
                    field.value.type.struct_def->fixed) {
@@ -1261,8 +1261,8 @@ class GoGenerator : public BaseGenerator {
           code += "\t\t\tt." + MakeCamel(field.name) + "[j].Pack(builder)\n";
           //   code += "\t// end vector \n";
           code += "\t\t}\n";
-          code += "\t\t" + struct_def.name + "End" + MakeCamel(field.name) +
-                  "Vector(builder, " + length + ")\n";
+          code += "\t\t" + offset + " = " + struct_def.name + "End" +
+                  MakeCamel(field.name) + "Vector(builder, " + length + ")\n";
           code += "\t}\n";
         }
         // end vector
@@ -1296,7 +1296,7 @@ class GoGenerator : public BaseGenerator {
       if (field.deprecated) continue;
       // pass vector of unions type
       auto vectortype = field.value.type.VectorType();  // get element's type
- 
+
       if ((field.value.type.base_type == BASE_TYPE_VECTOR) ||
           (field.value.type.base_type == BASE_TYPE_ARRAY)) {
         if (IsScalar(vectortype.base_type) && vectortype.enum_def != nullptr &&
@@ -1315,7 +1315,8 @@ class GoGenerator : public BaseGenerator {
       }  // vector
       else {
         auto &field_type = field.value.type;
-//        auto vectortype = field.value.type.VectorType();  // get element's type
+        //        auto vectortype = field.value.type.VectorType();  // get
+        //        element's type
         if ((field_type.base_type == BASE_TYPE_VECTOR) ||
             (field_type.base_type == BASE_TYPE_ARRAY)) {
           //

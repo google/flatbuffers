@@ -28,14 +28,14 @@ func (t *MovieT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 		}
 		MovieStartCharactersTypeVector(builder, charactersLength)
 		for j := charactersLength - 1; j >= 0; j-- {
-		builder.PrependByte(byte(t.Characters[j].Type ))
+			builder.PrependByte(byte(t.Characters[j].Type ))
 		}
-		MovieEndCharactersTypeVector(builder, charactersLength)
+		charactersTypeOffset = MovieEndCharactersTypeVector(builder, charactersLength)
 		MovieStartCharactersVector(builder, charactersLength)
 		for j := charactersLength - 1; j >= 0; j-- {
 			builder.PrependUOffsetT(charactersOffsets[j])
 		}
-		MovieEndCharactersVector(builder, charactersLength)
+		charactersOffset = MovieEndCharactersVector(builder, charactersLength)
 	}
 	MovieStart(builder)
 	if t.MainCharacter != nil {

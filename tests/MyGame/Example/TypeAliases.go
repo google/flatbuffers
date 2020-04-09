@@ -32,7 +32,7 @@ func (t *TypeAliasesT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 		for j := v8Length - 1; j >= 0; j-- {
 			builder.PrependInt8(t.V8[j])
 		}
-		v8Offset = builder.EndVector(v8Length)
+		v8Offset = TypeAliasesEndV8Vector(builder, v8Length)
 	}
 	vf64Offset := flatbuffers.UOffsetT(0)
 	if t.Vf64 != nil {
@@ -41,7 +41,7 @@ func (t *TypeAliasesT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 		for j := vf64Length - 1; j >= 0; j-- {
 			builder.PrependFloat64(t.Vf64[j])
 		}
-		vf64Offset = builder.EndVector(vf64Length)
+		vf64Offset = TypeAliasesEndVf64Vector(builder, vf64Length)
 	}
 	TypeAliasesStart(builder)
 	TypeAliasesAddI8(builder, t.I8)
