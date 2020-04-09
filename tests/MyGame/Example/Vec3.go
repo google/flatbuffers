@@ -39,6 +39,21 @@ type Vec3 struct {
 	_tab flatbuffers.Struct
 }
 
+// GetStructVectorAsVec3 shortcut to access struct in vector of unions
+func GetStructVectorAsVec3(table *flatbuffers.Table) *Vec3 {
+	n := flatbuffers.GetUOffsetT(table.Bytes[table.Pos:])
+	x := &Vec3{}
+	x.Init(table.Bytes, n+ table.Pos)
+	return x
+}
+
+// GetStructAsVec3 shortcut to access struct in single union field
+func GetStructAsVec3(table *flatbuffers.Table) *Vec3 {
+	x := &Vec3{}
+	x.Init(table.Bytes, table.Pos)
+	return x
+}
+
 func (rcv *Vec3) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i

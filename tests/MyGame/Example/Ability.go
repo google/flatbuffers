@@ -31,6 +31,21 @@ type Ability struct {
 	_tab flatbuffers.Struct
 }
 
+// GetStructVectorAsAbility shortcut to access struct in vector of unions
+func GetStructVectorAsAbility(table *flatbuffers.Table) *Ability {
+	n := flatbuffers.GetUOffsetT(table.Bytes[table.Pos:])
+	x := &Ability{}
+	x.Init(table.Bytes, n+ table.Pos)
+	return x
+}
+
+// GetStructAsAbility shortcut to access struct in single union field
+func GetStructAsAbility(table *flatbuffers.Table) *Ability {
+	x := &Ability{}
+	x.Init(table.Bytes, table.Pos)
+	return x
+}
+
 func (rcv *Ability) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i

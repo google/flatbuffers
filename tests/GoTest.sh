@@ -20,24 +20,31 @@ go_path=${test_dir}/go_gen
 go_src=${go_path}/src
 
 # Emit Go code for the example schema in the test dir:
-../flatc -g --gen-object-api -I include_test monster_test.fbs
+../flatc -g --gen-object-api --gen-mutable -I include_test monster_test.fbs
+../flatc -g --gen-object-api --gen-mutable  ./union_vector/union_vector_go.fbs
 
 # Go requires a particular layout of files in order to link multiple packages.
 # Copy flatbuffer Go files to their own package directories to compile the
 # test binary:
 mkdir -p ${go_src}/MyGame/Example
 mkdir -p ${go_src}/MyGame/Example2
-mkdir -p ${go_src}/github.com/google/flatbuffers/go
+mkdir -p ${go_src}/go
+mkdir -p ${go_src}/Movie
 mkdir -p ${go_src}/flatbuffers_test
+mkdir -p ${go_src}/union_vector_test
 
 cp -a MyGame/*.go ./go_gen/src/MyGame/
+cp -a Movie/*.go ./go_gen/src/Movie/
+cp ../go.mod  ./go_gen/src/
+cp ./monsterdata_test.mon ./go_gen/src/
 cp -a MyGame/Example/*.go ./go_gen/src/MyGame/Example/
 cp -a MyGame/Example2/*.go ./go_gen/src/MyGame/Example2/
 # do not compile the gRPC generated files, which are not tested by go_test.go
 # below, but have their own test.
 rm ./go_gen/src/MyGame/Example/*_grpc.go
-cp -a ../go/* ./go_gen/src/github.com/google/flatbuffers/go
+cp -a ../go/* ./go_gen/src/go
 cp -a ./go_test.go ./go_gen/src/flatbuffers_test/
+cp -a ./union_vector_test.go ./go_gen/src/union_vector_test
 
 # Run tests with necessary flags.
 # Developers may wish to see more detail by appending the verbosity flag
@@ -46,17 +53,23 @@ cp -a ./go_test.go ./go_gen/src/flatbuffers_test/
 # Developers may also wish to run benchmarks, which may be achieved with the
 # flag -test.bench and the wildcard regexp ".":
 #   go -test -test.bench=. ...
-GOPATH=${go_path} go test flatbuffers_test \
+cd ${go_src}
+echo $(pwd)
+go test -v ./flatbuffers_test \
                      --test.coverpkg=github.com/google/flatbuffers/go \
-                     --cpp_data=${test_dir}/monsterdata_test.mon \
-                     --out_data=${test_dir}/monsterdata_go_wire.mon \
+                     --cpp_data=${go_src}/monsterdata_test.mon \
+                     --out_data=-${go_src}/monsterdata_go_wire.mon \
                      --test.bench=. \
                      --test.benchtime=3s \
                      --fuzz=true \
+                     -test.timeout = 10 \
                      --fuzz_fields=4 \
                      --fuzz_objects=10000
+go test -v ./union_vector_test/union_vector_test.go
+
 
 GO_TEST_RESULT=$?
+cd ../../
 rm -rf ${go_path}/{pkg,src}
 if [[ $GO_TEST_RESULT  == 0 ]]; then
     echo "OK: Go tests passed."

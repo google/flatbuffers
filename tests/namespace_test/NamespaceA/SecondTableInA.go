@@ -12,6 +12,8 @@ type SecondTableInAT struct {
 	ReferToC *NamespaceC.TableInCT
 }
 
+
+// SecondTableInAT object pack function 
 func (t *SecondTableInAT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil { return 0 }
 	referToCOffset := t.ReferToC.Pack(builder)
@@ -20,6 +22,8 @@ func (t *SecondTableInAT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffset
 	return SecondTableInAEnd(builder)
 }
 
+
+// SecondTableInAT object unpack function 
 func (rcv *SecondTableInA) UnPackTo(t *SecondTableInAT) {
 	t.ReferToC = rcv.ReferToC(nil).UnPack()
 }
@@ -35,10 +39,26 @@ type SecondTableInA struct {
 	_tab flatbuffers.Table
 }
 
+// GetRootAsSecondTableInA shortcut to access root table
 func GetRootAsSecondTableInA(buf []byte, offset flatbuffers.UOffsetT) *SecondTableInA {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
 	x := &SecondTableInA{}
 	x.Init(buf, n+offset)
+	return x
+}
+
+// GetTableVectorAsSecondTableInA shortcut to access table in vector of  unions
+func GetTableVectorAsSecondTableInA(table *flatbuffers.Table) *SecondTableInA {
+	n := flatbuffers.GetUOffsetT(table.Bytes[table.Pos:])
+	x := &SecondTableInA{}
+	x.Init(table.Bytes, n+table.Pos)
+	return x
+}
+
+// GetTableAsSecondTableInA shortcut to access table in single union field
+func GetTableAsSecondTableInA(table *flatbuffers.Table) *SecondTableInA {
+	x := &SecondTableInA{}
+	x.Init(table.Bytes, table.Pos)
 	return x
 }
 
@@ -67,9 +87,11 @@ func (rcv *SecondTableInA) ReferToC(obj *NamespaceC.TableInC) *NamespaceC.TableI
 func SecondTableInAStart(builder *flatbuffers.Builder) {
 	builder.StartObject(1)
 }
+
 func SecondTableInAAddReferToC(builder *flatbuffers.Builder, referToC flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(0, flatbuffers.UOffsetT(referToC), 0)
 }
+
 func SecondTableInAEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }

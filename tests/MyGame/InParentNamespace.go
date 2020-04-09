@@ -9,12 +9,16 @@ import (
 type InParentNamespaceT struct {
 }
 
+
+// InParentNamespaceT object pack function 
 func (t *InParentNamespaceT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil { return 0 }
 	InParentNamespaceStart(builder)
 	return InParentNamespaceEnd(builder)
 }
 
+
+// InParentNamespaceT object unpack function 
 func (rcv *InParentNamespace) UnPackTo(t *InParentNamespaceT) {
 }
 
@@ -29,10 +33,26 @@ type InParentNamespace struct {
 	_tab flatbuffers.Table
 }
 
+// GetRootAsInParentNamespace shortcut to access root table
 func GetRootAsInParentNamespace(buf []byte, offset flatbuffers.UOffsetT) *InParentNamespace {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
 	x := &InParentNamespace{}
 	x.Init(buf, n+offset)
+	return x
+}
+
+// GetTableVectorAsInParentNamespace shortcut to access table in vector of  unions
+func GetTableVectorAsInParentNamespace(table *flatbuffers.Table) *InParentNamespace {
+	n := flatbuffers.GetUOffsetT(table.Bytes[table.Pos:])
+	x := &InParentNamespace{}
+	x.Init(table.Bytes, n+table.Pos)
+	return x
+}
+
+// GetTableAsInParentNamespace shortcut to access table in single union field
+func GetTableAsInParentNamespace(table *flatbuffers.Table) *InParentNamespace {
+	x := &InParentNamespace{}
+	x.Init(table.Bytes, table.Pos)
 	return x
 }
 
@@ -48,6 +68,7 @@ func (rcv *InParentNamespace) Table() flatbuffers.Table {
 func InParentNamespaceStart(builder *flatbuffers.Builder) {
 	builder.StartObject(0)
 }
+
 func InParentNamespaceEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }

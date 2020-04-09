@@ -10,6 +10,8 @@ type TableInNestedNST struct {
 	Foo int32
 }
 
+
+// TableInNestedNST object pack function 
 func (t *TableInNestedNST) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil { return 0 }
 	TableInNestedNSStart(builder)
@@ -17,6 +19,8 @@ func (t *TableInNestedNST) Pack(builder *flatbuffers.Builder) flatbuffers.UOffse
 	return TableInNestedNSEnd(builder)
 }
 
+
+// TableInNestedNST object unpack function 
 func (rcv *TableInNestedNS) UnPackTo(t *TableInNestedNST) {
 	t.Foo = rcv.Foo()
 }
@@ -32,10 +36,26 @@ type TableInNestedNS struct {
 	_tab flatbuffers.Table
 }
 
+// GetRootAsTableInNestedNS shortcut to access root table
 func GetRootAsTableInNestedNS(buf []byte, offset flatbuffers.UOffsetT) *TableInNestedNS {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
 	x := &TableInNestedNS{}
 	x.Init(buf, n+offset)
+	return x
+}
+
+// GetTableVectorAsTableInNestedNS shortcut to access table in vector of  unions
+func GetTableVectorAsTableInNestedNS(table *flatbuffers.Table) *TableInNestedNS {
+	n := flatbuffers.GetUOffsetT(table.Bytes[table.Pos:])
+	x := &TableInNestedNS{}
+	x.Init(table.Bytes, n+table.Pos)
+	return x
+}
+
+// GetTableAsTableInNestedNS shortcut to access table in single union field
+func GetTableAsTableInNestedNS(table *flatbuffers.Table) *TableInNestedNS {
+	x := &TableInNestedNS{}
+	x.Init(table.Bytes, table.Pos)
 	return x
 }
 
@@ -63,9 +83,11 @@ func (rcv *TableInNestedNS) MutateFoo(n int32) bool {
 func TableInNestedNSStart(builder *flatbuffers.Builder) {
 	builder.StartObject(1)
 }
+
 func TableInNestedNSAddFoo(builder *flatbuffers.Builder, foo int32) {
 	builder.PrependInt32Slot(0, foo, 0)
 }
+
 func TableInNestedNSEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }

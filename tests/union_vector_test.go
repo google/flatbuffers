@@ -1,15 +1,14 @@
-package union_vector_test_test
+package union_vector_test
 
 import (
 	"github.com/google/flatbuffers/Movie"
 	"testing"
 
 	flatbuffers "github.com/google/flatbuffers/go"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestMovieUnionField1(t *testing.T) {
-	as := assert.New(t)
+
 	str := &Movie.AttackerT{
 		SwordAttackDamage: 100,
 	}
@@ -24,17 +23,24 @@ func TestMovieUnionField1(t *testing.T) {
 	buf := fb.Finish(m.Pack(fb)).FinishedBytes()
 	mt := Movie.GetRootAsMovie(buf, 0)
 	mct := mt.MainCharacterType()
-	as.Equal(mct, Movie.CharacterMuLan)
+
+	if mct != Movie.CharacterMuLan {
+		t.Errorf("error")
+	}
 	tb := &flatbuffers.Table{}
 	if mt.MainCharacter(tb) {
 		mct := mt.MainCharacterType()
 		ct := mct.UnPack(*tb)
-		as.Equal(ct.Type, mct)
-		as.Equal(ct.Value.(*Movie.AttackerT).SwordAttackDamage, int32(100))
+		if ct.Type != mct {
+			t.Errorf("error")
+		}
+		if ct.Value.(*Movie.AttackerT).SwordAttackDamage != int32(100) {
+			t.Errorf("error ")
+		}
 	}
 }
 func TestMovieUnionField2(t *testing.T) {
-	as := assert.New(t)
+
 	str := "hello world"
 	c1 := &Movie.CharacterT{
 		Type:  Movie.CharacterOther,
@@ -47,17 +53,23 @@ func TestMovieUnionField2(t *testing.T) {
 	buf := fb.Finish(m.Pack(fb)).FinishedBytes()
 	mt := Movie.GetRootAsMovie(buf, 0)
 	mct := mt.MainCharacterType()
-	as.Equal(mct, Movie.CharacterOther)
+	if mct != Movie.CharacterOther {
+		t.Errorf("error ")
+	}
 	tb := &flatbuffers.Table{}
 	if mt.MainCharacter(tb) {
 		mct := mt.MainCharacterType()
 		ct := mct.UnPack(*tb)
-		as.Equal(ct.Type, mct)
-		as.Equal(ct.Value.(string), str)
+		if ct.Type != mct {
+			t.Errorf("error ")
+		}
+		if ct.Value.(string) != str {
+			t.Errorf("error ")
+		}
 	}
 }
 func TestMovieUnionField3(t *testing.T) {
-	as := assert.New(t)
+
 	r := &Movie.RapunzelT{
 		HairLength: 1,
 	}
@@ -72,17 +84,23 @@ func TestMovieUnionField3(t *testing.T) {
 	buf := fb.Finish(m.Pack(fb)).FinishedBytes()
 	mt := Movie.GetRootAsMovie(buf, 0)
 	mct := mt.MainCharacterType()
-	as.Equal(mct, Movie.CharacterRapunzel)
+	if mct != Movie.CharacterRapunzel {
+		t.Errorf("error ")
+	}
 	tb := &flatbuffers.Table{}
 	if mt.MainCharacter(tb) {
 		mct := mt.MainCharacterType()
 		ct := mct.UnPack(*tb)
-		as.Equal(ct.Type, mct)
-		as.Equal(ct.Value.(*Movie.RapunzelT).HairLength, int32(1))
+		if ct.Type != mct {
+			t.Errorf("error ")
+		}
+		if ct.Value.(*Movie.RapunzelT).HairLength != int32(1) {
+			t.Errorf("error ")
+		}
 	}
 }
 func TestMovieUnionField4(t *testing.T) {
-	as := assert.New(t)
+
 	r := &Movie.BookReaderT{
 		BooksRead: 100,
 	}
@@ -97,17 +115,23 @@ func TestMovieUnionField4(t *testing.T) {
 	buf := fb.Finish(m.Pack(fb)).FinishedBytes()
 	mt := Movie.GetRootAsMovie(buf, 0)
 	mct := mt.MainCharacterType()
-	as.Equal(mct, Movie.CharacterBookFan)
+	if mct != Movie.CharacterBookFan {
+		t.Errorf("error ")
+	}
 	tb := &flatbuffers.Table{}
 	if mt.MainCharacter(tb) {
 		mct := mt.MainCharacterType()
 		ct := mct.UnPack(*tb)
-		as.Equal(ct.Type, mct)
-		as.Equal(ct.Value.(*Movie.BookReaderT).BooksRead, int32(100))
+		if ct.Type != mct {
+			t.Errorf("error ")
+		}
+		if ct.Value.(*Movie.BookReaderT).BooksRead != int32(100) {
+			t.Errorf("error ")
+		}
 	}
 }
 func TestMovieVectorUnions1(t *testing.T) {
-	as := assert.New(t)
+
 	str := "hello world"
 	c1 := &Movie.CharacterT{
 		Type:  Movie.CharacterOther,
@@ -149,42 +173,68 @@ func TestMovieVectorUnions1(t *testing.T) {
 	if mt.MainCharacter(tb) {
 		mct := mt.MainCharacterType()
 		ct := mct.UnPack(*tb)
-		as.Equal(ct.Type, mct)
-		as.Equal(ct.Value.(string), str)
+		if ct.Type != mct {
+			t.Errorf("error ")
+		}
+		if ct.Value.(string) != str {
+			t.Errorf("error ")
+		}
 	}
 	if mt.Characters(0, tb) {
 		mct := mt.CharactersType(0)
 		ct := mct.UnPackVector(*tb)
-		as.Equal(ct.Type, mct)
-		as.Equal(ct.Value.(string), str)
+		if ct.Type != mct {
+			t.Errorf("error ")
+		}
+		if ct.Value.(string) != str {
+			t.Errorf("error ")
+		}
 	}
 	if mt.Characters(2, tb) {
 		mct := mt.CharactersType(2)
 		ct := mct.UnPackVector(*tb)
-		as.Equal(ct.Type, mct)
-		as.Equal(ct.Value.(string), str)
+		if ct.Type != mct {
+			t.Errorf("error ")
+		}
+		if ct.Value.(string) != str {
+			t.Errorf("error ")
+		}
 	}
 	if mt.Characters(1, tb) {
 		mct := mt.CharactersType(1)
 		ct := mct.UnPackVector(*tb)
-		as.Equal(ct.Type, mct)
-		as.Equal(ct.Value.(*Movie.RapunzelT).HairLength, int32(100))
+		if ct.Type != mct {
+			t.Errorf("error ")
+		}
+		if ct.Value.(*Movie.RapunzelT).HairLength != int32(100) {
+
+			t.Errorf("error ")
+
+		}
 	}
 	if mt.Characters(3, tb) {
 		mct := mt.CharactersType(3)
 		ct := mct.UnPackVector(*tb)
-		as.Equal(ct.Type, mct)
-		as.Equal(ct.Value.(*Movie.BookReaderT).BooksRead, int32(100))
+		if ct.Type != mct {
+			t.Errorf("error ")
+		}
+		if ct.Value.(*Movie.BookReaderT).BooksRead != int32(100) {
+			t.Errorf("error ")
+		}
 	}
 	if mt.Characters(4, tb) {
 		mct := mt.CharactersType(4)
 		ct := mct.UnPackVector(*tb)
-		as.Equal(ct.Type, mct)
-		as.Equal(ct.Value.(*Movie.AttackerT).SwordAttackDamage, int32(100))
+		if ct.Type != mct {
+			t.Errorf("error ")
+		}
+		if ct.Value.(*Movie.AttackerT).SwordAttackDamage != int32(100) {
+			t.Errorf("error ")
+		}
 	}
 }
 func TestMovieVectorUnions2(t *testing.T) {
-	as := assert.New(t)
+
 	str := "hello world"
 	c1 := &Movie.CharacterT{
 		Type:  Movie.CharacterOther,
@@ -223,25 +273,37 @@ func TestMovieVectorUnions2(t *testing.T) {
 	mt := Movie.GetRootAsMovie(buf, 0)
 
 	mvt := mt.UnPack()
-	as.Equal(mvt.MainCharacter.Type, Movie.CharacterOther)
-	as.Equal(mvt.MainCharacter.Value.(string), str)
+	if mvt.MainCharacter.Type != Movie.CharacterOther {
+		t.Errorf("error ")
+	}
+	if mvt.MainCharacter.Value.(string) != str {
+		t.Errorf("error ")
+	}
 
 	l := len(mvt.Characters)
 	for i := 0; i < l; i++ {
 		ct := mvt.Characters[i]
 		switch ct.Type {
 		case Movie.CharacterMuLan:
-			as.Equal(ct.Value.(*Movie.AttackerT).SwordAttackDamage, int32(100))
+
+			if ct.Value.(*Movie.AttackerT).SwordAttackDamage != int32(100) {
+				t.Errorf("error ")
+			}
 		case Movie.CharacterRapunzel:
-			as.Equal(ct.Value.(*Movie.RapunzelT).HairLength, int32(100))
+			if ct.Value.(*Movie.RapunzelT).HairLength != int32(100) {
+				t.Errorf("error ")
+			}
 		case Movie.CharacterBelle:
 
 		case Movie.CharacterBookFan:
-			as.Equal(ct.Value.(*Movie.BookReaderT).BooksRead, int32(100))
+			if ct.Value.(*Movie.BookReaderT).BooksRead != int32(100) {
+				t.Errorf("error ")
+			}
 		case Movie.CharacterOther:
-			as.Equal(ct.Value.(string), str)
+			if ct.Value.(string) != str {
+				t.Errorf("error ")
+			}
 		case Movie.CharacterUnused:
 		}
 	}
 }
-

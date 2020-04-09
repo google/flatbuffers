@@ -10,6 +10,8 @@ type ReferrableT struct {
 	Id uint64
 }
 
+
+// ReferrableT object pack function 
 func (t *ReferrableT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil { return 0 }
 	ReferrableStart(builder)
@@ -17,6 +19,8 @@ func (t *ReferrableT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return ReferrableEnd(builder)
 }
 
+
+// ReferrableT object unpack function 
 func (rcv *Referrable) UnPackTo(t *ReferrableT) {
 	t.Id = rcv.Id()
 }
@@ -32,10 +36,26 @@ type Referrable struct {
 	_tab flatbuffers.Table
 }
 
+// GetRootAsReferrable shortcut to access root table
 func GetRootAsReferrable(buf []byte, offset flatbuffers.UOffsetT) *Referrable {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
 	x := &Referrable{}
 	x.Init(buf, n+offset)
+	return x
+}
+
+// GetTableVectorAsReferrable shortcut to access table in vector of  unions
+func GetTableVectorAsReferrable(table *flatbuffers.Table) *Referrable {
+	n := flatbuffers.GetUOffsetT(table.Bytes[table.Pos:])
+	x := &Referrable{}
+	x.Init(table.Bytes, n+table.Pos)
+	return x
+}
+
+// GetTableAsReferrable shortcut to access table in single union field
+func GetTableAsReferrable(table *flatbuffers.Table) *Referrable {
+	x := &Referrable{}
+	x.Init(table.Bytes, table.Pos)
 	return x
 }
 
@@ -63,9 +83,11 @@ func (rcv *Referrable) MutateId(n uint64) bool {
 func ReferrableStart(builder *flatbuffers.Builder) {
 	builder.StartObject(1)
 }
+
 func ReferrableAddId(builder *flatbuffers.Builder, id uint64) {
 	builder.PrependUint64Slot(0, id, 0)
 }
+
 func ReferrableEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }

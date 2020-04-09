@@ -17,8 +17,8 @@
 package main
 
 import (
-	mygame "MyGame"          // refers to generated code
-	example "MyGame/Example" // refers to generated code
+	mygame "github.com/google/flatbuffers/MyGame"          // refers to generated code
+	example "github.com/google/flatbuffers/MyGame/Example" // refers to generated code
 
 	"bytes"
 	"flag"
