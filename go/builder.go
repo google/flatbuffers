@@ -287,6 +287,9 @@ func (b *Builder) PrependUOffsetT(off UOffsetT) {
 // StringsVector  a shortcut to pack []string
 func (b *Builder) StringsVector(str ...string) UOffsetT {
 	l := len(str)
+	if l == 0 {
+		panic("contains at least one strings")
+	}
 	namesOffsets := make([]UOffsetT, l)
 	for j := l - 1; j >= 0; j-- {
 		namesOffsets[j] = b.CreateString(str[j])
@@ -296,6 +299,9 @@ func (b *Builder) StringsVector(str ...string) UOffsetT {
 
 // VectorArray  shortcut for vector array ( UOffset array ) like strings / tables / unions
 func (b *Builder) VectorArray(off ...UOffsetT) UOffsetT {
+	if len(off) == 0 {
+		panic("contains at least one UOffset")
+	}
 	b.StartVector(4, len(off), 4)
 	for j := len(off) - 1; j >= 0; j-- {
 		b.PrependUOffsetT(off[j])
