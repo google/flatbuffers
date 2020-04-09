@@ -117,8 +117,8 @@ To use:
     GetMonster(flatbuffer)->UnPackTo(&monsterobj);
 
     // Update object directly like a C++ class instance.
-    cout << monsterobj->name;  // This is now a std::string!
-    monsterobj->name = "Bob";  // Change the name.
+    cout << monsterobj.name;  // This is now a std::string!
+    monsterobj.name = "Bob";  // Change the name.
 
     // Serialize into new flatbuffer.
     FlatBufferBuilder fbb;
