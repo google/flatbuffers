@@ -1005,7 +1005,10 @@ class GoGenerator : public BaseGenerator {
           if ((ev.union_type.base_type == BASE_TYPE_STRUCT) &&
               (ev.union_type.struct_def->fixed)) {  // struct
         code += "\tcase " + enum_def.name + ev.name + ":\n";
-        code += "\t\tx := GetStructAs" + ev.union_type.struct_def->name;
+        code += "\t\tx := ";
+        code +=
+            WrapInNameSpacePrefix(ev.union_type.struct_def->defined_namespace);
+        code += "GetStructAs" + ev.union_type.struct_def->name;
         code += "(&table)\n";
         code +=
             "\t\treturn &" + WrapInNameSpaceAndTrack(enum_def.defined_namespace,
@@ -1015,7 +1018,10 @@ class GoGenerator : public BaseGenerator {
 
       } else {  // table
         code += "\tcase " + enum_def.name + ev.name + ":\n";
-        code += "\t\tx := GetTableAs" + ev.union_type.struct_def->name;
+        code += "\t\tx := ";
+        code +=
+            WrapInNameSpacePrefix(ev.union_type.struct_def->defined_namespace);
+        code += "GetTableAs" + ev.union_type.struct_def->name;
         code += "(&table)\n";
         code +=
             "\t\treturn &" + WrapInNameSpaceAndTrack(enum_def.defined_namespace,
@@ -1056,7 +1062,10 @@ class GoGenerator : public BaseGenerator {
           if ((ev.union_type.base_type == BASE_TYPE_STRUCT) &&
               (ev.union_type.struct_def->fixed)) {
         code += "\tcase " + enum_def.name + ev.name + ":\n";
-        code += "\t\tx := GetStructVectorAs" + ev.union_type.struct_def->name;
+        code += "\t\tx := ";
+        code +=
+            WrapInNameSpacePrefix(ev.union_type.struct_def->defined_namespace);
+        code += "GetStructVectorAs" + ev.union_type.struct_def->name;
         code += "(&table)\n";
         code +=
             "\t\treturn &" + WrapInNameSpaceAndTrack(enum_def.defined_namespace,
@@ -1066,7 +1075,10 @@ class GoGenerator : public BaseGenerator {
 
       } else {
         code += "\tcase " + enum_def.name + ev.name + ":\n";
-        code += "\t\tx := GetTableVectorAs" + ev.union_type.struct_def->name;
+        code += "\t\tx := ";
+        code +=
+            WrapInNameSpacePrefix(ev.union_type.struct_def->defined_namespace);
+        code += "GetTableVectorAs" + ev.union_type.struct_def->name;
         code += "(&table)\n";
 
         code +=
@@ -1089,8 +1101,6 @@ class GoGenerator : public BaseGenerator {
     code += "func (t *" + NativeName(struct_def) +
             ") Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {\n";
     code += "\tif t == nil { return 0 }\n";
-
-    //  code += "\n\t// vector or block field been pre-process first \n\n";
 
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
@@ -1245,7 +1255,6 @@ class GoGenerator : public BaseGenerator {
           code += "\t\t" + offset + " = builder.EndVector(" + length + ")\n";
           code += "\t}\n";
         }
-
         // end vector
       }
       // struct
@@ -1417,7 +1426,7 @@ class GoGenerator : public BaseGenerator {
           code += "\t\tif rcv." + field_name_camel + "(j, &" +
                   field_name_camel + "Table) {\n";
           code += "\t\t\tt." + field_name_camel + "[j] = " + field_name_camel +
-                  "Type.UnPack(" + field_name_camel + "Table)\n";
+                  "Type.UnPackVector(" + field_name_camel + "Table)\n";
           code += "\t\t}\n";
 
         } else {
@@ -1849,7 +1858,7 @@ class GoGenerator : public BaseGenerator {
     return import_name + "." + name;
   }
 
-  std::string NameSpacePre(const Namespace *ns) {
+  std::string WrapInNameSpacePrefix(const Namespace *ns) {
     if (CurrentNameSpace() == ns) return "";
     tracked_imported_namespaces_.insert(ns);
     std::string import_name = NamespaceImportName(ns);
