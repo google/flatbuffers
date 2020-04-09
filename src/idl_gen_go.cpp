@@ -1296,7 +1296,7 @@ class GoGenerator : public BaseGenerator {
       if (field.deprecated) continue;
       // pass vector of unions type
       auto vectortype = field.value.type.VectorType();  // get element's type
-
+ 
       if ((field.value.type.base_type == BASE_TYPE_VECTOR) ||
           (field.value.type.base_type == BASE_TYPE_ARRAY)) {
         if (IsScalar(vectortype.base_type) && vectortype.enum_def != nullptr &&
@@ -1315,7 +1315,7 @@ class GoGenerator : public BaseGenerator {
       }  // vector
       else {
         auto &field_type = field.value.type;
-        auto vectortype = field.value.type.VectorType();  // get element's type
+//        auto vectortype = field.value.type.VectorType();  // get element's type
         if ((field_type.base_type == BASE_TYPE_VECTOR) ||
             (field_type.base_type == BASE_TYPE_ARRAY)) {
           //
