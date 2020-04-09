@@ -1,3 +1,3 @@
-module github.com/tsingson/flatbuffers
+module github.com/google/flatbuffers
 
 go 1.14
