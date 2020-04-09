@@ -1169,24 +1169,31 @@ class GoGenerator : public BaseGenerator {
           code += "\t\t\t" + offsets + "[j] = t." + MakeCamel(field.name) +
                   "[j].Pack(builder)\n";
           code += "\t\t}\n";
-          code += "\t\tbuilder.StartVector(4,  " + length + ",4 )\n";
+
+          code += "\t\t" + struct_def.name + "Start";
+          code += MakeCamel(field.name);
+          code += "TypeVector(builder, " + length + ")\n";
+          code += "\t\tfor j := " + length + " - 1; j >= 0; j-- {\n";
+          code += "\t\tbuilder.PrependByte(byte(t." + MakeCamel(field.name) +
+                  "[j].Type ))\n";
+          code += "\t\t}\n";
+          code += "\t\t" + struct_def.name + "End";
+          code += MakeCamel(field.name);
+          code += "TypeVector(builder, " + length + ")\n";
+
+          code += "\t\t" + struct_def.name + "Start";
+          code += MakeCamel(field.name);
+          code += "Vector(builder, " + length + ")\n";
 
           code += "\t\tfor j := " + length + " - 1; j >= 0; j-- {\n";
           //   code += "\t// table array  \n";
           code += "\t\t\tbuilder.PrependUOffsetT(" + offsets + "[j])\n";
           //    code += "\t// end vector \n";
           code += "\t\t}\n";
-          code += "\t\t" + offset + " = builder.EndVector(" + length + ")\n";
-
-          code += "\t\tbuilder.StartVector(1, " + length + ", 1)\n";
-          code += "\t\tfor j := " + length + " - 1; j >= 0; j-- {\n";
-          code += "\t\tbuilder.PrependByte(byte(t." + MakeCamel(field.name) +
-                  "[j].Type ))\n";
-          code += "\t\t}\n";
-          code +=
-              "\t\t" + offset_type + "= builder.EndVector(" + length + ")\n";
+          code += "\t\t" + struct_def.name + "End";
+          code += MakeCamel(field.name);
+          code += "Vector(builder, " + length + ")\n";
           code += "\t}\n";
-
         }  //
         else if (field.value.type.element == BASE_TYPE_STRUCT &&
                  !field.value.type.struct_def->fixed) {
