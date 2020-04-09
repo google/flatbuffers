@@ -1353,9 +1353,10 @@ class SwiftGenerator : public BaseGenerator {
     if (is_extension) {
       code_.SetValue("EXTENSION", FullNamespace(".", *ns));
       code_ += "extension {{EXTENSION}} {";
+      Indent();
     }
     if (new_size != common_prefix_size) { code_ += ""; }
-    Indent();
+    if (namespace_depth != 0) Indent();
     cur_name_space_ = ns;
   }
 };
