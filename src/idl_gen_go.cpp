@@ -54,10 +54,6 @@ static std::string GoIdentity(const std::string &name) {
   return MakeCamel(name, false);
 }
 
-/**
-static std::string Name(const Definition &def) { return MakeCamel(def.name); }
-*/
-
 class GoGenerator : public BaseGenerator {
  public:
   GoGenerator(const Parser &parser, const std::string &path,
@@ -75,6 +71,7 @@ class GoGenerator : public BaseGenerator {
   bool generate() {
     std::string one_file_code;
     bool needs_imports = false;
+    // generate enums
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
       tracked_imported_namespaces_.clear();
@@ -113,6 +110,12 @@ class GoGenerator : public BaseGenerator {
     if (parser_.opts.one_file) {
       std::string code = "";
       const bool is_enum = !parser_.enums_.vec.empty();
+      // namespace is missing
+      if (go_namespace_.components.empty()) {
+        if (parser_.root_struct_def_) {
+          go_namespace_.components.push_back(parser_.root_struct_def_->name);
+        }
+      }
       BeginFile(LastNamespacePart(go_namespace_), true, is_enum, &code);
       code += one_file_code;
       const std::string filename =
@@ -861,6 +864,12 @@ class GoGenerator : public BaseGenerator {
 
     cur_name_space_ = struct_def.defined_namespace;
 
+    if (cur_name_space_->components.empty()) {
+      if (parser_.root_struct_def_) {
+        cur_name_space_->components.push_back(parser_.root_struct_def_->name);
+      }
+    }
+
     GenComment(struct_def.doc_comment, code_ptr, nullptr);
     if (parser_.opts.generate_object_based_api) {
       GenNativeStruct(struct_def, code_ptr);
@@ -1602,6 +1611,12 @@ class GoGenerator : public BaseGenerator {
 
     auto max_name_length = MaxNameLength(enum_def);
     cur_name_space_ = enum_def.defined_namespace;
+
+    if (cur_name_space_->components.empty()) {
+      if (parser_.root_struct_def_) {
+        cur_name_space_->components.push_back(parser_.root_struct_def_->name);
+      }
+    }
 
     GenComment(enum_def.doc_comment, code_ptr, nullptr);
     GenEnumType(enum_def, code_ptr);

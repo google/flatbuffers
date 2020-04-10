@@ -21,7 +21,7 @@ go_src=${go_path}/src
 
 # Emit Go code for the example schema in the test dir:
 ../flatc -g --gen-object-api --gen-mutable -I include_test monster_test.fbs
-../flatc -g --gen-object-api --gen-mutable  ./union_vector/union_vector_go.fbs
+../flatc -g --gen-object-api --gen-mutable  ./union_vector/union_vector.fbs
 
 # Go requires a particular layout of files in order to link multiple packages.
 # Copy flatbuffer Go files to their own package directories to compile the
