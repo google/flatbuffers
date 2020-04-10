@@ -374,9 +374,16 @@ class JsTsGenerator : public BaseGenerator {
             std::make_pair(ev.union_type.struct_def->file, std::move(desc)));
       }
     }
+    code += "};";
 
-    if (lang_.language == IDLOptions::kTs && !ns.empty()) { code += "}"; }
-    code += "};\n\n";
+    if (lang_.language == IDLOptions::kTs) {
+      if (enum_def.is_union) {
+        code += GenUnionConvFunc(enum_def.underlying_type);
+      }
+      if (!ns.empty()) { code += "\n}"; }
+    }
+
+    code += "\n\n";
   }
 
   static std::string GenType(const Type &type) {
@@ -404,7 +411,12 @@ class JsTsGenerator : public BaseGenerator {
     switch (type.base_type) {
       case BASE_TYPE_STRING: return GenBBAccess() + ".__string" + arguments;
       case BASE_TYPE_STRUCT: return GenBBAccess() + ".__struct" + arguments;
-      case BASE_TYPE_UNION: return GenBBAccess() + ".__union" + arguments;
+      case BASE_TYPE_UNION:
+        if (!UnionHasStringType(*type.enum_def) ||
+            lang_.language == IDLOptions::kJs) {
+          return GenBBAccess() + ".__union" + arguments;
+        }
+        return GenBBAccess() + ".__union_with_string" + arguments;
       case BASE_TYPE_VECTOR: return GenGetter(type.VectorType(), arguments);
       default: {
         auto getter =
@@ -426,7 +438,8 @@ class JsTsGenerator : public BaseGenerator {
   }
 
   std::string GenDefaultValue(const Value &value, const std::string &context) {
-    if (value.type.enum_def) {
+    if (value.type.enum_def && value.type.base_type != BASE_TYPE_UNION &&
+        value.type.base_type != BASE_TYPE_VECTOR) {
       if (auto val = value.type.enum_def->FindByValue(value.constant)) {
         if (lang_.language == IDLOptions::kTs) {
           return GenPrefixedTypeName(WrapInNameSpace(*value.type.enum_def),
@@ -446,7 +459,13 @@ class JsTsGenerator : public BaseGenerator {
     switch (value.type.base_type) {
       case BASE_TYPE_BOOL: return value.constant == "0" ? "false" : "true";
 
-      case BASE_TYPE_STRING: return "null";
+      case BASE_TYPE_STRING:
+      case BASE_TYPE_UNION:
+      case BASE_TYPE_STRUCT: {
+        return "null";
+      }
+
+      case BASE_TYPE_VECTOR: return "[]";
 
       case BASE_TYPE_LONG:
       case BASE_TYPE_ULONG: {
@@ -547,6 +566,10 @@ class JsTsGenerator : public BaseGenerator {
       return typeName;
     }
     return GenFileNamespacePrefix(file) + "." + typeName;
+  }
+
+  std::string GenFullNameSpace(const Definition &def, const std::string &file) {
+    return GenPrefixedTypeName(GetNameSpace(def), file);
   }
 
   void GenStructArgs(const StructDef &struct_def, std::string *annotations,
@@ -666,6 +689,527 @@ class JsTsGenerator : public BaseGenerator {
       code += ");\n";
       code += "};\n\n";
     }
+  }
+
+  static std::string GetObjApiClassName(const StructDef &sd,
+                                        const IDLOptions &opts) {
+    return GetObjApiClassName(sd.name, opts);
+  }
+
+  static std::string GetObjApiClassName(const std::string &name,
+                                        const IDLOptions &opts) {
+    return opts.object_prefix + name + opts.object_suffix;
+  }
+
+  bool UnionHasStringType(const EnumDef &union_enum) {
+    return std::any_of(union_enum.Vals().begin(), union_enum.Vals().end(),
+                       [](const EnumVal *ev) {
+                         return !(ev->IsZero()) &&
+                                (ev->union_type.base_type == BASE_TYPE_STRING);
+                       });
+  }
+
+  std::string GenUnionGenericTypeTS(const EnumDef &union_enum) {
+    return std::string("T") + (UnionHasStringType(union_enum) ? "|string" : "");
+  }
+
+  std::string GenUnionTypeTS(const EnumDef &union_enum) {
+    std::string ret;
+    std::set<std::string> type_list;
+
+    for (auto it = union_enum.Vals().begin(); it != union_enum.Vals().end();
+         ++it) {
+      const auto &ev = **it;
+      if (ev.IsZero()) { continue; }
+
+      std::string type = "";
+      if (ev.union_type.base_type == BASE_TYPE_STRING) {
+        type = "string";  // no need to wrap string type in namespace
+      } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
+        type = GenPrefixedTypeName(WrapInNameSpace(*(ev.union_type.struct_def)),
+                                   union_enum.file);
+      } else {
+        FLATBUFFERS_ASSERT(false);
+      }
+      type_list.insert(type);
+    }
+
+    for (auto it = type_list.begin(); it != type_list.end(); ++it) {
+      ret += *it + ((std::next(it) == type_list.end()) ? "" : "|");
+    }
+
+    return ret;
+  }
+
+  // Generate a TS union type based on a union's enum
+  std::string GenObjApiUnionTypeTS(const IDLOptions &opts,
+                                   const EnumDef &union_enum) {
+    std::string ret = "";
+    std::set<std::string> type_list;
+
+    for (auto it = union_enum.Vals().begin(); it != union_enum.Vals().end();
+         ++it) {
+      const auto &ev = **it;
+      if (ev.IsZero()) { continue; }
+
+      std::string type = "";
+      if (ev.union_type.base_type == BASE_TYPE_STRING) {
+        type = "string";  // no need to wrap string type in namespace
+      } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
+        type = GenPrefixedTypeName(
+            GetObjApiClassName(WrapInNameSpace(*(ev.union_type.struct_def)),
+                               opts),
+            union_enum.file);
+      } else {
+        FLATBUFFERS_ASSERT(false);
+      }
+      type_list.insert(type);
+    }
+
+    size_t totalPrinted = 0;
+    for (auto it = type_list.begin(); it != type_list.end(); ++it) {
+      ++totalPrinted;
+      ret += *it + ((totalPrinted == type_list.size()) ? "" : "|");
+    }
+
+    return ret;
+  }
+
+  std::string GenUnionConvFuncName(const EnumDef &enum_def) {
+    return "unionTo" + enum_def.name;
+  }
+
+  std::string GenUnionListConvFuncName(const EnumDef &enum_def) {
+    return "unionListTo" + enum_def.name;
+  }
+
+  std::string GenUnionConvFunc(const Type &union_type) {
+    if (union_type.enum_def) {
+      const auto &enum_def = *union_type.enum_def;
+
+      const auto valid_union_type = GenUnionTypeTS(enum_def);
+      const auto valid_union_type_with_null = valid_union_type + "|null";
+
+      auto ret = "\n\nexport function " + GenUnionConvFuncName(enum_def) +
+                 "(\n  type: " + enum_def.name +
+                 ",\n  accessor: (obj:" + valid_union_type + ") => " +
+                 valid_union_type_with_null +
+                 "\n): " + valid_union_type_with_null + " {\n";
+
+      const auto enum_type = GenPrefixedTypeName(
+          WrapInNameSpace(*(union_type.enum_def)), union_type.enum_def->file);
+      const auto &union_enum = *(union_type.enum_def);
+
+      const auto union_enum_loop = [&](const std::string &accessor_str) {
+        ret += "  switch(" + enum_type + "[type]) {\n";
+        ret += "    case 'NONE': return null; \n";
+
+        for (auto it = union_enum.Vals().begin(); it != union_enum.Vals().end();
+             ++it) {
+          const auto &ev = **it;
+          if (ev.IsZero()) { continue; }
+
+          ret += "    case '" + ev.name + "': ";
+
+          if (ev.union_type.base_type == BASE_TYPE_STRING) {
+            ret += "return " + accessor_str + "'') as string;";
+          } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
+            const auto type = GenPrefixedTypeName(
+                WrapInNameSpace(*(ev.union_type.struct_def)), union_enum.file);
+            ret += "return " + accessor_str + "new " + type + "())! as " +
+                   type + ";";
+          } else {
+            FLATBUFFERS_ASSERT(false);
+          }
+          ret += "\n";
+        }
+
+        ret += "    default: return null;\n";
+        ret += "  }\n";
+      };
+
+      union_enum_loop("accessor(");
+      ret += "}";
+
+      ret += "\n\nexport function " + GenUnionListConvFuncName(enum_def) +
+             "(\n  type: " + enum_def.name +
+             ", \n  accessor: (index: number, obj:" + valid_union_type +
+             ") => " + valid_union_type_with_null +
+             ", \n  index: number\n): " + valid_union_type_with_null + " {\n";
+      union_enum_loop("accessor(index, ");
+      ret += "}";
+
+      return ret;
+    }
+    FLATBUFFERS_ASSERT(0);
+    return "";
+  }
+
+  // Used for generating a short function that returns the correct class
+  // based on union enum type. Assume the context is inside the non object api
+  // type
+  std::string GenUnionValTS(const std::string &field_name,
+                            const Type &union_type,
+                            const bool is_array = false) {
+    if (union_type.enum_def) {
+      const auto &enum_def = *union_type.enum_def;
+      const auto enum_type =
+          GenPrefixedTypeName(WrapInNameSpace(enum_def), enum_def.file);
+      const std::string union_accessor = "this." + field_name;
+
+      const auto union_has_string = UnionHasStringType(enum_def);
+      const auto field_binded_method = "this." + field_name + ".bind(this)";
+
+      std::string ret = "";
+
+      if (!is_array) {
+        const auto conversion_function =
+            GenPrefixedTypeName(WrapInNameSpace(enum_def.defined_namespace,
+                                                GenUnionConvFuncName(enum_def)),
+                                enum_def.file);
+        const auto target_enum = "this." + field_name + "Type()";
+
+        ret = "(() => {\n";
+        ret += "      let temp = " + conversion_function + "(" + target_enum +
+               ", " + field_binded_method + ");\n";
+        ret += "      if(temp === null) { return null; }\n";
+        ret += union_has_string
+                   ? "      if(typeof temp === 'string') { return temp; }\n"
+                   : "";
+        ret += "      return temp.unpack()\n";
+        ret += "  })()";
+      } else {
+        const auto conversion_function = GenPrefixedTypeName(
+            WrapInNameSpace(enum_def.defined_namespace,
+                            GenUnionListConvFuncName(enum_def)),
+            enum_def.file);
+        const auto target_enum_accesor = "this." + field_name + "Type";
+        const auto target_enum_length = target_enum_accesor + "Length()";
+
+        ret = "(() => {\n";
+        ret += "    let ret = [];\n";
+        ret += "    for(let targetEnumIndex = 0; targetEnumIndex < " +
+               target_enum_length +
+               "; "
+               "++targetEnumIndex) {\n";
+        ret += "      let targetEnum = " + target_enum_accesor +
+               "(targetEnumIndex);\n";
+        ret += "      if(targetEnum === null || " + enum_type +
+               "[targetEnum!] === 'NONE') { "
+               "continue; }\n\n";
+        ret += "      let temp = " + conversion_function + "(targetEnum, " +
+               field_binded_method + ", targetEnumIndex);\n";
+        ret += "      if(temp === null) { continue; }\n";
+        ret += union_has_string ? "      if(typeof temp === 'string') { "
+                                  "ret.push(temp); continue; }\n"
+                                : "";
+        ret += "      ret.push(temp.unpack());\n";
+        ret += "    }\n";
+        ret += "    return ret;\n";
+        ret += "  })()";
+      }
+
+      return ret;
+    }
+
+    FLATBUFFERS_ASSERT(0);
+    return "";
+  }
+
+  std::string GenNullCheckConditional(const std::string &nullCheckVar,
+                                      const std::string &trueVal,
+                                      const std::string &falseVal = "null") {
+    return "(" + nullCheckVar + " !== null ? " + trueVal + " : " + falseVal +
+           ")";
+  }
+
+  std::string GenStructMemberValueTS(const StructDef &struct_def,
+                                     const std::string &prefix,
+                                     const std::string &delimiter,
+                                     const bool nullCheck = true) {
+    std::string ret;
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto &field = **it;
+
+      const auto curr_member_accessor =
+          prefix + "." + MakeCamel(field.name, false);
+      if (IsStruct(field.value.type)) {
+        ret += GenStructMemberValueTS(*field.value.type.struct_def,
+                                      curr_member_accessor, delimiter);
+      } else {
+        if (nullCheck) {
+          ret +=
+              "(" + prefix + " === null ? 0 : " + curr_member_accessor + "!)";
+        } else {
+          ret += curr_member_accessor;
+        }
+      }
+
+      if (std::next(it) != struct_def.fields.vec.end()) { ret += delimiter; }
+    }
+
+    return ret;
+  }
+
+  void GenObjApi(const Parser &parser, StructDef &struct_def,
+                 std::string &obj_api_unpack_func, std::string &obj_api_class) {
+    const auto class_name = GetObjApiClassName(struct_def, parser.opts);
+
+    std::string unpack_func =
+        "\n/**\n * " + GenTypeAnnotation(kReturns, class_name, "") +
+        " */\nunpack(): " + class_name + " {\n  return new " + class_name +
+        "(" + (struct_def.fields.vec.empty() ? "" : "\n");
+    std::string unpack_to_func =
+        "/**\n * " + GenTypeAnnotation(kParam, class_name, "_o") +
+        " */\nunpackTo(_o: " + class_name + "): void {" +
+        +(struct_def.fields.vec.empty() ? "" : "\n");
+
+    std::string constructor_annotation = "/**\n * @constructor";
+    constructor_annotation += (struct_def.fields.vec.empty() ? "" : "\n");
+    std::string constructor_func = "constructor(";
+    constructor_func += (struct_def.fields.vec.empty() ? "" : "\n");
+
+    std::string pack_func_prototype =
+        "/**\n * " +
+        GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder") + " * " +
+        GenTypeAnnotation(kReturns, "flatbuffers.Offset", "") +
+        " */\npack(builder:flatbuffers.Builder): flatbuffers.Offset {\n";
+    std::string pack_func_offset_decl;
+    std::string pack_func_create_call =
+        "  return " + Verbose(struct_def) + ".create" + Verbose(struct_def) +
+        "(builder" + (struct_def.fields.vec.empty() ? "" : ",\n    ");
+    if (struct_def.fixed) {
+      // when packing struct, nested struct's members instead of the struct's
+      // offset are used
+      pack_func_create_call +=
+          GenStructMemberValueTS(struct_def, "this", ",\n    ", false) + "\n  ";
+    }
+
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto &field = **it;
+      if (field.deprecated) continue;
+
+      const auto field_name = MakeCamel(field.name, false);
+      const std::string field_binded_method =
+          "this." + field_name + ".bind(this)";
+
+      std::string field_val;
+      std::string field_type;
+      // a string that declares a variable containing the
+      // offset for things that can't be generated inline
+      // empty otw
+      std::string field_offset_decl;
+      // a string that contains values for things that can be created inline or
+      // the variable name from field_offset_decl
+      std::string field_offset_val;
+      const auto field_default_val =
+          GenDefaultValue(field.value, "flatbuffers");
+
+      // Emit a scalar field
+      if (IsScalar(field.value.type.base_type) ||
+          field.value.type.base_type == BASE_TYPE_STRING) {
+        if (field.value.type.enum_def) {
+          field_type +=
+              GenPrefixedTypeName(GenTypeName(field.value.type, false, true),
+                                  field.value.type.enum_def->file);
+        } else {
+          field_type += GenTypeName(field.value.type, false, true);
+        }
+        field_val = "this." + field_name + "()";
+
+        if (field.value.type.base_type != BASE_TYPE_STRING) {
+          field_offset_val = "this." + field_name;
+        } else {
+          field_offset_decl = GenNullCheckConditional(
+              "this." + field_name,
+              "builder.createString(this." + field_name + "!)", "0");
+        }
+      }
+
+      // Emit an object field
+      else {
+        auto is_vector = false;
+        switch (field.value.type.base_type) {
+          case BASE_TYPE_STRUCT: {
+            const auto &sd = *field.value.type.struct_def;
+            field_type += GenPrefixedTypeName(
+                WrapInNameSpace(sd.defined_namespace,
+                                GetObjApiClassName(sd, parser.opts)),
+                field.value.type.struct_def->file);
+
+            const std::string field_accessor = "this." + field_name + "()";
+            field_val = GenNullCheckConditional(field_accessor,
+                                                field_accessor + "!.unpack()");
+            field_offset_val = GenNullCheckConditional(
+                "this." + field_name, "this." + field_name + "!.pack(builder)",
+                "0");
+
+            break;
+          }
+
+          case BASE_TYPE_VECTOR: {
+            auto vectortype = field.value.type.VectorType();
+            auto vectortypename = GenTypeName(vectortype, false);
+            is_vector = true;
+
+            field_type = "(";
+
+            switch (vectortype.base_type) {
+              case BASE_TYPE_STRUCT: {
+                const auto &sd = *field.value.type.struct_def;
+                field_type += GenPrefixedTypeName(
+                    WrapInNameSpace(sd.defined_namespace,
+                                    GetObjApiClassName(sd, parser.opts)),
+                    field.value.type.struct_def->file);
+                field_type += ")[]";
+
+                field_val = GenBBAccess() + ".createObjList(" +
+                            field_binded_method + ", this." + field_name +
+                            "Length())";
+
+                if (sd.fixed) {
+                  field_offset_decl = "builder.createStructOffsetList(this." +
+                                      field_name + ", " + Verbose(struct_def) +
+                                      ".start" + MakeCamel(field_name) +
+                                      "Vector)";
+                } else {
+                  field_offset_decl =
+                      Verbose(struct_def) + ".create" + MakeCamel(field_name) +
+                      "Vector(builder, builder.createObjectOffsetList(" +
+                      "this." + field_name + "))";
+                }
+
+                break;
+              }
+
+              case BASE_TYPE_STRING: {
+                field_type += "string)[]";
+                field_val = GenBBAccess() + ".createStringList(" +
+                            field_binded_method + ", this." + field_name +
+                            "Length())";
+                field_offset_decl =
+                    Verbose(struct_def) + ".create" + MakeCamel(field_name) +
+                    "Vector(builder, builder.createObjectOffsetList(" +
+                    "this." + field_name + "))";
+                break;
+              }
+
+              case BASE_TYPE_UNION: {
+                field_type +=
+                    GenObjApiUnionTypeTS(parser.opts, *(vectortype.enum_def));
+                field_type += ")[]";
+                field_val = GenUnionValTS(field_name, vectortype, true);
+
+                field_offset_decl =
+                    Verbose(struct_def) + ".create" + MakeCamel(field_name) +
+                    "Vector(builder, builder.createObjectOffsetList(" +
+                    "this." + field_name + "))";
+
+                break;
+              }
+              default: {
+                if (vectortype.enum_def) {
+                  field_type +=
+                      GenPrefixedTypeName(GenTypeName(vectortype, false, true),
+                                          vectortype.enum_def->file);
+                } else {
+                  field_type += vectortypename;
+                }
+                field_type += ")[]";
+                field_val = GenBBAccess() + ".createScalarList(" +
+                            field_binded_method + ", this." + field_name +
+                            "Length())";
+
+                field_offset_decl = Verbose(struct_def) + ".create" +
+                                    MakeCamel(field_name) +
+                                    "Vector(builder, this." + field_name + ")";
+
+                break;
+              }
+            }
+
+            break;
+          }
+
+          case BASE_TYPE_UNION: {
+            field_type +=
+                GenObjApiUnionTypeTS(parser.opts, *(field.value.type.enum_def));
+
+            field_val = GenUnionValTS(field_name, field.value.type);
+            field_offset_decl =
+                "builder.createObjectOffset(this." + field_name + ")";
+            break;
+          }
+
+          default: FLATBUFFERS_ASSERT(0); break;
+        }
+
+        // length 0 vector is simply empty instead of null
+        field_type += is_vector ? "" : "|null";
+      }
+
+      if (!field_offset_decl.empty()) {
+        field_offset_decl =
+            "  const " + field_name + " = " + field_offset_decl + ";";
+      }
+      if (field_offset_val.empty()) { field_offset_val = field_name; }
+
+      unpack_func += "    " + field_val;
+      unpack_to_func += "  _o." + field_name + " = " + field_val + ";";
+
+      constructor_annotation +=
+          " * " + GenTypeAnnotation(kParam, field_type, field_name, false);
+      constructor_func += "  public " + field_name + ": " + field_type + " = " +
+                          field_default_val;
+
+      if (!struct_def.fixed) {
+        if (!field_offset_decl.empty()) {
+          pack_func_offset_decl += field_offset_decl + "\n";
+        }
+        pack_func_create_call += field_offset_val;
+      }
+
+      if (std::next(it) != struct_def.fields.vec.end()) {
+        constructor_annotation += "\n";
+        constructor_func += ",\n";
+
+        if (!struct_def.fixed) { pack_func_create_call += ",\n    "; }
+
+        unpack_func += ",\n";
+        unpack_to_func += "\n";
+      } else {
+        constructor_func += "\n";
+        if (!struct_def.fixed) {
+          pack_func_offset_decl += (pack_func_offset_decl.empty() ? "" : "\n");
+          pack_func_create_call += "\n  ";
+        }
+
+        unpack_func += "\n  ";
+        unpack_to_func += "\n";
+      }
+    }
+
+    constructor_annotation += "\n */\n";
+    constructor_func += "){};\n\n";
+
+    pack_func_create_call += ");";
+
+    obj_api_class = "\nexport class " +
+                    GetObjApiClassName(struct_def, parser.opts) + " {\n";
+
+    obj_api_class += constructor_annotation + constructor_func;
+
+    obj_api_class += pack_func_prototype + pack_func_offset_decl +
+                     pack_func_create_call + "\n};";
+
+    obj_api_class += "\n}\n";
+
+    unpack_func += ");\n};";
+    unpack_to_func += "};\n";
+
+    obj_api_unpack_func = unpack_func + "\n\n" + unpack_to_func;
   }
 
   // Generate an accessor struct with constructor for a flatbuffers struct.
@@ -924,8 +1468,11 @@ class JsTsGenerator : public BaseGenerator {
               if (is_union) { prefix += "<T extends flatbuffers.Table>"; }
               prefix += "(index: number";
               if (is_union) {
-                vectortypename = "T";
-                code += prefix + ", obj:T";
+                const auto union_type =
+                    GenUnionGenericTypeTS(*(field.value.type.enum_def));
+
+                vectortypename = union_type;
+                code += prefix + ", obj:" + union_type;
               } else if (vectortype.base_type == BASE_TYPE_STRUCT) {
                 vectortypename = GenPrefixedTypeName(
                     vectortypename, vectortype.struct_def->file);
@@ -1002,7 +1549,13 @@ class JsTsGenerator : public BaseGenerator {
                                       false));
             if (lang_.language == IDLOptions::kTs) {
               code += MakeCamel(field.name, false);
-              code += "<T extends flatbuffers.Table>(obj:T):T|null {\n";
+
+              const auto &union_enum = *(field.value.type.enum_def);
+              const auto union_type = GenUnionGenericTypeTS(union_enum);
+              code += "<T extends flatbuffers.Table>(obj:" + union_type +
+                      "):" + union_type +
+                      "|null "
+                      "{\n";
             } else {
               code +=
                   object_name + ".prototype." + MakeCamel(field.name, false);
@@ -1359,8 +1912,16 @@ class JsTsGenerator : public BaseGenerator {
     }
 
     if (lang_.language == IDLOptions::kTs) {
+      if (parser_.opts.generate_object_based_api) {
+        std::string obj_api_class;
+        std::string obj_api_unpack_func;
+        GenObjApi(parser_, struct_def, obj_api_unpack_func, obj_api_class);
+
+        code += obj_api_unpack_func + "}\n" + obj_api_class;
+      } else {
+        code += "}\n";
+      }
       if (!object_namespace.empty()) { code += "}\n"; }
-      code += "}\n";
     }
   }
 
@@ -1381,7 +1942,7 @@ class JsTsGenerator : public BaseGenerator {
   std::string Verbose(const StructDef &struct_def, const char *prefix = "") {
     return parser_.opts.js_ts_short_names ? "" : prefix + struct_def.name;
   }
-};
+};  // namespace jsts
 }  // namespace jsts
 
 bool GenerateJSTS(const Parser &parser, const std::string &path,
