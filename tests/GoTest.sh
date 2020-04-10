@@ -62,7 +62,7 @@ go test -v ./flatbuffers_test \
                      --test.bench=. \
                      --test.benchtime=3s \
                      --fuzz=true \
-                     -test.timeout = 10 \
+                     -test.timeout 10 \
                      --fuzz_fields=4 \
                      --fuzz_objects=10000
 go test -v ./union_vector_test/union_vector_test.go
