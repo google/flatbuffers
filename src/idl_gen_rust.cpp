@@ -1350,6 +1350,9 @@ class RustGenerator : public BaseGenerator {
         code_ +=
             "    if self.{{FIELD_TYPE_FIELD_NAME}}_type() == "
             "{{U_ELEMENT_ENUM_TYPE}} {";
+
+        // The following logic is not tested in the integration test,
+        // as of April 10, 2020
         if (field.required) {
           code_ += "      let u = self.{{FIELD_NAME}}();";
           code_ += "      Some({{U_ELEMENT_TABLE_TYPE}}::init_from_table(u))";
