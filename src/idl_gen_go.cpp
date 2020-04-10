@@ -863,13 +863,6 @@ class GoGenerator : public BaseGenerator {
     if (struct_def.generated) return;
 
     cur_name_space_ = struct_def.defined_namespace;
-
-    if (cur_name_space_->components.empty()) {
-      if (parser_.root_struct_def_) {
-        cur_name_space_->components.push_back(parser_.root_struct_def_->name);
-      }
-    }
-
     GenComment(struct_def.doc_comment, code_ptr, nullptr);
     if (parser_.opts.generate_object_based_api) {
       GenNativeStruct(struct_def, code_ptr);
@@ -1008,10 +1001,8 @@ class GoGenerator : public BaseGenerator {
                                                      NativeName(enum_def));
         code += "{ Type: " + enum_def.name + ev.name + ", Value: x }\n";
 
-      } else
-
-          if ((ev.union_type.base_type == BASE_TYPE_STRUCT) &&
-              (ev.union_type.struct_def->fixed)) {  // struct
+      } else if ((ev.union_type.base_type == BASE_TYPE_STRUCT) &&
+                 (ev.union_type.struct_def->fixed)) {  // struct
         code += "\tcase " + enum_def.name + ev.name + ":\n";
         code += "\t\tx := ";
         code +=
@@ -1065,10 +1056,8 @@ class GoGenerator : public BaseGenerator {
                                                      NativeName(enum_def));
         code += "{ Type: " + enum_def.name + ev.name + ", Value: x }\n";
 
-      } else
-
-          if ((ev.union_type.base_type == BASE_TYPE_STRUCT) &&
-              (ev.union_type.struct_def->fixed)) {
+      } else if ((ev.union_type.base_type == BASE_TYPE_STRUCT) &&
+                 (ev.union_type.struct_def->fixed)) {
         code += "\tcase " + enum_def.name + ev.name + ":\n";
         code += "\t\tx := ";
         code +=
@@ -1536,88 +1525,13 @@ class GoGenerator : public BaseGenerator {
     code += "\treturn t\n";
     code += "}\n\n";
   }
-  /**
-    // Generate enum type table
-    void GenEnumTypeTable(const EnumDef &enum_def, std::string *code_ptr) {
-      if (enum_def.generated) return;
-      //    std::string &code = *code_ptr;
-      genEnumTypeTableHeader(enum_def, code_ptr);
-      genEnumTypeCode(enum_def, code_ptr);
-    }
 
-    void genEnumTypeCode(const EnumDef &enum_def, std::string *code_ptr) {
-      std::string &code = *code_ptr;
-      for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it)
-    { const EnumVal &ev = **it; auto offset = it - enum_def.Vals().begin(); code
-    +=
-            "\t\t\t{Id: " + NumToString(offset) + ", Name: \"" + ev.name + "\"";
-        code += ", DefaultInteger: " + enum_def.ToString(ev);
-
-        if (enum_def.is_union) {
-          const Type &type = ev.union_type;
-
-          auto is_struct = (type.base_type == BASE_TYPE_STRUCT);
-
-          std::string ref_name =
-              type.struct_def ? ReflectName(*type.struct_def)
-                              : type.enum_def ? ReflectName(*type.enum_def) :
-    "";
-
-          if (is_struct) {
-            code += ", BaseType: flatbuffers.FieldTypeUnion, ";
-            code += " IsVector:true";
-            code += ", SequenceRef: " + ref_name + "TypeTable() },\n";
-          } else {
-            code += ", BaseType: flatbuffers.FieldTypeUnion},\n ";
-          }
-
-        } else {
-          code += ", BaseType: flatbuffers.FieldType" +
-                  MakeCamel(GenTypeBasic(enum_def.underlying_type)) + "},\n";
-        }
-      }
-
-      code += "\t\t},\n";
-      code += "\t}\n";
-      code += "}\n\n";
-    }
-
-    // generate Enum type table header
-    void genEnumTypeTableHeader(const EnumDef &enum_def, std::string *code_ptr)
-    { std::string &code = *code_ptr;
-      //  start enum type table
-      code += "\n\n// " + GetEnumTypeName(enum_def) +
-              "TypeTable return type table \n";
-      code += "func " + GetEnumTypeName(enum_def) +
-              "TypeTable() flatbuffers.TypeTable { \n";
-      code += "\treturn flatbuffers.TypeTable{\n";
-      // is union or enum
-      if (enum_def.is_union) {
-        code += "\t\tSequenceType: flatbuffers.FieldTypeUnion,\n";
-      } else {
-        code += "\t\tSequenceType: flatbuffers.FieldTypeEnum,\n";
-      }
-      // metadata of enum or union
-      code +=
-          "\t\tName:        []byte( \"" + GetEnumTypeName(enum_def) + "\"),\n";
-      code += "\t\tNumsElement:  " + NumToString(enum_def.size()) + ",\n";
-      code += "\t\tFields: []flatbuffers.TypeCode{\n";
-    }
-
-    */
   // Generate enum declarations.
   void GenEnum(const EnumDef &enum_def, std::string *code_ptr) {
     if (enum_def.generated) return;
 
     auto max_name_length = MaxNameLength(enum_def);
     cur_name_space_ = enum_def.defined_namespace;
-
-    if (cur_name_space_->components.empty()) {
-      if (parser_.root_struct_def_) {
-        cur_name_space_->components.push_back(parser_.root_struct_def_->name);
-      }
-    }
-
     GenComment(enum_def.doc_comment, code_ptr, nullptr);
     GenEnumType(enum_def, code_ptr);
     BeginEnum(code_ptr);
@@ -1830,8 +1744,18 @@ class GoGenerator : public BaseGenerator {
                 const bool needs_imports, const bool is_enum) {
     if (!classcode.length()) return true;
 
-    Namespace &ns = go_namespace_.components.empty() ? *def.defined_namespace
-                                                     : go_namespace_;
+    // fix  miss name space issue
+    auto dns = new Namespace();
+    if (def.defined_namespace->components.empty()) {
+      if (parser_.root_struct_def_) {
+        dns->components.push_back(parser_.root_struct_def_->name);
+      }
+    } else {
+      dns = def.defined_namespace;
+    }
+
+    Namespace &ns = go_namespace_.components.empty() ? *dns : go_namespace_;
+
     std::string code = "";
     BeginFile(LastNamespacePart(ns), needs_imports, is_enum, &code);
     code += classcode;
@@ -1865,8 +1789,6 @@ class GoGenerator : public BaseGenerator {
       } else {
         s += "/" + *it;
       }
-      //      const auto *go_package = attributes.Lookup("go_package");
-      //    s =   go_package->constant.c_str()) + s;
     }
     return s;
   }
