@@ -300,5 +300,16 @@ void main() {
     expect(flx.finish(), [185, 115, 175, 118, 250, 84, 8, 0,
       4, 9, 10, 11, 12, 27, 27, 27, 27, 8, 40, 1]);
   });
+
+  test('snapshot', (){
+    var flx = FlxBuilder();
+    flx.startVector();
+    flx.addInt(12);
+    expect(flx.snapshot().asUint8List(), [1, 12, 1, 44, 1]);
+    flx.addInt(24);
+    expect(flx.snapshot().asUint8List(), [12, 24, 2, 64, 1]);
+    flx.addInt(45);
+    expect(flx.snapshot().asUint8List(), [12, 24, 45, 3, 76, 1]);
+  });
 }
 

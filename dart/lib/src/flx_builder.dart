@@ -224,6 +224,24 @@ class FlxBuilder {
     }
     return _buffer.buffer.asUint8List(0, _offset);
   }
+
+  /// Builds a FlatBuffer with current state without finishing the builder.
+  /// Creates an internal temporary copy of current builder and finishes the copy.
+  /// Use this method, when the state of a long lasting builder need to be persisted periodically.
+  ByteBuffer snapshot() {
+    var tmp = FlxBuilder(_offset + 200);
+    tmp._offset = _offset;
+    tmp._stack = List.from(_stack);
+    tmp._stackPointers = List.from(_stackPointers);
+    tmp._buffer.buffer.asUint8List().setAll(0, _buffer.buffer.asUint8List(0, _offset));
+    for (var i = 0; i < tmp._stackPointers.length; i++){
+      tmp.end();
+    }
+    var buffer = tmp.finish();
+    var bd = ByteData(buffer.lengthInBytes);
+    bd.buffer.asUint8List().setAll(0, buffer);
+    return bd.buffer;
+  }
   
   void _integrityCheckOnValueAddition() {
     if(_finished) {
