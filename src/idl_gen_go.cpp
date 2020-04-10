@@ -54,9 +54,7 @@ static std::string GoIdentity(const std::string &name) {
   return MakeCamel(name, false);
 }
 
-/**
 static std::string Name(const Definition &def) { return MakeCamel(def.name); }
-*/
 
 class GoGenerator : public BaseGenerator {
  public:
@@ -75,12 +73,19 @@ class GoGenerator : public BaseGenerator {
   bool generate() {
     std::string one_file_code;
     bool needs_imports = false;
+    // generate enums
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
       tracked_imported_namespaces_.clear();
       needs_imports = false;
       std::string enumcode;
       GenEnum(**it, &enumcode);
+      // add enum type table
+      if (parser_.opts.mini_reflect != IDLOptions::kNone) {
+        GenEnumTypeTable(**it, &enumcode);
+        needs_imports = true;
+      }
+
       if ((*it)->is_union && parser_.opts.generate_object_based_api) {
         GenNativeUnion(**it, &enumcode);
         GenNativeUnionPack(**it, &enumcode);
@@ -103,6 +108,11 @@ class GoGenerator : public BaseGenerator {
       std::string declcode;
       GenStruct(**it, &declcode);
 
+      // add struct type table
+      if (parser_.opts.mini_reflect != IDLOptions::kNone) {
+        GenStructTypeTable(**it, &declcode);
+      }
+
       if (parser_.opts.one_file) {
         one_file_code += declcode;
       } else {
@@ -113,6 +123,12 @@ class GoGenerator : public BaseGenerator {
     if (parser_.opts.one_file) {
       std::string code = "";
       const bool is_enum = !parser_.enums_.vec.empty();
+      // namespace is missing
+      if (go_namespace_.components.empty()) {
+        if (parser_.root_struct_def_) {
+          go_namespace_.components.push_back(parser_.root_struct_def_->name);
+        }
+      }
       BeginFile(LastNamespacePart(go_namespace_), true, is_enum, &code);
       code += one_file_code;
       const std::string filename =
@@ -855,11 +871,262 @@ class GoGenerator : public BaseGenerator {
     GetEndOffsetOnTable(struct_def, code_ptr);
   }
 
+  // generateStructHeader generate enum / struct type table header
+  void genStructTypeTableHeader(const StructDef &struct_def,
+                                std::string *code_ptr) const {
+    std::string &code = *code_ptr;
+    // generate type table header
+    code += "\n\n// " + struct_def.name + "TypeTable return type table \n";
+    code +=
+        "func " + struct_def.name + "TypeTable() flatbuffers.TypeTable { \n";
+    code += "\treturn flatbuffers.TypeTable{\n";
+
+    if (struct_def.minalign > 0) {
+      code += "\t\tMinalign:   " + NumToString(struct_def.minalign) + ",\n";
+    }
+    code += "\t\tNumsElement:   " + NumToString(struct_def.fields.vec.size()) +
+            ",\n";
+    if (struct_def.bytesize > 0) {
+      code +=
+          "\t\tFixedLength:     " + NumToString(struct_def.bytesize) + ",\n";
+    }
+
+    if (struct_def.fixed) {  // struct
+      code += "\t\tSequenceType: flatbuffers.FieldTypeStruct,\n";
+    } else {  // table
+      code += "\t\tSequenceType: flatbuffers.FieldTypeTable,\n";
+    }
+    //  metadata of  struct or table
+    code += "\t\tName:         []byte(\"" + struct_def.name + "\"),\n";
+
+    if (parser_.root_struct_def_ == &struct_def) {
+      auto &struct_def = *parser_.root_struct_def_;
+      auto name = Name(struct_def);
+      code += "\t\tRootType:     []byte(\"" + name + "\"),\n";
+      //      code += "\t\tIsRootType:   true,\n";
+      if (parser_.file_identifier_.length()) {
+        // Check if a buffer has the identifier.
+        code += "\t\tIdentifier:   []byte(\"";
+        code += parser_.file_identifier_ + "\"),\n";
+      }
+    }
+  }
+
+  void genStructTypeCode(const StructDef &struct_def, std::string *code_ptr) {
+    std::string &code = *code_ptr;
+    code += "\t\tFields: []flatbuffers.TypeCode{\n";
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto &field = **it;
+      auto &field_type = field.value.type;
+      auto offset = it - struct_def.fields.vec.begin();
+      auto deprecated = field.deprecated ? "true" : "false";
+
+      if (IsScalar(field_type.base_type)) {
+        if (IsEnum(field_type)) {
+          code += "\t\t\t//  enum \n";
+          code += "\t\t\t{Id: " + NumToString(offset) +
+                  ",  Offset: " + NumToString(field.value.offset) +
+                  ", Name: \"" + MakeCamel(field.name) +
+                  "\", IsDeprecated: " + deprecated +
+                  ", BaseType: flatbuffers.FieldTypeEnum, SequenceRef: " +
+                  MakeCamel(ReflectType(field.value.type)) + "TypeTable()},\n";
+
+        } else {
+          code += "\t\t\t// scalar \n";
+          code += "\t\t\t{Id: " + NumToString(offset) +
+                  ",  Offset: " + NumToString(field.value.offset) +
+                  ", Name: \"" + MakeCamel(field.name) +
+                  "\", IsDeprecated: " + deprecated +
+                  ", BaseType: flatbuffers.FieldType" +
+                  MakeCamel(ReflectType(field.value.type)) + "},\n";
+        }
+      } else {
+        switch (field_type.base_type) {
+          case BASE_TYPE_STRUCT: {
+            // handle struct
+            if (struct_def.fixed) {
+              code += "\t\t\t// struct real\n";
+              code += "\t\t\t{Id: " + NumToString(offset) +
+                      ",  Offset: " + NumToString(field.value.offset) +
+                      ", IsVector: true, Name: \"" + MakeCamel(field.name) +
+                      "\", IsDeprecated: " + deprecated +
+                      ", BaseType: flatbuffers.FieldTypeStruct, SequenceRef: " +
+                      MakeCamel(ReflectType(field.value.type)) +
+                      "TypeTable()},\n";
+            } else {
+              code += "\t\t\t// table real\n";
+              code += "\t\t\t{Id: " + NumToString(offset) +
+                      ",  Offset: " + NumToString(field.value.offset) +
+                      ", IsVector: true, Name: \"" + MakeCamel(field.name) +
+                      "\", IsDeprecated: " + deprecated +
+                      ", BaseType: flatbuffers.FieldTypeTable, SequenceRef: " +
+                      MakeCamel(ReflectType(field.value.type)) +
+                      "TypeTable()},\n";
+            }
+            // end struct
+            break;
+          }
+
+          case BASE_TYPE_STRING: {
+            // handle string
+            code += "\t\t\t// string \n";
+            code += "\t\t\t{Id: " + NumToString(offset) +
+                    ",  Offset: " + NumToString(field.value.offset) +
+                    ", IsVector: true, Name: \"" + MakeCamel(field.name) +
+                    "\", IsDeprecated: " + deprecated +
+                    ", BaseType: flatbuffers.FieldTypeString},\n";
+            // end string
+            break;
+          }
+
+          case BASE_TYPE_UNION: {
+            // handle union
+            code += "\t\t\t// union\n";
+            code += "\t\t\t{Id: " + NumToString(offset) +
+                    ",  Offset: " + NumToString(field.value.offset) +
+                    ", IsVector: true, Name: \"" + MakeCamel(field.name) +
+                    "\", IsDeprecated: " + deprecated +
+                    ", BaseType: flatbuffers.FieldTypeUnion, SequenceRef: " +
+                    MakeCamel(ReflectType(field.value.type)) +
+                    "TypeTable()},\n";
+            // end union
+
+            break;
+          }
+
+          case BASE_TYPE_VECTOR: {
+            // handle vector
+            auto vectortype =
+                field.value.type.VectorType();  // get element's type
+
+            if ((field_type.base_type == BASE_TYPE_VECTOR) ||
+                (field_type.base_type == BASE_TYPE_ARRAY)) {
+              //
+              if (IsScalar(vectortype.base_type)) {  //
+                if (IsEnum(vectortype)) {
+                  code += "\t\t\t// scalar (enum ) in array \n";
+                  code +=
+                      "\t\t\t{Id: " + NumToString(offset) +
+                      ",  Offset: " + NumToString(field.value.offset) +
+                      ", IsVector: true, Name: \"" + MakeCamel(field.name) +
+                      "\", IsDeprecated: " + deprecated +
+                      ", BaseType: flatbuffers.FieldTypeArray, SequenceRef: " +
+                      MakeCamel(ReflectType(field.value.type)) +
+                      "TypeTable()},\n";
+                } else {
+                  code += "\t\t\t// scalar in array \n";
+                  code += "\t\t\t{Id: " + NumToString(offset) +
+                          ",  Offset: " + NumToString(field.value.offset) +
+                          ", IsVector: true, Name: \"" + MakeCamel(field.name) +
+                          "\", IsDeprecated: " + deprecated +
+                          ", BaseType: flatbuffers.FieldTypeArray, Element: "
+                          "flatbuffers.FieldType" +
+                          MakeCamel(ReflectType(field.value.type)) + " },\n";
+                }
+              }
+
+              if (vectortype.base_type == BASE_TYPE_STRUCT) {  // struct
+                if (vectortype.struct_def->fixed) {
+                  code += "\t\t\t// struct in array\n";
+                  code +=
+                      "\t\t\t{Id: " + NumToString(offset) +
+                      ",  Offset: " + NumToString(field.value.offset) +
+                      ", IsVector: true, Name: \"" + MakeCamel(field.name) +
+                      "\", IsDeprecated: " + deprecated +
+                      ", BaseType: flatbuffers.FieldTypeArray, "
+                      "FieldType:flatbuffers.FieldTypeStruct, SequenceRef: " +
+                      MakeCamel(ReflectType(field.value.type)) +
+                      "TypeTable()},\n";
+                }  //
+                else {
+                  code += "\t\t\t// table in array \n";
+                  code +=
+                      "\t\t\t{Id: " + NumToString(offset) +
+                      ",  Offset: " + NumToString(field.value.offset) +
+                      ", IsVector: true, Name: \"" + MakeCamel(field.name) +
+                      "\", IsDeprecated: " + deprecated +
+                      ", BaseType: flatbuffers.FieldTypeArray, "
+                      "FieldType:flatbuffers.FieldTypeTable, SequenceRef: " +
+                      MakeCamel(ReflectType(field.value.type)) +
+                      "TypeTable()},\n";
+                }
+              }  //
+              else if (vectortype.base_type == BASE_TYPE_UNION) {
+                code += "\t\t\t// union in array\n";
+                code += "\t\t\t{Id: " + NumToString(offset) +
+                        ",  Offset: " + NumToString(field.value.offset) +
+                        ", IsVector: true, Name: \"" + MakeCamel(field.name) +
+                        "\", IsDeprecated: " + deprecated +
+                        ", BaseType: flatbuffers.FieldTypeArray, "
+                        "FieldType:flatbuffers.FieldTypeTable, SequenceRef: " +
+                        MakeCamel(ReflectType(field.value.type)) +
+                        "TypeTable()},\n";
+
+              }  //
+
+              else if (vectortype.base_type == BASE_TYPE_STRING) {
+                code += "\t\t\t// vector BASE_TYPE_STRING   \n";
+                code += "\t\t\t{Id: " + NumToString(offset) +
+                        ",  Offset: " + NumToString(field.value.offset) +
+                        ", IsVector: true, Name: \"" + MakeCamel(field.name) +
+                        "\", IsDeprecated: " + deprecated +
+                        ", BaseType: flatbuffers.FieldTypeArray, Element: "
+                        "flatbuffers.FieldTypeString},\n";
+              }
+            }  //
+            else {
+              code += "\t\t\t// vector ----------------- \n";
+              code += "\t\t\t{Id: " + NumToString(offset) +
+                      ",  Offset: " + NumToString(field.value.offset) +
+                      ", IsVector: true, Name: \"" + MakeCamel(field.name) +
+                      "\", IsDeprecated: " + deprecated +
+                      ", BaseType: flatbuffers.FieldTypeArray, SequenceRef: " +
+                      MakeCamel(ReflectType(field.value.type)) +
+                      "TypeTable()},\n";
+            }
+            // end vector
+
+            break;
+          }
+
+          default: {
+            FLATBUFFERS_ASSERT(0);
+
+            break;
+          }
+        }
+      }
+    }
+
+    code += "\t\t},\n";
+  }
+
+  // Generate struct type table
+  void GenStructTypeTable(const StructDef &struct_def, std::string *code_ptr) {
+    if (struct_def.generated) return;
+    std::string &code = *code_ptr;
+    genStructTypeTableHeader(struct_def, code_ptr);
+
+    if (struct_def.fields.vec.size() > 0) {
+      genStructTypeCode(struct_def, code_ptr);
+    }
+
+    code += "\t}\n";
+    code += "}\n\n";
+  }
+
   // Generate struct or table methods.
   void GenStruct(const StructDef &struct_def, std::string *code_ptr) {
     if (struct_def.generated) return;
 
     cur_name_space_ = struct_def.defined_namespace;
+
+    if (cur_name_space_->components.empty()) {
+      if (parser_.root_struct_def_) {
+        cur_name_space_->components.push_back(parser_.root_struct_def_->name);
+      }
+    }
 
     GenComment(struct_def.doc_comment, code_ptr, nullptr);
     if (parser_.opts.generate_object_based_api) {
@@ -1527,81 +1794,86 @@ class GoGenerator : public BaseGenerator {
     code += "\treturn t\n";
     code += "}\n\n";
   }
-  /**
-    // Generate enum type table
-    void GenEnumTypeTable(const EnumDef &enum_def, std::string *code_ptr) {
-      if (enum_def.generated) return;
-      //    std::string &code = *code_ptr;
-      genEnumTypeTableHeader(enum_def, code_ptr);
-      genEnumTypeCode(enum_def, code_ptr);
-    }
 
-    void genEnumTypeCode(const EnumDef &enum_def, std::string *code_ptr) {
-      std::string &code = *code_ptr;
-      for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it)
-    { const EnumVal &ev = **it; auto offset = it - enum_def.Vals().begin(); code
-    +=
-            "\t\t\t{Id: " + NumToString(offset) + ", Name: \"" + ev.name + "\"";
-        code += ", DefaultInteger: " + enum_def.ToString(ev);
+  // Generate enum type table
+  void GenEnumTypeTable(const EnumDef &enum_def, std::string *code_ptr) {
+    if (enum_def.generated) return;
+    //    std::string &code = *code_ptr;
+    genEnumTypeTableHeader(enum_def, code_ptr);
+    genEnumTypeCode(enum_def, code_ptr);
+  }
 
-        if (enum_def.is_union) {
-          const Type &type = ev.union_type;
-
-          auto is_struct = (type.base_type == BASE_TYPE_STRUCT);
-
-          std::string ref_name =
-              type.struct_def ? ReflectName(*type.struct_def)
-                              : type.enum_def ? ReflectName(*type.enum_def) :
-    "";
-
-          if (is_struct) {
-            code += ", BaseType: flatbuffers.FieldTypeUnion, ";
-            code += " IsVector:true";
-            code += ", SequenceRef: " + ref_name + "TypeTable() },\n";
-          } else {
-            code += ", BaseType: flatbuffers.FieldTypeUnion},\n ";
-          }
-
-        } else {
-          code += ", BaseType: flatbuffers.FieldType" +
-                  MakeCamel(GenTypeBasic(enum_def.underlying_type)) + "},\n";
-        }
-      }
-
-      code += "\t\t},\n";
-      code += "\t}\n";
-      code += "}\n\n";
-    }
-
-    // generate Enum type table header
-    void genEnumTypeTableHeader(const EnumDef &enum_def, std::string *code_ptr)
-    { std::string &code = *code_ptr;
-      //  start enum type table
-      code += "\n\n// " + GetEnumTypeName(enum_def) +
-              "TypeTable return type table \n";
-      code += "func " + GetEnumTypeName(enum_def) +
-              "TypeTable() flatbuffers.TypeTable { \n";
-      code += "\treturn flatbuffers.TypeTable{\n";
-      // is union or enum
-      if (enum_def.is_union) {
-        code += "\t\tSequenceType: flatbuffers.FieldTypeUnion,\n";
-      } else {
-        code += "\t\tSequenceType: flatbuffers.FieldTypeEnum,\n";
-      }
-      // metadata of enum or union
+  void genEnumTypeCode(const EnumDef &enum_def, std::string *code_ptr) {
+    std::string &code = *code_ptr;
+    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      const EnumVal &ev = **it;
+      auto offset = it - enum_def.Vals().begin();
       code +=
-          "\t\tName:        []byte( \"" + GetEnumTypeName(enum_def) + "\"),\n";
-      code += "\t\tNumsElement:  " + NumToString(enum_def.size()) + ",\n";
-      code += "\t\tFields: []flatbuffers.TypeCode{\n";
+          "\t\t\t{Id: " + NumToString(offset) + ", Name: \"" + ev.name + "\"";
+      code += ", DefaultInteger: " + enum_def.ToString(ev);
+
+      if (enum_def.is_union) {
+        const Type &type = ev.union_type;
+
+        auto is_struct = (type.base_type == BASE_TYPE_STRUCT);
+
+        std::string ref_name =
+            type.struct_def ? ReflectName(*type.struct_def)
+                            : type.enum_def ? ReflectName(*type.enum_def) : "";
+
+        if (is_struct) {
+          code += ", BaseType: flatbuffers.FieldTypeUnion, ";
+          code += " IsVector:true";
+          code += ", SequenceRef: " + ref_name + "TypeTable() },\n";
+        } else {
+          code += ", BaseType: flatbuffers.FieldTypeUnion},\n ";
+        }
+
+      } else {
+        code += ", BaseType: flatbuffers.FieldType" +
+                MakeCamel(GenTypeBasic(enum_def.underlying_type)) + "},\n";
+      }
     }
 
-    */
+    code += "\t\t},\n";
+    code += "\t}\n";
+    code += "}\n\n";
+  }
+
+  // generate Enum type table header
+  void genEnumTypeTableHeader(const EnumDef &enum_def, std::string *code_ptr) {
+    std::string &code = *code_ptr;
+    //  start enum type table
+    code += "\n\n// " + GetEnumTypeName(enum_def) +
+            "TypeTable return type table \n";
+    code += "func " + GetEnumTypeName(enum_def) +
+            "TypeTable() flatbuffers.TypeTable { \n";
+    code += "\treturn flatbuffers.TypeTable{\n";
+    // is union or enum
+    if (enum_def.is_union) {
+      code += "\t\tSequenceType: flatbuffers.FieldTypeUnion,\n";
+    } else {
+      code += "\t\tSequenceType: flatbuffers.FieldTypeEnum,\n";
+    }
+    // metadata of enum or union
+    code +=
+        "\t\tName:        []byte( \"" + GetEnumTypeName(enum_def) + "\"),\n";
+    code += "\t\tNumsElement:  " + NumToString(enum_def.size()) + ",\n";
+    code += "\t\tFields: []flatbuffers.TypeCode{\n";
+  }
+
   // Generate enum declarations.
   void GenEnum(const EnumDef &enum_def, std::string *code_ptr) {
     if (enum_def.generated) return;
 
     auto max_name_length = MaxNameLength(enum_def);
     cur_name_space_ = enum_def.defined_namespace;
+
+    if (cur_name_space_->components.empty()) {
+      if (parser_.root_struct_def_) {
+        cur_name_space_->components.push_back(parser_.root_struct_def_->name);
+      }
+    }
 
     GenComment(enum_def.doc_comment, code_ptr, nullptr);
     GenEnumType(enum_def, code_ptr);
