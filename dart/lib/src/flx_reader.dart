@@ -104,7 +104,7 @@ class FlxValue {
   /// Can be used with an [int] or a [String] value for key.
   /// If the underlying value in FlexBuffer is a vector, then use [int] for access.
   /// If the underlying value in FlexBuffer is a map, then use [String] for access.
-  /// Returns [Uint8List] value or null. Does not throw out of bounds exception.
+  /// Returns [FlxValue] value or null. Does not throw out of bounds exception.
   FlxValue operator [](Object key) {
     if (key is int && _valueType.isAVector()) {
       var index = key;
