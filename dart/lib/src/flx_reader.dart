@@ -1,6 +1,5 @@
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:ffi';
 import 'dart:typed_data';
 import 'flx_types.dart';
 
@@ -32,13 +31,13 @@ class FlxValue {
   }
 
   bool get isNull => _valueType == ValueType.Null;
-  bool get isNum => _valueType.isNumber() || _valueType.isIndirectNumber();
+  bool get isNum => ValueTypeUtils.isNumber(_valueType) || ValueTypeUtils.isIndirectNumber(_valueType);
   bool get isDouble => _valueType == ValueType.Float || _valueType == ValueType.IndirectFloat;
   bool get isInt => isNum && !isDouble;
   bool get isString => _valueType == ValueType.String || _valueType == ValueType.Key;
   bool get isBool => _valueType == ValueType.Bool;
   bool get isBlob => _valueType == ValueType.Blob;
-  bool get isVector => _valueType.isAVector();
+  bool get isVector => ValueTypeUtils.isAVector(_valueType);
   bool get isMap => _valueType == ValueType.Map;
 
   /// Returns [bool] value or null otherwise.
@@ -106,7 +105,7 @@ class FlxValue {
   /// If the underlying value in FlexBuffer is a map, then use [String] for access.
   /// Returns [FlxValue] value or null. Does not throw out of bounds exception.
   FlxValue operator [](Object key) {
-    if (key is int && _valueType.isAVector()) {
+    if (key is int && ValueTypeUtils.isAVector(_valueType)) {
       var index = key;
       if(index >= length) {
         return null;
@@ -114,12 +113,12 @@ class FlxValue {
       var elementOffset = _indirect + index * _byteWidth;
       var flx = FlxValue._(_buffer, elementOffset, BitWidthUtil.fromByteWidth(_byteWidth), 0);
       flx._byteWidth = 1;
-      if (_valueType.isTypedVector()) {
-        flx._valueType = _valueType.typedVectorElementType();
+      if (ValueTypeUtils.isTypedVector(_valueType)) {
+        flx._valueType = ValueTypeUtils.typedVectorElementType(_valueType);
         return flx;
       }
-      if(_valueType.isFixedTypedVector()) {
-        flx._valueType = _valueType.fixedTypedVectorElementType();
+      if(ValueTypeUtils.isFixedTypedVector(_valueType)) {
+        flx._valueType = ValueTypeUtils.fixedTypedVectorElementType(_valueType);
         return flx;
       }
       var packedType = _buffer.getUint8(_indirect + length * _byteWidth + index);
@@ -171,9 +170,9 @@ class FlxValue {
       return _length;
     }
     // needs to be checked before more generic isAVector
-    if(_valueType.isFixedTypedVector()) {
-      _length = _valueType.fixedTypedVectorElementSize();
-    } else if(_valueType == ValueType.Blob || _valueType.isAVector() || _valueType == ValueType.Map){
+    if(ValueTypeUtils.isFixedTypedVector(_valueType)) {
+      _length = ValueTypeUtils.fixedTypedVectorElementSize(_valueType);
+    } else if(_valueType == ValueType.Blob || ValueTypeUtils.isAVector(_valueType) || _valueType == ValueType.Map){
       _length = _readInt(_indirect - _byteWidth, BitWidthUtil.fromByteWidth(_byteWidth));
     } else if (_valueType == ValueType.Null) {
       _length = 0;
@@ -209,7 +208,7 @@ class FlxValue {
     if (_valueType == ValueType.Null) {
       return 'null';
     }
-    if(_valueType.isNumber()) {
+    if(ValueTypeUtils.isNumber(_valueType)) {
       return jsonEncode(numValue);
     }
     if (_valueType == ValueType.String) {
@@ -218,7 +217,7 @@ class FlxValue {
     if (_valueType == ValueType.Blob) {
       return jsonEncode(base64Encode(blobValue));
     }
-    if (_valueType.isAVector()) {
+    if (ValueTypeUtils.isAVector(_valueType)) {
       var result = StringBuffer();
       result.write('[');
       for (var i = 0; i < length; i++) {
@@ -294,7 +293,7 @@ class FlxValue {
   }
 
   void _validateOffset(int offset, BitWidth width) {
-    if (_offset < 0 || _buffer.lengthInBytes <= offset + width.index || offset & (width.toByteWidth() - 1) != 0) {
+    if (_offset < 0 || _buffer.lengthInBytes <= offset + width.index || offset & (BitWidthUtil.toByteWidth(width) - 1) != 0) {
       throw Exception('Bad offset');
     }
   }

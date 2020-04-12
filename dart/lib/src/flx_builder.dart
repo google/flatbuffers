@@ -294,7 +294,7 @@ class FlxBuilder {
       }
       if (i == start) {
         vectorType = _stack[i].type;
-        typed &= vectorType.isTypedVectorElement();
+        typed &= ValueTypeUtils.isTypedVectorElement(vectorType);
       } else {
         if (vectorType != _stack[i].type) {
           typed = false;
@@ -302,7 +302,7 @@ class FlxBuilder {
       }
     }
     var byteWidth = _align(bitWidth);
-    var fix = typed & vectorType.isNumber() && vecLength >= 2 && vecLength <= 4;
+    var fix = typed & ValueTypeUtils.isNumber(vectorType) && vecLength >= 2 && vecLength <= 4;
     if (keys != null) {
       _writeStackValue(keys, byteWidth);
       _writeInt(1 << keys.width.index, byteWidth);
@@ -323,7 +323,7 @@ class FlxBuilder {
       return _StackValue.WithOffset(vecOffset, ValueType.Map, bitWidth);
     }
     if(typed) {
-      var vType = vectorType.toTypedVector(fix ? vecLength : 0);
+      var vType = ValueTypeUtils.toTypedVector(vectorType, fix ? vecLength : 0);
       return _StackValue.WithOffset(vecOffset, vType, bitWidth);
     }
     return _StackValue.WithOffset(vecOffset, ValueType.Vector, bitWidth);
@@ -407,7 +407,7 @@ class FlxBuilder {
   }
 
   int _align(BitWidth width) {
-    var byteWidth = width.toByteWidth();
+    var byteWidth = BitWidthUtil.toByteWidth(width);
     _offset += BitWidthUtil.paddingSize(_offset, byteWidth);
     return byteWidth;
   }
@@ -503,15 +503,15 @@ class _StackValue {
   }
 
   BitWidth storedWidth([BitWidth width = BitWidth.width8]) {
-    return _type.isInline() ? _width.max(width) : _width;
+    return ValueTypeUtils.isInline(_type) ? BitWidthUtil.max(_width, width) : _width;
   }
 
   int storedPackedType([BitWidth width = BitWidth.width8]) {
-    return _type.packedType(storedWidth(width));
+    return ValueTypeUtils.packedType(_type, storedWidth(width));
   }
 
   BitWidth elementWidth(int size, int index) {
-    if (_type.isInline()) return _width;
+    if (ValueTypeUtils.isInline(_type)) return _width;
     for(var i = 0; i < 4; i++) {
       var width = 1 << i;
       var offsetLoc = size + BitWidthUtil.paddingSize(size, width) + index * width;
@@ -525,7 +525,7 @@ class _StackValue {
   }
 
   List<int> asU8List(BitWidth width) {
-    if (_type.isNumber()) {
+    if (ValueTypeUtils.isNumber(_type)) {
       if(_type == ValueType.Float) {
         if(width == BitWidth.width32) {
           var result = ByteData(4);
@@ -580,7 +580,7 @@ class _StackValue {
   }
 
   bool get isOffset {
-    return !_type.isInline();
+    return !ValueTypeUtils.isInline(_type);
   }
   int get offset => _offset;
 

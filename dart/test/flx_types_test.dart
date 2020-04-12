@@ -3,114 +3,114 @@ import 'package:test/test.dart';
 
 void main() {
   test('is inline', () {
-    expect(ValueType.Bool.isInline(), isTrue);
-    expect(ValueType.Int.isInline(), isTrue);
-    expect(ValueType.UInt.isInline(), isTrue);
-    expect(ValueType.Float.isInline(), isTrue);
-    expect(ValueType.Null.isInline(), isTrue);
-    expect(ValueType.String.isInline(), isFalse);
+    expect(ValueTypeUtils.isInline(ValueType.Bool), isTrue);
+    expect(ValueTypeUtils.isInline(ValueType.Int), isTrue);
+    expect(ValueTypeUtils.isInline(ValueType.UInt), isTrue);
+    expect(ValueTypeUtils.isInline(ValueType.Float), isTrue);
+    expect(ValueTypeUtils.isInline(ValueType.Null), isTrue);
+    expect(ValueTypeUtils.isInline(ValueType.String), isFalse);
   });
   test('is type vector element', () {
-    expect(ValueType.Bool.isTypedVectorElement(), isTrue);
-    expect(ValueType.Int.isTypedVectorElement(), isTrue);
-    expect(ValueType.UInt.isTypedVectorElement(), isTrue);
-    expect(ValueType.Float.isTypedVectorElement(), isTrue);
-    expect(ValueType.Key.isTypedVectorElement(), isTrue);
-    expect(ValueType.String.isTypedVectorElement(), isTrue);
+    expect(ValueTypeUtils.isTypedVectorElement(ValueType.Bool), isTrue);
+    expect(ValueTypeUtils.isTypedVectorElement(ValueType.Int), isTrue);
+    expect(ValueTypeUtils.isTypedVectorElement(ValueType.UInt), isTrue);
+    expect(ValueTypeUtils.isTypedVectorElement(ValueType.Float), isTrue);
+    expect(ValueTypeUtils.isTypedVectorElement(ValueType.Key), isTrue);
+    expect(ValueTypeUtils.isTypedVectorElement(ValueType.String), isTrue);
 
-    expect(ValueType.Null.isTypedVectorElement(), isFalse);
-    expect(ValueType.Blob.isTypedVectorElement(), isFalse);
+    expect(ValueTypeUtils.isTypedVectorElement(ValueType.Null), isFalse);
+    expect(ValueTypeUtils.isTypedVectorElement(ValueType.Blob), isFalse);
   });
   test('is typed vector', () {
-    expect(ValueType.VectorInt.isTypedVector(), isTrue);
-    expect(ValueType.VectorUInt.isTypedVector(), isTrue);
-    expect(ValueType.VectorFloat.isTypedVector(), isTrue);
-    expect(ValueType.VectorBool.isTypedVector(), isTrue);
-    expect(ValueType.VectorKey.isTypedVector(), isTrue);
-    expect(ValueType.VectorString_DEPRECATED.isTypedVector(), isTrue);
+    expect(ValueTypeUtils.isTypedVector(ValueType.VectorInt), isTrue);
+    expect(ValueTypeUtils.isTypedVector(ValueType.VectorUInt), isTrue);
+    expect(ValueTypeUtils.isTypedVector(ValueType.VectorFloat), isTrue);
+    expect(ValueTypeUtils.isTypedVector(ValueType.VectorBool), isTrue);
+    expect(ValueTypeUtils.isTypedVector(ValueType.VectorKey), isTrue);
+    expect(ValueTypeUtils.isTypedVector(ValueType.VectorString_DEPRECATED), isTrue);
 
-    expect(ValueType.Vector.isTypedVector(), isFalse);
-    expect(ValueType.Map.isTypedVector(), isFalse);
-    expect(ValueType.Bool.isTypedVector(), isFalse);
-    expect(ValueType.VectorInt2.isTypedVector(), isFalse);
+    expect(ValueTypeUtils.isTypedVector(ValueType.Vector), isFalse);
+    expect(ValueTypeUtils.isTypedVector(ValueType.Map), isFalse);
+    expect(ValueTypeUtils.isTypedVector(ValueType.Bool), isFalse);
+    expect(ValueTypeUtils.isTypedVector(ValueType.VectorInt2), isFalse);
   });
   test('is fixed typed vector', () {
-    expect(ValueType.VectorInt2.isFixedTypedVector(), isTrue);
-    expect(ValueType.VectorInt3.isFixedTypedVector(), isTrue);
-    expect(ValueType.VectorInt4.isFixedTypedVector(), isTrue);
-    expect(ValueType.VectorUInt2.isFixedTypedVector(), isTrue);
-    expect(ValueType.VectorUInt3.isFixedTypedVector(), isTrue);
-    expect(ValueType.VectorUInt4.isFixedTypedVector(), isTrue);
-    expect(ValueType.VectorFloat2.isFixedTypedVector(), isTrue);
-    expect(ValueType.VectorFloat3.isFixedTypedVector(), isTrue);
-    expect(ValueType.VectorFloat4.isFixedTypedVector(), isTrue);
+    expect(ValueTypeUtils.isFixedTypedVector(ValueType.VectorInt2), isTrue);
+    expect(ValueTypeUtils.isFixedTypedVector(ValueType.VectorInt3), isTrue);
+    expect(ValueTypeUtils.isFixedTypedVector(ValueType.VectorInt4), isTrue);
+    expect(ValueTypeUtils.isFixedTypedVector(ValueType.VectorUInt2), isTrue);
+    expect(ValueTypeUtils.isFixedTypedVector(ValueType.VectorUInt3), isTrue);
+    expect(ValueTypeUtils.isFixedTypedVector(ValueType.VectorUInt4), isTrue);
+    expect(ValueTypeUtils.isFixedTypedVector(ValueType.VectorFloat2), isTrue);
+    expect(ValueTypeUtils.isFixedTypedVector(ValueType.VectorFloat3), isTrue);
+    expect(ValueTypeUtils.isFixedTypedVector(ValueType.VectorFloat4), isTrue);
 
-    expect(ValueType.VectorInt.isFixedTypedVector(), isFalse);
+    expect(ValueTypeUtils.isFixedTypedVector(ValueType.VectorInt), isFalse);
   });
   test('to typed vector', () {
-    expect(ValueType.Int.toTypedVector(0), equals(ValueType.VectorInt));
-    expect(ValueType.UInt.toTypedVector(0), equals(ValueType.VectorUInt));
-    expect(ValueType.Bool.toTypedVector(0), equals(ValueType.VectorBool));
-    expect(ValueType.Float.toTypedVector(0), equals(ValueType.VectorFloat));
-    expect(ValueType.Key.toTypedVector(0), equals(ValueType.VectorKey));
-    expect(ValueType.String.toTypedVector(0), equals(ValueType.VectorString_DEPRECATED));
+    expect(ValueTypeUtils.toTypedVector(ValueType.Int,0), equals(ValueType.VectorInt));
+    expect(ValueTypeUtils.toTypedVector(ValueType.UInt,0), equals(ValueType.VectorUInt));
+    expect(ValueTypeUtils.toTypedVector(ValueType.Bool,0), equals(ValueType.VectorBool));
+    expect(ValueTypeUtils.toTypedVector(ValueType.Float,0), equals(ValueType.VectorFloat));
+    expect(ValueTypeUtils.toTypedVector(ValueType.Key,0), equals(ValueType.VectorKey));
+    expect(ValueTypeUtils.toTypedVector(ValueType.String,0), equals(ValueType.VectorString_DEPRECATED));
 
-    expect(ValueType.Int.toTypedVector(2), equals(ValueType.VectorInt2));
-    expect(ValueType.UInt.toTypedVector(2), equals(ValueType.VectorUInt2));
-    expect(ValueType.Float.toTypedVector(2), equals(ValueType.VectorFloat2));
+    expect(ValueTypeUtils.toTypedVector(ValueType.Int,2), equals(ValueType.VectorInt2));
+    expect(ValueTypeUtils.toTypedVector(ValueType.UInt,2), equals(ValueType.VectorUInt2));
+    expect(ValueTypeUtils.toTypedVector(ValueType.Float,2), equals(ValueType.VectorFloat2));
 
-    expect(ValueType.Int.toTypedVector(3), equals(ValueType.VectorInt3));
-    expect(ValueType.UInt.toTypedVector(3), equals(ValueType.VectorUInt3));
-    expect(ValueType.Float.toTypedVector(3), equals(ValueType.VectorFloat3));
+    expect(ValueTypeUtils.toTypedVector(ValueType.Int,3), equals(ValueType.VectorInt3));
+    expect(ValueTypeUtils.toTypedVector(ValueType.UInt,3), equals(ValueType.VectorUInt3));
+    expect(ValueTypeUtils.toTypedVector(ValueType.Float,3), equals(ValueType.VectorFloat3));
 
-    expect(ValueType.Int.toTypedVector(4), equals(ValueType.VectorInt4));
-    expect(ValueType.UInt.toTypedVector(4), equals(ValueType.VectorUInt4));
-    expect(ValueType.Float.toTypedVector(4), equals(ValueType.VectorFloat4));
+    expect(ValueTypeUtils.toTypedVector(ValueType.Int,4), equals(ValueType.VectorInt4));
+    expect(ValueTypeUtils.toTypedVector(ValueType.UInt,4), equals(ValueType.VectorUInt4));
+    expect(ValueTypeUtils.toTypedVector(ValueType.Float,4), equals(ValueType.VectorFloat4));
   });
   test('typed vector element type', () {
-    expect(ValueType.VectorInt.typedVectorElementType(), equals(ValueType.Int));
-    expect(ValueType.VectorUInt.typedVectorElementType(), equals(ValueType.UInt));
-    expect(ValueType.VectorFloat.typedVectorElementType(), equals(ValueType.Float));
-    expect(ValueType.VectorString_DEPRECATED.typedVectorElementType(), equals(ValueType.String));
-    expect(ValueType.VectorKey.typedVectorElementType(), equals(ValueType.Key));
-    expect(ValueType.VectorBool.typedVectorElementType(), equals(ValueType.Bool));
+    expect(ValueTypeUtils.typedVectorElementType(ValueType.VectorInt), equals(ValueType.Int));
+    expect(ValueTypeUtils.typedVectorElementType(ValueType.VectorUInt), equals(ValueType.UInt));
+    expect(ValueTypeUtils.typedVectorElementType(ValueType.VectorFloat), equals(ValueType.Float));
+    expect(ValueTypeUtils.typedVectorElementType(ValueType.VectorString_DEPRECATED), equals(ValueType.String));
+    expect(ValueTypeUtils.typedVectorElementType(ValueType.VectorKey), equals(ValueType.Key));
+    expect(ValueTypeUtils.typedVectorElementType(ValueType.VectorBool), equals(ValueType.Bool));
   });
   test('fixed typed vector element type', () {
-    expect(ValueType.VectorInt2.fixedTypedVectorElementType(), equals(ValueType.Int));
-    expect(ValueType.VectorInt3.fixedTypedVectorElementType(), equals(ValueType.Int));
-    expect(ValueType.VectorInt4.fixedTypedVectorElementType(), equals(ValueType.Int));
+    expect(ValueTypeUtils.fixedTypedVectorElementType(ValueType.VectorInt2), equals(ValueType.Int));
+    expect(ValueTypeUtils.fixedTypedVectorElementType(ValueType.VectorInt3), equals(ValueType.Int));
+    expect(ValueTypeUtils.fixedTypedVectorElementType(ValueType.VectorInt4), equals(ValueType.Int));
 
-    expect(ValueType.VectorUInt2.fixedTypedVectorElementType(), equals(ValueType.UInt));
-    expect(ValueType.VectorUInt3.fixedTypedVectorElementType(), equals(ValueType.UInt));
-    expect(ValueType.VectorUInt4.fixedTypedVectorElementType(), equals(ValueType.UInt));
+    expect(ValueTypeUtils.fixedTypedVectorElementType(ValueType.VectorUInt2), equals(ValueType.UInt));
+    expect(ValueTypeUtils.fixedTypedVectorElementType(ValueType.VectorUInt3), equals(ValueType.UInt));
+    expect(ValueTypeUtils.fixedTypedVectorElementType(ValueType.VectorUInt4), equals(ValueType.UInt));
 
-    expect(ValueType.VectorFloat2.fixedTypedVectorElementType(), equals(ValueType.Float));
-    expect(ValueType.VectorFloat3.fixedTypedVectorElementType(), equals(ValueType.Float));
-    expect(ValueType.VectorFloat4.fixedTypedVectorElementType(), equals(ValueType.Float));
+    expect(ValueTypeUtils.fixedTypedVectorElementType(ValueType.VectorFloat2), equals(ValueType.Float));
+    expect(ValueTypeUtils.fixedTypedVectorElementType(ValueType.VectorFloat3), equals(ValueType.Float));
+    expect(ValueTypeUtils.fixedTypedVectorElementType(ValueType.VectorFloat4), equals(ValueType.Float));
   });
   test('fixed typed vector element size', () {
-    expect(ValueType.VectorInt2.fixedTypedVectorElementSize(), equals(2));
-    expect(ValueType.VectorInt3.fixedTypedVectorElementSize(), equals(3));
-    expect(ValueType.VectorInt4.fixedTypedVectorElementSize(), equals(4));
+    expect(ValueTypeUtils.fixedTypedVectorElementSize(ValueType.VectorInt2), equals(2));
+    expect(ValueTypeUtils.fixedTypedVectorElementSize(ValueType.VectorInt3), equals(3));
+    expect(ValueTypeUtils.fixedTypedVectorElementSize(ValueType.VectorInt4), equals(4));
 
-    expect(ValueType.VectorUInt2.fixedTypedVectorElementSize(), equals(2));
-    expect(ValueType.VectorUInt3.fixedTypedVectorElementSize(), equals(3));
-    expect(ValueType.VectorUInt4.fixedTypedVectorElementSize(), equals(4));
+    expect(ValueTypeUtils.fixedTypedVectorElementSize(ValueType.VectorUInt2), equals(2));
+    expect(ValueTypeUtils.fixedTypedVectorElementSize(ValueType.VectorUInt3), equals(3));
+    expect(ValueTypeUtils.fixedTypedVectorElementSize(ValueType.VectorUInt4), equals(4));
 
-    expect(ValueType.VectorFloat2.fixedTypedVectorElementSize(), equals(2));
-    expect(ValueType.VectorFloat3.fixedTypedVectorElementSize(), equals(3));
-    expect(ValueType.VectorFloat4.fixedTypedVectorElementSize(), equals(4));
+    expect(ValueTypeUtils.fixedTypedVectorElementSize(ValueType.VectorFloat2), equals(2));
+    expect(ValueTypeUtils.fixedTypedVectorElementSize(ValueType.VectorFloat3), equals(3));
+    expect(ValueTypeUtils.fixedTypedVectorElementSize(ValueType.VectorFloat4), equals(4));
   });
   test('packed type', () {
-    expect(ValueType.Null.packedType(BitWidth.width8), equals(0));
-    expect(ValueType.Null.packedType(BitWidth.width16), equals(1));
-    expect(ValueType.Null.packedType(BitWidth.width32), equals(2));
-    expect(ValueType.Null.packedType(BitWidth.width64), equals(3));
+    expect(ValueTypeUtils.packedType(ValueType.Null, BitWidth.width8), equals(0));
+    expect(ValueTypeUtils.packedType(ValueType.Null, BitWidth.width16), equals(1));
+    expect(ValueTypeUtils.packedType(ValueType.Null, BitWidth.width32), equals(2));
+    expect(ValueTypeUtils.packedType(ValueType.Null, BitWidth.width64), equals(3));
 
-    expect(ValueType.Int.packedType(BitWidth.width8), equals(4));
-    expect(ValueType.Int.packedType(BitWidth.width16), equals(5));
-    expect(ValueType.Int.packedType(BitWidth.width32), equals(6));
-    expect(ValueType.Int.packedType(BitWidth.width64), equals(7));
+    expect(ValueTypeUtils.packedType(ValueType.Int, BitWidth.width8), equals(4));
+    expect(ValueTypeUtils.packedType(ValueType.Int, BitWidth.width16), equals(5));
+    expect(ValueTypeUtils.packedType(ValueType.Int, BitWidth.width32), equals(6));
+    expect(ValueTypeUtils.packedType(ValueType.Int, BitWidth.width64), equals(7));
   });
   test('bit width', () {
     expect(BitWidthUtil.width(0), BitWidth.width8);

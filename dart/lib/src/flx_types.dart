@@ -7,9 +7,9 @@ enum BitWidth {
   width64
 }
 
-extension BitWidthUtil on BitWidth {
-  int toByteWidth() {
-    return 1 << index;
+class BitWidthUtil {
+  static int toByteWidth(BitWidth self) {
+    return 1 << self.index;
   }
   static BitWidth width(num value) {
     if (value.toInt() == value) {
@@ -45,11 +45,11 @@ extension BitWidthUtil on BitWidth {
     return bdata.getFloat32(0);
   }
 
-  BitWidth max(BitWidth other) {
-    if (index < other.index) {
+  static BitWidth max(BitWidth self, BitWidth other) {
+    if (self.index < other.index) {
       return other;
     }
-    return this;
+    return self;
   }
 }
 
@@ -63,10 +63,10 @@ enum ValueType {
   Blob, Bool, VectorBool
 }
 
-extension ValueTypeUtils on ValueType {
-  int toInt() {
-    if (this == ValueType.VectorBool) return 36;
-    return index;
+class ValueTypeUtils {
+  static int toInt(ValueType self) {
+    if (self == ValueType.VectorBool) return 36;
+    return self.index;
   }
 
   static ValueType fromInt(int value) {
@@ -74,79 +74,79 @@ extension ValueTypeUtils on ValueType {
     return ValueType.values[value];
   }
 
-  bool isInline() {
-    return this == ValueType.Bool
-        || toInt() <= ValueType.Float.toInt();
+  static bool isInline(ValueType self) {
+    return self == ValueType.Bool
+        || toInt(self) <= toInt(ValueType.Float);
   }
 
-  bool isNumber() {
-    return toInt() >= ValueType.Int.toInt()
-        && toInt() <= ValueType.Float.toInt();
+  static bool isNumber(ValueType self) {
+    return toInt(self) >= toInt(ValueType.Int)
+        && toInt(self) <= toInt(ValueType.Float);
   }
 
-  bool isIndirectNumber() {
-    return toInt() >= ValueType.IndirectInt.toInt()
-        && toInt() <= ValueType.IndirectFloat.toInt();
+  static bool isIndirectNumber(ValueType self) {
+    return toInt(self) >= toInt(ValueType.IndirectInt)
+        && toInt(self) <= toInt(ValueType.IndirectFloat);
   }
 
-  bool isTypedVectorElement() {
-    return this == ValueType.Bool ||
+  static bool isTypedVectorElement(ValueType self) {
+    return self == ValueType.Bool ||
         (
-            toInt() >= ValueType.Int.toInt()
-            && toInt() <= ValueType.String.toInt()
+            toInt(self) >= toInt(ValueType.Int)
+            && toInt(self) <= toInt(ValueType.String)
         );
   }
 
-  bool isTypedVector() {
-    return this == ValueType.VectorBool ||
+  static bool isTypedVector(ValueType self) {
+    return self == ValueType.VectorBool ||
         (
-          toInt() >= ValueType.VectorInt.toInt()
-              && toInt() <= ValueType.VectorString_DEPRECATED.toInt()
+          toInt(self) >= toInt(ValueType.VectorInt)
+              && toInt(self) <= toInt(ValueType.VectorString_DEPRECATED)
         );
   }
 
-  bool isFixedTypedVector() {
+  static bool isFixedTypedVector(ValueType self) {
     return (
-            toInt() >= ValueType.VectorInt2.toInt()
-                && toInt() <= ValueType.VectorFloat4.toInt()
+            toInt(self) >= toInt(ValueType.VectorInt2)
+                && toInt(self) <= toInt(ValueType.VectorFloat4)
         );
   }
 
-  bool isAVector() {
+  static bool isAVector(ValueType self) {
     return (
-        isTypedVector() || isFixedTypedVector() || this == ValueType.Vector
+        isTypedVector(self) || isFixedTypedVector(self) || self == ValueType.Vector
     );
   }
 
-  ValueType toTypedVector(int length) {
+  static ValueType toTypedVector(ValueType self, int length) {
     if (length == 0) {
-      return ValueTypeUtils.fromInt(toInt() - ValueType.Int.toInt() + ValueType.VectorInt.toInt());
+      return ValueTypeUtils.fromInt(toInt(self) - toInt(ValueType.Int) + toInt(ValueType.VectorInt));
     }
     if (length == 2) {
-      return ValueTypeUtils.fromInt(toInt() - ValueType.Int.toInt() + ValueType.VectorInt2.toInt());
+      return ValueTypeUtils.fromInt(toInt(self) - toInt(ValueType.Int) + toInt(ValueType.VectorInt2));
     }
     if (length == 3) {
-      return ValueTypeUtils.fromInt(toInt() - ValueType.Int.toInt() + ValueType.VectorInt3.toInt());
+      return ValueTypeUtils.fromInt(toInt(self) - toInt(ValueType.Int) + toInt(ValueType.VectorInt3));
     }
     if (length == 4) {
-      return ValueTypeUtils.fromInt(toInt() - ValueType.Int.toInt() + ValueType.VectorInt4.toInt());
+      return ValueTypeUtils.fromInt(toInt(self) - toInt(ValueType.Int) + toInt(ValueType.VectorInt4));
     }
     throw Exception('unexpected length ' + length.toString());
   }
 
-  ValueType typedVectorElementType() {
-    return ValueTypeUtils.fromInt(toInt() - ValueType.VectorInt.toInt() + ValueType.Int.toInt());
+  static ValueType typedVectorElementType(ValueType self) {
+    return ValueTypeUtils.fromInt(toInt(self) - toInt(ValueType.VectorInt) + toInt(ValueType.Int));
   }
 
-  ValueType fixedTypedVectorElementType() {
-    return ValueTypeUtils.fromInt((toInt() - ValueType.VectorInt2.toInt()) % 3 + ValueType.Int.toInt());
+  static ValueType fixedTypedVectorElementType(ValueType self) {
+    return ValueTypeUtils.fromInt((toInt(self) - toInt(ValueType.VectorInt2)) % 3 + toInt(ValueType.Int));
   }
 
-  int fixedTypedVectorElementSize() {
-    return (toInt() - ValueType.VectorInt2.toInt()) ~/ 3 + 2;
+  static int fixedTypedVectorElementSize(ValueType self) {
+    return (toInt(self) - toInt(ValueType.VectorInt2)) ~/ 3 + 2;
   }
 
-  int packedType(BitWidth bitWidth) {
-    return bitWidth.index | (toInt() << 2);
+  static int packedType(ValueType self, BitWidth bitWidth) {
+    return bitWidth.index | (toInt(self) << 2);
   }
 }
