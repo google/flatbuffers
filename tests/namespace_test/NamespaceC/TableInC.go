@@ -12,7 +12,7 @@ type TableInCT struct {
 	ReferToA2 *NamespaceA.SecondTableInAT
 }
 
-// TableInCT object pack function 
+// TableInCT object pack function
 func (t *TableInCT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil {
 		return 0
@@ -20,7 +20,7 @@ func (t *TableInCT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	referToA1Offset := t.ReferToA1.Pack(builder)
 	referToA2Offset := t.ReferToA2.Pack(builder)
 
-	// pack process all field 
+	// pack process all field
 
 	TableInCStart(builder)
 	TableInCAddReferToA1(builder, referToA1Offset)

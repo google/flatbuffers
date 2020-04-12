@@ -21,7 +21,7 @@ type TypeAliasesT struct {
 	Vf64 []float64
 }
 
-// TypeAliasesT object pack function 
+// TypeAliasesT object pack function
 func (t *TypeAliasesT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil {
 		return 0
@@ -45,7 +45,7 @@ func (t *TypeAliasesT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 		vf64Offset = TypeAliasesEndVf64Vector(builder, vf64Length)
 	}
 
-	// pack process all field 
+	// pack process all field
 
 	TypeAliasesStart(builder)
 	TypeAliasesAddI8(builder, t.I8)

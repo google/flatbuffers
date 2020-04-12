@@ -10,13 +10,13 @@ type TableInNestedNST struct {
 	Foo int32
 }
 
-// TableInNestedNST object pack function 
+// TableInNestedNST object pack function
 func (t *TableInNestedNST) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil {
 		return 0
 	}
 
-	// pack process all field 
+	// pack process all field
 
 	TableInNestedNSStart(builder)
 	TableInNestedNSAddFoo(builder, t.Foo)

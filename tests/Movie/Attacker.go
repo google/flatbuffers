@@ -10,13 +10,13 @@ type AttackerT struct {
 	SwordAttackDamage int32
 }
 
-// AttackerT object pack function 
+// AttackerT object pack function
 func (t *AttackerT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil {
 		return 0
 	}
 
-	// pack process all field 
+	// pack process all field
 
 	AttackerStart(builder)
 	AttackerAddSwordAttackDamage(builder, t.SwordAttackDamage)

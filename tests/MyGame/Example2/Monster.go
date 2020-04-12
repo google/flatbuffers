@@ -9,13 +9,13 @@ import (
 type MonsterT struct {
 }
 
-// MonsterT object pack function 
+// MonsterT object pack function
 func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil {
 		return 0
 	}
 
-	// pack process all field 
+	// pack process all field
 
 	MonsterStart(builder)
 	return MonsterEnd(builder)

@@ -964,7 +964,7 @@ class GoGenerator : public BaseGenerator {
       if (ev.IsZero()) continue;
       if (ev.union_type.base_type == BASE_TYPE_STRING) {
         code += "\tcase " + enum_def.name + ev.name + ":\n";
-        code += "\t\treturn  builder.CreateString(t.Value.(" +
+        code += "\t\treturn builder.CreateString(t.Value.(" +
                 NativeType(ev.union_type) + "))\n";
         continue;
       }
@@ -992,11 +992,11 @@ class GoGenerator : public BaseGenerator {
       if (ev.IsZero()) continue;
       if (ev.union_type.base_type == BASE_TYPE_STRING) {
         code += "\tcase " + enum_def.name + ev.name + ":\n";
-        code += "\t\tx :=  string(table.StringsVector(table.Pos))\n";
+        code += "\t\tx := string(table.StringsVector(table.Pos))\n";
         code +=
             "\t\treturn &" + WrapInNameSpaceAndTrack(enum_def.defined_namespace,
                                                      NativeName(enum_def));
-        code += "{Type: " + enum_def.name + ev.name + ", Value: x }\n";
+        code += "{Type: " + enum_def.name + ev.name + ", Value: x}\n";
 
       } else if ((ev.union_type.base_type == BASE_TYPE_STRUCT) &&
                  (ev.union_type.struct_def->fixed)) {  // struct
@@ -1086,7 +1086,7 @@ class GoGenerator : public BaseGenerator {
   void GenNativeTablePack(const StructDef &struct_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
 
-    code += "// " + NativeName(struct_def) + " object pack function \n";
+    code += "// " + NativeName(struct_def) + " object pack function\n";
 
     code += "func (t *" + NativeName(struct_def) +
             ") Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {\n";
@@ -1276,7 +1276,7 @@ class GoGenerator : public BaseGenerator {
       }
     }
 
-    code += "\n\t// pack process all field \n";
+    code += "\n\t// pack process all field\n";
     code += "\n\t" + struct_def.name + "Start(builder)\n";
 
     for (auto it = struct_def.fields.vec.begin();
@@ -1747,9 +1747,10 @@ class GoGenerator : public BaseGenerator {
     if (!classcode->length()) return true;
 
     // fix  miss name space issue
-    auto dns = new Namespace();
+    Namespace *dns;
     if ((parser_.root_struct_def_) &&
         (def.defined_namespace->components.empty())) {
+      dns = new Namespace();
       dns->components.push_back(parser_.root_struct_def_->name);
     } else {
       dns = def.defined_namespace;

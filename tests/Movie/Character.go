@@ -69,9 +69,9 @@ func (t *CharacterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	case CharacterBookFan:
 		return t.Value.(*BookReaderT).Pack(builder)
 	case CharacterOther:
-		return  builder.CreateString(t.Value.(string))
+		return builder.CreateString(t.Value.(string))
 	case CharacterUnused:
-		return  builder.CreateString(t.Value.(string))
+		return builder.CreateString(t.Value.(string))
 	}
 	return 0
 }
@@ -92,11 +92,11 @@ func (rcv Character) UnPack(table flatbuffers.Table) *CharacterT {
 		x := GetStructAsBookReader(&table)
 		return &CharacterT{Type: CharacterBookFan, Value: x.UnPack()}
 	case CharacterOther:
-		x :=  string(table.StringsVector(table.Pos))
-		return &CharacterT{Type: CharacterOther, Value: x }
+		x := string(table.StringsVector(table.Pos))
+		return &CharacterT{Type: CharacterOther, Value: x}
 	case CharacterUnused:
-		x :=  string(table.StringsVector(table.Pos))
-		return &CharacterT{Type: CharacterUnused, Value: x }
+		x := string(table.StringsVector(table.Pos))
+		return &CharacterT{Type: CharacterUnused, Value: x}
 	}
 	return nil
 }

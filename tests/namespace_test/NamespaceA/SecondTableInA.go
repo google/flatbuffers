@@ -11,14 +11,14 @@ type SecondTableInAT struct {
 	ReferToC *NamespaceC.TableInCT
 }
 
-// SecondTableInAT object pack function 
+// SecondTableInAT object pack function
 func (t *SecondTableInAT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil {
 		return 0
 	}
 	referToCOffset := t.ReferToC.Pack(builder)
 
-	// pack process all field 
+	// pack process all field
 
 	SecondTableInAStart(builder)
 	SecondTableInAAddReferToC(builder, referToCOffset)

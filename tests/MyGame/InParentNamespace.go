@@ -9,13 +9,13 @@ import (
 type InParentNamespaceT struct {
 }
 
-// InParentNamespaceT object pack function 
+// InParentNamespaceT object pack function
 func (t *InParentNamespaceT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil {
 		return 0
 	}
 
-	// pack process all field 
+	// pack process all field
 
 	InParentNamespaceStart(builder)
 	return InParentNamespaceEnd(builder)

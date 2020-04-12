@@ -10,13 +10,13 @@ type ReferrableT struct {
 	Id uint64
 }
 
-// ReferrableT object pack function 
+// ReferrableT object pack function
 func (t *ReferrableT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil {
 		return 0
 	}
 
-	// pack process all field 
+	// pack process all field
 
 	ReferrableStart(builder)
 	ReferrableAddId(builder, t.Id)

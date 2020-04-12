@@ -56,7 +56,7 @@ type MonsterT struct {
 	SignedEnum Race
 }
 
-// MonsterT object pack function 
+// MonsterT object pack function
 func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil {
 		return 0
@@ -221,7 +221,7 @@ func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 		vectorOfEnumsOffset = MonsterEndVectorOfEnumsVector(builder, vectorOfEnumsLength)
 	}
 
-	// pack process all field 
+	// pack process all field
 
 	MonsterStart(builder)
 	posOffset := t.Pos.Pack(builder)

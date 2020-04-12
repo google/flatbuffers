@@ -10,13 +10,13 @@ type TestSimpleTableWithEnumT struct {
 	Color Color
 }
 
-// TestSimpleTableWithEnumT object pack function 
+// TestSimpleTableWithEnumT object pack function
 func (t *TestSimpleTableWithEnumT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil {
 		return 0
 	}
 
-	// pack process all field 
+	// pack process all field
 
 	TestSimpleTableWithEnumStart(builder)
 	TestSimpleTableWithEnumAddColor(builder, t.Color)

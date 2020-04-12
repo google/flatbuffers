@@ -13,14 +13,14 @@ type TableInFirstNST struct {
 	FooStruct *NamespaceA__NamespaceB.StructInNestedNST
 }
 
-// TableInFirstNST object pack function 
+// TableInFirstNST object pack function
 func (t *TableInFirstNST) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil {
 		return 0
 	}
 	fooTableOffset := t.FooTable.Pack(builder)
 
-	// pack process all field 
+	// pack process all field
 
 	TableInFirstNSStart(builder)
 	TableInFirstNSAddFooTable(builder, fooTableOffset)

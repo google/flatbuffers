@@ -11,7 +11,7 @@ type MovieT struct {
 	Characters []*CharacterT
 }
 
-// MovieT object pack function 
+// MovieT object pack function
 func (t *MovieT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil {
 		return 0
@@ -39,7 +39,7 @@ func (t *MovieT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 		charactersOffset = MovieEndCharactersVector(builder, charactersLength)
 	}
 
-	// pack process all field 
+	// pack process all field
 
 	MovieStart(builder)
 	if t.MainCharacter != nil {

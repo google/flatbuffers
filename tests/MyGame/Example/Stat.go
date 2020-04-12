@@ -12,14 +12,14 @@ type StatT struct {
 	Count uint16
 }
 
-// StatT object pack function 
+// StatT object pack function
 func (t *StatT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil {
 		return 0
 	}
 	idOffset := builder.CreateString(t.Id)
 
-	// pack process all field 
+	// pack process all field
 
 	StatStart(builder)
 	StatAddId(builder, idOffset)
