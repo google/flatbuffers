@@ -860,6 +860,13 @@ class GoGenerator : public BaseGenerator {
     if (struct_def.generated) return;
 
     cur_name_space_ = struct_def.defined_namespace;
+    // if namespace is missing, use root_type as namespace
+    if (cur_name_space_->components.empty()) {
+      if (parser_.root_struct_def_) {
+        cur_name_space_->components.push_back(parser_.root_struct_def_->name);
+      }
+    }
+
     GenComment(struct_def.doc_comment, code_ptr, nullptr);
     if (parser_.opts.generate_object_based_api) {
       GenNativeStruct(struct_def, code_ptr);
@@ -1526,6 +1533,12 @@ class GoGenerator : public BaseGenerator {
     auto max_name_length = MaxNameLength(enum_def);
 
     cur_name_space_ = enum_def.defined_namespace;
+    // if namespace is missing, use root_type as namespace
+    if (cur_name_space_->components.empty()) {
+      if (parser_.root_struct_def_) {
+        cur_name_space_->components.push_back(parser_.root_struct_def_->name);
+      }
+    }
 
     GenComment(enum_def.doc_comment, code_ptr, nullptr);
     GenEnumType(enum_def, code_ptr);
@@ -1746,36 +1759,18 @@ class GoGenerator : public BaseGenerator {
                 const bool needs_imports, const bool is_enum) {
     if (!classcode->length()) return true;
 
-    // fix  miss name space issue
-    if ((parser_.root_struct_def_) &&
-        (def.defined_namespace->components.empty())) {
-      auto dns = new Namespace();
-      dns->components.push_back(parser_.root_struct_def_->name);
-      Namespace &ns = go_namespace_.components.empty() ? *dns : go_namespace_;
+    Namespace &ns = go_namespace_.components.empty() ? *def.defined_namespace
+                                                     : go_namespace_;
 
-      std::string code = "";
-      BeginFile(LastNamespacePart(ns), needs_imports, is_enum, &code);
-      code += *classcode;
-      // Strip extra newlines at end of file to make it gofmt-clean.
-      while (code.length() > 2 && code.substr(code.length() - 2) == "\n\n") {
-        code.pop_back();
-      }
-      std::string filename = NamespaceDir(ns) + def.name + ".go";
-      return SaveFile(filename.c_str(), code, false);
-    } else {
-      Namespace &ns = go_namespace_.components.empty() ? *def.defined_namespace
-                                                       : go_namespace_;
-
-      std::string code = "";
-      BeginFile(LastNamespacePart(ns), needs_imports, is_enum, &code);
-      code += *classcode;
-      // Strip extra newlines at end of file to make it gofmt-clean.
-      while (code.length() > 2 && code.substr(code.length() - 2) == "\n\n") {
-        code.pop_back();
-      }
-      std::string filename = NamespaceDir(ns) + def.name + ".go";
-      return SaveFile(filename.c_str(), code, false);
+    std::string code = "";
+    BeginFile(LastNamespacePart(ns), needs_imports, is_enum, &code);
+    code += *classcode;
+    // Strip extra newlines at end of file to make it gofmt-clean.
+    while (code.length() > 2 && code.substr(code.length() - 2) == "\n\n") {
+      code.pop_back();
     }
+    std::string filename = NamespaceDir(ns) + def.name + ".go";
+    return SaveFile(filename.c_str(), code, false);
   }
 
   // Create the full name of the imported namespace (format: A__B__C).
