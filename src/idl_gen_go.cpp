@@ -1747,26 +1747,35 @@ class GoGenerator : public BaseGenerator {
     if (!classcode->length()) return true;
 
     // fix  miss name space issue
-    Namespace *dns;
     if ((parser_.root_struct_def_) &&
         (def.defined_namespace->components.empty())) {
-      dns = new Namespace();
+      auto dns = new Namespace();
       dns->components.push_back(parser_.root_struct_def_->name);
+      Namespace &ns = go_namespace_.components.empty() ? *dns : go_namespace_;
+
+      std::string code = "";
+      BeginFile(LastNamespacePart(ns), needs_imports, is_enum, &code);
+      code += *classcode;
+      // Strip extra newlines at end of file to make it gofmt-clean.
+      while (code.length() > 2 && code.substr(code.length() - 2) == "\n\n") {
+        code.pop_back();
+      }
+      std::string filename = NamespaceDir(ns) + def.name + ".go";
+      return SaveFile(filename.c_str(), code, false);
     } else {
-      dns = def.defined_namespace;
-    }
+      Namespace &ns = go_namespace_.components.empty() ? *def.defined_namespace
+                                                       : go_namespace_;
 
-    Namespace &ns = go_namespace_.components.empty() ? *dns : go_namespace_;
-
-    std::string code = "";
-    BeginFile(LastNamespacePart(ns), needs_imports, is_enum, &code);
-    code += *classcode;
-    // Strip extra newlines at end of file to make it gofmt-clean.
-    while (code.length() > 2 && code.substr(code.length() - 2) == "\n\n") {
-      code.pop_back();
+      std::string code = "";
+      BeginFile(LastNamespacePart(ns), needs_imports, is_enum, &code);
+      code += *classcode;
+      // Strip extra newlines at end of file to make it gofmt-clean.
+      while (code.length() > 2 && code.substr(code.length() - 2) == "\n\n") {
+        code.pop_back();
+      }
+      std::string filename = NamespaceDir(ns) + def.name + ".go";
+      return SaveFile(filename.c_str(), code, false);
     }
-    std::string filename = NamespaceDir(ns) + def.name + ".go";
-    return SaveFile(filename.c_str(), code, false);
   }
 
   // Create the full name of the imported namespace (format: A__B__C).
