@@ -12,11 +12,15 @@ type StatT struct {
 	Count uint16
 }
 
-
 // StatT object pack function 
 func (t *StatT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	idOffset := builder.CreateString(t.Id)
+
+	// pack process all field 
+
 	StatStart(builder)
 	StatAddId(builder, idOffset)
 	StatAddVal(builder, t.Val)
@@ -24,8 +28,7 @@ func (t *StatT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return StatEnd(builder)
 }
 
-
-// StatT object unpack function 
+// StatT object unpack function
 func (rcv *Stat) UnPackTo(t *StatT) {
 	t.Id = string(rcv.Id())
 	t.Val = rcv.Val()
@@ -33,7 +36,9 @@ func (rcv *Stat) UnPackTo(t *StatT) {
 }
 
 func (rcv *Stat) UnPack() *StatT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &StatT{}
 	rcv.UnPackTo(t)
 	return t

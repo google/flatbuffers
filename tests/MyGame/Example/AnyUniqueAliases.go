@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	flatbuffers "github.com/google/flatbuffers/go"
-
 	MyGame__Example2 "github.com/google/flatbuffers/MyGame/Example2"
 )
 
@@ -44,7 +43,7 @@ func (v AnyUniqueAliases) String() string {
 }
 
 type AnyUniqueAliasesT struct {
-	Type AnyUniqueAliases
+	Type  AnyUniqueAliases
 	Value interface{}
 }
 
@@ -64,33 +63,33 @@ func (t *AnyUniqueAliasesT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffs
 }
 
 // UnPack use for single union field
- func (rcv AnyUniqueAliases) UnPack(table flatbuffers.Table) *AnyUniqueAliasesT {
+func (rcv AnyUniqueAliases) UnPack(table flatbuffers.Table) *AnyUniqueAliasesT {
 	switch rcv {
 	case AnyUniqueAliasesM:
 		x := GetTableAsMonster(&table)
-		return &AnyUniqueAliasesT{ Type: AnyUniqueAliasesM, Value: x.UnPack() }
+		return &AnyUniqueAliasesT{Type: AnyUniqueAliasesM, Value: x.UnPack()}
 	case AnyUniqueAliasesTS:
 		x := GetTableAsTestSimpleTableWithEnum(&table)
-		return &AnyUniqueAliasesT{ Type: AnyUniqueAliasesTS, Value: x.UnPack() }
+		return &AnyUniqueAliasesT{Type: AnyUniqueAliasesTS, Value: x.UnPack()}
 	case AnyUniqueAliasesM2:
 		x := MyGame__Example2.GetTableAsMonster(&table)
-		return &AnyUniqueAliasesT{ Type: AnyUniqueAliasesM2, Value: x.UnPack() }
+		return &AnyUniqueAliasesT{Type: AnyUniqueAliasesM2, Value: x.UnPack()}
 	}
 	return nil
 }
 
-// UnPackVector use for vector of unions 
+// UnPackVector use for vector of unions
 func (rcv AnyUniqueAliases) UnPackVector(table flatbuffers.Table) *AnyUniqueAliasesT {
 	switch rcv {
 	case AnyUniqueAliasesM:
 		x := GetTableVectorAsMonster(&table)
-		return &AnyUniqueAliasesT{ Type: AnyUniqueAliasesM, Value: x.UnPack() }
+		return &AnyUniqueAliasesT{Type: AnyUniqueAliasesM, Value: x.UnPack()}
 	case AnyUniqueAliasesTS:
 		x := GetTableVectorAsTestSimpleTableWithEnum(&table)
-		return &AnyUniqueAliasesT{ Type: AnyUniqueAliasesTS, Value: x.UnPack() }
+		return &AnyUniqueAliasesT{Type: AnyUniqueAliasesTS, Value: x.UnPack()}
 	case AnyUniqueAliasesM2:
 		x := MyGame__Example2.GetTableVectorAsMonster(&table)
-		return &AnyUniqueAliasesT{ Type: AnyUniqueAliasesM2, Value: x.UnPack() }
+		return &AnyUniqueAliasesT{Type: AnyUniqueAliasesM2, Value: x.UnPack()}
 	}
 	return nil
 }

@@ -4,7 +4,6 @@ package Example
 
 import (
 	flatbuffers "github.com/google/flatbuffers/go"
-
 	MyGame "github.com/google/flatbuffers/MyGame"
 )
 
@@ -57,10 +56,11 @@ type MonsterT struct {
 	SignedEnum Race
 }
 
-
 // MonsterT object pack function 
 func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	nameOffset := builder.CreateString(t.Name)
 	inventoryOffset := flatbuffers.UOffsetT(0)
 	if t.Inventory != nil {
@@ -220,6 +220,9 @@ func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 		}
 		vectorOfEnumsOffset = MonsterEndVectorOfEnumsVector(builder, vectorOfEnumsLength)
 	}
+
+	// pack process all field 
+
 	MonsterStart(builder)
 	posOffset := t.Pos.Pack(builder)
 	MonsterAddPos(builder, posOffset)
@@ -279,8 +282,7 @@ func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return MonsterEnd(builder)
 }
 
-
-// MonsterT object unpack function 
+// MonsterT object unpack function
 func (rcv *Monster) UnPackTo(t *MonsterT) {
 	t.Pos = rcv.Pos(nil).UnPack()
 	t.Mana = rcv.Mana()
@@ -297,17 +299,20 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 	for j := 0; j < test4Length; j++ {
 		x := Test{}
 		rcv.Test4(&x, j)
-		t.Test4[j] = x.UnPack()	}
+		t.Test4[j] = x.UnPack()
+	}
 	testarrayofstringLength := rcv.TestarrayofstringLength()
 	t.Testarrayofstring = make([]string, testarrayofstringLength)
 	for j := 0; j < testarrayofstringLength; j++ {
-		t.Testarrayofstring[j] = string(rcv.Testarrayofstring(j))	}
+		t.Testarrayofstring[j] = string(rcv.Testarrayofstring(j))
+	}
 	testarrayoftablesLength := rcv.TestarrayoftablesLength()
 	t.Testarrayoftables = make([]*MonsterT, testarrayoftablesLength)
 	for j := 0; j < testarrayoftablesLength; j++ {
 		x := Monster{}
 		rcv.Testarrayoftables(&x, j)
-		t.Testarrayoftables[j] = x.UnPack()	}
+		t.Testarrayoftables[j] = x.UnPack()
+	}
 	t.Enemy = rcv.Enemy(nil).UnPack()
 	t.Testnestedflatbuffer = rcv.TestnestedflatbufferBytes()
 	t.Testempty = rcv.Testempty(nil).UnPack()
@@ -330,20 +335,23 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 	testarrayofstring2Length := rcv.Testarrayofstring2Length()
 	t.Testarrayofstring2 = make([]string, testarrayofstring2Length)
 	for j := 0; j < testarrayofstring2Length; j++ {
-		t.Testarrayofstring2[j] = string(rcv.Testarrayofstring2(j))	}
+		t.Testarrayofstring2[j] = string(rcv.Testarrayofstring2(j))
+	}
 	testarrayofsortedstructLength := rcv.TestarrayofsortedstructLength()
 	t.Testarrayofsortedstruct = make([]*AbilityT, testarrayofsortedstructLength)
 	for j := 0; j < testarrayofsortedstructLength; j++ {
 		x := Ability{}
 		rcv.Testarrayofsortedstruct(&x, j)
-		t.Testarrayofsortedstruct[j] = x.UnPack()	}
+		t.Testarrayofsortedstruct[j] = x.UnPack()
+	}
 	t.Flex = rcv.FlexBytes()
 	test5Length := rcv.Test5Length()
 	t.Test5 = make([]*TestT, test5Length)
 	for j := 0; j < test5Length; j++ {
 		x := Test{}
 		rcv.Test5(&x, j)
-		t.Test5[j] = x.UnPack()	}
+		t.Test5[j] = x.UnPack()
+	}
 	vectorOfLongsLength := rcv.VectorOfLongsLength()
 	t.VectorOfLongs = make([]int64, vectorOfLongsLength)
 	for j := 0; j < vectorOfLongsLength; j++ {
@@ -358,7 +366,8 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 	for j := 0; j < vectorOfReferrablesLength; j++ {
 		x := Referrable{}
 		rcv.VectorOfReferrables(&x, j)
-		t.VectorOfReferrables[j] = x.UnPack()	}
+		t.VectorOfReferrables[j] = x.UnPack()
+	}
 	t.SingleWeakReference = rcv.SingleWeakReference()
 	vectorOfWeakReferencesLength := rcv.VectorOfWeakReferencesLength()
 	t.VectorOfWeakReferences = make([]uint64, vectorOfWeakReferencesLength)
@@ -369,7 +378,8 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 	for j := 0; j < vectorOfStrongReferrablesLength; j++ {
 		x := Referrable{}
 		rcv.VectorOfStrongReferrables(&x, j)
-		t.VectorOfStrongReferrables[j] = x.UnPack()	}
+		t.VectorOfStrongReferrables[j] = x.UnPack()
+	}
 	t.CoOwningReference = rcv.CoOwningReference()
 	vectorOfCoOwningReferencesLength := rcv.VectorOfCoOwningReferencesLength()
 	t.VectorOfCoOwningReferences = make([]uint64, vectorOfCoOwningReferencesLength)
@@ -396,7 +406,9 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 }
 
 func (rcv *Monster) UnPack() *MonsterT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &MonsterT{}
 	rcv.UnPackTo(t)
 	return t

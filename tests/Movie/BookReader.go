@@ -11,7 +11,9 @@ type BookReaderT struct {
 }
 
 func (t *BookReaderT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	return CreateBookReader(builder, t.BooksRead)
 }
 func (rcv *BookReader) UnPackTo(t *BookReaderT) {
@@ -19,7 +21,9 @@ func (rcv *BookReader) UnPackTo(t *BookReaderT) {
 }
 
 func (rcv *BookReader) UnPack() *BookReaderT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &BookReaderT{}
 	rcv.UnPackTo(t)
 	return t
@@ -33,7 +37,7 @@ type BookReader struct {
 func GetStructVectorAsBookReader(table *flatbuffers.Table) *BookReader {
 	n := flatbuffers.GetUOffsetT(table.Bytes[table.Pos:])
 	x := &BookReader{}
-	x.Init(table.Bytes, n+ table.Pos)
+	x.Init(table.Bytes, n+table.Pos)
 	return x
 }
 

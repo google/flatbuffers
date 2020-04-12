@@ -10,23 +10,28 @@ type TableInNestedNST struct {
 	Foo int32
 }
 
-
 // TableInNestedNST object pack function 
 func (t *TableInNestedNST) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
+
+	// pack process all field 
+
 	TableInNestedNSStart(builder)
 	TableInNestedNSAddFoo(builder, t.Foo)
 	return TableInNestedNSEnd(builder)
 }
 
-
-// TableInNestedNST object unpack function 
+// TableInNestedNST object unpack function
 func (rcv *TableInNestedNS) UnPackTo(t *TableInNestedNST) {
 	t.Foo = rcv.Foo()
 }
 
 func (rcv *TableInNestedNS) UnPack() *TableInNestedNST {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &TableInNestedNST{}
 	rcv.UnPackTo(t)
 	return t

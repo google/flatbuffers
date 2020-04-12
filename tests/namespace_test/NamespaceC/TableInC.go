@@ -4,7 +4,6 @@ package NamespaceC
 
 import (
 	flatbuffers "github.com/google/flatbuffers/go"
-
 	NamespaceA "NamespaceA"
 )
 
@@ -13,27 +12,32 @@ type TableInCT struct {
 	ReferToA2 *NamespaceA.SecondTableInAT
 }
 
-
 // TableInCT object pack function 
 func (t *TableInCT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	referToA1Offset := t.ReferToA1.Pack(builder)
 	referToA2Offset := t.ReferToA2.Pack(builder)
+
+	// pack process all field 
+
 	TableInCStart(builder)
 	TableInCAddReferToA1(builder, referToA1Offset)
 	TableInCAddReferToA2(builder, referToA2Offset)
 	return TableInCEnd(builder)
 }
 
-
-// TableInCT object unpack function 
+// TableInCT object unpack function
 func (rcv *TableInC) UnPackTo(t *TableInCT) {
 	t.ReferToA1 = rcv.ReferToA1(nil).UnPack()
 	t.ReferToA2 = rcv.ReferToA2(nil).UnPack()
 }
 
 func (rcv *TableInC) UnPack() *TableInCT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &TableInCT{}
 	rcv.UnPackTo(t)
 	return t

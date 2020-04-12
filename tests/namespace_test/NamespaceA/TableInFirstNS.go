@@ -4,7 +4,6 @@ package NamespaceA
 
 import (
 	flatbuffers "github.com/google/flatbuffers/go"
-
 	NamespaceA__NamespaceB "NamespaceA/NamespaceB"
 )
 
@@ -14,11 +13,15 @@ type TableInFirstNST struct {
 	FooStruct *NamespaceA__NamespaceB.StructInNestedNST
 }
 
-
 // TableInFirstNST object pack function 
 func (t *TableInFirstNST) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	fooTableOffset := t.FooTable.Pack(builder)
+
+	// pack process all field 
+
 	TableInFirstNSStart(builder)
 	TableInFirstNSAddFooTable(builder, fooTableOffset)
 	TableInFirstNSAddFooEnum(builder, t.FooEnum)
@@ -27,8 +30,7 @@ func (t *TableInFirstNST) Pack(builder *flatbuffers.Builder) flatbuffers.UOffset
 	return TableInFirstNSEnd(builder)
 }
 
-
-// TableInFirstNST object unpack function 
+// TableInFirstNST object unpack function
 func (rcv *TableInFirstNS) UnPackTo(t *TableInFirstNST) {
 	t.FooTable = rcv.FooTable(nil).UnPack()
 	t.FooEnum = rcv.FooEnum()
@@ -36,7 +38,9 @@ func (rcv *TableInFirstNS) UnPackTo(t *TableInFirstNST) {
 }
 
 func (rcv *TableInFirstNS) UnPack() *TableInFirstNST {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &TableInFirstNST{}
 	rcv.UnPackTo(t)
 	return t

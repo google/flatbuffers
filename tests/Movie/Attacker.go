@@ -10,23 +10,28 @@ type AttackerT struct {
 	SwordAttackDamage int32
 }
 
-
 // AttackerT object pack function 
 func (t *AttackerT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
+
+	// pack process all field 
+
 	AttackerStart(builder)
 	AttackerAddSwordAttackDamage(builder, t.SwordAttackDamage)
 	return AttackerEnd(builder)
 }
 
-
-// AttackerT object unpack function 
+// AttackerT object unpack function
 func (rcv *Attacker) UnPackTo(t *AttackerT) {
 	t.SwordAttackDamage = rcv.SwordAttackDamage()
 }
 
 func (rcv *Attacker) UnPack() *AttackerT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &AttackerT{}
 	rcv.UnPackTo(t)
 	return t

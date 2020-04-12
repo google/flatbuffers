@@ -10,23 +10,28 @@ type ReferrableT struct {
 	Id uint64
 }
 
-
 // ReferrableT object pack function 
 func (t *ReferrableT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
+
+	// pack process all field 
+
 	ReferrableStart(builder)
 	ReferrableAddId(builder, t.Id)
 	return ReferrableEnd(builder)
 }
 
-
-// ReferrableT object unpack function 
+// ReferrableT object unpack function
 func (rcv *Referrable) UnPackTo(t *ReferrableT) {
 	t.Id = rcv.Id()
 }
 
 func (rcv *Referrable) UnPack() *ReferrableT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &ReferrableT{}
 	rcv.UnPackTo(t)
 	return t

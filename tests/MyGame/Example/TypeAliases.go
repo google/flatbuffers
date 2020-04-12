@@ -21,10 +21,11 @@ type TypeAliasesT struct {
 	Vf64 []float64
 }
 
-
 // TypeAliasesT object pack function 
 func (t *TypeAliasesT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	v8Offset := flatbuffers.UOffsetT(0)
 	if t.V8 != nil {
 		v8Length := len(t.V8)
@@ -43,6 +44,9 @@ func (t *TypeAliasesT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 		}
 		vf64Offset = TypeAliasesEndVf64Vector(builder, vf64Length)
 	}
+
+	// pack process all field 
+
 	TypeAliasesStart(builder)
 	TypeAliasesAddI8(builder, t.I8)
 	TypeAliasesAddU8(builder, t.U8)
@@ -59,8 +63,7 @@ func (t *TypeAliasesT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return TypeAliasesEnd(builder)
 }
 
-
-// TypeAliasesT object unpack function 
+// TypeAliasesT object unpack function
 func (rcv *TypeAliases) UnPackTo(t *TypeAliasesT) {
 	t.I8 = rcv.I8()
 	t.U8 = rcv.U8()
@@ -83,7 +86,9 @@ func (rcv *TypeAliases) UnPackTo(t *TypeAliasesT) {
 }
 
 func (rcv *TypeAliases) UnPack() *TypeAliasesT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &TypeAliasesT{}
 	rcv.UnPackTo(t)
 	return t

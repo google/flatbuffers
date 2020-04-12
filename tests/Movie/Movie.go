@@ -11,10 +11,11 @@ type MovieT struct {
 	Characters []*CharacterT
 }
 
-
 // MovieT object pack function 
 func (t *MovieT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	mainCharacterOffset := t.MainCharacter.Pack(builder)
 	
 	// vector of unions 
@@ -37,6 +38,9 @@ func (t *MovieT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 		}
 		charactersOffset = MovieEndCharactersVector(builder, charactersLength)
 	}
+
+	// pack process all field 
+
 	MovieStart(builder)
 	if t.MainCharacter != nil {
 		MovieAddMainCharacterType(builder, t.MainCharacter.Type)
@@ -47,8 +51,7 @@ func (t *MovieT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return MovieEnd(builder)
 }
 
-
-// MovieT object unpack function 
+// MovieT object unpack function
 func (rcv *Movie) UnPackTo(t *MovieT) {
 	mainCharacterTable := flatbuffers.Table{}
 	if rcv.MainCharacter(&mainCharacterTable) {
@@ -67,7 +70,9 @@ func (rcv *Movie) UnPackTo(t *MovieT) {
 }
 
 func (rcv *Movie) UnPack() *MovieT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &MovieT{}
 	rcv.UnPackTo(t)
 	return t

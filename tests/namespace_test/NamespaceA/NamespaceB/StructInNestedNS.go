@@ -12,7 +12,9 @@ type StructInNestedNST struct {
 }
 
 func (t *StructInNestedNST) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	return CreateStructInNestedNS(builder, t.A, t.B)
 }
 func (rcv *StructInNestedNS) UnPackTo(t *StructInNestedNST) {
@@ -21,7 +23,9 @@ func (rcv *StructInNestedNS) UnPackTo(t *StructInNestedNST) {
 }
 
 func (rcv *StructInNestedNS) UnPack() *StructInNestedNST {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &StructInNestedNST{}
 	rcv.UnPackTo(t)
 	return t
@@ -35,7 +39,7 @@ type StructInNestedNS struct {
 func GetStructVectorAsStructInNestedNS(table *flatbuffers.Table) *StructInNestedNS {
 	n := flatbuffers.GetUOffsetT(table.Bytes[table.Pos:])
 	x := &StructInNestedNS{}
-	x.Init(table.Bytes, n+ table.Pos)
+	x.Init(table.Bytes, n+table.Pos)
 	return x
 }
 

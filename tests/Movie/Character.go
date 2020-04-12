@@ -51,7 +51,7 @@ func (v Character) String() string {
 }
 
 type CharacterT struct {
-	Type Character
+	Type  Character
 	Value interface{}
 }
 
@@ -77,51 +77,51 @@ func (t *CharacterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 }
 
 // UnPack use for single union field
- func (rcv Character) UnPack(table flatbuffers.Table) *CharacterT {
+func (rcv Character) UnPack(table flatbuffers.Table) *CharacterT {
 	switch rcv {
 	case CharacterMuLan:
 		x := GetTableAsAttacker(&table)
-		return &CharacterT{ Type: CharacterMuLan, Value: x.UnPack() }
+		return &CharacterT{Type: CharacterMuLan, Value: x.UnPack()}
 	case CharacterRapunzel:
 		x := GetStructAsRapunzel(&table)
-		return &CharacterT{ Type: CharacterRapunzel, Value: x.UnPack() }
+		return &CharacterT{Type: CharacterRapunzel, Value: x.UnPack()}
 	case CharacterBelle:
 		x := GetStructAsBookReader(&table)
-		return &CharacterT{ Type: CharacterBelle, Value: x.UnPack() }
+		return &CharacterT{Type: CharacterBelle, Value: x.UnPack()}
 	case CharacterBookFan:
 		x := GetStructAsBookReader(&table)
-		return &CharacterT{ Type: CharacterBookFan, Value: x.UnPack() }
+		return &CharacterT{Type: CharacterBookFan, Value: x.UnPack()}
 	case CharacterOther:
 		x :=  string(table.StringsVector(table.Pos))
-		return &CharacterT{ Type: CharacterOther, Value: x }
+		return &CharacterT{Type: CharacterOther, Value: x }
 	case CharacterUnused:
 		x :=  string(table.StringsVector(table.Pos))
-		return &CharacterT{ Type: CharacterUnused, Value: x }
+		return &CharacterT{Type: CharacterUnused, Value: x }
 	}
 	return nil
 }
 
-// UnPackVector use for vector of unions 
+// UnPackVector use for vector of unions
 func (rcv Character) UnPackVector(table flatbuffers.Table) *CharacterT {
 	switch rcv {
 	case CharacterMuLan:
 		x := GetTableVectorAsAttacker(&table)
-		return &CharacterT{ Type: CharacterMuLan, Value: x.UnPack() }
+		return &CharacterT{Type: CharacterMuLan, Value: x.UnPack()}
 	case CharacterRapunzel:
 		x := GetStructVectorAsRapunzel(&table)
-		return &CharacterT{ Type: CharacterRapunzel, Value: x.UnPack() }
+		return &CharacterT{Type: CharacterRapunzel, Value: x.UnPack()}
 	case CharacterBelle:
 		x := GetStructVectorAsBookReader(&table)
-		return &CharacterT{ Type: CharacterBelle, Value: x.UnPack() }
+		return &CharacterT{Type: CharacterBelle, Value: x.UnPack()}
 	case CharacterBookFan:
 		x := GetStructVectorAsBookReader(&table)
-		return &CharacterT{ Type: CharacterBookFan, Value: x.UnPack() }
+		return &CharacterT{Type: CharacterBookFan, Value: x.UnPack()}
 	case CharacterOther:
 		x :=  string(table.ByteVector(table.Pos))
-		return &CharacterT{ Type: CharacterOther, Value: x }
+		return &CharacterT{Type: CharacterOther, Value: x }
 	case CharacterUnused:
 		x :=  string(table.ByteVector(table.Pos))
-		return &CharacterT{ Type: CharacterUnused, Value: x }
+		return &CharacterT{Type: CharacterUnused, Value: x }
 	}
 	return nil
 }

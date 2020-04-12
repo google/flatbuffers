@@ -11,7 +11,9 @@ type RapunzelT struct {
 }
 
 func (t *RapunzelT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	return CreateRapunzel(builder, t.HairLength)
 }
 func (rcv *Rapunzel) UnPackTo(t *RapunzelT) {
@@ -19,7 +21,9 @@ func (rcv *Rapunzel) UnPackTo(t *RapunzelT) {
 }
 
 func (rcv *Rapunzel) UnPack() *RapunzelT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &RapunzelT{}
 	rcv.UnPackTo(t)
 	return t
@@ -33,7 +37,7 @@ type Rapunzel struct {
 func GetStructVectorAsRapunzel(table *flatbuffers.Table) *Rapunzel {
 	n := flatbuffers.GetUOffsetT(table.Bytes[table.Pos:])
 	x := &Rapunzel{}
-	x.Init(table.Bytes, n+ table.Pos)
+	x.Init(table.Bytes, n+table.Pos)
 	return x
 }
 

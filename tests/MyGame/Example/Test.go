@@ -12,7 +12,9 @@ type TestT struct {
 }
 
 func (t *TestT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	return CreateTest(builder, t.A, t.B)
 }
 func (rcv *Test) UnPackTo(t *TestT) {
@@ -21,7 +23,9 @@ func (rcv *Test) UnPackTo(t *TestT) {
 }
 
 func (rcv *Test) UnPack() *TestT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &TestT{}
 	rcv.UnPackTo(t)
 	return t
@@ -35,7 +39,7 @@ type Test struct {
 func GetStructVectorAsTest(table *flatbuffers.Table) *Test {
 	n := flatbuffers.GetUOffsetT(table.Bytes[table.Pos:])
 	x := &Test{}
-	x.Init(table.Bytes, n+ table.Pos)
+	x.Init(table.Bytes, n+table.Pos)
 	return x
 }
 

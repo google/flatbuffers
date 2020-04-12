@@ -42,7 +42,7 @@ func (v AnyAmbiguousAliases) String() string {
 }
 
 type AnyAmbiguousAliasesT struct {
-	Type AnyAmbiguousAliases
+	Type  AnyAmbiguousAliases
 	Value interface{}
 }
 
@@ -62,33 +62,33 @@ func (t *AnyAmbiguousAliasesT) Pack(builder *flatbuffers.Builder) flatbuffers.UO
 }
 
 // UnPack use for single union field
- func (rcv AnyAmbiguousAliases) UnPack(table flatbuffers.Table) *AnyAmbiguousAliasesT {
+func (rcv AnyAmbiguousAliases) UnPack(table flatbuffers.Table) *AnyAmbiguousAliasesT {
 	switch rcv {
 	case AnyAmbiguousAliasesM1:
 		x := GetTableAsMonster(&table)
-		return &AnyAmbiguousAliasesT{ Type: AnyAmbiguousAliasesM1, Value: x.UnPack() }
+		return &AnyAmbiguousAliasesT{Type: AnyAmbiguousAliasesM1, Value: x.UnPack()}
 	case AnyAmbiguousAliasesM2:
 		x := GetTableAsMonster(&table)
-		return &AnyAmbiguousAliasesT{ Type: AnyAmbiguousAliasesM2, Value: x.UnPack() }
+		return &AnyAmbiguousAliasesT{Type: AnyAmbiguousAliasesM2, Value: x.UnPack()}
 	case AnyAmbiguousAliasesM3:
 		x := GetTableAsMonster(&table)
-		return &AnyAmbiguousAliasesT{ Type: AnyAmbiguousAliasesM3, Value: x.UnPack() }
+		return &AnyAmbiguousAliasesT{Type: AnyAmbiguousAliasesM3, Value: x.UnPack()}
 	}
 	return nil
 }
 
-// UnPackVector use for vector of unions 
+// UnPackVector use for vector of unions
 func (rcv AnyAmbiguousAliases) UnPackVector(table flatbuffers.Table) *AnyAmbiguousAliasesT {
 	switch rcv {
 	case AnyAmbiguousAliasesM1:
 		x := GetTableVectorAsMonster(&table)
-		return &AnyAmbiguousAliasesT{ Type: AnyAmbiguousAliasesM1, Value: x.UnPack() }
+		return &AnyAmbiguousAliasesT{Type: AnyAmbiguousAliasesM1, Value: x.UnPack()}
 	case AnyAmbiguousAliasesM2:
 		x := GetTableVectorAsMonster(&table)
-		return &AnyAmbiguousAliasesT{ Type: AnyAmbiguousAliasesM2, Value: x.UnPack() }
+		return &AnyAmbiguousAliasesT{Type: AnyAmbiguousAliasesM2, Value: x.UnPack()}
 	case AnyAmbiguousAliasesM3:
 		x := GetTableVectorAsMonster(&table)
-		return &AnyAmbiguousAliasesT{ Type: AnyAmbiguousAliasesM3, Value: x.UnPack() }
+		return &AnyAmbiguousAliasesT{Type: AnyAmbiguousAliasesM3, Value: x.UnPack()}
 	}
 	return nil
 }

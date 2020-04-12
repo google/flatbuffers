@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	flatbuffers "github.com/google/flatbuffers/go"
-
 	MyGame__Example2 "github.com/google/flatbuffers/MyGame/Example2"
 )
 
@@ -44,7 +43,7 @@ func (v Any) String() string {
 }
 
 type AnyT struct {
-	Type Any
+	Type  Any
 	Value interface{}
 }
 
@@ -64,33 +63,33 @@ func (t *AnyT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 }
 
 // UnPack use for single union field
- func (rcv Any) UnPack(table flatbuffers.Table) *AnyT {
+func (rcv Any) UnPack(table flatbuffers.Table) *AnyT {
 	switch rcv {
 	case AnyMonster:
 		x := GetTableAsMonster(&table)
-		return &AnyT{ Type: AnyMonster, Value: x.UnPack() }
+		return &AnyT{Type: AnyMonster, Value: x.UnPack()}
 	case AnyTestSimpleTableWithEnum:
 		x := GetTableAsTestSimpleTableWithEnum(&table)
-		return &AnyT{ Type: AnyTestSimpleTableWithEnum, Value: x.UnPack() }
+		return &AnyT{Type: AnyTestSimpleTableWithEnum, Value: x.UnPack()}
 	case AnyMyGame_Example2_Monster:
 		x := MyGame__Example2.GetTableAsMonster(&table)
-		return &AnyT{ Type: AnyMyGame_Example2_Monster, Value: x.UnPack() }
+		return &AnyT{Type: AnyMyGame_Example2_Monster, Value: x.UnPack()}
 	}
 	return nil
 }
 
-// UnPackVector use for vector of unions 
+// UnPackVector use for vector of unions
 func (rcv Any) UnPackVector(table flatbuffers.Table) *AnyT {
 	switch rcv {
 	case AnyMonster:
 		x := GetTableVectorAsMonster(&table)
-		return &AnyT{ Type: AnyMonster, Value: x.UnPack() }
+		return &AnyT{Type: AnyMonster, Value: x.UnPack()}
 	case AnyTestSimpleTableWithEnum:
 		x := GetTableVectorAsTestSimpleTableWithEnum(&table)
-		return &AnyT{ Type: AnyTestSimpleTableWithEnum, Value: x.UnPack() }
+		return &AnyT{Type: AnyTestSimpleTableWithEnum, Value: x.UnPack()}
 	case AnyMyGame_Example2_Monster:
 		x := MyGame__Example2.GetTableVectorAsMonster(&table)
-		return &AnyT{ Type: AnyMyGame_Example2_Monster, Value: x.UnPack() }
+		return &AnyT{Type: AnyMyGame_Example2_Monster, Value: x.UnPack()}
 	}
 	return nil
 }

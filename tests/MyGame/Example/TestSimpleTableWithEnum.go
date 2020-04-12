@@ -10,23 +10,28 @@ type TestSimpleTableWithEnumT struct {
 	Color Color
 }
 
-
 // TestSimpleTableWithEnumT object pack function 
 func (t *TestSimpleTableWithEnumT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
+
+	// pack process all field 
+
 	TestSimpleTableWithEnumStart(builder)
 	TestSimpleTableWithEnumAddColor(builder, t.Color)
 	return TestSimpleTableWithEnumEnd(builder)
 }
 
-
-// TestSimpleTableWithEnumT object unpack function 
+// TestSimpleTableWithEnumT object unpack function
 func (rcv *TestSimpleTableWithEnum) UnPackTo(t *TestSimpleTableWithEnumT) {
 	t.Color = rcv.Color()
 }
 
 func (rcv *TestSimpleTableWithEnum) UnPack() *TestSimpleTableWithEnumT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &TestSimpleTableWithEnumT{}
 	rcv.UnPackTo(t)
 	return t
