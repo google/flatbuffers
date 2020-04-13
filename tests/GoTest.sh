@@ -39,7 +39,7 @@ cp -a MyGame/*.go ./go_gen/src/MyGame/
 cp -a Movie/*.go ./go_gen/src/Movie/
 cp ../go.mod  ./go_gen/src/
 cp ./monsterdata_test.mon ./go_gen/src/testdata
-cp ./monsterdata_java_wire.mon ./go_gen/src/testdata
+#cp ./monsterdata_java_wire.mon ./go_gen/src/testdata
 cp -a MyGame/Example/*.go ./go_gen/src/MyGame/Example/
 cp -a MyGame/Example2/*.go ./go_gen/src/MyGame/Example2/
 # do not compile the gRPC generated files, which are not tested by go_test.go
@@ -69,9 +69,8 @@ go test . \
 
 
 GO_TEST_RESULT=$?
-echo ${test_dir}
+ 
 cd ${test_dir}
-echo $(pwd)
 
 cp ${go_src}/testdata/monsterdata_go_wire.mon  ${test_dir}/
 rm -rf ${go_path}/{pkg,src}
