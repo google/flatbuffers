@@ -131,6 +131,16 @@ public struct ByteBuffer {
             push(value: s, len: MemoryLayout.size(ofValue: s))
         }
     }
+    
+    ///Adds an array of type Bool to the buffer memory
+    /// - Parameter elements: An array of Bool
+    @usableFromInline mutating func push(elements: [Bool]) {
+        let size = elements.count * MemoryLayout<Bool>.size
+        ensureSpace(size: UInt32(size))
+        elements.lazy.reversed().forEach { (s) in
+            push(value: s ? 1 : 0, len: MemoryLayout.size(ofValue: s))
+        }
+    }
 
     /// A custom type of structs that are padded according to the flatbuffer padding,
     /// - Parameters:
@@ -174,8 +184,6 @@ public struct ByteBuffer {
     ///   - len: Size of string
     @usableFromInline mutating internal func push(bytes: UnsafeBufferPointer<String.UTF8View.Element>, len: Int) -> Bool {
         memcpy(_storage.memory.advanced(by: writerIndex - len), UnsafeRawPointer(bytes.baseAddress!), len)
-//        _memory.advanced(by: writerIndex - len).copyMemory(from:
-//            UnsafeRawPointer(bytes.baseAddress!), byteCount: len)
         _writerSize += len
         return true
     }
