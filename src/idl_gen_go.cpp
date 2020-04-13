@@ -865,7 +865,8 @@ class GoGenerator : public BaseGenerator {
       if (parser_.root_struct_def_) {
         cur_name_space_->components.push_back(parser_.root_struct_def_->name);
       }
-      // TODO: tsingson: if both namespace / root_type is missing, need somewhere throw exception
+      // TODO: tsingson: if both namespace / root_type is missing, need
+      // somewhere throw exception
     }
 
     GenComment(struct_def.doc_comment, code_ptr, nullptr);
@@ -1053,7 +1054,11 @@ class GoGenerator : public BaseGenerator {
       if (ev.IsZero()) continue;
       if (ev.union_type.base_type == BASE_TYPE_STRING) {
         code += "\tcase " + enum_def.name + ev.name + ":\n";
-        code += "\t\tx :=  string(table.ByteVector(table.Pos))\n";
+        code += "\t\tx:=\"\"\n";
+        code += "\t\tb:=table.ByteVector(table.Pos)\n";
+        code += "\t\tif b!=nil {\n";
+        code += "\t\t\tx =  string(b)\n";
+        code += "\t\t}\n";
         code +=
             "\t\treturn &" + WrapInNameSpaceAndTrack(enum_def.defined_namespace,
                                                      NativeName(enum_def));
@@ -1120,8 +1125,10 @@ class GoGenerator : public BaseGenerator {
 
       if (field.value.type.base_type == BASE_TYPE_STRING) {
         //  code += "\t// string \n";
-        code += "\t" + offset + " := builder.CreateString(t." +
-                MakeCamel(field.name) + ")\n";
+        code += "\t" + offset + ":= flatbuffers.UOffsetT(0)\n";
+        code += "\tif len(t." + MakeCamel(field.name) + ")> 0  {\n";
+        code += "\t\t" + offset + " = builder.CreateString(t." +
+                MakeCamel(field.name) + ")\n\t}\n";
       }  // byte slice
       else if (field.value.type.base_type == BASE_TYPE_VECTOR &&
                field.value.type.element == BASE_TYPE_UCHAR &&
@@ -1540,7 +1547,8 @@ class GoGenerator : public BaseGenerator {
       if (parser_.root_struct_def_) {
         cur_name_space_->components.push_back(parser_.root_struct_def_->name);
       }
-      // TODO: tsingson: if both namespace / root_type is missing, need somewhere throw exception
+      // TODO: tsingson: if both namespace / root_type is missing, need
+      // somewhere throw exception
     }
 
     GenComment(enum_def.doc_comment, code_ptr, nullptr);

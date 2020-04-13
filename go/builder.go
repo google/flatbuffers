@@ -288,7 +288,7 @@ func (b *Builder) PrependUOffsetT(off UOffsetT) {
 func (b *Builder) StringsVector(str ...string) UOffsetT {
 	l := len(str)
 	if l == 0 {
-		panic("contains at least one strings")
+		return UOffsetT(0)
 	}
 	namesOffsets := make([]UOffsetT, l)
 	for j := l - 1; j >= 0; j-- {
@@ -300,7 +300,7 @@ func (b *Builder) StringsVector(str ...string) UOffsetT {
 // VectorArray  shortcut for vector array ( UOffset array ) like strings / tables / unions
 func (b *Builder) VectorArray(off ...UOffsetT) UOffsetT {
 	if len(off) == 0 {
-		panic("contains at least one UOffset")
+		return UOffsetT(0)
 	}
 	b.StartVector(4, len(off), 4)
 	for j := len(off) - 1; j >= 0; j-- {
@@ -349,6 +349,9 @@ func (b *Builder) CreateSharedString(s string) UOffsetT {
 
 // CreateString writes a null-terminated string as a vector.
 func (b *Builder) CreateString(s string) UOffsetT {
+	if len(s) == 0 {
+		return UOffsetT(0)
+	}
 	b.assertNotNested()
 	b.nested = true
 
@@ -381,6 +384,9 @@ func (b *Builder) CreateByteString(s []byte) UOffsetT {
 
 // CreateByteVector writes a ubyte vector
 func (b *Builder) CreateByteVector(v []byte) UOffsetT {
+	if len(v) == 0 {
+		return UOffsetT(0)
+	}
 	b.assertNotNested()
 	b.nested = true
 
