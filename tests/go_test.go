@@ -55,7 +55,7 @@ func TestMain(m *testing.M) {
 	flag.Parse()
 	cppData = "testdata/monsterdata_test.mon"
 	outData = "testdata/monsterdata_go_wire.mon"
-	javaData = "testdata/monsterdata_java_wire.mon"
+	// javaData = "testdata/monsterdata_java_wire.mon"
 
 	if cppData == "" {
 		fmt.Fprintf(os.Stderr, "cpp_data argument is required\n")
