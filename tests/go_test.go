@@ -72,10 +72,10 @@ var (
 	overflowingInt32Val = flatbuffers.GetInt32([]byte{0x83, 0x33, 0x33, 0x33})
 	overflowingInt64Val = flatbuffers.GetInt64([]byte{0x84, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44})
 )
-var _ = func() bool {
-	testing.Init()
-	return true
-}()
+// var _ = func() bool {
+// 	testing.Init()
+// 	return true
+// }()
 
 // TestAll runs all checks, failing if any errors occur.
 func TestAll(t *testing.T) {

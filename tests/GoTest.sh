@@ -40,6 +40,7 @@ cp -a Movie/*.go ./go_gen/src/Movie/
 cp ../go.mod  ./go_gen/src/
 cp ./monsterdata_test.mon ./go_gen/src/testdata
 #cp ./monsterdata_java_wire.mon ./go_gen/src/testdata
+#TODO: tsingson: go can't pass monsterdata_java_wire.com test, i will identify it out after fixed_array feature done.
 cp -a MyGame/Example/*.go ./go_gen/src/MyGame/Example/
 cp -a MyGame/Example2/*.go ./go_gen/src/MyGame/Example2/
 # do not compile the gRPC generated files, which are not tested by go_test.go
@@ -66,12 +67,8 @@ go test . \
                      --fuzz_objects=10000 \
                     --test.timeout=3s
 
-
-
 GO_TEST_RESULT=$?
- 
 cd ${test_dir}
-
 cp ${go_src}/testdata/monsterdata_go_wire.mon  ${test_dir}/
 rm -rf ${go_path}/{pkg,src}
 if [[ $GO_TEST_RESULT  == 0 ]]; then
