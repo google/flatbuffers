@@ -91,7 +91,7 @@ final class FlatBuffersUnionTests: XCTestCase {
         let end = Movie.createMovie(&fb, vectorOfCharactersType: types, vectorOfCharacters: characterVector)
         Movie.finish(&fb, end: end)
         
-        let movie = Movie.getRootAsMovie(bb: fb.buffer)
+        var movie = Movie.getRootAsMovie(bb: fb.buffer)
         XCTAssertEqual(movie.charactersTypeCount, Int32(characterType.count))
         XCTAssertEqual(movie.charactersCount, Int32(characters.count))
         
@@ -102,6 +102,19 @@ final class FlatBuffersUnionTests: XCTestCase {
         XCTAssertEqual(movie.characters(at: 0, type: BookReader.self)?.booksRead, 7)
         XCTAssertEqual(movie.characters(at: 1, type: Attacker.self)?.swordAttackDamage, swordDmg)
         XCTAssertEqual(movie.characters(at: 2, type: BookReader.self)?.booksRead, 2)
+        
+        var objc: MovieT? = movie.unpack()
+        XCTAssertEqual(movie.charactersTypeCount, Int32(objc?.characters.count ?? 0))
+        XCTAssertEqual(movie.characters(at: 0, type: BookReader.self)?.booksRead, (objc?.characters[0]?.value as? BookReaderT)?.booksRead)
+        fb.clear()
+        let newMovie = Movie.pack(&fb, obj: &objc)
+        fb.finish(offset: newMovie)
+        
+        let packedMovie = Movie.getRootAsMovie(bb: fb.buffer)
+
+        XCTAssertEqual(packedMovie.characters(at: 0, type: BookReader.self)?.booksRead, movie.characters(at: 0, type: BookReader.self)?.booksRead)
+        XCTAssertEqual(packedMovie.characters(at: 1, type: Attacker.self)?.swordAttackDamage, movie.characters(at: 1, type: Attacker.self)?.swordAttackDamage)
+        XCTAssertEqual(packedMovie.characters(at: 2, type: BookReader.self)?.booksRead, movie.characters(at: 2, type: BookReader.self)?.booksRead)
     }
 }
 

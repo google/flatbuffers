@@ -22,7 +22,7 @@ Feature                        | C++    | Java   | C#     | Go     | Python | JS
 ------------------------------ | ------ | ------ | ------ | ------ | ------ | --------- | --------- | ------  | --- | ------- | ------- | ------- | ------
 Codegen for all basic features | Yes    | Yes    | Yes    | Yes    | Yes    | Yes       | Yes       | Yes     | WiP | Yes     | Yes     | Yes     | Yes
 JSON parsing                   | Yes    | No     | No     | No     | No     | No        | No        | Yes     | No  | No      | Yes     | No      | No
-Simple mutation                | Yes    | Yes    | Yes    | Yes    | No     | No        | No        | No      | No  | No      | No      | No      | No
+Simple mutation                | Yes    | Yes    | Yes    | Yes    | No     | No        | No        | No      | No  | No      | No      | No      | Yes
 Reflection                     | Yes    | No     | No     | No     | No     | No        | No        | Basic   | No  | No      | No      | No      | No
 Buffer verifier                | Yes    | No     | No     | No     | No     | No        | No        | Yes     | No  | No      | No      | No      | No
 Testing: basic                 | Yes    | Yes    | Yes    | Yes    | Yes    | Yes       | Yes       | Yes     | ?   | Yes     | Yes     | Yes     | Yes

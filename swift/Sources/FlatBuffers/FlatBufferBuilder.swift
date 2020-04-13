@@ -53,7 +53,7 @@ public struct FlatBufferBuilder {
     /// Returns A sized Buffer from the readable bytes
     public var sizedBuffer: ByteBuffer {
         assert(finished, "Data shouldn't be called before finish()")
-        return ByteBuffer(memory: _bb.memory.advanced(by: _bb.reader), count: _bb.reader)
+        return ByteBuffer(memory: _bb.memory.advanced(by: _bb.reader), count: Int(_bb.size))
     }
     
     // MARK: - Init
@@ -274,6 +274,24 @@ public struct FlatBufferBuilder {
         assert(isNested, "Calling endVector without calling startVector")
         isNested = false
         return push(element: Int32(len))
+    }
+    
+    /// Creates a vector of type Bool in the buffer
+    /// - Parameter elements: elements to be written into the buffer
+    /// - returns: Offset of the vector
+    mutating public func createVector(_ elements: [Bool]) -> Offset<UOffset> {
+        return createVector(elements, size: elements.count)
+    }
+    
+    ///  Creates a vector of type Bool in the buffer
+    /// - Parameter elements: Elements to be written into the buffer
+    /// - Parameter size: Count of elements
+    /// - returns: Offset of the vector
+    mutating public func createVector(_ elements: [Bool], size: Int) -> Offset<UOffset> {
+        let size = size
+        startVector(size, elementSize: MemoryLayout<Bool>.size)
+        _bb.push(elements: elements)
+        return Offset(offset: endVector(len: size))
     }
     
     /// Creates a vector of type Scalar in the buffer
