@@ -55,7 +55,7 @@ cp -a ./union_vector_test.go ./go_gen/src/union_vector_test
 #   go -test -test.bench=. ...
 cd ${go_src}
 echo $(pwd)
-go test -v ./flatbuffers_test \
+go test ./flatbuffers_test \
                      --test.coverpkg=github.com/google/flatbuffers/go \
                      --cpp_data=${go_src}/monsterdata_test.mon \
                      --out_data=-${go_src}/monsterdata_go_wire.mon \
@@ -65,7 +65,7 @@ go test -v ./flatbuffers_test \
                      -test.timeout 10 \
                      --fuzz_fields=4 \
                      --fuzz_objects=10000
-go test -v ./union_vector_test/union_vector_test.go
+go test ./union_vector_test/union_vector_test.go
 
 
 GO_TEST_RESULT=$?

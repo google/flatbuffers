@@ -865,6 +865,7 @@ class GoGenerator : public BaseGenerator {
       if (parser_.root_struct_def_) {
         cur_name_space_->components.push_back(parser_.root_struct_def_->name);
       }
+      // TODO: tsingson: if both namespace / root_type is missing, need somewhere throw exception
     }
 
     GenComment(struct_def.doc_comment, code_ptr, nullptr);
@@ -1533,11 +1534,13 @@ class GoGenerator : public BaseGenerator {
     auto max_name_length = MaxNameLength(enum_def);
 
     cur_name_space_ = enum_def.defined_namespace;
+
     // if namespace is missing, use root_type as namespace
     if (cur_name_space_->components.empty()) {
       if (parser_.root_struct_def_) {
         cur_name_space_->components.push_back(parser_.root_struct_def_->name);
       }
+      // TODO: tsingson: if both namespace / root_type is missing, need somewhere throw exception
     }
 
     GenComment(enum_def.doc_comment, code_ptr, nullptr);
