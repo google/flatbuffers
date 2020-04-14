@@ -1,4 +1,4 @@
-library FlexBuffersDart;
+library FlexBuffers;
 
-export 'src/flx_builder.dart';
-export 'src/flx_reader.dart';
+export 'src/builder.dart';
+export 'src/reference.dart';

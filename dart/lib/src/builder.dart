@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'flx_types.dart';
+import 'types.dart';
 
 /// The main builder class for creation of a FlexBuffer
-class FlxBuilder {
+class Builder {
   ByteData _buffer;
   List<_StackValue> _stack;
   List<_StackPointer> _stackPointers;
@@ -19,7 +19,7 @@ class FlxBuilder {
   /// Instantiate the builder if you intent to gradually build up the buffer by calling
   /// add... methods and calling finish() to receive the the resulting byte array.
   /// The default size of internal buffer is set to 2048. Provide a different value in order to avoid buffer copies.
-  FlxBuilder([int size = 2048]) {
+  Builder([int size = 2048]) {
     _buffer = ByteData(size);
     _stack = [];
     _stackPointers = [];
@@ -33,9 +33,9 @@ class FlxBuilder {
   }
 
   /// Use this method in order to turn an object into a FlexBuffer directly.
-  /// Please use the manual instantiation of the [FlxBuilder] and gradual addition of values, if performance is more important than convenience.
+  /// Please use the manual instantiation of the [Builder] and gradual addition of values, if performance is more important than convenience.
   static ByteBuffer buildFromObject(dynamic value) {
-    var flx = FlxBuilder();
+    var flx = Builder();
     flx._add(value);
     var buffer = flx.finish();
     var bd = ByteData(buffer.lengthInBytes);
@@ -229,7 +229,7 @@ class FlxBuilder {
   /// Creates an internal temporary copy of current builder and finishes the copy.
   /// Use this method, when the state of a long lasting builder need to be persisted periodically.
   ByteBuffer snapshot() {
-    var tmp = FlxBuilder(_offset + 200);
+    var tmp = Builder(_offset + 200);
     tmp._offset = _offset;
     tmp._stack = List.from(_stack);
     tmp._stackPointers = List.from(_stackPointers);

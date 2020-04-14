@@ -1,10 +1,10 @@
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:typed_data';
-import 'flx_types.dart';
+import 'types.dart';
 
 /// Main class to read a value out of a FlexBuffer.
-class FlxValue {
+class Reference {
   final ByteData _buffer;
   final int _offset;
   final BitWidth _parentWidth;
@@ -12,13 +12,13 @@ class FlxValue {
   ValueType _valueType;
   int _length;
 
-  FlxValue._(this._buffer, this._offset, this._parentWidth, int packedType) {
+  Reference._(this._buffer, this._offset, this._parentWidth, int packedType) {
     _byteWidth = 1 << (packedType & 3);
     _valueType = ValueTypeUtils.fromInt(packedType >> 2);
   }
 
   /// Use this method to access the root value of a FlexBuffer.
-  static FlxValue fromBuffer(ByteBuffer buffer) {
+  static Reference fromBuffer(ByteBuffer buffer) {
     var len = buffer.lengthInBytes;
     if (len < 3) {
       throw Exception('Buffer needs to be bigger than 3');
@@ -27,7 +27,7 @@ class FlxValue {
     var byteWidth = byteData.getUint8(len - 1);
     var packedType = byteData.getUint8(len - 2);
     var offset = len - byteWidth - 2;
-    return FlxValue._(ByteData.view(buffer), offset, BitWidthUtil.fromByteWidth(byteWidth), packedType);
+    return Reference._(ByteData.view(buffer), offset, BitWidthUtil.fromByteWidth(byteWidth), packedType);
   }
 
   bool get isNull => _valueType == ValueType.Null;
@@ -103,15 +103,15 @@ class FlxValue {
   /// Can be used with an [int] or a [String] value for key.
   /// If the underlying value in FlexBuffer is a vector, then use [int] for access.
   /// If the underlying value in FlexBuffer is a map, then use [String] for access.
-  /// Returns [FlxValue] value or null. Does not throw out of bounds exception.
-  FlxValue operator [](Object key) {
+  /// Returns [Reference] value or null. Does not throw out of bounds exception.
+  Reference operator [](Object key) {
     if (key is int && ValueTypeUtils.isAVector(_valueType)) {
       var index = key;
       if(index >= length) {
         return null;
       }
       var elementOffset = _indirect + index * _byteWidth;
-      var flx = FlxValue._(_buffer, elementOffset, BitWidthUtil.fromByteWidth(_byteWidth), 0);
+      var flx = Reference._(_buffer, elementOffset, BitWidthUtil.fromByteWidth(_byteWidth), 0);
       flx._byteWidth = 1;
       if (ValueTypeUtils.isTypedVector(_valueType)) {
         flx._valueType = ValueTypeUtils.typedVectorElementType(_valueType);
@@ -122,7 +122,7 @@ class FlxValue {
         return flx;
       }
       var packedType = _buffer.getUint8(_indirect + length * _byteWidth + index);
-      return FlxValue._(_buffer, elementOffset, BitWidthUtil.fromByteWidth(_byteWidth), packedType);
+      return Reference._(_buffer, elementOffset, BitWidthUtil.fromByteWidth(_byteWidth), packedType);
     }
     if (key is String && _valueType == ValueType.Map) {
       var index = _keyIndex(key);
@@ -135,7 +135,7 @@ class FlxValue {
 
   /// Get an iterable if the underlying flexBuffer value is a vector.
   /// Otherwise throws an exception.
-  Iterable<FlxValue> get vectorIterable {
+  Iterable<Reference> get vectorIterable {
     if(isVector == false) {
       throw Exception('Value is not a vector. It is: ${_valueType}');
     }
@@ -153,7 +153,7 @@ class FlxValue {
 
   /// Get an iterable for values if the underlying flexBuffer value is a map.
   /// Otherwise throws an exception.
-  Iterable<FlxValue> get mapValueIterable {
+  Iterable<Reference> get mapValueIterable {
     if(isMap == false) {
       throw Exception('Value is not a map. It is: ${_valueType}');
     }
@@ -330,11 +330,11 @@ class FlxValue {
     return (_buffer.getUint8(keyIndirectOffset + input.length) == 0) ? 0 : -1;
   }
 
-  FlxValue _valueForIndex(int index) {
+  Reference _valueForIndex(int index) {
     var indirect = _indirect;
     var elemOffset = indirect + index * _byteWidth;
     var packedType = _buffer.getUint8(indirect + length * _byteWidth + index);
-    return FlxValue._(_buffer, elemOffset, BitWidthUtil.fromByteWidth(_byteWidth), packedType);
+    return Reference._(_buffer, elemOffset, BitWidthUtil.fromByteWidth(_byteWidth), packedType);
   }
 
   String _keyForIndex(int index) {
@@ -352,8 +352,8 @@ class FlxValue {
 
 }
 
-class _VectorIterator with IterableMixin<FlxValue> implements Iterator<FlxValue> {
-  final FlxValue _vector;
+class _VectorIterator with IterableMixin<Reference> implements Iterator<Reference> {
+  final Reference _vector;
   int index;
 
   _VectorIterator(this._vector) {
@@ -361,7 +361,7 @@ class _VectorIterator with IterableMixin<FlxValue> implements Iterator<FlxValue>
   }
 
   @override
-  FlxValue get current => _vector[index];
+  Reference get current => _vector[index];
 
   @override
   bool moveNext() {
@@ -370,11 +370,11 @@ class _VectorIterator with IterableMixin<FlxValue> implements Iterator<FlxValue>
   }
 
   @override
-  Iterator<FlxValue> get iterator => this;
+  Iterator<Reference> get iterator => this;
 }
 
 class _MapKeyIterator with IterableMixin<String> implements Iterator<String> {
-  final FlxValue _map;
+  final Reference _map;
   int index;
 
   _MapKeyIterator(this._map) {
@@ -394,8 +394,8 @@ class _MapKeyIterator with IterableMixin<String> implements Iterator<String> {
   Iterator<String> get iterator => this;
 }
 
-class _MapValueIterator with IterableMixin<FlxValue> implements Iterator<FlxValue> {
-  final FlxValue _map;
+class _MapValueIterator with IterableMixin<Reference> implements Iterator<Reference> {
+  final Reference _map;
   int index;
 
   _MapValueIterator(this._map) {
@@ -403,7 +403,7 @@ class _MapValueIterator with IterableMixin<FlxValue> implements Iterator<FlxValu
   }
 
   @override
-  FlxValue get current => _map._valueForIndex(index);
+  Reference get current => _map._valueForIndex(index);
 
   @override
   bool moveNext() {
@@ -412,5 +412,5 @@ class _MapValueIterator with IterableMixin<FlxValue> implements Iterator<FlxValu
   }
 
   @override
-  Iterator<FlxValue> get iterator => this;
+  Iterator<Reference> get iterator => this;
 }
