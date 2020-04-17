@@ -11,6 +11,9 @@ const (
 	RaceHuman Race = 0
 	RaceDwarf Race = 1
 	RaceElf   Race = 2
+
+	RaceVerifyValueMin Race = -1
+	RaceVerifyValueMax Race = 2
 )
 
 var EnumNamesRace = map[Race]string{

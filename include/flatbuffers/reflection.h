@@ -469,8 +469,7 @@ Offset<const Table *> CopyTable(FlatBufferBuilder &fbb,
 // buf should point to the start of flatbuffer data.
 // length specifies the size of the flatbuffer data.
 bool Verify(const reflection::Schema &schema, const reflection::Object &root,
-            const uint8_t *buf, size_t length,
-            uoffset_t max_depth = 64,
+            const uint8_t *buf, size_t length, uoffset_t max_depth = 64,
             uoffset_t max_tables = 1000000);
 
 }  // namespace flatbuffers

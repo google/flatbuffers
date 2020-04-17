@@ -3,6 +3,8 @@ include "sub/include_test2.fbs";    // should be skipped
 
 namespace MyGame.OtherNameSpace;
 
+attribute "go_module:github.com/google/flatbuffers/";
+
 enum FromInclude:long { IncludeVal }
 
 struct Unused { a:int; }

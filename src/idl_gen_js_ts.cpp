@@ -153,9 +153,7 @@ class JsTsGenerator : public BaseGenerator {
           code += file.second.source_namespace + ".";
         }
         code += file.second.symbol + ";\n";
-        if (!file.second.target_namespace.empty()) {
-          code += "}\n";
-        }
+        if (!file.second.target_namespace.empty()) { code += "}\n"; }
       }
     }
   }

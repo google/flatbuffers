@@ -10,6 +10,9 @@ const (
 	EnumInNestedNSA EnumInNestedNS = 0
 	EnumInNestedNSB EnumInNestedNS = 1
 	EnumInNestedNSC EnumInNestedNS = 2
+
+	EnumInNestedNSVerifyValueMin EnumInNestedNS = 0
+	EnumInNestedNSVerifyValueMax EnumInNestedNS = 2
 )
 
 var EnumNamesEnumInNestedNS = map[EnumInNestedNS]string{
