@@ -4,7 +4,6 @@ package NamespaceA
 
 import (
 	flatbuffers "github.com/google/flatbuffers/go"
-
 	NamespaceA__NamespaceB "NamespaceA/NamespaceB"
 )
 
@@ -14,9 +13,15 @@ type TableInFirstNST struct {
 	FooStruct *NamespaceA__NamespaceB.StructInNestedNST
 }
 
+// TableInFirstNST object pack function
 func (t *TableInFirstNST) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	fooTableOffset := t.FooTable.Pack(builder)
+
+	// pack process all field
+
 	TableInFirstNSStart(builder)
 	TableInFirstNSAddFooTable(builder, fooTableOffset)
 	TableInFirstNSAddFooEnum(builder, t.FooEnum)
@@ -25,6 +30,7 @@ func (t *TableInFirstNST) Pack(builder *flatbuffers.Builder) flatbuffers.UOffset
 	return TableInFirstNSEnd(builder)
 }
 
+// TableInFirstNST object unpack function
 func (rcv *TableInFirstNS) UnPackTo(t *TableInFirstNST) {
 	t.FooTable = rcv.FooTable(nil).UnPack()
 	t.FooEnum = rcv.FooEnum()
@@ -32,7 +38,9 @@ func (rcv *TableInFirstNS) UnPackTo(t *TableInFirstNST) {
 }
 
 func (rcv *TableInFirstNS) UnPack() *TableInFirstNST {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &TableInFirstNST{}
 	rcv.UnPackTo(t)
 	return t
@@ -42,10 +50,26 @@ type TableInFirstNS struct {
 	_tab flatbuffers.Table
 }
 
+// GetRootAsTableInFirstNS shortcut to access root table
 func GetRootAsTableInFirstNS(buf []byte, offset flatbuffers.UOffsetT) *TableInFirstNS {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
 	x := &TableInFirstNS{}
 	x.Init(buf, n+offset)
+	return x
+}
+
+// GetTableVectorAsTableInFirstNS shortcut to access table in vector of  unions
+func GetTableVectorAsTableInFirstNS(table *flatbuffers.Table) *TableInFirstNS {
+	n := flatbuffers.GetUOffsetT(table.Bytes[table.Pos:])
+	x := &TableInFirstNS{}
+	x.Init(table.Bytes, n+table.Pos)
+	return x
+}
+
+// GetTableAsTableInFirstNS shortcut to access table in single union field
+func GetTableAsTableInFirstNS(table *flatbuffers.Table) *TableInFirstNS {
+	x := &TableInFirstNS{}
+	x.Init(table.Bytes, table.Pos)
 	return x
 }
 
@@ -99,15 +123,19 @@ func (rcv *TableInFirstNS) FooStruct(obj *NamespaceA__NamespaceB.StructInNestedN
 func TableInFirstNSStart(builder *flatbuffers.Builder) {
 	builder.StartObject(3)
 }
+
 func TableInFirstNSAddFooTable(builder *flatbuffers.Builder, fooTable flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(0, flatbuffers.UOffsetT(fooTable), 0)
 }
+
 func TableInFirstNSAddFooEnum(builder *flatbuffers.Builder, fooEnum NamespaceA__NamespaceB.EnumInNestedNS) {
 	builder.PrependInt8Slot(1, int8(fooEnum), 0)
 }
+
 func TableInFirstNSAddFooStruct(builder *flatbuffers.Builder, fooStruct flatbuffers.UOffsetT) {
 	builder.PrependStructSlot(2, flatbuffers.UOffsetT(fooStruct), 0)
 }
+
 func TableInFirstNSEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }

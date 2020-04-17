@@ -17,8 +17,9 @@
 package main
 
 import (
-	mygame "MyGame"          // refers to generated code
-	example "MyGame/Example" // refers to generated code
+	"github.com/google/flatbuffers/Movie"
+	mygame "github.com/google/flatbuffers/MyGame"          // refers to generated code
+	example "github.com/google/flatbuffers/MyGame/Example" // refers to generated code
 
 	"bytes"
 	"flag"
@@ -39,23 +40,30 @@ var (
 	fuzzFields, fuzzObjects    int
 )
 
-func init() {
-	flag.StringVar(&cppData, "cpp_data", "",
-		"location of monsterdata_test.mon to verify against (required)")
+// func init() {
+func TestMain(m *testing.M) {
+	// flag.StringVar(&cppData, "cpp_data", "",
+	// 	"location of monsterdata_test.mon to verify against (required)")
 	flag.StringVar(&javaData, "java_data", "",
 		"location of monsterdata_java_wire.mon to verify against (optional)")
-	flag.StringVar(&outData, "out_data", "",
-		"location to write generated Go data")
-	flag.BoolVar(&fuzz, "fuzz", false, "perform fuzzing")
+	// flag.StringVar(&outData, "out_data", "",
+	// 	"location to write generated Go data")
+	flag.BoolVar(&fuzz, "fuzz", true, "perform fuzzing")
 	flag.IntVar(&fuzzFields, "fuzz_fields", 4, "fields per fuzzer object")
 	flag.IntVar(&fuzzObjects, "fuzz_objects", 10000,
 		"number of fuzzer objects (higher is slower and more thorough")
 	flag.Parse()
+	cppData = "testdata/monsterdata_test.mon"
+	outData = "testdata/monsterdata_go_wire.mon"
+	// javaData = "testdata/monsterdata_java_wire.mon"
 
 	if cppData == "" {
 		fmt.Fprintf(os.Stderr, "cpp_data argument is required\n")
 		os.Exit(1)
 	}
+	// }
+	// call flag.Parse() here if TestMain uses flags
+	os.Exit(m.Run())
 }
 
 // Store specific byte patterns in these variables for the fuzzer. These
@@ -64,9 +72,14 @@ var (
 	overflowingInt32Val = flatbuffers.GetInt32([]byte{0x83, 0x33, 0x33, 0x33})
 	overflowingInt64Val = flatbuffers.GetInt64([]byte{0x84, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44})
 )
+// var _ = func() bool {
+// 	testing.Init()
+// 	return true
+// }()
 
 // TestAll runs all checks, failing if any errors occur.
 func TestAll(t *testing.T) {
+
 	// Verify that the Go FlatBuffers runtime library generates the
 	// expected bytes (does not use any schema):
 	CheckByteLayout(t.Fatalf)
@@ -79,7 +92,7 @@ func TestAll(t *testing.T) {
 	CheckStructIsNotInlineError(t.Fatalf)
 	CheckFinishedBytesError(t.Fatalf)
 	CheckSharedStrings(t.Fatalf)
-	
+
 	// Verify that GetRootAs works for non-root tables
 	CheckGetRootAsForNonRootTable(t.Fatalf)
 	CheckTableAccessors(t.Fatalf)
@@ -135,7 +148,7 @@ func TestAll(t *testing.T) {
 			t.Fatal(err)
 		}
 		CheckReadBuffer(monsterDataJava, 0, t.Fatalf)
-		CheckByteEquality(generated[off:], monsterDataJava, t.Fatalf)
+		CheckByteEquality(generated[off:], monsterDataJava, t.Fatalf, "monster java data")
 	}
 
 	// Verify that various fuzzing scenarios produce a valid FlatBuffer.
@@ -1542,17 +1555,17 @@ func CheckCreateByteVector(fail func(string, ...interface{})) {
 	for i := 0; i < len(raw); i++ {
 		raw[i] = byte(i)
 	}
-
-	for size := 0; size < len(raw); size++ {
-		b1 := flatbuffers.NewBuilder(0)
+	size := len(raw)
+	for s := 1; s < size; s++ {
 		b2 := flatbuffers.NewBuilder(0)
-		b1.StartVector(1, size, 1)
-		for i := size - 1; i >= 0; i-- {
+		b2.CreateByteVector(raw[:s])
+		b1 := flatbuffers.NewBuilder(0)
+		b1.StartVector(1, s, 1)
+		for i := s - 1; i >= 0; i-- {
 			b1.PrependByte(raw[i])
 		}
-		b1.EndVector(size)
-		b2.CreateByteVector(raw[:size])
-		CheckByteEquality(b1.Bytes, b2.Bytes, fail)
+		b1.EndVector(s)
+		CheckByteEquality(b1.Bytes, b2.Bytes, fail, " go test create byte vector")
 	}
 }
 
@@ -1628,9 +1641,9 @@ func (lcg *LCG) Next() uint32 {
 }
 
 // CheckByteEquality verifies that two byte buffers are the same.
-func CheckByteEquality(a, b []byte, fail func(string, ...interface{})) {
+func CheckByteEquality(a, b []byte, fail func(string, ...interface{}), str string) {
 	if !bytes.Equal(a, b) {
-		fail("objects are not byte-wise equal")
+		fail("objects are not byte-wise equal in " + str)
 	}
 }
 
@@ -1932,5 +1945,303 @@ func BenchmarkBuildGold(b *testing.B) {
 		mon := example.MonsterEnd(bldr)
 
 		bldr.Finish(mon)
+	}
+}
+
+func TestMovieUnionField1(t *testing.T) {
+	str := &Movie.AttackerT{
+		SwordAttackDamage: 100,
+	}
+	c1 := &Movie.CharacterT{
+		Type:  Movie.CharacterMuLan,
+		Value: str,
+	}
+	m := &Movie.MovieT{
+		MainCharacter: c1,
+	}
+	fb := flatbuffers.NewBuilder(0)
+	buf := fb.Finish(m.Pack(fb)).FinishedBytes()
+	mt := Movie.GetRootAsMovie(buf, 0)
+	mct := mt.MainCharacterType()
+
+	if mct != Movie.CharacterMuLan {
+		t.Errorf("error")
+	}
+	tb := &flatbuffers.Table{}
+	if mt.MainCharacter(tb) {
+		mct := mt.MainCharacterType()
+		ct := mct.UnPack(*tb)
+		if ct.Type != mct {
+			t.Errorf("error")
+		}
+		if ct.Value.(*Movie.AttackerT).SwordAttackDamage != int32(100) {
+			t.Errorf("error ")
+		}
+	}
+}
+
+func TestMovieUnionField2(t *testing.T) {
+	str := "hello world"
+	c1 := &Movie.CharacterT{
+		Type:  Movie.CharacterOther,
+		Value: str,
+	}
+	m := &Movie.MovieT{
+		MainCharacter: c1,
+	}
+	fb := flatbuffers.NewBuilder(0)
+	buf := fb.Finish(m.Pack(fb)).FinishedBytes()
+	mt := Movie.GetRootAsMovie(buf, 0)
+	mct := mt.MainCharacterType()
+	if mct != Movie.CharacterOther {
+		t.Errorf("error ")
+	}
+	tb := &flatbuffers.Table{}
+	if mt.MainCharacter(tb) {
+		mct := mt.MainCharacterType()
+		ct := mct.UnPack(*tb)
+		if ct.Type != mct {
+			t.Errorf("error ")
+		}
+		if ct.Value.(string) != str {
+			t.Errorf("error ")
+		}
+	}
+}
+
+func TestMovieUnionField3(t *testing.T) {
+	r := &Movie.RapunzelT{
+		HairLength: 1,
+	}
+	c2 := &Movie.CharacterT{
+		Type:  Movie.CharacterRapunzel,
+		Value: r,
+	}
+	m := &Movie.MovieT{
+		MainCharacter: c2,
+	}
+	fb := flatbuffers.NewBuilder(0)
+	buf := fb.Finish(m.Pack(fb)).FinishedBytes()
+	mt := Movie.GetRootAsMovie(buf, 0)
+	mct := mt.MainCharacterType()
+	if mct != Movie.CharacterRapunzel {
+		t.Errorf("error ")
+	}
+	tb := &flatbuffers.Table{}
+	if mt.MainCharacter(tb) {
+		mct := mt.MainCharacterType()
+		ct := mct.UnPack(*tb)
+		if ct.Type != mct {
+			t.Errorf("error ")
+		}
+		if ct.Value.(*Movie.RapunzelT).HairLength != int32(1) {
+			t.Errorf("error ")
+		}
+	}
+}
+
+func TestMovieUnionField4(t *testing.T) {
+	r := &Movie.BookReaderT{
+		BooksRead: 100,
+	}
+	c2 := &Movie.CharacterT{
+		Type:  Movie.CharacterBookFan,
+		Value: r,
+	}
+	m := &Movie.MovieT{
+		MainCharacter: c2,
+	}
+	fb := flatbuffers.NewBuilder(0)
+	buf := fb.Finish(m.Pack(fb)).FinishedBytes()
+	mt := Movie.GetRootAsMovie(buf, 0)
+	mct := mt.MainCharacterType()
+	if mct != Movie.CharacterBookFan {
+		t.Errorf("error ")
+	}
+	tb := &flatbuffers.Table{}
+	if mt.MainCharacter(tb) {
+		mct := mt.MainCharacterType()
+		ct := mct.UnPack(*tb)
+		if ct.Type != mct {
+			t.Errorf("error ")
+		}
+		if ct.Value.(*Movie.BookReaderT).BooksRead != int32(100) {
+			t.Errorf("error ")
+		}
+	}
+}
+
+func TestMovieVectorUnions1(t *testing.T) {
+	str := "hello world"
+	c1 := &Movie.CharacterT{
+		Type:  Movie.CharacterOther,
+		Value: str,
+	}
+	r := &Movie.RapunzelT{
+		HairLength: 100,
+	}
+	c2 := &Movie.CharacterT{
+		Type:  Movie.CharacterRapunzel,
+		Value: r,
+	}
+
+	r1 := &Movie.BookReaderT{
+		BooksRead: 100,
+	}
+	c3 := &Movie.CharacterT{
+		Type:  Movie.CharacterBookFan,
+		Value: r1,
+	}
+	ak := &Movie.AttackerT{
+		SwordAttackDamage: 100,
+	}
+	c4 := &Movie.CharacterT{
+		Type:  Movie.CharacterMuLan,
+		Value: ak,
+	}
+
+	m := &Movie.MovieT{
+		MainCharacter: c1,
+		Characters:    []*Movie.CharacterT{c1, c2, c1, c3, c4},
+	}
+	fb := flatbuffers.NewBuilder(0)
+	buf := fb.Finish(m.Pack(fb)).FinishedBytes()
+
+	mt := Movie.GetRootAsMovie(buf, 0)
+
+	tb := &flatbuffers.Table{}
+	if mt.MainCharacter(tb) {
+		mct := mt.MainCharacterType()
+		ct := mct.UnPack(*tb)
+		if ct.Type != mct {
+			t.Errorf("error ")
+		}
+		if ct.Value.(string) != str {
+			t.Errorf("error ")
+		}
+	}
+	if mt.Characters(0, tb) {
+		mct := mt.CharactersType(0)
+		ct := mct.UnPackVector(*tb)
+		if ct.Type != mct {
+			t.Errorf("error ")
+		}
+		if ct.Value.(string) != str {
+			t.Errorf("error ")
+		}
+	}
+	if mt.Characters(2, tb) {
+		mct := mt.CharactersType(2)
+		ct := mct.UnPackVector(*tb)
+		if ct.Type != mct {
+			t.Errorf("error ")
+		}
+		if ct.Value.(string) != str {
+			t.Errorf("error ")
+		}
+	}
+	if mt.Characters(1, tb) {
+		mct := mt.CharactersType(1)
+		ct := mct.UnPackVector(*tb)
+		if ct.Type != mct {
+			t.Errorf("error ")
+		}
+		if ct.Value.(*Movie.RapunzelT).HairLength != int32(100) {
+			t.Errorf("error ")
+		}
+	}
+	if mt.Characters(3, tb) {
+		mct := mt.CharactersType(3)
+		ct := mct.UnPackVector(*tb)
+		if ct.Type != mct {
+			t.Errorf("error ")
+		}
+		if ct.Value.(*Movie.BookReaderT).BooksRead != int32(100) {
+			t.Errorf("error ")
+		}
+	}
+	if mt.Characters(4, tb) {
+		mct := mt.CharactersType(4)
+		ct := mct.UnPackVector(*tb)
+		if ct.Type != mct {
+			t.Errorf("error ")
+		}
+		if ct.Value.(*Movie.AttackerT).SwordAttackDamage != int32(100) {
+			t.Errorf("error ")
+		}
+	}
+}
+
+func TestMovieVectorUnions2(t *testing.T) {
+	str := "hello world"
+	c1 := &Movie.CharacterT{
+		Type:  Movie.CharacterOther,
+		Value: str,
+	}
+	r := &Movie.RapunzelT{
+		HairLength: 100,
+	}
+	c2 := &Movie.CharacterT{
+		Type:  Movie.CharacterRapunzel,
+		Value: r,
+	}
+
+	r1 := &Movie.BookReaderT{
+		BooksRead: 100,
+	}
+	c3 := &Movie.CharacterT{
+		Type:  Movie.CharacterBookFan,
+		Value: r1,
+	}
+	ak := &Movie.AttackerT{
+		SwordAttackDamage: 100,
+	}
+	c4 := &Movie.CharacterT{
+		Type:  Movie.CharacterMuLan,
+		Value: ak,
+	}
+
+	m := &Movie.MovieT{
+		MainCharacter: c1,
+		Characters:    []*Movie.CharacterT{c1, c2, c1, c3, c4},
+	}
+	fb := flatbuffers.NewBuilder(0)
+	buf := fb.Finish(m.Pack(fb)).FinishedBytes()
+
+	mt := Movie.GetRootAsMovie(buf, 0)
+
+	mvt := mt.UnPack()
+	if mvt.MainCharacter.Type != Movie.CharacterOther {
+		t.Errorf("error ")
+	}
+	if mvt.MainCharacter.Value.(string) != str {
+		t.Errorf("error ")
+	}
+
+	l := len(mvt.Characters)
+	for i := 0; i < l; i++ {
+		ct := mvt.Characters[i]
+		switch ct.Type {
+		case Movie.CharacterMuLan:
+
+			if ct.Value.(*Movie.AttackerT).SwordAttackDamage != int32(100) {
+				t.Errorf("error ")
+			}
+		case Movie.CharacterRapunzel:
+			if ct.Value.(*Movie.RapunzelT).HairLength != int32(100) {
+				t.Errorf("error ")
+			}
+		case Movie.CharacterBelle:
+
+		case Movie.CharacterBookFan:
+			if ct.Value.(*Movie.BookReaderT).BooksRead != int32(100) {
+				t.Errorf("error ")
+			}
+		case Movie.CharacterOther:
+			if ct.Value.(string) != str {
+				t.Errorf("error ")
+			}
+		case Movie.CharacterUnused:
+		}
 	}
 }

@@ -1,5 +1,5 @@
 namespace MyGame;
-
+attribute "go_module:github.com/google/flatbuffers/";
 // Not all programming languages support this extra table.
 table MonsterExtra {
   // Float-point values with NaN and Inf defaults.

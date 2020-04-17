@@ -15,6 +15,9 @@ const (
 	AnyAmbiguousAliasesM1   AnyAmbiguousAliases = 1
 	AnyAmbiguousAliasesM2   AnyAmbiguousAliases = 2
 	AnyAmbiguousAliasesM3   AnyAmbiguousAliases = 3
+
+	AnyAmbiguousAliasesVerifyValueMin AnyAmbiguousAliases = 0
+	AnyAmbiguousAliasesVerifyValueMax AnyAmbiguousAliases = 3
 )
 
 var EnumNamesAnyAmbiguousAliases = map[AnyAmbiguousAliases]string{
@@ -39,7 +42,7 @@ func (v AnyAmbiguousAliases) String() string {
 }
 
 type AnyAmbiguousAliasesT struct {
-	Type AnyAmbiguousAliases
+	Type  AnyAmbiguousAliases
 	Value interface{}
 }
 
@@ -58,17 +61,34 @@ func (t *AnyAmbiguousAliasesT) Pack(builder *flatbuffers.Builder) flatbuffers.UO
 	return 0
 }
 
+// UnPack use for single union field
 func (rcv AnyAmbiguousAliases) UnPack(table flatbuffers.Table) *AnyAmbiguousAliasesT {
 	switch rcv {
 	case AnyAmbiguousAliasesM1:
-		x := Monster{_tab: table}
-		return &AnyAmbiguousAliasesT{ Type: AnyAmbiguousAliasesM1, Value: x.UnPack() }
+		x := GetTableAsMonster(&table)
+		return &AnyAmbiguousAliasesT{Type: AnyAmbiguousAliasesM1, Value: x.UnPack()}
 	case AnyAmbiguousAliasesM2:
-		x := Monster{_tab: table}
-		return &AnyAmbiguousAliasesT{ Type: AnyAmbiguousAliasesM2, Value: x.UnPack() }
+		x := GetTableAsMonster(&table)
+		return &AnyAmbiguousAliasesT{Type: AnyAmbiguousAliasesM2, Value: x.UnPack()}
 	case AnyAmbiguousAliasesM3:
-		x := Monster{_tab: table}
-		return &AnyAmbiguousAliasesT{ Type: AnyAmbiguousAliasesM3, Value: x.UnPack() }
+		x := GetTableAsMonster(&table)
+		return &AnyAmbiguousAliasesT{Type: AnyAmbiguousAliasesM3, Value: x.UnPack()}
+	}
+	return nil
+}
+
+// UnPackVector use for vector of unions
+func (rcv AnyAmbiguousAliases) UnPackVector(table flatbuffers.Table) *AnyAmbiguousAliasesT {
+	switch rcv {
+	case AnyAmbiguousAliasesM1:
+		x := GetTableVectorAsMonster(&table)
+		return &AnyAmbiguousAliasesT{Type: AnyAmbiguousAliasesM1, Value: x.UnPack()}
+	case AnyAmbiguousAliasesM2:
+		x := GetTableVectorAsMonster(&table)
+		return &AnyAmbiguousAliasesT{Type: AnyAmbiguousAliasesM2, Value: x.UnPack()}
+	case AnyAmbiguousAliasesM3:
+		x := GetTableVectorAsMonster(&table)
+		return &AnyAmbiguousAliasesT{Type: AnyAmbiguousAliasesM3, Value: x.UnPack()}
 	}
 	return nil
 }

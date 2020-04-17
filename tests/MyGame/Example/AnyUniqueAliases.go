@@ -6,8 +6,7 @@ import (
 	"strconv"
 
 	flatbuffers "github.com/google/flatbuffers/go"
-
-	MyGame__Example2 "MyGame/Example2"
+	MyGame__Example2 "github.com/google/flatbuffers/MyGame/Example2"
 )
 
 type AnyUniqueAliases byte
@@ -17,6 +16,9 @@ const (
 	AnyUniqueAliasesM    AnyUniqueAliases = 1
 	AnyUniqueAliasesTS   AnyUniqueAliases = 2
 	AnyUniqueAliasesM2   AnyUniqueAliases = 3
+
+	AnyUniqueAliasesVerifyValueMin AnyUniqueAliases = 0
+	AnyUniqueAliasesVerifyValueMax AnyUniqueAliases = 3
 )
 
 var EnumNamesAnyUniqueAliases = map[AnyUniqueAliases]string{
@@ -41,7 +43,7 @@ func (v AnyUniqueAliases) String() string {
 }
 
 type AnyUniqueAliasesT struct {
-	Type AnyUniqueAliases
+	Type  AnyUniqueAliases
 	Value interface{}
 }
 
@@ -60,17 +62,34 @@ func (t *AnyUniqueAliasesT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffs
 	return 0
 }
 
+// UnPack use for single union field
 func (rcv AnyUniqueAliases) UnPack(table flatbuffers.Table) *AnyUniqueAliasesT {
 	switch rcv {
 	case AnyUniqueAliasesM:
-		x := Monster{_tab: table}
-		return &AnyUniqueAliasesT{ Type: AnyUniqueAliasesM, Value: x.UnPack() }
+		x := GetTableAsMonster(&table)
+		return &AnyUniqueAliasesT{Type: AnyUniqueAliasesM, Value: x.UnPack()}
 	case AnyUniqueAliasesTS:
-		x := TestSimpleTableWithEnum{_tab: table}
-		return &AnyUniqueAliasesT{ Type: AnyUniqueAliasesTS, Value: x.UnPack() }
+		x := GetTableAsTestSimpleTableWithEnum(&table)
+		return &AnyUniqueAliasesT{Type: AnyUniqueAliasesTS, Value: x.UnPack()}
 	case AnyUniqueAliasesM2:
-		x := Monster{_tab: table}
-		return &AnyUniqueAliasesT{ Type: AnyUniqueAliasesM2, Value: x.UnPack() }
+		x := MyGame__Example2.GetTableAsMonster(&table)
+		return &AnyUniqueAliasesT{Type: AnyUniqueAliasesM2, Value: x.UnPack()}
+	}
+	return nil
+}
+
+// UnPackVector use for vector of unions
+func (rcv AnyUniqueAliases) UnPackVector(table flatbuffers.Table) *AnyUniqueAliasesT {
+	switch rcv {
+	case AnyUniqueAliasesM:
+		x := GetTableVectorAsMonster(&table)
+		return &AnyUniqueAliasesT{Type: AnyUniqueAliasesM, Value: x.UnPack()}
+	case AnyUniqueAliasesTS:
+		x := GetTableVectorAsTestSimpleTableWithEnum(&table)
+		return &AnyUniqueAliasesT{Type: AnyUniqueAliasesTS, Value: x.UnPack()}
+	case AnyUniqueAliasesM2:
+		x := MyGame__Example2.GetTableVectorAsMonster(&table)
+		return &AnyUniqueAliasesT{Type: AnyUniqueAliasesM2, Value: x.UnPack()}
 	}
 	return nil
 }

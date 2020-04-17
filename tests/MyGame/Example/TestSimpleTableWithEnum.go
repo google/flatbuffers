@@ -10,19 +10,28 @@ type TestSimpleTableWithEnumT struct {
 	Color Color
 }
 
+// TestSimpleTableWithEnumT object pack function
 func (t *TestSimpleTableWithEnumT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
+
+	// pack process all field
+
 	TestSimpleTableWithEnumStart(builder)
 	TestSimpleTableWithEnumAddColor(builder, t.Color)
 	return TestSimpleTableWithEnumEnd(builder)
 }
 
+// TestSimpleTableWithEnumT object unpack function
 func (rcv *TestSimpleTableWithEnum) UnPackTo(t *TestSimpleTableWithEnumT) {
 	t.Color = rcv.Color()
 }
 
 func (rcv *TestSimpleTableWithEnum) UnPack() *TestSimpleTableWithEnumT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &TestSimpleTableWithEnumT{}
 	rcv.UnPackTo(t)
 	return t
@@ -32,10 +41,26 @@ type TestSimpleTableWithEnum struct {
 	_tab flatbuffers.Table
 }
 
+// GetRootAsTestSimpleTableWithEnum shortcut to access root table
 func GetRootAsTestSimpleTableWithEnum(buf []byte, offset flatbuffers.UOffsetT) *TestSimpleTableWithEnum {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
 	x := &TestSimpleTableWithEnum{}
 	x.Init(buf, n+offset)
+	return x
+}
+
+// GetTableVectorAsTestSimpleTableWithEnum shortcut to access table in vector of  unions
+func GetTableVectorAsTestSimpleTableWithEnum(table *flatbuffers.Table) *TestSimpleTableWithEnum {
+	n := flatbuffers.GetUOffsetT(table.Bytes[table.Pos:])
+	x := &TestSimpleTableWithEnum{}
+	x.Init(table.Bytes, n+table.Pos)
+	return x
+}
+
+// GetTableAsTestSimpleTableWithEnum shortcut to access table in single union field
+func GetTableAsTestSimpleTableWithEnum(table *flatbuffers.Table) *TestSimpleTableWithEnum {
+	x := &TestSimpleTableWithEnum{}
+	x.Init(table.Bytes, table.Pos)
 	return x
 }
 
@@ -63,9 +88,11 @@ func (rcv *TestSimpleTableWithEnum) MutateColor(n Color) bool {
 func TestSimpleTableWithEnumStart(builder *flatbuffers.Builder) {
 	builder.StartObject(1)
 }
+
 func TestSimpleTableWithEnumAddColor(builder *flatbuffers.Builder, color Color) {
 	builder.PrependByteSlot(0, byte(color), 2)
 }
+
 func TestSimpleTableWithEnumEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }

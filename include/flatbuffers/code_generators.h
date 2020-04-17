@@ -75,10 +75,8 @@ class CodeWriter {
   void DecrementIdentLevel() {
     if (cur_ident_lvl_) cur_ident_lvl_--;
   }
-    
-  void SetPadding(const std::string &padding) {
-    pad_ = padding;
-  }
+
+  void SetPadding(const std::string &padding) { pad_ = padding; }
 
  private:
   std::map<std::string, std::string> value_map_;
