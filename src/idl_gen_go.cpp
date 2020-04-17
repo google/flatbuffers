@@ -858,6 +858,8 @@ class GoGenerator : public BaseGenerator {
   // Generate struct or table methods.
   void GenStruct(const StructDef &struct_def, std::string *code_ptr) {
     if (struct_def.generated) return;
+    // bypass nil table ( zero field in a table )
+    if (struct_def.fields.vec.size() == 0) return;
 
     cur_name_space_ = struct_def.defined_namespace;
     // if namespace is missing, use root_type as namespace
