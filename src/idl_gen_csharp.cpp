@@ -1823,7 +1823,9 @@ class CSharpGenerator : public BaseGenerator {
             code += "[idx" + NumToString(j++) + "]";
           }
           code += ";";
-          for (size_t i = 0; i < array_only_lengths.size(); ++i) { code += "}"; }
+          for (size_t i = 0; i < array_only_lengths.size(); ++i) {
+            code += "}";
+          }
         } else {
           code += "_o";
           for (size_t i = 0; i < array_lengths.size(); ++i) {

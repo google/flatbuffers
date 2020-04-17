@@ -3,15 +3,15 @@
 include "include_test1.fbs";
 
 namespace MyGame;
-
+attribute "go_module:github.com/google/flatbuffers/";
 table InParentNamespace {}
 
 namespace MyGame.Example2;
-
+attribute "go_module:github.com/google/flatbuffers/";
 table Monster {}  // Test having same name as below, but in different namespace.
 
 namespace MyGame.Example;
-
+attribute "go_module:github.com/google/flatbuffers/";
 attribute "priority";
 
 /// Composite components of Monster color.

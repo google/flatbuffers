@@ -12,7 +12,9 @@ type StructInNestedNST struct {
 }
 
 func (t *StructInNestedNST) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	return CreateStructInNestedNS(builder, t.A, t.B)
 }
 func (rcv *StructInNestedNS) UnPackTo(t *StructInNestedNST) {
@@ -21,7 +23,9 @@ func (rcv *StructInNestedNS) UnPackTo(t *StructInNestedNST) {
 }
 
 func (rcv *StructInNestedNS) UnPack() *StructInNestedNST {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &StructInNestedNST{}
 	rcv.UnPackTo(t)
 	return t
@@ -29,6 +33,21 @@ func (rcv *StructInNestedNS) UnPack() *StructInNestedNST {
 
 type StructInNestedNS struct {
 	_tab flatbuffers.Struct
+}
+
+// GetStructVectorAsStructInNestedNS shortcut to access struct in vector of unions
+func GetStructVectorAsStructInNestedNS(table *flatbuffers.Table) *StructInNestedNS {
+	n := flatbuffers.GetUOffsetT(table.Bytes[table.Pos:])
+	x := &StructInNestedNS{}
+	x.Init(table.Bytes, n+table.Pos)
+	return x
+}
+
+// GetStructAsStructInNestedNS shortcut to access struct in single union field
+func GetStructAsStructInNestedNS(table *flatbuffers.Table) *StructInNestedNS {
+	x := &StructInNestedNS{}
+	x.Init(table.Bytes, table.Pos)
+	return x
 }
 
 func (rcv *StructInNestedNS) Init(buf []byte, i flatbuffers.UOffsetT) {

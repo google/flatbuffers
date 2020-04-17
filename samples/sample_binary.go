@@ -19,8 +19,8 @@
 package main
 
 import (
-	sample "MyGame/Sample"
 	"fmt"
+	sample "github.com/google/flatbuffers/MyGame/Sample"
 	flatbuffers "github.com/google/flatbuffers/go"
 	"strconv"
 )

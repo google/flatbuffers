@@ -30,9 +30,9 @@ fi
 # Run `flatc`. Note: This requires you to compile using `cmake` from the
 # root `/flatbuffers` directory.
 if [ -e ../flatc ]; then
-  ../flatc --go monster.fbs
+  ../flatc --go --gen-object-api  monster.fbs
 elif [ -e ../Debug/flatc ]; then
-  ../Debug/flatc --go monster.fbs
+  ../Debug/flatc --go --gen-object-api monster.fbs
 else
   echo 'flatc' could not be found. Make sure to build FlatBuffers from the \
        $rootdir directory.
@@ -45,19 +45,22 @@ echo Compiling and running the Go sample.
 # packages. Copy these files to the respective directores to compile the
 # sample.
 mkdir -p ${sampledir}/go_gen/src/MyGame/Sample
-mkdir -p ${sampledir}/go_gen/src/github.com/google/flatbuffers/go
+mkdir -p ${sampledir}/go_gen/src/go
 cp MyGame/Sample/*.go ${sampledir}/go_gen/src/MyGame/Sample/
-cp ${sampledir}/../go/* ${sampledir}/go_gen/src/github.com/google/flatbuffers/go
+cp ${sampledir}/../go/* ${sampledir}/go_gen/src/go
+cp ${sampledir}/../go.mod ${sampledir}/go_gen/src/
+cp ${sampledir}/sample_binary.go ${sampledir}/go_gen/src/
 
 # Export the `GOPATH`, so that `go` will know which directories to search for
 # the libraries.
-export GOPATH=${sampledir}/go_gen/
+#export GOPATH=${sampledir}/go_gen/
 
 # Compile and execute the sample.
-go build -o go_sample sample_binary.go
-./go_sample
-
+echo ${sampledir}/go_gen/src
+cd ${sampledir}/go_gen/src
+go run ./sample_binary.go
+cd ${currentdir}
 # Clean up the temporary files.
 rm -rf MyGame/
 rm -rf ${sampledir}/go_gen/
-rm go_sample
+#rm go_sample

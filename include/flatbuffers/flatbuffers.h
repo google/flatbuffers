@@ -1795,7 +1795,8 @@ class FlatBufferBuilder {
       return a.KeyCompareLessThan(&b);
     }
 
-    FLATBUFFERS_DELETE_FUNC(StructKeyComparator &operator=(const StructKeyComparator &))
+    FLATBUFFERS_DELETE_FUNC(
+        StructKeyComparator &operator=(const StructKeyComparator &))
   };
   /// @endcond
 

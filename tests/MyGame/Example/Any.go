@@ -6,8 +6,7 @@ import (
 	"strconv"
 
 	flatbuffers "github.com/google/flatbuffers/go"
-
-	MyGame__Example2 "MyGame/Example2"
+	MyGame__Example2 "github.com/google/flatbuffers/MyGame/Example2"
 )
 
 type Any byte
@@ -17,6 +16,9 @@ const (
 	AnyMonster                 Any = 1
 	AnyTestSimpleTableWithEnum Any = 2
 	AnyMyGame_Example2_Monster Any = 3
+
+	AnyVerifyValueMin Any = 0
+	AnyVerifyValueMax Any = 3
 )
 
 var EnumNamesAny = map[Any]string{
@@ -41,7 +43,7 @@ func (v Any) String() string {
 }
 
 type AnyT struct {
-	Type Any
+	Type  Any
 	Value interface{}
 }
 
@@ -60,17 +62,34 @@ func (t *AnyT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return 0
 }
 
+// UnPack use for single union field
 func (rcv Any) UnPack(table flatbuffers.Table) *AnyT {
 	switch rcv {
 	case AnyMonster:
-		x := Monster{_tab: table}
-		return &AnyT{ Type: AnyMonster, Value: x.UnPack() }
+		x := GetTableAsMonster(&table)
+		return &AnyT{Type: AnyMonster, Value: x.UnPack()}
 	case AnyTestSimpleTableWithEnum:
-		x := TestSimpleTableWithEnum{_tab: table}
-		return &AnyT{ Type: AnyTestSimpleTableWithEnum, Value: x.UnPack() }
+		x := GetTableAsTestSimpleTableWithEnum(&table)
+		return &AnyT{Type: AnyTestSimpleTableWithEnum, Value: x.UnPack()}
 	case AnyMyGame_Example2_Monster:
-		x := Monster{_tab: table}
-		return &AnyT{ Type: AnyMyGame_Example2_Monster, Value: x.UnPack() }
+		x := MyGame__Example2.GetTableAsMonster(&table)
+		return &AnyT{Type: AnyMyGame_Example2_Monster, Value: x.UnPack()}
+	}
+	return nil
+}
+
+// UnPackVector use for vector of unions
+func (rcv Any) UnPackVector(table flatbuffers.Table) *AnyT {
+	switch rcv {
+	case AnyMonster:
+		x := GetTableVectorAsMonster(&table)
+		return &AnyT{Type: AnyMonster, Value: x.UnPack()}
+	case AnyTestSimpleTableWithEnum:
+		x := GetTableVectorAsTestSimpleTableWithEnum(&table)
+		return &AnyT{Type: AnyTestSimpleTableWithEnum, Value: x.UnPack()}
+	case AnyMyGame_Example2_Monster:
+		x := MyGame__Example2.GetTableVectorAsMonster(&table)
+		return &AnyT{Type: AnyMyGame_Example2_Monster, Value: x.UnPack()}
 	}
 	return nil
 }
