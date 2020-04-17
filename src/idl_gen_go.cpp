@@ -100,26 +100,23 @@ class GoGenerator : public BaseGenerator {
         if (!SaveType(**it, &declcode, true, false)) return false;
       }
     }
-    // LIMIT: go do not support one file from now
-    // TODO: tsingson need more time to research fbs namespace and go package
-    // name to make generated go fit go spec
-    /**
-        if (parser_.opts.one_file) {
-          std::string code = "";
-          const bool is_enum = !parser_.enums_.vec.empty();
-          // namespace is missing
-          if (go_namespace_.components.empty()) {
-            if (parser_.root_struct_def_) {
-              go_namespace_.components.push_back(parser_.root_struct_def_->name);
-            }
-          }
-          BeginFile(LastNamespacePart(go_namespace_), true, is_enum, &code);
-          code += one_file_code;
-          const std::string filename =
-              GeneratedFileName(path_, file_name_, parser_.opts);
-          return SaveFile(filename.c_str(), code, false);
+
+    if (parser_.opts.one_file) {
+      std::string code = "";
+      const bool is_enum = !parser_.enums_.vec.empty();
+      // namespace is missing
+      if (go_namespace_.components.empty()) {
+        if (parser_.root_struct_def_) {
+          go_namespace_.components.push_back(parser_.root_struct_def_->name);
         }
-    */
+      }
+      BeginFile(LastNamespacePart(go_namespace_), true, is_enum, &code);
+      code += one_file_code;
+      const std::string filename =
+          GeneratedFileName(path_, file_name_, parser_.opts);
+      return SaveFile(filename.c_str(), code, false);
+    }
+
     return true;
   }
 
