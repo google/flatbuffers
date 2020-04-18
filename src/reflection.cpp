@@ -703,7 +703,8 @@ bool VerifyObject(flatbuffers::Verifier &v, const reflection::Schema &schema,
 }
 
 bool Verify(const reflection::Schema &schema, const reflection::Object &root,
-            const uint8_t *buf, size_t length, uoffset_t max_depth /*= 64*/,
+            const uint8_t *buf, size_t length,
+            uoffset_t max_depth /*= 64*/,
             uoffset_t max_tables /*= 1000000*/) {
   Verifier v(buf, length, max_depth, max_tables);
   return VerifyObject(v, schema, root, flatbuffers::GetAnyRoot(buf), true);

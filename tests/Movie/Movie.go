@@ -29,7 +29,7 @@ func (t *MovieT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 		}
 		MovieStartCharactersTypeVector(builder, charactersLength)
 		for j := charactersLength - 1; j >= 0; j-- {
-			builder.PrependByte(byte(t.Characters[j].Type ))
+			builder.PrependByte(byte(t.Characters[j].Type))
 		}
 		charactersTypeOffset = MovieEndCharactersTypeVector(builder, charactersLength)
 		MovieStartCharactersVector(builder, charactersLength)
@@ -60,7 +60,7 @@ func (rcv *Movie) UnPackTo(t *MovieT) {
 	charactersLength := rcv.CharactersLength()
 	t.Characters = make([]*CharacterT, charactersLength)
 	for j := 0; j < charactersLength; j++ {
-		// vector of unions table unpack 
+		// vector of unions table unpack
 		CharactersType := rcv.CharactersType(j)
 		CharactersTable := flatbuffers.Table{}
 		if rcv.Characters(j, &CharactersTable) {
