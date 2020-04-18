@@ -21,6 +21,7 @@
 
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
+#include "flatbuffers/flatc.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
@@ -104,12 +105,21 @@ class GoGenerator : public BaseGenerator {
     if (parser_.opts.one_file) {
       std::string code = "";
       const bool is_enum = !parser_.enums_.vec.empty();
+
       // namespace is missing
       if (go_namespace_.components.empty()) {
         if (parser_.root_struct_def_) {
           go_namespace_.components.push_back(parser_.root_struct_def_->name);
+        } else {
+          LogCompilerError(
+              "missing golang namespace, please use --go-namespace parameter "
+              "or set namespace in IDL file");
         }
+        // TODO: tsingson: if parser_.opts.go_namespace_ is set and namespace be
+        // defined in IDL file , generated  one file go code will be import
+        // error package. this need a solution.
       }
+
       BeginFile(LastNamespacePart(go_namespace_), true, is_enum, &code);
       code += one_file_code;
       const std::string filename =
@@ -1053,15 +1063,15 @@ class GoGenerator : public BaseGenerator {
       if (ev.IsZero()) continue;
       if (ev.union_type.base_type == BASE_TYPE_STRING) {
         code += "\tcase " + enum_def.name + ev.name + ":\n";
-        code += "\t\tx:=\"\"\n";
-        code += "\t\tb:=table.ByteVector(table.Pos)\n";
-        code += "\t\tif b!=nil {\n";
-        code += "\t\t\tx =  string(b)\n";
+        code += "\t\tx := \"\"\n";
+        code += "\t\tb := table.ByteVector(table.Pos)\n";
+        code += "\t\tif b != nil {\n";
+        code += "\t\t\tx = string(b)\n";
         code += "\t\t}\n";
         code +=
             "\t\treturn &" + WrapInNameSpaceAndTrack(enum_def.defined_namespace,
                                                      NativeName(enum_def));
-        code += "{Type: " + enum_def.name + ev.name + ", Value: x }\n";
+        code += "{Type: " + enum_def.name + ev.name + ", Value: x}\n";
 
       } else if ((ev.union_type.base_type == BASE_TYPE_STRUCT) &&
                  (ev.union_type.struct_def->fixed)) {
@@ -1179,7 +1189,7 @@ class GoGenerator : public BaseGenerator {
           code += "TypeVector(builder, " + length + ")\n";
           code += "\t\tfor j := " + length + " - 1; j >= 0; j-- {\n";
           code += "\t\t\tbuilder.PrependByte(byte(t." + MakeCamel(field.name) +
-                  "[j].Type ))\n";
+                  "[j].Type))\n";
           code += "\t\t}\n";
           code += "\t\t" + offset_type + " = " + struct_def.name + "End";
           code += MakeCamel(field.name);
@@ -1431,7 +1441,7 @@ class GoGenerator : public BaseGenerator {
         }  // support vector of unions
         else if (field.value.type.element == BASE_TYPE_UNION) {
           //
-          code += "\t\t// vector of unions table unpack \n";
+          code += "\t\t// vector of unions table unpack\n";
 
           code += "\t\t" + field_name_camel + "Type := rcv." +
                   field_name_camel + "Type(j)\n";

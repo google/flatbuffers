@@ -38,7 +38,7 @@ func (t *Table) ByteVector(off UOffsetT) []byte {
 	return t.Bytes[start : start+length]
 }
 
-// ByteInUnion gets a byte slice from data stored inside the union.
+// StringsVector gets a byte slice from data stored inside the union.
 func (t *Table) StringsVector(off UOffsetT) []byte {
 	start := off + UOffsetT(SizeUOffsetT)
 	length := GetUOffsetT(t.Bytes[off:])
