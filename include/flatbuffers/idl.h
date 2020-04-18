@@ -410,7 +410,9 @@ struct EnumDef : public Definition {
 
   size_t size() const { return vals.vec.size(); }
 
-  const std::vector<EnumVal *> &Vals() const { return vals.vec; }
+  const std::vector<EnumVal *> &Vals() const {
+    return vals.vec;
+  }
 
   const EnumVal *Lookup(const std::string &enum_name) const {
     return vals.Lookup(enum_name);

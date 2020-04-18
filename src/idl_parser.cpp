@@ -1694,7 +1694,9 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
   const auto is_tok_string = (token_ == kTokenStringConstant);
 
   // First see if this could be a conversion function:
-  if (is_tok_ident && *cursor_ == '(') { return ParseFunction(name, e); }
+  if (is_tok_ident && *cursor_ == '(') {
+      return ParseFunction(name, e);
+  }
 
   // clang-format off
   auto match = false;
@@ -1745,7 +1747,8 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
     if (!match && is_tok_string && IsScalar(in_type)) {
       // Strip trailing whitespaces from attribute_.
       auto last_non_ws = attribute_.find_last_not_of(' ');
-      if (std::string::npos != last_non_ws) attribute_.resize(last_non_ws + 1);
+      if (std::string::npos != last_non_ws)
+        attribute_.resize(last_non_ws + 1);
       if (IsFloat(e.type.base_type)) {
         // The functions strtod() and strtof() accept both 'nan' and
         // 'nan(number)' literals. While 'nan(number)' is rejected by the parser
@@ -3091,8 +3094,7 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
       }
       EXPECT(';');
       known_attributes_[name] = false;
-    }  //
-    else if (IsIdent("rpc_service")) {
+    } else if (IsIdent("rpc_service")) {
       ECHECK(ParseService());
     } else {
       ECHECK(ParseDecl());

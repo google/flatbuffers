@@ -117,19 +117,19 @@ func (rcv Character) UnPackVector(table flatbuffers.Table) *CharacterT {
 		x := GetStructVectorAsBookReader(&table)
 		return &CharacterT{Type: CharacterBookFan, Value: x.UnPack()}
 	case CharacterOther:
-		x:=""
-		b:=table.ByteVector(table.Pos)
-		if b!=nil {
-			x =  string(b)
+		x := ""
+		b := table.ByteVector(table.Pos)
+		if b != nil {
+			x = string(b)
 		}
-		return &CharacterT{Type: CharacterOther, Value: x }
+		return &CharacterT{Type: CharacterOther, Value: x}
 	case CharacterUnused:
-		x:=""
-		b:=table.ByteVector(table.Pos)
-		if b!=nil {
-			x =  string(b)
+		x := ""
+		b := table.ByteVector(table.Pos)
+		if b != nil {
+			x = string(b)
 		}
-		return &CharacterT{Type: CharacterUnused, Value: x }
+		return &CharacterT{Type: CharacterUnused, Value: x}
 	}
 	return nil
 }
