@@ -106,6 +106,12 @@ class GoGenerator : public BaseGenerator {
       std::string code = "";
       const bool is_enum = !parser_.enums_.vec.empty();
 
+      // check multiple namespace
+      if ( parser_.namespaces_.size() > 1 ) {
+        LogCompilerError(
+            "more the one namespace defined, can't use --gen-onefile parameter ");
+      }
+
       // namespace is missing
       if (go_namespace_.components.empty()) {
         if (parser_.root_struct_def_) {
@@ -115,10 +121,6 @@ class GoGenerator : public BaseGenerator {
               "missing golang namespace, please use --go-namespace parameter "
               "or set namespace in IDL file");
         }
-        // TODO: tsingson: if parser_.opts.go_namespace_ is set (flatc
-        // --gen-onefile ),
-        // but  different namespace in IDL, generated  one file go code will
-        // throw a import package error. this case need a balance solution.
       }
 
       BeginFile(LastNamespacePart(go_namespace_), true, is_enum, &code);
