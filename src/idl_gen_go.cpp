@@ -109,7 +109,7 @@ class GoGenerator : public BaseGenerator {
       // check multiple namespace
       if ( parser_.namespaces_.size() > 1 ) {
         LogCompilerError(
-            "more the one namespace defined, can't use --gen-onefile parameter ");
+            "can't use --gen-onefile parameter and --go when more the one namespace defined.");
       }
 
       // namespace is missing
