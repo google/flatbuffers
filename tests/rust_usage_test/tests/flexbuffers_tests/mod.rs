@@ -16,3 +16,4 @@ mod binary_format;
 mod other_api;
 mod qc_serious;
 mod rwyw;
+mod interop;

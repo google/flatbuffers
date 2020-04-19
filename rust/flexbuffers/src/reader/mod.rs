@@ -266,6 +266,9 @@ impl<'de> Reader<'de> {
             &self.buffer[self.address..self.address + self.length()],
         ))
     }
+    pub fn as_blob(&self) -> Blob<'de> {
+        self.get_blob().unwrap_or(Blob(&[]))
+    }
     pub fn get_str(&self) -> Result<&'de str, Error> {
         self.expect_type(FlexBufferType::String)?;
         std::str::from_utf8(&self.buffer[self.address..self.address + self.length()])
