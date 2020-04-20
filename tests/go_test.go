@@ -72,6 +72,7 @@ var (
 	overflowingInt32Val = flatbuffers.GetInt32([]byte{0x83, 0x33, 0x33, 0x33})
 	overflowingInt64Val = flatbuffers.GetInt64([]byte{0x84, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44})
 )
+
 // var _ = func() bool {
 // 	testing.Init()
 // 	return true
@@ -1960,7 +1961,8 @@ func TestMovieUnionField1(t *testing.T) {
 		MainCharacter: c1,
 	}
 	fb := flatbuffers.NewBuilder(0)
-	buf := fb.Finish(m.Pack(fb)).FinishedBytes()
+	fb.Finish(m.Pack(fb))
+	buf := fb.FinishedBytes()
 	mt := Movie.GetRootAsMovie(buf, 0)
 	mct := mt.MainCharacterType()
 
@@ -1990,7 +1992,8 @@ func TestMovieUnionField2(t *testing.T) {
 		MainCharacter: c1,
 	}
 	fb := flatbuffers.NewBuilder(0)
-	buf := fb.Finish(m.Pack(fb)).FinishedBytes()
+	fb.Finish(m.Pack(fb))
+	buf := fb.FinishedBytes()
 	mt := Movie.GetRootAsMovie(buf, 0)
 	mct := mt.MainCharacterType()
 	if mct != Movie.CharacterOther {
@@ -2021,7 +2024,8 @@ func TestMovieUnionField3(t *testing.T) {
 		MainCharacter: c2,
 	}
 	fb := flatbuffers.NewBuilder(0)
-	buf := fb.Finish(m.Pack(fb)).FinishedBytes()
+	fb.Finish(m.Pack(fb))
+	buf := fb.FinishedBytes()
 	mt := Movie.GetRootAsMovie(buf, 0)
 	mct := mt.MainCharacterType()
 	if mct != Movie.CharacterRapunzel {
@@ -2052,7 +2056,8 @@ func TestMovieUnionField4(t *testing.T) {
 		MainCharacter: c2,
 	}
 	fb := flatbuffers.NewBuilder(0)
-	buf := fb.Finish(m.Pack(fb)).FinishedBytes()
+	fb.Finish(m.Pack(fb))
+	buf := fb.FinishedBytes()
 	mt := Movie.GetRootAsMovie(buf, 0)
 	mct := mt.MainCharacterType()
 	if mct != Movie.CharacterBookFan {
@@ -2105,7 +2110,8 @@ func TestMovieVectorUnions1(t *testing.T) {
 		Characters:    []*Movie.CharacterT{c1, c2, c1, c3, c4},
 	}
 	fb := flatbuffers.NewBuilder(0)
-	buf := fb.Finish(m.Pack(fb)).FinishedBytes()
+	fb.Finish(m.Pack(fb))
+	buf := fb.FinishedBytes()
 
 	mt := Movie.GetRootAsMovie(buf, 0)
 
@@ -2206,7 +2212,8 @@ func TestMovieVectorUnions2(t *testing.T) {
 		Characters:    []*Movie.CharacterT{c1, c2, c1, c3, c4},
 	}
 	fb := flatbuffers.NewBuilder(0)
-	buf := fb.Finish(m.Pack(fb)).FinishedBytes()
+	fb.Finish(m.Pack(fb))
+	buf := fb.FinishedBytes()
 
 	mt := Movie.GetRootAsMovie(buf, 0)
 
