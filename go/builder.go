@@ -606,12 +606,11 @@ func (b *Builder) FinishWithFileIdentifier(rootTable UOffsetT, fid []byte) {
 }
 
 // Finish finalizes a buffer, pointing to the given `rootTable`.
-func (b *Builder) Finish(rootTable UOffsetT) *Builder {
+func (b *Builder) Finish(rootTable UOffsetT) {
 	b.assertNotNested()
 	b.Prep(b.minalign, SizeUOffsetT)
 	b.PrependUOffsetT(rootTable)
 	b.finished = true
-	return b
 }
 
 // vtableEqual compares an unwritten vtable to a written vtable.
