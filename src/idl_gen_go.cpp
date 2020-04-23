@@ -72,7 +72,7 @@ class GoGenerator : public BaseGenerator {
   bool generate() {
     std::string one_file_code;
     bool needs_imports;
-    // generate enums
+    // generate enums and union
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
       tracked_imported_namespaces_.clear();
@@ -88,11 +88,12 @@ class GoGenerator : public BaseGenerator {
       }
     }
 
-    // generate structs
+    // generate  table / struct
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
       tracked_imported_namespaces_.clear();
       std::string declcode;
+
       GenStruct(**it, &declcode);
 
       if (parser_.opts.one_file) {
@@ -107,9 +108,10 @@ class GoGenerator : public BaseGenerator {
       const bool is_enum = !parser_.enums_.vec.empty();
 
       // check multiple namespace
-      if ( parser_.namespaces_.size() > 1 ) {
+      if (parser_.namespaces_.size() > 1) {
         LogCompilerError(
-            "can't use --gen-onefile parameter and --go when more the one namespace defined.");
+            "can't use --gen-onefile parameter and --go when more the one "
+            "namespace defined.");
       }
 
       // namespace is missing
@@ -287,11 +289,12 @@ class GoGenerator : public BaseGenerator {
     code += "}\n\n";
   }
 
-  // Initialize a new struct or table from existing data.
+  // root table accessor / embed table accessor
   void NewRootTypeFromBuffer(const StructDef &struct_def,
                              std::string *code_ptr) {
     std::string &code = *code_ptr;
 
+    // root table accessor
     code += "// GetRootAs";
     code += struct_def.name;
     code += " shortcut to access root table\n";
@@ -306,7 +309,7 @@ class GoGenerator : public BaseGenerator {
     code += "\treturn x\n";
     code += "}\n\n";
 
-    // add shortcut to access table in unions
+    // access table inside unions vector
     code += "// GetTableVectorAs";
     code += struct_def.name;
     code += " shortcut to access table in vector of  unions\n";
@@ -321,6 +324,7 @@ class GoGenerator : public BaseGenerator {
     code += "\treturn x\n";
     code += "}\n\n";
 
+    // access table in single union field
     code += "// GetTableAs";
     code += struct_def.name;
     code += " shortcut to access table in single union field\n";
@@ -334,11 +338,12 @@ class GoGenerator : public BaseGenerator {
     code += "\treturn x\n";
     code += "}\n\n";
   }
-  // Initialize a new struct or table from existing data.
+  // struct accessor
   void NewStructTypeFromBuffer(const StructDef &struct_def,
                                std::string *code_ptr) {
     std::string &code = *code_ptr;
-    // add shortcut to access struct in unions
+
+    // struct accessor inside  unions vector
     code += "// GetStructVectorAs";
     code += struct_def.name;
     code += " shortcut to access struct in vector of unions\n";
@@ -353,6 +358,7 @@ class GoGenerator : public BaseGenerator {
     code += "\treturn x\n";
     code += "}\n\n";
 
+    // struct accessor in union alone
     code += "// GetStructAs";
     code += struct_def.name;
     code += " shortcut to access struct in single union field\n";
@@ -630,11 +636,13 @@ class GoGenerator : public BaseGenerator {
     std::string &code = *code_ptr;
     code += "\tbuilder.Prep(" + NumToString(struct_def.minalign) + ", ";
     code += NumToString(struct_def.bytesize) + ")\n";
+    // each field
     for (auto it = struct_def.fields.vec.rbegin();
          it != struct_def.fields.vec.rend(); ++it) {
       auto &field = **it;
       if (field.padding)
         code += "\tbuilder.Pad(" + NumToString(field.padding) + ")\n";
+
       if (IsStruct(field.value.type)) {
         StructBuilderBody(*field.value.type.struct_def,
                           (nameprefix + (field.name + "_")).c_str(), code_ptr);
@@ -644,7 +652,7 @@ class GoGenerator : public BaseGenerator {
                                nameprefix + GoIdentity(field.name)) +
                 ")\n";
       }
-    }
+    }  //
   }
 
   void EndBuilderBody(std::string *code_ptr) {
@@ -667,6 +675,7 @@ class GoGenerator : public BaseGenerator {
   void BuildFieldOfTable(const StructDef &struct_def, const FieldDef &field,
                          const size_t offset, std::string *code_ptr) {
     std::string &code = *code_ptr;
+
     code += "func " + struct_def.name + "Add" + MakeCamel(field.name);
     code += "(builder *flatbuffers.Builder, ";
     code += GoIdentity(field.name) + " ";
@@ -697,7 +706,7 @@ class GoGenerator : public BaseGenerator {
     code += "func " + struct_def.name + "Start";
     code += MakeCamel(field.name);
     code += "Vector(builder *flatbuffers.Builder, numElems int) ";
-    code += "flatbuffers.UOffsetT {\n\treturn builder.StartVector(";
+    code += " {\n\tbuilder.StartVector(";
     auto vector_type = field.value.type.VectorType();
     auto alignment = InlineAlignment(vector_type);
     auto elem_size = InlineSize(vector_type);
@@ -848,20 +857,27 @@ class GoGenerator : public BaseGenerator {
 
   // Generate table constructors, conditioned on its members' types.
   void GenTableBuilders(const StructDef &struct_def, std::string *code_ptr) {
+    // builder start
     GetStartOfTable(struct_def, code_ptr);
 
+    // each field builder
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
       if (field.deprecated) continue;
 
       auto offset = it - struct_def.fields.vec.begin();
-      BuildFieldOfTable(struct_def, field, offset, code_ptr);
+
+      // vector array builder
+
       if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+        // vector field
         BuildVectorOfTable(struct_def, field, code_ptr);
       }
+      // field builder
+      BuildFieldOfTable(struct_def, field, offset, code_ptr);
     }
-
+    // builder end
     GetEndOffsetOnTable(struct_def, code_ptr);
   }
 
@@ -882,6 +898,8 @@ class GoGenerator : public BaseGenerator {
     }
 
     GenComment(struct_def.doc_comment, code_ptr, nullptr);
+
+    // generate native struct / table object and api
     if (parser_.opts.generate_object_based_api) {
       GenNativeStruct(struct_def, code_ptr);
     }
@@ -893,15 +911,19 @@ class GoGenerator : public BaseGenerator {
       // the root type.
       NewRootTypeFromBuffer(struct_def, code_ptr);
     } else {
+      // TODO: tsingson, plan to support StructBuffers
+      // ref:
+      // https://github.com/dvidelabs/flatcc/blob/master/doc/binary-format.md#structbuffers
       NewStructTypeFromBuffer(struct_def, code_ptr);
     }
+
     // Generate the Init method that sets the field in a pre-existing
     // accessor object. This is to allow object reuse.
     InitializeExisting(struct_def, code_ptr);
     // Generate _tab accessor
     GenTableAccessor(struct_def, code_ptr);
 
-    // Generate struct fields accessors
+    // Generate fields accessors inside struct / table
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
@@ -909,12 +931,13 @@ class GoGenerator : public BaseGenerator {
       if (field.deprecated) continue;
 
       GenStructAccessor(struct_def, field, code_ptr);
+
       if (parser_.opts.mutable_buffer) {
         GenStructMutator(struct_def, field, code_ptr);
       }
-    }
+    }  //
 
-    // Generate builders
+    // Generate builders for struct / table
     if (struct_def.fixed) {
       // create a struct constructor function
       GenStructBuilder(struct_def, code_ptr);
@@ -924,6 +947,7 @@ class GoGenerator : public BaseGenerator {
     }
   }
 
+  // generate native go object for struct
   void GenNativeStruct(const StructDef &struct_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
 
@@ -943,27 +967,34 @@ class GoGenerator : public BaseGenerator {
       // pass vector of unions type
       auto vectortype = field.value.type.VectorType();  // get element's type
 
+      // is unions vector's type , bypass
+      // do not need a native go field for
       if ((field.value.type.base_type == BASE_TYPE_VECTOR) ||
           (field.value.type.base_type == BASE_TYPE_ARRAY)) {
-        if (IsScalar(vectortype.base_type) && vectortype.enum_def != nullptr &&
-            vectortype.enum_def->is_union)
+        //
+        if (IsScalar(vectortype.base_type) &&
+            (vectortype.enum_def != nullptr) && (vectortype.enum_def->is_union))
           continue;
       }
 
       code += "\t" + MakeCamel(field.name) + " " +
               NativeType(field.value.type) + "\n";
-    }
+    }  //
+
     code += "}\n\n";
 
-    if (!struct_def.fixed) {  // table
+    // generate native object api
+    if (!struct_def.fixed) {
+      // table
       GenNativeTablePack(struct_def, code_ptr);
       GenNativeTableUnPack(struct_def, code_ptr);
     } else {
+      // struct
       GenNativeStructPack(struct_def, code_ptr);
       GenNativeStructUnPack(struct_def, code_ptr);
     }
   }
-
+  // generate native go object for union
   void GenNativeUnion(const EnumDef &enum_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
     code += "type " + NativeName(enum_def) + " struct {\n";
@@ -972,6 +1003,7 @@ class GoGenerator : public BaseGenerator {
     code += "}\n\n";
   }
 
+  // native union object pack
   void GenNativeUnionPack(const EnumDef &enum_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
     code += "func (t *" + NativeName(enum_def) +
@@ -999,6 +1031,7 @@ class GoGenerator : public BaseGenerator {
     code += "}\n\n";
   }
 
+  // native union unpack
   void GenNativeUnionUnPack(const EnumDef &enum_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
     code += "// UnPack use for single union field\n";
@@ -1108,6 +1141,7 @@ class GoGenerator : public BaseGenerator {
     code += "}\n\n";
   }
 
+  // generate Pack function for native table
   void GenNativeTablePack(const StructDef &struct_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
 
@@ -1117,15 +1151,36 @@ class GoGenerator : public BaseGenerator {
             ") Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {\n";
     code += "\tif t == nil {\n\t\treturn 0\n\t}\n";
 
+    // prepare vector field into flatbuffers
+    // vector field include:
+    // 1. single vector, like  string / byte slice / table
+    // 2. union ( union's value field is vector, union's type field is inline
+    // scalar)
+    // 3. array of enum / scalar / string / table / struct
+    // 4. unions vector ( array of unions )
+
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const FieldDef &field = **it;
 
       if (field.deprecated) continue;
+      // pass scalar , it's inline
       if (IsScalar(field.value.type.base_type)) continue;
       // pass vector of unions type
       auto vectortype = field.value.type.VectorType();  // get element's type
 
+      // bypass unions vector type file , handle inside unions vector field
+      //
+      // for single union field in table IDL, it's two slot:
+      //  union's type field
+      //  union's value field
+      //
+      // for unions vector field in table IDL, it's two slot:
+      // unions vector's type field , is a field for union type array
+      // unions vector's value field , is a field for union value array
+      //
+      // so, bypass a unions vector's type field,
+      // generated code in unions vector's value field at same time
       if ((field.value.type.base_type == BASE_TYPE_VECTOR) ||
           (field.value.type.base_type == BASE_TYPE_ARRAY)) {
         if (IsScalar(vectortype.base_type) && vectortype.enum_def != nullptr &&
@@ -1133,31 +1188,29 @@ class GoGenerator : public BaseGenerator {
           continue;
       }
 
+      // UOffset for vector field in table IDL
       std::string offset = MakeCamel(field.name, false) + "Offset";
 
+      // handle string vector field
       if (field.value.type.base_type == BASE_TYPE_STRING) {
-        //  code += "\t// string \n";
         code += "\t" + offset + ":= flatbuffers.UOffsetT(0)\n";
         code += "\tif len(t." + MakeCamel(field.name) + ")> 0  {\n";
         code += "\t\t" + offset + " = builder.CreateString(t." +
                 MakeCamel(field.name) + ")\n\t}\n";
-      }  // byte slice
+      }
+      // handle byte slice vector field
       else if (field.value.type.base_type == BASE_TYPE_VECTOR &&
                field.value.type.element == BASE_TYPE_UCHAR &&
                field.value.type.enum_def == nullptr) {
-        //    code += "\t// byte slice \n";
         code += "\t" + offset + " := flatbuffers.UOffsetT(0)\n";
         code += "\tif t." + MakeCamel(field.name) + " != nil {\n";
         code += "\t\t" + offset + " = builder.CreateByteString(t." +
                 MakeCamel(field.name) + ")\n";
         code += "\t}\n";
-
-      }  // vector
+      }
+      // handle vector field
       else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
-        // vector begin
-        std::string length = MakeCamel(field.name, false) + "Length";
-        std::string offsets = MakeCamel(field.name, false) + "Offsets";
-        // vector of string ( string array )
+        // vector of strings ( string array )
         if (field.value.type.element == BASE_TYPE_STRING) {
           code += "\t" + offset + " := flatbuffers.UOffsetT(0)\n";
           code += "\tif t." + MakeCamel(field.name) + " != nil {\n";
@@ -1165,136 +1218,36 @@ class GoGenerator : public BaseGenerator {
           code += "\t\t" + offset + " = builder.StringsVector( t." +
                   MakeCamel(field.name) + "...)\n";
           code += "\t}\n";
-
-        }  //
+        }
+        // handle unions vector field ( array of unions )
         else if (field.value.type.element == BASE_TYPE_UNION) {
-          code += "\t// vector of unions \n";
-
-          std::string offset_type = MakeCamel(field.name, false) + "TypeOffset";
-
-          code += "\t" + offset + " := flatbuffers.UOffsetT(0)\n";
-          code += "\t" + offset_type + " := flatbuffers.UOffsetT(0)\n";
-
-          code += "\tif t." + MakeCamel(field.name) + " != nil {\n";
-          code +=
-              "\t\t" + length + " := len(t." + MakeCamel(field.name) + ")\n";
-
-          code += "\t\t" + offsets + " := make([]flatbuffers.UOffsetT, " +
-                  length + ")\n";
-
-          code += "\t\tfor j := " + length + " - 1; j >= 0; j-- {\n";
-          code += "\t\t\t" + offsets + "[j] = t." + MakeCamel(field.name) +
-                  "[j].Pack(builder)\n";
-          code += "\t\t}\n";
-
-          code += "\t\t" + struct_def.name + "Start";
-          code += MakeCamel(field.name);
-          code += "TypeVector(builder, " + length + ")\n";
-          code += "\t\tfor j := " + length + " - 1; j >= 0; j-- {\n";
-          code += "\t\t\tbuilder.PrependByte(byte(t." + MakeCamel(field.name) +
-                  "[j].Type))\n";
-          code += "\t\t}\n";
-          code += "\t\t" + offset_type + " = " + struct_def.name + "End";
-          code += MakeCamel(field.name);
-          code += "TypeVector(builder, " + length + ")\n";
-
-          code += "\t\t" + struct_def.name + "Start";
-          code += MakeCamel(field.name);
-          code += "Vector(builder, " + length + ")\n";
-
-          code += "\t\tfor j := " + length + " - 1; j >= 0; j-- {\n";
-          //   code += "\t// table array  \n";
-          code += "\t\t\tbuilder.PrependUOffsetT(" + offsets + "[j])\n";
-          //    code += "\t// end vector \n";
-          code += "\t\t}\n";
-          code += "\t\t" + offset + " = " + struct_def.name + "End";
-          code += MakeCamel(field.name);
-          code += "Vector(builder, " + length + ")\n";
-          code += "\t}\n";
-        }  //
+          genUnionsVectorPack(struct_def, field, code_ptr);
+        }
+        //  table's array field
         else if (field.value.type.element == BASE_TYPE_STRUCT &&
                  !field.value.type.struct_def->fixed) {
-          //   code += "\t// vector start \n";
-          code += "\t" + offset + " := flatbuffers.UOffsetT(0)\n";
-          code += "\tif t." + MakeCamel(field.name) + " != nil {\n";
-
-          code +=
-              "\t\t" + length + " := len(t." + MakeCamel(field.name) + ")\n";
-
-          //   code += "\t// table array \n";
-          code += "\t\t" + offsets + " := make([]flatbuffers.UOffsetT, " +
-                  length + ")\n";
-          code += "\t\tfor j := " + length + " - 1; j >= 0; j-- {\n";
-          code += "\t\t\t" + offsets + "[j] = t." + MakeCamel(field.name) +
-                  "[j].Pack(builder)\n";
-          code += "\t\t}\n";
-          code += "\t\t" + struct_def.name + "Start" + MakeCamel(field.name) +
-                  "Vector(builder, " + length + ")\n";
-          code += "\t\tfor j := " + length + " - 1; j >= 0; j-- {\n";
-          //   code += "\t// table array  \n";
-          code += "\t\t\tbuilder.PrependUOffsetT(" + offsets + "[j])\n";
-          //    code += "\t// end vector \n";
-          code += "\t\t}\n";
-          code += "\t\t" + offset + " = " + struct_def.name + "End" +
-                  MakeCamel(field.name) + "Vector(builder, " + length + ")\n";
-          code += "\t}\n";
+          genTableArrayPack(struct_def, field, code_ptr);
         }
-
-        if (IsScalar(field.value.type.element)) {
-          //   code += "\t// vector start \n";
-          code += "\t" + offset + " := flatbuffers.UOffsetT(0)\n";
-          code += "\tif t." + MakeCamel(field.name) + " != nil {\n";
-
-          code +=
-              "\t\t" + length + " := len(t." + MakeCamel(field.name) + ")\n";
-
-          code += "\t\t" + struct_def.name + "Start" + MakeCamel(field.name) +
-                  "Vector(builder, " + length + ")\n";
-          code += "\t\tfor j := " + length + " - 1; j >= 0; j-- {\n";
-          //     code += "\t// scalar array \n";
-          code += "\t\t\tbuilder.Prepend" +
-                  MakeCamel(GenTypeBasic(field.value.type.VectorType())) + "(" +
-                  CastToBaseType(field.value.type.VectorType(),
-                                 "t." + MakeCamel(field.name) + "[j]") +
-                  ")\n";
-          //     code += "\t// end vector \n";
-          code += "\t\t}\n";
-          code += "\t\t" + offset + " = " + struct_def.name + "End" +
-                  MakeCamel(field.name) + "Vector(builder, " + length + ")\n";
-          code += "\t}\n";
-        } else if (field.value.type.element == BASE_TYPE_STRUCT &&
-                   field.value.type.struct_def->fixed) {
-          //   code += "\t// vector start \n";
-          code += "\t" + offset + " := flatbuffers.UOffsetT(0)\n";
-          code += "\tif t." + MakeCamel(field.name) + " != nil {\n";
-
-          code +=
-              "\t\t" + length + " := len(t." + MakeCamel(field.name) + ")\n";
-
-          code += "\t\t" + struct_def.name + "Start" + MakeCamel(field.name) +
-                  "Vector(builder, " + length + ")\n";
-          code += "\t\tfor j := " + length + " - 1; j >= 0; j-- {\n";
-          //  code += "\t// struct array \n";
-          code += "\t\t\tt." + MakeCamel(field.name) + "[j].Pack(builder)\n";
-          //   code += "\t// end vector \n";
-          code += "\t\t}\n";
-          code += "\t\t" + offset + " = " + struct_def.name + "End" +
-                  MakeCamel(field.name) + "Vector(builder, " + length + ")\n";
-          code += "\t}\n";
+        // scalar's array field
+        else if (IsScalar(field.value.type.element)) {
+          genScalarArrayPack(struct_def, field, code_ptr);
+        }
+        // struct's array field
+        else if (field.value.type.element == BASE_TYPE_STRUCT &&
+                 field.value.type.struct_def->fixed) {
+          genStructArrayPack(struct_def, field, code_ptr);
         }
         // end vector
       }
-      // struct
+      // struct field
       else if (field.value.type.base_type == BASE_TYPE_STRUCT) {
-        // pass struct
+        // pass single struct , it's inline
         if (field.value.type.struct_def->fixed) continue;
         // table
-        //   code += "\t// table \n";
         code += "\t" + offset + " := t." + MakeCamel(field.name) +
                 ".Pack(builder)\n";
-      }  // single union
+      }  // single union field
       else if (field.value.type.base_type == BASE_TYPE_UNION) {
-        //   code += "\t// union \n";
         code += "\t" + offset + " := t." + MakeCamel(field.name) +
                 ".Pack(builder)\n";
         code += "\t\n";
@@ -1303,16 +1256,21 @@ class GoGenerator : public BaseGenerator {
       }
     }
 
+    // start fbs builder
     code += "\n\t// pack process all field\n";
+    // start builder
     code += "\n\t" + struct_def.name + "Start(builder)\n";
 
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const FieldDef &field = **it;
-      if (field.deprecated) continue;
-      // pass vector of unions type
+      auto &field_type = field.value.type;
       auto vectortype = field.value.type.VectorType();  // get element's type
 
+      if (field.deprecated) continue;
+
+      // bypass unions vector's type field, handle with unions vector's value
+      // field
       if ((field.value.type.base_type == BASE_TYPE_VECTOR) ||
           (field.value.type.base_type == BASE_TYPE_ARRAY)) {
         if (IsScalar(vectortype.base_type) && vectortype.enum_def != nullptr &&
@@ -1322,20 +1280,19 @@ class GoGenerator : public BaseGenerator {
 
       std::string offset = MakeCamel(field.name, false) + "Offset";
 
+      // build scalar field
       if (IsScalar(field.value.type.base_type)) {
         if (field.value.type.enum_def == nullptr ||
             !field.value.type.enum_def->is_union) {
           code += "\t" + struct_def.name + "Add" + MakeCamel(field.name) +
                   "(builder, t." + MakeCamel(field.name) + ")\n";
         }
-      }  // vector
+      }  // build vector field
       else {
-        auto &field_type = field.value.type;
-        //        auto vectortype = field.value.type.VectorType();  // get
-        //        element's type
+        // vector array
         if ((field_type.base_type == BASE_TYPE_VECTOR) ||
             (field_type.base_type == BASE_TYPE_ARRAY)) {
-          //
+          // unions vector (  array of union )
           if (vectortype.base_type == BASE_TYPE_UNION) {
             //  code += "\t\t\t// union in array ----------- \n";
             std::string offset_type =
@@ -1346,21 +1303,24 @@ class GoGenerator : public BaseGenerator {
             code += "\t" + struct_def.name + "Add" + MakeCamel(field.name) +
                     "(builder, " + offset + ")\n";
 
-          } else {
+          }  // another vector array
+          else {
             code += "\t" + struct_def.name + "Add" + MakeCamel(field.name) +
                     "(builder, " + offset + ")\n";
           }
         }
 
-        // else
+        // single vector field
+        // struct field
         else if (field.value.type.base_type == BASE_TYPE_STRUCT &&
                  field.value.type.struct_def->fixed) {
           code += "\t" + offset + " := t." + MakeCamel(field.name) +
                   ".Pack(builder)\n";
           code += "\t" + struct_def.name + "Add" + MakeCamel(field.name) +
                   "(builder, " + offset + ")\n";
-        } else if (field.value.type.enum_def != nullptr &&
-                   field.value.type.enum_def->is_union) {
+        }  // single union field
+        else if (field.value.type.enum_def != nullptr &&
+                 field.value.type.enum_def->is_union) {
           code += "\tif t." + MakeCamel(field.name) + " != nil {\n";
           code += "\t\t" + struct_def.name + "Add" +
                   MakeCamel(field.name + UnionTypeFieldSuffix()) +
@@ -1368,14 +1328,168 @@ class GoGenerator : public BaseGenerator {
           code += "\t}\n";
           code += "\t" + struct_def.name + "Add" + MakeCamel(field.name) +
                   "(builder, " + offset + ")\n";
-        } else {
+        }  // other vector field
+        else {
           code += "\t" + struct_def.name + "Add" + MakeCamel(field.name) +
                   "(builder, " + offset + ")\n";
         }
       }
     }  // end for
+    // end builder
     code += "\treturn " + struct_def.name + "End(builder)\n";
     code += "}\n\n";
+  }
+
+  // generate scalar array pack func ( array of scalar )
+  void genScalarArrayPack(const StructDef &struct_def, const FieldDef &field,
+                          std::string *code_ptr) {
+    std::string &code = *code_ptr;
+
+    std::string offset = MakeCamel(field.name, false) + "Offset";
+    std::string length = MakeCamel(field.name, false) + "Length";
+    std::string offsets = MakeCamel(field.name, false) + "Offsets";
+    code += "\t" + offset + " := flatbuffers.UOffsetT(0)\n";
+    code += "\tif t." + MakeCamel(field.name) + " != nil {\n";
+
+    code += "\t\t" + length + " := len(t." + MakeCamel(field.name) + ")\n";
+
+    code += "\t\t" + struct_def.name + "Start" + MakeCamel(field.name) +
+            "Vector(builder, " + length + ")\n";
+    code += "\t\tfor j := " + length + " - 1; j >= 0; j-- {\n";
+    //     code += "\t// scalar array \n";
+    code += "\t\t\tbuilder.Prepend" +
+            MakeCamel(GenTypeBasic(field.value.type.VectorType())) + "(" +
+            CastToBaseType(field.value.type.VectorType(),
+                           "t." + MakeCamel(field.name) + "[j]") +
+            ")\n";
+    //     code += "\t// end vector \n";
+    code += "\t\t}\n";
+    code += "\t\t" + offset + " = " + struct_def.name + "End" +
+            MakeCamel(field.name) + "Vector(builder, " + length + ")\n";
+    code += "\t}\n";
+  }
+  // generate struct array pack func ( array of scalar )
+  void genStructArrayPack(const StructDef &struct_def, const FieldDef &field,
+                          std::string *code_ptr) {
+    std::string &code = *code_ptr;
+
+    std::string offset = MakeCamel(field.name, false) + "Offset";
+    std::string length = MakeCamel(field.name, false) + "Length";
+    std::string offsets = MakeCamel(field.name, false) + "Offsets";
+
+    code += "\t" + offset + " := flatbuffers.UOffsetT(0)\n";
+    code += "\tif t." + MakeCamel(field.name) + " != nil {\n";
+
+    code += "\t\t" + length + " := len(t." + MakeCamel(field.name) + ")\n";
+    // vector start
+    code += "\t\t" + struct_def.name + "Start" + MakeCamel(field.name) +
+            "Vector(builder, " + length + ")\n";
+    //
+    code += "\t\tfor j := " + length + " - 1; j >= 0; j-- {\n";
+    code += "\t\t\tt." + MakeCamel(field.name) + "[j].Pack(builder)\n";
+    code += "\t\t}\n";
+    // vector end
+    code += "\t\t" + offset + " = " + struct_def.name + "End" +
+            MakeCamel(field.name) + "Vector(builder, " + length + ")\n";
+    code += "\t}\n";
+  }
+  // generate table array pack func ( array of tables )
+  void genTableArrayPack(const StructDef &struct_def, const FieldDef &field,
+                         std::string *code_ptr) {
+    std::string &code = *code_ptr;
+
+    std::string offset = MakeCamel(field.name, false) + "Offset";
+    std::string length = MakeCamel(field.name, false) + "Length";
+    std::string offsets = MakeCamel(field.name, false) + "Offsets";
+    code += "\t// vector of tables \n";
+
+    code += "\t" + offset + " := flatbuffers.UOffsetT(0)\n";
+    code += "\tif t." + MakeCamel(field.name) + " != nil {\n";
+
+    code += "\t\t" + length + " := len(t." + MakeCamel(field.name) + ")\n";
+
+    code +=
+        "\t\t" + offsets + " := make([]flatbuffers.UOffsetT, " + length + ")\n";
+    code += "\t\tfor j := " + length + " - 1; j >= 0; j-- {\n";
+    code += "\t\t\t" + offsets + "[j] = t." + MakeCamel(field.name) +
+            "[j].Pack(builder)\n";
+    code += "\t\t}\n";
+    // handle UOffsets
+    // start vector
+    code += "\t\t" + struct_def.name + "Start" + MakeCamel(field.name) +
+            "Vector(builder, " + length + ")\n";
+
+    code += "\t\tfor j := " + length + " - 1; j >= 0; j-- {\n";
+    code += "\t\t\tbuilder.PrependUOffsetT(" + offsets + "[j])\n";
+    code += "\t\t}\n";
+    // end vector
+    code += "\t\t" + offset + " = " + struct_def.name + "End" +
+            MakeCamel(field.name) + "Vector(builder, " + length + ")\n";
+    code += "\t}\n";
+  }
+  // generate unions vector pack func ( array of unions )
+  void genUnionsVectorPack(const StructDef &struct_def, const FieldDef &field,
+                           std::string *code_ptr) {
+    std::string &code = *code_ptr;
+
+    //  auto vectortype = field.value.type.VectorType();  // get element's type
+    // UOffset for vector field in table IDL
+    std::string offset = MakeCamel(field.name, false) + "Offset";
+    std::string length = MakeCamel(field.name, false) + "Length";
+    std::string offsets = MakeCamel(field.name, false) + "Offsets";
+    code += "\t// vector of unions \n";
+
+    // for unions vector field in table IDL, it's two slot:
+    // unions vector's type field , is a field for union type array
+    // unions vector's value field , is a field for union value array
+
+    // UOffset for unions vector's type field
+    std::string offset_type = MakeCamel(field.name, false) + "TypeOffset";
+
+    // generate go code to initial type /value 's UOffset
+    code += "\t" + offset + " := flatbuffers.UOffsetT(0)\n";
+    code += "\t" + offset_type + " := flatbuffers.UOffsetT(0)\n";
+
+    code += "\tif t." + MakeCamel(field.name) + " != nil {\n";
+    code += "\t\t" + length + " := len(t." + MakeCamel(field.name) + ")\n";
+
+    // unions vector's type field to fbs
+    code += "\t\t" + struct_def.name + "Start";
+    code += MakeCamel(field.name);
+    code += "TypeVector(builder, " + length + ")\n";
+    code += "\t\tfor j := " + length + " - 1; j >= 0; j-- {\n";
+    code += "\t\t\tbuilder.PrependByte(byte(t." + MakeCamel(field.name) +
+            "[j].Type))\n";
+    code += "\t\t}\n";
+    code += "\t\t" + offset_type + " = " + struct_def.name + "End";
+    code += MakeCamel(field.name);
+    code += "TypeVector(builder, " + length + ")\n\n";
+    // unions vector's type field UOffset
+
+    // unions vector's value field
+    code += "\t\t// vector array\n";
+    code +=
+        "\t\t" + offsets + " := make([]flatbuffers.UOffsetT, " + length + ")\n";
+
+    code += "\t\tfor j := " + length + " - 1; j >= 0; j-- {\n";
+    code += "\t\t\t" + offsets + "[j] = t." + MakeCamel(field.name) +
+            "[j].Pack(builder)\n";
+    code += "\t\t}\n";
+
+    // start vector
+    code += "\t\t" + struct_def.name + "Start";
+    code += MakeCamel(field.name);
+    code += "Vector(builder, " + length + ")\n";
+    //
+    code += "\t\tfor j := " + length + " - 1; j >= 0; j-- {\n";
+    code += "\t\t\tbuilder.PrependUOffsetT(" + offsets + "[j])\n";
+    code += "\t\t}\n";
+    // end vector
+    code += "\t\t" + offset + " = " + struct_def.name + "End";
+    code += MakeCamel(field.name);
+    code += "Vector(builder, " + length + ")\n";
+    code += "\t}\n";
+    //
   }
 
   void GenNativeTableUnPack(const StructDef &struct_def,
@@ -1567,6 +1681,7 @@ class GoGenerator : public BaseGenerator {
 
     GenComment(enum_def.doc_comment, code_ptr, nullptr);
     GenEnumType(enum_def, code_ptr);
+
     BeginEnum(code_ptr);
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       const EnumVal &ev = **it;
@@ -1591,11 +1706,15 @@ class GoGenerator : public BaseGenerator {
 
     EnumStringer(enum_def, code_ptr);
 
+    // generate union's native object related go code
     if (enum_def.is_union && parser_.opts.generate_object_based_api) {
+      // union alone
       GenNativeUnion(enum_def, code_ptr);
       GenNativeUnionPack(enum_def, code_ptr);
+      // union array ( unions vector )
       GenNativeUnionUnPack(enum_def, code_ptr);
       GenNativeUnionUnPackIn(enum_def, code_ptr);
+
       *needs_imports = true;
     }
   }
@@ -1739,10 +1858,11 @@ class GoGenerator : public BaseGenerator {
 
   // Create a struct with a builder and the struct's arguments.
   void GenStructBuilder(const StructDef &struct_def, std::string *code_ptr) {
+    // struct builder declaration
     BeginBuilderArgs(struct_def, code_ptr);
     StructBuilderArgs(struct_def, "", code_ptr);
     EndBuilderArgs(code_ptr);
-
+    // builder body
     StructBuilderBody(struct_def, "", code_ptr);
     EndBuilderBody(code_ptr);
   }
