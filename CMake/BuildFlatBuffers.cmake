@@ -160,22 +160,24 @@ endfunction()
 # Arguments:
 #   TARGET: The name of the target to generate.
 #   SCHEMAS: The list of schema files to generate code for.
-#   BINARY_SCHEMAS_DIR: The directory in which to generate binary schemas.
-#       Binary schemas will only be generated if a path is provided.
-#   INCLUDE: Search for includes in the specified paths. (Use this instead of
-#       "-I <path>" and the FLAGS option so that CMake is aware of the
-#       directories that need to be searched).
-#   FLAGS: A list of any additional flags that you would like to pass to flatc.
+#   BINARY_SCHEMAS_DIR: Optional. The directory in which to generate binary
+#       schemas. Binary schemas will only be generated if a path is provided.
+#   INCLUDE: Optional. Search for includes in the specified paths. (Use this
+#       instead of "-I <path>" and the FLAGS option so that CMake is aware of
+#       the directories that need to be searched).
+#   INCLUDE_PREFIX: Optional. The directory in which to place the generated
+#       files. Use this instead of the --include-prefix option.
+#   FLAGS: Optional. A list of any additional flags that you would like to pass
+#       to flatc.
 #
 # Example:
 #
 #     flatbuffers_generate_headers(
 #         TARGET my_generated_headers_target
+#         INCLUDE_PREFIX ${MY_INCLUDE_PREFIX}"
 #         SCHEMAS ${MY_SCHEMA_FILES}
 #         BINARY_SCHEMAS_DIR "${MY_BINARY_SCHEMA_DIRECTORY}"
-#         FLAGS
-#           --include-prefix "${MY_INCLUDE_PREFIX}"
-#           --gen-object-api)
+#         FLAGS --gen-object-api)
 #
 #     target_link_libraries(MyExecutableTarget
 #         PRIVATE my_generated_headers_target
@@ -185,6 +187,7 @@ function(flatbuffers_generate_headers)
   set(options)
   set(one_value_args
     "TARGET"
+    "INCLUDE_PREFIX"
     "BINARY_SCHEMAS_DIR")
   set(multi_value_args
     "SCHEMAS"
@@ -219,6 +222,8 @@ function(flatbuffers_generate_headers)
   set(generated_include_dir "${generated_target_dir}")
   if (NOT ${FLATBUFFERS_GENERATE_HEADERS_INCLUDE_PREFIX} STREQUAL "")
     set(generated_include_dir "${generated_include_dir}/${FLATBUFFERS_GENERATE_HEADERS_INCLUDE_PREFIX}")
+    list(APPEND FLATBUFFERS_GENERATE_HEADERS_FLAGS 
+         "--include-prefix" ${FLATBUFFERS_GENERATE_HEADERS_INCLUDE_PREFIX})
   endif()
 
   # Create rules to generate the code for each schema.
@@ -290,8 +295,7 @@ endfunction()
 #
 # This function takes a target name and a list of schemas and Json files. You
 # can also specify other flagc flags and options to change the behavior of the
-# flatc compiler. Flags are named the same as they would be in the flatc tool
-# except ALL_CAPS. For example, --strict-json would be passed in as STRICT_JSON.
+# flatc compiler.
 #
 # Adding this target to your executable ensurses that the flatbuffer binaries
 # are compiled before your executable is run.
@@ -300,12 +304,13 @@ endfunction()
 #   TARGET: The name of the target to generate.
 #   JSON_FILES: The list of json files to compile to flatbuffers binaries.
 #   SCHEMA: The flatbuffers schema of the Json files to be compiled.
-#   INCLUDE: Search for includes in the specified paths. (Use this instead of
-#       "-I <path>" and the FLAGS option so that CMake is aware of the
-#       directories that need to be searched).
+#   INCLUDE: Optional. Search for includes in the specified paths. (Use this 
+#       instead of "-I <path>" and the FLAGS option so that CMake is aware of 
+#       the directories that need to be searched).
 #   OUTPUT_DIR: The directly where the generated flatbuffers binaries should be
 #       placed.
-#   FLAGS: A list of any additional flags that you would like to pass to flatc.
+#   FLAGS: Optional. A list of any additional flags that you would like to pass
+#       to flatc.
 #
 # Example:
 #
