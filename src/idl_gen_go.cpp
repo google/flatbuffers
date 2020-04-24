@@ -705,8 +705,8 @@ class GoGenerator : public BaseGenerator {
     std::string &code = *code_ptr;
     code += "func " + struct_def.name + "Start";
     code += MakeCamel(field.name);
-    code += "Vector(builder *flatbuffers.Builder, numElems int) ";
-    code += " {\n\tbuilder.StartVector(";
+    code += "Vector(builder *flatbuffers.Builder, numElems int) {\n";
+    code += "\tbuilder.StartVector(";
     auto vector_type = field.value.type.VectorType();
     auto alignment = InlineAlignment(vector_type);
     auto elem_size = InlineSize(vector_type);
@@ -749,6 +749,7 @@ class GoGenerator : public BaseGenerator {
       }
     } else {
       switch (field_type.base_type) {
+          // struct
         case BASE_TYPE_STRUCT:
           if (struct_def.fixed) {
             GetStructFieldOfStruct(struct_def, field, code_ptr);
@@ -761,30 +762,30 @@ class GoGenerator : public BaseGenerator {
           break;
         case BASE_TYPE_VECTOR: {
           auto vectortype = field.value.type.VectorType();
-          // support vector of unions
-          //          if ((field_type.base_type == BASE_TYPE_VECTOR) ||
-          //              (field_type.base_type == BASE_TYPE_ARRAY)) {
+
+          GetVectorLen(struct_def, field, code_ptr);
+
+          if (field_type.element == BASE_TYPE_UCHAR) {
+            GetUByteSlice(struct_def, field, code_ptr);
+            break;
+          }
+
           // vector of unions ( unions in array )
           if (vectortype.base_type == BASE_TYPE_UNION) {
             GetMemberOfVectorOfUnions(struct_def, field, code_ptr);
             break;
           }
-          //    }  // end array vector
+          // struct
           if (vectortype.base_type == BASE_TYPE_STRUCT) {
             GetMemberOfVectorOfStruct(struct_def, field, code_ptr);
-          } else {
-            GetMemberOfVectorOfNonStruct(struct_def, field, code_ptr);
+            break;
           }
+          // others
+          GetMemberOfVectorOfNonStruct(struct_def, field, code_ptr);
           break;
         }
         case BASE_TYPE_UNION: GetUnionField(struct_def, field, code_ptr); break;
         default: FLATBUFFERS_ASSERT(0);
-      }
-    }
-    if (field.value.type.base_type == BASE_TYPE_VECTOR) {
-      GetVectorLen(struct_def, field, code_ptr);
-      if (field.value.type.element == BASE_TYPE_UCHAR) {
-        GetUByteSlice(struct_def, field, code_ptr);
       }
     }
   }
@@ -798,7 +799,7 @@ class GoGenerator : public BaseGenerator {
     GenReceiver(struct_def, code_ptr);
     code += " Mutate" + MakeCamel(field.name);
     code += "(n " + TypeName(field) + ") bool {\n\treturn " + setter;
-    code += "(rcv._tab.Pos+flatbuffers.UOffsetT(";
+    code += "(rcv._tab.Pos + flatbuffers.UOffsetT(";
     code += NumToString(field.value.offset) + "), ";
     code += CastToBaseType(field.value.type, "n") + ")\n}\n\n";
   }
@@ -831,7 +832,7 @@ class GoGenerator : public BaseGenerator {
     code += OffsetPrefix(field);
     code += "\t\ta := rcv._tab.Vector(o)\n";
     code += "\t\treturn " + setter + "(";
-    code += "a+flatbuffers.UOffsetT(j*";
+    code += "a + flatbuffers.UOffsetT(j*";
     code += NumToString(InlineSize(vectortype)) + "), ";
     code += CastToBaseType(vectortype, "n") + ")\n";
     code += "\t}\n";
@@ -913,8 +914,6 @@ class GoGenerator : public BaseGenerator {
       NewRootTypeFromBuffer(struct_def, code_ptr);
     } else {
       // TODO: tsingson, plan to support StructBuffers
-      // ref:
-      // https://github.com/dvidelabs/flatcc/blob/master/doc/binary-format.md#structbuffers
       NewStructTypeFromBuffer(struct_def, code_ptr);
     }
 
@@ -1194,8 +1193,8 @@ class GoGenerator : public BaseGenerator {
 
       // handle string vector field
       if (field.value.type.base_type == BASE_TYPE_STRING) {
-        code += "\t" + offset + ":= flatbuffers.UOffsetT(0)\n";
-        code += "\tif len(t." + MakeCamel(field.name) + ")> 0  {\n";
+        code += "\t" + offset + " := flatbuffers.UOffsetT(0)\n";
+        code += "\tif len(t." + MakeCamel(field.name) + ") > 0 {\n";
         code += "\t\t" + offset + " = builder.CreateString(t." +
                 MakeCamel(field.name) + ")\n\t}\n";
       }
@@ -1216,7 +1215,7 @@ class GoGenerator : public BaseGenerator {
           code += "\t" + offset + " := flatbuffers.UOffsetT(0)\n";
           code += "\tif t." + MakeCamel(field.name) + " != nil {\n";
 
-          code += "\t\t" + offset + " = builder.StringsVector( t." +
+          code += "\t\t" + offset + " = builder.StringsVector(t." +
                   MakeCamel(field.name) + "...)\n";
           code += "\t}\n";
         }
