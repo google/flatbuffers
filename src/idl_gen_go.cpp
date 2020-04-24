@@ -740,6 +740,7 @@ class GoGenerator : public BaseGenerator {
     auto &field_type = field.value.type;
 
     GenComment(field.doc_comment, code_ptr, nullptr, "");
+
     if (IsScalar(field_type.base_type)) {
       if (struct_def.fixed) {
         GetScalarFieldOfStruct(struct_def, field, code_ptr);
@@ -761,14 +762,14 @@ class GoGenerator : public BaseGenerator {
         case BASE_TYPE_VECTOR: {
           auto vectortype = field.value.type.VectorType();
           // support vector of unions
-          if ((field_type.base_type == BASE_TYPE_VECTOR) ||
-              (field_type.base_type == BASE_TYPE_ARRAY)) {
-            // vector of unions ( unions in array )
-            if (vectortype.base_type == BASE_TYPE_UNION) {
-              GetMemberOfVectorOfUnions(struct_def, field, code_ptr);
-              break;
-            }
-          }  // end array vector
+          //          if ((field_type.base_type == BASE_TYPE_VECTOR) ||
+          //              (field_type.base_type == BASE_TYPE_ARRAY)) {
+          // vector of unions ( unions in array )
+          if (vectortype.base_type == BASE_TYPE_UNION) {
+            GetMemberOfVectorOfUnions(struct_def, field, code_ptr);
+            break;
+          }
+          //    }  // end array vector
           if (vectortype.base_type == BASE_TYPE_STRUCT) {
             GetMemberOfVectorOfStruct(struct_def, field, code_ptr);
           } else {
