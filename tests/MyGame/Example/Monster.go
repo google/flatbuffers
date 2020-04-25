@@ -61,8 +61,8 @@ func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil {
 		return 0
 	}
-	nameOffset:= flatbuffers.UOffsetT(0)
-	if len(t.Name)> 0  {
+	nameOffset := flatbuffers.UOffsetT(0)
+	if len(t.Name) > 0 {
 		nameOffset = builder.CreateString(t.Name)
 	}
 	inventoryOffset := flatbuffers.UOffsetT(0)
@@ -82,8 +82,9 @@ func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	}
 	testarrayofstringOffset := flatbuffers.UOffsetT(0)
 	if t.Testarrayofstring != nil {
-		testarrayofstringOffset = builder.StringsVector( t.Testarrayofstring...)
+		testarrayofstringOffset = builder.StringsVector(t.Testarrayofstring...)
 	}
+	// vector of tables 
 	testarrayoftablesOffset := flatbuffers.UOffsetT(0)
 	if t.Testarrayoftables != nil {
 		testarrayoftablesLength := len(t.Testarrayoftables)
@@ -114,7 +115,7 @@ func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	}
 	testarrayofstring2Offset := flatbuffers.UOffsetT(0)
 	if t.Testarrayofstring2 != nil {
-		testarrayofstring2Offset = builder.StringsVector( t.Testarrayofstring2...)
+		testarrayofstring2Offset = builder.StringsVector(t.Testarrayofstring2...)
 	}
 	testarrayofsortedstructOffset := flatbuffers.UOffsetT(0)
 	if t.Testarrayofsortedstruct != nil {
@@ -157,6 +158,7 @@ func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 		vectorOfDoublesOffset = MonsterEndVectorOfDoublesVector(builder, vectorOfDoublesLength)
 	}
 	parentNamespaceTestOffset := t.ParentNamespaceTest.Pack(builder)
+	// vector of tables 
 	vectorOfReferrablesOffset := flatbuffers.UOffsetT(0)
 	if t.VectorOfReferrables != nil {
 		vectorOfReferrablesLength := len(t.VectorOfReferrables)
@@ -179,6 +181,7 @@ func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 		}
 		vectorOfWeakReferencesOffset = MonsterEndVectorOfWeakReferencesVector(builder, vectorOfWeakReferencesLength)
 	}
+	// vector of tables 
 	vectorOfStrongReferrablesOffset := flatbuffers.UOffsetT(0)
 	if t.VectorOfStrongReferrables != nil {
 		vectorOfStrongReferrablesLength := len(t.VectorOfStrongReferrables)
@@ -302,7 +305,6 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 	for j := 0; j < test4Length; j++ {
 		x := Test{}
 		rcv.Test4(&x, j)
-		t.Test4[j] = x.UnPack()
 	}
 	testarrayofstringLength := rcv.TestarrayofstringLength()
 	t.Testarrayofstring = make([]string, testarrayofstringLength)
@@ -314,7 +316,6 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 	for j := 0; j < testarrayoftablesLength; j++ {
 		x := Monster{}
 		rcv.Testarrayoftables(&x, j)
-		t.Testarrayoftables[j] = x.UnPack()
 	}
 	t.Enemy = rcv.Enemy(nil).UnPack()
 	t.Testnestedflatbuffer = rcv.TestnestedflatbufferBytes()
@@ -345,7 +346,6 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 	for j := 0; j < testarrayofsortedstructLength; j++ {
 		x := Ability{}
 		rcv.Testarrayofsortedstruct(&x, j)
-		t.Testarrayofsortedstruct[j] = x.UnPack()
 	}
 	t.Flex = rcv.FlexBytes()
 	test5Length := rcv.Test5Length()
@@ -353,7 +353,6 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 	for j := 0; j < test5Length; j++ {
 		x := Test{}
 		rcv.Test5(&x, j)
-		t.Test5[j] = x.UnPack()
 	}
 	vectorOfLongsLength := rcv.VectorOfLongsLength()
 	t.VectorOfLongs = make([]int64, vectorOfLongsLength)
@@ -369,7 +368,6 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 	for j := 0; j < vectorOfReferrablesLength; j++ {
 		x := Referrable{}
 		rcv.VectorOfReferrables(&x, j)
-		t.VectorOfReferrables[j] = x.UnPack()
 	}
 	t.SingleWeakReference = rcv.SingleWeakReference()
 	vectorOfWeakReferencesLength := rcv.VectorOfWeakReferencesLength()
@@ -381,7 +379,6 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 	for j := 0; j < vectorOfStrongReferrablesLength; j++ {
 		x := Referrable{}
 		rcv.VectorOfStrongReferrables(&x, j)
-		t.VectorOfStrongReferrables[j] = x.UnPack()
 	}
 	t.CoOwningReference = rcv.CoOwningReference()
 	vectorOfCoOwningReferencesLength := rcv.VectorOfCoOwningReferencesLength()
@@ -404,7 +401,7 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 	vectorOfEnumsLength := rcv.VectorOfEnumsLength()
 	t.VectorOfEnums = make([]Color, vectorOfEnumsLength)
 	for j := 0; j < vectorOfEnumsLength; j++ {
-		t.VectorOfEnums[j] = rcv.VectorOfEnums(j)	}
+		t.VectorOfEnums[j] = Color(rcv.VectorOfEnumsBytes()[j])	}
 	t.SignedEnum = rcv.SignedEnum()
 }
 
@@ -498,15 +495,6 @@ func (rcv *Monster) Name() []byte {
 	return nil
 }
 
-func (rcv *Monster) Inventory(j int) byte {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(14))
-	if o != 0 {
-		a := rcv._tab.Vector(o)
-		return rcv._tab.GetByte(a + flatbuffers.UOffsetT(j*1))
-	}
-	return 0
-}
-
 func (rcv *Monster) InventoryLength() int {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(14))
 	if o != 0 {
@@ -527,7 +515,7 @@ func (rcv *Monster) MutateInventory(j int, n byte) bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(14))
 	if o != 0 {
 		a := rcv._tab.Vector(o)
-		return rcv._tab.MutateByte(a+flatbuffers.UOffsetT(j*1), n)
+		return rcv._tab.MutateByte(a + flatbuffers.UOffsetT(j*1), n)
 	}
 	return false
 }
@@ -565,6 +553,14 @@ func (rcv *Monster) Test(obj *flatbuffers.Table) bool {
 	return false
 }
 
+func (rcv *Monster) Test4Length() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(22))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
 func (rcv *Monster) Test4(obj *Test, j int) bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(22))
 	if o != 0 {
@@ -576,8 +572,8 @@ func (rcv *Monster) Test4(obj *Test, j int) bool {
 	return false
 }
 
-func (rcv *Monster) Test4Length() int {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(22))
+func (rcv *Monster) TestarrayofstringLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(24))
 	if o != 0 {
 		return rcv._tab.VectorLen(o)
 	}
@@ -593,16 +589,16 @@ func (rcv *Monster) Testarrayofstring(j int) []byte {
 	return nil
 }
 
-func (rcv *Monster) TestarrayofstringLength() int {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(24))
+/// an example documentation comment: this will end up in the generated code
+/// multiline too
+func (rcv *Monster) TestarrayoftablesLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(26))
 	if o != 0 {
 		return rcv._tab.VectorLen(o)
 	}
 	return 0
 }
 
-/// an example documentation comment: this will end up in the generated code
-/// multiline too
 func (rcv *Monster) Testarrayoftables(obj *Monster, j int) bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(26))
 	if o != 0 {
@@ -613,14 +609,6 @@ func (rcv *Monster) Testarrayoftables(obj *Monster, j int) bool {
 		return true
 	}
 	return false
-}
-
-func (rcv *Monster) TestarrayoftablesLength() int {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(26))
-	if o != 0 {
-		return rcv._tab.VectorLen(o)
-	}
-	return 0
 }
 
 /// an example documentation comment: this will end up in the generated code
@@ -636,15 +624,6 @@ func (rcv *Monster) Enemy(obj *Monster) *Monster {
 		return obj
 	}
 	return nil
-}
-
-func (rcv *Monster) Testnestedflatbuffer(j int) byte {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(30))
-	if o != 0 {
-		a := rcv._tab.Vector(o)
-		return rcv._tab.GetByte(a + flatbuffers.UOffsetT(j*1))
-	}
-	return 0
 }
 
 func (rcv *Monster) TestnestedflatbufferLength() int {
@@ -667,7 +646,7 @@ func (rcv *Monster) MutateTestnestedflatbuffer(j int, n byte) bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(30))
 	if o != 0 {
 		a := rcv._tab.Vector(o)
-		return rcv._tab.MutateByte(a+flatbuffers.UOffsetT(j*1), n)
+		return rcv._tab.MutateByte(a + flatbuffers.UOffsetT(j*1), n)
 	}
 	return false
 }
@@ -793,6 +772,14 @@ func (rcv *Monster) MutateTesthashu64Fnv1a(n uint64) bool {
 	return rcv._tab.MutateUint64Slot(50, n)
 }
 
+func (rcv *Monster) TestarrayofboolsLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(52))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
 func (rcv *Monster) Testarrayofbools(j int) bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(52))
 	if o != 0 {
@@ -802,19 +789,11 @@ func (rcv *Monster) Testarrayofbools(j int) bool {
 	return false
 }
 
-func (rcv *Monster) TestarrayofboolsLength() int {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(52))
-	if o != 0 {
-		return rcv._tab.VectorLen(o)
-	}
-	return 0
-}
-
 func (rcv *Monster) MutateTestarrayofbools(j int, n bool) bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(52))
 	if o != 0 {
 		a := rcv._tab.Vector(o)
-		return rcv._tab.MutateBool(a+flatbuffers.UOffsetT(j*1), n)
+		return rcv._tab.MutateBool(a + flatbuffers.UOffsetT(j*1), n)
 	}
 	return false
 }
@@ -855,6 +834,14 @@ func (rcv *Monster) MutateTestf3(n float32) bool {
 	return rcv._tab.MutateFloat32Slot(58, n)
 }
 
+func (rcv *Monster) Testarrayofstring2Length() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(60))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
 func (rcv *Monster) Testarrayofstring2(j int) []byte {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(60))
 	if o != 0 {
@@ -864,8 +851,8 @@ func (rcv *Monster) Testarrayofstring2(j int) []byte {
 	return nil
 }
 
-func (rcv *Monster) Testarrayofstring2Length() int {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(60))
+func (rcv *Monster) TestarrayofsortedstructLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(62))
 	if o != 0 {
 		return rcv._tab.VectorLen(o)
 	}
@@ -881,23 +868,6 @@ func (rcv *Monster) Testarrayofsortedstruct(obj *Ability, j int) bool {
 		return true
 	}
 	return false
-}
-
-func (rcv *Monster) TestarrayofsortedstructLength() int {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(62))
-	if o != 0 {
-		return rcv._tab.VectorLen(o)
-	}
-	return 0
-}
-
-func (rcv *Monster) Flex(j int) byte {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(64))
-	if o != 0 {
-		a := rcv._tab.Vector(o)
-		return rcv._tab.GetByte(a + flatbuffers.UOffsetT(j*1))
-	}
-	return 0
 }
 
 func (rcv *Monster) FlexLength() int {
@@ -920,9 +890,17 @@ func (rcv *Monster) MutateFlex(j int, n byte) bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(64))
 	if o != 0 {
 		a := rcv._tab.Vector(o)
-		return rcv._tab.MutateByte(a+flatbuffers.UOffsetT(j*1), n)
+		return rcv._tab.MutateByte(a + flatbuffers.UOffsetT(j*1), n)
 	}
 	return false
+}
+
+func (rcv *Monster) Test5Length() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(66))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
 }
 
 func (rcv *Monster) Test5(obj *Test, j int) bool {
@@ -936,8 +914,8 @@ func (rcv *Monster) Test5(obj *Test, j int) bool {
 	return false
 }
 
-func (rcv *Monster) Test5Length() int {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(66))
+func (rcv *Monster) VectorOfLongsLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(68))
 	if o != 0 {
 		return rcv._tab.VectorLen(o)
 	}
@@ -953,21 +931,21 @@ func (rcv *Monster) VectorOfLongs(j int) int64 {
 	return 0
 }
 
-func (rcv *Monster) VectorOfLongsLength() int {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(68))
-	if o != 0 {
-		return rcv._tab.VectorLen(o)
-	}
-	return 0
-}
-
 func (rcv *Monster) MutateVectorOfLongs(j int, n int64) bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(68))
 	if o != 0 {
 		a := rcv._tab.Vector(o)
-		return rcv._tab.MutateInt64(a+flatbuffers.UOffsetT(j*8), n)
+		return rcv._tab.MutateInt64(a + flatbuffers.UOffsetT(j*8), n)
 	}
 	return false
+}
+
+func (rcv *Monster) VectorOfDoublesLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(70))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
 }
 
 func (rcv *Monster) VectorOfDoubles(j int) float64 {
@@ -979,19 +957,11 @@ func (rcv *Monster) VectorOfDoubles(j int) float64 {
 	return 0
 }
 
-func (rcv *Monster) VectorOfDoublesLength() int {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(70))
-	if o != 0 {
-		return rcv._tab.VectorLen(o)
-	}
-	return 0
-}
-
 func (rcv *Monster) MutateVectorOfDoubles(j int, n float64) bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(70))
 	if o != 0 {
 		a := rcv._tab.Vector(o)
-		return rcv._tab.MutateFloat64(a+flatbuffers.UOffsetT(j*8), n)
+		return rcv._tab.MutateFloat64(a + flatbuffers.UOffsetT(j*8), n)
 	}
 	return false
 }
@@ -1009,6 +979,14 @@ func (rcv *Monster) ParentNamespaceTest(obj *MyGame.InParentNamespace) *MyGame.I
 	return nil
 }
 
+func (rcv *Monster) VectorOfReferrablesLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(74))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
 func (rcv *Monster) VectorOfReferrables(obj *Referrable, j int) bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(74))
 	if o != 0 {
@@ -1019,14 +997,6 @@ func (rcv *Monster) VectorOfReferrables(obj *Referrable, j int) bool {
 		return true
 	}
 	return false
-}
-
-func (rcv *Monster) VectorOfReferrablesLength() int {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(74))
-	if o != 0 {
-		return rcv._tab.VectorLen(o)
-	}
-	return 0
 }
 
 func (rcv *Monster) SingleWeakReference() uint64 {
@@ -1041,6 +1011,14 @@ func (rcv *Monster) MutateSingleWeakReference(n uint64) bool {
 	return rcv._tab.MutateUint64Slot(76, n)
 }
 
+func (rcv *Monster) VectorOfWeakReferencesLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(78))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
 func (rcv *Monster) VectorOfWeakReferences(j int) uint64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(78))
 	if o != 0 {
@@ -1050,21 +1028,21 @@ func (rcv *Monster) VectorOfWeakReferences(j int) uint64 {
 	return 0
 }
 
-func (rcv *Monster) VectorOfWeakReferencesLength() int {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(78))
-	if o != 0 {
-		return rcv._tab.VectorLen(o)
-	}
-	return 0
-}
-
 func (rcv *Monster) MutateVectorOfWeakReferences(j int, n uint64) bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(78))
 	if o != 0 {
 		a := rcv._tab.Vector(o)
-		return rcv._tab.MutateUint64(a+flatbuffers.UOffsetT(j*8), n)
+		return rcv._tab.MutateUint64(a + flatbuffers.UOffsetT(j*8), n)
 	}
 	return false
+}
+
+func (rcv *Monster) VectorOfStrongReferrablesLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(80))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
 }
 
 func (rcv *Monster) VectorOfStrongReferrables(obj *Referrable, j int) bool {
@@ -1079,14 +1057,6 @@ func (rcv *Monster) VectorOfStrongReferrables(obj *Referrable, j int) bool {
 	return false
 }
 
-func (rcv *Monster) VectorOfStrongReferrablesLength() int {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(80))
-	if o != 0 {
-		return rcv._tab.VectorLen(o)
-	}
-	return 0
-}
-
 func (rcv *Monster) CoOwningReference() uint64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(82))
 	if o != 0 {
@@ -1099,6 +1069,14 @@ func (rcv *Monster) MutateCoOwningReference(n uint64) bool {
 	return rcv._tab.MutateUint64Slot(82, n)
 }
 
+func (rcv *Monster) VectorOfCoOwningReferencesLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(84))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
 func (rcv *Monster) VectorOfCoOwningReferences(j int) uint64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(84))
 	if o != 0 {
@@ -1108,19 +1086,11 @@ func (rcv *Monster) VectorOfCoOwningReferences(j int) uint64 {
 	return 0
 }
 
-func (rcv *Monster) VectorOfCoOwningReferencesLength() int {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(84))
-	if o != 0 {
-		return rcv._tab.VectorLen(o)
-	}
-	return 0
-}
-
 func (rcv *Monster) MutateVectorOfCoOwningReferences(j int, n uint64) bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(84))
 	if o != 0 {
 		a := rcv._tab.Vector(o)
-		return rcv._tab.MutateUint64(a+flatbuffers.UOffsetT(j*8), n)
+		return rcv._tab.MutateUint64(a + flatbuffers.UOffsetT(j*8), n)
 	}
 	return false
 }
@@ -1137,6 +1107,14 @@ func (rcv *Monster) MutateNonOwningReference(n uint64) bool {
 	return rcv._tab.MutateUint64Slot(86, n)
 }
 
+func (rcv *Monster) VectorOfNonOwningReferencesLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(88))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
 func (rcv *Monster) VectorOfNonOwningReferences(j int) uint64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(88))
 	if o != 0 {
@@ -1146,19 +1124,11 @@ func (rcv *Monster) VectorOfNonOwningReferences(j int) uint64 {
 	return 0
 }
 
-func (rcv *Monster) VectorOfNonOwningReferencesLength() int {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(88))
-	if o != 0 {
-		return rcv._tab.VectorLen(o)
-	}
-	return 0
-}
-
 func (rcv *Monster) MutateVectorOfNonOwningReferences(j int, n uint64) bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(88))
 	if o != 0 {
 		a := rcv._tab.Vector(o)
-		return rcv._tab.MutateUint64(a+flatbuffers.UOffsetT(j*8), n)
+		return rcv._tab.MutateUint64(a + flatbuffers.UOffsetT(j*8), n)
 	}
 	return false
 }
@@ -1205,15 +1175,6 @@ func (rcv *Monster) AnyAmbiguous(obj *flatbuffers.Table) bool {
 	return false
 }
 
-func (rcv *Monster) VectorOfEnums(j int) Color {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(98))
-	if o != 0 {
-		a := rcv._tab.Vector(o)
-		return Color(rcv._tab.GetByte(a + flatbuffers.UOffsetT(j*1)))
-	}
-	return 0
-}
-
 func (rcv *Monster) VectorOfEnumsLength() int {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(98))
 	if o != 0 {
@@ -1234,7 +1195,7 @@ func (rcv *Monster) MutateVectorOfEnums(j int, n Color) bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(98))
 	if o != 0 {
 		a := rcv._tab.Vector(o)
-		return rcv._tab.MutateByte(a+flatbuffers.UOffsetT(j*1), byte(n))
+		return rcv._tab.MutateByte(a + flatbuffers.UOffsetT(j*1), byte(n))
 	}
 	return false
 }
@@ -1271,16 +1232,16 @@ func MonsterAddName(builder *flatbuffers.Builder, name flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(3, flatbuffers.UOffsetT(name), 0)
 }
 
-func MonsterAddInventory(builder *flatbuffers.Builder, inventory flatbuffers.UOffsetT) {
-	builder.PrependUOffsetTSlot(5, flatbuffers.UOffsetT(inventory), 0)
-}
-
-func MonsterStartInventoryVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
-	return builder.StartVector(1, numElems, 1)
+func MonsterStartInventoryVector(builder *flatbuffers.Builder, numElems int) {
+	builder.StartVector(1, numElems, 1)
 }
 
 func MonsterEndInventoryVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.EndVector(numElems)
+}
+
+func MonsterAddInventory(builder *flatbuffers.Builder, inventory flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(5, flatbuffers.UOffsetT(inventory), 0)
 }
 
 func MonsterAddColor(builder *flatbuffers.Builder, color Color) {
@@ -1295,15 +1256,23 @@ func MonsterAddTest(builder *flatbuffers.Builder, test flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(8, flatbuffers.UOffsetT(test), 0)
 }
 
+func MonsterStartTest4Vector(builder *flatbuffers.Builder, numElems int) {
+	builder.StartVector(4, numElems, 2)
+}
+
+func MonsterEndTest4Vector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+	return builder.EndVector(numElems)
+}
+
 func MonsterAddTest4(builder *flatbuffers.Builder, test4 flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(9, flatbuffers.UOffsetT(test4), 0)
 }
 
-func MonsterStartTest4Vector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
-	return builder.StartVector(4, numElems, 2)
+func MonsterStartTestarrayofstringVector(builder *flatbuffers.Builder, numElems int) {
+	builder.StartVector(4, numElems, 4)
 }
 
-func MonsterEndTest4Vector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+func MonsterEndTestarrayofstringVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.EndVector(numElems)
 }
 
@@ -1311,11 +1280,11 @@ func MonsterAddTestarrayofstring(builder *flatbuffers.Builder, testarrayofstring
 	builder.PrependUOffsetTSlot(10, flatbuffers.UOffsetT(testarrayofstring), 0)
 }
 
-func MonsterStartTestarrayofstringVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
-	return builder.StartVector(4, numElems, 4)
+func MonsterStartTestarrayoftablesVector(builder *flatbuffers.Builder, numElems int) {
+	builder.StartVector(4, numElems, 4)
 }
 
-func MonsterEndTestarrayofstringVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+func MonsterEndTestarrayoftablesVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.EndVector(numElems)
 }
 
@@ -1323,28 +1292,20 @@ func MonsterAddTestarrayoftables(builder *flatbuffers.Builder, testarrayoftables
 	builder.PrependUOffsetTSlot(11, flatbuffers.UOffsetT(testarrayoftables), 0)
 }
 
-func MonsterStartTestarrayoftablesVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
-	return builder.StartVector(4, numElems, 4)
-}
-
-func MonsterEndTestarrayoftablesVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
-	return builder.EndVector(numElems)
-}
-
 func MonsterAddEnemy(builder *flatbuffers.Builder, enemy flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(12, flatbuffers.UOffsetT(enemy), 0)
 }
 
-func MonsterAddTestnestedflatbuffer(builder *flatbuffers.Builder, testnestedflatbuffer flatbuffers.UOffsetT) {
-	builder.PrependUOffsetTSlot(13, flatbuffers.UOffsetT(testnestedflatbuffer), 0)
-}
-
-func MonsterStartTestnestedflatbufferVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
-	return builder.StartVector(1, numElems, 1)
+func MonsterStartTestnestedflatbufferVector(builder *flatbuffers.Builder, numElems int) {
+	builder.StartVector(1, numElems, 1)
 }
 
 func MonsterEndTestnestedflatbufferVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.EndVector(numElems)
+}
+
+func MonsterAddTestnestedflatbuffer(builder *flatbuffers.Builder, testnestedflatbuffer flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(13, flatbuffers.UOffsetT(testnestedflatbuffer), 0)
 }
 
 func MonsterAddTestempty(builder *flatbuffers.Builder, testempty flatbuffers.UOffsetT) {
@@ -1387,16 +1348,16 @@ func MonsterAddTesthashu64Fnv1a(builder *flatbuffers.Builder, testhashu64Fnv1a u
 	builder.PrependUint64Slot(23, testhashu64Fnv1a, 0)
 }
 
-func MonsterAddTestarrayofbools(builder *flatbuffers.Builder, testarrayofbools flatbuffers.UOffsetT) {
-	builder.PrependUOffsetTSlot(24, flatbuffers.UOffsetT(testarrayofbools), 0)
-}
-
-func MonsterStartTestarrayofboolsVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
-	return builder.StartVector(1, numElems, 1)
+func MonsterStartTestarrayofboolsVector(builder *flatbuffers.Builder, numElems int) {
+	builder.StartVector(1, numElems, 1)
 }
 
 func MonsterEndTestarrayofboolsVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.EndVector(numElems)
+}
+
+func MonsterAddTestarrayofbools(builder *flatbuffers.Builder, testarrayofbools flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(24, flatbuffers.UOffsetT(testarrayofbools), 0)
 }
 
 func MonsterAddTestf(builder *flatbuffers.Builder, testf float32) {
@@ -1411,15 +1372,23 @@ func MonsterAddTestf3(builder *flatbuffers.Builder, testf3 float32) {
 	builder.PrependFloat32Slot(27, testf3, 0.0)
 }
 
+func MonsterStartTestarrayofstring2Vector(builder *flatbuffers.Builder, numElems int) {
+	builder.StartVector(4, numElems, 4)
+}
+
+func MonsterEndTestarrayofstring2Vector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+	return builder.EndVector(numElems)
+}
+
 func MonsterAddTestarrayofstring2(builder *flatbuffers.Builder, testarrayofstring2 flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(28, flatbuffers.UOffsetT(testarrayofstring2), 0)
 }
 
-func MonsterStartTestarrayofstring2Vector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
-	return builder.StartVector(4, numElems, 4)
+func MonsterStartTestarrayofsortedstructVector(builder *flatbuffers.Builder, numElems int) {
+	builder.StartVector(8, numElems, 4)
 }
 
-func MonsterEndTestarrayofstring2Vector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+func MonsterEndTestarrayofsortedstructVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.EndVector(numElems)
 }
 
@@ -1427,11 +1396,11 @@ func MonsterAddTestarrayofsortedstruct(builder *flatbuffers.Builder, testarrayof
 	builder.PrependUOffsetTSlot(29, flatbuffers.UOffsetT(testarrayofsortedstruct), 0)
 }
 
-func MonsterStartTestarrayofsortedstructVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
-	return builder.StartVector(8, numElems, 4)
+func MonsterStartFlexVector(builder *flatbuffers.Builder, numElems int) {
+	builder.StartVector(1, numElems, 1)
 }
 
-func MonsterEndTestarrayofsortedstructVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+func MonsterEndFlexVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.EndVector(numElems)
 }
 
@@ -1439,11 +1408,11 @@ func MonsterAddFlex(builder *flatbuffers.Builder, flex flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(30, flatbuffers.UOffsetT(flex), 0)
 }
 
-func MonsterStartFlexVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
-	return builder.StartVector(1, numElems, 1)
+func MonsterStartTest5Vector(builder *flatbuffers.Builder, numElems int) {
+	builder.StartVector(4, numElems, 2)
 }
 
-func MonsterEndFlexVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+func MonsterEndTest5Vector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.EndVector(numElems)
 }
 
@@ -1451,11 +1420,11 @@ func MonsterAddTest5(builder *flatbuffers.Builder, test5 flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(31, flatbuffers.UOffsetT(test5), 0)
 }
 
-func MonsterStartTest5Vector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
-	return builder.StartVector(4, numElems, 2)
+func MonsterStartVectorOfLongsVector(builder *flatbuffers.Builder, numElems int) {
+	builder.StartVector(8, numElems, 8)
 }
 
-func MonsterEndTest5Vector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+func MonsterEndVectorOfLongsVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.EndVector(numElems)
 }
 
@@ -1463,11 +1432,11 @@ func MonsterAddVectorOfLongs(builder *flatbuffers.Builder, vectorOfLongs flatbuf
 	builder.PrependUOffsetTSlot(32, flatbuffers.UOffsetT(vectorOfLongs), 0)
 }
 
-func MonsterStartVectorOfLongsVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
-	return builder.StartVector(8, numElems, 8)
+func MonsterStartVectorOfDoublesVector(builder *flatbuffers.Builder, numElems int) {
+	builder.StartVector(8, numElems, 8)
 }
 
-func MonsterEndVectorOfLongsVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+func MonsterEndVectorOfDoublesVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.EndVector(numElems)
 }
 
@@ -1475,43 +1444,43 @@ func MonsterAddVectorOfDoubles(builder *flatbuffers.Builder, vectorOfDoubles fla
 	builder.PrependUOffsetTSlot(33, flatbuffers.UOffsetT(vectorOfDoubles), 0)
 }
 
-func MonsterStartVectorOfDoublesVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
-	return builder.StartVector(8, numElems, 8)
-}
-
-func MonsterEndVectorOfDoublesVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
-	return builder.EndVector(numElems)
-}
-
 func MonsterAddParentNamespaceTest(builder *flatbuffers.Builder, parentNamespaceTest flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(34, flatbuffers.UOffsetT(parentNamespaceTest), 0)
 }
 
-func MonsterAddVectorOfReferrables(builder *flatbuffers.Builder, vectorOfReferrables flatbuffers.UOffsetT) {
-	builder.PrependUOffsetTSlot(35, flatbuffers.UOffsetT(vectorOfReferrables), 0)
-}
-
-func MonsterStartVectorOfReferrablesVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
-	return builder.StartVector(4, numElems, 4)
+func MonsterStartVectorOfReferrablesVector(builder *flatbuffers.Builder, numElems int) {
+	builder.StartVector(4, numElems, 4)
 }
 
 func MonsterEndVectorOfReferrablesVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.EndVector(numElems)
 }
 
+func MonsterAddVectorOfReferrables(builder *flatbuffers.Builder, vectorOfReferrables flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(35, flatbuffers.UOffsetT(vectorOfReferrables), 0)
+}
+
 func MonsterAddSingleWeakReference(builder *flatbuffers.Builder, singleWeakReference uint64) {
 	builder.PrependUint64Slot(36, singleWeakReference, 0)
+}
+
+func MonsterStartVectorOfWeakReferencesVector(builder *flatbuffers.Builder, numElems int) {
+	builder.StartVector(8, numElems, 8)
+}
+
+func MonsterEndVectorOfWeakReferencesVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+	return builder.EndVector(numElems)
 }
 
 func MonsterAddVectorOfWeakReferences(builder *flatbuffers.Builder, vectorOfWeakReferences flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(37, flatbuffers.UOffsetT(vectorOfWeakReferences), 0)
 }
 
-func MonsterStartVectorOfWeakReferencesVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
-	return builder.StartVector(8, numElems, 8)
+func MonsterStartVectorOfStrongReferrablesVector(builder *flatbuffers.Builder, numElems int) {
+	builder.StartVector(4, numElems, 4)
 }
 
-func MonsterEndVectorOfWeakReferencesVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+func MonsterEndVectorOfStrongReferrablesVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.EndVector(numElems)
 }
 
@@ -1519,44 +1488,36 @@ func MonsterAddVectorOfStrongReferrables(builder *flatbuffers.Builder, vectorOfS
 	builder.PrependUOffsetTSlot(38, flatbuffers.UOffsetT(vectorOfStrongReferrables), 0)
 }
 
-func MonsterStartVectorOfStrongReferrablesVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
-	return builder.StartVector(4, numElems, 4)
-}
-
-func MonsterEndVectorOfStrongReferrablesVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
-	return builder.EndVector(numElems)
-}
-
 func MonsterAddCoOwningReference(builder *flatbuffers.Builder, coOwningReference uint64) {
 	builder.PrependUint64Slot(39, coOwningReference, 0)
 }
 
-func MonsterAddVectorOfCoOwningReferences(builder *flatbuffers.Builder, vectorOfCoOwningReferences flatbuffers.UOffsetT) {
-	builder.PrependUOffsetTSlot(40, flatbuffers.UOffsetT(vectorOfCoOwningReferences), 0)
-}
-
-func MonsterStartVectorOfCoOwningReferencesVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
-	return builder.StartVector(8, numElems, 8)
+func MonsterStartVectorOfCoOwningReferencesVector(builder *flatbuffers.Builder, numElems int) {
+	builder.StartVector(8, numElems, 8)
 }
 
 func MonsterEndVectorOfCoOwningReferencesVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.EndVector(numElems)
 }
 
+func MonsterAddVectorOfCoOwningReferences(builder *flatbuffers.Builder, vectorOfCoOwningReferences flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(40, flatbuffers.UOffsetT(vectorOfCoOwningReferences), 0)
+}
+
 func MonsterAddNonOwningReference(builder *flatbuffers.Builder, nonOwningReference uint64) {
 	builder.PrependUint64Slot(41, nonOwningReference, 0)
 }
 
-func MonsterAddVectorOfNonOwningReferences(builder *flatbuffers.Builder, vectorOfNonOwningReferences flatbuffers.UOffsetT) {
-	builder.PrependUOffsetTSlot(42, flatbuffers.UOffsetT(vectorOfNonOwningReferences), 0)
-}
-
-func MonsterStartVectorOfNonOwningReferencesVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
-	return builder.StartVector(8, numElems, 8)
+func MonsterStartVectorOfNonOwningReferencesVector(builder *flatbuffers.Builder, numElems int) {
+	builder.StartVector(8, numElems, 8)
 }
 
 func MonsterEndVectorOfNonOwningReferencesVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.EndVector(numElems)
+}
+
+func MonsterAddVectorOfNonOwningReferences(builder *flatbuffers.Builder, vectorOfNonOwningReferences flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(42, flatbuffers.UOffsetT(vectorOfNonOwningReferences), 0)
 }
 
 func MonsterAddAnyUniqueType(builder *flatbuffers.Builder, anyUniqueType AnyUniqueAliases) {
@@ -1575,16 +1536,16 @@ func MonsterAddAnyAmbiguous(builder *flatbuffers.Builder, anyAmbiguous flatbuffe
 	builder.PrependUOffsetTSlot(46, flatbuffers.UOffsetT(anyAmbiguous), 0)
 }
 
-func MonsterAddVectorOfEnums(builder *flatbuffers.Builder, vectorOfEnums flatbuffers.UOffsetT) {
-	builder.PrependUOffsetTSlot(47, flatbuffers.UOffsetT(vectorOfEnums), 0)
-}
-
-func MonsterStartVectorOfEnumsVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
-	return builder.StartVector(1, numElems, 1)
+func MonsterStartVectorOfEnumsVector(builder *flatbuffers.Builder, numElems int) {
+	builder.StartVector(1, numElems, 1)
 }
 
 func MonsterEndVectorOfEnumsVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.EndVector(numElems)
+}
+
+func MonsterAddVectorOfEnums(builder *flatbuffers.Builder, vectorOfEnums flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(47, flatbuffers.UOffsetT(vectorOfEnums), 0)
 }
 
 func MonsterAddSignedEnum(builder *flatbuffers.Builder, signedEnum Race) {

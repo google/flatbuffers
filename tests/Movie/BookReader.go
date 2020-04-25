@@ -61,7 +61,7 @@ func (rcv *BookReader) BooksRead() int32 {
 	return rcv._tab.GetInt32(rcv._tab.Pos + flatbuffers.UOffsetT(0))
 }
 func (rcv *BookReader) MutateBooksRead(n int32) bool {
-	return rcv._tab.MutateInt32(rcv._tab.Pos+flatbuffers.UOffsetT(0), n)
+	return rcv._tab.MutateInt32(rcv._tab.Pos + flatbuffers.UOffsetT(0), n)
 }
 
 func CreateBookReader(builder *flatbuffers.Builder, booksRead int32) flatbuffers.UOffsetT {

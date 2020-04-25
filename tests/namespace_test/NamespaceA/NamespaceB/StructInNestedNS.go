@@ -63,14 +63,14 @@ func (rcv *StructInNestedNS) A() int32 {
 	return rcv._tab.GetInt32(rcv._tab.Pos + flatbuffers.UOffsetT(0))
 }
 func (rcv *StructInNestedNS) MutateA(n int32) bool {
-	return rcv._tab.MutateInt32(rcv._tab.Pos+flatbuffers.UOffsetT(0), n)
+	return rcv._tab.MutateInt32(rcv._tab.Pos + flatbuffers.UOffsetT(0), n)
 }
 
 func (rcv *StructInNestedNS) B() int32 {
 	return rcv._tab.GetInt32(rcv._tab.Pos + flatbuffers.UOffsetT(4))
 }
 func (rcv *StructInNestedNS) MutateB(n int32) bool {
-	return rcv._tab.MutateInt32(rcv._tab.Pos+flatbuffers.UOffsetT(4), n)
+	return rcv._tab.MutateInt32(rcv._tab.Pos + flatbuffers.UOffsetT(4), n)
 }
 
 func CreateStructInNestedNS(builder *flatbuffers.Builder, a int32, b int32) flatbuffers.UOffsetT {

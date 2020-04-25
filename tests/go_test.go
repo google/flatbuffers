@@ -278,12 +278,13 @@ func CheckReadBuffer(buf []byte, offset flatbuffers.UOffsetT, fail func(string, 
 
 		invsum := 0
 		l := monster.InventoryLength()
+		v := monster.InventoryBytes()
 		for i := 0; i < l; i++ {
-			v := monster.Inventory(i)
-			if v != inventorySlice[i] {
+
+			if v[i] != inventorySlice[i] {
 				fail(FailString("monster inventory slice[i] != Inventory(i)", v, inventorySlice[i]))
 			}
-			invsum += int(v)
+			invsum += int(v[i])
 		}
 		if invsum != 10 {
 			fail(FailString("monster inventory sum", 10, invsum))
@@ -358,7 +359,7 @@ func CheckMutateBuffer(org []byte, offset flatbuffers.UOffsetT, fail func(string
 		testcase{"Pos.Test2'", func() bool { return monster.Pos(nil).Test2() == example.ColorGreen }},
 		testcase{"Pos.Test3.A", func() bool { return monster.Pos(nil).Test3(nil).A() == int16(5) }},
 		testcase{"Pos.Test3.B", func() bool { return monster.Pos(nil).Test3(nil).B() == int8(6) }},
-		testcase{"Inventory[2]", func() bool { return monster.Inventory(2) == byte(2) }},
+		testcase{"Inventory[2]", func() bool { return monster.InventoryBytes()[2] == byte(2) }},
 	}
 
 	testMutability := []testcase{
@@ -386,7 +387,7 @@ func CheckMutateBuffer(org []byte, offset flatbuffers.UOffsetT, fail func(string
 		testcase{"Pos.Test2'", func() bool { return monster.Pos(nil).Test2() == example.ColorBlue }},
 		testcase{"Pos.Test3.A", func() bool { return monster.Pos(nil).Test3(nil).A() == int16(50) }},
 		testcase{"Pos.Test3.B", func() bool { return monster.Pos(nil).Test3(nil).B() == int8(60) }},
-		testcase{"Inventory[2]", func() bool { return monster.Inventory(2) == byte(200) }},
+		testcase{"Inventory[2]", func() bool { return monster.InventoryBytes()[2] == byte(200) }},
 	}
 
 	testInvalidEnumValues := []testcase{
@@ -1526,9 +1527,8 @@ func CheckDocExample(buf []byte, off flatbuffers.UOffsetT, fail func(string, ...
 	monster := example.GetRootAsMonster(buf, off)
 	_ = monster.Hp()
 	_ = monster.Pos(nil)
-	for i := 0; i < monster.InventoryLength(); i++ {
-		_ = monster.Inventory(i) // do something here
-	}
+	_ = monster.InventoryLength()
+	_ = monster.InventoryBytes() // do something here
 
 	builder := flatbuffers.NewBuilder(0)
 
@@ -1864,10 +1864,10 @@ func BenchmarkParseGold(b *testing.B) {
 		_ = name2[0]
 		_ = name2[len(name2)-1]
 		monster.InventoryLength()
-		l := monster.InventoryLength()
-		for i := 0; i < l; i++ {
-			monster.Inventory(i)
-		}
+		_ = monster.InventoryLength()
+
+		_ = monster.InventoryBytes()
+
 		monster.Test4Length()
 		monster.Test4(&reuse_test4_0, 0)
 		monster.Test4(&reuse_test4_1, 1)

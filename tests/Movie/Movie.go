@@ -23,15 +23,17 @@ func (t *MovieT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	charactersTypeOffset := flatbuffers.UOffsetT(0)
 	if t.Characters != nil {
 		charactersLength := len(t.Characters)
-		charactersOffsets := make([]flatbuffers.UOffsetT, charactersLength)
-		for j := charactersLength - 1; j >= 0; j-- {
-			charactersOffsets[j] = t.Characters[j].Pack(builder)
-		}
 		MovieStartCharactersTypeVector(builder, charactersLength)
 		for j := charactersLength - 1; j >= 0; j-- {
 			builder.PrependByte(byte(t.Characters[j].Type))
 		}
 		charactersTypeOffset = MovieEndCharactersTypeVector(builder, charactersLength)
+
+		// vector array
+		charactersOffsets := make([]flatbuffers.UOffsetT, charactersLength)
+		for j := charactersLength - 1; j >= 0; j-- {
+			charactersOffsets[j] = t.Characters[j].Pack(builder)
+		}
 		MovieStartCharactersVector(builder, charactersLength)
 		for j := charactersLength - 1; j >= 0; j-- {
 			builder.PrependUOffsetT(charactersOffsets[j])
@@ -60,7 +62,6 @@ func (rcv *Movie) UnPackTo(t *MovieT) {
 	charactersLength := rcv.CharactersLength()
 	t.Characters = make([]*CharacterT, charactersLength)
 	for j := 0; j < charactersLength; j++ {
-		// vector of unions table unpack
 		CharactersType := rcv.CharactersType(j)
 		CharactersTable := flatbuffers.Table{}
 		if rcv.Characters(j, &CharactersTable) {
@@ -135,6 +136,14 @@ func (rcv *Movie) MainCharacter(obj *flatbuffers.Table) bool {
 	return false
 }
 
+func (rcv *Movie) CharactersTypeLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(8))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
 func (rcv *Movie) CharactersType(j int) Character {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(8))
 	if o != 0 {
@@ -144,21 +153,21 @@ func (rcv *Movie) CharactersType(j int) Character {
 	return 0
 }
 
-func (rcv *Movie) CharactersTypeLength() int {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(8))
-	if o != 0 {
-		return rcv._tab.VectorLen(o)
-	}
-	return 0
-}
-
 func (rcv *Movie) MutateCharactersType(j int, n Character) bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(8))
 	if o != 0 {
 		a := rcv._tab.Vector(o)
-		return rcv._tab.MutateByte(a+flatbuffers.UOffsetT(j*1), byte(n))
+		return rcv._tab.MutateByte(a + flatbuffers.UOffsetT(j*1), byte(n))
 	}
 	return false
+}
+
+func (rcv *Movie) CharactersLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(10))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
 }
 
 func (rcv *Movie) Characters(j int, obj *flatbuffers.Table) bool {
@@ -170,14 +179,6 @@ func (rcv *Movie) Characters(j int, obj *flatbuffers.Table) bool {
 		return true
 	}
 	return false
-}
-
-func (rcv *Movie) CharactersLength() int {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(10))
-	if o != 0 {
-		return rcv._tab.VectorLen(o)
-	}
-	return 0
 }
 
 func MovieStart(builder *flatbuffers.Builder) {
@@ -192,28 +193,28 @@ func MovieAddMainCharacter(builder *flatbuffers.Builder, mainCharacter flatbuffe
 	builder.PrependUOffsetTSlot(1, flatbuffers.UOffsetT(mainCharacter), 0)
 }
 
-func MovieAddCharactersType(builder *flatbuffers.Builder, charactersType flatbuffers.UOffsetT) {
-	builder.PrependUOffsetTSlot(2, flatbuffers.UOffsetT(charactersType), 0)
-}
-
-func MovieStartCharactersTypeVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
-	return builder.StartVector(1, numElems, 1)
+func MovieStartCharactersTypeVector(builder *flatbuffers.Builder, numElems int) {
+	builder.StartVector(1, numElems, 1)
 }
 
 func MovieEndCharactersTypeVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.EndVector(numElems)
 }
 
-func MovieAddCharacters(builder *flatbuffers.Builder, characters flatbuffers.UOffsetT) {
-	builder.PrependUOffsetTSlot(3, flatbuffers.UOffsetT(characters), 0)
+func MovieAddCharactersType(builder *flatbuffers.Builder, charactersType flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(2, flatbuffers.UOffsetT(charactersType), 0)
 }
 
-func MovieStartCharactersVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
-	return builder.StartVector(4, numElems, 4)
+func MovieStartCharactersVector(builder *flatbuffers.Builder, numElems int) {
+	builder.StartVector(4, numElems, 4)
 }
 
 func MovieEndCharactersVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.EndVector(numElems)
+}
+
+func MovieAddCharacters(builder *flatbuffers.Builder, characters flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(3, flatbuffers.UOffsetT(characters), 0)
 }
 
 func MovieEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
