@@ -61,7 +61,7 @@ func (rcv *Rapunzel) HairLength() int32 {
 	return rcv._tab.GetInt32(rcv._tab.Pos + flatbuffers.UOffsetT(0))
 }
 func (rcv *Rapunzel) MutateHairLength(n int32) bool {
-	return rcv._tab.MutateInt32(rcv._tab.Pos+flatbuffers.UOffsetT(0), n)
+	return rcv._tab.MutateInt32(rcv._tab.Pos + flatbuffers.UOffsetT(0), n)
 }
 
 func CreateRapunzel(builder *flatbuffers.Builder, hairLength int32) flatbuffers.UOffsetT {
