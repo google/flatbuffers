@@ -13,7 +13,7 @@
 // limitations under the License.
 
 mod binary_format;
+mod interop;
 mod other_api;
 mod qc_serious;
 mod rwyw;
-mod interop;

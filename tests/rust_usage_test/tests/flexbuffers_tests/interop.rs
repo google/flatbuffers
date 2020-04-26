@@ -16,8 +16,8 @@ use flexbuffers::*;
 
 #[test]
 fn read_golden_flexbuffer() {
-    let s = std::fs::read("../gold_flexbuffer_example.bin")
-        .expect("Unable to read golden flexbuffer.");
+    let s =
+        std::fs::read("../gold_flexbuffer_example.bin").expect("Unable to read golden flexbuffer.");
     let r = Reader::get_root(&s).unwrap();
     let m = r.as_map();
 
