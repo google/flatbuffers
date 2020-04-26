@@ -19,7 +19,18 @@ use std::slice::Iter;
 ///
 /// Flexbuffers automatically compresses numbers to the smallest possible width
 /// (`250u64` is stored as `250u8`).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, num_enum::TryFromPrimitive)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Serialize,
+    Deserialize,
+    Ord,
+    num_enum::TryFromPrimitive,
+)]
 #[repr(u8)]
 pub enum BitWidth {
     W8 = 0,

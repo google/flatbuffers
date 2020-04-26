@@ -29,7 +29,7 @@ pub use map::{MapReader, MapReaderIndexer};
 pub use vector::VectorReader;
 
 /// All the possible errors when reading a flexbuffer.
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub enum Error {
     /// One of the following data errors occured:
     ///
@@ -58,11 +58,47 @@ pub enum Error {
     /// A Map was indexed with a key that it did not contain.
     KeyNotFound,
     /// Failed to parse a Utf8 string.
-    Utf8Error,
+    /// The Option will be `None` if and only if this Error was deserialized.
+    // NOTE: std::str::Utf8Error does not implement Serialize, Deserialize, nor Default. We tell
+    // serde to skip the field and default to None. We prefer to have the boxed error so it can be
+    // used with std::error::Error::source, though another (worse) option could be to drop that
+    // information.
+    Utf8Error(#[serde(skip)] Option<Box<std::str::Utf8Error>>),
     /// get_slice failed because the given data buffer is misaligned.
     AlignmentError,
     InvalidRootWidth,
     InvalidMapKeysVectorWidth,
+}
+impl std::convert::From<std::str::Utf8Error> for Error {
+    fn from(e: std::str::Utf8Error) -> Self {
+        Self::Utf8Error(Some(Box::new(e)))
+    }
+}
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::UnexpectedBitWidth { expected, actual } => write!(
+                f,
+                "Error reading flexbuffer: Expected bitwidth: {:?}, found bitwidth: {:?}",
+                expected, actual
+            ),
+            Self::UnexpectedFlexbufferType { expected, actual } => write!(
+                f,
+                "Error reading flexbuffer: Expected type: {:?}, found type: {:?}",
+                expected, actual
+            ),
+            _ => write!(f, "Error reading flexbuffer: {:?}", self),
+        }
+    }
+}
+impl std::error::Error for Error {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        if let Self::Utf8Error(Some(e)) = self {
+            Some(e)
+        } else {
+            None
+        }
+    }
 }
 
 pub trait ReadLE: crate::private::Sealed + std::marker::Sized {
@@ -257,8 +293,8 @@ impl<'de> Reader<'de> {
             .enumerate()
             .find(|(_, &b)| b == b'\0')
             .unwrap_or((0, &0));
-        std::str::from_utf8(&self.buffer[self.address..self.address + length])
-            .map_err(|_| Error::Utf8Error)
+        let bytes = &self.buffer[self.address..self.address + length];
+        Ok(std::str::from_utf8(bytes)?)
     }
     pub fn get_blob(&self) -> Result<Blob<'de>, Error> {
         self.expect_type(FlexBufferType::Blob)?;
@@ -271,8 +307,8 @@ impl<'de> Reader<'de> {
     }
     pub fn get_str(&self) -> Result<&'de str, Error> {
         self.expect_type(FlexBufferType::String)?;
-        std::str::from_utf8(&self.buffer[self.address..self.address + self.length()])
-            .map_err(|_| Error::Utf8Error)
+        let bytes = &self.buffer[self.address..self.address + self.length()];
+        Ok(std::str::from_utf8(bytes)?)
     }
     fn get_map_info(&self) -> Result<(usize, BitWidth), Error> {
         self.expect_type(FlexBufferType::Map)?;

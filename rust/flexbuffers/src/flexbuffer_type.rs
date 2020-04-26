@@ -36,7 +36,7 @@
 /// vectors can reduce the minimum element width and therefore bytes used.
 
 #[repr(u8)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq, num_enum::TryFromPrimitive)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, num_enum::TryFromPrimitive)]
 pub enum FlexBufferType {
     /// Nulls are represented with `()` in Rust.
     Null = 0,

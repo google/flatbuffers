@@ -30,20 +30,20 @@
 #[macro_use]
 extern crate bitflags;
 extern crate byteorder;
-#[cfg(test)]
+#[macro_use]
 extern crate serde_derive;
 #[macro_use]
 extern crate debug_stub_derive;
 extern crate num_enum;
 #[cfg(test)]
 extern crate quickcheck;
-extern crate serde;
-#[cfg(test)]
-extern crate test;
 #[cfg(test)]
 extern crate quickcheck_derive;
 #[cfg(test)]
 extern crate rand;
+extern crate serde;
+#[cfg(test)]
+extern crate test;
 
 mod bitwidth;
 mod builder;
