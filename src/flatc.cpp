@@ -295,6 +295,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       } else if (arg == "--gen-all") {
         opts.generate_all = true;
         opts.include_dependence_headers = false;
+        opts.reexport_ts_modules = false;
       } else if (arg == "--gen-includes") {
         // Deprecated, remove this option some time in the future.
         Warn("warning: --gen-includes is deprecated (it is now default)\n");
