@@ -17,6 +17,7 @@ mod value;
 use crate::FlexBufferType;
 use std::cmp::max;
 use value::{find_vector_type, store_value, Value};
+mod de;
 mod map;
 mod push;
 mod ser;

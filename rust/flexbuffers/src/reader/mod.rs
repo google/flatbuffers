@@ -22,6 +22,7 @@ use std::str::FromStr;
 mod de;
 mod iter;
 mod map;
+mod ser;
 mod vector;
 pub use de::DeserializationError;
 pub use iter::ReaderIterator;
