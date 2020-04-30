@@ -397,15 +397,16 @@ Offset<const Table *> CopyTable(FlatBufferBuilder &fbb,
         auto &subobjectdef = *schema.objects()->Get(fielddef.type()->index());
         if (!subobjectdef.is_struct()) {
           offset =
-              CopyTable(fbb, schema, subobjectdef, *GetFieldT(table, fielddef))
-                  .o;
+              CopyTable(fbb, schema, subobjectdef,
+                        *GetFieldT(table, fielddef), use_string_pooling).o;
         }
         break;
       }
       case reflection::Union: {
         auto &subobjectdef = GetUnionType(schema, objectdef, fielddef, table);
         offset =
-            CopyTable(fbb, schema, subobjectdef, *GetFieldT(table, fielddef)).o;
+            CopyTable(fbb, schema, subobjectdef, *GetFieldT(table, fielddef),
+                      use_string_pooling).o;
         break;
       }
       case reflection::Vector: {
@@ -433,7 +434,8 @@ Offset<const Table *> CopyTable(FlatBufferBuilder &fbb,
               std::vector<Offset<const Table *>> elements(vec->size());
               for (uoffset_t i = 0; i < vec->size(); i++) {
                 elements[i] =
-                    CopyTable(fbb, schema, *elemobjectdef, *vec->Get(i));
+                    CopyTable(fbb, schema, *elemobjectdef, *vec->Get(i),
+                              use_string_pooling);
               }
               offset = fbb.CreateVector(elements).o;
               break;
