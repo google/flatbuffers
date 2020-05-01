@@ -14,6 +14,13 @@
 # misrepresented as being the original software.
 # 3. This notice may not be removed or altered from any source distribution.
 
+# check if android API version is between 9-20 then not locale indepentent
+ifneq (,$(filter $(TARGET_PLATFORM), 9 10 11 12 13 14 15 16 17 18 19 20)
+  LOCAL_CFLAGS += -DFLATBUFFERS_LOCALE_INDEPENDENT=0
+else
+  LOCAL_CFLAGS += -DFLATBUFFERS_LOCALE_INDEPENDENT=1
+endif
+
 LOCAL_PATH := $(call my-dir)/../..
 
 include $(LOCAL_PATH)/android/jni/include.mk
