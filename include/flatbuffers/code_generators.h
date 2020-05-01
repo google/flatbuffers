@@ -61,7 +61,7 @@ class CodeWriter {
   }
 
   // Appends the given text to the generated code as well as a newline
-  // character.  Any text within {{ and }} delimeters is replaced by values
+  // character.  Any text within {{ and }} delimiters is replaced by values
   // previously stored in the CodeWriter by calling SetValue above.  The newline
   // will be suppressed if the text ends with the \\ character.
   void operator+=(std::string text);
