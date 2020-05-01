@@ -15,7 +15,7 @@
 # 3. This notice may not be removed or altered from any source distribution.
 
 # check if android API version is between 9-20 then not locale indepentent
-ifneq (,$(filter $(TARGET_PLATFORM), 9 10 11 12 13 14 15 16 17 18 19 20))
+ifneq (,$(filter $(TARGET_PLATFORM), android-9 android-10 android-11 android-12 android-13 android-14 android-15 android-16 android-17 android-18 android-19 android-20))
   LOCAL_CFLAGS += -DFLATBUFFERS_LOCALE_INDEPENDENT=0
 else
   LOCAL_CFLAGS += -DFLATBUFFERS_LOCALE_INDEPENDENT=1
