@@ -91,10 +91,12 @@ pub(super) fn get_key(buffer: &[u8], address: usize) -> impl Iterator<Item = &u8
 pub(super) fn sort_map_by_keys(values: &mut [Value], buffer: &[u8]) {
     debug_assert_eq!(values.len() % 2, 0);
     debug_assert!(values.iter().step_by(2).all(Value::is_key));
-    let pairs: &mut [[Value; 2]] = unsafe {
-        let raw_pairs = values.as_mut_ptr() as *mut [Value; 2];
-        std::slice::from_raw_parts_mut(raw_pairs, values.len() / 2)
-    };
+    let raw_pairs = values.as_mut_ptr() as *mut [Value; 2];
+    let pairs_len = values.len() / 2;
+    // Unsafe code needed to treat the slice as key-value pairs when sorting in place. This is
+    // preferred over custom sorting or adding another dependency.
+    let pairs: &mut [[Value; 2]] =
+        unsafe { std::slice::from_raw_parts_mut(raw_pairs, pairs_len) };
     #[rustfmt::skip]
     pairs.sort_unstable_by(|[key1, _], [key2, _]| {
         if let Value::Key(a1) = *key1 {

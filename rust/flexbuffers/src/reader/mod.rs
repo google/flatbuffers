@@ -270,6 +270,9 @@ impl<'de> Reader<'de> {
             .buffer
             .get(self.address..end)
             .ok_or(Error::FlexbufferOutOfBounds)?;
+        // `align_to` is required because the point of this function is to directly hand back a
+        // slice of scalars. This can fail because Rust's default allocator is not 16byte aligned
+        // (though in practice this only happens for small buffers).
         let (pre, mid, suf) = unsafe { slice.align_to::<T>() };
         if pre.is_empty() && suf.is_empty() {
             Ok(mid)
