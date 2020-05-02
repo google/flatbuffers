@@ -94,7 +94,9 @@ pub(super) fn sort_map_by_keys(values: &mut [Value], buffer: &[u8]) {
     let raw_pairs = values.as_mut_ptr() as *mut [Value; 2];
     let pairs_len = values.len() / 2;
     // Unsafe code needed to treat the slice as key-value pairs when sorting in place. This is
-    // preferred over custom sorting or adding another dependency.
+    // preferred over custom sorting or adding another dependency. By construction, this part
+    // of the values stack must be alternating (key, value) pairs. The public API must not be
+    // able to trigger the above debug_assets that protect this unsafe usage.
     let pairs: &mut [[Value; 2]] =
         unsafe { std::slice::from_raw_parts_mut(raw_pairs, pairs_len) };
     #[rustfmt::skip]
