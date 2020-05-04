@@ -200,10 +200,12 @@ class CppGenerator : public BaseGenerator {
 
   void GenIncludeDependencies() {
     int num_includes = 0;
-    for (auto it = parser_.native_included_files_.begin();
-         it != parser_.native_included_files_.end(); ++it) {
-      code_ += "#include \"" + *it + "\"";
-      num_includes++;
+    if (opts_.generate_object_based_api) {
+      for (auto it = parser_.native_included_files_.begin();
+           it != parser_.native_included_files_.end(); ++it) {
+        code_ += "#include \"" + *it + "\"";
+        num_includes++;
+      }
     }
     for (auto it = parser_.included_files_.begin();
          it != parser_.included_files_.end(); ++it) {
