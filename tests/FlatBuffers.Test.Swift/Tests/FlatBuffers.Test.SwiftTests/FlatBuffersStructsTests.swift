@@ -106,14 +106,14 @@ struct VPointerVec {
     
     static func createVPointer(b: inout FlatBufferBuilder, o: Offset<UOffset>) -> Offset<UOffset> {
         let s = VPointerVec.startVPointer(b: &b)
-        b.add(structOffset: 0)
+        b.add(structOffset: 4)
         return VPointerVec.finish(b: &b, s: s)
     }
 }
 
 enum Color: UInt32 { case red = 0, green = 1, blue = 2 }
 
-private let VPointerVectorVecOffsets: (color: VOffset, vector: VOffset) = (0, 1)
+private let VPointerVectorVecOffsets: (color: VOffset, vector: VOffset) = (4, 6)
 
 struct VPointerVectorVec {
     
@@ -179,9 +179,9 @@ struct VPointerVec2 {
     
     static func createVPointer(b: inout FlatBufferBuilder, o: Offset<UOffset>, type: Test) -> Offset<UOffset> {
         let s = VPointerVec2.startVPointer(b: &b)
-        b.add(structOffset: 0)
-        b.add(element: type.rawValue, def: Test.none.rawValue, at: 1)
-        b.add(offset: o, at: 2)
+        b.add(structOffset: 4)
+        b.add(element: type.rawValue, def: Test.none.rawValue, at: 6)
+        b.add(offset: o, at: 8)
         return VPointerVec2.finish(b: &b, s: s)
     }
 }

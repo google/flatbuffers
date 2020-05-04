@@ -32,7 +32,7 @@ final class FlatBuffersVectors: XCTestCase {
         b.finish(offset: o)
         XCTAssertEqual(b.sizedByteArray, [4, 0, 0, 0, 0, 0, 0, 0])
     }
-
+    
     func testCreateVectorOfStrings() {
         let strs = ["Denmark", "Norway"]
         var b = FlatBufferBuilder(initialSize: 20)
@@ -110,7 +110,7 @@ struct Numbers {
     
     static func createNumbers(b: inout FlatBufferBuilder, o: Offset<UOffset>) -> Offset<UOffset> {
         let start = b.startTable(with: 1)
-        b.add(offset: o, at: 0)
+        b.add(offset: o, at: 4)
         return Offset(offset: b.endTable(at: start))
     }
 }

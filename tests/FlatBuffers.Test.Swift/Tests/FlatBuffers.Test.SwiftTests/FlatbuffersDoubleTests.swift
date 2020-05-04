@@ -2,9 +2,9 @@ import XCTest
 @testable import FlatBuffers
 
 final class FlatBuffersDoubleTests: XCTestCase {
-
+    
     let country = "Norway"
-  
+    
     func testCreateCountry() {
         var b = FlatBufferBuilder(initialSize: 16)
         _ = CountryDouble.createCountry(builder: &b, name: country, log: 200, lan: 100)
@@ -31,7 +31,7 @@ final class FlatBuffersDoubleTests: XCTestCase {
 
 class CountryDouble {
     
-    static let offsets: (name: VOffset, lan: VOffset, lng: VOffset) = (4,6,8)
+    static let offsets: (name: VOffset, lan: VOffset, lng: VOffset) = (4, 6, 8)
     
     private var table: Table
     
