@@ -190,7 +190,7 @@ inline void vector_emplace_back(std::vector<T> *vector, V &&data) {
     // MSVC 2010 doesn't support C++11 aliases.
     // We're manually "aliasing" the class here as we want to bring unique_ptr
     // into the flatbuffers namespace.  We have unique_ptr in the flatbuffers
-    // namespace we have a completely independent implemenation (see below)
+    // namespace we have a completely independent implementation (see below)
     // for C++98 STL implementations.
     template <class T> class unique_ptr : public std::unique_ptr<T> {
      public:

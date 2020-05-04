@@ -239,7 +239,7 @@ template<typename T> class SymbolTable {
 struct Namespace {
   Namespace() : from_table(0) {}
 
-  // Given a (potentally unqualified) name, return the "fully qualified" name
+  // Given a (potentially unqualified) name, return the "fully qualified" name
   // which has a full namespaced descriptor.
   // With max_components you can request less than the number of components
   // the current namespace has.

@@ -1256,7 +1256,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
   // auto id = builder.LastValue();  // Remember where we stored it.
   // .. more code goes here ..
   // builder.ReuseValue(id);  // Refers to same double by offset.
-  // LastValue works regardless of wether the value has a key or not.
+  // LastValue works regardless of whether the value has a key or not.
   // Works on any data type.
   struct Value;
   Value LastValue() { return stack_.back(); }
