@@ -878,10 +878,14 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   return NoError();
 }
 
-CheckedError Parser::ParseString(Value &val) {
+CheckedError Parser::ParseString(Value &val, bool use_string_pooling) {
   auto s = attribute_;
   EXPECT(kTokenStringConstant);
-  val.constant = NumToString(builder_.CreateString(s).o);
+  if (use_string_pooling) {
+    val.constant = NumToString(builder_.CreateSharedString(s).o);
+  } else {
+    val.constant = NumToString(builder_.CreateString(s).o);
+  }
   return NoError();
 }
 
@@ -974,7 +978,7 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
           val.constant = NumToString(builder_.GetSize());
         }
       } else if (enum_val->union_type.base_type == BASE_TYPE_STRING) {
-        ECHECK(ParseString(val));
+        ECHECK(ParseString(val, field->shared));
       } else {
         FLATBUFFERS_ASSERT(false);
       }
@@ -984,7 +988,7 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
       ECHECK(ParseTable(*val.type.struct_def, &val.constant, nullptr));
       break;
     case BASE_TYPE_STRING: {
-      ECHECK(ParseString(val));
+      ECHECK(ParseString(val, field->shared));
       break;
     }
     case BASE_TYPE_VECTOR: {
@@ -3293,6 +3297,7 @@ bool FieldDef::Deserialize(Parser &parser, const reflection::Field *field) {
     nested_flatbuffer = parser.LookupStruct(nested_qualified_name);
     if (!nested_flatbuffer) return false;
   }
+  shared = attributes.Lookup("shared") != nullptr;
   DeserializeDoc(doc_comment, field->documentation());
   return true;
 }

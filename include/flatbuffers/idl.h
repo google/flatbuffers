@@ -859,7 +859,7 @@ class Parser : public ParserState {
                                      const std::string &name, const Type &type,
                                      FieldDef **dest);
   FLATBUFFERS_CHECKED_ERROR ParseField(StructDef &struct_def);
-  FLATBUFFERS_CHECKED_ERROR ParseString(Value &val);
+  FLATBUFFERS_CHECKED_ERROR ParseString(Value &val, bool use_string_pooling);
   FLATBUFFERS_CHECKED_ERROR ParseComma();
   FLATBUFFERS_CHECKED_ERROR ParseAnyValue(Value &val, FieldDef *field,
                                           size_t parent_fieldn,
