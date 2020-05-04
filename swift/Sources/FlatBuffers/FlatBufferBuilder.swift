@@ -75,8 +75,10 @@ public struct FlatBufferBuilder {
     mutating public func clear() {
         _minAlignment = 0
         isNested = false
-        _bb.clear()
         stringOffsetMap = [:]
+        _vtable = []
+        _vtables = []
+        _bb.clear()
     }
     
     /// Removes all the offsets from the VTable
