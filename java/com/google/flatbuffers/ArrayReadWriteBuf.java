@@ -35,6 +35,11 @@ public class ArrayReadWriteBuf implements ReadWriteBuf {
   }
 
   @Override
+  public void clear() {
+    this.writePos = 0;
+  }
+
+  @Override
   public boolean getBoolean(int index) {
     return buffer[index] != 0;
   }
