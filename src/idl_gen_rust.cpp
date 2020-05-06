@@ -1784,6 +1784,10 @@ class RustGenerator : public BaseGenerator {
   }
 
   void GenNamespaceImports(const int white_spaces) {
+    if (parser_.opts.generate_all) {
+      return;
+    }
+    
     std::string indent = std::string(white_spaces, ' ');
     code_ += "";
     for (auto it = parser_.included_files_.begin();
