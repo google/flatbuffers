@@ -153,7 +153,6 @@ struct TableInNestedNSBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  TableInNestedNSBuilder &operator=(const TableInNestedNSBuilder &);
   flatbuffers::Offset<TableInNestedNS> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<TableInNestedNS>(end);

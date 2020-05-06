@@ -38,10 +38,15 @@ static CommentConfig comment_config = {
 
 namespace csharp {
 class CSharpGenerator : public BaseGenerator {
+  struct FieldArrayLength {
+    std::string name;
+    int length;
+  };
+
  public:
   CSharpGenerator(const Parser &parser, const std::string &path,
                   const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", "."),
+      : BaseGenerator(parser, path, file_name, "", ".", "cs"),
         cur_name_space_(nullptr) {}
 
   CSharpGenerator &operator=(const CSharpGenerator &);
@@ -544,7 +549,7 @@ class CSharpGenerator : public BaseGenerator {
       // Force compile time error if not using the same version runtime.
       code += "  public static void ValidateVersion() {";
       code += " FlatBufferConstants.";
-      code += "FLATBUFFERS_1_11_1(); ";
+      code += "FLATBUFFERS_1_12_0(); ";
       code += "}\n";
 
       // Generate a special accessor for the table that when used as the root
@@ -947,7 +952,8 @@ class CSharpGenerator : public BaseGenerator {
       }
       // JVM specifications restrict default constructor params to be < 255.
       // Longs and doubles take up 2 units, so we set the limit to be < 127.
-      if (has_no_struct_fields && num_fields && num_fields < 127) {
+      if ((has_no_struct_fields || opts.generate_object_based_api) &&
+          num_fields && num_fields < 127) {
         struct_has_create = true;
         // Generate a table constructor of the form:
         // public static int createName(FlatBufferBuilder builder, args...)
@@ -959,13 +965,22 @@ class CSharpGenerator : public BaseGenerator {
           auto &field = **it;
           if (field.deprecated) continue;
           code += ",\n      ";
-          code += GenTypeBasic(field.value.type);
-          code += " ";
-          code += field.name;
-          if (!IsScalar(field.value.type.base_type)) code += "Offset";
+          if (IsStruct(field.value.type) && opts.generate_object_based_api) {
+            code += WrapInNameSpace(
+                field.value.type.struct_def->defined_namespace,
+                GenTypeName_ObjectAPI(field.value.type.struct_def->name, opts));
+            code += " ";
+            code += field.name;
+            code += " = null";
+          } else {
+            code += GenTypeBasic(field.value.type);
+            code += " ";
+            code += field.name;
+            if (!IsScalar(field.value.type.base_type)) code += "Offset";
 
-          code += " = ";
-          code += GenDefaultValueBasic(field);
+            code += " = ";
+            code += GenDefaultValueBasic(field);
+          }
         }
         code += ") {\n    builder.";
         code += "StartTable(";
@@ -980,8 +995,16 @@ class CSharpGenerator : public BaseGenerator {
                  size == SizeOf(field.value.type.base_type))) {
               code += "    " + struct_def.name + ".";
               code += "Add";
-              code += MakeCamel(field.name) + "(builder, " + field.name;
-              if (!IsScalar(field.value.type.base_type)) code += "Offset";
+              code += MakeCamel(field.name) + "(builder, ";
+              if (IsStruct(field.value.type) &&
+                  opts.generate_object_based_api) {
+                code += GenTypePointer(field.value.type) + ".Pack(builder, " +
+                        field.name + ")";
+              } else {
+                code += field.name;
+                if (!IsScalar(field.value.type.base_type)) code += "Offset";
+              }
+
               code += ");\n";
             }
           }
@@ -1522,6 +1545,15 @@ class CSharpGenerator : public BaseGenerator {
                     GenOffsetType(*field.value.type.struct_def) +
                     ") : " + GenTypeGet(field.value.type) +
                     ".Pack(builder, _o." + camel_name + ");\n";
+          } else if (struct_def.fixed && struct_has_create) {
+            std::vector<FieldArrayLength> array_lengths;
+            FieldArrayLength tmp_array_length = {
+              field.name,
+              field.value.type.fixed_length,
+            };
+            array_lengths.push_back(tmp_array_length);
+            GenStructPackDecl_ObjectAPI(*field.value.type.struct_def, code_ptr,
+                                        array_lengths);
           }
           break;
         }
@@ -1602,12 +1634,14 @@ class CSharpGenerator : public BaseGenerator {
         }
         case BASE_TYPE_ARRAY: {
           if (field.value.type.struct_def != nullptr) {
-            std::vector<std::string> name_vec;
-            name_vec.push_back(field.name);
-            std::vector<int> array_length_vec;
-            array_length_vec.push_back(field.value.type.fixed_length);
-            GenArrayPackDecl_ObjectAPI(*field.value.type.struct_def, code_ptr,
-                                       name_vec, array_length_vec);
+            std::vector<FieldArrayLength> array_lengths;
+            FieldArrayLength tmp_array_length = {
+              field.name,
+              field.value.type.fixed_length,
+            };
+            array_lengths.push_back(tmp_array_length);
+            GenStructPackDecl_ObjectAPI(*field.value.type.struct_def, code_ptr,
+                                        array_lengths);
           } else {
             code += "    var _" + field.name + " = _o." + camel_name + ";\n";
           }
@@ -1638,13 +1672,17 @@ class CSharpGenerator : public BaseGenerator {
         switch (field.value.type.base_type) {
           case BASE_TYPE_STRUCT: {
             if (struct_def.fixed) {
-              GenStructArgs_ObjectAPI(*field.value.type.struct_def, code_ptr,
-                                      "      _o." + camel_name + ".");
+              GenStructPackCall_ObjectAPI(*field.value.type.struct_def,
+                                          code_ptr,
+                                          "      _" + field.name + "_");
             } else {
               code += ",\n";
               if (field.value.type.struct_def->fixed) {
-                code += "      " + GenTypeGet(field.value.type) +
-                        ".Pack(builder, _o." + camel_name + ")";
+                if (opts.generate_object_based_api)
+                  code += "      _o." + camel_name;
+                else
+                  code += "      " + GenTypeGet(field.value.type) +
+                          ".Pack(builder, _o." + camel_name + ")";
               } else {
                 code += "      _" + field.name;
               }
@@ -1653,8 +1691,9 @@ class CSharpGenerator : public BaseGenerator {
           }
           case BASE_TYPE_ARRAY: {
             if (field.value.type.struct_def != nullptr) {
-              GenArrayPackCall_ObjectAPI(*field.value.type.struct_def, code_ptr,
-                                         "      _" + field.name + "_");
+              GenStructPackCall_ObjectAPI(*field.value.type.struct_def,
+                                          code_ptr,
+                                          "      _" + field.name + "_");
             } else {
               code += ",\n";
               code += "      _" + field.name;
@@ -1724,28 +1763,9 @@ class CSharpGenerator : public BaseGenerator {
     code += "  }\n";
   }
 
-  void GenStructArgs_ObjectAPI(const StructDef &struct_def,
-                               std::string *code_ptr,
-                               std::string prefix) const {
-    auto &code = *code_ptr;
-    for (auto it = struct_def.fields.vec.begin();
-         it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
-      const auto &field_type = field.value.type;
-      if (IsStruct(field_type)) {
-        GenStructArgs_ObjectAPI(*field_type.struct_def, code_ptr,
-                                prefix + "." + MakeCamel(field.name) + ".");
-      } else {
-        code += ",\n";
-        code += prefix + MakeCamel(field.name);
-      }
-    }
-  }
-
-  void GenArrayPackDecl_ObjectAPI(const StructDef &struct_def,
-                                  std::string *code_ptr,
-                                  std::vector<std::string> name_vec,
-                                  std::vector<int> array_length_vec) const {
+  void GenStructPackDecl_ObjectAPI(
+      const StructDef &struct_def, std::string *code_ptr,
+      std::vector<FieldArrayLength> &array_lengths) const {
     auto &code = *code_ptr;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
@@ -1753,64 +1773,81 @@ class CSharpGenerator : public BaseGenerator {
       auto is_array = IsArray(field.value.type);
       const auto &field_type =
           is_array ? field.value.type.VectorType() : field.value.type;
-      if (!IsStruct(field_type)) {
-        auto tmp_name_vec = name_vec;
-        tmp_name_vec.push_back(field.name);
-        auto tmp_array_length_vec = array_length_vec;
-        if (is_array) {
-          tmp_array_length_vec.push_back(field_type.fixed_length);
+      FieldArrayLength tmp_array_length = {
+        field.name,
+        field_type.fixed_length,
+      };
+      array_lengths.push_back(tmp_array_length);
+      if (field_type.struct_def != nullptr) {
+        GenStructPackDecl_ObjectAPI(*field_type.struct_def, code_ptr,
+                                    array_lengths);
+      } else {
+        std::vector<FieldArrayLength> array_only_lengths;
+        for (size_t i = 0; i < array_lengths.size(); ++i) {
+          if (array_lengths[i].length > 0) {
+            array_only_lengths.push_back(array_lengths[i]);
+          }
         }
         std::string name;
-        for (size_t tmp_name_index = 0; tmp_name_index < tmp_name_vec.size();
-             ++tmp_name_index) {
-          name += "_" + tmp_name_vec[tmp_name_index];
+        for (size_t i = 0; i < array_lengths.size(); ++i) {
+          name += "_" + array_lengths[i].name;
         }
-        code += "    var " + name + " = new " + GenTypeBasic(field_type) + "[";
-        code += NumToString(tmp_array_length_vec[0]);
-        for (size_t i = 1; i < tmp_array_length_vec.size(); ++i) {
-          auto array_length = tmp_array_length_vec[i];
-          code += "," + NumToString(array_length);
-        }
-        code += "];\n";
-        code += "    ";
-        // initialize array
-        for (size_t i = 0; i < tmp_array_length_vec.size(); ++i) {
-          auto array_length = tmp_array_length_vec[i];
-          auto idx = "idx" + NumToString(i);
-          code += "for (var " + idx + " = 0; " + idx + " < " +
-                  NumToString(array_length) + "; ++" + idx + ") {";
-        }
-        code += name + "[idx0";
-        for (size_t i = 1; i < tmp_array_length_vec.size(); ++i) {
-          auto idx = "idx" + NumToString(i);
-          code += "," + idx;
-        }
-        code += "] = _o";
-        for (size_t i = 0; i < tmp_array_length_vec.size(); ++i) {
-          auto idx = "idx" + NumToString(i);
-          code += "." + MakeCamel(tmp_name_vec[i]) + "[" + idx + "]";
-        }
-        if (!is_array) { code += "." + MakeCamel(field.name); }
-        code += ";";
-        for (size_t i = 0; i < tmp_array_length_vec.size(); ++i) {
-          code += "}";
+        code += "    var " + name + " = ";
+        if (array_only_lengths.size() > 0) {
+          code += "new " + GenTypeBasic(field_type) + "[";
+          for (size_t i = 0; i < array_only_lengths.size(); ++i) {
+            if (i != 0) { code += ","; }
+            code += NumToString(array_only_lengths[i].length);
+          }
+          code += "];\n";
+          code += "    ";
+          // initialize array
+          for (size_t i = 0; i < array_only_lengths.size(); ++i) {
+            auto idx = "idx" + NumToString(i);
+            code += "for (var " + idx + " = 0; " + idx + " < " +
+                    NumToString(array_only_lengths[i].length) + "; ++" + idx +
+                    ") {";
+          }
+          for (size_t i = 0; i < array_only_lengths.size(); ++i) {
+            auto idx = "idx" + NumToString(i);
+            if (i == 0) {
+              code += name + "[" + idx;
+            } else {
+              code += "," + idx;
+            }
+          }
+          code += "] = _o";
+          for (size_t i = 0, j = 0; i < array_lengths.size(); ++i) {
+            code += "." + MakeCamel(array_lengths[i].name);
+            if (array_lengths[i].length <= 0) continue;
+            code += "[idx" + NumToString(j++) + "]";
+          }
+          code += ";";
+          for (size_t i = 0; i < array_only_lengths.size(); ++i) { code += "}"; }
+        } else {
+          code += "_o";
+          for (size_t i = 0; i < array_lengths.size(); ++i) {
+            code += "." + MakeCamel(array_lengths[i].name);
+          }
+          code += ";";
         }
         code += "\n";
       }
+      array_lengths.pop_back();
     }
   }
 
-  void GenArrayPackCall_ObjectAPI(const StructDef &struct_def,
-                                  std::string *code_ptr,
-                                  std::string prefix) const {
+  void GenStructPackCall_ObjectAPI(const StructDef &struct_def,
+                                   std::string *code_ptr,
+                                   std::string prefix) const {
     auto &code = *code_ptr;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
       const auto &field_type = field.value.type;
-      if (IsStruct(field_type)) {
-        GenArrayPackCall_ObjectAPI(*field_type.struct_def, code_ptr,
-                                   prefix + field.name + "_");
+      if (field_type.struct_def != nullptr) {
+        GenStructPackCall_ObjectAPI(*field_type.struct_def, code_ptr,
+                                    prefix + field.name + "_");
       } else {
         code += ",\n";
         code += prefix + field.name;
@@ -1988,6 +2025,19 @@ class CSharpGenerator : public BaseGenerator {
       code +=
           "    return Newtonsoft.Json.JsonConvert.SerializeObject(this, "
           "Newtonsoft.Json.Formatting.Indented);\n";
+      code += "  }\n";
+    }
+    if (parser_.root_struct_def_ == &struct_def) {
+      code += "  public static " + class_name +
+              " DeserializeFromBinary(byte[] fbBuffer) {\n";
+      code += "    return " + struct_def.name + ".GetRootAs" + struct_def.name +
+              "(new ByteBuffer(fbBuffer)).UnPack();\n";
+      code += "  }\n";
+      code += "  public byte[] SerializeToBinary() {\n";
+      code += "    var fbb = new FlatBufferBuilder(0x10000);\n";
+      code +=
+          "    fbb.Finish(" + struct_def.name + ".Pack(fbb, this).Value);\n";
+      code += "    return fbb.DataBuffer.ToSizedArray();\n";
       code += "  }\n";
     }
     code += "}\n\n";

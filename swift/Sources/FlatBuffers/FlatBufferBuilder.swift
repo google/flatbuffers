@@ -1,6 +1,6 @@
 import Foundation
 
-public final class FlatBufferBuilder {
+public struct FlatBufferBuilder {
     
     /// Vtables used in the buffer are stored in here, so they would be written later in EndTable
     private var _vtable: [UInt32] = []
@@ -53,7 +53,7 @@ public final class FlatBufferBuilder {
     /// Returns A sized Buffer from the readable bytes
     public var sizedBuffer: ByteBuffer {
         assert(finished, "Data shouldn't be called before finish()")
-        return ByteBuffer(memory: _bb.memory.advanced(by: _bb.reader), count: _bb.reader)
+        return ByteBuffer(memory: _bb.memory.advanced(by: _bb.reader), count: Int(_bb.size))
     }
     
     // MARK: - Init
@@ -72,15 +72,17 @@ public final class FlatBufferBuilder {
     }
     
     /// Clears the buffer and the builder from it's data
-    public func clear() {
+    mutating public func clear() {
         _minAlignment = 0
         isNested = false
-        _bb.clear()
         stringOffsetMap = [:]
+        _vtable = []
+        _vtables = []
+        _bb.clear()
     }
     
     /// Removes all the offsets from the VTable
-    public func clearOffsets() {
+    mutating public func clearOffsets() {
         _vtable = []
     }
     
@@ -90,7 +92,7 @@ public final class FlatBufferBuilder {
     /// - Parameters:
     ///   - table: offset for the table
     ///   - fields: Array of all the important fields to be serialized
-    public func require(table: Offset<UOffset>, fields: [Int32]) {
+    mutating public func require(table: Offset<UOffset>, fields: [Int32]) {
         for field in fields {
             let start = _bb.capacity - Int(table.o)
             let startTable = start - Int(_bb.read(def: Int32.self, position: start))
@@ -104,7 +106,7 @@ public final class FlatBufferBuilder {
     ///   - offset: Offset of the table
     ///   - fileId: Takes the fileId
     ///   - prefix: if false it wont add the size of the buffer
-    public func finish<T>(offset: Offset<T>, fileId: String, addPrefix prefix: Bool = false) {
+    mutating public func finish<T>(offset: Offset<T>, fileId: String, addPrefix prefix: Bool = false) {
         let size = MemoryLayout<UOffset>.size
         preAlign(len: size + (prefix ? size : 0) + FileIdLength, alignment: _minAlignment)
         assert(fileId.count == FileIdLength, "Flatbuffers requires file id to be 4")
@@ -116,7 +118,7 @@ public final class FlatBufferBuilder {
     /// - Parameters:
     ///   - offset: Offset of the table
     ///   - prefix: if false it wont add the size of the buffer
-    public func finish<T>(offset: Offset<T>, addPrefix prefix: Bool = false) {
+    mutating public func finish<T>(offset: Offset<T>, addPrefix prefix: Bool = false) {
         notNested()
         let size = MemoryLayout<UOffset>.size
         preAlign(len: size + (prefix ? size : 0), alignment: _minAlignment)
@@ -130,7 +132,7 @@ public final class FlatBufferBuilder {
     ///
     /// The function will fatalerror if called while there is another object being serialized
     /// - Parameter numOfFields: Number of elements to be written to the buffer
-    public func startTable(with numOfFields: Int) -> UOffset {
+    mutating public func startTable(with numOfFields: Int) -> UOffset {
         notNested()
         isNested = true
         _vtable = [UInt32](repeating: 0, count: numOfFields)
@@ -145,7 +147,7 @@ public final class FlatBufferBuilder {
     ///  2GB,
     /// - Parameter startOffset:Start point of the object written
     /// - returns: The root of the table
-    public func endTable(at startOffset: UOffset)  -> UOffset {
+    mutating public func endTable(at startOffset: UOffset)  -> UOffset {
         assert(isNested, "Calling endtable without calling starttable")
         let sizeofVoffset = MemoryLayout<VOffset>.size
         let vTableOffset = push(element: SOffset(0))
@@ -174,19 +176,17 @@ public final class FlatBufferBuilder {
         
         var isAlreadyAdded: Int?
         
-        mainLoop: for table in _vtables {
-            let vt1 = _bb.capacity - Int(table)
-            let vt2 = _bb.writerIndex
-            let len = _bb.read(def: Int16.self, position: vt1)
-            guard len == _bb.read(def: Int16.self, position: vt2) else { break }
-            for i in stride(from: sizeofVoffset, to: Int(len), by: sizeofVoffset) {
-                let vt1ReadValue = _bb.read(def: Int16.self, position: vt1 + i)
-                let vt2ReadValue = _bb.read(def: Int16.self, position: vt2 + i)
-                if vt1ReadValue != vt2ReadValue {
-                    break mainLoop
-                }
-            }
+        let vt2 = _bb.memory.advanced(by: _bb.writerIndex)
+        let len2 = vt2.load(fromByteOffset: 0, as: Int16.self)
+
+        for table in _vtables {
+            let position = _bb.capacity - Int(table)
+            let vt1 = _bb.memory.advanced(by: position)
+            let len1 = _bb.read(def: Int16.self, position: position)
+            if (len2 != len1 || 0 != memcmp(vt1, vt2, Int(len2))) { continue }
+            
             isAlreadyAdded = Int(table)
+            break
         }
         
         if let offset = isAlreadyAdded {
@@ -205,13 +205,13 @@ public final class FlatBufferBuilder {
     // MARK: - Builds Buffer
     
     /// asserts to see if the object is not nested
-    fileprivate func notNested()  {
+    @usableFromInline mutating internal func notNested()  {
         assert(!isNested, "Object serialization must not be nested")
     }
     
     /// Changes the minimuim alignment of the buffer
     /// - Parameter size: size of the current alignment
-    fileprivate func minAlignment(size: Int) {
+    @usableFromInline mutating internal func minAlignment(size: Int) {
         if size > _minAlignment {
             _minAlignment = size
         }
@@ -221,7 +221,7 @@ public final class FlatBufferBuilder {
     /// - Parameters:
     ///   - bufSize: Current size of the buffer + the offset of the object to be written
     ///   - elementSize: Element size
-    fileprivate func padding(bufSize: UInt32, elementSize: UInt32) -> UInt32 {
+    @usableFromInline mutating internal func padding(bufSize: UInt32, elementSize: UInt32) -> UInt32 {
         ((~bufSize) &+ 1) & (elementSize - 1)
     }
     
@@ -229,7 +229,7 @@ public final class FlatBufferBuilder {
     /// - Parameters:
     ///   - len:Length of the object
     ///   - alignment: Alignment type
-    fileprivate func preAlign(len: Int, alignment: Int) {
+    @usableFromInline mutating internal func preAlign(len: Int, alignment: Int) {
         minAlignment(size: alignment)
         _bb.fill(padding: padding(bufSize: _bb.size + UOffset(len), elementSize: UOffset(alignment)))
     }
@@ -238,13 +238,13 @@ public final class FlatBufferBuilder {
     /// - Parameters:
     ///   - len: Length of the object
     ///   - type: Type of the object to be written
-    fileprivate func preAlign<T: Scalar>(len: Int, type: T.Type) {
+    @usableFromInline mutating internal func preAlign<T: Scalar>(len: Int, type: T.Type) {
         preAlign(len: len, alignment: MemoryLayout<T>.size)
     }
     
     /// Refers to an object that's written in the buffer
     /// - Parameter off: the objects index value
-    fileprivate func refer(to off: UOffset) -> UOffset {
+    @usableFromInline mutating internal func refer(to off: UOffset) -> UOffset {
         let size = MemoryLayout<UOffset>.size
         preAlign(len: size, alignment: size)
         return _bb.size - off + UInt32(size)
@@ -254,14 +254,14 @@ public final class FlatBufferBuilder {
     /// - Parameters:
     ///   - offset: The offset of the element witten
     ///   - position: The position of the element
-    fileprivate func track(offset: UOffset, at position: VOffset) {
+    @usableFromInline mutating internal func track(offset: UOffset, at position: VOffset) {
         _vtable[Int(position)] = offset
     }
 
     // MARK: - Vectors
     
     /// Starts a vector of length and Element size
-    public func startVector(_ len: Int, elementSize: Int) {
+    mutating public func startVector(_ len: Int, elementSize: Int) {
         notNested()
         isNested = true
         preAlign(len: len * elementSize, type: UOffset.self)
@@ -272,16 +272,34 @@ public final class FlatBufferBuilder {
     ///
     /// The current function will fatalError if startVector is called before serializing the vector
     /// - Parameter len: Length of the buffer
-    public func endVector(len: Int) -> UOffset {
+    mutating public func endVector(len: Int) -> UOffset {
         assert(isNested, "Calling endVector without calling startVector")
         isNested = false
         return push(element: Int32(len))
     }
     
+    /// Creates a vector of type Bool in the buffer
+    /// - Parameter elements: elements to be written into the buffer
+    /// - returns: Offset of the vector
+    mutating public func createVector(_ elements: [Bool]) -> Offset<UOffset> {
+        return createVector(elements, size: elements.count)
+    }
+    
+    ///  Creates a vector of type Bool in the buffer
+    /// - Parameter elements: Elements to be written into the buffer
+    /// - Parameter size: Count of elements
+    /// - returns: Offset of the vector
+    mutating public func createVector(_ elements: [Bool], size: Int) -> Offset<UOffset> {
+        let size = size
+        startVector(size, elementSize: MemoryLayout<Bool>.size)
+        _bb.push(elements: elements)
+        return Offset(offset: endVector(len: size))
+    }
+    
     /// Creates a vector of type Scalar in the buffer
     /// - Parameter elements: elements to be written into the buffer
     /// - returns: Offset of the vector
-    public func createVector<T: Scalar>(_ elements: [T]) -> Offset<UOffset> {
+    mutating public func createVector<T: Scalar>(_ elements: [T]) -> Offset<UOffset> {
         return createVector(elements, size: elements.count)
     }
     
@@ -289,7 +307,7 @@ public final class FlatBufferBuilder {
     /// - Parameter elements: Elements to be written into the buffer
     /// - Parameter size: Count of elements
     /// - returns: Offset of the vector
-    public func createVector<T: Scalar>(_ elements: [T], size: Int) -> Offset<UOffset> {
+    mutating public func createVector<T: Scalar>(_ elements: [T], size: Int) -> Offset<UOffset> {
         let size = size
         startVector(size, elementSize: MemoryLayout<T>.size)
         _bb.push(elements: elements)
@@ -299,7 +317,7 @@ public final class FlatBufferBuilder {
     /// Creates a vector of type Enums in the buffer
     /// - Parameter elements: elements to be written into the buffer
     /// - returns: Offset of the vector
-    public func createVector<T: Enum>(_ elements: [T]) -> Offset<UOffset> {
+    mutating public func createVector<T: Enum>(_ elements: [T]) -> Offset<UOffset> {
         return createVector(elements, size: elements.count)
     }
     
@@ -307,7 +325,7 @@ public final class FlatBufferBuilder {
     /// - Parameter elements: Elements to be written into the buffer
     /// - Parameter size: Count of elements
     /// - returns: Offset of the vector
-    public func createVector<T: Enum>(_ elements: [T], size: Int) -> Offset<UOffset> {
+    mutating public func createVector<T: Enum>(_ elements: [T], size: Int) -> Offset<UOffset> {
         let size = size
         startVector(size, elementSize: T.byteSize)
         for e in elements.lazy.reversed() {
@@ -319,7 +337,7 @@ public final class FlatBufferBuilder {
     /// Creates a vector of type Offsets  in the buffer
     /// - Parameter offsets:Array of offsets of type T
     /// - returns: Offset of the vector
-    public func createVector<T>(ofOffsets offsets: [Offset<T>]) -> Offset<UOffset> {
+    mutating public func createVector<T>(ofOffsets offsets: [Offset<T>]) -> Offset<UOffset> {
         createVector(ofOffsets: offsets, len: offsets.count)
     }
     
@@ -327,7 +345,7 @@ public final class FlatBufferBuilder {
     /// - Parameter elements: Array of offsets of type T
     /// - Parameter size: Count of elements
     /// - returns: Offset of the vector
-    public func createVector<T>(ofOffsets offsets: [Offset<T>], len: Int) -> Offset<UOffset> {
+    mutating public func createVector<T>(ofOffsets offsets: [Offset<T>], len: Int) -> Offset<UOffset> {
         startVector(len, elementSize: MemoryLayout<Offset<T>>.size)
         for o in offsets.lazy.reversed() {
             push(element: o)
@@ -338,7 +356,7 @@ public final class FlatBufferBuilder {
     /// Creates a vector of Strings
     /// - Parameter str: a vector of strings that will be written into the buffer
     /// - returns: Offset of the vector
-    public func createVector(ofStrings str: [String]) -> Offset<UOffset> {
+    mutating public func createVector(ofStrings str: [String]) -> Offset<UOffset> {
         var offsets: [Offset<String>] = []
         for s in str {
             offsets.append(create(string: s))
@@ -353,7 +371,7 @@ public final class FlatBufferBuilder {
     ///   - structs: An array of UnsafeMutableRawPointer
     ///   - type: Type of the struct being written
     /// - returns: Offset of the vector
-    public func createVector<T: Readable>(structs: [UnsafeMutableRawPointer],
+    mutating public func createVector<T: Readable>(structs: [UnsafeMutableRawPointer],
                                           type: T.Type) -> Offset<UOffset> {
         startVector(structs.count * T.size, elementSize: T.alignment)
         for i in structs.lazy.reversed() {
@@ -370,7 +388,7 @@ public final class FlatBufferBuilder {
     ///   - type: Type of the element to be serialized
     /// - returns: Offset of the Object
     @discardableResult
-    public func create<T: Readable>(struct s: UnsafeMutableRawPointer,
+    mutating public func create<T: Readable>(struct s: UnsafeMutableRawPointer,
                                     type: T.Type) -> Offset<UOffset> {
         let size = T.size
         preAlign(len: size, alignment: T.alignment)
@@ -382,7 +400,7 @@ public final class FlatBufferBuilder {
     ///
     /// The function fatalErrors if we pass an offset that is out of range
     /// - Parameter o: offset
-    public func add(structOffset o: UOffset) {
+    mutating public func add(structOffset o: UOffset) {
         guard Int(o) < _vtable.count else { fatalError("Out of the table range") }
         _vtable[Int(o)] = _bb.size
     }
@@ -392,7 +410,7 @@ public final class FlatBufferBuilder {
     /// Insets a string into the buffer using UTF8
     /// - Parameter str: String to be serialized
     /// - returns: The strings offset in the buffer
-    public func create(string str: String) -> Offset<String> {
+    mutating public func create(string str: String) -> Offset<String> {
         let len = str.count
         notNested()
         preAlign(len: len + 1, type: UOffset.self)
@@ -407,7 +425,7 @@ public final class FlatBufferBuilder {
     /// The function checks the stringOffsetmap if it's seen a similar string before
     /// - Parameter str: String to be serialized
     /// - returns: The strings offset in the buffer
-    public func createShared(string str: String) -> Offset<String> {
+    mutating public func createShared(string str: String) -> Offset<String> {
         if let offset = stringOffsetMap[str] {
             return offset
         }
@@ -422,7 +440,7 @@ public final class FlatBufferBuilder {
     /// - Parameters:
     ///   - offset: Offset of another object to be written
     ///   - position: The  predefined position of the object
-    public func add<T>(offset: Offset<T>, at position: VOffset) {
+    mutating public func add<T>(offset: Offset<T>, at position: VOffset) {
         if offset.isEmpty {
             track(offset: 0, at: position)
             return
@@ -434,7 +452,7 @@ public final class FlatBufferBuilder {
     /// - Parameter o: Offset
     /// - returns: Position of the offset
     @discardableResult
-    public func push<T>(element o: Offset<T>) -> UOffset {
+    mutating public func push<T>(element o: Offset<T>) -> UOffset {
         push(element: refer(to: o.o))
     }
     
@@ -446,7 +464,7 @@ public final class FlatBufferBuilder {
     ///   - element: Element to insert
     ///   - def: Default value for that element
     ///   - position: The predefined position of the element
-    public func add<T: Scalar>(element: T, def: T, at position: VOffset) {
+    mutating public func add<T: Scalar>(element: T, def: T, at position: VOffset) {
         if (element == def && !serializeDefaults) {
             track(offset: 0, at: position)
             return
@@ -460,7 +478,7 @@ public final class FlatBufferBuilder {
     ///   - condition: Condition to insert
     ///   - def: Default condition
     ///   - position: The predefined position of the element
-    public func add(condition: Bool, def: Bool, at position: VOffset) {
+    mutating public func add(condition: Bool, def: Bool, at position: VOffset) {
         if (condition == def && !serializeDefaults) {
             track(offset: 0, at: position)
             return
@@ -473,12 +491,13 @@ public final class FlatBufferBuilder {
     /// - Parameter element: Element to insert
     /// - returns: Postion of the Element
     @discardableResult
-    public func push<T: Scalar>(element: T) -> UOffset {
+    mutating public func push<T: Scalar>(element: T) -> UOffset {
         preAlign(len: MemoryLayout<T>.size,
                  alignment: MemoryLayout<T>.size)
         _bb.push(value: element, len: MemoryLayout<T>.size)
         return _bb.size
     }
+    
 }
 
 extension FlatBufferBuilder: CustomDebugStringConvertible {

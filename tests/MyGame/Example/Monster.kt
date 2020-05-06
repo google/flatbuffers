@@ -7,7 +7,7 @@ import kotlin.math.sign
 import com.google.flatbuffers.*
 
 /**
- * an example documentation comment: monster object
+ * an example documentation comment: "monster object"
  */
 @Suppress("unused")
 @ExperimentalUnsignedTypes
@@ -777,7 +777,7 @@ class Monster : Table() {
          return compareStrings(__offset(10, o1, _bb), __offset(10, o2, _bb), _bb)
     }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_1_11_1()
+        fun validateVersion() = Constants.FLATBUFFERS_1_12_0()
         fun getRootAsMonster(_bb: ByteBuffer): Monster = getRootAsMonster(_bb, Monster())
         fun getRootAsMonster(_bb: ByteBuffer, obj: Monster): Monster {
             _bb.order(ByteOrder.LITTLE_ENDIAN)

@@ -10,7 +10,7 @@ public struct Movie : IFlatbufferObject
 {
   private Table __p;
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
-  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_1_11_1(); }
+  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_1_12_0(); }
   public static Movie GetRootAsMovie(ByteBuffer _bb) { return GetRootAsMovie(_bb, new Movie()); }
   public static Movie GetRootAsMovie(ByteBuffer _bb, Movie obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public static bool MovieBufferHasIdentifier(ByteBuffer _bb) { return Table.__has_identifier(_bb, "MOVI"); }
@@ -190,6 +190,14 @@ public class MovieT
   }
   public string SerializeToJson() {
     return Newtonsoft.Json.JsonConvert.SerializeObject(this, Newtonsoft.Json.Formatting.Indented);
+  }
+  public static MovieT DeserializeFromBinary(byte[] fbBuffer) {
+    return Movie.GetRootAsMovie(new ByteBuffer(fbBuffer)).UnPack();
+  }
+  public byte[] SerializeToBinary() {
+    var fbb = new FlatBufferBuilder(0x10000);
+    fbb.Finish(Movie.Pack(fbb, this).Value);
+    return fbb.DataBuffer.ToSizedArray();
   }
 }
 

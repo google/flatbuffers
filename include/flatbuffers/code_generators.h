@@ -61,7 +61,7 @@ class CodeWriter {
   }
 
   // Appends the given text to the generated code as well as a newline
-  // character.  Any text within {{ and }} delimeters is replaced by values
+  // character.  Any text within {{ and }} delimiters is replaced by values
   // previously stored in the CodeWriter by calling SetValue above.  The newline
   // will be suppressed if the text ends with the \\ character.
   void operator+=(std::string text);
@@ -74,6 +74,10 @@ class CodeWriter {
   // Decrease ident level for writing code
   void DecrementIdentLevel() {
     if (cur_ident_lvl_) cur_ident_lvl_--;
+  }
+    
+  void SetPadding(const std::string &padding) {
+    pad_ = padding;
   }
 
  private:
@@ -94,15 +98,20 @@ class BaseGenerator {
   static std::string NamespaceDir(const Parser &parser, const std::string &path,
                                   const Namespace &ns);
 
+  std::string GeneratedFileName(const std::string &path,
+                                const std::string &file_name,
+                                const IDLOptions &options) const;
+
  protected:
   BaseGenerator(const Parser &parser, const std::string &path,
                 const std::string &file_name, std::string qualifying_start,
-                std::string qualifying_separator)
+                std::string qualifying_separator, std::string default_extension)
       : parser_(parser),
         path_(path),
         file_name_(file_name),
         qualifying_start_(qualifying_start),
-        qualifying_separator_(qualifying_separator) {}
+        qualifying_separator_(qualifying_separator),
+        default_extension_(default_extension) {}
   virtual ~BaseGenerator() {}
 
   // No copy/assign.
@@ -138,6 +147,7 @@ class BaseGenerator {
   const std::string &file_name_;
   const std::string qualifying_start_;
   const std::string qualifying_separator_;
+  const std::string default_extension_;
 };
 
 struct CommentConfig {

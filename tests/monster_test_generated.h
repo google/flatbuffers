@@ -244,8 +244,8 @@ struct AnyUnion {
   AnyUnion(AnyUnion&& u) FLATBUFFERS_NOEXCEPT :
     type(Any_NONE), value(nullptr)
     { std::swap(type, u.type); std::swap(value, u.value); }
-  AnyUnion(const AnyUnion &) FLATBUFFERS_NOEXCEPT;
-  AnyUnion &operator=(const AnyUnion &u) FLATBUFFERS_NOEXCEPT
+  AnyUnion(const AnyUnion &);
+  AnyUnion &operator=(const AnyUnion &u)
     { AnyUnion t(u); std::swap(type, t.type); std::swap(value, t.value); return *this; }
   AnyUnion &operator=(AnyUnion &&u) FLATBUFFERS_NOEXCEPT
     { std::swap(type, u.type); std::swap(value, u.value); return *this; }
@@ -386,8 +386,8 @@ struct AnyUniqueAliasesUnion {
   AnyUniqueAliasesUnion(AnyUniqueAliasesUnion&& u) FLATBUFFERS_NOEXCEPT :
     type(AnyUniqueAliases_NONE), value(nullptr)
     { std::swap(type, u.type); std::swap(value, u.value); }
-  AnyUniqueAliasesUnion(const AnyUniqueAliasesUnion &) FLATBUFFERS_NOEXCEPT;
-  AnyUniqueAliasesUnion &operator=(const AnyUniqueAliasesUnion &u) FLATBUFFERS_NOEXCEPT
+  AnyUniqueAliasesUnion(const AnyUniqueAliasesUnion &);
+  AnyUniqueAliasesUnion &operator=(const AnyUniqueAliasesUnion &u)
     { AnyUniqueAliasesUnion t(u); std::swap(type, t.type); std::swap(value, t.value); return *this; }
   AnyUniqueAliasesUnion &operator=(AnyUniqueAliasesUnion &&u) FLATBUFFERS_NOEXCEPT
     { std::swap(type, u.type); std::swap(value, u.value); return *this; }
@@ -512,8 +512,8 @@ struct AnyAmbiguousAliasesUnion {
   AnyAmbiguousAliasesUnion(AnyAmbiguousAliasesUnion&& u) FLATBUFFERS_NOEXCEPT :
     type(AnyAmbiguousAliases_NONE), value(nullptr)
     { std::swap(type, u.type); std::swap(value, u.value); }
-  AnyAmbiguousAliasesUnion(const AnyAmbiguousAliasesUnion &) FLATBUFFERS_NOEXCEPT;
-  AnyAmbiguousAliasesUnion &operator=(const AnyAmbiguousAliasesUnion &u) FLATBUFFERS_NOEXCEPT
+  AnyAmbiguousAliasesUnion(const AnyAmbiguousAliasesUnion &);
+  AnyAmbiguousAliasesUnion &operator=(const AnyAmbiguousAliasesUnion &u)
     { AnyAmbiguousAliasesUnion t(u); std::swap(type, t.type); std::swap(value, t.value); return *this; }
   AnyAmbiguousAliasesUnion &operator=(AnyAmbiguousAliasesUnion &&u) FLATBUFFERS_NOEXCEPT
     { std::swap(type, u.type); std::swap(value, u.value); return *this; }
@@ -802,7 +802,6 @@ struct InParentNamespaceBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  InParentNamespaceBuilder &operator=(const InParentNamespaceBuilder &);
   flatbuffers::Offset<InParentNamespace> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<InParentNamespace>(end);
@@ -858,7 +857,6 @@ struct MonsterBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  MonsterBuilder &operator=(const MonsterBuilder &);
   flatbuffers::Offset<Monster> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Monster>(end);
@@ -932,7 +930,6 @@ struct TestSimpleTableWithEnumBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  TestSimpleTableWithEnumBuilder &operator=(const TestSimpleTableWithEnumBuilder &);
   flatbuffers::Offset<TestSimpleTableWithEnum> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<TestSimpleTableWithEnum>(end);
@@ -1032,7 +1029,6 @@ struct StatBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  StatBuilder &operator=(const StatBuilder &);
   flatbuffers::Offset<Stat> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Stat>(end);
@@ -1127,7 +1123,6 @@ struct ReferrableBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ReferrableBuilder &operator=(const ReferrableBuilder &);
   flatbuffers::Offset<Referrable> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Referrable>(end);
@@ -1269,7 +1264,7 @@ inline bool operator!=(const MonsterT &lhs, const MonsterT &rhs) {
 }
 
 
-/// an example documentation comment: monster object
+/// an example documentation comment: "monster object"
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MonsterT NativeTableType;
   typedef MonsterBuilder Builder;
@@ -1911,7 +1906,6 @@ struct MonsterBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  MonsterBuilder &operator=(const MonsterBuilder &);
   flatbuffers::Offset<Monster> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Monster>(end);
@@ -2353,7 +2347,6 @@ struct TypeAliasesBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  TypeAliasesBuilder &operator=(const TypeAliasesBuilder &);
   flatbuffers::Offset<TypeAliases> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<TypeAliases>(end);
@@ -2865,7 +2858,7 @@ inline flatbuffers::Offset<void> AnyUnion::Pack(flatbuffers::FlatBufferBuilder &
   }
 }
 
-inline AnyUnion::AnyUnion(const AnyUnion &u) FLATBUFFERS_NOEXCEPT : type(u.type), value(nullptr) {
+inline AnyUnion::AnyUnion(const AnyUnion &u) : type(u.type), value(nullptr) {
   switch (type) {
     case Any_Monster: {
       FLATBUFFERS_ASSERT(false);  // MyGame::Example::MonsterT not copyable.
@@ -2976,7 +2969,7 @@ inline flatbuffers::Offset<void> AnyUniqueAliasesUnion::Pack(flatbuffers::FlatBu
   }
 }
 
-inline AnyUniqueAliasesUnion::AnyUniqueAliasesUnion(const AnyUniqueAliasesUnion &u) FLATBUFFERS_NOEXCEPT : type(u.type), value(nullptr) {
+inline AnyUniqueAliasesUnion::AnyUniqueAliasesUnion(const AnyUniqueAliasesUnion &u) : type(u.type), value(nullptr) {
   switch (type) {
     case AnyUniqueAliases_M: {
       FLATBUFFERS_ASSERT(false);  // MyGame::Example::MonsterT not copyable.
@@ -3087,7 +3080,7 @@ inline flatbuffers::Offset<void> AnyAmbiguousAliasesUnion::Pack(flatbuffers::Fla
   }
 }
 
-inline AnyAmbiguousAliasesUnion::AnyAmbiguousAliasesUnion(const AnyAmbiguousAliasesUnion &u) FLATBUFFERS_NOEXCEPT : type(u.type), value(nullptr) {
+inline AnyAmbiguousAliasesUnion::AnyAmbiguousAliasesUnion(const AnyAmbiguousAliasesUnion &u) : type(u.type), value(nullptr) {
   switch (type) {
     case AnyAmbiguousAliases_M1: {
       FLATBUFFERS_ASSERT(false);  // MyGame::Example::MonsterT not copyable.

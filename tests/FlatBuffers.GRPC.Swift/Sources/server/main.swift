@@ -29,7 +29,7 @@ class Greeter: GreeterProvider {
         for name in names {
             var builder = FlatBufferBuilder()
             let off = builder.create(string: name)
-            let root = HelloReply.createHelloReply(builder, offsetOfMessage: off)
+            let root = HelloReply.createHelloReply(&builder, offsetOfMessage: off)
             builder.finish(offset: root)
             hellos.append(Message(builder: &builder))
         }
@@ -43,7 +43,7 @@ class Greeter: GreeterProvider {
         
         var builder = FlatBufferBuilder()
         let off = builder.create(string: recipient)
-        let root = HelloReply.createHelloReply(builder, offsetOfMessage: off)
+        let root = HelloReply.createHelloReply(&builder, offsetOfMessage: off)
         builder.finish(offset: root)
         return context.eventLoop.makeSucceededFuture(Message<HelloReply>(builder: &builder))
     }

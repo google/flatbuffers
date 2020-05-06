@@ -138,7 +138,6 @@ struct TableInFirstNSBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  TableInFirstNSBuilder &operator=(const TableInFirstNSBuilder &);
   flatbuffers::Offset<TableInFirstNS> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<TableInFirstNS>(end);
@@ -232,7 +231,6 @@ struct TableInCBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  TableInCBuilder &operator=(const TableInCBuilder &);
   flatbuffers::Offset<TableInC> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<TableInC>(end);
@@ -310,7 +308,6 @@ struct SecondTableInABuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  SecondTableInABuilder &operator=(const SecondTableInABuilder &);
   flatbuffers::Offset<SecondTableInA> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<SecondTableInA>(end);

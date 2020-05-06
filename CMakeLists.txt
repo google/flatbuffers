@@ -38,6 +38,11 @@ option(FLATBUFFERS_BUILD_CPP17
 option(FLATBUFFERS_BUILD_LEGACY
        "Run C++ code generator with '--cpp-std c++0x' switch."
        OFF)
+option(FLATBUFFERS_ENABLE_PCH
+       "Enable precompile headers support for 'flatbuffers' and 'flatc'. \"
+        Only work if CMake supports 'target_precompile_headers'. \"
+        This can speed up compilation time."
+       OFF)
 
 if(NOT FLATBUFFERS_BUILD_FLATC AND FLATBUFFERS_BUILD_TESTS)
     message(WARNING
@@ -302,6 +307,15 @@ function(add_fsanitize_to_target _target _sanitizer)
   endif()
 endfunction()
 
+function(add_pch_to_target _target _pch_header)
+  if(COMMAND target_precompile_headers)
+    target_precompile_headers(${_target} PRIVATE ${_pch_header})
+    if(NOT MSVC)
+      set_source_files_properties(src/util.cpp PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+    endif()
+  endif()
+endfunction()
+
 if(BIICODE)
   include(biicode/cmake/biicode.cmake)
   return()
@@ -316,10 +330,16 @@ if(FLATBUFFERS_BUILD_FLATLIB)
   target_include_directories(flatbuffers INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
   target_compile_options(flatbuffers PRIVATE "${FLATBUFFERS_PRIVATE_CXX_FLAGS}")
+  if(FLATBUFFERS_ENABLE_PCH)
+    add_pch_to_target(flatbuffers include/flatbuffers/pch/pch.h)
+  endif()
 endif()
 
 if(FLATBUFFERS_BUILD_FLATC)
   add_executable(flatc ${FlatBuffers_Compiler_SRCS})
+  if(FLATBUFFERS_ENABLE_PCH)
+    add_pch_to_target(flatc include/flatbuffers/pch/flatc_pch.h)
+  endif()
   target_compile_options(flatc PRIVATE "${FLATBUFFERS_PRIVATE_CXX_FLAGS}")
   if(FLATBUFFERS_CODE_SANITIZE AND NOT WIN32)
     add_fsanitize_to_target(flatc ${FLATBUFFERS_CODE_SANITIZE})
@@ -348,10 +368,13 @@ if(FLATBUFFERS_BUILD_SHAREDLIB)
   # - minor updated when there are additions in API/ABI
   # - major (ABI number) updated when there are changes in ABI (or removals)
   set(FlatBuffers_Library_SONAME_MAJOR "1")
-  set(FlatBuffers_Library_SONAME_FULL "${FlatBuffers_Library_SONAME_MAJOR}.11.0")
+  set(FlatBuffers_Library_SONAME_FULL "${FlatBuffers_Library_SONAME_MAJOR}.12.0")
   set_target_properties(flatbuffers_shared PROPERTIES OUTPUT_NAME flatbuffers
                         SOVERSION "${FlatBuffers_Library_SONAME_MAJOR}"
                         VERSION "${FlatBuffers_Library_SONAME_FULL}")
+  if(FLATBUFFERS_ENABLE_PCH)
+    add_pch_to_target(flatbuffers_shared include/flatbuffers/pch/pch.h)
+  endif()
 endif()
 
 # Global list of generated files.
@@ -619,9 +642,10 @@ if(UNIX)
     # Use of CPack only supported on Linux systems.
     if(FLATBUFFERS_PACKAGE_DEBIAN)
         include(CMake/PackageDebian.cmake)
+        include(CPack)
     endif()
     if (FLATBUFFERS_PACKAGE_REDHAT)
         include(CMake/PackageRedhat.cmake)
+        include(CPack)
     endif()
-    include(CPack)
 endif()

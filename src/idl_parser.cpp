@@ -436,7 +436,7 @@ CheckedError Parser::Next() {
       default:
         const auto has_sign = (c == '+') || (c == '-');
         // '-'/'+' and following identifier - can be a predefined constant like:
-        // NAN, INF, PI, etc.
+        // NAN, INF, PI, etc or it can be a function name like cos/sin/deg.
         if (IsIdentifierStart(c) || (has_sign && IsIdentifierStart(*cursor_))) {
           // Collect all chars of an identifier:
           const char *start = cursor_ - 1;
@@ -878,10 +878,14 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   return NoError();
 }
 
-CheckedError Parser::ParseString(Value &val) {
+CheckedError Parser::ParseString(Value &val, bool use_string_pooling) {
   auto s = attribute_;
   EXPECT(kTokenStringConstant);
-  val.constant = NumToString(builder_.CreateString(s).o);
+  if (use_string_pooling) {
+    val.constant = NumToString(builder_.CreateSharedString(s).o);
+  } else {
+    val.constant = NumToString(builder_.CreateString(s).o);
+  }
   return NoError();
 }
 
@@ -974,7 +978,7 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
           val.constant = NumToString(builder_.GetSize());
         }
       } else if (enum_val->union_type.base_type == BASE_TYPE_STRING) {
-        ECHECK(ParseString(val));
+        ECHECK(ParseString(val, field->shared));
       } else {
         FLATBUFFERS_ASSERT(false);
       }
@@ -984,7 +988,7 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
       ECHECK(ParseTable(*val.type.struct_def, &val.constant, nullptr));
       break;
     case BASE_TYPE_STRING: {
-      ECHECK(ParseString(val));
+      ECHECK(ParseString(val, field->shared));
       break;
     }
     case BASE_TYPE_VECTOR: {
@@ -1293,8 +1297,15 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
   });
   ECHECK(err);
 
-  builder_.StartVector(count * InlineSize(type) / InlineAlignment(type),
-                       InlineAlignment(type));
+  const auto *force_align = field->attributes.Lookup("force_align");
+  const size_t align =
+      force_align ? static_cast<size_t>(atoi(force_align->constant.c_str()))
+                  : 1;
+  const size_t len = count * InlineSize(type) / InlineAlignment(type);
+  const size_t elemsize = InlineAlignment(type);
+  if (align > 1) { builder_.ForceVectorAlignment(len, elemsize, align); }
+
+  builder_.StartVector(len, elemsize);
   for (uoffset_t i = 0; i < count; i++) {
     // start at the back, since we're building the data backwards.
     auto &val = field_stack_.back().first;
@@ -1329,7 +1340,7 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
         break;
       }
     }
-    assert(key);
+    FLATBUFFERS_ASSERT(key);
     // Now sort it.
     // We can't use std::sort because for structs the size is not known at
     // compile time, and for tables our iterators dereference offsets, so can't
@@ -1379,7 +1390,7 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
             // These are serialized offsets, so are relative where they are
             // stored in memory, so compute the distance between these pointers:
             ptrdiff_t diff = (b - a) * sizeof(Offset<Table>);
-            assert(diff >= 0);  // Guaranteed by SimpleQsort.
+            FLATBUFFERS_ASSERT(diff >= 0);  // Guaranteed by SimpleQsort.
             auto udiff = static_cast<uoffset_t>(diff);
             a->o = EndianScalar(ReadScalar<uoffset_t>(a) - udiff);
             b->o = EndianScalar(ReadScalar<uoffset_t>(b) + udiff);
@@ -1504,45 +1515,6 @@ CheckedError Parser::ParseMetaData(SymbolTable<Value> *attributes) {
   return NoError();
 }
 
-CheckedError Parser::TryTypedValue(const std::string *name, int dtoken,
-                                   bool check, Value &e, BaseType req,
-                                   bool *destmatch) {
-  bool match = dtoken == token_;
-  if (match) {
-    FLATBUFFERS_ASSERT(*destmatch == false);
-    *destmatch = true;
-    e.constant = attribute_;
-    // Check token match
-    if (!check) {
-      if (e.type.base_type == BASE_TYPE_NONE) {
-        e.type.base_type = req;
-      } else {
-        return Error(
-            std::string("type mismatch: expecting: ") +
-            kTypeNames[e.type.base_type] + ", found: " + kTypeNames[req] +
-            ", name: " + (name ? *name : "") + ", value: " + e.constant);
-      }
-    }
-    // The exponent suffix of hexadecimal float-point number is mandatory.
-    // A hex-integer constant is forbidden as an initializer of float number.
-    if ((kTokenFloatConstant != dtoken) && IsFloat(e.type.base_type)) {
-      const auto &s = e.constant;
-      const auto k = s.find_first_of("0123456789.");
-      if ((std::string::npos != k) && (s.length() > (k + 1)) &&
-          (s[k] == '0' && is_alpha_char(s[k + 1], 'X')) &&
-          (std::string::npos == s.find_first_of("pP", k + 2))) {
-        return Error(
-            "invalid number, the exponent suffix of hexadecimal "
-            "floating-point literals is mandatory: \"" +
-            s + "\"");
-      }
-    }
-
-    NEXT();
-  }
-  return NoError();
-}
-
 CheckedError Parser::ParseEnumFromString(const Type &type,
                                          std::string *result) {
   const auto base_type =
@@ -1631,7 +1603,8 @@ template<typename T> inline void SingleValueRepack(Value &e, T val) {
   if (IsInteger(e.type.base_type)) { e.constant = NumToString(val); }
 }
 #if defined(FLATBUFFERS_HAS_NEW_STRTOD) && (FLATBUFFERS_HAS_NEW_STRTOD > 0)
-// Normilaze defaults NaN to unsigned quiet-NaN(0).
+// Normalize defaults NaN to unsigned quiet-NaN(0) if value was parsed from
+// hex-float literal.
 static inline void SingleValueRepack(Value &e, float val) {
   if (val != val) e.constant = "nan";
 }
@@ -1640,52 +1613,98 @@ static inline void SingleValueRepack(Value &e, double val) {
 }
 #endif
 
-CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
-                                      bool check_now) {
-  // First see if this could be a conversion function:
-  if (token_ == kTokenIdentifier && *cursor_ == '(') {
-    // todo: Extract processing of conversion functions to ParseFunction.
-    const auto functionname = attribute_;
-    if (!IsFloat(e.type.base_type)) {
-      return Error(functionname + ": type of argument mismatch, expecting: " +
-                   kTypeNames[BASE_TYPE_DOUBLE] +
-                   ", found: " + kTypeNames[e.type.base_type] +
-                   ", name: " + (name ? *name : "") + ", value: " + e.constant);
+CheckedError Parser::ParseFunction(const std::string *name, Value &e) {
+  // Copy name, attribute will be changed on NEXT().
+  const auto functionname = attribute_;
+  if (!IsFloat(e.type.base_type)) {
+    return Error(functionname + ": type of argument mismatch, expecting: " +
+                 kTypeNames[BASE_TYPE_DOUBLE] +
+                 ", found: " + kTypeNames[e.type.base_type] +
+                 ", name: " + (name ? *name : "") + ", value: " + e.constant);
+  }
+  NEXT();
+  EXPECT('(');
+  ECHECK(Recurse([&]() { return ParseSingleValue(name, e, false); }));
+  EXPECT(')');
+  // calculate with double precision
+  double x, y = 0.0;
+  ECHECK(atot(e.constant.c_str(), *this, &x));
+  // clang-format off
+  auto func_match = false;
+  #define FLATBUFFERS_FN_DOUBLE(name, op) \
+    if (!func_match && functionname == name) { y = op; func_match = true; }
+  FLATBUFFERS_FN_DOUBLE("deg", x / kPi * 180);
+  FLATBUFFERS_FN_DOUBLE("rad", x * kPi / 180);
+  FLATBUFFERS_FN_DOUBLE("sin", sin(x));
+  FLATBUFFERS_FN_DOUBLE("cos", cos(x));
+  FLATBUFFERS_FN_DOUBLE("tan", tan(x));
+  FLATBUFFERS_FN_DOUBLE("asin", asin(x));
+  FLATBUFFERS_FN_DOUBLE("acos", acos(x));
+  FLATBUFFERS_FN_DOUBLE("atan", atan(x));
+  // TODO(wvo): add more useful conversion functions here.
+  #undef FLATBUFFERS_FN_DOUBLE
+  // clang-format on
+  if (true != func_match) {
+    return Error(std::string("Unknown conversion function: ") + functionname +
+                 ", field name: " + (name ? *name : "") +
+                 ", value: " + e.constant);
+  }
+  e.constant = NumToString(y);
+  return NoError();
+}
+
+CheckedError Parser::TryTypedValue(const std::string *name, int dtoken,
+                                   bool check, Value &e, BaseType req,
+                                   bool *destmatch) {
+  bool match = dtoken == token_;
+  if (match) {
+    FLATBUFFERS_ASSERT(*destmatch == false);
+    *destmatch = true;
+    e.constant = attribute_;
+    // Check token match
+    if (!check) {
+      if (e.type.base_type == BASE_TYPE_NONE) {
+        e.type.base_type = req;
+      } else {
+        return Error(
+            std::string("type mismatch: expecting: ") +
+            kTypeNames[e.type.base_type] + ", found: " + kTypeNames[req] +
+            ", name: " + (name ? *name : "") + ", value: " + e.constant);
+      }
+    }
+    // The exponent suffix of hexadecimal float-point number is mandatory.
+    // A hex-integer constant is forbidden as an initializer of float number.
+    if ((kTokenFloatConstant != dtoken) && IsFloat(e.type.base_type)) {
+      const auto &s = e.constant;
+      const auto k = s.find_first_of("0123456789.");
+      if ((std::string::npos != k) && (s.length() > (k + 1)) &&
+          (s[k] == '0' && is_alpha_char(s[k + 1], 'X')) &&
+          (std::string::npos == s.find_first_of("pP", k + 2))) {
+        return Error(
+            "invalid number, the exponent suffix of hexadecimal "
+            "floating-point literals is mandatory: \"" +
+            s + "\"");
+      }
     }
     NEXT();
-    EXPECT('(');
-    ECHECK(Recurse([&]() { return ParseSingleValue(name, e, false); }));
-    EXPECT(')');
-    // calculate with double precision
-    double x, y = 0.0;
-    ECHECK(atot(e.constant.c_str(), *this, &x));
-    auto func_match = false;
-    // clang-format off
-    #define FLATBUFFERS_FN_DOUBLE(name, op) \
-      if (!func_match && functionname == name) { y = op; func_match = true; }
-    FLATBUFFERS_FN_DOUBLE("deg", x / kPi * 180);
-    FLATBUFFERS_FN_DOUBLE("rad", x * kPi / 180);
-    FLATBUFFERS_FN_DOUBLE("sin", sin(x));
-    FLATBUFFERS_FN_DOUBLE("cos", cos(x));
-    FLATBUFFERS_FN_DOUBLE("tan", tan(x));
-    FLATBUFFERS_FN_DOUBLE("asin", asin(x));
-    FLATBUFFERS_FN_DOUBLE("acos", acos(x));
-    FLATBUFFERS_FN_DOUBLE("atan", atan(x));
-    // TODO(wvo): add more useful conversion functions here.
-    #undef FLATBUFFERS_FN_DOUBLE
-    // clang-format on
-    if (true != func_match) {
-      return Error(std::string("Unknown conversion function: ") + functionname +
-                   ", field name: " + (name ? *name : "") +
-                   ", value: " + e.constant);
-    }
-    e.constant = NumToString(y);
-    return NoError();
+  }
+  return NoError();
+}
+
+CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
+                                      bool check_now) {
+  const auto in_type = e.type.base_type;
+  const auto is_tok_ident = (token_ == kTokenIdentifier);
+  const auto is_tok_string = (token_ == kTokenStringConstant);
+
+  // First see if this could be a conversion function:
+  if (is_tok_ident && *cursor_ == '(') {
+      return ParseFunction(name, e);
   }
 
-  auto match = false;
-  const auto in_type = e.type.base_type;
   // clang-format off
+  auto match = false;
+
   #define IF_ECHECK_(force, dtoken, check, req)    \
     if (!match && ((check) || IsConstTrue(force))) \
     ECHECK(TryTypedValue(name, dtoken, check, e, req, &match))
@@ -1693,14 +1712,14 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
   #define FORCE_ECHECK(dtoken, check, req) IF_ECHECK_(true, dtoken, check, req)
   // clang-format on
 
-  if (token_ == kTokenStringConstant || token_ == kTokenIdentifier) {
+  if (is_tok_ident || is_tok_string) {
     const auto kTokenStringOrIdent = token_;
     // The string type is a most probable type, check it first.
     TRY_ECHECK(kTokenStringConstant, in_type == BASE_TYPE_STRING,
                BASE_TYPE_STRING);
 
     // avoid escaped and non-ascii in the string
-    if (!match && (token_ == kTokenStringConstant) && IsScalar(in_type) &&
+    if (!match && is_tok_string && IsScalar(in_type) &&
         !attr_is_trivial_ascii_string_) {
       return Error(
           std::string("type mismatch or invalid value, an initializer of "
@@ -1728,11 +1747,20 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
     }
     // Parse a float/integer number from the string.
     if (!match) check_now = true;  // Re-pack if parsed from string literal.
-    if (!match && (token_ == kTokenStringConstant) && IsScalar(in_type)) {
-      // remove trailing whitespaces from attribute_
-      auto last = attribute_.find_last_not_of(' ');
-      if (std::string::npos != last)  // has non-whitespace
-        attribute_.resize(last + 1);
+    // A "scalar-in-string" value needs extra checks.
+    if (!match && is_tok_string && IsScalar(in_type)) {
+      // Strip trailing whitespaces from attribute_.
+      auto last_non_ws = attribute_.find_last_not_of(' ');
+      if (std::string::npos != last_non_ws)
+        attribute_.resize(last_non_ws + 1);
+      if (IsFloat(e.type.base_type)) {
+        // The functions strtod() and strtof() accept both 'nan' and
+        // 'nan(number)' literals. While 'nan(number)' is rejected by the parser
+        // as an unsupported function if is_tok_ident is true.
+        if (attribute_.find_last_of(')') != std::string::npos) {
+          return Error("invalid number: " + attribute_);
+        }
+      }
     }
     // Float numbers or nan, inf, pi, etc.
     TRY_ECHECK(kTokenStringOrIdent, IsFloat(in_type), BASE_TYPE_FLOAT);
@@ -3231,8 +3259,8 @@ Offset<reflection::Field> FieldDef::Serialize(FlatBufferBuilder *builder,
       // Is uint64>max(int64) tested?
       IsInteger(value.type.base_type) ? StringToInt(value.constant.c_str()) : 0,
       // result may be platform-dependent if underlying is float (not double)
-      IsFloat(value.type.base_type) ? d : 0.0,
-      deprecated, required, key, attr__, docs__);
+      IsFloat(value.type.base_type) ? d : 0.0, deprecated, required, key,
+      attr__, docs__);
   // TODO: value.constant is almost always "0", we could save quite a bit of
   // space by sharing it. Same for common values of value.type.
 }
@@ -3269,6 +3297,7 @@ bool FieldDef::Deserialize(Parser &parser, const reflection::Field *field) {
     nested_flatbuffer = parser.LookupStruct(nested_qualified_name);
     if (!nested_flatbuffer) return false;
   }
+  shared = attributes.Lookup("shared") != nullptr;
   DeserializeDoc(doc_comment, field->documentation());
   return true;
 }

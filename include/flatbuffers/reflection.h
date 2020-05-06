@@ -362,7 +362,6 @@ template<typename T, typename U> class pointer_inside_vector {
         reinterpret_cast<uint8_t *>(flatbuffers::vector_data(vec_)) + offset_);
   }
   T *operator->() const { return operator*(); }
-  void operator=(const pointer_inside_vector &piv);
 
  private:
   size_t offset_;
@@ -470,7 +469,9 @@ Offset<const Table *> CopyTable(FlatBufferBuilder &fbb,
 // buf should point to the start of flatbuffer data.
 // length specifies the size of the flatbuffer data.
 bool Verify(const reflection::Schema &schema, const reflection::Object &root,
-            const uint8_t *buf, size_t length);
+            const uint8_t *buf, size_t length,
+            uoffset_t max_depth = 64,
+            uoffset_t max_tables = 1000000);
 
 }  // namespace flatbuffers
 

@@ -111,8 +111,8 @@ struct EquipmentUnion {
   EquipmentUnion(EquipmentUnion&& u) FLATBUFFERS_NOEXCEPT :
     type(Equipment_NONE), value(nullptr)
     { std::swap(type, u.type); std::swap(value, u.value); }
-  EquipmentUnion(const EquipmentUnion &) FLATBUFFERS_NOEXCEPT;
-  EquipmentUnion &operator=(const EquipmentUnion &u) FLATBUFFERS_NOEXCEPT
+  EquipmentUnion(const EquipmentUnion &);
+  EquipmentUnion &operator=(const EquipmentUnion &u)
     { EquipmentUnion t(u); std::swap(type, t.type); std::swap(value, t.value); return *this; }
   EquipmentUnion &operator=(EquipmentUnion &&u) FLATBUFFERS_NOEXCEPT
     { std::swap(type, u.type); std::swap(value, u.value); return *this; }
@@ -402,7 +402,6 @@ struct MonsterBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  MonsterBuilder &operator=(const MonsterBuilder &);
   flatbuffers::Offset<Monster> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Monster>(end);
@@ -536,7 +535,6 @@ struct WeaponBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  WeaponBuilder &operator=(const WeaponBuilder &);
   flatbuffers::Offset<Weapon> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Weapon>(end);
@@ -694,7 +692,7 @@ inline flatbuffers::Offset<void> EquipmentUnion::Pack(flatbuffers::FlatBufferBui
   }
 }
 
-inline EquipmentUnion::EquipmentUnion(const EquipmentUnion &u) FLATBUFFERS_NOEXCEPT : type(u.type), value(nullptr) {
+inline EquipmentUnion::EquipmentUnion(const EquipmentUnion &u) : type(u.type), value(nullptr) {
   switch (type) {
     case Equipment_Weapon: {
       value = new MyGame::Sample::WeaponT(*reinterpret_cast<MyGame::Sample::WeaponT *>(u.value));

@@ -218,16 +218,17 @@ class Object {
 class Sized : public Object {
  public:
   // Size prefix.
-  Sized(const uint8_t *data, uint8_t byte_width) :
-    Object(data, byte_width), size_(read_size()) {}
+  Sized(const uint8_t *data, uint8_t byte_width)
+      : Object(data, byte_width), size_(read_size()) {}
   // Manual size.
-  Sized(const uint8_t *data, uint8_t byte_width, size_t sz) :
-    Object(data, byte_width), size_(sz) {}
+  Sized(const uint8_t *data, uint8_t byte_width, size_t sz)
+      : Object(data, byte_width), size_(sz) {}
   size_t size() const { return size_; }
   // Access size stored in `byte_width_` bytes before data_ pointer.
   size_t read_size() const {
     return static_cast<size_t>(ReadUInt64(data_ - byte_width_, byte_width_));
   }
+
  protected:
   size_t size_;
 };
@@ -235,11 +236,10 @@ class Sized : public Object {
 class String : public Sized {
  public:
   // Size prefix.
-  String(const uint8_t *data, uint8_t byte_width)
-    : Sized(data, byte_width) {}
+  String(const uint8_t *data, uint8_t byte_width) : Sized(data, byte_width) {}
   // Manual size.
   String(const uint8_t *data, uint8_t byte_width, size_t sz)
-    : Sized(data, byte_width, sz) {}
+      : Sized(data, byte_width, sz) {}
 
   size_t length() const { return size(); }
   const char *c_str() const { return reinterpret_cast<const char *>(data_); }
@@ -296,6 +296,7 @@ class TypedVector : public Sized {
   Type ElementType() { return type_; }
 
   friend Reference;
+
  private:
   Type type_;
 
@@ -614,8 +615,8 @@ class Reference {
 
   TypedVector AsTypedVector() const {
     if (IsTypedVector()) {
-      auto tv = TypedVector(Indirect(), byte_width_,
-                            ToTypedVectorElementType(type_));
+      auto tv =
+          TypedVector(Indirect(), byte_width_, ToTypedVectorElementType(type_));
       if (tv.type_ == FBT_STRING) {
         // These can't be accessed as strings, since we don't know the bit-width
         // of the size field, see the declaration of
@@ -1255,7 +1256,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
   // auto id = builder.LastValue();  // Remember where we stored it.
   // .. more code goes here ..
   // builder.ReuseValue(id);  // Refers to same double by offset.
-  // LastValue works regardless of wether the value has a key or not.
+  // LastValue works regardless of whether the value has a key or not.
   // Works on any data type.
   struct Value;
   Value LastValue() { return stack_.back(); }
@@ -1521,7 +1522,8 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     Type vector_type = FBT_KEY;
     // Check bit widths and types for all elements.
     for (size_t i = start; i < stack_.size(); i += step) {
-      auto elem_width = stack_[i].ElemWidth(buf_.size(), i + prefix_elems);
+      auto elem_width =
+          stack_[i].ElemWidth(buf_.size(), i - start + prefix_elems);
       bit_width = (std::max)(bit_width, elem_width);
       if (typed) {
         if (i == start) {

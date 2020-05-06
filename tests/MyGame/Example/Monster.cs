@@ -9,12 +9,12 @@ using global::System;
 using global::System.Collections.Generic;
 using global::FlatBuffers;
 
-/// an example documentation comment: monster object
+/// an example documentation comment: "monster object"
 public struct Monster : IFlatbufferObject
 {
   private Table __p;
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
-  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_1_11_1(); }
+  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_1_12_0(); }
   public static Monster GetRootAsMonster(ByteBuffer _bb) { return GetRootAsMonster(_bb, new Monster()); }
   public static Monster GetRootAsMonster(ByteBuffer _bb, Monster obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public static bool MonsterBufferHasIdentifier(ByteBuffer _bb) { return Table.__has_identifier(_bb, "MONS"); }
@@ -188,6 +188,107 @@ public struct Monster : IFlatbufferObject
   public bool MutateVectorOfEnums(int j, MyGame.Example.Color vector_of_enums) { int o = __p.__offset(98); if (o != 0) { __p.bb.Put(__p.__vector(o) + j * 1, (byte)vector_of_enums); return true; } else { return false; } }
   public MyGame.Example.Race SignedEnum { get { int o = __p.__offset(100); return o != 0 ? (MyGame.Example.Race)__p.bb.GetSbyte(o + __p.bb_pos) : MyGame.Example.Race.None; } }
   public bool MutateSignedEnum(MyGame.Example.Race signed_enum) { int o = __p.__offset(100); if (o != 0) { __p.bb.PutSbyte(o + __p.bb_pos, (sbyte)signed_enum); return true; } else { return false; } }
+
+  public static Offset<MyGame.Example.Monster> CreateMonster(FlatBufferBuilder builder,
+      MyGame.Example.Vec3T pos = null,
+      short mana = 150,
+      short hp = 100,
+      StringOffset nameOffset = default(StringOffset),
+      VectorOffset inventoryOffset = default(VectorOffset),
+      MyGame.Example.Color color = MyGame.Example.Color.Blue,
+      MyGame.Example.Any test_type = MyGame.Example.Any.NONE,
+      int testOffset = 0,
+      VectorOffset test4Offset = default(VectorOffset),
+      VectorOffset testarrayofstringOffset = default(VectorOffset),
+      VectorOffset testarrayoftablesOffset = default(VectorOffset),
+      Offset<MyGame.Example.Monster> enemyOffset = default(Offset<MyGame.Example.Monster>),
+      VectorOffset testnestedflatbufferOffset = default(VectorOffset),
+      Offset<MyGame.Example.Stat> testemptyOffset = default(Offset<MyGame.Example.Stat>),
+      bool testbool = false,
+      int testhashs32_fnv1 = 0,
+      uint testhashu32_fnv1 = 0,
+      long testhashs64_fnv1 = 0,
+      ulong testhashu64_fnv1 = 0,
+      int testhashs32_fnv1a = 0,
+      uint testhashu32_fnv1a = 0,
+      long testhashs64_fnv1a = 0,
+      ulong testhashu64_fnv1a = 0,
+      VectorOffset testarrayofboolsOffset = default(VectorOffset),
+      float testf = 3.14159f,
+      float testf2 = 3.0f,
+      float testf3 = 0.0f,
+      VectorOffset testarrayofstring2Offset = default(VectorOffset),
+      VectorOffset testarrayofsortedstructOffset = default(VectorOffset),
+      VectorOffset flexOffset = default(VectorOffset),
+      VectorOffset test5Offset = default(VectorOffset),
+      VectorOffset vector_of_longsOffset = default(VectorOffset),
+      VectorOffset vector_of_doublesOffset = default(VectorOffset),
+      Offset<MyGame.InParentNamespace> parent_namespace_testOffset = default(Offset<MyGame.InParentNamespace>),
+      VectorOffset vector_of_referrablesOffset = default(VectorOffset),
+      ulong single_weak_reference = 0,
+      VectorOffset vector_of_weak_referencesOffset = default(VectorOffset),
+      VectorOffset vector_of_strong_referrablesOffset = default(VectorOffset),
+      ulong co_owning_reference = 0,
+      VectorOffset vector_of_co_owning_referencesOffset = default(VectorOffset),
+      ulong non_owning_reference = 0,
+      VectorOffset vector_of_non_owning_referencesOffset = default(VectorOffset),
+      MyGame.Example.AnyUniqueAliases any_unique_type = MyGame.Example.AnyUniqueAliases.NONE,
+      int any_uniqueOffset = 0,
+      MyGame.Example.AnyAmbiguousAliases any_ambiguous_type = MyGame.Example.AnyAmbiguousAliases.NONE,
+      int any_ambiguousOffset = 0,
+      VectorOffset vector_of_enumsOffset = default(VectorOffset),
+      MyGame.Example.Race signed_enum = MyGame.Example.Race.None) {
+    builder.StartTable(49);
+    Monster.AddNonOwningReference(builder, non_owning_reference);
+    Monster.AddCoOwningReference(builder, co_owning_reference);
+    Monster.AddSingleWeakReference(builder, single_weak_reference);
+    Monster.AddTesthashu64Fnv1a(builder, testhashu64_fnv1a);
+    Monster.AddTesthashs64Fnv1a(builder, testhashs64_fnv1a);
+    Monster.AddTesthashu64Fnv1(builder, testhashu64_fnv1);
+    Monster.AddTesthashs64Fnv1(builder, testhashs64_fnv1);
+    Monster.AddVectorOfEnums(builder, vector_of_enumsOffset);
+    Monster.AddAnyAmbiguous(builder, any_ambiguousOffset);
+    Monster.AddAnyUnique(builder, any_uniqueOffset);
+    Monster.AddVectorOfNonOwningReferences(builder, vector_of_non_owning_referencesOffset);
+    Monster.AddVectorOfCoOwningReferences(builder, vector_of_co_owning_referencesOffset);
+    Monster.AddVectorOfStrongReferrables(builder, vector_of_strong_referrablesOffset);
+    Monster.AddVectorOfWeakReferences(builder, vector_of_weak_referencesOffset);
+    Monster.AddVectorOfReferrables(builder, vector_of_referrablesOffset);
+    Monster.AddParentNamespaceTest(builder, parent_namespace_testOffset);
+    Monster.AddVectorOfDoubles(builder, vector_of_doublesOffset);
+    Monster.AddVectorOfLongs(builder, vector_of_longsOffset);
+    Monster.AddTest5(builder, test5Offset);
+    Monster.AddFlex(builder, flexOffset);
+    Monster.AddTestarrayofsortedstruct(builder, testarrayofsortedstructOffset);
+    Monster.AddTestarrayofstring2(builder, testarrayofstring2Offset);
+    Monster.AddTestf3(builder, testf3);
+    Monster.AddTestf2(builder, testf2);
+    Monster.AddTestf(builder, testf);
+    Monster.AddTestarrayofbools(builder, testarrayofboolsOffset);
+    Monster.AddTesthashu32Fnv1a(builder, testhashu32_fnv1a);
+    Monster.AddTesthashs32Fnv1a(builder, testhashs32_fnv1a);
+    Monster.AddTesthashu32Fnv1(builder, testhashu32_fnv1);
+    Monster.AddTesthashs32Fnv1(builder, testhashs32_fnv1);
+    Monster.AddTestempty(builder, testemptyOffset);
+    Monster.AddTestnestedflatbuffer(builder, testnestedflatbufferOffset);
+    Monster.AddEnemy(builder, enemyOffset);
+    Monster.AddTestarrayoftables(builder, testarrayoftablesOffset);
+    Monster.AddTestarrayofstring(builder, testarrayofstringOffset);
+    Monster.AddTest4(builder, test4Offset);
+    Monster.AddTest(builder, testOffset);
+    Monster.AddInventory(builder, inventoryOffset);
+    Monster.AddName(builder, nameOffset);
+    Monster.AddPos(builder, MyGame.Example.Vec3.Pack(builder, pos));
+    Monster.AddHp(builder, hp);
+    Monster.AddMana(builder, mana);
+    Monster.AddSignedEnum(builder, signed_enum);
+    Monster.AddAnyAmbiguousType(builder, any_ambiguous_type);
+    Monster.AddAnyUniqueType(builder, any_unique_type);
+    Monster.AddTestbool(builder, testbool);
+    Monster.AddTestType(builder, test_type);
+    Monster.AddColor(builder, color);
+    return Monster.EndMonster(builder);
+  }
 
   public static void StartMonster(FlatBufferBuilder builder) { builder.StartTable(49); }
   public static void AddPos(FlatBufferBuilder builder, Offset<MyGame.Example.Vec3> posOffset) { builder.AddStruct(0, posOffset.Value, 0); }
@@ -538,56 +639,56 @@ public struct Monster : IFlatbufferObject
       var __vector_of_enums = _o.VectorOfEnums.ToArray();
       _vector_of_enums = CreateVectorOfEnumsVector(builder, __vector_of_enums);
     }
-    StartMonster(builder);
-    AddPos(builder, MyGame.Example.Vec3.Pack(builder, _o.Pos));
-    AddMana(builder, _o.Mana);
-    AddHp(builder, _o.Hp);
-    AddName(builder, _name);
-    AddInventory(builder, _inventory);
-    AddColor(builder, _o.Color);
-    AddTestType(builder, _test_type);
-    AddTest(builder, _test);
-    AddTest4(builder, _test4);
-    AddTestarrayofstring(builder, _testarrayofstring);
-    AddTestarrayoftables(builder, _testarrayoftables);
-    AddEnemy(builder, _enemy);
-    AddTestnestedflatbuffer(builder, _testnestedflatbuffer);
-    AddTestempty(builder, _testempty);
-    AddTestbool(builder, _o.Testbool);
-    AddTesthashs32Fnv1(builder, _o.Testhashs32Fnv1);
-    AddTesthashu32Fnv1(builder, _o.Testhashu32Fnv1);
-    AddTesthashs64Fnv1(builder, _o.Testhashs64Fnv1);
-    AddTesthashu64Fnv1(builder, _o.Testhashu64Fnv1);
-    AddTesthashs32Fnv1a(builder, _o.Testhashs32Fnv1a);
-    AddTesthashu32Fnv1a(builder, _o.Testhashu32Fnv1a);
-    AddTesthashs64Fnv1a(builder, _o.Testhashs64Fnv1a);
-    AddTesthashu64Fnv1a(builder, _o.Testhashu64Fnv1a);
-    AddTestarrayofbools(builder, _testarrayofbools);
-    AddTestf(builder, _o.Testf);
-    AddTestf2(builder, _o.Testf2);
-    AddTestf3(builder, _o.Testf3);
-    AddTestarrayofstring2(builder, _testarrayofstring2);
-    AddTestarrayofsortedstruct(builder, _testarrayofsortedstruct);
-    AddFlex(builder, _flex);
-    AddTest5(builder, _test5);
-    AddVectorOfLongs(builder, _vector_of_longs);
-    AddVectorOfDoubles(builder, _vector_of_doubles);
-    AddParentNamespaceTest(builder, _parent_namespace_test);
-    AddVectorOfReferrables(builder, _vector_of_referrables);
-    AddSingleWeakReference(builder, _o.SingleWeakReference);
-    AddVectorOfWeakReferences(builder, _vector_of_weak_references);
-    AddVectorOfStrongReferrables(builder, _vector_of_strong_referrables);
-    AddCoOwningReference(builder, _o.CoOwningReference);
-    AddVectorOfCoOwningReferences(builder, _vector_of_co_owning_references);
-    AddNonOwningReference(builder, _o.NonOwningReference);
-    AddVectorOfNonOwningReferences(builder, _vector_of_non_owning_references);
-    AddAnyUniqueType(builder, _any_unique_type);
-    AddAnyUnique(builder, _any_unique);
-    AddAnyAmbiguousType(builder, _any_ambiguous_type);
-    AddAnyAmbiguous(builder, _any_ambiguous);
-    AddVectorOfEnums(builder, _vector_of_enums);
-    AddSignedEnum(builder, _o.SignedEnum);
-    return EndMonster(builder);
+    return CreateMonster(
+      builder,
+      _o.Pos,
+      _o.Mana,
+      _o.Hp,
+      _name,
+      _inventory,
+      _o.Color,
+      _test_type,
+      _test,
+      _test4,
+      _testarrayofstring,
+      _testarrayoftables,
+      _enemy,
+      _testnestedflatbuffer,
+      _testempty,
+      _o.Testbool,
+      _o.Testhashs32Fnv1,
+      _o.Testhashu32Fnv1,
+      _o.Testhashs64Fnv1,
+      _o.Testhashu64Fnv1,
+      _o.Testhashs32Fnv1a,
+      _o.Testhashu32Fnv1a,
+      _o.Testhashs64Fnv1a,
+      _o.Testhashu64Fnv1a,
+      _testarrayofbools,
+      _o.Testf,
+      _o.Testf2,
+      _o.Testf3,
+      _testarrayofstring2,
+      _testarrayofsortedstruct,
+      _flex,
+      _test5,
+      _vector_of_longs,
+      _vector_of_doubles,
+      _parent_namespace_test,
+      _vector_of_referrables,
+      _o.SingleWeakReference,
+      _vector_of_weak_references,
+      _vector_of_strong_referrables,
+      _o.CoOwningReference,
+      _vector_of_co_owning_references,
+      _o.NonOwningReference,
+      _vector_of_non_owning_references,
+      _any_unique_type,
+      _any_unique,
+      _any_ambiguous_type,
+      _any_ambiguous,
+      _vector_of_enums,
+      _o.SignedEnum);
   }
 };
 
@@ -784,6 +885,14 @@ public class MonsterT
   }
   public string SerializeToJson() {
     return Newtonsoft.Json.JsonConvert.SerializeObject(this, Newtonsoft.Json.Formatting.Indented);
+  }
+  public static MonsterT DeserializeFromBinary(byte[] fbBuffer) {
+    return Monster.GetRootAsMonster(new ByteBuffer(fbBuffer)).UnPack();
+  }
+  public byte[] SerializeToBinary() {
+    var fbb = new FlatBufferBuilder(0x10000);
+    fbb.Finish(Monster.Pack(fbb, this).Value);
+    return fbb.DataBuffer.ToSizedArray();
   }
 }
 

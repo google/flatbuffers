@@ -269,7 +269,7 @@ class GoGRPCGenerator : public flatbuffers::BaseGenerator {
  public:
   GoGRPCGenerator(const Parser &parser, const std::string &path,
                   const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", "" /*Unused*/),
+      : BaseGenerator(parser, path, file_name, "", "" /*Unused*/, "go"),
         parser_(parser),
         path_(path),
         file_name_(file_name) {}
@@ -346,7 +346,7 @@ class JavaGRPCGenerator : public flatbuffers::BaseGenerator {
  public:
   JavaGRPCGenerator(const Parser &parser, const std::string &path,
                     const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", "." /*separator*/) {}
+      : BaseGenerator(parser, path, file_name, "", "." /*separator*/, "java") {}
 
   bool generate() {
     FlatBufFile file(parser_, file_name_, FlatBufFile::kLanguageJava);
@@ -415,7 +415,7 @@ class SwiftGRPCGenerator : public flatbuffers::BaseGenerator {
  public:
   SwiftGRPCGenerator(const Parser &parser, const std::string &path,
                      const std::string &filename)
-      : BaseGenerator(parser, path, filename, "", "" /*Unused*/) {}
+      : BaseGenerator(parser, path, filename, "", "" /*Unused*/, "swift") {}
 
   bool generate() {
     code_.Clear();

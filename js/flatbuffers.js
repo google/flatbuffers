@@ -55,6 +55,15 @@ flatbuffers.FILE_IDENTIFIER_LENGTH = 4;
 flatbuffers.SIZE_PREFIX_LENGTH = 4;
 
 /**
+ * @param {number} low
+ * @param {number} high
+ * @returns {flatbuffers.Long}
+ */
+flatbuffers.createLong = function(low, high) {
+  return flatbuffers.Long.create(low, high);
+};
+
+/**
  * @enum {number}
  */
 flatbuffers.Encoding = {
@@ -110,7 +119,7 @@ flatbuffers.Long = function(low, high) {
 /**
  * @param {number} low
  * @param {number} high
- * @returns {flatbuffers.Long}
+ * @returns {!flatbuffers.Long}
  */
 flatbuffers.Long.create = function(low, high) {
   // Special-case zero to avoid GC overhead for default values
@@ -133,7 +142,7 @@ flatbuffers.Long.prototype.equals = function(other) {
 };
 
 /**
- * @type {flatbuffers.Long}
+ * @type {!flatbuffers.Long}
  * @const
  */
 flatbuffers.Long.ZERO = new flatbuffers.Long(0, 0);
@@ -271,7 +280,7 @@ flatbuffers.Builder.prototype.dataBuffer = function() {
  * Get the bytes representing the FlatBuffer. Only call this after you've
  * called finish().
  *
- * @returns {Uint8Array}
+ * @returns {!Uint8Array}
  */
 flatbuffers.Builder.prototype.asUint8Array = function() {
   return this.bb.bytes().subarray(this.bb.position(), this.bb.position() + this.offset());
@@ -556,7 +565,7 @@ flatbuffers.Builder.prototype.offset = function() {
  * the end of the new buffer (since we build the buffer backwards).
  *
  * @param {flatbuffers.ByteBuffer} bb The current buffer with the existing data
- * @returns {flatbuffers.ByteBuffer} A new byte buffer with the old data copied
+ * @returns {!flatbuffers.ByteBuffer} A new byte buffer with the old data copied
  * to it. The data is located at the end of the buffer.
  *
  * uint8Array.set() formally takes {Array<number>|ArrayBufferView}, so to pass
@@ -825,11 +834,57 @@ flatbuffers.Builder.prototype.createString = function(s) {
  *
  * @param {number} low
  * @param {number} high
- * @returns {flatbuffers.Long}
+ * @returns {!flatbuffers.Long}
  */
 flatbuffers.Builder.prototype.createLong = function(low, high) {
   return flatbuffers.Long.create(low, high);
 };
+
+/**
+ * A helper function to pack an object
+ * 
+ * @returns offset of obj
+ */
+flatbuffers.Builder.prototype.createObjectOffset = function(obj) {
+  if(obj === null) {
+    return 0
+  }
+
+  if(typeof obj === 'string') {
+    return this.createString(obj);
+  } else {
+    return obj.pack(this);
+  }
+}
+
+/**
+ * A helper function to pack a list of object
+ * 
+ * @returns list of offsets of each non null object
+ */
+flatbuffers.Builder.prototype.createObjectOffsetList = function(list) {
+  let ret = [];
+
+  for(let i = 0; i < list.length; ++i) {
+    let val = list[i];
+
+    if(val !== null) {
+      ret.push(this.createObjectOffset(val));
+    } else {
+      throw new Error(
+        'FlatBuffers: Argument for createObjectOffsetList cannot contain null.'); 
+    }
+  }
+  
+  return ret;
+};
+
+flatbuffers.Builder.prototype.createStructOffsetList = function(list, startFunc) {
+  startFunc(this, list.length);
+  this.createObjectOffsetList(list);
+  return this.endVector();
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 /// @cond FLATBUFFERS_INTERNAL
 /**
@@ -856,7 +911,7 @@ flatbuffers.ByteBuffer = function(bytes) {
  * Create and allocate a new ByteBuffer with a given size.
  *
  * @param {number} byte_size
- * @returns {flatbuffers.ByteBuffer}
+ * @returns {!flatbuffers.ByteBuffer}
  */
 flatbuffers.ByteBuffer.allocate = function(byte_size) {
   return new flatbuffers.ByteBuffer(new Uint8Array(byte_size));
@@ -952,7 +1007,7 @@ flatbuffers.ByteBuffer.prototype.readUint32 = function(offset) {
 
 /**
  * @param {number} offset
- * @returns {flatbuffers.Long}
+ * @returns {!flatbuffers.Long}
  */
 flatbuffers.ByteBuffer.prototype.readInt64 = function(offset) {
   return new flatbuffers.Long(this.readInt32(offset), this.readInt32(offset + 4));
@@ -960,7 +1015,7 @@ flatbuffers.ByteBuffer.prototype.readInt64 = function(offset) {
 
 /**
  * @param {number} offset
- * @returns {flatbuffers.Long}
+ * @returns {!flatbuffers.Long}
  */
 flatbuffers.ByteBuffer.prototype.readUint64 = function(offset) {
   return new flatbuffers.Long(this.readUint32(offset), this.readUint32(offset + 4));
@@ -1135,7 +1190,7 @@ flatbuffers.ByteBuffer.prototype.__union = function(t, offset) {
  *
  * @param {number} offset
  * @param {flatbuffers.Encoding=} opt_encoding Defaults to UTF16_STRING
- * @returns {string|Uint8Array}
+ * @returns {string|!Uint8Array}
  */
 flatbuffers.ByteBuffer.prototype.__string = function(offset, opt_encoding) {
   offset += this.readInt32(offset);
@@ -1196,6 +1251,24 @@ flatbuffers.ByteBuffer.prototype.__string = function(offset, opt_encoding) {
 };
 
 /**
+ * Handle unions that can contain string as its member, if a Table-derived type then initialize it, 
+ * if a string then return a new one
+ * 
+ * WARNING: strings are immutable in JS so we can't change the string that the user gave us, this 
+ * makes the behaviour of __union_with_string different compared to __union
+ *
+ * @param {flatbuffers.Table|string} o
+ * @param {number} offset
+ * @returns {flatbuffers.Table|string}
+ */
+flatbuffers.ByteBuffer.prototype.__union_with_string = function(o, offset) {
+  if(typeof o === 'string') {
+    return this.__string(offset);
+  } 
+  return this.__union(o, offset);
+};
+
+/**
  * Retrieve the relative offset stored at "offset"
  * @param {number} offset
  * @returns {number}
@@ -1246,10 +1319,52 @@ flatbuffers.ByteBuffer.prototype.__has_identifier = function(ident) {
  *
  * @param {number} low
  * @param {number} high
- * @returns {flatbuffers.Long}
+ * @returns {!flatbuffers.Long}
  */
 flatbuffers.ByteBuffer.prototype.createLong = function(low, high) {
   return flatbuffers.Long.create(low, high);
+};
+
+/**
+ * A helper function for generating list for obj api
+ * @param listAccessor function that accepts an index and return data at that index
+ * @param {number} listLength
+ * @returns {any[]}
+ */
+flatbuffers.ByteBuffer.prototype.createScalarList = function(listAccessor, listLength) {
+  let ret = [];
+  for(let i = 0; i < listLength; ++i) {
+    if(listAccessor(i) !== null) {
+      ret.push(listAccessor(i));
+    }
+  }
+
+  return ret;
+};
+
+/**
+ * This function is here only to get around typescript type system
+ */
+flatbuffers.ByteBuffer.prototype.createStringList = function(listAccessor, listLength) {
+  return this.createScalarList(listAccessor, listLength);
+};
+
+/**
+ * A helper function for generating list for obj api
+ * @param listAccessor function that accepts an index and return data at that index
+ * @param listLength {number} listLength
+ * @param res any[] result list
+ */
+flatbuffers.ByteBuffer.prototype.createObjList = function(listAccessor, listLength) {
+  let ret = [];
+  for(let i = 0; i < listLength; ++i) {
+    let val = listAccessor(i);
+    if(val !== null) {
+      ret.push(val.unpack());
+    }
+  }
+  
+  return ret;
 };
 
 // Exports for Node.js and RequireJS

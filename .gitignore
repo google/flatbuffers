@@ -72,6 +72,7 @@ tests/monsterdata_rust_wire.mon
 tests/unicode_test.mon
 tests/ts/
 tests/php/
+tests/js/
 CMakeLists.txt.user
 CMakeScripts/**
 CTestTestfile.cmake
@@ -124,3 +125,4 @@ Cargo.lock
 .seed**
 grpc/google/
 **/Package.resolved
+.clangd/**

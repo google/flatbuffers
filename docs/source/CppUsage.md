@@ -117,8 +117,8 @@ To use:
     GetMonster(flatbuffer)->UnPackTo(&monsterobj);
 
     // Update object directly like a C++ class instance.
-    cout << monsterobj->name;  // This is now a std::string!
-    monsterobj->name = "Bob";  // Change the name.
+    cout << monsterobj.name;  // This is now a std::string!
+    monsterobj.name = "Bob";  // Change the name.
 
     // Serialize into new flatbuffer.
     FlatBufferBuilder fbb;
@@ -479,7 +479,7 @@ include paths. If not specified, any include statements try to resolve from
 the current directory.
 
 If there were any parsing errors, `Parse` will return `false`, and
-`Parser::err` contains a human readable error string with a line number
+`Parser::error_` contains a human readable error string with a line number
 etc, which you should present to the creator of that file.
 
 After each JSON file, the `Parser::fbb` member variable is the

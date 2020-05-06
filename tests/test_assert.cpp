@@ -26,7 +26,9 @@ void TestFail(const char *expval, const char *val, const char *exp,
 
 void TestEqStr(const char *expval, const char *val, const char *exp,
                const char *file, int line, const char *func) {
-  if (strcmp(expval, val) != 0) { TestFail(expval, val, exp, file, line, func); }
+  if (strcmp(expval, val) != 0) {
+    TestFail(expval, val, exp, file, line, func);
+  }
 }
 
 #if defined(FLATBUFFERS_MEMORY_LEAK_TRACKING) && defined(_MSC_VER) && \
