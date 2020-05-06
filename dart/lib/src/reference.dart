@@ -4,6 +4,8 @@ import 'dart:typed_data';
 import 'types.dart';
 
 /// Main class to read a value out of a FlexBuffer.
+///
+/// This class let you access values stored in the buffer in a lazy fashion.
 class Reference {
   final ByteData _buffer;
   final int _offset;
@@ -19,28 +21,37 @@ class Reference {
 
   /// Use this method to access the root value of a FlexBuffer.
   static Reference fromBuffer(ByteBuffer buffer) {
-    var len = buffer.lengthInBytes;
+    final len = buffer.lengthInBytes;
     if (len < 3) {
-      throw Exception('Buffer needs to be bigger than 3');
+      throw UnsupportedError('Buffer needs to be bigger than 3');
     }
-    var byteData = ByteData.view(buffer);
-    var byteWidth = byteData.getUint8(len - 1);
-    var packedType = byteData.getUint8(len - 2);
-    var offset = len - byteWidth - 2;
+    final byteData = ByteData.view(buffer);
+    final byteWidth = byteData.getUint8(len - 1);
+    final packedType = byteData.getUint8(len - 2);
+    final offset = len - byteWidth - 2;
     return Reference._(ByteData.view(buffer), offset, BitWidthUtil.fromByteWidth(byteWidth), packedType);
   }
 
+  /// Returns true if the underlying value is null.
   bool get isNull => _valueType == ValueType.Null;
+  /// Returns true if the underlying value can be represented as [num].
   bool get isNum => ValueTypeUtils.isNumber(_valueType) || ValueTypeUtils.isIndirectNumber(_valueType);
+  /// Returns true if the underlying value was encoded as a float (direct or indirect).
   bool get isDouble => _valueType == ValueType.Float || _valueType == ValueType.IndirectFloat;
+  /// Returns true if the underlying value was encoded as an int or uint (direct or indirect).
   bool get isInt => isNum && !isDouble;
+  /// Returns true if the underlying value was encoded as a string or a key.
   bool get isString => _valueType == ValueType.String || _valueType == ValueType.Key;
+  /// Returns true if the underlying value was encoded as a bool.
   bool get isBool => _valueType == ValueType.Bool;
+  /// Returns true if the underlying value was encoded as a blob.
   bool get isBlob => _valueType == ValueType.Blob;
+  /// Returns true if the underlying value points to a vector.
   bool get isVector => ValueTypeUtils.isAVector(_valueType);
+  /// Returns true if the underlying value points to a map.
   bool get isMap => _valueType == ValueType.Map;
 
-  /// Returns [bool] value or null otherwise.
+  /// If this [isBool], returns the bool value. Otherwise, returns null.
   bool get boolValue {
     if(_valueType == ValueType.Bool) {
       return _readInt(_offset, _parentWidth) != 0;
@@ -48,7 +59,9 @@ class Reference {
     return null;
   }
 
-  /// Returns [int] value or null otherwise.
+  /// Returns an [int], if the underlying value can be represented as an int.
+  ///
+  /// Otherwise returns [null].
   int get intValue {
     if (_valueType == ValueType.Int) {
       return _readInt(_offset, _parentWidth);
@@ -65,7 +78,9 @@ class Reference {
     return null;
   }
 
-  /// Returns [double] value or null otherwise.
+  /// Returns [double], if the underlying value [isDouble].
+  ///
+  /// Otherwise returns [null].
   double get doubleValue {
     if (_valueType == ValueType.Float) {
       return _readFloat(_offset, _parentWidth);
@@ -76,15 +91,14 @@ class Reference {
     return null;
   }
 
-  /// Returns [num] value or null otherwise.
-  num get numValue {
-    if (isDouble) {
-      return doubleValue;
-    }
-    return intValue;
-  }
+  /// Returns [num], if the underlying value is numeric, be it int uint, or float (direct or indirect).
+  ///
+  /// Otherwise returns [null].
+  num get numValue => doubleValue ?? intValue;
 
   /// Returns [String] value or null otherwise.
+  /// 
+  /// This method performers a utf8 decoding, as FlexBuffers format stores strings in utf8 encoding. 
   String get stringValue {
     if (_valueType == ValueType.String || _valueType == ValueType.Key) {
       return utf8.decode(_buffer.buffer.asUint8List(_indirect, length));
@@ -106,26 +120,26 @@ class Reference {
   /// Returns [Reference] value or null. Does not throw out of bounds exception.
   Reference operator [](Object key) {
     if (key is int && ValueTypeUtils.isAVector(_valueType)) {
-      var index = key;
+      final index = key;
       if(index >= length) {
         return null;
       }
-      var elementOffset = _indirect + index * _byteWidth;
-      var flx = Reference._(_buffer, elementOffset, BitWidthUtil.fromByteWidth(_byteWidth), 0);
-      flx._byteWidth = 1;
+      final elementOffset = _indirect + index * _byteWidth;
+      final reference = Reference._(_buffer, elementOffset, BitWidthUtil.fromByteWidth(_byteWidth), 0);
+      reference._byteWidth = 1;
       if (ValueTypeUtils.isTypedVector(_valueType)) {
-        flx._valueType = ValueTypeUtils.typedVectorElementType(_valueType);
-        return flx;
+        reference._valueType = ValueTypeUtils.typedVectorElementType(_valueType);
+        return reference;
       }
       if(ValueTypeUtils.isFixedTypedVector(_valueType)) {
-        flx._valueType = ValueTypeUtils.fixedTypedVectorElementType(_valueType);
-        return flx;
+        reference._valueType = ValueTypeUtils.fixedTypedVectorElementType(_valueType);
+        return reference;
       }
-      var packedType = _buffer.getUint8(_indirect + length * _byteWidth + index);
+      final packedType = _buffer.getUint8(_indirect + length * _byteWidth + index);
       return Reference._(_buffer, elementOffset, BitWidthUtil.fromByteWidth(_byteWidth), packedType);
     }
     if (key is String && _valueType == ValueType.Map) {
-      var index = _keyIndex(key);
+      final index = _keyIndex(key);
       if (index != null) {
         return _valueForIndex(index);
       }
@@ -137,7 +151,7 @@ class Reference {
   /// Otherwise throws an exception.
   Iterable<Reference> get vectorIterable {
     if(isVector == false) {
-      throw Exception('Value is not a vector. It is: ${_valueType}');
+      throw UnsupportedError('Value is not a vector. It is: $_valueType');
     }
     return _VectorIterator(this);
   }
@@ -146,7 +160,7 @@ class Reference {
   /// Otherwise throws an exception.
   Iterable<String> get mapKeyIterable {
     if(isMap == false) {
-      throw Exception('Value is not a map. It is: ${_valueType}');
+      throw UnsupportedError('Value is not a map. It is: $_valueType');
     }
     return _MapKeyIterator(this);
   }
@@ -155,7 +169,7 @@ class Reference {
   /// Otherwise throws an exception.
   Iterable<Reference> get mapValueIterable {
     if(isMap == false) {
-      throw Exception('Value is not a map. It is: ${_valueType}');
+      throw UnsupportedError('Value is not a map. It is: $_valueType');
     }
     return _MapValueIterator(this);
   }
@@ -177,7 +191,7 @@ class Reference {
     } else if (_valueType == ValueType.Null) {
       _length = 0;
     } else if (_valueType == ValueType.String) {
-      var indirect = _indirect;
+      final indirect = _indirect;
       var size_byte_width = _byteWidth;
       var size = _readInt(indirect - size_byte_width, BitWidthUtil.fromByteWidth(size_byte_width));
       while (_buffer.getInt8(indirect + size) != 0) {
@@ -186,7 +200,7 @@ class Reference {
       }
       _length = size;
     } else if (_valueType == ValueType.Key) {
-      var indirect = _indirect;
+      final indirect = _indirect;
       var size = 1;
       while (_buffer.getInt8(indirect + size) != 0) {
         size += 1;
@@ -199,7 +213,9 @@ class Reference {
   }
 
   /// Returns a minified JSON representation of the underlying FlexBuffer value.
+  ///
   /// Primary use should be debugging.
+  /// As a FlexBuffer could be a large tree and transformation to JSON will have to materialise it all.
   /// Blob values are represented as base64 encoded string.
   String get json {
     if(_valueType == ValueType.Bool) {
@@ -218,7 +234,7 @@ class Reference {
       return jsonEncode(base64Encode(blobValue));
     }
     if (ValueTypeUtils.isAVector(_valueType)) {
-      var result = StringBuffer();
+      final result = StringBuffer();
       result.write('[');
       for (var i = 0; i < length; i++) {
         result.write(this[i].json);
@@ -230,7 +246,7 @@ class Reference {
       return result.toString();
     }
     if (_valueType == ValueType.Map) {
-      var result = StringBuffer();
+      final result = StringBuffer();
       result.write('{');
       for (var i = 0; i < length; i++) {
         result.write(jsonEncode(_keyForIndex(i)));
@@ -243,11 +259,11 @@ class Reference {
       result.write('}');
       return result.toString();
     }
-    return null;
+    throw UnsupportedError('Type: $_valueType is not supported for JSON conversion');
   }
 
   int get _indirect {
-    var step = _readInt(_offset, _parentWidth);
+    final step = _readInt(_offset, _parentWidth);
     return _offset - step;
   }
 
@@ -282,7 +298,7 @@ class Reference {
   double _readFloat(int offset, BitWidth width) {
     _validateOffset(offset, width);
     if (width.index < BitWidth.width32.index) {
-      throw Exception('Bad width: ${width}');
+      throw StateError('Bad width: $width');
     }
 
     if (width == BitWidth.width32) {
@@ -294,20 +310,20 @@ class Reference {
 
   void _validateOffset(int offset, BitWidth width) {
     if (_offset < 0 || _buffer.lengthInBytes <= offset + width.index || offset & (BitWidthUtil.toByteWidth(width) - 1) != 0) {
-      throw Exception('Bad offset');
+      throw StateError('Bad offset: $offset, width: $width');
     }
   }
 
   int _keyIndex(String key) {
-    var input = utf8.encode(key);
-    var keysVectorOffset = _indirect - _byteWidth * 3;
-    var indirectOffset = keysVectorOffset - _readInt(keysVectorOffset, BitWidthUtil.fromByteWidth(_byteWidth));
-    var byteWidth = _readInt(keysVectorOffset + _byteWidth, BitWidthUtil.fromByteWidth(_byteWidth));
+    final input = utf8.encode(key);
+    final keysVectorOffset = _indirect - _byteWidth * 3;
+    final indirectOffset = keysVectorOffset - _readInt(keysVectorOffset, BitWidthUtil.fromByteWidth(_byteWidth));
+    final byteWidth = _readInt(keysVectorOffset + _byteWidth, BitWidthUtil.fromByteWidth(_byteWidth));
     var low = 0;
     var high = length - 1;
-    while(low <= high) {
-      var mid = (high + low) >> 1;
-      var dif = _difKeys(input, mid, indirectOffset, byteWidth);
+    while (low <= high) {
+      final mid = (high + low) >> 1;
+      final dif = _diffKeys(input, mid, indirectOffset, byteWidth);
       if (dif == 0) return mid;
       if (dif < 0) {
         high = mid - 1;
@@ -318,11 +334,11 @@ class Reference {
     return null;
   }
 
-  int _difKeys(List<int> input, int index, int indirect_offset, int byteWidth) {
-    var keyOffset = indirect_offset + index * byteWidth;
-    var keyIndirectOffset = keyOffset - _readInt(keyOffset, BitWidthUtil.fromByteWidth(byteWidth));
-    for(var i = 0; i < input.length; i++) {
-      var dif = input[i] - _buffer.getUint8(keyIndirectOffset + i);
+  int _diffKeys(List<int> input, int index, int indirect_offset, int byteWidth) {
+    final keyOffset = indirect_offset + index * byteWidth;
+    final keyIndirectOffset = keyOffset - _readInt(keyOffset, BitWidthUtil.fromByteWidth(byteWidth));
+    for (var i = 0; i < input.length; i++) {
+      final dif = input[i] - _buffer.getUint8(keyIndirectOffset + i);
       if (dif != 0) {
         return dif;
       }
@@ -331,18 +347,18 @@ class Reference {
   }
 
   Reference _valueForIndex(int index) {
-    var indirect = _indirect;
-    var elemOffset = indirect + index * _byteWidth;
-    var packedType = _buffer.getUint8(indirect + length * _byteWidth + index);
-    return Reference._(_buffer, elemOffset, BitWidthUtil.fromByteWidth(_byteWidth), packedType);
+    final indirect = _indirect;
+    final elementOffset = indirect + index * _byteWidth;
+    final packedType = _buffer.getUint8(indirect + length * _byteWidth + index);
+    return Reference._(_buffer, elementOffset, BitWidthUtil.fromByteWidth(_byteWidth), packedType);
   }
 
   String _keyForIndex(int index) {
-    var keysVectorOffset = _indirect - _byteWidth * 3;
-    var indirectOffset = keysVectorOffset - _readInt(keysVectorOffset, BitWidthUtil.fromByteWidth(_byteWidth));
-    var byteWidth = _readInt(keysVectorOffset + _byteWidth, BitWidthUtil.fromByteWidth(_byteWidth));
-    var keyOffset = indirectOffset + index * byteWidth;
-    var keyIndirectOffset = keyOffset - _readInt(keyOffset, BitWidthUtil.fromByteWidth(byteWidth));
+    final keysVectorOffset = _indirect - _byteWidth * 3;
+    final indirectOffset = keysVectorOffset - _readInt(keysVectorOffset, BitWidthUtil.fromByteWidth(_byteWidth));
+    final byteWidth = _readInt(keysVectorOffset + _byteWidth, BitWidthUtil.fromByteWidth(_byteWidth));
+    final keyOffset = indirectOffset + index * byteWidth;
+    final keyIndirectOffset = keyOffset - _readInt(keyOffset, BitWidthUtil.fromByteWidth(byteWidth));
     var length = 0;
     while (_buffer.getUint8(keyIndirectOffset + length) != 0) {
       length += 1;

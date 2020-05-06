@@ -271,10 +271,10 @@ void main() {
   test('add double indirectly to vector with cache', (){
     var flx = Builder()
       ..startVector()
-      ..addDoubleIndirectly(0.1, true)
-      ..addDoubleIndirectly(0.1, true)
-      ..addDoubleIndirectly(0.1, true)
-      ..addDoubleIndirectly(0.1, true)
+      ..addDoubleIndirectly(0.1, cache: true)
+      ..addDoubleIndirectly(0.1, cache: true)
+      ..addDoubleIndirectly(0.1, cache: true)
+      ..addDoubleIndirectly(0.1, cache: true)
       ..end()
     ;
     expect(flx.finish(), [154, 153, 153, 153, 153, 153, 185, 63,
@@ -291,10 +291,10 @@ void main() {
   test('add int indirectly to vector with cache', (){
     var flx = Builder()
       ..startVector()
-      ..addIntIndirectly(2345234523452345, true)
-      ..addIntIndirectly(2345234523452345, true)
-      ..addIntIndirectly(2345234523452345, true)
-      ..addIntIndirectly(2345234523452345, true)
+      ..addIntIndirectly(2345234523452345, cache: true)
+      ..addIntIndirectly(2345234523452345, cache: true)
+      ..addIntIndirectly(2345234523452345, cache: true)
+      ..addIntIndirectly(2345234523452345, cache: true)
       ..end()
     ;
     expect(flx.finish(), [185, 115, 175, 118, 250, 84, 8, 0,

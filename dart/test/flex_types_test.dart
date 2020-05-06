@@ -27,7 +27,7 @@ void main() {
     expect(ValueTypeUtils.isTypedVector(ValueType.VectorFloat), isTrue);
     expect(ValueTypeUtils.isTypedVector(ValueType.VectorBool), isTrue);
     expect(ValueTypeUtils.isTypedVector(ValueType.VectorKey), isTrue);
-    expect(ValueTypeUtils.isTypedVector(ValueType.VectorString_DEPRECATED), isTrue);
+    expect(ValueTypeUtils.isTypedVector(ValueType.VectorString), isTrue);
 
     expect(ValueTypeUtils.isTypedVector(ValueType.Vector), isFalse);
     expect(ValueTypeUtils.isTypedVector(ValueType.Map), isFalse);
@@ -53,7 +53,7 @@ void main() {
     expect(ValueTypeUtils.toTypedVector(ValueType.Bool,0), equals(ValueType.VectorBool));
     expect(ValueTypeUtils.toTypedVector(ValueType.Float,0), equals(ValueType.VectorFloat));
     expect(ValueTypeUtils.toTypedVector(ValueType.Key,0), equals(ValueType.VectorKey));
-    expect(ValueTypeUtils.toTypedVector(ValueType.String,0), equals(ValueType.VectorString_DEPRECATED));
+    expect(ValueTypeUtils.toTypedVector(ValueType.String,0), equals(ValueType.VectorString));
 
     expect(ValueTypeUtils.toTypedVector(ValueType.Int,2), equals(ValueType.VectorInt2));
     expect(ValueTypeUtils.toTypedVector(ValueType.UInt,2), equals(ValueType.VectorUInt2));
@@ -71,7 +71,7 @@ void main() {
     expect(ValueTypeUtils.typedVectorElementType(ValueType.VectorInt), equals(ValueType.Int));
     expect(ValueTypeUtils.typedVectorElementType(ValueType.VectorUInt), equals(ValueType.UInt));
     expect(ValueTypeUtils.typedVectorElementType(ValueType.VectorFloat), equals(ValueType.Float));
-    expect(ValueTypeUtils.typedVectorElementType(ValueType.VectorString_DEPRECATED), equals(ValueType.String));
+    expect(ValueTypeUtils.typedVectorElementType(ValueType.VectorString), equals(ValueType.String));
     expect(ValueTypeUtils.typedVectorElementType(ValueType.VectorKey), equals(ValueType.Key));
     expect(ValueTypeUtils.typedVectorElementType(ValueType.VectorBool), equals(ValueType.Bool));
   });
