@@ -30,7 +30,7 @@ find_program(FLATBUFFERS_FLATC_EXECUTABLE NAMES flatc)
 find_path(FLATBUFFERS_INCLUDE_DIR NAMES flatbuffers/flatbuffers.h)
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(flatbuffers
+find_package_handle_standard_args(FlatBuffers
   DEFAULT_MSG FLATBUFFERS_FLATC_EXECUTABLE FLATBUFFERS_INCLUDE_DIR)
 
 if(FLATBUFFERS_FOUND)
