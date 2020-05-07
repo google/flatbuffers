@@ -249,10 +249,12 @@ The scalar types can also use alias type names such as `int16` instead
 of `short` and `float32` instead of `float`. Thus we could also write
 the `Weapon` table as:
 
+~~~
   table Weapon {
     name:string;
     damage:int16;
   }
+~~~
 
 #### More Information About Schemas
 
@@ -660,7 +662,7 @@ which will grow automatically if needed:
 </div>
 
 After creating the `builder`, we can start serializing our data. Before we make
-our `orc` Monster, lets create some `Weapon`s: a `Sword` and an `Axe`.
+our `orc` Monster, let's create some `Weapon`s: a `Sword` and an `Axe`.
 
 <div class="language-cpp">
 ~~~{.cpp}
@@ -937,7 +939,7 @@ let's fill his inventory with some potential treasures that can be taken once he
 is defeated.
 
 Before we serialize a monster, we need to first serialize any objects that are
-contained there-in, i.e. we serialize the data tree using depth-first, pre-order
+contained therein, i.e. we serialize the data tree using depth-first, pre-order
 traversal. This is generally easy to do on any tree structures.
 
 <div class="language-cpp">
@@ -1281,8 +1283,8 @@ offsets.
 </div>
 
 <br>
-Note there's additional convenience overloads of `CreateVector`, allowing you
-to work with data that's not in a `std::vector`, or allowing you to generate
+Note there are additional convenience overloads of `CreateVector`, allowing you
+to work with data that's not in a `std::vector` or allowing you to generate
 elements by calling a lambda. For the common case of `std::vector<std::string>`
 there's also `CreateVectorOfStrings`.
 </div>
@@ -1724,7 +1726,7 @@ you will get an assert/exception/panic depending on your language.
 default value, the field will not actually be written to the buffer, since the
 default value will be returned on query anyway. This is a nice space savings,
 especially if default values are common in your data. It also means that you do
-not need to be worried of adding a lot of fields that are only used in a small
+not need to be worried about adding a lot of fields that are only used in a small
 number of instances, as it will not bloat the buffer if unused.*
 
 <div class="language-cpp">
@@ -1791,15 +1793,15 @@ a bit more flexibility.
 </div>
 
 Before finishing the serialization, let's take a quick look at FlatBuffer
-`union Equipped`. There are two parts to each FlatBuffer `union`. The first, is
-a hidden field `_type`, that is generated to hold the type of `table` referred
+`union Equipped`. There are two parts to each FlatBuffer `union`. The first is
+a hidden field `_type` that is generated to hold the type of `table` referred
 to by the `union`. This allows you to know which type to cast to at runtime.
-Second, is the `union`'s data.
+Second is the `union`'s data.
 
 In our example, the last two things we added to our `Monster` were the
 `Equipped Type` and the `Equipped` union itself.
 
-Here is a repetition these lines, to help highlight them more clearly:
+Here is a repetition of these lines, to help highlight them more clearly:
 
 <div class="language-cpp">
   ~~~{.cpp}
@@ -2139,7 +2141,7 @@ like so:
 ~~~
 </div>
 
-Now you can write the bytes to a file, send them over the network..
+Now you can write the bytes to a file or send them over the network.
 **Make sure your file mode (or transfer protocol) is set to BINARY, not text.**
 If you transfer a FlatBuffer in text mode, the buffer will be corrupted,
 which will lead to hard to find problems when you read the buffer.
@@ -2295,10 +2297,10 @@ import './monster_my_game.sample_generated.dart' as myGame;
 </div>
 
 Then, assuming you have a buffer of bytes received from disk,
-network, etc., you can create start accessing the buffer like so:
+network, etc., you can start accessing the buffer like so:
 
 **Again, make sure you read the bytes in BINARY mode, otherwise the code below
-won't work**
+won't work.**
 
 <div class="language-cpp">
 ~~~{.cpp}
@@ -2788,7 +2790,7 @@ FlatBuffers `vector`.
 </div>
 <div class="language-rust">
 ~~~{.rs}
-  // Get a test an element from the `inventory` FlatBuffer's `vector`.
+  // Get and test an element from the `inventory` FlatBuffer's `vector`.
   let inv = monster.inventory().unwrap();
 
   // Note that this vector is returned as a slice, because direct access for
@@ -2812,7 +2814,7 @@ FlatBuffers `vector`.
 </div>
 
 For `vector`s of `table`s, you can access the elements like any other vector,
-except your need to handle the result as a FlatBuffer `table`:
+except you need to handle the result as a FlatBuffer `table`:
 
 <div class="language-cpp">
 ~~~{.cpp}
@@ -3111,7 +3113,7 @@ We can access the type to dynamically cast the data as needed (since the
 ~~~{.rs}
   // Get and test the `Equipment` union (`equipped` field).
   // `equipped_as_weapon` returns a FlatBuffer handle much like normal table
-  // fields, but this will return `None` is the union is not actually of that
+  // fields, but this will return `None` if the union is not actually of that
   // type.
   if monster.equipped_type() == Equipment::Weapon {
     let equipped = monster.equipped_as_weapon().unwrap();
@@ -3252,7 +3254,7 @@ without any further work!
 
 Note that any `mutate` functions on a table will return a boolean, which is
 `false` if the field we're trying to set is not present in the buffer. Fields
-that are not present if they weren't set, or even if they happen to be equal to
+are not present if they weren't set, or even if they happen to be equal to
 the default value. For example, in the creation code above, the `mana`
 field is equal to `150`, which is the default value, so it was never stored in
 the buffer. Trying to call the corresponding `mutate` method for `mana` on such
@@ -3278,7 +3280,7 @@ as part of your compilation).
 
 #### JSON to binary representation
 
-Lets say you have a JSON file that describes your monster. In this example,
+Let's say you have a JSON file that describes your monster. In this example,
 we will use the file `flatbuffers/samples/monsterdata.json`.
 
 Here are the contents of the file:
@@ -3361,7 +3363,7 @@ on `--strict-json` so that identifiers are quoted properly.
 *Note: The resulting JSON file is not necessarily identical with the original JSON.
 If the binary representation contains floating point numbers, floats and doubles
 are rounded to 6 and 12 digits, respectively, in order to represent them as
-decimals in the JSON document. *
+decimals in the JSON document.*
 
 ## Advanced Features for Each Language
 
