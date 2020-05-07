@@ -31,7 +31,16 @@ else
     exit 1
 fi
 
-cargo run $TARGET_FLAG --bin=alloc_check
+cargo run $TARGET_FLAG --bin=flatbuffers_alloc_check
+TEST_RESULT=$?
+if [[ $TEST_RESULT  == 0 ]]; then
+    echo "OK: Rust heap alloc test passed."
+else
+    echo "KO: Rust heap alloc test failed."
+    exit 1
+fi
+
+cargo run $TARGET_FLAG --bin=flexbuffers_alloc_check
 TEST_RESULT=$?
 if [[ $TEST_RESULT  == 0 ]]; then
     echo "OK: Rust heap alloc test passed."
