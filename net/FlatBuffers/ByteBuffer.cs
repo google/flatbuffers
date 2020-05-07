@@ -289,11 +289,14 @@ namespace FlatBuffers
 #endif
 
 #if !UNSAFE_BYTEBUFFER
-        // Pre-allocated helper arrays for convertion.
-        private float[] floathelper = new[] { 0.0f };
-        private int[] inthelper = new[] { 0 };
-        private double[] doublehelper = new[] { 0.0 };
-        private ulong[] ulonghelper = new[] { 0UL };
+        // A conversion union where all the members are overlapping. This allows to reinterpret the bytes of one type
+        // as another, without additional copies.
+        [StructLayout(LayoutKind.Explicit)]
+        struct ConversionUnion
+        {
+          [FieldOffset(0)] public int intValue;
+          [FieldOffset(0)] public float floatValue;
+        }
 #endif // !UNSAFE_BYTEBUFFER
 
         // Helper functions for the unsafe version.
@@ -586,17 +589,18 @@ namespace FlatBuffers
         public void PutFloat(int offset, float value)
         {
             AssertOffsetAndLength(offset, sizeof(float));
-            floathelper[0] = value;
-            Buffer.BlockCopy(floathelper, 0, inthelper, 0, sizeof(float));
-            WriteLittleEndian(offset, sizeof(float), (ulong)inthelper[0]);
+            // TODO(derekbailey): use BitConvert.SingleToInt32Bits() whenever flatbuffers upgrades to a .NET version
+            // that contains it.
+            ConversionUnion union;
+            union.intValue = 0;
+            union.floatValue = value;    
+            WriteLittleEndian(offset, sizeof(float), (ulong)union.intValue);
         }
 
         public void PutDouble(int offset, double value)
         {
             AssertOffsetAndLength(offset, sizeof(double));
-            doublehelper[0] = value;
-            Buffer.BlockCopy(doublehelper, 0, ulonghelper, 0, sizeof(double));
-            WriteLittleEndian(offset, sizeof(double), ulonghelper[0]);
+            WriteLittleEndian(offset, sizeof(double), (ulong)BitConverter.DoubleToInt64Bits(value));
         }
 
 #endif // UNSAFE_BYTEBUFFER
@@ -782,19 +786,17 @@ namespace FlatBuffers
 
         public float GetFloat(int index)
         {
-            int i = (int)ReadLittleEndian(index, sizeof(float));
-            inthelper[0] = i;
-            Buffer.BlockCopy(inthelper, 0, floathelper, 0, sizeof(float));
-            return floathelper[0];
+            // TODO(derekbailey): use BitConvert.Int32BitsToSingle() whenever flatbuffers upgrades to a .NET version
+            // that contains it.
+            ConversionUnion union;
+            union.floatValue = 0;
+            union.intValue = (int)ReadLittleEndian(index, sizeof(float));
+            return union.floatValue;
         }
 
         public double GetDouble(int index)
         {
-            ulong i = ReadLittleEndian(index, sizeof(double));
-            // There's Int64BitsToDouble but it uses unsafe code internally.
-            ulonghelper[0] = i;
-            Buffer.BlockCopy(ulonghelper, 0, doublehelper, 0, sizeof(double));
-            return doublehelper[0];
+            return BitConverter.Int64BitsToDouble((long)ReadLittleEndian(index, sizeof(double)));
         }
 #endif // UNSAFE_BYTEBUFFER
 
