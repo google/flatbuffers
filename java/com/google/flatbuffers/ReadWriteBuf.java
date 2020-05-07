@@ -5,6 +5,13 @@ package com.google.flatbuffers;
  * FlexBuffers message.
  */
 interface ReadWriteBuf extends ReadBuf {
+
+    /**
+     * Clears (resets) the buffer so that it can be reused. Write position will be set to the
+     * start.
+     */
+    void clear();
+
     /**
      * Put a boolean into the buffer at {@code writePosition()} . Booleans as stored as single
      * byte. Write position will be incremented.
