@@ -35,6 +35,11 @@ function run_tests() {
     COMPARE_GENERATED_TO_GO=0 \
     COMPARE_GENERATED_TO_JAVA=0 \
     $1 py_test.py $2 $3 $4
+    if [ $1 = python3 ]; then
+      PYTHONDONTWRITEBYTECODE=1 \
+      PYTHONPATH=${runtime_library_dir}:${gen_code_path} \
+      $1 py_flexbuffers_test.py
+    fi
     interpreters_tested+=(${1})
     echo
   fi
