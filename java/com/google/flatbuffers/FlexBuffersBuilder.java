@@ -152,6 +152,17 @@ public class FlexBuffersBuilder {
     }
 
     /**
+     * Reset the FlexBuffersBuilder by purging all data that it holds.
+     */
+    public void clear(){
+        bb.clear();
+        stack.clear();
+        keyPool.clear();
+        stringPool.clear();
+        finished = false;
+    }
+
+    /**
      * Return `ByteBuffer` containing FlexBuffer message. {@code #finish()} must be called before calling this
      * function otherwise an assert will trigger.
      *
