@@ -153,9 +153,7 @@ class JsTsGenerator : public BaseGenerator {
           code += file.second.source_namespace + ".";
         }
         code += file.second.symbol + ";\n";
-        if (!file.second.target_namespace.empty()) {
-          code += "}\n";
-        }
+        if (!file.second.target_namespace.empty()) { code += "}\n"; }
       }
     }
   }
@@ -977,8 +975,10 @@ class JsTsGenerator : public BaseGenerator {
         " */\npack(builder:flatbuffers.Builder): flatbuffers.Offset {\n";
     std::string pack_func_offset_decl;
     std::string pack_func_create_call =
-        "  return " + Verbose(struct_def) + ".create" + Verbose(struct_def) +
-        "(builder" + (struct_def.fields.vec.empty() ? "" : ",\n    ");
+        "  return " +
+        GenPrefixedTypeName(WrapInNameSpace(struct_def), struct_def.file) +
+        ".create" + Verbose(struct_def) + "(builder" +
+        (struct_def.fields.vec.empty() ? "" : ",\n    ");
     if (struct_def.fixed) {
       // when packing struct, nested struct's members instead of the struct's
       // offset are used
@@ -1070,13 +1070,17 @@ class JsTsGenerator : public BaseGenerator {
                             "Length())";
 
                 if (sd.fixed) {
-                  field_offset_decl = "builder.createStructOffsetList(this." +
-                                      field_name + ", " + Verbose(struct_def) +
-                                      ".start" + MakeCamel(field_name) +
-                                      "Vector)";
+                  field_offset_decl =
+                      "builder.createStructOffsetList(this." + field_name +
+                      ", " +
+                      GenPrefixedTypeName(WrapInNameSpace(struct_def),
+                                          struct_def.file) +
+                      ".start" + MakeCamel(field_name) + "Vector)";
                 } else {
                   field_offset_decl =
-                      Verbose(struct_def) + ".create" + MakeCamel(field_name) +
+                      GenPrefixedTypeName(WrapInNameSpace(struct_def),
+                                          struct_def.file) +
+                      ".create" + MakeCamel(field_name) +
                       "Vector(builder, builder.createObjectOffsetList(" +
                       "this." + field_name + "))";
                 }
@@ -1090,7 +1094,9 @@ class JsTsGenerator : public BaseGenerator {
                             field_binded_method + ", this." + field_name +
                             "Length())";
                 field_offset_decl =
-                    Verbose(struct_def) + ".create" + MakeCamel(field_name) +
+                    GenPrefixedTypeName(WrapInNameSpace(struct_def),
+                                        struct_def.file) +
+                    ".create" + MakeCamel(field_name) +
                     "Vector(builder, builder.createObjectOffsetList(" +
                     "this." + field_name + "))";
                 break;
@@ -1103,7 +1109,9 @@ class JsTsGenerator : public BaseGenerator {
                 field_val = GenUnionValTS(field_name, vectortype, true);
 
                 field_offset_decl =
-                    Verbose(struct_def) + ".create" + MakeCamel(field_name) +
+                    GenPrefixedTypeName(WrapInNameSpace(struct_def),
+                                        struct_def.file) +
+                    ".create" + MakeCamel(field_name) +
                     "Vector(builder, builder.createObjectOffsetList(" +
                     "this." + field_name + "))";
 
@@ -1122,9 +1130,11 @@ class JsTsGenerator : public BaseGenerator {
                             field_binded_method + ", this." + field_name +
                             "Length())";
 
-                field_offset_decl = Verbose(struct_def) + ".create" +
-                                    MakeCamel(field_name) +
-                                    "Vector(builder, this." + field_name + ")";
+                field_offset_decl =
+                    GenPrefixedTypeName(WrapInNameSpace(struct_def),
+                                        struct_def.file) +
+                    ".create" + MakeCamel(field_name) +
+                    "Vector(builder, this." + field_name + ")";
 
                 break;
               }
