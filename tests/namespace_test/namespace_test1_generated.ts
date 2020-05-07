@@ -133,7 +133,7 @@ constructor(
  * @returns flatbuffers.Offset
  */
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return TableInNestedNS.createTableInNestedNS(builder,
+  return NamespaceA.NamespaceB.TableInNestedNS.createTableInNestedNS(builder,
     this.foo
   );
 };
@@ -251,7 +251,7 @@ constructor(
  * @returns flatbuffers.Offset
  */
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return StructInNestedNS.createStructInNestedNS(builder,
+  return NamespaceA.NamespaceB.StructInNestedNS.createStructInNestedNS(builder,
     this.a,
     this.b
   );
