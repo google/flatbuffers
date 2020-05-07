@@ -608,5 +608,25 @@ namespace FlatBuffers.Test
             var data = new dummyStruct[10];
             Assert.Throws<ArgumentException>(() => uut.Put(1024, data));
         }
+
+        [FlatBuffersTestMethod]
+        public void ByteBuffer_Get_Double()
+        {
+            var uut = new ByteBuffer(1024);
+            double value = 3.14159265;
+            uut.PutDouble(900, value);
+            double getValue = uut.GetDouble(900);
+            Assert.AreEqual(value, getValue);
+        }
+
+        [FlatBuffersTestMethod]
+        public void ByteBuffer_Get_Float()
+        {
+            var uut = new ByteBuffer(1024);
+            float value = 3.14159265F;
+            uut.PutFloat(900, value);
+            double getValue = uut.GetFloat(900);
+            Assert.AreEqual(value, getValue);
+        }
     }
 }
