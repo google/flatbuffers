@@ -121,10 +121,6 @@ public struct ByteBuffer {
         ensureSpace(size: padding)
         _writerSize += (MemoryLayout<UInt8>.size * Int(padding))
     }
-
-    @usableFromInline internal mutating func bigFill(padding: VOffset) {
-        memset(_storage.memory, 0, Int(padding))
-    }
     
     ///Adds an array of type Scalar to the buffer memory
     /// - Parameter elements: An array of Scalars

@@ -322,20 +322,17 @@ class SwiftGenerator : public BaseGenerator {
     Outdent();
     code_ += "}\n";
   }
-    
+
   // Generates the reader for swift
   void GenTableAccessors(const StructDef &struct_def) {
     // Generate field id constants.
     if (struct_def.fields.vec.size() > 0) {
-      code_ +=
-          "enum {{TABLEOFFSET}}: VOffset {";
+      code_ += "enum {{TABLEOFFSET}}: VOffset {";
       Indent();
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
         const auto &field = **it;
-        if (field.deprecated) {
-          continue;
-        }
+        if (field.deprecated) { continue; }
         code_.SetValue("OFFSET_NAME", Name(field));
         code_.SetValue("OFFSET_VALUE", NumToString(field.value.offset));
         code_ += "case {{OFFSET_NAME}} = {{OFFSET_VALUE}}";
@@ -404,8 +401,7 @@ class SwiftGenerator : public BaseGenerator {
       if (field.required)
         require_fields.push_back(NumToString(field.value.offset));
 
-      GenTableWriterFields(
-          field, &create_func_body, &create_func_header);
+      GenTableWriterFields(field, &create_func_body, &create_func_header);
     }
     code_ +=
         "public static func end{{STRUCTNAME}}(_ fbb: inout "
@@ -495,7 +491,8 @@ class SwiftGenerator : public BaseGenerator {
                                                     : field.value.constant;
       auto is_enum = IsEnum(field.value.type) ? ".rawValue" : "";
       code_ += "{{VALUETYPE}}" + builder_string + "element: {{VALUENAME}}" +
-               is_enum + ", def: {{CONSTANT}}, at: {{TABLEOFFSET}}.{{OFFSET}}.p) }";
+               is_enum +
+               ", def: {{CONSTANT}}, at: {{TABLEOFFSET}}.{{OFFSET}}.p) }";
       create_func_header.push_back("" + name + ": " + type + " = " +
                                    default_value);
       return;
@@ -507,7 +504,8 @@ class SwiftGenerator : public BaseGenerator {
       code_.SetValue("VALUETYPE", "Bool");
       code_.SetValue("CONSTANT", default_value);
       code_ += "{{VALUETYPE}}" + builder_string +
-               "condition: {{VALUENAME}}, def: {{CONSTANT}}, at: {{TABLEOFFSET}}.{{OFFSET}}.p) }";
+               "condition: {{VALUENAME}}, def: {{CONSTANT}}, at: "
+               "{{TABLEOFFSET}}.{{OFFSET}}.p) }";
       create_func_header.push_back(name + ": " + type + " = " + default_value);
       return;
     }
@@ -549,12 +547,14 @@ class SwiftGenerator : public BaseGenerator {
     }
 
     if (IsBool(field.value.type.base_type)) {
+      std::string default_value =
+          "0" == field.value.constant ? "false" : "true";
+      code_.SetValue("CONSTANT", default_value);
       code_.SetValue("VALUETYPE", "Bool");
       code_ += GenReaderMainBody() + "\\";
       code_.SetValue("VALUETYPE", "Byte");
-      code_ += GenOffset() +
-               "return o == 0 ? false : 0 != " + GenReader("VALUETYPE", "o") +
-               " }";
+      code_ += GenOffset() + "return o == 0 ? {{CONSTANT}} : 0 != " +
+               GenReader("VALUETYPE", "o") + " }";
       if (parser_.opts.mutable_buffer) code_ += GenMutate("o", GenOffset());
       return;
     }
@@ -1219,7 +1219,9 @@ class SwiftGenerator : public BaseGenerator {
     for (auto it = dc.begin(); it != dc.end(); ++it) { code_ += "/// " + *it; }
   }
 
-  std::string GenOffset() { return "let o = {{ACCESS}}.offset({{TABLEOFFSET}}.{{OFFSET}}.v); "; }
+  std::string GenOffset() {
+    return "let o = {{ACCESS}}.offset({{TABLEOFFSET}}.{{OFFSET}}.v); ";
+  }
 
   std::string GenReaderMainBody(const std::string &optional = "") {
     return "public var {{VALUENAME}}: {{VALUETYPE}}" + optional + " { ";
