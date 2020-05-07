@@ -498,7 +498,7 @@ class Builder {
 }
 
 class _StackValue {
-  dynamic _value;
+  Object _value;
   int _offset;
   ValueType _type;
   BitWidth _width;
