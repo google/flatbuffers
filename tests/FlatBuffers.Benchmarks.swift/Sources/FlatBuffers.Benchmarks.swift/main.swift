@@ -52,10 +52,10 @@ func createDocument(Benchmarks: [Benchmark]) -> String {
     for _ in 0..<500_000 {
         let off = fb.create(string: "T")
         let s = fb.startTable(with: 4)
-        fb.add(element: 3.2, def: 0, at: 0)
-        fb.add(element: 4.2, def: 0, at: 1)
-        fb.add(element: 5.2, def: 0, at: 2)
-        fb.add(offset: off, at: 3)
+        fb.add(element: 3.2, def: 0, at: 2)
+        fb.add(element: 4.2, def: 0, at: 4)
+        fb.add(element: 5.2, def: 0, at: 6)
+        fb.add(offset: off, at: 8)
         _ = fb.endTable(at: s)
     }
 }

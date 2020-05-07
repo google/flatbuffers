@@ -2,11 +2,10 @@ FlatBuffers swift can be found in both SPM
 
 `.package(url: "https://github.com/mustiikhalil/flatbuffers.git", from: "X.Y.Z"),`
 
-tags are provided in the repository, so you can select according to the version you want.
-
 and Cocoapods
 
-`pod 'FlatBuffers', :git => 'https://github.com/mustiikhalil/flatbuffers.git', :branch => 'swift'`
+`pod 'FlatBuffers'`
 
-To report any error please use the main repository.
-
+### Notes
+1- To report any error please use the main repository.
+2- The package 0.4.0 will break the generated code. You can download the [binary here](https://github.com/google/flatbuffers/actions) and select the latest push to master

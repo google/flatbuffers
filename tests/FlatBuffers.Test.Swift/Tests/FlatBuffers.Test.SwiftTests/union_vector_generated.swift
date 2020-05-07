@@ -144,10 +144,16 @@ public struct Attacker: FlatBufferObject {
     private init(_ t: Table) { _accessor = t }
     public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
-    public var swordAttackDamage: Int32 { let o = _accessor.offset(4); return o == 0 ? 0 : _accessor.readBuffer(of: Int32.self, at: o) }
-    public func mutate(swordAttackDamage: Int32) -> Bool {let o = _accessor.offset(4);  return _accessor.mutate(swordAttackDamage, index: o) }
+    enum VTOFFSET: VOffset {
+        case swordAttackDamage = 4
+        var v: Int32 { Int32(self.rawValue) }
+        var p: VOffset { self.rawValue }
+    }
+
+    public var swordAttackDamage: Int32 { let o = _accessor.offset(VTOFFSET.swordAttackDamage.v); return o == 0 ? 0 : _accessor.readBuffer(of: Int32.self, at: o) }
+    public func mutate(swordAttackDamage: Int32) -> Bool {let o = _accessor.offset(VTOFFSET.swordAttackDamage.v);  return _accessor.mutate(swordAttackDamage, index: o) }
     public static func startAttacker(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
-    public static func add(swordAttackDamage: Int32, _ fbb: inout FlatBufferBuilder) { fbb.add(element: swordAttackDamage, def: 0, at: 0) }
+    public static func add(swordAttackDamage: Int32, _ fbb: inout FlatBufferBuilder) { fbb.add(element: swordAttackDamage, def: 0, at: VTOFFSET.swordAttackDamage.p) }
     public static func endAttacker(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
     public static func createAttacker(_ fbb: inout FlatBufferBuilder,
     swordAttackDamage: Int32 = 0) -> Offset<UOffset> {
@@ -194,17 +200,26 @@ public struct Movie: FlatBufferObject {
     private init(_ t: Table) { _accessor = t }
     public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
-    public var mainCharacterType: Character { let o = _accessor.offset(4); return o == 0 ? .none : Character(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? .none }
-    public func mainCharacter<T: FlatBufferObject>(type: T.Type) -> T? { let o = _accessor.offset(6); return o == 0 ? nil : _accessor.union(o) }
-    public var charactersTypeCount: Int32 { let o = _accessor.offset(8); return o == 0 ? 0 : _accessor.vector(count: o) }
-    public func charactersType(at index: Int32) -> Character? { let o = _accessor.offset(8); return o == 0 ? Character.none : Character(rawValue: _accessor.directRead(of: UInt8.self, offset: _accessor.vector(at: o) + index * 1)) }
-    public var charactersCount: Int32 { let o = _accessor.offset(10); return o == 0 ? 0 : _accessor.vector(count: o) }
-    public func characters<T: FlatBufferObject>(at index: Int32, type: T.Type) -> T? { let o = _accessor.offset(10); return o == 0 ? nil : _accessor.directUnion(_accessor.vector(at: o) + index * 4) }
+    enum VTOFFSET: VOffset {
+        case mainCharacterType = 4
+        case mainCharacter = 6
+        case charactersType = 8
+        case characters = 10
+        var v: Int32 { Int32(self.rawValue) }
+        var p: VOffset { self.rawValue }
+    }
+
+    public var mainCharacterType: Character { let o = _accessor.offset(VTOFFSET.mainCharacterType.v); return o == 0 ? .none : Character(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? .none }
+    public func mainCharacter<T: FlatBufferObject>(type: T.Type) -> T? { let o = _accessor.offset(VTOFFSET.mainCharacter.v); return o == 0 ? nil : _accessor.union(o) }
+    public var charactersTypeCount: Int32 { let o = _accessor.offset(VTOFFSET.charactersType.v); return o == 0 ? 0 : _accessor.vector(count: o) }
+    public func charactersType(at index: Int32) -> Character? { let o = _accessor.offset(VTOFFSET.charactersType.v); return o == 0 ? Character.none : Character(rawValue: _accessor.directRead(of: UInt8.self, offset: _accessor.vector(at: o) + index * 1)) }
+    public var charactersCount: Int32 { let o = _accessor.offset(VTOFFSET.characters.v); return o == 0 ? 0 : _accessor.vector(count: o) }
+    public func characters<T: FlatBufferObject>(at index: Int32, type: T.Type) -> T? { let o = _accessor.offset(VTOFFSET.characters.v); return o == 0 ? nil : _accessor.directUnion(_accessor.vector(at: o) + index * 4) }
     public static func startMovie(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 4) }
-    public static func add(mainCharacterType: Character, _ fbb: inout FlatBufferBuilder) { fbb.add(element: mainCharacterType.rawValue, def: 0, at: 0) }
-    public static func add(mainCharacter: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: mainCharacter, at: 1)  }
-    public static func addVectorOf(charactersType: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: charactersType, at: 2)  }
-    public static func addVectorOf(characters: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: characters, at: 3)  }
+    public static func add(mainCharacterType: Character, _ fbb: inout FlatBufferBuilder) { fbb.add(element: mainCharacterType.rawValue, def: 0, at: VTOFFSET.mainCharacterType.p) }
+    public static func add(mainCharacter: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: mainCharacter, at: VTOFFSET.mainCharacter.p)  }
+    public static func addVectorOf(charactersType: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: charactersType, at: VTOFFSET.charactersType.p)  }
+    public static func addVectorOf(characters: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: characters, at: VTOFFSET.characters.p)  }
     public static func endMovie(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
     public static func createMovie(_ fbb: inout FlatBufferBuilder,
     mainCharacterType: Character = .none,

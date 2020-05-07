@@ -2,9 +2,9 @@ import XCTest
 @testable import FlatBuffers
 
 final class FlatBuffersUnionTests: XCTestCase {
-
+    
     func testCreateMonstor() {
-
+        
         var b = FlatBufferBuilder(initialSize: 20)
         let dmg: Int16 = 5
         let str = "Axe"
@@ -27,7 +27,7 @@ final class FlatBuffersUnionTests: XCTestCase {
         XCTAssertEqual(p?.name, str)
         XCTAssertEqual(p?.nameVector, [65, 120, 101])
     }
-
+    
     func testEndTableFinish() {
         var builder = FlatBufferBuilder(initialSize: 20)
         let sword = builder.create(string: "Sword")
@@ -111,7 +111,7 @@ final class FlatBuffersUnionTests: XCTestCase {
         fb.finish(offset: newMovie)
         
         let packedMovie = Movie.getRootAsMovie(bb: fb.buffer)
-
+        
         XCTAssertEqual(packedMovie.characters(at: 0, type: BookReader.self)?.booksRead, movie.characters(at: 0, type: BookReader.self)?.booksRead)
         XCTAssertEqual(packedMovie.characters(at: 1, type: Attacker.self)?.swordAttackDamage, movie.characters(at: 1, type: Attacker.self)?.swordAttackDamage)
         XCTAssertEqual(packedMovie.characters(at: 2, type: BookReader.self)?.booksRead, movie.characters(at: 2, type: BookReader.self)?.booksRead)
@@ -119,29 +119,29 @@ final class FlatBuffersUnionTests: XCTestCase {
 }
 
 public enum ColorsNameSpace {
-
-enum RGB: Int32, Enum {
-    typealias T = Int32
-    static var byteSize: Int { return MemoryLayout<Int32>.size }
-    var value: Int32 { return self.rawValue }
-    case red = 0, green = 1, blue = 2
-}
-
-struct Monster: FlatBufferObject {
-    var __buffer: ByteBuffer! { _accessor.bb }
+    
+    enum RGB: Int32, Enum {
+        typealias T = Int32
+        static var byteSize: Int { return MemoryLayout<Int32>.size }
+        var value: Int32 { return self.rawValue }
+        case red = 0, green = 1, blue = 2
+    }
+    
+    struct Monster: FlatBufferObject {
+        var __buffer: ByteBuffer! { _accessor.bb }
         
-    private var _accessor: Table
-    static func getRootAsMonster(bb: ByteBuffer) -> Monster { return Monster(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
-
-    init(_ t: Table) { _accessor = t }
-    init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
-
-    public var colorsCount: Int32 { let o = _accessor.offset(4); return o == 0 ? 0 : _accessor.vector(count: o) }
-    public func colors(at index: Int32) -> ColorsNameSpace.RGB? { let o = _accessor.offset(4); return o == 0 ? ColorsNameSpace.RGB(rawValue: 0)! : ColorsNameSpace.RGB(rawValue: _accessor.directRead(of: Int32.self, offset: _accessor.vector(at: o) + index * 4)) }
-    static func startMonster(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
-    static func add(colors: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: colors, at: 0)  }
-    static func endMonster(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
-}
+        private var _accessor: Table
+        static func getRootAsMonster(bb: ByteBuffer) -> Monster { return Monster(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
+        
+        init(_ t: Table) { _accessor = t }
+        init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
+        
+        public var colorsCount: Int32 { let o = _accessor.offset(4); return o == 0 ? 0 : _accessor.vector(count: o) }
+        public func colors(at index: Int32) -> ColorsNameSpace.RGB? { let o = _accessor.offset(4); return o == 0 ? ColorsNameSpace.RGB(rawValue: 0)! : ColorsNameSpace.RGB(rawValue: _accessor.directRead(of: Int32.self, offset: _accessor.vector(at: o) + index * 4)) }
+        static func startMonster(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
+        static func add(colors: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: colors, at: 4)  }
+        static func endMonster(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
+    }
 }
 
 
@@ -150,7 +150,7 @@ enum Equipment: Byte { case none, Weapon }
 enum Color3: Int8 { case red = 0, green, blue }
 
 struct FinalMonster {
-
+    
     @inlinable static func createMonster(builder: inout FlatBufferBuilder,
                                          position: Offset<UOffset>,
                                          hp: Int16,
@@ -162,44 +162,44 @@ struct FinalMonster {
                                          equippedOffset: Offset<Weapon>,
                                          path: Offset<UOffset>) -> Offset<Monster> {
         let start = builder.startTable(with: 11)
-        builder.add(structOffset: 0)
-        builder.add(element: hp, def: 100, at: 2)
-        builder.add(offset: name, at: 3)
-        builder.add(offset: inventory, at: 5)
-        builder.add(element: color.rawValue, def: Color3.green.rawValue, at: 6)
-        builder.add(offset: weapons, at: 7)
-        builder.add(element: equipment.rawValue, def: Equipment.none.rawValue, at: 8)
-        builder.add(offset: equippedOffset, at: 9)
-        builder.add(offset: path, at: 10)
+        builder.add(structOffset: 4)
+        builder.add(element: hp, def: 100, at: 8)
+        builder.add(offset: name, at: 10)
+        builder.add(offset: inventory, at: 14)
+        builder.add(element: color.rawValue, def: Color3.green.rawValue, at: 16)
+        builder.add(offset: weapons, at: 18)
+        builder.add(element: equipment.rawValue, def: Equipment.none.rawValue, at: 20)
+        builder.add(offset: equippedOffset, at: 22)
+        builder.add(offset: path, at: 24)
         return Offset(offset: builder.endTable(at: start))
     }
 }
 
 struct Monster {
-
+    
     private var __t: Table
-
+    
     init(_ fb: ByteBuffer, o: Int32) { __t = Table(bb: fb, position: o) }
     init(_ t: Table) { __t = t }
-
+    
     func weapon(at index: Int32) -> Weapon? { let o = __t.offset(4); return o == 0 ? nil : Weapon.assign(__t.indirect(__t.vector(at: o) + (index * 4)), __t.bb) }
-
+    
     func equiped<T: FlatBufferObject>() -> T? {
         let o = __t.offset(8); return o == 0 ? nil : __t.union(o)
     }
-
+    
     static func getRootAsMonster(bb: ByteBuffer) -> Monster {
         return Monster(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: 0))))
     }
-
+    
     @inlinable static func createMonster(builder: inout FlatBufferBuilder,
                                          offset: Offset<UOffset>,
                                          equipment: Equipment = .none,
                                          equippedOffset: UOffset) -> Offset<Monster> {
         let start = builder.startTable(with: 3)
-        builder.add(element: equippedOffset, def: 0, at: 2)
-        builder.add(offset: offset, at: 0)
-        builder.add(element: equipment.rawValue, def: Equipment.none.rawValue, at: 1)
+        builder.add(element: equippedOffset, def: 0, at: 8)
+        builder.add(offset: offset, at: 4)
+        builder.add(element: equipment.rawValue, def: Equipment.none.rawValue, at: 6)
         return Offset(offset: builder.endTable(at: start))
     }
 }
@@ -207,34 +207,34 @@ struct Monster {
 struct Weapon: FlatBufferObject {
     
     var __buffer: ByteBuffer! { __t.bb }
-
-    static let offsets: (name: VOffset, dmg: VOffset) = (0, 1)
+    
+    static let offsets: (name: VOffset, dmg: VOffset) = (4, 6)
     private var __t: Table
-
+    
     init(_ t: Table) { __t = t }
     init(_ fb: ByteBuffer, o: Int32) { __t = Table(bb: fb, position: o)}
-
+    
     var dmg: Int16 { let o = __t.offset(6); return o == 0 ? 0 : __t.readBuffer(of: Int16.self, at: o) }
     var nameVector: [UInt8]? { return __t.getVector(at: 4) }
     var name: String? { let o = __t.offset(4); return o == 0 ? nil : __t.string(at: o) }
-
+    
     static func assign(_ i: Int32, _ bb: ByteBuffer) -> Weapon { return Weapon(Table(bb: bb, position: i)) }
-
+    
     @inlinable static func createWeapon(builder: inout FlatBufferBuilder, offset: Offset<String>, dmg: Int16) -> Offset<Weapon> {
         let _start = builder.startTable(with: 2)
         Weapon.add(builder: &builder, name: offset)
         Weapon.add(builder: &builder, dmg: dmg)
         return Weapon.end(builder: &builder, startOffset: _start)
     }
-
+    
     @inlinable static func end(builder: inout FlatBufferBuilder, startOffset: UOffset) -> Offset<Weapon> {
         return Offset(offset: builder.endTable(at: startOffset))
     }
-
+    
     @inlinable static func add(builder: inout FlatBufferBuilder, name: Offset<String>) {
         builder.add(offset: name, at: Weapon.offsets.name)
     }
-
+    
     @inlinable static func add(builder: inout FlatBufferBuilder, dmg: Int16) {
         builder.add(element: dmg, def: 0, at: Weapon.offsets.dmg)
     }

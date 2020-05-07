@@ -2,8 +2,9 @@ import Foundation
 
 public struct FlatBufferBuilder {
     
-    /// Vtables used in the buffer are stored in here, so they would be written later in EndTable
-    private var _vtable: [UInt32] = []
+    /// Storage for the Vtables used in the buffer are stored in here, so they would be written later in EndTable
+    @usableFromInline internal var _vtableStorage = VTableStorage()
+    
     /// Reference Vtables that were already written to the buffer
     private var _vtables: [UOffset] = []
     /// Flatbuffer data will be written into
@@ -76,16 +77,11 @@ public struct FlatBufferBuilder {
         _minAlignment = 0
         isNested = false
         stringOffsetMap = [:]
-        _vtable = []
         _vtables = []
+        _vtableStorage.clear()
         _bb.clear()
     }
-    
-    /// Removes all the offsets from the VTable
-    mutating public func clearOffsets() {
-        _vtable = []
-    }
-    
+
     // MARK: - Create Tables
     
     /// Checks if the required fields were serialized into the buffer
@@ -124,7 +120,7 @@ public struct FlatBufferBuilder {
         preAlign(len: size + (prefix ? size : 0), alignment: _minAlignment)
         push(element: refer(to: offset.o))
         if prefix { push(element: _bb.size) }
-        clearOffsets()
+        _vtableStorage.clear()
         finished = true
     }
     
@@ -135,7 +131,7 @@ public struct FlatBufferBuilder {
     mutating public func startTable(with numOfFields: Int) -> UOffset {
         notNested()
         isNested = true
-        _vtable = [UInt32](repeating: 0, count: numOfFields)
+        _vtableStorage.start(count: numOfFields)
         return _bb.size
     }
     
@@ -154,24 +150,20 @@ public struct FlatBufferBuilder {
         
         let tableObjectSize = vTableOffset - startOffset
         assert(tableObjectSize < 0x10000, "Buffer can't grow beyond 2 Gigabytes")
+        let _max = UInt32(_vtableStorage.maxOffset) + UInt32(sizeofVoffset)
         
-        var writeIndex = 0
-        for (index,j) in _vtable.lazy.reversed().enumerated() {
-            if j != 0 {
-                writeIndex = _vtable.count - index
-                break
-            }
+        _bb.fill(padding: _max)
+        _bb.write(value: VOffset(tableObjectSize), index: _bb.writerIndex + sizeofVoffset, direct: true)
+        _bb.write(value: VOffset(_max), index: _bb.writerIndex, direct: true)
+        
+        for index in stride(from: 0, to: _vtableStorage.writtenIndex, by: _vtableStorage.size) {
+            let loaded = _vtableStorage.load(at: index)
+            guard loaded.offset != 0 else { continue }
+            let _index = (_bb.writerIndex + Int(loaded.position))
+            _bb.write(value: VOffset(vTableOffset - loaded.offset), index: _index, direct: true)
         }
         
-        for i in stride(from: writeIndex - 1, to: -1, by: -1) {
-            let off = _vtable[i] == 0 ? 0 : vTableOffset - _vtable[i]
-            _bb.push(value: VOffset(off), len: sizeofVoffset)
-        }
-        
-        _bb.push(value: VOffset(tableObjectSize), len: sizeofVoffset)
-        _bb.push(value: (UInt16(writeIndex + 2) * UInt16(sizeofVoffset)), len: sizeofVoffset)
-        
-        clearOffsets()
+        _vtableStorage.clear()
         let vt_use = _bb.size
         
         var isAlreadyAdded: Int?
@@ -255,7 +247,7 @@ public struct FlatBufferBuilder {
     ///   - offset: The offset of the element witten
     ///   - position: The position of the element
     @usableFromInline mutating internal func track(offset: UOffset, at position: VOffset) {
-        _vtable[Int(position)] = offset
+        _vtableStorage.add(loc: FieldLoc(offset: offset, position: position))
     }
 
     // MARK: - Vectors
@@ -400,9 +392,8 @@ public struct FlatBufferBuilder {
     ///
     /// The function fatalErrors if we pass an offset that is out of range
     /// - Parameter o: offset
-    mutating public func add(structOffset o: UOffset) {
-        guard Int(o) < _vtable.count else { fatalError("Out of the table range") }
-        _vtable[Int(o)] = _bb.size
+    mutating public func add(structOffset o: VOffset) {
+        _vtableStorage.add(loc: FieldLoc(offset: _bb.size, position: VOffset(o)))
     }
     
     // MARK: - Inserting Strings
@@ -411,7 +402,7 @@ public struct FlatBufferBuilder {
     /// - Parameter str: String to be serialized
     /// - returns: The strings offset in the buffer
     mutating public func create(string str: String) -> Offset<String> {
-        let len = str.count
+        let len = str.utf8.count
         notNested()
         preAlign(len: len + 1, type: UOffset.self)
         _bb.fill(padding: 1)
@@ -510,4 +501,82 @@ extension FlatBufferBuilder: CustomDebugStringConvertible {
         { finished: \(finished), serializeDefaults: \(serializeDefaults), isNested: \(isNested) }
         """
     }
+
+    /// VTableStorage is a class to contain the VTable buffer that would be serialized into buffer
+    @usableFromInline internal class VTableStorage {
+        /// Memory check since deallocating each time we want to clear would be expensive
+        /// and memory leaks would happen if we dont deallocate the first allocated memory.
+        /// memory is promised to be available before adding `FieldLoc`
+        private var memoryInUse = false
+        /// Size of FieldLoc in memory
+        let size = MemoryLayout<FieldLoc>.stride
+        /// Memeory buffer
+        var memory: UnsafeMutableRawBufferPointer!
+        /// Capacity of the current buffer
+        var capacity: Int = 0
+        /// Maximuim offset written to the class
+        var maxOffset: VOffset = 0
+        /// number of fields written into the buffer
+        var numOfFields: Int = 0
+        /// Last written Index
+        var writtenIndex: Int = 0
+        /// the amount of added elements into the buffer
+        var addedElements: Int { return capacity - (numOfFields * size) }
+        
+        /// Creates the memory to store the buffer in
+        init() {
+            memory = UnsafeMutableRawBufferPointer.allocate(byteCount: 0, alignment: 0)
+        }
+        
+        deinit {
+            memory.deallocate()
+        }
+        
+        /// Builds a buffer with byte count of fieldloc.size * count of field numbers
+        /// - Parameter count: number of fields to be written
+        func start(count: Int) {
+            let capacity = count * size
+            ensure(space: capacity)
+        }
+        
+        /// Adds a FieldLoc into the buffer, which would track how many have been written,
+        /// and max offset
+        /// - Parameter loc: Location of encoded element
+        func add(loc: FieldLoc) {
+            memory.baseAddress?.advanced(by: writtenIndex).storeBytes(of: loc, as: FieldLoc.self)
+            writtenIndex += size
+            numOfFields += 1
+            maxOffset = max(loc.position, maxOffset)
+        }
+        
+        /// Clears the data stored related to the encoded buffer
+        func clear() {
+            maxOffset = 0
+            numOfFields = 0
+            writtenIndex = 0
+        }
+        
+        /// Ensure that the buffer has enough space instead of recreating the buffer each time.
+        /// - Parameter space: space required for the new vtable
+        func ensure(space: Int) {
+            guard space + writtenIndex > capacity else { return }
+            memory.deallocate()
+            memory = UnsafeMutableRawBufferPointer.allocate(byteCount: space, alignment: size)
+            capacity = space
+        }
+
+        /// Loads an object of type `FieldLoc` from buffer memory
+        /// - Parameter index: index of element
+        /// - Returns: a FieldLoc at index
+        func load(at index: Int) -> FieldLoc {
+            return memory.load(fromByteOffset: index, as: FieldLoc.self)
+        }
+        
+    }
+    
+    internal struct FieldLoc {
+        var offset: UOffset
+        var position: VOffset
+    }
+
 }

@@ -121,7 +121,7 @@ public struct ByteBuffer {
         ensureSpace(size: padding)
         _writerSize += (MemoryLayout<UInt8>.size * Int(padding))
     }
-
+    
     ///Adds an array of type Scalar to the buffer memory
     /// - Parameter elements: An array of Scalars
     @usableFromInline mutating func push<T: Scalar>(elements: [T]) {
@@ -249,6 +249,11 @@ public struct ByteBuffer {
     /// Resizes the buffer size
     /// - Parameter size: new size for the buffer
     @usableFromInline mutating internal func resize(_ size: Int) {
+        assert((_writerSize - size) > 0)
+        var zero: UInt8 = 0
+        for i in 0..<(_writerSize - size) {
+            memcpy(_storage.memory.advanced(by: writerIndex + i), &zero, MemoryLayout<UInt8>.size)
+        }
         _writerSize = size
     }
 

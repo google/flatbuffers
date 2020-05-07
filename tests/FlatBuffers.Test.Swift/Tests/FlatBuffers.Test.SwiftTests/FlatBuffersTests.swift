@@ -2,11 +2,11 @@ import XCTest
 @testable import FlatBuffers
 
 final class FlatBuffersTests: XCTestCase {
-
+    
     let country = "Norway"
     
     func testEndian() { XCTAssertEqual(isLitteEndian, true) }
-
+    
     func testOffset() {
         let o = Offset<Int>()
         let b = Offset<Int>(offset: 1)
@@ -70,7 +70,7 @@ final class FlatBuffersTests: XCTestCase {
 
 class Country {
     
-    static let offsets: (name: VOffset, lan: VOffset, lng: VOffset) = (0, 1, 2)
+    static let offsets: (name: VOffset, lan: VOffset, lng: VOffset) = (4, 6, 8)
     private var __t: Table
     
     private init(_ t: Table) {

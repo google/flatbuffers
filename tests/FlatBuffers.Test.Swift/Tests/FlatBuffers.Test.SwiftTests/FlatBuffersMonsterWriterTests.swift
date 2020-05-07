@@ -145,7 +145,7 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
         XCTAssertEqual(vec?.x, 1)
         XCTAssertTrue(vec?.mutate(test1: 3) ?? false)
     }
-        
+    
     func readFlatbufferMonster(monster: inout MyGame.Example.Monster) {
         XCTAssertEqual(monster.hp, 80)
         XCTAssertEqual(monster.mana, 150)
