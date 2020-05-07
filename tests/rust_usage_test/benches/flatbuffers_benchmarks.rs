@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-#[macro_use]
-extern crate bencher;
 use bencher::Bencher;
-
-extern crate flatbuffers;
 
 #[allow(dead_code, unused_imports)]
 #[path = "../../include_test/include_test1_generated.rs"]
@@ -63,42 +59,69 @@ fn create_canonical_buffer_then_reset(bench: &mut Bencher) {
 }
 
 #[inline(always)]
-fn create_serialized_example_with_generated_code(builder: &mut flatbuffers::FlatBufferBuilder, finish: bool) -> usize{
+fn create_serialized_example_with_generated_code(
+    builder: &mut flatbuffers::FlatBufferBuilder,
+    finish: bool,
+) -> usize {
     let s0 = builder.create_string("test1");
     let s1 = builder.create_string("test2");
     let t0_name = builder.create_string("Barney");
     let t1_name = builder.create_string("Fred");
     let t2_name = builder.create_string("Wilma");
-    let t0 = my_game::example::Monster::create(builder, &my_game::example::MonsterArgs{
-        hp: 1000,
-        name: Some(t0_name),
-        ..Default::default()
-    });
-    let t1 = my_game::example::Monster::create(builder, &my_game::example::MonsterArgs{
-        name: Some(t1_name),
-        ..Default::default()
-    });
-    let t2 = my_game::example::Monster::create(builder, &my_game::example::MonsterArgs{
-        name: Some(t2_name),
-        ..Default::default()
-    });
+    let t0 = my_game::example::Monster::create(
+        builder,
+        &my_game::example::MonsterArgs {
+            hp: 1000,
+            name: Some(t0_name),
+            ..Default::default()
+        },
+    );
+    let t1 = my_game::example::Monster::create(
+        builder,
+        &my_game::example::MonsterArgs {
+            name: Some(t1_name),
+            ..Default::default()
+        },
+    );
+    let t2 = my_game::example::Monster::create(
+        builder,
+        &my_game::example::MonsterArgs {
+            name: Some(t2_name),
+            ..Default::default()
+        },
+    );
     let mon = {
         let name = builder.create_string("MyMonster");
         let fred_name = builder.create_string("Fred");
         let inventory = builder.create_vector_direct(&[0u8, 1, 2, 3, 4]);
-        let test4 = builder.create_vector_direct(&[my_game::example::Test::new(10, 20),
-                                                   my_game::example::Test::new(30, 40)]);
-        let pos = my_game::example::Vec3::new(1.0, 2.0, 3.0, 3.0, my_game::example::Color::Green, &my_game::example::Test::new(5i16, 6i8));
-        let args = my_game::example::MonsterArgs{
+        let test4 = builder.create_vector_direct(&[
+            my_game::example::Test::new(10, 20),
+            my_game::example::Test::new(30, 40),
+        ]);
+        let pos = my_game::example::Vec3::new(
+            1.0,
+            2.0,
+            3.0,
+            3.0,
+            my_game::example::Color::Green,
+            &my_game::example::Test::new(5i16, 6i8),
+        );
+        let args = my_game::example::MonsterArgs {
             hp: 80,
             mana: 150,
             name: Some(name),
             pos: Some(&pos),
             test_type: my_game::example::Any::Monster,
-            test: Some(my_game::example::Monster::create(builder, &my_game::example::MonsterArgs{
-                name: Some(fred_name),
-                ..Default::default()
-            }).as_union_value()),
+            test: Some(
+                my_game::example::Monster::create(
+                    builder,
+                    &my_game::example::MonsterArgs {
+                        name: Some(fred_name),
+                        ..Default::default()
+                    },
+                )
+                .as_union_value(),
+            ),
             inventory: Some(inventory),
             test4: Some(test4),
             testarrayofstring: Some(builder.create_vector(&[s0, s1])),
@@ -155,7 +178,7 @@ fn traverse_serialized_example_with_generated_code(bytes: &[u8]) {
 }
 
 fn create_string_10(bench: &mut Bencher) {
-    let builder = &mut flatbuffers::FlatBufferBuilder::new_with_capacity(1<<20);
+    let builder = &mut flatbuffers::FlatBufferBuilder::new_with_capacity(1 << 20);
     let mut i = 0;
     bench.iter(|| {
         builder.create_string("foobarbaz"); // zero-terminated -> 10 bytes
@@ -170,7 +193,7 @@ fn create_string_10(bench: &mut Bencher) {
 }
 
 fn create_string_100(bench: &mut Bencher) {
-    let builder = &mut flatbuffers::FlatBufferBuilder::new_with_capacity(1<<20);
+    let builder = &mut flatbuffers::FlatBufferBuilder::new_with_capacity(1 << 20);
     let s_owned = (0..99).map(|_| "x").collect::<String>();
     let s: &str = &s_owned;
 
@@ -188,7 +211,7 @@ fn create_string_100(bench: &mut Bencher) {
 }
 
 fn create_byte_vector_100_naive(bench: &mut Bencher) {
-    let builder = &mut flatbuffers::FlatBufferBuilder::new_with_capacity(1<<20);
+    let builder = &mut flatbuffers::FlatBufferBuilder::new_with_capacity(1 << 20);
     let v_owned = (0u8..100).map(|i| i).collect::<Vec<u8>>();
     let v: &[u8] = &v_owned;
 
@@ -206,7 +229,7 @@ fn create_byte_vector_100_naive(bench: &mut Bencher) {
 }
 
 fn create_byte_vector_100_optimal(bench: &mut Bencher) {
-    let builder = &mut flatbuffers::FlatBufferBuilder::new_with_capacity(1<<20);
+    let builder = &mut flatbuffers::FlatBufferBuilder::new_with_capacity(1 << 20);
     let v_owned = (0u8..100).map(|i| i).collect::<Vec<u8>>();
     let v: &[u8] = &v_owned;
 
@@ -223,5 +246,12 @@ fn create_byte_vector_100_optimal(bench: &mut Bencher) {
     bench.bytes = v.len() as u64;
 }
 
-benchmark_group!(benches, create_byte_vector_100_naive, create_byte_vector_100_optimal, traverse_canonical_buffer, create_canonical_buffer_then_reset, create_string_10, create_string_100);
-benchmark_main!(benches);
+benchmark_group!(
+    benches,
+    create_byte_vector_100_naive,
+    create_byte_vector_100_optimal,
+    traverse_canonical_buffer,
+    create_canonical_buffer_then_reset,
+    create_string_10,
+    create_string_100
+);

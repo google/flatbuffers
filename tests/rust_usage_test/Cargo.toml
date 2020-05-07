@@ -5,23 +5,31 @@ authors = ["Robert Winslow <hello@rwinslow.com>", "FlatBuffers Maintainers"]
 
 [dependencies]
 flatbuffers = { path = "../../rust/flatbuffers" }
+flexbuffers = { path = "../../rust/flexbuffers" }
 
 [[bin]]
 name = "monster_example"
 path = "bin/monster_example.rs"
 
 [[bin]]
-name = "alloc_check"
-path = "bin/alloc_check.rs"
+name = "flatbuffers_alloc_check"
+path = "bin/flatbuffers_alloc_check.rs"
 
+[[bin]]
+name = "flexbuffers_alloc_check"
+path = "bin/flexbuffers_alloc_check.rs"
 
 [dev-dependencies]
 quickcheck = "0.6"
 # TODO(rw): look into moving to criterion.rs
 bencher = "0.1.5"
 static_assertions = "1.0.0"
+serde_derive = "*"
+serde = "*"
+rand = "*"
+quickcheck_derive = "*"
 
 [[bench]]
 # setup for bencher
-name = "flatbuffers_benchmarks"
+name = "benchmarks"
 harness = false
