@@ -55,13 +55,12 @@ class BitWidthUtil {
 }
 
 /// Represents all internal FlexBuffer types.
-///
-/// VectorString is deprecated due to a bug in the binary format.
-/// It is safer to use [Vector] instead.
 enum ValueType {
   Null, Int, UInt, Float,
   Key, String, IndirectInt, IndirectUInt, IndirectFloat,
-  Map, Vector, VectorInt, VectorUInt, VectorFloat, VectorKey, @deprecated VectorString,
+  Map, Vector, VectorInt, VectorUInt, VectorFloat, VectorKey,
+  @Deprecated('VectorString is deprecated due to a flaw in the binary format (https://github.com/google/flatbuffers/issues/5627)')
+  VectorString,
   VectorInt2, VectorUInt2, VectorFloat2,
   VectorInt3, VectorUInt3, VectorFloat3,
   VectorInt4, VectorUInt4, VectorFloat4,

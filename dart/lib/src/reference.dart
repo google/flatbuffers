@@ -10,11 +10,12 @@ class Reference {
   final ByteData _buffer;
   final int _offset;
   final BitWidth _parentWidth;
+  final String _path;
   int _byteWidth;
   ValueType _valueType;
   int _length;
 
-  Reference._(this._buffer, this._offset, this._parentWidth, int packedType) {
+  Reference._(this._buffer, this._offset, this._parentWidth, int packedType, this._path) {
     _byteWidth = 1 << (packedType & 3);
     _valueType = ValueTypeUtils.fromInt(packedType >> 2);
   }
@@ -29,7 +30,7 @@ class Reference {
     final byteWidth = byteData.getUint8(len - 1);
     final packedType = byteData.getUint8(len - 2);
     final offset = len - byteWidth - 2;
-    return Reference._(ByteData.view(buffer), offset, BitWidthUtil.fromByteWidth(byteWidth), packedType);
+    return Reference._(ByteData.view(buffer), offset, BitWidthUtil.fromByteWidth(byteWidth), packedType, "/");
   }
 
   /// Returns true if the underlying value is null.
@@ -117,15 +118,15 @@ class Reference {
   /// Can be used with an [int] or a [String] value for key.
   /// If the underlying value in FlexBuffer is a vector, then use [int] for access.
   /// If the underlying value in FlexBuffer is a map, then use [String] for access.
-  /// Returns [Reference] value or null. Does not throw out of bounds exception.
+  /// Returns [Reference] value. Throws an exception when [key] is not applicable.
   Reference operator [](Object key) {
     if (key is int && ValueTypeUtils.isAVector(_valueType)) {
       final index = key;
-      if(index >= length) {
-        return null;
+      if(index >= length || index < 0) {
+        throw ArgumentError('Key: [$key] is not applicable on: $_path of: $_valueType length: $length');
       }
       final elementOffset = _indirect + index * _byteWidth;
-      final reference = Reference._(_buffer, elementOffset, BitWidthUtil.fromByteWidth(_byteWidth), 0);
+      final reference = Reference._(_buffer, elementOffset, BitWidthUtil.fromByteWidth(_byteWidth), 0, "$_path[$index]");
       reference._byteWidth = 1;
       if (ValueTypeUtils.isTypedVector(_valueType)) {
         reference._valueType = ValueTypeUtils.typedVectorElementType(_valueType);
@@ -136,15 +137,15 @@ class Reference {
         return reference;
       }
       final packedType = _buffer.getUint8(_indirect + length * _byteWidth + index);
-      return Reference._(_buffer, elementOffset, BitWidthUtil.fromByteWidth(_byteWidth), packedType);
+      return Reference._(_buffer, elementOffset, BitWidthUtil.fromByteWidth(_byteWidth), packedType, "$_path[$index]");
     }
     if (key is String && _valueType == ValueType.Map) {
       final index = _keyIndex(key);
       if (index != null) {
-        return _valueForIndex(index);
+        return _valueForIndexWithKey(index, key);
       }
     }
-    return null;
+    throw ArgumentError('Key: [$key] is not applicable on: $_path of: $_valueType');
   }
 
   /// Get an iterable if the underlying flexBuffer value is a vector.
@@ -212,10 +213,11 @@ class Reference {
     return _length;
   }
 
+
   /// Returns a minified JSON representation of the underlying FlexBuffer value.
   ///
-  /// Primary use should be debugging.
-  /// As a FlexBuffer could be a large tree and transformation to JSON will have to materialise it all.
+  /// This method involves materializing the entire object tree, which may be
+  /// expensive. It is more efficient to work with [Reference] and access only the needed data.
   /// Blob values are represented as base64 encoded string.
   String get json {
     if(_valueType == ValueType.Bool) {
@@ -262,6 +264,11 @@ class Reference {
     throw UnsupportedError('Type: $_valueType is not supported for JSON conversion');
   }
 
+  /// Computes the indirect offset of the value.
+  ///
+  /// To optimize for the more common case of being called only once, this
+  /// value is not cached. Callers that need to use it more than once should
+  /// cache the return value in a local variable.
   int get _indirect {
     final step = _readInt(_offset, _parentWidth);
     return _offset - step;
@@ -346,11 +353,18 @@ class Reference {
     return (_buffer.getUint8(keyIndirectOffset + input.length) == 0) ? 0 : -1;
   }
 
+  Reference _valueForIndexWithKey(int index, String key) {
+    final indirect = _indirect;
+    final elementOffset = indirect + index * _byteWidth;
+    final packedType = _buffer.getUint8(indirect + length * _byteWidth + index);
+    return Reference._(_buffer, elementOffset, BitWidthUtil.fromByteWidth(_byteWidth), packedType, "$_path/$key");
+  }
+
   Reference _valueForIndex(int index) {
     final indirect = _indirect;
     final elementOffset = indirect + index * _byteWidth;
     final packedType = _buffer.getUint8(indirect + length * _byteWidth + index);
-    return Reference._(_buffer, elementOffset, BitWidthUtil.fromByteWidth(_byteWidth), packedType);
+    return Reference._(_buffer, elementOffset, BitWidthUtil.fromByteWidth(_byteWidth), packedType, "$_path/[$index]");
   }
 
   String _keyForIndex(int index) {

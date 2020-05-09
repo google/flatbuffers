@@ -239,9 +239,16 @@ void main() {
     expect(flx['address']['zip'].stringValue, '12345');
     expect(flx['address']['countryCode'].stringValue, 'XX');
 
-    expect(flx['address']['country']?.stringValue, null);
-    expect(flx[1], null);
-    expect(flx['flags'][4], null);
+    expect(() => flx['address']['country'].stringValue,
+      throwsA(predicate((e) => e is ArgumentError && e.message == 'Key: [country] is not applicable on: //address of: ValueType.Map')));
+    expect(() => flx['address']['countryCode'][0],
+      throwsA(predicate((e) => e is ArgumentError && e.message == 'Key: [0] is not applicable on: //address/countryCode of: ValueType.String')));
+    expect(() => flx[1],
+      throwsA(predicate((e) => e is ArgumentError && e.message == 'Key: [1] is not applicable on: / of: ValueType.Map')));
+    expect(() => flx['flags'][4],
+      throwsA(predicate((e) => e is ArgumentError && e.message == 'Key: [4] is not applicable on: //flags of: ValueType.VectorBool length: 4')));
+    expect(() => flx['flags'][-1],
+      throwsA(predicate((e) => e is ArgumentError && e.message == 'Key: [-1] is not applicable on: //flags of: ValueType.VectorBool length: 4')));
   });
   test('complex map to json', () {
     var flx = complexMap();
