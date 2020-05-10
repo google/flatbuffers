@@ -2906,6 +2906,7 @@ class CppGenerator : public BaseGenerator {
         const auto &field_type = field.value.type;
         if (IsArray(field_type)) {
           const auto &elem_type = field_type.VectorType();
+          (void)elem_type;
           FLATBUFFERS_ASSERT(
               (IsScalar(elem_type.base_type) || IsStruct(elem_type)) &&
               "invalid declaration");
