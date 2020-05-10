@@ -2282,12 +2282,15 @@ class CppGenerator : public BaseGenerator {
     // Definition for type traits for this table type. This allows querying var-
     // ious compile-time traits of the table.
     if (opts_.g_cpp_std >= cpp::CPP_STD_17) {
+      auto file_identifier = parser_.file_identifier_.length()
+                                 ? ('"' + parser_.file_identifier_ + '"')
+                                 : "nullptr";
       code_ += "struct {{STRUCT_NAME}}::Traits {";
       code_ += "  using type = {{STRUCT_NAME}};";
       code_ += "  static auto constexpr Create = Create{{STRUCT_NAME}};";
-      if (parser_.file_identifier_.length())
-        code_ += "  static auto constexpr FileIdentifier = \"" +
-                 parser_.file_identifier_ + "\";";
+      code_ +=
+          "  static const char* constexpr FileIdentifier = " + file_identifier +
+          ';';
       code_ += "};";
       code_ += "";
     }
