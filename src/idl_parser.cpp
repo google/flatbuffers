@@ -683,10 +683,11 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
       const auto& elem_type = type.VectorType();
       valid |= IsScalar(elem_type.base_type) || IsStruct(elem_type);
     }
-    if(!valid)
+    if (!valid) {
       return Error(
           "structs may contain only scalars, or struct fields, or fixed-size "
           "arrays of scalars or structs");
+    }
   }
 
   if (!struct_def.fixed && IsArray(type))
