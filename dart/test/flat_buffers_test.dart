@@ -30,8 +30,7 @@ class CheckOtherLangaugesData {
     List<int> data = await new io.File(path.join(
       path.dirname(io.Platform.script.path),
       'monsterdata_test.mon',
-    ))
-        .readAsBytes();
+    )).readAsBytes();
     example.Monster mon = new example.Monster(data);
     expect(mon.hp, 80);
     expect(mon.mana, 150);
@@ -58,8 +57,71 @@ class CheckOtherLangaugesData {
     expect(mon.testarrayofstring[1], "test2");
 
     // this will fail if accessing any field fails.
-    expect(mon.toString(),
-        'Monster{pos: Vec3{x: 1.0, y: 2.0, z: 3.0, test1: 3.0, test2: Color{value: 2}, test3: Test{a: 5, b: 6}}, mana: 150, hp: 80, name: MyMonster, inventory: [0, 1, 2, 3, 4], color: Color{value: 8}, testType: AnyTypeId{value: 1}, test: Monster{pos: null, mana: 150, hp: 100, name: Fred, inventory: null, color: Color{value: 8}, testType: AnyTypeId{value: 0}, test: null, test4: null, testarrayofstring: null, testarrayoftables: null, enemy: null, testnestedflatbuffer: null, testempty: null, testbool: false, testhashs32Fnv1: 0, testhashu32Fnv1: 0, testhashs64Fnv1: 0, testhashu64Fnv1: 0, testhashs32Fnv1a: 0, testhashu32Fnv1a: 0, testhashs64Fnv1a: 0, testhashu64Fnv1a: 0, testarrayofbools: null, testf: 3.14159, testf2: 3.0, testf3: 0.0, testarrayofstring2: null, testarrayofsortedstruct: null, flex: null, test5: null, vectorOfLongs: null, vectorOfDoubles: null, parentNamespaceTest: null, vectorOfReferrables: null, singleWeakReference: 0, vectorOfWeakReferences: null, vectorOfStrongReferrables: null, coOwningReference: 0, vectorOfCoOwningReferences: null, nonOwningReference: 0, vectorOfNonOwningReferences: null, anyUniqueType: AnyUniqueAliasesTypeId{value: 0}, anyUnique: null, anyAmbiguousType: AnyAmbiguousAliasesTypeId{value: 0}, anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}}, test4: [Test{a: 10, b: 20}, Test{a: 30, b: 40}], testarrayofstring: [test1, test2], testarrayoftables: null, enemy: Monster{pos: null, mana: 150, hp: 100, name: Fred, inventory: null, color: Color{value: 8}, testType: AnyTypeId{value: 0}, test: null, test4: null, testarrayofstring: null, testarrayoftables: null, enemy: null, testnestedflatbuffer: null, testempty: null, testbool: false, testhashs32Fnv1: 0, testhashu32Fnv1: 0, testhashs64Fnv1: 0, testhashu64Fnv1: 0, testhashs32Fnv1a: 0, testhashu32Fnv1a: 0, testhashs64Fnv1a: 0, testhashu64Fnv1a: 0, testarrayofbools: null, testf: 3.14159, testf2: 3.0, testf3: 0.0, testarrayofstring2: null, testarrayofsortedstruct: null, flex: null, test5: null, vectorOfLongs: null, vectorOfDoubles: null, parentNamespaceTest: null, vectorOfReferrables: null, singleWeakReference: 0, vectorOfWeakReferences: null, vectorOfStrongReferrables: null, coOwningReference: 0, vectorOfCoOwningReferences: null, nonOwningReference: 0, vectorOfNonOwningReferences: null, anyUniqueType: AnyUniqueAliasesTypeId{value: 0}, anyUnique: null, anyAmbiguousType: AnyAmbiguousAliasesTypeId{value: 0}, anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}}, testnestedflatbuffer: null, testempty: null, testbool: true, testhashs32Fnv1: -579221183, testhashu32Fnv1: 3715746113, testhashs64Fnv1: 7930699090847568257, testhashu64Fnv1: 7930699090847568257, testhashs32Fnv1a: -1904106383, testhashu32Fnv1a: 2390860913, testhashs64Fnv1a: 4898026182817603057, testhashu64Fnv1a: 4898026182817603057, testarrayofbools: [true, false, true], testf: 3.14159, testf2: 3.0, testf3: 0.0, testarrayofstring2: null, testarrayofsortedstruct: null, flex: null, test5: [Test{a: 10, b: 20}, Test{a: 30, b: 40}], vectorOfLongs: [1, 100, 10000, 1000000, 100000000], vectorOfDoubles: [-1.7976931348623157e+308, 0.0, 1.7976931348623157e+308], parentNamespaceTest: null, vectorOfReferrables: null, singleWeakReference: 0, vectorOfWeakReferences: null, vectorOfStrongReferrables: null, coOwningReference: 0, vectorOfCoOwningReferences: null, nonOwningReference: 0, vectorOfNonOwningReferences: null, anyUniqueType: AnyUniqueAliasesTypeId{value: 0}, anyUnique: null, anyAmbiguousType: AnyAmbiguousAliasesTypeId{value: 0}, anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}}');
+    expect(
+      mon.toString(),
+      'Monster{'
+      'pos: Vec3{x: 1.0, y: 2.0, z: 3.0, test1: 3.0, test2: Color{value: 2}, test3: Test{a: 5, b: 6}}, '
+      'mana: 150, hp: 80, name: MyMonster, inventory: [0, 1, 2, 3, 4], '
+      'color: Color{value: 8}, testType: AnyTypeId{value: 1}, '
+      'test: Monster{pos: null, mana: 150, hp: 100, name: Fred, '
+      'inventory: null, color: Color{value: 8}, testType: AnyTypeId{value: 0}, '
+      'test: null, test4: null, testarrayofstring: null, '
+      'testarrayoftables: null, enemy: null, testnestedflatbuffer: null, '
+      'testempty: null, testbool: false, testhashs32Fnv1: 0, '
+      'testhashu32Fnv1: 0, testhashs64Fnv1: 0, testhashu64Fnv1: 0, '
+      'testhashs32Fnv1a: 0, testhashu32Fnv1a: 0, testhashs64Fnv1a: 0, '
+      'testhashu64Fnv1a: 0, testarrayofbools: null, testf: 3.14159, '
+      'testf2: 3.0, testf3: 0.0, testarrayofstring2: null, '
+      'testarrayofsortedstruct: null, flex: null, test5: null, '
+      'vectorOfLongs: null, vectorOfDoubles: null, parentNamespaceTest: null, '
+      'vectorOfReferrables: null, singleWeakReference: 0, '
+      'vectorOfWeakReferences: null, vectorOfStrongReferrables: null, '
+      'coOwningReference: 0, vectorOfCoOwningReferences: null, '
+      'nonOwningReference: 0, vectorOfNonOwningReferences: null, '
+      'anyUniqueType: AnyUniqueAliasesTypeId{value: 0}, anyUnique: null, '
+      'anyAmbiguousType: AnyAmbiguousAliasesTypeId{value: 0}, '
+      'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}}, '
+      'test4: [Test{a: 10, b: 20}, Test{a: 30, b: 40}], '
+      'testarrayofstring: [test1, test2], testarrayoftables: null, '
+      'enemy: Monster{pos: null, mana: 150, hp: 100, name: Fred, '
+      'inventory: null, color: Color{value: 8}, testType: AnyTypeId{value: 0}, '
+      'test: null, test4: null, testarrayofstring: null, '
+      'testarrayoftables: null, enemy: null, testnestedflatbuffer: null, '
+      'testempty: null, testbool: false, testhashs32Fnv1: 0, '
+      'testhashu32Fnv1: 0, testhashs64Fnv1: 0, testhashu64Fnv1: 0, '
+      'testhashs32Fnv1a: 0, testhashu32Fnv1a: 0, testhashs64Fnv1a: 0, '
+      'testhashu64Fnv1a: 0, testarrayofbools: null, testf: 3.14159, '
+      'testf2: 3.0, testf3: 0.0, testarrayofstring2: null, '
+      'testarrayofsortedstruct: null, flex: null, test5: null, '
+      'vectorOfLongs: null, vectorOfDoubles: null, parentNamespaceTest: null, '
+      'vectorOfReferrables: null, singleWeakReference: 0, '
+      'vectorOfWeakReferences: null, vectorOfStrongReferrables: null, '
+      'coOwningReference: 0, vectorOfCoOwningReferences: null, '
+      'nonOwningReference: 0, vectorOfNonOwningReferences: null, '
+      'anyUniqueType: AnyUniqueAliasesTypeId{value: 0}, anyUnique: null, '
+      'anyAmbiguousType: AnyAmbiguousAliasesTypeId{value: 0}, '
+      'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}}, '
+      'testnestedflatbuffer: null, testempty: null, testbool: true, '
+      'testhashs32Fnv1: -579221183, testhashu32Fnv1: 3715746113, '
+      'testhashs64Fnv1: 7930699090847568257, '
+      'testhashu64Fnv1: 7930699090847568257, '
+      'testhashs32Fnv1a: -1904106383, testhashu32Fnv1a: 2390860913, '
+      'testhashs64Fnv1a: 4898026182817603057, '
+      'testhashu64Fnv1a: 4898026182817603057, '
+      'testarrayofbools: [true, false, true], testf: 3.14159, testf2: 3.0, '
+      'testf3: 0.0, testarrayofstring2: null, testarrayofsortedstruct: null, '
+      'flex: null, test5: [Test{a: 10, b: 20}, Test{a: 30, b: 40}], '
+      'vectorOfLongs: [1, 100, 10000, 1000000, 100000000], '
+      'vectorOfDoubles: [-1.7976931348623157e+308, 0.0, 1.7976931348623157e+308], '
+      'parentNamespaceTest: null, vectorOfReferrables: null, '
+      'singleWeakReference: 0, vectorOfWeakReferences: null, '
+      'vectorOfStrongReferrables: null, coOwningReference: 0, '
+      'vectorOfCoOwningReferences: null, nonOwningReference: 0, '
+      'vectorOfNonOwningReferences: null, '
+      'anyUniqueType: AnyUniqueAliasesTypeId{value: 0}, anyUnique: null, '
+      'anyAmbiguousType: AnyAmbiguousAliasesTypeId{value: 0}, '
+      'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}}',
+    );
   }
 }
 
@@ -87,7 +149,6 @@ class BuilderTest {
     testBuilder.finish(10, 20);
     testBuilder.finish(30, 40);
     final test4 = fbBuilder.endStructVector(2);
-
 
     monBuilder
       ..begin()
@@ -167,8 +228,8 @@ class BuilderTest {
     expect(byteData.getUint8(6), 126); // '~'
     expect(byteData.getUint8(7), 255); // 'ÿ'
     // First 4 bytes of the table data are a backwards offset to the vtable.
-    int vTableLoc = tableDataLoc -
-        byteData.getInt32(tableDataLoc, Endian.little);
+    int vTableLoc =
+        tableDataLoc - byteData.getInt32(tableDataLoc, Endian.little);
     // First 2 bytes of the vtable are the size of the vtable in bytes, which
     // should be 4.
     expect(byteData.getUint16(vTableLoc, Endian.little), 4);
@@ -231,8 +292,8 @@ class BuilderTest {
     // First 4 bytes are an offset to the table data.
     int tableDataLoc = byteData.getUint32(0, Endian.little);
     // First 4 bytes of the table data are a backwards offset to the vtable.
-    int vTableLoc = tableDataLoc -
-        byteData.getInt32(tableDataLoc, Endian.little);
+    int vTableLoc =
+        tableDataLoc - byteData.getInt32(tableDataLoc, Endian.little);
     // First 2 bytes of the vtable are the size of the vtable in bytes, which
     // should be 10.
     expect(byteData.getUint16(vTableLoc, Endian.little), 10);
@@ -242,10 +303,9 @@ class BuilderTest {
     // Remaining 6 bytes are the offsets within the object where the ints are
     // located.
     for (int i = 0; i < 3; i++) {
-      int offset =
-          byteData.getUint16(vTableLoc + 4 + 2 * i, Endian.little);
-      expect(byteData.getInt32(tableDataLoc + offset, Endian.little),
-          10 + 10 * i);
+      int offset = byteData.getUint16(vTableLoc + 4 + 2 * i, Endian.little);
+      expect(
+          byteData.getInt32(tableDataLoc + offset, Endian.little), 10 + 10 * i);
     }
   }
 
