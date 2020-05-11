@@ -60,7 +60,7 @@ void CreateTableByTypeTest() {
 }
 
 void AccessFileIdentifierInTraits() {
-  TEST_EQ_STR(cpp17::MyGame::Example::Monster::Traits::FileIdentifier, "MONS");
+  TEST_EQ_STR(cpp17::MyGame::Example::Monster::Traits::file_identifier, "MONS");
 }
 
 int FlatBufferCpp17Tests() {

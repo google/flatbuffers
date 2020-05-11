@@ -2287,9 +2287,9 @@ class CppGenerator : public BaseGenerator {
                                  : "nullptr";
       code_ += "struct {{STRUCT_NAME}}::Traits {";
       code_ += "  using type = {{STRUCT_NAME}};";
-      code_ += "  static auto constexpr Create = Create{{STRUCT_NAME}};";
+      code_ += "  static constexpr auto Create = Create{{STRUCT_NAME}};";
       code_ +=
-          "  static const char* constexpr FileIdentifier = " + file_identifier +
+          "  static constexpr const char *file_identifier = " + file_identifier +
           ';';
       code_ += "};";
       code_ += "";

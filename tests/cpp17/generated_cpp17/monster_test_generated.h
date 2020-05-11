@@ -657,8 +657,8 @@ inline flatbuffers::Offset<InParentNamespace> CreateInParentNamespace(
 
 struct InParentNamespace::Traits {
   using type = InParentNamespace;
-  static auto constexpr Create = CreateInParentNamespace;
-  static const char* constexpr FileIdentifier = "MONS";
+  static constexpr auto Create = CreateInParentNamespace;
+  static constexpr const char *file_identifier = "MONS";
 };
 
 flatbuffers::Offset<InParentNamespace> CreateInParentNamespace(flatbuffers::FlatBufferBuilder &_fbb, const InParentNamespaceT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -710,8 +710,8 @@ inline flatbuffers::Offset<Monster> CreateMonster(
 
 struct Monster::Traits {
   using type = Monster;
-  static auto constexpr Create = CreateMonster;
-  static const char* constexpr FileIdentifier = "MONS";
+  static constexpr auto Create = CreateMonster;
+  static constexpr const char *file_identifier = "MONS";
 };
 
 flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -782,8 +782,8 @@ inline flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnu
 
 struct TestSimpleTableWithEnum::Traits {
   using type = TestSimpleTableWithEnum;
-  static auto constexpr Create = CreateTestSimpleTableWithEnum;
-  static const char* constexpr FileIdentifier = "MONS";
+  static constexpr auto Create = CreateTestSimpleTableWithEnum;
+  static constexpr const char *file_identifier = "MONS";
 };
 
 flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnum(flatbuffers::FlatBufferBuilder &_fbb, const TestSimpleTableWithEnumT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -880,8 +880,8 @@ inline flatbuffers::Offset<Stat> CreateStat(
 
 struct Stat::Traits {
   using type = Stat;
-  static auto constexpr Create = CreateStat;
-  static const char* constexpr FileIdentifier = "MONS";
+  static constexpr auto Create = CreateStat;
+  static constexpr const char *file_identifier = "MONS";
 };
 
 inline flatbuffers::Offset<Stat> CreateStatDirect(
@@ -967,8 +967,8 @@ inline flatbuffers::Offset<Referrable> CreateReferrable(
 
 struct Referrable::Traits {
   using type = Referrable;
-  static auto constexpr Create = CreateReferrable;
-  static const char* constexpr FileIdentifier = "MONS";
+  static constexpr auto Create = CreateReferrable;
+  static constexpr const char *file_identifier = "MONS";
 };
 
 flatbuffers::Offset<Referrable> CreateReferrable(flatbuffers::FlatBufferBuilder &_fbb, const ReferrableT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -1798,8 +1798,8 @@ inline flatbuffers::Offset<Monster> CreateMonster(
 
 struct Monster::Traits {
   using type = Monster;
-  static auto constexpr Create = CreateMonster;
-  static const char* constexpr FileIdentifier = "MONS";
+  static constexpr auto Create = CreateMonster;
+  static constexpr const char *file_identifier = "MONS";
 };
 
 inline flatbuffers::Offset<Monster> CreateMonsterDirect(
@@ -2152,8 +2152,8 @@ inline flatbuffers::Offset<TypeAliases> CreateTypeAliases(
 
 struct TypeAliases::Traits {
   using type = TypeAliases;
-  static auto constexpr Create = CreateTypeAliases;
-  static const char* constexpr FileIdentifier = "MONS";
+  static constexpr auto Create = CreateTypeAliases;
+  static constexpr const char *file_identifier = "MONS";
 };
 
 inline flatbuffers::Offset<TypeAliases> CreateTypeAliasesDirect(
