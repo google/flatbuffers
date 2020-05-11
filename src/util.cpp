@@ -17,8 +17,8 @@
 // clang-format off
 // Dont't remove `format off`, it prevent reordering of win-includes.
 
-#  define _XOPEN_SOURCE 700L
 #  define _POSIX_C_SOURCE 200809L
+#  define _XOPEN_SOURCE 700L
 
 #ifdef _WIN32
 #  ifndef WIN32_LEAN_AND_MEAN
