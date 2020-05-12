@@ -240,6 +240,13 @@ public class ArrayReadWriteBuf implements ReadWriteBuf {
     // implemented in the same growing fashion as ArrayList
     int oldCapacity = buffer.length;
     int newCapacity = oldCapacity + (oldCapacity >> 1);
+    if (newCapacity - capacity <= 0) {
+      if (capacity < 0) {
+        // capacity has overflown
+        throw new OutOfMemoryError();
+      }
+      newCapacity = capacity;
+    }
     buffer = Arrays.copyOf(buffer, newCapacity);
     return true;
   }

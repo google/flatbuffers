@@ -1027,14 +1027,9 @@ class JavaTest {
         TestEq("This is a small string", FlexBuffers.getRoot(b).asString());
 
         FlexBuffersBuilder failBuilder = new FlexBuffersBuilder(ByteBuffer.allocate(1));
-        try {
-            failBuilder.putString("This is a small string");
-            // This should never be reached, it should throw an exception
-            // since ByteBuffers do not grow
-            assert(false);
-        } catch (java.lang.ArrayIndexOutOfBoundsException exception) {
-            // It should throw exception
-        }
+        // Should never throw an exception
+        // since internally ArrayReadWriteBuf is used which does grow
+        failBuilder.putString("This is a small string");
     }
     
     public static void testFlexBuffersUtf8Map() {
