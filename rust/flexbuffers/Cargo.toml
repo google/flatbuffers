@@ -11,7 +11,7 @@ keywords = ["flatbuffers", "flexbuffers", "serialization", "zero-copy"]
 categories = ["encoding", "data-structures", "memory-management"]
 
 [dependencies]
-serde = "1.0.103"
+serde = "1.0"
 serde_derive = "1.0"
 byteorder = "1.3.2"
 num_enum = "0.4.1"
