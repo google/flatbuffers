@@ -677,9 +677,15 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   Type type;
   ECHECK(ParseType(type));
 
-  if (struct_def.fixed && !IsScalar(type.base_type) && !IsStruct(type) &&
-      !IsArray(type))
-    return Error("structs_ may contain only scalar or struct fields");
+  if (struct_def.fixed) {
+    auto valid = IsScalar(type.base_type) || IsStruct(type);
+    if (!valid && IsArray(type)) {
+      const auto& elem_type = type.VectorType();
+      valid |= IsScalar(elem_type.base_type) || IsStruct(elem_type);
+    }
+    if (!valid)
+      return Error("structs may contain only scalar or struct fields");
+  }
 
   if (!struct_def.fixed && IsArray(type))
     return Error("fixed-length array in table must be wrapped in struct");

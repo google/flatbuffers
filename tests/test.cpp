@@ -1623,6 +1623,9 @@ void ErrorTest() {
   TestError("table X { Y:int; } root_type X; { Y:1.0 }", "float");
   TestError("table X { Y:bool; } root_type X; { Y:1.0 }", "float");
   TestError("enum X:bool { Y = true }", "must be integral");
+  // Array of non-scalar
+  TestError("table X { x:int; } struct Y { y:[X:2]; }",
+            "may contain only scalar or struct fields");
 }
 
 template<typename T>
