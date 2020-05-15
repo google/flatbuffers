@@ -72,10 +72,6 @@ class DartGenerator : public BaseGenerator {
       code += "import 'package:flat_buffers/flat_buffers.dart' as " + _kFb +
               ";\n\n";
 
-      if (parser_.opts.include_dependence_headers) {
-        GenIncludeDependencies(&code, kv->first);
-      }
-
       for (auto kv2 = namespace_code.begin(); kv2 != namespace_code.end();
            ++kv2) {
         if (kv2->first != kv->first) {
