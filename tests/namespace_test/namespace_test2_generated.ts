@@ -167,7 +167,7 @@ constructor(
  * @returns flatbuffers.Offset
  */
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return NamespaceA.TableInFirstNS.createTableInFirstNS(builder,
+  return TableInFirstNS.createTableInFirstNS(builder,
     (this.fooTable !== null ? this.fooTable!.pack(builder) : 0),
     this.fooEnum,
     (this.fooStruct !== null ? this.fooStruct!.pack(builder) : 0)
@@ -305,7 +305,7 @@ constructor(
  * @returns flatbuffers.Offset
  */
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return NamespaceC.TableInC.createTableInC(builder,
+  return TableInC.createTableInC(builder,
     (this.referToA1 !== null ? this.referToA1!.pack(builder) : 0),
     (this.referToA2 !== null ? this.referToA2!.pack(builder) : 0)
   );
@@ -420,7 +420,7 @@ constructor(
  * @returns flatbuffers.Offset
  */
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return NamespaceA.SecondTableInA.createSecondTableInA(builder,
+  return SecondTableInA.createSecondTableInA(builder,
     (this.referToC !== null ? this.referToC!.pack(builder) : 0)
   );
 };
