@@ -2854,7 +2854,7 @@ class CppGenerator : public BaseGenerator {
     *code_ptr += "    (void)padding" + NumToString((*id)++) + "__;";
   }
 
-  void GenStructConstructor(const StructDef& struct_def) {
+  void GenStructConstructor(const StructDef &struct_def) {
     std::string arg_list;
     std::string init_list;
     int padding_id = 0;
@@ -2869,8 +2869,7 @@ class CppGenerator : public BaseGenerator {
       }
       const auto member_name = Name(field) + "_";
       const auto arg_name = "_" + Name(field);
-      const auto arg_type =
-          GenTypeGet(field_type, " ", "const ", " &", true);
+      const auto arg_type = GenTypeGet(field_type, " ", "const ", " &", true);
 
       if (it != first) { arg_list += ", "; }
       arg_list += arg_type;

@@ -680,7 +680,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   if (struct_def.fixed) {
     auto valid = IsScalar(type.base_type) || IsStruct(type);
     if (!valid && IsArray(type)) {
-      const auto& elem_type = type.VectorType();
+      const auto &elem_type = type.VectorType();
       valid |= IsScalar(elem_type.base_type) || IsStruct(elem_type);
     }
     if (!valid)
