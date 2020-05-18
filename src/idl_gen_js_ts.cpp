@@ -18,6 +18,7 @@
 #include <cassert>
 #include <unordered_map>
 #include <unordered_set>
+#include <algorithm>
 
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
@@ -1222,6 +1223,17 @@ class JsTsGenerator : public BaseGenerator {
     obj_api_unpack_func = unpack_func + "\n\n" + unpack_to_func;
   }
 
+  bool CanCreateFactoryMethod(const StructDef &struct_def) {
+    // to preserve backwards compatibility, we allow the first field to be a struct
+    return struct_def.fields.vec.size() < 2 || std::all_of(
+      std::begin(struct_def.fields.vec) + 1, 
+      std::end(struct_def.fields.vec), 
+      [](const FieldDef *f) {
+        FLATBUFFERS_ASSERT(f != nullptr);
+        return f->value.type.base_type != BASE_TYPE_STRUCT;
+    });
+  }
+
   // Generate an accessor struct with constructor for a flatbuffers struct.
   void GenStruct(const Parser &parser, StructDef &struct_def,
                  std::string *code_ptr, std::string *exports_ptr,
@@ -1859,66 +1871,68 @@ class JsTsGenerator : public BaseGenerator {
       GenerateFinisher(struct_def, code_ptr, code, object_name, true);
 
       // Generate a convenient CreateX function
-      if (lang_.language == IDLOptions::kJs) {
-        std::string paramDoc =
-            GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder");
-        for (auto it = struct_def.fields.vec.begin();
-             it != struct_def.fields.vec.end(); ++it) {
-          const auto &field = **it;
-          if (field.deprecated) continue;
+      if (CanCreateFactoryMethod(struct_def)) {
+        if (lang_.language == IDLOptions::kJs) {
+          std::string paramDoc =
+              GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder");
+          for (auto it = struct_def.fields.vec.begin();
+              it != struct_def.fields.vec.end(); ++it) {
+            const auto &field = **it;
+            if (field.deprecated) continue;
+            paramDoc +=
+                GenTypeAnnotation(kParam, GetArgType(field), GetArgName(field));
+          }
           paramDoc +=
-              GenTypeAnnotation(kParam, GetArgType(field), GetArgName(field));
+              GenTypeAnnotation(kReturns, "flatbuffers.Offset", "", false);
+
+          GenDocComment(code_ptr, paramDoc);
         }
-        paramDoc +=
-            GenTypeAnnotation(kReturns, "flatbuffers.Offset", "", false);
-
-        GenDocComment(code_ptr, paramDoc);
-      }
-
-      if (lang_.language == IDLOptions::kTs) {
-        code += "static create" + Verbose(struct_def);
-        code += "(builder:flatbuffers.Builder";
-      } else {
-        code += object_name + ".create" + Verbose(struct_def);
-        code += " = function(builder";
-      }
-      for (auto it = struct_def.fields.vec.begin();
-           it != struct_def.fields.vec.end(); ++it) {
-        const auto &field = **it;
-        if (field.deprecated) continue;
 
         if (lang_.language == IDLOptions::kTs) {
-          code += ", " + GetArgName(field) + ":" + GetArgType(field);
+          code += "static create" + Verbose(struct_def);
+          code += "(builder:flatbuffers.Builder";
         } else {
-          code += ", " + GetArgName(field);
+          code += object_name + ".create" + Verbose(struct_def);
+          code += " = function(builder";
         }
-      }
+        for (auto it = struct_def.fields.vec.begin();
+            it != struct_def.fields.vec.end(); ++it) {
+          const auto &field = **it;
+          if (field.deprecated) continue;
 
-      if (lang_.language == IDLOptions::kTs) {
-        code += "):flatbuffers.Offset {\n";
-        code += "  " + struct_def.name + ".start" + Verbose(struct_def) +
+          if (lang_.language == IDLOptions::kTs) {
+            code += ", " + GetArgName(field) + ":" + GetArgType(field);
+          } else {
+            code += ", " + GetArgName(field);
+          }
+        }
+
+        if (lang_.language == IDLOptions::kTs) {
+          code += "):flatbuffers.Offset {\n";
+          code += "  " + struct_def.name + ".start" + Verbose(struct_def) +
+                  "(builder);\n";
+        } else {
+          code += ") {\n";
+          code += "  " + object_name + ".start" + Verbose(struct_def) +
+                  "(builder);\n";
+        }
+
+        std::string methodPrefix =
+            lang_.language == IDLOptions::kTs ? struct_def.name : object_name;
+        for (auto it = struct_def.fields.vec.begin();
+            it != struct_def.fields.vec.end(); ++it) {
+          const auto &field = **it;
+          if (field.deprecated) continue;
+
+          code += "  " + methodPrefix + ".add" + MakeCamel(field.name) + "(";
+          code += "builder, " + GetArgName(field) + ");\n";
+        }
+
+        code += "  return " + methodPrefix + ".end" + Verbose(struct_def) +
                 "(builder);\n";
-      } else {
-        code += ") {\n";
-        code += "  " + object_name + ".start" + Verbose(struct_def) +
-                "(builder);\n";
+        code += "}\n";
+        if (lang_.language == IDLOptions::kJs) code += "\n";
       }
-
-      std::string methodPrefix =
-          lang_.language == IDLOptions::kTs ? struct_def.name : object_name;
-      for (auto it = struct_def.fields.vec.begin();
-           it != struct_def.fields.vec.end(); ++it) {
-        const auto &field = **it;
-        if (field.deprecated) continue;
-
-        code += "  " + methodPrefix + ".add" + MakeCamel(field.name) + "(";
-        code += "builder, " + GetArgName(field) + ");\n";
-      }
-
-      code += "  return " + methodPrefix + ".end" + Verbose(struct_def) +
-              "(builder);\n";
-      code += "}\n";
-      if (lang_.language == IDLOptions::kJs) code += "\n";
     }
 
     if (lang_.language == IDLOptions::kTs) {
