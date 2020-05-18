@@ -616,34 +616,6 @@ MyGame.Example.Vec3.prototype.test3 = function(obj) {
 };
 
 /**
- * @param {flatbuffers.Builder} builder
- * @param {number} x
- * @param {number} y
- * @param {number} z
- * @param {number} test1
- * @param {MyGame.Example.Color} test2
- * @param {number} test3_a
- * @param {number} test3_b
- * @returns {flatbuffers.Offset}
- */
-MyGame.Example.Vec3.createVec3 = function(builder, x, y, z, test1, test2, test3_a, test3_b) {
-  builder.prep(8, 32);
-  builder.pad(2);
-  builder.prep(2, 4);
-  builder.pad(1);
-  builder.writeInt8(test3_b);
-  builder.writeInt16(test3_a);
-  builder.pad(1);
-  builder.writeInt8(test2);
-  builder.writeFloat64(test1);
-  builder.pad(4);
-  builder.writeFloat32(z);
-  builder.writeFloat32(y);
-  builder.writeFloat32(x);
-  return builder.offset();
-};
-
-/**
  * @constructor
  */
 MyGame.Example.Ability = function() {
@@ -2745,59 +2717,6 @@ MyGame.Example.Monster.finishSizePrefixedMonsterBuffer = function(builder, offse
  * @param {MyGame.Example.Race} signedEnum
  * @returns {flatbuffers.Offset}
  */
-MyGame.Example.Monster.createMonster = function(builder, posOffset, mana, hp, nameOffset, inventoryOffset, color, testType, testOffset, test4Offset, testarrayofstringOffset, testarrayoftablesOffset, enemyOffset, testnestedflatbufferOffset, testemptyOffset, testbool, testhashs32Fnv1, testhashu32Fnv1, testhashs64Fnv1, testhashu64Fnv1, testhashs32Fnv1a, testhashu32Fnv1a, testhashs64Fnv1a, testhashu64Fnv1a, testarrayofboolsOffset, testf, testf2, testf3, testarrayofstring2Offset, testarrayofsortedstructOffset, flexOffset, test5Offset, vectorOfLongsOffset, vectorOfDoublesOffset, parentNamespaceTestOffset, vectorOfReferrablesOffset, singleWeakReference, vectorOfWeakReferencesOffset, vectorOfStrongReferrablesOffset, coOwningReference, vectorOfCoOwningReferencesOffset, nonOwningReference, vectorOfNonOwningReferencesOffset, anyUniqueType, anyUniqueOffset, anyAmbiguousType, anyAmbiguousOffset, vectorOfEnumsOffset, signedEnum) {
-  MyGame.Example.Monster.startMonster(builder);
-  MyGame.Example.Monster.addPos(builder, posOffset);
-  MyGame.Example.Monster.addMana(builder, mana);
-  MyGame.Example.Monster.addHp(builder, hp);
-  MyGame.Example.Monster.addName(builder, nameOffset);
-  MyGame.Example.Monster.addInventory(builder, inventoryOffset);
-  MyGame.Example.Monster.addColor(builder, color);
-  MyGame.Example.Monster.addTestType(builder, testType);
-  MyGame.Example.Monster.addTest(builder, testOffset);
-  MyGame.Example.Monster.addTest4(builder, test4Offset);
-  MyGame.Example.Monster.addTestarrayofstring(builder, testarrayofstringOffset);
-  MyGame.Example.Monster.addTestarrayoftables(builder, testarrayoftablesOffset);
-  MyGame.Example.Monster.addEnemy(builder, enemyOffset);
-  MyGame.Example.Monster.addTestnestedflatbuffer(builder, testnestedflatbufferOffset);
-  MyGame.Example.Monster.addTestempty(builder, testemptyOffset);
-  MyGame.Example.Monster.addTestbool(builder, testbool);
-  MyGame.Example.Monster.addTesthashs32Fnv1(builder, testhashs32Fnv1);
-  MyGame.Example.Monster.addTesthashu32Fnv1(builder, testhashu32Fnv1);
-  MyGame.Example.Monster.addTesthashs64Fnv1(builder, testhashs64Fnv1);
-  MyGame.Example.Monster.addTesthashu64Fnv1(builder, testhashu64Fnv1);
-  MyGame.Example.Monster.addTesthashs32Fnv1a(builder, testhashs32Fnv1a);
-  MyGame.Example.Monster.addTesthashu32Fnv1a(builder, testhashu32Fnv1a);
-  MyGame.Example.Monster.addTesthashs64Fnv1a(builder, testhashs64Fnv1a);
-  MyGame.Example.Monster.addTesthashu64Fnv1a(builder, testhashu64Fnv1a);
-  MyGame.Example.Monster.addTestarrayofbools(builder, testarrayofboolsOffset);
-  MyGame.Example.Monster.addTestf(builder, testf);
-  MyGame.Example.Monster.addTestf2(builder, testf2);
-  MyGame.Example.Monster.addTestf3(builder, testf3);
-  MyGame.Example.Monster.addTestarrayofstring2(builder, testarrayofstring2Offset);
-  MyGame.Example.Monster.addTestarrayofsortedstruct(builder, testarrayofsortedstructOffset);
-  MyGame.Example.Monster.addFlex(builder, flexOffset);
-  MyGame.Example.Monster.addTest5(builder, test5Offset);
-  MyGame.Example.Monster.addVectorOfLongs(builder, vectorOfLongsOffset);
-  MyGame.Example.Monster.addVectorOfDoubles(builder, vectorOfDoublesOffset);
-  MyGame.Example.Monster.addParentNamespaceTest(builder, parentNamespaceTestOffset);
-  MyGame.Example.Monster.addVectorOfReferrables(builder, vectorOfReferrablesOffset);
-  MyGame.Example.Monster.addSingleWeakReference(builder, singleWeakReference);
-  MyGame.Example.Monster.addVectorOfWeakReferences(builder, vectorOfWeakReferencesOffset);
-  MyGame.Example.Monster.addVectorOfStrongReferrables(builder, vectorOfStrongReferrablesOffset);
-  MyGame.Example.Monster.addCoOwningReference(builder, coOwningReference);
-  MyGame.Example.Monster.addVectorOfCoOwningReferences(builder, vectorOfCoOwningReferencesOffset);
-  MyGame.Example.Monster.addNonOwningReference(builder, nonOwningReference);
-  MyGame.Example.Monster.addVectorOfNonOwningReferences(builder, vectorOfNonOwningReferencesOffset);
-  MyGame.Example.Monster.addAnyUniqueType(builder, anyUniqueType);
-  MyGame.Example.Monster.addAnyUnique(builder, anyUniqueOffset);
-  MyGame.Example.Monster.addAnyAmbiguousType(builder, anyAmbiguousType);
-  MyGame.Example.Monster.addAnyAmbiguous(builder, anyAmbiguousOffset);
-  MyGame.Example.Monster.addVectorOfEnums(builder, vectorOfEnumsOffset);
-  MyGame.Example.Monster.addSignedEnum(builder, signedEnum);
-  return MyGame.Example.Monster.endMonster(builder);
-}
-
 /**
  * @constructor
  */

@@ -151,14 +151,6 @@ NamespaceA.TableInFirstNS.endTableInFirstNS = function(builder) {
  * @param {flatbuffers.Offset} fooStructOffset
  * @returns {flatbuffers.Offset}
  */
-NamespaceA.TableInFirstNS.createTableInFirstNS = function(builder, fooTableOffset, fooEnum, fooStructOffset) {
-  NamespaceA.TableInFirstNS.startTableInFirstNS(builder);
-  NamespaceA.TableInFirstNS.addFooTable(builder, fooTableOffset);
-  NamespaceA.TableInFirstNS.addFooEnum(builder, fooEnum);
-  NamespaceA.TableInFirstNS.addFooStruct(builder, fooStructOffset);
-  return NamespaceA.TableInFirstNS.endTableInFirstNS(builder);
-}
-
 /**
  * @constructor
  */
@@ -260,13 +252,6 @@ NamespaceC.TableInC.endTableInC = function(builder) {
  * @param {flatbuffers.Offset} referToA2Offset
  * @returns {flatbuffers.Offset}
  */
-NamespaceC.TableInC.createTableInC = function(builder, referToA1Offset, referToA2Offset) {
-  NamespaceC.TableInC.startTableInC(builder);
-  NamespaceC.TableInC.addReferToA1(builder, referToA1Offset);
-  NamespaceC.TableInC.addReferToA2(builder, referToA2Offset);
-  return NamespaceC.TableInC.endTableInC(builder);
-}
-
 /**
  * @constructor
  */
@@ -350,12 +335,6 @@ NamespaceA.SecondTableInA.endSecondTableInA = function(builder) {
  * @param {flatbuffers.Offset} referToCOffset
  * @returns {flatbuffers.Offset}
  */
-NamespaceA.SecondTableInA.createSecondTableInA = function(builder, referToCOffset) {
-  NamespaceA.SecondTableInA.startSecondTableInA(builder);
-  NamespaceA.SecondTableInA.addReferToC(builder, referToCOffset);
-  return NamespaceA.SecondTableInA.endSecondTableInA(builder);
-}
-
 // Exports for Node.js and RequireJS
 this.NamespaceA = NamespaceA;
 this.NamespaceC = NamespaceC;
