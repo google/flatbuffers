@@ -145,21 +145,6 @@ NamespaceA.TableInFirstNS.endTableInFirstNS = function(builder) {
 };
 
 /**
- * @param {flatbuffers.Builder} builder
- * @param {flatbuffers.Offset} fooTableOffset
- * @param {NS8755221360535654258.NamespaceA.NamespaceB.EnumInNestedNS} fooEnum
- * @param {flatbuffers.Offset} fooStructOffset
- * @returns {flatbuffers.Offset}
- */
-NamespaceA.TableInFirstNS.createTableInFirstNS = function(builder, fooTableOffset, fooEnum, fooStructOffset) {
-  NamespaceA.TableInFirstNS.startTableInFirstNS(builder);
-  NamespaceA.TableInFirstNS.addFooTable(builder, fooTableOffset);
-  NamespaceA.TableInFirstNS.addFooEnum(builder, fooEnum);
-  NamespaceA.TableInFirstNS.addFooStruct(builder, fooStructOffset);
-  return NamespaceA.TableInFirstNS.endTableInFirstNS(builder);
-}
-
-/**
  * @constructor
  */
 NamespaceC.TableInC = function() {
@@ -253,19 +238,6 @@ NamespaceC.TableInC.endTableInC = function(builder) {
   var offset = builder.endObject();
   return offset;
 };
-
-/**
- * @param {flatbuffers.Builder} builder
- * @param {flatbuffers.Offset} referToA1Offset
- * @param {flatbuffers.Offset} referToA2Offset
- * @returns {flatbuffers.Offset}
- */
-NamespaceC.TableInC.createTableInC = function(builder, referToA1Offset, referToA2Offset) {
-  NamespaceC.TableInC.startTableInC(builder);
-  NamespaceC.TableInC.addReferToA1(builder, referToA1Offset);
-  NamespaceC.TableInC.addReferToA2(builder, referToA2Offset);
-  return NamespaceC.TableInC.endTableInC(builder);
-}
 
 /**
  * @constructor

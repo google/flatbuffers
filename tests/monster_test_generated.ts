@@ -2949,58 +2949,6 @@ static finishSizePrefixedMonsterBuffer(builder:flatbuffers.Builder, offset:flatb
   builder.finish(offset, 'MONS', true);
 };
 
-static createMonster(builder:flatbuffers.Builder, posOffset:flatbuffers.Offset, mana:number, hp:number, nameOffset:flatbuffers.Offset, inventoryOffset:flatbuffers.Offset, color:MyGame.Example.Color, testType:MyGame.Example.Any, testOffset:flatbuffers.Offset, test4Offset:flatbuffers.Offset, testarrayofstringOffset:flatbuffers.Offset, testarrayoftablesOffset:flatbuffers.Offset, enemyOffset:flatbuffers.Offset, testnestedflatbufferOffset:flatbuffers.Offset, testemptyOffset:flatbuffers.Offset, testbool:boolean, testhashs32Fnv1:number, testhashu32Fnv1:number, testhashs64Fnv1:flatbuffers.Long, testhashu64Fnv1:flatbuffers.Long, testhashs32Fnv1a:number, testhashu32Fnv1a:number, testhashs64Fnv1a:flatbuffers.Long, testhashu64Fnv1a:flatbuffers.Long, testarrayofboolsOffset:flatbuffers.Offset, testf:number, testf2:number, testf3:number, testarrayofstring2Offset:flatbuffers.Offset, testarrayofsortedstructOffset:flatbuffers.Offset, flexOffset:flatbuffers.Offset, test5Offset:flatbuffers.Offset, vectorOfLongsOffset:flatbuffers.Offset, vectorOfDoublesOffset:flatbuffers.Offset, parentNamespaceTestOffset:flatbuffers.Offset, vectorOfReferrablesOffset:flatbuffers.Offset, singleWeakReference:flatbuffers.Long, vectorOfWeakReferencesOffset:flatbuffers.Offset, vectorOfStrongReferrablesOffset:flatbuffers.Offset, coOwningReference:flatbuffers.Long, vectorOfCoOwningReferencesOffset:flatbuffers.Offset, nonOwningReference:flatbuffers.Long, vectorOfNonOwningReferencesOffset:flatbuffers.Offset, anyUniqueType:MyGame.Example.AnyUniqueAliases, anyUniqueOffset:flatbuffers.Offset, anyAmbiguousType:MyGame.Example.AnyAmbiguousAliases, anyAmbiguousOffset:flatbuffers.Offset, vectorOfEnumsOffset:flatbuffers.Offset, signedEnum:MyGame.Example.Race):flatbuffers.Offset {
-  Monster.startMonster(builder);
-  Monster.addPos(builder, posOffset);
-  Monster.addMana(builder, mana);
-  Monster.addHp(builder, hp);
-  Monster.addName(builder, nameOffset);
-  Monster.addInventory(builder, inventoryOffset);
-  Monster.addColor(builder, color);
-  Monster.addTestType(builder, testType);
-  Monster.addTest(builder, testOffset);
-  Monster.addTest4(builder, test4Offset);
-  Monster.addTestarrayofstring(builder, testarrayofstringOffset);
-  Monster.addTestarrayoftables(builder, testarrayoftablesOffset);
-  Monster.addEnemy(builder, enemyOffset);
-  Monster.addTestnestedflatbuffer(builder, testnestedflatbufferOffset);
-  Monster.addTestempty(builder, testemptyOffset);
-  Monster.addTestbool(builder, testbool);
-  Monster.addTesthashs32Fnv1(builder, testhashs32Fnv1);
-  Monster.addTesthashu32Fnv1(builder, testhashu32Fnv1);
-  Monster.addTesthashs64Fnv1(builder, testhashs64Fnv1);
-  Monster.addTesthashu64Fnv1(builder, testhashu64Fnv1);
-  Monster.addTesthashs32Fnv1a(builder, testhashs32Fnv1a);
-  Monster.addTesthashu32Fnv1a(builder, testhashu32Fnv1a);
-  Monster.addTesthashs64Fnv1a(builder, testhashs64Fnv1a);
-  Monster.addTesthashu64Fnv1a(builder, testhashu64Fnv1a);
-  Monster.addTestarrayofbools(builder, testarrayofboolsOffset);
-  Monster.addTestf(builder, testf);
-  Monster.addTestf2(builder, testf2);
-  Monster.addTestf3(builder, testf3);
-  Monster.addTestarrayofstring2(builder, testarrayofstring2Offset);
-  Monster.addTestarrayofsortedstruct(builder, testarrayofsortedstructOffset);
-  Monster.addFlex(builder, flexOffset);
-  Monster.addTest5(builder, test5Offset);
-  Monster.addVectorOfLongs(builder, vectorOfLongsOffset);
-  Monster.addVectorOfDoubles(builder, vectorOfDoublesOffset);
-  Monster.addParentNamespaceTest(builder, parentNamespaceTestOffset);
-  Monster.addVectorOfReferrables(builder, vectorOfReferrablesOffset);
-  Monster.addSingleWeakReference(builder, singleWeakReference);
-  Monster.addVectorOfWeakReferences(builder, vectorOfWeakReferencesOffset);
-  Monster.addVectorOfStrongReferrables(builder, vectorOfStrongReferrablesOffset);
-  Monster.addCoOwningReference(builder, coOwningReference);
-  Monster.addVectorOfCoOwningReferences(builder, vectorOfCoOwningReferencesOffset);
-  Monster.addNonOwningReference(builder, nonOwningReference);
-  Monster.addVectorOfNonOwningReferences(builder, vectorOfNonOwningReferencesOffset);
-  Monster.addAnyUniqueType(builder, anyUniqueType);
-  Monster.addAnyUnique(builder, anyUniqueOffset);
-  Monster.addAnyAmbiguousType(builder, anyAmbiguousType);
-  Monster.addAnyAmbiguous(builder, anyAmbiguousOffset);
-  Monster.addVectorOfEnums(builder, vectorOfEnumsOffset);
-  Monster.addSignedEnum(builder, signedEnum);
-  return Monster.endMonster(builder);
-}
 
 /**
  * @returns MonsterT
