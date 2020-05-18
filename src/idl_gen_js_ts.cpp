@@ -1228,7 +1228,7 @@ class JsTsGenerator : public BaseGenerator {
     return struct_def.fields.vec.size() < 2 || std::all_of(
       std::begin(struct_def.fields.vec) + 1, 
       std::end(struct_def.fields.vec), 
-      [](const FieldDef *f) {
+      [](const FieldDef *f) -> bool {
         FLATBUFFERS_ASSERT(f != nullptr);
         return f->value.type.base_type != BASE_TYPE_STRUCT;
     });
