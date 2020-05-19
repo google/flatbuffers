@@ -403,8 +403,10 @@ bool GeneratePythonGRPC(const Parser &parser, const std::string & /*path*/,
     namespace_dir += *it;
   }
 
-  std::string grpc_py_filename =
-      namespace_dir + kPathSeparator + file_name + "_grpc_fb.py";
+  std::string grpc_py_filename = namespace_dir;
+  if (!namespace_dir.empty()) grpc_py_filename += kPathSeparator;
+  grpc_py_filename += file_name + "_grpc_fb.py";
+
   return flatbuffers::SaveFile(grpc_py_filename.c_str(), code, false);
 }
 
