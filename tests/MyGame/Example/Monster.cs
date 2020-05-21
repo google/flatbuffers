@@ -891,7 +891,7 @@ public class MonsterT
   }
   public byte[] SerializeToBinary() {
     var fbb = new FlatBufferBuilder(0x10000);
-    fbb.Finish(Monster.Pack(fbb, this).Value);
+    Monster.FinishMonsterBuffer(fbb, Monster.Pack(fbb, this));
     return fbb.DataBuffer.ToSizedArray();
   }
 }

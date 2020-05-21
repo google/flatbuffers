@@ -66,7 +66,7 @@ public class ArrayTableT
   }
   public byte[] SerializeToBinary() {
     var fbb = new FlatBufferBuilder(0x10000);
-    fbb.Finish(ArrayTable.Pack(fbb, this).Value);
+    ArrayTable.FinishArrayTableBuffer(fbb, ArrayTable.Pack(fbb, this));
     return fbb.DataBuffer.ToSizedArray();
   }
 }
