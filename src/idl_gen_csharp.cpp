@@ -1823,7 +1823,9 @@ class CSharpGenerator : public BaseGenerator {
             code += "[idx" + NumToString(j++) + "]";
           }
           code += ";";
-          for (size_t i = 0; i < array_only_lengths.size(); ++i) { code += "}"; }
+          for (size_t i = 0; i < array_only_lengths.size(); ++i) {
+            code += "}";
+          }
         } else {
           code += "_o";
           for (size_t i = 0; i < array_lengths.size(); ++i) {
@@ -2035,8 +2037,8 @@ class CSharpGenerator : public BaseGenerator {
       code += "  }\n";
       code += "  public byte[] SerializeToBinary() {\n";
       code += "    var fbb = new FlatBufferBuilder(0x10000);\n";
-      code +=
-          "    fbb.Finish(" + struct_def.name + ".Pack(fbb, this).Value);\n";
+      code += "    " + struct_def.name + ".Finish" + struct_def.name +
+              "Buffer(fbb, " + struct_def.name + ".Pack(fbb, this));\n";
       code += "    return fbb.DataBuffer.ToSizedArray();\n";
       code += "  }\n";
     }

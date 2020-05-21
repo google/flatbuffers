@@ -196,7 +196,7 @@ public class MovieT
   }
   public byte[] SerializeToBinary() {
     var fbb = new FlatBufferBuilder(0x10000);
-    fbb.Finish(Movie.Pack(fbb, this).Value);
+    Movie.FinishMovieBuffer(fbb, Movie.Pack(fbb, this));
     return fbb.DataBuffer.ToSizedArray();
   }
 }
