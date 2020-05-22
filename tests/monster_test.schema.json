@@ -295,6 +295,9 @@
               },
         "signed_enum" : {
                 "$ref" : "#/definitions/MyGame_Example_Race"
+              },
+        "vector_of_parent_namespace_test" : {
+                "type" : "array", "items" : { "$ref" : "#/definitions/MyGame_InParentNamespace" }
               }
       },
       "required" : ["name"],

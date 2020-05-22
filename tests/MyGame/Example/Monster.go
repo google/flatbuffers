@@ -55,6 +55,7 @@ type MonsterT struct {
 	AnyAmbiguous *AnyAmbiguousAliasesT
 	VectorOfEnums []Color
 	SignedEnum Race
+	VectorOfParentNamespaceTest []*MyGame.InParentNamespaceT
 }
 
 func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
@@ -236,6 +237,19 @@ func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 		}
 		vectorOfEnumsOffset = builder.EndVector(vectorOfEnumsLength)
 	}
+	vectorOfParentNamespaceTestOffset := flatbuffers.UOffsetT(0)
+	if t.VectorOfParentNamespaceTest != nil {
+		vectorOfParentNamespaceTestLength := len(t.VectorOfParentNamespaceTest)
+		vectorOfParentNamespaceTestOffsets := make([]flatbuffers.UOffsetT, vectorOfParentNamespaceTestLength)
+		for j := 0; j < vectorOfParentNamespaceTestLength; j++ {
+			vectorOfParentNamespaceTestOffsets[j] = t.VectorOfParentNamespaceTest[j].Pack(builder)
+		}
+		MonsterStartVectorOfParentNamespaceTestVector(builder, vectorOfParentNamespaceTestLength)
+		for j := vectorOfParentNamespaceTestLength - 1; j >= 0; j-- {
+			builder.PrependUOffsetT(vectorOfParentNamespaceTestOffsets[j])
+		}
+		vectorOfParentNamespaceTestOffset = builder.EndVector(vectorOfParentNamespaceTestLength)
+	}
 	MonsterStart(builder)
 	posOffset := t.Pos.Pack(builder)
 	MonsterAddPos(builder, posOffset)
@@ -292,6 +306,7 @@ func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	MonsterAddAnyAmbiguous(builder, anyAmbiguousOffset)
 	MonsterAddVectorOfEnums(builder, vectorOfEnumsOffset)
 	MonsterAddSignedEnum(builder, t.SignedEnum)
+	MonsterAddVectorOfParentNamespaceTest(builder, vectorOfParentNamespaceTestOffset)
 	return MonsterEnd(builder)
 }
 
@@ -422,6 +437,13 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 		t.VectorOfEnums[j] = rcv.VectorOfEnums(j)
 	}
 	t.SignedEnum = rcv.SignedEnum()
+	vectorOfParentNamespaceTestLength := rcv.VectorOfParentNamespaceTestLength()
+	t.VectorOfParentNamespaceTest = make([]*MyGame.InParentNamespaceT, vectorOfParentNamespaceTestLength)
+	for j := 0; j < vectorOfParentNamespaceTestLength; j++ {
+		x := MyGame.InParentNamespace{}
+		rcv.VectorOfParentNamespaceTest(&x, j)
+		t.VectorOfParentNamespaceTest[j] = x.UnPack()
+	}
 }
 
 func (rcv *Monster) UnPack() *MonsterT {
@@ -1249,8 +1271,28 @@ func (rcv *Monster) MutateSignedEnum(n Race) bool {
 	return rcv._tab.MutateInt8Slot(100, int8(n))
 }
 
+func (rcv *Monster) VectorOfParentNamespaceTest(obj *MyGame.InParentNamespace, j int) bool {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(102))
+	if o != 0 {
+		x := rcv._tab.Vector(o)
+		x += flatbuffers.UOffsetT(j) * 4
+		x = rcv._tab.Indirect(x)
+		obj.Init(rcv._tab.Bytes, x)
+		return true
+	}
+	return false
+}
+
+func (rcv *Monster) VectorOfParentNamespaceTestLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(102))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
 func MonsterStart(builder *flatbuffers.Builder) {
-	builder.StartObject(49)
+	builder.StartObject(50)
 }
 func MonsterAddPos(builder *flatbuffers.Builder, pos flatbuffers.UOffsetT) {
 	builder.PrependStructSlot(0, flatbuffers.UOffsetT(pos), 0)
@@ -1449,6 +1491,12 @@ func MonsterStartVectorOfEnumsVector(builder *flatbuffers.Builder, numElems int)
 }
 func MonsterAddSignedEnum(builder *flatbuffers.Builder, signedEnum Race) {
 	builder.PrependInt8Slot(48, int8(signedEnum), -1)
+}
+func MonsterAddVectorOfParentNamespaceTest(builder *flatbuffers.Builder, vectorOfParentNamespaceTest flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(49, flatbuffers.UOffsetT(vectorOfParentNamespaceTest), 0)
+}
+func MonsterStartVectorOfParentNamespaceTestVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+	return builder.StartVector(4, numElems, 4)
 }
 func MonsterEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()

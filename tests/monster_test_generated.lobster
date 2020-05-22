@@ -360,13 +360,17 @@ class Monster : flatbuffers_handle
         return buf_.flatbuffers_field_vector_len(pos_, 98)
     def signed_enum():
         return Race(buf_.flatbuffers_field_int8(pos_, 100, -1))
+    def vector_of_parent_namespace_test(i:int):
+        return MyGame_InParentNamespace { buf_, buf_.flatbuffers_indirect(buf_.flatbuffers_field_vector(pos_, 102) + i * 4) }
+    def vector_of_parent_namespace_test_length():
+        return buf_.flatbuffers_field_vector_len(pos_, 102)
 
 def GetRootAsMonster(buf:string): return Monster { buf, buf.flatbuffers_indirect(0) }
 
 struct MonsterBuilder:
     b_:flatbuffers_builder
     def start():
-        b_.StartObject(49)
+        b_.StartObject(50)
         return this
     def add_pos(pos:flatbuffers_offset):
         b_.PrependStructSlot(0, pos)
@@ -512,6 +516,9 @@ struct MonsterBuilder:
     def add_signed_enum(signed_enum:Race):
         b_.PrependInt8Slot(48, signed_enum, -1)
         return this
+    def add_vector_of_parent_namespace_test(vector_of_parent_namespace_test:flatbuffers_offset):
+        b_.PrependUOffsetTRelativeSlot(49, vector_of_parent_namespace_test)
+        return this
     def end():
         return b_.EndObject()
 
@@ -627,6 +634,13 @@ def MonsterStartVectorOfEnumsVector(b_:flatbuffers_builder, n_:int):
 def MonsterCreateVectorOfEnumsVector(b_:flatbuffers_builder, v_:[Color]):
     b_.StartVector(1, v_.length, 1)
     reverse(v_) e_: b_.PrependUint8(e_)
+    return b_.EndVector(v_.length)
+
+def MonsterStartVectorOfParentNamespaceTestVector(b_:flatbuffers_builder, n_:int):
+    b_.StartVector(4, n_, 4)
+def MonsterCreateVectorOfParentNamespaceTestVector(b_:flatbuffers_builder, v_:[flatbuffers_offset]):
+    b_.StartVector(4, v_.length, 4)
+    reverse(v_) e_: b_.PrependUOffsetTRelative(e_)
     return b_.EndVector(v_.length)
 
 class TypeAliases : flatbuffers_handle

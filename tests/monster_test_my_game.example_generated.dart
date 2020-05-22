@@ -801,10 +801,11 @@ class Monster {
   }
   List<Color> get vectorOfEnums => const fb.ListReader<Color>(Color.reader).vTableGet(_bc, _bcOffset, 98, null);
   Race get signedEnum => new Race.fromValue(const fb.Int8Reader().vTableGet(_bc, _bcOffset, 100, -1));
+  List<my_game.InParentNamespace> get vectorOfParentNamespaceTest => const fb.ListReader<my_game.InParentNamespace>(my_game.InParentNamespace.reader).vTableGet(_bc, _bcOffset, 102, null);
 
   @override
   String toString() {
-    return 'Monster{pos: $pos, mana: $mana, hp: $hp, name: $name, inventory: $inventory, color: $color, testType: $testType, test: $test, test4: $test4, testarrayofstring: $testarrayofstring, testarrayoftables: $testarrayoftables, enemy: $enemy, testnestedflatbuffer: $testnestedflatbuffer, testempty: $testempty, testbool: $testbool, testhashs32Fnv1: $testhashs32Fnv1, testhashu32Fnv1: $testhashu32Fnv1, testhashs64Fnv1: $testhashs64Fnv1, testhashu64Fnv1: $testhashu64Fnv1, testhashs32Fnv1a: $testhashs32Fnv1a, testhashu32Fnv1a: $testhashu32Fnv1a, testhashs64Fnv1a: $testhashs64Fnv1a, testhashu64Fnv1a: $testhashu64Fnv1a, testarrayofbools: $testarrayofbools, testf: $testf, testf2: $testf2, testf3: $testf3, testarrayofstring2: $testarrayofstring2, testarrayofsortedstruct: $testarrayofsortedstruct, flex: $flex, test5: $test5, vectorOfLongs: $vectorOfLongs, vectorOfDoubles: $vectorOfDoubles, parentNamespaceTest: $parentNamespaceTest, vectorOfReferrables: $vectorOfReferrables, singleWeakReference: $singleWeakReference, vectorOfWeakReferences: $vectorOfWeakReferences, vectorOfStrongReferrables: $vectorOfStrongReferrables, coOwningReference: $coOwningReference, vectorOfCoOwningReferences: $vectorOfCoOwningReferences, nonOwningReference: $nonOwningReference, vectorOfNonOwningReferences: $vectorOfNonOwningReferences, anyUniqueType: $anyUniqueType, anyUnique: $anyUnique, anyAmbiguousType: $anyAmbiguousType, anyAmbiguous: $anyAmbiguous, vectorOfEnums: $vectorOfEnums, signedEnum: $signedEnum}';
+    return 'Monster{pos: $pos, mana: $mana, hp: $hp, name: $name, inventory: $inventory, color: $color, testType: $testType, test: $test, test4: $test4, testarrayofstring: $testarrayofstring, testarrayoftables: $testarrayoftables, enemy: $enemy, testnestedflatbuffer: $testnestedflatbuffer, testempty: $testempty, testbool: $testbool, testhashs32Fnv1: $testhashs32Fnv1, testhashu32Fnv1: $testhashu32Fnv1, testhashs64Fnv1: $testhashs64Fnv1, testhashu64Fnv1: $testhashu64Fnv1, testhashs32Fnv1a: $testhashs32Fnv1a, testhashu32Fnv1a: $testhashu32Fnv1a, testhashs64Fnv1a: $testhashs64Fnv1a, testhashu64Fnv1a: $testhashu64Fnv1a, testarrayofbools: $testarrayofbools, testf: $testf, testf2: $testf2, testf3: $testf3, testarrayofstring2: $testarrayofstring2, testarrayofsortedstruct: $testarrayofsortedstruct, flex: $flex, test5: $test5, vectorOfLongs: $vectorOfLongs, vectorOfDoubles: $vectorOfDoubles, parentNamespaceTest: $parentNamespaceTest, vectorOfReferrables: $vectorOfReferrables, singleWeakReference: $singleWeakReference, vectorOfWeakReferences: $vectorOfWeakReferences, vectorOfStrongReferrables: $vectorOfStrongReferrables, coOwningReference: $coOwningReference, vectorOfCoOwningReferences: $vectorOfCoOwningReferences, nonOwningReference: $nonOwningReference, vectorOfNonOwningReferences: $vectorOfNonOwningReferences, anyUniqueType: $anyUniqueType, anyUnique: $anyUnique, anyAmbiguousType: $anyAmbiguousType, anyAmbiguous: $anyAmbiguous, vectorOfEnums: $vectorOfEnums, signedEnum: $signedEnum, vectorOfParentNamespaceTest: $vectorOfParentNamespaceTest}';
   }
 }
 
@@ -1019,6 +1020,10 @@ class MonsterBuilder {
     fbBuilder.addInt8(48, signedEnum?.value);
     return fbBuilder.offset;
   }
+  int addVectorOfParentNamespaceTestOffset(int offset) {
+    fbBuilder.addOffset(49, offset);
+    return fbBuilder.offset;
+  }
 
   int finish() {
     return fbBuilder.endTable();
@@ -1074,6 +1079,7 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
   final dynamic _anyAmbiguous;
   final List<Color> _vectorOfEnums;
   final Race _signedEnum;
+  final List<my_game.InParentNamespaceObjectBuilder> _vectorOfParentNamespaceTest;
 
   MonsterObjectBuilder({
     Vec3ObjectBuilder pos,
@@ -1124,6 +1130,7 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
     dynamic anyAmbiguous,
     List<Color> vectorOfEnums,
     Race signedEnum,
+    List<my_game.InParentNamespaceObjectBuilder> vectorOfParentNamespaceTest,
   })
       : _pos = pos,
         _mana = mana,
@@ -1172,7 +1179,8 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
         _anyAmbiguousType = anyAmbiguousType,
         _anyAmbiguous = anyAmbiguous,
         _vectorOfEnums = vectorOfEnums,
-        _signedEnum = signedEnum;
+        _signedEnum = signedEnum,
+        _vectorOfParentNamespaceTest = vectorOfParentNamespaceTest;
 
   /// Finish building, and store into the [fbBuilder].
   @override
@@ -1239,6 +1247,9 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
     final int anyAmbiguousOffset = _anyAmbiguous?.getOrCreateOffset(fbBuilder);
     final int vectorOfEnumsOffset = _vectorOfEnums?.isNotEmpty == true
         ? fbBuilder.writeListUint8(_vectorOfEnums.map((f) => f.value))
+        : null;
+    final int vectorOfParentNamespaceTestOffset = _vectorOfParentNamespaceTest?.isNotEmpty == true
+        ? fbBuilder.writeList(_vectorOfParentNamespaceTest.map((b) => b.getOrCreateOffset(fbBuilder)).toList())
         : null;
 
     fbBuilder.startTable();
@@ -1342,6 +1353,9 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
       fbBuilder.addOffset(47, vectorOfEnumsOffset);
     }
     fbBuilder.addInt8(48, _signedEnum?.value);
+    if (vectorOfParentNamespaceTestOffset != null) {
+      fbBuilder.addOffset(49, vectorOfParentNamespaceTestOffset);
+    }
     return fbBuilder.endTable();
   }
 

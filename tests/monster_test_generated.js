@@ -1938,10 +1938,28 @@ MyGame.Example.Monster.prototype.mutate_signed_enum = function(value) {
 };
 
 /**
+ * @param {number} index
+ * @param {MyGame.InParentNamespace=} obj
+ * @returns {MyGame.InParentNamespace}
+ */
+MyGame.Example.Monster.prototype.vectorOfParentNamespaceTest = function(index, obj) {
+  var offset = this.bb.__offset(this.bb_pos, 102);
+  return offset ? (obj || new MyGame.InParentNamespace).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos + offset) + index * 4), this.bb) : null;
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.Monster.prototype.vectorOfParentNamespaceTestLength = function() {
+  var offset = this.bb.__offset(this.bb_pos, 102);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
  * @param {flatbuffers.Builder} builder
  */
 MyGame.Example.Monster.startMonster = function(builder) {
-  builder.startObject(49);
+  builder.startObject(50);
 };
 
 /**
@@ -2665,6 +2683,35 @@ MyGame.Example.Monster.startVectorOfEnumsVector = function(builder, numElems) {
  */
 MyGame.Example.Monster.addSignedEnum = function(builder, signedEnum) {
   builder.addFieldInt8(48, signedEnum, MyGame.Example.Race.None);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} vectorOfParentNamespaceTestOffset
+ */
+MyGame.Example.Monster.addVectorOfParentNamespaceTest = function(builder, vectorOfParentNamespaceTestOffset) {
+  builder.addFieldOffset(49, vectorOfParentNamespaceTestOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<flatbuffers.Offset>} data
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.Monster.createVectorOfParentNamespaceTestVector = function(builder, data) {
+  builder.startVector(4, data.length, 4);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+MyGame.Example.Monster.startVectorOfParentNamespaceTestVector = function(builder, numElems) {
+  builder.startVector(4, numElems, 4);
 };
 
 /**

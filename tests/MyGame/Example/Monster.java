@@ -194,8 +194,13 @@ public final class Monster extends Table {
   public boolean mutateVectorOfEnums(int j, int vector_of_enums) { int o = __offset(98); if (o != 0) { bb.put(__vector(o) + j * 1, (byte)vector_of_enums); return true; } else { return false; } }
   public byte signedEnum() { int o = __offset(100); return o != 0 ? bb.get(o + bb_pos) : -1; }
   public boolean mutateSignedEnum(byte signed_enum) { int o = __offset(100); if (o != 0) { bb.put(o + bb_pos, signed_enum); return true; } else { return false; } }
+  public MyGame.InParentNamespace vectorOfParentNamespaceTest(int j) { return vectorOfParentNamespaceTest(new MyGame.InParentNamespace(), j); }
+  public MyGame.InParentNamespace vectorOfParentNamespaceTest(MyGame.InParentNamespace obj, int j) { int o = __offset(102); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
+  public int vectorOfParentNamespaceTestLength() { int o = __offset(102); return o != 0 ? __vector_len(o) : 0; }
+  public MyGame.InParentNamespace.Vector vectorOfParentNamespaceTestVector() { return vectorOfParentNamespaceTestVector(new MyGame.InParentNamespace.Vector()); }
+  public MyGame.InParentNamespace.Vector vectorOfParentNamespaceTestVector(MyGame.InParentNamespace.Vector obj) { int o = __offset(102); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
 
-  public static void startMonster(FlatBufferBuilder builder) { builder.startTable(49); }
+  public static void startMonster(FlatBufferBuilder builder) { builder.startTable(50); }
   public static void addPos(FlatBufferBuilder builder, int posOffset) { builder.addStruct(0, posOffset, 0); }
   public static void addMana(FlatBufferBuilder builder, short mana) { builder.addShort(1, mana, 150); }
   public static void addHp(FlatBufferBuilder builder, short hp) { builder.addShort(2, hp, 100); }
@@ -281,6 +286,9 @@ public final class Monster extends Table {
   public static int createVectorOfEnumsVector(FlatBufferBuilder builder, ByteBuffer data) { return builder.createByteVector(data); }
   public static void startVectorOfEnumsVector(FlatBufferBuilder builder, int numElems) { builder.startVector(1, numElems, 1); }
   public static void addSignedEnum(FlatBufferBuilder builder, byte signedEnum) { builder.addByte(48, signedEnum, -1); }
+  public static void addVectorOfParentNamespaceTest(FlatBufferBuilder builder, int vectorOfParentNamespaceTestOffset) { builder.addOffset(49, vectorOfParentNamespaceTestOffset, 0); }
+  public static int createVectorOfParentNamespaceTestVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
+  public static void startVectorOfParentNamespaceTestVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
   public static int endMonster(FlatBufferBuilder builder) {
     int o = builder.endTable();
     builder.required(o, 10);  // name

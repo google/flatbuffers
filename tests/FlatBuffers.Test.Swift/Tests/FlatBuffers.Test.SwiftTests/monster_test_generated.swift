@@ -687,6 +687,7 @@ public struct Monster: FlatBufferObject {
         case anyAmbiguous = 96
         case vectorOfEnums = 98
         case signedEnum = 100
+        case vectorOfParentNamespaceTest = 102
         var v: Int32 { Int32(self.rawValue) }
         var p: VOffset { self.rawValue }
     }
@@ -800,7 +801,9 @@ public struct Monster: FlatBufferObject {
     public func vectorOfEnums(at index: Int32) -> MyGame.Example.Color? { let o = _accessor.offset(VTOFFSET.vectorOfEnums.v); return o == 0 ? MyGame.Example.Color.red : MyGame.Example.Color(rawValue: _accessor.directRead(of: UInt8.self, offset: _accessor.vector(at: o) + index * 1)) }
     public var signedEnum: MyGame.Example.Race { let o = _accessor.offset(VTOFFSET.signedEnum.v); return o == 0 ? .none : MyGame.Example.Race(rawValue: _accessor.readBuffer(of: Int8.self, at: o)) ?? .none }
     public func mutate(signedEnum: MyGame.Example.Race) -> Bool {let o = _accessor.offset(VTOFFSET.signedEnum.v);  return _accessor.mutate(signedEnum.rawValue, index: o) }
-    public static func startMonster(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 49) }
+    public var vectorOfParentNamespaceTestCount: Int32 { let o = _accessor.offset(VTOFFSET.vectorOfParentNamespaceTest.v); return o == 0 ? 0 : _accessor.vector(count: o) }
+    public func vectorOfParentNamespaceTest(at index: Int32) -> MyGame.InParentNamespace? { let o = _accessor.offset(VTOFFSET.vectorOfParentNamespaceTest.v); return o == 0 ? nil : MyGame.InParentNamespace(_accessor.bb, o: _accessor.indirect(_accessor.vector(at: o) + index * 4)) }
+    public static func startMonster(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 50) }
     public static func add(pos: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(structOffset: VTOFFSET.pos.p) }
     public static func add(mana: Int16, _ fbb: inout FlatBufferBuilder) { fbb.add(element: mana, def: 150, at: VTOFFSET.mana.p) }
     public static func add(hp: Int16, _ fbb: inout FlatBufferBuilder) { fbb.add(element: hp, def: 100, at: VTOFFSET.hp.p) }
@@ -849,6 +852,7 @@ public struct Monster: FlatBufferObject {
     public static func add(anyAmbiguous: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: anyAmbiguous, at: VTOFFSET.anyAmbiguous.p)  }
     public static func addVectorOf(vectorOfEnums: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: vectorOfEnums, at: VTOFFSET.vectorOfEnums.p)  }
     public static func add(signedEnum: MyGame.Example.Race, _ fbb: inout FlatBufferBuilder) { fbb.add(element: signedEnum.rawValue, def: -1, at: VTOFFSET.signedEnum.p) }
+    public static func addVectorOf(vectorOfParentNamespaceTest: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: vectorOfParentNamespaceTest, at: VTOFFSET.vectorOfParentNamespaceTest.p)  }
     public static func endMonster(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); fbb.require(table: end, fields: [10]); return end }
     public static func createMonster(_ fbb: inout FlatBufferBuilder,
     offsetOfPos pos: Offset<UOffset> = Offset(),
@@ -898,7 +902,8 @@ public struct Monster: FlatBufferObject {
     anyAmbiguousType: MyGame.Example.AnyAmbiguousAliases = .none,
     offsetOfAnyAmbiguous anyAmbiguous: Offset<UOffset> = Offset(),
     vectorOfVectorOfEnums vectorOfEnums: Offset<UOffset> = Offset(),
-    signedEnum: MyGame.Example.Race = .none) -> Offset<UOffset> {
+    signedEnum: MyGame.Example.Race = .none,
+    vectorOfVectorOfParentNamespaceTest vectorOfParentNamespaceTest: Offset<UOffset> = Offset()) -> Offset<UOffset> {
         let __start = Monster.startMonster(&fbb)
         Monster.add(pos: pos, &fbb)
         Monster.add(mana: mana, &fbb)
@@ -948,6 +953,7 @@ public struct Monster: FlatBufferObject {
         Monster.add(anyAmbiguous: anyAmbiguous, &fbb)
         Monster.addVectorOf(vectorOfEnums: vectorOfEnums, &fbb)
         Monster.add(signedEnum: signedEnum, &fbb)
+        Monster.addVectorOf(vectorOfParentNamespaceTest: vectorOfParentNamespaceTest, &fbb)
         return Monster.endMonster(&fbb, start: __start)
     }
     public static func sortVectorOfMonster(offsets:[Offset<UOffset>], _ fbb: inout FlatBufferBuilder) -> Offset<UOffset> {
@@ -1041,6 +1047,11 @@ public struct Monster: FlatBufferObject {
         let __anyUnique = obj.anyUnique?.pack(builder: &builder) ?? Offset()
         let __anyAmbiguous = obj.anyAmbiguous?.pack(builder: &builder) ?? Offset()
         let __vectorOfEnums = builder.createVector(obj.vectorOfEnums)
+        var __vectorOfParentNamespaceTest__: [Offset<UOffset>] = []
+        for var i in obj.vectorOfParentNamespaceTest {
+            __vectorOfParentNamespaceTest__.append(MyGame.InParentNamespace.pack(&builder, obj: &i))
+        }
+        let __vectorOfParentNamespaceTest = builder.createVector(ofOffsets: __vectorOfParentNamespaceTest__)
         let __root = Monster.startMonster(&builder)
         Monster.add(pos: MyGame.Example.Vec3.pack(&builder, obj: &obj.pos), &builder)
         Monster.add(mana: obj.mana, &builder)
@@ -1099,6 +1110,7 @@ public struct Monster: FlatBufferObject {
 
         Monster.addVectorOf(vectorOfEnums: __vectorOfEnums, &builder)
         Monster.add(signedEnum: obj.signedEnum, &builder)
+        Monster.addVectorOf(vectorOfParentNamespaceTest: __vectorOfParentNamespaceTest, &builder)
         return Monster.endMonster(&builder, start: __root)
     }
 }
@@ -1150,6 +1162,7 @@ public class MonsterT: NativeTable {
     var anyAmbiguous: AnyAmbiguousAliasesUnion?
     var vectorOfEnums: [MyGame.Example.Color]
     var signedEnum: MyGame.Example.Race
+    var vectorOfParentNamespaceTest: [MyGame.InParentNamespaceT?]
 
     init(_ _t: inout Monster) {
         var __pos = _t.pos
@@ -1294,6 +1307,11 @@ public class MonsterT: NativeTable {
             vectorOfEnums.append(_t.vectorOfEnums(at: index)!)
         }
         signedEnum = _t.signedEnum
+        vectorOfParentNamespaceTest = []
+        for index in 0..<_t.vectorOfParentNamespaceTestCount {
+            var __v_ = _t.vectorOfParentNamespaceTest(at: index)
+            vectorOfParentNamespaceTest.append(__v_?.unpack())
+        }
     }
 
     init() {
@@ -1338,6 +1356,7 @@ public class MonsterT: NativeTable {
         vectorOfNonOwningReferences = []
         vectorOfEnums = []
         signedEnum = .none
+        vectorOfParentNamespaceTest = []
     }
 
 }
