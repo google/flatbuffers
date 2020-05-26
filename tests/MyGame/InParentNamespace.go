@@ -9,7 +9,7 @@ import (
 type InParentNamespaceT struct {
 }
 
-func InParentNamespacePack(builder *flatbuffers.Builder, t *InParentNamespaceT) flatbuffers.UOffsetT {
+func (t *InParentNamespaceT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil { return 0 }
 	InParentNamespaceStart(builder)
 	return InParentNamespaceEnd(builder)

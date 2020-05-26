@@ -10,7 +10,7 @@ type TestSimpleTableWithEnumT struct {
 	Color Color
 }
 
-func TestSimpleTableWithEnumPack(builder *flatbuffers.Builder, t *TestSimpleTableWithEnumT) flatbuffers.UOffsetT {
+func (t *TestSimpleTableWithEnumT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil { return 0 }
 	TestSimpleTableWithEnumStart(builder)
 	TestSimpleTableWithEnumAddColor(builder, t.Color)

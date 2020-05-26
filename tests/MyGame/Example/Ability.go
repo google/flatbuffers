@@ -11,7 +11,7 @@ type AbilityT struct {
 	Distance uint32
 }
 
-func AbilityPack(builder *flatbuffers.Builder, t *AbilityT) flatbuffers.UOffsetT {
+func (t *AbilityT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil { return 0 }
 	return CreateAbility(builder, t.Id, t.Distance)
 }

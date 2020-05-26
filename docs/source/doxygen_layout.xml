@@ -29,8 +29,10 @@
           title="Use in C"/>
       <tab type="user" url="@ref flatbuffers_guide_use_go"
           title="Use in Go"/>
-      <tab type="user" url="@ref flatbuffers_guide_use_java_c-sharp"
-          title="Use in Java/C#"/>
+      <tab type="user" url="@ref flatbuffers_guide_use_java"
+          title="Use in Java"/>
+      <tab type="user" url="@ref flatbuffers_guide_use_c-sharp"
+          title="Use in C#"/>
       <tab type="user" url="@ref flatbuffers_guide_use_javascript"
           title="Use in JavaScript"/>
       <tab type="user" url="@ref flatbuffers_guide_use_typescript"
@@ -47,6 +49,8 @@
           title="Use in Lobster"/>
       <tab type="user" url="@ref flatbuffers_guide_use_rust"
           title="Use in Rust"/>
+      <tab type="user" url="@ref flatbuffers_guide_use_swift"
+          title="Use in Swift"/>
       <tab type="user" url="@ref flexbuffers"
           title="FlexBuffers (Schema-less version)"/>
       <tab type="usergroup" url="" title="gRPC">

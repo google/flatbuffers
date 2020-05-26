@@ -21,7 +21,7 @@ type TypeAliasesT struct {
 	Vf64 []float64
 }
 
-func TypeAliasesPack(builder *flatbuffers.Builder, t *TypeAliasesT) flatbuffers.UOffsetT {
+func (t *TypeAliasesT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil { return 0 }
 	v8Offset := flatbuffers.UOffsetT(0)
 	if t.V8 != nil {

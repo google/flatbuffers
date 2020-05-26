@@ -9,7 +9,7 @@ import com.google.flatbuffers.*;
 
 @SuppressWarnings("unused")
 public final class MonsterExtra extends Table {
-  public static void ValidateVersion() { Constants.FLATBUFFERS_1_11_1(); }
+  public static void ValidateVersion() { Constants.FLATBUFFERS_1_12_0(); }
   public static MonsterExtra getRootAsMonsterExtra(ByteBuffer _bb) { return getRootAsMonsterExtra(_bb, new MonsterExtra()); }
   public static MonsterExtra getRootAsMonsterExtra(ByteBuffer _bb, MonsterExtra obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
   public static boolean MonsterExtraBufferHasIdentifier(ByteBuffer _bb) { return __has_identifier(_bb, "MONE"); }
@@ -58,7 +58,7 @@ public final class MonsterExtra extends Table {
       float f3,
       int dvecOffset,
       int fvecOffset) {
-    builder.startTable(10);
+    builder.startTable(11);
     MonsterExtra.addD3(builder, d3);
     MonsterExtra.addD2(builder, d2);
     MonsterExtra.addD1(builder, d1);
@@ -72,7 +72,7 @@ public final class MonsterExtra extends Table {
     return MonsterExtra.endMonsterExtra(builder);
   }
 
-  public static void startMonsterExtra(FlatBufferBuilder builder) { builder.startTable(10); }
+  public static void startMonsterExtra(FlatBufferBuilder builder) { builder.startTable(11); }
   public static void addD0(FlatBufferBuilder builder, double d0) { builder.addDouble(0, d0, Double.NaN); }
   public static void addD1(FlatBufferBuilder builder, double d1) { builder.addDouble(1, d1, Double.NaN); }
   public static void addD2(FlatBufferBuilder builder, double d2) { builder.addDouble(2, d2, Double.POSITIVE_INFINITY); }

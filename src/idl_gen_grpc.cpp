@@ -25,6 +25,7 @@
 #include "src/compiler/java_generator.h"
 #include "src/compiler/python_generator.h"
 #include "src/compiler/python_private_generator.h"
+#include "src/compiler/swift_generator.h"
 
 #if defined(_MSC_VER)
 #  pragma warning(push)
@@ -79,9 +80,7 @@ class FlatBufMethod : public grpc_generator::Method {
     return true;
   }
 
-  std::string get_fb_builder() const {
-    return "builder";
-  }
+  std::string get_fb_builder() const { return "builder"; }
 
   std::string input_type_name() const { return GRPCType(*method_->request); }
 
@@ -186,7 +185,11 @@ class FlatBufPrinter : public grpc_generator::Printer {
 class FlatBufFile : public grpc_generator::File {
  public:
   enum Language {
-    kLanguageGo, kLanguageCpp, kLanguageJava, kLanguagePython
+    kLanguageGo,
+    kLanguageCpp,
+    kLanguageJava,
+    kLanguagePython,
+    kLanguageSwift
   };
 
   FlatBufFile(const Parser &parser, const std::string &file_name,
@@ -235,6 +238,9 @@ class FlatBufFile : public grpc_generator::File {
       case kLanguagePython: {
         return "";
       }
+      case kLanguageSwift: {
+        return "";
+      }
     }
     return "";
   }
@@ -263,7 +269,7 @@ class GoGRPCGenerator : public flatbuffers::BaseGenerator {
  public:
   GoGRPCGenerator(const Parser &parser, const std::string &path,
                   const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", "" /*Unused*/),
+      : BaseGenerator(parser, path, file_name, "", "" /*Unused*/, "go"),
         parser_(parser),
         path_(path),
         file_name_(file_name) {}
@@ -340,7 +346,7 @@ class JavaGRPCGenerator : public flatbuffers::BaseGenerator {
  public:
   JavaGRPCGenerator(const Parser &parser, const std::string &path,
                     const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", "." /*separator*/) {}
+      : BaseGenerator(parser, path, file_name, "", "." /*separator*/, "java") {}
 
   bool generate() {
     FlatBufFile file(parser_, file_name_, FlatBufFile::kLanguageJava);
@@ -373,7 +379,6 @@ bool GenerateJavaGRPC(const Parser &parser, const std::string &path,
 
 bool GeneratePythonGRPC(const Parser &parser, const std::string & /*path*/,
                         const std::string &file_name) {
-
   int nservices = 0;
   for (auto it = parser.services_.vec.begin(); it != parser.services_.vec.end();
        ++it) {
@@ -401,6 +406,46 @@ bool GeneratePythonGRPC(const Parser &parser, const std::string & /*path*/,
   std::string grpc_py_filename =
       namespace_dir + kPathSeparator + file_name + "_grpc_fb.py";
   return flatbuffers::SaveFile(grpc_py_filename.c_str(), code, false);
+}
+
+class SwiftGRPCGenerator : public flatbuffers::BaseGenerator {
+ private:
+  CodeWriter code_;
+
+ public:
+  SwiftGRPCGenerator(const Parser &parser, const std::string &path,
+                     const std::string &filename)
+      : BaseGenerator(parser, path, filename, "", "" /*Unused*/, "swift") {}
+
+  bool generate() {
+    code_.Clear();
+    code_ += "// Generated GRPC code for FlatBuffers swift!";
+    code_ += grpc_swift_generator::GenerateHeader();
+    FlatBufFile file(parser_, file_name_, FlatBufFile::kLanguageSwift);
+    for (int i = 0; i < file.service_count(); i++) {
+      auto service = file.service(i);
+      code_ += grpc_swift_generator::Generate(&file, service.get());
+    }
+    const auto final_code = code_.ToString();
+    const auto filename = GeneratedFileName(path_, file_name_);
+    return SaveFile(filename.c_str(), final_code, false);
+  }
+
+  static std::string GeneratedFileName(const std::string &path,
+                                       const std::string &file_name) {
+    return path + file_name + ".grpc.swift";
+  }
+};
+
+bool GenerateSwiftGRPC(const Parser &parser, const std::string &path,
+                       const std::string &file_name) {
+  int nservices = 0;
+  for (auto it = parser.services_.vec.begin(); it != parser.services_.vec.end();
+       ++it) {
+    if (!(*it)->generated) nservices++;
+  }
+  if (!nservices) return true;
+  return SwiftGRPCGenerator(parser, path, file_name).generate();
 }
 
 }  // namespace flatbuffers

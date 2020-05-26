@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -9,6 +9,7 @@
     <RootNamespace>FlatBuffers.Test</RootNamespace>
     <AssemblyName>FlatBuffers.Test</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <LangVersion>4</LangVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -16,7 +17,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -36,6 +37,9 @@
     <DefineConstants>$(DefineConstants);UNSAFE_BYTEBUFFER</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>packages\Newtonsoft.Json.12.0.3\lib\net35\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -66,6 +70,9 @@
     <Compile Include="..\..\net\FlatBuffers\Table.cs">
       <Link>FlatBuffers\Table.cs</Link>
     </Compile>
+    <Compile Include="..\MyGame\Example2\Monster.cs">
+      <Link>MyGame\Example2\Monster.cs</Link>
+    </Compile>
     <Compile Include="..\MyGame\Example\Any.cs">
       <Link>MyGame\Example\Any.cs</Link>
     </Compile>
@@ -95,6 +102,9 @@
     </Compile>
     <Compile Include="..\MyGame\Example\TestSimpleTableWithEnum.cs">
       <Link>MyGame\Example\TestSimpleTableWithEnum.cs</Link>
+    </Compile>
+    <Compile Include="..\MyGame\Example\TypeAliases.cs">
+      <Link>MyGame\Example\TypeAliases.cs</Link>
     </Compile>
     <Compile Include="..\MyGame\Example\Vec3.cs">
       <Link>MyGame\Example\Vec3.cs</Link>
@@ -129,6 +139,21 @@
     <Compile Include="..\namespace_test\NamespaceA\TableInFirstNS.cs">
       <Link>NamespaceA\TableInFirstNS.cs</Link>
     </Compile>
+    <Compile Include="..\union_vector\Attacker.cs">
+      <Link>union_vector\Attacker.cs</Link>
+    </Compile>
+    <Compile Include="..\union_vector\BookReader.cs">
+      <Link>union_vector\BookReader.cs</Link>
+    </Compile>
+    <Compile Include="..\union_vector\Character.cs">
+      <Link>union_vector\Character.cs</Link>
+    </Compile>
+    <Compile Include="..\union_vector\Movie.cs">
+      <Link>union_vector\Movie.cs</Link>
+    </Compile>
+    <Compile Include="..\union_vector\Rapunzel.cs">
+      <Link>union_vector\Rapunzel.cs</Link>
+    </Compile>
     <Compile Include="Assert.cs" />
     <Compile Include="ByteBufferTests.cs" />
     <Compile Include="FlatBufferBuilderTests.cs" />
@@ -147,6 +172,13 @@
       <Link>Resources\monsterdata_test.mon</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="..\monsterdata_test.json">
+      <Link>Resources\monsterdata_test.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

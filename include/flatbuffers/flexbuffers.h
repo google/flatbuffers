@@ -65,7 +65,9 @@ enum Type {
   FBT_VECTOR_UINT = 12,
   FBT_VECTOR_FLOAT = 13,
   FBT_VECTOR_KEY = 14,
-  FBT_VECTOR_STRING = 15,
+  // DEPRECATED, use FBT_VECTOR or FBT_VECTOR_KEY instead.
+  // Read test.cpp/FlexBuffersDeprecatedTest() for details on why.
+  FBT_VECTOR_STRING_DEPRECATED = 15,
   FBT_VECTOR_INT2 = 16,  // Typed tuple (no type table, no size field).
   FBT_VECTOR_UINT2 = 17,
   FBT_VECTOR_FLOAT2 = 18,
@@ -88,7 +90,7 @@ inline bool IsTypedVectorElementType(Type t) {
 }
 
 inline bool IsTypedVector(Type t) {
-  return (t >= FBT_VECTOR_INT && t <= FBT_VECTOR_STRING) ||
+  return (t >= FBT_VECTOR_INT && t <= FBT_VECTOR_STRING_DEPRECATED) ||
          t == FBT_VECTOR_BOOL;
 }
 
@@ -212,26 +214,40 @@ class Object {
   uint8_t byte_width_;
 };
 
-// Stores size in `byte_width_` bytes before data_ pointer.
+// Object that has a size, obtained either from size prefix, or elsewhere.
 class Sized : public Object {
  public:
-  Sized(const uint8_t *data, uint8_t byte_width) : Object(data, byte_width) {}
-  size_t size() const {
+  // Size prefix.
+  Sized(const uint8_t *data, uint8_t byte_width)
+      : Object(data, byte_width), size_(read_size()) {}
+  // Manual size.
+  Sized(const uint8_t *data, uint8_t byte_width, size_t sz)
+      : Object(data, byte_width), size_(sz) {}
+  size_t size() const { return size_; }
+  // Access size stored in `byte_width_` bytes before data_ pointer.
+  size_t read_size() const {
     return static_cast<size_t>(ReadUInt64(data_ - byte_width_, byte_width_));
   }
+
+ protected:
+  size_t size_;
 };
 
 class String : public Sized {
  public:
+  // Size prefix.
   String(const uint8_t *data, uint8_t byte_width) : Sized(data, byte_width) {}
+  // Manual size.
+  String(const uint8_t *data, uint8_t byte_width, size_t sz)
+      : Sized(data, byte_width, sz) {}
 
   size_t length() const { return size(); }
   const char *c_str() const { return reinterpret_cast<const char *>(data_); }
-  std::string str() const { return std::string(c_str(), length()); }
+  std::string str() const { return std::string(c_str(), size()); }
 
   static String EmptyString() {
-    static const uint8_t empty_string[] = { 0 /*len*/, 0 /*terminator*/ };
-    return String(empty_string + 1, 1);
+    static const char *empty_string = "";
+    return String(reinterpret_cast<const uint8_t *>(empty_string), 1, 0);
   }
   bool IsTheEmptyString() const { return data_ == EmptyString().data_; }
 };
@@ -278,6 +294,8 @@ class TypedVector : public Sized {
   }
 
   Type ElementType() { return type_; }
+
+  friend Reference;
 
  private:
   Type type_;
@@ -474,7 +492,11 @@ class Reference {
         case FBT_INDIRECT_UINT:
           return static_cast<double>(ReadUInt64(Indirect(), byte_width_));
         case FBT_NULL: return 0.0;
-        case FBT_STRING: return strtod(AsString().c_str(), nullptr);
+        case FBT_STRING: {
+          double d;
+          flatbuffers::StringToNumber(AsString().c_str(), &d);
+          return d;
+        }
         case FBT_VECTOR: return static_cast<double>(AsVector().size());
         case FBT_BOOL:
           return static_cast<double>(ReadUInt64(data_, parent_width_));
@@ -487,17 +509,22 @@ class Reference {
   float AsFloat() const { return static_cast<float>(AsDouble()); }
 
   const char *AsKey() const {
-    if (type_ == FBT_KEY) {
+    if (type_ == FBT_KEY || type_ == FBT_STRING) {
       return reinterpret_cast<const char *>(Indirect());
     } else {
       return "";
     }
   }
 
-  // This function returns the empty string if you try to read a not-string.
+  // This function returns the empty string if you try to read something that
+  // is not a string or key.
   String AsString() const {
     if (type_ == FBT_STRING) {
       return String(Indirect(), byte_width_);
+    } else if (type_ == FBT_KEY) {
+      auto key = Indirect();
+      return String(key, byte_width_,
+                    strlen(reinterpret_cast<const char *>(key)));
     } else {
       return String::EmptyString();
     }
@@ -588,8 +615,18 @@ class Reference {
 
   TypedVector AsTypedVector() const {
     if (IsTypedVector()) {
-      return TypedVector(Indirect(), byte_width_,
-                         ToTypedVectorElementType(type_));
+      auto tv =
+          TypedVector(Indirect(), byte_width_, ToTypedVectorElementType(type_));
+      if (tv.type_ == FBT_STRING) {
+        // These can't be accessed as strings, since we don't know the bit-width
+        // of the size field, see the declaration of
+        // FBT_VECTOR_STRING_DEPRECATED above for details.
+        // We change the type here to be keys, which are a subtype of strings,
+        // and will ignore the size field. This will truncate strings with
+        // embedded nulls.
+        tv.type_ = FBT_KEY;
+      }
+      return tv;
     } else {
       return TypedVector::EmptyTypedVector();
     }
@@ -1458,6 +1495,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     // TODO: instead of asserting, could write vector with larger elements
     // instead, though that would be wasteful.
     FLATBUFFERS_ASSERT(WidthU(len) <= bit_width);
+    Align(bit_width);
     if (!fixed) Write<uint64_t>(len, byte_width);
     auto vloc = buf_.size();
     for (size_t i = 0; i < len; i++) Write(elems[i], byte_width);

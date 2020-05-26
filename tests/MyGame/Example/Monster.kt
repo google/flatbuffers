@@ -7,7 +7,7 @@ import kotlin.math.sign
 import com.google.flatbuffers.*
 
 /**
- * an example documentation comment: monster object
+ * an example documentation comment: "monster object"
  */
 @Suppress("unused")
 @ExperimentalUnsignedTypes
@@ -777,7 +777,7 @@ class Monster : Table() {
          return compareStrings(__offset(10, o1, _bb), __offset(10, o2, _bb), _bb)
     }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_1_11_1()
+        fun validateVersion() = Constants.FLATBUFFERS_1_12_0()
         fun getRootAsMonster(_bb: ByteBuffer): Monster = getRootAsMonster(_bb, Monster())
         fun getRootAsMonster(_bb: ByteBuffer, obj: Monster): Monster {
             _bb.order(ByteOrder.LITTLE_ENDIAN)
@@ -964,7 +964,7 @@ class Monster : Table() {
         fun finishMonsterBuffer(builder: FlatBufferBuilder, offset: Int) = builder.finish(offset, "MONS")
         fun finishSizePrefixedMonsterBuffer(builder: FlatBufferBuilder, offset: Int) = builder.finishSizePrefixed(offset, "MONS")
         fun __lookup_by_key(obj: Monster?, vectorLocation: Int, key: String, bb: ByteBuffer) : Monster? {
-            val byteKey = key.toByteArray(Table.UTF8_CHARSET.get()!!)
+            val byteKey = key.toByteArray(java.nio.charset.StandardCharsets.UTF_8)
             var span = bb.getInt(vectorLocation - 4)
             var start = 0
             while (span != 0) {

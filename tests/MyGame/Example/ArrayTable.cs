@@ -6,13 +6,14 @@ namespace MyGame.Example
 {
 
 using global::System;
+using global::System.Collections.Generic;
 using global::FlatBuffers;
 
 public struct ArrayTable : IFlatbufferObject
 {
   private Table __p;
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
-  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_1_11_1(); }
+  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_1_12_0(); }
   public static ArrayTable GetRootAsArrayTable(ByteBuffer _bb) { return GetRootAsArrayTable(_bb, new ArrayTable()); }
   public static ArrayTable GetRootAsArrayTable(ByteBuffer _bb, ArrayTable obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public static bool ArrayTableBufferHasIdentifier(ByteBuffer _bb) { return Table.__has_identifier(_bb, "ARRT"); }
@@ -29,7 +30,46 @@ public struct ArrayTable : IFlatbufferObject
   }
   public static void FinishArrayTableBuffer(FlatBufferBuilder builder, Offset<MyGame.Example.ArrayTable> offset) { builder.Finish(offset.Value, "ARRT"); }
   public static void FinishSizePrefixedArrayTableBuffer(FlatBufferBuilder builder, Offset<MyGame.Example.ArrayTable> offset) { builder.FinishSizePrefixed(offset.Value, "ARRT"); }
+  public ArrayTableT UnPack() {
+    var _o = new ArrayTableT();
+    this.UnPackTo(_o);
+    return _o;
+  }
+  public void UnPackTo(ArrayTableT _o) {
+    _o.A = this.A.HasValue ? this.A.Value.UnPack() : null;
+  }
+  public static Offset<MyGame.Example.ArrayTable> Pack(FlatBufferBuilder builder, ArrayTableT _o) {
+    if (_o == null) return default(Offset<MyGame.Example.ArrayTable>);
+    StartArrayTable(builder);
+    AddA(builder, MyGame.Example.ArrayStruct.Pack(builder, _o.A));
+    return EndArrayTable(builder);
+  }
 };
+
+public class ArrayTableT
+{
+  [Newtonsoft.Json.JsonProperty("a")]
+  public MyGame.Example.ArrayStructT A { get; set; }
+
+  public ArrayTableT() {
+    this.A = new MyGame.Example.ArrayStructT();
+  }
+
+  public static ArrayTableT DeserializeFromJson(string jsonText) {
+    return Newtonsoft.Json.JsonConvert.DeserializeObject<ArrayTableT>(jsonText);
+  }
+  public string SerializeToJson() {
+    return Newtonsoft.Json.JsonConvert.SerializeObject(this, Newtonsoft.Json.Formatting.Indented);
+  }
+  public static ArrayTableT DeserializeFromBinary(byte[] fbBuffer) {
+    return ArrayTable.GetRootAsArrayTable(new ByteBuffer(fbBuffer)).UnPack();
+  }
+  public byte[] SerializeToBinary() {
+    var fbb = new FlatBufferBuilder(0x10000);
+    fbb.Finish(ArrayTable.Pack(fbb, this).Value);
+    return fbb.DataBuffer.ToSizedArray();
+  }
+}
 
 
 }

@@ -45,6 +45,7 @@
 #include "test_assert.h"
 
 #include "flatbuffers/flexbuffers.h"
+#include "monster_test_bfbs_generated.h"  // Generated using --bfbs-comments --bfbs-builtins --cpp --bfbs-gen-embed
 
 // clang-format off
 // Check that char* and uint8_t* are interoperable types.
@@ -650,6 +651,19 @@ void JsonEnumsTest() {
   auto result = GenerateText(parser, builder.GetBufferPointer(), &jsongen);
   TEST_EQ(result, true);
   TEST_EQ(std::string::npos != jsongen.find("color: \"Red Blue\""), true);
+  // Test forward compatibility with 'output_enum_identifiers = true'.
+  // Current Color doesn't have '(1u << 2)' field, let's add it.
+  builder.Clear();
+  std::string future_json;
+  auto future_name = builder.CreateString("future bitflag_enum");
+  MonsterBuilder future_color(builder);
+  future_color.add_name(future_name);
+  future_color.add_color(
+      static_cast<Color>((1u << 2) | Color_Blue | Color_Red));
+  FinishMonsterBuffer(builder, future_color.Finish());
+  result = GenerateText(parser, builder.GetBufferPointer(), &future_json);
+  TEST_EQ(result, true);
+  TEST_EQ(std::string::npos != future_json.find("color: 13"), true);
 }
 
 #if defined(FLATBUFFERS_HAS_NEW_STRTOD) && (FLATBUFFERS_HAS_NEW_STRTOD > 0)
@@ -1127,6 +1141,124 @@ void ParseProtoTest() {
   TEST_EQ_STR(fbs_union.c_str(), goldenunionfile.c_str());
 }
 
+// Parse a .proto schema, output as .fbs
+void ParseProtoTestWithSuffix() {
+  // load the .proto and the golden file from disk
+  std::string protofile;
+  std::string goldenfile;
+  std::string goldenunionfile;
+  TEST_EQ(
+      flatbuffers::LoadFile((test_data_path + "prototest/test.proto").c_str(),
+                            false, &protofile),
+      true);
+  TEST_EQ(flatbuffers::LoadFile(
+              (test_data_path + "prototest/test_suffix.golden").c_str(), false,
+              &goldenfile),
+          true);
+  TEST_EQ(flatbuffers::LoadFile(
+              (test_data_path + "prototest/test_union_suffix.golden").c_str(),
+              false, &goldenunionfile),
+          true);
+
+  flatbuffers::IDLOptions opts;
+  opts.include_dependence_headers = false;
+  opts.proto_mode = true;
+  opts.proto_namespace_suffix = "test_namespace_suffix";
+
+  // Parse proto.
+  flatbuffers::Parser parser(opts);
+  auto protopath = test_data_path + "prototest/";
+  const char *include_directories[] = { protopath.c_str(), nullptr };
+  TEST_EQ(parser.Parse(protofile.c_str(), include_directories), true);
+
+  // Generate fbs.
+  auto fbs = flatbuffers::GenerateFBS(parser, "test");
+
+  // Ensure generated file is parsable.
+  flatbuffers::Parser parser2;
+  TEST_EQ(parser2.Parse(fbs.c_str(), nullptr), true);
+  TEST_EQ_STR(fbs.c_str(), goldenfile.c_str());
+
+  // Parse proto with --oneof-union option.
+  opts.proto_oneof_union = true;
+  flatbuffers::Parser parser3(opts);
+  TEST_EQ(parser3.Parse(protofile.c_str(), include_directories), true);
+
+  // Generate fbs.
+  auto fbs_union = flatbuffers::GenerateFBS(parser3, "test");
+
+  // Ensure generated file is parsable.
+  flatbuffers::Parser parser4;
+  TEST_EQ(parser4.Parse(fbs_union.c_str(), nullptr), true);
+  TEST_EQ_STR(fbs_union.c_str(), goldenunionfile.c_str());
+}
+
+// Parse a .proto schema, output as .fbs
+void ParseProtoTestWithIncludes() {
+  // load the .proto and the golden file from disk
+  std::string protofile;
+  std::string goldenfile;
+  std::string goldenunionfile;
+  std::string importprotofile;
+  TEST_EQ(
+      flatbuffers::LoadFile((test_data_path + "prototest/test.proto").c_str(),
+                            false, &protofile),
+      true);
+  TEST_EQ(flatbuffers::LoadFile(
+              (test_data_path + "prototest/imported.proto").c_str(), false,
+              &importprotofile),
+          true);
+  TEST_EQ(flatbuffers::LoadFile(
+              (test_data_path + "prototest/test_include.golden").c_str(), false,
+              &goldenfile),
+          true);
+  TEST_EQ(flatbuffers::LoadFile(
+              (test_data_path + "prototest/test_union_include.golden").c_str(),
+              false, &goldenunionfile),
+          true);
+
+  flatbuffers::IDLOptions opts;
+  opts.include_dependence_headers = true;
+  opts.proto_mode = true;
+
+  // Parse proto.
+  flatbuffers::Parser parser(opts);
+  auto protopath = test_data_path + "prototest/";
+  const char *include_directories[] = { protopath.c_str(), nullptr };
+  TEST_EQ(parser.Parse(protofile.c_str(), include_directories), true);
+
+  // Generate fbs.
+  auto fbs = flatbuffers::GenerateFBS(parser, "test");
+
+  // Generate fbs from import.proto
+  flatbuffers::Parser import_parser(opts);
+  TEST_EQ(import_parser.Parse(importprotofile.c_str(), include_directories),
+          true);
+  auto import_fbs = flatbuffers::GenerateFBS(import_parser, "test");
+
+  // Ensure generated file is parsable.
+  flatbuffers::Parser parser2;
+  TEST_EQ(
+      parser2.Parse(import_fbs.c_str(), include_directories, "imported.fbs"),
+      true);
+  TEST_EQ(parser2.Parse(fbs.c_str(), nullptr), true);
+  TEST_EQ_STR(fbs.c_str(), goldenfile.c_str());
+
+  // Parse proto with --oneof-union option.
+  opts.proto_oneof_union = true;
+  flatbuffers::Parser parser3(opts);
+  TEST_EQ(parser3.Parse(protofile.c_str(), include_directories), true);
+
+  // Generate fbs.
+  auto fbs_union = flatbuffers::GenerateFBS(parser3, "test");
+
+  // Ensure generated file is parsable.
+  flatbuffers::Parser parser4;
+  TEST_EQ(parser4.Parse(import_fbs.c_str(), nullptr, "imported.fbs"), true);
+  TEST_EQ(parser4.Parse(fbs_union.c_str(), nullptr), true);
+  TEST_EQ_STR(fbs_union.c_str(), goldenunionfile.c_str());
+}
+
 template<typename T>
 void CompareTableFieldValue(flatbuffers::Table *table,
                             flatbuffers::voffset_t voffset, T val) {
@@ -1394,7 +1526,7 @@ void FuzzTest2() {
         break;
       }
     }
-    TEST_NOTNULL(nullptr);
+    TEST_NOTNULL(nullptr);  //-V501 (this comment supresses CWE-570 warning)
   }
 
   // clang-format off
@@ -1887,6 +2019,9 @@ void InvalidFloatTest() {
   TestError("table T { F:float; } root_type T; { F:0x0 }", invalid_msg);
   TestError("table T { F:float; } root_type T; { F:-0x. }", invalid_msg);
   TestError("table T { F:float; } root_type T; { F:0x. }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:0Xe }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:\"0Xe\" }", invalid_msg);
+  TestError("table T { F:float; } root_type T; { F:\"nan(1)\" }", invalid_msg);
   // eE not exponent in hex-float!
   TestError("table T { F:float; } root_type T; { F:0x0.0e+ }", invalid_msg);
   TestError("table T { F:float; } root_type T; { F:0x0.0e- }", invalid_msg);
@@ -2315,68 +2450,72 @@ void InvalidNestedFlatbufferTest() {
 void EvolutionTest() {
   // VS10 does not support typed enums, exclude from tests
 #if !defined(_MSC_VER) || _MSC_VER >= 1700
-    const int NUM_VERSIONS = 2;
-    std::string schemas[NUM_VERSIONS];
-    std::string jsonfiles[NUM_VERSIONS];
-    std::vector<uint8_t> binaries[NUM_VERSIONS];
+  const int NUM_VERSIONS = 2;
+  std::string schemas[NUM_VERSIONS];
+  std::string jsonfiles[NUM_VERSIONS];
+  std::vector<uint8_t> binaries[NUM_VERSIONS];
 
-    flatbuffers::IDLOptions idl_opts;
-    idl_opts.lang_to_generate |= flatbuffers::IDLOptions::kBinary;
-    flatbuffers::Parser parser(idl_opts);
+  flatbuffers::IDLOptions idl_opts;
+  idl_opts.lang_to_generate |= flatbuffers::IDLOptions::kBinary;
+  flatbuffers::Parser parser(idl_opts);
 
-    // Load all the schema versions and their associated data.
-    for (int i = 0; i < NUM_VERSIONS; ++i) {
-      std::string schema = test_data_path + "evolution_test/evolution_v" +
-                           flatbuffers::NumToString(i + 1) + ".fbs";
-      TEST_ASSERT(flatbuffers::LoadFile(schema.c_str(), false, &schemas[i]));
-      std::string json = test_data_path + "evolution_test/evolution_v" +
-                         flatbuffers::NumToString(i + 1) + ".json";
-      TEST_ASSERT(flatbuffers::LoadFile(json.c_str(), false, &jsonfiles[i]));
+  // Load all the schema versions and their associated data.
+  for (int i = 0; i < NUM_VERSIONS; ++i) {
+    std::string schema = test_data_path + "evolution_test/evolution_v" +
+                         flatbuffers::NumToString(i + 1) + ".fbs";
+    TEST_ASSERT(flatbuffers::LoadFile(schema.c_str(), false, &schemas[i]));
+    std::string json = test_data_path + "evolution_test/evolution_v" +
+                       flatbuffers::NumToString(i + 1) + ".json";
+    TEST_ASSERT(flatbuffers::LoadFile(json.c_str(), false, &jsonfiles[i]));
 
-      TEST_ASSERT(parser.Parse(schemas[i].c_str()));
-      TEST_ASSERT(parser.Parse(jsonfiles[i].c_str()));
+    TEST_ASSERT(parser.Parse(schemas[i].c_str()));
+    TEST_ASSERT(parser.Parse(jsonfiles[i].c_str()));
 
-      auto bufLen = parser.builder_.GetSize();
-      auto buf = parser.builder_.GetBufferPointer();
-      binaries[i].reserve(bufLen);
-      std::copy(buf, buf + bufLen, std::back_inserter(binaries[i]));
-    }
+    auto bufLen = parser.builder_.GetSize();
+    auto buf = parser.builder_.GetBufferPointer();
+    binaries[i].reserve(bufLen);
+    std::copy(buf, buf + bufLen, std::back_inserter(binaries[i]));
+  }
 
-    // Assert that all the verifiers for the different schema versions properly verify any version data.
-    for (int i = 0; i < NUM_VERSIONS; ++i) {
-      flatbuffers::Verifier verifier(&binaries[i].front(), binaries[i].size());
-      TEST_ASSERT(Evolution::V1::VerifyRootBuffer(verifier));
-      TEST_ASSERT(Evolution::V2::VerifyRootBuffer(verifier));
-    }
+  // Assert that all the verifiers for the different schema versions properly
+  // verify any version data.
+  for (int i = 0; i < NUM_VERSIONS; ++i) {
+    flatbuffers::Verifier verifier(&binaries[i].front(), binaries[i].size());
+    TEST_ASSERT(Evolution::V1::VerifyRootBuffer(verifier));
+    TEST_ASSERT(Evolution::V2::VerifyRootBuffer(verifier));
+  }
 
-    // Test backwards compatibility by reading old data with an evolved schema.
-    auto root_v1_viewed_from_v2 = Evolution::V2::GetRoot(&binaries[0].front());
-    // field 'j' is new in version 2, so it should be null.
-    TEST_ASSERT(nullptr == root_v1_viewed_from_v2->j());
-    // field 'k' is new in version 2 with a default of 56.
-    TEST_EQ(root_v1_viewed_from_v2->k(), 56);
-    // field 'c' of 'TableA' is new in version 2, so it should be null.
-    TEST_ASSERT(nullptr == root_v1_viewed_from_v2->e()->c());
-    // 'TableC' was added to field 'c' union in version 2, so it should be null.
-    TEST_ASSERT(nullptr == root_v1_viewed_from_v2->c_as_TableC());
-    // The field 'c' union should be of type 'TableB' regardless of schema version
-    TEST_ASSERT(root_v1_viewed_from_v2->c_type() == Evolution::V2::Union::TableB);
-    // The field 'f' was renamed to 'ff' in version 2, it should still be readable.
-    TEST_EQ(root_v1_viewed_from_v2->ff()->a(), 16);
+  // Test backwards compatibility by reading old data with an evolved schema.
+  auto root_v1_viewed_from_v2 = Evolution::V2::GetRoot(&binaries[0].front());
+  // field 'j' is new in version 2, so it should be null.
+  TEST_ASSERT(nullptr == root_v1_viewed_from_v2->j());
+  // field 'k' is new in version 2 with a default of 56.
+  TEST_EQ(root_v1_viewed_from_v2->k(), 56);
+  // field 'c' of 'TableA' is new in version 2, so it should be null.
+  TEST_ASSERT(nullptr == root_v1_viewed_from_v2->e()->c());
+  // 'TableC' was added to field 'c' union in version 2, so it should be null.
+  TEST_ASSERT(nullptr == root_v1_viewed_from_v2->c_as_TableC());
+  // The field 'c' union should be of type 'TableB' regardless of schema version
+  TEST_ASSERT(root_v1_viewed_from_v2->c_type() == Evolution::V2::Union::TableB);
+  // The field 'f' was renamed to 'ff' in version 2, it should still be
+  // readable.
+  TEST_EQ(root_v1_viewed_from_v2->ff()->a(), 16);
 
-    // Test forwards compatibility by reading new data with an old schema.
-    auto root_v2_viewed_from_v1 = Evolution::V1::GetRoot(&binaries[1].front());
-    // The field 'c' union in version 2 is a new table (index = 3) and should still be accessible,
-    // but not interpretable.
-    TEST_EQ(static_cast<uint8_t>(root_v2_viewed_from_v1->c_type()), 3);
-    TEST_NOTNULL(root_v2_viewed_from_v1->c());
-    // The field 'd' enum in verison 2 has new members and should still be accessible, but not interpretable.
-    TEST_EQ(static_cast<int8_t>(root_v2_viewed_from_v1->d()), 3);
-    // The field 'a' in version 2 is deprecated and should return the default value (0) instead of the value stored in
-    // the in the buffer (42).
-    TEST_EQ(root_v2_viewed_from_v1->a(), 0);
-    // The field 'ff' was originally named 'f' in version 1, it should still be readable.
-    TEST_EQ(root_v2_viewed_from_v1->f()->a(), 35);
+  // Test forwards compatibility by reading new data with an old schema.
+  auto root_v2_viewed_from_v1 = Evolution::V1::GetRoot(&binaries[1].front());
+  // The field 'c' union in version 2 is a new table (index = 3) and should
+  // still be accessible, but not interpretable.
+  TEST_EQ(static_cast<uint8_t>(root_v2_viewed_from_v1->c_type()), 3);
+  TEST_NOTNULL(root_v2_viewed_from_v1->c());
+  // The field 'd' enum in verison 2 has new members and should still be
+  // accessible, but not interpretable.
+  TEST_EQ(static_cast<int8_t>(root_v2_viewed_from_v1->d()), 3);
+  // The field 'a' in version 2 is deprecated and should return the default
+  // value (0) instead of the value stored in the in the buffer (42).
+  TEST_EQ(root_v2_viewed_from_v1->a(), 0);
+  // The field 'ff' was originally named 'f' in version 1, it should still be
+  // readable.
+  TEST_EQ(root_v2_viewed_from_v1->f()->a(), 35);
 #endif
 }
 
@@ -2748,6 +2887,68 @@ void FlexBuffersTest() {
   TEST_EQ_STR(jsontest, jsonback.c_str());
 }
 
+void FlexBuffersDeprecatedTest() {
+  // FlexBuffers as originally designed had a flaw involving the
+  // FBT_VECTOR_STRING datatype, and this test documents/tests the fix for it.
+  // Discussion: https://github.com/google/flatbuffers/issues/5627
+  flexbuffers::Builder slb;
+  // FBT_VECTOR_* are "typed vectors" where all elements are of the same type.
+  // Problem is, when storing FBT_STRING elements, it relies on that type to
+  // get the bit-width for the size field of the string, which in this case
+  // isn't present, and instead defaults to 8-bit. This means that any strings
+  // stored inside such a vector, when accessed thru the old API that returns
+  // a String reference, will appear to be truncated if the string stored is
+  // actually >=256 bytes.
+  std::string test_data(300, 'A');
+  auto start = slb.StartVector();
+  // This one will have a 16-bit size field.
+  slb.String(test_data);
+  // This one will have an 8-bit size field.
+  slb.String("hello");
+  // We're asking this to be serialized as a typed vector (true), but not
+  // fixed size (false). The type will be FBT_VECTOR_STRING with a bit-width
+  // of whatever the offsets in the vector need, the bit-widths of the strings
+  // are not stored(!) <- the actual design flaw.
+  // Note that even in the fixed code, we continue to serialize the elements of
+  // FBT_VECTOR_STRING as FBT_STRING, since there may be old code out there
+  // reading new data that we want to continue to function.
+  // Thus, FBT_VECTOR_STRING, while deprecated, will always be represented the
+  // same way, the fix lies on the reading side.
+  slb.EndVector(start, true, false);
+  slb.Finish();
+  // So now lets read this data back.
+  // For existing data, since we have no way of knowing what the actual
+  // bit-width of the size field of the string is, we are going to ignore this
+  // field, and instead treat these strings as FBT_KEY (null-terminated), so we
+  // can deal with strings of arbitrary length. This of course truncates strings
+  // with embedded nulls, but we think that that is preferrable over truncating
+  // strings >= 256 bytes.
+  auto vec = flexbuffers::GetRoot(slb.GetBuffer()).AsTypedVector();
+  // Even though this was serialized as FBT_VECTOR_STRING, it is read as
+  // FBT_VECTOR_KEY:
+  TEST_EQ(vec.ElementType(), flexbuffers::FBT_KEY);
+  // Access the long string. Previously, this would return a string of size 1,
+  // since it would read the high-byte of the 16-bit length.
+  // This should now correctly test the full 300 bytes, using AsKey():
+  TEST_EQ_STR(vec[0].AsKey(), test_data.c_str());
+  // Old code that called AsString will continue to work, as the String
+  // accessor objects now use a cached size that can come from a key as well.
+  TEST_EQ_STR(vec[0].AsString().c_str(), test_data.c_str());
+  // Short strings work as before:
+  TEST_EQ_STR(vec[1].AsKey(), "hello");
+  TEST_EQ_STR(vec[1].AsString().c_str(), "hello");
+  // So, while existing code and data mostly "just work" with the fixes applied
+  // to AsTypedVector and AsString, what do you do going forward?
+  // Code accessing existing data doesn't necessarily need to change, though
+  // you could consider using AsKey instead of AsString for a) documenting
+  // that you are accessing keys, or b) a speedup if you don't actually use
+  // the string size.
+  // For new data, or data that doesn't need to be backwards compatible,
+  // instead serialize as FBT_VECTOR (call EndVector with typed = false, then
+  // read elements with AsString), or, for maximum compactness, use
+  // FBT_VECTOR_KEY (call slb.Key above instead, read with AsKey or AsString).
+}
+
 void TypeAliasesTest() {
   flatbuffers::FlatBufferBuilder builder;
 
@@ -3098,6 +3299,54 @@ void FixedLengthArrayJsonTest(bool binary) {
 #endif
 }
 
+void TestEmbeddedBinarySchema() {
+  // load JSON from disk
+  std::string jsonfile;
+  TEST_EQ(flatbuffers::LoadFile(
+              (test_data_path + "monsterdata_test.golden").c_str(), false,
+              &jsonfile),
+          true);
+
+  // parse schema first, so we can use it to parse the data after
+  flatbuffers::Parser parserOrg, parserGen;
+  flatbuffers::Verifier verifier(MyGame::Example::MonsterBinarySchema::data(),
+                                 MyGame::Example::MonsterBinarySchema::size());
+  TEST_EQ(reflection::VerifySchemaBuffer(verifier), true);
+  TEST_EQ(parserOrg.Deserialize(MyGame::Example::MonsterBinarySchema::data(),
+                                MyGame::Example::MonsterBinarySchema::size()),
+          true);
+  TEST_EQ(parserGen.Deserialize(MyGame::Example::MonsterBinarySchema::data(),
+                                MyGame::Example::MonsterBinarySchema::size()),
+          true);
+  TEST_EQ(parserOrg.Parse(jsonfile.c_str()), true);
+
+  // First, verify it, just in case:
+  flatbuffers::Verifier verifierOrg(parserOrg.builder_.GetBufferPointer(),
+                                    parserOrg.builder_.GetSize());
+  TEST_EQ(VerifyMonsterBuffer(verifierOrg), true);
+
+  // Export to JSON
+  std::string jsonGen;
+  TEST_EQ(
+      GenerateText(parserOrg, parserOrg.builder_.GetBufferPointer(), &jsonGen),
+      true);
+
+  // Import from JSON
+  TEST_EQ(parserGen.Parse(jsonGen.c_str()), true);
+
+  // Verify buffer from generated JSON
+  flatbuffers::Verifier verifierGen(parserGen.builder_.GetBufferPointer(),
+                                    parserGen.builder_.GetSize());
+  TEST_EQ(VerifyMonsterBuffer(verifierGen), true);
+
+  // Compare generated buffer to original
+  TEST_EQ(parserOrg.builder_.GetSize(), parserGen.builder_.GetSize());
+  TEST_EQ(std::memcmp(parserOrg.builder_.GetBufferPointer(),
+                      parserGen.builder_.GetBufferPointer(),
+                      parserOrg.builder_.GetSize()),
+          0);
+}
+
 int FlatBufferTests() {
   // clang-format off
 
@@ -3136,10 +3385,13 @@ int FlatBufferTests() {
     FixedLengthArrayJsonTest(true);
     ReflectionTest(flatbuf.data(), flatbuf.size());
     ParseProtoTest();
+    ParseProtoTestWithSuffix();
+    ParseProtoTestWithIncludes();
     EvolutionTest();
     UnionVectorTest();
     LoadVerifyBinaryTest();
     GenerateTableTextTest();
+    TestEmbeddedBinarySchema();
   #endif
   // clang-format on
 
@@ -3171,6 +3423,7 @@ int FlatBufferTests() {
   JsonDefaultTest();
   JsonEnumsTest();
   FlexBuffersTest();
+  FlexBuffersDeprecatedTest();
   UninitializedVectorTest();
   EqualOperatorTest();
   NumericUtilsTest();

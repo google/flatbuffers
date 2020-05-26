@@ -717,7 +717,7 @@ class ReferrableObjectBuilder extends fb.ObjectBuilder {
     return fbBuilder.finish(offset, fileIdentifier);
   }
 }
-///  an example documentation comment: monster object
+///  an example documentation comment: "monster object"
 class Monster {
   Monster._(this._bc, this._bcOffset);
   factory Monster(List<int> bytes) {

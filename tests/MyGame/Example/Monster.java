@@ -9,10 +9,10 @@ import com.google.flatbuffers.*;
 
 @SuppressWarnings("unused")
 /**
- * an example documentation comment: monster object
+ * an example documentation comment: "monster object"
  */
 public final class Monster extends Table {
-  public static void ValidateVersion() { Constants.FLATBUFFERS_1_11_1(); }
+  public static void ValidateVersion() { Constants.FLATBUFFERS_1_12_0(); }
   public static Monster getRootAsMonster(ByteBuffer _bb) { return getRootAsMonster(_bb, new Monster()); }
   public static Monster getRootAsMonster(ByteBuffer _bb, Monster obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
   public static boolean MonsterBufferHasIdentifier(ByteBuffer _bb) { return __has_identifier(_bb, "MONS"); }
@@ -293,7 +293,7 @@ public final class Monster extends Table {
   protected int keysCompare(Integer o1, Integer o2, ByteBuffer _bb) { return compareStrings(__offset(10, o1, _bb), __offset(10, o2, _bb), _bb); }
 
   public static Monster __lookup_by_key(Monster obj, int vectorLocation, String key, ByteBuffer bb) {
-    byte[] byteKey = key.getBytes(Table.UTF8_CHARSET.get());
+    byte[] byteKey = key.getBytes(java.nio.charset.StandardCharsets.UTF_8);
     int span = bb.getInt(vectorLocation - 4);
     int start = 0;
     while (span != 0) {

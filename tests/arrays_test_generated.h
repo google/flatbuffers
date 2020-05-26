@@ -14,6 +14,7 @@ struct NestedStruct;
 struct ArrayStruct;
 
 struct ArrayTable;
+struct ArrayTableBuilder;
 struct ArrayTableT;
 
 bool operator==(const NestedStruct &lhs, const NestedStruct &rhs);
@@ -57,7 +58,7 @@ inline const char * const *EnumNamesTestEnum() {
 }
 
 inline const char *EnumNameTestEnum(TestEnum e) {
-  if (e < TestEnum::A || e > TestEnum::C) return "";
+  if (flatbuffers::IsOutRange(e, TestEnum::A, TestEnum::C)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesTestEnum()[index];
 }
@@ -229,6 +230,7 @@ inline bool operator!=(const ArrayTableT &lhs, const ArrayTableT &rhs) {
 
 struct ArrayTable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef ArrayTableT NativeTableType;
+  typedef ArrayTableBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return ArrayTableTypeTable();
   }
@@ -252,6 +254,7 @@ struct ArrayTable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct ArrayTableBuilder {
+  typedef ArrayTable Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_a(const MyGame::Example::ArrayStruct *a) {
@@ -280,9 +283,9 @@ inline flatbuffers::Offset<ArrayTable> CreateArrayTable(
 flatbuffers::Offset<ArrayTable> CreateArrayTable(flatbuffers::FlatBufferBuilder &_fbb, const ArrayTableT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 inline ArrayTableT *ArrayTable::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new ArrayTableT();
-  UnPackTo(_o, _resolver);
-  return _o;
+  flatbuffers::unique_ptr<MyGame::Example::ArrayTableT> _o = flatbuffers::unique_ptr<MyGame::Example::ArrayTableT>(new ArrayTableT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void ArrayTable::UnPackTo(ArrayTableT *_o, const flatbuffers::resolver_function_t *_resolver) const {

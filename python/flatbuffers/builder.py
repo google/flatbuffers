@@ -466,7 +466,7 @@ class Builder(object):
 
         # tobytes ensures c_contiguous ordering
         self.Bytes[self.Head():self.Head()+l] = x_lend.tobytes(order='C')
-        
+
         return self.EndVector(x.size)
 
     ## @cond FLATBUFFERS_INTERNAL
@@ -514,17 +514,24 @@ class Builder(object):
         """Finish finalizes a buffer, pointing to the given `rootTable`."""
         N.enforce_number(rootTable, N.UOffsetTFlags)
 
+        prepSize = N.UOffsetTFlags.bytewidth
         if file_identifier is not None:
-            self.Prep(N.UOffsetTFlags.bytewidth, N.Uint8Flags.bytewidth*4)
-            
+            prepSize += N.Int32Flags.bytewidth
+        if sizePrefix:
+            prepSize += N.Int32Flags.bytewidth
+        self.Prep(self.minalign, prepSize)
+
+        if file_identifier is not None:
+            self.Prep(N.UOffsetTFlags.bytewidth, encode.FILE_IDENTIFIER_LENGTH)
+
             # Convert bytes object file_identifier to an array of 4 8-bit integers,
             # and use big-endian to enforce size compliance.
             # https://docs.python.org/2/library/struct.html#format-characters
             file_identifier = N.struct.unpack(">BBBB", file_identifier)
             for i in range(encode.FILE_IDENTIFIER_LENGTH-1, -1, -1):
                 # Place the bytes of the file_identifer in reverse order:
-                self.Place(file_identifier[i], N.Uint8Flags)   
-                
+                self.Place(file_identifier[i], N.Uint8Flags)
+
         self.PrependUOffsetTRelative(rootTable)
         if sizePrefix:
             size = len(self.Bytes) - self.Head()

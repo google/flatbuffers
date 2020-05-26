@@ -140,7 +140,7 @@
 #endif // !defined(FLATBUFFERS_LITTLEENDIAN)
 
 #define FLATBUFFERS_VERSION_MAJOR 1
-#define FLATBUFFERS_VERSION_MINOR 11
+#define FLATBUFFERS_VERSION_MINOR 12
 #define FLATBUFFERS_VERSION_REVISION 0
 #define FLATBUFFERS_STRING_EXPAND(X) #X
 #define FLATBUFFERS_STRING(X) FLATBUFFERS_STRING_EXPAND(X)
@@ -210,6 +210,13 @@ namespace flatbuffers {
       #include <experimental/string_view>
       namespace flatbuffers {
         typedef std::experimental::string_view string_view;
+      }
+      #define FLATBUFFERS_HAS_STRING_VIEW 1
+    // Check for absl::string_view
+    #elif __has_include("absl/strings/string_view.h")
+      #include "absl/strings/string_view.h"
+      namespace flatbuffers {
+        typedef absl::string_view string_view;
       }
       #define FLATBUFFERS_HAS_STRING_VIEW 1
     #endif

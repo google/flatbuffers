@@ -24,11 +24,6 @@
 
 namespace flatbuffers {
 
-static std::string GeneratedFileName(const std::string &path,
-                                     const std::string &file_name) {
-  return path + file_name + "_generated.dart";
-}
-
 namespace dart {
 
 const std::string _kFb = "fb";
@@ -55,7 +50,7 @@ class DartGenerator : public BaseGenerator {
 
   DartGenerator(const Parser &parser, const std::string &path,
                 const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", ".") {}
+      : BaseGenerator(parser, path, file_name, "", ".", "dart") {}
   // Iterate through all definitions we haven't generate code for (enums,
   // structs, and tables) and output them to a single file.
   bool generate() {
@@ -84,21 +79,25 @@ class DartGenerator : public BaseGenerator {
       for (auto kv2 = namespace_code.begin(); kv2 != namespace_code.end();
            ++kv2) {
         if (kv2->first != kv->first) {
-          code += "import '" +
-                  GeneratedFileName(
-                      "./", file_name_ +
-                                (!kv2->first.empty() ? "_" + kv2->first : "")) +
-                  "' as " + ImportAliasName(kv2->first) + ";\n";
+          code +=
+              "import '" +
+              GeneratedFileName(
+                  "./",
+                  file_name_ + (!kv2->first.empty() ? "_" + kv2->first : ""),
+                  parser_.opts) +
+              "' as " + ImportAliasName(kv2->first) + ";\n";
         }
       }
       code += "\n";
       code += kv->second;
 
-      if (!SaveFile(GeneratedFileName(
-                        path_, file_name_ +
-                                   (!kv->first.empty() ? "_" + kv->first : ""))
-                        .c_str(),
-                    code, false)) {
+      if (!SaveFile(
+              GeneratedFileName(
+                  path_,
+                  file_name_ + (!kv->first.empty() ? "_" + kv->first : ""),
+                  parser_.opts)
+                  .c_str(),
+              code, false)) {
         return false;
       }
     }
@@ -151,7 +150,8 @@ class DartGenerator : public BaseGenerator {
       *code +=
           "import '" +
           GeneratedFileName(
-              "", basename + (the_namespace == "" ? "" : "_" + the_namespace)) +
+              "", basename + (the_namespace == "" ? "" : "_" + the_namespace),
+              parser_.opts) +
           "';\n";
     }
   }
@@ -449,13 +449,23 @@ class DartGenerator : public BaseGenerator {
     code += "  final " + _kFb + ".BufferContext _bc;\n";
     code += "  final int _bcOffset;\n\n";
 
-    GenImplementationGetters(struct_def, &code);
+    std::vector<std::pair<int, FieldDef *>> non_deprecated_fields;
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto &field = **it;
+      if (field.deprecated) continue;
+      auto offset = static_cast<int>(it - struct_def.fields.vec.begin());
+      non_deprecated_fields.push_back(std::make_pair(offset, &field));
+    }
+
+    GenImplementationGetters(struct_def, non_deprecated_fields, &code);
 
     code += "}\n\n";
 
     GenReader(struct_def, &reader_name, &reader_code);
-    GenBuilder(struct_def, &builder_name, &builder_code);
-    GenObjectBuilder(struct_def, &object_builder_name, &builder_code);
+    GenBuilder(struct_def, non_deprecated_fields, &builder_name, &builder_code);
+    GenObjectBuilder(struct_def, non_deprecated_fields, &object_builder_name,
+                     &builder_code);
 
     code += reader_code;
     code += builder_code;
@@ -491,14 +501,16 @@ class DartGenerator : public BaseGenerator {
     return ns + "." + parts.back();
   }
 
-  void GenImplementationGetters(const StructDef &struct_def,
-                                std::string *code_ptr) {
+  void GenImplementationGetters(
+      const StructDef &struct_def,
+      std::vector<std::pair<int, FieldDef *>> non_deprecated_fields,
+      std::string *code_ptr) {
     auto &code = *code_ptr;
 
-    for (auto it = struct_def.fields.vec.begin();
-         it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
-      if (field.deprecated) continue;
+    for (auto it = non_deprecated_fields.begin();
+         it != non_deprecated_fields.end(); ++it) {
+      auto pair = *it;
+      auto &field = *pair.second;
 
       std::string field_name = MakeCamel(field.name, false);
       std::string type_name = GenDartTypeName(
@@ -544,6 +556,15 @@ class DartGenerator : public BaseGenerator {
           if (!field.value.constant.empty() && field.value.constant != "0") {
             if (IsBool(field.value.type.base_type)) {
               code += "true";
+            } else if (field.value.constant == "nan" ||
+                       field.value.constant == "+nan" ||
+                       field.value.constant == "-nan") {
+              code += "double.nan";
+            } else if (field.value.constant == "inf" ||
+                       field.value.constant == "+inf") {
+              code += "double.infinity";
+            } else if (field.value.constant == "-inf") {
+              code += "double.negativeInfinity";
             } else {
               code += field.value.constant;
             }
@@ -571,13 +592,13 @@ class DartGenerator : public BaseGenerator {
     code += "  @override\n";
     code += "  String toString() {\n";
     code += "    return '" + struct_def.name + "{";
-    for (auto it = struct_def.fields.vec.begin();
-         it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
-      if (field.deprecated) continue;
+    for (auto it = non_deprecated_fields.begin();
+         it != non_deprecated_fields.end(); ++it) {
+      auto pair = *it;
+      auto &field = *pair.second;
       code +=
           MakeCamel(field.name, false) + ": $" + MakeCamel(field.name, false);
-      if (it != struct_def.fields.vec.end() - 1) { code += ", "; }
+      if (it != non_deprecated_fields.end() - 1) { code += ", "; }
     }
     code += "}';\n";
     code += "  }\n";
@@ -609,9 +630,10 @@ class DartGenerator : public BaseGenerator {
     code += "}\n\n";
   }
 
-  void GenBuilder(const StructDef &struct_def, std::string *builder_name_ptr,
-                  std::string *code_ptr) {
-    if (struct_def.fields.vec.size() == 0) { return; }
+  void GenBuilder(const StructDef &struct_def,
+                  std::vector<std::pair<int, FieldDef *>> non_deprecated_fields,
+                  std::string *builder_name_ptr, std::string *code_ptr) {
+    if (non_deprecated_fields.size() == 0) { return; }
     auto &code = *code_ptr;
     auto &builder_name = *builder_name_ptr;
 
@@ -622,22 +644,25 @@ class DartGenerator : public BaseGenerator {
     code += "  final " + _kFb + ".Builder fbBuilder;\n\n";
 
     if (struct_def.fixed) {
-      StructBuilderBody(struct_def, code_ptr);
+      StructBuilderBody(struct_def, non_deprecated_fields, code_ptr);
     } else {
-      TableBuilderBody(struct_def, code_ptr);
+      TableBuilderBody(struct_def, non_deprecated_fields, code_ptr);
     }
 
     code += "}\n\n";
   }
 
-  void StructBuilderBody(const StructDef &struct_def, std::string *code_ptr) {
+  void StructBuilderBody(
+      const StructDef &struct_def,
+      std::vector<std::pair<int, FieldDef *>> non_deprecated_fields,
+      std::string *code_ptr) {
     auto &code = *code_ptr;
 
     code += "  int finish(";
-    for (auto it = struct_def.fields.vec.begin();
-         it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
-      if (field.deprecated) continue;
+    for (auto it = non_deprecated_fields.begin();
+         it != non_deprecated_fields.end(); ++it) {
+      auto pair = *it;
+      auto &field = *pair.second;
 
       if (IsStruct(field.value.type)) {
         code += "fb.StructBuilder";
@@ -646,15 +671,14 @@ class DartGenerator : public BaseGenerator {
                                 field);
       }
       code += " " + field.name;
-      if (it != struct_def.fields.vec.end() - 1) { code += ", "; }
+      if (it != non_deprecated_fields.end() - 1) { code += ", "; }
     }
     code += ") {\n";
 
-    for (auto it = struct_def.fields.vec.rbegin();
-         it != struct_def.fields.vec.rend(); ++it) {
-      auto &field = **it;
-
-      if (field.deprecated) continue;
+    for (auto it = non_deprecated_fields.rbegin();
+         it != non_deprecated_fields.rend(); ++it) {
+      auto pair = *it;
+      auto &field = *pair.second;
 
       if (field.padding) {
         code += "    fbBuilder.pad(" + NumToString(field.padding) + ");\n";
@@ -673,19 +697,21 @@ class DartGenerator : public BaseGenerator {
     code += "  }\n\n";
   }
 
-  void TableBuilderBody(const StructDef &struct_def, std::string *code_ptr) {
+  void TableBuilderBody(
+      const StructDef &struct_def,
+      std::vector<std::pair<int, FieldDef *>> non_deprecated_fields,
+      std::string *code_ptr) {
     auto &code = *code_ptr;
 
     code += "  void begin() {\n";
     code += "    fbBuilder.startTable();\n";
     code += "  }\n\n";
 
-    for (auto it = struct_def.fields.vec.begin();
-         it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
-      if (field.deprecated) continue;
-
-      auto offset = it - struct_def.fields.vec.begin();
+    for (auto it = non_deprecated_fields.begin();
+         it != non_deprecated_fields.end(); ++it) {
+      auto pair = *it;
+      auto &field = *pair.second;
+      auto offset = pair.first;
 
       if (IsScalar(field.value.type.base_type)) {
         code += "  int add" + MakeCamel(field.name) + "(";
@@ -716,16 +742,19 @@ class DartGenerator : public BaseGenerator {
     code += "  }\n";
   }
 
-  void GenObjectBuilder(const StructDef &struct_def,
-                        std::string *builder_name_ptr, std::string *code_ptr) {
+  void GenObjectBuilder(
+      const StructDef &struct_def,
+      std::vector<std::pair<int, FieldDef *>> non_deprecated_fields,
+      std::string *builder_name_ptr, std::string *code_ptr) {
     auto &code = *code_ptr;
     auto &builder_name = *builder_name_ptr;
 
     code += "class " + builder_name + " extends " + _kFb + ".ObjectBuilder {\n";
-    for (auto it = struct_def.fields.vec.begin();
-         it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
-      if (field.deprecated) continue;
+    for (auto it = non_deprecated_fields.begin();
+         it != non_deprecated_fields.end(); ++it) {
+      auto pair = *it;
+      auto &field = *pair.second;
+
       code += "  final " +
               GenDartTypeName(field.value.type, struct_def.defined_namespace,
                               field, true) +
@@ -733,14 +762,14 @@ class DartGenerator : public BaseGenerator {
     }
     code += "\n";
     code += "  " + builder_name + "(";
-    if (struct_def.fields.vec.size() != 0) {
-      code +=
 
-          "{\n";
-      for (auto it = struct_def.fields.vec.begin();
-           it != struct_def.fields.vec.end(); ++it) {
-        auto &field = **it;
-        if (field.deprecated) continue;
+    if (non_deprecated_fields.size() != 0) {
+      code += "{\n";
+      for (auto it = non_deprecated_fields.begin();
+           it != non_deprecated_fields.end(); ++it) {
+        auto pair = *it;
+        auto &field = *pair.second;
+
         code += "    " +
                 GenDartTypeName(field.value.type, struct_def.defined_namespace,
                                 field, true) +
@@ -748,13 +777,14 @@ class DartGenerator : public BaseGenerator {
       }
       code += "  })\n";
       code += "      : ";
-      for (auto it = struct_def.fields.vec.begin();
-           it != struct_def.fields.vec.end(); ++it) {
-        auto &field = **it;
-        if (field.deprecated) continue;
+      for (auto it = non_deprecated_fields.begin();
+           it != non_deprecated_fields.end(); ++it) {
+        auto pair = *it;
+        auto &field = *pair.second;
+
         code += "_" + MakeCamel(field.name, false) + " = " +
                 MakeCamel(field.name, false);
-        if (it == struct_def.fields.vec.end() - 1) {
+        if (it == non_deprecated_fields.end() - 1) {
           code += ";\n\n";
         } else {
           code += ",\n        ";
@@ -770,10 +800,11 @@ class DartGenerator : public BaseGenerator {
     code += "    " + _kFb + ".Builder fbBuilder) {\n";
     code += "    assert(fbBuilder != null);\n";
 
-    for (auto it = struct_def.fields.vec.begin();
-         it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
-      if (field.deprecated) continue;
+    for (auto it = non_deprecated_fields.begin();
+         it != non_deprecated_fields.end(); ++it) {
+      auto pair = *it;
+      auto &field = *pair.second;
+
       if (IsScalar(field.value.type.base_type) || IsStruct(field.value.type))
         continue;
 
@@ -813,9 +844,9 @@ class DartGenerator : public BaseGenerator {
 
     code += "\n";
     if (struct_def.fixed) {
-      StructObjectBuilderBody(struct_def, code_ptr);
+      StructObjectBuilderBody(non_deprecated_fields, code_ptr);
     } else {
-      TableObjectBuilderBody(struct_def, code_ptr);
+      TableObjectBuilderBody(non_deprecated_fields, code_ptr);
     }
     code += "  }\n\n";
 
@@ -830,16 +861,15 @@ class DartGenerator : public BaseGenerator {
     code += "}\n";
   }
 
-  void StructObjectBuilderBody(const StructDef &struct_def,
-                               std::string *code_ptr,
-                               bool prependUnderscore = true) {
+  void StructObjectBuilderBody(
+      std::vector<std::pair<int, FieldDef *>> non_deprecated_fields,
+      std::string *code_ptr, bool prependUnderscore = true) {
     auto &code = *code_ptr;
 
-    for (auto it = struct_def.fields.vec.rbegin();
-         it != struct_def.fields.vec.rend(); ++it) {
-      auto &field = **it;
-
-      if (field.deprecated) continue;
+    for (auto it = non_deprecated_fields.rbegin();
+         it != non_deprecated_fields.rend(); ++it) {
+      auto pair = *it;
+      auto &field = *pair.second;
 
       if (field.padding) {
         code += "    fbBuilder.pad(" + NumToString(field.padding) + ");\n";
@@ -861,19 +891,18 @@ class DartGenerator : public BaseGenerator {
     code += "    return fbBuilder.offset;\n";
   }
 
-  void TableObjectBuilderBody(const StructDef &struct_def,
-                              std::string *code_ptr,
-                              bool prependUnderscore = true) {
+  void TableObjectBuilderBody(
+      std::vector<std::pair<int, FieldDef *>> non_deprecated_fields,
+      std::string *code_ptr, bool prependUnderscore = true) {
     std::string &code = *code_ptr;
     code += "    fbBuilder.startTable();\n";
 
-    for (auto it = struct_def.fields.vec.begin();
-         it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
+    for (auto it = non_deprecated_fields.begin();
+         it != non_deprecated_fields.end(); ++it) {
+      auto pair = *it;
+      auto &field = *pair.second;
+      auto offset = pair.first;
 
-      if (field.deprecated) continue;
-
-      auto offset = it - struct_def.fields.vec.begin();
       if (IsScalar(field.value.type.base_type)) {
         code += "    fbBuilder.add" + GenType(field.value.type) + "(" +
                 NumToString(offset) + ", ";
@@ -913,7 +942,9 @@ std::string DartMakeRule(const Parser &parser, const std::string &path,
 
   auto filebase =
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
-  auto make_rule = GeneratedFileName(path, filebase) + ": ";
+  dart::DartGenerator generator(parser, path, file_name);
+  auto make_rule =
+      generator.GeneratedFileName(path, file_name, parser.opts) + ": ";
 
   auto included_files = parser.GetIncludedFilesRecursive(file_name);
   for (auto it = included_files.begin(); it != included_files.end(); ++it) {

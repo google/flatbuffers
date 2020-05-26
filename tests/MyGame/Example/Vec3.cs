@@ -6,6 +6,7 @@ namespace MyGame.Example
 {
 
 using global::System;
+using global::System.Collections.Generic;
 using global::FlatBuffers;
 
 public struct Vec3 : IFlatbufferObject
@@ -43,7 +44,57 @@ public struct Vec3 : IFlatbufferObject
     builder.PutFloat(X);
     return new Offset<MyGame.Example.Vec3>(builder.Offset);
   }
+  public Vec3T UnPack() {
+    var _o = new Vec3T();
+    this.UnPackTo(_o);
+    return _o;
+  }
+  public void UnPackTo(Vec3T _o) {
+    _o.X = this.X;
+    _o.Y = this.Y;
+    _o.Z = this.Z;
+    _o.Test1 = this.Test1;
+    _o.Test2 = this.Test2;
+    _o.Test3 = this.Test3.UnPack();
+  }
+  public static Offset<MyGame.Example.Vec3> Pack(FlatBufferBuilder builder, Vec3T _o) {
+    if (_o == null) return default(Offset<MyGame.Example.Vec3>);
+    return CreateVec3(
+      builder,
+      _o.X,
+      _o.Y,
+      _o.Z,
+      _o.Test1,
+      _o.Test2,
+      _o.Test3.A,
+      _o.Test3.B);
+  }
 };
+
+public class Vec3T
+{
+  [Newtonsoft.Json.JsonProperty("x")]
+  public float X { get; set; }
+  [Newtonsoft.Json.JsonProperty("y")]
+  public float Y { get; set; }
+  [Newtonsoft.Json.JsonProperty("z")]
+  public float Z { get; set; }
+  [Newtonsoft.Json.JsonProperty("test1")]
+  public double Test1 { get; set; }
+  [Newtonsoft.Json.JsonProperty("test2")]
+  public MyGame.Example.Color Test2 { get; set; }
+  [Newtonsoft.Json.JsonProperty("test3")]
+  public MyGame.Example.TestT Test3 { get; set; }
+
+  public Vec3T() {
+    this.X = 0.0f;
+    this.Y = 0.0f;
+    this.Z = 0.0f;
+    this.Test1 = 0.0;
+    this.Test2 = 0;
+    this.Test3 = new MyGame.Example.TestT();
+  }
+}
 
 
 }

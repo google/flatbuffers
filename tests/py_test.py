@@ -539,6 +539,7 @@ def CheckReadBuffer(buf, offset, sizePrefix=False, file_identifier=None):
         # test prior to removal of size_prefix
         asserter(util.GetBufferIdentifier(buf, offset, size_prefixed=sizePrefix) == file_identifier)
         asserter(util.BufferHasIdentifier(buf, offset, file_identifier=file_identifier, size_prefixed=sizePrefix))
+        asserter(MyGame.Example.Monster.Monster.MonsterBufferHasIdentifier(buf, offset, size_prefixed=sizePrefix))
     if sizePrefix:
         size = util.GetSizePrefix(buf, offset)
         asserter(size == len(buf[offset:])-4)
@@ -2367,6 +2368,13 @@ def main():
        sys.exit(1)
 
     kwargs = dict(argv=sys.argv[:-3])
+
+    # show whether numpy is present, as it changes the test logic:
+    try:
+        import numpy
+        print('numpy available')
+    except ImportError:
+        print('numpy not available')
 
     # run tests, and run some language comparison checks if needed:
     success = backward_compatible_run_tests(**kwargs)

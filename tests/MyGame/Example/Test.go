@@ -11,7 +11,7 @@ type TestT struct {
 	B int8
 }
 
-func TestPack(builder *flatbuffers.Builder, t *TestT) flatbuffers.UOffsetT {
+func (t *TestT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil { return 0 }
 	return CreateTest(builder, t.A, t.B)
 }
