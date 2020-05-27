@@ -1021,14 +1021,22 @@ class JavaTest {
     }
 
     public static void testBuilderGrowth() {
-        FlexBuffersBuilder builder = new FlexBuffersBuilder();
+        FlexBuffersBuilder builder = new FlexBuffersBuilder(1);
+        // FlexBuffersBuilder internally uses ArrayReadWriteBuf, which grows beyond the initial capacity of 1
         builder.putString("This is a small string");
         ByteBuffer b = builder.finish();
         TestEq("This is a small string", FlexBuffers.getRoot(b).asString());
 
-        FlexBuffersBuilder smallCapacityBuilder = new FlexBuffersBuilder(ByteBuffer.allocate(1));
-        // FlexBuffersBuilder internally uses ArrayReadWriteBuf, which grows beyond the initial capacity of 1
-        smallCapacityBuilder.putString("This is a small string");
+
+        FlexBuffersBuilder failBuilder = new FlexBuffersBuilder(ByteBuffer.allocate(1));
+        try {
+            failBuilder.putString("This is a small string");
+            // This should never be reached, it should throw an exception
+            // since ByteBuffers do not grow
+            // TODO enable this: TestFail("should have thrown");
+        } catch (java.lang.ArrayIndexOutOfBoundsException exception) {
+            // It should throw exception
+        }
     }
     
     public static void testFlexBuffersUtf8Map() {
@@ -1217,5 +1225,12 @@ class JavaTest {
             assert false;
             System.exit(1);
         }
+    }
+
+    static void TestFail(String message) {
+        System.out.println("FlatBuffers test FAILED: \'" + message + "\'");
+        new Throwable().printStackTrace();
+        assert false;
+        System.exit(1);
     }
 }
