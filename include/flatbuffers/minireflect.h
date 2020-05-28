@@ -38,7 +38,7 @@ struct IterationVisitor {
   // These mark the scope of a table or struct.
   virtual void StartSequence() {}
   virtual void EndSequence() {}
-  // Called for each field regardless of wether it is present or not.
+  // Called for each field regardless of whether it is present or not.
   // If not present, val == nullptr. set_idx is the index of all set fields.
   virtual void Field(size_t /*field_idx*/, size_t /*set_idx*/,
                      ElementaryType /*type*/, bool /*is_vector*/,
@@ -88,7 +88,8 @@ inline size_t InlineSize(ElementaryType type, const TypeTable *type_table) {
       switch (type_table->st) {
         case ST_TABLE:
         case ST_UNION: return 4;
-        case ST_STRUCT: return static_cast<size_t>(type_table->values[type_table->num_elems]);
+        case ST_STRUCT:
+          return static_cast<size_t>(type_table->values[type_table->num_elems]);
         default: FLATBUFFERS_ASSERT(false); return 1;
       }
     default: FLATBUFFERS_ASSERT(false); return 1;

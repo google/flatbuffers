@@ -5,13 +5,81 @@
 namespace MyGame.Example
 {
 
+[Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
 public enum Any : byte
 {
- NONE = 0,
- Monster = 1,
- TestSimpleTableWithEnum = 2,
- MyGame_Example2_Monster = 3,
+  NONE = 0,
+  Monster = 1,
+  TestSimpleTableWithEnum = 2,
+  MyGame_Example2_Monster = 3,
 };
+
+public class AnyUnion {
+  public Any Type { get; set; }
+  public object Value { get; set; }
+
+  public AnyUnion() {
+    this.Type = Any.NONE;
+    this.Value = null;
+  }
+
+  public T As<T>() where T : class { return this.Value as T; }
+  public MyGame.Example.MonsterT AsMonster() { return this.As<MyGame.Example.MonsterT>(); }
+  internal MyGame.Example.TestSimpleTableWithEnumT AsTestSimpleTableWithEnum() { return this.As<MyGame.Example.TestSimpleTableWithEnumT>(); }
+  public MyGame.Example2.MonsterT AsMyGame_Example2_Monster() { return this.As<MyGame.Example2.MonsterT>(); }
+
+  public static int Pack(FlatBuffers.FlatBufferBuilder builder, AnyUnion _o) {
+    switch (_o.Type) {
+      default: return 0;
+      case Any.Monster: return MyGame.Example.Monster.Pack(builder, _o.AsMonster()).Value;
+      case Any.TestSimpleTableWithEnum: return MyGame.Example.TestSimpleTableWithEnum.Pack(builder, _o.AsTestSimpleTableWithEnum()).Value;
+      case Any.MyGame_Example2_Monster: return MyGame.Example2.Monster.Pack(builder, _o.AsMyGame_Example2_Monster()).Value;
+    }
+  }
+}
+
+public class AnyUnion_JsonConverter : Newtonsoft.Json.JsonConverter {
+  public override bool CanConvert(System.Type objectType) {
+    return objectType == typeof(AnyUnion) || objectType == typeof(System.Collections.Generic.List<AnyUnion>);
+  }
+  public override void WriteJson(Newtonsoft.Json.JsonWriter writer, object value, Newtonsoft.Json.JsonSerializer serializer) {
+    var _olist = value as System.Collections.Generic.List<AnyUnion>;
+    if (_olist != null) {
+      writer.WriteStartArray();
+      foreach (var _o in _olist) { this.WriteJson(writer, _o, serializer); }
+      writer.WriteEndArray();
+    } else {
+      this.WriteJson(writer, value as AnyUnion, serializer);
+    }
+  }
+  public void WriteJson(Newtonsoft.Json.JsonWriter writer, AnyUnion _o, Newtonsoft.Json.JsonSerializer serializer) {
+    if (_o == null) return;
+    serializer.Serialize(writer, _o.Value);
+  }
+  public override object ReadJson(Newtonsoft.Json.JsonReader reader, System.Type objectType, object existingValue, Newtonsoft.Json.JsonSerializer serializer) {
+    var _olist = existingValue as System.Collections.Generic.List<AnyUnion>;
+    if (_olist != null) {
+      for (var _j = 0; _j < _olist.Count; ++_j) {
+        reader.Read();
+        _olist[_j] = this.ReadJson(reader, _olist[_j], serializer);
+      }
+      reader.Read();
+      return _olist;
+    } else {
+      return this.ReadJson(reader, existingValue as AnyUnion, serializer);
+    }
+  }
+  public AnyUnion ReadJson(Newtonsoft.Json.JsonReader reader, AnyUnion _o, Newtonsoft.Json.JsonSerializer serializer) {
+    if (_o == null) return null;
+    switch (_o.Type) {
+      default: break;
+      case Any.Monster: _o.Value = serializer.Deserialize<MyGame.Example.MonsterT>(reader); break;
+      case Any.TestSimpleTableWithEnum: _o.Value = serializer.Deserialize<MyGame.Example.TestSimpleTableWithEnumT>(reader); break;
+      case Any.MyGame_Example2_Monster: _o.Value = serializer.Deserialize<MyGame.Example2.MonsterT>(reader); break;
+    }
+    return _o;
+  }
+}
 
 
 }

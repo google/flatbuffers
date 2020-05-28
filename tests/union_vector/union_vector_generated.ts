@@ -13,6 +13,39 @@ export enum Character{
   Unused= 6
 };
 
+export function unionToCharacter(
+  type: Character,
+  accessor: (obj:Attacker|BookReader|Rapunzel|string) => Attacker|BookReader|Rapunzel|string|null
+): Attacker|BookReader|Rapunzel|string|null {
+  switch(Character[type]) {
+    case 'NONE': return null; 
+    case 'MuLan': return accessor(new Attacker())! as Attacker;
+    case 'Rapunzel': return accessor(new Rapunzel())! as Rapunzel;
+    case 'Belle': return accessor(new BookReader())! as BookReader;
+    case 'BookFan': return accessor(new BookReader())! as BookReader;
+    case 'Other': return accessor('') as string;
+    case 'Unused': return accessor('') as string;
+    default: return null;
+  }
+}
+
+export function unionListToCharacter(
+  type: Character, 
+  accessor: (index: number, obj:Attacker|BookReader|Rapunzel|string) => Attacker|BookReader|Rapunzel|string|null, 
+  index: number
+): Attacker|BookReader|Rapunzel|string|null {
+  switch(Character[type]) {
+    case 'NONE': return null; 
+    case 'MuLan': return accessor(index, new Attacker())! as Attacker;
+    case 'Rapunzel': return accessor(index, new Rapunzel())! as Rapunzel;
+    case 'Belle': return accessor(index, new BookReader())! as BookReader;
+    case 'BookFan': return accessor(index, new BookReader())! as BookReader;
+    case 'Other': return accessor(index, '') as string;
+    case 'Unused': return accessor(index, '') as string;
+    default: return null;
+  }
+}
+
 /**
  * @constructor
  */
@@ -37,7 +70,17 @@ __init(i:number, bb:flatbuffers.ByteBuffer):Attacker {
  * @returns Attacker
  */
 static getRootAsAttacker(bb:flatbuffers.ByteBuffer, obj?:Attacker):Attacker {
-  return (obj || new Attacker).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  return (obj || new Attacker()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param flatbuffers.ByteBuffer bb
+ * @param Attacker= obj
+ * @returns Attacker
+ */
+static getSizePrefixedRootAsAttacker(bb:flatbuffers.ByteBuffer, obj?:Attacker):Attacker {
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new Attacker()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
 /**
@@ -92,6 +135,42 @@ static createAttacker(builder:flatbuffers.Builder, swordAttackDamage:number):fla
   Attacker.addSwordAttackDamage(builder, swordAttackDamage);
   return Attacker.endAttacker(builder);
 }
+
+/**
+ * @returns AttackerT
+ */
+unpack(): AttackerT {
+  return new AttackerT(
+    this.swordAttackDamage()
+  );
+};
+
+/**
+ * @param AttackerT _o
+ */
+unpackTo(_o: AttackerT): void {
+  _o.swordAttackDamage = this.swordAttackDamage();
+};
+}
+
+export class AttackerT {
+/**
+ * @constructor
+ * @param number swordAttackDamage
+ */
+constructor(
+  public swordAttackDamage: number = 0
+){};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @returns flatbuffers.Offset
+ */
+pack(builder:flatbuffers.Builder): flatbuffers.Offset {
+  return Attacker.createAttacker(builder,
+    this.swordAttackDamage
+  );
+};
 }
 /**
  * @constructor
@@ -144,6 +223,42 @@ static createRapunzel(builder:flatbuffers.Builder, hair_length: number):flatbuff
   return builder.offset();
 };
 
+
+/**
+ * @returns RapunzelT
+ */
+unpack(): RapunzelT {
+  return new RapunzelT(
+    this.hairLength()
+  );
+};
+
+/**
+ * @param RapunzelT _o
+ */
+unpackTo(_o: RapunzelT): void {
+  _o.hairLength = this.hairLength();
+};
+}
+
+export class RapunzelT {
+/**
+ * @constructor
+ * @param number hairLength
+ */
+constructor(
+  public hairLength: number = 0
+){};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @returns flatbuffers.Offset
+ */
+pack(builder:flatbuffers.Builder): flatbuffers.Offset {
+  return Rapunzel.createRapunzel(builder,
+    this.hairLength
+  );
+};
 }
 /**
  * @constructor
@@ -196,6 +311,42 @@ static createBookReader(builder:flatbuffers.Builder, books_read: number):flatbuf
   return builder.offset();
 };
 
+
+/**
+ * @returns BookReaderT
+ */
+unpack(): BookReaderT {
+  return new BookReaderT(
+    this.booksRead()
+  );
+};
+
+/**
+ * @param BookReaderT _o
+ */
+unpackTo(_o: BookReaderT): void {
+  _o.booksRead = this.booksRead();
+};
+}
+
+export class BookReaderT {
+/**
+ * @constructor
+ * @param number booksRead
+ */
+constructor(
+  public booksRead: number = 0
+){};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @returns flatbuffers.Offset
+ */
+pack(builder:flatbuffers.Builder): flatbuffers.Offset {
+  return BookReader.createBookReader(builder,
+    this.booksRead
+  );
+};
 }
 /**
  * @constructor
@@ -221,7 +372,17 @@ __init(i:number, bb:flatbuffers.ByteBuffer):Movie {
  * @returns Movie
  */
 static getRootAsMovie(bb:flatbuffers.ByteBuffer, obj?:Movie):Movie {
-  return (obj || new Movie).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  return (obj || new Movie()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param flatbuffers.ByteBuffer bb
+ * @param Movie= obj
+ * @returns Movie
+ */
+static getSizePrefixedRootAsMovie(bb:flatbuffers.ByteBuffer, obj?:Movie):Movie {
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new Movie()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
 /**
@@ -241,27 +402,12 @@ mainCharacterType():Character {
 };
 
 /**
- * @param Character value
- * @returns boolean
- */
-mutate_main_character_type(value:Character):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 4);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint8(this.bb_pos + offset, value);
-  return true;
-};
-
-/**
  * @param flatbuffers.Table obj
  * @returns ?flatbuffers.Table
  */
-mainCharacter<T extends flatbuffers.Table>(obj:T):T|null {
+mainCharacter<T extends flatbuffers.Table>(obj:T|string):T|string|null {
   var offset = this.bb!.__offset(this.bb_pos, 6);
-  return offset ? this.bb!.__union(obj, this.bb_pos + offset) : null;
+  return offset ? this.bb!.__union_with_string(obj, this.bb_pos + offset) : null;
 };
 
 /**
@@ -294,9 +440,9 @@ charactersTypeArray():Uint8Array|null {
  * @param flatbuffers.Table= obj
  * @returns ?flatbuffers.Table
  */
-characters<T extends flatbuffers.Table>(index: number, obj:T):T|null {
+characters<T extends flatbuffers.Table>(index: number, obj:T|string):T|string|null {
   var offset = this.bb!.__offset(this.bb_pos, 10);
-  return offset ? this.bb!.__union(obj, this.bb!.__vector(this.bb_pos + offset) + index * 4) : null;
+  return offset ? this.bb!.__union_with_string(obj, this.bb!.__vector(this.bb_pos + offset) + index * 4) : null;
 };
 
 /**
@@ -405,6 +551,14 @@ static finishMovieBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset)
   builder.finish(offset, 'MOVI');
 };
 
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset offset
+ */
+static finishSizePrefixedMovieBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
+  builder.finish(offset, 'MOVI', true);
+};
+
 static createMovie(builder:flatbuffers.Builder, mainCharacterType:Character, mainCharacterOffset:flatbuffers.Offset, charactersTypeOffset:flatbuffers.Offset, charactersOffset:flatbuffers.Offset):flatbuffers.Offset {
   Movie.startMovie(builder);
   Movie.addMainCharacterType(builder, mainCharacterType);
@@ -413,4 +567,93 @@ static createMovie(builder:flatbuffers.Builder, mainCharacterType:Character, mai
   Movie.addCharacters(builder, charactersOffset);
   return Movie.endMovie(builder);
 }
+
+/**
+ * @returns MovieT
+ */
+unpack(): MovieT {
+  return new MovieT(
+    this.mainCharacterType(),
+    (() => {
+      let temp = unionToCharacter(this.mainCharacterType(), this.mainCharacter.bind(this));
+      if(temp === null) { return null; }
+      if(typeof temp === 'string') { return temp; }
+      return temp.unpack()
+  })(),
+    this.bb!.createScalarList(this.charactersType.bind(this), this.charactersTypeLength()),
+    (() => {
+    let ret = [];
+    for(let targetEnumIndex = 0; targetEnumIndex < this.charactersTypeLength(); ++targetEnumIndex) {
+      let targetEnum = this.charactersType(targetEnumIndex);
+      if(targetEnum === null || Character[targetEnum!] === 'NONE') { continue; }
+
+      let temp = unionListToCharacter(targetEnum, this.characters.bind(this), targetEnumIndex);
+      if(temp === null) { continue; }
+      if(typeof temp === 'string') { ret.push(temp); continue; }
+      ret.push(temp.unpack());
+    }
+    return ret;
+  })()
+  );
+};
+
+/**
+ * @param MovieT _o
+ */
+unpackTo(_o: MovieT): void {
+  _o.mainCharacterType = this.mainCharacterType();
+  _o.mainCharacter = (() => {
+      let temp = unionToCharacter(this.mainCharacterType(), this.mainCharacter.bind(this));
+      if(temp === null) { return null; }
+      if(typeof temp === 'string') { return temp; }
+      return temp.unpack()
+  })();
+  _o.charactersType = this.bb!.createScalarList(this.charactersType.bind(this), this.charactersTypeLength());
+  _o.characters = (() => {
+    let ret = [];
+    for(let targetEnumIndex = 0; targetEnumIndex < this.charactersTypeLength(); ++targetEnumIndex) {
+      let targetEnum = this.charactersType(targetEnumIndex);
+      if(targetEnum === null || Character[targetEnum!] === 'NONE') { continue; }
+
+      let temp = unionListToCharacter(targetEnum, this.characters.bind(this), targetEnumIndex);
+      if(temp === null) { continue; }
+      if(typeof temp === 'string') { ret.push(temp); continue; }
+      ret.push(temp.unpack());
+    }
+    return ret;
+  })();
+};
+}
+
+export class MovieT {
+/**
+ * @constructor
+ * @param Character mainCharacterType
+ * @param AttackerT|BookReaderT|RapunzelT|string|null mainCharacter
+ * @param (Character)[] charactersType
+ * @param (AttackerT|BookReaderT|RapunzelT|string)[] characters
+ */
+constructor(
+  public mainCharacterType: Character = Character.NONE,
+  public mainCharacter: AttackerT|BookReaderT|RapunzelT|string|null = null,
+  public charactersType: (Character)[] = [],
+  public characters: (AttackerT|BookReaderT|RapunzelT|string)[] = []
+){};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @returns flatbuffers.Offset
+ */
+pack(builder:flatbuffers.Builder): flatbuffers.Offset {
+  const mainCharacter = builder.createObjectOffset(this.mainCharacter);
+  const charactersType = Movie.createCharactersTypeVector(builder, this.charactersType);
+  const characters = Movie.createCharactersVector(builder, builder.createObjectOffsetList(this.characters));
+
+  return Movie.createMovie(builder,
+    this.mainCharacterType,
+    mainCharacter,
+    charactersType,
+    characters
+  );
+};
 }

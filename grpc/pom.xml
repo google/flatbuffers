@@ -4,7 +4,7 @@
     <groupId>com.google.flatbuffers</groupId>
     <artifactId>flatbuffers-parent</artifactId>
     <packaging>pom</packaging>
-    <version>1.11.0</version>
+    <version>1.12.0</version>
     <name>flatbuffers-parent</name>
     <description>parent pom for flatbuffers java artifacts</description>
     <properties>
@@ -185,6 +185,12 @@
                         <goals>
                             <goal>sign</goal>
                         </goals>
+                        <configuration>
+                            <gpgArguments>
+                                <arg>--pinentry-mode</arg>
+                                <arg>loopback</arg>
+                            </gpgArguments>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

@@ -3,6 +3,8 @@
 # namespace: Example
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class Test(object):
     __slots__ = ['_tab']
@@ -22,3 +24,34 @@ def CreateTest(builder, a, b):
     builder.PrependInt8(b)
     builder.PrependInt16(a)
     return builder.Offset()
+
+
+class TestT(object):
+
+    # TestT
+    def __init__(self):
+        self.a = 0  # type: int
+        self.b = 0  # type: int
+
+    @classmethod
+    def InitFromBuf(cls, buf, pos):
+        test = Test()
+        test.Init(buf, pos)
+        return cls.InitFromObj(test)
+
+    @classmethod
+    def InitFromObj(cls, test):
+        x = TestT()
+        x._UnPack(test)
+        return x
+
+    # TestT
+    def _UnPack(self, test):
+        if test is None:
+            return
+        self.a = test.A()
+        self.b = test.B()
+
+    # TestT
+    def Pack(self, builder):
+        return CreateTest(builder, self.a, self.b)

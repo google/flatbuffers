@@ -54,6 +54,16 @@ NamespaceA.TableInFirstNS.getRootAsTableInFirstNS = function(bb, obj) {
 };
 
 /**
+ * @param {flatbuffers.ByteBuffer} bb
+ * @param {NamespaceA.TableInFirstNS=} obj
+ * @returns {NamespaceA.TableInFirstNS}
+ */
+NamespaceA.TableInFirstNS.getSizePrefixedRootAsTableInFirstNS = function(bb, obj) {
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new NamespaceA.TableInFirstNS).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
  * @param {NamespaceA.NamespaceB.TableInNestedNS=} obj
  * @returns {NamespaceA.NamespaceB.TableInNestedNS|null}
  */
@@ -135,21 +145,6 @@ NamespaceA.TableInFirstNS.endTableInFirstNS = function(builder) {
 };
 
 /**
- * @param {flatbuffers.Builder} builder
- * @param {flatbuffers.Offset} fooTableOffset
- * @param {NS8755221360535654258.NamespaceA.NamespaceB.EnumInNestedNS} fooEnum
- * @param {flatbuffers.Offset} fooStructOffset
- * @returns {flatbuffers.Offset}
- */
-NamespaceA.TableInFirstNS.createTableInFirstNS = function(builder, fooTableOffset, fooEnum, fooStructOffset) {
-  NamespaceA.TableInFirstNS.startTableInFirstNS(builder);
-  NamespaceA.TableInFirstNS.addFooTable(builder, fooTableOffset);
-  NamespaceA.TableInFirstNS.addFooEnum(builder, fooEnum);
-  NamespaceA.TableInFirstNS.addFooStruct(builder, fooStructOffset);
-  return NamespaceA.TableInFirstNS.endTableInFirstNS(builder);
-}
-
-/**
  * @constructor
  */
 NamespaceC.TableInC = function() {
@@ -181,6 +176,16 @@ NamespaceC.TableInC.prototype.__init = function(i, bb) {
  * @returns {NamespaceC.TableInC}
  */
 NamespaceC.TableInC.getRootAsTableInC = function(bb, obj) {
+  return (obj || new NamespaceC.TableInC).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param {flatbuffers.ByteBuffer} bb
+ * @param {NamespaceC.TableInC=} obj
+ * @returns {NamespaceC.TableInC}
+ */
+NamespaceC.TableInC.getSizePrefixedRootAsTableInC = function(bb, obj) {
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
   return (obj || new NamespaceC.TableInC).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
@@ -235,19 +240,6 @@ NamespaceC.TableInC.endTableInC = function(builder) {
 };
 
 /**
- * @param {flatbuffers.Builder} builder
- * @param {flatbuffers.Offset} referToA1Offset
- * @param {flatbuffers.Offset} referToA2Offset
- * @returns {flatbuffers.Offset}
- */
-NamespaceC.TableInC.createTableInC = function(builder, referToA1Offset, referToA2Offset) {
-  NamespaceC.TableInC.startTableInC(builder);
-  NamespaceC.TableInC.addReferToA1(builder, referToA1Offset);
-  NamespaceC.TableInC.addReferToA2(builder, referToA2Offset);
-  return NamespaceC.TableInC.endTableInC(builder);
-}
-
-/**
  * @constructor
  */
 NamespaceA.SecondTableInA = function() {
@@ -279,6 +271,16 @@ NamespaceA.SecondTableInA.prototype.__init = function(i, bb) {
  * @returns {NamespaceA.SecondTableInA}
  */
 NamespaceA.SecondTableInA.getRootAsSecondTableInA = function(bb, obj) {
+  return (obj || new NamespaceA.SecondTableInA).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param {flatbuffers.ByteBuffer} bb
+ * @param {NamespaceA.SecondTableInA=} obj
+ * @returns {NamespaceA.SecondTableInA}
+ */
+NamespaceA.SecondTableInA.getSizePrefixedRootAsSecondTableInA = function(bb, obj) {
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
   return (obj || new NamespaceA.SecondTableInA).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 

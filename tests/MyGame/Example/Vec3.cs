@@ -6,13 +6,14 @@ namespace MyGame.Example
 {
 
 using global::System;
+using global::System.Collections.Generic;
 using global::FlatBuffers;
 
 public struct Vec3 : IFlatbufferObject
 {
   private Struct __p;
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
-  public void __init(int _i, ByteBuffer _bb) { __p.bb_pos = _i; __p.bb = _bb; }
+  public void __init(int _i, ByteBuffer _bb) { __p = new Struct(_i, _bb); }
   public Vec3 __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public float X { get { return __p.bb.GetFloat(__p.bb_pos + 0); } }
@@ -23,11 +24,11 @@ public struct Vec3 : IFlatbufferObject
   public void MutateZ(float z) { __p.bb.PutFloat(__p.bb_pos + 8, z); }
   public double Test1 { get { return __p.bb.GetDouble(__p.bb_pos + 16); } }
   public void MutateTest1(double test1) { __p.bb.PutDouble(__p.bb_pos + 16, test1); }
-  public Color Test2 { get { return (Color)__p.bb.GetSbyte(__p.bb_pos + 24); } }
-  public void MutateTest2(Color test2) { __p.bb.PutSbyte(__p.bb_pos + 24, (sbyte)test2); }
-  public Test Test3 { get { return (new Test()).__assign(__p.bb_pos + 26, __p.bb); } }
+  public MyGame.Example.Color Test2 { get { return (MyGame.Example.Color)__p.bb.Get(__p.bb_pos + 24); } }
+  public void MutateTest2(MyGame.Example.Color test2) { __p.bb.Put(__p.bb_pos + 24, (byte)test2); }
+  public MyGame.Example.Test Test3 { get { return (new MyGame.Example.Test()).__assign(__p.bb_pos + 26, __p.bb); } }
 
-  public static Offset<Vec3> CreateVec3(FlatBufferBuilder builder, float X, float Y, float Z, double Test1, Color Test2, short test3_A, sbyte test3_B) {
+  public static Offset<MyGame.Example.Vec3> CreateVec3(FlatBufferBuilder builder, float X, float Y, float Z, double Test1, MyGame.Example.Color Test2, short test3_A, sbyte test3_B) {
     builder.Prep(8, 32);
     builder.Pad(2);
     builder.Prep(2, 4);
@@ -35,15 +36,67 @@ public struct Vec3 : IFlatbufferObject
     builder.PutSbyte(test3_B);
     builder.PutShort(test3_A);
     builder.Pad(1);
-    builder.PutSbyte((sbyte)Test2);
+    builder.PutByte((byte)Test2);
     builder.PutDouble(Test1);
     builder.Pad(4);
     builder.PutFloat(Z);
     builder.PutFloat(Y);
     builder.PutFloat(X);
-    return new Offset<Vec3>(builder.Offset);
+    return new Offset<MyGame.Example.Vec3>(builder.Offset);
+  }
+  public Vec3T UnPack() {
+    var _o = new Vec3T();
+    this.UnPackTo(_o);
+    return _o;
+  }
+  public void UnPackTo(Vec3T _o) {
+    _o.X = this.X;
+    _o.Y = this.Y;
+    _o.Z = this.Z;
+    _o.Test1 = this.Test1;
+    _o.Test2 = this.Test2;
+    _o.Test3 = this.Test3.UnPack();
+  }
+  public static Offset<MyGame.Example.Vec3> Pack(FlatBufferBuilder builder, Vec3T _o) {
+    if (_o == null) return default(Offset<MyGame.Example.Vec3>);
+    var _test3_a = _o.Test3.A;
+    var _test3_b = _o.Test3.B;
+    return CreateVec3(
+      builder,
+      _o.X,
+      _o.Y,
+      _o.Z,
+      _o.Test1,
+      _o.Test2,
+      _test3_a,
+      _test3_b);
   }
 };
+
+public class Vec3T
+{
+  [Newtonsoft.Json.JsonProperty("x")]
+  public float X { get; set; }
+  [Newtonsoft.Json.JsonProperty("y")]
+  public float Y { get; set; }
+  [Newtonsoft.Json.JsonProperty("z")]
+  public float Z { get; set; }
+  [Newtonsoft.Json.JsonProperty("test1")]
+  public double Test1 { get; set; }
+  [Newtonsoft.Json.JsonProperty("test2")]
+  public MyGame.Example.Color Test2 { get; set; }
+  [Newtonsoft.Json.JsonProperty("test3")]
+  public MyGame.Example.TestT Test3 { get; set; }
+
+  public Vec3T() {
+    this.X = 0.0f;
+    this.Y = 0.0f;
+    this.Z = 0.0f;
+    this.Test1 = 0.0;
+    this.Test2 = 0;
+    this.Test3 = new MyGame.Example.TestT();
+  }
+}
 
 
 }

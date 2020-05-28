@@ -1,6 +1,12 @@
 *_wire.txt
 *_wire.bin
 .DS_Store
+**/.build
+**/Packages
+/*.xcodeproj
+**/xcuserdata/
+**/xcshareddata/
+**/.swiftpm/
 *.o
 *.o.d
 *.class
@@ -66,6 +72,7 @@ tests/monsterdata_rust_wire.mon
 tests/unicode_test.mon
 tests/ts/
 tests/php/
+tests/js/
 CMakeLists.txt.user
 CMakeScripts/**
 CTestTestfile.cmake
@@ -116,3 +123,6 @@ dart/doc/api/
 Cargo.lock
 .corpus**
 .seed**
+grpc/google/
+**/Package.resolved
+.clangd/**

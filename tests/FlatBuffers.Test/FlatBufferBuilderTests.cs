@@ -24,7 +24,7 @@ namespace FlatBuffers.Test
         private FlatBufferBuilder CreateBuffer(bool forceDefaults = true)
         {
             var fbb = new FlatBufferBuilder(16) {ForceDefaults = forceDefaults};
-            fbb.StartObject(1);
+            fbb.StartTable(1);
             return fbb;
         }
 

@@ -35,7 +35,7 @@ The test code itself is located in
 [test.cpp](https://github.com/google/flatbuffers/blob/master/tests/test.cpp).
 
 This test file is built alongside `flatc`. To review how to build the project,
-please read the [Building](@ref flatbuffers_guide_building) documenation.
+please read the [Building](@ref flatbuffers_guide_building) documentation.
 
 To run the tests, execute `flattests` from the root `flatbuffers/` directory.
 For example, on [Linux](https://en.wikipedia.org/wiki/Linux), you would simply
@@ -114,15 +114,15 @@ To use:
     MonsterT monsterobj;
 
     // Deserialize from buffer into object.
-    UnPackTo(&monsterobj, flatbuffer);
+    GetMonster(flatbuffer)->UnPackTo(&monsterobj);
 
     // Update object directly like a C++ class instance.
-    cout << monsterobj->name;  // This is now a std::string!
-    monsterobj->name = "Bob";  // Change the name.
+    cout << monsterobj.name;  // This is now a std::string!
+    monsterobj.name = "Bob";  // Change the name.
 
     // Serialize into new flatbuffer.
     FlatBufferBuilder fbb;
-    Pack(fbb, &monsterobj);
+    fbb.Finish(Monster::Pack(fbb, &monsterobj));
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following attributes are specific to the object-based API code generation:
@@ -426,6 +426,8 @@ it, this will provide you an easy way to use that data directly.
 (see the schema documentation for some specifics on the JSON format
 accepted).
 
+Schema evolution compatibility for the JSON format follows the same rules as the binary format (JSON formatted data will be forwards/backwards compatible with schemas that evolve in a compatible way).
+
 There are two ways to use text formats:
 
 #### Using the compiler as a conversion tool
@@ -477,7 +479,7 @@ include paths. If not specified, any include statements try to resolve from
 the current directory.
 
 If there were any parsing errors, `Parse` will return `false`, and
-`Parser::err` contains a human readable error string with a line number
+`Parser::error_` contains a human readable error string with a line number
 etc, which you should present to the creator of that file.
 
 After each JSON file, the `Parser::fbb` member variable is the
@@ -546,21 +548,63 @@ locale-independent or locale-narrow functions `strtof_l`, `strtod_l`,
 These functions use specified locale rather than the global or per-thread
 locale instead. They are part of POSIX-2008 but not part of the C/C++
 standard library, therefore, may be missing on some platforms.
-
 The Flatbuffers library try to detect these functions at configuration and
 compile time:
-- `_MSC_VER >= 1900`: check MSVC2012 or higher for MSVC buid
-- `_XOPEN_SOURCE>=700`: check POSIX-2008 for GCC/Clang build
-- `check_cxx_symbol_exists(strtof_l stdlib.h)`: CMake check of `strtod_f`
+- CMake `"CMakeLists.txt"`:
+  - Check existence of `strtol_l` and `strtod_l` in the `<stdlib.h>`.
+- Compile-time `"/include/base.h"`:
+  - `_MSC_VER >= 1900`: MSVC2012 or higher if build with MSVC.
+  - `_XOPEN_SOURCE>=700`: POSIX-2008 if build with GCC/Clang.
 
 After detection, the definition `FLATBUFFERS_LOCALE_INDEPENDENT` will be
 set to `0` or `1`.
+To override or stop this detection use CMake `-DFLATBUFFERS_LOCALE_INDEPENDENT={0|1}`
+or predefine `FLATBUFFERS_LOCALE_INDEPENDENT` symbol.
 
-It is possible to test the compatibility of the Flatbuffers library with
-a specific locale using the environment variable `FLATBUFFERS_TEST_LOCALE`:
+To test the compatibility of the Flatbuffers library with
+a specific locale use the environment variable `FLATBUFFERS_TEST_LOCALE`:
 ```sh
 >FLATBUFFERS_TEST_LOCALE="" ./flattests
 >FLATBUFFERS_TEST_LOCALE="ru_RU.CP1251" ./flattests
 ```
+
+## Support of floating-point numbers
+The Flatbuffers library assumes that a C++ compiler and a CPU are
+compatible with the `IEEE-754` floating-point standard.
+The schema and json parser may fail if `fast-math` or `/fp:fast` mode is active.
+
+### Support of hexadecimal and special floating-point numbers
+According to the [grammar](@ref flatbuffers_grammar) `fbs` and `json` files
+may use hexadecimal and special (`NaN`, `Inf`) floating-point literals.
+The Flatbuffers uses `strtof` and `strtod` functions to parse floating-point
+literals. The Flatbuffers library has a code to detect a compiler compatibility
+with the literals. If necessary conditions are met the preprocessor constant
+`FLATBUFFERS_HAS_NEW_STRTOD` will be set to `1`.
+The support of floating-point literals will be limited at compile time
+if `FLATBUFFERS_HAS_NEW_STRTOD` constant is less than `1`.
+In this case, schemas with hexadecimal or special literals cannot be used.
+
+### Comparison of floating-point NaN values
+The floating-point `NaN` (`not a number`) is special value which
+representing an undefined or unrepresentable value.
+`NaN` may be explicitly assigned to variables, typically as a representation
+for missing values or may be a result of a mathematical operation.
+The `IEEE-754` defines two kind of `NaNs`:
+- Quiet NaNs, or `qNaNs`.
+- Signaling NaNs, or `sNaNs`.
+
+According to the `IEEE-754`, a comparison with `NaN` always returns
+an unordered result even when compared with itself. As a result, a whole
+Flatbuffers object will be not equal to itself if has one or more `NaN`.
+Flatbuffers scalar fields that have the default value are not actually stored
+in the serialized data but are generated in code (see [Writing a schema](@ref flatbuffers_guide_writing_schema)).
+Scalar fields with `NaN` defaults break this behavior.
+If a schema has a lot of `NaN` defaults the Flatbuffers can override
+the unordered comparison by the ordered: `(NaN==NaN)->true`.
+This ordered comparison is enabled when compiling a program with the symbol
+`FLATBUFFERS_NAN_DEFAULTS` defined.
+Additional computations added by `FLATBUFFERS_NAN_DEFAULTS` are very cheap
+if GCC or Clang used. These compilers have a compile-time implementation
+of `isnan` checking which MSVC does not.
 
 <br>

@@ -5,6 +5,8 @@
 Rules for building C++ flatbuffers with Bazel.
 """
 
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
 flatc_path = "@com_github_google_flatbuffers//:flatc"
 
 DEFAULT_INCLUDE_PATHS = [
@@ -32,7 +34,9 @@ def flatbuffer_library_public(
         include_paths = DEFAULT_INCLUDE_PATHS,
         flatc_args = DEFAULT_FLATC_ARGS,
         reflection_name = "",
-        reflection_visiblity = None,
+        reflection_visibility = None,
+        compatible_with = None,
+        restricted_to = None,
         output_to_bindir = False):
     """Generates code files for reading/writing the given flatbuffers in the requested language using the public compiler.
 
@@ -48,7 +52,12 @@ def flatbuffer_library_public(
       flatc_args: Optional, list of additional arguments to pass to flatc.
       reflection_name: Optional, if set this will generate the flatbuffer
         reflection binaries for the schemas.
-      reflection_visiblity: The visibility of the generated reflection Fileset.
+      reflection_visibility: The visibility of the generated reflection Fileset.
+      output_to_bindir: Passed to genrule for output to bin directory.
+      compatible_with: Optional, The list of environments this rule can be
+        built for, in addition to default-supported environments.
+      restricted_to: Optional, The list of environments this rule can be built
+        for, instead of default-supported environments.
       output_to_bindir: Passed to genrule for output to bin directory.
 
 
@@ -82,6 +91,8 @@ def flatbuffer_library_public(
         output_to_bindir = output_to_bindir,
         tools = [flatc_path],
         cmd = genrule_cmd,
+        compatible_with = compatible_with,
+        restricted_to = restricted_to,
         message = "Generating flatbuffer files for %s:" % (name),
     )
     if reflection_name:
@@ -107,16 +118,17 @@ def flatbuffer_library_public(
             outs = reflection_outs,
             output_to_bindir = output_to_bindir,
             tools = [flatc_path],
+            compatible_with = compatible_with,
+            restricted_to = restricted_to,
             cmd = reflection_genrule_cmd,
             message = "Generating flatbuffer reflection binary for %s:" % (name),
         )
-        native.Fileset(
-            name = reflection_name,
-            out = "%s_out" % reflection_name,
-            entries = [
-                native.FilesetEntry(files = reflection_outs),
-            ],
-            visibility = reflection_visiblity,
+        native.filegroup(
+            name = "%s_out" % reflection_name,
+            srcs = reflection_outs,
+            visibility = reflection_visibility,
+            compatible_with = compatible_with,
+            restricted_to = restricted_to,
         )
 
 def flatbuffer_cc_library(
@@ -128,6 +140,8 @@ def flatbuffer_cc_library(
         include_paths = DEFAULT_INCLUDE_PATHS,
         flatc_args = DEFAULT_FLATC_ARGS,
         visibility = None,
+        compatible_with = None,
+        restricted_to = None,
         srcs_filegroup_visibility = None,
         gen_reflections = False):
     '''A cc_library with the generated reader/writers for the given flatbuffer definitions.
@@ -151,6 +165,10 @@ def flatbuffer_cc_library(
           By default, use the value of the visibility parameter above.
       gen_reflections: Optional, if true this will generate the flatbuffer
         reflection binaries for the schemas.
+      compatible_with: Optional, The list of environments this rule can be built
+        for, in addition to default-supported environments.
+      restricted_to: Optional, The list of environments this rule can be built
+        for, instead of default-supported environments.
 
     This produces:
       filegroup([name]_srcs): all generated .h files.
@@ -206,10 +224,12 @@ def flatbuffer_cc_library(
         includes = includes,
         include_paths = include_paths,
         flatc_args = flatc_args,
+        compatible_with = compatible_with,
+        restricted_to = restricted_to,
         reflection_name = reflection_name,
-        reflection_visiblity = visibility,
+        reflection_visibility = visibility,
     )
-    native.cc_library(
+    cc_library(
         name = name,
         hdrs = [
             ":" + srcs_lib,
@@ -224,6 +244,8 @@ def flatbuffer_cc_library(
             "@com_github_google_flatbuffers//:runtime_cc",
         ],
         includes = [],
+        compatible_with = compatible_with,
+        restricted_to = restricted_to,
         linkstatic = 1,
         visibility = visibility,
     )
@@ -233,5 +255,7 @@ def flatbuffer_cc_library(
     native.filegroup(
         name = srcs_filegroup_name if srcs_filegroup_name else "%s_includes" % (name),
         srcs = srcs,
+        compatible_with = compatible_with,
+        restricted_to = restricted_to,
         visibility = srcs_filegroup_visibility if srcs_filegroup_visibility != None else visibility,
     )

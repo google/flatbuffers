@@ -7,6 +7,7 @@
 #include "flatbuffers/flatbuffers.h"
 
 struct Attacker;
+struct AttackerBuilder;
 struct AttackerT;
 
 struct Rapunzel;
@@ -14,6 +15,7 @@ struct Rapunzel;
 struct BookReader;
 
 struct Movie;
+struct MovieBuilder;
 struct MovieT;
 
 bool operator==(const AttackerT &lhs, const AttackerT &rhs);
@@ -59,7 +61,7 @@ inline const Character (&EnumValuesCharacter())[7] {
 }
 
 inline const char * const *EnumNamesCharacter() {
-  static const char * const names[] = {
+  static const char * const names[8] = {
     "NONE",
     "MuLan",
     "Rapunzel",
@@ -73,7 +75,7 @@ inline const char * const *EnumNamesCharacter() {
 }
 
 inline const char *EnumNameCharacter(Character e) {
-  if (e < Character_NONE || e > Character_Unused) return "";
+  if (flatbuffers::IsOutRange(e, Character_NONE, Character_Unused)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesCharacter()[index];
 }
@@ -86,8 +88,8 @@ struct CharacterUnion {
   CharacterUnion(CharacterUnion&& u) FLATBUFFERS_NOEXCEPT :
     type(Character_NONE), value(nullptr)
     { std::swap(type, u.type); std::swap(value, u.value); }
-  CharacterUnion(const CharacterUnion &) FLATBUFFERS_NOEXCEPT;
-  CharacterUnion &operator=(const CharacterUnion &u) FLATBUFFERS_NOEXCEPT
+  CharacterUnion(const CharacterUnion &);
+  CharacterUnion &operator=(const CharacterUnion &u)
     { CharacterUnion t(u); std::swap(type, t.type); std::swap(value, t.value); return *this; }
   CharacterUnion &operator=(CharacterUnion &&u) FLATBUFFERS_NOEXCEPT
     { std::swap(type, u.type); std::swap(value, u.value); return *this; }
@@ -278,6 +280,7 @@ inline bool operator!=(const AttackerT &lhs, const AttackerT &rhs) {
 
 struct Attacker FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef AttackerT NativeTableType;
+  typedef AttackerBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return AttackerTypeTable();
   }
@@ -301,6 +304,7 @@ struct Attacker FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct AttackerBuilder {
+  typedef Attacker Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_sword_attack_damage(int32_t sword_attack_damage) {
@@ -310,7 +314,6 @@ struct AttackerBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  AttackerBuilder &operator=(const AttackerBuilder &);
   flatbuffers::Offset<Attacker> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Attacker>(end);
@@ -349,6 +352,7 @@ inline bool operator!=(const MovieT &lhs, const MovieT &rhs) {
 
 struct Movie FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MovieT NativeTableType;
+  typedef MovieBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return MovieTypeTable();
   }
@@ -360,9 +364,6 @@ struct Movie FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   };
   Character main_character_type() const {
     return static_cast<Character>(GetField<uint8_t>(VT_MAIN_CHARACTER_TYPE, 0));
-  }
-  bool mutate_main_character_type(Character _main_character_type) {
-    return SetField<uint8_t>(VT_MAIN_CHARACTER_TYPE, static_cast<uint8_t>(_main_character_type), 0);
   }
   const void *main_character() const {
     return GetPointer<const void *>(VT_MAIN_CHARACTER);
@@ -418,6 +419,7 @@ struct Movie FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct MovieBuilder {
+  typedef Movie Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_main_character_type(Character main_character_type) {
@@ -436,7 +438,6 @@ struct MovieBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  MovieBuilder &operator=(const MovieBuilder &);
   flatbuffers::Offset<Movie> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Movie>(end);
@@ -477,15 +478,15 @@ inline flatbuffers::Offset<Movie> CreateMovieDirect(
 flatbuffers::Offset<Movie> CreateMovie(flatbuffers::FlatBufferBuilder &_fbb, const MovieT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 inline AttackerT *Attacker::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new AttackerT();
-  UnPackTo(_o, _resolver);
-  return _o;
+  flatbuffers::unique_ptr<AttackerT> _o = flatbuffers::unique_ptr<AttackerT>(new AttackerT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void Attacker::UnPackTo(AttackerT *_o, const flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = sword_attack_damage(); _o->sword_attack_damage = _e; };
+  { auto _e = sword_attack_damage(); _o->sword_attack_damage = _e; }
 }
 
 inline flatbuffers::Offset<Attacker> Attacker::Pack(flatbuffers::FlatBufferBuilder &_fbb, const AttackerT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
@@ -503,18 +504,18 @@ inline flatbuffers::Offset<Attacker> CreateAttacker(flatbuffers::FlatBufferBuild
 }
 
 inline MovieT *Movie::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new MovieT();
-  UnPackTo(_o, _resolver);
-  return _o;
+  flatbuffers::unique_ptr<MovieT> _o = flatbuffers::unique_ptr<MovieT>(new MovieT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void Movie::UnPackTo(MovieT *_o, const flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = main_character_type(); _o->main_character.type = _e; };
-  { auto _e = main_character(); if (_e) _o->main_character.value = CharacterUnion::UnPack(_e, main_character_type(), _resolver); };
-  { auto _e = characters_type(); if (_e) { _o->characters.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->characters[_i].type = static_cast<Character>(_e->Get(_i)); } } };
-  { auto _e = characters(); if (_e) { _o->characters.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->characters[_i].value = CharacterUnion::UnPack(_e->Get(_i), characters_type()->GetEnum<Character>(_i), _resolver); } } };
+  { auto _e = main_character_type(); _o->main_character.type = _e; }
+  { auto _e = main_character(); if (_e) _o->main_character.value = CharacterUnion::UnPack(_e, main_character_type(), _resolver); }
+  { auto _e = characters_type(); if (_e) { _o->characters.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->characters[_i].type = static_cast<Character>(_e->Get(_i)); } } }
+  { auto _e = characters(); if (_e) { _o->characters.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->characters[_i].value = CharacterUnion::UnPack(_e->Get(_i), characters_type()->GetEnum<Character>(_i), _resolver); } } }
 }
 
 inline flatbuffers::Offset<Movie> Movie::Pack(flatbuffers::FlatBufferBuilder &_fbb, const MovieT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
@@ -563,7 +564,7 @@ inline bool VerifyCharacter(flatbuffers::Verifier &verifier, const void *obj, Ch
       auto ptr = reinterpret_cast<const flatbuffers::String *>(obj);
       return verifier.VerifyString(ptr);
     }
-    default: return false;
+    default: return true;
   }
 }
 
@@ -639,7 +640,7 @@ inline flatbuffers::Offset<void> CharacterUnion::Pack(flatbuffers::FlatBufferBui
   }
 }
 
-inline CharacterUnion::CharacterUnion(const CharacterUnion &u) FLATBUFFERS_NOEXCEPT : type(u.type), value(nullptr) {
+inline CharacterUnion::CharacterUnion(const CharacterUnion &u) : type(u.type), value(nullptr) {
   switch (type) {
     case Character_MuLan: {
       value = new AttackerT(*reinterpret_cast<AttackerT *>(u.value));
@@ -848,6 +849,12 @@ inline flatbuffers::unique_ptr<MovieT> UnPackMovie(
     const void *buf,
     const flatbuffers::resolver_function_t *res = nullptr) {
   return flatbuffers::unique_ptr<MovieT>(GetMovie(buf)->UnPack(res));
+}
+
+inline flatbuffers::unique_ptr<MovieT> UnPackSizePrefixedMovie(
+    const void *buf,
+    const flatbuffers::resolver_function_t *res = nullptr) {
+  return flatbuffers::unique_ptr<MovieT>(GetSizePrefixedMovie(buf)->UnPack(res));
 }
 
 #endif  // FLATBUFFERS_GENERATED_UNIONVECTOR_H_

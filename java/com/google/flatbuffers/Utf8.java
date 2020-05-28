@@ -18,9 +18,13 @@ package com.google.flatbuffers;
 
 import java.nio.ByteBuffer;
 
+import static java.lang.Character.MAX_SURROGATE;
+import static java.lang.Character.MIN_SURROGATE;
 import static java.lang.Character.MIN_HIGH_SURROGATE;
 import static java.lang.Character.MIN_LOW_SURROGATE;
 import static java.lang.Character.MIN_SUPPLEMENTARY_CODE_POINT;
+import static java.lang.Character.isSurrogatePair;
+import static java.lang.Character.toCodePoint;
 
 public abstract class Utf8 {
 
@@ -74,6 +78,56 @@ public abstract class Utf8 {
   }
 
   /**
+   * Encode a Java's CharSequence UTF8 codepoint into a byte array.
+   * @param in CharSequence to be encoded
+   * @param start start position of the first char in the codepoint
+   * @param out byte array of 4 bytes to be filled
+   * @return return the amount of bytes occupied by the codepoint
+   */
+  public static int encodeUtf8CodePoint(CharSequence in, int start, byte[] out) {
+    // utf8 codepoint needs at least 4 bytes
+    assert out.length >= 4;
+
+    final int inLength = in.length();
+    if (start >= inLength) {
+      return 0;
+    }
+
+    char c = in.charAt(start);
+     if (c < 0x80) {
+       // One byte (0xxx xxxx)
+       out[0] = (byte) c;
+       return 1;
+     } else if (c < 0x800) {
+      // Two bytes (110x xxxx 10xx xxxx)
+      out[0] = (byte) (0xC0 | (c >>> 6));
+      out[1] = (byte) (0x80 | (0x3F & c));
+      return 2;
+    } else if (c < MIN_SURROGATE || MAX_SURROGATE < c) {
+      // Three bytes (1110 xxxx 10xx xxxx 10xx xxxx)
+      // Maximum single-char code point is 0xFFFF, 16 bits.
+      out[0] = (byte) (0xE0 | (c >>> 12));
+      out[1] =(byte) (0x80 | (0x3F & (c >>> 6)));
+      out[2] = (byte) (0x80 | (0x3F & c));
+      return 3;
+    } else {
+      // Four bytes (1111 xxxx 10xx xxxx 10xx xxxx 10xx xxxx)
+      // Minimum code point represented by a surrogate pair is 0x10000, 17 bits, four UTF-8
+      // bytes
+      final char low;
+      if (start + 1 == inLength || !isSurrogatePair(c, (low = in.charAt(start+1)))) {
+        throw new UnpairedSurrogateException(start, inLength);
+      }
+      int codePoint = toCodePoint(c, low);
+      out[0] = (byte) ((0xF << 4) | (codePoint >>> 18));
+      out[1] = (byte) (0x80 | (0x3F & (codePoint >>> 12)));
+      out[2] = (byte) (0x80 | (0x3F & (codePoint >>> 6)));
+      out[3] = (byte) (0x80 | (0x3F & codePoint));
+      return 4;
+    }
+  }
+
+  /**
    * Utility methods for decoding bytes into {@link String}. Callers are responsible for extracting
    * bytes (possibly using Unsafe methods), and checking remaining bytes. All other UTF-8 validity
    * checks and codepoint conversion happen in this class.
@@ -110,9 +164,11 @@ public abstract class Utf8 {
         throws IllegalArgumentException {
       // Simultaneously checks for illegal trailing-byte in leading position (<= '11000000') and
       // overlong 2-byte, '11000001'.
-      if (byte1 < (byte) 0xC2
-              || isNotTrailingByte(byte2)) {
-        throw new IllegalArgumentException("Invalid UTF-8");
+      if (byte1 < (byte) 0xC2) {
+        throw new IllegalArgumentException("Invalid UTF-8: Illegal leading byte in 2 bytes utf");
+      }
+      if (isNotTrailingByte(byte2)) {
+        throw new IllegalArgumentException("Invalid UTF-8: Illegal trailing byte in 2 bytes utf");
       }
       resultArr[resultPos] = (char) (((byte1 & 0x1F) << 6) | trailingByteValue(byte2));
     }

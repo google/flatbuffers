@@ -18,9 +18,6 @@
 
 extern int main(int argc, char **argv);
 
-void android_main(android_app *app) {
-  // Make sure glue isn't stripped.
-  app_dummy();
-
+void android_main(android_app *) {
   main(0, NULL);
 }

@@ -753,7 +753,9 @@ INPUT = "FlatBuffers.md" \
         "CUsage.md" \
         "DartUsage.md" \
         "GoUsage.md" \
-        "JavaCsharpUsage.md" \
+        "JavaUsage.md" \
+        "CsharpUsage.md" \
+        "SwiftUsage.md" \
         "JavaScriptUsage.md" \
         "TypeScriptUsage.md" \
         "PHPUsage.md" \
@@ -778,7 +780,7 @@ INPUT = "FlatBuffers.md" \
         "../../php/FlatbufferBuilder.php" \
         "../../net/FlatBuffers/FlatBufferBuilder.cs" \
         "../../include/flatbuffers/flatbuffers.h" \
-        "../../go/builder.go"
+        "../../go/builder.go" \
         "../../rust/flatbuffers/src/builder.rs"
 
 # This tag can be used to specify the character encoding of the source files

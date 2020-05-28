@@ -27,7 +27,7 @@ pub struct Table<'a> {
 impl<'a> Table<'a> {
     #[inline]
     pub fn new(buf: &'a [u8], loc: usize) -> Self {
-        Table { buf: buf, loc: loc }
+        Table { buf, loc }
     }
     #[inline]
     pub fn vtable(&self) -> VTable<'a> {
@@ -51,7 +51,7 @@ impl<'a> Follow<'a> for Table<'a> {
     type Inner = Table<'a>;
     #[inline]
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Table { buf: buf, loc: loc }
+        Table { buf, loc }
     }
 }
 

@@ -6,15 +6,17 @@ namespace MyGame.Example
 {
 
 using global::System;
+using global::System.Collections.Generic;
 using global::FlatBuffers;
 
 public struct TypeAliases : IFlatbufferObject
 {
   private Table __p;
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
+  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_1_12_0(); }
   public static TypeAliases GetRootAsTypeAliases(ByteBuffer _bb) { return GetRootAsTypeAliases(_bb, new TypeAliases()); }
   public static TypeAliases GetRootAsTypeAliases(ByteBuffer _bb, TypeAliases obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
-  public void __init(int _i, ByteBuffer _bb) { __p.bb_pos = _i; __p.bb = _bb; }
+  public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
   public TypeAliases __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public sbyte I8 { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetSbyte(o + __p.bb_pos) : (sbyte)0; } }
@@ -40,7 +42,7 @@ public struct TypeAliases : IFlatbufferObject
   public sbyte V8(int j) { int o = __p.__offset(24); return o != 0 ? __p.bb.GetSbyte(__p.__vector(o) + j * 1) : (sbyte)0; }
   public int V8Length { get { int o = __p.__offset(24); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetV8Bytes() { return __p.__vector_as_span(24); }
+  public Span<sbyte> GetV8Bytes() { return __p.__vector_as_span<sbyte>(24, 1); }
 #else
   public ArraySegment<byte>? GetV8Bytes() { return __p.__vector_as_arraysegment(24); }
 #endif
@@ -49,14 +51,14 @@ public struct TypeAliases : IFlatbufferObject
   public double Vf64(int j) { int o = __p.__offset(26); return o != 0 ? __p.bb.GetDouble(__p.__vector(o) + j * 8) : (double)0; }
   public int Vf64Length { get { int o = __p.__offset(26); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetVf64Bytes() { return __p.__vector_as_span(26); }
+  public Span<double> GetVf64Bytes() { return __p.__vector_as_span<double>(26, 8); }
 #else
   public ArraySegment<byte>? GetVf64Bytes() { return __p.__vector_as_arraysegment(26); }
 #endif
   public double[] GetVf64Array() { return __p.__vector_as_array<double>(26); }
   public bool MutateVf64(int j, double vf64) { int o = __p.__offset(26); if (o != 0) { __p.bb.PutDouble(__p.__vector(o) + j * 8, vf64); return true; } else { return false; } }
 
-  public static Offset<TypeAliases> CreateTypeAliases(FlatBufferBuilder builder,
+  public static Offset<MyGame.Example.TypeAliases> CreateTypeAliases(FlatBufferBuilder builder,
       sbyte i8 = 0,
       byte u8 = 0,
       short i16 = 0,
@@ -69,7 +71,7 @@ public struct TypeAliases : IFlatbufferObject
       double f64 = 0.0,
       VectorOffset v8Offset = default(VectorOffset),
       VectorOffset vf64Offset = default(VectorOffset)) {
-    builder.StartObject(12);
+    builder.StartTable(12);
     TypeAliases.AddF64(builder, f64);
     TypeAliases.AddU64(builder, u64);
     TypeAliases.AddI64(builder, i64);
@@ -85,7 +87,7 @@ public struct TypeAliases : IFlatbufferObject
     return TypeAliases.EndTypeAliases(builder);
   }
 
-  public static void StartTypeAliases(FlatBufferBuilder builder) { builder.StartObject(12); }
+  public static void StartTypeAliases(FlatBufferBuilder builder) { builder.StartTable(12); }
   public static void AddI8(FlatBufferBuilder builder, sbyte i8) { builder.AddSbyte(0, i8, 0); }
   public static void AddU8(FlatBufferBuilder builder, byte u8) { builder.AddByte(1, u8, 0); }
   public static void AddI16(FlatBufferBuilder builder, short i16) { builder.AddShort(2, i16, 0); }
@@ -104,11 +106,102 @@ public struct TypeAliases : IFlatbufferObject
   public static VectorOffset CreateVf64Vector(FlatBufferBuilder builder, double[] data) { builder.StartVector(8, data.Length, 8); for (int i = data.Length - 1; i >= 0; i--) builder.AddDouble(data[i]); return builder.EndVector(); }
   public static VectorOffset CreateVf64VectorBlock(FlatBufferBuilder builder, double[] data) { builder.StartVector(8, data.Length, 8); builder.Add(data); return builder.EndVector(); }
   public static void StartVf64Vector(FlatBufferBuilder builder, int numElems) { builder.StartVector(8, numElems, 8); }
-  public static Offset<TypeAliases> EndTypeAliases(FlatBufferBuilder builder) {
-    int o = builder.EndObject();
-    return new Offset<TypeAliases>(o);
+  public static Offset<MyGame.Example.TypeAliases> EndTypeAliases(FlatBufferBuilder builder) {
+    int o = builder.EndTable();
+    return new Offset<MyGame.Example.TypeAliases>(o);
+  }
+  public TypeAliasesT UnPack() {
+    var _o = new TypeAliasesT();
+    this.UnPackTo(_o);
+    return _o;
+  }
+  public void UnPackTo(TypeAliasesT _o) {
+    _o.I8 = this.I8;
+    _o.U8 = this.U8;
+    _o.I16 = this.I16;
+    _o.U16 = this.U16;
+    _o.I32 = this.I32;
+    _o.U32 = this.U32;
+    _o.I64 = this.I64;
+    _o.U64 = this.U64;
+    _o.F32 = this.F32;
+    _o.F64 = this.F64;
+    _o.V8 = new List<sbyte>();
+    for (var _j = 0; _j < this.V8Length; ++_j) {_o.V8.Add(this.V8(_j));}
+    _o.Vf64 = new List<double>();
+    for (var _j = 0; _j < this.Vf64Length; ++_j) {_o.Vf64.Add(this.Vf64(_j));}
+  }
+  public static Offset<MyGame.Example.TypeAliases> Pack(FlatBufferBuilder builder, TypeAliasesT _o) {
+    if (_o == null) return default(Offset<MyGame.Example.TypeAliases>);
+    var _v8 = default(VectorOffset);
+    if (_o.V8 != null) {
+      var __v8 = _o.V8.ToArray();
+      _v8 = CreateV8Vector(builder, __v8);
+    }
+    var _vf64 = default(VectorOffset);
+    if (_o.Vf64 != null) {
+      var __vf64 = _o.Vf64.ToArray();
+      _vf64 = CreateVf64Vector(builder, __vf64);
+    }
+    return CreateTypeAliases(
+      builder,
+      _o.I8,
+      _o.U8,
+      _o.I16,
+      _o.U16,
+      _o.I32,
+      _o.U32,
+      _o.I64,
+      _o.U64,
+      _o.F32,
+      _o.F64,
+      _v8,
+      _vf64);
   }
 };
+
+public class TypeAliasesT
+{
+  [Newtonsoft.Json.JsonProperty("i8")]
+  public sbyte I8 { get; set; }
+  [Newtonsoft.Json.JsonProperty("u8")]
+  public byte U8 { get; set; }
+  [Newtonsoft.Json.JsonProperty("i16")]
+  public short I16 { get; set; }
+  [Newtonsoft.Json.JsonProperty("u16")]
+  public ushort U16 { get; set; }
+  [Newtonsoft.Json.JsonProperty("i32")]
+  public int I32 { get; set; }
+  [Newtonsoft.Json.JsonProperty("u32")]
+  public uint U32 { get; set; }
+  [Newtonsoft.Json.JsonProperty("i64")]
+  public long I64 { get; set; }
+  [Newtonsoft.Json.JsonProperty("u64")]
+  public ulong U64 { get; set; }
+  [Newtonsoft.Json.JsonProperty("f32")]
+  public float F32 { get; set; }
+  [Newtonsoft.Json.JsonProperty("f64")]
+  public double F64 { get; set; }
+  [Newtonsoft.Json.JsonProperty("v8")]
+  public List<sbyte> V8 { get; set; }
+  [Newtonsoft.Json.JsonProperty("vf64")]
+  public List<double> Vf64 { get; set; }
+
+  public TypeAliasesT() {
+    this.I8 = 0;
+    this.U8 = 0;
+    this.I16 = 0;
+    this.U16 = 0;
+    this.I32 = 0;
+    this.U32 = 0;
+    this.I64 = 0;
+    this.U64 = 0;
+    this.F32 = 0.0f;
+    this.F64 = 0.0;
+    this.V8 = null;
+    this.Vf64 = null;
+  }
+}
 
 
 }
