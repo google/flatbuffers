@@ -2869,7 +2869,9 @@ class CppGenerator : public BaseGenerator {
         first_in_init_list = false;
       }
 
-      if (IsArray(field->value.type)) {
+      if (IsStruct(field->value.type) || IsArray(field->value.type)) {
+        // this is either default initialization of struct
+        // or
         // implicit initialization of array
         // for each object in array it:
         // * sets it as zeros for POD types (integral, floating point, etc)
