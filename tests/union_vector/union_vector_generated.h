@@ -203,8 +203,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Rapunzel FLATBUFFERS_FINAL_CLASS {
     return RapunzelTypeTable();
   }
   Rapunzel()
-      : hair_length_(0)
-  {
+      : hair_length_(0) {
   }
   Rapunzel(int32_t _hair_length)
       : hair_length_(flatbuffers::EndianScalar(_hair_length)) {
@@ -237,8 +236,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) BookReader FLATBUFFERS_FINAL_CLASS {
     return BookReaderTypeTable();
   }
   BookReader()
-      : books_read_(0)
-  {
+      : books_read_(0) {
   }
   BookReader(int32_t _books_read)
       : books_read_(flatbuffers::EndianScalar(_books_read)) {

@@ -2894,8 +2894,7 @@ class CppGenerator : public BaseGenerator {
       code_.SetValue("INIT_LIST", init_list);
       code_.SetValue("DEFAULT_CONSTRUCTOR_BODY", body);
       code_ += "  {{STRUCT_NAME}}()";
-      code_ += "      : {{INIT_LIST}}";
-      code_ += "  {";
+      code_ += "      : {{INIT_LIST}} {";
       code_ += "{{DEFAULT_CONSTRUCTOR_BODY}}  }";
     }
   }

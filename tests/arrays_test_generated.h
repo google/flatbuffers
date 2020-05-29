@@ -81,8 +81,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) NestedStruct FLATBUFFERS_FINAL_CLASS {
         c_(),
         padding0__(0),
         padding1__(0),
-        d_()
-  {
+        d_() {
     (void)padding0__;
     (void)padding1__;
   }
@@ -159,8 +158,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) ArrayStruct FLATBUFFERS_FINAL_CLASS {
         d_(),
         e_(0),
         padding3__(0),
-        f_()
-  {
+        f_() {
     (void)padding0__;
     (void)padding1__;
     (void)padding2__;

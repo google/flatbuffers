@@ -595,8 +595,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(2) Test FLATBUFFERS_FINAL_CLASS {
   Test()
       : a_(0),
         b_(0),
-        padding0__(0)
-  {
+        padding0__(0) {
     (void)padding0__;
   }
   Test(int16_t _a, int8_t _b)
@@ -655,8 +654,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vec3 FLATBUFFERS_FINAL_CLASS {
         test2_(0),
         padding1__(0),
         test3_(),
-        padding2__(0)
-  {
+        padding2__(0) {
     (void)padding0__;
     (void)padding1__;
     (void)padding2__;
@@ -737,8 +735,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Ability FLATBUFFERS_FINAL_CLASS {
   }
   Ability()
       : id_(0),
-        distance_(0)
-  {
+        distance_(0) {
   }
   Ability(uint32_t _id, uint32_t _distance)
       : id_(flatbuffers::EndianScalar(_id)),

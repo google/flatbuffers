@@ -33,8 +33,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector3D FLATBUFFERS_FINAL_CLASS {
   Vector3D()
       : x_(0),
         y_(0),
-        z_(0)
-  {
+        z_(0) {
   }
   Vector3D(float _x, float _y, float _z)
       : x_(flatbuffers::EndianScalar(_x)),

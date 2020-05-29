@@ -182,8 +182,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vec3 FLATBUFFERS_FINAL_CLASS {
   Vec3()
       : x_(0),
         y_(0),
-        z_(0)
-  {
+        z_(0) {
   }
   Vec3(float _x, float _y, float _z)
       : x_(flatbuffers::EndianScalar(_x)),
