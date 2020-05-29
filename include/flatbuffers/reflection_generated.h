@@ -54,9 +54,6 @@ enum BaseType {
   Obj = 15,
   Union = 16,
   Array = 17,
-
-  // This line must be the last enum value.
-  // Add any new type above this line.
   CountBaseTypes
 };
 
@@ -81,8 +78,6 @@ inline const BaseType (&EnumValuesBaseType())[18] {
     Union,
     Array
   };
-  static_assert(sizeof(values) / sizeof(BaseType) == CountBaseTypes,
-                "Size of values[] array does not match the count of BaseType enum values.");
   return values;
 }
 
@@ -108,8 +103,6 @@ inline const char * const *EnumNamesBaseType() {
     "Array",
     nullptr
   };
-  static_assert(sizeof(names) / sizeof(char *) == CountBaseTypes + 1,
-                "Size of names[] array does not match the count of BaseType enum values.");
   return names;
 }
 
