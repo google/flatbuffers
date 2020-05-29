@@ -2851,7 +2851,51 @@ class CppGenerator : public BaseGenerator {
 
   static void PaddingNoop(int bits, std::string *code_ptr, int *id) {
     (void)bits;
-    *code_ptr += "    (void)padding" + NumToString((*id)++) + "__;";
+    *code_ptr += "    (void)padding" + NumToString((*id)++) + "__;\n";
+  }
+
+  void GenStructDefaultConstructor(const StructDef &struct_def) {
+    std::string init_list;
+    std::string body;
+    bool first_in_init_list = true;
+    int padding_initializer_id = 0;
+    int padding_body_id = 0;
+    for (const auto field : struct_def.fields.vec) {
+      const auto field_name = field->name + "_";
+
+      if (!first_in_init_list) {
+        init_list += ",\n        ";
+      } else {
+        first_in_init_list = false;
+      }
+
+      if (IsArray(field->value.type)) {
+        // implicit initialization of array
+        // for each object in array it:
+        // * sets it as zeros for POD types (integral, floating point, etc)
+        // * calls default constructor for classes/structs
+        init_list += field_name + "()";
+      } else {
+        init_list += field_name + "(0)";
+      }
+      if (field->padding) {
+        GenPadding(*field, &init_list, &padding_initializer_id,
+                   PaddingInitializer);
+        GenPadding(*field, &body, &padding_body_id, PaddingNoop);
+      }
+    }
+
+    if (init_list.empty()) {
+      code_ += "  {{STRUCT_NAME}}()";
+      code_ += "  {}";
+    } else {
+      code_.SetValue("INIT_LIST", init_list);
+      code_.SetValue("DEFAULT_CONSTRUCTOR_BODY", body);
+      code_ += "  {{STRUCT_NAME}}()";
+      code_ += "      : {{INIT_LIST}}";
+      code_ += "  {";
+      code_ += "{{DEFAULT_CONSTRUCTOR_BODY}}  }";
+    }
   }
 
   void GenStructConstructor(const StructDef &struct_def) {
@@ -2964,10 +3008,7 @@ class CppGenerator : public BaseGenerator {
     GenFullyQualifiedNameGetter(struct_def, Name(struct_def));
 
     // Generate a default constructor.
-    code_ += "  {{STRUCT_NAME}}() {";
-    code_ +=
-        "    memset(static_cast<void *>(this), 0, sizeof({{STRUCT_NAME}}));";
-    code_ += "  }";
+    GenStructDefaultConstructor(struct_def);
 
     // Generate a constructor that takes all fields as arguments,
     // excluding arrays

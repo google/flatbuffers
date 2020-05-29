@@ -75,8 +75,16 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) NestedStruct FLATBUFFERS_FINAL_CLASS {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return NestedStructTypeTable();
   }
-  NestedStruct() {
-    memset(static_cast<void *>(this), 0, sizeof(NestedStruct));
+  NestedStruct()
+      : a_(),
+        b_(0),
+        c_(),
+        padding0__(0),
+        padding1__(0),
+        d_()
+  {
+    (void)padding0__;
+    (void)padding1__;
   }
   NestedStruct(MyGame::Example::TestEnum _b)
       : a_(),
@@ -141,8 +149,22 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) ArrayStruct FLATBUFFERS_FINAL_CLASS {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return ArrayStructTypeTable();
   }
-  ArrayStruct() {
-    memset(static_cast<void *>(this), 0, sizeof(ArrayStruct));
+  ArrayStruct()
+      : a_(0),
+        b_(),
+        c_(0),
+        padding0__(0),
+        padding1__(0),
+        padding2__(0),
+        d_(),
+        e_(0),
+        padding3__(0),
+        f_()
+  {
+    (void)padding0__;
+    (void)padding1__;
+    (void)padding2__;
+    (void)padding3__;
   }
   ArrayStruct(float _a, int8_t _c, int32_t _e)
       : a_(flatbuffers::EndianScalar(_a)),
