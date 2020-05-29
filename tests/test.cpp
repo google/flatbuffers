@@ -3222,6 +3222,22 @@ void FixedLengthArrayTest() {
   // Check alignment
   TEST_EQ(0, reinterpret_cast<uintptr_t>(mArStruct->d()) % 8);
   TEST_EQ(0, reinterpret_cast<uintptr_t>(mArStruct->f()) % 8);
+
+  // Check if default constructor set all memory zero
+  const size_t arr_size = sizeof(MyGame::Example::ArrayStruct);
+  char *non_zero_memory = new char[arr_size];
+  // set memory chunk of size ArrayStruct to 1's
+  std::memset(static_cast<void *>(non_zero_memory), 1, arr_size);
+  // after placement-new it should be all 0's
+  new (non_zero_memory) MyGame::Example::ArrayStruct;
+  bool have_non_zeroes = false;
+  for (size_t i = 0; i < arr_size; ++i) {
+    if (non_zero_memory[i] != 0) {
+      have_non_zeroes = true;
+      break;
+    }
+  }
+  TEST_EQ(have_non_zeroes, false);
 #endif
 }
 
