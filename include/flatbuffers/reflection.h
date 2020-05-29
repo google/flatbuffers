@@ -46,7 +46,9 @@ inline bool IsLong(reflection::BaseType t) {
 // Size of a basic type, don't use with structs.
 inline size_t GetTypeSize(reflection::BaseType base_type) {
   // This needs to correspond to the BaseType enum.
-  static size_t sizes[] = { 0, 1, 1, 1, 1, 2, 2, 4, 4, 8, 8, 4, 8, 4, 4, 4, 4 };
+  static size_t sizes[] = { 0, 1, 1, 1, 1, 2, 2, 4, 4, 8, 8, 4, 8, 4, 4, 4, 4, 0 };
+  static_assert(sizeof(sizes) / sizeof(size_t) == reflection::CountBaseTypes,
+                "Size of sizes[] array does not match the count of BaseType enum values.");
   return sizes[base_type];
 }
 
