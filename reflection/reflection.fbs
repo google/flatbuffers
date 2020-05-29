@@ -27,7 +27,7 @@ enum BaseType : byte {
     Array,
 
     // Add any new type above this value.
-    CountBaseTypes
+    MaxBaseType
 }
 
 table Type {
