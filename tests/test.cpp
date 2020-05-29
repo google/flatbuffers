@@ -3238,6 +3238,7 @@ void FixedLengthArrayTest() {
     }
   }
   TEST_EQ(have_non_zeroes, false);
+  delete[] non_zero_memory;
 #endif
 }
 
