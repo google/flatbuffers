@@ -592,14 +592,17 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(2) Test FLATBUFFERS_FINAL_CLASS {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return TestTypeTable();
   }
-  Test() {
-    memset(static_cast<void *>(this), 0, sizeof(Test));
+  Test()
+      : a_(0),
+        b_(0),
+        padding0__(0)
+  {
+    (void)padding0__;
   }
   Test(int16_t _a, int8_t _b)
       : a_(flatbuffers::EndianScalar(_a)),
         b_(flatbuffers::EndianScalar(_b)),
         padding0__(0) {
-    (void)padding0__;
   }
   int16_t a() const {
     return flatbuffers::EndianScalar(a_);
@@ -643,8 +646,20 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vec3 FLATBUFFERS_FINAL_CLASS {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return Vec3TypeTable();
   }
-  Vec3() {
-    memset(static_cast<void *>(this), 0, sizeof(Vec3));
+  Vec3()
+      : x_(0),
+        y_(0),
+        z_(0),
+        padding0__(0),
+        test1_(0),
+        test2_(0),
+        padding1__(0),
+        test3_(),
+        padding2__(0)
+  {
+    (void)padding0__;
+    (void)padding1__;
+    (void)padding2__;
   }
   Vec3(float _x, float _y, float _z, double _test1, MyGame::Example::Color _test2, const MyGame::Example::Test &_test3)
       : x_(flatbuffers::EndianScalar(_x)),
@@ -656,9 +671,6 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vec3 FLATBUFFERS_FINAL_CLASS {
         padding1__(0),
         test3_(_test3),
         padding2__(0) {
-    (void)padding0__;
-    (void)padding1__;
-    (void)padding2__;
   }
   float x() const {
     return flatbuffers::EndianScalar(x_);
@@ -723,8 +735,10 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Ability FLATBUFFERS_FINAL_CLASS {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return AbilityTypeTable();
   }
-  Ability() {
-    memset(static_cast<void *>(this), 0, sizeof(Ability));
+  Ability()
+      : id_(0),
+        distance_(0)
+  {
   }
   Ability(uint32_t _id, uint32_t _distance)
       : id_(flatbuffers::EndianScalar(_id)),
