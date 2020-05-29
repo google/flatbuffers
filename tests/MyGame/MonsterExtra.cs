@@ -196,7 +196,7 @@ public class MonsterExtraT
   }
   public byte[] SerializeToBinary() {
     var fbb = new FlatBufferBuilder(0x10000);
-    fbb.Finish(MonsterExtra.Pack(fbb, this).Value);
+    MonsterExtra.FinishMonsterExtraBuffer(fbb, MonsterExtra.Pack(fbb, this));
     return fbb.DataBuffer.ToSizedArray();
   }
 }

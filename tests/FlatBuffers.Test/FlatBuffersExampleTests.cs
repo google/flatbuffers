@@ -676,6 +676,7 @@ namespace FlatBuffers.Test
             AreEqual(a, d);
 
             var fbBuffer = b.SerializeToBinary();
+            Assert.IsTrue(Monster.MonsterBufferHasIdentifier(new ByteBuffer(fbBuffer)));
             var e = MonsterT.DeserializeFromBinary(fbBuffer);
             AreEqual(a, e);
         }
@@ -779,6 +780,7 @@ namespace FlatBuffers.Test
             AreEqual(a, d);
 
             var fbBuffer = b.SerializeToBinary();
+            Assert.IsTrue(ArrayTable.ArrayTableBufferHasIdentifier(new ByteBuffer(fbBuffer)));
             var e = ArrayTableT.DeserializeFromBinary(fbBuffer);
             AreEqual(a, e);
         }
@@ -826,6 +828,7 @@ namespace FlatBuffers.Test
             AreEqual(a, d);
 
             var fbBuffer = b.SerializeToBinary();
+            Assert.IsTrue(Movie.MovieBufferHasIdentifier(new ByteBuffer(fbBuffer)));
             var e = MovieT.DeserializeFromBinary(fbBuffer);
             AreEqual(a, e);
         }
