@@ -581,6 +581,14 @@ static inline const char *GetCstring(const String *str) {
   return str ? str->c_str() : "";
 }
 
+#ifdef FLATBUFFERS_HAS_STRING_VIEW
+// Convenience function to get string_view from a String returning an empty
+// string_view on null pointer.
+static inline flatbuffers::string_view GetStringView(const String *str) {
+  return str ? str->string_view() : flatbuffers::string_view();
+}
+#endif // FLATBUFFERS_HAS_STRING_VIEW
+
 // Allocator interface. This is flatbuffers-specific and meant only for
 // `vector_downward` usage.
 class Allocator {
