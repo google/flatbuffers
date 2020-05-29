@@ -79,11 +79,12 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) NestedStruct FLATBUFFERS_FINAL_CLASS {
     memset(static_cast<void *>(this), 0, sizeof(NestedStruct));
   }
   NestedStruct(MyGame::Example::TestEnum _b)
-      : b_(flatbuffers::EndianScalar(static_cast<int8_t>(_b))) {
-    std::memset(a_, 0, sizeof(a_));
-    std::memset(c_, 0, sizeof(c_));
-    (void)padding0__;    (void)padding1__;
-    std::memset(d_, 0, sizeof(d_));
+      : a_(),
+        b_(flatbuffers::EndianScalar(static_cast<int8_t>(_b))),
+        c_(),
+        padding0__(0),
+        padding1__(0),
+        d_() {
   }
   const flatbuffers::Array<int32_t, 2> *a() const {
     return reinterpret_cast<const flatbuffers::Array<int32_t, 2> *>(a_);
@@ -145,17 +146,15 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) ArrayStruct FLATBUFFERS_FINAL_CLASS {
   }
   ArrayStruct(float _a, int8_t _c, int32_t _e)
       : a_(flatbuffers::EndianScalar(_a)),
+        b_(),
         c_(flatbuffers::EndianScalar(_c)),
         padding0__(0),
         padding1__(0),
         padding2__(0),
+        d_(),
         e_(flatbuffers::EndianScalar(_e)),
-        padding3__(0) {
-    std::memset(b_, 0, sizeof(b_));
-    (void)padding0__;    (void)padding1__;    (void)padding2__;
-    std::memset(d_, 0, sizeof(d_));
-    (void)padding3__;
-    std::memset(f_, 0, sizeof(f_));
+        padding3__(0),
+        f_() {
   }
   float a() const {
     return flatbuffers::EndianScalar(a_);
