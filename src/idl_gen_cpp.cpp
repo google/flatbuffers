@@ -2860,15 +2860,20 @@ class CppGenerator : public BaseGenerator {
     bool first_in_init_list = true;
     int padding_initializer_id = 0;
     int padding_body_id = 0;
-    for (const auto field : struct_def.fields.vec) {
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end();
+         ++it) {
+      const auto field = *it;
       const auto field_name = field->name + "_";
 
-      if (!first_in_init_list) {
-        init_list += ",\n        ";
-      } else {
+      if (first_in_init_list) {
         first_in_init_list = false;
+      } else {
+        init_list += ",";
+        init_list += "\n        ";
       }
 
+      init_list += field_name;
       if (IsStruct(field->value.type) || IsArray(field->value.type)) {
         // this is either default initialization of struct
         // or
@@ -2876,9 +2881,9 @@ class CppGenerator : public BaseGenerator {
         // for each object in array it:
         // * sets it as zeros for POD types (integral, floating point, etc)
         // * calls default constructor for classes/structs
-        init_list += field_name + "()";
+        init_list += "()";
       } else {
-        init_list += field_name + "(0)";
+        init_list += "(0)";
       }
       if (field->padding) {
         GenPadding(*field, &init_list, &padding_initializer_id,
@@ -2914,18 +2919,19 @@ class CppGenerator : public BaseGenerator {
       const auto arg_type = GenTypeGet(field_type, " ", "const ", " &", true);
 
       if (!IsArray(field_type)) {
-        if (!first_arg) {
-          arg_list += ", ";
-        } else {
+        if (first_arg) {
           first_arg = false;
+        } else {
+          arg_list += ", ";
         }
         arg_list += arg_type;
         arg_list += arg_name;
       }
-      if (!first_init) {
-        init_list += ",\n        ";
-      } else {
+      if (first_init) {
         first_init = false;
+      } else {
+        init_list += ",";
+        init_list += "\n        ";
       }
       init_list += member_name;
       if (IsScalar(field_type.base_type)) {
