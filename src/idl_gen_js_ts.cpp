@@ -15,10 +15,10 @@
  */
 
 // independent from idl_parser, since this code is not needed for most clients
+#include <algorithm>
 #include <cassert>
 #include <unordered_map>
 #include <unordered_set>
-#include <algorithm>
 
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
@@ -1224,14 +1224,15 @@ class JsTsGenerator : public BaseGenerator {
   }
 
   bool CanCreateFactoryMethod(const StructDef &struct_def) {
-    // to preserve backwards compatibility, we allow the first field to be a struct
-    return struct_def.fields.vec.size() < 2 || std::all_of(
-      std::begin(struct_def.fields.vec) + 1, 
-      std::end(struct_def.fields.vec), 
-      [](const FieldDef *f) -> bool {
-        FLATBUFFERS_ASSERT(f != nullptr);
-        return f->value.type.base_type != BASE_TYPE_STRUCT;
-    });
+    // to preserve backwards compatibility, we allow the first field to be a
+    // struct
+    return struct_def.fields.vec.size() < 2 ||
+           std::all_of(std::begin(struct_def.fields.vec) + 1,
+                       std::end(struct_def.fields.vec),
+                       [](const FieldDef *f) -> bool {
+                         FLATBUFFERS_ASSERT(f != nullptr);
+                         return f->value.type.base_type != BASE_TYPE_STRUCT;
+                       });
   }
 
   // Generate an accessor struct with constructor for a flatbuffers struct.
@@ -1876,7 +1877,7 @@ class JsTsGenerator : public BaseGenerator {
           std::string paramDoc =
               GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder");
           for (auto it = struct_def.fields.vec.begin();
-              it != struct_def.fields.vec.end(); ++it) {
+               it != struct_def.fields.vec.end(); ++it) {
             const auto &field = **it;
             if (field.deprecated) continue;
             paramDoc +=
@@ -1896,7 +1897,7 @@ class JsTsGenerator : public BaseGenerator {
           code += " = function(builder";
         }
         for (auto it = struct_def.fields.vec.begin();
-            it != struct_def.fields.vec.end(); ++it) {
+             it != struct_def.fields.vec.end(); ++it) {
           const auto &field = **it;
           if (field.deprecated) continue;
 
@@ -1920,7 +1921,7 @@ class JsTsGenerator : public BaseGenerator {
         std::string methodPrefix =
             lang_.language == IDLOptions::kTs ? struct_def.name : object_name;
         for (auto it = struct_def.fields.vec.begin();
-            it != struct_def.fields.vec.end(); ++it) {
+             it != struct_def.fields.vec.end(); ++it) {
           const auto &field = **it;
           if (field.deprecated) continue;
 

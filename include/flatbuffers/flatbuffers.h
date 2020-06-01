@@ -587,7 +587,7 @@ static inline const char *GetCstring(const String *str) {
 static inline flatbuffers::string_view GetStringView(const String *str) {
   return str ? str->string_view() : flatbuffers::string_view();
 }
-#endif // FLATBUFFERS_HAS_STRING_VIEW
+#endif  // FLATBUFFERS_HAS_STRING_VIEW
 
 // Allocator interface. This is flatbuffers-specific and meant only for
 // `vector_downward` usage.
@@ -1864,7 +1864,8 @@ class FlatBufferBuilder {
       return a.KeyCompareLessThan(&b);
     }
 
-    FLATBUFFERS_DELETE_FUNC(StructKeyComparator &operator=(const StructKeyComparator &))
+    FLATBUFFERS_DELETE_FUNC(
+        StructKeyComparator &operator=(const StructKeyComparator &))
   };
   /// @endcond
 
