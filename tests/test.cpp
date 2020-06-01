@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include <cmath>
+#include <new>
 
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
