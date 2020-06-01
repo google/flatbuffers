@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 #include <cmath>
-#include <new>
 
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
@@ -3230,7 +3229,13 @@ void FixedLengthArrayTest() {
   // set memory chunk of size ArrayStruct to 1's
   std::memset(static_cast<void *>(non_zero_memory), 1, arr_size);
   // after placement-new it should be all 0's
+#if defined (_MSC_VER) && defined (_DEBUG)
+  #undef new
+#endif
   MyGame::Example::ArrayStruct *ap = new (non_zero_memory) MyGame::Example::ArrayStruct;
+#if defined (_MSC_VER) && defined (_DEBUG)
+  #define new DEBUG_NEW
+#endif
   (void)ap;
   for (size_t i = 0; i < arr_size; ++i) {
     TEST_EQ(non_zero_memory[i], 0);
