@@ -1358,8 +1358,8 @@ class RustGenerator : public BaseGenerator {
           code_ += "      Some({{U_ELEMENT_TABLE_TYPE}}::init_from_table(u))";
         } else {
           code_ +=
-            "      self.{{FIELD_NAME}}().map(|u| "
-            "{{U_ELEMENT_TABLE_TYPE}}::init_from_table(u))";
+              "      self.{{FIELD_NAME}}().map(|u| "
+              "{{U_ELEMENT_TABLE_TYPE}}::init_from_table(u))";
         }
         code_ += "    } else {";
         code_ += "      None";
@@ -1788,7 +1788,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
     if (!parser_.opts.generate_all) {
       for (auto it = parser_.included_files_.begin();
-          it != parser_.included_files_.end(); ++it) {
+           it != parser_.included_files_.end(); ++it) {
         if (it->second.empty()) continue;
         auto noext = flatbuffers::StripExtension(it->second);
         auto basename = flatbuffers::StripPath(noext);
