@@ -309,6 +309,7 @@ typedef uintmax_t largest_scalar_t;
 #define FLATBUFFERS_MAX_ALIGNMENT 16
 
 #if defined(_MSC_VER)
+  #pragma warning(disable: 4351) // C4351: new behavior: elements of array ... will be default initialized
   #pragma warning(push)
   #pragma warning(disable: 4127) // C4127: conditional expression is constant
 #endif

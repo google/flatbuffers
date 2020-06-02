@@ -3222,6 +3222,24 @@ void FixedLengthArrayTest() {
   // Check alignment
   TEST_EQ(0, reinterpret_cast<uintptr_t>(mArStruct->d()) % 8);
   TEST_EQ(0, reinterpret_cast<uintptr_t>(mArStruct->f()) % 8);
+
+  // Check if default constructor set all memory zero
+  const size_t arr_size = sizeof(MyGame::Example::ArrayStruct);
+  char non_zero_memory[arr_size];
+  // set memory chunk of size ArrayStruct to 1's
+  std::memset(static_cast<void *>(non_zero_memory), 1, arr_size);
+  // after placement-new it should be all 0's
+#if defined (_MSC_VER) && defined (_DEBUG)
+  #undef new
+#endif
+  MyGame::Example::ArrayStruct *ap = new (non_zero_memory) MyGame::Example::ArrayStruct;
+#if defined (_MSC_VER) && defined (_DEBUG)
+  #define new DEBUG_NEW
+#endif
+  (void)ap;
+  for (size_t i = 0; i < arr_size; ++i) {
+    TEST_EQ(non_zero_memory[i], 0);
+  }
 #endif
 }
 
