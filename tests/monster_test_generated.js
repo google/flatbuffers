@@ -322,13 +322,7 @@ MyGame.Example.Test.prototype.a = function() {
  * @returns {boolean}
  */
 MyGame.Example.Test.prototype.mutate_a = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 0);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb.writeInt16(this.bb_pos + offset, value);
+  this.bb.writeInt16(this.bb_pos + 0, value);
   return true;
 };
 
@@ -344,13 +338,7 @@ MyGame.Example.Test.prototype.b = function() {
  * @returns {boolean}
  */
 MyGame.Example.Test.prototype.mutate_b = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 2);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb.writeInt8(this.bb_pos + offset, value);
+  this.bb.writeInt8(this.bb_pos + 2, value);
   return true;
 };
 
@@ -509,13 +497,7 @@ MyGame.Example.Vec3.prototype.x = function() {
  * @returns {boolean}
  */
 MyGame.Example.Vec3.prototype.mutate_x = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 0);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb.writeFloat32(this.bb_pos + offset, value);
+  this.bb.writeFloat32(this.bb_pos + 0, value);
   return true;
 };
 
@@ -531,13 +513,7 @@ MyGame.Example.Vec3.prototype.y = function() {
  * @returns {boolean}
  */
 MyGame.Example.Vec3.prototype.mutate_y = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 4);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb.writeFloat32(this.bb_pos + offset, value);
+  this.bb.writeFloat32(this.bb_pos + 4, value);
   return true;
 };
 
@@ -553,13 +529,7 @@ MyGame.Example.Vec3.prototype.z = function() {
  * @returns {boolean}
  */
 MyGame.Example.Vec3.prototype.mutate_z = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 8);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb.writeFloat32(this.bb_pos + offset, value);
+  this.bb.writeFloat32(this.bb_pos + 8, value);
   return true;
 };
 
@@ -575,13 +545,7 @@ MyGame.Example.Vec3.prototype.test1 = function() {
  * @returns {boolean}
  */
 MyGame.Example.Vec3.prototype.mutate_test1 = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 16);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb.writeFloat64(this.bb_pos + offset, value);
+  this.bb.writeFloat64(this.bb_pos + 16, value);
   return true;
 };
 
@@ -597,13 +561,7 @@ MyGame.Example.Vec3.prototype.test2 = function() {
  * @returns {boolean}
  */
 MyGame.Example.Vec3.prototype.mutate_test2 = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 24);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb.writeUint8(this.bb_pos + offset, value);
+  this.bb.writeUint8(this.bb_pos + 24, value);
   return true;
 };
 
@@ -681,13 +639,7 @@ MyGame.Example.Ability.prototype.id = function() {
  * @returns {boolean}
  */
 MyGame.Example.Ability.prototype.mutate_id = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 0);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb.writeUint32(this.bb_pos + offset, value);
+  this.bb.writeUint32(this.bb_pos + 0, value);
   return true;
 };
 
@@ -703,13 +655,7 @@ MyGame.Example.Ability.prototype.distance = function() {
  * @returns {boolean}
  */
 MyGame.Example.Ability.prototype.mutate_distance = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 4);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb.writeUint32(this.bb_pos + offset, value);
+  this.bb.writeUint32(this.bb_pos + 4, value);
   return true;
 };
 
