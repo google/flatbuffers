@@ -53,10 +53,11 @@ enum BaseType {
   Vector = 14,
   Obj = 15,
   Union = 16,
-  Array = 17
+  Array = 17,
+  MaxBaseType = 18
 };
 
-inline const BaseType (&EnumValuesBaseType())[18] {
+inline const BaseType (&EnumValuesBaseType())[19] {
   static const BaseType values[] = {
     None,
     UType,
@@ -75,13 +76,14 @@ inline const BaseType (&EnumValuesBaseType())[18] {
     Vector,
     Obj,
     Union,
-    Array
+    Array,
+    MaxBaseType
   };
   return values;
 }
 
 inline const char * const *EnumNamesBaseType() {
-  static const char * const names[19] = {
+  static const char * const names[20] = {
     "None",
     "UType",
     "Bool",
@@ -100,13 +102,14 @@ inline const char * const *EnumNamesBaseType() {
     "Obj",
     "Union",
     "Array",
+    "MaxBaseType",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameBaseType(BaseType e) {
-  if (flatbuffers::IsOutRange(e, None, Array)) return "";
+  if (flatbuffers::IsOutRange(e, None, MaxBaseType)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesBaseType()[index];
 }
