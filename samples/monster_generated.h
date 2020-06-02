@@ -179,8 +179,10 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vec3 FLATBUFFERS_FINAL_CLASS {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return Vec3TypeTable();
   }
-  Vec3() {
-    memset(static_cast<void *>(this), 0, sizeof(Vec3));
+  Vec3()
+      : x_(0),
+        y_(0),
+        z_(0) {
   }
   Vec3(float _x, float _y, float _z)
       : x_(flatbuffers::EndianScalar(_x)),

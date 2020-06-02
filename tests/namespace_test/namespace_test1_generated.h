@@ -66,8 +66,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) StructInNestedNS FLATBUFFERS_FINAL_CLASS 
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return StructInNestedNSTypeTable();
   }
-  StructInNestedNS() {
-    memset(static_cast<void *>(this), 0, sizeof(StructInNestedNS));
+  StructInNestedNS()
+      : a_(0),
+        b_(0) {
   }
   StructInNestedNS(int32_t _a, int32_t _b)
       : a_(flatbuffers::EndianScalar(_a)),
