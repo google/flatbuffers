@@ -39,6 +39,7 @@
 **/Release/**
 **/RelWithDebInfo/**
 **/x64/ #build artifacts from VS
+/.cmake
 build.xml
 local.properties
 project.properties

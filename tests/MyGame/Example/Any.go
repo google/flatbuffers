@@ -7,7 +7,7 @@ import (
 
 	flatbuffers "github.com/google/flatbuffers/go"
 
-	MyGame__Example2 "MyGame/Example2"
+	MyGame__Example2 "fake.flatbuffers.moduleroot/tests/MyGame/Example2"
 )
 
 type Any byte

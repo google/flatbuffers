@@ -27,12 +27,14 @@ if [[ "$sampledir" != "$currentdir" ]]; then
   exit 1
 fi
 
+NSIMPORTPREFIX_FLAG="--go-nsimport-prefix github.com/google/flatbuffers/samples"
+
 # Run `flatc`. Note: This requires you to compile using `cmake` from the
 # root `/flatbuffers` directory.
 if [ -e ../flatc ]; then
-  ../flatc --go monster.fbs
+  ../flatc --go $NSIMPORTPREFIX_FLAG monster.fbs
 elif [ -e ../Debug/flatc ]; then
-  ../Debug/flatc --go monster.fbs
+  ../Debug/flatc --go $NSIMPORTPREFIX_FLAG monster.fbs
 else
   echo 'flatc' could not be found. Make sure to build FlatBuffers from the \
        $rootdir directory.
@@ -41,17 +43,8 @@ fi
 
 echo Compiling and running the Go sample.
 
-# Go requires a particular layout of files in order to link the necessary
-# packages. Copy these files to the respective directores to compile the
-# sample.
-mkdir -p ${sampledir}/go_gen/src/MyGame/Sample
-mkdir -p ${sampledir}/go_gen/src/github.com/google/flatbuffers/go
-cp MyGame/Sample/*.go ${sampledir}/go_gen/src/MyGame/Sample/
-cp ${sampledir}/../go/* ${sampledir}/go_gen/src/github.com/google/flatbuffers/go
-
-# Export the `GOPATH`, so that `go` will know which directories to search for
-# the libraries.
-export GOPATH=${sampledir}/go_gen/
+# Ignore cpp files when compiling the sample.
+export CGO_ENABLED=0
 
 # Compile and execute the sample.
 go build -o go_sample sample_binary.go
@@ -59,5 +52,4 @@ go build -o go_sample sample_binary.go
 
 # Clean up the temporary files.
 rm -rf MyGame/
-rm -rf ${sampledir}/go_gen/
 rm go_sample

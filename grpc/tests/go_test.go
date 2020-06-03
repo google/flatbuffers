@@ -1,12 +1,16 @@
+// Execute this test like:
+// `CGO_ENABLED=0 go test go_test.go`
+
 package testing
 
 import (
-	"../../tests/MyGame/Example"
+	"fake.flatbuffers.moduleroot/tests/MyGame/Example"
 
 	"context"
 	"net"
 	"testing"
 
+	flatbuffers "github.com/google/flatbuffers/go"
 	"google.golang.org/grpc"
 )
 

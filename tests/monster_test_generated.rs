@@ -1066,6 +1066,7 @@ impl<'a> Monster<'a> {
       builder.add_testhashs64_fnv1a(args.testhashs64_fnv1a);
       builder.add_testhashu64_fnv1(args.testhashu64_fnv1);
       builder.add_testhashs64_fnv1(args.testhashs64_fnv1);
+      if let Some(x) = args.vector_of_parent_namespace_test { builder.add_vector_of_parent_namespace_test(x); }
       if let Some(x) = args.vector_of_enums { builder.add_vector_of_enums(x); }
       if let Some(x) = args.any_ambiguous { builder.add_any_ambiguous(x); }
       if let Some(x) = args.any_unique { builder.add_any_unique(x); }
@@ -1158,6 +1159,7 @@ impl<'a> Monster<'a> {
     pub const VT_ANY_AMBIGUOUS: flatbuffers::VOffsetT = 96;
     pub const VT_VECTOR_OF_ENUMS: flatbuffers::VOffsetT = 98;
     pub const VT_SIGNED_ENUM: flatbuffers::VOffsetT = 100;
+    pub const VT_VECTOR_OF_PARENT_NAMESPACE_TEST: flatbuffers::VOffsetT = 102;
 
   #[inline]
   pub fn pos(&self) -> Option<&'a Vec3> {
@@ -1373,6 +1375,10 @@ impl<'a> Monster<'a> {
     self._tab.get::<Race>(Monster::VT_SIGNED_ENUM, Some(Race::None)).unwrap()
   }
   #[inline]
+  pub fn vector_of_parent_namespace_test(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<super::InParentNamespace<'a>>>> {
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<flatbuffers::ForwardsUOffset<super::InParentNamespace<'a>>>>>(Monster::VT_VECTOR_OF_PARENT_NAMESPACE_TEST, None)
+  }
+  #[inline]
   #[allow(non_snake_case)]
   pub fn test_as_monster(&self) -> Option<Monster<'a>> {
     if self.test_type() == Any::Monster {
@@ -1513,6 +1519,7 @@ pub struct MonsterArgs<'a> {
     pub any_ambiguous: Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>>,
     pub vector_of_enums: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a , Color>>>,
     pub signed_enum: Race,
+    pub vector_of_parent_namespace_test: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a , flatbuffers::ForwardsUOffset<super::InParentNamespace<'a >>>>>,
 }
 impl<'a> Default for MonsterArgs<'a> {
     #[inline]
@@ -1566,6 +1573,7 @@ impl<'a> Default for MonsterArgs<'a> {
             any_ambiguous: None,
             vector_of_enums: None,
             signed_enum: Race::None,
+            vector_of_parent_namespace_test: None,
         }
     }
 }
@@ -1765,6 +1773,10 @@ impl<'a: 'b, 'b> MonsterBuilder<'a, 'b> {
   #[inline]
   pub fn add_signed_enum(&mut self, signed_enum: Race) {
     self.fbb_.push_slot::<Race>(Monster::VT_SIGNED_ENUM, signed_enum, Race::None);
+  }
+  #[inline]
+  pub fn add_vector_of_parent_namespace_test(&mut self, vector_of_parent_namespace_test: flatbuffers::WIPOffset<flatbuffers::Vector<'b , flatbuffers::ForwardsUOffset<super::InParentNamespace<'b >>>>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Monster::VT_VECTOR_OF_PARENT_NAMESPACE_TEST, vector_of_parent_namespace_test);
   }
   #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> MonsterBuilder<'a, 'b> {

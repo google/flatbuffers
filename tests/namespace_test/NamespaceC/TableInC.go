@@ -5,7 +5,7 @@ package NamespaceC
 import (
 	flatbuffers "github.com/google/flatbuffers/go"
 
-	NamespaceA "NamespaceA"
+	NamespaceA "fake.flatbuffers.moduleroot/tests/namespace_test/NamespaceA"
 )
 
 type TableInCT struct {

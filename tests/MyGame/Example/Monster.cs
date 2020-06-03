@@ -188,6 +188,8 @@ public struct Monster : IFlatbufferObject
   public bool MutateVectorOfEnums(int j, MyGame.Example.Color vector_of_enums) { int o = __p.__offset(98); if (o != 0) { __p.bb.Put(__p.__vector(o) + j * 1, (byte)vector_of_enums); return true; } else { return false; } }
   public MyGame.Example.Race SignedEnum { get { int o = __p.__offset(100); return o != 0 ? (MyGame.Example.Race)__p.bb.GetSbyte(o + __p.bb_pos) : MyGame.Example.Race.None; } }
   public bool MutateSignedEnum(MyGame.Example.Race signed_enum) { int o = __p.__offset(100); if (o != 0) { __p.bb.PutSbyte(o + __p.bb_pos, (sbyte)signed_enum); return true; } else { return false; } }
+  public MyGame.InParentNamespace? VectorOfParentNamespaceTest(int j) { int o = __p.__offset(102); return o != 0 ? (MyGame.InParentNamespace?)(new MyGame.InParentNamespace()).__assign(__p.__indirect(__p.__vector(o) + j * 4), __p.bb) : null; }
+  public int VectorOfParentNamespaceTestLength { get { int o = __p.__offset(102); return o != 0 ? __p.__vector_len(o) : 0; } }
 
   public static Offset<MyGame.Example.Monster> CreateMonster(FlatBufferBuilder builder,
       MyGame.Example.Vec3T pos = null,
@@ -237,8 +239,9 @@ public struct Monster : IFlatbufferObject
       MyGame.Example.AnyAmbiguousAliases any_ambiguous_type = MyGame.Example.AnyAmbiguousAliases.NONE,
       int any_ambiguousOffset = 0,
       VectorOffset vector_of_enumsOffset = default(VectorOffset),
-      MyGame.Example.Race signed_enum = MyGame.Example.Race.None) {
-    builder.StartTable(49);
+      MyGame.Example.Race signed_enum = MyGame.Example.Race.None,
+      VectorOffset vector_of_parent_namespace_testOffset = default(VectorOffset)) {
+    builder.StartTable(50);
     Monster.AddNonOwningReference(builder, non_owning_reference);
     Monster.AddCoOwningReference(builder, co_owning_reference);
     Monster.AddSingleWeakReference(builder, single_weak_reference);
@@ -246,6 +249,7 @@ public struct Monster : IFlatbufferObject
     Monster.AddTesthashs64Fnv1a(builder, testhashs64_fnv1a);
     Monster.AddTesthashu64Fnv1(builder, testhashu64_fnv1);
     Monster.AddTesthashs64Fnv1(builder, testhashs64_fnv1);
+    Monster.AddVectorOfParentNamespaceTest(builder, vector_of_parent_namespace_testOffset);
     Monster.AddVectorOfEnums(builder, vector_of_enumsOffset);
     Monster.AddAnyAmbiguous(builder, any_ambiguousOffset);
     Monster.AddAnyUnique(builder, any_uniqueOffset);
@@ -290,7 +294,7 @@ public struct Monster : IFlatbufferObject
     return Monster.EndMonster(builder);
   }
 
-  public static void StartMonster(FlatBufferBuilder builder) { builder.StartTable(49); }
+  public static void StartMonster(FlatBufferBuilder builder) { builder.StartTable(50); }
   public static void AddPos(FlatBufferBuilder builder, Offset<MyGame.Example.Vec3> posOffset) { builder.AddStruct(0, posOffset.Value, 0); }
   public static void AddMana(FlatBufferBuilder builder, short mana) { builder.AddShort(1, mana, 150); }
   public static void AddHp(FlatBufferBuilder builder, short hp) { builder.AddShort(2, hp, 100); }
@@ -387,6 +391,10 @@ public struct Monster : IFlatbufferObject
   public static VectorOffset CreateVectorOfEnumsVectorBlock(FlatBufferBuilder builder, MyGame.Example.Color[] data) { builder.StartVector(1, data.Length, 1); builder.Add(data); return builder.EndVector(); }
   public static void StartVectorOfEnumsVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(1, numElems, 1); }
   public static void AddSignedEnum(FlatBufferBuilder builder, MyGame.Example.Race signedEnum) { builder.AddSbyte(48, (sbyte)signedEnum, -1); }
+  public static void AddVectorOfParentNamespaceTest(FlatBufferBuilder builder, VectorOffset vectorOfParentNamespaceTestOffset) { builder.AddOffset(49, vectorOfParentNamespaceTestOffset.Value, 0); }
+  public static VectorOffset CreateVectorOfParentNamespaceTestVector(FlatBufferBuilder builder, Offset<MyGame.InParentNamespace>[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddOffset(data[i].Value); return builder.EndVector(); }
+  public static VectorOffset CreateVectorOfParentNamespaceTestVectorBlock(FlatBufferBuilder builder, Offset<MyGame.InParentNamespace>[] data) { builder.StartVector(4, data.Length, 4); builder.Add(data); return builder.EndVector(); }
+  public static void StartVectorOfParentNamespaceTestVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
   public static Offset<MyGame.Example.Monster> EndMonster(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     builder.Required(o, 10);  // name
@@ -528,6 +536,8 @@ public struct Monster : IFlatbufferObject
     _o.VectorOfEnums = new List<MyGame.Example.Color>();
     for (var _j = 0; _j < this.VectorOfEnumsLength; ++_j) {_o.VectorOfEnums.Add(this.VectorOfEnums(_j));}
     _o.SignedEnum = this.SignedEnum;
+    _o.VectorOfParentNamespaceTest = new List<MyGame.InParentNamespaceT>();
+    for (var _j = 0; _j < this.VectorOfParentNamespaceTestLength; ++_j) {_o.VectorOfParentNamespaceTest.Add(this.VectorOfParentNamespaceTest(_j).HasValue ? this.VectorOfParentNamespaceTest(_j).Value.UnPack() : null);}
   }
   public static Offset<MyGame.Example.Monster> Pack(FlatBufferBuilder builder, MonsterT _o) {
     if (_o == null) return default(Offset<MyGame.Example.Monster>);
@@ -639,6 +649,12 @@ public struct Monster : IFlatbufferObject
       var __vector_of_enums = _o.VectorOfEnums.ToArray();
       _vector_of_enums = CreateVectorOfEnumsVector(builder, __vector_of_enums);
     }
+    var _vector_of_parent_namespace_test = default(VectorOffset);
+    if (_o.VectorOfParentNamespaceTest != null) {
+      var __vector_of_parent_namespace_test = new Offset<MyGame.InParentNamespace>[_o.VectorOfParentNamespaceTest.Count];
+      for (var _j = 0; _j < __vector_of_parent_namespace_test.Length; ++_j) { __vector_of_parent_namespace_test[_j] = MyGame.InParentNamespace.Pack(builder, _o.VectorOfParentNamespaceTest[_j]); }
+      _vector_of_parent_namespace_test = CreateVectorOfParentNamespaceTestVector(builder, __vector_of_parent_namespace_test);
+    }
     return CreateMonster(
       builder,
       _o.Pos,
@@ -688,7 +704,8 @@ public struct Monster : IFlatbufferObject
       _any_ambiguous_type,
       _any_ambiguous,
       _vector_of_enums,
-      _o.SignedEnum);
+      _o.SignedEnum,
+      _vector_of_parent_namespace_test);
   }
 };
 
@@ -831,6 +848,8 @@ public class MonsterT
   public List<MyGame.Example.Color> VectorOfEnums { get; set; }
   [Newtonsoft.Json.JsonProperty("signed_enum")]
   public MyGame.Example.Race SignedEnum { get; set; }
+  [Newtonsoft.Json.JsonProperty("vector_of_parent_namespace_test")]
+  public List<MyGame.InParentNamespaceT> VectorOfParentNamespaceTest { get; set; }
 
   public MonsterT() {
     this.Pos = new MyGame.Example.Vec3T();
@@ -878,6 +897,7 @@ public class MonsterT
     this.AnyAmbiguous = null;
     this.VectorOfEnums = null;
     this.SignedEnum = MyGame.Example.Race.None;
+    this.VectorOfParentNamespaceTest = null;
   }
 
   public static MonsterT DeserializeFromJson(string jsonText) {

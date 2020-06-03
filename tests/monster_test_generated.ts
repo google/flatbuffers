@@ -2194,10 +2194,28 @@ mutate_signed_enum(value:MyGame.Example.Race):boolean {
 };
 
 /**
+ * @param number index
+ * @param MyGame.InParentNamespace= obj
+ * @returns MyGame.InParentNamespace
+ */
+vectorOfParentNamespaceTest(index: number, obj?:MyGame.InParentNamespace):MyGame.InParentNamespace|null {
+  var offset = this.bb!.__offset(this.bb_pos, 102);
+  return offset ? (obj || new MyGame.InParentNamespace()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
+};
+
+/**
+ * @returns number
+ */
+vectorOfParentNamespaceTestLength():number {
+  var offset = this.bb!.__offset(this.bb_pos, 102);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
  * @param flatbuffers.Builder builder
  */
 static startMonster(builder:flatbuffers.Builder) {
-  builder.startObject(49);
+  builder.startObject(50);
 };
 
 /**
@@ -2925,6 +2943,35 @@ static addSignedEnum(builder:flatbuffers.Builder, signedEnum:MyGame.Example.Race
 
 /**
  * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset vectorOfParentNamespaceTestOffset
+ */
+static addVectorOfParentNamespaceTest(builder:flatbuffers.Builder, vectorOfParentNamespaceTestOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(49, vectorOfParentNamespaceTestOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param Array.<flatbuffers.Offset> data
+ * @returns flatbuffers.Offset
+ */
+static createVectorOfParentNamespaceTestVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
+  builder.startVector(4, data.length, 4);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param number numElems
+ */
+static startVectorOfParentNamespaceTestVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(4, numElems, 4);
+};
+
+/**
+ * @param flatbuffers.Builder builder
  * @returns flatbuffers.Offset
  */
 static endMonster(builder:flatbuffers.Builder):flatbuffers.Offset {
@@ -3014,7 +3061,8 @@ unpack(): MonsterT {
       return temp.unpack()
   })(),
     this.bb!.createScalarList(this.vectorOfEnums.bind(this), this.vectorOfEnumsLength()),
-    this.signedEnum()
+    this.signedEnum(),
+    this.bb!.createObjList(this.vectorOfParentNamespaceTest.bind(this), this.vectorOfParentNamespaceTestLength())
   );
 };
 
@@ -3082,6 +3130,7 @@ unpackTo(_o: MonsterT): void {
   })();
   _o.vectorOfEnums = this.bb!.createScalarList(this.vectorOfEnums.bind(this), this.vectorOfEnumsLength());
   _o.signedEnum = this.signedEnum();
+  _o.vectorOfParentNamespaceTest = this.bb!.createObjList(this.vectorOfParentNamespaceTest.bind(this), this.vectorOfParentNamespaceTestLength());
 };
 }
 
@@ -3136,6 +3185,7 @@ export class MonsterT {
  * @param MyGame.Example.MonsterT|null anyAmbiguous
  * @param (MyGame.Example.Color)[] vectorOfEnums
  * @param MyGame.Example.Race signedEnum
+ * @param (MyGame.InParentNamespaceT)[] vectorOfParentNamespaceTest
  */
 constructor(
   public pos: MyGame.Example.Vec3T|null = null,
@@ -3185,7 +3235,8 @@ constructor(
   public anyAmbiguousType: MyGame.Example.AnyAmbiguousAliases = MyGame.Example.AnyAmbiguousAliases.NONE,
   public anyAmbiguous: MyGame.Example.MonsterT|null = null,
   public vectorOfEnums: (MyGame.Example.Color)[] = [],
-  public signedEnum: MyGame.Example.Race = MyGame.Example.Race.None
+  public signedEnum: MyGame.Example.Race = MyGame.Example.Race.None,
+  public vectorOfParentNamespaceTest: (MyGame.InParentNamespaceT)[] = []
 ){};
 
 /**
@@ -3215,6 +3266,7 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   const anyUnique = builder.createObjectOffset(this.anyUnique);
   const anyAmbiguous = builder.createObjectOffset(this.anyAmbiguous);
   const vectorOfEnums = MyGame.Example.Monster.createVectorOfEnumsVector(builder, this.vectorOfEnums);
+  const vectorOfParentNamespaceTest = MyGame.Example.Monster.createVectorOfParentNamespaceTestVector(builder, builder.createObjectOffsetList(this.vectorOfParentNamespaceTest));
 
   return MyGame.Example.Monster.createMonster(builder,
     (this.pos !== null ? this.pos!.pack(builder) : 0),
@@ -3264,7 +3316,8 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
     this.anyAmbiguousType,
     anyAmbiguous,
     vectorOfEnums,
-    this.signedEnum
+    this.signedEnum,
+    vectorOfParentNamespaceTest
   );
 };
 }

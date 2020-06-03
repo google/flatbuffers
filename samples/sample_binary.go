@@ -19,7 +19,7 @@
 package main
 
 import (
-	sample "MyGame/Sample"
+	sample "github.com/google/flatbuffers/samples/MyGame/Sample"
 	"fmt"
 	flatbuffers "github.com/google/flatbuffers/go"
 	"strconv"

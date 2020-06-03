@@ -719,7 +719,32 @@ class Monster(object):
             return self._tab.Get(flatbuffers.number_types.Int8Flags, o + self._tab.Pos)
         return -1
 
-def MonsterStart(builder): builder.StartObject(49)
+    # Monster
+    def VectorOfParentNamespaceTest(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(102))
+        if o != 0:
+            x = self._tab.Vector(o)
+            x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
+            x = self._tab.Indirect(x)
+            from MyGame.InParentNamespace import InParentNamespace
+            obj = InParentNamespace()
+            obj.Init(self._tab.Bytes, x)
+            return obj
+        return None
+
+    # Monster
+    def VectorOfParentNamespaceTestLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(102))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # Monster
+    def VectorOfParentNamespaceTestIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(102))
+        return o == 0
+
+def MonsterStart(builder): builder.StartObject(50)
 def MonsterAddPos(builder, pos): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(pos), 0)
 def MonsterAddMana(builder, mana): builder.PrependInt16Slot(1, mana, 150)
 def MonsterAddHp(builder, hp): builder.PrependInt16Slot(2, hp, 100)
@@ -786,6 +811,8 @@ def MonsterAddAnyAmbiguous(builder, anyAmbiguous): builder.PrependUOffsetTRelati
 def MonsterAddVectorOfEnums(builder, vectorOfEnums): builder.PrependUOffsetTRelativeSlot(47, flatbuffers.number_types.UOffsetTFlags.py_type(vectorOfEnums), 0)
 def MonsterStartVectorOfEnumsVector(builder, numElems): return builder.StartVector(1, numElems, 1)
 def MonsterAddSignedEnum(builder, signedEnum): builder.PrependInt8Slot(48, signedEnum, -1)
+def MonsterAddVectorOfParentNamespaceTest(builder, vectorOfParentNamespaceTest): builder.PrependUOffsetTRelativeSlot(49, flatbuffers.number_types.UOffsetTFlags.py_type(vectorOfParentNamespaceTest), 0)
+def MonsterStartVectorOfParentNamespaceTestVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def MonsterEnd(builder): return builder.EndObject()
 
 import MyGame.Example.Ability
@@ -856,6 +883,7 @@ class MonsterT(object):
         self.anyAmbiguous = None  # type: Union[None, MyGame.Example.Monster.MonsterT, MyGame.Example.Monster.MonsterT, MyGame.Example.Monster.MonsterT]
         self.vectorOfEnums = None  # type: List[int]
         self.signedEnum = -1  # type: int
+        self.vectorOfParentNamespaceTest = None  # type: List[MyGame.InParentNamespace.InParentNamespaceT]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -1033,6 +1061,14 @@ class MonsterT(object):
             else:
                 self.vectorOfEnums = monster.VectorOfEnumsAsNumpy()
         self.signedEnum = monster.SignedEnum()
+        if not monster.VectorOfParentNamespaceTestIsNone():
+            self.vectorOfParentNamespaceTest = []
+            for i in range(monster.VectorOfParentNamespaceTestLength()):
+                if monster.VectorOfParentNamespaceTest(i) is None:
+                    self.vectorOfParentNamespaceTest.append(None)
+                else:
+                    inParentNamespace_ = MyGame.InParentNamespace.InParentNamespaceT.InitFromObj(monster.VectorOfParentNamespaceTest(i))
+                    self.vectorOfParentNamespaceTest.append(inParentNamespace_)
 
     # MonsterT
     def Pack(self, builder):
@@ -1185,6 +1221,14 @@ class MonsterT(object):
                 for i in reversed(range(len(self.vectorOfEnums))):
                     builder.PrependUint8(self.vectorOfEnums[i])
                 vectorOfEnums = builder.EndVector(len(self.vectorOfEnums))
+        if self.vectorOfParentNamespaceTest is not None:
+            vectorOfParentNamespaceTestlist = []
+            for i in range(len(self.vectorOfParentNamespaceTest)):
+                vectorOfParentNamespaceTestlist.append(self.vectorOfParentNamespaceTest[i].Pack(builder))
+            MonsterStartVectorOfParentNamespaceTestVector(builder, len(self.vectorOfParentNamespaceTest))
+            for i in reversed(range(len(self.vectorOfParentNamespaceTest))):
+                builder.PrependUOffsetTRelative(vectorOfParentNamespaceTestlist[i])
+            vectorOfParentNamespaceTest = builder.EndVector(len(self.vectorOfParentNamespaceTest))
         MonsterStart(builder)
         if self.pos is not None:
             pos = self.pos.Pack(builder)
@@ -1261,5 +1305,7 @@ class MonsterT(object):
         if self.vectorOfEnums is not None:
             MonsterAddVectorOfEnums(builder, vectorOfEnums)
         MonsterAddSignedEnum(builder, self.signedEnum)
+        if self.vectorOfParentNamespaceTest is not None:
+            MonsterAddVectorOfParentNamespaceTest(builder, vectorOfParentNamespaceTest)
         monster = MonsterEnd(builder)
         return monster
