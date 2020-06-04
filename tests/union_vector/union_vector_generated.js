@@ -167,13 +167,7 @@ Rapunzel.prototype.hairLength = function() {
  * @returns {boolean}
  */
 Rapunzel.prototype.mutate_hair_length = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 0);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb.writeInt32(this.bb_pos + offset, value);
+  this.bb.writeInt32(this.bb_pos + 0, value);
   return true;
 };
 
@@ -226,13 +220,7 @@ BookReader.prototype.booksRead = function() {
  * @returns {boolean}
  */
 BookReader.prototype.mutate_books_read = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 0);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb.writeInt32(this.bb_pos + offset, value);
+  this.bb.writeInt32(this.bb_pos + 0, value);
   return true;
 };
 

@@ -202,13 +202,7 @@ hairLength():number {
  * @returns boolean
  */
 mutate_hair_length(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 0);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeInt32(this.bb_pos + offset, value);
+  this.bb!.writeInt32(this.bb_pos + 0, value);
   return true;
 };
 
@@ -290,13 +284,7 @@ booksRead():number {
  * @returns boolean
  */
 mutate_books_read(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 0);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeInt32(this.bb_pos + offset, value);
+  this.bb!.writeInt32(this.bb_pos + 0, value);
   return true;
 };
 

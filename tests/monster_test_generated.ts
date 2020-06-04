@@ -356,13 +356,7 @@ a():number {
  * @returns boolean
  */
 mutate_a(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 0);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeInt16(this.bb_pos + offset, value);
+  this.bb!.writeInt16(this.bb_pos + 0, value);
   return true;
 };
 
@@ -378,13 +372,7 @@ b():number {
  * @returns boolean
  */
 mutate_b(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 2);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeInt8(this.bb_pos + offset, value);
+  this.bb!.writeInt8(this.bb_pos + 2, value);
   return true;
 };
 
@@ -604,13 +592,7 @@ x():number {
  * @returns boolean
  */
 mutate_x(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 0);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeFloat32(this.bb_pos + offset, value);
+  this.bb!.writeFloat32(this.bb_pos + 0, value);
   return true;
 };
 
@@ -626,13 +608,7 @@ y():number {
  * @returns boolean
  */
 mutate_y(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 4);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeFloat32(this.bb_pos + offset, value);
+  this.bb!.writeFloat32(this.bb_pos + 4, value);
   return true;
 };
 
@@ -648,13 +624,7 @@ z():number {
  * @returns boolean
  */
 mutate_z(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 8);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeFloat32(this.bb_pos + offset, value);
+  this.bb!.writeFloat32(this.bb_pos + 8, value);
   return true;
 };
 
@@ -670,13 +640,7 @@ test1():number {
  * @returns boolean
  */
 mutate_test1(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 16);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeFloat64(this.bb_pos + offset, value);
+  this.bb!.writeFloat64(this.bb_pos + 16, value);
   return true;
 };
 
@@ -692,13 +656,7 @@ test2():MyGame.Example.Color {
  * @returns boolean
  */
 mutate_test2(value:MyGame.Example.Color):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 24);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint8(this.bb_pos + offset, value);
+  this.bb!.writeUint8(this.bb_pos + 24, value);
   return true;
 };
 
@@ -833,13 +791,7 @@ id():number {
  * @returns boolean
  */
 mutate_id(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 0);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint32(this.bb_pos + offset, value);
+  this.bb!.writeUint32(this.bb_pos + 0, value);
   return true;
 };
 
@@ -855,13 +807,7 @@ distance():number {
  * @returns boolean
  */
 mutate_distance(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 4);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint32(this.bb_pos + offset, value);
+  this.bb!.writeUint32(this.bb_pos + 4, value);
   return true;
 };
 
