@@ -1625,19 +1625,25 @@ class JsTsGenerator : public BaseGenerator {
                   " = function(value) {\n";
         }
 
-        code += "  var offset = " + GenBBAccess() + ".__offset(this.bb_pos, " +
-                NumToString(field.value.offset) + ");\n\n";
-        code += "  if (offset === 0) {\n";
-        code += "    return false;\n";
-        code += "  }\n\n";
+        if (struct_def.fixed) {
+          code += "  " + GenBBAccess() + ".write" +
+                  MakeCamel(GenType(field.value.type)) +
+                  "(this.bb_pos + " + NumToString(field.value.offset) + ", ";
+        } else {
+          code += "  var offset = " + GenBBAccess() + ".__offset(this.bb_pos, " +
+                  NumToString(field.value.offset) + ");\n\n";
+          code += "  if (offset === 0) {\n";
+          code += "    return false;\n";
+          code += "  }\n\n";
 
-        // special case for bools, which are treated as uint8
-        code += "  " + GenBBAccess() + ".write" +
-                MakeCamel(GenType(field.value.type)) +
-                "(this.bb_pos + offset, ";
-        if (field.value.type.base_type == BASE_TYPE_BOOL &&
-            lang_.language == IDLOptions::kTs) {
-          code += "+";
+          // special case for bools, which are treated as uint8
+          code += "  " + GenBBAccess() + ".write" +
+                  MakeCamel(GenType(field.value.type)) +
+                  "(this.bb_pos + offset, ";
+          if (field.value.type.base_type == BASE_TYPE_BOOL &&
+              lang_.language == IDLOptions::kTs) {
+            code += "+";
+          }
         }
 
         code += "value);\n";
