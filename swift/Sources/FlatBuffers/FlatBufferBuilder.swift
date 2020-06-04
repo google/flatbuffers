@@ -270,24 +270,6 @@ public struct FlatBufferBuilder {
         return push(element: Int32(len))
     }
     
-    /// Creates a vector of type Bool in the buffer
-    /// - Parameter elements: elements to be written into the buffer
-    /// - returns: Offset of the vector
-    mutating public func createVector(_ elements: [Bool]) -> Offset<UOffset> {
-        return createVector(elements, size: elements.count)
-    }
-    
-    ///  Creates a vector of type Bool in the buffer
-    /// - Parameter elements: Elements to be written into the buffer
-    /// - Parameter size: Count of elements
-    /// - returns: Offset of the vector
-    mutating public func createVector(_ elements: [Bool], size: Int) -> Offset<UOffset> {
-        let size = size
-        startVector(size, elementSize: MemoryLayout<Bool>.size)
-        _bb.push(elements: elements)
-        return Offset(offset: endVector(len: size))
-    }
-    
     /// Creates a vector of type Scalar in the buffer
     /// - Parameter elements: elements to be written into the buffer
     /// - returns: Offset of the vector
@@ -469,6 +451,7 @@ public struct FlatBufferBuilder {
     ///   - condition: Condition to insert
     ///   - def: Default condition
     ///   - position: The predefined position of the element
+    @available(*, deprecated, message: "Deprecated, function will be removed in Flatbuffers v0.6.0. Regenerate code")
     mutating public func add(condition: Bool, def: Bool, at position: VOffset) {
         if (condition == def && !serializeDefaults) {
             track(offset: 0, at: position)
