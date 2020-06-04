@@ -61,7 +61,22 @@ final class FlatBuffersStructsTests: XCTestCase {
         XCTAssertEqual(point.vec?.x, 1.0)
         XCTAssertEqual(point.vec?.y, 2.0)
         XCTAssertEqual(point.vec?.z, 3.0)
-        XCTAssertEqual(point.UType, Test.vec)
+        XCTAssertEqual(point.UType, Test1.vec)
+    }
+    
+    func testWritingAndMutatingBools() {
+        var b = FlatBufferBuilder()
+        let offset = b.create(struct: createProperty(), type: Property.self)
+        let root = TestMutatingBool.createTestMutatingBool(&b, offsetOfB: offset)
+        b.finish(offset: root)
+        
+        let testMutatingBool = TestMutatingBool.getRootAsTestMutatingBool(bb: b.sizedBuffer)
+        let property = testMutatingBool.b
+        XCTAssertEqual(property?.property, false)
+        property?.mutate(property: false)
+        XCTAssertEqual(property?.property, false)
+        property?.mutate(property: true)
+        XCTAssertEqual(property?.property, true)
     }
     
 }
@@ -134,7 +149,7 @@ struct VPointerVectorVec {
 }
 
 enum Color2: Int32 { case red = 0, green = 1, blue = 2 }
-enum Test: Byte { case none = 0, vec = 1 }
+enum Test1: Byte { case none = 0, vec = 1 }
 
 func createVec2(x: Float32 = 0, y: Float32 = 0, z: Float32 = 0, color: Color2) -> UnsafeMutableRawPointer {
     let memory = UnsafeMutableRawPointer.allocate(byteCount: Vec2.size, alignment: Vec2.alignment)
@@ -168,7 +183,7 @@ struct VPointerVec2 {
     }
     
     var vec: Vec2? { let o = __t.offset(4); return o == 0 ? nil : Vec2( __t.bb, o: o + __t.postion) }
-    var UType: Test? { let o = __t.offset(6); return o == 0 ? Test.none : Test(rawValue: __t.readBuffer(of: Byte.self, at: o)) }
+    var UType: Test1? { let o = __t.offset(6); return o == 0 ? Test1.none : Test1(rawValue: __t.readBuffer(of: Byte.self, at: o)) }
     
     @inlinable static func getRootAsCountry(_ bb: ByteBuffer) -> VPointerVec2 {
         return VPointerVec2(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: 0))))
@@ -177,10 +192,10 @@ struct VPointerVec2 {
     static func startVPointer(b: inout FlatBufferBuilder) -> UOffset { b.startTable(with: 3) }
     static func finish(b: inout FlatBufferBuilder, s: UOffset) -> Offset<UOffset> { return Offset(offset: b.endTable(at: s)) }
     
-    static func createVPointer(b: inout FlatBufferBuilder, o: Offset<UOffset>, type: Test) -> Offset<UOffset> {
+    static func createVPointer(b: inout FlatBufferBuilder, o: Offset<UOffset>, type: Test1) -> Offset<UOffset> {
         let s = VPointerVec2.startVPointer(b: &b)
         b.add(structOffset: 4)
-        b.add(element: type.rawValue, def: Test.none.rawValue, at: 6)
+        b.add(element: type.rawValue, def: Test1.none.rawValue, at: 6)
         b.add(offset: o, at: 8)
         return VPointerVec2.finish(b: &b, s: s)
     }

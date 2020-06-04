@@ -78,15 +78,11 @@ public extension MonsterStorageProvider {
 		}
 		case "GetMaxHitPoint":
 		return ClientStreamingCallHandler(callHandlerContext: callHandlerContext) { context in
-			return { request in
-				self.GetMaxHitPoint(request: request, context: context)
-			}
+			self.GetMaxHitPoint(context: context)
 		}
 		case "GetMinMaxHitPoints":
 		return BidirectionalStreamingCallHandler(callHandlerContext: callHandlerContext) { context in
-			return { request in
-				self.GetMinMaxHitPoints(request: request, context: context)
-			}
+			self.GetMinMaxHitPoints(context: context)
 		}
 		default: return nil;
 		}

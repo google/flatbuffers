@@ -52,6 +52,14 @@ extension Float32: Scalar {
     }
 }
 
+extension Bool: Scalar {
+    public var convertedEndian: UInt8 {
+        return self == true ? 1 : 0
+    }
+    
+    public typealias NumericValue = UInt8
+}
+
 extension Int: Scalar {
     public typealias NumericValue = Int
 }

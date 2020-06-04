@@ -178,10 +178,7 @@ grpc::string GenerateServerExtensionBody(const grpc_generator::Method *method) {
            "return ClientStreamingCallHandler(callHandlerContext: "
            "callHandlerContext) { context in"
            "\n\t\t\t"
-           "return { request in"
-           "\n\t\t\t\t"
-           "self.$MethodName$(request: request, context: context)"
-           "\n\t\t\t}"
+           "self.$MethodName$(context: context)"
            "\n\t\t}";
   }
   if (method->ServerStreaming()) {
@@ -200,10 +197,7 @@ grpc::string GenerateServerExtensionBody(const grpc_generator::Method *method) {
            "return BidirectionalStreamingCallHandler(callHandlerContext: "
            "callHandlerContext) { context in"
            "\n\t\t\t"
-           "return { request in"
-           "\n\t\t\t\t"
-           "self.$MethodName$(request: request, context: context)"
-           "\n\t\t\t}"
+           "self.$MethodName$(context: context)"
            "\n\t\t}";
   }
   return "";

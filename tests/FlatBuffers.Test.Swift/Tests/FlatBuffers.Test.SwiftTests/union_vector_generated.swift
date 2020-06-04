@@ -6,7 +6,7 @@ public enum Character: UInt8, Enum {
     public typealias T = UInt8
     public static var byteSize: Int { return MemoryLayout<UInt8>.size }
     public var value: UInt8 { return self.rawValue }
-    case none = 0
+    case none_ = 0
     case mulan = 1
     case rapunzel = 2
     case belle = 3
@@ -16,7 +16,7 @@ public enum Character: UInt8, Enum {
     
 
     public static var max: Character { return .unused }
-    public static var min: Character { return .none }
+    public static var min: Character { return .none_ }
 }
 
 struct CharacterUnion {
@@ -55,7 +55,7 @@ public struct Rapunzel: Readable {
     public init(_ bb: ByteBuffer, o: Int32) { _accessor = Struct(bb: bb, position: o) }
 
     public var hairLength: Int32 { return _accessor.readBuffer(of: Int32.self, at: 0) }
-    public func mutate(hairLength: Int32) -> Bool { return _accessor.mutate(hairLength, index: 0) }
+    @discardableResult public func mutate(hairLength: Int32) -> Bool { return _accessor.mutate(hairLength, index: 0) }
     
 
     public mutating func unpack() -> RapunzelT {
@@ -92,7 +92,7 @@ public struct BookReader: Readable {
     public init(_ bb: ByteBuffer, o: Int32) { _accessor = Struct(bb: bb, position: o) }
 
     public var booksRead: Int32 { return _accessor.readBuffer(of: Int32.self, at: 0) }
-    public func mutate(booksRead: Int32) -> Bool { return _accessor.mutate(booksRead, index: 0) }
+    @discardableResult public func mutate(booksRead: Int32) -> Bool { return _accessor.mutate(booksRead, index: 0) }
     
 
     public mutating func unpack() -> BookReaderT {
@@ -118,14 +118,14 @@ public class BookReaderT: NativeTable {
     }
 
 }
-public func createRapunzel(hairLength: Int32) -> UnsafeMutableRawPointer {
+public func createRapunzel(hairLength: Int32 = 0) -> UnsafeMutableRawPointer {
     let memory = UnsafeMutableRawPointer.allocate(byteCount: Rapunzel.size, alignment: Rapunzel.alignment)
     memory.initializeMemory(as: UInt8.self, repeating: 0, count: Rapunzel.size)
     memory.storeBytes(of: hairLength, toByteOffset: 0, as: Int32.self)
     return memory
 }
 
-public func createBookReader(booksRead: Int32) -> UnsafeMutableRawPointer {
+public func createBookReader(booksRead: Int32 = 0) -> UnsafeMutableRawPointer {
     let memory = UnsafeMutableRawPointer.allocate(byteCount: BookReader.size, alignment: BookReader.alignment)
     memory.initializeMemory(as: UInt8.self, repeating: 0, count: BookReader.size)
     memory.storeBytes(of: booksRead, toByteOffset: 0, as: Int32.self)
@@ -151,7 +151,7 @@ public struct Attacker: FlatBufferObject {
     }
 
     public var swordAttackDamage: Int32 { let o = _accessor.offset(VTOFFSET.swordAttackDamage.v); return o == 0 ? 0 : _accessor.readBuffer(of: Int32.self, at: o) }
-    public func mutate(swordAttackDamage: Int32) -> Bool {let o = _accessor.offset(VTOFFSET.swordAttackDamage.v);  return _accessor.mutate(swordAttackDamage, index: o) }
+    @discardableResult public func mutate(swordAttackDamage: Int32) -> Bool {let o = _accessor.offset(VTOFFSET.swordAttackDamage.v);  return _accessor.mutate(swordAttackDamage, index: o) }
     public static func startAttacker(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
     public static func add(swordAttackDamage: Int32, _ fbb: inout FlatBufferBuilder) { fbb.add(element: swordAttackDamage, def: 0, at: VTOFFSET.swordAttackDamage.p) }
     public static func endAttacker(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
@@ -209,10 +209,10 @@ public struct Movie: FlatBufferObject {
         var p: VOffset { self.rawValue }
     }
 
-    public var mainCharacterType: Character { let o = _accessor.offset(VTOFFSET.mainCharacterType.v); return o == 0 ? .none : Character(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? .none }
+    public var mainCharacterType: Character { let o = _accessor.offset(VTOFFSET.mainCharacterType.v); return o == 0 ? .none_ : Character(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? .none_ }
     public func mainCharacter<T: FlatBufferObject>(type: T.Type) -> T? { let o = _accessor.offset(VTOFFSET.mainCharacter.v); return o == 0 ? nil : _accessor.union(o) }
     public var charactersTypeCount: Int32 { let o = _accessor.offset(VTOFFSET.charactersType.v); return o == 0 ? 0 : _accessor.vector(count: o) }
-    public func charactersType(at index: Int32) -> Character? { let o = _accessor.offset(VTOFFSET.charactersType.v); return o == 0 ? Character.none : Character(rawValue: _accessor.directRead(of: UInt8.self, offset: _accessor.vector(at: o) + index * 1)) }
+    public func charactersType(at index: Int32) -> Character? { let o = _accessor.offset(VTOFFSET.charactersType.v); return o == 0 ? Character.none_ : Character(rawValue: _accessor.directRead(of: UInt8.self, offset: _accessor.vector(at: o) + index * 1)) }
     public var charactersCount: Int32 { let o = _accessor.offset(VTOFFSET.characters.v); return o == 0 ? 0 : _accessor.vector(count: o) }
     public func characters<T: FlatBufferObject>(at index: Int32, type: T.Type) -> T? { let o = _accessor.offset(VTOFFSET.characters.v); return o == 0 ? nil : _accessor.directUnion(_accessor.vector(at: o) + index * 4) }
     public static func startMovie(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 4) }
@@ -222,7 +222,7 @@ public struct Movie: FlatBufferObject {
     public static func addVectorOf(characters: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: characters, at: VTOFFSET.characters.p)  }
     public static func endMovie(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
     public static func createMovie(_ fbb: inout FlatBufferBuilder,
-    mainCharacterType: Character = .none,
+    mainCharacterType: Character = .none_,
     offsetOfMainCharacter mainCharacter: Offset<UOffset> = Offset(),
     vectorOfCharactersType charactersType: Offset<UOffset> = Offset(),
     vectorOfCharacters characters: Offset<UOffset> = Offset()) -> Offset<UOffset> {

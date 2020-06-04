@@ -11,14 +11,14 @@ final class FlatBuffersUnionTests: XCTestCase {
         let axe = b.create(string: str)
         let weapon = Weapon.createWeapon(builder: &b, offset: axe, dmg: dmg)
         let weapons = b.createVector(ofOffsets: [weapon])
-        let root = Monster.createMonster(builder: &b,
+        let root = LocalMonster.createMonster(builder: &b,
                                          offset: weapons,
                                          equipment: .Weapon,
                                          equippedOffset: weapon.o)
         b.finish(offset: root)
         let buffer = b.sizedByteArray
         XCTAssertEqual(buffer, [16, 0, 0, 0, 0, 0, 10, 0, 16, 0, 8, 0, 7, 0, 12, 0, 10, 0, 0, 0, 0, 0, 0, 1, 8, 0, 0, 0, 20, 0, 0, 0, 1, 0, 0, 0, 12, 0, 0, 0, 8, 0, 12, 0, 8, 0, 6, 0, 8, 0, 0, 0, 0, 0, 5, 0, 4, 0, 0, 0, 3, 0, 0, 0, 65, 120, 101, 0])
-        let monster = Monster.getRootAsMonster(bb: ByteBuffer(bytes: buffer))
+        let monster = LocalMonster.getRootAsMonster(bb: ByteBuffer(bytes: buffer))
         XCTAssertEqual(monster.weapon(at: 0)?.dmg, dmg)
         XCTAssertEqual(monster.weapon(at: 0)?.name, str)
         XCTAssertEqual(monster.weapon(at: 0)?.nameVector, [65, 120, 101])
@@ -160,7 +160,7 @@ struct FinalMonster {
                                          weapons: Offset<UOffset>,
                                          equipment: Equipment = .none,
                                          equippedOffset: Offset<Weapon>,
-                                         path: Offset<UOffset>) -> Offset<Monster> {
+                                         path: Offset<UOffset>) -> Offset<LocalMonster> {
         let start = builder.startTable(with: 11)
         builder.add(structOffset: 4)
         builder.add(element: hp, def: 100, at: 8)
@@ -175,7 +175,7 @@ struct FinalMonster {
     }
 }
 
-struct Monster {
+struct LocalMonster {
     
     private var __t: Table
     
@@ -188,14 +188,14 @@ struct Monster {
         let o = __t.offset(8); return o == 0 ? nil : __t.union(o)
     }
     
-    static func getRootAsMonster(bb: ByteBuffer) -> Monster {
-        return Monster(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: 0))))
+    static func getRootAsMonster(bb: ByteBuffer) -> LocalMonster {
+        return LocalMonster(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: 0))))
     }
     
     @inlinable static func createMonster(builder: inout FlatBufferBuilder,
                                          offset: Offset<UOffset>,
                                          equipment: Equipment = .none,
-                                         equippedOffset: UOffset) -> Offset<Monster> {
+                                         equippedOffset: UOffset) -> Offset<LocalMonster> {
         let start = builder.startTable(with: 3)
         builder.add(element: equippedOffset, def: 0, at: 8)
         builder.add(offset: offset, at: 4)

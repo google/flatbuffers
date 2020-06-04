@@ -2,9 +2,10 @@ import XCTest
 import Foundation
 @testable import FlatBuffers
 
-typealias Test1 = MyGame.Example.Test
-typealias Monster1 = MyGame.Example.Monster
-typealias Vec3 = MyGame.Example.Vec3
+public typealias Test = MyGame.Example.Test
+public typealias Monster = MyGame.Example.Monster
+public typealias Vec3 = MyGame.Example.Vec3
+public typealias Stat = MyGame.Example.Stat
 
 class FlatBuffersMonsterWriterTests: XCTestCase {
     
@@ -45,14 +46,14 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     }
     
     func readMonster(fb: ByteBuffer) {
-        var monster = Monster1.getRootAsMonster(bb: fb)
+        var monster = Monster.getRootAsMonster(bb: fb)
         readFlatbufferMonster(monster: &monster)
         var unpacked: MyGame.Example.MonsterT? = monster.unpack()
         readObjectApi(monster: unpacked!)
         var builder = FlatBufferBuilder()
-        let root = Monster1.pack(&builder, obj: &unpacked)
+        let root = Monster.pack(&builder, obj: &unpacked)
         builder.finish(offset: root)
-        var newMonster = Monster1.getRootAsMonster(bb: builder.sizedBuffer)
+        var newMonster = Monster.getRootAsMonster(bb: builder.sizedBuffer)
         readFlatbufferMonster(monster: &newMonster)
     }
     
@@ -60,17 +61,17 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
         var fbb = FlatBufferBuilder(initialSize: 1)
         let names = [fbb.create(string: "Frodo"), fbb.create(string: "Barney"), fbb.create(string: "Wilma")]
         var offsets: [Offset<UOffset>] = []
-        let start1 = Monster1.startMonster(&fbb)
-        Monster1.add(name: names[0], &fbb)
-        offsets.append(Monster1.endMonster(&fbb, start: start1))
-        let start2 = Monster1.startMonster(&fbb)
-        Monster1.add(name: names[1], &fbb)
-        offsets.append(Monster1.endMonster(&fbb, start: start2))
-        let start3 = Monster1.startMonster(&fbb)
-        Monster1.add(name: names[2], &fbb)
-        offsets.append(Monster1.endMonster(&fbb, start: start3))
+        let start1 = Monster.startMonster(&fbb)
+        Monster.add(name: names[0], &fbb)
+        offsets.append(Monster.endMonster(&fbb, start: start1))
+        let start2 = Monster.startMonster(&fbb)
+        Monster.add(name: names[1], &fbb)
+        offsets.append(Monster.endMonster(&fbb, start: start2))
+        let start3 = Monster.startMonster(&fbb)
+        Monster.add(name: names[2], &fbb)
+        offsets.append(Monster.endMonster(&fbb, start: start3))
         
-        let sortedArray = Monster1.sortVectorOfMonster(offsets: offsets, &fbb)
+        let sortedArray = Monster.sortVectorOfMonster(offsets: offsets, &fbb)
         
         let str = fbb.create(string: "MyMonster")
         let test1 = fbb.create(string: "test1")
@@ -79,34 +80,34 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
         let inv = fbb.createVector(_inv)
         
         let fred = fbb.create(string: "Fred")
-        let mon1Start = Monster1.startMonster(&fbb)
-        Monster1.add(name: fred, &fbb)
-        let mon2 = Monster1.endMonster(&fbb, start: mon1Start)
+        let mon1Start = Monster.startMonster(&fbb)
+        Monster.add(name: fred, &fbb)
+        let mon2 = Monster.endMonster(&fbb, start: mon1Start)
         let test4 = fbb.createVector(structs: [MyGame.Example.createTest(a: 30, b: 40),
                                                MyGame.Example.createTest(a: 10, b: 20)],
-                                     type: Test1.self)
+                                     type: Test.self)
         
         let stringTestVector = fbb.createVector(ofOffsets: [test1, test2])
         
-        let mStart = Monster1.startMonster(&fbb)
+        let mStart = Monster.startMonster(&fbb)
         let posOffset = fbb.create(struct: MyGame.Example.createVec3(x: 1, y: 2, z: 3, test1: 3, test2: .green, test3a: 5, test3b: 6), type: Vec3.self)
-        Monster1.add(pos: posOffset, &fbb)
-        Monster1.add(hp: 80, &fbb)
-        Monster1.add(name: str, &fbb)
-        Monster1.addVectorOf(inventory: inv, &fbb)
-        Monster1.add(testType: .monster, &fbb)
-        Monster1.add(test: mon2, &fbb)
-        Monster1.addVectorOf(test4: test4, &fbb)
-        Monster1.addVectorOf(testarrayofstring: stringTestVector, &fbb)
-        Monster1.add(testbool: true, &fbb)
-        Monster1.addVectorOf(testarrayoftables: sortedArray, &fbb)
-        let end = Monster1.endMonster(&fbb, start: mStart)
-        Monster1.finish(&fbb, end: end, prefix: prefix)
+        Monster.add(pos: posOffset, &fbb)
+        Monster.add(hp: 80, &fbb)
+        Monster.add(name: str, &fbb)
+        Monster.addVectorOf(inventory: inv, &fbb)
+        Monster.add(testType: .monster, &fbb)
+        Monster.add(test: mon2, &fbb)
+        Monster.addVectorOf(test4: test4, &fbb)
+        Monster.addVectorOf(testarrayofstring: stringTestVector, &fbb)
+        Monster.add(testbool: true, &fbb)
+        Monster.addVectorOf(testarrayoftables: sortedArray, &fbb)
+        let end = Monster.endMonster(&fbb, start: mStart)
+        Monster.finish(&fbb, end: end, prefix: prefix)
         return fbb
     }
     
     func mutateMonster(fb: ByteBuffer) {
-        let monster = Monster1.getRootAsMonster(bb: fb)
+        let monster = Monster.getRootAsMonster(bb: fb)
         XCTAssertFalse(monster.mutate(mana: 10))
         XCTAssertEqual(monster.testarrayoftables(at: 0)?.name, "Barney")
         XCTAssertEqual(monster.testarrayoftables(at: 1)?.name, "Frodo")
@@ -160,7 +161,7 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
         XCTAssertEqual(test?.a, 5)
         XCTAssertEqual(test?.b, 6)
         XCTAssertEqual(monster.testType, .monster)
-        let monster2 = monster.test(type: Monster1.self)
+        let monster2 = monster.test(type: Monster.self)
         XCTAssertEqual(monster2?.name, "Fred")
         
         XCTAssertEqual(monster.mutate(mana: 10), false)
