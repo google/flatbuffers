@@ -1022,13 +1022,14 @@ class JavaTest {
 
     public static void testBuilderGrowth() {
         FlexBuffersBuilder builder = new FlexBuffersBuilder();
-        builder.putString("This is a small string");
+        String someString = "This is a small string";
+        builder.putString(someString);
         ByteBuffer b = builder.finish();
-        TestEq("This is a small string", FlexBuffers.getRoot(b).asString());
+        TestEq(someString, FlexBuffers.getRoot(b).asString());
 
         FlexBuffersBuilder failBuilder = new FlexBuffersBuilder(ByteBuffer.allocate(1));
         try {
-            failBuilder.putString("This is a small string");
+            failBuilder.putString(someString);
             // This should never be reached, it should throw an exception
             // since ByteBuffers do not grow
             assert(false);
@@ -1224,4 +1225,5 @@ class JavaTest {
             System.exit(1);
         }
     }
+
 }
