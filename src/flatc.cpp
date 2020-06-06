@@ -127,6 +127,8 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --object-prefix        Customise class prefix for C++ object-based API.\n"
     "  --object-suffix        Customise class suffix for C++ object-based API.\n"
     "                         Default value is \"T\".\n"
+    "  --object-no-construct  Do not generate constructor when generating classes\n"
+    "                         for Object-based API.\n"
     "  --no-js-exports        Removes Node.js style export lines in JS.\n"
     "  --goog-js-export       Uses goog.exports* for closure compiler exporting in JS.\n"
     "  --es6-js-export        Uses ECMAScript 6 export style lines in JS.\n"
@@ -292,6 +294,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       } else if (arg == "--object-suffix") {
         if (++argi >= argc) Error("missing suffix following: " + arg, true);
         opts.object_suffix = argv[argi];
+      } else if (arg == "--object-no-constructor") {
+        opts.object_no_constructor = true;
       } else if (arg == "--gen-all") {
         opts.generate_all = true;
         opts.include_dependence_headers = false;

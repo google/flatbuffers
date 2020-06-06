@@ -1782,7 +1782,9 @@ class CppGenerator : public BaseGenerator {
       GenMember(**it);
     }
     GenOperatorNewDelete(struct_def);
-    GenDefaultConstructor(struct_def);
+    if (!opts_.object_no_constructor) {
+      GenDefaultConstructor(struct_def);
+    }
     code_ += "};";
     if (opts_.gen_compare) GenCompareOperator(struct_def);
     code_ += "";

@@ -143,6 +143,9 @@ Additional options:
 
 -   `--object-suffix` : Customise class suffix for C++ object-based API.
 
+-   `--object-no-constructor` : Do not generator constructor when generating classes
+    for Object-based API.
+
 -   `--no-js-exports` : Removes Node.js style export lines (useful for JS)
 
 -   `--goog-js-export` :  Uses goog.exportsSymbol and goog.exportsProperty

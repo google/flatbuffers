@@ -535,6 +535,7 @@ struct IDLOptions {
   bool gen_generated;
   std::string object_prefix;
   std::string object_suffix;
+  bool object_no_constructor;
   bool union_value_namespacing;
   bool allow_non_utf8;
   bool natural_utf8;
@@ -627,6 +628,7 @@ struct IDLOptions {
         java_checkerframework(false),
         gen_generated(false),
         object_suffix("T"),
+        object_no_constructor(false),
         union_value_namespacing(true),
         allow_non_utf8(false),
         natural_utf8(false),
