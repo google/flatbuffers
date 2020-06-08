@@ -52,6 +52,7 @@ pub struct FlatBufferBuilder<'fbb> {
     finished: bool,
 
     min_align: usize,
+    force_defaults: bool,
 
     _phantom: PhantomData<&'fbb ()>,
 }
@@ -85,6 +86,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
             finished: false,
 
             min_align: 0,
+            force_defaults: false,
 
             _phantom: PhantomData,
         }
@@ -148,10 +150,9 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     #[inline]
     pub fn push_slot<X: Push + PartialEq>(&mut self, slotoff: VOffsetT, x: X, default: X) {
         self.assert_nested("push_slot");
-        if x == default {
-            return;
+        if x != default || self.force_defaults {
+            self.push_slot_always(slotoff, x);
         }
-        self.push_slot_always(slotoff, x);
     }
 
     /// Push a Push'able value onto the front of the in-progress data, and
@@ -325,6 +326,18 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
             self.push(items[i]);
         }
         WIPOffset::new(self.push::<UOffsetT>(items.len() as UOffsetT).value())
+    }
+
+    /// Set whether default values are stored.
+    ///
+    /// In order to save space, fields that are set to their default value
+    /// aren't stored in the buffer. Setting `force_defaults` to `true`
+    /// disables this optimization.
+    ///
+    /// By default, `force_defaults` is `false`.
+    #[inline]
+    pub fn force_defaults(&mut self, force_defaults: bool) {
+        self.force_defaults = force_defaults;
     }
 
     /// Get the byte slice for the data that has been written, regardless of
