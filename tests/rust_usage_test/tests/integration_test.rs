@@ -2461,6 +2461,25 @@ mod byte_layouts {
     }
 
     #[test]
+    fn layout_09b_vtable_with_one_default_bool_force_defaults() {
+        let mut b = flatbuffers::FlatBufferBuilder::new();
+        check(&b, &[]);
+        let off = b.start_table();
+        check(&b, &[]);
+        b.force_defaults(true);
+        b.push_slot(fi2fo(0), false, false);
+        b.end_table(off);
+        check(&b, &[
+            6, 0, // vtable bytes
+            8, 0, // length of object including vtable offset
+            7, 0, // start of bool value
+            6, 0, 0, 0, // offset for start of vtable (int32)
+            0, 0, 0, // padded to 4 bytes
+            0, // bool value
+      ]);
+    }
+
+    #[test]
     fn layout_10_vtable_with_one_int16() {
         let mut b = flatbuffers::FlatBufferBuilder::new();
         check(&b, &[]);
