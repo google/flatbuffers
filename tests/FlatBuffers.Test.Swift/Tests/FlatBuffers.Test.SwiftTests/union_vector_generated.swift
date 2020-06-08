@@ -62,8 +62,11 @@ public struct Rapunzel: Readable {
         return RapunzelT(&self)
     }
     public static func pack(_ builder: inout FlatBufferBuilder, obj: inout RapunzelT?) -> Offset<UOffset> {
-        guard let obj = obj else { return Offset<UOffset>() }
+        guard var obj = obj else { return Offset<UOffset>() }
+        return pack(&builder, obj: &obj)
+    }
 
+    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout RapunzelT) -> Offset<UOffset> {
         return builder.create(struct: createRapunzel(hairLength: obj.hairLength), type: Rapunzel.self)
     }
 }
@@ -99,8 +102,11 @@ public struct BookReader: Readable {
         return BookReaderT(&self)
     }
     public static func pack(_ builder: inout FlatBufferBuilder, obj: inout BookReaderT?) -> Offset<UOffset> {
-        guard let obj = obj else { return Offset<UOffset>() }
+        guard var obj = obj else { return Offset<UOffset>() }
+        return pack(&builder, obj: &obj)
+    }
 
+    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout BookReaderT) -> Offset<UOffset> {
         return builder.create(struct: createBookReader(booksRead: obj.booksRead), type: BookReader.self)
     }
 }
@@ -167,8 +173,11 @@ public struct Attacker: FlatBufferObject {
         return AttackerT(&self)
     }
     public static func pack(_ builder: inout FlatBufferBuilder, obj: inout AttackerT?) -> Offset<UOffset> {
-        guard let obj = obj else { return Offset<UOffset>() }
+        guard var obj = obj else { return Offset<UOffset>() }
+        return pack(&builder, obj: &obj)
+    }
 
+    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout AttackerT) -> Offset<UOffset> {
         let __root = Attacker.startAttacker(&builder)
         Attacker.add(swordAttackDamage: obj.swordAttackDamage, &builder)
         return Attacker.endAttacker(&builder, start: __root)
@@ -239,8 +248,11 @@ public struct Movie: FlatBufferObject {
         return MovieT(&self)
     }
     public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MovieT?) -> Offset<UOffset> {
-        guard let obj = obj else { return Offset<UOffset>() }
+        guard var obj = obj else { return Offset<UOffset>() }
+        return pack(&builder, obj: &obj)
+    }
 
+    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MovieT) -> Offset<UOffset> {
         let __mainCharacter = obj.mainCharacter?.pack(builder: &builder) ?? Offset()
         var __characters__: [Offset<UOffset>] = []
         for i in obj.characters {
