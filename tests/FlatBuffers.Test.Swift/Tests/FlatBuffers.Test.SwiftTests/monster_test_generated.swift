@@ -164,8 +164,11 @@ public struct Test: Readable {
         return TestT(&self)
     }
     public static func pack(_ builder: inout FlatBufferBuilder, obj: inout TestT?) -> Offset<UOffset> {
-        guard let obj = obj else { return Offset<UOffset>() }
+        guard var obj = obj else { return Offset<UOffset>() }
+        return pack(&builder, obj: &obj)
+    }
 
+    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout TestT) -> Offset<UOffset> {
         return builder.create(struct: createTest(a: obj.a, b: obj.b), type: Test.self)
     }
 }
@@ -212,8 +215,11 @@ public struct Vec3: Readable {
         return Vec3T(&self)
     }
     public static func pack(_ builder: inout FlatBufferBuilder, obj: inout Vec3T?) -> Offset<UOffset> {
-        guard let obj = obj else { return Offset<UOffset>() }
+        guard var obj = obj else { return Offset<UOffset>() }
+        return pack(&builder, obj: &obj)
+    }
 
+    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout Vec3T) -> Offset<UOffset> {
         return builder.create(struct: createVec3(x: obj.x, y: obj.y, z: obj.z, test1: obj.test1, test2: obj.test2, test3a: obj.test3.a, test3b: obj.test3.b), type: Vec3.self)
     }
 }
@@ -267,8 +273,11 @@ public struct Ability: Readable {
         return AbilityT(&self)
     }
     public static func pack(_ builder: inout FlatBufferBuilder, obj: inout AbilityT?) -> Offset<UOffset> {
-        guard let obj = obj else { return Offset<UOffset>() }
+        guard var obj = obj else { return Offset<UOffset>() }
+        return pack(&builder, obj: &obj)
+    }
 
+    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout AbilityT) -> Offset<UOffset> {
         return builder.create(struct: createAbility(id: obj.id, distance: obj.distance), type: Ability.self)
     }
 }
@@ -343,8 +352,11 @@ public struct InParentNamespace: FlatBufferObject {
         return InParentNamespaceT(&self)
     }
     public static func pack(_ builder: inout FlatBufferBuilder, obj: inout InParentNamespaceT?) -> Offset<UOffset> {
-        guard let obj = obj else { return Offset<UOffset>() }
+        guard var obj = obj else { return Offset<UOffset>() }
+        return pack(&builder, obj: &obj)
+    }
 
+    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout InParentNamespaceT) -> Offset<UOffset> {
         let __root = InParentNamespace.startInParentNamespace(&builder)
         return InParentNamespace.endInParentNamespace(&builder, start: __root)
     }
@@ -382,8 +394,11 @@ public struct Monster: FlatBufferObject {
         return MonsterT(&self)
     }
     public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MonsterT?) -> Offset<UOffset> {
-        guard let obj = obj else { return Offset<UOffset>() }
+        guard var obj = obj else { return Offset<UOffset>() }
+        return pack(&builder, obj: &obj)
+    }
 
+    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MonsterT) -> Offset<UOffset> {
         let __root = Monster.startMonster(&builder)
         return Monster.endMonster(&builder, start: __root)
     }
@@ -442,8 +457,11 @@ public struct TestSimpleTableWithEnum: FlatBufferObject {
         return TestSimpleTableWithEnumT(&self)
     }
     public static func pack(_ builder: inout FlatBufferBuilder, obj: inout TestSimpleTableWithEnumT?) -> Offset<UOffset> {
-        guard let obj = obj else { return Offset<UOffset>() }
+        guard var obj = obj else { return Offset<UOffset>() }
+        return pack(&builder, obj: &obj)
+    }
 
+    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout TestSimpleTableWithEnumT) -> Offset<UOffset> {
         let __root = TestSimpleTableWithEnum.startTestSimpleTableWithEnum(&builder)
         TestSimpleTableWithEnum.add(color: obj.color, &builder)
         return TestSimpleTableWithEnum.endTestSimpleTableWithEnum(&builder, start: __root)
@@ -510,8 +528,11 @@ public struct Stat: FlatBufferObject {
         return StatT(&self)
     }
     public static func pack(_ builder: inout FlatBufferBuilder, obj: inout StatT?) -> Offset<UOffset> {
-        guard let obj = obj else { return Offset<UOffset>() }
+        guard var obj = obj else { return Offset<UOffset>() }
+        return pack(&builder, obj: &obj)
+    }
 
+    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout StatT) -> Offset<UOffset> {
         let __id: Offset<String>
         if let s = obj.id {
             __id = builder.create(string: s)
@@ -604,8 +625,11 @@ public struct Referrable: FlatBufferObject {
         return ReferrableT(&self)
     }
     public static func pack(_ builder: inout FlatBufferBuilder, obj: inout ReferrableT?) -> Offset<UOffset> {
-        guard let obj = obj else { return Offset<UOffset>() }
+        guard var obj = obj else { return Offset<UOffset>() }
+        return pack(&builder, obj: &obj)
+    }
 
+    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout ReferrableT) -> Offset<UOffset> {
         let __root = Referrable.startReferrable(&builder)
         Referrable.add(id: obj.id, &builder)
         return Referrable.endReferrable(&builder, start: __root)
@@ -696,8 +720,8 @@ public struct Monster: FlatBufferObject {
     @discardableResult public func mutate(mana: Int16) -> Bool {let o = _accessor.offset(VTOFFSET.mana.v);  return _accessor.mutate(mana, index: o) }
     public var hp: Int16 { let o = _accessor.offset(VTOFFSET.hp.v); return o == 0 ? 100 : _accessor.readBuffer(of: Int16.self, at: o) }
     @discardableResult public func mutate(hp: Int16) -> Bool {let o = _accessor.offset(VTOFFSET.hp.v);  return _accessor.mutate(hp, index: o) }
-    public var name: String? { let o = _accessor.offset(VTOFFSET.name.v); return o == 0 ? nil : _accessor.string(at: o) }
-    public var nameSegmentArray: [UInt8]? { return _accessor.getVector(at: VTOFFSET.name.v) }
+    public var name: String! { let o = _accessor.offset(VTOFFSET.name.v); return _accessor.string(at: o) }
+    public var nameSegmentArray: [UInt8]! { return _accessor.getVector(at: VTOFFSET.name.v) }
     public var inventoryCount: Int32 { let o = _accessor.offset(VTOFFSET.inventory.v); return o == 0 ? 0 : _accessor.vector(count: o) }
     public func inventory(at index: Int32) -> UInt8 { let o = _accessor.offset(VTOFFSET.inventory.v); return o == 0 ? 0 : _accessor.directRead(of: UInt8.self, offset: _accessor.vector(at: o) + index * 1) }
     public var inventory: [UInt8] { return _accessor.getVector(at: VTOFFSET.inventory.v) ?? [] }
@@ -981,15 +1005,12 @@ public struct Monster: FlatBufferObject {
         return MonsterT(&self)
     }
     public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MonsterT?) -> Offset<UOffset> {
-        guard let obj = obj else { return Offset<UOffset>() }
+        guard var obj = obj else { return Offset<UOffset>() }
+        return pack(&builder, obj: &obj)
+    }
 
-        let __name: Offset<String>
-        if let s = obj.name {
-            __name = builder.create(string: s)
-        } else {
-            __name = Offset<String>()
-        }
-
+    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MonsterT) -> Offset<UOffset> {
+        let __name = builder.create(string: obj.name)
         let __inventory = builder.createVector(obj.inventory)
         let __test = obj.test?.pack(builder: &builder) ?? Offset()
         var __test4__: [UnsafeMutableRawPointer] = []
@@ -1108,7 +1129,7 @@ public class MonsterT: NativeTable {
     var pos: MyGame.Example.Vec3T?
     var mana: Int16
     var hp: Int16
-    var name: String?
+    var name: String
     var inventory: [UInt8]
     var color: MyGame.Example.Color
     var test: Any_Union?
@@ -1300,6 +1321,7 @@ public class MonsterT: NativeTable {
         pos = MyGame.Example.Vec3T()
         mana = 150
         hp = 100
+        name = ""
         inventory = []
         color = .blue
         test4 = []
@@ -1446,8 +1468,11 @@ public struct TypeAliases: FlatBufferObject {
         return TypeAliasesT(&self)
     }
     public static func pack(_ builder: inout FlatBufferBuilder, obj: inout TypeAliasesT?) -> Offset<UOffset> {
-        guard let obj = obj else { return Offset<UOffset>() }
+        guard var obj = obj else { return Offset<UOffset>() }
+        return pack(&builder, obj: &obj)
+    }
 
+    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout TypeAliasesT) -> Offset<UOffset> {
         let __v8 = builder.createVector(obj.v8)
         let __vf64 = builder.createVector(obj.vf64)
         let __root = TypeAliases.startTypeAliases(&builder)

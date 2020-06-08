@@ -367,8 +367,16 @@ class SwiftGenerator : public BaseGenerator {
         "inout " +
         ObjectAPIName("{{STRUCTNAME}}") + "?) -> Offset<UOffset> {";
     Indent();
-    code_ += "guard let obj = obj else { return Offset<UOffset>() }";
+    code_ += "guard var obj = obj else { return Offset<UOffset>() }";
+    code_ += "return pack(&builder, obj: &obj)";
+    Outdent();
+    code_ += "}";
     code_ += "";
+    code_ +=
+        "public static func pack(_ builder: inout FlatBufferBuilder, obj: "
+        "inout " +
+        ObjectAPIName("{{STRUCTNAME}}") + ") -> Offset<UOffset> {";
+    Indent();
   }
 
   void GenerateObjectAPIStructExtension(const StructDef &struct_def) {
@@ -581,10 +589,13 @@ class SwiftGenerator : public BaseGenerator {
       return;
     }
 
+    std::string is_required = field.required ? "!" : "?";
+    auto required_reader = field.required ? "return " : const_string;
+
     if (IsStruct(field.value.type) && field.value.type.struct_def->fixed) {
       code_.SetValue("VALUETYPE", GenType(field.value.type));
       code_.SetValue("CONSTANT", "nil");
-      code_ += GenReaderMainBody("?") + GenOffset() + const_string +
+      code_ += GenReaderMainBody(is_required) + GenOffset() + required_reader +
                GenConstructor("o + {{ACCESS}}.postion");
       return;
     }
@@ -592,18 +603,19 @@ class SwiftGenerator : public BaseGenerator {
       case BASE_TYPE_STRUCT:
         code_.SetValue("VALUETYPE", GenType(field.value.type));
         code_.SetValue("CONSTANT", "nil");
-        code_ += GenReaderMainBody("?") + GenOffset() + const_string +
+        code_ += GenReaderMainBody(is_required) + GenOffset() +
+                 required_reader +
                  GenConstructor(GenIndirect("o + {{ACCESS}}.postion"));
         break;
 
       case BASE_TYPE_STRING:
         code_.SetValue("VALUETYPE", GenType(field.value.type));
         code_.SetValue("CONSTANT", "nil");
-        code_ += GenReaderMainBody("?") + GenOffset() + const_string +
-                 "{{ACCESS}}.string(at: o) }";
-        code_ +=
-            "public var {{VALUENAME}}SegmentArray: [UInt8]? { return "
-            "{{ACCESS}}.getVector(at: {{TABLEOFFSET}}.{{OFFSET}}.v) }";
+        code_ += GenReaderMainBody(is_required) + GenOffset() +
+                 required_reader + "{{ACCESS}}.string(at: o) }";
+        code_ += "public var {{VALUENAME}}SegmentArray: [UInt8]" + is_required +
+                 " { return "
+                 "{{ACCESS}}.getVector(at: {{TABLEOFFSET}}.{{OFFSET}}.v) }";
         break;
 
       case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();  // fall thru
@@ -614,8 +626,9 @@ class SwiftGenerator : public BaseGenerator {
         code_.SetValue("CONSTANT", "nil");
         code_ +=
             "public func {{VALUENAME}}<T: FlatBufferObject>(type: "
-            "T.Type) -> T? { " +
-            GenOffset() + const_string + "{{ACCESS}}.union(o) }";
+            "T.Type) -> T" +
+            is_required + " { " + GenOffset() + required_reader +
+            "{{ACCESS}}.union(o) }";
         break;
       default: FLATBUFFERS_ASSERT(0);
     }
@@ -771,8 +784,8 @@ class SwiftGenerator : public BaseGenerator {
       code_ += "case {{KEY}} = {{VALUE}}";
     }
     code_ += "\n";
-    AddMinOrMaxEnumValue(enum_def.MaxValue()->name, "max");
-    AddMinOrMaxEnumValue(enum_def.MinValue()->name, "min");
+    AddMinOrMaxEnumValue(Name(*enum_def.MaxValue()), "max");
+    AddMinOrMaxEnumValue(Name(*enum_def.MinValue()), "min");
     Outdent();
     code_ += "}\n";
     if (parser_.opts.generate_object_based_api && enum_def.is_union) {
@@ -871,7 +884,13 @@ class SwiftGenerator : public BaseGenerator {
         case BASE_TYPE_STRING: {
           unpack_body.push_back("{{STRUCTNAME}}." + body + "__" + name +
                                 builder);
-          BuildingOptionalObjects(name, "String", "builder.create(string: s)");
+          if (field.required) {
+            code_ +=
+                "let __" + name + " = builder.create(string: obj." + name + ")";
+          } else {
+            BuildingOptionalObjects(name, "String",
+                                    "builder.create(string: s)");
+          }
           break;
         }
         case BASE_TYPE_UTYPE: break;
@@ -986,6 +1005,7 @@ class SwiftGenerator : public BaseGenerator {
     auto type = GenType(field.value.type);
     code_.SetValue("VALUENAME", name);
     code_.SetValue("VALUETYPE", type);
+    std::string is_required = field.required ? "" : "?";
 
     switch (field.value.type.base_type) {
       case BASE_TYPE_STRUCT: {
@@ -994,10 +1014,13 @@ class SwiftGenerator : public BaseGenerator {
         buffer_constructor.push_back("var __" + name + " = _t." + name);
         auto optional =
             (field.value.type.struct_def && field.value.type.struct_def->fixed);
-        std::string question_mark = (optional && is_fixed ? "" : "?");
+        std::string question_mark =
+            (field.required || (optional && is_fixed) ? "" : "?");
+
         code_ += "var {{VALUENAME}}: {{VALUETYPE}}" + question_mark;
         buffer_constructor.push_back("" + name + " = __" + name +
-                                     question_mark + ".unpack()");
+                                     (field.required ? "!" : question_mark) +
+                                     ".unpack()");
         base_constructor.push_back("" + name + " = " + type + "()");
         break;
       }
@@ -1008,8 +1031,9 @@ class SwiftGenerator : public BaseGenerator {
         break;
       }
       case BASE_TYPE_STRING: {
-        code_ += "var {{VALUENAME}}: String?";
+        code_ += "var {{VALUENAME}}: String" + is_required;
         buffer_constructor.push_back(name + " = _t." + name);
+        if (field.required) base_constructor.push_back(name + " = \"\"");
         break;
       }
       case BASE_TYPE_UTYPE: break;
@@ -1163,9 +1187,7 @@ class SwiftGenerator : public BaseGenerator {
 
   void AddMinOrMaxEnumValue(const std::string &str, const std::string &type) {
     auto current_value = str;
-    std::transform(current_value.begin(), current_value.end(),
-                   current_value.begin(), LowerCase);
-    code_.SetValue(type, EscapeKeyword(MakeCamel(current_value, false)));
+    code_.SetValue(type, current_value);
     code_ += "public static var " + type + ": {{ENUM_NAME}} { return .{{" +
              type + "}} }";
   }
