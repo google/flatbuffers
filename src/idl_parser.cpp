@@ -1355,8 +1355,8 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
     // globals, making parsing thread-unsafe.
     // So for now, we use SimpleQsort above.
     // TODO: replace with something better, preferably not recursive.
-    static voffset_t offset = key->value.offset;
-    static BaseType ftype = key->value.type.base_type;
+    voffset_t offset = key->value.offset;
+    BaseType ftype = key->value.type.base_type;
 
     if (type.struct_def->fixed) {
       auto v =
@@ -1364,7 +1364,7 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
       SimpleQsort<uint8_t>(
           v->Data(), v->Data() + v->size() * type.struct_def->bytesize,
           type.struct_def->bytesize,
-          [](const uint8_t *a, const uint8_t *b) -> bool {
+          [&](const uint8_t *a, const uint8_t *b) -> bool {
             return CompareType(a + offset, b + offset, ftype);
           },
           [&](uint8_t *a, uint8_t *b) {
@@ -1381,7 +1381,7 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
       // can't be used to swap elements.
       SimpleQsort<Offset<Table>>(
           v->data(), v->data() + v->size(), 1,
-          [](const Offset<Table> *_a, const Offset<Table> *_b) -> bool {
+          [&](const Offset<Table> *_a, const Offset<Table> *_b) -> bool {
             // Indirect offset pointer to table pointer.
             auto a = reinterpret_cast<const uint8_t *>(_a) +
                      ReadScalar<uoffset_t>(_a);
