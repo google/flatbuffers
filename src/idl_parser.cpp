@@ -1280,7 +1280,7 @@ void SimpleQsort(T *begin, T *end, size_t width, F comparator, S swapper) {
       r -= width;
       swapper(l, r);
     } else {
-      l++;
+      l += width;
     }
   }
   l -= width;
