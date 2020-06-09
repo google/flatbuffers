@@ -878,6 +878,11 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
       val->constant = NumToString(id - 1);
       typefield->attributes.Add("id", val);
     }
+    // if this field is a union that is deprecated,
+    // the automatically added type field should be deprecated as well
+    if (field->deprecated) {
+      typefield->deprecated = true;
+    }
   }
 
   EXPECT(';');
