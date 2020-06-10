@@ -1350,9 +1350,17 @@ class RustGenerator : public BaseGenerator {
         code_ +=
             "    if self.{{FIELD_TYPE_FIELD_NAME}}_type() == "
             "{{U_ELEMENT_ENUM_TYPE}} {";
-        code_ +=
-            "      self.{{FIELD_NAME}}().map(|u| "
-            "{{U_ELEMENT_TABLE_TYPE}}::init_from_table(u))";
+
+        // The following logic is not tested in the integration test,
+        // as of April 10, 2020
+        if (field.required) {
+          code_ += "      let u = self.{{FIELD_NAME}}();";
+          code_ += "      Some({{U_ELEMENT_TABLE_TYPE}}::init_from_table(u))";
+        } else {
+          code_ +=
+              "      self.{{FIELD_NAME}}().map(|u| "
+              "{{U_ELEMENT_TABLE_TYPE}}::init_from_table(u))";
+        }
         code_ += "    } else {";
         code_ += "      None";
         code_ += "    }";
@@ -1778,14 +1786,17 @@ class RustGenerator : public BaseGenerator {
   void GenNamespaceImports(const int white_spaces) {
     std::string indent = std::string(white_spaces, ' ');
     code_ += "";
-    for (auto it = parser_.included_files_.begin();
-         it != parser_.included_files_.end(); ++it) {
-      if (it->second.empty()) continue;
-      auto noext = flatbuffers::StripExtension(it->second);
-      auto basename = flatbuffers::StripPath(noext);
+    if (!parser_.opts.generate_all) {
+      for (auto it = parser_.included_files_.begin();
+           it != parser_.included_files_.end(); ++it) {
+        if (it->second.empty()) continue;
+        auto noext = flatbuffers::StripExtension(it->second);
+        auto basename = flatbuffers::StripPath(noext);
 
-      code_ += indent + "use crate::" + basename + "_generated::*;";
+        code_ += indent + "use crate::" + basename + "_generated::*;";
+      }
     }
+
     code_ += indent + "use std::mem;";
     code_ += indent + "use std::cmp::Ordering;";
     code_ += "";

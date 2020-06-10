@@ -239,7 +239,7 @@ template<typename T> class SymbolTable {
 struct Namespace {
   Namespace() : from_table(0) {}
 
-  // Given a (potentally unqualified) name, return the "fully qualified" name
+  // Given a (potentially unqualified) name, return the "fully qualified" name
   // which has a full namespaced descriptor.
   // With max_components you can request less than the number of components
   // the current namespace has.
@@ -410,9 +410,7 @@ struct EnumDef : public Definition {
 
   size_t size() const { return vals.vec.size(); }
 
-  const std::vector<EnumVal *> &Vals() const {
-    return vals.vec;
-  }
+  const std::vector<EnumVal *> &Vals() const { return vals.vec; }
 
   const EnumVal *Lookup(const std::string &enum_name) const {
     return vals.Lookup(enum_name);
@@ -859,7 +857,7 @@ class Parser : public ParserState {
                                      const std::string &name, const Type &type,
                                      FieldDef **dest);
   FLATBUFFERS_CHECKED_ERROR ParseField(StructDef &struct_def);
-  FLATBUFFERS_CHECKED_ERROR ParseString(Value &val);
+  FLATBUFFERS_CHECKED_ERROR ParseString(Value &val, bool use_string_pooling);
   FLATBUFFERS_CHECKED_ERROR ParseComma();
   FLATBUFFERS_CHECKED_ERROR ParseAnyValue(Value &val, FieldDef *field,
                                           size_t parent_fieldn,

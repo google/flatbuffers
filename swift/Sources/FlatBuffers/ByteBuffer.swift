@@ -121,7 +121,7 @@ public struct ByteBuffer {
         ensureSpace(size: padding)
         _writerSize += (MemoryLayout<UInt8>.size * Int(padding))
     }
-
+    
     ///Adds an array of type Scalar to the buffer memory
     /// - Parameter elements: An array of Scalars
     @usableFromInline mutating func push<T: Scalar>(elements: [T]) {
@@ -129,6 +129,16 @@ public struct ByteBuffer {
         ensureSpace(size: UInt32(size))
         elements.lazy.reversed().forEach { (s) in
             push(value: s, len: MemoryLayout.size(ofValue: s))
+        }
+    }
+    
+    ///Adds an array of type Bool to the buffer memory
+    /// - Parameter elements: An array of Bool
+    @usableFromInline mutating func push(elements: [Bool]) {
+        let size = elements.count * MemoryLayout<Bool>.size
+        ensureSpace(size: UInt32(size))
+        elements.lazy.reversed().forEach { (s) in
+            push(value: s ? 1 : 0, len: MemoryLayout.size(ofValue: s))
         }
     }
 
@@ -174,8 +184,6 @@ public struct ByteBuffer {
     ///   - len: Size of string
     @usableFromInline mutating internal func push(bytes: UnsafeBufferPointer<String.UTF8View.Element>, len: Int) -> Bool {
         memcpy(_storage.memory.advanced(by: writerIndex - len), UnsafeRawPointer(bytes.baseAddress!), len)
-//        _memory.advanced(by: writerIndex - len).copyMemory(from:
-//            UnsafeRawPointer(bytes.baseAddress!), byteCount: len)
         _writerSize += len
         return true
     }
@@ -241,6 +249,11 @@ public struct ByteBuffer {
     /// Resizes the buffer size
     /// - Parameter size: new size for the buffer
     @usableFromInline mutating internal func resize(_ size: Int) {
+        assert((_writerSize - size) > 0)
+        var zero: UInt8 = 0
+        for i in 0..<(_writerSize - size) {
+            memcpy(_storage.memory.advanced(by: writerIndex + i), &zero, MemoryLayout<UInt8>.size)
+        }
         _writerSize = size
     }
 

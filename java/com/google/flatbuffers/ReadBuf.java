@@ -3,7 +3,7 @@ package com.google.flatbuffers;
 /**
  *  Represent a chunk of data, where FlexBuffers will read from.
  */
-interface ReadBuf {
+public interface ReadBuf {
 
   /**
    * Read boolean from data. Booleans as stored as single byte

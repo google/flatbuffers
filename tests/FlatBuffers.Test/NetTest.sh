@@ -4,10 +4,10 @@
 mkdir dotnet_tmp
 curl -OL https://dot.net/v1/dotnet-install.sh
 chmod +x dotnet-install.sh
-./dotnet-install.sh --version 3.1.101 --install-dir dotnet_tmp
+./dotnet-install.sh --version latest --install-dir dotnet_tmp
 dotnet_tmp/dotnet new sln
 dotnet_tmp/dotnet sln add FlatBuffers.Test.csproj
-curl -OL https://dist.nuget.org/win-x86-commandline/v5.4.0/nuget.exe
+curl -OL https://dist.nuget.org/win-x86-commandline/v5.5.1/nuget.exe
 mono nuget.exe restore
 
 # Copy Test Files

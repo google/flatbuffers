@@ -677,9 +677,15 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   Type type;
   ECHECK(ParseType(type));
 
-  if (struct_def.fixed && !IsScalar(type.base_type) && !IsStruct(type) &&
-      !IsArray(type))
-    return Error("structs_ may contain only scalar or struct fields");
+  if (struct_def.fixed) {
+    auto valid = IsScalar(type.base_type) || IsStruct(type);
+    if (!valid && IsArray(type)) {
+      const auto &elem_type = type.VectorType();
+      valid |= IsScalar(elem_type.base_type) || IsStruct(elem_type);
+    }
+    if (!valid)
+      return Error("structs may contain only scalar or struct fields");
+  }
 
   if (!struct_def.fixed && IsArray(type))
     return Error("fixed-length array in table must be wrapped in struct");
@@ -878,10 +884,14 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   return NoError();
 }
 
-CheckedError Parser::ParseString(Value &val) {
+CheckedError Parser::ParseString(Value &val, bool use_string_pooling) {
   auto s = attribute_;
   EXPECT(kTokenStringConstant);
-  val.constant = NumToString(builder_.CreateString(s).o);
+  if (use_string_pooling) {
+    val.constant = NumToString(builder_.CreateSharedString(s).o);
+  } else {
+    val.constant = NumToString(builder_.CreateString(s).o);
+  }
   return NoError();
 }
 
@@ -974,7 +984,7 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
           val.constant = NumToString(builder_.GetSize());
         }
       } else if (enum_val->union_type.base_type == BASE_TYPE_STRING) {
-        ECHECK(ParseString(val));
+        ECHECK(ParseString(val, field->shared));
       } else {
         FLATBUFFERS_ASSERT(false);
       }
@@ -984,7 +994,7 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
       ECHECK(ParseTable(*val.type.struct_def, &val.constant, nullptr));
       break;
     case BASE_TYPE_STRING: {
-      ECHECK(ParseString(val));
+      ECHECK(ParseString(val, field->shared));
       break;
     }
     case BASE_TYPE_VECTOR: {
@@ -1270,7 +1280,7 @@ void SimpleQsort(T *begin, T *end, size_t width, F comparator, S swapper) {
       r -= width;
       swapper(l, r);
     } else {
-      l++;
+      l += width;
     }
   }
   l -= width;
@@ -1345,8 +1355,8 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
     // globals, making parsing thread-unsafe.
     // So for now, we use SimpleQsort above.
     // TODO: replace with something better, preferably not recursive.
-    static voffset_t offset = key->value.offset;
-    static BaseType ftype = key->value.type.base_type;
+    voffset_t offset = key->value.offset;
+    BaseType ftype = key->value.type.base_type;
 
     if (type.struct_def->fixed) {
       auto v =
@@ -1354,7 +1364,7 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
       SimpleQsort<uint8_t>(
           v->Data(), v->Data() + v->size() * type.struct_def->bytesize,
           type.struct_def->bytesize,
-          [](const uint8_t *a, const uint8_t *b) -> bool {
+          [&](const uint8_t *a, const uint8_t *b) -> bool {
             return CompareType(a + offset, b + offset, ftype);
           },
           [&](uint8_t *a, uint8_t *b) {
@@ -1371,7 +1381,7 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
       // can't be used to swap elements.
       SimpleQsort<Offset<Table>>(
           v->data(), v->data() + v->size(), 1,
-          [](const Offset<Table> *_a, const Offset<Table> *_b) -> bool {
+          [&](const Offset<Table> *_a, const Offset<Table> *_b) -> bool {
             // Indirect offset pointer to table pointer.
             auto a = reinterpret_cast<const uint8_t *>(_a) +
                      ReadScalar<uoffset_t>(_a);
@@ -1694,9 +1704,7 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
   const auto is_tok_string = (token_ == kTokenStringConstant);
 
   // First see if this could be a conversion function:
-  if (is_tok_ident && *cursor_ == '(') {
-      return ParseFunction(name, e);
-  }
+  if (is_tok_ident && *cursor_ == '(') { return ParseFunction(name, e); }
 
   // clang-format off
   auto match = false;
@@ -1747,8 +1755,7 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
     if (!match && is_tok_string && IsScalar(in_type)) {
       // Strip trailing whitespaces from attribute_.
       auto last_non_ws = attribute_.find_last_not_of(' ');
-      if (std::string::npos != last_non_ws)
-        attribute_.resize(last_non_ws + 1);
+      if (std::string::npos != last_non_ws) attribute_.resize(last_non_ws + 1);
       if (IsFloat(e.type.base_type)) {
         // The functions strtod() and strtof() accept both 'nan' and
         // 'nan(number)' literals. While 'nan(number)' is rejected by the parser
@@ -3293,6 +3300,7 @@ bool FieldDef::Deserialize(Parser &parser, const reflection::Field *field) {
     nested_flatbuffer = parser.LookupStruct(nested_qualified_name);
     if (!nested_flatbuffer) return false;
   }
+  shared = attributes.Lookup("shared") != nullptr;
   DeserializeDoc(doc_comment, field->documentation());
   return true;
 }

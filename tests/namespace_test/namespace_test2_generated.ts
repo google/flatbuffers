@@ -120,13 +120,6 @@ static endTableInFirstNS(builder:flatbuffers.Builder):flatbuffers.Offset {
   return offset;
 };
 
-static createTableInFirstNS(builder:flatbuffers.Builder, fooTableOffset:flatbuffers.Offset, fooEnum:NS8755221360535654258.NamespaceA.NamespaceB.EnumInNestedNS, fooStructOffset:flatbuffers.Offset):flatbuffers.Offset {
-  TableInFirstNS.startTableInFirstNS(builder);
-  TableInFirstNS.addFooTable(builder, fooTableOffset);
-  TableInFirstNS.addFooEnum(builder, fooEnum);
-  TableInFirstNS.addFooStruct(builder, fooStructOffset);
-  return TableInFirstNS.endTableInFirstNS(builder);
-}
 
 /**
  * @returns TableInFirstNST
@@ -167,7 +160,7 @@ constructor(
  * @returns flatbuffers.Offset
  */
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return TableInFirstNS.createTableInFirstNS(builder,
+  return NamespaceA.TableInFirstNS.createTableInFirstNS(builder,
     (this.fooTable !== null ? this.fooTable!.pack(builder) : 0),
     this.fooEnum,
     (this.fooStruct !== null ? this.fooStruct!.pack(builder) : 0)
@@ -263,12 +256,6 @@ static endTableInC(builder:flatbuffers.Builder):flatbuffers.Offset {
   return offset;
 };
 
-static createTableInC(builder:flatbuffers.Builder, referToA1Offset:flatbuffers.Offset, referToA2Offset:flatbuffers.Offset):flatbuffers.Offset {
-  TableInC.startTableInC(builder);
-  TableInC.addReferToA1(builder, referToA1Offset);
-  TableInC.addReferToA2(builder, referToA2Offset);
-  return TableInC.endTableInC(builder);
-}
 
 /**
  * @returns TableInCT
@@ -305,7 +292,7 @@ constructor(
  * @returns flatbuffers.Offset
  */
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return TableInC.createTableInC(builder,
+  return NamespaceC.TableInC.createTableInC(builder,
     (this.referToA1 !== null ? this.referToA1!.pack(builder) : 0),
     (this.referToA2 !== null ? this.referToA2!.pack(builder) : 0)
   );
@@ -420,7 +407,7 @@ constructor(
  * @returns flatbuffers.Offset
  */
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return SecondTableInA.createSecondTableInA(builder,
+  return NamespaceA.SecondTableInA.createSecondTableInA(builder,
     (this.referToC !== null ? this.referToC!.pack(builder) : 0)
   );
 };

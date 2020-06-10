@@ -234,7 +234,7 @@ constructor(){};
  * @returns flatbuffers.Offset
  */
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return InParentNamespace.createInParentNamespace(builder);
+  return MyGame.InParentNamespace.createInParentNamespace(builder);
 };
 }
 }
@@ -321,7 +321,7 @@ constructor(){};
  * @returns flatbuffers.Offset
  */
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return Monster.createMonster(builder);
+  return MyGame.Example2.Monster.createMonster(builder);
 };
 }
 }
@@ -356,13 +356,7 @@ a():number {
  * @returns boolean
  */
 mutate_a(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 0);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeInt16(this.bb_pos + offset, value);
+  this.bb!.writeInt16(this.bb_pos + 0, value);
   return true;
 };
 
@@ -378,13 +372,7 @@ b():number {
  * @returns boolean
  */
 mutate_b(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 2);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeInt8(this.bb_pos + offset, value);
+  this.bb!.writeInt8(this.bb_pos + 2, value);
   return true;
 };
 
@@ -438,7 +426,7 @@ constructor(
  * @returns flatbuffers.Offset
  */
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return Test.createTest(builder,
+  return MyGame.Example.Test.createTest(builder,
     this.a,
     this.b
   );
@@ -567,7 +555,7 @@ constructor(
  * @returns flatbuffers.Offset
  */
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return TestSimpleTableWithEnum.createTestSimpleTableWithEnum(builder,
+  return MyGame.Example.TestSimpleTableWithEnum.createTestSimpleTableWithEnum(builder,
     this.color
   );
 };
@@ -604,13 +592,7 @@ x():number {
  * @returns boolean
  */
 mutate_x(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 0);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeFloat32(this.bb_pos + offset, value);
+  this.bb!.writeFloat32(this.bb_pos + 0, value);
   return true;
 };
 
@@ -626,13 +608,7 @@ y():number {
  * @returns boolean
  */
 mutate_y(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 4);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeFloat32(this.bb_pos + offset, value);
+  this.bb!.writeFloat32(this.bb_pos + 4, value);
   return true;
 };
 
@@ -648,13 +624,7 @@ z():number {
  * @returns boolean
  */
 mutate_z(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 8);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeFloat32(this.bb_pos + offset, value);
+  this.bb!.writeFloat32(this.bb_pos + 8, value);
   return true;
 };
 
@@ -670,13 +640,7 @@ test1():number {
  * @returns boolean
  */
 mutate_test1(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 16);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeFloat64(this.bb_pos + offset, value);
+  this.bb!.writeFloat64(this.bb_pos + 16, value);
   return true;
 };
 
@@ -692,13 +656,7 @@ test2():MyGame.Example.Color {
  * @returns boolean
  */
 mutate_test2(value:MyGame.Example.Color):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 24);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint8(this.bb_pos + offset, value);
+  this.bb!.writeUint8(this.bb_pos + 24, value);
   return true;
 };
 
@@ -790,7 +748,7 @@ constructor(
  * @returns flatbuffers.Offset
  */
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return Vec3.createVec3(builder,
+  return MyGame.Example.Vec3.createVec3(builder,
     this.x,
     this.y,
     this.z,
@@ -833,13 +791,7 @@ id():number {
  * @returns boolean
  */
 mutate_id(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 0);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint32(this.bb_pos + offset, value);
+  this.bb!.writeUint32(this.bb_pos + 0, value);
   return true;
 };
 
@@ -855,13 +807,7 @@ distance():number {
  * @returns boolean
  */
 mutate_distance(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 4);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint32(this.bb_pos + offset, value);
+  this.bb!.writeUint32(this.bb_pos + 4, value);
   return true;
 };
 
@@ -914,7 +860,7 @@ constructor(
  * @returns flatbuffers.Offset
  */
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return Ability.createAbility(builder,
+  return MyGame.Example.Ability.createAbility(builder,
     this.id,
     this.distance
   );
@@ -1105,7 +1051,7 @@ constructor(
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   const id = (this.id !== null ? builder.createString(this.id!) : 0);
 
-  return Stat.createStat(builder,
+  return MyGame.Example.Stat.createStat(builder,
     id,
     this.val,
     this.count
@@ -1235,7 +1181,7 @@ constructor(
  * @returns flatbuffers.Offset
  */
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return Referrable.createReferrable(builder,
+  return MyGame.Example.Referrable.createReferrable(builder,
     this.id
   );
 };
@@ -2949,58 +2895,6 @@ static finishSizePrefixedMonsterBuffer(builder:flatbuffers.Builder, offset:flatb
   builder.finish(offset, 'MONS', true);
 };
 
-static createMonster(builder:flatbuffers.Builder, posOffset:flatbuffers.Offset, mana:number, hp:number, nameOffset:flatbuffers.Offset, inventoryOffset:flatbuffers.Offset, color:MyGame.Example.Color, testType:MyGame.Example.Any, testOffset:flatbuffers.Offset, test4Offset:flatbuffers.Offset, testarrayofstringOffset:flatbuffers.Offset, testarrayoftablesOffset:flatbuffers.Offset, enemyOffset:flatbuffers.Offset, testnestedflatbufferOffset:flatbuffers.Offset, testemptyOffset:flatbuffers.Offset, testbool:boolean, testhashs32Fnv1:number, testhashu32Fnv1:number, testhashs64Fnv1:flatbuffers.Long, testhashu64Fnv1:flatbuffers.Long, testhashs32Fnv1a:number, testhashu32Fnv1a:number, testhashs64Fnv1a:flatbuffers.Long, testhashu64Fnv1a:flatbuffers.Long, testarrayofboolsOffset:flatbuffers.Offset, testf:number, testf2:number, testf3:number, testarrayofstring2Offset:flatbuffers.Offset, testarrayofsortedstructOffset:flatbuffers.Offset, flexOffset:flatbuffers.Offset, test5Offset:flatbuffers.Offset, vectorOfLongsOffset:flatbuffers.Offset, vectorOfDoublesOffset:flatbuffers.Offset, parentNamespaceTestOffset:flatbuffers.Offset, vectorOfReferrablesOffset:flatbuffers.Offset, singleWeakReference:flatbuffers.Long, vectorOfWeakReferencesOffset:flatbuffers.Offset, vectorOfStrongReferrablesOffset:flatbuffers.Offset, coOwningReference:flatbuffers.Long, vectorOfCoOwningReferencesOffset:flatbuffers.Offset, nonOwningReference:flatbuffers.Long, vectorOfNonOwningReferencesOffset:flatbuffers.Offset, anyUniqueType:MyGame.Example.AnyUniqueAliases, anyUniqueOffset:flatbuffers.Offset, anyAmbiguousType:MyGame.Example.AnyAmbiguousAliases, anyAmbiguousOffset:flatbuffers.Offset, vectorOfEnumsOffset:flatbuffers.Offset, signedEnum:MyGame.Example.Race):flatbuffers.Offset {
-  Monster.startMonster(builder);
-  Monster.addPos(builder, posOffset);
-  Monster.addMana(builder, mana);
-  Monster.addHp(builder, hp);
-  Monster.addName(builder, nameOffset);
-  Monster.addInventory(builder, inventoryOffset);
-  Monster.addColor(builder, color);
-  Monster.addTestType(builder, testType);
-  Monster.addTest(builder, testOffset);
-  Monster.addTest4(builder, test4Offset);
-  Monster.addTestarrayofstring(builder, testarrayofstringOffset);
-  Monster.addTestarrayoftables(builder, testarrayoftablesOffset);
-  Monster.addEnemy(builder, enemyOffset);
-  Monster.addTestnestedflatbuffer(builder, testnestedflatbufferOffset);
-  Monster.addTestempty(builder, testemptyOffset);
-  Monster.addTestbool(builder, testbool);
-  Monster.addTesthashs32Fnv1(builder, testhashs32Fnv1);
-  Monster.addTesthashu32Fnv1(builder, testhashu32Fnv1);
-  Monster.addTesthashs64Fnv1(builder, testhashs64Fnv1);
-  Monster.addTesthashu64Fnv1(builder, testhashu64Fnv1);
-  Monster.addTesthashs32Fnv1a(builder, testhashs32Fnv1a);
-  Monster.addTesthashu32Fnv1a(builder, testhashu32Fnv1a);
-  Monster.addTesthashs64Fnv1a(builder, testhashs64Fnv1a);
-  Monster.addTesthashu64Fnv1a(builder, testhashu64Fnv1a);
-  Monster.addTestarrayofbools(builder, testarrayofboolsOffset);
-  Monster.addTestf(builder, testf);
-  Monster.addTestf2(builder, testf2);
-  Monster.addTestf3(builder, testf3);
-  Monster.addTestarrayofstring2(builder, testarrayofstring2Offset);
-  Monster.addTestarrayofsortedstruct(builder, testarrayofsortedstructOffset);
-  Monster.addFlex(builder, flexOffset);
-  Monster.addTest5(builder, test5Offset);
-  Monster.addVectorOfLongs(builder, vectorOfLongsOffset);
-  Monster.addVectorOfDoubles(builder, vectorOfDoublesOffset);
-  Monster.addParentNamespaceTest(builder, parentNamespaceTestOffset);
-  Monster.addVectorOfReferrables(builder, vectorOfReferrablesOffset);
-  Monster.addSingleWeakReference(builder, singleWeakReference);
-  Monster.addVectorOfWeakReferences(builder, vectorOfWeakReferencesOffset);
-  Monster.addVectorOfStrongReferrables(builder, vectorOfStrongReferrablesOffset);
-  Monster.addCoOwningReference(builder, coOwningReference);
-  Monster.addVectorOfCoOwningReferences(builder, vectorOfCoOwningReferencesOffset);
-  Monster.addNonOwningReference(builder, nonOwningReference);
-  Monster.addVectorOfNonOwningReferences(builder, vectorOfNonOwningReferencesOffset);
-  Monster.addAnyUniqueType(builder, anyUniqueType);
-  Monster.addAnyUnique(builder, anyUniqueOffset);
-  Monster.addAnyAmbiguousType(builder, anyAmbiguousType);
-  Monster.addAnyAmbiguous(builder, anyAmbiguousOffset);
-  Monster.addVectorOfEnums(builder, vectorOfEnumsOffset);
-  Monster.addSignedEnum(builder, signedEnum);
-  return Monster.endMonster(builder);
-}
 
 /**
  * @returns MonsterT
@@ -3246,29 +3140,29 @@ constructor(
  */
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   const name = (this.name !== null ? builder.createString(this.name!) : 0);
-  const inventory = Monster.createInventoryVector(builder, this.inventory);
+  const inventory = MyGame.Example.Monster.createInventoryVector(builder, this.inventory);
   const test = builder.createObjectOffset(this.test);
-  const test4 = builder.createStructOffsetList(this.test4, Monster.startTest4Vector);
-  const testarrayofstring = Monster.createTestarrayofstringVector(builder, builder.createObjectOffsetList(this.testarrayofstring));
-  const testarrayoftables = Monster.createTestarrayoftablesVector(builder, builder.createObjectOffsetList(this.testarrayoftables));
-  const testnestedflatbuffer = Monster.createTestnestedflatbufferVector(builder, this.testnestedflatbuffer);
-  const testarrayofbools = Monster.createTestarrayofboolsVector(builder, this.testarrayofbools);
-  const testarrayofstring2 = Monster.createTestarrayofstring2Vector(builder, builder.createObjectOffsetList(this.testarrayofstring2));
-  const testarrayofsortedstruct = builder.createStructOffsetList(this.testarrayofsortedstruct, Monster.startTestarrayofsortedstructVector);
-  const flex = Monster.createFlexVector(builder, this.flex);
-  const test5 = builder.createStructOffsetList(this.test5, Monster.startTest5Vector);
-  const vectorOfLongs = Monster.createVectorOfLongsVector(builder, this.vectorOfLongs);
-  const vectorOfDoubles = Monster.createVectorOfDoublesVector(builder, this.vectorOfDoubles);
-  const vectorOfReferrables = Monster.createVectorOfReferrablesVector(builder, builder.createObjectOffsetList(this.vectorOfReferrables));
-  const vectorOfWeakReferences = Monster.createVectorOfWeakReferencesVector(builder, this.vectorOfWeakReferences);
-  const vectorOfStrongReferrables = Monster.createVectorOfStrongReferrablesVector(builder, builder.createObjectOffsetList(this.vectorOfStrongReferrables));
-  const vectorOfCoOwningReferences = Monster.createVectorOfCoOwningReferencesVector(builder, this.vectorOfCoOwningReferences);
-  const vectorOfNonOwningReferences = Monster.createVectorOfNonOwningReferencesVector(builder, this.vectorOfNonOwningReferences);
+  const test4 = builder.createStructOffsetList(this.test4, MyGame.Example.Monster.startTest4Vector);
+  const testarrayofstring = MyGame.Example.Monster.createTestarrayofstringVector(builder, builder.createObjectOffsetList(this.testarrayofstring));
+  const testarrayoftables = MyGame.Example.Monster.createTestarrayoftablesVector(builder, builder.createObjectOffsetList(this.testarrayoftables));
+  const testnestedflatbuffer = MyGame.Example.Monster.createTestnestedflatbufferVector(builder, this.testnestedflatbuffer);
+  const testarrayofbools = MyGame.Example.Monster.createTestarrayofboolsVector(builder, this.testarrayofbools);
+  const testarrayofstring2 = MyGame.Example.Monster.createTestarrayofstring2Vector(builder, builder.createObjectOffsetList(this.testarrayofstring2));
+  const testarrayofsortedstruct = builder.createStructOffsetList(this.testarrayofsortedstruct, MyGame.Example.Monster.startTestarrayofsortedstructVector);
+  const flex = MyGame.Example.Monster.createFlexVector(builder, this.flex);
+  const test5 = builder.createStructOffsetList(this.test5, MyGame.Example.Monster.startTest5Vector);
+  const vectorOfLongs = MyGame.Example.Monster.createVectorOfLongsVector(builder, this.vectorOfLongs);
+  const vectorOfDoubles = MyGame.Example.Monster.createVectorOfDoublesVector(builder, this.vectorOfDoubles);
+  const vectorOfReferrables = MyGame.Example.Monster.createVectorOfReferrablesVector(builder, builder.createObjectOffsetList(this.vectorOfReferrables));
+  const vectorOfWeakReferences = MyGame.Example.Monster.createVectorOfWeakReferencesVector(builder, this.vectorOfWeakReferences);
+  const vectorOfStrongReferrables = MyGame.Example.Monster.createVectorOfStrongReferrablesVector(builder, builder.createObjectOffsetList(this.vectorOfStrongReferrables));
+  const vectorOfCoOwningReferences = MyGame.Example.Monster.createVectorOfCoOwningReferencesVector(builder, this.vectorOfCoOwningReferences);
+  const vectorOfNonOwningReferences = MyGame.Example.Monster.createVectorOfNonOwningReferencesVector(builder, this.vectorOfNonOwningReferences);
   const anyUnique = builder.createObjectOffset(this.anyUnique);
   const anyAmbiguous = builder.createObjectOffset(this.anyAmbiguous);
-  const vectorOfEnums = Monster.createVectorOfEnumsVector(builder, this.vectorOfEnums);
+  const vectorOfEnums = MyGame.Example.Monster.createVectorOfEnumsVector(builder, this.vectorOfEnums);
 
-  return Monster.createMonster(builder,
+  return MyGame.Example.Monster.createMonster(builder,
     (this.pos !== null ? this.pos!.pack(builder) : 0),
     this.mana,
     this.hp,
@@ -3885,10 +3779,10 @@ constructor(
  * @returns flatbuffers.Offset
  */
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  const v8 = TypeAliases.createV8Vector(builder, this.v8);
-  const vf64 = TypeAliases.createVf64Vector(builder, this.vf64);
+  const v8 = MyGame.Example.TypeAliases.createV8Vector(builder, this.v8);
+  const vf64 = MyGame.Example.TypeAliases.createVf64Vector(builder, this.vf64);
 
-  return TypeAliases.createTypeAliases(builder,
+  return MyGame.Example.TypeAliases.createTypeAliases(builder,
     this.i8,
     this.u8,
     this.i16,

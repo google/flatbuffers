@@ -591,7 +591,17 @@ class JavaTest {
     public static void testFlexBuffersTest() {
         FlexBuffersBuilder builder = new FlexBuffersBuilder(ByteBuffer.allocate(512),
                 FlexBuffersBuilder.BUILDER_FLAG_SHARE_KEYS_AND_STRINGS);
+        testFlexBuffersTest(builder);
+        int bufferLimit1 = ((ArrayReadWriteBuf) builder.getBuffer()).limit();
 
+        // Repeat after clearing the builder to ensure the builder is reusable
+        builder.clear();
+        testFlexBuffersTest(builder);
+        int bufferLimit2 = ((ArrayReadWriteBuf) builder.getBuffer()).limit();
+        TestEq(bufferLimit1, bufferLimit2);
+    }
+
+    public static void testFlexBuffersTest(FlexBuffersBuilder builder) {
         // Write the equivalent of:
         // { vec: [ -100, "Fred", 4.0, false ], bar: [ 1, 2, 3 ], bar3: [ 1, 2, 3 ],
         // foo: 100, bool: true, mymap: { foo: "Fred" } }
@@ -1012,13 +1022,14 @@ class JavaTest {
 
     public static void testBuilderGrowth() {
         FlexBuffersBuilder builder = new FlexBuffersBuilder();
-        builder.putString("This is a small string");
+        String someString = "This is a small string";
+        builder.putString(someString);
         ByteBuffer b = builder.finish();
-        TestEq("This is a small string", FlexBuffers.getRoot(b).asString());
+        TestEq(someString, FlexBuffers.getRoot(b).asString());
 
         FlexBuffersBuilder failBuilder = new FlexBuffersBuilder(ByteBuffer.allocate(1));
         try {
-            failBuilder.putString("This is a small string");
+            failBuilder.putString(someString);
             // This should never be reached, it should throw an exception
             // since ByteBuffers do not grow
             assert(false);
@@ -1214,4 +1225,5 @@ class JavaTest {
             System.exit(1);
         }
     }
+
 }

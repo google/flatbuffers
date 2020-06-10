@@ -61,7 +61,7 @@ class CodeWriter {
   }
 
   // Appends the given text to the generated code as well as a newline
-  // character.  Any text within {{ and }} delimeters is replaced by values
+  // character.  Any text within {{ and }} delimiters is replaced by values
   // previously stored in the CodeWriter by calling SetValue above.  The newline
   // will be suppressed if the text ends with the \\ character.
   void operator+=(std::string text);
@@ -75,6 +75,8 @@ class CodeWriter {
   void DecrementIdentLevel() {
     if (cur_ident_lvl_) cur_ident_lvl_--;
   }
+
+  void SetPadding(const std::string &padding) { pad_ = padding; }
 
  private:
   std::map<std::string, std::string> value_map_;

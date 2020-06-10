@@ -72,10 +72,6 @@ class DartGenerator : public BaseGenerator {
       code += "import 'package:flat_buffers/flat_buffers.dart' as " + _kFb +
               ";\n\n";
 
-      if (parser_.opts.include_dependence_headers) {
-        GenIncludeDependencies(&code, kv->first);
-      }
-
       for (auto kv2 = namespace_code.begin(); kv2 != namespace_code.end();
            ++kv2) {
         if (kv2->first != kv->first) {
@@ -473,17 +469,20 @@ class DartGenerator : public BaseGenerator {
     (*namespace_code)[object_namespace] += code;
   }
 
-  std::string NamespaceAliasFromUnionType(const std::string &in) {
-    if (in.find('_') == std::string::npos) { return in; }
+  std::string NamespaceAliasFromUnionType(Namespace *root_namespace,
+                                          const Type &type) {
+    const std::vector<std::string> qualified_name_parts =
+        type.struct_def->defined_namespace->components;
+    if (std::equal(root_namespace->components.begin(),
+                   root_namespace->components.end(),
+                   qualified_name_parts.begin())) {
+      return type.struct_def->name;
+    }
 
-    std::stringstream ss(in);
-    std::string item;
-    std::vector<std::string> parts;
     std::string ns;
 
-    while (std::getline(ss, item, '_')) { parts.push_back(item); }
-
-    for (auto it = parts.begin(); it != parts.end() - 1; ++it) {
+    for (auto it = qualified_name_parts.begin();
+         it != qualified_name_parts.end(); ++it) {
       auto &part = *it;
 
       for (size_t i = 0; i < part.length(); i++) {
@@ -495,10 +494,10 @@ class DartGenerator : public BaseGenerator {
           ns += static_cast<char>(tolower(part[i]));
         }
       }
-      if (it != parts.end() - 2) { ns += "_"; }
+      if (it != qualified_name_parts.end() - 1) { ns += "_"; }
     }
 
-    return ns + "." + parts.back();
+    return ns + "." + type.struct_def->name;
   }
 
   void GenImplementationGetters(
@@ -527,7 +526,8 @@ class DartGenerator : public BaseGenerator {
              en_it != enum_def.Vals().end(); ++en_it) {
           auto &ev = **en_it;
 
-          auto enum_name = NamespaceAliasFromUnionType(ev.name);
+          auto enum_name = NamespaceAliasFromUnionType(
+              enum_def.defined_namespace, ev.union_type);
           code += "      case " + enum_def.ToString(ev) + ": return " +
                   enum_name + ".reader.vTableGet(_bc, _bcOffset, " +
                   NumToString(field.value.offset) + ", null);\n";

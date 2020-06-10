@@ -15,9 +15,18 @@
  * limitations under the License.
  */
 
+#[macro_use]
 extern crate quickcheck;
-
 extern crate flatbuffers;
+extern crate flexbuffers;
+extern crate rand;
+extern crate serde;
+#[macro_use]
+extern crate serde_derive;
+#[macro_use]
+extern crate quickcheck_derive;
+
+mod flexbuffers_tests;
 
 #[allow(dead_code, unused_imports)]
 #[path = "../../include_test/include_test1_generated.rs"]
@@ -31,6 +40,11 @@ pub mod include_test2_generated;
 #[path = "../../monster_test_generated.rs"]
 mod monster_test_generated;
 pub use monster_test_generated::my_game;
+
+#[rustfmt::skip] // TODO: Use standard rust formatting and remove dead code.
+#[allow(dead_code)]
+mod flatbuffers_tests {
+use super::*;
 
 // Include simple random number generator to ensure results will be the
 // same across platforms.
@@ -2447,6 +2461,25 @@ mod byte_layouts {
     }
 
     #[test]
+    fn layout_09b_vtable_with_one_default_bool_force_defaults() {
+        let mut b = flatbuffers::FlatBufferBuilder::new();
+        check(&b, &[]);
+        let off = b.start_table();
+        check(&b, &[]);
+        b.force_defaults(true);
+        b.push_slot(fi2fo(0), false, false);
+        b.end_table(off);
+        check(&b, &[
+            6, 0, // vtable bytes
+            8, 0, // length of object including vtable offset
+            7, 0, // start of bool value
+            6, 0, 0, 0, // offset for start of vtable (int32)
+            0, 0, 0, // padded to 4 bytes
+            0, // bool value
+      ]);
+    }
+
+    #[test]
     fn layout_10_vtable_with_one_int16() {
         let mut b = flatbuffers::FlatBufferBuilder::new();
         check(&b, &[]);
@@ -2906,4 +2939,5 @@ fn load_file(filename: &str) -> Result<Vec<u8>, std::io::Error> {
     let mut buf = Vec::new();
     f.read_to_end(&mut buf)?;
     Ok(buf)
+}
 }

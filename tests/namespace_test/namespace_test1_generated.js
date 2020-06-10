@@ -171,13 +171,7 @@ NamespaceA.NamespaceB.StructInNestedNS.prototype.a = function() {
  * @returns {boolean}
  */
 NamespaceA.NamespaceB.StructInNestedNS.prototype.mutate_a = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 0);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb.writeInt32(this.bb_pos + offset, value);
+  this.bb.writeInt32(this.bb_pos + 0, value);
   return true;
 };
 
@@ -193,13 +187,7 @@ NamespaceA.NamespaceB.StructInNestedNS.prototype.b = function() {
  * @returns {boolean}
  */
 NamespaceA.NamespaceB.StructInNestedNS.prototype.mutate_b = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 4);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb.writeInt32(this.bb_pos + offset, value);
+  this.bb.writeInt32(this.bb_pos + 4, value);
   return true;
 };
 

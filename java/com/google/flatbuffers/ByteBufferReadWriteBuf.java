@@ -13,6 +13,11 @@ public class ByteBufferReadWriteBuf implements ReadWriteBuf {
   }
 
   @Override
+  public void clear() {
+    buffer.clear();
+  }
+
+  @Override
   public boolean getBoolean(int index) {
     return get(index) != 0;
   }

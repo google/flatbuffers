@@ -6,8 +6,6 @@ library my_game.example;
 import 'dart:typed_data' show Uint8List;
 import 'package:flat_buffers/flat_buffers.dart' as fb;
 
-import 'include_test1_my_game.example_generated.dart';
-import 'include_test2_my_game.example_generated.dart';
 import './monster_test_my_game_generated.dart' as my_game;
 import './monster_test_my_game.example2_generated.dart' as my_game_example2;
 
@@ -719,7 +717,7 @@ class ReferrableObjectBuilder extends fb.ObjectBuilder {
     return fbBuilder.finish(offset, fileIdentifier);
   }
 }
-///  an example documentation comment: monster object
+///  an example documentation comment: "monster object"
 class Monster {
   Monster._(this._bc, this._bcOffset);
   factory Monster(List<int> bytes) {
@@ -786,18 +784,18 @@ class Monster {
   AnyUniqueAliasesTypeId get anyUniqueType => new AnyUniqueAliasesTypeId.fromValue(const fb.Uint8Reader().vTableGet(_bc, _bcOffset, 90, 0));
   dynamic get anyUnique {
     switch (anyUniqueType?.value) {
-      case 1: return M.reader.vTableGet(_bc, _bcOffset, 92, null);
-      case 2: return TS.reader.vTableGet(_bc, _bcOffset, 92, null);
-      case 3: return M2.reader.vTableGet(_bc, _bcOffset, 92, null);
+      case 1: return Monster.reader.vTableGet(_bc, _bcOffset, 92, null);
+      case 2: return TestSimpleTableWithEnum.reader.vTableGet(_bc, _bcOffset, 92, null);
+      case 3: return my_game_example2.Monster.reader.vTableGet(_bc, _bcOffset, 92, null);
       default: return null;
     }
   }
   AnyAmbiguousAliasesTypeId get anyAmbiguousType => new AnyAmbiguousAliasesTypeId.fromValue(const fb.Uint8Reader().vTableGet(_bc, _bcOffset, 94, 0));
   dynamic get anyAmbiguous {
     switch (anyAmbiguousType?.value) {
-      case 1: return M1.reader.vTableGet(_bc, _bcOffset, 96, null);
-      case 2: return M2.reader.vTableGet(_bc, _bcOffset, 96, null);
-      case 3: return M3.reader.vTableGet(_bc, _bcOffset, 96, null);
+      case 1: return Monster.reader.vTableGet(_bc, _bcOffset, 96, null);
+      case 2: return Monster.reader.vTableGet(_bc, _bcOffset, 96, null);
+      case 3: return Monster.reader.vTableGet(_bc, _bcOffset, 96, null);
       default: return null;
     }
   }

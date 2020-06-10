@@ -62,7 +62,7 @@ when needed. Unsigned means they can only point in one direction, which
 typically is forward (towards a higher memory location). Any backwards
 offsets will be explicitly marked as such.
 
-The format starts with an `uoffset_t` to the root object in the buffer.
+The format starts with an `uoffset_t` to the root table in the buffer.
 
 We have two kinds of objects, structs and tables.
 

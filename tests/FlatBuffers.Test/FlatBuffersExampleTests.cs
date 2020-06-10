@@ -16,6 +16,7 @@
 
 using System.IO;
 using System.Text;
+using System.Threading;
 using MyGame.Example;
 
 namespace FlatBuffers.Test
@@ -675,6 +676,7 @@ namespace FlatBuffers.Test
             AreEqual(a, d);
 
             var fbBuffer = b.SerializeToBinary();
+            Assert.IsTrue(Monster.MonsterBufferHasIdentifier(new ByteBuffer(fbBuffer)));
             var e = MonsterT.DeserializeFromBinary(fbBuffer);
             AreEqual(a, e);
         }
@@ -778,6 +780,7 @@ namespace FlatBuffers.Test
             AreEqual(a, d);
 
             var fbBuffer = b.SerializeToBinary();
+            Assert.IsTrue(ArrayTable.ArrayTableBufferHasIdentifier(new ByteBuffer(fbBuffer)));
             var e = ArrayTableT.DeserializeFromBinary(fbBuffer);
             AreEqual(a, e);
         }
@@ -825,8 +828,68 @@ namespace FlatBuffers.Test
             AreEqual(a, d);
 
             var fbBuffer = b.SerializeToBinary();
+            Assert.IsTrue(Movie.MovieBufferHasIdentifier(new ByteBuffer(fbBuffer)));
             var e = MovieT.DeserializeFromBinary(fbBuffer);
             AreEqual(a, e);
+        }
+
+        // For use in TestParallelAccess test case.
+        static private int _comparisons = 0;
+        static private int _failures = 0;
+        static private void KeepComparing(Monster mon, int count, float floatValue, double doubleValue)
+        {
+            int i = 0;
+            while (++i <= count)
+            {
+                Interlocked.Add(ref _comparisons, 1);
+                if(mon.Pos.Value.Test1 != doubleValue || mon.Pos.Value.Z != floatValue) {
+                    Interlocked.Add(ref _failures, 1);
+                }
+            }
+        }
+
+        [FlatBuffersTestMethod]
+        public void TestParallelAccess() {
+            // Tests that reading from a flatbuffer over multiple threads is thread-safe in regard to double and float
+            // values, since they previously were non-thread safe
+            const float floatValue = 3.141592F;
+            const double doubleValue = 1.618033988;
+
+            var fbb = new FlatBufferBuilder(1);
+            var str = fbb.CreateString("ParallelTest");
+            Monster.StartMonster(fbb);
+            Monster.AddPos(fbb, Vec3.CreateVec3(fbb, 1.0f, 2.0f, floatValue, doubleValue,
+                                                     Color.Green, (short)5, (sbyte)6));
+
+            Monster.AddName(fbb, str);
+            Monster.FinishMonsterBuffer(fbb, Monster.EndMonster(fbb));
+
+            var mon = Monster.GetRootAsMonster(fbb.DataBuffer);
+
+            var pos = mon.Pos.Value;
+            Assert.AreEqual(pos.Test1, doubleValue);
+            Assert.AreEqual(pos.Z, floatValue);
+
+            const int thread_count = 10;
+            const int reps = 1000000;
+
+            // Need to use raw Threads since Tasks are not supported in .NET 3.5
+            Thread[] threads = new Thread[thread_count];
+            for(int i = 0; i < thread_count; i++) {
+               threads[i] = new Thread(() => KeepComparing(mon, reps, floatValue, doubleValue));
+            }
+            for(int i = 0; i < thread_count; i++) {
+               threads[i].Start();
+            }
+            for(int i = 0; i < thread_count; i++) {
+               threads[i].Join();
+            }
+
+            // Make sure the threads actually did the comparisons.
+            Assert.AreEqual(thread_count * reps, _comparisons);
+
+            // Make sure we never read the values incorrectly.
+            Assert.AreEqual(0, _failures);
         }
     }
 }
