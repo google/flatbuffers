@@ -2197,7 +2197,7 @@ flatbuffers::Offset<TypeAliases> CreateTypeAliases(flatbuffers::FlatBufferBuilde
 }  // namespace Example
 
 inline InParentNamespaceT *InParentNamespace::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  std::unique_ptr<MyGame::InParentNamespaceT> _o = std::unique_ptr<MyGame::InParentNamespaceT>(new InParentNamespaceT());
+  auto _o = std::make_unique<InParentNamespaceT>();
   UnPackTo(_o.get(), _resolver);
   return _o.release();
 }
@@ -2222,7 +2222,7 @@ inline flatbuffers::Offset<InParentNamespace> CreateInParentNamespace(flatbuffer
 namespace Example2 {
 
 inline MonsterT *Monster::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  std::unique_ptr<MyGame::Example2::MonsterT> _o = std::unique_ptr<MyGame::Example2::MonsterT>(new MonsterT());
+  auto _o = std::make_unique<MonsterT>();
   UnPackTo(_o.get(), _resolver);
   return _o.release();
 }
@@ -2249,7 +2249,7 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
 namespace Example {
 
 inline TestSimpleTableWithEnumT *TestSimpleTableWithEnum::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  std::unique_ptr<MyGame::Example::TestSimpleTableWithEnumT> _o = std::unique_ptr<MyGame::Example::TestSimpleTableWithEnumT>(new TestSimpleTableWithEnumT());
+  auto _o = std::make_unique<TestSimpleTableWithEnumT>();
   UnPackTo(_o.get(), _resolver);
   return _o.release();
 }
@@ -2275,7 +2275,7 @@ inline flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnu
 }
 
 inline StatT *Stat::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  std::unique_ptr<MyGame::Example::StatT> _o = std::unique_ptr<MyGame::Example::StatT>(new StatT());
+  auto _o = std::make_unique<StatT>();
   UnPackTo(_o.get(), _resolver);
   return _o.release();
 }
@@ -2307,7 +2307,7 @@ inline flatbuffers::Offset<Stat> CreateStat(flatbuffers::FlatBufferBuilder &_fbb
 }
 
 inline ReferrableT *Referrable::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  std::unique_ptr<MyGame::Example::ReferrableT> _o = std::unique_ptr<MyGame::Example::ReferrableT>(new ReferrableT());
+  auto _o = std::make_unique<ReferrableT>();
   UnPackTo(_o.get(), _resolver);
   return _o.release();
 }
@@ -2333,7 +2333,7 @@ inline flatbuffers::Offset<Referrable> CreateReferrable(flatbuffers::FlatBufferB
 }
 
 inline MonsterT *Monster::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  std::unique_ptr<MyGame::Example::MonsterT> _o = std::unique_ptr<MyGame::Example::MonsterT>(new MonsterT());
+  auto _o = std::make_unique<MonsterT>();
   UnPackTo(_o.get(), _resolver);
   return _o.release();
 }
@@ -2507,7 +2507,7 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
 }
 
 inline TypeAliasesT *TypeAliases::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  std::unique_ptr<MyGame::Example::TypeAliasesT> _o = std::unique_ptr<MyGame::Example::TypeAliasesT>(new TypeAliasesT());
+  auto _o = std::make_unique<TypeAliasesT>();
   UnPackTo(_o.get(), _resolver);
   return _o.release();
 }
