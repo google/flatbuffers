@@ -36,6 +36,7 @@ extension FlatBuffersStructsTests {
         ("testCreatingVectorStructWithForcedDefaults", testCreatingVectorStructWithForcedDefaults),
         ("testReadingStruct", testReadingStruct),
         ("testReadingStructWithEnums", testReadingStructWithEnums),
+        ("testWritingAndMutatingBools", testWritingAndMutatingBools),
     ]
 }
 

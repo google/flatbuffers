@@ -135,7 +135,6 @@ public struct FlatBufferBuilder {
         return _bb.size
     }
     
-    
     /// Endtable will let the builder know that the object that's written to it is completed
     ///
     /// This would be called after all the elements are serialized, it will add the vtable into the buffer.
@@ -156,8 +155,10 @@ public struct FlatBufferBuilder {
         _bb.write(value: VOffset(tableObjectSize), index: _bb.writerIndex + sizeofVoffset, direct: true)
         _bb.write(value: VOffset(_max), index: _bb.writerIndex, direct: true)
         
-        for index in stride(from: 0, to: _vtableStorage.writtenIndex, by: _vtableStorage.size) {
-            let loaded = _vtableStorage.load(at: index)
+        var itr = 0
+        while itr < _vtableStorage.writtenIndex {
+            let loaded = _vtableStorage.load(at: itr)
+            itr += _vtableStorage.size
             guard loaded.offset != 0 else { continue }
             let _index = (_bb.writerIndex + Int(loaded.position))
             _bb.write(value: VOffset(vTableOffset - loaded.offset), index: _index, direct: true)

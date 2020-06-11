@@ -27,6 +27,24 @@ public struct ByteBuffer {
         func initalize(for size: Int) {
             memory.initializeMemory(as: UInt8.self, repeating: 0, count: size)
         }
+        
+        /// Reallocates the buffer incase the object to be written doesnt fit in the current buffer
+        /// - Parameter size: Size of the current object
+        @usableFromInline internal func reallocate(_ size: UInt32, writerSize: Int, alignment: Int) {
+            let currentWritingIndex = capacity - writerSize
+            while capacity <= writerSize + Int(size) {
+                capacity = capacity << 1
+            }
+            
+            /// solution take from Apple-NIO
+            capacity = capacity.convertToPowerofTwo
+            
+            let newData = UnsafeMutableRawPointer.allocate(byteCount: capacity, alignment: alignment)
+            memset(newData, 0, capacity - writerSize)
+            memcpy(newData.advanced(by: capacity - writerSize), memory.advanced(by: currentWritingIndex), writerSize)
+            memory.deallocate()
+            memory = newData
+        }
     }
     
     @usableFromInline var _storage: Storage
@@ -208,31 +226,13 @@ public struct ByteBuffer {
     /// - Parameter size: size of object
     @discardableResult
     @usableFromInline mutating func ensureSpace(size: UInt32) -> UInt32 {
-        if Int(size) + _writerSize > _storage.capacity { reallocate(size) }
+        if Int(size) + _writerSize > _storage.capacity {
+            _storage.reallocate(size, writerSize: _writerSize, alignment: alignment)
+        }
         assert(size < FlatBufferMaxSize, "Buffer can't grow beyond 2 Gigabytes")
         return size
     }
-
-    /// Reallocates the buffer incase the object to be written doesnt fit in the current buffer
-    /// - Parameter size: Size of the current object
-    @usableFromInline mutating internal func reallocate(_ size: UInt32) {
-        let currentWritingIndex = writerIndex
-        while _storage.capacity <= _writerSize + Int(size) {
-            _storage.capacity = _storage.capacity << 1
-        }
-
-        /// solution take from Apple-NIO
-        _storage.capacity = _storage.capacity.convertToPowerofTwo
-
-        let newData = UnsafeMutableRawPointer.allocate(byteCount: _storage.capacity, alignment: alignment)
-        newData.initializeMemory(as: UInt8.self, repeating: 0, count: _storage.capacity)
-        newData
-            .advanced(by: writerIndex)
-            .copyMemory(from: _storage.memory.advanced(by: currentWritingIndex), byteCount: _writerSize)
-        _storage.memory.deallocate()
-        _storage.memory = newData
-    }
-
+    
     /// Clears the current size of the buffer
     mutating public func clearSize() {
         _writerSize = 0
