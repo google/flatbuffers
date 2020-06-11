@@ -2714,24 +2714,28 @@ class CppGenerator : public BaseGenerator {
     code_.SetValue("STRUCT_NAME", Name(struct_def));
     code_.SetValue("NATIVE_NAME",
                    NativeName(Name(struct_def), &struct_def, opts_));
-    auto native_name =
-        NativeName(WrapInNameSpace(struct_def), &struct_def, parser_.opts);
-    code_.SetValue("POINTER_TYPE",
-                   GenTypeNativePtr(native_name, nullptr, false));
 
     if (opts_.generate_object_based_api) {
       // Generate the X::UnPack() method.
       code_ +=
           "inline " + TableUnPackSignature(struct_def, false, opts_) + " {";
 
-      code_ +=
-          "  {{POINTER_TYPE}} _o = {{POINTER_TYPE}}(new {{NATIVE_NAME}}());";
+      if(opts_.g_cpp_std == cpp::CPP_STD_X0) {
+        auto native_name =
+            NativeName(WrapInNameSpace(struct_def), &struct_def, parser_.opts);
+        code_.SetValue("POINTER_TYPE",
+                       GenTypeNativePtr(native_name, nullptr, false));
+        code_ +=
+            "  {{POINTER_TYPE}} _o = {{POINTER_TYPE}}(new {{NATIVE_NAME}}());";
+      } else if(opts_.g_cpp_std == cpp::CPP_STD_11) {
+        code_ += "  auto _o = std::unique_ptr<{{NATIVE_NAME}}>(new {{NATIVE_NAME}}());";
+      } else {
+        code_ += "  auto _o = std::make_unique<{{NATIVE_NAME}}>();";
+      }
       code_ += "  UnPackTo(_o.get(), _resolver);";
       code_ += "  return _o.release();";
-
       code_ += "}";
       code_ += "";
-
       code_ +=
           "inline " + TableUnPackToSignature(struct_def, false, opts_) + " {";
       code_ += "  (void)_o;";
