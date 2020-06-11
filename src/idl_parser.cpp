@@ -2608,10 +2608,13 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
           auto val = attribute_;
           ECHECK(ParseProtoCurliesOrIdent());
           if (key == "default") {
-            // Temp: skip non-numeric defaults (enums).
+            // Temp: skip non-numeric and non-boolean defaults (enums).
             auto numeric = strpbrk(val.c_str(), "0123456789-+.");
-            if (IsScalar(type.base_type) && numeric == val.c_str())
+            if (IsScalar(type.base_type) && numeric == val.c_str()) {
               field->value.constant = val;
+            } else if (val == "true") {
+              field->value.constant = val;
+            }  // "false" is default, no need to handle explicitly.
           } else if (key == "deprecated") {
             field->deprecated = val == "true";
           }
