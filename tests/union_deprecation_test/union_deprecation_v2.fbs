@@ -1,0 +1,34 @@
+namespace UnionDeprecation.V2;
+
+table TableA {
+    b:int (id: 1);      // swapped with 'a'
+    a:float (id: 0);    // swapped with 'b'
+    c:string (id: 2);   // new in v2
+}
+
+table TableB {
+    a:int;
+}
+
+table TableC {          // new in v2
+    a:double;
+    b:string;
+}
+
+union Union {
+    TableA,
+    TableB,
+    TableC
+}
+
+table Root {
+    a:int (deprecated); // deprecated in v2
+    b:bool;
+    c:Union (deprecated); // deprecated in v2
+    d:TableA;
+    e:uint = 1234;
+    f:TableC;           // new in v2
+    g:uint8 = 56;       // new in v2
+}
+
+root_type Root;
