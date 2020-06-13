@@ -29,8 +29,7 @@ extension Scalar where Self: FixedWidthInteger {
     ///
     /// Converts values to little endian on machines that work with BigEndian, however this is NOT TESTED yet.
     public var convertedEndian: NumericValue {
-        if isLitteEndian { return self as! Self.NumericValue }
-        fatalError("This is not tested! please report an issue on the offical flatbuffers repo")
+        return self as! Self.NumericValue
     }
 }
 
@@ -38,7 +37,6 @@ extension Double: Scalar {
     public typealias NumericValue = UInt64
     
     public var convertedEndian: UInt64 {
-        if isLitteEndian { return self.bitPattern }
         return self.bitPattern.littleEndian
     }
 }
@@ -47,7 +45,6 @@ extension Float32: Scalar {
     public typealias NumericValue = UInt32
     
     public var convertedEndian: UInt32 {
-        if isLitteEndian { return self.bitPattern }
         return self.bitPattern.littleEndian
     }
 }
