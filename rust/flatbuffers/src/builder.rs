@@ -18,6 +18,7 @@ extern crate smallvec;
 
 use std::cmp::max;
 use std::marker::PhantomData;
+use std::ops::DerefMut;
 use std::ptr::write_bytes;
 use std::slice::from_raw_parts;
 
@@ -38,11 +39,11 @@ struct FieldLoc {
 }
 
 /// FlatBufferBuilder builds a FlatBuffer through manipulating its internal
-/// state. It has an owned `Vec<u8>` that grows as needed (up to the hardcoded
+/// state. It has an owned buffer that grows as needed (up to the hardcoded
 /// limit of 2GiB, which is set by the FlatBuffers format).
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct FlatBufferBuilder<'fbb> {
-    owned_buf: Vec<u8>,
+pub struct FlatBufferBuilder<'fbb, Buf = Vec<u8>> {
+    owned_buf: Buf,
     head: usize,
 
     field_locs: Vec<FieldLoc>,
@@ -68,15 +69,60 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     ///
     /// The maximum valid value is `FLATBUFFERS_MAX_BUFFER_SIZE`.
     pub fn new_with_capacity(size: usize) -> Self {
-        // we need to check the size here because we create the backing buffer
+        // Safety: the vector is initialized with all-zero elements
+        unsafe { FlatBufferBuilder::new_with_zeroed_buffer(vec![0u8; size]) }
+    }
+}
+
+impl<'fbb, Buf> FlatBufferBuilder<'fbb, Buf>
+where
+    Buf: DerefMut<Target = [u8]> + Extend<u8>,
+{
+    /// Create a FlatBufferBuilder that is ready for writing, which will use
+    /// the given buffer as storage for the serialized bytes.
+    ///
+    /// The buffer may not be larger than `FLATBUFFERS_MAX_BUFFER_SIZE`.
+    pub fn new_with_buffer(mut buffer: Buf) -> FlatBufferBuilder<'fbb, Buf> {
+        let to_clear = buffer.len();
+        let ptr = buffer.as_mut_ptr();
+
+        // Safety:
+        // Alignment is checked by getting the pointer from an already valid
+        // slice; validity for writing to the range is checked by getting the
+        // length from the slice
+        unsafe {
+            write_bytes(ptr, 0, to_clear);
+        }
+
+        // Safety: the buffer was just zeroed
+        unsafe { Self::new_with_zeroed_buffer(buffer) }
+    }
+
+    /// Create a FlatBufferBuilder that is ready for writing, which will use
+    /// the given buffer as storage for the serialized bytes.
+    ///
+    /// The buffer may not be larger than `FLATBUFFERS_MAX_BUFFER_SIZE`.
+    ///
+    /// Unlike `new_with_buffer`, this function will not zero the buffer before
+    /// using it, instead assuming that it is already zeroed. This may lead to
+    /// unexpected results if the values are not actually zero, and thus this
+    /// function is marked `unsafe`.
+    ///
+    /// # Safety
+    ///
+    /// The given buffer must already be zeroed
+    pub unsafe fn new_with_zeroed_buffer(buffer: Buf) -> FlatBufferBuilder<'fbb, Buf> {
+        let size = buffer.len();
+
+        // we need to check the size here because the buffer was created
         // directly, bypassing the typical way of using grow_owned_buf:
         assert!(
             size <= FLATBUFFERS_MAX_BUFFER_SIZE,
-            "cannot initialize buffer bigger than 2 gigabytes"
+            "cannot utilize buffer bigger than 2 gigabytes"
         );
 
         FlatBufferBuilder {
-            owned_buf: vec![0u8; size],
+            owned_buf: buffer,
             head: size,
 
             field_locs: Vec::new(),
@@ -124,7 +170,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
 
     /// Destroy the FlatBufferBuilder, returning its internal byte vector
     /// and the index into it that represents the start of valid data.
-    pub fn collapse(self) -> (Vec<u8>, usize) {
+    pub fn collapse(self) -> (Buf, usize) {
         (self.owned_buf, self.head)
     }
 
@@ -541,7 +587,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         let starting_active_size = self.used_space();
 
         let diff = new_len - old_len;
-        self.owned_buf.resize(new_len, 0);
+        self.owned_buf.extend(std::iter::repeat(0).take(diff));
         self.head += diff;
 
         let ending_active_size = self.used_space();

@@ -45,6 +45,7 @@ pub use monster_test_generated::my_game;
 #[allow(dead_code)]
 mod flatbuffers_tests {
 use super::*;
+use std::ops::DerefMut;
 
 // Include simple random number generator to ensure results will be the
 // same across platforms.
@@ -61,6 +62,35 @@ impl LCG {
     }
     fn reset(&mut self) {
         self.0 = 48271
+    }
+}
+
+/// An alternate buffer implementation aside from Vec, used to test
+/// FlatBufferBuilder's ability to use a non-default buffer implementation
+#[derive(Debug, Default, Clone, Eq, PartialEq)]
+struct AltBuffer(std::collections::VecDeque<u8>);
+
+impl std::ops::Deref for AltBuffer {
+    type Target = [u8];
+
+    fn deref(&self) -> &[u8] {
+        let (head, tail) = self.0.as_slices();
+        assert!(tail.is_empty());
+        head
+    }
+}
+
+impl DerefMut for AltBuffer {
+    fn deref_mut(&mut self) -> &mut [u8] {
+        let (head, tail) = self.0.as_mut_slices();
+        assert!(tail.is_empty());
+        head
+    }
+}
+
+impl Extend<u8> for AltBuffer {
+    fn extend<I>(&mut self, iter: I) where I: IntoIterator<Item=u8> {
+        self.0.extend(iter);
     }
 }
 
@@ -101,7 +131,7 @@ fn macro_check_is_some() {
 }
 
 
-fn create_serialized_example_with_generated_code(builder: &mut flatbuffers::FlatBufferBuilder) {
+fn create_serialized_example_with_generated_code(builder: &mut flatbuffers::FlatBufferBuilder<impl DerefMut<Target=[u8]> + Extend<u8>>) {
     let mon = {
         let s0 = builder.create_string("test1");
         let s1 = builder.create_string("test2");
@@ -132,7 +162,7 @@ fn create_serialized_example_with_generated_code(builder: &mut flatbuffers::Flat
     my_game::example::finish_monster_buffer(builder, mon);
 }
 
-fn create_serialized_example_with_library_code(builder: &mut flatbuffers::FlatBufferBuilder) {
+fn create_serialized_example_with_library_code(builder: &mut flatbuffers::FlatBufferBuilder<impl DerefMut<Target=[u8]> + Extend<u8>>) {
     let nested_union_mon = {
         let name = builder.create_string("Fred");
         let table_start = builder.start_table();
@@ -238,6 +268,14 @@ fn builder_abort_with_greater_than_maximum_buffer_size() {
 #[test]
 fn builder_collapses_into_vec() {
     let mut b = flatbuffers::FlatBufferBuilder::new();
+    create_serialized_example_with_generated_code(&mut b);
+    let (backing_buf, head) = b.collapse();
+    serialized_example_is_accessible_and_correct(&backing_buf[head..], true, false).unwrap();
+}
+
+#[test]
+fn builder_collapses_into_alt_buffer() {
+    let mut b = flatbuffers::FlatBufferBuilder::new_with_buffer(AltBuffer::default());
     create_serialized_example_with_generated_code(&mut b);
     let (backing_buf, head) = b.collapse();
     serialized_example_is_accessible_and_correct(&backing_buf[head..], true, false).unwrap();

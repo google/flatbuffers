@@ -1187,13 +1187,14 @@ class RustGenerator : public BaseGenerator {
     code_.SetValue("MAYBE_LT",
                    TableBuilderArgsNeedsLifetime(struct_def) ? "<'args>" : "");
     code_ += "    #[allow(unused_mut)]";
-    code_ += "    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(";
+    code_ += "    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, Buf>(";
     code_ +=
         "        _fbb: "
-        "&'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,";
+        "&'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr, Buf>,";
     code_ +=
         "        {{MAYBE_US}}args: &'args {{STRUCT_NAME}}Args{{MAYBE_LT}})"
-        " -> flatbuffers::WIPOffset<{{STRUCT_NAME}}<'bldr>> {";
+        " -> flatbuffers::WIPOffset<{{STRUCT_NAME}}<'bldr>>";
+    code_ += "    where Buf: std::ops::DerefMut<Target=[u8]> + Extend<u8> {";
 
     code_ += "      let mut builder = {{STRUCT_NAME}}Builder::new(_fbb);";
     for (size_t size = struct_def.sortbysize ? sizeof(largest_scalar_t) : 1;
@@ -1407,15 +1408,16 @@ class RustGenerator : public BaseGenerator {
     code_ += "}";
 
     // Generate a builder struct:
-    code_ += "pub struct {{STRUCT_NAME}}Builder<'a: 'b, 'b> {";
-    code_ += "  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,";
+    code_ += "pub struct {{STRUCT_NAME}}Builder<'a: 'b, 'b, Buf> {";
+    code_ += "  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a, Buf>,";
     code_ +=
         "  start_: flatbuffers::WIPOffset<"
         "flatbuffers::TableUnfinishedWIPOffset>,";
     code_ += "}";
 
     // Generate builder functions:
-    code_ += "impl<'a: 'b, 'b> {{STRUCT_NAME}}Builder<'a, 'b> {";
+    code_ += "impl<'a: 'b, 'b, Buf> {{STRUCT_NAME}}Builder<'a, 'b, Buf>";
+    code_ += "where Buf: std::ops::DerefMut<Target=[u8]> + Extend<u8> {";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
@@ -1459,8 +1461,8 @@ class RustGenerator : public BaseGenerator {
     // Struct initializer (all fields required);
     code_ += "  #[inline]";
     code_ +=
-        "  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> "
-        "{{STRUCT_NAME}}Builder<'a, 'b> {";
+        "  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, Buf>) -> "
+        "{{STRUCT_NAME}}Builder<'a, 'b, Buf> {";
     code_.SetValue("NUM_FIELDS", NumToString(struct_def.fields.vec.size()));
     code_ += "    let start = _fbb.start_table();";
     code_ += "    {{STRUCT_NAME}}Builder {";
@@ -1578,9 +1580,10 @@ class RustGenerator : public BaseGenerator {
     // Finish a buffer with a given root object:
     code_.SetValue("OFFSET_TYPELABEL", Name(struct_def) + "Offset");
     code_ += "#[inline]";
-    code_ += "pub fn finish_{{STRUCT_NAME_SNAKECASE}}_buffer<'a, 'b>(";
-    code_ += "    fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>,";
-    code_ += "    root: flatbuffers::WIPOffset<{{STRUCT_NAME}}<'a>>) {";
+    code_ += "pub fn finish_{{STRUCT_NAME_SNAKECASE}}_buffer<'a, 'b, Buf>(";
+    code_ += "    fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, Buf>,";
+    code_ += "    root: flatbuffers::WIPOffset<{{STRUCT_NAME}}<'a>>)";
+    code_ += "where Buf: std::ops::DerefMut<Target=[u8]> + Extend<u8> {";
     if (parser_.file_identifier_.length()) {
       code_ += "  fbb.finish(root, Some({{STRUCT_NAME_CAPS}}_IDENTIFIER));";
     } else {
@@ -1591,9 +1594,10 @@ class RustGenerator : public BaseGenerator {
     code_ += "#[inline]";
     code_ +=
         "pub fn finish_size_prefixed_{{STRUCT_NAME_SNAKECASE}}_buffer"
-        "<'a, 'b>("
+        "<'a, 'b, Buf>("
         "fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>, "
-        "root: flatbuffers::WIPOffset<{{STRUCT_NAME}}<'a>>) {";
+        "root: flatbuffers::WIPOffset<{{STRUCT_NAME}}<'a>>)";
+    code_ += "where Buf: std::ops::DerefMut<Target=[u8]> + Extend<u8> {";
     if (parser_.file_identifier_.length()) {
       code_ +=
           "  fbb.finish_size_prefixed(root, "
