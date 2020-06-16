@@ -2499,7 +2499,7 @@ void EvolutionTest() {
   // 'TableC' was added to field 'c' union in version 2, so it should be null.
   TEST_ASSERT(nullptr == root_v1_viewed_from_v2->c_as_TableC());
   // The field 'c' union should be of type 'TableB' regardless of schema version
-  TEST_ASSERT(root_v1_viewed_from_v2->c_type() == Evolution::V2::Union::Union_TableB);
+  TEST_ASSERT(root_v1_viewed_from_v2->c_type() == Evolution::V2::Union::TableB);
   // The field 'f' was renamed to 'ff' in version 2, it should still be
   // readable.
   TEST_EQ(root_v1_viewed_from_v2->ff()->a(), 16);
