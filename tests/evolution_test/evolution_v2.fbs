@@ -43,8 +43,9 @@ table Root {
     g:[int];
     h:[TableB];
     i:uint = 1234;
-    j:TableC;           // new in v2
-    k:uint8 = 56;       // new in v2
+    j:Union (deprecated); // deprecated in v2
+    k:TableC;           // new in v2
+    l:uint8 = 56;       // new in v2
 }
 
 root_type Root;
