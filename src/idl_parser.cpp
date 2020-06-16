@@ -3280,10 +3280,6 @@ bool FieldDef::Deserialize(Parser &parser, const reflection::Field *field) {
     value.constant = NumToString(field->default_integer());
   } else if (IsFloat(value.type.base_type)) {
     value.constant = FloatToString(field->default_real(), 16);
-    size_t last_zero = value.constant.find_last_not_of('0');
-    if (last_zero != std::string::npos && last_zero != 0) {
-      value.constant.erase(last_zero, std::string::npos);
-    }
   }
   deprecated = field->deprecated();
   required = field->required();
