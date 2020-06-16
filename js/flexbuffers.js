@@ -13,19 +13,11 @@ flexbuffers.BitWidth.toByteWidth = (bitWidth) => {
 
 flexbuffers.BitWidth.width = (value) => {
   if (Number.isInteger(value)) {
-    if (value > 0) {
-      const v = value;
-      if (v >> 8 === 0) return flexbuffers.BitWidth.WIDTH8;
-      if (v >> 16 === 0) return flexbuffers.BitWidth.WIDTH16;
-      if (v >> 32 === 0) return flexbuffers.BitWidth.WIDTH32;
-      return flexbuffers.BitWidth.WIDTH64;
-    } else {
-      const v = value.abs(value);
-      if (v >> 7 === 0) return flexbuffers.BitWidth.WIDTH8;
-      if (v >> 15 === 0) return flexbuffers.BitWidth.WIDTH16;
-      if (v >> 31 === 0) return flexbuffers.BitWidth.WIDTH32;
-      return flexbuffers.BitWidth.WIDTH64;
-    }
+    const v = value < 0 ? value * -1 : value;
+    if (v >> 7 === 0) return flexbuffers.BitWidth.WIDTH8;
+    if (v >> 15 === 0) return flexbuffers.BitWidth.WIDTH16;
+    if (v >> 31 === 0 && v >> 32 === v) return flexbuffers.BitWidth.WIDTH32;
+    return flexbuffers.BitWidth.WIDTH64;
   }
 
   function _toF32(value) {
@@ -36,6 +28,28 @@ flexbuffers.BitWidth.width = (value) => {
   }
 
   return value === _toF32(value) ? flexbuffers.BitWidth.WIDTH32: flexbuffers.BitWidth.WIDTH64;
+};
+
+flexbuffers.BitWidth.fwidth = (value) => {
+  function _toF32(value) {
+    const buffer = new ArrayBuffer(4);
+    const view = new DataView(buffer);
+    view.setFloat32(0, value, true);
+    return view.getFloat32(0, true);
+  }
+
+  return value === _toF32(value) ? flexbuffers.BitWidth.WIDTH32: flexbuffers.BitWidth.WIDTH64;
+};
+
+flexbuffers.BitWidth.uwidth = (value) => {
+  if (Number.isInteger(value) && value >= 0) {
+    if (value >> 8 === 0) return flexbuffers.BitWidth.WIDTH8;
+    if (value >> 16 === 0) return flexbuffers.BitWidth.WIDTH16;
+    if (value >> 32 === 0) return flexbuffers.BitWidth.WIDTH32;
+    return flexbuffers.BitWidth.WIDTH64;
+  }
+
+  throw `Value: ${value} is not a uint`;
 };
 
 flexbuffers.BitWidth.fromByteWidth = (value) => {
@@ -144,7 +158,7 @@ flexbuffers.ValueType.packedType = (valueType, bitWidth) => {
   return bitWidth | (valueType << 2);
 };
 
-flexbuffers.read = (buffer) => {
+flexbuffers.toReference = (buffer) => {
 
   function validateOffset(dataView, offset, width) {
     if (dataView.byteLength <= offset + width || offset & (flexbuffers.BitWidth.toByteWidth(width) - 1) !== 0) {
@@ -233,7 +247,7 @@ flexbuffers.read = (buffer) => {
     const _indirect = indirect(dataView, offset, parentWidth);
     const elementOffset = _indirect + index * byteWidth;
     const packedType = dataView.getUint8(_indirect + length * byteWidth + index);
-    return constructor(dataView, elementOffset, flexbuffers.BitWidth.fromByteWidth(byteWidth), packedType, `${path}/${key}`)
+    return Reference(dataView, elementOffset, flexbuffers.BitWidth.fromByteWidth(byteWidth), packedType, `${path}/${key}`)
   }
 
   function keyForIndex(index, dataView, offset, parentWidth, byteWidth) {
@@ -250,7 +264,7 @@ flexbuffers.read = (buffer) => {
     return fromUTF8Array(new Uint8Array(dataView.buffer, keyIndirectOffset, length));
   }
 
-  function constructor(dataView, offset, parentWidth, packedType, path) {
+  function Reference(dataView, offset, parentWidth, packedType, path) {
     const byteWidth = 1 << (packedType & 3);
     const valueType = packedType >> 2;
     let length = -1;
@@ -332,7 +346,7 @@ flexbuffers.read = (buffer) => {
             const _valueType = flexbuffers.ValueType.fixedTypedVectorElementType(valueType);
             _packedType = flexbuffers.ValueType.packedType(_valueType, flexbuffers.BitWidth.WIDTH8);
           }
-          return constructor(dataView, elementOffset, flexbuffers.BitWidth.fromByteWidth(byteWidth), _packedType, `${path}[${key}]`);
+          return Reference(dataView, elementOffset, flexbuffers.BitWidth.fromByteWidth(byteWidth), _packedType, `${path}[${key}]`);
         }
         if (typeof key === 'string') {
           const index = keyIndex(key, dataView, offset, parentWidth, byteWidth, length);
@@ -418,11 +432,529 @@ flexbuffers.read = (buffer) => {
   const parentWidth = flexbuffers.BitWidth.fromByteWidth(byteWidth);
   const offset = len - byteWidth - 2;
 
-  return constructor(dataView, offset, parentWidth, packedType, "/")
+  return Reference(dataView, offset, parentWidth, packedType, "/")
 };
 
 flexbuffers.toObject = (buffer) => {
-  return flexbuffers.read(buffer).toObject();
+  return flexbuffers.toReference(buffer).toObject();
+};
+
+flexbuffers.builder = (size = 2048) => {
+  let buffer = new ArrayBuffer(size > 0 ? size : 2048);
+  let view = new DataView(buffer);
+  const stack = [];
+  const stackPointers = [];
+  let offset = 0;
+  let finished = false;
+  const stringCache = {};
+  const keyCache = {};
+  const keyVectorCache = {};
+  const indirectIntCache = {};
+  const indirectUIntCache = {};
+  const indirectFloatCache = {};
+
+  function align(width) {
+    const byteWidth = flexbuffers.BitWidth.toByteWidth(width);
+    offset += flexbuffers.BitWidth.paddingSize(offset, byteWidth);
+    return byteWidth;
+  }
+
+  function computeOffset(newValueSize) {
+    const targetOffset = offset + newValueSize;
+    let size = buffer.byteLength;
+    const prevSize = size;
+    while (size < targetOffset) {
+      size <<= 1;
+    }
+    if (prevSize < size) {
+      const prevBuffer = buffer;
+      buffer = new ArrayBuffer(size);
+      view = new DataView(buffer);
+      new Uint8Array(buffer).set(new Uint8Array(prevBuffer), 0);
+    }
+    return targetOffset;
+  }
+
+  function pushInt(value, width) {
+    if (width === flexbuffers.BitWidth.WIDTH8) {
+      view.setInt8(offset, value);
+    } else if (width === flexbuffers.BitWidth.WIDTH16) {
+      view.setInt16(offset, value, true);
+    } else if (width === flexbuffers.BitWidth.WIDTH32) {
+      view.setInt32(offset, value, true);
+    } else if (width === flexbuffers.BitWidth.WIDTH64) {
+      view.setBigInt64(offset, BigInt(value), true);
+    } else {
+      throw `Unexpected width: ${width} for value: ${value}`;
+    }
+  }
+
+  function pushUInt(value, width) {
+    if (width === flexbuffers.BitWidth.WIDTH8) {
+      view.setUint8(offset, value);
+    } else if (width === flexbuffers.BitWidth.WIDTH16) {
+      view.setUint16(offset, value, true);
+    } else if (width === flexbuffers.BitWidth.WIDTH32) {
+      view.setUint32(offset, value, true);
+    } else if (width === flexbuffers.BitWidth.WIDTH64) {
+      view.setBigUint64(offset, BigInt(value), true);
+    } else {
+      throw `Unexpected width: ${width} for value: ${value}`;
+    }
+  }
+
+  function writeInt(value, byteWidth) {
+    const newOffset = computeOffset(byteWidth);
+    pushInt(value, flexbuffers.BitWidth.fromByteWidth(byteWidth));
+    offset = newOffset;
+  }
+
+  function writeBlob(arrayBuffer) {
+    const length = arrayBuffer.byteLength;
+    const bitWidth = flexbuffers.BitWidth.width(length);
+    const byteWidth = align(bitWidth);
+    writeInt(length, byteWidth);
+    const blobOffset = offset;
+    const newOffset = computeOffset(length);
+    new Uint8Array(buffer).set(new Uint8Array(arrayBuffer), blobOffset);
+    stack.push(offsetStackValue(blobOffset, flexbuffers.ValueType.BLOB, bitWidth));
+    offset = newOffset;
+  }
+
+  function writeString(str) {
+    if (stringCache.hasOwnProperty(str)) {
+      stack.push(stringCache[str]);
+      return;
+    }
+    const utf8 = toUTF8Array(str);
+    const length = utf8.length;
+    const bitWidth = flexbuffers.BitWidth.width(length);
+    const byteWidth = align(bitWidth);
+    writeInt(length, byteWidth);
+    const stringOffset = offset;
+    const newOffset = computeOffset(length + 1);
+    new Uint8Array(buffer).set(utf8, stringOffset);
+    const stackValue = offsetStackValue(stringOffset, flexbuffers.ValueType.STRING, bitWidth);
+    stack.push(stackValue);
+    stringCache[str] = stackValue;
+    offset = newOffset;
+  }
+
+  function writeKey(str) {
+    if (keyCache.hasOwnProperty(str)) {
+      stack.push(keyCache[str]);
+      return;
+    }
+    const utf8 = toUTF8Array(str);
+    const length = utf8.length;
+    const newOffset = computeOffset(length + 1);
+    new Uint8Array(buffer).set(utf8, offset);
+    const stackValue = offsetStackValue(offset, flexbuffers.ValueType.KEY, flexbuffers.BitWidth.WIDTH8);
+    stack.push(stackValue);
+    keyCache[str] = stackValue;
+    offset = newOffset;
+  }
+
+  function writeStackValue(value, byteWidth) {
+    const newOffset = computeOffset(byteWidth);
+    if (value.isOffset) {
+      const relativeOffset = offset - value.offset;
+      if (byteWidth === 8 || BigInt(relativeOffset) < (1n << BigInt(byteWidth * 8))) {
+        writeInt(relativeOffset, byteWidth);
+      } else {
+        throw `Unexpected size ${byteWidth}. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new`
+      }
+    } else {
+      value.writeToBuffer(byteWidth);
+    }
+    offset = newOffset;
+  }
+
+  function integrityCheckOnValueAddition() {
+    if (finished) {
+      throw "Adding values after finish is prohibited";
+    }
+    if (stackPointers.length !== 0 && stackPointers[stackPointers.length - 1].isVector === false) {
+      if (stack[stack.length - 1].type !== flexbuffers.ValueType.KEY) {
+        throw "Adding value to a map before adding a key is prohibited";
+      }
+    }
+  }
+
+  function integrityCheckOnKeyAddition() {
+    if (finished) {
+      throw "Adding values after finish is prohibited";
+    }
+    if (stackPointers.length === 0 || stackPointers[stackPointers.length - 1].isVector) {
+      throw "Adding key before starting a map is prohibited";
+    }
+  }
+
+  function startVector() {
+    stackPointers.push({stackPosition: stack.length, isVector: true});
+  }
+
+  function startMap(presorted = false) {
+    stackPointers.push({stackPosition: stack.length, isVector: false, presorted: presorted});
+  }
+
+  function endVector(stackPointer) {
+    const vecLength = stack.length - stackPointer.stackPosition;
+    const vec = createVector(stackPointer.stackPosition, vecLength, 1);
+    stack.splice(stackPointer.stackPosition, vecLength);
+    stack.push(vec);
+  }
+
+  function endMap(stackPointer) {
+    if (!stackPointer.presorted) {
+      sort(stackPointer);
+    }
+    let keyVectorHash = "";
+    for (let i = stackPointer.stackPosition; i < stack.length; i += 2) {
+      keyVectorHash += `,${stack[i].offset}`;
+    }
+    const vecLength = (stack.length - stackPointer.stackPosition) >> 1;
+    if (!keyVectorCache.hasOwnProperty(keyVectorHash)) {
+      keyVectorCache[keyVectorHash] = createVector(stackPointer.stackPosition, vecLength, 2);
+    }
+    const keysStackValue = keyVectorCache[keyVectorHash];
+    const valuesStackValue = createVector(stackPointer.stackPosition + 1, vecLength, 2, keysStackValue);
+    stack.splice(stackPointer.stackPosition, vecLength << 1);
+    stack.push(valuesStackValue);
+  }
+
+  function sort(stackPointer) {
+    function shouldFlip(v1, v2) {
+      if (v1.type !== flexbuffers.ValueType.KEY || v2.type !== flexbuffers.ValueType.KEY) {
+        throw `Stack values are not keys ${v1} | ${v2}. Check if you combined [addKey] with add... method calls properly.`
+      }
+      let c1, c2;
+      let index = 0;
+      do {
+        c1 = view.getUint8(v1.offset + index);
+        c2 = view.getUint8(v2.offset + index);
+        if (c2 < c1) return true;
+        if (c1 < c2) return false;
+        index += 1;
+      } while (c1 !== 0 && c2 !== 0)
+      return false;
+    }
+
+    let sorted = true;
+    for (let i = stackPointer.stackPosition; i < stack.length - 2; i += 2) {
+      if (shouldFlip(stack[i], stack[i + 2])) {
+        sorted = false;
+        break;
+      }
+    }
+
+    if (!sorted) {
+      for (let i = stackPointer.stackPosition; i < stack.length; i += 2) {
+        let flipIndex = i;
+        for (let j = i + 2; j < stack.length; j += 2) {
+          if (shouldFlip(stack[flipIndex], stack[j])) {
+            flipIndex = j;
+          }
+        }
+        if (flipIndex !== i) {
+          const k = stack[flipIndex];
+          const v = stack[flipIndex + 1];
+          stack[flipIndex] = stack[i];
+          stack[flipIndex + 1] = stack[i + 1];
+          stack[i] = k;
+          stack[i + 1] = v;
+        }
+      }
+    }
+  }
+
+  function end() {
+    if (stackPointers.length < 1) return;
+    const pointer = stackPointers.pop();
+    if (pointer.isVector) {
+      endVector(pointer);
+    } else {
+      endMap(pointer);
+    }
+  }
+
+  function createVector(start, vecLength, step, keys = null) {
+    let bitWidth = flexbuffers.BitWidth.width(vecLength);
+    let prefixElements = 1;
+    if (keys !== null) {
+      const elementWidth = keys.elementWidth(offset, 0);
+      if (elementWidth > bitWidth) {
+        bitWidth = elementWidth;
+      }
+      prefixElements += 2;
+    }
+    let vectorType = flexbuffers.ValueType.KEY;
+    let typed = keys === null;
+    for (let i = start; i < stack.length; i += step) {
+      const elementWidth = stack[i].elementWidth(offset, i + prefixElements);
+      if (elementWidth > bitWidth) {
+        bitWidth = elementWidth;
+      }
+      if (i === start) {
+        vectorType = stack[i].type;
+        typed &= flexbuffers.ValueType.isTypedVectorElement(vectorType);
+      } else {
+        if (vectorType !== stack[i].type) {
+          typed = false;
+        }
+      }
+    }
+    const byteWidth = align(bitWidth);
+    const fix = typed && flexbuffers.ValueType.isNumber(vectorType) && vecLength >= 2 && vecLength <= 4;
+    if (keys !== null) {
+      writeStackValue(keys, byteWidth);
+      writeInt(1 << keys.width, byteWidth);
+    }
+    if (!fix) {
+      writeInt(vecLength, byteWidth);
+    }
+    const vecOffset = offset;
+    for (let i = start; i < stack.length; i += step) {
+      writeStackValue(stack[i], byteWidth);
+    }
+    if (!typed) {
+      for (let i = start; i < stack.length; i += step) {
+        writeInt(stack[i].storedPackedType(), 1);
+      }
+    }
+    if (keys !== null) {
+      return offsetStackValue(vecOffset, flexbuffers.ValueType.MAP, bitWidth);
+    }
+    if (typed) {
+      const vType = flexbuffers.ValueType.toTypedVector(vectorType, fix ? vecLength : 0);
+      return offsetStackValue(vecOffset, vType, bitWidth);
+    }
+    return offsetStackValue(vecOffset, flexbuffers.ValueType.VECTOR, bitWidth);
+  }
+
+  function StackValue(type, width, value, _offset) {
+    return {
+      type: type,
+      width: width,
+      value: value,
+      offset: _offset,
+      elementWidth: function (size, index) {
+        if (flexbuffers.ValueType.isInline(this.type)) return this.width;
+        for (let i = 0; i < 4; i++) {
+          const width = 1 << i;
+          const offsetLoc = size + flexbuffers.BitWidth.paddingSize(size, width) + index * width;
+          const offset = offsetLoc - this.offset;
+          const bitWidth = flexbuffers.BitWidth.width(offset);
+          if (1 << bitWidth === width) {
+            return bitWidth;
+          }
+        }
+        throw `Element is unknown. Size: ${size} at index: ${index}. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new`;
+      },
+      writeToBuffer: function (byteWidth) {
+        const newOffset = computeOffset(byteWidth);
+        if (this.type === flexbuffers.ValueType.FLOAT) {
+          if (this.width === flexbuffers.BitWidth.WIDTH32) {
+            view.setFloat32(offset, this.value, true);
+          } else {
+            view.setFloat64(offset, this.value, true);
+          }
+        } else if (this.type === flexbuffers.ValueType.INT) {
+          const bitWidth = flexbuffers.BitWidth.fromByteWidth(byteWidth);
+          pushInt(value, bitWidth);
+        } else if (this.type === flexbuffers.ValueType.UINT) {
+          const bitWidth = flexbuffers.BitWidth.fromByteWidth(byteWidth);
+          pushUInt(value, bitWidth);
+        } else if (this.type === flexbuffers.ValueType.NULL) {
+          pushInt(0, this.width);
+        } else if (this.type === flexbuffers.ValueType.BOOL) {
+          pushInt(value ? 1 : 0, this.width);
+        } else {
+          throw `Unexpected type: ${type}. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new`
+        }
+        offset = newOffset;
+      },
+      storedWidth: function (width = flexbuffers.BitWidth.WIDTH8) {
+        return flexbuffers.ValueType.isInline(this.type) ? Math.max(width, this.width) : this.width;
+      },
+      storedPackedType: function (width = flexbuffers.BitWidth.WIDTH8) {
+        return flexbuffers.ValueType.packedType(this.type, this.storedWidth(width));
+      },
+      isOffset: !flexbuffers.ValueType.isInline(type)
+    }
+  }
+
+  function nullStackValue() {
+    return StackValue(flexbuffers.ValueType.NULL, flexbuffers.BitWidth.WIDTH8);
+  }
+
+  function boolStackValue(value) {
+    return StackValue(flexbuffers.ValueType.BOOL, flexbuffers.BitWidth.WIDTH8, value);
+  }
+
+  function intStackValue(value) {
+    return StackValue(flexbuffers.ValueType.INT, flexbuffers.BitWidth.width(value), value);
+  }
+
+  function uintStackValue(value) {
+    return StackValue(flexbuffers.ValueType.UINT, flexbuffers.BitWidth.uwidth(value), value);
+  }
+
+  function floatStackValue(value) {
+    return StackValue(flexbuffers.ValueType.FLOAT, flexbuffers.BitWidth.fwidth(value), value);
+  }
+
+  function offsetStackValue(offset, valueType, bitWidth) {
+    return StackValue(valueType, bitWidth, null, offset);
+  }
+
+  function finishBuffer() {
+    if (stack.length !== 1) {
+      throw `Stack has to be exactly 1, but it is ${stack.length}. You have to end all started vectors and maps before calling [finish]`;
+    }
+    const value = stack[0];
+    const byteWidth = align(value.elementWidth(offset, 0));
+    writeStackValue(value, byteWidth);
+    writeInt(value.storedPackedType(), 1);
+    writeInt(byteWidth, 1);
+    finished = true;
+  }
+
+  return  {
+    add: function (value) {
+      integrityCheckOnValueAddition();
+      if (typeof value === 'undefined') {
+        throw "You need to provide a value";
+      }
+      if (value === null) {
+        stack.push(nullStackValue());
+      } else if (typeof value === "boolean") {
+        stack.push(boolStackValue(value));
+      } else if (typeof value == 'number') {
+        if (Number.isInteger(value)) {
+          stack.push(intStackValue(value));
+        } else {
+          stack.push(floatStackValue(value));
+        }
+      } else if (ArrayBuffer.isView(value)){
+        writeBlob(value.buffer);
+      } else if (typeof value === 'string' || value instanceof String) {
+        writeString(value);
+      } else if (Array.isArray(value)) {
+        startVector();
+        for (let i = 0; i < value.length; i++) {
+          this.add(value[i]);
+        }
+        end();
+      } else if (typeof value === 'object'){
+        const properties = Object.getOwnPropertyNames(value).sort();
+        startMap(true);
+        for (let i = 0; i < properties.length; i++) {
+          const key = properties[i];
+          this.addKey(key);
+          this.add(value[key]);
+        }
+        end();
+      } else {
+        throw `Unexpected value input ${value}`;
+      }
+    },
+    finish: function() {
+      if (!finished) {
+        finishBuffer();
+      }
+      const result = buffer.slice(0, offset);
+      return new Uint8Array(result);
+    },
+    isFinished: function() {
+      return finished;
+    },
+    addKey: function(key) {
+      integrityCheckOnKeyAddition();
+      writeKey(key);
+    },
+    addInt: function(value, indirect = false, cache = false) {
+      integrityCheckOnValueAddition();
+      if (!indirect) {
+        stack.push(intStackValue(value));
+        return;
+      }
+      if (cache && indirectIntCache.hasOwnProperty(value)) {
+        stack.push(indirectIntCache[value]);
+        return;
+      }
+      const stackValue = intStackValue(value);
+      const byteWidth = align(stackValue.width);
+      const newOffset = computeOffset(byteWidth);
+      const valueOffset = offset;
+      stackValue.writeToBuffer(byteWidth);
+      const stackOffset = offsetStackValue(valueOffset, flexbuffers.ValueType.INDIRECT_INT, stackValue.width);
+      stack.push(stackOffset);
+      offset = newOffset;
+      if (cache) {
+        indirectIntCache[value] = stackOffset;
+      }
+    },
+    addUInt: function(value, indirect = false, cache = false) {
+      integrityCheckOnValueAddition();
+      if (!indirect) {
+        stack.push(uintStackValue(value));
+        return;
+      }
+      if (cache && indirectUIntCache.hasOwnProperty(value)) {
+        stack.push(indirectUIntCache[value]);
+        return;
+      }
+      const stackValue = uintStackValue(value);
+      const byteWidth = align(stackValue.width);
+      const newOffset = computeOffset(byteWidth);
+      const valueOffset = offset;
+      stackValue.writeToBuffer(byteWidth);
+      const stackOffset = offsetStackValue(valueOffset, flexbuffers.ValueType.INDIRECT_UINT, stackValue.width);
+      stack.push(stackOffset);
+      offset = newOffset;
+      if (cache) {
+        indirectUIntCache[value] = stackOffset;
+      }
+    },
+    addFloat: function(value, indirect = false, cache = false) {
+      integrityCheckOnValueAddition();
+      if (!indirect) {
+        stack.push(floatStackValue(value));
+        return;
+      }
+      if (cache && indirectFloatCache.hasOwnProperty(value)) {
+        stack.push(indirectFloatCache[value]);
+        return;
+      }
+      const stackValue = floatStackValue(value);
+      const byteWidth = align(stackValue.width);
+      const newOffset = computeOffset(byteWidth);
+      const valueOffset = offset;
+      stackValue.writeToBuffer(byteWidth);
+      const stackOffset = offsetStackValue(valueOffset, flexbuffers.ValueType.INDIRECT_FLOAT, stackValue.width);
+      stack.push(stackOffset);
+      offset = newOffset;
+      if (cache) {
+        indirectFloatCache[value] = stackOffset;
+      }
+    },
+    startVector: function() {
+      startVector();
+    },
+    startMap: function() {
+      startMap();
+    },
+    end: function() {
+      end();
+    }
+  };
+};
+
+flexbuffers.encode = (object, size = 2048) => {
+  const builder = flexbuffers.builder(size > 0 ? size : 2048);
+  builder.add(object);
+  return builder.finish();
 };
 
 function fromUTF8Array(data) { // array of bytes
