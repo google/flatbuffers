@@ -2506,10 +2506,10 @@ void EvolutionTest() {
 
   // Test backwards compatibility by reading old data with an evolved schema.
   auto root_v1_viewed_from_v2 = Evolution::V2::GetRoot(&binaries[0].front());
-  // field 'j' is new in version 2, so it should be null.
-  TEST_ASSERT(nullptr == root_v1_viewed_from_v2->j());
-  // field 'k' is new in version 2 with a default of 56.
-  TEST_EQ(root_v1_viewed_from_v2->k(), 56);
+  // field 'k' is new in version 2, so it should be null.
+  TEST_ASSERT(nullptr == root_v1_viewed_from_v2->k());
+  // field 'l' is new in version 2 with a default of 56.
+  TEST_EQ(root_v1_viewed_from_v2->l(), 56);
   // field 'c' of 'TableA' is new in version 2, so it should be null.
   TEST_ASSERT(nullptr == root_v1_viewed_from_v2->e()->c());
   // 'TableC' was added to field 'c' union in version 2, so it should be null.
@@ -2536,6 +2536,41 @@ void EvolutionTest() {
   // readable.
   TEST_EQ(root_v2_viewed_from_v1->f()->a(), 35);
 #endif
+}
+
+void UnionDeprecationTest() {
+  const int NUM_VERSIONS = 2;
+  std::string schemas[NUM_VERSIONS];
+  std::string jsonfiles[NUM_VERSIONS];
+  std::vector<uint8_t> binaries[NUM_VERSIONS];
+
+  flatbuffers::IDLOptions idl_opts;
+  idl_opts.lang_to_generate |= flatbuffers::IDLOptions::kBinary;
+  flatbuffers::Parser parser(idl_opts);
+
+  // Load all the schema versions and their associated data.
+  for (int i = 0; i < NUM_VERSIONS; ++i) {
+    std::string schema = test_data_path + "evolution_test/evolution_v" +
+                         flatbuffers::NumToString(i + 1) + ".fbs";
+    TEST_ASSERT(flatbuffers::LoadFile(schema.c_str(), false, &schemas[i]));
+    std::string json = test_data_path + "evolution_test/evolution_v" +
+                       flatbuffers::NumToString(i + 1) + ".json";
+    TEST_ASSERT(flatbuffers::LoadFile(json.c_str(), false, &jsonfiles[i]));
+
+    TEST_ASSERT(parser.Parse(schemas[i].c_str()));
+    TEST_ASSERT(parser.Parse(jsonfiles[i].c_str()));
+
+    auto bufLen = parser.builder_.GetSize();
+    auto buf = parser.builder_.GetBufferPointer();
+    binaries[i].reserve(bufLen);
+    std::copy(buf, buf + bufLen, std::back_inserter(binaries[i]));
+  }
+
+  auto v2 = parser.LookupStruct("Evolution.V2.Root");
+  TEST_NOTNULL(v2);
+  auto j_type_field = v2->fields.Lookup("j_type");
+  TEST_NOTNULL(j_type_field);
+  TEST_ASSERT(j_type_field->deprecated);
 }
 
 void UnionVectorTest() {
@@ -3532,6 +3567,7 @@ int FlatBufferTests() {
     ParseProtoTestWithSuffix();
     ParseProtoTestWithIncludes();
     EvolutionTest();
+    UnionDeprecationTest();
     UnionVectorTest();
     LoadVerifyBinaryTest();
     GenerateTableTextTest();
