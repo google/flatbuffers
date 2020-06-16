@@ -40,8 +40,6 @@
 #  include "evolution_test/evolution_v1_generated.h"
 #  include "evolution_test/evolution_v2_generated.h"
 #endif
-#include "union_deprecation_test/union_deprecation_v1_generated.h"
-#include "union_deprecation_test/union_deprecation_v2_generated.h"
 
 #include "native_type_test_generated.h"
 #include "test_assert.h"
@@ -2492,16 +2490,16 @@ void EvolutionTest() {
 
   // Test backwards compatibility by reading old data with an evolved schema.
   auto root_v1_viewed_from_v2 = Evolution::V2::GetRoot(&binaries[0].front());
-  // field 'j' is new in version 2, so it should be null.
-  TEST_ASSERT(nullptr == root_v1_viewed_from_v2->j());
-  // field 'k' is new in version 2 with a default of 56.
-  TEST_EQ(root_v1_viewed_from_v2->k(), 56);
+  // field 'k' is new in version 2, so it should be null.
+  TEST_ASSERT(nullptr == root_v1_viewed_from_v2->k());
+  // field 'l' is new in version 2 with a default of 56.
+  TEST_EQ(root_v1_viewed_from_v2->l(), 56);
   // field 'c' of 'TableA' is new in version 2, so it should be null.
   TEST_ASSERT(nullptr == root_v1_viewed_from_v2->e()->c());
   // 'TableC' was added to field 'c' union in version 2, so it should be null.
   TEST_ASSERT(nullptr == root_v1_viewed_from_v2->c_as_TableC());
   // The field 'c' union should be of type 'TableB' regardless of schema version
-  TEST_ASSERT(root_v1_viewed_from_v2->c_type() == Evolution::V2::Union::TableB);
+  TEST_ASSERT(root_v1_viewed_from_v2->c_type() == Evolution::V2::Union::Union_TableB);
   // The field 'f' was renamed to 'ff' in version 2, it should still be
   // readable.
   TEST_EQ(root_v1_viewed_from_v2->ff()->a(), 16);
@@ -2536,10 +2534,10 @@ void UnionDeprecationTest() {
 
   // Load all the schema versions and their associated data.
   for (int i = 0; i < NUM_VERSIONS; ++i) {
-    std::string schema = test_data_path + "union_deprecation_test/union_deprecation_v" +
+    std::string schema = test_data_path + "evolution_test/evolution_v" +
                          flatbuffers::NumToString(i + 1) + ".fbs";
     TEST_ASSERT(flatbuffers::LoadFile(schema.c_str(), false, &schemas[i]));
-    std::string json = test_data_path + "union_deprecation_test/union_deprecation_v" +
+    std::string json = test_data_path + "evolution_test/evolution_v" +
                        flatbuffers::NumToString(i + 1) + ".json";
     TEST_ASSERT(flatbuffers::LoadFile(json.c_str(), false, &jsonfiles[i]));
 
@@ -2552,38 +2550,11 @@ void UnionDeprecationTest() {
     std::copy(buf, buf + bufLen, std::back_inserter(binaries[i]));
   }
 
-  auto v2 = parser.LookupStruct("UnionDeprecation.V2.Root");
+  auto v2 = parser.LookupStruct("Evolution.V2.Root");
   TEST_NOTNULL(v2);
-  auto c_type_field = v2->fields.Lookup("c_type");
-  TEST_NOTNULL(c_type_field);
-  TEST_ASSERT(c_type_field->deprecated);
-
-  // Assert that all the verifiers for the different schema versions properly
-  // verify any version data.
-  for (int i = 0; i < NUM_VERSIONS; ++i) {
-    flatbuffers::Verifier verifier(&binaries[i].front(), binaries[i].size());
-    TEST_ASSERT(UnionDeprecation::V1::VerifyRootBuffer(verifier));
-    TEST_ASSERT(UnionDeprecation::V2::VerifyRootBuffer(verifier));
-  }
-
-  // Test backwards compatibility by reading old data with an evolved schema.
-  auto root_v1_viewed_from_v2 = UnionDeprecation::V2::GetRoot(&binaries[0].front());
-  // field 'f' is new in version 2, so it should be null.
-  TEST_ASSERT(nullptr == root_v1_viewed_from_v2->f());
-  // field 'g' is new in version 2 with a default of 56.
-  TEST_EQ(root_v1_viewed_from_v2->g(), 56);
-  // field 'c' of 'TableA' is new in version 2, so it should be null.
-  TEST_ASSERT(nullptr == root_v1_viewed_from_v2->d()->c());
-
-  // Test forwards compatibility by reading new data with an old schema.
-  auto root_v2_viewed_from_v1 = UnionDeprecation::V1::GetRoot(&binaries[1].front());
-  // The field 'c' union in version 2 is deprecated (index = 0) and should
-  // not be accessible or interpretable.
-  TEST_EQ(static_cast<uint8_t>(root_v2_viewed_from_v1->c_type()), 0);
-  TEST_ASSERT(nullptr == root_v2_viewed_from_v1->c());
-  // The field 'a' in version 2 is deprecated and should return the default
-  // value (0) instead of the value stored in the in the buffer (42).
-  TEST_EQ(root_v2_viewed_from_v1->a(), 0);
+  auto j_type_field = v2->fields.Lookup("j_type");
+  TEST_NOTNULL(j_type_field);
+  TEST_ASSERT(j_type_field->deprecated);
 }
 
 void UnionVectorTest() {
