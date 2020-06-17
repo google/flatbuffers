@@ -3030,8 +3030,8 @@ We can access the type to dynamically cast the data as needed (since the
   var unionType = monster.equippedType();
 
   if (unionType == MyGame.Sample.Equipment.Weapon) {
-    var weapon_name = monster.equipped(new MyGame.Sample.Weapon()).name();     // 'Axe'
-    var weapon_damage = monster.equipped(new MyGame.Sample.Weapon()).damage(); // 5
+    var weaponName = monster.equipped(new MyGame.Sample.Weapon()).name();     // 'Axe'
+    var weaponDamage = monster.equipped(new MyGame.Sample.Weapon()).damage(); // 5
   }
 ~~~
 </div>
@@ -3040,8 +3040,8 @@ We can access the type to dynamically cast the data as needed (since the
   let unionType = monster.equippedType();
 
   if (unionType == MyGame.Sample.Equipment.Weapon) {
-    let weapon_name = monster.equipped(new MyGame.Sample.Weapon()).name();     // 'Axe'
-    let weapon_damage = monster.equipped(new MyGame.Sample.Weapon()).damage(); // 5
+    let weaponName = monster.equipped(new MyGame.Sample.Weapon()).name();     // 'Axe'
+    let weaponDamage = monster.equipped(new MyGame.Sample.Weapon()).damage(); // 5
   }
 ~~~
 </div>
@@ -3312,7 +3312,7 @@ You can run this file through the `flatc` compiler with the `-b` flag and
 our `monster.fbs` schema to produce a FlatBuffer binary file.
 
 ~~~{.sh}
-./../flatc -b monster.fbs monsterdata.json
+./../flatc --binary monster.fbs monsterdata.json
 ~~~
 
 The output of this will be a file `monsterdata.bin`, which will contain the
