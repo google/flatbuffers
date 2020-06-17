@@ -281,7 +281,6 @@ See [flatcc build instructions](https://github.com/dvidelabs/flatcc#building).
 Please be aware of the difference between `flatc` and `flatcc` tools.
 <br>
 </div>
-
 <div class="language-cpp">
 ~~~{.sh}
   cd flatbuffers/samples
@@ -534,7 +533,6 @@ The first step is to import/include the library, generated files, etc.
                                                Weapon, WeaponArgs};
 ~~~
 </div>
-
 <div class="language-swift">
 ~~~{.swift}
   /**
@@ -910,7 +908,6 @@ our `orc` Monster, let's create some `Weapon`s: a `Sword` and an `Axe`.
   });
 ~~~
 </div>
-
 <div class="language-swift">
 ~~~{.swift}
   let weapon1Name = builder.create(string: "Sword")
@@ -1776,7 +1773,6 @@ a bit more flexibility.
   ns(Monster_end_as_root(B));
 ~~~
 </div>
-
 <div class="language-swift">
 ~~~{.swift}
   let start = Monster.startMonster(builder)
@@ -2126,7 +2122,6 @@ like so:
   let buf = builder.finished_data(); // Of type `&[u8]`
 ~~~
 </div>
-
 <div class="language-swift">
 ~~~{.swift}
   // This must be called after `finish()`.
@@ -2456,7 +2451,6 @@ myGame.Monster monster = new myGame.Monster(data);
   let monster = get_root_as_monster(buf);
 ~~~
 </div>
-
 <div class="language-swift">
 ~~~{.swift}
   // create a ByteBuffer(:) from an [UInt8] or Data()
@@ -2573,7 +2567,6 @@ accessors for all non-`deprecated` fields. For example:
   let name = monster.name();
 ~~~
 </div>
-
 <div class="language-swift">
 ~~~{.swift}
   let hp = monster.hp
@@ -2706,7 +2699,6 @@ To access sub-objects, in the case of our `pos`, which is a `Vec3`:
   let z = pos.z();
 ~~~
 </div>
-
 <div class="language-swift">
 ~~~{.swift}
   let pos = monster.pos
@@ -2815,7 +2807,6 @@ FlatBuffers `vector`.
   let third_item = inv[2];
 ~~~
 </div>
-
 <div class="language-swift">
 ~~~{.swift}
   // Get a the count of objects in the vector
@@ -3138,7 +3129,6 @@ We can access the type to dynamically cast the data as needed (since the
     let weapon_damage = equipped.damage();
 ~~~
 </div>
-
 <div class="language-swift">
 ~~~{.swift}
   // Get and check if the monster has an equipped item
@@ -3252,7 +3242,6 @@ mutators like so:
   <API for mutating FlatBuffers is not yet available in Rust.>
 ~~~
 </div>
-
 <div class="language-swift">
 ~~~{.swift}
   let monster = Monster.getRootAsMonster(bb: ByteBuffer(bytes: buf))
