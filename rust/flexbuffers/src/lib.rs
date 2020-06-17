@@ -18,7 +18,9 @@
 //! See [Flexbuffer Internals](https://google.github.io/flatbuffers/flatbuffers_internals.html)
 //! for details on the binary format.
 //!
-//! * [See the examples for usage.](https://github.com/CasperN/flexbuffers/tree/master/examples)
+//! See the examples for usage:
+//! * [Example](https://github.com/google/flatbuffers/blob/master/samples/sample_flexbuffers.rs)
+//! * [Serde Example](https://github.com/google/flatbuffers/blob/master/samples/sample_flexbuffers_serde.rs)
 //!
 //! This rust implementation is in progress and, until the 1.0 release, breaking API changes may
 /// happen between minor versions.
