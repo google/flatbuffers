@@ -2222,7 +2222,7 @@ before:
 </div>
 <div class="language-typescript">
 ~~~{.ts}
-  // note: import flabuffers with your desired import method
+  // note: import flatbuffers with your desired import method
 
   import { MyGame } from './monster_generated';
 ~~~
