@@ -2499,16 +2499,16 @@ accessors for all non-`deprecated` fields. For example:
 </div>
 <div class="language-javascript">
 ~~~{.js}
-  var hp = $monster.hp();
-  var mana = $monster.mana();
-  var name = $monster.name();
+  var hp = monster.hp();
+  var mana = monster.mana();
+  var name = monster.name();
 ~~~
 </div>
 <div class="language-typescript">
 ~~~{.ts}
-  let hp = $monster.hp();
-  let mana = $monster.mana();
-  let name = $monster.name();
+  let hp = monster.hp();
+  let mana = monster.mana();
+  let name = monster.name();
 ~~~
 </div>
 <div class="language-php">
