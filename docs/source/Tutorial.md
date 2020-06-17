@@ -771,7 +771,7 @@ our `orc` Monster, let's create some `Weapon`s: a `Sword` and an `Axe`.
 ~~~
 </div>
 <div class="language-typescript">
-~~~{.js}
+~~~{.ts}
   let weaponOne = builder.createString('Sword');
   let weaponTwo = builder.createString('Axe');
 
@@ -1032,7 +1032,7 @@ traversal. This is generally easy to do on any tree structures.
 ~~~
 </div>
 <div class="language-typescript">
-~~~{.js}
+~~~{.ts}
   // Serialize a name for our monster, called 'Orc'.
   let name = builder.createString('Orc');
 
@@ -1420,7 +1420,7 @@ for the `path` field above:
 <div class="language-swift">
 ~~~{.swift}
   //
-  let points = builder.createVector(structs: [MyGame.Sample.createVec3(x: 1, y: 2, z: 3), 
+  let points = builder.createVector(structs: [MyGame.Sample.createVec3(x: 1, y: 2, z: 3),
                                               MyGame.Sample.createVec3(x: 4, y: 5, z: 6)],
                                    type: Vec3.self)
 ~~~
@@ -1701,7 +1701,7 @@ can serialize the monster itself:
 </div>
 <div class="language-swift">
 ~~~{.swift}
-  let orc = Monster.createMonster(builder, 
+  let orc = Monster.createMonster(builder,
                                   offsetOfPos: pos,
                                   hp: 300,
                                   offsetOfName: name,
@@ -2217,7 +2217,7 @@ before:
 ~~~
 </div>
 <div class="language-typescript">
-~~~{.js}
+~~~{.ts}
   // note: import flabuffers with your desired import method
 
   import { MyGame } from './monster_generated';
