@@ -23,7 +23,7 @@
 //! * [Serde Example](https://github.com/google/flatbuffers/blob/master/samples/sample_flexbuffers_serde.rs)
 //!
 //! This rust implementation is in progress and, until the 1.0 release, breaking API changes may
-/// happen between minor versions.
+//! happen between minor versions.
 // TODO(cneo): serde stuff are behind a default-on feature flag
 //             Reader to Json is behind a default-off feature flag
 //             Serializable structs are Pushable
