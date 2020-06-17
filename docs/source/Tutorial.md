@@ -2366,7 +2366,11 @@ won't work.**
 </div>
 <div class="language-javascript">
 ~~~{.js}
-  var bytes = /* the data you just read, in an object of type "Uint8Array" */
+  // the data you just read, as a `Uint8Array`
+  // Note that the example here uses `readFileSync` from the built-in `fs` module,
+  // but other methods for accessing the file contents will also work.
+  var bytes = new Uint8Array(readFileSync('./monsterdata.bin'));
+
   var buf = new flatbuffers.ByteBuffer(bytes);
 
   // Get an accessor to the root object inside the buffer.
@@ -2375,7 +2379,11 @@ won't work.**
 </div>
 <div class="language-typescript">
 ~~~{.ts}
-  let bytes = /* the data you just read, in an object of type "Uint8Array" */
+  // the data you just read, as a `Uint8Array`.
+  // Note that the example here uses `readFileSync` from the built-in `fs` module,
+  // but other methods for accessing the file contents will also work.
+  let bytes = new Uint8Array(readFileSync('./monsterdata.bin'));
+
   let buf = new flatbuffers.ByteBuffer(bytes);
 
   // Get an accessor to the root object inside the buffer.
