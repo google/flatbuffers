@@ -1913,8 +1913,7 @@ appropriate `finish` method.
   // Call `Finish()` to instruct the builder that this monster is complete.
   // Note: Regardless of how you created the `orc`, you still need to call
   // `Finish()` on the `FlatBufferBuilder`.
-  builder.Finish(orc); // You could also call `FinishMonsterBuffer(builder,
-                       //                                          orc);`.
+  builder.Finish(orc); // You could also call `FinishMonsterBuffer(builder, orc);`.
 ~~~
 </div>
 <div class="language-java">
@@ -1950,22 +1949,19 @@ appropriate `finish` method.
 <div class="language-javascript">
 ~~~{.js}
   // Call `finish()` to instruct the builder that this monster is complete.
-  builder.finish(orc); // You could also call `MyGame.Sample.Monster.finishMonsterBuffer(builder,
-                       //                                                                 orc);`.
+  builder.finish(orc); // You could also call `MyGame.Sample.Monster.finishMonsterBuffer(builder, orc);`.
 ~~~
 </div>
 <div class="language-typescript">
 ~~~{.ts}
   // Call `finish()` to instruct the builder that this monster is complete.
-  builder.finish(orc); // You could also call `MyGame.Sample.Monster.finishMonsterBuffer(builder,
-                       //                                                                 orc);`.
+  builder.finish(orc); // You could also call `MyGame.Sample.Monster.finishMonsterBuffer(builder, orc);`.
 ~~~
 </div>
 <div class="language-php">
 ~~~{.php}
   // Call `finish()` to instruct the builder that this monster is complete.
-   $builder->finish($orc); // You may also call `\MyGame\Sample\Monster::FinishMonsterBuffer(
-                           //                        $builder, $orc);`.
+   $builder->finish($orc); // You may also call `\MyGame\Sample\Monster::FinishMonsterBuffer($builder, $orc);`.
 ~~~
 </div>
 <div class="language-c">
