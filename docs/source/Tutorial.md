@@ -2142,6 +2142,19 @@ Now you can write the bytes to a file or send them over the network.
 If you transfer a FlatBuffer in text mode, the buffer will be corrupted,
 which will lead to hard to find problems when you read the buffer.
 
+<div class="language-javascript">
+For example, in Node you can simply do:
+~~~{.js}
+  writeFileSync('monster.bin', buf, 'binary');
+~~~
+</div>
+<div class="language-typescript">
+For example, in Node you can simply do:
+~~~{.ts}
+  writeFileSync('monster.bin', buf, 'binary');
+~~~
+</div>
+
 #### Reading Orc FlatBuffers
 
 Now that we have successfully created an `Orc` FlatBuffer, the monster data can
