@@ -452,9 +452,11 @@ The first step is to import/include the library, generated files, etc.
 ~~~
 </div>
 <div class="language-typescript">
+~~~{.ts}
   // note: import flatbuffers with your desired import method
 
   import { MyGame } from './monster_generated';
+~~~
 </div>
 <div class="language-php">
 ~~~{.php}
