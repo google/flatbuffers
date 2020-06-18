@@ -10,5 +10,13 @@ FlexBuffers' design and implementation allows for a very compact encoding,
 with automatic sizing of containers to their smallest possible representation
 (8/16/32/64 bits). Many values and offsets can be encoded in just 8 bits.
 
+FlexBuffers supports [Serde](https://serde.rs/) for automatically serializing
+Rust data structures into its binary format.
+
+## See Examples for Usage:
+* [Example](https://github.com/google/flatbuffers/blob/master/samples/sample_flexbuffers.rs)
+* [Serde Example](https://github.com/google/flatbuffers/blob/master/samples/sample_flexbuffers_serde.rs)
+* [Documentation](https://docs.rs/flexbuffers)
+
 Flexbuffers is the schema-less cousin of
 [Flatbuffers](https://google.github.io/flatbuffers/).

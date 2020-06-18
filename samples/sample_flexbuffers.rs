@@ -16,6 +16,21 @@ extern crate flexbuffers;
 
 use flexbuffers::{BitWidth, Builder, Reader, ReaderError};
 
+
+// In this Example we're creating a monster that corresponds to the following JSON:
+// {
+//     "coins": [5, 10, 25, 25, 25, 100],
+//     "color": [255, 0, 0, 255],
+//     "enraged": true,
+//     "hp": 80,
+//     "mana": 200,
+//     "position": [0, 0, 0],
+//     "velocity": [1, 0, 0],
+//     "weapons": [
+//         "fist",
+//         {"damage": 15, "name": "great axe"},
+//         {"damage": 5, "name": "hammer"}]
+// }
 fn main() {
     // Create a new Flexbuffer builder.
     let mut builder = Builder::default();
