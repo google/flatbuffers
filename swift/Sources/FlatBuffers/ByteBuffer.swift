@@ -143,7 +143,7 @@ public struct ByteBuffer {
     ///Adds an array of type Scalar to the buffer memory
     /// - Parameter elements: An array of Scalars
     @usableFromInline mutating func push<T: Scalar>(elements: [T]) {
-        let size = elements.count * MemoryLayout<T>.size
+        let size = elements.count &* MemoryLayout<T>.size
         ensureSpace(size: size)
         elements.lazy.reversed().forEach { (s) in
             push(value: s, len: MemoryLayout.size(ofValue: s))
@@ -153,7 +153,7 @@ public struct ByteBuffer {
     ///Adds an array of type Bool to the buffer memory
     /// - Parameter elements: An array of Bool
     @usableFromInline mutating func push(elements: [Bool]) {
-        let size = elements.count * MemoryLayout<Bool>.size
+        let size = elements.count &* MemoryLayout<Bool>.size
         ensureSpace(size: size)
         elements.lazy.reversed().forEach { (s) in
             push(value: s ? 1 : 0, len: MemoryLayout.size(ofValue: s))

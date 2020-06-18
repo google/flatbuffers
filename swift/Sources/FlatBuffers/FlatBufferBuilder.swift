@@ -257,8 +257,8 @@ public struct FlatBufferBuilder {
     mutating public func startVector(_ len: Int, elementSize: Int) {
         notNested()
         isNested = true
-        preAlign(len: len * elementSize, type: UOffset.self)
-        preAlign(len: len * elementSize, alignment: elementSize)
+        preAlign(len: len &* elementSize, type: UOffset.self)
+        preAlign(len: len &* elementSize, alignment: elementSize)
     }
     
     /// Ends the vector of at length
@@ -348,7 +348,7 @@ public struct FlatBufferBuilder {
     /// - returns: Offset of the vector
     mutating public func createVector<T: Readable>(structs: [UnsafeMutableRawPointer],
                                           type: T.Type) -> Offset<UOffset> {
-        startVector(structs.count * T.size, elementSize: T.alignment)
+        startVector(structs.count &* T.size, elementSize: T.alignment)
         for i in structs.lazy.reversed() {
             create(struct: i, type: T.self)
         }
@@ -499,7 +499,7 @@ extension FlatBufferBuilder: CustomDebugStringConvertible {
         /// Last written Index
         var writtenIndex: Int = 0
         /// the amount of added elements into the buffer
-        var addedElements: Int { return capacity - (numOfFields * size) }
+        var addedElements: Int { return capacity - (numOfFields &* size) }
         
         /// Creates the memory to store the buffer in
         init() {
