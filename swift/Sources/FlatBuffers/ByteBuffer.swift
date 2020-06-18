@@ -35,7 +35,7 @@ public struct ByteBuffer {
             memory.copyMemory(from: ptr, byteCount: count)
         }
         
-        func initialize(for size: Int) {
+        func initalize(for size: Int) {
             precondition(!unowned)
             memset(memory, 0, size)
         }
@@ -104,7 +104,7 @@ public struct ByteBuffer {
     init(initialSize size: Int) {
         let size = size.convertToPowerofTwo
         _storage = Storage(count: size, alignment: alignment)
-        _storage.initialize(for: size)
+        _storage.initalize(for: size)
     }
   
     /// Constructor that creates a Flatbuffer from unsafe memory region without copying
@@ -264,7 +264,6 @@ public struct ByteBuffer {
         alignment = 1
         _storage.memory.deallocate()
         _storage.memory = UnsafeMutableRawPointer.allocate(byteCount: _storage.capacity, alignment: alignment)
-        _storage.initialize(for: _storage.capacity)
     }
     
     /// Resizes the buffer size
