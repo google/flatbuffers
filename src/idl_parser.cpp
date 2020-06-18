@@ -880,9 +880,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     }
     // if this field is a union that is deprecated,
     // the automatically added type field should be deprecated as well
-    if (field->deprecated) {
-      typefield->deprecated = true;
-    }
+    if (field->deprecated) { typefield->deprecated = true; }
   }
 
   EXPECT(';');
