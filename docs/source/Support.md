@@ -27,7 +27,7 @@ Reflection                     | Yes    | No     | No     | No     | No     | No
 Buffer verifier                | Yes    | No     | No     | No     | No     | No        | No        | Yes     | No  | No      | No      | No      | No
 Testing: basic                 | Yes    | Yes    | Yes    | Yes    | Yes    | Yes       | Yes       | Yes     | ?   | Yes     | Yes     | Yes     | Yes
 Testing: fuzz                  | Yes    | No     | No     | Yes    | Yes    | No        | No        | No      | ?   | No      | No      | Yes     | No
-Performance:                   | Superb | Great  | Great  | Great  | Ok     | ?         | ?         | Superb  | ?   | ?       | Great   | Superb  | ?
+Performance:                   | Superb | Great  | Great  | Great  | Ok     | ?         | ?         | Superb  | ?   | ?       | Great   | Superb  | Great
 Platform: Windows              | VS2010 | Yes    | Yes    | ?      | ?      | ?         | Yes       | VS2010  | ?   | Yes     | Yes     | Yes     | No
 Platform: Linux                | GCC282 | Yes    | ?      | Yes    | Yes    | ?         | Yes       | Yes     | ?   | Yes     | Yes     | Yes     | Yes
 Platform: OS X                 | Xcode4 | ?      | ?      | ?      | Yes    | ?         | Yes       | Yes     | ?   | Yes     | Yes     | Yes     | Yes
