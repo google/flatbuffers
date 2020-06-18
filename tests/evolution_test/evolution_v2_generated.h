@@ -343,6 +343,7 @@ struct Root FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_G = 18,
     VT_H = 20,
     VT_I = 22,
+    VT_J_TYPE = 24,
     VT_K = 28,
     VT_L = 30
   };
@@ -383,6 +384,9 @@ struct Root FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   uint32_t i() const {
     return GetField<uint32_t>(VT_I, 1234);
   }
+  Evolution::V2::Union j_type() const {
+    return static_cast<Evolution::V2::Union>(GetField<uint8_t>(VT_J_TYPE, 0));
+  }
   const Evolution::V2::TableC *k() const {
     return GetPointer<const Evolution::V2::TableC *>(VT_K);
   }
@@ -405,6 +409,7 @@ struct Root FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyVector(h()) &&
            verifier.VerifyVectorOfTables(h()) &&
            VerifyField<uint32_t>(verifier, VT_I) &&
+           VerifyField<uint8_t>(verifier, VT_J_TYPE) &&
            VerifyOffset(verifier, VT_K) &&
            verifier.VerifyTable(k()) &&
            VerifyField<uint8_t>(verifier, VT_L) &&
@@ -455,6 +460,9 @@ struct RootBuilder {
   void add_i(uint32_t i) {
     fbb_.AddElement<uint32_t>(Root::VT_I, i, 1234);
   }
+  void add_j_type(Evolution::V2::Union j_type) {
+    fbb_.AddElement<uint8_t>(Root::VT_J_TYPE, static_cast<uint8_t>(j_type), 0);
+  }
   void add_k(flatbuffers::Offset<Evolution::V2::TableC> k) {
     fbb_.AddOffset(Root::VT_K, k);
   }
@@ -483,6 +491,7 @@ inline flatbuffers::Offset<Root> CreateRoot(
     flatbuffers::Offset<flatbuffers::Vector<int32_t>> g = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Evolution::V2::TableB>>> h = 0,
     uint32_t i = 1234,
+    Evolution::V2::Union j_type = Evolution::V2::Union::NONE,
     flatbuffers::Offset<Evolution::V2::TableC> k = 0,
     uint8_t l = 56) {
   RootBuilder builder_(_fbb);
@@ -494,6 +503,7 @@ inline flatbuffers::Offset<Root> CreateRoot(
   builder_.add_e(e);
   builder_.add_c(c);
   builder_.add_l(l);
+  builder_.add_j_type(j_type);
   builder_.add_d(d);
   builder_.add_c_type(c_type);
   builder_.add_b(b);
@@ -511,6 +521,7 @@ inline flatbuffers::Offset<Root> CreateRootDirect(
     const std::vector<int32_t> *g = nullptr,
     const std::vector<flatbuffers::Offset<Evolution::V2::TableB>> *h = nullptr,
     uint32_t i = 1234,
+    Evolution::V2::Union j_type = Evolution::V2::Union::NONE,
     flatbuffers::Offset<Evolution::V2::TableC> k = 0,
     uint8_t l = 56) {
   auto g__ = g ? _fbb.CreateVector<int32_t>(*g) : 0;
@@ -526,6 +537,7 @@ inline flatbuffers::Offset<Root> CreateRootDirect(
       g__,
       h__,
       i,
+      j_type,
       k,
       l);
 }
