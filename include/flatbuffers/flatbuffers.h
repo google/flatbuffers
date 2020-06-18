@@ -1219,7 +1219,7 @@ class FlatBufferBuilder {
   /// you call Finish()). You can use this information if you need to embed
   /// a FlatBuffer in some other buffer, such that you can later read it
   /// without first having to copy it into its own buffer.
-  size_t GetBufferMinAlignment() {
+  size_t GetBufferMinAlignment() const {
     Finished();
     return minalign_;
   }
