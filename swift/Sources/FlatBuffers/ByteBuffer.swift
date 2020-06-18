@@ -1,46 +1,48 @@
 import Foundation
 
-@usableFromInline protocol Storage {
-    /// pointer to the start of the buffer object in memory
-    var memory: UnsafeMutableRawPointer { get set }
-    /// Capacity of UInt8 the buffer can hold
-    var capacity: Int { get set }
-    func copy(from ptr: UnsafeRawPointer, count: Int)
-    func initialize(for size: Int)
-    func reallocate(_ size: Int, writerSize: Int, alignment: Int)
-}
-
 public struct ByteBuffer {
     
     /// Storage is a container that would hold the memory pointer to solve the issue of
     /// deallocating the memory that was held by (memory: UnsafeMutableRawPointer)
-    @usableFromInline final class InternalStorage: Storage {
-        
+    @usableFromInline final class Storage {
+        // This storage doesn't own the memory, therefore, we won't deallocate on deinit.
+        private let unowned: Bool
         /// pointer to the start of the buffer object in memory
-        @usableFromInline var memory: UnsafeMutableRawPointer
+        var memory: UnsafeMutableRawPointer
         /// Capacity of UInt8 the buffer can hold
-        @usableFromInline var capacity: Int
+        var capacity: Int
         
         init(count: Int, alignment: Int) {
             memory = UnsafeMutableRawPointer.allocate(byteCount: count, alignment: alignment)
             capacity = count
+            unowned = false
+        }
+
+        init(memory: UnsafeMutableRawPointer, capacity: Int, unowned: Bool) {
+            self.memory = memory
+            self.capacity = capacity
+            self.unowned = unowned
         }
         
         deinit {
-            memory.deallocate()
+            if !unowned {
+              memory.deallocate()
+            }
         }
         
-        @usableFromInline func copy(from ptr: UnsafeRawPointer, count: Int) {
+        func copy(from ptr: UnsafeRawPointer, count: Int) {
+            precondition(!unowned)
             memory.copyMemory(from: ptr, byteCount: count)
         }
         
-        @usableFromInline func initialize(for size: Int) {
+        func initialize(for size: Int) {
+            precondition(!unowned)
             memset(memory, 0, size)
         }
         
         /// Reallocates the buffer incase the object to be written doesnt fit in the current buffer
         /// - Parameter size: Size of the current object
-        @usableFromInline func reallocate(_ size: Int, writerSize: Int, alignment: Int) {
+        @usableFromInline internal func reallocate(_ size: Int, writerSize: Int, alignment: Int) {
             let currentWritingIndex = capacity &- writerSize
             while capacity <= writerSize &+ size {
                 capacity = capacity << 1
@@ -54,30 +56,6 @@ public struct ByteBuffer {
             memcpy(newData.advanced(by: capacity &- writerSize), memory.advanced(by: currentWritingIndex), writerSize)
             memory.deallocate()
             memory = newData
-        }
-    }
-
-    @usableFromInline final class ExternalStorage: Storage {
-
-        /// pointer to the start of the buffer object in memory
-        @usableFromInline var memory: UnsafeMutableRawPointer
-        /// Capacity of UInt8 the buffer can hold
-        @usableFromInline var capacity: Int
-
-        init(memory: UnsafeMutableRawPointer, capacity: Int) {
-            self.memory = memory
-            self.capacity = capacity
-        }
-
-        @usableFromInline func copy(from ptr: UnsafeRawPointer, count: Int) {
-            fatalError() // Cannot copy to.
-        }
-        
-        @usableFromInline func initialize(for size: Int) {
-            // No initialization
-        }
-        @usableFromInline func reallocate(_ size: Int, writerSize: Int, alignment: Int) {
-            fatalError()
         }
     }
     
@@ -103,7 +81,7 @@ public struct ByteBuffer {
     /// - Parameter bytes: Array of UInt8
     public init(bytes: [UInt8]) {
         var b = bytes
-        _storage = InternalStorage(count: bytes.count, alignment: alignment)
+        _storage = Storage(count: bytes.count, alignment: alignment)
         _writerSize = _storage.capacity
         b.withUnsafeMutableBytes { bufferPointer in
             self._storage.copy(from: bufferPointer.baseAddress!, count: bytes.count)
@@ -114,27 +92,27 @@ public struct ByteBuffer {
     /// - Parameter data: Swift data Object
     public init(data: Data) {
         var b = data
-        _storage = InternalStorage(count: data.count, alignment: alignment)
+        _storage = Storage(count: data.count, alignment: alignment)
         _writerSize = _storage.capacity
         b.withUnsafeMutableBytes { bufferPointer in
             self._storage.copy(from: bufferPointer.baseAddress!, count: data.count)
         }
     }
 
-    /// Constructor that creates a Flatbuffer from unsafe memory region without copying
-    /// - Parameter assumingMemoryBound: The unsafe memory region
-    /// - Parameter capacity: The size of the given memory region
-    public init(assumingMemoryBound: UnsafeMutableRawPointer, capacity: Int) {
-      _storage = ExternalStorage(memory: assumingMemoryBound, capacity: capacity)
-      _writerSize = capacity
-    }
-
     /// Constructor that creates a Flatbuffer instance with a size
     /// - Parameter size: Length of the buffer
     init(initialSize size: Int) {
         let size = size.convertToPowerofTwo
-        _storage = InternalStorage(count: size, alignment: alignment)
+        _storage = Storage(count: size, alignment: alignment)
         _storage.initialize(for: size)
+    }
+  
+    /// Constructor that creates a Flatbuffer from unsafe memory region without copying
+    /// - Parameter assumingMemoryBound: The unsafe memory region
+    /// - Parameter capacity: The size of the given memory region
+    public init(assumingMemoryBound memory: UnsafeMutableRawPointer, capacity: Int) {
+        _storage = Storage(memory: memory, capacity: capacity, unowned: true)
+        _writerSize = capacity
     }
 
 #if swift(>=5.0)
@@ -146,7 +124,7 @@ public struct ByteBuffer {
         contiguousBytes: Bytes,
         count: Int
     ) {
-        _storage = InternalStorage(count: count, alignment: alignment)
+        _storage = Storage(count: count, alignment: alignment)
         _writerSize = _storage.capacity
         contiguousBytes.withUnsafeBytes { buf in
             _storage.copy(from: buf.baseAddress!, count: buf.count)
@@ -159,7 +137,7 @@ public struct ByteBuffer {
     ///   - memory: Current memory of the buffer
     ///   - count: count of bytes
     internal init(memory: UnsafeMutableRawPointer, count: Int) {
-        _storage = InternalStorage(count: count, alignment: alignment)
+        _storage = Storage(count: count, alignment: alignment)
         _storage.copy(from: memory, count: count)
         _writerSize = _storage.capacity
     }
@@ -170,7 +148,7 @@ public struct ByteBuffer {
     ///   - count: count of bytes
     ///   - removeBytes: Removes a number of bytes from the current size
     internal init(memory: UnsafeMutableRawPointer, count: Int, removing removeBytes: Int) {
-        _storage = InternalStorage(count: count, alignment: alignment)
+        _storage = Storage(count: count, alignment: alignment)
         _storage.copy(from: memory, count: count)
         _writerSize = removeBytes
     }
@@ -286,6 +264,7 @@ public struct ByteBuffer {
         alignment = 1
         _storage.memory.deallocate()
         _storage.memory = UnsafeMutableRawPointer.allocate(byteCount: _storage.capacity, alignment: alignment)
+        _storage.initialize(for: _storage.capacity)
     }
     
     /// Resizes the buffer size
