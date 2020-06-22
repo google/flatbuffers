@@ -90,8 +90,8 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
         let stringTestVector = fbb.createVector(ofOffsets: [test1, test2])
         
         let mStart = Monster.startMonster(&fbb)
-        let posOffset = fbb.create(struct: MyGame.Example.createVec3(x: 1, y: 2, z: 3, test1: 3, test2: .green, test3a: 5, test3b: 6), type: Vec3.self)
-        Monster.add(pos: posOffset, &fbb)
+        let posStruct = MyGame.Example.createVec3(x: 1, y: 2, z: 3, test1: 3, test2: .green, test3a: 5, test3b: 6)
+        Monster.add(pos: posStruct, &fbb)
         Monster.add(hp: 80, &fbb)
         Monster.add(name: str, &fbb)
         Monster.addVectorOf(inventory: inv, &fbb)

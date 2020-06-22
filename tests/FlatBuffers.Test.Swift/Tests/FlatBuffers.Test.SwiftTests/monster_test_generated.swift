@@ -825,7 +825,7 @@ public struct Monster: FlatBufferObject {
     public var signedEnum: MyGame.Example.Race { let o = _accessor.offset(VTOFFSET.signedEnum.v); return o == 0 ? .none_ : MyGame.Example.Race(rawValue: _accessor.readBuffer(of: Int8.self, at: o)) ?? .none_ }
     @discardableResult public func mutate(signedEnum: MyGame.Example.Race) -> Bool {let o = _accessor.offset(VTOFFSET.signedEnum.v);  return _accessor.mutate(signedEnum.rawValue, index: o) }
     public static func startMonster(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 49) }
-    public static func add(pos: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(structOffset: VTOFFSET.pos.p) }
+    public static func add(pos: UnsafeMutableRawPointer?, _ fbb: inout FlatBufferBuilder) { guard let pos = pos else { return }; fbb.create(struct: pos, type: MyGame.Example.Vec3.self); fbb.add(structOffset: VTOFFSET.pos.p) }
     public static func add(mana: Int16, _ fbb: inout FlatBufferBuilder) { fbb.add(element: mana, def: 150, at: VTOFFSET.mana.p) }
     public static func add(hp: Int16, _ fbb: inout FlatBufferBuilder) { fbb.add(element: hp, def: 100, at: VTOFFSET.hp.p) }
     public static func add(name: Offset<String>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: name, at: VTOFFSET.name.p)  }
@@ -875,7 +875,7 @@ public struct Monster: FlatBufferObject {
     public static func add(signedEnum: MyGame.Example.Race, _ fbb: inout FlatBufferBuilder) { fbb.add(element: signedEnum.rawValue, def: -1, at: VTOFFSET.signedEnum.p) }
     public static func endMonster(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); fbb.require(table: end, fields: [10]); return end }
     public static func createMonster(_ fbb: inout FlatBufferBuilder,
-    offsetOfPos pos: Offset<UOffset> = Offset(),
+    structOfPos pos: UnsafeMutableRawPointer? = nil,
     mana: Int16 = 150,
     hp: Int16 = 100,
     offsetOfName name: Offset<String> = Offset(),
@@ -1010,6 +1010,7 @@ public struct Monster: FlatBufferObject {
     }
 
     public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MonsterT) -> Offset<UOffset> {
+        let __pos = obj.pos.map { createVec3(x: $0.x, y: $0.y, z: $0.z, test1: $0.test1, test2: $0.test2, test3a: $0.test3.a, test3b: $0.test3.b) }
         let __name = builder.create(string: obj.name)
         let __inventory = builder.createVector(obj.inventory)
         let __test = obj.test?.pack(builder: &builder) ?? Offset()
@@ -1063,7 +1064,7 @@ public struct Monster: FlatBufferObject {
         let __anyAmbiguous = obj.anyAmbiguous?.pack(builder: &builder) ?? Offset()
         let __vectorOfEnums = builder.createVector(obj.vectorOfEnums)
         let __root = Monster.startMonster(&builder)
-        Monster.add(pos: MyGame.Example.Vec3.pack(&builder, obj: &obj.pos), &builder)
+        Monster.add(pos: __pos, &builder)
         Monster.add(mana: obj.mana, &builder)
         Monster.add(hp: obj.hp, &builder)
         Monster.add(name: __name, &builder)

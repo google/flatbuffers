@@ -879,16 +879,17 @@ class SwiftGenerator : public BaseGenerator {
         case BASE_TYPE_STRUCT: {
           if (field.value.type.struct_def &&
               field.value.type.struct_def->fixed) {
-            std::string struct_builder =
-                type + ".pack(&builder, obj: &obj." + name + ")";
-            unpack_body.push_back("{{STRUCTNAME}}." + body + struct_builder +
-                                  builder);
+            // This is a Struct (IsStruct), not a table. We create UnsafeMutableRawPointer in this case.
+            std::string code;
+            GenerateStructArgs(*field.value.type.struct_def, &code, "", "", "$0", true);
+            code = code.substr(0, code.size() - 2);
+            code_ += "let __" + name + " = obj." + name + ".map { create" + field.value.type.struct_def->name + "(" + code + ") }";
           } else {
-            unpack_body.push_back("{{STRUCTNAME}}." + body + "__" + name +
-                                  builder);
             code_ += "let __" + name + " = " + type +
                      ".pack(&builder, obj: &obj." + name + ")";
           }
+          unpack_body.push_back("{{STRUCTNAME}}." + body + "__" + name +
+                                builder);
           break;
         }
         case BASE_TYPE_STRING: {
