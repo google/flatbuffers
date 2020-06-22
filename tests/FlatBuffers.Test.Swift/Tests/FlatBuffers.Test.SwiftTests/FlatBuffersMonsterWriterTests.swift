@@ -44,6 +44,27 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
         let newBuf = FlatBuffersUtils.removeSizePrefix(bb: bytes.buffer)
         readMonster(fb: newBuf)
     }
+
+    func testCreateMonsterUsingCreateMonsterMethodWithNilPos() {
+        var fbb = FlatBufferBuilder(initialSize: 1)
+        let name = fbb.create(string: "Frodo")
+        let monster = Monster.createMonster(&fbb, offsetOfName: name)
+        fbb.finish(offset: monster)
+        let newMonster = Monster.getRootAsMonster(bb: fbb.sizedBuffer)
+        XCTAssertNil(newMonster.pos)
+        XCTAssertEqual(newMonster.name, "Frodo")
+    }
+
+    func testCreateMonsterUsingCreateMonsterMethodWithPosX() {
+        var fbb = FlatBufferBuilder(initialSize: 1)
+        let pos = MyGame.Example.createVec3(x: 10, test2: .blue)
+        let name = fbb.create(string: "Barney")
+        let monster = Monster.createMonster(&fbb, structOfPos: pos, offsetOfName: name)
+        fbb.finish(offset: monster)
+        let newMonster = Monster.getRootAsMonster(bb: fbb.sizedBuffer)
+        XCTAssertEqual(newMonster.pos!.x, 10)
+        XCTAssertEqual(newMonster.name, "Barney")
+    }
     
     func readMonster(fb: ByteBuffer) {
         var monster = Monster.getRootAsMonster(bb: fb)
@@ -88,9 +109,9 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
                                      type: Test.self)
         
         let stringTestVector = fbb.createVector(ofOffsets: [test1, test2])
-        
-        let mStart = Monster.startMonster(&fbb)
+
         let posStruct = MyGame.Example.createVec3(x: 1, y: 2, z: 3, test1: 3, test2: .green, test3a: 5, test3b: 6)
+        let mStart = Monster.startMonster(&fbb)
         Monster.add(pos: posStruct, &fbb)
         Monster.add(hp: 80, &fbb)
         Monster.add(name: str, &fbb)
