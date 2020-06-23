@@ -7,46 +7,40 @@ flexbuffers.BitWidth = {
   WIDTH64: 3,
 };
 
-flexbuffers.BitWidth.toByteWidth = (bitWidth) => {
+flexbuffers.BitWidthUtil = {};
+
+flexbuffers.BitWidthUtil.toByteWidth = (bitWidth) => {
   return 1 << bitWidth;
 };
 
-flexbuffers.BitWidth.width = (value) => {
-  if (Number.isInteger(value)) {
-    const v = value < 0 ? value * -1 : value;
-    if (v >> 7 === 0) return flexbuffers.BitWidth.WIDTH8;
-    if (v >> 15 === 0) return flexbuffers.BitWidth.WIDTH16;
-    if (v >> 31 === 0 && v >> 32 === v) return flexbuffers.BitWidth.WIDTH32;
-    return flexbuffers.BitWidth.WIDTH64;
-  }
+flexbuffers.BitWidthUtil.iwidth = (value) => {
+  const v = value < 0 ? BigInt(value * -1) : BigInt(value);
+  if (v >> 7n === 0n) return flexbuffers.BitWidth.WIDTH8;
+  if (v >> 15n === 0n) return flexbuffers.BitWidth.WIDTH16;
+  if (v >> 31n === 0n) return flexbuffers.BitWidth.WIDTH32;
+  return flexbuffers.BitWidth.WIDTH64;
+};
 
+flexbuffers.BitWidthUtil.fwidth = (value) => {
   return value === Math.fround(value) ? flexbuffers.BitWidth.WIDTH32: flexbuffers.BitWidth.WIDTH64;
 };
 
-flexbuffers.BitWidth.fwidth = (value) => {
-  return value === Math.fround(value) ? flexbuffers.BitWidth.WIDTH32: flexbuffers.BitWidth.WIDTH64;
+flexbuffers.BitWidthUtil.uwidth = (value) => {
+  const v = BigInt(value);
+  if (v >> 8n === 0n) return flexbuffers.BitWidth.WIDTH8;
+  if (v >> 16n === 0n) return flexbuffers.BitWidth.WIDTH16;
+  if (v >> 32n === 0n) return flexbuffers.BitWidth.WIDTH32;
+  return flexbuffers.BitWidth.WIDTH64;
 };
 
-flexbuffers.BitWidth.uwidth = (value) => {
-  if (Number.isInteger(value) && value >= 0) {
-    if (value >> 8 === 0) return flexbuffers.BitWidth.WIDTH8;
-    if (value >> 16 === 0) return flexbuffers.BitWidth.WIDTH16;
-    if (value >> 32 === 0) return flexbuffers.BitWidth.WIDTH32;
-    return flexbuffers.BitWidth.WIDTH64;
-  }
-
-  throw `Value: ${value} is not a uint`;
-};
-
-flexbuffers.BitWidth.fromByteWidth = (value) => {
+flexbuffers.BitWidthUtil.fromByteWidth = (value) => {
   if (value === 1) return flexbuffers.BitWidth.WIDTH8;
   if (value === 2) return flexbuffers.BitWidth.WIDTH16;
   if (value === 4) return flexbuffers.BitWidth.WIDTH32;
-  if (value === 8) return flexbuffers.BitWidth.WIDTH64;
-  throw "Unexpected value " + value;
+  return flexbuffers.BitWidth.WIDTH64;
 };
 
-flexbuffers.BitWidth.paddingSize = (bufSize, scalarSize) => {
+flexbuffers.BitWidthUtil.paddingSize = (bufSize, scalarSize) => {
   return (~bufSize + 1) & (scalarSize - 1);
 };
 
@@ -81,45 +75,47 @@ flexbuffers.ValueType = {
   VECTOR_BOOL: 36,
 };
 
-flexbuffers.ValueType.isInline = (value) => {
+flexbuffers.ValueTypeUtil = {};
+
+flexbuffers.ValueTypeUtil.isInline = (value) => {
   return value === flexbuffers.ValueType.BOOL
     || value <= flexbuffers.ValueType.FLOAT;
 };
 
-flexbuffers.ValueType.isNumber = (value) => {
+flexbuffers.ValueTypeUtil.isNumber = (value) => {
   return value >= flexbuffers.ValueType.INT
     && value <= flexbuffers.ValueType.FLOAT;
 };
 
-flexbuffers.ValueType.isIndirectNumber = (value) => {
+flexbuffers.ValueTypeUtil.isIndirectNumber = (value) => {
   return value >= flexbuffers.ValueType.INDIRECT_INT
     && value <= flexbuffers.ValueType.INDIRECT_FLOAT;
 };
 
-flexbuffers.ValueType.isTypedVectorElement = (value) => {
+flexbuffers.ValueTypeUtil.isTypedVectorElement = (value) => {
   return value === flexbuffers.ValueType.BOOL
     || (value >= flexbuffers.ValueType.INT
       && value <= flexbuffers.ValueType.STRING);
 };
 
-flexbuffers.ValueType.isTypedVector = (value) => {
+flexbuffers.ValueTypeUtil.isTypedVector = (value) => {
   return value === flexbuffers.ValueType.VECTOR_BOOL
     || (value >= flexbuffers.ValueType.VECTOR_INT
       && value <= flexbuffers.ValueType.VECTOR_STRING_DEPRECATED);
 };
 
-flexbuffers.ValueType.isFixedTypedVector = (value) => {
+flexbuffers.ValueTypeUtil.isFixedTypedVector = (value) => {
   return value >= flexbuffers.ValueType.VECTOR_INT2
     && value <= flexbuffers.ValueType.VECTOR_FLOAT4;
 };
 
-flexbuffers.ValueType.isAVector = (value) => {
-  return flexbuffers.ValueType.isTypedVector(value)
-    || flexbuffers.ValueType.isFixedTypedVector(value)
+flexbuffers.ValueTypeUtil.isAVector = (value) => {
+  return flexbuffers.ValueTypeUtil.isTypedVector(value)
+    || flexbuffers.ValueTypeUtil.isFixedTypedVector(value)
     || value === flexbuffers.ValueType.VECTOR;
 };
 
-flexbuffers.ValueType.toTypedVector = (valueType, length) => {
+flexbuffers.ValueTypeUtil.toTypedVector = (valueType, length) => {
   if (length === 0) return valueType - flexbuffers.ValueType.INT + flexbuffers.ValueType.VECTOR_INT;
   if (length === 2) return valueType - flexbuffers.ValueType.INT + flexbuffers.ValueType.VECTOR_INT2;
   if (length === 3) return valueType - flexbuffers.ValueType.INT + flexbuffers.ValueType.VECTOR_INT3;
@@ -127,65 +123,63 @@ flexbuffers.ValueType.toTypedVector = (valueType, length) => {
   throw "Unexpected length " + length;
 };
 
-flexbuffers.ValueType.typedVectorElementType = (valueType) => {
+flexbuffers.ValueTypeUtil.typedVectorElementType = (valueType) => {
   return valueType - flexbuffers.ValueType.VECTOR_INT + flexbuffers.ValueType.INT;
 };
 
-flexbuffers.ValueType.fixedTypedVectorElementType = (valueType) => {
+flexbuffers.ValueTypeUtil.fixedTypedVectorElementType = (valueType) => {
   return ((valueType - flexbuffers.ValueType.VECTOR_INT2) % 3) + flexbuffers.ValueType.INT;
 };
 
-flexbuffers.ValueType.fixedTypedVectorElementSize = (valueType) => {
+flexbuffers.ValueTypeUtil.fixedTypedVectorElementSize = (valueType) => {
   // The x / y >> 0 trick is to have an int division. Suppose to be faster than Math.floor()
   return (((valueType - flexbuffers.ValueType.VECTOR_INT2) / 3) >> 0)  + 2;
 };
 
-flexbuffers.ValueType.packedType = (valueType, bitWidth) => {
+flexbuffers.ValueTypeUtil.packedType = (valueType, bitWidth) => {
   return bitWidth | (valueType << 2);
 };
 
 flexbuffers.toReference = (buffer) => {
 
+  // Add to readInt, readUInt, readFloat in order to check for offset bugs
   function validateOffset(dataView, offset, width) {
-    if (dataView.byteLength <= offset + width || offset & (flexbuffers.BitWidth.toByteWidth(width) - 1) !== 0) {
+    if (dataView.byteLength <= offset + width || offset & (flexbuffers.BitWidthUtil.toByteWidth(width) - 1) !== 0) {
       throw "Bad offset: " + offset + ", width: " + width;
     }
   }
 
   function readInt(dataView, offset, width) {
-    validateOffset(dataView, offset, width);
-    if (width === flexbuffers.BitWidth.WIDTH8) {
+    if (width === 0 /*flexbuffers.BitWidth.WIDTH8*/) {
       return dataView.getInt8(offset);
     }
-    if (width === flexbuffers.BitWidth.WIDTH16) {
+    if (width === 1 /*flexbuffers.BitWidth.WIDTH16*/) {
       return dataView.getInt16(offset, true);
     }
-    if (width === flexbuffers.BitWidth.WIDTH32) {
+    if (width === 2 /*flexbuffers.BitWidth.WIDTH32*/) {
       return dataView.getInt32(offset, true);
     }
     return dataView.getBigInt64(offset, true);
   }
 
   function readUInt(dataView, offset, width) {
-    validateOffset(dataView, offset, width);
-    if (width === flexbuffers.BitWidth.WIDTH8) {
+    if (width === 0 /*flexbuffers.BitWidth.WIDTH8*/) {
       return dataView.getUint8(offset);
     }
-    if (width === flexbuffers.BitWidth.WIDTH16) {
+    if (width === 1 /*flexbuffers.BitWidth.WIDTH16*/) {
       return dataView.getUint16(offset, true);
     }
-    if (width === flexbuffers.BitWidth.WIDTH32) {
+    if (width === 2 /*flexbuffers.BitWidth.WIDTH32*/) {
       return dataView.getUint32(offset, true);
     }
     return dataView.getBigUint64(offset, true);
   }
 
   function readFloat(dataView, offset, width) {
-    validateOffset(dataView, offset, width);
-    if (width < flexbuffers.BitWidth.WIDTH32) {
+    if (width < 2 /*flexbuffers.BitWidth.WIDTH32*/) {
       throw "Bad width: " + width;
     }
-    if (width === flexbuffers.BitWidth.WIDTH32) {
+    if (width === 2 /*flexbuffers.BitWidth.WIDTH32*/) {
       return dataView.getFloat32(offset, true);
     }
     return dataView.getFloat64(offset, true);
@@ -199,7 +193,7 @@ flexbuffers.toReference = (buffer) => {
   function keyIndex(key, dataView, offset, parentWidth, byteWidth, length) {
     const input = toUTF8Array(key);
     const keysVectorOffset = indirect(dataView, offset, parentWidth) - byteWidth * 3;
-    const bitWidth = flexbuffers.BitWidth.fromByteWidth(byteWidth);
+    const bitWidth = flexbuffers.BitWidthUtil.fromByteWidth(byteWidth);
     const indirectOffset = keysVectorOffset - readInt(dataView, keysVectorOffset, bitWidth);
     const _byteWidth = readInt(dataView, keysVectorOffset + byteWidth, bitWidth);
     let low = 0;
@@ -219,7 +213,7 @@ flexbuffers.toReference = (buffer) => {
 
   function diffKeys(input, index, dataView, offset, width) {
     const keyOffset = offset + index * width;
-    const keyIndirectOffset = keyOffset - readInt(dataView, keyOffset, flexbuffers.BitWidth.fromByteWidth(width));
+    const keyIndirectOffset = keyOffset - readInt(dataView, keyOffset, flexbuffers.BitWidthUtil.fromByteWidth(width));
     for (let i = 0; i < input.length; i++) {
       const dif = input[i] - dataView.getUint8(keyIndirectOffset + i);
       if (dif !== 0) {
@@ -233,16 +227,16 @@ flexbuffers.toReference = (buffer) => {
     const _indirect = indirect(dataView, offset, parentWidth);
     const elementOffset = _indirect + index * byteWidth;
     const packedType = dataView.getUint8(_indirect + length * byteWidth + index);
-    return Reference(dataView, elementOffset, flexbuffers.BitWidth.fromByteWidth(byteWidth), packedType, `${path}/${key}`)
+    return Reference(dataView, elementOffset, flexbuffers.BitWidthUtil.fromByteWidth(byteWidth), packedType, `${path}/${key}`)
   }
 
   function keyForIndex(index, dataView, offset, parentWidth, byteWidth) {
     const keysVectorOffset = indirect(dataView, offset, parentWidth) - byteWidth * 3;
-    const bitWidth = flexbuffers.BitWidth.fromByteWidth(byteWidth)
+    const bitWidth = flexbuffers.BitWidthUtil.fromByteWidth(byteWidth)
     const indirectOffset = keysVectorOffset - readInt(dataView, keysVectorOffset, bitWidth);
     const _byteWidth = readInt(dataView, keysVectorOffset + byteWidth, bitWidth);
     const keyOffset = indirectOffset + index * _byteWidth;
-    const keyIndirectOffset = keyOffset - readInt(dataView, keyOffset, flexbuffers.BitWidth.fromByteWidth(_byteWidth));
+    const keyIndirectOffset = keyOffset - readInt(dataView, keyOffset, flexbuffers.BitWidthUtil.fromByteWidth(_byteWidth));
     var length = 0;
     while (dataView.getUint8(keyIndirectOffset + length) !== 0) {
       length++;
@@ -256,13 +250,13 @@ flexbuffers.toReference = (buffer) => {
     let length = -1;
     return {
       isNull: function() { return valueType === flexbuffers.ValueType.NULL; },
-      isNumber: function() { return flexbuffers.ValueType.isNumber(valueType) || flexbuffers.ValueType.isIndirectNumber(valueType); },
+      isNumber: function() { return flexbuffers.ValueTypeUtil.isNumber(valueType) || flexbuffers.ValueTypeUtil.isIndirectNumber(valueType); },
       isFloat: function() { return flexbuffers.ValueType.FLOAT === valueType || flexbuffers.ValueType.INDIRECT_FLOAT === valueType; },
       isInt: function() { return this.isNumber() && !this.isFloat(); },
       isString: function() { return flexbuffers.ValueType.STRING === valueType || flexbuffers.ValueType.KEY === valueType; },
       isBool: function() { return flexbuffers.ValueType.BOOL === valueType; },
       isBlob: function() { return flexbuffers.ValueType.BLOB === valueType; },
-      isVector: function() { return flexbuffers.ValueType.isAVector(valueType); },
+      isVector: function() { return flexbuffers.ValueTypeUtil.isAVector(valueType); },
       isMap: function() { return flexbuffers.ValueType.MAP === valueType; },
 
       boolValue: function() {
@@ -280,10 +274,10 @@ flexbuffers.toReference = (buffer) => {
           return readUInt(dataView, offset, parentWidth);
         }
         if (valueType === flexbuffers.ValueType.INDIRECT_INT) {
-          return readInt(dataView, indirect(dataView, offset, parentWidth), flexbuffers.BitWidth.fromByteWidth(byteWidth));
+          return readInt(dataView, indirect(dataView, offset, parentWidth), flexbuffers.BitWidthUtil.fromByteWidth(byteWidth));
         }
         if (valueType === flexbuffers.ValueType.INDIRECT_UINT) {
-          return readUInt(dataView, indirect(dataView, offset, parentWidth), flexbuffers.BitWidth.fromByteWidth(byteWidth));
+          return readUInt(dataView, indirect(dataView, offset, parentWidth), flexbuffers.BitWidthUtil.fromByteWidth(byteWidth));
         }
         return null;
       },
@@ -293,7 +287,7 @@ flexbuffers.toReference = (buffer) => {
           return readFloat(dataView, offset, parentWidth);
         }
         if (valueType === flexbuffers.ValueType.INDIRECT_FLOAT) {
-          return readFloat(dataView, indirect(dataView, offset, parentWidth), flexbuffers.BitWidth.fromByteWidth(byteWidth));
+          return readFloat(dataView, indirect(dataView, offset, parentWidth), flexbuffers.BitWidthUtil.fromByteWidth(byteWidth));
         }
         return null;
       },
@@ -318,21 +312,21 @@ flexbuffers.toReference = (buffer) => {
 
       get: function(key) {
         const length = this.length();
-        if (Number.isInteger(key) && flexbuffers.ValueType.isAVector(valueType)) {
+        if (Number.isInteger(key) && flexbuffers.ValueTypeUtil.isAVector(valueType)) {
           if (key >= length || key < 0) {
-            throw `Key: [${key}] is ot applicable on ${path} of ${valueType} length: ${length}`;
+            throw `Key: [${key}] is not applicable on ${path} of ${valueType} length: ${length}`;
           }
           const _indirect = indirect(dataView, offset, parentWidth);
           const elementOffset = _indirect + key * byteWidth;
           let _packedType = dataView.getUint8(_indirect + length * byteWidth + key);
-          if (flexbuffers.ValueType.isTypedVector(valueType)) {
-            const _valueType = flexbuffers.ValueType.typedVectorElementType(valueType);
-            _packedType = flexbuffers.ValueType.packedType(_valueType, flexbuffers.BitWidth.WIDTH8);
-          } else if (flexbuffers.ValueType.isFixedTypedVector(valueType)) {
-            const _valueType = flexbuffers.ValueType.fixedTypedVectorElementType(valueType);
-            _packedType = flexbuffers.ValueType.packedType(_valueType, flexbuffers.BitWidth.WIDTH8);
+          if (flexbuffers.ValueTypeUtil.isTypedVector(valueType)) {
+            const _valueType = flexbuffers.ValueTypeUtil.typedVectorElementType(valueType);
+            _packedType = flexbuffers.ValueTypeUtil.packedType(_valueType, flexbuffers.BitWidth.WIDTH8);
+          } else if (flexbuffers.ValueTypeUtil.isFixedTypedVector(valueType)) {
+            const _valueType = flexbuffers.ValueTypeUtil.fixedTypedVectorElementType(valueType);
+            _packedType = flexbuffers.ValueTypeUtil.packedType(_valueType, flexbuffers.BitWidth.WIDTH8);
           }
-          return Reference(dataView, elementOffset, flexbuffers.BitWidth.fromByteWidth(byteWidth), _packedType, `${path}[${key}]`);
+          return Reference(dataView, elementOffset, flexbuffers.BitWidthUtil.fromByteWidth(byteWidth), _packedType, `${path}[${key}]`);
         }
         if (typeof key === 'string') {
           const index = keyIndex(key, dataView, offset, parentWidth, byteWidth, length);
@@ -348,21 +342,21 @@ flexbuffers.toReference = (buffer) => {
         if (length > -1) {
           return length;
         }
-        if (flexbuffers.ValueType.isFixedTypedVector(valueType)) {
-          length = flexbuffers.ValueType.fixedTypedVectorElementSize(valueType);
+        if (flexbuffers.ValueTypeUtil.isFixedTypedVector(valueType)) {
+          length = flexbuffers.ValueTypeUtil.fixedTypedVectorElementSize(valueType);
         } else if (valueType === flexbuffers.ValueType.BLOB
           || valueType === flexbuffers.ValueType.MAP
-          || flexbuffers.ValueType.isAVector(valueType)) {
-          length = readInt(dataView, indirect(dataView, offset, parentWidth) - byteWidth, flexbuffers.BitWidth.fromByteWidth(byteWidth))
+          || flexbuffers.ValueTypeUtil.isAVector(valueType)) {
+          length = readInt(dataView, indirect(dataView, offset, parentWidth) - byteWidth, flexbuffers.BitWidthUtil.fromByteWidth(byteWidth))
         } else if (valueType === flexbuffers.ValueType.NULL) {
           length = 0;
         } else if (valueType === flexbuffers.ValueType.STRING) {
           const _indirect = indirect(dataView, offset, parentWidth);
           let sizeByteWidth = byteWidth;
-          size = readInt(dataView, _indirect - sizeByteWidth, flexbuffers.BitWidth.fromByteWidth(byteWidth));
+          size = readInt(dataView, _indirect - sizeByteWidth, flexbuffers.BitWidthUtil.fromByteWidth(byteWidth));
           while (dataView.getInt8(_indirect + size) !== 0) {
             sizeByteWidth <<= 1;
-            size = readInt(dataView, _indirect - sizeByteWidth, flexbuffers.BitWidth.fromByteWidth(byteWidth));
+            size = readInt(dataView, _indirect - sizeByteWidth, flexbuffers.BitWidthUtil.fromByteWidth(byteWidth));
           }
           length = size;
         } else if (valueType === flexbuffers.ValueType.KEY) {
@@ -415,7 +409,7 @@ flexbuffers.toReference = (buffer) => {
   const dataView = new DataView(buffer);
   const byteWidth = dataView.getUint8(len - 1);
   const packedType = dataView.getUint8(len - 2);
-  const parentWidth = flexbuffers.BitWidth.fromByteWidth(byteWidth);
+  const parentWidth = flexbuffers.BitWidthUtil.fromByteWidth(byteWidth);
   const offset = len - byteWidth - 2;
 
   return Reference(dataView, offset, parentWidth, packedType, "/")
@@ -440,8 +434,8 @@ flexbuffers.builder = (size = 2048) => {
   const indirectFloatCache = {};
 
   function align(width) {
-    const byteWidth = flexbuffers.BitWidth.toByteWidth(width);
-    offset += flexbuffers.BitWidth.paddingSize(offset, byteWidth);
+    const byteWidth = flexbuffers.BitWidthUtil.toByteWidth(width);
+    offset += flexbuffers.BitWidthUtil.paddingSize(offset, byteWidth);
     return byteWidth;
   }
 
@@ -491,13 +485,13 @@ flexbuffers.builder = (size = 2048) => {
 
   function writeInt(value, byteWidth) {
     const newOffset = computeOffset(byteWidth);
-    pushInt(value, flexbuffers.BitWidth.fromByteWidth(byteWidth));
+    pushInt(value, flexbuffers.BitWidthUtil.fromByteWidth(byteWidth));
     offset = newOffset;
   }
 
   function writeBlob(arrayBuffer) {
     const length = arrayBuffer.byteLength;
-    const bitWidth = flexbuffers.BitWidth.width(length);
+    const bitWidth = flexbuffers.BitWidthUtil.iwidth(length);
     const byteWidth = align(bitWidth);
     writeInt(length, byteWidth);
     const blobOffset = offset;
@@ -514,7 +508,7 @@ flexbuffers.builder = (size = 2048) => {
     }
     const utf8 = toUTF8Array(str);
     const length = utf8.length;
-    const bitWidth = flexbuffers.BitWidth.width(length);
+    const bitWidth = flexbuffers.BitWidthUtil.iwidth(length);
     const byteWidth = align(bitWidth);
     writeInt(length, byteWidth);
     const stringOffset = offset;
@@ -665,7 +659,7 @@ flexbuffers.builder = (size = 2048) => {
   }
 
   function createVector(start, vecLength, step, keys = null) {
-    let bitWidth = flexbuffers.BitWidth.width(vecLength);
+    let bitWidth = flexbuffers.BitWidthUtil.iwidth(vecLength);
     let prefixElements = 1;
     if (keys !== null) {
       const elementWidth = keys.elementWidth(offset, 0);
@@ -683,7 +677,7 @@ flexbuffers.builder = (size = 2048) => {
       }
       if (i === start) {
         vectorType = stack[i].type;
-        typed &= flexbuffers.ValueType.isTypedVectorElement(vectorType);
+        typed &= flexbuffers.ValueTypeUtil.isTypedVectorElement(vectorType);
       } else {
         if (vectorType !== stack[i].type) {
           typed = false;
@@ -691,7 +685,7 @@ flexbuffers.builder = (size = 2048) => {
       }
     }
     const byteWidth = align(bitWidth);
-    const fix = typed && flexbuffers.ValueType.isNumber(vectorType) && vecLength >= 2 && vecLength <= 4;
+    const fix = typed && flexbuffers.ValueTypeUtil.isNumber(vectorType) && vecLength >= 2 && vecLength <= 4;
     if (keys !== null) {
       writeStackValue(keys, byteWidth);
       writeInt(1 << keys.width, byteWidth);
@@ -712,7 +706,7 @@ flexbuffers.builder = (size = 2048) => {
       return offsetStackValue(vecOffset, flexbuffers.ValueType.MAP, bitWidth);
     }
     if (typed) {
-      const vType = flexbuffers.ValueType.toTypedVector(vectorType, fix ? vecLength : 0);
+      const vType = flexbuffers.ValueTypeUtil.toTypedVector(vectorType, fix ? vecLength : 0);
       return offsetStackValue(vecOffset, vType, bitWidth);
     }
     return offsetStackValue(vecOffset, flexbuffers.ValueType.VECTOR, bitWidth);
@@ -725,12 +719,12 @@ flexbuffers.builder = (size = 2048) => {
       value: value,
       offset: _offset,
       elementWidth: function (size, index) {
-        if (flexbuffers.ValueType.isInline(this.type)) return this.width;
+        if (flexbuffers.ValueTypeUtil.isInline(this.type)) return this.width;
         for (let i = 0; i < 4; i++) {
           const width = 1 << i;
-          const offsetLoc = size + flexbuffers.BitWidth.paddingSize(size, width) + index * width;
+          const offsetLoc = size + flexbuffers.BitWidthUtil.paddingSize(size, width) + index * width;
           const offset = offsetLoc - this.offset;
-          const bitWidth = flexbuffers.BitWidth.width(offset);
+          const bitWidth = flexbuffers.BitWidthUtil.iwidth(offset);
           if (1 << bitWidth === width) {
             return bitWidth;
           }
@@ -746,10 +740,10 @@ flexbuffers.builder = (size = 2048) => {
             view.setFloat64(offset, this.value, true);
           }
         } else if (this.type === flexbuffers.ValueType.INT) {
-          const bitWidth = flexbuffers.BitWidth.fromByteWidth(byteWidth);
+          const bitWidth = flexbuffers.BitWidthUtil.fromByteWidth(byteWidth);
           pushInt(value, bitWidth);
         } else if (this.type === flexbuffers.ValueType.UINT) {
-          const bitWidth = flexbuffers.BitWidth.fromByteWidth(byteWidth);
+          const bitWidth = flexbuffers.BitWidthUtil.fromByteWidth(byteWidth);
           pushUInt(value, bitWidth);
         } else if (this.type === flexbuffers.ValueType.NULL) {
           pushInt(0, this.width);
@@ -761,12 +755,12 @@ flexbuffers.builder = (size = 2048) => {
         offset = newOffset;
       },
       storedWidth: function (width = flexbuffers.BitWidth.WIDTH8) {
-        return flexbuffers.ValueType.isInline(this.type) ? Math.max(width, this.width) : this.width;
+        return flexbuffers.ValueTypeUtil.isInline(this.type) ? Math.max(width, this.width) : this.width;
       },
       storedPackedType: function (width = flexbuffers.BitWidth.WIDTH8) {
-        return flexbuffers.ValueType.packedType(this.type, this.storedWidth(width));
+        return flexbuffers.ValueTypeUtil.packedType(this.type, this.storedWidth(width));
       },
-      isOffset: !flexbuffers.ValueType.isInline(type)
+      isOffset: !flexbuffers.ValueTypeUtil.isInline(type)
     }
   }
 
@@ -779,15 +773,15 @@ flexbuffers.builder = (size = 2048) => {
   }
 
   function intStackValue(value) {
-    return StackValue(flexbuffers.ValueType.INT, flexbuffers.BitWidth.width(value), value);
+    return StackValue(flexbuffers.ValueType.INT, flexbuffers.BitWidthUtil.iwidth(value), value);
   }
 
   function uintStackValue(value) {
-    return StackValue(flexbuffers.ValueType.UINT, flexbuffers.BitWidth.uwidth(value), value);
+    return StackValue(flexbuffers.ValueType.UINT, flexbuffers.BitWidthUtil.uwidth(value), value);
   }
 
   function floatStackValue(value) {
-    return StackValue(flexbuffers.ValueType.FLOAT, flexbuffers.BitWidth.fwidth(value), value);
+    return StackValue(flexbuffers.ValueType.FLOAT, flexbuffers.BitWidthUtil.fwidth(value), value);
   }
 
   function offsetStackValue(offset, valueType, bitWidth) {
@@ -816,6 +810,8 @@ flexbuffers.builder = (size = 2048) => {
         stack.push(nullStackValue());
       } else if (typeof value === "boolean") {
         stack.push(boolStackValue(value));
+      } else if (typeof value === "bigint") {
+        stack.push(intStackValue(value));
       } else if (typeof value == 'number') {
         if (Number.isInteger(value)) {
           stack.push(intStackValue(value));
@@ -943,59 +939,16 @@ flexbuffers.encode = (object, size = 2048) => {
   return builder.finish();
 };
 
-function fromUTF8Array(data) { // array of bytes
-  var str = '',
-    i;
 
-  for (i = 0; i < data.length; i++) {
-    var value = data[i];
 
-    if (value < 0x80) {
-      str += String.fromCharCode(value);
-    } else if (value > 0xBF && value < 0xE0) {
-      str += String.fromCharCode((value & 0x1F) << 6 | data[i + 1] & 0x3F);
-      i += 1;
-    } else if (value > 0xDF && value < 0xF0) {
-      str += String.fromCharCode((value & 0x0F) << 12 | (data[i + 1] & 0x3F) << 6 | data[i + 2] & 0x3F);
-      i += 2;
-    } else {
-      // surrogate pair
-      var charCode = ((value & 0x07) << 18 | (data[i + 1] & 0x3F) << 12 | (data[i + 2] & 0x3F) << 6 | data[i + 3] & 0x3F) - 0x010000;
-
-      str += String.fromCharCode(charCode >> 10 | 0xD800, charCode & 0x03FF | 0xDC00);
-      i += 3;
-    }
-  }
-
-  return str;
+function fromUTF8Array(data) {
+  const td = new TextDecoder();
+  return td.decode(data);
 }
 
 function toUTF8Array(str) {
-  var utf8 = [];
-  for (var i=0; i < str.length; i++) {
-    var charcode = str.charCodeAt(i);
-    if (charcode < 0x80) utf8.push(charcode);
-    else if (charcode < 0x800) {
-      utf8.push(0xc0 | (charcode >> 6),
-        0x80 | (charcode & 0x3f));
-    }
-    else if (charcode < 0xd800 || charcode >= 0xe000) {
-      utf8.push(0xe0 | (charcode >> 12),
-        0x80 | ((charcode>>6) & 0x3f),
-        0x80 | (charcode & 0x3f));
-    }
-    // surrogate pair
-    else {
-      i++;
-      charcode = (((charcode&0x3ff)<<10)|(str.charCodeAt(i)&0x3ff)) + 0x010000;
-      utf8.push(0xf0 | (charcode >>18),
-        0x80 | ((charcode>>12) & 0x3f),
-        0x80 | ((charcode>>6) & 0x3f),
-        0x80 | (charcode & 0x3f));
-    }
-  }
-  return utf8;
+  const encoder = new TextEncoder();
+  return encoder.encode(str);
 }
-
 // Exports for Node.js and RequireJS
 this.flexbuffers = flexbuffers;
