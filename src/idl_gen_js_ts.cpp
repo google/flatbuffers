@@ -1819,6 +1819,9 @@ class JsTsGenerator : public BaseGenerator {
                 } else {
                   // add function overloads
                   code += sig_begin + type_new + sig_end + ";\n";
+                  code +=
+                      "/**\n * @deprecated This Uint8Array overload will "
+                      "be removed in the future.\n */\n";
                   code += sig_begin + type_old + sig_end + ";\n";
                   type = type_new + "|Uint8Array";
                 }
