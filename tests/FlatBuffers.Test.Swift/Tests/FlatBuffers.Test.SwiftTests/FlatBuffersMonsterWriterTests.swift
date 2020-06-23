@@ -15,7 +15,7 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
         readMonster(fb: _data)
     }
     
-    func testReadFromOtherLangagues() {
+    func testReadFromOtherLanguages() {
         let path = FileManager.default.currentDirectoryPath
         let url = URL(fileURLWithPath: path, isDirectory: true).appendingPathComponent("monsterdata_test").appendingPathExtension("mon")
         guard let data = try? Data(contentsOf: url) else { return }
@@ -43,6 +43,18 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
         
         let newBuf = FlatBuffersUtils.removeSizePrefix(bb: bytes.buffer)
         readMonster(fb: newBuf)
+    }
+
+    func testReadMonsterFromUnsafePointerWithoutCopying() {
+        var array: [UInt8] = [48, 0, 0, 0, 77, 79, 78, 83, 0, 0, 0, 0, 36, 0, 72, 0, 40, 0, 0, 0, 38, 0, 32, 0, 0, 0, 28, 0, 0, 0, 27, 0, 20, 0, 16, 0, 12, 0, 4, 0, 0, 0, 0, 0, 0, 0, 11, 0, 36, 0, 0, 0, 164, 0, 0, 0, 0, 0, 0, 1, 60, 0, 0, 0, 68, 0, 0, 0, 76, 0, 0, 0, 0, 0, 0, 1, 88, 0, 0, 0, 120, 0, 0, 0, 0, 0, 80, 0, 0, 0, 128, 63, 0, 0, 0, 64, 0, 0, 64, 64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 64, 2, 0, 5, 0, 6, 0, 0, 0, 2, 0, 0, 0, 64, 0, 0, 0, 48, 0, 0, 0, 2, 0, 0, 0, 30, 0, 40, 0, 10, 0, 20, 0, 152, 255, 255, 255, 4, 0, 0, 0, 4, 0, 0, 0, 70, 114, 101, 100, 0, 0, 0, 0, 5, 0, 0, 0, 0, 1, 2, 3, 4, 0, 0, 0, 5, 0, 0, 0, 116, 101, 115, 116, 50, 0, 0, 0, 5, 0, 0, 0, 116, 101, 115, 116, 49, 0, 0, 0, 9, 0, 0, 0, 77, 121, 77, 111, 110, 115, 116, 101, 114, 0, 0, 0, 3, 0, 0, 0, 20, 0, 0, 0, 36, 0, 0, 0, 4, 0, 0, 0, 240, 255, 255, 255, 32, 0, 0, 0, 248, 255, 255, 255, 36, 0, 0, 0, 12, 0, 8, 0, 0, 0, 0, 0, 0, 0, 4, 0, 12, 0, 0, 0, 28, 0, 0, 0, 5, 0, 0, 0, 87, 105, 108, 109, 97, 0, 0, 0, 6, 0, 0, 0, 66, 97, 114, 110, 101, 121, 0, 0, 5, 0, 0, 0, 70, 114, 111, 100, 111, 0, 0, 0]
+        let unpacked = array.withUnsafeMutableBytes { (memory) -> MyGame.Example.MonsterT in
+            let bytes = ByteBuffer(assumingMemoryBound: memory.baseAddress!, capacity: memory.count)
+            var monster = Monster.getRootAsMonster(bb: bytes)
+            readFlatbufferMonster(monster: &monster)
+            let unpacked = monster.unpack()
+            return unpacked
+        }
+        readObjectApi(monster: unpacked)
     }
     
     func readMonster(fb: ByteBuffer) {

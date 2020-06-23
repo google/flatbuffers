@@ -5,7 +5,8 @@ public struct ByteBuffer {
     /// Storage is a container that would hold the memory pointer to solve the issue of
     /// deallocating the memory that was held by (memory: UnsafeMutableRawPointer)
     @usableFromInline final class Storage {
-        
+        // This storage doesn't own the memory, therefore, we won't deallocate on deinit.
+        private let unowned: Bool
         /// pointer to the start of the buffer object in memory
         var memory: UnsafeMutableRawPointer
         /// Capacity of UInt8 the buffer can hold
@@ -14,17 +15,28 @@ public struct ByteBuffer {
         init(count: Int, alignment: Int) {
             memory = UnsafeMutableRawPointer.allocate(byteCount: count, alignment: alignment)
             capacity = count
+            unowned = false
+        }
+
+        init(memory: UnsafeMutableRawPointer, capacity: Int, unowned: Bool) {
+            self.memory = memory
+            self.capacity = capacity
+            self.unowned = unowned
         }
         
         deinit {
-            memory.deallocate()
+            if !unowned {
+              memory.deallocate()
+            }
         }
         
         func copy(from ptr: UnsafeRawPointer, count: Int) {
+            precondition(!unowned)
             memory.copyMemory(from: ptr, byteCount: count)
         }
         
         func initialize(for size: Int) {
+            precondition(!unowned)
             memset(memory, 0, size)
         }
         
@@ -93,6 +105,14 @@ public struct ByteBuffer {
         let size = size.convertToPowerofTwo
         _storage = Storage(count: size, alignment: alignment)
         _storage.initialize(for: size)
+    }
+  
+    /// Constructor that creates a Flatbuffer from unsafe memory region without copying
+    /// - Parameter assumingMemoryBound: The unsafe memory region
+    /// - Parameter capacity: The size of the given memory region
+    public init(assumingMemoryBound memory: UnsafeMutableRawPointer, capacity: Int) {
+        _storage = Storage(memory: memory, capacity: capacity, unowned: true)
+        _writerSize = capacity
     }
 
 #if swift(>=5.0)
