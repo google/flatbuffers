@@ -23,7 +23,8 @@ extension FlatBuffersMonsterWriterTests {
         ("testCreateMonsterUsingCreateMonsterMethodWithNilPos", testCreateMonsterUsingCreateMonsterMethodWithNilPos),
         ("testCreateMonsterUsingCreateMonsterMethodWithPosX", testCreateMonsterUsingCreateMonsterMethodWithPosX),
         ("testData", testData),
-        ("testReadFromOtherLangagues", testReadFromOtherLangagues),
+        ("testReadFromOtherLanguages", testReadFromOtherLanguages),
+        ("testReadMonsterFromUnsafePointerWithoutCopying", testReadMonsterFromUnsafePointerWithoutCopying),
     ]
 }
 
