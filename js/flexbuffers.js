@@ -20,25 +20,11 @@ flexbuffers.BitWidth.width = (value) => {
     return flexbuffers.BitWidth.WIDTH64;
   }
 
-  function _toF32(value) {
-    const buffer = new ArrayBuffer(4);
-    const view = new DataView(buffer);
-    view.setFloat32(0, value, true);
-    return view.getFloat32(0, true);
-  }
-
-  return value === _toF32(value) ? flexbuffers.BitWidth.WIDTH32: flexbuffers.BitWidth.WIDTH64;
+  return value === Math.fround(value) ? flexbuffers.BitWidth.WIDTH32: flexbuffers.BitWidth.WIDTH64;
 };
 
 flexbuffers.BitWidth.fwidth = (value) => {
-  function _toF32(value) {
-    const buffer = new ArrayBuffer(4);
-    const view = new DataView(buffer);
-    view.setFloat32(0, value, true);
-    return view.getFloat32(0, true);
-  }
-
-  return value === _toF32(value) ? flexbuffers.BitWidth.WIDTH32: flexbuffers.BitWidth.WIDTH64;
+  return value === Math.fround(value) ? flexbuffers.BitWidth.WIDTH32: flexbuffers.BitWidth.WIDTH64;
 };
 
 flexbuffers.BitWidth.uwidth = (value) => {
