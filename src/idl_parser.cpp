@@ -2000,21 +2000,16 @@ struct EnumValBuilder {
   FLATBUFFERS_CHECKED_ERROR AssignEnumeratorValue(const std::string &value) {
     user_value = true;
     auto fit = false;
-    auto ascending = false;
     if (enum_def.IsUInt64()) {
       uint64_t u64;
       fit = StringToNumber(value.c_str(), &u64);
-      ascending = u64 > temp->GetAsUInt64();
       temp->value = static_cast<int64_t>(u64);  // well-defined since C++20.
     } else {
       int64_t i64;
       fit = StringToNumber(value.c_str(), &i64);
-      ascending = i64 > temp->GetAsInt64();
       temp->value = i64;
     }
     if (!fit) return parser.Error("enum value does not fit, \"" + value + "\"");
-    if (!ascending && strict_ascending && !enum_def.vals.vec.empty())
-      return parser.Error("enum values must be specified in ascending order");
     return NoError();
   }
 
@@ -2050,11 +2045,10 @@ struct EnumValBuilder {
     return parser.Error("fatal: invalid enum underlying type");
   }
 
-  EnumValBuilder(Parser &_parser, EnumDef &_enum_def, bool strict_order = true)
+  EnumValBuilder(Parser &_parser, EnumDef &_enum_def)
       : parser(_parser),
         enum_def(_enum_def),
         temp(nullptr),
-        strict_ascending(strict_order),
         user_value(false) {}
 
   ~EnumValBuilder() { delete temp; }
@@ -2062,7 +2056,6 @@ struct EnumValBuilder {
   Parser &parser;
   EnumDef &enum_def;
   EnumVal *temp;
-  const bool strict_ascending;
   bool user_value;
 };
 
@@ -2099,9 +2092,7 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef **dest) {
     // todo: Convert to the Error in the future?
     Warning("underlying type of bit_flags enum must be unsigned");
   }
-  // Protobuf allows them to be specified in any order, so sort afterwards.
-  const auto strict_ascending = (false == opts.proto_mode);
-  EnumValBuilder evb(*this, *enum_def, strict_ascending);
+  EnumValBuilder evb(*this, *enum_def);
   EXPECT('{');
   // A lot of code generatos expect that an enum is not-empty.
   if ((is_union || Is('}')) && !opts.proto_mode) {
@@ -2145,9 +2136,6 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef **dest) {
         NEXT();
         ECHECK(evb.AssignEnumeratorValue(attribute_));
         EXPECT(kTokenIntegerConstant);
-      } else if (false == strict_ascending) {
-        // The opts.proto_mode flag is active.
-        return Error("Protobuf mode doesn't allow implicit enum values.");
       }
 
       ECHECK(evb.AcceptEnumerator());
@@ -2183,8 +2171,17 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef **dest) {
     }
   }
 
-  if (false == strict_ascending)
-    enum_def->SortByValue();  // Must be sorted to use MinValue/MaxValue.
+  enum_def->SortByValue();  // Must be sorted to use MinValue/MaxValue.
+
+  // Ensure enum value uniqueness.
+  auto prev_it = enum_def->Vals().begin();
+  for (auto it = prev_it + 1; it != enum_def->Vals().end(); ++it) {
+    auto prev_ev = *prev_it;
+    auto ev = *it;
+    if (prev_ev->GetAsUInt64() == ev->GetAsUInt64())
+      return Error("all enum values must be unique: " + prev_ev->name +
+                   " and " + ev->name + " are both " +
+                   NumToString(ev->GetAsInt64()));  }
 
   if (dest) *dest = enum_def;
   types_.Add(current_namespace_->GetFullyQualifiedName(enum_def->name),

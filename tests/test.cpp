@@ -1621,7 +1621,7 @@ void ErrorTest() {
   TestError("enum X:byte { Y } enum X {", "enum already");
   TestError("enum X:float {}", "underlying");
   TestError("enum X:byte { Y, Y }", "value already");
-  TestError("enum X:byte { Y=2, Z=1 }", "ascending");
+  TestError("enum X:byte { Y=2, Z=2 }", "unique");
   TestError("table X { Y:int; } table X {", "datatype already");
   TestError("struct X (force_align: 7) { Y:int; }", "force_align");
   TestError("struct X {}", "size 0");
@@ -1773,9 +1773,7 @@ void EnumOutOfRangeTest() {
   TestError("enum X:ubyte { Y = -1 }", "enum value does not fit");
   TestError("enum X:ubyte { Y = 256 }", "enum value does not fit");
   TestError("enum X:ubyte { Y = 255, Z }", "enum value does not fit");
-  // Unions begin with an implicit "NONE = 0".
-  TestError("table Y{} union X { Y = -1 }",
-            "enum values must be specified in ascending order");
+  TestError("table Y{} union X { Y = -1 }", "enum value does not fit");
   TestError("table Y{} union X { Y = 256 }", "enum value does not fit");
   TestError("table Y{} union X { Y = 255, Z:Y }", "enum value does not fit");
   TestError("enum X:int { Y = -2147483649 }", "enum value does not fit");
@@ -1818,6 +1816,8 @@ void EnumValueTest() {
           18446744073709551615ULL);
   // Assign non-enum value to enum field. Is it right?
   TEST_EQ(TestValue<int>("{ Y:7 }", "E", "enum E:int { V = 0 }"), 7);
+  // Check that non-ascending values are valid.
+  TEST_EQ(TestValue<int>("{ Y:5 }", "E=V", "enum E:int { Z=10, V=5 }"), 5);
 }
 
 void IntegerOutOfRangeTest() {
