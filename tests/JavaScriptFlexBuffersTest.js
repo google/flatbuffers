@@ -59,6 +59,7 @@ function testEncode() {
   _assert(230, [230, 0, 5, 2]);
   _assert(1025, [1, 4, 5, 2]);
   _assert(-1025, [255, 251, 5, 2]);
+  _assert(0x100000001, [1, 0, 0, 0, 1, 0, 0, 0, 7, 8]);
   _assert(0.1, [154, 153, 153, 153, 153, 153, 185, 63, 15, 8]);
   _assert(0.5, [0, 0, 0, 63, 14, 4]);
   _assert(new Uint8Array([1, 2, 3]), [3, 1, 2, 3, 3, 100, 1]);
@@ -216,9 +217,15 @@ function testRoundTrip() {
       "countryCode": "XX",
     }
   };
-  let buffer = flexbuffers.encode(example, 1);
-  let o = flexbuffers.toObject(buffer.buffer);
-  assert.deepStrictEqual(o, example);
+
+  function _assert(value) {
+    let buffer = flexbuffers.encode(value, 1);
+    let o = flexbuffers.toObject(buffer.buffer);
+    assert.deepStrictEqual(o, value);
+  }
+
+  _assert(example);
+  _assert(0x100000001n);
 }
 
 function testGoldBuffer() {
