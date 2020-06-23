@@ -1652,15 +1652,38 @@ class CppGenerator : public BaseGenerator {
                             "> "
                       : GenTypeNativePtr(cpp_type->constant, &field, false))
                : type + " ");
+      // Generate default member initializers for >= C++11.
+      std::string field_di = "";
+      if (opts_.g_cpp_std >= cpp::CPP_STD_11) {
+        field_di = "{}";
+        auto native_default = field.attributes.Lookup("native_default");
+        // Scalar types get parsed defaults, raw pointers get nullptrs.
+        if (IsScalar(field.value.type.base_type)) {
+          field_di =
+              " = " + (native_default ? std::string(native_default->constant)
+                                      : GetDefaultScalarValue(field, true));
+        } else if (field.value.type.base_type == BASE_TYPE_STRUCT) {
+          if (IsStruct(field.value.type) && native_default) {
+            field_di = " = " + native_default->constant;
+          }
+        }
+      }
       code_.SetValue("FIELD_TYPE", full_type);
       code_.SetValue("FIELD_NAME", Name(field));
-      code_ += "  {{FIELD_TYPE}}{{FIELD_NAME}};";
+      code_.SetValue("FIELD_DI", field_di);
+      code_ += "  {{FIELD_TYPE}}{{FIELD_NAME}}{{FIELD_DI}};";
     }
   }
 
   // Generate the default constructor for this struct. Properly initialize all
   // scalar members with default values.
   void GenDefaultConstructor(const StructDef &struct_def) {
+    code_.SetValue("NATIVE_NAME",
+                   NativeName(Name(struct_def), &struct_def, opts_));
+    // In >= C++11, default member initializers are generated.
+    if (opts_.g_cpp_std >= cpp::CPP_STD_11) {
+      return;
+    }
     std::string initializer_list;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
@@ -1698,8 +1721,6 @@ class CppGenerator : public BaseGenerator {
       initializer_list = "\n      : " + initializer_list;
     }
 
-    code_.SetValue("NATIVE_NAME",
-                   NativeName(Name(struct_def), &struct_def, opts_));
     code_.SetValue("INIT_LIST", initializer_list);
 
     code_ += "  {{NATIVE_NAME}}(){{INIT_LIST}} {";
