@@ -21,7 +21,8 @@ extension FlatBuffersMonsterWriterTests {
         ("testCreateMonsterPrefixed", testCreateMonsterPrefixed),
         ("testCreateMonsterResizedBuffer", testCreateMonsterResizedBuffer),
         ("testData", testData),
-        ("testReadFromOtherLangagues", testReadFromOtherLangagues),
+        ("testReadFromOtherLanguages", testReadFromOtherLanguages),
+        ("testReadMonsterFromUnsafePointerWithoutCopying", testReadMonsterFromUnsafePointerWithoutCopying),
     ]
 }
 
