@@ -942,8 +942,8 @@ flexbuffers.encode = (object, size = 2048) => {
 
 
 function fromUTF8Array(data) {
-  const td = new TextDecoder();
-  return td.decode(data);
+  const decoder = new TextDecoder();
+  return decoder.decode(data);
 }
 
 function toUTF8Array(str) {
