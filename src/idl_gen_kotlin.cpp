@@ -942,7 +942,7 @@ class KotlinGenerator : public BaseGenerator {
                   break;
                 }
                 case BASE_TYPE_UNION:
-                  found = "{{bbgetter}}(obj, {{index}} - bb_pos){{ucast}}";
+                  found = "{{bbgetter}}(obj, {{index}}){{ucast}}";
                   break;
                 default: found = "{{bbgetter}}({{index}}){{ucast}}";
               }
