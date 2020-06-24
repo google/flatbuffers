@@ -58,7 +58,7 @@ class Movie : Table() {
     fun characters(obj: Table, j: Int) : Table? {
         val o = __offset(10)
         return if (o != 0) {
-            __union(obj, __vector(o) + j * 4)
+            __union(obj, __vector(o) + j * 4 - bb_pos)
         } else {
             null
         }
