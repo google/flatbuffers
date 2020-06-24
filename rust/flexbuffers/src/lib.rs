@@ -34,7 +34,6 @@ extern crate byteorder;
 #[macro_use]
 extern crate serde_derive;
 #[macro_use]
-extern crate debug_stub_derive;
 extern crate num_enum;
 extern crate serde;
 
