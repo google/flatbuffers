@@ -2179,7 +2179,8 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef **dest) {
     if (prev_ev->GetAsUInt64() == ev->GetAsUInt64())
       return Error("all enum values must be unique: " + prev_ev->name +
                    " and " + ev->name + " are both " +
-                   NumToString(ev->GetAsInt64()));  }
+                   NumToString(ev->GetAsInt64()));
+  }
 
   if (dest) *dest = enum_def;
   types_.Add(current_namespace_->GetFullyQualifiedName(enum_def->name),
