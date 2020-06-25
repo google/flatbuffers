@@ -2191,7 +2191,7 @@ static addInventory(builder:flatbuffers.Builder, inventoryOffset:flatbuffers.Off
  * @param Array.<number> data
  * @returns flatbuffers.Offset
  */
-static createInventoryVector(builder:flatbuffers.Builder, data:number[] | Uint8Array):flatbuffers.Offset {
+static createInventoryVector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset {
   builder.startVector(1, data.length, 1);
   for (var i = data.length - 1; i >= 0; i--) {
     builder.addInt8(data[i]);
@@ -2326,7 +2326,7 @@ static addTestnestedflatbuffer(builder:flatbuffers.Builder, testnestedflatbuffer
  * @param Array.<number> data
  * @returns flatbuffers.Offset
  */
-static createTestnestedflatbufferVector(builder:flatbuffers.Builder, data:number[] | Uint8Array):flatbuffers.Offset {
+static createTestnestedflatbufferVector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset {
   builder.startVector(1, data.length, 1);
   for (var i = data.length - 1; i >= 0; i--) {
     builder.addInt8(data[i]);
@@ -2533,7 +2533,7 @@ static addFlex(builder:flatbuffers.Builder, flexOffset:flatbuffers.Offset) {
  * @param Array.<number> data
  * @returns flatbuffers.Offset
  */
-static createFlexVector(builder:flatbuffers.Builder, data:number[] | Uint8Array):flatbuffers.Offset {
+static createFlexVector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset {
   builder.startVector(1, data.length, 1);
   for (var i = data.length - 1; i >= 0; i--) {
     builder.addInt8(data[i]);
@@ -2607,7 +2607,12 @@ static addVectorOfDoubles(builder:flatbuffers.Builder, vectorOfDoublesOffset:fla
  * @param Array.<number> data
  * @returns flatbuffers.Offset
  */
-static createVectorOfDoublesVector(builder:flatbuffers.Builder, data:number[] | Uint8Array):flatbuffers.Offset {
+static createVectorOfDoublesVector(builder:flatbuffers.Builder, data:number[]|Float64Array):flatbuffers.Offset;
+/**
+ * @deprecated This Uint8Array overload will be removed in the future.
+ */
+static createVectorOfDoublesVector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset;
+static createVectorOfDoublesVector(builder:flatbuffers.Builder, data:number[]|Float64Array|Uint8Array):flatbuffers.Offset {
   builder.startVector(8, data.length, 8);
   for (var i = data.length - 1; i >= 0; i--) {
     builder.addFloat64(data[i]);
@@ -3633,7 +3638,12 @@ static addV8(builder:flatbuffers.Builder, v8Offset:flatbuffers.Offset) {
  * @param Array.<number> data
  * @returns flatbuffers.Offset
  */
-static createV8Vector(builder:flatbuffers.Builder, data:number[] | Uint8Array):flatbuffers.Offset {
+static createV8Vector(builder:flatbuffers.Builder, data:number[]|Int8Array):flatbuffers.Offset;
+/**
+ * @deprecated This Uint8Array overload will be removed in the future.
+ */
+static createV8Vector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset;
+static createV8Vector(builder:flatbuffers.Builder, data:number[]|Int8Array|Uint8Array):flatbuffers.Offset {
   builder.startVector(1, data.length, 1);
   for (var i = data.length - 1; i >= 0; i--) {
     builder.addInt8(data[i]);
@@ -3662,7 +3672,12 @@ static addVf64(builder:flatbuffers.Builder, vf64Offset:flatbuffers.Offset) {
  * @param Array.<number> data
  * @returns flatbuffers.Offset
  */
-static createVf64Vector(builder:flatbuffers.Builder, data:number[] | Uint8Array):flatbuffers.Offset {
+static createVf64Vector(builder:flatbuffers.Builder, data:number[]|Float64Array):flatbuffers.Offset;
+/**
+ * @deprecated This Uint8Array overload will be removed in the future.
+ */
+static createVf64Vector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset;
+static createVf64Vector(builder:flatbuffers.Builder, data:number[]|Float64Array|Uint8Array):flatbuffers.Offset {
   builder.startVector(8, data.length, 8);
   for (var i = data.length - 1; i >= 0; i--) {
     builder.addFloat64(data[i]);
