@@ -625,8 +625,6 @@ FLATBUFFERS_STRUCT_END(Ability, 8);
 
 struct InParentNamespaceT : public flatbuffers::NativeTable {
   typedef InParentNamespace TableType;
-  InParentNamespaceT() {
-  }
 };
 
 struct InParentNamespace FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -677,8 +675,6 @@ namespace Example2 {
 
 struct MonsterT : public flatbuffers::NativeTable {
   typedef Monster TableType;
-  MonsterT() {
-  }
 };
 
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -731,10 +727,7 @@ namespace Example {
 
 struct TestSimpleTableWithEnumT : public flatbuffers::NativeTable {
   typedef TestSimpleTableWithEnum TableType;
-  MyGame::Example::Color color;
-  TestSimpleTableWithEnumT()
-      : color(MyGame::Example::Color::Green) {
-  }
+  MyGame::Example::Color color = MyGame::Example::Color::Green;
 };
 
 struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -798,13 +791,9 @@ flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnum(flatb
 
 struct StatT : public flatbuffers::NativeTable {
   typedef Stat TableType;
-  std::string id;
-  int64_t val;
-  uint16_t count;
-  StatT()
-      : val(0),
-        count(0) {
-  }
+  std::string id{};
+  int64_t val = 0;
+  uint16_t count = 0;
 };
 
 struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -908,10 +897,7 @@ flatbuffers::Offset<Stat> CreateStat(flatbuffers::FlatBufferBuilder &_fbb, const
 
 struct ReferrableT : public flatbuffers::NativeTable {
   typedef Referrable TableType;
-  uint64_t id;
-  ReferrableT()
-      : id(0) {
-  }
+  uint64_t id = 0;
 };
 
 struct Referrable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -981,72 +967,51 @@ flatbuffers::Offset<Referrable> CreateReferrable(flatbuffers::FlatBufferBuilder 
 
 struct MonsterT : public flatbuffers::NativeTable {
   typedef Monster TableType;
-  std::unique_ptr<MyGame::Example::Vec3> pos;
-  int16_t mana;
-  int16_t hp;
-  std::string name;
-  std::vector<uint8_t> inventory;
-  MyGame::Example::Color color;
-  MyGame::Example::AnyUnion test;
-  std::vector<MyGame::Example::Test> test4;
-  std::vector<std::string> testarrayofstring;
-  std::vector<std::unique_ptr<MyGame::Example::MonsterT>> testarrayoftables;
-  std::unique_ptr<MyGame::Example::MonsterT> enemy;
-  std::vector<uint8_t> testnestedflatbuffer;
-  std::unique_ptr<MyGame::Example::StatT> testempty;
-  bool testbool;
-  int32_t testhashs32_fnv1;
-  uint32_t testhashu32_fnv1;
-  int64_t testhashs64_fnv1;
-  uint64_t testhashu64_fnv1;
-  int32_t testhashs32_fnv1a;
-  Stat *testhashu32_fnv1a;
-  int64_t testhashs64_fnv1a;
-  uint64_t testhashu64_fnv1a;
-  std::vector<bool> testarrayofbools;
-  float testf;
-  float testf2;
-  float testf3;
-  std::vector<std::string> testarrayofstring2;
-  std::vector<MyGame::Example::Ability> testarrayofsortedstruct;
-  std::vector<uint8_t> flex;
-  std::vector<MyGame::Example::Test> test5;
-  std::vector<int64_t> vector_of_longs;
-  std::vector<double> vector_of_doubles;
-  std::unique_ptr<MyGame::InParentNamespaceT> parent_namespace_test;
-  std::vector<std::unique_ptr<MyGame::Example::ReferrableT>> vector_of_referrables;
-  ReferrableT *single_weak_reference;
-  std::vector<ReferrableT *> vector_of_weak_references;
-  std::vector<std::unique_ptr<MyGame::Example::ReferrableT>> vector_of_strong_referrables;
-  ReferrableT *co_owning_reference;
-  std::vector<std::unique_ptr<ReferrableT>> vector_of_co_owning_references;
-  ReferrableT *non_owning_reference;
-  std::vector<ReferrableT *> vector_of_non_owning_references;
-  MyGame::Example::AnyUniqueAliasesUnion any_unique;
-  MyGame::Example::AnyAmbiguousAliasesUnion any_ambiguous;
-  std::vector<MyGame::Example::Color> vector_of_enums;
-  MyGame::Example::Race signed_enum;
-  MonsterT()
-      : mana(150),
-        hp(100),
-        color(MyGame::Example::Color::Blue),
-        testbool(false),
-        testhashs32_fnv1(0),
-        testhashu32_fnv1(0),
-        testhashs64_fnv1(0),
-        testhashu64_fnv1(0),
-        testhashs32_fnv1a(0),
-        testhashu32_fnv1a(nullptr),
-        testhashs64_fnv1a(0),
-        testhashu64_fnv1a(0),
-        testf(3.14159f),
-        testf2(3.0f),
-        testf3(0.0f),
-        single_weak_reference(nullptr),
-        co_owning_reference(nullptr),
-        non_owning_reference(nullptr),
-        signed_enum(MyGame::Example::Race::None) {
-  }
+  std::unique_ptr<MyGame::Example::Vec3> pos{};
+  int16_t mana = 150;
+  int16_t hp = 100;
+  std::string name{};
+  std::vector<uint8_t> inventory{};
+  MyGame::Example::Color color = MyGame::Example::Color::Blue;
+  MyGame::Example::AnyUnion test{};
+  std::vector<MyGame::Example::Test> test4{};
+  std::vector<std::string> testarrayofstring{};
+  std::vector<std::unique_ptr<MyGame::Example::MonsterT>> testarrayoftables{};
+  std::unique_ptr<MyGame::Example::MonsterT> enemy{};
+  std::vector<uint8_t> testnestedflatbuffer{};
+  std::unique_ptr<MyGame::Example::StatT> testempty{};
+  bool testbool = false;
+  int32_t testhashs32_fnv1 = 0;
+  uint32_t testhashu32_fnv1 = 0;
+  int64_t testhashs64_fnv1 = 0;
+  uint64_t testhashu64_fnv1 = 0;
+  int32_t testhashs32_fnv1a = 0;
+  Stat *testhashu32_fnv1a = nullptr;
+  int64_t testhashs64_fnv1a = 0;
+  uint64_t testhashu64_fnv1a = 0;
+  std::vector<bool> testarrayofbools{};
+  float testf = 3.14159f;
+  float testf2 = 3.0f;
+  float testf3 = 0.0f;
+  std::vector<std::string> testarrayofstring2{};
+  std::vector<MyGame::Example::Ability> testarrayofsortedstruct{};
+  std::vector<uint8_t> flex{};
+  std::vector<MyGame::Example::Test> test5{};
+  std::vector<int64_t> vector_of_longs{};
+  std::vector<double> vector_of_doubles{};
+  std::unique_ptr<MyGame::InParentNamespaceT> parent_namespace_test{};
+  std::vector<std::unique_ptr<MyGame::Example::ReferrableT>> vector_of_referrables{};
+  ReferrableT *single_weak_reference = nullptr;
+  std::vector<ReferrableT *> vector_of_weak_references{};
+  std::vector<std::unique_ptr<MyGame::Example::ReferrableT>> vector_of_strong_referrables{};
+  ReferrableT *co_owning_reference = nullptr;
+  std::vector<std::unique_ptr<ReferrableT>> vector_of_co_owning_references{};
+  ReferrableT *non_owning_reference = nullptr;
+  std::vector<ReferrableT *> vector_of_non_owning_references{};
+  MyGame::Example::AnyUniqueAliasesUnion any_unique{};
+  MyGame::Example::AnyAmbiguousAliasesUnion any_ambiguous{};
+  std::vector<MyGame::Example::Color> vector_of_enums{};
+  MyGame::Example::Race signed_enum = MyGame::Example::Race::None;
 };
 
 /// an example documentation comment: "monster object"
@@ -1932,30 +1897,18 @@ flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb,
 
 struct TypeAliasesT : public flatbuffers::NativeTable {
   typedef TypeAliases TableType;
-  int8_t i8;
-  uint8_t u8;
-  int16_t i16;
-  uint16_t u16;
-  int32_t i32;
-  uint32_t u32;
-  int64_t i64;
-  uint64_t u64;
-  float f32;
-  double f64;
-  std::vector<int8_t> v8;
-  std::vector<double> vf64;
-  TypeAliasesT()
-      : i8(0),
-        u8(0),
-        i16(0),
-        u16(0),
-        i32(0),
-        u32(0),
-        i64(0),
-        u64(0),
-        f32(0.0f),
-        f64(0.0) {
-  }
+  int8_t i8 = 0;
+  uint8_t u8 = 0;
+  int16_t i16 = 0;
+  uint16_t u16 = 0;
+  int32_t i32 = 0;
+  uint32_t u32 = 0;
+  int64_t i64 = 0;
+  uint64_t u64 = 0;
+  float f32 = 0.0f;
+  double f64 = 0.0;
+  std::vector<int8_t> v8{};
+  std::vector<double> vf64{};
 };
 
 struct TypeAliases FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
