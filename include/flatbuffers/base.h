@@ -46,11 +46,19 @@
 #include <iterator>
 #include <memory>
 
+#if defined(__unix__) && !defined(FLATBUFFERS_LOCALE_INDEPENDENT)
+#include <unistd.h>
+#endif 
+
 #ifdef _STLPORT_VERSION
   #define FLATBUFFERS_CPP98_STL
 #endif
 #ifndef FLATBUFFERS_CPP98_STL
   #include <functional>
+#endif
+
+#ifdef __ANDROID__
+  #include <android/api-level.h>
 #endif
 
 #include "flatbuffers/stl_emulation.h"
@@ -236,10 +244,8 @@ namespace flatbuffers {
 
 #ifndef FLATBUFFERS_LOCALE_INDEPENDENT
   // Enable locale independent functions {strtof_l, strtod_l,strtoll_l, strtoull_l}.
-  // They are part of the POSIX-2008 but not part of the C/C++ standard.
-  // GCC/Clang have definition (_XOPEN_SOURCE>=700) if POSIX-2008.
   #if ((defined(_MSC_VER) && _MSC_VER >= 1800)            || \
-       (defined(_XOPEN_SOURCE) && (_XOPEN_SOURCE>=700)))
+       (defined(_XOPEN_VERSION) && (_XOPEN_VERSION>=700)) && (!defined(__ANDROID_API__) || (defined(__ANDROID_API__) && (__ANDROID_API__>=21))))
     #define FLATBUFFERS_LOCALE_INDEPENDENT 1
   #else
     #define FLATBUFFERS_LOCALE_INDEPENDENT 0
