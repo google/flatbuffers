@@ -880,9 +880,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     }
     // if this field is a union that is deprecated,
     // the automatically added type field should be deprecated as well
-    if (field->deprecated) {
-      typefield->deprecated = true;
-    }
+    if (field->deprecated) { typefield->deprecated = true; }
   }
 
   EXPECT(';');
@@ -2181,7 +2179,8 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef **dest) {
     if (prev_ev->GetAsUInt64() == ev->GetAsUInt64())
       return Error("all enum values must be unique: " + prev_ev->name +
                    " and " + ev->name + " are both " +
-                   NumToString(ev->GetAsInt64()));  }
+                   NumToString(ev->GetAsInt64()));
+  }
 
   if (dest) *dest = enum_def;
   types_.Add(current_namespace_->GetFullyQualifiedName(enum_def->name),

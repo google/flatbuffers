@@ -125,6 +125,17 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Struct FLATBUFFERS_FINAL_CLASS {
 };
 FLATBUFFERS_STRUCT_END(Struct, 16);
 
+inline bool operator==(const Struct &lhs, const Struct &rhs) {
+  return
+      (lhs.a() == rhs.a()) &&
+      (lhs.b() == rhs.b());
+}
+
+inline bool operator!=(const Struct &lhs, const Struct &rhs) {
+    return !(lhs == rhs);
+}
+
+
 struct TableA FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef TableABuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {

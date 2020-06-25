@@ -1681,9 +1681,7 @@ class CppGenerator : public BaseGenerator {
     code_.SetValue("NATIVE_NAME",
                    NativeName(Name(struct_def), &struct_def, opts_));
     // In >= C++11, default member initializers are generated.
-    if (opts_.g_cpp_std >= cpp::CPP_STD_11) {
-      return;
-    }
+    if (opts_.g_cpp_std >= cpp::CPP_STD_11) { return; }
     std::string initializer_list;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
