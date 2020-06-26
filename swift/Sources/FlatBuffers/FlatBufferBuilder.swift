@@ -41,6 +41,7 @@ public struct FlatBufferBuilder {
     }
     /// Returns the written size of the buffer
     public var sizedByteArray: [UInt8] {
+        assert(finished, "Data shouldn't be called before finish()")
         let cp = _bb.capacity &- _bb.writerIndex
         let start = _bb.memory.advanced(by: _bb.writerIndex)
             .bindMemory(to: UInt8.self, capacity: cp)
@@ -439,22 +440,7 @@ public struct FlatBufferBuilder {
         if (element == def && !serializeDefaults) { return }
         track(offset: push(element: element), at: position)
     }
-    
-    /// Adds Boolean values into the buffer
-    /// - Parameters:
-    ///   - condition: Condition to insert
-    ///   - def: Default condition
-    ///   - position: The predefined position of the element
-    @available(*, deprecated, message: "Deprecated, function will be removed in Flatbuffers v0.6.0. Regenerate code")
-    mutating public func add(condition: Bool, def: Bool, at position: VOffset) {
-        if (condition == def && !serializeDefaults) {
-            track(offset: 0, at: position)
-            return
-        }
-        let off = push(element: Byte(condition ? 1 : 0))
-        track(offset: off, at: position)
-    }
-    
+        
     /// Pushes the values into the buffer
     /// - Parameter element: Element to insert
     /// - returns: Postion of the Element
@@ -513,6 +499,7 @@ extension FlatBufferBuilder: CustomDebugStringConvertible {
         /// Builds a buffer with byte count of fieldloc.size * count of field numbers
         /// - Parameter count: number of fields to be written
         func start(count: Int) {
+            assert(count >= 0, "number of fields should NOT be negative")
             let capacity = count &* size
             ensure(space: capacity)
         }
