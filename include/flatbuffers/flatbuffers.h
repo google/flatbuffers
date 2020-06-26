@@ -1098,7 +1098,8 @@ class FlatBufferBuilder {
         minalign_(1),
         force_defaults_(false),
         dedup_vtables_(true),
-        string_pool(nullptr) {
+        string_pool(nullptr),
+        allocator_(allocator) {
     EndianCheck();
   }
 
@@ -1150,10 +1151,11 @@ class FlatBufferBuilder {
     swap(force_defaults_, other.force_defaults_);
     swap(dedup_vtables_, other.dedup_vtables_);
     swap(string_pool, other.string_pool);
+    swap(allocator_, other.allocator_);
   }
 
   ~FlatBufferBuilder() {
-    if (string_pool) delete string_pool;
+    DestroyStringPool();
   }
 
   void Reset() {
@@ -1530,8 +1532,7 @@ class FlatBufferBuilder {
   /// @param[in] len The number of bytes that should be stored from `str`.
   /// @return Returns the offset in the buffer where the string starts.
   Offset<String> CreateSharedString(const char *str, size_t len) {
-    if (!string_pool)
-      string_pool = new StringOffsetMap(StringOffsetCompare(buf_));
+    if (!string_pool) InitStringPool();
     auto size_before_string = buf_.size();
     // Must first serialize the string, since the set is all offsets into
     // buffer.
@@ -1602,6 +1603,67 @@ class FlatBufferBuilder {
   void ForceStringAlignment(size_t len, size_t alignment) {
     PreAlign((len + 1) * sizeof(char), alignment);
   }
+
+  template<class T> class StdAllocator {
+   public:
+    typedef size_t size_type;
+    typedef ptrdiff_t difference_type;
+    typedef T *pointer;
+    typedef const T *const_pointer;
+    typedef T &reference;
+    typedef const T &const_reference;
+    typedef T value_type;
+
+    template<class U> friend class StdAllocator;
+
+    StdAllocator() noexcept {}
+
+    StdAllocator(Allocator *alloc) noexcept : m_alloc(alloc) {}
+
+    template<class U>
+    StdAllocator(const StdAllocator<U> &other) noexcept
+        : m_alloc(other.m_alloc) {}
+
+    ~StdAllocator() noexcept {}
+
+    pointer address(reference x) const { return &x; }
+    const_pointer address(const_reference x) const { return &x; }
+
+    inline pointer allocate(size_type n) {
+      size_t nbytes = n * sizeof(T);
+      void *p = nullptr != m_alloc ? m_alloc->allocate(nbytes)
+                                   : DefaultAllocator().allocate(nbytes);
+      if (p == nullptr) throw std::runtime_error("Failed to allocate memory");
+      return static_cast<pointer>(p);
+    }
+
+    inline void deallocate(pointer p, size_type n) {
+      size_t nbytes = n * sizeof(T);
+      if (nullptr != m_alloc)
+        m_alloc->deallocate(reinterpret_cast<uint8_t *>(p), nbytes);
+      else
+        DefaultAllocator().deallocate(reinterpret_cast<uint8_t *>(p), nbytes);
+    }
+
+    size_type max_size() const throw() {
+      return static_cast<size_type>(-1) / sizeof(value_type);
+    }
+
+    void construct(pointer p, const value_type &x) { ::new (p) value_type(x); }
+
+    void destroy(pointer p) { p->~value_type(); }
+
+    template<class U> bool operator==(const StdAllocator<U> &rhs) {
+      return m_alloc == rhs.m_alloc;
+    }
+
+    template<class U> bool operator!=(const StdAllocator<U> &rhs) {
+      return !operator==(rhs);
+    }
+
+   private:
+    Allocator *m_alloc = nullptr;
+  };
 
   /// @endcond
 
@@ -1675,9 +1737,9 @@ class FlatBufferBuilder {
   /// where the vector is stored.
   template<typename T> Offset<Vector<T>> CreateVector(size_t vector_size,
       const std::function<T (size_t i)> &f) {
-    std::unique_ptr<T[]> elems(new T[vector_size]);
+    std::vector<T, StdAllocator<T>> elems(vector_size, allocator_);
     for (size_t i = 0; i < vector_size; i++) elems[i] = f(i);
-    return CreateVector(elems.get(), vector_size);
+    return CreateVector(data(elems), elems.size());
   }
   #endif
   // clang-format on
@@ -1693,9 +1755,9 @@ class FlatBufferBuilder {
   /// where the vector is stored.
   template<typename T, typename F, typename S>
   Offset<Vector<T>> CreateVector(size_t vector_size, F f, S *state) {
-    std::unique_ptr<T[]> elems(new T[vector_size]);
+    std::vector<T, StdAllocator<T>> elems(vector_size, allocator_);
     for (size_t i = 0; i < vector_size; i++) elems[i] = f(i, state);
-    return CreateVector(elems.get(), vector_size);
+    return CreateVector(data(elems), elems.size());
   }
 
   /// @brief Serialize a `std::vector<std::string>` into a FlatBuffer `vector`.
@@ -1706,9 +1768,9 @@ class FlatBufferBuilder {
   /// where the vector is stored.
   Offset<Vector<Offset<String>>> CreateVectorOfStrings(
       const std::vector<std::string> &v) {
-    std::unique_ptr<Offset<String>[]> offsets(new Offset<String>[v.size()]);
+    std::vector<Offset<String>, StdAllocator<Offset<String>>> offsets(v.size(), allocator_);
     for (size_t i = 0; i < v.size(); i++) offsets[i] = CreateString(v[i]);
-    return CreateVector(offsets.get(), v.size());
+    return CreateVector(data(offsets), offsets.size());
   }
 
   /// @brief Serialize an array of structs into a FlatBuffer `vector`.
@@ -1737,11 +1799,9 @@ class FlatBufferBuilder {
   Offset<Vector<const T *>> CreateVectorOfNativeStructs(const S *v,
                                                         size_t len) {
     extern T Pack(const S &);
-    std::unique_ptr<T[]> vv(new T[len]);
-    for(size_t i = 0; i < len; ++i) {
-      vv[i] = Pack(v[i]);
-    }
-    return CreateVectorOfStructs<T>(vv.get(), len);
+    std::vector<T, StdAllocator<T>> vv(len, allocator_);
+    std::transform(v, v + len, vv.begin(), Pack);
+    return CreateVectorOfStructs<T>(data(vv), vv.size());
   }
 
   // clang-format off
@@ -1877,11 +1937,9 @@ class FlatBufferBuilder {
                                                               size_t len) {
     extern T Pack(const S &);
     typedef T (*Pack_t)(const S &);
-    std::unique_ptr<T[]> vv(new T[len]);
-    for(size_t i=0; i<len; ++i) {
-      vv[i] = static_cast<Pack_t &>(Pack)(v[i]);
-    }
-    return CreateVectorOfSortedStructs<T>(vv.get(), len);
+    std::vector<T, StdAllocator<T>> vv(len, allocator_);
+    std::transform(v, v + len, vv.begin(), static_cast<Pack_t &>(Pack));
+    return CreateVectorOfSortedStructs<T>(data(vv), len);
   }
 
   /// @cond FLATBUFFERS_INTERNAL
@@ -2016,6 +2074,10 @@ class FlatBufferBuilder {
     buf_.swap_allocator(other.buf_);
   }
 
+  Allocator *GetAllocator() const {
+    return allocator_;
+  };
+
  protected:
   // You shouldn't really be copying instances of this class.
   FlatBufferBuilder(const FlatBufferBuilder &);
@@ -2076,8 +2138,10 @@ class FlatBufferBuilder {
   };
 
   // For use with CreateSharedString. Instantiated on first use only.
-  typedef std::set<Offset<String>, StringOffsetCompare> StringOffsetMap;
+  typedef std::set<Offset<String>, StringOffsetCompare, StdAllocator<Offset<String>>> StringOffsetMap;
   StringOffsetMap *string_pool;
+
+  Allocator *allocator_;
 
  private:
   // Allocates space for a vector of structures.
@@ -2092,6 +2156,20 @@ class FlatBufferBuilder {
   template<typename T>
   Offset<Vector<const T *>> EndVectorOfStructs(size_t vector_size) {
     return Offset<Vector<const T *>>(EndVector(vector_size));
+  }
+
+  // Construct a string pool using the allocator
+  void InitStringPool() {
+    string_pool = reinterpret_cast<StringOffsetMap *>(Allocate(allocator_, sizeof(StringOffsetMap)));
+    ::new (string_pool) StringOffsetMap(StringOffsetCompare(buf_), allocator_);
+  }
+
+  // Destroy the string pool
+  void DestroyStringPool() {
+    if (string_pool != nullptr) {
+      string_pool->StringOffsetMap::~StringOffsetMap();
+      Deallocate(allocator_, reinterpret_cast<uint8_t *>(string_pool), sizeof(StringOffsetMap));
+    }
   }
 };
 /// @}
