@@ -1654,9 +1654,9 @@ class FlatBufferBuilder {
   /// where the vector is stored.
   template<typename T> Offset<Vector<T>> CreateVector(size_t vector_size,
       const std::function<T (size_t i)> &f) {
-    std::vector<T> elems(vector_size);
+    std::unique_ptr<T[]> elems(new T[vector_size]);
     for (size_t i = 0; i < vector_size; i++) elems[i] = f(i);
-    return CreateVector(elems);
+    return CreateVector(elems.get(), vector_size);
   }
   #endif
   // clang-format on
@@ -1672,9 +1672,9 @@ class FlatBufferBuilder {
   /// where the vector is stored.
   template<typename T, typename F, typename S>
   Offset<Vector<T>> CreateVector(size_t vector_size, F f, S *state) {
-    std::vector<T> elems(vector_size);
+    std::unique_ptr<T[]> elems(new T[vector_size]);
     for (size_t i = 0; i < vector_size; i++) elems[i] = f(i, state);
-    return CreateVector(elems);
+    return CreateVector(elems.get(), vector_size);
   }
 
   /// @brief Serialize a `std::vector<std::string>` into a FlatBuffer `vector`.
@@ -1685,9 +1685,9 @@ class FlatBufferBuilder {
   /// where the vector is stored.
   Offset<Vector<Offset<String>>> CreateVectorOfStrings(
       const std::vector<std::string> &v) {
-    std::vector<Offset<String>> offsets(v.size());
+    std::unique_ptr<Offset<String>[]> offsets(new Offset<String>[v.size()]);
     for (size_t i = 0; i < v.size(); i++) offsets[i] = CreateString(v[i]);
-    return CreateVector(offsets);
+    return CreateVector(offsets.get(), v.size());
   }
 
   /// @brief Serialize an array of structs into a FlatBuffer `vector`.
@@ -1716,9 +1716,11 @@ class FlatBufferBuilder {
   Offset<Vector<const T *>> CreateVectorOfNativeStructs(const S *v,
                                                         size_t len) {
     extern T Pack(const S &);
-    std::vector<T> vv(len);
-    std::transform(v, v + len, vv.begin(), Pack);
-    return CreateVectorOfStructs<T>(data(vv), vv.size());
+    std::unique_ptr<T[]> vv(new T[len]);
+    for(size_t i = 0; i < len; ++i) {
+      vv[i] = Pack(v[i]);
+    }
+    return CreateVectorOfStructs<T>(vv.get(), len);
   }
 
   // clang-format off
@@ -1853,9 +1855,11 @@ class FlatBufferBuilder {
                                                               size_t len) {
     extern T Pack(const S &);
     typedef T (*Pack_t)(const S &);
-    std::vector<T> vv(len);
-    std::transform(v, v + len, vv.begin(), static_cast<Pack_t &>(Pack));
-    return CreateVectorOfSortedStructs<T>(vv, len);
+    std::unique_ptr<T[]> vv(new T[len]);
+    for(size_t i=0; i<len; ++i) {
+      vv[i] = static_cast<Pack_t &>(Pack)(v[i]);
+    }
+    return CreateVectorOfSortedStructs<T>(vv.get(), len);
   }
 
   /// @cond FLATBUFFERS_INTERNAL
