@@ -88,11 +88,9 @@ std::string test_data_path =
 #endif
 
 // example of how to build up a serialized buffer algorithmically:
-void BuildMonsterBuffer(
-  flatbuffers::FlatBufferBuilder &builder,
-  std::vector<std::string> &names2,
-  std::vector<Ability> &abilities) {
-
+void BuildMonsterBuffer(flatbuffers::FlatBufferBuilder &builder,
+                        std::vector<std::string> &names2,
+                        std::vector<Ability> &abilities) {
   auto vec = Vec3(1, 2, 3, 0, Color_Red, Test(10, 20));
 
   auto name = builder.CreateString("MyMonster");
@@ -185,9 +183,9 @@ void BuildMonsterBuffer(
       nested_builder.GetBufferPointer(), nested_builder.GetSize());
 
   // The nested flexbuffer is real only when there is no custom allocator,
-  // because flexbuffers are not utilizing a custom allocator. 
+  // because flexbuffers are not utilizing a custom allocator.
   flatbuffers::Offset<flatbuffers::Vector<uint8_t>> flex = 0;
-  if(builder.GetAllocator() == nullptr) {
+  if (builder.GetAllocator() == nullptr) {
     // Test a nested FlexBuffer:
     flexbuffers::Builder flexbuild;
     flexbuild.Int(1234);
@@ -216,7 +214,7 @@ void BuildMonsterBuffer(
 
 flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
   flatbuffers::FlatBufferBuilder builder;
-  
+
   // Creating vectors of strings in one convenient call.
   std::vector<std::string> names2;
   names2.push_back("jane");
@@ -230,7 +228,7 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
 
   BuildMonsterBuffer(builder, names2, abilities);
 
-  // clang-format off
+// clang-format off
   #ifdef FLATBUFFERS_TEST_VERBOSE
   // print byte data for debugging:
   auto p = builder.GetBufferPointer();
@@ -3378,65 +3376,63 @@ void TestEmbeddedBinarySchema() {
 }
 
 class CustromAllocator : public flatbuffers::Allocator {
-public:
+ public:
   // Allocate `size` bytes of memory.
   uint8_t *allocate(size_t size) override {
-    return reinterpret_cast<uint8_t*>(::malloc(size));
+    return reinterpret_cast<uint8_t *>(::malloc(size));
   }
 
   // Deallocate `size` bytes of memory at `p` allocated by this allocator.
   void deallocate(uint8_t *p, size_t) override {
-    if(p != nullptr) {
-      ::free(p);
-    }
+    if (p != nullptr) { ::free(p); }
   }
 };
 
 size_t newCalls = 0;
 size_t deleteCalls = 0;
 
-void* operator new (std::size_t size) {
+void *operator new(std::size_t size) {
   ++newCalls;
   void *p = ::malloc(size);
-  if(nullptr == p) throw std::bad_alloc();
+  if (nullptr == p) throw std::bad_alloc();
   return p;
 }
 
-void* operator new (std::size_t size, const std::nothrow_t &) noexcept {
+void *operator new(std::size_t size, const std::nothrow_t &) noexcept {
   ++newCalls;
   return ::malloc(size);
 }
 
-void* operator new[] (std::size_t size) {
+void *operator new[](std::size_t size) {
   ++newCalls;
   void *p = ::malloc(size);
-  if(nullptr == p) throw std::bad_alloc();
+  if (nullptr == p) throw std::bad_alloc();
   return p;
 }
 
-void* operator new[] (std::size_t size, const std::nothrow_t &) noexcept {
+void *operator new[](std::size_t size, const std::nothrow_t &) noexcept {
   ++newCalls;
   return ::malloc(size);
 }
 
-void operator delete (void* ptr) noexcept {
+void operator delete(void *ptr) noexcept {
   ++deleteCalls;
-  if(ptr != nullptr) ::free(ptr);
+  if (ptr != nullptr) ::free(ptr);
 }
 
-void operator delete (void* ptr, const std::nothrow_t &) noexcept {
+void operator delete(void *ptr, const std::nothrow_t &) noexcept {
   ++deleteCalls;
-  if(ptr != nullptr) ::free(ptr);
+  if (ptr != nullptr) ::free(ptr);
 }
 
-void operator delete[] (void* ptr) noexcept {
+void operator delete[](void *ptr) noexcept {
   ++deleteCalls;
-  if(ptr != nullptr) ::free(ptr);
+  if (ptr != nullptr) ::free(ptr);
 }
 
-void operator delete[] (void* ptr, const std::nothrow_t &) noexcept {
+void operator delete[](void *ptr, const std::nothrow_t &) noexcept {
   ++deleteCalls;
-  if(ptr != nullptr) ::free(ptr);
+  if (ptr != nullptr) ::free(ptr);
 }
 
 void AllocatorTest() {
