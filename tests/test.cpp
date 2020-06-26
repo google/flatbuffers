@@ -88,8 +88,10 @@ std::string test_data_path =
 #endif
 
 // example of how to build up a serialized buffer algorithmically:
-flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
-  flatbuffers::FlatBufferBuilder builder;
+void BuildMonsterBuffer(
+  flatbuffers::FlatBufferBuilder &builder,
+  std::vector<std::string> &names2,
+  std::vector<Ability> &abilities) {
 
   auto vec = Vec3(1, 2, 3, 0, Color_Red, Test(10, 20));
 
@@ -152,9 +154,6 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
           &builder);
 
   // Creating vectors of strings in one convenient call.
-  std::vector<std::string> names2;
-  names2.push_back("jane");
-  names2.push_back("mary");
   auto vecofstrings2 = builder.CreateVectorOfStrings(names2);
 
   // Create an array of sorted tables, can be used with binary search when read:
@@ -162,11 +161,6 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
 
   // Create an array of sorted structs,
   // can be used with binary search when read:
-  std::vector<Ability> abilities;
-  abilities.push_back(Ability(4, 40));
-  abilities.push_back(Ability(3, 30));
-  abilities.push_back(Ability(2, 20));
-  abilities.push_back(Ability(1, 10));
   auto vecofstructs = builder.CreateVectorOfSortedStructs(&abilities);
 
   // Create a nested FlatBuffer.
@@ -174,7 +168,7 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
   // since they can be memcpy'd around much easier than other FlatBuffer
   // values. They have little overhead compared to storing the table directly.
   // As a test, create a mostly empty Monster buffer:
-  flatbuffers::FlatBufferBuilder nested_builder;
+  flatbuffers::FlatBufferBuilder nested_builder(23, builder.GetAllocator());
   auto nmloc = CreateMonster(nested_builder, nullptr, 0, 0,
                              nested_builder.CreateString("NestedMonster"));
   FinishMonsterBuffer(nested_builder, nmloc);
@@ -190,11 +184,16 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
   auto nested_flatbuffer_vector = builder.CreateVector(
       nested_builder.GetBufferPointer(), nested_builder.GetSize());
 
-  // Test a nested FlexBuffer:
-  flexbuffers::Builder flexbuild;
-  flexbuild.Int(1234);
-  flexbuild.Finish();
-  auto flex = builder.CreateVector(flexbuild.GetBuffer());
+  // The nested flexbuffer is real only when there is no custom allocator,
+  // because flexbuffers are not utilizing a custom allocator. 
+  flatbuffers::Offset<flatbuffers::Vector<uint8_t>> flex = 0;
+  if(builder.GetAllocator() == nullptr) {
+    // Test a nested FlexBuffer:
+    flexbuffers::Builder flexbuild;
+    flexbuild.Int(1234);
+    flexbuild.Finish();
+    flex = builder.CreateVector(flexbuild.GetBuffer());
+  }
 
   // Test vector of enums.
   Color colors[] = { Color_Blue, Color_Green };
@@ -213,6 +212,23 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
       AnyUniqueAliases_NONE, 0, AnyAmbiguousAliases_NONE, 0, vecofcolors);
 
   FinishMonsterBuffer(builder, mloc);
+}
+
+flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
+  flatbuffers::FlatBufferBuilder builder;
+  
+  // Creating vectors of strings in one convenient call.
+  std::vector<std::string> names2;
+  names2.push_back("jane");
+  names2.push_back("mary");
+
+  std::vector<Ability> abilities;
+  abilities.push_back(Ability(4, 40));
+  abilities.push_back(Ability(3, 30));
+  abilities.push_back(Ability(2, 20));
+  abilities.push_back(Ability(1, 10));
+
+  BuildMonsterBuffer(builder, names2, abilities);
 
   // clang-format off
   #ifdef FLATBUFFERS_TEST_VERBOSE
@@ -3361,6 +3377,93 @@ void TestEmbeddedBinarySchema() {
           0);
 }
 
+class CustromAllocator : public flatbuffers::Allocator {
+public:
+  // Allocate `size` bytes of memory.
+  uint8_t *allocate(size_t size) override {
+    return reinterpret_cast<uint8_t*>(::malloc(size));
+  }
+
+  // Deallocate `size` bytes of memory at `p` allocated by this allocator.
+  void deallocate(uint8_t *p, size_t) override {
+    if(p != nullptr) {
+      ::free(p);
+    }
+  }
+};
+
+size_t newCalls = 0;
+size_t deleteCalls = 0;
+
+void* operator new (std::size_t size) {
+  ++newCalls;
+  void *p = ::malloc(size);
+  if(nullptr == p) throw std::bad_alloc();
+  return p;
+}
+
+void* operator new (std::size_t size, const std::nothrow_t &) noexcept {
+  ++newCalls;
+  return ::malloc(size);
+}
+
+void* operator new[] (std::size_t size) {
+  ++newCalls;
+  void *p = ::malloc(size);
+  if(nullptr == p) throw std::bad_alloc();
+  return p;
+}
+
+void* operator new[] (std::size_t size, const std::nothrow_t &) noexcept {
+  ++newCalls;
+  return ::malloc(size);
+}
+
+void operator delete (void* ptr) noexcept {
+  ++deleteCalls;
+  if(ptr != nullptr) ::free(ptr);
+}
+
+void operator delete (void* ptr, const std::nothrow_t &) noexcept {
+  ++deleteCalls;
+  if(ptr != nullptr) ::free(ptr);
+}
+
+void operator delete[] (void* ptr) noexcept {
+  ++deleteCalls;
+  if(ptr != nullptr) ::free(ptr);
+}
+
+void operator delete[] (void* ptr, const std::nothrow_t &) noexcept {
+  ++deleteCalls;
+  if(ptr != nullptr) ::free(ptr);
+}
+
+void AllocatorTest() {
+  // Creating vectors of strings in one convenient call.
+  std::vector<std::string> names;
+  names.push_back("jane");
+  names.push_back("mary");
+
+  std::vector<Ability> abilities;
+  abilities.push_back(Ability(4, 40));
+  abilities.push_back(Ability(3, 30));
+  abilities.push_back(Ability(2, 20));
+  abilities.push_back(Ability(1, 10));
+
+  // When the custom allocator is used, there must be no calls to new/delete
+
+  // Save the counters
+  size_t startNewCalls = newCalls;
+  size_t startDeleteCalls = deleteCalls;
+
+  CustromAllocator customAllocator;
+  flatbuffers::FlatBufferBuilder fbb(200, &customAllocator);
+  BuildMonsterBuffer(fbb, names, abilities);
+  TEST_EQ(startNewCalls, newCalls);
+  TEST_EQ(startDeleteCalls, deleteCalls);
+}
+
 int FlatBufferTests() {
   // clang-format off
 
@@ -3447,6 +3550,7 @@ int FlatBufferTests() {
   TestMonsterExtraFloats();
   FixedLengthArrayTest();
   NativeTypeTest();
+  AllocatorTest();
   return 0;
 }
 
