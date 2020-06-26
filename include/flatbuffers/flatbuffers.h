@@ -1154,9 +1154,7 @@ class FlatBufferBuilder {
     swap(allocator_, other.allocator_);
   }
 
-  ~FlatBufferBuilder() {
-    DestroyStringPool();
-  }
+  ~FlatBufferBuilder() { DestroyStringPool(); }
 
   void Reset() {
     Clear();       // clear builder state
@@ -1768,7 +1766,8 @@ class FlatBufferBuilder {
   /// where the vector is stored.
   Offset<Vector<Offset<String>>> CreateVectorOfStrings(
       const std::vector<std::string> &v) {
-    std::vector<Offset<String>, StdAllocator<Offset<String>>> offsets(v.size(), allocator_);
+    std::vector<Offset<String>, StdAllocator<Offset<String>>> offsets(
+        v.size(), allocator_);
     for (size_t i = 0; i < v.size(); i++) offsets[i] = CreateString(v[i]);
     return CreateVector(data(offsets), offsets.size());
   }
@@ -2074,9 +2073,7 @@ class FlatBufferBuilder {
     buf_.swap_allocator(other.buf_);
   }
 
-  Allocator *GetAllocator() const {
-    return allocator_;
-  };
+  Allocator *GetAllocator() const { return allocator_; };
 
  protected:
   // You shouldn't really be copying instances of this class.
@@ -2138,7 +2135,9 @@ class FlatBufferBuilder {
   };
 
   // For use with CreateSharedString. Instantiated on first use only.
-  typedef std::set<Offset<String>, StringOffsetCompare, StdAllocator<Offset<String>>> StringOffsetMap;
+  typedef std::set<Offset<String>, StringOffsetCompare,
+                   StdAllocator<Offset<String>>>
+      StringOffsetMap;
   StringOffsetMap *string_pool;
 
   Allocator *allocator_;
@@ -2160,7 +2159,8 @@ class FlatBufferBuilder {
 
   // Construct a string pool using the allocator
   void InitStringPool() {
-    string_pool = reinterpret_cast<StringOffsetMap *>(Allocate(allocator_, sizeof(StringOffsetMap)));
+    string_pool = reinterpret_cast<StringOffsetMap *>(
+        Allocate(allocator_, sizeof(StringOffsetMap)));
     ::new (string_pool) StringOffsetMap(StringOffsetCompare(buf_), allocator_);
   }
 
@@ -2168,7 +2168,8 @@ class FlatBufferBuilder {
   void DestroyStringPool() {
     if (string_pool != nullptr) {
       string_pool->StringOffsetMap::~StringOffsetMap();
-      Deallocate(allocator_, reinterpret_cast<uint8_t *>(string_pool), sizeof(StringOffsetMap));
+      Deallocate(allocator_, reinterpret_cast<uint8_t *>(string_pool),
+                 sizeof(StringOffsetMap));
     }
   }
 };
