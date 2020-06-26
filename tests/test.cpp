@@ -392,11 +392,13 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length,
 
   // Test flexbuffer if available:
   auto flex = monster->flex();
-  // flex is a vector of bytes you can memcpy etc.
-  TEST_EQ(flex->size(), 4);  // Encoded FlexBuffer bytes.
-  // However, if you actually want to access the nested data, this is a
-  // convenient accessor that directly gives you the root value:
-  TEST_EQ(monster->flex_flexbuffer_root().AsInt16(), 1234);
+  if (flex) {
+    // flex is a vector of bytes you can memcpy etc.
+    TEST_EQ(flex->size(), 4);  // Encoded FlexBuffer bytes.
+    // However, if you actually want to access the nested data, this is a
+    // convenient accessor that directly gives you the root value:
+    TEST_EQ(monster->flex_flexbuffer_root().AsInt16(), 1234);
+  }
 
   // Test vector of enums:
   auto colors = monster->vector_of_enums();
@@ -3663,6 +3665,17 @@ void AllocatorTest() {
   BuildMonsterBuffer(fbb, names, abilities);
   TEST_EQ(startNewCalls, newCalls);
   TEST_EQ(startDeleteCalls, deleteCalls);
+
+  // Copy out the buffer data
+  size_t bufferSize = fbb.GetSize();
+  std::unique_ptr<uint8_t []> buffer(new uint8_t[bufferSize]);
+  memcpy(buffer.get(), fbb.GetBufferPointer(), bufferSize);
+  fbb.Clear();
+
+  // Run a few tests to ensure the serialization was OK
+  AccessFlatBufferTest(buffer.get(), bufferSize);
+  MutateFlatBuffersTest(buffer.get(), bufferSize);
+  ObjectFlatBuffersTest(buffer.get());
 }
 
 int FlatBufferTests() {
