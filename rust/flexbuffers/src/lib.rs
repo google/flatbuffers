@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#![cfg_attr(test, feature(test))]
 //! Flexbuffers is a high performance schemaless binary data format designed at Google.
 //! It is complementary to the schema-ed format [Flatbuffers](http://docs.rs/flatbuffers/).
 //! See [Flexbuffer Internals](https://google.github.io/flatbuffers/flatbuffers_internals.html)
@@ -35,17 +34,8 @@ extern crate byteorder;
 #[macro_use]
 extern crate serde_derive;
 #[macro_use]
-extern crate debug_stub_derive;
 extern crate num_enum;
-#[cfg(test)]
-extern crate quickcheck;
-#[cfg(test)]
-extern crate quickcheck_derive;
-#[cfg(test)]
-extern crate rand;
 extern crate serde;
-#[cfg(test)]
-extern crate test;
 
 mod bitwidth;
 mod builder;

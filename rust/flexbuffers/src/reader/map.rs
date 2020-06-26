@@ -22,15 +22,28 @@ use std::iter::{DoubleEndedIterator, ExactSizeIterator, FusedIterator, Iterator}
 /// MapReaders may be indexed with strings or usizes. `index` returns a result type,
 /// which may indicate failure due to a missing key or bad data, `idx` returns an Null Reader in
 /// cases of error.
-#[derive(DebugStub, Default, Clone)]
+#[derive(Default, Clone)]
 pub struct MapReader<'de> {
-    #[debug_stub = "&[..]"]
     pub(super) buffer: &'de [u8],
     pub(super) values_address: usize,
     pub(super) keys_address: usize,
     pub(super) values_width: BitWidth,
     pub(super) keys_width: BitWidth,
     pub(super) length: usize,
+}
+
+// manual implementation of Debug because buffer slice can't be automatically displayed
+impl<'de> std::fmt::Debug for MapReader<'de> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // skips buffer field
+        f.debug_struct("MapReader")
+            .field("values_address", &self.values_address)
+            .field("keys_address", &self.keys_address)
+            .field("values_width", &self.values_width)
+            .field("keys_width", &self.keys_width)
+            .field("length", &self.length)
+            .finish()
+    }
 }
 
 impl<'de> MapReader<'de> {

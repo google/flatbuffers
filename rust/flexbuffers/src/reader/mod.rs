@@ -143,14 +143,26 @@ macro_rules! as_default {
 /// - The `as_T` methods will try their best to return to a value of type `T`
 /// (by casting or even parsing a string if necessary) but ultimately returns `T::default` if it
 /// fails. This behavior is analogous to that of flexbuffers C++.
-#[derive(DebugStub, Default, Clone)]
+#[derive(Default, Clone)]
 pub struct Reader<'de> {
     fxb_type: FlexBufferType,
     width: BitWidth,
     address: usize,
-    #[debug_stub = "&[..]"]
     buffer: &'de [u8],
 }
+
+// manual implementation of Debug because buffer slice can't be automatically displayed
+impl<'de> std::fmt::Debug for Reader<'de> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // skips buffer field
+        f.debug_struct("Reader")
+            .field("fxb_type", &self.fxb_type)
+            .field("width", &self.width)
+            .field("address", &self.address)
+            .finish()
+    }
+}
+
 
 macro_rules! try_cast_fn {
     ($name: ident, $full_width: ident, $Ty: ident) => {
