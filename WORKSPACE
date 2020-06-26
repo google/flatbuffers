@@ -16,3 +16,19 @@ load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_to
 go_rules_dependencies()
 
 go_register_toolchains()
+
+
+##### GRPC
+_GRPC_VERSION = "1.15.1"
+
+http_archive(
+    name = "com_github_grpc_grpc",
+    patches = ["//bazel:grpc_deps_1_15_1.patch"],
+    patch_args = ["-p1"],
+    strip_prefix = "grpc-" + _GRPC_VERSION,
+    urls = ["https://github.com/grpc/grpc/archive/v" + _GRPC_VERSION + ".tar.gz"],
+)
+
+load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
+
+grpc_deps()
