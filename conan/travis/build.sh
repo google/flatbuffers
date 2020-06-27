@@ -10,7 +10,5 @@ if [[ "$(uname -s)" == 'Darwin' ]]; then
     pyenv activate conan
 fi
 
-pip install flake8  # lint Python code for syntax errors and undefined names
-flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 conan user
 python conan/build.py
