@@ -1804,11 +1804,29 @@ class JsTsGenerator : public BaseGenerator {
                                       false));
 
             if (lang_.language == IDLOptions::kTs) {
-              code += "static create" + MakeCamel(field.name);
+              const std::string sig_begin =
+                  "static create" + MakeCamel(field.name) +
+                  "Vector(builder:flatbuffers.Builder, data:";
+              const std::string sig_end = "):flatbuffers.Offset";
               std::string type = GenTypeName(vector_type, true) + "[]";
-              if (type == "number[]") { type += " | Uint8Array"; }
-              code += "Vector(builder:flatbuffers.Builder, data:" + type +
-                      "):flatbuffers.Offset {\n";
+              if (type == "number[]") {
+                const auto &array_type = GenType(vector_type);
+                // the old type should be deprecated in the future
+                std::string type_old = "number[]|Uint8Array";
+                std::string type_new = "number[]|" + array_type + "Array";
+                if (type_old == type_new) {
+                  type = type_new;
+                } else {
+                  // add function overloads
+                  code += sig_begin + type_new + sig_end + ";\n";
+                  code +=
+                      "/**\n * @deprecated This Uint8Array overload will "
+                      "be removed in the future.\n */\n";
+                  code += sig_begin + type_old + sig_end + ";\n";
+                  type = type_new + "|Uint8Array";
+                }
+              }
+              code += sig_begin + type + sig_end + " {\n";
             } else {
               code += object_name + ".create" + MakeCamel(field.name);
               code += "Vector = function(builder, data) {\n";

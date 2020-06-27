@@ -31,4 +31,14 @@ if (UNIX)
     set(CPACK_RPM_PACKAGE_NAME "flatbuffers")
     set(CPACK_PACKAGE_FILE_NAME
         "${CPACK_RPM_PACKAGE_NAME}_${CPACK_RPM_PACKAGE_VERSION}_${CPACK_RPM_PACKAGE_ARCHITECTURE}")
+    if(NOT DEFINED ${CPACK_PACKAGING_INSTALL_PREFIX})
+       # Default packaging install prefix on RedHat systems is /usr.
+       # This is the assumed value when this variable is not defined.
+       # There is currently a conflict with
+       # /usr/${CMAKE_INSTALL_LIBDIR}/cmake which is installed by default
+       # by other packages on RedHat (most notably cmake-filesystem). Ensure
+       # that on these systems, flatbuffers does not package this path.
+       # This patch is required for cmake pre-3.17.
+       list(APPEND CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION "/usr/${CMAKE_INSTALL_LIBDIR}/cmake")
+   endif()
 endif(UNIX)

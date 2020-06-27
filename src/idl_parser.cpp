@@ -82,6 +82,16 @@ static bool ValidateUTF8(const std::string &str) {
   return true;
 }
 
+static bool IsLowerSnakeCase(const std::string &str) {
+  for (size_t i = 0; i < str.length(); i++) {
+    char c = str[i];
+    if (!check_ascii_range(c, 'a', 'z') && !is_digit(c) && c != '_') {
+      return false;
+    }
+  }
+  return true;
+}
+
 // Convert an underscore_based_indentifier in to camelCase.
 // Also uppercases the first character if first is true.
 std::string MakeCamel(const std::string &in, bool first) {
@@ -671,6 +681,10 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   if (LookupCreateStruct(name, false, false))
     return Error("field name can not be the same as table/struct name");
 
+  if (!IsLowerSnakeCase(name)) {
+    Warning("field names should be lowercase snake_case, got: " + name);
+  }
+
   std::vector<std::string> dc = doc_comment_;
   EXPECT(kTokenIdentifier);
   EXPECT(':');
@@ -880,9 +894,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     }
     // if this field is a union that is deprecated,
     // the automatically added type field should be deprecated as well
-    if (field->deprecated) {
-      typefield->deprecated = true;
-    }
+    if (field->deprecated) { typefield->deprecated = true; }
   }
 
   EXPECT(';');
@@ -2181,7 +2193,8 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef **dest) {
     if (prev_ev->GetAsUInt64() == ev->GetAsUInt64())
       return Error("all enum values must be unique: " + prev_ev->name +
                    " and " + ev->name + " are both " +
-                   NumToString(ev->GetAsInt64()));  }
+                   NumToString(ev->GetAsInt64()));
+  }
 
   if (dest) *dest = enum_def;
   types_.Add(current_namespace_->GetFullyQualifiedName(enum_def->name),
