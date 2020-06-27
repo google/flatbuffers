@@ -31,7 +31,9 @@ conan-linux-master: &conan-linux-master
     - docker
   install:
     - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then bash ./conan/travis/install.sh; fi'
+    - pip install flake8  # lint Python code for syntax errors and undefined names
   script:
+    - flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
     - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then bash ./conan/travis/build.sh; fi'
   branches:
     only:
