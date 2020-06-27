@@ -18,6 +18,7 @@
 # Append paths to the `flatbuffers` and `MyGame` modules. This is necessary
 # to facilitate executing this script in the `samples` folder, and to root
 # folder (where it gets placed when using `cmake`).
+from __future__ import print_function
 import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '../python'))
@@ -106,13 +107,13 @@ def main():
   assert monster.Pos().Z() == 3.0
 
   # Get and test the `inventory` FlatBuffer `vector`.
-  for i in xrange(monster.InventoryLength()):
+  for i in range(monster.InventoryLength()):
     assert monster.Inventory(i) == i
 
   # Get and test the `weapons` FlatBuffer `vector` of `table`s.
   expected_weapon_names = ['Sword', 'Axe']
   expected_weapon_damages = [3, 5]
-  for i in xrange(monster.WeaponsLength()):
+  for i in range(monster.WeaponsLength()):
     assert monster.Weapons(i).Name() == expected_weapon_names[i]
     assert monster.Weapons(i).Damage() == expected_weapon_damages[i]
 
@@ -131,7 +132,7 @@ def main():
     assert union_weapon.Name() == "Axe"
     assert union_weapon.Damage() == 5
 
-  print 'The FlatBuffer was successfully created and verified!'
+  print('The FlatBuffer was successfully created and verified!')
 
 if __name__ == '__main__':
   main()

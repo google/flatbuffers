@@ -18,6 +18,7 @@
 This script will find the highest version number of MSBuild and run it,
 passing its arguments through to MSBuild.
 """
+from __future__ import print_function
 
 import glob
 import os
@@ -25,6 +26,13 @@ import re
 import string
 import subprocess
 import sys
+
+try:
+  cmp
+except NameError:
+  def cmp(x, y):  # https://portingguide.readthedocs.io
+    return (x > y) - (x < y)
+
 
 SYSTEMROOT = os.getenv("SYSTEMROOT", "c:\\windows")
 PROGRAM_FILES = os.getenv("ProgramFiles", "c:\\Program Files")
@@ -67,7 +75,7 @@ def main():
         msbuilds.append({ 'ver':match.group(), 'exe':file })
   msbuilds.sort(lambda x, y: compare_version(x['ver'], y['ver']), reverse=True)
   if len(msbuilds) == 0:
-    print "Unable to find MSBuild.\n"
+    print("Unable to find MSBuild.\n")
     return -1;
   cmd = [msbuilds[0]['exe']]
   cmd.extend(sys.argv[1:])
