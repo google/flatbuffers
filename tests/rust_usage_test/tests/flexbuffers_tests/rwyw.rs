@@ -432,7 +432,16 @@ fn serde_serious() {
     let read = MyTupleStruct::deserialize(reader).unwrap();
     assert_eq!(data, read);
 }
-
+#[test]
+fn serialize_serde_with_bytes_as_blob() {
+    #[derive(Serialize, Deserialize)]
+    struct Foo(#[serde(with = "serde_bytes")] Vec<u8>);
+    let mut s = FlexbufferSerializer::new();
+    Foo(vec![5, 6, 7, 8]).serialize(&mut s).unwrap();
+    let reader = Reader::get_root(s.view()).unwrap();
+    assert_eq!(reader.flexbuffer_type(), FlexBufferType::Blob);
+    assert_eq!(reader.as_blob(), Blob(&[5, 6, 7, 8]));
+}
 #[test]
 fn iter() {
     let mut fxb = Builder::default();
