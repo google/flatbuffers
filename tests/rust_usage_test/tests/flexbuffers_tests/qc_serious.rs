@@ -1,5 +1,3 @@
-#![allow(unused_imports)]
-
 use super::rwyw::NonNullString;
 use flexbuffers::*;
 use quickcheck::{Arbitrary, Gen};
@@ -30,6 +28,7 @@ enum Enum {
         b: Array4<i32>,
         c: Array2<f64>,
     },
+    Blobs(#[serde(with = "serde_bytes")] Vec<u8>),
 }
 
 // There is some upstream bug in deriving Arbitrary for Enum so we manually implement it here.

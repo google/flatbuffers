@@ -8,6 +8,7 @@ flatbuffers = { path = "../../rust/flatbuffers" }
 flexbuffers = { path = "../../rust/flexbuffers" }
 serde_derive = "1.0"
 serde = "1.0"
+serde_bytes = "0.11"
 
 [[bin]]
 name = "monster_example"
