@@ -4,8 +4,6 @@
 
 import flatbuffers
 from flatbuffers.compat import import_numpy
-from tests.namespace_test.NamespaceA.SecondTableInA import SecondTableInA, SecondTableInAT
-from tests.namespace_test.NamespaceA.TableInFirstNS import TableInFirstNS, TableInFirstNST
 np = import_numpy()
 
 class TableInC(object):

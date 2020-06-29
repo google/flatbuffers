@@ -4,8 +4,6 @@
 
 import flatbuffers
 from flatbuffers.compat import import_numpy
-from tests.namespace_test.NamespaceA.NamespaceB.StructInNestedNS import StructInNestedNS, StructInNestedNST
-from tests.namespace_test.NamespaceA.NamespaceB.TableInNestedNS import TableInNestedNS, TableInNestedNST
 np = import_numpy()
 
 class TableInFirstNS(object):

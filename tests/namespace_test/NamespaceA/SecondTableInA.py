@@ -4,7 +4,6 @@
 
 import flatbuffers
 from flatbuffers.compat import import_numpy
-from tests.namespace_test.NamespaceC.TableInC import TableInC, TableInCT
 np = import_numpy()
 
 class SecondTableInA(object):
