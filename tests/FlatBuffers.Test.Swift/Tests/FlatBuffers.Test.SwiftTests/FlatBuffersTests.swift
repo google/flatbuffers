@@ -34,13 +34,6 @@ final class FlatBuffersTests: XCTestCase {
         XCTAssertEqual(b.startTable(with: 0), 12)
     }
     
-    func testCreate() {
-        var b = FlatBufferBuilder(initialSize: 16)
-        _ = Country.createCountry(builder: &b, name: country, log: 200, lan: 100)
-        let v: [UInt8] = [10, 0, 16, 0, 4, 0, 8, 0, 12, 0, 10, 0, 0, 0, 12, 0, 0, 0, 100, 0, 0, 0, 200, 0, 0, 0, 6, 0, 0, 0, 78, 111, 114, 119, 97, 121, 0, 0]
-        XCTAssertEqual(b.sizedByteArray, v)
-    }
-    
     func testCreateFinish() {
         var b = FlatBufferBuilder(initialSize: 16)
         let countryOff = Country.createCountry(builder: &b, name: country, log: 200, lan: 100)

@@ -6,7 +6,6 @@ extension FlatBuffersDoubleTests {
     //   `swift test --generate-linuxmain`
     // to regenerate.
     static let __allTests__FlatBuffersDoubleTests = [
-        ("testCreateCountry", testCreateCountry),
         ("testCreateFinish", testCreateFinish),
         ("testCreateFinishWithPrefix", testCreateFinishWithPrefix),
     ]
@@ -48,7 +47,6 @@ extension FlatBuffersTests {
     //   `swift test --generate-linuxmain`
     // to regenerate.
     static let __allTests__FlatBuffersTests = [
-        ("testCreate", testCreate),
         ("testCreateFinish", testCreateFinish),
         ("testCreateFinishWithPrefix", testCreateFinishWithPrefix),
         ("testCreateString", testCreateString),
