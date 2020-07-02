@@ -160,11 +160,12 @@ constructor(
  * @returns flatbuffers.Offset
  */
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return NamespaceA.TableInFirstNS.createTableInFirstNS(builder,
-    (this.fooTable !== null ? this.fooTable!.pack(builder) : 0),
-    this.fooEnum,
-    (this.fooStruct !== null ? this.fooStruct!.pack(builder) : 0)
-  );
+  NamespaceA.TableInFirstNS.start(builder);
+  NamespaceA.TableInFirstNS.addFooTable(builder, (this.fooTable !== null ? this.fooTable!.pack(builder) : 0));
+  NamespaceA.TableInFirstNS.addFooEnum(builder, this.fooEnum);
+  NamespaceA.TableInFirstNS.addFooStruct(builder, (this.fooStruct !== null ? this.fooStruct!.pack(builder) : 0));
+
+  return NamespaceA.TableInFirstNS.end(builder);
 };
 }
 }
@@ -292,10 +293,11 @@ constructor(
  * @returns flatbuffers.Offset
  */
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return NamespaceC.TableInC.createTableInC(builder,
-    (this.referToA1 !== null ? this.referToA1!.pack(builder) : 0),
-    (this.referToA2 !== null ? this.referToA2!.pack(builder) : 0)
-  );
+  NamespaceC.TableInC.start(builder);
+  NamespaceC.TableInC.addReferToA1(builder, (this.referToA1 !== null ? this.referToA1!.pack(builder) : 0));
+  NamespaceC.TableInC.addReferToA2(builder, (this.referToA2 !== null ? this.referToA2!.pack(builder) : 0));
+
+  return NamespaceC.TableInC.end(builder);
 };
 }
 }
