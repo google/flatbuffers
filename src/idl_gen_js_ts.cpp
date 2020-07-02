@@ -969,17 +969,30 @@ class JsTsGenerator : public BaseGenerator {
     std::string constructor_func = "constructor(";
     constructor_func += (struct_def.fields.vec.empty() ? "" : "\n");
 
+
+    const auto has_create = struct_def.fixed || CanCreateFactoryMethod(struct_def);
+
     std::string pack_func_prototype =
         "/**\n * " +
         GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder") + " * " +
         GenTypeAnnotation(kReturns, "flatbuffers.Offset", "") +
         " */\npack(builder:flatbuffers.Builder): flatbuffers.Offset {\n";
+    
     std::string pack_func_offset_decl;
-    std::string pack_func_create_call =
+    std::string pack_func_create_call;
+
+    const auto struct_name = GenPrefixedTypeName(WrapInNameSpace(struct_def), struct_def.file);
+
+    if (has_create) {
+      pack_func_create_call =
         "  return " +
-        GenPrefixedTypeName(WrapInNameSpace(struct_def), struct_def.file) +
+        struct_name +
         ".create" + Verbose(struct_def) + "(builder" +
         (struct_def.fields.vec.empty() ? "" : ",\n    ");
+    } else {
+      pack_func_create_call = "  " + struct_name + ".start(builder);\n";
+    }
+    
     if (struct_def.fixed) {
       // when packing struct, nested struct's members instead of the struct's
       // offset are used
@@ -1179,14 +1192,19 @@ class JsTsGenerator : public BaseGenerator {
         if (!field_offset_decl.empty()) {
           pack_func_offset_decl += field_offset_decl + "\n";
         }
-        pack_func_create_call += field_offset_val;
+
+        if (has_create) {
+          pack_func_create_call += field_offset_val;
+        } else {
+          pack_func_create_call += "  " + struct_name + ".add" + MakeCamel(field.name) + "(builder, " + field_offset_val + ");\n";
+        }
       }
 
       if (std::next(it) != struct_def.fields.vec.end()) {
         constructor_annotation += "\n";
         constructor_func += ",\n";
 
-        if (!struct_def.fixed) { pack_func_create_call += ",\n    "; }
+        if (!struct_def.fixed && has_create) { pack_func_create_call += ",\n    "; }
 
         unpack_func += ",\n";
         unpack_to_func += "\n";
@@ -1205,7 +1223,11 @@ class JsTsGenerator : public BaseGenerator {
     constructor_annotation += "\n */\n";
     constructor_func += "){};\n\n";
 
-    pack_func_create_call += ");";
+    if (has_create) {
+      pack_func_create_call += ");";
+    } else {
+      pack_func_create_call += "return " + struct_name + ".end(builder);";
+    }
 
     obj_api_class = "\nexport class " +
                     GetObjApiClassName(struct_def, parser.opts) + " {\n";
