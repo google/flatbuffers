@@ -214,7 +214,7 @@ class JsTsGenerator : public BaseGenerator {
          ++it) {
       if (lang_.language == IDLOptions::kTs) {
         if (it->find('.') == std::string::npos) {
-          code += "import { flatbuffers } from \"./flatbuffers\"\n";
+          code += "import * as flatbuffers from 'flatbuffers';\n";
           break;
         }
       } else {
