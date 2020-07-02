@@ -22,6 +22,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.*;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.lang.Integer;
 
 /// @file
 /// @addtogroup flatbuffers_java_api
@@ -33,20 +36,21 @@ import java.util.Arrays;
  */
 public class FlatBufferBuilder {
     /// @cond FLATBUFFERS_INTERNAL
-    ByteBuffer bb;                  // Where we construct the FlatBuffer.
-    int space;                      // Remaining space in the ByteBuffer.
-    int minalign = 1;               // Minimum alignment encountered so far.
-    int[] vtable = null;            // The vtable for the current table.
-    int vtable_in_use = 0;          // The amount of fields we're actually using.
-    boolean nested = false;         // Whether we are currently serializing a table.
-    boolean finished = false;       // Whether the buffer is finished.
-    int object_start;               // Starting offset of the current struct/table.
-    int[] vtables = new int[16];    // List of offsets of all vtables.
-    int num_vtables = 0;            // Number of entries in `vtables` in use.
-    int vector_num_elems = 0;       // For the current vector being built.
-    boolean force_defaults = false; // False omits default values from the serialized data.
-    ByteBufferFactory bb_factory;   // Factory for allocating the internal buffer
-    final Utf8 utf8;                // UTF-8 encoder to use
+    ByteBuffer bb;                    // Where we construct the FlatBuffer.
+    int space;                        // Remaining space in the ByteBuffer.
+    int minalign = 1;                 // Minimum alignment encountered so far.
+    int[] vtable = null;              // The vtable for the current table.
+    int vtable_in_use = 0;            // The amount of fields we're actually using.
+    boolean nested = false;           // Whether we are currently serializing a table.
+    boolean finished = false;         // Whether the buffer is finished.
+    int object_start;                 // Starting offset of the current struct/table.
+    int[] vtables = new int[16];      // List of offsets of all vtables.
+    int num_vtables = 0;              // Number of entries in `vtables` in use.
+    int vector_num_elems = 0;         // For the current vector being built.
+    boolean force_defaults = false;   // False omits default values from the serialized data.
+    ByteBufferFactory bb_factory;     // Factory for allocating the internal buffer
+    final Utf8 utf8;                  // UTF-8 encoder to use
+    Map<String, Integer> string_pool; // map used to cache shared strings.
     /// @endcond
 
     /**
@@ -147,6 +151,9 @@ public class FlatBufferBuilder {
         object_start = 0;
         num_vtables = 0;
         vector_num_elems = 0;
+        if (string_pool != null) {
+            string_pool.clear();
+        }
         return this;
     }
 
@@ -224,6 +231,9 @@ public class FlatBufferBuilder {
         object_start = 0;
         num_vtables = 0;
         vector_num_elems = 0;
+        if (string_pool != null) {
+            string_pool.clear();
+        }
     }
 
     /**
@@ -525,6 +535,37 @@ public class FlatBufferBuilder {
     public <T extends Table> int createSortedVectorOfTables(T obj, int[] offsets) {
         obj.sortTables(offsets, bb);
         return createVectorOfTables(offsets);
+    }
+
+    /**
+    * Encode the String `s` in the buffer using UTF-8. If a String with
+    * this exact contents has already been serialized using this method,
+    * instead simply returns the offset of the existing String.
+    *
+    * Usage of the method will incur into additional allocations,
+    * so it is advisable to use it only when it is known upfront that
+    * your message will have several repeated strings.
+    *
+    * @param s The String to encode.
+    * @return The offset in the buffer where the encoded String starts.
+    */
+    public int createSharedString(String s) {
+
+        if (string_pool == null) {
+            string_pool = new HashMap<>();
+            int offset = createString(s);
+            string_pool.put(s, offset);
+            return offset;
+
+        }
+
+        Integer offset = string_pool.get(s);
+
+        if(offset == null) {
+            offset = createString(s);
+            string_pool.put(s, offset);
+        }
+        return offset;
     }
 
    /**

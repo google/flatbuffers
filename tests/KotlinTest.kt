@@ -76,6 +76,8 @@ class KotlinTest {
 
         TestVectorOfUnions()
 
+        TestSharedStringPool()
+
         println("FlatBuffers test: completed successfully")
     }
 
@@ -456,5 +458,14 @@ class KotlinTest {
 
         assert((movie.characters(Attacker(), 0) as Attacker).swordAttackDamage == swordAttackDamage)
     }
-}
+
+    fun TestSharedStringPool() {
+        val fb = FlatBufferBuilder(1);
+        val testString = "My string";
+        val offset = fb.createSharedString(testString);
+        for (i in 0..10) {
+            assert(offset == fb.createSharedString(testString));
+        }
+    }
   }
+}
