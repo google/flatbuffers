@@ -381,6 +381,13 @@ T ReadScalar(const void *p) {
   return EndianScalar(*reinterpret_cast<const T *>(p));
 }
 
+// See https://github.com/google/flatbuffers/issues/5950
+
+#if (FLATBUFFERS_GCC >= 100000) && (FLATBUFFERS_GCC < 110000)
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wstringop-overflow"
+#endif
+
 template<typename T>
 // UBSAN: C++ aliasing type rules, see std::bit_cast<> for details.
 __supress_ubsan__("alignment")
@@ -392,6 +399,10 @@ template<typename T> struct Offset;
 template<typename T> __supress_ubsan__("alignment") void WriteScalar(void *p, Offset<T> t) {
   *reinterpret_cast<uoffset_t *>(p) = EndianScalar(t.o);
 }
+
+#if (FLATBUFFERS_GCC >= 100000) && (FLATBUFFERS_GCC < 110000)
+  #pragma GCC diagnostic pop
+#endif
 
 // Computes how many bytes you'd have to pad to be able to write an
 // "scalar_size" scalar if the buffer had grown to "buf_size" (downwards in
