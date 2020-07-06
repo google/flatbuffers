@@ -134,12 +134,14 @@ class JsTsGenerator : public BaseGenerator {
       return;
     }
 
+    std::unordered_set<std::string> imported;
+
     std::string &code = *code_ptr;
     for (auto it = reexports.begin(); it != reexports.end(); ++it) {
       const auto &file = *it;
       const auto basename =
           flatbuffers::StripPath(flatbuffers::StripExtension(file.first));
-      if (basename != file_name_) {
+      if (basename != file_name_ && imported.find(file.second.symbol) == imported.end()) {
         if (imported_files.find(file.first) == imported_files.end()) {
           code += GenPrefixedImport(file.first, basename);
           imported_files.emplace(file.first);
@@ -155,6 +157,8 @@ class JsTsGenerator : public BaseGenerator {
         }
         code += file.second.symbol + ";\n";
         if (!file.second.target_namespace.empty()) { code += "}\n"; }
+
+        imported.emplace(file.second.symbol);
       }
     }
   }
@@ -366,7 +370,7 @@ class JsTsGenerator : public BaseGenerator {
       code += (it + 1) != enum_def.Vals().end() ? ",\n" : "\n";
 
       if (ev.union_type.struct_def) {
-        ReexportDescription desc = { ev.name,
+        ReexportDescription desc = { ev.union_type.struct_def->name,
                                      GetNameSpace(*ev.union_type.struct_def),
                                      GetNameSpace(enum_def) };
         reexports.insert(
@@ -977,7 +981,7 @@ class JsTsGenerator : public BaseGenerator {
         GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder") + " * " +
         GenTypeAnnotation(kReturns, "flatbuffers.Offset", "") +
         " */\npack(builder:flatbuffers.Builder): flatbuffers.Offset {\n";
-    
+
     std::string pack_func_offset_decl;
     std::string pack_func_create_call;
 
@@ -992,7 +996,7 @@ class JsTsGenerator : public BaseGenerator {
     } else {
       pack_func_create_call = "  " + struct_name + ".start(builder);\n";
     }
-    
+
     if (struct_def.fixed) {
       // when packing struct, nested struct's members instead of the struct's
       // offset are used
