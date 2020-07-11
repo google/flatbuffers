@@ -3416,6 +3416,51 @@ void TestEmbeddedBinarySchema() {
           0);
 }
 
+void NullableScalarsTest() {
+  // Simple schemas and a "has nullable scalar" sentinal.
+  const std::pair<std::string, bool> schemas[] = {
+    {"table Monster { mana : int; }", false},
+    {"table Monster { mana : int = 42; }", false},
+    {"table Monster { mana : int =  null; }", true},
+    {"table Monster { mana : long; }", false},
+    {"table Monster { mana : long = 42; }", false},
+    {"table Monster { mana : long = null; }", true},
+    {"table Monster { mana : float; }", false},
+    {"table Monster { mana : float = 42; }", false},
+    {"table Monster { mana : float = null; }", true},
+    {"table Monster { mana : double; }", false},
+    {"table Monster { mana : double = 42; }", false},
+    {"table Monster { mana : double = null; }", true},
+    {"table Monster { mana : bool; }", false},
+    {"table Monster { mana : bool = 42; }", false},
+    {"table Monster { mana : bool = null; }", true},
+  };
+
+  // Check the FieldDef is correctly set.
+  for (const auto &pair : schemas) {
+    const char* schema = pair.first.c_str();
+    const bool has_null = pair.second;
+    flatbuffers::Parser parser;
+    TEST_ASSERT(parser.Parse(schema, {}));
+    const auto* mana = parser.structs_.Lookup("Monster")->fields.Lookup("mana");
+    TEST_EQ(mana->nullable, has_null);
+  }
+
+  // Test if nullable scalars are allowed for each language.
+  const int kNumLanguages = 17;
+  for (int lang=0; lang<kNumLanguages; lang++) {
+    flatbuffers::IDLOptions opts;
+    opts.lang_to_generate |= 1 << lang;
+    for (const auto &pair : schemas) {
+      const char* schema = pair.first.c_str();
+      const bool has_null = pair.second;
+      flatbuffers::Parser parser(opts);
+      // Its not supported in any language yet so has_null means error.
+      TEST_EQ(parser.Parse(schema, {}), !has_null);
+    }
+  }
+}
+
 int FlatBufferTests() {
   // clang-format off
 
@@ -3503,6 +3548,7 @@ int FlatBufferTests() {
   TestMonsterExtraFloats();
   FixedLengthArrayTest();
   NativeTypeTest();
+  NullableScalarsTest();
   return 0;
 }
 
