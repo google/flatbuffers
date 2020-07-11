@@ -26,7 +26,7 @@ class EnumInNestedNS {
   static const EnumInNestedNS A = const EnumInNestedNS._(0);
   static const EnumInNestedNS B = const EnumInNestedNS._(1);
   static const EnumInNestedNS C = const EnumInNestedNS._(2);
-  static get values => {0: A,1: B,2: C,};
+  static const values = {0: A,1: B,2: C,};
 
   static const fb.Reader<EnumInNestedNS> reader = const _EnumInNestedNSReader();
 
