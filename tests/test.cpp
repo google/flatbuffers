@@ -3418,30 +3418,28 @@ void TestEmbeddedBinarySchema() {
 
 void NullableScalarsTest() {
   // Simple schemas and a "has nullable scalar" sentinal.
-  const std::pair<std::string, bool> schemas[] = {
-    {"table Monster { mana : int; }", false},
-    {"table Monster { mana : int = 42; }", false},
-    {"table Monster { mana : int =  null; }", true},
-    {"table Monster { mana : long; }", false},
-    {"table Monster { mana : long = 42; }", false},
-    {"table Monster { mana : long = null; }", true},
-    {"table Monster { mana : float; }", false},
-    {"table Monster { mana : float = 42; }", false},
-    {"table Monster { mana : float = null; }", true},
-    {"table Monster { mana : double; }", false},
-    {"table Monster { mana : double = 42; }", false},
-    {"table Monster { mana : double = null; }", true},
-    {"table Monster { mana : bool; }", false},
-    {"table Monster { mana : bool = 42; }", false},
-    {"table Monster { mana : bool = null; }", true},
-  };
+  std::vector<std::string> schemas;
+  schemas.push_back("table Monster { mana : int; }");
+  schemas.push_back("table Monster { mana : int = 42; }");
+  schemas.push_back("table Monster { mana : int =  null; }");
+  schemas.push_back("table Monster { mana : long; }");
+  schemas.push_back("table Monster { mana : long = 42; }");
+  schemas.push_back("table Monster { mana : long = null; }");
+  schemas.push_back("table Monster { mana : float; }");
+  schemas.push_back("table Monster { mana : float = 42; }");
+  schemas.push_back("table Monster { mana : float = null; }");
+  schemas.push_back("table Monster { mana : double; }");
+  schemas.push_back("table Monster { mana : double = 42; }");
+  schemas.push_back("table Monster { mana : double = null; }");
+  schemas.push_back("table Monster { mana : bool; }");
+  schemas.push_back("table Monster { mana : bool = 42; }");
+  schemas.push_back("table Monster { mana : bool = null; }");
 
   // Check the FieldDef is correctly set.
-  for (const auto &pair : schemas) {
-    const char* schema = pair.first.c_str();
-    const bool has_null = pair.second;
+  for (auto schema = schemas.begin(); schema < schemas.end(); schema++) {
+    const bool has_null = schema->find("null") != std::string::npos;
     flatbuffers::Parser parser;
-    TEST_ASSERT(parser.Parse(schema, {}));
+    TEST_ASSERT(parser.Parse(schema->c_str(), {}));
     const auto* mana = parser.structs_.Lookup("Monster")->fields.Lookup("mana");
     TEST_EQ(mana->nullable, has_null);
   }
@@ -3451,12 +3449,11 @@ void NullableScalarsTest() {
   for (int lang=0; lang<kNumLanguages; lang++) {
     flatbuffers::IDLOptions opts;
     opts.lang_to_generate |= 1 << lang;
-    for (const auto &pair : schemas) {
-      const char* schema = pair.first.c_str();
-      const bool has_null = pair.second;
+    for (auto schema = schemas.begin(); schema < schemas.end(); schema++) {
+      const bool has_null = schema->find("null") != std::string::npos;
       flatbuffers::Parser parser(opts);
       // Its not supported in any language yet so has_null means error.
-      TEST_EQ(parser.Parse(schema, {}), !has_null);
+      TEST_EQ(parser.Parse(schema->c_str(), {}), !has_null);
     }
   }
 }
