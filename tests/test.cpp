@@ -3439,7 +3439,7 @@ void NullableScalarsTest() {
   for (auto schema = schemas.begin(); schema < schemas.end(); schema++) {
     const bool has_null = schema->find("null") != std::string::npos;
     flatbuffers::Parser parser;
-    TEST_ASSERT(parser.Parse(schema->c_str(), {}));
+    TEST_ASSERT(parser.Parse(schema->c_str()));
     const auto* mana = parser.structs_.Lookup("Monster")->fields.Lookup("mana");
     TEST_EQ(mana->nullable, has_null);
   }
@@ -3453,7 +3453,7 @@ void NullableScalarsTest() {
       const bool has_null = schema->find("null") != std::string::npos;
       flatbuffers::Parser parser(opts);
       // Its not supported in any language yet so has_null means error.
-      TEST_EQ(parser.Parse(schema->c_str(), {}), !has_null);
+      TEST_EQ(parser.Parse(schema->c_str()), !has_null);
     }
   }
 }
