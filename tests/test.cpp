@@ -3440,7 +3440,7 @@ void NullableScalarsTest() {
     const bool has_null = schema->find("null") != std::string::npos;
     flatbuffers::Parser parser;
     TEST_ASSERT(parser.Parse(schema->c_str()));
-    const auto* mana = parser.structs_.Lookup("Monster")->fields.Lookup("mana");
+    const auto *mana = parser.structs_.Lookup("Monster")->fields.Lookup("mana");
     TEST_EQ(mana->nullable, has_null);
   }
 
@@ -3455,6 +3455,36 @@ void NullableScalarsTest() {
       // Its not supported in any language yet so has_null means error.
       TEST_EQ(parser.Parse(schema->c_str()), !has_null);
     }
+  }
+}
+
+void JsonNullTest() {
+  {
+    char json[] = "{\"opt_field\": 123 }";
+    flatbuffers::Parser parser;
+    flexbuffers::Builder flexbuild;
+    parser.ParseFlexBuffer(json, nullptr, &flexbuild);
+    auto root = flexbuffers::GetRoot(flexbuild.GetBuffer());
+    TEST_EQ(root.AsMap()["opt_field"].AsInt64(), 123);
+  }
+  {
+    char json[] = "{\"opt_field\": 123.4 }";
+    flatbuffers::Parser parser;
+    flexbuffers::Builder flexbuild;
+    parser.ParseFlexBuffer(json, nullptr, &flexbuild);
+    auto root = flexbuffers::GetRoot(flexbuild.GetBuffer());
+    TEST_EQ(root.AsMap()["opt_field"].AsDouble(), 123.4);
+  }
+  {
+    char json[] = "{\"opt_field\": null }";
+    flatbuffers::Parser parser;
+    flexbuffers::Builder flexbuild;
+    parser.ParseFlexBuffer(json, nullptr, &flexbuild);
+    auto root = flexbuffers::GetRoot(flexbuild.GetBuffer());
+    TEST_EQ(root.AsInt8(), 0);  // # BUG: This should be 1.
+    TEST_ASSERT(!root.AsMap().IsTheEmptyMap());
+    TEST_ASSERT(root.AsMap()["opt_field"].IsNull());
+    TEST_EQ(root.ToString(), std::string("{ opt_field: null }"));
   }
 }
 
@@ -3546,6 +3576,7 @@ int FlatBufferTests() {
   FixedLengthArrayTest();
   NativeTypeTest();
   NullableScalarsTest();
+  JsonNullTest();
   return 0;
 }
 

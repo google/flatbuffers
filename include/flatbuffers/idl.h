@@ -296,7 +296,7 @@ struct FieldDef : public Definition {
         shared(false),
         native_inline(false),
         flexbuffer(false),
-        nullable(true),
+        nullable(false),
         nested_flatbuffer(NULL),
         padding(0) {}
 
@@ -315,7 +315,8 @@ struct FieldDef : public Definition {
   bool native_inline;  // Field will be defined inline (instead of as a pointer)
                        // for native tables if field is a struct.
   bool flexbuffer;     // This field contains FlexBuffer data.
-  bool nullable;  // If True, this field is Null (as opposed to default valued).
+  bool nullable;       // If True, this field is Null (as opposed to default
+                       // valued).
   StructDef *nested_flatbuffer;  // This field contains nested FlatBuffer data.
   size_t padding;                // Bytes to always pad after this field.
 };
