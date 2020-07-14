@@ -3458,7 +3458,11 @@ void NullableScalarsTest() {
   }
 }
 
-void JsonNullTest() {
+void ParseFlexbuffersFromJsonWithNullTest() {
+  // Test nulls are handled appropriately through flexbuffers to exercise other
+  // code paths of ParseSingleValue in the nullable scalars change.
+  // TODO(cneo): Json -> Flatbuffers test once some language can generate code
+  // with nullable scalars.
   {
     char json[] = "{\"opt_field\": 123 }";
     flatbuffers::Parser parser;
@@ -3481,7 +3485,6 @@ void JsonNullTest() {
     flexbuffers::Builder flexbuild;
     parser.ParseFlexBuffer(json, nullptr, &flexbuild);
     auto root = flexbuffers::GetRoot(flexbuild.GetBuffer());
-    TEST_EQ(root.AsInt8(), 0);  // # BUG: This should be 1.
     TEST_ASSERT(!root.AsMap().IsTheEmptyMap());
     TEST_ASSERT(root.AsMap()["opt_field"].IsNull());
     TEST_EQ(root.ToString(), std::string("{ opt_field: null }"));
@@ -3576,7 +3579,7 @@ int FlatBufferTests() {
   FixedLengthArrayTest();
   NativeTypeTest();
   NullableScalarsTest();
-  JsonNullTest();
+  ParseFlexbuffersFromJsonWithNullTest();
   return 0;
 }
 
