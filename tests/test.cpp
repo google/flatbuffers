@@ -3432,6 +3432,81 @@ void TestEmbeddedBinarySchema() {
           0);
 }
 
+void NullableScalarsTest() {
+  // Simple schemas and a "has nullable scalar" sentinal.
+  std::vector<std::string> schemas;
+  schemas.push_back("table Monster { mana : int; }");
+  schemas.push_back("table Monster { mana : int = 42; }");
+  schemas.push_back("table Monster { mana : int =  null; }");
+  schemas.push_back("table Monster { mana : long; }");
+  schemas.push_back("table Monster { mana : long = 42; }");
+  schemas.push_back("table Monster { mana : long = null; }");
+  schemas.push_back("table Monster { mana : float; }");
+  schemas.push_back("table Monster { mana : float = 42; }");
+  schemas.push_back("table Monster { mana : float = null; }");
+  schemas.push_back("table Monster { mana : double; }");
+  schemas.push_back("table Monster { mana : double = 42; }");
+  schemas.push_back("table Monster { mana : double = null; }");
+  schemas.push_back("table Monster { mana : bool; }");
+  schemas.push_back("table Monster { mana : bool = 42; }");
+  schemas.push_back("table Monster { mana : bool = null; }");
+
+  // Check the FieldDef is correctly set.
+  for (auto schema = schemas.begin(); schema < schemas.end(); schema++) {
+    const bool has_null = schema->find("null") != std::string::npos;
+    flatbuffers::Parser parser;
+    TEST_ASSERT(parser.Parse(schema->c_str()));
+    const auto *mana = parser.structs_.Lookup("Monster")->fields.Lookup("mana");
+    TEST_EQ(mana->nullable, has_null);
+  }
+
+  // Test if nullable scalars are allowed for each language.
+  const int kNumLanguages = 17;
+  for (int lang=0; lang<kNumLanguages; lang++) {
+    flatbuffers::IDLOptions opts;
+    opts.lang_to_generate |= 1 << lang;
+    for (auto schema = schemas.begin(); schema < schemas.end(); schema++) {
+      const bool has_null = schema->find("null") != std::string::npos;
+      flatbuffers::Parser parser(opts);
+      // Its not supported in any language yet so has_null means error.
+      TEST_EQ(parser.Parse(schema->c_str()), !has_null);
+    }
+  }
+}
+
+void ParseFlexbuffersFromJsonWithNullTest() {
+  // Test nulls are handled appropriately through flexbuffers to exercise other
+  // code paths of ParseSingleValue in the nullable scalars change.
+  // TODO(cneo): Json -> Flatbuffers test once some language can generate code
+  // with nullable scalars.
+  {
+    char json[] = "{\"opt_field\": 123 }";
+    flatbuffers::Parser parser;
+    flexbuffers::Builder flexbuild;
+    parser.ParseFlexBuffer(json, nullptr, &flexbuild);
+    auto root = flexbuffers::GetRoot(flexbuild.GetBuffer());
+    TEST_EQ(root.AsMap()["opt_field"].AsInt64(), 123);
+  }
+  {
+    char json[] = "{\"opt_field\": 123.4 }";
+    flatbuffers::Parser parser;
+    flexbuffers::Builder flexbuild;
+    parser.ParseFlexBuffer(json, nullptr, &flexbuild);
+    auto root = flexbuffers::GetRoot(flexbuild.GetBuffer());
+    TEST_EQ(root.AsMap()["opt_field"].AsDouble(), 123.4);
+  }
+  {
+    char json[] = "{\"opt_field\": null }";
+    flatbuffers::Parser parser;
+    flexbuffers::Builder flexbuild;
+    parser.ParseFlexBuffer(json, nullptr, &flexbuild);
+    auto root = flexbuffers::GetRoot(flexbuild.GetBuffer());
+    TEST_ASSERT(!root.AsMap().IsTheEmptyMap());
+    TEST_ASSERT(root.AsMap()["opt_field"].IsNull());
+    TEST_EQ(root.ToString(), std::string("{ opt_field: null }"));
+  }
+}
+
 class CustromAllocator : public flatbuffers::Allocator {
  public:
   // Allocate `size` bytes of memory.
@@ -3615,6 +3690,8 @@ int FlatBufferTests() {
   TestMonsterExtraFloats();
   FixedLengthArrayTest();
   NativeTypeTest();
+  NullableScalarsTest();
+  ParseFlexbuffersFromJsonWithNullTest();
   AllocatorTest();
   return 0;
 }
