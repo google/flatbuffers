@@ -127,7 +127,7 @@ class JsonSchemaGenerator : public BaseGenerator {
     if (parser_.root_struct_def_ == nullptr) { return false; }
     code_.Clear();
     code_ += "{";
-    code_ += "  \"$schema\": \"http://json-schema.org/draft-04/schema#\",";
+    code_ += "  \"$schema\": \"https://json-schema.org/draft/2019-09/schema\",";
     code_ += "  \"definitions\": {";
     for (auto e = parser_.enums_.vec.cbegin(); e != parser_.enums_.vec.cend();
          ++e) {
@@ -174,9 +174,16 @@ class JsonSchemaGenerator : public BaseGenerator {
                       ",\n                \"maxItems\": " +
                       NumToString(property->value.type.fixed_length);
         }
+        std::string deprecated_info = "";
+        if (property->deprecated) {
+          deprecated_info = ",\n                \"deprecated\" : true,";
+        }
         std::string typeLine =
-            "        \"" + property->name + "\" : {\n" + "                " +
-            GenType(property->value.type) + arrayInfo + "\n              }";
+            "        \"" + property->name + "\" : {\n" + "                ";
+        typeLine += GenType(property->value.type);
+        typeLine += arrayInfo;
+        typeLine += deprecated_info;
+        typeLine += "\n              }";
         if (property != properties.back()) { typeLine.append(","); }
         code_ += typeLine;
       }

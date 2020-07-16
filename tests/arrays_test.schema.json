@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
   "definitions": {
     "MyGame_Example_TestEnum" : {
       "type" : "string",
