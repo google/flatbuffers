@@ -296,7 +296,11 @@ struct FieldDef : public Definition {
         shared(false),
         native_inline(false),
         flexbuffer(false),
+<<<<<<< HEAD
         optional(false),
+=======
+        nullable(false),
+>>>>>>> Flatc parser support for nullable scalars (#6026)
         nested_flatbuffer(NULL),
         padding(0) {}
 
@@ -319,7 +323,11 @@ struct FieldDef : public Definition {
   bool native_inline;  // Field will be defined inline (instead of as a pointer)
                        // for native tables if field is a struct.
   bool flexbuffer;     // This field contains FlexBuffer data.
+<<<<<<< HEAD
   bool optional;       // If True, this field is Null (as opposed to default
+=======
+  bool nullable;       // If True, this field is Null (as opposed to default
+>>>>>>> Flatc parser support for nullable scalars (#6026)
                        // valued).
   StructDef *nested_flatbuffer;  // This field contains nested FlatBuffer data.
   size_t padding;                // Bytes to always pad after this field.
@@ -941,7 +949,11 @@ class Parser : public ParserState {
 
   bool SupportsAdvancedUnionFeatures() const;
   bool SupportsAdvancedArrayFeatures() const;
+<<<<<<< HEAD
   bool SupportsOptionalScalars() const;
+=======
+  bool SupportsNullableScalars() const;
+>>>>>>> Flatc parser support for nullable scalars (#6026)
   Namespace *UniqueNamespace(Namespace *ns);
 
   FLATBUFFERS_CHECKED_ERROR RecurseError();
