@@ -127,3 +127,5 @@ grpc/google/
 **/Package.resolved
 .clangd/**
 package-lock.json
+/*.ilk
+/*.pdb
