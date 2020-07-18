@@ -661,22 +661,15 @@ class RustGenerator : public BaseGenerator {
     return "VT_" + MakeUpper(Name(field));
   }
 
-  std::string GetDefaultConstant(const FieldDef &field) {
-    return field.value.type.base_type == BASE_TYPE_FLOAT
-               ? field.value.constant + ""
-               : field.value.constant;
-  }
-
   std::string GetDefaultScalarValue(const FieldDef &field) {
     switch (GetFullType(field.value.type)) {
-      case ftInteger: {
-        return GetDefaultConstant(field);
-      }
+      case ftInteger:
       case ftFloat: {
-        return GetDefaultConstant(field);
+        return field.nullable ? "None" : field.value.constant;
       }
       case ftBool: {
-        return field.value.constant == "0" ? "false" : "true";
+        return field.nullable ? "None" :
+          field.value.constant == "0" ? "false" : "true";
       }
       case ftUnionKey:
       case ftEnumKey: {
@@ -714,7 +707,7 @@ class RustGenerator : public BaseGenerator {
       case ftFloat:
       case ftBool: {
         const auto typname = GetTypeBasic(type);
-        return typname;
+        return field.nullable ? "Option<" + typname + ">" : typname;
       }
       case ftStruct: {
         const auto typname = WrapInNameSpace(*type.struct_def);
@@ -880,9 +873,15 @@ class RustGenerator : public BaseGenerator {
       case ftInteger:
       case ftFloat: {
         const auto typname = GetTypeBasic(field.value.type);
+        if (field.nullable)
+        return "self.fbb_.push_slot_always::<" + typname + ">";
+        else
         return "self.fbb_.push_slot::<" + typname + ">";
       }
       case ftBool: {
+        if (field.nullable)
+        return "self.fbb_.push_slot_always::<bool>";
+        else
         return "self.fbb_.push_slot::<bool>";
       }
 
@@ -926,10 +925,10 @@ class RustGenerator : public BaseGenerator {
       case ftInteger:
       case ftFloat: {
         const auto typname = GetTypeBasic(type);
-        return typname;
+        return field.nullable ? "Option<" + typname + ">" : typname;
       }
       case ftBool: {
-        return "bool";
+        return field.nullable ? "Option<bool>" : "bool";
       }
       case ftStruct: {
         const auto typname = WrapInNameSpace(*type.struct_def);
@@ -1016,9 +1015,13 @@ class RustGenerator : public BaseGenerator {
       case ftFloat:
       case ftBool: {
         const auto typname = GetTypeBasic(type);
-        const auto default_value = GetDefaultScalarValue(field);
-        return "self._tab.get::<" + typname + ">(" + offset_name + ", Some(" +
-               default_value + ")).unwrap()";
+        if (field.nullable) {
+          return "self._tab.get::<" + typname + ">(" + offset_name + ", None)";
+        } else {
+          const auto default_value = GetDefaultScalarValue(field);
+          return "self._tab.get::<" + typname + ">(" + offset_name + ", Some(" +
+                 default_value + ")).unwrap()";
+       }
       }
       case ftStruct: {
         const auto typname = WrapInNameSpace(*type.struct_def);
@@ -1116,8 +1119,9 @@ class RustGenerator : public BaseGenerator {
     return "INVALID_CODE_GENERATION";  // for return analysis
   }
 
-  bool TableFieldReturnsOption(const Type &type) {
-    switch (GetFullType(type)) {
+  bool TableFieldReturnsOption(const FieldDef &field) {
+    if (field.nullable) return true;
+    switch (GetFullType(field.value.type)) {
       case ftInteger:
       case ftFloat:
       case ftBool:
@@ -1205,7 +1209,7 @@ class RustGenerator : public BaseGenerator {
         if (!field.deprecated && (!struct_def.sortbysize ||
                                   size == SizeOf(field.value.type.base_type))) {
           code_.SetValue("FIELD_NAME", Name(field));
-          if (TableFieldReturnsOption(field.value.type)) {
+          if (TableFieldReturnsOption(field)) {
             code_ +=
                 "      if let Some(x) = args.{{FIELD_NAME}} "
                 "{ builder.add_{{FIELD_NAME}}(x); }";
@@ -1421,7 +1425,6 @@ class RustGenerator : public BaseGenerator {
       const auto &field = **it;
       if (!field.deprecated) {
         const bool is_scalar = IsScalar(field.value.type.base_type);
-
         std::string offset = GetFieldOffsetName(field);
 
         // Generate functions to add data, which take one of two forms.
@@ -1443,7 +1446,7 @@ class RustGenerator : public BaseGenerator {
         code_ +=
             "  pub fn add_{{FIELD_NAME}}(&mut self, {{FIELD_NAME}}: "
             "{{FIELD_TYPE}}) {";
-        if (is_scalar) {
+        if (is_scalar && !field.nullable) {
           code_.SetValue("FIELD_DEFAULT_VALUE",
                          TableBuilderAddFuncDefaultValue(field));
           code_ +=

@@ -3446,9 +3446,11 @@ void NullableScalarsTest() {
 
   // Test if nullable scalars are allowed for each language.
   const int kNumLanguages = 17;
+  const auto supported = flatbuffers::IDLOptions::kRust;
   for (int lang=0; lang<kNumLanguages; lang++) {
     flatbuffers::IDLOptions opts;
     opts.lang_to_generate |= 1 << lang;
+    if (opts.lang_to_generate & supported) continue;
     for (auto schema = schemas.begin(); schema < schemas.end(); schema++) {
       const bool has_null = schema->find("null") != std::string::npos;
       flatbuffers::Parser parser(opts);
