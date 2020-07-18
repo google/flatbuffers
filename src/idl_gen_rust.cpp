@@ -731,14 +731,12 @@ class RustGenerator : public BaseGenerator {
       }
 
       case ftVectorOfInteger:
+      case ftVectorOfBool:
       case ftVectorOfFloat: {
         const auto typname = GetTypeBasic(type.VectorType());
         return "Option<flatbuffers::WIPOffset<flatbuffers::Vector<" + lifetime +
                ",  " + typname + ">>>";
-      }
-      case ftVectorOfBool: {
-        return "Option<flatbuffers::WIPOffset<flatbuffers::Vector<" + lifetime +
-               ", bool>>>";
+               // TODO(cneo): Fix whitespace in generated code.
       }
       case ftVectorOfEnumKey: {
         const auto typname = WrapInNameSpace(*type.enum_def);
@@ -808,14 +806,11 @@ class RustGenerator : public BaseGenerator {
                ">>>>";
       }
       case ftVectorOfInteger:
+      case ftVectorOfBool:
       case ftVectorOfFloat: {
         const auto typname = GetTypeBasic(type.VectorType());
         return "flatbuffers::WIPOffset<flatbuffers::Vector<" + lifetime + ", " +
                typname + ">>";
-      }
-      case ftVectorOfBool: {
-        return "flatbuffers::WIPOffset<flatbuffers::Vector<" + lifetime +
-               ", bool>>";
       }
       case ftVectorOfString: {
         return "flatbuffers::WIPOffset<flatbuffers::Vector<" + lifetime +
@@ -844,12 +839,9 @@ class RustGenerator : public BaseGenerator {
         return "flatbuffers::WIPOffset<" + typname + "<" + lifetime + ">>";
       }
       case ftInteger:
+      case ftBool:
       case ftFloat: {
-        const auto typname = GetTypeBasic(type);
-        return typname;
-      }
-      case ftBool: {
-        return "bool";
+        return GetTypeBasic(type);
       }
       case ftString: {
         return "flatbuffers::WIPOffset<&" + lifetime + " str>";
@@ -871,20 +863,13 @@ class RustGenerator : public BaseGenerator {
 
     switch (GetFullType(field.value.type)) {
       case ftInteger:
+      case ftBool:
       case ftFloat: {
         const auto typname = GetTypeBasic(field.value.type);
-        if (field.nullable)
-        return "self.fbb_.push_slot_always::<" + typname + ">";
-        else
-        return "self.fbb_.push_slot::<" + typname + ">";
+        return (field.nullable ?
+                   "self.fbb_.push_slot_always::<" :
+                   "self.fbb_.push_slot::<") + typname + ">";
       }
-      case ftBool: {
-        if (field.nullable)
-        return "self.fbb_.push_slot_always::<bool>";
-        else
-        return "self.fbb_.push_slot::<bool>";
-      }
-
       case ftEnumKey:
       case ftUnionKey: {
         const auto underlying_typname = GetTypeBasic(type);
@@ -923,12 +908,10 @@ class RustGenerator : public BaseGenerator {
 
     switch (GetFullType(field.value.type)) {
       case ftInteger:
-      case ftFloat: {
+      case ftFloat:
+      case ftBool: {
         const auto typname = GetTypeBasic(type);
         return field.nullable ? "Option<" + typname + ">" : typname;
-      }
-      case ftBool: {
-        return field.nullable ? "Option<bool>" : "bool";
       }
       case ftStruct: {
         const auto typname = WrapInNameSpace(*type.struct_def);
@@ -955,6 +938,7 @@ class RustGenerator : public BaseGenerator {
                                          field.required);
       }
       case ftVectorOfInteger:
+      case ftVectorOfBool:
       case ftVectorOfFloat: {
         const auto typname = GetTypeBasic(type.VectorType());
         if (IsOneByte(type.VectorType().base_type)) {
@@ -964,10 +948,6 @@ class RustGenerator : public BaseGenerator {
         return WrapInOptionIfNotRequired(
             "flatbuffers::Vector<" + lifetime + ", " + typname + ">",
             field.required);
-      }
-      case ftVectorOfBool: {
-        return WrapInOptionIfNotRequired("&" + lifetime + " [bool]",
-                                         field.required);
       }
       case ftVectorOfEnumKey: {
         const auto typname = WrapInNameSpace(*type.enum_def);
@@ -1059,6 +1039,7 @@ class RustGenerator : public BaseGenerator {
       }
 
       case ftVectorOfInteger:
+      case ftVectorOfBool:
       case ftVectorOfFloat: {
         const auto typname = GetTypeBasic(type.VectorType());
         std::string s =
@@ -1070,14 +1051,6 @@ class RustGenerator : public BaseGenerator {
           s += ".map(|v| v.safe_slice())";
         }
         return AddUnwrapIfRequired(s, field.required);
-      }
-      case ftVectorOfBool: {
-        return AddUnwrapIfRequired(
-            "self._tab.get::<flatbuffers::ForwardsUOffset<"
-            "flatbuffers::Vector<" +
-                lifetime + ", bool>>>(" + offset_name +
-                ", None).map(|v| v.safe_slice())",
-            field.required);
       }
       case ftVectorOfEnumKey: {
         const auto typname = WrapInNameSpace(*type.enum_def);
