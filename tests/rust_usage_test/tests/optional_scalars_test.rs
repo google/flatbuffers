@@ -49,3 +49,4 @@ make_test!(optional_i64, just_i64, default_i64, maybe_i64, 5, 0, 42);
 make_test!(optional_u64, just_u64, default_u64, maybe_u64, 5, 0, 42);
 make_test!(optional_f32, just_f32, default_f32, maybe_f32, 5.0, 0.0, 42.0);
 make_test!(optional_f64, just_f64, default_f64, maybe_f64, 5.0, 0.0, 42.0);
+make_test!(optional_bool, just_bool, default_bool, maybe_bool, true, false, true);

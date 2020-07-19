@@ -40,5 +40,5 @@ table ScalarStuff {
 
   just_bool: bool;
   maybe_bool: bool = null;
-  default_bool: bool = 42;
+  default_bool: bool = true;
 }
