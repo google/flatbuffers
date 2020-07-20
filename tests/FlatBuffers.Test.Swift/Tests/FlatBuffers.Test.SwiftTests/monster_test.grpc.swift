@@ -65,23 +65,23 @@ public extension MonsterStorageProvider {
 	func handleMethod(_ methodName: String, callHandlerContext: CallHandlerContext) -> GRPCCallHandler? {
 		switch methodName {
 		case "Store":
-		return UnaryCallHandler(callHandlerContext: callHandlerContext) { context in
+		return CallHandlerFactory.makeUnary(callHandlerContext: callHandlerContext) { context in
 			return { request in
 				self.Store(request, context: context)
 			}
 		}
 		case "Retrieve":
-		return ServerStreamingCallHandler(callHandlerContext: callHandlerContext) { context in
+		return CallHandlerFactory.makeServerStreaming(callHandlerContext: callHandlerContext) { context in
 			return { request in
 				self.Retrieve(request: request, context: context)
 			}
 		}
 		case "GetMaxHitPoint":
-		return ClientStreamingCallHandler(callHandlerContext: callHandlerContext) { context in
+		return CallHandlerFactory.makeClientStreaming(callHandlerContext: callHandlerContext) { context in
 			self.GetMaxHitPoint(context: context)
 		}
 		case "GetMinMaxHitPoints":
-		return BidirectionalStreamingCallHandler(callHandlerContext: callHandlerContext) { context in
+		return CallHandlerFactory.makeBidirectionalStreaming(callHandlerContext: callHandlerContext) { context in
 			self.GetMinMaxHitPoints(context: context)
 		}
 		default: return nil;
