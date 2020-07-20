@@ -446,8 +446,10 @@ public struct TestSimpleTableWithEnum: FlatBufferObject {
     public static func startTestSimpleTableWithEnum(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
     public static func add(color: MyGame.Example.Color, _ fbb: inout FlatBufferBuilder) { fbb.add(element: color.rawValue, def: 2, at: VTOFFSET.color.p) }
     public static func endTestSimpleTableWithEnum(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
-    public static func createTestSimpleTableWithEnum(_ fbb: inout FlatBufferBuilder,
-    color: MyGame.Example.Color = .green) -> Offset<UOffset> {
+    public static func createTestSimpleTableWithEnum(
+        _ fbb: inout FlatBufferBuilder,
+        color: MyGame.Example.Color = .green
+    ) -> Offset<UOffset> {
         let __start = TestSimpleTableWithEnum.startTestSimpleTableWithEnum(&fbb)
         TestSimpleTableWithEnum.add(color: color, &fbb)
         return TestSimpleTableWithEnum.endTestSimpleTableWithEnum(&fbb, start: __start)
@@ -513,10 +515,12 @@ public struct Stat: FlatBufferObject {
     public static func add(val: Int64, _ fbb: inout FlatBufferBuilder) { fbb.add(element: val, def: 0, at: VTOFFSET.val.p) }
     public static func add(count: UInt16, _ fbb: inout FlatBufferBuilder) { fbb.add(element: count, def: 0, at: VTOFFSET.count.p) }
     public static func endStat(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
-    public static func createStat(_ fbb: inout FlatBufferBuilder,
-    offsetOfId id: Offset<String> = Offset(),
-    val: Int64 = 0,
-    count: UInt16 = 0) -> Offset<UOffset> {
+    public static func createStat(
+        _ fbb: inout FlatBufferBuilder,
+        offsetOfId id: Offset<String> = Offset(),
+        val: Int64 = 0,
+        count: UInt16 = 0
+    ) -> Offset<UOffset> {
         let __start = Stat.startStat(&fbb)
         Stat.add(id: id, &fbb)
         Stat.add(val: val, &fbb)
@@ -590,8 +594,10 @@ public struct Referrable: FlatBufferObject {
     public static func startReferrable(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
     public static func add(id: UInt64, _ fbb: inout FlatBufferBuilder) { fbb.add(element: id, def: 0, at: VTOFFSET.id.p) }
     public static func endReferrable(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
-    public static func createReferrable(_ fbb: inout FlatBufferBuilder,
-    id: UInt64 = 0) -> Offset<UOffset> {
+    public static func createReferrable(
+        _ fbb: inout FlatBufferBuilder,
+        id: UInt64 = 0
+    ) -> Offset<UOffset> {
         let __start = Referrable.startReferrable(&fbb)
         Referrable.add(id: id, &fbb)
         return Referrable.endReferrable(&fbb, start: __start)
@@ -840,7 +846,8 @@ public struct Monster: FlatBufferObject {
     public static func add(enemy: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: enemy, at: VTOFFSET.enemy.p)  }
     public static func addVectorOf(testnestedflatbuffer: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: testnestedflatbuffer, at: VTOFFSET.testnestedflatbuffer.p)  }
     public static func add(testempty: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: testempty, at: VTOFFSET.testempty.p)  }
-    public static func add(testbool: Bool, _ fbb: inout FlatBufferBuilder) { fbb.add(element: testbool, def: false, at: VTOFFSET.testbool.p) }
+    public static func add(testbool: Bool, _ fbb: inout FlatBufferBuilder) { fbb.add(element: testbool, def: false,
+     at: VTOFFSET.testbool.p) }
     public static func add(testhashs32Fnv1: Int32, _ fbb: inout FlatBufferBuilder) { fbb.add(element: testhashs32Fnv1, def: 0, at: VTOFFSET.testhashs32Fnv1.p) }
     public static func add(testhashu32Fnv1: UInt32, _ fbb: inout FlatBufferBuilder) { fbb.add(element: testhashu32Fnv1, def: 0, at: VTOFFSET.testhashu32Fnv1.p) }
     public static func add(testhashs64Fnv1: Int64, _ fbb: inout FlatBufferBuilder) { fbb.add(element: testhashs64Fnv1, def: 0, at: VTOFFSET.testhashs64Fnv1.p) }
@@ -875,55 +882,57 @@ public struct Monster: FlatBufferObject {
     public static func addVectorOf(vectorOfEnums: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: vectorOfEnums, at: VTOFFSET.vectorOfEnums.p)  }
     public static func add(signedEnum: MyGame.Example.Race, _ fbb: inout FlatBufferBuilder) { fbb.add(element: signedEnum.rawValue, def: -1, at: VTOFFSET.signedEnum.p) }
     public static func endMonster(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); fbb.require(table: end, fields: [10]); return end }
-    public static func createMonster(_ fbb: inout FlatBufferBuilder,
-    structOfPos pos: UnsafeMutableRawPointer? = nil,
-    mana: Int16 = 150,
-    hp: Int16 = 100,
-    offsetOfName name: Offset<String> = Offset(),
-    vectorOfInventory inventory: Offset<UOffset> = Offset(),
-    color: MyGame.Example.Color = .blue,
-    testType: MyGame.Example.Any_ = .none_,
-    offsetOfTest test: Offset<UOffset> = Offset(),
-    vectorOfTest4 test4: Offset<UOffset> = Offset(),
-    vectorOfTestarrayofstring testarrayofstring: Offset<UOffset> = Offset(),
-    vectorOfTestarrayoftables testarrayoftables: Offset<UOffset> = Offset(),
-    offsetOfEnemy enemy: Offset<UOffset> = Offset(),
-    vectorOfTestnestedflatbuffer testnestedflatbuffer: Offset<UOffset> = Offset(),
-    offsetOfTestempty testempty: Offset<UOffset> = Offset(),
-    testbool: Bool = false,
-    testhashs32Fnv1: Int32 = 0,
-    testhashu32Fnv1: UInt32 = 0,
-    testhashs64Fnv1: Int64 = 0,
-    testhashu64Fnv1: UInt64 = 0,
-    testhashs32Fnv1a: Int32 = 0,
-    testhashu32Fnv1a: UInt32 = 0,
-    testhashs64Fnv1a: Int64 = 0,
-    testhashu64Fnv1a: UInt64 = 0,
-    vectorOfTestarrayofbools testarrayofbools: Offset<UOffset> = Offset(),
-    testf: Float32 = 3.14159,
-    testf2: Float32 = 3.0,
-    testf3: Float32 = 0.0,
-    vectorOfTestarrayofstring2 testarrayofstring2: Offset<UOffset> = Offset(),
-    vectorOfTestarrayofsortedstruct testarrayofsortedstruct: Offset<UOffset> = Offset(),
-    vectorOfFlex flex: Offset<UOffset> = Offset(),
-    vectorOfTest5 test5: Offset<UOffset> = Offset(),
-    vectorOfVectorOfLongs vectorOfLongs: Offset<UOffset> = Offset(),
-    vectorOfVectorOfDoubles vectorOfDoubles: Offset<UOffset> = Offset(),
-    offsetOfParentNamespaceTest parentNamespaceTest: Offset<UOffset> = Offset(),
-    vectorOfVectorOfReferrables vectorOfReferrables: Offset<UOffset> = Offset(),
-    singleWeakReference: UInt64 = 0,
-    vectorOfVectorOfWeakReferences vectorOfWeakReferences: Offset<UOffset> = Offset(),
-    vectorOfVectorOfStrongReferrables vectorOfStrongReferrables: Offset<UOffset> = Offset(),
-    coOwningReference: UInt64 = 0,
-    vectorOfVectorOfCoOwningReferences vectorOfCoOwningReferences: Offset<UOffset> = Offset(),
-    nonOwningReference: UInt64 = 0,
-    vectorOfVectorOfNonOwningReferences vectorOfNonOwningReferences: Offset<UOffset> = Offset(),
-    anyUniqueType: MyGame.Example.AnyUniqueAliases = .none_,
-    offsetOfAnyUnique anyUnique: Offset<UOffset> = Offset(),
-    anyAmbiguousType: MyGame.Example.AnyAmbiguousAliases = .none_,
-    offsetOfAnyAmbiguous anyAmbiguous: Offset<UOffset> = Offset(),
-    vectorOfVectorOfEnums vectorOfEnums: Offset<UOffset> = Offset(),
-    signedEnum: MyGame.Example.Race = .none_) -> Offset<UOffset> {
+    public static func createMonster(
+        _ fbb: inout FlatBufferBuilder,
+        structOfPos pos: UnsafeMutableRawPointer? = nil,
+        mana: Int16 = 150,
+        hp: Int16 = 100,
+        offsetOfName name: Offset<String> = Offset(),
+        vectorOfInventory inventory: Offset<UOffset> = Offset(),
+        color: MyGame.Example.Color = .blue,
+        testType: MyGame.Example.Any_ = .none_,
+        offsetOfTest test: Offset<UOffset> = Offset(),
+        vectorOfTest4 test4: Offset<UOffset> = Offset(),
+        vectorOfTestarrayofstring testarrayofstring: Offset<UOffset> = Offset(),
+        vectorOfTestarrayoftables testarrayoftables: Offset<UOffset> = Offset(),
+        offsetOfEnemy enemy: Offset<UOffset> = Offset(),
+        vectorOfTestnestedflatbuffer testnestedflatbuffer: Offset<UOffset> = Offset(),
+        offsetOfTestempty testempty: Offset<UOffset> = Offset(),
+        testbool: Bool = false,
+        testhashs32Fnv1: Int32 = 0,
+        testhashu32Fnv1: UInt32 = 0,
+        testhashs64Fnv1: Int64 = 0,
+        testhashu64Fnv1: UInt64 = 0,
+        testhashs32Fnv1a: Int32 = 0,
+        testhashu32Fnv1a: UInt32 = 0,
+        testhashs64Fnv1a: Int64 = 0,
+        testhashu64Fnv1a: UInt64 = 0,
+        vectorOfTestarrayofbools testarrayofbools: Offset<UOffset> = Offset(),
+        testf: Float32 = 3.14159,
+        testf2: Float32 = 3.0,
+        testf3: Float32 = 0.0,
+        vectorOfTestarrayofstring2 testarrayofstring2: Offset<UOffset> = Offset(),
+        vectorOfTestarrayofsortedstruct testarrayofsortedstruct: Offset<UOffset> = Offset(),
+        vectorOfFlex flex: Offset<UOffset> = Offset(),
+        vectorOfTest5 test5: Offset<UOffset> = Offset(),
+        vectorOfVectorOfLongs vectorOfLongs: Offset<UOffset> = Offset(),
+        vectorOfVectorOfDoubles vectorOfDoubles: Offset<UOffset> = Offset(),
+        offsetOfParentNamespaceTest parentNamespaceTest: Offset<UOffset> = Offset(),
+        vectorOfVectorOfReferrables vectorOfReferrables: Offset<UOffset> = Offset(),
+        singleWeakReference: UInt64 = 0,
+        vectorOfVectorOfWeakReferences vectorOfWeakReferences: Offset<UOffset> = Offset(),
+        vectorOfVectorOfStrongReferrables vectorOfStrongReferrables: Offset<UOffset> = Offset(),
+        coOwningReference: UInt64 = 0,
+        vectorOfVectorOfCoOwningReferences vectorOfCoOwningReferences: Offset<UOffset> = Offset(),
+        nonOwningReference: UInt64 = 0,
+        vectorOfVectorOfNonOwningReferences vectorOfNonOwningReferences: Offset<UOffset> = Offset(),
+        anyUniqueType: MyGame.Example.AnyUniqueAliases = .none_,
+        offsetOfAnyUnique anyUnique: Offset<UOffset> = Offset(),
+        anyAmbiguousType: MyGame.Example.AnyAmbiguousAliases = .none_,
+        offsetOfAnyAmbiguous anyAmbiguous: Offset<UOffset> = Offset(),
+        vectorOfVectorOfEnums vectorOfEnums: Offset<UOffset> = Offset(),
+        signedEnum: MyGame.Example.Race = .none_
+    ) -> Offset<UOffset> {
         let __start = Monster.startMonster(&fbb)
         Monster.add(pos: pos, &fbb)
         Monster.add(mana: mana, &fbb)
@@ -1436,19 +1445,21 @@ public struct TypeAliases: FlatBufferObject {
     public static func addVectorOf(v8: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: v8, at: VTOFFSET.v8.p)  }
     public static func addVectorOf(vf64: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: vf64, at: VTOFFSET.vf64.p)  }
     public static func endTypeAliases(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
-    public static func createTypeAliases(_ fbb: inout FlatBufferBuilder,
-    i8: Int8 = 0,
-    u8: UInt8 = 0,
-    i16: Int16 = 0,
-    u16: UInt16 = 0,
-    i32: Int32 = 0,
-    u32: UInt32 = 0,
-    i64: Int64 = 0,
-    u64: UInt64 = 0,
-    f32: Float32 = 0.0,
-    f64: Double = 0.0,
-    vectorOfV8 v8: Offset<UOffset> = Offset(),
-    vectorOfVf64 vf64: Offset<UOffset> = Offset()) -> Offset<UOffset> {
+    public static func createTypeAliases(
+        _ fbb: inout FlatBufferBuilder,
+        i8: Int8 = 0,
+        u8: UInt8 = 0,
+        i16: Int16 = 0,
+        u16: UInt16 = 0,
+        i32: Int32 = 0,
+        u32: UInt32 = 0,
+        i64: Int64 = 0,
+        u64: UInt64 = 0,
+        f32: Float32 = 0.0,
+        f64: Double = 0.0,
+        vectorOfV8 v8: Offset<UOffset> = Offset(),
+        vectorOfVf64 vf64: Offset<UOffset> = Offset()
+    ) -> Offset<UOffset> {
         let __start = TypeAliases.startTypeAliases(&fbb)
         TypeAliases.add(i8: i8, &fbb)
         TypeAliases.add(u8: u8, &fbb)
