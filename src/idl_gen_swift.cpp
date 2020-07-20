@@ -142,7 +142,8 @@ class SwiftGenerator : public BaseGenerator {
     code_.Clear();
     code_.SetValue("ACCESS", "_accessor");
     code_.SetValue("TABLEOFFSET", "VTOFFSET");
-    code_ += "// " + std::string(FlatBuffersGeneratedWarning()) + "\n";
+    code_ += "// " + std::string(FlatBuffersGeneratedWarning());
+    code_ += "// swiftlint:disable all\n";
     code_ += "import FlatBuffers\n";
     // Generate code for all the enum declarations.
 
@@ -509,8 +510,8 @@ class SwiftGenerator : public BaseGenerator {
       auto default_value = IsEnum(field.value.type) ? GenEnumDefaultValue(field)
                                                     : field.value.constant;
       auto is_enum = IsEnum(field.value.type) ? ".rawValue" : "";
-      code_ += "{{VALUETYPE}}" + builder_string + "fbb.add(element: {{VALUENAME}}" +
-               is_enum +
+      code_ += "{{VALUETYPE}}" + builder_string +
+               "fbb.add(element: {{VALUENAME}}" + is_enum +
                ", def: {{CONSTANT}}, at: {{TABLEOFFSET}}.{{OFFSET}}.p) }";
       create_func_header.push_back("" + name + ": " + type + " = " +
                                    default_value);
@@ -530,13 +531,17 @@ class SwiftGenerator : public BaseGenerator {
     }
 
     if (IsStruct(field.value.type)) {
-        auto struct_type = "UnsafeMutableRawPointer?";
-        auto camel_case_name = "structOf" + MakeCamel(name, true);
-        create_func_header.push_back(camel_case_name + " " + name + ": " + struct_type + " = nil");
-        auto create_struct = "guard let {{VALUENAME}} = {{VALUENAME}} else { return }; fbb.create(struct: {{VALUENAME}}, type: {{VALUETYPE}}.self); ";
-        auto reader_type = "fbb.add(structOffset: {{TABLEOFFSET}}.{{OFFSET}}.p) }";
-        code_ += struct_type + builder_string + create_struct + reader_type;
-        return;
+      auto struct_type = "UnsafeMutableRawPointer?";
+      auto camel_case_name = "structOf" + MakeCamel(name, true);
+      create_func_header.push_back(camel_case_name + " " + name + ": " +
+                                   struct_type + " = nil");
+      auto create_struct =
+          "guard let {{VALUENAME}} = {{VALUENAME}} else { return }; "
+          "fbb.create(struct: {{VALUENAME}}, type: {{VALUETYPE}}.self); ";
+      auto reader_type =
+          "fbb.add(structOffset: {{TABLEOFFSET}}.{{OFFSET}}.p) }";
+      code_ += struct_type + builder_string + create_struct + reader_type;
+      return;
     }
 
     auto offset_type = field.value.type.base_type == BASE_TYPE_STRING
@@ -879,11 +884,14 @@ class SwiftGenerator : public BaseGenerator {
         case BASE_TYPE_STRUCT: {
           if (field.value.type.struct_def &&
               field.value.type.struct_def->fixed) {
-            // This is a Struct (IsStruct), not a table. We create UnsafeMutableRawPointer in this case.
+            // This is a Struct (IsStruct), not a table. We create
+            // UnsafeMutableRawPointer in this case.
             std::string code;
-            GenerateStructArgs(*field.value.type.struct_def, &code, "", "", "$0", true);
+            GenerateStructArgs(*field.value.type.struct_def, &code, "", "",
+                               "$0", true);
             code = code.substr(0, code.size() - 2);
-            code_ += "let __" + name + " = obj." + name + ".map { create" + field.value.type.struct_def->name + "(" + code + ") }";
+            code_ += "let __" + name + " = obj." + name + ".map { create" +
+                     field.value.type.struct_def->name + "(" + code + ") }";
           } else {
             code_ += "let __" + name + " = " + type +
                      ".pack(&builder, obj: &obj." + name + ")";
