@@ -9,6 +9,7 @@ cc_test(
     srcs = [
         "evolution_test/evolution_v1_generated.h",
         "evolution_test/evolution_v2_generated.h",
+        "monster_test_bfbs_generated.h",
         "namespace_test/namespace_test1_generated.h",
         "namespace_test/namespace_test2_generated.h",
         "native_type_test_impl.cpp",
@@ -19,7 +20,6 @@ cc_test(
         "test_builder.cpp",
         "test_builder.h",
         "union_vector/union_vector_generated.h",
-        "monster_test_bfbs_generated.h",
     ],
     copts = [
         "-DFLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE",
@@ -70,6 +70,45 @@ cc_test(
 # Test bzl rules
 load("//:build_defs.bzl", "flatbuffer_cc_library")
 
+cc_library(
+    name = "test_assert",
+    srcs = ["test_assert.cpp"],
+    hdrs = ["test_assert.h"],
+    visibility = ["//grpc/tests:__subpackages__"],
+    deps = ["//:flatbuffers"],
+)
+
+cc_library(
+    name = "test_builder",
+    srcs = ["test_builder.cpp"],
+    hdrs = ["test_builder.h"],
+    visibility = ["//grpc/tests:__subpackages__"],
+    deps = [
+        ":monster_test_grpc",
+        ":test_assert",
+        "//:flatbuffers",
+    ],
+)
+
+cc_library(
+    name = "monster_test_grpc",
+    srcs = [
+        "monster_test.grpc.fb.cc",
+        "monster_test.grpc.fb.h",
+        "monster_test_generated.h",
+    ],
+    hdrs = [
+        "monster_test.grpc.fb.h",
+        "monster_test_generated.h",
+    ],
+    includes = ["."],
+    visibility = ["//grpc/tests:__subpackages__"],
+    deps = [
+        "//:flatbuffers",
+        "@com_github_grpc_grpc//:grpc++",
+    ],
+)
+
 flatbuffer_cc_library(
     name = "monster_test_cc_fbs",
     srcs = ["monster_test.fbs"],
@@ -78,6 +117,7 @@ flatbuffer_cc_library(
         "include_test/include_test1.fbs",
         "include_test/sub/include_test2.fbs",
     ],
+    visibility = ["//grpc/tests:__subpackages__"],
 )
 
 flatbuffer_cc_library(
