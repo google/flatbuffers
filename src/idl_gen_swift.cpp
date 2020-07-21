@@ -1432,7 +1432,7 @@ class SwiftGenerator : public BaseGenerator {
     for (size_t j = 0; j < common_prefix_size; ++j) {
       prefix += ns->components[j] + ".";
     }
-    ssize_t unseen_namespace_pos = -1;
+    size_t unseen_namespace_pos = new_size;
     size_t extension_size = 0;
     for (auto j = common_prefix_size; j < new_size; ++j) {
       std::string name = ns->components[j];
@@ -1456,15 +1456,13 @@ class SwiftGenerator : public BaseGenerator {
       code_ += "extension {{EXTENSION}} {";
       namespace_depth = 1;
     }
-    if (unseen_namespace_pos >= 0) {
-      for (size_t j = unseen_namespace_pos; j < new_size; ++j) {
-        std::string name = ns->components[j];
-        std::string fully_qualified_name = prefix + name;
-        namespaces_.insert(fully_qualified_name);
-        prefix += name + ".";
-        code_ += "public enum " + name + " {";
-        namespace_depth += 1;
-      }
+    for (auto j = unseen_namespace_pos; j < new_size; ++j) {
+      std::string name = ns->components[j];
+      std::string fully_qualified_name = prefix + name;
+      namespaces_.insert(fully_qualified_name);
+      prefix += name + ".";
+      code_ += "public enum " + name + " {";
+      namespace_depth += 1;
     }
 
     if (new_size != common_prefix_size) { code_ += ""; }
