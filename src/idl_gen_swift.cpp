@@ -44,7 +44,7 @@ class SwiftGenerator : public BaseGenerator {
   const Namespace *cur_name_space_;
   CodeWriter code_;
   std::unordered_set<std::string> keywords_;
-  std::set<std::string> namespaces_;
+  std::unordered_set<std::string> namespaces_;
   int namespace_depth;
 
  public:
@@ -1419,35 +1419,54 @@ class SwiftGenerator : public BaseGenerator {
     // Close cur_name_space in reverse order to reach the common prefix.
     // In the previous example, D then C are closed.
     for (size_t j = old_size; j > common_prefix_size; --j) {
-      if (namespace_depth >= 0) {
+      if (namespace_depth > 0) {
         code_ += "}";
         namespace_depth -= 1;
       }
       mark(cur_name_space_->components[j - 1]);
     }
-    if (old_size != common_prefix_size) { code_ += ""; }
-
-    // open namespace parts to reach the ns namespace
-    // in the previous example, E, then F, then G are opened
-    bool is_extension = false;
+    if (old_size != common_prefix_size) {
+      code_ += "";
+    }
+    std::string prefix = "";
+    for (size_t j = 0; j < common_prefix_size; ++j) {
+      prefix += ns->components[j] + ".";
+    }
+    ssize_t unseen_namespace_pos = -1;
+    size_t extension_size = 0;
     for (auto j = common_prefix_size; j < new_size; ++j) {
       std::string name = ns->components[j];
-      if (namespaces_.find(name) == namespaces_.end()) {
-        code_ += "public enum " + name + " {";
-        namespace_depth += 1;
-        namespaces_.insert(name);
+      std::string fully_qualified_name = prefix + name;
+      if (namespaces_.find(fully_qualified_name) == namespaces_.end()) {
+        unseen_namespace_pos = j;
+        break;
       } else {
-        if (namespace_depth != 0) {
-          code_ += "}";
-          namespace_depth = 0;
-        }
-        is_extension = true;
+        prefix += name + ".";
+        extension_size = j + 1;
       }
     }
-    if (is_extension) {
-      code_.SetValue("EXTENSION", FullNamespace(".", *ns));
+    if (extension_size > 0) {
+      for (auto j = 0; j < namespace_depth; ++j) {
+        code_ += "}";
+        code_ += "";
+      }
+      Namespace extensionNs;
+      extensionNs.components = std::vector<std::string>(ns->components.begin(), ns->components.begin() + extension_size);
+      code_.SetValue("EXTENSION", FullNamespace(".", extensionNs));
       code_ += "extension {{EXTENSION}} {";
+      namespace_depth = 1;
     }
+    if (unseen_namespace_pos >= 0) {
+      for (auto j = unseen_namespace_pos; j < new_size; ++j) {
+        std::string name = ns->components[j];
+        std::string fully_qualified_name = prefix + name;
+        namespaces_.insert(fully_qualified_name);
+        prefix += name + ".";
+        code_ += "public enum " + name + " {";
+        namespace_depth += 1;
+      }
+    }
+
     if (new_size != common_prefix_size) { code_ += ""; }
     cur_name_space_ = ns;
   }
