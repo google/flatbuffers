@@ -1457,7 +1457,7 @@ class SwiftGenerator : public BaseGenerator {
       namespace_depth = 1;
     }
     if (unseen_namespace_pos >= 0) {
-      for (auto j = (size_t)unseen_namespace_pos; j < new_size; ++j) {
+      for (size_t j = unseen_namespace_pos; j < new_size; ++j) {
         std::string name = ns->components[j];
         std::string fully_qualified_name = prefix + name;
         namespaces_.insert(fully_qualified_name);
