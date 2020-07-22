@@ -421,6 +421,7 @@ public class MonsterT: NativeTable {
 
 
 }
+
 extension MyGame.Example {
 
 public struct TestSimpleTableWithEnum: FlatBufferObject {
