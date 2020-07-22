@@ -2021,6 +2021,7 @@ struct EnumValBuilder {
                        (temp->union_type.enum_def == &enum_def));
     auto not_unique = enum_def.vals.Add(name, temp);
     temp = nullptr;
+    if (name == "MIN" || name == "MAX") return parser.Error("enum value reserved: " + name);
     if (not_unique) return parser.Error("enum value already exists: " + name);
     return NoError();
   }
