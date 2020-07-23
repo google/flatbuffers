@@ -1,7 +1,9 @@
 [package]
 name = "rust_usage_test"
 version = "0.1.0"
-authors = ["Robert Winslow <hello@rwinslow.com>", "FlatBuffers Maintainers"]
+authors = ["Robert Winslow <hello@rwinslow.com>",
+           "Casper Neo <cneo@google.com>",
+           "FlatBuffers Maintainers"]
 
 [dependencies]
 flatbuffers = { path = "../../rust/flatbuffers" }
