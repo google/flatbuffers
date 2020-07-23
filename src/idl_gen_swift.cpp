@@ -1425,9 +1425,7 @@ class SwiftGenerator : public BaseGenerator {
       }
       mark(cur_name_space_->components[j - 1]);
     }
-    if (old_size != common_prefix_size) {
-      code_ += "";
-    }
+    if (old_size != common_prefix_size) { code_ += ""; }
     std::string prefix = "";
     for (size_t j = 0; j < common_prefix_size; ++j) {
       prefix += ns->components[j] + ".";
@@ -1437,25 +1435,39 @@ class SwiftGenerator : public BaseGenerator {
     for (auto j = common_prefix_size; j < new_size; ++j) {
       std::string name = ns->components[j];
       std::string fully_qualified_name = prefix + name;
+      // Use full namespace to verify whether we have this namespace declared before or not.
       if (namespaces_.find(fully_qualified_name) == namespaces_.end()) {
+        // If we never see this namespace, we will declare this namespace with public enum.
         unseen_namespace_pos = j;
         break;
       } else {
+        // If we see this namespace before, we will keep track of the namespace we are going
+        // to put in extension. Note that because extension in Swift is file level. We have
+        // to close all namespaces before (including common_prefix_size) and then declare the
+        // extension. That is why the extension_size included the common_prefix_size.
         prefix += name + ".";
         extension_size = j + 1;
       }
     }
     if (extension_size > 0) {
+      // If we have seen the namespace before, we have to declare with extension. Because in
+      // Swift, extension is at file level (you cannot nest with public enum etc.), we have to
+      // close all namespaces and then declare the extension.
+      // Close all namespaces.
       for (auto j = 0; j < namespace_depth; ++j) {
         code_ += "}";
         code_ += "";
       }
       Namespace extensionNs;
       extensionNs.components = std::vector<std::string>(ns->components.begin(), ns->components.begin() + extension_size);
+      // Cut namespace up until extension_size, and declare that.
       code_.SetValue("EXTENSION", FullNamespace(".", extensionNs));
       code_ += "extension {{EXTENSION}} {";
+      // The extension open is only one depth deep, even if it contains many dot separated names.
+      // To close the extension later, we just need to close one.
       namespace_depth = 1;
     }
+    // For namespaces we haven't seen before, declare them as public enum.
     for (auto j = unseen_namespace_pos; j < new_size; ++j) {
       std::string name = ns->components[j];
       std::string fully_qualified_name = prefix + name;
