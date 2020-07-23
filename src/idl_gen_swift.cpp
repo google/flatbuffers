@@ -1433,8 +1433,8 @@ class SwiftGenerator : public BaseGenerator {
     size_t unseen_namespace_pos = new_size;
     size_t extension_size = 0;
     for (auto j = common_prefix_size; j < new_size; ++j) {
-      std::string name = ns->components[j];
-      std::string fully_qualified_name = prefix + name;
+      auto name = ns->components[j];
+      auto fully_qualified_name = prefix + name;
       // Use full namespace to verify whether we have this namespace declared before or not.
       if (namespaces_.find(fully_qualified_name) == namespaces_.end()) {
         // If we never see this namespace, we will declare this namespace with public enum.
