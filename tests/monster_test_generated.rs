@@ -1488,7 +1488,7 @@ pub struct MonsterArgs<'a> {
     pub testhashu32_fnv1a: u32,
     pub testhashs64_fnv1a: i64,
     pub testhashu64_fnv1a: u64,
-    pub testarrayofbools: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a , bool>>>,
+    pub testarrayofbools: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a ,  bool>>>,
     pub testf: f32,
     pub testf2: f32,
     pub testf3: f32,
