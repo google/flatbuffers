@@ -1940,10 +1940,7 @@ class FlatBufferBuilder {
     vector_downward &buf_;
 
    private:
-    TableKeyComparator &operator=(const TableKeyComparator &other) {
-      buf_ = other.buf_;
-      return *this;
-    }
+    FLATBUFFERS_DELETE_FUNC(TableKeyComparator &operator=(const TableKeyComparator &other))
   };
   /// @endcond
 
