@@ -3,15 +3,13 @@
 
 import FlatBuffers
 
-public enum optional_scalars {
-
-public struct ScalarStuff: FlatBufferObject {
+public struct optional_scalars_ScalarStuff: FlatBufferObject {
 
     static func validateVersion() { FlatBuffersVersion_1_12_0() }
     public var __buffer: ByteBuffer! { return _accessor.bb }
     private var _accessor: Table
 
-    public static func getRootAsScalarStuff(bb: ByteBuffer) -> ScalarStuff { return ScalarStuff(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
+    public static func getRootAsScalarStuff(bb: ByteBuffer) -> optional_scalars_ScalarStuff { return optional_scalars_ScalarStuff(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
 
     private init(_ t: Table) { _accessor = t }
     public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
@@ -160,46 +158,41 @@ public struct ScalarStuff: FlatBufferObject {
         maybeBool: Bool? = nil,
         defaultBool: Bool = true
     ) -> Offset<UOffset> {
-        let __start = ScalarStuff.startScalarStuff(&fbb)
-        ScalarStuff.add(justI8: justI8, &fbb)
-        ScalarStuff.add(maybeI8: maybeI8, &fbb)
-        ScalarStuff.add(defaultI8: defaultI8, &fbb)
-        ScalarStuff.add(justU8: justU8, &fbb)
-        ScalarStuff.add(maybeU8: maybeU8, &fbb)
-        ScalarStuff.add(defaultU8: defaultU8, &fbb)
-        ScalarStuff.add(justI16: justI16, &fbb)
-        ScalarStuff.add(maybeI16: maybeI16, &fbb)
-        ScalarStuff.add(defaultI16: defaultI16, &fbb)
-        ScalarStuff.add(justU16: justU16, &fbb)
-        ScalarStuff.add(maybeU16: maybeU16, &fbb)
-        ScalarStuff.add(defaultU16: defaultU16, &fbb)
-        ScalarStuff.add(justI32: justI32, &fbb)
-        ScalarStuff.add(maybeI32: maybeI32, &fbb)
-        ScalarStuff.add(defaultI32: defaultI32, &fbb)
-        ScalarStuff.add(justU32: justU32, &fbb)
-        ScalarStuff.add(maybeU32: maybeU32, &fbb)
-        ScalarStuff.add(defaultU32: defaultU32, &fbb)
-        ScalarStuff.add(justI64: justI64, &fbb)
-        ScalarStuff.add(maybeI64: maybeI64, &fbb)
-        ScalarStuff.add(defaultI64: defaultI64, &fbb)
-        ScalarStuff.add(justU64: justU64, &fbb)
-        ScalarStuff.add(maybeU64: maybeU64, &fbb)
-        ScalarStuff.add(defaultU64: defaultU64, &fbb)
-        ScalarStuff.add(justF32: justF32, &fbb)
-        ScalarStuff.add(maybeF32: maybeF32, &fbb)
-        ScalarStuff.add(defaultF32: defaultF32, &fbb)
-        ScalarStuff.add(justF64: justF64, &fbb)
-        ScalarStuff.add(maybeF64: maybeF64, &fbb)
-        ScalarStuff.add(defaultF64: defaultF64, &fbb)
-        ScalarStuff.add(justBool: justBool, &fbb)
-        ScalarStuff.add(maybeBool: maybeBool, &fbb)
-        ScalarStuff.add(defaultBool: defaultBool, &fbb)
-        return ScalarStuff.endScalarStuff(&fbb, start: __start)
+        let __start = optional_scalars_ScalarStuff.startScalarStuff(&fbb)
+        optional_scalars_ScalarStuff.add(justI8: justI8, &fbb)
+        optional_scalars_ScalarStuff.add(maybeI8: maybeI8, &fbb)
+        optional_scalars_ScalarStuff.add(defaultI8: defaultI8, &fbb)
+        optional_scalars_ScalarStuff.add(justU8: justU8, &fbb)
+        optional_scalars_ScalarStuff.add(maybeU8: maybeU8, &fbb)
+        optional_scalars_ScalarStuff.add(defaultU8: defaultU8, &fbb)
+        optional_scalars_ScalarStuff.add(justI16: justI16, &fbb)
+        optional_scalars_ScalarStuff.add(maybeI16: maybeI16, &fbb)
+        optional_scalars_ScalarStuff.add(defaultI16: defaultI16, &fbb)
+        optional_scalars_ScalarStuff.add(justU16: justU16, &fbb)
+        optional_scalars_ScalarStuff.add(maybeU16: maybeU16, &fbb)
+        optional_scalars_ScalarStuff.add(defaultU16: defaultU16, &fbb)
+        optional_scalars_ScalarStuff.add(justI32: justI32, &fbb)
+        optional_scalars_ScalarStuff.add(maybeI32: maybeI32, &fbb)
+        optional_scalars_ScalarStuff.add(defaultI32: defaultI32, &fbb)
+        optional_scalars_ScalarStuff.add(justU32: justU32, &fbb)
+        optional_scalars_ScalarStuff.add(maybeU32: maybeU32, &fbb)
+        optional_scalars_ScalarStuff.add(defaultU32: defaultU32, &fbb)
+        optional_scalars_ScalarStuff.add(justI64: justI64, &fbb)
+        optional_scalars_ScalarStuff.add(maybeI64: maybeI64, &fbb)
+        optional_scalars_ScalarStuff.add(defaultI64: defaultI64, &fbb)
+        optional_scalars_ScalarStuff.add(justU64: justU64, &fbb)
+        optional_scalars_ScalarStuff.add(maybeU64: maybeU64, &fbb)
+        optional_scalars_ScalarStuff.add(defaultU64: defaultU64, &fbb)
+        optional_scalars_ScalarStuff.add(justF32: justF32, &fbb)
+        optional_scalars_ScalarStuff.add(maybeF32: maybeF32, &fbb)
+        optional_scalars_ScalarStuff.add(defaultF32: defaultF32, &fbb)
+        optional_scalars_ScalarStuff.add(justF64: justF64, &fbb)
+        optional_scalars_ScalarStuff.add(maybeF64: maybeF64, &fbb)
+        optional_scalars_ScalarStuff.add(defaultF64: defaultF64, &fbb)
+        optional_scalars_ScalarStuff.add(justBool: justBool, &fbb)
+        optional_scalars_ScalarStuff.add(maybeBool: maybeBool, &fbb)
+        optional_scalars_ScalarStuff.add(defaultBool: defaultBool, &fbb)
+        return optional_scalars_ScalarStuff.endScalarStuff(&fbb, start: __start)
     }
 }
-
-}
-
-// MARK: - optional_scalars
-
 

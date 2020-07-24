@@ -125,18 +125,24 @@ public class BookReaderT: NativeTable {
     }
 
 }
-public func createRapunzel(hairLength: Int32 = 0) -> UnsafeMutableRawPointer {
-    let memory = UnsafeMutableRawPointer.allocate(byteCount: Rapunzel.size, alignment: Rapunzel.alignment)
-    memory.initializeMemory(as: UInt8.self, repeating: 0, count: Rapunzel.size)
-    memory.storeBytes(of: hairLength, toByteOffset: 0, as: Int32.self)
-    return memory
+extension Rapunzel {
+    public static func createRapunzel(hairLength: Int32 = 0) -> UnsafeMutableRawPointer {
+        let memory = UnsafeMutableRawPointer.allocate(byteCount: Rapunzel.size, alignment: Rapunzel.alignment)
+        memory.initializeMemory(as: UInt8.self, repeating: 0, count: Rapunzel.size)
+        memory.storeBytes(of: hairLength, toByteOffset: 0, as: Int32.self)
+        return memory
+    }
+
 }
 
-public func createBookReader(booksRead: Int32 = 0) -> UnsafeMutableRawPointer {
-    let memory = UnsafeMutableRawPointer.allocate(byteCount: BookReader.size, alignment: BookReader.alignment)
-    memory.initializeMemory(as: UInt8.self, repeating: 0, count: BookReader.size)
-    memory.storeBytes(of: booksRead, toByteOffset: 0, as: Int32.self)
-    return memory
+extension BookReader {
+    public static func createBookReader(booksRead: Int32 = 0) -> UnsafeMutableRawPointer {
+        let memory = UnsafeMutableRawPointer.allocate(byteCount: BookReader.size, alignment: BookReader.alignment)
+        memory.initializeMemory(as: UInt8.self, repeating: 0, count: BookReader.size)
+        memory.storeBytes(of: booksRead, toByteOffset: 0, as: Int32.self)
+        return memory
+    }
+
 }
 
 public struct Attacker: FlatBufferObject {
