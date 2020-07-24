@@ -831,7 +831,7 @@ class RustGenerator : public BaseGenerator {
       }
       case ftStruct: {
         const auto typname = WrapInNameSpace(*type.struct_def);
-        return "&" + lifetime + " " + typname + "";
+        return "&" + typname + "";
       }
       case ftTable: {
         const auto typname = WrapInNameSpace(*type.struct_def);
@@ -1745,7 +1745,7 @@ class RustGenerator : public BaseGenerator {
       code_.SetValue("FIELD_VALUE", value);
       GenComment(field.doc_comment, "  ");
       if (IsStruct(field.value.type)) {
-        code_ += "  pub fn {{FIELD_NAME}}<'a>(&'a self) -> {{FIELD_TYPE}} {";
+        code_ += "  pub fn {{FIELD_NAME}}(&self) -> {{FIELD_TYPE}} {";
         code_ += "    &{{FIELD_VALUE}}";
         code_ += "  }";
       } else {

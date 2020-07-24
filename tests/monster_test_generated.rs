@@ -667,7 +667,7 @@ impl Vec3 {
   pub fn test2(&self) -> Color {
     self.test2_.from_little_endian()
   }
-  pub fn test3<'a>(&'a self) -> &'a Test {
+  pub fn test3(&self) -> &Test {
     &self.test3_
   }
 }
@@ -1563,7 +1563,7 @@ pub struct MonsterBuilder<'a: 'b, 'b> {
 }
 impl<'a: 'b, 'b> MonsterBuilder<'a, 'b> {
   #[inline]
-  pub fn add_pos(&mut self, pos: &'b  Vec3) {
+  pub fn add_pos(&mut self, pos: &Vec3) {
     self.fbb_.push_slot_always::<&Vec3>(Monster::VT_POS, pos);
   }
   #[inline]
