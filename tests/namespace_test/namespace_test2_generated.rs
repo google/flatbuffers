@@ -30,9 +30,7 @@ impl<'a> flatbuffers::Follow<'a> for TableInFirstNS<'a> {
     type Inner = TableInFirstNS<'a>;
     #[inline]
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self {
-            _tab: flatbuffers::Table { buf: buf, loc: loc },
-        }
+        Self { _tab: flatbuffers::Table { buf, loc } }
     }
 }
 
@@ -73,9 +71,9 @@ impl<'a> TableInFirstNS<'a> {
 }
 
 pub struct TableInFirstNSArgs<'a> {
-    pub foo_table: Option<flatbuffers::WIPOffset<namespace_b::TableInNestedNS<'a >>>,
+    pub foo_table: Option<flatbuffers::WIPOffset<namespace_b::TableInNestedNS<'a>>>,
     pub foo_enum: namespace_b::EnumInNestedNS,
-    pub foo_struct: Option<&'a  namespace_b::StructInNestedNS>,
+    pub foo_struct: Option<&'a namespace_b::StructInNestedNS>,
 }
 impl<'a> Default for TableInFirstNSArgs<'a> {
     #[inline]
@@ -130,9 +128,7 @@ impl<'a> flatbuffers::Follow<'a> for SecondTableInA<'a> {
     type Inner = SecondTableInA<'a>;
     #[inline]
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self {
-            _tab: flatbuffers::Table { buf: buf, loc: loc },
-        }
+        Self { _tab: flatbuffers::Table { buf, loc } }
     }
 }
 
@@ -161,7 +157,7 @@ impl<'a> SecondTableInA<'a> {
 }
 
 pub struct SecondTableInAArgs<'a> {
-    pub refer_to_c: Option<flatbuffers::WIPOffset<super::namespace_c::TableInC<'a >>>,
+    pub refer_to_c: Option<flatbuffers::WIPOffset<super::namespace_c::TableInC<'a>>>,
 }
 impl<'a> Default for SecondTableInAArgs<'a> {
     #[inline]
@@ -218,9 +214,7 @@ impl<'a> flatbuffers::Follow<'a> for TableInC<'a> {
     type Inner = TableInC<'a>;
     #[inline]
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self {
-            _tab: flatbuffers::Table { buf: buf, loc: loc },
-        }
+        Self { _tab: flatbuffers::Table { buf, loc } }
     }
 }
 
@@ -255,8 +249,8 @@ impl<'a> TableInC<'a> {
 }
 
 pub struct TableInCArgs<'a> {
-    pub refer_to_a1: Option<flatbuffers::WIPOffset<super::namespace_a::TableInFirstNS<'a >>>,
-    pub refer_to_a2: Option<flatbuffers::WIPOffset<super::namespace_a::SecondTableInA<'a >>>,
+    pub refer_to_a1: Option<flatbuffers::WIPOffset<super::namespace_a::TableInFirstNS<'a>>>,
+    pub refer_to_a2: Option<flatbuffers::WIPOffset<super::namespace_a::SecondTableInA<'a>>>,
 }
 impl<'a> Default for TableInCArgs<'a> {
     #[inline]

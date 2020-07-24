@@ -595,7 +595,7 @@ class RustGenerator : public BaseGenerator {
     // Generate an array of all enumeration values.
     auto num_fields = NumToString(enum_def.size());
     code_ += "#[allow(non_camel_case_types)]";
-    code_ += "pub const ENUM_VALUES_{{ENUM_NAME_CAPS}}:[{{ENUM_NAME}}; " +
+    code_ += "pub const ENUM_VALUES_{{ENUM_NAME_CAPS}}: [{{ENUM_NAME}}; " +
              num_fields + "] = [";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       const auto &ev = **it;
@@ -616,7 +616,7 @@ class RustGenerator : public BaseGenerator {
     static const uint64_t kMaxSparseness = 5;
     if (range / static_cast<uint64_t>(enum_def.size()) < kMaxSparseness) {
       code_ += "#[allow(non_camel_case_types)]";
-      code_ += "pub const ENUM_NAMES_{{ENUM_NAME_CAPS}}:[&'static str; " +
+      code_ += "pub const ENUM_NAMES_{{ENUM_NAME_CAPS}}: [&str; " +
                NumToString(range + 1) + "] = [";
 
       auto val = enum_def.Vals().front();
@@ -735,8 +735,7 @@ class RustGenerator : public BaseGenerator {
       case ftVectorOfFloat: {
         const auto typname = GetTypeBasic(type.VectorType());
         return "Option<flatbuffers::WIPOffset<flatbuffers::Vector<" + lifetime +
-               ",  " + typname + ">>>";
-               // TODO(cneo): Fix whitespace in generated code.
+               ", " + typname + ">>>";
       }
       case ftVectorOfEnumKey: {
         const auto typname = WrapInNameSpace(*type.enum_def);
@@ -1137,9 +1136,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "    type Inner = {{STRUCT_NAME}}<'a>;";
     code_ += "    #[inline]";
     code_ += "    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {";
-    code_ += "        Self {";
-    code_ += "            _tab: flatbuffers::Table { buf: buf, loc: loc },";
-    code_ += "        }";
+    code_ += "        Self { _tab: flatbuffers::Table { buf, loc } }";
     code_ += "    }";
     code_ += "}";
     code_ += "";
@@ -1335,8 +1332,8 @@ class RustGenerator : public BaseGenerator {
           code_ += "      Some({{U_ELEMENT_TABLE_TYPE}}::init_from_table(u))";
         } else {
           code_ +=
-              "      self.{{FIELD_NAME}}().map(|u| "
-              "{{U_ELEMENT_TABLE_TYPE}}::init_from_table(u))";
+              "      self.{{FIELD_NAME}}().map("
+              "{{U_ELEMENT_TABLE_TYPE}}::init_from_table)";
         }
         code_ += "    } else {";
         code_ += "      None";
@@ -1358,7 +1355,7 @@ class RustGenerator : public BaseGenerator {
       const auto &field = **it;
       if (!field.deprecated) {
         code_.SetValue("PARAM_NAME", Name(field));
-        code_.SetValue("PARAM_TYPE", TableBuilderArgsDefnType(field, "'a "));
+        code_.SetValue("PARAM_TYPE", TableBuilderArgsDefnType(field, "'a"));
         code_ += "    pub {{PARAM_NAME}}: {{PARAM_TYPE}},";
       }
     }
@@ -1523,7 +1520,8 @@ class RustGenerator : public BaseGenerator {
 
     if (parser_.file_identifier_.length()) {
       // Declare the identifier
-      code_ += "pub const {{STRUCT_NAME_CAPS}}_IDENTIFIER: &'static str\\";
+      // (no lifetime needed as constants have static lifetimes by default)
+      code_ += "pub const {{STRUCT_NAME_CAPS}}_IDENTIFIER: &str\\";
       code_ += " = \"" + parser_.file_identifier_ + "\";";
       code_ += "";
 
@@ -1531,22 +1529,22 @@ class RustGenerator : public BaseGenerator {
       code_ += "#[inline]";
       code_ += "pub fn {{STRUCT_NAME_SNAKECASE}}_buffer_has_identifier\\";
       code_ += "(buf: &[u8]) -> bool {";
-      code_ += "  return flatbuffers::buffer_has_identifier(buf, \\";
-      code_ += "{{STRUCT_NAME_CAPS}}_IDENTIFIER, false);";
+      code_ += "  flatbuffers::buffer_has_identifier(buf, \\";
+      code_ += "{{STRUCT_NAME_CAPS}}_IDENTIFIER, false)";
       code_ += "}";
       code_ += "";
       code_ += "#[inline]";
       code_ += "pub fn {{STRUCT_NAME_SNAKECASE}}_size_prefixed\\";
       code_ += "_buffer_has_identifier(buf: &[u8]) -> bool {";
-      code_ += "  return flatbuffers::buffer_has_identifier(buf, \\";
-      code_ += "{{STRUCT_NAME_CAPS}}_IDENTIFIER, true);";
+      code_ += "  flatbuffers::buffer_has_identifier(buf, \\";
+      code_ += "{{STRUCT_NAME_CAPS}}_IDENTIFIER, true)";
       code_ += "}";
       code_ += "";
     }
 
     if (parser_.file_extension_.length()) {
       // Return the extension
-      code_ += "pub const {{STRUCT_NAME_CAPS}}_EXTENSION: &'static str = \\";
+      code_ += "pub const {{STRUCT_NAME_CAPS}}_EXTENSION: &str = \\";
       code_ += "\"" + parser_.file_extension_ + "\";";
       code_ += "";
     }
@@ -1694,7 +1692,7 @@ class RustGenerator : public BaseGenerator {
       const auto &field = **it;
       const auto member_name = Name(field) + "_";
       const auto reference =
-          StructMemberAccessNeedsCopy(field.value.type) ? "" : "&'a ";
+          StructMemberAccessNeedsCopy(field.value.type) ? "" : "&";
       const auto arg_name = "_" + Name(field);
       const auto arg_type = reference + GetTypeGet(field.value.type);
 
@@ -1711,7 +1709,7 @@ class RustGenerator : public BaseGenerator {
 
     code_.SetValue("ARG_LIST", arg_list);
     code_.SetValue("INIT_LIST", init_list);
-    code_ += "  pub fn new<'a>({{ARG_LIST}}) -> Self {";
+    code_ += "  pub fn new({{ARG_LIST}}) -> Self {";
     code_ += "    {{STRUCT_NAME}} {";
     code_ += "{{INIT_LIST}}";
     padding_id = 0;
@@ -1745,12 +1743,16 @@ class RustGenerator : public BaseGenerator {
       code_.SetValue("FIELD_NAME", Name(field));
       code_.SetValue("FIELD_TYPE", field_type);
       code_.SetValue("FIELD_VALUE", value);
-      code_.SetValue("REF", IsStruct(field.value.type) ? "&" : "");
-
       GenComment(field.doc_comment, "  ");
-      code_ += "  pub fn {{FIELD_NAME}}<'a>(&'a self) -> {{FIELD_TYPE}} {";
-      code_ += "    {{REF}}{{FIELD_VALUE}}";
-      code_ += "  }";
+      if (IsStruct(field.value.type)) {
+        code_ += "  pub fn {{FIELD_NAME}}<'a>(&'a self) -> {{FIELD_TYPE}} {";
+        code_ += "    &{{FIELD_VALUE}}";
+        code_ += "  }";
+      } else {
+        code_ += "  pub fn {{FIELD_NAME}}(&self) -> {{FIELD_TYPE}} {";
+        code_ += "    {{FIELD_VALUE}}";
+        code_ += "  }";
+      }
 
       // Generate a comparison function for this field if it is a key.
       if (field.key) { GenKeyFieldMethods(field); }

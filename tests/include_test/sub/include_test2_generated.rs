@@ -71,12 +71,12 @@ impl flatbuffers::Push for FromInclude {
 }
 
 #[allow(non_camel_case_types)]
-pub const ENUM_VALUES_FROM_INCLUDE:[FromInclude; 1] = [
+pub const ENUM_VALUES_FROM_INCLUDE: [FromInclude; 1] = [
   FromInclude::IncludeVal
 ];
 
 #[allow(non_camel_case_types)]
-pub const ENUM_NAMES_FROM_INCLUDE:[&'static str; 1] = [
+pub const ENUM_NAMES_FROM_INCLUDE: [&str; 1] = [
     "IncludeVal"
 ];
 
@@ -130,13 +130,13 @@ impl<'b> flatbuffers::Push for &'b Unused {
 
 
 impl Unused {
-  pub fn new<'a>(_a: i32) -> Self {
+  pub fn new(_a: i32) -> Self {
     Unused {
       a_: _a.to_little_endian(),
 
     }
   }
-  pub fn a<'a>(&'a self) -> i32 {
+  pub fn a(&self) -> i32 {
     self.a_.from_little_endian()
   }
 }
@@ -152,9 +152,7 @@ impl<'a> flatbuffers::Follow<'a> for TableB<'a> {
     type Inner = TableB<'a>;
     #[inline]
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self {
-            _tab: flatbuffers::Table { buf: buf, loc: loc },
-        }
+        Self { _tab: flatbuffers::Table { buf, loc } }
     }
 }
 
@@ -183,7 +181,7 @@ impl<'a> TableB<'a> {
 }
 
 pub struct TableBArgs<'a> {
-    pub a: Option<flatbuffers::WIPOffset<super::super::TableA<'a >>>,
+    pub a: Option<flatbuffers::WIPOffset<super::super::TableA<'a>>>,
 }
 impl<'a> Default for TableBArgs<'a> {
     #[inline]
