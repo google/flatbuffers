@@ -2258,7 +2258,7 @@ CheckedError Parser::CheckClash(std::vector<FieldDef *> &fields,
 
 
 bool Parser::SupportsNullableScalars() const {
-  return !(opts.lang_to_generate & ~IDLOptions::kRust);
+  return !(opts.lang_to_generate & ~(IDLOptions::kRust | IDLOptions::kSwift));
 }
 
 bool Parser::SupportsAdvancedUnionFeatures() const {

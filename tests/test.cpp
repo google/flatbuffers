@@ -3457,7 +3457,7 @@ void NullableScalarsTest() {
 
   // Test if nullable scalars are allowed for each language.
   const int kNumLanguages = 17;
-  const auto supported = flatbuffers::IDLOptions::kRust;
+  const auto supported = (flatbuffers::IDLOptions::kRust | flatbuffers::IDLOptions::kSwift);
   for (int lang=0; lang<kNumLanguages; lang++) {
     flatbuffers::IDLOptions opts;
     opts.lang_to_generate |= 1 << lang;

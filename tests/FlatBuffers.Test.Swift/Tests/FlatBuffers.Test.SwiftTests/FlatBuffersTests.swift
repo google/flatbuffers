@@ -62,23 +62,19 @@ final class FlatBuffersTests: XCTestCase {
     
     func testWriteOptionalValues() {
         var b = FlatBufferBuilder()
-        let offset = b.create(string: nil)
-        createOptionalTable(b: &b, v: nil, off: offset)
-        let unitArray = b.sizedByteArray
-        // TODO: - Test function should be adjusted when the generation of optional scalars code is complete
-        let bb = ByteBuffer(bytes: unitArray)
-        let table = Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))
-        XCTAssertEqual(unitArray, [8, 0, 0, 0, 0, 0, 2, 0, 2, 0, 0, 0])
-        XCTAssertEqual(table.offset(4) == 0, true)
-        XCTAssertEqual(table.offset(6) == 0, true)
-    }
-    
-    func createOptionalTable(b: inout FlatBufferBuilder, v: Int?, off: Offset<String>) {
-        let start = b.startTable(with: 2)
-        b.add(offset: off, at: 6)
-        b.add(element: v, at: 4)
-        let root = Offset<UOffset>(offset: b.endTable(at: start))
+        let root = optional_scalars.ScalarStuff.createScalarStuff(&b,
+                                                                  justI8: 80,
+                                                                  maybeI8: nil,
+                                                                  justU8: 100,
+                                                                  maybeU8: 10)
         b.finish(offset: root)
+        let scalarTable = optional_scalars.ScalarStuff.getRootAsScalarStuff(bb: b.sizedBuffer)
+        XCTAssertEqual(scalarTable.justI8, 80)
+        XCTAssertNil(scalarTable.maybeI8)
+        XCTAssertEqual(scalarTable.defaultI8, 42)
+        XCTAssertEqual(scalarTable.justU8, 100)
+        XCTAssertEqual(scalarTable.maybeU8, 10)
+        
     }
 }
 

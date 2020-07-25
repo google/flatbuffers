@@ -162,8 +162,10 @@ public struct Attacker: FlatBufferObject {
     public static func startAttacker(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
     public static func add(swordAttackDamage: Int32, _ fbb: inout FlatBufferBuilder) { fbb.add(element: swordAttackDamage, def: 0, at: VTOFFSET.swordAttackDamage.p) }
     public static func endAttacker(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
-    public static func createAttacker(_ fbb: inout FlatBufferBuilder,
-    swordAttackDamage: Int32 = 0) -> Offset<UOffset> {
+    public static func createAttacker(
+        _ fbb: inout FlatBufferBuilder,
+        swordAttackDamage: Int32 = 0
+    ) -> Offset<UOffset> {
         let __start = Attacker.startAttacker(&fbb)
         Attacker.add(swordAttackDamage: swordAttackDamage, &fbb)
         return Attacker.endAttacker(&fbb, start: __start)
@@ -231,11 +233,13 @@ public struct Movie: FlatBufferObject {
     public static func addVectorOf(charactersType: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: charactersType, at: VTOFFSET.charactersType.p)  }
     public static func addVectorOf(characters: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: characters, at: VTOFFSET.characters.p)  }
     public static func endMovie(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
-    public static func createMovie(_ fbb: inout FlatBufferBuilder,
-    mainCharacterType: Character = .none_,
-    offsetOfMainCharacter mainCharacter: Offset<UOffset> = Offset(),
-    vectorOfCharactersType charactersType: Offset<UOffset> = Offset(),
-    vectorOfCharacters characters: Offset<UOffset> = Offset()) -> Offset<UOffset> {
+    public static func createMovie(
+        _ fbb: inout FlatBufferBuilder,
+        mainCharacterType: Character = .none_,
+        offsetOfMainCharacter mainCharacter: Offset<UOffset> = Offset(),
+        vectorOfCharactersType charactersType: Offset<UOffset> = Offset(),
+        vectorOfCharacters characters: Offset<UOffset> = Offset()
+    ) -> Offset<UOffset> {
         let __start = Movie.startMovie(&fbb)
         Movie.add(mainCharacterType: mainCharacterType, &fbb)
         Movie.add(mainCharacter: mainCharacter, &fbb)
