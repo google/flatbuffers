@@ -70,14 +70,14 @@ impl flatbuffers::Push for EnumInNestedNS {
 }
 
 #[allow(non_camel_case_types)]
-pub const ENUM_VALUES_ENUM_IN_NESTED_NS:[EnumInNestedNS; 3] = [
+pub const ENUM_VALUES_ENUM_IN_NESTED_NS: [EnumInNestedNS; 3] = [
   EnumInNestedNS::A,
   EnumInNestedNS::B,
   EnumInNestedNS::C
 ];
 
 #[allow(non_camel_case_types)]
-pub const ENUM_NAMES_ENUM_IN_NESTED_NS:[&'static str; 3] = [
+pub const ENUM_NAMES_ENUM_IN_NESTED_NS: [&str; 3] = [
     "A",
     "B",
     "C"
@@ -134,17 +134,17 @@ impl<'b> flatbuffers::Push for &'b StructInNestedNS {
 
 
 impl StructInNestedNS {
-  pub fn new<'a>(_a: i32, _b: i32) -> Self {
+  pub fn new(_a: i32, _b: i32) -> Self {
     StructInNestedNS {
       a_: _a.to_little_endian(),
       b_: _b.to_little_endian(),
 
     }
   }
-  pub fn a<'a>(&'a self) -> i32 {
+  pub fn a(&self) -> i32 {
     self.a_.from_little_endian()
   }
-  pub fn b<'a>(&'a self) -> i32 {
+  pub fn b(&self) -> i32 {
     self.b_.from_little_endian()
   }
 }
@@ -160,9 +160,7 @@ impl<'a> flatbuffers::Follow<'a> for TableInNestedNS<'a> {
     type Inner = TableInNestedNS<'a>;
     #[inline]
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self {
-            _tab: flatbuffers::Table { buf: buf, loc: loc },
-        }
+        Self { _tab: flatbuffers::Table { buf, loc } }
     }
 }
 
