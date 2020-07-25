@@ -62,7 +62,9 @@ struct Method : public CommentHolder {
       grpc::string *str, grpc::string generator_file_name,
       bool generate_in_pb2_grpc, grpc::string import_prefix) const = 0;
 
+  virtual std::vector<grpc::string> get_input_namespace_parts() const = 0;
   virtual grpc::string get_input_type_name() const = 0;
+  virtual std::vector<grpc::string> get_output_namespace_parts() const = 0;
   virtual grpc::string get_output_type_name() const = 0;
 
   virtual grpc::string get_fb_builder() const = 0;
@@ -77,6 +79,7 @@ struct Method : public CommentHolder {
 struct Service : public CommentHolder {
   virtual ~Service() {}
 
+  virtual std::vector<grpc::string> namespace_parts() const = 0;
   virtual grpc::string name() const = 0;
 
   virtual int method_count() const = 0;

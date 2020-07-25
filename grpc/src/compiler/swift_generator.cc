@@ -29,8 +29,15 @@
 
 namespace grpc_swift_generator {
 
-grpc::string GenerateMessage(const grpc::string &name) {
-  return "Message<" + name + ">";
+std::string WrapInNameSpace(const std::vector<std::string> &components, const grpc::string &name) {
+  std::string qualified_name;
+  for (auto it = components.begin(); it != components.end(); ++it)
+    qualified_name += *it + "_";
+  return qualified_name + name;
+}
+
+grpc::string GenerateMessage(const std::vector<std::string> &components, const grpc::string &name) {
+  return "Message<" + WrapInNameSpace(components, name) + ">";
 }
 
 // MARK: - Client
@@ -89,8 +96,8 @@ void GenerateClientProtocol(const grpc_generator::Service *service,
   vars["GenAccess"] = "";
   for (auto it = 0; it < service->method_count(); it++) {
     auto method = service->method(it);
-    vars["Input"] = GenerateMessage(method->get_input_type_name());
-    vars["Output"] = GenerateMessage(method->get_output_type_name());
+    vars["Input"] = GenerateMessage(method->get_input_namespace_parts(), method->get_input_type_name());
+    vars["Output"] = GenerateMessage(method->get_output_namespace_parts(), method->get_output_type_name());
     vars["MethodName"] = method->name();
     vars["isNil"] = "";
     printer->Print("\t");
@@ -121,8 +128,8 @@ void GenerateClientClass(const grpc_generator::Service *service,
   vars["GenAccess"] = "public";
   for (auto it = 0; it < service->method_count(); it++) {
     auto method = service->method(it);
-    vars["Input"] = GenerateMessage(method->get_input_type_name());
-    vars["Output"] = GenerateMessage(method->get_output_type_name());
+    vars["Input"] = GenerateMessage(method->get_input_namespace_parts(), method->get_input_type_name());
+    vars["Output"] = GenerateMessage(method->get_output_namespace_parts(), method->get_output_type_name());
     vars["MethodName"] = method->name();
     vars["isNil"] = " = nil";
     printer->Print("\n\t");
@@ -211,8 +218,8 @@ void GenerateServerProtocol(const grpc_generator::Service *service,
       vars, "$ACCESS$ protocol $ServiceName$Provider: CallHandlerProvider {\n");
   for (auto it = 0; it < service->method_count(); it++) {
     auto method = service->method(it);
-    vars["Input"] = GenerateMessage(method->get_input_type_name());
-    vars["Output"] = GenerateMessage(method->get_output_type_name());
+    vars["Input"] = GenerateMessage(method->get_input_namespace_parts(), method->get_input_type_name());
+    vars["Output"] = GenerateMessage(method->get_output_namespace_parts(), method->get_output_type_name());
     vars["MethodName"] = method->name();
     printer->Print("\t");
     auto func = GenerateServerFuncName(method.get());
@@ -231,8 +238,8 @@ void GenerateServerProtocol(const grpc_generator::Service *service,
   printer->Print("\t\tswitch methodName {\n");
   for (auto it = 0; it < service->method_count(); it++) {
     auto method = service->method(it);
-    vars["Input"] = GenerateMessage(method->get_input_type_name());
-    vars["Output"] = GenerateMessage(method->get_output_type_name());
+    vars["Input"] = GenerateMessage(method->get_input_namespace_parts(), method->get_input_type_name());
+    vars["Output"] = GenerateMessage(method->get_output_namespace_parts(), method->get_output_type_name());
     vars["MethodName"] = method->name();
     auto body = GenerateServerExtensionBody(method.get());
     printer->Print(vars, body.c_str());
@@ -250,7 +257,7 @@ grpc::string Generate(grpc_generator::File *file,
   std::map<grpc::string, grpc::string> vars;
   vars["PATH"] = file->package();
   if (!file->package().empty()) { vars["PATH"].append("."); }
-  vars["ServiceName"] = service->name();
+  vars["ServiceName"] = WrapInNameSpace(service->namespace_parts(), service->name());
   vars["ACCESS"] = "public";
   auto printer = file->CreatePrinter(&output);
   printer->Print(vars,

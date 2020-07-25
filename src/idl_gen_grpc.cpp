@@ -59,11 +59,17 @@ class FlatBufMethod : public grpc_generator::Method {
 
   std::string name() const { return method_->name; }
 
+  // TODO: This method need to incorporate namespace for C++ side. Other language bindings
+  // simply don't use this method.
   std::string GRPCType(const StructDef &sd) const {
     return "flatbuffers::grpc::Message<" + sd.name + ">";
   }
 
+  std::vector<std::string> get_input_namespace_parts() const { return (*method_->request).defined_namespace->components; }
+
   std::string get_input_type_name() const { return (*method_->request).name; }
+
+  std::vector<std::string>  get_output_namespace_parts() const { return (*method_->response).defined_namespace->components; }
 
   std::string get_output_type_name() const { return (*method_->response).name; }
 
@@ -110,6 +116,8 @@ class FlatBufService : public grpc_generator::Service {
   std::vector<grpc::string> GetAllComments() const {
     return service_->doc_comment;
   }
+
+  std::vector<grpc::string> namespace_parts() const { return service_->defined_namespace->components; }
 
   std::string name() const { return service_->name; }
 
