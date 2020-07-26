@@ -782,7 +782,7 @@ flatbuffers.Builder.prototype.endVector = function() {
  * @return {flatbuffers.Offset} The offset in the buffer where the encoded string starts
  */
 flatbuffers.Builder.prototype.createSharedString = function(s) {
-  if (s === null) { return 0 }
+  if (!s) { return 0 }
 
   if (!this.string_maps) {
     this.string_maps = new Map();
@@ -804,7 +804,7 @@ flatbuffers.Builder.prototype.createSharedString = function(s) {
  * @return {flatbuffers.Offset} The offset in the buffer where the encoded string starts
  */
 flatbuffers.Builder.prototype.createString = function(s) {
-  if (s === null) { return 0 }
+  if (!s) { return 0 }
   if (s instanceof Uint8Array) {
     var utf8 = s;
   } else {

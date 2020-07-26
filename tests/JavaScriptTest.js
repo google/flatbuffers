@@ -450,6 +450,8 @@ function testNullStrings() {
   var builder = new flatbuffers.Builder();
   assert.strictEqual(builder.createString(null), 0);
   assert.strictEqual(builder.createSharedString(null), 0);
+  assert.strictEqual(builder.createString(undefined), 0);
+  assert.strictEqual(builder.createSharedString(undefined), 0);
 }
 
 main();
