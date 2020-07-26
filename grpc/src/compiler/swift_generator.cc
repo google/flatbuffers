@@ -92,7 +92,7 @@ void GenerateClientProtocol(const grpc_generator::Service *service,
                             grpc_generator::Printer *printer,
                             std::map<grpc::string, grpc::string> *dictonary) {
   auto vars = *dictonary;
-  printer->Print(vars, "$ACCESS$ protocol $ServiceName$Service {\n");
+  printer->Print(vars, "$ACCESS$ protocol $ServiceQualifiedName$Service {\n");
   vars["GenAccess"] = "";
   for (auto it = 0; it < service->method_count(); it++) {
     auto method = service->method(it);
@@ -113,8 +113,8 @@ void GenerateClientClass(const grpc_generator::Service *service,
                          std::map<grpc::string, grpc::string> *dictonary) {
   auto vars = *dictonary;
   printer->Print(vars,
-                 "$ACCESS$ final class $ServiceName$ServiceClient: GRPCClient, "
-                 "$ServiceName$Service {\n");
+                 "$ACCESS$ final class $ServiceQualifiedName$ServiceClient: GRPCClient, "
+                 "$ServiceQualifiedName$Service {\n");
   printer->Print(vars, "\t$ACCESS$ let channel: GRPCChannel\n");
   printer->Print(vars, "\t$ACCESS$ var defaultCallOptions: CallOptions\n");
   printer->Print("\n");
@@ -215,7 +215,7 @@ void GenerateServerProtocol(const grpc_generator::Service *service,
                             std::map<grpc::string, grpc::string> *dictonary) {
   auto vars = *dictonary;
   printer->Print(
-      vars, "$ACCESS$ protocol $ServiceName$Provider: CallHandlerProvider {\n");
+      vars, "$ACCESS$ protocol $ServiceQualifiedName$Provider: CallHandlerProvider {\n");
   for (auto it = 0; it < service->method_count(); it++) {
     auto method = service->method(it);
     vars["Input"] = GenerateMessage(method->get_input_namespace_parts(), method->get_input_type_name());
@@ -228,7 +228,7 @@ void GenerateServerProtocol(const grpc_generator::Service *service,
   }
   printer->Print("}\n\n");
 
-  printer->Print(vars, "$ACCESS$ extension $ServiceName$Provider {\n");
+  printer->Print(vars, "$ACCESS$ extension $ServiceQualifiedName$Provider {\n");
   printer->Print(vars,
                  "\tvar serviceName: String { return "
                  "\"$PATH$$ServiceName$\" }\n");
@@ -257,11 +257,12 @@ grpc::string Generate(grpc_generator::File *file,
   std::map<grpc::string, grpc::string> vars;
   vars["PATH"] = file->package();
   if (!file->package().empty()) { vars["PATH"].append("."); }
-  vars["ServiceName"] = WrapInNameSpace(service->namespace_parts(), service->name());
+  vars["ServiceQualifiedName"] = WrapInNameSpace(service->namespace_parts(), service->name());
+  vars["ServiceName"] = service->name();
   vars["ACCESS"] = "public";
   auto printer = file->CreatePrinter(&output);
   printer->Print(vars,
-                 "/// Usage: instantiate $ServiceName$ServiceClient, then call "
+                 "/// Usage: instantiate $ServiceQualifiedName$ServiceClient, then call "
                  "methods of this protocol to make API calls.\n");
   GenerateClientProtocol(service, &*printer, &vars);
   GenerateClientClass(service, &*printer, &vars);

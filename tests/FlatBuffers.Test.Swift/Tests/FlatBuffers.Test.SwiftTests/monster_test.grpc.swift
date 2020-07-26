@@ -37,19 +37,19 @@ public final class MyGame_Example_MonsterStorageServiceClient: GRPCClient, MyGam
 	}
 
 	public func Store(_ request: Message<MyGame_Example_Monster>, callOptions: CallOptions? = nil) -> UnaryCall<Message<MyGame_Example_Monster>,Message<MyGame_Example_Stat>> {
-		return self.makeUnaryCall(path: "/MyGame.Example.MyGame_Example_MonsterStorage/Store", request: request, callOptions: callOptions ?? self.defaultCallOptions)
+		return self.makeUnaryCall(path: "/MyGame.Example.MonsterStorage/Store", request: request, callOptions: callOptions ?? self.defaultCallOptions)
 	}
 
 	public func Retrieve(_ request: Message<MyGame_Example_Stat>, callOptions: CallOptions? = nil, handler: @escaping (Message<MyGame_Example_Monster>) -> Void) -> ServerStreamingCall<Message<MyGame_Example_Stat>, Message<MyGame_Example_Monster>> {
-		return self.makeServerStreamingCall(path: "/MyGame.Example.MyGame_Example_MonsterStorage/Retrieve", request: request, callOptions: callOptions ?? self.defaultCallOptions, handler: handler)
+		return self.makeServerStreamingCall(path: "/MyGame.Example.MonsterStorage/Retrieve", request: request, callOptions: callOptions ?? self.defaultCallOptions, handler: handler)
 	}
 
 	public func GetMaxHitPoint(callOptions: CallOptions? = nil) -> ClientStreamingCall<Message<MyGame_Example_Monster>,Message<MyGame_Example_Stat>> {
-		return self.makeClientStreamingCall(path: "/MyGame.Example.MyGame_Example_MonsterStorage/GetMaxHitPoint", callOptions: callOptions ?? self.defaultCallOptions)
+		return self.makeClientStreamingCall(path: "/MyGame.Example.MonsterStorage/GetMaxHitPoint", callOptions: callOptions ?? self.defaultCallOptions)
 	}
 
 	public func GetMinMaxHitPoints(callOptions: CallOptions? = nil, handler: @escaping (Message<MyGame_Example_Stat>) -> Void) -> BidirectionalStreamingCall<Message<MyGame_Example_Monster>, Message<MyGame_Example_Stat>> {
-		return self.makeBidirectionalStreamingCall(path: "/MyGame.Example.MyGame_Example_MonsterStorage/GetMinMaxHitPoints", callOptions: callOptions ?? self.defaultCallOptions, handler: handler)
+		return self.makeBidirectionalStreamingCall(path: "/MyGame.Example.MonsterStorage/GetMinMaxHitPoints", callOptions: callOptions ?? self.defaultCallOptions, handler: handler)
 	}
 }
 
@@ -61,7 +61,7 @@ public protocol MyGame_Example_MonsterStorageProvider: CallHandlerProvider {
 }
 
 public extension MyGame_Example_MonsterStorageProvider {
-	var serviceName: String { return "MyGame.Example.MyGame_Example_MonsterStorage" }
+	var serviceName: String { return "MyGame.Example.MonsterStorage" }
 	func handleMethod(_ methodName: String, callHandlerContext: CallHandlerContext) -> GRPCCallHandler? {
 		switch methodName {
 		case "Store":
