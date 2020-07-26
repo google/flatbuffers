@@ -775,7 +775,7 @@ flatbuffers.Builder.prototype.endVector = function() {
 /// @endcond
 
 /**
- * Trys to Encode the string `s` in the buffer using UTF-8. If the string passed as 
+ * Encode the string `s` in the buffer using UTF-8. If the string passed has 
  * already been seen, we return the offset of the already written string
  *
  * @param {string|Uint8Array} s The string to encode
