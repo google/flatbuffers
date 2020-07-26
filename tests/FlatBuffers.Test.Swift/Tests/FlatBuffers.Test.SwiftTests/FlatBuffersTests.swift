@@ -60,6 +60,12 @@ final class FlatBuffersTests: XCTestCase {
         XCTAssertEqual(c.name, country)
     }
     
+    func testWriteNullableStrings() {
+        var b = FlatBufferBuilder()
+        XCTAssertTrue(b.create(string: nil).isEmpty)
+        XCTAssertTrue(b.createShared(string: nil).isEmpty)
+    }
+    
     func testWriteOptionalValues() {
         var b = FlatBufferBuilder()
         let root = optional_scalars.ScalarStuff.createScalarStuff(&b,
@@ -74,7 +80,6 @@ final class FlatBuffersTests: XCTestCase {
         XCTAssertEqual(scalarTable.defaultI8, 42)
         XCTAssertEqual(scalarTable.justU8, 100)
         XCTAssertEqual(scalarTable.maybeU8, 10)
-        
     }
 }
 

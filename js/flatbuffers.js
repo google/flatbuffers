@@ -252,6 +252,7 @@ flatbuffers.Builder.prototype.clear = function() {
   this.vtables = [];
   this.vector_num_elems = 0;
   this.force_defaults = false;
+  this.string_maps = null;
 };
 
 /**
@@ -774,6 +775,28 @@ flatbuffers.Builder.prototype.endVector = function() {
 /// @endcond
 
 /**
+ * Trys to Encode the string `s` in the buffer using UTF-8. If the string passed as 
+ * already been seen, we return the offset of the already written string
+ *
+ * @param {string|Uint8Array} s The string to encode
+ * @return {flatbuffers.Offset} The offset in the buffer where the encoded string starts
+ */
+flatbuffers.Builder.prototype.createSharedString = function(s) {
+  if (s === null) { return 0 }
+
+  if (!this.string_maps) {
+    this.string_maps = new Map();
+  }
+
+  if (this.string_maps.has(s)) {
+    return this.string_maps.get(s)
+  }
+  let offset = this.createString(s)
+  this.string_maps.set(s, offset)
+  return offset
+}
+
+/**
  * Encode the string `s` in the buffer using UTF-8. If a Uint8Array is passed
  * instead of a string, it is assumed to contain valid UTF-8 encoded data.
  *
@@ -781,6 +804,7 @@ flatbuffers.Builder.prototype.endVector = function() {
  * @return {flatbuffers.Offset} The offset in the buffer where the encoded string starts
  */
 flatbuffers.Builder.prototype.createString = function(s) {
+  if (s === null) { return 0 }
   if (s instanceof Uint8Array) {
     var utf8 = s;
   } else {
