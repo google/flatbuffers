@@ -3,11 +3,8 @@
 
 import FlatBuffers
 
-public enum MyGame {
-public enum Example {
-
 ///  Composite components of Monster color.
-public enum Color: UInt8, Enum { 
+public enum MyGame_Example_Color: UInt8, Enum { 
     public typealias T = UInt8
     public static var byteSize: Int { return MemoryLayout<UInt8>.size }
     public var value: UInt8 { return self.rawValue }
@@ -19,11 +16,11 @@ public enum Color: UInt8, Enum {
     case blue = 8
     
 
-    public static var max: Color { return .blue }
-    public static var min: Color { return .red }
+    public static var max: MyGame_Example_Color { return .blue }
+    public static var min: MyGame_Example_Color { return .red }
 }
 
-public enum Race: Int8, Enum { 
+public enum MyGame_Example_Race: Int8, Enum { 
     public typealias T = Int8
     public static var byteSize: Int { return MemoryLayout<Int8>.size }
     public var value: Int8 { return self.rawValue }
@@ -33,11 +30,11 @@ public enum Race: Int8, Enum {
     case elf = 2
     
 
-    public static var max: Race { return .elf }
-    public static var min: Race { return .none_ }
+    public static var max: MyGame_Example_Race { return .elf }
+    public static var min: MyGame_Example_Race { return .none_ }
 }
 
-public enum Any_: UInt8, Enum { 
+public enum MyGame_Example_Any_: UInt8, Enum { 
     public typealias T = UInt8
     public static var byteSize: Int { return MemoryLayout<UInt8>.size }
     public var value: UInt8 { return self.rawValue }
@@ -47,33 +44,33 @@ public enum Any_: UInt8, Enum {
     case mygameExample2Monster = 3
     
 
-    public static var max: Any_ { return .mygameExample2Monster }
-    public static var min: Any_ { return .none_ }
+    public static var max: MyGame_Example_Any_ { return .mygameExample2Monster }
+    public static var min: MyGame_Example_Any_ { return .none_ }
 }
 
-struct Any_Union {
-    var type: Any_
+struct MyGame_Example_Any_Union {
+    var type: MyGame_Example_Any_
     var value: NativeTable?
-    init(_ v: NativeTable?, type: Any_) {
+    init(_ v: NativeTable?, type: MyGame_Example_Any_) {
         self.type = type
         self.value = v
     }
     func pack(builder: inout FlatBufferBuilder) -> Offset<UOffset> {
         switch type {
         case .monster:
-            var __obj = value as? MyGame.Example.MonsterT
-            return MyGame.Example.Monster.pack(&builder, obj: &__obj)
+            var __obj = value as? MyGame_Example_MonsterT
+            return MyGame_Example_Monster.pack(&builder, obj: &__obj)
         case .testsimpletablewithenum:
-            var __obj = value as? MyGame.Example.TestSimpleTableWithEnumT
-            return MyGame.Example.TestSimpleTableWithEnum.pack(&builder, obj: &__obj)
+            var __obj = value as? MyGame_Example_TestSimpleTableWithEnumT
+            return MyGame_Example_TestSimpleTableWithEnum.pack(&builder, obj: &__obj)
         case .mygameExample2Monster:
-            var __obj = value as? MyGame.Example2.MonsterT
-            return MyGame.Example2.Monster.pack(&builder, obj: &__obj)
+            var __obj = value as? MyGame_Example2_MonsterT
+            return MyGame_Example2_Monster.pack(&builder, obj: &__obj)
         default: return Offset()
         }
     }
 }
-public enum AnyUniqueAliases: UInt8, Enum { 
+public enum MyGame_Example_AnyUniqueAliases: UInt8, Enum { 
     public typealias T = UInt8
     public static var byteSize: Int { return MemoryLayout<UInt8>.size }
     public var value: UInt8 { return self.rawValue }
@@ -83,33 +80,33 @@ public enum AnyUniqueAliases: UInt8, Enum {
     case m2 = 3
     
 
-    public static var max: AnyUniqueAliases { return .m2 }
-    public static var min: AnyUniqueAliases { return .none_ }
+    public static var max: MyGame_Example_AnyUniqueAliases { return .m2 }
+    public static var min: MyGame_Example_AnyUniqueAliases { return .none_ }
 }
 
-struct AnyUniqueAliasesUnion {
-    var type: AnyUniqueAliases
+struct MyGame_Example_AnyUniqueAliasesUnion {
+    var type: MyGame_Example_AnyUniqueAliases
     var value: NativeTable?
-    init(_ v: NativeTable?, type: AnyUniqueAliases) {
+    init(_ v: NativeTable?, type: MyGame_Example_AnyUniqueAliases) {
         self.type = type
         self.value = v
     }
     func pack(builder: inout FlatBufferBuilder) -> Offset<UOffset> {
         switch type {
         case .m:
-            var __obj = value as? MyGame.Example.MonsterT
-            return MyGame.Example.Monster.pack(&builder, obj: &__obj)
+            var __obj = value as? MyGame_Example_MonsterT
+            return MyGame_Example_Monster.pack(&builder, obj: &__obj)
         case .ts:
-            var __obj = value as? MyGame.Example.TestSimpleTableWithEnumT
-            return MyGame.Example.TestSimpleTableWithEnum.pack(&builder, obj: &__obj)
+            var __obj = value as? MyGame_Example_TestSimpleTableWithEnumT
+            return MyGame_Example_TestSimpleTableWithEnum.pack(&builder, obj: &__obj)
         case .m2:
-            var __obj = value as? MyGame.Example2.MonsterT
-            return MyGame.Example2.Monster.pack(&builder, obj: &__obj)
+            var __obj = value as? MyGame_Example2_MonsterT
+            return MyGame_Example2_Monster.pack(&builder, obj: &__obj)
         default: return Offset()
         }
     }
 }
-public enum AnyAmbiguousAliases: UInt8, Enum { 
+public enum MyGame_Example_AnyAmbiguousAliases: UInt8, Enum { 
     public typealias T = UInt8
     public static var byteSize: Int { return MemoryLayout<UInt8>.size }
     public var value: UInt8 { return self.rawValue }
@@ -119,33 +116,33 @@ public enum AnyAmbiguousAliases: UInt8, Enum {
     case m3 = 3
     
 
-    public static var max: AnyAmbiguousAliases { return .m3 }
-    public static var min: AnyAmbiguousAliases { return .none_ }
+    public static var max: MyGame_Example_AnyAmbiguousAliases { return .m3 }
+    public static var min: MyGame_Example_AnyAmbiguousAliases { return .none_ }
 }
 
-struct AnyAmbiguousAliasesUnion {
-    var type: AnyAmbiguousAliases
+struct MyGame_Example_AnyAmbiguousAliasesUnion {
+    var type: MyGame_Example_AnyAmbiguousAliases
     var value: NativeTable?
-    init(_ v: NativeTable?, type: AnyAmbiguousAliases) {
+    init(_ v: NativeTable?, type: MyGame_Example_AnyAmbiguousAliases) {
         self.type = type
         self.value = v
     }
     func pack(builder: inout FlatBufferBuilder) -> Offset<UOffset> {
         switch type {
         case .m1:
-            var __obj = value as? MyGame.Example.MonsterT
-            return MyGame.Example.Monster.pack(&builder, obj: &__obj)
+            var __obj = value as? MyGame_Example_MonsterT
+            return MyGame_Example_Monster.pack(&builder, obj: &__obj)
         case .m2:
-            var __obj = value as? MyGame.Example.MonsterT
-            return MyGame.Example.Monster.pack(&builder, obj: &__obj)
+            var __obj = value as? MyGame_Example_MonsterT
+            return MyGame_Example_Monster.pack(&builder, obj: &__obj)
         case .m3:
-            var __obj = value as? MyGame.Example.MonsterT
-            return MyGame.Example.Monster.pack(&builder, obj: &__obj)
+            var __obj = value as? MyGame_Example_MonsterT
+            return MyGame_Example_Monster.pack(&builder, obj: &__obj)
         default: return Offset()
         }
     }
 }
-public struct Test: Readable {
+public struct MyGame_Example_Test: Readable {
 
     static func validateVersion() { FlatBuffersVersion_1_12_0() }
     public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -161,25 +158,25 @@ public struct Test: Readable {
     @discardableResult public func mutate(b: Int8) -> Bool { return _accessor.mutate(b, index: 2) }
     
 
-    public mutating func unpack() -> TestT {
-        return TestT(&self)
+    public mutating func unpack() -> MyGame_Example_TestT {
+        return MyGame_Example_TestT(&self)
     }
-    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout TestT?) -> Offset<UOffset> {
+    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_TestT?) -> Offset<UOffset> {
         guard var obj = obj else { return Offset<UOffset>() }
         return pack(&builder, obj: &obj)
     }
 
-    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout TestT) -> Offset<UOffset> {
-        return builder.create(struct: createTest(a: obj.a, b: obj.b), type: Test.self)
+    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_TestT) -> Offset<UOffset> {
+        return builder.create(struct: createTest(a: obj.a, b: obj.b), type: MyGame_Example_Test.self)
     }
 }
 
-public class TestT: NativeTable {
+public class MyGame_Example_TestT: NativeTable {
 
     var a: Int16
     var b: Int8
 
-    init(_ _t: inout Test) {
+    init(_ _t: inout MyGame_Example_Test) {
         a = _t.a
         b = _t.b
     }
@@ -190,7 +187,7 @@ public class TestT: NativeTable {
     }
 
 }
-public struct Vec3: Readable {
+public struct MyGame_Example_Vec3: Readable {
 
     static func validateVersion() { FlatBuffersVersion_1_12_0() }
     public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -208,33 +205,33 @@ public struct Vec3: Readable {
     @discardableResult public func mutate(z: Float32) -> Bool { return _accessor.mutate(z, index: 8) }
     public var test1: Double { return _accessor.readBuffer(of: Double.self, at: 16) }
     @discardableResult public func mutate(test1: Double) -> Bool { return _accessor.mutate(test1, index: 16) }
-    public var test2: MyGame.Example.Color { return MyGame.Example.Color(rawValue: _accessor.readBuffer(of: UInt8.self, at: 24)) ?? .red }
-    public var test3: MyGame.Example.Test { return MyGame.Example.Test(_accessor.bb, o: _accessor.postion + 26) }
+    public var test2: MyGame_Example_Color { return MyGame_Example_Color(rawValue: _accessor.readBuffer(of: UInt8.self, at: 24)) ?? .red }
+    public var test3: MyGame_Example_Test { return MyGame_Example_Test(_accessor.bb, o: _accessor.postion + 26) }
     
 
-    public mutating func unpack() -> Vec3T {
-        return Vec3T(&self)
+    public mutating func unpack() -> MyGame_Example_Vec3T {
+        return MyGame_Example_Vec3T(&self)
     }
-    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout Vec3T?) -> Offset<UOffset> {
+    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_Vec3T?) -> Offset<UOffset> {
         guard var obj = obj else { return Offset<UOffset>() }
         return pack(&builder, obj: &obj)
     }
 
-    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout Vec3T) -> Offset<UOffset> {
-        return builder.create(struct: createVec3(x: obj.x, y: obj.y, z: obj.z, test1: obj.test1, test2: obj.test2, test3a: obj.test3.a, test3b: obj.test3.b), type: Vec3.self)
+    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_Vec3T) -> Offset<UOffset> {
+        return builder.create(struct: createVec3(x: obj.x, y: obj.y, z: obj.z, test1: obj.test1, test2: obj.test2, test3a: obj.test3.a, test3b: obj.test3.b), type: MyGame_Example_Vec3.self)
     }
 }
 
-public class Vec3T: NativeTable {
+public class MyGame_Example_Vec3T: NativeTable {
 
     var x: Float32
     var y: Float32
     var z: Float32
     var test1: Double
-    var test2: MyGame.Example.Color
-    var test3: MyGame.Example.TestT
+    var test2: MyGame_Example_Color
+    var test3: MyGame_Example_TestT
 
-    init(_ _t: inout Vec3) {
+    init(_ _t: inout MyGame_Example_Vec3) {
         x = _t.x
         y = _t.y
         z = _t.z
@@ -250,11 +247,11 @@ public class Vec3T: NativeTable {
         z = 0.0
         test1 = 0.0
         test2 = .red
-        test3 = MyGame.Example.TestT()
+        test3 = MyGame_Example_TestT()
     }
 
 }
-public struct Ability: Readable {
+public struct MyGame_Example_Ability: Readable {
 
     static func validateVersion() { FlatBuffersVersion_1_12_0() }
     public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -270,25 +267,25 @@ public struct Ability: Readable {
     @discardableResult public func mutate(distance: UInt32) -> Bool { return _accessor.mutate(distance, index: 4) }
     
 
-    public mutating func unpack() -> AbilityT {
-        return AbilityT(&self)
+    public mutating func unpack() -> MyGame_Example_AbilityT {
+        return MyGame_Example_AbilityT(&self)
     }
-    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout AbilityT?) -> Offset<UOffset> {
+    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_AbilityT?) -> Offset<UOffset> {
         guard var obj = obj else { return Offset<UOffset>() }
         return pack(&builder, obj: &obj)
     }
 
-    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout AbilityT) -> Offset<UOffset> {
-        return builder.create(struct: createAbility(id: obj.id, distance: obj.distance), type: Ability.self)
+    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_AbilityT) -> Offset<UOffset> {
+        return builder.create(struct: createAbility(id: obj.id, distance: obj.distance), type: MyGame_Example_Ability.self)
     }
 }
 
-public class AbilityT: NativeTable {
+public class MyGame_Example_AbilityT: NativeTable {
 
     var id: UInt32
     var distance: UInt32
 
-    init(_ _t: inout Ability) {
+    init(_ _t: inout MyGame_Example_Ability) {
         id = _t.id
         distance = _t.distance
     }
@@ -299,48 +296,52 @@ public class AbilityT: NativeTable {
     }
 
 }
-public static func createTest(a: Int16 = 0, b: Int8 = 0) -> UnsafeMutableRawPointer {
-    let memory = UnsafeMutableRawPointer.allocate(byteCount: Test.size, alignment: Test.alignment)
-    memory.initializeMemory(as: UInt8.self, repeating: 0, count: Test.size)
-    memory.storeBytes(of: a, toByteOffset: 0, as: Int16.self)
-    memory.storeBytes(of: b, toByteOffset: 2, as: Int8.self)
-    return memory
-}
-
-public static func createVec3(x: Float32 = 0.0, y: Float32 = 0.0, z: Float32 = 0.0, test1: Double = 0.0, test2: MyGame.Example.Color, test3a: Int16 = 0, test3b: Int8 = 0) -> UnsafeMutableRawPointer {
-    let memory = UnsafeMutableRawPointer.allocate(byteCount: Vec3.size, alignment: Vec3.alignment)
-    memory.initializeMemory(as: UInt8.self, repeating: 0, count: Vec3.size)
-    memory.storeBytes(of: x, toByteOffset: 0, as: Float32.self)
-    memory.storeBytes(of: y, toByteOffset: 4, as: Float32.self)
-    memory.storeBytes(of: z, toByteOffset: 8, as: Float32.self)
-    memory.storeBytes(of: test1, toByteOffset: 16, as: Double.self)
-    memory.storeBytes(of: test2.rawValue, toByteOffset: 24, as: UInt8.self)
-    memory.storeBytes(of: test3a, toByteOffset: 26, as: Int16.self)
-    memory.storeBytes(of: test3b, toByteOffset: 28, as: Int8.self)
-    return memory
-}
-
-public static func createAbility(id: UInt32 = 0, distance: UInt32 = 0) -> UnsafeMutableRawPointer {
-    let memory = UnsafeMutableRawPointer.allocate(byteCount: Ability.size, alignment: Ability.alignment)
-    memory.initializeMemory(as: UInt8.self, repeating: 0, count: Ability.size)
-    memory.storeBytes(of: id, toByteOffset: 0, as: UInt32.self)
-    memory.storeBytes(of: distance, toByteOffset: 4, as: UInt32.self)
-    return memory
-}
+extension MyGame_Example_Test {
+    public static func createTest(a: Int16 = 0, b: Int8 = 0) -> UnsafeMutableRawPointer {
+        let memory = UnsafeMutableRawPointer.allocate(byteCount: MyGame_Example_Test.size, alignment: MyGame_Example_Test.alignment)
+        memory.initializeMemory(as: UInt8.self, repeating: 0, count: MyGame_Example_Test.size)
+        memory.storeBytes(of: a, toByteOffset: 0, as: Int16.self)
+        memory.storeBytes(of: b, toByteOffset: 2, as: Int8.self)
+        return memory
+    }
 
 }
 
-// MARK: - Example
+extension MyGame_Example_Vec3 {
+    public static func createVec3(x: Float32 = 0.0, y: Float32 = 0.0, z: Float32 = 0.0, test1: Double = 0.0, test2: MyGame_Example_Color, test3a: Int16 = 0, test3b: Int8 = 0) -> UnsafeMutableRawPointer {
+        let memory = UnsafeMutableRawPointer.allocate(byteCount: MyGame_Example_Vec3.size, alignment: MyGame_Example_Vec3.alignment)
+        memory.initializeMemory(as: UInt8.self, repeating: 0, count: MyGame_Example_Vec3.size)
+        memory.storeBytes(of: x, toByteOffset: 0, as: Float32.self)
+        memory.storeBytes(of: y, toByteOffset: 4, as: Float32.self)
+        memory.storeBytes(of: z, toByteOffset: 8, as: Float32.self)
+        memory.storeBytes(of: test1, toByteOffset: 16, as: Double.self)
+        memory.storeBytes(of: test2.rawValue, toByteOffset: 24, as: UInt8.self)
+        memory.storeBytes(of: test3a, toByteOffset: 26, as: Int16.self)
+        memory.storeBytes(of: test3b, toByteOffset: 28, as: Int8.self)
+        return memory
+    }
 
+}
 
-public struct InParentNamespace: FlatBufferObject {
+extension MyGame_Example_Ability {
+    public static func createAbility(id: UInt32 = 0, distance: UInt32 = 0) -> UnsafeMutableRawPointer {
+        let memory = UnsafeMutableRawPointer.allocate(byteCount: MyGame_Example_Ability.size, alignment: MyGame_Example_Ability.alignment)
+        memory.initializeMemory(as: UInt8.self, repeating: 0, count: MyGame_Example_Ability.size)
+        memory.storeBytes(of: id, toByteOffset: 0, as: UInt32.self)
+        memory.storeBytes(of: distance, toByteOffset: 4, as: UInt32.self)
+        return memory
+    }
+
+}
+
+public struct MyGame_InParentNamespace: FlatBufferObject {
 
     static func validateVersion() { FlatBuffersVersion_1_12_0() }
     public var __buffer: ByteBuffer! { return _accessor.bb }
     private var _accessor: Table
 
     public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset<UOffset>, prefix: Bool = false) { fbb.finish(offset: end, fileId: "MONS", addPrefix: prefix) }
-    public static func getRootAsInParentNamespace(bb: ByteBuffer) -> InParentNamespace { return InParentNamespace(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
+    public static func getRootAsInParentNamespace(bb: ByteBuffer) -> MyGame_InParentNamespace { return MyGame_InParentNamespace(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
 
     private init(_ t: Table) { _accessor = t }
     public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
@@ -349,40 +350,38 @@ public struct InParentNamespace: FlatBufferObject {
     public static func endInParentNamespace(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
     
 
-    public mutating func unpack() -> InParentNamespaceT {
-        return InParentNamespaceT(&self)
+    public mutating func unpack() -> MyGame_InParentNamespaceT {
+        return MyGame_InParentNamespaceT(&self)
     }
-    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout InParentNamespaceT?) -> Offset<UOffset> {
+    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_InParentNamespaceT?) -> Offset<UOffset> {
         guard var obj = obj else { return Offset<UOffset>() }
         return pack(&builder, obj: &obj)
     }
 
-    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout InParentNamespaceT) -> Offset<UOffset> {
-        let __root = InParentNamespace.startInParentNamespace(&builder)
-        return InParentNamespace.endInParentNamespace(&builder, start: __root)
+    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_InParentNamespaceT) -> Offset<UOffset> {
+        let __root = MyGame_InParentNamespace.startInParentNamespace(&builder)
+        return MyGame_InParentNamespace.endInParentNamespace(&builder, start: __root)
     }
 }
 
-public class InParentNamespaceT: NativeTable {
+public class MyGame_InParentNamespaceT: NativeTable {
 
 
-    init(_ _t: inout InParentNamespace) {
+    init(_ _t: inout MyGame_InParentNamespace) {
     }
 
     init() {
     }
 
 }
-public enum Example2 {
-
-public struct Monster: FlatBufferObject {
+public struct MyGame_Example2_Monster: FlatBufferObject {
 
     static func validateVersion() { FlatBuffersVersion_1_12_0() }
     public var __buffer: ByteBuffer! { return _accessor.bb }
     private var _accessor: Table
 
     public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset<UOffset>, prefix: Bool = false) { fbb.finish(offset: end, fileId: "MONS", addPrefix: prefix) }
-    public static func getRootAsMonster(bb: ByteBuffer) -> Monster { return Monster(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
+    public static func getRootAsMonster(bb: ByteBuffer) -> MyGame_Example2_Monster { return MyGame_Example2_Monster(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
 
     private init(_ t: Table) { _accessor = t }
     public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
@@ -391,46 +390,38 @@ public struct Monster: FlatBufferObject {
     public static func endMonster(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
     
 
-    public mutating func unpack() -> MonsterT {
-        return MonsterT(&self)
+    public mutating func unpack() -> MyGame_Example2_MonsterT {
+        return MyGame_Example2_MonsterT(&self)
     }
-    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MonsterT?) -> Offset<UOffset> {
+    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example2_MonsterT?) -> Offset<UOffset> {
         guard var obj = obj else { return Offset<UOffset>() }
         return pack(&builder, obj: &obj)
     }
 
-    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MonsterT) -> Offset<UOffset> {
-        let __root = Monster.startMonster(&builder)
-        return Monster.endMonster(&builder, start: __root)
+    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example2_MonsterT) -> Offset<UOffset> {
+        let __root = MyGame_Example2_Monster.startMonster(&builder)
+        return MyGame_Example2_Monster.endMonster(&builder, start: __root)
     }
 }
 
-public class MonsterT: NativeTable {
+public class MyGame_Example2_MonsterT: NativeTable {
 
 
-    init(_ _t: inout Monster) {
+    init(_ _t: inout MyGame_Example2_Monster) {
     }
 
     init() {
     }
 
 }
-}
-
-// MARK: - Example2
-
-
-}
-extension MyGame.Example {
-
-public struct TestSimpleTableWithEnum: FlatBufferObject {
+public struct MyGame_Example_TestSimpleTableWithEnum: FlatBufferObject {
 
     static func validateVersion() { FlatBuffersVersion_1_12_0() }
     public var __buffer: ByteBuffer! { return _accessor.bb }
     private var _accessor: Table
 
     public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset<UOffset>, prefix: Bool = false) { fbb.finish(offset: end, fileId: "MONS", addPrefix: prefix) }
-    public static func getRootAsTestSimpleTableWithEnum(bb: ByteBuffer) -> TestSimpleTableWithEnum { return TestSimpleTableWithEnum(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
+    public static func getRootAsTestSimpleTableWithEnum(bb: ByteBuffer) -> MyGame_Example_TestSimpleTableWithEnum { return MyGame_Example_TestSimpleTableWithEnum(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
 
     private init(_ t: Table) { _accessor = t }
     public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
@@ -441,41 +432,41 @@ public struct TestSimpleTableWithEnum: FlatBufferObject {
         var p: VOffset { self.rawValue }
     }
 
-    public var color: MyGame.Example.Color { let o = _accessor.offset(VTOFFSET.color.v); return o == 0 ? .green : MyGame.Example.Color(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? .green }
-    @discardableResult public func mutate(color: MyGame.Example.Color) -> Bool {let o = _accessor.offset(VTOFFSET.color.v);  return _accessor.mutate(color.rawValue, index: o) }
+    public var color: MyGame_Example_Color { let o = _accessor.offset(VTOFFSET.color.v); return o == 0 ? .green : MyGame_Example_Color(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? .green }
+    @discardableResult public func mutate(color: MyGame_Example_Color) -> Bool {let o = _accessor.offset(VTOFFSET.color.v);  return _accessor.mutate(color.rawValue, index: o) }
     public static func startTestSimpleTableWithEnum(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
-    public static func add(color: MyGame.Example.Color, _ fbb: inout FlatBufferBuilder) { fbb.add(element: color.rawValue, def: 2, at: VTOFFSET.color.p) }
+    public static func add(color: MyGame_Example_Color, _ fbb: inout FlatBufferBuilder) { fbb.add(element: color.rawValue, def: 2, at: VTOFFSET.color.p) }
     public static func endTestSimpleTableWithEnum(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
     public static func createTestSimpleTableWithEnum(
         _ fbb: inout FlatBufferBuilder,
-        color: MyGame.Example.Color = .green
+        color: MyGame_Example_Color = .green
     ) -> Offset<UOffset> {
-        let __start = TestSimpleTableWithEnum.startTestSimpleTableWithEnum(&fbb)
-        TestSimpleTableWithEnum.add(color: color, &fbb)
-        return TestSimpleTableWithEnum.endTestSimpleTableWithEnum(&fbb, start: __start)
+        let __start = MyGame_Example_TestSimpleTableWithEnum.startTestSimpleTableWithEnum(&fbb)
+        MyGame_Example_TestSimpleTableWithEnum.add(color: color, &fbb)
+        return MyGame_Example_TestSimpleTableWithEnum.endTestSimpleTableWithEnum(&fbb, start: __start)
     }
     
 
-    public mutating func unpack() -> TestSimpleTableWithEnumT {
-        return TestSimpleTableWithEnumT(&self)
+    public mutating func unpack() -> MyGame_Example_TestSimpleTableWithEnumT {
+        return MyGame_Example_TestSimpleTableWithEnumT(&self)
     }
-    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout TestSimpleTableWithEnumT?) -> Offset<UOffset> {
+    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_TestSimpleTableWithEnumT?) -> Offset<UOffset> {
         guard var obj = obj else { return Offset<UOffset>() }
         return pack(&builder, obj: &obj)
     }
 
-    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout TestSimpleTableWithEnumT) -> Offset<UOffset> {
-        let __root = TestSimpleTableWithEnum.startTestSimpleTableWithEnum(&builder)
-        TestSimpleTableWithEnum.add(color: obj.color, &builder)
-        return TestSimpleTableWithEnum.endTestSimpleTableWithEnum(&builder, start: __root)
+    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_TestSimpleTableWithEnumT) -> Offset<UOffset> {
+        let __root = MyGame_Example_TestSimpleTableWithEnum.startTestSimpleTableWithEnum(&builder)
+        MyGame_Example_TestSimpleTableWithEnum.add(color: obj.color, &builder)
+        return MyGame_Example_TestSimpleTableWithEnum.endTestSimpleTableWithEnum(&builder, start: __root)
     }
 }
 
-public class TestSimpleTableWithEnumT: NativeTable {
+public class MyGame_Example_TestSimpleTableWithEnumT: NativeTable {
 
-    var color: MyGame.Example.Color
+    var color: MyGame_Example_Color
 
-    init(_ _t: inout TestSimpleTableWithEnum) {
+    init(_ _t: inout MyGame_Example_TestSimpleTableWithEnum) {
         color = _t.color
     }
 
@@ -484,14 +475,14 @@ public class TestSimpleTableWithEnumT: NativeTable {
     }
 
 }
-public struct Stat: FlatBufferObject {
+public struct MyGame_Example_Stat: FlatBufferObject {
 
     static func validateVersion() { FlatBuffersVersion_1_12_0() }
     public var __buffer: ByteBuffer! { return _accessor.bb }
     private var _accessor: Table
 
     public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset<UOffset>, prefix: Bool = false) { fbb.finish(offset: end, fileId: "MONS", addPrefix: prefix) }
-    public static func getRootAsStat(bb: ByteBuffer) -> Stat { return Stat(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
+    public static func getRootAsStat(bb: ByteBuffer) -> MyGame_Example_Stat { return MyGame_Example_Stat(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
 
     private init(_ t: Table) { _accessor = t }
     public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
@@ -521,23 +512,23 @@ public struct Stat: FlatBufferObject {
         val: Int64 = 0,
         count: UInt16 = 0
     ) -> Offset<UOffset> {
-        let __start = Stat.startStat(&fbb)
-        Stat.add(id: id, &fbb)
-        Stat.add(val: val, &fbb)
-        Stat.add(count: count, &fbb)
-        return Stat.endStat(&fbb, start: __start)
+        let __start = MyGame_Example_Stat.startStat(&fbb)
+        MyGame_Example_Stat.add(id: id, &fbb)
+        MyGame_Example_Stat.add(val: val, &fbb)
+        MyGame_Example_Stat.add(count: count, &fbb)
+        return MyGame_Example_Stat.endStat(&fbb, start: __start)
     }
     
 
-    public mutating func unpack() -> StatT {
-        return StatT(&self)
+    public mutating func unpack() -> MyGame_Example_StatT {
+        return MyGame_Example_StatT(&self)
     }
-    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout StatT?) -> Offset<UOffset> {
+    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_StatT?) -> Offset<UOffset> {
         guard var obj = obj else { return Offset<UOffset>() }
         return pack(&builder, obj: &obj)
     }
 
-    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout StatT) -> Offset<UOffset> {
+    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_StatT) -> Offset<UOffset> {
         let __id: Offset<String>
         if let s = obj.id {
             __id = builder.create(string: s)
@@ -545,21 +536,21 @@ public struct Stat: FlatBufferObject {
             __id = Offset<String>()
         }
 
-        let __root = Stat.startStat(&builder)
-        Stat.add(id: __id, &builder)
-        Stat.add(val: obj.val, &builder)
-        Stat.add(count: obj.count, &builder)
-        return Stat.endStat(&builder, start: __root)
+        let __root = MyGame_Example_Stat.startStat(&builder)
+        MyGame_Example_Stat.add(id: __id, &builder)
+        MyGame_Example_Stat.add(val: obj.val, &builder)
+        MyGame_Example_Stat.add(count: obj.count, &builder)
+        return MyGame_Example_Stat.endStat(&builder, start: __root)
     }
 }
 
-public class StatT: NativeTable {
+public class MyGame_Example_StatT: NativeTable {
 
     var id: String?
     var val: Int64
     var count: UInt16
 
-    init(_ _t: inout Stat) {
+    init(_ _t: inout MyGame_Example_Stat) {
         id = _t.id
         val = _t.val
         count = _t.count
@@ -571,14 +562,14 @@ public class StatT: NativeTable {
     }
 
 }
-public struct Referrable: FlatBufferObject {
+public struct MyGame_Example_Referrable: FlatBufferObject {
 
     static func validateVersion() { FlatBuffersVersion_1_12_0() }
     public var __buffer: ByteBuffer! { return _accessor.bb }
     private var _accessor: Table
 
     public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset<UOffset>, prefix: Bool = false) { fbb.finish(offset: end, fileId: "MONS", addPrefix: prefix) }
-    public static func getRootAsReferrable(bb: ByteBuffer) -> Referrable { return Referrable(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
+    public static func getRootAsReferrable(bb: ByteBuffer) -> MyGame_Example_Referrable { return MyGame_Example_Referrable(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
 
     private init(_ t: Table) { _accessor = t }
     public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
@@ -598,16 +589,16 @@ public struct Referrable: FlatBufferObject {
         _ fbb: inout FlatBufferBuilder,
         id: UInt64 = 0
     ) -> Offset<UOffset> {
-        let __start = Referrable.startReferrable(&fbb)
-        Referrable.add(id: id, &fbb)
-        return Referrable.endReferrable(&fbb, start: __start)
+        let __start = MyGame_Example_Referrable.startReferrable(&fbb)
+        MyGame_Example_Referrable.add(id: id, &fbb)
+        return MyGame_Example_Referrable.endReferrable(&fbb, start: __start)
     }
     public static func sortVectorOfReferrable(offsets:[Offset<UOffset>], _ fbb: inout FlatBufferBuilder) -> Offset<UOffset> {
         var off = offsets
         off.sort { Table.compare(Table.offset(Int32($1.o), vOffset: 4, fbb: fbb.buffer), Table.offset(Int32($0.o), vOffset: 4, fbb: fbb.buffer), fbb: fbb.buffer) < 0 } 
         return fbb.createVector(ofOffsets: off)
     }
-    fileprivate static func lookupByKey(vector: Int32, key: UInt64, fbb: ByteBuffer) -> Referrable? {
+    fileprivate static func lookupByKey(vector: Int32, key: UInt64, fbb: ByteBuffer) -> MyGame_Example_Referrable? {
         var span = fbb.read(def: Int32.self, position: Int(vector - 4))
         var start: Int32 = 0
         while span != 0 {
@@ -621,33 +612,33 @@ public struct Referrable: FlatBufferObject {
                 start += middle
                 span -= middle
             } else {
-                return Referrable(fbb, o: tableOffset)
+                return MyGame_Example_Referrable(fbb, o: tableOffset)
             }
         }
         return nil
     }
     
 
-    public mutating func unpack() -> ReferrableT {
-        return ReferrableT(&self)
+    public mutating func unpack() -> MyGame_Example_ReferrableT {
+        return MyGame_Example_ReferrableT(&self)
     }
-    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout ReferrableT?) -> Offset<UOffset> {
+    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_ReferrableT?) -> Offset<UOffset> {
         guard var obj = obj else { return Offset<UOffset>() }
         return pack(&builder, obj: &obj)
     }
 
-    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout ReferrableT) -> Offset<UOffset> {
-        let __root = Referrable.startReferrable(&builder)
-        Referrable.add(id: obj.id, &builder)
-        return Referrable.endReferrable(&builder, start: __root)
+    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_ReferrableT) -> Offset<UOffset> {
+        let __root = MyGame_Example_Referrable.startReferrable(&builder)
+        MyGame_Example_Referrable.add(id: obj.id, &builder)
+        return MyGame_Example_Referrable.endReferrable(&builder, start: __root)
     }
 }
 
-public class ReferrableT: NativeTable {
+public class MyGame_Example_ReferrableT: NativeTable {
 
     var id: UInt64
 
-    init(_ _t: inout Referrable) {
+    init(_ _t: inout MyGame_Example_Referrable) {
         id = _t.id
     }
 
@@ -657,14 +648,14 @@ public class ReferrableT: NativeTable {
 
 }
 ///  an example documentation comment: "monster object"
-public struct Monster: FlatBufferObject {
+public struct MyGame_Example_Monster: FlatBufferObject {
 
     static func validateVersion() { FlatBuffersVersion_1_12_0() }
     public var __buffer: ByteBuffer! { return _accessor.bb }
     private var _accessor: Table
 
     public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset<UOffset>, prefix: Bool = false) { fbb.finish(offset: end, fileId: "MONS", addPrefix: prefix) }
-    public static func getRootAsMonster(bb: ByteBuffer) -> Monster { return Monster(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
+    public static func getRootAsMonster(bb: ByteBuffer) -> MyGame_Example_Monster { return MyGame_Example_Monster(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
 
     private init(_ t: Table) { _accessor = t }
     public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
@@ -722,7 +713,7 @@ public struct Monster: FlatBufferObject {
         var p: VOffset { self.rawValue }
     }
 
-    public var pos: MyGame.Example.Vec3? { let o = _accessor.offset(VTOFFSET.pos.v); return o == 0 ? nil : MyGame.Example.Vec3(_accessor.bb, o: o + _accessor.postion) }
+    public var pos: MyGame_Example_Vec3? { let o = _accessor.offset(VTOFFSET.pos.v); return o == 0 ? nil : MyGame_Example_Vec3(_accessor.bb, o: o + _accessor.postion) }
     public var mana: Int16 { let o = _accessor.offset(VTOFFSET.mana.v); return o == 0 ? 150 : _accessor.readBuffer(of: Int16.self, at: o) }
     @discardableResult public func mutate(mana: Int16) -> Bool {let o = _accessor.offset(VTOFFSET.mana.v);  return _accessor.mutate(mana, index: o) }
     public var hp: Int16 { let o = _accessor.offset(VTOFFSET.hp.v); return o == 0 ? 100 : _accessor.readBuffer(of: Int16.self, at: o) }
@@ -733,25 +724,25 @@ public struct Monster: FlatBufferObject {
     public func inventory(at index: Int32) -> UInt8 { let o = _accessor.offset(VTOFFSET.inventory.v); return o == 0 ? 0 : _accessor.directRead(of: UInt8.self, offset: _accessor.vector(at: o) + index * 1) }
     public var inventory: [UInt8] { return _accessor.getVector(at: VTOFFSET.inventory.v) ?? [] }
     public func mutate(inventory: UInt8, at index: Int32) -> Bool { let o = _accessor.offset(VTOFFSET.inventory.v); return _accessor.directMutate(inventory, index: _accessor.vector(at: o) + index * 1) }
-    public var color: MyGame.Example.Color { let o = _accessor.offset(VTOFFSET.color.v); return o == 0 ? .blue : MyGame.Example.Color(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? .blue }
-    @discardableResult public func mutate(color: MyGame.Example.Color) -> Bool {let o = _accessor.offset(VTOFFSET.color.v);  return _accessor.mutate(color.rawValue, index: o) }
-    public var testType: MyGame.Example.Any_ { let o = _accessor.offset(VTOFFSET.testType.v); return o == 0 ? .none_ : MyGame.Example.Any_(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? .none_ }
+    public var color: MyGame_Example_Color { let o = _accessor.offset(VTOFFSET.color.v); return o == 0 ? .blue : MyGame_Example_Color(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? .blue }
+    @discardableResult public func mutate(color: MyGame_Example_Color) -> Bool {let o = _accessor.offset(VTOFFSET.color.v);  return _accessor.mutate(color.rawValue, index: o) }
+    public var testType: MyGame_Example_Any_ { let o = _accessor.offset(VTOFFSET.testType.v); return o == 0 ? .none_ : MyGame_Example_Any_(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? .none_ }
     public func test<T: FlatBufferObject>(type: T.Type) -> T? { let o = _accessor.offset(VTOFFSET.test.v); return o == 0 ? nil : _accessor.union(o) }
     public var test4Count: Int32 { let o = _accessor.offset(VTOFFSET.test4.v); return o == 0 ? 0 : _accessor.vector(count: o) }
-    public func test4(at index: Int32) -> MyGame.Example.Test? { let o = _accessor.offset(VTOFFSET.test4.v); return o == 0 ? nil : MyGame.Example.Test(_accessor.bb, o: _accessor.vector(at: o) + index * 4) }
+    public func test4(at index: Int32) -> MyGame_Example_Test? { let o = _accessor.offset(VTOFFSET.test4.v); return o == 0 ? nil : MyGame_Example_Test(_accessor.bb, o: _accessor.vector(at: o) + index * 4) }
     public var testarrayofstringCount: Int32 { let o = _accessor.offset(VTOFFSET.testarrayofstring.v); return o == 0 ? 0 : _accessor.vector(count: o) }
     public func testarrayofstring(at index: Int32) -> String? { let o = _accessor.offset(VTOFFSET.testarrayofstring.v); return o == 0 ? nil : _accessor.directString(at: _accessor.vector(at: o) + index * 4) }
     ///  an example documentation comment: this will end up in the generated code
     ///  multiline too
     public var testarrayoftablesCount: Int32 { let o = _accessor.offset(VTOFFSET.testarrayoftables.v); return o == 0 ? 0 : _accessor.vector(count: o) }
-    public func testarrayoftables(at index: Int32) -> MyGame.Example.Monster? { let o = _accessor.offset(VTOFFSET.testarrayoftables.v); return o == 0 ? nil : MyGame.Example.Monster(_accessor.bb, o: _accessor.indirect(_accessor.vector(at: o) + index * 4)) }
-    public func testarrayoftablesBy(key: String) -> MyGame.Example.Monster? { let o = _accessor.offset(VTOFFSET.testarrayoftables.v); return o == 0 ? nil : MyGame.Example.Monster.lookupByKey(vector: _accessor.vector(at: o), key: key, fbb: _accessor.bb) }
-    public var enemy: MyGame.Example.Monster? { let o = _accessor.offset(VTOFFSET.enemy.v); return o == 0 ? nil : MyGame.Example.Monster(_accessor.bb, o: _accessor.indirect(o + _accessor.postion)) }
+    public func testarrayoftables(at index: Int32) -> MyGame_Example_Monster? { let o = _accessor.offset(VTOFFSET.testarrayoftables.v); return o == 0 ? nil : MyGame_Example_Monster(_accessor.bb, o: _accessor.indirect(_accessor.vector(at: o) + index * 4)) }
+    public func testarrayoftablesBy(key: String) -> MyGame_Example_Monster? { let o = _accessor.offset(VTOFFSET.testarrayoftables.v); return o == 0 ? nil : MyGame_Example_Monster.lookupByKey(vector: _accessor.vector(at: o), key: key, fbb: _accessor.bb) }
+    public var enemy: MyGame_Example_Monster? { let o = _accessor.offset(VTOFFSET.enemy.v); return o == 0 ? nil : MyGame_Example_Monster(_accessor.bb, o: _accessor.indirect(o + _accessor.postion)) }
     public var testnestedflatbufferCount: Int32 { let o = _accessor.offset(VTOFFSET.testnestedflatbuffer.v); return o == 0 ? 0 : _accessor.vector(count: o) }
     public func testnestedflatbuffer(at index: Int32) -> UInt8 { let o = _accessor.offset(VTOFFSET.testnestedflatbuffer.v); return o == 0 ? 0 : _accessor.directRead(of: UInt8.self, offset: _accessor.vector(at: o) + index * 1) }
     public var testnestedflatbuffer: [UInt8] { return _accessor.getVector(at: VTOFFSET.testnestedflatbuffer.v) ?? [] }
     public func mutate(testnestedflatbuffer: UInt8, at index: Int32) -> Bool { let o = _accessor.offset(VTOFFSET.testnestedflatbuffer.v); return _accessor.directMutate(testnestedflatbuffer, index: _accessor.vector(at: o) + index * 1) }
-    public var testempty: MyGame.Example.Stat? { let o = _accessor.offset(VTOFFSET.testempty.v); return o == 0 ? nil : MyGame.Example.Stat(_accessor.bb, o: _accessor.indirect(o + _accessor.postion)) }
+    public var testempty: MyGame_Example_Stat? { let o = _accessor.offset(VTOFFSET.testempty.v); return o == 0 ? nil : MyGame_Example_Stat(_accessor.bb, o: _accessor.indirect(o + _accessor.postion)) }
     public var testbool: Bool { let o = _accessor.offset(VTOFFSET.testbool.v); return o == 0 ? false : 0 != _accessor.readBuffer(of: Byte.self, at: o) }
     @discardableResult public func mutate(testbool: Byte) -> Bool {let o = _accessor.offset(VTOFFSET.testbool.v);  return _accessor.mutate(testbool, index: o) }
     public var testhashs32Fnv1: Int32 { let o = _accessor.offset(VTOFFSET.testhashs32Fnv1.v); return o == 0 ? 0 : _accessor.readBuffer(of: Int32.self, at: o) }
@@ -783,13 +774,13 @@ public struct Monster: FlatBufferObject {
     public var testarrayofstring2Count: Int32 { let o = _accessor.offset(VTOFFSET.testarrayofstring2.v); return o == 0 ? 0 : _accessor.vector(count: o) }
     public func testarrayofstring2(at index: Int32) -> String? { let o = _accessor.offset(VTOFFSET.testarrayofstring2.v); return o == 0 ? nil : _accessor.directString(at: _accessor.vector(at: o) + index * 4) }
     public var testarrayofsortedstructCount: Int32 { let o = _accessor.offset(VTOFFSET.testarrayofsortedstruct.v); return o == 0 ? 0 : _accessor.vector(count: o) }
-    public func testarrayofsortedstruct(at index: Int32) -> MyGame.Example.Ability? { let o = _accessor.offset(VTOFFSET.testarrayofsortedstruct.v); return o == 0 ? nil : MyGame.Example.Ability(_accessor.bb, o: _accessor.vector(at: o) + index * 8) }
+    public func testarrayofsortedstruct(at index: Int32) -> MyGame_Example_Ability? { let o = _accessor.offset(VTOFFSET.testarrayofsortedstruct.v); return o == 0 ? nil : MyGame_Example_Ability(_accessor.bb, o: _accessor.vector(at: o) + index * 8) }
     public var flexCount: Int32 { let o = _accessor.offset(VTOFFSET.flex.v); return o == 0 ? 0 : _accessor.vector(count: o) }
     public func flex(at index: Int32) -> UInt8 { let o = _accessor.offset(VTOFFSET.flex.v); return o == 0 ? 0 : _accessor.directRead(of: UInt8.self, offset: _accessor.vector(at: o) + index * 1) }
     public var flex: [UInt8] { return _accessor.getVector(at: VTOFFSET.flex.v) ?? [] }
     public func mutate(flex: UInt8, at index: Int32) -> Bool { let o = _accessor.offset(VTOFFSET.flex.v); return _accessor.directMutate(flex, index: _accessor.vector(at: o) + index * 1) }
     public var test5Count: Int32 { let o = _accessor.offset(VTOFFSET.test5.v); return o == 0 ? 0 : _accessor.vector(count: o) }
-    public func test5(at index: Int32) -> MyGame.Example.Test? { let o = _accessor.offset(VTOFFSET.test5.v); return o == 0 ? nil : MyGame.Example.Test(_accessor.bb, o: _accessor.vector(at: o) + index * 4) }
+    public func test5(at index: Int32) -> MyGame_Example_Test? { let o = _accessor.offset(VTOFFSET.test5.v); return o == 0 ? nil : MyGame_Example_Test(_accessor.bb, o: _accessor.vector(at: o) + index * 4) }
     public var vectorOfLongsCount: Int32 { let o = _accessor.offset(VTOFFSET.vectorOfLongs.v); return o == 0 ? 0 : _accessor.vector(count: o) }
     public func vectorOfLongs(at index: Int32) -> Int64 { let o = _accessor.offset(VTOFFSET.vectorOfLongs.v); return o == 0 ? 0 : _accessor.directRead(of: Int64.self, offset: _accessor.vector(at: o) + index * 8) }
     public var vectorOfLongs: [Int64] { return _accessor.getVector(at: VTOFFSET.vectorOfLongs.v) ?? [] }
@@ -798,10 +789,10 @@ public struct Monster: FlatBufferObject {
     public func vectorOfDoubles(at index: Int32) -> Double { let o = _accessor.offset(VTOFFSET.vectorOfDoubles.v); return o == 0 ? 0 : _accessor.directRead(of: Double.self, offset: _accessor.vector(at: o) + index * 8) }
     public var vectorOfDoubles: [Double] { return _accessor.getVector(at: VTOFFSET.vectorOfDoubles.v) ?? [] }
     public func mutate(vectorOfDoubles: Double, at index: Int32) -> Bool { let o = _accessor.offset(VTOFFSET.vectorOfDoubles.v); return _accessor.directMutate(vectorOfDoubles, index: _accessor.vector(at: o) + index * 8) }
-    public var parentNamespaceTest: MyGame.InParentNamespace? { let o = _accessor.offset(VTOFFSET.parentNamespaceTest.v); return o == 0 ? nil : MyGame.InParentNamespace(_accessor.bb, o: _accessor.indirect(o + _accessor.postion)) }
+    public var parentNamespaceTest: MyGame_InParentNamespace? { let o = _accessor.offset(VTOFFSET.parentNamespaceTest.v); return o == 0 ? nil : MyGame_InParentNamespace(_accessor.bb, o: _accessor.indirect(o + _accessor.postion)) }
     public var vectorOfReferrablesCount: Int32 { let o = _accessor.offset(VTOFFSET.vectorOfReferrables.v); return o == 0 ? 0 : _accessor.vector(count: o) }
-    public func vectorOfReferrables(at index: Int32) -> MyGame.Example.Referrable? { let o = _accessor.offset(VTOFFSET.vectorOfReferrables.v); return o == 0 ? nil : MyGame.Example.Referrable(_accessor.bb, o: _accessor.indirect(_accessor.vector(at: o) + index * 4)) }
-    public func vectorOfReferrablesBy(key: UInt64) -> MyGame.Example.Referrable? { let o = _accessor.offset(VTOFFSET.vectorOfReferrables.v); return o == 0 ? nil : MyGame.Example.Referrable.lookupByKey(vector: _accessor.vector(at: o), key: key, fbb: _accessor.bb) }
+    public func vectorOfReferrables(at index: Int32) -> MyGame_Example_Referrable? { let o = _accessor.offset(VTOFFSET.vectorOfReferrables.v); return o == 0 ? nil : MyGame_Example_Referrable(_accessor.bb, o: _accessor.indirect(_accessor.vector(at: o) + index * 4)) }
+    public func vectorOfReferrablesBy(key: UInt64) -> MyGame_Example_Referrable? { let o = _accessor.offset(VTOFFSET.vectorOfReferrables.v); return o == 0 ? nil : MyGame_Example_Referrable.lookupByKey(vector: _accessor.vector(at: o), key: key, fbb: _accessor.bb) }
     public var singleWeakReference: UInt64 { let o = _accessor.offset(VTOFFSET.singleWeakReference.v); return o == 0 ? 0 : _accessor.readBuffer(of: UInt64.self, at: o) }
     @discardableResult public func mutate(singleWeakReference: UInt64) -> Bool {let o = _accessor.offset(VTOFFSET.singleWeakReference.v);  return _accessor.mutate(singleWeakReference, index: o) }
     public var vectorOfWeakReferencesCount: Int32 { let o = _accessor.offset(VTOFFSET.vectorOfWeakReferences.v); return o == 0 ? 0 : _accessor.vector(count: o) }
@@ -809,8 +800,8 @@ public struct Monster: FlatBufferObject {
     public var vectorOfWeakReferences: [UInt64] { return _accessor.getVector(at: VTOFFSET.vectorOfWeakReferences.v) ?? [] }
     public func mutate(vectorOfWeakReferences: UInt64, at index: Int32) -> Bool { let o = _accessor.offset(VTOFFSET.vectorOfWeakReferences.v); return _accessor.directMutate(vectorOfWeakReferences, index: _accessor.vector(at: o) + index * 8) }
     public var vectorOfStrongReferrablesCount: Int32 { let o = _accessor.offset(VTOFFSET.vectorOfStrongReferrables.v); return o == 0 ? 0 : _accessor.vector(count: o) }
-    public func vectorOfStrongReferrables(at index: Int32) -> MyGame.Example.Referrable? { let o = _accessor.offset(VTOFFSET.vectorOfStrongReferrables.v); return o == 0 ? nil : MyGame.Example.Referrable(_accessor.bb, o: _accessor.indirect(_accessor.vector(at: o) + index * 4)) }
-    public func vectorOfStrongReferrablesBy(key: UInt64) -> MyGame.Example.Referrable? { let o = _accessor.offset(VTOFFSET.vectorOfStrongReferrables.v); return o == 0 ? nil : MyGame.Example.Referrable.lookupByKey(vector: _accessor.vector(at: o), key: key, fbb: _accessor.bb) }
+    public func vectorOfStrongReferrables(at index: Int32) -> MyGame_Example_Referrable? { let o = _accessor.offset(VTOFFSET.vectorOfStrongReferrables.v); return o == 0 ? nil : MyGame_Example_Referrable(_accessor.bb, o: _accessor.indirect(_accessor.vector(at: o) + index * 4)) }
+    public func vectorOfStrongReferrablesBy(key: UInt64) -> MyGame_Example_Referrable? { let o = _accessor.offset(VTOFFSET.vectorOfStrongReferrables.v); return o == 0 ? nil : MyGame_Example_Referrable.lookupByKey(vector: _accessor.vector(at: o), key: key, fbb: _accessor.bb) }
     public var coOwningReference: UInt64 { let o = _accessor.offset(VTOFFSET.coOwningReference.v); return o == 0 ? 0 : _accessor.readBuffer(of: UInt64.self, at: o) }
     @discardableResult public func mutate(coOwningReference: UInt64) -> Bool {let o = _accessor.offset(VTOFFSET.coOwningReference.v);  return _accessor.mutate(coOwningReference, index: o) }
     public var vectorOfCoOwningReferencesCount: Int32 { let o = _accessor.offset(VTOFFSET.vectorOfCoOwningReferences.v); return o == 0 ? 0 : _accessor.vector(count: o) }
@@ -823,22 +814,22 @@ public struct Monster: FlatBufferObject {
     public func vectorOfNonOwningReferences(at index: Int32) -> UInt64 { let o = _accessor.offset(VTOFFSET.vectorOfNonOwningReferences.v); return o == 0 ? 0 : _accessor.directRead(of: UInt64.self, offset: _accessor.vector(at: o) + index * 8) }
     public var vectorOfNonOwningReferences: [UInt64] { return _accessor.getVector(at: VTOFFSET.vectorOfNonOwningReferences.v) ?? [] }
     public func mutate(vectorOfNonOwningReferences: UInt64, at index: Int32) -> Bool { let o = _accessor.offset(VTOFFSET.vectorOfNonOwningReferences.v); return _accessor.directMutate(vectorOfNonOwningReferences, index: _accessor.vector(at: o) + index * 8) }
-    public var anyUniqueType: MyGame.Example.AnyUniqueAliases { let o = _accessor.offset(VTOFFSET.anyUniqueType.v); return o == 0 ? .none_ : MyGame.Example.AnyUniqueAliases(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? .none_ }
+    public var anyUniqueType: MyGame_Example_AnyUniqueAliases { let o = _accessor.offset(VTOFFSET.anyUniqueType.v); return o == 0 ? .none_ : MyGame_Example_AnyUniqueAliases(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? .none_ }
     public func anyUnique<T: FlatBufferObject>(type: T.Type) -> T? { let o = _accessor.offset(VTOFFSET.anyUnique.v); return o == 0 ? nil : _accessor.union(o) }
-    public var anyAmbiguousType: MyGame.Example.AnyAmbiguousAliases { let o = _accessor.offset(VTOFFSET.anyAmbiguousType.v); return o == 0 ? .none_ : MyGame.Example.AnyAmbiguousAliases(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? .none_ }
+    public var anyAmbiguousType: MyGame_Example_AnyAmbiguousAliases { let o = _accessor.offset(VTOFFSET.anyAmbiguousType.v); return o == 0 ? .none_ : MyGame_Example_AnyAmbiguousAliases(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? .none_ }
     public func anyAmbiguous<T: FlatBufferObject>(type: T.Type) -> T? { let o = _accessor.offset(VTOFFSET.anyAmbiguous.v); return o == 0 ? nil : _accessor.union(o) }
     public var vectorOfEnumsCount: Int32 { let o = _accessor.offset(VTOFFSET.vectorOfEnums.v); return o == 0 ? 0 : _accessor.vector(count: o) }
-    public func vectorOfEnums(at index: Int32) -> MyGame.Example.Color? { let o = _accessor.offset(VTOFFSET.vectorOfEnums.v); return o == 0 ? MyGame.Example.Color.red : MyGame.Example.Color(rawValue: _accessor.directRead(of: UInt8.self, offset: _accessor.vector(at: o) + index * 1)) }
-    public var signedEnum: MyGame.Example.Race { let o = _accessor.offset(VTOFFSET.signedEnum.v); return o == 0 ? .none_ : MyGame.Example.Race(rawValue: _accessor.readBuffer(of: Int8.self, at: o)) ?? .none_ }
-    @discardableResult public func mutate(signedEnum: MyGame.Example.Race) -> Bool {let o = _accessor.offset(VTOFFSET.signedEnum.v);  return _accessor.mutate(signedEnum.rawValue, index: o) }
+    public func vectorOfEnums(at index: Int32) -> MyGame_Example_Color? { let o = _accessor.offset(VTOFFSET.vectorOfEnums.v); return o == 0 ? MyGame_Example_Color.red : MyGame_Example_Color(rawValue: _accessor.directRead(of: UInt8.self, offset: _accessor.vector(at: o) + index * 1)) }
+    public var signedEnum: MyGame_Example_Race { let o = _accessor.offset(VTOFFSET.signedEnum.v); return o == 0 ? .none_ : MyGame_Example_Race(rawValue: _accessor.readBuffer(of: Int8.self, at: o)) ?? .none_ }
+    @discardableResult public func mutate(signedEnum: MyGame_Example_Race) -> Bool {let o = _accessor.offset(VTOFFSET.signedEnum.v);  return _accessor.mutate(signedEnum.rawValue, index: o) }
     public static func startMonster(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 49) }
-    public static func add(pos: UnsafeMutableRawPointer?, _ fbb: inout FlatBufferBuilder) { guard let pos = pos else { return }; fbb.create(struct: pos, type: MyGame.Example.Vec3.self); fbb.add(structOffset: VTOFFSET.pos.p) }
+    public static func add(pos: UnsafeMutableRawPointer?, _ fbb: inout FlatBufferBuilder) { guard let pos = pos else { return }; fbb.create(struct: pos, type: MyGame_Example_Vec3.self); fbb.add(structOffset: VTOFFSET.pos.p) }
     public static func add(mana: Int16, _ fbb: inout FlatBufferBuilder) { fbb.add(element: mana, def: 150, at: VTOFFSET.mana.p) }
     public static func add(hp: Int16, _ fbb: inout FlatBufferBuilder) { fbb.add(element: hp, def: 100, at: VTOFFSET.hp.p) }
     public static func add(name: Offset<String>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: name, at: VTOFFSET.name.p)  }
     public static func addVectorOf(inventory: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: inventory, at: VTOFFSET.inventory.p)  }
-    public static func add(color: MyGame.Example.Color, _ fbb: inout FlatBufferBuilder) { fbb.add(element: color.rawValue, def: 8, at: VTOFFSET.color.p) }
-    public static func add(testType: MyGame.Example.Any_, _ fbb: inout FlatBufferBuilder) { fbb.add(element: testType.rawValue, def: 0, at: VTOFFSET.testType.p) }
+    public static func add(color: MyGame_Example_Color, _ fbb: inout FlatBufferBuilder) { fbb.add(element: color.rawValue, def: 8, at: VTOFFSET.color.p) }
+    public static func add(testType: MyGame_Example_Any_, _ fbb: inout FlatBufferBuilder) { fbb.add(element: testType.rawValue, def: 0, at: VTOFFSET.testType.p) }
     public static func add(test: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: test, at: VTOFFSET.test.p)  }
     public static func addVectorOf(test4: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: test4, at: VTOFFSET.test4.p)  }
     public static func addVectorOf(testarrayofstring: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: testarrayofstring, at: VTOFFSET.testarrayofstring.p)  }
@@ -875,12 +866,12 @@ public struct Monster: FlatBufferObject {
     public static func addVectorOf(vectorOfCoOwningReferences: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: vectorOfCoOwningReferences, at: VTOFFSET.vectorOfCoOwningReferences.p)  }
     public static func add(nonOwningReference: UInt64, _ fbb: inout FlatBufferBuilder) { fbb.add(element: nonOwningReference, def: 0, at: VTOFFSET.nonOwningReference.p) }
     public static func addVectorOf(vectorOfNonOwningReferences: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: vectorOfNonOwningReferences, at: VTOFFSET.vectorOfNonOwningReferences.p)  }
-    public static func add(anyUniqueType: MyGame.Example.AnyUniqueAliases, _ fbb: inout FlatBufferBuilder) { fbb.add(element: anyUniqueType.rawValue, def: 0, at: VTOFFSET.anyUniqueType.p) }
+    public static func add(anyUniqueType: MyGame_Example_AnyUniqueAliases, _ fbb: inout FlatBufferBuilder) { fbb.add(element: anyUniqueType.rawValue, def: 0, at: VTOFFSET.anyUniqueType.p) }
     public static func add(anyUnique: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: anyUnique, at: VTOFFSET.anyUnique.p)  }
-    public static func add(anyAmbiguousType: MyGame.Example.AnyAmbiguousAliases, _ fbb: inout FlatBufferBuilder) { fbb.add(element: anyAmbiguousType.rawValue, def: 0, at: VTOFFSET.anyAmbiguousType.p) }
+    public static func add(anyAmbiguousType: MyGame_Example_AnyAmbiguousAliases, _ fbb: inout FlatBufferBuilder) { fbb.add(element: anyAmbiguousType.rawValue, def: 0, at: VTOFFSET.anyAmbiguousType.p) }
     public static func add(anyAmbiguous: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: anyAmbiguous, at: VTOFFSET.anyAmbiguous.p)  }
     public static func addVectorOf(vectorOfEnums: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: vectorOfEnums, at: VTOFFSET.vectorOfEnums.p)  }
-    public static func add(signedEnum: MyGame.Example.Race, _ fbb: inout FlatBufferBuilder) { fbb.add(element: signedEnum.rawValue, def: -1, at: VTOFFSET.signedEnum.p) }
+    public static func add(signedEnum: MyGame_Example_Race, _ fbb: inout FlatBufferBuilder) { fbb.add(element: signedEnum.rawValue, def: -1, at: VTOFFSET.signedEnum.p) }
     public static func endMonster(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); fbb.require(table: end, fields: [10]); return end }
     public static func createMonster(
         _ fbb: inout FlatBufferBuilder,
@@ -889,8 +880,8 @@ public struct Monster: FlatBufferObject {
         hp: Int16 = 100,
         offsetOfName name: Offset<String> = Offset(),
         vectorOfInventory inventory: Offset<UOffset> = Offset(),
-        color: MyGame.Example.Color = .blue,
-        testType: MyGame.Example.Any_ = .none_,
+        color: MyGame_Example_Color = .blue,
+        testType: MyGame_Example_Any_ = .none_,
         offsetOfTest test: Offset<UOffset> = Offset(),
         vectorOfTest4 test4: Offset<UOffset> = Offset(),
         vectorOfTestarrayofstring testarrayofstring: Offset<UOffset> = Offset(),
@@ -926,70 +917,70 @@ public struct Monster: FlatBufferObject {
         vectorOfVectorOfCoOwningReferences vectorOfCoOwningReferences: Offset<UOffset> = Offset(),
         nonOwningReference: UInt64 = 0,
         vectorOfVectorOfNonOwningReferences vectorOfNonOwningReferences: Offset<UOffset> = Offset(),
-        anyUniqueType: MyGame.Example.AnyUniqueAliases = .none_,
+        anyUniqueType: MyGame_Example_AnyUniqueAliases = .none_,
         offsetOfAnyUnique anyUnique: Offset<UOffset> = Offset(),
-        anyAmbiguousType: MyGame.Example.AnyAmbiguousAliases = .none_,
+        anyAmbiguousType: MyGame_Example_AnyAmbiguousAliases = .none_,
         offsetOfAnyAmbiguous anyAmbiguous: Offset<UOffset> = Offset(),
         vectorOfVectorOfEnums vectorOfEnums: Offset<UOffset> = Offset(),
-        signedEnum: MyGame.Example.Race = .none_
+        signedEnum: MyGame_Example_Race = .none_
     ) -> Offset<UOffset> {
-        let __start = Monster.startMonster(&fbb)
-        Monster.add(pos: pos, &fbb)
-        Monster.add(mana: mana, &fbb)
-        Monster.add(hp: hp, &fbb)
-        Monster.add(name: name, &fbb)
-        Monster.addVectorOf(inventory: inventory, &fbb)
-        Monster.add(color: color, &fbb)
-        Monster.add(testType: testType, &fbb)
-        Monster.add(test: test, &fbb)
-        Monster.addVectorOf(test4: test4, &fbb)
-        Monster.addVectorOf(testarrayofstring: testarrayofstring, &fbb)
-        Monster.addVectorOf(testarrayoftables: testarrayoftables, &fbb)
-        Monster.add(enemy: enemy, &fbb)
-        Monster.addVectorOf(testnestedflatbuffer: testnestedflatbuffer, &fbb)
-        Monster.add(testempty: testempty, &fbb)
-        Monster.add(testbool: testbool, &fbb)
-        Monster.add(testhashs32Fnv1: testhashs32Fnv1, &fbb)
-        Monster.add(testhashu32Fnv1: testhashu32Fnv1, &fbb)
-        Monster.add(testhashs64Fnv1: testhashs64Fnv1, &fbb)
-        Monster.add(testhashu64Fnv1: testhashu64Fnv1, &fbb)
-        Monster.add(testhashs32Fnv1a: testhashs32Fnv1a, &fbb)
-        Monster.add(testhashu32Fnv1a: testhashu32Fnv1a, &fbb)
-        Monster.add(testhashs64Fnv1a: testhashs64Fnv1a, &fbb)
-        Monster.add(testhashu64Fnv1a: testhashu64Fnv1a, &fbb)
-        Monster.addVectorOf(testarrayofbools: testarrayofbools, &fbb)
-        Monster.add(testf: testf, &fbb)
-        Monster.add(testf2: testf2, &fbb)
-        Monster.add(testf3: testf3, &fbb)
-        Monster.addVectorOf(testarrayofstring2: testarrayofstring2, &fbb)
-        Monster.addVectorOf(testarrayofsortedstruct: testarrayofsortedstruct, &fbb)
-        Monster.addVectorOf(flex: flex, &fbb)
-        Monster.addVectorOf(test5: test5, &fbb)
-        Monster.addVectorOf(vectorOfLongs: vectorOfLongs, &fbb)
-        Monster.addVectorOf(vectorOfDoubles: vectorOfDoubles, &fbb)
-        Monster.add(parentNamespaceTest: parentNamespaceTest, &fbb)
-        Monster.addVectorOf(vectorOfReferrables: vectorOfReferrables, &fbb)
-        Monster.add(singleWeakReference: singleWeakReference, &fbb)
-        Monster.addVectorOf(vectorOfWeakReferences: vectorOfWeakReferences, &fbb)
-        Monster.addVectorOf(vectorOfStrongReferrables: vectorOfStrongReferrables, &fbb)
-        Monster.add(coOwningReference: coOwningReference, &fbb)
-        Monster.addVectorOf(vectorOfCoOwningReferences: vectorOfCoOwningReferences, &fbb)
-        Monster.add(nonOwningReference: nonOwningReference, &fbb)
-        Monster.addVectorOf(vectorOfNonOwningReferences: vectorOfNonOwningReferences, &fbb)
-        Monster.add(anyUniqueType: anyUniqueType, &fbb)
-        Monster.add(anyUnique: anyUnique, &fbb)
-        Monster.add(anyAmbiguousType: anyAmbiguousType, &fbb)
-        Monster.add(anyAmbiguous: anyAmbiguous, &fbb)
-        Monster.addVectorOf(vectorOfEnums: vectorOfEnums, &fbb)
-        Monster.add(signedEnum: signedEnum, &fbb)
-        return Monster.endMonster(&fbb, start: __start)
+        let __start = MyGame_Example_Monster.startMonster(&fbb)
+        MyGame_Example_Monster.add(pos: pos, &fbb)
+        MyGame_Example_Monster.add(mana: mana, &fbb)
+        MyGame_Example_Monster.add(hp: hp, &fbb)
+        MyGame_Example_Monster.add(name: name, &fbb)
+        MyGame_Example_Monster.addVectorOf(inventory: inventory, &fbb)
+        MyGame_Example_Monster.add(color: color, &fbb)
+        MyGame_Example_Monster.add(testType: testType, &fbb)
+        MyGame_Example_Monster.add(test: test, &fbb)
+        MyGame_Example_Monster.addVectorOf(test4: test4, &fbb)
+        MyGame_Example_Monster.addVectorOf(testarrayofstring: testarrayofstring, &fbb)
+        MyGame_Example_Monster.addVectorOf(testarrayoftables: testarrayoftables, &fbb)
+        MyGame_Example_Monster.add(enemy: enemy, &fbb)
+        MyGame_Example_Monster.addVectorOf(testnestedflatbuffer: testnestedflatbuffer, &fbb)
+        MyGame_Example_Monster.add(testempty: testempty, &fbb)
+        MyGame_Example_Monster.add(testbool: testbool, &fbb)
+        MyGame_Example_Monster.add(testhashs32Fnv1: testhashs32Fnv1, &fbb)
+        MyGame_Example_Monster.add(testhashu32Fnv1: testhashu32Fnv1, &fbb)
+        MyGame_Example_Monster.add(testhashs64Fnv1: testhashs64Fnv1, &fbb)
+        MyGame_Example_Monster.add(testhashu64Fnv1: testhashu64Fnv1, &fbb)
+        MyGame_Example_Monster.add(testhashs32Fnv1a: testhashs32Fnv1a, &fbb)
+        MyGame_Example_Monster.add(testhashu32Fnv1a: testhashu32Fnv1a, &fbb)
+        MyGame_Example_Monster.add(testhashs64Fnv1a: testhashs64Fnv1a, &fbb)
+        MyGame_Example_Monster.add(testhashu64Fnv1a: testhashu64Fnv1a, &fbb)
+        MyGame_Example_Monster.addVectorOf(testarrayofbools: testarrayofbools, &fbb)
+        MyGame_Example_Monster.add(testf: testf, &fbb)
+        MyGame_Example_Monster.add(testf2: testf2, &fbb)
+        MyGame_Example_Monster.add(testf3: testf3, &fbb)
+        MyGame_Example_Monster.addVectorOf(testarrayofstring2: testarrayofstring2, &fbb)
+        MyGame_Example_Monster.addVectorOf(testarrayofsortedstruct: testarrayofsortedstruct, &fbb)
+        MyGame_Example_Monster.addVectorOf(flex: flex, &fbb)
+        MyGame_Example_Monster.addVectorOf(test5: test5, &fbb)
+        MyGame_Example_Monster.addVectorOf(vectorOfLongs: vectorOfLongs, &fbb)
+        MyGame_Example_Monster.addVectorOf(vectorOfDoubles: vectorOfDoubles, &fbb)
+        MyGame_Example_Monster.add(parentNamespaceTest: parentNamespaceTest, &fbb)
+        MyGame_Example_Monster.addVectorOf(vectorOfReferrables: vectorOfReferrables, &fbb)
+        MyGame_Example_Monster.add(singleWeakReference: singleWeakReference, &fbb)
+        MyGame_Example_Monster.addVectorOf(vectorOfWeakReferences: vectorOfWeakReferences, &fbb)
+        MyGame_Example_Monster.addVectorOf(vectorOfStrongReferrables: vectorOfStrongReferrables, &fbb)
+        MyGame_Example_Monster.add(coOwningReference: coOwningReference, &fbb)
+        MyGame_Example_Monster.addVectorOf(vectorOfCoOwningReferences: vectorOfCoOwningReferences, &fbb)
+        MyGame_Example_Monster.add(nonOwningReference: nonOwningReference, &fbb)
+        MyGame_Example_Monster.addVectorOf(vectorOfNonOwningReferences: vectorOfNonOwningReferences, &fbb)
+        MyGame_Example_Monster.add(anyUniqueType: anyUniqueType, &fbb)
+        MyGame_Example_Monster.add(anyUnique: anyUnique, &fbb)
+        MyGame_Example_Monster.add(anyAmbiguousType: anyAmbiguousType, &fbb)
+        MyGame_Example_Monster.add(anyAmbiguous: anyAmbiguous, &fbb)
+        MyGame_Example_Monster.addVectorOf(vectorOfEnums: vectorOfEnums, &fbb)
+        MyGame_Example_Monster.add(signedEnum: signedEnum, &fbb)
+        return MyGame_Example_Monster.endMonster(&fbb, start: __start)
     }
     public static func sortVectorOfMonster(offsets:[Offset<UOffset>], _ fbb: inout FlatBufferBuilder) -> Offset<UOffset> {
         var off = offsets
         off.sort { Table.compare(Table.offset(Int32($1.o), vOffset: 10, fbb: fbb.buffer), Table.offset(Int32($0.o), vOffset: 10, fbb: fbb.buffer), fbb: fbb.buffer) < 0 } 
         return fbb.createVector(ofOffsets: off)
     }
-    fileprivate static func lookupByKey(vector: Int32, key: String, fbb: ByteBuffer) -> Monster? {
+    fileprivate static func lookupByKey(vector: Int32, key: String, fbb: ByteBuffer) -> MyGame_Example_Monster? {
         let key = key.utf8.map { $0 }
         var span = fbb.read(def: Int32.self, position: Int(vector - 4))
         var start: Int32 = 0
@@ -1004,68 +995,68 @@ public struct Monster: FlatBufferObject {
                 start += middle
                 span -= middle
             } else {
-                return Monster(fbb, o: tableOffset)
+                return MyGame_Example_Monster(fbb, o: tableOffset)
             }
         }
         return nil
     }
     
 
-    public mutating func unpack() -> MonsterT {
-        return MonsterT(&self)
+    public mutating func unpack() -> MyGame_Example_MonsterT {
+        return MyGame_Example_MonsterT(&self)
     }
-    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MonsterT?) -> Offset<UOffset> {
+    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_MonsterT?) -> Offset<UOffset> {
         guard var obj = obj else { return Offset<UOffset>() }
         return pack(&builder, obj: &obj)
     }
 
-    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MonsterT) -> Offset<UOffset> {
-        let __pos = obj.pos.map { createVec3(x: $0.x, y: $0.y, z: $0.z, test1: $0.test1, test2: $0.test2, test3a: $0.test3.a, test3b: $0.test3.b) }
+    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_MonsterT) -> Offset<UOffset> {
+        let __pos = obj.pos.map { MyGame_Example_Vec3.createVec3(x: $0.x, y: $0.y, z: $0.z, test1: $0.test1, test2: $0.test2, test3a: $0.test3.a, test3b: $0.test3.b) }
         let __name = builder.create(string: obj.name)
         let __inventory = builder.createVector(obj.inventory)
         let __test = obj.test?.pack(builder: &builder) ?? Offset()
         var __test4__: [UnsafeMutableRawPointer] = []
         for i in obj.test4 {
             guard let _o = i else { continue }
-            __test4__.append(createTest(a: _o.a, b: _o.b))
+            __test4__.append(MyGame_Example_Test.createTest(a: _o.a, b: _o.b))
         }
-        let __test4 = builder.createVector(structs: __test4__, type: MyGame.Example.Test.self)
+        let __test4 = builder.createVector(structs: __test4__, type: MyGame_Example_Test.self)
         let __testarrayofstring = builder.createVector(ofStrings: obj.testarrayofstring.compactMap({ $0 }) )
         var __testarrayoftables__: [Offset<UOffset>] = []
         for var i in obj.testarrayoftables {
-            __testarrayoftables__.append(MyGame.Example.Monster.pack(&builder, obj: &i))
+            __testarrayoftables__.append(MyGame_Example_Monster.pack(&builder, obj: &i))
         }
         let __testarrayoftables = builder.createVector(ofOffsets: __testarrayoftables__)
-        let __enemy = MyGame.Example.Monster.pack(&builder, obj: &obj.enemy)
+        let __enemy = MyGame_Example_Monster.pack(&builder, obj: &obj.enemy)
         let __testnestedflatbuffer = builder.createVector(obj.testnestedflatbuffer)
-        let __testempty = MyGame.Example.Stat.pack(&builder, obj: &obj.testempty)
+        let __testempty = MyGame_Example_Stat.pack(&builder, obj: &obj.testempty)
         let __testarrayofbools = builder.createVector(obj.testarrayofbools)
         let __testarrayofstring2 = builder.createVector(ofStrings: obj.testarrayofstring2.compactMap({ $0 }) )
         var __testarrayofsortedstruct__: [UnsafeMutableRawPointer] = []
         for i in obj.testarrayofsortedstruct {
             guard let _o = i else { continue }
-            __testarrayofsortedstruct__.append(createAbility(id: _o.id, distance: _o.distance))
+            __testarrayofsortedstruct__.append(MyGame_Example_Ability.createAbility(id: _o.id, distance: _o.distance))
         }
-        let __testarrayofsortedstruct = builder.createVector(structs: __testarrayofsortedstruct__, type: MyGame.Example.Ability.self)
+        let __testarrayofsortedstruct = builder.createVector(structs: __testarrayofsortedstruct__, type: MyGame_Example_Ability.self)
         let __flex = builder.createVector(obj.flex)
         var __test5__: [UnsafeMutableRawPointer] = []
         for i in obj.test5 {
             guard let _o = i else { continue }
-            __test5__.append(createTest(a: _o.a, b: _o.b))
+            __test5__.append(MyGame_Example_Test.createTest(a: _o.a, b: _o.b))
         }
-        let __test5 = builder.createVector(structs: __test5__, type: MyGame.Example.Test.self)
+        let __test5 = builder.createVector(structs: __test5__, type: MyGame_Example_Test.self)
         let __vectorOfLongs = builder.createVector(obj.vectorOfLongs)
         let __vectorOfDoubles = builder.createVector(obj.vectorOfDoubles)
-        let __parentNamespaceTest = MyGame.InParentNamespace.pack(&builder, obj: &obj.parentNamespaceTest)
+        let __parentNamespaceTest = MyGame_InParentNamespace.pack(&builder, obj: &obj.parentNamespaceTest)
         var __vectorOfReferrables__: [Offset<UOffset>] = []
         for var i in obj.vectorOfReferrables {
-            __vectorOfReferrables__.append(MyGame.Example.Referrable.pack(&builder, obj: &i))
+            __vectorOfReferrables__.append(MyGame_Example_Referrable.pack(&builder, obj: &i))
         }
         let __vectorOfReferrables = builder.createVector(ofOffsets: __vectorOfReferrables__)
         let __vectorOfWeakReferences = builder.createVector(obj.vectorOfWeakReferences)
         var __vectorOfStrongReferrables__: [Offset<UOffset>] = []
         for var i in obj.vectorOfStrongReferrables {
-            __vectorOfStrongReferrables__.append(MyGame.Example.Referrable.pack(&builder, obj: &i))
+            __vectorOfStrongReferrables__.append(MyGame_Example_Referrable.pack(&builder, obj: &i))
         }
         let __vectorOfStrongReferrables = builder.createVector(ofOffsets: __vectorOfStrongReferrables__)
         let __vectorOfCoOwningReferences = builder.createVector(obj.vectorOfCoOwningReferences)
@@ -1073,83 +1064,83 @@ public struct Monster: FlatBufferObject {
         let __anyUnique = obj.anyUnique?.pack(builder: &builder) ?? Offset()
         let __anyAmbiguous = obj.anyAmbiguous?.pack(builder: &builder) ?? Offset()
         let __vectorOfEnums = builder.createVector(obj.vectorOfEnums)
-        let __root = Monster.startMonster(&builder)
-        Monster.add(pos: __pos, &builder)
-        Monster.add(mana: obj.mana, &builder)
-        Monster.add(hp: obj.hp, &builder)
-        Monster.add(name: __name, &builder)
-        Monster.addVectorOf(inventory: __inventory, &builder)
-        Monster.add(color: obj.color, &builder)
+        let __root = MyGame_Example_Monster.startMonster(&builder)
+        MyGame_Example_Monster.add(pos: __pos, &builder)
+        MyGame_Example_Monster.add(mana: obj.mana, &builder)
+        MyGame_Example_Monster.add(hp: obj.hp, &builder)
+        MyGame_Example_Monster.add(name: __name, &builder)
+        MyGame_Example_Monster.addVectorOf(inventory: __inventory, &builder)
+        MyGame_Example_Monster.add(color: obj.color, &builder)
         if let o = obj.test?.type {
-          Monster.add(testType: o, &builder)
-          Monster.add(test: __test, &builder)
+          MyGame_Example_Monster.add(testType: o, &builder)
+          MyGame_Example_Monster.add(test: __test, &builder)
         }
 
-        Monster.addVectorOf(test4: __test4, &builder)
-        Monster.addVectorOf(testarrayofstring: __testarrayofstring, &builder)
-        Monster.addVectorOf(testarrayoftables: __testarrayoftables, &builder)
-        Monster.add(enemy: __enemy, &builder)
-        Monster.addVectorOf(testnestedflatbuffer: __testnestedflatbuffer, &builder)
-        Monster.add(testempty: __testempty, &builder)
-        Monster.add(testbool: obj.testbool, &builder)
-        Monster.add(testhashs32Fnv1: obj.testhashs32Fnv1, &builder)
-        Monster.add(testhashu32Fnv1: obj.testhashu32Fnv1, &builder)
-        Monster.add(testhashs64Fnv1: obj.testhashs64Fnv1, &builder)
-        Monster.add(testhashu64Fnv1: obj.testhashu64Fnv1, &builder)
-        Monster.add(testhashs32Fnv1a: obj.testhashs32Fnv1a, &builder)
-        Monster.add(testhashu32Fnv1a: obj.testhashu32Fnv1a, &builder)
-        Monster.add(testhashs64Fnv1a: obj.testhashs64Fnv1a, &builder)
-        Monster.add(testhashu64Fnv1a: obj.testhashu64Fnv1a, &builder)
-        Monster.addVectorOf(testarrayofbools: __testarrayofbools, &builder)
-        Monster.add(testf: obj.testf, &builder)
-        Monster.add(testf2: obj.testf2, &builder)
-        Monster.add(testf3: obj.testf3, &builder)
-        Monster.addVectorOf(testarrayofstring2: __testarrayofstring2, &builder)
-        Monster.addVectorOf(testarrayofsortedstruct: __testarrayofsortedstruct, &builder)
-        Monster.addVectorOf(flex: __flex, &builder)
-        Monster.addVectorOf(test5: __test5, &builder)
-        Monster.addVectorOf(vectorOfLongs: __vectorOfLongs, &builder)
-        Monster.addVectorOf(vectorOfDoubles: __vectorOfDoubles, &builder)
-        Monster.add(parentNamespaceTest: __parentNamespaceTest, &builder)
-        Monster.addVectorOf(vectorOfReferrables: __vectorOfReferrables, &builder)
-        Monster.add(singleWeakReference: obj.singleWeakReference, &builder)
-        Monster.addVectorOf(vectorOfWeakReferences: __vectorOfWeakReferences, &builder)
-        Monster.addVectorOf(vectorOfStrongReferrables: __vectorOfStrongReferrables, &builder)
-        Monster.add(coOwningReference: obj.coOwningReference, &builder)
-        Monster.addVectorOf(vectorOfCoOwningReferences: __vectorOfCoOwningReferences, &builder)
-        Monster.add(nonOwningReference: obj.nonOwningReference, &builder)
-        Monster.addVectorOf(vectorOfNonOwningReferences: __vectorOfNonOwningReferences, &builder)
+        MyGame_Example_Monster.addVectorOf(test4: __test4, &builder)
+        MyGame_Example_Monster.addVectorOf(testarrayofstring: __testarrayofstring, &builder)
+        MyGame_Example_Monster.addVectorOf(testarrayoftables: __testarrayoftables, &builder)
+        MyGame_Example_Monster.add(enemy: __enemy, &builder)
+        MyGame_Example_Monster.addVectorOf(testnestedflatbuffer: __testnestedflatbuffer, &builder)
+        MyGame_Example_Monster.add(testempty: __testempty, &builder)
+        MyGame_Example_Monster.add(testbool: obj.testbool, &builder)
+        MyGame_Example_Monster.add(testhashs32Fnv1: obj.testhashs32Fnv1, &builder)
+        MyGame_Example_Monster.add(testhashu32Fnv1: obj.testhashu32Fnv1, &builder)
+        MyGame_Example_Monster.add(testhashs64Fnv1: obj.testhashs64Fnv1, &builder)
+        MyGame_Example_Monster.add(testhashu64Fnv1: obj.testhashu64Fnv1, &builder)
+        MyGame_Example_Monster.add(testhashs32Fnv1a: obj.testhashs32Fnv1a, &builder)
+        MyGame_Example_Monster.add(testhashu32Fnv1a: obj.testhashu32Fnv1a, &builder)
+        MyGame_Example_Monster.add(testhashs64Fnv1a: obj.testhashs64Fnv1a, &builder)
+        MyGame_Example_Monster.add(testhashu64Fnv1a: obj.testhashu64Fnv1a, &builder)
+        MyGame_Example_Monster.addVectorOf(testarrayofbools: __testarrayofbools, &builder)
+        MyGame_Example_Monster.add(testf: obj.testf, &builder)
+        MyGame_Example_Monster.add(testf2: obj.testf2, &builder)
+        MyGame_Example_Monster.add(testf3: obj.testf3, &builder)
+        MyGame_Example_Monster.addVectorOf(testarrayofstring2: __testarrayofstring2, &builder)
+        MyGame_Example_Monster.addVectorOf(testarrayofsortedstruct: __testarrayofsortedstruct, &builder)
+        MyGame_Example_Monster.addVectorOf(flex: __flex, &builder)
+        MyGame_Example_Monster.addVectorOf(test5: __test5, &builder)
+        MyGame_Example_Monster.addVectorOf(vectorOfLongs: __vectorOfLongs, &builder)
+        MyGame_Example_Monster.addVectorOf(vectorOfDoubles: __vectorOfDoubles, &builder)
+        MyGame_Example_Monster.add(parentNamespaceTest: __parentNamespaceTest, &builder)
+        MyGame_Example_Monster.addVectorOf(vectorOfReferrables: __vectorOfReferrables, &builder)
+        MyGame_Example_Monster.add(singleWeakReference: obj.singleWeakReference, &builder)
+        MyGame_Example_Monster.addVectorOf(vectorOfWeakReferences: __vectorOfWeakReferences, &builder)
+        MyGame_Example_Monster.addVectorOf(vectorOfStrongReferrables: __vectorOfStrongReferrables, &builder)
+        MyGame_Example_Monster.add(coOwningReference: obj.coOwningReference, &builder)
+        MyGame_Example_Monster.addVectorOf(vectorOfCoOwningReferences: __vectorOfCoOwningReferences, &builder)
+        MyGame_Example_Monster.add(nonOwningReference: obj.nonOwningReference, &builder)
+        MyGame_Example_Monster.addVectorOf(vectorOfNonOwningReferences: __vectorOfNonOwningReferences, &builder)
         if let o = obj.anyUnique?.type {
-          Monster.add(anyUniqueType: o, &builder)
-          Monster.add(anyUnique: __anyUnique, &builder)
+          MyGame_Example_Monster.add(anyUniqueType: o, &builder)
+          MyGame_Example_Monster.add(anyUnique: __anyUnique, &builder)
         }
 
         if let o = obj.anyAmbiguous?.type {
-          Monster.add(anyAmbiguousType: o, &builder)
-          Monster.add(anyAmbiguous: __anyAmbiguous, &builder)
+          MyGame_Example_Monster.add(anyAmbiguousType: o, &builder)
+          MyGame_Example_Monster.add(anyAmbiguous: __anyAmbiguous, &builder)
         }
 
-        Monster.addVectorOf(vectorOfEnums: __vectorOfEnums, &builder)
-        Monster.add(signedEnum: obj.signedEnum, &builder)
-        return Monster.endMonster(&builder, start: __root)
+        MyGame_Example_Monster.addVectorOf(vectorOfEnums: __vectorOfEnums, &builder)
+        MyGame_Example_Monster.add(signedEnum: obj.signedEnum, &builder)
+        return MyGame_Example_Monster.endMonster(&builder, start: __root)
     }
 }
 
-public class MonsterT: NativeTable {
+public class MyGame_Example_MonsterT: NativeTable {
 
-    var pos: MyGame.Example.Vec3T?
+    var pos: MyGame_Example_Vec3T?
     var mana: Int16
     var hp: Int16
     var name: String
     var inventory: [UInt8]
-    var color: MyGame.Example.Color
-    var test: Any_Union?
-    var test4: [MyGame.Example.TestT?]
+    var color: MyGame_Example_Color
+    var test: MyGame_Example_Any_Union?
+    var test4: [MyGame_Example_TestT?]
     var testarrayofstring: [String?]
-    var testarrayoftables: [MyGame.Example.MonsterT?]
-    var enemy: MyGame.Example.MonsterT?
+    var testarrayoftables: [MyGame_Example_MonsterT?]
+    var enemy: MyGame_Example_MonsterT?
     var testnestedflatbuffer: [UInt8]
-    var testempty: MyGame.Example.StatT?
+    var testempty: MyGame_Example_StatT?
     var testbool: Bool
     var testhashs32Fnv1: Int32
     var testhashu32Fnv1: UInt32
@@ -1164,26 +1155,26 @@ public class MonsterT: NativeTable {
     var testf2: Float32
     var testf3: Float32
     var testarrayofstring2: [String?]
-    var testarrayofsortedstruct: [MyGame.Example.AbilityT?]
+    var testarrayofsortedstruct: [MyGame_Example_AbilityT?]
     var flex: [UInt8]
-    var test5: [MyGame.Example.TestT?]
+    var test5: [MyGame_Example_TestT?]
     var vectorOfLongs: [Int64]
     var vectorOfDoubles: [Double]
-    var parentNamespaceTest: MyGame.InParentNamespaceT?
-    var vectorOfReferrables: [MyGame.Example.ReferrableT?]
+    var parentNamespaceTest: MyGame_InParentNamespaceT?
+    var vectorOfReferrables: [MyGame_Example_ReferrableT?]
     var singleWeakReference: UInt64
     var vectorOfWeakReferences: [UInt64]
-    var vectorOfStrongReferrables: [MyGame.Example.ReferrableT?]
+    var vectorOfStrongReferrables: [MyGame_Example_ReferrableT?]
     var coOwningReference: UInt64
     var vectorOfCoOwningReferences: [UInt64]
     var nonOwningReference: UInt64
     var vectorOfNonOwningReferences: [UInt64]
-    var anyUnique: AnyUniqueAliasesUnion?
-    var anyAmbiguous: AnyAmbiguousAliasesUnion?
-    var vectorOfEnums: [MyGame.Example.Color]
-    var signedEnum: MyGame.Example.Race
+    var anyUnique: MyGame_Example_AnyUniqueAliasesUnion?
+    var anyAmbiguous: MyGame_Example_AnyAmbiguousAliasesUnion?
+    var vectorOfEnums: [MyGame_Example_Color]
+    var signedEnum: MyGame_Example_Race
 
-    init(_ _t: inout Monster) {
+    init(_ _t: inout MyGame_Example_Monster) {
         var __pos = _t.pos
         pos = __pos?.unpack()
         mana = _t.mana
@@ -1196,14 +1187,14 @@ public class MonsterT: NativeTable {
         color = _t.color
         switch _t.testType {
         case .monster:
-            var _v = _t.test(type: MyGame.Example.Monster.self)
-            test = Any_Union(_v?.unpack(), type: .monster)
+            var _v = _t.test(type: MyGame_Example_Monster.self)
+            test = MyGame_Example_Any_Union(_v?.unpack(), type: .monster)
         case .testsimpletablewithenum:
-            var _v = _t.test(type: MyGame.Example.TestSimpleTableWithEnum.self)
-            test = Any_Union(_v?.unpack(), type: .testsimpletablewithenum)
+            var _v = _t.test(type: MyGame_Example_TestSimpleTableWithEnum.self)
+            test = MyGame_Example_Any_Union(_v?.unpack(), type: .testsimpletablewithenum)
         case .mygameExample2Monster:
-            var _v = _t.test(type: MyGame.Example2.Monster.self)
-            test = Any_Union(_v?.unpack(), type: .mygameExample2Monster)
+            var _v = _t.test(type: MyGame_Example2_Monster.self)
+            test = MyGame_Example_Any_Union(_v?.unpack(), type: .mygameExample2Monster)
         default: break
         }
         test4 = []
@@ -1299,26 +1290,26 @@ public class MonsterT: NativeTable {
         }
         switch _t.anyUniqueType {
         case .m:
-            var _v = _t.anyUnique(type: MyGame.Example.Monster.self)
-            anyUnique = AnyUniqueAliasesUnion(_v?.unpack(), type: .m)
+            var _v = _t.anyUnique(type: MyGame_Example_Monster.self)
+            anyUnique = MyGame_Example_AnyUniqueAliasesUnion(_v?.unpack(), type: .m)
         case .ts:
-            var _v = _t.anyUnique(type: MyGame.Example.TestSimpleTableWithEnum.self)
-            anyUnique = AnyUniqueAliasesUnion(_v?.unpack(), type: .ts)
+            var _v = _t.anyUnique(type: MyGame_Example_TestSimpleTableWithEnum.self)
+            anyUnique = MyGame_Example_AnyUniqueAliasesUnion(_v?.unpack(), type: .ts)
         case .m2:
-            var _v = _t.anyUnique(type: MyGame.Example2.Monster.self)
-            anyUnique = AnyUniqueAliasesUnion(_v?.unpack(), type: .m2)
+            var _v = _t.anyUnique(type: MyGame_Example2_Monster.self)
+            anyUnique = MyGame_Example_AnyUniqueAliasesUnion(_v?.unpack(), type: .m2)
         default: break
         }
         switch _t.anyAmbiguousType {
         case .m1:
-            var _v = _t.anyAmbiguous(type: MyGame.Example.Monster.self)
-            anyAmbiguous = AnyAmbiguousAliasesUnion(_v?.unpack(), type: .m1)
+            var _v = _t.anyAmbiguous(type: MyGame_Example_Monster.self)
+            anyAmbiguous = MyGame_Example_AnyAmbiguousAliasesUnion(_v?.unpack(), type: .m1)
         case .m2:
-            var _v = _t.anyAmbiguous(type: MyGame.Example.Monster.self)
-            anyAmbiguous = AnyAmbiguousAliasesUnion(_v?.unpack(), type: .m2)
+            var _v = _t.anyAmbiguous(type: MyGame_Example_Monster.self)
+            anyAmbiguous = MyGame_Example_AnyAmbiguousAliasesUnion(_v?.unpack(), type: .m2)
         case .m3:
-            var _v = _t.anyAmbiguous(type: MyGame.Example.Monster.self)
-            anyAmbiguous = AnyAmbiguousAliasesUnion(_v?.unpack(), type: .m3)
+            var _v = _t.anyAmbiguous(type: MyGame_Example_Monster.self)
+            anyAmbiguous = MyGame_Example_AnyAmbiguousAliasesUnion(_v?.unpack(), type: .m3)
         default: break
         }
         vectorOfEnums = []
@@ -1329,7 +1320,7 @@ public class MonsterT: NativeTable {
     }
 
     init() {
-        pos = MyGame.Example.Vec3T()
+        pos = MyGame_Example_Vec3T()
         mana = 150
         hp = 100
         name = ""
@@ -1338,9 +1329,9 @@ public class MonsterT: NativeTable {
         test4 = []
         testarrayofstring = []
         testarrayoftables = []
-        enemy = MyGame.Example.MonsterT()
+        enemy = MyGame_Example_MonsterT()
         testnestedflatbuffer = []
-        testempty = MyGame.Example.StatT()
+        testempty = MyGame_Example_StatT()
         testbool = false
         testhashs32Fnv1 = 0
         testhashu32Fnv1 = 0
@@ -1360,7 +1351,7 @@ public class MonsterT: NativeTable {
         test5 = []
         vectorOfLongs = []
         vectorOfDoubles = []
-        parentNamespaceTest = MyGame.InParentNamespaceT()
+        parentNamespaceTest = MyGame_InParentNamespaceT()
         vectorOfReferrables = []
         singleWeakReference = 0
         vectorOfWeakReferences = []
@@ -1374,14 +1365,14 @@ public class MonsterT: NativeTable {
     }
 
 }
-public struct TypeAliases: FlatBufferObject {
+public struct MyGame_Example_TypeAliases: FlatBufferObject {
 
     static func validateVersion() { FlatBuffersVersion_1_12_0() }
     public var __buffer: ByteBuffer! { return _accessor.bb }
     private var _accessor: Table
 
     public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset<UOffset>, prefix: Bool = false) { fbb.finish(offset: end, fileId: "MONS", addPrefix: prefix) }
-    public static func getRootAsTypeAliases(bb: ByteBuffer) -> TypeAliases { return TypeAliases(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
+    public static func getRootAsTypeAliases(bb: ByteBuffer) -> MyGame_Example_TypeAliases { return MyGame_Example_TypeAliases(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
 
     private init(_ t: Table) { _accessor = t }
     public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
@@ -1460,52 +1451,52 @@ public struct TypeAliases: FlatBufferObject {
         vectorOfV8 v8: Offset<UOffset> = Offset(),
         vectorOfVf64 vf64: Offset<UOffset> = Offset()
     ) -> Offset<UOffset> {
-        let __start = TypeAliases.startTypeAliases(&fbb)
-        TypeAliases.add(i8: i8, &fbb)
-        TypeAliases.add(u8: u8, &fbb)
-        TypeAliases.add(i16: i16, &fbb)
-        TypeAliases.add(u16: u16, &fbb)
-        TypeAliases.add(i32: i32, &fbb)
-        TypeAliases.add(u32: u32, &fbb)
-        TypeAliases.add(i64: i64, &fbb)
-        TypeAliases.add(u64: u64, &fbb)
-        TypeAliases.add(f32: f32, &fbb)
-        TypeAliases.add(f64: f64, &fbb)
-        TypeAliases.addVectorOf(v8: v8, &fbb)
-        TypeAliases.addVectorOf(vf64: vf64, &fbb)
-        return TypeAliases.endTypeAliases(&fbb, start: __start)
+        let __start = MyGame_Example_TypeAliases.startTypeAliases(&fbb)
+        MyGame_Example_TypeAliases.add(i8: i8, &fbb)
+        MyGame_Example_TypeAliases.add(u8: u8, &fbb)
+        MyGame_Example_TypeAliases.add(i16: i16, &fbb)
+        MyGame_Example_TypeAliases.add(u16: u16, &fbb)
+        MyGame_Example_TypeAliases.add(i32: i32, &fbb)
+        MyGame_Example_TypeAliases.add(u32: u32, &fbb)
+        MyGame_Example_TypeAliases.add(i64: i64, &fbb)
+        MyGame_Example_TypeAliases.add(u64: u64, &fbb)
+        MyGame_Example_TypeAliases.add(f32: f32, &fbb)
+        MyGame_Example_TypeAliases.add(f64: f64, &fbb)
+        MyGame_Example_TypeAliases.addVectorOf(v8: v8, &fbb)
+        MyGame_Example_TypeAliases.addVectorOf(vf64: vf64, &fbb)
+        return MyGame_Example_TypeAliases.endTypeAliases(&fbb, start: __start)
     }
     
 
-    public mutating func unpack() -> TypeAliasesT {
-        return TypeAliasesT(&self)
+    public mutating func unpack() -> MyGame_Example_TypeAliasesT {
+        return MyGame_Example_TypeAliasesT(&self)
     }
-    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout TypeAliasesT?) -> Offset<UOffset> {
+    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_TypeAliasesT?) -> Offset<UOffset> {
         guard var obj = obj else { return Offset<UOffset>() }
         return pack(&builder, obj: &obj)
     }
 
-    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout TypeAliasesT) -> Offset<UOffset> {
+    public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_TypeAliasesT) -> Offset<UOffset> {
         let __v8 = builder.createVector(obj.v8)
         let __vf64 = builder.createVector(obj.vf64)
-        let __root = TypeAliases.startTypeAliases(&builder)
-        TypeAliases.add(i8: obj.i8, &builder)
-        TypeAliases.add(u8: obj.u8, &builder)
-        TypeAliases.add(i16: obj.i16, &builder)
-        TypeAliases.add(u16: obj.u16, &builder)
-        TypeAliases.add(i32: obj.i32, &builder)
-        TypeAliases.add(u32: obj.u32, &builder)
-        TypeAliases.add(i64: obj.i64, &builder)
-        TypeAliases.add(u64: obj.u64, &builder)
-        TypeAliases.add(f32: obj.f32, &builder)
-        TypeAliases.add(f64: obj.f64, &builder)
-        TypeAliases.addVectorOf(v8: __v8, &builder)
-        TypeAliases.addVectorOf(vf64: __vf64, &builder)
-        return TypeAliases.endTypeAliases(&builder, start: __root)
+        let __root = MyGame_Example_TypeAliases.startTypeAliases(&builder)
+        MyGame_Example_TypeAliases.add(i8: obj.i8, &builder)
+        MyGame_Example_TypeAliases.add(u8: obj.u8, &builder)
+        MyGame_Example_TypeAliases.add(i16: obj.i16, &builder)
+        MyGame_Example_TypeAliases.add(u16: obj.u16, &builder)
+        MyGame_Example_TypeAliases.add(i32: obj.i32, &builder)
+        MyGame_Example_TypeAliases.add(u32: obj.u32, &builder)
+        MyGame_Example_TypeAliases.add(i64: obj.i64, &builder)
+        MyGame_Example_TypeAliases.add(u64: obj.u64, &builder)
+        MyGame_Example_TypeAliases.add(f32: obj.f32, &builder)
+        MyGame_Example_TypeAliases.add(f64: obj.f64, &builder)
+        MyGame_Example_TypeAliases.addVectorOf(v8: __v8, &builder)
+        MyGame_Example_TypeAliases.addVectorOf(vf64: __vf64, &builder)
+        return MyGame_Example_TypeAliases.endTypeAliases(&builder, start: __root)
     }
 }
 
-public class TypeAliasesT: NativeTable {
+public class MyGame_Example_TypeAliasesT: NativeTable {
 
     var i8: Int8
     var u8: UInt8
@@ -1520,7 +1511,7 @@ public class TypeAliasesT: NativeTable {
     var v8: [Int8]
     var vf64: [Double]
 
-    init(_ _t: inout TypeAliases) {
+    init(_ _t: inout MyGame_Example_TypeAliases) {
         i8 = _t.i8
         u8 = _t.u8
         i16 = _t.i16
@@ -1557,11 +1548,3 @@ public class TypeAliasesT: NativeTable {
     }
 
 }
-}
-
-// MARK: - Example
-
-
-// MARK: - MyGame
-
-
