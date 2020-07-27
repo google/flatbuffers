@@ -350,5 +350,14 @@ namespace FlatBuffers.Test
             var endOffset = fbb.Offset;
             Assert.AreEqual(endOffset, storedOffset);
         }
+
+        [FlatBuffersTestMethod]
+        public void FlatBufferBuilder_Add_null_String()
+        {
+            var fbb = new FlatBufferBuilder(16);
+            string s = null;
+            Assert.AreEqual(fbb.CreateSharedString(s).Value, 0);
+            Assert.AreEqual(fbb.CreateString(s).Value, 0);
+        }
     }
 }

@@ -385,7 +385,8 @@ public struct FlatBufferBuilder {
     /// Insets a string into the buffer using UTF8
     /// - Parameter str: String to be serialized
     /// - returns: The strings offset in the buffer
-    mutating public func create(string str: String) -> Offset<String> {
+    mutating public func create(string str: String?) -> Offset<String> {
+        guard let str = str else { return Offset() }
         let len = str.utf8.count
         notNested()
         preAlign(len: len &+ 1, type: UOffset.self)
@@ -395,20 +396,13 @@ public struct FlatBufferBuilder {
         return Offset(offset: _bb.size)
     }
     
-    /// Insets a string into the buffer using UTF8
-    /// - Parameter str: String to be serialized
-    /// - returns: The strings offset in the buffer
-    mutating public func create(string str: String?) -> Offset<String> {
-        guard let str = str else { return Offset() }
-        return create(string: str)
-    }
-    
     /// Inserts a shared string to the buffer
     ///
     /// The function checks the stringOffsetmap if it's seen a similar string before
     /// - Parameter str: String to be serialized
     /// - returns: The strings offset in the buffer
-    mutating public func createShared(string str: String) -> Offset<String> {
+    mutating public func createShared(string str: String?) -> Offset<String> {
+        guard let str = str else { return Offset() }
         if let offset = stringOffsetMap[str] {
             return offset
         }
