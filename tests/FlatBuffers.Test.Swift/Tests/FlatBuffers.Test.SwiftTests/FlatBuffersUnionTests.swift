@@ -82,9 +82,9 @@ final class FlatBuffersUnionTests: XCTestCase {
         
         let characterType: [Character] = [.belle, .mulan, .bookfan]
         let characters = [
-            fb.create(struct: createBookReader(booksRead: 7), type: BookReader.self),
+            fb.create(struct: BookReader.createBookReader(booksRead: 7), type: BookReader.self),
             attack,
-            fb.create(struct: createBookReader(booksRead: 2), type: BookReader.self),
+            fb.create(struct: BookReader.createBookReader(booksRead: 2), type: BookReader.self),
         ]
         let types = fb.createVector(characterType)
         let characterVector = fb.createVector(ofOffsets: characters)
