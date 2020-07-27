@@ -50,7 +50,9 @@ function main() {
   test64bit();
   testUnicode();
   fuzzTest1();
-
+  testNullStrings();
+  testSharedStrings();
+  
   console.log('FlatBuffers test: completed successfully');
 }
 
@@ -435,6 +437,21 @@ function fuzzTest1() {
       }
     }
   }
+}
+
+function testSharedStrings() {
+  var shared_string = "Hello world";
+  var builder = new flatbuffers.Builder();
+  let mainOffset = builder.createSharedString(shared_string);
+  assert.strictEqual(builder.createSharedString(shared_string), mainOffset);
+}
+
+function testNullStrings() {
+  var builder = new flatbuffers.Builder();
+  assert.strictEqual(builder.createString(null), 0);
+  assert.strictEqual(builder.createSharedString(null), 0);
+  assert.strictEqual(builder.createString(undefined), 0);
+  assert.strictEqual(builder.createSharedString(undefined), 0);
 }
 
 main();
