@@ -1452,7 +1452,7 @@ class KotlinGenerator : public BaseGenerator {
     }
   }
 
-  // Prepend @JvmStatic to methods in companion object
+  // Prepend @JvmStatic to methods in companion object.
   static void GenerateJvmStaticAnnotation(CodeWriter &code) {
     code += "@JvmStatic";
   }
