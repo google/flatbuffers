@@ -1,4 +1,4 @@
-# Copyright 2014 Google Inc. All rights reserved.
+# Copyright 2019 Google Inc. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .builder import Builder
-from .table import Table
-from .compat import range_func as compat_range
-from ._version import __version__
-from . import util
+# Placeholder, to be updated during the release process
+# by the setup.py
+__version__ = u"latest"
