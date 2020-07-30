@@ -164,7 +164,7 @@ grpc::string GenerateServerExtensionBody(const grpc_generator::Method *method) {
   grpc::string start = "\t\tcase \"$MethodName$\":\n\t\t";
   if (method->NoStreaming()) {
     return start +
-           "return UnaryCallHandler(callHandlerContext: callHandlerContext) { "
+           "return CallHandlerFactory.makeUnary(callHandlerContext: callHandlerContext) { "
            "context in"
            "\n\t\t\t"
            "return { request in"
@@ -175,7 +175,7 @@ grpc::string GenerateServerExtensionBody(const grpc_generator::Method *method) {
   }
   if (method->ClientStreaming()) {
     return start +
-           "return ClientStreamingCallHandler(callHandlerContext: "
+           "return CallHandlerFactory.makeClientStreaming(callHandlerContext: "
            "callHandlerContext) { context in"
            "\n\t\t\t"
            "self.$MethodName$(context: context)"
@@ -183,7 +183,7 @@ grpc::string GenerateServerExtensionBody(const grpc_generator::Method *method) {
   }
   if (method->ServerStreaming()) {
     return start +
-           "return ServerStreamingCallHandler(callHandlerContext: "
+           "return CallHandlerFactory.makeServerStreaming(callHandlerContext: "
            "callHandlerContext) { context in"
            "\n\t\t\t"
            "return { request in"
@@ -194,7 +194,7 @@ grpc::string GenerateServerExtensionBody(const grpc_generator::Method *method) {
   }
   if (method->BidiStreaming()) {
     return start +
-           "return BidirectionalStreamingCallHandler(callHandlerContext: "
+           "return CallHandlerFactory.makeBidirectionalStreaming(callHandlerContext: "
            "callHandlerContext) { context in"
            "\n\t\t\t"
            "self.$MethodName$(context: context)"

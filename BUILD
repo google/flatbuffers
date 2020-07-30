@@ -27,6 +27,7 @@ filegroup(
         "include/flatbuffers/code_generators.h",
         "include/flatbuffers/flatbuffers.h",
         "include/flatbuffers/flexbuffers.h",
+        "include/flatbuffers/grpc.h",
         "include/flatbuffers/hash.h",
         "include/flatbuffers/idl.h",
         "include/flatbuffers/minireflect.h",

@@ -721,7 +721,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     // Only cpp, js and ts supports the union vector feature so far.
     if (!SupportsAdvancedUnionFeatures()) {
       return Error(
-          "Vectors of unions are not yet supported in all "
+          "Vectors of unions are not yet supported in at least one of "
           "the specified programming languages.");
     }
     // For vector of union fields, add a second auto-generated vector field to
@@ -743,6 +743,19 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
       return Error(
           "default values currently only supported for scalars in tables");
   }
+
+  // Mark the nullable scalars. Note that a side effect of ParseSingleValue is
+  // fixing field->value.constant to null.
+  if (IsScalar(type.base_type)) {
+    field->nullable = (field->value.constant == "null");
+    if (field->nullable && !SupportsNullableScalars()) {
+      return Error(
+        "Nullable scalars are not yet supported in at least one the of "
+        "the specified programming languages."
+      );
+    }
+  }
+
   // Append .0 if the value has not it (skip hex and scientific floats).
   // This suffix needed for generated C++ code.
   if (IsFloat(type.base_type)) {
@@ -1758,6 +1771,12 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
         TRY_ECHECK(kTokenStringOrIdent, IsBool(in_type), BASE_TYPE_BOOL);
       }
     }
+    // Check for optional scalars.
+    if (!match && IsScalar(in_type) && attribute_ == "null") {
+      e.constant = "null";
+      NEXT();
+      match = true;
+    }
     // Check if this could be a string/identifier enum value.
     // Enum can have only true integer base type.
     if (!match && IsInteger(in_type) && !IsBool(in_type) &&
@@ -1811,7 +1830,8 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
   // This flag forces to check default scalar values or metadata of field.
   // For JSON parser the flag should be false.
   // If it is set for JSON each value will be checked twice (see ParseTable).
-  if (check_now && IsScalar(match_type)) {
+  // Special case 'null' since atot can't handle that.
+  if (check_now && IsScalar(match_type) && e.constant != "null") {
     // clang-format off
     switch (match_type) {
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
@@ -2234,6 +2254,11 @@ CheckedError Parser::CheckClash(std::vector<FieldDef *> &fields,
     }
   }
   return NoError();
+}
+
+
+bool Parser::SupportsNullableScalars() const {
+  return !(opts.lang_to_generate & ~(IDLOptions::kRust | IDLOptions::kSwift));
 }
 
 bool Parser::SupportsAdvancedUnionFeatures() const {

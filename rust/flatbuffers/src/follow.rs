@@ -41,7 +41,7 @@ pub fn lifted_follow<'a, T: Follow<'a>>(buf: &'a [u8], loc: usize) -> T::Inner {
 
 /// FollowStart wraps a Follow impl in a struct type. This can make certain
 /// programming patterns more ergonomic.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct FollowStart<T>(PhantomData<T>);
 impl<'a, T: Follow<'a> + 'a> FollowStart<T> {
     #[inline]
