@@ -214,11 +214,15 @@ class JsTsGenerator : public BaseGenerator {
     // Emit namespaces in a form that Closure Compiler can optimize
     std::string &code = *code_ptr;
     std::string &exports = *exports_ptr;
+
+    if (lang_.language == IDLOptions::kTs) {
+      code += "import * as flatbuffers from 'flatbuffers';\n";
+    }
+
     for (auto it = sorted_namespaces.begin(); it != sorted_namespaces.end();
          ++it) {
       if (lang_.language == IDLOptions::kTs) {
         if (it->find('.') == std::string::npos) {
-          code += "import * as flatbuffers from 'flatbuffers';\n";
           break;
         }
       } else {
