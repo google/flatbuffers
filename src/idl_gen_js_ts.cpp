@@ -165,12 +165,15 @@ class JsTsGenerator : public BaseGenerator {
 
   // Generate code for all enums.
   void generateEnums(std::string *enum_code_ptr, std::string *exports_code_ptr,
-                     reexport_map &reexports, imported_fileset &imported_files) {
+                     reexport_map &reexports,
+                     imported_fileset &imported_files) {
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
       auto &enum_def = **it;
-      GenEnum(enum_def, enum_code_ptr, exports_code_ptr, reexports, imported_files, false);
-      GenEnum(enum_def, enum_code_ptr, exports_code_ptr, reexports, imported_files, true);
+      GenEnum(enum_def, enum_code_ptr, exports_code_ptr, reexports,
+              imported_files, false);
+      GenEnum(enum_def, enum_code_ptr, exports_code_ptr, reexports,
+              imported_files, true);
     }
   }
 
@@ -716,7 +719,8 @@ class JsTsGenerator : public BaseGenerator {
     return std::string("T") + (UnionHasStringType(union_enum) ? "|string" : "");
   }
 
-  std::string GenUnionTypeTS(const EnumDef &union_enum, imported_fileset &imported_files) {
+  std::string GenUnionTypeTS(const EnumDef &union_enum,
+                             imported_fileset &imported_files) {
     std::string ret;
     std::set<std::string> type_list;
 
@@ -790,7 +794,8 @@ class JsTsGenerator : public BaseGenerator {
     return "unionListTo" + enum_def.name;
   }
 
-  std::string GenUnionConvFunc(const Type &union_type, imported_fileset &imported_files) {
+  std::string GenUnionConvFunc(const Type &union_type,
+                               imported_fileset &imported_files) {
     if (union_type.enum_def) {
       const auto &enum_def = *union_type.enum_def;
 
@@ -2034,7 +2039,8 @@ class JsTsGenerator : public BaseGenerator {
       if (parser_.opts.generate_object_based_api) {
         std::string obj_api_class;
         std::string obj_api_unpack_func;
-        GenObjApi(parser_, struct_def, obj_api_unpack_func, obj_api_class, imported_files);
+        GenObjApi(parser_, struct_def, obj_api_unpack_func, obj_api_class,
+                  imported_files);
 
         code += obj_api_unpack_func + "}\n" + obj_api_class;
       } else {
