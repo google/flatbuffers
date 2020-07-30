@@ -730,7 +730,7 @@ class JsTsGenerator : public BaseGenerator {
         type = "string";  // no need to wrap string type in namespace
       } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
         type = GenPrefixedTypeName(WrapInNameSpace(*(ev.union_type.struct_def)),
-                                   union_enum.file);
+                                   ev.union_type.struct_def->file);
       } else {
         FLATBUFFERS_ASSERT(false);
       }
@@ -818,7 +818,7 @@ class JsTsGenerator : public BaseGenerator {
             ret += "return " + accessor_str + "'') as string;";
           } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
             const auto type = GenPrefixedTypeName(
-                WrapInNameSpace(*(ev.union_type.struct_def)), union_enum.file);
+                WrapInNameSpace(*(ev.union_type.struct_def)), ev.union_type.struct_def->file);
             ret += "return " + accessor_str + "new " + type + "())! as " +
                    type + ";";
           } else {
@@ -1485,6 +1485,11 @@ class JsTsGenerator : public BaseGenerator {
           case BASE_TYPE_VECTOR: {
             auto vectortype = field.value.type.VectorType();
             auto vectortypename = GenTypeName(vectortype, false);
+            
+            if (vectortype.enum_def) {
+              vectortypename = GenPrefixedTypeName(vectortypename, vectortype.enum_def->file);
+            }
+
             auto inline_size = InlineSize(vectortype);
             auto index = GenBBAccess() +
                          ".__vector(this.bb_pos + offset) + index" +
@@ -1537,6 +1542,10 @@ class JsTsGenerator : public BaseGenerator {
                 code += prefix + ",optionalEncoding?:any";
               } else {
                 code += prefix;
+
+                if (vectortype.enum_def && !parser_.opts.generate_all) {
+                    imported_files.insert(vectortype.enum_def->file);
+                }
               }
               code += "):" + vectortypename + "|null {\n";
             } else {
@@ -1851,6 +1860,10 @@ class JsTsGenerator : public BaseGenerator {
                   code += sig_begin + type_old + sig_end + ";\n";
                   type = type_new + "|Uint8Array";
                 }
+              } else {
+                if (vector_type.enum_def) {
+                  type = GenPrefixedTypeName(type, vector_type.enum_def->file);
+                }
               }
               code += sig_begin + type + sig_end + " {\n";
             } else {
@@ -2001,10 +2014,15 @@ class JsTsGenerator : public BaseGenerator {
   }
 
   std::string GetArgType(const FieldDef &field) {
-    if (field.value.type.enum_def)
-      return GenPrefixedTypeName(GenTypeName(field.value.type, true),
-                                 field.value.type.enum_def->file);
-    return GenTypeName(field.value.type, true);
+    auto type_name = GenTypeName(field.value.type, true);
+
+    if (field.value.type.enum_def) {
+      if (IsScalar(field.value.type.base_type)) {
+        return GenPrefixedTypeName(type_name, field.value.type.enum_def->file);
+      }
+    }
+
+    return type_name;
   }
 
   static std::string GetArgName(const FieldDef &field) {
