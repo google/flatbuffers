@@ -818,7 +818,8 @@ class JsTsGenerator : public BaseGenerator {
             ret += "return " + accessor_str + "'') as string;";
           } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
             const auto type = GenPrefixedTypeName(
-                WrapInNameSpace(*(ev.union_type.struct_def)), ev.union_type.struct_def->file);
+                WrapInNameSpace(*(ev.union_type.struct_def)),
+                ev.union_type.struct_def->file);
             ret += "return " + accessor_str + "new " + type + "())! as " +
                    type + ";";
           } else {
@@ -1485,9 +1486,10 @@ class JsTsGenerator : public BaseGenerator {
           case BASE_TYPE_VECTOR: {
             auto vectortype = field.value.type.VectorType();
             auto vectortypename = GenTypeName(vectortype, false);
-            
+
             if (vectortype.enum_def) {
-              vectortypename = GenPrefixedTypeName(vectortypename, vectortype.enum_def->file);
+              vectortypename = GenPrefixedTypeName(vectortypename,
+                                                   vectortype.enum_def->file);
             }
 
             auto inline_size = InlineSize(vectortype);
@@ -1544,7 +1546,7 @@ class JsTsGenerator : public BaseGenerator {
                 code += prefix;
 
                 if (vectortype.enum_def && !parser_.opts.generate_all) {
-                    imported_files.insert(vectortype.enum_def->file);
+                  imported_files.insert(vectortype.enum_def->file);
                 }
               }
               code += "):" + vectortypename + "|null {\n";
