@@ -81,7 +81,7 @@ class JsTsGenerator : public BaseGenerator {
     reexport_map reexports;
 
     std::string enum_code, struct_code, import_code, exports_code, code;
-    generateEnums(&enum_code, &exports_code, reexports);
+    generateEnums(&enum_code, &exports_code, reexports, imported_files);
     generateStructs(&struct_code, &exports_code, imported_files);
     generateImportDependencies(&import_code, imported_files);
     generateReexports(&import_code, reexports, imported_files);
@@ -165,12 +165,12 @@ class JsTsGenerator : public BaseGenerator {
 
   // Generate code for all enums.
   void generateEnums(std::string *enum_code_ptr, std::string *exports_code_ptr,
-                     reexport_map &reexports) {
+                     reexport_map &reexports, imported_fileset &imported_files) {
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
       auto &enum_def = **it;
-      GenEnum(enum_def, enum_code_ptr, exports_code_ptr, reexports, false);
-      GenEnum(enum_def, enum_code_ptr, exports_code_ptr, reexports, true);
+      GenEnum(enum_def, enum_code_ptr, exports_code_ptr, reexports, imported_files, false);
+      GenEnum(enum_def, enum_code_ptr, exports_code_ptr, reexports, imported_files, true);
     }
   }
 
@@ -323,7 +323,7 @@ class JsTsGenerator : public BaseGenerator {
   // Generate an enum declaration and an enum string lookup table.
   void GenEnum(EnumDef &enum_def, std::string *code_ptr,
                std::string *exports_ptr, reexport_map &reexports,
-               bool reverse) {
+               imported_fileset &imported_files, bool reverse) {
     if (enum_def.generated) return;
     if (reverse && lang_.language == IDLOptions::kTs) return;  // FIXME.
     std::string &code = *code_ptr;
@@ -381,7 +381,7 @@ class JsTsGenerator : public BaseGenerator {
 
     if (lang_.language == IDLOptions::kTs) {
       if (enum_def.is_union) {
-        code += GenUnionConvFunc(enum_def.underlying_type);
+        code += GenUnionConvFunc(enum_def.underlying_type, imported_files);
       }
       if (!ns.empty()) { code += "\n}"; }
     }
@@ -716,7 +716,7 @@ class JsTsGenerator : public BaseGenerator {
     return std::string("T") + (UnionHasStringType(union_enum) ? "|string" : "");
   }
 
-  std::string GenUnionTypeTS(const EnumDef &union_enum) {
+  std::string GenUnionTypeTS(const EnumDef &union_enum, imported_fileset &imported_files) {
     std::string ret;
     std::set<std::string> type_list;
 
@@ -729,6 +729,10 @@ class JsTsGenerator : public BaseGenerator {
       if (ev.union_type.base_type == BASE_TYPE_STRING) {
         type = "string";  // no need to wrap string type in namespace
       } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
+        if (!parser_.opts.generate_all) {
+          imported_files.insert(ev.union_type.struct_def->file);
+        }
+
         type = GenPrefixedTypeName(WrapInNameSpace(*(ev.union_type.struct_def)),
                                    ev.union_type.struct_def->file);
       } else {
@@ -786,11 +790,11 @@ class JsTsGenerator : public BaseGenerator {
     return "unionListTo" + enum_def.name;
   }
 
-  std::string GenUnionConvFunc(const Type &union_type) {
+  std::string GenUnionConvFunc(const Type &union_type, imported_fileset &imported_files) {
     if (union_type.enum_def) {
       const auto &enum_def = *union_type.enum_def;
 
-      const auto valid_union_type = GenUnionTypeTS(enum_def);
+      const auto valid_union_type = GenUnionTypeTS(enum_def, imported_files);
       const auto valid_union_type_with_null = valid_union_type + "|null";
 
       auto ret = "\n\nexport function " + GenUnionConvFuncName(enum_def) +
@@ -798,6 +802,10 @@ class JsTsGenerator : public BaseGenerator {
                  ",\n  accessor: (obj:" + valid_union_type + ") => " +
                  valid_union_type_with_null +
                  "\n): " + valid_union_type_with_null + " {\n";
+
+      if (!parser_.opts.generate_all) {
+        imported_files.insert(union_type.enum_def->file);
+      }
 
       const auto enum_type = GenPrefixedTypeName(
           WrapInNameSpace(*(union_type.enum_def)), union_type.enum_def->file);
@@ -957,7 +965,8 @@ class JsTsGenerator : public BaseGenerator {
   }
 
   void GenObjApi(const Parser &parser, StructDef &struct_def,
-                 std::string &obj_api_unpack_func, std::string &obj_api_class) {
+                 std::string &obj_api_unpack_func, std::string &obj_api_class,
+                 imported_fileset &imported_files) {
     const auto class_name = GetObjApiClassName(struct_def, parser.opts);
 
     std::string unpack_func =
@@ -1030,6 +1039,10 @@ class JsTsGenerator : public BaseGenerator {
       if (IsScalar(field.value.type.base_type) ||
           field.value.type.base_type == BASE_TYPE_STRING) {
         if (field.value.type.enum_def) {
+          if (!parser_.opts.generate_all) {
+            imported_files.insert(field.value.type.enum_def->file);
+          }
+
           field_type +=
               GenPrefixedTypeName(GenTypeName(field.value.type, false, true),
                                   field.value.type.enum_def->file);
@@ -1138,6 +1151,10 @@ class JsTsGenerator : public BaseGenerator {
               }
               default: {
                 if (vectortype.enum_def) {
+                  if (!parser_.opts.generate_all) {
+                    imported_files.insert(vectortype.enum_def->file);
+                  }
+
                   field_type +=
                       GenPrefixedTypeName(GenTypeName(vectortype, false, true),
                                           vectortype.enum_def->file);
@@ -1163,6 +1180,10 @@ class JsTsGenerator : public BaseGenerator {
           }
 
           case BASE_TYPE_UNION: {
+            if (!parser_.opts.generate_all) {
+              imported_files.insert(field.value.type.enum_def->file);
+            }
+
             field_type +=
                 GenObjApiUnionTypeTS(parser.opts, *(field.value.type.enum_def));
 
@@ -1650,6 +1671,10 @@ class JsTsGenerator : public BaseGenerator {
         if (lang_.language == IDLOptions::kTs) {
           std::string type;
           if (field.value.type.enum_def) {
+            if (!parser_.opts.generate_all) {
+              imported_files.insert(field.value.type.enum_def->file);
+            }
+
             type = GenPrefixedTypeName(GenTypeName(field.value.type, true),
                                        field.value.type.enum_def->file);
           } else {
@@ -1864,6 +1889,10 @@ class JsTsGenerator : public BaseGenerator {
                 }
               } else {
                 if (vector_type.enum_def) {
+                  if (!parser_.opts.generate_all) {
+                    imported_files.insert(vector_type.enum_def->file);
+                  }
+
                   type = GenPrefixedTypeName(type, vector_type.enum_def->file);
                 }
               }
@@ -2005,7 +2034,7 @@ class JsTsGenerator : public BaseGenerator {
       if (parser_.opts.generate_object_based_api) {
         std::string obj_api_class;
         std::string obj_api_unpack_func;
-        GenObjApi(parser_, struct_def, obj_api_unpack_func, obj_api_class);
+        GenObjApi(parser_, struct_def, obj_api_unpack_func, obj_api_class, imported_files);
 
         code += obj_api_unpack_func + "}\n" + obj_api_class;
       } else {
