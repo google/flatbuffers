@@ -140,11 +140,11 @@ class KotlinGenerator : public BaseGenerator {
   static std::string GenTypeBasic(const BaseType &type) {
     // clang-format off
     static const char * const kotlin_typename[] = {
-#define FLATBUFFERS_TD(ENUM, IDLTYPE, \
+      #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
               CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE, ...) \
         #KTYPE,
         FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
-#undef FLATBUFFERS_TD
+      #undef FLATBUFFERS_TD
     };
     // clang-format on
     return kotlin_typename[type];
@@ -456,9 +456,9 @@ class KotlinGenerator : public BaseGenerator {
           // Generate verson check method.
           // Force compile time error if not using the same version
           // runtime.
-          GenerateFunOneLine(
-              writer, "validateVersion", "", "",
-              [&]() { writer += "Constants.FLATBUFFERS_1_12_0()"; }, true);
+          GenerateFunOneLine(writer, "validateVersion", "", "", [&]() {
+            writer += "Constants.FLATBUFFERS_1_12_0()";
+          });
 
           GenerateGetRootAsAccessors(Esc(struct_def.name), writer);
           GenerateBufferHasIdentifier(struct_def, writer);
@@ -595,21 +595,18 @@ class KotlinGenerator : public BaseGenerator {
     auto returns = "Int";
     auto field_vec = struct_def.fields.vec;
 
-    GenerateFun(
-        writer, name, params, returns,
-        [&]() {
-          writer += "val o = builder.endTable()";
-          writer.IncrementIdentLevel();
-          for (auto it = field_vec.begin(); it != field_vec.end(); ++it) {
-            auto &field = **it;
-            if (field.deprecated || !field.required) { continue; }
-            writer.SetValue("offset", NumToString(field.value.offset));
-            writer += "builder.required(o, {{offset}})";
-          }
-          writer.DecrementIdentLevel();
-          writer += "return o";
-        },
-        true);
+    GenerateFun(writer, name, params, returns, [&]() {
+      writer += "val o = builder.endTable()";
+      writer.IncrementIdentLevel();
+      for (auto it = field_vec.begin(); it != field_vec.end(); ++it) {
+        auto &field = **it;
+        if (field.deprecated || !field.required) { continue; }
+        writer.SetValue("offset", NumToString(field.value.offset));
+        writer += "builder.required(o, {{offset}})";
+      }
+      writer.DecrementIdentLevel();
+      writer += "return o";
+    });
   }
 
   // Generate a method to create a vector from a Kotlin array.
@@ -623,18 +620,15 @@ class KotlinGenerator : public BaseGenerator {
     writer.SetValue("root", GenMethod(vector_type));
     writer.SetValue("cast", CastToSigned(vector_type));
 
-    GenerateFun(
-        writer, method_name, params, "Int",
-        [&]() {
-          writer += "builder.startVector({{size}}, data.size, {{align}})";
-          writer += "for (i in data.size - 1 downTo 0) {";
-          writer.IncrementIdentLevel();
-          writer += "builder.add{{root}}(data[i]{{cast}})";
-          writer.DecrementIdentLevel();
-          writer += "}";
-          writer += "return builder.endVector()";
-        },
-        true);
+    GenerateFun(writer, method_name, params, "Int", [&]() {
+      writer += "builder.startVector({{size}}, data.size, {{align}})";
+      writer += "for (i in data.size - 1 downTo 0) {";
+      writer.IncrementIdentLevel();
+      writer += "builder.add{{root}}(data[i]{{cast}})";
+      writer.DecrementIdentLevel();
+      writer += "}";
+      writer += "return builder.endVector()";
+    });
   }
 
   void GenerateStartVectorField(FieldDef &field, CodeWriter &writer) const {
@@ -647,32 +641,28 @@ class KotlinGenerator : public BaseGenerator {
 
     GenerateFunOneLine(
         writer, "start" + MakeCamel(Esc(field.name) + "Vector", true), params,
-        "",
-        [&]() {
+        "", [&]() {
           writer += "builder.startVector({{size}}, numElems, {{align}})";
-        },
-        true);
+        });
   }
 
   void GenerateAddField(std::string field_pos, FieldDef &field,
                         CodeWriter &writer) const {
     auto field_type = GenTypeBasic(field.value.type.base_type);
     auto secondArg = MakeCamel(Esc(field.name), false) + ": " + field_type;
-    GenerateFunOneLine(
-        writer, "add" + MakeCamel(Esc(field.name), true),
-        "builder: FlatBufferBuilder, " + secondArg, "",
-        [&]() {
-          auto method = GenMethod(field.value.type);
-          writer.SetValue("field_name", MakeCamel(Esc(field.name), false));
-          writer.SetValue("method_name", method);
-          writer.SetValue("pos", field_pos);
-          writer.SetValue("default", GenFBBDefaultValue(field));
-          writer.SetValue("cast", GenFBBValueCast(field));
+    GenerateFunOneLine(writer, "add" + MakeCamel(Esc(field.name), true),
+                       "builder: FlatBufferBuilder, " + secondArg, "", [&]() {
+                         auto method = GenMethod(field.value.type);
+                         writer.SetValue("field_name",
+                                         MakeCamel(Esc(field.name), false));
+                         writer.SetValue("method_name", method);
+                         writer.SetValue("pos", field_pos);
+                         writer.SetValue("default", GenFBBDefaultValue(field));
+                         writer.SetValue("cast", GenFBBValueCast(field));
 
-          writer += "builder.add{{method_name}}({{pos}}, \\";
-          writer += "{{field_name}}{{cast}}, {{default}})";
-        },
-        true);
+                         writer += "builder.add{{method_name}}({{pos}}, \\";
+                         writer += "{{field_name}}{{cast}}, {{default}})";
+                       });
   }
 
   static std::string ToSignedType(const Type &type) {
@@ -715,13 +705,12 @@ class KotlinGenerator : public BaseGenerator {
   // fun startMonster(builder: FlatBufferBuilder) = builder.startTable(11)
   void GenerateStartStructMethod(StructDef &struct_def,
                                  CodeWriter &code) const {
-    GenerateFunOneLine(
-        code, "start" + Esc(struct_def.name), "builder: FlatBufferBuilder", "",
-        [&]() {
-          code += "builder.startTable(" +
-                  NumToString(struct_def.fields.vec.size()) + ")";
-        },
-        true);
+    GenerateFunOneLine(code, "start" + Esc(struct_def.name),
+                       "builder: FlatBufferBuilder", "", [&]() {
+                         code += "builder.startTable(" +
+                                 NumToString(struct_def.fields.vec.size()) +
+                                 ")";
+                       });
   }
 
   void GenerateTableCreator(StructDef &struct_def, CodeWriter &writer) const {
@@ -762,38 +751,32 @@ class KotlinGenerator : public BaseGenerator {
         params << GenTypeBasic(field.value.type.base_type);
       }
 
-      GenerateFun(
-          writer, name, params.str(), "Int",
-          [&]() {
-            writer.SetValue("vec_size", NumToString(fields_vec.size()));
+      GenerateFun(writer, name, params.str(), "Int", [&]() {
+        writer.SetValue("vec_size", NumToString(fields_vec.size()));
 
-            writer += "builder.startTable({{vec_size}})";
+        writer += "builder.startTable({{vec_size}})";
 
-            auto sortbysize = struct_def.sortbysize;
-            auto largest = sortbysize ? sizeof(largest_scalar_t) : 1;
-            for (size_t size = largest; size; size /= 2) {
-              for (auto it = fields_vec.rbegin(); it != fields_vec.rend();
-                   ++it) {
-                auto &field = **it;
-                auto base_type_size = SizeOf(field.value.type.base_type);
-                if (!field.deprecated &&
-                    (!sortbysize || size == base_type_size)) {
-                  writer.SetValue("camel_field_name",
-                                  MakeCamel(Esc(field.name), true));
-                  writer.SetValue("field_name",
-                                  MakeCamel(Esc(field.name), false));
+        auto sortbysize = struct_def.sortbysize;
+        auto largest = sortbysize ? sizeof(largest_scalar_t) : 1;
+        for (size_t size = largest; size; size /= 2) {
+          for (auto it = fields_vec.rbegin(); it != fields_vec.rend(); ++it) {
+            auto &field = **it;
+            auto base_type_size = SizeOf(field.value.type.base_type);
+            if (!field.deprecated && (!sortbysize || size == base_type_size)) {
+              writer.SetValue("camel_field_name",
+                              MakeCamel(Esc(field.name), true));
+              writer.SetValue("field_name", MakeCamel(Esc(field.name), false));
 
-                  writer += "add{{camel_field_name}}(builder, {{field_name}}\\";
-                  if (!IsScalar(field.value.type.base_type)) {
-                    writer += "Offset\\";
-                  }
-                  writer += ")";
-                }
+              writer += "add{{camel_field_name}}(builder, {{field_name}}\\";
+              if (!IsScalar(field.value.type.base_type)) {
+                writer += "Offset\\";
               }
+              writer += ")";
             }
-            writer += "return end{{struct_name}}(builder)";
-          },
-          true);
+          }
+        }
+        writer += "return end{{struct_name}}(builder)";
+      });
     }
   }
   void GenerateBufferHasIdentifier(StructDef &struct_def,
@@ -1442,7 +1425,6 @@ class KotlinGenerator : public BaseGenerator {
       case BASE_TYPE_INT:
       case BASE_TYPE_CHAR:
       case BASE_TYPE_SHORT: return "0";
-
       case BASE_TYPE_UINT:
       case BASE_TYPE_UCHAR:
       case BASE_TYPE_USHORT:
