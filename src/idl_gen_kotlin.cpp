@@ -458,7 +458,7 @@ class KotlinGenerator : public BaseGenerator {
           // runtime.
           GenerateFunOneLine(writer, "validateVersion", "", "", [&]() {
             writer += "Constants.FLATBUFFERS_1_12_0()";
-          });
+          }, true);
 
           GenerateGetRootAsAccessors(Esc(struct_def.name), writer);
           GenerateBufferHasIdentifier(struct_def, writer);
