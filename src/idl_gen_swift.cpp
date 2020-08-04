@@ -147,9 +147,7 @@ class SwiftGenerator : public BaseGenerator {
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
       const auto &enum_def = **it;
-      if (!enum_def.generated) {
-        GenEnum(enum_def);
-      }
+      if (!enum_def.generated) { GenEnum(enum_def); }
     }
 
     for (auto it = parser_.structs_.vec.begin();
@@ -284,7 +282,10 @@ class SwiftGenerator : public BaseGenerator {
     code_.SetValue("PROTOCOL",
                    struct_def.fixed ? "Readable" : "FlatBufferObject");
     code_.SetValue("OBJECTTYPE", struct_def.fixed ? "Struct" : "Table");
-    code_ += "public struct {{STRUCTNAME}}: {{PROTOCOL}} {\n";
+    code_ += "public struct {{STRUCTNAME}}: {{PROTOCOL}}\\";
+    if (!struct_def.fixed && parser_.opts.generate_object_based_api)
+      code_ += ", ObjectAPI\\";
+    code_ += " {\n";
     Indent();
     code_ += ValidateFunc();
     code_ += "public var __buffer: ByteBuffer! { return {{ACCESS}}.bb }";
@@ -452,7 +453,8 @@ class SwiftGenerator : public BaseGenerator {
            ++it) {
         code_ += *it;
       }
-      code_ += "return {{STRUCTNAME}}.end{{SHORT_STRUCTNAME}}(&fbb, start: __start)";
+      code_ +=
+          "return {{STRUCTNAME}}.end{{SHORT_STRUCTNAME}}(&fbb, start: __start)";
       Outdent();
       code_ += "}";
     }
@@ -848,9 +850,14 @@ class SwiftGenerator : public BaseGenerator {
                                     base_constructor);
     }
     code_ += "";
-    BuildObjectAPIConstructor(buffer_constructor,
-                              "_ _t: inout " + NameWrappedInNameSpace(struct_def));
+    BuildObjectAPIConstructor(
+        buffer_constructor,
+        "_ _t: inout " + NameWrappedInNameSpace(struct_def));
     BuildObjectAPIConstructor(base_constructor);
+    if (!struct_def.fixed)
+      code_ +=
+          "func serialize() -> ByteBuffer { return serialize(type: "
+          "{{STRUCTNAME}}.self) }\n";
     Outdent();
     code_ += "}";
   }
@@ -899,8 +906,10 @@ class SwiftGenerator : public BaseGenerator {
             GenerateStructArgs(*field.value.type.struct_def, &code, "", "",
                                "$0", true);
             code = code.substr(0, code.size() - 2);
-            code_ += "let __" + name + " = obj." + name + ".map { " + NameWrappedInNameSpace(*field.value.type.struct_def) + ".create" +
-                     Name(*field.value.type.struct_def) + "(" + code + ") }";
+            code_ += "let __" + name + " = obj." + name + ".map { " +
+                     NameWrappedInNameSpace(*field.value.type.struct_def) +
+                     ".create" + Name(*field.value.type.struct_def) + "(" +
+                     code + ") }";
           } else {
             code_ += "let __" + name + " = " + type +
                      ".pack(&builder, obj: &obj." + name + ")";
@@ -978,8 +987,10 @@ class SwiftGenerator : public BaseGenerator {
           code_ += "for i in obj." + name + " {";
           Indent();
           code_ += "guard let _o = i else { continue }";
-          code_ += "__" + name + "__.append(" + NameWrappedInNameSpace(*field.value.type.struct_def) + ".create" +
-                   Name(*field.value.type.struct_def) + "(" + code + "))";
+          code_ += "__" + name + "__.append(" +
+                   NameWrappedInNameSpace(*field.value.type.struct_def) +
+                   ".create" + Name(*field.value.type.struct_def) + "(" + code +
+                   "))";
           Outdent();
           code_ += "}";
           code_ += "let __" + name + " = builder.createVector(structs: __" +
@@ -1356,8 +1367,7 @@ class SwiftGenerator : public BaseGenerator {
           return WrapInNameSpace(struct_.defined_namespace,
                                  ObjectAPIName(Name(struct_)));
         }
-        return WrapInNameSpace(struct_.defined_namespace,
-                               Name(struct_));
+        return WrapInNameSpace(struct_.defined_namespace, Name(struct_));
       }
       case BASE_TYPE_UNION:
       default: return "FlatBufferObject";
@@ -1377,13 +1387,11 @@ class SwiftGenerator : public BaseGenerator {
   void Outdent() { code_.DecrementIdentLevel(); }
 
   std::string NameWrappedInNameSpace(const EnumDef &enum_def) const {
-    return WrapInNameSpace(enum_def.defined_namespace,
-                           Name(enum_def));
+    return WrapInNameSpace(enum_def.defined_namespace, Name(enum_def));
   }
 
   std::string NameWrappedInNameSpace(const StructDef &struct_def) const {
-    return WrapInNameSpace(struct_def.defined_namespace,
-                           Name(struct_def));
+    return WrapInNameSpace(struct_def.defined_namespace, Name(struct_def));
   }
 
   std::string GenTypeBasic(const Type &type, bool can_override) const {
@@ -1397,8 +1405,7 @@ class SwiftGenerator : public BaseGenerator {
     };
     // clang-format on
     if (can_override) {
-      if (type.enum_def)
-        return NameWrappedInNameSpace(*type.enum_def);
+      if (type.enum_def) return NameWrappedInNameSpace(*type.enum_def);
       if (type.base_type == BASE_TYPE_BOOL) return "Bool";
     }
     return swift_type[static_cast<int>(type.base_type)];
@@ -1419,7 +1426,6 @@ class SwiftGenerator : public BaseGenerator {
   std::string Name(const Definition &def) const {
     return EscapeKeyword(MakeCamel(def.name, false));
   }
-
 };
 }  // namespace swift
 bool GenerateSwift(const Parser &parser, const std::string &path,

@@ -145,7 +145,7 @@ extension BookReader {
 
 }
 
-public struct Attacker: FlatBufferObject {
+public struct Attacker: FlatBufferObject, ObjectAPI {
 
     static func validateVersion() { FlatBuffersVersion_1_12_0() }
     public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -205,8 +205,10 @@ public class AttackerT: NativeTable {
         swordAttackDamage = 0
     }
 
+    func serialize() -> ByteBuffer { return serialize(type: Attacker.self) }
+
 }
-public struct Movie: FlatBufferObject {
+public struct Movie: FlatBufferObject, ObjectAPI {
 
     static func validateVersion() { FlatBuffersVersion_1_12_0() }
     public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -328,5 +330,7 @@ public class MovieT: NativeTable {
     init() {
         characters = []
     }
+
+    func serialize() -> ByteBuffer { return serialize(type: Movie.self) }
 
 }
