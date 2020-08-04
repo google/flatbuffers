@@ -575,7 +575,7 @@ class KotlinGenerator : public BaseGenerator {
     auto method_name = "finishSizePrefixed" + Esc(struct_def.name) + "Buffer";
     GenerateFunOneLine(writer, method_name, params, "", [&]() {
       writer += "builder.finishSizePrefixed(offset" + id + ")";
-    });
+    }, parser_.opts.kotlin_gen_jvmstatic);
   }
   void GenerateFinishStructBuffer(StructDef &struct_def,
                                   const std::string &identifier,
@@ -584,7 +584,8 @@ class KotlinGenerator : public BaseGenerator {
     auto params = "builder: FlatBufferBuilder, offset: Int";
     auto method_name = "finish" + Esc(struct_def.name) + "Buffer";
     GenerateFunOneLine(writer, method_name, params, "",
-                       [&]() { writer += "builder.finish(offset" + id + ")"; });
+                       [&]() { writer += "builder.finish(offset" + id + ")"; },
+                       parser_.opts.kotlin_gen_jvmstatic);
   }
 
   void GenerateEndStructMethod(StructDef &struct_def,
@@ -790,7 +791,7 @@ class KotlinGenerator : public BaseGenerator {
                        "Boolean", [&]() {
                          writer += "__has_identifier(_bb, \"" +
                                    file_identifier + "\")";
-                       });
+                       }, parser_.opts.kotlin_gen_jvmstatic);
   }
 
   void GenerateStructGetters(StructDef &struct_def, CodeWriter &writer) const {
