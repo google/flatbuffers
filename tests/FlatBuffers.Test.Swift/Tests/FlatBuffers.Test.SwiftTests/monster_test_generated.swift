@@ -334,7 +334,7 @@ extension MyGame_Example_Ability {
 
 }
 
-public struct MyGame_InParentNamespace: FlatBufferObject {
+public struct MyGame_InParentNamespace: FlatBufferObject, ObjectAPI {
 
     static func validateVersion() { FlatBuffersVersion_1_12_0() }
     public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -373,8 +373,10 @@ public class MyGame_InParentNamespaceT: NativeTable {
     init() {
     }
 
+    func serialize() -> ByteBuffer { return serialize(type: MyGame_InParentNamespace.self) }
+
 }
-public struct MyGame_Example2_Monster: FlatBufferObject {
+public struct MyGame_Example2_Monster: FlatBufferObject, ObjectAPI {
 
     static func validateVersion() { FlatBuffersVersion_1_12_0() }
     public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -413,8 +415,10 @@ public class MyGame_Example2_MonsterT: NativeTable {
     init() {
     }
 
+    func serialize() -> ByteBuffer { return serialize(type: MyGame_Example2_Monster.self) }
+
 }
-public struct MyGame_Example_TestSimpleTableWithEnum: FlatBufferObject {
+public struct MyGame_Example_TestSimpleTableWithEnum: FlatBufferObject, ObjectAPI {
 
     static func validateVersion() { FlatBuffersVersion_1_12_0() }
     public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -474,8 +478,10 @@ public class MyGame_Example_TestSimpleTableWithEnumT: NativeTable {
         color = .green
     }
 
+    func serialize() -> ByteBuffer { return serialize(type: MyGame_Example_TestSimpleTableWithEnum.self) }
+
 }
-public struct MyGame_Example_Stat: FlatBufferObject {
+public struct MyGame_Example_Stat: FlatBufferObject, ObjectAPI {
 
     static func validateVersion() { FlatBuffersVersion_1_12_0() }
     public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -561,8 +567,10 @@ public class MyGame_Example_StatT: NativeTable {
         count = 0
     }
 
+    func serialize() -> ByteBuffer { return serialize(type: MyGame_Example_Stat.self) }
+
 }
-public struct MyGame_Example_Referrable: FlatBufferObject {
+public struct MyGame_Example_Referrable: FlatBufferObject, ObjectAPI {
 
     static func validateVersion() { FlatBuffersVersion_1_12_0() }
     public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -646,9 +654,11 @@ public class MyGame_Example_ReferrableT: NativeTable {
         id = 0
     }
 
+    func serialize() -> ByteBuffer { return serialize(type: MyGame_Example_Referrable.self) }
+
 }
 ///  an example documentation comment: "monster object"
-public struct MyGame_Example_Monster: FlatBufferObject {
+public struct MyGame_Example_Monster: FlatBufferObject, ObjectAPI {
 
     static func validateVersion() { FlatBuffersVersion_1_12_0() }
     public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -1364,8 +1374,10 @@ public class MyGame_Example_MonsterT: NativeTable {
         signedEnum = .none_
     }
 
+    func serialize() -> ByteBuffer { return serialize(type: MyGame_Example_Monster.self) }
+
 }
-public struct MyGame_Example_TypeAliases: FlatBufferObject {
+public struct MyGame_Example_TypeAliases: FlatBufferObject, ObjectAPI {
 
     static func validateVersion() { FlatBuffersVersion_1_12_0() }
     public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -1546,5 +1558,7 @@ public class MyGame_Example_TypeAliasesT: NativeTable {
         v8 = []
         vf64 = []
     }
+
+    func serialize() -> ByteBuffer { return serialize(type: MyGame_Example_TypeAliases.self) }
 
 }

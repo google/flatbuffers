@@ -6,8 +6,6 @@ public protocol FlatBufferObject {
     init(_ bb: ByteBuffer, o: Int32)
 }
 
-public protocol NativeTable {}
-
 public protocol ObjectAPI {
     associatedtype T
     static func pack(_ builder: inout FlatBufferBuilder, obj: inout T) -> Offset<UOffset>
