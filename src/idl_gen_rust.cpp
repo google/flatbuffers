@@ -1260,20 +1260,32 @@ class RustGenerator : public BaseGenerator {
         FLATBUFFERS_ASSERT(nested_root);  // Guaranteed to exist by parser.
         (void)nested_root;
 
-        code_.SetValue("OFFSET_NAME",
-                       offset_prefix + "::" + GetFieldOffsetName(field));
+        // Parse it into a namespace.
+        // TODO(cneo): Consider sharing this parsing logic.
+        Namespace ns;
+        size_t start = 0;
+        size_t end = 0;
+        while (end != std::string::npos) {
+          end = qualified_name.find(".", start);
+          ns.components.push_back(qualified_name.substr(start, end - start));
+          start = end + 1;
+        }
+        // The last element is the nested table itself, not the namespace.
+        std::string table_name = ns.components.back();
+        ns.components.pop_back();
+
+        std::string type_path = GetRelativeNamespaceTraversal(
+          CurrentNameSpace(), &ns);
+        code_.SetValue("NESTED", type_path + table_name);
+
         code_ +=
-            "  pub fn {{FIELD_NAME}}_nested_flatbuffer(&'a self) -> "
-            " Option<{{STRUCT_NAME}}<'a>> {";
-        code_ += "     match self.{{FIELD_NAME}}() {";
-        code_ += "         None => { None }";
-        code_ += "         Some(data) => {";
-        code_ += "             use self::flatbuffers::Follow;";
-        code_ +=
-            "             Some(<flatbuffers::ForwardsUOffset"
-            "<{{STRUCT_NAME}}<'a>>>::follow(data, 0))";
-        code_ += "         },";
-        code_ += "     }";
+            "  pub fn {{FIELD_NAME}}_nested_flatbuffer(&self) -> "
+            "Option<{{NESTED}}> {";
+        code_ += "    self.{{FIELD_NAME}}().map(|data| {";
+        code_ += "      use flatbuffers::Follow;";
+        code_ += "      <flatbuffers::ForwardsUOffset<{{NESTED}}>>"
+            "::follow(data, 0)";
+        code_ += "    })";
         code_ += "  }";
       }
     }
