@@ -1279,11 +1279,11 @@ class RustGenerator : public BaseGenerator {
         code_.SetValue("NESTED", type_path + table_name);
 
         code_ +=
-            "  pub fn {{FIELD_NAME}}_nested_flatbuffer(&self) -> "
-            "Option<{{NESTED}}> {";
+            "  pub fn {{FIELD_NAME}}_nested_flatbuffer(&'a self) -> "
+            "Option<{{NESTED}}<'a>> {";
         code_ += "    self.{{FIELD_NAME}}().map(|data| {";
         code_ += "      use flatbuffers::Follow;";
-        code_ += "      <flatbuffers::ForwardsUOffset<{{NESTED}}>>"
+        code_ += "      <flatbuffers::ForwardsUOffset<{{NESTED}}<'a>>>"
             "::follow(data, 0)";
         code_ += "    })";
         code_ += "  }";

@@ -1211,10 +1211,10 @@ impl<'a> Monster<'a> {
   pub fn testnestedflatbuffer(&self) -> Option<&'a [u8]> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(Monster::VT_TESTNESTEDFLATBUFFER, None).map(|v| v.safe_slice())
   }
-  pub fn testnestedflatbuffer_nested_flatbuffer(&self) -> Option<Monster> {
+  pub fn testnestedflatbuffer_nested_flatbuffer(&'a self) -> Option<Monster<'a>> {
     self.testnestedflatbuffer().map(|data| {
       use flatbuffers::Follow;
-      <flatbuffers::ForwardsUOffset<Monster>>::follow(data, 0)
+      <flatbuffers::ForwardsUOffset<Monster<'a>>>::follow(data, 0)
     })
   }
   #[inline]
