@@ -554,6 +554,10 @@ namespace FlatBuffers
         /// </returns>
         public StringOffset CreateString(string s)
         {
+            if (s == null)
+            {
+                return new StringOffset(0);
+            }
             NotNested();
             AddByte(0);
             var utf8StringLen = Encoding.UTF8.GetByteCount(s);
@@ -594,6 +598,11 @@ namespace FlatBuffers
         /// </returns>
         public StringOffset CreateSharedString(string s)
         {
+            if (s == null)
+            {
+              return new StringOffset(0);
+            }
+
             if (_sharedStringMap == null)
             {
                 _sharedStringMap = new Dictionary<string, StringOffset>();

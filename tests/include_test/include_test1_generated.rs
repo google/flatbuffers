@@ -20,9 +20,7 @@ impl<'a> flatbuffers::Follow<'a> for TableA<'a> {
     type Inner = TableA<'a>;
     #[inline]
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self {
-            _tab: flatbuffers::Table { buf: buf, loc: loc },
-        }
+        Self { _tab: flatbuffers::Table { buf, loc } }
     }
 }
 
@@ -51,7 +49,7 @@ impl<'a> TableA<'a> {
 }
 
 pub struct TableAArgs<'a> {
-    pub b: Option<flatbuffers::WIPOffset<my_game::other_name_space::TableB<'a >>>,
+    pub b: Option<flatbuffers::WIPOffset<my_game::other_name_space::TableB<'a>>>,
 }
 impl<'a> Default for TableAArgs<'a> {
     #[inline]

@@ -54,6 +54,7 @@ extension FlatBuffersTests {
         ("testOffset", testOffset),
         ("testReadCountry", testReadCountry),
         ("testStartTable", testStartTable),
+        ("testWriteOptionalValues", testWriteOptionalValues),
     ]
 }
 

@@ -17,6 +17,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(BuilderTest);
     defineReflectiveTests(CheckOtherLangaugesData);
+    defineReflectiveTests(GeneratorTest);
   });
 }
 
@@ -629,5 +630,16 @@ class TestPointReader extends TableReader<TestPointImpl> {
   @override
   TestPointImpl createObject(BufferContext object, int offset) {
     return new TestPointImpl(object, offset);
+  }
+}
+
+@reflectiveTest
+class GeneratorTest {
+  void test_constantEnumValues() async {
+    expect(example.Color.values, same(example.Color.values));
+    expect(example.Race.values, same(example.Race.values));
+    expect(example.AnyTypeId.values, same(example.AnyTypeId.values));
+    expect(example.AnyUniqueAliasesTypeId.values, same(example.AnyUniqueAliasesTypeId.values));
+    expect(example.AnyAmbiguousAliasesTypeId.values, same(example.AnyAmbiguousAliasesTypeId.values));
   }
 }

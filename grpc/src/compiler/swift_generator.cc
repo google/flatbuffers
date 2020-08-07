@@ -29,8 +29,15 @@
 
 namespace grpc_swift_generator {
 
-grpc::string GenerateMessage(const grpc::string &name) {
-  return "Message<" + name + ">";
+std::string WrapInNameSpace(const std::vector<std::string> &components, const grpc::string &name) {
+  std::string qualified_name;
+  for (auto it = components.begin(); it != components.end(); ++it)
+    qualified_name += *it + "_";
+  return qualified_name + name;
+}
+
+grpc::string GenerateMessage(const std::vector<std::string> &components, const grpc::string &name) {
+  return "Message<" + WrapInNameSpace(components, name) + ">";
 }
 
 // MARK: - Client
@@ -85,12 +92,12 @@ void GenerateClientProtocol(const grpc_generator::Service *service,
                             grpc_generator::Printer *printer,
                             std::map<grpc::string, grpc::string> *dictonary) {
   auto vars = *dictonary;
-  printer->Print(vars, "$ACCESS$ protocol $ServiceName$Service {\n");
+  printer->Print(vars, "$ACCESS$ protocol $ServiceQualifiedName$Service {\n");
   vars["GenAccess"] = "";
   for (auto it = 0; it < service->method_count(); it++) {
     auto method = service->method(it);
-    vars["Input"] = GenerateMessage(method->get_input_type_name());
-    vars["Output"] = GenerateMessage(method->get_output_type_name());
+    vars["Input"] = GenerateMessage(method->get_input_namespace_parts(), method->get_input_type_name());
+    vars["Output"] = GenerateMessage(method->get_output_namespace_parts(), method->get_output_type_name());
     vars["MethodName"] = method->name();
     vars["isNil"] = "";
     printer->Print("\t");
@@ -106,8 +113,8 @@ void GenerateClientClass(const grpc_generator::Service *service,
                          std::map<grpc::string, grpc::string> *dictonary) {
   auto vars = *dictonary;
   printer->Print(vars,
-                 "$ACCESS$ final class $ServiceName$ServiceClient: GRPCClient, "
-                 "$ServiceName$Service {\n");
+                 "$ACCESS$ final class $ServiceQualifiedName$ServiceClient: GRPCClient, "
+                 "$ServiceQualifiedName$Service {\n");
   printer->Print(vars, "\t$ACCESS$ let channel: GRPCChannel\n");
   printer->Print(vars, "\t$ACCESS$ var defaultCallOptions: CallOptions\n");
   printer->Print("\n");
@@ -121,8 +128,8 @@ void GenerateClientClass(const grpc_generator::Service *service,
   vars["GenAccess"] = "public";
   for (auto it = 0; it < service->method_count(); it++) {
     auto method = service->method(it);
-    vars["Input"] = GenerateMessage(method->get_input_type_name());
-    vars["Output"] = GenerateMessage(method->get_output_type_name());
+    vars["Input"] = GenerateMessage(method->get_input_namespace_parts(), method->get_input_type_name());
+    vars["Output"] = GenerateMessage(method->get_output_namespace_parts(), method->get_output_type_name());
     vars["MethodName"] = method->name();
     vars["isNil"] = " = nil";
     printer->Print("\n\t");
@@ -164,7 +171,7 @@ grpc::string GenerateServerExtensionBody(const grpc_generator::Method *method) {
   grpc::string start = "\t\tcase \"$MethodName$\":\n\t\t";
   if (method->NoStreaming()) {
     return start +
-           "return UnaryCallHandler(callHandlerContext: callHandlerContext) { "
+           "return CallHandlerFactory.makeUnary(callHandlerContext: callHandlerContext) { "
            "context in"
            "\n\t\t\t"
            "return { request in"
@@ -175,7 +182,7 @@ grpc::string GenerateServerExtensionBody(const grpc_generator::Method *method) {
   }
   if (method->ClientStreaming()) {
     return start +
-           "return ClientStreamingCallHandler(callHandlerContext: "
+           "return CallHandlerFactory.makeClientStreaming(callHandlerContext: "
            "callHandlerContext) { context in"
            "\n\t\t\t"
            "self.$MethodName$(context: context)"
@@ -183,7 +190,7 @@ grpc::string GenerateServerExtensionBody(const grpc_generator::Method *method) {
   }
   if (method->ServerStreaming()) {
     return start +
-           "return ServerStreamingCallHandler(callHandlerContext: "
+           "return CallHandlerFactory.makeServerStreaming(callHandlerContext: "
            "callHandlerContext) { context in"
            "\n\t\t\t"
            "return { request in"
@@ -194,7 +201,7 @@ grpc::string GenerateServerExtensionBody(const grpc_generator::Method *method) {
   }
   if (method->BidiStreaming()) {
     return start +
-           "return BidirectionalStreamingCallHandler(callHandlerContext: "
+           "return CallHandlerFactory.makeBidirectionalStreaming(callHandlerContext: "
            "callHandlerContext) { context in"
            "\n\t\t\t"
            "self.$MethodName$(context: context)"
@@ -208,11 +215,11 @@ void GenerateServerProtocol(const grpc_generator::Service *service,
                             std::map<grpc::string, grpc::string> *dictonary) {
   auto vars = *dictonary;
   printer->Print(
-      vars, "$ACCESS$ protocol $ServiceName$Provider: CallHandlerProvider {\n");
+      vars, "$ACCESS$ protocol $ServiceQualifiedName$Provider: CallHandlerProvider {\n");
   for (auto it = 0; it < service->method_count(); it++) {
     auto method = service->method(it);
-    vars["Input"] = GenerateMessage(method->get_input_type_name());
-    vars["Output"] = GenerateMessage(method->get_output_type_name());
+    vars["Input"] = GenerateMessage(method->get_input_namespace_parts(), method->get_input_type_name());
+    vars["Output"] = GenerateMessage(method->get_output_namespace_parts(), method->get_output_type_name());
     vars["MethodName"] = method->name();
     printer->Print("\t");
     auto func = GenerateServerFuncName(method.get());
@@ -221,7 +228,7 @@ void GenerateServerProtocol(const grpc_generator::Service *service,
   }
   printer->Print("}\n\n");
 
-  printer->Print(vars, "$ACCESS$ extension $ServiceName$Provider {\n");
+  printer->Print(vars, "$ACCESS$ extension $ServiceQualifiedName$Provider {\n");
   printer->Print(vars,
                  "\tvar serviceName: String { return "
                  "\"$PATH$$ServiceName$\" }\n");
@@ -231,8 +238,8 @@ void GenerateServerProtocol(const grpc_generator::Service *service,
   printer->Print("\t\tswitch methodName {\n");
   for (auto it = 0; it < service->method_count(); it++) {
     auto method = service->method(it);
-    vars["Input"] = GenerateMessage(method->get_input_type_name());
-    vars["Output"] = GenerateMessage(method->get_output_type_name());
+    vars["Input"] = GenerateMessage(method->get_input_namespace_parts(), method->get_input_type_name());
+    vars["Output"] = GenerateMessage(method->get_output_namespace_parts(), method->get_output_type_name());
     vars["MethodName"] = method->name();
     auto body = GenerateServerExtensionBody(method.get());
     printer->Print(vars, body.c_str());
@@ -250,11 +257,12 @@ grpc::string Generate(grpc_generator::File *file,
   std::map<grpc::string, grpc::string> vars;
   vars["PATH"] = file->package();
   if (!file->package().empty()) { vars["PATH"].append("."); }
+  vars["ServiceQualifiedName"] = WrapInNameSpace(service->namespace_parts(), service->name());
   vars["ServiceName"] = service->name();
   vars["ACCESS"] = "public";
   auto printer = file->CreatePrinter(&output);
   printer->Print(vars,
-                 "/// Usage: instantiate $ServiceName$ServiceClient, then call "
+                 "/// Usage: instantiate $ServiceQualifiedName$ServiceClient, then call "
                  "methods of this protocol to make API calls.\n");
   GenerateClientProtocol(service, &*printer, &vars);
   GenerateClientClass(service, &*printer, &vars);

@@ -23,7 +23,9 @@ import java.io.*;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.CharBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -100,6 +102,8 @@ class JavaTest {
         TestFlexBuffers();
 
         TestVectorOfBytes();
+
+        TestSharedStringPool();
 
         System.out.println("FlatBuffers test: completed successfully");
     }
@@ -1214,6 +1218,15 @@ class JavaTest {
         Monster monsterObject8 = Monster.getRootAsMonster(fbb.dataBuffer());
 
         TestEq(monsterObject8.inventoryLength(), 2048);
+    }
+
+    static void TestSharedStringPool() {
+        FlatBufferBuilder fb = new FlatBufferBuilder(1);
+        String testString = "My string";
+        int offset = fb.createSharedString(testString);
+        for (int i=0; i< 10; i++) {
+            TestEq(offset, fb.createSharedString(testString));
+        }
     }
 
     static <T> void TestEq(T a, T b) {

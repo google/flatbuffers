@@ -385,7 +385,8 @@ public struct FlatBufferBuilder {
     /// Insets a string into the buffer using UTF8
     /// - Parameter str: String to be serialized
     /// - returns: The strings offset in the buffer
-    mutating public func create(string str: String) -> Offset<String> {
+    mutating public func create(string str: String?) -> Offset<String> {
+        guard let str = str else { return Offset() }
         let len = str.utf8.count
         notNested()
         preAlign(len: len &+ 1, type: UOffset.self)
@@ -400,7 +401,8 @@ public struct FlatBufferBuilder {
     /// The function checks the stringOffsetmap if it's seen a similar string before
     /// - Parameter str: String to be serialized
     /// - returns: The strings offset in the buffer
-    mutating public func createShared(string str: String) -> Offset<String> {
+    mutating public func createShared(string str: String?) -> Offset<String> {
+        guard let str = str else { return Offset() }
         if let offset = stringOffsetMap[str] {
             return offset
         }
@@ -438,6 +440,15 @@ public struct FlatBufferBuilder {
     ///   - position: The predefined position of the element
     mutating public func add<T: Scalar>(element: T, def: T, at position: VOffset) {
         if (element == def && !serializeDefaults) { return }
+        track(offset: push(element: element), at: position)
+    }
+        
+    /// Adds a value into the buffer of type optional Scalar
+    /// - Parameters:
+    ///   - element: Optional element of type scalar
+    ///   - position: The predefined position of the element
+    mutating public func add<T: Scalar>(element: T?, at position: VOffset) {
+        guard let element = element else { return }
         track(offset: push(element: element), at: position)
     }
         
