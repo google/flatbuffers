@@ -1853,6 +1853,7 @@ class RustGenerator : public BaseGenerator {
     });
     code_ += "    {{STRUCT_NAME}}::create(_fbb, &{{STRUCT_NAME}}Args{";
     ForAllObjectTableFields(table, [&](const FieldDef &field){
+      (void) field;  // Unused.
       code_ += "      {{FIELD_NAME}},";
     });
     code_ += "    })";
@@ -2206,7 +2207,8 @@ class RustGenerator : public BaseGenerator {
       // Struct declaration
       code_ += "#[derive(Debug, Clone, PartialEq)]";
       code_ += "pub struct {{NATIVE_STRUCT_NAME}} {";
-      ForAllStructFields(struct_def.fields, [&](const FieldDef &unused) {
+      ForAllStructFields(struct_def.fields, [&](const FieldDef &field) {
+        (void) field;  // unused.
         code_ += "  pub {{FIELD_NAME}}: {{FIELD_OBJECT_TYPE}},";
       });
       code_ += "}";
