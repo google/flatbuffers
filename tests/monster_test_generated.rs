@@ -1298,7 +1298,7 @@ impl<'a> Stat<'a> {
     }
 
     pub fn unpack(&self) -> StatT {
-      let id = self.id().map(|x|{
+      let id = self.id().map(|x| {
         x.to_string()
       });
       let val = self.val();
@@ -1588,7 +1588,7 @@ impl<'a> Monster<'a> {
     }
 
     pub fn unpack(&self) -> MonsterT {
-      let pos = self.pos().map(|x|{
+      let pos = self.pos().map(|x| {
         x.unpack()
       });
       let mana = self.mana();
@@ -1597,7 +1597,7 @@ impl<'a> Monster<'a> {
         let x = self.name();
         x.to_string()
       };
-      let inventory = self.inventory().map(|x|{
+      let inventory = self.inventory().map(|x| {
         x.iter().cloned().collect()
       });
       let color = self.color();
@@ -1619,22 +1619,22 @@ impl<'a> Monster<'a> {
               .unpack()
         )),
       };
-      let test4 = self.test4().map(|x|{
+      let test4 = self.test4().map(|x| {
         x.iter().map(|t| t.unpack()).collect()
       });
-      let testarrayofstring = self.testarrayofstring().map(|x|{
+      let testarrayofstring = self.testarrayofstring().map(|x| {
         x.iter().map(|s| s.to_string()).collect()
       });
-      let testarrayoftables = self.testarrayoftables().map(|x|{
+      let testarrayoftables = self.testarrayoftables().map(|x| {
         x.iter().map(|t| t.unpack()).collect()
       });
-      let enemy = self.enemy().map(|x|{
+      let enemy = self.enemy().map(|x| {
         Box::new(x.unpack())
       });
-      let testnestedflatbuffer = self.testnestedflatbuffer().map(|x|{
+      let testnestedflatbuffer = self.testnestedflatbuffer().map(|x| {
         x.iter().cloned().collect()
       });
-      let testempty = self.testempty().map(|x|{
+      let testempty = self.testempty().map(|x| {
         Box::new(x.unpack())
       });
       let testbool = self.testbool();
@@ -1646,49 +1646,49 @@ impl<'a> Monster<'a> {
       let testhashu32_fnv1a = self.testhashu32_fnv1a();
       let testhashs64_fnv1a = self.testhashs64_fnv1a();
       let testhashu64_fnv1a = self.testhashu64_fnv1a();
-      let testarrayofbools = self.testarrayofbools().map(|x|{
+      let testarrayofbools = self.testarrayofbools().map(|x| {
         x.iter().cloned().collect()
       });
       let testf = self.testf();
       let testf2 = self.testf2();
       let testf3 = self.testf3();
-      let testarrayofstring2 = self.testarrayofstring2().map(|x|{
+      let testarrayofstring2 = self.testarrayofstring2().map(|x| {
         x.iter().map(|s| s.to_string()).collect()
       });
-      let testarrayofsortedstruct = self.testarrayofsortedstruct().map(|x|{
+      let testarrayofsortedstruct = self.testarrayofsortedstruct().map(|x| {
         x.iter().map(|t| t.unpack()).collect()
       });
-      let flex = self.flex().map(|x|{
+      let flex = self.flex().map(|x| {
         x.iter().cloned().collect()
       });
-      let test5 = self.test5().map(|x|{
+      let test5 = self.test5().map(|x| {
         x.iter().map(|t| t.unpack()).collect()
       });
-      let vector_of_longs = self.vector_of_longs().map(|x|{
+      let vector_of_longs = self.vector_of_longs().map(|x| {
         x.into_iter().collect()
       });
-      let vector_of_doubles = self.vector_of_doubles().map(|x|{
+      let vector_of_doubles = self.vector_of_doubles().map(|x| {
         x.into_iter().collect()
       });
-      let parent_namespace_test = self.parent_namespace_test().map(|x|{
+      let parent_namespace_test = self.parent_namespace_test().map(|x| {
         Box::new(x.unpack())
       });
-      let vector_of_referrables = self.vector_of_referrables().map(|x|{
+      let vector_of_referrables = self.vector_of_referrables().map(|x| {
         x.iter().map(|t| t.unpack()).collect()
       });
       let single_weak_reference = self.single_weak_reference();
-      let vector_of_weak_references = self.vector_of_weak_references().map(|x|{
+      let vector_of_weak_references = self.vector_of_weak_references().map(|x| {
         x.into_iter().collect()
       });
-      let vector_of_strong_referrables = self.vector_of_strong_referrables().map(|x|{
+      let vector_of_strong_referrables = self.vector_of_strong_referrables().map(|x| {
         x.iter().map(|t| t.unpack()).collect()
       });
       let co_owning_reference = self.co_owning_reference();
-      let vector_of_co_owning_references = self.vector_of_co_owning_references().map(|x|{
+      let vector_of_co_owning_references = self.vector_of_co_owning_references().map(|x| {
         x.into_iter().collect()
       });
       let non_owning_reference = self.non_owning_reference();
-      let vector_of_non_owning_references = self.vector_of_non_owning_references().map(|x|{
+      let vector_of_non_owning_references = self.vector_of_non_owning_references().map(|x| {
         x.into_iter().collect()
       });
       let any_unique = match self.any_unique_type() {
@@ -1727,7 +1727,7 @@ impl<'a> Monster<'a> {
               .unpack()
         )),
       };
-      let vector_of_enums = self.vector_of_enums().map(|x|{
+      let vector_of_enums = self.vector_of_enums().map(|x| {
         x.into_iter().collect()
       });
       let signed_enum = self.signed_enum();
@@ -2706,10 +2706,10 @@ impl<'a> TypeAliases<'a> {
       let u64_ = self.u64_();
       let f32_ = self.f32_();
       let f64_ = self.f64_();
-      let v8 = self.v8().map(|x|{
+      let v8 = self.v8().map(|x| {
         x.iter().cloned().collect()
       });
-      let vf64 = self.vf64().map(|x|{
+      let vf64 = self.vf64().map(|x| {
         x.into_iter().collect()
       });
       TypeAliasesT {

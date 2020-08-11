@@ -51,11 +51,11 @@ impl<'a> TableInFirstNS<'a> {
     }
 
     pub fn unpack(&self) -> TableInFirstNST {
-      let foo_table = self.foo_table().map(|x|{
+      let foo_table = self.foo_table().map(|x| {
         Box::new(x.unpack())
       });
       let foo_enum = self.foo_enum();
-      let foo_struct = self.foo_struct().map(|x|{
+      let foo_struct = self.foo_struct().map(|x| {
         x.unpack()
       });
       TableInFirstNST {
@@ -184,7 +184,7 @@ impl<'a> SecondTableInA<'a> {
     }
 
     pub fn unpack(&self) -> SecondTableInAT {
-      let refer_to_c = self.refer_to_c().map(|x|{
+      let refer_to_c = self.refer_to_c().map(|x| {
         Box::new(x.unpack())
       });
       SecondTableInAT {
@@ -295,10 +295,10 @@ impl<'a> TableInC<'a> {
     }
 
     pub fn unpack(&self) -> TableInCT {
-      let refer_to_a1 = self.refer_to_a1().map(|x|{
+      let refer_to_a1 = self.refer_to_a1().map(|x| {
         Box::new(x.unpack())
       });
-      let refer_to_a2 = self.refer_to_a2().map(|x|{
+      let refer_to_a2 = self.refer_to_a2().map(|x| {
         Box::new(x.unpack())
       });
       TableInCT {

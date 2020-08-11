@@ -1444,7 +1444,7 @@ class RustGenerator : public BaseGenerator {
               MapTableField(field, "x.iter().cloned().collect()");
               return;
             }
-            // fallthrough intended.
+            [[clang::fallthrough]];
           }
           case ftVectorOfFloat:
           case ftVectorOfEnumKey: {
