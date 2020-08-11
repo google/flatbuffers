@@ -361,6 +361,9 @@ class RustGenerator : public BaseGenerator {
   std::string EscapeKeyword(const std::string &name) const {
     return keywords_.find(name) == keywords_.end() ? name : name + "_";
   }
+  std::string NamespacedNativeName(const Definition &def) {
+    return WrapInNameSpace(def.defined_namespace, NativeName(def));
+  }
 
   std::string NativeName(const Definition &def) {
     return parser_.opts.object_prefix + Name(def) + parser_.opts.object_suffix;
@@ -674,10 +677,10 @@ class RustGenerator : public BaseGenerator {
       auto &enum_val = **it;
       if (enum_val.union_type.base_type == BASE_TYPE_NONE) continue;
       code_.SetValue("VARIANT_NAME", Name(enum_val));
-      code_.SetValue("VARIANT_SNAKE_NAME", MakeSnakeCase(Name(enum_val)));
-      code_.SetValue(
-        "VARIANT_TABLE", NativeName(*enum_val.union_type.struct_def));
+      code_.SetValue("NATIVE_VARIANT", MakeCamel(Name(enum_val)));
       code_.SetValue("U_ELEMENT_NAME", MakeSnakeCase(Name(enum_val)));
+      code_.SetValue("U_ELEMENT_TABLE_TYPE",
+                     NamespacedNativeName(*enum_val.union_type.struct_def));
       cb();
     }
   }
@@ -692,7 +695,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "pub enum {{NATIVE_NAME}} {";
     code_ += "  NONE,";
     ForAllUnionObjectVariantsBesidesNone(enum_def, [&]{
-      code_ += "  {{VARIANT_NAME}}(Box<{{VARIANT_TABLE}}>),";
+      code_ += "  {{NATIVE_VARIANT}}(Box<{{U_ELEMENT_TABLE_TYPE}}>),";
     });
     code_ += "}";
     // Generate Default (NONE).
@@ -711,7 +714,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "    match self {";
     code_ += "      Self::NONE => {{ENUM_NAME}}::NONE,";
     ForAllUnionObjectVariantsBesidesNone(enum_def, [&]{
-      code_ += "      Self::{{VARIANT_NAME}}(_) => {{ENUM_NAME}}::"
+      code_ += "      Self::{{NATIVE_VARIANT}}(_) => {{ENUM_NAME}}::"
                "{{VARIANT_NAME}},";
     });
     code_ += "    }";
@@ -723,7 +726,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "    match self {";
     code_ += "      Self::NONE => None,";
     ForAllUnionObjectVariantsBesidesNone(enum_def, [&]{
-      code_ += "      Self::{{VARIANT_NAME}}(v) => "
+      code_ += "      Self::{{NATIVE_VARIANT}}(v) => "
                "Some(v.pack(fbb).as_union_value()),";
     });
     code_ += "    }";
@@ -733,34 +736,34 @@ class RustGenerator : public BaseGenerator {
     ForAllUnionObjectVariantsBesidesNone(enum_def, [&]{
       // Move accessor.
       code_ += "  /// If the union variant matches, return the owned "
-               "{{VARIANT_TABLE}}, setting the union to NONE.";
-      code_ += "  pub fn take_{{VARIANT_SNAKE_NAME}}(&mut self) -> "
-               "Option<Box<{{VARIANT_TABLE}}>> {";
-      code_ += "    if let Self::{{VARIANT_NAME}}(_) = self {";
+               "{{U_ELEMENT_TABLE_TYPE}}, setting the union to NONE.";
+      code_ += "  pub fn take_{{U_ELEMENT_NAME}}(&mut self) -> "
+               "Option<Box<{{U_ELEMENT_TABLE_TYPE}}>> {";
+      code_ += "    if let Self::{{NATIVE_VARIANT}}(_) = self {";
       code_ += "      let v = std::mem::replace(self, Self::NONE);";
-      code_ += "      if let Self::{{VARIANT_NAME}}(w) = v {";
+      code_ += "      if let Self::{{NATIVE_VARIANT}}(w) = v {";
       code_ += "        Some(w)";
-      code_ += "      } else { ";
+      code_ += "      } else {";
       code_ += "        unreachable!()";
       code_ += "      }";
-      code_ += "    } else { ";
-      code_ += "      None ";
+      code_ += "    } else {";
+      code_ += "      None";
       code_ += "    }";
       code_ += "  }";
       // Immutable reference accessor.
       code_ += "  /// If the union variant matches, return a reference to the "
-               "{{VARIANT_TABLE}}.";
-      code_ += "  pub fn as_{{VARIANT_SNAKE_NAME}}(&self) -> "
-               "Option<&{{VARIANT_TABLE}}> {";
-      code_ += "    if let Self::{{VARIANT_NAME}}(v) = self "
+               "{{U_ELEMENT_TABLE_TYPE}}.";
+      code_ += "  pub fn as_{{U_ELEMENT_NAME}}(&self) -> "
+               "Option<&{{U_ELEMENT_TABLE_TYPE}}> {";
+      code_ += "    if let Self::{{NATIVE_VARIANT}}(v) = self "
                "{ Some(v.as_ref()) } else { None }";
       code_ += "  }";
       // Mutable reference accessor.
-      code_ += "  /// If the union variant matches, return a mutable reference";
-               " to the {{VARIANT_TABLE}}.";
-      code_ += "  pub fn as_{{VARIANT_SNAKE_NAME}}_mut(&mut self) -> "
-               "Option<&mut {{VARIANT_TABLE}}> {";
-      code_ += "    if let Self::{{VARIANT_NAME}}(v) = self "
+      code_ += "  /// If the union variant matches, return a mutable reference"
+               " to the {{U_ELEMENT_TABLE_TYPE}}.";
+      code_ += "  pub fn as_{{U_ELEMENT_NAME}}_mut(&mut self) -> "
+               "Option<&mut {{U_ELEMENT_TABLE_TYPE}}> {";
+      code_ += "    if let Self::{{NATIVE_VARIANT}}(v) = self "
                "{ Some(v.as_mut()) } else { None }";
       code_ += "  }";
     });
@@ -899,66 +902,72 @@ class RustGenerator : public BaseGenerator {
   }
   std::string ObjectFieldType(const FieldDef &field, bool in_a_table) {
     const Type &type = field.value.type;
+    std::string ty;
     switch (GetFullType(type)) {
       case ftInteger:
       case ftBool:
       case ftFloat: {
-        std::string ty = GetTypeBasic(type);
-        if (field.nullable) return "Option<" + ty + ">";
-        return ty;
+        ty = GetTypeBasic(type);
+        break;
       }
       case ftString: {
-        // Strings are in tables and are optional.
-        return "Option<String>";
+        ty = "String";
+        break;
       }
       case ftStruct: {
-        std::string ty = WrapInNameSpace(
-          CurrentNameSpace(), NativeName(*type.struct_def));
-        if (in_a_table) return "Option<" + ty + ">";
-        return ty;
+        ty = NamespacedNativeName(*type.struct_def);
+        break;
       }
       case ftTable: {
         // Since Tables can contain themselves, Box is required to avoid
         // infinite types.
-        std::string ty = WrapInNameSpace(CurrentNameSpace(),
-                                         NativeName(*type.struct_def));
-        return "Option<Box<" + ty + ">>";
+        ty = "Box<" + NamespacedNativeName(*type.struct_def) + ">";
+        break;
       }
       case ftUnionKey: {
         // There is no native "UnionKey", natively, unions are rust enums with
         // newtype-struct-variants.
-        return "INVALID_CODE_GENERATION";  // OH NO!
+        return "INVALID_CODE_GENERATION";
       }
       case ftUnionValue: {
-          return WrapInNameSpace(CurrentNameSpace(),
-                                 NativeName(*type.enum_def));
+        ty = NamespacedNativeName(*type.enum_def);
+        break;
       }
       case ftEnumKey: {
-        return WrapInNameSpace(*type.enum_def);
+        ty = WrapInNameSpace(*type.enum_def);
+        break;
       }
       // Vectors are in tables and are optional
       case ftVectorOfEnumKey: {
-        std::string ty = WrapInNameSpace(*type.VectorType().enum_def);
-        return "Option<Vec<" + ty + ">>";
+        ty = "Vec<" + WrapInNameSpace(*type.VectorType().enum_def) + ">";
+        break;
       }
       case ftVectorOfInteger:
       case ftVectorOfBool:
       case ftVectorOfFloat: {
-        return "Option<Vec<" + GetTypeBasic(type.VectorType()) + ">>";
+        ty = "Vec<" + GetTypeBasic(type.VectorType()) + ">";
+        break;
       }
       case ftVectorOfString: {
-        return "Option<Vec<String>>";
+        ty = "Vec<String>";
+        break;
       }
       case ftVectorOfTable:
       case ftVectorOfStruct: {
-        std::string ty = WrapInNameSpace(CurrentNameSpace(),
-                                         NativeName(*type.struct_def));
-        return "Option<Vec<" + ty + ">>";
+        ty = NamespacedNativeName(*type.VectorType().struct_def);
+        ty = "Vec<" + ty + ">";
+        break;
       }
       case ftVectorOfUnionValue: {
         FLATBUFFERS_ASSERT(false && "vectors of unions are not yet supported");
         return "INVALID_CODE_GENERATION";  // OH NO!
       }
+    }
+    if (in_a_table && !IsUnion(type) && (
+        IsScalar(type.base_type) ? field.nullable : !field.required)) {
+      return "Option<" + ty + ">";
+    } else {
+      return ty;
     }
   }
 
@@ -1284,6 +1293,20 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
   }
 
+  // Disambiguat
+  void MapTableField(const FieldDef &field, std::string expr) {
+    if (field.required) {
+      code_ += "      let {{FIELD_NAME}} = {";
+      code_ += "        let x = self.{{FIELD_NAME}}();";
+      code_ += "        " + expr;
+      code_ += "      };";
+    }
+    else {
+      code_ += "      let {{FIELD_NAME}} = self.{{FIELD_NAME}}().map(|x| {";
+      code_ += "        " + expr;
+      code_ += "      });";
+    }
+  }
   // Generate an accessor struct, builder struct, and create function for a
   // table.
   void GenTable(const StructDef &struct_def) {
@@ -1377,21 +1400,6 @@ class RustGenerator : public BaseGenerator {
             code_ += "      let {{FIELD_NAME}} = self.{{FIELD_NAME}}();";
             return;
           }
-          case ftString: {
-            code_ += "      let {{FIELD_NAME}} = self.{{FIELD_NAME}}().map("
-                     "ToString::to_string);";
-            return;
-          }
-          case ftStruct: {
-            code_ += "      let {{FIELD_NAME}} = self.{{FIELD_NAME}}()"
-                     ".map(|x| x.unpack());";
-            return;
-          }
-          case ftTable: {
-            code_ += "      let {{FIELD_NAME}} = self.{{FIELD_NAME}}()"
-                     ".map(|x| Box::new(x.unpack()));";
-            return;
-          }
           case ftUnionKey: return;
           case ftUnionValue: {
             const auto &enum_def = *type.enum_def;
@@ -1403,7 +1411,7 @@ class RustGenerator : public BaseGenerator {
                      " {{NATIVE_ENUM_NAME}}::NONE,";
             ForAllUnionObjectVariantsBesidesNone(enum_def, [&]{
                 code_ += "        {{ENUM_NAME}}::{{VARIANT_NAME}} => "
-                         "{{NATIVE_ENUM_NAME}}::{{VARIANT_NAME}}(Box::new(";
+                         "{{NATIVE_ENUM_NAME}}::{{NATIVE_VARIANT}}(Box::new(";
                 code_ += "          self.{{FIELD_NAME}}_as_"
                          "{{U_ELEMENT_NAME}}()";
                 code_ += "              .expect(\"Invalid union table, "
@@ -1414,30 +1422,42 @@ class RustGenerator : public BaseGenerator {
             code_ += "      };";
             return;
           }
-          case ftVectorOfEnumKey:
+          // The rest of the types need special handling based on if the field
+          // is optional or not.
+          case ftString: {
+            MapTableField(field, "x.to_string()");
+            return;
+          }
+          case ftStruct: {
+            MapTableField(field, "x.unpack()");
+            return;
+          }
+          case ftTable: {
+            MapTableField(field, "Box::new(x.unpack())");
+            return;
+          }
           case ftVectorOfInteger:
-          case ftVectorOfBool:
-          case ftVectorOfFloat: {
-            // CASPER do strings work this way?
-            code_ += "      let {{FIELD_NAME}} = self.{{FIELD_NAME}}()"
-                     ".map(|v| {";
-            code_ += "        v.iter().collect()";
-            code_ += "      });";
+          case ftVectorOfBool:{
+            if (IsOneByte(type.VectorType().base_type)) {
+              // 1 byte stuff is viewed w/ slice instead of flatbuffer::Vector
+              // and thus needs to be cloned out of the slice.
+              MapTableField(field, "x.iter().cloned().collect()");
+              return;
+            }
+            // fallthrough intended.
+          }
+          case ftVectorOfFloat:
+          case ftVectorOfEnumKey: {
+            MapTableField(field, "x.into_iter().collect()");
             return;
           }
           case ftVectorOfString: {
-            code_ += "      let {{FIELD_NAME}} = self.{{FIELD_NAME}}()"
-                     ".map(|v| {";
-            code_ += "        v.iter().map(|s| s.to_string()).collect()";
-            code_ += "      });";
+            MapTableField(field, "x.iter().map(|s| s.to_string()).collect()");
             return;
           }
           case ftVectorOfStruct:
           case ftVectorOfTable: {
-            code_ += "      let {{FIELD_NAME}} = self.{{FIELD_NAME}}()"
-                     ".map(|v| {";
-            code_ += "        v.iter().map(|t| t.unpack()).collect()";
-            code_ += "      });";
+            MapTableField(field, "x.iter().map(|t| t.unpack()).collect()");
             return;
           }
           case ftVectorOfUnionValue: {
@@ -1744,39 +1764,17 @@ class RustGenerator : public BaseGenerator {
     });
     code_ += "}";
 
-    // Generate defaults.
-    code_ += "impl Default for {{OBJECT_NAME}} {";
-    code_ += "  fn default() -> Self {";
-    code_ += "    {{OBJECT_NAME}} {";
-    ForAllObjectTableFields(table, [&](const FieldDef &field) {
-      const Type &type = field.value.type;
-      switch (GetFullType(type)) {
-        case ftUnionKey: return;  // No discriminant field in objects.
-        case ftUnionValue: {  // Special "None" for unions.
-          code_.SetValue("NATIVE_ENUM_NAME", NativeName(*type.enum_def));
-          code_ += "      {{FIELD_NAME}}: {{NATIVE_ENUM_NAME}}::NONE,";
-          return;
-        }
-        default: {
-          // Non-nullable scalars will have some default value, but everything
-          // else is None.
-          code_.SetValue("FIELD_DEFAULT", GetDefaultScalarValue(field));
-          code_ += "      {{FIELD_NAME}}: {{FIELD_DEFAULT}},";
-        }
-      }
-    });
-    code_ += "    }";
-    code_ += "  }";
-    code_ += "}";
+    // TODO(cneo): Generate defaults for Native tables. However, since structs
+    // may be required, they, and therefore enums need defaults.
 
     // Generate pack function.
     code_ += "impl {{OBJECT_NAME}} {";
     code_ += "  pub fn pack<'b>(";
-    code_ += "    &self, ";
+    code_ += "    &self,";
     code_ += "    _fbb: &mut flatbuffers::FlatBufferBuilder<'b>";
     code_ += "  ) -> flatbuffers::WIPOffset<{{STRUCT_NAME}}<'b>> {";
     // First we generate variables for each field and then later assemble them
-    // using "StructArgs".
+    // using "StructArgs" to more easily manage ownership of the builder.
     ForAllObjectTableFields(table, [&](const FieldDef &field){
       const Type &type = field.value.type;
       switch (GetFullType(type)) {
@@ -1785,23 +1783,6 @@ class RustGenerator : public BaseGenerator {
         case ftFloat:
         case ftEnumKey: {
           code_ += "    let {{FIELD_NAME}} = self.{{FIELD_NAME}};";
-          return;
-        }
-        case ftString: {
-          code_ += "    let {{FIELD_NAME}} = self.{{FIELD_NAME}}.as_ref()"
-                   ".map(|s|_fbb.create_string(s));";
-          return;
-        }
-        case ftStruct: {
-          // Hold the struct in a variable so we can reference it.
-          code_ += "    let {{FIELD_NAME}}_tmp = self.{{FIELD_NAME}}"
-                   ".as_ref().map(|x| x.pack());";
-          code_ += "    let {{FIELD_NAME}} = {{FIELD_NAME}}_tmp.as_ref();";
-          return;
-        }
-        case ftTable: {
-          code_ += "    let {{FIELD_NAME}} = self.{{FIELD_NAME}}"
-                   ".as_ref().map(|x| x.pack(_fbb));";
           return;
         }
         case ftUnionKey: return;  // Generate union type with union value.
@@ -1813,29 +1794,55 @@ class RustGenerator : public BaseGenerator {
           code_ += "    let {{FIELD_NAME}} = self.{{FIELD_NAME}}.pack(_fbb);";
           return;
         }
+        // The rest of the types require special casing around optionalness
+        // due to "required" annotation.
+        case ftString: {
+          MapNativeTableField(field, "_fbb.create_string(x)");
+          return;
+        }
+        case ftStruct: {
+          // Hold the struct in a variable so we can reference it.
+          if (field.required) {
+            code_ += "    let {{FIELD_NAME}}_tmp = "
+                     "Some(self.{{FIELD_NAME}}.pack());";
+          } else {
+            code_ += "    let {{FIELD_NAME}}_tmp = self.{{FIELD_NAME}}"
+                     ".as_ref().map(|x| x.pack());";
+          }
+          code_ += "    let {{FIELD_NAME}} = {{FIELD_NAME}}_tmp.as_ref();";
+
+          return;
+        }
+        case ftTable: {
+          MapNativeTableField(field, "x.pack(_fbb)");
+          return;
+        }
         case ftVectorOfEnumKey:
         case ftVectorOfInteger:
         case ftVectorOfBool:
-        case ftVectorOfFloat:
+        case ftVectorOfFloat: {
+          MapNativeTableField(field, "_fbb.create_vector(x)");
+          return;
+        }
         case ftVectorOfStruct: {
-          code_ += "    let {{FIELD_NAME}} = self.{{FIELD_NAME}}.map(|v| {";
-          code_ += "      _fbb.create_vector(&v)";
-          code_ += "    });";
+          MapNativeTableField(field,
+            "let w: Vec<_> = x.iter().map(|t| t.pack()).collect();"
+            "_fbb.create_vector(&w)");
           return;
         }
         case ftVectorOfString: {
-          code_ += "    let {{FIELD_NAME}} = self.{{FIELD_NAME}}.map(|v| {";
-          code_ += "      _fbb.create_vector_of_strings(&v)";
-          code_ += "    });";
+          // TODO(cneo): create_vector* should be more generic to avoid
+          // allocations.
+
+          MapNativeTableField(field,
+            "let w: Vec<_> = x.iter().map(|s| s.as_ref()).collect();"
+            "_fbb.create_vector_of_strings(&w)");
           return;
         }
         case ftVectorOfTable: {
-          code_ += "    let {{FIELD_NAME}} = self.{{FIELD_NAME}}.as_ref()"
-                   ".map(|v| {";
-          code_ += "      let w: Vec<_> = v.iter()"
-                   ".map(|t| t.pack(_fbb)).collect();";
-          code_ += "      _fbb.create_vector(&w)";
-          code_ += "    });";
+          MapNativeTableField(field,
+            "let w: Vec<_> = x.iter().map(|t| t.pack(_fbb)).collect();"
+            "_fbb.create_vector(&w)");
           return;
         }
         case ftVectorOfUnionValue: {
@@ -1858,9 +1865,23 @@ class RustGenerator : public BaseGenerator {
     for (auto it = v.begin(); it != v.end(); it++) {
       const FieldDef &field = **it;
       if (field.deprecated) continue;
-      code_.SetValue("FIELD_NAME", MakeSnakeCase(Name(field)));
+      code_.SetValue("FIELD_NAME", Name(field));
       code_.SetValue("FIELD_OBJECT_TYPE", ObjectFieldType(field, true));
       cb(field);
+    }
+  }
+  void MapNativeTableField(const FieldDef &field, const std::string &expr) {
+    if (field.required) {
+      // For some reason Args has optional types for required fields.
+      // TODO(cneo): Fix this... but its a breaking change?
+      code_ += "    let {{FIELD_NAME}} = Some({";
+      code_ += "      let x = &self.{{FIELD_NAME}};";
+      code_ += "      " + expr;
+      code_ += "    });";
+    } else {
+      code_ += "    let {{FIELD_NAME}} = self.{{FIELD_NAME}}.as_ref().map(|x|{";
+      code_ += "      " + expr;
+      code_ += "    });";
     }
   }
 
@@ -2107,7 +2128,7 @@ class RustGenerator : public BaseGenerator {
       }
       if (it != struct_def.fields.vec.begin()) arg_list += ", ";
       arg_list += arg_name + ": " + arg_type;
-      init_list += "      " + member_name + ":" + member_value + ",\n";
+      init_list += "      " + member_name + ": " + member_value + ",\n";
     }
 
     code_.SetValue("ARG_LIST", arg_list);
@@ -2221,7 +2242,6 @@ class RustGenerator : public BaseGenerator {
         code_ += indent + "use crate::" + basename + "_generated::*;";
       }
     }
-    code_ += indent + "#![allow(unused_imports)]";
     code_ += indent + "use std::mem;";
     code_ += indent + "use std::cmp::Ordering;";
     code_ += "";

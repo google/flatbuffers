@@ -37,9 +37,7 @@ impl<'a> flatbuffers::Follow<'a> for TableInFirstNS<'a> {
 impl<'a> TableInFirstNS<'a> {
     #[inline]
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-        TableInFirstNS {
-            _tab: table,
-        }
+        TableInFirstNS { _tab: table }
     }
     #[allow(unused_mut)]
     pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
@@ -52,6 +50,20 @@ impl<'a> TableInFirstNS<'a> {
       builder.finish()
     }
 
+    pub fn unpack(&self) -> TableInFirstNST {
+      let foo_table = self.foo_table().map(|x|{
+        Box::new(x.unpack())
+      });
+      let foo_enum = self.foo_enum();
+      let foo_struct = self.foo_struct().map(|x|{
+        x.unpack()
+      });
+      TableInFirstNST {
+        foo_table,
+        foo_enum,
+        foo_struct,
+      }
+    }
     pub const VT_FOO_TABLE: flatbuffers::VOffsetT = 4;
     pub const VT_FOO_ENUM: flatbuffers::VOffsetT = 6;
     pub const VT_FOO_STRUCT: flatbuffers::VOffsetT = 8;
@@ -117,6 +129,31 @@ impl<'a: 'b, 'b> TableInFirstNSBuilder<'a, 'b> {
   }
 }
 
+#[non_exhaustive]
+#[derive(Debug, Clone, PartialEq)]
+pub struct TableInFirstNST {
+  pub foo_table: Option<Box<namespace_b::TableInNestedNST>>,
+  pub foo_enum: namespace_b::EnumInNestedNS,
+  pub foo_struct: Option<namespace_b::StructInNestedNST>,
+}
+impl TableInFirstNST {
+  pub fn pack<'b>(
+    &self,
+    _fbb: &mut flatbuffers::FlatBufferBuilder<'b>
+  ) -> flatbuffers::WIPOffset<TableInFirstNS<'b>> {
+    let foo_table = self.foo_table.as_ref().map(|x|{
+      x.pack(_fbb)
+    });
+    let foo_enum = self.foo_enum;
+    let foo_struct_tmp = self.foo_struct.as_ref().map(|x| x.pack());
+    let foo_struct = foo_struct_tmp.as_ref();
+    TableInFirstNS::create(_fbb, &TableInFirstNSArgs{
+      foo_table,
+      foo_enum,
+      foo_struct,
+    })
+  }
+}
 pub enum SecondTableInAOffset {}
 #[derive(Copy, Clone, Debug, PartialEq)]
 
@@ -135,9 +172,7 @@ impl<'a> flatbuffers::Follow<'a> for SecondTableInA<'a> {
 impl<'a> SecondTableInA<'a> {
     #[inline]
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-        SecondTableInA {
-            _tab: table,
-        }
+        SecondTableInA { _tab: table }
     }
     #[allow(unused_mut)]
     pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
@@ -148,6 +183,14 @@ impl<'a> SecondTableInA<'a> {
       builder.finish()
     }
 
+    pub fn unpack(&self) -> SecondTableInAT {
+      let refer_to_c = self.refer_to_c().map(|x|{
+        Box::new(x.unpack())
+      });
+      SecondTableInAT {
+        refer_to_c,
+      }
+    }
     pub const VT_REFER_TO_C: flatbuffers::VOffsetT = 4;
 
   #[inline]
@@ -191,6 +234,24 @@ impl<'a: 'b, 'b> SecondTableInABuilder<'a, 'b> {
   }
 }
 
+#[non_exhaustive]
+#[derive(Debug, Clone, PartialEq)]
+pub struct SecondTableInAT {
+  pub refer_to_c: Option<Box<super::namespace_c::TableInCT>>,
+}
+impl SecondTableInAT {
+  pub fn pack<'b>(
+    &self,
+    _fbb: &mut flatbuffers::FlatBufferBuilder<'b>
+  ) -> flatbuffers::WIPOffset<SecondTableInA<'b>> {
+    let refer_to_c = self.refer_to_c.as_ref().map(|x|{
+      x.pack(_fbb)
+    });
+    SecondTableInA::create(_fbb, &SecondTableInAArgs{
+      refer_to_c,
+    })
+  }
+}
 }  // pub mod NamespaceA
 
 #[allow(unused_imports, dead_code)]
@@ -221,9 +282,7 @@ impl<'a> flatbuffers::Follow<'a> for TableInC<'a> {
 impl<'a> TableInC<'a> {
     #[inline]
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-        TableInC {
-            _tab: table,
-        }
+        TableInC { _tab: table }
     }
     #[allow(unused_mut)]
     pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
@@ -235,6 +294,18 @@ impl<'a> TableInC<'a> {
       builder.finish()
     }
 
+    pub fn unpack(&self) -> TableInCT {
+      let refer_to_a1 = self.refer_to_a1().map(|x|{
+        Box::new(x.unpack())
+      });
+      let refer_to_a2 = self.refer_to_a2().map(|x|{
+        Box::new(x.unpack())
+      });
+      TableInCT {
+        refer_to_a1,
+        refer_to_a2,
+      }
+    }
     pub const VT_REFER_TO_A1: flatbuffers::VOffsetT = 4;
     pub const VT_REFER_TO_A2: flatbuffers::VOffsetT = 6;
 
@@ -289,5 +360,28 @@ impl<'a: 'b, 'b> TableInCBuilder<'a, 'b> {
   }
 }
 
+#[non_exhaustive]
+#[derive(Debug, Clone, PartialEq)]
+pub struct TableInCT {
+  pub refer_to_a1: Option<Box<super::namespace_a::TableInFirstNST>>,
+  pub refer_to_a2: Option<Box<super::namespace_a::SecondTableInAT>>,
+}
+impl TableInCT {
+  pub fn pack<'b>(
+    &self,
+    _fbb: &mut flatbuffers::FlatBufferBuilder<'b>
+  ) -> flatbuffers::WIPOffset<TableInC<'b>> {
+    let refer_to_a1 = self.refer_to_a1.as_ref().map(|x|{
+      x.pack(_fbb)
+    });
+    let refer_to_a2 = self.refer_to_a2.as_ref().map(|x|{
+      x.pack(_fbb)
+    });
+    TableInC::create(_fbb, &TableInCArgs{
+      refer_to_a1,
+      refer_to_a2,
+    })
+  }
+}
 }  // pub mod NamespaceC
 

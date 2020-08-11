@@ -35,9 +35,7 @@ impl<'a> flatbuffers::Follow<'a> for ScalarStuff<'a> {
 impl<'a> ScalarStuff<'a> {
     #[inline]
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-        ScalarStuff {
-            _tab: table,
-        }
+        ScalarStuff { _tab: table }
     }
     #[allow(unused_mut)]
     pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(

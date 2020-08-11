@@ -28,12 +28,12 @@ pub mod other_name_space {
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
 
+#[non_exhaustive]
 #[allow(non_camel_case_types)]
 #[repr(i64)]
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub enum FromInclude {
   IncludeVal = 0,
-
 }
 
 pub const ENUM_MIN_FROM_INCLUDE: i64 = 0;
@@ -159,9 +159,7 @@ impl<'a> flatbuffers::Follow<'a> for TableB<'a> {
 impl<'a> TableB<'a> {
     #[inline]
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-        TableB {
-            _tab: table,
-        }
+        TableB { _tab: table }
     }
     #[allow(unused_mut)]
     pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(

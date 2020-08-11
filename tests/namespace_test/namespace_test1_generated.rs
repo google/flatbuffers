@@ -25,6 +25,7 @@ pub mod namespace_b {
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
 
+#[non_exhaustive]
 #[allow(non_camel_case_types)]
 #[repr(i8)]
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
@@ -32,7 +33,6 @@ pub enum EnumInNestedNS {
   A = 0,
   B = 1,
   C = 2,
-
 }
 
 pub const ENUM_MIN_ENUM_IN_NESTED_NS: i8 = 0;
@@ -144,8 +144,34 @@ impl StructInNestedNS {
   pub fn a(&self) -> i32 {
     self.a_.from_little_endian()
   }
+  pub fn set_a(&mut self, a: i32) {
+    self.a_ = a.to_little_endian()
+  }
   pub fn b(&self) -> i32 {
     self.b_.from_little_endian()
+  }
+  pub fn set_b(&mut self, b: i32) {
+    self.b_ = b.to_little_endian()
+  }
+  pub fn unpack(&self) -> StructInNestedNST {
+    StructInNestedNST {
+      a: self.a(),
+      b: self.b(),
+    }
+  }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct StructInNestedNST {
+  pub a: i32,
+  pub b: i32,
+}
+impl StructInNestedNST {
+  pub fn pack(&self) -> StructInNestedNS {
+    StructInNestedNS::new(
+      self.a,
+      self.b,
+    )
   }
 }
 
@@ -167,9 +193,7 @@ impl<'a> flatbuffers::Follow<'a> for TableInNestedNS<'a> {
 impl<'a> TableInNestedNS<'a> {
     #[inline]
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-        TableInNestedNS {
-            _tab: table,
-        }
+        TableInNestedNS { _tab: table }
     }
     #[allow(unused_mut)]
     pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
@@ -180,6 +204,12 @@ impl<'a> TableInNestedNS<'a> {
       builder.finish()
     }
 
+    pub fn unpack(&self) -> TableInNestedNST {
+      let foo = self.foo();
+      TableInNestedNST {
+        foo,
+      }
+    }
     pub const VT_FOO: flatbuffers::VOffsetT = 4;
 
   #[inline]
@@ -223,6 +253,22 @@ impl<'a: 'b, 'b> TableInNestedNSBuilder<'a, 'b> {
   }
 }
 
+#[non_exhaustive]
+#[derive(Debug, Clone, PartialEq)]
+pub struct TableInNestedNST {
+  pub foo: i32,
+}
+impl TableInNestedNST {
+  pub fn pack<'b>(
+    &self,
+    _fbb: &mut flatbuffers::FlatBufferBuilder<'b>
+  ) -> flatbuffers::WIPOffset<TableInNestedNS<'b>> {
+    let foo = self.foo;
+    TableInNestedNS::create(_fbb, &TableInNestedNSArgs{
+      foo,
+    })
+  }
+}
 }  // pub mod NamespaceB
 }  // pub mod NamespaceA
 
