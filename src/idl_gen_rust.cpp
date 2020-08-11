@@ -1258,26 +1258,8 @@ class RustGenerator : public BaseGenerator {
           nested_root = parser_.LookupStruct(qualified_name);
         }
         FLATBUFFERS_ASSERT(nested_root);  // Guaranteed to exist by parser.
-        (void)nested_root;
 
-        // Parse it into a namespace.
-        // TODO(cneo): Consider sharing this parsing logic.
-        Namespace ns;
-        size_t start = 0;
-        size_t end = 0;
-        while (end != std::string::npos) {
-          end = qualified_name.find(".", start);
-          ns.components.push_back(qualified_name.substr(start, end - start));
-          start = end + 1;
-        }
-        // The last element is the nested table itself, not the namespace.
-        std::string table_name = ns.components.back();
-        ns.components.pop_back();
-
-        std::string type_path = GetRelativeNamespaceTraversal(
-          CurrentNameSpace(), &ns);
-        code_.SetValue("NESTED", type_path + table_name);
-
+        code_.SetValue("NESTED", WrapInNameSpace(*nested_root));
         code_ +=
             "  pub fn {{FIELD_NAME}}_nested_flatbuffer(&'a self) -> "
             "Option<{{NESTED}}<'a>> {";
