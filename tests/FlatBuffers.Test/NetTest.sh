@@ -27,7 +27,5 @@ msbuild -property:Configuration=Release,UnsafeByteBuffer=true,OutputPath=$TEMP_B
 mono $TEMP_BIN/FlatBuffers.Test.exe
 rm -fr $TEMP_BIN
 
-rm Resources/monsterdata_cstest.mon
-rm Resources/monsterdata_cstest_sp.mon
 rm FlatBuffers.Test.sln
 rm -rf obj
