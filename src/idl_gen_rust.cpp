@@ -2157,7 +2157,6 @@ class RustGenerator : public BaseGenerator {
 
     // Generate accessor methods for the struct.
     ForAllStructFields(struct_def.fields, [&](const FieldDef &field){
-      GenComment(field.doc_comment, "  ");
       if (IsStruct(field.value.type)) {
         // Struct accessor
         code_ += "  pub fn {{FIELD_NAME}}(&self) -> &{{FIELD_TYPE}} {";
