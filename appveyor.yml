@@ -107,8 +107,6 @@ test_script:
   # Have to compile this here rather than in "build" above because AppVeyor only
   # supports building one project??
   - "cd FlatBuffers.Test"
-  - "copy ..\\monsterdata_test.mon Resources\\"
-  - "copy ..\\monsterdata_test.json Resources\\"
   - "dotnet new sln"
   - "dotnet sln add FlatBuffers.Test.csproj"
   - "nuget restore"
