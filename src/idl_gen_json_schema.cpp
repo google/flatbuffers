@@ -34,7 +34,7 @@ std::string GenNativeType(BaseType type) {
     case BASE_TYPE_INT:
     case BASE_TYPE_UINT:
     case BASE_TYPE_LONG:
-    case BASE_TYPE_ULONG:
+    case BASE_TYPE_ULONG: return "integer";
     case BASE_TYPE_FLOAT:
     case BASE_TYPE_DOUBLE: return "number";
     case BASE_TYPE_STRING: return "string";
