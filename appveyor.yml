@@ -110,11 +110,12 @@ test_script:
   - "dotnet new sln"
   - "dotnet sln add FlatBuffers.Test.csproj"
   - "nuget restore"
-  - "msbuild.exe /property:Configuration=Release;OutputPath=tempcs /verbosity:minimal FlatBuffers.Test.csproj"
-  - "tempcs\\FlatBuffers.Test.exe"
+  - "mkdir .tmp"
+  - "msbuild.exe /property:Configuration=Release;OutputPath=.tmp /verbosity:minimal FlatBuffers.Test.csproj"
+  - ".tmp\\FlatBuffers.Test.exe"
   # Run tests with UNSAFE_BYTEBUFFER
-  - "msbuild.exe /property:Configuration=Release;UnsafeByteBuffer=true;OutputPath=tempcsUnsafe /verbosity:minimal FlatBuffers.Test.csproj"
-  - "tempcsUnsafe\\FlatBuffers.Test.exe"
+  - "msbuild.exe /property:Configuration=Release;UnsafeByteBuffer=true;OutputPath=.tmp /verbosity:minimal FlatBuffers.Test.csproj"
+  - ".tmp\\FlatBuffers.Test.exe"
   # TODO: add more languages.
   - "cd ..\\.."
 
