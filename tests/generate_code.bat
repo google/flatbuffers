@@ -60,7 +60,7 @@ set TEST_NOINCL_FLAGS=%TEST_BASE_FLAGS% --no-includes --no-fb-import
 ..\%buildtype%\flatc.exe --cpp --scoped-enums %TEST_CPP_FLAGS% -o evolution_test ./evolution_test/evolution_v1.fbs ./evolution_test/evolution_v2.fbs || goto FAIL
 
 @rem Generate kotlin code using @JvmStatic annotation.
-..\$buildtype%\flatc.exe --kotlin --gen-jvmstatic -o gen_jvmstatic -I include_test monster_test.fbs || goto FAIL
+..\%buildtype%\flatc.exe --kotlin --gen-jvmstatic -o gen_jvmstatic -I include_test monster_test.fbs || goto FAIL
 
 if NOT "%MONSTER_EXTRA%"=="skip" (
   @echo Generate MosterExtra
