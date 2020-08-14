@@ -57,6 +57,9 @@ $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS -o namespace_test namespace_te
 # Generate the schema evolution tests
 ../flatc --cpp --scoped-enums $TEST_CPP_FLAGS -o evolution_test ./evolution_test/evolution_v*.fbs
 
+# Generate kotlin code using @JvmStatic annotation.
+../flatc --kotlin --gen-jvmstatic -o gen_jvmstatic -I include_test monster_test.fbs
+
 working_dir=`pwd`
 cd FlatBuffers.Test.Swift/Tests/FlatBuffers.Test.SwiftTests
 $working_dir/../flatc --swift --grpc $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS -I ../../../include_test ../../../monster_test.fbs
