@@ -458,7 +458,7 @@ class KotlinGenerator : public BaseGenerator {
           // runtime.
           GenerateFunOneLine(writer, "validateVersion", "", "", [&]() {
             writer += "Constants.FLATBUFFERS_1_12_0()";
-          }, parser_.opts.kotlin_gen_jvmstatic);
+          }, parser_.opts.gen_jvmstatic);
 
           GenerateGetRootAsAccessors(Esc(struct_def.name), writer, parser_.opts);
           GenerateBufferHasIdentifier(struct_def, writer);
@@ -575,7 +575,7 @@ class KotlinGenerator : public BaseGenerator {
     auto method_name = "finishSizePrefixed" + Esc(struct_def.name) + "Buffer";
     GenerateFunOneLine(writer, method_name, params, "", [&]() {
       writer += "builder.finishSizePrefixed(offset" + id + ")";
-    }, parser_.opts.kotlin_gen_jvmstatic);
+    }, parser_.opts.gen_jvmstatic);
   }
   void GenerateFinishStructBuffer(StructDef &struct_def,
                                   const std::string &identifier,
@@ -585,7 +585,7 @@ class KotlinGenerator : public BaseGenerator {
     auto method_name = "finish" + Esc(struct_def.name) + "Buffer";
     GenerateFunOneLine(writer, method_name, params, "",
                        [&]() { writer += "builder.finish(offset" + id + ")"; },
-                       parser_.opts.kotlin_gen_jvmstatic);
+                       parser_.opts.gen_jvmstatic);
   }
 
   void GenerateEndStructMethod(StructDef &struct_def,
@@ -607,7 +607,7 @@ class KotlinGenerator : public BaseGenerator {
       }
       writer.DecrementIdentLevel();
       writer += "return o";
-    }, parser_.opts.kotlin_gen_jvmstatic);
+    }, parser_.opts.gen_jvmstatic);
   }
 
   // Generate a method to create a vector from a Kotlin array.
@@ -629,7 +629,7 @@ class KotlinGenerator : public BaseGenerator {
       writer.DecrementIdentLevel();
       writer += "}";
       writer += "return builder.endVector()";
-    }, parser_.opts.kotlin_gen_jvmstatic);
+    }, parser_.opts.gen_jvmstatic);
   }
 
   void GenerateStartVectorField(FieldDef &field, CodeWriter &writer) const {
@@ -644,7 +644,7 @@ class KotlinGenerator : public BaseGenerator {
         writer, "start" + MakeCamel(Esc(field.name) + "Vector", true), params,
         "", [&]() {
           writer += "builder.startVector({{size}}, numElems, {{align}})";
-        }, parser_.opts.kotlin_gen_jvmstatic);
+        }, parser_.opts.gen_jvmstatic);
   }
 
   void GenerateAddField(std::string field_pos, FieldDef &field,
@@ -663,7 +663,7 @@ class KotlinGenerator : public BaseGenerator {
 
                          writer += "builder.add{{method_name}}({{pos}}, \\";
                          writer += "{{field_name}}{{cast}}, {{default}})";
-                       }, parser_.opts.kotlin_gen_jvmstatic);
+                       }, parser_.opts.gen_jvmstatic);
   }
 
   static std::string ToSignedType(const Type &type) {
@@ -711,7 +711,7 @@ class KotlinGenerator : public BaseGenerator {
                          code += "builder.startTable(" +
                                  NumToString(struct_def.fields.vec.size()) +
                                  ")";
-                       }, parser_.opts.kotlin_gen_jvmstatic);
+                       }, parser_.opts.gen_jvmstatic);
   }
 
   void GenerateTableCreator(StructDef &struct_def, CodeWriter &writer) const {
@@ -777,7 +777,7 @@ class KotlinGenerator : public BaseGenerator {
           }
         }
         writer += "return end{{struct_name}}(builder)";
-      }, parser_.opts.kotlin_gen_jvmstatic);
+      }, parser_.opts.gen_jvmstatic);
     }
   }
   void GenerateBufferHasIdentifier(StructDef &struct_def,
@@ -791,7 +791,7 @@ class KotlinGenerator : public BaseGenerator {
                        "Boolean", [&]() {
                          writer += "__has_identifier(_bb, \"" +
                                    file_identifier + "\")";
-                       }, parser_.opts.kotlin_gen_jvmstatic);
+                       }, parser_.opts.gen_jvmstatic);
   }
 
   void GenerateStructGetters(StructDef &struct_def, CodeWriter &writer) const {
@@ -1227,13 +1227,13 @@ class KotlinGenerator : public BaseGenerator {
     writer.SetValue("gr_method", "getRootAs" + struct_name);
 
     // create convenience method that doesn't require an existing object
-    GenerateJvmStaticAnnotation(writer, options.kotlin_gen_jvmstatic);
+    GenerateJvmStaticAnnotation(writer, options.gen_jvmstatic);
     writer += "fun {{gr_method}}(_bb: ByteBuffer): {{gr_name}} = \\";
     writer += "{{gr_method}}(_bb, {{gr_name}}())";
 
     // create method that allows object reuse
     // ex: fun Monster getRootAsMonster(_bb: ByteBuffer, obj: Monster) {...}
-    GenerateJvmStaticAnnotation(writer, options.kotlin_gen_jvmstatic);
+    GenerateJvmStaticAnnotation(writer, options.gen_jvmstatic);
     writer +=
         "fun {{gr_method}}"
         "(_bb: ByteBuffer, obj: {{gr_name}}): {{gr_name}} {";
