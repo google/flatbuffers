@@ -460,7 +460,7 @@ class KotlinGenerator : public BaseGenerator {
             writer += "Constants.FLATBUFFERS_1_12_0()";
           }, parser_.opts.kotlin_gen_jvmstatic);
 
-          GenerateGetRootAsAccessors(Esc(struct_def.name), writer, parser_.opts.kotlin_gen_jvmstatic);
+          GenerateGetRootAsAccessors(Esc(struct_def.name), writer, parser_.opts);
           GenerateBufferHasIdentifier(struct_def, writer);
           GenerateTableCreator(struct_def, writer);
 
@@ -1220,20 +1220,20 @@ class KotlinGenerator : public BaseGenerator {
 
   static void GenerateGetRootAsAccessors(const std::string &struct_name,
                                          CodeWriter &writer,
-                                         bool useJvmStaticAnnotation) {
+                                         IDLOptions options) {
     // Generate a special accessor for the table that when used as the root
     // ex: fun getRootAsMonster(_bb: ByteBuffer): Monster {...}
     writer.SetValue("gr_name", struct_name);
     writer.SetValue("gr_method", "getRootAs" + struct_name);
 
     // create convenience method that doesn't require an existing object
-    GenerateJvmStaticAnnotation(writer, useJvmStaticAnnotation);
+    GenerateJvmStaticAnnotation(writer, options.kotlin_gen_jvmstatic);
     writer += "fun {{gr_method}}(_bb: ByteBuffer): {{gr_name}} = \\";
     writer += "{{gr_method}}(_bb, {{gr_name}}())";
 
     // create method that allows object reuse
     // ex: fun Monster getRootAsMonster(_bb: ByteBuffer, obj: Monster) {...}
-    GenerateJvmStaticAnnotation(writer, useJvmStaticAnnotation);
+    GenerateJvmStaticAnnotation(writer, options.kotlin_gen_jvmstatic);
     writer +=
         "fun {{gr_method}}"
         "(_bb: ByteBuffer, obj: {{gr_name}}): {{gr_name}} {";
@@ -1328,7 +1328,7 @@ class KotlinGenerator : public BaseGenerator {
                           const std::string &params,
                           const std::string &returnType,
                           const std::function<void()> &body,
-                          bool useJvmStaticAnnotation = false) {
+                          bool genJvmStatic = false) {
     // Generates Kotlin function
     // e.g.:
     // fun path(j: Int): Vec3 {
@@ -1338,7 +1338,7 @@ class KotlinGenerator : public BaseGenerator {
     writer.SetValue("name", name);
     writer.SetValue("params", params);
     writer.SetValue("return_type", noreturn ? "" : ": " + returnType);
-    GenerateJvmStaticAnnotation(writer, useJvmStaticAnnotation);
+    GenerateJvmStaticAnnotation(writer, genJvmStatic);
     writer += "fun {{name}}({{params}}) {{return_type}} {";
     writer.IncrementIdentLevel();
     body();
@@ -1350,7 +1350,7 @@ class KotlinGenerator : public BaseGenerator {
                                  const std::string &params,
                                  const std::string &returnType,
                                  const std::function<void()> &body,
-                                 bool useJvmStaticAnnotation = false) {
+                                 bool genJvmStatic = false) {
     // Generates Kotlin function
     // e.g.:
     // fun path(j: Int): Vec3 = return path(Vec3(), j)
@@ -1358,7 +1358,7 @@ class KotlinGenerator : public BaseGenerator {
     writer.SetValue("params", params);
     writer.SetValue("return_type_p",
                     returnType.empty() ? "" : " : " + returnType);
-    GenerateJvmStaticAnnotation(writer, useJvmStaticAnnotation);
+    GenerateJvmStaticAnnotation(writer, genJvmStatic);
     writer += "fun {{name}}({{params}}){{return_type_p}} = \\";
     body();
   }
@@ -1437,8 +1437,9 @@ class KotlinGenerator : public BaseGenerator {
   }
 
   // Prepend @JvmStatic to methods in companion object.
-  static void GenerateJvmStaticAnnotation(CodeWriter &code, bool useJvmStaticAnnotation) {
-    if (useJvmStaticAnnotation) {
+  static void GenerateJvmStaticAnnotation(CodeWriter &code,
+                                          bool genJvmStatic) {
+    if (genJvmStatic) {
       code += "@JvmStatic";
     }
   }
