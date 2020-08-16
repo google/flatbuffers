@@ -46,10 +46,6 @@ using System.Text;
 using System.Buffers.Binary;
 #endif
 
-#if ENABLE_SPAN_T && !UNSAFE_BYTEBUFFER
-#error ENABLE_SPAN_T requires UNSAFE_BYTEBUFFER to also be defined
-#endif
-
 namespace FlatBuffers
 {
     public abstract class ByteBufferAllocator
@@ -324,7 +320,7 @@ namespace FlatBuffers
                     ((input & 0xFF00000000000000UL) >> 56));
         }
 
-#if !UNSAFE_BYTEBUFFER
+#if !UNSAFE_BYTEBUFFER && !ENABLE_SPAN_T
         // Helper functions for the safe (but slower) version.
         protected void WriteLittleEndian(int offset, int count, ulong data)
         {
@@ -364,7 +360,46 @@ namespace FlatBuffers
             }
             return r;
         }
-#endif // !UNSAFE_BYTEBUFFER
+#elif ENABLE_SPAN_T
+        protected void WriteLittleEndian(int offset, int count, ulong data)
+        {
+            if (BitConverter.IsLittleEndian)
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    _buffer.Span[offset + i] = (byte)(data >> i * 8);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    _buffer.Span[offset + count - 1 - i] = (byte)(data >> i * 8);
+                }
+            }
+        }
+
+        protected ulong ReadLittleEndian(int offset, int count)
+        {
+            AssertOffsetAndLength(offset, count);
+            ulong r = 0;
+            if (BitConverter.IsLittleEndian)
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    r |= (ulong)_buffer.Span[offset + i] << i * 8;
+                }
+            }
+            else
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    r |= (ulong)_buffer.Span[offset + count - 1 - i] << i * 8;
+                }
+            }
+            return r;
+        }
+#endif // !UNSAFE_BYTEBUFFER && !ENABLE_SPAN_T
 
         private void AssertOffsetAndLength(int offset, int length)
         {
@@ -424,16 +459,11 @@ namespace FlatBuffers
         }
 
 #if ENABLE_SPAN_T
-        public unsafe void PutStringUTF8(int offset, string value)
+        public void PutStringUTF8(int offset, string value)
         {
             AssertOffsetAndLength(offset, value.Length);
-            fixed (char* s = value)
-            {
-                fixed (byte* buffer = &MemoryMarshal.GetReference(_buffer.Span))
-                {
-                    Encoding.UTF8.GetBytes(s, value.Length, buffer + offset, Length - offset);
-                }
-            }
+            Encoding.UTF8.GetBytes(value.AsSpan().Slice(0, value.Length),
+                _buffer.Span.Slice(offset));
         }
 #else
         public void PutStringUTF8(int offset, string value)
@@ -632,12 +662,9 @@ namespace FlatBuffers
 #endif
 
 #if ENABLE_SPAN_T
-        public unsafe string GetStringUTF8(int startPos, int len)
+        public string GetStringUTF8(int startPos, int len)
         {
-            fixed (byte* buffer = &MemoryMarshal.GetReference(_buffer.ReadOnlySpan.Slice(startPos)))
-            {
-                return Encoding.UTF8.GetString(buffer, len);
-            }
+            return Encoding.UTF8.GetString(_buffer.Span.Slice(startPos, len));
         }
 #else
         public string GetStringUTF8(int startPos, int len)
