@@ -114,13 +114,13 @@ namespace FlatBuffers.Test
             // Dump to output directory so we can inspect later, if needed
             #if ENABLE_SPAN_T
             var data = fbb.DataBuffer.ToSizedArray();
-            string filename = @"Resources/monsterdata_cstest" + (sizePrefix ? "_sp" : "") + ".mon";
+            string filename = @".tmp/monsterdata_cstest" + (sizePrefix ? "_sp" : "") + ".mon";
             File.WriteAllBytes(filename, data);
             #else
             using (var ms = fbb.DataBuffer.ToMemoryStream(fbb.DataBuffer.Position, fbb.Offset))
             {
                 var data = ms.ToArray();
-                string filename = @"Resources/monsterdata_cstest" + (sizePrefix ? "_sp" : "") + ".mon";
+                string filename = @".tmp/monsterdata_cstest" + (sizePrefix ? "_sp" : "") + ".mon";
                 File.WriteAllBytes(filename, data);
             }
             #endif
@@ -282,7 +282,7 @@ namespace FlatBuffers.Test
         [FlatBuffersTestMethod]
         public void CanReadCppGeneratedWireFile()
         {
-            var data = File.ReadAllBytes(@"Resources/monsterdata_test.mon");
+            var data = File.ReadAllBytes(@"../monsterdata_test.mon");
             var bb = new ByteBuffer(data);
             TestBuffer(bb);
             TestObjectAPI(Monster.GetRootAsMonster(bb));
@@ -291,7 +291,7 @@ namespace FlatBuffers.Test
         [FlatBuffersTestMethod]
         public void CanReadJsonFile()
         {
-            var jsonText = File.ReadAllText(@"Resources/monsterdata_test.json");
+            var jsonText = File.ReadAllText(@"../monsterdata_test.json");
             var mon = MonsterT.DeserializeFromJson(jsonText);
             var fbb = new FlatBufferBuilder(1);
             fbb.Finish(Monster.Pack(fbb, mon).Value);
