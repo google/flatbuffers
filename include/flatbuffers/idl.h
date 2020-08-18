@@ -509,6 +509,7 @@ struct ServiceDef : public Definition {
 
 // Container of options that may apply to any of the source/text generators.
 struct IDLOptions {
+  bool gen_jvmstatic;
   // Use flexbuffers instead for binary and text generation
   bool use_flexbuffers;
   bool strict_json;
@@ -604,7 +605,8 @@ struct IDLOptions {
   bool set_empty_vectors_to_null;
 
   IDLOptions()
-      : use_flexbuffers(false),
+      : gen_jvmstatic(false),
+        use_flexbuffers(false),
         strict_json(false),
         skip_js_exports(false),
         use_goog_js_export_format(false),
