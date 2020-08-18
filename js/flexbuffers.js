@@ -14,10 +14,9 @@ flexbuffers.BitWidthUtil.toByteWidth = (bitWidth) => {
 };
 
 flexbuffers.BitWidthUtil.iwidth = (value) => {
-  const v = value < 0 ? BigInt(value * -1) : BigInt(value);
-  if (v >> 7n === 0n) return 0/*flexbuffers.BitWidth.WIDTH8*/;
-  if (v >> 15n === 0n) return 1/*flexbuffers.BitWidth.WIDTH16*/;
-  if (v >> 31n === 0n) return 2/*flexbuffers.BitWidth.WIDTH32*/;
+  if (value >= -128 && value <= 127) return 0/*flexbuffers.BitWidth.WIDTH8*/;
+  if (value >= -32768 && value <= 32767) return 1/*flexbuffers.BitWidth.WIDTH16*/;
+  if (value >= -2147483648 && value <= 2147483647) return 2/*flexbuffers.BitWidth.WIDTH32*/;
   return 3/*flexbuffers.BitWidth.WIDTH64*/;
 };
 
@@ -26,10 +25,9 @@ flexbuffers.BitWidthUtil.fwidth = (value) => {
 };
 
 flexbuffers.BitWidthUtil.uwidth = (value) => {
-  const v = BigInt(value);
-  if (v >> 8n === 0n) return 0; //flexbuffers.BitWidth.WIDTH8;
-  if (v >> 16n === 0n) return 1; //flexbuffers.BitWidth.WIDTH16;
-  if (v >> 32n === 0n) return 2; //flexbuffers.BitWidth.WIDTH32;
+  if (value <= 255) return 0; //flexbuffers.BitWidth.WIDTH8;
+  if (value <= 65535) return 1; //flexbuffers.BitWidth.WIDTH16;
+  if (value <= 4294967295) return 2; //flexbuffers.BitWidth.WIDTH32;
   return 3; //flexbuffers.BitWidth.WIDTH64;
 };
 
