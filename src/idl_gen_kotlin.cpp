@@ -1334,7 +1334,7 @@ class KotlinGenerator : public BaseGenerator {
                           const std::string &params,
                           const std::string &returnType,
                           const std::function<void()> &body,
-                          bool genJvmStatic = false) {
+                          bool gen_jvmstatic = false) {
     // Generates Kotlin function
     // e.g.:
     // fun path(j: Int): Vec3 {
@@ -1344,7 +1344,7 @@ class KotlinGenerator : public BaseGenerator {
     writer.SetValue("name", name);
     writer.SetValue("params", params);
     writer.SetValue("return_type", noreturn ? "" : ": " + returnType);
-    GenerateJvmStaticAnnotation(writer, genJvmStatic);
+    GenerateJvmStaticAnnotation(writer, gen_jvmstatic);
     writer += "fun {{name}}({{params}}) {{return_type}} {";
     writer.IncrementIdentLevel();
     body();
@@ -1356,7 +1356,7 @@ class KotlinGenerator : public BaseGenerator {
                                  const std::string &params,
                                  const std::string &returnType,
                                  const std::function<void()> &body,
-                                 bool genJvmStatic = false) {
+                                 bool gen_jvmstatic = false) {
     // Generates Kotlin function
     // e.g.:
     // fun path(j: Int): Vec3 = return path(Vec3(), j)
@@ -1364,7 +1364,7 @@ class KotlinGenerator : public BaseGenerator {
     writer.SetValue("params", params);
     writer.SetValue("return_type_p",
                     returnType.empty() ? "" : " : " + returnType);
-    GenerateJvmStaticAnnotation(writer, genJvmStatic);
+    GenerateJvmStaticAnnotation(writer, gen_jvmstatic);
     writer += "fun {{name}}({{params}}){{return_type_p}} = \\";
     body();
   }
@@ -1444,8 +1444,8 @@ class KotlinGenerator : public BaseGenerator {
 
   // Prepend @JvmStatic to methods in companion object.
   static void GenerateJvmStaticAnnotation(CodeWriter &code,
-                                          bool genJvmStatic) {
-    if (genJvmStatic) {
+                                          bool gen_jvmstatic) {
+    if (gen_jvmstatic) {
       code += "@JvmStatic";
     }
   }
