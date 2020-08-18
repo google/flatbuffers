@@ -148,29 +148,47 @@ flexbuffers.toReference = (buffer) => {
   }
 
   function readInt(dataView, offset, width) {
-    if (width === 0 /*flexbuffers.BitWidth.WIDTH8*/) {
-      return dataView.getInt8(offset);
+    if (width < 2) {
+      if (width < 1) {
+        return dataView.getInt8(offset);
+      } else {
+        return dataView.getInt16(offset, true);
+      }
+    } else {
+      if (width < 3) {
+        return dataView.getInt32(offset, true)
+      } else {
+        if (dataView.setBigInt64 === undefined) {
+          return {
+            low: dataView.getInt32(offset, true),
+            high: dataView.getInt32(offset + 4, true)
+          }
+        }
+        return dataView.getBigInt64(offset, true)
+      }
     }
-    if (width === 1 /*flexbuffers.BitWidth.WIDTH16*/) {
-      return dataView.getInt16(offset, true);
-    }
-    if (width === 2 /*flexbuffers.BitWidth.WIDTH32*/) {
-      return dataView.getInt32(offset, true);
-    }
-    return dataView.getBigInt64(offset, true);
   }
 
   function readUInt(dataView, offset, width) {
-    if (width === 0 /*flexbuffers.BitWidth.WIDTH8*/) {
-      return dataView.getUint8(offset);
+    if (width < 2) {
+      if (width < 1) {
+        return dataView.getUint8(offset);
+      } else {
+        return dataView.getUint16(offset, true);
+      }
+    } else {
+      if (width < 3) {
+        return dataView.getUint32(offset, true)
+      } else {
+        if (dataView.getBigUint64 === undefined) {
+          return {
+            low: dataView.getUint32(offset, true),
+            high: dataView.getUint32(offset + 4, true)
+          }
+        }
+        return dataView.getBigUint64(offset, true)
+      }
     }
-    if (width === 1 /*flexbuffers.BitWidth.WIDTH16*/) {
-      return dataView.getUint16(offset, true);
-    }
-    if (width === 2 /*flexbuffers.BitWidth.WIDTH32*/) {
-      return dataView.getUint32(offset, true);
-    }
-    return dataView.getBigUint64(offset, true);
   }
 
   function readFloat(dataView, offset, width) {
