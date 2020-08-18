@@ -273,6 +273,9 @@ elseif(MSVC)
   # warning C4512: assignment operator could not be generated
   # warning C4316: object allocated on the heap may not be aligned
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /WX /wd4512 /wd4316")
+
+  # multi-core build.
+  add_definitions("/MP")
 endif()
 
 if(FLATBUFFERS_CODE_COVERAGE)
