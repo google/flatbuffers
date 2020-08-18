@@ -13,6 +13,8 @@ function main() {
   testIndirectWithCache();
   testMapBuilder();
   testRoundTrip();
+  testRoundTripWithBuilder();
+  testDeduplicationOff();
 }
 
 function testSingleValueBuffers() {
@@ -103,6 +105,41 @@ function testEncode() {
     115, 111, 109, 101, 116, 104, 105, 110, 103, 0,
     1, 11, 1, 1, 1, 12, 4, 6, 1, 1, 45, 4, 2, 8, 4, 36, 36, 4, 40, 1
   ]);
+}
+
+function testDeduplicationOff() {
+  let buffer = flexbuffers.encode([{'something':12}, {'something': 45}], 1, true, true, false);
+  assert.deepStrictEqual(buffer, new Uint8Array([
+    115, 111, 109, 101, 116, 104, 105, 110, 103,
+    0,   1,  11,   1,   1,   1,  12,   4,   1,
+    18,   1,   1,   1,  45,   4,   2,  10,   4,
+    36,  36,   4,  40,   1
+  ]));
+
+  buffer = flexbuffers.encode([{'something':12}, {'something': 45}], 1, true, false, false);
+  assert.deepStrictEqual(buffer, new Uint8Array([
+    115, 111, 109, 101, 116, 104, 105, 110, 103,   0,
+    1,  11,   1,   1,   1,  12,   4, 115, 111, 109,
+    101, 116, 104, 105, 110, 103,   0,   1,  11,   1,
+    1,   1,  45,   4,   2,  20,   4,  36,  36,   4,
+    40,   1
+  ]));
+
+  buffer = flexbuffers.encode(['something', 'something', 'dark'], 1, true, false, false);
+  assert.deepStrictEqual(buffer, new Uint8Array([
+    9, 115, 111, 109, 101, 116, 104,
+    105, 110, 103,   0,   4, 100,  97,
+    114, 107,   0,   3,  17,  18,   8,
+    3,  60,   1
+  ]));
+
+  buffer = flexbuffers.encode(['something', 'something', 'dark'], 1, false, false, false);
+  assert.deepStrictEqual(buffer, new Uint8Array([
+    9, 115, 111, 109, 101, 116, 104, 105, 110,
+    103,   0,   9, 115, 111, 109, 101, 116, 104,
+    105, 110, 103,   0,   4, 100,  97, 114, 107,
+    0,   3,  28,  18,   8,   3,  60,   1
+  ]));
 }
 
 function testIndirectAdd() {
@@ -226,6 +263,79 @@ function testRoundTrip() {
 
   _assert(example);
   _assert(0x100000001n);
+}
+
+function testRoundTripWithBuilder() {
+  const example = {
+    "age": 35,
+    "flags": [true, false, true, true],
+    "weight": 72.5,
+    "name": "Maxim",
+    "address": {
+      "city": "Bla",
+      "zip": "12345",
+      "countryCode": "XX",
+    }
+  };
+
+  const builder = flexbuffers.builder();
+  builder.startMap();
+
+  builder.addKey('age');
+  builder.add(35);
+
+  builder.addKey('flags');
+  builder.startVector();
+  builder.add(true);
+  builder.add(false);
+  builder.add(true);
+  builder.add(true);
+  builder.end();
+
+  builder.addKey("weight");
+  builder.add(72.5);
+
+  builder.addKey("name");
+  builder.add("Maxim");
+
+  builder.addKey("address");
+
+  builder.startMap();
+  builder.addKey("city");
+  builder.add("Bla");
+  builder.addKey("zip");
+  builder.add("12345");
+  builder.addKey("countryCode");
+  builder.add("XX");
+  builder.end();
+
+  builder.end();
+
+  const data = builder.finish();
+  let o = flexbuffers.toObject(data.buffer);
+  assert.deepStrictEqual(o, example);
+
+  let root = flexbuffers.toReference(data.buffer);
+  assert.strictEqual(root.isMap(), true);
+  assert.strictEqual(root.get("age").numericValue(), 35);
+  assert.strictEqual(root.get("age").intValue(), 35);
+  assert.strictEqual(root.get("name").stringValue(), "Maxim");
+  assert.strictEqual(root.get("weight").floatValue(), 72.5);
+  assert.strictEqual(root.get("weight").numericValue(), 72.5);
+  let flags = root.get("flags");
+  assert.strictEqual(flags.isVector(), true);
+  assert.strictEqual(flags.length(), 4);
+  assert.strictEqual(flags.get(0).boolValue(), true);
+  assert.strictEqual(flags.get(1).boolValue(), false);
+  assert.strictEqual(flags.get(2).boolValue(), true);
+  assert.strictEqual(flags.get(3).boolValue(), true);
+
+  let address = root.get("address");
+  assert.strictEqual(address.isMap(), true);
+  assert.strictEqual(address.length(), 3);
+  assert.strictEqual(address.get("city").stringValue(), "Bla");
+  assert.strictEqual(address.get("zip").stringValue(), "12345");
+  assert.strictEqual(address.get("countryCode").stringValue(), "XX");
 }
 
 function testGoldBuffer() {

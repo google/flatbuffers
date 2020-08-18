@@ -15,29 +15,29 @@ flexbuffers.BitWidthUtil.toByteWidth = (bitWidth) => {
 
 flexbuffers.BitWidthUtil.iwidth = (value) => {
   const v = value < 0 ? BigInt(value * -1) : BigInt(value);
-  if (v >> 7n === 0n) return flexbuffers.BitWidth.WIDTH8;
-  if (v >> 15n === 0n) return flexbuffers.BitWidth.WIDTH16;
-  if (v >> 31n === 0n) return flexbuffers.BitWidth.WIDTH32;
-  return flexbuffers.BitWidth.WIDTH64;
+  if (v >> 7n === 0n) return 0/*flexbuffers.BitWidth.WIDTH8*/;
+  if (v >> 15n === 0n) return 1/*flexbuffers.BitWidth.WIDTH16*/;
+  if (v >> 31n === 0n) return 2/*flexbuffers.BitWidth.WIDTH32*/;
+  return 3/*flexbuffers.BitWidth.WIDTH64*/;
 };
 
 flexbuffers.BitWidthUtil.fwidth = (value) => {
-  return value === Math.fround(value) ? flexbuffers.BitWidth.WIDTH32: flexbuffers.BitWidth.WIDTH64;
+  return value === Math.fround(value) ? 2 /*flexbuffers.BitWidth.WIDTH32*/: 3 /*flexbuffers.BitWidth.WIDTH64*/;
 };
 
 flexbuffers.BitWidthUtil.uwidth = (value) => {
   const v = BigInt(value);
-  if (v >> 8n === 0n) return flexbuffers.BitWidth.WIDTH8;
-  if (v >> 16n === 0n) return flexbuffers.BitWidth.WIDTH16;
-  if (v >> 32n === 0n) return flexbuffers.BitWidth.WIDTH32;
-  return flexbuffers.BitWidth.WIDTH64;
+  if (v >> 8n === 0n) return 0; //flexbuffers.BitWidth.WIDTH8;
+  if (v >> 16n === 0n) return 1; //flexbuffers.BitWidth.WIDTH16;
+  if (v >> 32n === 0n) return 2; //flexbuffers.BitWidth.WIDTH32;
+  return 3; //flexbuffers.BitWidth.WIDTH64;
 };
 
 flexbuffers.BitWidthUtil.fromByteWidth = (value) => {
-  if (value === 1) return flexbuffers.BitWidth.WIDTH8;
-  if (value === 2) return flexbuffers.BitWidth.WIDTH16;
-  if (value === 4) return flexbuffers.BitWidth.WIDTH32;
-  return flexbuffers.BitWidth.WIDTH64;
+  if (value === 1) return 0; //flexbuffers.BitWidth.WIDTH8;
+  if (value === 2) return 1; //flexbuffers.BitWidth.WIDTH16;
+  if (value === 4) return 2; //flexbuffers.BitWidth.WIDTH32;
+  return 3; //flexbuffers.BitWidth.WIDTH64;
 };
 
 flexbuffers.BitWidthUtil.paddingSize = (bufSize, scalarSize) => {
@@ -419,19 +419,23 @@ flexbuffers.toObject = (buffer) => {
   return flexbuffers.toReference(buffer).toObject();
 };
 
-flexbuffers.builder = (size = 2048) => {
+flexbuffers.builder = (size = 2048, deduplicateString = true, deduplicateKeys = true, deduplicateKeyVectors = true) => {
   let buffer = new ArrayBuffer(size > 0 ? size : 2048);
   let view = new DataView(buffer);
   const stack = [];
   const stackPointers = [];
   let offset = 0;
   let finished = false;
-  const stringCache = {};
-  const keyCache = {};
-  const keyVectorCache = {};
-  const indirectIntCache = {};
-  const indirectUIntCache = {};
-  const indirectFloatCache = {};
+  const stringLookup = {};
+  const keyLookup = {};
+  const keyVectorLookup = {};
+  const indirectIntLookup = {};
+  const indirectUIntLookup = {};
+  const indirectFloatLookup = {};
+
+  let dedupStrings = deduplicateString;
+  let dedupKeys = deduplicateKeys;
+  let dedupKeyVectors = deduplicateKeyVectors;
 
   function align(width) {
     const byteWidth = flexbuffers.BitWidthUtil.toByteWidth(width);
@@ -502,8 +506,8 @@ flexbuffers.builder = (size = 2048) => {
   }
 
   function writeString(str) {
-    if (stringCache.hasOwnProperty(str)) {
-      stack.push(stringCache[str]);
+    if (dedupStrings && stringLookup.hasOwnProperty(str)) {
+      stack.push(stringLookup[str]);
       return;
     }
     const utf8 = toUTF8Array(str);
@@ -516,13 +520,15 @@ flexbuffers.builder = (size = 2048) => {
     new Uint8Array(buffer).set(utf8, stringOffset);
     const stackValue = offsetStackValue(stringOffset, flexbuffers.ValueType.STRING, bitWidth);
     stack.push(stackValue);
-    stringCache[str] = stackValue;
+    if (dedupStrings) {
+      stringLookup[str] = stackValue;
+    }
     offset = newOffset;
   }
 
   function writeKey(str) {
-    if (keyCache.hasOwnProperty(str)) {
-      stack.push(keyCache[str]);
+    if (dedupKeys && keyLookup.hasOwnProperty(str)) {
+      stack.push(keyLookup[str]);
       return;
     }
     const utf8 = toUTF8Array(str);
@@ -531,7 +537,9 @@ flexbuffers.builder = (size = 2048) => {
     new Uint8Array(buffer).set(utf8, offset);
     const stackValue = offsetStackValue(offset, flexbuffers.ValueType.KEY, flexbuffers.BitWidth.WIDTH8);
     stack.push(stackValue);
-    keyCache[str] = stackValue;
+    if (dedupKeys) {
+      keyLookup[str] = stackValue;
+    }
     offset = newOffset;
   }
 
@@ -594,10 +602,11 @@ flexbuffers.builder = (size = 2048) => {
       keyVectorHash += `,${stack[i].offset}`;
     }
     const vecLength = (stack.length - stackPointer.stackPosition) >> 1;
-    if (!keyVectorCache.hasOwnProperty(keyVectorHash)) {
-      keyVectorCache[keyVectorHash] = createVector(stackPointer.stackPosition, vecLength, 2);
+
+    if (dedupKeyVectors && !keyVectorLookup.hasOwnProperty(keyVectorHash)) {
+      keyVectorLookup[keyVectorHash] = createVector(stackPointer.stackPosition, vecLength, 2);
     }
-    const keysStackValue = keyVectorCache[keyVectorHash];
+    const keysStackValue = dedupKeyVectors ? keyVectorLookup[keyVectorHash] : createVector(stackPointer.stackPosition, vecLength, 2);
     const valuesStackValue = createVector(stackPointer.stackPosition + 1, vecLength, 2, keysStackValue);
     stack.splice(stackPointer.stackPosition, vecLength << 1);
     stack.push(valuesStackValue);
@@ -616,8 +625,79 @@ flexbuffers.builder = (size = 2048) => {
         if (c2 < c1) return true;
         if (c1 < c2) return false;
         index += 1;
-      } while (c1 !== 0 && c2 !== 0)
+      } while (c1 !== 0 && c2 !== 0);
       return false;
+    }
+
+    function swap(stack, flipIndex, i) {
+      if (flipIndex === i) return;
+      const k = stack[flipIndex];
+      const v = stack[flipIndex + 1];
+      stack[flipIndex] = stack[i];
+      stack[flipIndex + 1] = stack[i + 1];
+      stack[i] = k;
+      stack[i + 1] = v;
+    }
+
+    function selectionSort() {
+      for (let i = stackPointer.stackPosition; i < stack.length; i += 2) {
+        let flipIndex = i;
+        for (let j = i + 2; j < stack.length; j += 2) {
+          if (shouldFlip(stack[flipIndex], stack[j])) {
+            flipIndex = j;
+          }
+        }
+        if (flipIndex !== i) {
+          swap(stack, flipIndex, i);
+        }
+      }
+    }
+
+    function smaller(v1, v2) {
+      if (v1.type !== flexbuffers.ValueType.KEY || v2.type !== flexbuffers.ValueType.KEY) {
+        throw `Stack values are not keys ${v1} | ${v2}. Check if you combined [addKey] with add... method calls properly.`
+      }
+      if(v1.offset === v2.offset) {
+        return false;
+      }
+      let c1, c2;
+      let index = 0;
+      do {
+        c1 = view.getUint8(v1.offset + index);
+        c2 = view.getUint8(v2.offset + index);
+        if(c1 < c2) return true;
+        if(c2 < c1) return false;
+        index += 1;
+      } while (c1 !== 0 && c2 !== 0);
+      return false;
+    }
+
+    function quickSort(left, right) {
+
+      if (left < right) {
+        let mid = left + (((right - left) >> 2)) * 2;
+        let pivot = stack[mid],
+          left_new = left,
+          right_new = right;
+
+        do {
+          while (smaller(stack[left_new], pivot)) {
+            left_new += 2;
+          }
+          while (smaller(pivot, stack[right_new])) {
+            right_new -= 2;
+          }
+          if (left_new <= right_new) {
+            swap(stack, left_new, right_new);
+            left_new += 2;
+            right_new -= 2;
+          }
+        } while (left_new <= right_new);
+
+        quickSort(left, right_new);
+        quickSort(left_new, right);
+
+      }
     }
 
     let sorted = true;
@@ -629,21 +709,10 @@ flexbuffers.builder = (size = 2048) => {
     }
 
     if (!sorted) {
-      for (let i = stackPointer.stackPosition; i < stack.length; i += 2) {
-        let flipIndex = i;
-        for (let j = i + 2; j < stack.length; j += 2) {
-          if (shouldFlip(stack[flipIndex], stack[j])) {
-            flipIndex = j;
-          }
-        }
-        if (flipIndex !== i) {
-          const k = stack[flipIndex];
-          const v = stack[flipIndex + 1];
-          stack[flipIndex] = stack[i];
-          stack[flipIndex + 1] = stack[i + 1];
-          stack[i] = k;
-          stack[i + 1] = v;
-        }
+      if (stack.length - stackPointer.stackPosition > 40) {
+        quickSort(stackPointer.stackPosition, stack.length - 2);
+      } else {
+        selectionSort();
       }
     }
   }
@@ -855,14 +924,14 @@ flexbuffers.builder = (size = 2048) => {
       integrityCheckOnKeyAddition();
       writeKey(key);
     },
-    addInt: function(value, indirect = false, cache = false) {
+    addInt: function(value, indirect = false, deduplicate = false) {
       integrityCheckOnValueAddition();
       if (!indirect) {
         stack.push(intStackValue(value));
         return;
       }
-      if (cache && indirectIntCache.hasOwnProperty(value)) {
-        stack.push(indirectIntCache[value]);
+      if (deduplicate && indirectIntLookup.hasOwnProperty(value)) {
+        stack.push(indirectIntLookup[value]);
         return;
       }
       const stackValue = intStackValue(value);
@@ -873,18 +942,18 @@ flexbuffers.builder = (size = 2048) => {
       const stackOffset = offsetStackValue(valueOffset, flexbuffers.ValueType.INDIRECT_INT, stackValue.width);
       stack.push(stackOffset);
       offset = newOffset;
-      if (cache) {
-        indirectIntCache[value] = stackOffset;
+      if (deduplicate) {
+        indirectIntLookup[value] = stackOffset;
       }
     },
-    addUInt: function(value, indirect = false, cache = false) {
+    addUInt: function(value, indirect = false, deduplicate = false) {
       integrityCheckOnValueAddition();
       if (!indirect) {
         stack.push(uintStackValue(value));
         return;
       }
-      if (cache && indirectUIntCache.hasOwnProperty(value)) {
-        stack.push(indirectUIntCache[value]);
+      if (deduplicate && indirectUIntLookup.hasOwnProperty(value)) {
+        stack.push(indirectUIntLookup[value]);
         return;
       }
       const stackValue = uintStackValue(value);
@@ -895,18 +964,18 @@ flexbuffers.builder = (size = 2048) => {
       const stackOffset = offsetStackValue(valueOffset, flexbuffers.ValueType.INDIRECT_UINT, stackValue.width);
       stack.push(stackOffset);
       offset = newOffset;
-      if (cache) {
-        indirectUIntCache[value] = stackOffset;
+      if (deduplicate) {
+        indirectUIntLookup[value] = stackOffset;
       }
     },
-    addFloat: function(value, indirect = false, cache = false) {
+    addFloat: function(value, indirect = false, deduplicate = false) {
       integrityCheckOnValueAddition();
       if (!indirect) {
         stack.push(floatStackValue(value));
         return;
       }
-      if (cache && indirectFloatCache.hasOwnProperty(value)) {
-        stack.push(indirectFloatCache[value]);
+      if (deduplicate && indirectFloatLookup.hasOwnProperty(value)) {
+        stack.push(indirectFloatLookup[value]);
         return;
       }
       const stackValue = floatStackValue(value);
@@ -917,8 +986,8 @@ flexbuffers.builder = (size = 2048) => {
       const stackOffset = offsetStackValue(valueOffset, flexbuffers.ValueType.INDIRECT_FLOAT, stackValue.width);
       stack.push(stackOffset);
       offset = newOffset;
-      if (cache) {
-        indirectFloatCache[value] = stackOffset;
+      if (deduplicate) {
+        indirectFloatLookup[value] = stackOffset;
       }
     },
     startVector: function() {
@@ -933,8 +1002,8 @@ flexbuffers.builder = (size = 2048) => {
   };
 };
 
-flexbuffers.encode = (object, size = 2048) => {
-  const builder = flexbuffers.builder(size > 0 ? size : 2048);
+flexbuffers.encode = (object, size = 2048, deduplicateStrings = true, deduplicateKeys = true, deduplicateKeyVectors = true) => {
+  const builder = flexbuffers.builder(size > 0 ? size : 2048, deduplicateStrings, deduplicateKeys, deduplicateKeyVectors);
   builder.add(object);
   return builder.finish();
 };
