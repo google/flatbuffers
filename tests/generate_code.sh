@@ -52,7 +52,7 @@ $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS -o namespace_test namespace_te
 ../flatc --dart monster_extra.fbs
 
 # Generate optional scalar code for tests.
-../flatc --rust optional_scalars.fbs
+../flatc --rust --lobster optional_scalars.fbs
 
 # Generate the schema evolution tests
 ../flatc --cpp --scoped-enums $TEST_CPP_FLAGS -o evolution_test ./evolution_test/evolution_v*.fbs

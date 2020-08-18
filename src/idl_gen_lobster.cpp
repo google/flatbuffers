@@ -110,11 +110,14 @@ class LobsterGenerator : public BaseGenerator {
               offsets + ")";
 
       } else {
+        auto defval = field.nullable ? "0" : field.value.constant;
         acc = "buf_.flatbuffers_field_" + GenTypeName(field.value.type) +
-              "(pos_, " + offsets + ", " + field.value.constant + ")";
+              "(pos_, " + offsets + ", " + defval + ")";
       }
       if (field.value.type.enum_def)
         acc = NormalizedName(*field.value.type.enum_def) + "(" + acc + ")";
+      if (field.nullable)
+        acc += ", buf_.flatbuffers_field_present(pos_, " + offsets + ")";
       code += def + "():\n        return " + acc + "\n";
       return;
     }
@@ -198,7 +201,7 @@ class LobsterGenerator : public BaseGenerator {
               NormalizedName(field) + ":" + LobsterType(field.value.type) +
               "):\n        b_.Prepend" + GenMethod(field.value.type) + "Slot(" +
               NumToString(offset) + ", " + NormalizedName(field);
-      if (IsScalar(field.value.type.base_type))
+      if (IsScalar(field.value.type.base_type) && !field.nullable)
         code += ", " + field.value.constant;
       code += ")\n        return this\n";
     }

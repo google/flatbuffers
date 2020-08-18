@@ -14,6 +14,7 @@
 
 import from "../lobster/"
 import monster_test_generated
+import optional_scalars_generated
 
 def check_read_buffer(buf):
     // CheckReadBuffer checks that the given buffer is evaluated correctly as the example Monster.
@@ -108,6 +109,28 @@ def make_monster_from_generated_code():
 
     return b.SizedCopy()
 
+def test_optional_scalars():
+    def build(add_fields):
+        let b = flatbuffers_builder {}
+        let ss = optional_scalars_ScalarStuffBuilder { b }.start()
+        if add_fields:
+            ss.add_just_i8(1)
+            ss.add_maybe_i8(1)
+            ss.add_default_i8(1)
+        b.Finish(ss.end())
+        return optional_scalars_GetRootAsScalarStuff(b.SizedCopy())
+
+    var root = build(true)
+    assert root.just_i8() == 1 and root.default_i8() == 1
+    var maybe_val, maybe_present = root.maybe_i8()
+    assert maybe_val == 1 and maybe_present == true
+
+    root = build(false)
+    assert root.just_i8() == 0 and root.default_i8() == 42
+    maybe_val, maybe_present = root.maybe_i8()
+    assert maybe_val == 0 and maybe_present == false
+
+
 // Verify that the canonical flatbuffer file (produced by the C++ implementation)
 // is readable by the generated Lobster code.
 let fb2 = read_file("monsterdata_test.mon")
@@ -133,5 +156,8 @@ let fb3, err2 = flatbuffers_json_to_binary(schema, json, includedirs)
 assert not err2
 // Check the resulting binary again (full roundtrip test):
 check_read_buffer(fb3)
+
+// Additional tests.
+test_optional_scalars()
 
 print "Lobster test succesful!"
