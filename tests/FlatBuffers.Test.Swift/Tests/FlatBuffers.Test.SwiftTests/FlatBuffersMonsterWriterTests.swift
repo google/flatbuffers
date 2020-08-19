@@ -81,12 +81,10 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     func readMonster(fb: ByteBuffer) {
         var monster = Monster.getRootAsMonster(bb: fb)
         readFlatbufferMonster(monster: &monster)
-        var unpacked: MyGame_Example_MonsterT? = monster.unpack()
+        let unpacked: MyGame_Example_MonsterT? = monster.unpack()
         readObjectApi(monster: unpacked!)
-        var builder = FlatBufferBuilder()
-        let root = Monster.pack(&builder, obj: &unpacked)
-        builder.finish(offset: root)
-        var newMonster = Monster.getRootAsMonster(bb: builder.sizedBuffer)
+        guard let buffer = unpacked?.serialize() else { fatalError("Couldnt generate bytebuffer") }
+        var newMonster = Monster.getRootAsMonster(bb: buffer)
         readFlatbufferMonster(monster: &newMonster)
     }
     
