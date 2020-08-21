@@ -20,14 +20,14 @@ public enum Character: UInt8, Enum {
     public static var min: Character { return .none_ }
 }
 
-struct CharacterUnion {
-    var type: Character
-    var value: NativeTable?
-    init(_ v: NativeTable?, type: Character) {
+public struct CharacterUnion {
+    public var type: Character
+    public var value: NativeTable?
+    public init(_ v: NativeTable?, type: Character) {
         self.type = type
         self.value = v
     }
-    func pack(builder: inout FlatBufferBuilder) -> Offset<UOffset> {
+    public func pack(builder: inout FlatBufferBuilder) -> Offset<UOffset> {
         switch type {
         case .mulan:
             var __obj = value as? AttackerT
@@ -74,13 +74,13 @@ public struct Rapunzel: Readable {
 
 public class RapunzelT: NativeTable {
 
-    var hairLength: Int32
+    public var hairLength: Int32
 
-    init(_ _t: inout Rapunzel) {
+    public init(_ _t: inout Rapunzel) {
         hairLength = _t.hairLength
     }
 
-    init() {
+    public init() {
         hairLength = 0
     }
 
@@ -114,13 +114,13 @@ public struct BookReader: Readable {
 
 public class BookReaderT: NativeTable {
 
-    var booksRead: Int32
+    public var booksRead: Int32
 
-    init(_ _t: inout BookReader) {
+    public init(_ _t: inout BookReader) {
         booksRead = _t.booksRead
     }
 
-    init() {
+    public init() {
         booksRead = 0
     }
 
@@ -157,7 +157,7 @@ public struct Attacker: FlatBufferObject, ObjectAPI {
     private init(_ t: Table) { _accessor = t }
     public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
-    enum VTOFFSET: VOffset {
+    private enum VTOFFSET: VOffset {
         case swordAttackDamage = 4
         var v: Int32 { Int32(self.rawValue) }
         var p: VOffset { self.rawValue }
@@ -195,17 +195,17 @@ public struct Attacker: FlatBufferObject, ObjectAPI {
 
 public class AttackerT: NativeTable {
 
-    var swordAttackDamage: Int32
+    public var swordAttackDamage: Int32
 
-    init(_ _t: inout Attacker) {
+    public init(_ _t: inout Attacker) {
         swordAttackDamage = _t.swordAttackDamage
     }
 
-    init() {
+    public init() {
         swordAttackDamage = 0
     }
 
-    func serialize() -> ByteBuffer { return serialize(type: Attacker.self) }
+    public func serialize() -> ByteBuffer { return serialize(type: Attacker.self) }
 
 }
 public struct Movie: FlatBufferObject, ObjectAPI {
@@ -220,7 +220,7 @@ public struct Movie: FlatBufferObject, ObjectAPI {
     private init(_ t: Table) { _accessor = t }
     public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
-    enum VTOFFSET: VOffset {
+    private enum VTOFFSET: VOffset {
         case mainCharacterType = 4
         case mainCharacter = 6
         case charactersType = 8
@@ -288,10 +288,10 @@ public struct Movie: FlatBufferObject, ObjectAPI {
 
 public class MovieT: NativeTable {
 
-    var mainCharacter: CharacterUnion?
-    var characters: [CharacterUnion?]
+    public var mainCharacter: CharacterUnion?
+    public var characters: [CharacterUnion?]
 
-    init(_ _t: inout Movie) {
+    public init(_ _t: inout Movie) {
         switch _t.mainCharacterType {
         case .mulan:
             var _v = _t.mainCharacter(type: Attacker.self)
@@ -327,10 +327,10 @@ public class MovieT: NativeTable {
         }
     }
 
-    init() {
+    public init() {
         characters = []
     }
 
-    func serialize() -> ByteBuffer { return serialize(type: Movie.self) }
+    public func serialize() -> ByteBuffer { return serialize(type: Movie.self) }
 
 }
