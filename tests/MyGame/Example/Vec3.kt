@@ -17,19 +17,25 @@ class Vec3 : Struct() {
         return this
     }
     val x : Float get() = bb.getFloat(bb_pos + 0)
+    @ExperimentalUnsignedTypes
     fun mutateX(x: Float) : ByteBuffer = bb.putFloat(bb_pos + 0, x)
     val y : Float get() = bb.getFloat(bb_pos + 4)
+    @ExperimentalUnsignedTypes
     fun mutateY(y: Float) : ByteBuffer = bb.putFloat(bb_pos + 4, y)
     val z : Float get() = bb.getFloat(bb_pos + 8)
+    @ExperimentalUnsignedTypes
     fun mutateZ(z: Float) : ByteBuffer = bb.putFloat(bb_pos + 8, z)
     val test1 : Double get() = bb.getDouble(bb_pos + 16)
+    @ExperimentalUnsignedTypes
     fun mutateTest1(test1: Double) : ByteBuffer = bb.putDouble(bb_pos + 16, test1)
     @ExperimentalUnsignedTypes
     val test2 : UByte get() = bb.get(bb_pos + 24).toUByte()
+    @ExperimentalUnsignedTypes
     fun mutateTest2(test2: UByte) : ByteBuffer = bb.put(bb_pos + 24, test2.toByte())
     val test3 : MyGame.Example.Test? get() = test3(MyGame.Example.Test())
     fun test3(obj: MyGame.Example.Test) : MyGame.Example.Test? = obj.__assign(bb_pos + 26, bb)
     companion object {
+        @ExperimentalUnsignedTypes
         fun createVec3(builder: FlatBufferBuilder, x: Float, y: Float, z: Float, test1: Double, test2: UByte, test3_a: Short, test3_b: Byte) : Int {
             builder.prep(8, 32)
             builder.pad(2)

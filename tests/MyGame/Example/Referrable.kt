@@ -22,6 +22,7 @@ class Referrable : Table() {
             val o = __offset(4)
             return if(o != 0) bb.getLong(o + bb_pos).toULong() else 0UL
         }
+    @ExperimentalUnsignedTypes
     fun mutateId(id: ULong) : Boolean {
         val o = __offset(4)
         return if (o != 0) {
@@ -49,6 +50,7 @@ class Referrable : Table() {
             return endReferrable(builder)
         }
         fun startReferrable(builder: FlatBufferBuilder) = builder.startTable(1)
+        @ExperimentalUnsignedTypes
         fun addId(builder: FlatBufferBuilder, id: ULong) = builder.addLong(0, id.toLong(), 0)
         fun endReferrable(builder: FlatBufferBuilder) : Int {
             val o = builder.endTable()

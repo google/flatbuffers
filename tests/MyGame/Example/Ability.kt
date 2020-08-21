@@ -18,11 +18,14 @@ class Ability : Struct() {
     }
     @ExperimentalUnsignedTypes
     val id : UInt get() = bb.getInt(bb_pos + 0).toUInt()
+    @ExperimentalUnsignedTypes
     fun mutateId(id: UInt) : ByteBuffer = bb.putInt(bb_pos + 0, id.toInt())
     @ExperimentalUnsignedTypes
     val distance : UInt get() = bb.getInt(bb_pos + 4).toUInt()
+    @ExperimentalUnsignedTypes
     fun mutateDistance(distance: UInt) : ByteBuffer = bb.putInt(bb_pos + 4, distance.toInt())
     companion object {
+        @ExperimentalUnsignedTypes
         fun createAbility(builder: FlatBufferBuilder, id: UInt, distance: UInt) : Int {
             builder.prep(4, 8)
             builder.putInt(distance.toInt())
