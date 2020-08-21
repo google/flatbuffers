@@ -620,10 +620,11 @@ class KotlinGenerator : public BaseGenerator {
     auto method_name = "create" + MakeCamel(Esc(field.name)) + "Vector";
     auto params = "builder: FlatBufferBuilder, data: " +
                   GenTypeBasic(vector_type.base_type) + "Array";
+    auto cast = CastToSigned(vector_type);
     writer.SetValue("size", NumToString(InlineSize(vector_type)));
     writer.SetValue("align", NumToString(InlineAlignment(vector_type)));
     writer.SetValue("root", GenMethod(vector_type));
-    writer.SetValue("cast", CastToSigned(vector_type));
+    writer.SetValue("cast", cast);
 
     GenerateFun(writer, method_name, params, "Int", [&]() {
       writer += "builder.startVector({{size}}, data.size, {{align}})";
@@ -633,7 +634,7 @@ class KotlinGenerator : public BaseGenerator {
       writer.DecrementIdentLevel();
       writer += "}";
       writer += "return builder.endVector()";
-    }, options.gen_jvmstatic);
+    }, options.gen_jvmstatic, !cast.empty());
   }
 
   void GenerateStartVectorField(FieldDef &field, CodeWriter &writer,
@@ -668,7 +669,7 @@ class KotlinGenerator : public BaseGenerator {
 
                          writer += "builder.add{{method_name}}({{pos}}, \\";
                          writer += "{{field_name}}{{cast}}, {{default}})";
-                       }, options.gen_jvmstatic);
+                       }, options.gen_jvmstatic, IsUnsigned(field.value.type.base_type));
   }
 
   static std::string ToSignedType(const Type &type) {
@@ -956,7 +957,7 @@ class KotlinGenerator : public BaseGenerator {
               OffsetWrapper(
                   writer, offset_val, [&]() { writer += found; },
                   [&]() { writer += not_found; });
-            }, false, ucast);
+            }, false, !ucast.empty());
             break;
           }
           case BASE_TYPE_UNION:
@@ -1082,6 +1083,7 @@ class KotlinGenerator : public BaseGenerator {
         auto name = "mutate" + MakeCamel(Esc(field.name), true);
         auto size = NumToString(InlineSize(underlying_type));
         auto params = Esc(field.name) + ": " + GenTypeGet(underlying_type);
+        bool has_unsigned_params = HasUnsignedTypeParameters(struct_def);
         // A vector mutator also needs the index of the vector element it should
         // mutate.
         if (value_base_type == BASE_TYPE_VECTOR) params.insert(0, "j: Int, ");
@@ -1119,9 +1121,11 @@ class KotlinGenerator : public BaseGenerator {
           };
 
           if (struct_def.fixed) {
-            GenerateFunOneLine(writer, name, params, "ByteBuffer", statements);
+            GenerateFunOneLine(writer, name, params, "ByteBuffer", statements,
+                               false, has_unsigned_params);
           } else {
-            GenerateFun(writer, name, params, "Boolean", statements);
+            GenerateFun(writer, name, params, "Boolean", statements,
+                        false, has_unsigned_params);
           }
         }
       }
@@ -1252,6 +1256,17 @@ class KotlinGenerator : public BaseGenerator {
     writer += "}";
   }
 
+  static bool HasUnsignedTypeParameters(const StructDef &struct_def) {
+    auto fields_vec = struct_def.fields.vec;
+    for (auto it = fields_vec.rbegin(); it != fields_vec.rend(); ++it) {
+      auto &field = **it;
+      if (!CastToSigned(field.value.type).empty()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   static void GenerateStaticConstructor(const StructDef &struct_def,
                                         CodeWriter &code,
                                         const IDLOptions options) {
@@ -1260,7 +1275,7 @@ class KotlinGenerator : public BaseGenerator {
     GenerateFun(code, "create" + Esc(struct_def.name), params, "Int", [&]() {
       GenStructBody(struct_def, code, "");
       code += "return builder.offset()";
-    }, options.gen_jvmstatic);
+    }, options.gen_jvmstatic, HasUnsignedTypeParameters(struct_def));
   }
 
   static std::string StructConstructorParams(const StructDef &struct_def,
@@ -1340,7 +1355,7 @@ class KotlinGenerator : public BaseGenerator {
                           const std::string &returnType,
                           const std::function<void()> &body,
                           bool gen_jvmstatic = false,
-                          const std::string ucast = "") {
+                          bool gen_experimental_unsigned_types = false) {
     // Generates Kotlin function
     // e.g.:
     // fun path(j: Int): Vec3 {
@@ -1351,7 +1366,9 @@ class KotlinGenerator : public BaseGenerator {
     writer.SetValue("params", params);
     writer.SetValue("return_type", noreturn ? "" : ": " + returnType);
     GenerateJvmStaticAnnotation(writer, gen_jvmstatic);
-    GenerateExperimentalUnsignedTypesAnnotation(writer, ucast);
+    if (gen_experimental_unsigned_types) {
+      GenerateExperimentalUnsignedTypesAnnotation(writer);
+    }
     writer += "fun {{name}}({{params}}) {{return_type}} {";
     writer.IncrementIdentLevel();
     body();
@@ -1363,7 +1380,8 @@ class KotlinGenerator : public BaseGenerator {
                                  const std::string &params,
                                  const std::string &returnType,
                                  const std::function<void()> &body,
-                                 bool gen_jvmstatic = false) {
+                                 bool gen_jvmstatic = false,
+                                 bool gen_experimental_unsigned_types = false) {
     // Generates Kotlin function
     // e.g.:
     // fun path(j: Int): Vec3 = return path(Vec3(), j)
@@ -1372,6 +1390,9 @@ class KotlinGenerator : public BaseGenerator {
     writer.SetValue("return_type_p",
                     returnType.empty() ? "" : " : " + returnType);
     GenerateJvmStaticAnnotation(writer, gen_jvmstatic);
+    if (gen_experimental_unsigned_types) {
+      GenerateExperimentalUnsignedTypesAnnotation(writer);
+    }
     writer += "fun {{name}}({{params}}){{return_type_p}} = \\";
     body();
   }
