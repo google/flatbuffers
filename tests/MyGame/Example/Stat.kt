@@ -7,7 +7,6 @@ import kotlin.math.sign
 import com.google.flatbuffers.*
 
 @Suppress("unused")
-@ExperimentalUnsignedTypes
 class Stat : Table() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {
@@ -38,6 +37,7 @@ class Stat : Table() {
             false
         }
     }
+    @ExperimentalUnsignedTypes
     val count : UShort
         get() {
             val o = __offset(8)

@@ -10,7 +10,6 @@ import com.google.flatbuffers.*
  * an example documentation comment: "monster object"
  */
 @Suppress("unused")
-@ExperimentalUnsignedTypes
 class Monster : Table() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {
@@ -64,6 +63,7 @@ class Monster : Table() {
         }
     val nameAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(10, 1)
     fun nameInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 10, 1)
+    @ExperimentalUnsignedTypes
     fun inventory(j: Int) : UByte {
         val o = __offset(14)
         return if (o != 0) {
@@ -87,6 +87,7 @@ class Monster : Table() {
             false
         }
     }
+    @ExperimentalUnsignedTypes
     val color : UByte
         get() {
             val o = __offset(16)
@@ -101,6 +102,7 @@ class Monster : Table() {
             false
         }
     }
+    @ExperimentalUnsignedTypes
     val testType : UByte
         get() {
             val o = __offset(18)
@@ -185,6 +187,7 @@ class Monster : Table() {
             null
         }
     }
+    @ExperimentalUnsignedTypes
     fun testnestedflatbuffer(j: Int) : UByte {
         val o = __offset(30)
         return if (o != 0) {
@@ -254,6 +257,7 @@ class Monster : Table() {
             false
         }
     }
+    @ExperimentalUnsignedTypes
     val testhashu32Fnv1 : UInt
         get() {
             val o = __offset(38)
@@ -282,6 +286,7 @@ class Monster : Table() {
             false
         }
     }
+    @ExperimentalUnsignedTypes
     val testhashu64Fnv1 : ULong
         get() {
             val o = __offset(42)
@@ -310,6 +315,7 @@ class Monster : Table() {
             false
         }
     }
+    @ExperimentalUnsignedTypes
     val testhashu32Fnv1a : UInt
         get() {
             val o = __offset(46)
@@ -338,6 +344,7 @@ class Monster : Table() {
             false
         }
     }
+    @ExperimentalUnsignedTypes
     val testhashu64Fnv1a : ULong
         get() {
             val o = __offset(50)
@@ -442,6 +449,7 @@ class Monster : Table() {
         get() {
             val o = __offset(62); return if (o != 0) __vector_len(o) else 0
         }
+    @ExperimentalUnsignedTypes
     fun flex(j: Int) : UByte {
         val o = __offset(64)
         return if (o != 0) {
@@ -562,6 +570,7 @@ class Monster : Table() {
             null
         }
     }
+    @ExperimentalUnsignedTypes
     val singleWeakReference : ULong
         get() {
             val o = __offset(76)
@@ -576,6 +585,7 @@ class Monster : Table() {
             false
         }
     }
+    @ExperimentalUnsignedTypes
     fun vectorOfWeakReferences(j: Int) : ULong {
         val o = __offset(78)
         return if (o != 0) {
@@ -628,6 +638,7 @@ class Monster : Table() {
             null
         }
     }
+    @ExperimentalUnsignedTypes
     val coOwningReference : ULong
         get() {
             val o = __offset(82)
@@ -642,6 +653,7 @@ class Monster : Table() {
             false
         }
     }
+    @ExperimentalUnsignedTypes
     fun vectorOfCoOwningReferences(j: Int) : ULong {
         val o = __offset(84)
         return if (o != 0) {
@@ -665,6 +677,7 @@ class Monster : Table() {
             false
         }
     }
+    @ExperimentalUnsignedTypes
     val nonOwningReference : ULong
         get() {
             val o = __offset(86)
@@ -679,6 +692,7 @@ class Monster : Table() {
             false
         }
     }
+    @ExperimentalUnsignedTypes
     fun vectorOfNonOwningReferences(j: Int) : ULong {
         val o = __offset(88)
         return if (o != 0) {
@@ -702,6 +716,7 @@ class Monster : Table() {
             false
         }
     }
+    @ExperimentalUnsignedTypes
     val anyUniqueType : UByte
         get() {
             val o = __offset(90)
@@ -719,6 +734,7 @@ class Monster : Table() {
     fun anyUnique(obj: Table) : Table? {
         val o = __offset(92); return if (o != 0) __union(obj, o + bb_pos) else null
     }
+    @ExperimentalUnsignedTypes
     val anyAmbiguousType : UByte
         get() {
             val o = __offset(94)
@@ -736,6 +752,7 @@ class Monster : Table() {
     fun anyAmbiguous(obj: Table) : Table? {
         val o = __offset(96); return if (o != 0) __union(obj, o + bb_pos) else null
     }
+    @ExperimentalUnsignedTypes
     fun vectorOfEnums(j: Int) : UByte {
         val o = __offset(98)
         return if (o != 0) {

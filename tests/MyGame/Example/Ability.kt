@@ -7,7 +7,6 @@ import kotlin.math.sign
 import com.google.flatbuffers.*
 
 @Suppress("unused")
-@ExperimentalUnsignedTypes
 class Ability : Struct() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {
@@ -17,8 +16,10 @@ class Ability : Struct() {
         __init(_i, _bb)
         return this
     }
+    @ExperimentalUnsignedTypes
     val id : UInt get() = bb.getInt(bb_pos + 0).toUInt()
     fun mutateId(id: UInt) : ByteBuffer = bb.putInt(bb_pos + 0, id.toInt())
+    @ExperimentalUnsignedTypes
     val distance : UInt get() = bb.getInt(bb_pos + 4).toUInt()
     fun mutateDistance(distance: UInt) : ByteBuffer = bb.putInt(bb_pos + 4, distance.toInt())
     companion object {

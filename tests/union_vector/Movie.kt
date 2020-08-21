@@ -5,7 +5,6 @@ import kotlin.math.sign
 import com.google.flatbuffers.*
 
 @Suppress("unused")
-@ExperimentalUnsignedTypes
 class Movie : Table() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {
@@ -15,6 +14,7 @@ class Movie : Table() {
         __init(_i, _bb)
         return this
     }
+    @ExperimentalUnsignedTypes
     val mainCharacterType : UByte
         get() {
             val o = __offset(4)
@@ -32,6 +32,7 @@ class Movie : Table() {
     fun mainCharacter(obj: Table) : Table? {
         val o = __offset(6); return if (o != 0) __union(obj, o + bb_pos) else null
     }
+    @ExperimentalUnsignedTypes
     fun charactersType(j: Int) : UByte {
         val o = __offset(8)
         return if (o != 0) {

@@ -7,7 +7,6 @@ import kotlin.math.sign
 import com.google.flatbuffers.*
 
 @Suppress("unused")
-@ExperimentalUnsignedTypes
 class TestSimpleTableWithEnum : Table() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {
@@ -17,6 +16,7 @@ class TestSimpleTableWithEnum : Table() {
         __init(_i, _bb)
         return this
     }
+    @ExperimentalUnsignedTypes
     val color : UByte
         get() {
             val o = __offset(4)

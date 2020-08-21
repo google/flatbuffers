@@ -7,7 +7,6 @@ import kotlin.math.sign
 import com.google.flatbuffers.*
 
 @Suppress("unused")
-@ExperimentalUnsignedTypes
 class TypeAliases : Table() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {
@@ -31,6 +30,7 @@ class TypeAliases : Table() {
             false
         }
     }
+    @ExperimentalUnsignedTypes
     val u8 : UByte
         get() {
             val o = __offset(6)
@@ -59,6 +59,7 @@ class TypeAliases : Table() {
             false
         }
     }
+    @ExperimentalUnsignedTypes
     val u16 : UShort
         get() {
             val o = __offset(10)
@@ -87,6 +88,7 @@ class TypeAliases : Table() {
             false
         }
     }
+    @ExperimentalUnsignedTypes
     val u32 : UInt
         get() {
             val o = __offset(14)
@@ -115,6 +117,7 @@ class TypeAliases : Table() {
             false
         }
     }
+    @ExperimentalUnsignedTypes
     val u64 : ULong
         get() {
             val o = __offset(18)
