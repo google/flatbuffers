@@ -1468,15 +1468,15 @@ class KotlinGenerator : public BaseGenerator {
   }
 
   // Prepend @JvmStatic to methods in companion object.
-  static void GenerateJvmStaticAnnotation(CodeWriter &code, bool gen_jvmstatic) {
-    if (gen_jvmstatic) {
+  static void GenerateJvmStaticAnnotation(CodeWriter &code, bool generate) {
+    if (generate) {
       code += "@JvmStatic";
     }
   }
 
   // Prepend @ExperimentalUnsignedTypes to methods or fields using unsigned type.
-  static void GenerateExperimentalUnsignedTypesAnnotation(CodeWriter &writer, bool gen_annotation) {
-    if (gen_annotation) {
+  static void GenerateExperimentalUnsignedTypesAnnotation(CodeWriter &writer, bool generate) {
+    if (generate) {
       writer += "@ExperimentalUnsignedTypes";
     }
   }
