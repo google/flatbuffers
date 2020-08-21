@@ -1475,9 +1475,9 @@ class KotlinGenerator : public BaseGenerator {
   }
 
   // Prepend @ExperimentalUnsignedTypes to methods or fields using unsigned type.
-  static void GenerateExperimentalUnsignedTypesAnnotation(CodeWriter &writer, bool generate) {
+  static void GenerateExperimentalUnsignedTypesAnnotation(CodeWriter &code, bool generate) {
     if (generate) {
-      writer += "@ExperimentalUnsignedTypes";
+      code += "@ExperimentalUnsignedTypes";
     }
   }
 
