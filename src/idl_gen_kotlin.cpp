@@ -16,7 +16,10 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 
+#include <zlib.h>
+
 #include <functional>
+#include <iostream>
 #include <unordered_set>
 
 #include "flatbuffers/code_generators.h"
@@ -1121,10 +1124,10 @@ class KotlinGenerator : public BaseGenerator {
 
           if (struct_def.fixed) {
             GenerateFunOneLine(writer, name, params, "ByteBuffer", statements,
-                               false, IsUnsigned(value_base_type));
+                               false, !CastToSigned(field).empty());
           } else {
             GenerateFun(writer, name, params, "Boolean", statements,
-                        false, IsUnsigned(value_base_type));
+                        false, !CastToSigned(field).empty());
           }
         }
       }
