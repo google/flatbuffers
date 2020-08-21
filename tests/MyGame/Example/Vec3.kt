@@ -17,16 +17,12 @@ class Vec3 : Struct() {
         return this
     }
     val x : Float get() = bb.getFloat(bb_pos + 0)
-    @ExperimentalUnsignedTypes
     fun mutateX(x: Float) : ByteBuffer = bb.putFloat(bb_pos + 0, x)
     val y : Float get() = bb.getFloat(bb_pos + 4)
-    @ExperimentalUnsignedTypes
     fun mutateY(y: Float) : ByteBuffer = bb.putFloat(bb_pos + 4, y)
     val z : Float get() = bb.getFloat(bb_pos + 8)
-    @ExperimentalUnsignedTypes
     fun mutateZ(z: Float) : ByteBuffer = bb.putFloat(bb_pos + 8, z)
     val test1 : Double get() = bb.getDouble(bb_pos + 16)
-    @ExperimentalUnsignedTypes
     fun mutateTest1(test1: Double) : ByteBuffer = bb.putDouble(bb_pos + 16, test1)
     @ExperimentalUnsignedTypes
     val test2 : UByte get() = bb.get(bb_pos + 24).toUByte()

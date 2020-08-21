@@ -28,7 +28,6 @@ class Stat : Table() {
             val o = __offset(6)
             return if(o != 0) bb.getLong(o + bb_pos) else 0L
         }
-    @ExperimentalUnsignedTypes
     fun mutateVal_(val_: Long) : Boolean {
         val o = __offset(6)
         return if (o != 0) {
