@@ -245,6 +245,9 @@ class KotlinGenerator : public BaseGenerator {
         writer.SetValue("type", field_type);
         writer.SetValue("val", val + suffix);
         GenerateComment(ev.doc_comment, writer, &comment_config);
+        if (IsUnsigned(enum_def.underlying_type.base_type)) {
+          GenerateExperimentalUnsignedTypesAnnotation(writer);
+        }
         writer += "const val {{name}}: {{type}} = {{val}}";
       }
 
@@ -1454,12 +1457,15 @@ class KotlinGenerator : public BaseGenerator {
     }
   }
 
-  // Prepend @ExperimentalUnsignedTypes annotation to methods using experimental unsigned type.
   static void GenerateExperimentalUnsignedTypesAnnotation(CodeWriter &writer,
                                                           const std::string &ucast) {
     if (!ucast.empty()) {
-      writer += "@ExperimentalUnsignedTypes";
+      GenerateExperimentalUnsignedTypesAnnotation(writer);
     }
+  }
+
+  static void GenerateExperimentalUnsignedTypesAnnotation(CodeWriter &writer) {
+    writer += "@ExperimentalUnsignedTypes";
   }
 
   // This tracks the current namespace used to determine if a type need to be
