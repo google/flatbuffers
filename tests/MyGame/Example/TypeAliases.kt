@@ -6,7 +6,7 @@ import java.nio.*
 import kotlin.math.sign
 import com.google.flatbuffers.*
 
-@Suppress("unused")
+@ExperimentalUnsignedTypes@Suppress("unused")
 class TypeAliases : Table() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {
@@ -30,13 +30,11 @@ class TypeAliases : Table() {
             false
         }
     }
-    @ExperimentalUnsignedTypes
     val u8 : UByte
         get() {
             val o = __offset(6)
             return if(o != 0) bb.get(o + bb_pos).toUByte() else 0u
         }
-    @ExperimentalUnsignedTypes
     fun mutateU8(u8: UByte) : Boolean {
         val o = __offset(6)
         return if (o != 0) {
@@ -60,13 +58,11 @@ class TypeAliases : Table() {
             false
         }
     }
-    @ExperimentalUnsignedTypes
     val u16 : UShort
         get() {
             val o = __offset(10)
             return if(o != 0) bb.getShort(o + bb_pos).toUShort() else 0u
         }
-    @ExperimentalUnsignedTypes
     fun mutateU16(u16: UShort) : Boolean {
         val o = __offset(10)
         return if (o != 0) {
@@ -90,13 +86,11 @@ class TypeAliases : Table() {
             false
         }
     }
-    @ExperimentalUnsignedTypes
     val u32 : UInt
         get() {
             val o = __offset(14)
             return if(o != 0) bb.getInt(o + bb_pos).toUInt() else 0u
         }
-    @ExperimentalUnsignedTypes
     fun mutateU32(u32: UInt) : Boolean {
         val o = __offset(14)
         return if (o != 0) {
@@ -120,13 +114,11 @@ class TypeAliases : Table() {
             false
         }
     }
-    @ExperimentalUnsignedTypes
     val u64 : ULong
         get() {
             val o = __offset(18)
             return if(o != 0) bb.getLong(o + bb_pos).toULong() else 0UL
         }
-    @ExperimentalUnsignedTypes
     fun mutateU64(u64: ULong) : Boolean {
         val o = __offset(18)
         return if (o != 0) {
@@ -235,16 +227,12 @@ class TypeAliases : Table() {
         }
         fun startTypeAliases(builder: FlatBufferBuilder) = builder.startTable(12)
         fun addI8(builder: FlatBufferBuilder, i8: Byte) = builder.addByte(0, i8, 0)
-        @ExperimentalUnsignedTypes
         fun addU8(builder: FlatBufferBuilder, u8: UByte) = builder.addByte(1, u8.toByte(), 0)
         fun addI16(builder: FlatBufferBuilder, i16: Short) = builder.addShort(2, i16, 0)
-        @ExperimentalUnsignedTypes
         fun addU16(builder: FlatBufferBuilder, u16: UShort) = builder.addShort(3, u16.toShort(), 0)
         fun addI32(builder: FlatBufferBuilder, i32: Int) = builder.addInt(4, i32, 0)
-        @ExperimentalUnsignedTypes
         fun addU32(builder: FlatBufferBuilder, u32: UInt) = builder.addInt(5, u32.toInt(), 0)
         fun addI64(builder: FlatBufferBuilder, i64: Long) = builder.addLong(6, i64, 0L)
-        @ExperimentalUnsignedTypes
         fun addU64(builder: FlatBufferBuilder, u64: ULong) = builder.addLong(7, u64.toLong(), 0)
         fun addF32(builder: FlatBufferBuilder, f32: Float) = builder.addFloat(8, f32, 0.0)
         fun addF64(builder: FlatBufferBuilder, f64: Double) = builder.addDouble(9, f64, 0.0)

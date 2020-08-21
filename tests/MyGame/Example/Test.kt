@@ -6,7 +6,7 @@ import java.nio.*
 import kotlin.math.sign
 import com.google.flatbuffers.*
 
-@Suppress("unused")
+@ExperimentalUnsignedTypes@Suppress("unused")
 class Test : Struct() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {

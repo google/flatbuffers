@@ -2,24 +2,21 @@
 
 package MyGame.Example
 
-/**
+@ExperimentalUnsignedTypes/**
  * Composite components of Monster color.
  */
 @Suppress("unused")
 class Color private constructor() {
     companion object {
-        @ExperimentalUnsignedTypes
         const val Red: UByte = 1u
         /**
          * \brief color Green
          * Green is bit_flag with value (1u << 1)
          */
-        @ExperimentalUnsignedTypes
         const val Green: UByte = 2u
         /**
          * \brief color Blue (1u << 3)
          */
-        @ExperimentalUnsignedTypes
         const val Blue: UByte = 8u
         val names : Array<String> = arrayOf("Red", "Green", "", "", "", "", "", "Blue")
         fun name(e: Int) : String = names[e - Red.toInt()]

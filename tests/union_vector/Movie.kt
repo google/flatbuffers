@@ -4,7 +4,7 @@ import java.nio.*
 import kotlin.math.sign
 import com.google.flatbuffers.*
 
-@Suppress("unused")
+@ExperimentalUnsignedTypes@Suppress("unused")
 class Movie : Table() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {
@@ -14,13 +14,11 @@ class Movie : Table() {
         __init(_i, _bb)
         return this
     }
-    @ExperimentalUnsignedTypes
     val mainCharacterType : UByte
         get() {
             val o = __offset(4)
             return if(o != 0) bb.get(o + bb_pos).toUByte() else 0u
         }
-    @ExperimentalUnsignedTypes
     fun mutateMainCharacterType(mainCharacterType: UByte) : Boolean {
         val o = __offset(4)
         return if (o != 0) {
@@ -33,7 +31,6 @@ class Movie : Table() {
     fun mainCharacter(obj: Table) : Table? {
         val o = __offset(6); return if (o != 0) __union(obj, o + bb_pos) else null
     }
-    @ExperimentalUnsignedTypes
     fun charactersType(j: Int) : UByte {
         val o = __offset(8)
         return if (o != 0) {
@@ -48,7 +45,6 @@ class Movie : Table() {
         }
     val charactersTypeAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(8, 1)
     fun charactersTypeInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 8, 1)
-    @ExperimentalUnsignedTypes
     fun mutateCharactersType(j: Int, charactersType: UByte) : Boolean {
         val o = __offset(8)
         return if (o != 0) {
@@ -87,11 +83,9 @@ class Movie : Table() {
             return endMovie(builder)
         }
         fun startMovie(builder: FlatBufferBuilder) = builder.startTable(4)
-        @ExperimentalUnsignedTypes
         fun addMainCharacterType(builder: FlatBufferBuilder, mainCharacterType: UByte) = builder.addByte(0, mainCharacterType.toByte(), 0)
         fun addMainCharacter(builder: FlatBufferBuilder, mainCharacter: Int) = builder.addOffset(1, mainCharacter, 0)
         fun addCharactersType(builder: FlatBufferBuilder, charactersType: Int) = builder.addOffset(2, charactersType, 0)
-        @ExperimentalUnsignedTypes
         fun createCharactersTypeVector(builder: FlatBufferBuilder, data: UByteArray) : Int {
             builder.startVector(1, data.size, 1)
             for (i in data.size - 1 downTo 0) {

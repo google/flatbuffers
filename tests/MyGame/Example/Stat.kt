@@ -6,7 +6,7 @@ import java.nio.*
 import kotlin.math.sign
 import com.google.flatbuffers.*
 
-@Suppress("unused")
+@ExperimentalUnsignedTypes@Suppress("unused")
 class Stat : Table() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {
@@ -37,13 +37,11 @@ class Stat : Table() {
             false
         }
     }
-    @ExperimentalUnsignedTypes
     val count : UShort
         get() {
             val o = __offset(8)
             return if(o != 0) bb.getShort(o + bb_pos).toUShort() else 0u
         }
-    @ExperimentalUnsignedTypes
     fun mutateCount(count: UShort) : Boolean {
         val o = __offset(8)
         return if (o != 0) {
@@ -70,7 +68,6 @@ class Stat : Table() {
         fun startStat(builder: FlatBufferBuilder) = builder.startTable(3)
         fun addId(builder: FlatBufferBuilder, id: Int) = builder.addOffset(0, id, 0)
         fun addVal_(builder: FlatBufferBuilder, val_: Long) = builder.addLong(1, val_, 0L)
-        @ExperimentalUnsignedTypes
         fun addCount(builder: FlatBufferBuilder, count: UShort) = builder.addShort(2, count.toShort(), 0)
         fun endStat(builder: FlatBufferBuilder) : Int {
             val o = builder.endTable()

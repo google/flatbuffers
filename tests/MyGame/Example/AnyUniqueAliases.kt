@@ -2,16 +2,12 @@
 
 package MyGame.Example
 
-@Suppress("unused")
+@ExperimentalUnsignedTypes@Suppress("unused")
 class AnyUniqueAliases private constructor() {
     companion object {
-        @ExperimentalUnsignedTypes
         const val NONE: UByte = 0u
-        @ExperimentalUnsignedTypes
         const val M: UByte = 1u
-        @ExperimentalUnsignedTypes
         const val TS: UByte = 2u
-        @ExperimentalUnsignedTypes
         const val M2: UByte = 3u
         val names : Array<String> = arrayOf("NONE", "M", "TS", "M2")
         fun name(e: Int) : String = names[e]
