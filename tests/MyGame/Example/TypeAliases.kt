@@ -21,7 +21,6 @@ class TypeAliases : Table() {
             val o = __offset(4)
             return if(o != 0) bb.get(o + bb_pos) else 0
         }
-    @ExperimentalUnsignedTypes
     fun mutateI8(i8: Byte) : Boolean {
         val o = __offset(4)
         return if (o != 0) {
@@ -52,7 +51,6 @@ class TypeAliases : Table() {
             val o = __offset(8)
             return if(o != 0) bb.getShort(o + bb_pos) else 0
         }
-    @ExperimentalUnsignedTypes
     fun mutateI16(i16: Short) : Boolean {
         val o = __offset(8)
         return if (o != 0) {
@@ -83,7 +81,6 @@ class TypeAliases : Table() {
             val o = __offset(12)
             return if(o != 0) bb.getInt(o + bb_pos) else 0
         }
-    @ExperimentalUnsignedTypes
     fun mutateI32(i32: Int) : Boolean {
         val o = __offset(12)
         return if (o != 0) {
@@ -114,7 +111,6 @@ class TypeAliases : Table() {
             val o = __offset(16)
             return if(o != 0) bb.getLong(o + bb_pos) else 0L
         }
-    @ExperimentalUnsignedTypes
     fun mutateI64(i64: Long) : Boolean {
         val o = __offset(16)
         return if (o != 0) {
@@ -145,7 +141,6 @@ class TypeAliases : Table() {
             val o = __offset(20)
             return if(o != 0) bb.getFloat(o + bb_pos) else 0.0f
         }
-    @ExperimentalUnsignedTypes
     fun mutateF32(f32: Float) : Boolean {
         val o = __offset(20)
         return if (o != 0) {
@@ -160,7 +155,6 @@ class TypeAliases : Table() {
             val o = __offset(22)
             return if(o != 0) bb.getDouble(o + bb_pos) else 0.0
         }
-    @ExperimentalUnsignedTypes
     fun mutateF64(f64: Double) : Boolean {
         val o = __offset(22)
         return if (o != 0) {
@@ -184,7 +178,6 @@ class TypeAliases : Table() {
         }
     val v8AsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(24, 1)
     fun v8InByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 24, 1)
-    @ExperimentalUnsignedTypes
     fun mutateV8(j: Int, v8: Byte) : Boolean {
         val o = __offset(24)
         return if (o != 0) {
@@ -208,7 +201,6 @@ class TypeAliases : Table() {
         }
     val vf64AsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(26, 8)
     fun vf64InByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 26, 8)
-    @ExperimentalUnsignedTypes
     fun mutateVf64(j: Int, vf64: Double) : Boolean {
         val o = __offset(26)
         return if (o != 0) {

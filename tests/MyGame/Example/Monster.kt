@@ -33,7 +33,6 @@ class Monster : Table() {
             val o = __offset(6)
             return if(o != 0) bb.getShort(o + bb_pos) else 150
         }
-    @ExperimentalUnsignedTypes
     fun mutateMana(mana: Short) : Boolean {
         val o = __offset(6)
         return if (o != 0) {
@@ -48,7 +47,6 @@ class Monster : Table() {
             val o = __offset(8)
             return if(o != 0) bb.getShort(o + bb_pos) else 100
         }
-    @ExperimentalUnsignedTypes
     fun mutateHp(hp: Short) : Boolean {
         val o = __offset(8)
         return if (o != 0) {
@@ -80,7 +78,6 @@ class Monster : Table() {
         }
     val inventoryAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(14, 1)
     fun inventoryInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 14, 1)
-    @ExperimentalUnsignedTypes
     fun mutateInventory(j: Int, inventory: UByte) : Boolean {
         val o = __offset(14)
         return if (o != 0) {
@@ -216,7 +213,6 @@ class Monster : Table() {
             null
         }
     }
-    @ExperimentalUnsignedTypes
     fun mutateTestnestedflatbuffer(j: Int, testnestedflatbuffer: UByte) : Boolean {
         val o = __offset(30)
         return if (o != 0) {
@@ -240,7 +236,6 @@ class Monster : Table() {
             val o = __offset(34)
             return if(o != 0) 0.toByte() != bb.get(o + bb_pos) else false
         }
-    @ExperimentalUnsignedTypes
     fun mutateTestbool(testbool: Boolean) : Boolean {
         val o = __offset(34)
         return if (o != 0) {
@@ -255,7 +250,6 @@ class Monster : Table() {
             val o = __offset(36)
             return if(o != 0) bb.getInt(o + bb_pos) else 0
         }
-    @ExperimentalUnsignedTypes
     fun mutateTesthashs32Fnv1(testhashs32Fnv1: Int) : Boolean {
         val o = __offset(36)
         return if (o != 0) {
@@ -286,7 +280,6 @@ class Monster : Table() {
             val o = __offset(40)
             return if(o != 0) bb.getLong(o + bb_pos) else 0L
         }
-    @ExperimentalUnsignedTypes
     fun mutateTesthashs64Fnv1(testhashs64Fnv1: Long) : Boolean {
         val o = __offset(40)
         return if (o != 0) {
@@ -317,7 +310,6 @@ class Monster : Table() {
             val o = __offset(44)
             return if(o != 0) bb.getInt(o + bb_pos) else 0
         }
-    @ExperimentalUnsignedTypes
     fun mutateTesthashs32Fnv1a(testhashs32Fnv1a: Int) : Boolean {
         val o = __offset(44)
         return if (o != 0) {
@@ -348,7 +340,6 @@ class Monster : Table() {
             val o = __offset(48)
             return if(o != 0) bb.getLong(o + bb_pos) else 0L
         }
-    @ExperimentalUnsignedTypes
     fun mutateTesthashs64Fnv1a(testhashs64Fnv1a: Long) : Boolean {
         val o = __offset(48)
         return if (o != 0) {
@@ -388,7 +379,6 @@ class Monster : Table() {
         }
     val testarrayofboolsAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(52, 1)
     fun testarrayofboolsInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 52, 1)
-    @ExperimentalUnsignedTypes
     fun mutateTestarrayofbools(j: Int, testarrayofbools: Boolean) : Boolean {
         val o = __offset(52)
         return if (o != 0) {
@@ -403,7 +393,6 @@ class Monster : Table() {
             val o = __offset(54)
             return if(o != 0) bb.getFloat(o + bb_pos) else 3.14159f
         }
-    @ExperimentalUnsignedTypes
     fun mutateTestf(testf: Float) : Boolean {
         val o = __offset(54)
         return if (o != 0) {
@@ -418,7 +407,6 @@ class Monster : Table() {
             val o = __offset(56)
             return if(o != 0) bb.getFloat(o + bb_pos) else 3.0f
         }
-    @ExperimentalUnsignedTypes
     fun mutateTestf2(testf2: Float) : Boolean {
         val o = __offset(56)
         return if (o != 0) {
@@ -433,7 +421,6 @@ class Monster : Table() {
             val o = __offset(58)
             return if(o != 0) bb.getFloat(o + bb_pos) else 0.0f
         }
-    @ExperimentalUnsignedTypes
     fun mutateTestf3(testf3: Float) : Boolean {
         val o = __offset(58)
         return if (o != 0) {
@@ -483,7 +470,6 @@ class Monster : Table() {
         }
     val flexAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(64, 1)
     fun flexInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 64, 1)
-    @ExperimentalUnsignedTypes
     fun mutateFlex(j: Int, flex: UByte) : Boolean {
         val o = __offset(64)
         return if (o != 0) {
@@ -520,7 +506,6 @@ class Monster : Table() {
         }
     val vectorOfLongsAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(68, 8)
     fun vectorOfLongsInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 68, 8)
-    @ExperimentalUnsignedTypes
     fun mutateVectorOfLongs(j: Int, vectorOfLongs: Long) : Boolean {
         val o = __offset(68)
         return if (o != 0) {
@@ -544,7 +529,6 @@ class Monster : Table() {
         }
     val vectorOfDoublesAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(70, 8)
     fun vectorOfDoublesInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 70, 8)
-    @ExperimentalUnsignedTypes
     fun mutateVectorOfDoubles(j: Int, vectorOfDoubles: Double) : Boolean {
         val o = __offset(70)
         return if (o != 0) {
@@ -623,7 +607,6 @@ class Monster : Table() {
         }
     val vectorOfWeakReferencesAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(78, 8)
     fun vectorOfWeakReferencesInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 78, 8)
-    @ExperimentalUnsignedTypes
     fun mutateVectorOfWeakReferences(j: Int, vectorOfWeakReferences: ULong) : Boolean {
         val o = __offset(78)
         return if (o != 0) {
@@ -693,7 +676,6 @@ class Monster : Table() {
         }
     val vectorOfCoOwningReferencesAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(84, 8)
     fun vectorOfCoOwningReferencesInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 84, 8)
-    @ExperimentalUnsignedTypes
     fun mutateVectorOfCoOwningReferences(j: Int, vectorOfCoOwningReferences: ULong) : Boolean {
         val o = __offset(84)
         return if (o != 0) {
@@ -734,7 +716,6 @@ class Monster : Table() {
         }
     val vectorOfNonOwningReferencesAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(88, 8)
     fun vectorOfNonOwningReferencesInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 88, 8)
-    @ExperimentalUnsignedTypes
     fun mutateVectorOfNonOwningReferences(j: Int, vectorOfNonOwningReferences: ULong) : Boolean {
         val o = __offset(88)
         return if (o != 0) {
@@ -797,7 +778,6 @@ class Monster : Table() {
         }
     val vectorOfEnumsAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(98, 1)
     fun vectorOfEnumsInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 98, 1)
-    @ExperimentalUnsignedTypes
     fun mutateVectorOfEnums(j: Int, vectorOfEnums: UByte) : Boolean {
         val o = __offset(98)
         return if (o != 0) {
@@ -812,7 +792,6 @@ class Monster : Table() {
             val o = __offset(100)
             return if(o != 0) bb.get(o + bb_pos) else -1
         }
-    @ExperimentalUnsignedTypes
     fun mutateSignedEnum(signedEnum: Byte) : Boolean {
         val o = __offset(100)
         return if (o != 0) {

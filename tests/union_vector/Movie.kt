@@ -48,7 +48,6 @@ class Movie : Table() {
         }
     val charactersTypeAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(8, 1)
     fun charactersTypeInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 8, 1)
-    @ExperimentalUnsignedTypes
     fun mutateCharactersType(j: Int, charactersType: UByte) : Boolean {
         val o = __offset(8)
         return if (o != 0) {
