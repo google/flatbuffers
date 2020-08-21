@@ -248,9 +248,8 @@ class KotlinGenerator : public BaseGenerator {
         writer.SetValue("type", field_type);
         writer.SetValue("val", val + suffix);
         GenerateComment(ev.doc_comment, writer, &comment_config);
-        if (IsUnsigned(enum_def.underlying_type.base_type)) {
-          GenerateExperimentalUnsignedTypesAnnotation(writer);
-        }
+        GenerateExperimentalUnsignedTypesAnnotation(writer,
+                                                    IsUnsigned(enum_def.underlying_type.base_type));
         writer += "const val {{name}}: {{type}} = {{val}}";
       }
 
@@ -1324,9 +1323,7 @@ class KotlinGenerator : public BaseGenerator {
     // val prop: Mytype get() = x
     writer.SetValue("_name", name);
     writer.SetValue("_type", type);
-    if (gen_experimental_unsigned_types) {
-      GenerateExperimentalUnsignedTypesAnnotation(writer);
-    }
+    GenerateExperimentalUnsignedTypesAnnotation(writer, gen_experimental_unsigned_types);
     writer += "val {{_name}} : {{_type}} get() = \\";
     body();
   }
@@ -1343,9 +1340,7 @@ class KotlinGenerator : public BaseGenerator {
     //     }
     writer.SetValue("name", name);
     writer.SetValue("type", type);
-    if (gen_experimental_unsigned_type) {
-      GenerateExperimentalUnsignedTypesAnnotation(writer);
-    }
+    GenerateExperimentalUnsignedTypesAnnotation(writer, gen_experimental_unsigned_type);
     writer += "val {{name}} : {{type}}";
     writer.IncrementIdentLevel();
     writer += "get() {";
@@ -1372,9 +1367,7 @@ class KotlinGenerator : public BaseGenerator {
     writer.SetValue("params", params);
     writer.SetValue("return_type", noreturn ? "" : ": " + returnType);
     GenerateJvmStaticAnnotation(writer, gen_jvmstatic);
-    if (gen_experimental_unsigned_types) {
-      GenerateExperimentalUnsignedTypesAnnotation(writer);
-    }
+    GenerateExperimentalUnsignedTypesAnnotation(writer, gen_experimental_unsigned_types);
     writer += "fun {{name}}({{params}}) {{return_type}} {";
     writer.IncrementIdentLevel();
     body();
@@ -1396,9 +1389,7 @@ class KotlinGenerator : public BaseGenerator {
     writer.SetValue("return_type_p",
                     returnType.empty() ? "" : " : " + returnType);
     GenerateJvmStaticAnnotation(writer, gen_jvmstatic);
-    if (gen_experimental_unsigned_types) {
-      GenerateExperimentalUnsignedTypesAnnotation(writer);
-    }
+    GenerateExperimentalUnsignedTypesAnnotation(writer, gen_experimental_unsigned_types);
     writer += "fun {{name}}({{params}}){{return_type_p}} = \\";
     body();
   }
@@ -1484,8 +1475,10 @@ class KotlinGenerator : public BaseGenerator {
   }
 
   // Prepend @ExperimentalUnsignedTypes to methods or fields using unsigned type.
-  static void GenerateExperimentalUnsignedTypesAnnotation(CodeWriter &writer) {
-    writer += "@ExperimentalUnsignedTypes";
+  static void GenerateExperimentalUnsignedTypesAnnotation(CodeWriter &writer, bool gen_annotation) {
+    if (gen_annotation) {
+      writer += "@ExperimentalUnsignedTypes";
+    }
   }
 
   // This tracks the current namespace used to determine if a type need to be
