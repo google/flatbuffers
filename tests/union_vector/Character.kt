@@ -3,12 +3,19 @@
 @Suppress("unused")
 class Character_ private constructor() {
     companion object {
+        @ExperimentalUnsignedTypes
         const val NONE: UByte = 0u
+        @ExperimentalUnsignedTypes
         const val MuLan: UByte = 1u
+        @ExperimentalUnsignedTypes
         const val Rapunzel: UByte = 2u
+        @ExperimentalUnsignedTypes
         const val Belle: UByte = 3u
+        @ExperimentalUnsignedTypes
         const val BookFan: UByte = 4u
+        @ExperimentalUnsignedTypes
         const val Other: UByte = 5u
+        @ExperimentalUnsignedTypes
         const val Unused: UByte = 6u
         val names : Array<String> = arrayOf("NONE", "MuLan", "Rapunzel", "Belle", "BookFan", "Other", "Unused")
         fun name(e: Int) : String = names[e]

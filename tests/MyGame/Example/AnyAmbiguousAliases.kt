@@ -5,9 +5,13 @@ package MyGame.Example
 @Suppress("unused")
 class AnyAmbiguousAliases private constructor() {
     companion object {
+        @ExperimentalUnsignedTypes
         const val NONE: UByte = 0u
+        @ExperimentalUnsignedTypes
         const val M1: UByte = 1u
+        @ExperimentalUnsignedTypes
         const val M2: UByte = 2u
+        @ExperimentalUnsignedTypes
         const val M3: UByte = 3u
         val names : Array<String> = arrayOf("NONE", "M1", "M2", "M3")
         fun name(e: Int) : String = names[e]
