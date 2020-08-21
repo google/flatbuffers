@@ -55,6 +55,8 @@ static std::string Esc(const std::string &name) {
   return MakeCamel(name, false);
 }
 
+static bool need_experimental_unsigned_types = false;
+
 class KotlinGenerator : public BaseGenerator {
  public:
   KotlinGenerator(const Parser &parser, const std::string &path,
@@ -125,6 +127,9 @@ class KotlinGenerator : public BaseGenerator {
       code += "import com.google.flatbuffers.*\n\n";
     }
     code += classcode;
+    if (need_experimental_unsigned_types) {
+      code.insert(code.find("class " + defname), "@ExperimentalUnsignedTypes\n");
+    }
     auto filename = NamespaceDir(ns) + defname + ".kt";
     return SaveFile(filename.c_str(), code, false);
   }
@@ -245,8 +250,7 @@ class KotlinGenerator : public BaseGenerator {
         writer.SetValue("type", field_type);
         writer.SetValue("val", val + suffix);
         GenerateComment(ev.doc_comment, writer, &comment_config);
-        GenerateExperimentalUnsignedTypesAnnotation(writer,
-                                                    IsUnsigned(enum_def.underlying_type.base_type));
+        MarkExperimentalUnsignedTypesAnnotation(IsUnsigned(enum_def.underlying_type.base_type));
         writer += "const val {{name}}: {{type}} = {{val}}";
       }
 
@@ -1320,7 +1324,7 @@ class KotlinGenerator : public BaseGenerator {
     // val prop: Mytype get() = x
     writer.SetValue("_name", name);
     writer.SetValue("_type", type);
-    GenerateExperimentalUnsignedTypesAnnotation(writer, gen_experimental_unsigned_types);
+    MarkExperimentalUnsignedTypesAnnotation(gen_experimental_unsigned_types);
     writer += "val {{_name}} : {{_type}} get() = \\";
     body();
   }
@@ -1337,7 +1341,7 @@ class KotlinGenerator : public BaseGenerator {
     //     }
     writer.SetValue("name", name);
     writer.SetValue("type", type);
-    GenerateExperimentalUnsignedTypesAnnotation(writer, gen_experimental_unsigned_type);
+    MarkExperimentalUnsignedTypesAnnotation(gen_experimental_unsigned_type);
     writer += "val {{name}} : {{type}}";
     writer.IncrementIdentLevel();
     writer += "get() {";
@@ -1364,7 +1368,7 @@ class KotlinGenerator : public BaseGenerator {
     writer.SetValue("params", params);
     writer.SetValue("return_type", noreturn ? "" : ": " + returnType);
     GenerateJvmStaticAnnotation(writer, gen_jvmstatic);
-    GenerateExperimentalUnsignedTypesAnnotation(writer, gen_experimental_unsigned_types);
+    MarkExperimentalUnsignedTypesAnnotation(gen_experimental_unsigned_types);
     writer += "fun {{name}}({{params}}) {{return_type}} {";
     writer.IncrementIdentLevel();
     body();
@@ -1386,7 +1390,7 @@ class KotlinGenerator : public BaseGenerator {
     writer.SetValue("return_type_p",
                     returnType.empty() ? "" : " : " + returnType);
     GenerateJvmStaticAnnotation(writer, gen_jvmstatic);
-    GenerateExperimentalUnsignedTypesAnnotation(writer, gen_experimental_unsigned_types);
+    MarkExperimentalUnsignedTypesAnnotation(gen_experimental_unsigned_types);
     writer += "fun {{name}}({{params}}){{return_type_p}} = \\";
     body();
   }
@@ -1471,10 +1475,9 @@ class KotlinGenerator : public BaseGenerator {
     }
   }
 
-  // Prepend @ExperimentalUnsignedTypes to methods or fields using unsigned type.
-  static void GenerateExperimentalUnsignedTypesAnnotation(CodeWriter &code, bool generate) {
+  static void MarkExperimentalUnsignedTypesAnnotation(bool generate) {
     if (generate) {
-      code += "@ExperimentalUnsignedTypes";
+      need_experimental_unsigned_types = true;
     }
   }
 
