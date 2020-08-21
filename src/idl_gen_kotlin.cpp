@@ -851,7 +851,7 @@ class KotlinGenerator : public BaseGenerator {
         if (struct_def.fixed) {
           GenerateGetterOneLine(writer, field_name, return_type, [&]() {
             writer += "{{bbgetter}}(bb_pos + {{offset}}){{ucast}}";
-          });
+          }, ucast);
         } else {
           GenerateGetter(writer, field_name, return_type, [&]() {
             writer += "val o = __offset({{offset}})";
@@ -859,7 +859,7 @@ class KotlinGenerator : public BaseGenerator {
                 "return if(o != 0) {{bbgetter}}"
                 "(o + bb_pos){{ucast}} else "
                 "{{field_default}}";
-          });
+          }, ucast);
         }
       } else {
         switch (value_base_type) {
@@ -953,7 +953,7 @@ class KotlinGenerator : public BaseGenerator {
               OffsetWrapper(
                   writer, offset_val, [&]() { writer += found; },
                   [&]() { writer += not_found; });
-            });
+            }, false, ucast);
             break;
           }
           case BASE_TYPE_UNION:
@@ -1297,19 +1297,22 @@ class KotlinGenerator : public BaseGenerator {
   }
   static void GenerateGetterOneLine(CodeWriter &writer, const std::string &name,
                                     const std::string &type,
-                                    const std::function<void()> &body) {
+                                    const std::function<void()> &body,
+                                    const std::string &ucast = "") {
     // Generates Kotlin getter for properties
     // e.g.:
     // val prop: Mytype get() = x
     writer.SetValue("_name", name);
     writer.SetValue("_type", type);
+    GenerateExperimentalUnsignedTypesAnnotation(writer, ucast);
     writer += "val {{_name}} : {{_type}} get() = \\";
     body();
   }
 
   static void GenerateGetter(CodeWriter &writer, const std::string &name,
                              const std::string &type,
-                             const std::function<void()> &body) {
+                             const std::function<void()> &body,
+                             const std::string &ucast = "") {
     // Generates Kotlin getter for properties
     // e.g.:
     // val prop: Mytype
@@ -1318,6 +1321,7 @@ class KotlinGenerator : public BaseGenerator {
     //     }
     writer.SetValue("name", name);
     writer.SetValue("type", type);
+    GenerateExperimentalUnsignedTypesAnnotation(writer, ucast);
     writer += "val {{name}} : {{type}}";
     writer.IncrementIdentLevel();
     writer += "get() {";
@@ -1332,7 +1336,8 @@ class KotlinGenerator : public BaseGenerator {
                           const std::string &params,
                           const std::string &returnType,
                           const std::function<void()> &body,
-                          bool gen_jvmstatic = false) {
+                          bool gen_jvmstatic = false,
+                          const std::string ucast = "") {
     // Generates Kotlin function
     // e.g.:
     // fun path(j: Int): Vec3 {
@@ -1343,6 +1348,7 @@ class KotlinGenerator : public BaseGenerator {
     writer.SetValue("params", params);
     writer.SetValue("return_type", noreturn ? "" : ": " + returnType);
     GenerateJvmStaticAnnotation(writer, gen_jvmstatic);
+    GenerateExperimentalUnsignedTypesAnnotation(writer, ucast);
     writer += "fun {{name}}({{params}}) {{return_type}} {";
     writer.IncrementIdentLevel();
     body();
@@ -1445,6 +1451,14 @@ class KotlinGenerator : public BaseGenerator {
                                           bool gen_jvmstatic) {
     if (gen_jvmstatic) {
       code += "@JvmStatic";
+    }
+  }
+
+  // Prepend @ExperimentalUnsignedTypes annotation to methods using experimental unsigned type.
+  static void GenerateExperimentalUnsignedTypesAnnotation(CodeWriter &writer,
+                                                          const std::string &ucast) {
+    if (!ucast.empty()) {
+      writer += "@ExperimentalUnsignedTypes";
     }
   }
 
