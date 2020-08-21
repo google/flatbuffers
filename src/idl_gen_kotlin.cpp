@@ -858,7 +858,7 @@ class KotlinGenerator : public BaseGenerator {
         if (struct_def.fixed) {
           GenerateGetterOneLine(writer, field_name, return_type, [&]() {
             writer += "{{bbgetter}}(bb_pos + {{offset}}){{ucast}}";
-          }, ucast);
+          }, !ucast.empty());
         } else {
           GenerateGetter(writer, field_name, return_type, [&]() {
             writer += "val o = __offset({{offset}})";
@@ -866,7 +866,7 @@ class KotlinGenerator : public BaseGenerator {
                 "return if(o != 0) {{bbgetter}}"
                 "(o + bb_pos){{ucast}} else "
                 "{{field_default}}";
-          }, ucast);
+          }, !ucast.empty());
         }
       } else {
         switch (value_base_type) {
@@ -1318,13 +1318,15 @@ class KotlinGenerator : public BaseGenerator {
   static void GenerateGetterOneLine(CodeWriter &writer, const std::string &name,
                                     const std::string &type,
                                     const std::function<void()> &body,
-                                    const std::string &ucast = "") {
+                                    bool gen_experimental_unsigned_types = false) {
     // Generates Kotlin getter for properties
     // e.g.:
     // val prop: Mytype get() = x
     writer.SetValue("_name", name);
     writer.SetValue("_type", type);
-    GenerateExperimentalUnsignedTypesAnnotation(writer, ucast);
+    if (gen_experimental_unsigned_types) {
+      GenerateExperimentalUnsignedTypesAnnotation(writer);
+    }
     writer += "val {{_name}} : {{_type}} get() = \\";
     body();
   }
@@ -1332,7 +1334,7 @@ class KotlinGenerator : public BaseGenerator {
   static void GenerateGetter(CodeWriter &writer, const std::string &name,
                              const std::string &type,
                              const std::function<void()> &body,
-                             const std::string &ucast = "") {
+                             bool gen_experimental_unsigned_type = false) {
     // Generates Kotlin getter for properties
     // e.g.:
     // val prop: Mytype
@@ -1341,7 +1343,9 @@ class KotlinGenerator : public BaseGenerator {
     //     }
     writer.SetValue("name", name);
     writer.SetValue("type", type);
-    GenerateExperimentalUnsignedTypesAnnotation(writer, ucast);
+    if (gen_experimental_unsigned_type) {
+      GenerateExperimentalUnsignedTypesAnnotation(writer);
+    }
     writer += "val {{name}} : {{type}}";
     writer.IncrementIdentLevel();
     writer += "get() {";
@@ -1473,20 +1477,13 @@ class KotlinGenerator : public BaseGenerator {
   }
 
   // Prepend @JvmStatic to methods in companion object.
-  static void GenerateJvmStaticAnnotation(CodeWriter &code,
-                                          bool gen_jvmstatic) {
+  static void GenerateJvmStaticAnnotation(CodeWriter &code, bool gen_jvmstatic) {
     if (gen_jvmstatic) {
       code += "@JvmStatic";
     }
   }
 
-  static void GenerateExperimentalUnsignedTypesAnnotation(CodeWriter &writer,
-                                                          const std::string &ucast) {
-    if (!ucast.empty()) {
-      GenerateExperimentalUnsignedTypesAnnotation(writer);
-    }
-  }
-
+  // Prepend @ExperimentalUnsignedTypes to methods or fields using unsigned type.
   static void GenerateExperimentalUnsignedTypesAnnotation(CodeWriter &writer) {
     writer += "@ExperimentalUnsignedTypes";
   }
