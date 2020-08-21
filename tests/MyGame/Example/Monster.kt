@@ -78,6 +78,7 @@ class Monster : Table() {
         }
     val inventoryAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(14, 1)
     fun inventoryInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 14, 1)
+    @ExperimentalUnsignedTypes
     fun mutateInventory(j: Int, inventory: UByte) : Boolean {
         val o = __offset(14)
         return if (o != 0) {
@@ -213,6 +214,7 @@ class Monster : Table() {
             null
         }
     }
+    @ExperimentalUnsignedTypes
     fun mutateTestnestedflatbuffer(j: Int, testnestedflatbuffer: UByte) : Boolean {
         val o = __offset(30)
         return if (o != 0) {
@@ -470,6 +472,7 @@ class Monster : Table() {
         }
     val flexAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(64, 1)
     fun flexInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 64, 1)
+    @ExperimentalUnsignedTypes
     fun mutateFlex(j: Int, flex: UByte) : Boolean {
         val o = __offset(64)
         return if (o != 0) {
@@ -607,6 +610,7 @@ class Monster : Table() {
         }
     val vectorOfWeakReferencesAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(78, 8)
     fun vectorOfWeakReferencesInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 78, 8)
+    @ExperimentalUnsignedTypes
     fun mutateVectorOfWeakReferences(j: Int, vectorOfWeakReferences: ULong) : Boolean {
         val o = __offset(78)
         return if (o != 0) {
@@ -676,6 +680,7 @@ class Monster : Table() {
         }
     val vectorOfCoOwningReferencesAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(84, 8)
     fun vectorOfCoOwningReferencesInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 84, 8)
+    @ExperimentalUnsignedTypes
     fun mutateVectorOfCoOwningReferences(j: Int, vectorOfCoOwningReferences: ULong) : Boolean {
         val o = __offset(84)
         return if (o != 0) {
@@ -716,6 +721,7 @@ class Monster : Table() {
         }
     val vectorOfNonOwningReferencesAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(88, 8)
     fun vectorOfNonOwningReferencesInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 88, 8)
+    @ExperimentalUnsignedTypes
     fun mutateVectorOfNonOwningReferences(j: Int, vectorOfNonOwningReferences: ULong) : Boolean {
         val o = __offset(88)
         return if (o != 0) {
@@ -778,6 +784,7 @@ class Monster : Table() {
         }
     val vectorOfEnumsAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(98, 1)
     fun vectorOfEnumsInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 98, 1)
+    @ExperimentalUnsignedTypes
     fun mutateVectorOfEnums(j: Int, vectorOfEnums: UByte) : Boolean {
         val o = __offset(98)
         return if (o != 0) {
