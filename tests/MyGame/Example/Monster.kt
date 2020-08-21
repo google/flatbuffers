@@ -6,11 +6,11 @@ import java.nio.*
 import kotlin.math.sign
 import com.google.flatbuffers.*
 
-@ExperimentalUnsignedTypes
 /**
  * an example documentation comment: "monster object"
  */
 @Suppress("unused")
+@ExperimentalUnsignedTypes
 class Monster : Table() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {

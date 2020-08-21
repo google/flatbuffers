@@ -6,8 +6,8 @@ import java.nio.*
 import kotlin.math.sign
 import com.google.flatbuffers.*
 
-@ExperimentalUnsignedTypes
 @Suppress("unused")
+@ExperimentalUnsignedTypes
 class Stat : Table() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {
