@@ -2,7 +2,8 @@
 
 package MyGame.Example
 
-@ExperimentalUnsignedTypes@Suppress("unused")
+@ExperimentalUnsignedTypes
+@Suppress("unused")
 class Race private constructor() {
     companion object {
         const val None: Byte = -1

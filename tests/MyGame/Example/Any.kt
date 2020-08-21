@@ -2,7 +2,8 @@
 
 package MyGame.Example
 
-@ExperimentalUnsignedTypes@Suppress("unused")
+@ExperimentalUnsignedTypes
+@Suppress("unused")
 class Any_ private constructor() {
     companion object {
         const val NONE: UByte = 0u

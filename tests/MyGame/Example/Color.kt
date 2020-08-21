@@ -2,7 +2,8 @@
 
 package MyGame.Example
 
-@ExperimentalUnsignedTypes/**
+@ExperimentalUnsignedTypes
+/**
  * Composite components of Monster color.
  */
 @Suppress("unused")

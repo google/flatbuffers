@@ -6,7 +6,8 @@ import java.nio.*
 import kotlin.math.sign
 import com.google.flatbuffers.*
 
-@ExperimentalUnsignedTypes/**
+@ExperimentalUnsignedTypes
+/**
  * an example documentation comment: "monster object"
  */
 @Suppress("unused")
