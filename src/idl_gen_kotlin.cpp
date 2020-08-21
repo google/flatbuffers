@@ -1083,7 +1083,6 @@ class KotlinGenerator : public BaseGenerator {
         auto name = "mutate" + MakeCamel(Esc(field.name), true);
         auto size = NumToString(InlineSize(underlying_type));
         auto params = Esc(field.name) + ": " + GenTypeGet(underlying_type);
-        bool has_unsigned_params = HasUnsignedTypeParameters(struct_def);
         // A vector mutator also needs the index of the vector element it should
         // mutate.
         if (value_base_type == BASE_TYPE_VECTOR) params.insert(0, "j: Int, ");
@@ -1122,10 +1121,10 @@ class KotlinGenerator : public BaseGenerator {
 
           if (struct_def.fixed) {
             GenerateFunOneLine(writer, name, params, "ByteBuffer", statements,
-                               false, has_unsigned_params);
+                               false, IsUnsigned(value_base_type));
           } else {
             GenerateFun(writer, name, params, "Boolean", statements,
-                        false, has_unsigned_params);
+                        false, IsUnsigned(value_base_type));
           }
         }
       }
