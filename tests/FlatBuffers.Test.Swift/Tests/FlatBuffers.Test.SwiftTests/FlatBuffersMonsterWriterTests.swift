@@ -2,10 +2,10 @@ import XCTest
 import Foundation
 @testable import FlatBuffers
 
-public typealias Test = MyGame_Example_Test
-public typealias Monster = MyGame_Example_Monster
-public typealias Vec3 = MyGame_Example_Vec3
-public typealias Stat = MyGame_Example_Stat
+typealias Test = MyGame_Example_Test
+typealias Monster = MyGame_Example_Monster
+typealias Vec3 = MyGame_Example_Vec3
+typealias Stat = MyGame_Example_Stat
 
 class FlatBuffersMonsterWriterTests: XCTestCase {
     
