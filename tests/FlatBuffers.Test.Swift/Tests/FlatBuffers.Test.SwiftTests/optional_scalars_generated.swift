@@ -14,7 +14,7 @@ public struct optional_scalars_ScalarStuff: FlatBufferObject {
     private init(_ t: Table) { _accessor = t }
     public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
-    enum VTOFFSET: VOffset {
+    private enum VTOFFSET: VOffset {
         case justI8 = 4
         case maybeI8 = 6
         case defaultI8 = 8

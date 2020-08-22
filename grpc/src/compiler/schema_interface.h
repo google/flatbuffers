@@ -81,6 +81,7 @@ struct Service : public CommentHolder {
 
   virtual std::vector<grpc::string> namespace_parts() const = 0;
   virtual grpc::string name() const = 0;
+  virtual bool is_internal() const = 0;
 
   virtual int method_count() const = 0;
   virtual std::unique_ptr<const Method> method(int i) const = 0;

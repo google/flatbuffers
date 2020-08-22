@@ -14,7 +14,7 @@ public struct HelloReply: FlatBufferObject {
     private init(_ t: Table) { _accessor = t }
     public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
-    enum VTOFFSET: VOffset {
+    private enum VTOFFSET: VOffset {
         case message = 4
         var v: Int32 { Int32(self.rawValue) }
         var p: VOffset { self.rawValue }
@@ -46,7 +46,7 @@ public struct HelloRequest: FlatBufferObject {
     private init(_ t: Table) { _accessor = t }
     public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
-    enum VTOFFSET: VOffset {
+    private enum VTOFFSET: VOffset {
         case name = 4
         var v: Int32 { Int32(self.rawValue) }
         var p: VOffset { self.rawValue }
@@ -78,7 +78,7 @@ public struct ManyHellosRequest: FlatBufferObject {
     private init(_ t: Table) { _accessor = t }
     public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
-    enum VTOFFSET: VOffset {
+    private enum VTOFFSET: VOffset {
         case name = 4
         case numGreetings = 6
         var v: Int32 { Int32(self.rawValue) }
