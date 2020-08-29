@@ -23,6 +23,7 @@ cc_library(
     linkopts = select({
         "//:platform_freebsd": BSD_LINKOPTS,
         "//:platform_openbsd": BSD_LINKOPTS,
+        "//conditions:default": [],
     }),
     strip_include_prefix = "/include",
     visibility = ["//:__pkg__"],
