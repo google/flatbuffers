@@ -4,6 +4,10 @@ package(
 
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 
+BSD_LINKOPTS = [
+    "-lm",
+]
+
 # Public flatc library to compile flatbuffer files at runtime.
 cc_library(
     name = "flatbuffers",
@@ -16,6 +20,10 @@ cc_library(
         "util.cpp",
     ],
     hdrs = ["//:public_headers"],
+    linkopts = select({
+        "//:platform_freebsd": BSD_LINKOPTS,
+        "//:platform_openbsd": BSD_LINKOPTS,
+    }),
     strip_include_prefix = "/include",
     visibility = ["//:__pkg__"],
 )

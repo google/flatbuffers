@@ -2,6 +2,13 @@ workspace(name = "com_github_google_flatbuffers")
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
+#### Platform detection for Bazel.
+http_archive(
+    name = "platforms",
+    strip_prefix = "platforms-master",
+    urls = ["https://github.com/bazelbuild/platforms/archive/master.zip"],
+)
+
 http_archive(
     name = "io_bazel_rules_go",
     sha256 = "e88471aea3a3a4f19ec1310a55ba94772d087e9ce46e41ae38ecebe17935de7b",

@@ -10,6 +10,22 @@ exports_files([
     "LICENSE",
 ])
 
+config_setting(
+    name = "platform_freebsd",
+    constraint_values = [
+        "@platforms//os:freebsd",
+    ],
+    visibility = [":__subpackages__"],
+)
+
+config_setting(
+    name = "platform_openbsd",
+    constraint_values = [
+        "@platforms//os:openbsd",
+    ],
+    visibility = [":__subpackages__"],
+)
+
 # Public flatc library to compile flatbuffer files at runtime.
 cc_library(
     name = "flatbuffers",
