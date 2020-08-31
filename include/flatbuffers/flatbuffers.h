@@ -2357,8 +2357,8 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 
   template<typename T>
   bool VerifyBufferFromStart(const char *identifier, size_t start) {
-    if (identifier && (size_ < 2 * sizeof(flatbuffers::uoffset_t) ||
-                       !BufferHasIdentifier(buf_ + start, identifier))) {
+    if (identifier && !Check((size_ >= 2 * sizeof(flatbuffers::uoffset_t) &&
+                              BufferHasIdentifier(buf_ + start, identifier)))) {
       return false;
     }
 

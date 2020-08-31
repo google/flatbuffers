@@ -3234,7 +3234,7 @@ void FixedLengthArrayTest() {
   aStruct.mutable_d()->Mutate(0, nStruct0);
   aStruct.mutable_d()->Mutate(1, nStruct1);
   auto aTable = MyGame::Example::CreateArrayTable(fbb, &aStruct);
-  fbb.Finish(aTable);
+  MyGame::Example::FinishArrayTableBuffer(fbb, aTable);
 
   // Verify correctness of the ArrayTable.
   flatbuffers::Verifier verifier(fbb.GetBufferPointer(), fbb.GetSize());
