@@ -1906,6 +1906,115 @@ class CppGenerator : public BaseGenerator {
     }
   }
 
+  std::string GetFieldAccessor(const FieldDef &field) const {
+    const auto &type = field.value.type;
+    if (IsScalar(type.base_type))
+      return "GetField<";
+    else if (IsStruct(type))
+      return "GetStruct<";
+    else
+      return "GetPointer<";
+  }
+
+  void GenTableUnionAsGetters(const FieldDef &field) {
+    const auto &type = field.value.type;
+    auto u = type.enum_def;
+
+    if (!type.enum_def->uses_multiple_type_instances)
+      code_ +=
+          "  template<typename T> "
+          "const T *{{NULLABLE_EXT}}{{FIELD_NAME}}_as() const;";
+
+    for (auto u_it = u->Vals().begin(); u_it != u->Vals().end(); ++u_it) {
+      auto &ev = **u_it;
+      if (ev.union_type.base_type == BASE_TYPE_NONE) { continue; }
+      auto full_struct_name = GetUnionElement(ev, true, true);
+
+      // @TODO: Mby make this decisions more universal? How?
+      code_.SetValue("U_GET_TYPE",
+                     EscapeKeyword(field.name + UnionTypeFieldSuffix()));
+      code_.SetValue("U_ELEMENT_TYPE", WrapInNameSpace(u->defined_namespace,
+                                                       GetEnumValUse(*u, ev)));
+      code_.SetValue("U_FIELD_TYPE", "const " + full_struct_name + " *");
+      code_.SetValue("U_FIELD_NAME", Name(field) + "_as_" + Name(ev));
+      code_.SetValue("U_NULLABLE", NullableExtension());
+
+      // `const Type *union_name_asType() const` accessor.
+      code_ += "  {{U_FIELD_TYPE}}{{U_NULLABLE}}{{U_FIELD_NAME}}() const {";
+      code_ +=
+          "    return {{U_GET_TYPE}}() == {{U_ELEMENT_TYPE}} ? "
+          "static_cast<{{U_FIELD_TYPE}}>({{FIELD_NAME}}()) "
+          ": nullptr;";
+      code_ += "  }";
+    }
+  }
+
+  void GenTableFieldGetter(const FieldDef &field) {
+    const auto& type = field.value.type;
+    const bool is_scalar = IsScalar(type.base_type);
+
+    // Call a different accessor for pointers, that indirects.
+    auto accessor = GetFieldAccessor(field);
+    auto offset_str = GenFieldOffsetName(field);
+    auto offset_type = GenTypeGet(type, "", "const ", " *", false);
+
+    auto call = accessor + offset_type + ">(" + offset_str;
+    // Default value as second arg for non-pointer types.
+    if (is_scalar) { call += ", " + GenDefaultConstant(field); }
+    call += ")";
+
+    std::string afterptr = " *" + NullableExtension();
+    GenComment(field.doc_comment, "  ");
+    code_.SetValue("FIELD_TYPE", GenTypeGet(type, " ", "const ",
+                                            afterptr.c_str(), true));
+    code_.SetValue("FIELD_VALUE", GenUnderlyingCast(field, true, call));
+    code_.SetValue("NULLABLE_EXT", NullableExtension());
+
+    code_ += "  {{FIELD_TYPE}}{{FIELD_NAME}}() const {";
+    code_ += "    return {{FIELD_VALUE}};";
+    code_ += "  }";
+
+    if (type.base_type == BASE_TYPE_UNION) {
+      GenTableUnionAsGetters(field);
+    }
+  }
+
+  void GenTableFieldSetter(const FieldDef &field) {
+    const auto &type = field.value.type;
+    const bool is_scalar = IsScalar(type.base_type);
+    if (is_scalar && IsUnion(type))
+      return; // changing of a union's type is forbidden
+    auto accessor = GetFieldAccessor(field);
+    auto offset_str = GenFieldOffsetName(field);
+    if (is_scalar) {
+      const auto wire_type = GenTypeWire(type, "", false);
+      code_.SetValue("SET_FN", "SetField<" + wire_type + ">");
+      code_.SetValue("OFFSET_NAME", offset_str);
+      code_.SetValue("FIELD_TYPE", GenTypeBasic(type, true));
+      code_.SetValue("FIELD_VALUE",
+                     GenUnderlyingCast(field, false, "_" + Name(field)));
+      code_.SetValue("DEFAULT_VALUE", GenDefaultConstant(field));
+
+      code_ +=
+          "  bool mutate_{{FIELD_NAME}}({{FIELD_TYPE}} "
+          "_{{FIELD_NAME}}) {";
+      code_ +=
+          "    return {{SET_FN}}({{OFFSET_NAME}}, {{FIELD_VALUE}}, "
+          "{{DEFAULT_VALUE}});";
+      code_ += "  }";
+    } else {
+      auto postptr = " *" + NullableExtension();
+      auto wire_type = GenTypeGet(type, " ", "", postptr.c_str(), true);
+      auto underlying = accessor + wire_type + ">(" + offset_str + ")";
+      code_.SetValue("FIELD_TYPE", wire_type);
+      code_.SetValue("FIELD_VALUE", GenUnderlyingCast(field, true, underlying));
+
+      code_ += "  {{FIELD_TYPE}}mutable_{{FIELD_NAME}}() {";
+      code_ += "    return {{FIELD_VALUE}};";
+      code_ += "  }";
+    }
+  }
+
   // Generate an accessor struct, builder structs & function for a table.
   void GenTable(const StructDef &struct_def) {
     if (opts_.generate_object_based_api) { GenNativeTable(struct_def); }
@@ -1964,103 +2073,11 @@ class CppGenerator : public BaseGenerator {
         // Deprecated fields won't be accessible.
         continue;
       }
-
-      const bool is_struct = IsStruct(field.value.type);
-      const bool is_scalar = IsScalar(field.value.type.base_type);
+      
       code_.SetValue("FIELD_NAME", Name(field));
-
-      // Call a different accessor for pointers, that indirects.
-      std::string accessor = "";
-      if (is_scalar) {
-        accessor = "GetField<";
-      } else if (is_struct) {
-        accessor = "GetStruct<";
-      } else {
-        accessor = "GetPointer<";
-      }
-      auto offset_str = GenFieldOffsetName(field);
-      auto offset_type =
-          GenTypeGet(field.value.type, "", "const ", " *", false);
-
-      auto call = accessor + offset_type + ">(" + offset_str;
-      // Default value as second arg for non-pointer types.
-      if (is_scalar) { call += ", " + GenDefaultConstant(field); }
-      call += ")";
-
-      std::string afterptr = " *" + NullableExtension();
-      GenComment(field.doc_comment, "  ");
-      code_.SetValue("FIELD_TYPE", GenTypeGet(field.value.type, " ", "const ",
-                                              afterptr.c_str(), true));
-      code_.SetValue("FIELD_VALUE", GenUnderlyingCast(field, true, call));
-      code_.SetValue("NULLABLE_EXT", NullableExtension());
-
-      code_ += "  {{FIELD_TYPE}}{{FIELD_NAME}}() const {";
-      code_ += "    return {{FIELD_VALUE}};";
-      code_ += "  }";
-
-      if (field.value.type.base_type == BASE_TYPE_UNION) {
-        auto u = field.value.type.enum_def;
-
-        if (!field.value.type.enum_def->uses_multiple_type_instances)
-          code_ +=
-              "  template<typename T> "
-              "const T *{{NULLABLE_EXT}}{{FIELD_NAME}}_as() const;";
-
-        for (auto u_it = u->Vals().begin(); u_it != u->Vals().end(); ++u_it) {
-          auto &ev = **u_it;
-          if (ev.union_type.base_type == BASE_TYPE_NONE) { continue; }
-          auto full_struct_name = GetUnionElement(ev, true, true);
-
-          // @TODO: Mby make this decisions more universal? How?
-          code_.SetValue("U_GET_TYPE",
-                         EscapeKeyword(field.name + UnionTypeFieldSuffix()));
-          code_.SetValue(
-              "U_ELEMENT_TYPE",
-              WrapInNameSpace(u->defined_namespace, GetEnumValUse(*u, ev)));
-          code_.SetValue("U_FIELD_TYPE", "const " + full_struct_name + " *");
-          code_.SetValue("U_FIELD_NAME", Name(field) + "_as_" + Name(ev));
-          code_.SetValue("U_NULLABLE", NullableExtension());
-
-          // `const Type *union_name_asType() const` accessor.
-          code_ += "  {{U_FIELD_TYPE}}{{U_NULLABLE}}{{U_FIELD_NAME}}() const {";
-          code_ +=
-              "    return {{U_GET_TYPE}}() == {{U_ELEMENT_TYPE}} ? "
-              "static_cast<{{U_FIELD_TYPE}}>({{FIELD_NAME}}()) "
-              ": nullptr;";
-          code_ += "  }";
-        }
-      }
-
-      if (opts_.mutable_buffer && !(is_scalar && IsUnion(field.value.type))) {
-        if (is_scalar) {
-          const auto type = GenTypeWire(field.value.type, "", false);
-          code_.SetValue("SET_FN", "SetField<" + type + ">");
-          code_.SetValue("OFFSET_NAME", offset_str);
-          code_.SetValue("FIELD_TYPE", GenTypeBasic(field.value.type, true));
-          code_.SetValue("FIELD_VALUE",
-                         GenUnderlyingCast(field, false, "_" + Name(field)));
-          code_.SetValue("DEFAULT_VALUE", GenDefaultConstant(field));
-
-          code_ +=
-              "  bool mutate_{{FIELD_NAME}}({{FIELD_TYPE}} "
-              "_{{FIELD_NAME}}) {";
-          code_ +=
-              "    return {{SET_FN}}({{OFFSET_NAME}}, {{FIELD_VALUE}}, "
-              "{{DEFAULT_VALUE}});";
-          code_ += "  }";
-        } else {
-          auto postptr = " *" + NullableExtension();
-          auto type =
-              GenTypeGet(field.value.type, " ", "", postptr.c_str(), true);
-          auto underlying = accessor + type + ">(" + offset_str + ")";
-          code_.SetValue("FIELD_TYPE", type);
-          code_.SetValue("FIELD_VALUE",
-                         GenUnderlyingCast(field, true, underlying));
-
-          code_ += "  {{FIELD_TYPE}}mutable_{{FIELD_NAME}}() {";
-          code_ += "    return {{FIELD_VALUE}};";
-          code_ += "  }";
-        }
+      GenTableFieldGetter(field);
+      if (opts_.mutable_buffer) {
+        GenTableFieldSetter(field);
       }
 
       auto nested = field.attributes.Lookup("nested_flatbuffer");
