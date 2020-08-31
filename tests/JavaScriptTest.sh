@@ -21,3 +21,4 @@ node JavaScriptTest ./js/monster_test_generated
 
 ../flatc --js -o js --no-fb-import union_vector/union_vector.fbs
 node JavaScriptUnionVectorTest ./js/union_vector_generated
+node JavaScriptFlexBuffersTest
