@@ -29,20 +29,16 @@ extern crate quickcheck_derive;
 mod flexbuffers_tests;
 mod optional_scalars_test;
 
-#[allow(dead_code, unused_imports)]
 #[path = "../../include_test/include_test1_generated.rs"]
 pub mod include_test1_generated;
 
-#[allow(dead_code, unused_imports)]
 #[path = "../../include_test/sub/include_test2_generated.rs"]
 pub mod include_test2_generated;
 
-#[allow(dead_code, unused_imports)]
 #[path = "../../monster_test_generated.rs"]
 mod monster_test_generated;
 pub use monster_test_generated::my_game;
 
-#[allow(dead_code, unused_imports)]
 #[path = "../../optional_scalars_generated.rs"]
 mod optional_scalars_generated;
 
