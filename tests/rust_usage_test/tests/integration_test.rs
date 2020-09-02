@@ -265,82 +265,47 @@ mod generated_constants {
 
     #[test]
     fn enum_constants_are_public() {
-        assert_eq!(1, my_game::example::ENUM_MIN_COLOR);
-        assert_eq!(8, my_game::example::ENUM_MAX_COLOR);
-        assert_eq!(my_game::example::ENUM_VALUES_COLOR, [
+        assert_eq!(1, my_game::example::Color::ENUM_MIN);
+        assert_eq!(8, my_game::example::Color::ENUM_MAX);
+        assert_eq!(my_game::example::Color::ENUM_VALUES, [
             my_game::example::Color::Red,
             my_game::example::Color::Green,
             my_game::example::Color::Blue,
         ]);
-        assert_eq!(my_game::example::ENUM_NAMES_COLOR, [
-            "Red",
-            "Green",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "Blue"
-        ]);
-
-        assert_eq!(-1, my_game::example::ENUM_MIN_RACE);
-        assert_eq!(2, my_game::example::ENUM_MAX_RACE);
-        assert_eq!(my_game::example::ENUM_VALUES_RACE, [
+        assert_eq!(-1, my_game::example::Race::ENUM_MIN);
+        assert_eq!(2, my_game::example::Race::ENUM_MAX);
+        assert_eq!(my_game::example::Race::ENUM_VALUES, [
             my_game::example::Race::None,
             my_game::example::Race::Human,
             my_game::example::Race::Dwarf,
             my_game::example::Race::Elf,
         ]);
-        assert_eq!(my_game::example::ENUM_NAMES_RACE, [
-            "None",
-            "Human",
-            "Dwarf",
-            "Elf"
-        ]);
 
-        assert_eq!(0, my_game::example::ENUM_MIN_ANY);
-        assert_eq!(3, my_game::example::ENUM_MAX_ANY);
-        assert_eq!(my_game::example::ENUM_VALUES_ANY, [
+        assert_eq!(0, my_game::example::Any::ENUM_MIN);
+        assert_eq!(3, my_game::example::Any::ENUM_MAX);
+        assert_eq!(my_game::example::Any::ENUM_VALUES, [
             my_game::example::Any::NONE,
             my_game::example::Any::Monster,
             my_game::example::Any::TestSimpleTableWithEnum,
             my_game::example::Any::MyGame_Example2_Monster,
         ]);
-        assert_eq!(my_game::example::ENUM_NAMES_ANY, [
-            "NONE",
-            "Monster",
-            "TestSimpleTableWithEnum",
-            "MyGame_Example2_Monster"
-        ]);
 
-        assert_eq!(0, my_game::example::ENUM_MIN_ANY_UNIQUE_ALIASES);
-        assert_eq!(3, my_game::example::ENUM_MAX_ANY_UNIQUE_ALIASES);
-        assert_eq!(my_game::example::ENUM_VALUES_ANY_UNIQUE_ALIASES, [
+        assert_eq!(0, my_game::example::AnyUniqueAliases::ENUM_MIN);
+        assert_eq!(3, my_game::example::AnyUniqueAliases::ENUM_MAX);
+        assert_eq!(my_game::example::AnyUniqueAliases::ENUM_VALUES, [
             my_game::example::AnyUniqueAliases::NONE,
             my_game::example::AnyUniqueAliases::M,
             my_game::example::AnyUniqueAliases::TS,
             my_game::example::AnyUniqueAliases::M2,
         ]);
-        assert_eq!(my_game::example::ENUM_NAMES_ANY_UNIQUE_ALIASES, [
-            "NONE",
-            "M",
-            "TS",
-            "M2"
-        ]);
 
-        assert_eq!(0, my_game::example::ENUM_MIN_ANY_AMBIGUOUS_ALIASES);
-        assert_eq!(3, my_game::example::ENUM_MAX_ANY_AMBIGUOUS_ALIASES);
-        assert_eq!(my_game::example::ENUM_VALUES_ANY_AMBIGUOUS_ALIASES, [
+        assert_eq!(0, my_game::example::AnyAmbiguousAliases::ENUM_MIN);
+        assert_eq!(3, my_game::example::AnyAmbiguousAliases::ENUM_MAX);
+        assert_eq!(my_game::example::AnyAmbiguousAliases::ENUM_VALUES, [
             my_game::example::AnyAmbiguousAliases::NONE,
             my_game::example::AnyAmbiguousAliases::M1,
             my_game::example::AnyAmbiguousAliases::M2,
             my_game::example::AnyAmbiguousAliases::M3,
-        ]);
-        assert_eq!(my_game::example::ENUM_NAMES_ANY_AMBIGUOUS_ALIASES, [
-            "NONE",
-            "M1",
-            "M2",
-            "M3"
         ]);
     }
 }

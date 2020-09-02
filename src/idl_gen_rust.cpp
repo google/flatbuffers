@@ -217,7 +217,10 @@ class RustGenerator : public BaseGenerator {
       // the future. as a result, we proactively block these out as reserved
       // words.
       "follow", "push", "size", "alignment", "to_little_endian",
-      "from_little_endian", nullptr
+      "from_little_endian", nullptr,
+
+      // used by Enum constants
+      "ENUM_MAX", "ENUM_MIN", "ENUM_VALUES",
     };
     for (auto kw = keywords; *kw; kw++) keywords_.insert(*kw);
   }
@@ -546,6 +549,12 @@ class RustGenerator : public BaseGenerator {
       code_.SetValue("VALUE", enum_def.ToString(ev));
       code_ += "  pub const {{VARIANT}}: Self = Self({{VALUE}});";
     }
+    code_ += "  pub const ENUM_VALUES: &'static [Self] = &[";
+    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      code_.SetValue("VARIANT", Name(**it));
+      code_ += "    Self::{{VARIANT}},";
+    }
+    code_ += "  ];";
     code_ += "  /// Returns the variant's name or \"\" if unknown.";
     code_ += "  pub fn variant_name(self) -> &'static str {";
     code_ += "    match self {";
@@ -587,6 +596,17 @@ class RustGenerator : public BaseGenerator {
     code_ += "        flatbuffers::emplace_scalar::<{{BASE_TYPE}}>"
              "(dst, self.0);";
     code_ += "    }";
+    code_ += "}";
+    code_ += "";
+    code_ += "impl flatbuffers::EndianScalar for {{ENUM_NAME}} {";
+    code_ += "  #[inline]";
+    code_ += "  fn to_little_endian(self) -> Self {";
+    code_ += "    Self({{BASE_TYPE}}::to_le(self.0))";
+    code_ += "  }";
+    code_ += "  #[inline]";
+    code_ += "  fn from_little_endian(self) -> Self {";
+    code_ += "    Self({{BASE_TYPE}}::from_le(self.0))";
+    code_ += "  }";
     code_ += "}";
     code_ += "";
 
