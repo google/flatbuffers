@@ -522,62 +522,61 @@ class RustGenerator : public BaseGenerator {
   void GenEnum(const EnumDef &enum_def) {
     code_.SetValue("ENUM_NAME", Name(enum_def));
     code_.SetValue("BASE_TYPE", GetEnumTypeForDecl(enum_def.underlying_type));
-
-    GenComment(enum_def.doc_comment);
-    code_ += "#[allow(non_camel_case_types)]";
-    code_ += "#[repr({{BASE_TYPE}})]";
-    code_ +=
-        "#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]";
-    code_ += "pub enum " + Name(enum_def) + " {";
-
-    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
-      const auto &ev = **it;
-
-      GenComment(ev.doc_comment, "  ");
-      code_.SetValue("KEY", Name(ev));
-      code_.SetValue("VALUE", enum_def.ToString(ev));
-      code_ += "  {{KEY}} = {{VALUE}},";
-    }
+    code_.SetValue("ENUM_NAME_SNAKE", MakeSnakeCase(Name(enum_def)));
+    code_.SetValue("ENUM_NAME_CAPS", MakeUpper(MakeSnakeCase(Name(enum_def))));
     const EnumVal *minv = enum_def.MinValue();
     const EnumVal *maxv = enum_def.MaxValue();
     FLATBUFFERS_ASSERT(minv && maxv);
-
-    code_ += "";
-    code_ += "}";
-    code_ += "";
-
-    code_.SetValue("ENUM_NAME", Name(enum_def));
-    code_.SetValue("ENUM_NAME_SNAKE", MakeSnakeCase(Name(enum_def)));
-    code_.SetValue("ENUM_NAME_CAPS", MakeUpper(MakeSnakeCase(Name(enum_def))));
     code_.SetValue("ENUM_MIN_BASE_VALUE", enum_def.ToString(*minv));
     code_.SetValue("ENUM_MAX_BASE_VALUE", enum_def.ToString(*maxv));
 
-    // Generate enum constants, and impls for Follow, EndianScalar, and Push.
-    code_ += "pub const ENUM_MIN_{{ENUM_NAME_CAPS}}: {{BASE_TYPE}} = \\";
-    code_ += "{{ENUM_MIN_BASE_VALUE}};";
-    code_ += "pub const ENUM_MAX_{{ENUM_NAME_CAPS}}: {{BASE_TYPE}} = \\";
-    code_ += "{{ENUM_MAX_BASE_VALUE}};";
-    code_ += "";
+    GenComment(enum_def.doc_comment);
+    code_ +=
+        "#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]";
+    code_ += "pub struct {{ENUM_NAME}}(pub {{BASE_TYPE}});";
+    code_ += "#[allow(non_upper_case_globals)]";
+    code_ += "impl {{ENUM_NAME}} {";
+    code_ += "  pub const ENUM_MIN: {{BASE_TYPE}} = {{ENUM_MIN_BASE_VALUE}};";
+    code_ += "  pub const ENUM_MAX: {{BASE_TYPE}} = {{ENUM_MAX_BASE_VALUE}};";
+
+    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      const auto &ev = **it;
+      GenComment(ev.doc_comment, "  ");
+      code_.SetValue("VARIANT", Name(ev));
+      code_.SetValue("VALUE", enum_def.ToString(ev));
+      code_ += "  pub const {{VARIANT}}: Self = Self({{VALUE}});";
+    }
+    code_ += "  /// Returns the variant's name or \"\" if unknown.";
+    code_ += "  pub fn variant_name(self) -> &'static str {";
+    code_ += "    match self {";
+    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      code_.SetValue("VARIANT", Name(**it));
+      code_ += "      Self::{{VARIANT}} => \"{{VARIANT}}\",";
+    }
+    code_ += "      _ => \"\",";
+    code_ += "    }";
+    code_ += "  }";
+    code_ += "}";
+
+    // Generate Debug. Unknown variants are printed like "<UNKNOWN 42>".
+    code_ += "impl std::fmt::Debug for {{ENUM_NAME}} {";
+    code_ += "  fn fmt(&self, f: &mut std::fmt::Formatter) ->"
+             " std::fmt::Result {";
+    code_ += "    let name = self.variant_name();";
+    code_ += "    if name.is_empty() {";
+    code_ += "      f.write_fmt(format_args!(\"<UNKNOWN {:?}>\", self.0))";
+    code_ += "    } else {";
+    code_ += "      f.write_str(name)";
+    code_ += "    }";
+    code_ += "  }";
+    code_ += "}";
+
+    // Generate Follow and Push so we can serialize and stuff.
     code_ += "impl<'a> flatbuffers::Follow<'a> for {{ENUM_NAME}} {";
     code_ += "  type Inner = Self;";
     code_ += "  #[inline]";
     code_ += "  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {";
-    code_ += "    flatbuffers::read_scalar_at::<Self>(buf, loc)";
-    code_ += "  }";
-    code_ += "}";
-    code_ += "";
-    code_ += "impl flatbuffers::EndianScalar for {{ENUM_NAME}} {";
-    code_ += "  #[inline]";
-    code_ += "  fn to_little_endian(self) -> Self {";
-    code_ += "    let n = {{BASE_TYPE}}::to_le(self as {{BASE_TYPE}});";
-    code_ += "    let p = &n as *const {{BASE_TYPE}} as *const {{ENUM_NAME}};";
-    code_ += "    unsafe { *p }";
-    code_ += "  }";
-    code_ += "  #[inline]";
-    code_ += "  fn from_little_endian(self) -> Self {";
-    code_ += "    let n = {{BASE_TYPE}}::from_le(self as {{BASE_TYPE}});";
-    code_ += "    let p = &n as *const {{BASE_TYPE}} as *const {{ENUM_NAME}};";
-    code_ += "    unsafe { *p }";
+    code_ += "    Self(flatbuffers::read_scalar_at::<{{BASE_TYPE}}>(buf, loc))";
     code_ += "  }";
     code_ += "}";
     code_ += "";
@@ -585,9 +584,8 @@ class RustGenerator : public BaseGenerator {
     code_ += "    type Output = {{ENUM_NAME}};";
     code_ += "    #[inline]";
     code_ += "    fn push(&self, dst: &mut [u8], _rest: &[u8]) {";
-    code_ +=
-        "        flatbuffers::emplace_scalar::<{{ENUM_NAME}}>"
-        "(dst, *self);";
+    code_ += "        flatbuffers::emplace_scalar::<{{BASE_TYPE}}>"
+             "(dst, self.0);";
     code_ += "    }";
     code_ += "}";
     code_ += "";
@@ -605,49 +603,6 @@ class RustGenerator : public BaseGenerator {
     }
     code_ += "];";
     code_ += "";
-
-    // Generate a string table for enum values.
-    // Problem is, if values are very sparse that could generate really big
-    // tables. Ideally in that case we generate a map lookup instead, but for
-    // the moment we simply don't output a table at all.
-    auto range = enum_def.Distance();
-    // Average distance between values above which we consider a table
-    // "too sparse". Change at will.
-    static const uint64_t kMaxSparseness = 5;
-    if (range / static_cast<uint64_t>(enum_def.size()) < kMaxSparseness) {
-      code_ += "#[allow(non_camel_case_types)]";
-      code_ += "pub const ENUM_NAMES_{{ENUM_NAME_CAPS}}: [&str; " +
-               NumToString(range + 1) + "] = [";
-
-      auto val = enum_def.Vals().front();
-      for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
-           ++it) {
-        auto ev = *it;
-        for (auto k = enum_def.Distance(val, ev); k > 1; --k) {
-          code_ += "    \"\",";
-        }
-        val = ev;
-        auto suffix = *it != enum_def.Vals().back() ? "," : "";
-        code_ += "    \"" + Name(*ev) + "\"" + suffix;
-      }
-      code_ += "];";
-      code_ += "";
-
-      code_ +=
-          "pub fn enum_name_{{ENUM_NAME_SNAKE}}(e: {{ENUM_NAME}}) -> "
-          "&'static str {";
-
-      code_ += "  let index = e as {{BASE_TYPE}}\\";
-      if (enum_def.MinValue()->IsNonZero()) {
-        auto vals = GetEnumValUse(enum_def, *enum_def.MinValue());
-        code_ += " - " + vals + " as {{BASE_TYPE}}\\";
-      }
-      code_ += ";";
-
-      code_ += "  ENUM_NAMES_{{ENUM_NAME_CAPS}}[index as usize]";
-      code_ += "}";
-      code_ += "";
-    }
 
     if (enum_def.is_union) {
       // Generate tyoesafe offset(s) for unions
@@ -1762,6 +1717,9 @@ class RustGenerator : public BaseGenerator {
   }
 
   void GenNamespaceImports(const int white_spaces) {
+    if (white_spaces == 0) {
+      code_ += "#![allow(unused_imports, dead_code)]";
+    }
     std::string indent = std::string(white_spaces, ' ');
     code_ += "";
     if (!parser_.opts.generate_all) {
