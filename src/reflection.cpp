@@ -195,7 +195,7 @@ class ResizeContext {
     if (delta_ > 0)
       buf_.insert(buf_.begin() + start, delta_, 0);
     else
-      buf_.erase(buf_.begin() + start, buf_.begin() + start - delta_);
+      buf_.erase(buf_.begin() + start + delta_, buf_.begin() + start);
   }
 
   // Check if the range between first (lower address) and second straddles
