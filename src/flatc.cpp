@@ -106,6 +106,8 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --gen-nullable         Add Clang _Nullable for C++ pointer. or @Nullable for Java\n"
     "  --java-checkerframe    work Add @Pure for Java.\n"
     "  --gen-generated        Add @Generated annotation for Java\n"
+    "  --gen-jvmstatic        Add @JvmStatic annotation for Kotlin methods\n"
+    "                         in companion object for interop from Java to Kotlin.\n"
     "  --gen-all              Generate not just code for the current schema files,\n"
     "                         but for all files it includes as well.\n"
     "                         If the language uses a single file for output (by default\n"
@@ -363,6 +365,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.cs_gen_json_serializer = true;
       } else if (arg == "--flexbuffers") {
         opts.use_flexbuffers = true;
+      } else if (arg == "--gen-jvmstatic") {
+        opts.gen_jvmstatic = true;
       } else if (arg == "--cpp-std") {
         if (++argi >= argc)
           Error("missing C++ standard specification" + arg, true);

@@ -51,10 +51,17 @@ $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS -o namespace_test namespace_te
 ../flatc --python $TEST_BASE_FLAGS arrays_test.fbs
 ../flatc --dart monster_extra.fbs
 
+# Generate optional scalar code for tests.
+../flatc --rust --lobster optional_scalars.fbs
+
+# Generate the schema evolution tests
+../flatc --cpp --scoped-enums $TEST_CPP_FLAGS -o evolution_test ./evolution_test/evolution_v*.fbs
+
 working_dir=`pwd`
 cd FlatBuffers.Test.Swift/Tests/FlatBuffers.Test.SwiftTests
 $working_dir/../flatc --swift --grpc $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS -I ../../../include_test ../../../monster_test.fbs
 $working_dir/../flatc --swift $TEST_BASE_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS ../../../union_vector/union_vector.fbs
+$working_dir/../flatc --swift ../../../optional_scalars.fbs
 cd $working_dir
 
 cd FlatBuffers.GRPC.Swift/Sources/Model

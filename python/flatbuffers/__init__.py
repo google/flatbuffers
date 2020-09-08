@@ -15,4 +15,5 @@
 from .builder import Builder
 from .table import Table
 from .compat import range_func as compat_range
+from ._version import __version__
 from . import util

@@ -76,6 +76,8 @@ class KotlinTest {
 
         TestVectorOfUnions()
 
+        TestSharedStringPool()
+
         println("FlatBuffers test: completed successfully")
     }
 
@@ -146,7 +148,7 @@ class KotlinTest {
 
         val monster = Monster.getRootAsMonster(bb)
 
-        assert(monster.testhashu32Fnv1 == (1u + Integer.MAX_VALUE.toUInt()))
+        assert(monster.testhashu32Fnv1 == (Integer.MAX_VALUE + 1L).toUInt())
     }
 
     fun TestNamespaceNesting() {
@@ -331,7 +333,7 @@ class KotlinTest {
         Monster.addTest4(fbb, test4)
         Monster.addTestarrayofstring(fbb, testArrayOfString)
         Monster.addTestbool(fbb, true)
-        Monster.addTesthashu32Fnv1(fbb, UInt.MAX_VALUE + 1u)
+        Monster.addTesthashu32Fnv1(fbb, (Integer.MAX_VALUE + 1L).toUInt())
         Monster.addTestarrayoftables(fbb, sortMons)
         val mon = Monster.endMonster(fbb)
 
@@ -456,5 +458,14 @@ class KotlinTest {
 
         assert((movie.characters(Attacker(), 0) as Attacker).swordAttackDamage == swordAttackDamage)
     }
-}
+
+    fun TestSharedStringPool() {
+        val fb = FlatBufferBuilder(1);
+        val testString = "My string";
+        val offset = fb.createSharedString(testString);
+        for (i in 0..10) {
+            assert(offset == fb.createSharedString(testString));
+        }
+    }
   }
+}

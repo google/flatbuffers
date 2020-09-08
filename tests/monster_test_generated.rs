@@ -32,9 +32,7 @@ impl<'a> flatbuffers::Follow<'a> for InParentNamespace<'a> {
     type Inner = InParentNamespace<'a>;
     #[inline]
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self {
-            _tab: flatbuffers::Table { buf: buf, loc: loc },
-        }
+        Self { _tab: flatbuffers::Table { buf, loc } }
     }
 }
 
@@ -110,9 +108,7 @@ impl<'a> flatbuffers::Follow<'a> for Monster<'a> {
     type Inner = Monster<'a>;
     #[inline]
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self {
-            _tab: flatbuffers::Table { buf: buf, loc: loc },
-        }
+        Self { _tab: flatbuffers::Table { buf, loc } }
     }
 }
 
@@ -228,14 +224,14 @@ impl flatbuffers::Push for Color {
 }
 
 #[allow(non_camel_case_types)]
-pub const ENUM_VALUES_COLOR:[Color; 3] = [
+pub const ENUM_VALUES_COLOR: [Color; 3] = [
   Color::Red,
   Color::Green,
   Color::Blue
 ];
 
 #[allow(non_camel_case_types)]
-pub const ENUM_NAMES_COLOR:[&'static str; 8] = [
+pub const ENUM_NAMES_COLOR: [&str; 8] = [
     "Red",
     "Green",
     "",
@@ -297,7 +293,7 @@ impl flatbuffers::Push for Race {
 }
 
 #[allow(non_camel_case_types)]
-pub const ENUM_VALUES_RACE:[Race; 4] = [
+pub const ENUM_VALUES_RACE: [Race; 4] = [
   Race::None,
   Race::Human,
   Race::Dwarf,
@@ -305,7 +301,7 @@ pub const ENUM_VALUES_RACE:[Race; 4] = [
 ];
 
 #[allow(non_camel_case_types)]
-pub const ENUM_NAMES_RACE:[&'static str; 4] = [
+pub const ENUM_NAMES_RACE: [&str; 4] = [
     "None",
     "Human",
     "Dwarf",
@@ -363,7 +359,7 @@ impl flatbuffers::Push for Any {
 }
 
 #[allow(non_camel_case_types)]
-pub const ENUM_VALUES_ANY:[Any; 4] = [
+pub const ENUM_VALUES_ANY: [Any; 4] = [
   Any::NONE,
   Any::Monster,
   Any::TestSimpleTableWithEnum,
@@ -371,7 +367,7 @@ pub const ENUM_VALUES_ANY:[Any; 4] = [
 ];
 
 #[allow(non_camel_case_types)]
-pub const ENUM_NAMES_ANY:[&'static str; 4] = [
+pub const ENUM_NAMES_ANY: [&str; 4] = [
     "NONE",
     "Monster",
     "TestSimpleTableWithEnum",
@@ -430,7 +426,7 @@ impl flatbuffers::Push for AnyUniqueAliases {
 }
 
 #[allow(non_camel_case_types)]
-pub const ENUM_VALUES_ANY_UNIQUE_ALIASES:[AnyUniqueAliases; 4] = [
+pub const ENUM_VALUES_ANY_UNIQUE_ALIASES: [AnyUniqueAliases; 4] = [
   AnyUniqueAliases::NONE,
   AnyUniqueAliases::M,
   AnyUniqueAliases::TS,
@@ -438,7 +434,7 @@ pub const ENUM_VALUES_ANY_UNIQUE_ALIASES:[AnyUniqueAliases; 4] = [
 ];
 
 #[allow(non_camel_case_types)]
-pub const ENUM_NAMES_ANY_UNIQUE_ALIASES:[&'static str; 4] = [
+pub const ENUM_NAMES_ANY_UNIQUE_ALIASES: [&str; 4] = [
     "NONE",
     "M",
     "TS",
@@ -497,7 +493,7 @@ impl flatbuffers::Push for AnyAmbiguousAliases {
 }
 
 #[allow(non_camel_case_types)]
-pub const ENUM_VALUES_ANY_AMBIGUOUS_ALIASES:[AnyAmbiguousAliases; 4] = [
+pub const ENUM_VALUES_ANY_AMBIGUOUS_ALIASES: [AnyAmbiguousAliases; 4] = [
   AnyAmbiguousAliases::NONE,
   AnyAmbiguousAliases::M1,
   AnyAmbiguousAliases::M2,
@@ -505,7 +501,7 @@ pub const ENUM_VALUES_ANY_AMBIGUOUS_ALIASES:[AnyAmbiguousAliases; 4] = [
 ];
 
 #[allow(non_camel_case_types)]
-pub const ENUM_NAMES_ANY_AMBIGUOUS_ALIASES:[&'static str; 4] = [
+pub const ENUM_NAMES_ANY_AMBIGUOUS_ALIASES: [&str; 4] = [
     "NONE",
     "M1",
     "M2",
@@ -565,7 +561,7 @@ impl<'b> flatbuffers::Push for &'b Test {
 
 
 impl Test {
-  pub fn new<'a>(_a: i16, _b: i8) -> Self {
+  pub fn new(_a: i16, _b: i8) -> Self {
     Test {
       a_: _a.to_little_endian(),
       b_: _b.to_little_endian(),
@@ -577,10 +573,10 @@ impl Test {
         "MyGame.Example.Test"
     }
 
-  pub fn a<'a>(&'a self) -> i16 {
+  pub fn a(&self) -> i16 {
     self.a_.from_little_endian()
   }
-  pub fn b<'a>(&'a self) -> i8 {
+  pub fn b(&self) -> i8 {
     self.b_.from_little_endian()
   }
 }
@@ -638,7 +634,7 @@ impl<'b> flatbuffers::Push for &'b Vec3 {
 
 
 impl Vec3 {
-  pub fn new<'a>(_x: f32, _y: f32, _z: f32, _test1: f64, _test2: Color, _test3: &'a Test) -> Self {
+  pub fn new(_x: f32, _y: f32, _z: f32, _test1: f64, _test2: Color, _test3: &Test) -> Self {
     Vec3 {
       x_: _x.to_little_endian(),
       y_: _y.to_little_endian(),
@@ -656,22 +652,22 @@ impl Vec3 {
         "MyGame.Example.Vec3"
     }
 
-  pub fn x<'a>(&'a self) -> f32 {
+  pub fn x(&self) -> f32 {
     self.x_.from_little_endian()
   }
-  pub fn y<'a>(&'a self) -> f32 {
+  pub fn y(&self) -> f32 {
     self.y_.from_little_endian()
   }
-  pub fn z<'a>(&'a self) -> f32 {
+  pub fn z(&self) -> f32 {
     self.z_.from_little_endian()
   }
-  pub fn test1<'a>(&'a self) -> f64 {
+  pub fn test1(&self) -> f64 {
     self.test1_.from_little_endian()
   }
-  pub fn test2<'a>(&'a self) -> Color {
+  pub fn test2(&self) -> Color {
     self.test2_.from_little_endian()
   }
-  pub fn test3<'a>(&'a self) -> &'a Test {
+  pub fn test3(&self) -> &Test {
     &self.test3_
   }
 }
@@ -722,7 +718,7 @@ impl<'b> flatbuffers::Push for &'b Ability {
 
 
 impl Ability {
-  pub fn new<'a>(_id: u32, _distance: u32) -> Self {
+  pub fn new(_id: u32, _distance: u32) -> Self {
     Ability {
       id_: _id.to_little_endian(),
       distance_: _distance.to_little_endian(),
@@ -733,7 +729,7 @@ impl Ability {
         "MyGame.Example.Ability"
     }
 
-  pub fn id<'a>(&'a self) -> u32 {
+  pub fn id(&self) -> u32 {
     self.id_.from_little_endian()
   }
   #[inline]
@@ -746,7 +742,7 @@ impl Ability {
     let key = self.id();
     key.cmp(&val)
   }
-  pub fn distance<'a>(&'a self) -> u32 {
+  pub fn distance(&self) -> u32 {
     self.distance_.from_little_endian()
   }
 }
@@ -762,9 +758,7 @@ impl<'a> flatbuffers::Follow<'a> for TestSimpleTableWithEnum<'a> {
     type Inner = TestSimpleTableWithEnum<'a>;
     #[inline]
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self {
-            _tab: flatbuffers::Table { buf: buf, loc: loc },
-        }
+        Self { _tab: flatbuffers::Table { buf, loc } }
     }
 }
 
@@ -842,9 +836,7 @@ impl<'a> flatbuffers::Follow<'a> for Stat<'a> {
     type Inner = Stat<'a>;
     #[inline]
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self {
-            _tab: flatbuffers::Table { buf: buf, loc: loc },
-        }
+        Self { _tab: flatbuffers::Table { buf, loc } }
     }
 }
 
@@ -889,7 +881,7 @@ impl<'a> Stat<'a> {
 }
 
 pub struct StatArgs<'a> {
-    pub id: Option<flatbuffers::WIPOffset<&'a  str>>,
+    pub id: Option<flatbuffers::WIPOffset<&'a str>>,
     pub val: i64,
     pub count: u16,
 }
@@ -946,9 +938,7 @@ impl<'a> flatbuffers::Follow<'a> for Referrable<'a> {
     type Inner = Referrable<'a>;
     #[inline]
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self {
-            _tab: flatbuffers::Table { buf: buf, loc: loc },
-        }
+        Self { _tab: flatbuffers::Table { buf, loc } }
     }
 }
 
@@ -1037,9 +1027,7 @@ impl<'a> flatbuffers::Follow<'a> for Monster<'a> {
     type Inner = Monster<'a>;
     #[inline]
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self {
-            _tab: flatbuffers::Table { buf: buf, loc: loc },
-        }
+        Self { _tab: flatbuffers::Table { buf, loc } }
     }
 }
 
@@ -1376,7 +1364,7 @@ impl<'a> Monster<'a> {
   #[allow(non_snake_case)]
   pub fn test_as_monster(&self) -> Option<Monster<'a>> {
     if self.test_type() == Any::Monster {
-      self.test().map(|u| Monster::init_from_table(u))
+      self.test().map(Monster::init_from_table)
     } else {
       None
     }
@@ -1386,7 +1374,7 @@ impl<'a> Monster<'a> {
   #[allow(non_snake_case)]
   pub fn test_as_test_simple_table_with_enum(&self) -> Option<TestSimpleTableWithEnum<'a>> {
     if self.test_type() == Any::TestSimpleTableWithEnum {
-      self.test().map(|u| TestSimpleTableWithEnum::init_from_table(u))
+      self.test().map(TestSimpleTableWithEnum::init_from_table)
     } else {
       None
     }
@@ -1396,7 +1384,7 @@ impl<'a> Monster<'a> {
   #[allow(non_snake_case)]
   pub fn test_as_my_game_example_2_monster(&self) -> Option<super::example_2::Monster<'a>> {
     if self.test_type() == Any::MyGame_Example2_Monster {
-      self.test().map(|u| super::example_2::Monster::init_from_table(u))
+      self.test().map(super::example_2::Monster::init_from_table)
     } else {
       None
     }
@@ -1406,7 +1394,7 @@ impl<'a> Monster<'a> {
   #[allow(non_snake_case)]
   pub fn any_unique_as_m(&self) -> Option<Monster<'a>> {
     if self.any_unique_type() == AnyUniqueAliases::M {
-      self.any_unique().map(|u| Monster::init_from_table(u))
+      self.any_unique().map(Monster::init_from_table)
     } else {
       None
     }
@@ -1416,7 +1404,7 @@ impl<'a> Monster<'a> {
   #[allow(non_snake_case)]
   pub fn any_unique_as_ts(&self) -> Option<TestSimpleTableWithEnum<'a>> {
     if self.any_unique_type() == AnyUniqueAliases::TS {
-      self.any_unique().map(|u| TestSimpleTableWithEnum::init_from_table(u))
+      self.any_unique().map(TestSimpleTableWithEnum::init_from_table)
     } else {
       None
     }
@@ -1426,7 +1414,7 @@ impl<'a> Monster<'a> {
   #[allow(non_snake_case)]
   pub fn any_unique_as_m2(&self) -> Option<super::example_2::Monster<'a>> {
     if self.any_unique_type() == AnyUniqueAliases::M2 {
-      self.any_unique().map(|u| super::example_2::Monster::init_from_table(u))
+      self.any_unique().map(super::example_2::Monster::init_from_table)
     } else {
       None
     }
@@ -1436,7 +1424,7 @@ impl<'a> Monster<'a> {
   #[allow(non_snake_case)]
   pub fn any_ambiguous_as_m1(&self) -> Option<Monster<'a>> {
     if self.any_ambiguous_type() == AnyAmbiguousAliases::M1 {
-      self.any_ambiguous().map(|u| Monster::init_from_table(u))
+      self.any_ambiguous().map(Monster::init_from_table)
     } else {
       None
     }
@@ -1446,7 +1434,7 @@ impl<'a> Monster<'a> {
   #[allow(non_snake_case)]
   pub fn any_ambiguous_as_m2(&self) -> Option<Monster<'a>> {
     if self.any_ambiguous_type() == AnyAmbiguousAliases::M2 {
-      self.any_ambiguous().map(|u| Monster::init_from_table(u))
+      self.any_ambiguous().map(Monster::init_from_table)
     } else {
       None
     }
@@ -1456,7 +1444,7 @@ impl<'a> Monster<'a> {
   #[allow(non_snake_case)]
   pub fn any_ambiguous_as_m3(&self) -> Option<Monster<'a>> {
     if self.any_ambiguous_type() == AnyAmbiguousAliases::M3 {
-      self.any_ambiguous().map(|u| Monster::init_from_table(u))
+      self.any_ambiguous().map(Monster::init_from_table)
     } else {
       None
     }
@@ -1465,20 +1453,20 @@ impl<'a> Monster<'a> {
 }
 
 pub struct MonsterArgs<'a> {
-    pub pos: Option<&'a  Vec3>,
+    pub pos: Option<&'a Vec3>,
     pub mana: i16,
     pub hp: i16,
-    pub name: Option<flatbuffers::WIPOffset<&'a  str>>,
-    pub inventory: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a ,  u8>>>,
+    pub name: Option<flatbuffers::WIPOffset<&'a str>>,
+    pub inventory: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u8>>>,
     pub color: Color,
     pub test_type: Any,
     pub test: Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>>,
-    pub test4: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a , Test>>>,
-    pub testarrayofstring: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a , flatbuffers::ForwardsUOffset<&'a  str>>>>,
-    pub testarrayoftables: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a , flatbuffers::ForwardsUOffset<Monster<'a >>>>>,
-    pub enemy: Option<flatbuffers::WIPOffset<Monster<'a >>>,
-    pub testnestedflatbuffer: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a ,  u8>>>,
-    pub testempty: Option<flatbuffers::WIPOffset<Stat<'a >>>,
+    pub test4: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, Test>>>,
+    pub testarrayofstring: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<&'a str>>>>,
+    pub testarrayoftables: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Monster<'a>>>>>,
+    pub enemy: Option<flatbuffers::WIPOffset<Monster<'a>>>,
+    pub testnestedflatbuffer: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u8>>>,
+    pub testempty: Option<flatbuffers::WIPOffset<Stat<'a>>>,
     pub testbool: bool,
     pub testhashs32_fnv1: i32,
     pub testhashu32_fnv1: u32,
@@ -1488,30 +1476,30 @@ pub struct MonsterArgs<'a> {
     pub testhashu32_fnv1a: u32,
     pub testhashs64_fnv1a: i64,
     pub testhashu64_fnv1a: u64,
-    pub testarrayofbools: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a , bool>>>,
+    pub testarrayofbools: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, bool>>>,
     pub testf: f32,
     pub testf2: f32,
     pub testf3: f32,
-    pub testarrayofstring2: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a , flatbuffers::ForwardsUOffset<&'a  str>>>>,
-    pub testarrayofsortedstruct: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a , Ability>>>,
-    pub flex: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a ,  u8>>>,
-    pub test5: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a , Test>>>,
-    pub vector_of_longs: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a ,  i64>>>,
-    pub vector_of_doubles: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a ,  f64>>>,
-    pub parent_namespace_test: Option<flatbuffers::WIPOffset<super::InParentNamespace<'a >>>,
-    pub vector_of_referrables: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a , flatbuffers::ForwardsUOffset<Referrable<'a >>>>>,
+    pub testarrayofstring2: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<&'a str>>>>,
+    pub testarrayofsortedstruct: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, Ability>>>,
+    pub flex: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u8>>>,
+    pub test5: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, Test>>>,
+    pub vector_of_longs: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, i64>>>,
+    pub vector_of_doubles: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, f64>>>,
+    pub parent_namespace_test: Option<flatbuffers::WIPOffset<super::InParentNamespace<'a>>>,
+    pub vector_of_referrables: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Referrable<'a>>>>>,
     pub single_weak_reference: u64,
-    pub vector_of_weak_references: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a ,  u64>>>,
-    pub vector_of_strong_referrables: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a , flatbuffers::ForwardsUOffset<Referrable<'a >>>>>,
+    pub vector_of_weak_references: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u64>>>,
+    pub vector_of_strong_referrables: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Referrable<'a>>>>>,
     pub co_owning_reference: u64,
-    pub vector_of_co_owning_references: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a ,  u64>>>,
+    pub vector_of_co_owning_references: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u64>>>,
     pub non_owning_reference: u64,
-    pub vector_of_non_owning_references: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a ,  u64>>>,
+    pub vector_of_non_owning_references: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u64>>>,
     pub any_unique_type: AnyUniqueAliases,
     pub any_unique: Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>>,
     pub any_ambiguous_type: AnyAmbiguousAliases,
     pub any_ambiguous: Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>>,
-    pub vector_of_enums: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a , Color>>>,
+    pub vector_of_enums: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, Color>>>,
     pub signed_enum: Race,
 }
 impl<'a> Default for MonsterArgs<'a> {
@@ -1575,7 +1563,7 @@ pub struct MonsterBuilder<'a: 'b, 'b> {
 }
 impl<'a: 'b, 'b> MonsterBuilder<'a, 'b> {
   #[inline]
-  pub fn add_pos(&mut self, pos: &'b  Vec3) {
+  pub fn add_pos(&mut self, pos: &Vec3) {
     self.fbb_.push_slot_always::<&Vec3>(Monster::VT_POS, pos);
   }
   #[inline]
@@ -1793,9 +1781,7 @@ impl<'a> flatbuffers::Follow<'a> for TypeAliases<'a> {
     type Inner = TypeAliases<'a>;
     #[inline]
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self {
-            _tab: flatbuffers::Table { buf: buf, loc: loc },
-        }
+        Self { _tab: flatbuffers::Table { buf, loc } }
     }
 }
 
@@ -1904,8 +1890,8 @@ pub struct TypeAliasesArgs<'a> {
     pub u64_: u64,
     pub f32_: f32,
     pub f64_: f64,
-    pub v8: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a ,  i8>>>,
-    pub vf64: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a ,  f64>>>,
+    pub v8: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, i8>>>,
+    pub vf64: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, f64>>>,
 }
 impl<'a> Default for TypeAliasesArgs<'a> {
     #[inline]
@@ -2004,19 +1990,19 @@ pub fn get_size_prefixed_root_as_monster<'a>(buf: &'a [u8]) -> Monster<'a> {
   flatbuffers::get_size_prefixed_root::<Monster<'a>>(buf)
 }
 
-pub const MONSTER_IDENTIFIER: &'static str = "MONS";
+pub const MONSTER_IDENTIFIER: &str = "MONS";
 
 #[inline]
 pub fn monster_buffer_has_identifier(buf: &[u8]) -> bool {
-  return flatbuffers::buffer_has_identifier(buf, MONSTER_IDENTIFIER, false);
+  flatbuffers::buffer_has_identifier(buf, MONSTER_IDENTIFIER, false)
 }
 
 #[inline]
 pub fn monster_size_prefixed_buffer_has_identifier(buf: &[u8]) -> bool {
-  return flatbuffers::buffer_has_identifier(buf, MONSTER_IDENTIFIER, true);
+  flatbuffers::buffer_has_identifier(buf, MONSTER_IDENTIFIER, true)
 }
 
-pub const MONSTER_EXTENSION: &'static str = "mon";
+pub const MONSTER_EXTENSION: &str = "mon";
 
 #[inline]
 pub fn finish_monster_buffer<'a, 'b>(

@@ -12,9 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import fileinput
 import os
+import re
+import sys
 from datetime import datetime
 from setuptools import setup
+
+
+def _update_version_attr(new_version):
+    for line in fileinput.input('flatbuffers/_version.py', inplace=True):
+        if line.startswith('__version__'):
+            line = re.sub(r'".*"', '"{}"'.format(new_version), line)
+        sys.stdout.write(line)
 
 
 def version():
@@ -23,7 +33,7 @@ def version():
         # Most git tags are prefixed with 'v' (example: v1.2.3) this is
         # never desirable for artifact repositories, so we strip the
         # leading 'v' if it's present.
-        return version[1:] if version.startswith('v') else version
+        version = version[1:] if version.startswith('v') else version
     else:
         # Default version is an ISO8601 compiliant datetime. PyPI doesn't allow
         # the colon ':' character in its versions, and time is required to allow
@@ -39,7 +49,10 @@ def version():
         print("VERSION environment variable not set, using datetime instead: {}"
               .format(version))
 
+    _update_version_attr(version)
+
     return version
+
 
 setup(
     name='flatbuffers',

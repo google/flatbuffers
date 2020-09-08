@@ -82,6 +82,16 @@ static bool ValidateUTF8(const std::string &str) {
   return true;
 }
 
+static bool IsLowerSnakeCase(const std::string &str) {
+  for (size_t i = 0; i < str.length(); i++) {
+    char c = str[i];
+    if (!check_ascii_range(c, 'a', 'z') && !is_digit(c) && c != '_') {
+      return false;
+    }
+  }
+  return true;
+}
+
 // Convert an underscore_based_indentifier in to camelCase.
 // Also uppercases the first character if first is true.
 std::string MakeCamel(const std::string &in, bool first) {
@@ -671,6 +681,10 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   if (LookupCreateStruct(name, false, false))
     return Error("field name can not be the same as table/struct name");
 
+  if (!IsLowerSnakeCase(name)) {
+    Warning("field names should be lowercase snake_case, got: " + name);
+  }
+
   std::vector<std::string> dc = doc_comment_;
   EXPECT(kTokenIdentifier);
   EXPECT(':');
@@ -707,7 +721,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     // Only cpp, js and ts supports the union vector feature so far.
     if (!SupportsAdvancedUnionFeatures()) {
       return Error(
-          "Vectors of unions are not yet supported in all "
+          "Vectors of unions are not yet supported in at least one of "
           "the specified programming languages.");
     }
     // For vector of union fields, add a second auto-generated vector field to
@@ -729,6 +743,19 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
       return Error(
           "default values currently only supported for scalars in tables");
   }
+
+  // Mark the nullable scalars. Note that a side effect of ParseSingleValue is
+  // fixing field->value.constant to null.
+  if (IsScalar(type.base_type)) {
+    field->nullable = (field->value.constant == "null");
+    if (field->nullable && !SupportsNullableScalars()) {
+      return Error(
+        "Nullable scalars are not yet supported in at least one the of "
+        "the specified programming languages."
+      );
+    }
+  }
+
   // Append .0 if the value has not it (skip hex and scientific floats).
   // This suffix needed for generated C++ code.
   if (IsFloat(type.base_type)) {
@@ -878,6 +905,9 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
       val->constant = NumToString(id - 1);
       typefield->attributes.Add("id", val);
     }
+    // if this field is a union that is deprecated,
+    // the automatically added type field should be deprecated as well
+    if (field->deprecated) { typefield->deprecated = true; }
   }
 
   EXPECT(';');
@@ -1741,6 +1771,12 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
         TRY_ECHECK(kTokenStringOrIdent, IsBool(in_type), BASE_TYPE_BOOL);
       }
     }
+    // Check for optional scalars.
+    if (!match && IsScalar(in_type) && attribute_ == "null") {
+      e.constant = "null";
+      NEXT();
+      match = true;
+    }
     // Check if this could be a string/identifier enum value.
     // Enum can have only true integer base type.
     if (!match && IsInteger(in_type) && !IsBool(in_type) &&
@@ -1794,7 +1830,8 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
   // This flag forces to check default scalar values or metadata of field.
   // For JSON parser the flag should be false.
   // If it is set for JSON each value will be checked twice (see ParseTable).
-  if (check_now && IsScalar(match_type)) {
+  // Special case 'null' since atot can't handle that.
+  if (check_now && IsScalar(match_type) && e.constant != "null") {
     // clang-format off
     switch (match_type) {
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
@@ -1995,21 +2032,16 @@ struct EnumValBuilder {
   FLATBUFFERS_CHECKED_ERROR AssignEnumeratorValue(const std::string &value) {
     user_value = true;
     auto fit = false;
-    auto ascending = false;
     if (enum_def.IsUInt64()) {
       uint64_t u64;
       fit = StringToNumber(value.c_str(), &u64);
-      ascending = u64 > temp->GetAsUInt64();
       temp->value = static_cast<int64_t>(u64);  // well-defined since C++20.
     } else {
       int64_t i64;
       fit = StringToNumber(value.c_str(), &i64);
-      ascending = i64 > temp->GetAsInt64();
       temp->value = i64;
     }
     if (!fit) return parser.Error("enum value does not fit, \"" + value + "\"");
-    if (!ascending && strict_ascending && !enum_def.vals.vec.empty())
-      return parser.Error("enum values must be specified in ascending order");
     return NoError();
   }
 
@@ -2045,11 +2077,10 @@ struct EnumValBuilder {
     return parser.Error("fatal: invalid enum underlying type");
   }
 
-  EnumValBuilder(Parser &_parser, EnumDef &_enum_def, bool strict_order = true)
+  EnumValBuilder(Parser &_parser, EnumDef &_enum_def)
       : parser(_parser),
         enum_def(_enum_def),
         temp(nullptr),
-        strict_ascending(strict_order),
         user_value(false) {}
 
   ~EnumValBuilder() { delete temp; }
@@ -2057,7 +2088,6 @@ struct EnumValBuilder {
   Parser &parser;
   EnumDef &enum_def;
   EnumVal *temp;
-  const bool strict_ascending;
   bool user_value;
 };
 
@@ -2094,9 +2124,7 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef **dest) {
     // todo: Convert to the Error in the future?
     Warning("underlying type of bit_flags enum must be unsigned");
   }
-  // Protobuf allows them to be specified in any order, so sort afterwards.
-  const auto strict_ascending = (false == opts.proto_mode);
-  EnumValBuilder evb(*this, *enum_def, strict_ascending);
+  EnumValBuilder evb(*this, *enum_def);
   EXPECT('{');
   // A lot of code generatos expect that an enum is not-empty.
   if ((is_union || Is('}')) && !opts.proto_mode) {
@@ -2140,9 +2168,6 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef **dest) {
         NEXT();
         ECHECK(evb.AssignEnumeratorValue(attribute_));
         EXPECT(kTokenIntegerConstant);
-      } else if (false == strict_ascending) {
-        // The opts.proto_mode flag is active.
-        return Error("Protobuf mode doesn't allow implicit enum values.");
       }
 
       ECHECK(evb.AcceptEnumerator());
@@ -2178,8 +2203,18 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef **dest) {
     }
   }
 
-  if (false == strict_ascending)
-    enum_def->SortByValue();  // Must be sorted to use MinValue/MaxValue.
+  enum_def->SortByValue();  // Must be sorted to use MinValue/MaxValue.
+
+  // Ensure enum value uniqueness.
+  auto prev_it = enum_def->Vals().begin();
+  for (auto it = prev_it + 1; it != enum_def->Vals().end(); ++it) {
+    auto prev_ev = *prev_it;
+    auto ev = *it;
+    if (prev_ev->GetAsUInt64() == ev->GetAsUInt64())
+      return Error("all enum values must be unique: " + prev_ev->name +
+                   " and " + ev->name + " are both " +
+                   NumToString(ev->GetAsInt64()));
+  }
 
   if (dest) *dest = enum_def;
   types_.Add(current_namespace_->GetFullyQualifiedName(enum_def->name),
@@ -2219,6 +2254,12 @@ CheckedError Parser::CheckClash(std::vector<FieldDef *> &fields,
     }
   }
   return NoError();
+}
+
+
+bool Parser::SupportsNullableScalars() const {
+  return !(opts.lang_to_generate &
+    ~(IDLOptions::kRust | IDLOptions::kSwift | IDLOptions::kLobster));
 }
 
 bool Parser::SupportsAdvancedUnionFeatures() const {
@@ -2608,10 +2649,13 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
           auto val = attribute_;
           ECHECK(ParseProtoCurliesOrIdent());
           if (key == "default") {
-            // Temp: skip non-numeric defaults (enums).
+            // Temp: skip non-numeric and non-boolean defaults (enums).
             auto numeric = strpbrk(val.c_str(), "0123456789-+.");
-            if (IsScalar(type.base_type) && numeric == val.c_str())
+            if (IsScalar(type.base_type) && numeric == val.c_str()) {
               field->value.constant = val;
+            } else if (val == "true") {
+              field->value.constant = val;
+            }  // "false" is default, no need to handle explicitly.
           } else if (key == "deprecated") {
             field->deprecated = val == "true";
           }
@@ -3277,10 +3321,6 @@ bool FieldDef::Deserialize(Parser &parser, const reflection::Field *field) {
     value.constant = NumToString(field->default_integer());
   } else if (IsFloat(value.type.base_type)) {
     value.constant = FloatToString(field->default_real(), 16);
-    size_t last_zero = value.constant.find_last_not_of('0');
-    if (last_zero != std::string::npos && last_zero != 0) {
-      value.constant.erase(last_zero, std::string::npos);
-    }
   }
   deprecated = field->deprecated();
   required = field->required();

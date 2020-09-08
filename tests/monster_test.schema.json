@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
   "definitions": {
     "MyGame_OtherNameSpace_FromInclude" : {
       "type" : "string",
@@ -162,7 +162,8 @@
                 "type" : "string"
               },
         "friendly" : {
-                "type" : "boolean"
+                "type" : "boolean",
+                "deprecated" : true,
               },
         "inventory" : {
                 "type" : "array", "items" : { "type" : "number" }

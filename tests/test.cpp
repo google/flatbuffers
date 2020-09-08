@@ -678,12 +678,23 @@ template<typename T, typename U, U qnan_base> bool is_quiet_nan_impl(T v) {
   std::memcpy(&b, &v, sizeof(T));
   return ((b & qnan_base) == qnan_base);
 }
+#if defined(__mips__) || defined(__hppa__)
+static bool is_quiet_nan(float v) {
+  return is_quiet_nan_impl<float, uint32_t, 0x7FC00000u>(v) ||
+         is_quiet_nan_impl<float, uint32_t, 0x7FBFFFFFu>(v);
+}
+static bool is_quiet_nan(double v) {
+  return is_quiet_nan_impl<double, uint64_t, 0x7FF8000000000000ul>(v) ||
+         is_quiet_nan_impl<double, uint64_t, 0x7FF7FFFFFFFFFFFFu>(v);
+}
+#else
 static bool is_quiet_nan(float v) {
   return is_quiet_nan_impl<float, uint32_t, 0x7FC00000u>(v);
 }
 static bool is_quiet_nan(double v) {
   return is_quiet_nan_impl<double, uint64_t, 0x7FF8000000000000ul>(v);
 }
+#endif
 
 void TestMonsterExtraFloats() {
   TEST_EQ(is_quiet_nan(1.0), false);
@@ -1549,7 +1560,7 @@ void TestError_(const char *src, const char *error_substr, bool strict_json,
              ("parser.Parse(\"" + std::string(src) + "\")").c_str(), file, line,
              func);
   } else if (!strstr(parser.error_.c_str(), error_substr)) {
-    TestFail(parser.error_.c_str(), error_substr,
+    TestFail(error_substr, parser.error_.c_str(),
              ("parser.Parse(\"" + std::string(src) + "\")").c_str(), file, line,
              func);
   }
@@ -1605,7 +1616,7 @@ void ErrorTest() {
   TestError("enum X:byte { Y } enum X {", "enum already");
   TestError("enum X:float {}", "underlying");
   TestError("enum X:byte { Y, Y }", "value already");
-  TestError("enum X:byte { Y=2, Z=1 }", "ascending");
+  TestError("enum X:byte { Y=2, Z=2 }", "unique");
   TestError("table X { Y:int; } table X {", "datatype already");
   TestError("struct X (force_align: 7) { Y:int; }", "force_align");
   TestError("struct X {}", "size 0");
@@ -1626,6 +1637,8 @@ void ErrorTest() {
   // Array of non-scalar
   TestError("table X { x:int; } struct Y { y:[X:2]; }",
             "may contain only scalar or struct fields");
+  // Non-snake case field names
+  TestError("table X { Y: int; } root_type Y: {Y:1.0}", "snake_case");
 }
 
 template<typename T>
@@ -1637,7 +1650,7 @@ T TestValue(const char *json, const char *type_name,
   if (check_default) { parser.opts.output_default_scalars_in_json = true; }
   // Simple schema.
   std::string schema = std::string(decls ? decls : "") + "\n" +
-                       "table X { Y:" + std::string(type_name) +
+                       "table X { y:" + std::string(type_name) +
                        "; } root_type X;";
   auto schema_done = parser.Parse(schema.c_str());
   TEST_EQ_STR(parser.error_.c_str(), "");
@@ -1666,45 +1679,45 @@ bool FloatCompare(float a, float b) { return fabs(a - b) < 0.001; }
 void ValueTest() {
   // Test scientific notation numbers.
   TEST_EQ(
-      FloatCompare(TestValue<float>("{ Y:0.0314159e+2 }", "float"), 3.14159f),
+      FloatCompare(TestValue<float>("{ y:0.0314159e+2 }", "float"), 3.14159f),
       true);
   // number in string
-  TEST_EQ(FloatCompare(TestValue<float>("{ Y:\"0.0314159e+2\" }", "float"),
+  TEST_EQ(FloatCompare(TestValue<float>("{ y:\"0.0314159e+2\" }", "float"),
                        3.14159f),
           true);
 
   // Test conversion functions.
-  TEST_EQ(FloatCompare(TestValue<float>("{ Y:cos(rad(180)) }", "float"), -1),
+  TEST_EQ(FloatCompare(TestValue<float>("{ y:cos(rad(180)) }", "float"), -1),
           true);
 
   // int embedded to string
-  TEST_EQ(TestValue<int>("{ Y:\"-876\" }", "int=-123"), -876);
-  TEST_EQ(TestValue<int>("{ Y:\"876\" }", "int=-123"), 876);
+  TEST_EQ(TestValue<int>("{ y:\"-876\" }", "int=-123"), -876);
+  TEST_EQ(TestValue<int>("{ y:\"876\" }", "int=-123"), 876);
 
   // Test negative hex constant.
-  TEST_EQ(TestValue<int>("{ Y:-0x8ea0 }", "int=-0x8ea0"), -36512);
+  TEST_EQ(TestValue<int>("{ y:-0x8ea0 }", "int=-0x8ea0"), -36512);
   TEST_EQ(TestValue<int>(nullptr, "int=-0x8ea0"), -36512);
 
   // positive hex constant
-  TEST_EQ(TestValue<int>("{ Y:0x1abcdef }", "int=0x1"), 0x1abcdef);
+  TEST_EQ(TestValue<int>("{ y:0x1abcdef }", "int=0x1"), 0x1abcdef);
   // with optional '+' sign
-  TEST_EQ(TestValue<int>("{ Y:+0x1abcdef }", "int=+0x1"), 0x1abcdef);
+  TEST_EQ(TestValue<int>("{ y:+0x1abcdef }", "int=+0x1"), 0x1abcdef);
   // hex in string
-  TEST_EQ(TestValue<int>("{ Y:\"0x1abcdef\" }", "int=+0x1"), 0x1abcdef);
+  TEST_EQ(TestValue<int>("{ y:\"0x1abcdef\" }", "int=+0x1"), 0x1abcdef);
 
   // Make sure we do unsigned 64bit correctly.
-  TEST_EQ(TestValue<uint64_t>("{ Y:12335089644688340133 }", "ulong"),
+  TEST_EQ(TestValue<uint64_t>("{ y:12335089644688340133 }", "ulong"),
           12335089644688340133ULL);
 
   // bool in string
-  TEST_EQ(TestValue<bool>("{ Y:\"false\" }", "bool=true"), false);
-  TEST_EQ(TestValue<bool>("{ Y:\"true\" }", "bool=\"true\""), true);
-  TEST_EQ(TestValue<bool>("{ Y:'false' }", "bool=true"), false);
-  TEST_EQ(TestValue<bool>("{ Y:'true' }", "bool=\"true\""), true);
+  TEST_EQ(TestValue<bool>("{ y:\"false\" }", "bool=true"), false);
+  TEST_EQ(TestValue<bool>("{ y:\"true\" }", "bool=\"true\""), true);
+  TEST_EQ(TestValue<bool>("{ y:'false' }", "bool=true"), false);
+  TEST_EQ(TestValue<bool>("{ y:'true' }", "bool=\"true\""), true);
 
   // check comments before and after json object
-  TEST_EQ(TestValue<int>("/*before*/ { Y:1 } /*after*/", "int"), 1);
-  TEST_EQ(TestValue<int>("//before \n { Y:1 } //after", "int"), 1);
+  TEST_EQ(TestValue<int>("/*before*/ { y:1 } /*after*/", "int"), 1);
+  TEST_EQ(TestValue<int>("//before \n { y:1 } //after", "int"), 1);
 }
 
 void NestedListTest() {
@@ -1757,9 +1770,7 @@ void EnumOutOfRangeTest() {
   TestError("enum X:ubyte { Y = -1 }", "enum value does not fit");
   TestError("enum X:ubyte { Y = 256 }", "enum value does not fit");
   TestError("enum X:ubyte { Y = 255, Z }", "enum value does not fit");
-  // Unions begin with an implicit "NONE = 0".
-  TestError("table Y{} union X { Y = -1 }",
-            "enum values must be specified in ascending order");
+  TestError("table Y{} union X { Y = -1 }", "enum value does not fit");
   TestError("table Y{} union X { Y = 256 }", "enum value does not fit");
   TestError("table Y{} union X { Y = 255, Z:Y }", "enum value does not fit");
   TestError("enum X:int { Y = -2147483649 }", "enum value does not fit");
@@ -1778,18 +1789,18 @@ void EnumOutOfRangeTest() {
 }
 
 void EnumValueTest() {
-  // json: "{ Y:0 }", schema: table X { Y : "E"}
+  // json: "{ Y:0 }", schema: table X { y: "E"}
   // 0 in enum (V=0) E then Y=0 is valid.
-  TEST_EQ(TestValue<int>("{ Y:0 }", "E", "enum E:int { V }"), 0);
-  TEST_EQ(TestValue<int>("{ Y:V }", "E", "enum E:int { V }"), 0);
+  TEST_EQ(TestValue<int>("{ y:0 }", "E", "enum E:int { V }"), 0);
+  TEST_EQ(TestValue<int>("{ y:V }", "E", "enum E:int { V }"), 0);
   // A default value of Y is 0.
   TEST_EQ(TestValue<int>("{ }", "E", "enum E:int { V }"), 0);
-  TEST_EQ(TestValue<int>("{ Y:5 }", "E=V", "enum E:int { V=5 }"), 5);
+  TEST_EQ(TestValue<int>("{ y:5 }", "E=V", "enum E:int { V=5 }"), 5);
   // Generate json with defaults and check.
   TEST_EQ(TestValue<int>(nullptr, "E=V", "enum E:int { V=5 }"), 5);
   // 5 in enum
-  TEST_EQ(TestValue<int>("{ Y:5 }", "E", "enum E:int { Z, V=5 }"), 5);
-  TEST_EQ(TestValue<int>("{ Y:5 }", "E=V", "enum E:int { Z, V=5 }"), 5);
+  TEST_EQ(TestValue<int>("{ y:5 }", "E", "enum E:int { Z, V=5 }"), 5);
+  TEST_EQ(TestValue<int>("{ y:5 }", "E=V", "enum E:int { Z, V=5 }"), 5);
   // Generate json with defaults and check.
   TEST_EQ(TestValue<int>(nullptr, "E", "enum E:int { Z, V=5 }"), 0);
   TEST_EQ(TestValue<int>(nullptr, "E=V", "enum E:int { Z, V=5 }"), 5);
@@ -1801,7 +1812,9 @@ void EnumValueTest() {
                               "enum E:ulong { V = 18446744073709551615 }"),
           18446744073709551615ULL);
   // Assign non-enum value to enum field. Is it right?
-  TEST_EQ(TestValue<int>("{ Y:7 }", "E", "enum E:int { V = 0 }"), 7);
+  TEST_EQ(TestValue<int>("{ y:7 }", "E", "enum E:int { V = 0 }"), 7);
+  // Check that non-ascending values are valid.
+  TEST_EQ(TestValue<int>("{ y:5 }", "E=V", "enum E:int { Z=10, V=5 }"), 5);
 }
 
 void IntegerOutOfRangeTest() {
@@ -1895,26 +1908,26 @@ void IntegerBoundaryTest() {
   TEST_EQ(flatbuffers::numeric_limits<uint64_t>::max(),
           18446744073709551615ULL);
 
-  TEST_EQ(TestValue<int8_t>("{ Y:127 }", "byte"), 127);
-  TEST_EQ(TestValue<int8_t>("{ Y:-128 }", "byte"), -128);
-  TEST_EQ(TestValue<uint8_t>("{ Y:255 }", "ubyte"), 255);
-  TEST_EQ(TestValue<uint8_t>("{ Y:0 }", "ubyte"), 0);
-  TEST_EQ(TestValue<int16_t>("{ Y:32767 }", "short"), 32767);
-  TEST_EQ(TestValue<int16_t>("{ Y:-32768 }", "short"), -32768);
-  TEST_EQ(TestValue<uint16_t>("{ Y:65535 }", "ushort"), 65535);
-  TEST_EQ(TestValue<uint16_t>("{ Y:0 }", "ushort"), 0);
-  TEST_EQ(TestValue<int32_t>("{ Y:2147483647 }", "int"), 2147483647);
-  TEST_EQ(TestValue<int32_t>("{ Y:-2147483648 }", "int") + 1, -2147483647);
-  TEST_EQ(TestValue<uint32_t>("{ Y:4294967295 }", "uint"), 4294967295);
-  TEST_EQ(TestValue<uint32_t>("{ Y:0 }", "uint"), 0);
-  TEST_EQ(TestValue<int64_t>("{ Y:9223372036854775807 }", "long"),
+  TEST_EQ(TestValue<int8_t>("{ y:127 }", "byte"), 127);
+  TEST_EQ(TestValue<int8_t>("{ y:-128 }", "byte"), -128);
+  TEST_EQ(TestValue<uint8_t>("{ y:255 }", "ubyte"), 255);
+  TEST_EQ(TestValue<uint8_t>("{ y:0 }", "ubyte"), 0);
+  TEST_EQ(TestValue<int16_t>("{ y:32767 }", "short"), 32767);
+  TEST_EQ(TestValue<int16_t>("{ y:-32768 }", "short"), -32768);
+  TEST_EQ(TestValue<uint16_t>("{ y:65535 }", "ushort"), 65535);
+  TEST_EQ(TestValue<uint16_t>("{ y:0 }", "ushort"), 0);
+  TEST_EQ(TestValue<int32_t>("{ y:2147483647 }", "int"), 2147483647);
+  TEST_EQ(TestValue<int32_t>("{ y:-2147483648 }", "int") + 1, -2147483647);
+  TEST_EQ(TestValue<uint32_t>("{ y:4294967295 }", "uint"), 4294967295);
+  TEST_EQ(TestValue<uint32_t>("{ y:0 }", "uint"), 0);
+  TEST_EQ(TestValue<int64_t>("{ y:9223372036854775807 }", "long"),
           9223372036854775807LL);
-  TEST_EQ(TestValue<int64_t>("{ Y:-9223372036854775808 }", "long") + 1LL,
+  TEST_EQ(TestValue<int64_t>("{ y:-9223372036854775808 }", "long") + 1LL,
           -9223372036854775807LL);
-  TEST_EQ(TestValue<uint64_t>("{ Y:18446744073709551615 }", "ulong"),
+  TEST_EQ(TestValue<uint64_t>("{ y:18446744073709551615 }", "ulong"),
           18446744073709551615ULL);
-  TEST_EQ(TestValue<uint64_t>("{ Y:0 }", "ulong"), 0);
-  TEST_EQ(TestValue<uint64_t>("{ Y: 18446744073709551615 }", "uint64"),
+  TEST_EQ(TestValue<uint64_t>("{ y:0 }", "ulong"), 0);
+  TEST_EQ(TestValue<uint64_t>("{ y: 18446744073709551615 }", "uint64"),
           18446744073709551615ULL);
   // check that the default works
   TEST_EQ(TestValue<uint64_t>(nullptr, "uint64 = 18446744073709551615"),
@@ -1923,77 +1936,77 @@ void IntegerBoundaryTest() {
 
 void ValidFloatTest() {
   // check rounding to infinity
-  TEST_EQ(TestValue<float>("{ Y:+3.4029e+38 }", "float"), +infinityf);
-  TEST_EQ(TestValue<float>("{ Y:-3.4029e+38 }", "float"), -infinityf);
-  TEST_EQ(TestValue<double>("{ Y:+1.7977e+308 }", "double"), +infinityd);
-  TEST_EQ(TestValue<double>("{ Y:-1.7977e+308 }", "double"), -infinityd);
+  TEST_EQ(TestValue<float>("{ y:+3.4029e+38 }", "float"), +infinityf);
+  TEST_EQ(TestValue<float>("{ y:-3.4029e+38 }", "float"), -infinityf);
+  TEST_EQ(TestValue<double>("{ y:+1.7977e+308 }", "double"), +infinityd);
+  TEST_EQ(TestValue<double>("{ y:-1.7977e+308 }", "double"), -infinityd);
 
   TEST_EQ(
-      FloatCompare(TestValue<float>("{ Y:0.0314159e+2 }", "float"), 3.14159f),
+      FloatCompare(TestValue<float>("{ y:0.0314159e+2 }", "float"), 3.14159f),
       true);
   // float in string
-  TEST_EQ(FloatCompare(TestValue<float>("{ Y:\" 0.0314159e+2  \" }", "float"),
+  TEST_EQ(FloatCompare(TestValue<float>("{ y:\" 0.0314159e+2  \" }", "float"),
                        3.14159f),
           true);
 
-  TEST_EQ(TestValue<float>("{ Y:1 }", "float"), 1.0f);
-  TEST_EQ(TestValue<float>("{ Y:1.0 }", "float"), 1.0f);
-  TEST_EQ(TestValue<float>("{ Y:1. }", "float"), 1.0f);
-  TEST_EQ(TestValue<float>("{ Y:+1. }", "float"), 1.0f);
-  TEST_EQ(TestValue<float>("{ Y:-1. }", "float"), -1.0f);
-  TEST_EQ(TestValue<float>("{ Y:1.e0 }", "float"), 1.0f);
-  TEST_EQ(TestValue<float>("{ Y:1.e+0 }", "float"), 1.0f);
-  TEST_EQ(TestValue<float>("{ Y:1.e-0 }", "float"), 1.0f);
-  TEST_EQ(TestValue<float>("{ Y:0.125 }", "float"), 0.125f);
-  TEST_EQ(TestValue<float>("{ Y:.125 }", "float"), 0.125f);
-  TEST_EQ(TestValue<float>("{ Y:-.125 }", "float"), -0.125f);
-  TEST_EQ(TestValue<float>("{ Y:+.125 }", "float"), +0.125f);
-  TEST_EQ(TestValue<float>("{ Y:5 }", "float"), 5.0f);
-  TEST_EQ(TestValue<float>("{ Y:\"5\" }", "float"), 5.0f);
+  TEST_EQ(TestValue<float>("{ y:1 }", "float"), 1.0f);
+  TEST_EQ(TestValue<float>("{ y:1.0 }", "float"), 1.0f);
+  TEST_EQ(TestValue<float>("{ y:1. }", "float"), 1.0f);
+  TEST_EQ(TestValue<float>("{ y:+1. }", "float"), 1.0f);
+  TEST_EQ(TestValue<float>("{ y:-1. }", "float"), -1.0f);
+  TEST_EQ(TestValue<float>("{ y:1.e0 }", "float"), 1.0f);
+  TEST_EQ(TestValue<float>("{ y:1.e+0 }", "float"), 1.0f);
+  TEST_EQ(TestValue<float>("{ y:1.e-0 }", "float"), 1.0f);
+  TEST_EQ(TestValue<float>("{ y:0.125 }", "float"), 0.125f);
+  TEST_EQ(TestValue<float>("{ y:.125 }", "float"), 0.125f);
+  TEST_EQ(TestValue<float>("{ y:-.125 }", "float"), -0.125f);
+  TEST_EQ(TestValue<float>("{ y:+.125 }", "float"), +0.125f);
+  TEST_EQ(TestValue<float>("{ y:5 }", "float"), 5.0f);
+  TEST_EQ(TestValue<float>("{ y:\"5\" }", "float"), 5.0f);
 
 #if defined(FLATBUFFERS_HAS_NEW_STRTOD) && (FLATBUFFERS_HAS_NEW_STRTOD > 0)
   // Old MSVC versions may have problem with this check.
   // https://www.exploringbinary.com/visual-c-plus-plus-strtod-still-broken/
-  TEST_EQ(TestValue<double>("{ Y:6.9294956446009195e15 }", "double"),
+  TEST_EQ(TestValue<double>("{ y:6.9294956446009195e15 }", "double"),
           6929495644600920.0);
   // check nan's
-  TEST_EQ(std::isnan(TestValue<double>("{ Y:nan }", "double")), true);
-  TEST_EQ(std::isnan(TestValue<float>("{ Y:nan }", "float")), true);
-  TEST_EQ(std::isnan(TestValue<float>("{ Y:\"nan\" }", "float")), true);
-  TEST_EQ(std::isnan(TestValue<float>("{ Y:+nan }", "float")), true);
-  TEST_EQ(std::isnan(TestValue<float>("{ Y:-nan }", "float")), true);
+  TEST_EQ(std::isnan(TestValue<double>("{ y:nan }", "double")), true);
+  TEST_EQ(std::isnan(TestValue<float>("{ y:nan }", "float")), true);
+  TEST_EQ(std::isnan(TestValue<float>("{ y:\"nan\" }", "float")), true);
+  TEST_EQ(std::isnan(TestValue<float>("{ y:+nan }", "float")), true);
+  TEST_EQ(std::isnan(TestValue<float>("{ y:-nan }", "float")), true);
   TEST_EQ(std::isnan(TestValue<float>(nullptr, "float=nan")), true);
   TEST_EQ(std::isnan(TestValue<float>(nullptr, "float=-nan")), true);
   // check inf
-  TEST_EQ(TestValue<float>("{ Y:inf }", "float"), infinityf);
-  TEST_EQ(TestValue<float>("{ Y:\"inf\" }", "float"), infinityf);
-  TEST_EQ(TestValue<float>("{ Y:+inf }", "float"), infinityf);
-  TEST_EQ(TestValue<float>("{ Y:-inf }", "float"), -infinityf);
+  TEST_EQ(TestValue<float>("{ y:inf }", "float"), infinityf);
+  TEST_EQ(TestValue<float>("{ y:\"inf\" }", "float"), infinityf);
+  TEST_EQ(TestValue<float>("{ y:+inf }", "float"), infinityf);
+  TEST_EQ(TestValue<float>("{ y:-inf }", "float"), -infinityf);
   TEST_EQ(TestValue<float>(nullptr, "float=inf"), infinityf);
   TEST_EQ(TestValue<float>(nullptr, "float=-inf"), -infinityf);
   TestValue<double>(
-      "{ Y : [0.2, .2, 1.0, -1.0, -2., 2., 1e0, -1e0, 1.0e0, -1.0e0, -3.e2, "
+      "{ y: [0.2, .2, 1.0, -1.0, -2., 2., 1e0, -1e0, 1.0e0, -1.0e0, -3.e2, "
       "3.0e2] }",
       "[double]");
   TestValue<float>(
-      "{ Y : [0.2, .2, 1.0, -1.0, -2., 2., 1e0, -1e0, 1.0e0, -1.0e0, -3.e2, "
+      "{ y: [0.2, .2, 1.0, -1.0, -2., 2., 1e0, -1e0, 1.0e0, -1.0e0, -3.e2, "
       "3.0e2] }",
       "[float]");
 
   // Test binary format of float point.
   // https://en.cppreference.com/w/cpp/language/floating_literal
   // 0x11.12p-1 = (1*16^1 + 2*16^0 + 3*16^-1 + 4*16^-2) * 2^-1 =
-  TEST_EQ(TestValue<double>("{ Y:0x12.34p-1 }", "double"), 9.1015625);
+  TEST_EQ(TestValue<double>("{ y:0x12.34p-1 }", "double"), 9.1015625);
   // hex fraction 1.2 (decimal 1.125) scaled by 2^3, that is 9.0
-  TEST_EQ(TestValue<float>("{ Y:-0x0.2p0 }", "float"), -0.125f);
-  TEST_EQ(TestValue<float>("{ Y:-0x.2p1 }", "float"), -0.25f);
-  TEST_EQ(TestValue<float>("{ Y:0x1.2p3 }", "float"), 9.0f);
-  TEST_EQ(TestValue<float>("{ Y:0x10.1p0 }", "float"), 16.0625f);
-  TEST_EQ(TestValue<double>("{ Y:0x1.2p3 }", "double"), 9.0);
-  TEST_EQ(TestValue<double>("{ Y:0x10.1p0 }", "double"), 16.0625);
-  TEST_EQ(TestValue<double>("{ Y:0xC.68p+2 }", "double"), 49.625);
-  TestValue<double>("{ Y : [0x20.4ep1, +0x20.4ep1, -0x20.4ep1] }", "[double]");
-  TestValue<float>("{ Y : [0x20.4ep1, +0x20.4ep1, -0x20.4ep1] }", "[float]");
+  TEST_EQ(TestValue<float>("{ y:-0x0.2p0 }", "float"), -0.125f);
+  TEST_EQ(TestValue<float>("{ y:-0x.2p1 }", "float"), -0.25f);
+  TEST_EQ(TestValue<float>("{ y:0x1.2p3 }", "float"), 9.0f);
+  TEST_EQ(TestValue<float>("{ y:0x10.1p0 }", "float"), 16.0625f);
+  TEST_EQ(TestValue<double>("{ y:0x1.2p3 }", "double"), 9.0);
+  TEST_EQ(TestValue<double>("{ y:0x10.1p0 }", "double"), 16.0625);
+  TEST_EQ(TestValue<double>("{ y:0xC.68p+2 }", "double"), 49.625);
+  TestValue<double>("{ y: [0x20.4ep1, +0x20.4ep1, -0x20.4ep1] }", "[double]");
+  TestValue<float>("{ y: [0x20.4ep1, +0x20.4ep1, -0x20.4ep1] }", "[float]");
 
 #else   // FLATBUFFERS_HAS_NEW_STRTOD
   TEST_OUTPUT_LINE("FLATBUFFERS_HAS_NEW_STRTOD tests skipped");
@@ -2490,10 +2503,10 @@ void EvolutionTest() {
 
   // Test backwards compatibility by reading old data with an evolved schema.
   auto root_v1_viewed_from_v2 = Evolution::V2::GetRoot(&binaries[0].front());
-  // field 'j' is new in version 2, so it should be null.
-  TEST_ASSERT(nullptr == root_v1_viewed_from_v2->j());
-  // field 'k' is new in version 2 with a default of 56.
-  TEST_EQ(root_v1_viewed_from_v2->k(), 56);
+  // field 'k' is new in version 2, so it should be null.
+  TEST_ASSERT(nullptr == root_v1_viewed_from_v2->k());
+  // field 'l' is new in version 2 with a default of 56.
+  TEST_EQ(root_v1_viewed_from_v2->l(), 56);
   // field 'c' of 'TableA' is new in version 2, so it should be null.
   TEST_ASSERT(nullptr == root_v1_viewed_from_v2->e()->c());
   // 'TableC' was added to field 'c' union in version 2, so it should be null.
@@ -2520,6 +2533,41 @@ void EvolutionTest() {
   // readable.
   TEST_EQ(root_v2_viewed_from_v1->f()->a(), 35);
 #endif
+}
+
+void UnionDeprecationTest() {
+  const int NUM_VERSIONS = 2;
+  std::string schemas[NUM_VERSIONS];
+  std::string jsonfiles[NUM_VERSIONS];
+  std::vector<uint8_t> binaries[NUM_VERSIONS];
+
+  flatbuffers::IDLOptions idl_opts;
+  idl_opts.lang_to_generate |= flatbuffers::IDLOptions::kBinary;
+  flatbuffers::Parser parser(idl_opts);
+
+  // Load all the schema versions and their associated data.
+  for (int i = 0; i < NUM_VERSIONS; ++i) {
+    std::string schema = test_data_path + "evolution_test/evolution_v" +
+                         flatbuffers::NumToString(i + 1) + ".fbs";
+    TEST_ASSERT(flatbuffers::LoadFile(schema.c_str(), false, &schemas[i]));
+    std::string json = test_data_path + "evolution_test/evolution_v" +
+                       flatbuffers::NumToString(i + 1) + ".json";
+    TEST_ASSERT(flatbuffers::LoadFile(json.c_str(), false, &jsonfiles[i]));
+
+    TEST_ASSERT(parser.Parse(schemas[i].c_str()));
+    TEST_ASSERT(parser.Parse(jsonfiles[i].c_str()));
+
+    auto bufLen = parser.builder_.GetSize();
+    auto buf = parser.builder_.GetBufferPointer();
+    binaries[i].reserve(bufLen);
+    std::copy(buf, buf + bufLen, std::back_inserter(binaries[i]));
+  }
+
+  auto v2 = parser.LookupStruct("Evolution.V2.Root");
+  TEST_NOTNULL(v2);
+  auto j_type_field = v2->fields.Lookup("j_type");
+  TEST_NOTNULL(j_type_field);
+  TEST_ASSERT(j_type_field->deprecated);
 }
 
 void UnionVectorTest() {
@@ -3170,7 +3218,7 @@ void FixedLengthArrayTest() {
   aStruct.mutable_d()->Mutate(0, nStruct0);
   aStruct.mutable_d()->Mutate(1, nStruct1);
   auto aTable = MyGame::Example::CreateArrayTable(fbb, &aStruct);
-  fbb.Finish(aTable);
+  MyGame::Example::FinishArrayTableBuffer(fbb, aTable);
 
   // Verify correctness of the ArrayTable.
   flatbuffers::Verifier verifier(fbb.GetBufferPointer(), fbb.GetSize());
@@ -3379,6 +3427,85 @@ void TestEmbeddedBinarySchema() {
           0);
 }
 
+void NullableScalarsTest() {
+  // Simple schemas and a "has nullable scalar" sentinal.
+  std::vector<std::string> schemas;
+  schemas.push_back("table Monster { mana : int; }");
+  schemas.push_back("table Monster { mana : int = 42; }");
+  schemas.push_back("table Monster { mana : int =  null; }");
+  schemas.push_back("table Monster { mana : long; }");
+  schemas.push_back("table Monster { mana : long = 42; }");
+  schemas.push_back("table Monster { mana : long = null; }");
+  schemas.push_back("table Monster { mana : float; }");
+  schemas.push_back("table Monster { mana : float = 42; }");
+  schemas.push_back("table Monster { mana : float = null; }");
+  schemas.push_back("table Monster { mana : double; }");
+  schemas.push_back("table Monster { mana : double = 42; }");
+  schemas.push_back("table Monster { mana : double = null; }");
+  schemas.push_back("table Monster { mana : bool; }");
+  schemas.push_back("table Monster { mana : bool = 42; }");
+  schemas.push_back("table Monster { mana : bool = null; }");
+
+  // Check the FieldDef is correctly set.
+  for (auto schema = schemas.begin(); schema < schemas.end(); schema++) {
+    const bool has_null = schema->find("null") != std::string::npos;
+    flatbuffers::Parser parser;
+    TEST_ASSERT(parser.Parse(schema->c_str()));
+    const auto *mana = parser.structs_.Lookup("Monster")->fields.Lookup("mana");
+    TEST_EQ(mana->nullable, has_null);
+  }
+
+  // Test if nullable scalars are allowed for each language.
+  const int kNumLanguages = 17;
+  const auto supported = (flatbuffers::IDLOptions::kRust |
+                          flatbuffers::IDLOptions::kSwift |
+                          flatbuffers::IDLOptions::kLobster);
+  for (int lang=0; lang<kNumLanguages; lang++) {
+    flatbuffers::IDLOptions opts;
+    opts.lang_to_generate |= 1 << lang;
+    if (opts.lang_to_generate & supported) continue;
+    for (auto schema = schemas.begin(); schema < schemas.end(); schema++) {
+      const bool has_null = schema->find("null") != std::string::npos;
+      flatbuffers::Parser parser(opts);
+      // Its not supported in any language yet so has_null means error.
+      TEST_EQ(parser.Parse(schema->c_str()), !has_null);
+    }
+  }
+}
+
+void ParseFlexbuffersFromJsonWithNullTest() {
+  // Test nulls are handled appropriately through flexbuffers to exercise other
+  // code paths of ParseSingleValue in the nullable scalars change.
+  // TODO(cneo): Json -> Flatbuffers test once some language can generate code
+  // with nullable scalars.
+  {
+    char json[] = "{\"opt_field\": 123 }";
+    flatbuffers::Parser parser;
+    flexbuffers::Builder flexbuild;
+    parser.ParseFlexBuffer(json, nullptr, &flexbuild);
+    auto root = flexbuffers::GetRoot(flexbuild.GetBuffer());
+    TEST_EQ(root.AsMap()["opt_field"].AsInt64(), 123);
+  }
+  {
+    char json[] = "{\"opt_field\": 123.4 }";
+    flatbuffers::Parser parser;
+    flexbuffers::Builder flexbuild;
+    parser.ParseFlexBuffer(json, nullptr, &flexbuild);
+    auto root = flexbuffers::GetRoot(flexbuild.GetBuffer());
+    TEST_EQ(root.AsMap()["opt_field"].AsDouble(), 123.4);
+  }
+  {
+    char json[] = "{\"opt_field\": null }";
+    flatbuffers::Parser parser;
+    flexbuffers::Builder flexbuild;
+    parser.ParseFlexBuffer(json, nullptr, &flexbuild);
+    auto root = flexbuffers::GetRoot(flexbuild.GetBuffer());
+    TEST_ASSERT(!root.AsMap().IsTheEmptyMap());
+    TEST_ASSERT(root.AsMap()["opt_field"].IsNull());
+    TEST_EQ(root.ToString(), std::string("{ opt_field: null }"));
+  }
+}
+
 int FlatBufferTests() {
   // clang-format off
 
@@ -3420,6 +3547,7 @@ int FlatBufferTests() {
     ParseProtoTestWithSuffix();
     ParseProtoTestWithIncludes();
     EvolutionTest();
+    UnionDeprecationTest();
     UnionVectorTest();
     LoadVerifyBinaryTest();
     GenerateTableTextTest();
@@ -3465,6 +3593,8 @@ int FlatBufferTests() {
   TestMonsterExtraFloats();
   FixedLengthArrayTest();
   NativeTypeTest();
+  NullableScalarsTest();
+  ParseFlexbuffersFromJsonWithNullTest();
   return 0;
 }
 

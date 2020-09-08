@@ -2191,7 +2191,7 @@ static addInventory(builder:flatbuffers.Builder, inventoryOffset:flatbuffers.Off
  * @param Array.<number> data
  * @returns flatbuffers.Offset
  */
-static createInventoryVector(builder:flatbuffers.Builder, data:number[] | Uint8Array):flatbuffers.Offset {
+static createInventoryVector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset {
   builder.startVector(1, data.length, 1);
   for (var i = data.length - 1; i >= 0; i--) {
     builder.addInt8(data[i]);
@@ -2326,7 +2326,7 @@ static addTestnestedflatbuffer(builder:flatbuffers.Builder, testnestedflatbuffer
  * @param Array.<number> data
  * @returns flatbuffers.Offset
  */
-static createTestnestedflatbufferVector(builder:flatbuffers.Builder, data:number[] | Uint8Array):flatbuffers.Offset {
+static createTestnestedflatbufferVector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset {
   builder.startVector(1, data.length, 1);
   for (var i = data.length - 1; i >= 0; i--) {
     builder.addInt8(data[i]);
@@ -2533,7 +2533,7 @@ static addFlex(builder:flatbuffers.Builder, flexOffset:flatbuffers.Offset) {
  * @param Array.<number> data
  * @returns flatbuffers.Offset
  */
-static createFlexVector(builder:flatbuffers.Builder, data:number[] | Uint8Array):flatbuffers.Offset {
+static createFlexVector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset {
   builder.startVector(1, data.length, 1);
   for (var i = data.length - 1; i >= 0; i--) {
     builder.addInt8(data[i]);
@@ -2607,7 +2607,12 @@ static addVectorOfDoubles(builder:flatbuffers.Builder, vectorOfDoublesOffset:fla
  * @param Array.<number> data
  * @returns flatbuffers.Offset
  */
-static createVectorOfDoublesVector(builder:flatbuffers.Builder, data:number[] | Uint8Array):flatbuffers.Offset {
+static createVectorOfDoublesVector(builder:flatbuffers.Builder, data:number[]|Float64Array):flatbuffers.Offset;
+/**
+ * @deprecated This Uint8Array overload will be removed in the future.
+ */
+static createVectorOfDoublesVector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset;
+static createVectorOfDoublesVector(builder:flatbuffers.Builder, data:number[]|Float64Array|Uint8Array):flatbuffers.Offset {
   builder.startVector(8, data.length, 8);
   for (var i = data.length - 1; i >= 0; i--) {
     builder.addFloat64(data[i]);
@@ -3162,56 +3167,57 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   const anyAmbiguous = builder.createObjectOffset(this.anyAmbiguous);
   const vectorOfEnums = MyGame.Example.Monster.createVectorOfEnumsVector(builder, this.vectorOfEnums);
 
-  return MyGame.Example.Monster.createMonster(builder,
-    (this.pos !== null ? this.pos!.pack(builder) : 0),
-    this.mana,
-    this.hp,
-    name,
-    inventory,
-    this.color,
-    this.testType,
-    test,
-    test4,
-    testarrayofstring,
-    testarrayoftables,
-    (this.enemy !== null ? this.enemy!.pack(builder) : 0),
-    testnestedflatbuffer,
-    (this.testempty !== null ? this.testempty!.pack(builder) : 0),
-    this.testbool,
-    this.testhashs32Fnv1,
-    this.testhashu32Fnv1,
-    this.testhashs64Fnv1,
-    this.testhashu64Fnv1,
-    this.testhashs32Fnv1a,
-    this.testhashu32Fnv1a,
-    this.testhashs64Fnv1a,
-    this.testhashu64Fnv1a,
-    testarrayofbools,
-    this.testf,
-    this.testf2,
-    this.testf3,
-    testarrayofstring2,
-    testarrayofsortedstruct,
-    flex,
-    test5,
-    vectorOfLongs,
-    vectorOfDoubles,
-    (this.parentNamespaceTest !== null ? this.parentNamespaceTest!.pack(builder) : 0),
-    vectorOfReferrables,
-    this.singleWeakReference,
-    vectorOfWeakReferences,
-    vectorOfStrongReferrables,
-    this.coOwningReference,
-    vectorOfCoOwningReferences,
-    this.nonOwningReference,
-    vectorOfNonOwningReferences,
-    this.anyUniqueType,
-    anyUnique,
-    this.anyAmbiguousType,
-    anyAmbiguous,
-    vectorOfEnums,
-    this.signedEnum
-  );
+  MyGame.Example.Monster.start(builder);
+  MyGame.Example.Monster.addPos(builder, (this.pos !== null ? this.pos!.pack(builder) : 0));
+  MyGame.Example.Monster.addMana(builder, this.mana);
+  MyGame.Example.Monster.addHp(builder, this.hp);
+  MyGame.Example.Monster.addName(builder, name);
+  MyGame.Example.Monster.addInventory(builder, inventory);
+  MyGame.Example.Monster.addColor(builder, this.color);
+  MyGame.Example.Monster.addTestType(builder, this.testType);
+  MyGame.Example.Monster.addTest(builder, test);
+  MyGame.Example.Monster.addTest4(builder, test4);
+  MyGame.Example.Monster.addTestarrayofstring(builder, testarrayofstring);
+  MyGame.Example.Monster.addTestarrayoftables(builder, testarrayoftables);
+  MyGame.Example.Monster.addEnemy(builder, (this.enemy !== null ? this.enemy!.pack(builder) : 0));
+  MyGame.Example.Monster.addTestnestedflatbuffer(builder, testnestedflatbuffer);
+  MyGame.Example.Monster.addTestempty(builder, (this.testempty !== null ? this.testempty!.pack(builder) : 0));
+  MyGame.Example.Monster.addTestbool(builder, this.testbool);
+  MyGame.Example.Monster.addTesthashs32Fnv1(builder, this.testhashs32Fnv1);
+  MyGame.Example.Monster.addTesthashu32Fnv1(builder, this.testhashu32Fnv1);
+  MyGame.Example.Monster.addTesthashs64Fnv1(builder, this.testhashs64Fnv1);
+  MyGame.Example.Monster.addTesthashu64Fnv1(builder, this.testhashu64Fnv1);
+  MyGame.Example.Monster.addTesthashs32Fnv1a(builder, this.testhashs32Fnv1a);
+  MyGame.Example.Monster.addTesthashu32Fnv1a(builder, this.testhashu32Fnv1a);
+  MyGame.Example.Monster.addTesthashs64Fnv1a(builder, this.testhashs64Fnv1a);
+  MyGame.Example.Monster.addTesthashu64Fnv1a(builder, this.testhashu64Fnv1a);
+  MyGame.Example.Monster.addTestarrayofbools(builder, testarrayofbools);
+  MyGame.Example.Monster.addTestf(builder, this.testf);
+  MyGame.Example.Monster.addTestf2(builder, this.testf2);
+  MyGame.Example.Monster.addTestf3(builder, this.testf3);
+  MyGame.Example.Monster.addTestarrayofstring2(builder, testarrayofstring2);
+  MyGame.Example.Monster.addTestarrayofsortedstruct(builder, testarrayofsortedstruct);
+  MyGame.Example.Monster.addFlex(builder, flex);
+  MyGame.Example.Monster.addTest5(builder, test5);
+  MyGame.Example.Monster.addVectorOfLongs(builder, vectorOfLongs);
+  MyGame.Example.Monster.addVectorOfDoubles(builder, vectorOfDoubles);
+  MyGame.Example.Monster.addParentNamespaceTest(builder, (this.parentNamespaceTest !== null ? this.parentNamespaceTest!.pack(builder) : 0));
+  MyGame.Example.Monster.addVectorOfReferrables(builder, vectorOfReferrables);
+  MyGame.Example.Monster.addSingleWeakReference(builder, this.singleWeakReference);
+  MyGame.Example.Monster.addVectorOfWeakReferences(builder, vectorOfWeakReferences);
+  MyGame.Example.Monster.addVectorOfStrongReferrables(builder, vectorOfStrongReferrables);
+  MyGame.Example.Monster.addCoOwningReference(builder, this.coOwningReference);
+  MyGame.Example.Monster.addVectorOfCoOwningReferences(builder, vectorOfCoOwningReferences);
+  MyGame.Example.Monster.addNonOwningReference(builder, this.nonOwningReference);
+  MyGame.Example.Monster.addVectorOfNonOwningReferences(builder, vectorOfNonOwningReferences);
+  MyGame.Example.Monster.addAnyUniqueType(builder, this.anyUniqueType);
+  MyGame.Example.Monster.addAnyUnique(builder, anyUnique);
+  MyGame.Example.Monster.addAnyAmbiguousType(builder, this.anyAmbiguousType);
+  MyGame.Example.Monster.addAnyAmbiguous(builder, anyAmbiguous);
+  MyGame.Example.Monster.addVectorOfEnums(builder, vectorOfEnums);
+  MyGame.Example.Monster.addSignedEnum(builder, this.signedEnum);
+
+  return MyGame.Example.Monster.end(builder);
 };
 }
 }
@@ -3633,7 +3639,12 @@ static addV8(builder:flatbuffers.Builder, v8Offset:flatbuffers.Offset) {
  * @param Array.<number> data
  * @returns flatbuffers.Offset
  */
-static createV8Vector(builder:flatbuffers.Builder, data:number[] | Uint8Array):flatbuffers.Offset {
+static createV8Vector(builder:flatbuffers.Builder, data:number[]|Int8Array):flatbuffers.Offset;
+/**
+ * @deprecated This Uint8Array overload will be removed in the future.
+ */
+static createV8Vector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset;
+static createV8Vector(builder:flatbuffers.Builder, data:number[]|Int8Array|Uint8Array):flatbuffers.Offset {
   builder.startVector(1, data.length, 1);
   for (var i = data.length - 1; i >= 0; i--) {
     builder.addInt8(data[i]);
@@ -3662,7 +3673,12 @@ static addVf64(builder:flatbuffers.Builder, vf64Offset:flatbuffers.Offset) {
  * @param Array.<number> data
  * @returns flatbuffers.Offset
  */
-static createVf64Vector(builder:flatbuffers.Builder, data:number[] | Uint8Array):flatbuffers.Offset {
+static createVf64Vector(builder:flatbuffers.Builder, data:number[]|Float64Array):flatbuffers.Offset;
+/**
+ * @deprecated This Uint8Array overload will be removed in the future.
+ */
+static createVf64Vector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset;
+static createVf64Vector(builder:flatbuffers.Builder, data:number[]|Float64Array|Uint8Array):flatbuffers.Offset {
   builder.startVector(8, data.length, 8);
   for (var i = data.length - 1; i >= 0; i--) {
     builder.addFloat64(data[i]);

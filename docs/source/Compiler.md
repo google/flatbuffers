@@ -116,6 +116,9 @@ Additional options:
 
 -   `--gen-generated` : Add @Generated annotation for Java.
 
+-   `--gen-jvmstatic` : Add @JvmStatic annotation for Kotlin methods
+    in companion object for interop from Java to Kotlin.
+
 -   `--gen-all` : Generate not just code for the current schema files, but
     for all files it includes as well. If the language uses a single file for
     output (by default the case for C++ and JS), all code will end up in
@@ -200,11 +203,11 @@ Additional options:
 
 -   `--keep-prefix` : Keep original prefix of schema include statement.
 
--   `--no-fb-impor` : Don't include flatbuffers import statement for TypeScript.
+-   `--no-fb-import` : Don't include flatbuffers import statement for TypeScript.
 
--   `--no-ts-reexpor` : Don't re-export imported dependencies for TypeScript.
+-   `--no-ts-reexport` : Don't re-export imported dependencies for TypeScript.
 
--   `--short-name` : Use short function names for JS and TypeScript.
+-   `--short-names` : Use short function names for JS and TypeScript.
 
 -   `--reflect-types` : Add minimal type reflection to code generation.
 
