@@ -157,6 +157,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --include-prefix       Prefix this path to any generated include statements.\n"
     "    PATH\n"
     "  --keep-prefix          Keep original prefix of schema include statement.\n"
+    "  --keep-namespaces      Keep full namespace paths of imported types in Rust.\n"
     "  --no-fb-import         Don't include flatbuffers import statement for TypeScript.\n"
     "  --no-ts-reexport       Don't re-export imported dependencies for TypeScript.\n"
     "  --short-names          Use short function names for JS and TypeScript.\n"
@@ -232,6 +233,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
             flatbuffers::PosixPath(argv[argi]), "");
       } else if (arg == "--keep-prefix") {
         opts.keep_include_path = true;
+      } else if (arg == "--keep-namespaces") {
+        opts.keep_namespaces = true;
       } else if (arg == "--strict-json") {
         opts.strict_json = true;
       } else if (arg == "--allow-non-utf8") {

@@ -377,12 +377,9 @@ class RustGenerator : public BaseGenerator {
   }
 
   // Determine the namespace traversal needed from the Rust crate root.
-  // This may be useful in the future for referring to included files, but is
-  // currently unused.
   std::string GetAbsoluteNamespaceTraversal(const Namespace *dst) const {
     std::stringstream stream;
 
-    stream << "::";
     for (auto d = dst->components.begin(); d != dst->components.end(); ++d) {
       stream << MakeSnakeCase(*d) + "::";
     }
@@ -396,6 +393,10 @@ class RustGenerator : public BaseGenerator {
   // particular way.)
   std::string GetRelativeNamespaceTraversal(const Namespace *src,
                                             const Namespace *dst) const {
+    if (parser_.opts.keep_namespaces) {
+      return GetAbsoluteNamespaceTraversal(dst);
+    }
+
     // calculate the path needed to reference dst from src.
     // example: f(A::B::C, A::B::C) -> (none)
     // example: f(A::B::C, A::B)    -> super::

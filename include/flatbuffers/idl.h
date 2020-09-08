@@ -544,6 +544,7 @@ struct IDLOptions {
   bool natural_utf8;
   std::string include_prefix;
   bool keep_include_path;
+  bool keep_namespaces;
   bool binary_schema_comments;
   bool binary_schema_builtins;
   bool binary_schema_gen_embed;
@@ -636,6 +637,7 @@ struct IDLOptions {
         allow_non_utf8(false),
         natural_utf8(false),
         keep_include_path(false),
+        keep_namespaces(false),
         binary_schema_comments(false),
         binary_schema_builtins(false),
         binary_schema_gen_embed(false),
