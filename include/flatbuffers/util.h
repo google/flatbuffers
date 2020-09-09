@@ -20,6 +20,7 @@
 #include <errno.h>
 
 #include "flatbuffers/base.h"
+#include "flatbuffers/stl_emulation.h"
 
 #ifndef FLATBUFFERS_PREFER_PRINTF
 #  include <sstream>

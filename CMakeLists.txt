@@ -158,6 +158,8 @@ set(FlatBuffers_Tests_SRCS
   ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_extra_generated.h
   # file generate by running compiler on tests/monster_test.fbs
   ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_test_bfbs_generated.h
+  # file generate by running compiler on tests/optional_scalars.fbs
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/optional_scalars_generated.h
 )
 
 set(FlatBuffers_Tests_CPP17_SRCS
@@ -168,6 +170,8 @@ set(FlatBuffers_Tests_CPP17_SRCS
   # file generate by running compiler on tests/monster_test.fbs
   ${CMAKE_CURRENT_BINARY_DIR}/tests/cpp17/generated_cpp17/monster_test_generated.h
   ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_test_generated.h
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/cpp17/generated_cpp17/optional_scalars_generated.h
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/optional_scalars_generated.h
 )
 
 set(FlatBuffers_Sample_Binary_SRCS
