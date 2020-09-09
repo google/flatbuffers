@@ -155,7 +155,7 @@ To use:
 
 An additional feature of the object API is the ability to allow you to
 serialize & deserialize a JSON text. 
-To use Json Serialization, add `--gen-json-serializer` option to `flatc` and
+To use Json Serialization, add `--cs-gen-json-serializer` option to `flatc` and
 add `Newtonsoft.Json` nuget package to csproj.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cs}
