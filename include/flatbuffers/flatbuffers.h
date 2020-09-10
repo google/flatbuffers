@@ -1607,6 +1607,9 @@ class FlatBufferBuilder {
     // causing the wrong overload to be selected, remove it.
     AssertScalarT<T>();
     StartVector(len, sizeof(T));
+    if (len == 0) {
+      return Offset<Vector<T>>(EndVector(len));
+    }
     // clang-format off
     #if FLATBUFFERS_LITTLEENDIAN
       PushBytes(reinterpret_cast<const uint8_t *>(v), len * sizeof(T));
