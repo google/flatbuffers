@@ -22,6 +22,16 @@ class BitWidthUtil {
     }
     return value == _toF32(value) ? BitWidth.width32 : BitWidth.width64;
   }
+  static BitWidth uwidth(num value) {
+    if (value.toInt() == value) {
+      var v = value.toInt().abs();
+      if (v >> 8 == 0) return BitWidth.width8;
+      if (v >> 16 == 0) return BitWidth.width16;
+      if (v >> 32 == 0) return BitWidth.width32;
+      return BitWidth.width64;
+    }
+    return value == _toF32(value) ? BitWidth.width32 : BitWidth.width64;
+  }
   static BitWidth fromByteWidth(int value) {
     if (value == 1) {
       return BitWidth.width8;

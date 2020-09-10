@@ -188,16 +188,16 @@ class Reference {
     if(ValueTypeUtils.isFixedTypedVector(_valueType)) {
       _length = ValueTypeUtils.fixedTypedVectorElementSize(_valueType);
     } else if(_valueType == ValueType.Blob || ValueTypeUtils.isAVector(_valueType) || _valueType == ValueType.Map){
-      _length = _readInt(_indirect - _byteWidth, BitWidthUtil.fromByteWidth(_byteWidth));
+      _length = _readUInt(_indirect - _byteWidth, BitWidthUtil.fromByteWidth(_byteWidth));
     } else if (_valueType == ValueType.Null) {
       _length = 0;
     } else if (_valueType == ValueType.String) {
       final indirect = _indirect;
       var size_byte_width = _byteWidth;
-      var size = _readInt(indirect - size_byte_width, BitWidthUtil.fromByteWidth(size_byte_width));
+      var size = _readUInt(indirect - size_byte_width, BitWidthUtil.fromByteWidth(size_byte_width));
       while (_buffer.getInt8(indirect + size) != 0) {
         size_byte_width <<= 1;
-        size = _readInt(indirect - size_byte_width, BitWidthUtil.fromByteWidth(size_byte_width));
+        size = _readUInt(indirect - size_byte_width, BitWidthUtil.fromByteWidth(size_byte_width));
       }
       _length = size;
     } else if (_valueType == ValueType.Key) {
@@ -270,7 +270,7 @@ class Reference {
   /// value is not cached. Callers that need to use it more than once should
   /// cache the return value in a local variable.
   int get _indirect {
-    final step = _readInt(_offset, _parentWidth);
+    final step = _readUInt(_offset, _parentWidth);
     return _offset - step;
   }
 
@@ -324,8 +324,8 @@ class Reference {
   int _keyIndex(String key) {
     final input = utf8.encode(key);
     final keysVectorOffset = _indirect - _byteWidth * 3;
-    final indirectOffset = keysVectorOffset - _readInt(keysVectorOffset, BitWidthUtil.fromByteWidth(_byteWidth));
-    final byteWidth = _readInt(keysVectorOffset + _byteWidth, BitWidthUtil.fromByteWidth(_byteWidth));
+    final indirectOffset = keysVectorOffset - _readUInt(keysVectorOffset, BitWidthUtil.fromByteWidth(_byteWidth));
+    final byteWidth = _readUInt(keysVectorOffset + _byteWidth, BitWidthUtil.fromByteWidth(_byteWidth));
     var low = 0;
     var high = length - 1;
     while (low <= high) {
@@ -343,7 +343,7 @@ class Reference {
 
   int _diffKeys(List<int> input, int index, int indirect_offset, int byteWidth) {
     final keyOffset = indirect_offset + index * byteWidth;
-    final keyIndirectOffset = keyOffset - _readInt(keyOffset, BitWidthUtil.fromByteWidth(byteWidth));
+    final keyIndirectOffset = keyOffset - _readUInt(keyOffset, BitWidthUtil.fromByteWidth(byteWidth));
     for (var i = 0; i < input.length; i++) {
       final dif = input[i] - _buffer.getUint8(keyIndirectOffset + i);
       if (dif != 0) {
@@ -369,10 +369,10 @@ class Reference {
 
   String _keyForIndex(int index) {
     final keysVectorOffset = _indirect - _byteWidth * 3;
-    final indirectOffset = keysVectorOffset - _readInt(keysVectorOffset, BitWidthUtil.fromByteWidth(_byteWidth));
-    final byteWidth = _readInt(keysVectorOffset + _byteWidth, BitWidthUtil.fromByteWidth(_byteWidth));
+    final indirectOffset = keysVectorOffset - _readUInt(keysVectorOffset, BitWidthUtil.fromByteWidth(_byteWidth));
+    final byteWidth = _readUInt(keysVectorOffset + _byteWidth, BitWidthUtil.fromByteWidth(_byteWidth));
     final keyOffset = indirectOffset + index * byteWidth;
-    final keyIndirectOffset = keyOffset - _readInt(keyOffset, BitWidthUtil.fromByteWidth(byteWidth));
+    final keyIndirectOffset = keyOffset - _readUInt(keyOffset, BitWidthUtil.fromByteWidth(byteWidth));
     var length = 0;
     while (_buffer.getUint8(keyIndirectOffset + length) != 0) {
       length += 1;

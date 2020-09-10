@@ -202,7 +202,7 @@ flexbuffers.toReference = (buffer) => {
   }
 
   function indirect(dataView, offset, width) {
-    const step = readInt(dataView, offset, width);
+    const step = readUInt(dataView, offset, width);
     return offset - step;
   }
 
@@ -210,8 +210,8 @@ flexbuffers.toReference = (buffer) => {
     const input = toUTF8Array(key);
     const keysVectorOffset = indirect(dataView, offset, parentWidth) - byteWidth * 3;
     const bitWidth = flexbuffers.BitWidthUtil.fromByteWidth(byteWidth);
-    const indirectOffset = keysVectorOffset - readInt(dataView, keysVectorOffset, bitWidth);
-    const _byteWidth = readInt(dataView, keysVectorOffset + byteWidth, bitWidth);
+    const indirectOffset = keysVectorOffset - readUInt(dataView, keysVectorOffset, bitWidth);
+    const _byteWidth = readUInt(dataView, keysVectorOffset + byteWidth, bitWidth);
     let low = 0;
     let high = length - 1;
     while (low <= high) {
@@ -229,7 +229,7 @@ flexbuffers.toReference = (buffer) => {
 
   function diffKeys(input, index, dataView, offset, width) {
     const keyOffset = offset + index * width;
-    const keyIndirectOffset = keyOffset - readInt(dataView, keyOffset, flexbuffers.BitWidthUtil.fromByteWidth(width));
+    const keyIndirectOffset = keyOffset - readUInt(dataView, keyOffset, flexbuffers.BitWidthUtil.fromByteWidth(width));
     for (let i = 0; i < input.length; i++) {
       const dif = input[i] - dataView.getUint8(keyIndirectOffset + i);
       if (dif !== 0) {
@@ -248,12 +248,12 @@ flexbuffers.toReference = (buffer) => {
 
   function keyForIndex(index, dataView, offset, parentWidth, byteWidth) {
     const keysVectorOffset = indirect(dataView, offset, parentWidth) - byteWidth * 3;
-    const bitWidth = flexbuffers.BitWidthUtil.fromByteWidth(byteWidth)
-    const indirectOffset = keysVectorOffset - readInt(dataView, keysVectorOffset, bitWidth);
-    const _byteWidth = readInt(dataView, keysVectorOffset + byteWidth, bitWidth);
+    const bitWidth = flexbuffers.BitWidthUtil.fromByteWidth(byteWidth);
+    const indirectOffset = keysVectorOffset - readUInt(dataView, keysVectorOffset, bitWidth);
+    const _byteWidth = readUInt(dataView, keysVectorOffset + byteWidth, bitWidth);
     const keyOffset = indirectOffset + index * _byteWidth;
-    const keyIndirectOffset = keyOffset - readInt(dataView, keyOffset, flexbuffers.BitWidthUtil.fromByteWidth(_byteWidth));
-    var length = 0;
+    const keyIndirectOffset = keyOffset - readUInt(dataView, keyOffset, flexbuffers.BitWidthUtil.fromByteWidth(_byteWidth));
+    let length = 0;
     while (dataView.getUint8(keyIndirectOffset + length) !== 0) {
       length++;
     }
@@ -363,16 +363,16 @@ flexbuffers.toReference = (buffer) => {
         } else if (valueType === flexbuffers.ValueType.BLOB
           || valueType === flexbuffers.ValueType.MAP
           || flexbuffers.ValueTypeUtil.isAVector(valueType)) {
-          length = readInt(dataView, indirect(dataView, offset, parentWidth) - byteWidth, flexbuffers.BitWidthUtil.fromByteWidth(byteWidth))
+          length = readUInt(dataView, indirect(dataView, offset, parentWidth) - byteWidth, flexbuffers.BitWidthUtil.fromByteWidth(byteWidth))
         } else if (valueType === flexbuffers.ValueType.NULL) {
           length = 0;
         } else if (valueType === flexbuffers.ValueType.STRING) {
           const _indirect = indirect(dataView, offset, parentWidth);
           let sizeByteWidth = byteWidth;
-          size = readInt(dataView, _indirect - sizeByteWidth, flexbuffers.BitWidthUtil.fromByteWidth(byteWidth));
+          size = readUInt(dataView, _indirect - sizeByteWidth, flexbuffers.BitWidthUtil.fromByteWidth(byteWidth));
           while (dataView.getInt8(_indirect + size) !== 0) {
             sizeByteWidth <<= 1;
-            size = readInt(dataView, _indirect - sizeByteWidth, flexbuffers.BitWidthUtil.fromByteWidth(byteWidth));
+            size = readUInt(dataView, _indirect - sizeByteWidth, flexbuffers.BitWidthUtil.fromByteWidth(byteWidth));
           }
           length = size;
         } else if (valueType === flexbuffers.ValueType.KEY) {
@@ -411,7 +411,10 @@ flexbuffers.toReference = (buffer) => {
         if (this.isBool()) {
           return this.boolValue();
         }
-        return this.numericValue() || this.blobValue() || this.stringValue();
+        if (this.isNumber()) {
+          return this.numericValue();
+        }
+        return this.blobValue() || this.stringValue();
       }
     }
   }
@@ -509,11 +512,17 @@ flexbuffers.builder = (size = 2048, deduplicateString = true, deduplicateKeys = 
     offset = newOffset;
   }
 
+  function writeUInt(value, byteWidth) {
+    const newOffset = computeOffset(byteWidth);
+    pushUInt(value, flexbuffers.BitWidthUtil.fromByteWidth(byteWidth));
+    offset = newOffset;
+  }
+
   function writeBlob(arrayBuffer) {
     const length = arrayBuffer.byteLength;
-    const bitWidth = flexbuffers.BitWidthUtil.iwidth(length);
+    const bitWidth = flexbuffers.BitWidthUtil.uwidth(length);
     const byteWidth = align(bitWidth);
-    writeInt(length, byteWidth);
+    writeUInt(length, byteWidth);
     const blobOffset = offset;
     const newOffset = computeOffset(length);
     new Uint8Array(buffer).set(new Uint8Array(arrayBuffer), blobOffset);
@@ -528,9 +537,9 @@ flexbuffers.builder = (size = 2048, deduplicateString = true, deduplicateKeys = 
     }
     const utf8 = toUTF8Array(str);
     const length = utf8.length;
-    const bitWidth = flexbuffers.BitWidthUtil.iwidth(length);
+    const bitWidth = flexbuffers.BitWidthUtil.uwidth(length);
     const byteWidth = align(bitWidth);
-    writeInt(length, byteWidth);
+    writeUInt(length, byteWidth);
     const stringOffset = offset;
     const newOffset = computeOffset(length + 1);
     new Uint8Array(buffer).set(utf8, stringOffset);
@@ -564,7 +573,7 @@ flexbuffers.builder = (size = 2048, deduplicateString = true, deduplicateKeys = 
     if (value.isOffset) {
       const relativeOffset = offset - value.offset;
       if (byteWidth === 8 || BigInt(relativeOffset) < (1n << BigInt(byteWidth * 8))) {
-        writeInt(relativeOffset, byteWidth);
+        writeUInt(relativeOffset, byteWidth);
       } else {
         throw `Unexpected size ${byteWidth}. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new`
       }
@@ -744,7 +753,7 @@ flexbuffers.builder = (size = 2048, deduplicateString = true, deduplicateKeys = 
   }
 
   function createVector(start, vecLength, step, keys = null) {
-    let bitWidth = flexbuffers.BitWidthUtil.iwidth(vecLength);
+    let bitWidth = flexbuffers.BitWidthUtil.uwidth(vecLength);
     let prefixElements = 1;
     if (keys !== null) {
       const elementWidth = keys.elementWidth(offset, 0);
@@ -773,10 +782,10 @@ flexbuffers.builder = (size = 2048, deduplicateString = true, deduplicateKeys = 
     const fix = typed && flexbuffers.ValueTypeUtil.isNumber(vectorType) && vecLength >= 2 && vecLength <= 4;
     if (keys !== null) {
       writeStackValue(keys, byteWidth);
-      writeInt(1 << keys.width, byteWidth);
+      writeUInt(1 << keys.width, byteWidth);
     }
     if (!fix) {
-      writeInt(vecLength, byteWidth);
+      writeUInt(vecLength, byteWidth);
     }
     const vecOffset = offset;
     for (let i = start; i < stack.length; i += step) {
@@ -784,7 +793,7 @@ flexbuffers.builder = (size = 2048, deduplicateString = true, deduplicateKeys = 
     }
     if (!typed) {
       for (let i = start; i < stack.length; i += step) {
-        writeInt(stack[i].storedPackedType(), 1);
+        writeUInt(stack[i].storedPackedType(), 1);
       }
     }
     if (keys !== null) {
@@ -809,7 +818,7 @@ flexbuffers.builder = (size = 2048, deduplicateString = true, deduplicateKeys = 
           const width = 1 << i;
           const offsetLoc = size + flexbuffers.BitWidthUtil.paddingSize(size, width) + index * width;
           const offset = offsetLoc - this.offset;
-          const bitWidth = flexbuffers.BitWidthUtil.iwidth(offset);
+          const bitWidth = flexbuffers.BitWidthUtil.uwidth(offset);
           if (1 << bitWidth === width) {
             return bitWidth;
           }
@@ -880,8 +889,8 @@ flexbuffers.builder = (size = 2048, deduplicateString = true, deduplicateKeys = 
     const value = stack[0];
     const byteWidth = align(value.elementWidth(offset, 0));
     writeStackValue(value, byteWidth);
-    writeInt(value.storedPackedType(), 1);
-    writeInt(byteWidth, 1);
+    writeUInt(value.storedPackedType(), 1);
+    writeUInt(byteWidth, 1);
     finished = true;
   }
 

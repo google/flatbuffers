@@ -111,9 +111,9 @@ class Builder {
     }
     final utf8String = utf8.encode(value);
     final length = utf8String.length;
-    final bitWidth = BitWidthUtil.width(length);
+    final bitWidth = BitWidthUtil.uwidth(length);
     final byteWidth = _align(bitWidth);
-    _writeInt(length, byteWidth);
+    _writeUInt(length, byteWidth);
     final stringOffset = _offset;
     final newOffset = _newOffset(length + 1);
     _pushBuffer(utf8String);
@@ -149,9 +149,9 @@ class Builder {
   void addBlob(ByteBuffer value) {
     _integrityCheckOnValueAddition();
     final length = value.lengthInBytes;
-    final bitWidth = BitWidthUtil.width(length);
+    final bitWidth = BitWidthUtil.uwidth(length);
     final byteWidth = _align(bitWidth);
-    _writeInt(length, byteWidth);
+    _writeUInt(length, byteWidth);
     final blobOffset = _offset;
     final newOffset = _newOffset(length);
     _pushBuffer(value.asUint8List());
@@ -295,13 +295,13 @@ class Builder {
     final value = _stack[0];
     final byteWidth = _align(value.elementWidth(_offset, 0));
     _writeStackValue(value, byteWidth);
-    _writeInt(value.storedPackedType(), 1);
-    _writeInt(byteWidth, 1);
+    _writeUInt(value.storedPackedType(), 1);
+    _writeUInt(byteWidth, 1);
     _finished = true;
   }
   
   _StackValue _createVector(int start, int vecLength, int step, [_StackValue keys]) {
-    var bitWidth = BitWidthUtil.width(vecLength);
+    var bitWidth = BitWidthUtil.uwidth(vecLength);
     var prefixElements = 1;
     if (keys != null) {
       var elemWidth = keys.elementWidth(_offset, 0);
@@ -330,10 +330,10 @@ class Builder {
     final fix = typed & ValueTypeUtils.isNumber(vectorType) && vecLength >= 2 && vecLength <= 4;
     if (keys != null) {
       _writeStackValue(keys, byteWidth);
-      _writeInt(1 << keys.width.index, byteWidth);
+      _writeUInt(1 << keys.width.index, byteWidth);
     }
     if (fix == false) {
-      _writeInt(vecLength, byteWidth);
+      _writeUInt(vecLength, byteWidth);
     }
     final vecOffset = _offset;
     for (var i = start; i < _stack.length; i += step) {
@@ -341,7 +341,7 @@ class Builder {
     }
     if (typed == false) {
       for (var i = start; i < _stack.length; i += step) {
-        _writeInt(_stack[i].storedPackedType(), 1);
+        _writeUInt(_stack[i].storedPackedType(), 1);
       }
     }
     if (keys != null) {
@@ -442,7 +442,7 @@ class Builder {
     if (value.isOffset) {
       final relativeOffset = _offset - value.offset;
       if (byteWidth == 8 || relativeOffset < (1 << (byteWidth * 8))) {
-        _writeInt(relativeOffset, byteWidth);
+        _writeUInt(relativeOffset, byteWidth);
       } else {
         throw StateError('Unexpected size $byteWidth. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new');
       }
@@ -452,9 +452,9 @@ class Builder {
     _offset = newOffset;
   }
 
-  void _writeInt(int value, int byteWidth) {
+  void _writeUInt(int value, int byteWidth) {
     final newOffset = _newOffset(byteWidth);
-    _pushInt(value, BitWidthUtil.fromByteWidth(byteWidth));
+    _pushUInt(value, BitWidthUtil.fromByteWidth(byteWidth));
     _offset = newOffset;
   }
 
@@ -488,6 +488,24 @@ class Builder {
         break;
       case BitWidth.width64:
         _buffer.setInt64(_offset, value, Endian.little);
+        break;
+    }
+  }
+
+  void _pushUInt(int value, BitWidth width) {
+    switch (width) {
+
+      case BitWidth.width8:
+        _buffer.setUint8(_offset, value);
+        break;
+      case BitWidth.width16:
+        _buffer.setUint16(_offset, value, Endian.little);
+        break;
+      case BitWidth.width32:
+        _buffer.setUint32(_offset, value, Endian.little);
+        break;
+      case BitWidth.width64:
+        _buffer.setUint64(_offset, value, Endian.little);
         break;
     }
   }
@@ -541,7 +559,7 @@ class _StackValue {
       final width = 1 << i;
       final offsetLoc = size + BitWidthUtil.paddingSize(size, width) + index * width;
       final offset = offsetLoc - _offset;
-      final bitWidth = BitWidthUtil.width(offset);
+      final bitWidth = BitWidthUtil.uwidth(offset);
       if (1 << bitWidth.index == width) {
         return bitWidth;
       }
