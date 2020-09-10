@@ -744,13 +744,13 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
           "default values currently only supported for scalars in tables");
   }
 
-  // Mark the nullable scalars. Note that a side effect of ParseSingleValue is
+  // Mark the optional scalars. Note that a side effect of ParseSingleValue is
   // fixing field->value.constant to null.
   if (IsScalar(type.base_type)) {
-    field->nullable = (field->value.constant == "null");
-    if (field->nullable && !SupportsNullableScalars()) {
+    field->optional = (field->value.constant == "null");
+    if (field->optional && !SupportsOptionalScalars()) {
       return Error(
-        "Nullable scalars are not yet supported in at least one the of "
+        "Optional scalars are not yet supported in at least one the of "
         "the specified programming languages."
       );
     }
@@ -2265,8 +2265,9 @@ CheckedError Parser::CheckClash(std::vector<FieldDef *> &fields,
 }
 
 
-bool Parser::SupportsNullableScalars() const {
-  return opts.lang_to_generate == 0;  // No support yet.
+bool Parser::SupportsOptionalScalars() const {
+  return !(opts.lang_to_generate &
+    ~(IDLOptions::kRust | IDLOptions::kSwift | IDLOptions::kLobster));
 }
 
 bool Parser::SupportsAdvancedUnionFeatures() const {
