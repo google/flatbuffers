@@ -15,6 +15,7 @@ function main() {
   testRoundTrip();
   testRoundTripWithBuilder();
   testDeduplicationOff();
+  testBugWhereOffestWereStoredAsIntInsteadOfUInt();
 }
 
 function testSingleValueBuffers() {
@@ -358,6 +359,30 @@ function testGoldBuffer() {
     mymap: {foo:'Fred'},
     vec: [-100, 'Fred', 4, new Uint8Array([77]), false, 4]
   });
+}
+
+function testBugWhereOffestWereStoredAsIntInsteadOfUInt() {
+  // Reported in https://github.com/google/flatbuffers/issues/5949#issuecomment-688421193
+  const object = {'channels_in': 64, 'dilation_height_factor': 1, 'dilation_width_factor': 1, 'fused_activation_function': 1, 'pad_values': 1, 'padding': 0, 'stride_height': 1, 'stride_width': 1};
+  let data1 = flexbuffers.encode(object);
+  const data = [99, 104, 97, 110, 110, 101, 108, 115, 95, 105, 110, 0,
+    100, 105, 108, 97, 116, 105, 111, 110, 95, 104, 101, 105, 103, 104, 116, 95, 102, 97, 99, 116, 111, 114, 0,
+    100, 105, 108, 97, 116, 105, 111, 110, 95, 119, 105, 100, 116, 104, 95, 102, 97, 99, 116, 111, 114, 0,
+    102, 117, 115, 101, 100, 95, 97, 99, 116, 105, 118, 97, 116, 105, 111, 110, 95, 102, 117, 110, 99, 116, 105, 111, 110, 0,
+    112, 97, 100, 95, 118, 97, 108, 117, 101, 115, 0, 112, 97, 100, 100, 105, 110, 103, 0,
+    115, 116, 114, 105, 100, 101, 95, 104, 101, 105, 103, 104, 116, 0,
+    115, 116, 114, 105, 100, 101, 95, 119, 105, 100, 116, 104, 0,
+    8, 130, 119, 97, 76, 51, 41, 34, 21, 8, 1, 8, 64, 1, 1, 1, 1, 0, 1, 1, 4, 4, 4, 4, 4, 4, 4, 4, 16, 36, 1];
+  let object2 = flexbuffers.toObject(new Uint8Array(data).buffer);
+  let object1 = flexbuffers.toObject(new Uint8Array(data1).buffer);
+  assert.deepStrictEqual(object, object2);
+  assert.deepStrictEqual(object, object1);
+  assert.strictEqual(data.length, data1.length);
+  let ref = flexbuffers.toReference(new Uint8Array(data).buffer);
+  assert.strictEqual(ref.isMap(), true);
+  assert.strictEqual(ref.length(), 8);
+  assert.strictEqual(ref.get("channels_in").numericValue(), 64);
+  assert.strictEqual(ref.get("padding").isNumber(), true);
 }
 
 main();
