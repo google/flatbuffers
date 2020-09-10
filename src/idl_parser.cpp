@@ -845,6 +845,23 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   field->required = field->attributes.Lookup("required") != nullptr;
   if (field->required && (struct_def.fixed || IsScalar(type.base_type)))
     return Error("only non-scalar fields in tables may be 'required'");
+
+  // Mark the optional scalars. Note that a side effect of ParseSingleValue is
+  // fixing field->value.constant to null.
+  if (IsScalar(type.base_type)) {
+    field->optional = (field->value.constant == "null");
+    if (field->optional && !SupportsOptionalScalars()) {
+      return Error(
+        "Optional scalars are not yet supported in at least one the of "
+        "the specified programming languages."
+      );
+    }
+  } else {
+    // For nonscalars, only required fields are non-optional.
+    // At least until https://github.com/google/flatbuffers/issues/6053
+    field->optional = !field->required;
+  }
+
   field->key = field->attributes.Lookup("key") != nullptr;
   if (field->key) {
     if (struct_def.has_key) return Error("only one field may be set as 'key'");
@@ -3307,7 +3324,7 @@ Offset<reflection::Field> FieldDef::Serialize(FlatBufferBuilder *builder,
       IsInteger(value.type.base_type) ? StringToInt(value.constant.c_str()) : 0,
       // result may be platform-dependent if underlying is float (not double)
       IsFloat(value.type.base_type) ? d : 0.0, deprecated, required, key,
-      attr__, docs__);
+      attr__, docs__, optional);
   // TODO: value.constant is almost always "0", we could save quite a bit of
   // space by sharing it. Same for common values of value.type.
 }

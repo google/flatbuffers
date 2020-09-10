@@ -503,7 +503,8 @@ class SwiftGenerator : public BaseGenerator {
     auto &create_func_header = *create_header;
     auto name = Name(field);
     auto type = GenType(field.value.type);
-    auto nullable_type = (field.optional ? type + "?" : type);
+    bool opt_scalar = field.optional && IsScalar(field.value.type.base_type);
+    auto nullable_type = opt_scalar ? type + "?" : type;
     code_.SetValue("VALUENAME", name);
     code_.SetValue("VALUETYPE", nullable_type);
     code_.SetValue("OFFSET", name);
@@ -590,9 +591,10 @@ class SwiftGenerator : public BaseGenerator {
     code_.SetValue("VALUETYPE", type);
     code_.SetValue("OFFSET", name);
     code_.SetValue("CONSTANT", field.value.constant);
-    std::string nullable = field.optional ? "nil" : "{{CONSTANT}}";
-    std::string optional = field.optional ? "?" : "";
-    auto const_string = "return o == 0 ? " + nullable + " : ";
+    bool opt_scalar = field.optional && IsScalar(field.value.type.base_type);
+    std::string default_value = opt_scalar ? "nil" : "{{CONSTANT}}";
+    std::string optional = opt_scalar ? "?" : "";
+    auto const_string = "return o == 0 ? " + default_value + " : ";
     GenComment(field.doc_comment);
     if (IsScalar(field.value.type.base_type) && !IsEnum(field.value.type) &&
         !IsBool(field.value.type.base_type)) {
