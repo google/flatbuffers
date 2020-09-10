@@ -503,7 +503,7 @@ class SwiftGenerator : public BaseGenerator {
     auto &create_func_header = *create_header;
     auto name = Name(field);
     auto type = GenType(field.value.type);
-    auto nullable_type = (field.nullable ? type + "?" : type);
+    auto nullable_type = (field.optional ? type + "?" : type);
     code_.SetValue("VALUENAME", name);
     code_.SetValue("VALUETYPE", nullable_type);
     code_.SetValue("OFFSET", name);
@@ -524,14 +524,14 @@ class SwiftGenerator : public BaseGenerator {
       code_ +=
           "{{VALUETYPE}}" + builder_string + "fbb.add(element: {{VALUENAME}}\\";
 
-      code_ += field.nullable ? "\\" : (is_enum + ", def: {{CONSTANT}}\\");
+      code_ += field.optional ? "\\" : (is_enum + ", def: {{CONSTANT}}\\");
 
       code_ += ", at: {{TABLEOFFSET}}.{{OFFSET}}.p) }";
 
       auto default_value = IsEnum(field.value.type) ? GenEnumDefaultValue(field)
                                                     : field.value.constant;
       create_func_header.push_back("" + name + ": " + nullable_type + " = " +
-                                   (field.nullable ? "nil" : default_value));
+                                   (field.optional ? "nil" : default_value));
       return;
     }
 
@@ -540,13 +540,13 @@ class SwiftGenerator : public BaseGenerator {
           "0" == field.value.constant ? "false" : "true";
 
       code_.SetValue("CONSTANT", default_value);
-      code_.SetValue("VALUETYPE", field.nullable ? "Bool?" : "Bool");
+      code_.SetValue("VALUETYPE", field.optional ? "Bool?" : "Bool");
       code_ += "{{VALUETYPE}}" + builder_string +
                "fbb.add(element: {{VALUENAME}},\\";
-      code_ += field.nullable ? "\\" : " def: {{CONSTANT}},";
+      code_ += field.optional ? "\\" : " def: {{CONSTANT}},";
       code_ += " at: {{TABLEOFFSET}}.{{OFFSET}}.p) }";
       create_func_header.push_back(name + ": " + nullable_type + " = " +
-                                   (field.nullable ? "nil" : default_value));
+                                   (field.optional ? "nil" : default_value));
       return;
     }
 
@@ -590,8 +590,8 @@ class SwiftGenerator : public BaseGenerator {
     code_.SetValue("VALUETYPE", type);
     code_.SetValue("OFFSET", name);
     code_.SetValue("CONSTANT", field.value.constant);
-    std::string nullable = field.nullable ? "nil" : "{{CONSTANT}}";
-    std::string optional = field.nullable ? "?" : "";
+    std::string nullable = field.optional ? "nil" : "{{CONSTANT}}";
+    std::string optional = field.optional ? "?" : "";
     auto const_string = "return o == 0 ? " + nullable + " : ";
     GenComment(field.doc_comment);
     if (IsScalar(field.value.type.base_type) && !IsEnum(field.value.type) &&
@@ -1105,12 +1105,12 @@ class SwiftGenerator : public BaseGenerator {
       }
       default: {
         buffer_constructor.push_back(name + " = _t." + name);
-        std::string nullable = field.nullable ? "?" : "";
+        std::string nullable = field.optional ? "?" : "";
         if (IsScalar(field.value.type.base_type) &&
             !IsBool(field.value.type.base_type) && !IsEnum(field.value.type)) {
           code_ +=
               "{{ACCESS_TYPE}} var {{VALUENAME}}: {{VALUETYPE}}" + nullable;
-          if (!field.nullable)
+          if (!field.optional)
             base_constructor.push_back(name + " = " + field.value.constant);
           break;
         }
@@ -1128,7 +1128,7 @@ class SwiftGenerator : public BaseGenerator {
           code_ += "{{ACCESS_TYPE}} var {{VALUENAME}}: Bool" + nullable;
           std::string default_value =
               "0" == field.value.constant ? "false" : "true";
-          if (!field.nullable)
+          if (!field.optional)
             base_constructor.push_back(name + " = " + default_value);
         }
       }
