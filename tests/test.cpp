@@ -3443,8 +3443,8 @@ void TestEmbeddedBinarySchema() {
           0);
 }
 
-void NullableScalarsTest() {
-  // Simple schemas and a "has nullable scalar" sentinal.
+void OptionalScalarsTest() {
+  // Simple schemas and a "has optional scalar" sentinal.
   std::vector<std::string> schemas;
   schemas.push_back("table Monster { mana : int; }");
   schemas.push_back("table Monster { mana : int = 42; }");
@@ -3468,10 +3468,10 @@ void NullableScalarsTest() {
     flatbuffers::Parser parser;
     TEST_ASSERT(parser.Parse(schema->c_str()));
     const auto *mana = parser.structs_.Lookup("Monster")->fields.Lookup("mana");
-    TEST_EQ(mana->nullable, has_null);
+    TEST_EQ(mana->optional, has_null);
   }
 
-  // Test if nullable scalars are allowed for each language.
+  // Test if optional scalars are allowed for each language.
   const int kNumLanguages = 17;
   const auto supported = (flatbuffers::IDLOptions::kRust |
                           flatbuffers::IDLOptions::kSwift |
@@ -3491,9 +3491,9 @@ void NullableScalarsTest() {
 
 void ParseFlexbuffersFromJsonWithNullTest() {
   // Test nulls are handled appropriately through flexbuffers to exercise other
-  // code paths of ParseSingleValue in the nullable scalars change.
+  // code paths of ParseSingleValue in the optional scalars change.
   // TODO(cneo): Json -> Flatbuffers test once some language can generate code
-  // with nullable scalars.
+  // with optional scalars.
   {
     char json[] = "{\"opt_field\": 123 }";
     flatbuffers::Parser parser;
@@ -3705,7 +3705,7 @@ int FlatBufferTests() {
   TestMonsterExtraFloats();
   FixedLengthArrayTest();
   NativeTypeTest();
-  NullableScalarsTest();
+  OptionalScalarsTest();
   ParseFlexbuffersFromJsonWithNullTest();
   AllocatorTest();
   return 0;
