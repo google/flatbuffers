@@ -592,9 +592,9 @@ class SwiftGenerator : public BaseGenerator {
     code_.SetValue("OFFSET", name);
     code_.SetValue("CONSTANT", field.value.constant);
     bool opt_scalar = field.optional && IsScalar(field.value.type.base_type);
-    std::string default_value = opt_scalar ? "nil" : "{{CONSTANT}}";
+    std::string def_Val = opt_scalar ? "nil" : "{{CONSTANT}}";
     std::string optional = opt_scalar ? "?" : "";
-    auto const_string = "return o == 0 ? " + default_value + " : ";
+    auto const_string = "return o == 0 ? " + def_Val + " : ";
     GenComment(field.doc_comment);
     if (IsScalar(field.value.type.base_type) && !IsEnum(field.value.type) &&
         !IsBool(field.value.type.base_type)) {
