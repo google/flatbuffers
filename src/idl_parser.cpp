@@ -743,19 +743,6 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
       return Error(
           "default values currently only supported for scalars in tables");
   }
-
-  // Mark the optional scalars. Note that a side effect of ParseSingleValue is
-  // fixing field->value.constant to null.
-  if (IsScalar(type.base_type)) {
-    field->optional = (field->value.constant == "null");
-    if (field->optional && !SupportsOptionalScalars()) {
-      return Error(
-        "Optional scalars are not yet supported in at least one the of "
-        "the specified programming languages."
-      );
-    }
-  }
-
   // Append .0 if the value has not it (skip hex and scientific floats).
   // This suffix needed for generated C++ code.
   if (IsFloat(type.base_type)) {
