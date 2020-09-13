@@ -159,6 +159,24 @@ class KotlinGenerator : public BaseGenerator {
     }
   }
 
+  // with the addition of optional scalar types,
+  // we are adding the nullable '?' operator to return type of a field.
+  std::string GetterReturnType(const FieldDef &field) const {
+    auto base_type = field.value.type.base_type;
+
+    auto r_type = GenTypeGet(field.value.type);
+    if (field.IsScalarOptional() ||
+        // string, structs and unions
+        (base_type == BASE_TYPE_STRING || base_type == BASE_TYPE_STRUCT ||
+         base_type == BASE_TYPE_UNION) ||
+        // vector of anything not scalar
+        (base_type == BASE_TYPE_VECTOR &&
+         !IsScalar(field.value.type.VectorType().base_type))) {
+      r_type += "?";
+    }
+    return r_type;
+  }
+
   std::string GenTypeGet(const Type &type) const {
     return IsScalar(type.base_type) ? GenTypeBasic(type.base_type)
                                     : GenTypePointer(type);
@@ -179,6 +197,18 @@ class KotlinGenerator : public BaseGenerator {
   // - Floats are upcasted to doubles
   // - Unsigned are casted to signed
   std::string GenFBBDefaultValue(const FieldDef &field) const {
+    if (field.IsScalarOptional()) {
+      // although default value is null, java API forces us to present a real
+      // default value for scalars, while adding a field to the buffer. This is
+      // not a problem because the default can be representing just by not
+      // calling builder.addMyField()
+      switch (field.value.type.base_type) {
+        case BASE_TYPE_DOUBLE:
+        case BASE_TYPE_FLOAT: return "0.0";
+        case BASE_TYPE_BOOL: return "false";
+        default: return "0";
+      }
+    }
     auto out = GenDefaultValue(field, true);
     // All FlatBufferBuilder default floating point values are doubles
     if (field.value.type.base_type == BASE_TYPE_FLOAT) {
@@ -204,6 +234,8 @@ class KotlinGenerator : public BaseGenerator {
                               bool force_signed = false) const {
     auto &value = field.value;
     auto base_type = field.value.type.base_type;
+
+    if (field.IsScalarOptional()) { return "null"; }
     if (IsFloat(base_type)) {
       auto val = KotlinFloatGen.GenFloatConstant(field);
       if (base_type == BASE_TYPE_DOUBLE && val.back() == 'f') {
@@ -655,19 +687,22 @@ class KotlinGenerator : public BaseGenerator {
                         CodeWriter &writer, const IDLOptions options) const {
     auto field_type = GenTypeBasic(field.value.type.base_type);
     auto secondArg = MakeCamel(Esc(field.name), false) + ": " + field_type;
-    GenerateFunOneLine(writer, "add" + MakeCamel(Esc(field.name), true),
-                       "builder: FlatBufferBuilder, " + secondArg, "", [&]() {
-                         auto method = GenMethod(field.value.type);
-                         writer.SetValue("field_name",
-                                         MakeCamel(Esc(field.name), false));
-                         writer.SetValue("method_name", method);
-                         writer.SetValue("pos", field_pos);
-                         writer.SetValue("default", GenFBBDefaultValue(field));
-                         writer.SetValue("cast", GenFBBValueCast(field));
 
-                         writer += "builder.add{{method_name}}({{pos}}, \\";
-                         writer += "{{field_name}}{{cast}}, {{default}})";
-                       }, options.gen_jvmstatic);
+    GenerateFunOneLine(
+        writer, "add" + MakeCamel(Esc(field.name), true),
+        "builder: FlatBufferBuilder, " + secondArg, "",
+        [&]() {
+          auto method = GenMethod(field.value.type);
+          writer.SetValue("field_name", MakeCamel(Esc(field.name), false));
+          writer.SetValue("method_name", method);
+          writer.SetValue("pos", field_pos);
+          writer.SetValue("default", GenFBBDefaultValue(field));
+          writer.SetValue("cast", GenFBBValueCast(field));
+
+          writer += "builder.add{{method_name}}({{pos}}, \\";
+          writer += "{{field_name}}{{cast}}, {{default}})";
+        },
+        options.gen_jvmstatic);
   }
 
   static std::string ToSignedType(const Type &type) {
@@ -754,7 +789,8 @@ class KotlinGenerator : public BaseGenerator {
         } else {
           params << ": ";
         }
-        params << GenTypeBasic(field.value.type.base_type);
+        auto optional = field.IsScalarOptional() ? "?" : "";
+        params << GenTypeBasic(field.value.type.base_type) << optional;
       }
 
       GenerateFun(writer, name, params.str(), "Int", [&]() {
@@ -773,11 +809,16 @@ class KotlinGenerator : public BaseGenerator {
                               MakeCamel(Esc(field.name), true));
               writer.SetValue("field_name", MakeCamel(Esc(field.name), false));
 
+              // we wrap on null check for scalar optionals
+              writer +=
+                  field.IsScalarOptional() ? "{{field_name}}?.run { \\" : "\\";
+
               writer += "add{{camel_field_name}}(builder, {{field_name}}\\";
               if (!IsScalar(field.value.type.base_type)) {
                 writer += "Offset\\";
               }
-              writer += ")";
+              // we wrap on null check for scalar optionals
+              writer += field.IsScalarOptional() ? ") }" : ")";
             }
           }
         }
@@ -812,7 +853,7 @@ class KotlinGenerator : public BaseGenerator {
       auto field_name = MakeCamel(Esc(field.name), false);
       auto field_type = GenTypeGet(field.value.type);
       auto field_default_value = GenDefaultValue(field);
-      auto return_type = GenTypeGet(field.value.type);
+      auto return_type = GetterReturnType(field);
       auto bbgetter = ByteBufferGetter(field.value.type, "bb");
       auto ucast = CastToUsigned(field);
       auto offset_val = NumToString(field.value.offset);
@@ -829,14 +870,13 @@ class KotlinGenerator : public BaseGenerator {
       writer.SetValue("bbgetter", bbgetter);
       writer.SetValue("ucast", ucast);
 
-      auto opt_ret_type = return_type + "?";
       // Generate the accessors that don't do object reuse.
       if (value_base_type == BASE_TYPE_STRUCT) {
         // Calls the accessor that takes an accessor object with a
         // new object.
         // val pos
         //     get() = pos(Vec3())
-        GenerateGetterOneLine(writer, field_name, opt_ret_type, [&]() {
+        GenerateGetterOneLine(writer, field_name, return_type, [&]() {
           writer += "{{field_name}}({{field_type}}())";
         });
       } else if (value_base_type == BASE_TYPE_VECTOR &&
@@ -844,8 +884,8 @@ class KotlinGenerator : public BaseGenerator {
         // Accessors for vectors of structs also take accessor objects,
         // this generates a variant without that argument.
         // ex: fun weapons(j: Int) = weapons(Weapon(), j)
-        GenerateFunOneLine(writer, field_name, "j: Int", opt_ret_type, [&]() {
-          writer += "{{field_name}}({{return_type}}(), j)";
+        GenerateFunOneLine(writer, field_name, "j: Int", return_type, [&]() {
+          writer += "{{field_name}}({{field_type}}(), j)";
         });
       }
 
@@ -872,7 +912,7 @@ class KotlinGenerator : public BaseGenerator {
               // fun pos(obj: Vec3) : Vec3? = obj.__assign(bb_pos + 4, bb)
               // ? adds nullability annotation
               GenerateFunOneLine(
-                  writer, field_name, "obj: " + field_type, return_type + "?",
+                  writer, field_name, "obj: " + field_type, return_type,
                   [&]() { writer += "obj.__assign(bb_pos + {{offset}}, bb)"; });
             } else {
               // create getter with object reuse
@@ -887,8 +927,7 @@ class KotlinGenerator : public BaseGenerator {
               //  }
               // ? adds nullability annotation
               GenerateFun(
-                  writer, field_name, "obj: " + field_type, return_type + "?",
-                  [&]() {
+                  writer, field_name, "obj: " + field_type, return_type, [&]() {
                     auto fixed = field.value.type.struct_def->fixed;
 
                     writer.SetValue("seek", Indirect("o + bb_pos", fixed));
@@ -908,7 +947,7 @@ class KotlinGenerator : public BaseGenerator {
             //         return if (o != 0) __string(o + bb_pos) else null
             //     }
             // ? adds nullability annotation
-            GenerateGetter(writer, field_name, return_type + "?", [&]() {
+            GenerateGetter(writer, field_name, return_type, [&]() {
               writer += "val o = __offset({{offset}})";
               writer += "return if (o != 0) __string(o + bb_pos) else null";
             });
@@ -926,15 +965,13 @@ class KotlinGenerator : public BaseGenerator {
 
             auto vectortype = field.value.type.VectorType();
             std::string params = "j: Int";
-            std::string nullable = IsScalar(vectortype.base_type) ? "" : "?";
 
             if (vectortype.base_type == BASE_TYPE_STRUCT ||
                 vectortype.base_type == BASE_TYPE_UNION) {
               params = "obj: " + field_type + ", j: Int";
             }
 
-            auto ret_type = return_type + nullable;
-            GenerateFun(writer, field_name, params, ret_type, [&]() {
+            GenerateFun(writer, field_name, params, return_type, [&]() {
               auto inline_size = NumToString(InlineSize(vectortype));
               auto index = "__vector(o) + j * " + inline_size;
               auto not_found = NotFoundReturn(field.value.type.element);
@@ -959,8 +996,8 @@ class KotlinGenerator : public BaseGenerator {
             break;
           }
           case BASE_TYPE_UNION:
-            GenerateFun(writer, field_name, "obj: " + field_type,
-                        return_type + "?", [&]() {
+            GenerateFun(writer, field_name, "obj: " + field_type, return_type,
+                        [&]() {
                           writer += OffsetWrapperOneLine(
                               offset_val, bbgetter + "(obj, o + bb_pos)",
                               "null");
