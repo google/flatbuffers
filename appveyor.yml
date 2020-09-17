@@ -86,6 +86,8 @@ test_script:
   - rem "---------------- JS -----------------"
   - "node --version"
   - "..\\%CONFIGURATION%\\flatc -b -I include_test monster_test.fbs unicode_test.json"
+  - "npm install"
+  - "npm run pretest"
   - "node JavaScriptTest ./monster_test_generated"
   - rem "-------------- Python ---------------"
   - where python
