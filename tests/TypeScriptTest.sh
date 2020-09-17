@@ -17,6 +17,7 @@
 pushd "$(dirname $0)" >/dev/null
 
 npm install @types/flatbuffers
+npm run pretest
 
 export FB_TS_TEST="TRUE"
 
