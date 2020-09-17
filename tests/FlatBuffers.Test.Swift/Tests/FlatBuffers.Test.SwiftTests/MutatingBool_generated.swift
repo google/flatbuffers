@@ -16,11 +16,10 @@ public struct Property: Readable {
     @discardableResult public func mutate(property: Bool) -> Bool { return _accessor.mutate(property, index: 0) }
 }
 
-public func createProperty(property: Bool = false) -> UnsafeMutableRawPointer {
-    let memory = UnsafeMutableRawPointer.allocate(byteCount: Property.size, alignment: Property.alignment)
-    memory.initializeMemory(as: UInt8.self, repeating: 0, count: Property.size)
-    memory.storeBytes(of: property, toByteOffset: 0, as: Bool.self)
-    return memory
+public func createProperty(builder: inout FlatBufferBuilder, property: Bool = false) -> Offset<UOffset> {
+    builder.createStructOf(size: Property.size, alignment: Property.alignment)
+    builder.reverseAdd(v: property, postion: 0)
+    return builder.endStruct()
 }
 
 public struct TestMutatingBool: FlatBufferObject {
@@ -44,11 +43,5 @@ public struct TestMutatingBool: FlatBufferObject {
     public static func startTestMutatingBool(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
     public static func add(b: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(structOffset: VTOFFSET.b.p) }
     public static func endTestMutatingBool(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
-    public static func createTestMutatingBool(_ fbb: inout FlatBufferBuilder,
-    offsetOfB b: Offset<UOffset> = Offset()) -> Offset<UOffset> {
-        let __start = TestMutatingBool.startTestMutatingBool(&fbb)
-        TestMutatingBool.add(b: b, &fbb)
-        return TestMutatingBool.endTestMutatingBool(&fbb, start: __start)
-    }
 }
 

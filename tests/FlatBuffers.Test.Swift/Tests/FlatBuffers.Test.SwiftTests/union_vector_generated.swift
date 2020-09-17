@@ -68,7 +68,7 @@ public struct Rapunzel: Readable {
     }
 
     public static func pack(_ builder: inout FlatBufferBuilder, obj: inout RapunzelT) -> Offset<UOffset> {
-        return builder.create(struct: createRapunzel(hairLength: obj.hairLength), type: Rapunzel.self)
+        return createRapunzel(builder: &builder, hairLength: obj.hairLength)
     }
 }
 
@@ -108,7 +108,7 @@ public struct BookReader: Readable {
     }
 
     public static func pack(_ builder: inout FlatBufferBuilder, obj: inout BookReaderT) -> Offset<UOffset> {
-        return builder.create(struct: createBookReader(booksRead: obj.booksRead), type: BookReader.self)
+        return createBookReader(builder: &builder, booksRead: obj.booksRead)
     }
 }
 
@@ -126,21 +126,21 @@ public class BookReaderT: NativeTable {
 
 }
 extension Rapunzel {
-    public static func createRapunzel(hairLength: Int32 = 0) -> UnsafeMutableRawPointer {
-        let memory = UnsafeMutableRawPointer.allocate(byteCount: Rapunzel.size, alignment: Rapunzel.alignment)
-        memory.initializeMemory(as: UInt8.self, repeating: 0, count: Rapunzel.size)
-        memory.storeBytes(of: hairLength, toByteOffset: 0, as: Int32.self)
-        return memory
+    @discardableResult
+    public static func createRapunzel(builder: inout FlatBufferBuilder, hairLength: Int32 = 0) -> Offset<UOffset> {
+        builder.createStructOf(size: Rapunzel.size, alignment: Rapunzel.alignment)
+        builder.reverseAdd(v: hairLength, postion: 0)
+        return builder.endStruct()
     }
 
 }
 
 extension BookReader {
-    public static func createBookReader(booksRead: Int32 = 0) -> UnsafeMutableRawPointer {
-        let memory = UnsafeMutableRawPointer.allocate(byteCount: BookReader.size, alignment: BookReader.alignment)
-        memory.initializeMemory(as: UInt8.self, repeating: 0, count: BookReader.size)
-        memory.storeBytes(of: booksRead, toByteOffset: 0, as: Int32.self)
-        return memory
+    @discardableResult
+    public static func createBookReader(builder: inout FlatBufferBuilder, booksRead: Int32 = 0) -> Offset<UOffset> {
+        builder.createStructOf(size: BookReader.size, alignment: BookReader.alignment)
+        builder.reverseAdd(v: booksRead, postion: 0)
+        return builder.endStruct()
     }
 
 }
@@ -237,9 +237,9 @@ public struct Movie: FlatBufferObject, ObjectAPI {
     public func characters<T: FlatBufferObject>(at index: Int32, type: T.Type) -> T? { let o = _accessor.offset(VTOFFSET.characters.v); return o == 0 ? nil : _accessor.directUnion(_accessor.vector(at: o) + index * 4) }
     public static func startMovie(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 4) }
     public static func add(mainCharacterType: Character, _ fbb: inout FlatBufferBuilder) { fbb.add(element: mainCharacterType.rawValue, def: 0, at: VTOFFSET.mainCharacterType.p) }
-    public static func add(mainCharacter: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: mainCharacter, at: VTOFFSET.mainCharacter.p)  }
-    public static func addVectorOf(charactersType: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: charactersType, at: VTOFFSET.charactersType.p)  }
-    public static func addVectorOf(characters: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: characters, at: VTOFFSET.characters.p)  }
+    public static func add(mainCharacter: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: mainCharacter, at: VTOFFSET.mainCharacter.p) }
+    public static func addVectorOf(charactersType: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: charactersType, at: VTOFFSET.charactersType.p) }
+    public static func addVectorOf(characters: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: characters, at: VTOFFSET.characters.p) }
     public static func endMovie(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
     public static func createMovie(
         _ fbb: inout FlatBufferBuilder,

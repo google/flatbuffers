@@ -187,7 +187,7 @@ public struct FlatBufferBuilder {
             let vTableOff = Int(vTableOffset)
             let space = _bb.capacity &- vTableOff
             _bb.write(value: Int32(offset &- vTableOff), index: space, direct: true)
-            _bb.resize(_bb.capacity &- space)
+            _bb.pop(_bb.capacity &- space)
         } else {
             _bb.write(value: Int32(vt_use &- vTableOffset), index: Int(vTableOffset))
             _vtables.append(_bb.size)
@@ -304,7 +304,7 @@ public struct FlatBufferBuilder {
     mutating public func createVector<T: Enum>(_ elements: [T], size: Int) -> Offset<UOffset> {
         let size = size
         startVector(size, elementSize: T.byteSize)
-        for e in elements.lazy.reversed() {
+        for e in elements.reversed() {
             _bb.push(value: e.value, len: T.byteSize)
         }
         return Offset(offset: endVector(len: size))
@@ -323,7 +323,7 @@ public struct FlatBufferBuilder {
     /// - returns: Offset of the vector
     mutating public func createVector<T>(ofOffsets offsets: [Offset<T>], len: Int) -> Offset<UOffset> {
         startVector(len, elementSize: MemoryLayout<Offset<T>>.size)
-        for o in offsets.lazy.reversed() {
+        for o in offsets.reversed() {
             push(element: o)
         }
         return Offset(offset: endVector(len: len))
@@ -347,13 +347,30 @@ public struct FlatBufferBuilder {
     ///   - structs: An array of UnsafeMutableRawPointer
     ///   - type: Type of the struct being written
     /// - returns: Offset of the vector
+    @available(*, deprecated, message: "0.9.0 will be removing the following method. Regenerate the code")
     mutating public func createVector<T: Readable>(structs: [UnsafeMutableRawPointer],
                                           type: T.Type) -> Offset<UOffset> {
         startVector(structs.count &* T.size, elementSize: T.alignment)
-        for i in structs.lazy.reversed() {
+        for i in structs.reversed() {
             create(struct: i, type: T.self)
         }
         return Offset(offset: endVector(len: structs.count))
+    }
+    
+    /// Starts a vector of struct that considers the size and alignment of the struct
+    /// - Parameters:
+    ///   - count: number of elements to be written
+    ///   - size: size of struct
+    ///   - alignment: alignment of the struct
+    mutating public func startVectorOfStructs(count: Int, size: Int, alignment: Int) {
+        startVector(count &* size, elementSize: alignment)
+    }
+    
+    /// Ends the vector of structs and writtens the current offset
+    /// - Parameter count: number of written elements
+    /// - Returns: Offset of type UOffset
+    mutating public func endVectorOfStructs(count: Int) -> Offset<UOffset> {
+        return Offset<UOffset>(offset: endVector(len: count))
     }
 
     // MARK: - Inserting Structs
@@ -363,12 +380,39 @@ public struct FlatBufferBuilder {
     ///   - s: Flatbuffer struct
     ///   - type: Type of the element to be serialized
     /// - returns: Offset of the Object
+    @available(*, deprecated, message: "0.9.0 will be removing the following method. Regenerate the code")
     @discardableResult
     mutating public func create<T: Readable>(struct s: UnsafeMutableRawPointer,
                                     type: T.Type) -> Offset<UOffset> {
         let size = T.size
         preAlign(len: size, alignment: T.alignment)
         _bb.push(struct: s, size: size)
+        return Offset(offset: _bb.size)
+    }
+    
+    /// prepares the ByteBuffer to receive a struct of size and alignment
+    /// - Parameters:
+    ///   - size: size of written struct
+    ///   - alignment: alignment of written struct
+    mutating public func createStructOf(size: Int, alignment: Int) {
+        preAlign(len: size, alignment: alignment)
+        _bb.prepareBufferToReceiveStruct(of: size)
+    }
+    
+    /// Adds scalars front to back instead of the default behavior of the normal add
+    /// - Parameters:
+    ///   - v: element of type Scalar
+    ///   - postion: position relative to the `writerIndex`
+    mutating public func reverseAdd<T: Scalar>(v: T, postion: Int) {
+        _bb.reversePush(value: v,
+                        position: postion,
+                        len: MemoryLayout<T>.size)
+    }
+    
+    /// Ends the struct and returns the current buffer size
+    /// - Returns: Offset of type UOffset
+    @discardableResult
+    public func endStruct() -> Offset<UOffset> {
         return Offset(offset: _bb.size)
     }
     

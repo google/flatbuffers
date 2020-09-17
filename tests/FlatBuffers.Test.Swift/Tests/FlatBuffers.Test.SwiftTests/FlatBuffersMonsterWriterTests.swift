@@ -48,8 +48,10 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     func testCreateMonsterUsingCreateMonsterMethodWithNilPos() {
         var fbb = FlatBufferBuilder(initialSize: 1)
         let name = fbb.create(string: "Frodo")
-        let monster = Monster.createMonster(&fbb, offsetOfName: name)
-        fbb.finish(offset: monster)
+        let mStart = Monster.startMonster(&fbb)
+        Monster.add(name: name, &fbb)
+        let root = Monster.endMonster(&fbb, start: mStart)
+        fbb.finish(offset: root)
         let newMonster = Monster.getRootAsMonster(bb: fbb.sizedBuffer)
         XCTAssertNil(newMonster.pos)
         XCTAssertEqual(newMonster.name, "Frodo")
@@ -57,10 +59,13 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
 
     func testCreateMonsterUsingCreateMonsterMethodWithPosX() {
         var fbb = FlatBufferBuilder(initialSize: 1)
-        let pos = MyGame_Example_Vec3.createVec3(x: 10, test2: .blue)
         let name = fbb.create(string: "Barney")
-        let monster = Monster.createMonster(&fbb, structOfPos: pos, offsetOfName: name)
-        fbb.finish(offset: monster)
+        let mStart = Monster.startMonster(&fbb)
+        Monster.add(pos: MyGame_Example_Vec3.createVec3(builder: &fbb, x: 10, test2: .blue), &fbb)
+        Monster.add(name: name, &fbb)
+        let root = Monster.endMonster(&fbb, start: mStart)
+        fbb.finish(offset: root)
+        
         let newMonster = Monster.getRootAsMonster(bb: fbb.sizedBuffer)
         XCTAssertEqual(newMonster.pos!.x, 10)
         XCTAssertEqual(newMonster.name, "Barney")
@@ -114,14 +119,16 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
         let mon1Start = Monster.startMonster(&fbb)
         Monster.add(name: fred, &fbb)
         let mon2 = Monster.endMonster(&fbb, start: mon1Start)
-        let test4 = fbb.createVector(structs: [MyGame_Example_Test.createTest(a: 30, b: 40),
-                                               MyGame_Example_Test.createTest(a: 10, b: 20)],
-                                     type: Test.self)
+        
+        let size = 2
+        Monster.startVectorOfTest4(size, in: &fbb)
+        MyGame_Example_Test.createTest(builder: &fbb, a: 10, b: 20)
+        MyGame_Example_Test.createTest(builder: &fbb, a: 30, b: 40)
+        let test4 = fbb.endVectorOfStructs(count: size)
         
         let stringTestVector = fbb.createVector(ofOffsets: [test1, test2])
-
-        let posStruct = MyGame_Example_Vec3.createVec3(x: 1, y: 2, z: 3, test1: 3, test2: .green, test3a: 5, test3b: 6)
         let mStart = Monster.startMonster(&fbb)
+        let posStruct = MyGame_Example_Vec3.createVec3(builder: &fbb, x: 1, y: 2, z: 3, test1: 3, test2: .green, test3a: 5, test3b: 6)
         Monster.add(pos: posStruct, &fbb)
         Monster.add(hp: 80, &fbb)
         Monster.add(name: str, &fbb)
