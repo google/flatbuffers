@@ -38,12 +38,12 @@ final class FlatBuffersUnionTests: XCTestCase {
         let inventory: [UInt8] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         let inv = builder.createVector(inventory, size: 10)
         let weapons = builder.createVector(ofOffsets: [weaponOne, weaponTwo])
-        var vecArray: [UnsafeMutableRawPointer] = []
-        vecArray.append(createVecWrite(x: 4.0, y: 5.0, z: 6.0))
-        vecArray.append(createVecWrite(x: 1.0, y: 2.0, z: 3.0))
-        let path = builder.createVector(structs: vecArray, type: Vec.self)
+        builder.startVectorOfStructs(count: 2, size: Vec.size, alignment: Vec.alignment)
+        createVecWrite(builder: &builder, x: 1.0, y: 2.0, z: 3.0)
+        createVecWrite(builder: &builder, x: 4.0, y: 5.0, z: 6.0)
+        let path = builder.endVectorOfStructs(count: 2)
         let orc = FinalMonster.createMonster(builder: &builder,
-                                             position: builder.create(struct: createVecWrite(x: 1.0, y: 2.0, z: 3.0), type: Vec.self),
+                                             position: createVecWrite(builder: &builder, x: 1.0, y: 2.0, z: 3.0),
                                              hp: 300,
                                              name: name,
                                              inventory: inv,
@@ -81,10 +81,11 @@ final class FlatBuffersUnionTests: XCTestCase {
         let attack = Attacker.endAttacker(&fb, start: attackStart)
         
         let characterType: [Character] = [.belle, .mulan, .bookfan]
+        
         let characters = [
-            fb.create(struct: BookReader.createBookReader(booksRead: 7), type: BookReader.self),
+            BookReader.createBookReader(builder: &fb, booksRead: 7),
             attack,
-            fb.create(struct: BookReader.createBookReader(booksRead: 2), type: BookReader.self),
+            BookReader.createBookReader(builder: &fb, booksRead: 2)
         ]
         let types = fb.createVector(characterType)
         let characterVector = fb.createVector(ofOffsets: characters)

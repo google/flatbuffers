@@ -166,7 +166,7 @@ public struct ByteBuffer {
     @usableFromInline mutating func push<T: Scalar>(elements: [T]) {
         let size = elements.count &* MemoryLayout<T>.size
         ensureSpace(size: size)
-        elements.lazy.reversed().forEach { (s) in
+        elements.reversed().forEach { (s) in
             push(value: s, len: MemoryLayout.size(ofValue: s))
         }
     }
@@ -175,11 +175,31 @@ public struct ByteBuffer {
     /// - Parameters:
     ///   - value: Pointer to the object in memory
     ///   - size: Size of Value being written to the buffer
+    @available(*, deprecated, message: "0.9.0 will be removing the following method. Regenerate the code")
     @usableFromInline mutating func push(struct value: UnsafeMutableRawPointer, size: Int) {
         ensureSpace(size: size)
         memcpy(_storage.memory.advanced(by: writerIndex &- size), value, size)
         defer { value.deallocate() }
         _writerSize = _writerSize &+ size
+    }
+    
+    /// Prepares the buffer to receive a struct of certian size.
+    /// The alignment of the memory is already handled since we already called preAlign
+    /// - Parameter size: size of the struct
+    @usableFromInline mutating func prepareBufferToReceiveStruct(of size: Int) {
+        ensureSpace(size: size)
+        _writerSize = _writerSize &+ size
+    }
+    
+    /// Reverse the input direction to the buffer, since `FlatBuffers` uses a back to front, following method will take current `writerIndex`
+    /// and writes front to back into the buffer, respecting the padding & the alignment
+    /// - Parameters:
+    ///   - value: value of type Scalar
+    ///   - position: position relative to the `writerIndex`
+    ///   - len: length of the value in terms of bytes
+    @usableFromInline mutating func reversePush<T: Scalar>(value: T, position: Int, len: Int) {
+        var v = value
+        memcpy(_storage.memory.advanced(by: writerIndex &+ position), &v, len)
     }
 
     /// Adds an object of type Scalar into the buffer
@@ -201,7 +221,7 @@ public struct ByteBuffer {
         if str.utf8.withContiguousStorageIfAvailable({ self.push(bytes: $0, len: len) }) != nil {
         } else {
             let utf8View = str.utf8
-            for c in utf8View.lazy.reversed() {
+            for c in utf8View.reversed() {
                 push(value: c, len: 1)
             }
         }
@@ -246,14 +266,11 @@ public struct ByteBuffer {
         return size
     }
     
-    /// Resizes the buffer size
-    /// - Parameter size: new size for the buffer
-    @usableFromInline mutating internal func resize(_ size: Int) {
+    /// pops the written VTable if it's already written into the buffer
+    /// - Parameter size: size of the `VTable`
+    @usableFromInline mutating internal func pop(_ size: Int) {
         assert((_writerSize &- size) > 0, "New size should NOT be a negative number")
-        var zero: UInt8 = 0
-        for i in 0..<(_writerSize &- size) {
-            memcpy(_storage.memory.advanced(by: writerIndex &+ i), &zero, MemoryLayout<UInt8>.size)
-        }
+        memset(_storage.memory.advanced(by: writerIndex), 0, _writerSize &- size)
         _writerSize = size
     }
     
