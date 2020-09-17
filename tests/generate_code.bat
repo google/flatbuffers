@@ -29,6 +29,7 @@ if NOT "%commandline%"=="%commandline:--cpp-std c++0x=%" (
 
 set TEST_CPP_FLAGS=--gen-compare --cpp-ptr-type flatbuffers::unique_ptr %TEST_CPP_FLAGS%
 set TEST_CS_FLAGS=--cs-gen-json-serializer
+set TEST_JS_TS_FLAGS=--gen-name-strings
 set TEST_RUST_FLAGS=--gen-name-strings
 set TEST_BASE_FLAGS=--reflect-names --gen-mutable --gen-object-api
 set TEST_NOINCL_FLAGS=%TEST_BASE_FLAGS% --no-includes --no-fb-import
@@ -40,9 +41,9 @@ set TEST_NOINCL_FLAGS=%TEST_BASE_FLAGS% --no-includes --no-fb-import
 ..\%buildtype%\flatc.exe --python %TEST_BASE_FLAGS% --no-fb-import -I include_test monster_test.fbs monsterdata_test.json || goto FAIL
 
 ..\%buildtype%\flatc.exe --binary --cpp --java --csharp --dart --go --lobster --lua --js --ts --php --python --rust ^
-%TEST_NOINCL_FLAGS% %TEST_CPP_FLAGS% %TEST_CS_FLAGS% -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs || goto FAIL
+%TEST_NOINCL_FLAGS% %TEST_CPP_FLAGS% %TEST_CS_FLAGS% %TEST_JS_TS_FLAGS% -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs || goto FAIL
 
-..\%buildtype%\flatc.exe --cpp --java --csharp --js --ts --php %TEST_BASE_FLAGS% %TEST_CPP_FLAGS% %TEST_CS_FLAGS% -o union_vector ./union_vector/union_vector.fbs || goto FAIL
+..\%buildtype%\flatc.exe --cpp --java --csharp --js --ts --php %TEST_BASE_FLAGS% %TEST_CPP_FLAGS% %TEST_CS_FLAGS% %TEST_JS_TS_FLAGS% -o union_vector ./union_vector/union_vector.fbs || goto FAIL
 ..\%buildtype%\flatc.exe --rust -I include_test -o include_test include_test/include_test1.fbs || goto FAIL
 ..\%buildtype%\flatc.exe --rust -I include_test -o include_test/sub include_test/sub/include_test2.fbs || goto FAIL
 ..\%buildtype%\flatc.exe -b --schema --bfbs-comments --bfbs-builtins -I include_test monster_test.fbs || goto FAIL

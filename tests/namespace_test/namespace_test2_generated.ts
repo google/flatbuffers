@@ -81,6 +81,13 @@ fooStruct(obj?:NS8755221360535654258.NamespaceA.NamespaceB.StructInNestedNS):NS8
 };
 
 /**
+ * @returns string
+ */
+static getFullyQualifiedName():string {
+  return 'NamespaceA.TableInFirstNS';
+}
+
+/**
  * @param flatbuffers.Builder builder
  */
 static startTableInFirstNS(builder:flatbuffers.Builder) {
@@ -226,6 +233,13 @@ referToA2(obj?:NamespaceA.SecondTableInA):NamespaceA.SecondTableInA|null {
 };
 
 /**
+ * @returns string
+ */
+static getFullyQualifiedName():string {
+  return 'NamespaceC.TableInC';
+}
+
+/**
  * @param flatbuffers.Builder builder
  */
 static startTableInC(builder:flatbuffers.Builder) {
@@ -347,6 +361,13 @@ referToC(obj?:NamespaceC.TableInC):NamespaceC.TableInC|null {
   var offset = this.bb!.__offset(this.bb_pos, 4);
   return offset ? (obj || new NamespaceC.TableInC()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
 };
+
+/**
+ * @returns string
+ */
+static getFullyQualifiedName():string {
+  return 'NamespaceA.SecondTableInA';
+}
 
 /**
  * @param flatbuffers.Builder builder

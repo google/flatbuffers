@@ -26,6 +26,7 @@ fi
 
 TEST_CPP_FLAGS="--gen-compare --cpp-ptr-type flatbuffers::unique_ptr $TEST_CPP_FLAGS"
 TEST_CS_FLAGS="--cs-gen-json-serializer"
+TEST_JS_TS_FLAGS="--gen-name-strings"
 TEST_BASE_FLAGS="--reflect-names --gen-mutable --gen-object-api"
 TEST_RUST_FLAGS="$TEST_BASE_FLAGS --gen-name-strings"
 TEST_NOINCL_FLAGS="$TEST_BASE_FLAGS --no-includes --no-fb-import"
@@ -37,9 +38,9 @@ $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS -I include_test monster_test.f
 ../flatc --python $TEST_BASE_FLAGS -I include_test monster_test.fbs monsterdata_test.json
 
 ../flatc --cpp --java --kotlin --csharp --dart --go --binary --lobster --lua --js --ts --php --python --rust \
-$TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs
+$TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_JS_TS_FLAGS -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs
 
-../flatc --cpp --java --kotlin --csharp --js --ts --php $TEST_BASE_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS -o union_vector ./union_vector/union_vector.fbs
+../flatc --cpp --java --kotlin --csharp --js --ts --php $TEST_BASE_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_JS_TS_FLAGS -o union_vector ./union_vector/union_vector.fbs
 ../flatc --rust -I include_test -o include_test include_test/include_test1.fbs
 ../flatc --rust -I include_test -o include_test/sub include_test/sub/include_test2.fbs
 ../flatc -b --schema --bfbs-comments --bfbs-builtins -I include_test monster_test.fbs
