@@ -53,6 +53,19 @@ public class FlatBufferBuilder {
     Map<String, Integer> string_pool; // map used to cache shared strings.
     /// @endcond
 
+
+    /**
+     * Maximum size of buffer to allocate. If we're allocating arrays on the heap,
+     * the header size of the array counts towards its maximum size.
+     */
+    private static final int MAX_BUFFER_SIZE = Integer.MAX_VALUE - 8;
+
+    /**
+     * Default buffer size that is allocated if an initial size is not given, or is
+     * non positive.
+     */
+    private static final int DEFAULT_BUFFER_SIZE = 1024;
+
     /**
      * Start with a buffer of size `initial_size`, then grow as required.
      *
@@ -74,7 +87,7 @@ public class FlatBufferBuilder {
     public FlatBufferBuilder(int initial_size, ByteBufferFactory bb_factory,
                              ByteBuffer existing_bb, Utf8 utf8) {
         if (initial_size <= 0) {
-          initial_size = 1;
+          initial_size = DEFAULT_BUFFER_SIZE;
         }
         this.bb_factory = bb_factory;
         if (existing_bb != null) {
@@ -101,7 +114,7 @@ public class FlatBufferBuilder {
      * Start with a buffer of 1KiB, then grow as required.
      */
     public FlatBufferBuilder() {
-        this(1024);
+        this(DEFAULT_BUFFER_SIZE);
     }
 
     /**
@@ -247,9 +260,19 @@ public class FlatBufferBuilder {
      */
     static ByteBuffer growByteBuffer(ByteBuffer bb, ByteBufferFactory bb_factory) {
         int old_buf_size = bb.capacity();
-        if ((old_buf_size & 0xC0000000) != 0)  // Ensure we don't grow beyond what fits in an int.
-            throw new AssertionError("FlatBuffers: cannot grow buffer beyond 2 gigabytes.");
-        int new_buf_size = old_buf_size == 0 ? 1 : old_buf_size << 1;
+
+        int new_buf_size;
+
+        if (old_buf_size == 0) {
+            new_buf_size = DEFAULT_BUFFER_SIZE;
+        }
+        else {
+            if (old_buf_size == MAX_BUFFER_SIZE) { // Ensure we don't grow beyond what fits in an int.
+                throw new AssertionError("FlatBuffers: cannot grow buffer beyond 2 gigabytes.");
+            }
+            new_buf_size = (old_buf_size & 0xC0000000) != 0 ? MAX_BUFFER_SIZE : old_buf_size << 1;
+        }
+
         bb.position(0);
         ByteBuffer nbb = bb_factory.newByteBuffer(new_buf_size);
         new_buf_size = nbb.clear().capacity(); // Ensure the returned buffer is treated as empty
