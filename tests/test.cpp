@@ -23,7 +23,6 @@
 
 // clang-format off
 #ifdef FLATBUFFERS_CPP98_STL
-  #include "flatbuffers/stl_emulation.h"
   namespace std {
     using flatbuffers::unique_ptr;
   }
@@ -35,6 +34,7 @@
 #include "namespace_test/namespace_test2_generated.h"
 #include "union_vector/union_vector_generated.h"
 #include "monster_extra_generated.h"
+#include "optional_scalars_generated.h"
 #if !defined(_MSC_VER) || _MSC_VER >= 1700
 #  include "arrays_test_generated.h"
 #  include "evolution_test/evolution_v1_generated.h"
@@ -3462,23 +3462,51 @@ void OptionalScalarsTest() {
     TEST_EQ(mana->optional, has_null);
   }
 
-  // Test if optional scalars are allowed for each language.
-  const int kNumLanguages = 17;
-  const auto supported = (flatbuffers::IDLOptions::kRust |
-                          flatbuffers::IDLOptions::kSwift |
-                          flatbuffers::IDLOptions::kKotlin |
-                          flatbuffers::IDLOptions::kLobster);
-  for (int lang=0; lang<kNumLanguages; lang++) {
+  // Test if nullable scalars are allowed for each language.
+  for (unsigned lang = 1; lang < flatbuffers::IDLOptions::kMAX; lang <<= 1) {
     flatbuffers::IDLOptions opts;
-    opts.lang_to_generate |= 1 << lang;
-    if (opts.lang_to_generate & supported) continue;
+    opts.lang_to_generate = lang;
+    if (false == flatbuffers::Parser::SupportsOptionalScalars(opts)) {
+      continue;
+    }
     for (auto schema = schemas.begin(); schema < schemas.end(); schema++) {
-      const bool has_null = schema->find("null") != std::string::npos;
       flatbuffers::Parser parser(opts);
-      // Its not supported in any language yet so has_null means error.
-      TEST_EQ(parser.Parse(schema->c_str()), !has_null);
+      auto done = parser.Parse(schema->c_str());
+      TEST_EQ_STR(parser.error_.c_str(), "");
+      TEST_ASSERT(done);
     }
   }
+
+  // test C++ nullable
+  flatbuffers::FlatBufferBuilder fbb;
+  FinishScalarStuffBuffer(
+      fbb, optional_scalars::CreateScalarStuff(fbb, 1, static_cast<int8_t>(2)));
+  auto opts = optional_scalars::GetMutableScalarStuff(fbb.GetBufferPointer());
+  TEST_ASSERT(!opts->maybe_bool());
+  TEST_ASSERT(!opts->maybe_f32().has_value());
+  TEST_ASSERT(opts->maybe_i8().has_value());
+  TEST_EQ(opts->maybe_i8().value(), 2);
+  TEST_ASSERT(opts->mutate_maybe_i8(3));
+  TEST_ASSERT(opts->maybe_i8().has_value());
+  TEST_EQ(opts->maybe_i8().value(), 3);
+  TEST_ASSERT(!opts->mutate_maybe_i16(-10));
+
+  optional_scalars::ScalarStuffT obj;
+  opts->UnPackTo(&obj);
+  TEST_ASSERT(!obj.maybe_bool);
+  TEST_ASSERT(!obj.maybe_f32.has_value());
+  TEST_ASSERT(obj.maybe_i8.has_value() && obj.maybe_i8.value() == 3);
+  TEST_ASSERT(obj.maybe_i8 && *obj.maybe_i8 == 3);
+  obj.maybe_i32 = -1;
+
+  fbb.Clear();
+  FinishScalarStuffBuffer(fbb, optional_scalars::ScalarStuff::Pack(fbb, &obj));
+  opts = optional_scalars::GetMutableScalarStuff(fbb.GetBufferPointer());
+  TEST_ASSERT(opts->maybe_i8().has_value());
+  TEST_EQ(opts->maybe_i8().value(), 3);
+  TEST_ASSERT(opts->maybe_i32().has_value());
+  TEST_EQ(opts->maybe_i32().value(), -1);
+  TEST_ASSERT(opts->maybe_i32() == flatbuffers::Optional<int64_t>(-1));
 }
 
 void ParseFlexbuffersFromJsonWithNullTest() {
