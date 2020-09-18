@@ -3482,6 +3482,7 @@ void OptionalScalarsTest() {
   const int kNumLanguages = 17;
   const auto supported = (flatbuffers::IDLOptions::kRust |
                           flatbuffers::IDLOptions::kSwift |
+                          flatbuffers::IDLOptions::kKotlin |
                           flatbuffers::IDLOptions::kLobster);
   for (int lang=0; lang<kNumLanguages; lang++) {
     flatbuffers::IDLOptions opts;
