@@ -18,6 +18,11 @@
 #define FLATBUFFERS_H_
 
 #include "flatbuffers/base.h"
+#include "flatbuffers/stl_emulation.h"
+
+#ifndef FLATBUFFERS_CPP98_STL
+  #include <functional>
+#endif
 
 #if defined(FLATBUFFERS_NAN_DEFAULTS)
 #  include <cmath>
@@ -1303,6 +1308,11 @@ class FlatBufferBuilder {
     TrackField(field, off);
   }
 
+  template<typename T> void AddElement(voffset_t field, T e) {
+    auto off = PushElement(e);
+    TrackField(field, off);
+  }
+
   template<typename T> void AddOffset(voffset_t field, Offset<T> off) {
     if (off.IsNull()) return;  // Don't store.
     AddElement(field, ReferTo(off.o), static_cast<uoffset_t>(0));
@@ -2460,9 +2470,23 @@ class Table {
     return field_offset ? reinterpret_cast<P>(p) : nullptr;
   }
 
+  template<typename Raw, typename Face>
+  flatbuffers::Optional<Face> GetOptional(voffset_t field) const {
+    auto field_offset = GetOptionalFieldOffset(field);
+    auto p = data_ + field_offset;
+    return field_offset ? Optional<Face>(static_cast<Face>(ReadScalar<Raw>(p)))
+                        : Optional<Face>();
+  }
+
   template<typename T> bool SetField(voffset_t field, T val, T def) {
     auto field_offset = GetOptionalFieldOffset(field);
     if (!field_offset) return IsTheSameAs(val, def);
+    WriteScalar(data_ + field_offset, val);
+    return true;
+  }
+  template<typename T> bool SetField(voffset_t field, T val) {
+    auto field_offset = GetOptionalFieldOffset(field);
+    if (!field_offset) return false;
     WriteScalar(data_ + field_offset, val);
     return true;
   }
@@ -2532,6 +2556,17 @@ class Table {
 
   uint8_t data_[1];
 };
+
+// This specialization allows avoiding warnings like:
+// MSVC C4800: type: forcing value to bool 'true' or 'false'.
+template<>
+inline flatbuffers::Optional<bool> Table::GetOptional<uint8_t, bool>(
+    voffset_t field) const {
+  auto field_offset = GetOptionalFieldOffset(field);
+  auto p = data_ + field_offset;
+  return field_offset ? Optional<bool>(ReadScalar<uint8_t>(p) != 0)
+                      : Optional<bool>();
+}
 
 template<typename T>
 void FlatBufferBuilder::Required(Offset<T> table, voffset_t field) {

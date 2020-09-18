@@ -30,10 +30,12 @@
 // Embed generated code into an isolated namespace.
 namespace cpp17 {
 #include "generated_cpp17/monster_test_generated.h"
+#include "generated_cpp17/optional_scalars_generated.h"
 }  // namespace cpp17
 
 namespace cpp11 {
 #include "../monster_test_generated.h"
+#include "../optional_scalars_generated.h"
 }  // namespace cpp11
 
 void CreateTableByTypeTest() {
@@ -59,8 +61,50 @@ void CreateTableByTypeTest() {
   TEST_EQ(stat->count(), 7);
 }
 
+void OptionalScalarsTest() {
+  static_assert(std::is_same<flatbuffers::Optional<float>, std::optional<float>>::value);
+  static_assert(std::is_same<flatbuffers::nullopt_t, std::nullopt_t>::value);
+
+  // test C++ nullable
+  flatbuffers::FlatBufferBuilder fbb;
+  FinishScalarStuffBuffer(fbb, cpp17::optional_scalars::CreateScalarStuff(
+                                   fbb, 1, static_cast<int8_t>(2)));
+  auto opts =
+      cpp17::optional_scalars::GetMutableScalarStuff(fbb.GetBufferPointer());
+  TEST_ASSERT(!opts->maybe_bool());
+  TEST_ASSERT(!opts->maybe_f32().has_value());
+  TEST_ASSERT(opts->maybe_i8().has_value());
+  TEST_EQ(opts->maybe_i8().value(), 2);
+  TEST_ASSERT(opts->mutate_maybe_i8(3));
+  TEST_ASSERT(opts->maybe_i8().has_value());
+  TEST_EQ(opts->maybe_i8().value(), 3);
+  TEST_ASSERT(!opts->mutate_maybe_i16(-10));
+
+  cpp17::optional_scalars::ScalarStuffT obj;
+  opts->UnPackTo(&obj);
+  TEST_ASSERT(!obj.maybe_bool);
+  TEST_ASSERT(!obj.maybe_f32.has_value());
+  TEST_ASSERT(obj.maybe_i8.has_value() && obj.maybe_i8.value() == 3);
+  TEST_ASSERT(obj.maybe_i8 && *obj.maybe_i8 == 3);
+  obj.maybe_i32 = -1;
+
+  fbb.Clear();
+  FinishScalarStuffBuffer(
+      fbb, cpp17::optional_scalars::ScalarStuff::Pack(fbb, &obj));
+  opts = cpp17::optional_scalars::GetMutableScalarStuff(fbb.GetBufferPointer());
+  TEST_ASSERT(opts->maybe_i8().has_value());
+  TEST_EQ(opts->maybe_i8().value(), 3);
+  TEST_ASSERT(opts->maybe_i32().has_value());
+  TEST_EQ(opts->maybe_i32().value(), -1);
+
+  TEST_EQ(std::optional<int32_t>(opts->maybe_i32()).value(), -1);
+  TEST_EQ(std::optional<int64_t>(opts->maybe_i32()).value(), -1);
+  TEST_ASSERT(opts->maybe_i32() == std::optional<int64_t>(-1));
+}
+
 int FlatBufferCpp17Tests() {
   CreateTableByTypeTest();
+  OptionalScalarsTest();
   return 0;
 }
 

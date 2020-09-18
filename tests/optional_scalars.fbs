@@ -1,5 +1,10 @@
 namespace optional_scalars;
 
+enum OptionalByte: byte {
+  None = 0,
+  One = 1,
+}
+
 // This table tests optional scalars in tables. It should be integrated with
 // the main monster test once most languages support optional scalars.
 table ScalarStuff {
@@ -41,4 +46,14 @@ table ScalarStuff {
   just_bool: bool;
   maybe_bool: bool = null;
   default_bool: bool = true;
+
+  just_enum: OptionalByte;
+  // Rust code generator failed with optional<enum>
+  //maybe_enum: OptionalByte = null;
+  default_enum: OptionalByte = One;
 }
+
+root_type ScalarStuff;
+
+file_identifier "NULL";
+file_extension "mon";

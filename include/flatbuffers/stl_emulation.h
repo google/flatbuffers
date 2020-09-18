@@ -18,12 +18,24 @@
 #define FLATBUFFERS_STL_EMULATION_H_
 
 // clang-format off
+#include "flatbuffers/base.h"
 
 #include <string>
 #include <type_traits>
 #include <vector>
 #include <memory>
 #include <limits>
+
+// Detect C++17 compatible compiler.
+// __cplusplus >= 201703L - a compiler has support of 'static inline' variables.
+#if defined(FLATBUFFERS_USE_STD_OPTIONAL) \
+    || (defined(__cplusplus) && __cplusplus >= 201703L) \
+    || (defined(_MSVC_LANG) &&  (_MSVC_LANG >= 201703L))
+  #include <optional>
+  #ifndef FLATBUFFERS_USE_STD_OPTIONAL
+    #define FLATBUFFERS_USE_STD_OPTIONAL
+  #endif
+#endif
 
 #if defined(_STLPORT_VERSION) && !defined(FLATBUFFERS_CPP98_STL)
   #define FLATBUFFERS_CPP98_STL
@@ -32,16 +44,6 @@
 #if defined(FLATBUFFERS_CPP98_STL)
   #include <cctype>
 #endif  // defined(FLATBUFFERS_CPP98_STL)
-
-// Check if we can use template aliases
-// Not possible if Microsoft Compiler before 2012
-// Possible is the language feature __cpp_alias_templates is defined well
-// Or possible if the C++ std is C+11 or newer
-#if (defined(_MSC_VER) && _MSC_VER > 1700 /* MSVC2012 */) \
-    || (defined(__cpp_alias_templates) && __cpp_alias_templates >= 200704) \
-    || (defined(__cplusplus) && __cplusplus >= 201103L)
-  #define FLATBUFFERS_TEMPLATES_ALIASES
-#endif
 
 // This header provides backwards compatibility for C++98 STLs like stlport.
 namespace flatbuffers {
@@ -301,6 +303,146 @@ inline void vector_emplace_back(std::vector<T> *vector, V &&data) {
   }
 
 #endif  // !FLATBUFFERS_CPP98_STL
+
+#ifdef FLATBUFFERS_USE_STD_OPTIONAL
+template<class T>
+using Optional = std::optional<T>;
+using nullopt_t = std::nullopt_t;
+inline constexpr nullopt_t nullopt = std::nullopt;
+
+#else
+// Limited implementation of Optional<T> type for a scalar T.
+// This implementation limited by trivial types compatible with
+// std::is_arithmetic<T> or std::is_enum<T> type traits.
+
+// A tag to indicate an empty flatbuffers::optional<T>.
+struct nullopt_t {
+  explicit FLATBUFFERS_CONSTEXPR_CPP11 nullopt_t(int) {}
+};
+
+#if defined(FLATBUFFERS_CONSTEXPR_DEFINED)
+  namespace internal {
+    template <class> struct nullopt_holder {
+      static constexpr nullopt_t instance_ = nullopt_t(0);
+    };
+    template<class Dummy>
+    constexpr nullopt_t nullopt_holder<Dummy>::instance_;
+  }
+  static constexpr const nullopt_t &nullopt = internal::nullopt_holder<void>::instance_;
+
+#else
+  namespace internal {
+    template <class> struct nullopt_holder {
+      static const nullopt_t instance_;
+    };
+    template<class Dummy>
+    const nullopt_t nullopt_holder<Dummy>::instance_  = nullopt_t(0);
+  }
+  static const nullopt_t &nullopt = internal::nullopt_holder<void>::instance_;
+
+#endif
+
+template<class T>
+class Optional FLATBUFFERS_FINAL_CLASS {
+  // Non-scalar 'T' would extremely complicated Optional<T>.
+  // Use is_scalar<T> checking because flatbuffers flatbuffers::is_arithmetic<T>
+  // isn't implemented.
+  static_assert(flatbuffers::is_scalar<T>::value, "unexpected type T");
+
+ public:
+  ~Optional() {}
+
+  FLATBUFFERS_CONSTEXPR_CPP11 Optional() FLATBUFFERS_NOEXCEPT
+    : value_(), has_value_(false) {}
+
+  FLATBUFFERS_CONSTEXPR_CPP11 Optional(nullopt_t) FLATBUFFERS_NOEXCEPT
+    : value_(), has_value_(false) {}
+
+  FLATBUFFERS_CONSTEXPR_CPP11 Optional(T val) FLATBUFFERS_NOEXCEPT
+    : value_(val), has_value_(true) {}
+
+  FLATBUFFERS_CONSTEXPR_CPP11 Optional(const Optional &other) FLATBUFFERS_NOEXCEPT
+    : value_(other.value_), has_value_(other.has_value_) {}
+
+  FLATBUFFERS_CONSTEXPR_CPP14 Optional &operator=(const Optional &other) FLATBUFFERS_NOEXCEPT {
+    value_ = other.value_;
+    has_value_ = other.has_value_;
+    return *this;
+  }
+
+  FLATBUFFERS_CONSTEXPR_CPP14 Optional &operator=(nullopt_t) FLATBUFFERS_NOEXCEPT {
+    value_ = T();
+    has_value_ = false;
+    return *this;
+  }
+
+  FLATBUFFERS_CONSTEXPR_CPP14 Optional &operator=(T val) FLATBUFFERS_NOEXCEPT {
+    value_ = val;
+    has_value_ = true;
+    return *this;
+  }
+
+  void reset() FLATBUFFERS_NOEXCEPT {
+    *this = nullopt;
+  }
+
+  void swap(Optional &other) FLATBUFFERS_NOEXCEPT {
+    std::swap(value_, other.value_);
+    std::swap(has_value_, other.has_value_);
+  }
+
+  FLATBUFFERS_CONSTEXPR_CPP11 FLATBUFFERS_EXPLICIT_CPP11 operator bool() const FLATBUFFERS_NOEXCEPT {
+    return has_value_;
+  }
+
+  FLATBUFFERS_CONSTEXPR_CPP11 bool has_value() const FLATBUFFERS_NOEXCEPT {
+    return has_value_;
+  }
+
+  FLATBUFFERS_CONSTEXPR_CPP11 const T& operator*() const FLATBUFFERS_NOEXCEPT {
+    return value_;
+  }
+
+  const T& value() const {
+    FLATBUFFERS_ASSERT(has_value());
+    return value_;
+  }
+
+  T value_or(T default_value) const FLATBUFFERS_NOEXCEPT {
+    return has_value() ? value_ : default_value;
+  }
+
+ private:
+  T value_;
+  bool has_value_;
+};
+
+template<class T>
+FLATBUFFERS_CONSTEXPR_CPP11 bool operator==(const Optional<T>& opt, nullopt_t) FLATBUFFERS_NOEXCEPT {
+  return !opt;
+}
+template<class T>
+FLATBUFFERS_CONSTEXPR_CPP11 bool operator==(nullopt_t, const Optional<T>& opt) FLATBUFFERS_NOEXCEPT {
+  return !opt;
+}
+
+template<class T, class U>
+FLATBUFFERS_CONSTEXPR_CPP11 bool operator==(const Optional<T>& lhs, const U& rhs) FLATBUFFERS_NOEXCEPT {
+  return static_cast<bool>(lhs) && (*lhs == rhs);
+}
+
+template<class T, class U>
+FLATBUFFERS_CONSTEXPR_CPP11 bool operator==(const T& lhs, const Optional<U>& rhs) FLATBUFFERS_NOEXCEPT {
+  return static_cast<bool>(rhs) && (lhs == *rhs);
+}
+
+template<class T, class U>
+FLATBUFFERS_CONSTEXPR_CPP11 bool operator==(const Optional<T>& lhs, const Optional<U>& rhs) FLATBUFFERS_NOEXCEPT {
+  return static_cast<bool>(lhs) != static_cast<bool>(rhs)
+              ? false
+              : !static_cast<bool>(lhs) ? false : (*lhs == *rhs);
+}
+#endif // FLATBUFFERS_USE_STD_OPTIONAL
 
 }  // namespace flatbuffers
 
