@@ -305,6 +305,10 @@ struct FieldDef : public Definition {
 
   bool Deserialize(Parser &parser, const reflection::Field *field);
 
+  bool IsScalarOptional() const {
+    return IsScalar(value.type.base_type) && optional;
+  }
+
   Value value;
   bool deprecated;  // Field is allowed to be present in old data, but can't be.
                     // written in new data nor accessed in new code.

@@ -2263,7 +2263,8 @@ CheckedError Parser::CheckClash(std::vector<FieldDef *> &fields,
 
 bool Parser::SupportsOptionalScalars() const {
   return !(opts.lang_to_generate &
-    ~(IDLOptions::kRust | IDLOptions::kSwift | IDLOptions::kLobster));
+           ~(IDLOptions::kRust | IDLOptions::kSwift | IDLOptions::kLobster |
+             IDLOptions::kKotlin));
 }
 
 bool Parser::SupportsAdvancedUnionFeatures() const {
