@@ -847,6 +847,11 @@ class Parser : public ParserState {
 
   FLATBUFFERS_CHECKED_ERROR Error(const std::string &msg);
 
+  // @brief Verify that any of 'opts.lang_to_generate' supports Optional scalars
+  // in a schema.
+  // @param opts Options used to parce a schema and generate code.
+  static bool SupportsOptionalScalars(const flatbuffers::IDLOptions &opts);
+
  private:
   void Message(const std::string &msg);
   void Warning(const std::string &msg);

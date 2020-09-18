@@ -751,6 +751,12 @@ class CppGenerator : public BaseGenerator {
     return ptr_type == "naked" ? "" : ".get()";
   }
 
+  std::string GenOptionalNull() { return "flatbuffers::nullopt"; }
+
+  std::string GenOptionalDecl(const Type &type) {
+    return "flatbuffers::Optional<" + GenTypeBasic(type, true) + ">";
+  }
+
   std::string GenTypeNative(const Type &type, bool invector,
                             const FieldDef &field) {
     switch (type.base_type) {
@@ -788,7 +794,8 @@ class CppGenerator : public BaseGenerator {
         return type_name + "Union";
       }
       default: {
-        return GenTypeBasic(type, true);
+        return field.IsScalarOptional() ? GenOptionalDecl(type)
+                                        : GenTypeBasic(type, true);
       }
     }
   }
@@ -1581,17 +1588,17 @@ class CppGenerator : public BaseGenerator {
   }
 
   std::string GetDefaultScalarValue(const FieldDef &field, bool is_ctor) {
-    if (field.value.type.enum_def && IsScalar(field.value.type.base_type)) {
-      auto ev = field.value.type.enum_def->FindByValue(field.value.constant);
+    const auto &type = field.value.type;
+    if (type.enum_def && IsScalar(type.base_type)) {
+      auto ev = type.enum_def->FindByValue(field.value.constant);
       if (ev) {
-        return WrapInNameSpace(field.value.type.enum_def->defined_namespace,
-                               GetEnumValUse(*field.value.type.enum_def, *ev));
+        return WrapInNameSpace(type.enum_def->defined_namespace,
+                               GetEnumValUse(*type.enum_def, *ev));
       } else {
         return GenUnderlyingCast(
-            field, true,
-            NumToStringCpp(field.value.constant, field.value.type.base_type));
+            field, true, NumToStringCpp(field.value.constant, type.base_type));
       }
-    } else if (field.value.type.base_type == BASE_TYPE_BOOL) {
+    } else if (type.base_type == BASE_TYPE_BOOL) {
       return field.value.constant == "0" ? "false" : "true";
     } else if (field.attributes.Lookup("cpp_type")) {
       if (is_ctor) {
@@ -1604,7 +1611,8 @@ class CppGenerator : public BaseGenerator {
         return "0";
       }
     } else {
-      return GenDefaultConstant(field);
+      return field.IsScalarOptional() ? GenOptionalNull()
+                                      : GenDefaultConstant(field);
     }
   }
 
@@ -1629,8 +1637,14 @@ class CppGenerator : public BaseGenerator {
       }
       code_.SetValue("PARAM_VALUE", "nullptr");
     } else {
-      code_.SetValue("PARAM_TYPE", GenTypeWire(field.value.type, " ", true));
-      code_.SetValue("PARAM_VALUE", GetDefaultScalarValue(field, false));
+      const auto &type = field.value.type;
+      if (field.IsScalarOptional()) {
+        code_.SetValue("PARAM_TYPE", GenOptionalDecl(type));
+        code_.SetValue("PARAM_VALUE", GenOptionalNull());
+      } else {
+        code_.SetValue("PARAM_TYPE", GenTypeWire(type, " ", true));
+        code_.SetValue("PARAM_VALUE", GetDefaultScalarValue(field, false));
+      }
     }
     code_ += "{{PRE}}{{PARAM_TYPE}}{{PARAM_NAME}} = {{PARAM_VALUE}}\\";
   }
@@ -1692,7 +1706,9 @@ class CppGenerator : public BaseGenerator {
         auto native_default = field.attributes.Lookup("native_default");
         // Scalar types get parsed defaults, raw pointers get nullptrs.
         if (IsScalar(field.value.type.base_type)) {
-          if (!initializer_list.empty()) { initializer_list += ",\n        "; }
+          if (!initializer_list.empty()) {
+            initializer_list += ",\n        ";
+          }
           initializer_list += Name(field);
           initializer_list +=
               "(" +
@@ -1906,16 +1922,6 @@ class CppGenerator : public BaseGenerator {
     }
   }
 
-  std::string GetFieldAccessor(const FieldDef &field) const {
-    const auto &type = field.value.type;
-    if (IsScalar(type.base_type))
-      return "GetField<";
-    else if (IsStruct(type))
-      return "GetStruct<";
-    else
-      return "GetPointer<";
-  }
-
   void GenTableUnionAsGetters(const FieldDef &field) {
     const auto &type = field.value.type;
     auto u = type.enum_def;
@@ -1950,33 +1956,47 @@ class CppGenerator : public BaseGenerator {
   }
 
   void GenTableFieldGetter(const FieldDef &field) {
-    const auto& type = field.value.type;
-    const bool is_scalar = IsScalar(type.base_type);
+    const auto &type = field.value.type;
+    const auto offset_str = GenFieldOffsetName(field);
 
-    // Call a different accessor for pointers, that indirects.
-    auto accessor = GetFieldAccessor(field);
-    auto offset_str = GenFieldOffsetName(field);
-    auto offset_type = GenTypeGet(type, "", "const ", " *", false);
-
-    auto call = accessor + offset_type + ">(" + offset_str;
-    // Default value as second arg for non-pointer types.
-    if (is_scalar) { call += ", " + GenDefaultConstant(field); }
-    call += ")";
-
-    std::string afterptr = " *" + NullableExtension();
     GenComment(field.doc_comment, "  ");
-    code_.SetValue("FIELD_TYPE", GenTypeGet(type, " ", "const ",
-                                            afterptr.c_str(), true));
-    code_.SetValue("FIELD_VALUE", GenUnderlyingCast(field, true, call));
-    code_.SetValue("NULLABLE_EXT", NullableExtension());
+    // Call a different accessor for pointers, that indirects.
+    if (false == field.IsScalarOptional()) {
+      const bool is_scalar = IsScalar(type.base_type);
+      std::string accessor;
+      if (is_scalar)
+        accessor = "GetField<";
+      else if (IsStruct(type))
+        accessor = "GetStruct<";
+      else
+        accessor = "GetPointer<";
+      auto offset_type = GenTypeGet(type, "", "const ", " *", false);
+      auto call = accessor + offset_type + ">(" + offset_str;
+      // Default value as second arg for non-pointer types.
+      if (is_scalar) { call += ", " + GenDefaultConstant(field); }
+      call += ")";
 
-    code_ += "  {{FIELD_TYPE}}{{FIELD_NAME}}() const {";
-    code_ += "    return {{FIELD_VALUE}};";
-    code_ += "  }";
-
-    if (type.base_type == BASE_TYPE_UNION) {
-      GenTableUnionAsGetters(field);
+      std::string afterptr = " *" + NullableExtension();
+      code_.SetValue("FIELD_TYPE",
+                     GenTypeGet(type, " ", "const ", afterptr.c_str(), true));
+      code_.SetValue("FIELD_VALUE", GenUnderlyingCast(field, true, call));
+      code_.SetValue("NULLABLE_EXT", NullableExtension());
+      code_ += "  {{FIELD_TYPE}}{{FIELD_NAME}}() const {";
+      code_ += "    return {{FIELD_VALUE}};";
+      code_ += "  }";
     }
+    else {
+      auto wire_type = GenTypeBasic(type, false);
+      auto face_type = GenTypeBasic(type, true);
+      auto opt_value = "GetOptional<" + wire_type + ", " + face_type + ">(" +
+                       offset_str + ")";
+      code_.SetValue("FIELD_TYPE", GenOptionalDecl(type));
+      code_ += "  {{FIELD_TYPE}} {{FIELD_NAME}}() const {";
+      code_ += "    return " + opt_value + ";";
+      code_ += "  }";
+    }
+
+    if (type.base_type == BASE_TYPE_UNION) { GenTableUnionAsGetters(field); }
   }
 
   void GenTableFieldSetter(const FieldDef &field) {
@@ -1984,7 +2004,7 @@ class CppGenerator : public BaseGenerator {
     const bool is_scalar = IsScalar(type.base_type);
     if (is_scalar && IsUnion(type))
       return; // changing of a union's type is forbidden
-    auto accessor = GetFieldAccessor(field);
+
     auto offset_str = GenFieldOffsetName(field);
     if (is_scalar) {
       const auto wire_type = GenTypeWire(type, "", false);
@@ -1993,18 +2013,23 @@ class CppGenerator : public BaseGenerator {
       code_.SetValue("FIELD_TYPE", GenTypeBasic(type, true));
       code_.SetValue("FIELD_VALUE",
                      GenUnderlyingCast(field, false, "_" + Name(field)));
-      code_.SetValue("DEFAULT_VALUE", GenDefaultConstant(field));
 
       code_ +=
           "  bool mutate_{{FIELD_NAME}}({{FIELD_TYPE}} "
           "_{{FIELD_NAME}}) {";
-      code_ +=
-          "    return {{SET_FN}}({{OFFSET_NAME}}, {{FIELD_VALUE}}, "
-          "{{DEFAULT_VALUE}});";
+      if (false == field.IsScalarOptional()) {
+        code_.SetValue("DEFAULT_VALUE", GenDefaultConstant(field));
+        code_ +=
+            "    return {{SET_FN}}({{OFFSET_NAME}}, {{FIELD_VALUE}}, "
+            "{{DEFAULT_VALUE}});";
+      } else {
+        code_ += "    return {{SET_FN}}({{OFFSET_NAME}}, {{FIELD_VALUE}});";
+      }
       code_ += "  }";
     } else {
       auto postptr = " *" + NullableExtension();
       auto wire_type = GenTypeGet(type, " ", "", postptr.c_str(), true);
+      std::string accessor = IsStruct(type) ? "GetStruct<" : "GetPointer<";
       auto underlying = accessor + wire_type + ">(" + offset_str + ")";
       code_.SetValue("FIELD_TYPE", wire_type);
       code_.SetValue("FIELD_VALUE", GenUnderlyingCast(field, true, underlying));
@@ -2073,7 +2098,7 @@ class CppGenerator : public BaseGenerator {
         // Deprecated fields won't be accessible.
         continue;
       }
-      
+
       code_.SetValue("FIELD_NAME", Name(field));
       GenTableFieldGetter(field);
       if (opts_.mutable_buffer) {
@@ -2219,43 +2244,44 @@ class CppGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
-      if (!field.deprecated) {
-        const bool is_scalar = IsScalar(field.value.type.base_type);
-        const bool is_string = field.value.type.base_type == BASE_TYPE_STRING;
-        const bool is_vector = field.value.type.base_type == BASE_TYPE_VECTOR;
-        if (is_string || is_vector) { has_string_or_vector_fields = true; }
+      if (field.deprecated)
+        continue;
+      const bool is_scalar = IsScalar(field.value.type.base_type);
+      const bool is_default_scalar = is_scalar && !field.IsScalarOptional();
+      const bool is_string = field.value.type.base_type == BASE_TYPE_STRING;
+      const bool is_vector = field.value.type.base_type == BASE_TYPE_VECTOR;
+      if (is_string || is_vector) { has_string_or_vector_fields = true; }
 
-        std::string offset = GenFieldOffsetName(field);
-        std::string name = GenUnderlyingCast(field, false, Name(field));
-        std::string value = is_scalar ? GenDefaultConstant(field) : "";
+      std::string offset = GenFieldOffsetName(field);
+      std::string name = GenUnderlyingCast(field, false, Name(field));
+      std::string value = is_default_scalar ? GenDefaultConstant(field) : "";
 
-        // Generate accessor functions of the form:
-        // void add_name(type name) {
-        //   fbb_.AddElement<type>(offset, name, default);
-        // }
-        code_.SetValue("FIELD_NAME", Name(field));
-        code_.SetValue("FIELD_TYPE", GenTypeWire(field.value.type, " ", true));
-        code_.SetValue("ADD_OFFSET", Name(struct_def) + "::" + offset);
-        code_.SetValue("ADD_NAME", name);
-        code_.SetValue("ADD_VALUE", value);
-        if (is_scalar) {
-          const auto type = GenTypeWire(field.value.type, "", false);
-          code_.SetValue("ADD_FN", "AddElement<" + type + ">");
-        } else if (IsStruct(field.value.type)) {
-          code_.SetValue("ADD_FN", "AddStruct");
-        } else {
-          code_.SetValue("ADD_FN", "AddOffset");
-        }
-
-        code_ += "  void add_{{FIELD_NAME}}({{FIELD_TYPE}}{{FIELD_NAME}}) {";
-        code_ += "    fbb_.{{ADD_FN}}(\\";
-        if (is_scalar) {
-          code_ += "{{ADD_OFFSET}}, {{ADD_NAME}}, {{ADD_VALUE}});";
-        } else {
-          code_ += "{{ADD_OFFSET}}, {{ADD_NAME}});";
-        }
-        code_ += "  }";
+      // Generate accessor functions of the form:
+      // void add_name(type name) {
+      //   fbb_.AddElement<type>(offset, name, default);
+      // }
+      code_.SetValue("FIELD_NAME", Name(field));
+      code_.SetValue("FIELD_TYPE", GenTypeWire(field.value.type, " ", true));
+      code_.SetValue("ADD_OFFSET", Name(struct_def) + "::" + offset);
+      code_.SetValue("ADD_NAME", name);
+      code_.SetValue("ADD_VALUE", value);
+      if (is_scalar) {
+        const auto type = GenTypeWire(field.value.type, "", false);
+        code_.SetValue("ADD_FN", "AddElement<" + type + ">");
+      } else if (IsStruct(field.value.type)) {
+        code_.SetValue("ADD_FN", "AddStruct");
+      } else {
+        code_.SetValue("ADD_FN", "AddOffset");
       }
+
+      code_ += "  void add_{{FIELD_NAME}}({{FIELD_TYPE}}{{FIELD_NAME}}) {";
+      code_ += "    fbb_.{{ADD_FN}}(\\";
+      if (is_default_scalar) {
+        code_ += "{{ADD_OFFSET}}, {{ADD_NAME}}, {{ADD_VALUE}});";
+      } else {
+        code_ += "{{ADD_OFFSET}}, {{ADD_NAME}});";
+      }
+      code_ += "  }";
     }
 
     // Builder constructor
@@ -2307,7 +2333,13 @@ class CppGenerator : public BaseGenerator {
         if (!field.deprecated && (!struct_def.sortbysize ||
                                   size == SizeOf(field.value.type.base_type))) {
           code_.SetValue("FIELD_NAME", Name(field));
-          code_ += "  builder_.add_{{FIELD_NAME}}({{FIELD_NAME}});";
+          if (field.IsScalarOptional()) {
+            code_ +=
+                "  if({{FIELD_NAME}}) { "
+                "builder_.add_{{FIELD_NAME}}(*{{FIELD_NAME}}); }";
+          } else {
+            code_ += "  builder_.add_{{FIELD_NAME}}({{FIELD_NAME}});";
+          }
         }
       }
     }
