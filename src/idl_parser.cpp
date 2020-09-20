@@ -98,9 +98,9 @@ std::string MakeCamel(const std::string &in, bool first) {
   std::string s;
   for (size_t i = 0; i < in.length(); i++) {
     if (!i && first)
-      s += static_cast<char>(toupper(in[0]));
+      s += CharToUpper(in[0]);
     else if (in[i] == '_' && i + 1 < in.length())
-      s += static_cast<char>(toupper(in[++i]));
+      s += CharToUpper(in[++i]);
     else
       s += in[i];
   }
@@ -112,7 +112,7 @@ std::string MakeScreamingCamel(const std::string &in) {
   std::string s;
   for (size_t i = 0; i < in.length(); i++) {
     if (in[i] != '_')
-      s += static_cast<char>(toupper(in[i]));
+      s += CharToUpper(in[i]);
     else
       s += in[i];
   }

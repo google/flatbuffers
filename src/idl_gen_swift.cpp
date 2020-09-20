@@ -36,10 +36,6 @@ inline std::string GenArrayMainBody(const std::string &optional) {
          optional + " { ";
 }
 
-inline char LowerCase(char c) {
-  return static_cast<char>(::tolower(static_cast<unsigned char>(c)));
-}
-
 class SwiftGenerator : public BaseGenerator {
  private:
   CodeWriter code_;
@@ -1383,7 +1379,7 @@ class SwiftGenerator : public BaseGenerator {
       const auto &ev = **enum_def.Vals().begin();
       name = Name(ev);
     }
-    std::transform(name.begin(), name.end(), name.begin(), LowerCase);
+    std::transform(name.begin(), name.end(), name.begin(), CharToLower);
     return "." + name;
   }
 
@@ -1465,7 +1461,7 @@ class SwiftGenerator : public BaseGenerator {
   std::string Name(const EnumVal &ev) const {
     auto name = ev.name;
     if (isupper(name.front())) {
-      std::transform(name.begin(), name.end(), name.begin(), LowerCase);
+      std::transform(name.begin(), name.end(), name.begin(), CharToLower);
     }
     return EscapeKeyword(MakeCamel(name, false));
   }
