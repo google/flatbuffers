@@ -8,7 +8,7 @@ import { Encoding as EncodingEnum } from './encoding'
 import { Builder as BuilderClass } from './builder'
 import { ByteBuffer as ByteBufferClass } from './byte-buffer'
 
-namespace flatbuffers {
+export namespace flatbuffers {
 
     export type Offset = types.Offset;
 
