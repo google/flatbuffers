@@ -31,3 +31,4 @@ export namespace flatbuffers {
     export const ByteBuffer = ByteBufferClass;
 }
 
+export default flatbuffers;
