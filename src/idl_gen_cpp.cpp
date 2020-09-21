@@ -26,11 +26,6 @@
 
 namespace flatbuffers {
 
-// Pedantic warning free version of toupper().
-inline char ToUpper(char c) {
-  return static_cast<char>(::toupper(static_cast<unsigned char>(c)));
-}
-
 // Make numerical literal with type-suffix.
 // This function is only needed for C++! Other languages do not need it.
 static inline std::string NumToStringCpp(std::string val, BaseType type) {
@@ -69,7 +64,7 @@ static std::string GenIncludeGuard(const std::string &file_name,
   // Anything extra to add to the guard?
   if (!postfix.empty()) { guard += postfix + "_"; }
   guard += "H_";
-  std::transform(guard.begin(), guard.end(), guard.begin(), ToUpper);
+  std::transform(guard.begin(), guard.end(), guard.begin(), CharToUpper);
   return guard;
 }
 
@@ -1565,7 +1560,7 @@ class CppGenerator : public BaseGenerator {
 
   std::string GenFieldOffsetName(const FieldDef &field) {
     std::string uname = Name(field);
-    std::transform(uname.begin(), uname.end(), uname.begin(), ToUpper);
+    std::transform(uname.begin(), uname.end(), uname.begin(), CharToUpper);
     return "VT_" + uname;
   }
 
@@ -3224,7 +3219,7 @@ bool GenerateCPP(const Parser &parser, const std::string &path,
   // The '--cpp_std' argument could be extended (like ASAN):
   // Example: "flatc --cpp_std c++17:option1:option2".
   auto cpp_std = !opts.cpp_std.empty() ? opts.cpp_std : "C++0X";
-  std::transform(cpp_std.begin(), cpp_std.end(), cpp_std.begin(), ToUpper);
+  std::transform(cpp_std.begin(), cpp_std.end(), cpp_std.begin(), CharToUpper);
   if (cpp_std == "C++0X") {
     opts.g_cpp_std = cpp::CPP_STD_X0;
     opts.g_only_fixed_enums = false;

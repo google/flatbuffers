@@ -29,14 +29,14 @@ std::string MakeSnakeCase(const std::string &in) {
   std::string s;
   for (size_t i = 0; i < in.length(); i++) {
     if (i == 0) {
-      s += static_cast<char>(tolower(in[0]));
+      s += CharToLower(in[0]);
     } else if (in[i] == '_') {
       s += '_';
     } else if (!islower(in[i])) {
       // Prevent duplicate underscores for Upper_Snake_Case strings
       // and UPPERCASE strings.
       if (islower(in[i - 1])) { s += '_'; }
-      s += static_cast<char>(tolower(in[i]));
+      s += CharToLower(in[i]);
     } else {
       s += in[i];
     }
@@ -48,7 +48,7 @@ std::string MakeSnakeCase(const std::string &in) {
 std::string MakeUpper(const std::string &in) {
   std::string s;
   for (size_t i = 0; i < in.length(); i++) {
-    s += static_cast<char>(toupper(in[i]));
+    s += CharToUpper(in[i]);
   }
   return s;
 }

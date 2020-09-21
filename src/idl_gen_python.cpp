@@ -94,7 +94,7 @@ class PythonGenerator : public BaseGenerator {
   // Converts the name of a definition into lower Camel format.
   std::string MakeLowerCamel(const Definition &definition) const {
     auto name = MakeCamel(NormalizedName(definition), false);
-    name[0] = char(tolower(name[0]));
+    name[0] = CharToLower(name[0]);
     return name;
   }
 
@@ -1000,7 +1000,7 @@ class PythonGenerator : public BaseGenerator {
 
     auto field_type_name = TypeName(field);
     auto one_instance = field_type_name + "_";
-    one_instance[0] = char(tolower(one_instance[0]));
+    one_instance[0] = CharToLower(one_instance[0]);
 
     if (parser_.opts.include_dependence_headers) {
       auto package_reference = GenPackageReference(field.value.type);
