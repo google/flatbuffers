@@ -733,7 +733,7 @@ inline const flatbuffers::TypeTable *ColorTypeTable() {
     "Blue"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_ENUM, 3, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_ENUM, 3, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
 }
@@ -751,7 +751,7 @@ inline const flatbuffers::TypeTable *EquipmentTypeTable() {
     "Weapon"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_UNION, 2, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_UNION, 2, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
 }
@@ -769,7 +769,7 @@ inline const flatbuffers::TypeTable *Vec3TypeTable() {
     "z"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_STRUCT, 3, type_codes, nullptr, values, names
+    flatbuffers::ST_STRUCT, 3, type_codes, nullptr, nullptr, values, names
   };
   return &tt;
 }
@@ -808,7 +808,7 @@ inline const flatbuffers::TypeTable *MonsterTypeTable() {
     "path"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 11, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_TABLE, 11, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
 }
@@ -823,7 +823,7 @@ inline const flatbuffers::TypeTable *WeaponTypeTable() {
     "damage"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 2, type_codes, nullptr, nullptr, names
+    flatbuffers::ST_TABLE, 2, type_codes, nullptr, nullptr, nullptr, names
   };
   return &tt;
 }
