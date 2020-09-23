@@ -752,7 +752,7 @@ inline const flatbuffers::TypeTable *CharacterTypeTable() {
     "Unused"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_UNION, 7, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_UNION, 7, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
 }
@@ -765,7 +765,7 @@ inline const flatbuffers::TypeTable *AttackerTypeTable() {
     "sword_attack_damage"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 1, type_codes, nullptr, nullptr, names
+    flatbuffers::ST_TABLE, 1, type_codes, nullptr, nullptr, nullptr, names
   };
   return &tt;
 }
@@ -779,7 +779,7 @@ inline const flatbuffers::TypeTable *RapunzelTypeTable() {
     "hair_length"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_STRUCT, 1, type_codes, nullptr, values, names
+    flatbuffers::ST_STRUCT, 1, type_codes, nullptr, nullptr, values, names
   };
   return &tt;
 }
@@ -793,7 +793,7 @@ inline const flatbuffers::TypeTable *BookReaderTypeTable() {
     "books_read"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_STRUCT, 1, type_codes, nullptr, values, names
+    flatbuffers::ST_STRUCT, 1, type_codes, nullptr, nullptr, values, names
   };
   return &tt;
 }
@@ -815,7 +815,7 @@ inline const flatbuffers::TypeTable *MovieTypeTable() {
     "characters"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 4, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_TABLE, 4, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
 }

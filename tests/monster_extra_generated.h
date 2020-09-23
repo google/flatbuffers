@@ -341,7 +341,7 @@ inline const flatbuffers::TypeTable *MonsterExtraTypeTable() {
     "deprec"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 11, type_codes, nullptr, nullptr, names
+    flatbuffers::ST_TABLE, 11, type_codes, nullptr, nullptr, nullptr, names
   };
   return &tt;
 }

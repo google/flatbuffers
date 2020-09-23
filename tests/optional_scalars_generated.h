@@ -803,7 +803,7 @@ inline const flatbuffers::TypeTable *OptionalByteTypeTable() {
     "One"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_ENUM, 2, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_ENUM, 2, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
 }
@@ -887,7 +887,7 @@ inline const flatbuffers::TypeTable *ScalarStuffTypeTable() {
     "default_enum"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 35, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_TABLE, 35, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
 }

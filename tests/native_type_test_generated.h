@@ -170,7 +170,7 @@ inline const flatbuffers::TypeTable *Vector3DTypeTable() {
     "z"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_STRUCT, 3, type_codes, nullptr, values, names
+    flatbuffers::ST_STRUCT, 3, type_codes, nullptr, nullptr, values, names
   };
   return &tt;
 }
@@ -186,7 +186,7 @@ inline const flatbuffers::TypeTable *ApplicationDataTypeTable() {
     "vectors"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 1, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_TABLE, 1, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
 }

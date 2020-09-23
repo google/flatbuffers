@@ -954,11 +954,13 @@ class CppGenerator : public BaseGenerator {
     }
     std::string ts;
     std::vector<std::string> type_refs;
+    std::vector<uint16_t> array_sizes;
     for (auto it = types.begin(); it != types.end(); ++it) {
       auto &type = *it;
       if (!ts.empty()) ts += ",\n    ";
       auto is_vector = type.base_type == BASE_TYPE_VECTOR;
-      auto bt = is_vector ? type.element : type.base_type;
+      auto is_array = type.base_type == BASE_TYPE_ARRAY;
+      auto bt = is_vector || is_array ? type.element : type.base_type;
       auto et = IsScalar(bt) || bt == BASE_TYPE_STRING
                     ? bt - BASE_TYPE_UTYPE + ET_UTYPE
                     : ET_SEQUENCE;
@@ -980,13 +982,20 @@ class CppGenerator : public BaseGenerator {
           type_refs.push_back(ref_name);
         }
       }
+      if (is_array) { array_sizes.push_back(type.fixed_length); }
       ts += "{ flatbuffers::" + std::string(ElementaryTypeNames()[et]) + ", " +
-            NumToString(is_vector) + ", " + NumToString(ref_idx) + " }";
+            NumToString(is_vector || is_array) + ", " + NumToString(ref_idx) +
+            " }";
     }
     std::string rs;
     for (auto it = type_refs.begin(); it != type_refs.end(); ++it) {
       if (!rs.empty()) rs += ",\n    ";
       rs += *it + "TypeTable";
+    }
+    std::string as;
+    for (auto it = array_sizes.begin(); it != array_sizes.end(); ++it) {
+      as += NumToString(*it);
+      as += ", ";
     }
     std::string ns;
     for (auto it = names.begin(); it != names.end(); ++it) {
@@ -1016,6 +1025,7 @@ class CppGenerator : public BaseGenerator {
     }
     code_.SetValue("TYPES", ts);
     code_.SetValue("REFS", rs);
+    code_.SetValue("ARRAYSIZES", as);
     code_.SetValue("NAMES", ns);
     code_.SetValue("VALUES", vs);
     code_ += "inline const flatbuffers::TypeTable *{{NAME}}TypeTable() {";
@@ -1028,6 +1038,9 @@ class CppGenerator : public BaseGenerator {
       code_ += "  static const flatbuffers::TypeFunction type_refs[] = {";
       code_ += "    {{REFS}}";
       code_ += "  };";
+    }
+    if (!as.empty()) {
+      code_ += "  static const int16_t array_sizes[] = { {{ARRAYSIZES}} };";
     }
     if (!vs.empty()) {
       // Problem with uint64_t values greater than 9223372036854775807ULL.
@@ -1044,6 +1057,7 @@ class CppGenerator : public BaseGenerator {
     code_ += std::string("    flatbuffers::{{SEQ_TYPE}}, {{NUM_FIELDS}}, ") +
              (num_fields ? "type_codes, " : "nullptr, ") +
              (!type_refs.empty() ? "type_refs, " : "nullptr, ") +
+             (!as.empty() ? "array_sizes, " : "nullptr, ") +
              (!vs.empty() ? "values, " : "nullptr, ") +
              (has_names ? "names" : "nullptr");
     code_ += "  };";
