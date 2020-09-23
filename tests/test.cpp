@@ -1124,6 +1124,30 @@ void MiniReflectFlatBuffersTest(uint8_t *flatbuf) {
               "16, b: 32 } }");
 }
 
+void MiniReflectFixedLengthArrayTest() {
+  // VS10 does not support typed enums, exclude from tests
+#if !defined(_MSC_VER) || _MSC_VER >= 1700
+  flatbuffers::FlatBufferBuilder fbb;
+  MyGame::Example::ArrayStruct aStruct(2, 12, 1);
+  auto aTable = MyGame::Example::CreateArrayTable(fbb, &aStruct);
+  fbb.Finish(aTable);
+
+  auto flatbuf = fbb.Release();
+  auto s = flatbuffers::FlatBufferToString(
+      flatbuf.data(), MyGame::Example::ArrayTableTypeTable());
+  TEST_EQ_STR(
+      "{ "
+      "a: { a: 2.0, "
+      "b: [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ], "
+      "c: 12, "
+      "d: [ { a: [ 0, 0 ], b: A, c: [ A, A ], d: [ 0, 0 ] }, "
+      "{ a: [ 0, 0 ], b: A, c: [ A, A ], d: [ 0, 0 ] } ], "
+      "e: 1, f: [ 0, 0 ] } "
+      "}",
+      s.c_str());
+#endif
+}
+
 // Parse a .proto schema, output as .fbs
 void ParseProtoTest() {
   // load the .proto and the golden file from disk
@@ -3678,6 +3702,7 @@ int FlatBufferTests() {
   ObjectFlatBuffersTest(flatbuf.data());
 
   MiniReflectFlatBuffersTest(flatbuf.data());
+  MiniReflectFixedLengthArrayTest();
 
   SizePrefixedTest();
 

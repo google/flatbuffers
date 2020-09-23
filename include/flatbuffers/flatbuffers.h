@@ -2830,7 +2830,7 @@ inline const char * const *ElementaryTypeNames() {
 // Basic type info cost just 16bits per field!
 struct TypeCode {
   uint16_t base_type : 4;  // ElementaryType
-  uint16_t is_vector : 1;
+  uint16_t is_repeating : 1;  // Either vector (in table) or array (in struct)
   int16_t sequence_ref : 11;  // Index into type_refs below, or -1 for none.
 };
 
@@ -2846,6 +2846,7 @@ struct TypeTable {
   size_t num_elems;  // of type_codes, values, names (but not type_refs).
   const TypeCode *type_codes;     // num_elems count
   const TypeFunction *type_refs;  // less than num_elems entries (see TypeCode).
+  const int16_t *array_sizes;     // less than num_elems entries (see TypeCode).
   const int64_t *values;  // Only set for non-consecutive enum/union or structs.
   const char *const *names;  // Only set if compiled with --reflect-names.
 };
