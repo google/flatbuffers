@@ -20,6 +20,7 @@ use std::cmp::max;
 use std::marker::PhantomData;
 use std::ptr::write_bytes;
 use std::slice::from_raw_parts;
+use std::iter::{DoubleEndedIterator, ExactSizeIterator};
 
 use endian_scalar::{emplace_scalar, read_scalar_at};
 use primitives::*;
@@ -326,6 +327,24 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
             self.push(items[i]);
         }
         WIPOffset::new(self.push::<UOffsetT>(items.len() as UOffsetT).value())
+    }
+
+    /// Create a vector of Push-able objects.
+    ///
+    /// Speed-sensitive users may wish to reduce memory usage by creating the
+    /// vector manually: use `start_vector`, `push`, and `end_vector`.
+    #[inline]
+    pub fn create_vector_from_iter<T: Push + Copy>(
+        &mut self,
+        items: impl ExactSizeIterator<Item = T> + DoubleEndedIterator,
+    ) -> WIPOffset<Vector<'fbb, T::Output>> {
+        let elem_size = T::size();
+        let len = items.len();
+        self.align(len * elem_size, T::alignment().max_of(SIZE_UOFFSET));
+        for item in items.rev() {
+            self.push(item);
+        }
+        WIPOffset::new(self.push::<UOffsetT>(len as UOffsetT).value())
     }
 
     /// Set whether default values are stored.
