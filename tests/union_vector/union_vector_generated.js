@@ -95,6 +95,13 @@ Attacker.prototype.mutate_sword_attack_damage = function(value) {
 };
 
 /**
+ * @returns {string}
+ */
+Attacker.getFullyQualifiedName = function() {
+  return 'Attacker';
+}
+
+/**
  * @param {flatbuffers.Builder} builder
  */
 Attacker.startAttacker = function(builder) {
@@ -167,15 +174,16 @@ Rapunzel.prototype.hairLength = function() {
  * @returns {boolean}
  */
 Rapunzel.prototype.mutate_hair_length = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 0);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb.writeInt32(this.bb_pos + offset, value);
+  this.bb.writeInt32(this.bb_pos + 0, value);
   return true;
 };
+
+/**
+ * @returns {string}
+ */
+Rapunzel.getFullyQualifiedName = function() {
+  return 'Rapunzel';
+}
 
 /**
  * @param {flatbuffers.Builder} builder
@@ -226,15 +234,16 @@ BookReader.prototype.booksRead = function() {
  * @returns {boolean}
  */
 BookReader.prototype.mutate_books_read = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 0);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb.writeInt32(this.bb_pos + offset, value);
+  this.bb.writeInt32(this.bb_pos + 0, value);
   return true;
 };
+
+/**
+ * @returns {string}
+ */
+BookReader.getFullyQualifiedName = function() {
+  return 'BookReader';
+}
 
 /**
  * @param {flatbuffers.Builder} builder
@@ -359,6 +368,13 @@ Movie.prototype.charactersLength = function() {
   var offset = this.bb.__offset(this.bb_pos, 10);
   return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
 };
+
+/**
+ * @returns {string}
+ */
+Movie.getFullyQualifiedName = function() {
+  return 'Movie';
+}
 
 /**
  * @param {flatbuffers.Builder} builder

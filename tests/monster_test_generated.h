@@ -592,14 +592,16 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(2) Test FLATBUFFERS_FINAL_CLASS {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return TestTypeTable();
   }
-  Test() {
-    memset(static_cast<void *>(this), 0, sizeof(Test));
+  Test()
+      : a_(0),
+        b_(0),
+        padding0__(0) {
+    (void)padding0__;
   }
   Test(int16_t _a, int8_t _b)
       : a_(flatbuffers::EndianScalar(_a)),
         b_(flatbuffers::EndianScalar(_b)),
         padding0__(0) {
-    (void)padding0__;
   }
   int16_t a() const {
     return flatbuffers::EndianScalar(a_);
@@ -643,8 +645,19 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vec3 FLATBUFFERS_FINAL_CLASS {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return Vec3TypeTable();
   }
-  Vec3() {
-    memset(static_cast<void *>(this), 0, sizeof(Vec3));
+  Vec3()
+      : x_(0),
+        y_(0),
+        z_(0),
+        padding0__(0),
+        test1_(0),
+        test2_(0),
+        padding1__(0),
+        test3_(),
+        padding2__(0) {
+    (void)padding0__;
+    (void)padding1__;
+    (void)padding2__;
   }
   Vec3(float _x, float _y, float _z, double _test1, MyGame::Example::Color _test2, const MyGame::Example::Test &_test3)
       : x_(flatbuffers::EndianScalar(_x)),
@@ -656,9 +669,6 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vec3 FLATBUFFERS_FINAL_CLASS {
         padding1__(0),
         test3_(_test3),
         padding2__(0) {
-    (void)padding0__;
-    (void)padding1__;
-    (void)padding2__;
   }
   float x() const {
     return flatbuffers::EndianScalar(x_);
@@ -723,8 +733,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Ability FLATBUFFERS_FINAL_CLASS {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return AbilityTypeTable();
   }
-  Ability() {
-    memset(static_cast<void *>(this), 0, sizeof(Ability));
+  Ability()
+      : id_(0),
+        distance_(0) {
   }
   Ability(uint32_t _id, uint32_t _distance)
       : id_(flatbuffers::EndianScalar(_id)),
@@ -3138,7 +3149,7 @@ inline const flatbuffers::TypeTable *ColorTypeTable() {
     "Blue"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_ENUM, 3, type_codes, type_refs, values, names
+    flatbuffers::ST_ENUM, 3, type_codes, type_refs, nullptr, values, names
   };
   return &tt;
 }
@@ -3161,7 +3172,7 @@ inline const flatbuffers::TypeTable *RaceTypeTable() {
     "Elf"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_ENUM, 4, type_codes, type_refs, values, names
+    flatbuffers::ST_ENUM, 4, type_codes, type_refs, nullptr, values, names
   };
   return &tt;
 }
@@ -3185,7 +3196,7 @@ inline const flatbuffers::TypeTable *AnyTypeTable() {
     "MyGame_Example2_Monster"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_UNION, 4, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_UNION, 4, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
 }
@@ -3209,7 +3220,7 @@ inline const flatbuffers::TypeTable *AnyUniqueAliasesTypeTable() {
     "M2"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_UNION, 4, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_UNION, 4, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
 }
@@ -3231,7 +3242,7 @@ inline const flatbuffers::TypeTable *AnyAmbiguousAliasesTypeTable() {
     "M3"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_UNION, 4, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_UNION, 4, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
 }
@@ -3240,7 +3251,7 @@ inline const flatbuffers::TypeTable *AnyAmbiguousAliasesTypeTable() {
 
 inline const flatbuffers::TypeTable *InParentNamespaceTypeTable() {
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 0, nullptr, nullptr, nullptr, nullptr
+    flatbuffers::ST_TABLE, 0, nullptr, nullptr, nullptr, nullptr, nullptr
   };
   return &tt;
 }
@@ -3249,7 +3260,7 @@ namespace Example2 {
 
 inline const flatbuffers::TypeTable *MonsterTypeTable() {
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 0, nullptr, nullptr, nullptr, nullptr
+    flatbuffers::ST_TABLE, 0, nullptr, nullptr, nullptr, nullptr, nullptr
   };
   return &tt;
 }
@@ -3269,7 +3280,7 @@ inline const flatbuffers::TypeTable *TestTypeTable() {
     "b"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_STRUCT, 2, type_codes, nullptr, values, names
+    flatbuffers::ST_STRUCT, 2, type_codes, nullptr, nullptr, values, names
   };
   return &tt;
 }
@@ -3285,7 +3296,7 @@ inline const flatbuffers::TypeTable *TestSimpleTableWithEnumTypeTable() {
     "color"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 1, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_TABLE, 1, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
 }
@@ -3313,7 +3324,7 @@ inline const flatbuffers::TypeTable *Vec3TypeTable() {
     "test3"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_STRUCT, 6, type_codes, type_refs, values, names
+    flatbuffers::ST_STRUCT, 6, type_codes, type_refs, nullptr, values, names
   };
   return &tt;
 }
@@ -3329,7 +3340,7 @@ inline const flatbuffers::TypeTable *AbilityTypeTable() {
     "distance"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_STRUCT, 2, type_codes, nullptr, values, names
+    flatbuffers::ST_STRUCT, 2, type_codes, nullptr, nullptr, values, names
   };
   return &tt;
 }
@@ -3346,7 +3357,7 @@ inline const flatbuffers::TypeTable *StatTypeTable() {
     "count"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 3, type_codes, nullptr, nullptr, names
+    flatbuffers::ST_TABLE, 3, type_codes, nullptr, nullptr, nullptr, names
   };
   return &tt;
 }
@@ -3359,7 +3370,7 @@ inline const flatbuffers::TypeTable *ReferrableTypeTable() {
     "id"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 1, type_codes, nullptr, nullptr, names
+    flatbuffers::ST_TABLE, 1, type_codes, nullptr, nullptr, nullptr, names
   };
   return &tt;
 }
@@ -3482,7 +3493,7 @@ inline const flatbuffers::TypeTable *MonsterTypeTable() {
     "signed_enum"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 49, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_TABLE, 49, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
 }
@@ -3517,7 +3528,7 @@ inline const flatbuffers::TypeTable *TypeAliasesTypeTable() {
     "vf64"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 12, type_codes, nullptr, nullptr, names
+    flatbuffers::ST_TABLE, 12, type_codes, nullptr, nullptr, nullptr, names
   };
   return &tt;
 }

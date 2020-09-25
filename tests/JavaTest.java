@@ -23,7 +23,9 @@ import java.io.*;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.CharBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -100,6 +102,8 @@ class JavaTest {
         TestFlexBuffers();
 
         TestVectorOfBytes();
+
+        TestSharedStringPool();
 
         System.out.println("FlatBuffers test: completed successfully");
     }
@@ -1022,13 +1026,14 @@ class JavaTest {
 
     public static void testBuilderGrowth() {
         FlexBuffersBuilder builder = new FlexBuffersBuilder();
-        builder.putString("This is a small string");
+        String someString = "This is a small string";
+        builder.putString(someString);
         ByteBuffer b = builder.finish();
-        TestEq("This is a small string", FlexBuffers.getRoot(b).asString());
+        TestEq(someString, FlexBuffers.getRoot(b).asString());
 
         FlexBuffersBuilder failBuilder = new FlexBuffersBuilder(ByteBuffer.allocate(1));
         try {
-            failBuilder.putString("This is a small string");
+            failBuilder.putString(someString);
             // This should never be reached, it should throw an exception
             // since ByteBuffers do not grow
             assert(false);
@@ -1215,6 +1220,15 @@ class JavaTest {
         TestEq(monsterObject8.inventoryLength(), 2048);
     }
 
+    static void TestSharedStringPool() {
+        FlatBufferBuilder fb = new FlatBufferBuilder(1);
+        String testString = "My string";
+        int offset = fb.createSharedString(testString);
+        for (int i=0; i< 10; i++) {
+            TestEq(offset, fb.createSharedString(testString));
+        }
+    }
+
     static <T> void TestEq(T a, T b) {
         if (!a.equals(b)) {
             System.out.println("" + a.getClass().getName() + " " + b.getClass().getName());
@@ -1224,4 +1238,5 @@ class JavaTest {
             System.exit(1);
         }
     }
+
 }

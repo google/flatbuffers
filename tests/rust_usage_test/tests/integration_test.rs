@@ -27,6 +27,7 @@ extern crate serde_derive;
 extern crate quickcheck_derive;
 
 mod flexbuffers_tests;
+mod optional_scalars_test;
 
 #[allow(dead_code, unused_imports)]
 #[path = "../../include_test/include_test1_generated.rs"]
@@ -40,6 +41,10 @@ pub mod include_test2_generated;
 #[path = "../../monster_test_generated.rs"]
 mod monster_test_generated;
 pub use monster_test_generated::my_game;
+
+#[allow(dead_code, unused_imports)]
+#[path = "../../optional_scalars_generated.rs"]
+mod optional_scalars_generated;
 
 #[rustfmt::skip] // TODO: Use standard rust formatting and remove dead code.
 #[allow(dead_code)]
@@ -2458,6 +2463,25 @@ mod byte_layouts {
              // entry 1 is zero and not stored.
              4, 0, 0, 0, // offset for start of vtable (int32)
         ]);
+    }
+
+    #[test]
+    fn layout_09b_vtable_with_one_default_bool_force_defaults() {
+        let mut b = flatbuffers::FlatBufferBuilder::new();
+        check(&b, &[]);
+        let off = b.start_table();
+        check(&b, &[]);
+        b.force_defaults(true);
+        b.push_slot(fi2fo(0), false, false);
+        b.end_table(off);
+        check(&b, &[
+            6, 0, // vtable bytes
+            8, 0, // length of object including vtable offset
+            7, 0, // start of bool value
+            6, 0, 0, 0, // offset for start of vtable (int32)
+            0, 0, 0, // padded to 4 bytes
+            0, // bool value
+      ]);
     }
 
     #[test]

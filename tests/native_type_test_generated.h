@@ -30,8 +30,10 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector3D FLATBUFFERS_FINAL_CLASS {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return Vector3DTypeTable();
   }
-  Vector3D() {
-    memset(static_cast<void *>(this), 0, sizeof(Vector3D));
+  Vector3D()
+      : x_(0),
+        y_(0),
+        z_(0) {
   }
   Vector3D(float _x, float _y, float _z)
       : x_(flatbuffers::EndianScalar(_x)),
@@ -168,7 +170,7 @@ inline const flatbuffers::TypeTable *Vector3DTypeTable() {
     "z"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_STRUCT, 3, type_codes, nullptr, values, names
+    flatbuffers::ST_STRUCT, 3, type_codes, nullptr, nullptr, values, names
   };
   return &tt;
 }
@@ -184,7 +186,7 @@ inline const flatbuffers::TypeTable *ApplicationDataTypeTable() {
     "vectors"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 1, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_TABLE, 1, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
 }

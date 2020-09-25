@@ -179,8 +179,10 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vec3 FLATBUFFERS_FINAL_CLASS {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return Vec3TypeTable();
   }
-  Vec3() {
-    memset(static_cast<void *>(this), 0, sizeof(Vec3));
+  Vec3()
+      : x_(0),
+        y_(0),
+        z_(0) {
   }
   Vec3(float _x, float _y, float _z)
       : x_(flatbuffers::EndianScalar(_x)),
@@ -731,7 +733,7 @@ inline const flatbuffers::TypeTable *ColorTypeTable() {
     "Blue"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_ENUM, 3, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_ENUM, 3, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
 }
@@ -749,7 +751,7 @@ inline const flatbuffers::TypeTable *EquipmentTypeTable() {
     "Weapon"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_UNION, 2, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_UNION, 2, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
 }
@@ -767,7 +769,7 @@ inline const flatbuffers::TypeTable *Vec3TypeTable() {
     "z"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_STRUCT, 3, type_codes, nullptr, values, names
+    flatbuffers::ST_STRUCT, 3, type_codes, nullptr, nullptr, values, names
   };
   return &tt;
 }
@@ -806,7 +808,7 @@ inline const flatbuffers::TypeTable *MonsterTypeTable() {
     "path"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 11, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_TABLE, 11, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
 }
@@ -821,7 +823,7 @@ inline const flatbuffers::TypeTable *WeaponTypeTable() {
     "damage"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 2, type_codes, nullptr, nullptr, names
+    flatbuffers::ST_TABLE, 2, type_codes, nullptr, nullptr, nullptr, names
   };
   return &tt;
 }

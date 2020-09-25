@@ -30,13 +30,15 @@ impl<'a> flatbuffers::Follow<'a> for TableInFirstNS<'a> {
     type Inner = TableInFirstNS<'a>;
     #[inline]
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self {
-            _tab: flatbuffers::Table { buf: buf, loc: loc },
-        }
+        Self { _tab: flatbuffers::Table { buf, loc } }
     }
 }
 
 impl<'a> TableInFirstNS<'a> {
+    pub const fn get_fully_qualified_name() -> &'static str {
+        "NamespaceA.TableInFirstNS"
+    }
+
     #[inline]
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
         TableInFirstNS {
@@ -73,9 +75,9 @@ impl<'a> TableInFirstNS<'a> {
 }
 
 pub struct TableInFirstNSArgs<'a> {
-    pub foo_table: Option<flatbuffers::WIPOffset<namespace_b::TableInNestedNS<'a >>>,
+    pub foo_table: Option<flatbuffers::WIPOffset<namespace_b::TableInNestedNS<'a>>>,
     pub foo_enum: namespace_b::EnumInNestedNS,
-    pub foo_struct: Option<&'a  namespace_b::StructInNestedNS>,
+    pub foo_struct: Option<&'a namespace_b::StructInNestedNS>,
 }
 impl<'a> Default for TableInFirstNSArgs<'a> {
     #[inline]
@@ -101,7 +103,7 @@ impl<'a: 'b, 'b> TableInFirstNSBuilder<'a, 'b> {
     self.fbb_.push_slot::<namespace_b::EnumInNestedNS>(TableInFirstNS::VT_FOO_ENUM, foo_enum, namespace_b::EnumInNestedNS::A);
   }
   #[inline]
-  pub fn add_foo_struct(&mut self, foo_struct: &'b  namespace_b::StructInNestedNS) {
+  pub fn add_foo_struct(&mut self, foo_struct: &namespace_b::StructInNestedNS) {
     self.fbb_.push_slot_always::<&namespace_b::StructInNestedNS>(TableInFirstNS::VT_FOO_STRUCT, foo_struct);
   }
   #[inline]
@@ -130,13 +132,15 @@ impl<'a> flatbuffers::Follow<'a> for SecondTableInA<'a> {
     type Inner = SecondTableInA<'a>;
     #[inline]
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self {
-            _tab: flatbuffers::Table { buf: buf, loc: loc },
-        }
+        Self { _tab: flatbuffers::Table { buf, loc } }
     }
 }
 
 impl<'a> SecondTableInA<'a> {
+    pub const fn get_fully_qualified_name() -> &'static str {
+        "NamespaceA.SecondTableInA"
+    }
+
     #[inline]
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
         SecondTableInA {
@@ -161,7 +165,7 @@ impl<'a> SecondTableInA<'a> {
 }
 
 pub struct SecondTableInAArgs<'a> {
-    pub refer_to_c: Option<flatbuffers::WIPOffset<super::namespace_c::TableInC<'a >>>,
+    pub refer_to_c: Option<flatbuffers::WIPOffset<super::namespace_c::TableInC<'a>>>,
 }
 impl<'a> Default for SecondTableInAArgs<'a> {
     #[inline]
@@ -218,13 +222,15 @@ impl<'a> flatbuffers::Follow<'a> for TableInC<'a> {
     type Inner = TableInC<'a>;
     #[inline]
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self {
-            _tab: flatbuffers::Table { buf: buf, loc: loc },
-        }
+        Self { _tab: flatbuffers::Table { buf, loc } }
     }
 }
 
 impl<'a> TableInC<'a> {
+    pub const fn get_fully_qualified_name() -> &'static str {
+        "NamespaceC.TableInC"
+    }
+
     #[inline]
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
         TableInC {
@@ -255,8 +261,8 @@ impl<'a> TableInC<'a> {
 }
 
 pub struct TableInCArgs<'a> {
-    pub refer_to_a1: Option<flatbuffers::WIPOffset<super::namespace_a::TableInFirstNS<'a >>>,
-    pub refer_to_a2: Option<flatbuffers::WIPOffset<super::namespace_a::SecondTableInA<'a >>>,
+    pub refer_to_a1: Option<flatbuffers::WIPOffset<super::namespace_a::TableInFirstNS<'a>>>,
+    pub refer_to_a2: Option<flatbuffers::WIPOffset<super::namespace_a::SecondTableInA<'a>>>,
 }
 impl<'a> Default for TableInCArgs<'a> {
     #[inline]

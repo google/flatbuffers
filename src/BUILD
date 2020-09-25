@@ -55,8 +55,8 @@ cc_library(
         "idl_gen_php.cpp",
         "idl_gen_python.cpp",
         "idl_gen_rust.cpp",
-        "idl_gen_text.cpp",
         "idl_gen_swift.cpp",
+        "idl_gen_text.cpp",
         "util.cpp",
     ],
     hdrs = [

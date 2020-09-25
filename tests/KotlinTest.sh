@@ -40,7 +40,7 @@ kotlinc $all_kt_files -classpath $targetdir -include-runtime -d $targetdir
 # Make jar
 jar cvf ${testdir}/kotlin_test.jar -C $targetdir . > /dev/null
 # Run test
-kotlin -cp ${testdir}/kotlin_test.jar KotlinTest
+kotlin -J"-ea" -cp ${testdir}/kotlin_test.jar KotlinTest
 # clean up
 rm -rf $targetdir
 rm ${testdir}/kotlin_test.jar

@@ -59,11 +59,21 @@ class FlatBufMethod : public grpc_generator::Method {
 
   std::string name() const { return method_->name; }
 
+  // TODO: This method need to incorporate namespace for C++ side. Other
+  // language bindings simply don't use this method.
   std::string GRPCType(const StructDef &sd) const {
     return "flatbuffers::grpc::Message<" + sd.name + ">";
   }
 
+  std::vector<std::string> get_input_namespace_parts() const {
+    return (*method_->request).defined_namespace->components;
+  }
+
   std::string get_input_type_name() const { return (*method_->request).name; }
+
+  std::vector<std::string> get_output_namespace_parts() const {
+    return (*method_->response).defined_namespace->components;
+  }
 
   std::string get_output_type_name() const { return (*method_->response).name; }
 
@@ -111,7 +121,14 @@ class FlatBufService : public grpc_generator::Service {
     return service_->doc_comment;
   }
 
+  std::vector<grpc::string> namespace_parts() const {
+    return service_->defined_namespace->components;
+  }
+
   std::string name() const { return service_->name; }
+  bool is_internal() const {
+    return service_->Definition::attributes.Lookup("private") ? true : false;
+  }
 
   int method_count() const {
     return static_cast<int>(service_->calls.vec.size());
@@ -403,8 +420,10 @@ bool GeneratePythonGRPC(const Parser &parser, const std::string & /*path*/,
     namespace_dir += *it;
   }
 
-  std::string grpc_py_filename =
-      namespace_dir + kPathSeparator + file_name + "_grpc_fb.py";
+  std::string grpc_py_filename = namespace_dir;
+  if (!namespace_dir.empty()) grpc_py_filename += kPathSeparator;
+  grpc_py_filename += file_name + "_grpc_fb.py";
+
   return flatbuffers::SaveFile(grpc_py_filename.c_str(), code, false);
 }
 

@@ -126,3 +126,12 @@ Cargo.lock
 grpc/google/
 **/Package.resolved
 .clangd/**
+package-lock.json
+/*.ilk
+/*.pdb
+.clwb
+js/*.js
+js/*.d.ts
+mjs/*.js
+mjs/*.d.ts
+yarn-error.log

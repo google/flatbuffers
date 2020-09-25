@@ -6,7 +6,6 @@ extension FlatBuffersDoubleTests {
     //   `swift test --generate-linuxmain`
     // to regenerate.
     static let __allTests__FlatBuffersDoubleTests = [
-        ("testCreateCountry", testCreateCountry),
         ("testCreateFinish", testCreateFinish),
         ("testCreateFinishWithPrefix", testCreateFinishWithPrefix),
     ]
@@ -20,8 +19,11 @@ extension FlatBuffersMonsterWriterTests {
         ("testCreateMonster", testCreateMonster),
         ("testCreateMonsterPrefixed", testCreateMonsterPrefixed),
         ("testCreateMonsterResizedBuffer", testCreateMonsterResizedBuffer),
+        ("testCreateMonsterUsingCreateMonsterMethodWithNilPos", testCreateMonsterUsingCreateMonsterMethodWithNilPos),
+        ("testCreateMonsterUsingCreateMonsterMethodWithPosX", testCreateMonsterUsingCreateMonsterMethodWithPosX),
         ("testData", testData),
-        ("testReadFromOtherLangagues", testReadFromOtherLangagues),
+        ("testReadFromOtherLanguages", testReadFromOtherLanguages),
+        ("testReadMonsterFromUnsafePointerWithoutCopying", testReadMonsterFromUnsafePointerWithoutCopying),
     ]
 }
 
@@ -30,12 +32,7 @@ extension FlatBuffersStructsTests {
     //   `swift test --generate-linuxmain`
     // to regenerate.
     static let __allTests__FlatBuffersStructsTests = [
-        ("testCreatingEnums", testCreatingEnums),
-        ("testCreatingStruct", testCreatingStruct),
-        ("testCreatingVectorStruct", testCreatingVectorStruct),
-        ("testCreatingVectorStructWithForcedDefaults", testCreatingVectorStructWithForcedDefaults),
-        ("testReadingStruct", testReadingStruct),
-        ("testReadingStructWithEnums", testReadingStructWithEnums),
+        ("testWritingAndMutatingBools", testWritingAndMutatingBools),
     ]
 }
 
@@ -44,7 +41,6 @@ extension FlatBuffersTests {
     //   `swift test --generate-linuxmain`
     // to regenerate.
     static let __allTests__FlatBuffersTests = [
-        ("testCreate", testCreate),
         ("testCreateFinish", testCreateFinish),
         ("testCreateFinishWithPrefix", testCreateFinishWithPrefix),
         ("testCreateString", testCreateString),
@@ -52,6 +48,8 @@ extension FlatBuffersTests {
         ("testOffset", testOffset),
         ("testReadCountry", testReadCountry),
         ("testStartTable", testStartTable),
+        ("testWriteNullableStrings", testWriteNullableStrings),
+        ("testWriteOptionalValues", testWriteOptionalValues),
     ]
 }
 

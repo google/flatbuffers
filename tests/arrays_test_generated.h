@@ -75,15 +75,23 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) NestedStruct FLATBUFFERS_FINAL_CLASS {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return NestedStructTypeTable();
   }
-  NestedStruct() {
-    memset(static_cast<void *>(this), 0, sizeof(NestedStruct));
+  NestedStruct()
+      : a_(),
+        b_(0),
+        c_(),
+        padding0__(0),
+        padding1__(0),
+        d_() {
+    (void)padding0__;
+    (void)padding1__;
   }
   NestedStruct(MyGame::Example::TestEnum _b)
-      : b_(flatbuffers::EndianScalar(static_cast<int8_t>(_b))) {
-    std::memset(a_, 0, sizeof(a_));
-    std::memset(c_, 0, sizeof(c_));
-    (void)padding0__;    (void)padding1__;
-    std::memset(d_, 0, sizeof(d_));
+      : a_(),
+        b_(flatbuffers::EndianScalar(static_cast<int8_t>(_b))),
+        c_(),
+        padding0__(0),
+        padding1__(0),
+        d_() {
   }
   const flatbuffers::Array<int32_t, 2> *a() const {
     return reinterpret_cast<const flatbuffers::Array<int32_t, 2> *>(a_);
@@ -140,22 +148,33 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) ArrayStruct FLATBUFFERS_FINAL_CLASS {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return ArrayStructTypeTable();
   }
-  ArrayStruct() {
-    memset(static_cast<void *>(this), 0, sizeof(ArrayStruct));
+  ArrayStruct()
+      : a_(0),
+        b_(),
+        c_(0),
+        padding0__(0),
+        padding1__(0),
+        padding2__(0),
+        d_(),
+        e_(0),
+        padding3__(0),
+        f_() {
+    (void)padding0__;
+    (void)padding1__;
+    (void)padding2__;
+    (void)padding3__;
   }
   ArrayStruct(float _a, int8_t _c, int32_t _e)
       : a_(flatbuffers::EndianScalar(_a)),
+        b_(),
         c_(flatbuffers::EndianScalar(_c)),
         padding0__(0),
         padding1__(0),
         padding2__(0),
+        d_(),
         e_(flatbuffers::EndianScalar(_e)),
-        padding3__(0) {
-    std::memset(b_, 0, sizeof(b_));
-    (void)padding0__;    (void)padding1__;    (void)padding2__;
-    std::memset(d_, 0, sizeof(d_));
-    (void)padding3__;
-    std::memset(f_, 0, sizeof(f_));
+        padding3__(0),
+        f_() {
   }
   float a() const {
     return flatbuffers::EndianScalar(a_);
@@ -322,21 +341,22 @@ inline const flatbuffers::TypeTable *TestEnumTypeTable() {
     "C"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_ENUM, 3, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_ENUM, 3, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
 }
 
 inline const flatbuffers::TypeTable *NestedStructTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
-    { flatbuffers::ET_SEQUENCE, 0, -1 },
+    { flatbuffers::ET_INT, 1, -1 },
     { flatbuffers::ET_CHAR, 0, 0 },
-    { flatbuffers::ET_SEQUENCE, 0, 0 },
-    { flatbuffers::ET_SEQUENCE, 0, -1 }
+    { flatbuffers::ET_CHAR, 1, 0 },
+    { flatbuffers::ET_LONG, 1, -1 }
   };
   static const flatbuffers::TypeFunction type_refs[] = {
     MyGame::Example::TestEnumTypeTable
   };
+  static const int16_t array_sizes[] = { 2, 2, 2,  };
   static const int64_t values[] = { 0, 8, 9, 16, 32 };
   static const char * const names[] = {
     "a",
@@ -345,7 +365,7 @@ inline const flatbuffers::TypeTable *NestedStructTypeTable() {
     "d"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_STRUCT, 4, type_codes, type_refs, values, names
+    flatbuffers::ST_STRUCT, 4, type_codes, type_refs, array_sizes, values, names
   };
   return &tt;
 }
@@ -353,15 +373,16 @@ inline const flatbuffers::TypeTable *NestedStructTypeTable() {
 inline const flatbuffers::TypeTable *ArrayStructTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_FLOAT, 0, -1 },
-    { flatbuffers::ET_SEQUENCE, 0, -1 },
+    { flatbuffers::ET_INT, 1, -1 },
     { flatbuffers::ET_CHAR, 0, -1 },
-    { flatbuffers::ET_SEQUENCE, 0, 0 },
+    { flatbuffers::ET_SEQUENCE, 1, 0 },
     { flatbuffers::ET_INT, 0, -1 },
-    { flatbuffers::ET_SEQUENCE, 0, -1 }
+    { flatbuffers::ET_LONG, 1, -1 }
   };
   static const flatbuffers::TypeFunction type_refs[] = {
     MyGame::Example::NestedStructTypeTable
   };
+  static const int16_t array_sizes[] = { 15, 2, 2,  };
   static const int64_t values[] = { 0, 4, 64, 72, 136, 144, 160 };
   static const char * const names[] = {
     "a",
@@ -372,7 +393,7 @@ inline const flatbuffers::TypeTable *ArrayStructTypeTable() {
     "f"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_STRUCT, 6, type_codes, type_refs, values, names
+    flatbuffers::ST_STRUCT, 6, type_codes, type_refs, array_sizes, values, names
   };
   return &tt;
 }
@@ -388,7 +409,7 @@ inline const flatbuffers::TypeTable *ArrayTableTypeTable() {
     "a"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 1, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_TABLE, 1, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
 }

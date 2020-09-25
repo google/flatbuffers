@@ -46,14 +46,17 @@
 #include <iterator>
 #include <memory>
 
+#if defined(__unix__) && !defined(FLATBUFFERS_LOCALE_INDEPENDENT)
+  #include <unistd.h>
+#endif
+
 #ifdef _STLPORT_VERSION
   #define FLATBUFFERS_CPP98_STL
 #endif
-#ifndef FLATBUFFERS_CPP98_STL
-  #include <functional>
-#endif
 
-#include "flatbuffers/stl_emulation.h"
+#ifdef __ANDROID__
+  #include <android/api-level.h>
+#endif
 
 #if defined(__ICCARM__)
 #include <intrinsics.h>
@@ -154,10 +157,12 @@ namespace flatbuffers {
     defined(__clang__)
   #define FLATBUFFERS_FINAL_CLASS final
   #define FLATBUFFERS_OVERRIDE override
+  #define FLATBUFFERS_EXPLICIT_CPP11 explicit
   #define FLATBUFFERS_VTABLE_UNDERLYING_TYPE : flatbuffers::voffset_t
 #else
   #define FLATBUFFERS_FINAL_CLASS
   #define FLATBUFFERS_OVERRIDE
+  #define FLATBUFFERS_EXPLICIT_CPP11
   #define FLATBUFFERS_VTABLE_UNDERLYING_TYPE
 #endif
 
@@ -165,10 +170,14 @@ namespace flatbuffers {
     (!defined(__GNUC__) || (__GNUC__ * 100 + __GNUC_MINOR__ >= 406)) || \
     (defined(__cpp_constexpr) && __cpp_constexpr >= 200704)
   #define FLATBUFFERS_CONSTEXPR constexpr
+  #define FLATBUFFERS_CONSTEXPR_CPP11 constexpr
+  #define FLATBUFFERS_CONSTEXPR_DEFINED
 #else
   #define FLATBUFFERS_CONSTEXPR const
+  #define FLATBUFFERS_CONSTEXPR_CPP11
 #endif
 
+// This macro is never used in code!
 #if (defined(__cplusplus) && __cplusplus >= 201402L) || \
     (defined(__cpp_constexpr) && __cpp_constexpr >= 201304)
   #define FLATBUFFERS_CONSTEXPR_CPP14 FLATBUFFERS_CONSTEXPR
@@ -192,6 +201,16 @@ namespace flatbuffers {
   #define FLATBUFFERS_DELETE_FUNC(func) func = delete;
 #else
   #define FLATBUFFERS_DELETE_FUNC(func) private: func;
+#endif
+
+// Check if we can use template aliases
+// Not possible if Microsoft Compiler before 2012
+// Possible is the language feature __cpp_alias_templates is defined well
+// Or possible if the C++ std is C+11 or newer
+#if (defined(_MSC_VER) && _MSC_VER > 1700 /* MSVC2012 */) \
+    || (defined(__cpp_alias_templates) && __cpp_alias_templates >= 200704) \
+    || (defined(__cplusplus) && __cplusplus >= 201103L)
+  #define FLATBUFFERS_TEMPLATES_ALIASES
 #endif
 
 #ifndef FLATBUFFERS_HAS_STRING_VIEW
@@ -236,10 +255,8 @@ namespace flatbuffers {
 
 #ifndef FLATBUFFERS_LOCALE_INDEPENDENT
   // Enable locale independent functions {strtof_l, strtod_l,strtoll_l, strtoull_l}.
-  // They are part of the POSIX-2008 but not part of the C/C++ standard.
-  // GCC/Clang have definition (_XOPEN_SOURCE>=700) if POSIX-2008.
   #if ((defined(_MSC_VER) && _MSC_VER >= 1800)            || \
-       (defined(_XOPEN_SOURCE) && (_XOPEN_SOURCE>=700)))
+       (defined(_XOPEN_VERSION) && (_XOPEN_VERSION>=700)) && (!defined(__ANDROID_API__) || (defined(__ANDROID_API__) && (__ANDROID_API__>=21))))
     #define FLATBUFFERS_LOCALE_INDEPENDENT 1
   #else
     #define FLATBUFFERS_LOCALE_INDEPENDENT 0
@@ -309,6 +326,7 @@ typedef uintmax_t largest_scalar_t;
 #define FLATBUFFERS_MAX_ALIGNMENT 16
 
 #if defined(_MSC_VER)
+  #pragma warning(disable: 4351) // C4351: new behavior: elements of array ... will be default initialized
   #pragma warning(push)
   #pragma warning(disable: 4127) // C4127: conditional expression is constant
 #endif
@@ -374,6 +392,13 @@ T ReadScalar(const void *p) {
   return EndianScalar(*reinterpret_cast<const T *>(p));
 }
 
+// See https://github.com/google/flatbuffers/issues/5950
+
+#if (FLATBUFFERS_GCC >= 100000) && (FLATBUFFERS_GCC < 110000)
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wstringop-overflow"
+#endif
+
 template<typename T>
 // UBSAN: C++ aliasing type rules, see std::bit_cast<> for details.
 __supress_ubsan__("alignment")
@@ -385,6 +410,10 @@ template<typename T> struct Offset;
 template<typename T> __supress_ubsan__("alignment") void WriteScalar(void *p, Offset<T> t) {
   *reinterpret_cast<uoffset_t *>(p) = EndianScalar(t.o);
 }
+
+#if (FLATBUFFERS_GCC >= 100000) && (FLATBUFFERS_GCC < 110000)
+  #pragma GCC diagnostic pop
+#endif
 
 // Computes how many bytes you'd have to pad to be able to write an
 // "scalar_size" scalar if the buffer had grown to "buf_size" (downwards in
