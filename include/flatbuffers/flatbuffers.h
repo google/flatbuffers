@@ -636,6 +636,7 @@ class Allocator {
   }
 };
 
+#ifndef FLATBUFFERS_NO_DEFAULT_ALLOCATOR
 // DefaultAllocator uses new/delete to allocate memory regions
 class DefaultAllocator : public Allocator {
  public:
@@ -647,30 +648,57 @@ class DefaultAllocator : public Allocator {
 
   static void dealloc(void *p, size_t) { delete[] static_cast<uint8_t *>(p); }
 };
+#endif
 
 // These functions allow for a null allocator to mean use the default allocator,
 // as used by DetachedBuffer and vector_downward below.
 // This is to avoid having a statically or dynamically allocated default
 // allocator, or having to move it between the classes that may own it.
 inline uint8_t *Allocate(Allocator *allocator, size_t size) {
+#ifndef FLATBUFFERS_NO_DEFAULT_ALLOCATOR
   return allocator ? allocator->allocate(size)
                    : DefaultAllocator().allocate(size);
+#else  // !FLATBUFFERS_NO_DEFAULT_ALLOCATOR
+  if (allocator)
+    return allocator->allocate(size);
+  else {
+    FLATBUFFERS_ASSERT(false);
+    return nullptr;
+  }
+#endif  // !FLATBUFFERS_NO_DEFAULT_ALLOCATOR
 }
 
 inline void Deallocate(Allocator *allocator, uint8_t *p, size_t size) {
+#ifndef FLATBUFFERS_NO_DEFAULT_ALLOCATOR
   if (allocator)
     allocator->deallocate(p, size);
   else
     DefaultAllocator().deallocate(p, size);
+#else  // !FLATBUFFERS_NO_DEFAULT_ALLOCATOR
+  if (allocator)
+    allocator->deallocate(p, size);
+  else
+    FLATBUFFERS_ASSERT(false);
+#endif  // !FLATBUFFERS_NO_DEFAULT_ALLOCATOR
 }
 
 inline uint8_t *ReallocateDownward(Allocator *allocator, uint8_t *old_p,
                                    size_t old_size, size_t new_size,
                                    size_t in_use_back, size_t in_use_front) {
+#ifndef FLATBUFFERS_NO_DEFAULT_ALLOCATOR
   return allocator ? allocator->reallocate_downward(old_p, old_size, new_size,
                                                     in_use_back, in_use_front)
                    : DefaultAllocator().reallocate_downward(
                          old_p, old_size, new_size, in_use_back, in_use_front);
+#else  // !FLATBUFFERS_NO_DEFAULT_ALLOCATOR
+  if (allocator)
+    return allocator->reallocate_downward(old_p, old_size, new_size,
+                                          in_use_back, in_use_front);
+  else {
+    FLATBUFFERS_ASSERT(false);
+    return nullptr;
+  }
+#endif  // !FLATBUFFERS_NO_DEFAULT_ALLOCATOR
 }
 
 // DetachedBuffer is a finished flatbuffer memory region, detached from its
