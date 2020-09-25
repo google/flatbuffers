@@ -86,7 +86,7 @@ namespace FlatBuffers
             return offset + bb.GetInt(offset) + sizeof(int);  // data starts after the length
         }
 
-#if ENABLE_SPAN_T
+#if ENABLE_SPAN_T && (UNSAFE_BYTEBUFFER || NETSTANDARD2_1)
         // Get the data of a vector whoses offset is stored at "offset" in this object as an
         // Spant&lt;byte&gt;. If the vector is not present in the ByteBuffer,
         // then an empty span will be returned.
