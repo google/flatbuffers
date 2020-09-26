@@ -240,7 +240,7 @@ elseif(CMAKE_COMPILER_IS_GNUCXX)
         "${CMAKE_CXX_FLAGS} -faligned-new -Werror=implicit-fallthrough=2")
     endif()
     set(CMAKE_CXX_FLAGS
-      "${CMAKE_CXX_FLAGS} -Wunused-result -Werror=unused-result -Wunused-parameter -Werror=unused-parameter")
+      "${CMAKE_CXX_FLAGS} -Wunused-result -Werror=unused-result -Wunused-parameter -Werror=unused-parameter -Wno-return-local-addr")
   endif()
 
   # Certain platforms such as ARM do not use signed chars by default

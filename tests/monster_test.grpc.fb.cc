@@ -87,50 +87,50 @@ MonsterStorage::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       MonsterStorage_method_names[0],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< MonsterStorage::Service, flatbuffers::grpc::Message<Monster>, flatbuffers::grpc::Message<Stat>>(
+      new ::grpc_impl::internal::RpcMethodHandler< MonsterStorage::Service, flatbuffers::grpc::Message<Monster>, flatbuffers::grpc::Message<Stat>>(
           std::mem_fn(&MonsterStorage::Service::Store), this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       MonsterStorage_method_names[1],
       ::grpc::internal::RpcMethod::SERVER_STREAMING,
-      new ::grpc::internal::ServerStreamingHandler< MonsterStorage::Service, flatbuffers::grpc::Message<Stat>, flatbuffers::grpc::Message<Monster>>(
+      new ::grpc_impl::internal::ServerStreamingHandler< MonsterStorage::Service, flatbuffers::grpc::Message<Stat>, flatbuffers::grpc::Message<Monster>>(
           std::mem_fn(&MonsterStorage::Service::Retrieve), this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       MonsterStorage_method_names[2],
       ::grpc::internal::RpcMethod::CLIENT_STREAMING,
-      new ::grpc::internal::ClientStreamingHandler< MonsterStorage::Service, flatbuffers::grpc::Message<Monster>, flatbuffers::grpc::Message<Stat>>(
+      new ::grpc_impl::internal::ClientStreamingHandler< MonsterStorage::Service, flatbuffers::grpc::Message<Monster>, flatbuffers::grpc::Message<Stat>>(
           std::mem_fn(&MonsterStorage::Service::GetMaxHitPoint), this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       MonsterStorage_method_names[3],
       ::grpc::internal::RpcMethod::BIDI_STREAMING,
-      new ::grpc::internal::BidiStreamingHandler< MonsterStorage::Service, flatbuffers::grpc::Message<Monster>, flatbuffers::grpc::Message<Stat>>(
+      new ::grpc_impl::internal::BidiStreamingHandler< MonsterStorage::Service, flatbuffers::grpc::Message<Monster>, flatbuffers::grpc::Message<Stat>>(
           std::mem_fn(&MonsterStorage::Service::GetMinMaxHitPoints), this)));
 }
 
 MonsterStorage::Service::~Service() {
 }
 
-::grpc::Status MonsterStorage::Service::Store(::grpc::ServerContext* context, const flatbuffers::grpc::Message<Monster>* request, flatbuffers::grpc::Message<Stat>* response) {
+::grpc::Status MonsterStorage::Service::Store(::grpc_impl::ServerContext* context, const flatbuffers::grpc::Message<Monster>* request, flatbuffers::grpc::Message<Stat>* response) {
   (void) context;
   (void) request;
   (void) response;
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
-::grpc::Status MonsterStorage::Service::Retrieve(::grpc::ServerContext* context, const flatbuffers::grpc::Message<Stat>* request, ::grpc::ServerWriter< flatbuffers::grpc::Message<Monster>>* writer) {
+::grpc::Status MonsterStorage::Service::Retrieve(::grpc_impl::ServerContext* context, const flatbuffers::grpc::Message<Stat>* request, ::grpc::ServerWriter< flatbuffers::grpc::Message<Monster>>* writer) {
   (void) context;
   (void) request;
   (void) writer;
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
-::grpc::Status MonsterStorage::Service::GetMaxHitPoint(::grpc::ServerContext* context, ::grpc::ServerReader< flatbuffers::grpc::Message<Monster>>* reader, flatbuffers::grpc::Message<Stat>* response) {
+::grpc::Status MonsterStorage::Service::GetMaxHitPoint(::grpc_impl::ServerContext* context, ::grpc::ServerReader< flatbuffers::grpc::Message<Monster>>* reader, flatbuffers::grpc::Message<Stat>* response) {
   (void) context;
   (void) reader;
   (void) response;
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
-::grpc::Status MonsterStorage::Service::GetMinMaxHitPoints(::grpc::ServerContext* context, ::grpc::ServerReaderWriter< flatbuffers::grpc::Message<Stat>, flatbuffers::grpc::Message<Monster>>* stream) {
+::grpc::Status MonsterStorage::Service::GetMinMaxHitPoints(::grpc_impl::ServerContext* context, ::grpc::ServerReaderWriter< flatbuffers::grpc::Message<Stat>, flatbuffers::grpc::Message<Monster>>* stream) {
   (void) context;
   (void) stream;
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");

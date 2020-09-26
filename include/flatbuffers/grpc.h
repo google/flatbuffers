@@ -21,6 +21,7 @@
 
 #include "flatbuffers/flatbuffers.h"
 #include "grpc++/support/byte_buffer.h"
+#include "grpc++/client_context.h"
 #include "grpc/byte_buffer_reader.h"
 
 namespace flatbuffers {
@@ -287,8 +288,14 @@ template<class T> class SerializationTraits<flatbuffers::grpc::Message<T>> {
   }
 
   // Deserialize by pulling the
-  static grpc::Status Deserialize(grpc_byte_buffer *buffer,
+  static grpc::Status Deserialize(::grpc::ByteBuffer *bbuffer,
                                   flatbuffers::grpc::Message<T> *msg) {
+    
+    std::vector<Slice>* slices = new std::vector<Slice>;
+    bbuffer->Dump(slices);
+    grpc_byte_buffer* buffer = g_core_codegen_interface->grpc_raw_byte_buffer_create(
+        reinterpret_cast<grpc_slice*>(const_cast<Slice*>(slices->data())), slices->size());
+    
     if (!buffer) {
       return ::grpc::Status(::grpc::StatusCode::INTERNAL, "No payload");
     }
