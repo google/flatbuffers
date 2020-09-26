@@ -16,6 +16,8 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 
+#include <set>
+
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
@@ -23,6 +25,7 @@
 #include "src/compiler/cpp_generator.h"
 #include "src/compiler/go_generator.h"
 #include "src/compiler/java_generator.h"
+#include "src/compiler/ts_generator.h"
 #include "src/compiler/python_generator.h"
 #include "src/compiler/python_private_generator.h"
 #include "src/compiler/swift_generator.h"
@@ -206,7 +209,8 @@ class FlatBufFile : public grpc_generator::File {
     kLanguageCpp,
     kLanguageJava,
     kLanguagePython,
-    kLanguageSwift
+    kLanguageSwift,
+    kLanguageTS
   };
 
   FlatBufFile(const Parser &parser, const std::string &file_name,
@@ -256,6 +260,9 @@ class FlatBufFile : public grpc_generator::File {
         return "";
       }
       case kLanguageSwift: {
+        return "";
+      }
+      case kLanguageTS: {
         return "";
       }
     }
@@ -465,6 +472,57 @@ bool GenerateSwiftGRPC(const Parser &parser, const std::string &path,
   }
   if (!nservices) return true;
   return SwiftGRPCGenerator(parser, path, file_name).generate();
+}
+
+class TSGRPCGenerator : public flatbuffers::BaseGenerator {
+private:
+  CodeWriter code_;
+
+public:
+  TSGRPCGenerator(const Parser &parser, const std::string &path,
+                     const std::string &filename)
+  : BaseGenerator(parser, path, filename, "", "" /*Unused*/, "ts") {}
+
+  bool generate() {
+    code_.Clear();
+    FlatBufFile file(parser_, file_name_, FlatBufFile::kLanguageTS);
+
+    for (int i = 0; i < file.service_count(); i++) {
+      auto service = file.service(i);
+      code_ += grpc_ts_generator::Generate(&file, service.get(),
+                                           file_name_);
+      const auto ts_name = GeneratedFileName(path_, file_name_);
+      if (!SaveFile(ts_name.c_str(), code_.ToString(), false))
+        return false;
+
+      code_.Clear();
+      code_ += grpc_ts_generator::GenerateInterface(&file, service.get(),
+                                                    file_name_);
+      const auto ts_interface_name = GeneratedFileName(path_, file_name_,
+                                                       true);
+      if (!SaveFile(ts_interface_name.c_str(), code_.ToString(), false))
+        return false;
+    }
+    return true;
+  }
+
+  static std::string GeneratedFileName(const std::string &path,
+                                       const std::string &file_name,
+                                       const bool is_interface = false) {
+    if (is_interface) return path + file_name + "_grpc.d.ts";
+    return path + file_name + "_grpc.js";
+  }
+};
+
+bool GenerateTSGRPC(const Parser &parser, const std::string &path,
+                       const std::string &file_name) {
+  int nservices = 0;
+  for (auto it = parser.services_.vec.begin(); it != parser.services_.vec.end();
+       ++it) {
+    if (!(*it)->generated) nservices++;
+  }
+  if (!nservices) return true;
+  return TSGRPCGenerator(parser, path, file_name).generate();
 }
 
 }  // namespace flatbuffers
