@@ -1559,7 +1559,7 @@ CheckedError Parser::ParseMetaData(SymbolTable<Value> *attributes) {
                      name);
       NEXT();
       auto e = new Value();
-      attributes->Add(name, e);
+      if (attributes->Add(name, e)) Warning("attribute already found: " + name);
       if (Is(':')) {
         NEXT();
         ECHECK(ParseSingleValue(&name, *e, true));
