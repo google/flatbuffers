@@ -4,7 +4,7 @@ export function toByteWidth(bitWidth: BitWidth): number {
     return 1 << bitWidth;
 }
 
-export function iwidth(value: number): BitWidth {
+export function iwidth(value: number | bigint): BitWidth {
     if (value >= -128 && value <= 127) return BitWidth.WIDTH8;
     if (value >= -32768 && value <= 32767) return BitWidth.WIDTH16;
     if (value >= -2147483648 && value <= 2147483647) return BitWidth.WIDTH32;

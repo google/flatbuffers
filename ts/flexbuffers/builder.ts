@@ -1,588 +1,602 @@
-flexbuffers.builder = (size = 2048, deduplicateString = true, deduplicateKeys = true, deduplicateKeyVectors = true) => {
-    let buffer = new ArrayBuffer(size > 0 ? size : 2048);
-    let view = new DataView(buffer);
-    const stack = [];
-    const stackPointers = [];
-    let offset = 0;
-    let finished = false;
-    const stringLookup = {};
-    const keyLookup = {};
-    const keyVectorLookup = {};
-    const indirectIntLookup = {};
-    const indirectUIntLookup = {};
-    const indirectFloatLookup = {};
-  
-    let dedupStrings = deduplicateString;
-    let dedupKeys = deduplicateKeys;
-    let dedupKeyVectors = deduplicateKeyVectors;
-  
-    function align(width) {
-      const byteWidth = flexbuffers.BitWidthUtil.toByteWidth(width);
-      offset += flexbuffers.BitWidthUtil.paddingSize(offset, byteWidth);
-      return byteWidth;
-    }
-  
-    function computeOffset(newValueSize) {
-      const targetOffset = offset + newValueSize;
-      let size = buffer.byteLength;
-      const prevSize = size;
-      while (size < targetOffset) {
-        size <<= 1;
+import { BitWidth } from './bit-width'
+import { paddingSize, iwidth, uwidth, fwidth, toByteWidth, fromByteWidth } from './bit-width-util'
+import { toUTF8Array } from './flexbuffers-util'
+import { ValueType } from './value-type'
+import { isNumber, isInline, isTypedVectorElement, packedType, toTypedVector } from './value-type-util'
+
+class StackValue {
+  constructor (private builder: Builder, public type: ValueType, public width: number, public value: number | boolean | null = null, public offset: number = 0)
+  {}
+    elementWidth(size: number, index: number) {
+      if (isInline(this.type)) return this.width;
+      for (let i = 0; i < 4; i++) {
+        const width = 1 << i;
+        const offsetLoc = size + paddingSize(size, width) + index * width;
+        const offset = offsetLoc - this.offset;
+        const bitWidth = uwidth(offset);
+        if (1 << bitWidth === width) {
+          return bitWidth;
+        }
       }
-      if (prevSize < size) {
-        const prevBuffer = buffer;
-        buffer = new ArrayBuffer(size);
-        view = new DataView(buffer);
-        new Uint8Array(buffer).set(new Uint8Array(prevBuffer), 0);
-      }
-      return targetOffset;
+      throw `Element is unknown. Size: ${size} at index: ${index}. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new`;
     }
-  
-    function pushInt(value, width) {
-      if (width === flexbuffers.BitWidth.WIDTH8) {
-        view.setInt8(offset, value);
-      } else if (width === flexbuffers.BitWidth.WIDTH16) {
-        view.setInt16(offset, value, true);
-      } else if (width === flexbuffers.BitWidth.WIDTH32) {
-        view.setInt32(offset, value, true);
-      } else if (width === flexbuffers.BitWidth.WIDTH64) {
-        view.setBigInt64(offset, BigInt(value), true);
-      } else {
-        throw `Unexpected width: ${width} for value: ${value}`;
-      }
-    }
-  
-    function pushUInt(value, width) {
-      if (width === flexbuffers.BitWidth.WIDTH8) {
-        view.setUint8(offset, value);
-      } else if (width === flexbuffers.BitWidth.WIDTH16) {
-        view.setUint16(offset, value, true);
-      } else if (width === flexbuffers.BitWidth.WIDTH32) {
-        view.setUint32(offset, value, true);
-      } else if (width === flexbuffers.BitWidth.WIDTH64) {
-        view.setBigUint64(offset, BigInt(value), true);
-      } else {
-        throw `Unexpected width: ${width} for value: ${value}`;
-      }
-    }
-  
-    function writeInt(value, byteWidth) {
-      const newOffset = computeOffset(byteWidth);
-      pushInt(value, flexbuffers.BitWidthUtil.fromByteWidth(byteWidth));
-      offset = newOffset;
-    }
-  
-    function writeUInt(value, byteWidth) {
-      const newOffset = computeOffset(byteWidth);
-      pushUInt(value, flexbuffers.BitWidthUtil.fromByteWidth(byteWidth));
-      offset = newOffset;
-    }
-  
-    function writeBlob(arrayBuffer) {
-      const length = arrayBuffer.byteLength;
-      const bitWidth = flexbuffers.BitWidthUtil.uwidth(length);
-      const byteWidth = align(bitWidth);
-      writeUInt(length, byteWidth);
-      const blobOffset = offset;
-      const newOffset = computeOffset(length);
-      new Uint8Array(buffer).set(new Uint8Array(arrayBuffer), blobOffset);
-      stack.push(offsetStackValue(blobOffset, flexbuffers.ValueType.BLOB, bitWidth));
-      offset = newOffset;
-    }
-  
-    function writeString(str) {
-      if (dedupStrings && stringLookup.hasOwnProperty(str)) {
-        stack.push(stringLookup[str]);
-        return;
-      }
-      const utf8 = toUTF8Array(str);
-      const length = utf8.length;
-      const bitWidth = flexbuffers.BitWidthUtil.uwidth(length);
-      const byteWidth = align(bitWidth);
-      writeUInt(length, byteWidth);
-      const stringOffset = offset;
-      const newOffset = computeOffset(length + 1);
-      new Uint8Array(buffer).set(utf8, stringOffset);
-      const stackValue = offsetStackValue(stringOffset, flexbuffers.ValueType.STRING, bitWidth);
-      stack.push(stackValue);
-      if (dedupStrings) {
-        stringLookup[str] = stackValue;
-      }
-      offset = newOffset;
-    }
-  
-    function writeKey(str) {
-      if (dedupKeys && keyLookup.hasOwnProperty(str)) {
-        stack.push(keyLookup[str]);
-        return;
-      }
-      const utf8 = toUTF8Array(str);
-      const length = utf8.length;
-      const newOffset = computeOffset(length + 1);
-      new Uint8Array(buffer).set(utf8, offset);
-      const stackValue = offsetStackValue(offset, flexbuffers.ValueType.KEY, flexbuffers.BitWidth.WIDTH8);
-      stack.push(stackValue);
-      if (dedupKeys) {
-        keyLookup[str] = stackValue;
-      }
-      offset = newOffset;
-    }
-  
-    function writeStackValue(value, byteWidth) {
-      const newOffset = computeOffset(byteWidth);
-      if (value.isOffset) {
-        const relativeOffset = offset - value.offset;
-        if (byteWidth === 8 || BigInt(relativeOffset) < (1n << BigInt(byteWidth * 8))) {
-          writeUInt(relativeOffset, byteWidth);
+
+    writeToBuffer(byteWidth: number) {
+      const newOffset = this.builder.computeOffset(byteWidth);
+      if (this.type === ValueType.FLOAT) {
+        if (this.width === BitWidth.WIDTH32) {
+          this.builder.view.setFloat32(this.offset, this.value as number, true);
         } else {
-          throw `Unexpected size ${byteWidth}. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new`
+          this.builder.view.setFloat64(this.offset, this.value as number, true);
         }
+      } else if (this.type === ValueType.INT) {
+        const bitWidth = fromByteWidth(byteWidth);
+        this.builder.pushInt(this.value as number, bitWidth);
+      } else if (this.type === ValueType.UINT) {
+        const bitWidth = fromByteWidth(byteWidth);
+        this.builder.pushUInt(this.value as number, bitWidth);
+      } else if (this.type === ValueType.NULL) {
+        this.builder.pushInt(0, this.width);
+      } else if (this.type === ValueType.BOOL) {
+        this.builder.pushInt(this.value ? 1 : 0, this.width);
       } else {
-        value.writeToBuffer(byteWidth);
+        throw `Unexpected type: ${this.type}. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new`
       }
-      offset = newOffset;
+      this.offset = newOffset;
     }
-  
-    function integrityCheckOnValueAddition() {
-      if (finished) {
-        throw "Adding values after finish is prohibited";
+
+    storedWidth(width = BitWidth.WIDTH8) {
+      return isInline(this.type) ? Math.max(width, this.width) : this.width;
+    }
+
+    storedPackedType(width = BitWidth.WIDTH8) {
+      return packedType(this.type, this.storedWidth(width));
+    }
+
+    isOffset() {
+      return !isInline(this.type)
+    }
+  }
+
+interface StackPointer {
+  stackPosition: number,
+  isVector: boolean
+  presorted?: boolean
+}
+
+export class Builder {
+  buffer: ArrayBuffer
+  view: DataView
+
+  readonly stack: Array<StackValue> = [];
+  readonly stackPointers: Array<StackPointer> = [];
+  offset = 0;
+  finished = false;
+  readonly stringLookup: Record<string, StackValue>= {};
+  readonly keyLookup: Record<string, StackValue> = {};
+  readonly keyVectorLookup: Record<string, StackValue> = {};
+  readonly indirectIntLookup: Record<number, StackValue> = {};
+  readonly indirectUIntLookup: Record<number, StackValue> = {};
+  readonly indirectFloatLookup: Record<number, StackValue> = {};
+
+  constructor(size = 2048, private dedupStrings = true, private dedupKeys = true, private dedupKeyVectors = true) {
+    this.buffer = new ArrayBuffer(size > 0 ? size : 2048);
+    this.view = new DataView(this.buffer);
+  }
+
+  private align(width: BitWidth) {
+    const byteWidth = toByteWidth(width);
+    this.offset += paddingSize(this.offset, byteWidth);
+    return byteWidth;
+  }
+
+  computeOffset(newValueSize: number): number {
+    const targetOffset = this.offset + newValueSize;
+    let size = this.buffer.byteLength;
+    const prevSize = size;
+    while (size < targetOffset) {
+      size <<= 1;
+    }
+    if (prevSize < size) {
+      const prevBuffer = this.buffer;
+      this.buffer = new ArrayBuffer(size);
+      this.view = new DataView(this.buffer);
+      new Uint8Array(this.buffer).set(new Uint8Array(prevBuffer), 0);
+    }
+    return targetOffset;
+  }
+
+  pushInt(value: number, width: BitWidth): void {
+    if (width === BitWidth.WIDTH8) {
+      this.view.setInt8(this.offset, value);
+    } else if (width === BitWidth.WIDTH16) {
+      this.view.setInt16(this.offset, value, true);
+    } else if (width === BitWidth.WIDTH32) {
+      this.view.setInt32(this.offset, value, true);
+    } else if (width === BitWidth.WIDTH64) {
+      this.view.setBigInt64(this.offset, BigInt(value), true);
+    } else {
+      throw `Unexpected width: ${width} for value: ${value}`;
+    }
+  }
+
+  pushUInt(value: number, width: BitWidth): void {
+    if (width === BitWidth.WIDTH8) {
+      this.view.setUint8(this.offset, value);
+    } else if (width === BitWidth.WIDTH16) {
+      this.view.setUint16(this.offset, value, true);
+    } else if (width === BitWidth.WIDTH32) {
+      this.view.setUint32(this.offset, value, true);
+    } else if (width === BitWidth.WIDTH64) {
+      this.view.setBigUint64(this.offset, BigInt(value), true);
+    } else {
+      throw `Unexpected width: ${width} for value: ${value}`;
+    }
+  }
+
+  private writeInt(value: number, byteWidth: number) {
+    const newOffset = this.computeOffset(byteWidth);
+    this.pushInt(value, fromByteWidth(byteWidth));
+    this.offset = newOffset;
+  }
+
+  private writeUInt(value: number, byteWidth: number) {
+    const newOffset = this.computeOffset(byteWidth);
+    this.pushUInt(value, fromByteWidth(byteWidth));
+    this.offset = newOffset;
+  }
+
+  private writeBlob(arrayBuffer: ArrayBuffer) {
+    const length = arrayBuffer.byteLength;
+    const bitWidth = uwidth(length);
+    const byteWidth = this.align(bitWidth);
+    this.writeUInt(length, byteWidth);
+    const blobOffset = this.offset;
+    const newOffset = this.computeOffset(length);
+    new Uint8Array(this.buffer).set(new Uint8Array(arrayBuffer), blobOffset);
+    this.stack.push(this.offsetStackValue(blobOffset, ValueType.BLOB, bitWidth));
+    this.offset = newOffset;
+  }
+
+  private writeString(str: string): void {
+    if (this.dedupStrings && Object.prototype.hasOwnProperty.call(this.stringLookup, str)) {
+      this.stack.push(this.stringLookup[str]);
+      return;
+    }
+    const utf8 = toUTF8Array(str);
+    const length = utf8.length;
+    const bitWidth = uwidth(length);
+    const byteWidth = this.align(bitWidth);
+    this.writeUInt(length, byteWidth);
+    const stringOffset = this.offset;
+    const newOffset = this.computeOffset(length + 1);
+    new Uint8Array(this.buffer).set(utf8, stringOffset);
+    const stackValue = this.offsetStackValue(stringOffset, ValueType.STRING, bitWidth);
+    this.stack.push(stackValue);
+    if (this.dedupStrings) {
+      this.stringLookup[str] = stackValue;
+    }
+    this.offset = newOffset;
+  }
+
+  private writeKey(str: string): void {
+    if (this.dedupKeys && Object.prototype.hasOwnProperty.call(this.keyLookup, str)) {
+      this.stack.push(this.keyLookup[str]);
+      return;
+    }
+    const utf8 = toUTF8Array(str);
+    const length = utf8.length;
+    const newOffset = this.computeOffset(length + 1);
+    new Uint8Array(this.buffer).set(utf8, this.offset);
+    const stackValue = this.offsetStackValue(this.offset, ValueType.KEY, BitWidth.WIDTH8);
+    this.stack.push(stackValue);
+    if (this.dedupKeys) {
+      this.keyLookup[str] = stackValue;
+    }
+    this.offset = newOffset;
+  }
+
+  private writeStackValue(value: StackValue, byteWidth: number): void {
+    const newOffset = this.computeOffset(byteWidth);
+    if (value.isOffset()) {
+      const relativeOffset = this.offset - value.offset;
+      if (byteWidth === 8 || BigInt(relativeOffset) < (BigInt(1) << BigInt(byteWidth * 8))) {
+        this.writeUInt(relativeOffset, byteWidth);
+      } else {
+        throw `Unexpected size ${byteWidth}. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new`
       }
-      if (stackPointers.length !== 0 && stackPointers[stackPointers.length - 1].isVector === false) {
-        if (stack[stack.length - 1].type !== flexbuffers.ValueType.KEY) {
-          throw "Adding value to a map before adding a key is prohibited";
-        }
+    } else {
+      value.writeToBuffer(byteWidth);
+    }
+    this.offset = newOffset;
+  }
+
+  private integrityCheckOnValueAddition() {
+    if (this.finished) {
+      throw "Adding values after finish is prohibited";
+    }
+    if (this.stackPointers.length !== 0 && this.stackPointers[this.stackPointers.length - 1].isVector === false) {
+      if (this.stack[this.stack.length - 1].type !== ValueType.KEY) {
+        throw "Adding value to a map before adding a key is prohibited";
       }
     }
-  
-    function integrityCheckOnKeyAddition() {
-      if (finished) {
-        throw "Adding values after finish is prohibited";
+  }
+
+  private integrityCheckOnKeyAddition() {
+    if (this.finished) {
+      throw "Adding values after finish is prohibited";
+    }
+    if (this.stackPointers.length === 0 || this.stackPointers[this.stackPointers.length - 1].isVector) {
+      throw "Adding key before starting a map is prohibited";
+    }
+  }
+
+  startVector(): void {
+    this.stackPointers.push({stackPosition: this.stack.length, isVector: true});
+  }
+
+  startMap(presorted = false): void {
+    this.stackPointers.push({stackPosition: this.stack.length, isVector: false, presorted: presorted});
+  }
+
+  private endVector(stackPointer: StackPointer) {
+    const vecLength = this.stack.length - stackPointer.stackPosition;
+    const vec = this.createVector(stackPointer.stackPosition, vecLength, 1);
+    this.stack.splice(stackPointer.stackPosition, vecLength);
+    this.stack.push(vec);
+  }
+
+  private endMap(stackPointer: StackPointer) {
+    if (!stackPointer.presorted) {
+      this.sort(stackPointer);
+    }
+    let keyVectorHash = "";
+    for (let i = stackPointer.stackPosition; i < this.stack.length; i += 2) {
+      keyVectorHash += `,${this.stack[i].offset}`;
+    }
+    const vecLength = (this.stack.length - stackPointer.stackPosition) >> 1;
+
+    if (this.dedupKeyVectors && !Object.prototype.hasOwnProperty.call(this.keyVectorLookup, keyVectorHash)) {
+      this.keyVectorLookup[keyVectorHash] = this.createVector(stackPointer.stackPosition, vecLength, 2);
+    }
+    const keysStackValue = this.dedupKeyVectors ? this.keyVectorLookup[keyVectorHash] : this.createVector(stackPointer.stackPosition, vecLength, 2);
+    const valuesStackValue = this.createVector(stackPointer.stackPosition + 1, vecLength, 2, keysStackValue);
+    this.stack.splice(stackPointer.stackPosition, vecLength << 1);
+    this.stack.push(valuesStackValue);
+  }
+
+  private sort(stackPointer: StackPointer) {
+    const view = this.view
+    const stack = this.stack
+
+    function shouldFlip(v1: StackValue, v2: StackValue) {
+      if (v1.type !== ValueType.KEY || v2.type !== ValueType.KEY) {
+        throw `Stack values are not keys ${v1} | ${v2}. Check if you combined [addKey] with add... method calls properly.`
       }
-      if (stackPointers.length === 0 || stackPointers[stackPointers.length - 1].isVector) {
-        throw "Adding key before starting a map is prohibited";
-      }
+      let c1, c2;
+      let index = 0;
+      do {
+        c1 = view.getUint8(v1.offset + index);
+        c2 = view.getUint8(v2.offset + index);
+        if (c2 < c1) return true;
+        if (c1 < c2) return false;
+        index += 1;
+      } while (c1 !== 0 && c2 !== 0);
+      return false;
     }
-  
-    function startVector() {
-      stackPointers.push({stackPosition: stack.length, isVector: true});
+
+    function swap(stack: Array<StackValue>, flipIndex: number, i: number) {
+      if (flipIndex === i) return;
+      const k = stack[flipIndex];
+      const v = stack[flipIndex + 1];
+      stack[flipIndex] = stack[i];
+      stack[flipIndex + 1] = stack[i + 1];
+      stack[i] = k;
+      stack[i + 1] = v;
     }
-  
-    function startMap(presorted = false) {
-      stackPointers.push({stackPosition: stack.length, isVector: false, presorted: presorted});
-    }
-  
-    function endVector(stackPointer) {
-      const vecLength = stack.length - stackPointer.stackPosition;
-      const vec = createVector(stackPointer.stackPosition, vecLength, 1);
-      stack.splice(stackPointer.stackPosition, vecLength);
-      stack.push(vec);
-    }
-  
-    function endMap(stackPointer) {
-      if (!stackPointer.presorted) {
-        sort(stackPointer);
-      }
-      let keyVectorHash = "";
+
+    function selectionSort() {
       for (let i = stackPointer.stackPosition; i < stack.length; i += 2) {
-        keyVectorHash += `,${stack[i].offset}`;
-      }
-      const vecLength = (stack.length - stackPointer.stackPosition) >> 1;
-  
-      if (dedupKeyVectors && !keyVectorLookup.hasOwnProperty(keyVectorHash)) {
-        keyVectorLookup[keyVectorHash] = createVector(stackPointer.stackPosition, vecLength, 2);
-      }
-      const keysStackValue = dedupKeyVectors ? keyVectorLookup[keyVectorHash] : createVector(stackPointer.stackPosition, vecLength, 2);
-      const valuesStackValue = createVector(stackPointer.stackPosition + 1, vecLength, 2, keysStackValue);
-      stack.splice(stackPointer.stackPosition, vecLength << 1);
-      stack.push(valuesStackValue);
-    }
-  
-    function sort(stackPointer) {
-      function shouldFlip(v1, v2) {
-        if (v1.type !== flexbuffers.ValueType.KEY || v2.type !== flexbuffers.ValueType.KEY) {
-          throw `Stack values are not keys ${v1} | ${v2}. Check if you combined [addKey] with add... method calls properly.`
-        }
-        let c1, c2;
-        let index = 0;
-        do {
-          c1 = view.getUint8(v1.offset + index);
-          c2 = view.getUint8(v2.offset + index);
-          if (c2 < c1) return true;
-          if (c1 < c2) return false;
-          index += 1;
-        } while (c1 !== 0 && c2 !== 0);
-        return false;
-      }
-  
-      function swap(stack, flipIndex, i) {
-        if (flipIndex === i) return;
-        const k = stack[flipIndex];
-        const v = stack[flipIndex + 1];
-        stack[flipIndex] = stack[i];
-        stack[flipIndex + 1] = stack[i + 1];
-        stack[i] = k;
-        stack[i + 1] = v;
-      }
-  
-      function selectionSort() {
-        for (let i = stackPointer.stackPosition; i < stack.length; i += 2) {
-          let flipIndex = i;
-          for (let j = i + 2; j < stack.length; j += 2) {
-            if (shouldFlip(stack[flipIndex], stack[j])) {
-              flipIndex = j;
-            }
-          }
-          if (flipIndex !== i) {
-            swap(stack, flipIndex, i);
+        let flipIndex = i;
+        for (let j = i + 2; j < stack.length; j += 2) {
+          if (shouldFlip(stack[flipIndex], stack[j])) {
+            flipIndex = j;
           }
         }
-      }
-  
-      function smaller(v1, v2) {
-        if (v1.type !== flexbuffers.ValueType.KEY || v2.type !== flexbuffers.ValueType.KEY) {
-          throw `Stack values are not keys ${v1} | ${v2}. Check if you combined [addKey] with add... method calls properly.`
-        }
-        if(v1.offset === v2.offset) {
-          return false;
-        }
-        let c1, c2;
-        let index = 0;
-        do {
-          c1 = view.getUint8(v1.offset + index);
-          c2 = view.getUint8(v2.offset + index);
-          if(c1 < c2) return true;
-          if(c2 < c1) return false;
-          index += 1;
-        } while (c1 !== 0 && c2 !== 0);
-        return false;
-      }
-  
-      function quickSort(left, right) {
-  
-        if (left < right) {
-          let mid = left + (((right - left) >> 2)) * 2;
-          let pivot = stack[mid],
-            left_new = left,
-            right_new = right;
-  
-          do {
-            while (smaller(stack[left_new], pivot)) {
-              left_new += 2;
-            }
-            while (smaller(pivot, stack[right_new])) {
-              right_new -= 2;
-            }
-            if (left_new <= right_new) {
-              swap(stack, left_new, right_new);
-              left_new += 2;
-              right_new -= 2;
-            }
-          } while (left_new <= right_new);
-  
-          quickSort(left, right_new);
-          quickSort(left_new, right);
-  
-        }
-      }
-  
-      let sorted = true;
-      for (let i = stackPointer.stackPosition; i < stack.length - 2; i += 2) {
-        if (shouldFlip(stack[i], stack[i + 2])) {
-          sorted = false;
-          break;
-        }
-      }
-  
-      if (!sorted) {
-        if (stack.length - stackPointer.stackPosition > 40) {
-          quickSort(stackPointer.stackPosition, stack.length - 2);
-        } else {
-          selectionSort();
+        if (flipIndex !== i) {
+          swap(stack, flipIndex, i);
         }
       }
     }
-  
-    function end() {
-      if (stackPointers.length < 1) return;
-      const pointer = stackPointers.pop();
-      if (pointer.isVector) {
-        endVector(pointer);
+
+    function smaller(v1: StackValue, v2: StackValue) {
+      if (v1.type !== ValueType.KEY || v2.type !== ValueType.KEY) {
+        throw `Stack values are not keys ${v1} | ${v2}. Check if you combined [addKey] with add... method calls properly.`
+      }
+      if(v1.offset === v2.offset) {
+        return false;
+      }
+      let c1, c2;
+      let index = 0;
+      do {
+        c1 = view.getUint8(v1.offset + index);
+        c2 = view.getUint8(v2.offset + index);
+        if(c1 < c2) return true;
+        if(c2 < c1) return false;
+        index += 1;
+      } while (c1 !== 0 && c2 !== 0);
+      return false;
+    }
+
+    function quickSort(left: number, right: number) {
+
+      if (left < right) {
+        const mid = left + (((right - left) >> 2)) * 2;
+        const pivot = stack[mid];
+        let left_new = left;
+        let right_new = right;
+
+        do {
+          while (smaller(stack[left_new], pivot)) {
+            left_new += 2;
+          }
+          while (smaller(pivot, stack[right_new])) {
+            right_new -= 2;
+          }
+          if (left_new <= right_new) {
+            swap(stack, left_new, right_new);
+            left_new += 2;
+            right_new -= 2;
+          }
+        } while (left_new <= right_new);
+
+        quickSort(left, right_new);
+        quickSort(left_new, right);
+
+      }
+    }
+
+    let sorted = true;
+    for (let i = stackPointer.stackPosition; i < this.stack.length - 2; i += 2) {
+      if (shouldFlip(this.stack[i], this.stack[i + 2])) {
+        sorted = false;
+        break;
+      }
+    }
+
+    if (!sorted) {
+      if (this.stack.length - stackPointer.stackPosition > 40) {
+        quickSort(stackPointer.stackPosition, this.stack.length - 2);
       } else {
-        endMap(pointer);
+        selectionSort();
       }
     }
-  
-    function createVector(start, vecLength, step, keys = null) {
-      let bitWidth = flexbuffers.BitWidthUtil.uwidth(vecLength);
-      let prefixElements = 1;
-      if (keys !== null) {
-        const elementWidth = keys.elementWidth(offset, 0);
-        if (elementWidth > bitWidth) {
-          bitWidth = elementWidth;
-        }
-        prefixElements += 2;
-      }
-      let vectorType = flexbuffers.ValueType.KEY;
-      let typed = keys === null;
-      for (let i = start; i < stack.length; i += step) {
-        const elementWidth = stack[i].elementWidth(offset, i + prefixElements);
-        if (elementWidth > bitWidth) {
-          bitWidth = elementWidth;
-        }
-        if (i === start) {
-          vectorType = stack[i].type;
-          typed &= flexbuffers.ValueTypeUtil.isTypedVectorElement(vectorType);
-        } else {
-          if (vectorType !== stack[i].type) {
-            typed = false;
-          }
-        }
-      }
-      const byteWidth = align(bitWidth);
-      const fix = typed && flexbuffers.ValueTypeUtil.isNumber(vectorType) && vecLength >= 2 && vecLength <= 4;
-      if (keys !== null) {
-        writeStackValue(keys, byteWidth);
-        writeUInt(1 << keys.width, byteWidth);
-      }
-      if (!fix) {
-        writeUInt(vecLength, byteWidth);
-      }
-      const vecOffset = offset;
-      for (let i = start; i < stack.length; i += step) {
-        writeStackValue(stack[i], byteWidth);
-      }
-      if (!typed) {
-        for (let i = start; i < stack.length; i += step) {
-          writeUInt(stack[i].storedPackedType(), 1);
-        }
-      }
-      if (keys !== null) {
-        return offsetStackValue(vecOffset, flexbuffers.ValueType.MAP, bitWidth);
-      }
-      if (typed) {
-        const vType = flexbuffers.ValueTypeUtil.toTypedVector(vectorType, fix ? vecLength : 0);
-        return offsetStackValue(vecOffset, vType, bitWidth);
-      }
-      return offsetStackValue(vecOffset, flexbuffers.ValueType.VECTOR, bitWidth);
+  }
+
+  end(): void {
+    if (this.stackPointers.length < 1) return;
+    const pointer = this.stackPointers.pop() as StackPointer;
+    if (pointer.isVector) {
+      this.endVector(pointer);
+    } else {
+      this.endMap(pointer);
     }
-  
-    function StackValue(type, width, value, _offset) {
-      return {
-        type: type,
-        width: width,
-        value: value,
-        offset: _offset,
-        elementWidth: function (size, index) {
-          if (flexbuffers.ValueTypeUtil.isInline(this.type)) return this.width;
-          for (let i = 0; i < 4; i++) {
-            const width = 1 << i;
-            const offsetLoc = size + flexbuffers.BitWidthUtil.paddingSize(size, width) + index * width;
-            const offset = offsetLoc - this.offset;
-            const bitWidth = flexbuffers.BitWidthUtil.uwidth(offset);
-            if (1 << bitWidth === width) {
-              return bitWidth;
-            }
-          }
-          throw `Element is unknown. Size: ${size} at index: ${index}. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new`;
-        },
-        writeToBuffer: function (byteWidth) {
-          const newOffset = computeOffset(byteWidth);
-          if (this.type === flexbuffers.ValueType.FLOAT) {
-            if (this.width === flexbuffers.BitWidth.WIDTH32) {
-              view.setFloat32(offset, this.value, true);
-            } else {
-              view.setFloat64(offset, this.value, true);
-            }
-          } else if (this.type === flexbuffers.ValueType.INT) {
-            const bitWidth = flexbuffers.BitWidthUtil.fromByteWidth(byteWidth);
-            pushInt(value, bitWidth);
-          } else if (this.type === flexbuffers.ValueType.UINT) {
-            const bitWidth = flexbuffers.BitWidthUtil.fromByteWidth(byteWidth);
-            pushUInt(value, bitWidth);
-          } else if (this.type === flexbuffers.ValueType.NULL) {
-            pushInt(0, this.width);
-          } else if (this.type === flexbuffers.ValueType.BOOL) {
-            pushInt(value ? 1 : 0, this.width);
-          } else {
-            throw `Unexpected type: ${type}. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new`
-          }
-          offset = newOffset;
-        },
-        storedWidth: function (width = flexbuffers.BitWidth.WIDTH8) {
-          return flexbuffers.ValueTypeUtil.isInline(this.type) ? Math.max(width, this.width) : this.width;
-        },
-        storedPackedType: function (width = flexbuffers.BitWidth.WIDTH8) {
-          return flexbuffers.ValueTypeUtil.packedType(this.type, this.storedWidth(width));
-        },
-        isOffset: !flexbuffers.ValueTypeUtil.isInline(type)
+  }
+
+  private createVector(start: number, vecLength: number, step: number, keys: StackValue | null = null) {
+    let bitWidth = uwidth(vecLength);
+    let prefixElements = 1;
+    if (keys !== null) {
+      const elementWidth = keys.elementWidth(this.offset, 0);
+      if (elementWidth > bitWidth) {
+        bitWidth = elementWidth;
+      }
+      prefixElements += 2;
+    }
+    let vectorType = ValueType.KEY;
+    let typed = keys === null;
+    for (let i = start; i < this.stack.length; i += step) {
+      const elementWidth = this.stack[i].elementWidth(this.offset, i + prefixElements);
+      if (elementWidth > bitWidth) {
+        bitWidth = elementWidth;
+      }
+      if (i === start) {
+        vectorType = this.stack[i].type;
+        typed = typed && isTypedVectorElement(vectorType);
+      } else {
+        if (vectorType !== this.stack[i].type) {
+          typed = false;
+        }
       }
     }
-  
-    function nullStackValue() {
-      return StackValue(flexbuffers.ValueType.NULL, flexbuffers.BitWidth.WIDTH8);
+    const byteWidth = this.align(bitWidth);
+    const fix = typed && isNumber(vectorType) && vecLength >= 2 && vecLength <= 4;
+    if (keys !== null) {
+      this.writeStackValue(keys, byteWidth);
+      this.writeUInt(1 << keys.width, byteWidth);
     }
-  
-    function boolStackValue(value) {
-      return StackValue(flexbuffers.ValueType.BOOL, flexbuffers.BitWidth.WIDTH8, value);
+    if (!fix) {
+      this.writeUInt(vecLength, byteWidth);
     }
-  
-    function intStackValue(value) {
-      return StackValue(flexbuffers.ValueType.INT, flexbuffers.BitWidthUtil.iwidth(value), value);
+    const vecOffset = this.offset;
+    for (let i = start; i < this.stack.length; i += step) {
+      this.writeStackValue(this.stack[i], byteWidth);
     }
-  
-    function uintStackValue(value) {
-      return StackValue(flexbuffers.ValueType.UINT, flexbuffers.BitWidthUtil.uwidth(value), value);
-    }
-  
-    function floatStackValue(value) {
-      return StackValue(flexbuffers.ValueType.FLOAT, flexbuffers.BitWidthUtil.fwidth(value), value);
-    }
-  
-    function offsetStackValue(offset, valueType, bitWidth) {
-      return StackValue(valueType, bitWidth, null, offset);
-    }
-  
-    function finishBuffer() {
-      if (stack.length !== 1) {
-        throw `Stack has to be exactly 1, but it is ${stack.length}. You have to end all started vectors and maps before calling [finish]`;
+    if (!typed) {
+      for (let i = start; i < this.stack.length; i += step) {
+        this.writeUInt(this.stack[i].storedPackedType(), 1);
       }
-      const value = stack[0];
-      const byteWidth = align(value.elementWidth(offset, 0));
-      writeStackValue(value, byteWidth);
-      writeUInt(value.storedPackedType(), 1);
-      writeUInt(byteWidth, 1);
-      finished = true;
     }
-  
-    return  {
-      add: function (value) {
-        integrityCheckOnValueAddition();
-        if (typeof value === 'undefined') {
-          throw "You need to provide a value";
-        }
-        if (value === null) {
-          stack.push(nullStackValue());
-        } else if (typeof value === "boolean") {
-          stack.push(boolStackValue(value));
-        } else if (typeof value === "bigint") {
-          stack.push(intStackValue(value));
-        } else if (typeof value == 'number') {
-          if (Number.isInteger(value)) {
-            stack.push(intStackValue(value));
-          } else {
-            stack.push(floatStackValue(value));
-          }
-        } else if (ArrayBuffer.isView(value)){
-          writeBlob(value.buffer);
-        } else if (typeof value === 'string' || value instanceof String) {
-          writeString(value);
-        } else if (Array.isArray(value)) {
-          startVector();
-          for (let i = 0; i < value.length; i++) {
-            this.add(value[i]);
-          }
-          end();
-        } else if (typeof value === 'object'){
-          const properties = Object.getOwnPropertyNames(value).sort();
-          startMap(true);
-          for (let i = 0; i < properties.length; i++) {
-            const key = properties[i];
-            this.addKey(key);
-            this.add(value[key]);
-          }
-          end();
-        } else {
-          throw `Unexpected value input ${value}`;
-        }
-      },
-      finish: function() {
-        if (!finished) {
-          finishBuffer();
-        }
-        const result = buffer.slice(0, offset);
-        return new Uint8Array(result);
-      },
-      isFinished: function() {
-        return finished;
-      },
-      addKey: function(key) {
-        integrityCheckOnKeyAddition();
-        writeKey(key);
-      },
-      addInt: function(value, indirect = false, deduplicate = false) {
-        integrityCheckOnValueAddition();
-        if (!indirect) {
-          stack.push(intStackValue(value));
-          return;
-        }
-        if (deduplicate && indirectIntLookup.hasOwnProperty(value)) {
-          stack.push(indirectIntLookup[value]);
-          return;
-        }
-        const stackValue = intStackValue(value);
-        const byteWidth = align(stackValue.width);
-        const newOffset = computeOffset(byteWidth);
-        const valueOffset = offset;
-        stackValue.writeToBuffer(byteWidth);
-        const stackOffset = offsetStackValue(valueOffset, flexbuffers.ValueType.INDIRECT_INT, stackValue.width);
-        stack.push(stackOffset);
-        offset = newOffset;
-        if (deduplicate) {
-          indirectIntLookup[value] = stackOffset;
-        }
-      },
-      addUInt: function(value, indirect = false, deduplicate = false) {
-        integrityCheckOnValueAddition();
-        if (!indirect) {
-          stack.push(uintStackValue(value));
-          return;
-        }
-        if (deduplicate && indirectUIntLookup.hasOwnProperty(value)) {
-          stack.push(indirectUIntLookup[value]);
-          return;
-        }
-        const stackValue = uintStackValue(value);
-        const byteWidth = align(stackValue.width);
-        const newOffset = computeOffset(byteWidth);
-        const valueOffset = offset;
-        stackValue.writeToBuffer(byteWidth);
-        const stackOffset = offsetStackValue(valueOffset, flexbuffers.ValueType.INDIRECT_UINT, stackValue.width);
-        stack.push(stackOffset);
-        offset = newOffset;
-        if (deduplicate) {
-          indirectUIntLookup[value] = stackOffset;
-        }
-      },
-      addFloat: function(value, indirect = false, deduplicate = false) {
-        integrityCheckOnValueAddition();
-        if (!indirect) {
-          stack.push(floatStackValue(value));
-          return;
-        }
-        if (deduplicate && indirectFloatLookup.hasOwnProperty(value)) {
-          stack.push(indirectFloatLookup[value]);
-          return;
-        }
-        const stackValue = floatStackValue(value);
-        const byteWidth = align(stackValue.width);
-        const newOffset = computeOffset(byteWidth);
-        const valueOffset = offset;
-        stackValue.writeToBuffer(byteWidth);
-        const stackOffset = offsetStackValue(valueOffset, flexbuffers.ValueType.INDIRECT_FLOAT, stackValue.width);
-        stack.push(stackOffset);
-        offset = newOffset;
-        if (deduplicate) {
-          indirectFloatLookup[value] = stackOffset;
-        }
-      },
-      startVector: function() {
-        startVector();
-      },
-      startMap: function() {
-        startMap();
-      },
-      end: function() {
-        end();
+    if (keys !== null) {
+      return this.offsetStackValue(vecOffset, ValueType.MAP, bitWidth);
+    }
+    if (typed) {
+      const vType = toTypedVector(vectorType, fix ? vecLength : 0);
+      return this.offsetStackValue(vecOffset, vType, bitWidth);
+    }
+    return this.offsetStackValue(vecOffset, ValueType.VECTOR, bitWidth);
+  }
+
+  private nullStackValue() {
+    return new StackValue(this, ValueType.NULL, BitWidth.WIDTH8);
+  }
+
+  private boolStackValue(value: boolean) {
+    return new StackValue(this, ValueType.BOOL, BitWidth.WIDTH8, value);
+  }
+
+  private intStackValue(value: number | bigint) {
+    return new StackValue(this, ValueType.INT, iwidth(value), value as number);
+  }
+
+  private uintStackValue(value: number) {
+    return new StackValue(this, ValueType.UINT, uwidth(value), value);
+  }
+
+  private floatStackValue(value: number) {
+    return new StackValue(this, ValueType.FLOAT, fwidth(value), value);
+  }
+
+  private offsetStackValue(offset: number, valueType: ValueType, bitWidth: BitWidth): StackValue {
+    return new StackValue(this, valueType, bitWidth, null, offset);
+  }
+
+  private finishBuffer() {
+    if (this.stack.length !== 1) {
+      throw `Stack has to be exactly 1, but it is ${this.stack.length}. You have to end all started vectors and maps before calling [finish]`;
+    }
+    const value = this.stack[0];
+    const byteWidth = this.align(value.elementWidth(this.offset, 0));
+    this.writeStackValue(value, byteWidth);
+    this.writeUInt(value.storedPackedType(), 1);
+    this.writeUInt(byteWidth, 1);
+    this.finished = true;
+  }
+
+  add(value: undefined | null | boolean | bigint | number | DataView | string | Array<unknown> | Record<string, unknown> | unknown): void {
+    this.integrityCheckOnValueAddition();
+    if (typeof value === 'undefined') {
+      throw "You need to provide a value";
+    }
+    if (value === null) {
+      this.stack.push(this.nullStackValue());
+    } else if (typeof value === "boolean") {
+      this.stack.push(this.boolStackValue(value));
+    } else if (typeof value === "bigint") {
+      this.stack.push(this.intStackValue(value));
+    } else if (typeof value == 'number') {
+      if (Number.isInteger(value)) {
+        this.stack.push(this.intStackValue(value));
+      } else {
+        this.stack.push(this.floatStackValue(value));
       }
-    };
-  };
+    } else if (ArrayBuffer.isView(value)){
+      this.writeBlob(value.buffer);
+    } else if (typeof value === 'string' || value instanceof String) {
+      this.writeString(value as string);
+    } else if (Array.isArray(value)) {
+      this.startVector();
+      for (let i = 0; i < value.length; i++) {
+        this.add(value[i]);
+      }
+      this.end();
+    } else if (typeof value === 'object'){
+      const properties = Object.getOwnPropertyNames(value).sort();
+      this.startMap(true);
+      for (let i = 0; i < properties.length; i++) {
+        const key = properties[i];
+        this.addKey(key);
+        this.add((value as Record<string, unknown>)[key]);
+      }
+      this.end();
+    } else {
+      throw `Unexpected value input ${value}`;
+    }
+  }
+
+  finish(): Uint8Array {
+    if (!this.finished) {
+      this.finishBuffer();
+    }
+    const result = this.buffer.slice(0, this.offset);
+    return new Uint8Array(result);
+  }
+
+  isFinished(): boolean {
+    return this.finished;
+  }
+
+  addKey(key: string): void {
+    this.integrityCheckOnKeyAddition();
+    this.writeKey(key);
+  }
+
+  addInt(value: number, indirect = false, deduplicate = false): void {
+    this.integrityCheckOnValueAddition();
+    if (!indirect) {
+      this.stack.push(this.intStackValue(value));
+      return;
+    }
+    if (deduplicate && Object.prototype.hasOwnProperty.call(this.indirectIntLookup, value)) {
+      this.stack.push(this.indirectIntLookup[value]);
+      return;
+    }
+    const stackValue = this.intStackValue(value);
+    const byteWidth = this.align(stackValue.width);
+    const newOffset = this.computeOffset(byteWidth);
+    const valueOffset = this.offset;
+    stackValue.writeToBuffer(byteWidth);
+    const stackOffset = this.offsetStackValue(valueOffset, ValueType.INDIRECT_INT, stackValue.width);
+    this.stack.push(stackOffset);
+    this.offset = newOffset;
+    if (deduplicate) {
+      this.indirectIntLookup[value] = stackOffset;
+    }
+  }
+
+  addUInt(value: number, indirect = false, deduplicate = false): void {
+    this.integrityCheckOnValueAddition();
+    if (!indirect) {
+      this.stack.push(this.uintStackValue(value));
+      return;
+    }
+    if (deduplicate && Object.prototype.hasOwnProperty.call(this.indirectUIntLookup, value)) {
+      this.stack.push(this.indirectUIntLookup[value]);
+      return;
+    }
+    const stackValue = this.uintStackValue(value);
+    const byteWidth = this.align(stackValue.width);
+    const newOffset = this.computeOffset(byteWidth);
+    const valueOffset = this.offset;
+    stackValue.writeToBuffer(byteWidth);
+    const stackOffset = this.offsetStackValue(valueOffset, ValueType.INDIRECT_UINT, stackValue.width);
+    this.stack.push(stackOffset);
+    this.offset = newOffset;
+    if (deduplicate) {
+      this.indirectUIntLookup[value] = stackOffset;
+    }
+  }
+
+  addFloat(value: number, indirect = false, deduplicate = false): void {
+    this.integrityCheckOnValueAddition();
+    if (!indirect) {
+      this.stack.push(this.floatStackValue(value));
+      return;
+    }
+    if (deduplicate && Object.prototype.hasOwnProperty.call(this.indirectFloatLookup, value)) {
+      this.stack.push(this.indirectFloatLookup[value]);
+      return;
+    }
+    const stackValue = this.floatStackValue(value);
+    const byteWidth = this.align(stackValue.width);
+    const newOffset = this.computeOffset(byteWidth);
+    const valueOffset = this.offset;
+    stackValue.writeToBuffer(byteWidth);
+    const stackOffset = this.offsetStackValue(valueOffset, ValueType.INDIRECT_FLOAT, stackValue.width);
+    this.stack.push(stackOffset);
+    this.offset = newOffset;
+    if (deduplicate) {
+      this.indirectFloatLookup[value] = stackOffset;
+    }
+  }
+}
