@@ -186,6 +186,13 @@ Rapunzel.getFullyQualifiedName = function() {
 }
 
 /**
+ * @returns {number}
+ */
+Rapunzel.sizeOf = function() {
+  return 4;
+}
+
+/**
  * @param {flatbuffers.Builder} builder
  * @param {number} hair_length
  * @returns {flatbuffers.Offset}
@@ -243,6 +250,13 @@ BookReader.prototype.mutate_books_read = function(value) {
  */
 BookReader.getFullyQualifiedName = function() {
   return 'BookReader';
+}
+
+/**
+ * @returns {number}
+ */
+BookReader.sizeOf = function() {
+  return 4;
 }
 
 /**

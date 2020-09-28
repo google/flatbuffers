@@ -206,6 +206,13 @@ NamespaceA.NamespaceB.StructInNestedNS.getFullyQualifiedName = function() {
 }
 
 /**
+ * @returns {number}
+ */
+NamespaceA.NamespaceB.StructInNestedNS.sizeOf = function() {
+  return 8;
+}
+
+/**
  * @param {flatbuffers.Builder} builder
  * @param {number} a
  * @param {number} b

@@ -621,6 +621,16 @@ class PythonGenerator : public BaseGenerator {
     }
   }
 
+  // Generate struct sizeof.
+  void GenStructSizeOf(const StructDef &struct_def, std::string *code_ptr) {
+    auto &code = *code_ptr;
+    code += Indent + "@classmethod\n";
+    code += Indent + "def SizeOf(cls):\n";
+    code +=
+        Indent + Indent + "return " + NumToString(struct_def.bytesize) + "\n";
+    code += "\n";
+  }
+
   // Generate table constructors, conditioned on its members' types.
   void GenTableBuilders(const StructDef &struct_def, std::string *code_ptr) {
     GetStartOfTable(struct_def, code_ptr);
@@ -678,6 +688,9 @@ class PythonGenerator : public BaseGenerator {
         // Generate a special function to test file_identifier
         GenHasFileIdentifier(struct_def, code_ptr);
       }
+    } else {
+      // Generates the SizeOf method for all structs.
+      GenStructSizeOf(struct_def, code_ptr);
     }
     // Generates the Init method that sets the field in a pre-existing
     // accessor object. This is to allow object reuse.

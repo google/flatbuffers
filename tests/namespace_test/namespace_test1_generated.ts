@@ -205,6 +205,13 @@ static getFullyQualifiedName():string {
 }
 
 /**
+ * @returns number
+ */
+static sizeOf():number {
+  return 8;
+}
+
+/**
  * @param flatbuffers.Builder builder
  * @param number a
  * @param number b

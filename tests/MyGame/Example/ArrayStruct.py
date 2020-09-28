@@ -9,6 +9,10 @@ np = import_numpy()
 class ArrayStruct(object):
     __slots__ = ['_tab']
 
+    @classmethod
+    def SizeOf(cls):
+        return 160
+
     # ArrayStruct
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)

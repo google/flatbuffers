@@ -9,6 +9,10 @@ np = import_numpy()
 class Vec3(object):
     __slots__ = ['_tab']
 
+    @classmethod
+    def SizeOf(cls):
+        return 32
+
     # Vec3
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)

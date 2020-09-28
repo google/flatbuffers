@@ -377,6 +377,13 @@ mutate_b(value:number):boolean {
 };
 
 /**
+ * @returns number
+ */
+static sizeOf():number {
+  return 4;
+}
+
+/**
  * @param flatbuffers.Builder builder
  * @param number a
  * @param number b
@@ -669,6 +676,13 @@ test3(obj?:MyGame.Example.Test):MyGame.Example.Test|null {
 };
 
 /**
+ * @returns number
+ */
+static sizeOf():number {
+  return 32;
+}
+
+/**
  * @param flatbuffers.Builder builder
  * @param number x
  * @param number y
@@ -810,6 +824,13 @@ mutate_distance(value:number):boolean {
   this.bb!.writeUint32(this.bb_pos + 4, value);
   return true;
 };
+
+/**
+ * @returns number
+ */
+static sizeOf():number {
+  return 8;
+}
 
 /**
  * @param flatbuffers.Builder builder

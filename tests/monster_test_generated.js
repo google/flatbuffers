@@ -343,6 +343,13 @@ MyGame.Example.Test.prototype.mutate_b = function(value) {
 };
 
 /**
+ * @returns {number}
+ */
+MyGame.Example.Test.sizeOf = function() {
+  return 4;
+}
+
+/**
  * @param {flatbuffers.Builder} builder
  * @param {number} a
  * @param {number} b
@@ -574,6 +581,13 @@ MyGame.Example.Vec3.prototype.test3 = function(obj) {
 };
 
 /**
+ * @returns {number}
+ */
+MyGame.Example.Vec3.sizeOf = function() {
+  return 32;
+}
+
+/**
  * @param {flatbuffers.Builder} builder
  * @param {number} x
  * @param {number} y
@@ -658,6 +672,13 @@ MyGame.Example.Ability.prototype.mutate_distance = function(value) {
   this.bb.writeUint32(this.bb_pos + 4, value);
   return true;
 };
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.Ability.sizeOf = function() {
+  return 8;
+}
 
 /**
  * @param {flatbuffers.Builder} builder
