@@ -56,7 +56,7 @@ export function fixedTypedVectorElementType(valueType: ValueType): ValueType {
 
 export function fixedTypedVectorElementSize(valueType: ValueType): ValueType {
   // The x / y >> 0 trick is to have an int division. Suppose to be faster than Math.floor()
-  return (((valueType - ValueType.VECTOR_INT2) / 3) >> 0)  + 2;
+  return (((valueType - ValueType.VECTOR_INT2) / 3) >> 0) + 2;
 }
 
 export function packedType(valueType: ValueType, bitWidth: number): ValueType {

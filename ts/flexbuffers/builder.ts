@@ -2,61 +2,8 @@ import { BitWidth } from './bit-width'
 import { paddingSize, iwidth, uwidth, fwidth, toByteWidth, fromByteWidth } from './bit-width-util'
 import { toUTF8Array } from './flexbuffers-util'
 import { ValueType } from './value-type'
-import { isNumber, isInline, isTypedVectorElement, packedType, toTypedVector } from './value-type-util'
-
-class StackValue {
-  constructor (private builder: Builder, public type: ValueType, public width: number, public value: number | boolean | null = null, public offset: number = 0)
-  {}
-    elementWidth(size: number, index: number) {
-      if (isInline(this.type)) return this.width;
-      for (let i = 0; i < 4; i++) {
-        const width = 1 << i;
-        const offsetLoc = size + paddingSize(size, width) + index * width;
-        const offset = offsetLoc - this.offset;
-        const bitWidth = uwidth(offset);
-        if (1 << bitWidth === width) {
-          return bitWidth;
-        }
-      }
-      throw `Element is unknown. Size: ${size} at index: ${index}. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new`;
-    }
-
-    writeToBuffer(byteWidth: number) {
-      const newOffset = this.builder.computeOffset(byteWidth);
-      if (this.type === ValueType.FLOAT) {
-        if (this.width === BitWidth.WIDTH32) {
-          this.builder.view.setFloat32(this.offset, this.value as number, true);
-        } else {
-          this.builder.view.setFloat64(this.offset, this.value as number, true);
-        }
-      } else if (this.type === ValueType.INT) {
-        const bitWidth = fromByteWidth(byteWidth);
-        this.builder.pushInt(this.value as number, bitWidth);
-      } else if (this.type === ValueType.UINT) {
-        const bitWidth = fromByteWidth(byteWidth);
-        this.builder.pushUInt(this.value as number, bitWidth);
-      } else if (this.type === ValueType.NULL) {
-        this.builder.pushInt(0, this.width);
-      } else if (this.type === ValueType.BOOL) {
-        this.builder.pushInt(this.value ? 1 : 0, this.width);
-      } else {
-        throw `Unexpected type: ${this.type}. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new`
-      }
-      this.offset = newOffset;
-    }
-
-    storedWidth(width = BitWidth.WIDTH8) {
-      return isInline(this.type) ? Math.max(width, this.width) : this.width;
-    }
-
-    storedPackedType(width = BitWidth.WIDTH8) {
-      return packedType(this.type, this.storedWidth(width));
-    }
-
-    isOffset() {
-      return !isInline(this.type)
-    }
-  }
+import { isNumber, isTypedVectorElement, toTypedVector } from './value-type-util'
+import { StackValue } from './stack-value'
 
 interface StackPointer {
   stackPosition: number,
@@ -72,7 +19,7 @@ export class Builder {
   readonly stackPointers: Array<StackPointer> = [];
   offset = 0;
   finished = false;
-  readonly stringLookup: Record<string, StackValue>= {};
+  readonly stringLookup: Record<string, StackValue> = {};
   readonly keyLookup: Record<string, StackValue> = {};
   readonly keyVectorLookup: Record<string, StackValue> = {};
   readonly indirectIntLookup: Record<number, StackValue> = {};
@@ -232,11 +179,11 @@ export class Builder {
   }
 
   startVector(): void {
-    this.stackPointers.push({stackPosition: this.stack.length, isVector: true});
+    this.stackPointers.push({ stackPosition: this.stack.length, isVector: true });
   }
 
   startMap(presorted = false): void {
-    this.stackPointers.push({stackPosition: this.stack.length, isVector: false, presorted: presorted});
+    this.stackPointers.push({ stackPosition: this.stack.length, isVector: false, presorted: presorted });
   }
 
   private endVector(stackPointer: StackPointer) {
@@ -313,7 +260,7 @@ export class Builder {
       if (v1.type !== ValueType.KEY || v2.type !== ValueType.KEY) {
         throw `Stack values are not keys ${v1} | ${v2}. Check if you combined [addKey] with add... method calls properly.`
       }
-      if(v1.offset === v2.offset) {
+      if (v1.offset === v2.offset) {
         return false;
       }
       let c1, c2;
@@ -321,8 +268,8 @@ export class Builder {
       do {
         c1 = view.getUint8(v1.offset + index);
         c2 = view.getUint8(v2.offset + index);
-        if(c1 < c2) return true;
-        if(c2 < c1) return false;
+        if (c1 < c2) return true;
+        if (c2 < c1) return false;
         index += 1;
       } while (c1 !== 0 && c2 !== 0);
       return false;
@@ -490,7 +437,7 @@ export class Builder {
       } else {
         this.stack.push(this.floatStackValue(value));
       }
-    } else if (ArrayBuffer.isView(value)){
+    } else if (ArrayBuffer.isView(value)) {
       this.writeBlob(value.buffer);
     } else if (typeof value === 'string' || value instanceof String) {
       this.writeString(value as string);
@@ -500,7 +447,7 @@ export class Builder {
         this.add(value[i]);
       }
       this.end();
-    } else if (typeof value === 'object'){
+    } else if (typeof value === 'object') {
       const properties = Object.getOwnPropertyNames(value).sort();
       this.startMap(true);
       for (let i = 0; i < properties.length; i++) {
