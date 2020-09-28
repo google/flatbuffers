@@ -1,11 +1,11 @@
 #!/bin/bash
 
-grpc_1_15_1_githash=1a60e6971f428323245a930031ad267bb3142ba4
+grpc_1_32_0_githash=414bb8322de2411eee1f4e841ff29d887bec7884
 
 function build_grpc () {
   git clone https://github.com/grpc/grpc.git google/grpc
   cd google/grpc
-  git checkout ${grpc_1_15_1_githash}
+  git checkout ${grpc_1_32_0_githash}
   git submodule update --init
   make
   make install prefix=`pwd`/install
