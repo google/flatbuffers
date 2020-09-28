@@ -291,10 +291,10 @@ template<class T> class SerializationTraits<flatbuffers::grpc::Message<T>> {
   static grpc::Status Deserialize(::grpc::ByteBuffer *bbuffer,
                                   flatbuffers::grpc::Message<T> *msg) {
     
-    std::vector<Slice>* slices = new std::vector<Slice>;
-    bbuffer->Dump(slices);
+    std::vector<Slice> slices;
+    bbuffer->Dump(&slices);
     grpc_byte_buffer* buffer = g_core_codegen_interface->grpc_raw_byte_buffer_create(
-        reinterpret_cast<grpc_slice*>(const_cast<Slice*>(slices->data())), slices->size());
+        reinterpret_cast<grpc_slice*>(const_cast<Slice*>(slices.data())), slices.size());
     
     if (!buffer) {
       return ::grpc::Status(::grpc::StatusCode::INTERNAL, "No payload");

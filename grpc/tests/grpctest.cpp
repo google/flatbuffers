@@ -33,7 +33,7 @@ void message_builder_tests();
 // code. It implements all rpcs specified in the FlatBuffers schema.
 class ServiceImpl final : public MyGame::Example::MonsterStorage::Service {
   virtual ::grpc::Status Store(
-      ::grpc::ServerContext *context,
+      ::grpc_impl::ServerContext *context,
       const flatbuffers::grpc::Message<Monster> *request,
       flatbuffers::grpc::Message<Stat> *response) override {
     // Create a response from the incoming request name.
@@ -46,7 +46,7 @@ class ServiceImpl final : public MyGame::Example::MonsterStorage::Service {
     return grpc::Status::OK;
   }
   virtual ::grpc::Status Retrieve(
-      ::grpc::ServerContext *context,
+      ::grpc_impl::ServerContext *context,
       const flatbuffers::grpc::Message<Stat> *request,
       ::grpc::ServerWriter<flatbuffers::grpc::Message<Monster>> *writer)
       override {
