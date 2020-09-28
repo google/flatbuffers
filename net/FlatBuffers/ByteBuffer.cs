@@ -14,24 +14,25 @@
  * limitations under the License.
  */
 
-// There are 3 #defines that have an impact on performance / features of this ByteBuffer implementation
+// There are three conditional compilation symbols that have an impact on performance/features of this ByteBuffer implementation.
 //
-//      UNSAFE_BYTEBUFFER 
+//      UNSAFE_BYTEBUFFER
 //          This will use unsafe code to manipulate the underlying byte array. This
 //          can yield a reasonable performance increase.
 //
 //      BYTEBUFFER_NO_BOUNDS_CHECK
 //          This will disable the bounds check asserts to the byte array. This can
-//          yield a small performance gain in normal code..
+//          yield a small performance gain in normal code.
 //
 //      ENABLE_SPAN_T
-//          This will enable reading and writing blocks of memory with a Span<T> instead if just
+//          This will enable reading and writing blocks of memory with a Span<T> instead of just
 //          T[].  You can also enable writing directly to shared memory or other types of memory
 //          by providing a custom implementation of ByteBufferAllocator.
-//          ENABLE_SPAN_T also requires UNSAFE_BYTEBUFFER to be defined
+//          ENABLE_SPAN_T also requires UNSAFE_BYTEBUFFER to be defined, or .NET
+//          Standard 2.1.
 //
 // Using UNSAFE_BYTEBUFFER and BYTEBUFFER_NO_BOUNDS_CHECK together can yield a
-// performance gain of ~15% for some operations, however doing so is potentially 
+// performance gain of ~15% for some operations, however doing so is potentially
 // dangerous. Do so at your own risk!
 //
 
