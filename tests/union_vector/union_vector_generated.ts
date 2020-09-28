@@ -222,6 +222,13 @@ static getFullyQualifiedName():string {
 }
 
 /**
+ * @returns number
+ */
+static sizeOf():number {
+  return 4;
+}
+
+/**
  * @param flatbuffers.Builder builder
  * @param number hair_length
  * @returns flatbuffers.Offset
@@ -308,6 +315,13 @@ mutate_books_read(value:number):boolean {
  */
 static getFullyQualifiedName():string {
   return 'BookReader';
+}
+
+/**
+ * @returns number
+ */
+static sizeOf():number {
+  return 4;
 }
 
 /**
