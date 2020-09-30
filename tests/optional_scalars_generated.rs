@@ -587,12 +587,12 @@ impl<'a: 'b, 'b> ScalarStuffBuilder<'a, 'b> {
 }
 
 #[inline]
-pub fn get_root_as_scalar_stuff<'a>(buf: &'a [u8]) -> ScalarStuff<'a> {
+pub fn root_as_scalar_stuff<'a>(buf: &'a [u8]) -> ScalarStuff<'a> {
   flatbuffers::get_root::<ScalarStuff<'a>>(buf)
 }
 
 #[inline]
-pub fn get_size_prefixed_root_as_scalar_stuff<'a>(buf: &'a [u8]) -> ScalarStuff<'a> {
+pub fn size_prefixed_root_as_scalar_stuff<'a>(buf: &'a [u8]) -> ScalarStuff<'a> {
   flatbuffers::get_size_prefixed_root::<ScalarStuff<'a>>(buf)
 }
 

@@ -131,7 +131,7 @@ fn main() {
 
         // do many reads, forcing them to execute by using assert_eq:
         {
-            let m = my_game::example::get_root_as_monster(buf);
+            let m = my_game::example::root_as_monster(buf);
             assert_eq!(80, m.hp());
             assert_eq!(150, m.mana());
             assert_eq!("MyMonster", m.name());

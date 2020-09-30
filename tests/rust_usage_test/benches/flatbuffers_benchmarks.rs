@@ -148,7 +148,7 @@ fn blackbox<T>(t: T) -> T {
 
 #[inline(always)]
 fn traverse_serialized_example_with_generated_code(bytes: &[u8]) {
-    let m = my_game::example::get_root_as_monster(bytes);
+    let m = my_game::example::root_as_monster(bytes);
     blackbox(m.hp());
     blackbox(m.mana());
     blackbox(m.name());

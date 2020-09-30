@@ -38,7 +38,7 @@ impl<'a> flatbuffers::Follow<'a> for InParentNamespace<'a> {
 }
 
 impl<'a> InParentNamespace<'a> {
-    pub const fn get_fully_qualified_name() -> &'static str {
+    pub const fn fully_qualified_name() -> &'static str {
         "MyGame.InParentNamespace"
     }
 
@@ -114,7 +114,7 @@ impl<'a> flatbuffers::Follow<'a> for Monster<'a> {
 }
 
 impl<'a> Monster<'a> {
-    pub const fn get_fully_qualified_name() -> &'static str {
+    pub const fn fully_qualified_name() -> &'static str {
         "MyGame.Example2.Monster"
     }
 
@@ -592,7 +592,7 @@ impl Test {
       padding0__: 0,
     }
   }
-    pub const fn get_fully_qualified_name() -> &'static str {
+    pub const fn fully_qualified_name() -> &'static str {
         "MyGame.Example.Test"
     }
 
@@ -671,7 +671,7 @@ impl Vec3 {
       padding2__: 0,
     }
   }
-    pub const fn get_fully_qualified_name() -> &'static str {
+    pub const fn fully_qualified_name() -> &'static str {
         "MyGame.Example.Vec3"
     }
 
@@ -748,7 +748,7 @@ impl Ability {
 
     }
   }
-    pub const fn get_fully_qualified_name() -> &'static str {
+    pub const fn fully_qualified_name() -> &'static str {
         "MyGame.Example.Ability"
     }
 
@@ -786,7 +786,7 @@ impl<'a> flatbuffers::Follow<'a> for TestSimpleTableWithEnum<'a> {
 }
 
 impl<'a> TestSimpleTableWithEnum<'a> {
-    pub const fn get_fully_qualified_name() -> &'static str {
+    pub const fn fully_qualified_name() -> &'static str {
         "MyGame.Example.TestSimpleTableWithEnum"
     }
 
@@ -864,7 +864,7 @@ impl<'a> flatbuffers::Follow<'a> for Stat<'a> {
 }
 
 impl<'a> Stat<'a> {
-    pub const fn get_fully_qualified_name() -> &'static str {
+    pub const fn fully_qualified_name() -> &'static str {
         "MyGame.Example.Stat"
     }
 
@@ -966,7 +966,7 @@ impl<'a> flatbuffers::Follow<'a> for Referrable<'a> {
 }
 
 impl<'a> Referrable<'a> {
-    pub const fn get_fully_qualified_name() -> &'static str {
+    pub const fn fully_qualified_name() -> &'static str {
         "MyGame.Example.Referrable"
     }
 
@@ -1055,7 +1055,7 @@ impl<'a> flatbuffers::Follow<'a> for Monster<'a> {
 }
 
 impl<'a> Monster<'a> {
-    pub const fn get_fully_qualified_name() -> &'static str {
+    pub const fn fully_qualified_name() -> &'static str {
         "MyGame.Example.Monster"
     }
 
@@ -1806,7 +1806,7 @@ impl<'a> flatbuffers::Follow<'a> for TypeAliases<'a> {
 }
 
 impl<'a> TypeAliases<'a> {
-    pub const fn get_fully_qualified_name() -> &'static str {
+    pub const fn fully_qualified_name() -> &'static str {
         "MyGame.Example.TypeAliases"
     }
 
@@ -2001,12 +2001,12 @@ impl<'a: 'b, 'b> TypeAliasesBuilder<'a, 'b> {
 }
 
 #[inline]
-pub fn get_root_as_monster<'a>(buf: &'a [u8]) -> Monster<'a> {
+pub fn root_as_monster<'a>(buf: &'a [u8]) -> Monster<'a> {
   flatbuffers::get_root::<Monster<'a>>(buf)
 }
 
 #[inline]
-pub fn get_size_prefixed_root_as_monster<'a>(buf: &'a [u8]) -> Monster<'a> {
+pub fn size_prefixed_root_as_monster<'a>(buf: &'a [u8]) -> Monster<'a> {
   flatbuffers::get_size_prefixed_root::<Monster<'a>>(buf)
 }
 

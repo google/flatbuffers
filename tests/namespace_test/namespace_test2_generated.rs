@@ -36,7 +36,7 @@ impl<'a> flatbuffers::Follow<'a> for TableInFirstNS<'a> {
 }
 
 impl<'a> TableInFirstNS<'a> {
-    pub const fn get_fully_qualified_name() -> &'static str {
+    pub const fn fully_qualified_name() -> &'static str {
         "NamespaceA.TableInFirstNS"
     }
 
@@ -138,7 +138,7 @@ impl<'a> flatbuffers::Follow<'a> for SecondTableInA<'a> {
 }
 
 impl<'a> SecondTableInA<'a> {
-    pub const fn get_fully_qualified_name() -> &'static str {
+    pub const fn fully_qualified_name() -> &'static str {
         "NamespaceA.SecondTableInA"
     }
 
@@ -228,7 +228,7 @@ impl<'a> flatbuffers::Follow<'a> for TableInC<'a> {
 }
 
 impl<'a> TableInC<'a> {
-    pub const fn get_fully_qualified_name() -> &'static str {
+    pub const fn fully_qualified_name() -> &'static str {
         "NamespaceC.TableInC"
     }
 

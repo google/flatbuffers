@@ -177,9 +177,9 @@ fn serialized_example_is_accessible_and_correct(bytes: &[u8], identifier_require
     }
 
     let m = if size_prefixed {
-        my_game::example::get_size_prefixed_root_as_monster(bytes)
+        my_game::example::size_prefixed_root_as_monster(bytes)
     } else {
-        my_game::example::get_root_as_monster(bytes)
+        my_game::example::root_as_monster(bytes)
     };
 
     check_eq!(m.hp(), 80)?;
@@ -310,20 +310,20 @@ mod lifetime_correctness {
     use super::load_file;
 
     #[test]
-    fn table_get_field_from_static_buffer_1() {
+    fn table_field_from_static_buffer_1() {
         let buf = load_file("../monsterdata_test.mon").expect("missing monsterdata_test.mon");
         // create 'static slice
         let slice: &[u8] = &buf;
         let slice: &'static [u8] = unsafe { mem::transmute(slice) };
         // make sure values retrieved from the 'static buffer are themselves 'static
-        let monster: my_game::example::Monster<'static> = my_game::example::get_root_as_monster(slice);
+        let monster: my_game::example::Monster<'static> = my_game::example::root_as_monster(slice);
         // this line should compile:
         let name: Option<&'static str> = monster._tab.get::<flatbuffers::ForwardsUOffset<&str>>(my_game::example::Monster::VT_NAME, None);
         assert_eq!(name, Some("MyMonster"));
     }
 
     #[test]
-    fn table_get_field_from_static_buffer_2() {
+    fn table_field_from_static_buffer_2() {
         static DATA: [u8; 4] = [0, 0, 0, 0]; // some binary data
         let table: flatbuffers::Table<'static> = flatbuffers::Table::new(&DATA, 0);
         // this line should compile:
@@ -334,7 +334,7 @@ mod lifetime_correctness {
     fn table_object_self_lifetime_in_closure() {
         // This test is designed to ensure that lifetimes for temporary intermediate tables aren't inflated beyond where the need to be.
         let buf = load_file("../monsterdata_test.mon").expect("missing monsterdata_test.mon");
-        let monster = my_game::example::get_root_as_monster(&buf);
+        let monster = my_game::example::root_as_monster(&buf);
         let enemy: Option<my_game::example::Monster> = monster.enemy();
         // This line won't compile if "self" is required to live for the lifetime of buf above as the borrow disappears at the end of the closure.
         let enemy_of_my_enemy = enemy.map(|e| {
@@ -357,7 +357,7 @@ mod roundtrip_generated_code {
     fn build_mon<'a, 'b>(builder: &'a mut flatbuffers::FlatBufferBuilder, args: &'b my_game::example::MonsterArgs) -> my_game::example::Monster<'a> {
         let mon = my_game::example::Monster::create(builder, &args);
         my_game::example::finish_monster_buffer(builder, mon);
-        my_game::example::get_root_as_monster(builder.finished_data())
+        my_game::example::root_as_monster(builder.finished_data())
     }
 
     #[test]
@@ -437,7 +437,7 @@ mod roundtrip_generated_code {
             my_game::example::finish_monster_buffer(b, outer);
         }
 
-        let mon = my_game::example::get_root_as_monster(b.finished_data());
+        let mon = my_game::example::root_as_monster(b.finished_data());
         assert_eq!(mon.name(), "bar");
         assert_eq!(mon.test_type(), my_game::example::Any::Monster);
         assert_eq!(my_game::example::Monster::init_from_table(mon.test().unwrap()).name(),
@@ -473,7 +473,7 @@ mod roundtrip_generated_code {
             my_game::example::finish_monster_buffer(b, outer);
         }
 
-        let mon = my_game::example::get_root_as_monster(b.finished_data());
+        let mon = my_game::example::root_as_monster(b.finished_data());
         assert_eq!(mon.name(), "bar");
         assert_eq!(mon.enemy().unwrap().name(), "foo");
     }
@@ -503,7 +503,7 @@ mod roundtrip_generated_code {
             my_game::example::finish_monster_buffer(b, outer);
         }
 
-        let mon = my_game::example::get_root_as_monster(b.finished_data());
+        let mon = my_game::example::root_as_monster(b.finished_data());
         assert_eq!(mon.name(), "bar");
         assert_eq!(mon.testempty().unwrap().id(), Some("foo"));
     }
@@ -540,12 +540,12 @@ mod roundtrip_generated_code {
             b1
         };
 
-        let m = my_game::example::get_root_as_monster(b1.finished_data());
+        let m = my_game::example::root_as_monster(b1.finished_data());
 
         assert!(m.testnestedflatbuffer().is_some());
         assert_eq!(m.testnestedflatbuffer().unwrap(), b0.finished_data());
 
-        let m2_a = my_game::example::get_root_as_monster(m.testnestedflatbuffer().unwrap());
+        let m2_a = my_game::example::root_as_monster(m.testnestedflatbuffer().unwrap());
         assert_eq!(m2_a.hp(), 123);
         assert_eq!(m2_a.name(), "foobar");
 
@@ -799,7 +799,7 @@ mod generated_code_alignment_and_padding {
             my_game::example::finish_monster_buffer(b, mon);
         }
         let buf = b.finished_data();
-        let mon = my_game::example::get_root_as_monster(buf);
+        let mon = my_game::example::root_as_monster(buf);
         let vec3 = mon.pos().unwrap();
 
         let start_ptr = buf.as_ptr() as usize;
@@ -835,7 +835,7 @@ mod generated_code_alignment_and_padding {
             my_game::example::finish_monster_buffer(b, mon);
         }
         let buf = b.finished_data();
-        let mon = my_game::example::get_root_as_monster(buf);
+        let mon = my_game::example::root_as_monster(buf);
         let abilities = mon.testarrayofsortedstruct().unwrap();
 
         let start_ptr = buf.as_ptr() as usize;
@@ -1011,7 +1011,7 @@ mod roundtrip_vectors {
         impl_prop!(test_i8, prop_i8, i8);
 
         #[cfg(test)]
-        #[cfg(target_endian = "little")]
+        #[cfg(tarendian = "little")]
         mod host_is_le {
             const N: u64 = 20;
             use super::flatbuffers;
@@ -1676,7 +1676,7 @@ mod generated_key_comparisons {
         let builder = &mut flatbuffers::FlatBufferBuilder::new();
         super::create_serialized_example_with_library_code(builder);
         let buf = builder.finished_data();
-        let a = my_game::example::get_root_as_monster(buf);
+        let a = my_game::example::root_as_monster(buf);
 
         // preconditions
         assert_eq!(a.name(), "MyMonster");
@@ -1692,7 +1692,7 @@ mod generated_key_comparisons {
         let builder = &mut flatbuffers::FlatBufferBuilder::new();
         super::create_serialized_example_with_library_code(builder);
         let buf = builder.finished_data();
-        let a = my_game::example::get_root_as_monster(buf);
+        let a = my_game::example::root_as_monster(buf);
         let b = a.test_as_monster().unwrap();
 
         // preconditions
@@ -1879,7 +1879,7 @@ mod follow_impls {
         assert_eq!(off.self_follow(&vec[..], 4).safe_slice(), &[1, 2, 3][..]);
     }
 
-    #[cfg(target_endian = "little")]
+    #[cfg(tarendian = "little")]
     #[test]
     fn to_slice_of_u16() {
         let vec: Vec<u8> = vec![255, 255, 255, 255, 2, 0, 0, 0, 1, 2, 3, 4];
@@ -1942,7 +1942,7 @@ mod follow_impls {
     }
 
     #[test]
-    fn to_root_table_get_slot_scalar_u8() {
+    fn to_root_table_slot_scalar_u8() {
         let buf: Vec<u8> = vec![
             14, 0, 0, 0, // offset to root table
             // enter vtable
@@ -1960,7 +1960,7 @@ mod follow_impls {
     }
 
     #[test]
-    fn to_root_to_table_get_slot_scalar_u8_default_via_vtable_len() {
+    fn to_root_to_table_slot_scalar_u8_default_via_vtable_len() {
         let buf: Vec<u8> = vec![
             12, 0, 0, 0, // offset to root table
             // enter vtable
@@ -1976,7 +1976,7 @@ mod follow_impls {
     }
 
     #[test]
-    fn to_root_to_table_get_slot_scalar_u8_default_via_vtable_zero() {
+    fn to_root_to_table_slot_scalar_u8_default_via_vtable_zero() {
         let buf: Vec<u8> = vec![
             14, 0, 0, 0, // offset to root table
             // enter vtable
@@ -1993,7 +1993,7 @@ mod follow_impls {
     }
 
     #[test]
-    fn to_root_to_table_get_slot_string_multiple_types() {
+    fn to_root_to_table_slot_string_multiple_types() {
         let buf: Vec<u8> = vec![
             14, 0, 0, 0, // offset to root table
             // enter vtable
@@ -2021,7 +2021,7 @@ mod follow_impls {
     }
 
     #[test]
-    fn to_root_to_table_get_slot_string_multiple_types_default_via_vtable_len() {
+    fn to_root_to_table_slot_string_multiple_types_default_via_vtable_len() {
         let buf: Vec<u8> = vec![
             12, 0, 0, 0, // offset to root table
             // enter vtable
@@ -2033,7 +2033,7 @@ mod follow_impls {
         ];
         let tab = <flatbuffers::ForwardsUOffset<flatbuffers::Table>>::follow(&buf[..], 0);
         assert_eq!(tab.get::<flatbuffers::ForwardsUOffset<&str>>(fi2fo(0), Some("abc")), Some("abc"));
-        #[cfg(target_endian = "little")]
+        #[cfg(tarendian = "little")]
         {
             assert_eq!(tab.get::<flatbuffers::ForwardsUOffset<&[u8]>>(fi2fo(0), Some(&vec![70, 71, 72][..])), Some(&vec![70, 71, 72][..]));
         }
@@ -2048,7 +2048,7 @@ mod follow_impls {
     }
 
     #[test]
-    fn to_root_to_table_get_slot_string_multiple_types_default_via_vtable_zero() {
+    fn to_root_to_table_slot_string_multiple_types_default_via_vtable_zero() {
         let buf: Vec<u8> = vec![
             14, 0, 0, 0, // offset to root table
             // enter vtable
@@ -2061,7 +2061,7 @@ mod follow_impls {
         ];
         let tab = <flatbuffers::ForwardsUOffset<flatbuffers::Table>>::follow(&buf[..], 0);
         assert_eq!(tab.get::<flatbuffers::ForwardsUOffset<&str>>(fi2fo(0), Some("abc")), Some("abc"));
-        #[cfg(target_endian = "little")]
+        #[cfg(tarendian = "little")]
         {
             assert_eq!(tab.get::<flatbuffers::ForwardsUOffset<&[u8]>>(fi2fo(0), Some(&vec![70, 71, 72][..])), Some(&vec![70, 71, 72][..]));
         }
@@ -2871,11 +2871,11 @@ mod copy_clone_traits {
 mod fully_qualified_name {
     #[test]
     fn fully_qualified_name_generated() {
-        assert!(check_eq!(::my_game::example::Monster::get_fully_qualified_name(), "MyGame.Example.Monster").is_ok());
-        assert!(check_eq!(::my_game::example_2::Monster::get_fully_qualified_name(), "MyGame.Example2.Monster").is_ok());
+        assert!(check_eq!(::my_game::example::Monster::fully_qualified_name(), "MyGame.Example.Monster").is_ok());
+        assert!(check_eq!(::my_game::example_2::Monster::fully_qualified_name(), "MyGame.Example2.Monster").is_ok());
 
-        assert!(check_eq!(::my_game::example::Vec3::get_fully_qualified_name(), "MyGame.Example.Vec3").is_ok());
-        assert!(check_eq!(::my_game::example::Ability::get_fully_qualified_name(), "MyGame.Example.Ability").is_ok());
+        assert!(check_eq!(::my_game::example::Vec3::fully_qualified_name(), "MyGame.Example.Vec3").is_ok());
+        assert!(check_eq!(::my_game::example::Ability::fully_qualified_name(), "MyGame.Example.Ability").is_ok());
     }
 }
 

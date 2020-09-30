@@ -153,7 +153,7 @@ impl StructInNestedNS {
 
     }
   }
-    pub const fn get_fully_qualified_name() -> &'static str {
+    pub const fn fully_qualified_name() -> &'static str {
         "NamespaceA.NamespaceB.StructInNestedNS"
     }
 
@@ -181,7 +181,7 @@ impl<'a> flatbuffers::Follow<'a> for TableInNestedNS<'a> {
 }
 
 impl<'a> TableInNestedNS<'a> {
-    pub const fn get_fully_qualified_name() -> &'static str {
+    pub const fn fully_qualified_name() -> &'static str {
         "NamespaceA.NamespaceB.TableInNestedNS"
     }
 
