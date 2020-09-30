@@ -1130,7 +1130,7 @@ class RustGenerator : public BaseGenerator {
   // Generates a fully-qualified name getter for use with --gen-name-strings
   void GenFullyQualifiedNameGetter(const StructDef &struct_def,
                                    const std::string &name) {
-    code_ += "    pub const fn get_fully_qualified_name() -> &'static str {";
+    code_ += "    pub const fn fully_qualified_name() -> &'static str {";
     code_ += "        \"" +
              struct_def.defined_namespace->GetFullyQualifiedName(name) + "\"";
     code_ += "    }";
@@ -1492,7 +1492,7 @@ class RustGenerator : public BaseGenerator {
     // The root datatype accessors:
     code_ += "#[inline]";
     code_ +=
-        "pub fn get_root_as_{{STRUCT_NAME_SNAKECASE}}<'a>(buf: &'a [u8])"
+        "pub fn root_as_{{STRUCT_NAME_SNAKECASE}}<'a>(buf: &'a [u8])"
         " -> {{STRUCT_NAME}}<'a> {";
     code_ += "  flatbuffers::get_root::<{{STRUCT_NAME}}<'a>>(buf)";
     code_ += "}";
@@ -1500,7 +1500,7 @@ class RustGenerator : public BaseGenerator {
 
     code_ += "#[inline]";
     code_ +=
-        "pub fn get_size_prefixed_root_as_{{STRUCT_NAME_SNAKECASE}}"
+        "pub fn size_prefixed_root_as_{{STRUCT_NAME_SNAKECASE}}"
         "<'a>(buf: &'a [u8]) -> {{STRUCT_NAME}}<'a> {";
     code_ +=
         "  flatbuffers::get_size_prefixed_root::<{{STRUCT_NAME}}<'a>>"
