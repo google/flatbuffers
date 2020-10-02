@@ -922,6 +922,7 @@ class PhpGenerator : public BaseGenerator {
 
     std::string &code = *code_ptr;
     code += "\n";
+    code += Indent + "/** @var array<int,string> */\n";
     code += Indent + "private static $names = array(\n";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
