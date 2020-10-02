@@ -7,7 +7,7 @@ const flatbuffers = require('flatbuffers').flatbuffers;
 class GreeterServer implements IGreeterServer {
 
     SayHello(call: grpc.ServerUnaryCall<HelloRequest>, callback: grpc.sendUnaryData<HelloReply>): void {
-        console.log(`name: ${call.request.name()}`);
+        console.log(`${call.request.name()}`);
         let builder = new flatbuffers.Builder();
         let offset = builder.createString(`welcome ${call.request.name()}`);
         let root = HelloReply.createHelloReply(builder, offset);
@@ -21,7 +21,7 @@ class GreeterServer implements IGreeterServer {
 }
 
 function serve(): void {
-    const PORT = 3000
+    const PORT = 3000;
     const server = new grpc.Server();
     server.addService<IGreeterServer>(GreeterService, new GreeterServer());
     console.log(`Listening on ${PORT}`);
@@ -29,9 +29,4 @@ function serve(): void {
     server.start();
 }
 
-export default {
-    command: 'serve',
-    describe: 'Start the gRPC server',
-    builder: {},
-    handler: serve,
-};
+serve();

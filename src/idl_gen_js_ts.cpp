@@ -2074,7 +2074,7 @@ class JsTsGenerator : public BaseGenerator {
       code += "* @returns Uint8Array\n";
       code += "*/\n";
       code += "serialize():Uint8Array {\n";
-      code += "  return this.bb.bytes();\n";
+      code += "  return this.bb!.bytes();\n";
       code += "}\n";
 
       code += "/**\n";
