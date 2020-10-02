@@ -161,6 +161,9 @@ Additional options:
 -   `--go-import` : Generate the overrided import for flatbuffers in Golang.
      (default is "github.com/google/flatbuffers/go").
 
+-   `--php-strict` : Generate strictly typed code in PHP (minimum version 
+    7.1 required).
+
 -   `--raw-binary` : Allow binaries without a file_indentifier to be read.
     This may crash flatc given a mismatched schema.
 
