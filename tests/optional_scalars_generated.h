@@ -116,7 +116,7 @@ struct ScalarStuffT : public flatbuffers::NativeTable {
         maybe_f64(flatbuffers::nullopt),
         default_f64(42.0),
         just_bool(false),
-        maybe_bool(true),
+        maybe_bool(flatbuffers::nullopt),
         default_bool(true),
         just_enum(optional_scalars::OptionalByte_None),
         default_enum(optional_scalars::OptionalByte_One) {
