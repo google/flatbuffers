@@ -2070,7 +2070,7 @@ class JsTsGenerator : public BaseGenerator {
         lang_.language == IDLOptions::kTs) {
       auto name = Verbose(struct_def, "");
       code += "\n";
-      code += "serialize(): Uint8Array {\n";
+      code += "serialize():Uint8Array {\n";
       code += "  return this.bb!.bytes();\n";
       code += "}\n";
 

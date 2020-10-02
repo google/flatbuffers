@@ -209,17 +209,11 @@ static createInParentNamespace(builder:flatbuffers.Builder):flatbuffers.Offset {
   InParentNamespace.startInParentNamespace(builder);
   return InParentNamespace.endInParentNamespace(builder);
 }
-/**
-* GRPC METHOD ONLY, dont call
-* @returns Uint8Array
-*/
+
 serialize():Uint8Array {
   return this.bb!.bytes();
 }
-/**
-* GRPC METHOD ONLY, dont call
-* @returnsInParentNamespace
-*/
+
 static deserialize(buffer: Uint8Array) {
   return InParentNamespace.getRootAsInParentNamespace(new flatbuffers.ByteBuffer(buffer))
 }
@@ -310,17 +304,11 @@ static createMonster(builder:flatbuffers.Builder):flatbuffers.Offset {
   Monster.startMonster(builder);
   return Monster.endMonster(builder);
 }
-/**
-* GRPC METHOD ONLY, dont call
-* @returns Uint8Array
-*/
+
 serialize():Uint8Array {
   return this.bb!.bytes();
 }
-/**
-* GRPC METHOD ONLY, dont call
-* @returnsMonster
-*/
+
 static deserialize(buffer: Uint8Array) {
   return Monster.getRootAsMonster(new flatbuffers.ByteBuffer(buffer))
 }
@@ -558,17 +546,11 @@ static createTestSimpleTableWithEnum(builder:flatbuffers.Builder, color:MyGame.E
   TestSimpleTableWithEnum.addColor(builder, color);
   return TestSimpleTableWithEnum.endTestSimpleTableWithEnum(builder);
 }
-/**
-* GRPC METHOD ONLY, dont call
-* @returns Uint8Array
-*/
+
 serialize():Uint8Array {
   return this.bb!.bytes();
 }
-/**
-* GRPC METHOD ONLY, dont call
-* @returnsTestSimpleTableWithEnum
-*/
+
 static deserialize(buffer: Uint8Array) {
   return TestSimpleTableWithEnum.getRootAsTestSimpleTableWithEnum(new flatbuffers.ByteBuffer(buffer))
 }
@@ -1072,17 +1054,11 @@ static createStat(builder:flatbuffers.Builder, idOffset:flatbuffers.Offset, val:
   Stat.addCount(builder, count);
   return Stat.endStat(builder);
 }
-/**
-* GRPC METHOD ONLY, dont call
-* @returns Uint8Array
-*/
+
 serialize():Uint8Array {
   return this.bb!.bytes();
 }
-/**
-* GRPC METHOD ONLY, dont call
-* @returnsStat
-*/
+
 static deserialize(buffer: Uint8Array) {
   return Stat.getRootAsStat(new flatbuffers.ByteBuffer(buffer))
 }
@@ -1226,17 +1202,11 @@ static createReferrable(builder:flatbuffers.Builder, id:flatbuffers.Long):flatbu
   Referrable.addId(builder, id);
   return Referrable.endReferrable(builder);
 }
-/**
-* GRPC METHOD ONLY, dont call
-* @returns Uint8Array
-*/
+
 serialize():Uint8Array {
   return this.bb!.bytes();
 }
-/**
-* GRPC METHOD ONLY, dont call
-* @returnsReferrable
-*/
+
 static deserialize(buffer: Uint8Array) {
   return Referrable.getRootAsReferrable(new flatbuffers.ByteBuffer(buffer))
 }
@@ -2991,17 +2961,11 @@ static finishSizePrefixedMonsterBuffer(builder:flatbuffers.Builder, offset:flatb
   builder.finish(offset, 'MONS', true);
 };
 
-/**
-* GRPC METHOD ONLY, dont call
-* @returns Uint8Array
-*/
+
 serialize():Uint8Array {
   return this.bb!.bytes();
 }
-/**
-* GRPC METHOD ONLY, dont call
-* @returnsMonster
-*/
+
 static deserialize(buffer: Uint8Array) {
   return Monster.getRootAsMonster(new flatbuffers.ByteBuffer(buffer))
 }
@@ -3824,17 +3788,11 @@ static createTypeAliases(builder:flatbuffers.Builder, i8:number, u8:number, i16:
   TypeAliases.addVf64(builder, vf64Offset);
   return TypeAliases.endTypeAliases(builder);
 }
-/**
-* GRPC METHOD ONLY, dont call
-* @returns Uint8Array
-*/
+
 serialize():Uint8Array {
   return this.bb!.bytes();
 }
-/**
-* GRPC METHOD ONLY, dont call
-* @returnsTypeAliases
-*/
+
 static deserialize(buffer: Uint8Array) {
   return TypeAliases.getRootAsTypeAliases(new flatbuffers.ByteBuffer(buffer))
 }

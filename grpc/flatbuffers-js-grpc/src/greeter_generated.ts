@@ -77,17 +77,11 @@ static createHelloReply(builder:flatbuffers.Builder, messageOffset:flatbuffers.O
   HelloReply.addMessage(builder, messageOffset);
   return HelloReply.endHelloReply(builder);
 }
-/**
-* GRPC METHOD ONLY, dont call
-* @returns Uint8Array
-*/
+
 serialize():Uint8Array {
   return this.bb!.bytes();
 }
-/**
-* GRPC METHOD ONLY, dont call
-* @returnsHelloReply
-*/
+
 static deserialize(buffer: Uint8Array) {
   return HelloReply.getRootAsHelloReply(new flatbuffers.ByteBuffer(buffer))
 }
@@ -169,17 +163,11 @@ static createHelloRequest(builder:flatbuffers.Builder, nameOffset:flatbuffers.Of
   HelloRequest.addName(builder, nameOffset);
   return HelloRequest.endHelloRequest(builder);
 }
-/**
-* GRPC METHOD ONLY, dont call
-* @returns Uint8Array
-*/
+
 serialize():Uint8Array {
   return this.bb!.bytes();
 }
-/**
-* GRPC METHOD ONLY, dont call
-* @returnsHelloRequest
-*/
+
 static deserialize(buffer: Uint8Array) {
   return HelloRequest.getRootAsHelloRequest(new flatbuffers.ByteBuffer(buffer))
 }
@@ -278,17 +266,11 @@ static createManyHellosRequest(builder:flatbuffers.Builder, nameOffset:flatbuffe
   ManyHellosRequest.addNumGreetings(builder, numGreetings);
   return ManyHellosRequest.endManyHellosRequest(builder);
 }
-/**
-* GRPC METHOD ONLY, dont call
-* @returns Uint8Array
-*/
+
 serialize():Uint8Array {
   return this.bb!.bytes();
 }
-/**
-* GRPC METHOD ONLY, dont call
-* @returnsManyHellosRequest
-*/
+
 static deserialize(buffer: Uint8Array) {
   return ManyHellosRequest.getRootAsManyHellosRequest(new flatbuffers.ByteBuffer(buffer))
 }
