@@ -1,5 +1,5 @@
 #[allow(dead_code, unused_imports)]
-#[path = "../../optional_scalars_generated.rs"]
+#[path = "../../optional_scalars2_generated.rs"]
 mod optional_scalars_generated;
 use crate::optional_scalars_generated::optional_scalars::*;
 
@@ -16,12 +16,15 @@ macro_rules! make_test {
         fn $test_name() {
             let mut builder = flatbuffers::FlatBufferBuilder::new();
             // Test five makes sense when specified.
-            let ss = ScalarStuff::create(&mut builder, &ScalarStuffArgs {
-                $just: $five,
-                $default: $five,
-                $maybe: Some($five),
-                ..Default::default()
-            });
+            let ss = ScalarStuff::create(
+                &mut builder,
+                &ScalarStuffArgs {
+                    $just: $five,
+                    $default: $five,
+                    $maybe: Some($five),
+                    ..Default::default()
+                },
+            );
             builder.finish(ss, None);
 
             let s = flatbuffers::get_root::<ScalarStuff>(builder.finished_data());
@@ -35,7 +38,6 @@ macro_rules! make_test {
             assert_eq!(s.$default(), $fortytwo);
             assert_eq!(s.$maybe(), None);
         }
-
     };
 }
 
@@ -47,6 +49,39 @@ make_test!(optional_i32, just_i32, default_i32, maybe_i32, 5, 0, 42);
 make_test!(optional_u32, just_u32, default_u32, maybe_u32, 5, 0, 42);
 make_test!(optional_i64, just_i64, default_i64, maybe_i64, 5, 0, 42);
 make_test!(optional_u64, just_u64, default_u64, maybe_u64, 5, 0, 42);
-make_test!(optional_f32, just_f32, default_f32, maybe_f32, 5.0, 0.0, 42.0);
-make_test!(optional_f64, just_f64, default_f64, maybe_f64, 5.0, 0.0, 42.0);
-make_test!(optional_bool, just_bool, default_bool, maybe_bool, true, false, true);
+make_test!(
+    optional_f32,
+    just_f32,
+    default_f32,
+    maybe_f32,
+    5.0,
+    0.0,
+    42.0
+);
+make_test!(
+    optional_f64,
+    just_f64,
+    default_f64,
+    maybe_f64,
+    5.0,
+    0.0,
+    42.0
+);
+make_test!(
+    optional_bool,
+    just_bool,
+    default_bool,
+    maybe_bool,
+    true,
+    false,
+    true
+);
+make_test!(
+     optional_enum,
+     just_enum,
+     default_enum,
+     maybe_enum,
+     OptionalByte::Two,
+     OptionalByte::None,
+     OptionalByte::One
+);

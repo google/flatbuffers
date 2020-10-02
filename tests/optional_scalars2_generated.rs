@@ -23,11 +23,12 @@ pub mod optional_scalars {
 pub enum OptionalByte {
   None = 0,
   One = 1,
+  Two = 2,
 
 }
 
 pub const ENUM_MIN_OPTIONAL_BYTE: i8 = 0;
-pub const ENUM_MAX_OPTIONAL_BYTE: i8 = 1;
+pub const ENUM_MAX_OPTIONAL_BYTE: i8 = 2;
 
 impl<'a> flatbuffers::Follow<'a> for OptionalByte {
   type Inner = Self;
@@ -61,15 +62,17 @@ impl flatbuffers::Push for OptionalByte {
 }
 
 #[allow(non_camel_case_types)]
-pub const ENUM_VALUES_OPTIONAL_BYTE: [OptionalByte; 2] = [
+pub const ENUM_VALUES_OPTIONAL_BYTE: [OptionalByte; 3] = [
   OptionalByte::None,
-  OptionalByte::One
+  OptionalByte::One,
+  OptionalByte::Two
 ];
 
 #[allow(non_camel_case_types)]
-pub const ENUM_NAMES_OPTIONAL_BYTE: [&str; 2] = [
+pub const ENUM_NAMES_OPTIONAL_BYTE: [&str; 3] = [
     "None",
-    "One"
+    "One",
+    "Two"
 ];
 
 pub fn enum_name_optional_byte(e: OptionalByte) -> &'static str {
@@ -129,6 +132,7 @@ impl<'a> ScalarStuff<'a> {
       if let Some(x) = args.maybe_i16 { builder.add_maybe_i16(x); }
       builder.add_just_i16(args.just_i16);
       builder.add_default_enum(args.default_enum);
+      if let Some(x) = args.maybe_enum { builder.add_maybe_enum(x); }
       builder.add_just_enum(args.just_enum);
       builder.add_default_bool(args.default_bool);
       if let Some(x) = args.maybe_bool { builder.add_maybe_bool(x); }
@@ -176,7 +180,8 @@ impl<'a> ScalarStuff<'a> {
     pub const VT_MAYBE_BOOL: flatbuffers::VOffsetT = 66;
     pub const VT_DEFAULT_BOOL: flatbuffers::VOffsetT = 68;
     pub const VT_JUST_ENUM: flatbuffers::VOffsetT = 70;
-    pub const VT_DEFAULT_ENUM: flatbuffers::VOffsetT = 72;
+    pub const VT_MAYBE_ENUM: flatbuffers::VOffsetT = 72;
+    pub const VT_DEFAULT_ENUM: flatbuffers::VOffsetT = 74;
 
   #[inline]
   pub fn just_i8(&self) -> i8 {
@@ -315,6 +320,10 @@ impl<'a> ScalarStuff<'a> {
     self._tab.get::<OptionalByte>(ScalarStuff::VT_JUST_ENUM, Some(OptionalByte::None)).unwrap()
   }
   #[inline]
+  pub fn maybe_enum(&self) -> Option<OptionalByte> {
+    self._tab.get::<OptionalByte>(ScalarStuff::VT_MAYBE_ENUM, None)
+  }
+  #[inline]
   pub fn default_enum(&self) -> OptionalByte {
     self._tab.get::<OptionalByte>(ScalarStuff::VT_DEFAULT_ENUM, Some(OptionalByte::One)).unwrap()
   }
@@ -355,6 +364,7 @@ pub struct ScalarStuffArgs {
     pub maybe_bool: Option<bool>,
     pub default_bool: bool,
     pub just_enum: OptionalByte,
+    pub maybe_enum: Option<OptionalByte>,
     pub default_enum: OptionalByte,
 }
 impl<'a> Default for ScalarStuffArgs {
@@ -395,6 +405,7 @@ impl<'a> Default for ScalarStuffArgs {
             maybe_bool: None,
             default_bool: true,
             just_enum: OptionalByte::None,
+            maybe_enum: None,
             default_enum: OptionalByte::One,
         }
     }
@@ -539,6 +550,10 @@ impl<'a: 'b, 'b> ScalarStuffBuilder<'a, 'b> {
   #[inline]
   pub fn add_just_enum(&mut self, just_enum: OptionalByte) {
     self.fbb_.push_slot::<OptionalByte>(ScalarStuff::VT_JUST_ENUM, just_enum, OptionalByte::None);
+  }
+  #[inline]
+  pub fn add_maybe_enum(&mut self, maybe_enum: OptionalByte) {
+    self.fbb_.push_slot_always::<OptionalByte>(ScalarStuff::VT_MAYBE_ENUM, maybe_enum);
   }
   #[inline]
   pub fn add_default_enum(&mut self, default_enum: OptionalByte) {

@@ -43,7 +43,7 @@ mod monster_test_generated;
 pub use monster_test_generated::my_game;
 
 #[allow(dead_code, unused_imports)]
-#[path = "../../optional_scalars_generated.rs"]
+#[path = "../../optional_scalars2_generated.rs"]
 mod optional_scalars_generated;
 
 #[rustfmt::skip] // TODO: Use standard rust formatting and remove dead code.

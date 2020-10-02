@@ -673,6 +673,9 @@ class RustGenerator : public BaseGenerator {
       }
       case ftUnionKey:
       case ftEnumKey: {
+        if (field.optional) {
+            return "None";
+        }
         auto ev = field.value.type.enum_def->FindByValue(field.value.constant);
         assert(ev);
         return WrapInNameSpace(field.value.type.enum_def->defined_namespace,
@@ -724,7 +727,7 @@ class RustGenerator : public BaseGenerator {
       case ftEnumKey:
       case ftUnionKey: {
         const auto typname = WrapInNameSpace(*type.enum_def);
-        return typname;
+        return field.optional ? "Option<" + typname + ">" : typname;
       }
       case ftUnionValue: {
         return "Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>>";
@@ -872,7 +875,9 @@ class RustGenerator : public BaseGenerator {
       case ftEnumKey:
       case ftUnionKey: {
         const auto underlying_typname = GetTypeBasic(type);
-        return "self.fbb_.push_slot::<" + underlying_typname + ">";
+        return (field.optional ?
+                   "self.fbb_.push_slot_always::<" :
+                   "self.fbb_.push_slot::<") + underlying_typname + ">";
       }
 
       case ftStruct: {
@@ -925,7 +930,7 @@ class RustGenerator : public BaseGenerator {
       case ftEnumKey:
       case ftUnionKey: {
         const auto typname = WrapInNameSpace(*type.enum_def);
-        return typname;
+        return field.optional ? "Option<" + typname + ">" : typname;
       }
 
       case ftUnionValue: {
@@ -1027,8 +1032,12 @@ class RustGenerator : public BaseGenerator {
         const auto underlying_typname = GetTypeBasic(type);  //<- never used
         const auto typname = WrapInNameSpace(*type.enum_def);
         const auto default_value = GetDefaultScalarValue(field);
-        return "self._tab.get::<" + typname + ">(" + offset_name + ", Some(" +
-               default_value + ")).unwrap()";
+        if (field.optional) {
+          return "self._tab.get::<" + typname + ">(" + offset_name + ", None)";
+        } else {
+          return "self._tab.get::<" + typname + ">(" + offset_name + ", Some(" +
+                 default_value + ")).unwrap()";
+        }
       }
       case ftString: {
         return AddUnwrapIfRequired(
