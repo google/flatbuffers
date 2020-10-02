@@ -141,20 +141,20 @@ class PhpGenerator : public BaseGenerator {
                              std::string *code_ptr) {
     std::string &code = *code_ptr;
 
-    std::string fqName = WrapInNameSpace(struct_def);
+    std::string fq_name = WrapInNameSpace(struct_def);
 
     code += Indent + "/**\n";
     code += Indent + " * @param ByteBuffer $bb\n";
-    code += Indent + " * @return " + fqName + "\n";
+    code += Indent + " * @return " + fq_name + "\n";
     code += Indent + " */\n";
     code += Indent + "public static function getRootAs";
     code += struct_def.name;
     code += "(ByteBuffer $bb)";
-    if (parser_.opts.php_strict) { code += ": " + fqName + "\n"; }
+    if (parser_.opts.php_strict) { code += ": " + fq_name + "\n"; }
     code += "\n";
     code += Indent + "{\n";
 
-    code += Indent + Indent + "$obj = new " + fqName + "();\n";
+    code += Indent + Indent + "$obj = new " + fq_name + "();\n";
     code += Indent + Indent;
     code += "return ($obj->init($bb->getInt($bb->getPosition())";
     code += " + $bb->getPosition(), $bb));\n";
