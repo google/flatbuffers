@@ -165,15 +165,17 @@ class PhpGenerator : public BaseGenerator {
   void InitializeExisting(const StructDef &struct_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
 
+    std::string fq_name = WrapInNameSpace(struct_def);
+
     code += Indent + "/**\n";
     code += Indent + " * @param int $_i offset\n";
     code += Indent + " * @param ByteBuffer $_bb\n";
-    code += Indent + " * @return " + struct_def.name + "\n";
+    code += Indent + " * @return " + fq_name + "\n";
     code += Indent + " **/\n";
     code += Indent + "public function init(";
     if (parser_.opts.php_strict) { code += "int "; }
     code += "$_i, ByteBuffer $_bb)";
-    if (parser_.opts.php_strict) { code += ": " + struct_def.name; }
+    if (parser_.opts.php_strict) { code += ": " + fq_name; }
     code += "\n";
 
     code += Indent + "{\n";
