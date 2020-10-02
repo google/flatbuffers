@@ -570,6 +570,9 @@ class JsTsGenerator : public BaseGenerator {
   // Adds a source-dependent prefix, for of import * statements.
   std::string GenPrefixedTypeName(const std::string &typeName,
                                   const std::string &file) {
+    if (typeName == "flatbuffers.Offset") { 
+      return typeName;
+    }
     const auto basename =
         flatbuffers::StripPath(flatbuffers::StripExtension(file));
     if (basename == file_name_ || parser_.opts.generate_all) {
