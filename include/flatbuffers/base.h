@@ -38,6 +38,7 @@
   #include <utility>
 #endif
 
+#include <exception>
 #include <string>
 #include <type_traits>
 #include <vector>

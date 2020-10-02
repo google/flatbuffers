@@ -2073,7 +2073,7 @@ class FlatBufferBuilder {
     buf_.swap_allocator(other.buf_);
   }
 
-  Allocator *GetAllocator() const { return allocator_; };
+  Allocator *GetAllocator() const { return allocator_; }
 
  protected:
   // You shouldn't really be copying instances of this class.
