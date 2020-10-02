@@ -1,5 +1,5 @@
 #[allow(dead_code, unused_imports)]
-#[path = "../../optional_scalars_generated.rs"]
+#[path = "../../optional_scalars2_generated.rs"]
 mod optional_scalars_generated;
 use crate::optional_scalars_generated::optional_scalars::*;
 
@@ -76,12 +76,12 @@ make_test!(
     false,
     true
 );
-// make_test!(
-//     optional_enum,
-//     just_enum,
-//     default_enum,
-//     maybe_enum,
-//     OptionalByte::Two,
-//     OptionalByte::None,
-//     OptionalByte::One
-// );
+make_test!(
+     optional_enum,
+     just_enum,
+     default_enum,
+     maybe_enum,
+     OptionalByte::Two,
+     OptionalByte::None,
+     OptionalByte::One
+);
