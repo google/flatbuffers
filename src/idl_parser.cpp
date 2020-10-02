@@ -748,12 +748,27 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   // fixing field->value.constant to null.
   if (IsScalar(type.base_type)) {
     field->optional = (field->value.constant == "null");
-    if (field->optional && !SupportsOptionalScalars()) {
-      return Error(
-        "Optional scalars are not yet supported in at least one the of "
-        "the specified programming languages."
-      );
+    if (field->optional) {
+      if (type.enum_def && type.enum_def->Lookup("null")) {
+        FLATBUFFERS_ASSERT(IsInteger(type.base_type));
+        return Error(
+            "the default 'null' is reserved for declaring optional scalar "
+            "fields, it conflicts with declaration of enum '" +
+            type.enum_def->name + "'.");
+      }
+      if (field->attributes.Lookup("key")) {
+        return Error("only a non-optional scalar field can be used as a 'key' field");
+      }
+      if (!SupportsOptionalScalars()) {
+        return Error(
+            "Optional scalars are not yet supported in at least one the of "
+            "the specified programming languages.");
+      }
     }
+  } else {
+    // For nonscalars, only required fields are non-optional.
+    // At least until https://github.com/google/flatbuffers/issues/6053
+    field->optional = !field->required;
   }
 
   // Append .0 if the value has not it (skip hex and scientific floats).
@@ -2264,10 +2279,17 @@ CheckedError Parser::CheckClash(std::vector<FieldDef *> &fields,
   return NoError();
 }
 
+bool Parser::SupportsOptionalScalars(const flatbuffers::IDLOptions &opts){
+  static FLATBUFFERS_CONSTEXPR unsigned long supported_langs =
+      IDLOptions::kRust | IDLOptions::kSwift | IDLOptions::kLobster |
+      IDLOptions::kKotlin | IDLOptions::kCpp;
+  unsigned long langs = opts.lang_to_generate;
+  return (langs > 0 && langs < IDLOptions::kMAX) && !(langs & ~supported_langs);
+}
 
 bool Parser::SupportsOptionalScalars() const {
-  return !(opts.lang_to_generate &
-    ~(IDLOptions::kRust | IDLOptions::kSwift | IDLOptions::kLobster));
+  // Check in general if a language isn't specified.
+  return opts.lang_to_generate == 0 || SupportsOptionalScalars(opts);
 }
 
 bool Parser::SupportsAdvancedUnionFeatures() const {
