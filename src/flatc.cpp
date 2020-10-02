@@ -135,7 +135,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --go-namespace         Generate the overrided namespace in Golang.\n"
     "  --go-import            Generate the overrided import for flatbuffers in Golang\n"
     "                         (default is \"github.com/google/flatbuffers/go\").\n"
-    "  --php-strict       Generate strictly typed code in PHP (minimum version 7.1 required).\n"
+    "  --php-strict           Generate strictly typed code in PHP (minimum version 7.1 required).\n"
     "  --raw-binary           Allow binaries without file_indentifier to be read.\n"
     "                         This may crash flatc given a mismatched schema.\n"
     "  --size-prefixed        Input binaries are size prefixed buffers.\n"

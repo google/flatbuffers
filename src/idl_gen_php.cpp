@@ -977,15 +977,15 @@ class PhpGenerator : public BaseGenerator {
   }
 
   std::string GenTypeHint(const Type &type) {
-    static const char *ctypehint[] = {
     // clang-format off
-        #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE, PHPTYPE) \
-            #PHPTYPE,
-                FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
-        #undef FLATBUFFERS_TD
-      // clang-format on
+    static const char *ctypehint[] = {
+      #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
+              CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE, STYPE, PHPTYPE) \
+        #PHPTYPE,
+        FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
+      #undef FLATBUFFERS_TD
     };
+    // clang-format on
     return ctypehint[type.base_type];
   }
 
