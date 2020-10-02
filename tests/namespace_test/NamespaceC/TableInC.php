@@ -12,11 +12,11 @@ class TableInC extends Table
 {
     /**
      * @param ByteBuffer $bb
-     * @return TableInC
+     * @return \NamespaceC\TableInC
      */
     public static function getRootAsTableInC(ByteBuffer $bb)
     {
-        $obj = new TableInC();
+        $obj = new \NamespaceC\TableInC();
         return ($obj->init($bb->getInt($bb->getPosition()) + $bb->getPosition(), $bb));
     }
 
@@ -32,18 +32,24 @@ class TableInC extends Table
         return $this;
     }
 
+    /**
+     * @return \NamespaceA\TableInFirstNS|null
+     */
     public function getReferToA1()
     {
-        $obj = new TableInFirstNS();
+        $obj = new \NamespaceA\TableInFirstNS();
         $o = $this->__offset(4);
-        return $o != 0 ? $obj->init($this->__indirect($o + $this->bb_pos), $this->bb) : 0;
+        return $o != 0 ? $obj->init($this->__indirect($o + $this->bb_pos), $this->bb) : null;
     }
 
+    /**
+     * @return \NamespaceA\SecondTableInA|null
+     */
     public function getReferToA2()
     {
-        $obj = new SecondTableInA();
+        $obj = new \NamespaceA\SecondTableInA();
         $o = $this->__offset(6);
-        return $o != 0 ? $obj->init($this->__indirect($o + $this->bb_pos), $this->bb) : 0;
+        return $o != 0 ? $obj->init($this->__indirect($o + $this->bb_pos), $this->bb) : null;
     }
 
     /**
@@ -52,12 +58,12 @@ class TableInC extends Table
      */
     public static function startTableInC(FlatBufferBuilder $builder)
     {
-        $builder->StartObject(2);
+        $builder->startObject(2);
     }
 
     /**
      * @param FlatBufferBuilder $builder
-     * @return TableInC
+     * @return int
      */
     public static function createTableInC(FlatBufferBuilder $builder, $refer_to_a1, $refer_to_a2)
     {
@@ -70,7 +76,7 @@ class TableInC extends Table
 
     /**
      * @param FlatBufferBuilder $builder
-     * @param int
+     * @param int $referToA1
      * @return void
      */
     public static function addReferToA1(FlatBufferBuilder $builder, $referToA1)
@@ -80,7 +86,7 @@ class TableInC extends Table
 
     /**
      * @param FlatBufferBuilder $builder
-     * @param int
+     * @param int $referToA2
      * @return void
      */
     public static function addReferToA2(FlatBufferBuilder $builder, $referToA2)

@@ -23,17 +23,17 @@ class Test extends Struct
     }
 
     /**
-     * @return short
+     * @return int
      */
-    public function GetA()
+    public function getA()
     {
         return $this->bb->getShort($this->bb_pos + 0);
     }
 
     /**
-     * @return sbyte
+     * @return int
      */
-    public function GetB()
+    public function getB()
     {
         return $this->bb->getSbyte($this->bb_pos + 2);
     }

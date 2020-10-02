@@ -10,11 +10,11 @@ class Attacker extends Table
 {
     /**
      * @param ByteBuffer $bb
-     * @return Attacker
+     * @return \Attacker
      */
     public static function getRootAsAttacker(ByteBuffer $bb)
     {
-        $obj = new Attacker();
+        $obj = new \Attacker();
         return ($obj->init($bb->getInt($bb->getPosition()) + $bb->getPosition(), $bb));
     }
 
@@ -55,12 +55,12 @@ class Attacker extends Table
      */
     public static function startAttacker(FlatBufferBuilder $builder)
     {
-        $builder->StartObject(1);
+        $builder->startObject(1);
     }
 
     /**
      * @param FlatBufferBuilder $builder
-     * @return Attacker
+     * @return int
      */
     public static function createAttacker(FlatBufferBuilder $builder, $sword_attack_damage)
     {
@@ -72,7 +72,7 @@ class Attacker extends Table
 
     /**
      * @param FlatBufferBuilder $builder
-     * @param int
+     * @param int $swordAttackDamage
      * @return void
      */
     public static function addSwordAttackDamage(FlatBufferBuilder $builder, $swordAttackDamage)

@@ -21,10 +21,10 @@ class Character
         Character::Unused=>"Unused",
     );
 
-    public static function Name($e)
+    public static function name($e)
     {
         if (!isset(self::$names[$e])) {
-            throw new \Exception();
+            throw new \OutOfRangeException("Unknown enum value '{$e}' for Character");
         }
         return self::$names[$e];
     }

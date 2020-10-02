@@ -12,11 +12,11 @@ class SecondTableInA extends Table
 {
     /**
      * @param ByteBuffer $bb
-     * @return SecondTableInA
+     * @return \NamespaceA\SecondTableInA
      */
     public static function getRootAsSecondTableInA(ByteBuffer $bb)
     {
-        $obj = new SecondTableInA();
+        $obj = new \NamespaceA\SecondTableInA();
         return ($obj->init($bb->getInt($bb->getPosition()) + $bb->getPosition(), $bb));
     }
 
@@ -32,11 +32,14 @@ class SecondTableInA extends Table
         return $this;
     }
 
+    /**
+     * @return \NamespaceC\TableInC|null
+     */
     public function getReferToC()
     {
-        $obj = new TableInC();
+        $obj = new \NamespaceC\TableInC();
         $o = $this->__offset(4);
-        return $o != 0 ? $obj->init($this->__indirect($o + $this->bb_pos), $this->bb) : 0;
+        return $o != 0 ? $obj->init($this->__indirect($o + $this->bb_pos), $this->bb) : null;
     }
 
     /**
@@ -45,12 +48,12 @@ class SecondTableInA extends Table
      */
     public static function startSecondTableInA(FlatBufferBuilder $builder)
     {
-        $builder->StartObject(1);
+        $builder->startObject(1);
     }
 
     /**
      * @param FlatBufferBuilder $builder
-     * @return SecondTableInA
+     * @return int
      */
     public static function createSecondTableInA(FlatBufferBuilder $builder, $refer_to_c)
     {
@@ -62,7 +65,7 @@ class SecondTableInA extends Table
 
     /**
      * @param FlatBufferBuilder $builder
-     * @param int
+     * @param int $referToC
      * @return void
      */
     public static function addReferToC(FlatBufferBuilder $builder, $referToC)

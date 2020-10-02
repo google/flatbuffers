@@ -17,10 +17,10 @@ class AnyUniqueAliases
         AnyUniqueAliases::M2=>"M2",
     );
 
-    public static function Name($e)
+    public static function name($e)
     {
         if (!isset(self::$names[$e])) {
-            throw new \Exception();
+            throw new \OutOfRangeException("Unknown enum value '{$e}' for AnyUniqueAliases");
         }
         return self::$names[$e];
     }

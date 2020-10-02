@@ -25,7 +25,7 @@ class Vec3 extends Struct
     /**
      * @return float
      */
-    public function GetX()
+    public function getX()
     {
         return $this->bb->getFloat($this->bb_pos + 0);
     }
@@ -33,7 +33,7 @@ class Vec3 extends Struct
     /**
      * @return float
      */
-    public function GetY()
+    public function getY()
     {
         return $this->bb->getFloat($this->bb_pos + 4);
     }
@@ -41,33 +41,33 @@ class Vec3 extends Struct
     /**
      * @return float
      */
-    public function GetZ()
+    public function getZ()
     {
         return $this->bb->getFloat($this->bb_pos + 8);
     }
 
     /**
-     * @return double
+     * @return float
      */
-    public function GetTest1()
+    public function getTest1()
     {
         return $this->bb->getDouble($this->bb_pos + 16);
     }
 
     /**
-     * @return byte
+     * @return int
      */
-    public function GetTest2()
+    public function getTest2()
     {
         return $this->bb->getByte($this->bb_pos + 24);
     }
 
     /**
-     * @return Test
+     * @return int
      */
     public function getTest3()
     {
-        $obj = new Test();
+        $obj = new \MyGame\Example\Test();
         $obj->init($this->bb_pos + 26, $this->bb);
         return $obj;
     }

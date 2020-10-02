@@ -12,11 +12,11 @@ class Referrable extends Table
 {
     /**
      * @param ByteBuffer $bb
-     * @return Referrable
+     * @return \MyGame\Example\Referrable
      */
     public static function getRootAsReferrable(ByteBuffer $bb)
     {
-        $obj = new Referrable();
+        $obj = new \MyGame\Example\Referrable();
         return ($obj->init($bb->getInt($bb->getPosition()) + $bb->getPosition(), $bb));
     }
 
@@ -48,7 +48,7 @@ class Referrable extends Table
     }
 
     /**
-     * @return ulong
+     * @return int
      */
     public function getId()
     {
@@ -62,12 +62,12 @@ class Referrable extends Table
      */
     public static function startReferrable(FlatBufferBuilder $builder)
     {
-        $builder->StartObject(1);
+        $builder->startObject(1);
     }
 
     /**
      * @param FlatBufferBuilder $builder
-     * @return Referrable
+     * @return int
      */
     public static function createReferrable(FlatBufferBuilder $builder, $id)
     {
@@ -79,7 +79,7 @@ class Referrable extends Table
 
     /**
      * @param FlatBufferBuilder $builder
-     * @param ulong
+     * @param int $id
      * @return void
      */
     public static function addId(FlatBufferBuilder $builder, $id)

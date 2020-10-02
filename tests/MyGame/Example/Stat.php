@@ -12,11 +12,11 @@ class Stat extends Table
 {
     /**
      * @param ByteBuffer $bb
-     * @return Stat
+     * @return \MyGame\Example\Stat
      */
     public static function getRootAsStat(ByteBuffer $bb)
     {
-        $obj = new Stat();
+        $obj = new \MyGame\Example\Stat();
         return ($obj->init($bb->getInt($bb->getPosition()) + $bb->getPosition(), $bb));
     }
 
@@ -47,6 +47,9 @@ class Stat extends Table
         return $this;
     }
 
+    /**
+     * @return string|null
+     */
     public function getId()
     {
         $o = $this->__offset(4);
@@ -54,7 +57,7 @@ class Stat extends Table
     }
 
     /**
-     * @return long
+     * @return int
      */
     public function getVal()
     {
@@ -63,7 +66,7 @@ class Stat extends Table
     }
 
     /**
-     * @return ushort
+     * @return int
      */
     public function getCount()
     {
@@ -77,12 +80,12 @@ class Stat extends Table
      */
     public static function startStat(FlatBufferBuilder $builder)
     {
-        $builder->StartObject(3);
+        $builder->startObject(3);
     }
 
     /**
      * @param FlatBufferBuilder $builder
-     * @return Stat
+     * @return int
      */
     public static function createStat(FlatBufferBuilder $builder, $id, $val, $count)
     {
@@ -96,7 +99,7 @@ class Stat extends Table
 
     /**
      * @param FlatBufferBuilder $builder
-     * @param StringOffset
+     * @param int $id
      * @return void
      */
     public static function addId(FlatBufferBuilder $builder, $id)
@@ -106,7 +109,7 @@ class Stat extends Table
 
     /**
      * @param FlatBufferBuilder $builder
-     * @param long
+     * @param int $val
      * @return void
      */
     public static function addVal(FlatBufferBuilder $builder, $val)
@@ -116,7 +119,7 @@ class Stat extends Table
 
     /**
      * @param FlatBufferBuilder $builder
-     * @param ushort
+     * @param int $count
      * @return void
      */
     public static function addCount(FlatBufferBuilder $builder, $count)

@@ -23,17 +23,17 @@ class Ability extends Struct
     }
 
     /**
-     * @return uint
+     * @return int
      */
-    public function GetId()
+    public function getId()
     {
         return $this->bb->getUint($this->bb_pos + 0);
     }
 
     /**
-     * @return uint
+     * @return int
      */
-    public function GetDistance()
+    public function getDistance()
     {
         return $this->bb->getUint($this->bb_pos + 4);
     }

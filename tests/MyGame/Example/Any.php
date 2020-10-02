@@ -17,10 +17,10 @@ class Any
         Any::MyGame_Example2_Monster=>"MyGame_Example2_Monster",
     );
 
-    public static function Name($e)
+    public static function name($e)
     {
         if (!isset(self::$names[$e])) {
-            throw new \Exception();
+            throw new \OutOfRangeException("Unknown enum value '{$e}' for Any");
         }
         return self::$names[$e];
     }

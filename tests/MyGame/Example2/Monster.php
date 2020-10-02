@@ -12,11 +12,11 @@ class Monster extends Table
 {
     /**
      * @param ByteBuffer $bb
-     * @return Monster
+     * @return \MyGame\Example2\Monster
      */
     public static function getRootAsMonster(ByteBuffer $bb)
     {
-        $obj = new Monster();
+        $obj = new \MyGame\Example2\Monster();
         return ($obj->init($bb->getInt($bb->getPosition()) + $bb->getPosition(), $bb));
     }
 
@@ -53,14 +53,14 @@ class Monster extends Table
      */
     public static function startMonster(FlatBufferBuilder $builder)
     {
-        $builder->StartObject(0);
+        $builder->startObject(0);
     }
 
     /**
      * @param FlatBufferBuilder $builder
-     * @return Monster
+     * @return int
      */
-    public static function createMonster(FlatBufferBuilder $builder, )
+    public static function createMonster(FlatBufferBuilder $builder)
     {
         $builder->startObject(0);
         $o = $builder->endObject();

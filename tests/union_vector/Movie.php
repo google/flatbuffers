@@ -10,11 +10,11 @@ class Movie extends Table
 {
     /**
      * @param ByteBuffer $bb
-     * @return Movie
+     * @return \Movie
      */
     public static function getRootAsMovie(ByteBuffer $bb)
     {
-        $obj = new Movie();
+        $obj = new \Movie();
         return ($obj->init($bb->getInt($bb->getPosition()) + $bb->getPosition(), $bb));
     }
 
@@ -41,7 +41,7 @@ class Movie extends Table
     }
 
     /**
-     * @return byte
+     * @return int
      */
     public function getMainCharacterType()
     {
@@ -50,7 +50,7 @@ class Movie extends Table
     }
 
     /**
-     * @returnint
+     * @return Table|null
      */
     public function getMainCharacter($obj)
     {
@@ -59,8 +59,8 @@ class Movie extends Table
     }
 
     /**
-     * @param int offset
-     * @return byte
+     * @param int $j offset
+     * @return int
      */
     public function getCharactersType($j)
     {
@@ -79,7 +79,7 @@ class Movie extends Table
 
     /**
      * @param int offset
-     * @return Table
+     * @return Table|null
      */
     public function getCharacters($j, $obj)
     {
@@ -102,12 +102,12 @@ class Movie extends Table
      */
     public static function startMovie(FlatBufferBuilder $builder)
     {
-        $builder->StartObject(4);
+        $builder->startObject(4);
     }
 
     /**
      * @param FlatBufferBuilder $builder
-     * @return Movie
+     * @return int
      */
     public static function createMovie(FlatBufferBuilder $builder, $main_character_type, $main_character, $characters_type, $characters)
     {
@@ -122,7 +122,7 @@ class Movie extends Table
 
     /**
      * @param FlatBufferBuilder $builder
-     * @param byte
+     * @param int $mainCharacterType
      * @return void
      */
     public static function addMainCharacterType(FlatBufferBuilder $builder, $mainCharacterType)
@@ -130,14 +130,14 @@ class Movie extends Table
         $builder->addByteX(0, $mainCharacterType, 0);
     }
 
-    public static function addMainCharacter(FlatBufferBuilder $builder, $offset)
+    public static function addMainCharacter(FlatBufferBuilder $builder, int $offset)
     {
         $builder->addOffsetX(1, $offset, 0);
     }
 
     /**
      * @param FlatBufferBuilder $builder
-     * @param VectorOffset
+     * @param int $charactersType
      * @return void
      */
     public static function addCharactersType(FlatBufferBuilder $builder, $charactersType)
@@ -147,7 +147,7 @@ class Movie extends Table
 
     /**
      * @param FlatBufferBuilder $builder
-     * @param array offset array
+     * @param int[] $data offset array
      * @return int vector offset
      */
     public static function createCharactersTypeVector(FlatBufferBuilder $builder, array $data)
@@ -164,14 +164,14 @@ class Movie extends Table
      * @param int $numElems
      * @return void
      */
-    public static function startCharactersTypeVector(FlatBufferBuilder $builder, $numElems)
+    public static function startCharactersTypeVector(FlatBufferBuilder $builder, int $numElems): void
     {
         $builder->startVector(1, $numElems, 1);
     }
 
     /**
      * @param FlatBufferBuilder $builder
-     * @param VectorOffset
+     * @param int $characters
      * @return void
      */
     public static function addCharacters(FlatBufferBuilder $builder, $characters)
@@ -181,7 +181,7 @@ class Movie extends Table
 
     /**
      * @param FlatBufferBuilder $builder
-     * @param array offset array
+     * @param int[] $data offset array
      * @return int vector offset
      */
     public static function createCharactersVector(FlatBufferBuilder $builder, array $data)
@@ -198,7 +198,7 @@ class Movie extends Table
      * @param int $numElems
      * @return void
      */
-    public static function startCharactersVector(FlatBufferBuilder $builder, $numElems)
+    public static function startCharactersVector(FlatBufferBuilder $builder, int $numElems): void
     {
         $builder->startVector(4, $numElems, 4);
     }
@@ -213,7 +213,7 @@ class Movie extends Table
         return $o;
     }
 
-    public static function finishMovieBuffer(FlatBufferBuilder $builder, $offset)
+    public static function finishMovieBuffer(FlatBufferBuilder $builder, int $offset): void
     {
         $builder->finish($offset, "MOVI");
     }

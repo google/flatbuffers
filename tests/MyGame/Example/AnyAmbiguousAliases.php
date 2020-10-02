@@ -17,10 +17,10 @@ class AnyAmbiguousAliases
         AnyAmbiguousAliases::M3=>"M3",
     );
 
-    public static function Name($e)
+    public static function name($e)
     {
         if (!isset(self::$names[$e])) {
-            throw new \Exception();
+            throw new \OutOfRangeException("Unknown enum value '{$e}' for AnyAmbiguousAliases");
         }
         return self::$names[$e];
     }

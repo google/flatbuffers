@@ -23,7 +23,7 @@ class Rapunzel extends Struct
     /**
      * @return int
      */
-    public function GetHairLength()
+    public function getHairLength()
     {
         return $this->bb->getInt($this->bb_pos + 0);
     }

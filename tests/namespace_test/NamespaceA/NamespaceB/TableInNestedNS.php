@@ -12,11 +12,11 @@ class TableInNestedNS extends Table
 {
     /**
      * @param ByteBuffer $bb
-     * @return TableInNestedNS
+     * @return \NamespaceA\NamespaceB\TableInNestedNS
      */
     public static function getRootAsTableInNestedNS(ByteBuffer $bb)
     {
-        $obj = new TableInNestedNS();
+        $obj = new \NamespaceA\NamespaceB\TableInNestedNS();
         return ($obj->init($bb->getInt($bb->getPosition()) + $bb->getPosition(), $bb));
     }
 
@@ -47,12 +47,12 @@ class TableInNestedNS extends Table
      */
     public static function startTableInNestedNS(FlatBufferBuilder $builder)
     {
-        $builder->StartObject(1);
+        $builder->startObject(1);
     }
 
     /**
      * @param FlatBufferBuilder $builder
-     * @return TableInNestedNS
+     * @return int
      */
     public static function createTableInNestedNS(FlatBufferBuilder $builder, $foo)
     {
@@ -64,7 +64,7 @@ class TableInNestedNS extends Table
 
     /**
      * @param FlatBufferBuilder $builder
-     * @param int
+     * @param int $foo
      * @return void
      */
     public static function addFoo(FlatBufferBuilder $builder, $foo)

@@ -19,10 +19,10 @@ class Color
         Color::Blue=>"Blue",
     );
 
-    public static function Name($e)
+    public static function name($e)
     {
         if (!isset(self::$names[$e])) {
-            throw new \Exception();
+            throw new \OutOfRangeException("Unknown enum value '{$e}' for Color");
         }
         return self::$names[$e];
     }

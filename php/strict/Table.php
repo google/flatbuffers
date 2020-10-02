@@ -1,0 +1,121 @@
+<?php declare (strict_types=1);
+/*
+ * Copyright 2015 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+namespace Google\FlatBuffers;
+
+abstract class Table
+{
+    /**
+     * @var int $bb_pos
+     */
+    protected $bb_pos;
+    /**
+     * @var ByteBuffer $bb
+     */
+    protected $bb;
+
+    public function __construct()
+    {
+    }
+
+    public function setByteBufferPos(int $pos): void
+    {
+        $this->bb_pos = $pos;
+    }
+
+    public function setByteBuffer(ByteBuffer $bb): void
+    {
+        $this->bb = $bb;
+    }
+
+    /**
+     * returns actual vtable offset
+     *
+     * @return int offset > 0 means exist value. 0 means not exist
+     */
+    protected function __offset(int $vtable_offset): int
+    {
+        $vtable = $this->bb_pos - $this->bb->getInt($this->bb_pos);
+        return $vtable_offset < $this->bb->getShort($vtable) ? $this->bb->getShort($vtable + $vtable_offset) : 0;
+    }
+
+    protected function __indirect(int $offset): int
+    {
+        return $offset + $this->bb->getInt($offset);
+    }
+
+    /**
+     * fetch utf8 encoded string.
+     */
+    protected function __string(int $offset): string
+    {
+        $offset += $this->bb->getInt($offset);
+        $len = $this->bb->getInt($offset);
+        $startPos = $offset + Constants::SIZEOF_INT;
+        return substr($this->bb->_buffer, $startPos, $len);
+    }
+
+    protected function __vector_len(int $offset): int
+    {
+        $offset += $this->bb_pos;
+        $offset += $this->bb->getInt($offset);
+        return $this->bb->getInt($offset);
+    }
+
+    protected function __vector(int $offset): int
+    {
+        $offset += $this->bb_pos;
+        // data starts after the length
+        return $offset + $this->bb->getInt($offset) + Constants::SIZEOF_INT;
+    }
+
+    protected function __vector_as_bytes(int $vector_offset, int $elem_size=1): ?string
+    {
+        $o = $this->__offset($vector_offset);
+        if ($o == 0) {
+            return null;
+        }
+
+        return substr($this->bb->_buffer, $this->__vector($o), $this->__vector_len($o) * $elem_size);
+    }
+
+    protected function __union(Table $table, int $offset): Table
+    {
+        $offset += $this->bb_pos;
+        $table->setByteBufferPos($offset + $this->bb->getInt($offset));
+        $table->setByteBuffer($this->bb);
+        return $table;
+    }
+
+    /**
+     * @throws \InvalidArgumentException
+     */
+    protected static function __has_identifier(ByteBuffer $bb, string $ident): bool
+    {
+        if (strlen($ident) != Constants::FILE_IDENTIFIER_LENGTH) {
+            throw new \InvalidArgumentException("FlatBuffers: file identifier must be length "  . Constants::FILE_IDENTIFIER_LENGTH);
+        }
+
+        for ($i = 0; $i < Constants::FILE_IDENTIFIER_LENGTH; $i++) {
+            if ($ident[$i] != $bb->get($bb->getPosition() + Constants::SIZEOF_INT + $i)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+}

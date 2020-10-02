@@ -12,11 +12,11 @@ class InParentNamespace extends Table
 {
     /**
      * @param ByteBuffer $bb
-     * @return InParentNamespace
+     * @return \MyGame\InParentNamespace
      */
     public static function getRootAsInParentNamespace(ByteBuffer $bb)
     {
-        $obj = new InParentNamespace();
+        $obj = new \MyGame\InParentNamespace();
         return ($obj->init($bb->getInt($bb->getPosition()) + $bb->getPosition(), $bb));
     }
 
@@ -53,14 +53,14 @@ class InParentNamespace extends Table
      */
     public static function startInParentNamespace(FlatBufferBuilder $builder)
     {
-        $builder->StartObject(0);
+        $builder->startObject(0);
     }
 
     /**
      * @param FlatBufferBuilder $builder
-     * @return InParentNamespace
+     * @return int
      */
-    public static function createInParentNamespace(FlatBufferBuilder $builder, )
+    public static function createInParentNamespace(FlatBufferBuilder $builder)
     {
         $builder->startObject(0);
         $o = $builder->endObject();

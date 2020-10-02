@@ -25,7 +25,7 @@ class StructInNestedNS extends Struct
     /**
      * @return int
      */
-    public function GetA()
+    public function getA()
     {
         return $this->bb->getInt($this->bb_pos + 0);
     }
@@ -33,7 +33,7 @@ class StructInNestedNS extends Struct
     /**
      * @return int
      */
-    public function GetB()
+    public function getB()
     {
         return $this->bb->getInt($this->bb_pos + 4);
     }
