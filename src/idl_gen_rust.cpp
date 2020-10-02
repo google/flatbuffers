@@ -1498,6 +1498,17 @@ class RustGenerator : public BaseGenerator {
     code_ += "}";
     code_ += "";
 
+    // legacy accessor
+
+    code_ += "#[inline]";
+    code_ += "#[deprecated = \"getters starting with get_ are deprecated\"]";
+    code_ +=
+        "pub fn get_root_as_{{STRUCT_NAME_SNAKECASE}}<'a>(buf: &'a [u8])"
+        " -> {{STRUCT_NAME}}<'a> {";
+    code_ += "  flatbuffers::get_root::<{{STRUCT_NAME}}<'a>>(buf)";
+    code_ += "}";
+    code_ += "";
+
     code_ += "#[inline]";
     code_ +=
         "pub fn size_prefixed_root_as_{{STRUCT_NAME_SNAKECASE}}"
