@@ -29,12 +29,20 @@ abstract class Struct
      */
     protected $bb;
 
+    /**
+     * @param int $pos
+     * @return void
+     */
     public function setByteBufferPos($pos)
     {
         $this->bb_pos = $pos;
     }
 
-    public function setByteBuffer($bb)
+    /**
+     * @param ByteBuffer $bb
+     * @return void
+     */
+    public function setByteBuffer(ByteBuffer $bb)
     {
         $this->bb = $bb;
     }

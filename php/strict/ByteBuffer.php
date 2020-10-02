@@ -332,12 +332,12 @@ class ByteBuffer
     const __DOUBLE = 5;
     /**
      * @param int $type
-     * @param mixed $value
-     * @param mixed $value2
-     * @return mixed
+     * @param int $value
+     * @param int|null $value2
+     * @return float
      * @throws \ErrorException
      */
-    private static function convertHelper(int $type, $value, $value2 = null) {
+    private static function convertHelper(int $type, int $value, ?int $value2 = null) {
         // readLittleEndian construct unsigned integer value from bytes. we have to encode this value to
         // correct bytes, and decode as expected types with `unpack` function.
         // then it returns correct type value.

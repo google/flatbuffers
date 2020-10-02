@@ -84,7 +84,7 @@ final class FlatbufferBuilder
     /**
      * Create a FlatBufferBuilder with a given initial size.
      *
-     * @param $initial_size initial byte buffer size.
+     * @param int $initial_size initial byte buffer size.
      */
     public function __construct($initial_size)
     {
@@ -99,7 +99,7 @@ final class FlatbufferBuilder
     /**
      * create new bytebuffer
      *
-     * @param $size
+     * @param int $size
      * @return ByteBuffer
      */
     private function newByteBuffer($size)
@@ -120,7 +120,8 @@ final class FlatbufferBuilder
     /**
      * padding buffer
      *
-     * @param $byte_size
+     * @param int $byte_size
+     * @return void
      */
     public function pad($byte_size)
     {
@@ -132,8 +133,9 @@ final class FlatbufferBuilder
     /**
      * prepare bytebuffer
      *
-     * @param $size
-     * @param $additional_bytes
+     * @param int $size
+     * @param int $additional_bytes
+     * @return void
      * @throws \Exception
      */
     public function prep($size, $additional_bytes)
@@ -180,7 +182,8 @@ final class FlatbufferBuilder
     }
 
     /**
-     * @param $x
+     * @param bool $x
+     * @return void
      */
     public function putBool($x)
     {
@@ -188,7 +191,8 @@ final class FlatbufferBuilder
     }
 
     /**
-     * @param $x
+     * @param int $x
+     * @return void
      */
     public function putByte($x)
     {
@@ -196,7 +200,8 @@ final class FlatbufferBuilder
     }
 
     /**
-     * @param $x
+     * @param int $x
+     * @return void
      */
     public function putSbyte($x)
     {
@@ -204,7 +209,8 @@ final class FlatbufferBuilder
     }
 
     /**
-     * @param $x
+     * @param int $x
+     * @return void
      */
     public function putShort($x)
     {
@@ -212,7 +218,8 @@ final class FlatbufferBuilder
     }
 
     /**
-     * @param $x
+     * @param int $x
+     * @return void
      */
     public function putUshort($x)
     {
@@ -220,7 +227,8 @@ final class FlatbufferBuilder
     }
 
     /**
-     * @param $x
+     * @param int $x
+     * @return void
      */
     public function putInt($x)
     {
@@ -228,7 +236,9 @@ final class FlatbufferBuilder
     }
 
     /**
-     * @param $x
+     * @param int $x
+     * @return void
+     * @throws InvalidArgumentException
      */
     public function putUint($x)
     {
@@ -240,7 +250,9 @@ final class FlatbufferBuilder
     }
 
     /**
-     * @param $x
+     * @param int $x
+     * @return void
+     * @throws InvalidArgumentException
      */
     public function putLong($x)
     {
@@ -252,7 +264,9 @@ final class FlatbufferBuilder
     }
 
     /**
-     * @param $x
+     * @param int $x
+     * @return void
+     * @throws InvalidArgumentException
      */
     public function putUlong($x)
     {
@@ -264,7 +278,8 @@ final class FlatbufferBuilder
     }
 
     /**
-     * @param $x
+     * @param float $x
+     * @return void
      */
     public function putFloat($x)
     {
@@ -272,7 +287,8 @@ final class FlatbufferBuilder
     }
 
     /**
-     * @param $x
+     * @param float $x
+     * @return void
      */
     public function putDouble($x)
     {
@@ -280,7 +296,8 @@ final class FlatbufferBuilder
     }
 
     /**
-     * @param $off
+     * @param int $off
+     * @return void
      */
     public function putOffset($off)
     {
@@ -291,7 +308,8 @@ final class FlatbufferBuilder
 
     /**
      * Add a `bool` to the buffer, properly aligned, and grows the buffer (if necessary).
-     * @param $x The `bool` to add to the buffer.
+     * @param bool $x The `bool` to add to the buffer.
+     * @return void
      */
     public function addBool($x)
     {
@@ -301,7 +319,8 @@ final class FlatbufferBuilder
 
     /**
      * Add a `byte` to the buffer, properly aligned, and grows the buffer (if necessary).
-     * @param $x The `byte` to add to the buffer.
+     * @param int $x The `byte` to add to the buffer.
+     * @return void
      */
     public function addByte($x)
     {
@@ -311,7 +330,8 @@ final class FlatbufferBuilder
 
     /**
      * Add a `signed byte` to the buffer, properly aligned, and grows the buffer (if necessary).
-     * @param $x The `signed byte` to add to the buffer.
+     * @param int $x The `signed byte` to add to the buffer.
+     * @return void
      */
     public function addSbyte($x)
     {
@@ -321,7 +341,8 @@ final class FlatbufferBuilder
 
     /**
      * Add a `short` to the buffer, properly aligned, and grows the buffer (if necessary).
-     * @param $x The `short` to add to the buffer.
+     * @param int $x The `short` to add to the buffer.
+     * @return void
      */
     public function addShort($x)
     {
@@ -331,7 +352,8 @@ final class FlatbufferBuilder
 
     /**
      * Add an `unsigned short` to the buffer, properly aligned, and grows the buffer (if necessary).
-     * @param $x The `unsigned short` to add to the buffer.
+     * @param int $x The `unsigned short` to add to the buffer.
+     * @return void
      */
     public function addUshort($x)
     {
@@ -341,7 +363,8 @@ final class FlatbufferBuilder
 
     /**
      * Add an `int` to the buffer, properly aligned, and grows the buffer (if necessary).
-     * @param $x The `int` to add to the buffer.
+     * @param int $x The `int` to add to the buffer.
+     * @return void
      */
     public function addInt($x)
     {
@@ -351,7 +374,8 @@ final class FlatbufferBuilder
 
     /**
      * Add an `unsigned int` to the buffer, properly aligned, and grows the buffer (if necessary).
-     * @param $x The `unsigned int` to add to the buffer.
+     * @param int $x The `unsigned int` to add to the buffer.
+     * @return void
      */
     public function addUint($x)
     {
@@ -361,7 +385,8 @@ final class FlatbufferBuilder
 
     /**
      * Add a `long` to the buffer, properly aligned, and grows the buffer (if necessary).
-     * @param $x The `long` to add to the buffer.
+     * @param int $x The `long` to add to the buffer.
+     * @return void
      */
     public function addLong($x)
     {
@@ -371,7 +396,8 @@ final class FlatbufferBuilder
 
     /**
      * Add an `unsigned long` to the buffer, properly aligned, and grows the buffer (if necessary).
-     * @param $x The `unsigned long` to add to the buffer.
+     * @param int $x The `unsigned long` to add to the buffer.
+     * @return void
      */
     public function addUlong($x)
     {
@@ -381,7 +407,8 @@ final class FlatbufferBuilder
 
     /**
      * Add a `float` to the buffer, properly aligned, and grows the buffer (if necessary).
-     * @param $x The `float` to add to the buffer.
+     * @param float $x The `float` to add to the buffer.
+     * @return void
      */
     public function addFloat($x)
     {
@@ -391,7 +418,8 @@ final class FlatbufferBuilder
 
     /**
      * Add a `double` to the buffer, properly aligned, and grows the buffer (if necessary).
-     * @param $x The `double` to add to the buffer.
+     * @param float $x The `double` to add to the buffer.
+     * @return void
      */
     public function addDouble($x)
     {
@@ -401,9 +429,10 @@ final class FlatbufferBuilder
 
     /// @cond FLATBUFFERS_INTERNAL
     /**
-     * @param $o
-     * @param $x
-     * @param $d
+     * @param int $o
+     * @param bool $x
+     * @param bool $d
+     * @return void
      */
     public function addBoolX($o, $x, $d)
     {
@@ -414,9 +443,10 @@ final class FlatbufferBuilder
     }
 
     /**
-     * @param $o
-     * @param $x
-     * @param $d
+     * @param int $o
+     * @param int $x
+     * @param int $d
+     * @return void
      */
     public function addByteX($o, $x, $d)
     {
@@ -427,9 +457,10 @@ final class FlatbufferBuilder
     }
 
     /**
-     * @param $o
-     * @param $x
-     * @param $d
+     * @param int $o
+     * @param int $x
+     * @param int $d
+     * @return void
      */
     public function addSbyteX($o, $x, $d)
     {
@@ -440,9 +471,10 @@ final class FlatbufferBuilder
     }
 
     /**
-     * @param $o
-     * @param $x
-     * @param $d
+     * @param int $o
+     * @param int $x
+     * @param int $d
+     * @return void
      */
     public function addShortX($o, $x, $d)
     {
@@ -453,9 +485,10 @@ final class FlatbufferBuilder
     }
 
     /**
-     * @param $o
-     * @param $x
-     * @param $d
+     * @param int $o
+     * @param int $x
+     * @param int $d
+     * @return void
      */
     public function addUshortX($o, $x, $d)
     {
@@ -466,9 +499,10 @@ final class FlatbufferBuilder
     }
 
     /**
-     * @param $o
-     * @param $x
-     * @param $d
+     * @param int $o
+     * @param int $x
+     * @param int $d
+     * @return void
      */
     public function addIntX($o, $x, $d)
     {
@@ -479,9 +513,10 @@ final class FlatbufferBuilder
     }
 
     /**
-     * @param $o
-     * @param $x
-     * @param $d
+     * @param int $o
+     * @param int $x
+     * @param int $d
+     * @return void
      */
     public function addUintX($o, $x, $d)
     {
@@ -492,9 +527,10 @@ final class FlatbufferBuilder
     }
 
     /**
-     * @param $o
-     * @param $x
-     * @param $d
+     * @param int $o
+     * @param int $x
+     * @param int $d
+     * @return void
      */
     public function addLongX($o, $x, $d)
     {
@@ -505,9 +541,10 @@ final class FlatbufferBuilder
     }
 
     /**
-     * @param $o
-     * @param $x
-     * @param $d
+     * @param int $o
+     * @param int $x
+     * @param int $d
+     * @return void
      */
     public function addUlongX($o, $x, $d)
     {
@@ -519,9 +556,10 @@ final class FlatbufferBuilder
 
 
     /**
-     * @param $o
-     * @param $x
-     * @param $d
+     * @param int $o
+     * @param float $x
+     * @param float $d
+     * @return void
      */
     public function addFloatX($o, $x, $d)
     {
@@ -532,9 +570,10 @@ final class FlatbufferBuilder
     }
 
     /**
-     * @param $o
-     * @param $x
-     * @param $d
+     * @param int $o
+     * @param float $x
+     * @param float $d
+     * @return void
      */
     public function addDoubleX($o, $x, $d)
     {
@@ -545,9 +584,10 @@ final class FlatbufferBuilder
     }
 
     /**
-     * @param $o
-     * @param $x
-     * @param $d
+     * @param int $o
+     * @param int $x
+     * @param int $d
+     * @return void
      * @throws \Exception
      */
     public function addOffsetX($o, $x, $d)
@@ -561,7 +601,8 @@ final class FlatbufferBuilder
 
     /**
      * Adds on offset, relative to where it will be written.
-     * @param $off The offset to add to the buffer.
+     * @param int $off The offset to add to the buffer.
+     * @return void
      * @throws \Exception Throws an exception if `$off` is greater than the underlying ByteBuffer's
      * offest.
      */
@@ -576,9 +617,10 @@ final class FlatbufferBuilder
 
     /// @cond FLATBUFFERS_INTERNAL
     /**
-     * @param $elem_size
-     * @param $num_elems
-     * @param $alignment
+     * @param int $elem_size
+     * @param int $num_elems
+     * @param int $alignment
+     * @return void
      * @throws \Exception
      */
     public function startVector($elem_size, $num_elems, $alignment)
@@ -598,6 +640,10 @@ final class FlatbufferBuilder
         return $this->offset();
     }
 
+    /**
+     * @param string $bytes
+     * @return boolean
+     */
     protected function is_utf8($bytes)
     {
         if (function_exists('mb_detect_encoding')) {
@@ -643,7 +689,7 @@ final class FlatbufferBuilder
             if ((($i+2) <= $len) &&
                 (($bytes[$j] >= "\xE1" && $bytes[$j] <= "\xEC") ||
                     $bytes[$j] == "\xEE" ||
-                    $bytes[$j] = "\xEF") &&
+                    $bytes[$j] == "\xEF") &&
                 ($bytes[$j+1] >= "\x80" && $bytes[$j+1] <= "\xBF") &&
                 ($bytes[$j+2] >= "\x80" && $bytes[$j+2] <= "\xBF")) {
                 $j += 3;
@@ -730,6 +776,7 @@ final class FlatbufferBuilder
 
     /// @cond FLATBUFFERS_INTERNAL
     /**
+     * @return void
      * @throws \Exception
      */
     public function notNested()
@@ -740,7 +787,8 @@ final class FlatbufferBuilder
     }
 
     /**
-     * @param $obj
+     * @param int $obj
+     * @return void
      * @throws \Exception
      */
     public function nested($obj)
@@ -751,7 +799,8 @@ final class FlatbufferBuilder
     }
 
     /**
-     * @param $numfields
+     * @param int $numfields
+     * @return void
      * @throws \Exception
      */
     public function startObject($numfields)
@@ -771,9 +820,10 @@ final class FlatbufferBuilder
     }
 
     /**
-     * @param $voffset
-     * @param $x
-     * @param $d
+     * @param int $voffset
+     * @param int $x
+     * @param int $d
+     * @return void
      * @throws \Exception
      */
     public function addStructX($voffset, $x, $d)
@@ -785,9 +835,10 @@ final class FlatbufferBuilder
     }
 
     /**
-     * @param $voffset
-     * @param $x
-     * @param $d
+     * @param int $voffset
+     * @param int $x
+     * @param int $d
+     * @return void
      * @throws \Exception
      */
     public function addStruct($voffset, $x, $d)
@@ -799,7 +850,8 @@ final class FlatbufferBuilder
     }
 
     /**
-     * @param $voffset
+     * @param int $voffset
+     * @return void
      */
     public function slot($voffset)
     {
@@ -878,8 +930,9 @@ final class FlatbufferBuilder
     }
 
     /**
-     * @param $table
-     * @param $field
+     * @param int $table
+     * @param int $field
+     * @return void
      * @throws \Exception
      */
     public function required($table, $field)
@@ -896,9 +949,10 @@ final class FlatbufferBuilder
 
     /**
      * Finalize a buffer, pointing to the given `$root_table`.
-     * @param $root_table An offest to be added to the buffer.
-     * @param $file_identifier A FlatBuffer file identifier to be added to the
+     * @param int $root_table An offest to be added to the buffer.
+     * @param string|null $identifier A FlatBuffer file identifier to be added to the
      *     buffer before `$root_table`. This defaults to `null`.
+     * @return void
      * @throws InvalidArgumentException Thrown if an invalid `$identifier` is
      *     given, where its length is not equal to
      *    `Constants::FILE_IDENTIFIER_LENGTH`.
@@ -930,6 +984,7 @@ final class FlatbufferBuilder
      * get serialized into the buffer.
      * @param bool $forceDefaults When set to `true`, always serializes default
      *     values.
+     * @return void
      */
     public function forceDefaults($forceDefaults)
     {

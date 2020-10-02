@@ -32,12 +32,20 @@ abstract class Table
     {
     }
 
+    /**
+     * @param int $pos
+     * @return void
+     */
     public function setByteBufferPos($pos)
     {
         $this->bb_pos = $pos;
     }
 
-    public function setByteBuffer($bb)
+    /**
+     * @param ByteBuffer $bb
+     * @return void
+     */
+    public function setByteBuffer(ByteBuffer $bb)
     {
         $this->bb = $bb;
     }
@@ -45,7 +53,7 @@ abstract class Table
     /**
      * returns actual vtable offset
      *
-     * @param $vtable_offset
+     * @param int $vtable_offset
      * @return int offset > 0 means exist value. 0 means not exist
      */
     protected function __offset($vtable_offset)
@@ -55,8 +63,8 @@ abstract class Table
     }
 
     /**
-     * @param $offset
-     * @return mixed
+     * @param int $offset
+     * @return int
      */
     protected function __indirect($offset)
     {
@@ -66,7 +74,7 @@ abstract class Table
     /**
      * fetch utf8 encoded string.
      *
-     * @param $offset
+     * @param int $offset
      * @return string
      */
     protected function __string($offset)
@@ -78,7 +86,7 @@ abstract class Table
     }
 
     /**
-     * @param $offset
+     * @param int $offset
      * @return int
      */
     protected function __vector_len($offset)
@@ -89,7 +97,7 @@ abstract class Table
     }
 
     /**
-     * @param $offset
+     * @param int $offset
      * @return int
      */
     protected function __vector($offset)
@@ -99,6 +107,11 @@ abstract class Table
         return $offset + $this->bb->getInt($offset) + Constants::SIZEOF_INT;
     }
 
+    /**
+     * @param int $vector_offset
+     * @param int $elem_size
+     * @return string|bool|null
+     */
     protected function __vector_as_bytes($vector_offset, $elem_size=1)
     {
         $o = $this->__offset($vector_offset);
@@ -114,7 +127,7 @@ abstract class Table
      * @param int $offset
      * @return Table
      */
-    protected function __union($table, $offset)
+    protected function __union(Table $table, $offset)
     {
         $offset += $this->bb_pos;
         $table->setByteBufferPos($offset + $this->bb->getInt($offset));
@@ -128,7 +141,7 @@ abstract class Table
      * @return bool
      * @throws \ArgumentException
      */
-    protected static function __has_identifier($bb, $ident)
+    protected static function __has_identifier(ByteBuffer $bb, $ident)
     {
         if (strlen($ident) != Constants::FILE_IDENTIFIER_LENGTH) {
             throw new \ArgumentException("FlatBuffers: file identifier must be length "  . Constants::FILE_IDENTIFIER_LENGTH);
