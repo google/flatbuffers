@@ -602,7 +602,7 @@ class JsTsGenerator : public BaseGenerator {
                               nameprefix + field.name);
         if (lang_.language == IDLOptions::kTs) {
           *arguments += ", " + nameprefix + field.name + ": " +
-                        GenTypeName(field.value.type, true);
+                        GetArgType(field);
         } else {
           *arguments += ", " + nameprefix + field.name;
         }
