@@ -931,8 +931,16 @@ class PhpGenerator : public BaseGenerator {
       code += Indent + Indent + enum_def.name + "::" + ev.name + "=>" + "\"" +
               ev.name + "\",\n";
     }
-
     code += Indent + ");\n\n";
+
+    code += Indent + "/** @var array<int,string> */\n";
+    code += Indent + "public static function getNames()";
+    if (parser_.opts.php_strict) { code += ": array"; }
+    code += "\n";
+    code += Indent + "{\n";
+    code += Indent + Indent + "return self::$names;\n";
+    code += Indent + "}\n\n";
+
     code += Indent + "public static function name(";
     if (parser_.opts.php_strict) { code += "int "; }
     code += "$e)";
