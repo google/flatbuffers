@@ -1598,7 +1598,9 @@ class CppGenerator : public BaseGenerator {
 
   std::string GetDefaultScalarValue(const FieldDef &field, bool is_ctor) {
     const auto &type = field.value.type;
-    if (type.enum_def && IsScalar(type.base_type)) {
+    if (field.IsScalarOptional()) {
+      return GenOptionalNull();
+    } else if (type.enum_def && IsScalar(type.base_type)) {
       auto ev = type.enum_def->FindByValue(field.value.constant);
       if (ev) {
         return WrapInNameSpace(type.enum_def->defined_namespace,
@@ -1620,8 +1622,7 @@ class CppGenerator : public BaseGenerator {
         return "0";
       }
     } else {
-      return field.IsScalarOptional() ? GenOptionalNull()
-                                      : GenDefaultConstant(field);
+      return GenDefaultConstant(field);
     }
   }
 
@@ -1647,13 +1648,11 @@ class CppGenerator : public BaseGenerator {
       code_.SetValue("PARAM_VALUE", "nullptr");
     } else {
       const auto &type = field.value.type;
-      if (field.IsScalarOptional()) {
+      code_.SetValue("PARAM_VALUE", GetDefaultScalarValue(field, false));
+      if (field.IsScalarOptional())
         code_.SetValue("PARAM_TYPE", GenOptionalDecl(type));
-        code_.SetValue("PARAM_VALUE", GenOptionalNull());
-      } else {
+      else
         code_.SetValue("PARAM_TYPE", GenTypeWire(type, " ", true));
-        code_.SetValue("PARAM_VALUE", GetDefaultScalarValue(field, false));
-      }
     }
     code_ += "{{PRE}}{{PARAM_TYPE}}{{PARAM_NAME}} = {{PARAM_VALUE}}\\";
   }

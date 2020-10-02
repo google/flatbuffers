@@ -3516,6 +3516,8 @@ void OptionalScalarsTest() {
   TEST_ASSERT(!opts->mutate_maybe_i16(-10));
 
   optional_scalars::ScalarStuffT obj;
+  TEST_ASSERT(!obj.maybe_bool);
+  TEST_ASSERT(!obj.maybe_f32.has_value());
   opts->UnPackTo(&obj);
   TEST_ASSERT(!obj.maybe_bool);
   TEST_ASSERT(!obj.maybe_f32.has_value());
