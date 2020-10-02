@@ -55,7 +55,8 @@ set TEST_NOINCL_FLAGS=%TEST_BASE_FLAGS% --no-includes --no-fb-import
 ..\%buildtype%\flatc.exe --cpp %TEST_BASE_FLAGS% --cpp-ptr-type flatbuffers::unique_ptr native_type_test.fbs || goto FAIL
 
 @rem Generate the optional scalar code for tests.
-..\%buildtype%\flatc.exe --rust --lobster optional_scalars.fbs || goto FAIL
+..\%buildtype%\flatc.exe --rust --lobster optional_scalars2.fbs || goto FAIL
+..\%buildtype%\flatc.exe --kotlin optional_scalars.fbs || goto FAIL
 ..\%buildtype%\flatc.exe %TEST_NOINCL_FLAGS% %TEST_CPP_FLAGS% --cpp optional_scalars.fbs || goto FAIL
 
 @rem Generate the schema evolution tests

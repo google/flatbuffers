@@ -53,8 +53,8 @@ $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_JS_TS_FLAGS -o namespace
 ../flatc --dart monster_extra.fbs
 
 # Generate optional scalar code for tests.
-../flatc --kotlin --lobster optional_scalars.fbs  # These ones have not added optional enum support.
-../flatc --rust optional_scalars2.fbs
+../flatc --kotlin optional_scalars.fbs  # These ones have not added optional enum support.
+../flatc --rust --lobster optional_scalars2.fbs
 ../flatc $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS --cpp optional_scalars.fbs
 
 # Generate the schema evolution tests
