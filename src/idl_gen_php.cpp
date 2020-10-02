@@ -657,8 +657,8 @@ class PhpGenerator : public BaseGenerator {
     code += "$" + MakeCamel(field.name, false);
     code += ", ";
 
-    if (field.value.type.base_type == BASE_TYPE_BOOL) {
-      code += "false";
+    if (IsScalar(field.value.type.base_type)) {
+      code += GenDefaultValue(field.value);
     } else {
       code += field.value.constant;
     }
