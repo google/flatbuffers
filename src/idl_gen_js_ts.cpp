@@ -2069,18 +2069,12 @@ class JsTsGenerator : public BaseGenerator {
     if (!struct_def.fixed && parser_.services_.vec.size() != 0 &&
         lang_.language == IDLOptions::kTs) {
       auto name = Verbose(struct_def, "");
-      code += "/**\n";
-      code += "* GRPC METHOD ONLY, dont call\n";
-      code += "* @returns Uint8Array\n";
-      code += "*/\n";
-      code += "serialize():Uint8Array {\n";
+      code += "\n";
+      code += "serialize(): Uint8Array {\n";
       code += "  return this.bb!.bytes();\n";
       code += "}\n";
 
-      code += "/**\n";
-      code += "* GRPC METHOD ONLY, dont call\n";
-      code += "* @returns" + name + "\n";
-      code += "*/\n";
+      code += "\n";
       code += "static deserialize(buffer: Uint8Array) {\n";
       code += "  return " + name + ".getRootAs" + name +
               "(new flatbuffers.ByteBuffer(buffer))\n";

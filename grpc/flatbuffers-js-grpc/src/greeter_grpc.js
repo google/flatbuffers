@@ -28,17 +28,6 @@ function deserialize_HelloRequest(buffer) {
 }
 
 
-function serialize_ManyHellosRequest(buffer_args) {
-  if (!(buffer_args instanceof Greeter_fbs.ManyHellosRequest)) {
-    throw new Error('Expected argument of type Greeter_fbs.ManyHellosRequest');
-  }
-  return buffer_args.serialize();
-}
-
-function deserialize_ManyHellosRequest(buffer) {
-  return Greeter_fbs.ManyHellosRequest.getRootAsManyHellosRequest(new flatbuffers.ByteBuffer(buffer))
-}
-
 var GreeterService = exports.GreeterService = {
   SayHello: {
     path: '/Greeter/SayHello',
@@ -57,8 +46,8 @@ var GreeterService = exports.GreeterService = {
     responseStream: true,
     requestType: flatbuffers.ByteBuffer,
     responseType: Greeter_fbs.HelloReply,
-    requestSerialize: serialize_ManyHellosRequest,
-    requestDeserialize: deserialize_ManyHellosRequest,
+    requestSerialize: serialize_HelloRequest,
+    requestDeserialize: deserialize_HelloRequest,
     responseSerialize: serialize_HelloReply,
     responseDeserialize: deserialize_HelloReply,
   },

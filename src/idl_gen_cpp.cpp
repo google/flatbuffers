@@ -1715,9 +1715,7 @@ class CppGenerator : public BaseGenerator {
         auto native_default = field.attributes.Lookup("native_default");
         // Scalar types get parsed defaults, raw pointers get nullptrs.
         if (IsScalar(field.value.type.base_type)) {
-          if (!initializer_list.empty()) {
-            initializer_list += ",\n        ";
-          }
+          if (!initializer_list.empty()) { initializer_list += ",\n        "; }
           initializer_list += Name(field);
           initializer_list +=
               "(" +
@@ -1993,8 +1991,7 @@ class CppGenerator : public BaseGenerator {
       code_ += "  {{FIELD_TYPE}}{{FIELD_NAME}}() const {";
       code_ += "    return {{FIELD_VALUE}};";
       code_ += "  }";
-    }
-    else {
+    } else {
       auto wire_type = GenTypeBasic(type, false);
       auto face_type = GenTypeBasic(type, true);
       auto opt_value = "GetOptional<" + wire_type + ", " + face_type + ">(" +
@@ -2012,7 +2009,7 @@ class CppGenerator : public BaseGenerator {
     const auto &type = field.value.type;
     const bool is_scalar = IsScalar(type.base_type);
     if (is_scalar && IsUnion(type))
-      return; // changing of a union's type is forbidden
+      return;  // changing of a union's type is forbidden
 
     auto offset_str = GenFieldOffsetName(field);
     if (is_scalar) {
@@ -2110,9 +2107,7 @@ class CppGenerator : public BaseGenerator {
 
       code_.SetValue("FIELD_NAME", Name(field));
       GenTableFieldGetter(field);
-      if (opts_.mutable_buffer) {
-        GenTableFieldSetter(field);
-      }
+      if (opts_.mutable_buffer) { GenTableFieldSetter(field); }
 
       auto nested = field.attributes.Lookup("nested_flatbuffer");
       if (nested) {
@@ -2253,8 +2248,7 @@ class CppGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
-      if (field.deprecated)
-        continue;
+      if (field.deprecated) continue;
       const bool is_scalar = IsScalar(field.value.type.base_type);
       const bool is_default_scalar = is_scalar && !field.IsScalarOptional();
       const bool is_string = field.value.type.base_type == BASE_TYPE_STRING;
@@ -2797,15 +2791,17 @@ class CppGenerator : public BaseGenerator {
       code_ +=
           "inline " + TableUnPackSignature(struct_def, false, opts_) + " {";
 
-      if(opts_.g_cpp_std == cpp::CPP_STD_X0) {
+      if (opts_.g_cpp_std == cpp::CPP_STD_X0) {
         auto native_name =
             NativeName(WrapInNameSpace(struct_def), &struct_def, parser_.opts);
         code_.SetValue("POINTER_TYPE",
                        GenTypeNativePtr(native_name, nullptr, false));
         code_ +=
             "  {{POINTER_TYPE}} _o = {{POINTER_TYPE}}(new {{NATIVE_NAME}}());";
-      } else if(opts_.g_cpp_std == cpp::CPP_STD_11) {
-        code_ += "  auto _o = std::unique_ptr<{{NATIVE_NAME}}>(new {{NATIVE_NAME}}());";
+      } else if (opts_.g_cpp_std == cpp::CPP_STD_11) {
+        code_ +=
+            "  auto _o = std::unique_ptr<{{NATIVE_NAME}}>(new "
+            "{{NATIVE_NAME}}());";
       } else {
         code_ += "  auto _o = std::make_unique<{{NATIVE_NAME}}>();";
       }
@@ -2942,8 +2938,7 @@ class CppGenerator : public BaseGenerator {
     int padding_initializer_id = 0;
     int padding_body_id = 0;
     for (auto it = struct_def.fields.vec.begin();
-         it != struct_def.fields.vec.end();
-         ++it) {
+         it != struct_def.fields.vec.end(); ++it) {
       const auto field = *it;
       const auto field_name = field->name + "_";
 

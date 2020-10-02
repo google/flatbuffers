@@ -23,10 +23,10 @@
 #include "src/compiler/cpp_generator.h"
 #include "src/compiler/go_generator.h"
 #include "src/compiler/java_generator.h"
-#include "src/compiler/ts_generator.h"
 #include "src/compiler/python_generator.h"
 #include "src/compiler/python_private_generator.h"
 #include "src/compiler/swift_generator.h"
+#include "src/compiler/ts_generator.h"
 
 #if defined(_MSC_VER)
 #  pragma warning(push)
@@ -473,13 +473,13 @@ bool GenerateSwiftGRPC(const Parser &parser, const std::string &path,
 }
 
 class TSGRPCGenerator : public flatbuffers::BaseGenerator {
-private:
+ private:
   CodeWriter code_;
 
-public:
+ public:
   TSGRPCGenerator(const Parser &parser, const std::string &path,
-                     const std::string &filename)
-  : BaseGenerator(parser, path, filename, "", "" /*Unused*/, "ts") {}
+                  const std::string &filename)
+      : BaseGenerator(parser, path, filename, "", "" /*Unused*/, "ts") {}
 
   bool generate() {
     code_.Clear();
@@ -487,17 +487,14 @@ public:
 
     for (int i = 0; i < file.service_count(); i++) {
       auto service = file.service(i);
-      code_ += grpc_ts_generator::Generate(&file, service.get(),
-                                           file_name_);
+      code_ += grpc_ts_generator::Generate(&file, service.get(), file_name_);
       const auto ts_name = GeneratedFileName(path_, file_name_);
-      if (!SaveFile(ts_name.c_str(), code_.ToString(), false))
-        return false;
+      if (!SaveFile(ts_name.c_str(), code_.ToString(), false)) return false;
 
       code_.Clear();
       code_ += grpc_ts_generator::GenerateInterface(&file, service.get(),
                                                     file_name_);
-      const auto ts_interface_name = GeneratedFileName(path_, file_name_,
-                                                       true);
+      const auto ts_interface_name = GeneratedFileName(path_, file_name_, true);
       if (!SaveFile(ts_interface_name.c_str(), code_.ToString(), false))
         return false;
     }
@@ -513,7 +510,7 @@ public:
 };
 
 bool GenerateTSGRPC(const Parser &parser, const std::string &path,
-                       const std::string &file_name) {
+                    const std::string &file_name) {
   int nservices = 0;
   for (auto it = parser.services_.vec.begin(); it != parser.services_.vec.end();
        ++it) {
