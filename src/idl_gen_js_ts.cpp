@@ -1783,6 +1783,30 @@ class JsTsGenerator : public BaseGenerator {
       }
     }
 
+    // Emit the fully qualified name
+    if (parser_.opts.generate_name_strings) {
+      GenDocComment(code_ptr, GenTypeAnnotation(kReturns, "string", "", false));
+      if (lang_.language == IDLOptions::kTs) {
+        code += "static getFullyQualifiedName():string {\n";
+      } else {
+        code += object_name + ".getFullyQualifiedName = function() {\n";
+      }
+      code += "  return '" + WrapInNameSpace(struct_def) + "';\n";
+      code += "}\n\n";
+    }
+
+    // Emit the size of the struct.
+    if (struct_def.fixed) {
+      GenDocComment(code_ptr, GenTypeAnnotation(kReturns, "number", "", false));
+      if (lang_.language == IDLOptions::kTs) {
+        code += "static sizeOf():number {\n";
+      } else {
+        code += object_name + ".sizeOf = function() {\n";
+      }
+      code += "  return " + NumToString(struct_def.bytesize) + ";\n";
+      code += "}\n\n";
+    }
+
     // Emit a factory constructor
     if (struct_def.fixed) {
       std::string annotations =

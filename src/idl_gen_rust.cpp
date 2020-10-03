@@ -29,14 +29,14 @@ std::string MakeSnakeCase(const std::string &in) {
   std::string s;
   for (size_t i = 0; i < in.length(); i++) {
     if (i == 0) {
-      s += static_cast<char>(tolower(in[0]));
+      s += CharToLower(in[0]);
     } else if (in[i] == '_') {
       s += '_';
     } else if (!islower(in[i])) {
       // Prevent duplicate underscores for Upper_Snake_Case strings
       // and UPPERCASE strings.
       if (islower(in[i - 1])) { s += '_'; }
-      s += static_cast<char>(tolower(in[i]));
+      s += CharToLower(in[i]);
     } else {
       s += in[i];
     }
@@ -48,7 +48,7 @@ std::string MakeSnakeCase(const std::string &in) {
 std::string MakeUpper(const std::string &in) {
   std::string s;
   for (size_t i = 0; i < in.length(); i++) {
-    s += static_cast<char>(toupper(in[i]));
+    s += CharToUpper(in[i]);
   }
   return s;
 }
@@ -640,14 +640,17 @@ class RustGenerator : public BaseGenerator {
     switch (GetFullType(field.value.type)) {
       case ftInteger:
       case ftFloat: {
-        return field.nullable ? "None" : field.value.constant;
+        return field.optional ? "None" : field.value.constant;
       }
       case ftBool: {
-        return field.nullable ? "None" :
+        return field.optional ? "None" :
           field.value.constant == "0" ? "false" : "true";
       }
       case ftUnionKey:
       case ftEnumKey: {
+        if (field.optional) {
+            return "None";
+        }
         auto ev = field.value.type.enum_def->FindByValue(field.value.constant);
         assert(ev);
         return WrapInNameSpace(field.value.type.enum_def->defined_namespace,
@@ -682,7 +685,7 @@ class RustGenerator : public BaseGenerator {
       case ftFloat:
       case ftBool: {
         const auto typname = GetTypeBasic(type);
-        return field.nullable ? "Option<" + typname + ">" : typname;
+        return field.optional ? "Option<" + typname + ">" : typname;
       }
       case ftStruct: {
         const auto typname = WrapInNameSpace(*type.struct_def);
@@ -699,7 +702,7 @@ class RustGenerator : public BaseGenerator {
       case ftEnumKey:
       case ftUnionKey: {
         const auto typname = WrapInNameSpace(*type.enum_def);
-        return typname;
+        return field.optional ? "Option<" + typname + ">" : typname;
       }
       case ftUnionValue: {
         return "Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>>";
@@ -840,14 +843,16 @@ class RustGenerator : public BaseGenerator {
       case ftBool:
       case ftFloat: {
         const auto typname = GetTypeBasic(field.value.type);
-        return (field.nullable ?
+        return (field.optional ?
                    "self.fbb_.push_slot_always::<" :
                    "self.fbb_.push_slot::<") + typname + ">";
       }
       case ftEnumKey:
       case ftUnionKey: {
         const auto underlying_typname = GetTypeBasic(type);
-        return "self.fbb_.push_slot::<" + underlying_typname + ">";
+        return (field.optional ?
+                   "self.fbb_.push_slot_always::<" :
+                   "self.fbb_.push_slot::<") + underlying_typname + ">";
       }
 
       case ftStruct: {
@@ -885,7 +890,7 @@ class RustGenerator : public BaseGenerator {
       case ftFloat:
       case ftBool: {
         const auto typname = GetTypeBasic(type);
-        return field.nullable ? "Option<" + typname + ">" : typname;
+        return field.optional ? "Option<" + typname + ">" : typname;
       }
       case ftStruct: {
         const auto typname = WrapInNameSpace(*type.struct_def);
@@ -900,7 +905,7 @@ class RustGenerator : public BaseGenerator {
       case ftEnumKey:
       case ftUnionKey: {
         const auto typname = WrapInNameSpace(*type.enum_def);
-        return typname;
+        return field.optional ? "Option<" + typname + ">" : typname;
       }
 
       case ftUnionValue: {
@@ -969,7 +974,7 @@ class RustGenerator : public BaseGenerator {
       case ftFloat:
       case ftBool: {
         const auto typname = GetTypeBasic(type);
-        if (field.nullable) {
+        if (field.optional) {
           return "self._tab.get::<" + typname + ">(" + offset_name + ", None)";
         } else {
           const auto default_value = GetDefaultScalarValue(field);
@@ -1002,8 +1007,12 @@ class RustGenerator : public BaseGenerator {
         const auto underlying_typname = GetTypeBasic(type);  //<- never used
         const auto typname = WrapInNameSpace(*type.enum_def);
         const auto default_value = GetDefaultScalarValue(field);
-        return "self._tab.get::<" + typname + ">(" + offset_name + ", Some(" +
-               default_value + ")).unwrap()";
+        if (field.optional) {
+          return "self._tab.get::<" + typname + ">(" + offset_name + ", None)";
+        } else {
+          return "self._tab.get::<" + typname + ">(" + offset_name + ", Some(" +
+                 default_value + ")).unwrap()";
+        }
       }
       case ftString: {
         return AddUnwrapIfRequired(
@@ -1067,7 +1076,7 @@ class RustGenerator : public BaseGenerator {
   }
 
   bool TableFieldReturnsOption(const FieldDef &field) {
-    if (field.nullable) return true;
+    if (field.optional) return true;
     switch (GetFullType(field.value.type)) {
       case ftInteger:
       case ftFloat:
@@ -1391,7 +1400,7 @@ class RustGenerator : public BaseGenerator {
         code_ +=
             "  pub fn add_{{FIELD_NAME}}(&mut self, {{FIELD_NAME}}: "
             "{{FIELD_TYPE}}) {";
-        if (is_scalar && !field.nullable) {
+        if (is_scalar && !field.optional) {
           code_.SetValue("FIELD_DEFAULT_VALUE",
                          TableBuilderAddFuncDefaultValue(field));
           code_ +=

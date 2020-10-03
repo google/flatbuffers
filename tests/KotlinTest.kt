@@ -15,6 +15,7 @@
  */
 
 import MyGame.Example.*
+import optional_scalars.*
 import com.google.flatbuffers.ByteBufferUtil
 import com.google.flatbuffers.FlatBufferBuilder
 import NamespaceA.*
@@ -77,7 +78,7 @@ class KotlinTest {
         TestVectorOfUnions()
 
         TestSharedStringPool()
-
+        TestScalarOptional()
         println("FlatBuffers test: completed successfully")
     }
 
@@ -466,6 +467,126 @@ class KotlinTest {
         for (i in 0..10) {
             assert(offset == fb.createSharedString(testString));
         }
+    }
+
+    fun TestScalarOptional() {
+        val fbb = FlatBufferBuilder(1)
+        ScalarStuff.startScalarStuff(fbb)
+        var pos = ScalarStuff.endScalarStuff(fbb)
+        fbb.finish(pos)
+
+        var scalarStuff = ScalarStuff.getRootAsScalarStuff(fbb.dataBuffer())
+
+        assert(scalarStuff.justI8  == 0.toByte())
+        assert(scalarStuff.maybeI8 == null)
+        assert(scalarStuff.defaultI8 == 42.toByte())
+        assert(scalarStuff.justU8 == 0.toUByte())
+        assert(scalarStuff.maybeU8 == null)
+        assert(scalarStuff.defaultU8 == 42.toUByte())
+        assert(scalarStuff.justI16 == 0.toShort())
+        assert(scalarStuff.maybeI16 == null)
+        assert(scalarStuff.defaultI16 == 42.toShort())
+        assert(scalarStuff.justU16 == 0.toUShort())
+        assert(scalarStuff.maybeU16 == null)
+        assert(scalarStuff.defaultU16 == 42.toUShort())
+        assert(scalarStuff.justI32 == 0)
+        assert(scalarStuff.maybeI32 == null)
+        assert(scalarStuff.defaultI32 == 42)
+        assert(scalarStuff.justU32 == 0.toUInt())
+        assert(scalarStuff.maybeU32 == null)
+        assert(scalarStuff.defaultU32 == 42U)
+        assert(scalarStuff.justI64 == 0L)
+        assert(scalarStuff.maybeI64 == null)
+        assert(scalarStuff.defaultI64 == 42L)
+        assert(scalarStuff.justU64 == 0UL)
+        assert(scalarStuff.maybeU64 == null)
+        assert(scalarStuff.defaultU64 == 42UL)
+        assert(scalarStuff.justF32 == 0.0f)
+        assert(scalarStuff.maybeF32 == null)
+        assert(scalarStuff.defaultF32 == 42.0f)
+        assert(scalarStuff.justF64 == 0.0)
+        assert(scalarStuff.maybeF64 == null)
+        assert(scalarStuff.defaultF64 == 42.0)
+        assert(scalarStuff.justBool == false)
+        assert(scalarStuff.maybeBool == null)
+        assert(scalarStuff.defaultBool == true)
+
+        fbb.clear()
+ 
+        ScalarStuff.startScalarStuff(fbb)
+        ScalarStuff.addJustI8(fbb, 5.toByte())
+        ScalarStuff.addMaybeI8(fbb, 5.toByte())
+        ScalarStuff.addDefaultI8(fbb, 5.toByte())
+        ScalarStuff.addJustU8(fbb, 6.toUByte())
+        ScalarStuff.addMaybeU8(fbb, 6.toUByte())
+        ScalarStuff.addDefaultU8(fbb, 6.toUByte())
+        ScalarStuff.addJustI16(fbb, 7.toShort())
+        ScalarStuff.addMaybeI16(fbb, 7.toShort())
+        ScalarStuff.addDefaultI16(fbb, 7.toShort())
+        ScalarStuff.addJustU16(fbb, 8.toUShort())
+        ScalarStuff.addMaybeU16(fbb, 8.toUShort())
+        ScalarStuff.addDefaultU16(fbb, 8.toUShort())
+        ScalarStuff.addJustI32(fbb, 9)
+        ScalarStuff.addMaybeI32(fbb, 9)
+        ScalarStuff.addDefaultI32(fbb, 9)
+        ScalarStuff.addJustU32(fbb, 10.toUInt())
+        ScalarStuff.addMaybeU32(fbb, 10.toUInt())
+        ScalarStuff.addDefaultU32(fbb, 10.toUInt())
+        ScalarStuff.addJustI64(fbb, 11L)
+        ScalarStuff.addMaybeI64(fbb, 11L)
+        ScalarStuff.addDefaultI64(fbb, 11L)
+        ScalarStuff.addJustU64(fbb, 12UL)
+        ScalarStuff.addMaybeU64(fbb, 12UL)
+        ScalarStuff.addDefaultU64(fbb, 12UL)
+        ScalarStuff.addJustF32(fbb, 13.0f)
+        ScalarStuff.addMaybeF32(fbb, 13.0f)
+        ScalarStuff.addDefaultF32(fbb, 13.0f)
+        ScalarStuff.addJustF64(fbb, 14.0)
+        ScalarStuff.addMaybeF64(fbb, 14.0)
+        ScalarStuff.addDefaultF64(fbb, 14.0)
+        ScalarStuff.addJustBool(fbb, true)
+        ScalarStuff.addMaybeBool(fbb, true)
+        ScalarStuff.addDefaultBool(fbb, true)
+
+        pos = ScalarStuff.endScalarStuff(fbb)
+
+        fbb.finish(pos)
+
+        scalarStuff = ScalarStuff.getRootAsScalarStuff(fbb.dataBuffer())
+
+        assert(scalarStuff.justI8  == 5.toByte())
+        assert(scalarStuff.maybeI8 == 5.toByte())
+        assert(scalarStuff.defaultI8 == 5.toByte())
+        assert(scalarStuff.justU8 == 6.toUByte())
+        assert(scalarStuff.maybeU8 == 6.toUByte())
+        assert(scalarStuff.defaultU8 == 6.toUByte())
+        assert(scalarStuff.justI16 == 7.toShort())
+        assert(scalarStuff.maybeI16 == 7.toShort())
+        assert(scalarStuff.defaultI16 == 7.toShort())
+        assert(scalarStuff.justU16 == 8.toUShort())
+        assert(scalarStuff.maybeU16 == 8.toUShort())
+        assert(scalarStuff.defaultU16 == 8.toUShort())
+        assert(scalarStuff.justI32 == 9)
+        assert(scalarStuff.maybeI32 == 9)
+        assert(scalarStuff.defaultI32 == 9)
+        assert(scalarStuff.justU32 == 10u)
+        assert(scalarStuff.maybeU32 == 10u)
+        assert(scalarStuff.defaultU32 == 10u)
+        assert(scalarStuff.justI64 == 11L)
+        assert(scalarStuff.maybeI64 == 11L)
+        assert(scalarStuff.defaultI64 == 11L)
+        assert(scalarStuff.justU64 == 12UL)
+        assert(scalarStuff.maybeU64 == 12UL)
+        assert(scalarStuff.defaultU64 == 12UL)
+        assert(scalarStuff.justF32 == 13.0f)
+        assert(scalarStuff.maybeF32 == 13.0f)
+        assert(scalarStuff.defaultF32 == 13.0f)
+        assert(scalarStuff.justF64 == 14.0)
+        assert(scalarStuff.maybeF64 == 14.0)
+        assert(scalarStuff.defaultF64 == 14.0)
+        assert(scalarStuff.justBool == true)
+        assert(scalarStuff.maybeBool == true)
+        assert(scalarStuff.defaultBool == true)
     }
   }
 }

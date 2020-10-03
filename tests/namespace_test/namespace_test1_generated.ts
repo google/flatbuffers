@@ -73,6 +73,13 @@ mutate_foo(value:number):boolean {
 };
 
 /**
+ * @returns string
+ */
+static getFullyQualifiedName():string {
+  return 'NamespaceA.NamespaceB.TableInNestedNS';
+}
+
+/**
  * @param flatbuffers.Builder builder
  */
 static startTableInNestedNS(builder:flatbuffers.Builder) {
@@ -189,6 +196,20 @@ mutate_b(value:number):boolean {
   this.bb!.writeInt32(this.bb_pos + 4, value);
   return true;
 };
+
+/**
+ * @returns string
+ */
+static getFullyQualifiedName():string {
+  return 'NamespaceA.NamespaceB.StructInNestedNS';
+}
+
+/**
+ * @returns number
+ */
+static sizeOf():number {
+  return 8;
+}
 
 /**
  * @param flatbuffers.Builder builder

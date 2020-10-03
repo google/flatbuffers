@@ -1417,7 +1417,10 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     Value(uint64_t u, Type t, BitWidth bw)
         : u_(u), type_(t), min_bit_width_(bw) {}
 
-    Value(float f) : f_(f), type_(FBT_FLOAT), min_bit_width_(BIT_WIDTH_32) {}
+    Value(float f)
+        : f_(static_cast<double>(f)),
+          type_(FBT_FLOAT),
+          min_bit_width_(BIT_WIDTH_32) {}
     Value(double f) : f_(f), type_(FBT_FLOAT), min_bit_width_(WidthF(f)) {}
 
     uint8_t StoredPackedType(BitWidth parent_bit_width_ = BIT_WIDTH_8) const {

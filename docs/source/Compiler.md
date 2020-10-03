@@ -116,6 +116,9 @@ Additional options:
 
 -   `--gen-generated` : Add @Generated annotation for Java.
 
+-   `--gen-jvmstatic` : Add @JvmStatic annotation for Kotlin methods
+    in companion object for interop from Java to Kotlin.
+
 -   `--gen-all` : Generate not just code for the current schema files, but
     for all files it includes as well. If the language uses a single file for
     output (by default the case for C++ and JS), all code will end up in

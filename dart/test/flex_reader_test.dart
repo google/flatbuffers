@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:flat_buffers/flex_buffers.dart' show Reference;
+import 'package:flat_buffers/flex_buffers.dart' show Reference, Builder;
 import 'package:test/test.dart';
 
 void main() {
@@ -260,6 +260,24 @@ void main() {
     expect(flx.mapKeyIterable.map((e) => e).toList(), ['address', 'age', 'flags', 'name', 'weight']);
     expect(flx.mapValueIterable.map((e) => e.json).toList(), [flx['address'].json, flx['age'].json, flx['flags'].json, flx['name'].json, flx['weight'].json]);
     expect(flx['flags'].vectorIterable.map((e) => e.boolValue).toList(), [true, false, true, true]);
+  });
+
+  test('bug where offest were stored as int instead of uint', (){
+    const data = [99, 104, 97, 110, 110, 101, 108, 115, 95, 105, 110, 0,
+      100, 105, 108, 97, 116, 105, 111, 110, 95, 104, 101, 105, 103, 104, 116, 95, 102, 97, 99, 116, 111, 114, 0,
+      100, 105, 108, 97, 116, 105, 111, 110, 95, 119, 105, 100, 116, 104, 95, 102, 97, 99, 116, 111, 114, 0,
+      102, 117, 115, 101, 100, 95, 97, 99, 116, 105, 118, 97, 116, 105, 111, 110, 95, 102, 117, 110, 99, 116, 105, 111, 110, 0,
+      112, 97, 100, 95, 118, 97, 108, 117, 101, 115, 0, 112, 97, 100, 100, 105, 110, 103, 0,
+      115, 116, 114, 105, 100, 101, 95, 104, 101, 105, 103, 104, 116, 0,
+      115, 116, 114, 105, 100, 101, 95, 119, 105, 100, 116, 104, 0,
+      8, 130, 119, 97, 76, 51, 41, 34, 21, 8, 1, 8, 64, 1, 1, 1, 1, 0, 1, 1, 4, 4, 4, 4, 4, 4, 4, 4, 16, 36, 1];
+    var flx = Reference.fromBuffer(b(data));
+    expect(flx.json, '{"channels_in":64,"dilation_height_factor":1,"dilation_width_factor":1,"fused_activation_function":1,"pad_values":1,"padding":0,"stride_height":1,"stride_width":1}');
+    const object = {"channels_in":64,"dilation_height_factor":1,"dilation_width_factor":1,"fused_activation_function":1,"pad_values":1,"padding":0,"stride_height":1,"stride_width":1};
+    var data1 = Builder.buildFromObject(object).asUint8List();
+    expect(data1.length, data.length);
+    var flx1 = Reference.fromBuffer(b(data1));
+    expect(flx1.json, '{"channels_in":64,"dilation_height_factor":1,"dilation_width_factor":1,"fused_activation_function":1,"pad_values":1,"padding":0,"stride_height":1,"stride_width":1}');
   });
 }
 

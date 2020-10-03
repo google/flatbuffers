@@ -99,6 +99,13 @@ NamespaceA.NamespaceB.TableInNestedNS.prototype.mutate_foo = function(value) {
 };
 
 /**
+ * @returns {string}
+ */
+NamespaceA.NamespaceB.TableInNestedNS.getFullyQualifiedName = function() {
+  return 'NamespaceA.NamespaceB.TableInNestedNS';
+}
+
+/**
  * @param {flatbuffers.Builder} builder
  */
 NamespaceA.NamespaceB.TableInNestedNS.startTableInNestedNS = function(builder) {
@@ -190,6 +197,20 @@ NamespaceA.NamespaceB.StructInNestedNS.prototype.mutate_b = function(value) {
   this.bb.writeInt32(this.bb_pos + 4, value);
   return true;
 };
+
+/**
+ * @returns {string}
+ */
+NamespaceA.NamespaceB.StructInNestedNS.getFullyQualifiedName = function() {
+  return 'NamespaceA.NamespaceB.StructInNestedNS';
+}
+
+/**
+ * @returns {number}
+ */
+NamespaceA.NamespaceB.StructInNestedNS.sizeOf = function() {
+  return 8;
+}
 
 /**
  * @param {flatbuffers.Builder} builder
