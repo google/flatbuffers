@@ -177,6 +177,14 @@ std::string AddUnwrapIfRequired(std::string s, bool required) {
   }
 }
 
+bool IsBitFlagsEnum(const EnumDef &enum_def) {
+  return enum_def.attributes.Lookup("bit_flags");
+}
+bool IsBitFlagsEnum(const FieldDef &field) {
+  EnumDef* ed = field.value.type.enum_def;
+  return ed && IsBitFlagsEnum(*ed);
+}
+
 namespace rust {
 
 class RustGenerator : public BaseGenerator {
@@ -233,9 +241,17 @@ class RustGenerator : public BaseGenerator {
 
     assert(!cur_name_space_);
 
+    bool import_bitflags = false;
+    for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
+            ++it) {
+        if (IsBitFlagsEnum(**it)) {
+            import_bitflags = true;
+            break;
+        }
+    }
     // Generate imports for the global scope in case no namespace is used
     // in the schema file.
-    GenNamespaceImports(0);
+    GenNamespaceImports(0, import_bitflags);
     code_ += "";
 
     // Generate all code in their namespaces, once, because Rust does not
@@ -515,9 +531,25 @@ class RustGenerator : public BaseGenerator {
 
   std::string GetEnumValUse(const EnumDef &enum_def,
                             const EnumVal &enum_val) const {
-    return Name(enum_def) + "::" + Name(enum_val);
+    const std::string val = IsBitFlagsEnum(enum_def) ?
+        MakeUpper(MakeSnakeCase(Name(enum_val))) : Name(enum_val);
+    return Name(enum_def) + "::" + val;
   }
 
+
+  void ForAllEnumValues(const EnumDef &enum_def,
+                        std::function<void(const EnumVal&)> cb) {
+    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      const auto &ev = **it;
+      code_.SetValue("VARIANT", Name(ev));
+      code_.SetValue("SSC_VARIANT", MakeUpper(MakeSnakeCase(Name(ev))));
+      code_.SetValue("VALUE", enum_def.ToString(ev));
+      cb(ev);
+    }
+  }
+  void ForAllEnumValues(const EnumDef &enum_def, std::function<void()> cb) {
+      ForAllEnumValues(enum_def, [&](const EnumVal& unused) { cb(); });
+  }
   // Generate an enum declaration,
   // an enum string lookup table,
   // an enum match function,
@@ -533,6 +565,52 @@ class RustGenerator : public BaseGenerator {
     code_.SetValue("ENUM_MIN_BASE_VALUE", enum_def.ToString(*minv));
     code_.SetValue("ENUM_MAX_BASE_VALUE", enum_def.ToString(*maxv));
 
+    if (IsBitFlagsEnum(enum_def)) {
+      // Defer to the convenient and canonical bitflags crate.
+      code_ += "bitflags::bitflags! {";
+      GenComment(enum_def.doc_comment);
+      code_ += "  pub struct {{ENUM_NAME}}: {{BASE_TYPE}} {";
+      ForAllEnumValues(enum_def, [&]{
+        code_ += "    const {{SSC_VARIANT}} = {{VALUE}};";
+      });
+      code_ += "  }";
+      code_ += "}";
+      code_ += "";
+      // Generate Follow and Push so we can serialize and stuff.
+      code_ += "impl<'a> flatbuffers::Follow<'a> for {{ENUM_NAME}} {";
+      code_ += "  type Inner = Self;";
+      code_ += "  #[inline]";
+      code_ += "  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {";
+      code_ += "    let bits = flatbuffers::read_scalar_at::<{{BASE_TYPE}}>(buf, loc);";
+      code_ += "    unsafe { Self::from_bits_unchecked(bits) }";
+      code_ += "  }";
+      code_ += "}";
+      code_ += "";
+      code_ += "impl flatbuffers::Push for {{ENUM_NAME}} {";
+      code_ += "    type Output = {{ENUM_NAME}};";
+      code_ += "    #[inline]";
+      code_ += "    fn push(&self, dst: &mut [u8], _rest: &[u8]) {";
+      code_ += "        flatbuffers::emplace_scalar::<{{BASE_TYPE}}>"
+               "(dst, self.bits());";
+      code_ += "    }";
+      code_ += "}";
+      code_ += "";
+      code_ += "impl flatbuffers::EndianScalar for {{ENUM_NAME}} {";
+      code_ += "  #[inline]";
+      code_ += "  fn to_little_endian(self) -> Self {";
+      code_ += "    let bits = {{BASE_TYPE}}::to_le(self.bits());";
+      code_ += "    unsafe { Self::from_bits_unchecked(bits) }";
+      code_ += "  }";
+      code_ += "  #[inline]";
+      code_ += "  fn from_little_endian(self) -> Self {";
+      code_ += "    let bits = {{BASE_TYPE}}::from_le(self.bits());";
+      code_ += "    unsafe { Self::from_bits_unchecked(bits) }";
+      code_ += "  }";
+      code_ += "}";
+      code_ += "";
+      return;
+    }
+
     GenComment(enum_def.doc_comment);
     code_ +=
         "#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]";
@@ -542,26 +620,21 @@ class RustGenerator : public BaseGenerator {
     code_ += "  pub const ENUM_MIN: {{BASE_TYPE}} = {{ENUM_MIN_BASE_VALUE}};";
     code_ += "  pub const ENUM_MAX: {{BASE_TYPE}} = {{ENUM_MAX_BASE_VALUE}};";
 
-    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
-      const auto &ev = **it;
+    ForAllEnumValues(enum_def, [&](const EnumVal &ev){
       GenComment(ev.doc_comment, "  ");
-      code_.SetValue("VARIANT", Name(ev));
-      code_.SetValue("VALUE", enum_def.ToString(ev));
       code_ += "  pub const {{VARIANT}}: Self = Self({{VALUE}});";
-    }
+    });
     code_ += "  pub const ENUM_VALUES: &'static [Self] = &[";
-    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
-      code_.SetValue("VARIANT", Name(**it));
+    ForAllEnumValues(enum_def, [&]{
       code_ += "    Self::{{VARIANT}},";
-    }
+    });
     code_ += "  ];";
     code_ += "  /// Returns the variant's name or \"\" if unknown.";
     code_ += "  pub fn variant_name(self) -> &'static str {";
     code_ += "    match self {";
-    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
-      code_.SetValue("VARIANT", Name(**it));
+    ForAllEnumValues(enum_def, [&]{
       code_ += "      Self::{{VARIANT}} => \"{{VARIANT}}\",";
-    }
+    });
     code_ += "      _ => \"\",";
     code_ += "    }";
     code_ += "  }";
@@ -1004,9 +1077,8 @@ class RustGenerator : public BaseGenerator {
       }
       case ftUnionKey:
       case ftEnumKey: {
-        const auto underlying_typname = GetTypeBasic(type);  //<- never used
-        const auto typname = WrapInNameSpace(*type.enum_def);
-        const auto default_value = GetDefaultScalarValue(field);
+        const std::string typname = WrapInNameSpace(*type.enum_def);
+        const std::string default_value = GetDefaultScalarValue(field);
         if (field.optional) {
           return "self._tab.get::<" + typname + ">(" + offset_name + ", None)";
         } else {
@@ -1745,7 +1817,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
   }
 
-  void GenNamespaceImports(const int white_spaces) {
+  void GenNamespaceImports(const int white_spaces, bool bitflags=false) {
     if (white_spaces == 0) {
       code_ += "#![allow(unused_imports, dead_code)]";
     }
@@ -1766,6 +1838,7 @@ class RustGenerator : public BaseGenerator {
     code_ += indent + "use std::cmp::Ordering;";
     code_ += "";
     code_ += indent + "extern crate flatbuffers;";
+    if (bitflags) code_ += indent + "extern crate bitflags;";
     code_ += indent + "use self::flatbuffers::EndianScalar;";
   }
 

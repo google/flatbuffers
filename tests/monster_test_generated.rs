@@ -9,6 +9,7 @@ use std::mem;
 use std::cmp::Ordering;
 
 extern crate flatbuffers;
+extern crate bitflags;
 use self::flatbuffers::EndianScalar;
 
 #[allow(unused_imports, dead_code)]
@@ -176,49 +177,21 @@ pub mod example {
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
 
+bitflags::bitflags! {
 /// Composite components of Monster color.
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Color(pub u8);
-#[allow(non_upper_case_globals)]
-impl Color {
-  pub const ENUM_MIN: u8 = 1;
-  pub const ENUM_MAX: u8 = 8;
-  pub const Red: Self = Self(1);
-  /// \brief color Green
-  /// Green is bit_flag with value (1u << 1)
-  pub const Green: Self = Self(2);
-  /// \brief color Blue (1u << 3)
-  pub const Blue: Self = Self(8);
-  pub const ENUM_VALUES: &'static [Self] = &[
-    Self::Red,
-    Self::Green,
-    Self::Blue,
-  ];
-  /// Returns the variant's name or "" if unknown.
-  pub fn variant_name(self) -> &'static str {
-    match self {
-      Self::Red => "Red",
-      Self::Green => "Green",
-      Self::Blue => "Blue",
-      _ => "",
-    }
+  pub struct Color: u8 {
+    const RED = 1;
+    const GREEN = 2;
+    const BLUE = 8;
   }
 }
-impl std::fmt::Debug for Color {
-  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-    let name = self.variant_name();
-    if name.is_empty() {
-      f.write_fmt(format_args!("<UNKNOWN {:?}>", self.0))
-    } else {
-      f.write_str(name)
-    }
-  }
-}
+
 impl<'a> flatbuffers::Follow<'a> for Color {
   type Inner = Self;
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self(flatbuffers::read_scalar_at::<u8>(buf, loc))
+    let bits = flatbuffers::read_scalar_at::<u8>(buf, loc);
+    unsafe { Self::from_bits_unchecked(bits) }
   }
 }
 
@@ -226,27 +199,22 @@ impl flatbuffers::Push for Color {
     type Output = Color;
     #[inline]
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        flatbuffers::emplace_scalar::<u8>(dst, self.0);
+        flatbuffers::emplace_scalar::<u8>(dst, self.bits());
     }
 }
 
 impl flatbuffers::EndianScalar for Color {
   #[inline]
   fn to_little_endian(self) -> Self {
-    Self(u8::to_le(self.0))
+    let bits = u8::to_le(self.bits());
+    unsafe { Self::from_bits_unchecked(bits) }
   }
   #[inline]
   fn from_little_endian(self) -> Self {
-    Self(u8::from_le(self.0))
+    let bits = u8::from_le(self.bits());
+    unsafe { Self::from_bits_unchecked(bits) }
   }
 }
-
-#[allow(non_camel_case_types)]
-pub const ENUM_VALUES_COLOR: [Color; 3] = [
-  Color::Red,
-  Color::Green,
-  Color::Blue
-];
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Race(pub i8);
@@ -811,7 +779,7 @@ impl<'a> TestSimpleTableWithEnum<'a> {
 
   #[inline]
   pub fn color(&self) -> Color {
-    self._tab.get::<Color>(TestSimpleTableWithEnum::VT_COLOR, Some(Color::Green)).unwrap()
+    self._tab.get::<Color>(TestSimpleTableWithEnum::VT_COLOR, Some(Color::GREEN)).unwrap()
   }
 }
 
@@ -822,7 +790,7 @@ impl<'a> Default for TestSimpleTableWithEnumArgs {
     #[inline]
     fn default() -> Self {
         TestSimpleTableWithEnumArgs {
-            color: Color::Green,
+            color: Color::GREEN,
         }
     }
 }
@@ -833,7 +801,7 @@ pub struct TestSimpleTableWithEnumBuilder<'a: 'b, 'b> {
 impl<'a: 'b, 'b> TestSimpleTableWithEnumBuilder<'a, 'b> {
   #[inline]
   pub fn add_color(&mut self, color: Color) {
-    self.fbb_.push_slot::<Color>(TestSimpleTableWithEnum::VT_COLOR, color, Color::Green);
+    self.fbb_.push_slot::<Color>(TestSimpleTableWithEnum::VT_COLOR, color, Color::GREEN);
   }
   #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> TestSimpleTableWithEnumBuilder<'a, 'b> {
@@ -1204,7 +1172,7 @@ impl<'a> Monster<'a> {
   }
   #[inline]
   pub fn color(&self) -> Color {
-    self._tab.get::<Color>(Monster::VT_COLOR, Some(Color::Blue)).unwrap()
+    self._tab.get::<Color>(Monster::VT_COLOR, Some(Color::BLUE)).unwrap()
   }
   #[inline]
   pub fn test_type(&self) -> Any {
@@ -1536,7 +1504,7 @@ impl<'a> Default for MonsterArgs<'a> {
             hp: 100,
             name: None, // required field
             inventory: None,
-            color: Color::Blue,
+            color: Color::BLUE,
             test_type: Any::NONE,
             test: None,
             test4: None,
@@ -1609,7 +1577,7 @@ impl<'a: 'b, 'b> MonsterBuilder<'a, 'b> {
   }
   #[inline]
   pub fn add_color(&mut self, color: Color) {
-    self.fbb_.push_slot::<Color>(Monster::VT_COLOR, color, Color::Blue);
+    self.fbb_.push_slot::<Color>(Monster::VT_COLOR, color, Color::BLUE);
   }
   #[inline]
   pub fn add_test_type(&mut self, test_type: Any) {
