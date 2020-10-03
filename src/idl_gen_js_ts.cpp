@@ -573,6 +573,9 @@ class JsTsGenerator : public BaseGenerator {
     if (typeName == "flatbuffers.Offset") { 
       return typeName;
     }
+    if (typeName == "flatbuffers.Offset[]") { 
+      return typeName;
+    }
     const auto basename =
         flatbuffers::StripPath(flatbuffers::StripExtension(file));
     if (basename == file_name_ || parser_.opts.generate_all) {
