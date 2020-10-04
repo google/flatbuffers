@@ -82,7 +82,7 @@ serialize():Uint8Array {
   return this.bb!.bytes();
 }
 
-static deserialize(buffer: Uint8Array) {
+static deserialize(buffer: Uint8Array):HelloReply {
   return HelloReply.getRootAsHelloReply(new flatbuffers.ByteBuffer(buffer))
 }
 }
@@ -168,110 +168,7 @@ serialize():Uint8Array {
   return this.bb!.bytes();
 }
 
-static deserialize(buffer: Uint8Array) {
+static deserialize(buffer: Uint8Array):HelloRequest {
   return HelloRequest.getRootAsHelloRequest(new flatbuffers.ByteBuffer(buffer))
-}
-}
-/**
- * @constructor
- */
-export class ManyHellosRequest {
-  bb: flatbuffers.ByteBuffer|null = null;
-
-  bb_pos:number = 0;
-/**
- * @param number i
- * @param flatbuffers.ByteBuffer bb
- * @returns ManyHellosRequest
- */
-__init(i:number, bb:flatbuffers.ByteBuffer):ManyHellosRequest {
-  this.bb_pos = i;
-  this.bb = bb;
-  return this;
-};
-
-/**
- * @param flatbuffers.ByteBuffer bb
- * @param ManyHellosRequest= obj
- * @returns ManyHellosRequest
- */
-static getRootAsManyHellosRequest(bb:flatbuffers.ByteBuffer, obj?:ManyHellosRequest):ManyHellosRequest {
-  return (obj || new ManyHellosRequest()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-};
-
-/**
- * @param flatbuffers.ByteBuffer bb
- * @param ManyHellosRequest= obj
- * @returns ManyHellosRequest
- */
-static getSizePrefixedRootAsManyHellosRequest(bb:flatbuffers.ByteBuffer, obj?:ManyHellosRequest):ManyHellosRequest {
-  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
-  return (obj || new ManyHellosRequest()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-};
-
-/**
- * @param flatbuffers.Encoding= optionalEncoding
- * @returns string|Uint8Array|null
- */
-name():string|null
-name(optionalEncoding:flatbuffers.Encoding):string|Uint8Array|null
-name(optionalEncoding?:any):string|Uint8Array|null {
-  var offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? this.bb!.__string(this.bb_pos + offset, optionalEncoding) : null;
-};
-
-/**
- * @returns number
- */
-numGreetings():number {
-  var offset = this.bb!.__offset(this.bb_pos, 6);
-  return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
-};
-
-/**
- * @param flatbuffers.Builder builder
- */
-static startManyHellosRequest(builder:flatbuffers.Builder) {
-  builder.startObject(2);
-};
-
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset nameOffset
- */
-static addName(builder:flatbuffers.Builder, nameOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(0, nameOffset, 0);
-};
-
-/**
- * @param flatbuffers.Builder builder
- * @param number numGreetings
- */
-static addNumGreetings(builder:flatbuffers.Builder, numGreetings:number) {
-  builder.addFieldInt32(1, numGreetings, 0);
-};
-
-/**
- * @param flatbuffers.Builder builder
- * @returns flatbuffers.Offset
- */
-static endManyHellosRequest(builder:flatbuffers.Builder):flatbuffers.Offset {
-  var offset = builder.endObject();
-  return offset;
-};
-
-static createManyHellosRequest(builder:flatbuffers.Builder, nameOffset:flatbuffers.Offset, numGreetings:number):flatbuffers.Offset {
-  ManyHellosRequest.startManyHellosRequest(builder);
-  ManyHellosRequest.addName(builder, nameOffset);
-  ManyHellosRequest.addNumGreetings(builder, numGreetings);
-  return ManyHellosRequest.endManyHellosRequest(builder);
-}
-
-serialize():Uint8Array {
-  return this.bb!.bytes();
-}
-
-static deserialize(buffer: Uint8Array) {
-  return ManyHellosRequest.getRootAsManyHellosRequest(new flatbuffers.ByteBuffer(buffer))
 }
 }

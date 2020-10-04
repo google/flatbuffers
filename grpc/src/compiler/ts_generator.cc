@@ -30,11 +30,6 @@
 
 namespace grpc_ts_generator {
 
-struct Streaming {
-  bool client;
-  bool server;
-};
-
 // MARK: - Shared code
 
 void GenerateImports(grpc_generator::Printer *printer,
@@ -54,25 +49,16 @@ void GenerateImports(grpc_generator::Printer *printer,
   printer->Print("\n");
 }
 
-Streaming StreamingType(const grpc_generator::Method *method) {
-  if (method->NoStreaming()) return Streaming{ false, false };
-
-  if (method->ClientStreaming()) return Streaming{ true, false };
-
-  if (method->ServerStreaming()) return Streaming{ false, true };
-
-  return Streaming{ true, true };
-}
-
 // MARK: - Generate Main GRPC Code
 
 void GetStreamType(grpc_generator::Printer *printer,
                    const grpc_generator::Method *method,
                    std::map<grpc::string, grpc::string> *dictonary) {
   auto vars = *dictonary;
-  auto streaming = StreamingType(method);
-  vars["ClientStreaming"] = streaming.client ? "true" : "false";
-  vars["ServerStreaming"] = streaming.server ? "true" : "false";
+  auto client_streaming = method->ClientStreaming() || method->BidiStreaming();
+  auto server_streaming = method->ServerStreaming() || method->BidiStreaming();
+  vars["ClientStreaming"] = client_streaming ? "true" : "false";
+  vars["ServerStreaming"] = server_streaming ? "true" : "false";
   printer->Print(vars, "requestStream: $ClientStreaming$,\n");
   printer->Print(vars, "responseStream: $ServerStreaming$,\n");
 }
@@ -219,12 +205,15 @@ void GenerateInterfaces(const grpc_generator::Service *service,
   auto vars = *dictonary;
   for (auto it = 0; it < service->method_count(); it++) {
     auto method = service->method(it);
-    auto streaming = StreamingType(&*method);
+    auto client_streaming =
+        method->ClientStreaming() || method->BidiStreaming();
+    auto server_streaming =
+        method->ServerStreaming() || method->BidiStreaming();
+    vars["ClientStreaming"] = client_streaming ? "true" : "false";
+    vars["ServerStreaming"] = server_streaming ? "true" : "false";
     vars["MethodName"] = method->name();
     vars["INPUT"] = method->get_input_type_name();
     vars["OUTPUT"] = method->get_output_type_name();
-    vars["ClientStreaming"] = streaming.client ? "true" : "false";
-    vars["ServerStreaming"] = streaming.server ? "true" : "false";
     FillInterface(printer, &vars);
     printer->Print("\n");
   }
@@ -238,30 +227,29 @@ void GenerateExportedInterface(
   printer->Indent();
   for (auto it = 0; it < service->method_count(); it++) {
     auto method = service->method(it);
-    auto streaming = StreamingType(&*method);
     vars["Name"] = method->name();
     vars["INPUT"] = method->get_input_type_name();
     vars["OUTPUT"] = method->get_output_type_name();
-    if (streaming.client && streaming.server) {
+    if (method->BidiStreaming()) {
       printer->Print(vars,
                      "$Name$: grpc.handleBidiStreamingCall<$FBSFile$.$INPUT$, "
                      "$FBSFile$.$OUTPUT$>;\n");
       continue;
     }
-    if (!streaming.client && !streaming.server) {
+    if (method->NoStreaming()) {
       printer->Print(vars,
                      "$Name$: grpc.handleUnaryCall<$FBSFile$.$INPUT$, "
                      "$FBSFile$.$OUTPUT$>;\n");
       continue;
     }
-    if (streaming.client) {
+    if (method->ClientStreaming()) {
       printer->Print(
           vars,
           "$Name$: grpc.handleClientStreamingCall<$FBSFile$.$INPUT$, "
           "$FBSFile$.$OUTPUT$>;\n");
       continue;
     }
-    if (streaming.server) {
+    if (method->ServerStreaming()) {
       printer->Print(
           vars,
           "$Name$: grpc.handleServerStreamingCall<$FBSFile$.$INPUT$, "
@@ -371,27 +359,26 @@ void GenerateClientInterface(const grpc_generator::Service *service,
   printer->Indent();
   for (auto it = 0; it < service->method_count(); it++) {
     auto method = service->method(it);
-    auto streaming = StreamingType(&*method);
     vars["MethodName"] = method->name();
     vars["INPUT"] = method->get_input_type_name();
     vars["OUTPUT"] = method->get_output_type_name();
     vars["ISPUBLIC"] = "";
 
-    if (!streaming.client && !streaming.server) {
+    if (method->NoStreaming()) {
       GenerateUnaryClientInterface(printer, &vars);
       continue;
     }
-    if (streaming.client && streaming.server) {
+    if (method->BidiStreaming()) {
       GenerateDepluxStreamInterface(printer, &vars);
       continue;
     }
 
-    if (streaming.client) {
+    if (method->ClientStreaming()) {
       GenerateClientWriteStreamInterface(printer, &vars);
       continue;
     }
 
-    if (streaming.server) {
+    if (method->ServerStreaming()) {
       GenerateClientReadableStreamInterface(printer, &vars);
       continue;
     }
@@ -413,26 +400,25 @@ void GenerateClientClassInterface(
       "options?: object);");
   for (auto it = 0; it < service->method_count(); it++) {
     auto method = service->method(it);
-    auto streaming = StreamingType(&*method);
     vars["MethodName"] = method->name();
     vars["INPUT"] = method->get_input_type_name();
     vars["OUTPUT"] = method->get_output_type_name();
     vars["ISPUBLIC"] = "public ";
-    if (!streaming.client && !streaming.server) {
+    if (method->NoStreaming()) {
       GenerateUnaryClientInterface(printer, &vars);
       continue;
     }
-    if (streaming.client && streaming.server) {
+    if (method->BidiStreaming()) {
       GenerateDepluxStreamInterface(printer, &vars);
       continue;
     }
 
-    if (streaming.client) {
+    if (method->ClientStreaming()) {
       GenerateClientWriteStreamInterface(printer, &vars);
       continue;
     }
 
-    if (streaming.server) {
+    if (method->ServerStreaming()) {
       GenerateClientReadableStreamInterface(printer, &vars);
       continue;
     }

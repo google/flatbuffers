@@ -2075,7 +2075,7 @@ class JsTsGenerator : public BaseGenerator {
       code += "}\n";
 
       code += "\n";
-      code += "static deserialize(buffer: Uint8Array) {\n";
+      code += "static deserialize(buffer: Uint8Array):"+ name +" {\n";
       code += "  return " + name + ".getRootAs" + name +
               "(new flatbuffers.ByteBuffer(buffer))\n";
       code += "}\n";

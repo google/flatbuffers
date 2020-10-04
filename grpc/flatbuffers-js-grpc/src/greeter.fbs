@@ -6,11 +6,6 @@ table HelloRequest {
   name:string;
 }
 
-table ManyHellosRequest {
-  name:string;
-  num_greetings:int;
-}
-
 rpc_service Greeter {
   SayHello(HelloRequest):HelloReply;
   SayManyHellos(HelloRequest):HelloReply (streaming: "server");

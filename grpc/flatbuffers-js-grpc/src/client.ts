@@ -4,9 +4,9 @@ import { GreeterClient } from './greeter_grpc';
 import { flatbuffers } from 'flatbuffers';
 
 async function main() {
-    const _server = new GreeterClient(`localhost:3000`, grpc.credentials.createInsecure());
+    const _server = new GreeterClient('localhost:3000', grpc.credentials.createInsecure());
     const builder = new flatbuffers.Builder();
-    const offset = builder.createString(`mustii`);
+    const offset = builder.createString('mustii');
     const root = HelloRequest.createHelloRequest(builder, offset);
     builder.finish(root);
     const buffer = HelloRequest.getRootAsHelloRequest(new flatbuffers.ByteBuffer(builder.asUint8Array()));

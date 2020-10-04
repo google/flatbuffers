@@ -214,7 +214,7 @@ serialize():Uint8Array {
   return this.bb!.bytes();
 }
 
-static deserialize(buffer: Uint8Array) {
+static deserialize(buffer: Uint8Array):InParentNamespace {
   return InParentNamespace.getRootAsInParentNamespace(new flatbuffers.ByteBuffer(buffer))
 }
 
@@ -309,7 +309,7 @@ serialize():Uint8Array {
   return this.bb!.bytes();
 }
 
-static deserialize(buffer: Uint8Array) {
+static deserialize(buffer: Uint8Array):Monster {
   return Monster.getRootAsMonster(new flatbuffers.ByteBuffer(buffer))
 }
 
@@ -551,7 +551,7 @@ serialize():Uint8Array {
   return this.bb!.bytes();
 }
 
-static deserialize(buffer: Uint8Array) {
+static deserialize(buffer: Uint8Array):TestSimpleTableWithEnum {
   return TestSimpleTableWithEnum.getRootAsTestSimpleTableWithEnum(new flatbuffers.ByteBuffer(buffer))
 }
 
@@ -1059,7 +1059,7 @@ serialize():Uint8Array {
   return this.bb!.bytes();
 }
 
-static deserialize(buffer: Uint8Array) {
+static deserialize(buffer: Uint8Array):Stat {
   return Stat.getRootAsStat(new flatbuffers.ByteBuffer(buffer))
 }
 
@@ -1207,7 +1207,7 @@ serialize():Uint8Array {
   return this.bb!.bytes();
 }
 
-static deserialize(buffer: Uint8Array) {
+static deserialize(buffer: Uint8Array):Referrable {
   return Referrable.getRootAsReferrable(new flatbuffers.ByteBuffer(buffer))
 }
 
@@ -2966,7 +2966,7 @@ serialize():Uint8Array {
   return this.bb!.bytes();
 }
 
-static deserialize(buffer: Uint8Array) {
+static deserialize(buffer: Uint8Array):Monster {
   return Monster.getRootAsMonster(new flatbuffers.ByteBuffer(buffer))
 }
 
@@ -3793,7 +3793,7 @@ serialize():Uint8Array {
   return this.bb!.bytes();
 }
 
-static deserialize(buffer: Uint8Array) {
+static deserialize(buffer: Uint8Array):TypeAliases {
   return TypeAliases.getRootAsTypeAliases(new flatbuffers.ByteBuffer(buffer))
 }
 
