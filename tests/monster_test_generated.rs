@@ -6,6 +6,8 @@ use crate::include_test1_generated::*;
 use crate::include_test2_generated::*;
 use std::mem;
 use std::cmp::Ordering;
+use std::convert::TryFrom;
+use std::convert::TryInto;
 
 extern crate flatbuffers;
 use self::flatbuffers::EndianScalar;
@@ -17,6 +19,8 @@ pub mod my_game {
   use crate::include_test2_generated::*;
   use std::mem;
   use std::cmp::Ordering;
+  use std::convert::TryFrom;
+  use std::convert::TryInto;
 
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
@@ -93,6 +97,8 @@ pub mod example_2 {
   use crate::include_test2_generated::*;
   use std::mem;
   use std::cmp::Ordering;
+  use std::convert::TryFrom;
+  use std::convert::TryInto;
 
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
@@ -171,6 +177,8 @@ pub mod example {
   use crate::include_test2_generated::*;
   use std::mem;
   use std::cmp::Ordering;
+  use std::convert::TryFrom;
+  use std::convert::TryInto;
 
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
@@ -292,6 +300,21 @@ impl flatbuffers::Push for Race {
     }
 }
 
+impl TryFrom<i8> for Race {
+    type Error = flatbuffers::ConvertError;
+
+    #[inline]
+    fn try_from(value: i8) -> Result<Self, Self::Error> {
+        match value {
+          -1 => Ok(Race::None),
+          0 => Ok(Race::Human),
+          1 => Ok(Race::Dwarf),
+          2 => Ok(Race::Elf),
+          _ => Err(Self::Error::InvalidValue)
+        }
+    }
+}
+
 #[allow(non_camel_case_types)]
 pub const ENUM_VALUES_RACE: [Race; 4] = [
   Race::None,
@@ -355,6 +378,21 @@ impl flatbuffers::Push for Any {
     #[inline]
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
         flatbuffers::emplace_scalar::<Any>(dst, *self);
+    }
+}
+
+impl TryFrom<u8> for Any {
+    type Error = flatbuffers::ConvertError;
+
+    #[inline]
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        match value {
+          0 => Ok(Any::NONE),
+          1 => Ok(Any::Monster),
+          2 => Ok(Any::TestSimpleTableWithEnum),
+          3 => Ok(Any::MyGame_Example2_Monster),
+          _ => Err(Self::Error::InvalidValue)
+        }
     }
 }
 
@@ -425,6 +463,21 @@ impl flatbuffers::Push for AnyUniqueAliases {
     }
 }
 
+impl TryFrom<u8> for AnyUniqueAliases {
+    type Error = flatbuffers::ConvertError;
+
+    #[inline]
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        match value {
+          0 => Ok(AnyUniqueAliases::NONE),
+          1 => Ok(AnyUniqueAliases::M),
+          2 => Ok(AnyUniqueAliases::TS),
+          3 => Ok(AnyUniqueAliases::M2),
+          _ => Err(Self::Error::InvalidValue)
+        }
+    }
+}
+
 #[allow(non_camel_case_types)]
 pub const ENUM_VALUES_ANY_UNIQUE_ALIASES: [AnyUniqueAliases; 4] = [
   AnyUniqueAliases::NONE,
@@ -489,6 +542,21 @@ impl flatbuffers::Push for AnyAmbiguousAliases {
     #[inline]
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
         flatbuffers::emplace_scalar::<AnyAmbiguousAliases>(dst, *self);
+    }
+}
+
+impl TryFrom<u8> for AnyAmbiguousAliases {
+    type Error = flatbuffers::ConvertError;
+
+    #[inline]
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        match value {
+          0 => Ok(AnyAmbiguousAliases::NONE),
+          1 => Ok(AnyAmbiguousAliases::M1),
+          2 => Ok(AnyAmbiguousAliases::M2),
+          3 => Ok(AnyAmbiguousAliases::M3),
+          _ => Err(Self::Error::InvalidValue)
+        }
     }
 }
 
@@ -1357,8 +1425,12 @@ impl<'a> Monster<'a> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, Color>>>(Monster::VT_VECTOR_OF_ENUMS, None)
   }
   #[inline]
-  pub fn signed_enum(&self) -> Race {
-    self._tab.get::<Race>(Monster::VT_SIGNED_ENUM, Some(Race::None)).unwrap()
+  pub fn signed_enum(&self) -> Result<Race, flatbuffers::ConvertError> {
+    self._tab.get::<i8>(Monster::VT_SIGNED_ENUM, Some(-1)).map(|value| value.try_into()).unwrap()
+  }
+  #[inline]
+  pub unsafe fn signed_enum_unchecked(&self) -> Race {
+    self._tab.get::<i8>(Monster::VT_SIGNED_ENUM, Some(-1)).map(|value| std::mem::transmute(value)).unwrap()
   }
   #[inline]
   #[allow(non_snake_case)]

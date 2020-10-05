@@ -5,6 +5,8 @@
 use crate::namespace_test1_generated::*;
 use std::mem;
 use std::cmp::Ordering;
+use std::convert::TryFrom;
+use std::convert::TryInto;
 
 extern crate flatbuffers;
 use self::flatbuffers::EndianScalar;
@@ -15,6 +17,8 @@ pub mod namespace_a {
   use crate::namespace_test1_generated::*;
   use std::mem;
   use std::cmp::Ordering;
+  use std::convert::TryFrom;
+  use std::convert::TryInto;
 
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
@@ -65,8 +69,12 @@ impl<'a> TableInFirstNS<'a> {
     self._tab.get::<flatbuffers::ForwardsUOffset<namespace_b::TableInNestedNS<'a>>>(TableInFirstNS::VT_FOO_TABLE, None)
   }
   #[inline]
-  pub fn foo_enum(&self) -> namespace_b::EnumInNestedNS {
-    self._tab.get::<namespace_b::EnumInNestedNS>(TableInFirstNS::VT_FOO_ENUM, Some(namespace_b::EnumInNestedNS::A)).unwrap()
+  pub fn foo_enum(&self) -> Result<namespace_b::EnumInNestedNS, flatbuffers::ConvertError> {
+    self._tab.get::<i8>(TableInFirstNS::VT_FOO_ENUM, Some(0)).map(|value| value.try_into()).unwrap()
+  }
+  #[inline]
+  pub unsafe fn foo_enum_unchecked(&self) -> namespace_b::EnumInNestedNS {
+    self._tab.get::<i8>(TableInFirstNS::VT_FOO_ENUM, Some(0)).map(|value| std::mem::transmute(value)).unwrap()
   }
   #[inline]
   pub fn foo_struct(&self) -> Option<&'a namespace_b::StructInNestedNS> {
@@ -207,6 +215,8 @@ pub mod namespace_c {
   use crate::namespace_test1_generated::*;
   use std::mem;
   use std::cmp::Ordering;
+  use std::convert::TryFrom;
+  use std::convert::TryInto;
 
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;

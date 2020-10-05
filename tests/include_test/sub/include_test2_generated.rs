@@ -5,6 +5,8 @@
 use crate::include_test1_generated::*;
 use std::mem;
 use std::cmp::Ordering;
+use std::convert::TryFrom;
+use std::convert::TryInto;
 
 extern crate flatbuffers;
 use self::flatbuffers::EndianScalar;
@@ -15,6 +17,8 @@ pub mod my_game {
   use crate::include_test1_generated::*;
   use std::mem;
   use std::cmp::Ordering;
+  use std::convert::TryFrom;
+  use std::convert::TryInto;
 
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
@@ -24,6 +28,8 @@ pub mod other_name_space {
   use crate::include_test1_generated::*;
   use std::mem;
   use std::cmp::Ordering;
+  use std::convert::TryFrom;
+  use std::convert::TryInto;
 
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
@@ -67,6 +73,18 @@ impl flatbuffers::Push for FromInclude {
     #[inline]
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
         flatbuffers::emplace_scalar::<FromInclude>(dst, *self);
+    }
+}
+
+impl TryFrom<i64> for FromInclude {
+    type Error = flatbuffers::ConvertError;
+
+    #[inline]
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
+        match value {
+          0 => Ok(FromInclude::IncludeVal),
+          _ => Err(Self::Error::InvalidValue)
+        }
     }
 }
 

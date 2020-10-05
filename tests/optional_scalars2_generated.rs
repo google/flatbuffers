@@ -4,6 +4,8 @@
 
 use std::mem;
 use std::cmp::Ordering;
+use std::convert::TryFrom;
+use std::convert::TryInto;
 
 extern crate flatbuffers;
 use self::flatbuffers::EndianScalar;
@@ -13,6 +15,8 @@ pub mod optional_scalars {
 
   use std::mem;
   use std::cmp::Ordering;
+  use std::convert::TryFrom;
+  use std::convert::TryInto;
 
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
@@ -58,6 +62,20 @@ impl flatbuffers::Push for OptionalByte {
     #[inline]
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
         flatbuffers::emplace_scalar::<OptionalByte>(dst, *self);
+    }
+}
+
+impl TryFrom<i8> for OptionalByte {
+    type Error = flatbuffers::ConvertError;
+
+    #[inline]
+    fn try_from(value: i8) -> Result<Self, Self::Error> {
+        match value {
+          0 => Ok(OptionalByte::None),
+          1 => Ok(OptionalByte::One),
+          2 => Ok(OptionalByte::Two),
+          _ => Err(Self::Error::InvalidValue)
+        }
     }
 }
 
@@ -316,16 +334,28 @@ impl<'a> ScalarStuff<'a> {
     self._tab.get::<bool>(ScalarStuff::VT_DEFAULT_BOOL, Some(true)).unwrap()
   }
   #[inline]
-  pub fn just_enum(&self) -> OptionalByte {
-    self._tab.get::<OptionalByte>(ScalarStuff::VT_JUST_ENUM, Some(OptionalByte::None)).unwrap()
+  pub fn just_enum(&self) -> Result<OptionalByte, flatbuffers::ConvertError> {
+    self._tab.get::<i8>(ScalarStuff::VT_JUST_ENUM, Some(0)).map(|value| value.try_into()).unwrap()
   }
   #[inline]
-  pub fn maybe_enum(&self) -> Option<OptionalByte> {
-    self._tab.get::<OptionalByte>(ScalarStuff::VT_MAYBE_ENUM, None)
+  pub unsafe fn just_enum_unchecked(&self) -> OptionalByte {
+    self._tab.get::<i8>(ScalarStuff::VT_JUST_ENUM, Some(0)).map(|value| std::mem::transmute(value)).unwrap()
   }
   #[inline]
-  pub fn default_enum(&self) -> OptionalByte {
-    self._tab.get::<OptionalByte>(ScalarStuff::VT_DEFAULT_ENUM, Some(OptionalByte::One)).unwrap()
+  pub fn maybe_enum(&self) -> Option<Result<OptionalByte, flatbuffers::ConvertError>> {
+    self._tab.get::<i8>(ScalarStuff::VT_MAYBE_ENUM, None).map(|value| value.try_into())
+  }
+  #[inline]
+  pub unsafe fn maybe_enum_unchecked(&self) -> Option<OptionalByte> {
+    self._tab.get::<i8>(ScalarStuff::VT_MAYBE_ENUM, None).map(|value| std::mem::transmute(value))
+  }
+  #[inline]
+  pub fn default_enum(&self) -> Result<OptionalByte, flatbuffers::ConvertError> {
+    self._tab.get::<i8>(ScalarStuff::VT_DEFAULT_ENUM, Some(1)).map(|value| value.try_into()).unwrap()
+  }
+  #[inline]
+  pub unsafe fn default_enum_unchecked(&self) -> OptionalByte {
+    self._tab.get::<i8>(ScalarStuff::VT_DEFAULT_ENUM, Some(1)).map(|value| std::mem::transmute(value)).unwrap()
   }
 }
 

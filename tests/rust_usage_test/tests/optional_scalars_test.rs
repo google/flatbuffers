@@ -41,6 +41,41 @@ macro_rules! make_test {
     };
 }
 
+macro_rules! make_enum_test {
+    (
+        $test_name: ident,
+        $just: ident, $default: ident, $maybe: ident,
+        $five: expr, $zero: expr, $fortytwo: expr
+    ) => {
+        #[test]
+        fn $test_name() {
+            let mut builder = flatbuffers::FlatBufferBuilder::new();
+            // Test five makes sense when specified.
+            let ss = ScalarStuff::create(
+                &mut builder,
+                &ScalarStuffArgs {
+                    $just: $five,
+                    $default: $five,
+                    $maybe: Some($five),
+                    ..Default::default()
+                },
+            );
+            builder.finish(ss, None);
+
+            let s = flatbuffers::get_root::<ScalarStuff>(builder.finished_data());
+            assert_eq!(s.$just(), Ok($five));
+            assert_eq!(s.$default(), Ok($five));
+            assert_eq!(s.$maybe(), Some(Ok($five)));
+
+            // Test defaults are used when not specified.
+            let s = flatbuffers::get_root::<ScalarStuff>(&[0; 8]);
+            assert_eq!(s.$just(), Ok($zero));
+            assert_eq!(s.$default(), Ok($fortytwo));
+            assert_eq!(s.$maybe(), None);
+        }
+    };
+}
+
 make_test!(optional_i8, just_i8, default_i8, maybe_i8, 5, 0, 42);
 make_test!(optional_u8, just_u8, default_u8, maybe_u8, 5, 0, 42);
 make_test!(optional_i16, just_i16, default_i16, maybe_i16, 5, 0, 42);
@@ -76,7 +111,7 @@ make_test!(
     false,
     true
 );
-make_test!(
+make_enum_test!(
      optional_enum,
      just_enum,
      default_enum,

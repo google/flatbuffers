@@ -4,6 +4,8 @@
 
 use std::mem;
 use std::cmp::Ordering;
+use std::convert::TryFrom;
+use std::convert::TryInto;
 
 extern crate flatbuffers;
 use self::flatbuffers::EndianScalar;
@@ -13,6 +15,8 @@ pub mod namespace_a {
 
   use std::mem;
   use std::cmp::Ordering;
+  use std::convert::TryFrom;
+  use std::convert::TryInto;
 
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
@@ -21,6 +25,8 @@ pub mod namespace_b {
 
   use std::mem;
   use std::cmp::Ordering;
+  use std::convert::TryFrom;
+  use std::convert::TryInto;
 
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
@@ -66,6 +72,20 @@ impl flatbuffers::Push for EnumInNestedNS {
     #[inline]
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
         flatbuffers::emplace_scalar::<EnumInNestedNS>(dst, *self);
+    }
+}
+
+impl TryFrom<i8> for EnumInNestedNS {
+    type Error = flatbuffers::ConvertError;
+
+    #[inline]
+    fn try_from(value: i8) -> Result<Self, Self::Error> {
+        match value {
+          0 => Ok(EnumInNestedNS::A),
+          1 => Ok(EnumInNestedNS::B),
+          2 => Ok(EnumInNestedNS::C),
+          _ => Err(Self::Error::InvalidValue)
+        }
     }
 }
 

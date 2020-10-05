@@ -515,6 +515,10 @@ class RustGenerator : public BaseGenerator {
     return Name(enum_def) + "::" + Name(enum_val);
   }
 
+  static bool IsBitFlags(const EnumDef &enum_def) {
+    return enum_def.attributes.Lookup("bit_flags") != nullptr;
+  }
+
   // Generate an enum declaration,
   // an enum string lookup table,
   // an enum match function,
@@ -552,7 +556,7 @@ class RustGenerator : public BaseGenerator {
     code_.SetValue("ENUM_MIN_BASE_VALUE", enum_def.ToString(*minv));
     code_.SetValue("ENUM_MAX_BASE_VALUE", enum_def.ToString(*maxv));
 
-    // Generate enum constants, and impls for Follow, EndianScalar, and Push.
+    // Generate enum constants, and impls for TryFrom, Follow, EndianScalar, and Push.
     code_ += "pub const ENUM_MIN_{{ENUM_NAME_CAPS}}: {{BASE_TYPE}} = \\";
     code_ += "{{ENUM_MIN_BASE_VALUE}};";
     code_ += "pub const ENUM_MAX_{{ENUM_NAME_CAPS}}: {{BASE_TYPE}} = \\";
@@ -591,6 +595,29 @@ class RustGenerator : public BaseGenerator {
     code_ += "    }";
     code_ += "}";
     code_ += "";
+
+    if (!IsBitFlags(enum_def)) {
+      code_ += "impl TryFrom<{{BASE_TYPE}}> for {{ENUM_NAME}} {";
+      code_ += "    type Error = flatbuffers::ConvertError;";
+      code_ += "";
+      code_ += "    #[inline]";
+      code_ += "    fn try_from(value: {{BASE_TYPE}}) -> Result<Self, Self::Error> {";
+      code_ += "        match value {";
+
+      for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+        const auto &ev = **it;
+
+        code_.SetValue("KEY", Name(ev));
+        code_.SetValue("VALUE", enum_def.ToString(ev));
+        code_ += "          {{VALUE}} => Ok({{ENUM_NAME}}::{{KEY}}),";
+      }
+
+      code_ += "          _ => Err(Self::Error::InvalidValue)",
+          code_ += "        }";
+      code_ += "    }";
+      code_ += "}";
+      code_ += "";
+    }
 
     // Generate an array of all enumeration values.
     auto num_fields = NumToString(enum_def.size());
@@ -907,7 +934,8 @@ class RustGenerator : public BaseGenerator {
   }
 
   std::string GenTableAccessorFuncReturnType(const FieldDef &field,
-                                             const std::string &lifetime) {
+                                             const std::string &lifetime,
+                                             bool unchecked) {
     const Type &type = field.value.type;
 
     switch (GetFullType(field.value.type)) {
@@ -927,9 +955,16 @@ class RustGenerator : public BaseGenerator {
         return WrapInOptionIfNotRequired(typname + "<" + lifetime + ">",
                                          field.required);
       }
-      case ftEnumKey:
       case ftUnionKey: {
         const auto typname = WrapInNameSpace(*type.enum_def);
+        return field.optional ? "Option<" + typname + ">" : typname;
+      }
+      case ftEnumKey: {
+        auto typname = WrapInNameSpace(*type.enum_def);
+        if (!unchecked) {
+          typname = "Result<" + typname + ", flatbuffers::ConvertError>";
+        }
+
         return field.optional ? "Option<" + typname + ">" : typname;
       }
 
@@ -987,6 +1022,28 @@ class RustGenerator : public BaseGenerator {
     return "INVALID_CODE_GENERATION";  // for return analysis
   }
 
+  std::string GenTableUncheckedAccessor(const FieldDef &field,
+                                        const std::string &offset_prefix) {
+    const std::string offset_name =
+        offset_prefix + "::" + GetFieldOffsetName(field);
+    const Type &type = field.value.type;
+
+    if (GetFullType(type) != ftEnumKey) {
+      FLATBUFFERS_ASSERT(false && "unchecked access is supported for enums only");
+      return "INVALID_CODE_GENERATION";  // for return analysis
+    }
+
+    const auto underlying_typname = GetEnumTypeForDecl(type.enum_def->underlying_type);
+    const auto typname = WrapInNameSpace(*type.enum_def);
+    if (field.optional) {
+      return "self._tab.get::<" + underlying_typname + ">(" + offset_name + ", None)" +
+             ".map(|value| std::mem::transmute(value))";
+    } else {
+      return "self._tab.get::<" + underlying_typname + ">(" + offset_name + ", Some(" +
+             field.value.constant + ")).map(|value| std::mem::transmute(value)).unwrap()";
+    }
+  }
+
   std::string GenTableAccessorFuncBody(const FieldDef &field,
                                        const std::string &lifetime,
                                        const std::string &offset_prefix) {
@@ -994,7 +1051,7 @@ class RustGenerator : public BaseGenerator {
         offset_prefix + "::" + GetFieldOffsetName(field);
     const Type &type = field.value.type;
 
-    switch (GetFullType(field.value.type)) {
+    switch (GetFullType(type)) {
       case ftInteger:
       case ftFloat:
       case ftBool: {
@@ -1027,16 +1084,20 @@ class RustGenerator : public BaseGenerator {
                 lifetime + ">>>(" + offset_name + ", None)",
             field.required);
       }
-      case ftUnionKey:
+      case ftUnionKey: {
+        return GenerateEnumOrUnionAccess(field, offset_name, type);
+      }
       case ftEnumKey: {
-        const auto underlying_typname = GetTypeBasic(type);  //<- never used
-        const auto typname = WrapInNameSpace(*type.enum_def);
-        const auto default_value = GetDefaultScalarValue(field);
+        if (IsBitFlags(*type.enum_def)) {
+          return GenerateEnumOrUnionAccess(field, offset_name, type);
+        }
+
+        const auto underlying_typname = GetEnumTypeForDecl(type.enum_def->underlying_type);
         if (field.optional) {
-          return "self._tab.get::<" + typname + ">(" + offset_name + ", None)";
+          return "self._tab.get::<" + underlying_typname + ">(" + offset_name + ", None).map(|value| value.try_into())";
         } else {
-          return "self._tab.get::<" + typname + ">(" + offset_name + ", Some(" +
-                 default_value + ")).unwrap()";
+          return "self._tab.get::<" + underlying_typname + ">(" + offset_name + ", Some(" +
+              field.value.constant + ")).map(|value| value.try_into()).unwrap()";
         }
       }
       case ftString: {
@@ -1098,6 +1159,20 @@ class RustGenerator : public BaseGenerator {
       }
     }
     return "INVALID_CODE_GENERATION";  // for return analysis
+  }
+
+  std::string GenerateEnumOrUnionAccess(const FieldDef &field,
+                                        const std::string &offset_name,
+                                        const Type &type) {
+    const auto underlying_typname = GetTypeBasic(type);  //<- never used
+    const auto typname = WrapInNameSpace(*type.enum_def);
+    const auto default_value = GetDefaultScalarValue(field);
+    if (field.optional) {
+      return "self._tab.get::<" + typname + ">(" + offset_name + ", None)";
+    } else {
+      return "self._tab.get::<" + typname + ">(" + offset_name + ", Some(" +
+             default_value + ")).unwrap()";
+    }
   }
 
   bool TableFieldReturnsOption(const FieldDef &field) {
@@ -1241,17 +1316,46 @@ class RustGenerator : public BaseGenerator {
         continue;
       }
 
-      code_.SetValue("FIELD_NAME", Name(field));
-      code_.SetValue("RETURN_TYPE",
-                     GenTableAccessorFuncReturnType(field, "'a"));
-      code_.SetValue("FUNC_BODY",
-                     GenTableAccessorFuncBody(field, "'a", offset_prefix));
+      if (GetFullType(field.value.type) == ftEnumKey && !IsBitFlags(*field.value.type.enum_def)) {
+        code_.SetValue("FIELD_NAME", Name(field));
+        code_.SetValue("RETURN_TYPE",
+                       GenTableAccessorFuncReturnType(field, "'a", false));
+        code_.SetValue("FUNC_BODY",
+                       GenTableAccessorFuncBody(field, "'a", offset_prefix));
 
-      GenComment(field.doc_comment, "  ");
-      code_ += "  #[inline]";
-      code_ += "  pub fn {{FIELD_NAME}}(&self) -> {{RETURN_TYPE}} {";
-      code_ += "    {{FUNC_BODY}}";
-      code_ += "  }";
+        GenComment(field.doc_comment, "  ");
+        code_ += "  #[inline]";
+        code_ += "  pub fn {{FIELD_NAME}}(&self) -> {{RETURN_TYPE}} {";
+        code_ += "    {{FUNC_BODY}}";
+        code_ += "  }";
+
+        code_.SetValue("RETURN_TYPE",
+                       GenTableAccessorFuncReturnType(field, "'a", true));
+        code_.SetValue("FUNC_BODY",
+                       GenTableUncheckedAccessor(field, offset_prefix));
+
+        GenComment(field.doc_comment, "  ");
+        code_ += "  #[inline]";
+        code_ += "  pub unsafe fn {{FIELD_NAME}}_unchecked(&self) -> {{RETURN_TYPE}} {";
+        code_ += "    {{FUNC_BODY}}";
+        code_ += "  }";
+      } else {
+        const auto bit_flags = GetFullType(field.value.type) == ftEnumKey && IsBitFlags(*field.value.type.enum_def);
+
+        code_.SetValue("FIELD_NAME", Name(field));
+        
+        // treat bitflags as unchecked for now
+        code_.SetValue("RETURN_TYPE",
+                       GenTableAccessorFuncReturnType(field, "'a", bit_flags));
+        code_.SetValue("FUNC_BODY",
+                       GenTableAccessorFuncBody(field, "'a", offset_prefix));
+
+        GenComment(field.doc_comment, "  ");
+        code_ += "  #[inline]";
+        code_ += "  pub fn {{FIELD_NAME}}(&self) -> {{RETURN_TYPE}} {";
+        code_ += "    {{FUNC_BODY}}";
+        code_ += "  }";
+      }
 
       // Generate a comparison function for this field if it is a key.
       if (field.key) { GenKeyFieldMethods(field); }
@@ -1480,7 +1584,7 @@ class RustGenerator : public BaseGenerator {
   void GenKeyFieldMethods(const FieldDef &field) {
     FLATBUFFERS_ASSERT(field.key);
 
-    code_.SetValue("KEY_TYPE", GenTableAccessorFuncReturnType(field, ""));
+    code_.SetValue("KEY_TYPE", GenTableAccessorFuncReturnType(field, "", false));
 
     code_ += "  #[inline]";
     code_ +=
@@ -1786,6 +1890,12 @@ class RustGenerator : public BaseGenerator {
 
     code_ += indent + "use std::mem;";
     code_ += indent + "use std::cmp::Ordering;";
+
+    if (!parser_.enums_.vec.empty()) {
+      code_ += indent + "use std::convert::TryFrom;";
+      code_ += indent + "use std::convert::TryInto;";
+    }
+
     code_ += "";
     code_ += indent + "extern crate flatbuffers;";
     code_ += indent + "use self::flatbuffers::EndianScalar;";
