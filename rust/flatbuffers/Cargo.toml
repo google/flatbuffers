@@ -11,4 +11,3 @@ categories = ["encoding", "data-structures", "memory-management"]
 
 [dependencies]
 smallvec = "1.0"
-thiserror = "1.0"
