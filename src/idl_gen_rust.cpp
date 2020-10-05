@@ -1519,6 +1519,17 @@ class RustGenerator : public BaseGenerator {
     code_ += "}";
     code_ += "";
 
+    code_ += "#[inline]";
+    code_ += "#[deprecated = \"getters starting with get_ are deprecated\"]";
+    code_ +=
+        "pub fn get_size_prefixed_root_as_{{STRUCT_NAME_SNAKECASE}}"
+        "<'a>(buf: &'a [u8]) -> {{STRUCT_NAME}}<'a> {";
+    code_ +=
+        "  flatbuffers::get_size_prefixed_root::<{{STRUCT_NAME}}<'a>>"
+        "(buf)";
+    code_ += "}";
+    code_ += "";
+
     if (parser_.file_identifier_.length()) {
       // Declare the identifier
       // (no lifetime needed as constants have static lifetimes by default)

@@ -602,6 +602,12 @@ pub fn size_prefixed_root_as_scalar_stuff<'a>(buf: &'a [u8]) -> ScalarStuff<'a> 
   flatbuffers::get_size_prefixed_root::<ScalarStuff<'a>>(buf)
 }
 
+#[inline]
+#[deprecated = "getters starting with get_ are deprecated"]
+pub fn get_size_prefixed_root_as_scalar_stuff<'a>(buf: &'a [u8]) -> ScalarStuff<'a> {
+  flatbuffers::get_size_prefixed_root::<ScalarStuff<'a>>(buf)
+}
+
 pub const SCALAR_STUFF_IDENTIFIER: &str = "NULL";
 
 #[inline]
