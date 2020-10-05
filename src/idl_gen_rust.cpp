@@ -548,7 +548,10 @@ class RustGenerator : public BaseGenerator {
     }
   }
   void ForAllEnumValues(const EnumDef &enum_def, std::function<void()> cb) {
-      ForAllEnumValues(enum_def, [&](const EnumVal& unused) { cb(); });
+      ForAllEnumValues(enum_def, [&](const EnumVal& unused) {
+        (void) unused;
+        cb();
+      });
   }
   // Generate an enum declaration,
   // an enum string lookup table,
