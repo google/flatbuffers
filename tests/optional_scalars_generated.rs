@@ -592,7 +592,7 @@ pub fn root_as_scalar_stuff<'a>(buf: &'a [u8]) -> ScalarStuff<'a> {
 }
 
 #[inline]
-#[deprecated = "getters starting with get_ are deprecated"]
+#[deprecated(since = "1.13.0", note = "getters starting with get_ are deprecated")]
 pub fn get_root_as_scalar_stuff<'a>(buf: &'a [u8]) -> ScalarStuff<'a> {
   flatbuffers::get_root::<ScalarStuff<'a>>(buf)
 }
@@ -603,7 +603,7 @@ pub fn size_prefixed_root_as_scalar_stuff<'a>(buf: &'a [u8]) -> ScalarStuff<'a> 
 }
 
 #[inline]
-#[deprecated = "getters starting with get_ are deprecated"]
+#[deprecated(since = "1.13.0", note = "getters starting with get_ are deprecated")]
 pub fn get_size_prefixed_root_as_scalar_stuff<'a>(buf: &'a [u8]) -> ScalarStuff<'a> {
   flatbuffers::get_size_prefixed_root::<ScalarStuff<'a>>(buf)
 }
