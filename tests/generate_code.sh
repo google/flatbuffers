@@ -55,7 +55,7 @@ $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_JS_TS_FLAGS -o namespace
 # Generate optional scalar code for tests.
 ../flatc --kotlin optional_scalars.fbs  # These ones have not added optional enum support.
 ../flatc --rust --lobster optional_scalars2.fbs
-../flatc $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS --cpp optional_scalars.fbs
+../flatc $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS --cpp optional_scalars2.fbs
 
 # Generate the schema evolution tests
 ../flatc --cpp --scoped-enums $TEST_CPP_FLAGS -o evolution_test ./evolution_test/evolution_v*.fbs
@@ -86,7 +86,7 @@ fi
 # Flag c++17 requires Clang6, GCC7, MSVC2017 (_MSC_VER >= 1914)  or higher.
 TEST_CPP17_FLAGS="--cpp --cpp-std c++17 -o ./cpp17/generated_cpp17 $TEST_NOINCL_FLAGS"
 ../flatc $TEST_CPP17_FLAGS -I include_test monster_test.fbs
-../flatc $TEST_CPP17_FLAGS optional_scalars.fbs
+../flatc $TEST_CPP17_FLAGS optional_scalars2.fbs
 
 cd ../samples
 ../flatc --cpp --lobster $TEST_BASE_FLAGS $TEST_CPP_FLAGS monster.fbs
