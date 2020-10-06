@@ -598,7 +598,7 @@ class RustGenerator : public BaseGenerator {
 
     if (!IsBitFlags(enum_def)) {
       code_ += "impl TryFrom<{{BASE_TYPE}}> for {{ENUM_NAME}} {";
-      code_ += "    type Error = flatbuffers::ConvertError;";
+      code_ += "    type Error = flatbuffers::ConvertError<{{BASE_TYPE}}>;";
       code_ += "";
       code_ += "    #[inline]";
       code_ += "    fn try_from(value: {{BASE_TYPE}}) -> Result<Self, Self::Error> {";
@@ -612,7 +612,7 @@ class RustGenerator : public BaseGenerator {
         code_ += "          {{VALUE}} => Ok({{ENUM_NAME}}::{{KEY}}),";
       }
 
-      code_ += "          _ => Err(Self::Error::InvalidValue)",
+      code_ += "          _ => Err(Self::Error::InvalidValue(value))",
           code_ += "        }";
       code_ += "    }";
       code_ += "}";
@@ -962,7 +962,8 @@ class RustGenerator : public BaseGenerator {
       case ftEnumKey: {
         auto typname = WrapInNameSpace(*type.enum_def);
         if (!unchecked) {
-          typname = "Result<" + typname + ", flatbuffers::ConvertError>";
+          const auto underlying_typname = GetEnumTypeForDecl(type.enum_def->underlying_type);
+          typname = "Result<" + typname + ", flatbuffers::ConvertError<" + underlying_typname + ">>";
         }
 
         return field.optional ? "Option<" + typname + ">" : typname;

@@ -301,7 +301,7 @@ impl flatbuffers::Push for Race {
 }
 
 impl TryFrom<i8> for Race {
-    type Error = flatbuffers::ConvertError;
+    type Error = flatbuffers::ConvertError<i8>;
 
     #[inline]
     fn try_from(value: i8) -> Result<Self, Self::Error> {
@@ -310,7 +310,7 @@ impl TryFrom<i8> for Race {
           0 => Ok(Race::Human),
           1 => Ok(Race::Dwarf),
           2 => Ok(Race::Elf),
-          _ => Err(Self::Error::InvalidValue)
+          _ => Err(Self::Error::InvalidValue(value))
         }
     }
 }
@@ -382,7 +382,7 @@ impl flatbuffers::Push for Any {
 }
 
 impl TryFrom<u8> for Any {
-    type Error = flatbuffers::ConvertError;
+    type Error = flatbuffers::ConvertError<u8>;
 
     #[inline]
     fn try_from(value: u8) -> Result<Self, Self::Error> {
@@ -391,7 +391,7 @@ impl TryFrom<u8> for Any {
           1 => Ok(Any::Monster),
           2 => Ok(Any::TestSimpleTableWithEnum),
           3 => Ok(Any::MyGame_Example2_Monster),
-          _ => Err(Self::Error::InvalidValue)
+          _ => Err(Self::Error::InvalidValue(value))
         }
     }
 }
@@ -464,7 +464,7 @@ impl flatbuffers::Push for AnyUniqueAliases {
 }
 
 impl TryFrom<u8> for AnyUniqueAliases {
-    type Error = flatbuffers::ConvertError;
+    type Error = flatbuffers::ConvertError<u8>;
 
     #[inline]
     fn try_from(value: u8) -> Result<Self, Self::Error> {
@@ -473,7 +473,7 @@ impl TryFrom<u8> for AnyUniqueAliases {
           1 => Ok(AnyUniqueAliases::M),
           2 => Ok(AnyUniqueAliases::TS),
           3 => Ok(AnyUniqueAliases::M2),
-          _ => Err(Self::Error::InvalidValue)
+          _ => Err(Self::Error::InvalidValue(value))
         }
     }
 }
@@ -546,7 +546,7 @@ impl flatbuffers::Push for AnyAmbiguousAliases {
 }
 
 impl TryFrom<u8> for AnyAmbiguousAliases {
-    type Error = flatbuffers::ConvertError;
+    type Error = flatbuffers::ConvertError<u8>;
 
     #[inline]
     fn try_from(value: u8) -> Result<Self, Self::Error> {
@@ -555,7 +555,7 @@ impl TryFrom<u8> for AnyAmbiguousAliases {
           1 => Ok(AnyAmbiguousAliases::M1),
           2 => Ok(AnyAmbiguousAliases::M2),
           3 => Ok(AnyAmbiguousAliases::M3),
-          _ => Err(Self::Error::InvalidValue)
+          _ => Err(Self::Error::InvalidValue(value))
         }
     }
 }
@@ -1425,7 +1425,7 @@ impl<'a> Monster<'a> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, Color>>>(Monster::VT_VECTOR_OF_ENUMS, None)
   }
   #[inline]
-  pub fn signed_enum(&self) -> Result<Race, flatbuffers::ConvertError> {
+  pub fn signed_enum(&self) -> Result<Race, flatbuffers::ConvertError<i8>> {
     self._tab.get::<i8>(Monster::VT_SIGNED_ENUM, Some(-1)).map(|value| value.try_into()).unwrap()
   }
   #[inline]

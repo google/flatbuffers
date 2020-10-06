@@ -77,13 +77,13 @@ impl flatbuffers::Push for FromInclude {
 }
 
 impl TryFrom<i64> for FromInclude {
-    type Error = flatbuffers::ConvertError;
+    type Error = flatbuffers::ConvertError<i64>;
 
     #[inline]
     fn try_from(value: i64) -> Result<Self, Self::Error> {
         match value {
           0 => Ok(FromInclude::IncludeVal),
-          _ => Err(Self::Error::InvalidValue)
+          _ => Err(Self::Error::InvalidValue(value))
         }
     }
 }

@@ -66,7 +66,7 @@ impl flatbuffers::Push for OptionalByte {
 }
 
 impl TryFrom<i8> for OptionalByte {
-    type Error = flatbuffers::ConvertError;
+    type Error = flatbuffers::ConvertError<i8>;
 
     #[inline]
     fn try_from(value: i8) -> Result<Self, Self::Error> {
@@ -74,7 +74,7 @@ impl TryFrom<i8> for OptionalByte {
           0 => Ok(OptionalByte::None),
           1 => Ok(OptionalByte::One),
           2 => Ok(OptionalByte::Two),
-          _ => Err(Self::Error::InvalidValue)
+          _ => Err(Self::Error::InvalidValue(value))
         }
     }
 }
@@ -334,7 +334,7 @@ impl<'a> ScalarStuff<'a> {
     self._tab.get::<bool>(ScalarStuff::VT_DEFAULT_BOOL, Some(true)).unwrap()
   }
   #[inline]
-  pub fn just_enum(&self) -> Result<OptionalByte, flatbuffers::ConvertError> {
+  pub fn just_enum(&self) -> Result<OptionalByte, flatbuffers::ConvertError<i8>> {
     self._tab.get::<i8>(ScalarStuff::VT_JUST_ENUM, Some(0)).map(|value| value.try_into()).unwrap()
   }
   #[inline]
@@ -342,7 +342,7 @@ impl<'a> ScalarStuff<'a> {
     self._tab.get::<i8>(ScalarStuff::VT_JUST_ENUM, Some(0)).map(|value| std::mem::transmute(value)).unwrap()
   }
   #[inline]
-  pub fn maybe_enum(&self) -> Option<Result<OptionalByte, flatbuffers::ConvertError>> {
+  pub fn maybe_enum(&self) -> Option<Result<OptionalByte, flatbuffers::ConvertError<i8>>> {
     self._tab.get::<i8>(ScalarStuff::VT_MAYBE_ENUM, None).map(|value| value.try_into())
   }
   #[inline]
@@ -350,7 +350,7 @@ impl<'a> ScalarStuff<'a> {
     self._tab.get::<i8>(ScalarStuff::VT_MAYBE_ENUM, None).map(|value| std::mem::transmute(value))
   }
   #[inline]
-  pub fn default_enum(&self) -> Result<OptionalByte, flatbuffers::ConvertError> {
+  pub fn default_enum(&self) -> Result<OptionalByte, flatbuffers::ConvertError<i8>> {
     self._tab.get::<i8>(ScalarStuff::VT_DEFAULT_ENUM, Some(1)).map(|value| value.try_into()).unwrap()
   }
   #[inline]

@@ -76,7 +76,7 @@ impl flatbuffers::Push for EnumInNestedNS {
 }
 
 impl TryFrom<i8> for EnumInNestedNS {
-    type Error = flatbuffers::ConvertError;
+    type Error = flatbuffers::ConvertError<i8>;
 
     #[inline]
     fn try_from(value: i8) -> Result<Self, Self::Error> {
@@ -84,7 +84,7 @@ impl TryFrom<i8> for EnumInNestedNS {
           0 => Ok(EnumInNestedNS::A),
           1 => Ok(EnumInNestedNS::B),
           2 => Ok(EnumInNestedNS::C),
-          _ => Err(Self::Error::InvalidValue)
+          _ => Err(Self::Error::InvalidValue(value))
         }
     }
 }

@@ -69,7 +69,7 @@ impl<'a> TableInFirstNS<'a> {
     self._tab.get::<flatbuffers::ForwardsUOffset<namespace_b::TableInNestedNS<'a>>>(TableInFirstNS::VT_FOO_TABLE, None)
   }
   #[inline]
-  pub fn foo_enum(&self) -> Result<namespace_b::EnumInNestedNS, flatbuffers::ConvertError> {
+  pub fn foo_enum(&self) -> Result<namespace_b::EnumInNestedNS, flatbuffers::ConvertError<i8>> {
     self._tab.get::<i8>(TableInFirstNS::VT_FOO_ENUM, Some(0)).map(|value| value.try_into()).unwrap()
   }
   #[inline]

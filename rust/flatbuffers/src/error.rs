@@ -1,17 +1,9 @@
-use std::error::Error;
-use std::fmt;
+use std::fmt::{Debug, Display};
 
-#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
-pub enum ConvertError {
-    InvalidValue,
+use thiserror::Error;
+
+#[derive(Error, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
+pub enum ConvertError<T: Debug + Display> {
+    #[error("invalid value in buffer: {0}")]
+    InvalidValue(T),
 }
-
-impl fmt::Display for ConvertError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match *self {
-            ConvertError::InvalidValue => write!(f, "invalid value in buffer"),
-        }
-    }
-}
-
-impl Error for ConvertError {}
