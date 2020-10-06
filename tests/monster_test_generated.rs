@@ -310,7 +310,7 @@ impl TryFrom<i8> for Race {
           0 => Ok(Race::Human),
           1 => Ok(Race::Dwarf),
           2 => Ok(Race::Elf),
-          _ => Err(Self::Error::InvalidValue(value))
+          _ => Err(Self::Error::UnknownVariant(value))
         }
     }
 }
@@ -391,7 +391,7 @@ impl TryFrom<u8> for Any {
           1 => Ok(Any::Monster),
           2 => Ok(Any::TestSimpleTableWithEnum),
           3 => Ok(Any::MyGame_Example2_Monster),
-          _ => Err(Self::Error::InvalidValue(value))
+          _ => Err(Self::Error::UnknownVariant(value))
         }
     }
 }
@@ -473,7 +473,7 @@ impl TryFrom<u8> for AnyUniqueAliases {
           1 => Ok(AnyUniqueAliases::M),
           2 => Ok(AnyUniqueAliases::TS),
           3 => Ok(AnyUniqueAliases::M2),
-          _ => Err(Self::Error::InvalidValue(value))
+          _ => Err(Self::Error::UnknownVariant(value))
         }
     }
 }
@@ -555,7 +555,7 @@ impl TryFrom<u8> for AnyAmbiguousAliases {
           1 => Ok(AnyAmbiguousAliases::M1),
           2 => Ok(AnyAmbiguousAliases::M2),
           3 => Ok(AnyAmbiguousAliases::M3),
-          _ => Err(Self::Error::InvalidValue(value))
+          _ => Err(Self::Error::UnknownVariant(value))
         }
     }
 }

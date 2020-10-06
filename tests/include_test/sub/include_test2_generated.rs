@@ -83,7 +83,7 @@ impl TryFrom<i64> for FromInclude {
     fn try_from(value: i64) -> Result<Self, Self::Error> {
         match value {
           0 => Ok(FromInclude::IncludeVal),
-          _ => Err(Self::Error::InvalidValue(value))
+          _ => Err(Self::Error::UnknownVariant(value))
         }
     }
 }

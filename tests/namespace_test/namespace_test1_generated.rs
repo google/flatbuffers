@@ -84,7 +84,7 @@ impl TryFrom<i8> for EnumInNestedNS {
           0 => Ok(EnumInNestedNS::A),
           1 => Ok(EnumInNestedNS::B),
           2 => Ok(EnumInNestedNS::C),
-          _ => Err(Self::Error::InvalidValue(value))
+          _ => Err(Self::Error::UnknownVariant(value))
         }
     }
 }

@@ -74,7 +74,7 @@ impl TryFrom<i8> for OptionalByte {
           0 => Ok(OptionalByte::None),
           1 => Ok(OptionalByte::One),
           2 => Ok(OptionalByte::Two),
-          _ => Err(Self::Error::InvalidValue(value))
+          _ => Err(Self::Error::UnknownVariant(value))
         }
     }
 }

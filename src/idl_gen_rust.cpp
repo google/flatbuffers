@@ -612,7 +612,7 @@ class RustGenerator : public BaseGenerator {
         code_ += "          {{VALUE}} => Ok({{ENUM_NAME}}::{{KEY}}),";
       }
 
-      code_ += "          _ => Err(Self::Error::InvalidValue(value))",
+      code_ += "          _ => Err(Self::Error::UnknownVariant(value))",
           code_ += "        }";
       code_ += "    }";
       code_ += "}";
