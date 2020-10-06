@@ -520,15 +520,20 @@ class SwiftGenerator : public BaseGenerator {
     if (IsScalar(field.value.type.base_type) &&
         !IsBool(field.value.type.base_type)) {
       std::string is_enum = IsEnum(field.value.type) ? ".rawValue" : "";
+      std::string optional_enum =
+          IsEnum(field.value.type) ? ("?" + is_enum) : "";
       code_ +=
           "{{VALUETYPE}}" + builder_string + "fbb.add(element: {{VALUENAME}}\\";
 
-      code_ += field.optional ? "\\" : (is_enum + ", def: {{CONSTANT}}\\");
+      code_ += field.optional ? (optional_enum + "\\")
+                              : (is_enum + ", def: {{CONSTANT}}\\");
 
       code_ += ", at: {{TABLEOFFSET}}.{{OFFSET}}.p) }";
 
-      auto default_value = IsEnum(field.value.type) ? GenEnumDefaultValue(field)
-                                                    : field.value.constant;
+      auto default_value =
+          IsEnum(field.value.type)
+              ? (field.optional ? "nil" : GenEnumDefaultValue(field))
+              : field.value.constant;
       create_func_header.push_back("" + name + ": " + nullable_type + " = " +
                                    (field.optional ? "nil" : default_value));
       return;
@@ -632,7 +637,7 @@ class SwiftGenerator : public BaseGenerator {
     }
 
     if (IsEnum(field.value.type)) {
-      auto default_value = GenEnumDefaultValue(field);
+      auto default_value = field.optional ? "nil" : GenEnumDefaultValue(field);
       code_.SetValue("BASEVALUE", GenTypeBasic(field.value.type, false));
       code_ += GenReaderMainBody(optional) + "\\";
       code_ += GenOffset() + "return o == 0 ? " + default_value + " : " +

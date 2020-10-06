@@ -9,9 +9,10 @@ public enum optional_scalars_OptionalByte: Int8, Enum {
     public var value: Int8 { return self.rawValue }
     case none_ = 0
     case one = 1
+    case two = 2
     
 
-    public static var max: optional_scalars_OptionalByte { return .one }
+    public static var max: optional_scalars_OptionalByte { return .two }
     public static var min: optional_scalars_OptionalByte { return .none_ }
 }
 
@@ -62,7 +63,8 @@ public struct optional_scalars_ScalarStuff: FlatBufferObject {
         case maybeBool = 66
         case defaultBool = 68
         case justEnum = 70
-        case defaultEnum = 72
+        case maybeEnum = 72
+        case defaultEnum = 74
         var v: Int32 { Int32(self.rawValue) }
         var p: VOffset { self.rawValue }
     }
@@ -101,8 +103,9 @@ public struct optional_scalars_ScalarStuff: FlatBufferObject {
     public var maybeBool: Bool? { let o = _accessor.offset(VTOFFSET.maybeBool.v); return o == 0 ? true : 0 != _accessor.readBuffer(of: Byte.self, at: o) }
     public var defaultBool: Bool { let o = _accessor.offset(VTOFFSET.defaultBool.v); return o == 0 ? true : 0 != _accessor.readBuffer(of: Byte.self, at: o) }
     public var justEnum: optional_scalars_OptionalByte { let o = _accessor.offset(VTOFFSET.justEnum.v); return o == 0 ? .none_ : optional_scalars_OptionalByte(rawValue: _accessor.readBuffer(of: Int8.self, at: o)) ?? .none_ }
+    public var maybeEnum: optional_scalars_OptionalByte? { let o = _accessor.offset(VTOFFSET.maybeEnum.v); return o == 0 ? nil : optional_scalars_OptionalByte(rawValue: _accessor.readBuffer(of: Int8.self, at: o)) ?? nil }
     public var defaultEnum: optional_scalars_OptionalByte { let o = _accessor.offset(VTOFFSET.defaultEnum.v); return o == 0 ? .one : optional_scalars_OptionalByte(rawValue: _accessor.readBuffer(of: Int8.self, at: o)) ?? .one }
-    public static func startScalarStuff(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 35) }
+    public static func startScalarStuff(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 36) }
     public static func add(justI8: Int8, _ fbb: inout FlatBufferBuilder) { fbb.add(element: justI8, def: 0, at: VTOFFSET.justI8.p) }
     public static func add(maybeI8: Int8?, _ fbb: inout FlatBufferBuilder) { fbb.add(element: maybeI8, at: VTOFFSET.maybeI8.p) }
     public static func add(defaultI8: Int8, _ fbb: inout FlatBufferBuilder) { fbb.add(element: defaultI8, def: 42, at: VTOFFSET.defaultI8.p) }
@@ -139,6 +142,7 @@ public struct optional_scalars_ScalarStuff: FlatBufferObject {
     public static func add(defaultBool: Bool, _ fbb: inout FlatBufferBuilder) { fbb.add(element: defaultBool, def: true,
      at: VTOFFSET.defaultBool.p) }
     public static func add(justEnum: optional_scalars_OptionalByte, _ fbb: inout FlatBufferBuilder) { fbb.add(element: justEnum.rawValue, def: 0, at: VTOFFSET.justEnum.p) }
+    public static func add(maybeEnum: optional_scalars_OptionalByte?, _ fbb: inout FlatBufferBuilder) { fbb.add(element: maybeEnum?.rawValue, at: VTOFFSET.maybeEnum.p) }
     public static func add(defaultEnum: optional_scalars_OptionalByte, _ fbb: inout FlatBufferBuilder) { fbb.add(element: defaultEnum.rawValue, def: 1, at: VTOFFSET.defaultEnum.p) }
     public static func endScalarStuff(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
     public static func createScalarStuff(
@@ -177,6 +181,7 @@ public struct optional_scalars_ScalarStuff: FlatBufferObject {
         maybeBool: Bool? = nil,
         defaultBool: Bool = true,
         justEnum: optional_scalars_OptionalByte = .none_,
+        maybeEnum: optional_scalars_OptionalByte? = nil,
         defaultEnum: optional_scalars_OptionalByte = .one
     ) -> Offset<UOffset> {
         let __start = optional_scalars_ScalarStuff.startScalarStuff(&fbb)
@@ -214,6 +219,7 @@ public struct optional_scalars_ScalarStuff: FlatBufferObject {
         optional_scalars_ScalarStuff.add(maybeBool: maybeBool, &fbb)
         optional_scalars_ScalarStuff.add(defaultBool: defaultBool, &fbb)
         optional_scalars_ScalarStuff.add(justEnum: justEnum, &fbb)
+        optional_scalars_ScalarStuff.add(maybeEnum: maybeEnum, &fbb)
         optional_scalars_ScalarStuff.add(defaultEnum: defaultEnum, &fbb)
         return optional_scalars_ScalarStuff.endScalarStuff(&fbb, start: __start)
     }
