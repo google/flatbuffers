@@ -1433,6 +1433,10 @@ impl<'a> Monster<'a> {
     self._tab.get::<i8>(Monster::VT_SIGNED_ENUM, Some(-1)).map(|value| std::mem::transmute(value)).unwrap()
   }
   #[inline]
+  pub fn signed_enum_raw(&self) -> i8 {
+    self._tab.get::<i8>(Monster::VT_SIGNED_ENUM, Some(-1)).unwrap()
+  }
+  #[inline]
   #[allow(non_snake_case)]
   pub fn test_as_monster(&self) -> Option<Monster<'a>> {
     if self.test_type() == Any::Monster {

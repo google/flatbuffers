@@ -342,6 +342,10 @@ impl<'a> ScalarStuff<'a> {
     self._tab.get::<i8>(ScalarStuff::VT_JUST_ENUM, Some(0)).map(|value| std::mem::transmute(value)).unwrap()
   }
   #[inline]
+  pub fn just_enum_raw(&self) -> i8 {
+    self._tab.get::<i8>(ScalarStuff::VT_JUST_ENUM, Some(0)).unwrap()
+  }
+  #[inline]
   pub fn maybe_enum(&self) -> Option<Result<OptionalByte, flatbuffers::ConvertError<i8>>> {
     self._tab.get::<i8>(ScalarStuff::VT_MAYBE_ENUM, None).map(|value| value.try_into())
   }
@@ -350,12 +354,20 @@ impl<'a> ScalarStuff<'a> {
     self._tab.get::<i8>(ScalarStuff::VT_MAYBE_ENUM, None).map(|value| std::mem::transmute(value))
   }
   #[inline]
+  pub fn maybe_enum_raw(&self) -> Option<i8> {
+    self._tab.get::<i8>(ScalarStuff::VT_MAYBE_ENUM, None)
+  }
+  #[inline]
   pub fn default_enum(&self) -> Result<OptionalByte, flatbuffers::ConvertError<i8>> {
     self._tab.get::<i8>(ScalarStuff::VT_DEFAULT_ENUM, Some(1)).map(|value| value.try_into()).unwrap()
   }
   #[inline]
   pub unsafe fn default_enum_unchecked(&self) -> OptionalByte {
     self._tab.get::<i8>(ScalarStuff::VT_DEFAULT_ENUM, Some(1)).map(|value| std::mem::transmute(value)).unwrap()
+  }
+  #[inline]
+  pub fn default_enum_raw(&self) -> i8 {
+    self._tab.get::<i8>(ScalarStuff::VT_DEFAULT_ENUM, Some(1)).unwrap()
   }
 }
 

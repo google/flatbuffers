@@ -77,6 +77,10 @@ impl<'a> TableInFirstNS<'a> {
     self._tab.get::<i8>(TableInFirstNS::VT_FOO_ENUM, Some(0)).map(|value| std::mem::transmute(value)).unwrap()
   }
   #[inline]
+  pub fn foo_enum_raw(&self) -> i8 {
+    self._tab.get::<i8>(TableInFirstNS::VT_FOO_ENUM, Some(0)).unwrap()
+  }
+  #[inline]
   pub fn foo_struct(&self) -> Option<&'a namespace_b::StructInNestedNS> {
     self._tab.get::<namespace_b::StructInNestedNS>(TableInFirstNS::VT_FOO_STRUCT, None)
   }

@@ -1034,15 +1034,28 @@ class RustGenerator : public BaseGenerator {
       return "INVALID_CODE_GENERATION";  // for return analysis
     }
 
-    const auto underlying_typname = GetEnumTypeForDecl(type.enum_def->underlying_type);
-    const auto typname = WrapInNameSpace(*type.enum_def);
+    const auto underlying_typename = GetEnumTypeForDecl(type.enum_def->underlying_type);
     if (field.optional) {
-      return "self._tab.get::<" + underlying_typname + ">(" + offset_name + ", None)" +
+      return "self._tab.get::<" + underlying_typename + ">(" + offset_name + ", None)" +
              ".map(|value| std::mem::transmute(value))";
     } else {
-      return "self._tab.get::<" + underlying_typname + ">(" + offset_name + ", Some(" +
+      return "self._tab.get::<" + underlying_typename + ">(" + offset_name + ", Some(" +
              field.value.constant + ")).map(|value| std::mem::transmute(value)).unwrap()";
     }
+  }
+
+  std::string GenRawEnumAccessor(const std::string &underlying_type,
+                                 const FieldDef &field,
+                                 const std::string &offset_prefix) {
+    const auto offset_name =
+        offset_prefix + "::" + GetFieldOffsetName(field);
+
+    if (field.optional) {
+      return "self._tab.get::<" + underlying_type + ">(" + offset_name + ", None)";
+    }
+
+    return "self._tab.get::<" + underlying_type + ">(" + offset_name + ", Some(" +
+           field.value.constant + ")).unwrap()";
   }
 
   std::string GenTableAccessorFuncBody(const FieldDef &field,
@@ -1338,6 +1351,17 @@ class RustGenerator : public BaseGenerator {
         GenComment(field.doc_comment, "  ");
         code_ += "  #[inline]";
         code_ += "  pub unsafe fn {{FIELD_NAME}}_unchecked(&self) -> {{RETURN_TYPE}} {";
+        code_ += "    {{FUNC_BODY}}";
+        code_ += "  }";
+
+        const auto underlying_type = GetEnumTypeForDecl(field.value.type.enum_def->underlying_type);
+
+        code_.SetValue("RETURN_TYPE", WrapInOptionIfNotRequired(underlying_type, !field.optional));
+        code_.SetValue("FUNC_BODY", GenRawEnumAccessor(underlying_type, field, offset_prefix));
+
+        GenComment(field.doc_comment, "  ");
+        code_ += "  #[inline]";
+        code_ += "  pub fn {{FIELD_NAME}}_raw(&self) -> {{RETURN_TYPE}} {";
         code_ += "    {{FUNC_BODY}}";
         code_ += "  }";
       } else {
