@@ -16,8 +16,8 @@
 
 use std::ptr::write_bytes;
 
-use endian_scalar::{emplace_scalar, read_scalar_at};
-use primitives::*;
+use crate::endian_scalar::{emplace_scalar, read_scalar_at};
+use crate::primitives::*;
 
 /// VTableWriter compartmentalizes actions needed to create a vtable.
 #[derive(Debug)]

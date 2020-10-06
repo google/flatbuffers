@@ -20,11 +20,11 @@ use std::mem::size_of;
 use std::slice::from_raw_parts;
 use std::str::from_utf8_unchecked;
 
-use endian_scalar::read_scalar_at;
+use crate::endian_scalar::read_scalar_at;
 #[cfg(target_endian = "little")]
-use endian_scalar::EndianScalar;
-use follow::Follow;
-use primitives::*;
+use crate::endian_scalar::EndianScalar;
+use crate::follow::Follow;
+use crate::primitives::*;
 
 #[derive(Debug)]
 pub struct Vector<'a, T: 'a>(&'a [u8], usize, PhantomData<T>);
