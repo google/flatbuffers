@@ -2498,58 +2498,75 @@ class CppGenerator : public BaseGenerator {
     std::string code;
     switch (field.value.type.base_type) {
       case BASE_TYPE_VECTOR: {
-        auto cpp_type = field.attributes.Lookup("cpp_type");
-        std::string indexing;
-        if (field.value.type.enum_def) {
-          indexing += "static_cast<" +
-                      WrapInNameSpace(*field.value.type.enum_def) + ">(";
-        }
-        indexing += "_e->Get(_i)";
-        if (field.value.type.enum_def) { indexing += ")"; }
-        if (field.value.type.element == BASE_TYPE_BOOL) { indexing += " != 0"; }
-
-        // Generate code that pushes data from _e to _o in the form:
-        //   for (uoffset_t i = 0; i < _e->size(); ++i) {
-        //     _o->field.push_back(_e->Get(_i));
-        //   }
         auto name = Name(field);
         if (field.value.type.element == BASE_TYPE_UTYPE) {
           name = StripUnionType(Name(field));
         }
-        auto access =
-            field.value.type.element == BASE_TYPE_UTYPE
-                ? ".type"
-                : (field.value.type.element == BASE_TYPE_UNION ? ".value" : "");
         code += "{ _o->" + name + ".resize(_e->size()); ";
-        code += "for (flatbuffers::uoffset_t _i = 0;";
-        code += " _i < _e->size(); _i++) { ";
-        if (cpp_type) {
-          // Generate code that resolves the cpp pointer type, of the form:
-          //  if (resolver)
-          //    (*resolver)(&_o->field, (hash_value_t)(_e));
-          //  else
-          //    _o->field = nullptr;
-          code += "//vector resolver, " + PtrType(&field) + "\n";
-          code += "if (_resolver) ";
-          code += "(*_resolver)";
-          code += "(reinterpret_cast<void **>(&_o->" + name + "[_i]" + access +
-                  "), ";
-          code += "static_cast<flatbuffers::hash_value_t>(" + indexing + "));";
-          if (PtrType(&field) == "naked") {
-            code += " else ";
-            code += "_o->" + name + "[_i]" + access + " = nullptr";
-          } else {
-            // code += " else ";
-            // code += "_o->" + name + "[_i]" + access + " = " +
-            // GenTypeNativePtr(cpp_type->constant, &field, true) + "();";
-            code += "/* else do nothing */";
-          }
+        if (!field.value.type.enum_def && !IsBool(field.value.type.element) &&
+            IsOneByte(field.value.type.element)) {
+          // For vectors of bytes, std::copy is used to improve performance.
+          // This doesn't work for:
+          //  - enum types because they have to be explicitly static_cast.
+          //  - vectors of bool, since they are a template specialization.
+          //  - multiple-byte types due to endianness.
+          code +=
+              "std::copy(_e->begin(), _e->end(), _o->" + name + ".begin()); }";
         } else {
-          code += "_o->" + name + "[_i]" + access + " = ";
-          code += GenUnpackVal(field.value.type.VectorType(), indexing, true,
-                               field);
+          std::string indexing;
+          if (field.value.type.enum_def) {
+            indexing += "static_cast<" +
+                        WrapInNameSpace(*field.value.type.enum_def) + ">(";
+          }
+          indexing += "_e->Get(_i)";
+          if (field.value.type.enum_def) {
+            indexing += ")";
+          }
+          if (field.value.type.element == BASE_TYPE_BOOL) {
+            indexing += " != 0";
+          }
+          // Generate code that pushes data from _e to _o in the form:
+          //   for (uoffset_t i = 0; i < _e->size(); ++i) {
+          //     _o->field.push_back(_e->Get(_i));
+          //   }
+          auto access =
+              field.value.type.element == BASE_TYPE_UTYPE
+                  ? ".type"
+                  : (field.value.type.element == BASE_TYPE_UNION ? ".value"
+                                                                 : "");
+
+          code += "for (flatbuffers::uoffset_t _i = 0;";
+          code += " _i < _e->size(); _i++) { ";
+          auto cpp_type = field.attributes.Lookup("cpp_type");
+          if (cpp_type) {
+            // Generate code that resolves the cpp pointer type, of the form:
+            //  if (resolver)
+            //    (*resolver)(&_o->field, (hash_value_t)(_e));
+            //  else
+            //    _o->field = nullptr;
+            code += "//vector resolver, " + PtrType(&field) + "\n";
+            code += "if (_resolver) ";
+            code += "(*_resolver)";
+            code += "(reinterpret_cast<void **>(&_o->" + name + "[_i]" +
+                    access + "), ";
+            code +=
+                "static_cast<flatbuffers::hash_value_t>(" + indexing + "));";
+            if (PtrType(&field) == "naked") {
+              code += " else ";
+              code += "_o->" + name + "[_i]" + access + " = nullptr";
+            } else {
+              // code += " else ";
+              // code += "_o->" + name + "[_i]" + access + " = " +
+              // GenTypeNativePtr(cpp_type->constant, &field, true) + "();";
+              code += "/* else do nothing */";
+            }
+          } else {
+            code += "_o->" + name + "[_i]" + access + " = ";
+            code += GenUnpackVal(field.value.type.VectorType(), indexing, true,
+                                 field);
+          }
+          code += "; } }";
         }
-        code += "; } }";
         break;
       }
       case BASE_TYPE_UTYPE: {
