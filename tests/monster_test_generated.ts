@@ -210,6 +210,14 @@ static createInParentNamespace(builder:flatbuffers.Builder):flatbuffers.Offset {
   return InParentNamespace.endInParentNamespace(builder);
 }
 
+serialize():Uint8Array {
+  return this.bb!.bytes();
+}
+
+static deserialize(buffer: Uint8Array):InParentNamespace {
+  return InParentNamespace.getRootAsInParentNamespace(new flatbuffers.ByteBuffer(buffer))
+}
+
 /**
  * @returns InParentNamespaceT
  */
@@ -295,6 +303,14 @@ static endMonster(builder:flatbuffers.Builder):flatbuffers.Offset {
 static createMonster(builder:flatbuffers.Builder):flatbuffers.Offset {
   Monster.startMonster(builder);
   return Monster.endMonster(builder);
+}
+
+serialize():Uint8Array {
+  return this.bb!.bytes();
+}
+
+static deserialize(buffer: Uint8Array):Monster {
+  return Monster.getRootAsMonster(new flatbuffers.ByteBuffer(buffer))
 }
 
 /**
@@ -529,6 +545,14 @@ static createTestSimpleTableWithEnum(builder:flatbuffers.Builder, color:MyGame.E
   TestSimpleTableWithEnum.startTestSimpleTableWithEnum(builder);
   TestSimpleTableWithEnum.addColor(builder, color);
   return TestSimpleTableWithEnum.endTestSimpleTableWithEnum(builder);
+}
+
+serialize():Uint8Array {
+  return this.bb!.bytes();
+}
+
+static deserialize(buffer: Uint8Array):TestSimpleTableWithEnum {
+  return TestSimpleTableWithEnum.getRootAsTestSimpleTableWithEnum(new flatbuffers.ByteBuffer(buffer))
 }
 
 /**
@@ -1031,6 +1055,14 @@ static createStat(builder:flatbuffers.Builder, idOffset:flatbuffers.Offset, val:
   return Stat.endStat(builder);
 }
 
+serialize():Uint8Array {
+  return this.bb!.bytes();
+}
+
+static deserialize(buffer: Uint8Array):Stat {
+  return Stat.getRootAsStat(new flatbuffers.ByteBuffer(buffer))
+}
+
 /**
  * @returns StatT
  */
@@ -1169,6 +1201,14 @@ static createReferrable(builder:flatbuffers.Builder, id:flatbuffers.Long):flatbu
   Referrable.startReferrable(builder);
   Referrable.addId(builder, id);
   return Referrable.endReferrable(builder);
+}
+
+serialize():Uint8Array {
+  return this.bb!.bytes();
+}
+
+static deserialize(buffer: Uint8Array):Referrable {
+  return Referrable.getRootAsReferrable(new flatbuffers.ByteBuffer(buffer))
 }
 
 /**
@@ -2922,6 +2962,14 @@ static finishSizePrefixedMonsterBuffer(builder:flatbuffers.Builder, offset:flatb
 };
 
 
+serialize():Uint8Array {
+  return this.bb!.bytes();
+}
+
+static deserialize(buffer: Uint8Array):Monster {
+  return Monster.getRootAsMonster(new flatbuffers.ByteBuffer(buffer))
+}
+
 /**
  * @returns MonsterT
  */
@@ -3739,6 +3787,14 @@ static createTypeAliases(builder:flatbuffers.Builder, i8:number, u8:number, i16:
   TypeAliases.addV8(builder, v8Offset);
   TypeAliases.addVf64(builder, vf64Offset);
   return TypeAliases.endTypeAliases(builder);
+}
+
+serialize():Uint8Array {
+  return this.bb!.bytes();
+}
+
+static deserialize(buffer: Uint8Array):TypeAliases {
+  return TypeAliases.getRootAsTypeAliases(new flatbuffers.ByteBuffer(buffer))
 }
 
 /**

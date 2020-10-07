@@ -40,7 +40,7 @@ class Greeter: GreeterProvider {
         context: StatusOnlyCallContext
     ) -> EventLoopFuture<Message<HelloReply>> {
         let recipient = request.object.name ?? "Stranger"
-        
+
         var builder = FlatBufferBuilder()
         let off = builder.create(string: recipient)
         let root = HelloReply.createHelloReply(&builder, offsetOfMessage: off)

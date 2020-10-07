@@ -105,3 +105,19 @@ cc_library(
         "//:flatbuffers",
     ],
 )
+
+cc_library(
+    name = "ts_generator",
+    srcs = [
+        "ts_generator.cc",
+    ],
+    hdrs = [
+        "ts_generator.h",
+        ":common_headers",
+    ],
+    include_prefix = "src/compiler",
+    strip_include_prefix = "/grpc/src/compiler",
+    deps = [
+        "//:flatbuffers",
+    ],
+)

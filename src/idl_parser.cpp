@@ -757,7 +757,8 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
             type.enum_def->name + "'.");
       }
       if (field->attributes.Lookup("key")) {
-        return Error("only a non-optional scalar field can be used as a 'key' field");
+        return Error(
+            "only a non-optional scalar field can be used as a 'key' field");
       }
       if (!SupportsOptionalScalars()) {
         return Error(
@@ -862,7 +863,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   if (field->required && (struct_def.fixed || IsScalar(type.base_type)))
     return Error("only non-scalar fields in tables may be 'required'");
 
-  if(!IsScalar(type.base_type)) {
+  if (!IsScalar(type.base_type)) {
     // For nonscalars, only required fields are non-optional.
     // At least until https://github.com/google/flatbuffers/issues/6053
     field->optional = !field->required;
@@ -1230,7 +1231,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
       if (!struct_def.sortbysize ||
           size == SizeOf(field_value.type.base_type)) {
         switch (field_value.type.base_type) {
-          // clang-format off
+// clang-format off
           #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
             case BASE_TYPE_ ## ENUM: \
               builder_.Pad(field->padding); \
@@ -1369,7 +1370,7 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
     // start at the back, since we're building the data backwards.
     auto &val = field_stack_.back().first;
     switch (val.type.base_type) {
-      // clang-format off
+// clang-format off
       #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE,...) \
         case BASE_TYPE_ ## ENUM: \
           if (IsStruct(val.type)) SerializeStruct(*val.type.struct_def, val); \
@@ -2279,7 +2280,7 @@ CheckedError Parser::CheckClash(std::vector<FieldDef *> &fields,
   return NoError();
 }
 
-bool Parser::SupportsOptionalScalars(const flatbuffers::IDLOptions &opts){
+bool Parser::SupportsOptionalScalars(const flatbuffers::IDLOptions &opts) {
   static FLATBUFFERS_CONSTEXPR unsigned long supported_langs =
       IDLOptions::kRust | IDLOptions::kSwift | IDLOptions::kLobster |
       IDLOptions::kKotlin | IDLOptions::kCpp;

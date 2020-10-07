@@ -486,8 +486,7 @@ class DartGenerator : public BaseGenerator {
       auto &part = *it;
 
       for (size_t i = 0; i < part.length(); i++) {
-        if (i && !isdigit(part[i]) &&
-            part[i] == CharToUpper(part[i])) {
+        if (i && !isdigit(part[i]) && part[i] == CharToUpper(part[i])) {
           ns += "_";
           ns += CharToLower(part[i]);
         } else {

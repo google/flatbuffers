@@ -47,9 +47,7 @@ std::string MakeSnakeCase(const std::string &in) {
 // Convert a string to all uppercase.
 std::string MakeUpper(const std::string &in) {
   std::string s;
-  for (size_t i = 0; i < in.length(); i++) {
-    s += CharToUpper(in[i]);
-  }
+  for (size_t i = 0; i < in.length(); i++) { s += CharToUpper(in[i]); }
   return s;
 }
 
@@ -668,8 +666,8 @@ class RustGenerator : public BaseGenerator {
         return field.optional ? "None" : field.value.constant;
       }
       case ftBool: {
-        return field.optional ? "None" :
-          field.value.constant == "0" ? "false" : "true";
+        return field.optional ? "None"
+                              : field.value.constant == "0" ? "false" : "true";
       }
       case ftUnionKey:
       case ftEnumKey: {
@@ -868,9 +866,9 @@ class RustGenerator : public BaseGenerator {
       case ftBool:
       case ftFloat: {
         const auto typname = GetTypeBasic(field.value.type);
-        return (field.optional ?
-                   "self.fbb_.push_slot_always::<" :
-                   "self.fbb_.push_slot::<") + typname + ">";
+        return (field.optional ? "self.fbb_.push_slot_always::<"
+                               : "self.fbb_.push_slot::<") +
+               typname + ">";
       }
       case ftEnumKey:
       case ftUnionKey: {
@@ -1005,7 +1003,7 @@ class RustGenerator : public BaseGenerator {
           const auto default_value = GetDefaultScalarValue(field);
           return "self._tab.get::<" + typname + ">(" + offset_name + ", Some(" +
                  default_value + ")).unwrap()";
-       }
+        }
       }
       case ftStruct: {
         const auto typname = WrapInNameSpace(*type.struct_def);

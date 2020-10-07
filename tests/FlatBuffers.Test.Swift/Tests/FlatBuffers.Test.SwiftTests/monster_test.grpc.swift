@@ -61,8 +61,10 @@ public protocol MyGame_Example_MonsterStorageProvider: CallHandlerProvider {
 }
 
 public extension MyGame_Example_MonsterStorageProvider {
-	var serviceName: String { return "MyGame.Example.MonsterStorage" }
-	func handleMethod(_ methodName: String, callHandlerContext: CallHandlerContext) -> GRPCCallHandler? {
+
+	var serviceName: Substring { return "MyGame.Example.MonsterStorage" }
+
+	func handleMethod(_ methodName: Substring, callHandlerContext: CallHandlerContext) -> GRPCCallHandler? {
 		switch methodName {
 		case "Store":
 		return CallHandlerFactory.makeUnary(callHandlerContext: callHandlerContext) { context in

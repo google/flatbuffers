@@ -124,6 +124,8 @@ set(FlatBuffers_Compiler_SRCS
   grpc/src/compiler/python_generator.cc
   grpc/src/compiler/swift_generator.h
   grpc/src/compiler/swift_generator.cc
+  grpc/src/compiler/ts_generator.h
+  grpc/src/compiler/ts_generator.cc
 )
 
 set(FlatHash_SRCS
