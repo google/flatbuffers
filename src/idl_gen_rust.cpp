@@ -1501,7 +1501,7 @@ class RustGenerator : public BaseGenerator {
     // legacy accessor
 
     code_ += "#[inline]";
-    code_ += "#[deprecated(since = \"1.13.0\", note = \"getters starting with get_ are deprecated\")]";
+    code_ += "#[deprecated(since = \"1.13.0\", note = \"getters starting with get_ are deprecated and will be removed in 1.14\")]";
     code_ +=
         "pub fn get_root_as_{{STRUCT_NAME_SNAKECASE}}<'a>(buf: &'a [u8])"
         " -> {{STRUCT_NAME}}<'a> {";
@@ -1520,7 +1520,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
 
     code_ += "#[inline]";
-    code_ += "#[deprecated(since = \"1.13.0\", note = \"getters starting with get_ are deprecated\")]";
+    code_ += "#[deprecated(since = \"1.13.0\", note = \"getters starting with get_ are deprecated and will be removed in 1.14\")]";
     code_ +=
         "pub fn get_size_prefixed_root_as_{{STRUCT_NAME_SNAKECASE}}"
         "<'a>(buf: &'a [u8]) -> {{STRUCT_NAME}}<'a> {";
