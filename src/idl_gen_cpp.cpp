@@ -1,4 +1,4 @@
-/*
+    /*
  * Copyright 2014 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -1650,7 +1650,7 @@ class CppGenerator : public BaseGenerator {
       const auto &type = field.value.type;
       code_.SetValue("PARAM_VALUE", GetDefaultScalarValue(field, false));
       if (field.IsScalarOptional())
-        code_.SetValue("PARAM_TYPE", GenOptionalDecl(type));
+        code_.SetValue("PARAM_TYPE", GenOptionalDecl(type) + " ");
       else
         code_.SetValue("PARAM_TYPE", GenTypeWire(type, " ", true));
     }
