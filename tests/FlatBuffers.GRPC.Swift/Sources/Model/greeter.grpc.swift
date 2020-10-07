@@ -49,8 +49,10 @@ public protocol GreeterProvider: CallHandlerProvider {
 }
 
 public extension GreeterProvider {
-	var serviceName: String { return "Greeter" }
-	func handleMethod(_ methodName: String, callHandlerContext: CallHandlerContext) -> GRPCCallHandler? {
+
+	var serviceName: Substring { return "Greeter" }
+
+	func handleMethod(_ methodName: Substring, callHandlerContext: CallHandlerContext) -> GRPCCallHandler? {
 		switch methodName {
 		case "SayHello":
 		return CallHandlerFactory.makeUnary(callHandlerContext: callHandlerContext) { context in
