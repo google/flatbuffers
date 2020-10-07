@@ -42,8 +42,15 @@ pub enum FromInclude {
 
 }
 
+#[deprecated(since = "1.13", note = "Use associated constants instead.")]
 pub const ENUM_MIN_FROM_INCLUDE: i64 = 0;
+#[deprecated(since = "1.13", note = "Use associated constants instead.")]
 pub const ENUM_MAX_FROM_INCLUDE: i64 = 0;
+
+impl FromInclude {
+    pub const MIN: i64 = 0;
+    pub const MAX: i64 = 0;
+}
 
 impl<'a> flatbuffers::Follow<'a> for FromInclude {
   type Inner = Self;
@@ -89,18 +96,26 @@ impl TryFrom<i64> for FromInclude {
 }
 
 #[allow(non_camel_case_types)]
+#[deprecated(since = "1.13", note = "Use associated constants instead.")]
 pub const ENUM_VALUES_FROM_INCLUDE: [FromInclude; 1] = [
   FromInclude::IncludeVal
 ];
 
+impl FromInclude {
+    pub const NAMES: [&'static str; 1] = [
+    "IncludeVal"
+    ];
+}
+
 #[allow(non_camel_case_types)]
+#[deprecated(since = "1.13", note = "Use associated constants instead.")]
 pub const ENUM_NAMES_FROM_INCLUDE: [&str; 1] = [
     "IncludeVal"
 ];
 
 pub fn enum_name_from_include(e: FromInclude) -> &'static str {
   let index = e as i64;
-  ENUM_NAMES_FROM_INCLUDE[index as usize]
+  FromInclude::NAMES[index as usize]
 }
 
 // struct Unused, aligned to 4

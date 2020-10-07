@@ -31,8 +31,15 @@ pub enum OptionalByte {
 
 }
 
+#[deprecated(since = "1.13", note = "Use associated constants instead.")]
 pub const ENUM_MIN_OPTIONAL_BYTE: i8 = 0;
+#[deprecated(since = "1.13", note = "Use associated constants instead.")]
 pub const ENUM_MAX_OPTIONAL_BYTE: i8 = 2;
+
+impl OptionalByte {
+    pub const MIN: i8 = 0;
+    pub const MAX: i8 = 2;
+}
 
 impl<'a> flatbuffers::Follow<'a> for OptionalByte {
   type Inner = Self;
@@ -80,13 +87,23 @@ impl TryFrom<i8> for OptionalByte {
 }
 
 #[allow(non_camel_case_types)]
+#[deprecated(since = "1.13", note = "Use associated constants instead.")]
 pub const ENUM_VALUES_OPTIONAL_BYTE: [OptionalByte; 3] = [
   OptionalByte::None,
   OptionalByte::One,
   OptionalByte::Two
 ];
 
+impl OptionalByte {
+    pub const NAMES: [&'static str; 3] = [
+    "None",
+    "One",
+    "Two"
+    ];
+}
+
 #[allow(non_camel_case_types)]
+#[deprecated(since = "1.13", note = "Use associated constants instead.")]
 pub const ENUM_NAMES_OPTIONAL_BYTE: [&str; 3] = [
     "None",
     "One",
@@ -95,7 +112,7 @@ pub const ENUM_NAMES_OPTIONAL_BYTE: [&str; 3] = [
 
 pub fn enum_name_optional_byte(e: OptionalByte) -> &'static str {
   let index = e as i8;
-  ENUM_NAMES_OPTIONAL_BYTE[index as usize]
+  OptionalByte::NAMES[index as usize]
 }
 
 pub enum ScalarStuffOffset {}

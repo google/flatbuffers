@@ -197,8 +197,15 @@ pub enum Color {
 
 }
 
+#[deprecated(since = "1.13", note = "Use associated constants instead.")]
 pub const ENUM_MIN_COLOR: u8 = 1;
+#[deprecated(since = "1.13", note = "Use associated constants instead.")]
 pub const ENUM_MAX_COLOR: u8 = 8;
+
+impl Color {
+    pub const MIN: u8 = 1;
+    pub const MAX: u8 = 8;
+}
 
 impl<'a> flatbuffers::Follow<'a> for Color {
   type Inner = Self;
@@ -232,13 +239,28 @@ impl flatbuffers::Push for Color {
 }
 
 #[allow(non_camel_case_types)]
+#[deprecated(since = "1.13", note = "Use associated constants instead.")]
 pub const ENUM_VALUES_COLOR: [Color; 3] = [
   Color::Red,
   Color::Green,
   Color::Blue
 ];
 
+impl Color {
+    pub const NAMES: [&'static str; 8] = [
+    "Red",
+    "Green",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "Blue"
+    ];
+}
+
 #[allow(non_camel_case_types)]
+#[deprecated(since = "1.13", note = "Use associated constants instead.")]
 pub const ENUM_NAMES_COLOR: [&str; 8] = [
     "Red",
     "Green",
@@ -252,7 +274,7 @@ pub const ENUM_NAMES_COLOR: [&str; 8] = [
 
 pub fn enum_name_color(e: Color) -> &'static str {
   let index = e as u8 - Color::Red as u8;
-  ENUM_NAMES_COLOR[index as usize]
+  Color::NAMES[index as usize]
 }
 
 #[allow(non_camel_case_types)]
@@ -266,8 +288,15 @@ pub enum Race {
 
 }
 
+#[deprecated(since = "1.13", note = "Use associated constants instead.")]
 pub const ENUM_MIN_RACE: i8 = -1;
+#[deprecated(since = "1.13", note = "Use associated constants instead.")]
 pub const ENUM_MAX_RACE: i8 = 2;
+
+impl Race {
+    pub const MIN: i8 = -1;
+    pub const MAX: i8 = 2;
+}
 
 impl<'a> flatbuffers::Follow<'a> for Race {
   type Inner = Self;
@@ -316,6 +345,7 @@ impl TryFrom<i8> for Race {
 }
 
 #[allow(non_camel_case_types)]
+#[deprecated(since = "1.13", note = "Use associated constants instead.")]
 pub const ENUM_VALUES_RACE: [Race; 4] = [
   Race::None,
   Race::Human,
@@ -323,7 +353,17 @@ pub const ENUM_VALUES_RACE: [Race; 4] = [
   Race::Elf
 ];
 
+impl Race {
+    pub const NAMES: [&'static str; 4] = [
+    "None",
+    "Human",
+    "Dwarf",
+    "Elf"
+    ];
+}
+
 #[allow(non_camel_case_types)]
+#[deprecated(since = "1.13", note = "Use associated constants instead.")]
 pub const ENUM_NAMES_RACE: [&str; 4] = [
     "None",
     "Human",
@@ -333,7 +373,7 @@ pub const ENUM_NAMES_RACE: [&str; 4] = [
 
 pub fn enum_name_race(e: Race) -> &'static str {
   let index = e as i8 - Race::None as i8;
-  ENUM_NAMES_RACE[index as usize]
+  Race::NAMES[index as usize]
 }
 
 #[allow(non_camel_case_types)]
@@ -347,8 +387,15 @@ pub enum Any {
 
 }
 
+#[deprecated(since = "1.13", note = "Use associated constants instead.")]
 pub const ENUM_MIN_ANY: u8 = 0;
+#[deprecated(since = "1.13", note = "Use associated constants instead.")]
 pub const ENUM_MAX_ANY: u8 = 3;
+
+impl Any {
+    pub const MIN: u8 = 0;
+    pub const MAX: u8 = 3;
+}
 
 impl<'a> flatbuffers::Follow<'a> for Any {
   type Inner = Self;
@@ -397,6 +444,7 @@ impl TryFrom<u8> for Any {
 }
 
 #[allow(non_camel_case_types)]
+#[deprecated(since = "1.13", note = "Use associated constants instead.")]
 pub const ENUM_VALUES_ANY: [Any; 4] = [
   Any::NONE,
   Any::Monster,
@@ -404,7 +452,17 @@ pub const ENUM_VALUES_ANY: [Any; 4] = [
   Any::MyGame_Example2_Monster
 ];
 
+impl Any {
+    pub const NAMES: [&'static str; 4] = [
+    "NONE",
+    "Monster",
+    "TestSimpleTableWithEnum",
+    "MyGame_Example2_Monster"
+    ];
+}
+
 #[allow(non_camel_case_types)]
+#[deprecated(since = "1.13", note = "Use associated constants instead.")]
 pub const ENUM_NAMES_ANY: [&str; 4] = [
     "NONE",
     "Monster",
@@ -414,7 +472,7 @@ pub const ENUM_NAMES_ANY: [&str; 4] = [
 
 pub fn enum_name_any(e: Any) -> &'static str {
   let index = e as u8;
-  ENUM_NAMES_ANY[index as usize]
+  Any::NAMES[index as usize]
 }
 
 pub struct AnyUnionTableOffset {}
@@ -429,8 +487,15 @@ pub enum AnyUniqueAliases {
 
 }
 
+#[deprecated(since = "1.13", note = "Use associated constants instead.")]
 pub const ENUM_MIN_ANY_UNIQUE_ALIASES: u8 = 0;
+#[deprecated(since = "1.13", note = "Use associated constants instead.")]
 pub const ENUM_MAX_ANY_UNIQUE_ALIASES: u8 = 3;
+
+impl AnyUniqueAliases {
+    pub const MIN: u8 = 0;
+    pub const MAX: u8 = 3;
+}
 
 impl<'a> flatbuffers::Follow<'a> for AnyUniqueAliases {
   type Inner = Self;
@@ -479,6 +544,7 @@ impl TryFrom<u8> for AnyUniqueAliases {
 }
 
 #[allow(non_camel_case_types)]
+#[deprecated(since = "1.13", note = "Use associated constants instead.")]
 pub const ENUM_VALUES_ANY_UNIQUE_ALIASES: [AnyUniqueAliases; 4] = [
   AnyUniqueAliases::NONE,
   AnyUniqueAliases::M,
@@ -486,7 +552,17 @@ pub const ENUM_VALUES_ANY_UNIQUE_ALIASES: [AnyUniqueAliases; 4] = [
   AnyUniqueAliases::M2
 ];
 
+impl AnyUniqueAliases {
+    pub const NAMES: [&'static str; 4] = [
+    "NONE",
+    "M",
+    "TS",
+    "M2"
+    ];
+}
+
 #[allow(non_camel_case_types)]
+#[deprecated(since = "1.13", note = "Use associated constants instead.")]
 pub const ENUM_NAMES_ANY_UNIQUE_ALIASES: [&str; 4] = [
     "NONE",
     "M",
@@ -496,7 +572,7 @@ pub const ENUM_NAMES_ANY_UNIQUE_ALIASES: [&str; 4] = [
 
 pub fn enum_name_any_unique_aliases(e: AnyUniqueAliases) -> &'static str {
   let index = e as u8;
-  ENUM_NAMES_ANY_UNIQUE_ALIASES[index as usize]
+  AnyUniqueAliases::NAMES[index as usize]
 }
 
 pub struct AnyUniqueAliasesUnionTableOffset {}
@@ -511,8 +587,15 @@ pub enum AnyAmbiguousAliases {
 
 }
 
+#[deprecated(since = "1.13", note = "Use associated constants instead.")]
 pub const ENUM_MIN_ANY_AMBIGUOUS_ALIASES: u8 = 0;
+#[deprecated(since = "1.13", note = "Use associated constants instead.")]
 pub const ENUM_MAX_ANY_AMBIGUOUS_ALIASES: u8 = 3;
+
+impl AnyAmbiguousAliases {
+    pub const MIN: u8 = 0;
+    pub const MAX: u8 = 3;
+}
 
 impl<'a> flatbuffers::Follow<'a> for AnyAmbiguousAliases {
   type Inner = Self;
@@ -561,6 +644,7 @@ impl TryFrom<u8> for AnyAmbiguousAliases {
 }
 
 #[allow(non_camel_case_types)]
+#[deprecated(since = "1.13", note = "Use associated constants instead.")]
 pub const ENUM_VALUES_ANY_AMBIGUOUS_ALIASES: [AnyAmbiguousAliases; 4] = [
   AnyAmbiguousAliases::NONE,
   AnyAmbiguousAliases::M1,
@@ -568,7 +652,17 @@ pub const ENUM_VALUES_ANY_AMBIGUOUS_ALIASES: [AnyAmbiguousAliases; 4] = [
   AnyAmbiguousAliases::M3
 ];
 
+impl AnyAmbiguousAliases {
+    pub const NAMES: [&'static str; 4] = [
+    "NONE",
+    "M1",
+    "M2",
+    "M3"
+    ];
+}
+
 #[allow(non_camel_case_types)]
+#[deprecated(since = "1.13", note = "Use associated constants instead.")]
 pub const ENUM_NAMES_ANY_AMBIGUOUS_ALIASES: [&str; 4] = [
     "NONE",
     "M1",
@@ -578,7 +672,7 @@ pub const ENUM_NAMES_ANY_AMBIGUOUS_ALIASES: [&str; 4] = [
 
 pub fn enum_name_any_ambiguous_aliases(e: AnyAmbiguousAliases) -> &'static str {
   let index = e as u8;
-  ENUM_NAMES_ANY_AMBIGUOUS_ALIASES[index as usize]
+  AnyAmbiguousAliases::NAMES[index as usize]
 }
 
 pub struct AnyAmbiguousAliasesUnionTableOffset {}

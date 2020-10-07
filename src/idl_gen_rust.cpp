@@ -557,10 +557,17 @@ class RustGenerator : public BaseGenerator {
     code_.SetValue("ENUM_MAX_BASE_VALUE", enum_def.ToString(*maxv));
 
     // Generate enum constants, and impls for TryFrom, Follow, EndianScalar, and Push.
+    code_ += "#[deprecated(since = \"1.13\", note = \"Use associated constants instead.\")]";
     code_ += "pub const ENUM_MIN_{{ENUM_NAME_CAPS}}: {{BASE_TYPE}} = \\";
     code_ += "{{ENUM_MIN_BASE_VALUE}};";
+    code_ += "#[deprecated(since = \"1.13\", note = \"Use associated constants instead.\")]";
     code_ += "pub const ENUM_MAX_{{ENUM_NAME_CAPS}}: {{BASE_TYPE}} = \\";
     code_ += "{{ENUM_MAX_BASE_VALUE}};";
+    code_ += "";
+    code_ += "impl {{ENUM_NAME}} {";
+    code_ += "    pub const MIN: {{BASE_TYPE}} = {{ENUM_MIN_BASE_VALUE}};";
+    code_ += "    pub const MAX: {{BASE_TYPE}} = {{ENUM_MAX_BASE_VALUE}};";
+    code_ += "}";
     code_ += "";
     code_ += "impl<'a> flatbuffers::Follow<'a> for {{ENUM_NAME}} {";
     code_ += "  type Inner = Self;";
@@ -622,6 +629,7 @@ class RustGenerator : public BaseGenerator {
     // Generate an array of all enumeration values.
     auto num_fields = NumToString(enum_def.size());
     code_ += "#[allow(non_camel_case_types)]";
+    code_ += "#[deprecated(since = \"1.13\", note = \"Use associated constants instead.\")]";
     code_ += "pub const ENUM_VALUES_{{ENUM_NAME_CAPS}}: [{{ENUM_NAME}}; " +
              num_fields + "] = [";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
@@ -642,21 +650,21 @@ class RustGenerator : public BaseGenerator {
     // "too sparse". Change at will.
     static const uint64_t kMaxSparseness = 5;
     if (range / static_cast<uint64_t>(enum_def.size()) < kMaxSparseness) {
+      code_ += "impl {{ENUM_NAME}} {";
+      code_ += "    pub const NAMES: [&'static str; " + NumToString(range + 1) + "] = [";
+
+      EnumerateEnumNames(enum_def);
+
+      code_ += "    ];";
+      code_ += "}";
+      code_ += "";
       code_ += "#[allow(non_camel_case_types)]";
+      code_ += "#[deprecated(since = \"1.13\", note = \"Use associated constants instead.\")]";
       code_ += "pub const ENUM_NAMES_{{ENUM_NAME_CAPS}}: [&str; " +
                NumToString(range + 1) + "] = [";
 
-      auto val = enum_def.Vals().front();
-      for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
-           ++it) {
-        auto ev = *it;
-        for (auto k = enum_def.Distance(val, ev); k > 1; --k) {
-          code_ += "    \"\",";
-        }
-        val = ev;
-        auto suffix = *it != enum_def.Vals().back() ? "," : "";
-        code_ += "    \"" + Name(*ev) + "\"" + suffix;
-      }
+      EnumerateEnumNames(enum_def);
+
       code_ += "];";
       code_ += "";
 
@@ -671,7 +679,7 @@ class RustGenerator : public BaseGenerator {
       }
       code_ += ";";
 
-      code_ += "  ENUM_NAMES_{{ENUM_NAME_CAPS}}[index as usize]";
+      code_ += "  {{ENUM_NAME}}::NAMES[index as usize]";
       code_ += "}";
       code_ += "";
     }
@@ -681,6 +689,20 @@ class RustGenerator : public BaseGenerator {
       code_.SetValue("NAME", Name(enum_def));
       code_.SetValue("UNION_OFFSET_NAME", Name(enum_def) + "UnionTableOffset");
       code_ += "pub struct {{UNION_OFFSET_NAME}} {}";
+    }
+  }
+
+  void EnumerateEnumNames(const EnumDef &enum_def) {
+    auto val = enum_def.Vals().front();
+    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
+         ++it) {
+      auto ev = *it;
+      for (auto k = enum_def.Distance(val, ev); k > 1; --k) {
+        code_ += "    \"\",";
+      }
+      val = ev;
+      auto suffix = *it != enum_def.Vals().back() ? "," : "";
+      code_ += "    \"" + Name(*ev) + "\"" + suffix;
     }
   }
 

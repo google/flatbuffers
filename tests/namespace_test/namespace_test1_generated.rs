@@ -41,8 +41,15 @@ pub enum EnumInNestedNS {
 
 }
 
+#[deprecated(since = "1.13", note = "Use associated constants instead.")]
 pub const ENUM_MIN_ENUM_IN_NESTED_NS: i8 = 0;
+#[deprecated(since = "1.13", note = "Use associated constants instead.")]
 pub const ENUM_MAX_ENUM_IN_NESTED_NS: i8 = 2;
+
+impl EnumInNestedNS {
+    pub const MIN: i8 = 0;
+    pub const MAX: i8 = 2;
+}
 
 impl<'a> flatbuffers::Follow<'a> for EnumInNestedNS {
   type Inner = Self;
@@ -90,13 +97,23 @@ impl TryFrom<i8> for EnumInNestedNS {
 }
 
 #[allow(non_camel_case_types)]
+#[deprecated(since = "1.13", note = "Use associated constants instead.")]
 pub const ENUM_VALUES_ENUM_IN_NESTED_NS: [EnumInNestedNS; 3] = [
   EnumInNestedNS::A,
   EnumInNestedNS::B,
   EnumInNestedNS::C
 ];
 
+impl EnumInNestedNS {
+    pub const NAMES: [&'static str; 3] = [
+    "A",
+    "B",
+    "C"
+    ];
+}
+
 #[allow(non_camel_case_types)]
+#[deprecated(since = "1.13", note = "Use associated constants instead.")]
 pub const ENUM_NAMES_ENUM_IN_NESTED_NS: [&str; 3] = [
     "A",
     "B",
@@ -105,7 +122,7 @@ pub const ENUM_NAMES_ENUM_IN_NESTED_NS: [&str; 3] = [
 
 pub fn enum_name_enum_in_nested_ns(e: EnumInNestedNS) -> &'static str {
   let index = e as i8;
-  ENUM_NAMES_ENUM_IN_NESTED_NS[index as usize]
+  EnumInNestedNS::NAMES[index as usize]
 }
 
 // struct StructInNestedNS, aligned to 4
