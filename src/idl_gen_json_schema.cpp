@@ -255,9 +255,7 @@ bool GenerateJsonSchema(const Parser &parser, const std::string &path,
 }
 
 bool GenerateJsonSchema(const Parser &parser, std::string *json) {
-  std::string path;
-  std::string file_name;
-  jsons::JsonSchemaGenerator generator(parser, path, file_name);
+  jsons::JsonSchemaGenerator generator(parser, "", "");
   if (!generator.generate()) { return false; }
   *json = generator.getJson();
   return true;
