@@ -38,13 +38,16 @@
   #include <utility>
 #endif
 
-#include <string>
 #include <type_traits>
+#include <algorithm>
+
+#ifndef FLATBUFFERS_NO_STL
+#include <string>
 #include <vector>
 #include <set>
-#include <algorithm>
 #include <iterator>
 #include <memory>
+#endif
 
 #if defined(__unix__) && !defined(FLATBUFFERS_LOCALE_INDEPENDENT)
   #include <unistd.h>

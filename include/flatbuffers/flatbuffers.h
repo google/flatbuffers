@@ -18,10 +18,13 @@
 #define FLATBUFFERS_H_
 
 #include "flatbuffers/base.h"
-#include "flatbuffers/stl_emulation.h"
 
-#ifndef FLATBUFFERS_CPP98_STL
-  #include <functional>
+#ifndef FLATBUFFERS_NO_STL
+#include "flatbuffers/stl_emulation.h"
+#endif
+
+#if !defined(FLATBUFFERS_CPP98_STL) || !defined(FLATBUFFERS_NO_STL)
+#  include <functional>
 #endif
 
 #if defined(FLATBUFFERS_NAN_DEFAULTS)
@@ -424,6 +427,7 @@ template<typename T> static inline size_t VectorLength(const Vector<T> *v) {
   return v ? v->size() : 0;
 }
 
+#ifndef FLATBUFFERS_NO_STL
 // This is used as a helper type for accessing arrays.
 template<typename T, uint16_t length> class Array {
   typedef
@@ -548,6 +552,7 @@ template<typename T, uint16_t length> class Array<Offset<T>, length> {
 
   uint8_t data_[1];
 };
+#endif  // FLATBUFFERS_NO_STL
 
 // Lexicographically compare two strings (possibly containing nulls), and
 // return true if the first is less than the second.
@@ -559,9 +564,11 @@ static inline bool StringLessThan(const char *a_data, uoffset_t a_size,
 
 struct String : public Vector<char> {
   const char *c_str() const { return reinterpret_cast<const char *>(Data()); }
-  std::string str() const { return std::string(c_str(), size()); }
-
   // clang-format off
+  #ifndef FLATBUFFERS_NO_STL
+  std::string str() const { return std::string(c_str(), size()); }
+  #endif
+
   #ifdef FLATBUFFERS_HAS_STRING_VIEW
   flatbuffers::string_view string_view() const {
     return flatbuffers::string_view(c_str(), size());
@@ -574,11 +581,13 @@ struct String : public Vector<char> {
   }
 };
 
+#ifndef FLATBUFFERS_NO_STL
 // Convenience function to get std::string from a String returning an empty
 // string on null pointer.
 static inline std::string GetString(const String *str) {
   return str ? str->str() : "";
 }
+#endif
 
 // Convenience function to get char* from a String returning an empty string on
 // null pointer.
@@ -1048,6 +1057,7 @@ inline voffset_t FieldIndexToOffset(voffset_t field_id) {
   return static_cast<voffset_t>((field_id + fixed_fields) * sizeof(voffset_t));
 }
 
+#ifndef FLATBUFFERS_NO_STL
 template<typename T, typename Alloc>
 const T *data(const std::vector<T, Alloc> &v) {
   // Eventually the returned pointer gets passed down to memcpy, so
@@ -1061,6 +1071,7 @@ template<typename T, typename Alloc> T *data(std::vector<T, Alloc> &v) {
   static uint8_t t;
   return v.empty() ? reinterpret_cast<T *>(&t) : &v.front();
 }
+#endif
 
 /// @endcond
 
@@ -1086,6 +1097,7 @@ class FlatBufferBuilder {
   /// minimum alignment upon reallocation. Only needed if you intend to store
   /// types with custom alignment AND you wish to read the buffer in-place
   /// directly after creation.
+  // clang-format off
   explicit FlatBufferBuilder(
       size_t initial_size = 1024, Allocator *allocator = nullptr,
       bool own_allocator = false,
@@ -1097,12 +1109,14 @@ class FlatBufferBuilder {
         finished(false),
         minalign_(1),
         force_defaults_(false),
-        dedup_vtables_(true),
-        string_pool(nullptr) {
+        dedup_vtables_(true)
+        #ifndef FLATBUFFERS_NO_STL
+        , string_pool(nullptr)
+        #endif
+        {
     EndianCheck();
   }
 
-  // clang-format off
   /// @brief Move constructor for FlatBufferBuilder.
   #if !defined(FLATBUFFERS_CPP98_STL)
   FlatBufferBuilder(FlatBufferBuilder &&other)
@@ -1116,8 +1130,11 @@ class FlatBufferBuilder {
       finished(false),
       minalign_(1),
       force_defaults_(false),
-      dedup_vtables_(true),
-      string_pool(nullptr) {
+      dedup_vtables_(true)
+      #ifndef FLATBUFFERS_NO_STL
+      , string_pool(nullptr)
+      #endif
+      {
     EndianCheck();
     // Default construct and swap idiom.
     // Lack of delegating constructors in vs2010 makes it more verbose than needed.
@@ -1149,11 +1166,19 @@ class FlatBufferBuilder {
     swap(minalign_, other.minalign_);
     swap(force_defaults_, other.force_defaults_);
     swap(dedup_vtables_, other.dedup_vtables_);
+    // clang-format off
+    #ifndef FLATBUFFERS_NO_STL
     swap(string_pool, other.string_pool);
+    #endif
+    // clang-format on
   }
 
   ~FlatBufferBuilder() {
+    // clang-format off
+    #ifndef FLATBUFFERS_NO_STL
     if (string_pool) delete string_pool;
+    #endif
+    // clang-format on
   }
 
   void Reset() {
@@ -1169,7 +1194,11 @@ class FlatBufferBuilder {
     nested = false;
     finished = false;
     minalign_ = 1;
+    // clang-format off
+    #ifndef FLATBUFFERS_NO_STL
     if (string_pool) string_pool->clear();
+    #endif
+    // clang-format on
   }
 
   /// @brief The current size of the serialized buffer, counting from the end.
@@ -1273,8 +1302,12 @@ class FlatBufferBuilder {
   void PopBytes(size_t amount) { buf_.pop(amount); }
 
   template<typename T> void AssertScalarT() {
+    // clang-format off
+    #ifndef FLATBUFFERS_NO_STL
     // The code assumes power of 2 sizes and endian-swap-ability.
     static_assert(flatbuffers::is_scalar<T>::value, "T must be a scalar type");
+    #endif  // FLATBUFFERS_NO_STL
+    // clang-format on
   }
 
   // Write a single aligned scalar to the buffer
@@ -1490,6 +1523,8 @@ class FlatBufferBuilder {
     return CreateString(str, strlen(str));
   }
 
+  // clang-format off
+  #ifndef FLATBUFFERS_NO_STL
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// @param[in] str A const reference to a std::string to store in the buffer.
   /// @return Returns the offset in the buffer where the string starts.
@@ -1497,7 +1532,6 @@ class FlatBufferBuilder {
     return CreateString(str.c_str(), str.length());
   }
 
-  // clang-format off
   #ifdef FLATBUFFERS_HAS_STRING_VIEW
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// @param[in] str A const string_view to copy in to the buffer.
@@ -1574,6 +1608,9 @@ class FlatBufferBuilder {
   Offset<String> CreateSharedString(const String *str) {
     return CreateSharedString(str->c_str(), str->size());
   }
+  // clang-format off
+  #endif  // !FLATBUFFERS_NO_STL
+  // clang-format on
 
   /// @cond FLATBUFFERS_INTERNAL
   uoffset_t EndVector(size_t len) {
@@ -1643,6 +1680,9 @@ class FlatBufferBuilder {
     return Offset<Vector<Offset<T>>>(EndVector(len));
   }
 
+  // clang-format off
+  #ifndef FLATBUFFERS_NO_STL
+  // clang-format on
   /// @brief Serialize a `std::vector` into a FlatBuffer `vector`.
   /// @tparam T The data type of the `std::vector` elements.
   /// @param v A const reference to the `std::vector` to serialize into the
@@ -1679,7 +1719,7 @@ class FlatBufferBuilder {
     for (size_t i = 0; i < vector_size; i++) elems[i] = f(i);
     return CreateVector(elems);
   }
-  #endif
+  #endif  // !FLATBUFFERS_CPP98_STL
   // clang-format on
 
   /// @brief Serialize values returned by a function into a FlatBuffer `vector`.
@@ -1709,20 +1749,6 @@ class FlatBufferBuilder {
     std::vector<Offset<String>> offsets(v.size());
     for (size_t i = 0; i < v.size(); i++) offsets[i] = CreateString(v[i]);
     return CreateVector(offsets);
-  }
-
-  /// @brief Serialize an array of structs into a FlatBuffer `vector`.
-  /// @tparam T The data type of the struct array elements.
-  /// @param[in] v A pointer to the array of type `T` to serialize into the
-  /// buffer as a `vector`.
-  /// @param[in] len The number of elements to serialize.
-  /// @return Returns a typed `Offset` into the serialized data indicating
-  /// where the vector is stored.
-  template<typename T>
-  Offset<Vector<const T *>> CreateVectorOfStructs(const T *v, size_t len) {
-    StartVector(len * sizeof(T) / AlignOf<T>(), AlignOf<T>());
-    PushBytes(reinterpret_cast<const uint8_t *>(v), sizeof(T) * len);
-    return Offset<Vector<const T *>>(EndVector(len));
   }
 
   /// @brief Serialize an array of native structs into a FlatBuffer `vector`.
@@ -1764,26 +1790,6 @@ class FlatBufferBuilder {
   #endif
   // clang-format on
 
-  /// @brief Serialize an array of structs into a FlatBuffer `vector`.
-  /// @tparam T The data type of the struct array elements.
-  /// @param[in] f A function that takes the current iteration 0..vector_size-1,
-  /// a pointer to the struct that must be filled and the state argument.
-  /// @param[in] state Arbitrary state to pass to f.
-  /// @return Returns a typed `Offset` into the serialized data indicating
-  /// where the vector is stored.
-  /// This is mostly useful when flatbuffers are generated with mutation
-  /// accessors.
-  template<typename T, typename F, typename S>
-  Offset<Vector<const T *>> CreateVectorOfStructs(size_t vector_size, F f,
-                                                  S *state) {
-    T *structs = StartVectorOfStructs<T>(vector_size);
-    for (size_t i = 0; i < vector_size; i++) {
-      f(i, structs, state);
-      structs++;
-    }
-    return EndVectorOfStructs<T>(vector_size);
-  }
-
   /// @brief Serialize a `std::vector` of structs into a FlatBuffer `vector`.
   /// @tparam T The data type of the `std::vector` struct elements.
   /// @param[in] v A const reference to the `std::vector` of structs to
@@ -1809,17 +1815,6 @@ class FlatBufferBuilder {
       const std::vector<S> &v) {
     return CreateVectorOfNativeStructs<T, S>(data(v), v.size());
   }
-
-  /// @cond FLATBUFFERS_INTERNAL
-  template<typename T> struct StructKeyComparator {
-    bool operator()(const T &a, const T &b) const {
-      return a.KeyCompareLessThan(&b);
-    }
-
-    FLATBUFFERS_DELETE_FUNC(
-        StructKeyComparator &operator=(const StructKeyComparator &))
-  };
-  /// @endcond
 
   /// @brief Serialize a `std::vector` of structs into a FlatBuffer `vector`
   /// in sorted order.
@@ -1880,6 +1875,34 @@ class FlatBufferBuilder {
     return CreateVectorOfSortedStructs<T>(vv, len);
   }
 
+  /// @brief Serialize an array of `table` offsets as a `vector` in the buffer
+  /// in sorted order.
+  /// @tparam T The data type that the offset refers to.
+  /// @param[in] v An array of type `Offset<T>` that contains the `table`
+  /// offsets to store in the buffer in sorted order.
+  /// @return Returns a typed `Offset` into the serialized data indicating
+  /// where the vector is stored.
+  template<typename T>
+  Offset<Vector<Offset<T>>> CreateVectorOfSortedTables(
+      std::vector<Offset<T>> *v) {
+    return CreateVectorOfSortedTables(data(*v), v->size());
+  }
+
+  // clang-format off
+  #endif  // !FLATBUFFERS_NO_STL
+  // clang-format on
+
+  /// @cond FLATBUFFERS_INTERNAL
+  template<typename T> struct StructKeyComparator {
+    bool operator()(const T &a, const T &b) const {
+      return a.KeyCompareLessThan(&b);
+    }
+
+    FLATBUFFERS_DELETE_FUNC(
+        StructKeyComparator &operator=(const StructKeyComparator &))
+  };
+  /// @endcond
+
   /// @cond FLATBUFFERS_INTERNAL
   template<typename T> struct TableKeyComparator {
     TableKeyComparator(vector_downward &buf) : buf_(buf) {}
@@ -1911,17 +1934,38 @@ class FlatBufferBuilder {
     return CreateVector(v, len);
   }
 
-  /// @brief Serialize an array of `table` offsets as a `vector` in the buffer
-  /// in sorted order.
-  /// @tparam T The data type that the offset refers to.
-  /// @param[in] v An array of type `Offset<T>` that contains the `table`
-  /// offsets to store in the buffer in sorted order.
+  /// @brief Serialize an array of structs into a FlatBuffer `vector`.
+  /// @tparam T The data type of the struct array elements.
+  /// @param[in] v A pointer to the array of type `T` to serialize into the
+  /// buffer as a `vector`.
+  /// @param[in] len The number of elements to serialize.
   /// @return Returns a typed `Offset` into the serialized data indicating
   /// where the vector is stored.
   template<typename T>
-  Offset<Vector<Offset<T>>> CreateVectorOfSortedTables(
-      std::vector<Offset<T>> *v) {
-    return CreateVectorOfSortedTables(data(*v), v->size());
+  Offset<Vector<const T *>> CreateVectorOfStructs(const T *v, size_t len) {
+    StartVector(len * sizeof(T) / AlignOf<T>(), AlignOf<T>());
+    PushBytes(reinterpret_cast<const uint8_t *>(v), sizeof(T) * len);
+    return Offset<Vector<const T *>>(EndVector(len));
+  }
+
+  /// @brief Serialize an array of structs into a FlatBuffer `vector`.
+  /// @tparam T The data type of the struct array elements.
+  /// @param[in] f A function that takes the current iteration 0..vector_size-1,
+  /// a pointer to the struct that must be filled and the state argument.
+  /// @param[in] state Arbitrary state to pass to f.
+  /// @return Returns a typed `Offset` into the serialized data indicating
+  /// where the vector is stored.
+  /// This is mostly useful when flatbuffers are generated with mutation
+  /// accessors.
+  template<typename T, typename F, typename S>
+  Offset<Vector<const T *>> CreateVectorOfStructs(size_t vector_size, F f,
+                                                  S *state) {
+    T *structs = StartVectorOfStructs<T>(vector_size);
+    for (size_t i = 0; i < vector_size; i++) {
+      f(i, structs, state);
+      structs++;
+    }
+    return EndVectorOfStructs<T>(vector_size);
   }
 
   /// @brief Specialized version of `CreateVector` for non-copying use cases.
@@ -2060,6 +2104,8 @@ class FlatBufferBuilder {
 
   bool dedup_vtables_;
 
+  // clang-format off
+  #ifndef FLATBUFFERS_NO_STL
   struct StringOffsetCompare {
     StringOffsetCompare(const vector_downward &buf) : buf_(&buf) {}
     bool operator()(const Offset<String> &a, const Offset<String> &b) const {
@@ -2074,6 +2120,8 @@ class FlatBufferBuilder {
   // For use with CreateSharedString. Instantiated on first use only.
   typedef std::set<Offset<String>, StringOffsetCompare> StringOffsetMap;
   StringOffsetMap *string_pool;
+  #endif  // !FLATBUFFERS_NO_STL
+  // clang-format on
 
  private:
   // Allocates space for a vector of structures.
@@ -2470,6 +2518,8 @@ class Table {
     return field_offset ? reinterpret_cast<P>(p) : nullptr;
   }
 
+  // clang-format off
+  #ifndef FLATBUFFERS_NO_STL
   template<typename Raw, typename Face>
   flatbuffers::Optional<Face> GetOptional(voffset_t field) const {
     auto field_offset = GetOptionalFieldOffset(field);
@@ -2477,6 +2527,8 @@ class Table {
     return field_offset ? Optional<Face>(static_cast<Face>(ReadScalar<Raw>(p)))
                         : Optional<Face>();
   }
+  #endif  // FLATBUFFERS_NO_STL
+  // clang-format on
 
   template<typename T> bool SetField(voffset_t field, T val, T def) {
     auto field_offset = GetOptionalFieldOffset(field);
@@ -2557,6 +2609,7 @@ class Table {
   uint8_t data_[1];
 };
 
+#ifndef FLATBUFFERS_NO_STL
 // This specialization allows avoiding warnings like:
 // MSVC C4800: type: forcing value to bool 'true' or 'false'.
 template<>
@@ -2567,6 +2620,7 @@ inline flatbuffers::Optional<bool> Table::GetOptional<uint8_t, bool>(
   return field_offset ? Optional<bool>(ReadScalar<uint8_t>(p) != 0)
                       : Optional<bool>();
 }
+#endif  // FLATBUFFERS_NO_STL
 
 template<typename T>
 void FlatBufferBuilder::Required(Offset<T> table, voffset_t field) {
@@ -2635,7 +2689,7 @@ struct NativeTable {};
 /// is being serialized again.
 typedef uint64_t hash_value_t;
 // clang-format off
-#ifdef FLATBUFFERS_CPP98_STL
+#if defined(FLATBUFFERS_CPP98_STL) || defined(FLATBUFFERS_NO_STL)
   typedef void (*resolver_function_t)(void **pointer_adr, hash_value_t hash);
   typedef hash_value_t (*rehasher_function_t)(void *pointer);
 #else
