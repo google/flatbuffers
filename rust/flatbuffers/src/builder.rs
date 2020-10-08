@@ -69,8 +69,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     ///
     /// The maximum valid value is `FLATBUFFERS_MAX_BUFFER_SIZE`.
     pub fn new_with_capacity(size: usize) -> Self {
-        // Safety: the vector is initialized with all-zero elements
-        unsafe { FlatBufferBuilder::new_with_zeroed_buffer(vec![0u8; size]) }
+        FlatBufferBuilder::new_with_buffer(vec![0u8; size])
     }
 }
 
@@ -82,36 +81,7 @@ where
     /// the given buffer as storage for the serialized bytes.
     ///
     /// The buffer may not be larger than `FLATBUFFERS_MAX_BUFFER_SIZE`.
-    pub fn new_with_buffer(mut buffer: Buf) -> FlatBufferBuilder<'fbb, Buf> {
-        let to_clear = buffer.len();
-        let ptr = buffer.as_mut_ptr();
-
-        // Safety:
-        // Alignment is checked by getting the pointer from an already valid
-        // slice; validity for writing to the range is checked by getting the
-        // length from the slice
-        unsafe {
-            write_bytes(ptr, 0, to_clear);
-        }
-
-        // Safety: the buffer was just zeroed
-        unsafe { Self::new_with_zeroed_buffer(buffer) }
-    }
-
-    /// Create a FlatBufferBuilder that is ready for writing, which will use
-    /// the given buffer as storage for the serialized bytes.
-    ///
-    /// The buffer may not be larger than `FLATBUFFERS_MAX_BUFFER_SIZE`.
-    ///
-    /// Unlike `new_with_buffer`, this function will not zero the buffer before
-    /// using it, instead assuming that it is already zeroed. This may lead to
-    /// unexpected results if the values are not actually zero, and thus this
-    /// function is marked `unsafe`.
-    ///
-    /// # Safety
-    ///
-    /// The given buffer must already be zeroed
-    pub unsafe fn new_with_zeroed_buffer(buffer: Buf) -> FlatBufferBuilder<'fbb, Buf> {
+    pub fn new_with_buffer(buffer: Buf) -> FlatBufferBuilder<'fbb, Buf> {
         let size = buffer.len();
 
         // we need to check the size here because the buffer was created
