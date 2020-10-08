@@ -139,7 +139,7 @@ class JsonSchemaGenerator : public BaseGenerator {
     if (parser_.root_struct_def_ == nullptr) { return false; }
     code_ += "{" + NewLine();
     code_ += Indent(1) +
-             "\"$schema\": \"http://json-schema.org/draft-04/schema#\"," +
+             "\"$schema\": \"https://json-schema.org/draft/2019-09/schema\"," +
              NewLine();
     code_ += Indent(1) + "\"definitions\": {" + NewLine();
     for (auto e = parser_.enums_.vec.cbegin(); e != parser_.enums_.vec.cend();
@@ -174,7 +174,7 @@ class JsonSchemaGenerator : public BaseGenerator {
           return false;
         }
         code_ +=
-            Indent(3) + "\"description\" : \"" + description + "\"," + NewLine();
+            Indent(3) + "\"description\" : " + description + "," + NewLine();
       }
       code_ += Indent(3) + "\"properties\" : {" + NewLine();
 
