@@ -1006,6 +1006,10 @@ extern bool GenerateText(const Parser &parser, const void *flatbuffer,
 extern bool GenerateTextFile(const Parser &parser, const std::string &path,
                              const std::string &file_name);
 
+// Generate Json schema to string
+// See idl_gen_json_schema.cpp.
+extern bool GenerateJsonSchema(const Parser &parser, std::string *json);
+
 // Generate binary files from a given FlatBuffer, and a given Parser
 // object that has been populated with the corresponding schema.
 // See code_generators.cpp.
