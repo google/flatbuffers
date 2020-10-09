@@ -573,7 +573,7 @@ class RustGenerator : public BaseGenerator {
       code_ += "bitflags::bitflags! {";
       GenComment(enum_def.doc_comment);
       code_ += "  pub struct {{ENUM_NAME}}: {{BASE_TYPE}} {";
-      ForAllEnumValues(enum_def, [&]{
+      ForAllEnumValues(enum_def, [&](){
         code_ += "    const {{SSC_VARIANT}} = {{VALUE}};";
       });
       code_ += "  }";
@@ -628,14 +628,14 @@ class RustGenerator : public BaseGenerator {
       code_ += "  pub const {{VARIANT}}: Self = Self({{VALUE}});";
     });
     code_ += "  pub const ENUM_VALUES: &'static [Self] = &[";
-    ForAllEnumValues(enum_def, [&]{
+    ForAllEnumValues(enum_def, [&](){
       code_ += "    Self::{{VARIANT}},";
     });
     code_ += "  ];";
     code_ += "  /// Returns the variant's name or \"\" if unknown.";
     code_ += "  pub fn variant_name(self) -> &'static str {";
     code_ += "    match self {";
-    ForAllEnumValues(enum_def, [&]{
+    ForAllEnumValues(enum_def, [&](){
       code_ += "      Self::{{VARIANT}} => \"{{VARIANT}}\",";
     });
     code_ += "      _ => \"\",";
