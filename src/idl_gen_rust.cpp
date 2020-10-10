@@ -1265,22 +1265,16 @@ class RustGenerator : public BaseGenerator {
           nested_root = parser_.LookupStruct(qualified_name);
         }
         FLATBUFFERS_ASSERT(nested_root);  // Guaranteed to exist by parser.
-        (void)nested_root;
 
-        code_.SetValue("OFFSET_NAME",
-                       offset_prefix + "::" + GetFieldOffsetName(field));
+        code_.SetValue("NESTED", WrapInNameSpace(*nested_root));
         code_ +=
             "  pub fn {{FIELD_NAME}}_nested_flatbuffer(&'a self) -> "
-            " Option<{{STRUCT_NAME}}<'a>> {";
-        code_ += "     match self.{{FIELD_NAME}}() {";
-        code_ += "         None => { None }";
-        code_ += "         Some(data) => {";
-        code_ += "             use self::flatbuffers::Follow;";
-        code_ +=
-            "             Some(<flatbuffers::ForwardsUOffset"
-            "<{{STRUCT_NAME}}<'a>>>::follow(data, 0))";
-        code_ += "         },";
-        code_ += "     }";
+            "Option<{{NESTED}}<'a>> {";
+        code_ += "    self.{{FIELD_NAME}}().map(|data| {";
+        code_ += "      use flatbuffers::Follow;";
+        code_ += "      <flatbuffers::ForwardsUOffset<{{NESTED}}<'a>>>"
+            "::follow(data, 0)";
+        code_ += "    })";
         code_ += "  }";
       }
     }
