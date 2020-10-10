@@ -103,7 +103,7 @@ fn create_serialized_example_with_generated_code(
             2.0,
             3.0,
             3.0,
-            my_game::example::Color::Green,
+            my_game::example::Color::GREEN,
             &my_game::example::Test::new(5i16, 6i8),
         );
         let args = my_game::example::MonsterArgs {
