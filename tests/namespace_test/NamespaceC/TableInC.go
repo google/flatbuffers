@@ -14,7 +14,9 @@ type TableInCT struct {
 }
 
 func (t *TableInCT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	referToA1Offset := t.ReferToA1.Pack(builder)
 	referToA2Offset := t.ReferToA2.Pack(builder)
 	TableInCStart(builder)
@@ -29,7 +31,9 @@ func (rcv *TableInC) UnPackTo(t *TableInCT) {
 }
 
 func (rcv *TableInC) UnPack() *TableInCT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &TableInCT{}
 	rcv.UnPackTo(t)
 	return t

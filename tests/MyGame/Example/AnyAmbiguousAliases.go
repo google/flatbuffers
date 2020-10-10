@@ -39,7 +39,7 @@ func (v AnyAmbiguousAliases) String() string {
 }
 
 type AnyAmbiguousAliasesT struct {
-	Type AnyAmbiguousAliases
+	Type  AnyAmbiguousAliases
 	Value interface{}
 }
 
@@ -62,13 +62,13 @@ func (rcv AnyAmbiguousAliases) UnPack(table flatbuffers.Table) *AnyAmbiguousAlia
 	switch rcv {
 	case AnyAmbiguousAliasesM1:
 		x := Monster{_tab: table}
-		return &AnyAmbiguousAliasesT{ Type: AnyAmbiguousAliasesM1, Value: x.UnPack() }
+		return &AnyAmbiguousAliasesT{Type: AnyAmbiguousAliasesM1, Value: x.UnPack()}
 	case AnyAmbiguousAliasesM2:
 		x := Monster{_tab: table}
-		return &AnyAmbiguousAliasesT{ Type: AnyAmbiguousAliasesM2, Value: x.UnPack() }
+		return &AnyAmbiguousAliasesT{Type: AnyAmbiguousAliasesM2, Value: x.UnPack()}
 	case AnyAmbiguousAliasesM3:
 		x := Monster{_tab: table}
-		return &AnyAmbiguousAliasesT{ Type: AnyAmbiguousAliasesM3, Value: x.UnPack() }
+		return &AnyAmbiguousAliasesT{Type: AnyAmbiguousAliasesM3, Value: x.UnPack()}
 	}
 	return nil
 }

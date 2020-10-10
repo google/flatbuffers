@@ -11,7 +11,9 @@ type ReferrableT struct {
 }
 
 func (t *ReferrableT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	ReferrableStart(builder)
 	ReferrableAddId(builder, t.Id)
 	return ReferrableEnd(builder)
@@ -22,7 +24,9 @@ func (rcv *Referrable) UnPackTo(t *ReferrableT) {
 }
 
 func (rcv *Referrable) UnPack() *ReferrableT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &ReferrableT{}
 	rcv.UnPackTo(t)
 	return t

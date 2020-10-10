@@ -11,7 +11,9 @@ type TestSimpleTableWithEnumT struct {
 }
 
 func (t *TestSimpleTableWithEnumT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	TestSimpleTableWithEnumStart(builder)
 	TestSimpleTableWithEnumAddColor(builder, t.Color)
 	return TestSimpleTableWithEnumEnd(builder)
@@ -22,7 +24,9 @@ func (rcv *TestSimpleTableWithEnum) UnPackTo(t *TestSimpleTableWithEnumT) {
 }
 
 func (rcv *TestSimpleTableWithEnum) UnPack() *TestSimpleTableWithEnumT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &TestSimpleTableWithEnumT{}
 	rcv.UnPackTo(t)
 	return t

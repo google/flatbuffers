@@ -5,6 +5,7 @@ package NamespaceA
 import (
 	flatbuffers "github.com/google/flatbuffers/go"
 )
+
 type TableInC struct {
 	_tab flatbuffers.Table
 }
@@ -41,6 +42,10 @@ func (rcv *TableInC) ReferToA2(obj *SecondTableInA) *SecondTableInA {
 }
 
 func TableInCStart(builder *flatbuffers.Builder) { builder.StartObject(2) }
-func TableInCAddReferToA1(builder *flatbuffers.Builder, referToA1 flatbuffers.UOffsetT) { builder.PrependUOffsetTSlot(0, flatbuffers.UOffsetT(referToA1), 0) }
-func TableInCAddReferToA2(builder *flatbuffers.Builder, referToA2 flatbuffers.UOffsetT) { builder.PrependUOffsetTSlot(1, flatbuffers.UOffsetT(referToA2), 0) }
+func TableInCAddReferToA1(builder *flatbuffers.Builder, referToA1 flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(0, flatbuffers.UOffsetT(referToA1), 0)
+}
+func TableInCAddReferToA2(builder *flatbuffers.Builder, referToA2 flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(1, flatbuffers.UOffsetT(referToA2), 0)
+}
 func TableInCEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT { return builder.EndObject() }

@@ -41,7 +41,7 @@ func (v Any) String() string {
 }
 
 type AnyT struct {
-	Type Any
+	Type  Any
 	Value interface{}
 }
 
@@ -64,13 +64,13 @@ func (rcv Any) UnPack(table flatbuffers.Table) *AnyT {
 	switch rcv {
 	case AnyMonster:
 		x := Monster{_tab: table}
-		return &AnyT{ Type: AnyMonster, Value: x.UnPack() }
+		return &AnyT{Type: AnyMonster, Value: x.UnPack()}
 	case AnyTestSimpleTableWithEnum:
 		x := TestSimpleTableWithEnum{_tab: table}
-		return &AnyT{ Type: AnyTestSimpleTableWithEnum, Value: x.UnPack() }
+		return &AnyT{Type: AnyTestSimpleTableWithEnum, Value: x.UnPack()}
 	case AnyMyGame_Example2_Monster:
 		x := Monster{_tab: table}
-		return &AnyT{ Type: AnyMyGame_Example2_Monster, Value: x.UnPack() }
+		return &AnyT{Type: AnyMyGame_Example2_Monster, Value: x.UnPack()}
 	}
 	return nil
 }

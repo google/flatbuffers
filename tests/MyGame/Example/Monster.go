@@ -10,62 +10,64 @@ import (
 
 /// an example documentation comment: "monster object"
 type MonsterT struct {
-	Pos *Vec3T
-	Mana int16
-	Hp int16
-	Name string
-	Inventory []byte
-	Color Color
-	Test *AnyT
-	Test4 []*TestT
-	Testarrayofstring []string
-	Testarrayoftables []*MonsterT
-	Enemy *MonsterT
-	Testnestedflatbuffer []byte
-	Testempty *StatT
-	Testbool bool
-	Testhashs32Fnv1 int32
-	Testhashu32Fnv1 uint32
-	Testhashs64Fnv1 int64
-	Testhashu64Fnv1 uint64
-	Testhashs32Fnv1a int32
-	Testhashu32Fnv1a uint32
-	Testhashs64Fnv1a int64
-	Testhashu64Fnv1a uint64
-	Testarrayofbools []bool
-	Testf float32
-	Testf2 float32
-	Testf3 float32
-	Testarrayofstring2 []string
-	Testarrayofsortedstruct []*AbilityT
-	Flex []byte
-	Test5 []*TestT
-	VectorOfLongs []int64
-	VectorOfDoubles []float64
-	ParentNamespaceTest *MyGame.InParentNamespaceT
-	VectorOfReferrables []*ReferrableT
-	SingleWeakReference uint64
-	VectorOfWeakReferences []uint64
-	VectorOfStrongReferrables []*ReferrableT
-	CoOwningReference uint64
-	VectorOfCoOwningReferences []uint64
-	NonOwningReference uint64
+	Pos                         *Vec3T
+	Mana                        int16
+	Hp                          int16
+	Name                        string
+	Inventory                   []byte
+	Color                       Color
+	Test                        *AnyT
+	Test4                       []*TestT
+	Testarrayofstring           []string
+	Testarrayoftables           []*MonsterT
+	Enemy                       *MonsterT
+	Testnestedflatbuffer        []byte
+	Testempty                   *StatT
+	Testbool                    bool
+	Testhashs32Fnv1             int32
+	Testhashu32Fnv1             uint32
+	Testhashs64Fnv1             int64
+	Testhashu64Fnv1             uint64
+	Testhashs32Fnv1a            int32
+	Testhashu32Fnv1a            uint32
+	Testhashs64Fnv1a            int64
+	Testhashu64Fnv1a            uint64
+	Testarrayofbools            []bool
+	Testf                       float32
+	Testf2                      float32
+	Testf3                      float32
+	Testarrayofstring2          []string
+	Testarrayofsortedstruct     []*AbilityT
+	Flex                        []byte
+	Test5                       []*TestT
+	VectorOfLongs               []int64
+	VectorOfDoubles             []float64
+	ParentNamespaceTest         *MyGame.InParentNamespaceT
+	VectorOfReferrables         []*ReferrableT
+	SingleWeakReference         uint64
+	VectorOfWeakReferences      []uint64
+	VectorOfStrongReferrables   []*ReferrableT
+	CoOwningReference           uint64
+	VectorOfCoOwningReferences  []uint64
+	NonOwningReference          uint64
 	VectorOfNonOwningReferences []uint64
-	AnyUnique *AnyUniqueAliasesT
-	AnyAmbiguous *AnyAmbiguousAliasesT
-	VectorOfEnums []Color
-	SignedEnum Race
+	AnyUnique                   *AnyUniqueAliasesT
+	AnyAmbiguous                *AnyAmbiguousAliasesT
+	VectorOfEnums               []Color
+	SignedEnum                  Race
 }
 
 func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	nameOffset := builder.CreateString(t.Name)
 	inventoryOffset := flatbuffers.UOffsetT(0)
 	if t.Inventory != nil {
 		inventoryOffset = builder.CreateByteString(t.Inventory)
 	}
 	testOffset := t.Test.Pack(builder)
-	
+
 	test4Offset := flatbuffers.UOffsetT(0)
 	if t.Test4 != nil {
 		test4Length := len(t.Test4)
@@ -224,9 +226,9 @@ func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 		vectorOfNonOwningReferencesOffset = builder.EndVector(vectorOfNonOwningReferencesLength)
 	}
 	anyUniqueOffset := t.AnyUnique.Pack(builder)
-	
+
 	anyAmbiguousOffset := t.AnyAmbiguous.Pack(builder)
-	
+
 	vectorOfEnumsOffset := flatbuffers.UOffsetT(0)
 	if t.VectorOfEnums != nil {
 		vectorOfEnumsLength := len(t.VectorOfEnums)
@@ -425,7 +427,9 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 }
 
 func (rcv *Monster) UnPack() *MonsterT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &MonsterT{}
 	rcv.UnPackTo(t)
 	return t

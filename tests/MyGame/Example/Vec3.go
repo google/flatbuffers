@@ -7,16 +7,18 @@ import (
 )
 
 type Vec3T struct {
-	X float32
-	Y float32
-	Z float32
+	X     float32
+	Y     float32
+	Z     float32
 	Test1 float64
 	Test2 Color
 	Test3 *TestT
 }
 
 func (t *Vec3T) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	return CreateVec3(builder, t.X, t.Y, t.Z, t.Test1, t.Test2, t.Test3.A, t.Test3.B)
 }
 func (rcv *Vec3) UnPackTo(t *Vec3T) {
@@ -29,7 +31,9 @@ func (rcv *Vec3) UnPackTo(t *Vec3T) {
 }
 
 func (rcv *Vec3) UnPack() *Vec3T {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &Vec3T{}
 	rcv.UnPackTo(t)
 	return t

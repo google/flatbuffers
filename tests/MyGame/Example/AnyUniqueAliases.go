@@ -41,7 +41,7 @@ func (v AnyUniqueAliases) String() string {
 }
 
 type AnyUniqueAliasesT struct {
-	Type AnyUniqueAliases
+	Type  AnyUniqueAliases
 	Value interface{}
 }
 
@@ -64,13 +64,13 @@ func (rcv AnyUniqueAliases) UnPack(table flatbuffers.Table) *AnyUniqueAliasesT {
 	switch rcv {
 	case AnyUniqueAliasesM:
 		x := Monster{_tab: table}
-		return &AnyUniqueAliasesT{ Type: AnyUniqueAliasesM, Value: x.UnPack() }
+		return &AnyUniqueAliasesT{Type: AnyUniqueAliasesM, Value: x.UnPack()}
 	case AnyUniqueAliasesTS:
 		x := TestSimpleTableWithEnum{_tab: table}
-		return &AnyUniqueAliasesT{ Type: AnyUniqueAliasesTS, Value: x.UnPack() }
+		return &AnyUniqueAliasesT{Type: AnyUniqueAliasesTS, Value: x.UnPack()}
 	case AnyUniqueAliasesM2:
 		x := Monster{_tab: table}
-		return &AnyUniqueAliasesT{ Type: AnyUniqueAliasesM2, Value: x.UnPack() }
+		return &AnyUniqueAliasesT{Type: AnyUniqueAliasesM2, Value: x.UnPack()}
 	}
 	return nil
 }
