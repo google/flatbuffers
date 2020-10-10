@@ -47,9 +47,7 @@ std::string MakeSnakeCase(const std::string &in) {
 // Convert a string to all uppercase.
 std::string MakeUpper(const std::string &in) {
   std::string s;
-  for (size_t i = 0; i < in.length(); i++) {
-    s += CharToUpper(in[i]);
-  }
+  for (size_t i = 0; i < in.length(); i++) { s += CharToUpper(in[i]); }
   return s;
 }
 
@@ -720,8 +718,8 @@ class RustGenerator : public BaseGenerator {
         return field.optional ? "None" : field.value.constant;
       }
       case ftBool: {
-        return field.optional ? "None" :
-          field.value.constant == "0" ? "false" : "true";
+        return field.optional ? "None"
+                              : field.value.constant == "0" ? "false" : "true";
       }
       case ftUnionKey:
       case ftEnumKey: {
@@ -920,9 +918,9 @@ class RustGenerator : public BaseGenerator {
       case ftBool:
       case ftFloat: {
         const auto typname = GetTypeBasic(field.value.type);
-        return (field.optional ?
-                   "self.fbb_.push_slot_always::<" :
-                   "self.fbb_.push_slot::<") + typname + ">";
+        return (field.optional ? "self.fbb_.push_slot_always::<"
+                               : "self.fbb_.push_slot::<") +
+               typname + ">";
       }
       case ftEnumKey:
       case ftUnionKey: {
@@ -1057,7 +1055,7 @@ class RustGenerator : public BaseGenerator {
           const auto default_value = GetDefaultScalarValue(field);
           return "self._tab.get::<" + typname + ">(" + offset_name + ", Some(" +
                  default_value + ")).unwrap()";
-       }
+        }
       }
       case ftStruct: {
         const auto typname = WrapInNameSpace(*type.struct_def);
@@ -1318,22 +1316,16 @@ class RustGenerator : public BaseGenerator {
           nested_root = parser_.LookupStruct(qualified_name);
         }
         FLATBUFFERS_ASSERT(nested_root);  // Guaranteed to exist by parser.
-        (void)nested_root;
 
-        code_.SetValue("OFFSET_NAME",
-                       offset_prefix + "::" + GetFieldOffsetName(field));
+        code_.SetValue("NESTED", WrapInNameSpace(*nested_root));
         code_ +=
             "  pub fn {{FIELD_NAME}}_nested_flatbuffer(&'a self) -> "
-            " Option<{{STRUCT_NAME}}<'a>> {";
-        code_ += "     match self.{{FIELD_NAME}}() {";
-        code_ += "         None => { None }";
-        code_ += "         Some(data) => {";
-        code_ += "             use self::flatbuffers::Follow;";
-        code_ +=
-            "             Some(<flatbuffers::ForwardsUOffset"
-            "<{{STRUCT_NAME}}<'a>>>::follow(data, 0))";
-        code_ += "         },";
-        code_ += "     }";
+            "Option<{{NESTED}}<'a>> {";
+        code_ += "    self.{{FIELD_NAME}}().map(|data| {";
+        code_ += "      use flatbuffers::Follow;";
+        code_ += "      <flatbuffers::ForwardsUOffset<{{NESTED}}<'a>>>"
+            "::follow(data, 0)";
+        code_ += "    })";
         code_ += "  }";
       }
     }

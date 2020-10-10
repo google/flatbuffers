@@ -34,7 +34,7 @@
 #include "namespace_test/namespace_test2_generated.h"
 #include "union_vector/union_vector_generated.h"
 #include "monster_extra_generated.h"
-#include "optional_scalars_generated.h"
+#include "optional_scalars2_generated.h"
 #if !defined(_MSC_VER) || _MSC_VER >= 1700
 #  include "arrays_test_generated.h"
 #  include "evolution_test/evolution_v1_generated.h"
@@ -3476,6 +3476,12 @@ void OptionalScalarsTest() {
   schemas.push_back("table Monster { mana : bool; }");
   schemas.push_back("table Monster { mana : bool = 42; }");
   schemas.push_back("table Monster { mana : bool = null; }");
+  schemas.push_back("enum Enum: int {A=0, B=1} "
+                    "table Monster { mana : Enum; }");
+  schemas.push_back("enum Enum: int {A=0, B=1} "
+                    "table Monster { mana : Enum = B; }");
+  schemas.push_back("enum Enum: int {A=0, B=1} "
+                    "table Monster { mana : Enum = null; }");
 
   // Check the FieldDef is correctly set.
   for (auto schema = schemas.begin(); schema < schemas.end(); schema++) {
@@ -3524,6 +3530,7 @@ void OptionalScalarsTest() {
   TEST_ASSERT(obj.maybe_i8.has_value() && obj.maybe_i8.value() == 3);
   TEST_ASSERT(obj.maybe_i8 && *obj.maybe_i8 == 3);
   obj.maybe_i32 = -1;
+  obj.maybe_enum = optional_scalars::OptionalByte_Two;
 
   fbb.Clear();
   FinishScalarStuffBuffer(fbb, optional_scalars::ScalarStuff::Pack(fbb, &obj));
@@ -3532,6 +3539,7 @@ void OptionalScalarsTest() {
   TEST_EQ(opts->maybe_i8().value(), 3);
   TEST_ASSERT(opts->maybe_i32().has_value());
   TEST_EQ(opts->maybe_i32().value(), -1);
+  TEST_EQ(opts->maybe_enum().value(), optional_scalars::OptionalByte_Two);
   TEST_ASSERT(opts->maybe_i32() == flatbuffers::Optional<int64_t>(-1));
 }
 

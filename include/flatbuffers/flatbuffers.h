@@ -2745,10 +2745,13 @@ inline const char * const *ElementaryTypeNames() {
 // clang-format on
 
 // Basic type info cost just 16bits per field!
+// We're explicitly defining the signedness since the signedness of integer
+// bitfields is otherwise implementation-defined and causes warnings on older
+// GCC compilers.
 struct TypeCode {
-  uint16_t base_type : 4;  // ElementaryType
-  uint16_t is_repeating : 1;  // Either vector (in table) or array (in struct)
-  int16_t sequence_ref : 11;  // Index into type_refs below, or -1 for none.
+  unsigned short base_type : 4;  // ElementaryType
+  unsigned short is_repeating : 1;  // Either vector (in table) or array (in struct)
+  signed short sequence_ref : 11;  // Index into type_refs below, or -1 for none.
 };
 
 static_assert(sizeof(TypeCode) == 2, "TypeCode");

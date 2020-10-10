@@ -15,13 +15,13 @@ namespace MyGame.Example;
 attribute "priority";
 
 /// Composite components of Monster color.
-enum Color:ubyte (bit_flags) { 
+enum Color:ubyte (bit_flags) {
   Red = 0, // color Red = (1u << 0)
   /// \brief color Green
   /// Green is bit_flag with value (1u << 1)
-  Green, 
+  Green,
   /// \brief color Blue (1u << 3)
-  Blue = 3, 
+  Blue = 3,
 }
 
 enum Race:byte {
