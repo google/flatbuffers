@@ -87,6 +87,8 @@ cd ../samples
 cd ../reflection
 call generate_code.bat %1 %2 || goto FAIL
 
+GOPATH=${go_path} go fmt ./...
+
 set EXITCODE=0
 goto SUCCESS
 :FAIL

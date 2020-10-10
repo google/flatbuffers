@@ -93,3 +93,5 @@ cd ../samples
 ../flatc -b --schema --bfbs-comments --bfbs-builtins monster.fbs
 cd ../reflection
 ./generate_code.sh --cpp-std c++0x
+
+GOPATH=${go_path} go fmt ./...
