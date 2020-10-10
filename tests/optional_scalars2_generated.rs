@@ -17,6 +17,69 @@ pub mod optional_scalars {
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
 
+#[allow(non_camel_case_types)]
+#[repr(i8)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+pub enum OptionalByte {
+  None = 0,
+  One = 1,
+  Two = 2,
+
+}
+
+pub const ENUM_MIN_OPTIONAL_BYTE: i8 = 0;
+pub const ENUM_MAX_OPTIONAL_BYTE: i8 = 2;
+
+impl<'a> flatbuffers::Follow<'a> for OptionalByte {
+  type Inner = Self;
+  #[inline]
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    flatbuffers::read_scalar_at::<Self>(buf, loc)
+  }
+}
+
+impl flatbuffers::EndianScalar for OptionalByte {
+  #[inline]
+  fn to_little_endian(self) -> Self {
+    let n = i8::to_le(self as i8);
+    let p = &n as *const i8 as *const OptionalByte;
+    unsafe { *p }
+  }
+  #[inline]
+  fn from_little_endian(self) -> Self {
+    let n = i8::from_le(self as i8);
+    let p = &n as *const i8 as *const OptionalByte;
+    unsafe { *p }
+  }
+}
+
+impl flatbuffers::Push for OptionalByte {
+    type Output = OptionalByte;
+    #[inline]
+    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
+        flatbuffers::emplace_scalar::<OptionalByte>(dst, *self);
+    }
+}
+
+#[allow(non_camel_case_types)]
+pub const ENUM_VALUES_OPTIONAL_BYTE: [OptionalByte; 3] = [
+  OptionalByte::None,
+  OptionalByte::One,
+  OptionalByte::Two
+];
+
+#[allow(non_camel_case_types)]
+pub const ENUM_NAMES_OPTIONAL_BYTE: [&str; 3] = [
+    "None",
+    "One",
+    "Two"
+];
+
+pub fn enum_name_optional_byte(e: OptionalByte) -> &'static str {
+  let index = e as i8;
+  ENUM_NAMES_OPTIONAL_BYTE[index as usize]
+}
+
 pub enum ScalarStuffOffset {}
 #[derive(Copy, Clone, Debug, PartialEq)]
 
@@ -68,6 +131,9 @@ impl<'a> ScalarStuff<'a> {
       builder.add_default_i16(args.default_i16);
       if let Some(x) = args.maybe_i16 { builder.add_maybe_i16(x); }
       builder.add_just_i16(args.just_i16);
+      builder.add_default_enum(args.default_enum);
+      if let Some(x) = args.maybe_enum { builder.add_maybe_enum(x); }
+      builder.add_just_enum(args.just_enum);
       builder.add_default_bool(args.default_bool);
       if let Some(x) = args.maybe_bool { builder.add_maybe_bool(x); }
       builder.add_just_bool(args.just_bool);
@@ -113,6 +179,9 @@ impl<'a> ScalarStuff<'a> {
     pub const VT_JUST_BOOL: flatbuffers::VOffsetT = 64;
     pub const VT_MAYBE_BOOL: flatbuffers::VOffsetT = 66;
     pub const VT_DEFAULT_BOOL: flatbuffers::VOffsetT = 68;
+    pub const VT_JUST_ENUM: flatbuffers::VOffsetT = 70;
+    pub const VT_MAYBE_ENUM: flatbuffers::VOffsetT = 72;
+    pub const VT_DEFAULT_ENUM: flatbuffers::VOffsetT = 74;
 
   #[inline]
   pub fn just_i8(&self) -> i8 {
@@ -246,6 +315,18 @@ impl<'a> ScalarStuff<'a> {
   pub fn default_bool(&self) -> bool {
     self._tab.get::<bool>(ScalarStuff::VT_DEFAULT_BOOL, Some(true)).unwrap()
   }
+  #[inline]
+  pub fn just_enum(&self) -> OptionalByte {
+    self._tab.get::<OptionalByte>(ScalarStuff::VT_JUST_ENUM, Some(OptionalByte::None)).unwrap()
+  }
+  #[inline]
+  pub fn maybe_enum(&self) -> Option<OptionalByte> {
+    self._tab.get::<OptionalByte>(ScalarStuff::VT_MAYBE_ENUM, None)
+  }
+  #[inline]
+  pub fn default_enum(&self) -> OptionalByte {
+    self._tab.get::<OptionalByte>(ScalarStuff::VT_DEFAULT_ENUM, Some(OptionalByte::One)).unwrap()
+  }
 }
 
 pub struct ScalarStuffArgs {
@@ -282,6 +363,9 @@ pub struct ScalarStuffArgs {
     pub just_bool: bool,
     pub maybe_bool: Option<bool>,
     pub default_bool: bool,
+    pub just_enum: OptionalByte,
+    pub maybe_enum: Option<OptionalByte>,
+    pub default_enum: OptionalByte,
 }
 impl<'a> Default for ScalarStuffArgs {
     #[inline]
@@ -320,6 +404,9 @@ impl<'a> Default for ScalarStuffArgs {
             just_bool: false,
             maybe_bool: None,
             default_bool: true,
+            just_enum: OptionalByte::None,
+            maybe_enum: None,
+            default_enum: OptionalByte::One,
         }
     }
 }
@@ -461,6 +548,18 @@ impl<'a: 'b, 'b> ScalarStuffBuilder<'a, 'b> {
     self.fbb_.push_slot::<bool>(ScalarStuff::VT_DEFAULT_BOOL, default_bool, true);
   }
   #[inline]
+  pub fn add_just_enum(&mut self, just_enum: OptionalByte) {
+    self.fbb_.push_slot::<OptionalByte>(ScalarStuff::VT_JUST_ENUM, just_enum, OptionalByte::None);
+  }
+  #[inline]
+  pub fn add_maybe_enum(&mut self, maybe_enum: OptionalByte) {
+    self.fbb_.push_slot_always::<OptionalByte>(ScalarStuff::VT_MAYBE_ENUM, maybe_enum);
+  }
+  #[inline]
+  pub fn add_default_enum(&mut self, default_enum: OptionalByte) {
+    self.fbb_.push_slot::<OptionalByte>(ScalarStuff::VT_DEFAULT_ENUM, default_enum, OptionalByte::One);
+  }
+  #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> ScalarStuffBuilder<'a, 'b> {
     let start = _fbb.start_table();
     ScalarStuffBuilder {
@@ -475,5 +574,40 @@ impl<'a: 'b, 'b> ScalarStuffBuilder<'a, 'b> {
   }
 }
 
+#[inline]
+pub fn get_root_as_scalar_stuff<'a>(buf: &'a [u8]) -> ScalarStuff<'a> {
+  flatbuffers::get_root::<ScalarStuff<'a>>(buf)
+}
+
+#[inline]
+pub fn get_size_prefixed_root_as_scalar_stuff<'a>(buf: &'a [u8]) -> ScalarStuff<'a> {
+  flatbuffers::get_size_prefixed_root::<ScalarStuff<'a>>(buf)
+}
+
+pub const SCALAR_STUFF_IDENTIFIER: &str = "NULL";
+
+#[inline]
+pub fn scalar_stuff_buffer_has_identifier(buf: &[u8]) -> bool {
+  flatbuffers::buffer_has_identifier(buf, SCALAR_STUFF_IDENTIFIER, false)
+}
+
+#[inline]
+pub fn scalar_stuff_size_prefixed_buffer_has_identifier(buf: &[u8]) -> bool {
+  flatbuffers::buffer_has_identifier(buf, SCALAR_STUFF_IDENTIFIER, true)
+}
+
+pub const SCALAR_STUFF_EXTENSION: &str = "mon";
+
+#[inline]
+pub fn finish_scalar_stuff_buffer<'a, 'b>(
+    fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>,
+    root: flatbuffers::WIPOffset<ScalarStuff<'a>>) {
+  fbb.finish(root, Some(SCALAR_STUFF_IDENTIFIER));
+}
+
+#[inline]
+pub fn finish_size_prefixed_scalar_stuff_buffer<'a, 'b>(fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>, root: flatbuffers::WIPOffset<ScalarStuff<'a>>) {
+  fbb.finish_size_prefixed(root, Some(SCALAR_STUFF_IDENTIFIER));
+}
 }  // pub mod optional_scalars
 

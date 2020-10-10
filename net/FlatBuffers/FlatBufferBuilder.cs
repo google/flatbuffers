@@ -206,7 +206,7 @@ namespace FlatBuffers
             _space = _bb.Put(_space, x);
         }
 
-#if ENABLE_SPAN_T
+#if ENABLE_SPAN_T && (UNSAFE_BYTEBUFFER || NETSTANDARD2_1)
         /// <summary>
         /// Puts a span of type T into this builder at the
         /// current offset
@@ -317,7 +317,7 @@ namespace FlatBuffers
             Put(x);
         }
 
-#if ENABLE_SPAN_T
+#if ENABLE_SPAN_T && (UNSAFE_BYTEBUFFER || NETSTANDARD2_1)
         /// <summary>
         /// Add a span of type T to the buffer (aligns the data and grows if necessary).
         /// </summary>
@@ -554,6 +554,10 @@ namespace FlatBuffers
         /// </returns>
         public StringOffset CreateString(string s)
         {
+            if (s == null)
+            {
+                return new StringOffset(0);
+            }
             NotNested();
             AddByte(0);
             var utf8StringLen = Encoding.UTF8.GetByteCount(s);
@@ -563,7 +567,7 @@ namespace FlatBuffers
         }
 
 
-#if ENABLE_SPAN_T
+#if ENABLE_SPAN_T && (UNSAFE_BYTEBUFFER || NETSTANDARD2_1)
         /// <summary>
         /// Creates a string in the buffer from a Span containing
         /// a UTF8 string.
@@ -594,6 +598,11 @@ namespace FlatBuffers
         /// </returns>
         public StringOffset CreateSharedString(string s)
         {
+            if (s == null)
+            {
+              return new StringOffset(0);
+            }
+
             if (_sharedStringMap == null)
             {
                 _sharedStringMap = new Dictionary<string, StringOffset>();

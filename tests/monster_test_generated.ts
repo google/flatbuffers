@@ -210,6 +210,14 @@ static createInParentNamespace(builder:flatbuffers.Builder):flatbuffers.Offset {
   return InParentNamespace.endInParentNamespace(builder);
 }
 
+serialize():Uint8Array {
+  return this.bb!.bytes();
+}
+
+static deserialize(buffer: Uint8Array):InParentNamespace {
+  return InParentNamespace.getRootAsInParentNamespace(new flatbuffers.ByteBuffer(buffer))
+}
+
 /**
  * @returns InParentNamespaceT
  */
@@ -297,6 +305,14 @@ static createMonster(builder:flatbuffers.Builder):flatbuffers.Offset {
   return Monster.endMonster(builder);
 }
 
+serialize():Uint8Array {
+  return this.bb!.bytes();
+}
+
+static deserialize(buffer: Uint8Array):Monster {
+  return Monster.getRootAsMonster(new flatbuffers.ByteBuffer(buffer))
+}
+
 /**
  * @returns MonsterT
  */
@@ -375,6 +391,13 @@ mutate_b(value:number):boolean {
   this.bb!.writeInt8(this.bb_pos + 2, value);
   return true;
 };
+
+/**
+ * @returns number
+ */
+static sizeOf():number {
+  return 4;
+}
 
 /**
  * @param flatbuffers.Builder builder
@@ -524,6 +547,14 @@ static createTestSimpleTableWithEnum(builder:flatbuffers.Builder, color:MyGame.E
   return TestSimpleTableWithEnum.endTestSimpleTableWithEnum(builder);
 }
 
+serialize():Uint8Array {
+  return this.bb!.bytes();
+}
+
+static deserialize(buffer: Uint8Array):TestSimpleTableWithEnum {
+  return TestSimpleTableWithEnum.getRootAsTestSimpleTableWithEnum(new flatbuffers.ByteBuffer(buffer))
+}
+
 /**
  * @returns TestSimpleTableWithEnumT
  */
@@ -669,6 +700,13 @@ test3(obj?:MyGame.Example.Test):MyGame.Example.Test|null {
 };
 
 /**
+ * @returns number
+ */
+static sizeOf():number {
+  return 32;
+}
+
+/**
  * @param flatbuffers.Builder builder
  * @param number x
  * @param number y
@@ -810,6 +848,13 @@ mutate_distance(value:number):boolean {
   this.bb!.writeUint32(this.bb_pos + 4, value);
   return true;
 };
+
+/**
+ * @returns number
+ */
+static sizeOf():number {
+  return 8;
+}
 
 /**
  * @param flatbuffers.Builder builder
@@ -1010,6 +1055,14 @@ static createStat(builder:flatbuffers.Builder, idOffset:flatbuffers.Offset, val:
   return Stat.endStat(builder);
 }
 
+serialize():Uint8Array {
+  return this.bb!.bytes();
+}
+
+static deserialize(buffer: Uint8Array):Stat {
+  return Stat.getRootAsStat(new flatbuffers.ByteBuffer(buffer))
+}
+
 /**
  * @returns StatT
  */
@@ -1148,6 +1201,14 @@ static createReferrable(builder:flatbuffers.Builder, id:flatbuffers.Long):flatbu
   Referrable.startReferrable(builder);
   Referrable.addId(builder, id);
   return Referrable.endReferrable(builder);
+}
+
+serialize():Uint8Array {
+  return this.bb!.bytes();
+}
+
+static deserialize(buffer: Uint8Array):Referrable {
+  return Referrable.getRootAsReferrable(new flatbuffers.ByteBuffer(buffer))
 }
 
 /**
@@ -2901,6 +2962,14 @@ static finishSizePrefixedMonsterBuffer(builder:flatbuffers.Builder, offset:flatb
 };
 
 
+serialize():Uint8Array {
+  return this.bb!.bytes();
+}
+
+static deserialize(buffer: Uint8Array):Monster {
+  return Monster.getRootAsMonster(new flatbuffers.ByteBuffer(buffer))
+}
+
 /**
  * @returns MonsterT
  */
@@ -3718,6 +3787,14 @@ static createTypeAliases(builder:flatbuffers.Builder, i8:number, u8:number, i16:
   TypeAliases.addV8(builder, v8Offset);
   TypeAliases.addVf64(builder, vf64Offset);
   return TypeAliases.endTypeAliases(builder);
+}
+
+serialize():Uint8Array {
+  return this.bb!.bytes();
+}
+
+static deserialize(buffer: Uint8Array):TypeAliases {
+  return TypeAliases.getRootAsTypeAliases(new flatbuffers.ByteBuffer(buffer))
 }
 
 /**

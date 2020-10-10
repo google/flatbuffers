@@ -14,7 +14,7 @@ public struct HelloReply: FlatBufferObject {
     private init(_ t: Table) { _accessor = t }
     public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
-    enum VTOFFSET: VOffset {
+    private enum VTOFFSET: VOffset {
         case message = 4
         var v: Int32 { Int32(self.rawValue) }
         var p: VOffset { self.rawValue }
@@ -23,7 +23,7 @@ public struct HelloReply: FlatBufferObject {
     public var message: String? { let o = _accessor.offset(VTOFFSET.message.v); return o == 0 ? nil : _accessor.string(at: o) }
     public var messageSegmentArray: [UInt8]? { return _accessor.getVector(at: VTOFFSET.message.v) }
     public static func startHelloReply(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
-    public static func add(message: Offset<String>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: message, at: VTOFFSET.message.p)  }
+    public static func add(message: Offset<String>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: message, at: VTOFFSET.message.p) }
     public static func endHelloReply(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
     public static func createHelloReply(
         _ fbb: inout FlatBufferBuilder,
@@ -46,7 +46,7 @@ public struct HelloRequest: FlatBufferObject {
     private init(_ t: Table) { _accessor = t }
     public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
-    enum VTOFFSET: VOffset {
+    private enum VTOFFSET: VOffset {
         case name = 4
         var v: Int32 { Int32(self.rawValue) }
         var p: VOffset { self.rawValue }
@@ -55,7 +55,7 @@ public struct HelloRequest: FlatBufferObject {
     public var name: String? { let o = _accessor.offset(VTOFFSET.name.v); return o == 0 ? nil : _accessor.string(at: o) }
     public var nameSegmentArray: [UInt8]? { return _accessor.getVector(at: VTOFFSET.name.v) }
     public static func startHelloRequest(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
-    public static func add(name: Offset<String>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: name, at: VTOFFSET.name.p)  }
+    public static func add(name: Offset<String>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: name, at: VTOFFSET.name.p) }
     public static func endHelloRequest(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
     public static func createHelloRequest(
         _ fbb: inout FlatBufferBuilder,
@@ -78,7 +78,7 @@ public struct ManyHellosRequest: FlatBufferObject {
     private init(_ t: Table) { _accessor = t }
     public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
-    enum VTOFFSET: VOffset {
+    private enum VTOFFSET: VOffset {
         case name = 4
         case numGreetings = 6
         var v: Int32 { Int32(self.rawValue) }
@@ -89,7 +89,7 @@ public struct ManyHellosRequest: FlatBufferObject {
     public var nameSegmentArray: [UInt8]? { return _accessor.getVector(at: VTOFFSET.name.v) }
     public var numGreetings: Int32 { let o = _accessor.offset(VTOFFSET.numGreetings.v); return o == 0 ? 0 : _accessor.readBuffer(of: Int32.self, at: o) }
     public static func startManyHellosRequest(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 2) }
-    public static func add(name: Offset<String>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: name, at: VTOFFSET.name.p)  }
+    public static func add(name: Offset<String>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: name, at: VTOFFSET.name.p) }
     public static func add(numGreetings: Int32, _ fbb: inout FlatBufferBuilder) { fbb.add(element: numGreetings, def: 0, at: VTOFFSET.numGreetings.p) }
     public static func endManyHellosRequest(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
     public static func createManyHellosRequest(

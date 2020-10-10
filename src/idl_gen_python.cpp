@@ -94,7 +94,7 @@ class PythonGenerator : public BaseGenerator {
   // Converts the name of a definition into lower Camel format.
   std::string MakeLowerCamel(const Definition &definition) const {
     auto name = MakeCamel(NormalizedName(definition), false);
-    name[0] = char(tolower(name[0]));
+    name[0] = CharToLower(name[0]);
     return name;
   }
 
@@ -621,6 +621,16 @@ class PythonGenerator : public BaseGenerator {
     }
   }
 
+  // Generate struct sizeof.
+  void GenStructSizeOf(const StructDef &struct_def, std::string *code_ptr) {
+    auto &code = *code_ptr;
+    code += Indent + "@classmethod\n";
+    code += Indent + "def SizeOf(cls):\n";
+    code +=
+        Indent + Indent + "return " + NumToString(struct_def.bytesize) + "\n";
+    code += "\n";
+  }
+
   // Generate table constructors, conditioned on its members' types.
   void GenTableBuilders(const StructDef &struct_def, std::string *code_ptr) {
     GetStartOfTable(struct_def, code_ptr);
@@ -678,6 +688,9 @@ class PythonGenerator : public BaseGenerator {
         // Generate a special function to test file_identifier
         GenHasFileIdentifier(struct_def, code_ptr);
       }
+    } else {
+      // Generates the SizeOf method for all structs.
+      GenStructSizeOf(struct_def, code_ptr);
     }
     // Generates the Init method that sets the field in a pre-existing
     // accessor object. This is to allow object reuse.
@@ -1000,7 +1013,7 @@ class PythonGenerator : public BaseGenerator {
 
     auto field_type_name = TypeName(field);
     auto one_instance = field_type_name + "_";
-    one_instance[0] = char(tolower(one_instance[0]));
+    one_instance[0] = CharToLower(one_instance[0]);
 
     if (parser_.opts.include_dependence_headers) {
       auto package_reference = GenPackageReference(field.value.type);

@@ -121,16 +121,16 @@ class DartGenerator : public BaseGenerator {
 
     auto ret = sstream.str() + ns.components.back();
     for (size_t i = 0; i < ret.size(); i++) {
-      auto lower = tolower(ret[i]);
+      auto lower = CharToLower(ret[i]);
       if (lower != ret[i]) {
-        ret[i] = static_cast<char>(lower);
+        ret[i] = lower;
         if (i != 0 && ret[i - 1] != '.') {
           ret.insert(i, "_");
           i++;
         }
       }
     }
-    // std::transform(ret.begin(), ret.end(), ret.begin(), ::tolower);
+    // std::transform(ret.begin(), ret.end(), ret.begin(), CharToLower);
     return ret;
   }
 
@@ -486,12 +486,11 @@ class DartGenerator : public BaseGenerator {
       auto &part = *it;
 
       for (size_t i = 0; i < part.length(); i++) {
-        if (i && !isdigit(part[i]) &&
-            part[i] == static_cast<char>(toupper(part[i]))) {
+        if (i && !isdigit(part[i]) && part[i] == CharToUpper(part[i])) {
           ns += "_";
-          ns += static_cast<char>(tolower(part[i]));
+          ns += CharToLower(part[i]);
         } else {
-          ns += static_cast<char>(tolower(part[i]));
+          ns += CharToLower(part[i]);
         }
       }
       if (it != qualified_name_parts.end() - 1) { ns += "_"; }

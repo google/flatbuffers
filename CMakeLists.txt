@@ -124,6 +124,8 @@ set(FlatBuffers_Compiler_SRCS
   grpc/src/compiler/python_generator.cc
   grpc/src/compiler/swift_generator.h
   grpc/src/compiler/swift_generator.cc
+  grpc/src/compiler/ts_generator.h
+  grpc/src/compiler/ts_generator.cc
 )
 
 set(FlatHash_SRCS
@@ -158,6 +160,8 @@ set(FlatBuffers_Tests_SRCS
   ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_extra_generated.h
   # file generate by running compiler on tests/monster_test.fbs
   ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_test_bfbs_generated.h
+  # file generate by running compiler on tests/optional_scalars.fbs
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/optional_scalars_generated.h
 )
 
 set(FlatBuffers_Tests_CPP17_SRCS
@@ -168,6 +172,8 @@ set(FlatBuffers_Tests_CPP17_SRCS
   # file generate by running compiler on tests/monster_test.fbs
   ${CMAKE_CURRENT_BINARY_DIR}/tests/cpp17/generated_cpp17/monster_test_generated.h
   ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_test_generated.h
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/cpp17/generated_cpp17/optional_scalars_generated.h
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/optional_scalars_generated.h
 )
 
 set(FlatBuffers_Sample_Binary_SRCS
@@ -273,6 +279,9 @@ elseif(MSVC)
   # warning C4512: assignment operator could not be generated
   # warning C4316: object allocated on the heap may not be aligned
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /WX /wd4512 /wd4316")
+
+  # multi-core build.
+  add_definitions("/MP")
 endif()
 
 if(FLATBUFFERS_CODE_COVERAGE)
@@ -471,6 +480,7 @@ if(FLATBUFFERS_BUILD_TESTS)
   compile_flatbuffers_schema_to_cpp(tests/namespace_test/namespace_test1.fbs)
   compile_flatbuffers_schema_to_cpp(tests/namespace_test/namespace_test2.fbs)
   compile_flatbuffers_schema_to_cpp(tests/union_vector/union_vector.fbs)
+  compile_flatbuffers_schema_to_cpp(tests/optional_scalars.fbs)
   compile_flatbuffers_schema_to_cpp_opt(tests/native_type_test.fbs "")
   compile_flatbuffers_schema_to_cpp_opt(tests/arrays_test.fbs "--scoped-enums;--gen-compare")
   compile_flatbuffers_schema_to_binary(tests/arrays_test.fbs)
