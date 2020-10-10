@@ -178,7 +178,7 @@ std::string AddUnwrapIfRequired(std::string s, bool required) {
 }
 
 bool IsBitFlagsEnum(const EnumDef &enum_def) {
-  return enum_def.attributes.Lookup("bit_flags");
+  return static_cast<bool>(enum_def.attributes.Lookup("bit_flags"));
 }
 bool IsBitFlagsEnum(const FieldDef &field) {
   EnumDef* ed = field.value.type.enum_def;
@@ -548,10 +548,11 @@ class RustGenerator : public BaseGenerator {
     }
   }
   void ForAllEnumValues(const EnumDef &enum_def, std::function<void()> cb) {
-      ForAllEnumValues(enum_def, [&](const EnumVal& unused) {
+      std::function<void(const EnumVal&)> wrapped = [&](const EnumVal& unused) {
         (void) unused;
         cb();
-      });
+      };
+      ForAllEnumValues(enum_def, wrapped);
   }
   // Generate an enum declaration,
   // an enum string lookup table,
