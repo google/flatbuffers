@@ -176,7 +176,7 @@ std::string AddUnwrapIfRequired(std::string s, bool required) {
 }
 
 bool IsBitFlagsEnum(const EnumDef &enum_def) {
-  return static_cast<bool>(enum_def.attributes.Lookup("bit_flags"));
+  return enum_def.attributes.Lookup("bit_flags") != nullptr;
 }
 bool IsBitFlagsEnum(const FieldDef &field) {
   EnumDef* ed = field.value.type.enum_def;
@@ -534,8 +534,8 @@ class RustGenerator : public BaseGenerator {
     return Name(enum_def) + "::" + val;
   }
 
-
-  void ForAllEnumValues(const EnumDef &enum_def,
+  // 1 suffix since old C++ can't figure out the overload.
+  void ForAllEnumValues1(const EnumDef &enum_def,
                         std::function<void(const EnumVal&)> cb) {
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       const auto &ev = **it;
@@ -550,7 +550,7 @@ class RustGenerator : public BaseGenerator {
         (void) unused;
         cb();
       };
-      ForAllEnumValues(enum_def, wrapped);
+      ForAllEnumValues1(enum_def, wrapped);
   }
   // Generate an enum declaration,
   // an enum string lookup table,
@@ -622,7 +622,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "  pub const ENUM_MIN: {{BASE_TYPE}} = {{ENUM_MIN_BASE_VALUE}};";
     code_ += "  pub const ENUM_MAX: {{BASE_TYPE}} = {{ENUM_MAX_BASE_VALUE}};";
 
-    ForAllEnumValues(enum_def, [&](const EnumVal &ev){
+    ForAllEnumValues1(enum_def, [&](const EnumVal &ev){
       GenComment(ev.doc_comment, "  ");
       code_ += "  pub const {{VARIANT}}: Self = Self({{VALUE}});";
     });
