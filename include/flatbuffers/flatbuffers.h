@@ -933,7 +933,7 @@ class vector_downward {
   Allocator *get_custom_allocator() { return allocator_; }
 
   uoffset_t size() const {
-    return static_cast<uoffset_t>(reserved_ - (cur_ - buf_));
+    return static_cast<uoffset_t>(reserved_ - static_cast<size_t>(cur_ - buf_));
   }
 
   uoffset_t scratch_size() const {
