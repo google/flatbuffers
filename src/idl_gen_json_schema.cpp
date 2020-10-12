@@ -240,8 +240,7 @@ class JsonSchemaGenerator : public BaseGenerator {
     return SaveFile(file_path.c_str(), code_, false);
   }
 
-  const std::string getJson()
-  { 
+  const std::string getJson() {
     return code_;
   }
 };
