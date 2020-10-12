@@ -623,7 +623,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "  pub const ENUM_MAX: {{BASE_TYPE}} = {{ENUM_MAX_BASE_VALUE}};";
 
     ForAllEnumValues1(enum_def, [&](const EnumVal &ev){
-      GenComment(ev.doc_comment, "  ");
+      this->GenComment(ev.doc_comment, "  ");
       code_ += "  pub const {{VARIANT}}: Self = Self({{VALUE}});";
     });
     code_ += "  pub const ENUM_VALUES: &'static [Self] = &[";
