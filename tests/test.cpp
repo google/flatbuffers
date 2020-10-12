@@ -3214,6 +3214,89 @@ void CreateSharedStringTest() {
   TEST_EQ((*a[6]) < (*a[5]), true);
 }
 
+#if !defined(FLATBUFFERS_SPAN_MINIMAL)
+void FlatbuffersSpanTest() {
+  // Compile-time checking of non-const [] to const [] conversions.
+  using flatbuffers::internal::is_span_convertable;
+  (void)is_span_convertable<int, 1, int, 1>::type(123);
+  (void)is_span_convertable<const int, 1, int, 1>::type(123);
+  (void)is_span_convertable<const int64_t, 1, int64_t, 1>::type(123);
+  (void)is_span_convertable<const uint64_t, 1, uint64_t, 1>::type(123);
+  (void)is_span_convertable<const int, 1, const int, 1>::type(123);
+  (void)is_span_convertable<const int64_t, 1, const int64_t, 1>::type(123);
+  (void)is_span_convertable<const uint64_t, 1, const uint64_t, 1>::type(123);
+
+  using flatbuffers::span;
+  span<char, 0> c1;
+  TEST_EQ(c1.size(), 0);
+  span<char, flatbuffers::dynamic_extent> c2;
+  TEST_EQ(c2.size(), 0);
+  span<char> c3;
+  TEST_EQ(c3.size(), 0);
+  TEST_ASSERT(c1.empty() && c2.empty() && c3.empty());
+
+  int i_data7[7] = { 0, 1, 2, 3, 4, 5, 6 };
+  span<int, 7> i1(&i_data7[0], 7);
+  span<int> i2(i1);  // make dynamic from static
+  TEST_EQ(i1.size(), 7);
+  TEST_EQ(i1.empty(), false);
+  TEST_EQ(i1.size(), i2.size());
+  TEST_EQ(i1.data(), i_data7);
+  TEST_EQ(i1[2], 2);
+  // Make const span from a non-const one.
+  span<const int, 7> i3(i1);
+  // Construct from a C-array.
+  span<int, 7> i4(i_data7);
+  span<const int, 7> i5(i_data7);
+  span<int> i6(i_data7);
+  span<const int> i7(i_data7);
+  TEST_EQ(i7.size(), 7);
+  // Check construction from a const array.
+  const int i_cdata5[5] = { 4, 3, 2, 1, 0 };
+  span<const int, 5> i8(i_cdata5);
+  span<const int> i9(i_cdata5);
+  TEST_EQ(i9.size(), 5);
+  // Construction from a (ptr, size) pair.
+  span<int, 7> i10(i_data7, 7);
+  span<int> i11(i_data7, 7);
+  TEST_EQ(i11.size(), 7);
+  span<const int, 5> i12(i_cdata5, 5);
+  span<const int> i13(i_cdata5, 5);
+  TEST_EQ(i13.size(), 5);
+  // Construction from std::array.
+  std::array<int, 6> i_arr6 = { { 0, 1, 2, 3, 4, 5 } };
+  span<int, 6> i14(i_arr6);
+  span<const int, 6> i15(i_arr6);
+  span<int> i16(i_arr6);
+  span<const int> i17(i_arr6);
+  TEST_EQ(i17.size(), 6);
+  const std::array<int, 8> i_carr8 = { { 0, 1, 2, 3, 4, 5, 6, 7 } };
+  span<const int, 8> i18(i_carr8);
+  span<const int> i19(i_carr8);
+  TEST_EQ(i18.size(), 8);
+  TEST_EQ(i19.size(), 8);
+  TEST_EQ(i19[7], 7);
+  // Check compatibility with flatbuffers::Array.
+  int fbs_int3_underlaying[3] = { 0 };
+  int fbs_int3_data[3] = { 1, 2, 3 };
+  auto &fbs_int3 = flatbuffers::CastToArray(fbs_int3_underlaying);
+  fbs_int3.CopyFromSpan(fbs_int3_data);
+  TEST_EQ(fbs_int3.Get(1), 2);
+  const int fbs_cint3_data[3] = { 2, 3, 4 };
+  fbs_int3.CopyFromSpan(fbs_cint3_data);
+  TEST_EQ(fbs_int3.Get(1), 3);
+  // Check with Array<Enum, N>
+  enum class Dummy : uint16_t { Zero = 0, One, Two };
+  Dummy fbs_dummy3_underlaying[3] = {};
+  Dummy fbs_dummy3_data[3] = { Dummy::One, Dummy::Two, Dummy::Two };
+  auto &fbs_dummy3 = flatbuffers::CastToArray(fbs_dummy3_underlaying);
+  fbs_dummy3.CopyFromSpan(fbs_dummy3_data);
+  TEST_EQ(fbs_dummy3.Get(1), Dummy::Two);
+}
+#else
+void FlatbuffersSpanTest() {}
+#endif
+
 void FixedLengthArrayTest() {
   // VS10 does not support typed enums, exclude from tests
 #if !defined(_MSC_VER) || _MSC_VER >= 1700
@@ -3321,6 +3404,57 @@ void FixedLengthArrayTest() {
   }
 #endif
 }
+
+#if !defined(FLATBUFFERS_SPAN_MINIMAL) && (!defined(_MSC_VER) || _MSC_VER >= 1700)
+void FixedLengthArrayConstructorTest() {
+  const int32_t nested_a[2] = { 1, 2 };
+  MyGame::Example::TestEnum nested_c[2] = { MyGame::Example::TestEnum::A,
+                                            MyGame::Example::TestEnum::B };
+  const int64_t int64_2[2] = { -2, -1 };
+
+  std::array<MyGame::Example::NestedStruct, 2> init_d = {
+    { MyGame::Example::NestedStruct(nested_a, MyGame::Example::TestEnum::B,
+                                    nested_c, int64_2),
+      MyGame::Example::NestedStruct(nested_a, MyGame::Example::TestEnum::A,
+                                    nested_c,
+                                    std::array<int64_t, 2>{ { 12, 13 } }) }
+  };
+
+  MyGame::Example::ArrayStruct arr_struct(
+      8.125,
+      std::array<int32_t, 0xF>{
+          { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 } },
+      -17, init_d, 10, int64_2);
+  TEST_EQ(arr_struct.a(), 8.125);
+  TEST_EQ(arr_struct.b()->Get(2), 3);
+  TEST_EQ(arr_struct.c(), -17);
+
+  TEST_NOTNULL(arr_struct.d());
+  const auto &arr_d_0 = *arr_struct.d()->Get(0);
+  TEST_EQ(arr_d_0.a()->Get(0), 1);
+  TEST_EQ(arr_d_0.a()->Get(1), 2);
+  TEST_EQ(arr_d_0.b(), MyGame::Example::TestEnum::B);
+  TEST_EQ(arr_d_0.c()->Get(0), MyGame::Example::TestEnum::A);
+  TEST_EQ(arr_d_0.c()->Get(1), MyGame::Example::TestEnum::B);
+  TEST_EQ(arr_d_0.d()->Get(0), -2);
+  TEST_EQ(arr_d_0.d()->Get(1), -1);
+  const auto &arr_d_1 = *arr_struct.d()->Get(1);
+  TEST_EQ(arr_d_1.a()->Get(0), 1);
+  TEST_EQ(arr_d_1.a()->Get(1), 2);
+  TEST_EQ(arr_d_1.b(), MyGame::Example::TestEnum::A);
+  TEST_EQ(arr_d_1.c()->Get(0), MyGame::Example::TestEnum::A);
+  TEST_EQ(arr_d_1.c()->Get(1), MyGame::Example::TestEnum::B);
+  TEST_EQ(arr_d_1.d()->Get(0), 12);
+  TEST_EQ(arr_d_1.d()->Get(1), 13);
+
+  TEST_EQ(arr_struct.e(), 10);
+  TEST_EQ(arr_struct.f()->Get(0), -2);
+  TEST_EQ(arr_struct.f()->Get(1), -1);
+}
+#else
+void FixedLengthArrayConstructorTest() {
+}
+#endif
 
 void NativeTypeTest() {
   const int N = 3;
@@ -3666,6 +3800,8 @@ int FlatBufferTests() {
   NativeTypeTest();
   OptionalScalarsTest();
   ParseFlexbuffersFromJsonWithNullTest();
+  FlatbuffersSpanTest();
+  FixedLengthArrayConstructorTest();
   return 0;
 }
 

@@ -177,10 +177,9 @@ namespace flatbuffers {
   #define FLATBUFFERS_CONSTEXPR_CPP11
 #endif
 
-// This macro is never used in code!
 #if (defined(__cplusplus) && __cplusplus >= 201402L) || \
     (defined(__cpp_constexpr) && __cpp_constexpr >= 201304)
-  #define FLATBUFFERS_CONSTEXPR_CPP14 FLATBUFFERS_CONSTEXPR
+  #define FLATBUFFERS_CONSTEXPR_CPP14 FLATBUFFERS_CONSTEXPR_CPP11
 #else
   #define FLATBUFFERS_CONSTEXPR_CPP14
 #endif
