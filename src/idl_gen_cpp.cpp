@@ -2398,7 +2398,7 @@ class CppGenerator : public BaseGenerator {
     }
 
     // Generate a CreateXDirect function with vector types as parameters
-    if (has_string_or_vector_fields) {
+    if (opts_.cpp_direct_copy && has_string_or_vector_fields) {
       code_ +=
           "inline flatbuffers::Offset<{{STRUCT_NAME}}> "
           "Create{{STRUCT_NAME}}Direct(";
