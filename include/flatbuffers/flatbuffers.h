@@ -169,7 +169,8 @@ template<typename T, typename IT> struct VectorIterator {
   }
 
   difference_type operator-(const VectorIterator &other) const {
-    return (data_ - other.data_) / IndirectHelper<T>::element_stride;
+    return (data_ - other.data_) /
+           static_cast<difference_type>(IndirectHelper<T>::element_stride);
   }
 
   IT operator*() const { return IndirectHelper<T>::Read(data_, 0); }
@@ -187,13 +188,16 @@ template<typename T, typename IT> struct VectorIterator {
     return temp;
   }
 
-  VectorIterator operator+(const uoffset_t &offset) const {
-    return VectorIterator(data_ + offset * IndirectHelper<T>::element_stride,
-                          0);
+  VectorIterator operator+(const difference_type &offset) const {
+    return VectorIterator(
+        data_ + offset * static_cast<difference_type>(
+                             IndirectHelper<T>::element_stride),
+        0);
   }
 
-  VectorIterator &operator+=(const uoffset_t &offset) {
-    data_ += offset * IndirectHelper<T>::element_stride;
+  VectorIterator &operator+=(const difference_type &offset) {
+    data_ += offset *
+             static_cast<difference_type>(IndirectHelper<T>::element_stride);
     return *this;
   }
 
@@ -208,13 +212,16 @@ template<typename T, typename IT> struct VectorIterator {
     return temp;
   }
 
-  VectorIterator operator-(const uoffset_t &offset) const {
-    return VectorIterator(data_ - offset * IndirectHelper<T>::element_stride,
-                          0);
+  VectorIterator operator-(const difference_type &offset) const {
+    return VectorIterator(
+        data_ - offset * static_cast<difference_type>(
+                             IndirectHelper<T>::element_stride),
+        0);
   }
 
-  VectorIterator &operator-=(const uoffset_t &offset) {
-    data_ -= offset * IndirectHelper<T>::element_stride;
+  VectorIterator &operator-=(const difference_type &offset) {
+    data_ -= offset *
+             static_cast<difference_type>(IndirectHelper<T>::element_stride);
     return *this;
   }
 
