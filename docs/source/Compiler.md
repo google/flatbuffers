@@ -137,6 +137,9 @@ Additional options:
     std::string from Flatbuffers, but (char* + length). This allows efficient
 	construction of custom string types, including zero-copy construction.
 
+-   `--no-cpp-direct-copy` : Don't generate direct copy methods for C++
+    object-based API.
+
 -   `--cpp-std CPP_STD` : Generate a C++ code using features of selected C++ standard.
      Supported `CPP_STD` values:
     * `c++0x` - generate code compatible with old compilers (VS2010).
