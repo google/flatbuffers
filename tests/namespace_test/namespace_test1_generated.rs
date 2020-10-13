@@ -27,6 +27,7 @@ pub mod namespace_b {
   use self::flatbuffers::EndianScalar;
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
 pub struct EnumInNestedNS(pub i8);
 #[allow(non_upper_case_globals)]
 impl EnumInNestedNS {

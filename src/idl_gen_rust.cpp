@@ -616,6 +616,7 @@ class RustGenerator : public BaseGenerator {
     GenComment(enum_def.doc_comment);
     code_ +=
         "#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]";
+    code_ += "#[repr(transparent)]";
     code_ += "pub struct {{ENUM_NAME}}(pub {{BASE_TYPE}});";
     code_ += "#[allow(non_upper_case_globals)]";
     code_ += "impl {{ENUM_NAME}} {";

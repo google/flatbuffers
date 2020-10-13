@@ -19,6 +19,7 @@ pub mod optional_scalars {
   use self::flatbuffers::EndianScalar;
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
 pub struct OptionalByte(pub i8);
 #[allow(non_upper_case_globals)]
 impl OptionalByte {

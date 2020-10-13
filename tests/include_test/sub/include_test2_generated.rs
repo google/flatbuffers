@@ -30,6 +30,7 @@ pub mod other_name_space {
   use self::flatbuffers::EndianScalar;
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
 pub struct FromInclude(pub i64);
 #[allow(non_upper_case_globals)]
 impl FromInclude {

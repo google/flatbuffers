@@ -217,6 +217,7 @@ impl flatbuffers::EndianScalar for Color {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
 pub struct Race(pub i8);
 #[allow(non_upper_case_globals)]
 impl Race {
@@ -288,6 +289,7 @@ pub const ENUM_VALUES_RACE: [Race; 4] = [
 ];
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
 pub struct Any(pub u8);
 #[allow(non_upper_case_globals)]
 impl Any {
@@ -360,6 +362,7 @@ pub const ENUM_VALUES_ANY: [Any; 4] = [
 
 pub struct AnyUnionTableOffset {}
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
 pub struct AnyUniqueAliases(pub u8);
 #[allow(non_upper_case_globals)]
 impl AnyUniqueAliases {
@@ -432,6 +435,7 @@ pub const ENUM_VALUES_ANY_UNIQUE_ALIASES: [AnyUniqueAliases; 4] = [
 
 pub struct AnyUniqueAliasesUnionTableOffset {}
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
 pub struct AnyAmbiguousAliases(pub u8);
 #[allow(non_upper_case_globals)]
 impl AnyAmbiguousAliases {
