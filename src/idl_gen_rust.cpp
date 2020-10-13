@@ -239,17 +239,9 @@ class RustGenerator : public BaseGenerator {
 
     assert(!cur_name_space_);
 
-    bool import_bitflags = false;
-    for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
-            ++it) {
-        if (IsBitFlagsEnum(**it)) {
-            import_bitflags = true;
-            break;
-        }
-    }
     // Generate imports for the global scope in case no namespace is used
     // in the schema file.
-    GenNamespaceImports(0, import_bitflags);
+    GenNamespaceImports(0);
     code_ += "";
 
     // Generate all code in their namespaces, once, because Rust does not
@@ -569,7 +561,7 @@ class RustGenerator : public BaseGenerator {
 
     if (IsBitFlagsEnum(enum_def)) {
       // Defer to the convenient and canonical bitflags crate.
-      code_ += "bitflags::bitflags! {";
+      code_ += "flatbuffers::bitflags::bitflags! {";
       GenComment(enum_def.doc_comment);
       code_ += "  pub struct {{ENUM_NAME}}: {{BASE_TYPE}} {";
       ForAllEnumValues(enum_def, [&](){
@@ -1813,7 +1805,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
   }
 
-  void GenNamespaceImports(const int white_spaces, bool bitflags=false) {
+  void GenNamespaceImports(const int white_spaces) {
     if (white_spaces == 0) {
       code_ += "#![allow(unused_imports, dead_code)]";
     }
@@ -1834,7 +1826,6 @@ class RustGenerator : public BaseGenerator {
     code_ += indent + "use std::cmp::Ordering;";
     code_ += "";
     code_ += indent + "extern crate flatbuffers;";
-    if (bitflags) code_ += indent + "extern crate bitflags;";
     code_ += indent + "use self::flatbuffers::EndianScalar;";
   }
 

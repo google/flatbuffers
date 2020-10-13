@@ -25,7 +25,6 @@ extern crate serde;
 extern crate serde_derive;
 #[macro_use]
 extern crate quickcheck_derive;
-extern crate bitflags;
 
 mod flexbuffers_tests;
 mod optional_scalars_test;

@@ -9,7 +9,6 @@ use std::mem;
 use std::cmp::Ordering;
 
 extern crate flatbuffers;
-extern crate bitflags;
 use self::flatbuffers::EndianScalar;
 
 #[allow(unused_imports, dead_code)]
@@ -177,7 +176,7 @@ pub mod example {
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
 
-bitflags::bitflags! {
+flatbuffers::bitflags::bitflags! {
 /// Composite components of Monster color.
   pub struct Color: u8 {
     const RED = 1;
