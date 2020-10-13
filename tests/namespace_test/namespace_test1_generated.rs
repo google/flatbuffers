@@ -41,22 +41,21 @@ impl EnumInNestedNS {
     Self::C,
   ];
   /// Returns the variant's name or "" if unknown.
-  pub fn variant_name(self) -> &'static str {
+  pub fn variant_name(self) -> Option<&'static str> {
     match self {
-      Self::A => "A",
-      Self::B => "B",
-      Self::C => "C",
-      _ => "",
+      Self::A => Some("A"),
+      Self::B => Some("B"),
+      Self::C => Some("C"),
+      _ => None,
     }
   }
 }
 impl std::fmt::Debug for EnumInNestedNS {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-    let name = self.variant_name();
-    if name.is_empty() {
-      f.write_fmt(format_args!("<UNKNOWN {:?}>", self.0))
-    } else {
+    if let Some(name) = self.variant_name() {
       f.write_str(name)
+    } else {
+      f.write_fmt(format_args!("<UNKNOWN {:?}>", self.0))
     }
   }
 }

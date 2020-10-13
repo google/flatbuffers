@@ -632,12 +632,12 @@ class RustGenerator : public BaseGenerator {
     });
     code_ += "  ];";
     code_ += "  /// Returns the variant's name or \"\" if unknown.";
-    code_ += "  pub fn variant_name(self) -> &'static str {";
+    code_ += "  pub fn variant_name(self) -> Option<&'static str> {";
     code_ += "    match self {";
     ForAllEnumValues(enum_def, [&](){
-      code_ += "      Self::{{VARIANT}} => \"{{VARIANT}}\",";
+      code_ += "      Self::{{VARIANT}} => Some(\"{{VARIANT}}\"),";
     });
-    code_ += "      _ => \"\",";
+    code_ += "      _ => None,";
     code_ += "    }";
     code_ += "  }";
     code_ += "}";
@@ -646,11 +646,10 @@ class RustGenerator : public BaseGenerator {
     code_ += "impl std::fmt::Debug for {{ENUM_NAME}} {";
     code_ += "  fn fmt(&self, f: &mut std::fmt::Formatter) ->"
              " std::fmt::Result {";
-    code_ += "    let name = self.variant_name();";
-    code_ += "    if name.is_empty() {";
-    code_ += "      f.write_fmt(format_args!(\"<UNKNOWN {:?}>\", self.0))";
-    code_ += "    } else {";
+    code_ += "    if let Some(name) = self.variant_name() {";
     code_ += "      f.write_str(name)";
+    code_ += "    } else {";
+    code_ += "      f.write_fmt(format_args!(\"<UNKNOWN {:?}>\", self.0))";
     code_ += "    }";
     code_ += "  }";
     code_ += "}";

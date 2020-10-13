@@ -233,23 +233,22 @@ impl Race {
     Self::Elf,
   ];
   /// Returns the variant's name or "" if unknown.
-  pub fn variant_name(self) -> &'static str {
+  pub fn variant_name(self) -> Option<&'static str> {
     match self {
-      Self::None => "None",
-      Self::Human => "Human",
-      Self::Dwarf => "Dwarf",
-      Self::Elf => "Elf",
-      _ => "",
+      Self::None => Some("None"),
+      Self::Human => Some("Human"),
+      Self::Dwarf => Some("Dwarf"),
+      Self::Elf => Some("Elf"),
+      _ => None,
     }
   }
 }
 impl std::fmt::Debug for Race {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-    let name = self.variant_name();
-    if name.is_empty() {
-      f.write_fmt(format_args!("<UNKNOWN {:?}>", self.0))
-    } else {
+    if let Some(name) = self.variant_name() {
       f.write_str(name)
+    } else {
+      f.write_fmt(format_args!("<UNKNOWN {:?}>", self.0))
     }
   }
 }
@@ -305,23 +304,22 @@ impl Any {
     Self::MyGame_Example2_Monster,
   ];
   /// Returns the variant's name or "" if unknown.
-  pub fn variant_name(self) -> &'static str {
+  pub fn variant_name(self) -> Option<&'static str> {
     match self {
-      Self::NONE => "NONE",
-      Self::Monster => "Monster",
-      Self::TestSimpleTableWithEnum => "TestSimpleTableWithEnum",
-      Self::MyGame_Example2_Monster => "MyGame_Example2_Monster",
-      _ => "",
+      Self::NONE => Some("NONE"),
+      Self::Monster => Some("Monster"),
+      Self::TestSimpleTableWithEnum => Some("TestSimpleTableWithEnum"),
+      Self::MyGame_Example2_Monster => Some("MyGame_Example2_Monster"),
+      _ => None,
     }
   }
 }
 impl std::fmt::Debug for Any {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-    let name = self.variant_name();
-    if name.is_empty() {
-      f.write_fmt(format_args!("<UNKNOWN {:?}>", self.0))
-    } else {
+    if let Some(name) = self.variant_name() {
       f.write_str(name)
+    } else {
+      f.write_fmt(format_args!("<UNKNOWN {:?}>", self.0))
     }
   }
 }
@@ -378,23 +376,22 @@ impl AnyUniqueAliases {
     Self::M2,
   ];
   /// Returns the variant's name or "" if unknown.
-  pub fn variant_name(self) -> &'static str {
+  pub fn variant_name(self) -> Option<&'static str> {
     match self {
-      Self::NONE => "NONE",
-      Self::M => "M",
-      Self::TS => "TS",
-      Self::M2 => "M2",
-      _ => "",
+      Self::NONE => Some("NONE"),
+      Self::M => Some("M"),
+      Self::TS => Some("TS"),
+      Self::M2 => Some("M2"),
+      _ => None,
     }
   }
 }
 impl std::fmt::Debug for AnyUniqueAliases {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-    let name = self.variant_name();
-    if name.is_empty() {
-      f.write_fmt(format_args!("<UNKNOWN {:?}>", self.0))
-    } else {
+    if let Some(name) = self.variant_name() {
       f.write_str(name)
+    } else {
+      f.write_fmt(format_args!("<UNKNOWN {:?}>", self.0))
     }
   }
 }
@@ -451,23 +448,22 @@ impl AnyAmbiguousAliases {
     Self::M3,
   ];
   /// Returns the variant's name or "" if unknown.
-  pub fn variant_name(self) -> &'static str {
+  pub fn variant_name(self) -> Option<&'static str> {
     match self {
-      Self::NONE => "NONE",
-      Self::M1 => "M1",
-      Self::M2 => "M2",
-      Self::M3 => "M3",
-      _ => "",
+      Self::NONE => Some("NONE"),
+      Self::M1 => Some("M1"),
+      Self::M2 => Some("M2"),
+      Self::M3 => Some("M3"),
+      _ => None,
     }
   }
 }
 impl std::fmt::Debug for AnyAmbiguousAliases {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-    let name = self.variant_name();
-    if name.is_empty() {
-      f.write_fmt(format_args!("<UNKNOWN {:?}>", self.0))
-    } else {
+    if let Some(name) = self.variant_name() {
       f.write_str(name)
+    } else {
+      f.write_fmt(format_args!("<UNKNOWN {:?}>", self.0))
     }
   }
 }
