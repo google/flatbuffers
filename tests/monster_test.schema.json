@@ -71,7 +71,7 @@
                 "type" : "integer", "minimum" : -32768, "maximum" : 32767
               },
         "b" : {
-                "type" : "integer", "minimum" : -128, "maximum" :127"
+                "type" : "integer", "minimum" : -128, "maximum" : 127"
               }
       },
       "additionalProperties" : false
@@ -305,7 +305,7 @@
       "type" : "object",
       "properties" : {
         "i8" : {
-                "type" : "integer", "minimum" : -128, "maximum" :127"
+                "type" : "integer", "minimum" : -128, "maximum" : 127"
               },
         "u8" : {
                 "type" : "integer", "minimum" : 0, "maximum" :255"
@@ -335,7 +335,7 @@
                 "type" : "number"
               },
         "v8" : {
-                "type" : "array", "items" : {"type" : "integer", "minimum" : -128, "maximum" :127"}
+                "type" : "array", "items" : {"type" : "integer", "minimum" : -128, "maximum" : 127"}
               },
         "vf64" : {
                 "type" : "array", "items" : {"type" : "number"}

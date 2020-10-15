@@ -44,42 +44,42 @@ std::string GenType(const std::string &name) {
 
 std::string GenType(BaseType type) {
   switch (type) {
-    case BASE_TYPE_BOOL: return R"("type" : "boolean")";
+    case BASE_TYPE_BOOL: return "\"type\" : \"boolean\"";
     case BASE_TYPE_CHAR:
-      return R"("type" : "integer", "minimum" : )" +
+      return "\"type\" : \"integer\", \"minimum\" : " +
              std::to_string(std::numeric_limits<int8_t>::min()) +
-             R"(, "maximum" :)" +
+             ", \"maximum\" : " +
              std::to_string(std::numeric_limits<int8_t>::max()) + "\"";
     case BASE_TYPE_UCHAR:
-      return R"("type" : "integer", "minimum" : 0, "maximum" :)" +
+      return "\"type\" : \"integer\", \"minimum\" : 0, \"maximum\" :" +
              std::to_string(std::numeric_limits<uint8_t>::max()) + "\"";
     case BASE_TYPE_SHORT:
-      return R"("type" : "integer", "minimum" : )" +
+      return "\"type\" : \"integer\", \"minimum\" : " +
              std::to_string(std::numeric_limits<int16_t>::min()) +
-             R"(, "maximum" : )" +
+             ", \"maximum\" : " +
              std::to_string(std::numeric_limits<int16_t>::max());
     case BASE_TYPE_USHORT:
-      return R"("type" : "integer", "minimum" : 0, "maximum" : )" +
+      return "\"type\" : \"integer\", \"minimum\" : 0, \"maximum\" : " +
              std::to_string(std::numeric_limits<uint16_t>::max());
     case BASE_TYPE_INT:
-      return R"("type" : "integer", "minimum" : )" +
+      return "\"type\" : \"integer\", \"minimum\" : " +
              std::to_string(std::numeric_limits<int32_t>::min()) +
-             R"(, "maximum" : )" +
+             ", \"maximum\" : " +
              std::to_string(std::numeric_limits<int32_t>::max());
     case BASE_TYPE_UINT:
-      return R"("type" : "integer", "minimum" : 0, "maximum" : )" +
+      return "\"type\" : \"integer\", \"minimum\" : 0, \"maximum\" : " +
              std::to_string(std::numeric_limits<uint32_t>::max());
     case BASE_TYPE_LONG:
-      return R"("type" : "integer", "minimum" : )" +
+      return "\"type\" : \"integer\", \"minimum\" : " +
              std::to_string(std::numeric_limits<int64_t>::min()) +
-             R"(, "maximum" : )" +
+             ", \"maximum\" : " +
              std::to_string(std::numeric_limits<int64_t>::max());
     case BASE_TYPE_ULONG:
-      return R"("type" : "integer", "minimum" : 0, "maximum" : )" +
+      return "\"type\" : \"integer\", \"minimum\" : 0, \"maximum\" : " +
              std::to_string(std::numeric_limits<uint64_t>::max());
     case BASE_TYPE_FLOAT:
-    case BASE_TYPE_DOUBLE: return R"("type" : "number")";
-    case BASE_TYPE_STRING: return R"("type" : "string")";
+    case BASE_TYPE_DOUBLE: return "\"type\" : \"number\"";
+    case BASE_TYPE_STRING: return "\"type\" : \"string\"";
     default: return "";
   }
 }
@@ -88,10 +88,9 @@ std::string GenBaseType(const Type &type) {
   if (type.struct_def != nullptr) { return GenTypeRef(type.struct_def); }
   if (type.enum_def != nullptr) { return GenTypeRef(type.enum_def); }
   if (type.base_type == BASE_TYPE_ARRAY || type.base_type == BASE_TYPE_VECTOR) {
-    return R"("type" : "array", "items" : {)" + GenType(type.element) + "}";
-  } else {
-    return  GenType(type.base_type);
-  }  
+    return "\"type\" : \"array\", \"items\" : {" + GenType(type.element) + "}";
+  }
+  return  GenType(type.base_type);
 }
 
 std::string GenType(const Type &type) {
