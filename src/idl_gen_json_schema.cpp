@@ -38,7 +38,12 @@ std::string GenNativeType(BaseType type) {
     case BASE_TYPE_FLOAT:
     case BASE_TYPE_DOUBLE: return "number";
     case BASE_TYPE_STRING: return "string";
+    case BASE_TYPE_VECTOR:
     case BASE_TYPE_ARRAY: return "array";
+    case BASE_TYPE_NONE:
+    case BASE_TYPE_UTYPE:
+    case BASE_TYPE_STRUCT:
+    case BASE_TYPE_UNION:
     default: return "";
   }
 }
@@ -62,17 +67,14 @@ std::string GenType(const std::string &name) {
 }
 
 std::string GenType(const Type &type) {
-  if (type.enum_def != nullptr && !type.enum_def->is_union) {
-    // it is a reference to an enum type
-    return GenTypeRef(type.enum_def);
-  }
   switch (type.base_type) {
     case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();  // fall thru
     case BASE_TYPE_VECTOR: {
-      std::string typeline;
-      typeline.append("\"type\" : \"array\", \"items\" : { ");
-      if (type.element == BASE_TYPE_STRUCT) {
+      std::string typeline(R"("type" : "array", "items" : { )");
+      if (type.struct_def != nullptr) {
         typeline.append(GenTypeRef(type.struct_def));
+      } else if (type.enum_def != nullptr) {
+        typeline.append(GenTypeRef(type.enum_def));
       } else {
         typeline.append(GenType(GenNativeType(type.element)));
       }
@@ -86,7 +88,7 @@ std::string GenType(const Type &type) {
       std::string union_type_string("\"anyOf\": [");
       const auto &union_types = type.enum_def->Vals();
       for (auto ut = union_types.cbegin(); ut < union_types.cend(); ++ut) {
-        auto &union_type = *ut;
+        const auto &union_type = *ut;
         if (union_type->union_type.base_type == BASE_TYPE_NONE) { continue; }
         if (union_type->union_type.base_type == BASE_TYPE_STRUCT) {
           union_type_string.append(
