@@ -18,16 +18,29 @@ pub mod optional_scalars {
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
 
+#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+pub const ENUM_MIN_OPTIONAL_BYTE: i8 = 0;
+#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+pub const ENUM_MAX_OPTIONAL_BYTE: i8 = 2;
+#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[allow(non_camel_case_types)]
+pub const ENUM_VALUES_OPTIONAL_BYTE: [OptionalByte; 3] = [
+  OptionalByte::None,
+  OptionalByte::One,
+  OptionalByte::Two,
+];
+
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
 pub struct OptionalByte(pub i8);
 #[allow(non_upper_case_globals)]
 impl OptionalByte {
-  pub const ENUM_MIN: i8 = 0;
-  pub const ENUM_MAX: i8 = 2;
   pub const None: Self = Self(0);
   pub const One: Self = Self(1);
   pub const Two: Self = Self(2);
+
+  pub const ENUM_MIN: i8 = 0;
+  pub const ENUM_MAX: i8 = 2;
   pub const ENUM_VALUES: &'static [Self] = &[
     Self::None,
     Self::One,
@@ -78,13 +91,6 @@ impl flatbuffers::EndianScalar for OptionalByte {
     Self(i8::from_le(self.0))
   }
 }
-
-#[allow(non_camel_case_types)]
-pub const ENUM_VALUES_OPTIONAL_BYTE: [OptionalByte; 3] = [
-  OptionalByte::None,
-  OptionalByte::One,
-  OptionalByte::Two
-];
 
 pub enum ScalarStuffOffset {}
 #[derive(Copy, Clone, Debug, PartialEq)]

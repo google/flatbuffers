@@ -26,16 +26,29 @@ pub mod namespace_b {
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
 
+#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+pub const ENUM_MIN_ENUM_IN_NESTED_NS: i8 = 0;
+#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+pub const ENUM_MAX_ENUM_IN_NESTED_NS: i8 = 2;
+#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[allow(non_camel_case_types)]
+pub const ENUM_VALUES_ENUM_IN_NESTED_NS: [EnumInNestedNS; 3] = [
+  EnumInNestedNS::A,
+  EnumInNestedNS::B,
+  EnumInNestedNS::C,
+];
+
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
 pub struct EnumInNestedNS(pub i8);
 #[allow(non_upper_case_globals)]
 impl EnumInNestedNS {
-  pub const ENUM_MIN: i8 = 0;
-  pub const ENUM_MAX: i8 = 2;
   pub const A: Self = Self(0);
   pub const B: Self = Self(1);
   pub const C: Self = Self(2);
+
+  pub const ENUM_MIN: i8 = 0;
+  pub const ENUM_MAX: i8 = 2;
   pub const ENUM_VALUES: &'static [Self] = &[
     Self::A,
     Self::B,
@@ -86,13 +99,6 @@ impl flatbuffers::EndianScalar for EnumInNestedNS {
     Self(i8::from_le(self.0))
   }
 }
-
-#[allow(non_camel_case_types)]
-pub const ENUM_VALUES_ENUM_IN_NESTED_NS: [EnumInNestedNS; 3] = [
-  EnumInNestedNS::A,
-  EnumInNestedNS::B,
-  EnumInNestedNS::C
-];
 
 // struct StructInNestedNS, aligned to 4
 #[repr(C, align(4))]

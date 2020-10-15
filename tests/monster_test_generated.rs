@@ -222,17 +222,31 @@ impl flatbuffers::EndianScalar for Color {
   }
 }
 
+#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+pub const ENUM_MIN_RACE: i8 = -1;
+#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+pub const ENUM_MAX_RACE: i8 = 2;
+#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[allow(non_camel_case_types)]
+pub const ENUM_VALUES_RACE: [Race; 4] = [
+  Race::None,
+  Race::Human,
+  Race::Dwarf,
+  Race::Elf,
+];
+
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
 pub struct Race(pub i8);
 #[allow(non_upper_case_globals)]
 impl Race {
-  pub const ENUM_MIN: i8 = -1;
-  pub const ENUM_MAX: i8 = 2;
   pub const None: Self = Self(-1);
   pub const Human: Self = Self(0);
   pub const Dwarf: Self = Self(1);
   pub const Elf: Self = Self(2);
+
+  pub const ENUM_MIN: i8 = -1;
+  pub const ENUM_MAX: i8 = 2;
   pub const ENUM_VALUES: &'static [Self] = &[
     Self::None,
     Self::Human,
@@ -286,12 +300,17 @@ impl flatbuffers::EndianScalar for Race {
   }
 }
 
+#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+pub const ENUM_MIN_ANY: u8 = 0;
+#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+pub const ENUM_MAX_ANY: u8 = 3;
+#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 #[allow(non_camel_case_types)]
-pub const ENUM_VALUES_RACE: [Race; 4] = [
-  Race::None,
-  Race::Human,
-  Race::Dwarf,
-  Race::Elf
+pub const ENUM_VALUES_ANY: [Any; 4] = [
+  Any::NONE,
+  Any::Monster,
+  Any::TestSimpleTableWithEnum,
+  Any::MyGame_Example2_Monster,
 ];
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -299,12 +318,13 @@ pub const ENUM_VALUES_RACE: [Race; 4] = [
 pub struct Any(pub u8);
 #[allow(non_upper_case_globals)]
 impl Any {
-  pub const ENUM_MIN: u8 = 0;
-  pub const ENUM_MAX: u8 = 3;
   pub const NONE: Self = Self(0);
   pub const Monster: Self = Self(1);
   pub const TestSimpleTableWithEnum: Self = Self(2);
   pub const MyGame_Example2_Monster: Self = Self(3);
+
+  pub const ENUM_MIN: u8 = 0;
+  pub const ENUM_MAX: u8 = 3;
   pub const ENUM_VALUES: &'static [Self] = &[
     Self::NONE,
     Self::Monster,
@@ -358,26 +378,32 @@ impl flatbuffers::EndianScalar for Any {
   }
 }
 
+pub struct AnyUnionTableOffset {}
+#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+pub const ENUM_MIN_ANY_UNIQUE_ALIASES: u8 = 0;
+#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+pub const ENUM_MAX_ANY_UNIQUE_ALIASES: u8 = 3;
+#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 #[allow(non_camel_case_types)]
-pub const ENUM_VALUES_ANY: [Any; 4] = [
-  Any::NONE,
-  Any::Monster,
-  Any::TestSimpleTableWithEnum,
-  Any::MyGame_Example2_Monster
+pub const ENUM_VALUES_ANY_UNIQUE_ALIASES: [AnyUniqueAliases; 4] = [
+  AnyUniqueAliases::NONE,
+  AnyUniqueAliases::M,
+  AnyUniqueAliases::TS,
+  AnyUniqueAliases::M2,
 ];
 
-pub struct AnyUnionTableOffset {}
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
 pub struct AnyUniqueAliases(pub u8);
 #[allow(non_upper_case_globals)]
 impl AnyUniqueAliases {
-  pub const ENUM_MIN: u8 = 0;
-  pub const ENUM_MAX: u8 = 3;
   pub const NONE: Self = Self(0);
   pub const M: Self = Self(1);
   pub const TS: Self = Self(2);
   pub const M2: Self = Self(3);
+
+  pub const ENUM_MIN: u8 = 0;
+  pub const ENUM_MAX: u8 = 3;
   pub const ENUM_VALUES: &'static [Self] = &[
     Self::NONE,
     Self::M,
@@ -431,26 +457,32 @@ impl flatbuffers::EndianScalar for AnyUniqueAliases {
   }
 }
 
+pub struct AnyUniqueAliasesUnionTableOffset {}
+#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+pub const ENUM_MIN_ANY_AMBIGUOUS_ALIASES: u8 = 0;
+#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+pub const ENUM_MAX_ANY_AMBIGUOUS_ALIASES: u8 = 3;
+#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 #[allow(non_camel_case_types)]
-pub const ENUM_VALUES_ANY_UNIQUE_ALIASES: [AnyUniqueAliases; 4] = [
-  AnyUniqueAliases::NONE,
-  AnyUniqueAliases::M,
-  AnyUniqueAliases::TS,
-  AnyUniqueAliases::M2
+pub const ENUM_VALUES_ANY_AMBIGUOUS_ALIASES: [AnyAmbiguousAliases; 4] = [
+  AnyAmbiguousAliases::NONE,
+  AnyAmbiguousAliases::M1,
+  AnyAmbiguousAliases::M2,
+  AnyAmbiguousAliases::M3,
 ];
 
-pub struct AnyUniqueAliasesUnionTableOffset {}
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
 pub struct AnyAmbiguousAliases(pub u8);
 #[allow(non_upper_case_globals)]
 impl AnyAmbiguousAliases {
-  pub const ENUM_MIN: u8 = 0;
-  pub const ENUM_MAX: u8 = 3;
   pub const NONE: Self = Self(0);
   pub const M1: Self = Self(1);
   pub const M2: Self = Self(2);
   pub const M3: Self = Self(3);
+
+  pub const ENUM_MIN: u8 = 0;
+  pub const ENUM_MAX: u8 = 3;
   pub const ENUM_VALUES: &'static [Self] = &[
     Self::NONE,
     Self::M1,
@@ -503,14 +535,6 @@ impl flatbuffers::EndianScalar for AnyAmbiguousAliases {
     Self(u8::from_le(self.0))
   }
 }
-
-#[allow(non_camel_case_types)]
-pub const ENUM_VALUES_ANY_AMBIGUOUS_ALIASES: [AnyAmbiguousAliases; 4] = [
-  AnyAmbiguousAliases::NONE,
-  AnyAmbiguousAliases::M1,
-  AnyAmbiguousAliases::M2,
-  AnyAmbiguousAliases::M3
-];
 
 pub struct AnyAmbiguousAliasesUnionTableOffset {}
 // struct Test, aligned to 2

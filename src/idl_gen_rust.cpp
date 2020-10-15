@@ -611,6 +611,27 @@ class RustGenerator : public BaseGenerator {
       return;
     }
 
+    // Deprecated associated constants;
+    code_ += "#[deprecated(since = \"1.13\", note = \"Use associated constants"
+             " instead. This will no longer be generated in 2021.\")]";
+    code_ += "pub const ENUM_MIN_{{ENUM_NAME_CAPS}}: {{BASE_TYPE}}"
+             " = {{ENUM_MIN_BASE_VALUE}};";
+    code_ += "#[deprecated(since = \"1.13\", note = \"Use associated constants"
+             " instead. This will no longer be generated in 2021.\")]";
+    code_ += "pub const ENUM_MAX_{{ENUM_NAME_CAPS}}: {{BASE_TYPE}}"
+             " = {{ENUM_MAX_BASE_VALUE}};";
+    auto num_fields = NumToString(enum_def.size());
+    code_ += "#[deprecated(since = \"1.13\", note = \"Use associated constants"
+             " instead. This will no longer be generated in 2021.\")]";
+    code_ += "#[allow(non_camel_case_types)]";
+    code_ += "pub const ENUM_VALUES_{{ENUM_NAME_CAPS}}: [{{ENUM_NAME}}; " +
+             num_fields + "] = [";
+    ForAllEnumValues1(enum_def, [&](const EnumVal &ev){
+      code_ += "  " + GetEnumValue(enum_def, ev) + ",";
+    });
+    code_ += "];";
+    code_ += "";
+
     GenComment(enum_def.doc_comment);
     code_ +=
         "#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]";
@@ -618,13 +639,14 @@ class RustGenerator : public BaseGenerator {
     code_ += "pub struct {{ENUM_NAME}}(pub {{BASE_TYPE}});";
     code_ += "#[allow(non_upper_case_globals)]";
     code_ += "impl {{ENUM_NAME}} {";
-    code_ += "  pub const ENUM_MIN: {{BASE_TYPE}} = {{ENUM_MIN_BASE_VALUE}};";
-    code_ += "  pub const ENUM_MAX: {{BASE_TYPE}} = {{ENUM_MAX_BASE_VALUE}};";
-
     ForAllEnumValues1(enum_def, [&](const EnumVal &ev){
       this->GenComment(ev.doc_comment, "  ");
       code_ += "  pub const {{VARIANT}}: Self = Self({{VALUE}});";
     });
+    code_ += "";
+    // Generate Associated constants
+    code_ += "  pub const ENUM_MIN: {{BASE_TYPE}} = {{ENUM_MIN_BASE_VALUE}};";
+    code_ += "  pub const ENUM_MAX: {{BASE_TYPE}} = {{ENUM_MAX_BASE_VALUE}};";
     code_ += "  pub const ENUM_VALUES: &'static [Self] = &[";
     ForAllEnumValues(enum_def, [&](){
       code_ += "    Self::{{VARIANT}},";
@@ -681,20 +703,6 @@ class RustGenerator : public BaseGenerator {
     code_ += "    Self({{BASE_TYPE}}::from_le(self.0))";
     code_ += "  }";
     code_ += "}";
-    code_ += "";
-
-    // Generate an array of all enumeration values.
-    auto num_fields = NumToString(enum_def.size());
-    code_ += "#[allow(non_camel_case_types)]";
-    code_ += "pub const ENUM_VALUES_{{ENUM_NAME_CAPS}}: [{{ENUM_NAME}}; " +
-             num_fields + "] = [";
-    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
-      const auto &ev = **it;
-      auto value = GetEnumValue(enum_def, ev);
-      auto suffix = *it != enum_def.Vals().back() ? "," : "";
-      code_ += "  " + value + suffix;
-    }
-    code_ += "];";
     code_ += "";
 
     if (enum_def.is_union) {

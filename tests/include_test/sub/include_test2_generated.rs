@@ -29,14 +29,25 @@ pub mod other_name_space {
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
 
+#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+pub const ENUM_MIN_FROM_INCLUDE: i64 = 0;
+#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+pub const ENUM_MAX_FROM_INCLUDE: i64 = 0;
+#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[allow(non_camel_case_types)]
+pub const ENUM_VALUES_FROM_INCLUDE: [FromInclude; 1] = [
+  FromInclude::IncludeVal,
+];
+
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
 pub struct FromInclude(pub i64);
 #[allow(non_upper_case_globals)]
 impl FromInclude {
+  pub const IncludeVal: Self = Self(0);
+
   pub const ENUM_MIN: i64 = 0;
   pub const ENUM_MAX: i64 = 0;
-  pub const IncludeVal: Self = Self(0);
   pub const ENUM_VALUES: &'static [Self] = &[
     Self::IncludeVal,
   ];
@@ -83,11 +94,6 @@ impl flatbuffers::EndianScalar for FromInclude {
     Self(i64::from_le(self.0))
   }
 }
-
-#[allow(non_camel_case_types)]
-pub const ENUM_VALUES_FROM_INCLUDE: [FromInclude; 1] = [
-  FromInclude::IncludeVal
-];
 
 // struct Unused, aligned to 4
 #[repr(C, align(4))]
