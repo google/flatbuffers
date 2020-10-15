@@ -115,6 +115,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Struct FLATBUFFERS_FINAL_CLASS {
       : a_(flatbuffers::EndianScalar(_a)),
         padding0__(0),
         b_(flatbuffers::EndianScalar(_b)) {
+    (void)padding0__;
   }
   int32_t a() const {
     return flatbuffers::EndianScalar(a_);

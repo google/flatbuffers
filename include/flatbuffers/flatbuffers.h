@@ -435,6 +435,7 @@ template<typename T, uint16_t length> class Array {
           IndirectHelperType;
 
  public:
+  typedef uint16_t size_type;
   typedef typename IndirectHelper<IndirectHelperType>::return_type return_type;
   typedef VectorIterator<T, return_type> const_iterator;
   typedef VectorReverseIterator<const_iterator> const_reverse_iterator;
@@ -492,6 +493,22 @@ template<typename T, uint16_t length> class Array {
   const T *data() const { return reinterpret_cast<const T *>(Data()); }
   T *data() { return reinterpret_cast<T *>(Data()); }
 
+  // Copy data from a span with endian conversion.
+  // If this Array and the span overlap, the behavior is undefined.
+  void CopyFromSpan(flatbuffers::span<const T, length> src) {
+    const auto p1 = reinterpret_cast<const uint8_t *>(src.data());
+    const auto p2 = Data();
+    FLATBUFFERS_ASSERT(!(p1 >= p2 && p1 < (p2 + length)) &&
+                       !(p2 >= p1 && p2 < (p1 + length)));
+    (void)p1;
+    (void)p2;
+
+    CopyFromSpanImpl(
+        flatbuffers::integral_constant<bool,
+        !scalar_tag::value || sizeof(T) == 1 || FLATBUFFERS_LITTLEENDIAN>(),
+        src);
+  }
+
  protected:
   void MutateImpl(flatbuffers::integral_constant<bool, true>, uoffset_t i,
                   const T &val) {
@@ -502,6 +519,20 @@ template<typename T, uint16_t length> class Array {
   void MutateImpl(flatbuffers::integral_constant<bool, false>, uoffset_t i,
                   const T &val) {
     *(GetMutablePointer(i)) = val;
+  }
+
+  void CopyFromSpanImpl(flatbuffers::integral_constant<bool, true>,
+                        flatbuffers::span<const T, length> src) {
+    // Use std::memcpy() instead of std::copy() to avoid preformance degradation
+    // due to aliasing if T is char or unsigned char.
+    // The size is known at compile time, so memcpy would be inlined.
+    std::memcpy(data(), src.data(), length * sizeof(T));
+  }
+
+  // Copy data from flatbuffers::span with endian conversion.
+  void CopyFromSpanImpl(flatbuffers::integral_constant<bool, false>,
+                        flatbuffers::span<const T, length> src) {
+    for (size_type k = 0; k < length; k++) { Mutate(k, src[k]); }
   }
 
   // This class is only used to access pre-existing data. Don't ever
@@ -548,6 +579,30 @@ template<typename T, uint16_t length> class Array<Offset<T>, length> {
 
   uint8_t data_[1];
 };
+
+// Cast a raw T[length] to a raw flatbuffers::Array<T, length>
+// without endian conversion. Use with care.
+template<typename T, uint16_t length>
+Array<T, length>& CastToArray(T (&arr)[length]) {
+  return *reinterpret_cast<Array<T, length> *>(arr);
+}
+
+template<typename T, uint16_t length>
+const Array<T, length>& CastToArray(const T (&arr)[length]) {
+  return *reinterpret_cast<const Array<T, length> *>(arr);
+}
+
+template<typename E, typename T, uint16_t length>
+Array<E, length> &CastToArrayOfEnum(T (&arr)[length]) {
+  static_assert(sizeof(E) == sizeof(T), "invalid enum type E");
+  return *reinterpret_cast<Array<E, length> *>(arr);
+}
+
+template<typename E, typename T, uint16_t length>
+const Array<E, length> &CastToArrayOfEnum(const T (&arr)[length]) {
+  static_assert(sizeof(E) == sizeof(T), "invalid enum type E");
+  return *reinterpret_cast<const Array<E, length> *>(arr);
+}
 
 // Lexicographically compare two strings (possibly containing nulls), and
 // return true if the first is less than the second.
@@ -933,7 +988,7 @@ class vector_downward {
   Allocator *get_custom_allocator() { return allocator_; }
 
   uoffset_t size() const {
-    return static_cast<uoffset_t>(reserved_ - (cur_ - buf_));
+    return static_cast<uoffset_t>(reserved_ - static_cast<size_t>(cur_ - buf_));
   }
 
   uoffset_t scratch_size() const {

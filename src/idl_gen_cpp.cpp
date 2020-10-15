@@ -72,6 +72,12 @@ namespace cpp {
 
 enum CppStandard { CPP_STD_X0 = 0, CPP_STD_11, CPP_STD_17 };
 
+// Define a style of 'struct' constructor if it has 'Array' fields.
+enum GenArrayArgMode {
+  kArrayArgModeNone,        // don't generate initialization args
+  kArrayArgModeSpanStatic,  // generate flatbuffers::span<T,N>
+};
+
 // Extension of IDLOptions for cpp-generator.
 struct IDLOptionsCpp : public IDLOptions {
   // All fields start with 'g_' prefix to distinguish from the base IDLOptions.
@@ -818,6 +824,38 @@ class CppGenerator : public BaseGenerator {
     } else {
       return beforeptr + GenTypePointer(type) + afterptr;
     }
+  }
+
+  std::string GenTypeSpan(const Type &type, bool immutable, size_t extent) {
+    // Generate "flatbuffers::span<const U, extent>".
+    FLATBUFFERS_ASSERT(IsSeries(type) && "unexpected type");
+    auto element_type = type.VectorType();
+    std::string text = "flatbuffers::span<";
+    text += immutable ? "const " : "";
+    if (IsScalar(element_type.base_type)) {
+      text += GenTypeBasic(element_type, IsEnum(element_type));
+    } else {
+      switch (element_type.base_type) {
+        case BASE_TYPE_STRING: {
+          text += "char";
+          break;
+        }
+        case BASE_TYPE_STRUCT: {
+          FLATBUFFERS_ASSERT(type.struct_def);
+          text += WrapInNameSpace(*type.struct_def);
+          break;
+        }
+        default:
+          FLATBUFFERS_ASSERT(false && "unexpected element's type");
+          break;
+      }
+    }
+    if (extent != flatbuffers::dynamic_extent) {
+      text += ", ";
+      text += NumToString(extent);
+    }
+    text += "> ";
+    return text;
   }
 
   std::string GenEnumValDecl(const EnumDef &enum_def,
@@ -2360,7 +2398,7 @@ class CppGenerator : public BaseGenerator {
     }
 
     // Generate a CreateXDirect function with vector types as parameters
-    if (has_string_or_vector_fields) {
+    if (opts_.cpp_direct_copy && has_string_or_vector_fields) {
       code_ +=
           "inline flatbuffers::Offset<{{STRUCT_NAME}}> "
           "Create{{STRUCT_NAME}}Direct(";
@@ -2938,13 +2976,14 @@ class CppGenerator : public BaseGenerator {
 
   static void PaddingInitializer(int bits, std::string *code_ptr, int *id) {
     (void)bits;
-    if (*code_ptr != "") *code_ptr += ",\n        ";
+    if (!code_ptr->empty()) *code_ptr += ",\n        ";
     *code_ptr += "padding" + NumToString((*id)++) + "__(0)";
   }
 
   static void PaddingNoop(int bits, std::string *code_ptr, int *id) {
     (void)bits;
-    *code_ptr += "    (void)padding" + NumToString((*id)++) + "__;\n";
+    if (!code_ptr->empty()) *code_ptr += '\n';
+    *code_ptr += "    (void)padding" + NumToString((*id)++) + "__;";
   }
 
   void GenStructDefaultConstructor(const StructDef &struct_def) {
@@ -2989,58 +3028,50 @@ class CppGenerator : public BaseGenerator {
       code_ += "  {}";
     } else {
       code_.SetValue("INIT_LIST", init_list);
-      code_.SetValue("DEFAULT_CONSTRUCTOR_BODY", body);
       code_ += "  {{STRUCT_NAME}}()";
       code_ += "      : {{INIT_LIST}} {";
-      code_ += "{{DEFAULT_CONSTRUCTOR_BODY}}  }";
+      if (!body.empty()) { code_ += body; }
+      code_ += "  }";
     }
   }
 
-  void GenStructConstructor(const StructDef &struct_def) {
+  void GenStructConstructor(const StructDef &struct_def,
+                            GenArrayArgMode array_mode) {
     std::string arg_list;
     std::string init_list;
     int padding_id = 0;
-    bool first_arg = true;
-    bool first_init = true;
+    auto first = struct_def.fields.vec.begin();
+    // skip arrays if generate ctor without array assignment
+    const auto init_arrays = (array_mode != kArrayArgModeNone);
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
-      const auto &field_type = field.value.type;
-      const auto member_name = Name(field) + "_";
+      const auto &type = field.value.type;
+      const auto is_array = IsArray(type);
       const auto arg_name = "_" + Name(field);
-      const auto arg_type = GenTypeGet(field_type, " ", "const ", " &", true);
-
-      if (!IsArray(field_type)) {
-        if (first_arg) {
-          first_arg = false;
-        } else {
-          arg_list += ", ";
-        }
-        arg_list += arg_type;
+      if (!is_array || init_arrays) {
+        if (it != first && !arg_list.empty()) { arg_list += ", "; }
+        arg_list += !is_array ? GenTypeGet(type, " ", "const ", " &", true)
+                              : GenTypeSpan(type, true, type.fixed_length);
         arg_list += arg_name;
       }
-      if (first_init) {
-        first_init = false;
-      } else {
-        init_list += ",";
-        init_list += "\n        ";
+      // skip an array with initialization from span
+      if (false == (is_array && init_arrays)) {
+        if (it != first && !init_list.empty()) { init_list += ",\n        "; }
+        init_list += Name(field) + "_";
+        if (IsScalar(type.base_type)) {
+          auto scalar_type = GenUnderlyingCast(field, false, arg_name);
+          init_list += "(flatbuffers::EndianScalar(" + scalar_type + "))";
+        } else {
+          FLATBUFFERS_ASSERT((is_array && !init_arrays) || IsStruct(type));
+          if (!is_array)
+            init_list += "(" + arg_name + ")";
+          else
+            init_list += "()";
+        }
       }
-      init_list += member_name;
-      if (IsScalar(field_type.base_type)) {
-        auto type = GenUnderlyingCast(field, false, arg_name);
-        init_list += "(flatbuffers::EndianScalar(" + type + "))";
-      } else if (IsArray(field_type)) {
-        // implicit initialization of array
-        // for each object in array it:
-        // * sets it as zeros for POD types (integral, floating point, etc)
-        // * calls default constructor for classes/structs
-        init_list += "()";
-      } else {
-        init_list += "(" + arg_name + ")";
-      }
-      if (field.padding) {
+      if (field.padding)
         GenPadding(field, &init_list, &padding_id, PaddingInitializer);
-      }
     }
 
     if (!arg_list.empty()) {
@@ -3052,8 +3083,53 @@ class CppGenerator : public BaseGenerator {
       } else {
         code_ += "  {{STRUCT_NAME}}({{ARG_LIST}}) {";
       }
+      padding_id = 0;
+      for (auto it = struct_def.fields.vec.begin();
+           it != struct_def.fields.vec.end(); ++it) {
+        const auto &field = **it;
+        const auto &type = field.value.type;
+        if (IsArray(type) && init_arrays) {
+          const auto &element_type = type.VectorType();
+          const auto is_enum = IsEnum(element_type);
+          FLATBUFFERS_ASSERT(
+              (IsScalar(element_type.base_type) || IsStruct(element_type)) &&
+              "invalid declaration");
+          const auto face_type = GenTypeGet(type, " ", "", "", is_enum);
+          std::string get_array =
+              is_enum ? "CastToArrayOfEnum<" + face_type + ">" : "CastToArray";
+          const auto field_name = Name(field) + "_";
+          const auto arg_name = "_" + Name(field);
+          code_ += "    flatbuffers::" + get_array + "(" + field_name +
+                   ").CopyFromSpan(" + arg_name + ");";
+        }
+        if (field.padding) {
+          std::string padding;
+          GenPadding(field, &padding, &padding_id, PaddingNoop);
+          code_ += padding;
+        }
+      }
       code_ += "  }";
     }
+  }
+
+  void GenArrayAccessor(const Type &type, bool mutable_accessor) {
+    FLATBUFFERS_ASSERT(IsArray(type));
+    const auto is_enum = IsEnum(type.VectorType());
+    // The Array<bool,N> is a tricky case, like std::vector<bool>.
+    // It requires a specialization of Array class.
+    // Generate Array<uint8_t> for Array<bool>.
+    const auto face_type = GenTypeGet(type, " ", "", "", is_enum);
+    std::string ret_type = "flatbuffers::Array<" + face_type + ", " +
+                           NumToString(type.fixed_length) + ">";
+    if (mutable_accessor)
+      code_ += "  " + ret_type + " *mutable_{{FIELD_NAME}}() {";
+    else
+      code_ += "  const " + ret_type + " *{{FIELD_NAME}}() const {";
+
+    std::string get_array =
+        is_enum ? "CastToArrayOfEnum<" + face_type + ">" : "CastToArray";
+    code_ += "    return &flatbuffers::" + get_array + "({{FIELD_VALUE}});";
+    code_ += "  }";
   }
 
   // Generate an accessor struct with constructor for a flatbuffers struct.
@@ -3110,19 +3186,29 @@ class CppGenerator : public BaseGenerator {
     GenStructDefaultConstructor(struct_def);
 
     // Generate a constructor that takes all fields as arguments,
-    // excluding arrays
-    GenStructConstructor(struct_def);
+    // excluding arrays.
+    GenStructConstructor(struct_def, kArrayArgModeNone);
+
+    auto arrays_num = std::count_if(struct_def.fields.vec.begin(),
+                                    struct_def.fields.vec.end(),
+                                    [](const flatbuffers::FieldDef *fd) {
+                                      return IsArray(fd->value.type);
+                                    });
+    if (arrays_num > 0) {
+      GenStructConstructor(struct_def, kArrayArgModeSpanStatic);
+    }
 
     // Generate accessor methods of the form:
     // type name() const { return flatbuffers::EndianScalar(name_); }
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
+      const auto &type = field.value.type;
+      const auto is_scalar = IsScalar(type.base_type);
+      const auto is_array = IsArray(type);
 
-      auto field_type = GenTypeGet(field.value.type, " ",
-                                   IsArray(field.value.type) ? "" : "const ",
-                                   IsArray(field.value.type) ? "" : " &", true);
-      auto is_scalar = IsScalar(field.value.type.base_type);
+      const auto field_type = GenTypeGet(type, " ", is_array ? "" : "const ",
+                                         is_array ? "" : " &", true);
       auto member = Name(field) + "_";
       auto value =
           is_scalar ? "flatbuffers::EndianScalar(" + member + ")" : member;
@@ -3134,16 +3220,8 @@ class CppGenerator : public BaseGenerator {
       GenComment(field.doc_comment, "  ");
 
       // Generate a const accessor function.
-      if (IsArray(field.value.type)) {
-        auto underlying = GenTypeGet(field.value.type, "", "", "", false);
-        code_ += "  const flatbuffers::Array<" + field_type + ", " +
-                 NumToString(field.value.type.fixed_length) + "> *" +
-                 "{{FIELD_NAME}}() const {";
-        code_ += "    return reinterpret_cast<const flatbuffers::Array<" +
-                 field_type + ", " +
-                 NumToString(field.value.type.fixed_length) +
-                 "> *>({{FIELD_VALUE}});";
-        code_ += "  }";
+      if (is_array) {
+        GenArrayAccessor(type, false);
       } else {
         code_ += "  {{FIELD_TYPE}}{{FIELD_NAME}}() const {";
         code_ += "    return {{FIELD_VALUE}};";
@@ -3153,11 +3231,10 @@ class CppGenerator : public BaseGenerator {
       // Generate a mutable accessor function.
       if (opts_.mutable_buffer) {
         auto mut_field_type =
-            GenTypeGet(field.value.type, " ", "",
-                       IsArray(field.value.type) ? "" : " &", true);
+            GenTypeGet(type, " ", "", is_array ? "" : " &", true);
         code_.SetValue("FIELD_TYPE", mut_field_type);
         if (is_scalar) {
-          code_.SetValue("ARG", GenTypeBasic(field.value.type, true));
+          code_.SetValue("ARG", GenTypeBasic(type, true));
           code_.SetValue("FIELD_VALUE",
                          GenUnderlyingCast(field, false, "_" + Name(field)));
 
@@ -3166,16 +3243,8 @@ class CppGenerator : public BaseGenerator {
               "    flatbuffers::WriteScalar(&{{FIELD_NAME}}_, "
               "{{FIELD_VALUE}});";
           code_ += "  }";
-        } else if (IsArray(field.value.type)) {
-          auto underlying = GenTypeGet(field.value.type, "", "", "", false);
-          code_ += "  flatbuffers::Array<" + mut_field_type + ", " +
-                   NumToString(field.value.type.fixed_length) + "> *" +
-                   "mutable_{{FIELD_NAME}}() {";
-          code_ += "    return reinterpret_cast<flatbuffers::Array<" +
-                   mut_field_type + ", " +
-                   NumToString(field.value.type.fixed_length) +
-                   "> *>({{FIELD_VALUE}});";
-          code_ += "  }";
+        } else if (is_array) {
+          GenArrayAccessor(type, true);
         } else {
           code_ += "  {{FIELD_TYPE}}mutable_{{FIELD_NAME}}() {";
           code_ += "    return {{FIELD_VALUE}};";
