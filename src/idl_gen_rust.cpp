@@ -519,11 +519,9 @@ class RustGenerator : public BaseGenerator {
     }
   }
 
-  std::string GetEnumValUse(const EnumDef &enum_def,
+  std::string GetEnumValue(const EnumDef &enum_def,
                             const EnumVal &enum_val) const {
-    const std::string val = IsBitFlagsEnum(enum_def) ?
-        MakeUpper(MakeSnakeCase(Name(enum_val))) : Name(enum_val);
-    return Name(enum_def) + "::" + val;
+    return Name(enum_def) + "::" + Name(enum_val);
   }
 
   // 1 suffix since old C++ can't figure out the overload.
@@ -532,7 +530,6 @@ class RustGenerator : public BaseGenerator {
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       const auto &ev = **it;
       code_.SetValue("VARIANT", Name(ev));
-      code_.SetValue("SSC_VARIANT", MakeUpper(MakeSnakeCase(Name(ev))));
       code_.SetValue("VALUE", enum_def.ToString(ev));
       cb(ev);
     }
@@ -560,16 +557,25 @@ class RustGenerator : public BaseGenerator {
     code_.SetValue("ENUM_MAX_BASE_VALUE", enum_def.ToString(*maxv));
 
     if (IsBitFlagsEnum(enum_def)) {
-      // Defer to the convenient and canonical bitflags crate.
-      code_ += "flatbuffers::bitflags::bitflags! {";
-      GenComment(enum_def.doc_comment);
-      code_ += "  pub struct {{ENUM_NAME}}: {{BASE_TYPE}} {";
-      ForAllEnumValues(enum_def, [&](){
-        code_ += "    const {{SSC_VARIANT}} = {{VALUE}};";
+      // Defer to the convenient and canonical bitflags crate. We declare it in a
+      // module to #allow camel case constants in a smaller scope. This matches
+      // Flatbuffers c-modeled enums where variants are associated constants but
+      // in camel case.
+      code_ += "#[allow(non_upper_case_globals)]";
+      code_ += "mod bitflags_{{ENUM_NAME_SNAKE}} {";
+      code_ += "  flatbuffers::bitflags::bitflags! {";
+      GenComment(enum_def.doc_comment, "    ");
+      code_ += "    pub struct {{ENUM_NAME}}: {{BASE_TYPE}} {";
+      ForAllEnumValues1(enum_def, [&](const EnumVal &ev){
+        this->GenComment(ev.doc_comment, "      ");
+        code_ += "      const {{VARIANT}} = {{VALUE}};";
       });
+      code_ += "    }";
       code_ += "  }";
       code_ += "}";
+      code_ += "pub use self::bitflags_{{ENUM_NAME_SNAKE}}::{{ENUM_NAME}};";
       code_ += "";
+
       // Generate Follow and Push so we can serialize and stuff.
       code_ += "impl<'a> flatbuffers::Follow<'a> for {{ENUM_NAME}} {";
       code_ += "  type Inner = Self;";
@@ -684,7 +690,7 @@ class RustGenerator : public BaseGenerator {
              num_fields + "] = [";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       const auto &ev = **it;
-      auto value = GetEnumValUse(enum_def, ev);
+      auto value = GetEnumValue(enum_def, ev);
       auto suffix = *it != enum_def.Vals().back() ? "," : "";
       code_ += "  " + value + suffix;
     }
@@ -721,7 +727,7 @@ class RustGenerator : public BaseGenerator {
         auto ev = field.value.type.enum_def->FindByValue(field.value.constant);
         assert(ev);
         return WrapInNameSpace(field.value.type.enum_def->defined_namespace,
-                               GetEnumValUse(*field.value.type.enum_def, *ev));
+                               GetEnumValue(*field.value.type.enum_def, *ev));
       }
 
       // All pointer-ish types have a default value of None, because they are
@@ -1345,7 +1351,7 @@ class RustGenerator : public BaseGenerator {
 
         code_.SetValue(
             "U_ELEMENT_ENUM_TYPE",
-            WrapInNameSpace(u->defined_namespace, GetEnumValUse(*u, ev)));
+            WrapInNameSpace(u->defined_namespace, GetEnumValue(*u, ev)));
         code_.SetValue("U_ELEMENT_TABLE_TYPE", table_init_type);
         code_.SetValue("U_ELEMENT_NAME", MakeSnakeCase(Name(ev)));
 

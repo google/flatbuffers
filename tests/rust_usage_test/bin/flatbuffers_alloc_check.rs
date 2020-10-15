@@ -65,7 +65,7 @@ fn create_serialized_example_with_generated_code(builder: &mut flatbuffers::Flat
             2.0,
             3.0,
             3.0,
-            my_game::example::Color::GREEN,
+            my_game::example::Color::Green,
             &my_game::example::Test::new(5i16, 6i8),
         );
 
@@ -144,7 +144,7 @@ fn main() {
             assert!((pos.y() - 2.0f32).abs() < std::f32::EPSILON);
             assert!((pos.z() - 3.0f32).abs() < std::f32::EPSILON);
             assert!((pos.test1() - 3.0f64).abs() < std::f64::EPSILON);
-            assert_eq!(pos.test2(), my_game::example::Color::GREEN);
+            assert_eq!(pos.test2(), my_game::example::Color::Green);
             let pos_test3 = pos.test3();
             assert_eq!(pos_test3.a(), 5i16);
             assert_eq!(pos_test3.b(), 6i8);

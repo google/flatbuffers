@@ -176,14 +176,21 @@ pub mod example {
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
 
-flatbuffers::bitflags::bitflags! {
-/// Composite components of Monster color.
-  pub struct Color: u8 {
-    const RED = 1;
-    const GREEN = 2;
-    const BLUE = 8;
+#[allow(non_upper_case_globals)]
+mod bitflags_color {
+  flatbuffers::bitflags::bitflags! {
+    /// Composite components of Monster color.
+    pub struct Color: u8 {
+      const Red = 1;
+      /// \brief color Green
+      /// Green is bit_flag with value (1u << 1)
+      const Green = 2;
+      /// \brief color Blue (1u << 3)
+      const Blue = 8;
+    }
   }
 }
+pub use self::bitflags_color::Color;
 
 impl<'a> flatbuffers::Follow<'a> for Color {
   type Inner = Self;
@@ -778,7 +785,7 @@ impl<'a> TestSimpleTableWithEnum<'a> {
 
   #[inline]
   pub fn color(&self) -> Color {
-    self._tab.get::<Color>(TestSimpleTableWithEnum::VT_COLOR, Some(Color::GREEN)).unwrap()
+    self._tab.get::<Color>(TestSimpleTableWithEnum::VT_COLOR, Some(Color::Green)).unwrap()
   }
 }
 
@@ -789,7 +796,7 @@ impl<'a> Default for TestSimpleTableWithEnumArgs {
     #[inline]
     fn default() -> Self {
         TestSimpleTableWithEnumArgs {
-            color: Color::GREEN,
+            color: Color::Green,
         }
     }
 }
@@ -800,7 +807,7 @@ pub struct TestSimpleTableWithEnumBuilder<'a: 'b, 'b> {
 impl<'a: 'b, 'b> TestSimpleTableWithEnumBuilder<'a, 'b> {
   #[inline]
   pub fn add_color(&mut self, color: Color) {
-    self.fbb_.push_slot::<Color>(TestSimpleTableWithEnum::VT_COLOR, color, Color::GREEN);
+    self.fbb_.push_slot::<Color>(TestSimpleTableWithEnum::VT_COLOR, color, Color::Green);
   }
   #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> TestSimpleTableWithEnumBuilder<'a, 'b> {
@@ -1171,7 +1178,7 @@ impl<'a> Monster<'a> {
   }
   #[inline]
   pub fn color(&self) -> Color {
-    self._tab.get::<Color>(Monster::VT_COLOR, Some(Color::BLUE)).unwrap()
+    self._tab.get::<Color>(Monster::VT_COLOR, Some(Color::Blue)).unwrap()
   }
   #[inline]
   pub fn test_type(&self) -> Any {
@@ -1500,7 +1507,7 @@ impl<'a> Default for MonsterArgs<'a> {
             hp: 100,
             name: None, // required field
             inventory: None,
-            color: Color::BLUE,
+            color: Color::Blue,
             test_type: Any::NONE,
             test: None,
             test4: None,
@@ -1573,7 +1580,7 @@ impl<'a: 'b, 'b> MonsterBuilder<'a, 'b> {
   }
   #[inline]
   pub fn add_color(&mut self, color: Color) {
-    self.fbb_.push_slot::<Color>(Monster::VT_COLOR, color, Color::BLUE);
+    self.fbb_.push_slot::<Color>(Monster::VT_COLOR, color, Color::Blue);
   }
   #[inline]
   pub fn add_test_type(&mut self, test_type: Any) {

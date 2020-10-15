@@ -111,7 +111,7 @@ fn create_serialized_example_with_generated_code(builder: &mut flatbuffers::Flat
 
         // can't inline creation of this Vec3 because we refer to it by reference, so it must live
         // long enough to be used by MonsterArgs.
-        let pos = my_game::example::Vec3::new(1.0, 2.0, 3.0, 3.0, my_game::example::Color::GREEN, &my_game::example::Test::new(5i16, 6i8));
+        let pos = my_game::example::Vec3::new(1.0, 2.0, 3.0, 3.0, my_game::example::Color::Green, &my_game::example::Test::new(5i16, 6i8));
 
         let args = my_game::example::MonsterArgs{
             hp: 80,
@@ -141,7 +141,7 @@ fn create_serialized_example_with_library_code(builder: &mut flatbuffers::FlatBu
         builder.push_slot_always(my_game::example::Monster::VT_NAME, name);
         builder.end_table(table_start)
     };
-    let pos = my_game::example::Vec3::new(1.0, 2.0, 3.0, 3.0, my_game::example::Color::GREEN, &my_game::example::Test::new(5i16, 6i8));
+    let pos = my_game::example::Vec3::new(1.0, 2.0, 3.0, 3.0, my_game::example::Color::Green, &my_game::example::Test::new(5i16, 6i8));
     let inv = builder.create_vector(&[0u8, 1, 2, 3, 4]);
 
     let test4 = builder.create_vector(&[my_game::example::Test::new(10, 20),
@@ -191,7 +191,7 @@ fn serialized_example_is_accessible_and_correct(bytes: &[u8], identifier_require
     check_eq!(pos.y(), 2.0f32)?;
     check_eq!(pos.z(), 3.0f32)?;
     check_eq!(pos.test1(), 3.0f64)?;
-    check_eq!(pos.test2(), my_game::example::Color::GREEN)?;
+    check_eq!(pos.test2(), my_game::example::Color::Green)?;
 
     let pos_test3 = pos.test3();
     check_eq!(pos_test3.a(), 5i16)?;
@@ -388,12 +388,12 @@ mod roundtrip_generated_code {
         let m = build_mon(&mut b, &my_game::example::MonsterArgs{
             name: Some(name),
             pos: Some(&my_game::example::Vec3::new(1.0, 2.0, 3.0, 4.0,
-                                                   my_game::example::Color::GREEN,
+                                                   my_game::example::Color::Green,
                                                    &my_game::example::Test::new(98, 99))),
             ..Default::default()
         });
         assert_eq!(m.pos(), Some(&my_game::example::Vec3::new(1.0, 2.0, 3.0, 4.0,
-                                                              my_game::example::Color::GREEN,
+                                                              my_game::example::Color::Green,
                                                               &my_game::example::Test::new(98, 99))));
     }
     #[test]
@@ -407,15 +407,15 @@ mod roundtrip_generated_code {
     fn enum_store() {
         let mut b = flatbuffers::FlatBufferBuilder::new();
         let name = b.create_string("foo");
-        let m = build_mon(&mut b, &my_game::example::MonsterArgs{name: Some(name), color: my_game::example::Color::RED, ..Default::default()});
-        assert_eq!(m.color(), my_game::example::Color::RED);
+        let m = build_mon(&mut b, &my_game::example::MonsterArgs{name: Some(name), color: my_game::example::Color::Red, ..Default::default()});
+        assert_eq!(m.color(), my_game::example::Color::Red);
     }
     #[test]
     fn enum_default() {
         let mut b = flatbuffers::FlatBufferBuilder::new();
         let name = b.create_string("foo");
         let m = build_mon(&mut b, &my_game::example::MonsterArgs{name: Some(name), ..Default::default()});
-        assert_eq!(m.color(), my_game::example::Color::BLUE);
+        assert_eq!(m.color(), my_game::example::Color::Blue);
     }
     #[test]
     fn union_store() {
@@ -687,19 +687,18 @@ mod roundtrip_generated_code {
             test4: Some(v), ..Default::default()});
         assert_eq!(m.test4().unwrap(), &[my_game::example::Test::new(127, -128), my_game::example::Test::new(3, 123), my_game::example::Test::new(100, 101)][..]);
     }
-    // TODO(rw) this passes, but I don't want to change the monster test schema right now
-    // #[test]
-    // fn vector_of_enum_store() {
-    //     let mut b = flatbuffers::FlatBufferBuilder::new();
-    //     let v = b.create_vector::<my_game::example::Color>(&[my_game::example::Color::RED, my_game::example::Color::GREEN][..]);
-    //     let name = b.create_string("foo");
-    //     let m = build_mon(&mut b, &my_game::example::MonsterArgs{
-    //         name: Some(name),
-    //         vector_of_enum: Some(v), ..Default::default()});
-    //     assert_eq!(m.vector_of_enum().unwrap().len(), 2);
-    //     assert_eq!(m.vector_of_enum().unwrap().get(0), my_game::example::Color::RED);
-    //     assert_eq!(m.vector_of_enum().unwrap().get(1), my_game::example::Color::GREEN);
-    // }
+     #[test]
+     fn vector_of_enums_store() {
+         let mut b = flatbuffers::FlatBufferBuilder::new();
+         let v = b.create_vector::<my_game::example::Color>(&[my_game::example::Color::Red, my_game::example::Color::Green][..]);
+         let name = b.create_string("foo");
+         let m = build_mon(&mut b, &my_game::example::MonsterArgs{
+             name: Some(name),
+             vector_of_enums: Some(v), ..Default::default()});
+         assert_eq!(m.vector_of_enums().unwrap().len(), 2);
+         assert_eq!(m.vector_of_enums().unwrap().get(0), my_game::example::Color::Red);
+         assert_eq!(m.vector_of_enums().unwrap().get(1), my_game::example::Color::Green);
+     }
     #[test]
     fn vector_of_table_store() {
         let b = &mut flatbuffers::FlatBufferBuilder::new();
@@ -794,7 +793,7 @@ mod generated_code_alignment_and_padding {
             let mon = my_game::example::Monster::create(b, &my_game::example::MonsterArgs{
                 name: Some(name),
                 pos: Some(&my_game::example::Vec3::new(1.0, 2.0, 3.0, 4.0,
-                                                       my_game::example::Color::GREEN,
+                                                       my_game::example::Color::Green,
                                                        &my_game::example::Test::new(98, 99))),
                                                        ..Default::default()});
             my_game::example::finish_monster_buffer(b, mon);
