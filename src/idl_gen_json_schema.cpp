@@ -24,30 +24,6 @@ namespace flatbuffers {
 
 namespace jsons {
 
-std::string GenNativeType(BaseType type) {
-  switch (type) {
-    case BASE_TYPE_BOOL: return "boolean";
-    case BASE_TYPE_CHAR:
-    case BASE_TYPE_UCHAR:
-    case BASE_TYPE_SHORT:
-    case BASE_TYPE_USHORT:
-    case BASE_TYPE_INT:
-    case BASE_TYPE_UINT:
-    case BASE_TYPE_LONG:
-    case BASE_TYPE_ULONG:
-    case BASE_TYPE_FLOAT:
-    case BASE_TYPE_DOUBLE: return "number";
-    case BASE_TYPE_STRING: return "string";
-    case BASE_TYPE_VECTOR:
-    case BASE_TYPE_ARRAY: return "array";
-    case BASE_TYPE_NONE:
-    case BASE_TYPE_UTYPE:
-    case BASE_TYPE_STRUCT:
-    case BASE_TYPE_UNION:
-    default: return "";
-  }
-}
-
 template<class T> std::string GenFullName(const T *enum_def) {
   std::string full_name;
   const auto &name_spaces = enum_def->defined_namespace->components;
@@ -69,7 +45,48 @@ std::string GenType(const std::string &name) {
 std::string GenBaseType(const Type &type) {
   if (type.struct_def != nullptr) { return GenTypeRef(type.struct_def); }
   if (type.enum_def != nullptr) { return GenTypeRef(type.enum_def); }
-  return GenType(GenNativeType(type.base_type));
+
+  switch (type.base_type) {
+    case BASE_TYPE_BOOL: return R"("type" : "boolean")";
+    case BASE_TYPE_CHAR:
+      return R"("type" : "integer", "minimum" : )" +
+             std::to_string(std::numeric_limits<int8_t>::min()) +
+             R"(, "maximum" :)" +
+             std::to_string(std::numeric_limits<int8_t>::max()) + "\"";
+    case BASE_TYPE_UCHAR:
+      return R"("type" : "integer", "minimum" : 0, "maximum" :)" +
+             std::to_string(std::numeric_limits<uint8_t>::max()) + "\"";
+    case BASE_TYPE_SHORT:
+      return R"("type" : "integer", "minimum" : )" +
+             std::to_string(std::numeric_limits<int16_t>::min()) +
+             R"(, "maximum" : )" +
+             std::to_string(std::numeric_limits<int16_t>::max()) ;
+    case BASE_TYPE_USHORT:
+      return R"("type" : "integer", "minimum" : 0, "maximum" : )" +
+             std::to_string(std::numeric_limits<uint16_t>::max()) ;
+    case BASE_TYPE_INT:
+      return R"("type" : "integer", "minimum" : )" +
+             std::to_string(std::numeric_limits<int32_t>::min()) +
+             R"(, "maximum" : )" +
+             std::to_string(std::numeric_limits<int32_t>::max()) ;
+    case BASE_TYPE_UINT:
+      return R"("type" : "integer", "minimum" : 0, "maximum" : )" +
+             std::to_string(std::numeric_limits<uint32_t>::max()) ;
+    case BASE_TYPE_LONG:
+      return R"("type" : "integer", "minimum" : )" +
+             std::to_string(std::numeric_limits<int64_t>::min()) +
+             R"(, "maximum" : )" +
+             std::to_string(std::numeric_limits<int64_t>::max()) ;
+    case BASE_TYPE_ULONG:
+      return R"("type" : "integer", "minimum" : 0, "maximum" : )" +
+             std::to_string(std::numeric_limits<uint64_t>::max()) ;
+    case BASE_TYPE_FLOAT:
+    case BASE_TYPE_DOUBLE: return R"("type" : "number")";
+    case BASE_TYPE_STRING: return R"("type" : "string")";
+    case BASE_TYPE_VECTOR:
+    case BASE_TYPE_ARRAY: return R"("type" : "array")";   
+    default: return "";
+  }  
 }
 
 std::string GenType(const Type &type) {
