@@ -106,7 +106,7 @@ std::string GenType(const Type &type) {
 
 class JsonSchemaGenerator : public BaseGenerator {
  private:
-  CodeWriter code_;
+  std::string code_;
 
  public:
   JsonSchemaGenerator(const Parser &parser, const std::string &path,
@@ -123,31 +123,44 @@ class JsonSchemaGenerator : public BaseGenerator {
     return path + file_name + ".schema.json";
   }
 
+  // If indentation is less than 0, that indicates we don't want any newlines
+  // either.
+  const std::string NewLine() {
+    return parser_.opts.indent_step >= 0 ? "\n" : "";
+  }
+
+  const std::string Indent(int indent) {
+    std::string indentation = "";
+    return indentation.append(indent * std::max(parser_.opts.indent_step, 0), ' ');
+  }
+
   bool generate() {
+    code_ = "";
     if (parser_.root_struct_def_ == nullptr) { return false; }
-    code_.Clear();
-    code_ += "{";
-    code_ += "  \"$schema\": \"https://json-schema.org/draft/2019-09/schema\",";
-    code_ += "  \"definitions\": {";
+    code_ += "{" + NewLine();
+    code_ += Indent(1) +
+             "\"$schema\": \"https://json-schema.org/draft/2019-09/schema\"," +
+             NewLine();
+    code_ += Indent(1) + "\"definitions\": {" + NewLine();
     for (auto e = parser_.enums_.vec.cbegin(); e != parser_.enums_.vec.cend();
          ++e) {
-      code_ += "    \"" + GenFullName(*e) + "\" : {";
-      code_ += "      " + GenType("string") + ",";
-      std::string enumdef("      \"enum\": [");
+      code_ += Indent(2) + "\"" + GenFullName(*e) + "\" : {" + NewLine();
+      code_ += Indent(3) + GenType("string") + "," + NewLine();
+      std::string enumdef(Indent(3) + "\"enum\": [");
       for (auto enum_value = (*e)->Vals().begin();
            enum_value != (*e)->Vals().end(); ++enum_value) {
         enumdef.append("\"" + (*enum_value)->name + "\"");
         if (*enum_value != (*e)->Vals().back()) { enumdef.append(", "); }
       }
       enumdef.append("]");
-      code_ += enumdef;
-      code_ += "    },";  // close type
+      code_ += enumdef + NewLine();
+      code_ += Indent(2) + "}," + NewLine();  // close type
     }
     for (auto s = parser_.structs_.vec.cbegin();
          s != parser_.structs_.vec.cend(); ++s) {
       const auto &structure = *s;
-      code_ += "    \"" + GenFullName(structure) + "\" : {";
-      code_ += "      " + GenType("object") + ",";
+      code_ += Indent(2) + "\"" + GenFullName(structure) + "\" : {" + NewLine();
+      code_ += Indent(3) + GenType("object") + "," + NewLine();
       std::string comment;
       const auto &comment_lines = structure->doc_comment;
       for (auto comment_line = comment_lines.cbegin();
@@ -160,41 +173,42 @@ class JsonSchemaGenerator : public BaseGenerator {
                           true)) {
           return false;
         }
-        code_ += "      \"description\" : " + description + ",";
+        code_ +=
+            Indent(3) + "\"description\" : " + description + "," + NewLine();
       }
-      code_ += "      \"properties\" : {";
+      code_ += Indent(3) + "\"properties\" : {" + NewLine();
 
       const auto &properties = structure->fields.vec;
       for (auto prop = properties.cbegin(); prop != properties.cend(); ++prop) {
         const auto &property = *prop;
         std::string arrayInfo = "";
         if (IsArray(property->value.type)) {
-          arrayInfo = ",\n                \"minItems\": " +
-                      NumToString(property->value.type.fixed_length) +
-                      ",\n                \"maxItems\": " +
+          arrayInfo = "," + NewLine() + Indent(8) + "\"minItems\": " +
+                      NumToString(property->value.type.fixed_length) + 
+                      "," + NewLine() + Indent(8) + "\"maxItems\": " +
                       NumToString(property->value.type.fixed_length);
         }
         std::string deprecated_info = "";
         if (property->deprecated) {
-          deprecated_info = ",\n                \"deprecated\" : true,";
+          deprecated_info = "," + NewLine() + Indent(8) + "\"deprecated\" : true,";
         }
-        std::string typeLine =
-            "        \"" + property->name + "\" : {\n" + "                ";
+        std::string typeLine = Indent(4) + "\"" + property->name + "\"";
+        typeLine += " : {" + NewLine() + Indent(8);
         typeLine += GenType(property->value.type);
         typeLine += arrayInfo;
         typeLine += deprecated_info;
-        typeLine += "\n              }";
+        typeLine += NewLine() + Indent(7) + "}";
         if (property != properties.back()) { typeLine.append(","); }
-        code_ += typeLine;
+        code_ += typeLine + NewLine();
       }
-      code_ += "      },";  // close properties
+      code_ += Indent(3) + "}," + NewLine();  // close properties
 
       std::vector<FieldDef *> requiredProperties;
       std::copy_if(properties.begin(), properties.end(),
                    back_inserter(requiredProperties),
                    [](FieldDef const *prop) { return prop->required; });
       if (requiredProperties.size() > 0) {
-        std::string required_string("      \"required\" : [");
+        std::string required_string(Indent(3) + "\"required\" : [");
         for (auto req_prop = requiredProperties.cbegin();
              req_prop != requiredProperties.cend(); ++req_prop) {
           required_string.append("\"" + (*req_prop)->name + "\"");
@@ -203,24 +217,31 @@ class JsonSchemaGenerator : public BaseGenerator {
           }
         }
         required_string.append("],");
-        code_ += required_string;
+        code_ += required_string + NewLine();
       }
-      code_ += "      \"additionalProperties\" : false";
-      std::string closeType("    }");
+      code_ += Indent(3) + "\"additionalProperties\" : false" + NewLine();
+      std::string closeType(Indent(2) + "}");
       if (*s != parser_.structs_.vec.back()) { closeType.append(","); }
-      code_ += closeType;  // close type
+      code_ += closeType + NewLine();  // close type
     }
-    code_ += "  },";  // close definitions
+    code_ += Indent(1) + "}," + NewLine();  // close definitions
 
     // mark root type
-    code_ += "  \"$ref\" : \"#/definitions/" +
-             GenFullName(parser_.root_struct_def_) + "\"";
+    code_ += Indent(1) + "\"$ref\" : \"#/definitions/" +
+             GenFullName(parser_.root_struct_def_) + "\"" + NewLine();
 
-    code_ += "}";  // close schema root
+    code_ += "}" + NewLine();  // close schema root
+    return true;
+  }
+
+  bool save() {
     const std::string file_path =
         GeneratedFileName(path_, file_name_, parser_.opts);
-    const std::string final_code = code_.ToString();
-    return SaveFile(file_path.c_str(), final_code, false);
+    return SaveFile(file_path.c_str(), code_, false);
+  }
+
+  const std::string getJson() {
+    return code_;
   }
 };
 }  // namespace jsons
@@ -228,6 +249,14 @@ class JsonSchemaGenerator : public BaseGenerator {
 bool GenerateJsonSchema(const Parser &parser, const std::string &path,
                         const std::string &file_name) {
   jsons::JsonSchemaGenerator generator(parser, path, file_name);
-  return generator.generate();
+  if (!generator.generate()) { return false; }
+  return generator.save();
+}
+
+bool GenerateJsonSchema(const Parser &parser, std::string *json) {
+  jsons::JsonSchemaGenerator generator(parser, "", "");
+  if (!generator.generate()) { return false; }
+  *json = generator.getJson();
+  return true;
 }
 }  // namespace flatbuffers
