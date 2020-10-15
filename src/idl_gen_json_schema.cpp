@@ -66,20 +66,20 @@ std::string GenType(const std::string &name) {
   return "\"type\" : \"" + name + "\"";
 }
 
+std::string GenBaseType(const Type &type) {
+  if (type.struct_def != nullptr) { return GenTypeRef(type.struct_def); }
+  if (type.enum_def != nullptr) { return GenTypeRef(type.enum_def); }
+  return GenType(GenNativeType(type.base_type));
+}
+
 std::string GenType(const Type &type) {
   switch (type.base_type) {
     case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();  // fall thru
     case BASE_TYPE_VECTOR: {
-      std::string typeline(R"("type" : "array", "items" : { )");
-      if (type.struct_def != nullptr) {
-        typeline.append(GenTypeRef(type.struct_def));
-      } else if (type.enum_def != nullptr) {
-        typeline.append(GenTypeRef(type.enum_def));
-      } else {
-        typeline.append(GenType(GenNativeType(type.element)));
-      }
-      typeline.append(" }");
-      return typeline;
+      std::string type_def(R"("type" : "array", "items" : { )");
+      type_def.append(GenBaseType(type));
+      type_def.append(" }");
+      return type_def;
     }
     case BASE_TYPE_STRUCT: {
       return GenTypeRef(type.struct_def);
@@ -102,7 +102,9 @@ std::string GenType(const Type &type) {
       return union_type_string;
     }
     case BASE_TYPE_UTYPE: return GenTypeRef(type.enum_def);
-    default: return GenType(GenNativeType(type.base_type));
+    default: {
+      return GenBaseType(type);
+    }
   }
 }
 
