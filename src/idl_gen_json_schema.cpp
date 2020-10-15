@@ -42,11 +42,8 @@ std::string GenType(const std::string &name) {
   return "\"type\" : \"" + name + "\"";
 }
 
-std::string GenBaseType(const Type &type) {
-  if (type.struct_def != nullptr) { return GenTypeRef(type.struct_def); }
-  if (type.enum_def != nullptr) { return GenTypeRef(type.enum_def); }
-
-  switch (type.base_type) {
+std::string GenType(BaseType type) {
+  switch (type) {
     case BASE_TYPE_BOOL: return R"("type" : "boolean")";
     case BASE_TYPE_CHAR:
       return R"("type" : "integer", "minimum" : )" +
@@ -60,32 +57,40 @@ std::string GenBaseType(const Type &type) {
       return R"("type" : "integer", "minimum" : )" +
              std::to_string(std::numeric_limits<int16_t>::min()) +
              R"(, "maximum" : )" +
-             std::to_string(std::numeric_limits<int16_t>::max()) ;
+             std::to_string(std::numeric_limits<int16_t>::max());
     case BASE_TYPE_USHORT:
       return R"("type" : "integer", "minimum" : 0, "maximum" : )" +
-             std::to_string(std::numeric_limits<uint16_t>::max()) ;
+             std::to_string(std::numeric_limits<uint16_t>::max());
     case BASE_TYPE_INT:
       return R"("type" : "integer", "minimum" : )" +
              std::to_string(std::numeric_limits<int32_t>::min()) +
              R"(, "maximum" : )" +
-             std::to_string(std::numeric_limits<int32_t>::max()) ;
+             std::to_string(std::numeric_limits<int32_t>::max());
     case BASE_TYPE_UINT:
       return R"("type" : "integer", "minimum" : 0, "maximum" : )" +
-             std::to_string(std::numeric_limits<uint32_t>::max()) ;
+             std::to_string(std::numeric_limits<uint32_t>::max());
     case BASE_TYPE_LONG:
       return R"("type" : "integer", "minimum" : )" +
              std::to_string(std::numeric_limits<int64_t>::min()) +
              R"(, "maximum" : )" +
-             std::to_string(std::numeric_limits<int64_t>::max()) ;
+             std::to_string(std::numeric_limits<int64_t>::max());
     case BASE_TYPE_ULONG:
       return R"("type" : "integer", "minimum" : 0, "maximum" : )" +
-             std::to_string(std::numeric_limits<uint64_t>::max()) ;
+             std::to_string(std::numeric_limits<uint64_t>::max());
     case BASE_TYPE_FLOAT:
     case BASE_TYPE_DOUBLE: return R"("type" : "number")";
     case BASE_TYPE_STRING: return R"("type" : "string")";
-    case BASE_TYPE_VECTOR:
-    case BASE_TYPE_ARRAY: return R"("type" : "array")";   
     default: return "";
+  }
+}
+
+std::string GenBaseType(const Type &type) {
+  if (type.struct_def != nullptr) { return GenTypeRef(type.struct_def); }
+  if (type.enum_def != nullptr) { return GenTypeRef(type.enum_def); }
+  if (type.base_type == BASE_TYPE_ARRAY || type.base_type == BASE_TYPE_VECTOR) {
+    return R"("type" : "array", "items" : {)" + GenType(type.element) + "}";
+  } else {
+    return  GenType(type.base_type);
   }  
 }
 
@@ -93,10 +98,7 @@ std::string GenType(const Type &type) {
   switch (type.base_type) {
     case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();  // fall thru
     case BASE_TYPE_VECTOR: {
-      std::string type_def(R"("type" : "array", "items" : { )");
-      type_def.append(GenBaseType(type));
-      type_def.append(" }");
-      return type_def;
+      return GenBaseType(type);
     }
     case BASE_TYPE_STRUCT: {
       return GenTypeRef(type.struct_def);
