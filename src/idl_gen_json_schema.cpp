@@ -24,25 +24,6 @@ namespace flatbuffers {
 
 namespace jsons {
 
-std::string GenNativeType(BaseType type) {
-  switch (type) {
-    case BASE_TYPE_BOOL: return "boolean";
-    case BASE_TYPE_CHAR:
-    case BASE_TYPE_UCHAR:
-    case BASE_TYPE_SHORT:
-    case BASE_TYPE_USHORT:
-    case BASE_TYPE_INT:
-    case BASE_TYPE_UINT:
-    case BASE_TYPE_LONG:
-    case BASE_TYPE_ULONG:
-    case BASE_TYPE_FLOAT:
-    case BASE_TYPE_DOUBLE: return "number";
-    case BASE_TYPE_STRING: return "string";
-    case BASE_TYPE_ARRAY: return "array";
-    default: return "";
-  }
-}
-
 template<class T> std::string GenFullName(const T *enum_def) {
   std::string full_name;
   const auto &name_spaces = enum_def->defined_namespace->components;
@@ -61,23 +42,62 @@ std::string GenType(const std::string &name) {
   return "\"type\" : \"" + name + "\"";
 }
 
-std::string GenType(const Type &type) {
-  if (type.enum_def != nullptr && !type.enum_def->is_union) {
-    // it is a reference to an enum type
-    return GenTypeRef(type.enum_def);
+std::string GenType(BaseType type) {
+  switch (type) {
+    case BASE_TYPE_BOOL: return "\"type\" : \"boolean\"";
+    case BASE_TYPE_CHAR:
+      return "\"type\" : \"integer\", \"minimum\" : " +
+             NumToString(std::numeric_limits<int8_t>::min()) +
+             ", \"maximum\" : " +
+             NumToString(std::numeric_limits<int8_t>::max()) + "\"";
+    case BASE_TYPE_UCHAR:
+      return "\"type\" : \"integer\", \"minimum\" : 0, \"maximum\" :" +
+             NumToString(std::numeric_limits<uint8_t>::max()) + "\"";
+    case BASE_TYPE_SHORT:
+      return "\"type\" : \"integer\", \"minimum\" : " +
+             NumToString(std::numeric_limits<int16_t>::min()) +
+             ", \"maximum\" : " +
+             NumToString(std::numeric_limits<int16_t>::max());
+    case BASE_TYPE_USHORT:
+      return "\"type\" : \"integer\", \"minimum\" : 0, \"maximum\" : " +
+             NumToString(std::numeric_limits<uint16_t>::max());
+    case BASE_TYPE_INT:
+      return "\"type\" : \"integer\", \"minimum\" : " +
+             NumToString(std::numeric_limits<int32_t>::min()) +
+             ", \"maximum\" : " +
+             NumToString(std::numeric_limits<int32_t>::max());
+    case BASE_TYPE_UINT:
+      return "\"type\" : \"integer\", \"minimum\" : 0, \"maximum\" : " +
+             NumToString(std::numeric_limits<uint32_t>::max());
+    case BASE_TYPE_LONG:
+      return "\"type\" : \"integer\", \"minimum\" : " +
+             NumToString(std::numeric_limits<int64_t>::min()) +
+             ", \"maximum\" : " +
+             NumToString(std::numeric_limits<int64_t>::max());
+    case BASE_TYPE_ULONG:
+      return "\"type\" : \"integer\", \"minimum\" : 0, \"maximum\" : " +
+             NumToString(std::numeric_limits<uint64_t>::max());
+    case BASE_TYPE_FLOAT:
+    case BASE_TYPE_DOUBLE: return "\"type\" : \"number\"";
+    case BASE_TYPE_STRING: return "\"type\" : \"string\"";
+    default: return "";
   }
+}
+
+std::string GenBaseType(const Type &type) {
+  if (type.struct_def != nullptr) { return GenTypeRef(type.struct_def); }
+  if (type.enum_def != nullptr) { return GenTypeRef(type.enum_def); }
+  if (type.base_type == BASE_TYPE_ARRAY || type.base_type == BASE_TYPE_VECTOR) {
+    return "\"type\" : \"array\", \"items\" : {" + GenType(type.element) + "}";
+  }
+  return  GenType(type.base_type);
+}
+
+std::string GenType(const Type &type) {
   switch (type.base_type) {
     case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();  // fall thru
     case BASE_TYPE_VECTOR: {
-      std::string typeline;
-      typeline.append("\"type\" : \"array\", \"items\" : { ");
-      if (type.element == BASE_TYPE_STRUCT) {
-        typeline.append(GenTypeRef(type.struct_def));
-      } else {
-        typeline.append(GenType(GenNativeType(type.element)));
-      }
-      typeline.append(" }");
-      return typeline;
+      return GenBaseType(type);
     }
     case BASE_TYPE_STRUCT: {
       return GenTypeRef(type.struct_def);
@@ -86,7 +106,7 @@ std::string GenType(const Type &type) {
       std::string union_type_string("\"anyOf\": [");
       const auto &union_types = type.enum_def->Vals();
       for (auto ut = union_types.cbegin(); ut < union_types.cend(); ++ut) {
-        auto &union_type = *ut;
+        const auto &union_type = *ut;
         if (union_type->union_type.base_type == BASE_TYPE_NONE) { continue; }
         if (union_type->union_type.base_type == BASE_TYPE_STRUCT) {
           union_type_string.append(
@@ -100,7 +120,9 @@ std::string GenType(const Type &type) {
       return union_type_string;
     }
     case BASE_TYPE_UTYPE: return GenTypeRef(type.enum_def);
-    default: return GenType(GenNativeType(type.base_type));
+    default: {
+      return GenBaseType(type);
+    }
   }
 }
 
