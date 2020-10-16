@@ -47,36 +47,36 @@ std::string GenType(BaseType type) {
     case BASE_TYPE_BOOL: return "\"type\" : \"boolean\"";
     case BASE_TYPE_CHAR:
       return "\"type\" : \"integer\", \"minimum\" : " +
-             std::to_string(std::numeric_limits<int8_t>::min()) +
+             NumToString(std::numeric_limits<int8_t>::min()) +
              ", \"maximum\" : " +
-             std::to_string(std::numeric_limits<int8_t>::max()) + "\"";
+             NumToString(std::numeric_limits<int8_t>::max()) + "\"";
     case BASE_TYPE_UCHAR:
       return "\"type\" : \"integer\", \"minimum\" : 0, \"maximum\" :" +
-             std::to_string(std::numeric_limits<uint8_t>::max()) + "\"";
+             NumToString(std::numeric_limits<uint8_t>::max()) + "\"";
     case BASE_TYPE_SHORT:
       return "\"type\" : \"integer\", \"minimum\" : " +
-             std::to_string(std::numeric_limits<int16_t>::min()) +
+             NumToString(std::numeric_limits<int16_t>::min()) +
              ", \"maximum\" : " +
-             std::to_string(std::numeric_limits<int16_t>::max());
+             NumToString(std::numeric_limits<int16_t>::max());
     case BASE_TYPE_USHORT:
       return "\"type\" : \"integer\", \"minimum\" : 0, \"maximum\" : " +
-             std::to_string(std::numeric_limits<uint16_t>::max());
+             NumToString(std::numeric_limits<uint16_t>::max());
     case BASE_TYPE_INT:
       return "\"type\" : \"integer\", \"minimum\" : " +
-             std::to_string(std::numeric_limits<int32_t>::min()) +
+             NumToString(std::numeric_limits<int32_t>::min()) +
              ", \"maximum\" : " +
-             std::to_string(std::numeric_limits<int32_t>::max());
+             NumToString(std::numeric_limits<int32_t>::max());
     case BASE_TYPE_UINT:
       return "\"type\" : \"integer\", \"minimum\" : 0, \"maximum\" : " +
-             std::to_string(std::numeric_limits<uint32_t>::max());
+             NumToString(std::numeric_limits<uint32_t>::max());
     case BASE_TYPE_LONG:
       return "\"type\" : \"integer\", \"minimum\" : " +
-             std::to_string(std::numeric_limits<int64_t>::min()) +
+             NumToString(std::numeric_limits<int64_t>::min()) +
              ", \"maximum\" : " +
-             std::to_string(std::numeric_limits<int64_t>::max());
+             NumToString(std::numeric_limits<int64_t>::max());
     case BASE_TYPE_ULONG:
       return "\"type\" : \"integer\", \"minimum\" : 0, \"maximum\" : " +
-             std::to_string(std::numeric_limits<uint64_t>::max());
+             NumToString(std::numeric_limits<uint64_t>::max());
     case BASE_TYPE_FLOAT:
     case BASE_TYPE_DOUBLE: return "\"type\" : \"number\"";
     case BASE_TYPE_STRING: return "\"type\" : \"string\"";
