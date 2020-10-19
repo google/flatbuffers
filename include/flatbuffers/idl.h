@@ -438,6 +438,10 @@ struct EnumDef : public Definition {
   SymbolTable<EnumVal> vals;
 };
 
+inline bool IsString(const Type &type) {
+  return type.base_type == BASE_TYPE_STRING;
+}
+
 inline bool IsStruct(const Type &type) {
   return type.base_type == BASE_TYPE_STRUCT && type.struct_def->fixed;
 }
