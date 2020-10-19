@@ -327,7 +327,7 @@ class LuaGenerator : public BaseGenerator {
     code += "a + ((j-1) * ";
     code += NumToString(InlineSize(vectortype)) + "))\n";
     code += std::string(Indent) + End;
-    if (vectortype.base_type == BASE_TYPE_STRING) {
+    if (IsString(vectortype)) {
       code += std::string(Indent) + "return ''\n";
     } else {
       code += std::string(Indent) + "return 0\n";
@@ -502,7 +502,7 @@ class LuaGenerator : public BaseGenerator {
         default: FLATBUFFERS_ASSERT(0);
       }
     }
-    if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+    if (IsVector(field.value.type)) {
       GetVectorLen(struct_def, field, code_ptr);
     }
   }
@@ -518,7 +518,7 @@ class LuaGenerator : public BaseGenerator {
 
       auto offset = it - struct_def.fields.vec.begin();
       BuildFieldOfTable(struct_def, field, offset, code_ptr);
-      if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+      if (IsVector(field.value.type)) {
         BuildVectorOfTable(struct_def, field, code_ptr);
       }
     }

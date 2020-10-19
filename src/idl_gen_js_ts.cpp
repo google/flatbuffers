@@ -491,10 +491,9 @@ class JsTsGenerator : public BaseGenerator {
   std::string GenTypeName(const Type &type, bool input,
                           bool allowNull = false) {
     if (!input) {
-      if (type.base_type == BASE_TYPE_STRING ||
-          type.base_type == BASE_TYPE_STRUCT) {
+      if (IsString(type) || type.base_type == BASE_TYPE_STRUCT) {
         std::string name;
-        if (type.base_type == BASE_TYPE_STRING) {
+        if (IsString(type)) {
           name = "string|Uint8Array";
         } else {
           name = WrapInNameSpace(*type.struct_def);
@@ -714,7 +713,7 @@ class JsTsGenerator : public BaseGenerator {
     return std::any_of(union_enum.Vals().begin(), union_enum.Vals().end(),
                        [](const EnumVal *ev) {
                          return !(ev->IsZero()) &&
-                                (ev->union_type.base_type == BASE_TYPE_STRING);
+                                (IsString(ev->union_type));
                        });
   }
 
@@ -733,7 +732,7 @@ class JsTsGenerator : public BaseGenerator {
       if (ev.IsZero()) { continue; }
 
       std::string type = "";
-      if (ev.union_type.base_type == BASE_TYPE_STRING) {
+      if (IsString(ev.union_type)) {
         type = "string";  // no need to wrap string type in namespace
       } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
         if (!parser_.opts.generate_all) {
@@ -767,7 +766,7 @@ class JsTsGenerator : public BaseGenerator {
       if (ev.IsZero()) { continue; }
 
       std::string type = "";
-      if (ev.union_type.base_type == BASE_TYPE_STRING) {
+      if (IsString(ev.union_type)) {
         type = "string";  // no need to wrap string type in namespace
       } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
         type = GenPrefixedTypeName(
@@ -830,7 +829,7 @@ class JsTsGenerator : public BaseGenerator {
 
           ret += "    case '" + ev.name + "': ";
 
-          if (ev.union_type.base_type == BASE_TYPE_STRING) {
+          if (IsString(ev.union_type)) {
             ret += "return " + accessor_str + "'') as string;";
           } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
             const auto type = GenPrefixedTypeName(
@@ -1044,7 +1043,7 @@ class JsTsGenerator : public BaseGenerator {
 
       // Emit a scalar field
       if (IsScalar(field.value.type.base_type) ||
-          field.value.type.base_type == BASE_TYPE_STRING) {
+          IsString(field.value.type)) {
         if (field.value.type.enum_def) {
           if (!parser_.opts.generate_all) {
             imported_files.insert(field.value.type.enum_def->file);
@@ -1413,10 +1412,10 @@ class JsTsGenerator : public BaseGenerator {
 
       // Emit a scalar field
       if (IsScalar(field.value.type.base_type) ||
-          field.value.type.base_type == BASE_TYPE_STRING) {
+          IsString(field.value.type)) {
         GenDocComment(
             field.doc_comment, code_ptr,
-            std::string(field.value.type.base_type == BASE_TYPE_STRING
+            std::string(IsString(field.value.type)
                             ? GenTypeAnnotation(kParam, "flatbuffers.Encoding=",
                                                 "optionalEncoding")
                             : "") +
@@ -1425,7 +1424,7 @@ class JsTsGenerator : public BaseGenerator {
                                   "", false));
         if (lang_.language == IDLOptions::kTs) {
           std::string prefix = MakeCamel(field.name, false) + "(";
-          if (field.value.type.base_type == BASE_TYPE_STRING) {
+          if (IsString(field.value.type)) {
             code += prefix + "):string|null\n";
             code += prefix + "optionalEncoding:flatbuffers.Encoding" +
                     "):" + GenTypeName(field.value.type, false, true) + "\n";
@@ -1449,7 +1448,7 @@ class JsTsGenerator : public BaseGenerator {
         } else {
           code += object_name + ".prototype." + MakeCamel(field.name, false);
           code += " = function(";
-          if (field.value.type.base_type == BASE_TYPE_STRING) {
+          if (IsString(field.value.type)) {
             code += "optionalEncoding";
           }
           code += ") {\n";
@@ -1463,7 +1462,7 @@ class JsTsGenerator : public BaseGenerator {
               ";\n";
         } else {
           std::string index = "this.bb_pos + offset";
-          if (field.value.type.base_type == BASE_TYPE_STRING) {
+          if (IsString(field.value.type)) {
             index += ", optionalEncoding";
           }
           code += offset_prefix +
@@ -1569,7 +1568,7 @@ class JsTsGenerator : public BaseGenerator {
                 if (!parser_.opts.generate_all) {
                   imported_files.insert(vectortype.struct_def->file);
                 }
-              } else if (vectortype.base_type == BASE_TYPE_STRING) {
+              } else if (IsString(vectortype)) {
                 code += prefix + "):string\n";
                 code += prefix + ",optionalEncoding:flatbuffers.Encoding" +
                         "):" + vectortypename + "\n";
@@ -1588,7 +1587,7 @@ class JsTsGenerator : public BaseGenerator {
               code += " = function(index";
               if (vectortype.base_type == BASE_TYPE_STRUCT || is_union) {
                 code += ", obj";
-              } else if (vectortype.base_type == BASE_TYPE_STRING) {
+              } else if (IsString(vectortype)) {
                 code += ", optionalEncoding";
               }
               code += ") {\n";
@@ -1605,7 +1604,7 @@ class JsTsGenerator : public BaseGenerator {
             } else {
               if (is_union) {
                 index = "obj, " + index;
-              } else if (vectortype.base_type == BASE_TYPE_STRING) {
+              } else if (IsString(vectortype)) {
                 index += ", optionalEncoding";
               }
               code += offset_prefix + GenGetter(vectortype, "(" + index + ")");
@@ -1732,7 +1731,7 @@ class JsTsGenerator : public BaseGenerator {
       }
 
       // Emit vector helpers
-      if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+      if (IsVector(field.value.type)) {
         // Emit a length helper
         GenDocComment(code_ptr,
                       GenTypeAnnotation(kReturns, "number", "", false));
@@ -1884,7 +1883,7 @@ class JsTsGenerator : public BaseGenerator {
         }
         code += ");\n};\n\n";
 
-        if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+        if (IsVector(field.value.type)) {
           auto vector_type = field.value.type.VectorType();
           auto alignment = InlineAlignment(vector_type);
           auto elem_size = InlineSize(vector_type);

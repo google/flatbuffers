@@ -330,13 +330,13 @@ class DartGenerator : public BaseGenerator {
                                 bool parent_is_vector = false) {
     if (type.base_type == BASE_TYPE_BOOL) {
       return "const " + _kFb + ".BoolReader()";
-    } else if (type.base_type == BASE_TYPE_VECTOR) {
+    } else if (IsVector(type)) {
       return "const " + _kFb + ".ListReader<" +
              GenDartTypeName(type.VectorType(), current_namespace, def) + ">(" +
              GenReaderTypeName(type.VectorType(), current_namespace, def,
                                true) +
              ")";
-    } else if (type.base_type == BASE_TYPE_STRING) {
+    } else if (IsString(type)) {
       return "const " + _kFb + ".StringReader()";
     }
     if (IsScalar(type.base_type)) {
@@ -808,7 +808,7 @@ class DartGenerator : public BaseGenerator {
         continue;
 
       code += "    final int " + MakeCamel(field.name, false) + "Offset";
-      if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+      if (IsVector(field.value.type)) {
         code +=
             " = _" + MakeCamel(field.name, false) + "?.isNotEmpty == true\n";
         code += "        ? fbBuilder.writeList";
@@ -832,7 +832,7 @@ class DartGenerator : public BaseGenerator {
             code += ")";
         }
         code += "\n        : null;\n";
-      } else if (field.value.type.base_type == BASE_TYPE_STRING) {
+      } else if (IsString(field.value.type)) {
         code += " = fbBuilder.writeString(_" + MakeCamel(field.name, false) +
                 ");\n";
       } else {
