@@ -12,3 +12,4 @@ categories = ["encoding", "data-structures", "memory-management"]
 
 [dependencies]
 smallvec = "1.0"
+bitflags = "1.2"
