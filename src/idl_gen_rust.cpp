@@ -792,8 +792,7 @@ class RustGenerator : public BaseGenerator {
     ForAllUnionObjectVariantsBesidesNone(enum_def, [&]{
       // Move accessor.
       code_ += "  /// If the union variant matches, return the owned "
-               "{{U_ELEMENT_TABLE_TYPE}}, setting the union to NONE, "
-               "otherwise panic.";
+               "{{U_ELEMENT_TABLE_TYPE}}, setting the union to NONE.";
       code_ += "  pub fn take_{{U_ELEMENT_NAME}}(&mut self) -> "
                "Option<Box<{{U_ELEMENT_TABLE_TYPE}}>> {";
       code_ += "    if let Self::{{NATIVE_VARIANT}}(_) = self {";
@@ -801,7 +800,7 @@ class RustGenerator : public BaseGenerator {
       code_ += "      if let Self::{{NATIVE_VARIANT}}(w) = v {";
       code_ += "        Some(w)";
       code_ += "      } else {";
-      code_ += "        panic!(\"Expected {{U_ELEMENT_TABLE_TYPE}} variant.\")";
+      code_ += "        unreachable!()";
       code_ += "      }";
       code_ += "    } else {";
       code_ += "      None";
