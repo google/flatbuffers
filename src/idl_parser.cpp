@@ -2998,8 +2998,8 @@ CheckedError Parser::ParseRoot(const char *source, const char **include_paths,
       for (auto val_it = enum_def.Vals().begin();
            val_it != enum_def.Vals().end(); ++val_it) {
         auto &val = **val_it;
-        if (!SupportsAdvancedUnionFeatures() && val.union_type.struct_def &&
-            val.union_type.struct_def->fixed)
+        if (!SupportsAdvancedUnionFeatures() &&
+            (IsStruct(val.union_type) || IsString(val.union_type)))
           return Error(
               "only tables can be union elements in the generated language: " +
               val.name);
