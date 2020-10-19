@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "module": "commonjs",
+    "lib": ["es2015"],
+    "declaration": true,
+    "outDir": "./js",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true, 
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": [
+    "ts/*.ts"
+  ]
+}

@@ -916,16 +916,16 @@ our `orc` Monster, let's create some `Weapon`s: a `Sword` and an `Axe`.
   let weapon2Name = builder.create(string: "Axe")
 
   // start creating the weapon by calling startWeapon
-  let weapon1Start = Weapon.startWeapon(builder)
-  Weapon.add(name: weapon1Name, builder)
-  Weapon.add(damage: 3, builder)
+  let weapon1Start = Weapon.startWeapon(&builder)
+  Weapon.add(name: weapon1Name, &builder)
+  Weapon.add(damage: 3, &builder)
   // end the object by passing the start point for the weapon 1
-  let sword = Weapon.endWeapon(builder, start: weapon1Start)
+  let sword = Weapon.endWeapon(&builder, start: weapon1Start)
 
-  let weapon2Start = Weapon.startWeapon(builder)
-  Weapon.add(name: weapon2Name, builder)
-  Weapon.add(damage: 5, builder)
-  let axe = Weapon.endWeapon(builder, start: weapon2Start)
+  let weapon2Start = Weapon.startWeapon(&builder)
+  Weapon.add(name: weapon2Name, &builder)
+  Weapon.add(damage: 5, &builder)
+  let axe = Weapon.endWeapon(&builder, start: weapon2Start)
 ~~~
 </div>
 
@@ -1419,9 +1419,10 @@ for the `path` field above:
 <div class="language-swift">
 ~~~{.swift}
   //
-  let points = builder.createVector(structs: [MyGame.Sample.createVec3(x: 1, y: 2, z: 3),
-                                              MyGame.Sample.createVec3(x: 4, y: 5, z: 6)],
-                                   type: Vec3.self)
+  Monster.startVectorOfvec3(2, in: &fbb)
+  MyGame_Example_Vec3.createVec3(builder: &fbb, x: 1, y: 2, z: 3)
+  MyGame_Example_Vec3.createVec3(builder: &fbb, x: 4, y: 5, z: 6)
+  let points = fbb.endVectorOfStructs(count: size)
 ~~~
 </div>
 
@@ -1700,15 +1701,17 @@ can serialize the monster itself:
 </div>
 <div class="language-swift">
 ~~~{.swift}
-  let orc = Monster.createMonster(builder,
-                                  offsetOfPos: pos,
-                                  hp: 300,
-                                  offsetOfName: name,
-                                  vectorOfInventory: inventoryOffset,
-                                  color: .red,
-                                  vectorOfWeapons: weaponsOffset,
-                                  equippedType: .weapon,
-                                  offsetOfEquipped: axe)
+  let start = Monster.startMonster(&builder)
+  let posStruct = MyGame_Example_Vec3.createVec3(builder: &builder, x: 1, y: 2, z: 3)
+  Monster.add(pos: pos, &builder)
+  Monster.add(hp: 300, &builder)
+  Monster.add(name: name, &builder)
+  Monster.addVectorOf(inventory: inventoryOffset, &builder)
+  Monster.add(color: .red, &builder)
+  Monster.addVectorOf(weapons: weaponsOffset, &builder)
+  Monster.add(equippedType: .weapon, &builder)
+  Monster.add(equipped: axe, &builder)
+  var orc = Monster.endMonster(&builder, start: start)
 ~~~
 </div>
 
@@ -1773,20 +1776,6 @@ a bit more flexibility.
   ns(Monster_equipped_add(B, equipped));
   // Complete the monster object and make it the buffer root object.
   ns(Monster_end_as_root(B));
-~~~
-</div>
-<div class="language-swift">
-~~~{.swift}
-  let start = Monster.startMonster(builder)
-  Monster.add(pos: pos, builder)
-  Monster.add(hp: 300, builder)
-  Monster.add(name: name, builder)
-  Monster.addVectorOf(inventory: inventoryOffset, builder)
-  Monster.add(color: .red, builder)
-  Monster.addVectorOf(weapons: weaponsOffset, builder)
-  Monster.add(equippedType: .weapon, builder)
-  Monster.add(equipped: axe, builder)
-  var orc = Monster.endMonster(builder, start: start)
 ~~~
 </div>
 

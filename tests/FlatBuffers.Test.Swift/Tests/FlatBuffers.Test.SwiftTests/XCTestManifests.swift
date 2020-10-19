@@ -32,12 +32,6 @@ extension FlatBuffersStructsTests {
     //   `swift test --generate-linuxmain`
     // to regenerate.
     static let __allTests__FlatBuffersStructsTests = [
-        ("testCreatingEnums", testCreatingEnums),
-        ("testCreatingStruct", testCreatingStruct),
-        ("testCreatingVectorStruct", testCreatingVectorStruct),
-        ("testCreatingVectorStructWithForcedDefaults", testCreatingVectorStructWithForcedDefaults),
-        ("testReadingStruct", testReadingStruct),
-        ("testReadingStructWithEnums", testReadingStructWithEnums),
         ("testWritingAndMutatingBools", testWritingAndMutatingBools),
     ]
 }
@@ -54,6 +48,7 @@ extension FlatBuffersTests {
         ("testOffset", testOffset),
         ("testReadCountry", testReadCountry),
         ("testStartTable", testStartTable),
+        ("testWriteNullableStrings", testWriteNullableStrings),
         ("testWriteOptionalValues", testWriteOptionalValues),
     ]
 }

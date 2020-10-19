@@ -20,14 +20,14 @@ public enum Character: UInt8, Enum {
     public static var min: Character { return .none_ }
 }
 
-struct CharacterUnion {
-    var type: Character
-    var value: NativeTable?
-    init(_ v: NativeTable?, type: Character) {
+public struct CharacterUnion {
+    public var type: Character
+    public var value: NativeTable?
+    public init(_ v: NativeTable?, type: Character) {
         self.type = type
         self.value = v
     }
-    func pack(builder: inout FlatBufferBuilder) -> Offset<UOffset> {
+    public func pack(builder: inout FlatBufferBuilder) -> Offset<UOffset> {
         switch type {
         case .mulan:
             var __obj = value as? AttackerT
@@ -68,19 +68,19 @@ public struct Rapunzel: Readable {
     }
 
     public static func pack(_ builder: inout FlatBufferBuilder, obj: inout RapunzelT) -> Offset<UOffset> {
-        return builder.create(struct: createRapunzel(hairLength: obj.hairLength), type: Rapunzel.self)
+        return createRapunzel(builder: &builder, hairLength: obj.hairLength)
     }
 }
 
 public class RapunzelT: NativeTable {
 
-    var hairLength: Int32
+    public var hairLength: Int32
 
-    init(_ _t: inout Rapunzel) {
+    public init(_ _t: inout Rapunzel) {
         hairLength = _t.hairLength
     }
 
-    init() {
+    public init() {
         hairLength = 0
     }
 
@@ -108,39 +108,39 @@ public struct BookReader: Readable {
     }
 
     public static func pack(_ builder: inout FlatBufferBuilder, obj: inout BookReaderT) -> Offset<UOffset> {
-        return builder.create(struct: createBookReader(booksRead: obj.booksRead), type: BookReader.self)
+        return createBookReader(builder: &builder, booksRead: obj.booksRead)
     }
 }
 
 public class BookReaderT: NativeTable {
 
-    var booksRead: Int32
+    public var booksRead: Int32
 
-    init(_ _t: inout BookReader) {
+    public init(_ _t: inout BookReader) {
         booksRead = _t.booksRead
     }
 
-    init() {
+    public init() {
         booksRead = 0
     }
 
 }
 extension Rapunzel {
-    public static func createRapunzel(hairLength: Int32 = 0) -> UnsafeMutableRawPointer {
-        let memory = UnsafeMutableRawPointer.allocate(byteCount: Rapunzel.size, alignment: Rapunzel.alignment)
-        memory.initializeMemory(as: UInt8.self, repeating: 0, count: Rapunzel.size)
-        memory.storeBytes(of: hairLength, toByteOffset: 0, as: Int32.self)
-        return memory
+    @discardableResult
+    public static func createRapunzel(builder: inout FlatBufferBuilder, hairLength: Int32 = 0) -> Offset<UOffset> {
+        builder.createStructOf(size: Rapunzel.size, alignment: Rapunzel.alignment)
+        builder.reverseAdd(v: hairLength, postion: 0)
+        return builder.endStruct()
     }
 
 }
 
 extension BookReader {
-    public static func createBookReader(booksRead: Int32 = 0) -> UnsafeMutableRawPointer {
-        let memory = UnsafeMutableRawPointer.allocate(byteCount: BookReader.size, alignment: BookReader.alignment)
-        memory.initializeMemory(as: UInt8.self, repeating: 0, count: BookReader.size)
-        memory.storeBytes(of: booksRead, toByteOffset: 0, as: Int32.self)
-        return memory
+    @discardableResult
+    public static func createBookReader(builder: inout FlatBufferBuilder, booksRead: Int32 = 0) -> Offset<UOffset> {
+        builder.createStructOf(size: BookReader.size, alignment: BookReader.alignment)
+        builder.reverseAdd(v: booksRead, postion: 0)
+        return builder.endStruct()
     }
 
 }
@@ -157,7 +157,7 @@ public struct Attacker: FlatBufferObject, ObjectAPI {
     private init(_ t: Table) { _accessor = t }
     public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
-    enum VTOFFSET: VOffset {
+    private enum VTOFFSET: VOffset {
         case swordAttackDamage = 4
         var v: Int32 { Int32(self.rawValue) }
         var p: VOffset { self.rawValue }
@@ -195,17 +195,17 @@ public struct Attacker: FlatBufferObject, ObjectAPI {
 
 public class AttackerT: NativeTable {
 
-    var swordAttackDamage: Int32
+    public var swordAttackDamage: Int32
 
-    init(_ _t: inout Attacker) {
+    public init(_ _t: inout Attacker) {
         swordAttackDamage = _t.swordAttackDamage
     }
 
-    init() {
+    public init() {
         swordAttackDamage = 0
     }
 
-    func serialize() -> ByteBuffer { return serialize(type: Attacker.self) }
+    public func serialize() -> ByteBuffer { return serialize(type: Attacker.self) }
 
 }
 public struct Movie: FlatBufferObject, ObjectAPI {
@@ -220,7 +220,7 @@ public struct Movie: FlatBufferObject, ObjectAPI {
     private init(_ t: Table) { _accessor = t }
     public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
-    enum VTOFFSET: VOffset {
+    private enum VTOFFSET: VOffset {
         case mainCharacterType = 4
         case mainCharacter = 6
         case charactersType = 8
@@ -237,9 +237,9 @@ public struct Movie: FlatBufferObject, ObjectAPI {
     public func characters<T: FlatBufferObject>(at index: Int32, type: T.Type) -> T? { let o = _accessor.offset(VTOFFSET.characters.v); return o == 0 ? nil : _accessor.directUnion(_accessor.vector(at: o) + index * 4) }
     public static func startMovie(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 4) }
     public static func add(mainCharacterType: Character, _ fbb: inout FlatBufferBuilder) { fbb.add(element: mainCharacterType.rawValue, def: 0, at: VTOFFSET.mainCharacterType.p) }
-    public static func add(mainCharacter: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: mainCharacter, at: VTOFFSET.mainCharacter.p)  }
-    public static func addVectorOf(charactersType: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: charactersType, at: VTOFFSET.charactersType.p)  }
-    public static func addVectorOf(characters: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: characters, at: VTOFFSET.characters.p)  }
+    public static func add(mainCharacter: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: mainCharacter, at: VTOFFSET.mainCharacter.p) }
+    public static func addVectorOf(charactersType: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: charactersType, at: VTOFFSET.charactersType.p) }
+    public static func addVectorOf(characters: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: characters, at: VTOFFSET.characters.p) }
     public static func endMovie(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
     public static func createMovie(
         _ fbb: inout FlatBufferBuilder,
@@ -288,10 +288,10 @@ public struct Movie: FlatBufferObject, ObjectAPI {
 
 public class MovieT: NativeTable {
 
-    var mainCharacter: CharacterUnion?
-    var characters: [CharacterUnion?]
+    public var mainCharacter: CharacterUnion?
+    public var characters: [CharacterUnion?]
 
-    init(_ _t: inout Movie) {
+    public init(_ _t: inout Movie) {
         switch _t.mainCharacterType {
         case .mulan:
             var _v = _t.mainCharacter(type: Attacker.self)
@@ -327,10 +327,10 @@ public class MovieT: NativeTable {
         }
     }
 
-    init() {
+    public init() {
         characters = []
     }
 
-    func serialize() -> ByteBuffer { return serialize(type: Movie.self) }
+    public func serialize() -> ByteBuffer { return serialize(type: Movie.self) }
 
 }

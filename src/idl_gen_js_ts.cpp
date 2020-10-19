@@ -141,7 +141,8 @@ class JsTsGenerator : public BaseGenerator {
       const auto &file = *it;
       const auto basename =
           flatbuffers::StripPath(flatbuffers::StripExtension(file.first));
-      if (basename != file_name_ && imported.find(file.second.symbol) == imported.end()) {
+      if (basename != file_name_ &&
+          imported.find(file.second.symbol) == imported.end()) {
         if (imported_files.find(file.first) == imported_files.end()) {
           code += GenPrefixedImport(file.first, basename);
           imported_files.emplace(file.first);
@@ -225,9 +226,7 @@ class JsTsGenerator : public BaseGenerator {
     for (auto it = sorted_namespaces.begin(); it != sorted_namespaces.end();
          ++it) {
       if (lang_.language == IDLOptions::kTs) {
-        if (it->find('.') == std::string::npos) {
-          break;
-        }
+        if (it->find('.') == std::string::npos) { break; }
       } else {
         code += "/**\n * @const\n * @namespace\n */\n";
         if (it->find('.') == std::string::npos) {
@@ -992,8 +991,8 @@ class JsTsGenerator : public BaseGenerator {
     std::string constructor_func = "constructor(";
     constructor_func += (struct_def.fields.vec.empty() ? "" : "\n");
 
-
-    const auto has_create = struct_def.fixed || CanCreateFactoryMethod(struct_def);
+    const auto has_create =
+        struct_def.fixed || CanCreateFactoryMethod(struct_def);
 
     std::string pack_func_prototype =
         "/**\n * " +
@@ -1004,14 +1003,13 @@ class JsTsGenerator : public BaseGenerator {
     std::string pack_func_offset_decl;
     std::string pack_func_create_call;
 
-    const auto struct_name = GenPrefixedTypeName(WrapInNameSpace(struct_def), struct_def.file);
+    const auto struct_name =
+        GenPrefixedTypeName(WrapInNameSpace(struct_def), struct_def.file);
 
     if (has_create) {
-      pack_func_create_call =
-        "  return " +
-        struct_name +
-        ".create" + Verbose(struct_def) + "(builder" +
-        (struct_def.fields.vec.empty() ? "" : ",\n    ");
+      pack_func_create_call = "  return " + struct_name + ".create" +
+                              Verbose(struct_def) + "(builder" +
+                              (struct_def.fields.vec.empty() ? "" : ",\n    ");
     } else {
       pack_func_create_call = "  " + struct_name + ".start(builder);\n";
     }
@@ -1231,7 +1229,9 @@ class JsTsGenerator : public BaseGenerator {
         if (has_create) {
           pack_func_create_call += field_offset_val;
         } else {
-          pack_func_create_call += "  " + struct_name + ".add" + MakeCamel(field.name) + "(builder, " + field_offset_val + ");\n";
+          pack_func_create_call += "  " + struct_name + ".add" +
+                                   MakeCamel(field.name) + "(builder, " +
+                                   field_offset_val + ");\n";
         }
       }
 
@@ -1239,7 +1239,9 @@ class JsTsGenerator : public BaseGenerator {
         constructor_annotation += "\n";
         constructor_func += ",\n";
 
-        if (!struct_def.fixed && has_create) { pack_func_create_call += ",\n    "; }
+        if (!struct_def.fixed && has_create) {
+          pack_func_create_call += ",\n    ";
+        }
 
         unpack_func += ",\n";
         unpack_to_func += "\n";
@@ -1698,11 +1700,12 @@ class JsTsGenerator : public BaseGenerator {
 
         if (struct_def.fixed) {
           code += "  " + GenBBAccess() + ".write" +
-                  MakeCamel(GenType(field.value.type)) +
-                  "(this.bb_pos + " + NumToString(field.value.offset) + ", ";
+                  MakeCamel(GenType(field.value.type)) + "(this.bb_pos + " +
+                  NumToString(field.value.offset) + ", ";
         } else {
-          code += "  var offset = " + GenBBAccess() + ".__offset(this.bb_pos, " +
-                  NumToString(field.value.offset) + ");\n\n";
+          code += "  var offset = " + GenBBAccess() +
+                  ".__offset(this.bb_pos, " + NumToString(field.value.offset) +
+                  ");\n\n";
           code += "  if (offset === 0) {\n";
           code += "    return false;\n";
           code += "  }\n\n";
@@ -1781,6 +1784,30 @@ class JsTsGenerator : public BaseGenerator {
           }
         }
       }
+    }
+
+    // Emit the fully qualified name
+    if (parser_.opts.generate_name_strings) {
+      GenDocComment(code_ptr, GenTypeAnnotation(kReturns, "string", "", false));
+      if (lang_.language == IDLOptions::kTs) {
+        code += "static getFullyQualifiedName():string {\n";
+      } else {
+        code += object_name + ".getFullyQualifiedName = function() {\n";
+      }
+      code += "  return '" + WrapInNameSpace(struct_def) + "';\n";
+      code += "}\n\n";
+    }
+
+    // Emit the size of the struct.
+    if (struct_def.fixed) {
+      GenDocComment(code_ptr, GenTypeAnnotation(kReturns, "number", "", false));
+      if (lang_.language == IDLOptions::kTs) {
+        code += "static sizeOf():number {\n";
+      } else {
+        code += object_name + ".sizeOf = function() {\n";
+      }
+      code += "  return " + NumToString(struct_def.bytesize) + ";\n";
+      code += "}\n\n";
     }
 
     // Emit a factory constructor
@@ -2037,6 +2064,21 @@ class JsTsGenerator : public BaseGenerator {
         code += "}\n";
         if (lang_.language == IDLOptions::kJs) code += "\n";
       }
+    }
+
+    if (!struct_def.fixed && parser_.services_.vec.size() != 0 &&
+        lang_.language == IDLOptions::kTs) {
+      auto name = Verbose(struct_def, "");
+      code += "\n";
+      code += "serialize():Uint8Array {\n";
+      code += "  return this.bb!.bytes();\n";
+      code += "}\n";
+
+      code += "\n";
+      code += "static deserialize(buffer: Uint8Array):"+ name +" {\n";
+      code += "  return " + name + ".getRootAs" + name +
+              "(new flatbuffers.ByteBuffer(buffer))\n";
+      code += "}\n";
     }
 
     if (lang_.language == IDLOptions::kTs) {

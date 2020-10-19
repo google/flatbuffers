@@ -116,6 +116,9 @@ Additional options:
 
 -   `--gen-generated` : Add @Generated annotation for Java.
 
+-   `--gen-jvmstatic` : Add @JvmStatic annotation for Kotlin methods
+    in companion object for interop from Java to Kotlin.
+
 -   `--gen-all` : Generate not just code for the current schema files, but
     for all files it includes as well. If the language uses a single file for
     output (by default the case for C++ and JS), all code will end up in
@@ -133,6 +136,9 @@ Additional options:
 -   `--cpp-str-flex-ctor` : Don't construct custom string types by passing
     std::string from Flatbuffers, but (char* + length). This allows efficient
 	construction of custom string types, including zero-copy construction.
+
+-   `--no-cpp-direct-copy` : Don't generate direct copy methods for C++
+    object-based API.
 
 -   `--cpp-std CPP_STD` : Generate a C++ code using features of selected C++ standard.
      Supported `CPP_STD` values:

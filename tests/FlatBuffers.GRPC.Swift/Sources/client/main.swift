@@ -36,6 +36,7 @@ func greet(name: String, client greeter: GreeterServiceClient) {
     
     // Make the RPC call to the server.
     let sayHello = greeter.SayHello(Message<HelloRequest>(builder: &builder))
+
     // wait() on the response to stop the program from exiting before the response is received.
     do {
         let response = try sayHello.response.wait()
@@ -43,15 +44,15 @@ func greet(name: String, client greeter: GreeterServiceClient) {
     } catch {
         print("Greeter failed: \(error)")
     }
-    
+
     let surname = builder.create(string: "Name")
     let manyRoot = ManyHellosRequest.createManyHellosRequest(&builder, offsetOfName: surname, numGreetings: 2)
     builder.finish(offset: manyRoot)
-    
+
     let call = greeter.SayManyHellos(Message(builder: &builder)) { message in
         print(message.object.message)
     }
-    
+
     let status = try! call.status.recover { _ in .processingError }.wait()
     if status.code != .ok {
       print("RPC failed: \(status)")
@@ -83,10 +84,15 @@ func main(args: [String]) {
         // Configure the channel, we're not using TLS so the connection is `insecure`.
         let channel = ClientConnection.insecure(group: group)
           .connect(host: "localhost", port: port)
-        
+
+        // Close the connection when we're done with it.
+        defer {
+          try! channel.close().wait()
+        }
+
         // Provide the connection to the generated client.
         let greeter = GreeterServiceClient(channel: channel)
-        
+
         // Do the greeting.
         greet(name: name ?? "Hello FlatBuffers!", client: greeter)
     }

@@ -47,21 +47,16 @@
 #include <memory>
 
 #if defined(__unix__) && !defined(FLATBUFFERS_LOCALE_INDEPENDENT)
-#include <unistd.h>
-#endif 
+  #include <unistd.h>
+#endif
 
 #ifdef _STLPORT_VERSION
   #define FLATBUFFERS_CPP98_STL
-#endif
-#ifndef FLATBUFFERS_CPP98_STL
-  #include <functional>
 #endif
 
 #ifdef __ANDROID__
   #include <android/api-level.h>
 #endif
-
-#include "flatbuffers/stl_emulation.h"
 
 #if defined(__ICCARM__)
 #include <intrinsics.h>
@@ -162,10 +157,12 @@ namespace flatbuffers {
     defined(__clang__)
   #define FLATBUFFERS_FINAL_CLASS final
   #define FLATBUFFERS_OVERRIDE override
+  #define FLATBUFFERS_EXPLICIT_CPP11 explicit
   #define FLATBUFFERS_VTABLE_UNDERLYING_TYPE : flatbuffers::voffset_t
 #else
   #define FLATBUFFERS_FINAL_CLASS
   #define FLATBUFFERS_OVERRIDE
+  #define FLATBUFFERS_EXPLICIT_CPP11
   #define FLATBUFFERS_VTABLE_UNDERLYING_TYPE
 #endif
 
@@ -173,13 +170,16 @@ namespace flatbuffers {
     (!defined(__GNUC__) || (__GNUC__ * 100 + __GNUC_MINOR__ >= 406)) || \
     (defined(__cpp_constexpr) && __cpp_constexpr >= 200704)
   #define FLATBUFFERS_CONSTEXPR constexpr
+  #define FLATBUFFERS_CONSTEXPR_CPP11 constexpr
+  #define FLATBUFFERS_CONSTEXPR_DEFINED
 #else
   #define FLATBUFFERS_CONSTEXPR const
+  #define FLATBUFFERS_CONSTEXPR_CPP11
 #endif
 
 #if (defined(__cplusplus) && __cplusplus >= 201402L) || \
     (defined(__cpp_constexpr) && __cpp_constexpr >= 201304)
-  #define FLATBUFFERS_CONSTEXPR_CPP14 FLATBUFFERS_CONSTEXPR
+  #define FLATBUFFERS_CONSTEXPR_CPP14 FLATBUFFERS_CONSTEXPR_CPP11
 #else
   #define FLATBUFFERS_CONSTEXPR_CPP14
 #endif
@@ -200,6 +200,16 @@ namespace flatbuffers {
   #define FLATBUFFERS_DELETE_FUNC(func) func = delete;
 #else
   #define FLATBUFFERS_DELETE_FUNC(func) private: func;
+#endif
+
+// Check if we can use template aliases
+// Not possible if Microsoft Compiler before 2012
+// Possible is the language feature __cpp_alias_templates is defined well
+// Or possible if the C++ std is C+11 or newer
+#if (defined(_MSC_VER) && _MSC_VER > 1700 /* MSVC2012 */) \
+    || (defined(__cpp_alias_templates) && __cpp_alias_templates >= 200704) \
+    || (defined(__cplusplus) && __cplusplus >= 201103L)
+  #define FLATBUFFERS_TEMPLATES_ALIASES
 #endif
 
 #ifndef FLATBUFFERS_HAS_STRING_VIEW

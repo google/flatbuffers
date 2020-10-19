@@ -3,18 +3,32 @@
 
 import FlatBuffers
 
+public enum optional_scalars_OptionalByte: Int8, Enum { 
+    public typealias T = Int8
+    public static var byteSize: Int { return MemoryLayout<Int8>.size }
+    public var value: Int8 { return self.rawValue }
+    case none_ = 0
+    case one = 1
+    case two = 2
+    
+
+    public static var max: optional_scalars_OptionalByte { return .two }
+    public static var min: optional_scalars_OptionalByte { return .none_ }
+}
+
 public struct optional_scalars_ScalarStuff: FlatBufferObject {
 
     static func validateVersion() { FlatBuffersVersion_1_12_0() }
     public var __buffer: ByteBuffer! { return _accessor.bb }
     private var _accessor: Table
 
+    public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset<UOffset>, prefix: Bool = false) { fbb.finish(offset: end, fileId: "NULL", addPrefix: prefix) }
     public static func getRootAsScalarStuff(bb: ByteBuffer) -> optional_scalars_ScalarStuff { return optional_scalars_ScalarStuff(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
 
     private init(_ t: Table) { _accessor = t }
     public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
-    enum VTOFFSET: VOffset {
+    private enum VTOFFSET: VOffset {
         case justI8 = 4
         case maybeI8 = 6
         case defaultI8 = 8
@@ -48,6 +62,9 @@ public struct optional_scalars_ScalarStuff: FlatBufferObject {
         case justBool = 64
         case maybeBool = 66
         case defaultBool = 68
+        case justEnum = 70
+        case maybeEnum = 72
+        case defaultEnum = 74
         var v: Int32 { Int32(self.rawValue) }
         var p: VOffset { self.rawValue }
     }
@@ -85,7 +102,10 @@ public struct optional_scalars_ScalarStuff: FlatBufferObject {
     public var justBool: Bool { let o = _accessor.offset(VTOFFSET.justBool.v); return o == 0 ? false : 0 != _accessor.readBuffer(of: Byte.self, at: o) }
     public var maybeBool: Bool? { let o = _accessor.offset(VTOFFSET.maybeBool.v); return o == 0 ? true : 0 != _accessor.readBuffer(of: Byte.self, at: o) }
     public var defaultBool: Bool { let o = _accessor.offset(VTOFFSET.defaultBool.v); return o == 0 ? true : 0 != _accessor.readBuffer(of: Byte.self, at: o) }
-    public static func startScalarStuff(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 33) }
+    public var justEnum: optional_scalars_OptionalByte { let o = _accessor.offset(VTOFFSET.justEnum.v); return o == 0 ? .none_ : optional_scalars_OptionalByte(rawValue: _accessor.readBuffer(of: Int8.self, at: o)) ?? .none_ }
+    public var maybeEnum: optional_scalars_OptionalByte? { let o = _accessor.offset(VTOFFSET.maybeEnum.v); return o == 0 ? nil : optional_scalars_OptionalByte(rawValue: _accessor.readBuffer(of: Int8.self, at: o)) ?? nil }
+    public var defaultEnum: optional_scalars_OptionalByte { let o = _accessor.offset(VTOFFSET.defaultEnum.v); return o == 0 ? .one : optional_scalars_OptionalByte(rawValue: _accessor.readBuffer(of: Int8.self, at: o)) ?? .one }
+    public static func startScalarStuff(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 36) }
     public static func add(justI8: Int8, _ fbb: inout FlatBufferBuilder) { fbb.add(element: justI8, def: 0, at: VTOFFSET.justI8.p) }
     public static func add(maybeI8: Int8?, _ fbb: inout FlatBufferBuilder) { fbb.add(element: maybeI8, at: VTOFFSET.maybeI8.p) }
     public static func add(defaultI8: Int8, _ fbb: inout FlatBufferBuilder) { fbb.add(element: defaultI8, def: 42, at: VTOFFSET.defaultI8.p) }
@@ -121,6 +141,9 @@ public struct optional_scalars_ScalarStuff: FlatBufferObject {
     public static func add(maybeBool: Bool?, _ fbb: inout FlatBufferBuilder) { fbb.add(element: maybeBool, at: VTOFFSET.maybeBool.p) }
     public static func add(defaultBool: Bool, _ fbb: inout FlatBufferBuilder) { fbb.add(element: defaultBool, def: true,
      at: VTOFFSET.defaultBool.p) }
+    public static func add(justEnum: optional_scalars_OptionalByte, _ fbb: inout FlatBufferBuilder) { fbb.add(element: justEnum.rawValue, def: 0, at: VTOFFSET.justEnum.p) }
+    public static func add(maybeEnum: optional_scalars_OptionalByte?, _ fbb: inout FlatBufferBuilder) { fbb.add(element: maybeEnum?.rawValue, at: VTOFFSET.maybeEnum.p) }
+    public static func add(defaultEnum: optional_scalars_OptionalByte, _ fbb: inout FlatBufferBuilder) { fbb.add(element: defaultEnum.rawValue, def: 1, at: VTOFFSET.defaultEnum.p) }
     public static func endScalarStuff(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
     public static func createScalarStuff(
         _ fbb: inout FlatBufferBuilder,
@@ -156,7 +179,10 @@ public struct optional_scalars_ScalarStuff: FlatBufferObject {
         defaultF64: Double = 42.0,
         justBool: Bool = false,
         maybeBool: Bool? = nil,
-        defaultBool: Bool = true
+        defaultBool: Bool = true,
+        justEnum: optional_scalars_OptionalByte = .none_,
+        maybeEnum: optional_scalars_OptionalByte? = nil,
+        defaultEnum: optional_scalars_OptionalByte = .one
     ) -> Offset<UOffset> {
         let __start = optional_scalars_ScalarStuff.startScalarStuff(&fbb)
         optional_scalars_ScalarStuff.add(justI8: justI8, &fbb)
@@ -192,6 +218,9 @@ public struct optional_scalars_ScalarStuff: FlatBufferObject {
         optional_scalars_ScalarStuff.add(justBool: justBool, &fbb)
         optional_scalars_ScalarStuff.add(maybeBool: maybeBool, &fbb)
         optional_scalars_ScalarStuff.add(defaultBool: defaultBool, &fbb)
+        optional_scalars_ScalarStuff.add(justEnum: justEnum, &fbb)
+        optional_scalars_ScalarStuff.add(maybeEnum: maybeEnum, &fbb)
+        optional_scalars_ScalarStuff.add(defaultEnum: defaultEnum, &fbb)
         return optional_scalars_ScalarStuff.endScalarStuff(&fbb, start: __start)
     }
 }

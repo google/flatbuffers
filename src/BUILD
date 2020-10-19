@@ -71,5 +71,6 @@ cc_library(
         "//grpc/src/compiler:java_generator",
         "//grpc/src/compiler:python_generator",
         "//grpc/src/compiler:swift_generator",
+        "//grpc/src/compiler:ts_generator",
     ],
 )

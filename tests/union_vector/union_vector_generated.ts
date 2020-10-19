@@ -108,6 +108,13 @@ mutate_sword_attack_damage(value:number):boolean {
 };
 
 /**
+ * @returns string
+ */
+static getFullyQualifiedName():string {
+  return 'Attacker';
+}
+
+/**
  * @param flatbuffers.Builder builder
  */
 static startAttacker(builder:flatbuffers.Builder) {
@@ -208,6 +215,20 @@ mutate_hair_length(value:number):boolean {
 };
 
 /**
+ * @returns string
+ */
+static getFullyQualifiedName():string {
+  return 'Rapunzel';
+}
+
+/**
+ * @returns number
+ */
+static sizeOf():number {
+  return 4;
+}
+
+/**
  * @param flatbuffers.Builder builder
  * @param number hair_length
  * @returns flatbuffers.Offset
@@ -288,6 +309,20 @@ mutate_books_read(value:number):boolean {
   this.bb!.writeInt32(this.bb_pos + 0, value);
   return true;
 };
+
+/**
+ * @returns string
+ */
+static getFullyQualifiedName():string {
+  return 'BookReader';
+}
+
+/**
+ * @returns number
+ */
+static sizeOf():number {
+  return 4;
+}
 
 /**
  * @param flatbuffers.Builder builder
@@ -441,6 +476,13 @@ charactersLength():number {
   var offset = this.bb!.__offset(this.bb_pos, 10);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 };
+
+/**
+ * @returns string
+ */
+static getFullyQualifiedName():string {
+  return 'Movie';
+}
 
 /**
  * @param flatbuffers.Builder builder

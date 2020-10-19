@@ -591,11 +591,14 @@ namespace FlatBuffers.Test
             Assert.Throws<ArgumentException>(() => uut.Put(1024, data));
         }
 
+        #pragma warning disable 0169
+        // These are purposely not used and the warning is suppress
         private struct dummyStruct
         {
             int a;
             float b;
         }
+        #pragma warning restore 0169
 
         [FlatBuffersTestMethod]
         public void ByteBuffer_Put_Array_IncorrectType_Throws()

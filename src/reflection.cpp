@@ -23,7 +23,7 @@
 namespace flatbuffers {
 
 int64_t GetAnyValueI(reflection::BaseType type, const uint8_t *data) {
-  // clang-format off
+// clang-format off
   #define FLATBUFFERS_GET(T) static_cast<int64_t>(ReadScalar<T>(data))
   switch (type) {
     case reflection::UType:
@@ -121,7 +121,7 @@ std::string GetAnyValueS(reflection::BaseType type, const uint8_t *data,
 }
 
 void SetAnyValueI(reflection::BaseType type, uint8_t *data, int64_t val) {
-  // clang-format off
+// clang-format off
   #define FLATBUFFERS_SET(T) WriteScalar(data, static_cast<T>(val))
   switch (type) {
     case reflection::UType:
@@ -195,7 +195,7 @@ class ResizeContext {
     if (delta_ > 0)
       buf_.insert(buf_.begin() + start, delta_, 0);
     else
-      buf_.erase(buf_.begin() + start, buf_.begin() + start - delta_);
+      buf_.erase(buf_.begin() + start + delta_, buf_.begin() + start);
   }
 
   // Check if the range between first (lower address) and second straddles

@@ -125,7 +125,7 @@ void GenerateClientClass(const grpc_generator::Service *service,
   printer->Print("\t\tself.defaultCallOptions = defaultCallOptions\n");
   printer->Print("\t}");
   printer->Print("\n");
-  vars["GenAccess"] = "public";
+  vars["GenAccess"] = service->is_internal() ? "internal" : "public";
   for (auto it = 0; it < service->method_count(); it++) {
     auto method = service->method(it);
     vars["Input"] = GenerateMessage(method->get_input_namespace_parts(), method->get_input_type_name());
@@ -229,11 +229,13 @@ void GenerateServerProtocol(const grpc_generator::Service *service,
   printer->Print("}\n\n");
 
   printer->Print(vars, "$ACCESS$ extension $ServiceQualifiedName$Provider {\n");
+  printer->Print("\n");
   printer->Print(vars,
-                 "\tvar serviceName: String { return "
+                 "\tvar serviceName: Substring { return "
                  "\"$PATH$$ServiceName$\" }\n");
+  printer->Print("\n");
   printer->Print(
-      "\tfunc handleMethod(_ methodName: String, callHandlerContext: "
+      "\tfunc handleMethod(_ methodName: Substring, callHandlerContext: "
       "CallHandlerContext) -> GRPCCallHandler? {\n");
   printer->Print("\t\tswitch methodName {\n");
   for (auto it = 0; it < service->method_count(); it++) {
@@ -259,7 +261,7 @@ grpc::string Generate(grpc_generator::File *file,
   if (!file->package().empty()) { vars["PATH"].append("."); }
   vars["ServiceQualifiedName"] = WrapInNameSpace(service->namespace_parts(), service->name());
   vars["ServiceName"] = service->name();
-  vars["ACCESS"] = "public";
+  vars["ACCESS"] = service->is_internal() ? "internal" : "public";
   auto printer = file->CreatePrinter(&output);
   printer->Print(vars,
                  "/// Usage: instantiate $ServiceQualifiedName$ServiceClient, then call "

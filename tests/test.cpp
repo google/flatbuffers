@@ -23,7 +23,6 @@
 
 // clang-format off
 #ifdef FLATBUFFERS_CPP98_STL
-  #include "flatbuffers/stl_emulation.h"
   namespace std {
     using flatbuffers::unique_ptr;
   }
@@ -35,6 +34,7 @@
 #include "namespace_test/namespace_test2_generated.h"
 #include "union_vector/union_vector_generated.h"
 #include "monster_extra_generated.h"
+#include "optional_scalars2_generated.h"
 #if !defined(_MSC_VER) || _MSC_VER >= 1700
 #  include "arrays_test_generated.h"
 #  include "evolution_test/evolution_v1_generated.h"
@@ -900,6 +900,7 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   TEST_EQ_STR(hp_field.name()->c_str(), "hp");
   TEST_EQ(hp_field.id(), 2);
   TEST_EQ(hp_field.type()->base_type(), reflection::Short);
+
   auto friendly_field_ptr = fields->LookupByKey("friendly");
   TEST_NOTNULL(friendly_field_ptr);
   TEST_NOTNULL(friendly_field_ptr->attributes());
@@ -912,6 +913,12 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   auto pos_table_ptr = schema.objects()->Get(pos_field_ptr->type()->index());
   TEST_NOTNULL(pos_table_ptr);
   TEST_EQ_STR(pos_table_ptr->name()->c_str(), "MyGame.Example.Vec3");
+
+  // Test nullability of fields: hp is a 0-default scalar, pos is a struct =>
+  // optional, and name is a required string => not optional.
+  TEST_EQ(hp_field.optional(), false);
+  TEST_EQ(pos_field_ptr->optional(), true);
+  TEST_EQ(fields->LookupByKey("name")->optional(), false);
 
   // Now use it to dynamically access a buffer.
   auto &root = *flatbuffers::GetAnyRoot(flatbuf);
@@ -1099,6 +1106,30 @@ void MiniReflectFlatBuffersTest(uint8_t *flatbuf) {
   TEST_EQ_STR(vec_str.c_str(),
               "{ x: 1.0, y: 2.0, z: 3.0, test1: 1.5, test2: Red, test3: { a: "
               "16, b: 32 } }");
+}
+
+void MiniReflectFixedLengthArrayTest() {
+  // VS10 does not support typed enums, exclude from tests
+#if !defined(_MSC_VER) || _MSC_VER >= 1700
+  flatbuffers::FlatBufferBuilder fbb;
+  MyGame::Example::ArrayStruct aStruct(2, 12, 1);
+  auto aTable = MyGame::Example::CreateArrayTable(fbb, &aStruct);
+  fbb.Finish(aTable);
+
+  auto flatbuf = fbb.Release();
+  auto s = flatbuffers::FlatBufferToString(
+      flatbuf.data(), MyGame::Example::ArrayTableTypeTable());
+  TEST_EQ_STR(
+      "{ "
+      "a: { a: 2.0, "
+      "b: [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ], "
+      "c: 12, "
+      "d: [ { a: [ 0, 0 ], b: A, c: [ A, A ], d: [ 0, 0 ] }, "
+      "{ a: [ 0, 0 ], b: A, c: [ A, A ], d: [ 0, 0 ] } ], "
+      "e: 1, f: [ 0, 0 ] } "
+      "}",
+      s.c_str());
+#endif
 }
 
 // Parse a .proto schema, output as .fbs
@@ -3183,6 +3214,89 @@ void CreateSharedStringTest() {
   TEST_EQ((*a[6]) < (*a[5]), true);
 }
 
+#if !defined(FLATBUFFERS_SPAN_MINIMAL)
+void FlatbuffersSpanTest() {
+  // Compile-time checking of non-const [] to const [] conversions.
+  using flatbuffers::internal::is_span_convertable;
+  (void)is_span_convertable<int, 1, int, 1>::type(123);
+  (void)is_span_convertable<const int, 1, int, 1>::type(123);
+  (void)is_span_convertable<const int64_t, 1, int64_t, 1>::type(123);
+  (void)is_span_convertable<const uint64_t, 1, uint64_t, 1>::type(123);
+  (void)is_span_convertable<const int, 1, const int, 1>::type(123);
+  (void)is_span_convertable<const int64_t, 1, const int64_t, 1>::type(123);
+  (void)is_span_convertable<const uint64_t, 1, const uint64_t, 1>::type(123);
+
+  using flatbuffers::span;
+  span<char, 0> c1;
+  TEST_EQ(c1.size(), 0);
+  span<char, flatbuffers::dynamic_extent> c2;
+  TEST_EQ(c2.size(), 0);
+  span<char> c3;
+  TEST_EQ(c3.size(), 0);
+  TEST_ASSERT(c1.empty() && c2.empty() && c3.empty());
+
+  int i_data7[7] = { 0, 1, 2, 3, 4, 5, 6 };
+  span<int, 7> i1(&i_data7[0], 7);
+  span<int> i2(i1);  // make dynamic from static
+  TEST_EQ(i1.size(), 7);
+  TEST_EQ(i1.empty(), false);
+  TEST_EQ(i1.size(), i2.size());
+  TEST_EQ(i1.data(), i_data7);
+  TEST_EQ(i1[2], 2);
+  // Make const span from a non-const one.
+  span<const int, 7> i3(i1);
+  // Construct from a C-array.
+  span<int, 7> i4(i_data7);
+  span<const int, 7> i5(i_data7);
+  span<int> i6(i_data7);
+  span<const int> i7(i_data7);
+  TEST_EQ(i7.size(), 7);
+  // Check construction from a const array.
+  const int i_cdata5[5] = { 4, 3, 2, 1, 0 };
+  span<const int, 5> i8(i_cdata5);
+  span<const int> i9(i_cdata5);
+  TEST_EQ(i9.size(), 5);
+  // Construction from a (ptr, size) pair.
+  span<int, 7> i10(i_data7, 7);
+  span<int> i11(i_data7, 7);
+  TEST_EQ(i11.size(), 7);
+  span<const int, 5> i12(i_cdata5, 5);
+  span<const int> i13(i_cdata5, 5);
+  TEST_EQ(i13.size(), 5);
+  // Construction from std::array.
+  std::array<int, 6> i_arr6 = { { 0, 1, 2, 3, 4, 5 } };
+  span<int, 6> i14(i_arr6);
+  span<const int, 6> i15(i_arr6);
+  span<int> i16(i_arr6);
+  span<const int> i17(i_arr6);
+  TEST_EQ(i17.size(), 6);
+  const std::array<int, 8> i_carr8 = { { 0, 1, 2, 3, 4, 5, 6, 7 } };
+  span<const int, 8> i18(i_carr8);
+  span<const int> i19(i_carr8);
+  TEST_EQ(i18.size(), 8);
+  TEST_EQ(i19.size(), 8);
+  TEST_EQ(i19[7], 7);
+  // Check compatibility with flatbuffers::Array.
+  int fbs_int3_underlaying[3] = { 0 };
+  int fbs_int3_data[3] = { 1, 2, 3 };
+  auto &fbs_int3 = flatbuffers::CastToArray(fbs_int3_underlaying);
+  fbs_int3.CopyFromSpan(fbs_int3_data);
+  TEST_EQ(fbs_int3.Get(1), 2);
+  const int fbs_cint3_data[3] = { 2, 3, 4 };
+  fbs_int3.CopyFromSpan(fbs_cint3_data);
+  TEST_EQ(fbs_int3.Get(1), 3);
+  // Check with Array<Enum, N>
+  enum class Dummy : uint16_t { Zero = 0, One, Two };
+  Dummy fbs_dummy3_underlaying[3] = {};
+  Dummy fbs_dummy3_data[3] = { Dummy::One, Dummy::Two, Dummy::Two };
+  auto &fbs_dummy3 = flatbuffers::CastToArray(fbs_dummy3_underlaying);
+  fbs_dummy3.CopyFromSpan(fbs_dummy3_data);
+  TEST_EQ(fbs_dummy3.Get(1), Dummy::Two);
+}
+#else
+void FlatbuffersSpanTest() {}
+#endif
+
 void FixedLengthArrayTest() {
   // VS10 does not support typed enums, exclude from tests
 #if !defined(_MSC_VER) || _MSC_VER >= 1700
@@ -3218,7 +3332,7 @@ void FixedLengthArrayTest() {
   aStruct.mutable_d()->Mutate(0, nStruct0);
   aStruct.mutable_d()->Mutate(1, nStruct1);
   auto aTable = MyGame::Example::CreateArrayTable(fbb, &aStruct);
-  fbb.Finish(aTable);
+  MyGame::Example::FinishArrayTableBuffer(fbb, aTable);
 
   // Verify correctness of the ArrayTable.
   flatbuffers::Verifier verifier(fbb.GetBufferPointer(), fbb.GetSize());
@@ -3290,6 +3404,57 @@ void FixedLengthArrayTest() {
   }
 #endif
 }
+
+#if !defined(FLATBUFFERS_SPAN_MINIMAL) && (!defined(_MSC_VER) || _MSC_VER >= 1700)
+void FixedLengthArrayConstructorTest() {
+  const int32_t nested_a[2] = { 1, 2 };
+  MyGame::Example::TestEnum nested_c[2] = { MyGame::Example::TestEnum::A,
+                                            MyGame::Example::TestEnum::B };
+  const int64_t int64_2[2] = { -2, -1 };
+
+  std::array<MyGame::Example::NestedStruct, 2> init_d = {
+    { MyGame::Example::NestedStruct(nested_a, MyGame::Example::TestEnum::B,
+                                    nested_c, int64_2),
+      MyGame::Example::NestedStruct(nested_a, MyGame::Example::TestEnum::A,
+                                    nested_c,
+                                    std::array<int64_t, 2>{ { 12, 13 } }) }
+  };
+
+  MyGame::Example::ArrayStruct arr_struct(
+      8.125,
+      std::array<int32_t, 0xF>{
+          { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 } },
+      -17, init_d, 10, int64_2);
+  TEST_EQ(arr_struct.a(), 8.125);
+  TEST_EQ(arr_struct.b()->Get(2), 3);
+  TEST_EQ(arr_struct.c(), -17);
+
+  TEST_NOTNULL(arr_struct.d());
+  const auto &arr_d_0 = *arr_struct.d()->Get(0);
+  TEST_EQ(arr_d_0.a()->Get(0), 1);
+  TEST_EQ(arr_d_0.a()->Get(1), 2);
+  TEST_EQ(arr_d_0.b(), MyGame::Example::TestEnum::B);
+  TEST_EQ(arr_d_0.c()->Get(0), MyGame::Example::TestEnum::A);
+  TEST_EQ(arr_d_0.c()->Get(1), MyGame::Example::TestEnum::B);
+  TEST_EQ(arr_d_0.d()->Get(0), -2);
+  TEST_EQ(arr_d_0.d()->Get(1), -1);
+  const auto &arr_d_1 = *arr_struct.d()->Get(1);
+  TEST_EQ(arr_d_1.a()->Get(0), 1);
+  TEST_EQ(arr_d_1.a()->Get(1), 2);
+  TEST_EQ(arr_d_1.b(), MyGame::Example::TestEnum::A);
+  TEST_EQ(arr_d_1.c()->Get(0), MyGame::Example::TestEnum::A);
+  TEST_EQ(arr_d_1.c()->Get(1), MyGame::Example::TestEnum::B);
+  TEST_EQ(arr_d_1.d()->Get(0), 12);
+  TEST_EQ(arr_d_1.d()->Get(1), 13);
+
+  TEST_EQ(arr_struct.e(), 10);
+  TEST_EQ(arr_struct.f()->Get(0), -2);
+  TEST_EQ(arr_struct.f()->Get(1), -1);
+}
+#else
+void FixedLengthArrayConstructorTest() {
+}
+#endif
 
 void NativeTypeTest() {
   const int N = 3;
@@ -3427,8 +3592,8 @@ void TestEmbeddedBinarySchema() {
           0);
 }
 
-void NullableScalarsTest() {
-  // Simple schemas and a "has nullable scalar" sentinal.
+void OptionalScalarsTest() {
+  // Simple schemas and a "has optional scalar" sentinal.
   std::vector<std::string> schemas;
   schemas.push_back("table Monster { mana : int; }");
   schemas.push_back("table Monster { mana : int = 42; }");
@@ -3445,6 +3610,12 @@ void NullableScalarsTest() {
   schemas.push_back("table Monster { mana : bool; }");
   schemas.push_back("table Monster { mana : bool = 42; }");
   schemas.push_back("table Monster { mana : bool = null; }");
+  schemas.push_back("enum Enum: int {A=0, B=1} "
+                    "table Monster { mana : Enum; }");
+  schemas.push_back("enum Enum: int {A=0, B=1} "
+                    "table Monster { mana : Enum = B; }");
+  schemas.push_back("enum Enum: int {A=0, B=1} "
+                    "table Monster { mana : Enum = null; }");
 
   // Check the FieldDef is correctly set.
   for (auto schema = schemas.begin(); schema < schemas.end(); schema++) {
@@ -3452,30 +3623,65 @@ void NullableScalarsTest() {
     flatbuffers::Parser parser;
     TEST_ASSERT(parser.Parse(schema->c_str()));
     const auto *mana = parser.structs_.Lookup("Monster")->fields.Lookup("mana");
-    TEST_EQ(mana->nullable, has_null);
+    TEST_EQ(mana->optional, has_null);
   }
 
   // Test if nullable scalars are allowed for each language.
-  const int kNumLanguages = 17;
-  const auto supported = (flatbuffers::IDLOptions::kRust | flatbuffers::IDLOptions::kSwift);
-  for (int lang=0; lang<kNumLanguages; lang++) {
+  for (unsigned lang = 1; lang < flatbuffers::IDLOptions::kMAX; lang <<= 1) {
     flatbuffers::IDLOptions opts;
-    opts.lang_to_generate |= 1 << lang;
-    if (opts.lang_to_generate & supported) continue;
+    opts.lang_to_generate = lang;
+    if (false == flatbuffers::Parser::SupportsOptionalScalars(opts)) {
+      continue;
+    }
     for (auto schema = schemas.begin(); schema < schemas.end(); schema++) {
-      const bool has_null = schema->find("null") != std::string::npos;
       flatbuffers::Parser parser(opts);
-      // Its not supported in any language yet so has_null means error.
-      TEST_EQ(parser.Parse(schema->c_str()), !has_null);
+      auto done = parser.Parse(schema->c_str());
+      TEST_EQ_STR(parser.error_.c_str(), "");
+      TEST_ASSERT(done);
     }
   }
+
+  // test C++ nullable
+  flatbuffers::FlatBufferBuilder fbb;
+  FinishScalarStuffBuffer(
+      fbb, optional_scalars::CreateScalarStuff(fbb, 1, static_cast<int8_t>(2)));
+  auto opts = optional_scalars::GetMutableScalarStuff(fbb.GetBufferPointer());
+  TEST_ASSERT(!opts->maybe_bool());
+  TEST_ASSERT(!opts->maybe_f32().has_value());
+  TEST_ASSERT(opts->maybe_i8().has_value());
+  TEST_EQ(opts->maybe_i8().value(), 2);
+  TEST_ASSERT(opts->mutate_maybe_i8(3));
+  TEST_ASSERT(opts->maybe_i8().has_value());
+  TEST_EQ(opts->maybe_i8().value(), 3);
+  TEST_ASSERT(!opts->mutate_maybe_i16(-10));
+
+  optional_scalars::ScalarStuffT obj;
+  TEST_ASSERT(!obj.maybe_bool);
+  TEST_ASSERT(!obj.maybe_f32.has_value());
+  opts->UnPackTo(&obj);
+  TEST_ASSERT(!obj.maybe_bool);
+  TEST_ASSERT(!obj.maybe_f32.has_value());
+  TEST_ASSERT(obj.maybe_i8.has_value() && obj.maybe_i8.value() == 3);
+  TEST_ASSERT(obj.maybe_i8 && *obj.maybe_i8 == 3);
+  obj.maybe_i32 = -1;
+  obj.maybe_enum = optional_scalars::OptionalByte_Two;
+
+  fbb.Clear();
+  FinishScalarStuffBuffer(fbb, optional_scalars::ScalarStuff::Pack(fbb, &obj));
+  opts = optional_scalars::GetMutableScalarStuff(fbb.GetBufferPointer());
+  TEST_ASSERT(opts->maybe_i8().has_value());
+  TEST_EQ(opts->maybe_i8().value(), 3);
+  TEST_ASSERT(opts->maybe_i32().has_value());
+  TEST_EQ(opts->maybe_i32().value(), -1);
+  TEST_EQ(opts->maybe_enum().value(), optional_scalars::OptionalByte_Two);
+  TEST_ASSERT(opts->maybe_i32() == flatbuffers::Optional<int64_t>(-1));
 }
 
 void ParseFlexbuffersFromJsonWithNullTest() {
   // Test nulls are handled appropriately through flexbuffers to exercise other
-  // code paths of ParseSingleValue in the nullable scalars change.
+  // code paths of ParseSingleValue in the optional scalars change.
   // TODO(cneo): Json -> Flatbuffers test once some language can generate code
-  // with nullable scalars.
+  // with optional scalars.
   {
     char json[] = "{\"opt_field\": 123 }";
     flatbuffers::Parser parser;
@@ -3528,6 +3734,7 @@ int FlatBufferTests() {
   ObjectFlatBuffersTest(flatbuf.data());
 
   MiniReflectFlatBuffersTest(flatbuf.data());
+  MiniReflectFixedLengthArrayTest();
 
   SizePrefixedTest();
 
@@ -3591,8 +3798,10 @@ int FlatBufferTests() {
   TestMonsterExtraFloats();
   FixedLengthArrayTest();
   NativeTypeTest();
-  NullableScalarsTest();
+  OptionalScalarsTest();
   ParseFlexbuffersFromJsonWithNullTest();
+  FlatbuffersSpanTest();
+  FixedLengthArrayConstructorTest();
   return 0;
 }
 

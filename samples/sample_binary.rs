@@ -153,3 +153,9 @@ fn main() {
 
   println!("The FlatBuffer was successfully created and accessed!");
 }
+
+#[cfg(test)]
+#[test]
+fn test_main() {
+    main()
+}
