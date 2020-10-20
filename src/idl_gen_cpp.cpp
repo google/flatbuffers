@@ -885,7 +885,7 @@ class CppGenerator : public BaseGenerator {
       return wrap ? WrapInNameSpace(ev.union_type.struct_def->defined_namespace,
                                     name)
                   : name;
-    } else if (ev.union_type.base_type == BASE_TYPE_STRING) {
+    } else if (IsString(ev.union_type)) {
       return actual_type ? (native_type ? "std::string" : "flatbuffers::String")
                          : Name(ev);
     } else {
@@ -996,8 +996,8 @@ class CppGenerator : public BaseGenerator {
     for (auto it = types.begin(); it != types.end(); ++it) {
       auto &type = *it;
       if (!ts.empty()) ts += ",\n    ";
-      auto is_vector = type.base_type == BASE_TYPE_VECTOR;
-      auto is_array = type.base_type == BASE_TYPE_ARRAY;
+      auto is_vector = IsVector(type);
+      auto is_array = IsArray(type);
       auto bt = is_vector || is_array ? type.element : type.base_type;
       auto et = IsScalar(bt) || bt == BASE_TYPE_STRING
                     ? bt - BASE_TYPE_UTYPE + ET_UTYPE
@@ -1424,7 +1424,7 @@ class CppGenerator : public BaseGenerator {
             code_ += getptr;
             code_ += "      return verifier.VerifyTable(ptr);";
           }
-        } else if (ev.union_type.base_type == BASE_TYPE_STRING) {
+        } else if (IsString(ev.union_type)) {
           code_ += getptr;
           code_ += "      return verifier.VerifyString(ptr);";
         } else {
@@ -1476,7 +1476,7 @@ class CppGenerator : public BaseGenerator {
           } else {
             code_ += "      return ptr->UnPack(resolver);";
           }
-        } else if (ev.union_type.base_type == BASE_TYPE_STRING) {
+        } else if (IsString(ev.union_type)) {
           code_ += "      return new std::string(ptr->c_str(), ptr->size());";
         } else {
           FLATBUFFERS_ASSERT(false);
@@ -1508,7 +1508,7 @@ class CppGenerator : public BaseGenerator {
             code_ +=
                 "      return Create{{NAME}}(_fbb, ptr, _rehasher).Union();";
           }
-        } else if (ev.union_type.base_type == BASE_TYPE_STRING) {
+        } else if (IsString(ev.union_type)) {
           code_ += "      return _fbb.CreateString(*ptr).Union();";
         } else {
           FLATBUFFERS_ASSERT(false);
@@ -1667,10 +1667,10 @@ class CppGenerator : public BaseGenerator {
   void GenParam(const FieldDef &field, bool direct, const char *prefix) {
     code_.SetValue("PRE", prefix);
     code_.SetValue("PARAM_NAME", Name(field));
-    if (direct && field.value.type.base_type == BASE_TYPE_STRING) {
+    if (direct && IsString(field.value.type)) {
       code_.SetValue("PARAM_TYPE", "const char *");
       code_.SetValue("PARAM_VALUE", "nullptr");
-    } else if (direct && field.value.type.base_type == BASE_TYPE_VECTOR) {
+    } else if (direct && IsVector(field.value.type)) {
       const auto vtype = field.value.type.VectorType();
       std::string type;
       if (IsStruct(vtype)) {
@@ -1705,7 +1705,7 @@ class CppGenerator : public BaseGenerator {
       auto cpp_type = field.attributes.Lookup("cpp_type");
       auto full_type =
           (cpp_type
-               ? (field.value.type.base_type == BASE_TYPE_VECTOR
+               ? (IsVector(field.value.type)
                       ? "std::vector<" +
                             GenTypeNativePtr(cpp_type->constant, &field,
                                              false) +
@@ -1934,7 +1934,7 @@ class CppGenerator : public BaseGenerator {
   // Generate CompareWithValue method for a key field.
   void GenKeyFieldMethods(const FieldDef &field) {
     FLATBUFFERS_ASSERT(field.key);
-    const bool is_string = (field.value.type.base_type == BASE_TYPE_STRING);
+    const bool is_string = (IsString(field.value.type));
 
     code_ += "  bool KeyCompareLessThan(const {{STRUCT_NAME}} *o) const {";
     if (is_string) {
@@ -2257,7 +2257,7 @@ class CppGenerator : public BaseGenerator {
   // that doesn't need alignment code.
   std::string GenVectorForceAlign(const FieldDef &field,
                                   const std::string &field_size) {
-    FLATBUFFERS_ASSERT(field.value.type.base_type == BASE_TYPE_VECTOR);
+    FLATBUFFERS_ASSERT(IsVector(field.value.type));
     // Get the value of the force_align attribute.
     const auto *force_align = field.attributes.Lookup("force_align");
     const int align = force_align ? atoi(force_align->constant.c_str()) : 1;
@@ -2288,8 +2288,8 @@ class CppGenerator : public BaseGenerator {
       if (field.deprecated) continue;
       const bool is_scalar = IsScalar(field.value.type.base_type);
       const bool is_default_scalar = is_scalar && !field.IsScalarOptional();
-      const bool is_string = field.value.type.base_type == BASE_TYPE_STRING;
-      const bool is_vector = field.value.type.base_type == BASE_TYPE_VECTOR;
+      const bool is_string = IsString(field.value.type);
+      const bool is_vector = IsVector(field.value.type);
       if (is_string || is_vector) { has_string_or_vector_fields = true; }
 
       std::string offset = GenFieldOffsetName(field);
@@ -2418,7 +2418,7 @@ class CppGenerator : public BaseGenerator {
         const auto &field = **it;
         if (!field.deprecated) {
           code_.SetValue("FIELD_NAME", Name(field));
-          if (field.value.type.base_type == BASE_TYPE_STRING) {
+          if (IsString(field.value.type)) {
             if (!field.shared) {
               code_.SetValue("CREATE_STRING", "CreateString");
             } else {
@@ -2427,7 +2427,7 @@ class CppGenerator : public BaseGenerator {
             code_ +=
                 "  auto {{FIELD_NAME}}__ = {{FIELD_NAME}} ? "
                 "_fbb.{{CREATE_STRING}}({{FIELD_NAME}}) : 0;";
-          } else if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+          } else if (IsVector(field.value.type)) {
             const std::string force_align_code =
                 GenVectorForceAlign(field, Name(field) + "->size()");
             if (!force_align_code.empty()) {
@@ -2462,8 +2462,8 @@ class CppGenerator : public BaseGenerator {
         if (!field.deprecated) {
           code_.SetValue("FIELD_NAME", Name(field));
           code_ += ",\n      {{FIELD_NAME}}\\";
-          if (field.value.type.base_type == BASE_TYPE_STRING ||
-              field.value.type.base_type == BASE_TYPE_VECTOR) {
+          if (IsString(field.value.type) ||
+              IsVector(field.value.type)) {
             code_ += "__\\";
           }
         }
@@ -2915,7 +2915,7 @@ class CppGenerator : public BaseGenerator {
            it != struct_def.fields.vec.end(); ++it) {
         auto &field = **it;
         if (field.deprecated) { continue; }
-        if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+        if (IsVector(field.value.type)) {
           const std::string force_align_code =
               GenVectorForceAlign(field, "_o->" + Name(field) + ".size()");
           if (!force_align_code.empty()) { code_ += "  " + force_align_code; }

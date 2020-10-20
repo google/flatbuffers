@@ -87,7 +87,7 @@ std::string GenType(BaseType type) {
 std::string GenBaseType(const Type &type) {
   if (type.struct_def != nullptr) { return GenTypeRef(type.struct_def); }
   if (type.enum_def != nullptr) { return GenTypeRef(type.enum_def); }
-  if (type.base_type == BASE_TYPE_ARRAY || type.base_type == BASE_TYPE_VECTOR) {
+  if (IsArray(type) || IsVector(type)) {
     return "\"type\" : \"array\", \"items\" : {" + GenType(type.element) + "}";
   }
   return  GenType(type.base_type);
@@ -206,7 +206,7 @@ class JsonSchemaGenerator : public BaseGenerator {
         std::string arrayInfo = "";
         if (IsArray(property->value.type)) {
           arrayInfo = "," + NewLine() + Indent(8) + "\"minItems\": " +
-                      NumToString(property->value.type.fixed_length) + 
+                      NumToString(property->value.type.fixed_length) +
                       "," + NewLine() + Indent(8) + "\"maxItems\": " +
                       NumToString(property->value.type.fixed_length);
         }
