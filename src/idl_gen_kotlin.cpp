@@ -513,7 +513,7 @@ class KotlinGenerator : public BaseGenerator {
             if (field.key) key_field = &field;
             GenerateAddField(NumToString(field_pos), field, writer, options);
 
-            if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+            if (IsVector(field.value.type)) {
               auto vector_type = field.value.type.VectorType();
               if (!IsStruct(vector_type)) {
                 GenerateCreateVectorField(field, writer, options);
@@ -571,7 +571,7 @@ class KotlinGenerator : public BaseGenerator {
       writer +=
           "val tableOffset = __indirect(vector"
           "Location + 4 * (start + middle), bb)";
-      if (key_field->value.type.base_type == BASE_TYPE_STRING) {
+      if (IsString(key_field->value.type)) {
         writer += "val comp = compareStrings(\\";
         writer += GenOffsetGetter(key_field) + "\\";
         writer += ", byteKey, bb)";
@@ -1192,7 +1192,7 @@ class KotlinGenerator : public BaseGenerator {
       GenerateOverrideFun(
           writer, "keysCompare", "o1: Int, o2: Int, _bb: ByteBuffer", "Int",
           [&]() {
-            if (key_field->value.type.base_type == BASE_TYPE_STRING) {
+            if (IsString(key_field->value.type)) {
               writer.SetValue("offset", NumToString(key_field->value.offset));
               writer +=
                   " return compareStrings(__offset({{offset}}, o1, "

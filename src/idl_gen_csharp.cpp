@@ -313,7 +313,7 @@ class CSharpGenerator : public BaseGenerator {
     if (!enum_def.is_union) return false;
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &val = **it;
-      if (val.union_type.base_type == BASE_TYPE_STRING) { return true; }
+      if (IsString(val.union_type)) { return true; }
     }
     return false;
   }
@@ -486,7 +486,7 @@ class CSharpGenerator : public BaseGenerator {
     key_getter += "int tableOffset = Table.";
     key_getter += "__indirect(vectorLocation + 4 * (start + middle)";
     key_getter += ", bb);\n      ";
-    if (key_field->value.type.base_type == BASE_TYPE_STRING) {
+    if (IsString(key_field->value.type)) {
       key_getter += "int comp = Table.";
       key_getter += "CompareStrings(";
       key_getter += GenOffsetGetter(key_field);
@@ -501,7 +501,7 @@ class CSharpGenerator : public BaseGenerator {
   std::string GenKeyGetter(flatbuffers::FieldDef *key_field) const {
     std::string key_getter = "";
     auto data_buffer = "builder.DataBuffer";
-    if (key_field->value.type.base_type == BASE_TYPE_STRING) {
+    if (IsString(key_field->value.type)) {
       key_getter += "Table.CompareStrings(";
       key_getter += GenOffsetGetter(key_field, "o1") + ", ";
       key_getter += GenOffsetGetter(key_field, "o2") + ", " + data_buffer + ")";
@@ -604,7 +604,7 @@ class CSharpGenerator : public BaseGenerator {
       if (!struct_def.fixed &&
           (field.value.type.base_type == BASE_TYPE_STRUCT ||
            field.value.type.base_type == BASE_TYPE_UNION ||
-           (field.value.type.base_type == BASE_TYPE_VECTOR &&
+           (IsVector(field.value.type) &&
             (field.value.type.element == BASE_TYPE_STRUCT ||
              field.value.type.element == BASE_TYPE_UNION)))) {
         optional = "?";
@@ -626,10 +626,10 @@ class CSharpGenerator : public BaseGenerator {
                  "); return o != 0 ? ");
       // Generate the accessors that don't do object reuse.
       if (field.value.type.base_type == BASE_TYPE_STRUCT) {
-      } else if (field.value.type.base_type == BASE_TYPE_VECTOR &&
+      } else if (IsVector(field.value.type) &&
                  field.value.type.element == BASE_TYPE_STRUCT) {
       } else if (field.value.type.base_type == BASE_TYPE_UNION ||
-                 (field.value.type.base_type == BASE_TYPE_VECTOR &&
+                 (IsVector(field.value.type) &&
                   field.value.type.VectorType().base_type == BASE_TYPE_UNION)) {
         method_start += "<TTable>";
         type_name = type_name_dest;
@@ -639,7 +639,7 @@ class CSharpGenerator : public BaseGenerator {
       std::string default_cast = "";
       // only create default casts for c# scalars or vectors of scalars
       if ((IsScalar(field.value.type.base_type) ||
-           (field.value.type.base_type == BASE_TYPE_VECTOR &&
+           (IsVector(field.value.type) &&
             IsScalar(field.value.type.element)))) {
         // For scalars, default value will be returned by GetDefaultValue().
         // If the scalar is an enum, GetDefaultValue() returns an actual c# enum
@@ -647,7 +647,7 @@ class CSharpGenerator : public BaseGenerator {
         // elements of vectors are integer literals ("0") and are still casted
         // for clarity.
         if (field.value.type.enum_def == nullptr ||
-            field.value.type.base_type == BASE_TYPE_VECTOR) {
+            IsVector(field.value.type)) {
           default_cast = "(" + type_name_dest + ")";
         }
       }
@@ -762,7 +762,7 @@ class CSharpGenerator : public BaseGenerator {
       }
       code += member_suffix;
       code += "}\n";
-      if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+      if (IsVector(field.value.type)) {
         code += "  public int " + MakeCamel(field.name, true);
         code += "Length";
         code += " { get";
@@ -793,9 +793,9 @@ class CSharpGenerator : public BaseGenerator {
         }
       }
       // Generate a ByteBuffer accessor for strings & vectors of scalars.
-      if ((field.value.type.base_type == BASE_TYPE_VECTOR &&
+      if ((IsVector(field.value.type) &&
            IsScalar(field.value.type.VectorType().base_type)) ||
-          field.value.type.base_type == BASE_TYPE_STRING) {
+          IsString(field.value.type)) {
         code += "#if ENABLE_SPAN_T\n";
         code += "  public Span<" + GenTypeBasic(field.value.type.VectorType()) +
                 "> Get";
@@ -1046,7 +1046,7 @@ class CSharpGenerator : public BaseGenerator {
         code += ", ";
         code += GenDefaultValue(field, false);
         code += "); }\n";
-        if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+        if (IsVector(field.value.type)) {
           auto vector_type = field.value.type.VectorType();
           auto alignment = InlineAlignment(vector_type);
           auto elem_size = InlineSize(vector_type);
@@ -1068,8 +1068,8 @@ class CSharpGenerator : public BaseGenerator {
             code += "(";
             code += SourceCastBasic(vector_type);
             code += "data[i]";
-            if ((vector_type.base_type == BASE_TYPE_STRUCT ||
-                 vector_type.base_type == BASE_TYPE_STRING))
+            if (vector_type.base_type == BASE_TYPE_STRUCT ||
+                 IsString(vector_type))
               code += ".Value";
             code += "); return ";
             code += "builder.EndVector(); }\n";
@@ -1147,7 +1147,7 @@ class CSharpGenerator : public BaseGenerator {
       code += "int vectorLocation, ";
       code += GenTypeGet(key_field->value.type);
       code += " key, ByteBuffer bb) {\n";
-      if (key_field->value.type.base_type == BASE_TYPE_STRING) {
+      if (IsString(key_field->value.type)) {
         code += "    byte[] byteKey = ";
         code += "System.Text.Encoding.UTF8.GetBytes(key);\n";
       }
@@ -1291,7 +1291,7 @@ class CSharpGenerator : public BaseGenerator {
         code += "      default: return 0;\n";
       } else {
         code += "      case " + enum_def.name + "." + ev.name + ": return ";
-        if (ev.union_type.base_type == BASE_TYPE_STRING) {
+        if (IsString(ev.union_type)) {
           code += "builder.CreateString(_o.As" + ev.name + "()).Value;\n";
         } else {
           code += GenTypeGet(ev.union_type) + ".Pack(builder, _o.As" + ev.name +
@@ -1425,7 +1425,7 @@ class CSharpGenerator : public BaseGenerator {
         code += indent + "  case " + WrapInNameSpace(enum_def) + "." + ev.name +
                 ":\n";
         code += indent + "    " + varialbe_name + ".Value = this." + camel_name;
-        if (ev.union_type.base_type == BASE_TYPE_STRING) {
+        if (IsString(ev.union_type)) {
           code += "AsString" + func_suffix + ";\n";
         } else {
           code += "<" + GenTypeGet(ev.union_type) + ">" + func_suffix;
@@ -1927,7 +1927,7 @@ class CSharpGenerator : public BaseGenerator {
           auto utype_name = WrapInNameSpace(*field.value.type.enum_def);
           code +=
               "  [Newtonsoft.Json.JsonProperty(\"" + field.name + "_type\")]\n";
-          if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+          if (IsVector(field.value.type)) {
             code += "  private " + utype_name + "[] " + camel_name + "Type {\n";
             code += "    get {\n";
             code += "      if (this." + camel_name + " == null) return null;\n";
@@ -1966,7 +1966,7 @@ class CSharpGenerator : public BaseGenerator {
         code += "  [Newtonsoft.Json.JsonProperty(\"" + field.name + "\")]\n";
         if (IsUnion(field.value.type)) {
           auto union_name =
-              (field.value.type.base_type == BASE_TYPE_VECTOR)
+              (IsVector(field.value.type))
                   ? GenTypeGet_ObjectAPI(field.value.type.VectorType(), opts)
                   : type_name;
           code += "  [Newtonsoft.Json.JsonConverter(typeof(" + union_name +

@@ -716,7 +716,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     // with a special suffix.
     ECHECK(AddField(struct_def, name + UnionTypeFieldSuffix(),
                     type.enum_def->underlying_type, &typefield));
-  } else if (type.base_type == BASE_TYPE_VECTOR &&
+  } else if (IsVector(type) &&
              type.element == BASE_TYPE_UNION) {
     // Only cpp, js and ts supports the union vector feature so far.
     if (!SupportsAdvancedUnionFeatures()) {
@@ -793,9 +793,8 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     // Default value of union and vector in NONE, NULL translated to "0".
     FLATBUFFERS_ASSERT(IsInteger(type.base_type) ||
                        (type.base_type == BASE_TYPE_UNION) ||
-                       (type.base_type == BASE_TYPE_VECTOR) ||
-                       (type.base_type == BASE_TYPE_ARRAY));
-    if (type.base_type == BASE_TYPE_VECTOR) {
+                       IsVector(type) || IsArray(type));
+    if (IsVector(type)) {
       // Vector can't use initialization list.
       FLATBUFFERS_ASSERT(field->value.constant == "0");
     } else {
@@ -815,7 +814,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   field->deprecated = field->attributes.Lookup("deprecated") != nullptr;
   auto hash_name = field->attributes.Lookup("hash");
   if (hash_name) {
-    switch ((type.base_type == BASE_TYPE_VECTOR) ? type.element
+    switch ((IsVector(type)) ? type.element
                                                  : type.base_type) {
       case BASE_TYPE_SHORT:
       case BASE_TYPE_USHORT: {
@@ -969,7 +968,7 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
         auto &type = elem->second->value.type;
         if (type.enum_def == val.type.enum_def) {
           if (inside_vector) {
-            if (type.base_type == BASE_TYPE_VECTOR &&
+            if (IsVector(type) &&
                 type.element == BASE_TYPE_UTYPE) {
               // Vector of union type field.
               uoffset_t offset;
@@ -1037,7 +1036,7 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
           builder_.ClearOffsets();
           val.constant = NumToString(builder_.GetSize());
         }
-      } else if (enum_val->union_type.base_type == BASE_TYPE_STRING) {
+      } else if (IsString(enum_val->union_type)) {
         ECHECK(ParseString(val, field->shared));
       } else {
         FLATBUFFERS_ASSERT(false);
@@ -2960,7 +2959,7 @@ CheckedError Parser::ParseRoot(const char *source, const char **include_paths,
               if (field.value.type.struct_def == &struct_def) {
                 field.value.type.struct_def = nullptr;
                 field.value.type.enum_def = enum_def;
-                auto &bt = field.value.type.base_type == BASE_TYPE_VECTOR
+                auto &bt = IsVector(field.value.type)
                                ? field.value.type.element
                                : field.value.type.base_type;
                 FLATBUFFERS_ASSERT(bt == BASE_TYPE_STRUCT);

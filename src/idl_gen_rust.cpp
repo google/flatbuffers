@@ -87,7 +87,7 @@ enum FullType {
 FullType GetFullType(const Type &type) {
   // N.B. The order of these conditionals matters for some types.
 
-  if (type.base_type == BASE_TYPE_STRING) {
+  if (IsString(type)) {
     return ftString;
   } else if (type.base_type == BASE_TYPE_STRUCT) {
     if (type.struct_def->fixed) {
@@ -95,7 +95,7 @@ FullType GetFullType(const Type &type) {
     } else {
       return ftTable;
     }
-  } else if (type.base_type == BASE_TYPE_VECTOR) {
+  } else if (IsVector(type)) {
     switch (GetFullType(type.VectorType())) {
       case ftInteger: {
         return ftVectorOfInteger;

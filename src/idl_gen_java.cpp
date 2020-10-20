@@ -526,7 +526,7 @@ class JavaGenerator : public BaseGenerator {
     key_getter += "int tableOffset = ";
     key_getter += "__indirect(vectorLocation + 4 * (start + middle)";
     key_getter += ", bb);\n      ";
-    if (key_field->value.type.base_type == BASE_TYPE_STRING) {
+    if (IsString(key_field->value.type)) {
       key_getter += "int comp = ";
       key_getter += "compareStrings(";
       key_getter += GenOffsetGetter(key_field);
@@ -543,7 +543,7 @@ class JavaGenerator : public BaseGenerator {
   std::string GenKeyGetter(flatbuffers::FieldDef *key_field) const {
     std::string key_getter = "";
     auto data_buffer = "_bb";
-    if (key_field->value.type.base_type == BASE_TYPE_STRING) {
+    if (IsString(key_field->value.type)) {
       key_getter += " return ";
       key_getter += "";
       key_getter += "compareStrings(";
@@ -669,7 +669,7 @@ class JavaGenerator : public BaseGenerator {
         code += MakeCamel(field.name, false);
         code += "(new ";
         code += type_name + "()); }\n";
-      } else if (field.value.type.base_type == BASE_TYPE_VECTOR &&
+      } else if (IsVector(field.value.type) &&
                  field.value.type.element == BASE_TYPE_STRUCT) {
         // Accessors for vectors of structs also take accessor objects, this
         // generates a variant without that argument.
@@ -772,7 +772,7 @@ class JavaGenerator : public BaseGenerator {
       }
       code += member_suffix;
       code += "}\n";
-      if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+      if (IsVector(field.value.type)) {
         code += "  public int " + MakeCamel(field.name, false);
         code += "Length";
         code += "()";
@@ -813,7 +813,7 @@ class JavaGenerator : public BaseGenerator {
         }
       }
       // Generate the accessors for vector of structs with vector access object
-      if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+      if (IsVector(field.value.type)) {
         std::string vector_type_name;
         const auto &element_base_type = field.value.type.VectorType().base_type;
         if (IsScalar(element_base_type)) {
@@ -842,15 +842,15 @@ class JavaGenerator : public BaseGenerator {
         code += "bb) : null" + member_suffix + "}\n";
       }
       // Generate a ByteBuffer accessor for strings & vectors of scalars.
-      if ((field.value.type.base_type == BASE_TYPE_VECTOR &&
+      if ((IsVector(field.value.type) &&
            IsScalar(field.value.type.VectorType().base_type)) ||
-          field.value.type.base_type == BASE_TYPE_STRING) {
+          IsString(field.value.type)) {
         code += "  public ByteBuffer ";
         code += MakeCamel(field.name, false);
         code += "AsByteBuffer() { return ";
         code += "__vector_as_bytebuffer(";
         code += NumToString(field.value.offset) + ", ";
-        code += NumToString(field.value.type.base_type == BASE_TYPE_STRING
+        code += NumToString(IsString(field.value.type)
                                 ? 1
                                 : InlineSize(field.value.type.VectorType()));
         code += "); }\n";
@@ -859,7 +859,7 @@ class JavaGenerator : public BaseGenerator {
         code += "InByteBuffer(ByteBuffer _bb) { return ";
         code += "__vector_in_bytebuffer(_bb, ";
         code += NumToString(field.value.offset) + ", ";
-        code += NumToString(field.value.type.base_type == BASE_TYPE_STRING
+        code += NumToString(IsString(field.value.type)
                                 ? 1
                                 : InlineSize(field.value.type.VectorType()));
         code += "); }\n";
@@ -1036,7 +1036,7 @@ class JavaGenerator : public BaseGenerator {
         code += SourceCastBasic(field.value.type);
         code += GenDefaultValue(field);
         code += "); }\n";
-        if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+        if (IsVector(field.value.type)) {
           auto vector_type = field.value.type.VectorType();
           auto alignment = InlineAlignment(vector_type);
           auto elem_size = InlineSize(vector_type);
@@ -1132,7 +1132,7 @@ class JavaGenerator : public BaseGenerator {
       code += "int vectorLocation, ";
       code += GenTypeNameDest(key_field->value.type);
       code += " key, ByteBuffer bb) {\n";
-      if (key_field->value.type.base_type == BASE_TYPE_STRING) {
+      if (IsString(key_field->value.type)) {
         code += "    byte[] byteKey = ";
         code += "key.getBytes(java.nio.charset.StandardCharsets.UTF_8);\n";
       }
