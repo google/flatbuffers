@@ -20,7 +20,7 @@ cc_test(
         "test_builder.cpp",
         "test_builder.h",
         "union_vector/union_vector_generated.h",
-        "optional_scalars2_generated.h",
+        "optional_scalars_generated.h",
     ],
     copts = [
         "-DFLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE",
@@ -54,7 +54,7 @@ cc_test(
         ":unicode_test.json",
         ":union_vector/union_vector.fbs",
         ":union_vector/union_vector.json",
-        ":optional_scalars2.fbs",
+        ":optional_scalars.fbs",
     ],
     includes = [
         "",

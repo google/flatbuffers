@@ -8,7 +8,8 @@ class OptionalByte private constructor() {
     companion object {
         const val None: Byte = 0
         const val One: Byte = 1
-        val names : Array<String> = arrayOf("None", "One")
+        const val Two: Byte = 2
+        val names : Array<String> = arrayOf("None", "One", "Two")
         fun name(e: Int) : String = names[e]
     }
 }

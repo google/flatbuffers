@@ -510,6 +510,9 @@ class KotlinTest {
         assert(scalarStuff.justBool == false)
         assert(scalarStuff.maybeBool == null)
         assert(scalarStuff.defaultBool == true)
+        assert(scalarStuff.justEnum == OptionalByte.None)
+        assert(scalarStuff.maybeEnum == null)
+        assert(scalarStuff.defaultEnum == OptionalByte.One)
 
         fbb.clear()
  
@@ -547,6 +550,9 @@ class KotlinTest {
         ScalarStuff.addJustBool(fbb, true)
         ScalarStuff.addMaybeBool(fbb, true)
         ScalarStuff.addDefaultBool(fbb, true)
+        ScalarStuff.addJustEnum(fbb, OptionalByte.Two)
+        ScalarStuff.addMaybeEnum(fbb, OptionalByte.Two)
+        ScalarStuff.addDefaultEnum(fbb, OptionalByte.Two)
 
         pos = ScalarStuff.endScalarStuff(fbb)
 
@@ -587,6 +593,9 @@ class KotlinTest {
         assert(scalarStuff.justBool == true)
         assert(scalarStuff.maybeBool == true)
         assert(scalarStuff.defaultBool == true)
+        assert(scalarStuff.justEnum == OptionalByte.Two)
+        assert(scalarStuff.maybeEnum == OptionalByte.Two)
+        assert(scalarStuff.defaultEnum == OptionalByte.Two)
     }
   }
 }

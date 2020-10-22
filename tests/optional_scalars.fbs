@@ -3,6 +3,7 @@ namespace optional_scalars;
 enum OptionalByte: byte {
   None = 0,
   One = 1,
+  Two = 2,
 }
 
 // This table tests optional scalars in tables. It should be integrated with
@@ -48,8 +49,7 @@ table ScalarStuff {
   default_bool: bool = true;
 
   just_enum: OptionalByte;
-  // Rust code generator failed with optional<enum>
-  //maybe_enum: OptionalByte = null;
+  maybe_enum: OptionalByte = null;
   default_enum: OptionalByte = One;
 }
 
