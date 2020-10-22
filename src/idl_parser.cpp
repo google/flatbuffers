@@ -913,6 +913,45 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
       return Error("flexbuffer attribute may only apply to a vector of ubyte");
   }
 
+  // TOME_EDIT - WR: Adding a mechanism to default a string to a different JSON field
+  auto default_field = field->attributes.Lookup("default");
+  if (default_field)
+  {
+    if (type.base_type != BASE_TYPE_STRING)
+    {
+      return Error("only strings can use 'default' attribute");
+    }
+    
+    auto referencedField = struct_def.fields.Lookup(default_field->constant);
+    if (!referencedField)
+    {
+      return Error("'default' field not found");
+    }
+    
+    field->value.constant = referencedField->value.constant;
+  }
+  
+  auto isref = field->attributes.Lookup("reference");
+  if (isref)
+  {
+    const auto checkType = type.base_type == BASE_TYPE_VECTOR ? type.element : type.base_type;
+    if (checkType != BASE_TYPE_STRING && hash_name == nullptr)
+    {
+      return Error("only strings and hashes can use 'reference' attribute");
+    }
+  }
+
+  auto isdep = field->attributes.Lookup("dependency");
+  if (isdep)
+  {
+    const auto checkType = type.base_type == BASE_TYPE_VECTOR ? type.element : type.base_type;
+    if (checkType != BASE_TYPE_STRING && hash_name == nullptr)
+    {
+      return Error("only strings and hashes can use 'dependency' attribute");
+    }
+  }
+  // TOME_END
+
   if (typefield) {
     if (!IsScalar(typefield->value.type.base_type)) {
       // this is a union vector field
@@ -1047,6 +1086,12 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
       ECHECK(ParseTable(*val.type.struct_def, &val.constant, nullptr));
       break;
     case BASE_TYPE_STRING: {
+// TOME_EDIT - WR: reference and dependency tracking
+      auto isref = field->attributes.Lookup("reference");
+      if (isref) { referenced_files_.emplace(attribute_, isref); }
+      auto isdep = field->attributes.Lookup("dependency");
+      if (isdep) { dependency_files_.emplace(attribute_, isdep); }
+// TOME_END
       ECHECK(ParseString(val, field->shared));
       break;
     }
@@ -1066,6 +1111,15 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
     case BASE_TYPE_ULONG: {
       if (field && field->attributes.Lookup("hash") &&
           (token_ == kTokenIdentifier || token_ == kTokenStringConstant)) {
+// TOME_EDIT - WR: reference and dependency tracking
+        auto isref = field->attributes.Lookup("reference");
+        if (isref) { referenced_files_.emplace(attribute_, isref); }
+        auto isdep = field->attributes.Lookup("dependency");
+        if (isdep) { dependency_files_.emplace(attribute_, isdep); }
+// TOME_END
+// TOME_EDIT - WR: Tracking hashed strings to use later
+        val.hashSource = attribute_;
+// TOME_END
         ECHECK(ParseHash(val, field));
       } else {
         ECHECK(ParseSingleValue(field ? &field->name : nullptr, val, false));
@@ -1213,6 +1267,47 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
                    " in " + struct_def.name);
     }
   }
+
+  // TOME_EDIT - WR:
+  for (auto retarget_field : struct_def.fields.vec)
+  {
+    auto defaultAttrib = retarget_field->attributes.Lookup("default");
+    if (defaultAttrib)
+    {
+      auto target_field = struct_def.fields.Lookup(defaultAttrib->constant);
+      if (!target_field) 
+      { 
+        return Error("referenced field is missing: " + defaultAttrib->constant); 
+      }
+
+      auto target_it = field_stack_.cend();
+      auto retarget_it = field_stack_.cend();
+
+      for (auto pf_it = field_stack_.cend() - fieldn_outer; pf_it != field_stack_.cend(); ++pf_it)
+      {
+        auto parsed_field = pf_it->second;
+        if (parsed_field == target_field)
+        { 
+          target_it = pf_it;
+        }
+
+        if (parsed_field == retarget_field)
+        {
+          retarget_it = pf_it;
+        }
+      }
+
+      // only replace when the re-targeted field isn't explicitly set
+      if (retarget_it == field_stack_.cend() && target_it != field_stack_.cend())
+      {
+        Value retargetVal = retarget_field->value;
+        retargetVal.constant = NumToString(builder_.CreateString(target_it->first.hashSource).o);
+        field_stack_.insert(target_it, std::make_pair(retargetVal, retarget_field));
+        fieldn_outer++;
+      }
+    }
+  }
+  // TOME_END
 
   if (struct_def.fixed && fieldn_outer != struct_def.fields.vec.size())
     return Error("struct: wrong number of initializers: " + struct_def.name);

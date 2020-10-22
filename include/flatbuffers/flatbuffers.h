@@ -372,7 +372,7 @@ template<typename T> class Vector {
   Vector(const Vector &);
   Vector &operator=(const Vector &);
 
-  template<typename K> static int KeyCompare(const void *ap, const void *bp) {
+  template<typename K> static int __cdecl KeyCompare(const void *ap, const void *bp) {
     const K *key = reinterpret_cast<const K *>(ap);
     const uint8_t *data = reinterpret_cast<const uint8_t *>(bp);
     auto table = IndirectHelper<T>::Read(data, 0);

@@ -481,6 +481,10 @@ inline bool SetFieldT(Table *table, const reflection::Field &field,
 // DAG, the copy will be a tree instead (with duplicates). Strings can be
 // shared however, by passing true for use_string_pooling.
 
+void CopyInline(FlatBufferBuilder &fbb, 
+                const reflection::Field &fielddef,
+                const Table &table, size_t align, size_t size);
+
 Offset<const Table *> CopyTable(FlatBufferBuilder &fbb,
                                 const reflection::Schema &schema,
                                 const reflection::Object &objectdef,

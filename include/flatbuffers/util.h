@@ -33,6 +33,9 @@
 #include <string>
 
 namespace flatbuffers {
+// TOME_EDIT - WR: Adding a mechanism to locate reflection.fbs file (only works on machine that ran premake)
+  const char* ReflectionFbsPath();
+// TOME_END
 
 // @locale-independent functions for ASCII characters set.
 

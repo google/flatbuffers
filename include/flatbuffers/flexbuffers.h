@@ -833,7 +833,7 @@ inline Reference FixedTypedVector::operator[](size_t i) const {
   return Reference(elem, byte_width_, 1, type_);
 }
 
-template<typename T> int KeyCompare(const void *key, const void *elem) {
+template<typename T> int __cdecl KeyCompare(const void *key, const void *elem) {
   auto str_elem = reinterpret_cast<const char *>(
       Indirect<T>(reinterpret_cast<const uint8_t *>(elem)));
   auto skey = reinterpret_cast<const char *>(key);
@@ -844,7 +844,7 @@ inline Reference Map::operator[](const char *key) const {
   auto keys = Keys();
   // We can't pass keys.byte_width_ to the comparison function, so we have
   // to pick the right one ahead of time.
-  int (*comp)(const void *, const void *) = nullptr;
+  int (__cdecl *comp)(const void *, const void *) = nullptr;
   switch (keys.byte_width_) {
     case 1: comp = KeyCompare<uint8_t>; break;
     case 2: comp = KeyCompare<uint16_t>; break;

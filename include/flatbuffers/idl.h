@@ -195,6 +195,9 @@ struct Value {
         offset(static_cast<voffset_t>(~(static_cast<voffset_t>(0U)))) {}
   Type type;
   std::string constant;
+// TOME_EDIT - WR: Tracking hashed strings to use later
+  std::string hashSource;
+// TOME_END
   voffset_t offset;
 };
 
@@ -515,6 +518,24 @@ struct ServiceDef : public Definition {
   SymbolTable<RPCCall> calls;
 };
 
+// TOME_EDIT - WR: reference and dependency tracking
+struct ExternalRef 
+{ 
+  ExternalRef() = default;
+  ExternalRef(const std::string& _file, Value* _reftype)
+    : file(_file)
+    , type(_reftype)
+  {}
+
+  std::string file; 
+  Value* type;
+};
+// TOME_END
+
+inline bool operator<(const ExternalRef &lhs, const ExternalRef &rhs) {
+  return lhs.file < rhs.file;
+}
+
 // Container of options that may apply to any of the source/text generators.
 struct IDLOptions {
   bool gen_jvmstatic;
@@ -792,6 +813,13 @@ class Parser : public ParserState {
     known_attributes_["native_default"] = true;
     known_attributes_["flexbuffer"] = true;
     known_attributes_["private"] = true;
+    // TOME_EDIT - WR: Adding a mechanism to default a string to a different JSON field
+    known_attributes_["default"] = true;
+    // TOME_END
+    // TOME_EDIT - WR: Tracking references and dependencies
+    known_attributes_["reference"] = true;
+    known_attributes_["dependency"] = true;
+    // TOME_END
   }
 
   ~Parser() {
@@ -973,6 +1001,11 @@ class Parser : public ParserState {
   std::map<std::string, std::string> included_files_;
   std::map<std::string, std::set<std::string>> files_included_per_file_;
   std::vector<std::string> native_included_files_;
+
+  // TOME_EDIT - WR: Tracking references and dependencies
+  std::set<ExternalRef> referenced_files_;
+  std::set<ExternalRef> dependency_files_;
+  // TOME_END
 
   std::map<std::string, bool> known_attributes_;
 
