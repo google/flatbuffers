@@ -25,6 +25,9 @@ JSON parsing                   | Yes    | No     | No     | No     | No     | No
 Simple mutation                | Yes    | Yes    | Yes    | Yes    | No     | No        | No        | No      | No  | No      | No      | No      | Yes
 Reflection                     | Yes    | No     | No     | No     | No     | No        | No        | Basic   | No  | No      | No      | No      | No
 Buffer verifier                | Yes    | No     | No     | No     | No     | No        | No        | Yes     | No  | No      | No      | No      | No
+Native Object API              | Yes    | No     | Yes    | Yes    | Yes    | Yes       | Yes       | No      | No  | No      | No      | No      | No
+Optional Scalars               | Yes    | No     | No     | No     | No     | No        | No        | Yes     | No  | No      | Yes     | Yes     | Yes
+Flexbuffers                    | Yes    | Yes    | ?      | ?      | ?      | ?         | ?         | ?       | ?   | ?       | ?       | Yes     | ?
 Testing: basic                 | Yes    | Yes    | Yes    | Yes    | Yes    | Yes       | Yes       | Yes     | ?   | Yes     | Yes     | Yes     | Yes
 Testing: fuzz                  | Yes    | No     | No     | Yes    | Yes    | No        | No        | No      | ?   | No      | No      | Yes     | No
 Performance:                   | Superb | Great  | Great  | Great  | Ok     | ?         | ?         | Superb  | ?   | ?       | Great   | Superb  | Great
@@ -34,7 +37,7 @@ Platform: OS X                 | Xcode4 | ?      | ?      | ?      | Yes    | ? 
 Platform: Android              | NDK10d | Yes    | ?      | ?      | ?      | ?         | ?         | ?       | ?   | Flutter | Yes     | ?       | No
 Platform: iOS                  | ?      | ?      | ?      | ?      | ?      | ?         | ?         | ?       | ?   | Flutter | Yes     | ?       | Yes
 Engine: Unity                  | ?      | ?      | Yes    | ?      | ?      | ?         | ?         | ?       | ?   | ?       | No      | ?       | No
-Primary authors (github)       | aard*  | aard*  | ev*/js*| rw     | rw     | evanw/ev* | kr*       | mik*    | ch* | dnfield | aard*   | rw      | mi*/mz*
+Primary authors (github)       | aard*  | aard*  | ev*/js*| rw     | rw     | evanw/ev* | kr*       | mik*    | ch* | dnfield | aard*   | rw/cn   | mi*/mz*
 
   * aard = aardappel (previously: gwvo)
   * ev = evolutional
@@ -44,5 +47,6 @@ Primary authors (github)       | aard*  | aard*  | ev*/js*| rw     | rw     | ev
   * kr = krojew
   * mi = mustiikhalil
   * mz = mzaks
+  * cn = caspern
 
 <br>
