@@ -1469,7 +1469,8 @@ class RustGenerator : public BaseGenerator {
 
         code_ += "      match self.{{FIELD_NAME}}_type() {";
         ForAllUnionVariantsBesidesNone(*field.value.type.enum_def,
-                                       [&](const EnumVal &ev){
+                                       [&](const EnumVal &unused){
+          (void) unused;
           code_ += "        {{U_ELEMENT_ENUM_TYPE}} => {";
           code_ += "          if let Some(x) = self.{{FIELD_TYPE_FIELD_NAME}}_as_"
                    "{{U_ELEMENT_NAME}}() {";
