@@ -19,6 +19,7 @@ use std::marker::PhantomData;
 use std::mem::size_of;
 use std::slice::from_raw_parts;
 use std::str::from_utf8_unchecked;
+use std::fmt::{Debug, Result, Formatter};
 
 use crate::endian_scalar::read_scalar_at;
 #[cfg(target_endian = "little")]
@@ -26,8 +27,18 @@ use crate::endian_scalar::EndianScalar;
 use crate::follow::Follow;
 use crate::primitives::*;
 
-#[derive(Debug)]
 pub struct Vector<'a, T: 'a>(&'a [u8], usize, PhantomData<T>);
+
+impl<'a, T> Debug for Vector<'a, T>
+where
+    T: 'a + Follow<'a> + Debug,
+    <T as Follow<'a>>::Inner : Debug
+{
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        f.debug_list().entries(self.iter()).finish()
+    }
+}
+
 
 // We cannot use derive for these two impls, as it would only implement Copy
 // and Clone for `T: Copy` and `T: Clone` respectively. However `Vector<'a, T>`

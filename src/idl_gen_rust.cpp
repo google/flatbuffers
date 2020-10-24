@@ -1188,7 +1188,7 @@ class RustGenerator : public BaseGenerator {
     // Generate an offset type, the base type, the Follow impl, and the
     // init_from_table impl.
     code_ += "pub enum {{OFFSET_TYPELABEL}} {}";
-    code_ += "#[derive(Copy, Clone, Debug, PartialEq)]";
+    code_ += "#[derive(Copy, Clone, PartialEq)]";
     code_ += "";
 
     GenComment(struct_def.doc_comment);
@@ -1454,6 +1454,38 @@ class RustGenerator : public BaseGenerator {
     code_ += "  }";
     code_ += "}";
     code_ += "";
+
+    code_ += "impl std::fmt::Debug for {{STRUCT_NAME}}<'_> {";
+    code_ += "  fn fmt(&self, f: &mut std::fmt::Formatter<'_>"
+             ") -> std::fmt::Result {";
+    code_ += "    let mut ds = f.debug_struct(\"{{STRUCT_NAME}}\");";
+    ForAllTableFields(struct_def, [&](const FieldDef &field) {
+      if (GetFullType(field.value.type) == ftUnionValue) {
+        // Generate a match statement to handle unions properly.
+        code_.SetValue("KEY_TYPE", GenTableAccessorFuncReturnType(field, ""));
+        code_.SetValue("FIELD_TYPE_FIELD_NAME", field.name);
+        code_ += "      match self.{{FIELD_NAME}}_type() {";
+        ForAllUnionVariantsBesidesNone(*field.value.type.enum_def,
+                                      [&](const EnumVal &ev){
+          code_ += "        {{U_ELEMENT_ENUM_TYPE}} => {";
+          code_ += "          let x = self.{{FIELD_TYPE_FIELD_NAME}}_as_"
+                   "{{U_ELEMENT_NAME}}().unwrap();";
+          code_ += "          ds.field(\"{{FIELD_NAME}}\", &x)";
+          code_ += "        },";
+        });
+        code_ += "        _ => { ";
+        code_ += "          let x: Option<()> = None;";
+        code_ += "          ds.field(\"{{FIELD_NAME}}\", &x)";
+        code_ += "        },";
+        code_ += "      };";
+      } else {
+        // Most fields.
+        code_ += "      ds.field(\"{{FIELD_NAME}}\", &self.{{FIELD_NAME}}());";
+      }
+    });
+    code_ += "      ds.finish()";
+    code_ += "  }";
+    code_ += "}";
   }
 
   // Generate functions to compare tables and structs by key. This function
