@@ -14,7 +14,7 @@
 
 import from "../lobster/"
 import monster_test_generated
-import optional_scalars2_generated
+import optional_scalars_generated
 
 def check_read_buffer(buf):
     // CheckReadBuffer checks that the given buffer is evaluated correctly as the example Monster.
