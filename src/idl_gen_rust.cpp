@@ -1240,7 +1240,6 @@ class RustGenerator : public BaseGenerator {
       ForAllTableFields(struct_def, [&](const FieldDef &field) {
         if (struct_def.sortbysize && size != SizeOf(field.value.type.base_type))
           return;
-        code_.SetValue("FIELD_NAME", Name(field));
         if (TableFieldReturnsOption(field)) {
           code_ +=
               "      if let Some(x) = args.{{FIELD_NAME}} "
