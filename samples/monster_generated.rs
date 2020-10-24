@@ -26,37 +26,50 @@ pub mod sample {
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
 
+#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+pub const ENUM_MIN_COLOR: i8 = 0;
+#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+pub const ENUM_MAX_COLOR: i8 = 2;
+#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[allow(non_camel_case_types)]
+pub const ENUM_VALUES_COLOR: [Color; 3] = [
+  Color::Red,
+  Color::Green,
+  Color::Blue,
+];
+
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
 pub struct Color(pub i8);
 #[allow(non_upper_case_globals)]
 impl Color {
-  pub const ENUM_MIN: i8 = 0;
-  pub const ENUM_MAX: i8 = 2;
   pub const Red: Self = Self(0);
   pub const Green: Self = Self(1);
   pub const Blue: Self = Self(2);
+
+  pub const ENUM_MIN: i8 = 0;
+  pub const ENUM_MAX: i8 = 2;
   pub const ENUM_VALUES: &'static [Self] = &[
     Self::Red,
     Self::Green,
     Self::Blue,
   ];
   /// Returns the variant's name or "" if unknown.
-  pub fn variant_name(self) -> &'static str {
+  pub fn variant_name(self) -> Option<&'static str> {
     match self {
-      Self::Red => "Red",
-      Self::Green => "Green",
-      Self::Blue => "Blue",
-      _ => "",
+      Self::Red => Some("Red"),
+      Self::Green => Some("Green"),
+      Self::Blue => Some("Blue"),
+      _ => None,
     }
   }
 }
 impl std::fmt::Debug for Color {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-    let name = self.variant_name();
-    if name.is_empty() {
-      f.write_fmt(format_args!("<UNKNOWN {:?}>", self.0))
-    } else {
+    if let Some(name) = self.variant_name() {
       f.write_str(name)
+    } else {
+      f.write_fmt(format_args!("<UNKNOWN {:?}>", self.0))
     }
   }
 }
@@ -87,41 +100,46 @@ impl flatbuffers::EndianScalar for Color {
   }
 }
 
+#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+pub const ENUM_MIN_EQUIPMENT: u8 = 0;
+#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+pub const ENUM_MAX_EQUIPMENT: u8 = 1;
+#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 #[allow(non_camel_case_types)]
-pub const ENUM_VALUES_COLOR: [Color; 3] = [
-  Color::Red,
-  Color::Green,
-  Color::Blue
+pub const ENUM_VALUES_EQUIPMENT: [Equipment; 2] = [
+  Equipment::NONE,
+  Equipment::Weapon,
 ];
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
 pub struct Equipment(pub u8);
 #[allow(non_upper_case_globals)]
 impl Equipment {
-  pub const ENUM_MIN: u8 = 0;
-  pub const ENUM_MAX: u8 = 1;
   pub const NONE: Self = Self(0);
   pub const Weapon: Self = Self(1);
+
+  pub const ENUM_MIN: u8 = 0;
+  pub const ENUM_MAX: u8 = 1;
   pub const ENUM_VALUES: &'static [Self] = &[
     Self::NONE,
     Self::Weapon,
   ];
   /// Returns the variant's name or "" if unknown.
-  pub fn variant_name(self) -> &'static str {
+  pub fn variant_name(self) -> Option<&'static str> {
     match self {
-      Self::NONE => "NONE",
-      Self::Weapon => "Weapon",
-      _ => "",
+      Self::NONE => Some("NONE"),
+      Self::Weapon => Some("Weapon"),
+      _ => None,
     }
   }
 }
 impl std::fmt::Debug for Equipment {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-    let name = self.variant_name();
-    if name.is_empty() {
-      f.write_fmt(format_args!("<UNKNOWN {:?}>", self.0))
-    } else {
+    if let Some(name) = self.variant_name() {
       f.write_str(name)
+    } else {
+      f.write_fmt(format_args!("<UNKNOWN {:?}>", self.0))
     }
   }
 }
@@ -151,12 +169,6 @@ impl flatbuffers::EndianScalar for Equipment {
     Self(u8::from_le(self.0))
   }
 }
-
-#[allow(non_camel_case_types)]
-pub const ENUM_VALUES_EQUIPMENT: [Equipment; 2] = [
-  Equipment::NONE,
-  Equipment::Weapon
-];
 
 pub struct EquipmentUnionTableOffset {}
 // struct Vec3, aligned to 4
