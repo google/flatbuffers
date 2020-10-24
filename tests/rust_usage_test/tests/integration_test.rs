@@ -1533,6 +1533,56 @@ mod write_and_read_examples {
     }
 
     #[test]
+    fn generated_code_debug_prints_correctly() {
+        let b = &mut flatbuffers::FlatBufferBuilder::new();
+        create_serialized_example_with_generated_code(b);
+        let buf = b.finished_data();
+        let m = super::my_game::example::get_root_as_monster(buf);
+        assert_eq!(
+            format!("{:?}", &m),
+            "Monster { pos: Some(Vec3 { x_: 1.0, y_: 2.0, z_: 3.0, \
+            padding0__: 0, test1_: 3.0, test2_: Green, padding1__: 0, \
+            test3_: Test { a_: 5, b_: 6, padding0__: 0 }, padding2__: 0 }), \
+            mana: 150, hp: 80, name: \"MyMonster\", inventory: \
+            Some([0, 1, 2, 3, 4]), color: Blue, test_type: Monster, \
+            test: Monster { pos: None, mana: 150, hp: 100, name: \"Fred\", \
+            inventory: None, color: Blue, test_type: NONE, test: None, \
+            test4: None, testarrayofstring: None, testarrayoftables: None, \
+            enemy: None, testnestedflatbuffer: None, testempty: None, \
+            testbool: false, testhashs32_fnv1: 0, testhashu32_fnv1: 0, \
+            testhashs64_fnv1: 0, testhashu64_fnv1: 0, testhashs32_fnv1a: 0, \
+            testhashu32_fnv1a: 0, testhashs64_fnv1a: 0, testhashu64_fnv1a: 0, \
+            testarrayofbools: None, testf: 3.14159, testf2: 3.0, testf3: 0.0, \
+            testarrayofstring2: None, testarrayofsortedstruct: None, flex: None, \
+            test5: None, vector_of_longs: None, vector_of_doubles: None, \
+            parent_namespace_test: None, vector_of_referrables: None, \
+            single_weak_reference: 0, vector_of_weak_references: None, \
+            vector_of_strong_referrables: None, co_owning_reference: 0, \
+            vector_of_co_owning_references: None, non_owning_reference: 0, \
+            vector_of_non_owning_references: None, any_unique_type: NONE, \
+            any_unique: None, any_ambiguous_type: NONE, any_ambiguous: None, \
+            vector_of_enums: None, signed_enum: None }, test4: Some([Test { \
+            a_: 10, b_: 20, padding0__: 0 }, Test { a_: 30, b_: 40, \
+            padding0__: 0 }]), testarrayofstring: Some([\"test1\", \"test2\"]), \
+            testarrayoftables: None, enemy: None, testnestedflatbuffer: None, \
+            testempty: None, testbool: false, testhashs32_fnv1: 0, \
+            testhashu32_fnv1: 0, testhashs64_fnv1: 0, testhashu64_fnv1: 0, \
+            testhashs32_fnv1a: 0, testhashu32_fnv1a: 0, testhashs64_fnv1a: 0, \
+            testhashu64_fnv1a: 0, testarrayofbools: None, testf: 3.14159, \
+            testf2: 3.0, testf3: 0.0, testarrayofstring2: None, \
+            testarrayofsortedstruct: None, flex: None, test5: None, \
+            vector_of_longs: None, vector_of_doubles: None, \
+            parent_namespace_test: None, vector_of_referrables: None, \
+            single_weak_reference: 0, vector_of_weak_references: None, \
+            vector_of_strong_referrables: None, co_owning_reference: 0, \
+            vector_of_co_owning_references: None, non_owning_reference: 0, \
+            vector_of_non_owning_references: None, any_unique_type: NONE, \
+            any_unique: None, any_ambiguous_type: NONE, any_ambiguous: None, \
+            vector_of_enums: None, signed_enum: None }"
+        );
+    }
+
+    #[test]
     fn generated_code_creates_correct_example_repeatedly_with_reset() {
         let b = &mut flatbuffers::FlatBufferBuilder::new();
         for _ in 0..100 {
