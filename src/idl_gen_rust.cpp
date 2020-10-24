@@ -1319,7 +1319,8 @@ class RustGenerator : public BaseGenerator {
       if (field.value.type.base_type != BASE_TYPE_UNION) return;
       code_.SetValue("FIELD_TYPE_FIELD_NAME", field.name);
       ForAllUnionVariantsBesidesNone(
-        *field.value.type.enum_def, [&](const EnumVal &ev){
+        *field.value.type.enum_def, [&](const EnumVal &unused){
+        (void) unused;
         code_ += "  #[inline]";
         code_ += "  #[allow(non_snake_case)]";
         code_ +=
