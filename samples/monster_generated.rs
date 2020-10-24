@@ -238,7 +238,7 @@ impl Vec3 {
 }
 
 pub enum MonsterOffset {}
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq)]
 
 pub struct Monster<'a> {
   pub _tab: flatbuffers::Table<'a>,
@@ -429,8 +429,33 @@ impl<'a: 'b, 'b> MonsterBuilder<'a, 'b> {
   }
 }
 
+impl std::fmt::Debug for Monster<'_> {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    let mut ds = f.debug_struct("Monster");
+      ds.field("pos", &self.pos());
+      ds.field("mana", &self.mana());
+      ds.field("hp", &self.hp());
+      ds.field("name", &self.name());
+      ds.field("inventory", &self.inventory());
+      ds.field("color", &self.color());
+      ds.field("weapons", &self.weapons());
+      ds.field("equipped_type", &self.equipped_type());
+      match self.equipped_type() {
+        Equipment::Weapon => {
+          let x = self.equipped_as_weapon().unwrap();
+          ds.field("equipped", &x)
+        },
+        _ => { 
+          let x: Option<()> = None;
+          ds.field("equipped", &x)
+        },
+      };
+      ds.field("path", &self.path());
+      ds.finish()
+  }
+}
 pub enum WeaponOffset {}
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq)]
 
 pub struct Weapon<'a> {
   pub _tab: flatbuffers::Table<'a>,
@@ -515,6 +540,14 @@ impl<'a: 'b, 'b> WeaponBuilder<'a, 'b> {
   }
 }
 
+impl std::fmt::Debug for Weapon<'_> {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    let mut ds = f.debug_struct("Weapon");
+      ds.field("name", &self.name());
+      ds.field("damage", &self.damage());
+      ds.finish()
+  }
+}
 #[inline]
 pub fn get_root_as_monster<'a>(buf: &'a [u8]) -> Monster<'a> {
   flatbuffers::get_root::<Monster<'a>>(buf)

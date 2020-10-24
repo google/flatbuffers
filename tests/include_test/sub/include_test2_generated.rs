@@ -152,7 +152,7 @@ impl Unused {
 }
 
 pub enum TableBOffset {}
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq)]
 
 pub struct TableB<'a> {
   pub _tab: flatbuffers::Table<'a>,
@@ -225,6 +225,13 @@ impl<'a: 'b, 'b> TableBBuilder<'a, 'b> {
   }
 }
 
+impl std::fmt::Debug for TableB<'_> {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    let mut ds = f.debug_struct("TableB");
+      ds.field("a", &self.a());
+      ds.finish()
+  }
+}
 }  // pub mod OtherNameSpace
 }  // pub mod MyGame
 

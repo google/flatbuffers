@@ -31,7 +31,7 @@ pub struct Vector<'a, T: 'a>(&'a [u8], usize, PhantomData<T>);
 
 impl<'a, T> Debug for Vector<'a, T>
 where
-    T: 'a + Follow<'a> + Debug,
+    T: 'a + Follow<'a>,
     <T as Follow<'a>>::Inner : Debug
 {
     fn fmt(&self, f: &mut Formatter) -> Result {

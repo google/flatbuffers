@@ -166,7 +166,7 @@ impl StructInNestedNS {
 }
 
 pub enum TableInNestedNSOffset {}
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq)]
 
 pub struct TableInNestedNS<'a> {
   pub _tab: flatbuffers::Table<'a>,
@@ -243,6 +243,13 @@ impl<'a: 'b, 'b> TableInNestedNSBuilder<'a, 'b> {
   }
 }
 
+impl std::fmt::Debug for TableInNestedNS<'_> {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    let mut ds = f.debug_struct("TableInNestedNS");
+      ds.field("foo", &self.foo());
+      ds.finish()
+  }
+}
 }  // pub mod NamespaceB
 }  // pub mod NamespaceA
 
