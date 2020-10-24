@@ -1280,7 +1280,7 @@ class RustGenerator : public BaseGenerator {
       code_.SetValue("FUNC_BODY",
                      GenTableAccessorFuncBody(field, "'a", offset_prefix));
 
-      GenComment(field.doc_comment, "  ");
+      this->GenComment(field.doc_comment, "  ");
       code_ += "  #[inline]";
       code_ += "  pub fn {{FIELD_NAME}}(&self) -> {{RETURN_TYPE}} {";
       code_ += "    {{FUNC_BODY}}";
@@ -1723,7 +1723,7 @@ class RustGenerator : public BaseGenerator {
       code_.SetValue("REF", is_struct ? "&" : "");
       code_.SetValue("FROM_LE", is_struct ? "" : ".from_little_endian()");
 
-      GenComment(field.doc_comment, "  ");
+      this->GenComment(field.doc_comment, "  ");
       code_ += "  pub fn {{FIELD_NAME}}(&self) -> {{REF}}{{FIELD_TYPE}} {";
       code_ += "    {{REF}}self.{{FIELD_NAME}}_{{FROM_LE}}";
       code_ += "  }";
