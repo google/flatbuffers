@@ -1464,13 +1464,19 @@ class RustGenerator : public BaseGenerator {
         // Generate a match statement to handle unions properly.
         code_.SetValue("KEY_TYPE", GenTableAccessorFuncReturnType(field, ""));
         code_.SetValue("FIELD_TYPE_FIELD_NAME", field.name);
+        code_.SetValue("UNION_ERR", "&\"InvalidFlatbuffer: Union discriminant"
+                                    " does not match value.\"");
+
         code_ += "      match self.{{FIELD_NAME}}_type() {";
         ForAllUnionVariantsBesidesNone(*field.value.type.enum_def,
-                                      [&](const EnumVal &ev){
+                                       [&](const EnumVal &ev){
           code_ += "        {{U_ELEMENT_ENUM_TYPE}} => {";
-          code_ += "          let x = self.{{FIELD_TYPE_FIELD_NAME}}_as_"
-                   "{{U_ELEMENT_NAME}}().unwrap();";
-          code_ += "          ds.field(\"{{FIELD_NAME}}\", &x)";
+          code_ += "          if let Some(x) = self.{{FIELD_TYPE_FIELD_NAME}}_as_"
+                   "{{U_ELEMENT_NAME}}() {";
+          code_ += "            ds.field(\"{{FIELD_NAME}}\", &x)";
+          code_ += "          } else {";
+          code_ += "            ds.field(\"{{FIELD_NAME}}\", {{UNION_ERR}})";
+          code_ += "          }";
           code_ += "        },";
         });
         code_ += "        _ => { ";

@@ -1837,16 +1837,25 @@ impl std::fmt::Debug for Monster<'_> {
       ds.field("test_type", &self.test_type());
       match self.test_type() {
         Any::Monster => {
-          let x = self.test_as_monster().unwrap();
-          ds.field("test", &x)
+          if let Some(x) = self.test_as_monster() {
+            ds.field("test", &x)
+          } else {
+            ds.field("test", &"InvalidFlatbuffer: Union discriminant does not match value.")
+          }
         },
         Any::TestSimpleTableWithEnum => {
-          let x = self.test_as_test_simple_table_with_enum().unwrap();
-          ds.field("test", &x)
+          if let Some(x) = self.test_as_test_simple_table_with_enum() {
+            ds.field("test", &x)
+          } else {
+            ds.field("test", &"InvalidFlatbuffer: Union discriminant does not match value.")
+          }
         },
         Any::MyGame_Example2_Monster => {
-          let x = self.test_as_my_game_example_2_monster().unwrap();
-          ds.field("test", &x)
+          if let Some(x) = self.test_as_my_game_example_2_monster() {
+            ds.field("test", &x)
+          } else {
+            ds.field("test", &"InvalidFlatbuffer: Union discriminant does not match value.")
+          }
         },
         _ => { 
           let x: Option<()> = None;
@@ -1890,16 +1899,25 @@ impl std::fmt::Debug for Monster<'_> {
       ds.field("any_unique_type", &self.any_unique_type());
       match self.any_unique_type() {
         AnyUniqueAliases::M => {
-          let x = self.any_unique_as_m().unwrap();
-          ds.field("any_unique", &x)
+          if let Some(x) = self.any_unique_as_m() {
+            ds.field("any_unique", &x)
+          } else {
+            ds.field("any_unique", &"InvalidFlatbuffer: Union discriminant does not match value.")
+          }
         },
         AnyUniqueAliases::TS => {
-          let x = self.any_unique_as_ts().unwrap();
-          ds.field("any_unique", &x)
+          if let Some(x) = self.any_unique_as_ts() {
+            ds.field("any_unique", &x)
+          } else {
+            ds.field("any_unique", &"InvalidFlatbuffer: Union discriminant does not match value.")
+          }
         },
         AnyUniqueAliases::M2 => {
-          let x = self.any_unique_as_m2().unwrap();
-          ds.field("any_unique", &x)
+          if let Some(x) = self.any_unique_as_m2() {
+            ds.field("any_unique", &x)
+          } else {
+            ds.field("any_unique", &"InvalidFlatbuffer: Union discriminant does not match value.")
+          }
         },
         _ => { 
           let x: Option<()> = None;
@@ -1909,16 +1927,25 @@ impl std::fmt::Debug for Monster<'_> {
       ds.field("any_ambiguous_type", &self.any_ambiguous_type());
       match self.any_ambiguous_type() {
         AnyAmbiguousAliases::M1 => {
-          let x = self.any_ambiguous_as_m1().unwrap();
-          ds.field("any_ambiguous", &x)
+          if let Some(x) = self.any_ambiguous_as_m1() {
+            ds.field("any_ambiguous", &x)
+          } else {
+            ds.field("any_ambiguous", &"InvalidFlatbuffer: Union discriminant does not match value.")
+          }
         },
         AnyAmbiguousAliases::M2 => {
-          let x = self.any_ambiguous_as_m2().unwrap();
-          ds.field("any_ambiguous", &x)
+          if let Some(x) = self.any_ambiguous_as_m2() {
+            ds.field("any_ambiguous", &x)
+          } else {
+            ds.field("any_ambiguous", &"InvalidFlatbuffer: Union discriminant does not match value.")
+          }
         },
         AnyAmbiguousAliases::M3 => {
-          let x = self.any_ambiguous_as_m3().unwrap();
-          ds.field("any_ambiguous", &x)
+          if let Some(x) = self.any_ambiguous_as_m3() {
+            ds.field("any_ambiguous", &x)
+          } else {
+            ds.field("any_ambiguous", &"InvalidFlatbuffer: Union discriminant does not match value.")
+          }
         },
         _ => { 
           let x: Option<()> = None;

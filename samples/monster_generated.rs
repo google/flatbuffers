@@ -442,8 +442,11 @@ impl std::fmt::Debug for Monster<'_> {
       ds.field("equipped_type", &self.equipped_type());
       match self.equipped_type() {
         Equipment::Weapon => {
-          let x = self.equipped_as_weapon().unwrap();
-          ds.field("equipped", &x)
+          if let Some(x) = self.equipped_as_weapon() {
+            ds.field("equipped", &x)
+          } else {
+            ds.field("equipped", &"InvalidFlatbuffer: Union discriminant does not match value.")
+          }
         },
         _ => { 
           let x: Option<()> = None;
