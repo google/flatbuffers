@@ -293,7 +293,7 @@ public struct ByteBuffer {
     ///   - def: Type of the object
     ///   - position: the index of the object in the buffer
     public func read<T>(def: T.Type, position: Int) -> T {
-        assert(position < _storage.capacity, "Reading out of bounds is illegal")
+        assert(position + MemoryLayout<T>.size <= _storage.capacity, "Reading out of bounds is illegal")
         return _storage.memory.advanced(by: position).load(as: T.self)
     }
 
@@ -304,9 +304,10 @@ public struct ByteBuffer {
     public func readSlice<T>(index: Int32,
                              count: Int32) -> [T] {
         let _index = Int(index)
-        assert(_index < _storage.capacity, "Reading out of bounds is illegal")
+        let _count = Int(count)
+        assert(_index + _count <= _storage.capacity, "Reading out of bounds is illegal")
         let start = _storage.memory.advanced(by: _index).assumingMemoryBound(to: T.self)
-        let array = UnsafeBufferPointer(start: start, count: Int(count))
+        let array = UnsafeBufferPointer(start: start, count: _count)
         return Array(array)
     }
 
@@ -319,9 +320,10 @@ public struct ByteBuffer {
                            count: Int32,
                            type: String.Encoding = .utf8) -> String? {
         let _index = Int(index)
-        assert(_index < _storage.capacity, "Reading out of bounds is illegal")
+        let _count = Int(count)
+        assert(_index + _count <= _storage.capacity, "Reading out of bounds is illegal")
         let start = _storage.memory.advanced(by: _index).assumingMemoryBound(to: UInt8.self)
-        let bufprt = UnsafeBufferPointer(start: start, count: Int(count))
+        let bufprt = UnsafeBufferPointer(start: start, count: _count)
         return String(bytes: Array(bufprt), encoding: type)
     }
 
