@@ -1539,9 +1539,9 @@ mod write_and_read_examples {
         let buf = b.finished_data();
         let m = super::my_game::example::get_root_as_monster(buf);
         assert_eq!(
-            format!("{:?}", &m),
-            "Monster { pos: Some(Vec3 { x_: 1.0, y_: 2.0, z_: 3.0, \
-            padding0__: 0, test1_: 3.0, test2_: Green, padding1__: 0, \
+            format!("{:.5?}", &m),
+            "Monster { pos: Some(Vec3 { x_: 1.00000, y_: 2.00000, z_: 3.00000, \
+            padding0__: 0, test1_: 3.00000, test2_: Green, padding1__: 0, \
             test3_: Test { a_: 5, b_: 6, padding0__: 0 }, padding2__: 0 }), \
             mana: 150, hp: 80, name: \"MyMonster\", inventory: \
             Some([0, 1, 2, 3, 4]), color: Blue, test_type: Monster, \
@@ -1552,7 +1552,7 @@ mod write_and_read_examples {
             testbool: false, testhashs32_fnv1: 0, testhashu32_fnv1: 0, \
             testhashs64_fnv1: 0, testhashu64_fnv1: 0, testhashs32_fnv1a: 0, \
             testhashu32_fnv1a: 0, testhashs64_fnv1a: 0, testhashu64_fnv1a: 0, \
-            testarrayofbools: None, testf: 3.14159, testf2: 3.0, testf3: 0.0, \
+            testarrayofbools: None, testf: 3.14159, testf2: 3.00000, testf3: 0.00000, \
             testarrayofstring2: None, testarrayofsortedstruct: None, flex: None, \
             test5: None, vector_of_longs: None, vector_of_doubles: None, \
             parent_namespace_test: None, vector_of_referrables: None, \
@@ -1569,7 +1569,7 @@ mod write_and_read_examples {
             testhashu32_fnv1: 0, testhashs64_fnv1: 0, testhashu64_fnv1: 0, \
             testhashs32_fnv1a: 0, testhashu32_fnv1a: 0, testhashs64_fnv1a: 0, \
             testhashu64_fnv1a: 0, testarrayofbools: None, testf: 3.14159, \
-            testf2: 3.0, testf3: 0.0, testarrayofstring2: None, \
+            testf2: 3.00000, testf3: 0.00000, testarrayofstring2: None, \
             testarrayofsortedstruct: None, flex: None, test5: None, \
             vector_of_longs: None, vector_of_doubles: None, \
             parent_namespace_test: None, vector_of_referrables: None, \
