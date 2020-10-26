@@ -173,12 +173,22 @@ impl flatbuffers::EndianScalar for Equipment {
 pub struct EquipmentUnionTableOffset {}
 // struct Vec3, aligned to 4
 #[repr(C, align(4))]
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct Vec3 {
   x_: f32,
   y_: f32,
   z_: f32,
 } // pub struct Vec3
+impl std::fmt::Debug for Vec3 {
+  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    f.debug_struct("Vec3")
+      .field("x", &self.x())
+      .field("y", &self.y())
+      .field("z", &self.z())
+      .finish()
+  }
+}
+
 impl flatbuffers::SafeSliceAccess for Vec3 {}
 impl<'a> flatbuffers::Follow<'a> for Vec3 {
   type Inner = &'a Vec3;

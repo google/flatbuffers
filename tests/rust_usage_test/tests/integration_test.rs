@@ -1537,14 +1537,14 @@ mod write_and_read_examples {
         let b = &mut flatbuffers::FlatBufferBuilder::new();
         create_serialized_example_with_generated_code(b);
         let buf = b.finished_data();
+        serialized_example_is_accessible_and_correct(&buf, true, false).unwrap();
         let m = super::my_game::example::get_root_as_monster(buf);
         assert_eq!(
             format!("{:.5?}", &m),
-            "Monster { pos: Some(Vec3 { x_: 1.00000, y_: 2.00000, z_: 3.00000, \
-            padding0__: 0, test1_: 3.00000, test2_: Green, padding1__: 0, \
-            test3_: Test { a_: 5, b_: 6, padding0__: 0 }, padding2__: 0 }), \
-            mana: 150, hp: 80, name: \"MyMonster\", inventory: \
-            Some([0, 1, 2, 3, 4]), color: Blue, test_type: Monster, \
+            "Monster { pos: Some(Vec3 { x: 1.00000, y: 2.00000, z: 3.00000, \
+            test1: 3.00000, test2: Green, test3: Test { a: 5, b: 6 } }), \
+            mana: 150, hp: 80, name: \"MyMonster\", \
+            inventory: Some([0, 1, 2, 3, 4]), color: Blue, test_type: Monster, \
             test: Monster { pos: None, mana: 150, hp: 100, name: \"Fred\", \
             inventory: None, color: Blue, test_type: NONE, test: None, \
             test4: None, testarrayofstring: None, testarrayoftables: None, \
@@ -1562,8 +1562,8 @@ mod write_and_read_examples {
             vector_of_non_owning_references: None, any_unique_type: NONE, \
             any_unique: None, any_ambiguous_type: NONE, any_ambiguous: None, \
             vector_of_enums: None, signed_enum: None }, test4: Some([Test { \
-            a_: 10, b_: 20, padding0__: 0 }, Test { a_: 30, b_: 40, \
-            padding0__: 0 }]), testarrayofstring: Some([\"test1\", \"test2\"]), \
+            a: 10, b: 20 }, Test { a: 30, b: 40 }]), \
+            testarrayofstring: Some([\"test1\", \"test2\"]), \
             testarrayoftables: None, enemy: None, testnestedflatbuffer: None, \
             testempty: None, testbool: false, testhashs32_fnv1: 0, \
             testhashu32_fnv1: 0, testhashs64_fnv1: 0, testhashu64_fnv1: 0, \

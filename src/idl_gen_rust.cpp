@@ -1657,7 +1657,7 @@ class RustGenerator : public BaseGenerator {
     // PartialEq is useful to derive because we can correctly compare structs
     // for equality by just comparing their underlying byte data. This doesn't
     // hold for PartialOrd/Ord.
-    code_ += "#[derive(Clone, Copy, Debug, PartialEq)]";
+    code_ += "#[derive(Clone, Copy, PartialEq)]";
     code_ += "pub struct {{STRUCT_NAME}} {";
 
     int padding_id = 0;
@@ -1669,8 +1669,22 @@ class RustGenerator : public BaseGenerator {
         code_ += padding;
       }
     });
-
     code_ += "} // pub struct {{STRUCT_NAME}}";
+
+    // Debug for structs.
+    code_ += "impl std::fmt::Debug for {{STRUCT_NAME}} {";
+    code_ += "  fn fmt(&self, f: &mut std::fmt::Formatter"
+             ") -> std::fmt::Result {";
+    code_ += "    f.debug_struct(\"{{STRUCT_NAME}}\")";
+    ForAllStructFields(struct_def, [&](const FieldDef &unused) {
+      (void) unused;
+      code_ += "      .field(\"{{FIELD_NAME}}\", &self.{{FIELD_NAME}}())";
+    });
+    code_ += "      .finish()";
+    code_ += "  }";
+    code_ += "}";
+    code_ += "";
+
 
     // Generate impls for SafeSliceAccess (because all structs are endian-safe),
     // Follow for the value type, Follow for the reference type, Push for the

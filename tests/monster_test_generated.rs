@@ -551,12 +551,21 @@ impl flatbuffers::EndianScalar for AnyAmbiguousAliases {
 pub struct AnyAmbiguousAliasesUnionTableOffset {}
 // struct Test, aligned to 2
 #[repr(C, align(2))]
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct Test {
   a_: i16,
   b_: i8,
   padding0__: u8,
 } // pub struct Test
+impl std::fmt::Debug for Test {
+  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    f.debug_struct("Test")
+      .field("a", &self.a())
+      .field("b", &self.b())
+      .finish()
+  }
+}
+
 impl flatbuffers::SafeSliceAccess for Test {}
 impl<'a> flatbuffers::Follow<'a> for Test {
   type Inner = &'a Test;
@@ -618,7 +627,7 @@ impl Test {
 
 // struct Vec3, aligned to 8
 #[repr(C, align(8))]
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct Vec3 {
   x_: f32,
   y_: f32,
@@ -630,6 +639,19 @@ pub struct Vec3 {
   test3_: Test,
   padding2__: u16,
 } // pub struct Vec3
+impl std::fmt::Debug for Vec3 {
+  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    f.debug_struct("Vec3")
+      .field("x", &self.x())
+      .field("y", &self.y())
+      .field("z", &self.z())
+      .field("test1", &self.test1())
+      .field("test2", &self.test2())
+      .field("test3", &self.test3())
+      .finish()
+  }
+}
+
 impl flatbuffers::SafeSliceAccess for Vec3 {}
 impl<'a> flatbuffers::Follow<'a> for Vec3 {
   type Inner = &'a Vec3;
@@ -709,11 +731,20 @@ impl Vec3 {
 
 // struct Ability, aligned to 4
 #[repr(C, align(4))]
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct Ability {
   id_: u32,
   distance_: u32,
 } // pub struct Ability
+impl std::fmt::Debug for Ability {
+  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    f.debug_struct("Ability")
+      .field("id", &self.id())
+      .field("distance", &self.distance())
+      .finish()
+  }
+}
+
 impl flatbuffers::SafeSliceAccess for Ability {}
 impl<'a> flatbuffers::Follow<'a> for Ability {
   type Inner = &'a Ability;
