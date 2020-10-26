@@ -53,6 +53,12 @@ func (b *Builder) Reset() {
 		b.vtable = b.vtable[:0]
 	}
 
+	if b.sharedStrings != nil {
+		for key := range b.sharedStrings {
+			delete(b.sharedStrings, key)
+		}
+	}
+
 	b.head = UOffsetT(len(b.Bytes))
 	b.minalign = 1
 	b.nested = false

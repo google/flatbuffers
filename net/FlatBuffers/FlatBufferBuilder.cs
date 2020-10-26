@@ -90,6 +90,10 @@ namespace FlatBuffers
             _objectStart = 0;
             _numVtables = 0;
             _vectorNumElems = 0;
+            if (_sharedStringMap != null)
+            {
+                _sharedStringMap.Clear();
+            }
         }
 
         /// <summary>
