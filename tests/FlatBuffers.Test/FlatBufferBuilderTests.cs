@@ -359,5 +359,20 @@ namespace FlatBuffers.Test
             Assert.AreEqual(fbb.CreateSharedString(s).Value, 0);
             Assert.AreEqual(fbb.CreateString(s).Value, 0);
         }
+
+        [FlatBuffersTestMethod]
+        public void FlatBufferBuilder_Empty_Builder()
+        {
+            var fbb = new FlatBufferBuilder(16);
+            var str = "Hello";
+            var flatbuffer = "Flatbuffers!";
+            var strOffset = fbb.CreateSharedString(str);
+            var flatbufferOffset = fbb.CreateSharedString(flatbuffer);
+            fbb.Clear();
+            var flatbufferOffset2 = fbb.CreateSharedString(flatbuffer);
+            var strOffset2 = fbb.CreateSharedString(str);
+            Assert.IsFalse(strOffset.Value == strOffset2.Value);
+            Assert.IsFalse(flatbufferOffset.Value == flatbufferOffset2.Value);
+        }
     }
 }
