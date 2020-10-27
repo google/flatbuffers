@@ -587,22 +587,24 @@ class JsTsGenerator : public BaseGenerator {
 
   void GenStructArgs(const StructDef &struct_def, std::string *annotations,
                      std::string *arguments, const std::string &nameprefix) {
-    for (const auto field : struct_def.fields.vec) {
-      if (IsStruct(field->value.type)) {
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto &field = **it;
+      if (IsStruct(field.value.type)) {
         // Generate arguments for a struct inside a struct. To ensure names
         // don't clash, and to make it obvious these arguments are constructing
         // a nested struct, prefix the name with the field name.
-        GenStructArgs(*field->value.type.struct_def, annotations, arguments,
-                      nameprefix + field->name + "_");
+        GenStructArgs(*field.value.type.struct_def, annotations, arguments,
+                      nameprefix + field.name + "_");
       } else {
         *annotations +=
-            GenTypeAnnotation(kParam, GenTypeName(field->value.type, true, field->optional),
-                              nameprefix + field->name);
+            GenTypeAnnotation(kParam, GenTypeName(field.value.type, true, field.optional),
+                              nameprefix + field.name);
         if (lang_.language == IDLOptions::kTs) {
-          *arguments += ", " + nameprefix + field->name + ": " +
-                        GenTypeName(field->value.type, true, field->optional);
+          *arguments += ", " + nameprefix + field.name + ": " +
+                        GenTypeName(field.value.type, true, field.optional);
         } else {
-          *arguments += ", " + nameprefix + field->name;
+          *arguments += ", " + nameprefix + field.name;
         }
       }
     }
@@ -825,17 +827,19 @@ class JsTsGenerator : public BaseGenerator {
         ret += "  switch(" + enum_type + "[type]) {\n";
         ret += "    case 'NONE': return null; \n";
 
-        for (auto ev : union_enum.Vals()) {
-          if (ev->IsZero()) { continue; }
+        for (auto it = union_enum.Vals().begin(); it != union_enum.Vals().end();
+             ++it) {
+          const auto &ev = **it;
+          if (ev.IsZero()) { continue; }
 
-          ret += "    case '" + ev->name + "': ";
+          ret += "    case '" + ev.name + "': ";
 
-          if (IsString(ev->union_type)) {
+          if (IsString(ev.union_type)) {
             ret += "return " + accessor_str + "'') as string;";
-          } else if (ev->union_type.base_type == BASE_TYPE_STRUCT) {
+          } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
             const auto type = GenPrefixedTypeName(
-                WrapInNameSpace(*(ev->union_type.struct_def)),
-                ev->union_type.struct_def->file);
+                WrapInNameSpace(*(ev.union_type.struct_def)),
+                ev.union_type.struct_def->file);
             ret += "return " + accessor_str + "new " + type + "())! as " +
                    type + ";";
           } else {
@@ -1995,11 +1999,13 @@ class JsTsGenerator : public BaseGenerator {
       }
 
       code += "  var offset = builder.endObject();\n";
-      for (auto field : struct_def.fields.vec) {
-        if (!field->deprecated && field->required) {
+      for (auto it = struct_def.fields.vec.begin();
+           it != struct_def.fields.vec.end(); ++it) {
+        auto &field = **it;
+        if (!field.deprecated && field.required) {
           code += "  builder.requiredField(offset, ";
-          code += NumToString(field->value.offset);
-          code += "); // " + field->name + "\n";
+          code += NumToString(field.value.offset);
+          code += "); // " + field.name + "\n";
         }
       }
       code += "  return offset;\n";
@@ -2014,10 +2020,12 @@ class JsTsGenerator : public BaseGenerator {
         if (lang_.language == IDLOptions::kJs) {
           std::string paramDoc =
               GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder");
-          for (auto field : struct_def.fields.vec) {
-            if (field->deprecated) continue;
+          for (auto it = struct_def.fields.vec.begin();
+               it != struct_def.fields.vec.end(); ++it) {
+            const auto &field = **it;
+            if (field.deprecated) continue;
             paramDoc +=
-                GenTypeAnnotation(kParam, GetArgType(*field, true), GetArgName(*field));
+                GenTypeAnnotation(kParam, GetArgType(field, true), GetArgName(field));
           }
           paramDoc +=
               GenTypeAnnotation(kReturns, "flatbuffers.Offset", "", false);
@@ -2032,13 +2040,15 @@ class JsTsGenerator : public BaseGenerator {
           code += object_name + ".create" + Verbose(struct_def);
           code += " = function(builder";
         }
-        for (auto field : struct_def.fields.vec) {
-          if (field->deprecated) continue;
+        for (auto it = struct_def.fields.vec.begin();
+             it != struct_def.fields.vec.end(); ++it) {
+          const auto &field = **it;
+          if (field.deprecated) continue;
 
           if (lang_.language == IDLOptions::kTs) {
-            code += ", " + GetArgName(*field) + ":" + GetArgType(*field, true);
+            code += ", " + GetArgName(field) + ":" + GetArgType(field, true);
           } else {
-            code += ", " + GetArgName(*field);
+            code += ", " + GetArgName(field);
           }
         }
 
@@ -2054,16 +2064,18 @@ class JsTsGenerator : public BaseGenerator {
 
         std::string methodPrefix =
             lang_.language == IDLOptions::kTs ? struct_def.name : object_name;
-        for (auto field : struct_def.fields.vec) {
-          if (field->deprecated) continue;
+        for (auto it = struct_def.fields.vec.begin();
+             it != struct_def.fields.vec.end(); ++it) {
+          const auto &field = **it;
+          if (field.deprecated) continue;
 
-          const auto arg_name = GetArgName(*field);
+          const auto arg_name = GetArgName(field);
 
-          if (field->IsScalarOptional()) {
+          if (field.IsScalarOptional()) {
             code += "  if (" + arg_name + " !== null)\n  ";
           }
 
-          code += "  " + methodPrefix + ".add" + MakeCamel(field->name) + "(";
+          code += "  " + methodPrefix + ".add" + MakeCamel(field.name) + "(";
           code += "builder, " + arg_name + ");\n";
         }
 
