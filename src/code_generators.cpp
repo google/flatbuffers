@@ -122,8 +122,8 @@ std::string BaseGenerator::LastNamespacePart(const Namespace &ns) {
 std::string BaseGenerator::WrapInNameSpace(const Namespace *ns,
                                            const std::string &name) const {
   std::string qualified_name = qualifying_start_;
-  for (const auto & component : ns->components)
-    qualified_name += component + qualifying_separator_;
+  for (auto it = ns->components.begin(); it != ns->components.end(); ++it)
+    qualified_name += *it + qualifying_separator_;
   return qualified_name + name;
 }
 
