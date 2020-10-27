@@ -36,8 +36,8 @@ if ! find "${testdir}/../java" -type f -name "*.class" -delete; then
     exit 1
 fi
 
-javac -d "${targetdir}" -classpath "${testdir}/../java:${testdir}:${testdir}/namespace_test:${testdir}/union_vector" "${testdir}/JavaTest.java"
+javac -d "${targetdir}" -classpath "${testdir}/optional_scalars:${testdir}/../java:${testdir}:${testdir}/namespace_test:${testdir}/union_vector" "${testdir}/JavaTest.java"
 
-(cd "${testdir}" && java -classpath "${targetdir}" JavaTest )
+(cd "${testdir}" && java -ea -classpath "${targetdir}" JavaTest )
 
 rm -rf "${targetdir}"
