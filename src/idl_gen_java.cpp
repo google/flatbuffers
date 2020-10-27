@@ -264,21 +264,26 @@ class JavaGenerator : public BaseGenerator {
 
   std::string GenDefaultValue(const FieldDef &field) const {
     auto &value = field.value;
+    auto constant = field.IsScalarOptional() ? "0" : value.constant;
     auto longSuffix = "L";
     switch (value.type.base_type) {
-      case BASE_TYPE_BOOL: return value.constant == "0" ? "false" : "true";
+      case BASE_TYPE_BOOL: return constant == "0" ? "false" : "true";
       case BASE_TYPE_ULONG: {
         // Converts the ulong into its bits signed equivalent
-        uint64_t defaultValue = StringToUInt(value.constant.c_str());
+        uint64_t defaultValue = StringToUInt(constant.c_str());
         return NumToString(static_cast<int64_t>(defaultValue)) + longSuffix;
       }
       case BASE_TYPE_UINT:
-      case BASE_TYPE_LONG: return value.constant + longSuffix;
+      case BASE_TYPE_LONG: return constant + longSuffix;
       default:
-        if (IsFloat(value.type.base_type))
+        if (IsFloat(value.type.base_type)) {
+          if (field.IsScalarOptional()) {
+            return value.type.base_type == BASE_TYPE_DOUBLE ? "0.0" : "0f";
+          }
           return JavaFloatGen.GenFloatConstant(field);
-        else
-          return value.constant;
+        } else {
+          return constant;
+        }
     }
   }
 
@@ -672,6 +677,7 @@ class JavaGenerator : public BaseGenerator {
         code += "(new " + type_name + "(), j); }\n";
       }
 
+      if (field.IsScalarOptional()) { code += GenOptionalScalarCheck(field); }
       std::string getter = dest_cast + GenGetter(field.value.type);
       code += method_start;
       std::string default_cast = "";
@@ -1153,6 +1159,13 @@ class JavaGenerator : public BaseGenerator {
     GenVectorAccessObject(struct_def, code_ptr);
     code += "}";
     code += "\n\n";
+  }
+
+  std::string GenOptionalScalarCheck(FieldDef &field) const {
+    if (!field.IsScalarOptional()) return "";
+    return "  public boolean has" + MakeCamel(field.name, true) +
+           "() { return 0 != __offset(" + NumToString(field.value.offset) +
+           "); }\n";
   }
 
   void GenVectorAccessObject(StructDef &struct_def,
