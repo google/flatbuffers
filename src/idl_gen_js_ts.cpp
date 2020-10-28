@@ -442,11 +442,16 @@ class JsTsGenerator : public BaseGenerator {
     }
   }
 
-  std::string GenBBAccess() {
+  std::string GenBBAccess() const {
     return lang_.language == IDLOptions::kTs ? "this.bb!" : "this.bb";
   }
 
-  std::string GenDefaultValue(const Value &value, const std::string &context) {
+  std::string GenDefaultValue(const FieldDef &field, const std::string &context) {
+    if (field.IsScalarOptional()) {
+      return "null";
+    }
+
+    const auto &value = field.value;
     if (value.type.enum_def && value.type.base_type != BASE_TYPE_UNION &&
         value.type.base_type != BASE_TYPE_VECTOR) {
       if (auto val = value.type.enum_def->FindByValue(value.constant)) {
@@ -503,13 +508,17 @@ class JsTsGenerator : public BaseGenerator {
     }
 
     switch (type.base_type) {
-      case BASE_TYPE_BOOL: return "boolean";
+      case BASE_TYPE_BOOL: return (allowNull) ? ("boolean|null") : ("boolean");
       case BASE_TYPE_LONG:
-      case BASE_TYPE_ULONG: return "flatbuffers.Long";
+      case BASE_TYPE_ULONG: return (allowNull) ? ("flatbuffers.Long|null") : ("flatbuffers.Long");
       default:
         if (IsScalar(type.base_type)) {
-          if (type.enum_def) { return WrapInNameSpace(*type.enum_def); }
-          return "number";
+          if (type.enum_def) {
+            const auto enum_name = WrapInNameSpace(*type.enum_def);
+            return (allowNull) ? (enum_name + "|null") : (enum_name);
+          }
+          
+          return (allowNull) ? ("number|null") : ("number");
         }
         return "flatbuffers.Offset";
     }
@@ -576,10 +585,6 @@ class JsTsGenerator : public BaseGenerator {
     return GenFileNamespacePrefix(file) + "." + typeName;
   }
 
-  std::string GenFullNameSpace(const Definition &def, const std::string &file) {
-    return GenPrefixedTypeName(GetNameSpace(def), file);
-  }
-
   void GenStructArgs(const StructDef &struct_def, std::string *annotations,
                      std::string *arguments, const std::string &nameprefix) {
     for (auto it = struct_def.fields.vec.begin();
@@ -593,11 +598,11 @@ class JsTsGenerator : public BaseGenerator {
                       nameprefix + field.name + "_");
       } else {
         *annotations +=
-            GenTypeAnnotation(kParam, GenTypeName(field.value.type, true),
+            GenTypeAnnotation(kParam, GenTypeName(field.value.type, true, field.optional),
                               nameprefix + field.name);
         if (lang_.language == IDLOptions::kTs) {
           *arguments += ", " + nameprefix + field.name + ": " +
-                        GenTypeName(field.value.type, true);
+                        GenTypeName(field.value.type, true, field.optional);
         } else {
           *arguments += ", " + nameprefix + field.name;
         }
@@ -879,7 +884,7 @@ class JsTsGenerator : public BaseGenerator {
       const auto union_has_string = UnionHasStringType(enum_def);
       const auto field_binded_method = "this." + field_name + ".bind(this)";
 
-      std::string ret = "";
+      std::string ret;
 
       if (!is_array) {
         const auto conversion_function =
@@ -935,7 +940,7 @@ class JsTsGenerator : public BaseGenerator {
     return "";
   }
 
-  std::string GenNullCheckConditional(const std::string &nullCheckVar,
+  static std::string GenNullCheckConditional(const std::string &nullCheckVar,
                                       const std::string &trueVal,
                                       const std::string &falseVal = "null") {
     return "(" + nullCheckVar + " !== null ? " + trueVal + " : " + falseVal +
@@ -1039,21 +1044,23 @@ class JsTsGenerator : public BaseGenerator {
       // the variable name from field_offset_decl
       std::string field_offset_val;
       const auto field_default_val =
-          GenDefaultValue(field.value, "flatbuffers");
+          GenDefaultValue(field, "flatbuffers");
 
       // Emit a scalar field
-      if (IsScalar(field.value.type.base_type) ||
-          IsString(field.value.type)) {
+      const auto is_string = IsString(field.value.type);
+      if (IsScalar(field.value.type.base_type) || is_string) {
+        const auto has_null_default = is_string || HasNullDefault(field);
+
         if (field.value.type.enum_def) {
           if (!parser_.opts.generate_all) {
             imported_files.insert(field.value.type.enum_def->file);
           }
 
           field_type +=
-              GenPrefixedTypeName(GenTypeName(field.value.type, false, true),
+              GenPrefixedTypeName(GenTypeName(field.value.type, false, has_null_default),
                                   field.value.type.enum_def->file);
         } else {
-          field_type += GenTypeName(field.value.type, false, true);
+          field_type += GenTypeName(field.value.type, false, has_null_default);
         }
         field_val = "this." + field_name + "()";
 
@@ -1162,7 +1169,7 @@ class JsTsGenerator : public BaseGenerator {
                   }
 
                   field_type +=
-                      GenPrefixedTypeName(GenTypeName(vectortype, false, true),
+                      GenPrefixedTypeName(GenTypeName(vectortype, false, HasNullDefault(field)),
                                           vectortype.enum_def->file);
                 } else {
                   field_type += vectortypename;
@@ -1281,7 +1288,7 @@ class JsTsGenerator : public BaseGenerator {
     obj_api_unpack_func = unpack_func + "\n\n" + unpack_to_func;
   }
 
-  bool CanCreateFactoryMethod(const StructDef &struct_def) {
+  static bool CanCreateFactoryMethod(const StructDef &struct_def) {
     // to preserve backwards compatibility, we allow the first field to be a
     // struct
     return struct_def.fields.vec.size() < 2 ||
@@ -1411,20 +1418,22 @@ class JsTsGenerator : public BaseGenerator {
           NumToString(field.value.offset) + ");\n  return offset ? ";
 
       // Emit a scalar field
-      if (IsScalar(field.value.type.base_type) ||
-          IsString(field.value.type)) {
+      const auto is_string = IsString(field.value.type);
+      if (IsScalar(field.value.type.base_type) || is_string) {
+        const auto has_null_default = is_string || HasNullDefault(field);
+
         GenDocComment(
             field.doc_comment, code_ptr,
-            std::string(IsString(field.value.type)
+            std::string(is_string
                             ? GenTypeAnnotation(kParam, "flatbuffers.Encoding=",
                                                 "optionalEncoding")
                             : "") +
                 GenTypeAnnotation(kReturns,
-                                  GenTypeName(field.value.type, false, true),
+                                  GenTypeName(field.value.type, false, has_null_default),
                                   "", false));
         if (lang_.language == IDLOptions::kTs) {
           std::string prefix = MakeCamel(field.name, false) + "(";
-          if (IsString(field.value.type)) {
+          if (is_string) {
             code += prefix + "):string|null\n";
             code += prefix + "optionalEncoding:flatbuffers.Encoding" +
                     "):" + GenTypeName(field.value.type, false, true) + "\n";
@@ -1435,7 +1444,7 @@ class JsTsGenerator : public BaseGenerator {
           if (field.value.type.enum_def) {
             code +=
                 "):" +
-                GenPrefixedTypeName(GenTypeName(field.value.type, false, true),
+                GenPrefixedTypeName(GenTypeName(field.value.type, false, field.optional),
                                     field.value.type.enum_def->file) +
                 " {\n";
 
@@ -1443,12 +1452,12 @@ class JsTsGenerator : public BaseGenerator {
               imported_files.insert(field.value.type.enum_def->file);
             }
           } else {
-            code += "):" + GenTypeName(field.value.type, false, true) + " {\n";
+            code += "):" + GenTypeName(field.value.type, false, has_null_default) + " {\n";
           }
         } else {
           code += object_name + ".prototype." + MakeCamel(field.name, false);
           code += " = function(";
-          if (IsString(field.value.type)) {
+          if (is_string) {
             code += "optionalEncoding";
           }
           code += ") {\n";
@@ -1462,12 +1471,12 @@ class JsTsGenerator : public BaseGenerator {
               ";\n";
         } else {
           std::string index = "this.bb_pos + offset";
-          if (IsString(field.value.type)) {
+          if (is_string) {
             index += ", optionalEncoding";
           }
           code += offset_prefix +
                   GenGetter(field.value.type, "(" + index + ")") + " : " +
-                  GenDefaultValue(field.value, GenBBAccess());
+                  GenDefaultValue(field, GenBBAccess());
           code += ";\n";
         }
       }
@@ -1865,7 +1874,7 @@ class JsTsGenerator : public BaseGenerator {
         if (lang_.language == IDLOptions::kTs) {
           code += "static add" + MakeCamel(field.name);
           code += "(builder:flatbuffers.Builder, " + argname + ":" +
-                  GetArgType(field) + ") {\n";
+                  GetArgType(field, false) + ") {\n";
         } else {
           code += object_name + ".add" + MakeCamel(field.name);
           code += " = function(builder, " + argname + ") {\n";
@@ -1877,9 +1886,15 @@ class JsTsGenerator : public BaseGenerator {
         code += argname + ", ";
         if (!IsScalar(field.value.type.base_type)) {
           code += "0";
+        } else if (HasNullDefault(field)) {
+          if (IsLong(field.value.type.base_type)) {
+            code += "builder.createLong(0, 0)";
+          } else {
+            code += "0";
+          }
         } else {
           if (field.value.type.base_type == BASE_TYPE_BOOL) { code += "+"; }
-          code += GenDefaultValue(field.value, "builder");
+          code += GenDefaultValue(field, "builder");
         }
         code += ");\n};\n\n";
 
@@ -2010,7 +2025,7 @@ class JsTsGenerator : public BaseGenerator {
             const auto &field = **it;
             if (field.deprecated) continue;
             paramDoc +=
-                GenTypeAnnotation(kParam, GetArgType(field), GetArgName(field));
+                GenTypeAnnotation(kParam, GetArgType(field, true), GetArgName(field));
           }
           paramDoc +=
               GenTypeAnnotation(kReturns, "flatbuffers.Offset", "", false);
@@ -2031,7 +2046,7 @@ class JsTsGenerator : public BaseGenerator {
           if (field.deprecated) continue;
 
           if (lang_.language == IDLOptions::kTs) {
-            code += ", " + GetArgName(field) + ":" + GetArgType(field);
+            code += ", " + GetArgName(field) + ":" + GetArgType(field, true);
           } else {
             code += ", " + GetArgName(field);
           }
@@ -2054,8 +2069,14 @@ class JsTsGenerator : public BaseGenerator {
           const auto &field = **it;
           if (field.deprecated) continue;
 
+          const auto arg_name = GetArgName(field);
+
+          if (field.IsScalarOptional()) {
+            code += "  if (" + arg_name + " !== null)\n  ";
+          }
+
           code += "  " + methodPrefix + ".add" + MakeCamel(field.name) + "(";
-          code += "builder, " + GetArgName(field) + ");\n";
+          code += "builder, " + arg_name + ");\n";
         }
 
         code += "  return " + methodPrefix + ".end" + Verbose(struct_def) +
@@ -2094,9 +2115,13 @@ class JsTsGenerator : public BaseGenerator {
       if (!object_namespace.empty()) { code += "}\n"; }
     }
   }
+  
+  static bool HasNullDefault(const FieldDef &field) {
+    return field.optional && field.value.constant == "null";
+  }
 
-  std::string GetArgType(const FieldDef &field) {
-    auto type_name = GenTypeName(field.value.type, true);
+  std::string GetArgType(const FieldDef &field, bool allowNull) {
+    auto type_name = GenTypeName(field.value.type, true, allowNull && field.optional);
 
     if (field.value.type.enum_def) {
       if (IsScalar(field.value.type.base_type)) {
