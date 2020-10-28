@@ -136,3 +136,4 @@ mjs/**/*.js
 mjs/**/*.d.ts
 yarn-error.log
 .cache/
+.cmake/
