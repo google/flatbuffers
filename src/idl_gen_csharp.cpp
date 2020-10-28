@@ -223,6 +223,9 @@ class CSharpGenerator : public BaseGenerator {
       }
     }
 
+    // If it is an optional scalar field, the default is null
+    if (field.IsScalarOptional()) { return "null"; }
+
     auto longSuffix = "";
     switch (value.type.base_type) {
       case BASE_TYPE_BOOL: return value.constant == "0" ? "false" : "true";
@@ -396,6 +399,7 @@ class CSharpGenerator : public BaseGenerator {
       } else {
         code += ", ";
         code += GenTypeBasic(type);
+        if (field.IsScalarOptional()) { code += "?"; }
         if (array_cnt > 0) {
           code += "[";
           for (size_t i = 1; i < array_cnt; i++) code += ",";
@@ -610,6 +614,7 @@ class CSharpGenerator : public BaseGenerator {
         optional = "?";
         conditional_cast = "(" + type_name_dest + optional + ")";
       }
+      if (field.IsScalarOptional()) { optional = "?"; }
       std::string dest_mask = "";
       std::string dest_cast = DestinationCast(field.value.type);
       std::string src_cast = SourceCast(field.value.type);
@@ -646,9 +651,11 @@ class CSharpGenerator : public BaseGenerator {
         // that doesn't need to be casted. However, default values for enum
         // elements of vectors are integer literals ("0") and are still casted
         // for clarity.
-        if (field.value.type.enum_def == nullptr ||
-            IsVector(field.value.type)) {
-          default_cast = "(" + type_name_dest + ")";
+        // If the scalar is optional and enum, we still need the cast.
+        if ((field.value.type.enum_def == nullptr ||
+             IsVector(field.value.type)) ||
+            (IsEnum(field.value.type) && field.IsScalarOptional())) {
+          default_cast = "(" + type_name_dest + optional + ")";
         }
       }
       std::string member_suffix = "; ";
@@ -974,6 +981,7 @@ class CSharpGenerator : public BaseGenerator {
             code += " = null";
           } else {
             code += GenTypeBasic(field.value.type);
+            if (field.IsScalarOptional()) { code += "?"; }
             code += " ";
             code += field.name;
             if (!IsScalar(field.value.type.base_type)) code += "Offset";
@@ -1034,6 +1042,7 @@ class CSharpGenerator : public BaseGenerator {
         code += GenTypeBasic(field.value.type);
         auto argname = MakeCamel(field.name, false);
         if (!IsScalar(field.value.type.base_type)) argname += "Offset";
+        if (field.IsScalarOptional()) { code += "?"; }
         code += " " + argname + ") { builder.Add";
         code += GenMethod(field.value.type) + "(";
         code += NumToString(it - struct_def.fields.vec.begin()) + ", ";
@@ -1043,8 +1052,13 @@ class CSharpGenerator : public BaseGenerator {
             field.value.type.base_type != BASE_TYPE_UNION) {
           code += ".Value";
         }
-        code += ", ";
-        code += GenDefaultValue(field, false);
+        if (!field.IsScalarOptional()) {
+          // When the scalar is optional, use the builder method that doesn't
+          // supply a default value. Otherwise, we to continue to use the
+          // default value method.
+          code += ", ";
+          code += GenDefaultValue(field, false);
+        }
         code += "); }\n";
         if (IsVector(field.value.type)) {
           auto vector_type = field.value.type.VectorType();
@@ -1069,7 +1083,7 @@ class CSharpGenerator : public BaseGenerator {
             code += SourceCastBasic(vector_type);
             code += "data[i]";
             if (vector_type.base_type == BASE_TYPE_STRUCT ||
-                 IsString(vector_type))
+                IsString(vector_type))
               code += ".Value";
             code += "); return ";
             code += "builder.EndVector(); }\n";
@@ -1476,11 +1490,10 @@ class CSharpGenerator : public BaseGenerator {
         case BASE_TYPE_ARRAY: {
           auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts);
           auto length_str = NumToString(field.value.type.fixed_length);
-          auto unpack_method = field.value.type.struct_def == nullptr
-                                   ? ""
-                                   : field.value.type.struct_def->fixed
-                                         ? ".UnPack()"
-                                         : "?.UnPack()";
+          auto unpack_method = field.value.type.struct_def == nullptr ? ""
+                               : field.value.type.struct_def->fixed
+                                   ? ".UnPack()"
+                                   : "?.UnPack()";
           code += start + "new " + type_name.substr(0, type_name.length() - 1) +
                   length_str + "];\n";
           code += "    for (var _j = 0; _j < " + length_str + "; ++_j) { _o." +
