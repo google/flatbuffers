@@ -93,7 +93,7 @@ impl flatbuffers::EndianScalar for OptionalByte {
 }
 
 pub enum ScalarStuffOffset {}
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq)]
 
 pub struct ScalarStuff<'a> {
   pub _tab: flatbuffers::Table<'a>,
@@ -586,6 +586,48 @@ impl<'a: 'b, 'b> ScalarStuffBuilder<'a, 'b> {
   }
 }
 
+impl std::fmt::Debug for ScalarStuff<'_> {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    let mut ds = f.debug_struct("ScalarStuff");
+      ds.field("just_i8", &self.just_i8());
+      ds.field("maybe_i8", &self.maybe_i8());
+      ds.field("default_i8", &self.default_i8());
+      ds.field("just_u8", &self.just_u8());
+      ds.field("maybe_u8", &self.maybe_u8());
+      ds.field("default_u8", &self.default_u8());
+      ds.field("just_i16", &self.just_i16());
+      ds.field("maybe_i16", &self.maybe_i16());
+      ds.field("default_i16", &self.default_i16());
+      ds.field("just_u16", &self.just_u16());
+      ds.field("maybe_u16", &self.maybe_u16());
+      ds.field("default_u16", &self.default_u16());
+      ds.field("just_i32", &self.just_i32());
+      ds.field("maybe_i32", &self.maybe_i32());
+      ds.field("default_i32", &self.default_i32());
+      ds.field("just_u32", &self.just_u32());
+      ds.field("maybe_u32", &self.maybe_u32());
+      ds.field("default_u32", &self.default_u32());
+      ds.field("just_i64", &self.just_i64());
+      ds.field("maybe_i64", &self.maybe_i64());
+      ds.field("default_i64", &self.default_i64());
+      ds.field("just_u64", &self.just_u64());
+      ds.field("maybe_u64", &self.maybe_u64());
+      ds.field("default_u64", &self.default_u64());
+      ds.field("just_f32", &self.just_f32());
+      ds.field("maybe_f32", &self.maybe_f32());
+      ds.field("default_f32", &self.default_f32());
+      ds.field("just_f64", &self.just_f64());
+      ds.field("maybe_f64", &self.maybe_f64());
+      ds.field("default_f64", &self.default_f64());
+      ds.field("just_bool", &self.just_bool());
+      ds.field("maybe_bool", &self.maybe_bool());
+      ds.field("default_bool", &self.default_bool());
+      ds.field("just_enum", &self.just_enum());
+      ds.field("maybe_enum", &self.maybe_enum());
+      ds.field("default_enum", &self.default_enum());
+      ds.finish()
+  }
+}
 #[inline]
 pub fn get_root_as_scalar_stuff<'a>(buf: &'a [u8]) -> ScalarStuff<'a> {
   flatbuffers::get_root::<ScalarStuff<'a>>(buf)
