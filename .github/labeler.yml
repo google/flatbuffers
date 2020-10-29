@@ -21,3 +21,21 @@ swift:
   - src/idl_gen_swift.cpp
   - grpc/src/swift_generator.cc
   - grpc/src/swift_generator.h
+
+typescript:
+  - ./**/*.ts
+  - ts/**/*.ts
+  - src/idl_gen_js_ts.cpp
+  - grpc/flatbuffers-js-grpc/**/*.ts
+
+golang:
+  - ./**/*.go
+  - go/**/*.go
+  - tests/go_test.go
+  - src/idl_gen_go.cpp
+
+python:
+  - ./**/*.py
+  - python/**/*.py
+  - tests/*.py
+  - src/idl_gen_python.cpp
