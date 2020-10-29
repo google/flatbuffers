@@ -49,15 +49,14 @@ pub const SIZE_VOFFSET: usize = SIZE_I16;
 
 pub const SIZE_SIZEPREFIX: usize = SIZE_UOFFSET;
 
-/// SOffsetT is an i32 that is used by tables to reference their vtables.
+/// SOffsetT is a relative pointer from tables to their vtables.
 pub type SOffsetT = i32;
 
-/// UOffsetT is a u32 that is used by pervasively to represent both pointers
-/// and lengths of vectors.
+/// UOffsetT is used represent both for relative pointers and lengths of vectors.
 pub type UOffsetT = u32;
 
-/// VOffsetT is a i32 that is used by vtables to store field data.
-pub type VOffsetT = i16;
+/// VOffsetT is a relative pointer in vtables to point from tables to field data.
+pub type VOffsetT = u16;
 
 /// TableFinishedWIPOffset marks a WIPOffset as being for a finished table.
 #[derive(Clone, Copy)]
