@@ -152,6 +152,7 @@ fn main() {
   //assert_eq!(monster.path().unwrap()[1].x(), 4.0);
 
   println!("The FlatBuffer was successfully created and accessed!");
+  dbg!(monster);
 }
 
 #[cfg(test)]
