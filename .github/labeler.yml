@@ -7,9 +7,9 @@
 
 c#:
   - any: [
-    '*.cs', 
+    '**/*.cs', 
     'net/**/*', 
     'tests/FlatBuffers.Test/**/*',
     'tests/FlatBuffers.Benchmarks/**/*',
-    'src/idl_gen_csharp.cpp',
+    'src/idl_gen_csharp.cpp'
     ]
