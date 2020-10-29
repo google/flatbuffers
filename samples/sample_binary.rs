@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Google Inc. All rights reserved.
+* Copyright 2018 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -154,6 +154,7 @@ fn main() {
   println!("The FlatBuffer was successfully created and accessed!");
   dbg!(buf.len());
   dbg!(flatbuffers::verifier::get_root::<Monster>(buf));
+  dbg!(monster);
 }
 
 #[cfg(test)]

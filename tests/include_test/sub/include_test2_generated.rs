@@ -105,10 +105,18 @@ impl<'a> flatbuffers::verifier::Verifiable for FromInclude {
 }
 // struct Unused, aligned to 4
 #[repr(C, align(4))]
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct Unused {
   a_: i32,
 } // pub struct Unused
+impl std::fmt::Debug for Unused {
+  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    f.debug_struct("Unused")
+      .field("a", &self.a())
+      .finish()
+  }
+}
+
 impl flatbuffers::SafeSliceAccess for Unused {}
 impl<'a> flatbuffers::Follow<'a> for Unused {
   type Inner = &'a Unused;
@@ -167,7 +175,7 @@ impl Unused {
 }
 
 pub enum TableBOffset {}
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq)]
 
 pub struct TableB<'a> {
   pub _tab: flatbuffers::Table<'a>,
@@ -250,6 +258,13 @@ impl<'a: 'b, 'b> TableBBuilder<'a, 'b> {
   }
 }
 
+impl std::fmt::Debug for TableB<'_> {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    let mut ds = f.debug_struct("TableB");
+      ds.field("a", &self.a());
+      ds.finish()
+  }
+}
 }  // pub mod OtherNameSpace
 }  // pub mod MyGame
 

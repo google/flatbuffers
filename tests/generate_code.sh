@@ -88,7 +88,7 @@ TEST_CPP17_FLAGS="--cpp --cpp-std c++17 -o ./cpp17/generated_cpp17 $TEST_NOINCL_
 ../flatc $TEST_CPP17_FLAGS optional_scalars.fbs
 
 cd ../samples
-../flatc --cpp --lobster $TEST_BASE_FLAGS $TEST_CPP_FLAGS monster.fbs
+../flatc --cpp --rust --lobster $TEST_BASE_FLAGS $TEST_CPP_FLAGS monster.fbs
 ../flatc -b --schema --bfbs-comments --bfbs-builtins monster.fbs
 cd ../reflection
 ./generate_code.sh --cpp-std c++0x

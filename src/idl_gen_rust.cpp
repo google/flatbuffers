@@ -1276,7 +1276,7 @@ class RustGenerator : public BaseGenerator {
     // Generate an offset type, the base type, the Follow impl, and the
     // init_from_table impl.
     code_ += "pub enum {{OFFSET_TYPELABEL}} {}";
-    code_ += "#[derive(Copy, Clone, Debug, PartialEq)]";
+    code_ += "#[derive(Copy, Clone, PartialEq)]";
     code_ += "";
 
     GenComment(struct_def.doc_comment);
@@ -1565,6 +1565,45 @@ class RustGenerator : public BaseGenerator {
     code_ += "  }";
     code_ += "}";
     code_ += "";
+
+    code_ += "impl std::fmt::Debug for {{STRUCT_NAME}}<'_> {";
+    code_ += "  fn fmt(&self, f: &mut std::fmt::Formatter<'_>"
+             ") -> std::fmt::Result {";
+    code_ += "    let mut ds = f.debug_struct(\"{{STRUCT_NAME}}\");";
+    ForAllTableFields(struct_def, [&](const FieldDef &field) {
+      if (GetFullType(field.value.type) == ftUnionValue) {
+        // Generate a match statement to handle unions properly.
+        code_.SetValue("KEY_TYPE", GenTableAccessorFuncReturnType(field, ""));
+        code_.SetValue("FIELD_TYPE_FIELD_NAME", field.name);
+        code_.SetValue("UNION_ERR", "&\"InvalidFlatbuffer: Union discriminant"
+                                    " does not match value.\"");
+
+        code_ += "      match self.{{FIELD_NAME}}_type() {";
+        ForAllUnionVariantsBesidesNone(*field.value.type.enum_def,
+                                       [&](const EnumVal &unused){
+          (void) unused;
+          code_ += "        {{U_ELEMENT_ENUM_TYPE}} => {";
+          code_ += "          if let Some(x) = self.{{FIELD_TYPE_FIELD_NAME}}_as_"
+                   "{{U_ELEMENT_NAME}}() {";
+          code_ += "            ds.field(\"{{FIELD_NAME}}\", &x)";
+          code_ += "          } else {";
+          code_ += "            ds.field(\"{{FIELD_NAME}}\", {{UNION_ERR}})";
+          code_ += "          }";
+          code_ += "        },";
+        });
+        code_ += "        _ => { ";
+        code_ += "          let x: Option<()> = None;";
+        code_ += "          ds.field(\"{{FIELD_NAME}}\", &x)";
+        code_ += "        },";
+        code_ += "      };";
+      } else {
+        // Most fields.
+        code_ += "      ds.field(\"{{FIELD_NAME}}\", &self.{{FIELD_NAME}}());";
+      }
+    });
+    code_ += "      ds.finish()";
+    code_ += "  }";
+    code_ += "}";
   }
 
   // Generate functions to compare tables and structs by key. This function
@@ -1729,7 +1768,7 @@ class RustGenerator : public BaseGenerator {
     // PartialEq is useful to derive because we can correctly compare structs
     // for equality by just comparing their underlying byte data. This doesn't
     // hold for PartialOrd/Ord.
-    code_ += "#[derive(Clone, Copy, Debug, PartialEq)]";
+    code_ += "#[derive(Clone, Copy, PartialEq)]";
     code_ += "pub struct {{STRUCT_NAME}} {";
 
     int padding_id = 0;
@@ -1741,8 +1780,22 @@ class RustGenerator : public BaseGenerator {
         code_ += padding;
       }
     });
-
     code_ += "} // pub struct {{STRUCT_NAME}}";
+
+    // Debug for structs.
+    code_ += "impl std::fmt::Debug for {{STRUCT_NAME}} {";
+    code_ += "  fn fmt(&self, f: &mut std::fmt::Formatter"
+             ") -> std::fmt::Result {";
+    code_ += "    f.debug_struct(\"{{STRUCT_NAME}}\")";
+    ForAllStructFields(struct_def, [&](const FieldDef &unused) {
+      (void) unused;
+      code_ += "      .field(\"{{FIELD_NAME}}\", &self.{{FIELD_NAME}}())";
+    });
+    code_ += "      .finish()";
+    code_ += "  }";
+    code_ += "}";
+    code_ += "";
+
 
     // Generate impls for SafeSliceAccess (because all structs are endian-safe),
     // Follow for the value type, Follow for the reference type, Push for the
