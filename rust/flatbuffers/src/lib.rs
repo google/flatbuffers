@@ -35,10 +35,10 @@ mod primitives;
 mod push;
 mod table;
 mod vector;
+pub mod verifier;
 mod vtable;
 mod vtable_writer;
 
-pub use bitflags;
 pub use crate::builder::FlatBufferBuilder;
 pub use crate::endian_scalar::{
     byte_swap_f32, byte_swap_f64, emplace_scalar, read_scalar, read_scalar_at, EndianScalar,
@@ -49,7 +49,10 @@ pub use crate::push::Push;
 pub use crate::table::{buffer_has_identifier, get_root, get_size_prefixed_root, Table};
 pub use crate::vector::{follow_cast_ref, SafeSliceAccess, Vector, VectorIter};
 pub use crate::vtable::field_index_to_field_offset;
-
+pub use bitflags;
+// pub use verifier::{
+//     ErrorTraceDetail, InvalidFlatbuffer, TableVerifier, Verifiable, Verifier, VerifierOptions,
+// };
 // TODO(rw): Unify `create_vector` and `create_vector_direct` by using
 //           `Into<Vector<...>>`.
 // TODO(rw): Split fill ops in builder into fill_small, fill_big like in C++.

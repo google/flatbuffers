@@ -95,6 +95,14 @@ impl flatbuffers::EndianScalar for FromInclude {
   }
 }
 
+impl<'a> flatbuffers::verifier::Verifiable for FromInclude {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
+  ) -> flatbuffers::verifier::Result<()> {
+    i64::run_verifier(v, pos)
+  }
+}
 // struct Unused, aligned to 4
 #[repr(C, align(4))]
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -138,7 +146,14 @@ impl<'b> flatbuffers::Push for &'b Unused {
     }
 }
 
-
+impl<'a> flatbuffers::verifier::Verifiable for Unused {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
+  ) -> flatbuffers::verifier::Result<()> {
+    v.in_buffer::<Self>(pos)
+  }
+}
 impl Unused {
   pub fn new(_a: i32) -> Self {
     Unused {
@@ -190,6 +205,16 @@ impl<'a> TableB<'a> {
   }
 }
 
+impl flatbuffers::verifier::Verifiable for TableB<'_> {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
+  ) -> flatbuffers::verifier::Result<()> {
+    v.visit_table(pos)?
+     .visit_field::<flatbuffers::ForwardsUOffset<super::super::TableA>>(&"a", Self::VT_A, false)?;
+    Ok(())
+  }
+}
 pub struct TableBArgs<'a> {
     pub a: Option<flatbuffers::WIPOffset<super::super::TableA<'a>>>,
 }

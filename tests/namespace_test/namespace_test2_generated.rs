@@ -75,6 +75,18 @@ impl<'a> TableInFirstNS<'a> {
   }
 }
 
+impl flatbuffers::verifier::Verifiable for TableInFirstNS<'_> {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
+  ) -> flatbuffers::verifier::Result<()> {
+    v.visit_table(pos)?
+     .visit_field::<flatbuffers::ForwardsUOffset<namespace_b::TableInNestedNS>>(&"foo_table", Self::VT_FOO_TABLE, false)?
+     .visit_field::<namespace_b::EnumInNestedNS>(&"foo_enum", Self::VT_FOO_ENUM, false)?
+     .visit_field::<namespace_b::StructInNestedNS>(&"foo_struct", Self::VT_FOO_STRUCT, false)?;
+    Ok(())
+  }
+}
 pub struct TableInFirstNSArgs<'a> {
     pub foo_table: Option<flatbuffers::WIPOffset<namespace_b::TableInNestedNS<'a>>>,
     pub foo_enum: namespace_b::EnumInNestedNS,
@@ -165,6 +177,16 @@ impl<'a> SecondTableInA<'a> {
   }
 }
 
+impl flatbuffers::verifier::Verifiable for SecondTableInA<'_> {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
+  ) -> flatbuffers::verifier::Result<()> {
+    v.visit_table(pos)?
+     .visit_field::<flatbuffers::ForwardsUOffset<super::namespace_c::TableInC>>(&"refer_to_c", Self::VT_REFER_TO_C, false)?;
+    Ok(())
+  }
+}
 pub struct SecondTableInAArgs<'a> {
     pub refer_to_c: Option<flatbuffers::WIPOffset<super::namespace_c::TableInC<'a>>>,
 }
@@ -261,6 +283,17 @@ impl<'a> TableInC<'a> {
   }
 }
 
+impl flatbuffers::verifier::Verifiable for TableInC<'_> {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
+  ) -> flatbuffers::verifier::Result<()> {
+    v.visit_table(pos)?
+     .visit_field::<flatbuffers::ForwardsUOffset<super::namespace_a::TableInFirstNS>>(&"refer_to_a1", Self::VT_REFER_TO_A1, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<super::namespace_a::SecondTableInA>>(&"refer_to_a2", Self::VT_REFER_TO_A2, false)?;
+    Ok(())
+  }
+}
 pub struct TableInCArgs<'a> {
     pub refer_to_a1: Option<flatbuffers::WIPOffset<super::namespace_a::TableInFirstNS<'a>>>,
     pub refer_to_a2: Option<flatbuffers::WIPOffset<super::namespace_a::SecondTableInA<'a>>>,

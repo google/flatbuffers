@@ -92,6 +92,14 @@ impl flatbuffers::EndianScalar for OptionalByte {
   }
 }
 
+impl<'a> flatbuffers::verifier::Verifiable for OptionalByte {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
+  ) -> flatbuffers::verifier::Result<()> {
+    i8::run_verifier(v, pos)
+  }
+}
 pub enum ScalarStuffOffset {}
 #[derive(Copy, Clone, Debug, PartialEq)]
 
@@ -341,6 +349,51 @@ impl<'a> ScalarStuff<'a> {
   }
 }
 
+impl flatbuffers::verifier::Verifiable for ScalarStuff<'_> {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
+  ) -> flatbuffers::verifier::Result<()> {
+    v.visit_table(pos)?
+     .visit_field::<i8>(&"just_i8", Self::VT_JUST_I8, false)?
+     .visit_field::<i8>(&"maybe_i8", Self::VT_MAYBE_I8, false)?
+     .visit_field::<i8>(&"default_i8", Self::VT_DEFAULT_I8, false)?
+     .visit_field::<u8>(&"just_u8", Self::VT_JUST_U8, false)?
+     .visit_field::<u8>(&"maybe_u8", Self::VT_MAYBE_U8, false)?
+     .visit_field::<u8>(&"default_u8", Self::VT_DEFAULT_U8, false)?
+     .visit_field::<i16>(&"just_i16", Self::VT_JUST_I16, false)?
+     .visit_field::<i16>(&"maybe_i16", Self::VT_MAYBE_I16, false)?
+     .visit_field::<i16>(&"default_i16", Self::VT_DEFAULT_I16, false)?
+     .visit_field::<u16>(&"just_u16", Self::VT_JUST_U16, false)?
+     .visit_field::<u16>(&"maybe_u16", Self::VT_MAYBE_U16, false)?
+     .visit_field::<u16>(&"default_u16", Self::VT_DEFAULT_U16, false)?
+     .visit_field::<i32>(&"just_i32", Self::VT_JUST_I32, false)?
+     .visit_field::<i32>(&"maybe_i32", Self::VT_MAYBE_I32, false)?
+     .visit_field::<i32>(&"default_i32", Self::VT_DEFAULT_I32, false)?
+     .visit_field::<u32>(&"just_u32", Self::VT_JUST_U32, false)?
+     .visit_field::<u32>(&"maybe_u32", Self::VT_MAYBE_U32, false)?
+     .visit_field::<u32>(&"default_u32", Self::VT_DEFAULT_U32, false)?
+     .visit_field::<i64>(&"just_i64", Self::VT_JUST_I64, false)?
+     .visit_field::<i64>(&"maybe_i64", Self::VT_MAYBE_I64, false)?
+     .visit_field::<i64>(&"default_i64", Self::VT_DEFAULT_I64, false)?
+     .visit_field::<u64>(&"just_u64", Self::VT_JUST_U64, false)?
+     .visit_field::<u64>(&"maybe_u64", Self::VT_MAYBE_U64, false)?
+     .visit_field::<u64>(&"default_u64", Self::VT_DEFAULT_U64, false)?
+     .visit_field::<f32>(&"just_f32", Self::VT_JUST_F32, false)?
+     .visit_field::<f32>(&"maybe_f32", Self::VT_MAYBE_F32, false)?
+     .visit_field::<f32>(&"default_f32", Self::VT_DEFAULT_F32, false)?
+     .visit_field::<f64>(&"just_f64", Self::VT_JUST_F64, false)?
+     .visit_field::<f64>(&"maybe_f64", Self::VT_MAYBE_F64, false)?
+     .visit_field::<f64>(&"default_f64", Self::VT_DEFAULT_F64, false)?
+     .visit_field::<bool>(&"just_bool", Self::VT_JUST_BOOL, false)?
+     .visit_field::<bool>(&"maybe_bool", Self::VT_MAYBE_BOOL, false)?
+     .visit_field::<bool>(&"default_bool", Self::VT_DEFAULT_BOOL, false)?
+     .visit_field::<OptionalByte>(&"just_enum", Self::VT_JUST_ENUM, false)?
+     .visit_field::<OptionalByte>(&"maybe_enum", Self::VT_MAYBE_ENUM, false)?
+     .visit_field::<OptionalByte>(&"default_enum", Self::VT_DEFAULT_ENUM, false)?;
+    Ok(())
+  }
+}
 pub struct ScalarStuffArgs {
     pub just_i8: i8,
     pub maybe_i8: Option<i8>,

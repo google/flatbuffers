@@ -49,6 +49,16 @@ impl<'a> TableA<'a> {
   }
 }
 
+impl flatbuffers::verifier::Verifiable for TableA<'_> {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
+  ) -> flatbuffers::verifier::Result<()> {
+    v.visit_table(pos)?
+     .visit_field::<flatbuffers::ForwardsUOffset<my_game::other_name_space::TableB>>(&"b", Self::VT_B, false)?;
+    Ok(())
+  }
+}
 pub struct TableAArgs<'a> {
     pub b: Option<flatbuffers::WIPOffset<my_game::other_name_space::TableB<'a>>>,
 }

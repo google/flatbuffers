@@ -100,6 +100,14 @@ impl flatbuffers::EndianScalar for Color {
   }
 }
 
+impl<'a> flatbuffers::verifier::Verifiable for Color {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
+  ) -> flatbuffers::verifier::Result<()> {
+    i8::run_verifier(v, pos)
+  }
+}
 #[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_EQUIPMENT: u8 = 0;
 #[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
@@ -170,6 +178,14 @@ impl flatbuffers::EndianScalar for Equipment {
   }
 }
 
+impl<'a> flatbuffers::verifier::Verifiable for Equipment {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
+  ) -> flatbuffers::verifier::Result<()> {
+    u8::run_verifier(v, pos)
+  }
+}
 pub struct EquipmentUnionTableOffset {}
 // struct Vec3, aligned to 4
 #[repr(C, align(4))]
@@ -216,7 +232,14 @@ impl<'b> flatbuffers::Push for &'b Vec3 {
     }
 }
 
-
+impl<'a> flatbuffers::verifier::Verifiable for Vec3 {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
+  ) -> flatbuffers::verifier::Result<()> {
+    v.in_buffer::<Self>(pos)
+  }
+}
 impl Vec3 {
   pub fn new(_x: f32, _y: f32, _z: f32) -> Self {
     Vec3 {
@@ -313,7 +336,7 @@ impl<'a> Monster<'a> {
     self._tab.get::<Color>(Monster::VT_COLOR, Some(Color::Blue)).unwrap()
   }
   #[inline]
-  pub fn weapons(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Weapon<'a>>>> {
+  pub fn weapons(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Weapon>>> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<flatbuffers::ForwardsUOffset<Weapon<'a>>>>>(Monster::VT_WEAPONS, None)
   }
   #[inline]
@@ -340,6 +363,25 @@ impl<'a> Monster<'a> {
 
 }
 
+impl flatbuffers::verifier::Verifiable for Monster<'_> {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
+  ) -> flatbuffers::verifier::Result<()> {
+    v.visit_table(pos)?
+     .visit_field::<Vec3>(&"pos", Self::VT_POS, false)?
+     .visit_field::<i16>(&"mana", Self::VT_MANA, false)?
+     .visit_field::<i16>(&"hp", Self::VT_HP, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<&str>>(&"name", Self::VT_NAME, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u8>>>(&"inventory", Self::VT_INVENTORY, false)?
+     .visit_field::<Color>(&"color", Self::VT_COLOR, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<Weapon>>>>(&"weapons", Self::VT_WEAPONS, false)?
+     .visit_field::<Equipment>(&"equipped_type", Self::VT_EQUIPPED_TYPE, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Table<'_>>>(&"equipped", Self::VT_EQUIPPED, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<Vec3>>>>(&"path", Self::VT_PATH, false)?;
+    Ok(())
+  }
+}
 pub struct MonsterArgs<'a> {
     pub pos: Option<&'a Vec3>,
     pub mana: i16,
@@ -474,6 +516,17 @@ impl<'a> Weapon<'a> {
   }
 }
 
+impl flatbuffers::verifier::Verifiable for Weapon<'_> {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
+  ) -> flatbuffers::verifier::Result<()> {
+    v.visit_table(pos)?
+     .visit_field::<flatbuffers::ForwardsUOffset<&str>>(&"name", Self::VT_NAME, false)?
+     .visit_field::<i16>(&"damage", Self::VT_DAMAGE, false)?;
+    Ok(())
+  }
+}
 pub struct WeaponArgs<'a> {
     pub name: Option<flatbuffers::WIPOffset<&'a str>>,
     pub damage: i16,

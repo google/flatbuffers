@@ -587,6 +587,16 @@ class RustGenerator : public BaseGenerator {
       code_ += "  }";
       code_ += "}";
       code_ += "";
+      // Generate verifier.
+      // CASPER: verifier is the same for both.
+      code_ += "impl<'a> flatbuffers::verifier::Verifiable for {{ENUM_NAME}} {";
+      code_ += "  #[inline]";
+      code_ += "  fn run_verifier<'o, 'b>(";
+      code_ += "    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize";
+      code_ += "  ) -> flatbuffers::verifier::Result<()> {";
+      code_ += "    {{BASE_TYPE}}::run_verifier(v, pos)";
+      code_ += "  }";
+      code_ += "}";
       return;
     }
 
@@ -683,6 +693,16 @@ class RustGenerator : public BaseGenerator {
     code_ += "  }";
     code_ += "}";
     code_ += "";
+
+    // Generate verifier - deferring to the base type.
+    code_ += "impl<'a> flatbuffers::verifier::Verifiable for {{ENUM_NAME}} {";
+    code_ += "  #[inline]";
+    code_ += "  fn run_verifier<'o, 'b>(";
+    code_ += "    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize";
+    code_ += "  ) -> flatbuffers::verifier::Result<()> {";
+    code_ += "    {{BASE_TYPE}}::run_verifier(v, pos)";
+    code_ += "  }";
+    code_ += "}";
 
     if (enum_def.is_union) {
       // Generate tyoesafe offset(s) for unions
@@ -1001,6 +1021,74 @@ class RustGenerator : public BaseGenerator {
       }
     }
     return "INVALID_CODE_GENERATION";  // for return analysis
+  }
+
+  std::string TableAccessorTypeName(const Type &type,
+                                    const std::string &lifetime) {
+    // CASPER: SHOULD I SPECIFY A LIFETIME AND SHARE THIS WITH OTHER STUFF?
+    // RENAME LIFETIMES TO 'BUF
+    const auto WrapForwardsUOffset = [](std::string ty) -> std::string {
+      return "flatbuffers::ForwardsUOffset<" + ty + ">";
+    };
+    const auto WrapVector = [&](std::string ty) -> std::string {
+      return "flatbuffers::Vector<" + lifetime + ", " + ty + ">";
+    };
+
+    // GET NAMESPACEd type
+    // if indirect, wrap in forwardsoffset
+    // if vector wrap in more
+
+    switch (GetFullType(type)) {
+      case ftInteger:
+      case ftFloat:
+      case ftBool: {
+        return GetTypeBasic(type);
+      }
+      case ftStruct: {
+        return WrapInNameSpace(*type.struct_def);
+      }
+      case ftUnionKey:
+      case ftEnumKey: {
+        return  WrapInNameSpace(*type.enum_def);
+      }
+      case ftTable: {
+        const auto typname = WrapInNameSpace(*type.struct_def);
+        return WrapForwardsUOffset(typname);
+      }
+      case ftUnionValue: {
+        return WrapForwardsUOffset("flatbuffers::Table<" + lifetime + ">");
+      }
+      case ftString: {
+        return WrapForwardsUOffset("&str");
+      }
+      case ftVectorOfInteger:
+      case ftVectorOfBool:
+      case ftVectorOfFloat: {
+        const auto typname = GetTypeBasic(type.VectorType());
+        return WrapForwardsUOffset(WrapVector(typname));
+      }
+
+      case ftVectorOfEnumKey: {
+        const auto typname = WrapInNameSpace(*type.VectorType().enum_def);
+        return WrapForwardsUOffset(WrapVector(typname));
+
+      }
+      case ftVectorOfStruct: {
+
+      }
+      case ftVectorOfTable: {
+        const auto typname = WrapInNameSpace(*type.struct_def);
+        return WrapForwardsUOffset(WrapVector(WrapForwardsUOffset(typname)));
+      }
+      case ftVectorOfString: {
+        return WrapForwardsUOffset(WrapVector(WrapForwardsUOffset(
+          "&" + lifetime + " str")));
+      }
+      case ftVectorOfUnionValue: {
+        FLATBUFFERS_ASSERT(false && "vectors of unions are not yet supported");
+        return "INVALID_CODE_GENERATION";  // for return analysis
+      }
+    }
   }
 
   std::string GenTableAccessorFuncBody(const FieldDef &field,
@@ -1361,6 +1449,29 @@ class RustGenerator : public BaseGenerator {
     code_ += "}";  // End of table impl.
     code_ += "";
 
+    // Generate Verifier;
+    code_ += "impl flatbuffers::verifier::Verifiable for {{STRUCT_NAME}}<'_> {";
+    code_ += "  #[inline]";
+    code_ += "  fn run_verifier<'o, 'b>(";
+    code_ += "    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize";
+    code_ += "  ) -> flatbuffers::verifier::Result<()> {";
+    code_ += "    v.visit_table(pos)?\\";
+    // Escape newline and insert it onthe next line so we can end the builder
+    // with a nice semicolon.
+    ForAllTableFields(struct_def, [&](const FieldDef &field) {
+      code_.SetValue("IS_REQ", field.required ? "true" : "false");
+      // CASPER: Options? Unions?
+      // Vectors require another fowrwardoffsetter
+      // Need to refactor FUNC_BODY and stuff
+      code_.SetValue("TY", TableAccessorTypeName(field.value.type, "'_"));
+      code_ += "\n     .visit_field::<{{TY}}>(&\"{{FIELD_NAME}}\", "
+               "Self::{{OFFSET_NAME}}, {{IS_REQ}})?\\";
+    });
+    code_ += ";";
+    code_ += "    Ok(())";
+    code_ += "  }";
+    code_ += "}";
+
     // Generate an args struct:
     code_.SetValue("MAYBE_LT",
                    TableBuilderArgsNeedsLifetime(struct_def) ? "<'a>" : "");
@@ -1677,7 +1788,17 @@ class RustGenerator : public BaseGenerator {
     code_ += "    }";
     code_ += "}";
     code_ += "";
-    code_ += "";
+
+    // Generate verifier: Structs are simple so presence and alignment are
+    // all that need to be checked.
+    code_ += "impl<'a> flatbuffers::verifier::Verifiable for {{STRUCT_NAME}} {";
+    code_ += "  #[inline]";
+    code_ += "  fn run_verifier<'o, 'b>(";
+    code_ += "    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize";
+    code_ += "  ) -> flatbuffers::verifier::Result<()> {";
+    code_ += "    v.in_buffer::<Self>(pos)";
+    code_ += "  }";
+    code_ += "}";
 
     // Generate a constructor that takes all fields as arguments.
     code_ += "impl {{STRUCT_NAME}} {";

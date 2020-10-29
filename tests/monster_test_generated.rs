@@ -58,6 +58,15 @@ impl<'a> InParentNamespace<'a> {
 
 }
 
+impl flatbuffers::verifier::Verifiable for InParentNamespace<'_> {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
+  ) -> flatbuffers::verifier::Result<()> {
+    v.visit_table(pos)?;
+    Ok(())
+  }
+}
 pub struct InParentNamespaceArgs {
 }
 impl<'a> Default for InParentNamespaceArgs {
@@ -134,6 +143,15 @@ impl<'a> Monster<'a> {
 
 }
 
+impl flatbuffers::verifier::Verifiable for Monster<'_> {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
+  ) -> flatbuffers::verifier::Result<()> {
+    v.visit_table(pos)?;
+    Ok(())
+  }
+}
 pub struct MonsterArgs {
 }
 impl<'a> Default for MonsterArgs {
@@ -222,6 +240,14 @@ impl flatbuffers::EndianScalar for Color {
   }
 }
 
+impl<'a> flatbuffers::verifier::Verifiable for Color {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
+  ) -> flatbuffers::verifier::Result<()> {
+    u8::run_verifier(v, pos)
+  }
+}
 #[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_RACE: i8 = -1;
 #[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
@@ -300,6 +326,14 @@ impl flatbuffers::EndianScalar for Race {
   }
 }
 
+impl<'a> flatbuffers::verifier::Verifiable for Race {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
+  ) -> flatbuffers::verifier::Result<()> {
+    i8::run_verifier(v, pos)
+  }
+}
 #[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_ANY: u8 = 0;
 #[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
@@ -378,6 +412,14 @@ impl flatbuffers::EndianScalar for Any {
   }
 }
 
+impl<'a> flatbuffers::verifier::Verifiable for Any {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
+  ) -> flatbuffers::verifier::Result<()> {
+    u8::run_verifier(v, pos)
+  }
+}
 pub struct AnyUnionTableOffset {}
 #[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_ANY_UNIQUE_ALIASES: u8 = 0;
@@ -457,6 +499,14 @@ impl flatbuffers::EndianScalar for AnyUniqueAliases {
   }
 }
 
+impl<'a> flatbuffers::verifier::Verifiable for AnyUniqueAliases {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
+  ) -> flatbuffers::verifier::Result<()> {
+    u8::run_verifier(v, pos)
+  }
+}
 pub struct AnyUniqueAliasesUnionTableOffset {}
 #[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_ANY_AMBIGUOUS_ALIASES: u8 = 0;
@@ -536,6 +586,14 @@ impl flatbuffers::EndianScalar for AnyAmbiguousAliases {
   }
 }
 
+impl<'a> flatbuffers::verifier::Verifiable for AnyAmbiguousAliases {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
+  ) -> flatbuffers::verifier::Result<()> {
+    u8::run_verifier(v, pos)
+  }
+}
 pub struct AnyAmbiguousAliasesUnionTableOffset {}
 // struct Test, aligned to 2
 #[repr(C, align(2))]
@@ -582,7 +640,14 @@ impl<'b> flatbuffers::Push for &'b Test {
     }
 }
 
-
+impl<'a> flatbuffers::verifier::Verifiable for Test {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
+  ) -> flatbuffers::verifier::Result<()> {
+    v.in_buffer::<Self>(pos)
+  }
+}
 impl Test {
   pub fn new(_a: i16, _b: i8) -> Self {
     Test {
@@ -655,7 +720,14 @@ impl<'b> flatbuffers::Push for &'b Vec3 {
     }
 }
 
-
+impl<'a> flatbuffers::verifier::Verifiable for Vec3 {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
+  ) -> flatbuffers::verifier::Result<()> {
+    v.in_buffer::<Self>(pos)
+  }
+}
 impl Vec3 {
   pub fn new(_x: f32, _y: f32, _z: f32, _test1: f64, _test2: Color, _test3: &Test) -> Self {
     Vec3 {
@@ -739,7 +811,14 @@ impl<'b> flatbuffers::Push for &'b Ability {
     }
 }
 
-
+impl<'a> flatbuffers::verifier::Verifiable for Ability {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
+  ) -> flatbuffers::verifier::Result<()> {
+    v.in_buffer::<Self>(pos)
+  }
+}
 impl Ability {
   pub fn new(_id: u32, _distance: u32) -> Self {
     Ability {
@@ -813,6 +892,16 @@ impl<'a> TestSimpleTableWithEnum<'a> {
   }
 }
 
+impl flatbuffers::verifier::Verifiable for TestSimpleTableWithEnum<'_> {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
+  ) -> flatbuffers::verifier::Result<()> {
+    v.visit_table(pos)?
+     .visit_field::<Color>(&"color", Self::VT_COLOR, false)?;
+    Ok(())
+  }
+}
 pub struct TestSimpleTableWithEnumArgs {
     pub color: Color,
 }
@@ -903,6 +992,18 @@ impl<'a> Stat<'a> {
   }
 }
 
+impl flatbuffers::verifier::Verifiable for Stat<'_> {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
+  ) -> flatbuffers::verifier::Result<()> {
+    v.visit_table(pos)?
+     .visit_field::<flatbuffers::ForwardsUOffset<&str>>(&"id", Self::VT_ID, false)?
+     .visit_field::<i64>(&"val", Self::VT_VAL, false)?
+     .visit_field::<u16>(&"count", Self::VT_COUNT, false)?;
+    Ok(())
+  }
+}
 pub struct StatArgs<'a> {
     pub id: Option<flatbuffers::WIPOffset<&'a str>>,
     pub val: i64,
@@ -1003,6 +1104,16 @@ impl<'a> Referrable<'a> {
   }
 }
 
+impl flatbuffers::verifier::Verifiable for Referrable<'_> {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
+  ) -> flatbuffers::verifier::Result<()> {
+    v.visit_table(pos)?
+     .visit_field::<u64>(&"id", Self::VT_ID, false)?;
+    Ok(())
+  }
+}
 pub struct ReferrableArgs {
     pub id: u64,
 }
@@ -1472,6 +1583,63 @@ impl<'a> Monster<'a> {
 
 }
 
+impl flatbuffers::verifier::Verifiable for Monster<'_> {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
+  ) -> flatbuffers::verifier::Result<()> {
+    v.visit_table(pos)?
+     .visit_field::<Vec3>(&"pos", Self::VT_POS, false)?
+     .visit_field::<i16>(&"mana", Self::VT_MANA, false)?
+     .visit_field::<i16>(&"hp", Self::VT_HP, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<&str>>(&"name", Self::VT_NAME, true)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u8>>>(&"inventory", Self::VT_INVENTORY, false)?
+     .visit_field::<Color>(&"color", Self::VT_COLOR, false)?
+     .visit_field::<Any>(&"test_type", Self::VT_TEST_TYPE, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Table<'_>>>(&"test", Self::VT_TEST, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<Test>>>>(&"test4", Self::VT_TEST4, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<&'_ str>>>>(&"testarrayofstring", Self::VT_TESTARRAYOFSTRING, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<Monster>>>>(&"testarrayoftables", Self::VT_TESTARRAYOFTABLES, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<Monster>>(&"enemy", Self::VT_ENEMY, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u8>>>(&"testnestedflatbuffer", Self::VT_TESTNESTEDFLATBUFFER, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<Stat>>(&"testempty", Self::VT_TESTEMPTY, false)?
+     .visit_field::<bool>(&"testbool", Self::VT_TESTBOOL, false)?
+     .visit_field::<i32>(&"testhashs32_fnv1", Self::VT_TESTHASHS32_FNV1, false)?
+     .visit_field::<u32>(&"testhashu32_fnv1", Self::VT_TESTHASHU32_FNV1, false)?
+     .visit_field::<i64>(&"testhashs64_fnv1", Self::VT_TESTHASHS64_FNV1, false)?
+     .visit_field::<u64>(&"testhashu64_fnv1", Self::VT_TESTHASHU64_FNV1, false)?
+     .visit_field::<i32>(&"testhashs32_fnv1a", Self::VT_TESTHASHS32_FNV1A, false)?
+     .visit_field::<u32>(&"testhashu32_fnv1a", Self::VT_TESTHASHU32_FNV1A, false)?
+     .visit_field::<i64>(&"testhashs64_fnv1a", Self::VT_TESTHASHS64_FNV1A, false)?
+     .visit_field::<u64>(&"testhashu64_fnv1a", Self::VT_TESTHASHU64_FNV1A, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, bool>>>(&"testarrayofbools", Self::VT_TESTARRAYOFBOOLS, false)?
+     .visit_field::<f32>(&"testf", Self::VT_TESTF, false)?
+     .visit_field::<f32>(&"testf2", Self::VT_TESTF2, false)?
+     .visit_field::<f32>(&"testf3", Self::VT_TESTF3, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<&'_ str>>>>(&"testarrayofstring2", Self::VT_TESTARRAYOFSTRING2, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<Ability>>>>(&"testarrayofsortedstruct", Self::VT_TESTARRAYOFSORTEDSTRUCT, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u8>>>(&"flex", Self::VT_FLEX, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<Test>>>>(&"test5", Self::VT_TEST5, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, i64>>>(&"vector_of_longs", Self::VT_VECTOR_OF_LONGS, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, f64>>>(&"vector_of_doubles", Self::VT_VECTOR_OF_DOUBLES, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<super::InParentNamespace>>(&"parent_namespace_test", Self::VT_PARENT_NAMESPACE_TEST, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<Referrable>>>>(&"vector_of_referrables", Self::VT_VECTOR_OF_REFERRABLES, false)?
+     .visit_field::<u64>(&"single_weak_reference", Self::VT_SINGLE_WEAK_REFERENCE, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u64>>>(&"vector_of_weak_references", Self::VT_VECTOR_OF_WEAK_REFERENCES, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<Referrable>>>>(&"vector_of_strong_referrables", Self::VT_VECTOR_OF_STRONG_REFERRABLES, false)?
+     .visit_field::<u64>(&"co_owning_reference", Self::VT_CO_OWNING_REFERENCE, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u64>>>(&"vector_of_co_owning_references", Self::VT_VECTOR_OF_CO_OWNING_REFERENCES, false)?
+     .visit_field::<u64>(&"non_owning_reference", Self::VT_NON_OWNING_REFERENCE, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u64>>>(&"vector_of_non_owning_references", Self::VT_VECTOR_OF_NON_OWNING_REFERENCES, false)?
+     .visit_field::<AnyUniqueAliases>(&"any_unique_type", Self::VT_ANY_UNIQUE_TYPE, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Table<'_>>>(&"any_unique", Self::VT_ANY_UNIQUE, false)?
+     .visit_field::<AnyAmbiguousAliases>(&"any_ambiguous_type", Self::VT_ANY_AMBIGUOUS_TYPE, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Table<'_>>>(&"any_ambiguous", Self::VT_ANY_AMBIGUOUS, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, Color>>>(&"vector_of_enums", Self::VT_VECTOR_OF_ENUMS, false)?
+     .visit_field::<Race>(&"signed_enum", Self::VT_SIGNED_ENUM, false)?;
+    Ok(())
+  }
+}
 pub struct MonsterArgs<'a> {
     pub pos: Option<&'a Vec3>,
     pub mana: i16,
@@ -1899,6 +2067,27 @@ impl<'a> TypeAliases<'a> {
   }
 }
 
+impl flatbuffers::verifier::Verifiable for TypeAliases<'_> {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
+  ) -> flatbuffers::verifier::Result<()> {
+    v.visit_table(pos)?
+     .visit_field::<i8>(&"i8_", Self::VT_I8_, false)?
+     .visit_field::<u8>(&"u8_", Self::VT_U8_, false)?
+     .visit_field::<i16>(&"i16_", Self::VT_I16_, false)?
+     .visit_field::<u16>(&"u16_", Self::VT_U16_, false)?
+     .visit_field::<i32>(&"i32_", Self::VT_I32_, false)?
+     .visit_field::<u32>(&"u32_", Self::VT_U32_, false)?
+     .visit_field::<i64>(&"i64_", Self::VT_I64_, false)?
+     .visit_field::<u64>(&"u64_", Self::VT_U64_, false)?
+     .visit_field::<f32>(&"f32_", Self::VT_F32_, false)?
+     .visit_field::<f64>(&"f64_", Self::VT_F64_, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, i8>>>(&"v8", Self::VT_V8, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, f64>>>(&"vf64", Self::VT_VF64, false)?;
+    Ok(())
+  }
+}
 pub struct TypeAliasesArgs<'a> {
     pub i8_: i8,
     pub u8_: u8,

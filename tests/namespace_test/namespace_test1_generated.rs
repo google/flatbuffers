@@ -100,6 +100,14 @@ impl flatbuffers::EndianScalar for EnumInNestedNS {
   }
 }
 
+impl<'a> flatbuffers::verifier::Verifiable for EnumInNestedNS {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
+  ) -> flatbuffers::verifier::Result<()> {
+    i8::run_verifier(v, pos)
+  }
+}
 // struct StructInNestedNS, aligned to 4
 #[repr(C, align(4))]
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -144,7 +152,14 @@ impl<'b> flatbuffers::Push for &'b StructInNestedNS {
     }
 }
 
-
+impl<'a> flatbuffers::verifier::Verifiable for StructInNestedNS {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
+  ) -> flatbuffers::verifier::Result<()> {
+    v.in_buffer::<Self>(pos)
+  }
+}
 impl StructInNestedNS {
   pub fn new(_a: i32, _b: i32) -> Self {
     StructInNestedNS {
@@ -208,6 +223,16 @@ impl<'a> TableInNestedNS<'a> {
   }
 }
 
+impl flatbuffers::verifier::Verifiable for TableInNestedNS<'_> {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
+  ) -> flatbuffers::verifier::Result<()> {
+    v.visit_table(pos)?
+     .visit_field::<i32>(&"foo", Self::VT_FOO, false)?;
+    Ok(())
+  }
+}
 pub struct TableInNestedNSArgs {
     pub foo: i32,
 }
