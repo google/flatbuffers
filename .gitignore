@@ -135,3 +135,6 @@ js/**/*.d.ts
 mjs/**/*.js
 mjs/**/*.d.ts
 yarn-error.log
+.cache/
+/flatbuffers.lib
+.cmake/

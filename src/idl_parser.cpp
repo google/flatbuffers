@@ -2282,7 +2282,8 @@ CheckedError Parser::CheckClash(std::vector<FieldDef *> &fields,
 bool Parser::SupportsOptionalScalars(const flatbuffers::IDLOptions &opts) {
   static FLATBUFFERS_CONSTEXPR unsigned long supported_langs =
       IDLOptions::kRust | IDLOptions::kSwift | IDLOptions::kLobster |
-      IDLOptions::kKotlin | IDLOptions::kCpp;
+      IDLOptions::kKotlin | IDLOptions::kCpp | IDLOptions::kJava |
+      IDLOptions::kTs | IDLOptions::kJs;
   unsigned long langs = opts.lang_to_generate;
   return (langs > 0 && langs < IDLOptions::kMAX) && !(langs & ~supported_langs);
 }
