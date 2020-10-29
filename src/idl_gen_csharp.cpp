@@ -214,6 +214,9 @@ class CSharpGenerator : public BaseGenerator {
 
   std::string GenDefaultValue(const FieldDef &field,
                               bool enableLangOverrides) const {
+    // If it is an optional scalar field, the default is null
+    if (field.IsScalarOptional()) { return "null"; }
+
     auto &value = field.value;
     if (enableLangOverrides) {
       // handles both enum case and vector of enum case
@@ -222,9 +225,6 @@ class CSharpGenerator : public BaseGenerator {
         return GenEnumDefaultValue(field);
       }
     }
-
-    // If it is an optional scalar field, the default is null
-    if (field.IsScalarOptional()) { return "null"; }
 
     auto longSuffix = "";
     switch (value.type.base_type) {
