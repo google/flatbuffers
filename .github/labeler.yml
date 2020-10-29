@@ -6,10 +6,8 @@
 # See .github/workflows/label.yml for Github Action workflow script
 
 c#:
-  - any: [
-    '**/*.cs', 
-    'net/**/*', 
-    'tests/FlatBuffers.Test/**/*',
-    'tests/FlatBuffers.Benchmarks/**/*',
-    'src/idl_gen_csharp.cpp'
-    ]
+  - **/*.cs 
+  - net/**/*
+  - tests/FlatBuffers.Test/**/*
+  - tests/FlatBuffers.Benchmarks/**/*
+  - src/idl_gen_csharp.cpp
