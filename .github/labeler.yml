@@ -33,3 +33,11 @@ golang:
 python:
   - ./**/*.py
   - src/idl_gen_python.cpp
+
+java:
+  - ./**/*.java
+  - src/idl_gen_java.cpp
+
+kotlin:
+  - ./**/*.kt
+  - src/idl_gen_kotlin.cpp
