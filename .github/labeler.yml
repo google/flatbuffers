@@ -6,7 +6,7 @@
 # See .github/workflows/label.yml for Github Action workflow script
 
 c#:
-  - **/*.cs 
+  - ./**/*.cs 
   - net/**/*
   - tests/FlatBuffers.Test/**/*
   - tests/FlatBuffers.Benchmarks/**/*
