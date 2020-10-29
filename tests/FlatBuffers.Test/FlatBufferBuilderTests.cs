@@ -354,7 +354,7 @@ namespace FlatBuffers.Test
         [FlatBuffersTestMethod]
         public void FlatBufferBuilder_Add_null_String()
         {
-            var fbb = new FlatBufferBuilder(16);
+            var fbb = new FlatBufferBuilder(18);
             string s = null;
             Assert.AreEqual(fbb.CreateSharedString(s).Value, 0);
             Assert.AreEqual(fbb.CreateString(s).Value, 0);
