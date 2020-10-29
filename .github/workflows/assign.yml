@@ -1,4 +1,4 @@
-name: 'PR Auto Assign'
+name: 'Auto Assign'
 on: [pull_request]
 
 jobs:
