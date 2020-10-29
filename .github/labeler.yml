@@ -11,3 +11,25 @@ c#:
   - tests/FlatBuffers.Test/**/*
   - tests/FlatBuffers.Benchmarks/**/*
   - src/idl_gen_csharp.cpp
+
+swift:
+  - ./**/*.swift
+  - swift/**/*
+  - tests/FlatBuffers.GRPC.Swift/**/*
+  - tests/FlatBuffers.Benchmarks.swift/**/*
+  - tests/FlatBuffers.Test.Swift/**/*
+  - src/idl_gen_swift.cpp
+  - grpc/**/*swift*
+
+typescript:
+  - ./**/*.ts
+  - src/idl_gen_js_ts.cpp
+  - grpc/flatbuffers-js-grpc/**/*.ts
+
+golang:
+  - ./**/*.go
+  - src/idl_gen_go.cpp
+
+python:
+  - ./**/*.py
+  - src/idl_gen_python.cpp
