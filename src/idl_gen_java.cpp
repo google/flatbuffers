@@ -60,7 +60,7 @@ class JavaGenerator : public BaseGenerator {
         one_file_code += enumcode;
       } else {
         if (!SaveType(enum_def.name, *enum_def.defined_namespace, enumcode,
-                      false))
+                      /* needs_includes= */ false))
           return false;
       }
     }
@@ -76,14 +76,14 @@ class JavaGenerator : public BaseGenerator {
         one_file_code += declcode;
       } else {
         if (!SaveType(struct_def.name, *struct_def.defined_namespace, declcode,
-                      true))
+                      /* needs_includes= */ true))
           return false;
       }
     }
 
     if (parser_.opts.one_file) {
       return SaveType(file_name_, *parser_.current_namespace_, one_file_code,
-                      true);
+                      /* needs_includes= */ true);
     }
     return true;
   }
@@ -112,11 +112,9 @@ class JavaGenerator : public BaseGenerator {
       if (parser_.opts.java_checkerframework) {
         code += "\nimport org.checkerframework.dataflow.qual.Pure;\n";
       }
-      code += "\n@SuppressWarnings(\"unused\")\n";
+      code += "\n";
     }
-    if (parser_.opts.gen_generated) {
-      code += "\n@javax.annotation.Generated(value=\"flatc\")\n";
-    }
+
     code += classcode;
     if (!namespace_name.empty()) code += "";
     auto filename = NamespaceDir(ns) + defname + ".java";
@@ -226,9 +224,7 @@ class JavaGenerator : public BaseGenerator {
   // Cast statements for mutator method parameters.
   // In Java, parameters representing unsigned numbers need to be cast down to
   // their respective type. For example, a long holding an unsigned int value
-  // would be cast down to int before being put onto the buffer. In C#, one cast
-  // directly cast an Enum to its underlying type, which is essential before
-  // putting it onto the buffer.
+  // would be cast down to int before being put onto the buffer.
   std::string SourceCast(const Type &type, bool castFromDest) const {
     if (IsSeries(type)) {
       return SourceCast(type.VectorType(), castFromDest);
@@ -268,21 +264,26 @@ class JavaGenerator : public BaseGenerator {
 
   std::string GenDefaultValue(const FieldDef &field) const {
     auto &value = field.value;
+    auto constant = field.IsScalarOptional() ? "0" : value.constant;
     auto longSuffix = "L";
     switch (value.type.base_type) {
-      case BASE_TYPE_BOOL: return value.constant == "0" ? "false" : "true";
+      case BASE_TYPE_BOOL: return constant == "0" ? "false" : "true";
       case BASE_TYPE_ULONG: {
         // Converts the ulong into its bits signed equivalent
-        uint64_t defaultValue = StringToUInt(value.constant.c_str());
+        uint64_t defaultValue = StringToUInt(constant.c_str());
         return NumToString(static_cast<int64_t>(defaultValue)) + longSuffix;
       }
       case BASE_TYPE_UINT:
-      case BASE_TYPE_LONG: return value.constant + longSuffix;
+      case BASE_TYPE_LONG: return constant + longSuffix;
       default:
-        if (IsFloat(value.type.base_type))
+        if (IsFloat(value.type.base_type)) {
+          if (field.IsScalarOptional()) {
+            return value.type.base_type == BASE_TYPE_DOUBLE ? "0.0" : "0f";
+          }
           return JavaFloatGen.GenFloatConstant(field);
-        else
-          return value.constant;
+        } else {
+          return constant;
+        }
     }
   }
 
@@ -305,7 +306,6 @@ class JavaGenerator : public BaseGenerator {
 
     if (enum_def.attributes.Lookup("private")) {
       // For Java, we leave the enum unmarked to indicate package-private
-      // For C# we mark the enum as internal
     } else {
       code += "public ";
     }
@@ -324,7 +324,6 @@ class JavaGenerator : public BaseGenerator {
     }
 
     // Generate a generate string table for enum values.
-    // We do not do that for C# where this functionality is native.
     // Problem is, if values are very sparse that could generate really big
     // tables. Ideally in that case we generate a map lookup instead, but for
     // the moment we simply don't output a table at all.
@@ -354,10 +353,7 @@ class JavaGenerator : public BaseGenerator {
     }
 
     // Close the class
-    code += "}";
-    // Java does not need the closing semi-colon on class definitions.
-    code += "";
-    code += "\n\n";
+    code += "}\n\n";
   }
 
   // Returns the function name that is able to read a value of the given type.
@@ -575,14 +571,17 @@ class JavaGenerator : public BaseGenerator {
     //   int o = __offset(offset); return o != 0 ? bb.getType(o + i) : default;
     // }
     GenComment(struct_def.doc_comment, code_ptr, &comment_config);
+
+    if (parser_.opts.gen_generated) {
+      code += "@javax.annotation.Generated(value=\"flatc\")\n";
+    }
+    code += "@SuppressWarnings(\"unused\")\n";
     if (struct_def.attributes.Lookup("private")) {
       // For Java, we leave the struct unmarked to indicate package-private
-      // For C# we mark the struct as internal
     } else {
       code += "public ";
     }
-    code += "final ";
-    code += "class " + struct_def.name;
+    code += "final class " + struct_def.name;
     code += " extends ";
     code += struct_def.fixed ? "Struct" : "Table";
     code += " {\n";
@@ -678,6 +677,7 @@ class JavaGenerator : public BaseGenerator {
         code += "(new " + type_name + "(), j); }\n";
       }
 
+      if (field.IsScalarOptional()) { code += GenOptionalScalarCheck(field); }
       std::string getter = dest_cast + GenGetter(field.value.type);
       code += method_start;
       std::string default_cast = "";
@@ -1159,6 +1159,13 @@ class JavaGenerator : public BaseGenerator {
     GenVectorAccessObject(struct_def, code_ptr);
     code += "}";
     code += "\n\n";
+  }
+
+  std::string GenOptionalScalarCheck(FieldDef &field) const {
+    if (!field.IsScalarOptional()) return "";
+    return "  public boolean has" + MakeCamel(field.name, true) +
+           "() { return 0 != __offset(" + NumToString(field.value.offset) +
+           "); }\n";
   }
 
   void GenVectorAccessObject(StructDef &struct_def,
