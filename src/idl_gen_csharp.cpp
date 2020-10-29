@@ -535,7 +535,9 @@ class CSharpGenerator : public BaseGenerator {
       // generate a partial class for this C# struct/table
       code += "partial ";
     }
-    code += "struct " + struct_def.name;
+
+    code += struct_def.attributes.Lookup("csharp_class") ? "class " : "struct ";
+    code += struct_def.name;
     code += " : IFlatbufferObject";
     code += "\n{\n";
     code += "  private ";
