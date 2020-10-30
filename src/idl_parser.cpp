@@ -716,8 +716,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     // with a special suffix.
     ECHECK(AddField(struct_def, name + UnionTypeFieldSuffix(),
                     type.enum_def->underlying_type, &typefield));
-  } else if (IsVector(type) &&
-             type.element == BASE_TYPE_UNION) {
+  } else if (IsVector(type) && type.element == BASE_TYPE_UNION) {
     // Only cpp, js and ts supports the union vector feature so far.
     if (!SupportsAdvancedUnionFeatures()) {
       return Error(
@@ -792,8 +791,8 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     // Table, struct or string can't have enum_def.
     // Default value of union and vector in NONE, NULL translated to "0".
     FLATBUFFERS_ASSERT(IsInteger(type.base_type) ||
-                       (type.base_type == BASE_TYPE_UNION) ||
-                       IsVector(type) || IsArray(type));
+                       (type.base_type == BASE_TYPE_UNION) || IsVector(type) ||
+                       IsArray(type));
     if (IsVector(type)) {
       // Vector can't use initialization list.
       FLATBUFFERS_ASSERT(field->value.constant == "0");
@@ -814,8 +813,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   field->deprecated = field->attributes.Lookup("deprecated") != nullptr;
   auto hash_name = field->attributes.Lookup("hash");
   if (hash_name) {
-    switch ((IsVector(type)) ? type.element
-                                                 : type.base_type) {
+    switch ((IsVector(type)) ? type.element : type.base_type) {
       case BASE_TYPE_SHORT:
       case BASE_TYPE_USHORT: {
         if (FindHashFunction16(hash_name->constant.c_str()) == nullptr)
@@ -968,8 +966,7 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
         auto &type = elem->second->value.type;
         if (type.enum_def == val.type.enum_def) {
           if (inside_vector) {
-            if (IsVector(type) &&
-                type.element == BASE_TYPE_UTYPE) {
+            if (IsVector(type) && type.element == BASE_TYPE_UTYPE) {
               // Vector of union type field.
               uoffset_t offset;
               ECHECK(atot(elem->first.constant.c_str(), *this, &offset));
@@ -2283,7 +2280,7 @@ bool Parser::SupportsOptionalScalars(const flatbuffers::IDLOptions &opts) {
   static FLATBUFFERS_CONSTEXPR unsigned long supported_langs =
       IDLOptions::kRust | IDLOptions::kSwift | IDLOptions::kLobster |
       IDLOptions::kKotlin | IDLOptions::kCpp | IDLOptions::kJava |
-      IDLOptions::kTs | IDLOptions::kJs;
+      IDLOptions::kCSharp | IDLOptions::kTs | IDLOptions::kJs;
   unsigned long langs = opts.lang_to_generate;
   return (langs > 0 && langs < IDLOptions::kMAX) && !(langs & ~supported_langs);
 }
