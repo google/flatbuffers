@@ -450,6 +450,15 @@ namespace FlatBuffers
         public void AddBool(int o, bool x, bool d) { if (ForceDefaults || x != d) { AddBool(x); Slot(o); } }
 
         /// <summary>
+        /// Adds a Boolean to the Table at index `o` in its vtable using the nullable value `x`
+        /// </summary>
+        /// <param name="o">The index into the vtable</param>
+        /// <param name="x">The nullable boolean value to put into the buffer. If it doesn't have a value
+        /// it will skip writing to the buffer.</param>       
+        public void AddBool(int o, bool? x) { if (x.HasValue) { AddBool(x.Value); Slot(o); } }
+
+        
+        /// <summary>
         /// Adds a SByte to the Table at index `o` in its vtable using the value `x` and default `d`
         /// </summary>
         /// <param name="o">The index into the vtable</param>
@@ -457,6 +466,14 @@ namespace FlatBuffers
         /// and <see cref="ForceDefaults"/> is false, the value will be skipped.</param>
         /// <param name="d">The default value to compare the value against</param>
         public void AddSbyte(int o, sbyte x, sbyte d) { if (ForceDefaults || x != d) { AddSbyte(x); Slot(o); } }
+
+        /// <summary>
+        /// Adds a SByte to the Table at index `o` in its vtable using the nullable value `x`
+        /// </summary>
+        /// <param name="o">The index into the vtable</param>
+        /// <param name="x">The nullable sbyte value to put into the buffer. If it doesn't have a value
+        /// it will skip writing to the buffer.</param>  
+        public void AddSbyte(int o, sbyte? x) { if (x.HasValue) { AddSbyte(x.Value); Slot(o); } }
 
         /// <summary>
         /// Adds a Byte to the Table at index `o` in its vtable using the value `x` and default `d`
@@ -468,6 +485,14 @@ namespace FlatBuffers
         public void AddByte(int o, byte x, byte d) { if (ForceDefaults || x != d) { AddByte(x); Slot(o); } }
 
         /// <summary>
+        /// Adds a Byte to the Table at index `o` in its vtable using the nullable value `x`
+        /// </summary>
+        /// <param name="o">The index into the vtable</param>
+        /// <param name="x">The nullable byte value to put into the buffer. If it doesn't have a value
+        /// it will skip writing to the buffer.</param>  
+        public void AddByte(int o, byte? x) { if (x.HasValue) { AddByte(x.Value); Slot(o); } }
+
+        /// <summary>
         /// Adds a Int16 to the Table at index `o` in its vtable using the value `x` and default `d`
         /// </summary>
         /// <param name="o">The index into the vtable</param>
@@ -475,6 +500,14 @@ namespace FlatBuffers
         /// and <see cref="ForceDefaults"/> is false, the value will be skipped.</param>
         /// <param name="d">The default value to compare the value against</param>
         public void AddShort(int o, short x, int d) { if (ForceDefaults || x != d) { AddShort(x); Slot(o); } }
+
+        /// <summary>
+        /// Adds a Int16 to the Table at index `o` in its vtable using the nullable value `x`
+        /// </summary>
+        /// <param name="o">The index into the vtable</param>
+        /// <param name="x">The nullable int16 value to put into the buffer. If it doesn't have a value
+        /// it will skip writing to the buffer.</param>  
+        public void AddShort(int o, short? x) { if (x.HasValue) { AddShort(x.Value); Slot(o); } }
 
         /// <summary>
         /// Adds a UInt16 to the Table at index `o` in its vtable using the value `x` and default `d`
@@ -486,6 +519,14 @@ namespace FlatBuffers
         public void AddUshort(int o, ushort x, ushort d) { if (ForceDefaults || x != d) { AddUshort(x); Slot(o); } }
 
         /// <summary>
+        /// Adds a Uint16 to the Table at index `o` in its vtable using the nullable value `x`
+        /// </summary>
+        /// <param name="o">The index into the vtable</param>
+        /// <param name="x">The nullable uint16 value to put into the buffer. If it doesn't have a value
+        /// it will skip writing to the buffer.</param>  
+        public void AddUshort(int o, ushort? x) { if (x.HasValue) { AddUshort(x.Value); Slot(o); } }
+
+        /// <summary>
         /// Adds an Int32 to the Table at index `o` in its vtable using the value `x` and default `d`
         /// </summary>
         /// <param name="o">The index into the vtable</param>
@@ -493,6 +534,14 @@ namespace FlatBuffers
         /// and <see cref="ForceDefaults"/> is false, the value will be skipped.</param>
         /// <param name="d">The default value to compare the value against</param>
         public void AddInt(int o, int x, int d) { if (ForceDefaults || x != d) { AddInt(x); Slot(o); } }
+
+        /// <summary>
+        /// Adds a Int32 to the Table at index `o` in its vtable using the nullable value `x`
+        /// </summary>
+        /// <param name="o">The index into the vtable</param>
+        /// <param name="x">The nullable int32 value to put into the buffer. If it doesn't have a value
+        /// it will skip writing to the buffer.</param>  
+        public void AddInt(int o, int? x) { if (x.HasValue) { AddInt(x.Value); Slot(o); } }
 
         /// <summary>
         /// Adds a UInt32 to the Table at index `o` in its vtable using the value `x` and default `d`
@@ -504,6 +553,14 @@ namespace FlatBuffers
         public void AddUint(int o, uint x, uint d) { if (ForceDefaults || x != d) { AddUint(x); Slot(o); } }
 
         /// <summary>
+        /// Adds a UInt32 to the Table at index `o` in its vtable using the nullable value `x`
+        /// </summary>
+        /// <param name="o">The index into the vtable</param>
+        /// <param name="x">The nullable uint32 value to put into the buffer. If it doesn't have a value
+        /// it will skip writing to the buffer.</param>  
+        public void AddUint(int o, uint? x) { if (x.HasValue) { AddUint(x.Value); Slot(o); } }
+
+        /// <summary>
         /// Adds an Int64 to the Table at index `o` in its vtable using the value `x` and default `d`
         /// </summary>
         /// <param name="o">The index into the vtable</param>
@@ -511,6 +568,14 @@ namespace FlatBuffers
         /// and <see cref="ForceDefaults"/> is false, the value will be skipped.</param>
         /// <param name="d">The default value to compare the value against</param>
         public void AddLong(int o, long x, long d) { if (ForceDefaults || x != d) { AddLong(x); Slot(o); } }
+
+        /// <summary>
+        /// Adds a Int64 to the Table at index `o` in its vtable using the nullable value `x`
+        /// </summary>
+        /// <param name="o">The index into the vtable</param>
+        /// <param name="x">The nullable int64 value to put into the buffer. If it doesn't have a value
+        /// it will skip writing to the buffer.</param>  
+        public void AddLong(int o, long? x) { if (x.HasValue) { AddLong(x.Value); Slot(o); } }
 
         /// <summary>
         /// Adds a UInt64 to the Table at index `o` in its vtable using the value `x` and default `d`
@@ -522,6 +587,14 @@ namespace FlatBuffers
         public void AddUlong(int o, ulong x, ulong d) { if (ForceDefaults || x != d) { AddUlong(x); Slot(o); } }
 
         /// <summary>
+        /// Adds a UInt64 to the Table at index `o` in its vtable using the nullable value `x`
+        /// </summary>
+        /// <param name="o">The index into the vtable</param>
+        /// <param name="x">The nullable int64 value to put into the buffer. If it doesn't have a value
+        /// it will skip writing to the buffer.</param>  
+        public void AddUlong(int o, ulong? x) { if (x.HasValue) { AddUlong(x.Value); Slot(o); } }
+
+        /// <summary>
         /// Adds a Single to the Table at index `o` in its vtable using the value `x` and default `d`
         /// </summary>
         /// <param name="o">The index into the vtable</param>
@@ -531,6 +604,14 @@ namespace FlatBuffers
         public void AddFloat(int o, float x, double d) { if (ForceDefaults || x != d) { AddFloat(x); Slot(o); } }
 
         /// <summary>
+        /// Adds a Single to the Table at index `o` in its vtable using the nullable value `x`
+        /// </summary>
+        /// <param name="o">The index into the vtable</param>
+        /// <param name="x">The nullable single value to put into the buffer. If it doesn't have a value
+        /// it will skip writing to the buffer.</param>  
+        public void AddFloat(int o, float? x) { if (x.HasValue) { AddFloat(x.Value); Slot(o); } }
+
+        /// <summary>
         /// Adds a Double to the Table at index `o` in its vtable using the value `x` and default `d`
         /// </summary>
         /// <param name="o">The index into the vtable</param>
@@ -538,6 +619,14 @@ namespace FlatBuffers
         /// and <see cref="ForceDefaults"/> is false, the value will be skipped.</param>
         /// <param name="d">The default value to compare the value against</param>
         public void AddDouble(int o, double x, double d) { if (ForceDefaults || x != d) { AddDouble(x); Slot(o); } }
+
+        /// <summary>
+        /// Adds a Double to the Table at index `o` in its vtable using the nullable value `x`
+        /// </summary>
+        /// <param name="o">The index into the vtable</param>
+        /// <param name="x">The nullable double value to put into the buffer. If it doesn't have a value
+        /// it will skip writing to the buffer.</param>  
+        public void AddDouble(int o, double? x) { if (x.HasValue) { AddDouble(x.Value); Slot(o); } }
 
         /// <summary>
         /// Adds a buffer offset to the Table at index `o` in its vtable using the value `x` and default `d`
