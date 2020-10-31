@@ -49,13 +49,15 @@ impl<'a> TableA<'a> {
   }
 }
 
-impl flatbuffers::verifier::Verifiable for TableA<'_> {
+impl flatbuffers::Verifiable for TableA<'_> {
   #[inline]
   fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
-  ) -> flatbuffers::verifier::Result<()> {
+    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
     v.visit_table(pos)?
-     .visit_field::<flatbuffers::ForwardsUOffset<my_game::other_name_space::TableB>>(&"b", Self::VT_B, false)?;
+     .visit_field::<flatbuffers::ForwardsUOffset<my_game::other_name_space::TableB>>(&"b", Self::VT_B, false)?
+     .finish();
     Ok(())
   }
 }

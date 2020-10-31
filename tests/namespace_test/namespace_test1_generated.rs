@@ -77,7 +77,8 @@ impl<'a> flatbuffers::Follow<'a> for EnumInNestedNS {
   type Inner = Self;
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self(flatbuffers::read_scalar_at::<i8>(buf, loc))
+    let b = flatbuffers::read_scalar_at::<i8>(buf, loc);
+    Self(b)
   }
 }
 
@@ -92,19 +93,22 @@ impl flatbuffers::Push for EnumInNestedNS {
 impl flatbuffers::EndianScalar for EnumInNestedNS {
   #[inline]
   fn to_little_endian(self) -> Self {
-    Self(i8::to_le(self.0))
+    let b = i8::to_le(self.0);
+    Self(b)
   }
   #[inline]
   fn from_little_endian(self) -> Self {
-    Self(i8::from_le(self.0))
+    let b = i8::from_le(self.0);
+    Self(b)
   }
 }
 
-impl<'a> flatbuffers::verifier::Verifiable for EnumInNestedNS {
+impl<'a> flatbuffers::Verifiable for EnumInNestedNS {
   #[inline]
   fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
-  ) -> flatbuffers::verifier::Result<()> {
+    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
     i8::run_verifier(v, pos)
   }
 }
@@ -161,11 +165,12 @@ impl<'b> flatbuffers::Push for &'b StructInNestedNS {
     }
 }
 
-impl<'a> flatbuffers::verifier::Verifiable for StructInNestedNS {
+impl<'a> flatbuffers::Verifiable for StructInNestedNS {
   #[inline]
   fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
-  ) -> flatbuffers::verifier::Result<()> {
+    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
     v.in_buffer::<Self>(pos)
   }
 }
@@ -232,13 +237,15 @@ impl<'a> TableInNestedNS<'a> {
   }
 }
 
-impl flatbuffers::verifier::Verifiable for TableInNestedNS<'_> {
+impl flatbuffers::Verifiable for TableInNestedNS<'_> {
   #[inline]
   fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
-  ) -> flatbuffers::verifier::Result<()> {
+    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
     v.visit_table(pos)?
-     .visit_field::<i32>(&"foo", Self::VT_FOO, false)?;
+     .visit_field::<i32>(&"foo", Self::VT_FOO, false)?
+     .finish();
     Ok(())
   }
 }

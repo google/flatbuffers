@@ -245,6 +245,106 @@ fn builder_collapses_into_vec() {
     serialized_example_is_accessible_and_correct(&backing_buf[head..], true, false).unwrap();
 }
 
+#[test]
+fn verifier_one_byte_errors_do_not_crash() {
+    let mut b = flatbuffers::FlatBufferBuilder::new();
+    create_serialized_example_with_library_code(&mut b);
+    let mut badbuf = b.finished_data().to_vec();
+    // If the verifier says a buffer is okay then using it won't cause a crash.
+    // We use write_fmt since Debug visits all the fields - but there's no need to store anything.
+    struct ForgetfulWriter;
+    use std::fmt::Write;
+    impl Write for ForgetfulWriter {
+        fn write_str(&mut self, _: &str) -> Result<(), std::fmt::Error> {
+            Ok(())
+        }
+    }
+    let mut w = ForgetfulWriter;
+    for d in 1..=255u8 {
+        for i in 0..badbuf.len() {
+            let orig = badbuf[i];
+            badbuf[i] = badbuf[i].wrapping_add(d);
+            if let Ok(m) = flatbuffers::get_root_safe::<my_game::example::Monster>(&badbuf) {
+                w.write_fmt(format_args!("{:?}", m)).unwrap()
+            }
+            badbuf[i] = orig;
+        }
+    }
+}
+#[test]
+fn verifier_too_many_tables() {
+    use my_game::example::*;
+    let b = &mut flatbuffers::FlatBufferBuilder::new();
+    let r = Referrable::create(b, &ReferrableArgs { id: 42 });
+    let rs = b.create_vector(&vec![r; 500]);
+    let name = Some(b.create_string("foo"));
+    let m = Monster::create(b, &MonsterArgs {
+        vector_of_referrables: Some(rs),
+        name,  // required field.
+        ..Default::default()
+    });
+    b.finish(m, None);
+
+    let data = b.finished_data();
+    let mut opts = flatbuffers::VerifierOptions::default();
+
+    opts.max_tables = 500;
+    let res = flatbuffers::get_root_with::<Monster>(&opts, data);
+    assert_eq!(res.unwrap_err(), flatbuffers::InvalidFlatbuffer::TooManyTables);
+
+    opts.max_tables += 2;
+    assert!(flatbuffers::get_root_with::<Monster>(&opts, data).is_ok());
+}
+#[test]
+fn verifier_apparent_size_too_large() {
+    use my_game::example::*;
+    let b = &mut flatbuffers::FlatBufferBuilder::new();
+    let name = Some(b.create_string("foo"));
+    // String amplification attack.
+    let s = b.create_string(&(std::iter::repeat("X").take(1000).collect::<String>()));
+    let testarrayofstring = Some(b.create_vector(&vec![s; 1000]));
+    let m = Monster::create(b, &MonsterArgs {
+        testarrayofstring,
+        name,  // required field.
+        ..Default::default()
+    });
+    b.finish(m, None);
+    let data = b.finished_data();
+    assert!(data.len() < 5100);  // est 4000 for the vector + 1000 for the string + 100 overhead.
+    let mut opts = flatbuffers::VerifierOptions::default();
+    opts.max_apparent_size = 1_000_000;
+
+    let res = flatbuffers::get_root_with::<Monster>(&opts, data);
+    assert_eq!(res.unwrap_err(), flatbuffers::InvalidFlatbuffer::ApparentSizeTooLarge);
+
+    opts.max_apparent_size += 20_000;
+    assert!(flatbuffers::get_root_with::<Monster>(&opts, data).is_ok());
+}
+#[test]
+fn verifier_in_too_deep() {
+    use my_game::example::*;
+    let b = &mut flatbuffers::FlatBufferBuilder::new();
+    let name = Some(b.create_string("foo"));
+    let mut prev_monster = None;
+    for _ in 0..11 {
+        prev_monster = Some(Monster::create(b, &MonsterArgs {
+            enemy: prev_monster,
+            name,  // required field.
+            ..Default::default()
+        }));
+    };
+    b.finish(prev_monster.unwrap(), None);
+    let mut opts = flatbuffers::VerifierOptions::default();
+    opts.max_depth = 10;
+
+    let data = b.finished_data();
+    let res = flatbuffers::get_root_with::<Monster>(&opts, data);
+    assert_eq!(res.unwrap_err(), flatbuffers::InvalidFlatbuffer::DepthLimitReached);
+
+    opts.max_depth += 1;
+    assert!(flatbuffers::get_root_with::<Monster>(&opts, data).is_ok());
+}
+
 #[cfg(test)]
 mod generated_constants {
     extern crate flatbuffers;

@@ -150,11 +150,7 @@ fn main() {
   //assert_eq!(monster.path().unwrap().len(), 2);
   //assert_eq!(monster.path().unwrap()[0].x(), 1.0);
   //assert_eq!(monster.path().unwrap()[1].x(), 4.0);
-
-  println!("The FlatBuffer was successfully created and accessed!");
-  dbg!(buf.len());
-  dbg!(flatbuffers::verifier::get_root::<Monster>(buf));
-  dbg!(monster);
+  let _ = dbg!(flatbuffers::get_root_safe::<Monster>(buf));
 }
 
 #[cfg(test)]

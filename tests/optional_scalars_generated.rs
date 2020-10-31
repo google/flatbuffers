@@ -69,7 +69,8 @@ impl<'a> flatbuffers::Follow<'a> for OptionalByte {
   type Inner = Self;
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self(flatbuffers::read_scalar_at::<i8>(buf, loc))
+    let b = flatbuffers::read_scalar_at::<i8>(buf, loc);
+    Self(b)
   }
 }
 
@@ -84,19 +85,22 @@ impl flatbuffers::Push for OptionalByte {
 impl flatbuffers::EndianScalar for OptionalByte {
   #[inline]
   fn to_little_endian(self) -> Self {
-    Self(i8::to_le(self.0))
+    let b = i8::to_le(self.0);
+    Self(b)
   }
   #[inline]
   fn from_little_endian(self) -> Self {
-    Self(i8::from_le(self.0))
+    let b = i8::from_le(self.0);
+    Self(b)
   }
 }
 
-impl<'a> flatbuffers::verifier::Verifiable for OptionalByte {
+impl<'a> flatbuffers::Verifiable for OptionalByte {
   #[inline]
   fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
-  ) -> flatbuffers::verifier::Result<()> {
+    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
     i8::run_verifier(v, pos)
   }
 }
@@ -349,11 +353,12 @@ impl<'a> ScalarStuff<'a> {
   }
 }
 
-impl flatbuffers::verifier::Verifiable for ScalarStuff<'_> {
+impl flatbuffers::Verifiable for ScalarStuff<'_> {
   #[inline]
   fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
-  ) -> flatbuffers::verifier::Result<()> {
+    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
     v.visit_table(pos)?
      .visit_field::<i8>(&"just_i8", Self::VT_JUST_I8, false)?
      .visit_field::<i8>(&"maybe_i8", Self::VT_MAYBE_I8, false)?
@@ -390,7 +395,8 @@ impl flatbuffers::verifier::Verifiable for ScalarStuff<'_> {
      .visit_field::<bool>(&"default_bool", Self::VT_DEFAULT_BOOL, false)?
      .visit_field::<OptionalByte>(&"just_enum", Self::VT_JUST_ENUM, false)?
      .visit_field::<OptionalByte>(&"maybe_enum", Self::VT_MAYBE_ENUM, false)?
-     .visit_field::<OptionalByte>(&"default_enum", Self::VT_DEFAULT_ENUM, false)?;
+     .visit_field::<OptionalByte>(&"default_enum", Self::VT_DEFAULT_ENUM, false)?
+     .finish();
     Ok(())
   }
 }

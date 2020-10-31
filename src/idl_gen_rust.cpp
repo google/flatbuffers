@@ -555,121 +555,93 @@ class RustGenerator : public BaseGenerator {
       code_ += "pub use self::bitflags_{{ENUM_NAME_SNAKE}}::{{ENUM_NAME}};";
       code_ += "";
 
-      // Generate Follow and Push so we can serialize and stuff.
-      code_ += "impl<'a> flatbuffers::Follow<'a> for {{ENUM_NAME}} {";
-      code_ += "  type Inner = Self;";
-      code_ += "  #[inline]";
-      code_ += "  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {";
-      code_ += "    let bits = flatbuffers::read_scalar_at::<{{BASE_TYPE}}>(buf, loc);";
-      code_ += "    unsafe { Self::from_bits_unchecked(bits) }";
-      code_ += "  }";
-      code_ += "}";
+      code_.SetValue("FROM_BASE", "unsafe { Self::from_bits_unchecked(b) }");
+      code_.SetValue("INTO_BASE", "self.bits()");
+    } else {
+      // Normal, c-modelled enums.
+      // Deprecated associated constants;
+      const std::string deprecation_warning =
+          "#[deprecated(since = \"1.13\", note = \"Use associated constants"
+          " instead. This will no longer be generated in 2021.\")]";
+      code_ += deprecation_warning;
+      code_ += "pub const ENUM_MIN_{{ENUM_NAME_CAPS}}: {{BASE_TYPE}}"
+               " = {{ENUM_MIN_BASE_VALUE}};";
+      code_ += deprecation_warning;
+      code_ += "pub const ENUM_MAX_{{ENUM_NAME_CAPS}}: {{BASE_TYPE}}"
+               " = {{ENUM_MAX_BASE_VALUE}};";
+      auto num_fields = NumToString(enum_def.size());
+      code_ += deprecation_warning;
+      code_ += "#[allow(non_camel_case_types)]";
+      code_ += "pub const ENUM_VALUES_{{ENUM_NAME_CAPS}}: [{{ENUM_NAME}}; " +
+               num_fields + "] = [";
+      ForAllEnumValues1(enum_def, [&](const EnumVal &ev){
+        code_ += "  " + GetEnumValue(enum_def, ev) + ",";
+      });
+      code_ += "];";
       code_ += "";
-      code_ += "impl flatbuffers::Push for {{ENUM_NAME}} {";
-      code_ += "    type Output = {{ENUM_NAME}};";
-      code_ += "    #[inline]";
-      code_ += "    fn push(&self, dst: &mut [u8], _rest: &[u8]) {";
-      code_ += "        flatbuffers::emplace_scalar::<{{BASE_TYPE}}>"
-               "(dst, self.bits());";
+
+      GenComment(enum_def.doc_comment);
+      code_ +=
+          "#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]";
+      code_ += "#[repr(transparent)]";
+      code_ += "pub struct {{ENUM_NAME}}(pub {{BASE_TYPE}});";
+      code_ += "#[allow(non_upper_case_globals)]";
+      code_ += "impl {{ENUM_NAME}} {";
+      ForAllEnumValues1(enum_def, [&](const EnumVal &ev){
+        this->GenComment(ev.doc_comment, "  ");
+        code_ += "  pub const {{VARIANT}}: Self = Self({{VALUE}});";
+      });
+      code_ += "";
+      // Generate Associated constants
+      code_ += "  pub const ENUM_MIN: {{BASE_TYPE}} = {{ENUM_MIN_BASE_VALUE}};";
+      code_ += "  pub const ENUM_MAX: {{BASE_TYPE}} = {{ENUM_MAX_BASE_VALUE}};";
+      code_ += "  pub const ENUM_VALUES: &'static [Self] = &[";
+      ForAllEnumValues(enum_def, [&](){
+        code_ += "    Self::{{VARIANT}},";
+      });
+      code_ += "  ];";
+      code_ += "  /// Returns the variant's name or \"\" if unknown.";
+      code_ += "  pub fn variant_name(self) -> Option<&'static str> {";
+      code_ += "    match self {";
+      ForAllEnumValues(enum_def, [&](){
+        code_ += "      Self::{{VARIANT}} => Some(\"{{VARIANT}}\"),";
+      });
+      code_ += "      _ => None,";
       code_ += "    }";
-      code_ += "}";
-      code_ += "";
-      code_ += "impl flatbuffers::EndianScalar for {{ENUM_NAME}} {";
-      code_ += "  #[inline]";
-      code_ += "  fn to_little_endian(self) -> Self {";
-      code_ += "    let bits = {{BASE_TYPE}}::to_le(self.bits());";
-      code_ += "    unsafe { Self::from_bits_unchecked(bits) }";
-      code_ += "  }";
-      code_ += "  #[inline]";
-      code_ += "  fn from_little_endian(self) -> Self {";
-      code_ += "    let bits = {{BASE_TYPE}}::from_le(self.bits());";
-      code_ += "    unsafe { Self::from_bits_unchecked(bits) }";
       code_ += "  }";
       code_ += "}";
-      code_ += "";
-      // Generate verifier.
-      // CASPER: verifier is the same for both.
-      code_ += "impl<'a> flatbuffers::verifier::Verifiable for {{ENUM_NAME}} {";
-      code_ += "  #[inline]";
-      code_ += "  fn run_verifier<'o, 'b>(";
-      code_ += "    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize";
-      code_ += "  ) -> flatbuffers::verifier::Result<()> {";
-      code_ += "    {{BASE_TYPE}}::run_verifier(v, pos)";
+
+      // Generate Debug. Unknown variants are printed like "<UNKNOWN 42>".
+      code_ += "impl std::fmt::Debug for {{ENUM_NAME}} {";
+      code_ += "  fn fmt(&self, f: &mut std::fmt::Formatter) ->"
+               " std::fmt::Result {";
+      code_ += "    if let Some(name) = self.variant_name() {";
+      code_ += "      f.write_str(name)";
+      code_ += "    } else {";
+      code_ += "      f.write_fmt(format_args!(\"<UNKNOWN {:?}>\", self.0))";
+      code_ += "    }";
       code_ += "  }";
       code_ += "}";
-      return;
+
+      if (enum_def.is_union) {
+        // Generate tyoesafe offset(s) for unions
+        code_.SetValue("NAME", Name(enum_def));
+        code_.SetValue("UNION_OFFSET_NAME", Name(enum_def) + "UnionTableOffset");
+        code_ += "pub struct {{UNION_OFFSET_NAME}} {}";
+      }
+
+      code_.SetValue("FROM_BASE", "Self(b)");
+      code_.SetValue("INTO_BASE", "self.0");
     }
-
-    // Deprecated associated constants;
-    code_ += "#[deprecated(since = \"1.13\", note = \"Use associated constants"
-             " instead. This will no longer be generated in 2021.\")]";
-    code_ += "pub const ENUM_MIN_{{ENUM_NAME_CAPS}}: {{BASE_TYPE}}"
-             " = {{ENUM_MIN_BASE_VALUE}};";
-    code_ += "#[deprecated(since = \"1.13\", note = \"Use associated constants"
-             " instead. This will no longer be generated in 2021.\")]";
-    code_ += "pub const ENUM_MAX_{{ENUM_NAME_CAPS}}: {{BASE_TYPE}}"
-             " = {{ENUM_MAX_BASE_VALUE}};";
-    auto num_fields = NumToString(enum_def.size());
-    code_ += "#[deprecated(since = \"1.13\", note = \"Use associated constants"
-             " instead. This will no longer be generated in 2021.\")]";
-    code_ += "#[allow(non_camel_case_types)]";
-    code_ += "pub const ENUM_VALUES_{{ENUM_NAME_CAPS}}: [{{ENUM_NAME}}; " +
-             num_fields + "] = [";
-    ForAllEnumValues1(enum_def, [&](const EnumVal &ev){
-      code_ += "  " + GetEnumValue(enum_def, ev) + ",";
-    });
-    code_ += "];";
-    code_ += "";
-
-    GenComment(enum_def.doc_comment);
-    code_ +=
-        "#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]";
-    code_ += "#[repr(transparent)]";
-    code_ += "pub struct {{ENUM_NAME}}(pub {{BASE_TYPE}});";
-    code_ += "#[allow(non_upper_case_globals)]";
-    code_ += "impl {{ENUM_NAME}} {";
-    ForAllEnumValues1(enum_def, [&](const EnumVal &ev){
-      this->GenComment(ev.doc_comment, "  ");
-      code_ += "  pub const {{VARIANT}}: Self = Self({{VALUE}});";
-    });
-    code_ += "";
-    // Generate Associated constants
-    code_ += "  pub const ENUM_MIN: {{BASE_TYPE}} = {{ENUM_MIN_BASE_VALUE}};";
-    code_ += "  pub const ENUM_MAX: {{BASE_TYPE}} = {{ENUM_MAX_BASE_VALUE}};";
-    code_ += "  pub const ENUM_VALUES: &'static [Self] = &[";
-    ForAllEnumValues(enum_def, [&](){
-      code_ += "    Self::{{VARIANT}},";
-    });
-    code_ += "  ];";
-    code_ += "  /// Returns the variant's name or \"\" if unknown.";
-    code_ += "  pub fn variant_name(self) -> Option<&'static str> {";
-    code_ += "    match self {";
-    ForAllEnumValues(enum_def, [&](){
-      code_ += "      Self::{{VARIANT}} => Some(\"{{VARIANT}}\"),";
-    });
-    code_ += "      _ => None,";
-    code_ += "    }";
-    code_ += "  }";
-    code_ += "}";
-
-    // Generate Debug. Unknown variants are printed like "<UNKNOWN 42>".
-    code_ += "impl std::fmt::Debug for {{ENUM_NAME}} {";
-    code_ += "  fn fmt(&self, f: &mut std::fmt::Formatter) ->"
-             " std::fmt::Result {";
-    code_ += "    if let Some(name) = self.variant_name() {";
-    code_ += "      f.write_str(name)";
-    code_ += "    } else {";
-    code_ += "      f.write_fmt(format_args!(\"<UNKNOWN {:?}>\", self.0))";
-    code_ += "    }";
-    code_ += "  }";
-    code_ += "}";
 
     // Generate Follow and Push so we can serialize and stuff.
     code_ += "impl<'a> flatbuffers::Follow<'a> for {{ENUM_NAME}} {";
     code_ += "  type Inner = Self;";
     code_ += "  #[inline]";
     code_ += "  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {";
-    code_ += "    Self(flatbuffers::read_scalar_at::<{{BASE_TYPE}}>(buf, loc))";
+    code_ += "    let b = flatbuffers::read_scalar_at::<{{BASE_TYPE}}>(buf,"
+             " loc);";
+    code_ += "    {{FROM_BASE}}";
     code_ += "  }";
     code_ += "}";
     code_ += "";
@@ -678,38 +650,33 @@ class RustGenerator : public BaseGenerator {
     code_ += "    #[inline]";
     code_ += "    fn push(&self, dst: &mut [u8], _rest: &[u8]) {";
     code_ += "        flatbuffers::emplace_scalar::<{{BASE_TYPE}}>"
-             "(dst, self.0);";
+             "(dst, {{INTO_BASE}});";
     code_ += "    }";
     code_ += "}";
     code_ += "";
     code_ += "impl flatbuffers::EndianScalar for {{ENUM_NAME}} {";
     code_ += "  #[inline]";
     code_ += "  fn to_little_endian(self) -> Self {";
-    code_ += "    Self({{BASE_TYPE}}::to_le(self.0))";
+    code_ += "    let b = {{BASE_TYPE}}::to_le({{INTO_BASE}});";
+    code_ += "    {{FROM_BASE}}";
     code_ += "  }";
     code_ += "  #[inline]";
     code_ += "  fn from_little_endian(self) -> Self {";
-    code_ += "    Self({{BASE_TYPE}}::from_le(self.0))";
+    code_ += "    let b = {{BASE_TYPE}}::from_le({{INTO_BASE}});";
+    code_ += "    {{FROM_BASE}}";
     code_ += "  }";
     code_ += "}";
     code_ += "";
-
     // Generate verifier - deferring to the base type.
-    code_ += "impl<'a> flatbuffers::verifier::Verifiable for {{ENUM_NAME}} {";
+    code_ += "impl<'a> flatbuffers::Verifiable for {{ENUM_NAME}} {";
     code_ += "  #[inline]";
     code_ += "  fn run_verifier<'o, 'b>(";
-    code_ += "    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize";
-    code_ += "  ) -> flatbuffers::verifier::Result<()> {";
+    code_ += "    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize";
+    code_ += "  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {";
+    code_ += "    use self::flatbuffers::Verifiable;";
     code_ += "    {{BASE_TYPE}}::run_verifier(v, pos)";
     code_ += "  }";
     code_ += "}";
-
-    if (enum_def.is_union) {
-      // Generate tyoesafe offset(s) for unions
-      code_.SetValue("NAME", Name(enum_def));
-      code_.SetValue("UNION_OFFSET_NAME", Name(enum_def) + "UnionTableOffset");
-      code_ += "pub struct {{UNION_OFFSET_NAME}} {}";
-    }
   }
 
   std::string GetFieldOffsetName(const FieldDef &field) {
@@ -1023,21 +990,19 @@ class RustGenerator : public BaseGenerator {
     return "INVALID_CODE_GENERATION";  // for return analysis
   }
 
-  std::string TableAccessorTypeName(const Type &type,
+  std::string VerifierType(const Type &type,
                                     const std::string &lifetime) {
-    // CASPER: SHOULD I SPECIFY A LIFETIME AND SHARE THIS WITH OTHER STUFF?
-    // RENAME LIFETIMES TO 'BUF
+    // CASPER: Can this be shared with either the return type or the
+    // Follow type? GetNameSpacedType helper fn. IsIndirect helper fn.
+    // IsVector... This can be made iterative?
+    // To share with
+
     const auto WrapForwardsUOffset = [](std::string ty) -> std::string {
       return "flatbuffers::ForwardsUOffset<" + ty + ">";
     };
     const auto WrapVector = [&](std::string ty) -> std::string {
       return "flatbuffers::Vector<" + lifetime + ", " + ty + ">";
     };
-
-    // GET NAMESPACEd type
-    // if indirect, wrap in forwardsoffset
-    // if vector wrap in more
-
     switch (GetFullType(type)) {
       case ftInteger:
       case ftFloat:
@@ -1067,14 +1032,14 @@ class RustGenerator : public BaseGenerator {
         const auto typname = GetTypeBasic(type.VectorType());
         return WrapForwardsUOffset(WrapVector(typname));
       }
-
       case ftVectorOfEnumKey: {
         const auto typname = WrapInNameSpace(*type.VectorType().enum_def);
         return WrapForwardsUOffset(WrapVector(typname));
 
       }
       case ftVectorOfStruct: {
-
+        const auto typname = WrapInNameSpace(*type.struct_def);
+        return WrapForwardsUOffset("&" + lifetime + "[" + typname + "]");
       }
       case ftVectorOfTable: {
         const auto typname = WrapInNameSpace(*type.struct_def);
@@ -1450,24 +1415,45 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
 
     // Generate Verifier;
-    code_ += "impl flatbuffers::verifier::Verifiable for {{STRUCT_NAME}}<'_> {";
+    code_ += "impl flatbuffers::Verifiable for {{STRUCT_NAME}}<'_> {";
     code_ += "  #[inline]";
     code_ += "  fn run_verifier<'o, 'b>(";
-    code_ += "    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize";
-    code_ += "  ) -> flatbuffers::verifier::Result<()> {";
+    code_ += "    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize";
+    code_ += "  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {";
+    code_ += "    use self::flatbuffers::Verifiable;";
     code_ += "    v.visit_table(pos)?\\";
     // Escape newline and insert it onthe next line so we can end the builder
     // with a nice semicolon.
     ForAllTableFields(struct_def, [&](const FieldDef &field) {
+      if (GetFullType(field.value.type) == ftUnionKey) return;
+
       code_.SetValue("IS_REQ", field.required ? "true" : "false");
-      // CASPER: Options? Unions?
-      // Vectors require another fowrwardoffsetter
-      // Need to refactor FUNC_BODY and stuff
-      code_.SetValue("TY", TableAccessorTypeName(field.value.type, "'_"));
-      code_ += "\n     .visit_field::<{{TY}}>(&\"{{FIELD_NAME}}\", "
-               "Self::{{OFFSET_NAME}}, {{IS_REQ}})?\\";
+      if (GetFullType(field.value.type) != ftUnionValue) {
+        // All types besides unions.
+        code_.SetValue("TY", VerifierType(field.value.type, "'_"));
+        code_ += "\n     .visit_field::<{{TY}}>(&\"{{FIELD_NAME}}\", "
+                 "Self::{{OFFSET_NAME}}, {{IS_REQ}})?\\";
+          return;
+      }
+      // Unions.
+      EnumDef &union_def = *field.value.type.enum_def;
+      code_.SetValue("UNION_TYPE", Name(union_def));
+      code_ += "\n     .visit_union::<{{UNION_TYPE}}, _>("
+               "&\"{{FIELD_NAME}}_type\", Self::{{OFFSET_NAME}}_TYPE, "
+               "&\"{{FIELD_NAME}}\", Self::{{OFFSET_NAME}}, {{IS_REQ}}, "
+               "|key, v, pos| {";
+      code_ += "        match key {";
+      ForAllUnionVariantsBesidesNone(union_def, [&](const EnumVal &unused) {
+        (void) unused;
+        code_ += "          {{U_ELEMENT_ENUM_TYPE}} => v.verify_union_variant::"
+                 "<flatbuffers::ForwardsUOffset<{{U_ELEMENT_TABLE_TYPE}}>>("
+                 "\"{{U_ELEMENT_ENUM_TYPE}}\", pos),";
+      });
+      code_ += "          _ => Ok(()),";
+      code_ += "        }";
+      code_ += "     })?\\";
     });
-    code_ += ";";
+    code_ += "\n     .finish();";
     code_ += "    Ok(())";
     code_ += "  }";
     code_ += "}";
@@ -1844,11 +1830,12 @@ class RustGenerator : public BaseGenerator {
 
     // Generate verifier: Structs are simple so presence and alignment are
     // all that need to be checked.
-    code_ += "impl<'a> flatbuffers::verifier::Verifiable for {{STRUCT_NAME}} {";
+    code_ += "impl<'a> flatbuffers::Verifiable for {{STRUCT_NAME}} {";
     code_ += "  #[inline]";
     code_ += "  fn run_verifier<'o, 'b>(";
-    code_ += "    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize";
-    code_ += "  ) -> flatbuffers::verifier::Result<()> {";
+    code_ += "    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize";
+    code_ += "  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {";
+    code_ += "    use self::flatbuffers::Verifiable;";
     code_ += "    v.in_buffer::<Self>(pos)";
     code_ += "  }";
     code_ += "}";

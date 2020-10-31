@@ -77,7 +77,8 @@ impl<'a> flatbuffers::Follow<'a> for Color {
   type Inner = Self;
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self(flatbuffers::read_scalar_at::<i8>(buf, loc))
+    let b = flatbuffers::read_scalar_at::<i8>(buf, loc);
+    Self(b)
   }
 }
 
@@ -92,19 +93,22 @@ impl flatbuffers::Push for Color {
 impl flatbuffers::EndianScalar for Color {
   #[inline]
   fn to_little_endian(self) -> Self {
-    Self(i8::to_le(self.0))
+    let b = i8::to_le(self.0);
+    Self(b)
   }
   #[inline]
   fn from_little_endian(self) -> Self {
-    Self(i8::from_le(self.0))
+    let b = i8::from_le(self.0);
+    Self(b)
   }
 }
 
-impl<'a> flatbuffers::verifier::Verifiable for Color {
+impl<'a> flatbuffers::Verifiable for Color {
   #[inline]
   fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
-  ) -> flatbuffers::verifier::Result<()> {
+    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
     i8::run_verifier(v, pos)
   }
 }
@@ -151,11 +155,13 @@ impl std::fmt::Debug for Equipment {
     }
   }
 }
+pub struct EquipmentUnionTableOffset {}
 impl<'a> flatbuffers::Follow<'a> for Equipment {
   type Inner = Self;
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self(flatbuffers::read_scalar_at::<u8>(buf, loc))
+    let b = flatbuffers::read_scalar_at::<u8>(buf, loc);
+    Self(b)
   }
 }
 
@@ -170,23 +176,25 @@ impl flatbuffers::Push for Equipment {
 impl flatbuffers::EndianScalar for Equipment {
   #[inline]
   fn to_little_endian(self) -> Self {
-    Self(u8::to_le(self.0))
+    let b = u8::to_le(self.0);
+    Self(b)
   }
   #[inline]
   fn from_little_endian(self) -> Self {
-    Self(u8::from_le(self.0))
+    let b = u8::from_le(self.0);
+    Self(b)
   }
 }
 
-impl<'a> flatbuffers::verifier::Verifiable for Equipment {
+impl<'a> flatbuffers::Verifiable for Equipment {
   #[inline]
   fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
-  ) -> flatbuffers::verifier::Result<()> {
+    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
     u8::run_verifier(v, pos)
   }
 }
-pub struct EquipmentUnionTableOffset {}
 // struct Vec3, aligned to 4
 #[repr(C, align(4))]
 #[derive(Clone, Copy, PartialEq)]
@@ -242,11 +250,12 @@ impl<'b> flatbuffers::Push for &'b Vec3 {
     }
 }
 
-impl<'a> flatbuffers::verifier::Verifiable for Vec3 {
+impl<'a> flatbuffers::Verifiable for Vec3 {
   #[inline]
   fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
-  ) -> flatbuffers::verifier::Result<()> {
+    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
     v.in_buffer::<Self>(pos)
   }
 }
@@ -373,11 +382,12 @@ impl<'a> Monster<'a> {
 
 }
 
-impl flatbuffers::verifier::Verifiable for Monster<'_> {
+impl flatbuffers::Verifiable for Monster<'_> {
   #[inline]
   fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
-  ) -> flatbuffers::verifier::Result<()> {
+    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
     v.visit_table(pos)?
      .visit_field::<Vec3>(&"pos", Self::VT_POS, false)?
      .visit_field::<i16>(&"mana", Self::VT_MANA, false)?
@@ -386,9 +396,14 @@ impl flatbuffers::verifier::Verifiable for Monster<'_> {
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u8>>>(&"inventory", Self::VT_INVENTORY, false)?
      .visit_field::<Color>(&"color", Self::VT_COLOR, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<Weapon>>>>(&"weapons", Self::VT_WEAPONS, false)?
-     .visit_field::<Equipment>(&"equipped_type", Self::VT_EQUIPPED_TYPE, false)?
-     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Table<'_>>>(&"equipped", Self::VT_EQUIPPED, false)?
-     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<Vec3>>>>(&"path", Self::VT_PATH, false)?;
+     .visit_union::<Equipment, _>(&"equipped_type", Self::VT_EQUIPPED_TYPE, &"equipped", Self::VT_EQUIPPED, false, |key, v, pos| {
+        match key {
+          Equipment::Weapon => v.verify_union_variant::<flatbuffers::ForwardsUOffset<Weapon>>("Equipment::Weapon", pos),
+          _ => Ok(()),
+        }
+     })?
+     .visit_field::<flatbuffers::ForwardsUOffset<&'_[Vec3]>>(&"path", Self::VT_PATH, false)?
+     .finish();
     Ok(())
   }
 }
@@ -554,14 +569,16 @@ impl<'a> Weapon<'a> {
   }
 }
 
-impl flatbuffers::verifier::Verifiable for Weapon<'_> {
+impl flatbuffers::Verifiable for Weapon<'_> {
   #[inline]
   fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
-  ) -> flatbuffers::verifier::Result<()> {
+    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
     v.visit_table(pos)?
      .visit_field::<flatbuffers::ForwardsUOffset<&str>>(&"name", Self::VT_NAME, false)?
-     .visit_field::<i16>(&"damage", Self::VT_DAMAGE, false)?;
+     .visit_field::<i16>(&"damage", Self::VT_DAMAGE, false)?
+     .finish();
     Ok(())
   }
 }

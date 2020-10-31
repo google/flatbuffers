@@ -58,12 +58,14 @@ impl<'a> InParentNamespace<'a> {
 
 }
 
-impl flatbuffers::verifier::Verifiable for InParentNamespace<'_> {
+impl flatbuffers::Verifiable for InParentNamespace<'_> {
   #[inline]
   fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
-  ) -> flatbuffers::verifier::Result<()> {
-    v.visit_table(pos)?;
+    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    v.visit_table(pos)?
+     .finish();
     Ok(())
   }
 }
@@ -149,12 +151,14 @@ impl<'a> Monster<'a> {
 
 }
 
-impl flatbuffers::verifier::Verifiable for Monster<'_> {
+impl flatbuffers::Verifiable for Monster<'_> {
   #[inline]
   fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
-  ) -> flatbuffers::verifier::Result<()> {
-    v.visit_table(pos)?;
+    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    v.visit_table(pos)?
+     .finish();
     Ok(())
   }
 }
@@ -226,8 +230,8 @@ impl<'a> flatbuffers::Follow<'a> for Color {
   type Inner = Self;
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    let bits = flatbuffers::read_scalar_at::<u8>(buf, loc);
-    unsafe { Self::from_bits_unchecked(bits) }
+    let b = flatbuffers::read_scalar_at::<u8>(buf, loc);
+    unsafe { Self::from_bits_unchecked(b) }
   }
 }
 
@@ -242,21 +246,22 @@ impl flatbuffers::Push for Color {
 impl flatbuffers::EndianScalar for Color {
   #[inline]
   fn to_little_endian(self) -> Self {
-    let bits = u8::to_le(self.bits());
-    unsafe { Self::from_bits_unchecked(bits) }
+    let b = u8::to_le(self.bits());
+    unsafe { Self::from_bits_unchecked(b) }
   }
   #[inline]
   fn from_little_endian(self) -> Self {
-    let bits = u8::from_le(self.bits());
-    unsafe { Self::from_bits_unchecked(bits) }
+    let b = u8::from_le(self.bits());
+    unsafe { Self::from_bits_unchecked(b) }
   }
 }
 
-impl<'a> flatbuffers::verifier::Verifiable for Color {
+impl<'a> flatbuffers::Verifiable for Color {
   #[inline]
   fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
-  ) -> flatbuffers::verifier::Result<()> {
+    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
     u8::run_verifier(v, pos)
   }
 }
@@ -315,7 +320,8 @@ impl<'a> flatbuffers::Follow<'a> for Race {
   type Inner = Self;
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self(flatbuffers::read_scalar_at::<i8>(buf, loc))
+    let b = flatbuffers::read_scalar_at::<i8>(buf, loc);
+    Self(b)
   }
 }
 
@@ -330,19 +336,22 @@ impl flatbuffers::Push for Race {
 impl flatbuffers::EndianScalar for Race {
   #[inline]
   fn to_little_endian(self) -> Self {
-    Self(i8::to_le(self.0))
+    let b = i8::to_le(self.0);
+    Self(b)
   }
   #[inline]
   fn from_little_endian(self) -> Self {
-    Self(i8::from_le(self.0))
+    let b = i8::from_le(self.0);
+    Self(b)
   }
 }
 
-impl<'a> flatbuffers::verifier::Verifiable for Race {
+impl<'a> flatbuffers::Verifiable for Race {
   #[inline]
   fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
-  ) -> flatbuffers::verifier::Result<()> {
+    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
     i8::run_verifier(v, pos)
   }
 }
@@ -397,11 +406,13 @@ impl std::fmt::Debug for Any {
     }
   }
 }
+pub struct AnyUnionTableOffset {}
 impl<'a> flatbuffers::Follow<'a> for Any {
   type Inner = Self;
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self(flatbuffers::read_scalar_at::<u8>(buf, loc))
+    let b = flatbuffers::read_scalar_at::<u8>(buf, loc);
+    Self(b)
   }
 }
 
@@ -416,23 +427,25 @@ impl flatbuffers::Push for Any {
 impl flatbuffers::EndianScalar for Any {
   #[inline]
   fn to_little_endian(self) -> Self {
-    Self(u8::to_le(self.0))
+    let b = u8::to_le(self.0);
+    Self(b)
   }
   #[inline]
   fn from_little_endian(self) -> Self {
-    Self(u8::from_le(self.0))
+    let b = u8::from_le(self.0);
+    Self(b)
   }
 }
 
-impl<'a> flatbuffers::verifier::Verifiable for Any {
+impl<'a> flatbuffers::Verifiable for Any {
   #[inline]
   fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
-  ) -> flatbuffers::verifier::Result<()> {
+    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
     u8::run_verifier(v, pos)
   }
 }
-pub struct AnyUnionTableOffset {}
 #[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_ANY_UNIQUE_ALIASES: u8 = 0;
 #[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
@@ -484,11 +497,13 @@ impl std::fmt::Debug for AnyUniqueAliases {
     }
   }
 }
+pub struct AnyUniqueAliasesUnionTableOffset {}
 impl<'a> flatbuffers::Follow<'a> for AnyUniqueAliases {
   type Inner = Self;
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self(flatbuffers::read_scalar_at::<u8>(buf, loc))
+    let b = flatbuffers::read_scalar_at::<u8>(buf, loc);
+    Self(b)
   }
 }
 
@@ -503,23 +518,25 @@ impl flatbuffers::Push for AnyUniqueAliases {
 impl flatbuffers::EndianScalar for AnyUniqueAliases {
   #[inline]
   fn to_little_endian(self) -> Self {
-    Self(u8::to_le(self.0))
+    let b = u8::to_le(self.0);
+    Self(b)
   }
   #[inline]
   fn from_little_endian(self) -> Self {
-    Self(u8::from_le(self.0))
+    let b = u8::from_le(self.0);
+    Self(b)
   }
 }
 
-impl<'a> flatbuffers::verifier::Verifiable for AnyUniqueAliases {
+impl<'a> flatbuffers::Verifiable for AnyUniqueAliases {
   #[inline]
   fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
-  ) -> flatbuffers::verifier::Result<()> {
+    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
     u8::run_verifier(v, pos)
   }
 }
-pub struct AnyUniqueAliasesUnionTableOffset {}
 #[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_ANY_AMBIGUOUS_ALIASES: u8 = 0;
 #[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
@@ -571,11 +588,13 @@ impl std::fmt::Debug for AnyAmbiguousAliases {
     }
   }
 }
+pub struct AnyAmbiguousAliasesUnionTableOffset {}
 impl<'a> flatbuffers::Follow<'a> for AnyAmbiguousAliases {
   type Inner = Self;
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self(flatbuffers::read_scalar_at::<u8>(buf, loc))
+    let b = flatbuffers::read_scalar_at::<u8>(buf, loc);
+    Self(b)
   }
 }
 
@@ -590,23 +609,25 @@ impl flatbuffers::Push for AnyAmbiguousAliases {
 impl flatbuffers::EndianScalar for AnyAmbiguousAliases {
   #[inline]
   fn to_little_endian(self) -> Self {
-    Self(u8::to_le(self.0))
+    let b = u8::to_le(self.0);
+    Self(b)
   }
   #[inline]
   fn from_little_endian(self) -> Self {
-    Self(u8::from_le(self.0))
+    let b = u8::from_le(self.0);
+    Self(b)
   }
 }
 
-impl<'a> flatbuffers::verifier::Verifiable for AnyAmbiguousAliases {
+impl<'a> flatbuffers::Verifiable for AnyAmbiguousAliases {
   #[inline]
   fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
-  ) -> flatbuffers::verifier::Result<()> {
+    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
     u8::run_verifier(v, pos)
   }
 }
-pub struct AnyAmbiguousAliasesUnionTableOffset {}
 // struct Test, aligned to 2
 #[repr(C, align(2))]
 #[derive(Clone, Copy, PartialEq)]
@@ -661,11 +682,12 @@ impl<'b> flatbuffers::Push for &'b Test {
     }
 }
 
-impl<'a> flatbuffers::verifier::Verifiable for Test {
+impl<'a> flatbuffers::Verifiable for Test {
   #[inline]
   fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
-  ) -> flatbuffers::verifier::Result<()> {
+    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
     v.in_buffer::<Self>(pos)
   }
 }
@@ -754,11 +776,12 @@ impl<'b> flatbuffers::Push for &'b Vec3 {
     }
 }
 
-impl<'a> flatbuffers::verifier::Verifiable for Vec3 {
+impl<'a> flatbuffers::Verifiable for Vec3 {
   #[inline]
   fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
-  ) -> flatbuffers::verifier::Result<()> {
+    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
     v.in_buffer::<Self>(pos)
   }
 }
@@ -854,11 +877,12 @@ impl<'b> flatbuffers::Push for &'b Ability {
     }
 }
 
-impl<'a> flatbuffers::verifier::Verifiable for Ability {
+impl<'a> flatbuffers::Verifiable for Ability {
   #[inline]
   fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
-  ) -> flatbuffers::verifier::Result<()> {
+    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
     v.in_buffer::<Self>(pos)
   }
 }
@@ -935,13 +959,15 @@ impl<'a> TestSimpleTableWithEnum<'a> {
   }
 }
 
-impl flatbuffers::verifier::Verifiable for TestSimpleTableWithEnum<'_> {
+impl flatbuffers::Verifiable for TestSimpleTableWithEnum<'_> {
   #[inline]
   fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
-  ) -> flatbuffers::verifier::Result<()> {
+    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
     v.visit_table(pos)?
-     .visit_field::<Color>(&"color", Self::VT_COLOR, false)?;
+     .visit_field::<Color>(&"color", Self::VT_COLOR, false)?
+     .finish();
     Ok(())
   }
 }
@@ -1042,15 +1068,17 @@ impl<'a> Stat<'a> {
   }
 }
 
-impl flatbuffers::verifier::Verifiable for Stat<'_> {
+impl flatbuffers::Verifiable for Stat<'_> {
   #[inline]
   fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
-  ) -> flatbuffers::verifier::Result<()> {
+    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
     v.visit_table(pos)?
      .visit_field::<flatbuffers::ForwardsUOffset<&str>>(&"id", Self::VT_ID, false)?
      .visit_field::<i64>(&"val", Self::VT_VAL, false)?
-     .visit_field::<u16>(&"count", Self::VT_COUNT, false)?;
+     .visit_field::<u16>(&"count", Self::VT_COUNT, false)?
+     .finish();
     Ok(())
   }
 }
@@ -1163,13 +1191,15 @@ impl<'a> Referrable<'a> {
   }
 }
 
-impl flatbuffers::verifier::Verifiable for Referrable<'_> {
+impl flatbuffers::Verifiable for Referrable<'_> {
   #[inline]
   fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
-  ) -> flatbuffers::verifier::Result<()> {
+    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
     v.visit_table(pos)?
-     .visit_field::<u64>(&"id", Self::VT_ID, false)?;
+     .visit_field::<u64>(&"id", Self::VT_ID, false)?
+     .finish();
     Ok(())
   }
 }
@@ -1649,11 +1679,12 @@ impl<'a> Monster<'a> {
 
 }
 
-impl flatbuffers::verifier::Verifiable for Monster<'_> {
+impl flatbuffers::Verifiable for Monster<'_> {
   #[inline]
   fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
-  ) -> flatbuffers::verifier::Result<()> {
+    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
     v.visit_table(pos)?
      .visit_field::<Vec3>(&"pos", Self::VT_POS, false)?
      .visit_field::<i16>(&"mana", Self::VT_MANA, false)?
@@ -1661,9 +1692,15 @@ impl flatbuffers::verifier::Verifiable for Monster<'_> {
      .visit_field::<flatbuffers::ForwardsUOffset<&str>>(&"name", Self::VT_NAME, true)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u8>>>(&"inventory", Self::VT_INVENTORY, false)?
      .visit_field::<Color>(&"color", Self::VT_COLOR, false)?
-     .visit_field::<Any>(&"test_type", Self::VT_TEST_TYPE, false)?
-     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Table<'_>>>(&"test", Self::VT_TEST, false)?
-     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<Test>>>>(&"test4", Self::VT_TEST4, false)?
+     .visit_union::<Any, _>(&"test_type", Self::VT_TEST_TYPE, &"test", Self::VT_TEST, false, |key, v, pos| {
+        match key {
+          Any::Monster => v.verify_union_variant::<flatbuffers::ForwardsUOffset<Monster>>("Any::Monster", pos),
+          Any::TestSimpleTableWithEnum => v.verify_union_variant::<flatbuffers::ForwardsUOffset<TestSimpleTableWithEnum>>("Any::TestSimpleTableWithEnum", pos),
+          Any::MyGame_Example2_Monster => v.verify_union_variant::<flatbuffers::ForwardsUOffset<super::example_2::Monster>>("Any::MyGame_Example2_Monster", pos),
+          _ => Ok(()),
+        }
+     })?
+     .visit_field::<flatbuffers::ForwardsUOffset<&'_[Test]>>(&"test4", Self::VT_TEST4, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<&'_ str>>>>(&"testarrayofstring", Self::VT_TESTARRAYOFSTRING, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<Monster>>>>(&"testarrayoftables", Self::VT_TESTARRAYOFTABLES, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<Monster>>(&"enemy", Self::VT_ENEMY, false)?
@@ -1683,9 +1720,9 @@ impl flatbuffers::verifier::Verifiable for Monster<'_> {
      .visit_field::<f32>(&"testf2", Self::VT_TESTF2, false)?
      .visit_field::<f32>(&"testf3", Self::VT_TESTF3, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<&'_ str>>>>(&"testarrayofstring2", Self::VT_TESTARRAYOFSTRING2, false)?
-     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<Ability>>>>(&"testarrayofsortedstruct", Self::VT_TESTARRAYOFSORTEDSTRUCT, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<&'_[Ability]>>(&"testarrayofsortedstruct", Self::VT_TESTARRAYOFSORTEDSTRUCT, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u8>>>(&"flex", Self::VT_FLEX, false)?
-     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<Test>>>>(&"test5", Self::VT_TEST5, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<&'_[Test]>>(&"test5", Self::VT_TEST5, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, i64>>>(&"vector_of_longs", Self::VT_VECTOR_OF_LONGS, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, f64>>>(&"vector_of_doubles", Self::VT_VECTOR_OF_DOUBLES, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<super::InParentNamespace>>(&"parent_namespace_test", Self::VT_PARENT_NAMESPACE_TEST, false)?
@@ -1697,12 +1734,25 @@ impl flatbuffers::verifier::Verifiable for Monster<'_> {
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u64>>>(&"vector_of_co_owning_references", Self::VT_VECTOR_OF_CO_OWNING_REFERENCES, false)?
      .visit_field::<u64>(&"non_owning_reference", Self::VT_NON_OWNING_REFERENCE, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u64>>>(&"vector_of_non_owning_references", Self::VT_VECTOR_OF_NON_OWNING_REFERENCES, false)?
-     .visit_field::<AnyUniqueAliases>(&"any_unique_type", Self::VT_ANY_UNIQUE_TYPE, false)?
-     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Table<'_>>>(&"any_unique", Self::VT_ANY_UNIQUE, false)?
-     .visit_field::<AnyAmbiguousAliases>(&"any_ambiguous_type", Self::VT_ANY_AMBIGUOUS_TYPE, false)?
-     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Table<'_>>>(&"any_ambiguous", Self::VT_ANY_AMBIGUOUS, false)?
+     .visit_union::<AnyUniqueAliases, _>(&"any_unique_type", Self::VT_ANY_UNIQUE_TYPE, &"any_unique", Self::VT_ANY_UNIQUE, false, |key, v, pos| {
+        match key {
+          AnyUniqueAliases::M => v.verify_union_variant::<flatbuffers::ForwardsUOffset<Monster>>("AnyUniqueAliases::M", pos),
+          AnyUniqueAliases::TS => v.verify_union_variant::<flatbuffers::ForwardsUOffset<TestSimpleTableWithEnum>>("AnyUniqueAliases::TS", pos),
+          AnyUniqueAliases::M2 => v.verify_union_variant::<flatbuffers::ForwardsUOffset<super::example_2::Monster>>("AnyUniqueAliases::M2", pos),
+          _ => Ok(()),
+        }
+     })?
+     .visit_union::<AnyAmbiguousAliases, _>(&"any_ambiguous_type", Self::VT_ANY_AMBIGUOUS_TYPE, &"any_ambiguous", Self::VT_ANY_AMBIGUOUS, false, |key, v, pos| {
+        match key {
+          AnyAmbiguousAliases::M1 => v.verify_union_variant::<flatbuffers::ForwardsUOffset<Monster>>("AnyAmbiguousAliases::M1", pos),
+          AnyAmbiguousAliases::M2 => v.verify_union_variant::<flatbuffers::ForwardsUOffset<Monster>>("AnyAmbiguousAliases::M2", pos),
+          AnyAmbiguousAliases::M3 => v.verify_union_variant::<flatbuffers::ForwardsUOffset<Monster>>("AnyAmbiguousAliases::M3", pos),
+          _ => Ok(()),
+        }
+     })?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, Color>>>(&"vector_of_enums", Self::VT_VECTOR_OF_ENUMS, false)?
-     .visit_field::<Race>(&"signed_enum", Self::VT_SIGNED_ENUM, false)?;
+     .visit_field::<Race>(&"signed_enum", Self::VT_SIGNED_ENUM, false)?
+     .finish();
     Ok(())
   }
 }
@@ -2265,11 +2315,12 @@ impl<'a> TypeAliases<'a> {
   }
 }
 
-impl flatbuffers::verifier::Verifiable for TypeAliases<'_> {
+impl flatbuffers::Verifiable for TypeAliases<'_> {
   #[inline]
   fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
-  ) -> flatbuffers::verifier::Result<()> {
+    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
     v.visit_table(pos)?
      .visit_field::<i8>(&"i8_", Self::VT_I8_, false)?
      .visit_field::<u8>(&"u8_", Self::VT_U8_, false)?
@@ -2282,7 +2333,8 @@ impl flatbuffers::verifier::Verifiable for TypeAliases<'_> {
      .visit_field::<f32>(&"f32_", Self::VT_F32_, false)?
      .visit_field::<f64>(&"f64_", Self::VT_F64_, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, i8>>>(&"v8", Self::VT_V8, false)?
-     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, f64>>>(&"vf64", Self::VT_VF64, false)?;
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, f64>>>(&"vf64", Self::VT_VF64, false)?
+     .finish();
     Ok(())
   }
 }

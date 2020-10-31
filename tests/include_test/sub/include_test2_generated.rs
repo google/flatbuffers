@@ -72,7 +72,8 @@ impl<'a> flatbuffers::Follow<'a> for FromInclude {
   type Inner = Self;
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self(flatbuffers::read_scalar_at::<i64>(buf, loc))
+    let b = flatbuffers::read_scalar_at::<i64>(buf, loc);
+    Self(b)
   }
 }
 
@@ -87,19 +88,22 @@ impl flatbuffers::Push for FromInclude {
 impl flatbuffers::EndianScalar for FromInclude {
   #[inline]
   fn to_little_endian(self) -> Self {
-    Self(i64::to_le(self.0))
+    let b = i64::to_le(self.0);
+    Self(b)
   }
   #[inline]
   fn from_little_endian(self) -> Self {
-    Self(i64::from_le(self.0))
+    let b = i64::from_le(self.0);
+    Self(b)
   }
 }
 
-impl<'a> flatbuffers::verifier::Verifiable for FromInclude {
+impl<'a> flatbuffers::Verifiable for FromInclude {
   #[inline]
   fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
-  ) -> flatbuffers::verifier::Result<()> {
+    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
     i64::run_verifier(v, pos)
   }
 }
@@ -154,11 +158,12 @@ impl<'b> flatbuffers::Push for &'b Unused {
     }
 }
 
-impl<'a> flatbuffers::verifier::Verifiable for Unused {
+impl<'a> flatbuffers::Verifiable for Unused {
   #[inline]
   fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
-  ) -> flatbuffers::verifier::Result<()> {
+    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
     v.in_buffer::<Self>(pos)
   }
 }
@@ -213,13 +218,15 @@ impl<'a> TableB<'a> {
   }
 }
 
-impl flatbuffers::verifier::Verifiable for TableB<'_> {
+impl flatbuffers::Verifiable for TableB<'_> {
   #[inline]
   fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::verifier::Verifier<'o, 'b>, pos: usize
-  ) -> flatbuffers::verifier::Result<()> {
+    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
     v.visit_table(pos)?
-     .visit_field::<flatbuffers::ForwardsUOffset<super::super::TableA>>(&"a", Self::VT_A, false)?;
+     .visit_field::<flatbuffers::ForwardsUOffset<super::super::TableA>>(&"a", Self::VT_A, false)?
+     .finish();
     Ok(())
   }
 }
