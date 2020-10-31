@@ -19,7 +19,6 @@ swift:
   - tests/FlatBuffers.Benchmarks.swift/**/*
   - tests/FlatBuffers.Test.Swift/**/*
   - src/idl_gen_swift.cpp
-  - grpc/**/*swift*
 
 javascript:
   - ./**/*.js
@@ -66,11 +65,6 @@ rust:
 dart:
   - ./**/*.dart
   - src/idl_gen_dart.cpp
-
-swift:
-  - ./**/*.swift
-  - swift/**/*
-  - src/idl_gen_swift.cpp
 
 c++:
   - ./**/*.cc
