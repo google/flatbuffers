@@ -79,7 +79,8 @@ func TestAll(t *testing.T) {
 	CheckStructIsNotInlineError(t.Fatalf)
 	CheckFinishedBytesError(t.Fatalf)
 	CheckSharedStrings(t.Fatalf)
-	
+	CheckEmptiedBuilder(t.Fatalf)
+
 	// Verify that GetRootAs works for non-root tables
 	CheckGetRootAsForNonRootTable(t.Fatalf)
 	CheckTableAccessors(t.Fatalf)
@@ -1375,6 +1376,27 @@ func CheckStringIsNestedError(fail func(string, ...interface{})) {
 		}
 	}()
 	b.CreateString("foo")
+}
+
+func CheckEmptiedBuilder(fail func(string, ...interface{})) {
+	f := func(a, b string) bool {
+		if a == b {
+			return true
+		}
+
+		builder := flatbuffers.NewBuilder(0)
+
+		a1 := builder.CreateSharedString(a)
+		b1 := builder.CreateSharedString(b)
+		builder.Reset()
+		b2 := builder.CreateSharedString(b)
+		a2 := builder.CreateSharedString(a)
+
+		return !(a1 == a2 || b1 == b2)
+	}
+	if err := quick.Check(f, nil); err != nil {
+		fail("expected different offset")
+	}
 }
 
 func CheckSharedStrings(fail func(string, ...interface{})) {
