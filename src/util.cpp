@@ -17,7 +17,7 @@
 // clang-format off
 // Dont't remove `format off`, it prevent reordering of win-includes.
 
-#ifndef __OpenBSD__
+#if defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__)
 #  define _POSIX_C_SOURCE 200809L
 #  define _XOPEN_SOURCE 700L
 #endif
