@@ -159,6 +159,12 @@
     <Compile Include="..\union_vector\Rapunzel.cs">
       <Link>union_vector\Rapunzel.cs</Link>
     </Compile>
+    <Compile Include="..\optional_scalars\OptionalByte.cs">
+      <Link>optional_scalars\OptionalByte.cs</Link>
+    </Compile>
+    <Compile Include="..\optional_scalars\ScalarStuff.cs">
+      <Link>optional_scalars\ScalarStuff.cs</Link>
+    </Compile>
     <Compile Include="Assert.cs" />
     <Compile Include="ByteBufferTests.cs" />
     <Compile Include="FlatBufferBuilderTests.cs" />
