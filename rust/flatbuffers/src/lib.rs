@@ -48,11 +48,11 @@ pub use crate::primitives::*;
 pub use crate::push::Push;
 pub use crate::table::{buffer_has_identifier, get_root, get_size_prefixed_root, Table};
 pub use crate::vector::{follow_cast_ref, SafeSliceAccess, Vector, VectorIter};
-pub use crate::vtable::field_index_to_field_offset;
 pub use crate::verifier::{
-    ErrorTraceDetail, InvalidFlatbuffer, get_root as get_root_safe, get_root_with, Verifier,
-    VerifierOptions, Verifiable
+    get_root as get_root_safe, get_root_with, ErrorTraceDetail, InvalidFlatbuffer, Verifiable,
+    Verifier, VerifierOptions,
 };
+pub use crate::vtable::field_index_to_field_offset;
 pub use bitflags;
 // pub use verifier::{
 //     ErrorTraceDetail, InvalidFlatbuffer, TableVerifier, Verifiable, Verifier, VerifierOptions,

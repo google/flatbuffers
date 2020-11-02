@@ -150,7 +150,6 @@ fn main() {
   //assert_eq!(monster.path().unwrap().len(), 2);
   //assert_eq!(monster.path().unwrap()[0].x(), 1.0);
   //assert_eq!(monster.path().unwrap()[1].x(), 4.0);
-  let _ = dbg!(flatbuffers::get_root_safe::<Monster>(buf));
 }
 
 #[cfg(test)]
