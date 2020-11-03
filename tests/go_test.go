@@ -1669,7 +1669,7 @@ func CheckSizePrefixedBuffer(fail func(string, ...interface{})) {
 	// Check that the size prefix is the size of monsterdata_go_wire.mon minus 4
 	size := flatbuffers.GetSizePrefix(generated, off)
 	if size != 220 {
-		fail("mismatch between size prefix and actual buffer size: %d", size)
+		fail("mismatch between size prefix and expected size")
 	}
 
 	// Check that the buffer can be used as expected
