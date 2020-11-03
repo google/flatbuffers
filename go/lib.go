@@ -16,3 +16,8 @@ func GetRootAs(buf []byte, offset UOffsetT, fb FlatBuffer) {
 func GetSizePrefix(buf []byte) uint32 {
 	return GetUint32(buf)
 }
+
+// RemoveSizePrefix returns a slice of the original buffer starting from right after the prefixed size
+func RemoveSizePrefix(buf []byte) []byte {
+	return buf[sizePrefixLength:]
+}
