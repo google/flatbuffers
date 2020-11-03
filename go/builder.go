@@ -585,10 +585,6 @@ func (b *Builder) FinishWithFileIdentifier(rootTable UOffsetT, fid []byte) {
 // The buffer is prefixed with the size of the buffer, excluding the size
 // of the prefix itself.
 func (b *Builder) FinishSizePrefixed(rootTable UOffsetT) {
-	// In order to add a size prefix to the flatbuffer message, we need
-	// to prepare an alignment and size prefix length
-	b.Prep(b.minalign, SizeInt32+sizePrefixLength)
-	// finish
 	b.finish(rootTable, true)
 }
 
@@ -621,7 +617,7 @@ func (b *Builder) finish(rootTable UOffsetT, sizePrefix bool) {
 	b.assertNotNested()
 
 	if sizePrefix {
-		b.Prep(b.minalign, SizeUOffsetT*2)
+		b.Prep(b.minalign, SizeUOffsetT+sizePrefixLength)
 	} else {
 		b.Prep(b.minalign, SizeUOffsetT)
 	}
