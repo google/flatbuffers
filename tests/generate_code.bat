@@ -55,9 +55,8 @@ set TEST_NOINCL_FLAGS=%TEST_BASE_FLAGS% --no-includes --no-fb-import
 ..\%buildtype%\flatc.exe --cpp %TEST_BASE_FLAGS% --cpp-ptr-type flatbuffers::unique_ptr native_type_test.fbs || goto FAIL
 
 @rem Generate the optional scalar code for tests.
-..\%buildtype%\flatc.exe --rust --lobster optional_scalars2.fbs || goto FAIL
-..\%buildtype%\flatc.exe --kotlin optional_scalars.fbs || goto FAIL
-..\%buildtype%\flatc.exe %TEST_NOINCL_FLAGS% %TEST_CPP_FLAGS% --cpp optional_scalars2.fbs || goto FAIL
+..\%buildtype%\flatc.exe --csharp --java --kotlin --rust --lobster --ts --js optional_scalars.fbs || goto FAIL
+..\%buildtype%\flatc.exe %TEST_NOINCL_FLAGS% %TEST_CPP_FLAGS% --cpp optional_scalars.fbs || goto FAIL
 
 @rem Generate the schema evolution tests
 ..\%buildtype%\flatc.exe --cpp --scoped-enums %TEST_CPP_FLAGS% -o evolution_test ./evolution_test/evolution_v1.fbs ./evolution_test/evolution_v2.fbs || goto FAIL
@@ -74,7 +73,7 @@ set TEST_CPP17_FLAGS=--cpp --cpp-std c++17 -o ./cpp17/generated_cpp17 %TEST_NOIN
 if NOT "%MONSTER_EXTRA%"=="skip" (
   @rem Flag c++17 requires Clang6, GCC7, MSVC2017 (_MSC_VER >= 1914)  or higher.
   ..\%buildtype%\flatc.exe %TEST_CPP17_FLAGS% -I include_test monster_test.fbs  || goto FAIL
-  ..\%buildtype%\flatc.exe %TEST_CPP17_FLAGS% optional_scalars2.fbs || goto FAIL
+  ..\%buildtype%\flatc.exe %TEST_CPP17_FLAGS% optional_scalars.fbs || goto FAIL
   @rem..\%buildtype%\flatc.exe %TEST_CPP17_FLAGS% arrays_test.fbs                   || goto FAIL
   @rem..\%buildtype%\flatc.exe %TEST_CPP17_FLAGS% native_type_test.fbs              || goto FAIL
   @rem..\%buildtype%\flatc.exe %TEST_CPP17_FLAGS% monster_extra.fbs                 || goto FAIL

@@ -11,7 +11,7 @@ extern crate flatbuffers;
 use self::flatbuffers::EndianScalar;
 
 pub enum TableAOffset {}
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq)]
 
 pub struct TableA<'a> {
   pub _tab: flatbuffers::Table<'a>,
@@ -82,3 +82,10 @@ impl<'a: 'b, 'b> TableABuilder<'a, 'b> {
   }
 }
 
+impl std::fmt::Debug for TableA<'_> {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    let mut ds = f.debug_struct("TableA");
+      ds.field("b", &self.b());
+      ds.finish()
+  }
+}

@@ -23,7 +23,7 @@ pub mod my_game {
   use self::flatbuffers::EndianScalar;
 
 pub enum InParentNamespaceOffset {}
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq)]
 
 pub struct InParentNamespace<'a> {
   pub _tab: flatbuffers::Table<'a>,
@@ -89,6 +89,12 @@ impl<'a: 'b, 'b> InParentNamespaceBuilder<'a, 'b> {
   }
 }
 
+impl std::fmt::Debug for InParentNamespace<'_> {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    let mut ds = f.debug_struct("InParentNamespace");
+      ds.finish()
+  }
+}
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub struct InParentNamespaceT {
@@ -114,7 +120,7 @@ pub mod example_2 {
   use self::flatbuffers::EndianScalar;
 
 pub enum MonsterOffset {}
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq)]
 
 pub struct Monster<'a> {
   pub _tab: flatbuffers::Table<'a>,
@@ -180,6 +186,12 @@ impl<'a: 'b, 'b> MonsterBuilder<'a, 'b> {
   }
 }
 
+impl std::fmt::Debug for Monster<'_> {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    let mut ds = f.debug_struct("Monster");
+      ds.finish()
+  }
+}
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub struct MonsterT {
@@ -440,14 +452,14 @@ impl AnyT {
       Self::MyGameExample2Monster(v) => Some(v.pack(fbb).as_union_value()),
     }
   }
-  /// If the union variant matches, return the owned MonsterT, setting the union to NONE, otherwise panic.
+  /// If the union variant matches, return the owned MonsterT, setting the union to NONE.
   pub fn take_monster(&mut self) -> Option<Box<MonsterT>> {
     if let Self::Monster(_) = self {
       let v = std::mem::replace(self, Self::NONE);
       if let Self::Monster(w) = v {
         Some(w)
       } else {
-        panic!("Expected MonsterT variant.")
+        unreachable!()
       }
     } else {
       None
@@ -461,14 +473,14 @@ impl AnyT {
   pub fn as_monster_mut(&mut self) -> Option<&mut MonsterT> {
     if let Self::Monster(v) = self { Some(v.as_mut()) } else { None }
   }
-  /// If the union variant matches, return the owned TestSimpleTableWithEnumT, setting the union to NONE, otherwise panic.
+  /// If the union variant matches, return the owned TestSimpleTableWithEnumT, setting the union to NONE.
   pub fn take_test_simple_table_with_enum(&mut self) -> Option<Box<TestSimpleTableWithEnumT>> {
     if let Self::TestSimpleTableWithEnum(_) = self {
       let v = std::mem::replace(self, Self::NONE);
       if let Self::TestSimpleTableWithEnum(w) = v {
         Some(w)
       } else {
-        panic!("Expected TestSimpleTableWithEnumT variant.")
+        unreachable!()
       }
     } else {
       None
@@ -482,14 +494,14 @@ impl AnyT {
   pub fn as_test_simple_table_with_enum_mut(&mut self) -> Option<&mut TestSimpleTableWithEnumT> {
     if let Self::TestSimpleTableWithEnum(v) = self { Some(v.as_mut()) } else { None }
   }
-  /// If the union variant matches, return the owned super::example_2::MonsterT, setting the union to NONE, otherwise panic.
+  /// If the union variant matches, return the owned super::example_2::MonsterT, setting the union to NONE.
   pub fn take_my_game_example_2_monster(&mut self) -> Option<Box<super::example_2::MonsterT>> {
     if let Self::MyGameExample2Monster(_) = self {
       let v = std::mem::replace(self, Self::NONE);
       if let Self::MyGameExample2Monster(w) = v {
         Some(w)
       } else {
-        panic!("Expected super::example_2::MonsterT variant.")
+        unreachable!()
       }
     } else {
       None
@@ -614,14 +626,14 @@ impl AnyUniqueAliasesT {
       Self::M2(v) => Some(v.pack(fbb).as_union_value()),
     }
   }
-  /// If the union variant matches, return the owned MonsterT, setting the union to NONE, otherwise panic.
+  /// If the union variant matches, return the owned MonsterT, setting the union to NONE.
   pub fn take_m(&mut self) -> Option<Box<MonsterT>> {
     if let Self::M(_) = self {
       let v = std::mem::replace(self, Self::NONE);
       if let Self::M(w) = v {
         Some(w)
       } else {
-        panic!("Expected MonsterT variant.")
+        unreachable!()
       }
     } else {
       None
@@ -635,14 +647,14 @@ impl AnyUniqueAliasesT {
   pub fn as_m_mut(&mut self) -> Option<&mut MonsterT> {
     if let Self::M(v) = self { Some(v.as_mut()) } else { None }
   }
-  /// If the union variant matches, return the owned TestSimpleTableWithEnumT, setting the union to NONE, otherwise panic.
+  /// If the union variant matches, return the owned TestSimpleTableWithEnumT, setting the union to NONE.
   pub fn take_ts(&mut self) -> Option<Box<TestSimpleTableWithEnumT>> {
     if let Self::TS(_) = self {
       let v = std::mem::replace(self, Self::NONE);
       if let Self::TS(w) = v {
         Some(w)
       } else {
-        panic!("Expected TestSimpleTableWithEnumT variant.")
+        unreachable!()
       }
     } else {
       None
@@ -656,14 +668,14 @@ impl AnyUniqueAliasesT {
   pub fn as_ts_mut(&mut self) -> Option<&mut TestSimpleTableWithEnumT> {
     if let Self::TS(v) = self { Some(v.as_mut()) } else { None }
   }
-  /// If the union variant matches, return the owned super::example_2::MonsterT, setting the union to NONE, otherwise panic.
+  /// If the union variant matches, return the owned super::example_2::MonsterT, setting the union to NONE.
   pub fn take_m2(&mut self) -> Option<Box<super::example_2::MonsterT>> {
     if let Self::M2(_) = self {
       let v = std::mem::replace(self, Self::NONE);
       if let Self::M2(w) = v {
         Some(w)
       } else {
-        panic!("Expected super::example_2::MonsterT variant.")
+        unreachable!()
       }
     } else {
       None
@@ -788,14 +800,14 @@ impl AnyAmbiguousAliasesT {
       Self::M3(v) => Some(v.pack(fbb).as_union_value()),
     }
   }
-  /// If the union variant matches, return the owned MonsterT, setting the union to NONE, otherwise panic.
+  /// If the union variant matches, return the owned MonsterT, setting the union to NONE.
   pub fn take_m1(&mut self) -> Option<Box<MonsterT>> {
     if let Self::M1(_) = self {
       let v = std::mem::replace(self, Self::NONE);
       if let Self::M1(w) = v {
         Some(w)
       } else {
-        panic!("Expected MonsterT variant.")
+        unreachable!()
       }
     } else {
       None
@@ -809,14 +821,14 @@ impl AnyAmbiguousAliasesT {
   pub fn as_m1_mut(&mut self) -> Option<&mut MonsterT> {
     if let Self::M1(v) = self { Some(v.as_mut()) } else { None }
   }
-  /// If the union variant matches, return the owned MonsterT, setting the union to NONE, otherwise panic.
+  /// If the union variant matches, return the owned MonsterT, setting the union to NONE.
   pub fn take_m2(&mut self) -> Option<Box<MonsterT>> {
     if let Self::M2(_) = self {
       let v = std::mem::replace(self, Self::NONE);
       if let Self::M2(w) = v {
         Some(w)
       } else {
-        panic!("Expected MonsterT variant.")
+        unreachable!()
       }
     } else {
       None
@@ -830,14 +842,14 @@ impl AnyAmbiguousAliasesT {
   pub fn as_m2_mut(&mut self) -> Option<&mut MonsterT> {
     if let Self::M2(v) = self { Some(v.as_mut()) } else { None }
   }
-  /// If the union variant matches, return the owned MonsterT, setting the union to NONE, otherwise panic.
+  /// If the union variant matches, return the owned MonsterT, setting the union to NONE.
   pub fn take_m3(&mut self) -> Option<Box<MonsterT>> {
     if let Self::M3(_) = self {
       let v = std::mem::replace(self, Self::NONE);
       if let Self::M3(w) = v {
         Some(w)
       } else {
-        panic!("Expected MonsterT variant.")
+        unreachable!()
       }
     } else {
       None
@@ -854,12 +866,21 @@ impl AnyAmbiguousAliasesT {
 }
 // struct Test, aligned to 2
 #[repr(C, align(2))]
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct Test {
   a_: i16,
   b_: i8,
   padding0__: u8,
 } // pub struct Test
+impl std::fmt::Debug for Test {
+  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    f.debug_struct("Test")
+      .field("a", &self.a())
+      .field("b", &self.b())
+      .finish()
+  }
+}
+
 impl flatbuffers::SafeSliceAccess for Test {}
 impl<'a> flatbuffers::Follow<'a> for Test {
   type Inner = &'a Test;
@@ -914,14 +935,8 @@ impl Test {
   pub fn a(&self) -> i16 {
     self.a_.from_little_endian()
   }
-  pub fn set_a(&mut self, a: i16) {
-    self.a_ = a.to_little_endian()
-  }
   pub fn b(&self) -> i8 {
     self.b_.from_little_endian()
-  }
-  pub fn set_b(&mut self, b: i8) {
-    self.b_ = b.to_little_endian()
   }
   pub fn unpack(&self) -> TestT {
     TestT {
@@ -947,7 +962,7 @@ impl TestT {
 
 // struct Vec3, aligned to 8
 #[repr(C, align(8))]
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct Vec3 {
   x_: f32,
   y_: f32,
@@ -959,6 +974,19 @@ pub struct Vec3 {
   test3_: Test,
   padding2__: u16,
 } // pub struct Vec3
+impl std::fmt::Debug for Vec3 {
+  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    f.debug_struct("Vec3")
+      .field("x", &self.x())
+      .field("y", &self.y())
+      .field("z", &self.z())
+      .field("test1", &self.test1())
+      .field("test2", &self.test2())
+      .field("test3", &self.test3())
+      .finish()
+  }
+}
+
 impl flatbuffers::SafeSliceAccess for Vec3 {}
 impl<'a> flatbuffers::Follow<'a> for Vec3 {
   type Inner = &'a Vec3;
@@ -1019,38 +1047,20 @@ impl Vec3 {
   pub fn x(&self) -> f32 {
     self.x_.from_little_endian()
   }
-  pub fn set_x(&mut self, x: f32) {
-    self.x_ = x.to_little_endian()
-  }
   pub fn y(&self) -> f32 {
     self.y_.from_little_endian()
-  }
-  pub fn set_y(&mut self, y: f32) {
-    self.y_ = y.to_little_endian()
   }
   pub fn z(&self) -> f32 {
     self.z_.from_little_endian()
   }
-  pub fn set_z(&mut self, z: f32) {
-    self.z_ = z.to_little_endian()
-  }
   pub fn test1(&self) -> f64 {
     self.test1_.from_little_endian()
-  }
-  pub fn set_test1(&mut self, test1: f64) {
-    self.test1_ = test1.to_little_endian()
   }
   pub fn test2(&self) -> Color {
     self.test2_.from_little_endian()
   }
-  pub fn set_test2(&mut self, test2: Color) {
-    self.test2_ = test2.to_little_endian()
-  }
   pub fn test3(&self) -> &Test {
     &self.test3_
-  }
-  pub fn test3_mut(&mut self) -> &mut Test {
-    &mut self.test3_
   }
   pub fn unpack(&self) -> Vec3T {
     Vec3T {
@@ -1088,11 +1098,20 @@ impl Vec3T {
 
 // struct Ability, aligned to 4
 #[repr(C, align(4))]
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct Ability {
   id_: u32,
   distance_: u32,
 } // pub struct Ability
+impl std::fmt::Debug for Ability {
+  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    f.debug_struct("Ability")
+      .field("id", &self.id())
+      .field("distance", &self.distance())
+      .finish()
+  }
+}
+
 impl flatbuffers::SafeSliceAccess for Ability {}
 impl<'a> flatbuffers::Follow<'a> for Ability {
   type Inner = &'a Ability;
@@ -1146,9 +1165,6 @@ impl Ability {
   pub fn id(&self) -> u32 {
     self.id_.from_little_endian()
   }
-  pub fn set_id(&mut self, id: u32) {
-    self.id_ = id.to_little_endian()
-  }
   #[inline]
   pub fn key_compare_less_than(&self, o: &Ability) ->  bool {
     self.id() < o.id()
@@ -1161,9 +1177,6 @@ impl Ability {
   }
   pub fn distance(&self) -> u32 {
     self.distance_.from_little_endian()
-  }
-  pub fn set_distance(&mut self, distance: u32) {
-    self.distance_ = distance.to_little_endian()
   }
   pub fn unpack(&self) -> AbilityT {
     AbilityT {
@@ -1188,7 +1201,7 @@ impl AbilityT {
 }
 
 pub enum TestSimpleTableWithEnumOffset {}
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq)]
 
 pub struct TestSimpleTableWithEnum<'a> {
   pub _tab: flatbuffers::Table<'a>,
@@ -1269,6 +1282,13 @@ impl<'a: 'b, 'b> TestSimpleTableWithEnumBuilder<'a, 'b> {
   }
 }
 
+impl std::fmt::Debug for TestSimpleTableWithEnum<'_> {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    let mut ds = f.debug_struct("TestSimpleTableWithEnum");
+      ds.field("color", &self.color());
+      ds.finish()
+  }
+}
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub struct TestSimpleTableWithEnumT {
@@ -1286,7 +1306,7 @@ impl TestSimpleTableWithEnumT {
   }
 }
 pub enum StatOffset {}
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq)]
 
 pub struct Stat<'a> {
   pub _tab: flatbuffers::Table<'a>,
@@ -1397,6 +1417,15 @@ impl<'a: 'b, 'b> StatBuilder<'a, 'b> {
   }
 }
 
+impl std::fmt::Debug for Stat<'_> {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    let mut ds = f.debug_struct("Stat");
+      ds.field("id", &self.id());
+      ds.field("val", &self.val());
+      ds.field("count", &self.count());
+      ds.finish()
+  }
+}
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub struct StatT {
@@ -1422,7 +1451,7 @@ impl StatT {
   }
 }
 pub enum ReferrableOffset {}
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq)]
 
 pub struct Referrable<'a> {
   pub _tab: flatbuffers::Table<'a>,
@@ -1513,6 +1542,13 @@ impl<'a: 'b, 'b> ReferrableBuilder<'a, 'b> {
   }
 }
 
+impl std::fmt::Debug for Referrable<'_> {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    let mut ds = f.debug_struct("Referrable");
+      ds.field("id", &self.id());
+      ds.finish()
+  }
+}
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub struct ReferrableT {
@@ -1530,7 +1566,7 @@ impl ReferrableT {
   }
 }
 pub enum MonsterOffset {}
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq)]
 
 /// an example documentation comment: "monster object"
 pub struct Monster<'a> {
@@ -2474,6 +2510,138 @@ impl<'a: 'b, 'b> MonsterBuilder<'a, 'b> {
   }
 }
 
+impl std::fmt::Debug for Monster<'_> {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    let mut ds = f.debug_struct("Monster");
+      ds.field("pos", &self.pos());
+      ds.field("mana", &self.mana());
+      ds.field("hp", &self.hp());
+      ds.field("name", &self.name());
+      ds.field("inventory", &self.inventory());
+      ds.field("color", &self.color());
+      ds.field("test_type", &self.test_type());
+      match self.test_type() {
+        Any::Monster => {
+          if let Some(x) = self.test_as_monster() {
+            ds.field("test", &x)
+          } else {
+            ds.field("test", &"InvalidFlatbuffer: Union discriminant does not match value.")
+          }
+        },
+        Any::TestSimpleTableWithEnum => {
+          if let Some(x) = self.test_as_test_simple_table_with_enum() {
+            ds.field("test", &x)
+          } else {
+            ds.field("test", &"InvalidFlatbuffer: Union discriminant does not match value.")
+          }
+        },
+        Any::MyGame_Example2_Monster => {
+          if let Some(x) = self.test_as_my_game_example_2_monster() {
+            ds.field("test", &x)
+          } else {
+            ds.field("test", &"InvalidFlatbuffer: Union discriminant does not match value.")
+          }
+        },
+        _ => { 
+          let x: Option<()> = None;
+          ds.field("test", &x)
+        },
+      };
+      ds.field("test4", &self.test4());
+      ds.field("testarrayofstring", &self.testarrayofstring());
+      ds.field("testarrayoftables", &self.testarrayoftables());
+      ds.field("enemy", &self.enemy());
+      ds.field("testnestedflatbuffer", &self.testnestedflatbuffer());
+      ds.field("testempty", &self.testempty());
+      ds.field("testbool", &self.testbool());
+      ds.field("testhashs32_fnv1", &self.testhashs32_fnv1());
+      ds.field("testhashu32_fnv1", &self.testhashu32_fnv1());
+      ds.field("testhashs64_fnv1", &self.testhashs64_fnv1());
+      ds.field("testhashu64_fnv1", &self.testhashu64_fnv1());
+      ds.field("testhashs32_fnv1a", &self.testhashs32_fnv1a());
+      ds.field("testhashu32_fnv1a", &self.testhashu32_fnv1a());
+      ds.field("testhashs64_fnv1a", &self.testhashs64_fnv1a());
+      ds.field("testhashu64_fnv1a", &self.testhashu64_fnv1a());
+      ds.field("testarrayofbools", &self.testarrayofbools());
+      ds.field("testf", &self.testf());
+      ds.field("testf2", &self.testf2());
+      ds.field("testf3", &self.testf3());
+      ds.field("testarrayofstring2", &self.testarrayofstring2());
+      ds.field("testarrayofsortedstruct", &self.testarrayofsortedstruct());
+      ds.field("flex", &self.flex());
+      ds.field("test5", &self.test5());
+      ds.field("vector_of_longs", &self.vector_of_longs());
+      ds.field("vector_of_doubles", &self.vector_of_doubles());
+      ds.field("parent_namespace_test", &self.parent_namespace_test());
+      ds.field("vector_of_referrables", &self.vector_of_referrables());
+      ds.field("single_weak_reference", &self.single_weak_reference());
+      ds.field("vector_of_weak_references", &self.vector_of_weak_references());
+      ds.field("vector_of_strong_referrables", &self.vector_of_strong_referrables());
+      ds.field("co_owning_reference", &self.co_owning_reference());
+      ds.field("vector_of_co_owning_references", &self.vector_of_co_owning_references());
+      ds.field("non_owning_reference", &self.non_owning_reference());
+      ds.field("vector_of_non_owning_references", &self.vector_of_non_owning_references());
+      ds.field("any_unique_type", &self.any_unique_type());
+      match self.any_unique_type() {
+        AnyUniqueAliases::M => {
+          if let Some(x) = self.any_unique_as_m() {
+            ds.field("any_unique", &x)
+          } else {
+            ds.field("any_unique", &"InvalidFlatbuffer: Union discriminant does not match value.")
+          }
+        },
+        AnyUniqueAliases::TS => {
+          if let Some(x) = self.any_unique_as_ts() {
+            ds.field("any_unique", &x)
+          } else {
+            ds.field("any_unique", &"InvalidFlatbuffer: Union discriminant does not match value.")
+          }
+        },
+        AnyUniqueAliases::M2 => {
+          if let Some(x) = self.any_unique_as_m2() {
+            ds.field("any_unique", &x)
+          } else {
+            ds.field("any_unique", &"InvalidFlatbuffer: Union discriminant does not match value.")
+          }
+        },
+        _ => { 
+          let x: Option<()> = None;
+          ds.field("any_unique", &x)
+        },
+      };
+      ds.field("any_ambiguous_type", &self.any_ambiguous_type());
+      match self.any_ambiguous_type() {
+        AnyAmbiguousAliases::M1 => {
+          if let Some(x) = self.any_ambiguous_as_m1() {
+            ds.field("any_ambiguous", &x)
+          } else {
+            ds.field("any_ambiguous", &"InvalidFlatbuffer: Union discriminant does not match value.")
+          }
+        },
+        AnyAmbiguousAliases::M2 => {
+          if let Some(x) = self.any_ambiguous_as_m2() {
+            ds.field("any_ambiguous", &x)
+          } else {
+            ds.field("any_ambiguous", &"InvalidFlatbuffer: Union discriminant does not match value.")
+          }
+        },
+        AnyAmbiguousAliases::M3 => {
+          if let Some(x) = self.any_ambiguous_as_m3() {
+            ds.field("any_ambiguous", &x)
+          } else {
+            ds.field("any_ambiguous", &"InvalidFlatbuffer: Union discriminant does not match value.")
+          }
+        },
+        _ => { 
+          let x: Option<()> = None;
+          ds.field("any_ambiguous", &x)
+        },
+      };
+      ds.field("vector_of_enums", &self.vector_of_enums());
+      ds.field("signed_enum", &self.signed_enum());
+      ds.finish()
+  }
+}
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub struct MonsterT {
@@ -2675,7 +2843,7 @@ impl MonsterT {
   }
 }
 pub enum TypeAliasesOffset {}
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq)]
 
 pub struct TypeAliases<'a> {
   pub _tab: flatbuffers::Table<'a>,
@@ -2914,6 +3082,24 @@ impl<'a: 'b, 'b> TypeAliasesBuilder<'a, 'b> {
   }
 }
 
+impl std::fmt::Debug for TypeAliases<'_> {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    let mut ds = f.debug_struct("TypeAliases");
+      ds.field("i8_", &self.i8_());
+      ds.field("u8_", &self.u8_());
+      ds.field("i16_", &self.i16_());
+      ds.field("u16_", &self.u16_());
+      ds.field("i32_", &self.i32_());
+      ds.field("u32_", &self.u32_());
+      ds.field("i64_", &self.i64_());
+      ds.field("u64_", &self.u64_());
+      ds.field("f32_", &self.f32_());
+      ds.field("f64_", &self.f64_());
+      ds.field("v8", &self.v8());
+      ds.field("vf64", &self.vf64());
+      ds.finish()
+  }
+}
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub struct TypeAliasesT {

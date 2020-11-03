@@ -40,7 +40,7 @@ mod monster_test_generated;
 pub use monster_test_generated::my_game;
 
 #[allow(dead_code, unused_imports)]
-#[path = "../../optional_scalars2_generated.rs"]
+#[path = "../../optional_scalars_generated.rs"]
 mod optional_scalars_generated;
 
 #[rustfmt::skip] // TODO: Use standard rust formatting and remove dead code.
@@ -1530,6 +1530,56 @@ mod write_and_read_examples {
         create_serialized_example_with_generated_code(b);
         let buf = b.finished_data();
         serialized_example_is_accessible_and_correct(&buf[..], true, false).unwrap();
+    }
+
+    #[test]
+    fn generated_code_debug_prints_correctly() {
+        let b = &mut flatbuffers::FlatBufferBuilder::new();
+        create_serialized_example_with_generated_code(b);
+        let buf = b.finished_data();
+        serialized_example_is_accessible_and_correct(&buf, true, false).unwrap();
+        let m = super::my_game::example::get_root_as_monster(buf);
+        assert_eq!(
+            format!("{:.5?}", &m),
+            "Monster { pos: Some(Vec3 { x: 1.00000, y: 2.00000, z: 3.00000, \
+            test1: 3.00000, test2: Green, test3: Test { a: 5, b: 6 } }), \
+            mana: 150, hp: 80, name: \"MyMonster\", \
+            inventory: Some([0, 1, 2, 3, 4]), color: Blue, test_type: Monster, \
+            test: Monster { pos: None, mana: 150, hp: 100, name: \"Fred\", \
+            inventory: None, color: Blue, test_type: NONE, test: None, \
+            test4: None, testarrayofstring: None, testarrayoftables: None, \
+            enemy: None, testnestedflatbuffer: None, testempty: None, \
+            testbool: false, testhashs32_fnv1: 0, testhashu32_fnv1: 0, \
+            testhashs64_fnv1: 0, testhashu64_fnv1: 0, testhashs32_fnv1a: 0, \
+            testhashu32_fnv1a: 0, testhashs64_fnv1a: 0, testhashu64_fnv1a: 0, \
+            testarrayofbools: None, testf: 3.14159, testf2: 3.00000, testf3: 0.00000, \
+            testarrayofstring2: None, testarrayofsortedstruct: None, flex: None, \
+            test5: None, vector_of_longs: None, vector_of_doubles: None, \
+            parent_namespace_test: None, vector_of_referrables: None, \
+            single_weak_reference: 0, vector_of_weak_references: None, \
+            vector_of_strong_referrables: None, co_owning_reference: 0, \
+            vector_of_co_owning_references: None, non_owning_reference: 0, \
+            vector_of_non_owning_references: None, any_unique_type: NONE, \
+            any_unique: None, any_ambiguous_type: NONE, any_ambiguous: None, \
+            vector_of_enums: None, signed_enum: None }, test4: Some([Test { \
+            a: 10, b: 20 }, Test { a: 30, b: 40 }]), \
+            testarrayofstring: Some([\"test1\", \"test2\"]), \
+            testarrayoftables: None, enemy: None, testnestedflatbuffer: None, \
+            testempty: None, testbool: false, testhashs32_fnv1: 0, \
+            testhashu32_fnv1: 0, testhashs64_fnv1: 0, testhashu64_fnv1: 0, \
+            testhashs32_fnv1a: 0, testhashu32_fnv1a: 0, testhashs64_fnv1a: 0, \
+            testhashu64_fnv1a: 0, testarrayofbools: None, testf: 3.14159, \
+            testf2: 3.00000, testf3: 0.00000, testarrayofstring2: None, \
+            testarrayofsortedstruct: None, flex: None, test5: None, \
+            vector_of_longs: None, vector_of_doubles: None, \
+            parent_namespace_test: None, vector_of_referrables: None, \
+            single_weak_reference: 0, vector_of_weak_references: None, \
+            vector_of_strong_referrables: None, co_owning_reference: 0, \
+            vector_of_co_owning_references: None, non_owning_reference: 0, \
+            vector_of_non_owning_references: None, any_unique_type: NONE, \
+            any_unique: None, any_ambiguous_type: NONE, any_ambiguous: None, \
+            vector_of_enums: None, signed_enum: None }"
+        );
     }
 
     #[test]

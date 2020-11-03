@@ -102,11 +102,20 @@ impl flatbuffers::EndianScalar for EnumInNestedNS {
 
 // struct StructInNestedNS, aligned to 4
 #[repr(C, align(4))]
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct StructInNestedNS {
   a_: i32,
   b_: i32,
 } // pub struct StructInNestedNS
+impl std::fmt::Debug for StructInNestedNS {
+  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    f.debug_struct("StructInNestedNS")
+      .field("a", &self.a())
+      .field("b", &self.b())
+      .finish()
+  }
+}
+
 impl flatbuffers::SafeSliceAccess for StructInNestedNS {}
 impl<'a> flatbuffers::Follow<'a> for StructInNestedNS {
   type Inner = &'a StructInNestedNS;
@@ -160,14 +169,8 @@ impl StructInNestedNS {
   pub fn a(&self) -> i32 {
     self.a_.from_little_endian()
   }
-  pub fn set_a(&mut self, a: i32) {
-    self.a_ = a.to_little_endian()
-  }
   pub fn b(&self) -> i32 {
     self.b_.from_little_endian()
-  }
-  pub fn set_b(&mut self, b: i32) {
-    self.b_ = b.to_little_endian()
   }
   pub fn unpack(&self) -> StructInNestedNST {
     StructInNestedNST {
@@ -192,7 +195,7 @@ impl StructInNestedNST {
 }
 
 pub enum TableInNestedNSOffset {}
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq)]
 
 pub struct TableInNestedNS<'a> {
   pub _tab: flatbuffers::Table<'a>,
@@ -273,6 +276,13 @@ impl<'a: 'b, 'b> TableInNestedNSBuilder<'a, 'b> {
   }
 }
 
+impl std::fmt::Debug for TableInNestedNS<'_> {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    let mut ds = f.debug_struct("TableInNestedNS");
+      ds.field("foo", &self.foo());
+      ds.finish()
+  }
+}
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub struct TableInNestedNST {

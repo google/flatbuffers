@@ -87,7 +87,7 @@ enum FullType {
 FullType GetFullType(const Type &type) {
   // N.B. The order of these conditionals matters for some types.
 
-  if (type.base_type == BASE_TYPE_STRING) {
+  if (IsString(type)) {
     return ftString;
   } else if (type.base_type == BASE_TYPE_STRUCT) {
     if (type.struct_def->fixed) {
@@ -95,7 +95,7 @@ FullType GetFullType(const Type &type) {
     } else {
       return ftTable;
     }
-  } else if (type.base_type == BASE_TYPE_VECTOR) {
+  } else if (IsVector(type)) {
     switch (GetFullType(type.VectorType())) {
       case ftInteger: {
         return ftVectorOfInteger;
@@ -344,27 +344,6 @@ class RustGenerator : public BaseGenerator {
     }
 
     return false;
-  }
-
-  // Determine if a Type needs to be copied (for endian safety) when used in a
-  // Struct.
-  bool StructMemberAccessNeedsCopy(const Type &type) const {
-    switch (GetFullType(type)) {
-      case ftInteger:  // requires endian swap
-      case ftFloat:    // requires endian swap
-      case ftBool:     // no endian-swap, but do the copy for UX consistency
-      case ftEnumKey: {
-        return true;
-      }  // requires endian swap
-      case ftStruct: {
-        return false;
-      }  // no endian swap
-      default: {
-        // logic error: no other types can be struct members.
-        FLATBUFFERS_ASSERT(false && "invalid struct member type");
-        return false;  // only to satisfy compiler's return analysis
-      }
-    }
   }
 
   std::string EscapeKeyword(const std::string &name) const {
@@ -726,6 +705,7 @@ class RustGenerator : public BaseGenerator {
     }
   }
 
+  // CASPER: dedup Object versions from non object versions.
   void ForAllUnionObjectVariantsBesidesNone(
     const EnumDef &enum_def, std::function<void()> cb) {
     for (auto it = enum_def.Vals().begin();
@@ -941,24 +921,6 @@ class RustGenerator : public BaseGenerator {
     return "INVALID_CODE_GENERATION";  // for return analysis
   }
 
-  std::string TableBuilderArgsDefaultValue(const FieldDef &field) {
-    return GetDefaultScalarValue(field);
-  }
-  std::string TableBuilderAddFuncDefaultValue(const FieldDef &field) {
-    // All branches of switch do the same action!
-    switch (GetFullType(field.value.type)) {
-      case ftUnionKey:
-      case ftEnumKey: {
-        const std::string basetype =
-            GetTypeBasic(field.value.type);  //<- never used
-        return GetDefaultScalarValue(field);
-      }
-
-      default: {
-        return GetDefaultScalarValue(field);
-      }
-    }
-  }
   std::string ObjectFieldType(const FieldDef &field, bool in_a_table) {
     const Type &type = field.value.type;
     std::string ty;
@@ -1357,18 +1319,45 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
   }
 
-  // Disambiguat
-  void MapTableField(const FieldDef &field, std::string expr) {
-    if (field.required) {
-      code_ += "      let {{FIELD_NAME}} = {";
-      code_ += "        let x = self.{{FIELD_NAME}}();";
-      code_ += "        " + expr;
-      code_ += "      };";
+  void ForAllUnionVariantsBesidesNone(
+    const EnumDef &def,
+    std::function<void(const EnumVal &ev)> cb
+  ) {
+    FLATBUFFERS_ASSERT(def.is_union);
+
+    for (auto it = def.Vals().begin(); it != def.Vals().end(); ++it) {
+      const EnumVal & ev = **it;
+      // TODO(cneo): Can variants be deprecated, should we skip them?
+      if (ev.union_type.base_type == BASE_TYPE_NONE) { continue; }
+      code_.SetValue(
+          "U_ELEMENT_ENUM_TYPE",
+          WrapInNameSpace(def.defined_namespace, GetEnumValue(def, ev)));
+      code_.SetValue("U_ELEMENT_TABLE_TYPE",
+          WrapInNameSpace(ev.union_type.struct_def->defined_namespace,
+                          ev.union_type.struct_def->name));
+      code_.SetValue("U_ELEMENT_NAME", MakeSnakeCase(Name(ev)));
+      cb(ev);
     }
-    else {
-      code_ += "      let {{FIELD_NAME}} = self.{{FIELD_NAME}}().map(|x| {";
-      code_ += "        " + expr;
-      code_ += "      });";
+  }
+
+  void ForAllTableFields(
+    const StructDef &struct_def,
+    std::function<void(const FieldDef&)> cb, bool reversed=false) {
+    // TODO(cneo): Remove `reversed` overload. It's only here to minimize the
+    // diff when refactoring to the `ForAllX` helper functions.
+    auto go = [&](const FieldDef& field) {
+      if (field.deprecated) return;
+      code_.SetValue("OFFSET_NAME", GetFieldOffsetName(field));
+      code_.SetValue("OFFSET_VALUE", NumToString(field.value.offset));
+      code_.SetValue("FIELD_NAME", Name(field));
+      code_.SetValue("DEFAULT_VALUE", GetDefaultScalarValue(field));
+      cb(field);
+    };
+    const auto &fields = struct_def.fields.vec;
+    if (reversed) {
+      for (auto it = fields.rbegin(); it != fields.rend(); ++it) go(**it);
+    } else {
+      for (auto it = fields.begin(); it != fields.end(); ++it) go(**it);
     }
   }
   // Generate an accessor struct, builder struct, and create function for a
@@ -1381,7 +1370,7 @@ class RustGenerator : public BaseGenerator {
     // Generate an offset type, the base type, the Follow impl, and the
     // init_from_table impl.
     code_ += "pub enum {{OFFSET_TYPELABEL}} {}";
-    code_ += "#[derive(Copy, Clone, Debug, PartialEq)]";
+    code_ += "#[derive(Copy, Clone, PartialEq)]";
     code_ += "";
 
     GenComment(struct_def.doc_comment);
@@ -1428,22 +1417,17 @@ class RustGenerator : public BaseGenerator {
     code_ += "      let mut builder = {{STRUCT_NAME}}Builder::new(_fbb);";
     for (size_t size = struct_def.sortbysize ? sizeof(largest_scalar_t) : 1;
          size; size /= 2) {
-      for (auto it = struct_def.fields.vec.rbegin();
-           it != struct_def.fields.vec.rend(); ++it) {
-        const auto &field = **it;
-        // TODO(rw): fully understand this sortbysize usage
-        if (!field.deprecated && (!struct_def.sortbysize ||
-                                  size == SizeOf(field.value.type.base_type))) {
-          code_.SetValue("FIELD_NAME", Name(field));
-          if (TableFieldReturnsOption(field)) {
-            code_ +=
-                "      if let Some(x) = args.{{FIELD_NAME}} "
-                "{ builder.add_{{FIELD_NAME}}(x); }";
-          } else {
-            code_ += "      builder.add_{{FIELD_NAME}}(args.{{FIELD_NAME}});";
-          }
+      ForAllTableFields(struct_def, [&](const FieldDef &field) {
+        if (struct_def.sortbysize && size != SizeOf(field.value.type.base_type))
+          return;
+        if (TableFieldReturnsOption(field)) {
+          code_ +=
+              "      if let Some(x) = args.{{FIELD_NAME}} "
+              "{ builder.add_{{FIELD_NAME}}(x); }";
+        } else {
+          code_ += "      builder.add_{{FIELD_NAME}}(args.{{FIELD_NAME}});";
         }
-      }
+      }, /*reverse=*/true);
     }
     code_ += "      builder.finish()";
     code_ += "    }";
@@ -1491,46 +1475,56 @@ class RustGenerator : public BaseGenerator {
           // The rest of the types need special handling based on if the field
           // is optional or not.
           case ftString: {
-            MapTableField(field, "x.to_string()");
-            return;
+            code_.SetValue("EXPR", "x.to_string()");
+            break;
           }
           case ftStruct: {
-            MapTableField(field, "x.unpack()");
-            return;
+            code_.SetValue("EXPR", "x.unpack()");
+            break;
           }
           case ftTable: {
-            MapTableField(field, "Box::new(x.unpack())");
-            return;
+            code_.SetValue("EXPR", "Box::new(x.unpack())");
+            break;
           }
           case ftVectorOfInteger:
           case ftVectorOfBool:{
             if (IsOneByte(type.VectorType().base_type)) {
               // 1 byte stuff is viewed w/ slice instead of flatbuffer::Vector
               // and thus needs to be cloned out of the slice.
-              MapTableField(field, "x.iter().cloned().collect()");
-              return;
+              code_.SetValue("EXPR", "x.iter().cloned().collect()");
+              break;
             }
-            MapTableField(field, "x.into_iter().collect()");
-            return;
+            code_.SetValue("EXPR", "x.into_iter().collect()");
+            break;
           }
           case ftVectorOfFloat:
           case ftVectorOfEnumKey: {
-            MapTableField(field, "x.into_iter().collect()");
-            return;
+            code_.SetValue("EXPR", "x.into_iter().collect()");
+            break;
           }
           case ftVectorOfString: {
-            MapTableField(field, "x.iter().map(|s| s.to_string()).collect()");
-            return;
+            code_.SetValue("EXPR", "x.iter().map(|s| s.to_string()).collect()");
+            break;
           }
           case ftVectorOfStruct:
           case ftVectorOfTable: {
-            MapTableField(field, "x.iter().map(|t| t.unpack()).collect()");
-            return;
+            code_.SetValue("EXPR", "x.iter().map(|t| t.unpack()).collect()");
+            break;
           }
           case ftVectorOfUnionValue: {
             FLATBUFFERS_ASSERT(false && "vectors of unions not yet supported");
             return;
           }
+        }
+        if (field.optional) {
+          code_ += "      let {{FIELD_NAME}} = self.{{FIELD_NAME}}().map(|x| {";
+          code_ += "        {{EXPR}}";
+          code_ += "      });";
+        } else {
+          code_ += "      let {{FIELD_NAME}} = {";
+          code_ += "        let x = self.{{FIELD_NAME}}();";
+          code_ += "        {{EXPR}}";
+          code_ += "      };";
         }
       });
       code_ += "      {{OBJECT_NAME}} {";
@@ -1543,23 +1537,12 @@ class RustGenerator : public BaseGenerator {
     }
 
     // Generate field id constants.
-    if (struct_def.fields.vec.size() > 0) {
-      for (auto it = struct_def.fields.vec.begin();
-           it != struct_def.fields.vec.end(); ++it) {
-        const auto &field = **it;
-        if (field.deprecated) {
-          // Deprecated fields won't be accessible.
-          continue;
-        }
-
-        code_.SetValue("OFFSET_NAME", GetFieldOffsetName(field));
-        code_.SetValue("OFFSET_VALUE", NumToString(field.value.offset));
-        code_ +=
-            "    pub const {{OFFSET_NAME}}: flatbuffers::VOffsetT = "
-            "{{OFFSET_VALUE}};";
-      }
-      code_ += "";
-    }
+    ForAllTableFields(struct_def, [&](const FieldDef &unused){
+      (void) unused;
+      code_ += "    pub const {{OFFSET_NAME}}: flatbuffers::VOffsetT = "
+               "{{OFFSET_VALUE}};";
+    });
+    if (struct_def.fields.vec.size() > 0) code_ += "";
 
     // Generate the accessors. Each has one of two forms:
     //
@@ -1573,21 +1556,13 @@ class RustGenerator : public BaseGenerator {
     //     self._tab.get::<internal_type>(offset, defaultval).unwrap()
     //   }
     const auto offset_prefix = Name(struct_def);
-    for (auto it = struct_def.fields.vec.begin();
-         it != struct_def.fields.vec.end(); ++it) {
-      const auto &field = **it;
-      if (field.deprecated) {
-        // Deprecated fields won't be accessible.
-        continue;
-      }
-
-      code_.SetValue("FIELD_NAME", Name(field));
+    ForAllTableFields(struct_def, [&](const FieldDef &field) {
       code_.SetValue("RETURN_TYPE",
                      GenTableAccessorFuncReturnType(field, "'a"));
       code_.SetValue("FUNC_BODY",
                      GenTableAccessorFuncBody(field, "'a", offset_prefix));
 
-      GenComment(field.doc_comment, "  ");
+      this->GenComment(field.doc_comment, "  ");
       code_ += "  #[inline]";
       code_ += "  pub fn {{FIELD_NAME}}(&self) -> {{RETURN_TYPE}} {";
       code_ += "    {{FUNC_BODY}}";
@@ -1619,35 +1594,15 @@ class RustGenerator : public BaseGenerator {
         code_ += "    })";
         code_ += "  }";
       }
-    }
+    });
 
     // Explicit specializations for union accessors
-    for (auto it = struct_def.fields.vec.begin();
-         it != struct_def.fields.vec.end(); ++it) {
-      const auto &field = **it;
-      if (field.deprecated || field.value.type.base_type != BASE_TYPE_UNION) {
-        continue;
-      }
-
-      auto u = field.value.type.enum_def;
-
-      code_.SetValue("FIELD_NAME", Name(field));
+    ForAllTableFields(struct_def, [&](const FieldDef &field) {
+      if (field.value.type.base_type != BASE_TYPE_UNION) return;
       code_.SetValue("FIELD_TYPE_FIELD_NAME", field.name);
-
-      for (auto u_it = u->Vals().begin(); u_it != u->Vals().end(); ++u_it) {
-        auto &ev = **u_it;
-        if (ev.union_type.base_type == BASE_TYPE_NONE) { continue; }
-
-        auto table_init_type =
-            WrapInNameSpace(ev.union_type.struct_def->defined_namespace,
-                            ev.union_type.struct_def->name);
-
-        code_.SetValue(
-            "U_ELEMENT_ENUM_TYPE",
-            WrapInNameSpace(u->defined_namespace, GetEnumValue(*u, ev)));
-        code_.SetValue("U_ELEMENT_TABLE_TYPE", table_init_type);
-        code_.SetValue("U_ELEMENT_NAME", MakeSnakeCase(Name(ev)));
-
+      ForAllUnionVariantsBesidesNone(
+        *field.value.type.enum_def, [&](const EnumVal &unused){
+        (void) unused;
         code_ += "  #[inline]";
         code_ += "  #[allow(non_snake_case)]";
         code_ +=
@@ -1683,9 +1638,9 @@ class RustGenerator : public BaseGenerator {
         code_ += "    }";
         code_ += "  }";
         code_ += "";
-      }
-    }
 
+      });
+    });
     code_ += "}";  // End of table impl.
     code_ += "";
 
@@ -1693,15 +1648,10 @@ class RustGenerator : public BaseGenerator {
     code_.SetValue("MAYBE_LT",
                    TableBuilderArgsNeedsLifetime(struct_def) ? "<'a>" : "");
     code_ += "pub struct {{STRUCT_NAME}}Args{{MAYBE_LT}} {";
-    for (auto it = struct_def.fields.vec.begin();
-         it != struct_def.fields.vec.end(); ++it) {
-      const auto &field = **it;
-      if (!field.deprecated) {
-        code_.SetValue("PARAM_NAME", Name(field));
-        code_.SetValue("PARAM_TYPE", TableBuilderArgsDefnType(field, "'a"));
-        code_ += "    pub {{PARAM_NAME}}: {{PARAM_TYPE}},";
-      }
-    }
+    ForAllTableFields(struct_def, [&](const FieldDef &field) {
+      code_.SetValue("PARAM_TYPE", TableBuilderArgsDefnType(field, "'a"));
+      code_ += "    pub {{FIELD_NAME}}: {{PARAM_TYPE}},";
+    });
     code_ += "}";
 
     // Generate an impl of Default for the *Args type:
@@ -1709,16 +1659,10 @@ class RustGenerator : public BaseGenerator {
     code_ += "    #[inline]";
     code_ += "    fn default() -> Self {";
     code_ += "        {{STRUCT_NAME}}Args {";
-    for (auto it = struct_def.fields.vec.begin();
-         it != struct_def.fields.vec.end(); ++it) {
-      const auto &field = **it;
-      if (!field.deprecated) {
-        code_.SetValue("PARAM_VALUE", TableBuilderArgsDefaultValue(field));
-        code_.SetValue("REQ", field.required ? " // required field" : "");
-        code_.SetValue("PARAM_NAME", Name(field));
-        code_ += "            {{PARAM_NAME}}: {{PARAM_VALUE}},{{REQ}}";
-      }
-    }
+    ForAllTableFields(struct_def, [&](const FieldDef &field) {
+      code_ += "            {{FIELD_NAME}}: {{DEFAULT_VALUE}},\\";
+      code_ += field.required ? " // required field" : "";
+    });
     code_ += "        }";
     code_ += "    }";
     code_ += "}";
@@ -1733,44 +1677,35 @@ class RustGenerator : public BaseGenerator {
 
     // Generate builder functions:
     code_ += "impl<'a: 'b, 'b> {{STRUCT_NAME}}Builder<'a, 'b> {";
-    for (auto it = struct_def.fields.vec.begin();
-         it != struct_def.fields.vec.end(); ++it) {
-      const auto &field = **it;
-      if (!field.deprecated) {
-        const bool is_scalar = IsScalar(field.value.type.base_type);
-        std::string offset = GetFieldOffsetName(field);
-
-        // Generate functions to add data, which take one of two forms.
-        //
-        // If a value has a default:
-        //   fn add_x(x_: type) {
-        //     fbb_.push_slot::<type>(offset, x_, Some(default));
-        //   }
-        //
-        // If a value does not have a default:
-        //   fn add_x(x_: type) {
-        //     fbb_.push_slot_always::<type>(offset, x_);
-        //   }
-        code_.SetValue("FIELD_NAME", Name(field));
-        code_.SetValue("FIELD_OFFSET", Name(struct_def) + "::" + offset);
-        code_.SetValue("FIELD_TYPE", TableBuilderArgsAddFuncType(field, "'b "));
-        code_.SetValue("FUNC_BODY", TableBuilderArgsAddFuncBody(field));
-        code_ += "  #[inline]";
+    ForAllTableFields(struct_def, [&](const FieldDef &field) {
+      const bool is_scalar = IsScalar(field.value.type.base_type);
+      std::string offset = GetFieldOffsetName(field);
+      // Generate functions to add data, which take one of two forms.
+      //
+      // If a value has a default:
+      //   fn add_x(x_: type) {
+      //     fbb_.push_slot::<type>(offset, x_, Some(default));
+      //   }
+      //
+      // If a value does not have a default:
+      //   fn add_x(x_: type) {
+      //     fbb_.push_slot_always::<type>(offset, x_);
+      //   }
+      code_.SetValue("FIELD_OFFSET", Name(struct_def) + "::" + offset);
+      code_.SetValue("FIELD_TYPE", TableBuilderArgsAddFuncType(field, "'b "));
+      code_.SetValue("FUNC_BODY", TableBuilderArgsAddFuncBody(field));
+      code_ += "  #[inline]";
+      code_ += "  pub fn add_{{FIELD_NAME}}(&mut self, {{FIELD_NAME}}: "
+               "{{FIELD_TYPE}}) {";
+      if (is_scalar && !field.optional) {
         code_ +=
-            "  pub fn add_{{FIELD_NAME}}(&mut self, {{FIELD_NAME}}: "
-            "{{FIELD_TYPE}}) {";
-        if (is_scalar && !field.optional) {
-          code_.SetValue("FIELD_DEFAULT_VALUE",
-                         TableBuilderAddFuncDefaultValue(field));
-          code_ +=
-              "    {{FUNC_BODY}}({{FIELD_OFFSET}}, {{FIELD_NAME}}, "
-              "{{FIELD_DEFAULT_VALUE}});";
-        } else {
-          code_ += "    {{FUNC_BODY}}({{FIELD_OFFSET}}, {{FIELD_NAME}});";
-        }
-        code_ += "  }";
+            "    {{FUNC_BODY}}({{FIELD_OFFSET}}, {{FIELD_NAME}}, "
+            "{{DEFAULT_VALUE}});";
+      } else {
+        code_ += "    {{FUNC_BODY}}({{FIELD_OFFSET}}, {{FIELD_NAME}});";
       }
-    }
+      code_ += "  }";
+    });
 
     // Struct initializer (all fields required);
     code_ += "  #[inline]";
@@ -1792,21 +1727,55 @@ class RustGenerator : public BaseGenerator {
         "flatbuffers::WIPOffset<{{STRUCT_NAME}}<'a>> {";
     code_ += "    let o = self.fbb_.end_table(self.start_);";
 
-    for (auto it = struct_def.fields.vec.begin();
-         it != struct_def.fields.vec.end(); ++it) {
-      const auto &field = **it;
-      if (!field.deprecated && field.required) {
-        code_.SetValue("FIELD_NAME", MakeSnakeCase(Name(field)));
-        code_.SetValue("OFFSET_NAME", GetFieldOffsetName(field));
-        code_ +=
-            "    self.fbb_.required(o, {{STRUCT_NAME}}::{{OFFSET_NAME}},"
-            "\"{{FIELD_NAME}}\");";
-      }
-    }
+    ForAllTableFields(struct_def, [&](const FieldDef &field) {
+      if (!field.required) return;
+      code_ +=
+          "    self.fbb_.required(o, {{STRUCT_NAME}}::{{OFFSET_NAME}},"
+          "\"{{FIELD_NAME}}\");";
+    });
     code_ += "    flatbuffers::WIPOffset::new(o.value())";
     code_ += "  }";
     code_ += "}";
     code_ += "";
+
+    code_ += "impl std::fmt::Debug for {{STRUCT_NAME}}<'_> {";
+    code_ += "  fn fmt(&self, f: &mut std::fmt::Formatter<'_>"
+             ") -> std::fmt::Result {";
+    code_ += "    let mut ds = f.debug_struct(\"{{STRUCT_NAME}}\");";
+    ForAllTableFields(struct_def, [&](const FieldDef &field) {
+      if (GetFullType(field.value.type) == ftUnionValue) {
+        // Generate a match statement to handle unions properly.
+        code_.SetValue("KEY_TYPE", GenTableAccessorFuncReturnType(field, ""));
+        code_.SetValue("FIELD_TYPE_FIELD_NAME", field.name);
+        code_.SetValue("UNION_ERR", "&\"InvalidFlatbuffer: Union discriminant"
+                                    " does not match value.\"");
+
+        code_ += "      match self.{{FIELD_NAME}}_type() {";
+        ForAllUnionVariantsBesidesNone(*field.value.type.enum_def,
+                                       [&](const EnumVal &unused){
+          (void) unused;
+          code_ += "        {{U_ELEMENT_ENUM_TYPE}} => {";
+          code_ += "          if let Some(x) = self.{{FIELD_TYPE_FIELD_NAME}}_as_"
+                   "{{U_ELEMENT_NAME}}() {";
+          code_ += "            ds.field(\"{{FIELD_NAME}}\", &x)";
+          code_ += "          } else {";
+          code_ += "            ds.field(\"{{FIELD_NAME}}\", {{UNION_ERR}})";
+          code_ += "          }";
+          code_ += "        },";
+        });
+        code_ += "        _ => { ";
+        code_ += "          let x: Option<()> = None;";
+        code_ += "          ds.field(\"{{FIELD_NAME}}\", &x)";
+        code_ += "        },";
+        code_ += "      };";
+      } else {
+        // Most fields.
+        code_ += "      ds.field(\"{{FIELD_NAME}}\", &self.{{FIELD_NAME}}());";
+      }
+    });
+    code_ += "      ds.finish()";
+    code_ += "  }";
+    code_ += "}";
   }
 
   void GenTableObject(const StructDef &table) {
@@ -2083,14 +2052,16 @@ class RustGenerator : public BaseGenerator {
     *code_ptr += "padding" + NumToString((*id)++) + "__: 0,";
   }
 
-  // Common set up stuff for struct fields.
-  void ForAllStructFields(const SymbolTable<FieldDef> &fields,
-                          std::function<void(const FieldDef&)> cb) {
-    for (auto it = fields.vec.begin(); it != fields.vec.end(); ++it) {
-      const FieldDef &field = **it;
-      code_.SetValue("FIELD_NAME", Name(field));
-      code_.SetValue("FIELD_OBJECT_TYPE", ObjectFieldType(field, false));
+  void ForAllStructFields(
+    const StructDef &struct_def,
+    std::function<void(const FieldDef &field)> cb
+  ) {
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      const auto &field = **it;
       code_.SetValue("FIELD_TYPE", GetTypeGet(field.value.type));
+      code_.SetValue("FIELD_OBJECT_TYPE", ObjectFieldType(field, false));
+      code_.SetValue("FIELD_NAME", Name(field));
       cb(field);
     }
   }
@@ -2109,11 +2080,11 @@ class RustGenerator : public BaseGenerator {
     // PartialEq is useful to derive because we can correctly compare structs
     // for equality by just comparing their underlying byte data. This doesn't
     // hold for PartialOrd/Ord.
-    code_ += "#[derive(Clone, Copy, Debug, PartialEq)]";
+    code_ += "#[derive(Clone, Copy, PartialEq)]";
     code_ += "pub struct {{STRUCT_NAME}} {";
 
     int padding_id = 0;
-    ForAllStructFields(struct_def.fields, [&](const FieldDef &field){
+    ForAllStructFields(struct_def, [&](const FieldDef &field) {
       code_ += "  {{FIELD_NAME}}_: {{FIELD_TYPE}},";
       if (field.padding) {
         std::string padding;
@@ -2122,6 +2093,21 @@ class RustGenerator : public BaseGenerator {
       }
     });
     code_ += "} // pub struct {{STRUCT_NAME}}";
+
+    // Debug for structs.
+    code_ += "impl std::fmt::Debug for {{STRUCT_NAME}} {";
+    code_ += "  fn fmt(&self, f: &mut std::fmt::Formatter"
+             ") -> std::fmt::Result {";
+    code_ += "    f.debug_struct(\"{{STRUCT_NAME}}\")";
+    ForAllStructFields(struct_def, [&](const FieldDef &unused) {
+      (void) unused;
+      code_ += "      .field(\"{{FIELD_NAME}}\", &self.{{FIELD_NAME}}())";
+    });
+    code_ += "      .finish()";
+    code_ += "  }";
+    code_ += "}";
+    code_ += "";
+
 
     // Generate impls for SafeSliceAccess (because all structs are endian-safe),
     // Follow for the value type, Follow for the reference type, Push for the
@@ -2171,43 +2157,34 @@ class RustGenerator : public BaseGenerator {
 
     // Generate a constructor that takes all fields as arguments.
     code_ += "impl {{STRUCT_NAME}} {";
-    std::string arg_list;
-    std::string init_list;
-    padding_id = 0;
-    for (auto it = struct_def.fields.vec.begin();
-         it != struct_def.fields.vec.end(); ++it) {
-      const auto &field = **it;
-      const auto member_name = Name(field) + "_";
-      const auto arg_name = "_" + Name(field);
-      std::string arg_type;
-      std::string member_value;
-      if (StructMemberAccessNeedsCopy(field.value.type)) {
-        arg_type = GetTypeGet(field.value.type);
-        member_value = arg_name + ".to_little_endian()";
-      } else {
-        arg_type = "&" + GetTypeGet(field.value.type);
-        member_value = "*" + arg_name;
-      }
-      if (it != struct_def.fields.vec.begin()) arg_list += ", ";
-      arg_list += arg_name + ": " + arg_type;
-      init_list += "      " + member_name + ": " + member_value + ",\n";
-    }
-
-    code_.SetValue("ARG_LIST", arg_list);
-    code_.SetValue("INIT_LIST", init_list);
-    code_ += "  pub fn new({{ARG_LIST}}) -> Self {";
+    // TODO(cneo): Stop generating args on one line. Make it simpler.
+    bool first_arg = true;
+    code_ += "  pub fn new(\\";
+    ForAllStructFields(struct_def, [&](const FieldDef &field) {
+      if (first_arg) first_arg = false; else code_ += ", \\";
+      code_.SetValue("REF", IsStruct(field.value.type) ? "&" : "");
+      code_ += "_{{FIELD_NAME}}: {{REF}}{{FIELD_TYPE}}\\";
+    });
+    code_ += ") -> Self {";
     code_ += "    {{STRUCT_NAME}} {";
-    code_ += "{{INIT_LIST}}";
+
+    ForAllStructFields(struct_def, [&](const FieldDef &field) {
+      const bool is_struct = IsStruct(field.value.type);
+      code_.SetValue("DEREF", is_struct ? "*" : "");
+      code_.SetValue("TO_LE", is_struct ? "" : ".to_little_endian()");
+      code_ += "      {{FIELD_NAME}}_: {{DEREF}}_{{FIELD_NAME}}{{TO_LE}},";
+    });
+    code_ += "";
+
+    // TODO(cneo): Does this padding even work? Why after all the fields?
     padding_id = 0;
-    for (auto it = struct_def.fields.vec.begin();
-         it != struct_def.fields.vec.end(); ++it) {
-      const auto &field = **it;
+    ForAllStructFields(struct_def, [&](const FieldDef &field) {
       if (field.padding) {
         std::string padding;
         GenPadding(field, &padding, &padding_id, PaddingInitializer);
         code_ += "      " + padding;
       }
-    }
+    });
     code_ += "    }";
     code_ += "  }";
 
@@ -2216,50 +2193,34 @@ class RustGenerator : public BaseGenerator {
     }
 
     // Generate accessor methods for the struct.
-    ForAllStructFields(struct_def.fields, [&](const FieldDef &field){
-      if (IsStruct(field.value.type)) {
-        // Struct accessor
-        code_ += "  pub fn {{FIELD_NAME}}(&self) -> &{{FIELD_TYPE}} {";
-        code_ += "    &self.{{FIELD_NAME}}_";
-        code_ += "  }";
-        // Struct mutator
-        if (parser_.opts.mutable_buffer) {
-          code_ += "  pub fn {{FIELD_NAME}}_mut(&mut self) ->"
-                   " &mut {{FIELD_TYPE}} {";
-          code_ += "    &mut self.{{FIELD_NAME}}_";
-          code_ += "  }";
-        }
-      } else {
-        // Scalar getter
-        code_ += "  pub fn {{FIELD_NAME}}(&self) -> {{FIELD_TYPE}} {";
-        code_ += "    self.{{FIELD_NAME}}_.from_little_endian()";
-        code_ += "  }";
-        // Scalar setter
-        if (parser_.opts.mutable_buffer) {
-          code_ += "  pub fn set_{{FIELD_NAME}}(&mut self, "
-                   "{{FIELD_NAME}}: {{FIELD_TYPE}}) {";
-          code_ += "    self.{{FIELD_NAME}}_ = "
-                   "{{FIELD_NAME}}.to_little_endian()";
-          code_ += "  }";
-        }
-      }
+    ForAllStructFields(struct_def, [&](const FieldDef &field) {
+      const bool is_struct = IsStruct(field.value.type);
+      code_.SetValue("REF", is_struct ? "&" : "");
+      code_.SetValue("FROM_LE", is_struct ? "" : ".from_little_endian()");
+
+      this->GenComment(field.doc_comment, "  ");
+      code_ += "  pub fn {{FIELD_NAME}}(&self) -> {{REF}}{{FIELD_TYPE}} {";
+      code_ += "    {{REF}}self.{{FIELD_NAME}}_{{FROM_LE}}";
+      code_ += "  }";
+
       // Generate a comparison function for this field if it is a key.
       if (field.key) { GenKeyFieldMethods(field); }
     });
 
-    // Generate conversion to native struct.
+    // Generate Object API unpack method.
     if (parser_.opts.generate_object_based_api) {
       code_.SetValue("NATIVE_STRUCT_NAME", NativeName(struct_def));
       code_ += "  pub fn unpack(&self) -> {{NATIVE_STRUCT_NAME}} {";
       code_ += "    {{NATIVE_STRUCT_NAME}} {";
-      ForAllStructFields(struct_def.fields, [&](const FieldDef &field) {
+      ForAllStructFields(struct_def, [&](const FieldDef &field) {
         std::string unpack = IsStruct(field.value.type) ? ".unpack()" : "";
         code_ += "      {{FIELD_NAME}}: self.{{FIELD_NAME}}()" + unpack + ",";
       });
       code_ += "    }";
       code_ += "  }";
     }
-    code_ += "}"; // End impl Struct.
+
+    code_ += "}";  // End impl Struct methods.
     code_ += "";
 
     // Generate Struct Object.
@@ -2267,7 +2228,7 @@ class RustGenerator : public BaseGenerator {
       // Struct declaration
       code_ += "#[derive(Debug, Clone, PartialEq)]";
       code_ += "pub struct {{NATIVE_STRUCT_NAME}} {";
-      ForAllStructFields(struct_def.fields, [&](const FieldDef &field) {
+      ForAllStructFields(struct_def, [&](const FieldDef &field) {
         (void) field;  // unused.
         code_ += "  pub {{FIELD_NAME}}: {{FIELD_OBJECT_TYPE}},";
       });
@@ -2277,7 +2238,7 @@ class RustGenerator : public BaseGenerator {
       code_ += "impl {{NATIVE_STRUCT_NAME}} {";
       code_ += "  pub fn pack(&self) -> {{STRUCT_NAME}} {";
       code_ += "    {{STRUCT_NAME}}::new(";
-      ForAllStructFields(struct_def.fields, [&](const FieldDef &field) {
+      ForAllStructFields(struct_def, [&](const FieldDef &field) {
         if (IsStruct(field.value.type)) {
           code_ += "      &self.{{FIELD_NAME}}.pack(),";
         } else {

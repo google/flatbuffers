@@ -21,7 +21,7 @@ pub mod namespace_a {
   use self::flatbuffers::EndianScalar;
 
 pub enum TableInFirstNSOffset {}
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq)]
 
 pub struct TableInFirstNS<'a> {
   pub _tab: flatbuffers::Table<'a>,
@@ -134,6 +134,15 @@ impl<'a: 'b, 'b> TableInFirstNSBuilder<'a, 'b> {
   }
 }
 
+impl std::fmt::Debug for TableInFirstNS<'_> {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    let mut ds = f.debug_struct("TableInFirstNS");
+      ds.field("foo_table", &self.foo_table());
+      ds.field("foo_enum", &self.foo_enum());
+      ds.field("foo_struct", &self.foo_struct());
+      ds.finish()
+  }
+}
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub struct TableInFirstNST {
@@ -160,7 +169,7 @@ impl TableInFirstNST {
   }
 }
 pub enum SecondTableInAOffset {}
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq)]
 
 pub struct SecondTableInA<'a> {
   pub _tab: flatbuffers::Table<'a>,
@@ -243,6 +252,13 @@ impl<'a: 'b, 'b> SecondTableInABuilder<'a, 'b> {
   }
 }
 
+impl std::fmt::Debug for SecondTableInA<'_> {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    let mut ds = f.debug_struct("SecondTableInA");
+      ds.field("refer_to_c", &self.refer_to_c());
+      ds.finish()
+  }
+}
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub struct SecondTableInAT {
@@ -274,7 +290,7 @@ pub mod namespace_c {
   use self::flatbuffers::EndianScalar;
 
 pub enum TableInCOffset {}
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq)]
 
 pub struct TableInC<'a> {
   pub _tab: flatbuffers::Table<'a>,
@@ -373,6 +389,14 @@ impl<'a: 'b, 'b> TableInCBuilder<'a, 'b> {
   }
 }
 
+impl std::fmt::Debug for TableInC<'_> {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    let mut ds = f.debug_struct("TableInC");
+      ds.field("refer_to_a1", &self.refer_to_a1());
+      ds.field("refer_to_a2", &self.refer_to_a2());
+      ds.finish()
+  }
+}
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub struct TableInCT {

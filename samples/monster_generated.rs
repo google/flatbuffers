@@ -172,14 +172,70 @@ impl flatbuffers::EndianScalar for Equipment {
 
 pub struct EquipmentUnionTableOffset {}
 
+#[non_exhaustive]
+#[derive(Debug, Clone, PartialEq)]
+pub enum EquipmentT {
+  NONE,
+  Weapon(Box<WeaponT>),
+}
+impl Default for EquipmentT {
+  fn default() -> Self {
+    Self::NONE
+  }
+}
+impl EquipmentT {
+  fn equipment_type(&self) -> Equipment {
+    match self {
+      Self::NONE => Equipment::NONE,
+      Self::Weapon(_) => Equipment::Weapon,
+    }
+  }
+  pub fn pack(&self, fbb: &mut flatbuffers::FlatBufferBuilder) -> Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>> {
+    match self {
+      Self::NONE => None,
+      Self::Weapon(v) => Some(v.pack(fbb).as_union_value()),
+    }
+  }
+  /// If the union variant matches, return the owned WeaponT, setting the union to NONE.
+  pub fn take_weapon(&mut self) -> Option<Box<WeaponT>> {
+    if let Self::Weapon(_) = self {
+      let v = std::mem::replace(self, Self::NONE);
+      if let Self::Weapon(w) = v {
+        Some(w)
+      } else {
+        unreachable!()
+      }
+    } else {
+      None
+    }
+  }
+  /// If the union variant matches, return a reference to the WeaponT.
+  pub fn as_weapon(&self) -> Option<&WeaponT> {
+    if let Self::Weapon(v) = self { Some(v.as_ref()) } else { None }
+  }
+  /// If the union variant matches, return a mutable reference to the WeaponT.
+  pub fn as_weapon_mut(&mut self) -> Option<&mut WeaponT> {
+    if let Self::Weapon(v) = self { Some(v.as_mut()) } else { None }
+  }
+}
 // struct Vec3, aligned to 4
 #[repr(C, align(4))]
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct Vec3 {
   x_: f32,
   y_: f32,
   z_: f32,
 } // pub struct Vec3
+impl std::fmt::Debug for Vec3 {
+  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    f.debug_struct("Vec3")
+      .field("x", &self.x())
+      .field("y", &self.y())
+      .field("z", &self.z())
+      .finish()
+  }
+}
+
 impl flatbuffers::SafeSliceAccess for Vec3 {}
 impl<'a> flatbuffers::Follow<'a> for Vec3 {
   type Inner = &'a Vec3;
@@ -236,10 +292,33 @@ impl Vec3 {
   pub fn z(&self) -> f32 {
     self.z_.from_little_endian()
   }
+  pub fn unpack(&self) -> Vec3T {
+    Vec3T {
+      x: self.x(),
+      y: self.y(),
+      z: self.z(),
+    }
+  }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Vec3T {
+  pub x: f32,
+  pub y: f32,
+  pub z: f32,
+}
+impl Vec3T {
+  pub fn pack(&self) -> Vec3 {
+    Vec3::new(
+      self.x,
+      self.y,
+      self.z,
+    )
+  }
 }
 
 pub enum MonsterOffset {}
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq)]
 
 pub struct Monster<'a> {
   pub _tab: flatbuffers::Table<'a>,
@@ -276,6 +355,46 @@ impl<'a> Monster<'a> {
       builder.finish()
     }
 
+    pub fn unpack(&self) -> MonsterT {
+      let pos = self.pos().map(|x| {
+        x.unpack()
+      });
+      let mana = self.mana();
+      let hp = self.hp();
+      let name = self.name().map(|x| {
+        x.to_string()
+      });
+      let inventory = self.inventory().map(|x| {
+        x.iter().cloned().collect()
+      });
+      let color = self.color();
+      let weapons = self.weapons().map(|x| {
+        x.iter().map(|t| t.unpack()).collect()
+      });
+      let equipped = match self.equipped_type() {
+        Equipment::NONE => EquipmentT::NONE,
+        Equipment::Weapon => EquipmentT::Weapon(Box::new(
+          self.equipped_as_weapon()
+              .expect("Invalid union table, expected `Equipment::Weapon`.")
+              .unpack()
+        )),
+        _ => EquipmentT::NONE,
+      };
+      let path = self.path().map(|x| {
+        x.iter().map(|t| t.unpack()).collect()
+      });
+      MonsterT {
+        pos,
+        mana,
+        hp,
+        name,
+        inventory,
+        color,
+        weapons,
+        equipped,
+        path,
+      }
+    }
     pub const VT_POS: flatbuffers::VOffsetT = 4;
     pub const VT_MANA: flatbuffers::VOffsetT = 6;
     pub const VT_HP: flatbuffers::VOffsetT = 8;
@@ -428,8 +547,87 @@ impl<'a: 'b, 'b> MonsterBuilder<'a, 'b> {
   }
 }
 
+impl std::fmt::Debug for Monster<'_> {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    let mut ds = f.debug_struct("Monster");
+      ds.field("pos", &self.pos());
+      ds.field("mana", &self.mana());
+      ds.field("hp", &self.hp());
+      ds.field("name", &self.name());
+      ds.field("inventory", &self.inventory());
+      ds.field("color", &self.color());
+      ds.field("weapons", &self.weapons());
+      ds.field("equipped_type", &self.equipped_type());
+      match self.equipped_type() {
+        Equipment::Weapon => {
+          if let Some(x) = self.equipped_as_weapon() {
+            ds.field("equipped", &x)
+          } else {
+            ds.field("equipped", &"InvalidFlatbuffer: Union discriminant does not match value.")
+          }
+        },
+        _ => { 
+          let x: Option<()> = None;
+          ds.field("equipped", &x)
+        },
+      };
+      ds.field("path", &self.path());
+      ds.finish()
+  }
+}
+#[non_exhaustive]
+#[derive(Debug, Clone, PartialEq)]
+pub struct MonsterT {
+  pub pos: Option<Vec3T>,
+  pub mana: i16,
+  pub hp: i16,
+  pub name: Option<String>,
+  pub inventory: Option<Vec<u8>>,
+  pub color: Color,
+  pub weapons: Option<Vec<WeaponT>>,
+  pub equipped: EquipmentT,
+  pub path: Option<Vec<Vec3T>>,
+}
+impl MonsterT {
+  pub fn pack<'b>(
+    &self,
+    _fbb: &mut flatbuffers::FlatBufferBuilder<'b>
+  ) -> flatbuffers::WIPOffset<Monster<'b>> {
+    let pos_tmp = self.pos.as_ref().map(|x| x.pack());
+    let pos = pos_tmp.as_ref();
+    let mana = self.mana;
+    let hp = self.hp;
+    let name = self.name.as_ref().map(|x|{
+      _fbb.create_string(x)
+    });
+    let inventory = self.inventory.as_ref().map(|x|{
+      _fbb.create_vector(x)
+    });
+    let color = self.color;
+    let weapons = self.weapons.as_ref().map(|x|{
+      let w: Vec<_> = x.iter().map(|t| t.pack(_fbb)).collect();_fbb.create_vector(&w)
+    });
+    let equipped_type = self.equipped.equipment_type();
+    let equipped = self.equipped.pack(_fbb);
+    let path = self.path.as_ref().map(|x|{
+      let w: Vec<_> = x.iter().map(|t| t.pack()).collect();_fbb.create_vector(&w)
+    });
+    Monster::create(_fbb, &MonsterArgs{
+      pos,
+      mana,
+      hp,
+      name,
+      inventory,
+      color,
+      weapons,
+      equipped_type,
+      equipped,
+      path,
+    })
+  }
+}
 pub enum WeaponOffset {}
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq)]
 
 pub struct Weapon<'a> {
   pub _tab: flatbuffers::Table<'a>,
@@ -458,6 +656,16 @@ impl<'a> Weapon<'a> {
       builder.finish()
     }
 
+    pub fn unpack(&self) -> WeaponT {
+      let name = self.name().map(|x| {
+        x.to_string()
+      });
+      let damage = self.damage();
+      WeaponT {
+        name,
+        damage,
+      }
+    }
     pub const VT_NAME: flatbuffers::VOffsetT = 4;
     pub const VT_DAMAGE: flatbuffers::VOffsetT = 6;
 
@@ -512,6 +720,35 @@ impl<'a: 'b, 'b> WeaponBuilder<'a, 'b> {
   }
 }
 
+impl std::fmt::Debug for Weapon<'_> {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    let mut ds = f.debug_struct("Weapon");
+      ds.field("name", &self.name());
+      ds.field("damage", &self.damage());
+      ds.finish()
+  }
+}
+#[non_exhaustive]
+#[derive(Debug, Clone, PartialEq)]
+pub struct WeaponT {
+  pub name: Option<String>,
+  pub damage: i16,
+}
+impl WeaponT {
+  pub fn pack<'b>(
+    &self,
+    _fbb: &mut flatbuffers::FlatBufferBuilder<'b>
+  ) -> flatbuffers::WIPOffset<Weapon<'b>> {
+    let name = self.name.as_ref().map(|x|{
+      _fbb.create_string(x)
+    });
+    let damage = self.damage;
+    Weapon::create(_fbb, &WeaponArgs{
+      name,
+      damage,
+    })
+  }
+}
 #[inline]
 pub fn get_root_as_monster<'a>(buf: &'a [u8]) -> Monster<'a> {
   flatbuffers::get_root::<Monster<'a>>(buf)
