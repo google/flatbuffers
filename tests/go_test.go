@@ -1630,10 +1630,6 @@ func CheckParentNamespace(fail func(string, ...interface{})) {
 	}
 }
 
-func CheckSizePrefixedBuffer(fail func(string, ...interface{})) {
-    generated, off := CheckGeneratedBuild(fail, true)
-}
-
 // Include simple random number generator to ensure results will be the
 // same cross platform.
 // http://en.wikipedia.org/wiki/Park%E2%80%93Miller_random_number_generator
