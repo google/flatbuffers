@@ -11,3 +11,8 @@ func GetRootAs(buf []byte, offset UOffsetT, fb FlatBuffer) {
 	n := GetUOffsetT(buf[offset:])
 	fb.Init(buf, n+offset)
 }
+
+// GetSizePrefix reads the size from a size-prefixed flatbuffer
+func GetSizePrefix(buf []byte) uint32 {
+	return GetUint32(buf)
+}
