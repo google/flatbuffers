@@ -112,6 +112,8 @@ impl<'a> flatbuffers::Verifiable for Color {
     i8::run_verifier(v, pos)
   }
 }
+
+impl flatbuffers::SimpleToVerify for Color {}
 #[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_EQUIPMENT: u8 = 0;
 #[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
@@ -195,6 +197,8 @@ impl<'a> flatbuffers::Verifiable for Equipment {
     u8::run_verifier(v, pos)
   }
 }
+
+impl flatbuffers::SimpleToVerify for Equipment {}
 // struct Vec3, aligned to 4
 #[repr(C, align(4))]
 #[derive(Clone, Copy, PartialEq)]

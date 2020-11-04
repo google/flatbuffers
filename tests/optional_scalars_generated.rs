@@ -104,6 +104,8 @@ impl<'a> flatbuffers::Verifiable for OptionalByte {
     i8::run_verifier(v, pos)
   }
 }
+
+impl flatbuffers::SimpleToVerify for OptionalByte {}
 pub enum ScalarStuffOffset {}
 #[derive(Copy, Clone, PartialEq)]
 

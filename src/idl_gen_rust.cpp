@@ -677,6 +677,9 @@ class RustGenerator : public BaseGenerator {
     code_ += "    {{BASE_TYPE}}::run_verifier(v, pos)";
     code_ += "  }";
     code_ += "}";
+    code_ += "";
+    // Enums are basically integers.
+    code_ += "impl flatbuffers::SimpleToVerify for {{ENUM_NAME}} {}";
   }
 
   std::string GetFieldOffsetName(const FieldDef &field) {

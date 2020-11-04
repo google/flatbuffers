@@ -103,6 +103,8 @@ impl SafeSliceAccess for u8 {}
 impl SafeSliceAccess for i8 {}
 impl SafeSliceAccess for bool {}
 
+// TODO(caspern): Get rid of this. Conditional compliation is unnecessary complexity.
+// Vectors of primitives just don't work on big endian machines!!!
 #[cfg(target_endian = "little")]
 mod le_safe_slice_impls {
     impl super::SafeSliceAccess for u16 {}

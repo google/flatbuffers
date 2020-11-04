@@ -265,6 +265,8 @@ impl<'a> flatbuffers::Verifiable for Color {
     u8::run_verifier(v, pos)
   }
 }
+
+impl flatbuffers::SimpleToVerify for Color {}
 #[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_RACE: i8 = -1;
 #[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
@@ -355,6 +357,8 @@ impl<'a> flatbuffers::Verifiable for Race {
     i8::run_verifier(v, pos)
   }
 }
+
+impl flatbuffers::SimpleToVerify for Race {}
 #[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_ANY: u8 = 0;
 #[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
@@ -446,6 +450,8 @@ impl<'a> flatbuffers::Verifiable for Any {
     u8::run_verifier(v, pos)
   }
 }
+
+impl flatbuffers::SimpleToVerify for Any {}
 #[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_ANY_UNIQUE_ALIASES: u8 = 0;
 #[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
@@ -537,6 +543,8 @@ impl<'a> flatbuffers::Verifiable for AnyUniqueAliases {
     u8::run_verifier(v, pos)
   }
 }
+
+impl flatbuffers::SimpleToVerify for AnyUniqueAliases {}
 #[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_ANY_AMBIGUOUS_ALIASES: u8 = 0;
 #[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
@@ -628,6 +636,8 @@ impl<'a> flatbuffers::Verifiable for AnyAmbiguousAliases {
     u8::run_verifier(v, pos)
   }
 }
+
+impl flatbuffers::SimpleToVerify for AnyAmbiguousAliases {}
 // struct Test, aligned to 2
 #[repr(C, align(2))]
 #[derive(Clone, Copy, PartialEq)]

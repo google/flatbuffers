@@ -107,6 +107,8 @@ impl<'a> flatbuffers::Verifiable for FromInclude {
     i64::run_verifier(v, pos)
   }
 }
+
+impl flatbuffers::SimpleToVerify for FromInclude {}
 // struct Unused, aligned to 4
 #[repr(C, align(4))]
 #[derive(Clone, Copy, PartialEq)]

@@ -1,6 +1,8 @@
 use crate::follow::Follow;
-use crate::{ForwardsUOffset, SOffsetT, UOffsetT, VOffsetT, Vector, SIZE_UOFFSET};
+use crate::{ForwardsUOffset, SOffsetT, UOffsetT, VOffsetT, Vector, SIZE_UOFFSET,
+SafeSliceAccess};
 use thiserror::Error;
+use std::ops::Range;
 
 /// Traces the location of data errors. Not populated for Dos detecting errors.
 /// Useful for MissingRequiredField and Utf8Error in particular, though
@@ -22,6 +24,11 @@ pub enum ErrorTraceDetail {
 }
 #[derive(PartialEq, Eq, Default, Debug, Clone)]
 pub struct ErrorTrace(Vec<ErrorTraceDetail>);
+impl std::convert::AsRef<[ErrorTraceDetail]> for ErrorTrace {
+    fn as_ref(&self) -> &[ErrorTraceDetail] {
+        &self.0
+    }
+}
 
 /// Describes how a flatuffer is invalid and, for data errors, roughly where. No extra tracing
 /// information is given for DoS detecting errors since it will probably be a lot.
@@ -39,7 +46,7 @@ pub enum InvalidFlatbuffer {
     BadString {
         utf8_error: Option<std::str::Utf8Error>,
         has_null_terminator: bool,
-        range: (usize, usize),
+        range: Range<usize>,
         error_trace: ErrorTrace,
     },
     Unaligned {
@@ -48,7 +55,7 @@ pub enum InvalidFlatbuffer {
         error_trace: ErrorTrace,
     },
     RangeOutOfBounds {
-        range: (usize, usize),
+        range: Range<usize>,
         error_trace: ErrorTrace,
     },
     SignedOffsetOutOfBounds {
@@ -135,26 +142,17 @@ impl std::fmt::Display for InvalidFlatbuffer {
                 range,
                 error_trace,
             } => {
-                let null_err = if !has_null_terminator {
-                    "is missing its null terminator"
-                } else {
-                    ""
-                };
-                let utf8_err = if let Some(e) = utf8_error {
-                    format!("is invalid utf8 ({})", e)
-                } else {
-                    "".to_string()
-                };
-                let and = if !has_null_terminator && utf8_error.is_some() {
-                    " and "
-                } else {
-                    ""
-                };
-                write!(
-                    f,
-                    "String at position {:?} {}{}{}.\n{}",
-                    range, null_err, and, utf8_err, error_trace
-                )?;
+                write!(f, "string at range [{}, {}) ", range.start, range.end)?;
+                if !has_null_terminator {
+                    write!(f, "is missing its null terminator")?;
+                    if utf8_error.is_some() {
+                        write!(f, "and ")?;
+                    }
+                }
+                if let Some(e) = utf8_error {
+                    write!(f, "is invalid utf8 ({})", e)?;
+                }
+                write!(f, ".\n{}", error_trace)?;
             }
             Unaligned {
                 position,
@@ -170,8 +168,8 @@ impl std::fmt::Display for InvalidFlatbuffer {
             RangeOutOfBounds { range, error_trace } => {
                 write!(
                     f,
-                    "Range `{:?}` is out of bounds.\n{}",
-                    range, error_trace
+                    "Range [{}, {}) is out of bounds.\n{}",
+                    range.start, range.end, error_trace
                 )?;
             }
             SignedOffsetOutOfBounds {
@@ -194,9 +192,9 @@ impl std::fmt::Display for InvalidFlatbuffer {
 pub type Result<T> = core::prelude::v1::Result<T, InvalidFlatbuffer>;
 
 impl InvalidFlatbuffer {
-    fn new_range_oob<T>(lb: usize, ub: usize) -> Result<T> {
+    fn new_range_oob<T>(start: usize, end: usize) -> Result<T> {
         Err(Self::RangeOutOfBounds {
-            range: (lb, ub),
+            range: Range { start, end },
             error_trace: Default::default(),
         })
     }
@@ -247,6 +245,7 @@ fn trace_elem<T>(res: Result<T>, index: usize, position: usize) -> Result<T> {
     append_trace(res, ErrorTraceDetail::VectorElement { index, position })
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct VerifierOptions {
     /// Maximum depth of nested tables allowed in a valid flatbuffer.
     pub max_depth: usize,
@@ -275,9 +274,10 @@ impl Default for VerifierOptions {
 }
 
 /// Carries the verification state. Should not be reused between tables.
+#[derive(Debug)]
 pub struct Verifier<'opts, 'buf> {
-    opts: &'opts VerifierOptions,
     buffer: &'buf [u8],
+    opts: &'opts VerifierOptions,
     depth: usize,
     num_tables: usize,
     apparent_size: usize, // TODO(casper): Actually track this...
@@ -537,35 +537,66 @@ impl<T: Verifiable> Verifiable for ForwardsUOffset<T> {
     fn run_verifier<'opts, 'buf>(v: &mut Verifier<'opts, 'buf>, pos: usize) -> Result<()> {
         let offset = v.get_uoffset(pos)? as usize;
         let next_pos = offset + pos;
-        v.in_buffer::<u8>(pos)?;
+        v.in_buffer::<u8>(pos)?;  // CASPER: is this needed?
         T::run_verifier(v, next_pos)
     }
+}
+
+
+/// Checks and returns the range containing the flatbuffers vector.
+fn verify_vector_range<'opts, 'buf, T>(
+    v: &mut Verifier<'opts, 'buf>,
+    pos:usize
+) -> Result<std::ops::Range<usize>> {
+    let len = v.get_uoffset(pos)? as usize;
+    let data = pos + SIZE_UOFFSET;
+    v.is_aligned::<T>(data)?;
+    let size = std::mem::size_of::<T>();
+    v.range_in_buffer(data, len * size)?;
+    Ok(std::ops::Range {
+        start: data,
+        end: data + len * size,
+    })
 }
 
 // This is slightly more efficient than Vector<_, T> since it assumes the T are inline types
 // i.e. structs and scalars, so checking bounds and alignment is sufficient.
 impl<T: Verifiable> Verifiable for &[T] {
     fn run_verifier<'opts, 'buf>(v: &mut Verifier<'opts, 'buf>, pos: usize) -> Result<()> {
-        let len = v.get_uoffset(pos)? as usize;
-        let data = pos + SIZE_UOFFSET;
-        v.is_aligned::<T>(data)?;
-        let size = std::mem::size_of::<T>();
-        v.range_in_buffer(data, len * size)?;
+        verify_vector_range::<T>(v, pos)?;
         Ok(())
     }
 }
 
-impl<T: Verifiable> Verifiable for Vector<'_, T> {
+
+pub trait SimpleToVerify {}
+impl<T: SafeSliceAccess> SimpleToVerify for T {}
+// impl SimpleToVerify for i16 {}  // CASPER: Get rid of SafeSliceAccess
+// impl SimpleToVerify for u16 {}
+// impl SimpleToVerify for i32 {}
+// impl SimpleToVerify for u32 {}
+// impl SimpleToVerify for f32 {}
+// impl SimpleToVerify for i64 {}
+// impl SimpleToVerify for u64 {}
+// impl SimpleToVerify for f64 {}
+
+
+
+impl<T: SimpleToVerify> Verifiable for Vector<'_, T> {
+    fn run_verifier<'opts, 'buf>(v: &mut Verifier<'opts, 'buf>, pos: usize) -> Result<()> {
+        verify_vector_range::<T>(v, pos)?;
+        Ok(())
+    }
+
+}
+
+impl<T: Verifiable> Verifiable for Vector<'_, ForwardsUOffset<T>> {
     #[inline]
     fn run_verifier<'opts, 'buf>(v: &mut Verifier<'opts, 'buf>, pos: usize) -> Result<()> {
-        let len = v.get_uoffset(pos)? as usize;
-        let data = pos + std::mem::size_of::<u32>();
-        v.is_aligned::<T>(data)?;
-        let size = std::mem::size_of::<T>();
-        v.range_in_buffer(data, len * size)?;
-        for i in 0..len {
-            let element_pos = data + i * size;
-            trace_elem(T::run_verifier(v, element_pos), i, element_pos)?;
+        let range = verify_vector_range::<ForwardsUOffset<T>>(v, pos)?;
+        let size = std::mem::size_of::<ForwardsUOffset<T>>();
+        for (i, element_pos) in range.step_by(size).enumerate() {
+            trace_elem(<ForwardsUOffset<T>>::run_verifier(v, element_pos), i, element_pos)?;
         }
         Ok(())
     }
@@ -574,16 +605,14 @@ impl<T: Verifiable> Verifiable for Vector<'_, T> {
 impl<'a> Verifiable for &'a str {
     #[inline]
     fn run_verifier<'opts, 'buf>(v: &mut Verifier<'opts, 'buf>, pos: usize) -> Result<()> {
-        let len = v.get_uoffset(pos)? as usize;
-        let data = pos + SIZE_UOFFSET;
-        v.range_in_buffer(data, len + 1)?;
-        let s = std::str::from_utf8(&v.buffer[data..data + len]);
-        let has_null_terminator = v.buffer[data + len] == 0;
+        let range = verify_vector_range::<u8>(v, pos)?;
+        let has_null_terminator = v.buffer.get(range.end).map(|&b| b == 0).unwrap_or(false);
+        let s = std::str::from_utf8(&v.buffer[range.clone()]);
         if s.is_err() || !v.opts.ignore_missing_null_terminator && !has_null_terminator {
             return Err(InvalidFlatbuffer::BadString {
                 utf8_error: s.err(),
                 has_null_terminator,
-                range: (data, data + len + 1),
+                range,
                 error_trace: Default::default(),
             });
         }

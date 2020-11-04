@@ -112,6 +112,8 @@ impl<'a> flatbuffers::Verifiable for EnumInNestedNS {
     i8::run_verifier(v, pos)
   }
 }
+
+impl flatbuffers::SimpleToVerify for EnumInNestedNS {}
 // struct StructInNestedNS, aligned to 4
 #[repr(C, align(4))]
 #[derive(Clone, Copy, PartialEq)]

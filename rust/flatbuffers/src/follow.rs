@@ -27,9 +27,15 @@ use std::marker::PhantomData;
 /// Writing a new Follow implementation primarily involves deciding whether
 /// you want to return data (of the type Self::Inner) or do you want to
 /// continue traversing the FlatBuffer.
-pub trait Follow<'a> {
+pub trait Follow<'buf> {
     type Inner;
-    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner;
+    fn follow(buf: &'buf [u8], loc: usize) -> Self::Inner;
+
+    // Verify this is safe to follow.
+    // fn run_verifier<'opts>(
+    //     v: &mut Verifier<'opts, 'buf>,
+    //     loc: usize
+    // ) -> Result<(), InvalidFlatbuffer>;
 }
 
 /// FollowStart wraps a Follow impl in a struct type. This can make certain
