@@ -360,7 +360,7 @@ impl<'a> Monster<'a> {
   }
   #[inline]
   pub fn weapons(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Weapon<'a>>>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<flatbuffers::ForwardsUOffset<Weapon<'a>>>>>(Monster::VT_WEAPONS, None)
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Weapon>>>>(Monster::VT_WEAPONS, None)
   }
   #[inline]
   pub fn equipped_type(&self) -> Equipment {
@@ -372,7 +372,7 @@ impl<'a> Monster<'a> {
   }
   #[inline]
   pub fn path(&self) -> Option<&'a [Vec3]> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<Vec3>>>(Monster::VT_PATH, None).map(|v| v.safe_slice() )
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, Vec3>>>(Monster::VT_PATH, None).map(|v| v.safe_slice())
   }
   #[inline]
   #[allow(non_snake_case)]
@@ -406,7 +406,7 @@ impl flatbuffers::Verifiable for Monster<'_> {
           _ => Ok(()),
         }
      })?
-     .visit_field::<flatbuffers::ForwardsUOffset<&'_[Vec3]>>(&"path", Self::VT_PATH, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, Vec3>>>(&"path", Self::VT_PATH, false)?
      .finish();
     Ok(())
   }

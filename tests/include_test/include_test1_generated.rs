@@ -45,7 +45,7 @@ impl<'a> TableA<'a> {
 
   #[inline]
   pub fn b(&self) -> Option<my_game::other_name_space::TableB<'a>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<my_game::other_name_space::TableB<'a>>>(TableA::VT_B, None)
+    self._tab.get::<flatbuffers::ForwardsUOffset<my_game::other_name_space::TableB>>(TableA::VT_B, None)
   }
 }
 

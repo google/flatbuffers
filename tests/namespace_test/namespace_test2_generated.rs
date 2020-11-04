@@ -63,7 +63,7 @@ impl<'a> TableInFirstNS<'a> {
 
   #[inline]
   pub fn foo_table(&self) -> Option<namespace_b::TableInNestedNS<'a>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<namespace_b::TableInNestedNS<'a>>>(TableInFirstNS::VT_FOO_TABLE, None)
+    self._tab.get::<flatbuffers::ForwardsUOffset<namespace_b::TableInNestedNS>>(TableInFirstNS::VT_FOO_TABLE, None)
   }
   #[inline]
   pub fn foo_enum(&self) -> namespace_b::EnumInNestedNS {
@@ -184,7 +184,7 @@ impl<'a> SecondTableInA<'a> {
 
   #[inline]
   pub fn refer_to_c(&self) -> Option<super::namespace_c::TableInC<'a>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<super::namespace_c::TableInC<'a>>>(SecondTableInA::VT_REFER_TO_C, None)
+    self._tab.get::<flatbuffers::ForwardsUOffset<super::namespace_c::TableInC>>(SecondTableInA::VT_REFER_TO_C, None)
   }
 }
 
@@ -295,11 +295,11 @@ impl<'a> TableInC<'a> {
 
   #[inline]
   pub fn refer_to_a1(&self) -> Option<super::namespace_a::TableInFirstNS<'a>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<super::namespace_a::TableInFirstNS<'a>>>(TableInC::VT_REFER_TO_A1, None)
+    self._tab.get::<flatbuffers::ForwardsUOffset<super::namespace_a::TableInFirstNS>>(TableInC::VT_REFER_TO_A1, None)
   }
   #[inline]
   pub fn refer_to_a2(&self) -> Option<super::namespace_a::SecondTableInA<'a>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<super::namespace_a::SecondTableInA<'a>>>(TableInC::VT_REFER_TO_A2, None)
+    self._tab.get::<flatbuffers::ForwardsUOffset<super::namespace_a::SecondTableInA>>(TableInC::VT_REFER_TO_A2, None)
   }
 }
 

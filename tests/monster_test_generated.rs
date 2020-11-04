@@ -1431,21 +1431,21 @@ impl<'a> Monster<'a> {
   }
   #[inline]
   pub fn test4(&self) -> Option<&'a [Test]> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<Test>>>(Monster::VT_TEST4, None).map(|v| v.safe_slice() )
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, Test>>>(Monster::VT_TEST4, None).map(|v| v.safe_slice())
   }
   #[inline]
   pub fn testarrayofstring(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<&'a str>>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<flatbuffers::ForwardsUOffset<&'a str>>>>(Monster::VT_TESTARRAYOFSTRING, None)
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<&'a str>>>>(Monster::VT_TESTARRAYOFSTRING, None)
   }
   /// an example documentation comment: this will end up in the generated code
   /// multiline too
   #[inline]
   pub fn testarrayoftables(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Monster<'a>>>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<flatbuffers::ForwardsUOffset<Monster<'a>>>>>(Monster::VT_TESTARRAYOFTABLES, None)
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Monster>>>>(Monster::VT_TESTARRAYOFTABLES, None)
   }
   #[inline]
   pub fn enemy(&self) -> Option<Monster<'a>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<Monster<'a>>>(Monster::VT_ENEMY, None)
+    self._tab.get::<flatbuffers::ForwardsUOffset<Monster>>(Monster::VT_ENEMY, None)
   }
   #[inline]
   pub fn testnestedflatbuffer(&self) -> Option<&'a [u8]> {
@@ -1459,7 +1459,7 @@ impl<'a> Monster<'a> {
   }
   #[inline]
   pub fn testempty(&self) -> Option<Stat<'a>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<Stat<'a>>>(Monster::VT_TESTEMPTY, None)
+    self._tab.get::<flatbuffers::ForwardsUOffset<Stat>>(Monster::VT_TESTEMPTY, None)
   }
   #[inline]
   pub fn testbool(&self) -> bool {
@@ -1515,11 +1515,11 @@ impl<'a> Monster<'a> {
   }
   #[inline]
   pub fn testarrayofstring2(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<&'a str>>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<flatbuffers::ForwardsUOffset<&'a str>>>>(Monster::VT_TESTARRAYOFSTRING2, None)
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<&'a str>>>>(Monster::VT_TESTARRAYOFSTRING2, None)
   }
   #[inline]
   pub fn testarrayofsortedstruct(&self) -> Option<&'a [Ability]> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<Ability>>>(Monster::VT_TESTARRAYOFSORTEDSTRUCT, None).map(|v| v.safe_slice() )
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, Ability>>>(Monster::VT_TESTARRAYOFSORTEDSTRUCT, None).map(|v| v.safe_slice())
   }
   #[inline]
   pub fn flex(&self) -> Option<&'a [u8]> {
@@ -1527,7 +1527,7 @@ impl<'a> Monster<'a> {
   }
   #[inline]
   pub fn test5(&self) -> Option<&'a [Test]> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<Test>>>(Monster::VT_TEST5, None).map(|v| v.safe_slice() )
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, Test>>>(Monster::VT_TEST5, None).map(|v| v.safe_slice())
   }
   #[inline]
   pub fn vector_of_longs(&self) -> Option<flatbuffers::Vector<'a, i64>> {
@@ -1539,11 +1539,11 @@ impl<'a> Monster<'a> {
   }
   #[inline]
   pub fn parent_namespace_test(&self) -> Option<super::InParentNamespace<'a>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<super::InParentNamespace<'a>>>(Monster::VT_PARENT_NAMESPACE_TEST, None)
+    self._tab.get::<flatbuffers::ForwardsUOffset<super::InParentNamespace>>(Monster::VT_PARENT_NAMESPACE_TEST, None)
   }
   #[inline]
   pub fn vector_of_referrables(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Referrable<'a>>>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<flatbuffers::ForwardsUOffset<Referrable<'a>>>>>(Monster::VT_VECTOR_OF_REFERRABLES, None)
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Referrable>>>>(Monster::VT_VECTOR_OF_REFERRABLES, None)
   }
   #[inline]
   pub fn single_weak_reference(&self) -> u64 {
@@ -1555,7 +1555,7 @@ impl<'a> Monster<'a> {
   }
   #[inline]
   pub fn vector_of_strong_referrables(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Referrable<'a>>>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<flatbuffers::ForwardsUOffset<Referrable<'a>>>>>(Monster::VT_VECTOR_OF_STRONG_REFERRABLES, None)
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Referrable>>>>(Monster::VT_VECTOR_OF_STRONG_REFERRABLES, None)
   }
   #[inline]
   pub fn co_owning_reference(&self) -> u64 {
@@ -1710,7 +1710,7 @@ impl flatbuffers::Verifiable for Monster<'_> {
           _ => Ok(()),
         }
      })?
-     .visit_field::<flatbuffers::ForwardsUOffset<&'_[Test]>>(&"test4", Self::VT_TEST4, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, Test>>>(&"test4", Self::VT_TEST4, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<&'_ str>>>>(&"testarrayofstring", Self::VT_TESTARRAYOFSTRING, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<Monster>>>>(&"testarrayoftables", Self::VT_TESTARRAYOFTABLES, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<Monster>>(&"enemy", Self::VT_ENEMY, false)?
@@ -1730,9 +1730,9 @@ impl flatbuffers::Verifiable for Monster<'_> {
      .visit_field::<f32>(&"testf2", Self::VT_TESTF2, false)?
      .visit_field::<f32>(&"testf3", Self::VT_TESTF3, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<&'_ str>>>>(&"testarrayofstring2", Self::VT_TESTARRAYOFSTRING2, false)?
-     .visit_field::<flatbuffers::ForwardsUOffset<&'_[Ability]>>(&"testarrayofsortedstruct", Self::VT_TESTARRAYOFSORTEDSTRUCT, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, Ability>>>(&"testarrayofsortedstruct", Self::VT_TESTARRAYOFSORTEDSTRUCT, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u8>>>(&"flex", Self::VT_FLEX, false)?
-     .visit_field::<flatbuffers::ForwardsUOffset<&'_[Test]>>(&"test5", Self::VT_TEST5, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, Test>>>(&"test5", Self::VT_TEST5, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, i64>>>(&"vector_of_longs", Self::VT_VECTOR_OF_LONGS, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, f64>>>(&"vector_of_doubles", Self::VT_VECTOR_OF_DOUBLES, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<super::InParentNamespace>>(&"parent_namespace_test", Self::VT_PARENT_NAMESPACE_TEST, false)?

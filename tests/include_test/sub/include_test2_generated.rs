@@ -216,7 +216,7 @@ impl<'a> TableB<'a> {
 
   #[inline]
   pub fn a(&self) -> Option<super::super::TableA<'a>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<super::super::TableA<'a>>>(TableB::VT_A, None)
+    self._tab.get::<flatbuffers::ForwardsUOffset<super::super::TableA>>(TableB::VT_A, None)
   }
 }
 

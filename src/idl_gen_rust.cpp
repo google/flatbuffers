@@ -993,12 +993,10 @@ class RustGenerator : public BaseGenerator {
     return "INVALID_CODE_GENERATION";  // for return analysis
   }
 
-  std::string VerifierType(const Type &type,
-                                    const std::string &lifetime) {
-    // CASPER: Can this be shared with either the return type or the
-    // Follow type? GetNameSpacedType helper fn. IsIndirect helper fn.
+  std::string FollowType(const Type &type,
+                           const std::string &lifetime) {
+    // CASPER: GetNameSpacedType helper fn. IsIndirect helper fn.
     // IsVector... This can be made iterative?
-    // To share with
 
     const auto WrapForwardsUOffset = [](std::string ty) -> std::string {
       return "flatbuffers::ForwardsUOffset<" + ty + ">";
@@ -1042,7 +1040,7 @@ class RustGenerator : public BaseGenerator {
       }
       case ftVectorOfStruct: {
         const auto typname = WrapInNameSpace(*type.struct_def);
-        return WrapForwardsUOffset("&" + lifetime + "[" + typname + "]");
+        return WrapForwardsUOffset(WrapVector(typname));
       }
       case ftVectorOfTable: {
         const auto typname = WrapInNameSpace(*type.struct_def);
@@ -1060,115 +1058,25 @@ class RustGenerator : public BaseGenerator {
   }
 
   std::string GenTableAccessorFuncBody(const FieldDef &field,
-                                       const std::string &lifetime,
-                                       const std::string &offset_prefix) {
-    const std::string offset_name =
-        offset_prefix + "::" + GetFieldOffsetName(field);
-    const Type &type = field.value.type;
+                                       const std::string &lifetime) {
+    const std::string vt_offset = GetFieldOffsetName(field);
+    const std::string typname = FollowType(field.value.type, lifetime);
+    // Default-y fields (scalars so far) are neither optional nor required.
+    const std::string default_value = !(field.optional || field.required) ?
+      "Some(" + GetDefaultScalarValue(field) + ")" : "None";
+    const std::string unwrap = field.optional ? "" : ".unwrap()";
 
-    switch (GetFullType(field.value.type)) {
-      case ftInteger:
-      case ftFloat:
-      case ftBool: {
-        const auto typname = GetTypeBasic(type);
-        if (field.optional) {
-          return "self._tab.get::<" + typname + ">(" + offset_name + ", None)";
-        } else {
-          const auto default_value = GetDefaultScalarValue(field);
-          return "self._tab.get::<" + typname + ">(" + offset_name + ", Some(" +
-                 default_value + ")).unwrap()";
-        }
-      }
-      case ftStruct: {
-        const auto typname = WrapInNameSpace(*type.struct_def);
-        return AddUnwrapIfRequired(
-            "self._tab.get::<" + typname + ">(" + offset_name + ", None)",
-            field.required);
-      }
-      case ftTable: {
-        const auto typname = WrapInNameSpace(*type.struct_def);
-        return AddUnwrapIfRequired(
-            "self._tab.get::<flatbuffers::ForwardsUOffset<" + typname + "<" +
-                lifetime + ">>>(" + offset_name + ", None)",
-            field.required);
-      }
-      case ftUnionValue: {
-        return AddUnwrapIfRequired(
-            "self._tab.get::<flatbuffers::ForwardsUOffset<"
-            "flatbuffers::Table<" +
-                lifetime + ">>>(" + offset_name + ", None)",
-            field.required);
-      }
-      case ftUnionKey:
-      case ftEnumKey: {
-        const std::string typname = WrapInNameSpace(*type.enum_def);
-        const std::string default_value = GetDefaultScalarValue(field);
-        if (field.optional) {
-          return "self._tab.get::<" + typname + ">(" + offset_name + ", None)";
-        } else {
-          return "self._tab.get::<" + typname + ">(" + offset_name + ", Some(" +
-                 default_value + ")).unwrap()";
-        }
-      }
-      case ftString: {
-        return AddUnwrapIfRequired(
-            "self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(" +
-                offset_name + ", None)",
-            field.required);
-      }
+    const auto t = GetFullType(field.value.type);
 
-      case ftVectorOfInteger:
-      case ftVectorOfBool:
-      case ftVectorOfFloat: {
-        const auto typname = GetTypeBasic(type.VectorType());
-        std::string s =
-            "self._tab.get::<flatbuffers::ForwardsUOffset<"
-            "flatbuffers::Vector<" +
-            lifetime + ", " + typname + ">>>(" + offset_name + ", None)";
-        // single-byte values are safe to slice
-        if (IsOneByte(type.VectorType().base_type)) {
-          s += ".map(|v| v.safe_slice())";
-        }
-        return AddUnwrapIfRequired(s, field.required);
-      }
-      case ftVectorOfEnumKey: {
-        const auto typname = WrapInNameSpace(*type.enum_def);
-        return AddUnwrapIfRequired(
-            "self._tab.get::<flatbuffers::ForwardsUOffset<"
-            "flatbuffers::Vector<" +
-                lifetime + ", " + typname + ">>>(" + offset_name + ", None)",
-            field.required);
-      }
-      case ftVectorOfStruct: {
-        const auto typname = WrapInNameSpace(*type.struct_def);
-        return AddUnwrapIfRequired(
-            "self._tab.get::<flatbuffers::ForwardsUOffset<"
-            "flatbuffers::Vector<" +
-                typname + ">>>(" + offset_name +
-                ", None).map(|v| v.safe_slice() )",
-            field.required);
-      }
-      case ftVectorOfTable: {
-        const auto typname = WrapInNameSpace(*type.struct_def);
-        return AddUnwrapIfRequired(
-            "self._tab.get::<flatbuffers::ForwardsUOffset<"
-            "flatbuffers::Vector<flatbuffers::ForwardsUOffset<" +
-                typname + "<" + lifetime + ">>>>>(" + offset_name + ", None)",
-            field.required);
-      }
-      case ftVectorOfString: {
-        return AddUnwrapIfRequired(
-            "self._tab.get::<flatbuffers::ForwardsUOffset<"
-            "flatbuffers::Vector<flatbuffers::ForwardsUOffset<&" +
-                lifetime + " str>>>>(" + offset_name + ", None)",
-            field.required);
-      }
-      case ftVectorOfUnionValue: {
-        FLATBUFFERS_ASSERT(false && "vectors of unions are not yet supported");
-        return "INVALID_CODE_GENERATION";  // for return analysis
-      }
-    }
-    return "INVALID_CODE_GENERATION";  // for return analysis
+    // TODO(caspern): Shouldn't 1byte VectorOfEnumKey be slice too?
+    const std::string safe_slice = (
+      t == ftVectorOfStruct ||
+      ((t == ftVectorOfBool || t == ftVectorOfFloat || t == ftVectorOfInteger)
+      && IsOneByte(field.value.type.VectorType().base_type))
+    ) ? ".map(|v| v.safe_slice())" : "";
+
+    return "self._tab.get::<" + typname + ">({{STRUCT_NAME}}::" +
+          vt_offset + ", " + default_value + ")" + safe_slice + unwrap;
   }
 
   bool TableFieldReturnsOption(const FieldDef &field) {
@@ -1328,17 +1236,14 @@ class RustGenerator : public BaseGenerator {
     //   pub fn name(&'a self) -> user_facing_type {
     //     self._tab.get::<internal_type>(offset, defaultval).unwrap()
     //   }
-    const auto offset_prefix = Name(struct_def);
     ForAllTableFields(struct_def, [&](const FieldDef &field) {
       code_.SetValue("RETURN_TYPE",
                      GenTableAccessorFuncReturnType(field, "'a"));
-      code_.SetValue("FUNC_BODY",
-                     GenTableAccessorFuncBody(field, "'a", offset_prefix));
 
       this->GenComment(field.doc_comment, "  ");
       code_ += "  #[inline]";
       code_ += "  pub fn {{FIELD_NAME}}(&self) -> {{RETURN_TYPE}} {";
-      code_ += "    {{FUNC_BODY}}";
+      code_ += "    " + GenTableAccessorFuncBody(field, "'a");
       code_ += "  }";
 
       // Generate a comparison function for this field if it is a key.
@@ -1433,7 +1338,7 @@ class RustGenerator : public BaseGenerator {
       code_.SetValue("IS_REQ", field.required ? "true" : "false");
       if (GetFullType(field.value.type) != ftUnionValue) {
         // All types besides unions.
-        code_.SetValue("TY", VerifierType(field.value.type, "'_"));
+        code_.SetValue("TY", FollowType(field.value.type, "'_"));
         code_ += "\n     .visit_field::<{{TY}}>(&\"{{FIELD_NAME}}\", "
                  "Self::{{OFFSET_NAME}}, {{IS_REQ}})?\\";
           return;
