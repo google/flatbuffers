@@ -6,14 +6,14 @@
 # See .github/workflows/label.yml for Github Action workflow script
 
 c#:
-  - ./**/*.cs 
+  - '**/*.cs'
   - net/**/*
   - tests/FlatBuffers.Test/**/*
   - tests/FlatBuffers.Benchmarks/**/*
   - src/idl_gen_csharp.cpp
 
 swift:
-  - ./**/*.swift
+  - '**/*.swift'
   - swift/**/*
   - tests/FlatBuffers.GRPC.Swift/**/*
   - tests/FlatBuffers.Benchmarks.swift/**/*
@@ -21,58 +21,59 @@ swift:
   - src/idl_gen_swift.cpp
 
 javascript:
-  - ./**/*.js
+  - '**/*.js'
   - src/idl_gen_js_ts.cpp
 
 typescript:
-  - ./**/*.ts
+  - '**/*.ts'
   - src/idl_gen_js_ts.cpp
   - grpc/flatbuffers-js-grpc/**/*.ts
 
 golang:
-  - ./**/*.go
+  - '**/*.go'
   - src/idl_gen_go.cpp
 
 python:
-  - ./**/*.py
+  - '**/*.py'
   - src/idl_gen_python.cpp
 
 java:
-  - java/**/*.java
+  - '**/*.java'
   - src/idl_gen_java.cpp
 
 kotlin:
-  - ./**/*.kt
+  - '**/*.kt'
   - src/idl_gen_kotlin.cpp
 
 lua:
+  - '**/*.lua'
   - lua/**/*
   - src/idl_gen_lua.cpp
 
 lobster:
-  - ./**/*.lobster
+  - '**/*.lobster'
   - src/idl_gen_lobster.cpp
 
 php:
-  - ./**/*.php
+  - '**/*.php'
   - src/idl_gen_php.cpp
 
 rust:
-  - ./**/*.rs
+  - '**/*.rs'
   - rust/**/*
   - src/idl_gen_rust.cpp
   
 dart:
-  - ./**/*.dart
+  - '**/*.dart'
   - src/idl_gen_dart.cpp
 
 c++:
-  - ./**/*.cc
-  - ./**/*.cpp
+  - '**/*.cc'
+  - '**/*.cpp'
   - '**/*.h'
 
 json:
-  - ./**/*.json
+  - '**/*.json'
   - src/idl_gen_json_schema.cpp
 
 codegen:
