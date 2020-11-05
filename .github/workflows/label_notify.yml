@@ -1,0 +1,17 @@
+name: Notify users based on issue labels
+
+on:
+  issues:
+      types: [labeled]
+  pull_requests:
+      types: [labeled]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+        - uses: jenschelkopf/issue-label-notification-action@1.3
+          with:
+             recipients: |
+                  lua=@dbaileychess
+                  c++=@aardappel
