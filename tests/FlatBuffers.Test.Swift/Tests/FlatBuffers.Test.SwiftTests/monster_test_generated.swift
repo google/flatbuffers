@@ -719,6 +719,7 @@ public struct MyGame_Example_Monster: FlatBufferObject, ObjectAPI {
         case anyAmbiguous = 96
         case vectorOfEnums = 98
         case signedEnum = 100
+        case testrequirednestedflatbuffer = 102
         var v: Int32 { Int32(self.rawValue) }
         var p: VOffset { self.rawValue }
     }
@@ -832,7 +833,11 @@ public struct MyGame_Example_Monster: FlatBufferObject, ObjectAPI {
     public func vectorOfEnums(at index: Int32) -> MyGame_Example_Color? { let o = _accessor.offset(VTOFFSET.vectorOfEnums.v); return o == 0 ? MyGame_Example_Color.red : MyGame_Example_Color(rawValue: _accessor.directRead(of: UInt8.self, offset: _accessor.vector(at: o) + index * 1)) }
     public var signedEnum: MyGame_Example_Race { let o = _accessor.offset(VTOFFSET.signedEnum.v); return o == 0 ? .none_ : MyGame_Example_Race(rawValue: _accessor.readBuffer(of: Int8.self, at: o)) ?? .none_ }
     @discardableResult public func mutate(signedEnum: MyGame_Example_Race) -> Bool {let o = _accessor.offset(VTOFFSET.signedEnum.v);  return _accessor.mutate(signedEnum.rawValue, index: o) }
-    public static func startMonster(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 49) }
+    public var testrequirednestedflatbufferCount: Int32 { let o = _accessor.offset(VTOFFSET.testrequirednestedflatbuffer.v); return o == 0 ? 0 : _accessor.vector(count: o) }
+    public func testrequirednestedflatbuffer(at index: Int32) -> UInt8 { let o = _accessor.offset(VTOFFSET.testrequirednestedflatbuffer.v); return o == 0 ? 0 : _accessor.directRead(of: UInt8.self, offset: _accessor.vector(at: o) + index * 1) }
+    public var testrequirednestedflatbuffer: [UInt8] { return _accessor.getVector(at: VTOFFSET.testrequirednestedflatbuffer.v) ?? [] }
+    public func mutate(testrequirednestedflatbuffer: UInt8, at index: Int32) -> Bool { let o = _accessor.offset(VTOFFSET.testrequirednestedflatbuffer.v); return _accessor.directMutate(testrequirednestedflatbuffer, index: _accessor.vector(at: o) + index * 1) }
+    public static func startMonster(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 50) }
     public static func add(pos: Offset<UOffset>?, _ fbb: inout FlatBufferBuilder) { guard pos != nil else { return }; fbb.add(structOffset: VTOFFSET.pos.p) }
     public static func add(mana: Int16, _ fbb: inout FlatBufferBuilder) { fbb.add(element: mana, def: 150, at: VTOFFSET.mana.p) }
     public static func add(hp: Int16, _ fbb: inout FlatBufferBuilder) { fbb.add(element: hp, def: 100, at: VTOFFSET.hp.p) }
@@ -891,6 +896,7 @@ public struct MyGame_Example_Monster: FlatBufferObject, ObjectAPI {
     public static func add(anyAmbiguous: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: anyAmbiguous, at: VTOFFSET.anyAmbiguous.p) }
     public static func addVectorOf(vectorOfEnums: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: vectorOfEnums, at: VTOFFSET.vectorOfEnums.p) }
     public static func add(signedEnum: MyGame_Example_Race, _ fbb: inout FlatBufferBuilder) { fbb.add(element: signedEnum.rawValue, def: -1, at: VTOFFSET.signedEnum.p) }
+    public static func addVectorOf(testrequirednestedflatbuffer: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: testrequirednestedflatbuffer, at: VTOFFSET.testrequirednestedflatbuffer.p) }
     public static func endMonster(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); fbb.require(table: end, fields: [10]); return end }
     public static func sortVectorOfMonster(offsets:[Offset<UOffset>], _ fbb: inout FlatBufferBuilder) -> Offset<UOffset> {
         var off = offsets
@@ -980,6 +986,7 @@ public struct MyGame_Example_Monster: FlatBufferObject, ObjectAPI {
         let __anyUnique = obj.anyUnique?.pack(builder: &builder) ?? Offset()
         let __anyAmbiguous = obj.anyAmbiguous?.pack(builder: &builder) ?? Offset()
         let __vectorOfEnums = builder.createVector(obj.vectorOfEnums)
+        let __testrequirednestedflatbuffer = builder.createVector(obj.testrequirednestedflatbuffer)
         let __root = MyGame_Example_Monster.startMonster(&builder)
         MyGame_Example_Monster.add(pos: obj.pos.map { MyGame_Example_Vec3.createVec3(builder: &builder, x: $0.x, y: $0.y, z: $0.z, test1: $0.test1, test2: $0.test2, test3a: $0.test3.a, test3b: $0.test3.b) }, &builder)
         MyGame_Example_Monster.add(mana: obj.mana, &builder)
@@ -1038,6 +1045,7 @@ public struct MyGame_Example_Monster: FlatBufferObject, ObjectAPI {
 
         MyGame_Example_Monster.addVectorOf(vectorOfEnums: __vectorOfEnums, &builder)
         MyGame_Example_Monster.add(signedEnum: obj.signedEnum, &builder)
+        MyGame_Example_Monster.addVectorOf(testrequirednestedflatbuffer: __testrequirednestedflatbuffer, &builder)
         return MyGame_Example_Monster.endMonster(&builder, start: __root)
     }
 }
@@ -1089,6 +1097,7 @@ public class MyGame_Example_MonsterT: NativeTable {
     public var anyAmbiguous: MyGame_Example_AnyAmbiguousAliasesUnion?
     public var vectorOfEnums: [MyGame_Example_Color]
     public var signedEnum: MyGame_Example_Race
+    public var testrequirednestedflatbuffer: [UInt8]
 
     public init(_ _t: inout MyGame_Example_Monster) {
         var __pos = _t.pos
@@ -1233,6 +1242,10 @@ public class MyGame_Example_MonsterT: NativeTable {
             vectorOfEnums.append(_t.vectorOfEnums(at: index)!)
         }
         signedEnum = _t.signedEnum
+        testrequirednestedflatbuffer = []
+        for index in 0..<_t.testrequirednestedflatbufferCount {
+            testrequirednestedflatbuffer.append(_t.testrequirednestedflatbuffer(at: index))
+        }
     }
 
     public init() {
@@ -1278,6 +1291,7 @@ public class MyGame_Example_MonsterT: NativeTable {
         vectorOfNonOwningReferences = []
         vectorOfEnums = []
         signedEnum = .none_
+        testrequirednestedflatbuffer = []
     }
 
     public func serialize() -> ByteBuffer { return serialize(type: MyGame_Example_Monster.self) }

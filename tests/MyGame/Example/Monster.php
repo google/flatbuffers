@@ -684,21 +684,48 @@ class Monster extends Table
     }
 
     /**
+     * @param int offset
+     * @return byte
+     */
+    public function getTestrequirednestedflatbuffer($j)
+    {
+        $o = $this->__offset(102);
+        return $o != 0 ? $this->bb->getByte($this->__vector($o) + $j * 1) : 0;
+    }
+
+    /**
+     * @return int
+     */
+    public function getTestrequirednestedflatbufferLength()
+    {
+        $o = $this->__offset(102);
+        return $o != 0 ? $this->__vector_len($o) : 0;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTestrequirednestedflatbufferBytes()
+    {
+        return $this->__vector_as_bytes(102);
+    }
+
+    /**
      * @param FlatBufferBuilder $builder
      * @return void
      */
     public static function startMonster(FlatBufferBuilder $builder)
     {
-        $builder->StartObject(49);
+        $builder->StartObject(50);
     }
 
     /**
      * @param FlatBufferBuilder $builder
      * @return Monster
      */
-    public static function createMonster(FlatBufferBuilder $builder, $pos, $mana, $hp, $name, $inventory, $color, $test_type, $test, $test4, $testarrayofstring, $testarrayoftables, $enemy, $testnestedflatbuffer, $testempty, $testbool, $testhashs32_fnv1, $testhashu32_fnv1, $testhashs64_fnv1, $testhashu64_fnv1, $testhashs32_fnv1a, $testhashu32_fnv1a, $testhashs64_fnv1a, $testhashu64_fnv1a, $testarrayofbools, $testf, $testf2, $testf3, $testarrayofstring2, $testarrayofsortedstruct, $flex, $test5, $vector_of_longs, $vector_of_doubles, $parent_namespace_test, $vector_of_referrables, $single_weak_reference, $vector_of_weak_references, $vector_of_strong_referrables, $co_owning_reference, $vector_of_co_owning_references, $non_owning_reference, $vector_of_non_owning_references, $any_unique_type, $any_unique, $any_ambiguous_type, $any_ambiguous, $vector_of_enums, $signed_enum)
+    public static function createMonster(FlatBufferBuilder $builder, $pos, $mana, $hp, $name, $inventory, $color, $test_type, $test, $test4, $testarrayofstring, $testarrayoftables, $enemy, $testnestedflatbuffer, $testempty, $testbool, $testhashs32_fnv1, $testhashu32_fnv1, $testhashs64_fnv1, $testhashu64_fnv1, $testhashs32_fnv1a, $testhashu32_fnv1a, $testhashs64_fnv1a, $testhashu64_fnv1a, $testarrayofbools, $testf, $testf2, $testf3, $testarrayofstring2, $testarrayofsortedstruct, $flex, $test5, $vector_of_longs, $vector_of_doubles, $parent_namespace_test, $vector_of_referrables, $single_weak_reference, $vector_of_weak_references, $vector_of_strong_referrables, $co_owning_reference, $vector_of_co_owning_references, $non_owning_reference, $vector_of_non_owning_references, $any_unique_type, $any_unique, $any_ambiguous_type, $any_ambiguous, $vector_of_enums, $signed_enum, $testrequirednestedflatbuffer)
     {
-        $builder->startObject(49);
+        $builder->startObject(50);
         self::addPos($builder, $pos);
         self::addMana($builder, $mana);
         self::addHp($builder, $hp);
@@ -747,6 +774,7 @@ class Monster extends Table
         self::addAnyAmbiguous($builder, $any_ambiguous);
         self::addVectorOfEnums($builder, $vector_of_enums);
         self::addSignedEnum($builder, $signed_enum);
+        self::addTestrequirednestedflatbuffer($builder, $testrequirednestedflatbuffer);
         $o = $builder->endObject();
         $builder->required($o, 10);  // name
         return $o;
@@ -1647,6 +1675,40 @@ class Monster extends Table
     public static function addSignedEnum(FlatBufferBuilder $builder, $signedEnum)
     {
         $builder->addSbyteX(48, $signedEnum, -1);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param VectorOffset
+     * @return void
+     */
+    public static function addTestrequirednestedflatbuffer(FlatBufferBuilder $builder, $testrequirednestedflatbuffer)
+    {
+        $builder->addOffsetX(49, $testrequirednestedflatbuffer, 0);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param array offset array
+     * @return int vector offset
+     */
+    public static function createTestrequirednestedflatbufferVector(FlatBufferBuilder $builder, array $data)
+    {
+        $builder->startVector(1, count($data), 1);
+        for ($i = count($data) - 1; $i >= 0; $i--) {
+            $builder->putByte($data[$i]);
+        }
+        return $builder->endVector();
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param int $numElems
+     * @return void
+     */
+    public static function startTestrequirednestedflatbufferVector(FlatBufferBuilder $builder, $numElems)
+    {
+        $builder->startVector(1, $numElems, 1);
     }
 
     /**
