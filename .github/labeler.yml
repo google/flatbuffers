@@ -46,7 +46,7 @@ kotlin:
   - src/idl_gen_kotlin.cpp
 
 lua:
-  - ./**/*.lua
+  - '**/*.lua'
   - src/idl_gen_lua.cpp
 
 lobster:
