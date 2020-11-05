@@ -121,7 +121,6 @@ inline NamedHashFunction<uint64_t>::HashFunction FindHashFunction64(
   }
   return nullptr;
 }
-
 }  // namespace flatbuffers
 
 #endif  // FLATBUFFERS_HASH_H_
