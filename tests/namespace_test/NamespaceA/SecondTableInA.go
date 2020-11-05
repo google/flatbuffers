@@ -42,6 +42,13 @@ func GetRootAsSecondTableInA(buf []byte, offset flatbuffers.UOffsetT) *SecondTab
 	return x
 }
 
+func GetSizePrefixedRootAsSecondTableInA(buf []byte, offset flatbuffers.UOffsetT) *SecondTableInA {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
+	x := &SecondTableInA{}
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	return x
+}
+
 func (rcv *SecondTableInA) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i

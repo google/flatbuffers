@@ -39,6 +39,13 @@ func GetRootAsTableInNestedNS(buf []byte, offset flatbuffers.UOffsetT) *TableInN
 	return x
 }
 
+func GetSizePrefixedRootAsTableInNestedNS(buf []byte, offset flatbuffers.UOffsetT) *TableInNestedNS {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
+	x := &TableInNestedNS{}
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	return x
+}
+
 func (rcv *TableInNestedNS) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i

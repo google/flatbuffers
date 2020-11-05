@@ -49,6 +49,13 @@ func GetRootAsTableInFirstNS(buf []byte, offset flatbuffers.UOffsetT) *TableInFi
 	return x
 }
 
+func GetSizePrefixedRootAsTableInFirstNS(buf []byte, offset flatbuffers.UOffsetT) *TableInFirstNS {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
+	x := &TableInFirstNS{}
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	return x
+}
+
 func (rcv *TableInFirstNS) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i
