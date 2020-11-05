@@ -719,7 +719,34 @@ class Monster(object):
             return self._tab.Get(flatbuffers.number_types.Int8Flags, o + self._tab.Pos)
         return -1
 
-def MonsterStart(builder): builder.StartObject(49)
+    # Monster
+    def Testrequirednestedflatbuffer(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(102))
+        if o != 0:
+            a = self._tab.Vector(o)
+            return self._tab.Get(flatbuffers.number_types.Uint8Flags, a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 1))
+        return 0
+
+    # Monster
+    def TestrequirednestedflatbufferAsNumpy(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(102))
+        if o != 0:
+            return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Uint8Flags, o)
+        return 0
+
+    # Monster
+    def TestrequirednestedflatbufferLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(102))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # Monster
+    def TestrequirednestedflatbufferIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(102))
+        return o == 0
+
+def MonsterStart(builder): builder.StartObject(50)
 def MonsterAddPos(builder, pos): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(pos), 0)
 def MonsterAddMana(builder, mana): builder.PrependInt16Slot(1, mana, 150)
 def MonsterAddHp(builder, hp): builder.PrependInt16Slot(2, hp, 100)
@@ -786,6 +813,8 @@ def MonsterAddAnyAmbiguous(builder, anyAmbiguous): builder.PrependUOffsetTRelati
 def MonsterAddVectorOfEnums(builder, vectorOfEnums): builder.PrependUOffsetTRelativeSlot(47, flatbuffers.number_types.UOffsetTFlags.py_type(vectorOfEnums), 0)
 def MonsterStartVectorOfEnumsVector(builder, numElems): return builder.StartVector(1, numElems, 1)
 def MonsterAddSignedEnum(builder, signedEnum): builder.PrependInt8Slot(48, signedEnum, -1)
+def MonsterAddTestrequirednestedflatbuffer(builder, testrequirednestedflatbuffer): builder.PrependUOffsetTRelativeSlot(49, flatbuffers.number_types.UOffsetTFlags.py_type(testrequirednestedflatbuffer), 0)
+def MonsterStartTestrequirednestedflatbufferVector(builder, numElems): return builder.StartVector(1, numElems, 1)
 def MonsterEnd(builder): return builder.EndObject()
 
 import MyGame.Example.Ability
@@ -856,6 +885,7 @@ class MonsterT(object):
         self.anyAmbiguous = None  # type: Union[None, MyGame.Example.Monster.MonsterT, MyGame.Example.Monster.MonsterT, MyGame.Example.Monster.MonsterT]
         self.vectorOfEnums = None  # type: List[int]
         self.signedEnum = -1  # type: int
+        self.testrequirednestedflatbuffer = None  # type: List[int]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -1033,6 +1063,13 @@ class MonsterT(object):
             else:
                 self.vectorOfEnums = monster.VectorOfEnumsAsNumpy()
         self.signedEnum = monster.SignedEnum()
+        if not monster.TestrequirednestedflatbufferIsNone():
+            if np is None:
+                self.testrequirednestedflatbuffer = []
+                for i in range(monster.TestrequirednestedflatbufferLength()):
+                    self.testrequirednestedflatbuffer.append(monster.Testrequirednestedflatbuffer(i))
+            else:
+                self.testrequirednestedflatbuffer = monster.TestrequirednestedflatbufferAsNumpy()
 
     # MonsterT
     def Pack(self, builder):
@@ -1185,6 +1222,14 @@ class MonsterT(object):
                 for i in reversed(range(len(self.vectorOfEnums))):
                     builder.PrependUint8(self.vectorOfEnums[i])
                 vectorOfEnums = builder.EndVector(len(self.vectorOfEnums))
+        if self.testrequirednestedflatbuffer is not None:
+            if np is not None and type(self.testrequirednestedflatbuffer) is np.ndarray:
+                testrequirednestedflatbuffer = builder.CreateNumpyVector(self.testrequirednestedflatbuffer)
+            else:
+                MonsterStartTestrequirednestedflatbufferVector(builder, len(self.testrequirednestedflatbuffer))
+                for i in reversed(range(len(self.testrequirednestedflatbuffer))):
+                    builder.PrependUint8(self.testrequirednestedflatbuffer[i])
+                testrequirednestedflatbuffer = builder.EndVector(len(self.testrequirednestedflatbuffer))
         MonsterStart(builder)
         if self.pos is not None:
             pos = self.pos.Pack(builder)
@@ -1261,5 +1306,7 @@ class MonsterT(object):
         if self.vectorOfEnums is not None:
             MonsterAddVectorOfEnums(builder, vectorOfEnums)
         MonsterAddSignedEnum(builder, self.signedEnum)
+        if self.testrequirednestedflatbuffer is not None:
+            MonsterAddTestrequirednestedflatbuffer(builder, testrequirednestedflatbuffer)
         monster = MonsterEnd(builder)
         return monster
