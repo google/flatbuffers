@@ -1143,6 +1143,7 @@ impl<'a> Monster<'a> {
       builder.add_testhashs64_fnv1a(args.testhashs64_fnv1a);
       builder.add_testhashu64_fnv1(args.testhashu64_fnv1);
       builder.add_testhashs64_fnv1(args.testhashs64_fnv1);
+      if let Some(x) = args.testrequirednestedflatbuffer { builder.add_testrequirednestedflatbuffer(x); }
       if let Some(x) = args.vector_of_enums { builder.add_vector_of_enums(x); }
       if let Some(x) = args.any_ambiguous { builder.add_any_ambiguous(x); }
       if let Some(x) = args.any_unique { builder.add_any_unique(x); }
@@ -1235,6 +1236,7 @@ impl<'a> Monster<'a> {
     pub const VT_ANY_AMBIGUOUS: flatbuffers::VOffsetT = 96;
     pub const VT_VECTOR_OF_ENUMS: flatbuffers::VOffsetT = 98;
     pub const VT_SIGNED_ENUM: flatbuffers::VOffsetT = 100;
+    pub const VT_TESTREQUIREDNESTEDFLATBUFFER: flatbuffers::VOffsetT = 102;
 
   #[inline]
   pub fn pos(&self) -> Option<&'a Vec3> {
@@ -1447,6 +1449,16 @@ impl<'a> Monster<'a> {
     self._tab.get::<Race>(Monster::VT_SIGNED_ENUM, Some(Race::None)).unwrap()
   }
   #[inline]
+  pub fn testrequirednestedflatbuffer(&self) -> Option<&'a [u8]> {
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(Monster::VT_TESTREQUIREDNESTEDFLATBUFFER, None).map(|v| v.safe_slice())
+  }
+  pub fn testrequirednestedflatbuffer_nested_flatbuffer(&'a self) -> Option<Monster<'a>> {
+    self.testrequirednestedflatbuffer().map(|data| {
+      use flatbuffers::Follow;
+      <flatbuffers::ForwardsUOffset<Monster<'a>>>::follow(data, 0)
+    })
+  }
+  #[inline]
   #[allow(non_snake_case)]
   pub fn test_as_monster(&self) -> Option<Monster<'a>> {
     if self.test_type() == Any::Monster {
@@ -1587,6 +1599,7 @@ pub struct MonsterArgs<'a> {
     pub any_ambiguous: Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>>,
     pub vector_of_enums: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, Color>>>,
     pub signed_enum: Race,
+    pub testrequirednestedflatbuffer: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u8>>>,
 }
 impl<'a> Default for MonsterArgs<'a> {
     #[inline]
@@ -1640,6 +1653,7 @@ impl<'a> Default for MonsterArgs<'a> {
             any_ambiguous: None,
             vector_of_enums: None,
             signed_enum: Race::None,
+            testrequirednestedflatbuffer: None,
         }
     }
 }
@@ -1841,6 +1855,10 @@ impl<'a: 'b, 'b> MonsterBuilder<'a, 'b> {
     self.fbb_.push_slot::<Race>(Monster::VT_SIGNED_ENUM, signed_enum, Race::None);
   }
   #[inline]
+  pub fn add_testrequirednestedflatbuffer(&mut self, testrequirednestedflatbuffer: flatbuffers::WIPOffset<flatbuffers::Vector<'b , u8>>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Monster::VT_TESTREQUIREDNESTEDFLATBUFFER, testrequirednestedflatbuffer);
+  }
+  #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> MonsterBuilder<'a, 'b> {
     let start = _fbb.start_table();
     MonsterBuilder {
@@ -1985,6 +2003,7 @@ impl std::fmt::Debug for Monster<'_> {
       };
       ds.field("vector_of_enums", &self.vector_of_enums());
       ds.field("signed_enum", &self.signed_enum());
+      ds.field("testrequirednestedflatbuffer", &self.testrequirednestedflatbuffer());
       ds.finish()
   }
 }

@@ -55,6 +55,7 @@ type MonsterT struct {
 	AnyAmbiguous *AnyAmbiguousAliasesT
 	VectorOfEnums []Color
 	SignedEnum Race
+	Testrequirednestedflatbuffer []byte
 }
 
 func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
@@ -236,6 +237,10 @@ func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 		}
 		vectorOfEnumsOffset = builder.EndVector(vectorOfEnumsLength)
 	}
+	testrequirednestedflatbufferOffset := flatbuffers.UOffsetT(0)
+	if t.Testrequirednestedflatbuffer != nil {
+		testrequirednestedflatbufferOffset = builder.CreateByteString(t.Testrequirednestedflatbuffer)
+	}
 	MonsterStart(builder)
 	posOffset := t.Pos.Pack(builder)
 	MonsterAddPos(builder, posOffset)
@@ -292,6 +297,7 @@ func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	MonsterAddAnyAmbiguous(builder, anyAmbiguousOffset)
 	MonsterAddVectorOfEnums(builder, vectorOfEnumsOffset)
 	MonsterAddSignedEnum(builder, t.SignedEnum)
+	MonsterAddTestrequirednestedflatbuffer(builder, testrequirednestedflatbufferOffset)
 	return MonsterEnd(builder)
 }
 
@@ -422,6 +428,7 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 		t.VectorOfEnums[j] = rcv.VectorOfEnums(j)
 	}
 	t.SignedEnum = rcv.SignedEnum()
+	t.Testrequirednestedflatbuffer = rcv.TestrequirednestedflatbufferBytes()
 }
 
 func (rcv *Monster) UnPack() *MonsterT {
@@ -1249,8 +1256,42 @@ func (rcv *Monster) MutateSignedEnum(n Race) bool {
 	return rcv._tab.MutateInt8Slot(100, int8(n))
 }
 
+func (rcv *Monster) Testrequirednestedflatbuffer(j int) byte {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(102))
+	if o != 0 {
+		a := rcv._tab.Vector(o)
+		return rcv._tab.GetByte(a + flatbuffers.UOffsetT(j*1))
+	}
+	return 0
+}
+
+func (rcv *Monster) TestrequirednestedflatbufferLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(102))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
+func (rcv *Monster) TestrequirednestedflatbufferBytes() []byte {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(102))
+	if o != 0 {
+		return rcv._tab.ByteVector(o + rcv._tab.Pos)
+	}
+	return nil
+}
+
+func (rcv *Monster) MutateTestrequirednestedflatbuffer(j int, n byte) bool {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(102))
+	if o != 0 {
+		a := rcv._tab.Vector(o)
+		return rcv._tab.MutateByte(a+flatbuffers.UOffsetT(j*1), n)
+	}
+	return false
+}
+
 func MonsterStart(builder *flatbuffers.Builder) {
-	builder.StartObject(49)
+	builder.StartObject(50)
 }
 func MonsterAddPos(builder *flatbuffers.Builder, pos flatbuffers.UOffsetT) {
 	builder.PrependStructSlot(0, flatbuffers.UOffsetT(pos), 0)
@@ -1449,6 +1490,12 @@ func MonsterStartVectorOfEnumsVector(builder *flatbuffers.Builder, numElems int)
 }
 func MonsterAddSignedEnum(builder *flatbuffers.Builder, signedEnum Race) {
 	builder.PrependInt8Slot(48, int8(signedEnum), -1)
+}
+func MonsterAddTestrequirednestedflatbuffer(builder *flatbuffers.Builder, testrequirednestedflatbuffer flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(49, flatbuffers.UOffsetT(testrequirednestedflatbuffer), 0)
+}
+func MonsterStartTestrequirednestedflatbufferVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+	return builder.StartVector(1, numElems, 1)
 }
 func MonsterEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()

@@ -116,6 +116,7 @@ table Monster {
   any_ambiguous:AnyAmbiguousAliases (id:46);
   vector_of_enums:[Color] (id:47);
   signed_enum:Race = None (id:48);
+  testrequirednestedflatbuffer:[ubyte] (id:49, nested_flatbuffer: "Monster");
 }
 
 table TypeAliases {
