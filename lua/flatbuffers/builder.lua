@@ -323,8 +323,6 @@ end
 
 function mt:PrependSlot(flags, o, x, d)
     flags:EnforceNumbers(x,d)
---    flags:EnforceNumber(x)
---    flags:EnforceNumber(d)
     if x ~= d then
         self:Prepend(flags, x)
         self:Slot(o)
