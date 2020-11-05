@@ -166,6 +166,7 @@ pub fn read_scalar_at<T: EndianScalar>(s: &[u8], loc: usize) -> T {
     read_scalar(buf)
 }
 
+
 /// Read an EndianScalar from the provided byte slice. Performs endian
 /// conversion, if necessary.
 #[inline]

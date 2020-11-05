@@ -37,6 +37,7 @@ def GetVectorAsNumpy(numpy_type, buf, count, offset):
         raise NumpyRequiredForThisFeature('Numpy was not found.')
 
 
+
 def Write(packer_type, buf, head, n):
     """ Write encodes `n` at buf[head] using `packer_type`. """
     packer_type.pack_into(buf, head, n)
