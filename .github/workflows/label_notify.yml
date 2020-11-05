@@ -10,7 +10,7 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-        - uses: jenschelkopf/issue-label-notification-action@1.3
+        - uses: kongo555/issue-label-notification-action@main
           with:
              recipients: |
                   lua=@dbaileychess
