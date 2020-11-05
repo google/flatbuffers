@@ -38,7 +38,7 @@ python:
   - src/idl_gen_python.cpp
 
 java:
-  - ./**/*.java
+  - java/**/*.java
   - src/idl_gen_java.cpp
 
 kotlin:
@@ -46,7 +46,7 @@ kotlin:
   - src/idl_gen_kotlin.cpp
 
 lua:
-  - '**/*.lua'
+  - lua/**/*
   - src/idl_gen_lua.cpp
 
 lobster:
@@ -69,7 +69,7 @@ dart:
 c++:
   - ./**/*.cc
   - ./**/*.cpp
-  - ./**/*.h
+  - '**/*.h'
 
 json:
   - ./**/*.json
