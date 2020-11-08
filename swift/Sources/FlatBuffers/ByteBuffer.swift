@@ -283,8 +283,6 @@ public struct ByteBuffer {
     mutating public func clear() {
         _writerSize = 0
         alignment = 1
-        _storage.memory.deallocate()
-        _storage.memory = UnsafeMutableRawPointer.allocate(byteCount: _storage.capacity, alignment: alignment)
         _storage.initialize(for: _storage.capacity)
     }
     
