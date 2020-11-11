@@ -3,7 +3,6 @@
 # format
 --allman true
 --indent 2
---maxwidth 100
 
 # options
 --self remove # redundantSelf
@@ -13,7 +12,6 @@
 --ifdef no-indent #indent
 --wraparguments before-first # wrapArguments
 --wrapparameters before-first # wrapArguments
---wrapcollections preserve # wrapArguments
 --closingparen same-line # wrapArguments
 --funcattributes prev-line # wrapAttributes
 --typeattributes prev-line # wrapAttributes

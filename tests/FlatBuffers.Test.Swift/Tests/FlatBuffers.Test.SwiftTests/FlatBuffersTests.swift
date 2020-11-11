@@ -19,90 +19,91 @@ import XCTest
 
 final class FlatBuffersTests: XCTestCase {
 
-    let country = "Norway"
+  let country = "Norway"
 
-    func testEndian() { XCTAssertEqual(isLitteEndian, true) }
+  func testEndian() { XCTAssertEqual(isLitteEndian, true) }
 
-    func testOffset() {
-        let o = Offset<Int>()
-        let b = Offset<Int>(offset: 1)
-        XCTAssertEqual(o.isEmpty, true)
-        XCTAssertEqual(b.isEmpty, false)
-    }
+  func testOffset() {
+    let o = Offset<Int>()
+    let b = Offset<Int>(offset: 1)
+    XCTAssertEqual(o.isEmpty, true)
+    XCTAssertEqual(b.isEmpty, false)
+  }
 
-    func testCreateString() {
-        let helloWorld = "Hello, world!"
-        var b = FlatBufferBuilder(initialSize: 16)
-        XCTAssertEqual(b.create(string: country).o, 12)
-        XCTAssertEqual(b.create(string: helloWorld).o, 32)
-        b.clear()
-        XCTAssertEqual(b.create(string: helloWorld).o, 20)
-        XCTAssertEqual(b.create(string: country).o, 32)
-        b.clear()
-        XCTAssertEqual(b.create(string: String(repeating: "a", count: 257)).o, 264)
-    }
+  func testCreateString() {
+    let helloWorld = "Hello, world!"
+    var b = FlatBufferBuilder(initialSize: 16)
+    XCTAssertEqual(b.create(string: country).o, 12)
+    XCTAssertEqual(b.create(string: helloWorld).o, 32)
+    b.clear()
+    XCTAssertEqual(b.create(string: helloWorld).o, 20)
+    XCTAssertEqual(b.create(string: country).o, 32)
+    b.clear()
+    XCTAssertEqual(b.create(string: String(repeating: "a", count: 257)).o, 264)
+  }
 
-    func testStartTable() {
-        var b = FlatBufferBuilder(initialSize: 16)
-        XCTAssertNoThrow(b.startTable(with: 0))
-        b.clear()
-        XCTAssertEqual(b.create(string: country).o, 12)
-        XCTAssertEqual(b.startTable(with: 0), 12)
-    }
+  func testStartTable() {
+    var b = FlatBufferBuilder(initialSize: 16)
+    XCTAssertNoThrow(b.startTable(with: 0))
+    b.clear()
+    XCTAssertEqual(b.create(string: country).o, 12)
+    XCTAssertEqual(b.startTable(with: 0), 12)
+  }
 
-    func testCreateFinish() {
-        var b = FlatBufferBuilder(initialSize: 16)
-        let countryOff = Country.createCountry(builder: &b, name: country, log: 200, lan: 100)
-        b.finish(offset: countryOff)
-        let v: [UInt8] = [16, 0, 0, 0, 0, 0, 10, 0, 16, 0, 4, 0, 8, 0, 12, 0, 10, 0, 0, 0, 12, 0, 0, 0, 100, 0, 0, 0, 200, 0, 0, 0, 6, 0, 0, 0, 78, 111, 114, 119, 97, 121, 0, 0]
-        XCTAssertEqual(b.sizedByteArray, v)
-    }
+  func testCreateFinish() {
+    var b = FlatBufferBuilder(initialSize: 16)
+    let countryOff = Country.createCountry(builder: &b, name: country, log: 200, lan: 100)
+    b.finish(offset: countryOff)
+    let v: [UInt8] = [16, 0, 0, 0, 0, 0, 10, 0, 16, 0, 4, 0, 8, 0, 12, 0, 10, 0, 0, 0, 12, 0, 0, 0, 100, 0, 0, 0, 200, 0, 0, 0, 6, 0, 0, 0, 78, 111, 114, 119, 97, 121, 0, 0]
+    XCTAssertEqual(b.sizedByteArray, v)
+  }
 
-    func testCreateFinishWithPrefix() {
-        var b = FlatBufferBuilder(initialSize: 16)
-        let countryOff = Country.createCountry(builder: &b, name: country, log: 200, lan: 100)
-        b.finish(offset: countryOff, addPrefix: true)
-        let v: [UInt8] = [44, 0, 0, 0, 16, 0, 0, 0, 0, 0, 10, 0, 16, 0, 4, 0, 8, 0, 12, 0, 10, 0, 0, 0, 12, 0, 0, 0, 100, 0, 0, 0, 200, 0, 0, 0, 6, 0, 0, 0, 78, 111, 114, 119, 97, 121, 0, 0]
-        XCTAssertEqual(b.sizedByteArray, v)
-    }
+  func testCreateFinishWithPrefix() {
+    var b = FlatBufferBuilder(initialSize: 16)
+    let countryOff = Country.createCountry(builder: &b, name: country, log: 200, lan: 100)
+    b.finish(offset: countryOff, addPrefix: true)
+    let v: [UInt8] = [44, 0, 0, 0, 16, 0, 0, 0, 0, 0, 10, 0, 16, 0, 4, 0, 8, 0, 12, 0, 10, 0, 0, 0, 12, 0, 0, 0, 100, 0, 0, 0, 200, 0, 0, 0, 6, 0, 0, 0, 78, 111, 114, 119, 97, 121, 0, 0]
+    XCTAssertEqual(b.sizedByteArray, v)
+  }
 
-    func testReadCountry() {
-        let v: [UInt8] = [16, 0, 0, 0, 0, 0, 10, 0, 16, 0, 4, 0, 8, 0, 12, 0, 10, 0, 0, 0, 12, 0, 0, 0, 100, 0, 0, 0, 200, 0, 0, 0, 6, 0, 0, 0, 78, 111, 114, 119, 97, 121, 0, 0]
-        let buffer = ByteBuffer(bytes: v)
-        let c = Country.getRootAsCountry(buffer)
-        XCTAssertEqual(c.lan, 100)
-        XCTAssertEqual(c.log, 200)
-        XCTAssertEqual(c.nameVector, [78, 111, 114, 119, 97, 121])
-        XCTAssertEqual(c.name, country)
-    }
+  func testReadCountry() {
+    let v: [UInt8] = [16, 0, 0, 0, 0, 0, 10, 0, 16, 0, 4, 0, 8, 0, 12, 0, 10, 0, 0, 0, 12, 0, 0, 0, 100, 0, 0, 0, 200, 0, 0, 0, 6, 0, 0, 0, 78, 111, 114, 119, 97, 121, 0, 0]
+    let buffer = ByteBuffer(bytes: v)
+    let c = Country.getRootAsCountry(buffer)
+    XCTAssertEqual(c.lan, 100)
+    XCTAssertEqual(c.log, 200)
+    XCTAssertEqual(c.nameVector, [78, 111, 114, 119, 97, 121])
+    XCTAssertEqual(c.name, country)
+  }
 
-    func testWriteNullableStrings() {
-        var b = FlatBufferBuilder()
-        XCTAssertTrue(b.create(string: nil).isEmpty)
-        XCTAssertTrue(b.createShared(string: nil).isEmpty)
-    }
+  func testWriteNullableStrings() {
+    var b = FlatBufferBuilder()
+    XCTAssertTrue(b.create(string: nil).isEmpty)
+    XCTAssertTrue(b.createShared(string: nil).isEmpty)
+  }
 
-    func testWriteOptionalValues() {
-        var b = FlatBufferBuilder()
-        let root = optional_scalars_ScalarStuff.createScalarStuff(&b,
-                                                                  justI8: 80,
-                                                                  maybeI8: nil,
-                                                                  justU8: 100,
-                                                                  maybeU8: 10,
-                                                                  maybeBool: true,
-                                                                  justEnum: .one,
-                                                                  maybeEnum: nil)
-        b.finish(offset: root)
-        let scalarTable = optional_scalars_ScalarStuff.getRootAsScalarStuff(bb: b.sizedBuffer)
-        XCTAssertEqual(scalarTable.justI8, 80)
-        XCTAssertNil(scalarTable.maybeI8)
-        XCTAssertEqual(scalarTable.maybeBool, true)
-        XCTAssertEqual(scalarTable.defaultI8, 42)
-        XCTAssertEqual(scalarTable.justU8, 100)
-        XCTAssertEqual(scalarTable.maybeU8, 10)
-        XCTAssertEqual(scalarTable.justEnum, .one)
-        XCTAssertNil(scalarTable.maybeEnum)
-    }
+  func testWriteOptionalValues() {
+    var b = FlatBufferBuilder()
+    let root = optional_scalars_ScalarStuff.createScalarStuff(
+      &b,
+      justI8: 80,
+      maybeI8: nil,
+      justU8: 100,
+      maybeU8: 10,
+      maybeBool: true,
+      justEnum: .one,
+      maybeEnum: nil)
+    b.finish(offset: root)
+    let scalarTable = optional_scalars_ScalarStuff.getRootAsScalarStuff(bb: b.sizedBuffer)
+    XCTAssertEqual(scalarTable.justI8, 80)
+    XCTAssertNil(scalarTable.maybeI8)
+    XCTAssertEqual(scalarTable.maybeBool, true)
+    XCTAssertEqual(scalarTable.defaultI8, 42)
+    XCTAssertEqual(scalarTable.justU8, 100)
+    XCTAssertEqual(scalarTable.maybeU8, 10)
+    XCTAssertEqual(scalarTable.justEnum, .one)
+    XCTAssertNil(scalarTable.maybeEnum)
+  }
 }
 
 class Country {
