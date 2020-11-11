@@ -716,8 +716,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     // with a special suffix.
     ECHECK(AddField(struct_def, name + UnionTypeFieldSuffix(),
                     type.enum_def->underlying_type, &typefield));
-  } else if (type.base_type == BASE_TYPE_VECTOR &&
-             type.element == BASE_TYPE_UNION) {
+  } else if (IsVector(type) && type.element == BASE_TYPE_UNION) {
     // Only cpp, js and ts supports the union vector feature so far.
     if (!SupportsAdvancedUnionFeatures()) {
       return Error(
@@ -757,7 +756,8 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
             type.enum_def->name + "'.");
       }
       if (field->attributes.Lookup("key")) {
-        return Error("only a non-optional scalar field can be used as a 'key' field");
+        return Error(
+            "only a non-optional scalar field can be used as a 'key' field");
       }
       if (!SupportsOptionalScalars()) {
         return Error(
@@ -791,10 +791,9 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     // Table, struct or string can't have enum_def.
     // Default value of union and vector in NONE, NULL translated to "0".
     FLATBUFFERS_ASSERT(IsInteger(type.base_type) ||
-                       (type.base_type == BASE_TYPE_UNION) ||
-                       (type.base_type == BASE_TYPE_VECTOR) ||
-                       (type.base_type == BASE_TYPE_ARRAY));
-    if (type.base_type == BASE_TYPE_VECTOR) {
+                       (type.base_type == BASE_TYPE_UNION) || IsVector(type) ||
+                       IsArray(type));
+    if (IsVector(type)) {
       // Vector can't use initialization list.
       FLATBUFFERS_ASSERT(field->value.constant == "0");
     } else {
@@ -814,8 +813,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   field->deprecated = field->attributes.Lookup("deprecated") != nullptr;
   auto hash_name = field->attributes.Lookup("hash");
   if (hash_name) {
-    switch ((type.base_type == BASE_TYPE_VECTOR) ? type.element
-                                                 : type.base_type) {
+    switch ((IsVector(type)) ? type.element : type.base_type) {
       case BASE_TYPE_SHORT:
       case BASE_TYPE_USHORT: {
         if (FindHashFunction16(hash_name->constant.c_str()) == nullptr)
@@ -862,7 +860,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   if (field->required && (struct_def.fixed || IsScalar(type.base_type)))
     return Error("only non-scalar fields in tables may be 'required'");
 
-  if(!IsScalar(type.base_type)) {
+  if (!IsScalar(type.base_type)) {
     // For nonscalars, only required fields are non-optional.
     // At least until https://github.com/google/flatbuffers/issues/6053
     field->optional = !field->required;
@@ -968,8 +966,7 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
         auto &type = elem->second->value.type;
         if (type.enum_def == val.type.enum_def) {
           if (inside_vector) {
-            if (type.base_type == BASE_TYPE_VECTOR &&
-                type.element == BASE_TYPE_UTYPE) {
+            if (IsVector(type) && type.element == BASE_TYPE_UTYPE) {
               // Vector of union type field.
               uoffset_t offset;
               ECHECK(atot(elem->first.constant.c_str(), *this, &offset));
@@ -1036,7 +1033,7 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
           builder_.ClearOffsets();
           val.constant = NumToString(builder_.GetSize());
         }
-      } else if (enum_val->union_type.base_type == BASE_TYPE_STRING) {
+      } else if (IsString(enum_val->union_type)) {
         ECHECK(ParseString(val, field->shared));
       } else {
         FLATBUFFERS_ASSERT(false);
@@ -1230,7 +1227,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
       if (!struct_def.sortbysize ||
           size == SizeOf(field_value.type.base_type)) {
         switch (field_value.type.base_type) {
-          // clang-format off
+// clang-format off
           #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
             case BASE_TYPE_ ## ENUM: \
               builder_.Pad(field->padding); \
@@ -1369,7 +1366,7 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
     // start at the back, since we're building the data backwards.
     auto &val = field_stack_.back().first;
     switch (val.type.base_type) {
-      // clang-format off
+// clang-format off
       #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE,...) \
         case BASE_TYPE_ ## ENUM: \
           if (IsStruct(val.type)) SerializeStruct(*val.type.struct_def, val); \
@@ -2279,10 +2276,11 @@ CheckedError Parser::CheckClash(std::vector<FieldDef *> &fields,
   return NoError();
 }
 
-bool Parser::SupportsOptionalScalars(const flatbuffers::IDLOptions &opts){
+bool Parser::SupportsOptionalScalars(const flatbuffers::IDLOptions &opts) {
   static FLATBUFFERS_CONSTEXPR unsigned long supported_langs =
       IDLOptions::kRust | IDLOptions::kSwift | IDLOptions::kLobster |
-      IDLOptions::kKotlin | IDLOptions::kCpp;
+      IDLOptions::kKotlin | IDLOptions::kCpp | IDLOptions::kJava |
+      IDLOptions::kCSharp | IDLOptions::kTs | IDLOptions::kJs;
   unsigned long langs = opts.lang_to_generate;
   return (langs > 0 && langs < IDLOptions::kMAX) && !(langs & ~supported_langs);
 }
@@ -2959,7 +2957,7 @@ CheckedError Parser::ParseRoot(const char *source, const char **include_paths,
               if (field.value.type.struct_def == &struct_def) {
                 field.value.type.struct_def = nullptr;
                 field.value.type.enum_def = enum_def;
-                auto &bt = field.value.type.base_type == BASE_TYPE_VECTOR
+                auto &bt = IsVector(field.value.type)
                                ? field.value.type.element
                                : field.value.type.base_type;
                 FLATBUFFERS_ASSERT(bt == BASE_TYPE_STRUCT);
@@ -2997,8 +2995,8 @@ CheckedError Parser::ParseRoot(const char *source, const char **include_paths,
       for (auto val_it = enum_def.Vals().begin();
            val_it != enum_def.Vals().end(); ++val_it) {
         auto &val = **val_it;
-        if (!SupportsAdvancedUnionFeatures() && val.union_type.struct_def &&
-            val.union_type.struct_def->fixed)
+        if (!SupportsAdvancedUnionFeatures() &&
+            (IsStruct(val.union_type) || IsString(val.union_type)))
           return Error(
               "only tables can be union elements in the generated language: " +
               val.name);

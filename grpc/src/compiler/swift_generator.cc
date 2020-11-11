@@ -229,11 +229,13 @@ void GenerateServerProtocol(const grpc_generator::Service *service,
   printer->Print("}\n\n");
 
   printer->Print(vars, "$ACCESS$ extension $ServiceQualifiedName$Provider {\n");
+  printer->Print("\n");
   printer->Print(vars,
-                 "\tvar serviceName: String { return "
+                 "\tvar serviceName: Substring { return "
                  "\"$PATH$$ServiceName$\" }\n");
+  printer->Print("\n");
   printer->Print(
-      "\tfunc handleMethod(_ methodName: String, callHandlerContext: "
+      "\tfunc handleMethod(_ methodName: Substring, callHandlerContext: "
       "CallHandlerContext) -> GRPCCallHandler? {\n");
   printer->Print("\t\tswitch methodName {\n");
   for (auto it = 0; it < service->method_count(); it++) {

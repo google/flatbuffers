@@ -343,6 +343,13 @@ MyGame.Example.Test.prototype.mutate_b = function(value) {
 };
 
 /**
+ * @returns {number}
+ */
+MyGame.Example.Test.sizeOf = function() {
+  return 4;
+}
+
+/**
  * @param {flatbuffers.Builder} builder
  * @param {number} a
  * @param {number} b
@@ -574,6 +581,13 @@ MyGame.Example.Vec3.prototype.test3 = function(obj) {
 };
 
 /**
+ * @returns {number}
+ */
+MyGame.Example.Vec3.sizeOf = function() {
+  return 32;
+}
+
+/**
  * @param {flatbuffers.Builder} builder
  * @param {number} x
  * @param {number} y
@@ -658,6 +672,13 @@ MyGame.Example.Ability.prototype.mutate_distance = function(value) {
   this.bb.writeUint32(this.bb_pos + 4, value);
   return true;
 };
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.Ability.sizeOf = function() {
+  return 8;
+}
 
 /**
  * @param {flatbuffers.Builder} builder
@@ -1884,10 +1905,35 @@ MyGame.Example.Monster.prototype.mutate_signed_enum = function(value) {
 };
 
 /**
+ * @param {number} index
+ * @returns {number}
+ */
+MyGame.Example.Monster.prototype.testrequirednestedflatbuffer = function(index) {
+  var offset = this.bb.__offset(this.bb_pos, 102);
+  return offset ? this.bb.readUint8(this.bb.__vector(this.bb_pos + offset) + index) : 0;
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.Monster.prototype.testrequirednestedflatbufferLength = function() {
+  var offset = this.bb.__offset(this.bb_pos, 102);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @returns {Uint8Array}
+ */
+MyGame.Example.Monster.prototype.testrequirednestedflatbufferArray = function() {
+  var offset = this.bb.__offset(this.bb_pos, 102);
+  return offset ? new Uint8Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+};
+
+/**
  * @param {flatbuffers.Builder} builder
  */
 MyGame.Example.Monster.startMonster = function(builder) {
-  builder.startObject(49);
+  builder.startObject(50);
 };
 
 /**
@@ -2611,6 +2657,35 @@ MyGame.Example.Monster.startVectorOfEnumsVector = function(builder, numElems) {
  */
 MyGame.Example.Monster.addSignedEnum = function(builder, signedEnum) {
   builder.addFieldInt8(48, signedEnum, MyGame.Example.Race.None);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} testrequirednestedflatbufferOffset
+ */
+MyGame.Example.Monster.addTestrequirednestedflatbuffer = function(builder, testrequirednestedflatbufferOffset) {
+  builder.addFieldOffset(49, testrequirednestedflatbufferOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<number>} data
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.Monster.createTestrequirednestedflatbufferVector = function(builder, data) {
+  builder.startVector(1, data.length, 1);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addInt8(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+MyGame.Example.Monster.startTestrequirednestedflatbufferVector = function(builder, numElems) {
+  builder.startVector(1, numElems, 1);
 };
 
 /**

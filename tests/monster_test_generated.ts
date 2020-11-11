@@ -210,6 +210,14 @@ static createInParentNamespace(builder:flatbuffers.Builder):flatbuffers.Offset {
   return InParentNamespace.endInParentNamespace(builder);
 }
 
+serialize():Uint8Array {
+  return this.bb!.bytes();
+}
+
+static deserialize(buffer: Uint8Array):InParentNamespace {
+  return InParentNamespace.getRootAsInParentNamespace(new flatbuffers.ByteBuffer(buffer))
+}
+
 /**
  * @returns InParentNamespaceT
  */
@@ -297,6 +305,14 @@ static createMonster(builder:flatbuffers.Builder):flatbuffers.Offset {
   return Monster.endMonster(builder);
 }
 
+serialize():Uint8Array {
+  return this.bb!.bytes();
+}
+
+static deserialize(buffer: Uint8Array):Monster {
+  return Monster.getRootAsMonster(new flatbuffers.ByteBuffer(buffer))
+}
+
 /**
  * @returns MonsterT
  */
@@ -375,6 +391,13 @@ mutate_b(value:number):boolean {
   this.bb!.writeInt8(this.bb_pos + 2, value);
   return true;
 };
+
+/**
+ * @returns number
+ */
+static sizeOf():number {
+  return 4;
+}
 
 /**
  * @param flatbuffers.Builder builder
@@ -524,6 +547,14 @@ static createTestSimpleTableWithEnum(builder:flatbuffers.Builder, color:MyGame.E
   return TestSimpleTableWithEnum.endTestSimpleTableWithEnum(builder);
 }
 
+serialize():Uint8Array {
+  return this.bb!.bytes();
+}
+
+static deserialize(buffer: Uint8Array):TestSimpleTableWithEnum {
+  return TestSimpleTableWithEnum.getRootAsTestSimpleTableWithEnum(new flatbuffers.ByteBuffer(buffer))
+}
+
 /**
  * @returns TestSimpleTableWithEnumT
  */
@@ -669,6 +700,13 @@ test3(obj?:MyGame.Example.Test):MyGame.Example.Test|null {
 };
 
 /**
+ * @returns number
+ */
+static sizeOf():number {
+  return 32;
+}
+
+/**
  * @param flatbuffers.Builder builder
  * @param number x
  * @param number y
@@ -810,6 +848,13 @@ mutate_distance(value:number):boolean {
   this.bb!.writeUint32(this.bb_pos + 4, value);
   return true;
 };
+
+/**
+ * @returns number
+ */
+static sizeOf():number {
+  return 8;
+}
 
 /**
  * @param flatbuffers.Builder builder
@@ -1010,6 +1055,14 @@ static createStat(builder:flatbuffers.Builder, idOffset:flatbuffers.Offset, val:
   return Stat.endStat(builder);
 }
 
+serialize():Uint8Array {
+  return this.bb!.bytes();
+}
+
+static deserialize(buffer: Uint8Array):Stat {
+  return Stat.getRootAsStat(new flatbuffers.ByteBuffer(buffer))
+}
+
 /**
  * @returns StatT
  */
@@ -1148,6 +1201,14 @@ static createReferrable(builder:flatbuffers.Builder, id:flatbuffers.Long):flatbu
   Referrable.startReferrable(builder);
   Referrable.addId(builder, id);
   return Referrable.endReferrable(builder);
+}
+
+serialize():Uint8Array {
+  return this.bb!.bytes();
+}
+
+static deserialize(buffer: Uint8Array):Referrable {
+  return Referrable.getRootAsReferrable(new flatbuffers.ByteBuffer(buffer))
 }
 
 /**
@@ -2140,10 +2201,35 @@ mutate_signed_enum(value:MyGame.Example.Race):boolean {
 };
 
 /**
+ * @param number index
+ * @returns number
+ */
+testrequirednestedflatbuffer(index: number):number|null {
+  var offset = this.bb!.__offset(this.bb_pos, 102);
+  return offset ? this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index) : 0;
+};
+
+/**
+ * @returns number
+ */
+testrequirednestedflatbufferLength():number {
+  var offset = this.bb!.__offset(this.bb_pos, 102);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @returns Uint8Array
+ */
+testrequirednestedflatbufferArray():Uint8Array|null {
+  var offset = this.bb!.__offset(this.bb_pos, 102);
+  return offset ? new Uint8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
+};
+
+/**
  * @param flatbuffers.Builder builder
  */
 static startMonster(builder:flatbuffers.Builder) {
-  builder.startObject(49);
+  builder.startObject(50);
 };
 
 /**
@@ -2876,6 +2962,35 @@ static addSignedEnum(builder:flatbuffers.Builder, signedEnum:MyGame.Example.Race
 
 /**
  * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset testrequirednestedflatbufferOffset
+ */
+static addTestrequirednestedflatbuffer(builder:flatbuffers.Builder, testrequirednestedflatbufferOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(49, testrequirednestedflatbufferOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param Array.<number> data
+ * @returns flatbuffers.Offset
+ */
+static createTestrequirednestedflatbufferVector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset {
+  builder.startVector(1, data.length, 1);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addInt8(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param number numElems
+ */
+static startTestrequirednestedflatbufferVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(1, numElems, 1);
+};
+
+/**
+ * @param flatbuffers.Builder builder
  * @returns flatbuffers.Offset
  */
 static endMonster(builder:flatbuffers.Builder):flatbuffers.Offset {
@@ -2900,6 +3015,14 @@ static finishSizePrefixedMonsterBuffer(builder:flatbuffers.Builder, offset:flatb
   builder.finish(offset, 'MONS', true);
 };
 
+
+serialize():Uint8Array {
+  return this.bb!.bytes();
+}
+
+static deserialize(buffer: Uint8Array):Monster {
+  return Monster.getRootAsMonster(new flatbuffers.ByteBuffer(buffer))
+}
 
 /**
  * @returns MonsterT
@@ -2965,7 +3088,8 @@ unpack(): MonsterT {
       return temp.unpack()
   })(),
     this.bb!.createScalarList(this.vectorOfEnums.bind(this), this.vectorOfEnumsLength()),
-    this.signedEnum()
+    this.signedEnum(),
+    this.bb!.createScalarList(this.testrequirednestedflatbuffer.bind(this), this.testrequirednestedflatbufferLength())
   );
 };
 
@@ -3033,6 +3157,7 @@ unpackTo(_o: MonsterT): void {
   })();
   _o.vectorOfEnums = this.bb!.createScalarList(this.vectorOfEnums.bind(this), this.vectorOfEnumsLength());
   _o.signedEnum = this.signedEnum();
+  _o.testrequirednestedflatbuffer = this.bb!.createScalarList(this.testrequirednestedflatbuffer.bind(this), this.testrequirednestedflatbufferLength());
 };
 }
 
@@ -3087,6 +3212,7 @@ export class MonsterT {
  * @param MyGame.Example.MonsterT|null anyAmbiguous
  * @param (MyGame.Example.Color)[] vectorOfEnums
  * @param MyGame.Example.Race signedEnum
+ * @param (number)[] testrequirednestedflatbuffer
  */
 constructor(
   public pos: MyGame.Example.Vec3T|null = null,
@@ -3136,7 +3262,8 @@ constructor(
   public anyAmbiguousType: MyGame.Example.AnyAmbiguousAliases = MyGame.Example.AnyAmbiguousAliases.NONE,
   public anyAmbiguous: MyGame.Example.MonsterT|null = null,
   public vectorOfEnums: (MyGame.Example.Color)[] = [],
-  public signedEnum: MyGame.Example.Race = MyGame.Example.Race.None
+  public signedEnum: MyGame.Example.Race = MyGame.Example.Race.None,
+  public testrequirednestedflatbuffer: (number)[] = []
 ){};
 
 /**
@@ -3166,6 +3293,7 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   const anyUnique = builder.createObjectOffset(this.anyUnique);
   const anyAmbiguous = builder.createObjectOffset(this.anyAmbiguous);
   const vectorOfEnums = MyGame.Example.Monster.createVectorOfEnumsVector(builder, this.vectorOfEnums);
+  const testrequirednestedflatbuffer = MyGame.Example.Monster.createTestrequirednestedflatbufferVector(builder, this.testrequirednestedflatbuffer);
 
   MyGame.Example.Monster.start(builder);
   MyGame.Example.Monster.addPos(builder, (this.pos !== null ? this.pos!.pack(builder) : 0));
@@ -3216,6 +3344,7 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   MyGame.Example.Monster.addAnyAmbiguous(builder, anyAmbiguous);
   MyGame.Example.Monster.addVectorOfEnums(builder, vectorOfEnums);
   MyGame.Example.Monster.addSignedEnum(builder, this.signedEnum);
+  MyGame.Example.Monster.addTestrequirednestedflatbuffer(builder, testrequirednestedflatbuffer);
 
   return MyGame.Example.Monster.end(builder);
 };
@@ -3718,6 +3847,14 @@ static createTypeAliases(builder:flatbuffers.Builder, i8:number, u8:number, i16:
   TypeAliases.addV8(builder, v8Offset);
   TypeAliases.addVf64(builder, vf64Offset);
   return TypeAliases.endTypeAliases(builder);
+}
+
+serialize():Uint8Array {
+  return this.bb!.bytes();
+}
+
+static deserialize(buffer: Uint8Array):TypeAliases {
+  return TypeAliases.getRootAsTypeAliases(new flatbuffers.ByteBuffer(buffer))
 }
 
 /**

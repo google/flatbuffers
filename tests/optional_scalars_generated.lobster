@@ -6,6 +6,7 @@ namespace optional_scalars
 enum OptionalByte:
     OptionalByte_None = 0
     OptionalByte_One = 1
+    OptionalByte_Two = 2
 
 class ScalarStuff
 
@@ -78,15 +79,17 @@ class ScalarStuff : flatbuffers_handle
         return buf_.flatbuffers_field_int8(pos_, 68, 1)
     def just_enum():
         return OptionalByte(buf_.flatbuffers_field_int8(pos_, 70, 0))
+    def maybe_enum():
+        return OptionalByte(buf_.flatbuffers_field_int8(pos_, 72, 0)), buf_.flatbuffers_field_present(pos_, 72)
     def default_enum():
-        return OptionalByte(buf_.flatbuffers_field_int8(pos_, 72, 1))
+        return OptionalByte(buf_.flatbuffers_field_int8(pos_, 74, 1))
 
 def GetRootAsScalarStuff(buf:string): return ScalarStuff { buf, buf.flatbuffers_indirect(0) }
 
 struct ScalarStuffBuilder:
     b_:flatbuffers_builder
     def start():
-        b_.StartObject(35)
+        b_.StartObject(36)
         return this
     def add_just_i8(just_i8:int):
         b_.PrependInt8Slot(0, just_i8, 0)
@@ -190,8 +193,11 @@ struct ScalarStuffBuilder:
     def add_just_enum(just_enum:OptionalByte):
         b_.PrependInt8Slot(33, just_enum, 0)
         return this
+    def add_maybe_enum(maybe_enum:OptionalByte):
+        b_.PrependInt8Slot(34, maybe_enum)
+        return this
     def add_default_enum(default_enum:OptionalByte):
-        b_.PrependInt8Slot(34, default_enum, 1)
+        b_.PrependInt8Slot(35, default_enum, 1)
         return this
     def end():
         return b_.EndObject()

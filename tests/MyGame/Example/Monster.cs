@@ -188,6 +188,16 @@ public struct Monster : IFlatbufferObject
   public bool MutateVectorOfEnums(int j, MyGame.Example.Color vector_of_enums) { int o = __p.__offset(98); if (o != 0) { __p.bb.Put(__p.__vector(o) + j * 1, (byte)vector_of_enums); return true; } else { return false; } }
   public MyGame.Example.Race SignedEnum { get { int o = __p.__offset(100); return o != 0 ? (MyGame.Example.Race)__p.bb.GetSbyte(o + __p.bb_pos) : MyGame.Example.Race.None; } }
   public bool MutateSignedEnum(MyGame.Example.Race signed_enum) { int o = __p.__offset(100); if (o != 0) { __p.bb.PutSbyte(o + __p.bb_pos, (sbyte)signed_enum); return true; } else { return false; } }
+  public byte Testrequirednestedflatbuffer(int j) { int o = __p.__offset(102); return o != 0 ? __p.bb.Get(__p.__vector(o) + j * 1) : (byte)0; }
+  public int TestrequirednestedflatbufferLength { get { int o = __p.__offset(102); return o != 0 ? __p.__vector_len(o) : 0; } }
+#if ENABLE_SPAN_T
+  public Span<byte> GetTestrequirednestedflatbufferBytes() { return __p.__vector_as_span<byte>(102, 1); }
+#else
+  public ArraySegment<byte>? GetTestrequirednestedflatbufferBytes() { return __p.__vector_as_arraysegment(102); }
+#endif
+  public byte[] GetTestrequirednestedflatbufferArray() { return __p.__vector_as_array<byte>(102); }
+  public MyGame.Example.Monster? GetTestrequirednestedflatbufferAsMonster() { int o = __p.__offset(102); return o != 0 ? (MyGame.Example.Monster?)(new MyGame.Example.Monster()).__assign(__p.__indirect(__p.__vector(o)), __p.bb) : null; }
+  public bool MutateTestrequirednestedflatbuffer(int j, byte testrequirednestedflatbuffer) { int o = __p.__offset(102); if (o != 0) { __p.bb.Put(__p.__vector(o) + j * 1, testrequirednestedflatbuffer); return true; } else { return false; } }
 
   public static Offset<MyGame.Example.Monster> CreateMonster(FlatBufferBuilder builder,
       MyGame.Example.Vec3T pos = null,
@@ -237,8 +247,9 @@ public struct Monster : IFlatbufferObject
       MyGame.Example.AnyAmbiguousAliases any_ambiguous_type = MyGame.Example.AnyAmbiguousAliases.NONE,
       int any_ambiguousOffset = 0,
       VectorOffset vector_of_enumsOffset = default(VectorOffset),
-      MyGame.Example.Race signed_enum = MyGame.Example.Race.None) {
-    builder.StartTable(49);
+      MyGame.Example.Race signed_enum = MyGame.Example.Race.None,
+      VectorOffset testrequirednestedflatbufferOffset = default(VectorOffset)) {
+    builder.StartTable(50);
     Monster.AddNonOwningReference(builder, non_owning_reference);
     Monster.AddCoOwningReference(builder, co_owning_reference);
     Monster.AddSingleWeakReference(builder, single_weak_reference);
@@ -246,6 +257,7 @@ public struct Monster : IFlatbufferObject
     Monster.AddTesthashs64Fnv1a(builder, testhashs64_fnv1a);
     Monster.AddTesthashu64Fnv1(builder, testhashu64_fnv1);
     Monster.AddTesthashs64Fnv1(builder, testhashs64_fnv1);
+    Monster.AddTestrequirednestedflatbuffer(builder, testrequirednestedflatbufferOffset);
     Monster.AddVectorOfEnums(builder, vector_of_enumsOffset);
     Monster.AddAnyAmbiguous(builder, any_ambiguousOffset);
     Monster.AddAnyUnique(builder, any_uniqueOffset);
@@ -290,7 +302,7 @@ public struct Monster : IFlatbufferObject
     return Monster.EndMonster(builder);
   }
 
-  public static void StartMonster(FlatBufferBuilder builder) { builder.StartTable(49); }
+  public static void StartMonster(FlatBufferBuilder builder) { builder.StartTable(50); }
   public static void AddPos(FlatBufferBuilder builder, Offset<MyGame.Example.Vec3> posOffset) { builder.AddStruct(0, posOffset.Value, 0); }
   public static void AddMana(FlatBufferBuilder builder, short mana) { builder.AddShort(1, mana, 150); }
   public static void AddHp(FlatBufferBuilder builder, short hp) { builder.AddShort(2, hp, 100); }
@@ -387,6 +399,10 @@ public struct Monster : IFlatbufferObject
   public static VectorOffset CreateVectorOfEnumsVectorBlock(FlatBufferBuilder builder, MyGame.Example.Color[] data) { builder.StartVector(1, data.Length, 1); builder.Add(data); return builder.EndVector(); }
   public static void StartVectorOfEnumsVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(1, numElems, 1); }
   public static void AddSignedEnum(FlatBufferBuilder builder, MyGame.Example.Race signedEnum) { builder.AddSbyte(48, (sbyte)signedEnum, -1); }
+  public static void AddTestrequirednestedflatbuffer(FlatBufferBuilder builder, VectorOffset testrequirednestedflatbufferOffset) { builder.AddOffset(49, testrequirednestedflatbufferOffset.Value, 0); }
+  public static VectorOffset CreateTestrequirednestedflatbufferVector(FlatBufferBuilder builder, byte[] data) { builder.StartVector(1, data.Length, 1); for (int i = data.Length - 1; i >= 0; i--) builder.AddByte(data[i]); return builder.EndVector(); }
+  public static VectorOffset CreateTestrequirednestedflatbufferVectorBlock(FlatBufferBuilder builder, byte[] data) { builder.StartVector(1, data.Length, 1); builder.Add(data); return builder.EndVector(); }
+  public static void StartTestrequirednestedflatbufferVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(1, numElems, 1); }
   public static Offset<MyGame.Example.Monster> EndMonster(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     builder.Required(o, 10);  // name
@@ -528,6 +544,8 @@ public struct Monster : IFlatbufferObject
     _o.VectorOfEnums = new List<MyGame.Example.Color>();
     for (var _j = 0; _j < this.VectorOfEnumsLength; ++_j) {_o.VectorOfEnums.Add(this.VectorOfEnums(_j));}
     _o.SignedEnum = this.SignedEnum;
+    _o.Testrequirednestedflatbuffer = new List<byte>();
+    for (var _j = 0; _j < this.TestrequirednestedflatbufferLength; ++_j) {_o.Testrequirednestedflatbuffer.Add(this.Testrequirednestedflatbuffer(_j));}
   }
   public static Offset<MyGame.Example.Monster> Pack(FlatBufferBuilder builder, MonsterT _o) {
     if (_o == null) return default(Offset<MyGame.Example.Monster>);
@@ -639,6 +657,11 @@ public struct Monster : IFlatbufferObject
       var __vector_of_enums = _o.VectorOfEnums.ToArray();
       _vector_of_enums = CreateVectorOfEnumsVector(builder, __vector_of_enums);
     }
+    var _testrequirednestedflatbuffer = default(VectorOffset);
+    if (_o.Testrequirednestedflatbuffer != null) {
+      var __testrequirednestedflatbuffer = _o.Testrequirednestedflatbuffer.ToArray();
+      _testrequirednestedflatbuffer = CreateTestrequirednestedflatbufferVector(builder, __testrequirednestedflatbuffer);
+    }
     return CreateMonster(
       builder,
       _o.Pos,
@@ -688,7 +711,8 @@ public struct Monster : IFlatbufferObject
       _any_ambiguous_type,
       _any_ambiguous,
       _vector_of_enums,
-      _o.SignedEnum);
+      _o.SignedEnum,
+      _testrequirednestedflatbuffer);
   }
 };
 
@@ -831,6 +855,8 @@ public class MonsterT
   public List<MyGame.Example.Color> VectorOfEnums { get; set; }
   [Newtonsoft.Json.JsonProperty("signed_enum")]
   public MyGame.Example.Race SignedEnum { get; set; }
+  [Newtonsoft.Json.JsonProperty("testrequirednestedflatbuffer")]
+  public List<byte> Testrequirednestedflatbuffer { get; set; }
 
   public MonsterT() {
     this.Pos = new MyGame.Example.Vec3T();
@@ -878,6 +904,7 @@ public class MonsterT
     this.AnyAmbiguous = null;
     this.VectorOfEnums = null;
     this.SignedEnum = MyGame.Example.Race.None;
+    this.Testrequirednestedflatbuffer = null;
   }
 
   public static MonsterT DeserializeFromJson(string jsonText) {

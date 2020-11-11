@@ -401,7 +401,7 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + Indent + "$o = $this->__offset(" +
             NumToString(field.value.offset) + ");\n";
 
-    if (field.value.type.VectorType().base_type == BASE_TYPE_STRING) {
+    if (IsString(field.value.type.VectorType())) {
       code += Indent + Indent;
       code += "return $o != 0 ? $this->__string($this->__vector($o) + $j * ";
       code += NumToString(InlineSize(vectortype)) + ") : ";
@@ -705,7 +705,7 @@ class PhpGenerator : public BaseGenerator {
         default: FLATBUFFERS_ASSERT(0);
       }
     }
-    if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+    if (IsVector(field.value.type)) {
       GetVectorLen(field, code_ptr);
       if (field.value.type.element == BASE_TYPE_UCHAR) {
         GetUByte(field, code_ptr);
@@ -735,7 +735,7 @@ class PhpGenerator : public BaseGenerator {
       } else {
         BuildFieldOfTable(field, offset, code_ptr);
       }
-      if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+      if (IsVector(field.value.type)) {
         BuildVectorOfTable(field, code_ptr);
       }
     }

@@ -508,8 +508,8 @@ class SwiftGenerator : public BaseGenerator {
     code_.SetValue("OFFSET", name);
     code_.SetValue("CONSTANT", field.value.constant);
     std::string check_if_vector =
-        (field.value.type.base_type == BASE_TYPE_VECTOR ||
-         field.value.type.base_type == BASE_TYPE_ARRAY)
+        (IsVector(field.value.type) ||
+         IsArray(field.value.type))
             ? "VectorOf("
             : "(";
     auto body = "add" + check_if_vector + name + ": ";
@@ -520,15 +520,20 @@ class SwiftGenerator : public BaseGenerator {
     if (IsScalar(field.value.type.base_type) &&
         !IsBool(field.value.type.base_type)) {
       std::string is_enum = IsEnum(field.value.type) ? ".rawValue" : "";
+      std::string optional_enum =
+          IsEnum(field.value.type) ? ("?" + is_enum) : "";
       code_ +=
           "{{VALUETYPE}}" + builder_string + "fbb.add(element: {{VALUENAME}}\\";
 
-      code_ += field.optional ? "\\" : (is_enum + ", def: {{CONSTANT}}\\");
+      code_ += field.optional ? (optional_enum + "\\")
+                              : (is_enum + ", def: {{CONSTANT}}\\");
 
       code_ += ", at: {{TABLEOFFSET}}.{{OFFSET}}.p) }";
 
-      auto default_value = IsEnum(field.value.type) ? GenEnumDefaultValue(field)
-                                                    : field.value.constant;
+      auto default_value =
+          IsEnum(field.value.type)
+              ? (field.optional ? "nil" : GenEnumDefaultValue(field))
+              : field.value.constant;
       create_func_header.push_back("" + name + ": " + nullable_type + " = " +
                                    (field.optional ? "nil" : default_value));
       return;
@@ -560,12 +565,12 @@ class SwiftGenerator : public BaseGenerator {
       return;
     }
 
-    auto offset_type = field.value.type.base_type == BASE_TYPE_STRING
+    auto offset_type = IsString(field.value.type)
                            ? "Offset<String>"
                            : "Offset<UOffset>";
     auto camel_case_name =
-        (field.value.type.base_type == BASE_TYPE_VECTOR ||
-                 field.value.type.base_type == BASE_TYPE_ARRAY
+        (IsVector(field.value.type) ||
+                 IsArray(field.value.type)
              ? "vectorOf"
              : "offsetOf") +
         MakeCamel(name, true);
@@ -581,8 +586,8 @@ class SwiftGenerator : public BaseGenerator {
 
     if ((vectortype.base_type == BASE_TYPE_STRUCT &&
          field.value.type.struct_def->fixed) &&
-        (field.value.type.base_type == BASE_TYPE_VECTOR ||
-         field.value.type.base_type == BASE_TYPE_ARRAY)) {
+        (IsVector(field.value.type) ||
+         IsArray(field.value.type))) {
       auto field_name = NameWrappedInNameSpace(*vectortype.struct_def);
       code_ += "public static func startVectorOf" + MakeCamel(name, true) +
                "(_ size: Int, in builder: inout "
@@ -632,7 +637,7 @@ class SwiftGenerator : public BaseGenerator {
     }
 
     if (IsEnum(field.value.type)) {
-      auto default_value = GenEnumDefaultValue(field);
+      auto default_value = field.optional ? "nil" : GenEnumDefaultValue(field);
       code_.SetValue("BASEVALUE", GenTypeBasic(field.value.type, false));
       code_ += GenReaderMainBody(optional) + "\\";
       code_ += GenOffset() + "return o == 0 ? " + default_value + " : " +
@@ -733,7 +738,7 @@ class SwiftGenerator : public BaseGenerator {
       return;
     }
 
-    if (vectortype.base_type == BASE_TYPE_STRING) {
+    if (IsString(vectortype)) {
       code_ +=
           "{{ACCESS}}.directString(at: {{ACCESS}}.vector(at: o) + "
           "index * {{SIZE}}) }";
@@ -910,8 +915,8 @@ class SwiftGenerator : public BaseGenerator {
       auto name = Name(field);
       auto type = GenType(field.value.type);
       std::string check_if_vector =
-          (field.value.type.base_type == BASE_TYPE_VECTOR ||
-           field.value.type.base_type == BASE_TYPE_ARRAY)
+          (IsVector(field.value.type) ||
+           IsArray(field.value.type))
               ? "VectorOf("
               : "(";
       std::string body = "add" + check_if_vector + name + ": ";
@@ -1187,7 +1192,7 @@ class SwiftGenerator : public BaseGenerator {
       }
       case BASE_TYPE_UTYPE: break;
       default: {
-        code_.SetValue("VALUETYPE", (vectortype.base_type == BASE_TYPE_STRING
+        code_.SetValue("VALUETYPE", (IsString(vectortype)
                                          ? "String?"
                                          : GenType(vectortype)));
         code_ += "{{ACCESS_TYPE}} var {{VALUENAME}}: [{{VALUETYPE}}]";
@@ -1219,7 +1224,7 @@ class SwiftGenerator : public BaseGenerator {
       auto type = GenType(field.union_type);
 
       if (field.union_type.base_type == BASE_TYPE_NONE ||
-          field.union_type.base_type == BASE_TYPE_STRING) {
+          IsString(field.union_type)) {
         continue;
       }
       code_ += "case ." + ev_name + ":";
@@ -1249,7 +1254,7 @@ class SwiftGenerator : public BaseGenerator {
       auto field = **it;
       auto ev_name = Name(field);
       if (field.union_type.base_type == BASE_TYPE_NONE ||
-          field.union_type.base_type == BASE_TYPE_STRING) {
+          IsString(field.union_type)) {
         continue;
       }
       buffer_constructor.push_back(indentation + "case ." + ev_name + ":");
@@ -1286,7 +1291,7 @@ class SwiftGenerator : public BaseGenerator {
         "fbb: "
         "ByteBuffer) -> {{VALUENAME}}? {";
     Indent();
-    if (key_field.value.type.base_type == BASE_TYPE_STRING)
+    if (IsString(key_field.value.type))
       code_ += "let key = key.utf8.map { $0 }";
     code_ += "var span = fbb.read(def: Int32.self, position: Int(vector - 4))";
     code_ += "var start: Int32 = 0";
@@ -1295,7 +1300,7 @@ class SwiftGenerator : public BaseGenerator {
     code_ += "var middle = span / 2";
     code_ +=
         "let tableOffset = Table.indirect(vector + 4 * (start + middle), fbb)";
-    if (key_field.value.type.base_type == BASE_TYPE_STRING) {
+    if (IsString(key_field.value.type)) {
       code_ += "let comp = Table.compare(" + offset_reader + ", key, fbb: fbb)";
     } else {
       code_ += "let comp = fbb.read(def: {{TYPE}}.self, position: Int(" +

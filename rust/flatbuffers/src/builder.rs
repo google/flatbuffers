@@ -17,17 +17,18 @@
 extern crate smallvec;
 
 use std::cmp::max;
+use std::iter::{DoubleEndedIterator, ExactSizeIterator};
 use std::marker::PhantomData;
 use std::ptr::write_bytes;
 use std::slice::from_raw_parts;
 
-use endian_scalar::{emplace_scalar, read_scalar_at};
-use primitives::*;
-use push::{Push, PushAlignment};
-use table::Table;
-use vector::{SafeSliceAccess, Vector};
-use vtable::{field_index_to_field_offset, VTable};
-use vtable_writer::VTableWriter;
+use crate::endian_scalar::{emplace_scalar, read_scalar_at};
+use crate::primitives::*;
+use crate::push::{Push, PushAlignment};
+use crate::table::Table;
+use crate::vector::{SafeSliceAccess, Vector};
+use crate::vtable::{field_index_to_field_offset, VTable};
+use crate::vtable_writer::VTableWriter;
 
 pub const N_SMALLVEC_STRING_VECTOR_CAPACITY: usize = 16;
 
@@ -326,6 +327,24 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
             self.push(items[i]);
         }
         WIPOffset::new(self.push::<UOffsetT>(items.len() as UOffsetT).value())
+    }
+
+    /// Create a vector of Push-able objects.
+    ///
+    /// Speed-sensitive users may wish to reduce memory usage by creating the
+    /// vector manually: use `start_vector`, `push`, and `end_vector`.
+    #[inline]
+    pub fn create_vector_from_iter<T: Push + Copy>(
+        &mut self,
+        items: impl ExactSizeIterator<Item = T> + DoubleEndedIterator,
+    ) -> WIPOffset<Vector<'fbb, T::Output>> {
+        let elem_size = T::size();
+        let len = items.len();
+        self.align(len * elem_size, T::alignment().max_of(SIZE_UOFFSET));
+        for item in items.rev() {
+            self.push(item);
+        }
+        WIPOffset::new(self.push::<UOffsetT>(len as UOffsetT).value())
     }
 
     /// Set whether default values are stored.

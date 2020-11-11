@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-use endian_scalar::read_scalar_at;
-use follow::Follow;
-use primitives::*;
+use crate::endian_scalar::read_scalar_at;
+use crate::follow::Follow;
+use crate::primitives::*;
 
 /// VTable encapsulates read-only usage of a vtable. It is only to be used
 /// by generated code.

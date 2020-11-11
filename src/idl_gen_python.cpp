@@ -370,7 +370,7 @@ class PythonGenerator : public BaseGenerator {
     code += "return " + GenGetter(field.value.type);
     code += "a + flatbuffers.number_types.UOffsetTFlags.py_type(j * ";
     code += NumToString(InlineSize(vectortype)) + "))\n";
-    if (vectortype.base_type == BASE_TYPE_STRING) {
+    if (IsString(vectortype)) {
       code += Indent + Indent + "return \"\"\n";
     } else {
       code += Indent + Indent + "return 0\n";
@@ -400,7 +400,7 @@ class PythonGenerator : public BaseGenerator {
     code += MakeCamel(GenTypeGet(field.value.type));
     code += "Flags, o)\n";
 
-    if (vectortype.base_type == BASE_TYPE_STRING) {
+    if (IsString(vectortype)) {
       code += Indent + Indent + "return \"\"\n";
     } else {
       code += Indent + Indent + "return 0\n";
@@ -614,11 +614,20 @@ class PythonGenerator : public BaseGenerator {
         default: FLATBUFFERS_ASSERT(0);
       }
     }
-    if (field.value.type.base_type == BASE_TYPE_VECTOR ||
-        field.value.type.base_type == BASE_TYPE_ARRAY) {
+    if (IsVector(field.value.type) || IsArray(field.value.type)) {
       GetVectorLen(struct_def, field, code_ptr);
       GetVectorIsNone(struct_def, field, code_ptr);
     }
+  }
+
+  // Generate struct sizeof.
+  void GenStructSizeOf(const StructDef &struct_def, std::string *code_ptr) {
+    auto &code = *code_ptr;
+    code += Indent + "@classmethod\n";
+    code += Indent + "def SizeOf(cls):\n";
+    code +=
+        Indent + Indent + "return " + NumToString(struct_def.bytesize) + "\n";
+    code += "\n";
   }
 
   // Generate table constructors, conditioned on its members' types.
@@ -632,7 +641,7 @@ class PythonGenerator : public BaseGenerator {
 
       auto offset = it - struct_def.fields.vec.begin();
       BuildFieldOfTable(struct_def, field, offset, code_ptr);
-      if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+      if (IsVector(field.value.type)) {
         BuildVectorOfTable(struct_def, field, code_ptr);
       }
     }
@@ -678,6 +687,9 @@ class PythonGenerator : public BaseGenerator {
         // Generate a special function to test file_identifier
         GenHasFileIdentifier(struct_def, code_ptr);
       }
+    } else {
+      // Generates the SizeOf method for all structs.
+      GenStructSizeOf(struct_def, code_ptr);
     }
     // Generates the Init method that sets the field in a pre-existing
     // accessor object. This is to allow object reuse.
@@ -1252,7 +1264,7 @@ class PythonGenerator : public BaseGenerator {
     // each string element. And this generated code, needs to be
     // placed ahead of code_prefix.
     auto vectortype = field.value.type.VectorType();
-    if (vectortype.base_type == BASE_TYPE_STRING) {
+    if (IsString(vectortype)) {
       code_prefix += GenIndents(3) + MakeLowerCamel(field) + "list = []";
       code_prefix += GenIndents(3) + "for i in range(len(self." +
                      field_instance_name + ")):";

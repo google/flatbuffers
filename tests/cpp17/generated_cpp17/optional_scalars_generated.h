@@ -17,29 +17,32 @@ inline const flatbuffers::TypeTable *ScalarStuffTypeTable();
 enum class OptionalByte : int8_t {
   None = 0,
   One = 1,
+  Two = 2,
   MIN = None,
-  MAX = One
+  MAX = Two
 };
 
-inline const OptionalByte (&EnumValuesOptionalByte())[2] {
+inline const OptionalByte (&EnumValuesOptionalByte())[3] {
   static const OptionalByte values[] = {
     OptionalByte::None,
-    OptionalByte::One
+    OptionalByte::One,
+    OptionalByte::Two
   };
   return values;
 }
 
 inline const char * const *EnumNamesOptionalByte() {
-  static const char * const names[3] = {
+  static const char * const names[4] = {
     "None",
     "One",
+    "Two",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameOptionalByte(OptionalByte e) {
-  if (flatbuffers::IsOutRange(e, OptionalByte::None, OptionalByte::One)) return "";
+  if (flatbuffers::IsOutRange(e, OptionalByte::None, OptionalByte::Two)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesOptionalByte()[index];
 }
@@ -77,9 +80,10 @@ struct ScalarStuffT : public flatbuffers::NativeTable {
   flatbuffers::Optional<double> maybe_f64 = flatbuffers::nullopt;
   double default_f64 = 42.0;
   bool just_bool = false;
-  flatbuffers::Optional<bool> maybe_bool = true;
+  flatbuffers::Optional<bool> maybe_bool = flatbuffers::nullopt;
   bool default_bool = true;
   optional_scalars::OptionalByte just_enum = optional_scalars::OptionalByte::None;
+  flatbuffers::Optional<optional_scalars::OptionalByte> maybe_enum = flatbuffers::nullopt;
   optional_scalars::OptionalByte default_enum = optional_scalars::OptionalByte::One;
 };
 
@@ -125,7 +129,8 @@ struct ScalarStuff FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_MAYBE_BOOL = 66,
     VT_DEFAULT_BOOL = 68,
     VT_JUST_ENUM = 70,
-    VT_DEFAULT_ENUM = 72
+    VT_MAYBE_ENUM = 72,
+    VT_DEFAULT_ENUM = 74
   };
   int8_t just_i8() const {
     return GetField<int8_t>(VT_JUST_I8, 0);
@@ -331,6 +336,12 @@ struct ScalarStuff FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool mutate_just_enum(optional_scalars::OptionalByte _just_enum) {
     return SetField<int8_t>(VT_JUST_ENUM, static_cast<int8_t>(_just_enum), 0);
   }
+  flatbuffers::Optional<optional_scalars::OptionalByte> maybe_enum() const {
+    return GetOptional<int8_t, optional_scalars::OptionalByte>(VT_MAYBE_ENUM);
+  }
+  bool mutate_maybe_enum(optional_scalars::OptionalByte _maybe_enum) {
+    return SetField<int8_t>(VT_MAYBE_ENUM, static_cast<int8_t>(_maybe_enum));
+  }
   optional_scalars::OptionalByte default_enum() const {
     return static_cast<optional_scalars::OptionalByte>(GetField<int8_t>(VT_DEFAULT_ENUM, 1));
   }
@@ -373,6 +384,7 @@ struct ScalarStuff FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<uint8_t>(verifier, VT_MAYBE_BOOL) &&
            VerifyField<uint8_t>(verifier, VT_DEFAULT_BOOL) &&
            VerifyField<int8_t>(verifier, VT_JUST_ENUM) &&
+           VerifyField<int8_t>(verifier, VT_MAYBE_ENUM) &&
            VerifyField<int8_t>(verifier, VT_DEFAULT_ENUM) &&
            verifier.EndTable();
   }
@@ -487,6 +499,9 @@ struct ScalarStuffBuilder {
   void add_just_enum(optional_scalars::OptionalByte just_enum) {
     fbb_.AddElement<int8_t>(ScalarStuff::VT_JUST_ENUM, static_cast<int8_t>(just_enum), 0);
   }
+  void add_maybe_enum(optional_scalars::OptionalByte maybe_enum) {
+    fbb_.AddElement<int8_t>(ScalarStuff::VT_MAYBE_ENUM, static_cast<int8_t>(maybe_enum));
+  }
   void add_default_enum(optional_scalars::OptionalByte default_enum) {
     fbb_.AddElement<int8_t>(ScalarStuff::VT_DEFAULT_ENUM, static_cast<int8_t>(default_enum), 1);
   }
@@ -504,39 +519,40 @@ struct ScalarStuffBuilder {
 inline flatbuffers::Offset<ScalarStuff> CreateScalarStuff(
     flatbuffers::FlatBufferBuilder &_fbb,
     int8_t just_i8 = 0,
-    flatbuffers::Optional<int8_t>maybe_i8 = flatbuffers::nullopt,
+    flatbuffers::Optional<int8_t> maybe_i8 = flatbuffers::nullopt,
     int8_t default_i8 = 42,
     uint8_t just_u8 = 0,
-    flatbuffers::Optional<uint8_t>maybe_u8 = flatbuffers::nullopt,
+    flatbuffers::Optional<uint8_t> maybe_u8 = flatbuffers::nullopt,
     uint8_t default_u8 = 42,
     int16_t just_i16 = 0,
-    flatbuffers::Optional<int16_t>maybe_i16 = flatbuffers::nullopt,
+    flatbuffers::Optional<int16_t> maybe_i16 = flatbuffers::nullopt,
     int16_t default_i16 = 42,
     uint16_t just_u16 = 0,
-    flatbuffers::Optional<uint16_t>maybe_u16 = flatbuffers::nullopt,
+    flatbuffers::Optional<uint16_t> maybe_u16 = flatbuffers::nullopt,
     uint16_t default_u16 = 42,
     int32_t just_i32 = 0,
-    flatbuffers::Optional<int32_t>maybe_i32 = flatbuffers::nullopt,
+    flatbuffers::Optional<int32_t> maybe_i32 = flatbuffers::nullopt,
     int32_t default_i32 = 42,
     uint32_t just_u32 = 0,
-    flatbuffers::Optional<uint32_t>maybe_u32 = flatbuffers::nullopt,
+    flatbuffers::Optional<uint32_t> maybe_u32 = flatbuffers::nullopt,
     uint32_t default_u32 = 42,
     int64_t just_i64 = 0,
-    flatbuffers::Optional<int64_t>maybe_i64 = flatbuffers::nullopt,
+    flatbuffers::Optional<int64_t> maybe_i64 = flatbuffers::nullopt,
     int64_t default_i64 = 42LL,
     uint64_t just_u64 = 0,
-    flatbuffers::Optional<uint64_t>maybe_u64 = flatbuffers::nullopt,
+    flatbuffers::Optional<uint64_t> maybe_u64 = flatbuffers::nullopt,
     uint64_t default_u64 = 42ULL,
     float just_f32 = 0.0f,
-    flatbuffers::Optional<float>maybe_f32 = flatbuffers::nullopt,
+    flatbuffers::Optional<float> maybe_f32 = flatbuffers::nullopt,
     float default_f32 = 42.0f,
     double just_f64 = 0.0,
-    flatbuffers::Optional<double>maybe_f64 = flatbuffers::nullopt,
+    flatbuffers::Optional<double> maybe_f64 = flatbuffers::nullopt,
     double default_f64 = 42.0,
     bool just_bool = false,
-    flatbuffers::Optional<bool>maybe_bool = flatbuffers::nullopt,
+    flatbuffers::Optional<bool> maybe_bool = flatbuffers::nullopt,
     bool default_bool = true,
     optional_scalars::OptionalByte just_enum = optional_scalars::OptionalByte::None,
+    flatbuffers::Optional<optional_scalars::OptionalByte> maybe_enum = flatbuffers::nullopt,
     optional_scalars::OptionalByte default_enum = optional_scalars::OptionalByte::One) {
   ScalarStuffBuilder builder_(_fbb);
   builder_.add_default_f64(default_f64);
@@ -564,6 +580,7 @@ inline flatbuffers::Offset<ScalarStuff> CreateScalarStuff(
   if(maybe_i16) { builder_.add_maybe_i16(*maybe_i16); }
   builder_.add_just_i16(just_i16);
   builder_.add_default_enum(default_enum);
+  if(maybe_enum) { builder_.add_maybe_enum(*maybe_enum); }
   builder_.add_just_enum(just_enum);
   builder_.add_default_bool(default_bool);
   if(maybe_bool) { builder_.add_maybe_bool(*maybe_bool); }
@@ -627,6 +644,7 @@ inline void ScalarStuff::UnPackTo(ScalarStuffT *_o, const flatbuffers::resolver_
   { auto _e = maybe_bool(); _o->maybe_bool = _e; }
   { auto _e = default_bool(); _o->default_bool = _e; }
   { auto _e = just_enum(); _o->just_enum = _e; }
+  { auto _e = maybe_enum(); _o->maybe_enum = _e; }
   { auto _e = default_enum(); _o->default_enum = _e; }
 }
 
@@ -672,6 +690,7 @@ inline flatbuffers::Offset<ScalarStuff> CreateScalarStuff(flatbuffers::FlatBuffe
   auto _maybe_bool = _o->maybe_bool;
   auto _default_bool = _o->default_bool;
   auto _just_enum = _o->just_enum;
+  auto _maybe_enum = _o->maybe_enum;
   auto _default_enum = _o->default_enum;
   return optional_scalars::CreateScalarStuff(
       _fbb,
@@ -709,11 +728,13 @@ inline flatbuffers::Offset<ScalarStuff> CreateScalarStuff(flatbuffers::FlatBuffe
       _maybe_bool,
       _default_bool,
       _just_enum,
+      _maybe_enum,
       _default_enum);
 }
 
 inline const flatbuffers::TypeTable *OptionalByteTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_CHAR, 0, 0 },
     { flatbuffers::ET_CHAR, 0, 0 },
     { flatbuffers::ET_CHAR, 0, 0 }
   };
@@ -722,10 +743,11 @@ inline const flatbuffers::TypeTable *OptionalByteTypeTable() {
   };
   static const char * const names[] = {
     "None",
-    "One"
+    "One",
+    "Two"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_ENUM, 2, type_codes, type_refs, nullptr, nullptr, names
+    flatbuffers::ST_ENUM, 3, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
 }
@@ -765,6 +787,7 @@ inline const flatbuffers::TypeTable *ScalarStuffTypeTable() {
     { flatbuffers::ET_BOOL, 0, -1 },
     { flatbuffers::ET_BOOL, 0, -1 },
     { flatbuffers::ET_BOOL, 0, -1 },
+    { flatbuffers::ET_CHAR, 0, 0 },
     { flatbuffers::ET_CHAR, 0, 0 },
     { flatbuffers::ET_CHAR, 0, 0 }
   };
@@ -806,10 +829,11 @@ inline const flatbuffers::TypeTable *ScalarStuffTypeTable() {
     "maybe_bool",
     "default_bool",
     "just_enum",
+    "maybe_enum",
     "default_enum"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 35, type_codes, type_refs, nullptr, nullptr, names
+    flatbuffers::ST_TABLE, 36, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
 }

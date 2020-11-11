@@ -438,6 +438,10 @@ struct EnumDef : public Definition {
   SymbolTable<EnumVal> vals;
 };
 
+inline bool IsString(const Type &type) {
+  return type.base_type == BASE_TYPE_STRING;
+}
+
 inline bool IsStruct(const Type &type) {
   return type.base_type == BASE_TYPE_STRUCT && type.struct_def->fixed;
 }
@@ -538,6 +542,7 @@ struct IDLOptions {
   std::string cpp_object_api_pointer_type;
   std::string cpp_object_api_string_type;
   bool cpp_object_api_string_flexible_constructor;
+  bool cpp_direct_copy;
   bool gen_nullable;
   bool java_checkerframework;
   bool gen_generated;
@@ -632,6 +637,7 @@ struct IDLOptions {
         gen_compare(false),
         cpp_object_api_pointer_type("std::unique_ptr"),
         cpp_object_api_string_flexible_constructor(false),
+        cpp_direct_copy(true),
         gen_nullable(false),
         java_checkerframework(false),
         gen_generated(false),
@@ -1006,6 +1012,10 @@ extern bool GenerateText(const Parser &parser, const void *flatbuffer,
 extern bool GenerateTextFile(const Parser &parser, const std::string &path,
                              const std::string &file_name);
 
+// Generate Json schema to string
+// See idl_gen_json_schema.cpp.
+extern bool GenerateJsonSchema(const Parser &parser, std::string *json);
+
 // Generate binary files from a given FlatBuffer, and a given Parser
 // object that has been populated with the corresponding schema.
 // See code_generators.cpp.
@@ -1146,6 +1156,8 @@ bool GeneratePythonGRPC(const Parser &parser, const std::string &path,
 extern bool GenerateSwiftGRPC(const Parser &parser, const std::string &path,
                               const std::string &file_name);
 
+extern bool GenerateTSGRPC(const Parser &parser, const std::string &path,
+                             const std::string &file_name);
 }  // namespace flatbuffers
 
 #endif  // FLATBUFFERS_IDL_H_
