@@ -767,7 +767,9 @@ class CSharpGenerator : public BaseGenerator {
             // As<> accesors for Unions
             // Loop through all the possible union types and generate an As
             // accessor that casts to the correct type.
-            for (auto *val : field.value.type.enum_def->Vals()) {
+            for (auto uit = field.value.type.enum_def->Vals().begin();
+                 uit != field.value.type.enum_def->Vals().end(); ++uit) {
+              auto val = *uit;
               if (val->union_type.base_type == BASE_TYPE_NONE) { continue; }
               auto union_field_type_name = GenTypeGet(val->union_type);
               code += member_suffix + "}\n";
