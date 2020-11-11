@@ -20,6 +20,12 @@ public struct Movie : IFlatbufferObject
   public Character MainCharacterType { get { int o = __p.__offset(4); return o != 0 ? (Character)__p.bb.Get(o + __p.bb_pos) : Character.NONE; } }
   public TTable? MainCharacter<TTable>() where TTable : struct, IFlatbufferObject { int o = __p.__offset(6); return o != 0 ? (TTable?)__p.__union<TTable>(o + __p.bb_pos) : null; }
   public string MainCharacterAsString() { int o = __p.__offset(6); return o != 0 ? __p.__string(o + __p.bb_pos) : null; }
+  public Attacker MainCharacterAsMuLan() { return MainCharacter<Attacker>().Value; }
+  public Rapunzel MainCharacterAsRapunzel() { return MainCharacter<Rapunzel>().Value; }
+  public BookReader MainCharacterAsBelle() { return MainCharacter<BookReader>().Value; }
+  public BookReader MainCharacterAsBookFan() { return MainCharacter<BookReader>().Value; }
+  public string MainCharacterAsOther() { return MainCharacterAsString(); }
+  public string MainCharacterAsUnused() { return MainCharacterAsString(); }
   public Character CharactersType(int j) { int o = __p.__offset(8); return o != 0 ? (Character)__p.bb.Get(__p.__vector(o) + j * 1) : (Character)0; }
   public int CharactersTypeLength { get { int o = __p.__offset(8); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
