@@ -1,0 +1,26 @@
+--swiftversion 5.1
+
+# format
+--allman true
+--indent 2
+--maxwidth 100
+
+# options
+--self remove # redundantSelf
+--importgrouping testable-bottom # sortedImports
+--trimwhitespace always
+--indentcase false
+--ifdef no-indent #indent
+--wraparguments before-first # wrapArguments
+--wrapparameters before-first # wrapArguments
+--wrapcollections before-first # wrapArguments
+--closingparen same-line # wrapArguments
+--funcattributes prev-line # wrapAttributes
+--typeattributes prev-line # wrapAttributes
+
+# rules
+--rules todos,anyObjectProtocol,redundantParens,redundantReturn,redundantSelf,sortedImports,strongifiedSelf,trailingCommas,trailingSpace,wrapArguments,wrapMultilineStatementBraces,indent,wrapAttributes,void
+--disable trailingclosures
+
+--exclude **/*_generated.swift
+--exclude **/*.grpc.swift
