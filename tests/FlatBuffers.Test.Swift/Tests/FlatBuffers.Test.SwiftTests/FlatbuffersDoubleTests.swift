@@ -18,146 +18,24 @@ import XCTest
 @testable import FlatBuffers
 
 final class FlatBuffersDoubleTests: XCTestCase {
-
-  let country = "Norway"
-
-  func testCreateFinish() {
-    var b = FlatBufferBuilder(initialSize: 16)
-    let countryOff = CountryDouble.createCountry(builder: &b, name: country, log: 200, lan: 100)
-    b.finish(offset: countryOff)
-    let v: [UInt8] = [
-      16,
-      0,
-      0,
-      0,
-      0,
-      0,
-      10,
-      0,
-      28,
-      0,
-      4,
-      0,
-      8,
-      0,
-      16,
-      0,
-      10,
-      0,
-      0,
-      0,
-      24,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      89,
-      64,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      105,
-      64,
-      0,
-      0,
-      0,
-      0,
-      6,
-      0,
-      0,
-      0,
-      78,
-      111,
-      114,
-      119,
-      97,
-      121,
-      0,
-      0,
-    ]
-    XCTAssertEqual(b.sizedByteArray, v)
-  }
-
-  func testCreateFinishWithPrefix() {
-    var b = FlatBufferBuilder(initialSize: 16)
-    let countryOff = CountryDouble.createCountry(builder: &b, name: country, log: 200, lan: 100)
-    b.finish(offset: countryOff, addPrefix: true)
-    let v: [UInt8] = [
-      60,
-      0,
-      0,
-      0,
-      20,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      10,
-      0,
-      28,
-      0,
-      4,
-      0,
-      8,
-      0,
-      16,
-      0,
-      10,
-      0,
-      0,
-      0,
-      24,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      89,
-      64,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      105,
-      64,
-      0,
-      0,
-      0,
-      0,
-      6,
-      0,
-      0,
-      0,
-      78,
-      111,
-      114,
-      119,
-      97,
-      121,
-      0,
-      0,
-    ]
-    XCTAssertEqual(b.sizedByteArray, v)
-  }
+    
+    let country = "Norway"
+    
+    func testCreateFinish() {
+        var b = FlatBufferBuilder(initialSize: 16)
+        let countryOff = CountryDouble.createCountry(builder: &b, name: country, log: 200, lan: 100)
+        b.finish(offset: countryOff)
+        let v: [UInt8] = [16, 0, 0, 0, 0, 0, 10, 0, 28, 0, 4, 0, 8, 0, 16, 0, 10, 0, 0, 0, 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 89, 64, 0, 0, 0, 0, 0, 0, 105, 64, 0, 0, 0, 0, 6, 0, 0, 0, 78, 111, 114, 119, 97, 121, 0, 0]
+        XCTAssertEqual(b.sizedByteArray, v)
+    }
+    
+    func testCreateFinishWithPrefix() {
+        var b = FlatBufferBuilder(initialSize: 16)
+        let countryOff = CountryDouble.createCountry(builder: &b, name: country, log: 200, lan: 100)
+        b.finish(offset: countryOff, addPrefix: true)
+        let v: [UInt8] = [60, 0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 28, 0, 4, 0, 8, 0, 16, 0, 10, 0, 0, 0, 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 89, 64, 0, 0, 0, 0, 0, 0, 105, 64, 0, 0, 0, 0, 6, 0, 0, 0, 78, 111, 114, 119, 97, 121, 0, 0]
+        XCTAssertEqual(b.sizedByteArray, v)
+    }
 }
 
 class CountryDouble {
