@@ -46,6 +46,9 @@ public struct Monster : IFlatbufferObject
   public bool MutateColor(MyGame.Example.Color color) { int o = __p.__offset(16); if (o != 0) { __p.bb.Put(o + __p.bb_pos, (byte)color); return true; } else { return false; } }
   public MyGame.Example.Any TestType { get { int o = __p.__offset(18); return o != 0 ? (MyGame.Example.Any)__p.bb.Get(o + __p.bb_pos) : MyGame.Example.Any.NONE; } }
   public TTable? Test<TTable>() where TTable : struct, IFlatbufferObject { int o = __p.__offset(20); return o != 0 ? (TTable?)__p.__union<TTable>(o + __p.bb_pos) : null; }
+  public MyGame.Example.Monster TestAsMonster() { return Test<MyGame.Example.Monster>().Value; }
+  internal MyGame.Example.TestSimpleTableWithEnum TestAsTestSimpleTableWithEnum() { return Test<MyGame.Example.TestSimpleTableWithEnum>().Value; }
+  public MyGame.Example2.Monster TestAsMyGame_Example2_Monster() { return Test<MyGame.Example2.Monster>().Value; }
   public MyGame.Example.Test? Test4(int j) { int o = __p.__offset(22); return o != 0 ? (MyGame.Example.Test?)(new MyGame.Example.Test()).__assign(__p.__vector(o) + j * 4, __p.bb) : null; }
   public int Test4Length { get { int o = __p.__offset(22); return o != 0 ? __p.__vector_len(o) : 0; } }
   public string Testarrayofstring(int j) { int o = __p.__offset(24); return o != 0 ? __p.__string(__p.__vector(o) + j * 4) : null; }
@@ -175,8 +178,14 @@ public struct Monster : IFlatbufferObject
   public bool MutateVectorOfNonOwningReferences(int j, ulong vector_of_non_owning_references) { int o = __p.__offset(88); if (o != 0) { __p.bb.PutUlong(__p.__vector(o) + j * 8, vector_of_non_owning_references); return true; } else { return false; } }
   public MyGame.Example.AnyUniqueAliases AnyUniqueType { get { int o = __p.__offset(90); return o != 0 ? (MyGame.Example.AnyUniqueAliases)__p.bb.Get(o + __p.bb_pos) : MyGame.Example.AnyUniqueAliases.NONE; } }
   public TTable? AnyUnique<TTable>() where TTable : struct, IFlatbufferObject { int o = __p.__offset(92); return o != 0 ? (TTable?)__p.__union<TTable>(o + __p.bb_pos) : null; }
+  public MyGame.Example.Monster AnyUniqueAsM() { return AnyUnique<MyGame.Example.Monster>().Value; }
+  internal MyGame.Example.TestSimpleTableWithEnum AnyUniqueAsTS() { return AnyUnique<MyGame.Example.TestSimpleTableWithEnum>().Value; }
+  public MyGame.Example2.Monster AnyUniqueAsM2() { return AnyUnique<MyGame.Example2.Monster>().Value; }
   public MyGame.Example.AnyAmbiguousAliases AnyAmbiguousType { get { int o = __p.__offset(94); return o != 0 ? (MyGame.Example.AnyAmbiguousAliases)__p.bb.Get(o + __p.bb_pos) : MyGame.Example.AnyAmbiguousAliases.NONE; } }
   public TTable? AnyAmbiguous<TTable>() where TTable : struct, IFlatbufferObject { int o = __p.__offset(96); return o != 0 ? (TTable?)__p.__union<TTable>(o + __p.bb_pos) : null; }
+  public MyGame.Example.Monster AnyAmbiguousAsM1() { return AnyAmbiguous<MyGame.Example.Monster>().Value; }
+  public MyGame.Example.Monster AnyAmbiguousAsM2() { return AnyAmbiguous<MyGame.Example.Monster>().Value; }
+  public MyGame.Example.Monster AnyAmbiguousAsM3() { return AnyAmbiguous<MyGame.Example.Monster>().Value; }
   public MyGame.Example.Color VectorOfEnums(int j) { int o = __p.__offset(98); return o != 0 ? (MyGame.Example.Color)__p.bb.Get(__p.__vector(o) + j * 1) : (MyGame.Example.Color)0; }
   public int VectorOfEnumsLength { get { int o = __p.__offset(98); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
