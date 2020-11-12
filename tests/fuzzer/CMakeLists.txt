@@ -18,7 +18,9 @@ message(STATUS "FLATBUFFERS_MAX_PARSING_DEPTH: ${FLATBUFFERS_MAX_PARSING_DEPTH}"
 # MemorySanitizer will not work out-of-the-box, and will instead report false
 # positives coming from uninstrumented code. Need to re-build both C++ standard
 # library: https://github.com/google/sanitizers/wiki/MemorySanitizerLibcxxHowTo
-option(USE_MSAN "Use MSAN instead of ASASN" OFF)
+option(USE_ASAN "Use fuzzers with ASASN" OFF)
+option(USE_MSAN "Use fuzzers with MSASN" OFF)
+option(OSS_FUZZ "Set this option to use flags by oss-fuzz" OFF)
 
 # Use Clang linker.
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld")
@@ -51,23 +53,30 @@ target_compile_options(
   fuzzer_config
   INTERFACE
     -fsanitize-coverage=edge,trace-cmp
-    $<$<BOOL:NOT ${USE_MSAN}>:
+    $<$<BOOL:${USE_ASAN}>:
       -fsanitize=fuzzer,undefined,address
     >
     $<$<BOOL:${USE_MSAN}>:
       -fsanitize=fuzzer,undefined,memory
       -fsanitize-memory-track-origins=2
     >
+    $<$<BOOL:${OSS_FUZZ}>:
+      ${CXX}
+      ${CXXFLAGS}
+    >
 )
 
 target_link_libraries(
   fuzzer_config
   INTERFACE
-    $<$<BOOL:NOT ${USE_MSAN}>:
+    $<$<BOOL:${USE_ASAN}>:
       -fsanitize=fuzzer,undefined,address
     >
     $<$<BOOL:${USE_MSAN}>:
       -fsanitize=fuzzer,undefined,memory
+    >
+    $<$<BOOL:${OSS_FUZZ}>:
+      $ENV{LIB_FUZZING_ENGINE}
     >
 )
 
