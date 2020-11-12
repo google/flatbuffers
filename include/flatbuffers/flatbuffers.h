@@ -1239,6 +1239,14 @@ class FlatBufferBuilder {
     return buf_.data();
   }
 
+  /// @brief Get the serialized buffer (after you call `Finish()`) as a span.
+  /// @return Returns a constructed flatbuffers::span that is a view over the 
+  /// FlatBuffer data inside the buffer.
+  flatbuffers::span<uint8_t> GetBufferSpan() const {
+    Finished();
+    return flatbuffers::span<uint8_t>(buf_.data(), buf_.size());
+  }
+
   /// @brief Get a pointer to an unfinished buffer.
   /// @return Returns a `uint8_t` pointer to the unfinished buffer.
   uint8_t *GetCurrentBufferPointer() const { return buf_.data(); }
