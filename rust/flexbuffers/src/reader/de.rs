@@ -151,6 +151,10 @@ impl<'de> VariantAccess<'de> for Reader<'de> {
 
 impl<'de> Deserializer<'de> for crate::Reader<'de> {
     type Error = DeserializationError;
+    fn is_human_readable(&self) -> bool {
+        cfg!(deserialize_human_readable)
+    }
+
     fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
