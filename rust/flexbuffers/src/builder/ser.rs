@@ -217,6 +217,9 @@ impl<'a> ser::Serializer for &'a mut FlexbufferSerializer {
     type SerializeStructVariant = &'a mut FlexbufferSerializer;
     type Ok = ();
     type Error = Error;
+    fn is_human_readable(&self) -> bool {
+        cfg!(serialize_human_readable)
+    }
     fn serialize_bool(self, v: bool) -> Result<Self::Ok, Self::Error> {
         self.builder.push(v);
         self.finish_if_not_nested()
