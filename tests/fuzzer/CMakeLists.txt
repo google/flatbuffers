@@ -52,7 +52,7 @@ add_library(fuzzer_config INTERFACE)
 target_compile_options(
   fuzzer_config
   INTERFACE
-    -fsanitize-coverage=edge,trace-cmp
+    #-fsanitize-coverage=edge,trace-cmp
     $<$<BOOL:${USE_ASAN}>:
       -fsanitize=fuzzer,undefined,address
     >
