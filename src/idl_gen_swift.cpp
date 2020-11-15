@@ -1384,7 +1384,6 @@ class SwiftGenerator : public BaseGenerator {
       const auto &ev = **enum_def.Vals().begin();
       name = Name(ev);
     }
-    std::transform(name.begin(), name.end(), name.begin(), CharToLower);
     return "." + name;
   }
 
