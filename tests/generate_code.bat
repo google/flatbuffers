@@ -56,6 +56,7 @@ set TEST_NOINCL_FLAGS=%TEST_BASE_FLAGS% --no-includes --no-fb-import
 
 @rem Generate the optional scalar code for tests.
 ..\%buildtype%\flatc.exe --csharp --java --kotlin --rust --lobster --ts --js optional_scalars.fbs || goto FAIL
+..\%buildtype%\flatc.exe --object-based-api --rust optional_scalars.fbs || goto FAIL
 ..\%buildtype%\flatc.exe %TEST_NOINCL_FLAGS% %TEST_CPP_FLAGS% --cpp optional_scalars.fbs || goto FAIL
 
 @rem Generate the schema evolution tests
