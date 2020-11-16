@@ -54,6 +54,7 @@ $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_JS_TS_FLAGS -o namespace
 
 # Generate optional scalar code for tests.
 ../flatc --csharp --java --kotlin --rust --lobster --ts --js optional_scalars.fbs
+../flatc --rust --gen-object-api optional_scalars.fbs
 ../flatc $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS --cpp optional_scalars.fbs
 
 # Generate the schema evolution tests

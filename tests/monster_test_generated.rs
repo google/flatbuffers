@@ -1794,6 +1794,9 @@ impl<'a> Monster<'a> {
         x.into_iter().collect()
       });
       let signed_enum = self.signed_enum();
+      let testrequirednestedflatbuffer = self.testrequirednestedflatbuffer().map(|x| {
+        x.iter().cloned().collect()
+      });
       MonsterT {
         pos,
         mana,
@@ -1840,6 +1843,7 @@ impl<'a> Monster<'a> {
         any_ambiguous,
         vector_of_enums,
         signed_enum,
+        testrequirednestedflatbuffer,
       }
     }
     pub const VT_POS: flatbuffers::VOffsetT = 4;
@@ -2709,6 +2713,7 @@ pub struct MonsterT {
   pub any_ambiguous: AnyAmbiguousAliasesT,
   pub vector_of_enums: Option<Vec<Color>>,
   pub signed_enum: Race,
+  pub testrequirednestedflatbuffer: Option<Vec<u8>>,
 }
 impl MonsterT {
   pub fn pack<'b>(
@@ -2809,6 +2814,9 @@ impl MonsterT {
       _fbb.create_vector(x)
     });
     let signed_enum = self.signed_enum;
+    let testrequirednestedflatbuffer = self.testrequirednestedflatbuffer.as_ref().map(|x|{
+      _fbb.create_vector(x)
+    });
     Monster::create(_fbb, &MonsterArgs{
       pos,
       mana,
@@ -2858,6 +2866,7 @@ impl MonsterT {
       any_ambiguous,
       vector_of_enums,
       signed_enum,
+      testrequirednestedflatbuffer,
     })
   }
 }
