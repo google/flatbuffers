@@ -604,7 +604,7 @@ export class Builder {
      * @returns list of offsets of each non null object
      */
     createObjectOffsetList(list: string[]): Offset[] {
-      const ret = [];
+      const ret: number[] = [];
   
       for(let i = 0; i < list.length; ++i) {
         const val = list[i];
