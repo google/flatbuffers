@@ -47,7 +47,7 @@ class SwiftGenerator : public BaseGenerator {
                  const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", "_", "swift") {
     namespace_depth = 0;
-    code_.SetPadding("    ");
+    code_.SetPadding("  ");
     static const char *const keywords[] = {
       "associatedtype",
       "class",
@@ -137,7 +137,8 @@ class SwiftGenerator : public BaseGenerator {
     code_.SetValue("ACCESS", "_accessor");
     code_.SetValue("TABLEOFFSET", "VTOFFSET");
     code_ += "// " + std::string(FlatBuffersGeneratedWarning());
-    code_ += "// swiftlint:disable all\n";
+    code_ += "// swiftlint:disable all";
+    code_ += "// swiftformat:disable all\n";
     code_ += "import FlatBuffers\n";
     // Generate code for all the enum declarations.
 

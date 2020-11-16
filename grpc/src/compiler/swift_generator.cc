@@ -100,7 +100,7 @@ void GenerateClientProtocol(const grpc_generator::Service *service,
     vars["Output"] = GenerateMessage(method->get_output_namespace_parts(), method->get_output_type_name());
     vars["MethodName"] = method->name();
     vars["isNil"] = "";
-    printer->Print("\t");
+    printer->Print("  ");
     auto func = GenerateClientFuncName(method.get());
     printer->Print(vars, func.c_str());
     printer->Print("\n");
@@ -115,15 +115,15 @@ void GenerateClientClass(const grpc_generator::Service *service,
   printer->Print(vars,
                  "$ACCESS$ final class $ServiceQualifiedName$ServiceClient: GRPCClient, "
                  "$ServiceQualifiedName$Service {\n");
-  printer->Print(vars, "\t$ACCESS$ let channel: GRPCChannel\n");
-  printer->Print(vars, "\t$ACCESS$ var defaultCallOptions: CallOptions\n");
+  printer->Print(vars, "  $ACCESS$ let channel: GRPCChannel\n");
+  printer->Print(vars, "  $ACCESS$ var defaultCallOptions: CallOptions\n");
   printer->Print("\n");
   printer->Print(vars,
-                 "\t$ACCESS$ init(channel: GRPCChannel, "
+                 "  $ACCESS$ init(channel: GRPCChannel, "
                  "defaultCallOptions: CallOptions = CallOptions()) {\n");
-  printer->Print("\t\tself.channel = channel\n");
-  printer->Print("\t\tself.defaultCallOptions = defaultCallOptions\n");
-  printer->Print("\t}");
+  printer->Print("    self.channel = channel\n");
+  printer->Print("    self.defaultCallOptions = defaultCallOptions\n");
+  printer->Print("  }");
   printer->Print("\n");
   vars["GenAccess"] = service->is_internal() ? "internal" : "public";
   for (auto it = 0; it < service->method_count(); it++) {
@@ -132,14 +132,14 @@ void GenerateClientClass(const grpc_generator::Service *service,
     vars["Output"] = GenerateMessage(method->get_output_namespace_parts(), method->get_output_type_name());
     vars["MethodName"] = method->name();
     vars["isNil"] = " = nil";
-    printer->Print("\n\t");
+    printer->Print("\n  ");
     auto func = GenerateClientFuncName(method.get());
     printer->Print(vars, func.c_str());
     printer->Print(" {\n");
     auto body = GenerateClientFuncBody(method.get());
-    printer->Print("\t\t");
+    printer->Print("    ");
     printer->Print(vars, body.c_str());
-    printer->Print("\n\t}\n");
+    printer->Print("\n  }\n");
   }
   printer->Print("}\n");
 }
@@ -168,44 +168,44 @@ grpc::string GenerateServerFuncName(const grpc_generator::Method *method) {
 }
 
 grpc::string GenerateServerExtensionBody(const grpc_generator::Method *method) {
-  grpc::string start = "\t\tcase \"$MethodName$\":\n\t\t";
+  grpc::string start = "    case \"$MethodName$\":\n    ";
   if (method->NoStreaming()) {
     return start +
            "return CallHandlerFactory.makeUnary(callHandlerContext: callHandlerContext) { "
            "context in"
-           "\n\t\t\t"
+           "\n      "
            "return { request in"
-           "\n\t\t\t\t"
+           "\n        "
            "self.$MethodName$(request, context: context)"
-           "\n\t\t\t}"
-           "\n\t\t}";
+           "\n      }"
+           "\n    }";
   }
   if (method->ClientStreaming()) {
     return start +
            "return CallHandlerFactory.makeClientStreaming(callHandlerContext: "
            "callHandlerContext) { context in"
-           "\n\t\t\t"
+           "\n      "
            "self.$MethodName$(context: context)"
-           "\n\t\t}";
+           "\n    }";
   }
   if (method->ServerStreaming()) {
     return start +
            "return CallHandlerFactory.makeServerStreaming(callHandlerContext: "
            "callHandlerContext) { context in"
-           "\n\t\t\t"
+           "\n      "
            "return { request in"
-           "\n\t\t\t\t"
+           "\n        "
            "self.$MethodName$(request: request, context: context)"
-           "\n\t\t\t}"
-           "\n\t\t}";
+           "\n      }"
+           "\n    }";
   }
   if (method->BidiStreaming()) {
     return start +
            "return CallHandlerFactory.makeBidirectionalStreaming(callHandlerContext: "
            "callHandlerContext) { context in"
-           "\n\t\t\t"
+           "\n      "
            "self.$MethodName$(context: context)"
-           "\n\t\t}";
+           "\n    }";
   }
   return "";
 }
@@ -221,7 +221,7 @@ void GenerateServerProtocol(const grpc_generator::Service *service,
     vars["Input"] = GenerateMessage(method->get_input_namespace_parts(), method->get_input_type_name());
     vars["Output"] = GenerateMessage(method->get_output_namespace_parts(), method->get_output_type_name());
     vars["MethodName"] = method->name();
-    printer->Print("\t");
+    printer->Print("  ");
     auto func = GenerateServerFuncName(method.get());
     printer->Print(vars, func.c_str());
     printer->Print("\n");
@@ -231,13 +231,13 @@ void GenerateServerProtocol(const grpc_generator::Service *service,
   printer->Print(vars, "$ACCESS$ extension $ServiceQualifiedName$Provider {\n");
   printer->Print("\n");
   printer->Print(vars,
-                 "\tvar serviceName: Substring { return "
+                 "  var serviceName: Substring { return "
                  "\"$PATH$$ServiceName$\" }\n");
   printer->Print("\n");
   printer->Print(
-      "\tfunc handleMethod(_ methodName: Substring, callHandlerContext: "
+      "  func handleMethod(_ methodName: Substring, callHandlerContext: "
       "CallHandlerContext) -> GRPCCallHandler? {\n");
-  printer->Print("\t\tswitch methodName {\n");
+  printer->Print("    switch methodName {\n");
   for (auto it = 0; it < service->method_count(); it++) {
     auto method = service->method(it);
     vars["Input"] = GenerateMessage(method->get_input_namespace_parts(), method->get_input_type_name());
@@ -247,10 +247,10 @@ void GenerateServerProtocol(const grpc_generator::Service *service,
     printer->Print(vars, body.c_str());
     printer->Print("\n");
   }
-  printer->Print("\t\tdefault: return nil;\n");
-  printer->Print("\t\t}\n");
-  printer->Print("\t}\n\n");
-  printer->Print("}\n\n");
+  printer->Print("    default: return nil;\n");
+  printer->Print("    }\n");
+  printer->Print("  }\n\n");
+  printer->Print("}");
 }
 
 grpc::string Generate(grpc_generator::File *file,
@@ -281,6 +281,10 @@ grpc::string GenerateHeader() {
   code +=
       "/// in case of an issue please open github issue, though it would be "
       "maintained\n";
+  code += "\n";
+  code += "// swiftlint:disable all\n";
+  code += "// swiftformat:disable all\n";
+  code += "\n";
   code += "import Foundation\n";
   code += "import GRPC\n";
   code += "import NIO\n";
@@ -292,19 +296,19 @@ grpc::string GenerateHeader() {
       "{}\n";
 
   code += "public extension GRPCFlatBufPayload {\n";
-  code += "    init(serializedByteBuffer: inout NIO.ByteBuffer) throws {\n";
+  code += "  init(serializedByteBuffer: inout NIO.ByteBuffer) throws {\n";
   code +=
-      "        self.init(byteBuffer: FlatBuffers.ByteBuffer(contiguousBytes: "
+      "    self.init(byteBuffer: FlatBuffers.ByteBuffer(contiguousBytes: "
       "serializedByteBuffer.readableBytesView, count: "
       "serializedByteBuffer.readableBytes))\n";
-  code += "    }\n";
+  code += "  }\n";
 
-  code += "    func serialize(into buffer: inout NIO.ByteBuffer) throws {\n";
+  code += "  func serialize(into buffer: inout NIO.ByteBuffer) throws {\n";
   code +=
-      "        let buf = UnsafeRawBufferPointer(start: self.rawPointer, count: "
+      "    let buf = UnsafeRawBufferPointer(start: self.rawPointer, count: "
       "Int(self.size))\n";
-  code += "        buffer.writeBytes(buf)\n";
-  code += "    }\n";
+  code += "    buffer.writeBytes(buf)\n";
+  code += "  }\n";
   code += "}\n";
   code += "extension Message: GRPCFlatBufPayload {}\n";
   return code;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, gRPC Authors All rights reserved.
+ * Copyright 2020 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,50 +14,50 @@
  * limitations under the License.
  */
 
-import GRPC
-import NIO
 import FlatBuffers
+import GRPC
 import Logging
 import Model
+import NIO
 
 class Greeter: GreeterProvider {
-    
-    var hellos: [Message<HelloReply>] = []
-    
-    init() {
-        let names = ["Stranger1", "Stranger2", "Stranger4", "Stranger3", "Stranger5", "Stranger6"]
-        for name in names {
-            var builder = FlatBufferBuilder()
-            let off = builder.create(string: name)
-            let root = HelloReply.createHelloReply(&builder, offsetOfMessage: off)
-            builder.finish(offset: root)
-            hellos.append(Message(builder: &builder))
-        }
-    }
-    
-    func SayHello(
-        _ request: Message<HelloRequest>,
-        context: StatusOnlyCallContext
-    ) -> EventLoopFuture<Message<HelloReply>> {
-        let recipient = request.object.name ?? "Stranger"
 
-        var builder = FlatBufferBuilder()
-        let off = builder.create(string: recipient)
-        let root = HelloReply.createHelloReply(&builder, offsetOfMessage: off)
-        builder.finish(offset: root)
-        return context.eventLoop.makeSucceededFuture(Message<HelloReply>(builder: &builder))
+  var hellos: [Message<HelloReply>] = []
+
+  init() {
+    let names = ["Stranger1", "Stranger2", "Stranger4", "Stranger3", "Stranger5", "Stranger6"]
+    for name in names {
+      var builder = FlatBufferBuilder()
+      let off = builder.create(string: name)
+      let root = HelloReply.createHelloReply(&builder, offsetOfMessage: off)
+      builder.finish(offset: root)
+      hellos.append(Message(builder: &builder))
     }
-    
-    func SayManyHellos(
-        request: Message<ManyHellosRequest>,
-        context: StreamingResponseCallContext<Message<HelloReply>>
-    ) -> EventLoopFuture<GRPCStatus> {
-        for _ in 0..<Int(request.object.numGreetings) {
-            let index = Int.random(in: 0..<hellos.count)
-            _ = context.sendResponse(hellos[index])
-        }
-        return context.eventLoop.makeSucceededFuture(.ok)
+  }
+
+  func SayHello(
+    _ request: Message<HelloRequest>,
+    context: StatusOnlyCallContext) -> EventLoopFuture<Message<HelloReply>>
+  {
+    let recipient = request.object.name ?? "Stranger"
+
+    var builder = FlatBufferBuilder()
+    let off = builder.create(string: recipient)
+    let root = HelloReply.createHelloReply(&builder, offsetOfMessage: off)
+    builder.finish(offset: root)
+    return context.eventLoop.makeSucceededFuture(Message<HelloReply>(builder: &builder))
+  }
+
+  func SayManyHellos(
+    request: Message<ManyHellosRequest>,
+    context: StreamingResponseCallContext<Message<HelloReply>>) -> EventLoopFuture<GRPCStatus>
+  {
+    for _ in 0..<Int(request.object.numGreetings) {
+      let index = Int.random(in: 0..<hellos.count)
+      _ = context.sendResponse(hellos[index])
     }
+    return context.eventLoop.makeSucceededFuture(.ok)
+  }
 }
 
 // Quieten the logs.
@@ -76,8 +76,7 @@ defer {
 let configuration = Server.Configuration(
   target: .hostAndPort("localhost", 0),
   eventLoopGroup: group,
-  serviceProviders: [Greeter()]
-)
+  serviceProviders: [Greeter()])
 
 // Start the server and print its address once it has started.
 let server = Server.start(configuration: configuration)
