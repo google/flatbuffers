@@ -96,7 +96,7 @@ impl std::fmt::Debug for InParentNamespace<'_> {
   }
 }
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct InParentNamespaceT {
 }
 impl InParentNamespaceT {
@@ -193,7 +193,7 @@ impl std::fmt::Debug for Monster<'_> {
   }
 }
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct MonsterT {
 }
 impl MonsterT {
@@ -222,6 +222,7 @@ pub mod example {
 mod bitflags_color {
   flatbuffers::bitflags::bitflags! {
     /// Composite components of Monster color.
+    #[derive(Default)]
     pub struct Color: u8 {
       const Red = 1;
       /// \brief color Green
@@ -277,7 +278,7 @@ pub const ENUM_VALUES_RACE: [Race; 4] = [
   Race::Elf,
 ];
 
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[repr(transparent)]
 pub struct Race(pub i8);
 #[allow(non_upper_case_globals)]
@@ -355,7 +356,7 @@ pub const ENUM_VALUES_ANY: [Any; 4] = [
   Any::MyGame_Example2_Monster,
 ];
 
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[repr(transparent)]
 pub struct Any(pub u8);
 #[allow(non_upper_case_globals)]
@@ -529,7 +530,7 @@ pub const ENUM_VALUES_ANY_UNIQUE_ALIASES: [AnyUniqueAliases; 4] = [
   AnyUniqueAliases::M2,
 ];
 
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[repr(transparent)]
 pub struct AnyUniqueAliases(pub u8);
 #[allow(non_upper_case_globals)]
@@ -703,7 +704,7 @@ pub const ENUM_VALUES_ANY_AMBIGUOUS_ALIASES: [AnyAmbiguousAliases; 4] = [
   AnyAmbiguousAliases::M3,
 ];
 
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[repr(transparent)]
 pub struct AnyAmbiguousAliases(pub u8);
 #[allow(non_upper_case_globals)]
@@ -866,7 +867,7 @@ impl AnyAmbiguousAliasesT {
 }
 // struct Test, aligned to 2
 #[repr(C, align(2))]
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Default)]
 pub struct Test {
   a_: i16,
   b_: i8,
@@ -946,7 +947,7 @@ impl Test {
   }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct TestT {
   pub a: i16,
   pub b: i8,
@@ -962,7 +963,7 @@ impl TestT {
 
 // struct Vec3, aligned to 8
 #[repr(C, align(8))]
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Default)]
 pub struct Vec3 {
   x_: f32,
   y_: f32,
@@ -1074,7 +1075,7 @@ impl Vec3 {
   }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct Vec3T {
   pub x: f32,
   pub y: f32,
@@ -1098,7 +1099,7 @@ impl Vec3T {
 
 // struct Ability, aligned to 4
 #[repr(C, align(4))]
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Default)]
 pub struct Ability {
   id_: u32,
   distance_: u32,
@@ -1186,7 +1187,7 @@ impl Ability {
   }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct AbilityT {
   pub id: u32,
   pub distance: u32,
@@ -1290,7 +1291,7 @@ impl std::fmt::Debug for TestSimpleTableWithEnum<'_> {
   }
 }
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct TestSimpleTableWithEnumT {
   pub color: Color,
 }
@@ -1427,7 +1428,7 @@ impl std::fmt::Debug for Stat<'_> {
   }
 }
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct StatT {
   pub id: Option<String>,
   pub val: i64,
@@ -1550,7 +1551,7 @@ impl std::fmt::Debug for Referrable<'_> {
   }
 }
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct ReferrableT {
   pub id: u64,
 }
@@ -2666,7 +2667,7 @@ impl std::fmt::Debug for Monster<'_> {
   }
 }
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct MonsterT {
   pub pos: Option<Vec3T>,
   pub mana: i16,
@@ -3129,7 +3130,7 @@ impl std::fmt::Debug for TypeAliases<'_> {
   }
 }
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct TypeAliasesT {
   pub i8_: i8,
   pub u8_: u8,

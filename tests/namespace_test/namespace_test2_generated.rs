@@ -144,7 +144,7 @@ impl std::fmt::Debug for TableInFirstNS<'_> {
   }
 }
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct TableInFirstNST {
   pub foo_table: Option<Box<namespace_b::TableInNestedNST>>,
   pub foo_enum: namespace_b::EnumInNestedNS,
@@ -260,7 +260,7 @@ impl std::fmt::Debug for SecondTableInA<'_> {
   }
 }
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct SecondTableInAT {
   pub refer_to_c: Option<Box<super::namespace_c::TableInCT>>,
 }
@@ -398,7 +398,7 @@ impl std::fmt::Debug for TableInC<'_> {
   }
 }
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct TableInCT {
   pub refer_to_a1: Option<Box<super::namespace_a::TableInFirstNST>>,
   pub refer_to_a2: Option<Box<super::namespace_a::SecondTableInAT>>,

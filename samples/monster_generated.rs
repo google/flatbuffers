@@ -38,7 +38,7 @@ pub const ENUM_VALUES_COLOR: [Color; 3] = [
   Color::Blue,
 ];
 
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[repr(transparent)]
 pub struct Color(pub i8);
 #[allow(non_upper_case_globals)]
@@ -111,7 +111,7 @@ pub const ENUM_VALUES_EQUIPMENT: [Equipment; 2] = [
   Equipment::Weapon,
 ];
 
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[repr(transparent)]
 pub struct Equipment(pub u8);
 #[allow(non_upper_case_globals)]
@@ -220,7 +220,7 @@ impl EquipmentT {
 }
 // struct Vec3, aligned to 4
 #[repr(C, align(4))]
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Default)]
 pub struct Vec3 {
   x_: f32,
   y_: f32,
@@ -301,7 +301,7 @@ impl Vec3 {
   }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct Vec3T {
   pub x: f32,
   pub y: f32,
@@ -576,7 +576,7 @@ impl std::fmt::Debug for Monster<'_> {
   }
 }
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct MonsterT {
   pub pos: Option<Vec3T>,
   pub mana: i16,
@@ -729,7 +729,7 @@ impl std::fmt::Debug for Weapon<'_> {
   }
 }
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct WeaponT {
   pub name: Option<String>,
   pub damage: i16,

@@ -39,7 +39,7 @@ pub const ENUM_VALUES_FROM_INCLUDE: [FromInclude; 1] = [
   FromInclude::IncludeVal,
 ];
 
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[repr(transparent)]
 pub struct FromInclude(pub i64);
 #[allow(non_upper_case_globals)]
@@ -97,7 +97,7 @@ impl flatbuffers::EndianScalar for FromInclude {
 
 // struct Unused, aligned to 4
 #[repr(C, align(4))]
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Default)]
 pub struct Unused {
   a_: i32,
 } // pub struct Unused

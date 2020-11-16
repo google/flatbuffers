@@ -553,6 +553,7 @@ class RustGenerator : public BaseGenerator {
       code_ += "mod bitflags_{{ENUM_NAME_SNAKE}} {";
       code_ += "  flatbuffers::bitflags::bitflags! {";
       GenComment(enum_def.doc_comment, "    ");
+      code_ += "    #[derive(Default)]";
       code_ += "    pub struct {{ENUM_NAME}}: {{BASE_TYPE}} {";
       ForAllEnumValues1(enum_def, [&](const EnumVal &ev){
         this->GenComment(ev.doc_comment, "      ");
@@ -622,7 +623,7 @@ class RustGenerator : public BaseGenerator {
 
     GenComment(enum_def.doc_comment);
     code_ +=
-        "#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]";
+        "#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]";
     code_ += "#[repr(transparent)]";
     code_ += "pub struct {{ENUM_NAME}}(pub {{BASE_TYPE}});";
     code_ += "#[allow(non_upper_case_globals)]";
@@ -826,7 +827,7 @@ class RustGenerator : public BaseGenerator {
             return "None";
         }
         auto ev = field.value.type.enum_def->FindByValue(field.value.constant);
-        assert(ev);
+        if (!ev) return "Default::default()";  // Bitflags enum.
         return WrapInNameSpace(field.value.type.enum_def->defined_namespace,
                                GetEnumValue(*field.value.type.enum_def, *ev));
       }
@@ -1792,7 +1793,7 @@ class RustGenerator : public BaseGenerator {
 
     // Generate the native object.
     code_ += "#[non_exhaustive]";
-    code_ += "#[derive(Debug, Clone, PartialEq)]";
+    code_ += "#[derive(Debug, Clone, PartialEq, Default)]";
     code_ += "pub struct {{OBJECT_NAME}} {";
     ForAllObjectTableFields(table, [&](const FieldDef &field){
       // Union objects combine both the union discriminant and value, so we
@@ -2088,7 +2089,7 @@ class RustGenerator : public BaseGenerator {
     // PartialEq is useful to derive because we can correctly compare structs
     // for equality by just comparing their underlying byte data. This doesn't
     // hold for PartialOrd/Ord.
-    code_ += "#[derive(Clone, Copy, PartialEq)]";
+    code_ += "#[derive(Clone, Copy, PartialEq, Default)]";
     code_ += "pub struct {{STRUCT_NAME}} {";
 
     int padding_id = 0;
@@ -2234,7 +2235,7 @@ class RustGenerator : public BaseGenerator {
     // Generate Struct Object.
     if (parser_.opts.generate_object_based_api) {
       // Struct declaration
-      code_ += "#[derive(Debug, Clone, PartialEq)]";
+      code_ += "#[derive(Debug, Clone, PartialEq, Default)]";
       code_ += "pub struct {{NATIVE_STRUCT_NAME}} {";
       ForAllStructFields(struct_def, [&](const FieldDef &field) {
         (void) field;  // unused.

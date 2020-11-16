@@ -30,7 +30,7 @@ pub const ENUM_VALUES_OPTIONAL_BYTE: [OptionalByte; 3] = [
   OptionalByte::Two,
 ];
 
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[repr(transparent)]
 pub struct OptionalByte(pub i8);
 #[allow(non_upper_case_globals)]
@@ -703,7 +703,7 @@ impl std::fmt::Debug for ScalarStuff<'_> {
   }
 }
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct ScalarStuffT {
   pub just_i8: i8,
   pub maybe_i8: Option<i8>,

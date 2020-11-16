@@ -38,7 +38,7 @@ pub const ENUM_VALUES_ENUM_IN_NESTED_NS: [EnumInNestedNS; 3] = [
   EnumInNestedNS::C,
 ];
 
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[repr(transparent)]
 pub struct EnumInNestedNS(pub i8);
 #[allow(non_upper_case_globals)]
@@ -102,7 +102,7 @@ impl flatbuffers::EndianScalar for EnumInNestedNS {
 
 // struct StructInNestedNS, aligned to 4
 #[repr(C, align(4))]
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Default)]
 pub struct StructInNestedNS {
   a_: i32,
   b_: i32,
@@ -180,7 +180,7 @@ impl StructInNestedNS {
   }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct StructInNestedNST {
   pub a: i32,
   pub b: i32,
@@ -284,7 +284,7 @@ impl std::fmt::Debug for TableInNestedNS<'_> {
   }
 }
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct TableInNestedNST {
   pub foo: i32,
 }
