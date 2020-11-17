@@ -1,5 +1,5 @@
 use crate::follow::Follow;
-use crate::{ForwardsUOffset, SOffsetT, UOffsetT, VOffsetT, Vector, SIZE_UOFFSET};
+use crate::{ForwardsUOffset, SOffsetT, SkipSizePrefix, UOffsetT, VOffsetT, Vector, SIZE_UOFFSET};
 use std::ops::Range;
 use thiserror::Error;
 
@@ -507,23 +507,6 @@ pub trait Verifiable {
     fn run_verifier(v: &mut Verifier, pos: usize) -> Result<()>;
 }
 
-#[inline]
-/// Gets the root of the Flatbuffer, verifying it first with default options.
-pub fn get_root<'buf, T: Follow<'buf> + Verifiable>(data: &'buf [u8]) -> Result<T::Inner> {
-    let opts = VerifierOptions::default();
-    get_root_with::<T>(&opts, data)
-}
-#[inline]
-/// Gets the root of the Flatbuffer, verifying it first with default options.
-pub fn get_root_with<'opts, 'buf, T: Follow<'buf> + Verifiable>(
-    opts: &'opts VerifierOptions,
-    data: &'buf [u8],
-) -> Result<T::Inner> {
-    let mut v = Verifier::new(&opts, data);
-    <ForwardsUOffset<T>>::run_verifier(&mut v, 0)?;
-    Ok(<ForwardsUOffset<T>>::follow(data, 0))
-}
-
 // Verify the uoffset and then pass verifier to the type being pointed to.
 impl<T: Verifiable> Verifiable for ForwardsUOffset<T> {
     #[inline]
@@ -564,6 +547,13 @@ impl<T: SimpleToVerifyInSlice> Verifiable for Vector<'_, T> {
     fn run_verifier(v: &mut Verifier, pos: usize) -> Result<()> {
         verify_vector_range::<T>(v, pos)?;
         Ok(())
+    }
+}
+
+impl<T: Verifiable> Verifiable for SkipSizePrefix<T> {
+    #[inline]
+    fn run_verifier(v: &mut Verifier, pos: usize) -> Result<()> {
+        T::run_verifier(v, pos + crate::SIZE_SIZEPREFIX)
     }
 }
 

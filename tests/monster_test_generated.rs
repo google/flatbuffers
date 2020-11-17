@@ -2491,13 +2491,13 @@ impl std::fmt::Debug for TypeAliases<'_> {
   }
 }
 #[inline]
-pub fn get_root_as_monster<'a>(buf: &'a [u8]) -> Monster<'a> {
-  flatbuffers::get_root::<Monster<'a>>(buf)
+pub fn get_root_as_monster_fast<'a>(buf: &'a [u8]) -> Monster<'a> {
+  flatbuffers::get_root_fast::<Monster<'a>>(buf)
 }
 
 #[inline]
-pub fn get_size_prefixed_root_as_monster<'a>(buf: &'a [u8]) -> Monster<'a> {
-  flatbuffers::get_size_prefixed_root::<Monster<'a>>(buf)
+pub fn get_size_prefixed_root_as_monster_fast<'a>(buf: &'a [u8]) -> Monster<'a> {
+  flatbuffers::get_size_prefixed_root_fast::<Monster<'a>>(buf)
 }
 
 pub const MONSTER_IDENTIFIER: &str = "MONS";

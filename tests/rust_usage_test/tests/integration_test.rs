@@ -177,9 +177,9 @@ fn serialized_example_is_accessible_and_correct(bytes: &[u8], identifier_require
     }
 
     let m = if size_prefixed {
-        my_game::example::get_size_prefixed_root_as_monster(bytes)
+        my_game::example::get_size_prefixed_root_as_monster_fast(bytes)
     } else {
-        my_game::example::get_root_as_monster(bytes)
+        my_game::example::get_root_as_monster_fast(bytes)
     };
 
     check_eq!(m.hp(), 80)?;
@@ -264,7 +264,7 @@ fn verifier_one_byte_errors_do_not_crash() {
         for i in 0..badbuf.len() {
             let orig = badbuf[i];
             badbuf[i] = badbuf[i].wrapping_add(d);
-            if let Ok(m) = flatbuffers::get_root_safe::<my_game::example::Monster>(&badbuf) {
+            if let Ok(m) = flatbuffers::get_root::<my_game::example::Monster>(&badbuf) {
                 w.write_fmt(format_args!("{:?}", m)).unwrap()
             }
             badbuf[i] = orig;
@@ -289,11 +289,11 @@ fn verifier_too_many_tables() {
     let mut opts = flatbuffers::VerifierOptions::default();
 
     opts.max_tables = 500;
-    let res = flatbuffers::get_root_with::<Monster>(&opts, data);
+    let res = flatbuffers::get_root_opts::<Monster>(&opts, data);
     assert_eq!(res.unwrap_err(), flatbuffers::InvalidFlatbuffer::TooManyTables);
 
     opts.max_tables += 2;
-    assert!(flatbuffers::get_root_with::<Monster>(&opts, data).is_ok());
+    assert!(flatbuffers::get_root_opts::<Monster>(&opts, data).is_ok());
 }
 #[test]
 fn verifier_apparent_size_too_large() {
@@ -314,11 +314,11 @@ fn verifier_apparent_size_too_large() {
     let mut opts = flatbuffers::VerifierOptions::default();
     opts.max_apparent_size = 1_000_000;
 
-    let res = flatbuffers::get_root_with::<Monster>(&opts, data);
+    let res = flatbuffers::get_root_opts::<Monster>(&opts, data);
     assert_eq!(res.unwrap_err(), flatbuffers::InvalidFlatbuffer::ApparentSizeTooLarge);
 
     opts.max_apparent_size += 20_000;
-    assert!(flatbuffers::get_root_with::<Monster>(&opts, data).is_ok());
+    assert!(flatbuffers::get_root_opts::<Monster>(&opts, data).is_ok());
 }
 #[test]
 fn verifier_in_too_deep() {
@@ -338,11 +338,11 @@ fn verifier_in_too_deep() {
     opts.max_depth = 10;
 
     let data = b.finished_data();
-    let res = flatbuffers::get_root_with::<Monster>(&opts, data);
+    let res = flatbuffers::get_root_opts::<Monster>(&opts, data);
     assert_eq!(res.unwrap_err(), flatbuffers::InvalidFlatbuffer::DepthLimitReached);
 
     opts.max_depth += 1;
-    assert!(flatbuffers::get_root_with::<Monster>(&opts, data).is_ok());
+    assert!(flatbuffers::get_root_opts::<Monster>(&opts, data).is_ok());
 }
 
 #[cfg(test)]
@@ -416,7 +416,7 @@ mod lifetime_correctness {
         let slice: &[u8] = &buf;
         let slice: &'static [u8] = unsafe { mem::transmute(slice) };
         // make sure values retrieved from the 'static buffer are themselves 'static
-        let monster: my_game::example::Monster<'static> = my_game::example::get_root_as_monster(slice);
+        let monster: my_game::example::Monster<'static> = my_game::example::get_root_as_monster_fast(slice);
         // this line should compile:
         let name: Option<&'static str> = monster._tab.get::<flatbuffers::ForwardsUOffset<&str>>(my_game::example::Monster::VT_NAME, None);
         assert_eq!(name, Some("MyMonster"));
@@ -434,7 +434,7 @@ mod lifetime_correctness {
     fn table_object_self_lifetime_in_closure() {
         // This test is designed to ensure that lifetimes for temporary intermediate tables aren't inflated beyond where the need to be.
         let buf = load_file("../monsterdata_test.mon").expect("missing monsterdata_test.mon");
-        let monster = my_game::example::get_root_as_monster(&buf);
+        let monster = my_game::example::get_root_as_monster_fast(&buf);
         let enemy: Option<my_game::example::Monster> = monster.enemy();
         // This line won't compile if "self" is required to live for the lifetime of buf above as the borrow disappears at the end of the closure.
         let enemy_of_my_enemy = enemy.map(|e| {
@@ -457,7 +457,7 @@ mod roundtrip_generated_code {
     fn build_mon<'a, 'b>(builder: &'a mut flatbuffers::FlatBufferBuilder, args: &'b my_game::example::MonsterArgs) -> my_game::example::Monster<'a> {
         let mon = my_game::example::Monster::create(builder, &args);
         my_game::example::finish_monster_buffer(builder, mon);
-        my_game::example::get_root_as_monster(builder.finished_data())
+        my_game::example::get_root_as_monster_fast(builder.finished_data())
     }
 
     #[test]
@@ -537,7 +537,7 @@ mod roundtrip_generated_code {
             my_game::example::finish_monster_buffer(b, outer);
         }
 
-        let mon = my_game::example::get_root_as_monster(b.finished_data());
+        let mon = my_game::example::get_root_as_monster_fast(b.finished_data());
         assert_eq!(mon.name(), "bar");
         assert_eq!(mon.test_type(), my_game::example::Any::Monster);
         assert_eq!(my_game::example::Monster::init_from_table(mon.test().unwrap()).name(),
@@ -573,7 +573,7 @@ mod roundtrip_generated_code {
             my_game::example::finish_monster_buffer(b, outer);
         }
 
-        let mon = my_game::example::get_root_as_monster(b.finished_data());
+        let mon = my_game::example::get_root_as_monster_fast(b.finished_data());
         assert_eq!(mon.name(), "bar");
         assert_eq!(mon.enemy().unwrap().name(), "foo");
     }
@@ -603,7 +603,7 @@ mod roundtrip_generated_code {
             my_game::example::finish_monster_buffer(b, outer);
         }
 
-        let mon = my_game::example::get_root_as_monster(b.finished_data());
+        let mon = my_game::example::get_root_as_monster_fast(b.finished_data());
         assert_eq!(mon.name(), "bar");
         assert_eq!(mon.testempty().unwrap().id(), Some("foo"));
     }
@@ -640,12 +640,12 @@ mod roundtrip_generated_code {
             b1
         };
 
-        let m = my_game::example::get_root_as_monster(b1.finished_data());
+        let m = my_game::example::get_root_as_monster_fast(b1.finished_data());
 
         assert!(m.testnestedflatbuffer().is_some());
         assert_eq!(m.testnestedflatbuffer().unwrap(), b0.finished_data());
 
-        let m2_a = my_game::example::get_root_as_monster(m.testnestedflatbuffer().unwrap());
+        let m2_a = my_game::example::get_root_as_monster_fast(m.testnestedflatbuffer().unwrap());
         assert_eq!(m2_a.hp(), 123);
         assert_eq!(m2_a.name(), "foobar");
 
@@ -899,7 +899,7 @@ mod generated_code_alignment_and_padding {
             my_game::example::finish_monster_buffer(b, mon);
         }
         let buf = b.finished_data();
-        let mon = my_game::example::get_root_as_monster(buf);
+        let mon = my_game::example::get_root_as_monster_fast(buf);
         let vec3 = mon.pos().unwrap();
 
         let start_ptr = buf.as_ptr() as usize;
@@ -935,7 +935,7 @@ mod generated_code_alignment_and_padding {
             my_game::example::finish_monster_buffer(b, mon);
         }
         let buf = b.finished_data();
-        let mon = my_game::example::get_root_as_monster(buf);
+        let mon = my_game::example::get_root_as_monster_fast(buf);
         let abilities = mon.testarrayofsortedstruct().unwrap();
 
         let start_ptr = buf.as_ptr() as usize;
@@ -1242,7 +1242,7 @@ mod framing_format {
 
         // Access it.
         let buf = b.finished_data();
-        let m = flatbuffers::get_size_prefixed_root::<my_game::example::Monster>(buf);
+        let m = flatbuffers::get_size_prefixed_root_fast::<my_game::example::Monster>(buf);
         assert_eq!(m.mana(), 200);
         assert_eq!(m.hp(), 300);
         assert_eq!(m.name(), "bob");
@@ -1638,7 +1638,7 @@ mod write_and_read_examples {
         create_serialized_example_with_generated_code(b);
         let buf = b.finished_data();
         serialized_example_is_accessible_and_correct(&buf, true, false).unwrap();
-        let m = super::my_game::example::get_root_as_monster(buf);
+        let m = super::my_game::example::get_root_as_monster_fast(buf);
         assert_eq!(
             format!("{:.5?}", &m),
             "Monster { pos: Some(Vec3 { x: 1.00000, y: 2.00000, z: 3.00000, \
@@ -1828,7 +1828,7 @@ mod generated_key_comparisons {
         let builder = &mut flatbuffers::FlatBufferBuilder::new();
         super::create_serialized_example_with_library_code(builder);
         let buf = builder.finished_data();
-        let a = my_game::example::get_root_as_monster(buf);
+        let a = my_game::example::get_root_as_monster_fast(buf);
 
         // preconditions
         assert_eq!(a.name(), "MyMonster");
@@ -1844,7 +1844,7 @@ mod generated_key_comparisons {
         let builder = &mut flatbuffers::FlatBufferBuilder::new();
         super::create_serialized_example_with_library_code(builder);
         let buf = builder.finished_data();
-        let a = my_game::example::get_root_as_monster(buf);
+        let a = my_game::example::get_root_as_monster_fast(buf);
         let b = a.test_as_monster().unwrap();
 
         // preconditions

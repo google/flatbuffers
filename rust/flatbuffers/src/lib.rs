@@ -31,6 +31,7 @@
 mod builder;
 mod endian_scalar;
 mod follow;
+mod get_root;
 mod primitives;
 mod push;
 mod table;
@@ -46,17 +47,16 @@ pub use crate::endian_scalar::{
 pub use crate::follow::{Follow, FollowStart};
 pub use crate::primitives::*;
 pub use crate::push::Push;
-pub use crate::table::{buffer_has_identifier, get_root, get_size_prefixed_root, Table};
+pub use crate::table::{buffer_has_identifier, Table};
 pub use crate::vector::{follow_cast_ref, SafeSliceAccess, Vector, VectorIter};
 pub use crate::verifier::{
-    get_root as get_root_safe, get_root_with, ErrorTraceDetail, InvalidFlatbuffer,
-    SimpleToVerifyInSlice, Verifiable, Verifier, VerifierOptions,
+    ErrorTraceDetail, InvalidFlatbuffer, SimpleToVerifyInSlice, Verifiable, Verifier,
+    VerifierOptions,
 };
 pub use crate::vtable::field_index_to_field_offset;
 pub use bitflags;
-// pub use verifier::{
-//     ErrorTraceDetail, InvalidFlatbuffer, TableVerifier, Verifiable, Verifier, VerifierOptions,
-// };
+pub use get_root::*;
+
 // TODO(rw): Unify `create_vector` and `create_vector_direct` by using
 //           `Into<Vector<...>>`.
 // TODO(rw): Split fill ops in builder into fill_small, fill_big like in C++.

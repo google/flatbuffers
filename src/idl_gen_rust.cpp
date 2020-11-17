@@ -1543,18 +1543,18 @@ class RustGenerator : public BaseGenerator {
     // The root datatype accessors:
     code_ += "#[inline]";
     code_ +=
-        "pub fn get_root_as_{{STRUCT_NAME_SNAKECASE}}<'a>(buf: &'a [u8])"
+        "pub fn get_root_as_{{STRUCT_NAME_SNAKECASE}}_fast<'a>(buf: &'a [u8])"
         " -> {{STRUCT_NAME}}<'a> {";
-    code_ += "  flatbuffers::get_root::<{{STRUCT_NAME}}<'a>>(buf)";
+    code_ += "  flatbuffers::get_root_fast::<{{STRUCT_NAME}}<'a>>(buf)";
     code_ += "}";
     code_ += "";
 
     code_ += "#[inline]";
     code_ +=
-        "pub fn get_size_prefixed_root_as_{{STRUCT_NAME_SNAKECASE}}"
+        "pub fn get_size_prefixed_root_as_{{STRUCT_NAME_SNAKECASE}}_fast"
         "<'a>(buf: &'a [u8]) -> {{STRUCT_NAME}}<'a> {";
     code_ +=
-        "  flatbuffers::get_size_prefixed_root::<{{STRUCT_NAME}}<'a>>"
+        "  flatbuffers::get_size_prefixed_root_fast::<{{STRUCT_NAME}}<'a>>"
         "(buf)";
     code_ += "}";
     code_ += "";
