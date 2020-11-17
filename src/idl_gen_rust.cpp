@@ -993,8 +993,7 @@ class RustGenerator : public BaseGenerator {
     return "INVALID_CODE_GENERATION";  // for return analysis
   }
 
-  std::string FollowType(const Type &type,
-                           const std::string &lifetime) {
+  std::string FollowType(const Type &type, const std::string &lifetime) {
     // IsVector... This can be made iterative?
 
     const auto WrapForwardsUOffset = [](std::string ty) -> std::string {
@@ -1054,6 +1053,7 @@ class RustGenerator : public BaseGenerator {
         return "INVALID_CODE_GENERATION";  // for return analysis
       }
     }
+    return "INVALID_CODE_GENERATION";  // for return analysis
   }
 
   std::string GenTableAccessorFuncBody(const FieldDef &field,
