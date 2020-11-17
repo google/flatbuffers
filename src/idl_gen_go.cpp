@@ -255,17 +255,28 @@ class GoGenerator : public BaseGenerator {
   void NewRootTypeFromBuffer(const StructDef &struct_def,
                              std::string *code_ptr) {
     std::string &code = *code_ptr;
+    std::string size_prefix[] = { "", "SizePrefixed" };
 
-    code += "func GetRootAs";
-    code += struct_def.name;
-    code += "(buf []byte, offset flatbuffers.UOffsetT) ";
-    code += "*" + struct_def.name + "";
-    code += " {\n";
-    code += "\tn := flatbuffers.GetUOffsetT(buf[offset:])\n";
-    code += "\tx := &" + struct_def.name + "{}\n";
-    code += "\tx.Init(buf, n+offset)\n";
-    code += "\treturn x\n";
-    code += "}\n\n";
+    for (int i = 0; i < 2; i++) {
+      code += "func Get" + size_prefix[i] + "RootAs";
+      code += struct_def.name;
+      code += "(buf []byte, offset flatbuffers.UOffsetT) ";
+      code += "*" + struct_def.name + "";
+      code += " {\n";
+      if (i == 0) {
+        code += "\tn := flatbuffers.GetUOffsetT(buf[offset:])\n";
+      } else {
+        code += "\tn := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])\n";
+      }
+      code += "\tx := &" + struct_def.name + "{}\n";
+      if (i == 0) {
+        code += "\tx.Init(buf, n+offset)\n";
+      } else {
+        code += "\tx.Init(buf, n+offset+flatbuffers.SizeUint32)\n";
+      }
+      code += "\treturn x\n";
+      code += "}\n\n";
+    }
   }
 
   // Initialize an existing object with other data, to avoid an allocation.

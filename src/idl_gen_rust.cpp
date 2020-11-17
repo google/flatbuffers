@@ -1263,13 +1263,21 @@ class RustGenerator : public BaseGenerator {
 
         code_.SetValue("NESTED", WrapInNameSpace(*nested_root));
         code_ +=
-            "  pub fn {{FIELD_NAME}}_nested_flatbuffer(&'a self) -> "
-            "Option<{{NESTED}}<'a>> {";
-        code_ += "    self.{{FIELD_NAME}}().map(|data| {";
-        code_ += "      use flatbuffers::Follow;";
-        code_ += "      <flatbuffers::ForwardsUOffset<{{NESTED}}<'a>>>"
-            "::follow(data, 0)";
-        code_ += "    })";
+            "  pub fn {{FIELD_NAME}}_nested_flatbuffer(&'a self) -> \\";
+        if (field.required) {
+          code_ += "{{NESTED}}<'a> {";
+          code_ += "    let data = self.{{FIELD_NAME}}();";
+          code_ += "    use flatbuffers::Follow;";
+          code_ += "    <flatbuffers::ForwardsUOffset<{{NESTED}}<'a>>>"
+                   "::follow(data, 0)";
+        } else {
+          code_ += "Option<{{NESTED}}<'a>> {";
+          code_ += "    self.{{FIELD_NAME}}().map(|data| {";
+          code_ += "      use flatbuffers::Follow;";
+          code_ += "      <flatbuffers::ForwardsUOffset<{{NESTED}}<'a>>>"
+                   "::follow(data, 0)";
+          code_ += "    })";
+        }
         code_ += "  }";
       }
     });
