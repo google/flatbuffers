@@ -20,17 +20,17 @@ use crate::{
 };
 
 /// Gets the root of the Flatbuffer, verifying it first with default options.
-pub fn get_root<'buf, T>(data: &'buf [u8]) -> Result<T::Inner, InvalidFlatbuffer>
+pub fn root<'buf, T>(data: &'buf [u8]) -> Result<T::Inner, InvalidFlatbuffer>
 where
     T: 'buf + Follow<'buf> + Verifiable,
 {
     let opts = VerifierOptions::default();
-    get_root_opts::<T>(&opts, data)
+    root_with_opts::<T>(&opts, data)
 }
 
 #[inline]
 /// Gets the root of the Flatbuffer, verifying it first with given options.
-pub fn get_root_opts<'opts, 'buf, T>(
+pub fn root_with_opts<'opts, 'buf, T>(
     opts: &'opts VerifierOptions,
     data: &'buf [u8],
 ) -> Result<T::Inner, InvalidFlatbuffer>
@@ -39,22 +39,22 @@ where
 {
     let mut v = Verifier::new(&opts, data);
     <ForwardsUOffset<T>>::run_verifier(&mut v, 0)?;
-    Ok(get_root_fast::<T>(data))
+    Ok(unsafe { root_unchecked::<T>(data) })
 }
 
 #[inline]
 /// Gets the root of a size prefixed Flatbuffer, verifying it first with default options.
-pub fn get_size_prefixed_root<'buf, T>(data: &'buf [u8]) -> Result<T::Inner, InvalidFlatbuffer>
+pub fn size_prefixed_root<'buf, T>(data: &'buf [u8]) -> Result<T::Inner, InvalidFlatbuffer>
 where
     T: 'buf + Follow<'buf> + Verifiable,
 {
     let opts = VerifierOptions::default();
-    get_size_prefixed_root_opts::<T>(&opts, data)
+    size_prefixed_root_with_opts::<T>(&opts, data)
 }
 
 #[inline]
 /// Gets the root of a size prefixed Flatbuffer, verifying it first with given options.
-pub fn get_size_prefixed_root_opts<'opts, 'buf, T>(
+pub fn size_prefixed_root_with_opts<'opts, 'buf, T>(
     opts: &'opts VerifierOptions,
     data: &'buf [u8],
 ) -> Result<T::Inner, InvalidFlatbuffer>
@@ -63,12 +63,12 @@ where
 {
     let mut v = Verifier::new(&opts, data);
     <SkipSizePrefix<ForwardsUOffset<T>>>::run_verifier(&mut v, 0)?;
-    Ok(get_size_prefixed_root_fast::<T>(data))
+    Ok(unsafe { size_prefixed_root_unchecked::<T>(data) })
 }
 
 #[inline]
 /// Gets root for a trusted Flatbuffer. No verification happens.
-pub fn get_root_fast<'buf, T>(data: &'buf [u8]) -> T::Inner
+pub unsafe fn root_unchecked<'buf, T>(data: &'buf [u8]) -> T::Inner
 where
     T: Follow<'buf> + 'buf,
 {
@@ -77,7 +77,7 @@ where
 
 #[inline]
 /// Gets root for a trusted, size prefixed, Flatbuffer. No verification happens.
-pub fn get_size_prefixed_root_fast<'buf, T>(data: &'buf [u8]) -> T::Inner
+pub unsafe fn size_prefixed_root_unchecked<'buf, T>(data: &'buf [u8]) -> T::Inner
 where
     T: Follow<'buf> + 'buf,
 {

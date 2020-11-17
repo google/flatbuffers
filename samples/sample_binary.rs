@@ -97,7 +97,7 @@ fn main() {
   let buf = builder.finished_data(); // Of type `&[u8]`
 
   // Get access to the root:
-  let monster = flatbuffers::get_root::<Monster>(buf).unwrap();
+  let monster = flatbuffers::root::<Monster>(buf).unwrap();
 
   // Get and test some scalar types from the FlatBuffer.
   let hp = monster.hp();

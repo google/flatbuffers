@@ -690,15 +690,47 @@ impl std::fmt::Debug for ScalarStuff<'_> {
   }
 }
 #[inline]
-pub fn get_root_as_scalar_stuff_fast<'a>(buf: &'a [u8]) -> ScalarStuff<'a> {
-  flatbuffers::get_root_fast::<ScalarStuff<'a>>(buf)
+#[deprecated(since="1.13", note="Deprecated in favor of `root_as...` methods.")]
+pub fn get_root_as_scalar_stuff<'a>(buf: &'a [u8]) -> ScalarStuff<'a> {
+  unsafe { flatbuffers::root_unchecked::<ScalarStuff<'a>>(buf) }
 }
 
 #[inline]
-pub fn get_size_prefixed_root_as_scalar_stuff_fast<'a>(buf: &'a [u8]) -> ScalarStuff<'a> {
-  flatbuffers::get_size_prefixed_root_fast::<ScalarStuff<'a>>(buf)
+#[deprecated(since="1.13", note="Deprecated in favor of `root_as...` methods.")]
+pub fn get_size_prefixed_root_as_scalar_stuff<'a>(buf: &'a [u8]) -> ScalarStuff<'a> {
+  unsafe { flatbuffers::size_prefixed_root_unchecked::<ScalarStuff<'a>>(buf) }
 }
 
+#[inline]
+pub fn root_as_scalar_stuff(buf: &[u8]) -> Result<ScalarStuff, flatbuffers::InvalidFlatbuffer> {
+  flatbuffers::root::<ScalarStuff>(buf)
+}
+#[inline]
+pub fn size_prefixed_root_as_scalar_stuff(buf: &[u8]) -> Result<ScalarStuff, flatbuffers::InvalidFlatbuffer> {
+  flatbuffers::size_prefixed_root::<ScalarStuff>(buf)
+}
+#[inline]
+pub fn root_as_scalar_stuff_with_opts<'b, 'o>(
+  opts: &'o flatbuffers::VerifierOptions,
+  buf: &'b [u8],
+) -> Result<ScalarStuff<'b>, flatbuffers::InvalidFlatbuffer> {
+  flatbuffers::root_with_opts::<ScalarStuff<'b>>(opts, buf)
+}
+#[inline]
+pub fn size_prefixed_root_as_scalar_stuff_with_opts<'b, 'o>(
+  opts: &'o flatbuffers::VerifierOptions,
+  buf: &'b [u8],
+) -> Result<ScalarStuff<'b>, flatbuffers::InvalidFlatbuffer> {
+  flatbuffers::size_prefixed_root_with_opts::<ScalarStuff<'b>>(opts, buf)
+}
+#[inline]
+pub unsafe fn root_as_scalar_stuff_unchecked(buf: &[u8]) -> ScalarStuff {
+  flatbuffers::root_unchecked::<ScalarStuff>(buf)
+}
+#[inline]
+pub unsafe fn size_prefixed_root_as_scalar_stuff_unchecked(buf: &[u8]) -> ScalarStuff {
+  flatbuffers::size_prefixed_root_unchecked::<ScalarStuff>(buf)
+}
 pub const SCALAR_STUFF_IDENTIFIER: &str = "NULL";
 
 #[inline]

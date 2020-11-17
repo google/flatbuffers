@@ -2491,15 +2491,47 @@ impl std::fmt::Debug for TypeAliases<'_> {
   }
 }
 #[inline]
-pub fn get_root_as_monster_fast<'a>(buf: &'a [u8]) -> Monster<'a> {
-  flatbuffers::get_root_fast::<Monster<'a>>(buf)
+#[deprecated(since="1.13", note="Deprecated in favor of `root_as...` methods.")]
+pub fn get_root_as_monster<'a>(buf: &'a [u8]) -> Monster<'a> {
+  unsafe { flatbuffers::root_unchecked::<Monster<'a>>(buf) }
 }
 
 #[inline]
-pub fn get_size_prefixed_root_as_monster_fast<'a>(buf: &'a [u8]) -> Monster<'a> {
-  flatbuffers::get_size_prefixed_root_fast::<Monster<'a>>(buf)
+#[deprecated(since="1.13", note="Deprecated in favor of `root_as...` methods.")]
+pub fn get_size_prefixed_root_as_monster<'a>(buf: &'a [u8]) -> Monster<'a> {
+  unsafe { flatbuffers::size_prefixed_root_unchecked::<Monster<'a>>(buf) }
 }
 
+#[inline]
+pub fn root_as_monster(buf: &[u8]) -> Result<Monster, flatbuffers::InvalidFlatbuffer> {
+  flatbuffers::root::<Monster>(buf)
+}
+#[inline]
+pub fn size_prefixed_root_as_monster(buf: &[u8]) -> Result<Monster, flatbuffers::InvalidFlatbuffer> {
+  flatbuffers::size_prefixed_root::<Monster>(buf)
+}
+#[inline]
+pub fn root_as_monster_with_opts<'b, 'o>(
+  opts: &'o flatbuffers::VerifierOptions,
+  buf: &'b [u8],
+) -> Result<Monster<'b>, flatbuffers::InvalidFlatbuffer> {
+  flatbuffers::root_with_opts::<Monster<'b>>(opts, buf)
+}
+#[inline]
+pub fn size_prefixed_root_as_monster_with_opts<'b, 'o>(
+  opts: &'o flatbuffers::VerifierOptions,
+  buf: &'b [u8],
+) -> Result<Monster<'b>, flatbuffers::InvalidFlatbuffer> {
+  flatbuffers::size_prefixed_root_with_opts::<Monster<'b>>(opts, buf)
+}
+#[inline]
+pub unsafe fn root_as_monster_unchecked(buf: &[u8]) -> Monster {
+  flatbuffers::root_unchecked::<Monster>(buf)
+}
+#[inline]
+pub unsafe fn size_prefixed_root_as_monster_unchecked(buf: &[u8]) -> Monster {
+  flatbuffers::size_prefixed_root_unchecked::<Monster>(buf)
+}
 pub const MONSTER_IDENTIFIER: &str = "MONS";
 
 #[inline]

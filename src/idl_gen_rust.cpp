@@ -1542,22 +1542,69 @@ class RustGenerator : public BaseGenerator {
 
     // The root datatype accessors:
     code_ += "#[inline]";
+    code_ += "#[deprecated(since=\"1.13\", "
+             "note=\"Deprecated in favor of `root_as...` methods.\")]";
     code_ +=
-        "pub fn get_root_as_{{STRUCT_NAME_SNAKECASE}}_fast<'a>(buf: &'a [u8])"
+        "pub fn get_root_as_{{STRUCT_NAME_SNAKECASE}}<'a>(buf: &'a [u8])"
         " -> {{STRUCT_NAME}}<'a> {";
-    code_ += "  flatbuffers::get_root_fast::<{{STRUCT_NAME}}<'a>>(buf)";
+    code_ += "  unsafe { flatbuffers::root_unchecked::<{{STRUCT_NAME}}"
+             "<'a>>(buf) }";
     code_ += "}";
     code_ += "";
 
     code_ += "#[inline]";
+    code_ += "#[deprecated(since=\"1.13\", "
+             "note=\"Deprecated in favor of `root_as...` methods.\")]";
     code_ +=
-        "pub fn get_size_prefixed_root_as_{{STRUCT_NAME_SNAKECASE}}_fast"
+        "pub fn get_size_prefixed_root_as_{{STRUCT_NAME_SNAKECASE}}"
         "<'a>(buf: &'a [u8]) -> {{STRUCT_NAME}}<'a> {";
     code_ +=
-        "  flatbuffers::get_size_prefixed_root_fast::<{{STRUCT_NAME}}<'a>>"
-        "(buf)";
+        "  unsafe { flatbuffers::size_prefixed_root_unchecked::<{{STRUCT_NAME}}"
+        "<'a>>(buf) }";
     code_ += "}";
     code_ += "";
+    // Default verifier root fns.
+    code_ += "#[inline]";
+    code_ += "pub fn root_as_{{STRUCT_NAME_SNAKECASE}}(buf: &[u8]) "
+             "-> Result<{{STRUCT_NAME}}, flatbuffers::InvalidFlatbuffer> {";
+    code_ += "  flatbuffers::root::<{{STRUCT_NAME}}>(buf)";
+    code_ += "}";
+    code_ += "#[inline]";
+    code_ += "pub fn size_prefixed_root_as_{{STRUCT_NAME_SNAKECASE}}"
+             "(buf: &[u8]) -> Result<{{STRUCT_NAME}}, "
+             "flatbuffers::InvalidFlatbuffer> {";
+    code_ += "  flatbuffers::size_prefixed_root::<{{STRUCT_NAME}}>(buf)";
+    code_ += "}";
+    // Verifier with options root fns.
+    code_ += "#[inline]";
+    code_ += "pub fn root_as_{{STRUCT_NAME_SNAKECASE}}_with_opts<'b, 'o>(";
+    code_ += "  opts: &'o flatbuffers::VerifierOptions,";
+    code_ += "  buf: &'b [u8],";
+    code_ += ") -> Result<{{STRUCT_NAME}}<'b>, flatbuffers::InvalidFlatbuffer> {";
+    code_ += "  flatbuffers::root_with_opts::<{{STRUCT_NAME}}<'b>>(opts, buf)";
+    code_ += "}";
+    code_ += "#[inline]";
+    code_ += "pub fn size_prefixed_root_as_{{STRUCT_NAME_SNAKECASE}}_with_opts"
+             "<'b, 'o>(";
+    code_ += "  opts: &'o flatbuffers::VerifierOptions,";
+    code_ += "  buf: &'b [u8],";
+    code_ += ") -> Result<{{STRUCT_NAME}}<'b>, flatbuffers::InvalidFlatbuffer> {";
+    code_ += "  flatbuffers::size_prefixed_root_with_opts::<{{STRUCT_NAME}}"
+             "<'b>>(opts, buf)";
+    code_ += "}";
+    // Unchecked root fns.
+    code_ += "#[inline]";
+    code_ += "pub unsafe fn root_as_{{STRUCT_NAME_SNAKECASE}}_unchecked"
+             "(buf: &[u8]) -> {{STRUCT_NAME}} {";
+    code_ += "  flatbuffers::root_unchecked::<{{STRUCT_NAME}}>(buf)";
+    code_ += "}";
+    code_ += "#[inline]";
+    code_ += "pub unsafe fn size_prefixed_root_as_{{STRUCT_NAME_SNAKECASE}}"
+             "_unchecked(buf: &[u8]) -> {{STRUCT_NAME}} {";
+    code_ += "  flatbuffers::size_prefixed_root_unchecked::<{{STRUCT_NAME}}>"
+             "(buf)";
+    code_ += "}";
+
 
     if (parser_.file_identifier_.length()) {
       // Declare the identifier
