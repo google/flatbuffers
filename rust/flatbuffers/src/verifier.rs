@@ -39,7 +39,8 @@ pub enum InvalidFlatbuffer {
         required: &'static str,
         error_trace: ErrorTrace,
     },
-    #[error("Union exactly one of union discriminant (`{field_type}`) and value (`{field}`) are present.\n{error_trace}")]
+    #[error("Union exactly one of union discriminant (`{field_type}`) and value \
+             (`{field}`) are present.\n{error_trace}")]
     InconsistentUnion {
         field: &'static str,
         field_type: &'static str,
@@ -52,7 +53,8 @@ pub enum InvalidFlatbuffer {
         range: Range<usize>,
         error_trace: ErrorTrace,
     },
-    #[error("String in {range:?} is missing its null terminator.\n{error_trace}")]
+    #[error("String in range [{}, {}) is missing its null terminator.\n{error_trace}",
+            range.start, range.end)]
     MissingNullTerminator {
         range: Range<usize>,
         error_trace: ErrorTrace,
@@ -63,12 +65,13 @@ pub enum InvalidFlatbuffer {
         unaligned_type: &'static str,
         error_trace: ErrorTrace,
     },
-    #[error("Range {range:?} is out of bounds.\n{error_trace}")]
+    #[error("Range [{}, {}) is out of bounds.\n{error_trace}", range.start, range.end)]
     RangeOutOfBounds {
         range: Range<usize>,
         error_trace: ErrorTrace,
     },
-    #[error("Signed offset at position {position} has value {soffset} which points out of bounds.\n{error_trace}")]
+    #[error("Signed offset at position {position} has value {soffset} which points out of bounds.\
+             \n{error_trace}")]
     SignedOffsetOutOfBounds {
         soffset: SOffsetT,
         position: usize,
@@ -118,7 +121,7 @@ impl std::fmt::Display for ErrorTrace {
     }
 }
 
-pub type Result<T> = core::prelude::v1::Result<T, InvalidFlatbuffer>;
+pub type Result<T> = std::prelude::v1::Result<T, InvalidFlatbuffer>;
 
 impl InvalidFlatbuffer {
     fn new_range_oob<T>(start: usize, end: usize) -> Result<T> {
