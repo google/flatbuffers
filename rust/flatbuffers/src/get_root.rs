@@ -67,7 +67,12 @@ where
 }
 
 #[inline]
-/// Gets root for a trusted Flatbuffer. No verification happens.
+/// Gets root for a trusted Flatbuffer.
+/// # Safety
+/// Flatbuffers accessors do not perform validation checks before accessing. Unlike the other
+/// `root` functions, this does not validate the flatbuffer before returning the accessor. Users
+/// must trust `data` contains a valid flatbuffer (e.g. b/c it was built by your software). Reading
+/// unchecked buffers may cause panics or even UB.
 pub unsafe fn root_unchecked<'buf, T>(data: &'buf [u8]) -> T::Inner
 where
     T: Follow<'buf> + 'buf,
@@ -76,7 +81,12 @@ where
 }
 
 #[inline]
-/// Gets root for a trusted, size prefixed, Flatbuffer. No verification happens.
+/// Gets root for a trusted, size prefixed, Flatbuffer.
+/// # Safety
+/// Flatbuffers accessors do not perform validation checks before accessing. Unlike the other
+/// `root` functions, this does not validate the flatbuffer before returning the accessor. Users
+/// must trust `data` contains a valid flatbuffer (e.g. b/c it was built by your software). Reading
+/// unchecked buffers may cause panics or even UB.
 pub unsafe fn size_prefixed_root_unchecked<'buf, T>(data: &'buf [u8]) -> T::Inner
 where
     T: Follow<'buf> + 'buf,

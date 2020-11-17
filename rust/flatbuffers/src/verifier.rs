@@ -34,38 +34,52 @@ impl std::convert::AsRef<[ErrorTraceDetail]> for ErrorTrace {
 /// information is given for DoS detecting errors since it will probably be a lot.
 #[derive(Clone, Error, Debug, PartialEq, Eq)]
 pub enum InvalidFlatbuffer {
+    #[error("Missing required field `{required}`.\n{error_trace}")]
     MissingRequiredField {
         required: &'static str,
         error_trace: ErrorTrace,
     },
+    #[error("Union exactly one of union discriminant (`{field_type}`) and value (`{field}`) are present.\n{error_trace}")]
     InconsistentUnion {
         field: &'static str,
         field_type: &'static str,
         error_trace: ErrorTrace,
     },
-    BadString {
-        utf8_error: Option<std::str::Utf8Error>,
-        has_null_terminator: bool,
+    #[error("Utf8 error for string in {range:?}: {error}\n{error_trace}")]
+    Utf8Error {
+        #[source]
+        error: std::str::Utf8Error,
         range: Range<usize>,
         error_trace: ErrorTrace,
     },
+    #[error("String in {range:?} is missing its null terminator.\n{error_trace}")]
+    MissingNullTerminator {
+        range: Range<usize>,
+        error_trace: ErrorTrace,
+    },
+    #[error("Type `{unaligned_type}` at position {position} is unaligned.\n{error_trace}")]
     Unaligned {
         position: usize,
         unaligned_type: &'static str,
         error_trace: ErrorTrace,
     },
+    #[error("Range {range:?} is out of bounds.\n{error_trace}")]
     RangeOutOfBounds {
         range: Range<usize>,
         error_trace: ErrorTrace,
     },
+    #[error("Signed offset at position {position} has value {soffset} which points out of bounds.\n{error_trace}")]
     SignedOffsetOutOfBounds {
         soffset: SOffsetT,
         position: usize,
         error_trace: ErrorTrace,
     },
     // Dos detecting errors. These do not get error traces since it will probably be very large.
+    #[error("Too many tables.")]
     TooManyTables,
+    #[error("Apparent size too large.")]
     ApparentSizeTooLarge,
+    #[error("Nested table depth limit reached.")]
     DepthLimitReached,
 }
 
@@ -104,85 +118,6 @@ impl std::fmt::Display for ErrorTrace {
     }
 }
 
-impl std::fmt::Display for InvalidFlatbuffer {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "InvalidFlatbuffer: ")?;
-        use InvalidFlatbuffer::*;
-        match self {
-            TooManyTables => write!(f, "Too many tables.")?,
-            ApparentSizeTooLarge => write!(f, "Apparent size too large.")?,
-            DepthLimitReached => write!(f, "Nested table depth limit reached.")?,
-            MissingRequiredField {
-                required,
-                error_trace,
-            } => {
-                write!(f, "Missing required field `{}`.\n{}", required, error_trace)?;
-            }
-            InconsistentUnion {
-                field,
-                field_type,
-                error_trace,
-            } => {
-                write!(
-                    f,
-                    "Union exactly one of union discriminant (`{}`) and value\
-                     (`{}`) are present. .\n{}",
-                    field_type, field, error_trace
-                )?;
-            }
-            BadString {
-                utf8_error,
-                has_null_terminator,
-                range,
-                error_trace,
-            } => {
-                write!(f, "string at range [{}, {}) ", range.start, range.end)?;
-                if !has_null_terminator {
-                    write!(f, "is missing its null terminator")?;
-                    if utf8_error.is_some() {
-                        write!(f, "and ")?;
-                    }
-                }
-                if let Some(e) = utf8_error {
-                    write!(f, "is invalid utf8 ({})", e)?;
-                }
-                write!(f, ".\n{}", error_trace)?;
-            }
-            Unaligned {
-                position,
-                unaligned_type,
-                error_trace,
-            } => {
-                write!(
-                    f,
-                    "Type `{}` at position {:?} is unaligned.\n{}",
-                    unaligned_type, position, error_trace
-                )?;
-            }
-            RangeOutOfBounds { range, error_trace } => {
-                write!(
-                    f,
-                    "Range [{}, {}) is out of bounds.\n{}",
-                    range.start, range.end, error_trace
-                )?;
-            }
-            SignedOffsetOutOfBounds {
-                soffset,
-                position,
-                error_trace,
-            } => {
-                write!(
-                    f,
-                    "Signed Offset at position {:?} has value {:?} \
-                     which points out of bounds.\n{}",
-                    position, soffset, error_trace
-                )?;
-            }
-        }
-        Ok(())
-    }
-}
-
 pub type Result<T> = core::prelude::v1::Result<T, InvalidFlatbuffer>;
 
 impl InvalidFlatbuffer {
@@ -215,7 +150,8 @@ fn append_trace<T>(mut res: Result<T>, d: ErrorTraceDetail) -> Result<T> {
         | Unaligned { error_trace, .. }
         | RangeOutOfBounds { error_trace, .. }
         | InconsistentUnion { error_trace, .. }
-        | BadString { error_trace, .. }
+        | Utf8Error { error_trace, .. }
+        | MissingNullTerminator { error_trace, .. }
         | SignedOffsetOutOfBounds { error_trace, .. } = e
         {
             error_trace.0.push(d)
@@ -580,10 +516,15 @@ impl<'a> Verifiable for &'a str {
         let range = verify_vector_range::<u8>(v, pos)?;
         let has_null_terminator = v.buffer.get(range.end).map(|&b| b == 0).unwrap_or(false);
         let s = std::str::from_utf8(&v.buffer[range.clone()]);
-        if s.is_err() || !v.opts.ignore_missing_null_terminator && !has_null_terminator {
-            return Err(InvalidFlatbuffer::BadString {
-                utf8_error: s.err(),
-                has_null_terminator,
+        if let Err(error) = s {
+            return Err(InvalidFlatbuffer::Utf8Error {
+                error,
+                range,
+                error_trace: Default::default(),
+            });
+        }
+        if !v.opts.ignore_missing_null_terminator && !has_null_terminator {
+            return Err(InvalidFlatbuffer::MissingNullTerminator {
                 range,
                 error_trace: Default::default(),
             });
