@@ -24,6 +24,7 @@ pub enum ErrorTraceDetail {
 #[derive(PartialEq, Eq, Default, Debug, Clone)]
 pub struct ErrorTrace(Vec<ErrorTraceDetail>);
 impl std::convert::AsRef<[ErrorTraceDetail]> for ErrorTrace {
+    #[inline]
     fn as_ref(&self) -> &[ErrorTraceDetail] {
         &self.0
     }
