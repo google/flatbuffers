@@ -108,7 +108,7 @@ impl<'a> flatbuffers::Verifiable for FromInclude {
   }
 }
 
-impl flatbuffers::SimpleToVerify for FromInclude {}
+impl flatbuffers::SimpleToVerifyInSlice for FromInclude {}
 // struct Unused, aligned to 4
 #[repr(C, align(4))]
 #[derive(Clone, Copy, PartialEq)]
@@ -123,6 +123,7 @@ impl std::fmt::Debug for Unused {
   }
 }
 
+impl flatbuffers::SimpleToVerifyInSlice for Unused {}
 impl flatbuffers::SafeSliceAccess for Unused {}
 impl<'a> flatbuffers::Follow<'a> for Unused {
   type Inner = &'a Unused;

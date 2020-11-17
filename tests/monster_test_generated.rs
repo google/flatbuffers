@@ -266,7 +266,7 @@ impl<'a> flatbuffers::Verifiable for Color {
   }
 }
 
-impl flatbuffers::SimpleToVerify for Color {}
+impl flatbuffers::SimpleToVerifyInSlice for Color {}
 #[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_RACE: i8 = -1;
 #[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
@@ -358,7 +358,7 @@ impl<'a> flatbuffers::Verifiable for Race {
   }
 }
 
-impl flatbuffers::SimpleToVerify for Race {}
+impl flatbuffers::SimpleToVerifyInSlice for Race {}
 #[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_ANY: u8 = 0;
 #[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
@@ -451,7 +451,7 @@ impl<'a> flatbuffers::Verifiable for Any {
   }
 }
 
-impl flatbuffers::SimpleToVerify for Any {}
+impl flatbuffers::SimpleToVerifyInSlice for Any {}
 #[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_ANY_UNIQUE_ALIASES: u8 = 0;
 #[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
@@ -544,7 +544,7 @@ impl<'a> flatbuffers::Verifiable for AnyUniqueAliases {
   }
 }
 
-impl flatbuffers::SimpleToVerify for AnyUniqueAliases {}
+impl flatbuffers::SimpleToVerifyInSlice for AnyUniqueAliases {}
 #[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_ANY_AMBIGUOUS_ALIASES: u8 = 0;
 #[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
@@ -637,7 +637,7 @@ impl<'a> flatbuffers::Verifiable for AnyAmbiguousAliases {
   }
 }
 
-impl flatbuffers::SimpleToVerify for AnyAmbiguousAliases {}
+impl flatbuffers::SimpleToVerifyInSlice for AnyAmbiguousAliases {}
 // struct Test, aligned to 2
 #[repr(C, align(2))]
 #[derive(Clone, Copy, PartialEq)]
@@ -655,6 +655,7 @@ impl std::fmt::Debug for Test {
   }
 }
 
+impl flatbuffers::SimpleToVerifyInSlice for Test {}
 impl flatbuffers::SafeSliceAccess for Test {}
 impl<'a> flatbuffers::Follow<'a> for Test {
   type Inner = &'a Test;
@@ -749,6 +750,7 @@ impl std::fmt::Debug for Vec3 {
   }
 }
 
+impl flatbuffers::SimpleToVerifyInSlice for Vec3 {}
 impl flatbuffers::SafeSliceAccess for Vec3 {}
 impl<'a> flatbuffers::Follow<'a> for Vec3 {
   type Inner = &'a Vec3;
@@ -850,6 +852,7 @@ impl std::fmt::Debug for Ability {
   }
 }
 
+impl flatbuffers::SimpleToVerifyInSlice for Ability {}
 impl flatbuffers::SafeSliceAccess for Ability {}
 impl<'a> flatbuffers::Follow<'a> for Ability {
   type Inner = &'a Ability;
@@ -1774,6 +1777,7 @@ impl flatbuffers::Verifiable for Monster<'_> {
      })?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, Color>>>(&"vector_of_enums", Self::VT_VECTOR_OF_ENUMS, false)?
      .visit_field::<Race>(&"signed_enum", Self::VT_SIGNED_ENUM, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u8>>>(&"testrequirednestedflatbuffer", Self::VT_TESTREQUIREDNESTEDFLATBUFFER, false)?
      .finish();
     Ok(())
   }

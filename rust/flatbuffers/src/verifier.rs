@@ -1,8 +1,7 @@
 use crate::follow::Follow;
-use crate::{ForwardsUOffset, SOffsetT, UOffsetT, VOffsetT, Vector, SIZE_UOFFSET,
-SafeSliceAccess};
-use thiserror::Error;
+use crate::{ForwardsUOffset, SOffsetT, UOffsetT, VOffsetT, Vector, SIZE_UOFFSET};
 use std::ops::Range;
+use thiserror::Error;
 
 /// Traces the location of data errors. Not populated for Dos detecting errors.
 /// Useful for MissingRequiredField and Utf8Error in particular, though
@@ -111,18 +110,12 @@ impl std::fmt::Display for InvalidFlatbuffer {
         match self {
             TooManyTables => write!(f, "Too many tables.")?,
             ApparentSizeTooLarge => write!(f, "Apparent size too large.")?,
-            DepthLimitReached => {
-                write!(f, "Nested table depth limit reached.")?
-            }
+            DepthLimitReached => write!(f, "Nested table depth limit reached.")?,
             MissingRequiredField {
                 required,
                 error_trace,
             } => {
-                write!(
-                    f,
-                    "Missing required field `{}`.\n{}",
-                    required, error_trace
-                )?;
+                write!(f, "Missing required field `{}`.\n{}", required, error_trace)?;
             }
             InconsistentUnion {
                 field,
@@ -280,7 +273,7 @@ pub struct Verifier<'opts, 'buf> {
     opts: &'opts VerifierOptions,
     depth: usize,
     num_tables: usize,
-    apparent_size: usize, // TODO(casper): Actually track this...
+    apparent_size: usize,
 }
 impl<'opts, 'buf> Verifier<'opts, 'buf> {
     pub fn new(opts: &'opts VerifierOptions, buffer: &'buf [u8]) -> Self {
@@ -473,7 +466,8 @@ impl<'ver, 'opts, 'buf> TableVerifier<'ver, 'opts, 'buf> {
     where
         Key: Follow<'buf> + Verifiable,
         UnionVerifier:
-            (std::ops::FnOnce(<Key as Follow<'buf>>::Inner, &mut Verifier, usize) -> Result<()>), // NOTE: <Key as Follow<'buf>>::Inner == Key
+            (std::ops::FnOnce(<Key as Follow<'buf>>::Inner, &mut Verifier, usize) -> Result<()>),
+        // NOTE: <Key as Follow<'buf>>::Inner == Key
     {
         // TODO(caspern): how to trace vtable errors?
         let val_pos = self.deref(val_field_voff)?;
@@ -510,8 +504,7 @@ impl<'ver, 'opts, 'buf> TableVerifier<'ver, 'opts, 'buf> {
 pub trait Verifiable {
     /// Runs the verifier for this type, assuming its at position `pos` in the verifier's buffer.
     /// Should not need to be called directly.
-    // CASPER: Combine this with follow.
-    fn run_verifier<'opts, 'buf>(v: &mut Verifier<'opts, 'buf>, pos: usize) -> Result<()>;
+    fn run_verifier(v: &mut Verifier, pos: usize) -> Result<()>;
 }
 
 #[inline]
@@ -534,20 +527,15 @@ pub fn get_root_with<'opts, 'buf, T: Follow<'buf> + Verifiable>(
 // Verify the uoffset and then pass verifier to the type being pointed to.
 impl<T: Verifiable> Verifiable for ForwardsUOffset<T> {
     #[inline]
-    fn run_verifier<'opts, 'buf>(v: &mut Verifier<'opts, 'buf>, pos: usize) -> Result<()> {
+    fn run_verifier(v: &mut Verifier, pos: usize) -> Result<()> {
         let offset = v.get_uoffset(pos)? as usize;
         let next_pos = offset + pos;
-        v.in_buffer::<u8>(pos)?;  // CASPER: is this needed?
         T::run_verifier(v, next_pos)
     }
 }
 
-
 /// Checks and returns the range containing the flatbuffers vector.
-fn verify_vector_range<'opts, 'buf, T>(
-    v: &mut Verifier<'opts, 'buf>,
-    pos:usize
-) -> Result<std::ops::Range<usize>> {
+fn verify_vector_range<T>(v: &mut Verifier, pos: usize) -> Result<std::ops::Range<usize>> {
     let len = v.get_uoffset(pos)? as usize;
     let data = pos + SIZE_UOFFSET;
     v.is_aligned::<T>(data)?;
@@ -559,44 +547,37 @@ fn verify_vector_range<'opts, 'buf, T>(
     })
 }
 
-// This is slightly more efficient than Vector<_, T> since it assumes the T are inline types
-// i.e. structs and scalars, so checking bounds and alignment is sufficient.
-impl<T: Verifiable> Verifiable for &[T] {
-    fn run_verifier<'opts, 'buf>(v: &mut Verifier<'opts, 'buf>, pos: usize) -> Result<()> {
+pub trait SimpleToVerifyInSlice {}
+impl SimpleToVerifyInSlice for bool {}
+impl SimpleToVerifyInSlice for i8 {}
+impl SimpleToVerifyInSlice for u8 {}
+impl SimpleToVerifyInSlice for i16 {}
+impl SimpleToVerifyInSlice for u16 {}
+impl SimpleToVerifyInSlice for i32 {}
+impl SimpleToVerifyInSlice for u32 {}
+impl SimpleToVerifyInSlice for f32 {}
+impl SimpleToVerifyInSlice for i64 {}
+impl SimpleToVerifyInSlice for u64 {}
+impl SimpleToVerifyInSlice for f64 {}
+
+impl<T: SimpleToVerifyInSlice> Verifiable for Vector<'_, T> {
+    fn run_verifier(v: &mut Verifier, pos: usize) -> Result<()> {
         verify_vector_range::<T>(v, pos)?;
         Ok(())
     }
-}
-
-
-pub trait SimpleToVerify {}
-impl<T: SafeSliceAccess> SimpleToVerify for T {}
-// impl SimpleToVerify for i16 {}  // CASPER: Get rid of SafeSliceAccess
-// impl SimpleToVerify for u16 {}
-// impl SimpleToVerify for i32 {}
-// impl SimpleToVerify for u32 {}
-// impl SimpleToVerify for f32 {}
-// impl SimpleToVerify for i64 {}
-// impl SimpleToVerify for u64 {}
-// impl SimpleToVerify for f64 {}
-
-
-
-impl<T: SimpleToVerify> Verifiable for Vector<'_, T> {
-    fn run_verifier<'opts, 'buf>(v: &mut Verifier<'opts, 'buf>, pos: usize) -> Result<()> {
-        verify_vector_range::<T>(v, pos)?;
-        Ok(())
-    }
-
 }
 
 impl<T: Verifiable> Verifiable for Vector<'_, ForwardsUOffset<T>> {
     #[inline]
-    fn run_verifier<'opts, 'buf>(v: &mut Verifier<'opts, 'buf>, pos: usize) -> Result<()> {
+    fn run_verifier(v: &mut Verifier, pos: usize) -> Result<()> {
         let range = verify_vector_range::<ForwardsUOffset<T>>(v, pos)?;
         let size = std::mem::size_of::<ForwardsUOffset<T>>();
         for (i, element_pos) in range.step_by(size).enumerate() {
-            trace_elem(<ForwardsUOffset<T>>::run_verifier(v, element_pos), i, element_pos)?;
+            trace_elem(
+                <ForwardsUOffset<T>>::run_verifier(v, element_pos),
+                i,
+                element_pos,
+            )?;
         }
         Ok(())
     }
@@ -604,7 +585,7 @@ impl<T: Verifiable> Verifiable for Vector<'_, ForwardsUOffset<T>> {
 
 impl<'a> Verifiable for &'a str {
     #[inline]
-    fn run_verifier<'opts, 'buf>(v: &mut Verifier<'opts, 'buf>, pos: usize) -> Result<()> {
+    fn run_verifier(v: &mut Verifier, pos: usize) -> Result<()> {
         let range = verify_vector_range::<u8>(v, pos)?;
         let has_null_terminator = v.buffer.get(range.end).map(|&b| b == 0).unwrap_or(false);
         let s = std::str::from_utf8(&v.buffer[range.clone()]);

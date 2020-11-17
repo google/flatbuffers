@@ -105,7 +105,7 @@ impl<'a> flatbuffers::Verifiable for OptionalByte {
   }
 }
 
-impl flatbuffers::SimpleToVerify for OptionalByte {}
+impl flatbuffers::SimpleToVerifyInSlice for OptionalByte {}
 pub enum ScalarStuffOffset {}
 #[derive(Copy, Clone, PartialEq)]
 

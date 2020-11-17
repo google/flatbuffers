@@ -113,7 +113,7 @@ impl<'a> flatbuffers::Verifiable for Color {
   }
 }
 
-impl flatbuffers::SimpleToVerify for Color {}
+impl flatbuffers::SimpleToVerifyInSlice for Color {}
 #[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_EQUIPMENT: u8 = 0;
 #[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
@@ -198,7 +198,7 @@ impl<'a> flatbuffers::Verifiable for Equipment {
   }
 }
 
-impl flatbuffers::SimpleToVerify for Equipment {}
+impl flatbuffers::SimpleToVerifyInSlice for Equipment {}
 // struct Vec3, aligned to 4
 #[repr(C, align(4))]
 #[derive(Clone, Copy, PartialEq)]
@@ -217,6 +217,7 @@ impl std::fmt::Debug for Vec3 {
   }
 }
 
+impl flatbuffers::SimpleToVerifyInSlice for Vec3 {}
 impl flatbuffers::SafeSliceAccess for Vec3 {}
 impl<'a> flatbuffers::Follow<'a> for Vec3 {
   type Inner = &'a Vec3;

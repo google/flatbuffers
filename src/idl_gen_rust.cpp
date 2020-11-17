@@ -679,7 +679,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "}";
     code_ += "";
     // Enums are basically integers.
-    code_ += "impl flatbuffers::SimpleToVerify for {{ENUM_NAME}} {}";
+    code_ += "impl flatbuffers::SimpleToVerifyInSlice for {{ENUM_NAME}} {}";
   }
 
   std::string GetFieldOffsetName(const FieldDef &field) {
@@ -995,7 +995,6 @@ class RustGenerator : public BaseGenerator {
 
   std::string FollowType(const Type &type,
                            const std::string &lifetime) {
-    // CASPER: GetNameSpacedType helper fn. IsIndirect helper fn.
     // IsVector... This can be made iterative?
 
     const auto WrapForwardsUOffset = [](std::string ty) -> std::string {
@@ -1702,6 +1701,7 @@ class RustGenerator : public BaseGenerator {
     // Generate impls for SafeSliceAccess (because all structs are endian-safe),
     // Follow for the value type, Follow for the reference type, Push for the
     // value type, and Push for the reference type.
+    code_ += "impl flatbuffers::SimpleToVerifyInSlice for {{STRUCT_NAME}} {}";
     code_ += "impl flatbuffers::SafeSliceAccess for {{STRUCT_NAME}} {}";
     code_ += "impl<'a> flatbuffers::Follow<'a> for {{STRUCT_NAME}} {";
     code_ += "  type Inner = &'a {{STRUCT_NAME}};";

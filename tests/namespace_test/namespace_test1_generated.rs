@@ -113,7 +113,7 @@ impl<'a> flatbuffers::Verifiable for EnumInNestedNS {
   }
 }
 
-impl flatbuffers::SimpleToVerify for EnumInNestedNS {}
+impl flatbuffers::SimpleToVerifyInSlice for EnumInNestedNS {}
 // struct StructInNestedNS, aligned to 4
 #[repr(C, align(4))]
 #[derive(Clone, Copy, PartialEq)]
@@ -130,6 +130,7 @@ impl std::fmt::Debug for StructInNestedNS {
   }
 }
 
+impl flatbuffers::SimpleToVerifyInSlice for StructInNestedNS {}
 impl flatbuffers::SafeSliceAccess for StructInNestedNS {}
 impl<'a> flatbuffers::Follow<'a> for StructInNestedNS {
   type Inner = &'a StructInNestedNS;

@@ -30,12 +30,6 @@ use std::marker::PhantomData;
 pub trait Follow<'buf> {
     type Inner;
     fn follow(buf: &'buf [u8], loc: usize) -> Self::Inner;
-
-    // Verify this is safe to follow.
-    // fn run_verifier<'opts>(
-    //     v: &mut Verifier<'opts, 'buf>,
-    //     loc: usize
-    // ) -> Result<(), InvalidFlatbuffer>;
 }
 
 /// FollowStart wraps a Follow impl in a struct type. This can make certain
