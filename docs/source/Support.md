@@ -26,7 +26,7 @@ Simple mutation                | Yes    | Yes    | Yes    | Yes    | No     | No
 Reflection                     | Yes    | No     | No     | No     | No     | No        | No        | Basic   | No  | No      | No      | No      | No
 Buffer verifier                | Yes    | No     | No     | No     | No     | No        | No        | Yes     | No  | No      | No      | No      | No
 Native Object API              | Yes    | No     | Yes    | Yes    | Yes    | Yes       | Yes       | No      | No  | No      | No      | No      | No
-Optional Scalars               | Yes    | No     | No     | No     | No     | No        | No        | Yes     | No  | No      | Yes     | Yes     | Yes
+Optional Scalars               | Yes    | Yes    | Yes    | No     | No     | Yes       | Yes       | Yes     | No  | No      | Yes     | Yes     | Yes
 Flexbuffers                    | Yes    | Yes    | ?      | ?      | ?      | ?         | ?         | ?       | ?   | ?       | ?       | Yes     | ?
 Testing: basic                 | Yes    | Yes    | Yes    | Yes    | Yes    | Yes       | Yes       | Yes     | ?   | Yes     | Yes     | Yes     | Yes
 Testing: fuzz                  | Yes    | No     | No     | Yes    | Yes    | No        | No        | No      | ?   | No      | No      | Yes     | No
