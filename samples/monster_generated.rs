@@ -26,37 +26,50 @@ pub mod sample {
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
 
+#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+pub const ENUM_MIN_COLOR: i8 = 0;
+#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+pub const ENUM_MAX_COLOR: i8 = 2;
+#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[allow(non_camel_case_types)]
+pub const ENUM_VALUES_COLOR: [Color; 3] = [
+  Color::Red,
+  Color::Green,
+  Color::Blue,
+];
+
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
 pub struct Color(pub i8);
 #[allow(non_upper_case_globals)]
 impl Color {
-  pub const ENUM_MIN: i8 = 0;
-  pub const ENUM_MAX: i8 = 2;
   pub const Red: Self = Self(0);
   pub const Green: Self = Self(1);
   pub const Blue: Self = Self(2);
+
+  pub const ENUM_MIN: i8 = 0;
+  pub const ENUM_MAX: i8 = 2;
   pub const ENUM_VALUES: &'static [Self] = &[
     Self::Red,
     Self::Green,
     Self::Blue,
   ];
   /// Returns the variant's name or "" if unknown.
-  pub fn variant_name(self) -> &'static str {
+  pub fn variant_name(self) -> Option<&'static str> {
     match self {
-      Self::Red => "Red",
-      Self::Green => "Green",
-      Self::Blue => "Blue",
-      _ => "",
+      Self::Red => Some("Red"),
+      Self::Green => Some("Green"),
+      Self::Blue => Some("Blue"),
+      _ => None,
     }
   }
 }
 impl std::fmt::Debug for Color {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-    let name = self.variant_name();
-    if name.is_empty() {
-      f.write_fmt(format_args!("<UNKNOWN {:?}>", self.0))
-    } else {
+    if let Some(name) = self.variant_name() {
       f.write_str(name)
+    } else {
+      f.write_fmt(format_args!("<UNKNOWN {:?}>", self.0))
     }
   }
 }
@@ -87,41 +100,46 @@ impl flatbuffers::EndianScalar for Color {
   }
 }
 
+#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+pub const ENUM_MIN_EQUIPMENT: u8 = 0;
+#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+pub const ENUM_MAX_EQUIPMENT: u8 = 1;
+#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 #[allow(non_camel_case_types)]
-pub const ENUM_VALUES_COLOR: [Color; 3] = [
-  Color::Red,
-  Color::Green,
-  Color::Blue
+pub const ENUM_VALUES_EQUIPMENT: [Equipment; 2] = [
+  Equipment::NONE,
+  Equipment::Weapon,
 ];
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
 pub struct Equipment(pub u8);
 #[allow(non_upper_case_globals)]
 impl Equipment {
-  pub const ENUM_MIN: u8 = 0;
-  pub const ENUM_MAX: u8 = 1;
   pub const NONE: Self = Self(0);
   pub const Weapon: Self = Self(1);
+
+  pub const ENUM_MIN: u8 = 0;
+  pub const ENUM_MAX: u8 = 1;
   pub const ENUM_VALUES: &'static [Self] = &[
     Self::NONE,
     Self::Weapon,
   ];
   /// Returns the variant's name or "" if unknown.
-  pub fn variant_name(self) -> &'static str {
+  pub fn variant_name(self) -> Option<&'static str> {
     match self {
-      Self::NONE => "NONE",
-      Self::Weapon => "Weapon",
-      _ => "",
+      Self::NONE => Some("NONE"),
+      Self::Weapon => Some("Weapon"),
+      _ => None,
     }
   }
 }
 impl std::fmt::Debug for Equipment {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-    let name = self.variant_name();
-    if name.is_empty() {
-      f.write_fmt(format_args!("<UNKNOWN {:?}>", self.0))
-    } else {
+    if let Some(name) = self.variant_name() {
       f.write_str(name)
+    } else {
+      f.write_fmt(format_args!("<UNKNOWN {:?}>", self.0))
     }
   }
 }
@@ -152,21 +170,25 @@ impl flatbuffers::EndianScalar for Equipment {
   }
 }
 
-#[allow(non_camel_case_types)]
-pub const ENUM_VALUES_EQUIPMENT: [Equipment; 2] = [
-  Equipment::NONE,
-  Equipment::Weapon
-];
-
 pub struct EquipmentUnionTableOffset {}
 // struct Vec3, aligned to 4
 #[repr(C, align(4))]
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct Vec3 {
   x_: f32,
   y_: f32,
   z_: f32,
 } // pub struct Vec3
+impl std::fmt::Debug for Vec3 {
+  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    f.debug_struct("Vec3")
+      .field("x", &self.x())
+      .field("y", &self.y())
+      .field("z", &self.z())
+      .finish()
+  }
+}
+
 impl flatbuffers::SafeSliceAccess for Vec3 {}
 impl<'a> flatbuffers::Follow<'a> for Vec3 {
   type Inner = &'a Vec3;
@@ -226,7 +248,7 @@ impl Vec3 {
 }
 
 pub enum MonsterOffset {}
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq)]
 
 pub struct Monster<'a> {
   pub _tab: flatbuffers::Table<'a>,
@@ -417,8 +439,36 @@ impl<'a: 'b, 'b> MonsterBuilder<'a, 'b> {
   }
 }
 
+impl std::fmt::Debug for Monster<'_> {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    let mut ds = f.debug_struct("Monster");
+      ds.field("pos", &self.pos());
+      ds.field("mana", &self.mana());
+      ds.field("hp", &self.hp());
+      ds.field("name", &self.name());
+      ds.field("inventory", &self.inventory());
+      ds.field("color", &self.color());
+      ds.field("weapons", &self.weapons());
+      ds.field("equipped_type", &self.equipped_type());
+      match self.equipped_type() {
+        Equipment::Weapon => {
+          if let Some(x) = self.equipped_as_weapon() {
+            ds.field("equipped", &x)
+          } else {
+            ds.field("equipped", &"InvalidFlatbuffer: Union discriminant does not match value.")
+          }
+        },
+        _ => { 
+          let x: Option<()> = None;
+          ds.field("equipped", &x)
+        },
+      };
+      ds.field("path", &self.path());
+      ds.finish()
+  }
+}
 pub enum WeaponOffset {}
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq)]
 
 pub struct Weapon<'a> {
   pub _tab: flatbuffers::Table<'a>,
@@ -503,6 +553,14 @@ impl<'a: 'b, 'b> WeaponBuilder<'a, 'b> {
   }
 }
 
+impl std::fmt::Debug for Weapon<'_> {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    let mut ds = f.debug_struct("Weapon");
+      ds.field("name", &self.name());
+      ds.field("damage", &self.damage());
+      ds.finish()
+  }
+}
 #[inline]
 pub fn get_root_as_monster<'a>(buf: &'a [u8]) -> Monster<'a> {
   flatbuffers::get_root::<Monster<'a>>(buf)

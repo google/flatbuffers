@@ -47,7 +47,7 @@ class SwiftGenerator : public BaseGenerator {
                  const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", "_", "swift") {
     namespace_depth = 0;
-    code_.SetPadding("    ");
+    code_.SetPadding("  ");
     static const char *const keywords[] = {
       "associatedtype",
       "class",
@@ -137,7 +137,8 @@ class SwiftGenerator : public BaseGenerator {
     code_.SetValue("ACCESS", "_accessor");
     code_.SetValue("TABLEOFFSET", "VTOFFSET");
     code_ += "// " + std::string(FlatBuffersGeneratedWarning());
-    code_ += "// swiftlint:disable all\n";
+    code_ += "// swiftlint:disable all";
+    code_ += "// swiftformat:disable all\n";
     code_ += "import FlatBuffers\n";
     // Generate code for all the enum declarations.
 
@@ -508,8 +509,8 @@ class SwiftGenerator : public BaseGenerator {
     code_.SetValue("OFFSET", name);
     code_.SetValue("CONSTANT", field.value.constant);
     std::string check_if_vector =
-        (field.value.type.base_type == BASE_TYPE_VECTOR ||
-         field.value.type.base_type == BASE_TYPE_ARRAY)
+        (IsVector(field.value.type) ||
+         IsArray(field.value.type))
             ? "VectorOf("
             : "(";
     auto body = "add" + check_if_vector + name + ": ";
@@ -565,12 +566,12 @@ class SwiftGenerator : public BaseGenerator {
       return;
     }
 
-    auto offset_type = field.value.type.base_type == BASE_TYPE_STRING
+    auto offset_type = IsString(field.value.type)
                            ? "Offset<String>"
                            : "Offset<UOffset>";
     auto camel_case_name =
-        (field.value.type.base_type == BASE_TYPE_VECTOR ||
-                 field.value.type.base_type == BASE_TYPE_ARRAY
+        (IsVector(field.value.type) ||
+                 IsArray(field.value.type)
              ? "vectorOf"
              : "offsetOf") +
         MakeCamel(name, true);
@@ -586,8 +587,8 @@ class SwiftGenerator : public BaseGenerator {
 
     if ((vectortype.base_type == BASE_TYPE_STRUCT &&
          field.value.type.struct_def->fixed) &&
-        (field.value.type.base_type == BASE_TYPE_VECTOR ||
-         field.value.type.base_type == BASE_TYPE_ARRAY)) {
+        (IsVector(field.value.type) ||
+         IsArray(field.value.type))) {
       auto field_name = NameWrappedInNameSpace(*vectortype.struct_def);
       code_ += "public static func startVectorOf" + MakeCamel(name, true) +
                "(_ size: Int, in builder: inout "
@@ -738,7 +739,7 @@ class SwiftGenerator : public BaseGenerator {
       return;
     }
 
-    if (vectortype.base_type == BASE_TYPE_STRING) {
+    if (IsString(vectortype)) {
       code_ +=
           "{{ACCESS}}.directString(at: {{ACCESS}}.vector(at: o) + "
           "index * {{SIZE}}) }";
@@ -915,8 +916,8 @@ class SwiftGenerator : public BaseGenerator {
       auto name = Name(field);
       auto type = GenType(field.value.type);
       std::string check_if_vector =
-          (field.value.type.base_type == BASE_TYPE_VECTOR ||
-           field.value.type.base_type == BASE_TYPE_ARRAY)
+          (IsVector(field.value.type) ||
+           IsArray(field.value.type))
               ? "VectorOf("
               : "(";
       std::string body = "add" + check_if_vector + name + ": ";
@@ -1192,7 +1193,7 @@ class SwiftGenerator : public BaseGenerator {
       }
       case BASE_TYPE_UTYPE: break;
       default: {
-        code_.SetValue("VALUETYPE", (vectortype.base_type == BASE_TYPE_STRING
+        code_.SetValue("VALUETYPE", (IsString(vectortype)
                                          ? "String?"
                                          : GenType(vectortype)));
         code_ += "{{ACCESS_TYPE}} var {{VALUENAME}}: [{{VALUETYPE}}]";
@@ -1224,7 +1225,7 @@ class SwiftGenerator : public BaseGenerator {
       auto type = GenType(field.union_type);
 
       if (field.union_type.base_type == BASE_TYPE_NONE ||
-          field.union_type.base_type == BASE_TYPE_STRING) {
+          IsString(field.union_type)) {
         continue;
       }
       code_ += "case ." + ev_name + ":";
@@ -1254,7 +1255,7 @@ class SwiftGenerator : public BaseGenerator {
       auto field = **it;
       auto ev_name = Name(field);
       if (field.union_type.base_type == BASE_TYPE_NONE ||
-          field.union_type.base_type == BASE_TYPE_STRING) {
+          IsString(field.union_type)) {
         continue;
       }
       buffer_constructor.push_back(indentation + "case ." + ev_name + ":");
@@ -1291,7 +1292,7 @@ class SwiftGenerator : public BaseGenerator {
         "fbb: "
         "ByteBuffer) -> {{VALUENAME}}? {";
     Indent();
-    if (key_field.value.type.base_type == BASE_TYPE_STRING)
+    if (IsString(key_field.value.type))
       code_ += "let key = key.utf8.map { $0 }";
     code_ += "var span = fbb.read(def: Int32.self, position: Int(vector - 4))";
     code_ += "var start: Int32 = 0";
@@ -1300,7 +1301,7 @@ class SwiftGenerator : public BaseGenerator {
     code_ += "var middle = span / 2";
     code_ +=
         "let tableOffset = Table.indirect(vector + 4 * (start + middle), fbb)";
-    if (key_field.value.type.base_type == BASE_TYPE_STRING) {
+    if (IsString(key_field.value.type)) {
       code_ += "let comp = Table.compare(" + offset_reader + ", key, fbb: fbb)";
     } else {
       code_ += "let comp = fbb.read(def: {{TYPE}}.self, position: Int(" +
@@ -1384,7 +1385,6 @@ class SwiftGenerator : public BaseGenerator {
       const auto &ev = **enum_def.Vals().begin();
       name = Name(ev);
     }
-    std::transform(name.begin(), name.end(), name.begin(), CharToLower);
     return "." + name;
   }
 

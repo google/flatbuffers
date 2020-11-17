@@ -53,9 +53,8 @@ $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_JS_TS_FLAGS -o namespace
 ../flatc --dart monster_extra.fbs
 
 # Generate optional scalar code for tests.
-../flatc --kotlin optional_scalars.fbs  # These ones have not added optional enum support.
-../flatc --rust --lobster optional_scalars2.fbs
-../flatc $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS --cpp optional_scalars2.fbs
+../flatc --csharp --java --kotlin --rust --lobster --ts --js optional_scalars.fbs
+../flatc $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS --cpp optional_scalars.fbs
 
 # Generate the schema evolution tests
 ../flatc --cpp --scoped-enums $TEST_CPP_FLAGS -o evolution_test ./evolution_test/evolution_v*.fbs
@@ -64,7 +63,7 @@ working_dir=`pwd`
 cd FlatBuffers.Test.Swift/Tests/FlatBuffers.Test.SwiftTests
 $working_dir/../flatc --swift --grpc $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS -I ../../../include_test ../../../monster_test.fbs
 $working_dir/../flatc --swift $TEST_BASE_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS ../../../union_vector/union_vector.fbs
-$working_dir/../flatc --swift ../../../optional_scalars2.fbs
+$working_dir/../flatc --swift ../../../optional_scalars.fbs
 cd $working_dir
 
 cd FlatBuffers.GRPC.Swift/Sources/Model
@@ -86,10 +85,10 @@ fi
 # Flag c++17 requires Clang6, GCC7, MSVC2017 (_MSC_VER >= 1914)  or higher.
 TEST_CPP17_FLAGS="--cpp --cpp-std c++17 -o ./cpp17/generated_cpp17 $TEST_NOINCL_FLAGS"
 ../flatc $TEST_CPP17_FLAGS -I include_test monster_test.fbs
-../flatc $TEST_CPP17_FLAGS optional_scalars2.fbs
+../flatc $TEST_CPP17_FLAGS optional_scalars.fbs
 
 cd ../samples
-../flatc --cpp --lobster $TEST_BASE_FLAGS $TEST_CPP_FLAGS monster.fbs
+../flatc --cpp --rust --lobster $TEST_BASE_FLAGS $TEST_CPP_FLAGS monster.fbs
 ../flatc -b --schema --bfbs-comments --bfbs-builtins monster.fbs
 cd ../reflection
 ./generate_code.sh --cpp-std c++0x

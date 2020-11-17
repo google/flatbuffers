@@ -7,10 +7,10 @@ import java.lang.*;
 import java.util.*;
 import com.google.flatbuffers.*;
 
-@SuppressWarnings("unused")
 /**
  * an example documentation comment: "monster object"
  */
+@SuppressWarnings("unused")
 public final class Monster extends Table {
   public static void ValidateVersion() { Constants.FLATBUFFERS_1_12_0(); }
   public static Monster getRootAsMonster(ByteBuffer _bb) { return getRootAsMonster(_bb, new Monster()); }
@@ -194,8 +194,17 @@ public final class Monster extends Table {
   public boolean mutateVectorOfEnums(int j, int vector_of_enums) { int o = __offset(98); if (o != 0) { bb.put(__vector(o) + j * 1, (byte)vector_of_enums); return true; } else { return false; } }
   public byte signedEnum() { int o = __offset(100); return o != 0 ? bb.get(o + bb_pos) : -1; }
   public boolean mutateSignedEnum(byte signed_enum) { int o = __offset(100); if (o != 0) { bb.put(o + bb_pos, signed_enum); return true; } else { return false; } }
+  public int testrequirednestedflatbuffer(int j) { int o = __offset(102); return o != 0 ? bb.get(__vector(o) + j * 1) & 0xFF : 0; }
+  public int testrequirednestedflatbufferLength() { int o = __offset(102); return o != 0 ? __vector_len(o) : 0; }
+  public ByteVector testrequirednestedflatbufferVector() { return testrequirednestedflatbufferVector(new ByteVector()); }
+  public ByteVector testrequirednestedflatbufferVector(ByteVector obj) { int o = __offset(102); return o != 0 ? obj.__assign(__vector(o), bb) : null; }
+  public ByteBuffer testrequirednestedflatbufferAsByteBuffer() { return __vector_as_bytebuffer(102, 1); }
+  public ByteBuffer testrequirednestedflatbufferInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 102, 1); }
+  public MyGame.Example.Monster testrequirednestedflatbufferAsMonster() { return testrequirednestedflatbufferAsMonster(new MyGame.Example.Monster()); }
+  public MyGame.Example.Monster testrequirednestedflatbufferAsMonster(MyGame.Example.Monster obj) { int o = __offset(102); return o != 0 ? obj.__assign(__indirect(__vector(o)), bb) : null; }
+  public boolean mutateTestrequirednestedflatbuffer(int j, int testrequirednestedflatbuffer) { int o = __offset(102); if (o != 0) { bb.put(__vector(o) + j * 1, (byte)testrequirednestedflatbuffer); return true; } else { return false; } }
 
-  public static void startMonster(FlatBufferBuilder builder) { builder.startTable(49); }
+  public static void startMonster(FlatBufferBuilder builder) { builder.startTable(50); }
   public static void addPos(FlatBufferBuilder builder, int posOffset) { builder.addStruct(0, posOffset, 0); }
   public static void addMana(FlatBufferBuilder builder, short mana) { builder.addShort(1, mana, 150); }
   public static void addHp(FlatBufferBuilder builder, short hp) { builder.addShort(2, hp, 100); }
@@ -281,6 +290,10 @@ public final class Monster extends Table {
   public static int createVectorOfEnumsVector(FlatBufferBuilder builder, ByteBuffer data) { return builder.createByteVector(data); }
   public static void startVectorOfEnumsVector(FlatBufferBuilder builder, int numElems) { builder.startVector(1, numElems, 1); }
   public static void addSignedEnum(FlatBufferBuilder builder, byte signedEnum) { builder.addByte(48, signedEnum, -1); }
+  public static void addTestrequirednestedflatbuffer(FlatBufferBuilder builder, int testrequirednestedflatbufferOffset) { builder.addOffset(49, testrequirednestedflatbufferOffset, 0); }
+  public static int createTestrequirednestedflatbufferVector(FlatBufferBuilder builder, byte[] data) { return builder.createByteVector(data); }
+  public static int createTestrequirednestedflatbufferVector(FlatBufferBuilder builder, ByteBuffer data) { return builder.createByteVector(data); }
+  public static void startTestrequirednestedflatbufferVector(FlatBufferBuilder builder, int numElems) { builder.startVector(1, numElems, 1); }
   public static int endMonster(FlatBufferBuilder builder) {
     int o = builder.endTable();
     builder.required(o, 10);  // name

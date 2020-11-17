@@ -467,7 +467,7 @@ FLATBUFFERS_CONSTEXPR_CPP11 bool operator==(const Optional<T>& lhs, const Option
 #if defined(FLATBUFFERS_USE_STD_SPAN)
   inline constexpr std::size_t dynamic_extent = std::dynamic_extent;
   template<class T, std::size_t Extent = std::dynamic_extent>
-  using Span = std::span<T, Extent>;
+  using span = std::span<T, Extent>;
 
 #else // !defined(FLATBUFFERS_USE_STD_SPAN)
 FLATBUFFERS_CONSTEXPR std::size_t dynamic_extent = static_cast<std::size_t>(-1);
@@ -636,25 +636,25 @@ class span FLATBUFFERS_FINAL_CLASS {
   }
 
   template<class U, std::size_t N>
-  FLATBUFFERS_CONSTEXPR_CPP11 
+  FLATBUFFERS_CONSTEXPR_CPP11
   flatbuffers::span<U, N> make_span(std::array<U, N> &arr) FLATBUFFERS_NOEXCEPT {
     return span<U, N>(arr);
   }
 
   template<class U, std::size_t N>
-  FLATBUFFERS_CONSTEXPR_CPP11 
+  FLATBUFFERS_CONSTEXPR_CPP11
   flatbuffers::span<const U, N> make_span(const std::array<U, N> &arr) FLATBUFFERS_NOEXCEPT {
     return span<const U, N>(arr);
   }
 
   template<class U, std::size_t N>
-  FLATBUFFERS_CONSTEXPR_CPP11 
+  FLATBUFFERS_CONSTEXPR_CPP11
   flatbuffers::span<U, dynamic_extent> make_span(U *first, std::size_t count) FLATBUFFERS_NOEXCEPT {
     return span<U, dynamic_extent>(first, count);
   }
 
   template<class U, std::size_t N>
-  FLATBUFFERS_CONSTEXPR_CPP11 
+  FLATBUFFERS_CONSTEXPR_CPP11
   flatbuffers::span<const U, dynamic_extent> make_span(const U *first, std::size_t count) FLATBUFFERS_NOEXCEPT {
     return span<const U, dynamic_extent>(first, count);
   }
