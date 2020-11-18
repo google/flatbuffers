@@ -86,11 +86,41 @@ optional_scalars.ScalarStuff.prototype.justI8 = function() {
 };
 
 /**
+ * @param {number} value
+ * @returns {boolean}
+ */
+optional_scalars.ScalarStuff.prototype.mutate_just_i8 = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 4);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt8(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @returns {number|null}
  */
 optional_scalars.ScalarStuff.prototype.maybeI8 = function() {
   var offset = this.bb.__offset(this.bb_pos, 6);
   return offset ? this.bb.readInt8(this.bb_pos + offset) : null;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+optional_scalars.ScalarStuff.prototype.mutate_maybe_i8 = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 6);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt8(this.bb_pos + offset, value);
+  return true;
 };
 
 /**
@@ -102,11 +132,41 @@ optional_scalars.ScalarStuff.prototype.defaultI8 = function() {
 };
 
 /**
+ * @param {number} value
+ * @returns {boolean}
+ */
+optional_scalars.ScalarStuff.prototype.mutate_default_i8 = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 8);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt8(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @returns {number}
  */
 optional_scalars.ScalarStuff.prototype.justU8 = function() {
   var offset = this.bb.__offset(this.bb_pos, 10);
   return offset ? this.bb.readUint8(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+optional_scalars.ScalarStuff.prototype.mutate_just_u8 = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 10);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeUint8(this.bb_pos + offset, value);
+  return true;
 };
 
 /**
@@ -118,11 +178,41 @@ optional_scalars.ScalarStuff.prototype.maybeU8 = function() {
 };
 
 /**
+ * @param {number} value
+ * @returns {boolean}
+ */
+optional_scalars.ScalarStuff.prototype.mutate_maybe_u8 = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 12);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeUint8(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @returns {number}
  */
 optional_scalars.ScalarStuff.prototype.defaultU8 = function() {
   var offset = this.bb.__offset(this.bb_pos, 14);
   return offset ? this.bb.readUint8(this.bb_pos + offset) : 42;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+optional_scalars.ScalarStuff.prototype.mutate_default_u8 = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 14);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeUint8(this.bb_pos + offset, value);
+  return true;
 };
 
 /**
@@ -134,11 +224,41 @@ optional_scalars.ScalarStuff.prototype.justI16 = function() {
 };
 
 /**
+ * @param {number} value
+ * @returns {boolean}
+ */
+optional_scalars.ScalarStuff.prototype.mutate_just_i16 = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 16);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt16(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @returns {number|null}
  */
 optional_scalars.ScalarStuff.prototype.maybeI16 = function() {
   var offset = this.bb.__offset(this.bb_pos, 18);
   return offset ? this.bb.readInt16(this.bb_pos + offset) : null;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+optional_scalars.ScalarStuff.prototype.mutate_maybe_i16 = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 18);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt16(this.bb_pos + offset, value);
+  return true;
 };
 
 /**
@@ -150,11 +270,41 @@ optional_scalars.ScalarStuff.prototype.defaultI16 = function() {
 };
 
 /**
+ * @param {number} value
+ * @returns {boolean}
+ */
+optional_scalars.ScalarStuff.prototype.mutate_default_i16 = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 20);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt16(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @returns {number}
  */
 optional_scalars.ScalarStuff.prototype.justU16 = function() {
   var offset = this.bb.__offset(this.bb_pos, 22);
   return offset ? this.bb.readUint16(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+optional_scalars.ScalarStuff.prototype.mutate_just_u16 = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 22);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeUint16(this.bb_pos + offset, value);
+  return true;
 };
 
 /**
@@ -166,11 +316,41 @@ optional_scalars.ScalarStuff.prototype.maybeU16 = function() {
 };
 
 /**
+ * @param {number} value
+ * @returns {boolean}
+ */
+optional_scalars.ScalarStuff.prototype.mutate_maybe_u16 = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 24);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeUint16(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @returns {number}
  */
 optional_scalars.ScalarStuff.prototype.defaultU16 = function() {
   var offset = this.bb.__offset(this.bb_pos, 26);
   return offset ? this.bb.readUint16(this.bb_pos + offset) : 42;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+optional_scalars.ScalarStuff.prototype.mutate_default_u16 = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 26);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeUint16(this.bb_pos + offset, value);
+  return true;
 };
 
 /**
@@ -182,11 +362,41 @@ optional_scalars.ScalarStuff.prototype.justI32 = function() {
 };
 
 /**
+ * @param {number} value
+ * @returns {boolean}
+ */
+optional_scalars.ScalarStuff.prototype.mutate_just_i32 = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 28);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @returns {number|null}
  */
 optional_scalars.ScalarStuff.prototype.maybeI32 = function() {
   var offset = this.bb.__offset(this.bb_pos, 30);
   return offset ? this.bb.readInt32(this.bb_pos + offset) : null;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+optional_scalars.ScalarStuff.prototype.mutate_maybe_i32 = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 30);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt32(this.bb_pos + offset, value);
+  return true;
 };
 
 /**
@@ -198,11 +408,41 @@ optional_scalars.ScalarStuff.prototype.defaultI32 = function() {
 };
 
 /**
+ * @param {number} value
+ * @returns {boolean}
+ */
+optional_scalars.ScalarStuff.prototype.mutate_default_i32 = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 32);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @returns {number}
  */
 optional_scalars.ScalarStuff.prototype.justU32 = function() {
   var offset = this.bb.__offset(this.bb_pos, 34);
   return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+optional_scalars.ScalarStuff.prototype.mutate_just_u32 = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 34);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeUint32(this.bb_pos + offset, value);
+  return true;
 };
 
 /**
@@ -214,11 +454,41 @@ optional_scalars.ScalarStuff.prototype.maybeU32 = function() {
 };
 
 /**
+ * @param {number} value
+ * @returns {boolean}
+ */
+optional_scalars.ScalarStuff.prototype.mutate_maybe_u32 = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 36);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeUint32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @returns {number}
  */
 optional_scalars.ScalarStuff.prototype.defaultU32 = function() {
   var offset = this.bb.__offset(this.bb_pos, 38);
   return offset ? this.bb.readUint32(this.bb_pos + offset) : 42;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+optional_scalars.ScalarStuff.prototype.mutate_default_u32 = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 38);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeUint32(this.bb_pos + offset, value);
+  return true;
 };
 
 /**
@@ -230,11 +500,41 @@ optional_scalars.ScalarStuff.prototype.justI64 = function() {
 };
 
 /**
+ * @param {flatbuffers.Long} value
+ * @returns {boolean}
+ */
+optional_scalars.ScalarStuff.prototype.mutate_just_i64 = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 40);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt64(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @returns {flatbuffers.Long|null}
  */
 optional_scalars.ScalarStuff.prototype.maybeI64 = function() {
   var offset = this.bb.__offset(this.bb_pos, 42);
   return offset ? this.bb.readInt64(this.bb_pos + offset) : null;
+};
+
+/**
+ * @param {flatbuffers.Long} value
+ * @returns {boolean}
+ */
+optional_scalars.ScalarStuff.prototype.mutate_maybe_i64 = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 42);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt64(this.bb_pos + offset, value);
+  return true;
 };
 
 /**
@@ -246,11 +546,41 @@ optional_scalars.ScalarStuff.prototype.defaultI64 = function() {
 };
 
 /**
+ * @param {flatbuffers.Long} value
+ * @returns {boolean}
+ */
+optional_scalars.ScalarStuff.prototype.mutate_default_i64 = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 44);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt64(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @returns {flatbuffers.Long}
  */
 optional_scalars.ScalarStuff.prototype.justU64 = function() {
   var offset = this.bb.__offset(this.bb_pos, 46);
   return offset ? this.bb.readUint64(this.bb_pos + offset) : this.bb.createLong(0, 0);
+};
+
+/**
+ * @param {flatbuffers.Long} value
+ * @returns {boolean}
+ */
+optional_scalars.ScalarStuff.prototype.mutate_just_u64 = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 46);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeUint64(this.bb_pos + offset, value);
+  return true;
 };
 
 /**
@@ -262,11 +592,41 @@ optional_scalars.ScalarStuff.prototype.maybeU64 = function() {
 };
 
 /**
+ * @param {flatbuffers.Long} value
+ * @returns {boolean}
+ */
+optional_scalars.ScalarStuff.prototype.mutate_maybe_u64 = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 48);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeUint64(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @returns {flatbuffers.Long}
  */
 optional_scalars.ScalarStuff.prototype.defaultU64 = function() {
   var offset = this.bb.__offset(this.bb_pos, 50);
   return offset ? this.bb.readUint64(this.bb_pos + offset) : this.bb.createLong(42, 0);
+};
+
+/**
+ * @param {flatbuffers.Long} value
+ * @returns {boolean}
+ */
+optional_scalars.ScalarStuff.prototype.mutate_default_u64 = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 50);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeUint64(this.bb_pos + offset, value);
+  return true;
 };
 
 /**
@@ -278,11 +638,41 @@ optional_scalars.ScalarStuff.prototype.justF32 = function() {
 };
 
 /**
+ * @param {number} value
+ * @returns {boolean}
+ */
+optional_scalars.ScalarStuff.prototype.mutate_just_f32 = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 52);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeFloat32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @returns {number|null}
  */
 optional_scalars.ScalarStuff.prototype.maybeF32 = function() {
   var offset = this.bb.__offset(this.bb_pos, 54);
   return offset ? this.bb.readFloat32(this.bb_pos + offset) : null;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+optional_scalars.ScalarStuff.prototype.mutate_maybe_f32 = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 54);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeFloat32(this.bb_pos + offset, value);
+  return true;
 };
 
 /**
@@ -294,11 +684,41 @@ optional_scalars.ScalarStuff.prototype.defaultF32 = function() {
 };
 
 /**
+ * @param {number} value
+ * @returns {boolean}
+ */
+optional_scalars.ScalarStuff.prototype.mutate_default_f32 = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 56);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeFloat32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @returns {number}
  */
 optional_scalars.ScalarStuff.prototype.justF64 = function() {
   var offset = this.bb.__offset(this.bb_pos, 58);
   return offset ? this.bb.readFloat64(this.bb_pos + offset) : 0.0;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+optional_scalars.ScalarStuff.prototype.mutate_just_f64 = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 58);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeFloat64(this.bb_pos + offset, value);
+  return true;
 };
 
 /**
@@ -310,11 +730,41 @@ optional_scalars.ScalarStuff.prototype.maybeF64 = function() {
 };
 
 /**
+ * @param {number} value
+ * @returns {boolean}
+ */
+optional_scalars.ScalarStuff.prototype.mutate_maybe_f64 = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 60);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeFloat64(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @returns {number}
  */
 optional_scalars.ScalarStuff.prototype.defaultF64 = function() {
   var offset = this.bb.__offset(this.bb_pos, 62);
   return offset ? this.bb.readFloat64(this.bb_pos + offset) : 42.0;
+};
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+optional_scalars.ScalarStuff.prototype.mutate_default_f64 = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 62);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeFloat64(this.bb_pos + offset, value);
+  return true;
 };
 
 /**
@@ -326,11 +776,41 @@ optional_scalars.ScalarStuff.prototype.justBool = function() {
 };
 
 /**
+ * @param {boolean} value
+ * @returns {boolean}
+ */
+optional_scalars.ScalarStuff.prototype.mutate_just_bool = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 64);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt8(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @returns {boolean|null}
  */
 optional_scalars.ScalarStuff.prototype.maybeBool = function() {
   var offset = this.bb.__offset(this.bb_pos, 66);
   return offset ? !!this.bb.readInt8(this.bb_pos + offset) : null;
+};
+
+/**
+ * @param {boolean} value
+ * @returns {boolean}
+ */
+optional_scalars.ScalarStuff.prototype.mutate_maybe_bool = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 66);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt8(this.bb_pos + offset, value);
+  return true;
 };
 
 /**
@@ -342,11 +822,41 @@ optional_scalars.ScalarStuff.prototype.defaultBool = function() {
 };
 
 /**
+ * @param {boolean} value
+ * @returns {boolean}
+ */
+optional_scalars.ScalarStuff.prototype.mutate_default_bool = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 68);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt8(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @returns {optional_scalars.OptionalByte}
  */
 optional_scalars.ScalarStuff.prototype.justEnum = function() {
   var offset = this.bb.__offset(this.bb_pos, 70);
   return offset ? /** @type {optional_scalars.OptionalByte} */ (this.bb.readInt8(this.bb_pos + offset)) : optional_scalars.OptionalByte.None;
+};
+
+/**
+ * @param {optional_scalars.OptionalByte} value
+ * @returns {boolean}
+ */
+optional_scalars.ScalarStuff.prototype.mutate_just_enum = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 70);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt8(this.bb_pos + offset, value);
+  return true;
 };
 
 /**
@@ -358,11 +868,41 @@ optional_scalars.ScalarStuff.prototype.maybeEnum = function() {
 };
 
 /**
+ * @param {optional_scalars.OptionalByte} value
+ * @returns {boolean}
+ */
+optional_scalars.ScalarStuff.prototype.mutate_maybe_enum = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 72);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt8(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @returns {optional_scalars.OptionalByte}
  */
 optional_scalars.ScalarStuff.prototype.defaultEnum = function() {
   var offset = this.bb.__offset(this.bb_pos, 74);
   return offset ? /** @type {optional_scalars.OptionalByte} */ (this.bb.readInt8(this.bb_pos + offset)) : optional_scalars.OptionalByte.One;
+};
+
+/**
+ * @param {optional_scalars.OptionalByte} value
+ * @returns {boolean}
+ */
+optional_scalars.ScalarStuff.prototype.mutate_default_enum = function(value) {
+  var offset = this.bb.__offset(this.bb_pos, 74);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb.writeInt8(this.bb_pos + offset, value);
+  return true;
 };
 
 /**

@@ -67,11 +67,41 @@ justI8():number {
 };
 
 /**
+ * @param number value
+ * @returns boolean
+ */
+mutate_just_i8(value:number):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 4);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeInt8(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @returns number|null
  */
 maybeI8():number|null {
   var offset = this.bb!.__offset(this.bb_pos, 6);
   return offset ? this.bb!.readInt8(this.bb_pos + offset) : null;
+};
+
+/**
+ * @param number value
+ * @returns boolean
+ */
+mutate_maybe_i8(value:number):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 6);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeInt8(this.bb_pos + offset, value);
+  return true;
 };
 
 /**
@@ -83,11 +113,41 @@ defaultI8():number {
 };
 
 /**
+ * @param number value
+ * @returns boolean
+ */
+mutate_default_i8(value:number):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 8);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeInt8(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @returns number
  */
 justU8():number {
   var offset = this.bb!.__offset(this.bb_pos, 10);
   return offset ? this.bb!.readUint8(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param number value
+ * @returns boolean
+ */
+mutate_just_u8(value:number):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 10);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeUint8(this.bb_pos + offset, value);
+  return true;
 };
 
 /**
@@ -99,11 +159,41 @@ maybeU8():number|null {
 };
 
 /**
+ * @param number value
+ * @returns boolean
+ */
+mutate_maybe_u8(value:number):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 12);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeUint8(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @returns number
  */
 defaultU8():number {
   var offset = this.bb!.__offset(this.bb_pos, 14);
   return offset ? this.bb!.readUint8(this.bb_pos + offset) : 42;
+};
+
+/**
+ * @param number value
+ * @returns boolean
+ */
+mutate_default_u8(value:number):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 14);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeUint8(this.bb_pos + offset, value);
+  return true;
 };
 
 /**
@@ -115,11 +205,41 @@ justI16():number {
 };
 
 /**
+ * @param number value
+ * @returns boolean
+ */
+mutate_just_i16(value:number):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 16);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeInt16(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @returns number|null
  */
 maybeI16():number|null {
   var offset = this.bb!.__offset(this.bb_pos, 18);
   return offset ? this.bb!.readInt16(this.bb_pos + offset) : null;
+};
+
+/**
+ * @param number value
+ * @returns boolean
+ */
+mutate_maybe_i16(value:number):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 18);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeInt16(this.bb_pos + offset, value);
+  return true;
 };
 
 /**
@@ -131,11 +251,41 @@ defaultI16():number {
 };
 
 /**
+ * @param number value
+ * @returns boolean
+ */
+mutate_default_i16(value:number):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 20);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeInt16(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @returns number
  */
 justU16():number {
   var offset = this.bb!.__offset(this.bb_pos, 22);
   return offset ? this.bb!.readUint16(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param number value
+ * @returns boolean
+ */
+mutate_just_u16(value:number):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 22);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeUint16(this.bb_pos + offset, value);
+  return true;
 };
 
 /**
@@ -147,11 +297,41 @@ maybeU16():number|null {
 };
 
 /**
+ * @param number value
+ * @returns boolean
+ */
+mutate_maybe_u16(value:number):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 24);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeUint16(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @returns number
  */
 defaultU16():number {
   var offset = this.bb!.__offset(this.bb_pos, 26);
   return offset ? this.bb!.readUint16(this.bb_pos + offset) : 42;
+};
+
+/**
+ * @param number value
+ * @returns boolean
+ */
+mutate_default_u16(value:number):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 26);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeUint16(this.bb_pos + offset, value);
+  return true;
 };
 
 /**
@@ -163,11 +343,41 @@ justI32():number {
 };
 
 /**
+ * @param number value
+ * @returns boolean
+ */
+mutate_just_i32(value:number):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 28);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeInt32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @returns number|null
  */
 maybeI32():number|null {
   var offset = this.bb!.__offset(this.bb_pos, 30);
   return offset ? this.bb!.readInt32(this.bb_pos + offset) : null;
+};
+
+/**
+ * @param number value
+ * @returns boolean
+ */
+mutate_maybe_i32(value:number):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 30);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeInt32(this.bb_pos + offset, value);
+  return true;
 };
 
 /**
@@ -179,11 +389,41 @@ defaultI32():number {
 };
 
 /**
+ * @param number value
+ * @returns boolean
+ */
+mutate_default_i32(value:number):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 32);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeInt32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @returns number
  */
 justU32():number {
   var offset = this.bb!.__offset(this.bb_pos, 34);
   return offset ? this.bb!.readUint32(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param number value
+ * @returns boolean
+ */
+mutate_just_u32(value:number):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 34);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeUint32(this.bb_pos + offset, value);
+  return true;
 };
 
 /**
@@ -195,11 +435,41 @@ maybeU32():number|null {
 };
 
 /**
+ * @param number value
+ * @returns boolean
+ */
+mutate_maybe_u32(value:number):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 36);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeUint32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @returns number
  */
 defaultU32():number {
   var offset = this.bb!.__offset(this.bb_pos, 38);
   return offset ? this.bb!.readUint32(this.bb_pos + offset) : 42;
+};
+
+/**
+ * @param number value
+ * @returns boolean
+ */
+mutate_default_u32(value:number):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 38);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeUint32(this.bb_pos + offset, value);
+  return true;
 };
 
 /**
@@ -211,11 +481,41 @@ justI64():flatbuffers.Long {
 };
 
 /**
+ * @param flatbuffers.Long value
+ * @returns boolean
+ */
+mutate_just_i64(value:flatbuffers.Long):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 40);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeInt64(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @returns flatbuffers.Long|null
  */
 maybeI64():flatbuffers.Long|null {
   var offset = this.bb!.__offset(this.bb_pos, 42);
   return offset ? this.bb!.readInt64(this.bb_pos + offset) : null;
+};
+
+/**
+ * @param flatbuffers.Long value
+ * @returns boolean
+ */
+mutate_maybe_i64(value:flatbuffers.Long):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 42);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeInt64(this.bb_pos + offset, value);
+  return true;
 };
 
 /**
@@ -227,11 +527,41 @@ defaultI64():flatbuffers.Long {
 };
 
 /**
+ * @param flatbuffers.Long value
+ * @returns boolean
+ */
+mutate_default_i64(value:flatbuffers.Long):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 44);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeInt64(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @returns flatbuffers.Long
  */
 justU64():flatbuffers.Long {
   var offset = this.bb!.__offset(this.bb_pos, 46);
   return offset ? this.bb!.readUint64(this.bb_pos + offset) : this.bb!.createLong(0, 0);
+};
+
+/**
+ * @param flatbuffers.Long value
+ * @returns boolean
+ */
+mutate_just_u64(value:flatbuffers.Long):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 46);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeUint64(this.bb_pos + offset, value);
+  return true;
 };
 
 /**
@@ -243,11 +573,41 @@ maybeU64():flatbuffers.Long|null {
 };
 
 /**
+ * @param flatbuffers.Long value
+ * @returns boolean
+ */
+mutate_maybe_u64(value:flatbuffers.Long):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 48);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeUint64(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @returns flatbuffers.Long
  */
 defaultU64():flatbuffers.Long {
   var offset = this.bb!.__offset(this.bb_pos, 50);
   return offset ? this.bb!.readUint64(this.bb_pos + offset) : this.bb!.createLong(42, 0);
+};
+
+/**
+ * @param flatbuffers.Long value
+ * @returns boolean
+ */
+mutate_default_u64(value:flatbuffers.Long):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 50);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeUint64(this.bb_pos + offset, value);
+  return true;
 };
 
 /**
@@ -259,11 +619,41 @@ justF32():number {
 };
 
 /**
+ * @param number value
+ * @returns boolean
+ */
+mutate_just_f32(value:number):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 52);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeFloat32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @returns number|null
  */
 maybeF32():number|null {
   var offset = this.bb!.__offset(this.bb_pos, 54);
   return offset ? this.bb!.readFloat32(this.bb_pos + offset) : null;
+};
+
+/**
+ * @param number value
+ * @returns boolean
+ */
+mutate_maybe_f32(value:number):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 54);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeFloat32(this.bb_pos + offset, value);
+  return true;
 };
 
 /**
@@ -275,11 +665,41 @@ defaultF32():number {
 };
 
 /**
+ * @param number value
+ * @returns boolean
+ */
+mutate_default_f32(value:number):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 56);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeFloat32(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @returns number
  */
 justF64():number {
   var offset = this.bb!.__offset(this.bb_pos, 58);
   return offset ? this.bb!.readFloat64(this.bb_pos + offset) : 0.0;
+};
+
+/**
+ * @param number value
+ * @returns boolean
+ */
+mutate_just_f64(value:number):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 58);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeFloat64(this.bb_pos + offset, value);
+  return true;
 };
 
 /**
@@ -291,11 +711,41 @@ maybeF64():number|null {
 };
 
 /**
+ * @param number value
+ * @returns boolean
+ */
+mutate_maybe_f64(value:number):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 60);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeFloat64(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @returns number
  */
 defaultF64():number {
   var offset = this.bb!.__offset(this.bb_pos, 62);
   return offset ? this.bb!.readFloat64(this.bb_pos + offset) : 42.0;
+};
+
+/**
+ * @param number value
+ * @returns boolean
+ */
+mutate_default_f64(value:number):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 62);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeFloat64(this.bb_pos + offset, value);
+  return true;
 };
 
 /**
@@ -307,11 +757,41 @@ justBool():boolean {
 };
 
 /**
+ * @param boolean value
+ * @returns boolean
+ */
+mutate_just_bool(value:boolean):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 64);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeInt8(this.bb_pos + offset, +value);
+  return true;
+};
+
+/**
  * @returns boolean|null
  */
 maybeBool():boolean|null {
   var offset = this.bb!.__offset(this.bb_pos, 66);
   return offset ? !!this.bb!.readInt8(this.bb_pos + offset) : null;
+};
+
+/**
+ * @param boolean value
+ * @returns boolean
+ */
+mutate_maybe_bool(value:boolean):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 66);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeInt8(this.bb_pos + offset, +value);
+  return true;
 };
 
 /**
@@ -323,11 +803,41 @@ defaultBool():boolean {
 };
 
 /**
+ * @param boolean value
+ * @returns boolean
+ */
+mutate_default_bool(value:boolean):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 68);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeInt8(this.bb_pos + offset, +value);
+  return true;
+};
+
+/**
  * @returns optional_scalars.OptionalByte
  */
 justEnum():optional_scalars.OptionalByte {
   var offset = this.bb!.__offset(this.bb_pos, 70);
   return offset ? /**  */ (this.bb!.readInt8(this.bb_pos + offset)) : optional_scalars.OptionalByte.None;
+};
+
+/**
+ * @param optional_scalars.OptionalByte value
+ * @returns boolean
+ */
+mutate_just_enum(value:optional_scalars.OptionalByte):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 70);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeInt8(this.bb_pos + offset, value);
+  return true;
 };
 
 /**
@@ -339,11 +849,41 @@ maybeEnum():optional_scalars.OptionalByte|null {
 };
 
 /**
+ * @param optional_scalars.OptionalByte value
+ * @returns boolean
+ */
+mutate_maybe_enum(value:optional_scalars.OptionalByte):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 72);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeInt8(this.bb_pos + offset, value);
+  return true;
+};
+
+/**
  * @returns optional_scalars.OptionalByte
  */
 defaultEnum():optional_scalars.OptionalByte {
   var offset = this.bb!.__offset(this.bb_pos, 74);
   return offset ? /**  */ (this.bb!.readInt8(this.bb_pos + offset)) : optional_scalars.OptionalByte.One;
+};
+
+/**
+ * @param optional_scalars.OptionalByte value
+ * @returns boolean
+ */
+mutate_default_enum(value:optional_scalars.OptionalByte):boolean {
+  var offset = this.bb!.__offset(this.bb_pos, 74);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeInt8(this.bb_pos + offset, value);
+  return true;
 };
 
 /**
@@ -718,5 +1258,216 @@ static createScalarStuff(builder:flatbuffers.Builder, justI8:number, maybeI8:num
   ScalarStuff.addDefaultEnum(builder, defaultEnum);
   return ScalarStuff.endScalarStuff(builder);
 }
+
+/**
+ * @returns ScalarStuffT
+ */
+unpack(): ScalarStuffT {
+  return new ScalarStuffT(
+    this.justI8(),
+    this.maybeI8(),
+    this.defaultI8(),
+    this.justU8(),
+    this.maybeU8(),
+    this.defaultU8(),
+    this.justI16(),
+    this.maybeI16(),
+    this.defaultI16(),
+    this.justU16(),
+    this.maybeU16(),
+    this.defaultU16(),
+    this.justI32(),
+    this.maybeI32(),
+    this.defaultI32(),
+    this.justU32(),
+    this.maybeU32(),
+    this.defaultU32(),
+    this.justI64(),
+    this.maybeI64(),
+    this.defaultI64(),
+    this.justU64(),
+    this.maybeU64(),
+    this.defaultU64(),
+    this.justF32(),
+    this.maybeF32(),
+    this.defaultF32(),
+    this.justF64(),
+    this.maybeF64(),
+    this.defaultF64(),
+    this.justBool(),
+    this.maybeBool(),
+    this.defaultBool(),
+    this.justEnum(),
+    this.maybeEnum(),
+    this.defaultEnum()
+  );
+};
+
+/**
+ * @param ScalarStuffT _o
+ */
+unpackTo(_o: ScalarStuffT): void {
+  _o.justI8 = this.justI8();
+  _o.maybeI8 = this.maybeI8();
+  _o.defaultI8 = this.defaultI8();
+  _o.justU8 = this.justU8();
+  _o.maybeU8 = this.maybeU8();
+  _o.defaultU8 = this.defaultU8();
+  _o.justI16 = this.justI16();
+  _o.maybeI16 = this.maybeI16();
+  _o.defaultI16 = this.defaultI16();
+  _o.justU16 = this.justU16();
+  _o.maybeU16 = this.maybeU16();
+  _o.defaultU16 = this.defaultU16();
+  _o.justI32 = this.justI32();
+  _o.maybeI32 = this.maybeI32();
+  _o.defaultI32 = this.defaultI32();
+  _o.justU32 = this.justU32();
+  _o.maybeU32 = this.maybeU32();
+  _o.defaultU32 = this.defaultU32();
+  _o.justI64 = this.justI64();
+  _o.maybeI64 = this.maybeI64();
+  _o.defaultI64 = this.defaultI64();
+  _o.justU64 = this.justU64();
+  _o.maybeU64 = this.maybeU64();
+  _o.defaultU64 = this.defaultU64();
+  _o.justF32 = this.justF32();
+  _o.maybeF32 = this.maybeF32();
+  _o.defaultF32 = this.defaultF32();
+  _o.justF64 = this.justF64();
+  _o.maybeF64 = this.maybeF64();
+  _o.defaultF64 = this.defaultF64();
+  _o.justBool = this.justBool();
+  _o.maybeBool = this.maybeBool();
+  _o.defaultBool = this.defaultBool();
+  _o.justEnum = this.justEnum();
+  _o.maybeEnum = this.maybeEnum();
+  _o.defaultEnum = this.defaultEnum();
+};
+}
+
+export class ScalarStuffT {
+/**
+ * @constructor
+ * @param number justI8
+ * @param number|null maybeI8
+ * @param number defaultI8
+ * @param number justU8
+ * @param number|null maybeU8
+ * @param number defaultU8
+ * @param number justI16
+ * @param number|null maybeI16
+ * @param number defaultI16
+ * @param number justU16
+ * @param number|null maybeU16
+ * @param number defaultU16
+ * @param number justI32
+ * @param number|null maybeI32
+ * @param number defaultI32
+ * @param number justU32
+ * @param number|null maybeU32
+ * @param number defaultU32
+ * @param flatbuffers.Long justI64
+ * @param flatbuffers.Long|null maybeI64
+ * @param flatbuffers.Long defaultI64
+ * @param flatbuffers.Long justU64
+ * @param flatbuffers.Long|null maybeU64
+ * @param flatbuffers.Long defaultU64
+ * @param number justF32
+ * @param number|null maybeF32
+ * @param number defaultF32
+ * @param number justF64
+ * @param number|null maybeF64
+ * @param number defaultF64
+ * @param boolean justBool
+ * @param boolean|null maybeBool
+ * @param boolean defaultBool
+ * @param optional_scalars.OptionalByte justEnum
+ * @param optional_scalars.OptionalByte|null maybeEnum
+ * @param optional_scalars.OptionalByte defaultEnum
+ */
+constructor(
+  public justI8: number = 0,
+  public maybeI8: number|null = null,
+  public defaultI8: number = 42,
+  public justU8: number = 0,
+  public maybeU8: number|null = null,
+  public defaultU8: number = 42,
+  public justI16: number = 0,
+  public maybeI16: number|null = null,
+  public defaultI16: number = 42,
+  public justU16: number = 0,
+  public maybeU16: number|null = null,
+  public defaultU16: number = 42,
+  public justI32: number = 0,
+  public maybeI32: number|null = null,
+  public defaultI32: number = 42,
+  public justU32: number = 0,
+  public maybeU32: number|null = null,
+  public defaultU32: number = 42,
+  public justI64: flatbuffers.Long = flatbuffers.createLong(0, 0),
+  public maybeI64: flatbuffers.Long|null = null,
+  public defaultI64: flatbuffers.Long = flatbuffers.createLong(42, 0),
+  public justU64: flatbuffers.Long = flatbuffers.createLong(0, 0),
+  public maybeU64: flatbuffers.Long|null = null,
+  public defaultU64: flatbuffers.Long = flatbuffers.createLong(42, 0),
+  public justF32: number = 0.0,
+  public maybeF32: number|null = null,
+  public defaultF32: number = 42.0,
+  public justF64: number = 0.0,
+  public maybeF64: number|null = null,
+  public defaultF64: number = 42.0,
+  public justBool: boolean = false,
+  public maybeBool: boolean|null = null,
+  public defaultBool: boolean = true,
+  public justEnum: optional_scalars.OptionalByte = optional_scalars.OptionalByte.None,
+  public maybeEnum: optional_scalars.OptionalByte|null = null,
+  public defaultEnum: optional_scalars.OptionalByte = optional_scalars.OptionalByte.One
+){};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @returns flatbuffers.Offset
+ */
+pack(builder:flatbuffers.Builder): flatbuffers.Offset {
+  return optional_scalars.ScalarStuff.createScalarStuff(builder,
+    this.justI8,
+    this.maybeI8,
+    this.defaultI8,
+    this.justU8,
+    this.maybeU8,
+    this.defaultU8,
+    this.justI16,
+    this.maybeI16,
+    this.defaultI16,
+    this.justU16,
+    this.maybeU16,
+    this.defaultU16,
+    this.justI32,
+    this.maybeI32,
+    this.defaultI32,
+    this.justU32,
+    this.maybeU32,
+    this.defaultU32,
+    this.justI64,
+    this.maybeI64,
+    this.defaultI64,
+    this.justU64,
+    this.maybeU64,
+    this.defaultU64,
+    this.justF32,
+    this.maybeF32,
+    this.defaultF32,
+    this.justF64,
+    this.maybeF64,
+    this.defaultF64,
+    this.justBool,
+    this.maybeBool,
+    this.defaultBool,
+    this.justEnum,
+    this.maybeEnum,
+    this.defaultEnum
+  );
+};
 }
 }

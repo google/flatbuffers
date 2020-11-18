@@ -17,53 +17,89 @@ public final class ScalarStuff extends Table {
   public ScalarStuff __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public byte justI8() { int o = __offset(4); return o != 0 ? bb.get(o + bb_pos) : 0; }
+  public boolean mutateJustI8(byte just_i8) { int o = __offset(4); if (o != 0) { bb.put(o + bb_pos, just_i8); return true; } else { return false; } }
   public boolean hasMaybeI8() { return 0 != __offset(6); }
   public byte maybeI8() { int o = __offset(6); return o != 0 ? bb.get(o + bb_pos) : 0; }
+  public boolean mutateMaybeI8(byte maybe_i8) { int o = __offset(6); if (o != 0) { bb.put(o + bb_pos, maybe_i8); return true; } else { return false; } }
   public byte defaultI8() { int o = __offset(8); return o != 0 ? bb.get(o + bb_pos) : 42; }
+  public boolean mutateDefaultI8(byte default_i8) { int o = __offset(8); if (o != 0) { bb.put(o + bb_pos, default_i8); return true; } else { return false; } }
   public int justU8() { int o = __offset(10); return o != 0 ? bb.get(o + bb_pos) & 0xFF : 0; }
+  public boolean mutateJustU8(int just_u8) { int o = __offset(10); if (o != 0) { bb.put(o + bb_pos, (byte)just_u8); return true; } else { return false; } }
   public boolean hasMaybeU8() { return 0 != __offset(12); }
   public int maybeU8() { int o = __offset(12); return o != 0 ? bb.get(o + bb_pos) & 0xFF : 0; }
+  public boolean mutateMaybeU8(int maybe_u8) { int o = __offset(12); if (o != 0) { bb.put(o + bb_pos, (byte)maybe_u8); return true; } else { return false; } }
   public int defaultU8() { int o = __offset(14); return o != 0 ? bb.get(o + bb_pos) & 0xFF : 42; }
+  public boolean mutateDefaultU8(int default_u8) { int o = __offset(14); if (o != 0) { bb.put(o + bb_pos, (byte)default_u8); return true; } else { return false; } }
   public short justI16() { int o = __offset(16); return o != 0 ? bb.getShort(o + bb_pos) : 0; }
+  public boolean mutateJustI16(short just_i16) { int o = __offset(16); if (o != 0) { bb.putShort(o + bb_pos, just_i16); return true; } else { return false; } }
   public boolean hasMaybeI16() { return 0 != __offset(18); }
   public short maybeI16() { int o = __offset(18); return o != 0 ? bb.getShort(o + bb_pos) : 0; }
+  public boolean mutateMaybeI16(short maybe_i16) { int o = __offset(18); if (o != 0) { bb.putShort(o + bb_pos, maybe_i16); return true; } else { return false; } }
   public short defaultI16() { int o = __offset(20); return o != 0 ? bb.getShort(o + bb_pos) : 42; }
+  public boolean mutateDefaultI16(short default_i16) { int o = __offset(20); if (o != 0) { bb.putShort(o + bb_pos, default_i16); return true; } else { return false; } }
   public int justU16() { int o = __offset(22); return o != 0 ? bb.getShort(o + bb_pos) & 0xFFFF : 0; }
+  public boolean mutateJustU16(int just_u16) { int o = __offset(22); if (o != 0) { bb.putShort(o + bb_pos, (short)just_u16); return true; } else { return false; } }
   public boolean hasMaybeU16() { return 0 != __offset(24); }
   public int maybeU16() { int o = __offset(24); return o != 0 ? bb.getShort(o + bb_pos) & 0xFFFF : 0; }
+  public boolean mutateMaybeU16(int maybe_u16) { int o = __offset(24); if (o != 0) { bb.putShort(o + bb_pos, (short)maybe_u16); return true; } else { return false; } }
   public int defaultU16() { int o = __offset(26); return o != 0 ? bb.getShort(o + bb_pos) & 0xFFFF : 42; }
+  public boolean mutateDefaultU16(int default_u16) { int o = __offset(26); if (o != 0) { bb.putShort(o + bb_pos, (short)default_u16); return true; } else { return false; } }
   public int justI32() { int o = __offset(28); return o != 0 ? bb.getInt(o + bb_pos) : 0; }
+  public boolean mutateJustI32(int just_i32) { int o = __offset(28); if (o != 0) { bb.putInt(o + bb_pos, just_i32); return true; } else { return false; } }
   public boolean hasMaybeI32() { return 0 != __offset(30); }
   public int maybeI32() { int o = __offset(30); return o != 0 ? bb.getInt(o + bb_pos) : 0; }
+  public boolean mutateMaybeI32(int maybe_i32) { int o = __offset(30); if (o != 0) { bb.putInt(o + bb_pos, maybe_i32); return true; } else { return false; } }
   public int defaultI32() { int o = __offset(32); return o != 0 ? bb.getInt(o + bb_pos) : 42; }
+  public boolean mutateDefaultI32(int default_i32) { int o = __offset(32); if (o != 0) { bb.putInt(o + bb_pos, default_i32); return true; } else { return false; } }
   public long justU32() { int o = __offset(34); return o != 0 ? (long)bb.getInt(o + bb_pos) & 0xFFFFFFFFL : 0L; }
+  public boolean mutateJustU32(long just_u32) { int o = __offset(34); if (o != 0) { bb.putInt(o + bb_pos, (int)just_u32); return true; } else { return false; } }
   public boolean hasMaybeU32() { return 0 != __offset(36); }
   public long maybeU32() { int o = __offset(36); return o != 0 ? (long)bb.getInt(o + bb_pos) & 0xFFFFFFFFL : 0L; }
+  public boolean mutateMaybeU32(long maybe_u32) { int o = __offset(36); if (o != 0) { bb.putInt(o + bb_pos, (int)maybe_u32); return true; } else { return false; } }
   public long defaultU32() { int o = __offset(38); return o != 0 ? (long)bb.getInt(o + bb_pos) & 0xFFFFFFFFL : 42L; }
+  public boolean mutateDefaultU32(long default_u32) { int o = __offset(38); if (o != 0) { bb.putInt(o + bb_pos, (int)default_u32); return true; } else { return false; } }
   public long justI64() { int o = __offset(40); return o != 0 ? bb.getLong(o + bb_pos) : 0L; }
+  public boolean mutateJustI64(long just_i64) { int o = __offset(40); if (o != 0) { bb.putLong(o + bb_pos, just_i64); return true; } else { return false; } }
   public boolean hasMaybeI64() { return 0 != __offset(42); }
   public long maybeI64() { int o = __offset(42); return o != 0 ? bb.getLong(o + bb_pos) : 0L; }
+  public boolean mutateMaybeI64(long maybe_i64) { int o = __offset(42); if (o != 0) { bb.putLong(o + bb_pos, maybe_i64); return true; } else { return false; } }
   public long defaultI64() { int o = __offset(44); return o != 0 ? bb.getLong(o + bb_pos) : 42L; }
+  public boolean mutateDefaultI64(long default_i64) { int o = __offset(44); if (o != 0) { bb.putLong(o + bb_pos, default_i64); return true; } else { return false; } }
   public long justU64() { int o = __offset(46); return o != 0 ? bb.getLong(o + bb_pos) : 0L; }
+  public boolean mutateJustU64(long just_u64) { int o = __offset(46); if (o != 0) { bb.putLong(o + bb_pos, just_u64); return true; } else { return false; } }
   public boolean hasMaybeU64() { return 0 != __offset(48); }
   public long maybeU64() { int o = __offset(48); return o != 0 ? bb.getLong(o + bb_pos) : 0L; }
+  public boolean mutateMaybeU64(long maybe_u64) { int o = __offset(48); if (o != 0) { bb.putLong(o + bb_pos, maybe_u64); return true; } else { return false; } }
   public long defaultU64() { int o = __offset(50); return o != 0 ? bb.getLong(o + bb_pos) : 42L; }
+  public boolean mutateDefaultU64(long default_u64) { int o = __offset(50); if (o != 0) { bb.putLong(o + bb_pos, default_u64); return true; } else { return false; } }
   public float justF32() { int o = __offset(52); return o != 0 ? bb.getFloat(o + bb_pos) : 0.0f; }
+  public boolean mutateJustF32(float just_f32) { int o = __offset(52); if (o != 0) { bb.putFloat(o + bb_pos, just_f32); return true; } else { return false; } }
   public boolean hasMaybeF32() { return 0 != __offset(54); }
   public float maybeF32() { int o = __offset(54); return o != 0 ? bb.getFloat(o + bb_pos) : 0f; }
+  public boolean mutateMaybeF32(float maybe_f32) { int o = __offset(54); if (o != 0) { bb.putFloat(o + bb_pos, maybe_f32); return true; } else { return false; } }
   public float defaultF32() { int o = __offset(56); return o != 0 ? bb.getFloat(o + bb_pos) : 42.0f; }
+  public boolean mutateDefaultF32(float default_f32) { int o = __offset(56); if (o != 0) { bb.putFloat(o + bb_pos, default_f32); return true; } else { return false; } }
   public double justF64() { int o = __offset(58); return o != 0 ? bb.getDouble(o + bb_pos) : 0.0; }
+  public boolean mutateJustF64(double just_f64) { int o = __offset(58); if (o != 0) { bb.putDouble(o + bb_pos, just_f64); return true; } else { return false; } }
   public boolean hasMaybeF64() { return 0 != __offset(60); }
   public double maybeF64() { int o = __offset(60); return o != 0 ? bb.getDouble(o + bb_pos) : 0.0; }
+  public boolean mutateMaybeF64(double maybe_f64) { int o = __offset(60); if (o != 0) { bb.putDouble(o + bb_pos, maybe_f64); return true; } else { return false; } }
   public double defaultF64() { int o = __offset(62); return o != 0 ? bb.getDouble(o + bb_pos) : 42.0; }
+  public boolean mutateDefaultF64(double default_f64) { int o = __offset(62); if (o != 0) { bb.putDouble(o + bb_pos, default_f64); return true; } else { return false; } }
   public boolean justBool() { int o = __offset(64); return o != 0 ? 0!=bb.get(o + bb_pos) : false; }
+  public boolean mutateJustBool(boolean just_bool) { int o = __offset(64); if (o != 0) { bb.put(o + bb_pos, (byte)(just_bool ? 1 : 0)); return true; } else { return false; } }
   public boolean hasMaybeBool() { return 0 != __offset(66); }
   public boolean maybeBool() { int o = __offset(66); return o != 0 ? 0!=bb.get(o + bb_pos) : false; }
+  public boolean mutateMaybeBool(boolean maybe_bool) { int o = __offset(66); if (o != 0) { bb.put(o + bb_pos, (byte)(maybe_bool ? 1 : 0)); return true; } else { return false; } }
   public boolean defaultBool() { int o = __offset(68); return o != 0 ? 0!=bb.get(o + bb_pos) : true; }
+  public boolean mutateDefaultBool(boolean default_bool) { int o = __offset(68); if (o != 0) { bb.put(o + bb_pos, (byte)(default_bool ? 1 : 0)); return true; } else { return false; } }
   public byte justEnum() { int o = __offset(70); return o != 0 ? bb.get(o + bb_pos) : 0; }
+  public boolean mutateJustEnum(byte just_enum) { int o = __offset(70); if (o != 0) { bb.put(o + bb_pos, just_enum); return true; } else { return false; } }
   public boolean hasMaybeEnum() { return 0 != __offset(72); }
   public byte maybeEnum() { int o = __offset(72); return o != 0 ? bb.get(o + bb_pos) : 0; }
+  public boolean mutateMaybeEnum(byte maybe_enum) { int o = __offset(72); if (o != 0) { bb.put(o + bb_pos, maybe_enum); return true; } else { return false; } }
   public byte defaultEnum() { int o = __offset(74); return o != 0 ? bb.get(o + bb_pos) : 1; }
+  public boolean mutateDefaultEnum(byte default_enum) { int o = __offset(74); if (o != 0) { bb.put(o + bb_pos, default_enum); return true; } else { return false; } }
 
   public static int createScalarStuff(FlatBufferBuilder builder,
       byte just_i8,
