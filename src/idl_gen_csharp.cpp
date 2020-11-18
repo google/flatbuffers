@@ -618,8 +618,9 @@ class CSharpGenerator : public BaseGenerator {
       std::string dest_mask = "";
       std::string dest_cast = DestinationCast(field.value.type);
       std::string src_cast = SourceCast(field.value.type);
-      std::string method_start = "  public " + type_name_dest + optional + " " +
-                                 MakeCamel(field.name, true);
+      std::string field_name_camel = MakeCamel(field.name, true);
+      std::string method_start =
+          "  public " + type_name_dest + optional + " " + field_name_camel;
       std::string obj = "(new " + type_name + "())";
 
       // Most field accessors need to retrieve and test the field offset first,
@@ -762,6 +763,30 @@ class CSharpGenerator : public BaseGenerator {
                       "AsString()";
               code += offset_prefix + GenGetter(Type(BASE_TYPE_STRING));
               code += "(o + __p.bb_pos) : null";
+            }
+            // As<> accesors for Unions
+            // Loop through all the possible union types and generate an As
+            // accessor that casts to the correct type.
+            for (auto uit = field.value.type.enum_def->Vals().begin();
+                 uit != field.value.type.enum_def->Vals().end(); ++uit) {
+              auto val = *uit;
+              if (val->union_type.base_type == BASE_TYPE_NONE) { continue; }
+              auto union_field_type_name = GenTypeGet(val->union_type);
+              code += member_suffix + "}\n";
+              if (val->union_type.base_type == BASE_TYPE_STRUCT &&
+                  val->union_type.struct_def->attributes.Lookup("private")) {
+                code += "  internal ";
+              } else {
+                code += "  public ";
+              }
+              code += union_field_type_name + " ";
+              code += field_name_camel + "As" + val->name + "() { return ";
+              code += field_name_camel;
+              if (IsString(val->union_type)) {
+                code += "AsString()";
+              } else {
+                code += "<" + union_field_type_name + ">().Value";
+              }
             }
             break;
           default: FLATBUFFERS_ASSERT(0);
