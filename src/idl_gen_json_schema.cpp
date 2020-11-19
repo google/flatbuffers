@@ -157,14 +157,13 @@ class JsonSchemaGenerator : public BaseGenerator {
 
   // If indentation is less than 0, that indicates we don't want any newlines
   // either.
-  const std::string NewLine() {
+  std::string NewLine() const {
     return parser_.opts.indent_step >= 0 ? "\n" : "";
   }
 
-  const std::string Indent(int indent) {
-    std::string indentation = "";
-    return indentation.append(indent * std::max(parser_.opts.indent_step, 0),
-                              ' ');
+  std::string Indent(int indent) const {
+    const auto num_spaces = indent * std::max(parser_.opts.indent_step, 0);
+    return std::string(num_spaces, ' ');
   }
 
   bool generate() {
@@ -179,7 +178,7 @@ class JsonSchemaGenerator : public BaseGenerator {
          ++e) {
       code_ += Indent(2) + "\"" + GenFullName(*e) + "\" : {" + NewLine();
       code_ += Indent(3) + GenType("string") + "," + NewLine();
-      std::string enumdef(Indent(3) + "\"enum\": [");
+      auto enumdef(Indent(3) + "\"enum\": [");
       for (auto enum_value = (*e)->Vals().begin();
            enum_value != (*e)->Vals().end(); ++enum_value) {
         enumdef.append("\"" + (*enum_value)->name + "\"");
@@ -200,7 +199,7 @@ class JsonSchemaGenerator : public BaseGenerator {
            comment_line != comment_lines.cend(); ++comment_line) {
         comment.append(*comment_line);
       }
-      if (comment.size() > 0) {
+      if (!comment.empty()) {
         std::string description;
         if (!EscapeString(comment.c_str(), comment.length(), &description, true,
                           true)) {
@@ -241,8 +240,8 @@ class JsonSchemaGenerator : public BaseGenerator {
       std::copy_if(properties.begin(), properties.end(),
                    back_inserter(requiredProperties),
                    [](FieldDef const *prop) { return prop->required; });
-      if (requiredProperties.size() > 0) {
-        std::string required_string(Indent(3) + "\"required\" : [");
+      if (!requiredProperties.empty()) {
+        auto required_string(Indent(3) + "\"required\" : [");
         for (auto req_prop = requiredProperties.cbegin();
              req_prop != requiredProperties.cend(); ++req_prop) {
           required_string.append("\"" + (*req_prop)->name + "\"");
@@ -254,7 +253,7 @@ class JsonSchemaGenerator : public BaseGenerator {
         code_ += required_string + NewLine();
       }
       code_ += Indent(3) + "\"additionalProperties\" : false" + NewLine();
-      std::string closeType(Indent(2) + "}");
+      auto closeType(Indent(2) + "}");
       if (*s != parser_.structs_.vec.back()) { closeType.append(","); }
       code_ += closeType + NewLine();  // close type
     }
@@ -268,8 +267,8 @@ class JsonSchemaGenerator : public BaseGenerator {
     return true;
   }
 
-  bool save() {
-    const std::string file_path =
+  bool save() const {
+    const auto file_path =
         GeneratedFileName(path_, file_name_, parser_.opts);
     return SaveFile(file_path.c_str(), code_, false);
   }
