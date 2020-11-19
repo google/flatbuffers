@@ -35,7 +35,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v1.0.0
+      uses: microsoft/setup-msbuild@v1.0.2
     - name: cmake
       run: cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release .
     - name: build
