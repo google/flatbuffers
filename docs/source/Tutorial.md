@@ -237,7 +237,7 @@ legacy code that used this accessor.
 
 The `Weapon` table is a sub-table used within our FlatBuffer. It is
 used twice: once within the `Monster` table and once within the `Equipment`
-enum. For our `Monster`, it is used to populate a `vector of tables` via the
+union. For our `Monster`, it is used to populate a `vector of tables` via the
 `weapons` field within our `Monster`. It is also the only table referenced by
 the `Equipment` union.
 
