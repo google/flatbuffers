@@ -67,41 +67,11 @@ justI8():number {
 };
 
 /**
- * @param number value
- * @returns boolean
- */
-mutate_just_i8(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 4);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeInt8(this.bb_pos + offset, value);
-  return true;
-};
-
-/**
  * @returns number|null
  */
 maybeI8():number|null {
   var offset = this.bb!.__offset(this.bb_pos, 6);
   return offset ? this.bb!.readInt8(this.bb_pos + offset) : null;
-};
-
-/**
- * @param number value
- * @returns boolean
- */
-mutate_maybe_i8(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 6);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeInt8(this.bb_pos + offset, value);
-  return true;
 };
 
 /**
@@ -113,41 +83,11 @@ defaultI8():number {
 };
 
 /**
- * @param number value
- * @returns boolean
- */
-mutate_default_i8(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 8);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeInt8(this.bb_pos + offset, value);
-  return true;
-};
-
-/**
  * @returns number
  */
 justU8():number {
   var offset = this.bb!.__offset(this.bb_pos, 10);
   return offset ? this.bb!.readUint8(this.bb_pos + offset) : 0;
-};
-
-/**
- * @param number value
- * @returns boolean
- */
-mutate_just_u8(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 10);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint8(this.bb_pos + offset, value);
-  return true;
 };
 
 /**
@@ -159,41 +99,11 @@ maybeU8():number|null {
 };
 
 /**
- * @param number value
- * @returns boolean
- */
-mutate_maybe_u8(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 12);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint8(this.bb_pos + offset, value);
-  return true;
-};
-
-/**
  * @returns number
  */
 defaultU8():number {
   var offset = this.bb!.__offset(this.bb_pos, 14);
   return offset ? this.bb!.readUint8(this.bb_pos + offset) : 42;
-};
-
-/**
- * @param number value
- * @returns boolean
- */
-mutate_default_u8(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 14);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint8(this.bb_pos + offset, value);
-  return true;
 };
 
 /**
@@ -205,41 +115,11 @@ justI16():number {
 };
 
 /**
- * @param number value
- * @returns boolean
- */
-mutate_just_i16(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 16);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeInt16(this.bb_pos + offset, value);
-  return true;
-};
-
-/**
  * @returns number|null
  */
 maybeI16():number|null {
   var offset = this.bb!.__offset(this.bb_pos, 18);
   return offset ? this.bb!.readInt16(this.bb_pos + offset) : null;
-};
-
-/**
- * @param number value
- * @returns boolean
- */
-mutate_maybe_i16(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 18);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeInt16(this.bb_pos + offset, value);
-  return true;
 };
 
 /**
@@ -251,41 +131,11 @@ defaultI16():number {
 };
 
 /**
- * @param number value
- * @returns boolean
- */
-mutate_default_i16(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 20);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeInt16(this.bb_pos + offset, value);
-  return true;
-};
-
-/**
  * @returns number
  */
 justU16():number {
   var offset = this.bb!.__offset(this.bb_pos, 22);
   return offset ? this.bb!.readUint16(this.bb_pos + offset) : 0;
-};
-
-/**
- * @param number value
- * @returns boolean
- */
-mutate_just_u16(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 22);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint16(this.bb_pos + offset, value);
-  return true;
 };
 
 /**
@@ -297,41 +147,11 @@ maybeU16():number|null {
 };
 
 /**
- * @param number value
- * @returns boolean
- */
-mutate_maybe_u16(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 24);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint16(this.bb_pos + offset, value);
-  return true;
-};
-
-/**
  * @returns number
  */
 defaultU16():number {
   var offset = this.bb!.__offset(this.bb_pos, 26);
   return offset ? this.bb!.readUint16(this.bb_pos + offset) : 42;
-};
-
-/**
- * @param number value
- * @returns boolean
- */
-mutate_default_u16(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 26);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint16(this.bb_pos + offset, value);
-  return true;
 };
 
 /**
@@ -343,41 +163,11 @@ justI32():number {
 };
 
 /**
- * @param number value
- * @returns boolean
- */
-mutate_just_i32(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 28);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeInt32(this.bb_pos + offset, value);
-  return true;
-};
-
-/**
  * @returns number|null
  */
 maybeI32():number|null {
   var offset = this.bb!.__offset(this.bb_pos, 30);
   return offset ? this.bb!.readInt32(this.bb_pos + offset) : null;
-};
-
-/**
- * @param number value
- * @returns boolean
- */
-mutate_maybe_i32(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 30);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeInt32(this.bb_pos + offset, value);
-  return true;
 };
 
 /**
@@ -389,41 +179,11 @@ defaultI32():number {
 };
 
 /**
- * @param number value
- * @returns boolean
- */
-mutate_default_i32(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 32);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeInt32(this.bb_pos + offset, value);
-  return true;
-};
-
-/**
  * @returns number
  */
 justU32():number {
   var offset = this.bb!.__offset(this.bb_pos, 34);
   return offset ? this.bb!.readUint32(this.bb_pos + offset) : 0;
-};
-
-/**
- * @param number value
- * @returns boolean
- */
-mutate_just_u32(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 34);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint32(this.bb_pos + offset, value);
-  return true;
 };
 
 /**
@@ -435,41 +195,11 @@ maybeU32():number|null {
 };
 
 /**
- * @param number value
- * @returns boolean
- */
-mutate_maybe_u32(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 36);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint32(this.bb_pos + offset, value);
-  return true;
-};
-
-/**
  * @returns number
  */
 defaultU32():number {
   var offset = this.bb!.__offset(this.bb_pos, 38);
   return offset ? this.bb!.readUint32(this.bb_pos + offset) : 42;
-};
-
-/**
- * @param number value
- * @returns boolean
- */
-mutate_default_u32(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 38);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint32(this.bb_pos + offset, value);
-  return true;
 };
 
 /**
@@ -481,41 +211,11 @@ justI64():flatbuffers.Long {
 };
 
 /**
- * @param flatbuffers.Long value
- * @returns boolean
- */
-mutate_just_i64(value:flatbuffers.Long):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 40);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeInt64(this.bb_pos + offset, value);
-  return true;
-};
-
-/**
  * @returns flatbuffers.Long|null
  */
 maybeI64():flatbuffers.Long|null {
   var offset = this.bb!.__offset(this.bb_pos, 42);
   return offset ? this.bb!.readInt64(this.bb_pos + offset) : null;
-};
-
-/**
- * @param flatbuffers.Long value
- * @returns boolean
- */
-mutate_maybe_i64(value:flatbuffers.Long):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 42);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeInt64(this.bb_pos + offset, value);
-  return true;
 };
 
 /**
@@ -527,41 +227,11 @@ defaultI64():flatbuffers.Long {
 };
 
 /**
- * @param flatbuffers.Long value
- * @returns boolean
- */
-mutate_default_i64(value:flatbuffers.Long):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 44);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeInt64(this.bb_pos + offset, value);
-  return true;
-};
-
-/**
  * @returns flatbuffers.Long
  */
 justU64():flatbuffers.Long {
   var offset = this.bb!.__offset(this.bb_pos, 46);
   return offset ? this.bb!.readUint64(this.bb_pos + offset) : this.bb!.createLong(0, 0);
-};
-
-/**
- * @param flatbuffers.Long value
- * @returns boolean
- */
-mutate_just_u64(value:flatbuffers.Long):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 46);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint64(this.bb_pos + offset, value);
-  return true;
 };
 
 /**
@@ -573,41 +243,11 @@ maybeU64():flatbuffers.Long|null {
 };
 
 /**
- * @param flatbuffers.Long value
- * @returns boolean
- */
-mutate_maybe_u64(value:flatbuffers.Long):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 48);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint64(this.bb_pos + offset, value);
-  return true;
-};
-
-/**
  * @returns flatbuffers.Long
  */
 defaultU64():flatbuffers.Long {
   var offset = this.bb!.__offset(this.bb_pos, 50);
   return offset ? this.bb!.readUint64(this.bb_pos + offset) : this.bb!.createLong(42, 0);
-};
-
-/**
- * @param flatbuffers.Long value
- * @returns boolean
- */
-mutate_default_u64(value:flatbuffers.Long):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 50);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint64(this.bb_pos + offset, value);
-  return true;
 };
 
 /**
@@ -619,41 +259,11 @@ justF32():number {
 };
 
 /**
- * @param number value
- * @returns boolean
- */
-mutate_just_f32(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 52);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeFloat32(this.bb_pos + offset, value);
-  return true;
-};
-
-/**
  * @returns number|null
  */
 maybeF32():number|null {
   var offset = this.bb!.__offset(this.bb_pos, 54);
   return offset ? this.bb!.readFloat32(this.bb_pos + offset) : null;
-};
-
-/**
- * @param number value
- * @returns boolean
- */
-mutate_maybe_f32(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 54);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeFloat32(this.bb_pos + offset, value);
-  return true;
 };
 
 /**
@@ -665,41 +275,11 @@ defaultF32():number {
 };
 
 /**
- * @param number value
- * @returns boolean
- */
-mutate_default_f32(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 56);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeFloat32(this.bb_pos + offset, value);
-  return true;
-};
-
-/**
  * @returns number
  */
 justF64():number {
   var offset = this.bb!.__offset(this.bb_pos, 58);
   return offset ? this.bb!.readFloat64(this.bb_pos + offset) : 0.0;
-};
-
-/**
- * @param number value
- * @returns boolean
- */
-mutate_just_f64(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 58);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeFloat64(this.bb_pos + offset, value);
-  return true;
 };
 
 /**
@@ -711,41 +291,11 @@ maybeF64():number|null {
 };
 
 /**
- * @param number value
- * @returns boolean
- */
-mutate_maybe_f64(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 60);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeFloat64(this.bb_pos + offset, value);
-  return true;
-};
-
-/**
  * @returns number
  */
 defaultF64():number {
   var offset = this.bb!.__offset(this.bb_pos, 62);
   return offset ? this.bb!.readFloat64(this.bb_pos + offset) : 42.0;
-};
-
-/**
- * @param number value
- * @returns boolean
- */
-mutate_default_f64(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 62);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeFloat64(this.bb_pos + offset, value);
-  return true;
 };
 
 /**
@@ -757,41 +307,11 @@ justBool():boolean {
 };
 
 /**
- * @param boolean value
- * @returns boolean
- */
-mutate_just_bool(value:boolean):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 64);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeInt8(this.bb_pos + offset, +value);
-  return true;
-};
-
-/**
  * @returns boolean|null
  */
 maybeBool():boolean|null {
   var offset = this.bb!.__offset(this.bb_pos, 66);
   return offset ? !!this.bb!.readInt8(this.bb_pos + offset) : null;
-};
-
-/**
- * @param boolean value
- * @returns boolean
- */
-mutate_maybe_bool(value:boolean):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 66);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeInt8(this.bb_pos + offset, +value);
-  return true;
 };
 
 /**
@@ -803,41 +323,11 @@ defaultBool():boolean {
 };
 
 /**
- * @param boolean value
- * @returns boolean
- */
-mutate_default_bool(value:boolean):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 68);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeInt8(this.bb_pos + offset, +value);
-  return true;
-};
-
-/**
  * @returns optional_scalars.OptionalByte
  */
 justEnum():optional_scalars.OptionalByte {
   var offset = this.bb!.__offset(this.bb_pos, 70);
   return offset ? /**  */ (this.bb!.readInt8(this.bb_pos + offset)) : optional_scalars.OptionalByte.None;
-};
-
-/**
- * @param optional_scalars.OptionalByte value
- * @returns boolean
- */
-mutate_just_enum(value:optional_scalars.OptionalByte):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 70);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeInt8(this.bb_pos + offset, value);
-  return true;
 };
 
 /**
@@ -849,41 +339,11 @@ maybeEnum():optional_scalars.OptionalByte|null {
 };
 
 /**
- * @param optional_scalars.OptionalByte value
- * @returns boolean
- */
-mutate_maybe_enum(value:optional_scalars.OptionalByte):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 72);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeInt8(this.bb_pos + offset, value);
-  return true;
-};
-
-/**
  * @returns optional_scalars.OptionalByte
  */
 defaultEnum():optional_scalars.OptionalByte {
   var offset = this.bb!.__offset(this.bb_pos, 74);
   return offset ? /**  */ (this.bb!.readInt8(this.bb_pos + offset)) : optional_scalars.OptionalByte.One;
-};
-
-/**
- * @param optional_scalars.OptionalByte value
- * @returns boolean
- */
-mutate_default_enum(value:optional_scalars.OptionalByte):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 74);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeInt8(this.bb_pos + offset, value);
-  return true;
 };
 
 /**

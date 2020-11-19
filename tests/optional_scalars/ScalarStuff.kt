@@ -22,505 +22,181 @@ class ScalarStuff : Table() {
             val o = __offset(4)
             return if(o != 0) bb.get(o + bb_pos) else 0
         }
-    fun mutateJustI8(justI8: Byte) : Boolean {
-        val o = __offset(4)
-        return if (o != 0) {
-            bb.put(o + bb_pos, justI8)
-            true
-        } else {
-            false
-        }
-    }
     val maybeI8 : Byte?
         get() {
             val o = __offset(6)
             return if(o != 0) bb.get(o + bb_pos) else null
         }
-    fun mutateMaybeI8(maybeI8: Byte) : Boolean {
-        val o = __offset(6)
-        return if (o != 0) {
-            bb.put(o + bb_pos, maybeI8)
-            true
-        } else {
-            false
-        }
-    }
     val defaultI8 : Byte
         get() {
             val o = __offset(8)
             return if(o != 0) bb.get(o + bb_pos) else 42
         }
-    fun mutateDefaultI8(defaultI8: Byte) : Boolean {
-        val o = __offset(8)
-        return if (o != 0) {
-            bb.put(o + bb_pos, defaultI8)
-            true
-        } else {
-            false
-        }
-    }
     val justU8 : UByte
         get() {
             val o = __offset(10)
             return if(o != 0) bb.get(o + bb_pos).toUByte() else 0u
         }
-    fun mutateJustU8(justU8: UByte) : Boolean {
-        val o = __offset(10)
-        return if (o != 0) {
-            bb.put(o + bb_pos, justU8.toByte())
-            true
-        } else {
-            false
-        }
-    }
     val maybeU8 : UByte?
         get() {
             val o = __offset(12)
             return if(o != 0) bb.get(o + bb_pos).toUByte() else null
         }
-    fun mutateMaybeU8(maybeU8: UByte) : Boolean {
-        val o = __offset(12)
-        return if (o != 0) {
-            bb.put(o + bb_pos, maybeU8.toByte())
-            true
-        } else {
-            false
-        }
-    }
     val defaultU8 : UByte
         get() {
             val o = __offset(14)
             return if(o != 0) bb.get(o + bb_pos).toUByte() else 42u
         }
-    fun mutateDefaultU8(defaultU8: UByte) : Boolean {
-        val o = __offset(14)
-        return if (o != 0) {
-            bb.put(o + bb_pos, defaultU8.toByte())
-            true
-        } else {
-            false
-        }
-    }
     val justI16 : Short
         get() {
             val o = __offset(16)
             return if(o != 0) bb.getShort(o + bb_pos) else 0
         }
-    fun mutateJustI16(justI16: Short) : Boolean {
-        val o = __offset(16)
-        return if (o != 0) {
-            bb.putShort(o + bb_pos, justI16)
-            true
-        } else {
-            false
-        }
-    }
     val maybeI16 : Short?
         get() {
             val o = __offset(18)
             return if(o != 0) bb.getShort(o + bb_pos) else null
         }
-    fun mutateMaybeI16(maybeI16: Short) : Boolean {
-        val o = __offset(18)
-        return if (o != 0) {
-            bb.putShort(o + bb_pos, maybeI16)
-            true
-        } else {
-            false
-        }
-    }
     val defaultI16 : Short
         get() {
             val o = __offset(20)
             return if(o != 0) bb.getShort(o + bb_pos) else 42
         }
-    fun mutateDefaultI16(defaultI16: Short) : Boolean {
-        val o = __offset(20)
-        return if (o != 0) {
-            bb.putShort(o + bb_pos, defaultI16)
-            true
-        } else {
-            false
-        }
-    }
     val justU16 : UShort
         get() {
             val o = __offset(22)
             return if(o != 0) bb.getShort(o + bb_pos).toUShort() else 0u
         }
-    fun mutateJustU16(justU16: UShort) : Boolean {
-        val o = __offset(22)
-        return if (o != 0) {
-            bb.putShort(o + bb_pos, justU16.toShort())
-            true
-        } else {
-            false
-        }
-    }
     val maybeU16 : UShort?
         get() {
             val o = __offset(24)
             return if(o != 0) bb.getShort(o + bb_pos).toUShort() else null
         }
-    fun mutateMaybeU16(maybeU16: UShort) : Boolean {
-        val o = __offset(24)
-        return if (o != 0) {
-            bb.putShort(o + bb_pos, maybeU16.toShort())
-            true
-        } else {
-            false
-        }
-    }
     val defaultU16 : UShort
         get() {
             val o = __offset(26)
             return if(o != 0) bb.getShort(o + bb_pos).toUShort() else 42u
         }
-    fun mutateDefaultU16(defaultU16: UShort) : Boolean {
-        val o = __offset(26)
-        return if (o != 0) {
-            bb.putShort(o + bb_pos, defaultU16.toShort())
-            true
-        } else {
-            false
-        }
-    }
     val justI32 : Int
         get() {
             val o = __offset(28)
             return if(o != 0) bb.getInt(o + bb_pos) else 0
         }
-    fun mutateJustI32(justI32: Int) : Boolean {
-        val o = __offset(28)
-        return if (o != 0) {
-            bb.putInt(o + bb_pos, justI32)
-            true
-        } else {
-            false
-        }
-    }
     val maybeI32 : Int?
         get() {
             val o = __offset(30)
             return if(o != 0) bb.getInt(o + bb_pos) else null
         }
-    fun mutateMaybeI32(maybeI32: Int) : Boolean {
-        val o = __offset(30)
-        return if (o != 0) {
-            bb.putInt(o + bb_pos, maybeI32)
-            true
-        } else {
-            false
-        }
-    }
     val defaultI32 : Int
         get() {
             val o = __offset(32)
             return if(o != 0) bb.getInt(o + bb_pos) else 42
         }
-    fun mutateDefaultI32(defaultI32: Int) : Boolean {
-        val o = __offset(32)
-        return if (o != 0) {
-            bb.putInt(o + bb_pos, defaultI32)
-            true
-        } else {
-            false
-        }
-    }
     val justU32 : UInt
         get() {
             val o = __offset(34)
             return if(o != 0) bb.getInt(o + bb_pos).toUInt() else 0u
         }
-    fun mutateJustU32(justU32: UInt) : Boolean {
-        val o = __offset(34)
-        return if (o != 0) {
-            bb.putInt(o + bb_pos, justU32.toInt())
-            true
-        } else {
-            false
-        }
-    }
     val maybeU32 : UInt?
         get() {
             val o = __offset(36)
             return if(o != 0) bb.getInt(o + bb_pos).toUInt() else null
         }
-    fun mutateMaybeU32(maybeU32: UInt) : Boolean {
-        val o = __offset(36)
-        return if (o != 0) {
-            bb.putInt(o + bb_pos, maybeU32.toInt())
-            true
-        } else {
-            false
-        }
-    }
     val defaultU32 : UInt
         get() {
             val o = __offset(38)
             return if(o != 0) bb.getInt(o + bb_pos).toUInt() else 42u
         }
-    fun mutateDefaultU32(defaultU32: UInt) : Boolean {
-        val o = __offset(38)
-        return if (o != 0) {
-            bb.putInt(o + bb_pos, defaultU32.toInt())
-            true
-        } else {
-            false
-        }
-    }
     val justI64 : Long
         get() {
             val o = __offset(40)
             return if(o != 0) bb.getLong(o + bb_pos) else 0L
         }
-    fun mutateJustI64(justI64: Long) : Boolean {
-        val o = __offset(40)
-        return if (o != 0) {
-            bb.putLong(o + bb_pos, justI64)
-            true
-        } else {
-            false
-        }
-    }
     val maybeI64 : Long?
         get() {
             val o = __offset(42)
             return if(o != 0) bb.getLong(o + bb_pos) else null
         }
-    fun mutateMaybeI64(maybeI64: Long) : Boolean {
-        val o = __offset(42)
-        return if (o != 0) {
-            bb.putLong(o + bb_pos, maybeI64)
-            true
-        } else {
-            false
-        }
-    }
     val defaultI64 : Long
         get() {
             val o = __offset(44)
             return if(o != 0) bb.getLong(o + bb_pos) else 42L
         }
-    fun mutateDefaultI64(defaultI64: Long) : Boolean {
-        val o = __offset(44)
-        return if (o != 0) {
-            bb.putLong(o + bb_pos, defaultI64)
-            true
-        } else {
-            false
-        }
-    }
     val justU64 : ULong
         get() {
             val o = __offset(46)
             return if(o != 0) bb.getLong(o + bb_pos).toULong() else 0UL
         }
-    fun mutateJustU64(justU64: ULong) : Boolean {
-        val o = __offset(46)
-        return if (o != 0) {
-            bb.putLong(o + bb_pos, justU64.toLong())
-            true
-        } else {
-            false
-        }
-    }
     val maybeU64 : ULong?
         get() {
             val o = __offset(48)
             return if(o != 0) bb.getLong(o + bb_pos).toULong() else null
         }
-    fun mutateMaybeU64(maybeU64: ULong) : Boolean {
-        val o = __offset(48)
-        return if (o != 0) {
-            bb.putLong(o + bb_pos, maybeU64.toLong())
-            true
-        } else {
-            false
-        }
-    }
     val defaultU64 : ULong
         get() {
             val o = __offset(50)
             return if(o != 0) bb.getLong(o + bb_pos).toULong() else 42UL
         }
-    fun mutateDefaultU64(defaultU64: ULong) : Boolean {
-        val o = __offset(50)
-        return if (o != 0) {
-            bb.putLong(o + bb_pos, defaultU64.toLong())
-            true
-        } else {
-            false
-        }
-    }
     val justF32 : Float
         get() {
             val o = __offset(52)
             return if(o != 0) bb.getFloat(o + bb_pos) else 0.0f
         }
-    fun mutateJustF32(justF32: Float) : Boolean {
-        val o = __offset(52)
-        return if (o != 0) {
-            bb.putFloat(o + bb_pos, justF32)
-            true
-        } else {
-            false
-        }
-    }
     val maybeF32 : Float?
         get() {
             val o = __offset(54)
             return if(o != 0) bb.getFloat(o + bb_pos) else null
         }
-    fun mutateMaybeF32(maybeF32: Float) : Boolean {
-        val o = __offset(54)
-        return if (o != 0) {
-            bb.putFloat(o + bb_pos, maybeF32)
-            true
-        } else {
-            false
-        }
-    }
     val defaultF32 : Float
         get() {
             val o = __offset(56)
             return if(o != 0) bb.getFloat(o + bb_pos) else 42.0f
         }
-    fun mutateDefaultF32(defaultF32: Float) : Boolean {
-        val o = __offset(56)
-        return if (o != 0) {
-            bb.putFloat(o + bb_pos, defaultF32)
-            true
-        } else {
-            false
-        }
-    }
     val justF64 : Double
         get() {
             val o = __offset(58)
             return if(o != 0) bb.getDouble(o + bb_pos) else 0.0
         }
-    fun mutateJustF64(justF64: Double) : Boolean {
-        val o = __offset(58)
-        return if (o != 0) {
-            bb.putDouble(o + bb_pos, justF64)
-            true
-        } else {
-            false
-        }
-    }
     val maybeF64 : Double?
         get() {
             val o = __offset(60)
             return if(o != 0) bb.getDouble(o + bb_pos) else null
         }
-    fun mutateMaybeF64(maybeF64: Double) : Boolean {
-        val o = __offset(60)
-        return if (o != 0) {
-            bb.putDouble(o + bb_pos, maybeF64)
-            true
-        } else {
-            false
-        }
-    }
     val defaultF64 : Double
         get() {
             val o = __offset(62)
             return if(o != 0) bb.getDouble(o + bb_pos) else 42.0
         }
-    fun mutateDefaultF64(defaultF64: Double) : Boolean {
-        val o = __offset(62)
-        return if (o != 0) {
-            bb.putDouble(o + bb_pos, defaultF64)
-            true
-        } else {
-            false
-        }
-    }
     val justBool : Boolean
         get() {
             val o = __offset(64)
             return if(o != 0) 0.toByte() != bb.get(o + bb_pos) else false
         }
-    fun mutateJustBool(justBool: Boolean) : Boolean {
-        val o = __offset(64)
-        return if (o != 0) {
-            bb.put(o + bb_pos, (if(justBool) 1 else 0).toByte())
-            true
-        } else {
-            false
-        }
-    }
     val maybeBool : Boolean?
         get() {
             val o = __offset(66)
             return if(o != 0) 0.toByte() != bb.get(o + bb_pos) else null
         }
-    fun mutateMaybeBool(maybeBool: Boolean) : Boolean {
-        val o = __offset(66)
-        return if (o != 0) {
-            bb.put(o + bb_pos, (if(maybeBool) 1 else 0).toByte())
-            true
-        } else {
-            false
-        }
-    }
     val defaultBool : Boolean
         get() {
             val o = __offset(68)
             return if(o != 0) 0.toByte() != bb.get(o + bb_pos) else true
         }
-    fun mutateDefaultBool(defaultBool: Boolean) : Boolean {
-        val o = __offset(68)
-        return if (o != 0) {
-            bb.put(o + bb_pos, (if(defaultBool) 1 else 0).toByte())
-            true
-        } else {
-            false
-        }
-    }
     val justEnum : Byte
         get() {
             val o = __offset(70)
             return if(o != 0) bb.get(o + bb_pos) else 0
         }
-    fun mutateJustEnum(justEnum: Byte) : Boolean {
-        val o = __offset(70)
-        return if (o != 0) {
-            bb.put(o + bb_pos, justEnum)
-            true
-        } else {
-            false
-        }
-    }
     val maybeEnum : Byte?
         get() {
             val o = __offset(72)
             return if(o != 0) bb.get(o + bb_pos) else null
         }
-    fun mutateMaybeEnum(maybeEnum: Byte) : Boolean {
-        val o = __offset(72)
-        return if (o != 0) {
-            bb.put(o + bb_pos, maybeEnum)
-            true
-        } else {
-            false
-        }
-    }
     val defaultEnum : Byte
         get() {
             val o = __offset(74)
             return if(o != 0) bb.get(o + bb_pos) else 1
         }
-    fun mutateDefaultEnum(defaultEnum: Byte) : Boolean {
-        val o = __offset(74)
-        return if (o != 0) {
-            bb.put(o + bb_pos, defaultEnum)
-            true
-        } else {
-            false
-        }
-    }
     companion object {
         fun validateVersion() = Constants.FLATBUFFERS_1_12_0()
         fun getRootAsScalarStuff(_bb: ByteBuffer): ScalarStuff = getRootAsScalarStuff(_bb, ScalarStuff())
