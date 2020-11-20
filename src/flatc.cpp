@@ -163,6 +163,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --reflect-types        Add minimal type reflection to code generation.\n"
     "  --reflect-names        Add minimal type/name reflection.\n"
     "  --root-type T          Select or override the default root_type\n"
+    "  --require-explicit-ids When parsing schemas, require explicit ids (id: x).\n"
     "  --force-defaults       Emit default values in binary output from JSON\n"
     "  --force-empty          When serializing from object API representation,\n"
     "                         force strings and vectors to empty rather than null.\n"
@@ -345,6 +346,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.mini_reflect = IDLOptions::kTypes;
       } else if (arg == "--reflect-names") {
         opts.mini_reflect = IDLOptions::kTypesAndNames;
+      } else if (arg == "--require-explicit-ids") {
+        opts.require_explicit_ids = true;
       } else if (arg == "--root-type") {
         if (++argi >= argc) Error("missing type following: " + arg, true);
         opts.root_type = argv[argi];

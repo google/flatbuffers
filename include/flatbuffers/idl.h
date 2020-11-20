@@ -601,6 +601,9 @@ struct IDLOptions {
 
   MiniReflect mini_reflect;
 
+  // If set, require all fields in a table to be explicitly numbered.
+  bool require_explicit_ids;
+
   // The corresponding language bit will be set if a language is included
   // for code generation.
   unsigned long lang_to_generate;
@@ -661,6 +664,7 @@ struct IDLOptions {
         filename_extension(),
         lang(IDLOptions::kJava),
         mini_reflect(IDLOptions::kNone),
+        require_explicit_ids(false),
         lang_to_generate(0),
         set_empty_strings_to_null(true),
         set_empty_vectors_to_null(true) {}

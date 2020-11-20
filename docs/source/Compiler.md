@@ -218,6 +218,8 @@ Additional options:
 
 -   `--root-type T` : Select or override the default root_type.
 
+-   `--require-explicit-ids` : When parsing schemas, require explicit ids (id: x).
+
 -   `--force-defaults` : Emit default values in binary output from JSON.
 
 -   `--force-empty` : When serializing from object API representation, force
