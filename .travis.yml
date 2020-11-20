@@ -203,16 +203,8 @@ matrix:
 
     - language: generic
       os: linux
-      before_install:
-        - wget https://raw.githubusercontent.com/creationix/nvm/v0.31.0/nvm.sh -O ~/.nvm/nvm.sh
-        - source ~/.nvm/nvm.sh
-        - nvm install node
-        - node --version
-        - curl -o- -L https://yarnpkg.com/install.sh | bash
-        - export PATH="$HOME/.yarn/bin:$PATH"
-        - yarn config set prefix ~/.yarn -g
-        - export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
-
-      script:
+      install:
         - bash .travis/format_install.sh
+        
+      script:
         - bash .travis/format_check.sh
