@@ -81,6 +81,15 @@ codegen:
 
 documentation:
   - docs/**/*
+  - '**/*.md'
+
+CI:
+  - '.github/**/*'
+  - '.appveyor/**/*
+  - '.travis/**/*'
+  - '.bazelci/**/*
+  - .travis.yml
+  - appveyor.yml
 
 grpc:
   - grpc/**/*
