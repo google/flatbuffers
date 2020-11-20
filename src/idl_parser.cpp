@@ -2379,11 +2379,18 @@ CheckedError Parser::ParseDecl() {
       if ((*it)->attributes.Lookup("id")) num_id_fields++;
     }
     // If any fields have ids..
-    if (num_id_fields) {
+    if (num_id_fields || opts.require_explicit_ids) {
       // Then all fields must have them.
-      if (num_id_fields != fields.size())
-        return Error(
-            "either all fields or no fields must have an 'id' attribute");
+      if (num_id_fields != fields.size()) {
+        if (opts.require_explicit_ids) {
+          return Error(
+              "all fields must have an 'id' attribute when "
+              "--require-explicit-ids is used");
+        } else {
+          return Error(
+              "either all fields or no fields must have an 'id' attribute");
+        }
+      }
       // Simply sort by id, then the fields are the same as if no ids had
       // been specified.
       std::sort(fields.begin(), fields.end(), compareFieldDefs);
