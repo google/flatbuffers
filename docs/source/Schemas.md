@@ -42,7 +42,7 @@ first:
 Tables are the main way of defining objects in FlatBuffers, and consist of a
 name (here `Monster`) and a list of fields. Each field has a name, a type, and
 optionally a default value. If the default value is not specified in the schema,
-it will be `0` for scalar types, or `NULL` for other types. Some languages
+it will be `0` for scalar types, or `null` for other types. Some languages
 support setting a scalar's default to `null`. This makes the scalar optional.
 
 Fields do not have to appear in the wire representation, and you can choose
@@ -153,7 +153,7 @@ optionally ending with an `e` or `E`, followed by a `+` or `-` and more digits.
 Values can also be the keyword `null`.
 
 Only scalar values can have defaults, non-scalar (string/vector/table) fields
-default to `NULL` when not present.
+default to `null` when not present.
 
 You generally do not want to change default values after they're initially
 defined. Fields that have the default value are not actually stored in the
@@ -340,7 +340,7 @@ Current understood attributes:
     desirable, as it helps with forwards/backwards compatibility, and
     flexibility of data structures. By specifying this attribute, you make non-
     presence in an error for both reader and writer. The reading code may access
-    the field directly, without checking for NULL. If the constructing code does
+    the field directly, without checking for null. If the constructing code does
     not initialize this field, they will get an assert, and also the verifier
     will fail on buffers that have missing required fields. Both adding and
     removing this attribute may be forwards/backwards incompatible as readers

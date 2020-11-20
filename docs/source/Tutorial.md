@@ -227,13 +227,14 @@ less memory and have faster lookup.
 
 The `Monster` table is the main object in our FlatBuffer. This will be used as
 the template to store our `orc` monster. We specify some default values for
-fields, such as `mana:short = 150`. All unspecified fields will default to `0`
-or `NULL`. Another thing to note is the line
-`friendly:bool = false (deprecated);`. Since you cannot delete fields from a
-`table` (to support backwards compatability), you can set fields as
-`deprecated`, which will prevent the generation of accessors for this field in
-the generated code. Be careful when using `deprecated`, however, as it may break
-legacy code that used this accessor.
+fields, such as `mana:short = 150`. If unspecified, scalar fields (like `int`,
+`uint`, or `float`) will be given a default of `0` while strings and tables will
+be given a default of `null`. Another thing to note is the line `friendly:bool =
+false (deprecated);`. Since you cannot delete fields from a `table` (to support
+backwards compatability), you can set fields as `deprecated`, which will prevent
+the generation of accessors for this field in the generated code. Be careful
+when using `deprecated`, however, as it may break legacy code that used this
+accessor.
 
 The `Weapon` table is a sub-table used within our FlatBuffer. It is
 used twice: once within the `Monster` table and once within the `Equipment`
@@ -2702,7 +2703,7 @@ To access sub-objects, in the case of our `pos`, which is a `Vec3`:
 
 `x`, `y`, and `z` will contain `1.0`, `2.0`, and `3.0`, respectively.
 
-*Note: Had we not set `pos` during serialization, it would be a `NULL`-value.*
+*Note: Had we not set `pos` during serialization, it would be a `null`-value.*
 
 Similarly, we can access elements of the inventory `vector` by indexing it. You
 can also iterate over the length of the array/vector representing the
