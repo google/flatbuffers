@@ -178,13 +178,13 @@
                 "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_TestSimpleTableWithEnum" },{ "$ref" : "#/definitions/MyGame_Example2_Monster" }]
               },
         "test4" : {
-                "$ref" : "#/definitions/MyGame_Example_Test"
+                "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Test"}
               },
         "testarrayofstring" : {
                 "type" : "array", "items" : {"type" : "string"}
               },
         "testarrayoftables" : {
-                "$ref" : "#/definitions/MyGame_Example_Monster"
+                "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Monster"}
               },
         "enemy" : {
                 "$ref" : "#/definitions/MyGame_Example_Monster"
@@ -238,13 +238,13 @@
                 "type" : "array", "items" : {"type" : "string"}
               },
         "testarrayofsortedstruct" : {
-                "$ref" : "#/definitions/MyGame_Example_Ability"
+                "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Ability"}
               },
         "flex" : {
                 "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" :255"}
               },
         "test5" : {
-                "$ref" : "#/definitions/MyGame_Example_Test"
+                "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Test"}
               },
         "vector_of_longs" : {
                 "type" : "array", "items" : {"type" : "integer", "minimum" : -9223372036854775808, "maximum" : 9223372036854775807}
@@ -256,7 +256,7 @@
                 "$ref" : "#/definitions/MyGame_InParentNamespace"
               },
         "vector_of_referrables" : {
-                "$ref" : "#/definitions/MyGame_Example_Referrable"
+                "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Referrable"}
               },
         "single_weak_reference" : {
                 "type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615
@@ -265,7 +265,7 @@
                 "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615}
               },
         "vector_of_strong_referrables" : {
-                "$ref" : "#/definitions/MyGame_Example_Referrable"
+                "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Referrable"}
               },
         "co_owning_reference" : {
                 "type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615
@@ -292,7 +292,7 @@
                 "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_Monster" }]
               },
         "vector_of_enums" : {
-                "$ref" : "#/definitions/MyGame_Example_Color"
+                "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Color"}
               },
         "signed_enum" : {
                 "$ref" : "#/definitions/MyGame_Example_Race"

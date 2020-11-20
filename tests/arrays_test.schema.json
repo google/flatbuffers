@@ -17,7 +17,7 @@
                 "$ref" : "#/definitions/MyGame_Example_TestEnum"
               },
         "c" : {
-                "$ref" : "#/definitions/MyGame_Example_TestEnum",
+                "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_TestEnum"},
                 "minItems": 2,
                 "maxItems": 2
               },
@@ -44,7 +44,7 @@
                 "type" : "integer", "minimum" : -128, "maximum" : 127"
               },
         "d" : {
-                "$ref" : "#/definitions/MyGame_Example_NestedStruct",
+                "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_NestedStruct"},
                 "minItems": 2,
                 "maxItems": 2
               },
