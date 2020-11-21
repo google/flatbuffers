@@ -816,7 +816,7 @@ void ParseAndGenerateTextTest(bool binary) {
   } else {
     TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
   }
-  TEST_EQ(parser.Parse(jsonfile.c_str(), include_directories), true);
+  TEST_EQ(parser.ParseJson(jsonfile.c_str()), true);
 
   // here, parser.builder_ contains a binary buffer that is the parsed data.
 

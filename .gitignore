@@ -123,6 +123,7 @@ dart/doc/api/
 Cargo.lock
 .corpus**
 .seed**
+.crash**
 grpc/google/
 **/Package.resolved
 .clangd/**
