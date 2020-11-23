@@ -2857,6 +2857,8 @@ CheckedError Parser::ParseFlexBufferValue(flexbuffers::Builder *builder) {
                                });
       ECHECK(err);
       builder->EndMap(start);
+      if (builder->HasDuplicateKeys())
+        return Error("FlexBuffers map has duplicate keys");
       break;
     }
     case '[': {
