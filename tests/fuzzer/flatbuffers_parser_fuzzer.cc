@@ -9,14 +9,9 @@
 #include "flatbuffers/idl.h"
 #include "test_init.h"
 
-static constexpr uint8_t flags_strict_json = 0x01;
-static constexpr uint8_t flags_skip_unexpected_fields_in_json = 0x02;
-static constexpr uint8_t flags_allow_non_utf8 = 0x04;
-// static constexpr uint8_t flags_flag_3 = 0x08;
-// static constexpr uint8_t flags_flag_4 = 0x10;
-// static constexpr uint8_t flags_flag_5 = 0x20;
-// static constexpr uint8_t flags_flag_6 = 0x40;
-// static constexpr uint8_t flags_flag_7 = 0x80;
+static constexpr uint8_t flags_strict_json = 0x80;
+static constexpr uint8_t flags_skip_unexpected_fields_in_json = 0x40;
+static constexpr uint8_t flags_allow_non_utf8 = 0x20;
 
 // Utility for test run.
 OneTimeTestInit OneTimeTestInit::one_time_init_;

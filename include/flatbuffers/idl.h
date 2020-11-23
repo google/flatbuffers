@@ -804,6 +804,11 @@ class Parser : public ParserState {
     }
   }
 
+#ifdef FLATBUFFERS_DEFAULT_DECLARATION
+  Parser(Parser&&) = default;
+  Parser& operator=(Parser&&) = default;
+#endif
+
   // Parse the string containing either schema or JSON data, which will
   // populate the SymbolTable's or the FlatBufferBuilder above.
   // include_paths is used to resolve any include statements, and typically
@@ -817,6 +822,8 @@ class Parser : public ParserState {
   // paths from user input, please call PosixPath on them first.
   bool Parse(const char *_source, const char **include_paths = nullptr,
              const char *source_filename = nullptr);
+
+  bool ParseJson(const char *json, const char *json_filename = nullptr);
 
   // Set the root type. May override the one set in the schema.
   bool SetRootType(const char *name);
@@ -945,6 +952,7 @@ class Parser : public ParserState {
                                     const char **include_paths,
                                     const char *source_filename,
                                     const char *include_filename);
+  FLATBUFFERS_CHECKED_ERROR DoParseJson();
   FLATBUFFERS_CHECKED_ERROR CheckClash(std::vector<FieldDef *> &fields,
                                        StructDef *struct_def,
                                        const char *suffix, BaseType baseType);

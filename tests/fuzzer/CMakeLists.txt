@@ -29,7 +29,7 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld")
 
 add_compile_options(
   # -stdlib=libc++ # Use Clang libc++ instead of GNU.
-  -std=c++14
+  -std=c++17
   -Wall
   -pedantic
   -Werror
@@ -52,7 +52,9 @@ add_library(fuzzer_config INTERFACE)
 target_compile_options(
   fuzzer_config
   INTERFACE
-    #-fsanitize-coverage=edge,trace-cmp
+    $<$<NOT:$<BOOL:${OSS_FUZZ}>>:
+      -fsanitize-coverage=edge,trace-cmp
+    >
     $<$<BOOL:${USE_ASAN}>:
       -fsanitize=fuzzer,undefined,address
     >
@@ -130,6 +132,9 @@ target_link_libraries(parser_fuzzer PRIVATE flatbuffers_fuzzed)
 
 add_executable(verifier_fuzzer flatbuffers_verifier_fuzzer.cc)
 target_link_libraries(verifier_fuzzer PRIVATE flatbuffers_fuzzed)
+
+add_executable(monster_fuzzer flatbuffers_monster_fuzzer.cc)
+target_link_libraries(monster_fuzzer PRIVATE flatbuffers_fuzzed)
 
 # Build debugger for weird cases found with fuzzer.
 if(BUILD_DEBUGGER)
