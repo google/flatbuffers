@@ -908,6 +908,11 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     buf_.clear();
   }
 
+#ifdef FLATBUFFERS_DEFAULT_DECLARATION
+  Builder(Builder &&) = default;
+  Builder &operator=(Builder &&) = default;
+#endif
+
   /// @brief Get the serialized buffer (after you call `Finish()`).
   /// @return Returns a vector owned by this class.
   const std::vector<uint8_t> &GetBuffer() const {

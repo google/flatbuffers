@@ -2923,6 +2923,15 @@ bool Parser::Parse(const char *source, const char **include_paths,
   return r;
 }
 
+bool Parser::ParseJson(const char *json, const char *json_filename) {
+  FLATBUFFERS_ASSERT(0 == recurse_protection_counter);
+  builder_.Clear();
+  const auto done =
+      !StartParseFile(json, json_filename).Check() && !DoParseJson().Check();
+  FLATBUFFERS_ASSERT(0 == recurse_protection_counter);
+  return done;
+}
+
 CheckedError Parser::StartParseFile(const char *source,
                                     const char *source_filename) {
   file_being_parsed_ = source_filename ? source_filename : "";
@@ -3103,25 +3112,7 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
     } else if (IsIdent("namespace")) {
       ECHECK(ParseNamespace());
     } else if (token_ == '{') {
-      if (!root_struct_def_)
-        return Error("no root type set to parse json with");
-      if (builder_.GetSize()) {
-        return Error("cannot have more than one json object in a file");
-      }
-      uoffset_t toff;
-      ECHECK(ParseTable(*root_struct_def_, nullptr, &toff));
-      if (opts.size_prefixed) {
-        builder_.FinishSizePrefixed(
-            Offset<Table>(toff),
-            file_identifier_.length() ? file_identifier_.c_str() : nullptr);
-      } else {
-        builder_.Finish(Offset<Table>(toff), file_identifier_.length()
-                                                 ? file_identifier_.c_str()
-                                                 : nullptr);
-      }
-      // Check that JSON file doesn't contain more objects or IDL directives.
-      // Comments after JSON are allowed.
-      EXPECT(kTokenEof);
+      ECHECK(DoParseJson());
     } else if (IsIdent("enum")) {
       ECHECK(ParseEnum(false, nullptr));
     } else if (IsIdent("union")) {
@@ -3169,6 +3160,34 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
       ECHECK(ParseDecl());
     }
   }
+  return NoError();
+}
+
+CheckedError Parser::DoParseJson()
+{
+  if (token_ != '{') {
+    EXPECT('{');
+  } else {
+    if (!root_struct_def_)
+      return Error("no root type set to parse json with");
+    if (builder_.GetSize()) {
+      return Error("cannot have more than one json object in a file");
+    }
+    uoffset_t toff;
+    ECHECK(ParseTable(*root_struct_def_, nullptr, &toff));
+    if (opts.size_prefixed) {
+      builder_.FinishSizePrefixed(
+          Offset<Table>(toff),
+          file_identifier_.length() ? file_identifier_.c_str() : nullptr);
+    } else {
+      builder_.Finish(Offset<Table>(toff), file_identifier_.length()
+                                                ? file_identifier_.c_str()
+                                                : nullptr);
+    }
+  }
+  // Check that JSON file doesn't contain more objects or IDL directives.
+  // Comments after JSON are allowed.
+  EXPECT(kTokenEof);
   return NoError();
 }
 
