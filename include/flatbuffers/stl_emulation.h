@@ -164,6 +164,8 @@ inline void vector_emplace_back(std::vector<T> *vector, V &&data) {
     using conditional = std::conditional<B, T, F>;
     template<class T, T v>
     using integral_constant = std::integral_constant<T, v>;
+    template <bool B>
+    using bool_constant = integral_constant<bool, B>;
   #else
     // Map C++ TR1 templates defined by stlport.
     template <typename T> using is_scalar = std::tr1::is_scalar<T>;
@@ -187,6 +189,8 @@ inline void vector_emplace_back(std::vector<T> *vector, V &&data) {
     using conditional = std::tr1::conditional<B, T, F>;
     template<class T, T v>
     using integral_constant = std::tr1::integral_constant<T, v>;
+    template <bool B>
+    using bool_constant = integral_constant<bool, B>;
   #endif  // !FLATBUFFERS_CPP98_STL
 #else
   // MSVC 2010 doesn't support C++11 aliases.
@@ -201,6 +205,8 @@ inline void vector_emplace_back(std::vector<T> *vector, V &&data) {
   struct conditional : public std::conditional<B, T, F> {};
   template<class T, T v>
   struct integral_constant : public std::integral_constant<T, v> {};
+  template <bool B>
+  struct bool_constant : public integral_constant<bool, B> {};
 #endif  // defined(FLATBUFFERS_TEMPLATES_ALIASES)
 
 #ifndef FLATBUFFERS_CPP98_STL
