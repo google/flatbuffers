@@ -21,6 +21,8 @@ source ~/.nvm/nvm.sh
 nvm alias default node
 nvm use default
 
+sh src/clang-format-git.sh
+
 node_modules/.bin/eslint ts/** --ext .ts --quiet --fix
 
 #PYTHON IS DISABLED UNTIL WE CREATE A .pylintrc FILE FOR IT
