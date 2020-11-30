@@ -33,7 +33,7 @@ if ! git diff --quiet; then
   echo "ERROR: ********************************************************" >&2
   echo "ERROR: The following differences were found after running" >&2
   echo "ERROR: .travis/format_check.sh script. Maybe you forgot to format" >&2
-  echo "ERROR: the code after making changes? please check FORMAT.md" >&2
+  echo "ERROR: the code after making changes? please check Formatters.md" >&2
   echo "ERROR: ********************************************************" >&2
   echo >&2
   git diff --binary --exit-code

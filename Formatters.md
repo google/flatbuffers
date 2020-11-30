@@ -9,6 +9,10 @@ If you are interesting in contributing to the flatbuffers project, please take a
 
 # Languages
 
+## C++
+
+C++ uses `clang-format` as it's formatter. Run the following script `sh src/clang-format-git.sh`, and it should style the C++ code according to [google style guide](https://google.github.io/styleguide/cppguide.html).
+
 ## Swift
 
 Swift uses swiftformat as it's formatter. Take a look at [how to install here](https://github.com/nicklockwood/SwiftFormat/blob/master/README.md#how-do-i-install-it). Run the following command `swiftformat --config swift.swiftformat .` in the root directory of the project
