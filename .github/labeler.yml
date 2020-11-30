@@ -84,10 +84,10 @@ documentation:
   - '**/*.md'
 
 CI:
-  - '.github/**/*'
-  - '.appveyor/**/*
-  - '.travis/**/*'
-  - '.bazelci/**/*
+  - .github/**/*
+  - .appveyor/**/*
+  - .travis/**/*
+  - .bazelci/**/*
   - .travis.yml
   - appveyor.yml
 
