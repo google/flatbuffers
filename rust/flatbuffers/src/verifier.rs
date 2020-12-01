@@ -463,10 +463,11 @@ fn verify_vector_range<T>(v: &mut Verifier, pos: usize) -> Result<std::ops::Rang
     let data = pos + SIZE_UOFFSET;
     v.is_aligned::<T>(data)?;
     let size = std::mem::size_of::<T>();
-    v.range_in_buffer(data, len * size)?;
+    let vec_size = len.saturating_mul(size);
+    v.range_in_buffer(data, vec_size)?;
     Ok(std::ops::Range {
         start: data,
-        end: data + len * size,
+        end: data + vec_size,
     })
 }
 
