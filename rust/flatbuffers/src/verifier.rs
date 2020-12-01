@@ -249,8 +249,9 @@ impl<'opts, 'buf> Verifier<'opts, 'buf> {
     }
     #[inline]
     fn range_in_buffer(&mut self, pos: usize, size: usize) -> Result<()> {
-        if pos + size > self.buffer.len() {
-            return InvalidFlatbuffer::new_range_oob(pos, pos + size);
+        let end = pos.saturating_add(size);
+        if end > self.buffer.len() {
+            return InvalidFlatbuffer::new_range_oob(pos, end);
         }
         self.apparent_size += size;
         if self.apparent_size > self.opts.max_apparent_size {
@@ -312,7 +313,7 @@ impl<'opts, 'buf> Verifier<'opts, 'buf> {
     ) -> Result<TableVerifier<'ver, 'opts, 'buf>> {
         let vtable_pos = self.deref_soffset(table_pos)?;
         let vtable_len = self.get_u16(vtable_pos)? as usize;
-        self.is_aligned::<VOffsetT>(vtable_pos + vtable_len)?; // i.e. vtable_len is even.
+        self.is_aligned::<VOffsetT>(vtable_pos.saturating_add(vtable_len))?; // i.e. vtable_len is even.
         self.range_in_buffer(vtable_pos, vtable_len)?;
         // Check bounds.
         self.num_tables += 1;
@@ -359,10 +360,10 @@ impl<'ver, 'opts, 'buf> TableVerifier<'ver, 'opts, 'buf> {
     fn deref(&mut self, field: VOffsetT) -> Result<Option<usize>> {
         let field = field as usize;
         if field < self.vtable_len {
-            let field_offset = self.verifier.get_u16(self.vtable + field)?;
+            let field_offset = self.verifier.get_u16(self.vtable.saturating_add(field))?;
             if field_offset > 0 {
                 // Field is present.
-                let field_pos = self.pos + field_offset as usize;
+                let field_pos = self.pos.saturating_add(field_offset as usize);
                 return Ok(Some(field_pos));
             }
         }
@@ -452,7 +453,7 @@ impl<T: Verifiable> Verifiable for ForwardsUOffset<T> {
     #[inline]
     fn run_verifier(v: &mut Verifier, pos: usize) -> Result<()> {
         let offset = v.get_uoffset(pos)? as usize;
-        let next_pos = offset + pos;
+        let next_pos = offset.saturating_add(pos);
         T::run_verifier(v, next_pos)
     }
 }
@@ -460,15 +461,12 @@ impl<T: Verifiable> Verifiable for ForwardsUOffset<T> {
 /// Checks and returns the range containing the flatbuffers vector.
 fn verify_vector_range<T>(v: &mut Verifier, pos: usize) -> Result<std::ops::Range<usize>> {
     let len = v.get_uoffset(pos)? as usize;
-    let data = pos + SIZE_UOFFSET;
-    v.is_aligned::<T>(data)?;
-    let size = std::mem::size_of::<T>();
-    let vec_size = len.saturating_mul(size);
-    v.range_in_buffer(data, vec_size)?;
-    Ok(std::ops::Range {
-        start: data,
-        end: data + vec_size,
-    })
+    let start = pos.saturating_add(SIZE_UOFFSET);
+    v.is_aligned::<T>(start)?;
+    let size = len.saturating_mul(std::mem::size_of::<T>());
+    let end = start.saturating_add(size);
+    v.range_in_buffer(start, size)?;
+    Ok(std::ops::Range { start, end })
 }
 
 pub trait SimpleToVerifyInSlice {}
@@ -494,7 +492,7 @@ impl<T: SimpleToVerifyInSlice> Verifiable for Vector<'_, T> {
 impl<T: Verifiable> Verifiable for SkipSizePrefix<T> {
     #[inline]
     fn run_verifier(v: &mut Verifier, pos: usize) -> Result<()> {
-        T::run_verifier(v, pos + crate::SIZE_SIZEPREFIX)
+        T::run_verifier(v, pos.saturating_add(crate::SIZE_SIZEPREFIX))
     }
 }
 
