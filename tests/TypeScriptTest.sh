@@ -16,7 +16,6 @@
 
 pushd "$(dirname $0)" >/dev/null
 
-npm install @types/flatbuffers
 npm run pretest
 
 export FB_TS_TEST="TRUE"
@@ -31,5 +30,3 @@ tsc --strict --noUnusedParameters --noUnusedLocals --noImplicitReturns --strictN
 node JavaScriptUnionVectorTest ./ts/union_vector_generated
 
 unset FB_TS_TEST
-
-npm uninstall @types/flatbuffers

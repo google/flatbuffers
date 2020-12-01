@@ -484,7 +484,12 @@ class JsTsGenerator : public BaseGenerator {
       case BASE_TYPE_LONG:
       case BASE_TYPE_ULONG: {
         int64_t constant = StringToInt(value.constant.c_str());
-        return context + ".createLong(" +
+        std::string createLong;
+        if (context == "flatbuffers")
+          createLong = "createLong";
+        else
+          createLong = context + ".createLong";
+        return createLong + "(" +
                NumToString(static_cast<int32_t>(constant)) + ", " +
                NumToString(static_cast<int32_t>(constant >> 32)) + ")";
       }
@@ -510,7 +515,7 @@ class JsTsGenerator : public BaseGenerator {
     switch (type.base_type) {
       case BASE_TYPE_BOOL: return (allowNull) ? ("boolean|null") : ("boolean");
       case BASE_TYPE_LONG:
-      case BASE_TYPE_ULONG: return (allowNull) ? ("flatbuffers.Long|null") : ("flatbuffers.Long");
+      case BASE_TYPE_ULONG: return (allowNull) ? ("Long|null") : ("Long");
       default:
         if (IsScalar(type.base_type)) {
           if (type.enum_def) {
@@ -520,7 +525,7 @@ class JsTsGenerator : public BaseGenerator {
           
           return (allowNull) ? ("number|null") : ("number");
         }
-        return "flatbuffers.Offset";
+        return "Offset";
     }
   }
 
@@ -646,14 +651,14 @@ class JsTsGenerator : public BaseGenerator {
                             bool size_prefixed) {
     if (!struct_def.fixed) {
       GenDocComment(code_ptr,
-                    GenTypeAnnotation(kParam, "flatbuffers.ByteBuffer", "bb") +
+                    GenTypeAnnotation(kParam, "ByteBuffer", "bb") +
                         GenTypeAnnotation(kParam, object_name + "=", "obj") +
                         GenTypeAnnotation(kReturns, object_name, "", false));
       std::string sizePrefixed("SizePrefixed");
       if (lang_.language == IDLOptions::kTs) {
         code += "static get" + (size_prefixed ? sizePrefixed : "") + "Root" +
                 Verbose(struct_def, "As");
-        code += "(bb:flatbuffers.ByteBuffer, obj?:" + object_name +
+        code += "(bb:ByteBuffer, obj?:" + object_name +
                 "):" + object_name + " {\n";
       } else {
         code += object_name + ".get" + (size_prefixed ? sizePrefixed : "") +
@@ -663,7 +668,7 @@ class JsTsGenerator : public BaseGenerator {
       if (size_prefixed) {
         code +=
             "  bb.setPosition(bb.position() + "
-            "flatbuffers.SIZE_PREFIX_LENGTH);\n";
+            "SIZE_PREFIX_LENGTH);\n";
       }
       code += "  return (obj || " + GenerateNewExpression(object_name);
       code += ").__init(bb.readInt32(bb.position()) + bb.position(), bb);\n";
@@ -678,13 +683,13 @@ class JsTsGenerator : public BaseGenerator {
       std::string sizePrefixed("SizePrefixed");
       GenDocComment(
           code_ptr,
-          GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder") +
-              GenTypeAnnotation(kParam, "flatbuffers.Offset", "offset", false));
+          GenTypeAnnotation(kParam, "Builder", "builder") +
+              GenTypeAnnotation(kParam, "Offset", "offset", false));
 
       if (lang_.language == IDLOptions::kTs) {
         code += "static finish" + (size_prefixed ? sizePrefixed : "") +
                 Verbose(struct_def) + "Buffer";
-        code += "(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {\n";
+        code += "(builder:Builder, offset:Offset) {\n";
       } else {
         code += object_name + ".finish" + (size_prefixed ? sizePrefixed : "") +
                 Verbose(struct_def) + "Buffer";
@@ -1000,9 +1005,9 @@ class JsTsGenerator : public BaseGenerator {
 
     std::string pack_func_prototype =
         "/**\n * " +
-        GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder") + " * " +
-        GenTypeAnnotation(kReturns, "flatbuffers.Offset", "") +
-        " */\npack(builder:flatbuffers.Builder): flatbuffers.Offset {\n";
+        GenTypeAnnotation(kParam, "Builder", "builder") + " * " +
+        GenTypeAnnotation(kReturns, "Offset", "") +
+        " */\npack(builder:Builder): Offset {\n";
 
     std::string pack_func_offset_decl;
     std::string pack_func_create_call;
@@ -1323,10 +1328,10 @@ class JsTsGenerator : public BaseGenerator {
       if (lang_.language != IDLOptions::kTs) {
         code += "  /**\n";
         code +=
-            "   * " + GenTypeAnnotation(kType, "flatbuffers.ByteBuffer", "");
+            "   * " + GenTypeAnnotation(kType, "ByteBuffer", "");
         code += "   */\n";
       }
-      code += "  bb: flatbuffers.ByteBuffer|null = null;\n";
+      code += "  bb: ByteBuffer|null = null;\n";
       code += "\n";
       if (lang_.language != IDLOptions::kTs) {
         code += "  /**\n";
@@ -1354,7 +1359,7 @@ class JsTsGenerator : public BaseGenerator {
       }
       code += "() {\n";
       code += "  /**\n";
-      code += "   * " + GenTypeAnnotation(kType, "flatbuffers.ByteBuffer", "");
+      code += "   * " + GenTypeAnnotation(kType, "ByteBuffer", "");
       code += "   */\n";
       code += "  this.bb = null;\n";
       code += "\n";
@@ -1369,13 +1374,13 @@ class JsTsGenerator : public BaseGenerator {
     // accessor object. This is to allow object reuse.
     code += "/**\n";
     code += " * " + GenTypeAnnotation(kParam, "number", "i");
-    code += " * " + GenTypeAnnotation(kParam, "flatbuffers.ByteBuffer", "bb");
+    code += " * " + GenTypeAnnotation(kParam, "ByteBuffer", "bb");
     code += " * " + GenTypeAnnotation(kReturns, object_name, "");
     code += " */\n";
 
     if (lang_.language == IDLOptions::kTs) {
       code +=
-          "__init(i:number, bb:flatbuffers.ByteBuffer):" + object_name + " {\n";
+          "__init(i:number, bb:ByteBuffer):" + object_name + " {\n";
     } else {
       code += object_name + ".prototype.__init = function(i, bb) {\n";
     }
@@ -1394,11 +1399,11 @@ class JsTsGenerator : public BaseGenerator {
     if (!struct_def.fixed && parser_.root_struct_def_ == &struct_def &&
         !parser_.file_identifier_.empty()) {
       GenDocComment(code_ptr,
-                    GenTypeAnnotation(kParam, "flatbuffers.ByteBuffer", "bb") +
+                    GenTypeAnnotation(kParam, "ByteBuffer", "bb") +
                         GenTypeAnnotation(kReturns, "boolean", "", false));
       if (lang_.language == IDLOptions::kTs) {
         code +=
-            "static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean "
+            "static bufferHasIdentifier(bb:ByteBuffer):boolean "
             "{\n";
       } else {
         code += object_name + ".bufferHasIdentifier = function(bb) {\n";
@@ -1425,7 +1430,7 @@ class JsTsGenerator : public BaseGenerator {
         GenDocComment(
             field.doc_comment, code_ptr,
             std::string(is_string
-                            ? GenTypeAnnotation(kParam, "flatbuffers.Encoding=",
+                            ? GenTypeAnnotation(kParam, "Encoding=",
                                                 "optionalEncoding")
                             : "") +
                 GenTypeAnnotation(kReturns,
@@ -1435,7 +1440,7 @@ class JsTsGenerator : public BaseGenerator {
           std::string prefix = MakeCamel(field.name, false) + "(";
           if (is_string) {
             code += prefix + "):string|null\n";
-            code += prefix + "optionalEncoding:flatbuffers.Encoding" +
+            code += prefix + "optionalEncoding:Encoding" +
                     "):" + GenTypeName(field.value.type, false, true) + "\n";
             code += prefix + "optionalEncoding?:any";
           } else {
@@ -1546,12 +1551,12 @@ class JsTsGenerator : public BaseGenerator {
                 break;
               case BASE_TYPE_STRING:
                 args += GenTypeAnnotation(
-                    kParam, "flatbuffers.Encoding=", "optionalEncoding");
+                    kParam, "Encoding=", "optionalEncoding");
                 ret_type = vectortypename;
                 break;
               case BASE_TYPE_UNION:
-                args += GenTypeAnnotation(kParam, "flatbuffers.Table=", "obj");
-                ret_type = "?flatbuffers.Table";
+                args += GenTypeAnnotation(kParam, "Table=", "obj");
+                ret_type = "?Table";
                 is_union = true;
                 break;
               default: ret_type = vectortypename;
@@ -1561,7 +1566,7 @@ class JsTsGenerator : public BaseGenerator {
                 args + GenTypeAnnotation(kReturns, ret_type, "", false));
             if (lang_.language == IDLOptions::kTs) {
               std::string prefix = MakeCamel(field.name, false);
-              if (is_union) { prefix += "<T extends flatbuffers.Table>"; }
+              if (is_union) { prefix += "<T extends Table>"; }
               prefix += "(index: number";
               if (is_union) {
                 const auto union_type =
@@ -1579,7 +1584,7 @@ class JsTsGenerator : public BaseGenerator {
                 }
               } else if (IsString(vectortype)) {
                 code += prefix + "):string\n";
-                code += prefix + ",optionalEncoding:flatbuffers.Encoding" +
+                code += prefix + ",optionalEncoding:Encoding" +
                         "):" + vectortypename + "\n";
                 code += prefix + ",optionalEncoding?:any";
               } else {
@@ -1644,15 +1649,15 @@ class JsTsGenerator : public BaseGenerator {
           case BASE_TYPE_UNION:
             GenDocComment(
                 field.doc_comment, code_ptr,
-                GenTypeAnnotation(kParam, "flatbuffers.Table", "obj") +
-                    GenTypeAnnotation(kReturns, "?flatbuffers.Table", "",
+                GenTypeAnnotation(kParam, "Table", "obj") +
+                    GenTypeAnnotation(kReturns, "?Table", "",
                                       false));
             if (lang_.language == IDLOptions::kTs) {
               code += MakeCamel(field.name, false);
 
               const auto &union_enum = *(field.value.type.enum_def);
               const auto union_type = GenUnionGenericTypeTS(union_enum);
-              code += "<T extends flatbuffers.Table>(obj:" + union_type +
+              code += "<T extends Table>(obj:" + union_type +
                       "):" + union_type +
                       "|null "
                       "{\n";
@@ -1821,17 +1826,17 @@ class JsTsGenerator : public BaseGenerator {
     // Emit a factory constructor
     if (struct_def.fixed) {
       std::string annotations =
-          GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder");
+          GenTypeAnnotation(kParam, "Builder", "builder");
       std::string arguments;
       GenStructArgs(struct_def, &annotations, &arguments, "");
       GenDocComment(code_ptr, annotations + GenTypeAnnotation(
-                                                kReturns, "flatbuffers.Offset",
+                                                kReturns, "Offset",
                                                 "", false));
 
       if (lang_.language == IDLOptions::kTs) {
         code += "static create" + Verbose(struct_def) +
-                "(builder:flatbuffers.Builder";
-        code += arguments + "):flatbuffers.Offset {\n";
+                "(builder:Builder";
+        code += arguments + "):Offset {\n";
       } else {
         code += object_name + ".create" + Verbose(struct_def);
         code += " = function(builder";
@@ -1842,12 +1847,12 @@ class JsTsGenerator : public BaseGenerator {
       code += "  return builder.offset();\n};\n\n";
     } else {
       // Generate a method to start building a new object
-      GenDocComment(code_ptr, GenTypeAnnotation(kParam, "flatbuffers.Builder",
+      GenDocComment(code_ptr, GenTypeAnnotation(kParam, "Builder",
                                                 "builder", false));
 
       if (lang_.language == IDLOptions::kTs) {
         code += "static start" + Verbose(struct_def) +
-                "(builder:flatbuffers.Builder) {\n";
+                "(builder:Builder) {\n";
       } else {
         code += object_name + ".start" + Verbose(struct_def);
         code += " = function(builder) {\n";
@@ -1867,13 +1872,13 @@ class JsTsGenerator : public BaseGenerator {
         // Generate the field insertion method
         GenDocComment(
             code_ptr,
-            GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder") +
+            GenTypeAnnotation(kParam, "Builder", "builder") +
                 GenTypeAnnotation(kParam, GenTypeName(field.value.type, true),
                                   argname, false));
 
         if (lang_.language == IDLOptions::kTs) {
           code += "static add" + MakeCamel(field.name);
-          code += "(builder:flatbuffers.Builder, " + argname + ":" +
+          code += "(builder:Builder, " + argname + ":" +
                   GetArgType(field, false) + ") {\n";
         } else {
           code += object_name + ".add" + MakeCamel(field.name);
@@ -1907,19 +1912,19 @@ class JsTsGenerator : public BaseGenerator {
           if (!IsStruct(vector_type)) {
             GenDocComment(
                 code_ptr,
-                GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder") +
+                GenTypeAnnotation(kParam, "Builder", "builder") +
                     GenTypeAnnotation(
                         kParam,
                         "Array.<" + GenTypeName(vector_type, true) + ">",
                         "data") +
-                    GenTypeAnnotation(kReturns, "flatbuffers.Offset", "",
+                    GenTypeAnnotation(kReturns, "Offset", "",
                                       false));
 
             if (lang_.language == IDLOptions::kTs) {
               const std::string sig_begin =
                   "static create" + MakeCamel(field.name) +
-                  "Vector(builder:flatbuffers.Builder, data:";
-              const std::string sig_end = "):flatbuffers.Offset";
+                  "Vector(builder:Builder, data:";
+              const std::string sig_end = "):Offset";
               std::string type = GenTypeName(vector_type, true) + "[]";
               if (type == "number[]") {
                 const auto &array_type = GenType(vector_type);
@@ -1967,12 +1972,12 @@ class JsTsGenerator : public BaseGenerator {
           // after
           GenDocComment(
               code_ptr,
-              GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder") +
+              GenTypeAnnotation(kParam, "Builder", "builder") +
                   GenTypeAnnotation(kParam, "number", "numElems", false));
 
           if (lang_.language == IDLOptions::kTs) {
             code += "static start" + MakeCamel(field.name);
-            code += "Vector(builder:flatbuffers.Builder, numElems:number) {\n";
+            code += "Vector(builder:Builder, numElems:number) {\n";
           } else {
             code += object_name + ".start" + MakeCamel(field.name);
             code += "Vector = function(builder, numElems) {\n";
@@ -1987,12 +1992,12 @@ class JsTsGenerator : public BaseGenerator {
       // Generate a method to stop building a new object
       GenDocComment(
           code_ptr,
-          GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder") +
-              GenTypeAnnotation(kReturns, "flatbuffers.Offset", "", false));
+          GenTypeAnnotation(kParam, "Builder", "builder") +
+              GenTypeAnnotation(kReturns, "Offset", "", false));
 
       if (lang_.language == IDLOptions::kTs) {
         code += "static end" + Verbose(struct_def);
-        code += "(builder:flatbuffers.Builder):flatbuffers.Offset {\n";
+        code += "(builder:Builder):Offset {\n";
       } else {
         code += object_name + ".end" + Verbose(struct_def);
         code += " = function(builder) {\n";
@@ -2019,7 +2024,7 @@ class JsTsGenerator : public BaseGenerator {
       if (CanCreateFactoryMethod(struct_def)) {
         if (lang_.language == IDLOptions::kJs) {
           std::string paramDoc =
-              GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder");
+              GenTypeAnnotation(kParam, "Builder", "builder");
           for (auto it = struct_def.fields.vec.begin();
                it != struct_def.fields.vec.end(); ++it) {
             const auto &field = **it;
@@ -2028,14 +2033,14 @@ class JsTsGenerator : public BaseGenerator {
                 GenTypeAnnotation(kParam, GetArgType(field, true), GetArgName(field));
           }
           paramDoc +=
-              GenTypeAnnotation(kReturns, "flatbuffers.Offset", "", false);
+              GenTypeAnnotation(kReturns, "Offset", "", false);
 
           GenDocComment(code_ptr, paramDoc);
         }
 
         if (lang_.language == IDLOptions::kTs) {
           code += "static create" + Verbose(struct_def);
-          code += "(builder:flatbuffers.Builder";
+          code += "(builder:Builder";
         } else {
           code += object_name + ".create" + Verbose(struct_def);
           code += " = function(builder";
@@ -2053,7 +2058,7 @@ class JsTsGenerator : public BaseGenerator {
         }
 
         if (lang_.language == IDLOptions::kTs) {
-          code += "):flatbuffers.Offset {\n";
+          code += "):Offset {\n";
           code += "  " + struct_def.name + ".start" + Verbose(struct_def) +
                   "(builder);\n";
         } else {
@@ -2097,7 +2102,7 @@ class JsTsGenerator : public BaseGenerator {
       code += "\n";
       code += "static deserialize(buffer: Uint8Array):"+ name +" {\n";
       code += "  return " + name + ".getRootAs" + name +
-              "(new flatbuffers.ByteBuffer(buffer))\n";
+              "(new ByteBuffer(buffer))\n";
       code += "}\n";
     }
 
