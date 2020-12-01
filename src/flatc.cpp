@@ -171,6 +171,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "                         force vectors to empty rather than null.\n"
     "  --flexbuffers          Used with \"binary\" and \"json\" options, it generates\n"
     "                         data using schema-less FlexBuffers.\n"
+    "  --no-warnings          Inhibit all warning messages."
     "FILEs may be schemas (must end in .fbs), binary schemas (must end in .bfbs),\n"
     "or JSON files (conforming to preceding schema). FILEs after the -- must be\n"
     "binary flatbuffer format files.\n"
@@ -372,6 +373,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.use_flexbuffers = true;
       } else if (arg == "--gen-jvmstatic") {
         opts.gen_jvmstatic = true;
+      } else if (arg == "--no-warnings") {
+        opts.no_warnings = true;
       } else if (arg == "--cpp-std") {
         if (++argi >= argc)
           Error("missing C++ standard specification" + arg, true);

@@ -572,6 +572,7 @@ struct IDLOptions {
   std::string proto_namespace_suffix;
   std::string filename_suffix;
   std::string filename_extension;
+  bool no_warnings;
 
   // Possible options for the more general generator below.
   enum Language {
@@ -667,7 +668,8 @@ struct IDLOptions {
         require_explicit_ids(false),
         lang_to_generate(0),
         set_empty_strings_to_null(true),
-        set_empty_vectors_to_null(true) {}
+        set_empty_vectors_to_null(true), 
+        no_warnings(false) {}
 };
 
 // This encapsulates where the parser is in the current source file.
