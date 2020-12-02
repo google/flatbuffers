@@ -599,17 +599,18 @@ class PythonGenerator : public BaseGenerator {
   // Set the value of one of the members of a table's vector and fills in the
   // elements from a bytearray. This is for simplifying the use of nested
   // flatbuffers.
-  void BuildVectorOfTableFromBytes(const StructDef &struct_def, const FieldDef &field,
-                          std::string *code_ptr) {
+  void BuildVectorOfTableFromBytes(const StructDef &struct_def,
+                                   const FieldDef &field,
+                                   std::string *code_ptr) {
     auto nested = field.attributes.Lookup("nested_flatbuffer");
-    if (!nested) { return; } // There is no nested flatbuffer.
+    if (!nested) { return; }  // There is no nested flatbuffer.
 
     std::string unqualified_name = nested->constant;
     std::string qualified_name = nested->constant;
     auto nested_root = parser_.LookupStruct(nested->constant);
     if (nested_root == nullptr) {
-      qualified_name = parser_.current_namespace_->GetFullyQualifiedName(
-          nested->constant);
+      qualified_name =
+          parser_.current_namespace_->GetFullyQualifiedName(nested->constant);
       nested_root = parser_.LookupStruct(qualified_name);
     }
     FLATBUFFERS_ASSERT(nested_root);  // Guaranteed to exist by parser.
