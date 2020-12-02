@@ -1886,13 +1886,11 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
         nestedMon = MyGame.Example.Monster.MonsterEnd(nestedB)
         nestedB.Finish(nestedMon)
 
-        # write the nested FB bytes directly to b.Bytes
-        MyGame.Example.Monster.MonsterStartTestnestedflatbufferVector(b, len(nestedB.Output()))
-        b.head = b.head - len(nestedB.Output())
-        b.Bytes[b.head : b.head + len(nestedB.Output())] = nestedB.Output()
-        sub_buf = b.EndVector(len(nestedB.Output()))
+        # write the nested FB bytes
+        sub_buf = MyGame.Example.Monster.MonsterMakeTestnestedflatbufferVectorFromBytes(
+            b, nestedB.Output())
 
-        # make the parent monster and include the vector of Monster:
+        # make the parent monster and include the bytes of the nested monster
         MyGame.Example.Monster.MonsterStart(b)
         MyGame.Example.Monster.MonsterAddTestnestedflatbuffer(b, sub_buf)
         mon = MyGame.Example.Monster.MonsterEnd(b)
