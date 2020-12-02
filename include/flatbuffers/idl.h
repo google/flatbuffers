@@ -663,13 +663,13 @@ struct IDLOptions {
         cs_gen_json_serializer(false),
         filename_suffix("_generated"),
         filename_extension(),
+        no_warnings(false),
         lang(IDLOptions::kJava),
         mini_reflect(IDLOptions::kNone),
         require_explicit_ids(false),
         lang_to_generate(0),
         set_empty_strings_to_null(true),
-        set_empty_vectors_to_null(true), 
-        no_warnings(false) {}
+        set_empty_vectors_to_null(true) {}
 };
 
 // This encapsulates where the parser is in the current source file.
