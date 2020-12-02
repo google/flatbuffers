@@ -1874,6 +1874,37 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
                          lambda: mon2.TestnestedflatbufferAsNumpy(),
                          NumpyRequiredForThisFeature)
 
+    def test_nested_monster_testnestedflatbuffer(self):
+        b = flatbuffers.Builder(0)
+
+        # build another monster to nest inside testnestedflatbuffer
+        nestedB = flatbuffers.Builder(0)
+        nameStr = nestedB.CreateString("Nested Monster")
+        MyGame.Example.Monster.MonsterStart(nestedB)
+        MyGame.Example.Monster.MonsterAddHp(nestedB, 30)
+        MyGame.Example.Monster.MonsterAddName(nestedB, nameStr)
+        nestedMon = MyGame.Example.Monster.MonsterEnd(nestedB)
+        nestedB.Finish(nestedMon)
+
+        # write the nested FB bytes directly to b.Bytes
+        MyGame.Example.Monster.MonsterStartTestnestedflatbufferVector(b, len(nestedB.Output()))
+        b.head = b.head - len(nestedB.Output())
+        b.Bytes[b.head : b.head + len(nestedB.Output())] = nestedB.Output()
+        sub_buf = b.EndVector(len(nestedB.Output()))
+
+        # make the parent monster and include the vector of Monster:
+        MyGame.Example.Monster.MonsterStart(b)
+        MyGame.Example.Monster.MonsterAddTestnestedflatbuffer(b, sub_buf)
+        mon = MyGame.Example.Monster.MonsterEnd(b)
+        b.Finish(mon)
+
+        # inspect the resulting data:
+        mon2 = MyGame.Example.Monster.Monster.GetRootAsMonster(b.Bytes,
+                                                               b.Head())
+        nestedMon2 = mon2.TestnestedflatbufferNestedRoot()
+        self.assertEqual(b"Nested Monster", nestedMon2.Name())
+        self.assertEqual(30, nestedMon2.Hp())
+
     def test_nondefault_monster_testempty(self):
         b = flatbuffers.Builder(0)
 

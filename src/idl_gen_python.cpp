@@ -408,6 +408,41 @@ class PythonGenerator : public BaseGenerator {
     code += "\n";
   }
 
+  // Returns a nested flatbuffer as itself.
+  void GetVectorAsNestedFlatbuffer(const StructDef &struct_def,
+                                   const FieldDef &field,
+                                   std::string *code_ptr) {
+    auto nested = field.attributes.Lookup("nested_flatbuffer");
+    if (!nested) { return; } // There is no nested flatbuffer.
+
+    std::string unqualified_name = nested->constant;
+    std::string qualified_name = nested->constant;
+    auto nested_root = parser_.LookupStruct(nested->constant);
+    if (nested_root == nullptr) {
+      qualified_name = parser_.current_namespace_->GetFullyQualifiedName(
+          nested->constant);
+      nested_root = parser_.LookupStruct(qualified_name);
+    }
+    FLATBUFFERS_ASSERT(nested_root);  // Guaranteed to exist by parser.
+    (void)nested_root;
+
+    auto &code = *code_ptr;
+    GenReceiver(struct_def, code_ptr);
+    code += MakeCamel(NormalizedName(field)) + "NestedRoot(self):";
+    code += OffsetPrefix(field);
+
+    code += Indent + Indent + Indent;
+    code += "nestedBytes = ";
+    code += "self._tab.GetVectorAsBytes(flatbuffers.number_types.";
+    code += MakeCamel(GenTypeGet(field.value.type));
+    code += "Flags, o)\n";
+    code += Indent + Indent + Indent;
+    code += "return " + qualified_name + "." + unqualified_name;
+    code += ".GetRootAs" + unqualified_name + "(nestedBytes, 0)\n";
+    code += Indent + Indent + "return 0\n";
+    code += "\n";
+  }
+
   // Begin the creator function signature.
   void BeginBuilderArgs(const StructDef &struct_def, std::string *code_ptr) {
     auto &code = *code_ptr;
@@ -607,6 +642,7 @@ class PythonGenerator : public BaseGenerator {
           } else {
             GetMemberOfVectorOfNonStruct(struct_def, field, code_ptr);
             GetVectorOfNonStructAsNumpy(struct_def, field, code_ptr);
+            GetVectorAsNestedFlatbuffer(struct_def, field, code_ptr);
           }
           break;
         }

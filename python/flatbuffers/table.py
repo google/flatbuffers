@@ -112,6 +112,15 @@ class Table(object):
         length = self.VectorLen(off) # TODO: length accounts for bytewidth, right?
         numpy_dtype = N.to_numpy_type(flags)
         return encode.GetVectorAsNumpy(numpy_dtype, self.Bytes, length, offset)
+    
+    def GetVectorAsBytes(self, flags, off):
+        """
+        GetVectorAsBytes returns the vector that starts at `Vector(off)`
+        as a bytearray.
+        """
+        offset = self.Vector(off)
+        length = self.VectorLen(off)
+        return self.Bytes[offset : offset + (length * flags.bytewidth)]
 
     def GetVOffsetTSlot(self, slot, d):
         """
