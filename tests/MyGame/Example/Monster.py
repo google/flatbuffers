@@ -206,6 +206,14 @@ class Monster(object):
         return 0
 
     # Monster
+    def TestnestedflatbufferNestedRoot(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(30))
+        if o != 0:
+            from MyGame.Example.Monster import Monster
+            return Monster.GetRootAsMonster(self._tab.Bytes, self._tab.Vector(o))
+        return 0
+
+    # Monster
     def TestnestedflatbufferLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(30))
         if o != 0:
@@ -735,6 +743,14 @@ class Monster(object):
         return 0
 
     # Monster
+    def TestrequirednestedflatbufferNestedRoot(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(102))
+        if o != 0:
+            from MyGame.Example.Monster import Monster
+            return Monster.GetRootAsMonster(self._tab.Bytes, self._tab.Vector(o))
+        return 0
+
+    # Monster
     def TestrequirednestedflatbufferLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(102))
         if o != 0:
@@ -765,6 +781,11 @@ def MonsterStartTestarrayoftablesVector(builder, numElems): return builder.Start
 def MonsterAddEnemy(builder, enemy): builder.PrependUOffsetTRelativeSlot(12, flatbuffers.number_types.UOffsetTFlags.py_type(enemy), 0)
 def MonsterAddTestnestedflatbuffer(builder, testnestedflatbuffer): builder.PrependUOffsetTRelativeSlot(13, flatbuffers.number_types.UOffsetTFlags.py_type(testnestedflatbuffer), 0)
 def MonsterStartTestnestedflatbufferVector(builder, numElems): return builder.StartVector(1, numElems, 1)
+def MonsterMakeTestnestedflatbufferVectorFromBytes(builder, bytes):
+    builder.StartVector(1, len(bytes), 1)
+    builder.head = builder.head - len(bytes)
+    builder.Bytes[builder.head : builder.head + len(bytes)] = bytes
+    return builder.EndVector(len(bytes))
 def MonsterAddTestempty(builder, testempty): builder.PrependUOffsetTRelativeSlot(14, flatbuffers.number_types.UOffsetTFlags.py_type(testempty), 0)
 def MonsterAddTestbool(builder, testbool): builder.PrependBoolSlot(15, testbool, 0)
 def MonsterAddTesthashs32Fnv1(builder, testhashs32Fnv1): builder.PrependInt32Slot(16, testhashs32Fnv1, 0)
@@ -815,6 +836,11 @@ def MonsterStartVectorOfEnumsVector(builder, numElems): return builder.StartVect
 def MonsterAddSignedEnum(builder, signedEnum): builder.PrependInt8Slot(48, signedEnum, -1)
 def MonsterAddTestrequirednestedflatbuffer(builder, testrequirednestedflatbuffer): builder.PrependUOffsetTRelativeSlot(49, flatbuffers.number_types.UOffsetTFlags.py_type(testrequirednestedflatbuffer), 0)
 def MonsterStartTestrequirednestedflatbufferVector(builder, numElems): return builder.StartVector(1, numElems, 1)
+def MonsterMakeTestrequirednestedflatbufferVectorFromBytes(builder, bytes):
+    builder.StartVector(1, len(bytes), 1)
+    builder.head = builder.head - len(bytes)
+    builder.Bytes[builder.head : builder.head + len(bytes)] = bytes
+    return builder.EndVector(len(bytes))
 def MonsterEnd(builder): return builder.EndObject()
 
 import MyGame.Example.Ability
