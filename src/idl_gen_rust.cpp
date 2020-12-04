@@ -1565,11 +1565,23 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
     // Default verifier root fns.
     code_ += "#[inline]";
+    code_ += "/// Verifies that a buffer of bytes contains a `{{STRUCT_NAME}}`";
+    code_ += "/// and returns it.";
+    code_ += "/// Note that verification is still experimental and may not";
+    code_ += "/// catch every error, or be maximally performant. For the";
+    code_ += "/// previous, unchecked, behavior use";
+    code_ += "/// `root_as_{{STRUCT_NAME_SNAKECASE}}_unchecked`.";
     code_ += "pub fn root_as_{{STRUCT_NAME_SNAKECASE}}(buf: &[u8]) "
              "-> Result<{{STRUCT_NAME}}, flatbuffers::InvalidFlatbuffer> {";
     code_ += "  flatbuffers::root::<{{STRUCT_NAME}}>(buf)";
     code_ += "}";
     code_ += "#[inline]";
+    code_ += "/// Verifies that a buffer of bytes contains a size prefixed";
+    code_ += "/// `{{STRUCT_NAME}}` and returns it.";
+    code_ += "/// Note that verification is still experimental and may not";
+    code_ += "/// catch every error, or be maximally performant. For the";
+    code_ += "/// previous, unchecked, behavior use";
+    code_ += "/// `size_prefixed_root_as_{{STRUCT_NAME_SNAKECASE}}_unchecked`.";
     code_ += "pub fn size_prefixed_root_as_{{STRUCT_NAME_SNAKECASE}}"
              "(buf: &[u8]) -> Result<{{STRUCT_NAME}}, "
              "flatbuffers::InvalidFlatbuffer> {";
@@ -1577,28 +1589,52 @@ class RustGenerator : public BaseGenerator {
     code_ += "}";
     // Verifier with options root fns.
     code_ += "#[inline]";
+    code_ += "/// Verifies, with the given options, that a buffer of bytes";
+    code_ += "/// contains a `{{STRUCT_NAME}}` and returns it.";
+    code_ += "/// Note that verification is still experimental and may not";
+    code_ += "/// catch every error, or be maximally performant. For the";
+    code_ += "/// previous, unchecked, behavior use";
+    code_ += "/// `root_as_{{STRUCT_NAME_SNAKECASE}}_unchecked`.";
     code_ += "pub fn root_as_{{STRUCT_NAME_SNAKECASE}}_with_opts<'b, 'o>(";
     code_ += "  opts: &'o flatbuffers::VerifierOptions,";
     code_ += "  buf: &'b [u8],";
-    code_ += ") -> Result<{{STRUCT_NAME}}<'b>, flatbuffers::InvalidFlatbuffer> {";
+    code_ += ") -> Result<{{STRUCT_NAME}}<'b>, flatbuffers::InvalidFlatbuffer>"
+             " {";
     code_ += "  flatbuffers::root_with_opts::<{{STRUCT_NAME}}<'b>>(opts, buf)";
     code_ += "}";
     code_ += "#[inline]";
+    code_ += "/// Verifies, with the given verifier options, that a buffer of";
+    code_ += "/// bytes contains a size prefixed `{{STRUCT_NAME}}` and returns";
+    code_ += "/// it. Note that verification is still experimental and may not";
+    code_ += "/// catch every error, or be maximally performant. For the";
+    code_ += "/// previous, unchecked, behavior use";
+    code_ += "/// `root_as_{{STRUCT_NAME_SNAKECASE}}_unchecked`.";
     code_ += "pub fn size_prefixed_root_as_{{STRUCT_NAME_SNAKECASE}}_with_opts"
              "<'b, 'o>(";
     code_ += "  opts: &'o flatbuffers::VerifierOptions,";
     code_ += "  buf: &'b [u8],";
-    code_ += ") -> Result<{{STRUCT_NAME}}<'b>, flatbuffers::InvalidFlatbuffer> {";
+    code_ += ") -> Result<{{STRUCT_NAME}}<'b>, flatbuffers::InvalidFlatbuffer>"
+             " {";
     code_ += "  flatbuffers::size_prefixed_root_with_opts::<{{STRUCT_NAME}}"
              "<'b>>(opts, buf)";
     code_ += "}";
     // Unchecked root fns.
     code_ += "#[inline]";
+    code_ += "/// Assumes, without verification, that a buffer of bytes "
+             "contains a {{STRUCT_NAME}} and returns it.";
+    code_ += "/// # Safety";
+    code_ += "/// Callers must trust the given bytes do indeed contain a valid"
+             " `{{STRUCT_NAME}}`.";
     code_ += "pub unsafe fn root_as_{{STRUCT_NAME_SNAKECASE}}_unchecked"
              "(buf: &[u8]) -> {{STRUCT_NAME}} {";
     code_ += "  flatbuffers::root_unchecked::<{{STRUCT_NAME}}>(buf)";
     code_ += "}";
     code_ += "#[inline]";
+    code_ += "/// Assumes, without verification, that a buffer of bytes "
+             "contains a size prefixed {{STRUCT_NAME}} and returns it.";
+    code_ += "/// # Safety";
+    code_ += "/// Callers must trust the given bytes do indeed contain a valid"
+             " size prefixed `{{STRUCT_NAME}}`.";
     code_ += "pub unsafe fn size_prefixed_root_as_{{STRUCT_NAME_SNAKECASE}}"
              "_unchecked(buf: &[u8]) -> {{STRUCT_NAME}} {";
     code_ += "  flatbuffers::size_prefixed_root_unchecked::<{{STRUCT_NAME}}>"

@@ -2503,14 +2503,32 @@ pub fn get_size_prefixed_root_as_monster<'a>(buf: &'a [u8]) -> Monster<'a> {
 }
 
 #[inline]
+/// Verifies that a buffer of bytes contains a `Monster`
+/// and returns it.
+/// Note that verification is still experimental and may not
+/// catch every error, or be maximally performant. For the
+/// previous, unchecked, behavior use
+/// `root_as_monster_unchecked`.
 pub fn root_as_monster(buf: &[u8]) -> Result<Monster, flatbuffers::InvalidFlatbuffer> {
   flatbuffers::root::<Monster>(buf)
 }
 #[inline]
+/// Verifies that a buffer of bytes contains a size prefixed
+/// `Monster` and returns it.
+/// Note that verification is still experimental and may not
+/// catch every error, or be maximally performant. For the
+/// previous, unchecked, behavior use
+/// `size_prefixed_root_as_monster_unchecked`.
 pub fn size_prefixed_root_as_monster(buf: &[u8]) -> Result<Monster, flatbuffers::InvalidFlatbuffer> {
   flatbuffers::size_prefixed_root::<Monster>(buf)
 }
 #[inline]
+/// Verifies, with the given options, that a buffer of bytes
+/// contains a `Monster` and returns it.
+/// Note that verification is still experimental and may not
+/// catch every error, or be maximally performant. For the
+/// previous, unchecked, behavior use
+/// `root_as_monster_unchecked`.
 pub fn root_as_monster_with_opts<'b, 'o>(
   opts: &'o flatbuffers::VerifierOptions,
   buf: &'b [u8],
@@ -2518,6 +2536,12 @@ pub fn root_as_monster_with_opts<'b, 'o>(
   flatbuffers::root_with_opts::<Monster<'b>>(opts, buf)
 }
 #[inline]
+/// Verifies, with the given verifier options, that a buffer of
+/// bytes contains a size prefixed `Monster` and returns
+/// it. Note that verification is still experimental and may not
+/// catch every error, or be maximally performant. For the
+/// previous, unchecked, behavior use
+/// `root_as_monster_unchecked`.
 pub fn size_prefixed_root_as_monster_with_opts<'b, 'o>(
   opts: &'o flatbuffers::VerifierOptions,
   buf: &'b [u8],
@@ -2525,10 +2549,16 @@ pub fn size_prefixed_root_as_monster_with_opts<'b, 'o>(
   flatbuffers::size_prefixed_root_with_opts::<Monster<'b>>(opts, buf)
 }
 #[inline]
+/// Assumes, without verification, that a buffer of bytes contains a Monster and returns it.
+/// # Safety
+/// Callers must trust the given bytes do indeed contain a valid `Monster`.
 pub unsafe fn root_as_monster_unchecked(buf: &[u8]) -> Monster {
   flatbuffers::root_unchecked::<Monster>(buf)
 }
 #[inline]
+/// Assumes, without verification, that a buffer of bytes contains a size prefixed Monster and returns it.
+/// # Safety
+/// Callers must trust the given bytes do indeed contain a valid size prefixed `Monster`.
 pub unsafe fn size_prefixed_root_as_monster_unchecked(buf: &[u8]) -> Monster {
   flatbuffers::size_prefixed_root_unchecked::<Monster>(buf)
 }

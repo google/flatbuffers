@@ -20,6 +20,9 @@ use crate::{
 };
 
 /// Gets the root of the Flatbuffer, verifying it first with default options.
+/// Note that verification is an experimental feature and may not be maximally performant or
+/// catch every error (though that is the goal). See the `_unchecked` variants for previous
+/// behavior.
 pub fn root<'buf, T>(data: &'buf [u8]) -> Result<T::Inner, InvalidFlatbuffer>
 where
     T: 'buf + Follow<'buf> + Verifiable,
@@ -30,6 +33,9 @@ where
 
 #[inline]
 /// Gets the root of the Flatbuffer, verifying it first with given options.
+/// Note that verification is an experimental feature and may not be maximally performant or
+/// catch every error (though that is the goal). See the `_unchecked` variants for previous
+/// behavior.
 pub fn root_with_opts<'opts, 'buf, T>(
     opts: &'opts VerifierOptions,
     data: &'buf [u8],
@@ -44,6 +50,9 @@ where
 
 #[inline]
 /// Gets the root of a size prefixed Flatbuffer, verifying it first with default options.
+/// Note that verification is an experimental feature and may not be maximally performant or
+/// catch every error (though that is the goal). See the `_unchecked` variants for previous
+/// behavior.
 pub fn size_prefixed_root<'buf, T>(data: &'buf [u8]) -> Result<T::Inner, InvalidFlatbuffer>
 where
     T: 'buf + Follow<'buf> + Verifiable,
@@ -54,6 +63,9 @@ where
 
 #[inline]
 /// Gets the root of a size prefixed Flatbuffer, verifying it first with given options.
+/// Note that verification is an experimental feature and may not be maximally performant or
+/// catch every error (though that is the goal). See the `_unchecked` variants for previous
+/// behavior.
 pub fn size_prefixed_root_with_opts<'opts, 'buf, T>(
     opts: &'opts VerifierOptions,
     data: &'buf [u8],
