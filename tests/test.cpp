@@ -3710,6 +3710,16 @@ void ParseFlexbuffersFromJsonWithNullTest() {
   }
 }
 
+void SchemaParserFuzz_1() {
+  // The second pass must be done without an internal assertion.
+  flatbuffers::Parser parser;
+  for (int k = 0; k < 2; k++) {
+    const auto done = parser.Parse(
+        "namespace x;table e{p:nl;}namespace c;table nl{F:e;}enum e:f");
+    TEST_EQ(false, done);
+  }
+}
+
 int FlatBufferTests() {
   // clang-format off
 
@@ -3802,6 +3812,8 @@ int FlatBufferTests() {
   ParseFlexbuffersFromJsonWithNullTest();
   FlatbuffersSpanTest();
   FixedLengthArrayConstructorTest();
+
+  SchemaParserFuzz_1();
   return 0;
 }
 

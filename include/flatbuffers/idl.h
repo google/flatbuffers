@@ -423,6 +423,8 @@ struct EnumDef : public Definition {
     return vals.Lookup(enum_name);
   }
 
+  std::string GetFullyQualifiedName() const;
+
   bool is_union;
   // Type is a union which uses type aliases where at least one type is
   // available under two different names.
@@ -930,8 +932,9 @@ class Parser : public ParserState {
   FLATBUFFERS_CHECKED_ERROR ParseNamespace();
   FLATBUFFERS_CHECKED_ERROR StartStruct(const std::string &name,
                                         StructDef **dest);
-  FLATBUFFERS_CHECKED_ERROR StartEnum(const std::string &name, bool is_union,
-                                      EnumDef **dest);
+  FLATBUFFERS_CHECKED_ERROR PrepareEnum(const std::string &name, bool is_union,
+                                        flatbuffers::unique_ptr<EnumDef> *dest);
+  FLATBUFFERS_CHECKED_ERROR CommitEnum(EnumDef *enum_def);
   FLATBUFFERS_CHECKED_ERROR ParseDecl();
   FLATBUFFERS_CHECKED_ERROR ParseService();
   FLATBUFFERS_CHECKED_ERROR ParseProtoFields(StructDef *struct_def,

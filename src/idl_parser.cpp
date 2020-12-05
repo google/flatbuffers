@@ -1922,6 +1922,11 @@ StructDef *Parser::LookupCreateStruct(const std::string &name,
   return struct_def;
 }
 
+std::string EnumDef::GetFullyQualifiedName() const {
+  FLATBUFFERS_ASSERT(defined_namespace);
+  return defined_namespace->GetFullyQualifiedName(name);
+}
+
 const EnumVal *EnumDef::MinValue() const {
   return vals.vec.empty() ? nullptr : vals.vec.front();
 }
@@ -2116,8 +2121,8 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef **dest) {
   NEXT();
   std::string enum_name = attribute_;
   EXPECT(kTokenIdentifier);
-  EnumDef *enum_def;
-  ECHECK(StartEnum(enum_name, is_union, &enum_def));
+  flatbuffers::unique_ptr<EnumDef> enum_def;
+  ECHECK(PrepareEnum(enum_name, is_union, &enum_def));
   enum_def->doc_comment = enum_comment;
   if (!is_union && !opts.proto_mode) {
     // Give specialized error message, since this type spec used to
@@ -2135,7 +2140,7 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef **dest) {
         IsBool(enum_def->underlying_type.base_type))
       return Error("underlying enum type must be integral");
     // Make this type refer back to the enum it was derived from.
-    enum_def->underlying_type.enum_def = enum_def;
+    enum_def->underlying_type.enum_def = enum_def.get();
   }
   ECHECK(ParseMetaData(&enum_def->attributes));
   const auto underlying_type = enum_def->underlying_type.base_type;
@@ -2236,9 +2241,10 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef **dest) {
                    NumToString(ev->GetAsInt64()));
   }
 
-  if (dest) *dest = enum_def;
-  types_.Add(current_namespace_->GetFullyQualifiedName(enum_def->name),
-             new Type(BASE_TYPE_UNION, nullptr, enum_def));
+  EnumDef* const e = enum_def.release();
+  ECHECK(CommitEnum(e)); // move ownership
+  types_.Add(e->GetFullyQualifiedName(), new Type(BASE_TYPE_UNION, nullptr, e));
+  if (dest) *dest = e;
   return NoError();
 }
 
@@ -2565,22 +2571,29 @@ CheckedError Parser::ParseProtoDecl() {
   return NoError();
 }
 
-CheckedError Parser::StartEnum(const std::string &enum_name, bool is_union,
-                               EnumDef **dest) {
-  auto &enum_def = *new EnumDef();
+CheckedError Parser::PrepareEnum(const std::string &enum_name, bool is_union,
+                                 flatbuffers::unique_ptr<EnumDef> *dest) {
+  FLATBUFFERS_ASSERT(dest && !dest->get());
+  dest->reset(new EnumDef());
+  auto &enum_def = *dest->get();
   enum_def.name = enum_name;
   enum_def.file = file_being_parsed_;
   enum_def.doc_comment = doc_comment_;
   enum_def.is_union = is_union;
   enum_def.defined_namespace = current_namespace_;
-  if (enums_.Add(current_namespace_->GetFullyQualifiedName(enum_name),
-                 &enum_def))
-    return Error("enum already exists: " + enum_name);
   enum_def.underlying_type.base_type =
       is_union ? BASE_TYPE_UTYPE : BASE_TYPE_INT;
   enum_def.underlying_type.enum_def = &enum_def;
-  if (dest) *dest = &enum_def;
-  return NoError();
+  auto full_name = enum_def.GetFullyQualifiedName();
+  return enums_.Lookup(full_name) ? Error("enum already exists: " + full_name)
+                                  : NoError();
+}
+
+CheckedError Parser::CommitEnum(EnumDef *enum_def) {
+  FLATBUFFERS_ASSERT(enum_def);
+  return enums_.Add(enum_def->GetFullyQualifiedName(), enum_def)
+             ? Error("enum already exists: " + enum_def->name)
+             : NoError();
 }
 
 CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
@@ -2629,14 +2642,14 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
         }
       }
       StructDef *anonymous_struct = nullptr;
-      EnumDef *oneof_union = nullptr;
+      flatbuffers::unique_ptr<EnumDef> oneof_union;
       Type type;
       if (IsIdent("group") || oneof) {
         if (!oneof) NEXT();
         if (oneof && opts.proto_oneof_union) {
           auto name = MakeCamel(attribute_, true) + "Union";
-          ECHECK(StartEnum(name, true, &oneof_union));
-          type = Type(BASE_TYPE_UNION, nullptr, oneof_union);
+          ECHECK(PrepareEnum(name, true, &oneof_union));
+          type = Type(BASE_TYPE_UNION, nullptr, oneof_union.get());
         } else {
           auto name = "Anonymous" + NumToString(anonymous_counter++);
           ECHECK(StartStruct(name, &anonymous_struct));
@@ -2724,6 +2737,7 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
           ev->doc_comment = oneof_field.doc_comment;
           ECHECK(evb.AcceptEnumerator(oneof_field.name));
         }
+        ECHECK(CommitEnum(oneof_union.release()));
       } else {
         EXPECT(';');
       }
