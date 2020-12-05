@@ -33,9 +33,9 @@
 #include "namespace_test/namespace_test1_generated.h"
 #include "namespace_test/namespace_test2_generated.h"
 #include "union_vector/union_vector_generated.h"
-#include "monster_extra_generated.h"
 #include "optional_scalars_generated.h"
 #if !defined(_MSC_VER) || _MSC_VER >= 1700
+#  include "monster_extra_generated.h"
 #  include "arrays_test_generated.h"
 #  include "evolution_test/evolution_v1_generated.h"
 #  include "evolution_test/evolution_v2_generated.h"
