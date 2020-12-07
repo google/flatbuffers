@@ -113,7 +113,7 @@ class Builder(object):
     MAX_BUFFER_SIZE = 2**31
     ## @endcond
 
-    def __init__(self, initialSize=0):
+    def __init__(self, initialSize=1024):
         """Initializes a Builder of size `initial_size`.
 
         The internal buffer is grown as needed.
