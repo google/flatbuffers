@@ -56,14 +56,6 @@ impl<'a> Follow<'a> for Table<'a> {
 }
 
 #[inline]
-pub fn get_root<'a, T: Follow<'a> + 'a>(data: &'a [u8]) -> T::Inner {
-    <ForwardsUOffset<T>>::follow(data, 0)
-}
-#[inline]
-pub fn get_size_prefixed_root<'a, T: Follow<'a> + 'a>(data: &'a [u8]) -> T::Inner {
-    <SkipSizePrefix<ForwardsUOffset<T>>>::follow(data, 0)
-}
-#[inline]
 pub fn buffer_has_identifier(data: &[u8], ident: &str, size_prefixed: bool) -> bool {
     assert_eq!(ident.len(), FILE_IDENTIFIER_LENGTH);
 
