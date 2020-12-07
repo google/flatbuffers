@@ -25,49 +25,31 @@
 #include "test_init.h"
 
 namespace {
-constexpr bool use_binary_schema = true;
-// should point to flatbuffers/tests/
-constexpr const char *test_data_path = "../../";
-constexpr const char *schema_file_name = "monster_test";
 
 static constexpr uint8_t flags_strict_json = 0x80;
 static constexpr uint8_t flags_skip_unexpected_fields_in_json = 0x40;
 static constexpr uint8_t flags_allow_non_utf8 = 0x20;
 
+std::string LoadBinarySchema(const char *file_name) {
+    std::string schemafile;
+    TEST_EQ(true,
+            flatbuffers::LoadFile(file_name, true, &schemafile));
+
+    flatbuffers::Verifier verifier(
+        reinterpret_cast<const uint8_t *>(schemafile.c_str()),
+        schemafile.size());
+    TEST_EQ(true, reflection::VerifySchemaBuffer(verifier));
+    return schemafile;
+}
+
 flatbuffers::Parser make_parser(const flatbuffers::IDLOptions opts) {
   // once loaded from disk
-  static const std::string schemafile = [&]() {
-    std::string schemafile;
-    TEST_EQ(
-        flatbuffers::LoadFile((std::string(test_data_path) + schema_file_name +
-                               (use_binary_schema ? ".bfbs" : ".fbs"))
-                                  .c_str(),
-                              use_binary_schema, &schemafile),
-        true);
-
-    if (use_binary_schema) {
-      flatbuffers::Verifier verifier(
-          reinterpret_cast<const uint8_t *>(schemafile.c_str()),
-          schemafile.size());
-      TEST_EQ(reflection::VerifySchemaBuffer(verifier), true);
-    }
-    return schemafile;
-  }();
-
+  static const std::string schemafile = LoadBinarySchema("./monster_test.bfbs");
   // parse schema first, so we can use it to parse the data after
   flatbuffers::Parser parser;
-  if (use_binary_schema) {
-    TEST_EQ(parser.Deserialize(
-                reinterpret_cast<const uint8_t *>(schemafile.c_str()),
-                schemafile.size()),
-            true);
-  } else {
-    auto include_test_path =
-        flatbuffers::ConCatPathFileName(test_data_path, "include_test");
-    const char *include_directories[] = { test_data_path,
-                                          include_test_path.c_str(), nullptr };
-    TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
-  }
+  TEST_EQ(true, parser.Deserialize(
+                    reinterpret_cast<const uint8_t *>(schemafile.c_str()),
+                    schemafile.size()));
   // (re)define parser options
   parser.opts = opts;
   return parser;
@@ -80,7 +62,7 @@ std::string do_test(const flatbuffers::IDLOptions &opts,
   if (parser.ParseJson(input_json.c_str())) {
     flatbuffers::Verifier verifier(parser.builder_.GetBufferPointer(),
                                    parser.builder_.GetSize());
-    TEST_EQ(MyGame::Example::VerifyMonsterBuffer(verifier), true);
+    TEST_EQ(true, MyGame::Example::VerifyMonsterBuffer(verifier));
     TEST_ASSERT(
         GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen));
   }
