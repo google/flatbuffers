@@ -234,7 +234,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   const uint8_t flags = data[0];
   // normalize to ascii alphabet
   const int extra_rep_number =
-      std::max(5, (data[1] < '0' ? (data[1] - '0') : 0));
+      std::max(5, (data[1] > '0' ? (data[1] - '0') : 0));
   data += 2;
   size -= 2;  // bypass
 
