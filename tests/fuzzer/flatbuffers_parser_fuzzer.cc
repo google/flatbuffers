@@ -20,9 +20,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   // Reserve one byte for Parser flags and one byte for repetition counter.
   if (size < 3) return 0;
   const uint8_t flags = data[0];
-  // normalize to ascii alphabet
-  const int extra_rep_number =
-      std::max(5, (data[1] < '0' ? (data[1] - '0') : 0));
+  (void)data[1];  //  reserved
   data += 2;
   size -= 2;  // bypass
 
@@ -41,23 +39,13 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   // Guarantee 0-termination in the input.
   auto parse_input = input.c_str();
 
-  // The fuzzer can adjust the number repetition if a side-effects have found.
-  // Each test should pass at least two times to ensure that the parser doesn't
-  // have any hidden-states or locale-depended effects.
-  for (auto cnt = 0; cnt < (extra_rep_number + 2); cnt++) {
-    // Each even run (0,2,4..) will test locale independed code.
-    auto use_locale = !!OneTimeTestInit::test_locale() && (0 == (cnt % 2));
-    // Set new locale.
-    if (use_locale) {
-      FLATBUFFERS_ASSERT(setlocale(LC_ALL, OneTimeTestInit::test_locale()));
-    }
-
-    // Check Parser.
-    parser.Parse(parse_input);
-
-    // Restore locale.
-    if (use_locale) { FLATBUFFERS_ASSERT(setlocale(LC_ALL, "C")); }
-  }
-
+  // Check Parser.
+  parser.Parse(parse_input);
+  // TODO:
+  // Need to add additional checks for inputs passed Parse(parse_input) successfully:
+  // 1. Serialization to bfbs.
+  // 2. Generation of a default object.
+  // 3. Verification of the object using reflection.
+  // 3. Printing to json.
   return 0;
 }
