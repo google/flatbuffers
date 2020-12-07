@@ -288,7 +288,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     }
 
     // Parse original input as-is.
-    auto orig_scalar = "{ \"Y\" : " + input + " }";
+    auto orig_scalar = "{\"Y\" : " + input + "}";
     std::string orig_back;
     auto orig_done = Parse(parser, orig_scalar, &orig_back);
 
@@ -326,7 +326,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
     // Test quoted version of the string
     if (!qouted_input.empty()) {
-      auto fix_scalar = "{ \"Y\" : " + qouted_input + " }";
+      auto fix_scalar = "{\"Y\" : " + qouted_input + "}";
       std::string fix_back;
       auto fix_done = Parse(parser, fix_scalar, &fix_back);
 

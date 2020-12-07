@@ -139,6 +139,23 @@ target_link_libraries(monster_fuzzer PRIVATE flatbuffers_fuzzed)
 # Build debugger for weird cases found with fuzzer.
 if(BUILD_DEBUGGER)
   add_library(flatbuffers_nonfuzz STATIC ${FlatBuffers_Library_SRCS})
+  target_compile_options(
+    flatbuffers_nonfuzz
+    PUBLIC
+      $<$<BOOL:${USE_ASAN}>:
+        -fsanitize=undefined,address
+      >
+      -fno-limit-debug-info
+  )
+  
+  target_link_libraries(
+    flatbuffers_nonfuzz
+    PUBLIC
+      $<$<BOOL:${USE_ASAN}>:
+        -fsanitize=undefined,address
+      >
+  )
+
   target_compile_definitions(
     flatbuffers_nonfuzz
     PUBLIC
@@ -147,6 +164,9 @@ if(BUILD_DEBUGGER)
     PRIVATE
       FLATBUFFERS_MAX_PARSING_DEPTH=${FLATBUFFERS_MAX_PARSING_DEPTH}
   )
-  add_executable(scalar_debug flatbuffers_scalar_fuzzer.cc scalar_debug.cpp)
+  add_executable(scalar_debug
+    flatbuffers_scalar_fuzzer.cc
+    scalar_debug.cpp
+  )
   target_link_libraries(scalar_debug PRIVATE flatbuffers_nonfuzz)
 endif(BUILD_DEBUGGER)
