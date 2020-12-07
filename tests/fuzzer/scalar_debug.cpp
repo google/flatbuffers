@@ -23,6 +23,6 @@ int main(int argc, char *argv[]) {
   auto rc = LLVMFuzzerTestOneInput(
       reinterpret_cast<const uint8_t *>(crash_file_data.data()),
       crash_file_data.size());
-  std::cout << "LLVMFuzzerTestOneInput finished with code " << rc;
+  std::cout << "LLVMFuzzerTestOneInput finished with code " << rc << "\n\n";
   return rc;
 }

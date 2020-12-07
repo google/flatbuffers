@@ -172,8 +172,21 @@ template<typename T> std::string TypeToIntervalString() {
 
 // atot: template version of atoi/atof: convert a string to an instance of T.
 template<typename T>
-inline CheckedError atot(const char *s, Parser &parser, T *val) {
-  auto done = StringToNumber(s, val);
+bool atot_scalar(const char *s, T *val, bool_constant<false>) {
+  return StringToNumber(s, val);
+}
+
+template<typename T>
+bool atot_scalar(const char *s, T *val, bool_constant<true>) {
+  // Normalize NaN parsed from fbs or json to unsigned NaN.
+  if (false == StringToNumber(s, val)) return false;
+  *val = (*val != *val) ? std::fabs(*val) : *val;
+  return true;
+}
+
+template<typename T>
+CheckedError atot(const char *s, Parser &parser, T *val) {
+  auto done = atot_scalar(s, val, bool_constant<is_floating_point<T>::value>());
   if (done) return NoError();
   if (0 == *val)
     return parser.Error("invalid number: \"" + std::string(s) + "\"");
@@ -1806,7 +1819,6 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
       match = true;
     }
     // Parse a float/integer number from the string.
-    if (!match) check_now = true;  // Re-pack if parsed from string literal.
     // A "scalar-in-string" value needs extra checks.
     if (!match && is_tok_string && IsScalar(in_type)) {
       // Strip trailing whitespaces from attribute_.
