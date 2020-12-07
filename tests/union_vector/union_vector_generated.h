@@ -35,7 +35,7 @@ inline const flatbuffers::TypeTable *BookReaderTypeTable();
 
 inline const flatbuffers::TypeTable *MovieTypeTable();
 
-enum Character {
+enum Character : uint8_t {
   Character_NONE = 0,
   Character_MuLan = 1,
   Character_Rapunzel = 2,
@@ -271,10 +271,7 @@ struct AttackerT : public flatbuffers::NativeTable {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "AttackerT";
   }
-  int32_t sword_attack_damage;
-  AttackerT()
-      : sword_attack_damage(0) {
-  }
+  int32_t sword_attack_damage = 0;
 };
 
 inline bool operator==(const AttackerT &lhs, const AttackerT &rhs) {
@@ -348,10 +345,8 @@ struct MovieT : public flatbuffers::NativeTable {
   static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
     return "MovieT";
   }
-  CharacterUnion main_character;
-  std::vector<CharacterUnion> characters;
-  MovieT() {
-  }
+  CharacterUnion main_character{};
+  std::vector<CharacterUnion> characters{};
 };
 
 inline bool operator==(const MovieT &lhs, const MovieT &rhs) {
@@ -496,7 +491,7 @@ inline flatbuffers::Offset<Movie> CreateMovieDirect(
 flatbuffers::Offset<Movie> CreateMovie(flatbuffers::FlatBufferBuilder &_fbb, const MovieT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 inline AttackerT *Attacker::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  flatbuffers::unique_ptr<AttackerT> _o = flatbuffers::unique_ptr<AttackerT>(new AttackerT());
+  auto _o = std::unique_ptr<AttackerT>(new AttackerT());
   UnPackTo(_o.get(), _resolver);
   return _o.release();
 }
@@ -522,7 +517,7 @@ inline flatbuffers::Offset<Attacker> CreateAttacker(flatbuffers::FlatBufferBuild
 }
 
 inline MovieT *Movie::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  flatbuffers::unique_ptr<MovieT> _o = flatbuffers::unique_ptr<MovieT>(new MovieT());
+  auto _o = std::unique_ptr<MovieT>(new MovieT());
   UnPackTo(_o.get(), _resolver);
   return _o.release();
 }
