@@ -17,7 +17,7 @@ bool operator!=(const ScalarStuffT &lhs, const ScalarStuffT &rhs);
 
 inline const flatbuffers::TypeTable *ScalarStuffTypeTable();
 
-enum OptionalByte {
+enum OptionalByte : int8_t {
   OptionalByte_None = 0,
   OptionalByte_One = 1,
   OptionalByte_Two = 2,
@@ -52,80 +52,42 @@ inline const char *EnumNameOptionalByte(OptionalByte e) {
 
 struct ScalarStuffT : public flatbuffers::NativeTable {
   typedef ScalarStuff TableType;
-  int8_t just_i8;
-  flatbuffers::Optional<int8_t> maybe_i8;
-  int8_t default_i8;
-  uint8_t just_u8;
-  flatbuffers::Optional<uint8_t> maybe_u8;
-  uint8_t default_u8;
-  int16_t just_i16;
-  flatbuffers::Optional<int16_t> maybe_i16;
-  int16_t default_i16;
-  uint16_t just_u16;
-  flatbuffers::Optional<uint16_t> maybe_u16;
-  uint16_t default_u16;
-  int32_t just_i32;
-  flatbuffers::Optional<int32_t> maybe_i32;
-  int32_t default_i32;
-  uint32_t just_u32;
-  flatbuffers::Optional<uint32_t> maybe_u32;
-  uint32_t default_u32;
-  int64_t just_i64;
-  flatbuffers::Optional<int64_t> maybe_i64;
-  int64_t default_i64;
-  uint64_t just_u64;
-  flatbuffers::Optional<uint64_t> maybe_u64;
-  uint64_t default_u64;
-  float just_f32;
-  flatbuffers::Optional<float> maybe_f32;
-  float default_f32;
-  double just_f64;
-  flatbuffers::Optional<double> maybe_f64;
-  double default_f64;
-  bool just_bool;
-  flatbuffers::Optional<bool> maybe_bool;
-  bool default_bool;
-  optional_scalars::OptionalByte just_enum;
-  flatbuffers::Optional<optional_scalars::OptionalByte> maybe_enum;
-  optional_scalars::OptionalByte default_enum;
-  ScalarStuffT()
-      : just_i8(0),
-        maybe_i8(flatbuffers::nullopt),
-        default_i8(42),
-        just_u8(0),
-        maybe_u8(flatbuffers::nullopt),
-        default_u8(42),
-        just_i16(0),
-        maybe_i16(flatbuffers::nullopt),
-        default_i16(42),
-        just_u16(0),
-        maybe_u16(flatbuffers::nullopt),
-        default_u16(42),
-        just_i32(0),
-        maybe_i32(flatbuffers::nullopt),
-        default_i32(42),
-        just_u32(0),
-        maybe_u32(flatbuffers::nullopt),
-        default_u32(42),
-        just_i64(0),
-        maybe_i64(flatbuffers::nullopt),
-        default_i64(42LL),
-        just_u64(0),
-        maybe_u64(flatbuffers::nullopt),
-        default_u64(42ULL),
-        just_f32(0.0f),
-        maybe_f32(flatbuffers::nullopt),
-        default_f32(42.0f),
-        just_f64(0.0),
-        maybe_f64(flatbuffers::nullopt),
-        default_f64(42.0),
-        just_bool(false),
-        maybe_bool(flatbuffers::nullopt),
-        default_bool(true),
-        just_enum(optional_scalars::OptionalByte_None),
-        maybe_enum(flatbuffers::nullopt),
-        default_enum(optional_scalars::OptionalByte_One) {
-  }
+  int8_t just_i8 = 0;
+  flatbuffers::Optional<int8_t> maybe_i8 = flatbuffers::nullopt;
+  int8_t default_i8 = 42;
+  uint8_t just_u8 = 0;
+  flatbuffers::Optional<uint8_t> maybe_u8 = flatbuffers::nullopt;
+  uint8_t default_u8 = 42;
+  int16_t just_i16 = 0;
+  flatbuffers::Optional<int16_t> maybe_i16 = flatbuffers::nullopt;
+  int16_t default_i16 = 42;
+  uint16_t just_u16 = 0;
+  flatbuffers::Optional<uint16_t> maybe_u16 = flatbuffers::nullopt;
+  uint16_t default_u16 = 42;
+  int32_t just_i32 = 0;
+  flatbuffers::Optional<int32_t> maybe_i32 = flatbuffers::nullopt;
+  int32_t default_i32 = 42;
+  uint32_t just_u32 = 0;
+  flatbuffers::Optional<uint32_t> maybe_u32 = flatbuffers::nullopt;
+  uint32_t default_u32 = 42;
+  int64_t just_i64 = 0;
+  flatbuffers::Optional<int64_t> maybe_i64 = flatbuffers::nullopt;
+  int64_t default_i64 = 42LL;
+  uint64_t just_u64 = 0;
+  flatbuffers::Optional<uint64_t> maybe_u64 = flatbuffers::nullopt;
+  uint64_t default_u64 = 42ULL;
+  float just_f32 = 0.0f;
+  flatbuffers::Optional<float> maybe_f32 = flatbuffers::nullopt;
+  float default_f32 = 42.0f;
+  double just_f64 = 0.0;
+  flatbuffers::Optional<double> maybe_f64 = flatbuffers::nullopt;
+  double default_f64 = 42.0;
+  bool just_bool = false;
+  flatbuffers::Optional<bool> maybe_bool = flatbuffers::nullopt;
+  bool default_bool = true;
+  optional_scalars::OptionalByte just_enum = optional_scalars::OptionalByte_None;
+  flatbuffers::Optional<optional_scalars::OptionalByte> maybe_enum = flatbuffers::nullopt;
+  optional_scalars::OptionalByte default_enum = optional_scalars::OptionalByte_One;
 };
 
 inline bool operator==(const ScalarStuffT &lhs, const ScalarStuffT &rhs) {
@@ -682,7 +644,7 @@ inline flatbuffers::Offset<ScalarStuff> CreateScalarStuff(
 flatbuffers::Offset<ScalarStuff> CreateScalarStuff(flatbuffers::FlatBufferBuilder &_fbb, const ScalarStuffT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 inline ScalarStuffT *ScalarStuff::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  flatbuffers::unique_ptr<optional_scalars::ScalarStuffT> _o = flatbuffers::unique_ptr<optional_scalars::ScalarStuffT>(new ScalarStuffT());
+  auto _o = std::unique_ptr<ScalarStuffT>(new ScalarStuffT());
   UnPackTo(_o.get(), _resolver);
   return _o.release();
 }

@@ -376,6 +376,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         if (++argi >= argc)
           Error("missing C++ standard specification" + arg, true);
         opts.cpp_std = argv[argi];
+      } else if (arg.rfind("--cpp-std=", 0) == 0) {
+        opts.cpp_std = arg.substr(std::string("--cpp-std=").size());
       } else {
         for (size_t i = 0; i < params_.num_generators; ++i) {
           if (arg == params_.generators[i].generator_opt_long ||
