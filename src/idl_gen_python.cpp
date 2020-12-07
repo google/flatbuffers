@@ -127,7 +127,7 @@ class PythonGenerator : public BaseGenerator {
     code += Indent + "@classmethod\n";
     code += Indent + "def GetRootAs";
     code += NormalizedName(struct_def);
-    code += "(cls, buf, offset):";
+    code += "(cls, buf, offset=0):";
     code += "\n";
     code += Indent + Indent;
     code += "n = flatbuffers.encode.Get";
