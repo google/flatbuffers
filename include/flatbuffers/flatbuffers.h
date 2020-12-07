@@ -1611,6 +1611,16 @@ class FlatBufferBuilder {
     return off;
   }
 
+#ifdef FLATBUFFERS_HAS_STRING_VIEW
+  /// @brief Store a string in the buffer, which can contain any binary data.
+  /// If a string with this exact contents has already been serialized before,
+  /// instead simply returns the offset of the existing string.
+  /// @param[in] str A const std::string_view to store in the buffer.
+  /// @return Returns the offset in the buffer where the string starts
+  Offset<String> CreateSharedString(const flatbuffers::string_view str) {
+    return CreateSharedString(str.data(), str.size());
+  }
+#else
   /// @brief Store a string in the buffer, which null-terminated.
   /// If a string with this exact contents has already been serialized before,
   /// instead simply returns the offset of the existing string.
@@ -1628,6 +1638,7 @@ class FlatBufferBuilder {
   Offset<String> CreateSharedString(const std::string &str) {
     return CreateSharedString(str.c_str(), str.length());
   }
+#endif
 
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// If a string with this exact contents has already been serialized before,
