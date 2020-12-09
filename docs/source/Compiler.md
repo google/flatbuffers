@@ -228,5 +228,10 @@ Additional options:
 -   `--force-empty-vectors` : When serializing from object API representation, force
      vectors to empty rather than null.
 
+-   `--flexbuffers` : Used with "binary" and "json" options, it generates
+     data using schema-less FlexBuffers.
+
+-    `--no-warnings` : Inhibit all warning messages.
+
 NOTE: short-form options for generators are deprecated, use the long form
 whenever possible.
