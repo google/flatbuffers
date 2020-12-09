@@ -187,7 +187,7 @@ public struct ByteBuffer {
     _writerSize = _writerSize &+ (MemoryLayout<UInt8>.size &* padding)
   }
 
-  ///Adds an array of type Scalar to the buffer memory
+  /// Adds an array of type Scalar to the buffer memory
   /// - Parameter elements: An array of Scalars
   @usableFromInline
   mutating func push<T: Scalar>(elements: [T]) {
@@ -198,41 +198,15 @@ public struct ByteBuffer {
     }
   }
 
-  /// A custom type of structs that are padded according to the flatbuffer padding,
+  /// Adds an object of type NativeStruct into the buffer
   /// - Parameters:
-  ///   - value: Pointer to the object in memory
-  ///   - size: Size of Value being written to the buffer
-  @available(
-    *,
-    deprecated,
-    message: "0.9.0 will be removing the following method. Regenerate the code")
-  @usableFromInline
-  mutating func push(struct value: UnsafeMutableRawPointer, size: Int) {
+  ///   - value: Object  that will be written to the buffer
+  ///   - size: size to subtract from the WriterIndex
+  mutating func push<T: NativeStruct>(struct value: T, size: Int) {
     ensureSpace(size: size)
-    memcpy(_storage.memory.advanced(by: writerIndex &- size), value, size)
-    defer { value.deallocate() }
-    _writerSize = _writerSize &+ size
-  }
-
-  /// Prepares the buffer to receive a struct of certian size.
-  /// The alignment of the memory is already handled since we already called preAlign
-  /// - Parameter size: size of the struct
-  @usableFromInline
-  mutating func prepareBufferToReceiveStruct(of size: Int) {
-    ensureSpace(size: size)
-    _writerSize = _writerSize &+ size
-  }
-
-  /// Reverse the input direction to the buffer, since `FlatBuffers` uses a back to front, following method will take current `writerIndex`
-  /// and writes front to back into the buffer, respecting the padding & the alignment
-  /// - Parameters:
-  ///   - value: value of type Scalar
-  ///   - position: position relative to the `writerIndex`
-  ///   - len: length of the value in terms of bytes
-  @usableFromInline
-  mutating func reversePush<T: Scalar>(value: T, position: Int, len: Int) {
     var v = value
-    memcpy(_storage.memory.advanced(by: writerIndex &+ position), &v, len)
+    memcpy(_storage.memory.advanced(by: writerIndex &- size), &v, size)
+    _writerSize = _writerSize &+ size
   }
 
   /// Adds an object of type Scalar into the buffer

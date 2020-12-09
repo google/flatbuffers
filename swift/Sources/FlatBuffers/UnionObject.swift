@@ -16,9 +16,9 @@
 
 import Foundation
 
-public protocol NativeTable {}
+public protocol UnionObject {}
 
-extension NativeTable {
+extension UnionObject {
 
   /// Serialize is a helper function that serailizes the data from the Object API to a bytebuffer directly th
   /// - Parameter type: Type of the Flatbuffer object

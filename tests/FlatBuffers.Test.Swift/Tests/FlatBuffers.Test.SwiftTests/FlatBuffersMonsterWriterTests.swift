@@ -77,7 +77,7 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     var fbb = FlatBufferBuilder(initialSize: 1)
     let name = fbb.create(string: "Barney")
     let mStart = Monster.startMonster(&fbb)
-    Monster.add(pos: MyGame_Example_Vec3.createVec3(builder: &fbb, x: 10, test2: .blue), &fbb)
+    Monster.add(pos: MyGame_Example_Vec3(x: 10, y: 0, z: 0, test1: 0, test2: .blue, test3: .init()), &fbb)
     Monster.add(name: name, &fbb)
     let root = Monster.endMonster(&fbb, start: mStart)
     fbb.finish(offset: root)
@@ -136,16 +136,14 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     Monster.add(name: fred, &fbb)
     let mon2 = Monster.endMonster(&fbb, start: mon1Start)
 
-    let size = 2
-    Monster.startVectorOfTest4(size, in: &fbb)
-    MyGame_Example_Test.createTest(builder: &fbb, a: 10, b: 20)
-    MyGame_Example_Test.createTest(builder: &fbb, a: 30, b: 40)
-    let test4 = fbb.endVectorOfStructs(count: size)
+    let test4 = fbb.createVector(ofStructs: [
+      MyGame_Example_Test(a: 30, b: 40),
+      MyGame_Example_Test(a: 10, b: 20),
+    ])
 
     let stringTestVector = fbb.createVector(ofOffsets: [test1, test2])
     let mStart = Monster.startMonster(&fbb)
-    let posStruct = MyGame_Example_Vec3.createVec3(builder: &fbb, x: 1, y: 2, z: 3, test1: 3, test2: .green, test3a: 5, test3b: 6)
-    Monster.add(pos: posStruct, &fbb)
+    Monster.add(pos: MyGame_Example_Vec3(x: 1, y: 2, z: 3, test1: 3, test2: .green, test3: .init(a: 5, b: 6)), &fbb)
     Monster.add(hp: 80, &fbb)
     Monster.add(name: str, &fbb)
     Monster.addVectorOf(inventory: inv, &fbb)
@@ -190,7 +188,7 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     XCTAssertEqual(monster.mutate(inventory: 3, at: 3), true)
     XCTAssertEqual(monster.mutate(inventory: 4, at: 4), true)
 
-    let vec = monster.pos
+    let vec = monster.pos_InMemory
     XCTAssertEqual(vec?.x, 1)
     XCTAssertTrue(vec?.mutate(x: 55.0) ?? false)
     XCTAssertTrue(vec?.mutate(test1: 55) ?? false)
@@ -228,6 +226,7 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     }
     XCTAssertEqual(sum, 10)
     XCTAssertEqual(monster.test4Count, 2)
+
     let test0 = monster.test4(at: 0)
     let test1 = monster.test4(at: 1)
     var sum0 = 0
@@ -239,6 +238,19 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
       sum1 = Int(a) + Int(b)
     }
     XCTAssertEqual(sum0 + sum1, 100)
+
+    let test0_InMemory = monster.test4_InMemory(at: 0)
+    let test1_InMemory = monster.test4_InMemory(at: 1)
+    var sum2 = 0
+    var sum3 = 0
+    if let a = test0_InMemory?.a, let b = test0_InMemory?.b {
+      sum2 = Int(a) + Int(b)
+    }
+    if let a = test1_InMemory?.a, let b = test1_InMemory?.b {
+      sum3 = Int(a) + Int(b)
+    }
+    XCTAssertEqual(sum2 + sum3, 100)
+
     XCTAssertEqual(monster.testarrayofstringCount, 2)
     XCTAssertEqual(monster.testarrayofstring(at: 0), "test1")
     XCTAssertEqual(monster.testarrayofstring(at: 1), "test2")

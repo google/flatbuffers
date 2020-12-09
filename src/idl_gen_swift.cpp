@@ -153,17 +153,7 @@ class SwiftGenerator : public BaseGenerator {
       const auto &struct_def = **it;
       if (struct_def.fixed && !struct_def.generated) {
         GenStructReader(struct_def);
-        if (parser_.opts.generate_object_based_api) {
-          GenObjectAPI(struct_def);
-        }
-      }
-    }
-
-    for (auto it = parser_.structs_.vec.begin();
-         it != parser_.structs_.vec.end(); ++it) {
-      const auto &struct_def = **it;
-      if (struct_def.fixed && !struct_def.generated) {
-        GenStructWriter(struct_def);
+        GenInMemoryStructReader(struct_def);
       }
     }
 
@@ -188,6 +178,124 @@ class SwiftGenerator : public BaseGenerator {
     code_ += "\n// MARK: - {{MARKVALUE}}\n";
   }
 
+  // MARK: - Generating structs
+
+  // Generates the reader for swift
+  void GenStructReader(const StructDef &struct_def) {
+    auto is_private_access = struct_def.attributes.Lookup("private");
+    code_.SetValue("ACCESS_TYPE", is_private_access ? "internal" : "public");
+    GenComment(struct_def.doc_comment);
+    code_.SetValue("STRUCTNAME", NameWrappedInNameSpace(struct_def));
+    code_ += "{{ACCESS_TYPE}} struct {{STRUCTNAME}}: NativeStruct\\";
+    if (parser_.opts.generate_object_based_api) code_ += ", UnionObject\\";
+    code_ += " {";
+    code_ += "";
+    Indent();
+    code_ += ValidateFunc();
+    code_ += "";
+    int padding_id = 0;
+    std::string constructor = "";
+    std::vector<std::string> base_constructor;
+    std::vector<std::string> main_constructor;
+
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto &field = **it;
+      if (field.deprecated) continue;
+
+      if (!constructor.empty()) constructor += ", ";
+
+      auto name = Name(field);
+      auto type = GenType(field.value.type);
+      code_.SetValue("VALUENAME", name);
+      if (IsEnum(field.value.type)) {
+        code_.SetValue("BASEVALUE", GenTypeBasic(field.value.type, false));
+      }
+      code_.SetValue("VALUETYPE", type);
+      GenComment(field.doc_comment);
+      std::string valueType =
+          IsEnum(field.value.type) ? "{{BASEVALUE}}" : "{{VALUETYPE}}";
+      code_ += "private var _{{VALUENAME}}: " + valueType;
+      std::string accessing_value = IsEnum(field.value.type) ? ".value" : "";
+      std::string base_value =
+          IsStruct(field.value.type) ? (type + "()") : field.value.constant;
+
+      main_constructor.push_back("_" + name + " = " + name + accessing_value);
+      base_constructor.push_back("_" + name + " = " + base_value);
+
+      if (field.padding) { GenPadding(field, &padding_id); }
+      constructor += name + ": " + type;
+    }
+    code_ += "";
+    BuildObjectConstructor(main_constructor, constructor);
+    BuildObjectConstructor(base_constructor, "");
+
+    if (parser_.opts.generate_object_based_api)
+      GenerateObjectAPIStructConstructor(struct_def);
+
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto &field = **it;
+      if (field.deprecated) continue;
+      auto name = Name(field);
+      auto type = GenType(field.value.type);
+      code_.SetValue("VALUENAME", name);
+      code_.SetValue("VALUETYPE", type);
+      GenComment(field.doc_comment);
+      if (!IsEnum(field.value.type)) {
+        code_ += GenReaderMainBody() + "_{{VALUENAME}} }";
+      } else if (IsEnum(field.value.type)) {
+        code_ +=
+            GenReaderMainBody() + "{{VALUETYPE}}(rawValue: _{{VALUENAME}})! }";
+      }
+    }
+    Outdent();
+    code_ += "}\n";
+  }
+
+  void GenInMemoryStructReader(const StructDef &struct_def) {
+    GenObjectHeader(struct_def);
+    auto name = NameWrappedInNameSpace(struct_def);
+
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto &field = **it;
+      if (field.deprecated) continue;
+      auto offset = NumToString(field.value.offset);
+      auto name = Name(field);
+      auto type = GenType(field.value.type);
+      code_.SetValue("VALUENAME", name);
+      if (IsEnum(field.value.type)) {
+        code_.SetValue("BASEVALUE", GenTypeBasic(field.value.type, false));
+      }
+      code_.SetValue("VALUETYPE", type);
+      code_.SetValue("OFFSET", offset);
+      if (IsScalar(field.value.type.base_type) && !IsEnum(field.value.type)) {
+        code_ +=
+            GenReaderMainBody() + "return " + GenReader("VALUETYPE") + " }";
+      } else if (IsEnum(field.value.type)) {
+        code_.SetValue("BASEVALUE", GenTypeBasic(field.value.type, false));
+        code_ += GenReaderMainBody() + "return " +
+                 GenEnumConstructor("{{OFFSET}}") + "?? " +
+                 GenEnumDefaultValue(field) + " }";
+      } else if (IsStruct(field.value.type)) {
+        code_.SetValue("VALUETYPE", GenType(field.value.type) + InMemory());
+        code_ += GenReaderMainBody() + "return " +
+                 GenConstructor("{{ACCESS}}.postion + {{OFFSET}}");
+      }
+      if (parser_.opts.mutable_buffer && !IsStruct(field.value.type))
+        code_ += GenMutate("{{OFFSET}}", "", IsEnum(field.value.type));
+    }
+    if (parser_.opts.generate_object_based_api) {
+      GenerateObjectAPIExtensionHeader(name);
+      code_ += "return builder.create(struct: obj)";
+      Outdent();
+      code_ += "}";
+    }
+    Outdent();
+    code_ += "}\n";
+  }
+
   // Generates the create function for swift
   void GenStructWriter(const StructDef &struct_def) {
     auto is_private_access = struct_def.attributes.Lookup("private");
@@ -208,33 +316,11 @@ class SwiftGenerator : public BaseGenerator {
     code_ +=
         "builder.createStructOf(size: {{STRUCTNAME}}.size, alignment: "
         "{{STRUCTNAME}}.alignment)";
-    GenerateStructBody(struct_def, "");
     code_ += "return builder.endStruct()";
     Outdent();
     code_ += "}\n";
     Outdent();
     code_ += "}\n";
-  }
-
-  void GenerateStructBody(const StructDef &struct_def,
-                          const std::string &nameprefix, int offset = 0) {
-    for (auto it = struct_def.fields.vec.begin();
-         it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
-      if (field.deprecated) continue;
-      auto name = nameprefix + Name(field);
-      const auto &field_type = field.value.type;
-      auto type = GenTypeBasic(field_type, false);
-      if (IsStruct(field.value.type)) {
-        GenerateStructBody(*field_type.struct_def, (nameprefix + field.name),
-                           static_cast<int>(field.value.offset));
-      } else {
-        auto off = NumToString(offset + field.value.offset);
-        code_ += "builder.reverseAdd(v: " + name +
-                 (field_type.enum_def ? ".rawValue" : "") +
-                 ", postion: " + off + ")";
-      }
-    }
   }
 
   void GenerateStructArgs(const StructDef &struct_def, std::string *code_ptr,
@@ -275,51 +361,7 @@ class SwiftGenerator : public BaseGenerator {
     }
   }
 
-  void GenObjectHeader(const StructDef &struct_def) {
-    GenComment(struct_def.doc_comment);
-    code_.SetValue("SHORT_STRUCTNAME", Name(struct_def));
-    code_.SetValue("STRUCTNAME", NameWrappedInNameSpace(struct_def));
-    code_.SetValue("PROTOCOL",
-                   struct_def.fixed ? "Readable" : "FlatBufferObject");
-    code_.SetValue("OBJECTTYPE", struct_def.fixed ? "Struct" : "Table");
-    code_ += "{{ACCESS_TYPE}} struct {{STRUCTNAME}}: {{PROTOCOL}}\\";
-    if (!struct_def.fixed && parser_.opts.generate_object_based_api)
-      code_ += ", ObjectAPI\\";
-    code_ += " {\n";
-    Indent();
-    code_ += ValidateFunc();
-    code_ +=
-        "{{ACCESS_TYPE}} var __buffer: ByteBuffer! { return {{ACCESS}}.bb }";
-    code_ += "private var {{ACCESS}}: {{OBJECTTYPE}}\n";
-    if (struct_def.fixed) {
-      code_.SetValue("BYTESIZE", NumToString(struct_def.bytesize));
-      code_.SetValue("MINALIGN", NumToString(struct_def.minalign));
-      code_ += "{{ACCESS_TYPE}} static var size = {{BYTESIZE}}";
-      code_ += "{{ACCESS_TYPE}} static var alignment = {{MINALIGN}}";
-    } else {
-      if (parser_.file_identifier_.length()) {
-        code_.SetValue("FILENAME", parser_.file_identifier_);
-        code_ +=
-            "{{ACCESS_TYPE}} static func finish(_ fbb: inout "
-            "FlatBufferBuilder, end: "
-            "Offset<UOffset>, prefix: Bool = false) { fbb.finish(offset: end, "
-            "fileId: "
-            "\"{{FILENAME}}\", addPrefix: prefix) }";
-      }
-      code_ +=
-          "{{ACCESS_TYPE}} static func getRootAs{{SHORT_STRUCTNAME}}(bb: "
-          "ByteBuffer) -> "
-          "{{STRUCTNAME}} { return {{STRUCTNAME}}(Table(bb: bb, position: "
-          "Int32(bb.read(def: UOffset.self, position: bb.reader)) + "
-          "Int32(bb.reader))) }\n";
-      code_ += "private init(_ t: Table) { {{ACCESS}} = t }";
-    }
-    code_ +=
-        "{{ACCESS_TYPE}} init(_ bb: ByteBuffer, o: Int32) { {{ACCESS}} = "
-        "{{OBJECTTYPE}}(bb: "
-        "bb, position: o) }";
-    code_ += "";
-  }
+  // MARK: - Table Generator
 
   // Generates the reader for swift
   void GenTable(const StructDef &struct_def) {
@@ -358,51 +400,46 @@ class SwiftGenerator : public BaseGenerator {
     }
   }
 
-  void GenerateObjectAPIExtensionHeader() {
-    code_ += "\n";
-    code_ += "{{ACCESS_TYPE}} mutating func unpack() -> " +
-             ObjectAPIName("{{STRUCTNAME}}") + " {";
-    Indent();
-    code_ += "return " + ObjectAPIName("{{STRUCTNAME}}") + "(&self)";
-    Outdent();
-    code_ += "}";
-    code_ +=
-        "{{ACCESS_TYPE}} static func pack(_ builder: inout FlatBufferBuilder, "
-        "obj: "
-        "inout " +
-        ObjectAPIName("{{STRUCTNAME}}") + "?) -> Offset<UOffset> {";
-    Indent();
-    code_ += "guard var obj = obj else { return Offset<UOffset>() }";
-    code_ += "return pack(&builder, obj: &obj)";
-    Outdent();
-    code_ += "}";
-    code_ += "";
-    code_ +=
-        "{{ACCESS_TYPE}} static func pack(_ builder: inout FlatBufferBuilder, "
-        "obj: "
-        "inout " +
-        ObjectAPIName("{{STRUCTNAME}}") + ") -> Offset<UOffset> {";
-    Indent();
-  }
+  void GenObjectHeader(const StructDef &struct_def) {
+    GenComment(struct_def.doc_comment);
 
-  void GenerateObjectAPIStructExtension(const StructDef &struct_def) {
-    GenerateObjectAPIExtensionHeader();
-    std::string code;
-    GenerateStructArgs(struct_def, &code, "", "", "obj", true);
-    code_ += "return create{{SHORT_STRUCTNAME}}(builder: &builder, \\";
-    code_ += code.substr(0, code.size() - 2) + "\\";
-    code_ += ")";
-    Outdent();
-    code_ += "}";
-  }
-
-  void GenTableReader(const StructDef &struct_def) {
-    for (auto it = struct_def.fields.vec.begin();
-         it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
-      if (field.deprecated) continue;
-      GenTableReaderFields(field);
+    code_.SetValue("SHORT_STRUCTNAME", Name(struct_def));
+    code_.SetValue("STRUCTNAME", NameWrappedInNameSpace(struct_def));
+    code_.SetValue("OBJECTTYPE", struct_def.fixed ? "Struct" : "Table");
+    code_.SetValue("INMEMORY", struct_def.fixed ? InMemory() : "");
+    code_ +=
+        "{{ACCESS_TYPE}} struct {{STRUCTNAME}}{{INMEMORY}}: FlatBufferObject\\";
+    if (!struct_def.fixed && parser_.opts.generate_object_based_api)
+      code_ += ", ObjectAPI\\";
+    code_ += " {\n";
+    Indent();
+    code_ += ValidateFunc();
+    code_ +=
+        "{{ACCESS_TYPE}} var __buffer: ByteBuffer! { return {{ACCESS}}.bb }";
+    code_ += "private var {{ACCESS}}: {{OBJECTTYPE}}\n";
+    if (!struct_def.fixed) {
+      if (parser_.file_identifier_.length()) {
+        code_.SetValue("FILENAME", parser_.file_identifier_);
+        code_ +=
+            "{{ACCESS_TYPE}} static func finish(_ fbb: inout "
+            "FlatBufferBuilder, end: "
+            "Offset<UOffset>, prefix: Bool = false) { fbb.finish(offset: end, "
+            "fileId: "
+            "\"{{FILENAME}}\", addPrefix: prefix) }";
+      }
+      code_ +=
+          "{{ACCESS_TYPE}} static func getRootAs{{SHORT_STRUCTNAME}}(bb: "
+          "ByteBuffer) -> "
+          "{{STRUCTNAME}} { return {{STRUCTNAME}}(Table(bb: bb, position: "
+          "Int32(bb.read(def: UOffset.self, position: bb.reader)) + "
+          "Int32(bb.reader))) }\n";
+      code_ += "private init(_ t: Table) { {{ACCESS}} = t }";
     }
+    code_ +=
+        "{{ACCESS_TYPE}} init(_ bb: ByteBuffer, o: Int32) { {{ACCESS}} = "
+        "{{OBJECTTYPE}}(bb: "
+        "bb, position: o) }";
+    code_ += "";
   }
 
   void GenTableWriter(const StructDef &struct_def) {
@@ -509,10 +546,8 @@ class SwiftGenerator : public BaseGenerator {
     code_.SetValue("OFFSET", name);
     code_.SetValue("CONSTANT", field.value.constant);
     std::string check_if_vector =
-        (IsVector(field.value.type) ||
-         IsArray(field.value.type))
-            ? "VectorOf("
-            : "(";
+        (IsVector(field.value.type) || IsArray(field.value.type)) ? "VectorOf("
+                                                                  : "(";
     auto body = "add" + check_if_vector + name + ": ";
     code_ += "{{ACCESS_TYPE}} static func " + body + "\\";
 
@@ -556,24 +591,20 @@ class SwiftGenerator : public BaseGenerator {
     }
 
     if (IsStruct(field.value.type)) {
-      contains_structs = false;
-      auto struct_type = "Offset<UOffset>?";
-      auto camel_case_name = "structOf" + MakeCamel(name, true);
-      auto reader_type =
-          "fbb.add(structOffset: {{TABLEOFFSET}}.{{OFFSET}}.p) }";
-      auto create_struct = "guard {{VALUENAME}} != nil else { return }; ";
-      code_ += struct_type + builder_string + create_struct + reader_type;
+      auto create_struct =
+          "guard let pos = pos else { return };"
+          " fbb.create(struct: pos, position: {{TABLEOFFSET}}.{{OFFSET}}.p) }";
+      code_ += type + "?" + builder_string + create_struct;
+      /// Optional hard coded since structs are always optional
+      create_func_header.push_back(name + ": " + type + "? = nil");
       return;
     }
 
-    auto offset_type = IsString(field.value.type)
-                           ? "Offset<String>"
-                           : "Offset<UOffset>";
+    auto offset_type =
+        IsString(field.value.type) ? "Offset<String>" : "Offset<UOffset>";
     auto camel_case_name =
-        (IsVector(field.value.type) ||
-                 IsArray(field.value.type)
-             ? "vectorOf"
-             : "offsetOf") +
+        (IsVector(field.value.type) || IsArray(field.value.type) ? "vectorOf"
+                                                                 : "offsetOf") +
         MakeCamel(name, true);
     create_func_header.push_back(camel_case_name + " " + name + ": " +
                                  offset_type + " = Offset()");
@@ -587,19 +618,26 @@ class SwiftGenerator : public BaseGenerator {
 
     if ((vectortype.base_type == BASE_TYPE_STRUCT &&
          field.value.type.struct_def->fixed) &&
-        (IsVector(field.value.type) ||
-         IsArray(field.value.type))) {
+        (IsVector(field.value.type) || IsArray(field.value.type))) {
       auto field_name = NameWrappedInNameSpace(*vectortype.struct_def);
       code_ += "public static func startVectorOf" + MakeCamel(name, true) +
                "(_ size: Int, in builder: inout "
                "FlatBufferBuilder) {";
       Indent();
-      code_ += "builder.startVectorOfStructs(count: size, size: " + field_name +
-               ".size, "
-               "alignment: " +
-               field_name + ".alignment)";
+      code_ += "builder.startVector(size * MemoryLayout<" + field_name +
+               ">.size, elementSize: MemoryLayout<" + field_name +
+               ">.alignment)";
       Outdent();
       code_ += "}";
+    }
+  }
+
+  void GenTableReader(const StructDef &struct_def) {
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto &field = **it;
+      if (field.deprecated) continue;
+      GenTableReaderFields(field);
     }
   }
 
@@ -655,6 +693,11 @@ class SwiftGenerator : public BaseGenerator {
       code_.SetValue("VALUETYPE", GenType(field.value.type));
       code_.SetValue("CONSTANT", "nil");
       code_ += GenReaderMainBody(is_required) + GenOffset() + required_reader +
+               "{{ACCESS}}.readBuffer(of: {{VALUETYPE}}.self, at: o) }";
+      code_.SetValue("VALUENAME", name + InMemory());
+      code_.SetValue("VALUETYPE", GenType(field.value.type) + InMemory());
+      code_.SetValue("CONSTANT", "nil");
+      code_ += GenReaderMainBody(is_required) + GenOffset() + required_reader +
                GenConstructor("o + {{ACCESS}}.postion");
       return;
     }
@@ -705,6 +748,7 @@ class SwiftGenerator : public BaseGenerator {
                                    : "nil");
     auto nullable = IsScalar(vectortype.base_type) == true ? "" : "?";
     nullable = IsEnum(vectortype) == true ? "?" : nullable;
+
     if (vectortype.base_type != BASE_TYPE_UNION) {
       code_ += GenArrayMainBody(nullable) + GenOffset() + "\\";
     } else {
@@ -733,9 +777,17 @@ class SwiftGenerator : public BaseGenerator {
       if (parser_.opts.mutable_buffer) code_ += GenMutateArray();
       return;
     }
+
     if (vectortype.base_type == BASE_TYPE_STRUCT &&
         field.value.type.struct_def->fixed) {
-      code_ += GenConstructor("{{ACCESS}}.vector(at: o) + index * {{SIZE}}");
+      code_ +=
+          "{{ACCESS}}.directRead(of: {{VALUETYPE}}.self, offset: "
+          "{{ACCESS}}.vector(at: o) + index * {{SIZE}}) }";
+      code_.SetValue("VALUENAME", Name(field) + InMemory());
+      code_.SetValue("VALUETYPE", GenType(field.value.type) + InMemory());
+      code_ += GenArrayMainBody(nullable) + GenOffset() + const_string +
+               GenConstructor("{{ACCESS}}.vector(at: o) + index * {{SIZE}}");
+
       return;
     }
 
@@ -788,44 +840,6 @@ class SwiftGenerator : public BaseGenerator {
              "{{ACCESS}}.vector(at: o), key: key, fbb: {{ACCESS}}.bb) }";
   }
 
-  // Generates the reader for swift
-  void GenStructReader(const StructDef &struct_def) {
-    auto is_private_access = struct_def.attributes.Lookup("private");
-    code_.SetValue("ACCESS_TYPE", is_private_access ? "internal" : "public");
-
-    GenObjectHeader(struct_def);
-    for (auto it = struct_def.fields.vec.begin();
-         it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
-      if (field.deprecated) continue;
-      auto offset = NumToString(field.value.offset);
-      auto name = Name(field);
-      auto type = GenType(field.value.type);
-      code_.SetValue("VALUENAME", name);
-      code_.SetValue("VALUETYPE", type);
-      code_.SetValue("OFFSET", offset);
-      GenComment(field.doc_comment);
-      if (IsScalar(field.value.type.base_type) && !IsEnum(field.value.type)) {
-        code_ +=
-            GenReaderMainBody() + "return " + GenReader("VALUETYPE") + " }";
-        if (parser_.opts.mutable_buffer) code_ += GenMutate("{{OFFSET}}", "");
-      } else if (IsEnum(field.value.type)) {
-        code_.SetValue("BASEVALUE", GenTypeBasic(field.value.type, false));
-        code_ += GenReaderMainBody() + "return " +
-                 GenEnumConstructor("{{OFFSET}}") + "?? " +
-                 GenEnumDefaultValue(field) + " }";
-      } else if (IsStruct(field.value.type)) {
-        code_.SetValue("VALUETYPE", GenType(field.value.type));
-        code_ += GenReaderMainBody() + "return " +
-                 GenConstructor("{{ACCESS}}.postion + {{OFFSET}}");
-      }
-    }
-    if (parser_.opts.generate_object_based_api)
-      GenerateObjectAPIStructExtension(struct_def);
-    Outdent();
-    code_ += "}\n";
-  }
-
   void GenEnum(const EnumDef &enum_def) {
     if (enum_def.generated) return;
     auto is_private_access = enum_def.attributes.Lookup("private");
@@ -859,8 +873,8 @@ class SwiftGenerator : public BaseGenerator {
       code_ += "{{ACCESS_TYPE}} struct {{ENUM_NAME}}Union {";
       Indent();
       code_ += "{{ACCESS_TYPE}} var type: {{ENUM_NAME}}";
-      code_ += "{{ACCESS_TYPE}} var value: NativeTable?";
-      code_ += "{{ACCESS_TYPE}} init(_ v: NativeTable?, type: {{ENUM_NAME}}) {";
+      code_ += "{{ACCESS_TYPE}} var value: UnionObject?";
+      code_ += "{{ACCESS_TYPE}} init(_ v: UnionObject?, type: {{ENUM_NAME}}) {";
       Indent();
       code_ += "self.type = type";
       code_ += "self.value = v";
@@ -878,9 +892,61 @@ class SwiftGenerator : public BaseGenerator {
     }
   }
 
+  // MARK: - Object API
+
+  void GenerateObjectAPIExtensionHeader(std::string name) {
+    code_ += "\n";
+    code_ += "{{ACCESS_TYPE}} mutating func unpack() -> " + name + " {";
+    Indent();
+    code_ += "return " + name + "(&self)";
+    Outdent();
+    code_ += "}";
+    code_ +=
+        "{{ACCESS_TYPE}} static func pack(_ builder: inout FlatBufferBuilder, "
+        "obj: "
+        "inout " +
+        name + "?) -> Offset<UOffset> {";
+    Indent();
+    code_ += "guard var obj = obj else { return Offset<UOffset>() }";
+    code_ += "return pack(&builder, obj: &obj)";
+    Outdent();
+    code_ += "}";
+    code_ += "";
+    code_ +=
+        "{{ACCESS_TYPE}} static func pack(_ builder: inout FlatBufferBuilder, "
+        "obj: "
+        "inout " +
+        name + ") -> Offset<UOffset> {";
+    Indent();
+  }
+
+  void GenerateObjectAPIStructConstructor(const StructDef &struct_def) {
+    code_ +=
+        "{{ACCESS_TYPE}} init(_ _t: inout {{STRUCTNAME}}" + InMemory() + ") {";
+    Indent();
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto &field = **it;
+      if (field.deprecated) continue;
+
+      auto name = Name(field);
+      auto type = GenType(field.value.type);
+      code_.SetValue("VALUENAME", name);
+      if (IsStruct(field.value.type)) {
+        code_ += "var _v = _t.{{VALUENAME}}";
+        code_ += "_{{VALUENAME}} = _v.unpack()";
+        continue;
+      }
+      std::string is_enum = IsEnum(field.value.type) ? ".value" : "";
+      code_ += "_{{VALUENAME}} = _t.{{VALUENAME}}" + is_enum;
+    }
+    Outdent();
+    code_ += "}\n";
+  }
+
   void GenObjectAPI(const StructDef &struct_def) {
     code_ += "{{ACCESS_TYPE}} class " + ObjectAPIName("{{STRUCTNAME}}") +
-             ": NativeTable {\n";
+             ": UnionObject {\n";
     std::vector<std::string> buffer_constructor;
     std::vector<std::string> base_constructor;
     Indent();
@@ -892,10 +958,9 @@ class SwiftGenerator : public BaseGenerator {
                                     base_constructor);
     }
     code_ += "";
-    BuildObjectAPIConstructor(
-        buffer_constructor,
-        "_ _t: inout " + NameWrappedInNameSpace(struct_def));
-    BuildObjectAPIConstructor(base_constructor);
+    BuildObjectConstructor(buffer_constructor,
+                           "_ _t: inout " + NameWrappedInNameSpace(struct_def));
+    BuildObjectConstructor(base_constructor);
     if (!struct_def.fixed)
       code_ +=
           "{{ACCESS_TYPE}} func serialize() -> ByteBuffer { return "
@@ -906,7 +971,7 @@ class SwiftGenerator : public BaseGenerator {
   }
 
   void GenerateObjectAPITableExtension(const StructDef &struct_def) {
-    GenerateObjectAPIExtensionHeader();
+    GenerateObjectAPIExtensionHeader(ObjectAPIName("{{STRUCTNAME}}"));
     std::vector<std::string> unpack_body;
     std::string builder = ", &builder)";
     for (auto it = struct_def.fields.vec.begin();
@@ -916,8 +981,7 @@ class SwiftGenerator : public BaseGenerator {
       auto name = Name(field);
       auto type = GenType(field.value.type);
       std::string check_if_vector =
-          (IsVector(field.value.type) ||
-           IsArray(field.value.type))
+          (IsVector(field.value.type) || IsArray(field.value.type))
               ? "VectorOf("
               : "(";
       std::string body = "add" + check_if_vector + name + ": ";
@@ -944,16 +1008,13 @@ class SwiftGenerator : public BaseGenerator {
           if (field.value.type.struct_def &&
               field.value.type.struct_def->fixed) {
             // This is a Struct (IsStruct), not a table. We create
-            // UnsafeMutableRawPointer in this case.
+            // a native swift object in this case.
             std::string code;
             GenerateStructArgs(*field.value.type.struct_def, &code, "", "",
                                "$0", true);
             code = code.substr(0, code.size() - 2);
-            unpack_body.push_back(
-                "{{STRUCTNAME}}." + body + "obj." + name + ".map { " +
-                NameWrappedInNameSpace(*field.value.type.struct_def) +
-                ".create" + Name(*field.value.type.struct_def) +
-                "(builder: &builder, " + code + ") }" + builder);
+            unpack_body.push_back("{{STRUCTNAME}}." + body + "obj." + name +
+                                  builder);
           } else {
             code_ += "let __" + name + " = " + type +
                      ".pack(&builder, obj: &obj." + name + ")";
@@ -1032,13 +1093,10 @@ class SwiftGenerator : public BaseGenerator {
           code_ += "for i in obj." + name + " {";
           Indent();
           code_ += "guard let _o = i else { continue }";
-          code_ += NameWrappedInNameSpace(*field.value.type.struct_def) +
-                   ".create" + Name(*field.value.type.struct_def) +
-                   "(builder: &builder, " + code + ")";
+          code_ += "builder.create(struct: _o)";
           Outdent();
           code_ += "}";
-          code_ += "let __" + name +
-                   " = builder.endVectorOfStructs(count: obj." + name +
+          code_ += "let __" + name + " = builder.endVector(len: obj." + name +
                    ".count)";
         }
         break;
@@ -1071,8 +1129,8 @@ class SwiftGenerator : public BaseGenerator {
     code_ += "";
   }
 
-  void BuildObjectAPIConstructor(const std::vector<std::string> &body,
-                                 const std::string &header = "") {
+  void BuildObjectConstructor(const std::vector<std::string> &body,
+                              const std::string &header = "") {
     code_.SetValue("HEADER", header);
     code_ += "{{ACCESS_TYPE}} init({{HEADER}}) {";
     Indent();
@@ -1095,7 +1153,6 @@ class SwiftGenerator : public BaseGenerator {
       case BASE_TYPE_STRUCT: {
         type = GenType(field.value.type, true);
         code_.SetValue("VALUETYPE", type);
-        buffer_constructor.push_back("var __" + name + " = _t." + name);
         auto optional =
             (field.value.type.struct_def && field.value.type.struct_def->fixed);
         std::string question_mark =
@@ -1103,10 +1160,16 @@ class SwiftGenerator : public BaseGenerator {
 
         code_ +=
             "{{ACCESS_TYPE}} var {{VALUENAME}}: {{VALUETYPE}}" + question_mark;
-        buffer_constructor.push_back("" + name + " = __" + name +
-                                     (field.required ? "!" : question_mark) +
-                                     ".unpack()");
         base_constructor.push_back("" + name + " = " + type + "()");
+
+        if (field.value.type.struct_def->fixed) {
+          buffer_constructor.push_back("" + name + " = _t." + name);
+        } else {
+          buffer_constructor.push_back("var __" + name + " = _t." + name);
+          buffer_constructor.push_back("" + name + " = __" + name +
+                                       (field.required ? "!" : question_mark) +
+                                       ".unpack()");
+        }
         break;
       }
       case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();
@@ -1176,10 +1239,15 @@ class SwiftGenerator : public BaseGenerator {
       case BASE_TYPE_STRUCT: {
         code_.SetValue("VALUETYPE", GenType(vectortype, true));
         code_ += "{{ACCESS_TYPE}} var {{VALUENAME}}: [{{VALUETYPE}}?]";
-        buffer_constructor.push_back(indentation + "var __v_ = _t." + name +
-                                     "(at: index)");
-        buffer_constructor.push_back(indentation + name +
-                                     ".append(__v_?.unpack())");
+        if (!vectortype.struct_def->fixed) {
+          buffer_constructor.push_back(indentation + "var __v_ = _t." + name +
+                                       "(at: index)");
+          buffer_constructor.push_back(indentation + name +
+                                       ".append(__v_?.unpack())");
+        } else {
+          buffer_constructor.push_back(indentation + name + ".append(_t." +
+                                       name + "(at: index))");
+        }
         break;
       }
       case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();
@@ -1193,9 +1261,9 @@ class SwiftGenerator : public BaseGenerator {
       }
       case BASE_TYPE_UTYPE: break;
       default: {
-        code_.SetValue("VALUETYPE", (IsString(vectortype)
-                                         ? "String?"
-                                         : GenType(vectortype)));
+        code_.SetValue(
+            "VALUETYPE",
+            (IsString(vectortype) ? "String?" : GenType(vectortype)));
         code_ += "{{ACCESS_TYPE}} var {{VALUENAME}}: [{{VALUETYPE}}]";
 
         if (IsEnum(vectortype) && vectortype.base_type != BASE_TYPE_UNION) {
@@ -1223,7 +1291,7 @@ class SwiftGenerator : public BaseGenerator {
       auto field = **it;
       auto ev_name = Name(field);
       auto type = GenType(field.union_type);
-
+      auto is_struct = IsStruct(field.union_type) ? type + InMemory() : type;
       if (field.union_type.base_type == BASE_TYPE_NONE ||
           IsString(field.union_type)) {
         continue;
@@ -1231,7 +1299,7 @@ class SwiftGenerator : public BaseGenerator {
       code_ += "case ." + ev_name + ":";
       Indent();
       code_ += "var __obj = value as? " + GenType(field.union_type, true);
-      code_ += "return " + type + ".pack(&builder, obj: &__obj)";
+      code_ += "return " + is_struct + ".pack(&builder, obj: &__obj)";
       Outdent();
     }
     code_ += "default: return Offset()";
@@ -1258,15 +1326,17 @@ class SwiftGenerator : public BaseGenerator {
           IsString(field.union_type)) {
         continue;
       }
+      auto type = IsStruct(field.union_type)
+                      ? GenType(field.union_type) + InMemory()
+                      : GenType(field.union_type);
       buffer_constructor.push_back(indentation + "case ." + ev_name + ":");
       buffer_constructor.push_back(
-          indentation + "    var _v = _t." + name + (is_vector ? "" : "(") +
-          vector_reader + (is_vector ? ", " : "") +
-          "type: " + GenType(field.union_type) + ".self)");
+          indentation + "  var _v = _t." + name + (is_vector ? "" : "(") +
+          vector_reader + (is_vector ? ", " : "") + "type: " + type + ".self)");
       auto constructor =
           field_name + "Union(_v?.unpack(), type: ." + ev_name + ")";
       buffer_constructor.push_back(
-          indentation + "    " + name +
+          indentation + "  " + name +
           (is_vector ? ".append(" + constructor + ")" : " = " + constructor));
     }
     buffer_constructor.push_back(indentation + "default: break");
@@ -1328,6 +1398,19 @@ class SwiftGenerator : public BaseGenerator {
     code_ += "return nil";
     Outdent();
     code_ += "}";
+  }
+
+  inline void GenPadding(const FieldDef &field, int *id) {
+    if (field.padding) {
+      for (int i = 0; i < 4; i++) {
+        if (static_cast<int>(field.padding) & (1 << i)) {
+          auto bits = (1 << i) * 8;
+          code_ += "private let padding" + NumToString((*id)++) + "__: UInt" +
+                   NumToString(bits) + " = 0";
+        }
+      }
+      FLATBUFFERS_ASSERT(!(field.padding & ~0xF));
+    }
   }
 
   void GenComment(const std::vector<std::string> &dc) {
@@ -1411,7 +1494,7 @@ class SwiftGenerator : public BaseGenerator {
       case BASE_TYPE_VECTOR: return GenType(type.VectorType());
       case BASE_TYPE_STRUCT: {
         auto &struct_ = *type.struct_def;
-        if (should_consider_suffix) {
+        if (should_consider_suffix && !struct_.fixed) {
           return WrapInNameSpace(struct_.defined_namespace,
                                  ObjectAPIName(Name(struct_)));
         }
@@ -1462,6 +1545,8 @@ class SwiftGenerator : public BaseGenerator {
   std::string EscapeKeyword(const std::string &name) const {
     return keywords_.find(name) == keywords_.end() ? name : name + "_";
   }
+
+  std::string InMemory() const { return "_InMemory"; }
 
   std::string Name(const EnumVal &ev) const {
     auto name = ev.name;
