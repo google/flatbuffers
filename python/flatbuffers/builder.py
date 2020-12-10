@@ -103,7 +103,7 @@ class Builder(object):
 
     ## @cond FLATBUFFERS_INTENRAL
     __slots__ = ("Bytes", "current_vtable", "head", "minalign", "objectEnd",
-                 "vtables", "nested", "forceDefaults", "finished")
+                 "vtables", "nested", "forceDefaults", "finished", "vectorNumElems")
 
     """Maximum buffer size constant, in bytes.
 
@@ -371,12 +371,13 @@ class Builder(object):
 
         self.assertNotNested()
         self.nested = True
+        self.vectorNumElems = numElems
         self.Prep(N.Uint32Flags.bytewidth, elemSize*numElems)
         self.Prep(alignment, elemSize*numElems)  # In case alignment > int.
         return self.Offset()
     ## @endcond
 
-    def EndVector(self, vectorNumElems):
+    def EndVector(self, vectorNumElems = None):
         """EndVector writes data necessary to finish vector construction."""
 
         self.assertNested()
@@ -384,7 +385,7 @@ class Builder(object):
         self.nested = False
         ## @endcond
         # we already made space for this, so write without PrependUint32
-        self.PlaceUOffsetT(vectorNumElems)
+        self.PlaceUOffsetT(self.vectorNumElems if vectorNumElems is None else vectorNumElems)
         return self.Offset()
 
     def CreateString(self, s, encoding='utf-8', errors='strict'):
