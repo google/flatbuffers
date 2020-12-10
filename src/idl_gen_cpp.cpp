@@ -2157,7 +2157,7 @@ class CppGenerator : public BaseGenerator {
       });
     code_ += "  static constexpr std::array<\\";
     code_.SetValue("FIELD_COUNT",
-        std::to_string(non_deprecated_field_count));
+        std::to_string(static_cast<long long>(non_deprecated_field_count)));
     code_ += "const char *, {{FIELD_COUNT}}> field_names = {\\";
     if (struct_def.fields.vec.empty()) {
       code_ += "};";
