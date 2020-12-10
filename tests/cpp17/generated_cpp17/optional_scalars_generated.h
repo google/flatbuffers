@@ -4,6 +4,8 @@
 #ifndef FLATBUFFERS_GENERATED_OPTIONALSCALARS_OPTIONAL_SCALARS_H_
 #define FLATBUFFERS_GENERATED_OPTIONALSCALARS_OPTIONAL_SCALARS_H_
 
+#include <tuple>
+
 #include "flatbuffers/flatbuffers.h"
 
 namespace optional_scalars {
@@ -348,6 +350,84 @@ struct ScalarStuff FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool mutate_default_enum(optional_scalars::OptionalByte _default_enum) {
     return SetField<int8_t>(VT_DEFAULT_ENUM, static_cast<int8_t>(_default_enum), 1);
   }
+  using FieldTypes = std::tuple<
+    int8_t,
+    flatbuffers::Optional<int8_t>,
+    int8_t,
+    uint8_t,
+    flatbuffers::Optional<uint8_t>,
+    uint8_t,
+    int16_t,
+    flatbuffers::Optional<int16_t>,
+    int16_t,
+    uint16_t,
+    flatbuffers::Optional<uint16_t>,
+    uint16_t,
+    int32_t,
+    flatbuffers::Optional<int32_t>,
+    int32_t,
+    uint32_t,
+    flatbuffers::Optional<uint32_t>,
+    uint32_t,
+    int64_t,
+    flatbuffers::Optional<int64_t>,
+    int64_t,
+    uint64_t,
+    flatbuffers::Optional<uint64_t>,
+    uint64_t,
+    float,
+    flatbuffers::Optional<float>,
+    float,
+    double,
+    flatbuffers::Optional<double>,
+    double,
+    bool,
+    flatbuffers::Optional<bool>,
+    bool,
+    optional_scalars::OptionalByte,
+    flatbuffers::Optional<optional_scalars::OptionalByte>,
+    optional_scalars::OptionalByte
+    >;
+  FieldTypes fields_pack() const {
+    return {
+      just_i8(),
+      maybe_i8(),
+      default_i8(),
+      just_u8(),
+      maybe_u8(),
+      default_u8(),
+      just_i16(),
+      maybe_i16(),
+      default_i16(),
+      just_u16(),
+      maybe_u16(),
+      default_u16(),
+      just_i32(),
+      maybe_i32(),
+      default_i32(),
+      just_u32(),
+      maybe_u32(),
+      default_u32(),
+      just_i64(),
+      maybe_i64(),
+      default_i64(),
+      just_u64(),
+      maybe_u64(),
+      default_u64(),
+      just_f32(),
+      maybe_f32(),
+      default_f32(),
+      just_f64(),
+      maybe_f64(),
+      default_f64(),
+      just_bool(),
+      maybe_bool(),
+      default_bool(),
+      just_enum(),
+      maybe_enum(),
+      default_enum()
+    };
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int8_t>(verifier, VT_JUST_I8) &&
@@ -597,6 +677,45 @@ inline flatbuffers::Offset<ScalarStuff> CreateScalarStuff(
 struct ScalarStuff::Traits {
   using type = ScalarStuff;
   static auto constexpr Create = CreateScalarStuff;
+  static constexpr auto name = "ScalarStuff";
+  static constexpr std::array<const char *, 36> field_names = {
+    "just_i8",
+    "maybe_i8",
+    "default_i8",
+    "just_u8",
+    "maybe_u8",
+    "default_u8",
+    "just_i16",
+    "maybe_i16",
+    "default_i16",
+    "just_u16",
+    "maybe_u16",
+    "default_u16",
+    "just_i32",
+    "maybe_i32",
+    "default_i32",
+    "just_u32",
+    "maybe_u32",
+    "default_u32",
+    "just_i64",
+    "maybe_i64",
+    "default_i64",
+    "just_u64",
+    "maybe_u64",
+    "default_u64",
+    "just_f32",
+    "maybe_f32",
+    "default_f32",
+    "just_f64",
+    "maybe_f64",
+    "default_f64",
+    "just_bool",
+    "maybe_bool",
+    "default_bool",
+    "just_enum",
+    "maybe_enum",
+    "default_enum"
+  };
 };
 
 flatbuffers::Offset<ScalarStuff> CreateScalarStuff(flatbuffers::FlatBufferBuilder &_fbb, const ScalarStuffT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);

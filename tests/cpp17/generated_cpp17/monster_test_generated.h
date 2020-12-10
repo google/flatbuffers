@@ -4,6 +4,8 @@
 #ifndef FLATBUFFERS_GENERATED_MONSTERTEST_MYGAME_EXAMPLE_H_
 #define FLATBUFFERS_GENERATED_MONSTERTEST_MYGAME_EXAMPLE_H_
 
+#include <tuple>
+
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/flexbuffers.h"
 
@@ -474,6 +476,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(2) Test FLATBUFFERS_FINAL_CLASS {
   int8_t padding0__;
 
  public:
+  struct Traits;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return TestTypeTable();
   }
@@ -501,8 +504,27 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(2) Test FLATBUFFERS_FINAL_CLASS {
   void mutate_b(int8_t _b) {
     flatbuffers::WriteScalar(&b_, _b);
   }
+  using FieldTypes = std::tuple<
+    int16_t,
+    int8_t
+    >;
+  FieldTypes fields_pack() const {
+    return {
+      a(),
+      b()
+    };
+  }
 };
 FLATBUFFERS_STRUCT_END(Test, 4);
+
+struct Test::Traits {
+  using type = Test;
+  static constexpr auto name = "Test";
+  static constexpr std::array<const char *, 2> field_names = {
+    "a",
+    "b"
+  };
+};
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vec3 FLATBUFFERS_FINAL_CLASS {
  private:
@@ -517,6 +539,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vec3 FLATBUFFERS_FINAL_CLASS {
   int16_t padding2__;
 
  public:
+  struct Traits;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return Vec3TypeTable();
   }
@@ -584,8 +607,39 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vec3 FLATBUFFERS_FINAL_CLASS {
   MyGame::Example::Test &mutable_test3() {
     return test3_;
   }
+  using FieldTypes = std::tuple<
+    float,
+    float,
+    float,
+    double,
+    MyGame::Example::Color,
+    const MyGame::Example::Test &
+    >;
+  FieldTypes fields_pack() const {
+    return {
+      x(),
+      y(),
+      z(),
+      test1(),
+      test2(),
+      test3()
+    };
+  }
 };
 FLATBUFFERS_STRUCT_END(Vec3, 32);
+
+struct Vec3::Traits {
+  using type = Vec3;
+  static constexpr auto name = "Vec3";
+  static constexpr std::array<const char *, 6> field_names = {
+    "x",
+    "y",
+    "z",
+    "test1",
+    "test2",
+    "test3"
+  };
+};
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Ability FLATBUFFERS_FINAL_CLASS {
  private:
@@ -593,6 +647,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Ability FLATBUFFERS_FINAL_CLASS {
   uint32_t distance_;
 
  public:
+  struct Traits;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return AbilityTypeTable();
   }
@@ -622,8 +677,27 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Ability FLATBUFFERS_FINAL_CLASS {
   void mutate_distance(uint32_t _distance) {
     flatbuffers::WriteScalar(&distance_, _distance);
   }
+  using FieldTypes = std::tuple<
+    uint32_t,
+    uint32_t
+    >;
+  FieldTypes fields_pack() const {
+    return {
+      id(),
+      distance()
+    };
+  }
 };
 FLATBUFFERS_STRUCT_END(Ability, 8);
+
+struct Ability::Traits {
+  using type = Ability;
+  static constexpr auto name = "Ability";
+  static constexpr std::array<const char *, 2> field_names = {
+    "id",
+    "distance"
+  };
+};
 
 }  // namespace Example
 
@@ -637,6 +711,10 @@ struct InParentNamespace FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   struct Traits;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return InParentNamespaceTypeTable();
+  }
+  using FieldTypes = std::tuple<>;
+  FieldTypes fields_pack() const {
+    return {};
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -671,6 +749,8 @@ inline flatbuffers::Offset<InParentNamespace> CreateInParentNamespace(
 struct InParentNamespace::Traits {
   using type = InParentNamespace;
   static auto constexpr Create = CreateInParentNamespace;
+  static constexpr auto name = "InParentNamespace";
+  static constexpr std::array<const char *, 0> field_names = {};
 };
 
 flatbuffers::Offset<InParentNamespace> CreateInParentNamespace(flatbuffers::FlatBufferBuilder &_fbb, const InParentNamespaceT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -687,6 +767,10 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   struct Traits;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return MonsterTypeTable();
+  }
+  using FieldTypes = std::tuple<>;
+  FieldTypes fields_pack() const {
+    return {};
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -721,6 +805,8 @@ inline flatbuffers::Offset<Monster> CreateMonster(
 struct Monster::Traits {
   using type = Monster;
   static auto constexpr Create = CreateMonster;
+  static constexpr auto name = "Monster";
+  static constexpr std::array<const char *, 0> field_names = {};
 };
 
 flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -749,6 +835,14 @@ struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Ta
   }
   bool mutate_color(MyGame::Example::Color _color) {
     return SetField<uint8_t>(VT_COLOR, static_cast<uint8_t>(_color), 2);
+  }
+  using FieldTypes = std::tuple<
+    MyGame::Example::Color
+    >;
+  FieldTypes fields_pack() const {
+    return {
+      color()
+    };
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -789,6 +883,10 @@ inline flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnu
 struct TestSimpleTableWithEnum::Traits {
   using type = TestSimpleTableWithEnum;
   static auto constexpr Create = CreateTestSimpleTableWithEnum;
+  static constexpr auto name = "TestSimpleTableWithEnum";
+  static constexpr std::array<const char *, 1> field_names = {
+    "color"
+  };
 };
 
 flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnum(flatbuffers::FlatBufferBuilder &_fbb, const TestSimpleTableWithEnumT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -829,6 +927,18 @@ struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool mutate_count(uint16_t _count) {
     return SetField<uint16_t>(VT_COUNT, _count, 0);
+  }
+  using FieldTypes = std::tuple<
+    const flatbuffers::String *,
+    int64_t,
+    uint16_t
+    >;
+  FieldTypes fields_pack() const {
+    return {
+      id(),
+      val(),
+      count()
+    };
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -882,6 +992,12 @@ inline flatbuffers::Offset<Stat> CreateStat(
 struct Stat::Traits {
   using type = Stat;
   static auto constexpr Create = CreateStat;
+  static constexpr auto name = "Stat";
+  static constexpr std::array<const char *, 3> field_names = {
+    "id",
+    "val",
+    "count"
+  };
 };
 
 inline flatbuffers::Offset<Stat> CreateStatDirect(
@@ -926,6 +1042,14 @@ struct Referrable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   int KeyCompareWithValue(uint64_t val) const {
     return static_cast<int>(id() > val) - static_cast<int>(id() < val);
   }
+  using FieldTypes = std::tuple<
+    uint64_t
+    >;
+  FieldTypes fields_pack() const {
+    return {
+      id()
+    };
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint64_t>(verifier, VT_ID) &&
@@ -965,6 +1089,10 @@ inline flatbuffers::Offset<Referrable> CreateReferrable(
 struct Referrable::Traits {
   using type = Referrable;
   static auto constexpr Create = CreateReferrable;
+  static constexpr auto name = "Referrable";
+  static constexpr std::array<const char *, 1> field_names = {
+    "id"
+  };
 };
 
 flatbuffers::Offset<Referrable> CreateReferrable(flatbuffers::FlatBufferBuilder &_fbb, const ReferrableT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -1409,6 +1537,110 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const MyGame::Example::Monster *testrequirednestedflatbuffer_nested_root() const {
     return flatbuffers::GetRoot<MyGame::Example::Monster>(testrequirednestedflatbuffer()->Data());
   }
+  using FieldTypes = std::tuple<
+    const MyGame::Example::Vec3 *,
+    int16_t,
+    int16_t,
+    const flatbuffers::String *,
+    const flatbuffers::Vector<uint8_t> *,
+    MyGame::Example::Color,
+    MyGame::Example::Any,
+    const void *,
+    const flatbuffers::Vector<const MyGame::Example::Test *> *,
+    const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *,
+    const flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::Monster>> *,
+    const MyGame::Example::Monster *,
+    const flatbuffers::Vector<uint8_t> *,
+    const MyGame::Example::Stat *,
+    bool,
+    int32_t,
+    uint32_t,
+    int64_t,
+    uint64_t,
+    int32_t,
+    uint32_t,
+    int64_t,
+    uint64_t,
+    const flatbuffers::Vector<uint8_t> *,
+    float,
+    float,
+    float,
+    const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *,
+    const flatbuffers::Vector<const MyGame::Example::Ability *> *,
+    const flatbuffers::Vector<uint8_t> *,
+    const flatbuffers::Vector<const MyGame::Example::Test *> *,
+    const flatbuffers::Vector<int64_t> *,
+    const flatbuffers::Vector<double> *,
+    const MyGame::InParentNamespace *,
+    const flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::Referrable>> *,
+    uint64_t,
+    const flatbuffers::Vector<uint64_t> *,
+    const flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::Referrable>> *,
+    uint64_t,
+    const flatbuffers::Vector<uint64_t> *,
+    uint64_t,
+    const flatbuffers::Vector<uint64_t> *,
+    MyGame::Example::AnyUniqueAliases,
+    const void *,
+    MyGame::Example::AnyAmbiguousAliases,
+    const void *,
+    const flatbuffers::Vector<MyGame::Example::Color> *,
+    MyGame::Example::Race,
+    const flatbuffers::Vector<uint8_t> *
+    >;
+  FieldTypes fields_pack() const {
+    return {
+      pos(),
+      mana(),
+      hp(),
+      name(),
+      inventory(),
+      color(),
+      test_type(),
+      test(),
+      test4(),
+      testarrayofstring(),
+      testarrayoftables(),
+      enemy(),
+      testnestedflatbuffer(),
+      testempty(),
+      testbool(),
+      testhashs32_fnv1(),
+      testhashu32_fnv1(),
+      testhashs64_fnv1(),
+      testhashu64_fnv1(),
+      testhashs32_fnv1a(),
+      testhashu32_fnv1a(),
+      testhashs64_fnv1a(),
+      testhashu64_fnv1a(),
+      testarrayofbools(),
+      testf(),
+      testf2(),
+      testf3(),
+      testarrayofstring2(),
+      testarrayofsortedstruct(),
+      flex(),
+      test5(),
+      vector_of_longs(),
+      vector_of_doubles(),
+      parent_namespace_test(),
+      vector_of_referrables(),
+      single_weak_reference(),
+      vector_of_weak_references(),
+      vector_of_strong_referrables(),
+      co_owning_reference(),
+      vector_of_co_owning_references(),
+      non_owning_reference(),
+      vector_of_non_owning_references(),
+      any_unique_type(),
+      any_unique(),
+      any_ambiguous_type(),
+      any_ambiguous(),
+      vector_of_enums(),
+      signed_enum(),
+      testrequirednestedflatbuffer()
+    };
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<MyGame::Example::Vec3>(verifier, VT_POS) &&
@@ -1792,6 +2024,58 @@ inline flatbuffers::Offset<Monster> CreateMonster(
 struct Monster::Traits {
   using type = Monster;
   static auto constexpr Create = CreateMonster;
+  static constexpr auto name = "Monster";
+  static constexpr std::array<const char *, 49> field_names = {
+    "pos",
+    "mana",
+    "hp",
+    "name",
+    "inventory",
+    "color",
+    "test_type",
+    "test",
+    "test4",
+    "testarrayofstring",
+    "testarrayoftables",
+    "enemy",
+    "testnestedflatbuffer",
+    "testempty",
+    "testbool",
+    "testhashs32_fnv1",
+    "testhashu32_fnv1",
+    "testhashs64_fnv1",
+    "testhashu64_fnv1",
+    "testhashs32_fnv1a",
+    "testhashu32_fnv1a",
+    "testhashs64_fnv1a",
+    "testhashu64_fnv1a",
+    "testarrayofbools",
+    "testf",
+    "testf2",
+    "testf3",
+    "testarrayofstring2",
+    "testarrayofsortedstruct",
+    "flex",
+    "test5",
+    "vector_of_longs",
+    "vector_of_doubles",
+    "parent_namespace_test",
+    "vector_of_referrables",
+    "single_weak_reference",
+    "vector_of_weak_references",
+    "vector_of_strong_referrables",
+    "co_owning_reference",
+    "vector_of_co_owning_references",
+    "non_owning_reference",
+    "vector_of_non_owning_references",
+    "any_unique_type",
+    "any_unique",
+    "any_ambiguous_type",
+    "any_ambiguous",
+    "vector_of_enums",
+    "signed_enum",
+    "testrequirednestedflatbuffer"
+  };
 };
 
 inline flatbuffers::Offset<Monster> CreateMonsterDirect(
@@ -2029,6 +2313,36 @@ struct TypeAliases FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   flatbuffers::Vector<double> *mutable_vf64() {
     return GetPointer<flatbuffers::Vector<double> *>(VT_VF64);
   }
+  using FieldTypes = std::tuple<
+    int8_t,
+    uint8_t,
+    int16_t,
+    uint16_t,
+    int32_t,
+    uint32_t,
+    int64_t,
+    uint64_t,
+    float,
+    double,
+    const flatbuffers::Vector<int8_t> *,
+    const flatbuffers::Vector<double> *
+    >;
+  FieldTypes fields_pack() const {
+    return {
+      i8(),
+      u8(),
+      i16(),
+      u16(),
+      i32(),
+      u32(),
+      i64(),
+      u64(),
+      f32(),
+      f64(),
+      v8(),
+      vf64()
+    };
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int8_t>(verifier, VT_I8) &&
@@ -2136,6 +2450,21 @@ inline flatbuffers::Offset<TypeAliases> CreateTypeAliases(
 struct TypeAliases::Traits {
   using type = TypeAliases;
   static auto constexpr Create = CreateTypeAliases;
+  static constexpr auto name = "TypeAliases";
+  static constexpr std::array<const char *, 12> field_names = {
+    "i8",
+    "u8",
+    "i16",
+    "u16",
+    "i32",
+    "u32",
+    "i64",
+    "u64",
+    "f32",
+    "f64",
+    "v8",
+    "vf64"
+  };
 };
 
 inline flatbuffers::Offset<TypeAliases> CreateTypeAliasesDirect(

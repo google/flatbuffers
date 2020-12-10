@@ -317,6 +317,11 @@ class CppGenerator : public BaseGenerator {
 
     if (opts_.gen_nullable) { code_ += "#pragma clang system_header\n\n"; }
 
+    if (opts_.g_cpp_std >= cpp::CPP_STD_17) {
+      code_ += "#include <tuple>";
+      code_ += "";
+    }
+
     code_ += "#include \"flatbuffers/flatbuffers.h\"";
     if (parser_.uses_flexbuffers_) {
       code_ += "#include \"flatbuffers/flexbuffers.h\"";
@@ -2042,6 +2047,140 @@ class CppGenerator : public BaseGenerator {
     if (type.base_type == BASE_TYPE_UNION) { GenTableUnionAsGetters(field); }
   }
 
+  void GenTableFieldType(const FieldDef &field) {
+    const auto &type = field.value.type;
+    const auto offset_str = GenFieldOffsetName(field);
+    if (!field.IsScalarOptional()) {
+      std::string afterptr = " *" + NullableExtension();
+      code_.SetValue("FIELD_TYPE",
+                     GenTypeGet(type, "", "const ", afterptr.c_str(), true));
+      code_ += "    {{FIELD_TYPE}}\\";
+    } else {
+      code_.SetValue("FIELD_TYPE", GenOptionalDecl(type));
+      code_ += "    {{FIELD_TYPE}}\\";
+    }
+  }
+
+  void GenStructFieldType(const FieldDef &field) {
+    const auto is_array = IsArray(field.value.type);
+    std::string field_type = GenTypeGet(field.value.type, "",
+               is_array ? "" : "const ", is_array ? "" : " &", true);
+    code_.SetValue("FIELD_TYPE", field_type);
+    code_ += "    {{FIELD_TYPE}}\\";
+  }
+
+  // Sample for Vec3:
+  //
+  //   using FieldTypes = std::tuple<
+  //     float,
+  //     float,
+  //     float
+  //   >;
+  //
+  void GenFieldTypes(const StructDef &struct_def, bool is_struct) {
+    code_ += "  using FieldTypes = std::tuple<\\";
+    if (struct_def.fields.vec.empty()) {
+      code_ += ">;";
+      return;
+    }
+    code_ += "";
+    // Generate the std::tuple elements.
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      const auto &field = **it;
+      if (field.deprecated) {
+        // Deprecated fields won't be accessible.
+        continue;
+      }
+      if (is_struct) {
+        GenStructFieldType(field);
+      } else {
+        GenTableFieldType(field);
+      }
+      if (it+1 != struct_def.fields.vec.end() ) {
+        code_ += ",";
+      }
+    }
+    code_ += "\n    >;";
+  }
+
+  // Sample for Vec3:
+  //
+  //   FieldTypes fields_pack() const {
+  //     return {
+  //       x(),
+  //       y(),
+  //       z()
+  //     };
+  //   }
+  //
+  void GenFieldsPack(const StructDef &struct_def) {
+    code_ += "  FieldTypes fields_pack() const {";
+    code_ += "    return {\\";
+    if (struct_def.fields.vec.empty()) {
+      code_ += "};";
+      code_ += "  }";
+      return;
+    }
+    code_ += "";
+    // Generate the fields_pack elements.
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      const auto &field = **it;
+      if (field.deprecated) {
+        // Deprecated fields won't be accessible.
+        continue;
+      }
+      code_.SetValue("FIELD_NAME", Name(field));
+      code_ += "      {{FIELD_NAME}}()\\";
+      if (it+1 != struct_def.fields.vec.end() ) {
+        code_ += ",";
+      }
+    }
+    code_ += "\n    };";
+    code_ += "  }";
+  }
+
+  // Sample for Vec3:
+  //
+  //   static constexpr std::array<const char *, 3> field_names = {
+  //     "x",
+  //     "y",
+  //     "z"
+  //   };
+  //
+  void GenFieldNames(const StructDef &struct_def) {
+    int non_deprecated_field_count = std::count_if(
+      struct_def.fields.vec.begin(), struct_def.fields.vec.end(),
+      [](const FieldDef *field) {
+          return !field->deprecated;
+      });
+    code_ += "  static constexpr std::array<\\";
+    code_.SetValue("FIELD_COUNT",
+        std::to_string(non_deprecated_field_count));
+    code_ += "const char *, {{FIELD_COUNT}}> field_names = {\\";
+    if (struct_def.fields.vec.empty()) {
+      code_ += "};";
+      return;
+    }
+    code_ += "";
+    // Generate the field_names elements.
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      const auto &field = **it;
+      if (field.deprecated) {
+        // Deprecated fields won't be accessible.
+        continue;
+      }
+      code_.SetValue("FIELD_NAME", Name(field));
+      code_ += "    \"{{FIELD_NAME}}\"\\";
+      if (it+1 != struct_def.fields.vec.end() ) {
+        code_ += ",";
+      }
+    }
+    code_ += "\n  };";
+  }
+
   void GenTableFieldSetter(const FieldDef &field) {
     const auto &type = field.value.type;
     const bool is_scalar = IsScalar(type.base_type);
@@ -2180,6 +2319,11 @@ class CppGenerator : public BaseGenerator {
 
       // Generate a comparison function for this field if it is a key.
       if (field.key) { GenKeyFieldMethods(field); }
+    }
+
+    if (opts_.g_cpp_std >= cpp::CPP_STD_17) {
+      GenFieldTypes(struct_def, /*is_struct=*/false);
+      GenFieldsPack(struct_def);
     }
 
     // Generate a verifier function that can check a buffer from an untrusted
@@ -2393,6 +2537,8 @@ class CppGenerator : public BaseGenerator {
       code_ += "struct {{STRUCT_NAME}}::Traits {";
       code_ += "  using type = {{STRUCT_NAME}};";
       code_ += "  static auto constexpr Create = Create{{STRUCT_NAME}};";
+      code_ += "  static constexpr auto name = \"{{STRUCT_NAME}}\";";
+      GenFieldNames(struct_def);
       code_ += "};";
       code_ += "";
     }
@@ -3172,6 +3318,8 @@ class CppGenerator : public BaseGenerator {
     code_ += "";
     code_ += " public:";
 
+    if (opts_.g_cpp_std >= cpp::CPP_STD_17) { code_ += "  struct Traits;"; }
+
     // Make TypeTable accessible via the generated struct.
     if (opts_.mini_reflect != IDLOptions::kNone) {
       code_ +=
@@ -3257,12 +3405,29 @@ class CppGenerator : public BaseGenerator {
     }
     code_.SetValue("NATIVE_NAME", Name(struct_def));
     GenOperatorNewDelete(struct_def);
+
+    if (opts_.g_cpp_std >= cpp::CPP_STD_17) {
+      GenFieldTypes(struct_def, /*is_struct=*/true);
+      GenFieldsPack(struct_def);
+    }
+
     code_ += "};";
 
     code_.SetValue("STRUCT_BYTE_SIZE", NumToString(struct_def.bytesize));
     code_ += "FLATBUFFERS_STRUCT_END({{STRUCT_NAME}}, {{STRUCT_BYTE_SIZE}});";
     if (opts_.gen_compare) GenCompareOperator(struct_def, "()");
     code_ += "";
+
+    // Definition for type traits for this struct type. This al-
+    // lows querying various compile-time traits of the struct.
+    if (opts_.g_cpp_std >= cpp::CPP_STD_17) {
+      code_ += "struct {{STRUCT_NAME}}::Traits {";
+      code_ += "  using type = {{STRUCT_NAME}};";
+      code_ += "  static constexpr auto name = \"{{STRUCT_NAME}}\";";
+      GenFieldNames(struct_def);
+      code_ += "};";
+      code_ += "";
+    }
   }
 
   // Set up the correct namespace. Only open a namespace if the existing one is
