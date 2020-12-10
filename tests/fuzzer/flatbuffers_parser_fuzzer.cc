@@ -9,6 +9,9 @@
 #include "flatbuffers/idl.h"
 #include "test_init.h"
 
+static constexpr size_t kMinInputLength = 1;
+static constexpr size_t kMaxInputLength = 33000;
+
 static constexpr uint8_t flags_strict_json = 0x80;
 static constexpr uint8_t flags_skip_unexpected_fields_in_json = 0x40;
 static constexpr uint8_t flags_allow_non_utf8 = 0x20;
@@ -26,7 +29,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
   const std::string original(reinterpret_cast<const char *>(data), size);
   auto input = std::string(original.c_str());  // until '\0'
-  if (input.empty()) return 0;
+  if (input.size() < kMinInputLength || input.size() > kMaxInputLength)
+    return 0;
 
   flatbuffers::IDLOptions opts;
   opts.strict_json = (flags & flags_strict_json);
