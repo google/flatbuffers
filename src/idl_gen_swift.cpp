@@ -216,8 +216,8 @@ class SwiftGenerator : public BaseGenerator {
       std::string valueType =
           IsEnum(field.value.type) ? "{{BASEVALUE}}" : "{{VALUETYPE}}";
       code_ += "private var _{{VALUENAME}}: " + valueType;
-      std::string accessing_value = IsEnum(field.value.type) ? ".value" : "";
-      std::string base_value =
+      auto accessing_value = IsEnum(field.value.type) ? ".value" : "";
+      auto base_value =
           IsStruct(field.value.type) ? (type + "()") : field.value.constant;
 
       main_constructor.push_back("_" + name + " = " + name + accessing_value);
@@ -255,7 +255,6 @@ class SwiftGenerator : public BaseGenerator {
 
   void GenInMemoryStructReader(const StructDef &struct_def) {
     GenObjectHeader(struct_def);
-    auto name = NameWrappedInNameSpace(struct_def);
 
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
@@ -286,8 +285,9 @@ class SwiftGenerator : public BaseGenerator {
       if (parser_.opts.mutable_buffer && !IsStruct(field.value.type))
         code_ += GenMutate("{{OFFSET}}", "", IsEnum(field.value.type));
     }
+
     if (parser_.opts.generate_object_based_api) {
-      GenerateObjectAPIExtensionHeader(name);
+      GenerateObjectAPIExtensionHeader(NameWrappedInNameSpace(struct_def));
       code_ += "return builder.create(struct: obj)";
       Outdent();
       code_ += "}";
@@ -463,8 +463,7 @@ class SwiftGenerator : public BaseGenerator {
       if (field.required)
         require_fields.push_back(NumToString(field.value.offset));
 
-      GenTableWriterFields(field, &create_func_body, &create_func_header,
-                           should_generate_create);
+      GenTableWriterFields(field, &create_func_body, &create_func_header);
     }
     code_ +=
         "{{ACCESS_TYPE}} static func end{{SHORT_STRUCTNAME}}(_ fbb: inout "
@@ -532,14 +531,13 @@ class SwiftGenerator : public BaseGenerator {
 
   void GenTableWriterFields(const FieldDef &field,
                             std::vector<std::string> *create_body,
-                            std::vector<std::string> *create_header,
-                            bool &contains_structs) {
+                            std::vector<std::string> *create_header) {
     std::string builder_string = ", _ fbb: inout FlatBufferBuilder) { ";
     auto &create_func_body = *create_body;
     auto &create_func_header = *create_header;
     auto name = Name(field);
     auto type = GenType(field.value.type);
-    bool opt_scalar = field.optional && IsScalar(field.value.type.base_type);
+    auto opt_scalar = field.optional && IsScalar(field.value.type.base_type);
     auto nullable_type = opt_scalar ? type + "?" : type;
     code_.SetValue("VALUENAME", name);
     code_.SetValue("VALUETYPE", nullable_type);
