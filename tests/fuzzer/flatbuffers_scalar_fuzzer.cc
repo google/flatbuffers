@@ -27,6 +27,9 @@
 #include "flatbuffers/idl.h"
 #include "test_init.h"
 
+static constexpr size_t kMinInputLength = 1;
+static constexpr size_t kMaxInputLength = 3000;
+
 static constexpr uint8_t flags_scalar_type = 0x0F;  // type of scalar value
 static constexpr uint8_t flags_quotes_kind = 0x10;  // quote " or '
 // reserved for future: json {named} or [unnamed]
@@ -241,7 +244,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   // Guarantee 0-termination.
   const std::string original(reinterpret_cast<const char *>(data), size);
   auto input = std::string(original.c_str());  // until '\0'
-  if (input.empty()) return 0;
+  if (input.size() < kMinInputLength || input.size() > kMaxInputLength)
+    return 0;
 
   // Break comments in json to avoid complexity with regex matcher.
   // The string " 12345 /* text */" will be accepted if insert it to string
