@@ -85,9 +85,9 @@ documentation:
 
 CI:
   - '.github/**/*'
-  - '.appveyor/**/*
+  - '.appveyor/**/*'
   - '.travis/**/*'
-  - '.bazelci/**/*
+  - '.bazelci/**/*'
   - .travis.yml
   - appveyor.yml
 
