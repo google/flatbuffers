@@ -142,7 +142,10 @@ void Parser::Message(const std::string &msg) {
   error_ += ": " + msg;
 }
 
-void Parser::Warning(const std::string &msg) { Message("warning: " + msg); }
+void Parser::Warning(const std::string &msg) {
+  if (!opts.no_warnings)
+    Message("warning: " + msg);
+}
 
 CheckedError Parser::Error(const std::string &msg) {
   Message("error: " + msg);
