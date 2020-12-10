@@ -2150,7 +2150,7 @@ class CppGenerator : public BaseGenerator {
   //   };
   //
   void GenFieldNames(const StructDef &struct_def) {
-    int non_deprecated_field_count = std::count_if(
+    auto non_deprecated_field_count = std::count_if(
       struct_def.fields.vec.begin(), struct_def.fields.vec.end(),
       [](const FieldDef *field) {
           return !field->deprecated;
