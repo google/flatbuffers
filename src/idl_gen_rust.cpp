@@ -1907,7 +1907,14 @@ class RustGenerator : public BaseGenerator {
         auto noext = flatbuffers::StripExtension(it->second);
         auto basename = flatbuffers::StripPath(noext);
 
-        code_ += indent + "use crate::" + basename + "_generated::*;";
+        if (parser_.opts.include_prefix.empty()) {
+          code_ += indent + "use crate::" + basename + "_generated::*;";
+        } else {
+          auto prefix = parser_.opts.include_prefix;
+          prefix.pop_back();
+
+          code_ += indent + "use crate::" + prefix + "::" + basename + "_generated::*;";
+        }
       }
     }
 
