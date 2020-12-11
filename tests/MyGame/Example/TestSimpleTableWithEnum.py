@@ -10,7 +10,7 @@ class TestSimpleTableWithEnum(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsTestSimpleTableWithEnum(cls, buf, offset):
+    def GetRootAsTestSimpleTableWithEnum(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = TestSimpleTableWithEnum()
         x.Init(buf, n + offset)

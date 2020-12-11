@@ -10,7 +10,7 @@ class SecondTableInA(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsSecondTableInA(cls, buf, offset):
+    def GetRootAsSecondTableInA(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = SecondTableInA()
         x.Init(buf, n + offset)

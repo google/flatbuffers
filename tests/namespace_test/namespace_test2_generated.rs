@@ -63,7 +63,7 @@ impl<'a> TableInFirstNS<'a> {
 
   #[inline]
   pub fn foo_table(&self) -> Option<namespace_b::TableInNestedNS<'a>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<namespace_b::TableInNestedNS<'a>>>(TableInFirstNS::VT_FOO_TABLE, None)
+    self._tab.get::<flatbuffers::ForwardsUOffset<namespace_b::TableInNestedNS>>(TableInFirstNS::VT_FOO_TABLE, None)
   }
   #[inline]
   pub fn foo_enum(&self) -> namespace_b::EnumInNestedNS {
@@ -75,6 +75,20 @@ impl<'a> TableInFirstNS<'a> {
   }
 }
 
+impl flatbuffers::Verifiable for TableInFirstNS<'_> {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    v.visit_table(pos)?
+     .visit_field::<flatbuffers::ForwardsUOffset<namespace_b::TableInNestedNS>>(&"foo_table", Self::VT_FOO_TABLE, false)?
+     .visit_field::<namespace_b::EnumInNestedNS>(&"foo_enum", Self::VT_FOO_ENUM, false)?
+     .visit_field::<namespace_b::StructInNestedNS>(&"foo_struct", Self::VT_FOO_STRUCT, false)?
+     .finish();
+    Ok(())
+  }
+}
 pub struct TableInFirstNSArgs<'a> {
     pub foo_table: Option<flatbuffers::WIPOffset<namespace_b::TableInNestedNS<'a>>>,
     pub foo_enum: namespace_b::EnumInNestedNS,
@@ -170,10 +184,22 @@ impl<'a> SecondTableInA<'a> {
 
   #[inline]
   pub fn refer_to_c(&self) -> Option<super::namespace_c::TableInC<'a>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<super::namespace_c::TableInC<'a>>>(SecondTableInA::VT_REFER_TO_C, None)
+    self._tab.get::<flatbuffers::ForwardsUOffset<super::namespace_c::TableInC>>(SecondTableInA::VT_REFER_TO_C, None)
   }
 }
 
+impl flatbuffers::Verifiable for SecondTableInA<'_> {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    v.visit_table(pos)?
+     .visit_field::<flatbuffers::ForwardsUOffset<super::namespace_c::TableInC>>(&"refer_to_c", Self::VT_REFER_TO_C, false)?
+     .finish();
+    Ok(())
+  }
+}
 pub struct SecondTableInAArgs<'a> {
     pub refer_to_c: Option<flatbuffers::WIPOffset<super::namespace_c::TableInC<'a>>>,
 }
@@ -269,14 +295,27 @@ impl<'a> TableInC<'a> {
 
   #[inline]
   pub fn refer_to_a1(&self) -> Option<super::namespace_a::TableInFirstNS<'a>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<super::namespace_a::TableInFirstNS<'a>>>(TableInC::VT_REFER_TO_A1, None)
+    self._tab.get::<flatbuffers::ForwardsUOffset<super::namespace_a::TableInFirstNS>>(TableInC::VT_REFER_TO_A1, None)
   }
   #[inline]
   pub fn refer_to_a2(&self) -> Option<super::namespace_a::SecondTableInA<'a>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<super::namespace_a::SecondTableInA<'a>>>(TableInC::VT_REFER_TO_A2, None)
+    self._tab.get::<flatbuffers::ForwardsUOffset<super::namespace_a::SecondTableInA>>(TableInC::VT_REFER_TO_A2, None)
   }
 }
 
+impl flatbuffers::Verifiable for TableInC<'_> {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    v.visit_table(pos)?
+     .visit_field::<flatbuffers::ForwardsUOffset<super::namespace_a::TableInFirstNS>>(&"refer_to_a1", Self::VT_REFER_TO_A1, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<super::namespace_a::SecondTableInA>>(&"refer_to_a2", Self::VT_REFER_TO_A2, false)?
+     .finish();
+    Ok(())
+  }
+}
 pub struct TableInCArgs<'a> {
     pub refer_to_a1: Option<flatbuffers::WIPOffset<super::namespace_a::TableInFirstNS<'a>>>,
     pub refer_to_a2: Option<flatbuffers::WIPOffset<super::namespace_a::SecondTableInA<'a>>>,

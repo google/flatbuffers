@@ -77,7 +77,8 @@ impl<'a> flatbuffers::Follow<'a> for EnumInNestedNS {
   type Inner = Self;
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self(flatbuffers::read_scalar_at::<i8>(buf, loc))
+    let b = flatbuffers::read_scalar_at::<i8>(buf, loc);
+    Self(b)
   }
 }
 
@@ -92,14 +93,27 @@ impl flatbuffers::Push for EnumInNestedNS {
 impl flatbuffers::EndianScalar for EnumInNestedNS {
   #[inline]
   fn to_little_endian(self) -> Self {
-    Self(i8::to_le(self.0))
+    let b = i8::to_le(self.0);
+    Self(b)
   }
   #[inline]
   fn from_little_endian(self) -> Self {
-    Self(i8::from_le(self.0))
+    let b = i8::from_le(self.0);
+    Self(b)
   }
 }
 
+impl<'a> flatbuffers::Verifiable for EnumInNestedNS {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    i8::run_verifier(v, pos)
+  }
+}
+
+impl flatbuffers::SimpleToVerifyInSlice for EnumInNestedNS {}
 // struct StructInNestedNS, aligned to 4
 #[repr(C, align(4))]
 #[derive(Clone, Copy, PartialEq)]
@@ -116,6 +130,7 @@ impl std::fmt::Debug for StructInNestedNS {
   }
 }
 
+impl flatbuffers::SimpleToVerifyInSlice for StructInNestedNS {}
 impl flatbuffers::SafeSliceAccess for StructInNestedNS {}
 impl<'a> flatbuffers::Follow<'a> for StructInNestedNS {
   type Inner = &'a StructInNestedNS;
@@ -153,7 +168,15 @@ impl<'b> flatbuffers::Push for &'b StructInNestedNS {
     }
 }
 
-
+impl<'a> flatbuffers::Verifiable for StructInNestedNS {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    v.in_buffer::<Self>(pos)
+  }
+}
 impl StructInNestedNS {
   pub fn new(_a: i32, _b: i32) -> Self {
     StructInNestedNS {
@@ -217,6 +240,18 @@ impl<'a> TableInNestedNS<'a> {
   }
 }
 
+impl flatbuffers::Verifiable for TableInNestedNS<'_> {
+  #[inline]
+  fn run_verifier<'o, 'b>(
+    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    v.visit_table(pos)?
+     .visit_field::<i32>(&"foo", Self::VT_FOO, false)?
+     .finish();
+    Ok(())
+  }
+}
 pub struct TableInNestedNSArgs {
     pub foo: i32,
 }
