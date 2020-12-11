@@ -68,16 +68,17 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: cmake
-      run: cmake -G "Xcode" -DCMAKE_BUILD_TYPE=Release .
+      run: cmake -G "Xcode" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_FLATC_EXECUTABLE=_build/Release/flatc .
     - name: build
-      run: xcodebuild -toolchain clang -configuration Release -target flattests
+      # NOTE: we need this _build dir to not have xcodebuild's default ./build dir clash with the BUILD file.
+      run: xcodebuild -toolchain clang -configuration Release -target flattests SYMROOT=$(PWD)/_build
     - name: test
-      run: Release/flattests
+      run: _build/Release/flattests
     - name: upload build artifacts
       uses: actions/upload-artifact@v1
       with:
         name: Mac flatc binary
-        path: Release/flatc
+        path: _build/Release/flatc
 
   build-android:
    name: Build Android (on Linux)
