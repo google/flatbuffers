@@ -209,8 +209,9 @@ class Monster(object):
     def TestnestedflatbufferNestedRoot(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(30))
         if o != 0:
+            from MyGame.Example.Monster import Monster
             nestedBytes = self._tab.GetVectorAsBytes(flatbuffers.number_types.Uint8Flags, o)
-            return MyGame.Example.Monster.Monster.GetRootAsMonster(nestedBytes, 0)
+            return Monster.GetRootAsMonster(nestedBytes, 0)
         return 0
 
     # Monster
@@ -746,8 +747,9 @@ class Monster(object):
     def TestrequirednestedflatbufferNestedRoot(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(102))
         if o != 0:
+            from MyGame.Example.Monster import Monster
             nestedBytes = self._tab.GetVectorAsBytes(flatbuffers.number_types.Uint8Flags, o)
-            return MyGame.Example.Monster.Monster.GetRootAsMonster(nestedBytes, 0)
+            return Monster.GetRootAsMonster(nestedBytes, 0)
         return 0
 
     # Monster

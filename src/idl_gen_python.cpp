@@ -429,15 +429,18 @@ class PythonGenerator : public BaseGenerator {
     auto &code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
     code += MakeCamel(NormalizedName(field)) + "NestedRoot(self):";
+
     code += OffsetPrefix(field);
 
+    code += Indent + Indent + Indent;
+    code += "from " + qualified_name + " import " + unqualified_name + "\n";
     code += Indent + Indent + Indent;
     code += "nestedBytes = ";
     code += "self._tab.GetVectorAsBytes(flatbuffers.number_types.";
     code += MakeCamel(GenTypeGet(field.value.type));
     code += "Flags, o)\n";
     code += Indent + Indent + Indent;
-    code += "return " + qualified_name + "." + unqualified_name;
+    code += "return " + unqualified_name;
     code += ".GetRootAs" + unqualified_name + "(nestedBytes, 0)\n";
     code += Indent + Indent + "return 0\n";
     code += "\n";
