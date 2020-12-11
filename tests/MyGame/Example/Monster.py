@@ -11,7 +11,7 @@ class Monster(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsMonster(cls, buf, offset):
+    def GetRootAsMonster(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = Monster()
         x.Init(buf, n + offset)

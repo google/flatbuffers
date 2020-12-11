@@ -10,7 +10,7 @@ class TableInFirstNS(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsTableInFirstNS(cls, buf, offset):
+    def GetRootAsTableInFirstNS(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = TableInFirstNS()
         x.Init(buf, n + offset)

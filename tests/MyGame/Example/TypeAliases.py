@@ -10,7 +10,7 @@ class TypeAliases(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsTypeAliases(cls, buf, offset):
+    def GetRootAsTypeAliases(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = TypeAliases()
         x.Init(buf, n + offset)

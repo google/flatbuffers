@@ -10,7 +10,7 @@ class Stat(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsStat(cls, buf, offset):
+    def GetRootAsStat(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = Stat()
         x.Init(buf, n + offset)

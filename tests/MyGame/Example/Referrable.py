@@ -10,7 +10,7 @@ class Referrable(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsReferrable(cls, buf, offset):
+    def GetRootAsReferrable(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = Referrable()
         x.Init(buf, n + offset)

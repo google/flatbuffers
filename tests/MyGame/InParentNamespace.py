@@ -10,7 +10,7 @@ class InParentNamespace(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsInParentNamespace(cls, buf, offset):
+    def GetRootAsInParentNamespace(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = InParentNamespace()
         x.Init(buf, n + offset)

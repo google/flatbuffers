@@ -10,7 +10,7 @@ class TableInC(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsTableInC(cls, buf, offset):
+    def GetRootAsTableInC(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = TableInC()
         x.Init(buf, n + offset)

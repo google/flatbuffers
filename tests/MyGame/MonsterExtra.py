@@ -10,7 +10,7 @@ class MonsterExtra(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsMonsterExtra(cls, buf, offset):
+    def GetRootAsMonsterExtra(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = MonsterExtra()
         x.Init(buf, n + offset)
