@@ -116,11 +116,11 @@ class Table(object):
     def GetVectorAsBytes(self, flags, off):
         """
         GetVectorAsBytes returns the vector that starts at `Vector(off)`
-        as a memoryview.
+        as a bytearray.
         """
         offset = self.Vector(off)
         length = self.VectorLen(off)
-        return memoryview(self.Bytes)[offset : offset + (length * flags.bytewidth)]
+        return self.Bytes[offset : offset + (length * flags.bytewidth)]
 
     def GetVOffsetTSlot(self, slot, d):
         """
