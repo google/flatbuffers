@@ -136,7 +136,7 @@ target_link_libraries(verifier_fuzzer PRIVATE flatbuffers_fuzzed)
 add_executable(monster_fuzzer flatbuffers_monster_fuzzer.cc)
 target_link_libraries(monster_fuzzer PRIVATE flatbuffers_fuzzed)
 add_custom_command(
-  TARGET monster_fuzzer POST_BUILD
+  TARGET monster_fuzzer PRE_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy
   ${CMAKE_SOURCE_DIR}/../monster_test.bfbs
   ${CMAKE_CURRENT_BINARY_DIR}/monster_test.bfbs)

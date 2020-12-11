@@ -10,7 +10,7 @@ class ArrayTable(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsArrayTable(cls, buf, offset):
+    def GetRootAsArrayTable(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = ArrayTable()
         x.Init(buf, n + offset)
