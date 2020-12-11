@@ -9,7 +9,7 @@ public struct Property: NativeStruct {
   public var property: Bool
 }
 
-public struct Property_InMemory: FlatBufferObject {
+public struct MutableProperty: FlatBufferObject {
 
     static func validateVersion() { FlatBuffersVersion_1_12_0() }
     public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -41,7 +41,7 @@ public struct TestMutatingBool: FlatBufferObject {
     }
 
     public var b: Property? { let o = _accessor.offset(VTOFFSET.b.v); return o == 0 ? nil : _accessor.readBuffer(of: Property.self, at: o) }
-    public var b_InMemory: Property_InMemory? { let o = _accessor.offset(VTOFFSET.b.v); return o == 0 ? nil : Property_InMemory(_accessor.bb, o: o + _accessor.postion) }
+    public var mutableB: MutableProperty? { let o = _accessor.offset(VTOFFSET.b.v); return o == 0 ? nil : MutableProperty(_accessor.bb, o: o + _accessor.postion) }
     public static func startTestMutatingBool(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
     public static func add(b: Property?, _ fbb: inout FlatBufferBuilder) { guard let b = b else { return }; _ = fbb.create(struct: b, position: VTOFFSET.b.p) }
     public static func endTestMutatingBool(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }

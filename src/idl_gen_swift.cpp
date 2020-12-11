@@ -153,7 +153,7 @@ class SwiftGenerator : public BaseGenerator {
       const auto &struct_def = **it;
       if (struct_def.fixed && !struct_def.generated) {
         GenStructReader(struct_def);
-        GenInMemoryStructReader(struct_def);
+        GenMutableStructReader(struct_def);
       }
     }
 
@@ -253,7 +253,7 @@ class SwiftGenerator : public BaseGenerator {
     code_ += "}\n";
   }
 
-  void GenInMemoryStructReader(const StructDef &struct_def) {
+  void GenMutableStructReader(const StructDef &struct_def) {
     GenObjectHeader(struct_def);
 
     for (auto it = struct_def.fields.vec.begin();

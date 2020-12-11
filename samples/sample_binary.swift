@@ -64,7 +64,7 @@ func main() {
   assert(monster.name == "Orc")
   assert(monster.color == MyGame.Sample.Color.red)
   assert(monster.pos != nil)
-  assert(monster.pos_InMemory != nil)
+  assert(monster.mutablePos != nil)
   for i in 0..<monster.inventoryCount {
     assert(i == monster.inventory(at: i))
   }

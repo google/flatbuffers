@@ -239,14 +239,14 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     }
     XCTAssertEqual(sum0 + sum1, 100)
 
-    let test0_InMemory = monster.mutableTest4(at: 0)
-    let test1_InMemory = monster.mutableTest4(at: 1)
+    let mutableTest0 = monster.mutableTest4(at: 0)
+    let mutableTest1 = monster.mutableTest4(at: 1)
     var sum2 = 0
     var sum3 = 0
-    if let a = test0_InMemory?.a, let b = test0_InMemory?.b {
+    if let a = mutableTest0?.a, let b = mutableTest0?.b {
       sum2 = Int(a) + Int(b)
     }
-    if let a = test1_InMemory?.a, let b = test1_InMemory?.b {
+    if let a = mutableTest1?.a, let b = mutableTest1?.b {
       sum3 = Int(a) + Int(b)
     }
     XCTAssertEqual(sum2 + sum3, 100)

@@ -3264,8 +3264,8 @@ mutators like so:
 ~~~{.swift}
   let monster = Monster.getRootAsMonster(bb: ByteBuffer(bytes: buf))
   monster.mutate(hp: 10) // mutates a value in a table
-  /// to mutate structs in swift you have to use the inMemory accessors
-  monster.pos_InMemory.mutate(z: 4) // mutates a value in a struct
+  /// to mutate structs in swift you have to use the mutable accessors
+  monster.mutablePos.mutate(z: 4) // mutates a value in a struct
   monster.mutate(inventory: 6, at index: 0) // mutates a value in an Scalar array
 ~~~
 </div>

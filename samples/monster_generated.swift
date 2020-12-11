@@ -54,7 +54,7 @@ public struct MyGame_Sample_Vec3: NativeStruct {
   public var z: Float32 { _z }
 }
 
-public struct MyGame_Sample_Vec3_InMemory: FlatBufferObject {
+public struct MutableMyGame_Sample_Vec3: FlatBufferObject {
 
   static func validateVersion() { FlatBuffersVersion_1_12_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -63,8 +63,11 @@ public struct MyGame_Sample_Vec3_InMemory: FlatBufferObject {
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Struct(bb: bb, position: o) }
 
   public var x: Float32 { return _accessor.readBuffer(of: Float32.self, at: 0) }
+  @discardableResult public func mutate(x: Float32) -> Bool { return _accessor.mutate(x, index: 0) }
   public var y: Float32 { return _accessor.readBuffer(of: Float32.self, at: 4) }
+  @discardableResult public func mutate(y: Float32) -> Bool { return _accessor.mutate(y, index: 4) }
   public var z: Float32 { return _accessor.readBuffer(of: Float32.self, at: 8) }
+  @discardableResult public func mutate(z: Float32) -> Bool { return _accessor.mutate(z, index: 8) }
 }
 
 public struct MyGame_Sample_Monster: FlatBufferObject {
@@ -94,22 +97,26 @@ public struct MyGame_Sample_Monster: FlatBufferObject {
   }
 
   public var pos: MyGame_Sample_Vec3? { let o = _accessor.offset(VTOFFSET.pos.v); return o == 0 ? nil : _accessor.readBuffer(of: MyGame_Sample_Vec3.self, at: o) }
-  public var pos_InMemory: MyGame_Sample_Vec3_InMemory? { let o = _accessor.offset(VTOFFSET.pos.v); return o == 0 ? nil : MyGame_Sample_Vec3_InMemory(_accessor.bb, o: o + _accessor.postion) }
+  public var mutablePos: MutableMyGame_Sample_Vec3? { let o = _accessor.offset(VTOFFSET.pos.v); return o == 0 ? nil : MutableMyGame_Sample_Vec3(_accessor.bb, o: o + _accessor.postion) }
   public var mana: Int16 { let o = _accessor.offset(VTOFFSET.mana.v); return o == 0 ? 150 : _accessor.readBuffer(of: Int16.self, at: o) }
+  @discardableResult public func mutate(mana: Int16) -> Bool {let o = _accessor.offset(VTOFFSET.mana.v);  return _accessor.mutate(mana, index: o) }
   public var hp: Int16 { let o = _accessor.offset(VTOFFSET.hp.v); return o == 0 ? 100 : _accessor.readBuffer(of: Int16.self, at: o) }
+  @discardableResult public func mutate(hp: Int16) -> Bool {let o = _accessor.offset(VTOFFSET.hp.v);  return _accessor.mutate(hp, index: o) }
   public var name: String? { let o = _accessor.offset(VTOFFSET.name.v); return o == 0 ? nil : _accessor.string(at: o) }
   public var nameSegmentArray: [UInt8]? { return _accessor.getVector(at: VTOFFSET.name.v) }
   public var inventoryCount: Int32 { let o = _accessor.offset(VTOFFSET.inventory.v); return o == 0 ? 0 : _accessor.vector(count: o) }
   public func inventory(at index: Int32) -> UInt8 { let o = _accessor.offset(VTOFFSET.inventory.v); return o == 0 ? 0 : _accessor.directRead(of: UInt8.self, offset: _accessor.vector(at: o) + index * 1) }
   public var inventory: [UInt8] { return _accessor.getVector(at: VTOFFSET.inventory.v) ?? [] }
+  public func mutate(inventory: UInt8, at index: Int32) -> Bool { let o = _accessor.offset(VTOFFSET.inventory.v); return _accessor.directMutate(inventory, index: _accessor.vector(at: o) + index * 1) }
   public var color: MyGame_Sample_Color { let o = _accessor.offset(VTOFFSET.color.v); return o == 0 ? .blue : MyGame_Sample_Color(rawValue: _accessor.readBuffer(of: Int8.self, at: o)) ?? .blue }
+  @discardableResult public func mutate(color: MyGame_Sample_Color) -> Bool {let o = _accessor.offset(VTOFFSET.color.v);  return _accessor.mutate(color.rawValue, index: o) }
   public var weaponsCount: Int32 { let o = _accessor.offset(VTOFFSET.weapons.v); return o == 0 ? 0 : _accessor.vector(count: o) }
   public func weapons(at index: Int32) -> MyGame_Sample_Weapon? { let o = _accessor.offset(VTOFFSET.weapons.v); return o == 0 ? nil : MyGame_Sample_Weapon(_accessor.bb, o: _accessor.indirect(_accessor.vector(at: o) + index * 4)) }
   public var equippedType: MyGame_Sample_Equipment { let o = _accessor.offset(VTOFFSET.equippedType.v); return o == 0 ? .none_ : MyGame_Sample_Equipment(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? .none_ }
   public func equipped<T: FlatBufferObject>(type: T.Type) -> T? { let o = _accessor.offset(VTOFFSET.equipped.v); return o == 0 ? nil : _accessor.union(o) }
   public var pathCount: Int32 { let o = _accessor.offset(VTOFFSET.path.v); return o == 0 ? 0 : _accessor.vector(count: o) }
   public func path(at index: Int32) -> MyGame_Sample_Vec3? { let o = _accessor.offset(VTOFFSET.path.v); return o == 0 ? nil : _accessor.directRead(of: MyGame_Sample_Vec3.self, offset: _accessor.vector(at: o) + index * 12) }
-  public func path_InMemory(at index: Int32) -> MyGame_Sample_Vec3_InMemory? { let o = _accessor.offset(VTOFFSET.path.v); return o == 0 ? nil : MyGame_Sample_Vec3_InMemory(_accessor.bb, o: _accessor.vector(at: o) + index * 12) }
+  public func mutablePath(at index: Int32) -> MutableMyGame_Sample_Vec3? { let o = _accessor.offset(VTOFFSET.path.v); return o == 0 ? nil : MutableMyGame_Sample_Vec3(_accessor.bb, o: _accessor.vector(at: o) + index * 12) }
   public static func startMonster(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 11) }
   public static func add(pos: MyGame_Sample_Vec3?, _ fbb: inout FlatBufferBuilder) { guard let pos = pos else { return }; fbb.create(struct: pos, position: VTOFFSET.pos.p) }
   public static func add(mana: Int16, _ fbb: inout FlatBufferBuilder) { fbb.add(element: mana, def: 150, at: VTOFFSET.mana.p) }
@@ -174,6 +181,7 @@ public struct MyGame_Sample_Weapon: FlatBufferObject {
   public var name: String? { let o = _accessor.offset(VTOFFSET.name.v); return o == 0 ? nil : _accessor.string(at: o) }
   public var nameSegmentArray: [UInt8]? { return _accessor.getVector(at: VTOFFSET.name.v) }
   public var damage: Int16 { let o = _accessor.offset(VTOFFSET.damage.v); return o == 0 ? 0 : _accessor.readBuffer(of: Int16.self, at: o) }
+  @discardableResult public func mutate(damage: Int16) -> Bool {let o = _accessor.offset(VTOFFSET.damage.v);  return _accessor.mutate(damage, index: o) }
   public static func startWeapon(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 2) }
   public static func add(name: Offset<String>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: name, at: VTOFFSET.name.p) }
   public static func add(damage: Int16, _ fbb: inout FlatBufferBuilder) { fbb.add(element: damage, def: 0, at: VTOFFSET.damage.p) }
