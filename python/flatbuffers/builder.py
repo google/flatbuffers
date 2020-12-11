@@ -377,7 +377,7 @@ class Builder(object):
         return self.Offset()
     ## @endcond
 
-    def EndVector(self, vectorNumElems = None):
+    def EndVector(self):
         """EndVector writes data necessary to finish vector construction."""
 
         self.assertNested()
@@ -385,7 +385,7 @@ class Builder(object):
         self.nested = False
         ## @endcond
         # we already made space for this, so write without PrependUint32
-        self.PlaceUOffsetT(self.vectorNumElems if vectorNumElems is None else vectorNumElems)
+        self.PlaceUOffsetT(self.vectorNumElems)
         return self.Offset()
 
     def CreateString(self, s, encoding='utf-8', errors='strict'):
@@ -412,7 +412,8 @@ class Builder(object):
         ## @endcond
         self.Bytes[self.Head():self.Head()+l] = x
 
-        return self.EndVector(len(x))
+        self.vectorNumElems = len(x)
+        return self.EndVector()
 
     def CreateByteVector(self, x):
         """CreateString writes a byte vector."""
@@ -433,7 +434,8 @@ class Builder(object):
         ## @endcond
         self.Bytes[self.Head():self.Head()+l] = x
 
-        return self.EndVector(len(x))
+        self.vectorNumElems = len(x)
+        return self.EndVector()
 
     def CreateNumpyVector(self, x):
         """CreateNumpyVector writes a numpy array into the buffer."""
@@ -468,7 +470,8 @@ class Builder(object):
         # tobytes ensures c_contiguous ordering
         self.Bytes[self.Head():self.Head()+l] = x_lend.tobytes(order='C')
 
-        return self.EndVector(x.size)
+        self.vectorNumElems = x.size
+        return self.EndVector()
 
     ## @cond FLATBUFFERS_INTERNAL
     def assertNested(self):
