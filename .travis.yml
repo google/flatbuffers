@@ -200,3 +200,11 @@ matrix:
       script:
         - cmake -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF .; make; export PATH="$PATH:${PWD}"
         - cd android; ./gradlew clean build
+
+    - language: generic
+      os: linux
+      install:
+        - bash .travis/format_install.sh
+        
+      script:
+        - bash .travis/format_check.sh
