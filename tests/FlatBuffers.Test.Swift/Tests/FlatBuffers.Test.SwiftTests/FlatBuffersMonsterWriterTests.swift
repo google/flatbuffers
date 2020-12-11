@@ -188,7 +188,7 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     XCTAssertEqual(monster.mutate(inventory: 3, at: 3), true)
     XCTAssertEqual(monster.mutate(inventory: 4, at: 4), true)
 
-    let vec = monster.pos_InMemory
+    let vec = monster.mutablePos
     XCTAssertEqual(vec?.x, 1)
     XCTAssertTrue(vec?.mutate(x: 55.0) ?? false)
     XCTAssertTrue(vec?.mutate(test1: 55) ?? false)
@@ -239,8 +239,8 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     }
     XCTAssertEqual(sum0 + sum1, 100)
 
-    let test0_InMemory = monster.test4_InMemory(at: 0)
-    let test1_InMemory = monster.test4_InMemory(at: 1)
+    let test0_InMemory = monster.mutableTest4(at: 0)
+    let test1_InMemory = monster.mutableTest4(at: 1)
     var sum2 = 0
     var sum3 = 0
     if let a = test0_InMemory?.a, let b = test0_InMemory?.b {

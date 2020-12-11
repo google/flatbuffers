@@ -278,7 +278,7 @@ class SwiftGenerator : public BaseGenerator {
                  GenEnumConstructor("{{OFFSET}}") + "?? " +
                  GenEnumDefaultValue(field) + " }";
       } else if (IsStruct(field.value.type)) {
-        code_.SetValue("VALUETYPE", GenType(field.value.type) + InMemory());
+        code_.SetValue("VALUETYPE", Mutable() + GenType(field.value.type));
         code_ += GenReaderMainBody() + "return " +
                  GenConstructor("{{ACCESS}}.postion + {{OFFSET}}");
       }
@@ -406,9 +406,9 @@ class SwiftGenerator : public BaseGenerator {
     code_.SetValue("SHORT_STRUCTNAME", Name(struct_def));
     code_.SetValue("STRUCTNAME", NameWrappedInNameSpace(struct_def));
     code_.SetValue("OBJECTTYPE", struct_def.fixed ? "Struct" : "Table");
-    code_.SetValue("INMEMORY", struct_def.fixed ? InMemory() : "");
+    code_.SetValue("MUTABLE", struct_def.fixed ? Mutable() : "");
     code_ +=
-        "{{ACCESS_TYPE}} struct {{STRUCTNAME}}{{INMEMORY}}: FlatBufferObject\\";
+        "{{ACCESS_TYPE}} struct {{MUTABLE}}{{STRUCTNAME}}: FlatBufferObject\\";
     if (!struct_def.fixed && parser_.opts.generate_object_based_api)
       code_ += ", ObjectAPI\\";
     code_ += " {\n";
@@ -692,8 +692,8 @@ class SwiftGenerator : public BaseGenerator {
       code_.SetValue("CONSTANT", "nil");
       code_ += GenReaderMainBody(is_required) + GenOffset() + required_reader +
                "{{ACCESS}}.readBuffer(of: {{VALUETYPE}}.self, at: o) }";
-      code_.SetValue("VALUENAME", name + InMemory());
-      code_.SetValue("VALUETYPE", GenType(field.value.type) + InMemory());
+      code_.SetValue("VALUENAME", "mutable" + MakeCamel(name));
+      code_.SetValue("VALUETYPE", Mutable() + GenType(field.value.type));
       code_.SetValue("CONSTANT", "nil");
       code_ += GenReaderMainBody(is_required) + GenOffset() + required_reader +
                GenConstructor("o + {{ACCESS}}.postion");
@@ -781,8 +781,8 @@ class SwiftGenerator : public BaseGenerator {
       code_ +=
           "{{ACCESS}}.directRead(of: {{VALUETYPE}}.self, offset: "
           "{{ACCESS}}.vector(at: o) + index * {{SIZE}}) }";
-      code_.SetValue("VALUENAME", Name(field) + InMemory());
-      code_.SetValue("VALUETYPE", GenType(field.value.type) + InMemory());
+      code_.SetValue("VALUENAME", "mutable" + MakeCamel(Name(field)));
+      code_.SetValue("VALUETYPE", Mutable() + GenType(field.value.type));
       code_ += GenArrayMainBody(nullable) + GenOffset() + const_string +
                GenConstructor("{{ACCESS}}.vector(at: o) + index * {{SIZE}}");
 
@@ -920,7 +920,7 @@ class SwiftGenerator : public BaseGenerator {
 
   void GenerateObjectAPIStructConstructor(const StructDef &struct_def) {
     code_ +=
-        "{{ACCESS_TYPE}} init(_ _t: inout {{STRUCTNAME}}" + InMemory() + ") {";
+        "{{ACCESS_TYPE}} init(_ _t: inout " + Mutable() + "{{STRUCTNAME}}) {";
     Indent();
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
@@ -1289,7 +1289,7 @@ class SwiftGenerator : public BaseGenerator {
       auto field = **it;
       auto ev_name = Name(field);
       auto type = GenType(field.union_type);
-      auto is_struct = IsStruct(field.union_type) ? type + InMemory() : type;
+      auto is_struct = IsStruct(field.union_type) ? Mutable() + type : type;
       if (field.union_type.base_type == BASE_TYPE_NONE ||
           IsString(field.union_type)) {
         continue;
@@ -1325,7 +1325,7 @@ class SwiftGenerator : public BaseGenerator {
         continue;
       }
       auto type = IsStruct(field.union_type)
-                      ? GenType(field.union_type) + InMemory()
+                      ? Mutable() + GenType(field.union_type)
                       : GenType(field.union_type);
       buffer_constructor.push_back(indentation + "case ." + ev_name + ":");
       buffer_constructor.push_back(
@@ -1544,7 +1544,7 @@ class SwiftGenerator : public BaseGenerator {
     return keywords_.find(name) == keywords_.end() ? name : name + "_";
   }
 
-  std::string InMemory() const { return "_InMemory"; }
+  std::string Mutable() const { return "Mutable"; }
 
   std::string Name(const EnumVal &ev) const {
     auto name = ev.name;
