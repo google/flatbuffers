@@ -1959,6 +1959,7 @@ class CSharpGenerator : public BaseGenerator {
       if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
       if (field.value.type.element == BASE_TYPE_UTYPE) continue;
       auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts);
+      if (field.IsScalarOptional()) type_name += "?";
       auto camel_name = MakeCamel(field.name, true);
       if (opts.cs_gen_json_serializer) {
         if (IsUnion(field.value.type)) {
