@@ -10,7 +10,7 @@ class TableInNestedNS(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsTableInNestedNS(cls, buf, offset):
+    def GetRootAsTableInNestedNS(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = TableInNestedNS()
         x.Init(buf, n + offset)
