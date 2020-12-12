@@ -386,6 +386,7 @@ class Builder(object):
         ## @endcond
         # we already made space for this, so write without PrependUint32
         self.PlaceUOffsetT(self.vectorNumElems)
+        self.vectorNumElems = None
         return self.Offset()
 
     def CreateString(self, s, encoding='utf-8', errors='strict'):
