@@ -2063,8 +2063,9 @@ class CppGenerator : public BaseGenerator {
 
   void GenStructFieldType(const FieldDef &field) {
     const auto is_array = IsArray(field.value.type);
-    std::string field_type = GenTypeGet(field.value.type, "",
-               is_array ? "" : "const ", is_array ? "" : " &", true);
+    std::string field_type =
+        GenTypeGet(field.value.type, "", is_array ? "" : "const ",
+                   is_array ? "" : " &", true);
     code_.SetValue("FIELD_TYPE", field_type);
     code_ += "    {{FIELD_TYPE}}\\";
   }
@@ -2097,9 +2098,7 @@ class CppGenerator : public BaseGenerator {
       } else {
         GenTableFieldType(field);
       }
-      if (it+1 != struct_def.fields.vec.end() ) {
-        code_ += ",";
-      }
+      if (it+1 != struct_def.fields.vec.end() ) { code_ += ","; }
     }
     code_ += "\n    >;";
   }
@@ -2133,9 +2132,7 @@ class CppGenerator : public BaseGenerator {
       }
       code_.SetValue("FIELD_NAME", Name(field));
       code_ += "      {{FIELD_NAME}}()\\";
-      if (it+1 != struct_def.fields.vec.end() ) {
-        code_ += ",";
-      }
+      if (it+1 != struct_def.fields.vec.end() ) { code_ += ","; }
     }
     code_ += "\n    };";
     code_ += "  }";
@@ -2151,12 +2148,11 @@ class CppGenerator : public BaseGenerator {
   //
   void GenFieldNames(const StructDef &struct_def) {
     auto non_deprecated_field_count = std::count_if(
-      struct_def.fields.vec.begin(), struct_def.fields.vec.end(),
-      [](const FieldDef *field) {
-          return !field->deprecated;
-      });
+        struct_def.fields.vec.begin(), struct_def.fields.vec.end(),
+        [](const FieldDef *field) { return !field->deprecated; });
     code_ += "  static constexpr std::array<\\";
-    code_.SetValue("FIELD_COUNT",
+    code_.SetValue(
+        "FIELD_COUNT",
         std::to_string(static_cast<long long>(non_deprecated_field_count)));
     code_ += "const char *, {{FIELD_COUNT}}> field_names = {\\";
     if (struct_def.fields.vec.empty()) {
@@ -2174,9 +2170,7 @@ class CppGenerator : public BaseGenerator {
       }
       code_.SetValue("FIELD_NAME", Name(field));
       code_ += "    \"{{FIELD_NAME}}\"\\";
-      if (it+1 != struct_def.fields.vec.end() ) {
-        code_ += ",";
-      }
+      if (it+1 != struct_def.fields.vec.end() ) { code_ += ","; }
     }
     code_ += "\n  };";
   }
