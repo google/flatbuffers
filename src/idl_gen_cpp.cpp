@@ -2098,7 +2098,7 @@ class CppGenerator : public BaseGenerator {
       } else {
         GenTableFieldType(field);
       }
-      if (it+1 != struct_def.fields.vec.end() ) { code_ += ","; }
+      if (it + 1 != struct_def.fields.vec.end() ) { code_ += ","; }
     }
     code_ += "\n    >;";
   }
@@ -2132,7 +2132,7 @@ class CppGenerator : public BaseGenerator {
       }
       code_.SetValue("FIELD_NAME", Name(field));
       code_ += "      {{FIELD_NAME}}()\\";
-      if (it+1 != struct_def.fields.vec.end() ) { code_ += ","; }
+      if (it + 1 != struct_def.fields.vec.end() ) { code_ += ","; }
     }
     code_ += "\n    };";
     code_ += "  }";
@@ -2170,7 +2170,7 @@ class CppGenerator : public BaseGenerator {
       }
       code_.SetValue("FIELD_NAME", Name(field));
       code_ += "    \"{{FIELD_NAME}}\"\\";
-      if (it+1 != struct_def.fields.vec.end() ) { code_ += ","; }
+      if (it + 1 != struct_def.fields.vec.end() ) { code_ += ","; }
     }
     code_ += "\n  };";
   }
