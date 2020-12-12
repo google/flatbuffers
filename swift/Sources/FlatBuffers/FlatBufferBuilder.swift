@@ -20,11 +20,11 @@ public struct FlatBufferBuilder {
 
   /// Storage for the Vtables used in the buffer are stored in here, so they would be written later in EndTable
   @usableFromInline internal var _vtableStorage = VTableStorage()
+  /// Flatbuffer data will be written into
+  @usableFromInline internal var _bb: ByteBuffer
 
   /// Reference Vtables that were already written to the buffer
   private var _vtables: [UOffset] = []
-  /// Flatbuffer data will be written into
-  private var _bb: ByteBuffer
   /// A check if the buffer is being written into by a different table
   private var isNested = false
   /// Dictonary that stores a map of all the strings that were written to the buffer
@@ -227,7 +227,7 @@ public struct FlatBufferBuilder {
 
   /// Changes the minimuim alignment of the buffer
   /// - Parameter size: size of the current alignment
-  @usableFromInline
+  @inline(__always)
   mutating internal func minAlignment(size: Int) {
     if size > _minAlignment {
       _minAlignment = size
@@ -238,7 +238,7 @@ public struct FlatBufferBuilder {
   /// - Parameters:
   ///   - bufSize: Current size of the buffer + the offset of the object to be written
   ///   - elementSize: Element size
-  @usableFromInline
+  @inline(__always)
   mutating internal func padding(bufSize: UInt32, elementSize: UInt32) -> UInt32 {
     ((~bufSize) &+ 1) & (elementSize - 1)
   }
@@ -542,6 +542,7 @@ extension FlatBufferBuilder: CustomDebugStringConvertible {
 
     /// Builds a buffer with byte count of fieldloc.size * count of field numbers
     /// - Parameter count: number of fields to be written
+    @inline(__always)
     func start(count: Int) {
       assert(count >= 0, "number of fields should NOT be negative")
       let capacity = count &* size
@@ -567,6 +568,7 @@ extension FlatBufferBuilder: CustomDebugStringConvertible {
 
     /// Ensure that the buffer has enough space instead of recreating the buffer each time.
     /// - Parameter space: space required for the new vtable
+    @inline(__always)
     func ensure(space: Int) {
       guard space &+ writtenIndex > capacity else { return }
       memory.deallocate()
@@ -577,6 +579,7 @@ extension FlatBufferBuilder: CustomDebugStringConvertible {
     /// Loads an object of type `FieldLoc` from buffer memory
     /// - Parameter index: index of element
     /// - Returns: a FieldLoc at index
+    @inline(__always)
     func load(at index: Int) -> FieldLoc {
       memory.load(fromByteOffset: index, as: FieldLoc.self)
     }

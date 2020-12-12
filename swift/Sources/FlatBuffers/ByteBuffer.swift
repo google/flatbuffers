@@ -202,6 +202,7 @@ public struct ByteBuffer {
   /// - Parameters:
   ///   - value: Object  that will be written to the buffer
   ///   - size: size to subtract from the WriterIndex
+  @inline(__always)
   mutating func push<T: NativeStruct>(struct value: T, size: Int) {
     ensureSpace(size: size)
     var v = value
@@ -240,7 +241,7 @@ public struct ByteBuffer {
   /// - Parameters:
   ///   - bytes: Pointer to the view
   ///   - len: Size of string
-  @usableFromInline
+  @inline(__always)
   mutating internal func push(
     bytes: UnsafeBufferPointer<String.UTF8View.Element>,
     len: Int) -> Bool
@@ -274,7 +275,7 @@ public struct ByteBuffer {
   /// Makes sure that buffer has enouch space for each of the objects that will be written into it
   /// - Parameter size: size of object
   @discardableResult
-  @usableFromInline
+  @inline(__always)
   mutating func ensureSpace(size: Int) -> Int {
     if size &+ _writerSize > _storage.capacity {
       _storage.reallocate(size, writerSize: _writerSize, alignment: alignment)
@@ -285,7 +286,7 @@ public struct ByteBuffer {
 
   /// pops the written VTable if it's already written into the buffer
   /// - Parameter size: size of the `VTable`
-  @usableFromInline
+  @inline(__always)
   mutating internal func pop(_ size: Int) {
     assert((_writerSize &- size) > 0, "New size should NOT be a negative number")
     memset(_storage.memory.advanced(by: writerIndex), 0, _writerSize &- size)
@@ -293,11 +294,13 @@ public struct ByteBuffer {
   }
 
   /// Clears the current size of the buffer
+  @inline(__always)
   mutating public func clearSize() {
     _writerSize = 0
   }
 
   /// Clears the current instance of the buffer, replacing it with new memory
+  @inline(__always)
   mutating public func clear() {
     _writerSize = 0
     alignment = 1
@@ -319,6 +322,7 @@ public struct ByteBuffer {
   /// - Parameters:
   ///   - index: index of the object to be read from the buffer
   ///   - count: count of bytes in memory
+  @inline(__always)
   public func readSlice<T>(
     index: Int32,
     count: Int32) -> [T]
@@ -336,6 +340,7 @@ public struct ByteBuffer {
   ///   - index: index of the string in the buffer
   ///   - count: length of the string
   ///   - type: Encoding of the string
+  @inline(__always)
   public func readString(
     at index: Int32,
     count: Int32,
