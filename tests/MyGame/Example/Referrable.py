@@ -10,7 +10,7 @@ class Referrable(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsReferrable(cls, buf, offset=0):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = Referrable()
         x.Init(buf, n + offset)
@@ -31,9 +31,9 @@ class Referrable(object):
             return self._tab.Get(flatbuffers.number_types.Uint64Flags, o + self._tab.Pos)
         return 0
 
-def ReferrableStart(builder): builder.StartObject(1)
-def ReferrableAddId(builder, id): builder.PrependUint64Slot(0, id, 0)
-def ReferrableEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(1)
+def AddId(builder, id): builder.PrependUint64Slot(0, id, 0)
+def End(builder): return builder.EndObject()
 
 
 class ReferrableT(object):
@@ -62,7 +62,7 @@ class ReferrableT(object):
 
     # ReferrableT
     def Pack(self, builder):
-        ReferrableStart(builder)
-        ReferrableAddId(builder, self.id)
-        referrable = ReferrableEnd(builder)
+        Start(builder)
+        AddId(builder, self.id)
+        referrable = End(builder)
         return referrable

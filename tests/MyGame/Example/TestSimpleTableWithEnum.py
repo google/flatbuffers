@@ -10,7 +10,7 @@ class TestSimpleTableWithEnum(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsTestSimpleTableWithEnum(cls, buf, offset=0):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = TestSimpleTableWithEnum()
         x.Init(buf, n + offset)
@@ -31,9 +31,9 @@ class TestSimpleTableWithEnum(object):
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 2
 
-def TestSimpleTableWithEnumStart(builder): builder.StartObject(1)
-def TestSimpleTableWithEnumAddColor(builder, color): builder.PrependUint8Slot(0, color, 2)
-def TestSimpleTableWithEnumEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(1)
+def AddColor(builder, color): builder.PrependUint8Slot(0, color, 2)
+def End(builder): return builder.EndObject()
 
 
 class TestSimpleTableWithEnumT(object):
@@ -62,7 +62,7 @@ class TestSimpleTableWithEnumT(object):
 
     # TestSimpleTableWithEnumT
     def Pack(self, builder):
-        TestSimpleTableWithEnumStart(builder)
-        TestSimpleTableWithEnumAddColor(builder, self.color)
-        testSimpleTableWithEnum = TestSimpleTableWithEnumEnd(builder)
+        Start(builder)
+        AddColor(builder, self.color)
+        testSimpleTableWithEnum = End(builder)
         return testSimpleTableWithEnum

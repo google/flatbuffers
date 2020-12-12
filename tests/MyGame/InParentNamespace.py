@@ -10,7 +10,7 @@ class InParentNamespace(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsInParentNamespace(cls, buf, offset=0):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = InParentNamespace()
         x.Init(buf, n + offset)
@@ -24,8 +24,8 @@ class InParentNamespace(object):
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
 
-def InParentNamespaceStart(builder): builder.StartObject(0)
-def InParentNamespaceEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(0)
+def End(builder): return builder.EndObject()
 
 
 class InParentNamespaceT(object):
@@ -53,6 +53,6 @@ class InParentNamespaceT(object):
 
     # InParentNamespaceT
     def Pack(self, builder):
-        InParentNamespaceStart(builder)
-        inParentNamespace = InParentNamespaceEnd(builder)
+        Start(builder)
+        inParentNamespace = End(builder)
         return inParentNamespace

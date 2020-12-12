@@ -10,7 +10,7 @@ class SecondTableInA(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsSecondTableInA(cls, buf, offset=0):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = SecondTableInA()
         x.Init(buf, n + offset)
@@ -30,9 +30,9 @@ class SecondTableInA(object):
             return obj
         return None
 
-def SecondTableInAStart(builder): builder.StartObject(1)
-def SecondTableInAAddReferToC(builder, referToC): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(referToC), 0)
-def SecondTableInAEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(1)
+def AddReferToC(builder, referToC): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(referToC), 0)
+def End(builder): return builder.EndObject()
 
 try:
     from typing import Optional
@@ -68,8 +68,8 @@ class SecondTableInAT(object):
     def Pack(self, builder):
         if self.referToC is not None:
             referToC = self.referToC.Pack(builder)
-        SecondTableInAStart(builder)
+        Start(builder)
         if self.referToC is not None:
-            SecondTableInAAddReferToC(builder, referToC)
-        secondTableInA = SecondTableInAEnd(builder)
+            AddReferToC(builder, referToC)
+        secondTableInA = End(builder)
         return secondTableInA

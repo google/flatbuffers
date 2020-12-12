@@ -10,7 +10,7 @@ class TableInFirstNS(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsTableInFirstNS(cls, buf, offset=0):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = TableInFirstNS()
         x.Init(buf, n + offset)
@@ -64,13 +64,13 @@ class TableInFirstNS(object):
             return obj
         return None
 
-def TableInFirstNSStart(builder): builder.StartObject(5)
-def TableInFirstNSAddFooTable(builder, fooTable): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(fooTable), 0)
-def TableInFirstNSAddFooEnum(builder, fooEnum): builder.PrependInt8Slot(1, fooEnum, 0)
-def TableInFirstNSAddFooUnionType(builder, fooUnionType): builder.PrependUint8Slot(2, fooUnionType, 0)
-def TableInFirstNSAddFooUnion(builder, fooUnion): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(fooUnion), 0)
-def TableInFirstNSAddFooStruct(builder, fooStruct): builder.PrependStructSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(fooStruct), 0)
-def TableInFirstNSEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(5)
+def AddFooTable(builder, fooTable): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(fooTable), 0)
+def AddFooEnum(builder, fooEnum): builder.PrependInt8Slot(1, fooEnum, 0)
+def AddFooUnionType(builder, fooUnionType): builder.PrependUint8Slot(2, fooUnionType, 0)
+def AddFooUnion(builder, fooUnion): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(fooUnion), 0)
+def AddFooStruct(builder, fooStruct): builder.PrependStructSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(fooStruct), 0)
+def End(builder): return builder.EndObject()
 
 try:
     from typing import Optional, Union
@@ -117,15 +117,15 @@ class TableInFirstNST(object):
             fooTable = self.fooTable.Pack(builder)
         if self.fooUnion is not None:
             fooUnion = self.fooUnion.Pack(builder)
-        TableInFirstNSStart(builder)
+        Start(builder)
         if self.fooTable is not None:
-            TableInFirstNSAddFooTable(builder, fooTable)
-        TableInFirstNSAddFooEnum(builder, self.fooEnum)
-        TableInFirstNSAddFooUnionType(builder, self.fooUnionType)
+            AddFooTable(builder, fooTable)
+        AddFooEnum(builder, self.fooEnum)
+        AddFooUnionType(builder, self.fooUnionType)
         if self.fooUnion is not None:
-            TableInFirstNSAddFooUnion(builder, fooUnion)
+            AddFooUnion(builder, fooUnion)
         if self.fooStruct is not None:
             fooStruct = self.fooStruct.Pack(builder)
-            TableInFirstNSAddFooStruct(builder, fooStruct)
-        tableInFirstNS = TableInFirstNSEnd(builder)
+            AddFooStruct(builder, fooStruct)
+        tableInFirstNS = End(builder)
         return tableInFirstNS
