@@ -37,7 +37,7 @@ jobs:
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
     - name: cmake
-      run: cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release .
+      run: cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_CPP17 .
     - name: build
       run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64
     - name: test
