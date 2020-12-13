@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include <grpc++/grpc++.h>
+#include <grpcpp/grpcpp.h>
 
 #include <thread>
 
