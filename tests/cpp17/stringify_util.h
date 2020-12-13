@@ -33,8 +33,8 @@ namespace cpp17 {
 
 // User calls this; need to forward declare it since it is called recursively.
 template<typename T>
-std::optional<std::string>
-StringifyFlatbufferValue(T&& val, const std::string &indent = "");
+std::optional<std::string> StringifyFlatbufferValue(
+    T &&val, const std::string &indent = "");
 
 namespace detail {
 
@@ -47,20 +47,18 @@ struct is_fb_table_or_struct : std::false_type {};
 // We know it's a table or struct when it has a Traits subclass.
 template<typename FB>
 struct is_fb_table_or_struct<FB, std::void_t<typename FB::Traits>>
-  : std::true_type {};
+    : std::true_type {};
 
 template<typename FB>
 constexpr bool is_fb_table_or_struct_v = is_fb_table_or_struct<FB>::value;
 
-template<typename T>
-struct is_fb_vector : std::false_type {};
+template<typename T> struct is_fb_vector : std::false_type {};
 
 // We know it's a table or struct when it has a Traits subclass.
 template<typename T>
 struct is_fb_vector<flatbuffers::Vector<T>> : std::true_type {};
 
-template<typename T>
-constexpr bool is_fb_vector_v = is_fb_vector<T>::value;
+template<typename T> constexpr bool is_fb_vector_v = is_fb_vector<T>::value;
 
 /*******************************************************************************
 ** Compile-time Iteration & Recursive Stringification over Flatbuffers types.
@@ -74,19 +72,15 @@ std::string StringifyTableOrStructImpl(const FB &flatbuff,
   // deep copies of anything will be made.
   auto fields_pack = flatbuff.fields_pack();
   std::ostringstream oss;
-  auto add_field = [&](auto&& field_value, size_t index) {
+  auto add_field = [&](auto &&field_value, size_t index) {
     auto value_string = StringifyFlatbufferValue(field_value, indent);
-    if (!value_string) {
-      return;
-    }
-    oss << indent
-        << FB::Traits::field_names[index]
-        << " = "
-        << *value_string
+    if (!value_string) { return; }
+    oss << indent << FB::Traits::field_names[index] << " = " << *value_string
         << "\n";
   };
   // Prevents unused-var warning when object has no fields.
-  (void)fields_pack; (void)add_field;
+  (void)fields_pack;
+  (void)add_field;
   // This line is where the compile-time iteration happens!
   (add_field(std::get<Indexes>(fields_pack), Indexes), ...);
   return oss.str();
@@ -95,37 +89,35 @@ std::string StringifyTableOrStructImpl(const FB &flatbuff,
 template<typename FB>
 std::string StringifyTableOrStruct(const FB &flatbuff,
                                    const std::string &indent) {
-  constexpr size_t field_count =
-      std::tuple_size_v<typename FB::FieldTypes>;
+  constexpr size_t field_count = std::tuple_size_v<typename FB::FieldTypes>;
   std::ostringstream oss;
-  oss << FB::Traits::name << "{\n"
-      << StringifyTableOrStructImpl(
-             flatbuff, indent+"  ", std::make_index_sequence<field_count>{})
-      << indent
-      << "}";
+  oss << FB::Traits::fully_qualified_name << "{\n"
+      << StringifyTableOrStructImpl(flatbuff, indent + "  ",
+                                    std::make_index_sequence<field_count>{})
+      << indent << "}";
   return oss.str();
 }
 
 template<typename T>
 std::string StringifyVector(const flatbuffers::Vector<T> &vec,
                             const std::string &indent) {
-  std::ostringstream oss;
-  oss << "[\n";
-  for (size_t i = 0; i < vec.size(); ++i) {
-    if (auto value_string = StringifyFlatbufferValue(vec.Get(i))) {
-      oss << indent+"  " << *value_string;
-      if (i != vec.size()-1) {
-        oss << ",";
-      }
-      oss << "\n";
-    }
+  const auto prologue = indent + std::string("  ");
+  const auto epilogue = std::string(",\n");
+  std::string text;
+  text += "[\n";
+  for (auto it = vec.cbegin(), end = vec.cend(); it != end; ++it) {
+    text += prologue;
+    text += StringifyFlatbufferValue(*it).value_or("(field absent)");
+    text += epilogue;
   }
-  oss << indent << "]";
-  return oss.str();
+  if (vec.cbegin() != vec.cend()) {
+    text.resize(text.size() - epilogue.size());
+  }
+  text += std::string("\n") + indent + "]";
+  return text;
 }
 
-template<typename T>
-std::string StringifyArithmeticType(T val) {
+template<typename T> std::string StringifyArithmeticType(T val) {
   std::ostringstream oss;
   oss << val;
   return oss.str();
@@ -137,21 +129,21 @@ std::string StringifyArithmeticType(T val) {
 ** Take any flatbuffer type (table, struct, Vector, int...) and stringify it.
 *******************************************************************************/
 template<typename T>
-std::optional<std::string> StringifyFlatbufferValue(T&& val,
-                                                   const std::string &indent) {
+std::optional<std::string> StringifyFlatbufferValue(T &&val,
+                                                    const std::string &indent) {
   constexpr bool is_pointer = std::is_pointer_v<std::remove_reference_t<T>>;
   if constexpr (is_pointer) {
     if (val == nullptr) {
-      return std::nullopt; // Field is absent.
+      return std::nullopt;  // Field is absent.
     }
   }
   using decayed =
-    std::decay_t<std::remove_pointer_t<std::remove_reference_t<T>>>;
+      std::decay_t<std::remove_pointer_t<std::remove_reference_t<T>>>;
 
   // Is it a Flatbuffers Table or Struct?
   if constexpr (detail::is_fb_table_or_struct_v<decayed>) {
     // We have a nested table or struct; use recursion!
-    if constexpr(is_pointer) {
+    if constexpr (is_pointer) {
       return detail::StringifyTableOrStruct(*val, indent);
     } else {
       return detail::StringifyTableOrStruct(val, indent);
@@ -159,36 +151,45 @@ std::optional<std::string> StringifyFlatbufferValue(T&& val,
   }
 
   // Is it an 8-bit number?  If so, print it like an int (not char).
-  if constexpr (std::is_same_v<decayed, int8_t> ||
-                std::is_same_v<decayed, uint8_t>)  {
+  else if constexpr (std::is_same_v<decayed, int8_t> ||
+                     std::is_same_v<decayed, uint8_t>) {
     return detail::StringifyArithmeticType(static_cast<int>(val));
   }
 
   // Is it an enum? If so, print it like an int, since Flatbuffers doesn't yet
   // have type-based reflection for enums, so we can't print the enum's name :(
-  if constexpr (std::is_enum_v<decayed>) {
+  else if constexpr (std::is_enum_v<decayed>) {
     return StringifyFlatbufferValue(
-             static_cast<std::underlying_type_t<decayed>>(val),
-             indent);
+        static_cast<std::underlying_type_t<decayed>>(val), indent);
   }
 
   // Is it an int, double, float, uint32_t, etc.?
-  if constexpr (std::is_arithmetic_v<decayed>) {
+  else if constexpr (std::is_arithmetic_v<decayed>) {
     return detail::StringifyArithmeticType(val);
   }
 
   // Is it a Flatbuffers string?
-  if constexpr (std::is_same_v<decayed, flatbuffers::String>) {
+  else if constexpr (std::is_same_v<decayed, flatbuffers::String>) {
     return "\"" + val->str() + "\"";
   }
 
   // Is it a Flatbuffers Vector?
-  if constexpr (detail::is_fb_vector_v<decayed>) {
+  else if constexpr (detail::is_fb_vector_v<decayed>) {
     return detail::StringifyVector(*val, indent);
   }
 
-  // Not sure how to format this type, whatever it is.
-  return std::nullopt;
+  // Is it a void pointer?
+  else if constexpr (std::is_same_v<decayed, void>) {
+    // Can't format it.
+    return std::nullopt;
+  }
+
+  else {
+    // Not sure how to format this type, whatever it is.
+    static_assert(sizeof(T) != sizeof(T),
+                  "Do not know how to format this type T (the compiler error "
+                  "should tell you nearby what T is).");
+  }
 }
 
 }  // namespace cpp17

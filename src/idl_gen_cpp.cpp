@@ -2528,10 +2528,16 @@ class CppGenerator : public BaseGenerator {
     // Definition for type traits for this table type. This allows querying var-
     // ious compile-time traits of the table.
     if (opts_.g_cpp_std >= cpp::CPP_STD_17) {
+      code_.SetValue("FULLY_QUALIFIED_NAME",
+                     struct_def.defined_namespace->GetFullyQualifiedName(
+                         Name(struct_def)));
       code_ += "struct {{STRUCT_NAME}}::Traits {";
       code_ += "  using type = {{STRUCT_NAME}};";
       code_ += "  static auto constexpr Create = Create{{STRUCT_NAME}};";
       code_ += "  static constexpr auto name = \"{{STRUCT_NAME}}\";";
+      code_ +=
+          "  static constexpr auto fully_qualified_name = "
+          "\"{{FULLY_QUALIFIED_NAME}}\";";
       GenFieldNames(struct_def);
       code_ += "};";
       code_ += "";
@@ -3415,9 +3421,15 @@ class CppGenerator : public BaseGenerator {
     // Definition for type traits for this struct type. This al-
     // lows querying various compile-time traits of the struct.
     if (opts_.g_cpp_std >= cpp::CPP_STD_17) {
+      code_.SetValue("FULLY_QUALIFIED_NAME",
+                     struct_def.defined_namespace->GetFullyQualifiedName(
+                         Name(struct_def)));
       code_ += "struct {{STRUCT_NAME}}::Traits {";
       code_ += "  using type = {{STRUCT_NAME}};";
       code_ += "  static constexpr auto name = \"{{STRUCT_NAME}}\";";
+      code_ +=
+          "  static constexpr auto fully_qualified_name = "
+          "\"{{FULLY_QUALIFIED_NAME}}\";";
       GenFieldNames(struct_def);
       code_ += "};";
       code_ += "";

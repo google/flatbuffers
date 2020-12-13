@@ -45,28 +45,23 @@ using ::cpp17::MyGame::Example::Vec3;
 /*******************************************************************************
 ** Build some FB objects.
 *******************************************************************************/
-Vec3 BuildVec3() {
+const Monster *BuildMonster(flatbuffers::FlatBufferBuilder &fbb) {
   using ::cpp17::MyGame::Example::Color;
-  using ::cpp17::MyGame::Example::Test;
-  return Vec3(
-    /*x=*/1.1,
-    /*y=*/2.2,
-    /*z=*/3.3,
-    /*test1=*/6.6,
-    /*test2=*/Color::Green,
-    /*test3=*/Test(
-      /*a=*/11,
-      /*b=*/90
-    )
-  );
-}
-
-const Monster* BuildMonster(flatbuffers::FlatBufferBuilder& fbb) {
   using ::cpp17::MyGame::Example::MonsterBuilder;
-  MonsterBuilder builder(fbb);
-  Vec3 vec3 = BuildVec3();
-  builder.add_pos(&vec3);
+  using ::cpp17::MyGame::Example::Test;
   auto name = fbb.CreateString("my_monster");
+  auto inventory = fbb.CreateVector(std::vector<uint8_t>{ 4, 5, 6, 7 });
+  MonsterBuilder builder(fbb);
+  auto vec3 = Vec3{ /*x=*/1.1f,
+                    /*y=*/2.2f,
+                    /*z=*/3.3f,
+                    /*test1=*/6.6,
+                    /*test2=*/Color::Green,
+                    /*test3=*/
+                    Test(
+                        /*a=*/11,
+                        /*b=*/90) };
+  builder.add_pos(&vec3);
   builder.add_name(name);
   builder.add_mana(1);
   builder.add_hp(2);
@@ -79,16 +74,15 @@ const Monster* BuildMonster(flatbuffers::FlatBufferBuilder& fbb) {
   builder.add_testhashu32_fnv1a(9);
   builder.add_testhashs64_fnv1a(10);
   builder.add_testhashu64_fnv1a(11);
-  builder.add_testf(12.1);
-  builder.add_testf2(13.1);
-  builder.add_testf3(14.1);
+  builder.add_testf(12.1f);
+  builder.add_testf2(13.1f);
+  builder.add_testf3(14.1f);
   builder.add_single_weak_reference(15);
   builder.add_co_owning_reference(16);
   builder.add_non_owning_reference(17);
-  auto inventory = fbb.CreateVector(std::vector<uint8_t>{4, 5, 6, 7});
   builder.add_inventory(inventory);
-  fbb.Finish( builder.Finish() );
-  const Monster* monster =
+  fbb.Finish(builder.Finish());
+  const Monster *monster =
       flatbuffers::GetRoot<Monster>(fbb.GetBufferPointer());
   return monster;
 }
@@ -106,16 +100,16 @@ void StringifyAnyFlatbuffersTypeTest() {
   flatbuffers::FlatBufferBuilder fbb;
   // We are using a Monster here, but we could have used any type, because the
   // code that follows is totally generic!
-  const auto* monster = BuildMonster(fbb);
+  const auto *monster = BuildMonster(fbb);
 
-  std::string expected = R"(Monster{
-        pos = Vec3{
+  std::string expected = R"(MyGame.Example.Monster{
+        pos = MyGame.Example.Vec3{
           x = 1.1
           y = 2.2
           z = 3.3
           test1 = 6.6
           test2 = 2
-          test3 = Test{
+          test3 = MyGame.Example.Test{
             a = 11
             b = 90
           }
@@ -195,7 +189,8 @@ void CreateTableByTypeTest() {
 }
 
 void OptionalScalarsTest() {
-  static_assert(std::is_same<flatbuffers::Optional<float>, std::optional<float>>::value);
+  static_assert(
+      std::is_same<flatbuffers::Optional<float>, std::optional<float>>::value);
   static_assert(std::is_same<flatbuffers::nullopt_t, std::nullopt_t>::value);
 
   // test C++ nullable

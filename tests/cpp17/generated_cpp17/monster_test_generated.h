@@ -520,6 +520,7 @@ FLATBUFFERS_STRUCT_END(Test, 4);
 struct Test::Traits {
   using type = Test;
   static constexpr auto name = "Test";
+  static constexpr auto fully_qualified_name = "MyGame.Example.Test";
   static constexpr std::array<const char *, 2> field_names = {
     "a",
     "b"
@@ -631,6 +632,7 @@ FLATBUFFERS_STRUCT_END(Vec3, 32);
 struct Vec3::Traits {
   using type = Vec3;
   static constexpr auto name = "Vec3";
+  static constexpr auto fully_qualified_name = "MyGame.Example.Vec3";
   static constexpr std::array<const char *, 6> field_names = {
     "x",
     "y",
@@ -693,6 +695,7 @@ FLATBUFFERS_STRUCT_END(Ability, 8);
 struct Ability::Traits {
   using type = Ability;
   static constexpr auto name = "Ability";
+  static constexpr auto fully_qualified_name = "MyGame.Example.Ability";
   static constexpr std::array<const char *, 2> field_names = {
     "id",
     "distance"
@@ -750,6 +753,7 @@ struct InParentNamespace::Traits {
   using type = InParentNamespace;
   static auto constexpr Create = CreateInParentNamespace;
   static constexpr auto name = "InParentNamespace";
+  static constexpr auto fully_qualified_name = "MyGame.InParentNamespace";
   static constexpr std::array<const char *, 0> field_names = {};
 };
 
@@ -806,6 +810,7 @@ struct Monster::Traits {
   using type = Monster;
   static auto constexpr Create = CreateMonster;
   static constexpr auto name = "Monster";
+  static constexpr auto fully_qualified_name = "MyGame.Example2.Monster";
   static constexpr std::array<const char *, 0> field_names = {};
 };
 
@@ -884,6 +889,7 @@ struct TestSimpleTableWithEnum::Traits {
   using type = TestSimpleTableWithEnum;
   static auto constexpr Create = CreateTestSimpleTableWithEnum;
   static constexpr auto name = "TestSimpleTableWithEnum";
+  static constexpr auto fully_qualified_name = "MyGame.Example.TestSimpleTableWithEnum";
   static constexpr std::array<const char *, 1> field_names = {
     "color"
   };
@@ -993,6 +999,7 @@ struct Stat::Traits {
   using type = Stat;
   static auto constexpr Create = CreateStat;
   static constexpr auto name = "Stat";
+  static constexpr auto fully_qualified_name = "MyGame.Example.Stat";
   static constexpr std::array<const char *, 3> field_names = {
     "id",
     "val",
@@ -1090,6 +1097,7 @@ struct Referrable::Traits {
   using type = Referrable;
   static auto constexpr Create = CreateReferrable;
   static constexpr auto name = "Referrable";
+  static constexpr auto fully_qualified_name = "MyGame.Example.Referrable";
   static constexpr std::array<const char *, 1> field_names = {
     "id"
   };
@@ -2025,6 +2033,7 @@ struct Monster::Traits {
   using type = Monster;
   static auto constexpr Create = CreateMonster;
   static constexpr auto name = "Monster";
+  static constexpr auto fully_qualified_name = "MyGame.Example.Monster";
   static constexpr std::array<const char *, 49> field_names = {
     "pos",
     "mana",
@@ -2451,6 +2460,7 @@ struct TypeAliases::Traits {
   using type = TypeAliases;
   static auto constexpr Create = CreateTypeAliases;
   static constexpr auto name = "TypeAliases";
+  static constexpr auto fully_qualified_name = "MyGame.Example.TypeAliases";
   static constexpr std::array<const char *, 12> field_names = {
     "i8",
     "u8",

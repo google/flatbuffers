@@ -678,6 +678,7 @@ struct ScalarStuff::Traits {
   using type = ScalarStuff;
   static auto constexpr Create = CreateScalarStuff;
   static constexpr auto name = "ScalarStuff";
+  static constexpr auto fully_qualified_name = "optional_scalars.ScalarStuff";
   static constexpr std::array<const char *, 36> field_names = {
     "just_i8",
     "maybe_i8",
