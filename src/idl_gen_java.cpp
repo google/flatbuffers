@@ -98,6 +98,17 @@ class JavaGenerator : public BaseGenerator {
     code = "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
 
     std::string namespace_name = FullNamespace(".", ns);
+    if (!parser_.opts.include_prefix.empty()) {
+      auto prefix = parser_.opts.include_prefix;
+      prefix.pop_back();
+
+      if (namespace_name.empty()) {
+        namespace_name = prefix;
+      } else {
+        namespace_name = prefix + "." + namespace_name;
+      }
+    }
+
     if (!namespace_name.empty()) {
       code += "package " + namespace_name + ";";
       code += "\n\n";
