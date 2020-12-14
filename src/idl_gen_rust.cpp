@@ -1913,7 +1913,8 @@ class RustGenerator : public BaseGenerator {
           auto prefix = parser_.opts.include_prefix;
           prefix.pop_back();
 
-          code_ += indent + "use crate::" + prefix + "::" + basename + "_generated::*;";
+          code_ += indent + "use crate::" + prefix + "::" + basename +
+                   "_generated::*;";
         }
       }
     }
