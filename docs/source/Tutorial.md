@@ -1017,7 +1017,7 @@ traversal. This is generally easy to do on any tree structures.
   MyGame.Sample.Monster.MonsterStartInventoryVector(builder, 10)
   for i in reversed(range(0, 10)):
     builder.PrependByte(i)
-  inv = builder.EndVector(10)
+  inv = builder.EndVector()
 ~~~
 </div>
 <div class="language-javascript">
@@ -1207,7 +1207,7 @@ offsets.
   MyGame.Sample.Monster.MonsterStartWeaponsVector(builder, 2)
   builder.PrependUOffsetTRelative(axe)
   builder.PrependUOffsetTRelative(sword)
-  weapons = builder.EndVector(2)
+  weapons = builder.EndVector()
 ~~~
 </div>
 <div class="language-javascript">
@@ -1336,7 +1336,7 @@ for the `path` field above:
   MyGame.Sample.Monster.MonsterStartPathVector(builder, 2)
   MyGame.Sample.Vec3.CreateVec3(builder, 1.0, 2.0, 3.0)
   MyGame.Sample.Vec3.CreateVec3(builder, 4.0, 5.0, 6.0)
-  path = builder.EndVector(2)
+  path = builder.EndVector()
 ~~~
 </div>
 <div class="language-javascript">
