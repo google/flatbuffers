@@ -135,6 +135,14 @@ class PythonGenerator : public BaseGenerator {
     code += Indent + Indent + "x.Init(buf, n + offset)\n";
     code += Indent + Indent + "return x\n";
     code += "\n";
+
+    // Add an alias with the old name
+    code += Indent + "@classmethod\n";
+    code += Indent + "def GetRootAs";
+    code += NormalizedName(struct_def);
+    code += "(cls, buf, offset=0):\n";
+    code += Indent + Indent + "\"\"\"This method is deprecated. Please switch to Start.\"\"\"\n";
+    code += Indent + Indent + "return cls.GetRootAs(buf, offset)\n";
   }
 
   // Initialize an existing object with other data, to avoid an allocation.
@@ -549,6 +557,11 @@ class PythonGenerator : public BaseGenerator {
     code += "builder.StartObject(";
     code += NumToString(struct_def.fields.vec.size());
     code += ")\n";
+
+    // Add alias with the old name.
+    code += "def " + NormalizedName(struct_def) + "Start(builder):\n";
+    code += Indent + "\"\"\"This method is deprecated. Please switch to Start.\"\"\"\n";
+    code += Indent + "return Start(builder)\n";
   }
 
   // Set the value of a table's field.
@@ -574,10 +587,24 @@ class PythonGenerator : public BaseGenerator {
                 ? float_const_gen_.GenFloatConstant(field)
                 : field.value.constant;
     code += ")\n";
+
+    // Add alias with the old name.
+    code += "def " + NormalizedName(struct_def) + "Add" + MakeCamel(NormalizedName(field));
+    code += "(builder, ";
+    code += MakeCamel(NormalizedName(field), false);
+    code += "):\n";
+    code += Indent + "\"\"\"This method is deprecated. Please switch to Start.\"\"\"\n";
+    code += Indent + "return Add" + MakeCamel(NormalizedName(field));
+    code += "(builder, ";
+    code += MakeCamel(NormalizedName(field), false);
+    code += ")\n";
+
+    // Add alias with the old name.
   }
 
   // Set the value of one of the members of a table's vector.
-  void BuildVectorOfTable(const FieldDef &field, std::string *code_ptr) {
+  void BuildVectorOfTable(const StructDef &struct_def, const FieldDef &field,
+                          std::string *code_ptr) {
     auto &code = *code_ptr;
     code += "def Start";
     code += MakeCamel(NormalizedName(field));
@@ -588,13 +615,21 @@ class PythonGenerator : public BaseGenerator {
     code += NumToString(elem_size);
     code += ", numElems, " + NumToString(alignment);
     code += ")\n";
+
+    // Add alias with the old name.
+    code += "def " + NormalizedName(struct_def) + "Start";
+    code += MakeCamel(NormalizedName(field));
+    code += "Vector(builder, numElems):\n";
+    code += Indent + "\"\"\"This method is deprecated. Please switch to Start.\"\"\"\n";
+    code += Indent + "return Start";
+    code += MakeCamel(NormalizedName(field));
+    code += "Vector(builder, numElems)\n";
   }
 
   // Set the value of one of the members of a table's vector and fills in the
   // elements from a bytearray. This is for simplifying the use of nested
   // flatbuffers.
-  void BuildVectorOfTableFromBytes(const FieldDef &field,
-                                   std::string *code_ptr) {
+  void BuildVectorOfTableFromBytes(const FieldDef &field, std::string *code_ptr) {
     auto nested = field.attributes.Lookup("nested_flatbuffer");
     if (!nested) { return; }  // There is no nested flatbuffer.
 
@@ -610,8 +645,7 @@ class PythonGenerator : public BaseGenerator {
     (void)nested_root;
 
     auto &code = *code_ptr;
-    code += "def Make" + MakeCamel(NormalizedName(field));
-    code += "VectorFromBytes(builder, bytes):\n";
+    code += "def MakeVectorFromBytes(builder, bytes):\n";
     code += Indent + "builder.StartVector(";
     auto vector_type = field.value.type.VectorType();
     auto alignment = InlineAlignment(vector_type);
@@ -623,12 +657,29 @@ class PythonGenerator : public BaseGenerator {
     code += Indent + "builder.Bytes[builder.head : builder.head + len(bytes)]";
     code += " = bytes\n";
     code += Indent + "return builder.EndVector()\n";
+
+    // Add alias with the old name.
+    code += "def Make" + MakeCamel(NormalizedName(field));
+    code += "VectorFromBytes(builder, bytes):\n";
+    code += Indent + "builder.StartVector(";
+    code += NumToString(elem_size);
+    code += ", len(bytes), " + NumToString(alignment);
+    code += ")\n";
+    code += Indent + "builder.head = builder.head - len(bytes)\n";
+    code += Indent + "builder.Bytes[builder.head : builder.head + len(bytes)]";
+    code += " = bytes\n";
+    code += Indent + "return builder.EndVector()\n";
   }
 
   // Get the offset of the end of a table.
-  void GetEndOffsetOnTable(std::string *code_ptr) {
+  void GetEndOffsetOnTable(const StructDef &struct_def, std::string *code_ptr) {
     auto &code = *code_ptr;
     code += "def End(builder): return builder.EndObject()\n";
+
+    // Add alias with the old name.
+    code += "def " + NormalizedName(struct_def) + "End(builder):\n";
+    code += Indent + "\"\"\"This method is deprecated. Please switch to Start.\"\"\"\n";
+    code += Indent + "return End(builder)";
   }
 
   // Generate the receiver for function signatures.
@@ -705,12 +756,12 @@ class PythonGenerator : public BaseGenerator {
       auto offset = it - struct_def.fields.vec.begin();
       BuildFieldOfTable(struct_def, field, offset, code_ptr);
       if (IsVector(field.value.type)) {
-        BuildVectorOfTable(field, code_ptr);
+        BuildVectorOfTable(struct_def, field, code_ptr);
         BuildVectorOfTableFromBytes(field, code_ptr);
       }
     }
 
-    GetEndOffsetOnTable(code_ptr);
+    GetEndOffsetOnTable(struct_def, code_ptr);
   }
 
   // Generate function to check for proper file identifier

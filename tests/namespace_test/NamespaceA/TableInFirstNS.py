@@ -16,6 +16,10 @@ class TableInFirstNS(object):
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsTableInFirstNS(cls, buf, offset=0):
+        """This method is deprecated. Please switch to Start."""
+        return cls.GetRootAs(buf, offset)
     # TableInFirstNS
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -65,13 +69,33 @@ class TableInFirstNS(object):
         return None
 
 def Start(builder): builder.StartObject(5)
+def TableInFirstNSStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
 def AddFooTable(builder, fooTable): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(fooTable), 0)
+def TableInFirstNSAddFooTable(builder, fooTable):
+    """This method is deprecated. Please switch to Start."""
+    return AddFooTable(builder, fooTable)
 def AddFooEnum(builder, fooEnum): builder.PrependInt8Slot(1, fooEnum, 0)
+def TableInFirstNSAddFooEnum(builder, fooEnum):
+    """This method is deprecated. Please switch to Start."""
+    return AddFooEnum(builder, fooEnum)
 def AddFooUnionType(builder, fooUnionType): builder.PrependUint8Slot(2, fooUnionType, 0)
+def TableInFirstNSAddFooUnionType(builder, fooUnionType):
+    """This method is deprecated. Please switch to Start."""
+    return AddFooUnionType(builder, fooUnionType)
 def AddFooUnion(builder, fooUnion): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(fooUnion), 0)
+def TableInFirstNSAddFooUnion(builder, fooUnion):
+    """This method is deprecated. Please switch to Start."""
+    return AddFooUnion(builder, fooUnion)
 def AddFooStruct(builder, fooStruct): builder.PrependStructSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(fooStruct), 0)
+def TableInFirstNSAddFooStruct(builder, fooStruct):
+    """This method is deprecated. Please switch to Start."""
+    return AddFooStruct(builder, fooStruct)
 def End(builder): return builder.EndObject()
-
+def TableInFirstNSEnd(builder):
+    """This method is deprecated. Please switch to Start."""
+    return End(builder)
 try:
     from typing import Optional, Union
 except:

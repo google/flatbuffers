@@ -16,6 +16,10 @@ class SecondTableInA(object):
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsSecondTableInA(cls, buf, offset=0):
+        """This method is deprecated. Please switch to Start."""
+        return cls.GetRootAs(buf, offset)
     # SecondTableInA
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -31,9 +35,17 @@ class SecondTableInA(object):
         return None
 
 def Start(builder): builder.StartObject(1)
+def SecondTableInAStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
 def AddReferToC(builder, referToC): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(referToC), 0)
+def SecondTableInAAddReferToC(builder, referToC):
+    """This method is deprecated. Please switch to Start."""
+    return AddReferToC(builder, referToC)
 def End(builder): return builder.EndObject()
-
+def SecondTableInAEnd(builder):
+    """This method is deprecated. Please switch to Start."""
+    return End(builder)
 try:
     from typing import Optional
 except:

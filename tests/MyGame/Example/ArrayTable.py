@@ -17,6 +17,10 @@ class ArrayTable(object):
         return x
 
     @classmethod
+    def GetRootAsArrayTable(cls, buf, offset=0):
+        """This method is deprecated. Please switch to Start."""
+        return cls.GetRootAs(buf, offset)
+    @classmethod
     def ArrayTableBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
         return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x41\x52\x52\x54", size_prefixed=size_prefixed)
 
@@ -36,9 +40,17 @@ class ArrayTable(object):
         return None
 
 def Start(builder): builder.StartObject(1)
+def ArrayTableStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
 def AddA(builder, a): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(a), 0)
+def ArrayTableAddA(builder, a):
+    """This method is deprecated. Please switch to Start."""
+    return AddA(builder, a)
 def End(builder): return builder.EndObject()
-
+def ArrayTableEnd(builder):
+    """This method is deprecated. Please switch to Start."""
+    return End(builder)
 import MyGame.Example.ArrayStruct
 try:
     from typing import Optional

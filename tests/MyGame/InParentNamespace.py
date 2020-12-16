@@ -17,6 +17,10 @@ class InParentNamespace(object):
         return x
 
     @classmethod
+    def GetRootAsInParentNamespace(cls, buf, offset=0):
+        """This method is deprecated. Please switch to Start."""
+        return cls.GetRootAs(buf, offset)
+    @classmethod
     def InParentNamespaceBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
         return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x4D\x4F\x4E\x53", size_prefixed=size_prefixed)
 
@@ -25,8 +29,13 @@ class InParentNamespace(object):
         self._tab = flatbuffers.table.Table(buf, pos)
 
 def Start(builder): builder.StartObject(0)
+def InParentNamespaceStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
 def End(builder): return builder.EndObject()
-
+def InParentNamespaceEnd(builder):
+    """This method is deprecated. Please switch to Start."""
+    return End(builder)
 
 class InParentNamespaceT(object):
 
