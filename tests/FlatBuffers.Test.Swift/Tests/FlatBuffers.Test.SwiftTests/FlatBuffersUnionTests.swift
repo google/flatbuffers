@@ -55,13 +55,13 @@ final class FlatBuffersUnionTests: XCTestCase {
     let inventory: [UInt8] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     let inv = builder.createVector(inventory, size: 10)
     let weapons = builder.createVector(ofOffsets: [weaponOne, weaponTwo])
-    builder.startVectorOfStructs(count: 2, size: Vec.size, alignment: Vec.alignment)
-    createVecWrite(builder: &builder, x: 1.0, y: 2.0, z: 3.0)
-    createVecWrite(builder: &builder, x: 4.0, y: 5.0, z: 6.0)
-    let path = builder.endVectorOfStructs(count: 2)
+    let path = builder.createVector(ofStructs: [
+      Vec(x: 4.0, y: 5.0, z: 6.0),
+      Vec(x: 1.0, y: 2.0, z: 3.0),
+    ])
     let orc = FinalMonster.createMonster(
       builder: &builder,
-      position: createVecWrite(builder: &builder, x: 1.0, y: 2.0, z: 3.0),
+      position: Vec(x: 1, y: 2, z: 3),
       hp: 300,
       name: name,
       inventory: inv,
@@ -71,7 +71,7 @@ final class FlatBuffersUnionTests: XCTestCase {
       equippedOffset: weaponTwo,
       path: path)
     builder.finish(offset: orc)
-    XCTAssertEqual(builder.sizedByteArray, [32, 0, 0, 0, 0, 0, 26, 0, 36, 0, 36, 0, 0, 0, 34, 0, 28, 0, 0, 0, 24, 0, 23, 0, 16, 0, 15, 0, 8, 0, 4, 0, 26, 0, 0, 0, 44, 0, 0, 0, 104, 0, 0, 0, 0, 0, 0, 1, 60, 0, 0, 0, 0, 0, 0, 0, 64, 0, 0, 0, 76, 0, 0, 0, 0, 0, 44, 1, 0, 0, 128, 63, 0, 0, 0, 64, 0, 0, 64, 64, 2, 0, 0, 0, 0, 0, 128, 64, 0, 0, 160, 64, 0, 0, 192, 64, 0, 0, 128, 63, 0, 0, 0, 64, 0, 0, 64, 64, 2, 0, 0, 0, 52, 0, 0, 0, 28, 0, 0, 0, 10, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0, 3, 0, 0, 0, 79, 114, 99, 0, 244, 255, 255, 255, 0, 0, 5, 0, 24, 0, 0, 0, 8, 0, 12, 0, 8, 0, 6, 0, 8, 0, 0, 0, 0, 0, 3, 0, 12, 0, 0, 0, 3, 0, 0, 0, 65, 120, 101, 0, 5, 0, 0, 0, 83, 119, 111, 114, 100, 0, 0, 0])
+    XCTAssertEqual(builder.sizedByteArray, [32, 0, 0, 0, 0, 0, 26, 0, 48, 0, 36, 0, 0, 0, 34, 0, 28, 0, 0, 0, 24, 0, 23, 0, 16, 0, 15, 0, 8, 0, 4, 0, 26, 0, 0, 0, 44, 0, 0, 0, 104, 0, 0, 0, 0, 0, 0, 1, 60, 0, 0, 0, 0, 0, 0, 0, 64, 0, 0, 0, 76, 0, 0, 0, 0, 0, 44, 1, 0, 0, 128, 63, 0, 0, 0, 64, 0, 0, 64, 64, 2, 0, 0, 0, 0, 0, 128, 64, 0, 0, 160, 64, 0, 0, 192, 64, 0, 0, 128, 63, 0, 0, 0, 64, 0, 0, 64, 64, 2, 0, 0, 0, 52, 0, 0, 0, 28, 0, 0, 0, 10, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0, 3, 0, 0, 0, 79, 114, 99, 0, 244, 255, 255, 255, 0, 0, 5, 0, 24, 0, 0, 0, 8, 0, 12, 0, 8, 0, 6, 0, 8, 0, 0, 0, 0, 0, 3, 0, 12, 0, 0, 0, 3, 0, 0, 0, 65, 120, 101, 0, 5, 0, 0, 0, 83, 119, 111, 114, 100, 0, 0, 0])
   }
 
   func testEnumVector() {
@@ -101,9 +101,9 @@ final class FlatBuffersUnionTests: XCTestCase {
     let characterType: [Character] = [.belle, .mulan, .bookfan]
 
     let characters = [
-      BookReader.createBookReader(builder: &fb, booksRead: 7),
+      fb.create(struct: BookReader(booksRead: 7)),
       attack,
-      BookReader.createBookReader(builder: &fb, booksRead: 2),
+      fb.create(struct: BookReader(booksRead: 2)),
     ]
     let types = fb.createVector(characterType)
     let characterVector = fb.createVector(ofOffsets: characters)
@@ -118,22 +118,22 @@ final class FlatBuffersUnionTests: XCTestCase {
       XCTAssertEqual(movie.charactersType(at: i), characterType[Int(i)])
     }
 
-    XCTAssertEqual(movie.characters(at: 0, type: BookReader.self)?.booksRead, 7)
+    XCTAssertEqual(movie.characters(at: 0, type: BookReader_Mutable.self)?.booksRead, 7)
     XCTAssertEqual(movie.characters(at: 1, type: Attacker.self)?.swordAttackDamage, swordDmg)
-    XCTAssertEqual(movie.characters(at: 2, type: BookReader.self)?.booksRead, 2)
+    XCTAssertEqual(movie.characters(at: 2, type: BookReader_Mutable.self)?.booksRead, 2)
 
     var objc: MovieT? = movie.unpack()
     XCTAssertEqual(movie.charactersTypeCount, Int32(objc?.characters.count ?? 0))
-    XCTAssertEqual(movie.characters(at: 0, type: BookReader.self)?.booksRead, (objc?.characters[0]?.value as? BookReaderT)?.booksRead)
+    XCTAssertEqual(movie.characters(at: 0, type: BookReader_Mutable.self)?.booksRead, (objc?.characters[0]?.value as? BookReader)?.booksRead)
     fb.clear()
     let newMovie = Movie.pack(&fb, obj: &objc)
     fb.finish(offset: newMovie)
 
     let packedMovie = Movie.getRootAsMovie(bb: fb.buffer)
 
-    XCTAssertEqual(packedMovie.characters(at: 0, type: BookReader.self)?.booksRead, movie.characters(at: 0, type: BookReader.self)?.booksRead)
+    XCTAssertEqual(packedMovie.characters(at: 0, type: BookReader_Mutable.self)?.booksRead, movie.characters(at: 0, type: BookReader_Mutable.self)?.booksRead)
     XCTAssertEqual(packedMovie.characters(at: 1, type: Attacker.self)?.swordAttackDamage, movie.characters(at: 1, type: Attacker.self)?.swordAttackDamage)
-    XCTAssertEqual(packedMovie.characters(at: 2, type: BookReader.self)?.booksRead, movie.characters(at: 2, type: BookReader.self)?.booksRead)
+    XCTAssertEqual(packedMovie.characters(at: 2, type: BookReader_Mutable.self)?.booksRead, movie.characters(at: 2, type: BookReader_Mutable.self)?.booksRead)
   }
 }
 
@@ -179,7 +179,7 @@ struct FinalMonster {
   @inlinable
   static func createMonster(
     builder: inout FlatBufferBuilder,
-    position: Offset<UOffset>,
+    position: Vec,
     hp: Int16,
     name: Offset<String>,
     inventory: Offset<UOffset>,
@@ -190,7 +190,7 @@ struct FinalMonster {
     path: Offset<UOffset>) -> Offset<LocalMonster>
   {
     let start = builder.startTable(with: 11)
-    builder.add(structOffset: 4)
+    builder.create(struct: position, position: 4)
     builder.add(element: hp, def: 100, at: 8)
     builder.add(offset: name, at: 10)
     builder.add(offset: inventory, at: 14)
