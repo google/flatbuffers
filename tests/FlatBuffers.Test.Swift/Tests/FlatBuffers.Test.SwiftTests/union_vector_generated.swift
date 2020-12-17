@@ -35,13 +35,13 @@ public struct CharacterUnion {
       return Attacker.pack(&builder, obj: &__obj)
     case .rapunzel:
       var __obj = value as? Rapunzel
-      return MutableRapunzel.pack(&builder, obj: &__obj)
+      return Rapunzel_Mutable.pack(&builder, obj: &__obj)
     case .belle:
       var __obj = value as? BookReader
-      return MutableBookReader.pack(&builder, obj: &__obj)
+      return BookReader_Mutable.pack(&builder, obj: &__obj)
     case .bookfan:
       var __obj = value as? BookReader
-      return MutableBookReader.pack(&builder, obj: &__obj)
+      return BookReader_Mutable.pack(&builder, obj: &__obj)
     default: return Offset()
     }
   }
@@ -60,14 +60,14 @@ public struct Rapunzel: NativeStruct, UnionObject {
     _hairLength = 0
   }
 
-  public init(_ _t: inout MutableRapunzel) {
+  public init(_ _t: inout Rapunzel_Mutable) {
     _hairLength = _t.hairLength
   }
 
   public var hairLength: Int32 { _hairLength }
 }
 
-public struct MutableRapunzel: FlatBufferObject {
+public struct Rapunzel_Mutable: FlatBufferObject {
 
   static func validateVersion() { FlatBuffersVersion_1_12_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -106,14 +106,14 @@ public struct BookReader: NativeStruct, UnionObject {
     _booksRead = 0
   }
 
-  public init(_ _t: inout MutableBookReader) {
+  public init(_ _t: inout BookReader_Mutable) {
     _booksRead = _t.booksRead
   }
 
   public var booksRead: Int32 { _booksRead }
 }
 
-public struct MutableBookReader: FlatBufferObject {
+public struct BookReader_Mutable: FlatBufferObject {
 
   static func validateVersion() { FlatBuffersVersion_1_12_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -290,13 +290,13 @@ public class MovieT: UnionObject {
       var _v = _t.mainCharacter(type: Attacker.self)
       mainCharacter = CharacterUnion(_v?.unpack(), type: .mulan)
     case .rapunzel:
-      var _v = _t.mainCharacter(type: MutableRapunzel.self)
+      var _v = _t.mainCharacter(type: Rapunzel_Mutable.self)
       mainCharacter = CharacterUnion(_v?.unpack(), type: .rapunzel)
     case .belle:
-      var _v = _t.mainCharacter(type: MutableBookReader.self)
+      var _v = _t.mainCharacter(type: BookReader_Mutable.self)
       mainCharacter = CharacterUnion(_v?.unpack(), type: .belle)
     case .bookfan:
-      var _v = _t.mainCharacter(type: MutableBookReader.self)
+      var _v = _t.mainCharacter(type: BookReader_Mutable.self)
       mainCharacter = CharacterUnion(_v?.unpack(), type: .bookfan)
     default: break
     }
@@ -307,13 +307,13 @@ public class MovieT: UnionObject {
           var _v = _t.characters(at: index, type: Attacker.self)
           characters.append(CharacterUnion(_v?.unpack(), type: .mulan))
         case .rapunzel:
-          var _v = _t.characters(at: index, type: MutableRapunzel.self)
+          var _v = _t.characters(at: index, type: Rapunzel_Mutable.self)
           characters.append(CharacterUnion(_v?.unpack(), type: .rapunzel))
         case .belle:
-          var _v = _t.characters(at: index, type: MutableBookReader.self)
+          var _v = _t.characters(at: index, type: BookReader_Mutable.self)
           characters.append(CharacterUnion(_v?.unpack(), type: .belle))
         case .bookfan:
-          var _v = _t.characters(at: index, type: MutableBookReader.self)
+          var _v = _t.characters(at: index, type: BookReader_Mutable.self)
           characters.append(CharacterUnion(_v?.unpack(), type: .bookfan))
         default: break
         }
