@@ -363,9 +363,9 @@ template<typename T> class Vector {
   {
     return flatbuffers::span<T>(Data(), size());
   }
-  operator const flatbuffers::span<T>() const
+  operator const flatbuffers::span<const T>() const
   {
-    return flatbuffers::span<T>(Data(), size());
+    return flatbuffers::span<const T>(Data(), size());
   }
 
  protected:
