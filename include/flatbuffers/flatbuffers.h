@@ -358,6 +358,15 @@ template<typename T> class Vector {
 
     return IndirectHelper<T>::Read(element, 0);
   }
+  
+  operator flatbuffers::span<T>()
+  {
+    return flatbuffers::span<T>(Data(), size());
+  }
+  operator const flatbuffers::span<T>() const
+  {
+    return flatbuffers::span<T>(Data(), size());
+  }
 
  protected:
   // This class is only used to access pre-existing data. Don't ever
