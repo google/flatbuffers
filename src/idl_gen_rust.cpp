@@ -1907,7 +1907,8 @@ class RustGenerator : public BaseGenerator {
         auto noext = flatbuffers::StripExtension(it->second);
         auto basename = flatbuffers::StripPath(noext);
 
-        code_ += indent + "use crate::" + basename + parser_.opts.filename_suffix + "::*;";
+        code_ += indent + "use crate::" + basename +
+                 parser_.opts.filename_suffix + "::*;";
       }
     }
 
