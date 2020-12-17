@@ -35,17 +35,11 @@ extension FlatBuffersMonsterWriterTests {
     ("testCreateMonster", testCreateMonster),
     ("testCreateMonsterPrefixed", testCreateMonsterPrefixed),
     ("testCreateMonsterResizedBuffer", testCreateMonsterResizedBuffer),
-    (
-      "testCreateMonsterUsingCreateMonsterMethodWithNilPos",
-      testCreateMonsterUsingCreateMonsterMethodWithNilPos),
-    (
-      "testCreateMonsterUsingCreateMonsterMethodWithPosX",
-      testCreateMonsterUsingCreateMonsterMethodWithPosX),
+    ("testCreateMonsterUsingCreateMonsterMethodWithNilPos", testCreateMonsterUsingCreateMonsterMethodWithNilPos),
+    ("testCreateMonsterUsingCreateMonsterMethodWithPosX", testCreateMonsterUsingCreateMonsterMethodWithPosX),
     ("testData", testData),
     ("testReadFromOtherLanguages", testReadFromOtherLanguages),
-    (
-      "testReadMonsterFromUnsafePointerWithoutCopying",
-      testReadMonsterFromUnsafePointerWithoutCopying),
+    ("testReadMonsterFromUnsafePointerWithoutCopying", testReadMonsterFromUnsafePointerWithoutCopying),
   ]
 }
 

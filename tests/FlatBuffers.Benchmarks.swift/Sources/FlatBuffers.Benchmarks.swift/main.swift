@@ -89,14 +89,11 @@ func benchmarkThreeMillionStructs() {
 
   var offsets: [Offset<UOffset>] = []
   for _ in 0..<structCount {
-    fb.startVectorOfStructs(count: 5, size: 16, alignment: 8)
+    fb.startVector(5 * MemoryLayout<AA>.size, elementSize: MemoryLayout<AA>.alignment)
     for _ in 0..<5 {
-      fb.createStructOf(size: 16, alignment: 8)
-      fb.reverseAdd(v: 2.4, postion: 0)
-      fb.reverseAdd(v: 2.4, postion: 8)
-      fb.endStruct()
+      _ = fb.create(struct: AA(a: 2.4, b: 2.4))
     }
-    let vector = fb.endVectorOfStructs(count: 5)
+    let vector = fb.endVector(len: 5)
     let start = fb.startTable(with: 1)
     fb.add(offset: vector, at: 4)
     offsets.append(Offset<UOffset>(offset: fb.endTable(at: start)))
@@ -106,6 +103,17 @@ func benchmarkThreeMillionStructs() {
   fb.add(offset: vector, at: 4)
   let root = Offset<UOffset>(offset: fb.endTable(at: start))
   fb.finish(offset: root)
+}
+
+@usableFromInline
+struct AA: NativeStruct {
+  public init(a: Double, b: Double) {
+    self.a = a
+    self.b = b
+  }
+  var a: Double
+  var b: Double
+
 }
 
 func benchmark(numberOfRuns runs: Int) {

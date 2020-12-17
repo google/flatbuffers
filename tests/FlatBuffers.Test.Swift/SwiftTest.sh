@@ -1,7 +1,7 @@
 swift_dir=`pwd`
 cd ..
 test_dir=`pwd`
-alias fbc='${test_dir}/../debug/flatc'
+alias fbc='${test_dir}/../flatc'
 
 cd FlatBuffers.GRPC.Swift/Sources/Model
 fbc --swift --grpc greeter.fbs
