@@ -19,8 +19,9 @@
 
 // Helper functionality to glue FlatBuffers and GRPC.
 
-#include "flatbuffers/flatbuffers.h"
-#include "grpc++/support/byte_buffer.h"
+#define private public
+#include "grpcpp/support/byte_buffer.h"
+#undef private
 #include "grpc/byte_buffer_reader.h"
 
 namespace flatbuffers {

@@ -63,8 +63,8 @@ static_assert(flatbuffers::is_same<uint8_t, char>::value ||
 // clang-format on
 
 // Shortcuts for the infinity.
-static const auto infinityf = std::numeric_limits<float>::infinity();
-static const auto infinityd = std::numeric_limits<double>::infinity();
+static const auto infinity_f = std::numeric_limits<float>::infinity();
+static const auto infinity_d = std::numeric_limits<double>::infinity();
 
 using namespace MyGame::Example;
 
