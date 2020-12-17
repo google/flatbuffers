@@ -24,7 +24,7 @@
 namespace flatbuffers {
 
 // Convert a camelCaseIdentifier or CamelCaseIdentifier to a
-// snake_case_indentifier.
+// snake_case_identifier.
 std::string MakeSnakeCase(const std::string &in) {
   std::string s;
   for (size_t i = 0; i < in.length(); i++) {
@@ -1907,7 +1907,8 @@ class RustGenerator : public BaseGenerator {
         auto noext = flatbuffers::StripExtension(it->second);
         auto basename = flatbuffers::StripPath(noext);
 
-        code_ += indent + "use crate::" + basename + "_generated::*;";
+        code_ += indent + "use crate::" + basename +
+                 parser_.opts.filename_suffix + "::*;";
       }
     }
 
