@@ -19,7 +19,9 @@ set -x
 
 # install devtools
 install_languages() {
-  sudo apt update && apt-get upgrade
+  sudo apt update
+  sudo apt install git
+  git --version
 
   # Install nodeJS and yarn
   wget https://raw.githubusercontent.com/creationix/nvm/v0.31.0/nvm.sh -O ~/.nvm/nvm.sh
