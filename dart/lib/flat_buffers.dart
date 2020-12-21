@@ -30,8 +30,8 @@ class BufferContext {
 
   factory BufferContext.fromBytes(List<int> byteList) {
     Uint8List uint8List = _asUint8List(byteList);
-    ByteData buf = new ByteData.view(uint8List.buffer, uint8List.offsetInBytes);
-    return new BufferContext._(buf);
+    ByteData buf = ByteData.view(uint8List.buffer, uint8List.offsetInBytes);
+    return BufferContext._(buf);
   }
 
   BufferContext._(this._buffer);
