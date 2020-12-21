@@ -12,3 +12,10 @@
 ## 1.9.0
 
 - Initial release, supports Dart 1.x and many dev versions of Dart 2.x
+
+## 1.13.0
+
+- Add FlexBuffer support
+- Fix union type names
+- Generate constant values map for enums
+- Update documentation

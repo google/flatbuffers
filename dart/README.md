@@ -10,4 +10,12 @@ or write binary files that are interoperable with other languages and platforms
 supported by FlatBuffers, as illustrated in the `example.dart` in the
 examples folder.
 
-Additional documentation and examples are available [at the FlatBuffers site](https://google.github.io/flatbuffers/index.html)
+Additional documentation and examples are available [at the FlatBuffers site](https://google.github.io/flatbuffers/index.html).
+
+Based on original work by Konstantin Scheglov and Paul Berry of the Dart SDK team.
+
+## Authors
+
+- Dan Field <dfield@gmail.com>
+- Konstantin Scheglov
+- Paul Berry
