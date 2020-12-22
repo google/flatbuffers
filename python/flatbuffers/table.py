@@ -112,7 +112,7 @@ class Table(object):
         length = self.VectorLen(off) # TODO: length accounts for bytewidth, right?
         numpy_dtype = N.to_numpy_type(flags)
         return encode.GetVectorAsNumpy(numpy_dtype, self.Bytes, length, offset)
- 
+
     def GetVOffsetTSlot(self, slot, d):
         """
         GetVOffsetTSlot retrieves the VOffsetT that the given vtable location
