@@ -29,11 +29,11 @@ pub mod other_name_space {
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
 
-#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_FROM_INCLUDE: i64 = 0;
-#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MAX_FROM_INCLUDE: i64 = 0;
-#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 #[allow(non_camel_case_types)]
 pub const ENUM_VALUES_FROM_INCLUDE: [FromInclude; 1] = [
   FromInclude::IncludeVal,
@@ -100,8 +100,8 @@ impl flatbuffers::EndianScalar for FromInclude {
 
 impl<'a> flatbuffers::Verifiable for FromInclude {
   #[inline]
-  fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     i64::run_verifier(v, pos)
@@ -163,8 +163,8 @@ impl<'b> flatbuffers::Push for &'b Unused {
 
 impl<'a> flatbuffers::Verifiable for Unused {
   #[inline]
-  fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     v.in_buffer::<Self>(pos)
@@ -223,8 +223,8 @@ impl<'a> TableB<'a> {
 
 impl flatbuffers::Verifiable for TableB<'_> {
   #[inline]
-  fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     v.visit_table(pos)?

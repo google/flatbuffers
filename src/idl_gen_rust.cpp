@@ -670,8 +670,8 @@ class RustGenerator : public BaseGenerator {
     // Generate verifier - deferring to the base type.
     code_ += "impl<'a> flatbuffers::Verifiable for {{ENUM_NAME}} {";
     code_ += "  #[inline]";
-    code_ += "  fn run_verifier<'o, 'b>(";
-    code_ += "    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize";
+    code_ += "  fn run_verifier(";
+    code_ += "    v: &mut flatbuffers::Verifier, pos: usize";
     code_ += "  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {";
     code_ += "    use self::flatbuffers::Verifiable;";
     code_ += "    {{BASE_TYPE}}::run_verifier(v, pos)";
@@ -1332,8 +1332,8 @@ class RustGenerator : public BaseGenerator {
     // Generate Verifier;
     code_ += "impl flatbuffers::Verifiable for {{STRUCT_NAME}}<'_> {";
     code_ += "  #[inline]";
-    code_ += "  fn run_verifier<'o, 'b>(";
-    code_ += "    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize";
+    code_ += "  fn run_verifier(";
+    code_ += "    v: &mut flatbuffers::Verifier, pos: usize";
     code_ += "  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {";
     code_ += "    use self::flatbuffers::Verifiable;";
     code_ += "    v.visit_table(pos)?\\";
@@ -1831,8 +1831,8 @@ class RustGenerator : public BaseGenerator {
     // all that need to be checked.
     code_ += "impl<'a> flatbuffers::Verifiable for {{STRUCT_NAME}} {";
     code_ += "  #[inline]";
-    code_ += "  fn run_verifier<'o, 'b>(";
-    code_ += "    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize";
+    code_ += "  fn run_verifier(";
+    code_ += "    v: &mut flatbuffers::Verifier, pos: usize";
     code_ += "  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {";
     code_ += "    use self::flatbuffers::Verifiable;";
     code_ += "    v.in_buffer::<Self>(pos)";
