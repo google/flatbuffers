@@ -171,6 +171,7 @@ impl<'a> flatbuffers::Verifiable for Unused {
   }
 }
 impl Unused {
+  #[allow(clippy::too_many_arguments)]
   pub fn new(_a: i32) -> Self {
     Unused {
       a_: _a.to_little_endian(),

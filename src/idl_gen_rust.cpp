@@ -1843,6 +1843,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "impl {{STRUCT_NAME}} {";
     // TODO(cneo): Stop generating args on one line. Make it simpler.
     bool first_arg = true;
+    code_ += "  #[allow(clippy::too_many_arguments)]";
     code_ += "  pub fn new(\\";
     ForAllStructFields(struct_def, [&](const FieldDef &field) {
       if (first_arg) first_arg = false; else code_ += ", \\";

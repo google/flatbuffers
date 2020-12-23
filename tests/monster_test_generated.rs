@@ -703,6 +703,7 @@ impl<'a> flatbuffers::Verifiable for Test {
   }
 }
 impl Test {
+  #[allow(clippy::too_many_arguments)]
   pub fn new(_a: i16, _b: i8) -> Self {
     Test {
       a_: _a.to_little_endian(),
@@ -798,6 +799,7 @@ impl<'a> flatbuffers::Verifiable for Vec3 {
   }
 }
 impl Vec3 {
+  #[allow(clippy::too_many_arguments)]
   pub fn new(_x: f32, _y: f32, _z: f32, _test1: f64, _test2: Color, _test3: &Test) -> Self {
     Vec3 {
       x_: _x.to_little_endian(),
@@ -900,6 +902,7 @@ impl<'a> flatbuffers::Verifiable for Ability {
   }
 }
 impl Ability {
+  #[allow(clippy::too_many_arguments)]
   pub fn new(_id: u32, _distance: u32) -> Self {
     Ability {
       id_: _id.to_little_endian(),

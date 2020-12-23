@@ -178,6 +178,7 @@ impl<'a> flatbuffers::Verifiable for StructInNestedNS {
   }
 }
 impl StructInNestedNS {
+  #[allow(clippy::too_many_arguments)]
   pub fn new(_a: i32, _b: i32) -> Self {
     StructInNestedNS {
       a_: _a.to_little_endian(),

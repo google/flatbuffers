@@ -265,6 +265,7 @@ impl<'a> flatbuffers::Verifiable for Vec3 {
   }
 }
 impl Vec3 {
+  #[allow(clippy::too_many_arguments)]
   pub fn new(_x: f32, _y: f32, _z: f32) -> Self {
     Vec3 {
       x_: _x.to_little_endian(),
