@@ -1915,7 +1915,7 @@ class RustGenerator : public BaseGenerator {
           prefix.pop_back();
 
           code_ += indent + "use crate::" + prefix + "::" + basename +
-              parser_.opts.filename_suffix + "::*;";
+                   parser_.opts.filename_suffix + "::*;";
         }
       }
     }
