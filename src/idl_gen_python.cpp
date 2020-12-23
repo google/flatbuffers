@@ -1178,9 +1178,7 @@ class PythonGenerator : public BaseGenerator {
                      field_instance_name + "))):";
       code_prefix +=
           GenIndents(4) + "self." + field_instance_name + "[i].Pack(builder)";
-      code_prefix += GenIndents(3) + field_instance_name +
-                     " = builder.EndVector(len(self." + field_instance_name +
-                     "))";
+      code_prefix += GenIndents(3) + field_instance_name + " = builder.EndVector()";
     } else {
       // If the vector is a struct vector, we need to first build accessor for
       // each struct element.
@@ -1197,9 +1195,7 @@ class PythonGenerator : public BaseGenerator {
                      field_instance_name + "))):";
       code_prefix += GenIndents(4) + "builder.PrependUOffsetTRelative" + "(" +
                      field_instance_name + "list[i])";
-      code_prefix += GenIndents(3) + field_instance_name +
-                     " = builder.EndVector(len(self." + field_instance_name +
-                     "))";
+      code_prefix += GenIndents(3) + field_instance_name + " = builder.EndVector()";
     }
 
     // Adds the field into the struct.
@@ -1273,9 +1269,7 @@ class PythonGenerator : public BaseGenerator {
                      field_instance_name + "[i]))";
       GenPackForScalarVectorFieldHelper(struct_def, field, code_prefix_ptr, 3);
       code_prefix += "(" + MakeLowerCamel(field) + "list[i])";
-      code_prefix += GenIndents(3) + field_instance_name +
-                     " = builder.EndVector(len(self." + field_instance_name +
-                     "))";
+      code_prefix += GenIndents(3) + field_instance_name + " = builder.EndVector()";
       return;
     }
 
@@ -1287,9 +1281,7 @@ class PythonGenerator : public BaseGenerator {
     code_prefix += GenIndents(3) + "else:";
     GenPackForScalarVectorFieldHelper(struct_def, field, code_prefix_ptr, 4);
     code_prefix += "(self." + field_instance_name + "[i])";
-    code_prefix += GenIndents(4) + field_instance_name +
-                   " = builder.EndVector(len(self." + field_instance_name +
-                   "))";
+    code_prefix += GenIndents(4) + field_instance_name + " = builder.EndVector()";
   }
 
   void GenPackForStructField(const StructDef &struct_def, const FieldDef &field,
