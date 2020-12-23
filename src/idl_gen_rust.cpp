@@ -561,7 +561,7 @@ class RustGenerator : public BaseGenerator {
       // Normal, c-modelled enums.
       // Deprecated associated constants;
       const std::string deprecation_warning =
-          "#[deprecated(since = \"1.13\", note = \"Use associated constants"
+          "#[deprecated(since = \"2.0.0\", note = \"Use associated constants"
           " instead. This will no longer be generated in 2021.\")]";
       code_ += deprecation_warning;
       code_ += "pub const ENUM_MIN_{{ENUM_NAME_CAPS}}: {{BASE_TYPE}}"
@@ -1542,7 +1542,7 @@ class RustGenerator : public BaseGenerator {
 
     // The root datatype accessors:
     code_ += "#[inline]";
-    code_ += "#[deprecated(since=\"1.13\", "
+    code_ += "#[deprecated(since=\"2.0.0\", "
              "note=\"Deprecated in favor of `root_as...` methods.\")]";
     code_ +=
         "pub fn get_root_as_{{STRUCT_NAME_SNAKECASE}}<'a>(buf: &'a [u8])"
@@ -1553,7 +1553,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
 
     code_ += "#[inline]";
-    code_ += "#[deprecated(since=\"1.13\", "
+    code_ += "#[deprecated(since=\"2.0.0\", "
              "note=\"Deprecated in favor of `root_as...` methods.\")]";
     code_ +=
         "pub fn get_size_prefixed_root_as_{{STRUCT_NAME_SNAKECASE}}"
