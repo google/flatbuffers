@@ -13,9 +13,7 @@
 
 - Initial release, supports Dart 1.x and many dev versions of Dart 2.x
 
-## 1.13.0
+## 1.12.0+1
 
-- Add FlexBuffer support
-- Fix union type names
-- Generate constant values map for enums
+- Improve `pubspec.yaml` to achieve higher pub.dev score
 - Update documentation
