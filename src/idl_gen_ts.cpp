@@ -80,34 +80,32 @@ class JsTsGenerator : public BaseGenerator {
     imported_fileset imported_files;
     reexport_map reexports;
 
-    std::string enum_code, struct_code, import_code, exports_code, code;
-    generateEnums(&enum_code, &exports_code, reexports, imported_files);
-    generateStructs(&struct_code, &exports_code, imported_files);
-    generateImportDependencies(&import_code, imported_files);
-    generateReexports(&import_code, reexports, imported_files);
+    generateEnums(reexports, imported_files);
+    generateStructs(imported_files);
+    //generateImportDependencies(&import_code, imported_files);
+    //generateReexports(&import_code, reexports, imported_files);
 
-    code = code + "// " + FlatBuffersGeneratedWarning() + "\n\n";
+    return true;
+  }
 
-    // Generate code for all the namespace declarations.
-    GenNamespaces(&code, &exports_code);
+  // Save out the generated code for a single class while adding
+  // declaration boilerplate.
+  bool SaveType(const std::string &defname, const Namespace &ns,
+                const std::string &classcode, bool needs_includes) const {
+    if (!classcode.length()) return true;
 
-    // Output the main declaration code from above.
-    code += import_code;
+    std::string code;
+    code = "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
 
-    code += enum_code;
-    code += struct_code;
-
-    if (lang_.language == IDLOptions::kJs && !exports_code.empty() &&
-        !parser_.opts.skip_js_exports) {
-      if (parser_.opts.use_ES6_js_export_format)
-        code += "// Exports for ECMAScript6 Modules\n";
-      else
-        code += "// Exports for Node.js and RequireJS\n";
-      code += exports_code;
+    std::string namespace_name = FullNamespace(".", ns);
+    if (needs_includes) {
+      code += "\n";
     }
 
-    return SaveFile(GeneratedFileName(path_, file_name_, parser_.opts).c_str(),
-                    code, false);
+    code += classcode;
+    if (!namespace_name.empty()) code += "";
+    auto filename = NamespaceDir(ns, true) + ToDasherizedCase(defname) + ".ts";
+    return SaveFile(filename.c_str(), code, false);
   }
 
  private:
@@ -165,28 +163,31 @@ class JsTsGenerator : public BaseGenerator {
   }
 
   // Generate code for all enums.
-  void generateEnums(std::string *enum_code_ptr, std::string *exports_code_ptr,
-                     reexport_map &reexports,
+  void generateEnums(reexport_map &reexports,
                      imported_fileset &imported_files) {
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
+      std::string enumcode;
+      std::string exportscode;
       auto &enum_def = **it;
-      GenEnum(enum_def, enum_code_ptr, exports_code_ptr, reexports,
+      GenEnum(enum_def, &enumcode, &exportscode, reexports,
               imported_files, false);
-      GenEnum(enum_def, enum_code_ptr, exports_code_ptr, reexports,
+      GenEnum(enum_def, &enumcode, &exportscode, reexports,
               imported_files, true);
+      SaveType(enum_def.name, *enum_def.defined_namespace, enumcode, false);
     }
   }
 
   // Generate code for all structs.
-  void generateStructs(std::string *decl_code_ptr,
-                       std::string *exports_code_ptr,
-                       imported_fileset &imported_files) {
+  void generateStructs(imported_fileset &imported_files) {
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
       auto &struct_def = **it;
-      GenStruct(parser_, struct_def, decl_code_ptr, exports_code_ptr,
+      std::string declcode;
+      std::string exportscode;
+      GenStruct(parser_, struct_def, &declcode, &exportscode,
                 imported_files);
+      SaveType(struct_def.name, *struct_def.defined_namespace, declcode, true);
     }
   }
   void GenNamespaces(std::string *code_ptr, std::string *exports_ptr) {

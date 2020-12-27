@@ -95,6 +95,10 @@ class BaseGenerator {
 
   static std::string NamespaceDir(const Parser &parser, const std::string &path,
                                   const Namespace &ns);
+  static std::string NamespaceDir(const Parser &parser, const std::string &path,
+                                  const Namespace &ns, const bool dasherize);
+
+  static std::string ToDasherizedCase(const std::string pascal_case);
 
   std::string GeneratedFileName(const std::string &path,
                                 const std::string &file_name,
@@ -117,6 +121,7 @@ class BaseGenerator {
   BaseGenerator(const BaseGenerator &);
 
   std::string NamespaceDir(const Namespace &ns) const;
+  std::string NamespaceDir(const Namespace &ns, const bool dasherize) const;
 
   static const char *FlatBuffersGeneratedWarning();
 
