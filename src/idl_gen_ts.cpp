@@ -68,6 +68,7 @@ class JsTsGenerator : public BaseGenerator {
   typedef std::unordered_set<std::string> imported_fileset;
   typedef std::unordered_multimap<std::string, ReexportDescription>
       reexport_map;
+  typedef std::unordered_set<std::string> import_set;
 
   JsTsGenerator(const Parser &parser, const std::string &path,
                 const std::string &file_name)
@@ -82,7 +83,10 @@ class JsTsGenerator : public BaseGenerator {
 
     generateEnums(reexports, imported_files);
     generateStructs(imported_files);
-    //generateImportDependencies(&import_code, imported_files);
+
+    // TODO: lack tests? not important?
+    //generateImportDependencies(imported_files);
+    // TODO: obsolete?
     //generateReexports(&import_code, reexports, imported_files);
 
     return true;
@@ -91,19 +95,18 @@ class JsTsGenerator : public BaseGenerator {
   // Save out the generated code for a single class while adding
   // declaration boilerplate.
   bool SaveType(const std::string &defname, const Namespace &ns,
-                const std::string &classcode, bool needs_includes) const {
+                const std::string &classcode, const import_set &imports) const {
     if (!classcode.length()) return true;
 
     std::string code;
     code = "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
 
-    std::string namespace_name = FullNamespace(".", ns);
-    if (needs_includes) {
-      code += "\n";
-    }
+    for (auto &import : imports)
+      code += import + "\n";
+    if (imports.size() > 0)
+      code += "\n\n";
 
     code += classcode;
-    if (!namespace_name.empty()) code += "";
     auto filename = NamespaceDir(ns, true) + ToDasherizedCase(defname) + ".ts";
     return SaveFile(filename.c_str(), code, false);
   }
@@ -112,9 +115,8 @@ class JsTsGenerator : public BaseGenerator {
   JsTsLanguageParameters lang_;
 
   // Generate code for imports
-  void generateImportDependencies(std::string *code_ptr,
-                                  const imported_fileset &imported_files) {
-    std::string &code = *code_ptr;
+  void generateImportDependencies(const imported_fileset &imported_files) {
+    std::string code;
     for (auto it = imported_files.begin(); it != imported_files.end(); ++it) {
       const auto &file = *it;
       const auto basename =
@@ -167,13 +169,14 @@ class JsTsGenerator : public BaseGenerator {
                      imported_fileset &imported_files) {
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
+      import_set imports;
       std::string enumcode;
       auto &enum_def = **it;
       GenEnum(enum_def, &enumcode, reexports,
-              imported_files, false);
+              imported_files, imports, false);
       GenEnum(enum_def, &enumcode, reexports,
-              imported_files, true);
-      SaveType(enum_def.name, *enum_def.defined_namespace, enumcode, false);
+              imported_files, imports, true);
+      SaveType(enum_def.name, *enum_def.defined_namespace, enumcode, imports);
     }
   }
 
@@ -181,10 +184,18 @@ class JsTsGenerator : public BaseGenerator {
   void generateStructs(imported_fileset &imported_files) {
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
+      import_set imports;
+      imports.insert("import { _flatbuffers_Table } from 'flatbuffers/types';");
+      imports.insert("import { _flatbuffers_Offset } from 'flatbuffers/types';");
+      imports.insert("import { _flatbuffers_Builder } from 'flatbuffers/builder';");
+      imports.insert("import { _flatbuffers_ByteBuffer } from 'flatbuffers/byte-buffer';");
+      imports.insert("import { _flatbuffers_Encoding } from 'flatbuffers/encoding';");
+      imports.insert("import { _flatbuffers_Long } from 'flatbuffers/long';");
+      imports.insert("import { _flatbuffers_SIZE_PREFIX_LENGTH } from 'flatbuffers/constants';");
       auto &struct_def = **it;
       std::string declcode;
       GenStruct(parser_, struct_def, &declcode, imported_files);
-      SaveType(struct_def.name, *struct_def.defined_namespace, declcode, true);
+      SaveType(struct_def.name, *struct_def.defined_namespace, declcode, imports);
     }
   }
   void GenNamespaces(std::string *code_ptr, std::string *exports_ptr) {
@@ -308,7 +319,7 @@ class JsTsGenerator : public BaseGenerator {
 
   // Generate an enum declaration and an enum string lookup table.
   void GenEnum(EnumDef &enum_def, std::string *code_ptr, reexport_map &reexports,
-               imported_fileset &imported_files, bool reverse) {
+               imported_fileset &imported_files, import_set &imports, bool reverse) {
     if (enum_def.generated) return;
     if (reverse && lang_.language == IDLOptions::kTs) return;  // FIXME.
     std::string &code = *code_ptr;
@@ -348,7 +359,7 @@ class JsTsGenerator : public BaseGenerator {
     code += "};";
 
     if (enum_def.is_union) {
-      code += GenUnionConvFunc(enum_def.underlying_type, imported_files);
+      code += GenUnionConvFunc(enum_def.underlying_type, imported_files, imports);
     }
 
     code += "\n\n";
@@ -666,7 +677,7 @@ class JsTsGenerator : public BaseGenerator {
   }
 
   std::string GenUnionTypeTS(const EnumDef &union_enum,
-                             imported_fileset &imported_files) {
+                             imported_fileset &imported_files, import_set &imports) {
     std::string ret;
     std::set<std::string> type_list;
 
@@ -683,8 +694,11 @@ class JsTsGenerator : public BaseGenerator {
           imported_files.insert(ev.union_type.struct_def->file);
         }
 
-        type = GenPrefixedTypeName(WrapInNameSpace(*(ev.union_type.struct_def)),
-                                   ev.union_type.struct_def->file);
+        // NOTE: need to alias imports because could be same name from different namespaces
+        //type = GenPrefixedTypeName(WrapInNameSpace(*(ev.union_type.struct_def)),
+        //                           ev.union_type.struct_def->file);
+        type = ev.union_type.struct_def->name;
+        AddImport(imports, union_enum, *(ev.union_type.struct_def));
       } else {
         FLATBUFFERS_ASSERT(false);
       }
@@ -696,6 +710,20 @@ class JsTsGenerator : public BaseGenerator {
     }
 
     return ret;
+  }
+
+  void AddImport(import_set &imports, const Definition &dependent, const Definition &dependency) {
+    std::string import;
+    import += "import { " + dependency.name + " } from '";
+    for (size_t i = 0; i < dependent.defined_namespace->components.size(); i++)
+      import += i == 0 ? ".." : (kPathSeparator + std::string(".."));
+    if (dependent.defined_namespace->components.size() == 0)
+      import += ".";
+    for (const auto &c : dependency.defined_namespace->components)
+      import += kPathSeparator + ToDasherizedCase(c);
+    import += kPathSeparator + ToDasherizedCase(dependency.name);
+    import += "';";
+    imports.insert(import);
   }
 
   // Generate a TS union type based on a union's enum
@@ -741,11 +769,12 @@ class JsTsGenerator : public BaseGenerator {
   }
 
   std::string GenUnionConvFunc(const Type &union_type,
-                               imported_fileset &imported_files) {
+                               imported_fileset &imported_files,
+                               import_set &imports) {
     if (union_type.enum_def) {
       const auto &enum_def = *union_type.enum_def;
 
-      const auto valid_union_type = GenUnionTypeTS(enum_def, imported_files);
+      const auto valid_union_type = GenUnionTypeTS(enum_def, imported_files, imports);
       const auto valid_union_type_with_null = valid_union_type + "|null";
 
       auto ret = "\n\nexport function " + GenUnionConvFuncName(enum_def) +
@@ -758,8 +787,10 @@ class JsTsGenerator : public BaseGenerator {
         imported_files.insert(union_type.enum_def->file);
       }
 
-      const auto enum_type = GenPrefixedTypeName(
-          WrapInNameSpace(*(union_type.enum_def)), union_type.enum_def->file);
+      // TODO: could come from another cu?
+      /*auto enum_type = GenPrefixedTypeName(
+        WrapInNameSpace(*(union_type.enum_def)), union_type.enum_def->file);*/
+      const auto enum_type = union_type.enum_def->name;
       const auto &union_enum = *(union_type.enum_def);
 
       const auto union_enum_loop = [&](const std::string &accessor_str) {
@@ -776,9 +807,11 @@ class JsTsGenerator : public BaseGenerator {
           if (IsString(ev.union_type)) {
             ret += "return " + accessor_str + "'') as string;";
           } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
-            const auto type = GenPrefixedTypeName(
+            // TODO: need to differentiate same name diff namespace?
+            /*const auto type = GenPrefixedTypeName(
                 WrapInNameSpace(*(ev.union_type.struct_def)),
-                ev.union_type.struct_def->file);
+                ev.union_type.struct_def->file);*/
+            const auto type = ev.union_type.struct_def->name;
             ret += "return " + accessor_str + "new " + type + "())! as " +
                    type + ";";
           } else {
