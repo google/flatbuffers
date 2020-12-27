@@ -936,11 +936,22 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     // the automatically added type field should have an id as well (of N - 1).
     auto attr = field->attributes.Lookup("id");
     if (attr) {
-      auto id = atoi(attr->constant.c_str());
-      auto val = new Value();
-      val->type = attr->type;
-      val->constant = NumToString(id - 1);
-      typefield->attributes.Add("id", val);
+      const auto &id_str = attr->constant;
+      voffset_t id = 0;
+      const auto done = !atot(id_str.c_str(), *this, &id).Check();
+      if (done && id > 0) {
+        auto val = new Value();
+        val->type = attr->type;
+        val->constant = NumToString(id - 1);
+        typefield->attributes.Add("id", val);
+      } else {
+        return Error(
+            "a union type effectively adds two fields with non-negative ids, "
+            "its id must be that of the second field (the first field is "
+            "the type field and not explicitly declared in the schema);\n"
+            "field: " +
+            field->name + ", id: " + id_str);
+      }
     }
     // if this field is a union that is deprecated,
     // the automatically added type field should be deprecated as well
@@ -2410,11 +2421,25 @@ CheckedError Parser::ParseDecl() {
       // been specified.
       std::sort(fields.begin(), fields.end(), compareFieldDefs);
       // Verify we have a contiguous set, and reassign vtable offsets.
-      for (int i = 0; i < static_cast<int>(fields.size()); i++) {
-        if (i != atoi(fields[i]->attributes.Lookup("id")->constant.c_str()))
+      FLATBUFFERS_ASSERT(fields.size() <=
+                         flatbuffers::numeric_limits<voffset_t>::max());
+      for (voffset_t i = 0; i < static_cast<voffset_t>(fields.size()); i++) {
+        auto &field = *fields[i];
+        const auto &id_str = field.attributes.Lookup("id")->constant;
+        // Metadata values have a dynamic type, they can be `float`, 'int', or
+        // 'string`.
+        // The FieldIndexToOffset(i) expects the voffset_t so `id` is limited by
+        // this type.
+        voffset_t id = 0;
+        const auto done = !atot(id_str.c_str(), *this, &id).Check();
+        if (!done)
+          return Error("field id\'s must be non-negative number, field: " +
+                       field.name + ", id: " + id_str);
+        if (i != id)
           return Error("field id\'s must be consecutive from 0, id " +
-                       NumToString(i) + " missing or set twice");
-        fields[i]->value.offset = FieldIndexToOffset(static_cast<voffset_t>(i));
+                       NumToString(i) + " missing or set twice, field: " +
+                       field.name + ", id: " + id_str);
+        field.value.offset = FieldIndexToOffset(i);
       }
     }
   }
