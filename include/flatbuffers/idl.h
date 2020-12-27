@@ -760,9 +760,6 @@ class CheckedError {
 class Parser : public ParserState {
  public:
   explicit Parser(const IDLOptions &options = IDLOptions())
-      : Parser(options, 0) {}
-
-  explicit Parser(const IDLOptions &options, int initial_depth_counter)
       : current_namespace_(nullptr),
         empty_namespace_(nullptr),
         flex_builder_(256, flexbuffers::BUILDER_FLAG_SHARE_ALL),
@@ -771,8 +768,7 @@ class Parser : public ParserState {
         uses_flexbuffers_(false),
         source_(nullptr),
         anonymous_counter_(0),
-        parse_depth_counter_(initial_depth_counter),
-        initial_parse_depth_counter_(initial_depth_counter) {
+        parse_depth_counter_(0) {
     if (opts.force_defaults) { builder_.ForceDefaults(true); }
     // Start out with the empty namespace being current.
     empty_namespace_ = new Namespace();
@@ -1003,7 +999,6 @@ class Parser : public ParserState {
 
   int anonymous_counter_;
   int parse_depth_counter_;  // stack-overflow guard
-  const int initial_parse_depth_counter_;
 };
 
 // Utility functions for multiple generators:

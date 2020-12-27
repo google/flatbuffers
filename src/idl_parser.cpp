@@ -1550,13 +1550,13 @@ CheckedError Parser::ParseNestedFlatbuffer(Value &val, FieldDef *field,
     std::string substring(cursor_at_value_begin - 1, cursor_ - 1);
 
     // Create and initialize new parser
-    Parser nested_parser(this->opts, parse_depth_counter_);
+    Parser nested_parser;
     FLATBUFFERS_ASSERT(field->nested_flatbuffer);
     nested_parser.root_struct_def_ = field->nested_flatbuffer;
     nested_parser.enums_ = enums_;
     nested_parser.opts = opts;
     nested_parser.uses_flexbuffers_ = uses_flexbuffers_;
-
+    nested_parser.parse_depth_counter_ = parse_depth_counter_;
     // Parse JSON substring into new flatbuffer builder using nested_parser
     bool ok = nested_parser.Parse(substring.c_str(), nullptr, nullptr);
 
@@ -2945,17 +2945,19 @@ CheckedError Parser::ParseFlexBufferValue(flexbuffers::Builder *builder) {
 
 bool Parser::ParseFlexBuffer(const char *source, const char *source_filename,
                              flexbuffers::Builder *builder) {
-  FLATBUFFERS_ASSERT(initial_parse_depth_counter_ == parse_depth_counter_);
+  const auto initial_depth = parse_depth_counter_;
+  (void)initial_depth;
   auto ok = !StartParseFile(source, source_filename).Check() &&
             !ParseFlexBufferValue(builder).Check();
   if (ok) builder->Finish();
-  FLATBUFFERS_ASSERT(initial_parse_depth_counter_ == parse_depth_counter_);
+  FLATBUFFERS_ASSERT(initial_depth == parse_depth_counter_);
   return ok;
 }
 
 bool Parser::Parse(const char *source, const char **include_paths,
                    const char *source_filename) {
-  FLATBUFFERS_ASSERT(initial_parse_depth_counter_ == parse_depth_counter_);
+  const auto initial_depth = parse_depth_counter_;
+  (void)initial_depth;
   bool r;
 
   if (opts.use_flexbuffers) {
@@ -2963,16 +2965,17 @@ bool Parser::Parse(const char *source, const char **include_paths,
   } else {
     r = !ParseRoot(source, include_paths, source_filename).Check();
   }
-  FLATBUFFERS_ASSERT(initial_parse_depth_counter_ == parse_depth_counter_);
+  FLATBUFFERS_ASSERT(initial_depth == parse_depth_counter_);
   return r;
 }
 
 bool Parser::ParseJson(const char *json, const char *json_filename) {
-  FLATBUFFERS_ASSERT(initial_parse_depth_counter_ == parse_depth_counter_);
+  const auto initial_depth = parse_depth_counter_;
+  (void)initial_depth;
   builder_.Clear();
   const auto done =
       !StartParseFile(json, json_filename).Check() && !DoParseJson().Check();
-  FLATBUFFERS_ASSERT(initial_parse_depth_counter_ == parse_depth_counter_);
+  FLATBUFFERS_ASSERT(initial_depth == parse_depth_counter_);
   return done;
 }
 
