@@ -821,9 +821,9 @@ class DetachedBuffer {
   #if !defined(FLATBUFFERS_CPP98_STL)
   // clang-format on
   // These may change access mode, leave these at end of public section
-  FLATBUFFERS_DELETE_FUNC(DetachedBuffer(const DetachedBuffer &other))
+  FLATBUFFERS_DELETE_FUNC(DetachedBuffer(const DetachedBuffer &other));
   FLATBUFFERS_DELETE_FUNC(
-      DetachedBuffer &operator=(const DetachedBuffer &other))
+      DetachedBuffer &operator=(const DetachedBuffer &other));
   // clang-format off
   #endif  // !defined(FLATBUFFERS_CPP98_STL)
   // clang-format on
@@ -1066,8 +1066,8 @@ class vector_downward {
 
  private:
   // You shouldn't really be copying instances of this class.
-  FLATBUFFERS_DELETE_FUNC(vector_downward(const vector_downward &))
-  FLATBUFFERS_DELETE_FUNC(vector_downward &operator=(const vector_downward &))
+  FLATBUFFERS_DELETE_FUNC(vector_downward(const vector_downward &));
+  FLATBUFFERS_DELETE_FUNC(vector_downward &operator=(const vector_downward &));
 
   Allocator *allocator_;
   bool own_allocator_;
@@ -1891,7 +1891,7 @@ class FlatBufferBuilder {
     }
 
     FLATBUFFERS_DELETE_FUNC(
-        StructKeyComparator &operator=(const StructKeyComparator &))
+        StructKeyComparator &operator=(const StructKeyComparator &));
   };
   /// @endcond
 
@@ -1966,7 +1966,7 @@ class FlatBufferBuilder {
     vector_downward &buf_;
 
    private:
-    FLATBUFFERS_DELETE_FUNC(TableKeyComparator &operator=(const TableKeyComparator &other))
+    FLATBUFFERS_DELETE_FUNC(TableKeyComparator &operator=(const TableKeyComparator &other));
   };
   /// @endcond
 
