@@ -2854,14 +2854,13 @@ CheckedError Parser::SkipAnyJsonValue() {
   switch (token_) {
     case '{': {
       size_t fieldn_outer = 0;
-      return ParseTableDelimiters(
-          fieldn_outer, nullptr,
-          [&](const std::string &, size_t &fieldn,
-              const StructDef *) -> CheckedError {
-            ECHECK(SkipAnyJsonValue());
-            fieldn++;
-            return NoError();
-          });
+      return ParseTableDelimiters(fieldn_outer, nullptr,
+                                  [&](const std::string &, size_t &fieldn,
+                                      const StructDef *) -> CheckedError {
+                                    ECHECK(SkipAnyJsonValue());
+                                    fieldn++;
+                                    return NoError();
+                                  });
     }
     case '[': {
       uoffset_t count = 0;
