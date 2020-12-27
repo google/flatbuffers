@@ -810,11 +810,6 @@ class Parser : public ParserState {
     }
   }
 
-#ifdef FLATBUFFERS_DEFAULT_DECLARATION
-  Parser(Parser&&) = default;
-  Parser& operator=(Parser&&) = default;
-#endif
-
   // Parse the string containing either schema or JSON data, which will
   // populate the SymbolTable's or the FlatBufferBuilder above.
   // include_paths is used to resolve any include statements, and typically
