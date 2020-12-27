@@ -1,0 +1,25 @@
+name: Build and Test Flatc, Generate Code and Clang Format
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: make clean
+      run: make clean
+    - name: make
+      run: make
+    - name: flattests
+      run: flattests
+    - name: generate code
+      run: ./tests/generate_code.sh
+    - name: clang format
+      run: . src/clang-format-all.sh
