@@ -73,6 +73,13 @@ mutate_foo(value:number):boolean {
 };
 
 /**
+ * @returns string
+ */
+static getFullyQualifiedName():string {
+  return 'NamespaceA.NamespaceB.TableInNestedNS';
+}
+
+/**
  * @param flatbuffers.Builder builder
  */
 static startTableInNestedNS(builder:flatbuffers.Builder) {
@@ -170,13 +177,7 @@ a():number {
  * @returns boolean
  */
 mutate_a(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 0);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeInt32(this.bb_pos + offset, value);
+  this.bb!.writeInt32(this.bb_pos + 0, value);
   return true;
 };
 
@@ -192,15 +193,23 @@ b():number {
  * @returns boolean
  */
 mutate_b(value:number):boolean {
-  var offset = this.bb!.__offset(this.bb_pos, 4);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeInt32(this.bb_pos + offset, value);
+  this.bb!.writeInt32(this.bb_pos + 4, value);
   return true;
 };
+
+/**
+ * @returns string
+ */
+static getFullyQualifiedName():string {
+  return 'NamespaceA.NamespaceB.StructInNestedNS';
+}
+
+/**
+ * @returns number
+ */
+static sizeOf():number {
+  return 8;
+}
 
 /**
  * @param flatbuffers.Builder builder

@@ -900,12 +900,18 @@ class Builder FLATBUFFERS_FINAL_CLASS {
           BuilderFlag flags = BUILDER_FLAG_SHARE_KEYS)
       : buf_(initial_size),
         finished_(false),
+        has_duplicate_keys_(false),
         flags_(flags),
         force_min_bit_width_(BIT_WIDTH_8),
         key_pool(KeyOffsetCompare(buf_)),
         string_pool(StringOffsetCompare(buf_)) {
     buf_.clear();
   }
+
+#ifdef FLATBUFFERS_DEFAULT_DECLARATION
+  Builder(Builder &&) = default;
+  Builder &operator=(Builder &&) = default;
+#endif
 
   /// @brief Get the serialized buffer (after you call `Finish()`).
   /// @return Returns a vector owned by this class.
@@ -1124,12 +1130,16 @@ class Builder FLATBUFFERS_FINAL_CLASS {
                 auto bs = reinterpret_cast<const char *>(
                     flatbuffers::vector_data(buf_) + b.key.u_);
                 auto comp = strcmp(as, bs);
-                // If this assertion hits, you've added two keys with the same
-                // value to this map.
+                // We want to disallow duplicate keys, since this results in a
+                // map where values cannot be found.
+                // But we can't assert here (since we don't want to fail on
+                // random JSON input) or have an error mechanism.
+                // Instead, we set has_duplicate_keys_ in the builder to
+                // signal this.
                 // TODO: Have to check for pointer equality, as some sort
                 // implementation apparently call this function with the same
                 // element?? Why?
-                FLATBUFFERS_ASSERT(comp || &a == &b);
+                if (!comp && &a != &b) has_duplicate_keys_ = true;
                 return comp < 0;
               });
     // First create a vector out of all keys.
@@ -1142,6 +1152,10 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     stack_.push_back(vec);
     return static_cast<size_t>(vec.u_);
   }
+
+  // Call this after EndMap to see if the map had any duplicate keys.
+  // Any map with such keys won't be able to retrieve all values.
+  bool HasDuplicateKeys() const { return has_duplicate_keys_; }
 
   template<typename F> size_t Vector(F f) {
     auto start = StartVector();
@@ -1417,7 +1431,10 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     Value(uint64_t u, Type t, BitWidth bw)
         : u_(u), type_(t), min_bit_width_(bw) {}
 
-    Value(float f) : f_(f), type_(FBT_FLOAT), min_bit_width_(BIT_WIDTH_32) {}
+    Value(float f)
+        : f_(static_cast<double>(f)),
+          type_(FBT_FLOAT),
+          min_bit_width_(BIT_WIDTH_32) {}
     Value(double f) : f_(f), type_(FBT_FLOAT), min_bit_width_(WidthF(f)) {}
 
     uint8_t StoredPackedType(BitWidth parent_bit_width_ = BIT_WIDTH_8) const {
@@ -1571,6 +1588,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
   std::vector<Value> stack_;
 
   bool finished_;
+  bool has_duplicate_keys_;
 
   BuilderFlag flags_;
 

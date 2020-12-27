@@ -12,16 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#![cfg_attr(test, feature(test))]
 //! Flexbuffers is a high performance schemaless binary data format designed at Google.
 //! It is complementary to the schema-ed format [Flatbuffers](http://docs.rs/flatbuffers/).
 //! See [Flexbuffer Internals](https://google.github.io/flatbuffers/flatbuffers_internals.html)
 //! for details on the binary format.
 //!
-//! * [See the examples for usage.](https://github.com/CasperN/flexbuffers/tree/master/examples)
+//! See the examples for usage:
+//! * [Example](https://github.com/google/flatbuffers/blob/master/samples/sample_flexbuffers.rs)
+//! * [Serde Example](https://github.com/google/flatbuffers/blob/master/samples/sample_flexbuffers_serde.rs)
 //!
 //! This rust implementation is in progress and, until the 1.0 release, breaking API changes may
-/// happen between minor versions.
+//! happen between minor versions.
 // TODO(cneo): serde stuff are behind a default-on feature flag
 //             Reader to Json is behind a default-off feature flag
 //             Serializable structs are Pushable
@@ -32,18 +33,8 @@ extern crate bitflags;
 extern crate byteorder;
 #[macro_use]
 extern crate serde_derive;
-#[macro_use]
-extern crate debug_stub_derive;
 extern crate num_enum;
-#[cfg(test)]
-extern crate quickcheck;
-#[cfg(test)]
-extern crate quickcheck_derive;
-#[cfg(test)]
-extern crate rand;
 extern crate serde;
-#[cfg(test)]
-extern crate test;
 
 mod bitwidth;
 mod builder;

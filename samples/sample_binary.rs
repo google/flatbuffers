@@ -20,8 +20,7 @@ extern crate flatbuffers;
 // import the generated code
 #[path = "./monster_generated.rs"]
 mod monster_generated;
-pub use monster_generated::my_game::sample::{get_root_as_monster,
-                                             Color, Equipment,
+pub use monster_generated::my_game::sample::{Color, Equipment,
                                              Monster, MonsterArgs,
                                              Vec3,
                                              Weapon, WeaponArgs};
@@ -98,7 +97,7 @@ fn main() {
   let buf = builder.finished_data(); // Of type `&[u8]`
 
   // Get access to the root:
-  let monster = get_root_as_monster(buf);
+  let monster = flatbuffers::root::<Monster>(buf).unwrap();
 
   // Get and test some scalar types from the FlatBuffer.
   let hp = monster.hp();
@@ -152,4 +151,11 @@ fn main() {
   //assert_eq!(monster.path().unwrap()[1].x(), 4.0);
 
   println!("The FlatBuffer was successfully created and accessed!");
+  dbg!(monster);
+}
+
+#[cfg(test)]
+#[test]
+fn test_main() {
+    main()
 }

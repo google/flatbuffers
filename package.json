@@ -3,19 +3,24 @@
   "version": "1.12.0",
   "description": "Memory Efficient Serialization Library",
   "files": [
-    "js/flatbuffers.js",
-    "js/flatbuffers.mjs"
+    "js/*.js",
+    "js/*.d.ts",
+    "mjs/*.js",
+    "mjs/*.d.ts",
+    "ts/*.ts"
   ],
-  "main": "js/flatbuffers",
-  "module": "js/flatbuffers.mjs",
+  "main": "js/flatbuffers.js",
+  "module": "mjs/index.mjs",
   "directories": {
     "doc": "docs",
     "test": "tests"
   },
   "scripts": {
-    "test": "tests/JavaScriptTest.sh",
+    "test": "cd tests && ./JavaScriptTest.sh",
+    "compile-ts": "tsc && tsc -p tsconfig.mjs.json",
+    "pretest": "npm run compile-ts",
     "append-esm-export": "sed \"s/this.flatbuffers = flatbuffers;/export { flatbuffers };/\" js/flatbuffers.js > js/flatbuffers.mjs",
-    "prepublishOnly": "npm run append-esm-export"
+    "prepublishOnly": "npm run compile-ts && npm run append-esm-export"
   },
   "repository": {
     "type": "git",
@@ -30,5 +35,11 @@
     "url": "https://github.com/google/flatbuffers/issues"
   },
   "homepage": "https://google.github.io/flatbuffers/",
-  "dependencies": {}
+  "dependencies": {},
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.1.0",
+    "@typescript-eslint/parser": "^4.1.0",
+    "eslint": "^7.8.1",
+    "typescript": "^4.0.2"
+  }
 }

@@ -18,6 +18,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using MyGame.Example;
+using optional_scalars;
 
 namespace FlatBuffers.Test
 {
@@ -114,13 +115,13 @@ namespace FlatBuffers.Test
             // Dump to output directory so we can inspect later, if needed
             #if ENABLE_SPAN_T
             var data = fbb.DataBuffer.ToSizedArray();
-            string filename = @"Resources/monsterdata_cstest" + (sizePrefix ? "_sp" : "") + ".mon";
+            string filename = @".tmp/monsterdata_cstest" + (sizePrefix ? "_sp" : "") + ".mon";
             File.WriteAllBytes(filename, data);
             #else
             using (var ms = fbb.DataBuffer.ToMemoryStream(fbb.DataBuffer.Position, fbb.Offset))
             {
                 var data = ms.ToArray();
-                string filename = @"Resources/monsterdata_cstest" + (sizePrefix ? "_sp" : "") + ".mon";
+                string filename = @".tmp/monsterdata_cstest" + (sizePrefix ? "_sp" : "") + ".mon";
                 File.WriteAllBytes(filename, data);
             }
             #endif
@@ -282,7 +283,7 @@ namespace FlatBuffers.Test
         [FlatBuffersTestMethod]
         public void CanReadCppGeneratedWireFile()
         {
-            var data = File.ReadAllBytes(@"Resources/monsterdata_test.mon");
+            var data = File.ReadAllBytes(@"../monsterdata_test.mon");
             var bb = new ByteBuffer(data);
             TestBuffer(bb);
             TestObjectAPI(Monster.GetRootAsMonster(bb));
@@ -291,7 +292,7 @@ namespace FlatBuffers.Test
         [FlatBuffersTestMethod]
         public void CanReadJsonFile()
         {
-            var jsonText = File.ReadAllText(@"Resources/monsterdata_test.json");
+            var jsonText = File.ReadAllText(@"../monsterdata_test.json");
             var mon = MonsterT.DeserializeFromJson(jsonText);
             var fbb = new FlatBufferBuilder(1);
             fbb.Finish(Monster.Pack(fbb, mon).Value);
@@ -890,6 +891,211 @@ namespace FlatBuffers.Test
 
             // Make sure we never read the values incorrectly.
             Assert.AreEqual(0, _failures);
+        }
+
+        [FlatBuffersTestMethod]
+        public void TestScalarOptional_EmptyBuffer() {
+            var fbb = new FlatBufferBuilder(1);
+            ScalarStuff.StartScalarStuff(fbb);
+            var offset = ScalarStuff.EndScalarStuff(fbb);
+            ScalarStuff.FinishScalarStuffBuffer(fbb, offset);
+
+            ScalarStuff scalarStuff = ScalarStuff.GetRootAsScalarStuff(fbb.DataBuffer);
+            Assert.AreEqual((sbyte)0, scalarStuff.JustI8);
+            Assert.AreEqual(null, scalarStuff.MaybeI8);
+            Assert.AreEqual((sbyte)42, scalarStuff.DefaultI8);
+            Assert.AreEqual((byte)0, scalarStuff.JustU8);
+            Assert.AreEqual(null, scalarStuff.MaybeU8);
+            Assert.AreEqual((byte)42, scalarStuff.DefaultU8);
+
+            Assert.AreEqual((short)0, scalarStuff.JustI16);
+            Assert.AreEqual(null, scalarStuff.MaybeI16);
+            Assert.AreEqual((short)42, scalarStuff.DefaultI16);
+            Assert.AreEqual((ushort)0, scalarStuff.JustU16);
+            Assert.AreEqual(null, scalarStuff.MaybeU16);
+            Assert.AreEqual((ushort)42, scalarStuff.DefaultU16);
+
+            Assert.AreEqual((int)0, scalarStuff.JustI32);
+            Assert.AreEqual(null, scalarStuff.MaybeI32);
+            Assert.AreEqual((int)42, scalarStuff.DefaultI32);
+            Assert.AreEqual((uint)0, scalarStuff.JustU32);
+            Assert.AreEqual(null, scalarStuff.MaybeU32);
+            Assert.AreEqual((uint)42, scalarStuff.DefaultU32);
+
+            Assert.AreEqual((long)0, scalarStuff.JustI64);
+            Assert.AreEqual(null, scalarStuff.MaybeI64);
+            Assert.AreEqual((long)42, scalarStuff.DefaultI64);
+            Assert.AreEqual((ulong)0, scalarStuff.JustU64);
+            Assert.AreEqual(null, scalarStuff.MaybeU64);
+            Assert.AreEqual((ulong)42, scalarStuff.DefaultU64);
+
+            Assert.AreEqual((float)0.0F, scalarStuff.JustF32);
+            Assert.AreEqual(null, scalarStuff.MaybeF32);
+            Assert.AreEqual((float)42.0F, scalarStuff.DefaultF32);
+
+            Assert.AreEqual((double)0.0, scalarStuff.JustF64);
+            Assert.AreEqual(null, scalarStuff.MaybeF64);
+            Assert.AreEqual((double)42.0, scalarStuff.DefaultF64);
+
+            Assert.AreEqual(false, scalarStuff.JustBool);
+            Assert.AreEqual(null, scalarStuff.MaybeBool);
+            Assert.AreEqual(true, scalarStuff.DefaultBool);
+
+            Assert.AreEqual(OptionalByte.None, scalarStuff.JustEnum);
+            Assert.AreEqual(null, scalarStuff.MaybeEnum);
+            Assert.AreEqual(OptionalByte.One, scalarStuff.DefaultEnum);
+        }
+
+        [FlatBuffersTestMethod]
+        public void TestScalarOptional_Construction() {
+            var fbb = new FlatBufferBuilder(1);
+            ScalarStuff.StartScalarStuff(fbb);
+            ScalarStuff.AddJustI8(fbb, 5);
+            ScalarStuff.AddMaybeI8(fbb, 5);
+            ScalarStuff.AddDefaultI8(fbb, 5);
+            ScalarStuff.AddJustU8(fbb, 6);
+            ScalarStuff.AddMaybeU8(fbb, 6);
+            ScalarStuff.AddDefaultU8(fbb, 6);
+
+            ScalarStuff.AddJustI16(fbb, 7);
+            ScalarStuff.AddMaybeI16(fbb, 7);
+            ScalarStuff.AddDefaultI16(fbb, 7);
+            ScalarStuff.AddJustU16(fbb, 8);
+            ScalarStuff.AddMaybeU16(fbb, 8);
+            ScalarStuff.AddDefaultU16(fbb, 8);
+
+            ScalarStuff.AddJustI32(fbb, 9);
+            ScalarStuff.AddMaybeI32(fbb, 9);
+            ScalarStuff.AddDefaultI32(fbb, 9);
+            ScalarStuff.AddJustU32(fbb, 10);
+            ScalarStuff.AddMaybeU32(fbb, 10);
+            ScalarStuff.AddDefaultU32(fbb, 10);
+
+            ScalarStuff.AddJustI64(fbb, 11);
+            ScalarStuff.AddMaybeI64(fbb, 11);
+            ScalarStuff.AddDefaultI64(fbb, 11);
+            ScalarStuff.AddJustU64(fbb, 12);
+            ScalarStuff.AddMaybeU64(fbb, 12);
+            ScalarStuff.AddDefaultU64(fbb, 12);
+
+            ScalarStuff.AddJustF32(fbb, 13.0f);
+            ScalarStuff.AddMaybeF32(fbb, 13.0f);
+            ScalarStuff.AddDefaultF32(fbb, 13.0f);
+            ScalarStuff.AddJustF64(fbb, 14.0);
+            ScalarStuff.AddMaybeF64(fbb, 14.0);
+            ScalarStuff.AddDefaultF64(fbb, 14.0);
+
+            ScalarStuff.AddJustBool(fbb, true);
+            ScalarStuff.AddMaybeBool(fbb, true);
+            ScalarStuff.AddDefaultBool(fbb, false); // note this is the opposite
+
+            ScalarStuff.AddJustEnum(fbb, OptionalByte.Two);
+            ScalarStuff.AddMaybeEnum(fbb, OptionalByte.Two);
+            ScalarStuff.AddDefaultEnum(fbb, OptionalByte.Two);
+
+            var offset = ScalarStuff.EndScalarStuff(fbb);
+            ScalarStuff.FinishScalarStuffBuffer(fbb, offset);
+
+            ScalarStuff scalarStuff = ScalarStuff.GetRootAsScalarStuff(fbb.DataBuffer);
+            Assert.AreEqual((sbyte)5, scalarStuff.JustI8);
+            Assert.AreEqual((sbyte)5, scalarStuff.MaybeI8);
+            Assert.AreEqual((sbyte)5, scalarStuff.DefaultI8);
+            Assert.AreEqual((byte)6, scalarStuff.JustU8);
+            Assert.AreEqual((byte)6, scalarStuff.MaybeU8);
+            Assert.AreEqual((byte)6, scalarStuff.DefaultU8);
+
+            Assert.AreEqual((short)7, scalarStuff.JustI16);
+            Assert.AreEqual((short)7, scalarStuff.MaybeI16);
+            Assert.AreEqual((short)7, scalarStuff.DefaultI16);
+            Assert.AreEqual((ushort)8, scalarStuff.JustU16);
+            Assert.AreEqual((ushort)8, scalarStuff.MaybeU16);
+            Assert.AreEqual((ushort)8, scalarStuff.DefaultU16);
+
+            Assert.AreEqual((int)9, scalarStuff.JustI32);
+            Assert.AreEqual((int)9, scalarStuff.MaybeI32);
+            Assert.AreEqual((int)9, scalarStuff.DefaultI32);
+            Assert.AreEqual((uint)10, scalarStuff.JustU32);
+            Assert.AreEqual((uint)10, scalarStuff.MaybeU32);
+            Assert.AreEqual((uint)10, scalarStuff.DefaultU32);
+
+            Assert.AreEqual((long)11, scalarStuff.JustI64);
+            Assert.AreEqual((long)11, scalarStuff.MaybeI64);
+            Assert.AreEqual((long)11, scalarStuff.DefaultI64);
+            Assert.AreEqual((ulong)12, scalarStuff.JustU64);
+            Assert.AreEqual((ulong)12, scalarStuff.MaybeU64);
+            Assert.AreEqual((ulong)12, scalarStuff.DefaultU64);
+
+            Assert.AreEqual((float)13.0F, scalarStuff.JustF32);
+            Assert.AreEqual((float)13.0F, scalarStuff.MaybeF32);
+            Assert.AreEqual((float)13.0F, scalarStuff.DefaultF32);
+
+            Assert.AreEqual((double)14.0, scalarStuff.JustF64);
+            Assert.AreEqual((double)14.0, scalarStuff.MaybeF64);
+            Assert.AreEqual((double)14.0, scalarStuff.DefaultF64);
+
+            Assert.AreEqual(true, scalarStuff.JustBool);
+            Assert.AreEqual(true, scalarStuff.MaybeBool);
+            Assert.AreEqual(false, scalarStuff.DefaultBool);
+
+            Assert.AreEqual(OptionalByte.Two, scalarStuff.JustEnum);
+            Assert.AreEqual(OptionalByte.Two, scalarStuff.MaybeEnum);
+            Assert.AreEqual(OptionalByte.Two, scalarStuff.DefaultEnum);
+        }
+
+        [FlatBuffersTestMethod]
+        public void TestScalarOptional_Construction_CreatorMethod() {
+            var fbb = new FlatBufferBuilder(1);
+
+            var offset = ScalarStuff.CreateScalarStuff(fbb,5,5,5,6,6,6,7,7,7,
+                8,8,8,9,9,9,10,10,10,11,11,11,12,12,12,13.0f,13.0f,13.0f,14.0,
+                14.0,14.0,true,true,false,OptionalByte.Two,OptionalByte.Two,
+                OptionalByte.Two);
+            ScalarStuff.FinishScalarStuffBuffer(fbb, offset);
+
+            ScalarStuff scalarStuff = ScalarStuff.GetRootAsScalarStuff(fbb.DataBuffer);
+            Assert.AreEqual((sbyte)5, scalarStuff.JustI8);
+            Assert.AreEqual((sbyte)5, scalarStuff.MaybeI8);
+            Assert.AreEqual((sbyte)5, scalarStuff.DefaultI8);
+            Assert.AreEqual((byte)6, scalarStuff.JustU8);
+            Assert.AreEqual((byte)6, scalarStuff.MaybeU8);
+            Assert.AreEqual((byte)6, scalarStuff.DefaultU8);
+
+            Assert.AreEqual((short)7, scalarStuff.JustI16);
+            Assert.AreEqual((short)7, scalarStuff.MaybeI16);
+            Assert.AreEqual((short)7, scalarStuff.DefaultI16);
+            Assert.AreEqual((ushort)8, scalarStuff.JustU16);
+            Assert.AreEqual((ushort)8, scalarStuff.MaybeU16);
+            Assert.AreEqual((ushort)8, scalarStuff.DefaultU16);
+
+            Assert.AreEqual((int)9, scalarStuff.JustI32);
+            Assert.AreEqual((int)9, scalarStuff.MaybeI32);
+            Assert.AreEqual((int)9, scalarStuff.DefaultI32);
+            Assert.AreEqual((uint)10, scalarStuff.JustU32);
+            Assert.AreEqual((uint)10, scalarStuff.MaybeU32);
+            Assert.AreEqual((uint)10, scalarStuff.DefaultU32);
+
+            Assert.AreEqual((long)11, scalarStuff.JustI64);
+            Assert.AreEqual((long)11, scalarStuff.MaybeI64);
+            Assert.AreEqual((long)11, scalarStuff.DefaultI64);
+            Assert.AreEqual((ulong)12, scalarStuff.JustU64);
+            Assert.AreEqual((ulong)12, scalarStuff.MaybeU64);
+            Assert.AreEqual((ulong)12, scalarStuff.DefaultU64);
+
+            Assert.AreEqual((float)13.0F, scalarStuff.JustF32);
+            Assert.AreEqual((float)13.0F, scalarStuff.MaybeF32);
+            Assert.AreEqual((float)13.0F, scalarStuff.DefaultF32);
+
+            Assert.AreEqual((double)14.0, scalarStuff.JustF64);
+            Assert.AreEqual((double)14.0, scalarStuff.MaybeF64);
+            Assert.AreEqual((double)14.0, scalarStuff.DefaultF64);
+
+            Assert.AreEqual(true, scalarStuff.JustBool);
+            Assert.AreEqual(true, scalarStuff.MaybeBool);
+            Assert.AreEqual(false, scalarStuff.DefaultBool);
+
+            Assert.AreEqual(OptionalByte.Two, scalarStuff.JustEnum);
+            Assert.AreEqual(OptionalByte.Two, scalarStuff.MaybeEnum);
+            Assert.AreEqual(OptionalByte.Two, scalarStuff.DefaultEnum);
         }
     }
 }

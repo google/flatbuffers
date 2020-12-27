@@ -18,7 +18,9 @@ message(STATUS "FLATBUFFERS_MAX_PARSING_DEPTH: ${FLATBUFFERS_MAX_PARSING_DEPTH}"
 # MemorySanitizer will not work out-of-the-box, and will instead report false
 # positives coming from uninstrumented code. Need to re-build both C++ standard
 # library: https://github.com/google/sanitizers/wiki/MemorySanitizerLibcxxHowTo
-option(USE_MSAN "Use MSAN instead of ASASN" OFF)
+option(USE_ASAN "Use fuzzers with ASASN" OFF)
+option(USE_MSAN "Use fuzzers with MSASN" OFF)
+option(OSS_FUZZ "Set this option to use flags by oss-fuzz" OFF)
 
 # Use Clang linker.
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld")
@@ -27,7 +29,7 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld")
 
 add_compile_options(
   # -stdlib=libc++ # Use Clang libc++ instead of GNU.
-  -std=c++14
+  -std=c++17
   -Wall
   -pedantic
   -Werror
@@ -50,24 +52,33 @@ add_library(fuzzer_config INTERFACE)
 target_compile_options(
   fuzzer_config
   INTERFACE
-    -fsanitize-coverage=edge,trace-cmp
-    $<$<BOOL:NOT ${USE_MSAN}>:
+    $<$<NOT:$<BOOL:${OSS_FUZZ}>>:
+      -fsanitize-coverage=edge,trace-cmp
+    >
+    $<$<BOOL:${USE_ASAN}>:
       -fsanitize=fuzzer,undefined,address
     >
     $<$<BOOL:${USE_MSAN}>:
       -fsanitize=fuzzer,undefined,memory
       -fsanitize-memory-track-origins=2
     >
+    $<$<BOOL:${OSS_FUZZ}>:
+      ${CXX}
+      ${CXXFLAGS}
+    >
 )
 
 target_link_libraries(
   fuzzer_config
   INTERFACE
-    $<$<BOOL:NOT ${USE_MSAN}>:
+    $<$<BOOL:${USE_ASAN}>:
       -fsanitize=fuzzer,undefined,address
     >
     $<$<BOOL:${USE_MSAN}>:
       -fsanitize=fuzzer,undefined,memory
+    >
+    $<$<BOOL:${OSS_FUZZ}>:
+      $ENV{LIB_FUZZING_ENGINE}
     >
 )
 
@@ -122,9 +133,35 @@ target_link_libraries(parser_fuzzer PRIVATE flatbuffers_fuzzed)
 add_executable(verifier_fuzzer flatbuffers_verifier_fuzzer.cc)
 target_link_libraries(verifier_fuzzer PRIVATE flatbuffers_fuzzed)
 
+add_executable(monster_fuzzer flatbuffers_monster_fuzzer.cc)
+target_link_libraries(monster_fuzzer PRIVATE flatbuffers_fuzzed)
+add_custom_command(
+  TARGET monster_fuzzer PRE_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy
+  ${CMAKE_SOURCE_DIR}/../monster_test.bfbs
+  ${CMAKE_CURRENT_BINARY_DIR}/monster_test.bfbs)
+  
+
 # Build debugger for weird cases found with fuzzer.
 if(BUILD_DEBUGGER)
   add_library(flatbuffers_nonfuzz STATIC ${FlatBuffers_Library_SRCS})
+  target_compile_options(
+    flatbuffers_nonfuzz
+    PUBLIC
+      $<$<BOOL:${USE_ASAN}>:
+        -fsanitize=undefined,address
+      >
+      -fno-limit-debug-info
+  )
+  
+  target_link_libraries(
+    flatbuffers_nonfuzz
+    PUBLIC
+      $<$<BOOL:${USE_ASAN}>:
+        -fsanitize=undefined,address
+      >
+  )
+
   target_compile_definitions(
     flatbuffers_nonfuzz
     PUBLIC
@@ -133,6 +170,9 @@ if(BUILD_DEBUGGER)
     PRIVATE
       FLATBUFFERS_MAX_PARSING_DEPTH=${FLATBUFFERS_MAX_PARSING_DEPTH}
   )
-  add_executable(scalar_debug flatbuffers_scalar_fuzzer.cc scalar_debug.cpp)
+  add_executable(scalar_debug
+    flatbuffers_scalar_fuzzer.cc
+    scalar_debug.cpp
+  )
   target_link_libraries(scalar_debug PRIVATE flatbuffers_nonfuzz)
 endif(BUILD_DEBUGGER)

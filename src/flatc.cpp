@@ -106,6 +106,8 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --gen-nullable         Add Clang _Nullable for C++ pointer. or @Nullable for Java\n"
     "  --java-checkerframe    work Add @Pure for Java.\n"
     "  --gen-generated        Add @Generated annotation for Java\n"
+    "  --gen-jvmstatic        Add @JvmStatic annotation for Kotlin methods\n"
+    "                         in companion object for interop from Java to Kotlin.\n"
     "  --gen-all              Generate not just code for the current schema files,\n"
     "                         but for all files it includes as well.\n"
     "                         If the language uses a single file for output (by default\n"
@@ -130,10 +132,10 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --no-js-exports        Removes Node.js style export lines in JS.\n"
     "  --goog-js-export       Uses goog.exports* for closure compiler exporting in JS.\n"
     "  --es6-js-export        Uses ECMAScript 6 export style lines in JS.\n"
-    "  --go-namespace         Generate the overrided namespace in Golang.\n"
-    "  --go-import            Generate the overrided import for flatbuffers in Golang\n"
+    "  --go-namespace         Generate the overriding namespace in Golang.\n"
+    "  --go-import            Generate the overriding import for flatbuffers in Golang\n"
     "                         (default is \"github.com/google/flatbuffers/go\").\n"
-    "  --raw-binary           Allow binaries without file_indentifier to be read.\n"
+    "  --raw-binary           Allow binaries without file_identifier to be read.\n"
     "                         This may crash flatc given a mismatched schema.\n"
     "  --size-prefixed        Input binaries are size prefixed buffers.\n"
     "  --proto                Input is a .proto, translate to .fbs.\n"
@@ -161,6 +163,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --reflect-types        Add minimal type reflection to code generation.\n"
     "  --reflect-names        Add minimal type/name reflection.\n"
     "  --root-type T          Select or override the default root_type\n"
+    "  --require-explicit-ids When parsing schemas, require explicit ids (id: x).\n"
     "  --force-defaults       Emit default values in binary output from JSON\n"
     "  --force-empty          When serializing from object API representation,\n"
     "                         force strings and vectors to empty rather than null.\n"
@@ -168,6 +171,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "                         force vectors to empty rather than null.\n"
     "  --flexbuffers          Used with \"binary\" and \"json\" options, it generates\n"
     "                         data using schema-less FlexBuffers.\n"
+    "  --no-warnings          Inhibit all warning messages.\n"
     "FILEs may be schemas (must end in .fbs), binary schemas (must end in .bfbs),\n"
     "or JSON files (conforming to preceding schema). FILEs after the -- must be\n"
     "binary flatbuffer format files.\n"
@@ -280,6 +284,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.cpp_object_api_string_type = argv[argi];
       } else if (arg == "--cpp-str-flex-ctor") {
         opts.cpp_object_api_string_flexible_constructor = true;
+      } else if (arg == "--no-cpp-direct-copy") {
+        opts.cpp_direct_copy = false;
       } else if (arg == "--gen-nullable") {
         opts.gen_nullable = true;
       } else if (arg == "--java-checkerframework") {
@@ -341,6 +347,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.mini_reflect = IDLOptions::kTypes;
       } else if (arg == "--reflect-names") {
         opts.mini_reflect = IDLOptions::kTypesAndNames;
+      } else if (arg == "--require-explicit-ids") {
+        opts.require_explicit_ids = true;
       } else if (arg == "--root-type") {
         if (++argi >= argc) Error("missing type following: " + arg, true);
         opts.root_type = argv[argi];
@@ -363,10 +371,16 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.cs_gen_json_serializer = true;
       } else if (arg == "--flexbuffers") {
         opts.use_flexbuffers = true;
+      } else if (arg == "--gen-jvmstatic") {
+        opts.gen_jvmstatic = true;
+      } else if (arg == "--no-warnings") {
+        opts.no_warnings = true;
       } else if (arg == "--cpp-std") {
         if (++argi >= argc)
           Error("missing C++ standard specification" + arg, true);
         opts.cpp_std = argv[argi];
+      } else if (arg.rfind("--cpp-std=", 0) == 0) {
+        opts.cpp_std = arg.substr(std::string("--cpp-std=").size());
       } else {
         for (size_t i = 0; i < params_.num_generators; ++i) {
           if (arg == params_.generators[i].generator_opt_long ||

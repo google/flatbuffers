@@ -17,17 +17,18 @@
 extern crate smallvec;
 
 use std::cmp::max;
+use std::iter::{DoubleEndedIterator, ExactSizeIterator};
 use std::marker::PhantomData;
 use std::ptr::write_bytes;
 use std::slice::from_raw_parts;
 
-use endian_scalar::{emplace_scalar, read_scalar_at};
-use primitives::*;
-use push::{Push, PushAlignment};
-use table::Table;
-use vector::{SafeSliceAccess, Vector};
-use vtable::{field_index_to_field_offset, VTable};
-use vtable_writer::VTableWriter;
+use crate::endian_scalar::{emplace_scalar, read_scalar_at};
+use crate::primitives::*;
+use crate::push::{Push, PushAlignment};
+use crate::table::Table;
+use crate::vector::{SafeSliceAccess, Vector};
+use crate::vtable::{field_index_to_field_offset, VTable};
+use crate::vtable_writer::VTableWriter;
 
 pub const N_SMALLVEC_STRING_VECTOR_CAPACITY: usize = 16;
 
@@ -52,6 +53,7 @@ pub struct FlatBufferBuilder<'fbb> {
     finished: bool,
 
     min_align: usize,
+    force_defaults: bool,
 
     _phantom: PhantomData<&'fbb ()>,
 }
@@ -85,6 +87,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
             finished: false,
 
             min_align: 0,
+            force_defaults: false,
 
             _phantom: PhantomData,
         }
@@ -148,10 +151,9 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     #[inline]
     pub fn push_slot<X: Push + PartialEq>(&mut self, slotoff: VOffsetT, x: X, default: X) {
         self.assert_nested("push_slot");
-        if x == default {
-            return;
+        if x != default || self.force_defaults {
+            self.push_slot_always(slotoff, x);
         }
-        self.push_slot_always(slotoff, x);
     }
 
     /// Push a Push'able value onto the front of the in-progress data, and
@@ -327,6 +329,36 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         WIPOffset::new(self.push::<UOffsetT>(items.len() as UOffsetT).value())
     }
 
+    /// Create a vector of Push-able objects.
+    ///
+    /// Speed-sensitive users may wish to reduce memory usage by creating the
+    /// vector manually: use `start_vector`, `push`, and `end_vector`.
+    #[inline]
+    pub fn create_vector_from_iter<T: Push + Copy>(
+        &mut self,
+        items: impl ExactSizeIterator<Item = T> + DoubleEndedIterator,
+    ) -> WIPOffset<Vector<'fbb, T::Output>> {
+        let elem_size = T::size();
+        let len = items.len();
+        self.align(len * elem_size, T::alignment().max_of(SIZE_UOFFSET));
+        for item in items.rev() {
+            self.push(item);
+        }
+        WIPOffset::new(self.push::<UOffsetT>(len as UOffsetT).value())
+    }
+
+    /// Set whether default values are stored.
+    ///
+    /// In order to save space, fields that are set to their default value
+    /// aren't stored in the buffer. Setting `force_defaults` to `true`
+    /// disables this optimization.
+    ///
+    /// By default, `force_defaults` is `false`.
+    #[inline]
+    pub fn force_defaults(&mut self, force_defaults: bool) {
+        self.force_defaults = force_defaults;
+    }
+
     /// Get the byte slice for the data that has been written, regardless of
     /// whether it has been finished.
     #[inline]
@@ -403,7 +435,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         // Write the vtable offset, which is the start of any Table.
         // We fill its value later.
         let object_revloc_to_vtable: WIPOffset<VTableWIPOffset> =
-            WIPOffset::new(self.push::<UOffsetT>(0xF0F0_F0F0 as UOffsetT).value());
+            WIPOffset::new(self.push::<UOffsetT>(0xF0F0_F0F0).value());
 
         // Layout of the data this function will create when a new vtable is
         // needed.

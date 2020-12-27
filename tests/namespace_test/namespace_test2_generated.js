@@ -105,6 +105,13 @@ NamespaceA.TableInFirstNS.prototype.fooStruct = function(obj) {
 };
 
 /**
+ * @returns {string}
+ */
+NamespaceA.TableInFirstNS.getFullyQualifiedName = function() {
+  return 'NamespaceA.TableInFirstNS';
+}
+
+/**
  * @param {flatbuffers.Builder} builder
  */
 NamespaceA.TableInFirstNS.startTableInFirstNS = function(builder) {
@@ -208,6 +215,13 @@ NamespaceC.TableInC.prototype.referToA2 = function(obj) {
 };
 
 /**
+ * @returns {string}
+ */
+NamespaceC.TableInC.getFullyQualifiedName = function() {
+  return 'NamespaceC.TableInC';
+}
+
+/**
  * @param {flatbuffers.Builder} builder
  */
 NamespaceC.TableInC.startTableInC = function(builder) {
@@ -292,6 +306,13 @@ NamespaceA.SecondTableInA.prototype.referToC = function(obj) {
   var offset = this.bb.__offset(this.bb_pos, 4);
   return offset ? (obj || new NamespaceC.TableInC).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
 };
+
+/**
+ * @returns {string}
+ */
+NamespaceA.SecondTableInA.getFullyQualifiedName = function() {
+  return 'NamespaceA.SecondTableInA';
+}
 
 /**
  * @param {flatbuffers.Builder} builder

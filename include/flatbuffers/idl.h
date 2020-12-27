@@ -296,6 +296,7 @@ struct FieldDef : public Definition {
         shared(false),
         native_inline(false),
         flexbuffer(false),
+        optional(false),
         nested_flatbuffer(NULL),
         padding(0) {}
 
@@ -303,6 +304,10 @@ struct FieldDef : public Definition {
                                       const Parser &parser) const;
 
   bool Deserialize(Parser &parser, const reflection::Field *field);
+
+  bool IsScalarOptional() const {
+    return IsScalar(value.type.base_type) && optional;
+  }
 
   Value value;
   bool deprecated;  // Field is allowed to be present in old data, but can't be.
@@ -314,6 +319,8 @@ struct FieldDef : public Definition {
   bool native_inline;  // Field will be defined inline (instead of as a pointer)
                        // for native tables if field is a struct.
   bool flexbuffer;     // This field contains FlexBuffer data.
+  bool optional;       // If True, this field is Null (as opposed to default
+                       // valued).
   StructDef *nested_flatbuffer;  // This field contains nested FlatBuffer data.
   size_t padding;                // Bytes to always pad after this field.
 };
@@ -410,9 +417,7 @@ struct EnumDef : public Definition {
 
   size_t size() const { return vals.vec.size(); }
 
-  const std::vector<EnumVal *> &Vals() const {
-    return vals.vec;
-  }
+  const std::vector<EnumVal *> &Vals() const { return vals.vec; }
 
   const EnumVal *Lookup(const std::string &enum_name) const {
     return vals.Lookup(enum_name);
@@ -432,6 +437,10 @@ struct EnumDef : public Definition {
   friend EnumValBuilder;
   SymbolTable<EnumVal> vals;
 };
+
+inline bool IsString(const Type &type) {
+  return type.base_type == BASE_TYPE_STRING;
+}
 
 inline bool IsStruct(const Type &type) {
   return type.base_type == BASE_TYPE_STRUCT && type.struct_def->fixed;
@@ -508,6 +517,7 @@ struct ServiceDef : public Definition {
 
 // Container of options that may apply to any of the source/text generators.
 struct IDLOptions {
+  bool gen_jvmstatic;
   // Use flexbuffers instead for binary and text generation
   bool use_flexbuffers;
   bool strict_json;
@@ -532,6 +542,7 @@ struct IDLOptions {
   std::string cpp_object_api_pointer_type;
   std::string cpp_object_api_string_type;
   bool cpp_object_api_string_flexible_constructor;
+  bool cpp_direct_copy;
   bool gen_nullable;
   bool java_checkerframework;
   bool gen_generated;
@@ -561,6 +572,7 @@ struct IDLOptions {
   std::string proto_namespace_suffix;
   std::string filename_suffix;
   std::string filename_extension;
+  bool no_warnings;
 
   // Possible options for the more general generator below.
   enum Language {
@@ -590,6 +602,9 @@ struct IDLOptions {
 
   MiniReflect mini_reflect;
 
+  // If set, require all fields in a table to be explicitly numbered.
+  bool require_explicit_ids;
+
   // The corresponding language bit will be set if a language is included
   // for code generation.
   unsigned long lang_to_generate;
@@ -603,7 +618,8 @@ struct IDLOptions {
   bool set_empty_vectors_to_null;
 
   IDLOptions()
-      : use_flexbuffers(false),
+      : gen_jvmstatic(false),
+        use_flexbuffers(false),
         strict_json(false),
         skip_js_exports(false),
         use_goog_js_export_format(false),
@@ -625,6 +641,7 @@ struct IDLOptions {
         gen_compare(false),
         cpp_object_api_pointer_type("std::unique_ptr"),
         cpp_object_api_string_flexible_constructor(false),
+        cpp_direct_copy(true),
         gen_nullable(false),
         java_checkerframework(false),
         gen_generated(false),
@@ -646,8 +663,10 @@ struct IDLOptions {
         cs_gen_json_serializer(false),
         filename_suffix("_generated"),
         filename_extension(),
+        no_warnings(false),
         lang(IDLOptions::kJava),
         mini_reflect(IDLOptions::kNone),
+        require_explicit_ids(false),
         lang_to_generate(0),
         set_empty_strings_to_null(true),
         set_empty_vectors_to_null(true) {}
@@ -787,6 +806,11 @@ class Parser : public ParserState {
     }
   }
 
+#ifdef FLATBUFFERS_DEFAULT_DECLARATION
+  Parser(Parser&&) = default;
+  Parser& operator=(Parser&&) = default;
+#endif
+
   // Parse the string containing either schema or JSON data, which will
   // populate the SymbolTable's or the FlatBufferBuilder above.
   // include_paths is used to resolve any include statements, and typically
@@ -800,6 +824,8 @@ class Parser : public ParserState {
   // paths from user input, please call PosixPath on them first.
   bool Parse(const char *_source, const char **include_paths = nullptr,
              const char *source_filename = nullptr);
+
+  bool ParseJson(const char *json, const char *json_filename = nullptr);
 
   // Set the root type. May override the one set in the schema.
   bool SetRootType(const char *name);
@@ -839,6 +865,11 @@ class Parser : public ParserState {
   std::string UnqualifiedName(const std::string &fullQualifiedName);
 
   FLATBUFFERS_CHECKED_ERROR Error(const std::string &msg);
+
+  // @brief Verify that any of 'opts.lang_to_generate' supports Optional scalars
+  // in a schema.
+  // @param opts Options used to parce a schema and generate code.
+  static bool SupportsOptionalScalars(const flatbuffers::IDLOptions &opts);
 
  private:
   void Message(const std::string &msg);
@@ -923,12 +954,14 @@ class Parser : public ParserState {
                                     const char **include_paths,
                                     const char *source_filename,
                                     const char *include_filename);
+  FLATBUFFERS_CHECKED_ERROR DoParseJson();
   FLATBUFFERS_CHECKED_ERROR CheckClash(std::vector<FieldDef *> &fields,
                                        StructDef *struct_def,
                                        const char *suffix, BaseType baseType);
 
   bool SupportsAdvancedUnionFeatures() const;
   bool SupportsAdvancedArrayFeatures() const;
+  bool SupportsOptionalScalars() const;
   Namespace *UniqueNamespace(Namespace *ns);
 
   FLATBUFFERS_CHECKED_ERROR RecurseError();
@@ -992,6 +1025,10 @@ extern bool GenerateText(const Parser &parser, const void *flatbuffer,
                          std::string *text);
 extern bool GenerateTextFile(const Parser &parser, const std::string &path,
                              const std::string &file_name);
+
+// Generate Json schema to string
+// See idl_gen_json_schema.cpp.
+extern bool GenerateJsonSchema(const Parser &parser, std::string *json);
 
 // Generate binary files from a given FlatBuffer, and a given Parser
 // object that has been populated with the corresponding schema.
@@ -1133,6 +1170,8 @@ bool GeneratePythonGRPC(const Parser &parser, const std::string &path,
 extern bool GenerateSwiftGRPC(const Parser &parser, const std::string &path,
                               const std::string &file_name);
 
+extern bool GenerateTSGRPC(const Parser &parser, const std::string &path,
+                             const std::string &file_name);
 }  // namespace flatbuffers
 
 #endif  // FLATBUFFERS_IDL_H_

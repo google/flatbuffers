@@ -24,7 +24,7 @@ inline const flatbuffers::TypeTable *TableInNestedNSTypeTable();
 
 inline const flatbuffers::TypeTable *StructInNestedNSTypeTable();
 
-enum EnumInNestedNS {
+enum EnumInNestedNS : int8_t {
   EnumInNestedNS_A = 0,
   EnumInNestedNS_B = 1,
   EnumInNestedNS_C = 2,
@@ -66,8 +66,12 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) StructInNestedNS FLATBUFFERS_FINAL_CLASS 
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return StructInNestedNSTypeTable();
   }
-  StructInNestedNS() {
-    memset(static_cast<void *>(this), 0, sizeof(StructInNestedNS));
+  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+    return "NamespaceA.NamespaceB.StructInNestedNS";
+  }
+  StructInNestedNS()
+      : a_(0),
+        b_(0) {
   }
   StructInNestedNS(int32_t _a, int32_t _b)
       : a_(flatbuffers::EndianScalar(_a)),
@@ -101,10 +105,10 @@ inline bool operator!=(const StructInNestedNS &lhs, const StructInNestedNS &rhs)
 
 struct TableInNestedNST : public flatbuffers::NativeTable {
   typedef TableInNestedNS TableType;
-  int32_t foo;
-  TableInNestedNST()
-      : foo(0) {
+  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+    return "NamespaceA.NamespaceB.TableInNestedNST";
   }
+  int32_t foo = 0;
 };
 
 inline bool operator==(const TableInNestedNST &lhs, const TableInNestedNST &rhs) {
@@ -122,6 +126,9 @@ struct TableInNestedNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef TableInNestedNSBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return TableInNestedNSTypeTable();
+  }
+  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+    return "NamespaceA.NamespaceB.TableInNestedNS";
   }
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_FOO = 4
@@ -171,7 +178,7 @@ inline flatbuffers::Offset<TableInNestedNS> CreateTableInNestedNS(
 flatbuffers::Offset<TableInNestedNS> CreateTableInNestedNS(flatbuffers::FlatBufferBuilder &_fbb, const TableInNestedNST *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 inline TableInNestedNST *TableInNestedNS::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  flatbuffers::unique_ptr<NamespaceA::NamespaceB::TableInNestedNST> _o = flatbuffers::unique_ptr<NamespaceA::NamespaceB::TableInNestedNST>(new TableInNestedNST());
+  auto _o = std::unique_ptr<TableInNestedNST>(new TableInNestedNST());
   UnPackTo(_o.get(), _resolver);
   return _o.release();
 }
@@ -211,7 +218,7 @@ inline const flatbuffers::TypeTable *EnumInNestedNSTypeTable() {
     "C"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_ENUM, 3, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_ENUM, 3, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
 }
@@ -224,7 +231,7 @@ inline const flatbuffers::TypeTable *TableInNestedNSTypeTable() {
     "foo"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 1, type_codes, nullptr, nullptr, names
+    flatbuffers::ST_TABLE, 1, type_codes, nullptr, nullptr, nullptr, names
   };
   return &tt;
 }
@@ -240,7 +247,7 @@ inline const flatbuffers::TypeTable *StructInNestedNSTypeTable() {
     "b"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_STRUCT, 2, type_codes, nullptr, values, names
+    flatbuffers::ST_STRUCT, 2, type_codes, nullptr, nullptr, values, names
   };
   return &tt;
 }

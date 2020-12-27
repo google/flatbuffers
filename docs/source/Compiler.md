@@ -116,6 +116,9 @@ Additional options:
 
 -   `--gen-generated` : Add @Generated annotation for Java.
 
+-   `--gen-jvmstatic` : Add @JvmStatic annotation for Kotlin methods
+    in companion object for interop from Java to Kotlin.
+
 -   `--gen-all` : Generate not just code for the current schema files, but
     for all files it includes as well. If the language uses a single file for
     output (by default the case for C++ and JS), all code will end up in
@@ -134,10 +137,14 @@ Additional options:
     std::string from Flatbuffers, but (char* + length). This allows efficient
 	construction of custom string types, including zero-copy construction.
 
+-   `--no-cpp-direct-copy` : Don't generate direct copy methods for C++
+    object-based API.
+
 -   `--cpp-std CPP_STD` : Generate a C++ code using features of selected C++ standard.
      Supported `CPP_STD` values:
-    * `c++0x` - generate code compatible with old compilers (VS2010).
-    * `c++11` - use C++11 code generator (default);
+    * `c++0x` - generate code compatible with old compilers (VS2010),
+    * `c++11` - use C++11 code generator (default),
+    * `c++17` - use C++17 features in generated code (experimental).
 
 -   `--object-prefix` : Customise class prefix for C++ object-based API.
 
@@ -200,17 +207,19 @@ Additional options:
 
 -   `--keep-prefix` : Keep original prefix of schema include statement.
 
--   `--no-fb-impor` : Don't include flatbuffers import statement for TypeScript.
+-   `--no-fb-import` : Don't include flatbuffers import statement for TypeScript.
 
--   `--no-ts-reexpor` : Don't re-export imported dependencies for TypeScript.
+-   `--no-ts-reexport` : Don't re-export imported dependencies for TypeScript.
 
--   `--short-name` : Use short function names for JS and TypeScript.
+-   `--short-names` : Use short function names for JS and TypeScript.
 
 -   `--reflect-types` : Add minimal type reflection to code generation.
 
 -   `--reflect-names` : Add minimal type/name reflection.
 
 -   `--root-type T` : Select or override the default root_type.
+
+-   `--require-explicit-ids` : When parsing schemas, require explicit ids (id: x).
 
 -   `--force-defaults` : Emit default values in binary output from JSON.
 
@@ -219,6 +228,11 @@ Additional options:
 
 -   `--force-empty-vectors` : When serializing from object API representation, force
      vectors to empty rather than null.
+
+-   `--flexbuffers` : Used with "binary" and "json" options, it generates
+     data using schema-less FlexBuffers.
+
+-    `--no-warnings` : Inhibit all warning messages.
 
 NOTE: short-form options for generators are deprecated, use the long form
 whenever possible.

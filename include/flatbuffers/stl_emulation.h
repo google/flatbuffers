@@ -18,6 +18,7 @@
 #define FLATBUFFERS_STL_EMULATION_H_
 
 // clang-format off
+#include "flatbuffers/base.h"
 
 #include <string>
 #include <type_traits>
@@ -33,15 +34,34 @@
   #include <cctype>
 #endif  // defined(FLATBUFFERS_CPP98_STL)
 
-// Check if we can use template aliases
-// Not possible if Microsoft Compiler before 2012
-// Possible is the language feature __cpp_alias_templates is defined well
-// Or possible if the C++ std is C+11 or newer
-#if (defined(_MSC_VER) && _MSC_VER > 1700 /* MSVC2012 */) \
-    || (defined(__cpp_alias_templates) && __cpp_alias_templates >= 200704) \
-    || (defined(__cplusplus) && __cplusplus >= 201103L)
-  #define FLATBUFFERS_TEMPLATES_ALIASES
-#endif
+// Detect C++17 compatible compiler.
+// __cplusplus >= 201703L - a compiler has support of 'static inline' variables.
+#if defined(FLATBUFFERS_USE_STD_OPTIONAL) \
+    || (defined(__cplusplus) && __cplusplus >= 201703L) \
+    || (defined(_MSVC_LANG) &&  (_MSVC_LANG >= 201703L))
+  #include <optional>
+  #ifndef FLATBUFFERS_USE_STD_OPTIONAL
+    #define FLATBUFFERS_USE_STD_OPTIONAL
+  #endif
+#endif // defined(FLATBUFFERS_USE_STD_OPTIONAL) ...
+
+// The __cpp_lib_span is the predefined feature macro.
+#if defined(FLATBUFFERS_USE_STD_SPAN)
+    #include <span>
+#elif defined(__cpp_lib_span) && defined(__has_include)
+  #if __has_include(<span>)
+    #include <span>
+    #define FLATBUFFERS_USE_STD_SPAN
+  #endif
+#else
+  // Disable non-trivial ctors if FLATBUFFERS_SPAN_MINIMAL defined.
+  #if !defined(FLATBUFFERS_TEMPLATES_ALIASES) || defined(FLATBUFFERS_CPP98_STL)
+    #define FLATBUFFERS_SPAN_MINIMAL
+  #else
+    // Enable implicit construction of a span<T,N> from a std::array<T,N>.
+    #include <array>
+  #endif
+#endif // defined(FLATBUFFERS_USE_STD_SPAN)
 
 // This header provides backwards compatibility for C++98 STLs like stlport.
 namespace flatbuffers {
@@ -144,6 +164,8 @@ inline void vector_emplace_back(std::vector<T> *vector, V &&data) {
     using conditional = std::conditional<B, T, F>;
     template<class T, T v>
     using integral_constant = std::integral_constant<T, v>;
+    template <bool B>
+    using bool_constant = integral_constant<bool, B>;
   #else
     // Map C++ TR1 templates defined by stlport.
     template <typename T> using is_scalar = std::tr1::is_scalar<T>;
@@ -167,6 +189,8 @@ inline void vector_emplace_back(std::vector<T> *vector, V &&data) {
     using conditional = std::tr1::conditional<B, T, F>;
     template<class T, T v>
     using integral_constant = std::tr1::integral_constant<T, v>;
+    template <bool B>
+    using bool_constant = integral_constant<bool, B>;
   #endif  // !FLATBUFFERS_CPP98_STL
 #else
   // MSVC 2010 doesn't support C++11 aliases.
@@ -181,6 +205,8 @@ inline void vector_emplace_back(std::vector<T> *vector, V &&data) {
   struct conditional : public std::conditional<B, T, F> {};
   template<class T, T v>
   struct integral_constant : public std::integral_constant<T, v> {};
+  template <bool B>
+  struct bool_constant : public integral_constant<bool, B> {};
 #endif  // defined(FLATBUFFERS_TEMPLATES_ALIASES)
 
 #ifndef FLATBUFFERS_CPP98_STL
@@ -301,6 +327,346 @@ inline void vector_emplace_back(std::vector<T> *vector, V &&data) {
   }
 
 #endif  // !FLATBUFFERS_CPP98_STL
+
+#ifdef FLATBUFFERS_USE_STD_OPTIONAL
+template<class T>
+using Optional = std::optional<T>;
+using nullopt_t = std::nullopt_t;
+inline constexpr nullopt_t nullopt = std::nullopt;
+
+#else
+// Limited implementation of Optional<T> type for a scalar T.
+// This implementation limited by trivial types compatible with
+// std::is_arithmetic<T> or std::is_enum<T> type traits.
+
+// A tag to indicate an empty flatbuffers::optional<T>.
+struct nullopt_t {
+  explicit FLATBUFFERS_CONSTEXPR_CPP11 nullopt_t(int) {}
+};
+
+#if defined(FLATBUFFERS_CONSTEXPR_DEFINED)
+  namespace internal {
+    template <class> struct nullopt_holder {
+      static constexpr nullopt_t instance_ = nullopt_t(0);
+    };
+    template<class Dummy>
+    constexpr nullopt_t nullopt_holder<Dummy>::instance_;
+  }
+  static constexpr const nullopt_t &nullopt = internal::nullopt_holder<void>::instance_;
+
+#else
+  namespace internal {
+    template <class> struct nullopt_holder {
+      static const nullopt_t instance_;
+    };
+    template<class Dummy>
+    const nullopt_t nullopt_holder<Dummy>::instance_  = nullopt_t(0);
+  }
+  static const nullopt_t &nullopt = internal::nullopt_holder<void>::instance_;
+
+#endif
+
+template<class T>
+class Optional FLATBUFFERS_FINAL_CLASS {
+  // Non-scalar 'T' would extremely complicated Optional<T>.
+  // Use is_scalar<T> checking because flatbuffers flatbuffers::is_arithmetic<T>
+  // isn't implemented.
+  static_assert(flatbuffers::is_scalar<T>::value, "unexpected type T");
+
+ public:
+  ~Optional() {}
+
+  FLATBUFFERS_CONSTEXPR_CPP11 Optional() FLATBUFFERS_NOEXCEPT
+    : value_(), has_value_(false) {}
+
+  FLATBUFFERS_CONSTEXPR_CPP11 Optional(nullopt_t) FLATBUFFERS_NOEXCEPT
+    : value_(), has_value_(false) {}
+
+  FLATBUFFERS_CONSTEXPR_CPP11 Optional(T val) FLATBUFFERS_NOEXCEPT
+    : value_(val), has_value_(true) {}
+
+  FLATBUFFERS_CONSTEXPR_CPP11 Optional(const Optional &other) FLATBUFFERS_NOEXCEPT
+    : value_(other.value_), has_value_(other.has_value_) {}
+
+  FLATBUFFERS_CONSTEXPR_CPP14 Optional &operator=(const Optional &other) FLATBUFFERS_NOEXCEPT {
+    value_ = other.value_;
+    has_value_ = other.has_value_;
+    return *this;
+  }
+
+  FLATBUFFERS_CONSTEXPR_CPP14 Optional &operator=(nullopt_t) FLATBUFFERS_NOEXCEPT {
+    value_ = T();
+    has_value_ = false;
+    return *this;
+  }
+
+  FLATBUFFERS_CONSTEXPR_CPP14 Optional &operator=(T val) FLATBUFFERS_NOEXCEPT {
+    value_ = val;
+    has_value_ = true;
+    return *this;
+  }
+
+  void reset() FLATBUFFERS_NOEXCEPT {
+    *this = nullopt;
+  }
+
+  void swap(Optional &other) FLATBUFFERS_NOEXCEPT {
+    std::swap(value_, other.value_);
+    std::swap(has_value_, other.has_value_);
+  }
+
+  FLATBUFFERS_CONSTEXPR_CPP11 FLATBUFFERS_EXPLICIT_CPP11 operator bool() const FLATBUFFERS_NOEXCEPT {
+    return has_value_;
+  }
+
+  FLATBUFFERS_CONSTEXPR_CPP11 bool has_value() const FLATBUFFERS_NOEXCEPT {
+    return has_value_;
+  }
+
+  FLATBUFFERS_CONSTEXPR_CPP11 const T& operator*() const FLATBUFFERS_NOEXCEPT {
+    return value_;
+  }
+
+  const T& value() const {
+    FLATBUFFERS_ASSERT(has_value());
+    return value_;
+  }
+
+  T value_or(T default_value) const FLATBUFFERS_NOEXCEPT {
+    return has_value() ? value_ : default_value;
+  }
+
+ private:
+  T value_;
+  bool has_value_;
+};
+
+template<class T>
+FLATBUFFERS_CONSTEXPR_CPP11 bool operator==(const Optional<T>& opt, nullopt_t) FLATBUFFERS_NOEXCEPT {
+  return !opt;
+}
+template<class T>
+FLATBUFFERS_CONSTEXPR_CPP11 bool operator==(nullopt_t, const Optional<T>& opt) FLATBUFFERS_NOEXCEPT {
+  return !opt;
+}
+
+template<class T, class U>
+FLATBUFFERS_CONSTEXPR_CPP11 bool operator==(const Optional<T>& lhs, const U& rhs) FLATBUFFERS_NOEXCEPT {
+  return static_cast<bool>(lhs) && (*lhs == rhs);
+}
+
+template<class T, class U>
+FLATBUFFERS_CONSTEXPR_CPP11 bool operator==(const T& lhs, const Optional<U>& rhs) FLATBUFFERS_NOEXCEPT {
+  return static_cast<bool>(rhs) && (lhs == *rhs);
+}
+
+template<class T, class U>
+FLATBUFFERS_CONSTEXPR_CPP11 bool operator==(const Optional<T>& lhs, const Optional<U>& rhs) FLATBUFFERS_NOEXCEPT {
+  return static_cast<bool>(lhs) != static_cast<bool>(rhs)
+              ? false
+              : !static_cast<bool>(lhs) ? false : (*lhs == *rhs);
+}
+#endif // FLATBUFFERS_USE_STD_OPTIONAL
+
+
+// Very limited and naive partial implementation of C++20 std::span<T,Extent>.
+#if defined(FLATBUFFERS_USE_STD_SPAN)
+  inline constexpr std::size_t dynamic_extent = std::dynamic_extent;
+  template<class T, std::size_t Extent = std::dynamic_extent>
+  using span = std::span<T, Extent>;
+
+#else // !defined(FLATBUFFERS_USE_STD_SPAN)
+FLATBUFFERS_CONSTEXPR std::size_t dynamic_extent = static_cast<std::size_t>(-1);
+
+// Exclude this code if MSVC2010 or non-STL Android is active.
+// The non-STL Android doesn't have `std::is_convertible` required for SFINAE.
+#if !defined(FLATBUFFERS_SPAN_MINIMAL)
+namespace internal {
+  // This is SFINAE helper class for checking of a common condition:
+  // > This overload only participates in overload resolution
+  // > Check whether a pointer to an array of U can be converted
+  // > to a pointer to an array of E.
+  // This helper is used for checking of 'U -> const U'.
+  template<class E, std::size_t Extent, class U, std::size_t N>
+  struct is_span_convertable {
+    using type =
+      typename std::conditional<std::is_convertible<U (*)[], E (*)[]>::value
+                                && (Extent == dynamic_extent || N == Extent),
+                                int, void>::type;
+  };
+
+}  // namespace internal
+#endif  // !defined(FLATBUFFERS_SPAN_MINIMAL)
+
+// T - element type; must be a complete type that is not an abstract
+// class type.
+// Extent - the number of elements in the sequence, or dynamic.
+template<class T, std::size_t Extent = dynamic_extent>
+class span FLATBUFFERS_FINAL_CLASS {
+ public:
+  typedef T element_type;
+  typedef T& reference;
+  typedef const T& const_reference;
+  typedef T* pointer;
+  typedef const T* const_pointer;
+  typedef std::size_t size_type;
+
+  static FLATBUFFERS_CONSTEXPR size_type extent = Extent;
+
+  // Returns the number of elements in the span.
+  FLATBUFFERS_CONSTEXPR_CPP11 size_type size() const FLATBUFFERS_NOEXCEPT {
+    return count_;
+  }
+
+  // Returns the size of the sequence in bytes.
+  FLATBUFFERS_CONSTEXPR_CPP11
+  size_type size_bytes() const FLATBUFFERS_NOEXCEPT {
+    return size() * sizeof(element_type);
+  }
+
+  // Checks if the span is empty.
+  FLATBUFFERS_CONSTEXPR_CPP11 bool empty() const FLATBUFFERS_NOEXCEPT {
+    return size() == 0;
+  }
+
+  // Returns a pointer to the beginning of the sequence.
+  FLATBUFFERS_CONSTEXPR_CPP11 pointer data() const FLATBUFFERS_NOEXCEPT {
+    return data_;
+  }
+
+  // Returns a reference to the idx-th element of the sequence.
+  // The behavior is undefined if the idx is greater than or equal to size().
+  FLATBUFFERS_CONSTEXPR_CPP11 reference operator[](size_type idx) const {
+    return data()[idx];
+  }
+
+  FLATBUFFERS_CONSTEXPR_CPP11 span(const span &other) FLATBUFFERS_NOEXCEPT
+      : data_(other.data_), count_(other.count_) {}
+
+  FLATBUFFERS_CONSTEXPR_CPP14 span &operator=(const span &other)
+      FLATBUFFERS_NOEXCEPT {
+    data_ = other.data_;
+    count_ = other.count_;
+  }
+
+  // Limited implementation of
+  // `template <class It> constexpr std::span(It first, size_type count);`.
+  //
+  // Constructs a span that is a view over the range [first, first + count);
+  // the resulting span has: data() == first and size() == count.
+  // The behavior is undefined if [first, first + count) is not a valid range,
+  // or if (extent != flatbuffers::dynamic_extent && count != extent).
+  FLATBUFFERS_CONSTEXPR_CPP11
+  explicit span(pointer first, size_type count) FLATBUFFERS_NOEXCEPT
+    : data_ (Extent == dynamic_extent ? first : (Extent == count ? first : nullptr)),
+      count_(Extent == dynamic_extent ? count : (Extent == count ? Extent : 0)) {
+      // Make span empty if the count argument is incompatible with span<T,N>.
+  }
+
+  // Exclude this code if MSVC2010 is active. The MSVC2010 isn't C++11
+  // compliant, it doesn't support default template arguments for functions.
+  #if defined(FLATBUFFERS_SPAN_MINIMAL)
+  FLATBUFFERS_CONSTEXPR_CPP11 span() FLATBUFFERS_NOEXCEPT : data_(nullptr),
+                                                            count_(0) {
+    static_assert(extent == 0 || extent == dynamic_extent, "invalid span");
+  }
+
+  #else
+  // Constructs an empty span whose data() == nullptr and size() == 0.
+  // This overload only participates in overload resolution if
+  // extent == 0 || extent == flatbuffers::dynamic_extent.
+  // A dummy template argument N is need dependency for SFINAE.
+  template<std::size_t N = 0,
+    typename internal::is_span_convertable<element_type, Extent, element_type, (N - N)>::type = 0>
+  FLATBUFFERS_CONSTEXPR_CPP11 span() FLATBUFFERS_NOEXCEPT : data_(nullptr),
+                                                            count_(0) {
+    static_assert(extent == 0 || extent == dynamic_extent, "invalid span");
+  }
+
+  // Constructs a span that is a view over the array arr; the resulting span
+  // has size() == N and data() == std::data(arr). These overloads only
+  // participate in overload resolution if
+  // extent == std::dynamic_extent || N == extent is true and
+  // std::remove_pointer_t<decltype(std::data(arr))>(*)[]
+  // is convertible to element_type (*)[].
+  template<std::size_t N,
+    typename internal::is_span_convertable<element_type, Extent, element_type, N>::type = 0>
+  FLATBUFFERS_CONSTEXPR_CPP11 span(element_type (&arr)[N]) FLATBUFFERS_NOEXCEPT
+      : data_(arr), count_(N) {}
+
+  template<class U, std::size_t N,
+    typename internal::is_span_convertable<element_type, Extent, U, N>::type = 0>
+  FLATBUFFERS_CONSTEXPR_CPP11 span(std::array<U, N> &arr) FLATBUFFERS_NOEXCEPT
+     : data_(arr.data()), count_(N) {}
+
+  //template<class U, std::size_t N,
+  //  int = 0>
+  //FLATBUFFERS_CONSTEXPR_CPP11 span(std::array<U, N> &arr) FLATBUFFERS_NOEXCEPT
+  //   : data_(arr.data()), count_(N) {}
+
+  template<class U, std::size_t N,
+    typename internal::is_span_convertable<element_type, Extent, U, N>::type = 0>
+  FLATBUFFERS_CONSTEXPR_CPP11 span(const std::array<U, N> &arr) FLATBUFFERS_NOEXCEPT
+    : data_(arr.data()), count_(N) {}
+
+  // Converting constructor from another span s;
+  // the resulting span has size() == s.size() and data() == s.data().
+  // This overload only participates in overload resolution
+  // if extent == std::dynamic_extent || N == extent is true and U (*)[]
+  // is convertible to element_type (*)[].
+  template<class U, std::size_t N,
+    typename internal::is_span_convertable<element_type, Extent, U, N>::type = 0>
+  FLATBUFFERS_CONSTEXPR_CPP11 span(const flatbuffers::span<U, N> &s) FLATBUFFERS_NOEXCEPT
+      : span(s.data(), s.size()) {
+  }
+
+  #endif  // !defined(FLATBUFFERS_SPAN_MINIMAL)
+
+ private:
+  // This is a naive implementation with 'count_' member even if (Extent != dynamic_extent).
+  pointer const data_;
+  const size_type count_;
+};
+
+ #if !defined(FLATBUFFERS_SPAN_MINIMAL)
+  template<class U, std::size_t N>
+  FLATBUFFERS_CONSTEXPR_CPP11
+  flatbuffers::span<U, N> make_span(U(&arr)[N]) FLATBUFFERS_NOEXCEPT {
+    return span<U, N>(arr);
+  }
+
+  template<class U, std::size_t N>
+  FLATBUFFERS_CONSTEXPR_CPP11
+  flatbuffers::span<const U, N> make_span(const U(&arr)[N]) FLATBUFFERS_NOEXCEPT {
+    return span<const U, N>(arr);
+  }
+
+  template<class U, std::size_t N>
+  FLATBUFFERS_CONSTEXPR_CPP11
+  flatbuffers::span<U, N> make_span(std::array<U, N> &arr) FLATBUFFERS_NOEXCEPT {
+    return span<U, N>(arr);
+  }
+
+  template<class U, std::size_t N>
+  FLATBUFFERS_CONSTEXPR_CPP11
+  flatbuffers::span<const U, N> make_span(const std::array<U, N> &arr) FLATBUFFERS_NOEXCEPT {
+    return span<const U, N>(arr);
+  }
+
+  template<class U, std::size_t N>
+  FLATBUFFERS_CONSTEXPR_CPP11
+  flatbuffers::span<U, dynamic_extent> make_span(U *first, std::size_t count) FLATBUFFERS_NOEXCEPT {
+    return span<U, dynamic_extent>(first, count);
+  }
+
+  template<class U, std::size_t N>
+  FLATBUFFERS_CONSTEXPR_CPP11
+  flatbuffers::span<const U, dynamic_extent> make_span(const U *first, std::size_t count) FLATBUFFERS_NOEXCEPT {
+    return span<const U, dynamic_extent>(first, count);
+  }
+#endif
+
+#endif  // defined(FLATBUFFERS_USE_STD_SPAN)
 
 }  // namespace flatbuffers
 

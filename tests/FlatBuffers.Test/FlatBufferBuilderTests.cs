@@ -249,6 +249,226 @@ namespace FlatBuffers.Test
         }
 
         [FlatBuffersTestMethod]
+        public void FlatBufferBuilder_WhenAddNullableBool_OffsetIsUnchanged()
+        {
+            var fbb = CreateBuffer(false);
+            var storedOffset = fbb.Offset;
+            fbb.AddBool(0, null);
+            var endOffset = fbb.Offset;
+            Assert.AreEqual(endOffset, storedOffset);
+        }
+
+                [FlatBuffersTestMethod]
+        public void FlatBufferBuilder_WhenAddNullableSbyte_OffsetIsUnchanged()
+        {
+            var fbb = CreateBuffer(false);
+            var storedOffset = fbb.Offset;
+            fbb.AddSbyte(0, null);
+            var endOffset = fbb.Offset;
+            Assert.AreEqual(endOffset, storedOffset);
+        }
+
+        [FlatBuffersTestMethod]
+        public void FlatBufferBuilder_WhenAddNullableByte_OffsetIsUnchanged()
+        {
+            var fbb = CreateBuffer(false);
+            var storedOffset = fbb.Offset;
+            fbb.AddByte(0, null);
+            var endOffset = fbb.Offset;
+            Assert.AreEqual(endOffset, storedOffset);
+        }
+
+        [FlatBuffersTestMethod]
+        public void FlatBufferBuilder_WhenAddNullableShort_OffsetIsUnchanged()
+        {
+            var fbb = CreateBuffer(false);
+            var storedOffset = fbb.Offset;
+            fbb.AddShort(0, null);
+            var endOffset = fbb.Offset;
+            Assert.AreEqual(endOffset, storedOffset);
+        }
+
+        [FlatBuffersTestMethod]
+        public void FlatBufferBuilder_WhenAddNullableUShort_OffsetIsUnchanged()
+        {
+            var fbb = CreateBuffer(false);
+            var storedOffset = fbb.Offset;
+            fbb.AddUshort(0, null);
+            var endOffset = fbb.Offset;
+            Assert.AreEqual(endOffset, storedOffset);
+        }
+
+        [FlatBuffersTestMethod]
+        public void FlatBufferBuilder_WhenAddNullableInt_OffsetIsUnchanged()
+        {
+            var fbb = CreateBuffer(false);
+            var storedOffset = fbb.Offset;
+            fbb.AddInt(0, null);
+            var endOffset = fbb.Offset;
+            Assert.AreEqual(endOffset, storedOffset);
+        }
+
+        [FlatBuffersTestMethod]
+        public void FlatBufferBuilder_WhenAddNullableUInt_OffsetIsUnchanged()
+        {
+            var fbb = CreateBuffer(false);
+            var storedOffset = fbb.Offset;
+            fbb.AddUint(0, null);
+            var endOffset = fbb.Offset;
+            Assert.AreEqual(endOffset, storedOffset);
+        }
+
+        [FlatBuffersTestMethod]
+        public void FlatBufferBuilder_WhenAddNullableLong_OffsetIsUnchanged()
+        {
+            var fbb = CreateBuffer(false);
+            var storedOffset = fbb.Offset;
+            fbb.AddLong(0, null);
+            var endOffset = fbb.Offset;
+            Assert.AreEqual(endOffset, storedOffset);
+        }
+
+        [FlatBuffersTestMethod]
+        public void FlatBufferBuilder_WhenAddNullableULong_OffsetIsUnchanged()
+        {
+            var fbb = CreateBuffer(false);
+            var storedOffset = fbb.Offset;
+            fbb.AddUlong(0, null);
+            var endOffset = fbb.Offset;
+            Assert.AreEqual(endOffset, storedOffset);
+        }
+
+        [FlatBuffersTestMethod]
+        public void FlatBufferBuilder_WhenAddNullableFloat_OffsetIsUnchanged()
+        {
+            var fbb = CreateBuffer(false);
+            var storedOffset = fbb.Offset;
+            fbb.AddFloat(0, null);
+            var endOffset = fbb.Offset;
+            Assert.AreEqual(endOffset, storedOffset);
+        }
+
+        [FlatBuffersTestMethod]
+        public void FlatBufferBuilder_WhenAddNullableDouble_OffsetIsUnchanged()
+        {
+            var fbb = CreateBuffer(false);
+            var storedOffset = fbb.Offset;
+            fbb.AddDouble(0, null);
+            var endOffset = fbb.Offset;
+            Assert.AreEqual(endOffset, storedOffset);
+        }
+
+         [FlatBuffersTestMethod]
+        public void FlatBufferBuilder_WhenAddNullableBool_OffsetIsChangedBySize()
+        {
+            var fbb = CreateBuffer(false);
+            var storedOffset = fbb.Offset;
+            fbb.AddBool(0, true);
+            var endOffset = fbb.Offset;
+            Assert.AreEqual(sizeof(bool), endOffset - storedOffset);
+        }
+
+        [FlatBuffersTestMethod]
+        public void FlatBufferBuilder_WhenAddNullableSbyte_OffsetIsChangedBySize()
+        {
+            var fbb = CreateBuffer(false);
+            var storedOffset = fbb.Offset;
+            fbb.AddSbyte(0, 1);
+            var endOffset = fbb.Offset;
+            Assert.AreEqual(sizeof(sbyte), endOffset - storedOffset);
+        }
+
+        [FlatBuffersTestMethod]
+        public void FlatBufferBuilder_WhenAddNullableByte_OffsetIsChangedBySize()
+        {
+            var fbb = CreateBuffer(false);
+            var storedOffset = fbb.Offset;
+            fbb.AddByte(0, 1);
+            var endOffset = fbb.Offset;
+            Assert.AreEqual(sizeof(byte), endOffset - storedOffset);
+        }
+
+        [FlatBuffersTestMethod]
+        public void FlatBufferBuilder_WhenAddNullableShort_OffsetIsChangedBySize()
+        {
+            var fbb = CreateBuffer(false);
+            var storedOffset = fbb.Offset;
+            fbb.AddShort(0, 1);
+            var endOffset = fbb.Offset;
+            Assert.AreEqual(sizeof(short), endOffset - storedOffset);
+        }
+
+        [FlatBuffersTestMethod]
+        public void FlatBufferBuilder_WhenAddNullableUShort_OffsetIsChangedBySize()
+        {
+            var fbb = CreateBuffer(false);
+            var storedOffset = fbb.Offset;
+            fbb.AddUshort(0, 1);
+            var endOffset = fbb.Offset;
+            Assert.AreEqual(sizeof(ushort), endOffset - storedOffset);
+        }
+
+        [FlatBuffersTestMethod]
+        public void FlatBufferBuilder_WhenAddNullableInt_OffsetIsChangedBySize()
+        {
+            var fbb = CreateBuffer(false);
+            var storedOffset = fbb.Offset;
+            fbb.AddInt(0, 1);
+            var endOffset = fbb.Offset;
+            Assert.AreEqual(sizeof(int), endOffset - storedOffset);
+        }
+
+        [FlatBuffersTestMethod]
+        public void FlatBufferBuilder_WhenAddNullableUInt_OffsetIsChangedBySize()
+        {
+            var fbb = CreateBuffer(false);
+            var storedOffset = fbb.Offset;
+            fbb.AddUint(0, 1);
+            var endOffset = fbb.Offset;
+            Assert.AreEqual(sizeof(uint), endOffset - storedOffset);
+        }
+
+        [FlatBuffersTestMethod]
+        public void FlatBufferBuilder_WhenAddNullableLong_OffsetIsChangedBySize()
+        {
+            var fbb = CreateBuffer(false);
+            var storedOffset = fbb.Offset;
+            fbb.AddLong(0, 1);
+            var endOffset = fbb.Offset;
+            Assert.AreEqual(sizeof(long), endOffset - storedOffset);
+        }
+
+        [FlatBuffersTestMethod]
+        public void FlatBufferBuilder_WhenAddNullableULong_OffsetIsChangedBySize()
+        {
+            var fbb = CreateBuffer(false);
+            var storedOffset = fbb.Offset;
+            fbb.AddUlong(0, 1);
+            var endOffset = fbb.Offset;
+            Assert.AreEqual(sizeof(ulong), endOffset - storedOffset);
+        }
+
+        [FlatBuffersTestMethod]
+        public void FlatBufferBuilder_WhenAddNullableFloat_OffsetIsChangedBySize()
+        {
+            var fbb = CreateBuffer(false);
+            var storedOffset = fbb.Offset;
+            fbb.AddFloat(0, 1.0F);
+            var endOffset = fbb.Offset;
+            Assert.AreEqual(sizeof(float), endOffset - storedOffset);
+        }
+
+        [FlatBuffersTestMethod]
+        public void FlatBufferBuilder_WhenAddNullableDouble_OffsetIsChangedBySize()
+        {
+            var fbb = CreateBuffer(false);
+            var storedOffset = fbb.Offset;
+            fbb.AddDouble(0, 1.0);
+            var endOffset = fbb.Offset;
+            Assert.AreEqual(sizeof(double), endOffset - storedOffset);
+        }
+
+        [FlatBuffersTestMethod]
         public void FlatBufferBuilder_Add_Array_Float()
         {
             var fbb = CreateBuffer(false);
@@ -349,6 +569,30 @@ namespace FlatBuffers.Test
             // was really added
             var endOffset = fbb.Offset;
             Assert.AreEqual(endOffset, storedOffset);
+        }
+
+        [FlatBuffersTestMethod]
+        public void FlatBufferBuilder_Add_null_String()
+        {
+            var fbb = new FlatBufferBuilder(16);
+            string s = null;
+            Assert.AreEqual(fbb.CreateSharedString(s).Value, 0);
+            Assert.AreEqual(fbb.CreateString(s).Value, 0);
+        }
+
+        [FlatBuffersTestMethod]
+        public void FlatBufferBuilder_Empty_Builder()
+        {
+            var fbb = new FlatBufferBuilder(16);
+            var str = "Hello";
+            var flatbuffer = "Flatbuffers!";
+            var strOffset = fbb.CreateSharedString(str);
+            var flatbufferOffset = fbb.CreateSharedString(flatbuffer);
+            fbb.Clear();
+            var flatbufferOffset2 = fbb.CreateSharedString(flatbuffer);
+            var strOffset2 = fbb.CreateSharedString(str);
+            Assert.IsFalse(strOffset.Value == strOffset2.Value);
+            Assert.IsFalse(flatbufferOffset.Value == flatbufferOffset2.Value);
         }
     }
 }

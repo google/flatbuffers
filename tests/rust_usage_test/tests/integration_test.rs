@@ -27,19 +27,21 @@ extern crate serde_derive;
 extern crate quickcheck_derive;
 
 mod flexbuffers_tests;
+mod optional_scalars_test;
 
-#[allow(dead_code, unused_imports)]
 #[path = "../../include_test/include_test1_generated.rs"]
 pub mod include_test1_generated;
 
-#[allow(dead_code, unused_imports)]
 #[path = "../../include_test/sub/include_test2_generated.rs"]
 pub mod include_test2_generated;
 
-#[allow(dead_code, unused_imports)]
 #[path = "../../monster_test_generated.rs"]
 mod monster_test_generated;
 pub use monster_test_generated::my_game;
+
+#[allow(dead_code, unused_imports)]
+#[path = "../../optional_scalars_generated.rs"]
+mod optional_scalars_generated;
 
 #[rustfmt::skip] // TODO: Use standard rust formatting and remove dead code.
 #[allow(dead_code)]
@@ -175,9 +177,9 @@ fn serialized_example_is_accessible_and_correct(bytes: &[u8], identifier_require
     }
 
     let m = if size_prefixed {
-        my_game::example::get_size_prefixed_root_as_monster(bytes)
+        my_game::example::size_prefixed_root_as_monster(bytes).unwrap()
     } else {
-        my_game::example::get_root_as_monster(bytes)
+        my_game::example::root_as_monster(bytes).unwrap()
     };
 
     check_eq!(m.hp(), 80)?;
@@ -243,6 +245,106 @@ fn builder_collapses_into_vec() {
     serialized_example_is_accessible_and_correct(&backing_buf[head..], true, false).unwrap();
 }
 
+#[test]
+fn verifier_one_byte_errors_do_not_crash() {
+    let mut b = flatbuffers::FlatBufferBuilder::new();
+    create_serialized_example_with_library_code(&mut b);
+    let mut badbuf = b.finished_data().to_vec();
+    // If the verifier says a buffer is okay then using it won't cause a crash.
+    // We use write_fmt since Debug visits all the fields - but there's no need to store anything.
+    struct ForgetfulWriter;
+    use std::fmt::Write;
+    impl Write for ForgetfulWriter {
+        fn write_str(&mut self, _: &str) -> Result<(), std::fmt::Error> {
+            Ok(())
+        }
+    }
+    let mut w = ForgetfulWriter;
+    for d in 1..=255u8 {
+        for i in 0..badbuf.len() {
+            let orig = badbuf[i];
+            badbuf[i] = badbuf[i].wrapping_add(d);
+            if let Ok(m) = flatbuffers::root::<my_game::example::Monster>(&badbuf) {
+                w.write_fmt(format_args!("{:?}", m)).unwrap()
+            }
+            badbuf[i] = orig;
+        }
+    }
+}
+#[test]
+fn verifier_too_many_tables() {
+    use my_game::example::*;
+    let b = &mut flatbuffers::FlatBufferBuilder::new();
+    let r = Referrable::create(b, &ReferrableArgs { id: 42 });
+    let rs = b.create_vector(&vec![r; 500]);
+    let name = Some(b.create_string("foo"));
+    let m = Monster::create(b, &MonsterArgs {
+        vector_of_referrables: Some(rs),
+        name,  // required field.
+        ..Default::default()
+    });
+    b.finish(m, None);
+
+    let data = b.finished_data();
+    let mut opts = flatbuffers::VerifierOptions::default();
+
+    opts.max_tables = 500;
+    let res = flatbuffers::root_with_opts::<Monster>(&opts, data);
+    assert_eq!(res.unwrap_err(), flatbuffers::InvalidFlatbuffer::TooManyTables);
+
+    opts.max_tables += 2;
+    assert!(flatbuffers::root_with_opts::<Monster>(&opts, data).is_ok());
+}
+#[test]
+fn verifier_apparent_size_too_large() {
+    use my_game::example::*;
+    let b = &mut flatbuffers::FlatBufferBuilder::new();
+    let name = Some(b.create_string("foo"));
+    // String amplification attack.
+    let s = b.create_string(&(std::iter::repeat("X").take(1000).collect::<String>()));
+    let testarrayofstring = Some(b.create_vector(&vec![s; 1000]));
+    let m = Monster::create(b, &MonsterArgs {
+        testarrayofstring,
+        name,  // required field.
+        ..Default::default()
+    });
+    b.finish(m, None);
+    let data = b.finished_data();
+    assert!(data.len() < 5100);  // est 4000 for the vector + 1000 for the string + 100 overhead.
+    let mut opts = flatbuffers::VerifierOptions::default();
+    opts.max_apparent_size = 1_000_000;
+
+    let res = flatbuffers::root_with_opts::<Monster>(&opts, data);
+    assert_eq!(res.unwrap_err(), flatbuffers::InvalidFlatbuffer::ApparentSizeTooLarge);
+
+    opts.max_apparent_size += 20_000;
+    assert!(flatbuffers::root_with_opts::<Monster>(&opts, data).is_ok());
+}
+#[test]
+fn verifier_in_too_deep() {
+    use my_game::example::*;
+    let b = &mut flatbuffers::FlatBufferBuilder::new();
+    let name = Some(b.create_string("foo"));
+    let mut prev_monster = None;
+    for _ in 0..11 {
+        prev_monster = Some(Monster::create(b, &MonsterArgs {
+            enemy: prev_monster,
+            name,  // required field.
+            ..Default::default()
+        }));
+    };
+    b.finish(prev_monster.unwrap(), None);
+    let mut opts = flatbuffers::VerifierOptions::default();
+    opts.max_depth = 10;
+
+    let data = b.finished_data();
+    let res = flatbuffers::root_with_opts::<Monster>(&opts, data);
+    assert_eq!(res.unwrap_err(), flatbuffers::InvalidFlatbuffer::DepthLimitReached);
+
+    opts.max_depth += 1;
+    assert!(flatbuffers::root_with_opts::<Monster>(&opts, data).is_ok());
+}
+
 #[cfg(test)]
 mod generated_constants {
     extern crate flatbuffers;
@@ -260,82 +362,40 @@ mod generated_constants {
 
     #[test]
     fn enum_constants_are_public() {
-        assert_eq!(1, my_game::example::ENUM_MIN_COLOR);
-        assert_eq!(8, my_game::example::ENUM_MAX_COLOR);
-        assert_eq!(my_game::example::ENUM_VALUES_COLOR, [
-            my_game::example::Color::Red,
-            my_game::example::Color::Green,
-            my_game::example::Color::Blue,
-        ]);
-        assert_eq!(my_game::example::ENUM_NAMES_COLOR, [
-            "Red",
-            "Green",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "Blue"
-        ]);
-
-        assert_eq!(-1, my_game::example::ENUM_MIN_RACE);
-        assert_eq!(2, my_game::example::ENUM_MAX_RACE);
-        assert_eq!(my_game::example::ENUM_VALUES_RACE, [
+        assert_eq!(-1, my_game::example::Race::ENUM_MIN);
+        assert_eq!(2, my_game::example::Race::ENUM_MAX);
+        assert_eq!(my_game::example::Race::ENUM_VALUES, [
             my_game::example::Race::None,
             my_game::example::Race::Human,
             my_game::example::Race::Dwarf,
             my_game::example::Race::Elf,
         ]);
-        assert_eq!(my_game::example::ENUM_NAMES_RACE, [
-            "None",
-            "Human",
-            "Dwarf",
-            "Elf"
-        ]);
 
-        assert_eq!(0, my_game::example::ENUM_MIN_ANY);
-        assert_eq!(3, my_game::example::ENUM_MAX_ANY);
-        assert_eq!(my_game::example::ENUM_VALUES_ANY, [
+        assert_eq!(0, my_game::example::Any::ENUM_MIN);
+        assert_eq!(3, my_game::example::Any::ENUM_MAX);
+        assert_eq!(my_game::example::Any::ENUM_VALUES, [
             my_game::example::Any::NONE,
             my_game::example::Any::Monster,
             my_game::example::Any::TestSimpleTableWithEnum,
             my_game::example::Any::MyGame_Example2_Monster,
         ]);
-        assert_eq!(my_game::example::ENUM_NAMES_ANY, [
-            "NONE",
-            "Monster",
-            "TestSimpleTableWithEnum",
-            "MyGame_Example2_Monster"
-        ]);
 
-        assert_eq!(0, my_game::example::ENUM_MIN_ANY_UNIQUE_ALIASES);
-        assert_eq!(3, my_game::example::ENUM_MAX_ANY_UNIQUE_ALIASES);
-        assert_eq!(my_game::example::ENUM_VALUES_ANY_UNIQUE_ALIASES, [
+        assert_eq!(0, my_game::example::AnyUniqueAliases::ENUM_MIN);
+        assert_eq!(3, my_game::example::AnyUniqueAliases::ENUM_MAX);
+        assert_eq!(my_game::example::AnyUniqueAliases::ENUM_VALUES, [
             my_game::example::AnyUniqueAliases::NONE,
             my_game::example::AnyUniqueAliases::M,
             my_game::example::AnyUniqueAliases::TS,
             my_game::example::AnyUniqueAliases::M2,
         ]);
-        assert_eq!(my_game::example::ENUM_NAMES_ANY_UNIQUE_ALIASES, [
-            "NONE",
-            "M",
-            "TS",
-            "M2"
-        ]);
 
-        assert_eq!(0, my_game::example::ENUM_MIN_ANY_AMBIGUOUS_ALIASES);
-        assert_eq!(3, my_game::example::ENUM_MAX_ANY_AMBIGUOUS_ALIASES);
-        assert_eq!(my_game::example::ENUM_VALUES_ANY_AMBIGUOUS_ALIASES, [
+        assert_eq!(0, my_game::example::AnyAmbiguousAliases::ENUM_MIN);
+        assert_eq!(3, my_game::example::AnyAmbiguousAliases::ENUM_MAX);
+        assert_eq!(my_game::example::AnyAmbiguousAliases::ENUM_VALUES, [
             my_game::example::AnyAmbiguousAliases::NONE,
             my_game::example::AnyAmbiguousAliases::M1,
             my_game::example::AnyAmbiguousAliases::M2,
             my_game::example::AnyAmbiguousAliases::M3,
-        ]);
-        assert_eq!(my_game::example::ENUM_NAMES_ANY_AMBIGUOUS_ALIASES, [
-            "NONE",
-            "M1",
-            "M2",
-            "M3"
         ]);
     }
 }
@@ -356,7 +416,7 @@ mod lifetime_correctness {
         let slice: &[u8] = &buf;
         let slice: &'static [u8] = unsafe { mem::transmute(slice) };
         // make sure values retrieved from the 'static buffer are themselves 'static
-        let monster: my_game::example::Monster<'static> = my_game::example::get_root_as_monster(slice);
+        let monster: my_game::example::Monster<'static> = my_game::example::root_as_monster(slice).unwrap();
         // this line should compile:
         let name: Option<&'static str> = monster._tab.get::<flatbuffers::ForwardsUOffset<&str>>(my_game::example::Monster::VT_NAME, None);
         assert_eq!(name, Some("MyMonster"));
@@ -374,7 +434,7 @@ mod lifetime_correctness {
     fn table_object_self_lifetime_in_closure() {
         // This test is designed to ensure that lifetimes for temporary intermediate tables aren't inflated beyond where the need to be.
         let buf = load_file("../monsterdata_test.mon").expect("missing monsterdata_test.mon");
-        let monster = my_game::example::get_root_as_monster(&buf);
+        let monster = my_game::example::root_as_monster(&buf).unwrap();
         let enemy: Option<my_game::example::Monster> = monster.enemy();
         // This line won't compile if "self" is required to live for the lifetime of buf above as the borrow disappears at the end of the closure.
         let enemy_of_my_enemy = enemy.map(|e| {
@@ -397,7 +457,7 @@ mod roundtrip_generated_code {
     fn build_mon<'a, 'b>(builder: &'a mut flatbuffers::FlatBufferBuilder, args: &'b my_game::example::MonsterArgs) -> my_game::example::Monster<'a> {
         let mon = my_game::example::Monster::create(builder, &args);
         my_game::example::finish_monster_buffer(builder, mon);
-        my_game::example::get_root_as_monster(builder.finished_data())
+        my_game::example::root_as_monster(builder.finished_data()).unwrap()
     }
 
     #[test]
@@ -477,7 +537,7 @@ mod roundtrip_generated_code {
             my_game::example::finish_monster_buffer(b, outer);
         }
 
-        let mon = my_game::example::get_root_as_monster(b.finished_data());
+        let mon = my_game::example::root_as_monster(b.finished_data()).unwrap();
         assert_eq!(mon.name(), "bar");
         assert_eq!(mon.test_type(), my_game::example::Any::Monster);
         assert_eq!(my_game::example::Monster::init_from_table(mon.test().unwrap()).name(),
@@ -513,7 +573,7 @@ mod roundtrip_generated_code {
             my_game::example::finish_monster_buffer(b, outer);
         }
 
-        let mon = my_game::example::get_root_as_monster(b.finished_data());
+        let mon = my_game::example::root_as_monster(b.finished_data()).unwrap();
         assert_eq!(mon.name(), "bar");
         assert_eq!(mon.enemy().unwrap().name(), "foo");
     }
@@ -543,7 +603,7 @@ mod roundtrip_generated_code {
             my_game::example::finish_monster_buffer(b, outer);
         }
 
-        let mon = my_game::example::get_root_as_monster(b.finished_data());
+        let mon = my_game::example::root_as_monster(b.finished_data()).unwrap();
         assert_eq!(mon.name(), "bar");
         assert_eq!(mon.testempty().unwrap().id(), Some("foo"));
     }
@@ -580,12 +640,12 @@ mod roundtrip_generated_code {
             b1
         };
 
-        let m = my_game::example::get_root_as_monster(b1.finished_data());
+        let m = my_game::example::root_as_monster(b1.finished_data()).unwrap();
 
         assert!(m.testnestedflatbuffer().is_some());
         assert_eq!(m.testnestedflatbuffer().unwrap(), b0.finished_data());
 
-        let m2_a = my_game::example::get_root_as_monster(m.testnestedflatbuffer().unwrap());
+        let m2_a = my_game::example::root_as_monster(m.testnestedflatbuffer().unwrap()).unwrap();
         assert_eq!(m2_a.hp(), 123);
         assert_eq!(m2_a.name(), "foobar");
 
@@ -727,19 +787,18 @@ mod roundtrip_generated_code {
             test4: Some(v), ..Default::default()});
         assert_eq!(m.test4().unwrap(), &[my_game::example::Test::new(127, -128), my_game::example::Test::new(3, 123), my_game::example::Test::new(100, 101)][..]);
     }
-    // TODO(rw) this passes, but I don't want to change the monster test schema right now
-    // #[test]
-    // fn vector_of_enum_store() {
-    //     let mut b = flatbuffers::FlatBufferBuilder::new();
-    //     let v = b.create_vector::<my_game::example::Color>(&[my_game::example::Color::Red, my_game::example::Color::Green][..]);
-    //     let name = b.create_string("foo");
-    //     let m = build_mon(&mut b, &my_game::example::MonsterArgs{
-    //         name: Some(name),
-    //         vector_of_enum: Some(v), ..Default::default()});
-    //     assert_eq!(m.vector_of_enum().unwrap().len(), 2);
-    //     assert_eq!(m.vector_of_enum().unwrap().get(0), my_game::example::Color::Red);
-    //     assert_eq!(m.vector_of_enum().unwrap().get(1), my_game::example::Color::Green);
-    // }
+     #[test]
+     fn vector_of_enums_store() {
+         let mut b = flatbuffers::FlatBufferBuilder::new();
+         let v = b.create_vector::<my_game::example::Color>(&[my_game::example::Color::Red, my_game::example::Color::Green][..]);
+         let name = b.create_string("foo");
+         let m = build_mon(&mut b, &my_game::example::MonsterArgs{
+             name: Some(name),
+             vector_of_enums: Some(v), ..Default::default()});
+         assert_eq!(m.vector_of_enums().unwrap().len(), 2);
+         assert_eq!(m.vector_of_enums().unwrap().get(0), my_game::example::Color::Red);
+         assert_eq!(m.vector_of_enums().unwrap().get(1), my_game::example::Color::Green);
+     }
     #[test]
     fn vector_of_table_store() {
         let b = &mut flatbuffers::FlatBufferBuilder::new();
@@ -840,7 +899,7 @@ mod generated_code_alignment_and_padding {
             my_game::example::finish_monster_buffer(b, mon);
         }
         let buf = b.finished_data();
-        let mon = my_game::example::get_root_as_monster(buf);
+        let mon = my_game::example::root_as_monster(buf).unwrap();
         let vec3 = mon.pos().unwrap();
 
         let start_ptr = buf.as_ptr() as usize;
@@ -876,7 +935,7 @@ mod generated_code_alignment_and_padding {
             my_game::example::finish_monster_buffer(b, mon);
         }
         let buf = b.finished_data();
-        let mon = my_game::example::get_root_as_monster(buf);
+        let mon = my_game::example::root_as_monster(buf).unwrap();
         let abilities = mon.testarrayofsortedstruct().unwrap();
 
         let start_ptr = buf.as_ptr() as usize;
@@ -1183,7 +1242,7 @@ mod framing_format {
 
         // Access it.
         let buf = b.finished_data();
-        let m = flatbuffers::get_size_prefixed_root::<my_game::example::Monster>(buf);
+        let m = flatbuffers::size_prefixed_root::<my_game::example::Monster>(buf).unwrap();
         assert_eq!(m.mana(), 200);
         assert_eq!(m.hp(), 300);
         assert_eq!(m.name(), "bob");
@@ -1574,6 +1633,58 @@ mod write_and_read_examples {
     }
 
     #[test]
+    fn generated_code_debug_prints_correctly() {
+        let b = &mut flatbuffers::FlatBufferBuilder::new();
+        create_serialized_example_with_generated_code(b);
+        let buf = b.finished_data();
+        serialized_example_is_accessible_and_correct(&buf, true, false).unwrap();
+        let m = super::my_game::example::root_as_monster(buf).unwrap();
+        assert_eq!(
+            format!("{:.5?}", &m),
+            "Monster { pos: Some(Vec3 { x: 1.00000, y: 2.00000, z: 3.00000, \
+            test1: 3.00000, test2: Green, test3: Test { a: 5, b: 6 } }), \
+            mana: 150, hp: 80, name: \"MyMonster\", \
+            inventory: Some([0, 1, 2, 3, 4]), color: Blue, test_type: Monster, \
+            test: Monster { pos: None, mana: 150, hp: 100, name: \"Fred\", \
+            inventory: None, color: Blue, test_type: NONE, test: None, \
+            test4: None, testarrayofstring: None, testarrayoftables: None, \
+            enemy: None, testnestedflatbuffer: None, testempty: None, \
+            testbool: false, testhashs32_fnv1: 0, testhashu32_fnv1: 0, \
+            testhashs64_fnv1: 0, testhashu64_fnv1: 0, testhashs32_fnv1a: 0, \
+            testhashu32_fnv1a: 0, testhashs64_fnv1a: 0, testhashu64_fnv1a: 0, \
+            testarrayofbools: None, testf: 3.14159, testf2: 3.00000, testf3: 0.00000, \
+            testarrayofstring2: None, testarrayofsortedstruct: None, flex: None, \
+            test5: None, vector_of_longs: None, vector_of_doubles: None, \
+            parent_namespace_test: None, vector_of_referrables: None, \
+            single_weak_reference: 0, vector_of_weak_references: None, \
+            vector_of_strong_referrables: None, co_owning_reference: 0, \
+            vector_of_co_owning_references: None, non_owning_reference: 0, \
+            vector_of_non_owning_references: None, any_unique_type: NONE, \
+            any_unique: None, any_ambiguous_type: NONE, any_ambiguous: None, \
+            vector_of_enums: None, signed_enum: None, \
+            testrequirednestedflatbuffer: None }, test4: Some([Test { \
+            a: 10, b: 20 }, Test { a: 30, b: 40 }]), \
+            testarrayofstring: Some([\"test1\", \"test2\"]), \
+            testarrayoftables: None, enemy: None, testnestedflatbuffer: None, \
+            testempty: None, testbool: false, testhashs32_fnv1: 0, \
+            testhashu32_fnv1: 0, testhashs64_fnv1: 0, testhashu64_fnv1: 0, \
+            testhashs32_fnv1a: 0, testhashu32_fnv1a: 0, testhashs64_fnv1a: 0, \
+            testhashu64_fnv1a: 0, testarrayofbools: None, testf: 3.14159, \
+            testf2: 3.00000, testf3: 0.00000, testarrayofstring2: None, \
+            testarrayofsortedstruct: None, flex: None, test5: None, \
+            vector_of_longs: None, vector_of_doubles: None, \
+            parent_namespace_test: None, vector_of_referrables: None, \
+            single_weak_reference: 0, vector_of_weak_references: None, \
+            vector_of_strong_referrables: None, co_owning_reference: 0, \
+            vector_of_co_owning_references: None, non_owning_reference: 0, \
+            vector_of_non_owning_references: None, any_unique_type: NONE, \
+            any_unique: None, any_ambiguous_type: NONE, any_ambiguous: None, \
+            vector_of_enums: None, signed_enum: None, \
+            testrequirednestedflatbuffer: None }"
+        );
+    }
+
+    #[test]
     fn generated_code_creates_correct_example_repeatedly_with_reset() {
         let b = &mut flatbuffers::FlatBufferBuilder::new();
         for _ in 0..100 {
@@ -1717,7 +1828,7 @@ mod generated_key_comparisons {
         let builder = &mut flatbuffers::FlatBufferBuilder::new();
         super::create_serialized_example_with_library_code(builder);
         let buf = builder.finished_data();
-        let a = my_game::example::get_root_as_monster(buf);
+        let a = my_game::example::root_as_monster(buf).unwrap();
 
         // preconditions
         assert_eq!(a.name(), "MyMonster");
@@ -1733,7 +1844,7 @@ mod generated_key_comparisons {
         let builder = &mut flatbuffers::FlatBufferBuilder::new();
         super::create_serialized_example_with_library_code(builder);
         let buf = builder.finished_data();
-        let a = my_game::example::get_root_as_monster(buf);
+        let a = my_game::example::root_as_monster(buf).unwrap();
         let b = a.test_as_monster().unwrap();
 
         // preconditions
@@ -2458,6 +2569,25 @@ mod byte_layouts {
              // entry 1 is zero and not stored.
              4, 0, 0, 0, // offset for start of vtable (int32)
         ]);
+    }
+
+    #[test]
+    fn layout_09b_vtable_with_one_default_bool_force_defaults() {
+        let mut b = flatbuffers::FlatBufferBuilder::new();
+        check(&b, &[]);
+        let off = b.start_table();
+        check(&b, &[]);
+        b.force_defaults(true);
+        b.push_slot(fi2fo(0), false, false);
+        b.end_table(off);
+        check(&b, &[
+            6, 0, // vtable bytes
+            8, 0, // length of object including vtable offset
+            7, 0, // start of bool value
+            6, 0, 0, 0, // offset for start of vtable (int32)
+            0, 0, 0, // padded to 4 bytes
+            0, // bool value
+      ]);
     }
 
     #[test]

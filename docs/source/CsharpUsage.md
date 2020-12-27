@@ -14,14 +14,38 @@ documentation to build `flatc` and should be familiar with
 [Using the schema compiler](@ref flatbuffers_guide_using_schema_compiler) and
 [Writing a schema](@ref flatbuffers_guide_writing_schema).
 
-## FlatBuffers C-sharp code location
+## FlatBuffers C# code location
 
 The code for the FlatBuffers C# library can be found at
 `flatbuffers/net/FlatBuffers`. You can browse the library on the
 [FlatBuffers GitHub page](https://github.com/google/flatbuffers/tree/master/net/
 FlatBuffers).
 
-## Testing the FlatBuffers C-sharp libraries
+## Building the FlatBuffers C# library
+
+The `FlatBuffers.csproj` project contains multitargeting for .NET Standard 2.1,
+.NET Standard 2.0, and .NET Framework 4.6 (Unity 2017). Support for .NET
+Framework 3.5 (Unity 5) is provided by the `FlatBuffers.net35.csproj` project.
+In most cases (including Unity 2018 and newer), .NET Standard 2.0 is
+recommended.
+
+You can build for a specific framework target when using the cross-platform
+[.NET Core SDK](https://dotnet.microsoft.com/download) by adding the `-f`
+command line option:
+
+~~~{.sh}
+    dotnet build -f netstandard2.0 "FlatBuffers.csproj"
+~~~
+
+The `FlatBuffers.csproj` project also provides support for defining various
+conditional compilation symbols (see "Conditional compilation symbols" section
+below) using the `-p` command line option:
+
+~~~{.sh}
+    dotnet build -f netstandard2.1 -p:ENABLE_SPAN_T=true -p:UNSAFE_BYTEBUFFER=true "FlatBuffers.csproj"
+~~~
+
+## Testing the FlatBuffers C# library
 
 The code to test the libraries can be found at `flatbuffers/tests`.
 
@@ -31,12 +55,12 @@ tests, open `FlatBuffers.Test.csproj` in [Visual Studio](
 https://www.visualstudio.com), and compile/run the project.
 
 Optionally, you can run this using [Mono](http://www.mono-project.com/) instead.
-Once you have installed `Mono`, you can run the tests from the command line
+Once you have installed Mono, you can run the tests from the command line
 by running the following commands from inside the `FlatBuffers.Test` folder:
 
 ~~~{.sh}
-  mcs *.cs ../MyGame/Example/*.cs ../../net/FlatBuffers/*.cs
-  mono Assert.exe
+    mcs *.cs ../MyGame/Example/*.cs ../../net/FlatBuffers/*.cs
+    mono Assert.exe
 ~~~
 
 ## Using the FlatBuffers C# library
@@ -74,7 +98,7 @@ Now you can access the data from the `Monster monster`:
     Vec3 pos = monster.Pos;
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-C# code naming follows standard C# style with `PascalCasing` identifiers,
+C# code naming follows standard C# style with PascalCasing identifiers,
 e.g. `GetRootAsMyRootType`. Also, values (except vectors and unions) are
 available as properties instead of parameterless accessor methods.
 The performance-enhancing methods to which you can pass an already created
@@ -133,8 +157,8 @@ around using as little as possible of it. This does make the API clumsier
 
 For times when efficiency is less important a more convenient object based API
 can be used (through `--gen-object-api`) that is able to unpack & pack a
-FlatBuffer into objects and standard System.Collections.Generic containers, allowing for convenient
-construction, access and mutation.
+FlatBuffer into objects and standard `System.Collections.Generic` containers,
+allowing for convenient construction, access and mutation.
 
 To use:
 
@@ -154,8 +178,8 @@ To use:
 ### Json Serialization
 
 An additional feature of the object API is the ability to allow you to
-serialize & deserialize a JSON text. 
-To use Json Serialization, add `--gen-json-serializer` option to `flatc` and
+serialize & deserialize a JSON text.
+To use Json Serialization, add `--cs-gen-json-serializer` option to `flatc` and
 add `Newtonsoft.Json` nuget package to csproj.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cs}
@@ -171,5 +195,32 @@ add `Newtonsoft.Json` nuget package to csproj.
   * `hash` attribute currentry not supported.
 * NuGet package Dependency
   * [Newtonsoft.Json](https://github.com/JamesNK/Newtonsoft.Json)
+
+## Conditional compilation symbols
+
+There are three conditional compilation symbols that have an impact on
+performance/features of the C# `ByteBuffer` implementation.
+
+* `UNSAFE_BYTEBUFFER`
+
+  This will use unsafe code to manipulate the underlying byte array. This can
+  yield a reasonable performance increase.
+
+* `BYTEBUFFER_NO_BOUNDS_CHECK`
+
+  This will disable the bounds check asserts to the byte array. This can yield a
+  small performance gain in normal code.
+
+* `ENABLE_SPAN_T`
+
+  This will enable reading and writing blocks of memory with a `Span<T>` instead
+  of just `T[]`. You can also enable writing directly to shared memory or other
+  types of memory by providing a custom implementation of `ByteBufferAllocator`.
+  `ENABLE_SPAN_T` also requires `UNSAFE_BYTEBUFFER` to be defined, or .NET
+  Standard 2.1.
+
+Using `UNSAFE_BYTEBUFFER` and `BYTEBUFFER_NO_BOUNDS_CHECK` together can yield a
+performance gain of ~15% for some operations, however doing so is potentially
+dangerous. Do so at your own risk!
 
 <br>

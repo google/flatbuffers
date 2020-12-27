@@ -11,7 +11,7 @@ class Monster(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsMonster(cls, buf, offset):
+    def GetRootAsMonster(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = Monster()
         x.Init(buf, n + offset)
@@ -719,7 +719,34 @@ class Monster(object):
             return self._tab.Get(flatbuffers.number_types.Int8Flags, o + self._tab.Pos)
         return -1
 
-def MonsterStart(builder): builder.StartObject(49)
+    # Monster
+    def Testrequirednestedflatbuffer(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(102))
+        if o != 0:
+            a = self._tab.Vector(o)
+            return self._tab.Get(flatbuffers.number_types.Uint8Flags, a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 1))
+        return 0
+
+    # Monster
+    def TestrequirednestedflatbufferAsNumpy(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(102))
+        if o != 0:
+            return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Uint8Flags, o)
+        return 0
+
+    # Monster
+    def TestrequirednestedflatbufferLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(102))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # Monster
+    def TestrequirednestedflatbufferIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(102))
+        return o == 0
+
+def MonsterStart(builder): builder.StartObject(50)
 def MonsterAddPos(builder, pos): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(pos), 0)
 def MonsterAddMana(builder, mana): builder.PrependInt16Slot(1, mana, 150)
 def MonsterAddHp(builder, hp): builder.PrependInt16Slot(2, hp, 100)
@@ -786,6 +813,8 @@ def MonsterAddAnyAmbiguous(builder, anyAmbiguous): builder.PrependUOffsetTRelati
 def MonsterAddVectorOfEnums(builder, vectorOfEnums): builder.PrependUOffsetTRelativeSlot(47, flatbuffers.number_types.UOffsetTFlags.py_type(vectorOfEnums), 0)
 def MonsterStartVectorOfEnumsVector(builder, numElems): return builder.StartVector(1, numElems, 1)
 def MonsterAddSignedEnum(builder, signedEnum): builder.PrependInt8Slot(48, signedEnum, -1)
+def MonsterAddTestrequirednestedflatbuffer(builder, testrequirednestedflatbuffer): builder.PrependUOffsetTRelativeSlot(49, flatbuffers.number_types.UOffsetTFlags.py_type(testrequirednestedflatbuffer), 0)
+def MonsterStartTestrequirednestedflatbufferVector(builder, numElems): return builder.StartVector(1, numElems, 1)
 def MonsterEnd(builder): return builder.EndObject()
 
 import MyGame.Example.Ability
@@ -856,6 +885,7 @@ class MonsterT(object):
         self.anyAmbiguous = None  # type: Union[None, MyGame.Example.Monster.MonsterT, MyGame.Example.Monster.MonsterT, MyGame.Example.Monster.MonsterT]
         self.vectorOfEnums = None  # type: List[int]
         self.signedEnum = -1  # type: int
+        self.testrequirednestedflatbuffer = None  # type: List[int]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -1033,6 +1063,13 @@ class MonsterT(object):
             else:
                 self.vectorOfEnums = monster.VectorOfEnumsAsNumpy()
         self.signedEnum = monster.SignedEnum()
+        if not monster.TestrequirednestedflatbufferIsNone():
+            if np is None:
+                self.testrequirednestedflatbuffer = []
+                for i in range(monster.TestrequirednestedflatbufferLength()):
+                    self.testrequirednestedflatbuffer.append(monster.Testrequirednestedflatbuffer(i))
+            else:
+                self.testrequirednestedflatbuffer = monster.TestrequirednestedflatbufferAsNumpy()
 
     # MonsterT
     def Pack(self, builder):
@@ -1045,14 +1082,14 @@ class MonsterT(object):
                 MonsterStartInventoryVector(builder, len(self.inventory))
                 for i in reversed(range(len(self.inventory))):
                     builder.PrependUint8(self.inventory[i])
-                inventory = builder.EndVector(len(self.inventory))
+                inventory = builder.EndVector()
         if self.test is not None:
             test = self.test.Pack(builder)
         if self.test4 is not None:
             MonsterStartTest4Vector(builder, len(self.test4))
             for i in reversed(range(len(self.test4))):
                 self.test4[i].Pack(builder)
-            test4 = builder.EndVector(len(self.test4))
+            test4 = builder.EndVector()
         if self.testarrayofstring is not None:
             testarrayofstringlist = []
             for i in range(len(self.testarrayofstring)):
@@ -1060,7 +1097,7 @@ class MonsterT(object):
             MonsterStartTestarrayofstringVector(builder, len(self.testarrayofstring))
             for i in reversed(range(len(self.testarrayofstring))):
                 builder.PrependUOffsetTRelative(testarrayofstringlist[i])
-            testarrayofstring = builder.EndVector(len(self.testarrayofstring))
+            testarrayofstring = builder.EndVector()
         if self.testarrayoftables is not None:
             testarrayoftableslist = []
             for i in range(len(self.testarrayoftables)):
@@ -1068,7 +1105,7 @@ class MonsterT(object):
             MonsterStartTestarrayoftablesVector(builder, len(self.testarrayoftables))
             for i in reversed(range(len(self.testarrayoftables))):
                 builder.PrependUOffsetTRelative(testarrayoftableslist[i])
-            testarrayoftables = builder.EndVector(len(self.testarrayoftables))
+            testarrayoftables = builder.EndVector()
         if self.enemy is not None:
             enemy = self.enemy.Pack(builder)
         if self.testnestedflatbuffer is not None:
@@ -1078,7 +1115,7 @@ class MonsterT(object):
                 MonsterStartTestnestedflatbufferVector(builder, len(self.testnestedflatbuffer))
                 for i in reversed(range(len(self.testnestedflatbuffer))):
                     builder.PrependUint8(self.testnestedflatbuffer[i])
-                testnestedflatbuffer = builder.EndVector(len(self.testnestedflatbuffer))
+                testnestedflatbuffer = builder.EndVector()
         if self.testempty is not None:
             testempty = self.testempty.Pack(builder)
         if self.testarrayofbools is not None:
@@ -1088,7 +1125,7 @@ class MonsterT(object):
                 MonsterStartTestarrayofboolsVector(builder, len(self.testarrayofbools))
                 for i in reversed(range(len(self.testarrayofbools))):
                     builder.PrependBool(self.testarrayofbools[i])
-                testarrayofbools = builder.EndVector(len(self.testarrayofbools))
+                testarrayofbools = builder.EndVector()
         if self.testarrayofstring2 is not None:
             testarrayofstring2list = []
             for i in range(len(self.testarrayofstring2)):
@@ -1096,12 +1133,12 @@ class MonsterT(object):
             MonsterStartTestarrayofstring2Vector(builder, len(self.testarrayofstring2))
             for i in reversed(range(len(self.testarrayofstring2))):
                 builder.PrependUOffsetTRelative(testarrayofstring2list[i])
-            testarrayofstring2 = builder.EndVector(len(self.testarrayofstring2))
+            testarrayofstring2 = builder.EndVector()
         if self.testarrayofsortedstruct is not None:
             MonsterStartTestarrayofsortedstructVector(builder, len(self.testarrayofsortedstruct))
             for i in reversed(range(len(self.testarrayofsortedstruct))):
                 self.testarrayofsortedstruct[i].Pack(builder)
-            testarrayofsortedstruct = builder.EndVector(len(self.testarrayofsortedstruct))
+            testarrayofsortedstruct = builder.EndVector()
         if self.flex is not None:
             if np is not None and type(self.flex) is np.ndarray:
                 flex = builder.CreateNumpyVector(self.flex)
@@ -1109,12 +1146,12 @@ class MonsterT(object):
                 MonsterStartFlexVector(builder, len(self.flex))
                 for i in reversed(range(len(self.flex))):
                     builder.PrependUint8(self.flex[i])
-                flex = builder.EndVector(len(self.flex))
+                flex = builder.EndVector()
         if self.test5 is not None:
             MonsterStartTest5Vector(builder, len(self.test5))
             for i in reversed(range(len(self.test5))):
                 self.test5[i].Pack(builder)
-            test5 = builder.EndVector(len(self.test5))
+            test5 = builder.EndVector()
         if self.vectorOfLongs is not None:
             if np is not None and type(self.vectorOfLongs) is np.ndarray:
                 vectorOfLongs = builder.CreateNumpyVector(self.vectorOfLongs)
@@ -1122,7 +1159,7 @@ class MonsterT(object):
                 MonsterStartVectorOfLongsVector(builder, len(self.vectorOfLongs))
                 for i in reversed(range(len(self.vectorOfLongs))):
                     builder.PrependInt64(self.vectorOfLongs[i])
-                vectorOfLongs = builder.EndVector(len(self.vectorOfLongs))
+                vectorOfLongs = builder.EndVector()
         if self.vectorOfDoubles is not None:
             if np is not None and type(self.vectorOfDoubles) is np.ndarray:
                 vectorOfDoubles = builder.CreateNumpyVector(self.vectorOfDoubles)
@@ -1130,7 +1167,7 @@ class MonsterT(object):
                 MonsterStartVectorOfDoublesVector(builder, len(self.vectorOfDoubles))
                 for i in reversed(range(len(self.vectorOfDoubles))):
                     builder.PrependFloat64(self.vectorOfDoubles[i])
-                vectorOfDoubles = builder.EndVector(len(self.vectorOfDoubles))
+                vectorOfDoubles = builder.EndVector()
         if self.parentNamespaceTest is not None:
             parentNamespaceTest = self.parentNamespaceTest.Pack(builder)
         if self.vectorOfReferrables is not None:
@@ -1140,7 +1177,7 @@ class MonsterT(object):
             MonsterStartVectorOfReferrablesVector(builder, len(self.vectorOfReferrables))
             for i in reversed(range(len(self.vectorOfReferrables))):
                 builder.PrependUOffsetTRelative(vectorOfReferrableslist[i])
-            vectorOfReferrables = builder.EndVector(len(self.vectorOfReferrables))
+            vectorOfReferrables = builder.EndVector()
         if self.vectorOfWeakReferences is not None:
             if np is not None and type(self.vectorOfWeakReferences) is np.ndarray:
                 vectorOfWeakReferences = builder.CreateNumpyVector(self.vectorOfWeakReferences)
@@ -1148,7 +1185,7 @@ class MonsterT(object):
                 MonsterStartVectorOfWeakReferencesVector(builder, len(self.vectorOfWeakReferences))
                 for i in reversed(range(len(self.vectorOfWeakReferences))):
                     builder.PrependUint64(self.vectorOfWeakReferences[i])
-                vectorOfWeakReferences = builder.EndVector(len(self.vectorOfWeakReferences))
+                vectorOfWeakReferences = builder.EndVector()
         if self.vectorOfStrongReferrables is not None:
             vectorOfStrongReferrableslist = []
             for i in range(len(self.vectorOfStrongReferrables)):
@@ -1156,7 +1193,7 @@ class MonsterT(object):
             MonsterStartVectorOfStrongReferrablesVector(builder, len(self.vectorOfStrongReferrables))
             for i in reversed(range(len(self.vectorOfStrongReferrables))):
                 builder.PrependUOffsetTRelative(vectorOfStrongReferrableslist[i])
-            vectorOfStrongReferrables = builder.EndVector(len(self.vectorOfStrongReferrables))
+            vectorOfStrongReferrables = builder.EndVector()
         if self.vectorOfCoOwningReferences is not None:
             if np is not None and type(self.vectorOfCoOwningReferences) is np.ndarray:
                 vectorOfCoOwningReferences = builder.CreateNumpyVector(self.vectorOfCoOwningReferences)
@@ -1164,7 +1201,7 @@ class MonsterT(object):
                 MonsterStartVectorOfCoOwningReferencesVector(builder, len(self.vectorOfCoOwningReferences))
                 for i in reversed(range(len(self.vectorOfCoOwningReferences))):
                     builder.PrependUint64(self.vectorOfCoOwningReferences[i])
-                vectorOfCoOwningReferences = builder.EndVector(len(self.vectorOfCoOwningReferences))
+                vectorOfCoOwningReferences = builder.EndVector()
         if self.vectorOfNonOwningReferences is not None:
             if np is not None and type(self.vectorOfNonOwningReferences) is np.ndarray:
                 vectorOfNonOwningReferences = builder.CreateNumpyVector(self.vectorOfNonOwningReferences)
@@ -1172,7 +1209,7 @@ class MonsterT(object):
                 MonsterStartVectorOfNonOwningReferencesVector(builder, len(self.vectorOfNonOwningReferences))
                 for i in reversed(range(len(self.vectorOfNonOwningReferences))):
                     builder.PrependUint64(self.vectorOfNonOwningReferences[i])
-                vectorOfNonOwningReferences = builder.EndVector(len(self.vectorOfNonOwningReferences))
+                vectorOfNonOwningReferences = builder.EndVector()
         if self.anyUnique is not None:
             anyUnique = self.anyUnique.Pack(builder)
         if self.anyAmbiguous is not None:
@@ -1184,7 +1221,15 @@ class MonsterT(object):
                 MonsterStartVectorOfEnumsVector(builder, len(self.vectorOfEnums))
                 for i in reversed(range(len(self.vectorOfEnums))):
                     builder.PrependUint8(self.vectorOfEnums[i])
-                vectorOfEnums = builder.EndVector(len(self.vectorOfEnums))
+                vectorOfEnums = builder.EndVector()
+        if self.testrequirednestedflatbuffer is not None:
+            if np is not None and type(self.testrequirednestedflatbuffer) is np.ndarray:
+                testrequirednestedflatbuffer = builder.CreateNumpyVector(self.testrequirednestedflatbuffer)
+            else:
+                MonsterStartTestrequirednestedflatbufferVector(builder, len(self.testrequirednestedflatbuffer))
+                for i in reversed(range(len(self.testrequirednestedflatbuffer))):
+                    builder.PrependUint8(self.testrequirednestedflatbuffer[i])
+                testrequirednestedflatbuffer = builder.EndVector()
         MonsterStart(builder)
         if self.pos is not None:
             pos = self.pos.Pack(builder)
@@ -1261,5 +1306,7 @@ class MonsterT(object):
         if self.vectorOfEnums is not None:
             MonsterAddVectorOfEnums(builder, vectorOfEnums)
         MonsterAddSignedEnum(builder, self.signedEnum)
+        if self.testrequirednestedflatbuffer is not None:
+            MonsterAddTestrequirednestedflatbuffer(builder, testrequirednestedflatbuffer)
         monster = MonsterEnd(builder)
         return monster

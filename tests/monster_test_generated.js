@@ -322,13 +322,7 @@ MyGame.Example.Test.prototype.a = function() {
  * @returns {boolean}
  */
 MyGame.Example.Test.prototype.mutate_a = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 0);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb.writeInt16(this.bb_pos + offset, value);
+  this.bb.writeInt16(this.bb_pos + 0, value);
   return true;
 };
 
@@ -344,15 +338,16 @@ MyGame.Example.Test.prototype.b = function() {
  * @returns {boolean}
  */
 MyGame.Example.Test.prototype.mutate_b = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 2);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb.writeInt8(this.bb_pos + offset, value);
+  this.bb.writeInt8(this.bb_pos + 2, value);
   return true;
 };
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.Test.sizeOf = function() {
+  return 4;
+}
 
 /**
  * @param {flatbuffers.Builder} builder
@@ -509,13 +504,7 @@ MyGame.Example.Vec3.prototype.x = function() {
  * @returns {boolean}
  */
 MyGame.Example.Vec3.prototype.mutate_x = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 0);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb.writeFloat32(this.bb_pos + offset, value);
+  this.bb.writeFloat32(this.bb_pos + 0, value);
   return true;
 };
 
@@ -531,13 +520,7 @@ MyGame.Example.Vec3.prototype.y = function() {
  * @returns {boolean}
  */
 MyGame.Example.Vec3.prototype.mutate_y = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 4);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb.writeFloat32(this.bb_pos + offset, value);
+  this.bb.writeFloat32(this.bb_pos + 4, value);
   return true;
 };
 
@@ -553,13 +536,7 @@ MyGame.Example.Vec3.prototype.z = function() {
  * @returns {boolean}
  */
 MyGame.Example.Vec3.prototype.mutate_z = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 8);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb.writeFloat32(this.bb_pos + offset, value);
+  this.bb.writeFloat32(this.bb_pos + 8, value);
   return true;
 };
 
@@ -575,13 +552,7 @@ MyGame.Example.Vec3.prototype.test1 = function() {
  * @returns {boolean}
  */
 MyGame.Example.Vec3.prototype.mutate_test1 = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 16);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb.writeFloat64(this.bb_pos + offset, value);
+  this.bb.writeFloat64(this.bb_pos + 16, value);
   return true;
 };
 
@@ -597,13 +568,7 @@ MyGame.Example.Vec3.prototype.test2 = function() {
  * @returns {boolean}
  */
 MyGame.Example.Vec3.prototype.mutate_test2 = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 24);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb.writeUint8(this.bb_pos + offset, value);
+  this.bb.writeUint8(this.bb_pos + 24, value);
   return true;
 };
 
@@ -614,6 +579,13 @@ MyGame.Example.Vec3.prototype.mutate_test2 = function(value) {
 MyGame.Example.Vec3.prototype.test3 = function(obj) {
   return (obj || new MyGame.Example.Test).__init(this.bb_pos + 26, this.bb);
 };
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.Vec3.sizeOf = function() {
+  return 32;
+}
 
 /**
  * @param {flatbuffers.Builder} builder
@@ -681,13 +653,7 @@ MyGame.Example.Ability.prototype.id = function() {
  * @returns {boolean}
  */
 MyGame.Example.Ability.prototype.mutate_id = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 0);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb.writeUint32(this.bb_pos + offset, value);
+  this.bb.writeUint32(this.bb_pos + 0, value);
   return true;
 };
 
@@ -703,15 +669,16 @@ MyGame.Example.Ability.prototype.distance = function() {
  * @returns {boolean}
  */
 MyGame.Example.Ability.prototype.mutate_distance = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 4);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb.writeUint32(this.bb_pos + offset, value);
+  this.bb.writeUint32(this.bb_pos + 4, value);
   return true;
 };
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.Ability.sizeOf = function() {
+  return 8;
+}
 
 /**
  * @param {flatbuffers.Builder} builder
@@ -1938,10 +1905,35 @@ MyGame.Example.Monster.prototype.mutate_signed_enum = function(value) {
 };
 
 /**
+ * @param {number} index
+ * @returns {number}
+ */
+MyGame.Example.Monster.prototype.testrequirednestedflatbuffer = function(index) {
+  var offset = this.bb.__offset(this.bb_pos, 102);
+  return offset ? this.bb.readUint8(this.bb.__vector(this.bb_pos + offset) + index) : 0;
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.Monster.prototype.testrequirednestedflatbufferLength = function() {
+  var offset = this.bb.__offset(this.bb_pos, 102);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @returns {Uint8Array}
+ */
+MyGame.Example.Monster.prototype.testrequirednestedflatbufferArray = function() {
+  var offset = this.bb.__offset(this.bb_pos, 102);
+  return offset ? new Uint8Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+};
+
+/**
  * @param {flatbuffers.Builder} builder
  */
 MyGame.Example.Monster.startMonster = function(builder) {
-  builder.startObject(49);
+  builder.startObject(50);
 };
 
 /**
@@ -2665,6 +2657,35 @@ MyGame.Example.Monster.startVectorOfEnumsVector = function(builder, numElems) {
  */
 MyGame.Example.Monster.addSignedEnum = function(builder, signedEnum) {
   builder.addFieldInt8(48, signedEnum, MyGame.Example.Race.None);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} testrequirednestedflatbufferOffset
+ */
+MyGame.Example.Monster.addTestrequirednestedflatbuffer = function(builder, testrequirednestedflatbufferOffset) {
+  builder.addFieldOffset(49, testrequirednestedflatbufferOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<number>} data
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.Monster.createTestrequirednestedflatbufferVector = function(builder, data) {
+  builder.startVector(1, data.length, 1);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addInt8(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+MyGame.Example.Monster.startTestrequirednestedflatbufferVector = function(builder, numElems) {
+  builder.startVector(1, numElems, 1);
 };
 
 /**
