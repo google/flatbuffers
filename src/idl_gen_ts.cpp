@@ -1114,7 +1114,7 @@ class JsTsGenerator : public BaseGenerator {
 
               case BASE_TYPE_STRING: {
                 field_type += "string)[]";
-                field_val = GenBBAccess() + ".createStringList(" +
+                field_val = GenBBAccess() + ".createScalarList(" +
                             field_binded_method + ", this." + field_name +
                             "Length())";
                 field_offset_decl =
