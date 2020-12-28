@@ -2,6 +2,7 @@
   "compilerOptions": {
     "target": "ES6",
     "lib": ["ES2015", "ES2020.BigInt", "DOM"],
+    "moduleResolution": "Node",
     "noImplicitAny": false,
     "strict": false,
     "noUnusedParameters": false,
@@ -12,5 +13,6 @@
     "noEmit": false,
     "outDir": "./ts"
   },
-  "files": [ "ts/monster_test_generated.ts" ]
+  "include": [ "ts/**/*.ts" ],
+  "exclude": []
 }

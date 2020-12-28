@@ -268,11 +268,13 @@ struct Definition {
         index(-1),
         refcount(1) {}
 
+  virtual ~Definition() {}
+
   flatbuffers::Offset<
       flatbuffers::Vector<flatbuffers::Offset<reflection::KeyValue>>>
-  SerializeAttributes(FlatBufferBuilder *builder, const Parser &parser) const;
+  virtual SerializeAttributes(FlatBufferBuilder *builder, const Parser &parser) const;
 
-  bool DeserializeAttributes(Parser &parser,
+  virtual bool DeserializeAttributes(Parser &parser,
                              const Vector<Offset<reflection::KeyValue>> *attrs);
 
   std::string name;
