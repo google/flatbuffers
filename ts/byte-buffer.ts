@@ -312,8 +312,8 @@ export class ByteBuffer {
     /**
      * A helper function for generating list for obj api
      */
-    createScalarList(listAccessor: (i: number) => unknown | string, listLength: number): unknown[] | string[] {
-      const ret: unknown[]  = [];
+    createScalarList(listAccessor: (i: number) => unknown, listLength: number): any[] {
+      const ret: any[]  = [];
       for(let i = 0; i < listLength; ++i) {
         if(listAccessor(i) !== null) {
           ret.push(listAccessor(i));
@@ -329,8 +329,8 @@ export class ByteBuffer {
      * @param listLength listLength
      * @param res result list
      */
-    createObjList(listAccessor: (i: number) => unknown, listLength: number): unknown[] {
-      const ret: unknown[] = [];
+    createObjList(listAccessor: (i: number) => unknown, listLength: number): any[] {
+      const ret: any[] = [];
       for(let i = 0; i < listLength; ++i) {
         const val = listAccessor(i);
         if(val !== null) {
