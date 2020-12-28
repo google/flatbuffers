@@ -105,20 +105,17 @@ class JsTsGenerator : public BaseGenerator {
                 const std::string &classcode, import_set &imports, import_set &bare_imports) const {
     if (!classcode.length()) return true;
 
-    std::string code;
-    code = "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
+    std::string code = "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
 
     for (auto &import : bare_imports)
       code += import.second.statement + "\n";
-    if (bare_imports.size() > 0)
+    if (!bare_imports.empty())
       code += "\n";
 
-    for (auto &import : imports) {
-      // do not import itself
-      if (import.second.dependency != &definition)
+    for (auto &import : imports)
+      if (import.second.dependency != &definition) // do not import itself
         code += import.second.statement + "\n";
-    }
-    if (imports.size() > 0)
+    if (!imports.empty())
       code += "\n\n";
 
     code += classcode;
