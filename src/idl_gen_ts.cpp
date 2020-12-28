@@ -676,7 +676,9 @@ class JsTsGenerator : public BaseGenerator {
   }
 
   std::string GenUnionGenericTypeTS(const EnumDef &union_enum) {
-    return std::string("T") + (UnionHasStringType(union_enum) ? "|string" : "");
+    // TODO: make it work without any
+    //return std::string("T") + (UnionHasStringType(union_enum) ? "|string" : "");
+    return std::string("any") + (UnionHasStringType(union_enum) ? "|string" : "");
   }
 
   std::string GenUnionTypeTS(const EnumDef &union_enum,
@@ -1459,7 +1461,9 @@ class JsTsGenerator : public BaseGenerator {
                 field.doc_comment, code_ptr,
                 args + GenTypeAnnotation(kReturns, ret_type, "", false));
             std::string prefix = MakeCamel(field.name, false);
-            if (is_union) { prefix += "<T extends flatbuffers.Table>"; }
+            // TODO: make it work without any
+            //if (is_union) { prefix += "<T extends flatbuffers.Table>"; }
+            if (is_union) { prefix += ""; }
             prefix += "(index: number";
             if (is_union) {
               const auto union_type =
