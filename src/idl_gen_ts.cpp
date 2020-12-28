@@ -75,7 +75,7 @@ class JsTsGenerator : public BaseGenerator {
   typedef std::unordered_set<std::string> imported_fileset;
   typedef std::unordered_multimap<std::string, ReexportDescription>
       reexport_map;
-  typedef std::multimap<std::string, ImportDefinition> import_set;
+  typedef std::map<std::string, ImportDefinition> import_set;
 
   JsTsGenerator(const Parser &parser, const std::string &path,
                 const std::string &file_name)
@@ -488,10 +488,7 @@ class JsTsGenerator : public BaseGenerator {
         if (IsString(type)) {
           name = "string|Uint8Array";
         } else {
-          // TODO: need imported as name
-          // name = WrapInNameSpace(*type.struct_def);
-          name = type.struct_def->name;
-          AddImport(imports, owner, *type.struct_def);
+          name = AddImport(imports, owner, *type.struct_def);
         }
         return (allowNull) ? (name + "|null") : (name);
       }
@@ -504,9 +501,7 @@ class JsTsGenerator : public BaseGenerator {
       default:
         if (IsScalar(type.base_type)) {
           if (type.enum_def) {
-            // TODO: need imported as name
-            //const auto enum_name = WrapInNameSpace(*type.enum_def);
-            const auto enum_name =  type.enum_def->name;
+            const auto enum_name = AddImport(imports, owner, *type.enum_def);
             return (allowNull) ? (enum_name + "|null") : (enum_name);
           }
           return (allowNull) ? ("number|null") : ("number");
@@ -734,39 +729,51 @@ class JsTsGenerator : public BaseGenerator {
     return ret;
   }
 
-  void AddImport(import_set &imports, const Definition &dependent, const Definition &dependency) {
+  std::string AddImport(import_set &imports, const Definition &dependent, const Definition &dependency) {
     std::string ns;
     for (auto &component : dependency.defined_namespace->components)
-      ns += component + ".";
-    std::string uniqueName = ns + dependency.name;
-    std::string importName =  dependency.name;
-    if (imports.find(uniqueName) != imports.end())
-      return;
-    // TODO: check if name is taken by other dependency if so alias name
-    std::string importStatement;
-    importStatement += "import { " + importName + " } from '";
-    std::string fileName;
+      ns += component;
+    std::string unique_name = ns + dependency.name;
+    std::string import_name =  dependency.name;
+    std::string long_import_name;
+    if (imports.find(unique_name) != imports.end())
+      return imports.find(unique_name)->second.name;
+    for (auto it = imports.begin(); it != imports.end(); it++) {
+      if (it->second.name == import_name) {
+        long_import_name = ns + import_name;
+        break;
+      }
+    }
+    std::string import_statement;
+    import_statement += "import { ";
+    if (long_import_name.empty())
+      import_statement += import_name;
+    else
+      import_statement += dependency.name + " as " + long_import_name;
+    import_statement += " } from '";
+    std::string file_name;
     for (size_t i = 0; i < dependent.defined_namespace->components.size(); i++)
-      fileName += i == 0 ? ".." : (kPathSeparator + std::string(".."));
+      file_name += i == 0 ? ".." : (kPathSeparator + std::string(".."));
     if (dependent.defined_namespace->components.size() == 0)
-      fileName += ".";
+      file_name += ".";
     for (const auto &c : dependency.defined_namespace->components)
-      fileName += kPathSeparator + ToDasherizedCase(c);
-    fileName += kPathSeparator + ToDasherizedCase(dependency.name);
-    importStatement += fileName + "';";
+      file_name += kPathSeparator + ToDasherizedCase(c);
+    file_name += kPathSeparator + ToDasherizedCase(dependency.name);
+    import_statement += file_name + "';";
     ImportDefinition import;
-    import.name = importName;
-    import.statement = importStatement;
+    import.name = long_import_name.empty() ? import_name : long_import_name;
+    import.statement = import_statement;
     import.dependency = &dependency;
     import.dependent = &dependent;
-    imports.insert(std::make_pair(uniqueName, import));
+    imports.insert(std::make_pair(unique_name, import));
+    return import.name;
   }
 
-  void AddImport(import_set &imports, std::string importName, std::string fileName) {
+  void AddImport(import_set &imports, std::string import_name, std::string fileName) {
     ImportDefinition import;
-    import.name = importName;
-    import.statement = "import { " + importName + " } from '" + fileName + "';";
-    imports.insert(std::make_pair(importName, import));
+    import.name = import_name;
+    import.statement = "import { " + import_name + " } from '" + fileName + "';";
+    imports.insert(std::make_pair(import_name, import));
   }
 
   // Generate a TS union type based on a union's enum
@@ -830,10 +837,7 @@ class JsTsGenerator : public BaseGenerator {
         imported_files.insert(union_type.enum_def->file);
       }
 
-      // TODO: could come from another cu?
-      /*auto enum_type = GenPrefixedTypeName(
-        WrapInNameSpace(*(union_type.enum_def)), union_type.enum_def->file);*/
-      const auto enum_type = union_type.enum_def->name;
+      const auto enum_type = AddImport(imports, enum_def, *union_type.enum_def);
       const auto &union_enum = *(union_type.enum_def);
 
       const auto union_enum_loop = [&](const std::string &accessor_str) {
@@ -850,11 +854,7 @@ class JsTsGenerator : public BaseGenerator {
           if (IsString(ev.union_type)) {
             ret += "return " + accessor_str + "'') as string;";
           } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
-            // TODO: need to differentiate same name diff namespace?
-            /*const auto type = GenPrefixedTypeName(
-                WrapInNameSpace(*(ev.union_type.struct_def)),
-                ev.union_type.struct_def->file);*/
-            const auto type = ev.union_type.struct_def->name;
+            const auto type = AddImport(imports, enum_def, *ev.union_type.struct_def);
             ret += "return " + accessor_str + "new " + type + "())! as " +
                    type + ";";
           } else {
@@ -1721,7 +1721,7 @@ class JsTsGenerator : public BaseGenerator {
                                                 "builder", false));
 
       code += "static start" + Verbose(struct_def) +
-              "(builder:flatbuffers.Builder) {\n";
+              "(builder:_flatbuffers_Builder) {\n";
 
       code += "  builder.startObject(" +
               NumToString(struct_def.fields.vec.size()) + ");\n";
@@ -1741,7 +1741,7 @@ class JsTsGenerator : public BaseGenerator {
                 GenTypeAnnotation(kParam, GenTypeName(imports, struct_def, field.value.type, true),
                                   argname, false));
         code += "static add" + MakeCamel(field.name);
-        code += "(builder:flatbuffers.Builder, " + argname + ":" +
+        code += "(builder:_flatbuffers_Builder, " + argname + ":" +
                 GetArgType(imports, struct_def, field, false) + ") {\n";
         code += "  builder.addField" + GenWriteMethod(field.value.type) + "(";
         code += NumToString(it - struct_def.fields.vec.begin()) + ", ";
