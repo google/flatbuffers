@@ -349,11 +349,11 @@ class JsTsGenerator : public BaseGenerator {
       // Generate mapping between EnumName: EnumValue(int)
       if (reverse) {
         code += "  '" + enum_def.ToString(ev) + "'";
-        code += "= ";
+        code += " = ";
         code += "'" + ev.name + "'";
       } else {
         code += "  " + ev.name;
-        code += "= ";
+        code += " = ";
         code += enum_def.ToString(ev);
       }
 
