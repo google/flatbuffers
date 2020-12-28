@@ -1,6 +1,6 @@
 {
     "dependencies": {
         "esm": "3.2.25",
-        "flatbuffers": "1.12.0"
+        "flatbuffers": "../"
     }
 }
