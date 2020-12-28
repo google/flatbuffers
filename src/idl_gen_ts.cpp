@@ -32,12 +32,6 @@ struct JsTsLanguageParameters {
   std::string file_extension;
 };
 
-struct ReexportDescription {
-  std::string symbol;
-  std::string source_namespace;
-  std::string target_namespace;
-};
-
 struct ImportDefinition {
   std::string name;
   std::string statement;
@@ -72,9 +66,6 @@ namespace jsts {
 // and tables) and output them to a single file.
 class JsTsGenerator : public BaseGenerator {
  public:
-  typedef std::unordered_set<std::string> imported_fileset;
-  typedef std::unordered_multimap<std::string, ReexportDescription>
-      reexport_map;
   typedef std::map<std::string, ImportDefinition> import_set;
 
   JsTsGenerator(const Parser &parser, const std::string &path,
@@ -82,20 +73,9 @@ class JsTsGenerator : public BaseGenerator {
       : BaseGenerator(parser, path, file_name, "", ".",
                       parser.opts.lang == IDLOptions::kJs ? "js" : "ts"),
         lang_(GetJsLangParams(parser_.opts.lang)) {}
-  // Iterate through all definitions we haven't generate code for (enums,
-  // structs, and tables) and output them to a single file.
   bool generate() {
-    imported_fileset imported_files;
-    reexport_map reexports;
-
-    generateEnums(reexports, imported_files);
-    generateStructs(imported_files);
-
-    // TODO: lack tests? not important?
-    //generateImportDependencies(imported_files);
-    // TODO: obsolete?
-    //generateReexports(&import_code, reexports, imported_files);
-
+    generateEnums();
+    generateStructs();
     return true;
   }
 
@@ -126,75 +106,22 @@ class JsTsGenerator : public BaseGenerator {
  private:
   JsTsLanguageParameters lang_;
 
-  // Generate code for imports
-  void generateImportDependencies(const imported_fileset &imported_files) {
-    std::string code;
-    for (auto it = imported_files.begin(); it != imported_files.end(); ++it) {
-      const auto &file = *it;
-      const auto basename =
-          flatbuffers::StripPath(flatbuffers::StripExtension(file));
-      if (basename != file_name_) { code += GenPrefixedImport(file, basename); }
-    }
-  }
-
-  // Generate reexports, which might not have been explicitly imported using the
-  // "export import" trick
-  void generateReexports(std::string *code_ptr, const reexport_map &reexports,
-                         imported_fileset imported_files) {
-    if (!parser_.opts.reexport_ts_modules ||
-        lang_.language != IDLOptions::kTs) {
-      return;
-    }
-
-    std::unordered_set<std::string> imported;
-
-    std::string &code = *code_ptr;
-    for (auto it = reexports.begin(); it != reexports.end(); ++it) {
-      const auto &file = *it;
-      const auto basename =
-          flatbuffers::StripPath(flatbuffers::StripExtension(file.first));
-      if (basename != file_name_ &&
-          imported.find(file.second.symbol) == imported.end()) {
-        if (imported_files.find(file.first) == imported_files.end()) {
-          code += GenPrefixedImport(file.first, basename);
-          imported_files.emplace(file.first);
-        }
-
-        if (!file.second.target_namespace.empty()) {
-          code += "export namespace " + file.second.target_namespace + " { \n";
-        }
-        code += "export import " + file.second.symbol + " = ";
-        code += GenFileNamespacePrefix(file.first) + ".";
-        if (!file.second.source_namespace.empty()) {
-          code += file.second.source_namespace + ".";
-        }
-        code += file.second.symbol + ";\n";
-        if (!file.second.target_namespace.empty()) { code += "}\n"; }
-
-        imported.emplace(file.second.symbol);
-      }
-    }
-  }
-
   // Generate code for all enums.
-  void generateEnums(reexport_map &reexports,
-                     imported_fileset &imported_files) {
+  void generateEnums() {
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
       import_set bare_imports;
       import_set imports;
       std::string enumcode;
       auto &enum_def = **it;
-      GenEnum(enum_def, &enumcode, reexports,
-              imported_files, imports, false);
-      GenEnum(enum_def, &enumcode, reexports,
-              imported_files, imports, true);
+      GenEnum(enum_def, &enumcode, imports, false);
+      GenEnum(enum_def, &enumcode, imports, true);
       SaveType(enum_def, enumcode, imports, bare_imports);
     }
   }
 
   // Generate code for all structs.
-  void generateStructs(imported_fileset &imported_files) {
+  void generateStructs() {
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
       import_set bare_imports;
@@ -202,56 +129,8 @@ class JsTsGenerator : public BaseGenerator {
       AddImport(bare_imports, "* as flatbuffers", "flatbuffers");
       auto &struct_def = **it;
       std::string declcode;
-      GenStruct(parser_, struct_def, &declcode, imported_files, imports);
+      GenStruct(parser_, struct_def, &declcode, imports);
       SaveType(struct_def, declcode, imports, bare_imports);
-    }
-  }
-  void GenNamespaces(std::string *code_ptr, std::string *exports_ptr) {
-    if (lang_.language == IDLOptions::kTs &&
-        parser_.opts.skip_flatbuffers_import) {
-      return;
-    }
-
-    std::set<std::string> namespaces;
-
-    for (auto it = parser_.namespaces_.begin(); it != parser_.namespaces_.end();
-         ++it) {
-      std::string namespace_so_far;
-
-      // Gather all parent namespaces for this namespace
-      for (auto component = (*it)->components.begin();
-           component != (*it)->components.end(); ++component) {
-        if (!namespace_so_far.empty()) { namespace_so_far += '.'; }
-        namespace_so_far += *component;
-        namespaces.insert(namespace_so_far);
-      }
-    }
-
-    // Make sure parent namespaces come before child namespaces
-    std::vector<std::string> sorted_namespaces(namespaces.begin(),
-                                               namespaces.end());
-    std::sort(sorted_namespaces.begin(), sorted_namespaces.end());
-
-    // Emit namespaces in a form that Closure Compiler can optimize
-    std::string &code = *code_ptr;
-    std::string &exports = *exports_ptr;
-
-    if (lang_.language == IDLOptions::kTs) {
-      code += "import * as flatbuffers from 'flatbuffers';\n";
-    }
-
-    for (auto it = sorted_namespaces.begin(); it != sorted_namespaces.end();
-         ++it) {
-      if (lang_.language == IDLOptions::kTs) {
-        if (it->find('.') == std::string::npos) { break; }
-      } else {
-        code += "/**\n * @const\n * @namespace\n */\n";
-        if (it->find('.') == std::string::npos) {
-          code += "const ";
-          exports += "export {" + *it + "}\n";
-        }
-        code += *it + " = " + *it + " || {}\n\n";
-      }
     }
   }
 
@@ -326,8 +205,8 @@ class JsTsGenerator : public BaseGenerator {
   }
 
   // Generate an enum declaration and an enum string lookup table.
-  void GenEnum(EnumDef &enum_def, std::string *code_ptr, reexport_map &reexports,
-               imported_fileset &imported_files, import_set &imports, bool reverse) {
+  void GenEnum(EnumDef &enum_def, std::string *code_ptr,
+               import_set &imports, bool reverse) {
     if (enum_def.generated) return;
     if (reverse && lang_.language == IDLOptions::kTs) return;  // FIXME.
     std::string &code = *code_ptr;
@@ -355,19 +234,11 @@ class JsTsGenerator : public BaseGenerator {
       }
 
       code += (it + 1) != enum_def.Vals().end() ? ",\n" : "\n";
-
-      if (ev.union_type.struct_def) {
-        ReexportDescription desc = { ev.union_type.struct_def->name,
-                                     GetNameSpace(*ev.union_type.struct_def),
-                                     GetNameSpace(enum_def) };
-        reexports.insert(
-            std::make_pair(ev.union_type.struct_def->file, std::move(desc)));
-      }
     }
     code += "}";
 
     if (enum_def.is_union) {
-      code += GenUnionConvFunc(enum_def.underlying_type, imported_files, imports);
+      code += GenUnionConvFunc(enum_def.underlying_type, imports);
     }
 
     code += "\n\n";
@@ -681,8 +552,7 @@ class JsTsGenerator : public BaseGenerator {
     return std::string("any") + (UnionHasStringType(union_enum) ? "|string" : "");
   }
 
-  std::string GenUnionTypeTS(const EnumDef &union_enum,
-                             imported_fileset &imported_files, import_set &imports) {
+  std::string GenUnionTypeTS(const EnumDef &union_enum, import_set &imports) {
     std::string ret;
     std::set<std::string> type_list;
 
@@ -695,8 +565,6 @@ class JsTsGenerator : public BaseGenerator {
       if (IsString(ev.union_type)) {
         type = "string";  // no need to wrap string type in namespace
       } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
-        if (!parser_.opts.generate_all)
-          imported_files.insert(ev.union_type.struct_def->file);
         type = AddImport(imports, union_enum, *ev.union_type.struct_def);
       } else {
         FLATBUFFERS_ASSERT(false);
@@ -808,13 +676,11 @@ class JsTsGenerator : public BaseGenerator {
     return "unionListTo" + enum_def.name;
   }
 
-  std::string GenUnionConvFunc(const Type &union_type,
-                               imported_fileset &imported_files,
-                               import_set &imports) {
+  std::string GenUnionConvFunc(const Type &union_type, import_set &imports) {
     if (union_type.enum_def) {
       const auto &enum_def = *union_type.enum_def;
 
-      const auto valid_union_type = GenUnionTypeTS(enum_def, imported_files, imports);
+      const auto valid_union_type = GenUnionTypeTS(enum_def, imports);
       const auto valid_union_type_with_null = valid_union_type + "|null";
 
       auto ret = "\n\nexport function " + GenUnionConvFuncName(enum_def) +
@@ -822,10 +688,6 @@ class JsTsGenerator : public BaseGenerator {
                  ",\n  accessor: (obj:" + valid_union_type + ") => " +
                  valid_union_type_with_null +
                  "\n): " + valid_union_type_with_null + " {\n";
-
-      if (!parser_.opts.generate_all) {
-        imported_files.insert(union_type.enum_def->file);
-      }
 
       const auto enum_type = AddImport(imports, enum_def, *union_type.enum_def);
       const auto &union_enum = *(union_type.enum_def);
@@ -977,7 +839,7 @@ class JsTsGenerator : public BaseGenerator {
 
   void GenObjApi(const Parser &parser, StructDef &struct_def,
                  std::string &obj_api_unpack_func, std::string &obj_api_class,
-                 imported_fileset &imported_files, import_set &imports) {
+                 import_set &imports) {
     const auto class_name = GetObjApiClassName(struct_def, parser.opts);
 
     std::string unpack_func =
@@ -1140,10 +1002,6 @@ class JsTsGenerator : public BaseGenerator {
               }
               default: {
                 if (vectortype.enum_def) {
-                  if (!parser_.opts.generate_all) {
-                    imported_files.insert(vectortype.enum_def->file);
-                  }
-
                   field_type +=
                       GenTypeName(imports, struct_def, vectortype, false, HasNullDefault(field));
                 } else {
@@ -1167,10 +1025,6 @@ class JsTsGenerator : public BaseGenerator {
           }
 
           case BASE_TYPE_UNION: {
-            if (!parser_.opts.generate_all) {
-              imported_files.insert(field.value.type.enum_def->file);
-            }
-
             field_type +=
                 GenObjApiUnionTypeTS(imports, parser.opts, *(field.value.type.enum_def));
 
@@ -1276,7 +1130,7 @@ class JsTsGenerator : public BaseGenerator {
 
   // Generate an accessor struct with constructor for a flatbuffers struct.
   void GenStruct(const Parser &parser, StructDef &struct_def,
-                 std::string *code_ptr, imported_fileset &imported_files, import_set &imports) {
+                 std::string *code_ptr, import_set &imports) {
     if (struct_def.generated) return;
     std::string &code = *code_ptr;
 
@@ -1368,10 +1222,6 @@ class JsTsGenerator : public BaseGenerator {
               "):" +
               GenTypeName(imports, struct_def, field.value.type, false, field.optional) +
               " {\n";
-
-          if (!parser_.opts.generate_all) {
-            imported_files.insert(field.value.type.enum_def->file);
-          }
         } else {
           code += "):" + GenTypeName(imports, struct_def, field.value.type, false, has_null_default) + " {\n";
         }
@@ -1422,11 +1272,6 @@ class JsTsGenerator : public BaseGenerator {
               code += ", " + GenBBAccess() + ") : null;\n";
             }
 
-            if (lang_.language == IDLOptions::kTs &&
-                !parser_.opts.generate_all) {
-              imported_files.insert(field.value.type.struct_def->file);
-            }
-
             break;
           }
 
@@ -1473,10 +1318,6 @@ class JsTsGenerator : public BaseGenerator {
               code += prefix + ", obj:" + union_type;
             } else if (vectortype.base_type == BASE_TYPE_STRUCT) {
               code += prefix + ", obj?:" + vectortypename;
-
-              if (!parser_.opts.generate_all) {
-                imported_files.insert(vectortype.struct_def->file);
-              }
             } else if (IsString(vectortype)) {
               code += prefix + "):string\n";
               code += prefix + ",optionalEncoding:flatbuffers.Encoding" +
@@ -1484,10 +1325,6 @@ class JsTsGenerator : public BaseGenerator {
               code += prefix + ",optionalEncoding?:any";
             } else {
               code += prefix;
-
-              if (vectortype.enum_def && !parser_.opts.generate_all) {
-                imported_files.insert(vectortype.enum_def->file);
-              }
             }
             code += "):" + vectortypename + "|null {\n";
 
@@ -1741,12 +1578,6 @@ class JsTsGenerator : public BaseGenerator {
                 code += sig_begin + type_old + sig_end + ";\n";
                 type = type_new + "|Uint8Array";
               }
-            } else {
-              if (vector_type.enum_def) {
-                if (!parser_.opts.generate_all) {
-                  imported_files.insert(vector_type.enum_def->file);
-                }
-              }
             }
             code += sig_begin + type + sig_end + " {\n";
             code += "  builder.startVector(" + NumToString(elem_size);
@@ -1856,7 +1687,7 @@ class JsTsGenerator : public BaseGenerator {
       std::string obj_api_class;
       std::string obj_api_unpack_func;
       GenObjApi(parser_, struct_def, obj_api_unpack_func, obj_api_class,
-                imported_files, imports);
+                imports);
 
       code += obj_api_unpack_func + "}\n" + obj_api_class;
     } else {
