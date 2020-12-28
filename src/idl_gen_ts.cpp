@@ -1720,8 +1720,8 @@ class JsTsGenerator : public BaseGenerator {
       GenDocComment(code_ptr, GenTypeAnnotation(kParam, "_flatbuffers_Builder",
                                                 "builder", false));
 
-      code += object_name + ".start" + Verbose(struct_def);
-      code += " = function(builder) {\n";
+      code += "static start" + Verbose(struct_def) +
+              "(builder:flatbuffers.Builder) {\n";
 
       code += "  builder.startObject(" +
               NumToString(struct_def.fields.vec.size()) + ");\n";
@@ -1740,9 +1740,9 @@ class JsTsGenerator : public BaseGenerator {
             GenTypeAnnotation(kParam, "_flatbuffers_Builder", "builder") +
                 GenTypeAnnotation(kParam, GenTypeName(imports, struct_def, field.value.type, true),
                                   argname, false));
-        code += object_name + ".add" + MakeCamel(field.name);
-        code += " = function(builder, " + argname + ") {\n";
-
+        code += "static add" + MakeCamel(field.name);
+        code += "(builder:flatbuffers.Builder, " + argname + ":" +
+                GetArgType(imports, struct_def, field, false) + ") {\n";
         code += "  builder.addField" + GenWriteMethod(field.value.type) + "(";
         code += NumToString(it - struct_def.fields.vec.begin()) + ", ";
         if (field.value.type.base_type == BASE_TYPE_BOOL) { code += "+"; }
