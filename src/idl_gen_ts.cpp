@@ -250,10 +250,10 @@ class JsTsGenerator : public BaseGenerator {
       } else {
         code += "/**\n * @const\n * @namespace\n */\n";
         if (it->find('.') == std::string::npos) {
-          code += "var ";
-          exports += "export {" + *it + "};\n";
+          code += "const ";
+          exports += "export {" + *it + "}\n";
         }
-        code += *it + " = " + *it + " || {};\n\n";
+        code += *it + " = " + *it + " || {}\n\n";
       }
     }
   }
@@ -367,7 +367,7 @@ class JsTsGenerator : public BaseGenerator {
             std::make_pair(ev.union_type.struct_def->file, std::move(desc)));
       }
     }
-    code += "};";
+    code += "}";
 
     if (enum_def.is_union) {
       code += GenUnionConvFunc(enum_def.underlying_type, imported_files, imports);
@@ -632,7 +632,7 @@ class JsTsGenerator : public BaseGenerator {
       }
       code += "  return (obj || " + GenerateNewExpression(object_name);
       code += ").__init(bb.readInt32(bb.position()) + bb.position(), bb);\n";
-      code += "};\n\n";
+      code += "}\n\n";
     }
   }
 
@@ -657,7 +657,7 @@ class JsTsGenerator : public BaseGenerator {
         code += ", true";
       }
       code += ");\n";
-      code += "};\n\n";
+      code += "}\n\n";
     }
   }
 
@@ -1269,7 +1269,7 @@ class JsTsGenerator : public BaseGenerator {
     }
 
     constructor_annotation += "\n */\n";
-    constructor_func += "){};\n\n";
+    constructor_func += "){}\n\n";
 
     if (has_create) {
       pack_func_create_call += ");";
@@ -1283,12 +1283,12 @@ class JsTsGenerator : public BaseGenerator {
     obj_api_class += constructor_annotation + constructor_func;
 
     obj_api_class += pack_func_prototype + pack_func_offset_decl +
-                     pack_func_create_call + "\n};";
+                     pack_func_create_call + "\n}";
 
     obj_api_class += "\n}\n";
 
-    unpack_func += ");\n};";
-    unpack_to_func += "};\n";
+    unpack_func += ");\n}";
+    unpack_to_func += "}\n";
 
     obj_api_unpack_func = unpack_func + "\n\n" + unpack_to_func;
   }
@@ -1328,7 +1328,7 @@ class JsTsGenerator : public BaseGenerator {
     code += "  /**\n";
     code += "   * " + GenTypeAnnotation(kType, "number", "");
     code += "   */\n";
-    code += "  bb_pos:number = 0;\n";
+    code += "  bb_pos = 0;\n";
 
     // Generate the __init method that sets the field in a pre-existing
     // accessor object. This is to allow object reuse.
@@ -1342,7 +1342,7 @@ class JsTsGenerator : public BaseGenerator {
     code += "  this.bb_pos = i;\n";
     code += "  this.bb = bb;\n";
     code += "  return this;\n";
-    code += "};\n\n";
+    code += "}\n\n";
 
     // Generate special accessors for the table that when used as the root of a
     // FlatBuffer
@@ -1359,7 +1359,7 @@ class JsTsGenerator : public BaseGenerator {
           "static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean "
           "{\n";
       code += "  return bb.__has_identifier('" + parser_.file_identifier_;
-      code += "');\n};\n\n";
+      code += "');\n}\n\n";
     }
 
     // Emit field accessors
@@ -1368,7 +1368,7 @@ class JsTsGenerator : public BaseGenerator {
       auto &field = **it;
       if (field.deprecated) continue;
       auto offset_prefix =
-          "  var offset = " + GenBBAccess() + ".__offset(this.bb_pos, " +
+          "  const offset = " + GenBBAccess() + ".__offset(this.bb_pos, " +
           NumToString(field.value.offset) + ");\n  return offset ? ";
 
       // Emit a scalar field
@@ -1591,7 +1591,7 @@ class JsTsGenerator : public BaseGenerator {
           default: FLATBUFFERS_ASSERT(0);
         }
       }
-      code += "};\n\n";
+      code += "}\n\n";
 
       // Adds the mutable scalar value to the output
       if (IsScalar(field.value.type.base_type) && parser.opts.mutable_buffer &&
@@ -1621,7 +1621,7 @@ class JsTsGenerator : public BaseGenerator {
                   MakeCamel(GenType(field.value.type)) + "(this.bb_pos + " +
                   NumToString(field.value.offset) + ", ";
         } else {
-          code += "  var offset = " + GenBBAccess() +
+          code += "  const offset = " + GenBBAccess() +
                   ".__offset(this.bb_pos, " + NumToString(field.value.offset) +
                   ");\n\n";
           code += "  if (offset === 0) {\n";
@@ -1639,7 +1639,7 @@ class JsTsGenerator : public BaseGenerator {
 
         code += "value);\n";
         code += "  return true;\n";
-        code += "};\n\n";
+        code += "}\n\n";
       }
 
       // Emit vector helpers
@@ -1651,7 +1651,7 @@ class JsTsGenerator : public BaseGenerator {
         code += "Length():number {\n" + offset_prefix;
 
         code +=
-            GenBBAccess() + ".__vector_len(this.bb_pos + offset) : 0;\n};\n\n";
+            GenBBAccess() + ".__vector_len(this.bb_pos + offset) : 0;\n}\n\n";
 
         // For scalar types, emit a typed array helper
         auto vectorType = field.value.type.VectorType();
@@ -1668,7 +1668,7 @@ class JsTsGenerator : public BaseGenerator {
                   ".bytes().buffer, " + GenBBAccess() +
                   ".bytes().byteOffset + " + GenBBAccess() +
                   ".__vector(this.bb_pos + offset), " + GenBBAccess() +
-                  ".__vector_len(this.bb_pos + offset)) : null;\n};\n\n";
+                  ".__vector_len(this.bb_pos + offset)) : null;\n}\n\n";
         }
       }
     }
@@ -1704,7 +1704,7 @@ class JsTsGenerator : public BaseGenerator {
       code += arguments + "):flatbuffers.Offset {\n";
 
       GenStructBody(struct_def, &code, "");
-      code += "  return builder.offset();\n};\n\n";
+      code += "  return builder.offset();\n}\n\n";
     } else {
       // Generate a method to start building a new object
       GenDocComment(code_ptr, GenTypeAnnotation(kParam, "flatbuffers.Builder",
@@ -1715,7 +1715,7 @@ class JsTsGenerator : public BaseGenerator {
 
       code += "  builder.startObject(" +
               NumToString(struct_def.fields.vec.size()) + ");\n";
-      code += "};\n\n";
+      code += "}\n\n";
 
       // Generate a set of static methods that allow table construction
       for (auto it = struct_def.fields.vec.begin();
@@ -1749,7 +1749,7 @@ class JsTsGenerator : public BaseGenerator {
           if (field.value.type.base_type == BASE_TYPE_BOOL) { code += "+"; }
           code += GenDefaultValue(field, "builder");
         }
-        code += ");\n};\n\n";
+        code += ");\n}\n\n";
 
         if (IsVector(field.value.type)) {
           auto vector_type = field.value.type.VectorType();
@@ -1801,13 +1801,13 @@ class JsTsGenerator : public BaseGenerator {
             code += sig_begin + type + sig_end + " {\n";
             code += "  builder.startVector(" + NumToString(elem_size);
             code += ", data.length, " + NumToString(alignment) + ");\n";
-            code += "  for (var i = data.length - 1; i >= 0; i--) {\n";
+            code += "  for (let i = data.length - 1; i >= 0; i--) {\n";
             code += "    builder.add" + GenWriteMethod(vector_type) + "(";
             if (vector_type.base_type == BASE_TYPE_BOOL) { code += "+"; }
             code += "data[i]);\n";
             code += "  }\n";
             code += "  return builder.endVector();\n";
-            code += "};\n\n";
+            code += "}\n\n";
           }
 
           // Generate a method to start a vector, data to be added manually
@@ -1821,7 +1821,7 @@ class JsTsGenerator : public BaseGenerator {
           code += "Vector(builder:flatbuffers.Builder, numElems:number) {\n";
           code += "  builder.startVector(" + NumToString(elem_size);
           code += ", numElems, " + NumToString(alignment) + ");\n";
-          code += "};\n\n";
+          code += "}\n\n";
         }
       }
 
@@ -1834,18 +1834,18 @@ class JsTsGenerator : public BaseGenerator {
       code += "static end" + Verbose(struct_def);
       code += "(builder:flatbuffers.Builder):flatbuffers.Offset {\n";
 
-      code += "  var offset = builder.endObject();\n";
+      code += "  const offset = builder.endObject();\n";
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
         auto &field = **it;
         if (!field.deprecated && field.required) {
           code += "  builder.requiredField(offset, ";
           code += NumToString(field.value.offset);
-          code += "); // " + field.name + "\n";
+          code += ") // " + field.name + "\n";
         }
       }
       code += "  return offset;\n";
-      code += "};\n\n";
+      code += "}\n\n";
 
       // Generate the methods to complete buffer construction
       GenerateFinisher(struct_def, code_ptr, code, false);
