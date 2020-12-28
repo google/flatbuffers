@@ -762,7 +762,7 @@ class JsTsGenerator : public BaseGenerator {
   void AddImport(import_set &imports, std::string import_name, std::string fileName) {
     ImportDefinition import;
     import.name = import_name;
-    import.statement = "import + import_name + from '" + fileName + "';";
+    import.statement = "import " + import_name + " from '" + fileName + "';";
     imports.insert(std::make_pair(import_name, import));
   }
 
