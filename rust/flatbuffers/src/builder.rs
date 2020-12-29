@@ -124,6 +124,8 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         self.finished = false;
 
         self.min_align = 0;
+
+        self.strings_map.clear();
     }
 
     /// Destroy the FlatBufferBuilder, returning its internal byte vector

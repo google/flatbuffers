@@ -3054,14 +3054,17 @@ fn load_file(filename: &str) -> Result<Vec<u8>, std::io::Error> {
 
 #[test]
 fn test_shared_strings() {
-    let b = &mut flatbuffers::FlatBufferBuilder::new();
-    let offset1 = b.create_shared_string("welcome to flatbuffers!!");
-    let offset2 = b.create_shared_string("welcome");
-    let offset3 = b.create_shared_string("welcome to flatbuffers!!");
-    let offset4 = b.create_shared_string("welcome to flatbuffers!!");
+    let builder = &mut flatbuffers::FlatBufferBuilder::new();
+    let offset1 = builder.create_shared_string("welcome to flatbuffers!!");
+    let offset2 = builder.create_shared_string("welcome");
+    let offset3 = builder.create_shared_string("welcome to flatbuffers!!");
     assert_eq!(false, offset2.value() == offset3.value());
     assert_eq!(offset1.value(), offset3.value());
-    assert_eq!(offset4.value(), offset3.value());
+    builder.reset();
+    let offset4 = builder.create_shared_string("welcome");
+    let offset5 = builder.create_shared_string("welcome to flatbuffers!!");
+    assert_eq!(false, offset2.value() == offset4.value());
+    assert_eq!(false, offset5.value() == offset1.value());
 }
 
 }
