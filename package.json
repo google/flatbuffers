@@ -16,10 +16,9 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "cd tests && ./JavaScriptTest.sh",
-    "test-ts": "cd tests && ./TypeScriptTest.sh",
+    "test": "npm run compile-ts && cd tests && ./JavaScriptTest.sh",
+    "test-ts": "npm run compile-ts && cd tests && ./TypeScriptTest.sh",
     "compile-ts": "tsc && tsc -p tsconfig.mjs.json",
-    "pretest": "npm run compile-ts",
     "append-esm-export": "sed \"s/this.flatbuffers = flatbuffers;/export { flatbuffers };/\" js/flatbuffers.js > js/flatbuffers.mjs",
     "prepublishOnly": "npm run compile-ts && npm run append-esm-export"
   },
