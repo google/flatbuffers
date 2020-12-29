@@ -21,6 +21,7 @@ use std::iter::{DoubleEndedIterator, ExactSizeIterator};
 use std::marker::PhantomData;
 use std::ptr::write_bytes;
 use std::slice::from_raw_parts;
+use std::collections::HashMap;
 
 use crate::endian_scalar::{emplace_scalar, read_scalar_at};
 use crate::primitives::*;
@@ -54,6 +55,7 @@ pub struct FlatBufferBuilder<'fbb> {
 
     min_align: usize,
     force_defaults: bool,
+    strings_map: HashMap<String, UOffsetT>,
 
     _phantom: PhantomData<&'fbb ()>,
 }
@@ -88,6 +90,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
 
             min_align: 0,
             force_defaults: false,
+            strings_map: HashMap::new(),
 
             _phantom: PhantomData,
         }
@@ -233,6 +236,21 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         self.nested = false;
         let o = self.push::<UOffsetT>(num_elems as UOffsetT);
         WIPOffset::new(o.value())
+    }
+
+    #[inline]
+    pub fn create_shared_string<'a: 'b, 'b>(&'a mut self, s: &'b str) -> WIPOffset<&'fbb str> {
+        self.assert_not_nested(
+            "create_shared_string can not be called when a table or vector is under construction",
+        );
+        match self.strings_map.get(s) {
+            Some(offset) => return WIPOffset::new(*offset),
+            None => {
+                let offset = self.create_byte_string(s.as_bytes()).value();
+                self.strings_map.insert(String::from(s), offset);
+                return WIPOffset::new(offset)
+            }
+        }
     }
 
     /// Create a utf8 string.
