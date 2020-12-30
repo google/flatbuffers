@@ -231,11 +231,11 @@ class JavaGenerator : public BaseGenerator {
     } else {
       if (castFromDest) {
         if (type.base_type == BASE_TYPE_UINT)
-          return "(int)";
+          return "(long)";
         else if (type.base_type == BASE_TYPE_USHORT)
-          return "(short)";
+          return "(int)";
         else if (type.base_type == BASE_TYPE_UCHAR)
-          return "(byte)";
+          return "(short)";
       }
     }
     return "";
