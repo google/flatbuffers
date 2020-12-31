@@ -54,7 +54,7 @@ pub struct FlatBufferBuilder<'fbb> {
 
     min_align: usize,
     force_defaults: bool,
-    strings_map: Option<Vec<WIPOffset<&'fbb str>>>,
+    strings_pool: Vec<WIPOffset<&'fbb str>>,
 
     _phantom: PhantomData<&'fbb ()>,
 }
@@ -89,7 +89,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
 
             min_align: 0,
             force_defaults: false,
-            strings_map: None,
+            strings_pool: Vec::new(),
 
             _phantom: PhantomData,
         }
@@ -123,10 +123,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         self.finished = false;
 
         self.min_align = 0;
-
-        if let Some(pool) = self.strings_map.as_mut() {
-            pool.clear();
-        }
+        self.strings_pool.clear();
     }
 
     /// Destroy the FlatBufferBuilder, returning its internal byte vector
@@ -246,48 +243,40 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         self.assert_not_nested(
             "create_shared_string can not be called when a table or vector is under construction",
         );
-        // Checks if strings_map is None to allocate it
-        if self.strings_map == None {
-            self.strings_map = Some(Vec::new())
-        }
 
         // Saves a ref to owned_buf since rust doesnt like us refrencing it
         // in the binary_search_by code.
         let buf = &self.owned_buf;
 
-        let found = self.strings_map.as_ref().map(|pool| {
-
-            pool.binary_search_by(|offset| {
-                let ptr = offset.value() as usize;
-                // Gets The pointer to the size of the string
-                let str_memory = &buf[buf.len() - ptr..];
-                // Gets the size of the written string from buffer
-                let size = u32::from_le_bytes([
-                    str_memory[0],
-                    str_memory[1],
-                    str_memory[2],
-                    str_memory[3],
-                ]) as usize;
-                // Size of the string size
-                let string_size: usize = 4;
-                // Fetches actual string bytes from index of string after string size
-                // to the size of string plus string size
-                let iter = str_memory[string_size..size + string_size].iter();
-                // Compares bytes of fetched string and current writable string
-                iter.cloned().cmp(s.bytes())
-            })
+        let found = self.strings_pool.binary_search_by(|offset| {
+            let ptr = offset.value() as usize;
+            // Gets The pointer to the size of the string
+            let str_memory = &buf[buf.len() - ptr..];
+            // Gets the size of the written string from buffer
+            let size = u32::from_le_bytes([
+                str_memory[0],
+                str_memory[1],
+                str_memory[2],
+                str_memory[3],
+            ]) as usize;
+            // Size of the string size
+            let string_size: usize = 4;
+            // Fetches actual string bytes from index of string after string size
+            // to the size of string plus string size
+            let iter = str_memory[string_size..size + string_size].iter();
+            // Compares bytes of fetched string and current writable string
+            iter.cloned().cmp(s.bytes())
         });
 
-        let address = if let Some(Ok(index)) = found {
-            self.strings_map.as_ref().unwrap()[index]
+        let address = if let Ok(index) = found {
+            self.strings_pool[index]
         } else {
             let _address = WIPOffset::new(self.create_byte_string(s.as_bytes()).value());
             _address
         };
 
-        if let Some(Err(index)) = found {
-            let pool = self.strings_map.as_mut().unwrap();
-            pool.insert(index, address);
+        if let Err(index) = found {
+            self.strings_pool.insert(index, address);
         }
         return address
     }

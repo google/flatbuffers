@@ -3054,17 +3054,17 @@ fn load_file(filename: &str) -> Result<Vec<u8>, std::io::Error> {
 
 #[test]
 fn test_shared_strings() {
-    let mut builder = &mut flatbuffers::FlatBufferBuilder::new();
+    let mut builder = flatbuffers::FlatBufferBuilder::new();
     let offset1 = builder.create_shared_string("welcome to flatbuffers!!");
     let offset2 = builder.create_shared_string("welcome");
     let offset3 = builder.create_shared_string("welcome to flatbuffers!!");
-    assert_eq!(false, offset2.value() == offset3.value());
+    assert_ne!(offset2.value(), offset3.value());
     assert_eq!(offset1.value(), offset3.value());
     builder.reset();
     let offset4 = builder.create_shared_string("welcome");
     let offset5 = builder.create_shared_string("welcome to flatbuffers!!");
-    assert_eq!(false, offset2.value() == offset4.value());
-    assert_eq!(false, offset5.value() == offset1.value());
+    assert_ne!(offset2.value(), offset4.value());
+    assert_ne!(offset5.value(), offset1.value());
     builder.reset();
 
     // Checks if the shared string function would always work with
@@ -3076,6 +3076,26 @@ fn test_shared_strings() {
     });
     let secondary_name = builder.create_shared_string("foo");
     assert_eq!(name.value(), secondary_name.value());
+
+    // Builds a new monster object and embeds _m into it so we can verify
+    // that shared strings are working.
+    let args = my_game::example::MonsterArgs {
+        name: Some(secondary_name),
+        enemy: Some(_m),
+        testarrayofstring: Some(builder.create_vector(&[name, secondary_name])),
+        ..Default::default()
+    };
+    // Building secondary monster
+    let _m2 = my_game::example::Monster::create(&mut builder, &args);
+    builder.finish(_m2, None);
+    let monster = my_game::example::root_as_monster(builder.finished_data()).unwrap();
+
+    // Checks if the embedded object (Enemy) name is foo
+    assert_eq!(monster.enemy().unwrap().name(), "foo");
+    let string_vector = monster.testarrayofstring().unwrap();
+    // Check if the vector will have the same string
+    assert_eq!(string_vector.get(0), "foo");
+    assert_eq!(string_vector.get(1), "foo");
 }
 
 }
