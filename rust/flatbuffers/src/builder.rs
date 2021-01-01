@@ -268,17 +268,14 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
             iter.cloned().cmp(s.bytes())
         });
 
-        let address = if let Ok(index) = found {
-            self.strings_pool[index]
-        } else {
-            let _address = WIPOffset::new(self.create_byte_string(s.as_bytes()).value());
-            _address
-        };
-
-        if let Err(index) = found {
-            self.strings_pool.insert(index, address);
+        match found {
+            Ok(index) => self.strings_pool[index],
+            Err(index) => {
+                let address = WIPOffset::new(self.create_byte_string(s.as_bytes()).value());
+                self.strings_pool.insert(index, address);
+                address
+            }
         }
-        return address
     }
 
     /// Create a utf8 string.

@@ -3070,24 +3070,24 @@ fn test_shared_strings() {
     // Checks if the shared string function would always work with
     // an object in between the writes
     let name = builder.create_shared_string("foo");
-    let _m = my_game::example::Monster::create(&mut builder, &my_game::example::MonsterArgs {
+    let enemy = my_game::example::Monster::create(&mut builder, &my_game::example::MonsterArgs {
         name: Some(name),
         ..Default::default()
     });
     let secondary_name = builder.create_shared_string("foo");
     assert_eq!(name.value(), secondary_name.value());
 
-    // Builds a new monster object and embeds _m into it so we can verify
+    // Builds a new monster object and embeds enemy into it so we can verify
     // that shared strings are working.
     let args = my_game::example::MonsterArgs {
         name: Some(secondary_name),
-        enemy: Some(_m),
+        enemy: Some(enemy),
         testarrayofstring: Some(builder.create_vector(&[name, secondary_name])),
         ..Default::default()
     };
     // Building secondary monster
-    let _m2 = my_game::example::Monster::create(&mut builder, &args);
-    builder.finish(_m2, None);
+    let main_monster = my_game::example::Monster::create(&mut builder, &args);
+    builder.finish(main_monster, None);
     let monster = my_game::example::root_as_monster(builder.finished_data()).unwrap();
 
     // Checks if the embedded object (Enemy) name is foo
