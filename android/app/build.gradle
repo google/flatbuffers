@@ -48,7 +48,11 @@ android {
 
     standardOutput = new ByteArrayOutputStream()
     errorOutput = new ByteArrayOutputStream()
-    commandLine 'flatc', '-o', outputCppDir, '--cpp', "${fbsFiles.join(" ")}"
+    def commandLineArgs = ['flatc', '-o', outputCppDir, '--cpp']
+    fbsFiles.forEach{
+      commandLineArgs.add(it.path)
+    }
+    commandLine commandLineArgs
 
     doFirst {
       delete "$outputCppDir/"
@@ -70,7 +74,11 @@ android {
 
     standardOutput = new ByteArrayOutputStream()
     errorOutput = new ByteArrayOutputStream()
-    commandLine 'flatc', '-o', outputKotlinDir, '--kotlin', "${fbsFiles.join(" ")}"
+    def commandLineArgs = ['flatc', '-o', outputKotlinDir, '--kotlin']
+    fbsFiles.forEach{
+      commandLineArgs.add(it.path)
+    }
+    commandLine commandLineArgs
 
     doFirst {
       delete "$outputKotlinDir/"
