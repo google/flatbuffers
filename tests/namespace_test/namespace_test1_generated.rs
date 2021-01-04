@@ -26,11 +26,11 @@ pub mod namespace_b {
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
 
-#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_ENUM_IN_NESTED_NS: i8 = 0;
-#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MAX_ENUM_IN_NESTED_NS: i8 = 2;
-#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 #[allow(non_camel_case_types)]
 pub const ENUM_VALUES_ENUM_IN_NESTED_NS: [EnumInNestedNS; 3] = [
   EnumInNestedNS::A,
@@ -105,8 +105,8 @@ impl flatbuffers::EndianScalar for EnumInNestedNS {
 
 impl<'a> flatbuffers::Verifiable for EnumInNestedNS {
   #[inline]
-  fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     i8::run_verifier(v, pos)
@@ -170,14 +170,15 @@ impl<'b> flatbuffers::Push for &'b StructInNestedNS {
 
 impl<'a> flatbuffers::Verifiable for StructInNestedNS {
   #[inline]
-  fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     v.in_buffer::<Self>(pos)
   }
 }
 impl StructInNestedNS {
+  #[allow(clippy::too_many_arguments)]
   pub fn new(_a: i32, _b: i32) -> Self {
     StructInNestedNS {
       a_: _a.to_little_endian(),
@@ -242,8 +243,8 @@ impl<'a> TableInNestedNS<'a> {
 
 impl flatbuffers::Verifiable for TableInNestedNS<'_> {
   #[inline]
-  fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     v.visit_table(pos)?

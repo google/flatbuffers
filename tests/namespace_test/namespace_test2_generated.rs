@@ -77,8 +77,8 @@ impl<'a> TableInFirstNS<'a> {
 
 impl flatbuffers::Verifiable for TableInFirstNS<'_> {
   #[inline]
-  fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     v.visit_table(pos)?
@@ -190,8 +190,8 @@ impl<'a> SecondTableInA<'a> {
 
 impl flatbuffers::Verifiable for SecondTableInA<'_> {
   #[inline]
-  fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     v.visit_table(pos)?
@@ -305,8 +305,8 @@ impl<'a> TableInC<'a> {
 
 impl flatbuffers::Verifiable for TableInC<'_> {
   #[inline]
-  fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     v.visit_table(pos)?

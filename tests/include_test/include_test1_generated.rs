@@ -51,8 +51,8 @@ impl<'a> TableA<'a> {
 
 impl flatbuffers::Verifiable for TableA<'_> {
   #[inline]
-  fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     v.visit_table(pos)?

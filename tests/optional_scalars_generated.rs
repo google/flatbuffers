@@ -18,11 +18,11 @@ pub mod optional_scalars {
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
 
-#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_OPTIONAL_BYTE: i8 = 0;
-#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MAX_OPTIONAL_BYTE: i8 = 2;
-#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 #[allow(non_camel_case_types)]
 pub const ENUM_VALUES_OPTIONAL_BYTE: [OptionalByte; 3] = [
   OptionalByte::None,
@@ -97,8 +97,8 @@ impl flatbuffers::EndianScalar for OptionalByte {
 
 impl<'a> flatbuffers::Verifiable for OptionalByte {
   #[inline]
-  fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     i8::run_verifier(v, pos)
@@ -357,8 +357,8 @@ impl<'a> ScalarStuff<'a> {
 
 impl flatbuffers::Verifiable for ScalarStuff<'_> {
   #[inline]
-  fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     v.visit_table(pos)?
@@ -690,13 +690,13 @@ impl std::fmt::Debug for ScalarStuff<'_> {
   }
 }
 #[inline]
-#[deprecated(since="1.13", note="Deprecated in favor of `root_as...` methods.")]
+#[deprecated(since="2.0.0", note="Deprecated in favor of `root_as...` methods.")]
 pub fn get_root_as_scalar_stuff<'a>(buf: &'a [u8]) -> ScalarStuff<'a> {
   unsafe { flatbuffers::root_unchecked::<ScalarStuff<'a>>(buf) }
 }
 
 #[inline]
-#[deprecated(since="1.13", note="Deprecated in favor of `root_as...` methods.")]
+#[deprecated(since="2.0.0", note="Deprecated in favor of `root_as...` methods.")]
 pub fn get_size_prefixed_root_as_scalar_stuff<'a>(buf: &'a [u8]) -> ScalarStuff<'a> {
   unsafe { flatbuffers::size_prefixed_root_unchecked::<ScalarStuff<'a>>(buf) }
 }
