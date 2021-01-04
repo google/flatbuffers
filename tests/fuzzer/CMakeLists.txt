@@ -10,7 +10,7 @@ option(BUILD_DEBUGGER "Compile a debugger with main() and without libFuzzer" OFF
 
 if(NOT DEFINED FLATBUFFERS_MAX_PARSING_DEPTH)
   # Force checking of RecursionError in the test
-  set(FLATBUFFERS_MAX_PARSING_DEPTH 8)
+  set(FLATBUFFERS_MAX_PARSING_DEPTH 24)
 endif()
 message(STATUS "FLATBUFFERS_MAX_PARSING_DEPTH: ${FLATBUFFERS_MAX_PARSING_DEPTH}")
 

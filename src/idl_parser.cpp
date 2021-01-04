@@ -155,18 +155,34 @@ CheckedError Parser::Error(const std::string &msg) {
 inline CheckedError NoError() { return CheckedError(false); }
 
 CheckedError Parser::RecurseError() {
-  return Error("maximum parsing recursion of " +
-               NumToString(FLATBUFFERS_MAX_PARSING_DEPTH) + " reached");
+  return Error("maximum parsing depth " + NumToString(parse_depth_counter_) +
+               " reached");
 }
 
-template<typename F> CheckedError Parser::Recurse(F f) {
-  if (recurse_protection_counter >= (FLATBUFFERS_MAX_PARSING_DEPTH))
-    return RecurseError();
-  recurse_protection_counter++;
-  auto ce = f();
-  recurse_protection_counter--;
-  return ce;
-}
+class Parser::ParseDepthGuard {
+ public:
+  explicit ParseDepthGuard(Parser *parser_not_null)
+      : parser_(*parser_not_null), caller_depth_(parser_.parse_depth_counter_) {
+    FLATBUFFERS_ASSERT(caller_depth_ <= (FLATBUFFERS_MAX_PARSING_DEPTH) &&
+                       "Check() must be called to prevent stack overflow");
+    parser_.parse_depth_counter_ += 1;
+  }
+
+  ~ParseDepthGuard() { parser_.parse_depth_counter_ -= 1; }
+
+  CheckedError Check() {
+    return caller_depth_ >= (FLATBUFFERS_MAX_PARSING_DEPTH)
+               ? parser_.RecurseError()
+               : CheckedError(false);
+  }
+
+  FLATBUFFERS_DELETE_FUNC(ParseDepthGuard(const ParseDepthGuard &));
+  FLATBUFFERS_DELETE_FUNC(ParseDepthGuard &operator=(const ParseDepthGuard &));
+
+ private:
+  Parser &parser_;
+  const int caller_depth_;
+};
 
 template<typename T> std::string TypeToIntervalString() {
   return "[" + NumToString((flatbuffers::numeric_limits<T>::lowest)()) + "; " +
@@ -633,9 +649,11 @@ CheckedError Parser::ParseType(Type &type) {
       ECHECK(ParseTypeIdent(type));
     }
   } else if (token_ == '[') {
+    ParseDepthGuard depth_guard(this);
+    ECHECK(depth_guard.Check());
     NEXT();
     Type subtype;
-    ECHECK(Recurse([&]() { return ParseType(subtype); }));
+    ECHECK(ParseType(subtype));
     if (IsSeries(subtype)) {
       // We could support this, but it will complicate things, and it's
       // easier to work around with a struct around the inner vector.
@@ -1033,6 +1051,8 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
         }
         if (next_name == type_name) {
           EXPECT(':');
+          ParseDepthGuard depth_guard(this);
+          ECHECK(depth_guard.Check());
           Value type_val = type_field->value;
           ECHECK(ParseAnyValue(type_val, type_field, 0, nullptr, 0));
           constant = type_val.constant;
@@ -1159,6 +1179,9 @@ CheckedError Parser::ParseTableDelimiters(size_t &fieldn,
 
 CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
                                 uoffset_t *ovalue) {
+  ParseDepthGuard depth_guard(this);
+  ECHECK(depth_guard.Check());
+
   size_t fieldn_outer = 0;
   auto err = ParseTableDelimiters(
       fieldn_outer, &struct_def,
@@ -1194,9 +1217,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
               ECHECK(
                   ParseNestedFlatbuffer(val, field, fieldn, struct_def_inner));
             } else {
-              ECHECK(Recurse([&]() {
-                return ParseAnyValue(val, field, fieldn, struct_def_inner, 0);
-              }));
+              ECHECK(ParseAnyValue(val, field, fieldn, struct_def_inner, 0));
             }
             // Hardcoded insertion-sort with error-check.
             // If fields are specified in order, then this loop exits
@@ -1372,9 +1393,7 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
   auto err = ParseVectorDelimiters(count, [&](uoffset_t &) -> CheckedError {
     Value val;
     val.type = type;
-    ECHECK(Recurse([&]() {
-      return ParseAnyValue(val, field, fieldn, nullptr, count, true);
-    }));
+    ECHECK(ParseAnyValue(val, field, fieldn, nullptr, count, true));
     field_stack_.push_back(std::make_pair(val, nullptr));
     return NoError();
   });
@@ -1548,7 +1567,7 @@ CheckedError Parser::ParseNestedFlatbuffer(Value &val, FieldDef *field,
     nested_parser.enums_ = enums_;
     nested_parser.opts = opts;
     nested_parser.uses_flexbuffers_ = uses_flexbuffers_;
-
+    nested_parser.parse_depth_counter_ = parse_depth_counter_;
     // Parse JSON substring into new flatbuffer builder using nested_parser
     bool ok = nested_parser.Parse(substring.c_str(), nullptr, nullptr);
 
@@ -1697,6 +1716,9 @@ static inline void SingleValueRepack(Value &e, double val) {
 #endif
 
 CheckedError Parser::ParseFunction(const std::string *name, Value &e) {
+  ParseDepthGuard depth_guard(this);
+  ECHECK(depth_guard.Check());
+
   // Copy name, attribute will be changed on NEXT().
   const auto functionname = attribute_;
   if (!IsFloat(e.type.base_type)) {
@@ -1707,7 +1729,7 @@ CheckedError Parser::ParseFunction(const std::string *name, Value &e) {
   }
   NEXT();
   EXPECT('(');
-  ECHECK(Recurse([&]() { return ParseSingleValue(name, e, false); }));
+  ECHECK(ParseSingleValue(name, e, false));
   EXPECT(')');
   // calculate with double precision
   double x, y = 0.0;
@@ -2678,7 +2700,7 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
           ECHECK(StartEnum(name, true, &oneof_union));
           type = Type(BASE_TYPE_UNION, nullptr, oneof_union);
         } else {
-          auto name = "Anonymous" + NumToString(anonymous_counter++);
+          auto name = "Anonymous" + NumToString(anonymous_counter_++);
           ECHECK(StartStruct(name, &anonymous_struct));
           type = Type(BASE_TYPE_STRUCT, anonymous_struct);
         }
@@ -2851,22 +2873,24 @@ CheckedError Parser::ParseTypeFromProtoType(Type *type) {
 }
 
 CheckedError Parser::SkipAnyJsonValue() {
+  ParseDepthGuard depth_guard(this);
+  ECHECK(depth_guard.Check());
+
   switch (token_) {
     case '{': {
       size_t fieldn_outer = 0;
-      return ParseTableDelimiters(
-          fieldn_outer, nullptr,
-          [&](const std::string &, size_t &fieldn,
-              const StructDef *) -> CheckedError {
-            ECHECK(Recurse([&]() { return SkipAnyJsonValue(); }));
-            fieldn++;
-            return NoError();
-          });
+      return ParseTableDelimiters(fieldn_outer, nullptr,
+                                  [&](const std::string &, size_t &fieldn,
+                                      const StructDef *) -> CheckedError {
+                                    ECHECK(SkipAnyJsonValue());
+                                    fieldn++;
+                                    return NoError();
+                                  });
     }
     case '[': {
       uoffset_t count = 0;
       return ParseVectorDelimiters(count, [&](uoffset_t &) -> CheckedError {
-        return Recurse([&]() { return SkipAnyJsonValue(); });
+        return SkipAnyJsonValue();
       });
     }
     case kTokenStringConstant:
@@ -2882,6 +2906,9 @@ CheckedError Parser::SkipAnyJsonValue() {
 }
 
 CheckedError Parser::ParseFlexBufferValue(flexbuffers::Builder *builder) {
+  ParseDepthGuard depth_guard(this);
+  ECHECK(depth_guard.Check());
+
   switch (token_) {
     case '{': {
       auto start = builder->StartMap();
@@ -2943,15 +2970,19 @@ CheckedError Parser::ParseFlexBufferValue(flexbuffers::Builder *builder) {
 
 bool Parser::ParseFlexBuffer(const char *source, const char *source_filename,
                              flexbuffers::Builder *builder) {
+  const auto initial_depth = parse_depth_counter_;
+  (void)initial_depth;
   auto ok = !StartParseFile(source, source_filename).Check() &&
             !ParseFlexBufferValue(builder).Check();
   if (ok) builder->Finish();
+  FLATBUFFERS_ASSERT(initial_depth == parse_depth_counter_);
   return ok;
 }
 
 bool Parser::Parse(const char *source, const char **include_paths,
                    const char *source_filename) {
-  FLATBUFFERS_ASSERT(0 == recurse_protection_counter);
+  const auto initial_depth = parse_depth_counter_;
+  (void)initial_depth;
   bool r;
 
   if (opts.use_flexbuffers) {
@@ -2959,16 +2990,17 @@ bool Parser::Parse(const char *source, const char **include_paths,
   } else {
     r = !ParseRoot(source, include_paths, source_filename).Check();
   }
-  FLATBUFFERS_ASSERT(0 == recurse_protection_counter);
+  FLATBUFFERS_ASSERT(initial_depth == parse_depth_counter_);
   return r;
 }
 
 bool Parser::ParseJson(const char *json, const char *json_filename) {
-  FLATBUFFERS_ASSERT(0 == recurse_protection_counter);
+  const auto initial_depth = parse_depth_counter_;
+  (void)initial_depth;
   builder_.Clear();
   const auto done =
       !StartParseFile(json, json_filename).Check() && !DoParseJson().Check();
-  FLATBUFFERS_ASSERT(0 == recurse_protection_counter);
+  FLATBUFFERS_ASSERT(initial_depth == parse_depth_counter_);
   return done;
 }
 
