@@ -93,6 +93,8 @@ impl<T> Clone for WIPOffset<T> {
     }
 }
 
+impl<T> Eq for WIPOffset<T> {}
+
 impl<T> PartialEq for WIPOffset<T> {
     fn eq(&self, o: &WIPOffset<T>) -> bool {
         self.value() == o.value()
