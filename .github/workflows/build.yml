@@ -170,19 +170,19 @@ jobs:
   #    working-directory: tests/FlatBuffers.Test
   #    run: bash NetTest.sh
 
-  build-php:
-    name: Build PHP
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v1
-    - name: flatc
-      # FIXME: make test script not rely on flatc
-      run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF . && make -j4
-    - name: test
-      working-directory: tests
-      run: |
-        php phpTest.php
-        sh phpUnionVectorTest.sh
+  #build-php:
+  #  name: Build PHP
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #  - uses: actions/checkout@v1
+  #  - name: flatc
+  #    # FIXME: make test script not rely on flatc
+  #    run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF . && make -j4
+  #  - name: test
+  #    working-directory: tests
+  #    run: |
+  #      php phpTest.php
+  #      sh phpUnionVectorTest.sh
 
   build-swift:
     name: Build Swift
