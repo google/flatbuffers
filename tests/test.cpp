@@ -3710,6 +3710,24 @@ void ParseFlexbuffersFromJsonWithNullTest() {
   }
 }
 
+void FieldIdentifierTest() {
+  using flatbuffers::Parser;
+  TEST_EQ(true, Parser().Parse("table T{ f: int (id:0); }"));
+  // non-integer `id` should be rejected
+  TEST_EQ(false, Parser().Parse("table T{ f: int (id:text); }"));
+  TEST_EQ(false, Parser().Parse("table T{ f: int (id:\"text\"); }"));
+  TEST_EQ(false, Parser().Parse("table T{ f: int (id:0text); }"));
+  TEST_EQ(false, Parser().Parse("table T{ f: int (id:1.0); }"));
+  TEST_EQ(false, Parser().Parse("table T{ f: int (id:-1); g: int (id:0); }"));
+  TEST_EQ(false, Parser().Parse("table T{ f: int (id:129496726); }"));
+  // A unuion filed occupys two ids: enumerator + pointer (offset).
+  TEST_EQ(false,
+          Parser().Parse("union X{} table T{ u: X(id:0); table F{x:int;\n}"));
+  // Positive tests for unions
+  TEST_EQ(true, Parser().Parse("union X{} table T{ u: X (id:1); }"));
+  TEST_EQ(true, Parser().Parse("union X{} table T{ u: X; }"));
+}
+
 int FlatBufferTests() {
   // clang-format off
 
@@ -3802,6 +3820,7 @@ int FlatBufferTests() {
   ParseFlexbuffersFromJsonWithNullTest();
   FlatbuffersSpanTest();
   FixedLengthArrayConstructorTest();
+  FieldIdentifierTest();
   return 0;
 }
 
