@@ -408,6 +408,39 @@ class PythonGenerator : public BaseGenerator {
     code += "\n";
   }
 
+  // Returns a nested flatbuffer as itself.
+  void GetVectorAsNestedFlatbuffer(const StructDef &struct_def,
+                                   const FieldDef &field,
+                                   std::string *code_ptr) {
+    auto nested = field.attributes.Lookup("nested_flatbuffer");
+    if (!nested) { return; } // There is no nested flatbuffer.
+
+    std::string unqualified_name = nested->constant;
+    std::string qualified_name = nested->constant;
+    auto nested_root = parser_.LookupStruct(nested->constant);
+    if (nested_root == nullptr) {
+      qualified_name = parser_.current_namespace_->GetFullyQualifiedName(
+          nested->constant);
+      nested_root = parser_.LookupStruct(qualified_name);
+    }
+    FLATBUFFERS_ASSERT(nested_root);  // Guaranteed to exist by parser.
+    (void)nested_root;
+
+    auto &code = *code_ptr;
+    GenReceiver(struct_def, code_ptr);
+    code += MakeCamel(NormalizedName(field)) + "NestedRoot(self):";
+
+    code += OffsetPrefix(field);
+
+    code += Indent + Indent + Indent;
+    code += "from " + qualified_name + " import " + unqualified_name + "\n";
+    code += Indent + Indent + Indent + "return " + unqualified_name;
+    code += ".GetRootAs" + unqualified_name;
+    code += "(self._tab.Bytes, self._tab.Vector(o))\n";
+    code += Indent + Indent + "return 0\n";
+    code += "\n";
+  }
+
   // Begin the creator function signature.
   void BeginBuilderArgs(const StructDef &struct_def, std::string *code_ptr) {
     auto &code = *code_ptr;
@@ -561,6 +594,43 @@ class PythonGenerator : public BaseGenerator {
     code += ")\n";
   }
 
+  // Set the value of one of the members of a table's vector and fills in the
+  // elements from a bytearray. This is for simplifying the use of nested
+  // flatbuffers.
+  void BuildVectorOfTableFromBytes(const StructDef &struct_def,
+                                   const FieldDef &field,
+                                   std::string *code_ptr) {
+    auto nested = field.attributes.Lookup("nested_flatbuffer");
+    if (!nested) { return; }  // There is no nested flatbuffer.
+
+    std::string unqualified_name = nested->constant;
+    std::string qualified_name = nested->constant;
+    auto nested_root = parser_.LookupStruct(nested->constant);
+    if (nested_root == nullptr) {
+      qualified_name =
+          parser_.current_namespace_->GetFullyQualifiedName(nested->constant);
+      nested_root = parser_.LookupStruct(qualified_name);
+    }
+    FLATBUFFERS_ASSERT(nested_root);  // Guaranteed to exist by parser.
+    (void)nested_root;
+
+    auto &code = *code_ptr;
+    code += "def " + NormalizedName(struct_def) + "Make";
+    code += MakeCamel(NormalizedName(field));
+    code += "VectorFromBytes(builder, bytes):\n";
+    code += Indent + "builder.StartVector(";
+    auto vector_type = field.value.type.VectorType();
+    auto alignment = InlineAlignment(vector_type);
+    auto elem_size = InlineSize(vector_type);
+    code += NumToString(elem_size);
+    code += ", len(bytes), " + NumToString(alignment);
+    code += ")\n";
+    code += Indent + "builder.head = builder.head - len(bytes)\n";
+    code += Indent + "builder.Bytes[builder.head : builder.head + len(bytes)]";
+    code += " = bytes\n";
+    code += Indent + "return builder.EndVector(len(bytes))\n";
+  }
+
   // Get the offset of the end of a table.
   void GetEndOffsetOnTable(const StructDef &struct_def, std::string *code_ptr) {
     auto &code = *code_ptr;
@@ -607,6 +677,7 @@ class PythonGenerator : public BaseGenerator {
           } else {
             GetMemberOfVectorOfNonStruct(struct_def, field, code_ptr);
             GetVectorOfNonStructAsNumpy(struct_def, field, code_ptr);
+            GetVectorAsNestedFlatbuffer(struct_def, field, code_ptr);
           }
           break;
         }
@@ -643,6 +714,7 @@ class PythonGenerator : public BaseGenerator {
       BuildFieldOfTable(struct_def, field, offset, code_ptr);
       if (IsVector(field.value.type)) {
         BuildVectorOfTable(struct_def, field, code_ptr);
+        BuildVectorOfTableFromBytes(struct_def, field, code_ptr);
       }
     }
 
