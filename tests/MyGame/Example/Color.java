@@ -7,16 +7,16 @@ package MyGame.Example;
  */
 public final class Color {
   private Color() { }
-  public static final byte Red = 1;
+  public static final int Red = 1;
   /**
    * \brief color Green
    * Green is bit_flag with value (1u << 1)
    */
-  public static final byte Green = 2;
+  public static final int Green = 2;
   /**
    * \brief color Blue (1u << 3)
    */
-  public static final byte Blue = 8;
+  public static final int Blue = 8;
 
   public static final String[] names = { "Red", "Green", "", "", "", "", "", "Blue", };
 
