@@ -785,7 +785,7 @@ def MonsterMakeTestnestedflatbufferVectorFromBytes(builder, bytes):
     builder.StartVector(1, len(bytes), 1)
     builder.head = builder.head - len(bytes)
     builder.Bytes[builder.head : builder.head + len(bytes)] = bytes
-    return builder.EndVector(len(bytes))
+    return builder.EndVector()
 def MonsterAddTestempty(builder, testempty): builder.PrependUOffsetTRelativeSlot(14, flatbuffers.number_types.UOffsetTFlags.py_type(testempty), 0)
 def MonsterAddTestbool(builder, testbool): builder.PrependBoolSlot(15, testbool, 0)
 def MonsterAddTesthashs32Fnv1(builder, testhashs32Fnv1): builder.PrependInt32Slot(16, testhashs32Fnv1, 0)
@@ -840,7 +840,7 @@ def MonsterMakeTestrequirednestedflatbufferVectorFromBytes(builder, bytes):
     builder.StartVector(1, len(bytes), 1)
     builder.head = builder.head - len(bytes)
     builder.Bytes[builder.head : builder.head + len(bytes)] = bytes
-    return builder.EndVector(len(bytes))
+    return builder.EndVector()
 def MonsterEnd(builder): return builder.EndObject()
 
 import MyGame.Example.Ability
