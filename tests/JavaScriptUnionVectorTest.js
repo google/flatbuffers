@@ -6,14 +6,12 @@ import { BookReader, BookReaderT } from './ts/book-reader'
 import { Attacker, AttackerT } from './ts/attacker'
 import { Movie, MovieT } from './ts/movie'
 
-var isTsTest = !!process.env.FB_TS_TEST; 
-
 var charTypes = [
   Character.Belle,
   Character.MuLan,
   Character.BookFan,
+  Character.Other
 ];
-if(isTsTest) { charTypes.push(Character.Other); }
 
 function testMovieBuf(movie) {
   assert.strictEqual(movie.charactersTypeLength(), charTypes.length);
@@ -32,10 +30,8 @@ function testMovieBuf(movie) {
   var bookReader2 = movie.characters(2, new BookReader());
   assert.strictEqual(bookReader2.booksRead(), 2);
 
-  if(isTsTest) {
-    var other = movie.characters(3, '');
-    assert.strictEqual(other, "I am other");
-  }
+  var other = movie.characters(3, '');
+  assert.strictEqual(other, "I am other");
 }
 
 function testMovieUnpack(movie) {
@@ -49,19 +45,17 @@ function testMovieUnpack(movie) {
   var bookReader7 = movie.characters[0];
   assert.strictEqual(bookReader7 instanceof BookReaderT, true);
   assert.strictEqual(bookReader7.booksRead, 7);
-  
+
   var attacker = movie.characters[1];
   assert.strictEqual(attacker instanceof AttackerT, true);
   assert.strictEqual(attacker.swordAttackDamage, 5);
-  
+
   var bookReader2 = movie.characters[2];
   assert.strictEqual(bookReader2 instanceof BookReaderT, true);
   assert.strictEqual(bookReader2.booksRead, 2);
 
-  if(isTsTest) {
-    var other = movie.characters[3];
-    assert.strictEqual(other, "I am other");
-  }
+  var other = movie.characters[3];
+  assert.strictEqual(other, "I am other");
 }
 
 function createMovie(fbb) {
@@ -72,28 +66,17 @@ function createMovie(fbb) {
   var charTypesOffset = Movie.createCharactersTypeVector(fbb, charTypes);
   var charsOffset = 0;
 
-  if(isTsTest) {
-    let otherOffset = fbb.createString("I am other");
+  let otherOffset = fbb.createString("I am other");
 
-    charsOffset = Movie.createCharactersVector(
-      fbb,
-      [
-        BookReader.createBookReader(fbb, 7),
-        attackerOffset,
-        BookReader.createBookReader(fbb, 2),
-        otherOffset
-      ]
-    );
-  } else {
-    charsOffset = Movie.createCharactersVector(
-      fbb,
-      [
-        BookReader.createBookReader(fbb, 7),
-        attackerOffset,
-        BookReader.createBookReader(fbb, 2)
-      ]
-    );
-  }
+  charsOffset = Movie.createCharactersVector(
+    fbb,
+    [
+      BookReader.createBookReader(fbb, 7),
+      attackerOffset,
+      BookReader.createBookReader(fbb, 2),
+      otherOffset
+    ]
+  );
 
   Movie.startMovie(fbb);
   Movie.addCharactersType(fbb, charTypesOffset);
@@ -111,19 +94,17 @@ function main() {
   var movie = Movie.getRootAsMovie(buf);
   testMovieBuf(movie);
 
-  if(isTsTest) {
-    testMovieUnpack(movie.unpack());
+  testMovieUnpack(movie.unpack());
 
-    var movie_to = new MovieT();
-    movie.unpackTo(movie_to);
-    testMovieUnpack(movie_to);
+  var movie_to = new MovieT();
+  movie.unpackTo(movie_to);
+  testMovieUnpack(movie_to);
 
-    fbb.clear();
-    Movie.finishMovieBuffer(fbb, movie_to.pack(fbb));
-    var unpackBuf = new flatbuffers.ByteBuffer(fbb.asUint8Array());
-    testMovieBuf(Movie.getRootAsMovie(unpackBuf));
-  }
-
+  fbb.clear();
+  Movie.finishMovieBuffer(fbb, movie_to.pack(fbb));
+  var unpackBuf = new flatbuffers.ByteBuffer(fbb.asUint8Array());
+  testMovieBuf(Movie.getRootAsMovie(unpackBuf));
+  
   console.log('FlatBuffers union vector test: completed successfully');
 }
 

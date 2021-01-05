@@ -16,8 +16,7 @@
 
 pushd "$(dirname $0)" >/dev/null
 
-export FB_TS_TEST="TRUE"
-
+# clean node_modules to make sure we depend on latest local flatbuffers at ../
 rm -rf node_modules
 npm install
 
@@ -27,5 +26,4 @@ npm install
 tsc
 node -r esm JavaScriptTest
 node -r esm JavaScriptUnionVectorTest
-
-unset FB_TS_TEST
+node -r esm JavaScriptFlexBuffersTest
