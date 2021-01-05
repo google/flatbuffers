@@ -20,9 +20,9 @@ pushd "$(dirname $0)" >/dev/null
 rm -rf node_modules
 npm install
 
-../flatc --ts --no-fb-import --gen-name-strings --gen-mutable --gen-object-api -o ts -I include_test monster_test.fbs
+../flatc --ts --gen-name-strings --gen-mutable --gen-object-api -o ts -I include_test monster_test.fbs
 ../flatc --gen-object-api -b -I include_test monster_test.fbs unicode_test.json
-../flatc --ts --gen-name-strings --no-fb-import --gen-object-api -o ts union_vector/union_vector.fbs
+../flatc --ts --gen-name-strings --gen-object-api -o ts union_vector/union_vector.fbs
 tsc
 node -r esm JavaScriptTest
 node -r esm JavaScriptUnionVectorTest

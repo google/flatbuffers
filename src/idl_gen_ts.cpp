@@ -460,7 +460,7 @@ class TsGenerator : public BaseGenerator {
                         GenTypeAnnotation(kReturns, object_name, "", false));
       std::string sizePrefixed("SizePrefixed");
       code += "static get" + (size_prefixed ? sizePrefixed : "") + "Root" +
-              Verbose(struct_def, "As");
+              GetPrefixedName(struct_def, "As");
       code += "(bb:flatbuffers.ByteBuffer, obj?:" + object_name +
               "):" + object_name + " {\n";
       if (size_prefixed) {
@@ -484,7 +484,7 @@ class TsGenerator : public BaseGenerator {
               GenTypeAnnotation(kParam, "flatbuffers.Offset", "offset", false));
 
       code += "static finish" + (size_prefixed ? sizePrefixed : "") +
-              Verbose(struct_def) + "Buffer";
+              GetPrefixedName(struct_def) + "Buffer";
       code += "(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {\n";
       code += "  builder.finish(offset";
       if (!parser_.file_identifier_.empty()) {
@@ -843,10 +843,10 @@ class TsGenerator : public BaseGenerator {
 
     if (has_create) {
       pack_func_create_call = "  return " + struct_name + ".create" +
-                              Verbose(struct_def) + "(builder" +
+                              GetPrefixedName(struct_def) + "(builder" +
                               (struct_def.fields.vec.empty() ? "" : ",\n    ");
     } else {
-      pack_func_create_call = "  " + struct_name + ".start" + Verbose(struct_def) + "(builder);\n";
+      pack_func_create_call = "  " + struct_name + ".start" + GetPrefixedName(struct_def) + "(builder);\n";
     }
 
     if (struct_def.fixed) {
@@ -1068,7 +1068,7 @@ class TsGenerator : public BaseGenerator {
     if (has_create) {
       pack_func_create_call += ");";
     } else {
-      pack_func_create_call += "return " + struct_name + ".end" + Verbose(struct_def) + "(builder);";
+      pack_func_create_call += "return " + struct_name + ".end" + GetPrefixedName(struct_def) + "(builder);";
     }
 
     obj_api_class = "\nexport class " +
@@ -1459,7 +1459,7 @@ class TsGenerator : public BaseGenerator {
                                                 kReturns, "flatbuffers.Offset",
                                                 "", false));
 
-      code += "static create" + Verbose(struct_def) +
+      code += "static create" + GetPrefixedName(struct_def) +
               "(builder:flatbuffers.Builder";
       code += arguments + "):flatbuffers.Offset {\n";
 
@@ -1470,7 +1470,7 @@ class TsGenerator : public BaseGenerator {
       GenDocComment(code_ptr, GenTypeAnnotation(kParam, "flatbuffers.Builder",
                                                 "builder", false));
 
-      code += "static start" + Verbose(struct_def) +
+      code += "static start" + GetPrefixedName(struct_def) +
               "(builder:flatbuffers.Builder) {\n";
 
       code += "  builder.startObject(" +
@@ -1583,7 +1583,7 @@ class TsGenerator : public BaseGenerator {
           GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder") +
               GenTypeAnnotation(kReturns, "flatbuffers.Offset", "", false));
 
-      code += "static end" + Verbose(struct_def);
+      code += "static end" + GetPrefixedName(struct_def);
       code += "(builder:flatbuffers.Builder):flatbuffers.Offset {\n";
 
       code += "  const offset = builder.endObject();\n";
@@ -1605,7 +1605,7 @@ class TsGenerator : public BaseGenerator {
 
       // Generate a convenient CreateX function
       if (CanCreateFactoryMethod(struct_def)) {
-        code += "static create" + Verbose(struct_def);
+        code += "static create" + GetPrefixedName(struct_def);
         code += "(builder:flatbuffers.Builder";
         for (auto it = struct_def.fields.vec.begin();
              it != struct_def.fields.vec.end(); ++it) {
@@ -1615,7 +1615,7 @@ class TsGenerator : public BaseGenerator {
         }
 
         code += "):flatbuffers.Offset {\n";
-        code += "  " + struct_def.name + ".start" + Verbose(struct_def) +
+        code += "  " + struct_def.name + ".start" + GetPrefixedName(struct_def) +
                 "(builder);\n";
 
         std::string methodPrefix = struct_def.name;
@@ -1634,14 +1634,14 @@ class TsGenerator : public BaseGenerator {
           code += "builder, " + arg_name + ");\n";
         }
 
-        code += "  return " + methodPrefix + ".end" + Verbose(struct_def) +
+        code += "  return " + methodPrefix + ".end" + GetPrefixedName(struct_def) +
                 "(builder);\n";
         code += "}\n";
       }
     }
 
     if (!struct_def.fixed && parser_.services_.vec.size() != 0) {
-      auto name = Verbose(struct_def, "");
+      auto name = GetPrefixedName(struct_def, "");
       code += "\n";
       code += "serialize():Uint8Array {\n";
       code += "  return this.bb!.bytes();\n";
@@ -1681,8 +1681,8 @@ class TsGenerator : public BaseGenerator {
     return argname;
   }
 
-  std::string Verbose(const StructDef &struct_def, const char *prefix = "") {
-    return parser_.opts.js_ts_short_names ? "" : prefix + struct_def.name;
+  std::string GetPrefixedName(const StructDef &struct_def, const char *prefix = "") {
+    return prefix + struct_def.name;
   }
 };  // namespace ts
 }  // namespace ts
