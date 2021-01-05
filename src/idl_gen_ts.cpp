@@ -27,11 +27,6 @@
 
 namespace flatbuffers {
 
-struct JsTsLanguageParameters {
-  IDLOptions::Language language;
-  std::string file_extension;
-};
-
 struct ImportDefinition {
   std::string name;
   std::string statement;
@@ -41,38 +36,16 @@ struct ImportDefinition {
 
 enum AnnotationType { kParam = 0, kType = 1, kReturns = 2 };
 
-const JsTsLanguageParameters &GetJsLangParams(IDLOptions::Language lang) {
-  static JsTsLanguageParameters js_language_parameters[] = {
-    {
-        IDLOptions::kJs,
-        ".js",
-    },
-    {
-        IDLOptions::kTs,
-        ".ts",
-    },
-  };
-
-  if (lang == IDLOptions::kJs) {
-    return js_language_parameters[0];
-  } else {
-    FLATBUFFERS_ASSERT(lang == IDLOptions::kTs);
-    return js_language_parameters[1];
-  }
-}
-
-namespace jsts {
+namespace ts {
 // Iterate through all definitions we haven't generate code for (enums, structs,
 // and tables) and output them to a single file.
-class JsTsGenerator : public BaseGenerator {
+class TsGenerator : public BaseGenerator {
  public:
   typedef std::map<std::string, ImportDefinition> import_set;
 
-  JsTsGenerator(const Parser &parser, const std::string &path,
+  TsGenerator(const Parser &parser, const std::string &path,
                 const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", ".",
-                      parser.opts.lang == IDLOptions::kJs ? "js" : "ts"),
-        lang_(GetJsLangParams(parser_.opts.lang)) {}
+      : BaseGenerator(parser, path, file_name, "", ".", "ts") {}
   bool generate() {
     generateEnums();
     generateStructs();
@@ -104,8 +77,6 @@ class JsTsGenerator : public BaseGenerator {
   }
 
  private:
-  JsTsLanguageParameters lang_;
-
   // Generate code for all enums.
   void generateEnums() {
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
@@ -208,7 +179,7 @@ class JsTsGenerator : public BaseGenerator {
   void GenEnum(EnumDef &enum_def, std::string *code_ptr,
                import_set &imports, bool reverse) {
     if (enum_def.generated) return;
-    if (reverse && lang_.language == IDLOptions::kTs) return;  // FIXME.
+    if (reverse) return;  // FIXME.
     std::string &code = *code_ptr;
     GenDocComment(enum_def.doc_comment, code_ptr,
                   reverse ? "@enum {string}" : "@enum {number}");
@@ -1713,22 +1684,22 @@ class JsTsGenerator : public BaseGenerator {
   std::string Verbose(const StructDef &struct_def, const char *prefix = "") {
     return parser_.opts.js_ts_short_names ? "" : prefix + struct_def.name;
   }
-};  // namespace jsts
-}  // namespace jsts
+};  // namespace ts
+}  // namespace ts
 
-bool GenerateJSTS(const Parser &parser, const std::string &path,
+bool GenerateTS(const Parser &parser, const std::string &path,
                   const std::string &file_name) {
-  jsts::JsTsGenerator generator(parser, path, file_name);
+  ts::TsGenerator generator(parser, path, file_name);
   return generator.generate();
 }
 
-std::string JSTSMakeRule(const Parser &parser, const std::string &path,
+std::string TSMakeRule(const Parser &parser, const std::string &path,
                          const std::string &file_name) {
   FLATBUFFERS_ASSERT(parser.opts.lang <= IDLOptions::kMAX);
 
   std::string filebase =
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
-  jsts::JsTsGenerator generator(parser, path, file_name);
+  ts::TsGenerator generator(parser, path, file_name);
   std::string make_rule =
       generator.GeneratedFileName(path, filebase, parser.opts) + ": ";
 
