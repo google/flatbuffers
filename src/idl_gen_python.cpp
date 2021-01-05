@@ -628,7 +628,7 @@ class PythonGenerator : public BaseGenerator {
     code += Indent + "builder.head = builder.head - len(bytes)\n";
     code += Indent + "builder.Bytes[builder.head : builder.head + len(bytes)]";
     code += " = bytes\n";
-    code += Indent + "return builder.EndVector(len(bytes))\n";
+    code += Indent + "return builder.EndVector()\n";
   }
 
   // Get the offset of the end of a table.
