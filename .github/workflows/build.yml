@@ -106,6 +106,29 @@ jobs:
     - name: test
       working-directory: tests
       run: bash JavaTest.sh
+  
+  build-kotlin:
+    name: Build Kotlin
+    runs-on: macos-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+    - name: Build
+      working-directory: kotlin  
+      run: ./gradlew clean build allTests
+    - name: Run Benchmark
+      working-directory: kotlin  
+      run: ./gradlew benchmark
+    - name: Generate Benchmark Report
+      working-directory: kotlin  
+      run: |
+        ./gradlew jmhReport;
+        mv benchmark/build/reports/benchmarks/main/* benchmark_latest
+    - name: Archive benchmark report
+      uses: actions/upload-artifact@v1
+      with:
+        name: Kotlin Benchmark Report
+        path: kotlin/benchmark_latest
 
   build-rust:
     name: Build Rust
