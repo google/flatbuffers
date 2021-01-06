@@ -524,6 +524,30 @@ public struct MyGame_Example_Stat: FlatBufferObject, ObjectAPI {
     MyGame_Example_Stat.add(count: count, &fbb)
     return MyGame_Example_Stat.endStat(&fbb, start: __start)
   }
+  public static func sortVectorOfStat(offsets:[Offset<UOffset>], _ fbb: inout FlatBufferBuilder) -> Offset<UOffset> {
+    var off = offsets
+    off.sort { Table.compare(Table.offset(Int32($1.o), vOffset: 8, fbb: fbb.buffer), Table.offset(Int32($0.o), vOffset: 8, fbb: fbb.buffer), fbb: fbb.buffer) < 0 } 
+    return fbb.createVector(ofOffsets: off)
+  }
+  fileprivate static func lookupByKey(vector: Int32, key: UInt16, fbb: ByteBuffer) -> MyGame_Example_Stat? {
+    var span = fbb.read(def: Int32.self, position: Int(vector - 4))
+    var start: Int32 = 0
+    while span != 0 {
+      var middle = span / 2
+      let tableOffset = Table.indirect(vector + 4 * (start + middle), fbb)
+      let comp = fbb.read(def: UInt16.self, position: Int(Table.offset(Int32(fbb.capacity) - tableOffset, vOffset: 8, fbb: fbb)))
+      if comp > 0 {
+        span = middle
+      } else if comp < 0 {
+        middle += 1
+        start += middle
+        span -= middle
+      } else {
+        return MyGame_Example_Stat(fbb, o: tableOffset)
+      }
+    }
+    return nil
+  }
   
 
   public mutating func unpack() -> MyGame_Example_StatT {
@@ -720,6 +744,7 @@ public struct MyGame_Example_Monster: FlatBufferObject, ObjectAPI {
     case vectorOfEnums = 98
     case signedEnum = 100
     case testrequirednestedflatbuffer = 102
+    case scalarKeySortedTables = 104
     var v: Int32 { Int32(self.rawValue) }
     var p: VOffset { self.rawValue }
   }
@@ -841,7 +866,10 @@ public struct MyGame_Example_Monster: FlatBufferObject, ObjectAPI {
   public func testrequirednestedflatbuffer(at index: Int32) -> UInt8 { let o = _accessor.offset(VTOFFSET.testrequirednestedflatbuffer.v); return o == 0 ? 0 : _accessor.directRead(of: UInt8.self, offset: _accessor.vector(at: o) + index * 1) }
   public var testrequirednestedflatbuffer: [UInt8] { return _accessor.getVector(at: VTOFFSET.testrequirednestedflatbuffer.v) ?? [] }
   public func mutate(testrequirednestedflatbuffer: UInt8, at index: Int32) -> Bool { let o = _accessor.offset(VTOFFSET.testrequirednestedflatbuffer.v); return _accessor.directMutate(testrequirednestedflatbuffer, index: _accessor.vector(at: o) + index * 1) }
-  public static func startMonster(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 50) }
+  public var scalarKeySortedTablesCount: Int32 { let o = _accessor.offset(VTOFFSET.scalarKeySortedTables.v); return o == 0 ? 0 : _accessor.vector(count: o) }
+  public func scalarKeySortedTables(at index: Int32) -> MyGame_Example_Stat? { let o = _accessor.offset(VTOFFSET.scalarKeySortedTables.v); return o == 0 ? nil : MyGame_Example_Stat(_accessor.bb, o: _accessor.indirect(_accessor.vector(at: o) + index * 4)) }
+  public func scalarKeySortedTablesBy(key: UInt16) -> MyGame_Example_Stat? { let o = _accessor.offset(VTOFFSET.scalarKeySortedTables.v); return o == 0 ? nil : MyGame_Example_Stat.lookupByKey(vector: _accessor.vector(at: o), key: key, fbb: _accessor.bb) }
+  public static func startMonster(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 51) }
   public static func add(pos: MyGame_Example_Vec3?, _ fbb: inout FlatBufferBuilder) { guard let pos = pos else { return }; fbb.create(struct: pos, position: VTOFFSET.pos.p) }
   public static func add(mana: Int16, _ fbb: inout FlatBufferBuilder) { fbb.add(element: mana, def: 150, at: VTOFFSET.mana.p) }
   public static func add(hp: Int16, _ fbb: inout FlatBufferBuilder) { fbb.add(element: hp, def: 100, at: VTOFFSET.hp.p) }
@@ -901,6 +929,7 @@ public struct MyGame_Example_Monster: FlatBufferObject, ObjectAPI {
   public static func addVectorOf(vectorOfEnums: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: vectorOfEnums, at: VTOFFSET.vectorOfEnums.p) }
   public static func add(signedEnum: MyGame_Example_Race, _ fbb: inout FlatBufferBuilder) { fbb.add(element: signedEnum.rawValue, def: -1, at: VTOFFSET.signedEnum.p) }
   public static func addVectorOf(testrequirednestedflatbuffer: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: testrequirednestedflatbuffer, at: VTOFFSET.testrequirednestedflatbuffer.p) }
+  public static func addVectorOf(scalarKeySortedTables: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: scalarKeySortedTables, at: VTOFFSET.scalarKeySortedTables.p) }
   public static func endMonster(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); fbb.require(table: end, fields: [10]); return end }
   public static func createMonster(
     _ fbb: inout FlatBufferBuilder,
@@ -952,7 +981,8 @@ public struct MyGame_Example_Monster: FlatBufferObject, ObjectAPI {
     offsetOfAnyAmbiguous anyAmbiguous: Offset<UOffset> = Offset(),
     vectorOfVectorOfEnums vectorOfEnums: Offset<UOffset> = Offset(),
     signedEnum: MyGame_Example_Race = .none_,
-    vectorOfTestrequirednestedflatbuffer testrequirednestedflatbuffer: Offset<UOffset> = Offset()
+    vectorOfTestrequirednestedflatbuffer testrequirednestedflatbuffer: Offset<UOffset> = Offset(),
+    vectorOfScalarKeySortedTables scalarKeySortedTables: Offset<UOffset> = Offset()
   ) -> Offset<UOffset> {
     let __start = MyGame_Example_Monster.startMonster(&fbb)
     MyGame_Example_Monster.add(pos: pos, &fbb)
@@ -1004,6 +1034,7 @@ public struct MyGame_Example_Monster: FlatBufferObject, ObjectAPI {
     MyGame_Example_Monster.addVectorOf(vectorOfEnums: vectorOfEnums, &fbb)
     MyGame_Example_Monster.add(signedEnum: signedEnum, &fbb)
     MyGame_Example_Monster.addVectorOf(testrequirednestedflatbuffer: testrequirednestedflatbuffer, &fbb)
+    MyGame_Example_Monster.addVectorOf(scalarKeySortedTables: scalarKeySortedTables, &fbb)
     return MyGame_Example_Monster.endMonster(&fbb, start: __start)
   }
   public static func sortVectorOfMonster(offsets:[Offset<UOffset>], _ fbb: inout FlatBufferBuilder) -> Offset<UOffset> {
@@ -1095,6 +1126,11 @@ public struct MyGame_Example_Monster: FlatBufferObject, ObjectAPI {
     let __anyAmbiguous = obj.anyAmbiguous?.pack(builder: &builder) ?? Offset()
     let __vectorOfEnums = builder.createVector(obj.vectorOfEnums)
     let __testrequirednestedflatbuffer = builder.createVector(obj.testrequirednestedflatbuffer)
+    var __scalarKeySortedTables__: [Offset<UOffset>] = []
+    for var i in obj.scalarKeySortedTables {
+      __scalarKeySortedTables__.append(MyGame_Example_Stat.pack(&builder, obj: &i))
+    }
+    let __scalarKeySortedTables = builder.createVector(ofOffsets: __scalarKeySortedTables__)
     let __root = MyGame_Example_Monster.startMonster(&builder)
     MyGame_Example_Monster.add(pos: obj.pos, &builder)
     MyGame_Example_Monster.add(mana: obj.mana, &builder)
@@ -1154,6 +1190,7 @@ public struct MyGame_Example_Monster: FlatBufferObject, ObjectAPI {
     MyGame_Example_Monster.addVectorOf(vectorOfEnums: __vectorOfEnums, &builder)
     MyGame_Example_Monster.add(signedEnum: obj.signedEnum, &builder)
     MyGame_Example_Monster.addVectorOf(testrequirednestedflatbuffer: __testrequirednestedflatbuffer, &builder)
+    MyGame_Example_Monster.addVectorOf(scalarKeySortedTables: __scalarKeySortedTables, &builder)
     return MyGame_Example_Monster.endMonster(&builder, start: __root)
   }
 }
@@ -1206,6 +1243,7 @@ public class MyGame_Example_MonsterT: UnionObject {
   public var vectorOfEnums: [MyGame_Example_Color]
   public var signedEnum: MyGame_Example_Race
   public var testrequirednestedflatbuffer: [UInt8]
+  public var scalarKeySortedTables: [MyGame_Example_StatT?]
 
   public init(_ _t: inout MyGame_Example_Monster) {
     pos = _t.pos
@@ -1350,6 +1388,11 @@ public class MyGame_Example_MonsterT: UnionObject {
     for index in 0..<_t.testrequirednestedflatbufferCount {
         testrequirednestedflatbuffer.append(_t.testrequirednestedflatbuffer(at: index))
     }
+    scalarKeySortedTables = []
+    for index in 0..<_t.scalarKeySortedTablesCount {
+        var __v_ = _t.scalarKeySortedTables(at: index)
+        scalarKeySortedTables.append(__v_?.unpack())
+    }
   }
 
   public init() {
@@ -1396,6 +1439,7 @@ public class MyGame_Example_MonsterT: UnionObject {
     vectorOfEnums = []
     signedEnum = .none_
     testrequirednestedflatbuffer = []
+    scalarKeySortedTables = []
   }
 
   public func serialize() -> ByteBuffer { return serialize(type: MyGame_Example_Monster.self) }
