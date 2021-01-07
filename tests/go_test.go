@@ -50,12 +50,6 @@ func init() {
 	flag.IntVar(&fuzzFields, "fuzz_fields", 4, "fields per fuzzer object")
 	flag.IntVar(&fuzzObjects, "fuzz_objects", 10000,
 		"number of fuzzer objects (higher is slower and more thorough")
-	flag.Parse()
-
-	if cppData == "" {
-		fmt.Fprintf(os.Stderr, "cpp_data argument is required\n")
-		os.Exit(1)
-	}
 }
 
 // Store specific byte patterns in these variables for the fuzzer. These
@@ -64,6 +58,15 @@ var (
 	overflowingInt32Val = flatbuffers.GetInt32([]byte{0x83, 0x33, 0x33, 0x33})
 	overflowingInt64Val = flatbuffers.GetInt64([]byte{0x84, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44})
 )
+
+func TestMain(m *testing.M) {
+	flag.Parse()
+	if cppData == "" {
+		fmt.Fprintf(os.Stderr, "cpp_data argument is required\n")
+		os.Exit(1)
+	}
+	os.Exit(m.Run())
+}
 
 // TestAll runs all checks, failing if any errors occur.
 func TestAll(t *testing.T) {
