@@ -108,9 +108,8 @@ class TsGenerator : public BaseGenerator {
   // Generate a documentation comment, if available.
   static void GenDocComment(const std::vector<std::string> &dc,
                             std::string *code_ptr,
-                            const std::string &extra_lines,
                             const char *indent = nullptr) {
-    if (dc.empty() && extra_lines.empty()) {
+    if (dc.empty()) {
       // Don't output empty comment blocks with 0 lines of comment content.
       return;
     }
@@ -122,57 +121,12 @@ class TsGenerator : public BaseGenerator {
       if (indent) code += indent;
       code += " *" + *it + "\n";
     }
-    if (!extra_lines.empty()) {
-      if (!dc.empty()) {
-        if (indent) code += indent;
-        code += " *\n";
-      }
-      if (indent) code += indent;
-      std::string::size_type start = 0;
-      for (;;) {
-        auto end = extra_lines.find('\n', start);
-        if (end != std::string::npos) {
-          code += " * " + extra_lines.substr(start, end - start) + "\n";
-          start = end + 1;
-        } else {
-          code += " * " + extra_lines.substr(start) + "\n";
-          break;
-        }
-      }
-    }
     if (indent) code += indent;
     code += " */\n";
   }
 
-  static void GenDocComment(std::string *code_ptr,
-                            const std::string &extra_lines) {
-    GenDocComment(std::vector<std::string>(), code_ptr, extra_lines);
-  }
-
-  std::string GenTypeAnnotation(AnnotationType annotation_type,
-                                const std::string &type_name,
-                                const std::string &arg_name,
-                                bool include_newline = true) {
-    std::string result = "";
-    switch (annotation_type) {
-      case kParam: {
-        result += "@param";
-        break;
-      }
-      case kType: {
-        result += "@type";
-        break;
-      }
-      case kReturns: {
-        result += "@returns";
-        break;
-      }
-    }
-    result += " " + type_name;
-    if (!arg_name.empty()) { result += " " + arg_name; }
-    if (include_newline) { result += "\n"; }
-
-    return result;
+  static void GenDocComment(std::string *code_ptr) {
+    GenDocComment(std::vector<std::string>(), code_ptr);
   }
 
   // Generate an enum declaration and an enum string lookup table.
@@ -181,8 +135,7 @@ class TsGenerator : public BaseGenerator {
     if (enum_def.generated) return;
     if (reverse) return;  // FIXME.
     std::string &code = *code_ptr;
-    GenDocComment(enum_def.doc_comment, code_ptr,
-                  reverse ? "@enum {string}" : "@enum {number}");
+    GenDocComment(enum_def.doc_comment, code_ptr);
     std::string ns = GetNameSpace(enum_def);
     std::string enum_def_name = enum_def.name + (reverse ? "Name" : "");
     code += "export enum " + enum_def.name + "{\n";
@@ -190,7 +143,7 @@ class TsGenerator : public BaseGenerator {
       auto &ev = **it;
       if (!ev.doc_comment.empty()) {
         if (it != enum_def.Vals().begin()) { code += '\n'; }
-        GenDocComment(ev.doc_comment, code_ptr, "", "  ");
+        GenDocComment(ev.doc_comment, code_ptr, "  ");
       }
 
       // Generate mapping between EnumName: EnumValue(int)
@@ -250,12 +203,6 @@ class TsGenerator : public BaseGenerator {
         auto getter =
             GenBBAccess() + ".read" + MakeCamel(GenType(type)) + arguments;
         if (type.base_type == BASE_TYPE_BOOL) { getter = "!!" + getter; }
-        if (type.enum_def) {
-          getter = "/** " +
-                   GenTypeAnnotation(kType, WrapInNameSpace(*type.enum_def), "",
-                                     false) +
-                   " */ (" + getter + ")";
-        }
         return getter;
       }
     }
@@ -277,10 +224,7 @@ class TsGenerator : public BaseGenerator {
         return AddImport(imports, *value.type.enum_def, *value.type.enum_def) +
                 "." + val->name;
       } else {
-        return "/** " +
-               GenTypeAnnotation(kType, WrapInNameSpace(*value.type.enum_def),
-                                 "", false) +
-               "} */ (" + value.constant + ")";
+        return value.constant;
       }
     }
 
@@ -399,7 +343,7 @@ class TsGenerator : public BaseGenerator {
     return GenFileNamespacePrefix(file) + "." + typeName;
   }
 
-  void GenStructArgs(import_set &imports, const StructDef &struct_def, std::string *annotations,
+  void GenStructArgs(import_set &imports, const StructDef &struct_def,
                      std::string *arguments, const std::string &nameprefix) {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
@@ -408,12 +352,9 @@ class TsGenerator : public BaseGenerator {
         // Generate arguments for a struct inside a struct. To ensure names
         // don't clash, and to make it obvious these arguments are constructing
         // a nested struct, prefix the name with the field name.
-        GenStructArgs(imports, *field.value.type.struct_def, annotations, arguments,
+        GenStructArgs(imports, *field.value.type.struct_def, arguments,
                       nameprefix + field.name + "_");
       } else {
-        *annotations +=
-            GenTypeAnnotation(kParam, GenTypeName(imports, field, field.value.type, true, field.optional),
-                              nameprefix + field.name);
         *arguments += ", " + nameprefix + field.name + ": " +
                       GenTypeName(imports, field, field.value.type, true, field.optional);
       }
@@ -454,10 +395,7 @@ class TsGenerator : public BaseGenerator {
                             std::string &code, std::string &object_name,
                             bool size_prefixed) {
     if (!struct_def.fixed) {
-      GenDocComment(code_ptr,
-                    GenTypeAnnotation(kParam, "flatbuffers.ByteBuffer", "bb") +
-                        GenTypeAnnotation(kParam, object_name + "=", "obj") +
-                        GenTypeAnnotation(kReturns, object_name, "", false));
+      GenDocComment(code_ptr);
       std::string sizePrefixed("SizePrefixed");
       code += "static get" + (size_prefixed ? sizePrefixed : "") + "Root" +
               GetPrefixedName(struct_def, "As");
@@ -478,10 +416,7 @@ class TsGenerator : public BaseGenerator {
                         std::string &code, bool size_prefixed) {
     if (parser_.root_struct_def_ == &struct_def) {
       std::string sizePrefixed("SizePrefixed");
-      GenDocComment(
-          code_ptr,
-          GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder") +
-              GenTypeAnnotation(kParam, "flatbuffers.Offset", "offset", false));
+      GenDocComment(code_ptr);
 
       code += "static finish" + (size_prefixed ? sizePrefixed : "") +
               GetPrefixedName(struct_def) + "Buffer";
@@ -814,16 +749,12 @@ class TsGenerator : public BaseGenerator {
     const auto class_name = GetObjApiClassName(struct_def, parser.opts);
 
     std::string unpack_func =
-        "\n/**\n * " + GenTypeAnnotation(kReturns, class_name, "") +
-        " */\nunpack(): " + class_name + " {\n  return new " + class_name +
+        "\nunpack(): " + class_name + " {\n  return new " + class_name +
         "(" + (struct_def.fields.vec.empty() ? "" : "\n");
     std::string unpack_to_func =
-        "/**\n * " + GenTypeAnnotation(kParam, class_name, "_o") +
-        " */\nunpackTo(_o: " + class_name + "): void {" +
+        "\nunpackTo(_o: " + class_name + "): void {" +
         +(struct_def.fields.vec.empty() ? "" : "\n");
 
-    std::string constructor_annotation = "/**\n * @constructor";
-    constructor_annotation += (struct_def.fields.vec.empty() ? "" : "\n");
     std::string constructor_func = "constructor(";
     constructor_func += (struct_def.fields.vec.empty() ? "" : "\n");
 
@@ -831,10 +762,7 @@ class TsGenerator : public BaseGenerator {
         struct_def.fixed || CanCreateFactoryMethod(struct_def);
 
     std::string pack_func_prototype =
-        "/**\n * " +
-        GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder") + " * " +
-        GenTypeAnnotation(kReturns, "flatbuffers.Offset", "") +
-        " */\npack(builder:flatbuffers.Builder): flatbuffers.Offset {\n";
+        "\npack(builder:flatbuffers.Builder): flatbuffers.Offset {\n";
 
     std::string pack_func_offset_decl;
     std::string pack_func_create_call;
@@ -1021,8 +949,6 @@ class TsGenerator : public BaseGenerator {
       unpack_func += "    " + field_val;
       unpack_to_func += "  _o." + field_name + " = " + field_val + ";";
 
-      constructor_annotation +=
-          " * " + GenTypeAnnotation(kParam, field_type, field_name, false);
       constructor_func += "  public " + field_name + ": " + field_type + " = " +
                           field_default_val;
 
@@ -1041,7 +967,6 @@ class TsGenerator : public BaseGenerator {
       }
 
       if (std::next(it) != struct_def.fields.vec.end()) {
-        constructor_annotation += "\n";
         constructor_func += ",\n";
 
         if (!struct_def.fixed && has_create) {
@@ -1062,7 +987,6 @@ class TsGenerator : public BaseGenerator {
       }
     }
 
-    constructor_annotation += "\n */\n";
     constructor_func += "){}\n\n";
 
     if (has_create) {
@@ -1074,8 +998,7 @@ class TsGenerator : public BaseGenerator {
     obj_api_class = "\nexport class " +
                     GetObjApiClassName(struct_def, parser.opts) + " {\n";
 
-    obj_api_class += constructor_annotation + constructor_func;
-
+    obj_api_class += constructor_func;
     obj_api_class += pack_func_prototype + pack_func_offset_decl +
                      pack_func_create_call + "\n}";
 
@@ -1110,27 +1033,14 @@ class TsGenerator : public BaseGenerator {
 
     // Emit constructor
     object_name = struct_def.name;
-    GenDocComment(struct_def.doc_comment, code_ptr, "@constructor");
+    GenDocComment(struct_def.doc_comment, code_ptr);
     code += "export class " + struct_def.name;
     code += " {\n";
-    code += "  /**\n";
-    code +=
-        "   * " + GenTypeAnnotation(kType, "flatbuffers.ByteBuffer", "");
-    code += "   */\n";
     code += "  bb: flatbuffers.ByteBuffer|null = null;\n";
-    code += "\n";
-    code += "  /**\n";
-    code += "   * " + GenTypeAnnotation(kType, "number", "");
-    code += "   */\n";
     code += "  bb_pos = 0;\n";
 
     // Generate the __init method that sets the field in a pre-existing
     // accessor object. This is to allow object reuse.
-    code += "/**\n";
-    code += " * " + GenTypeAnnotation(kParam, "number", "i");
-    code += " * " + GenTypeAnnotation(kParam, "flatbuffers.ByteBuffer", "bb");
-    code += " * " + GenTypeAnnotation(kReturns, object_name, "");
-    code += " */\n";
     code +=
         "__init(i:number, bb:flatbuffers.ByteBuffer):" + object_name + " {\n";
     code += "  this.bb_pos = i;\n";
@@ -1146,9 +1056,7 @@ class TsGenerator : public BaseGenerator {
     // Generate the identifier check method
     if (!struct_def.fixed && parser_.root_struct_def_ == &struct_def &&
         !parser_.file_identifier_.empty()) {
-      GenDocComment(code_ptr,
-                    GenTypeAnnotation(kParam, "flatbuffers.ByteBuffer", "bb") +
-                        GenTypeAnnotation(kReturns, "boolean", "", false));
+      GenDocComment(code_ptr);
       code +=
           "static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean "
           "{\n";
@@ -1170,15 +1078,7 @@ class TsGenerator : public BaseGenerator {
       if (IsScalar(field.value.type.base_type) || is_string) {
         const auto has_null_default = is_string || HasNullDefault(field);
 
-        GenDocComment(
-            field.doc_comment, code_ptr,
-            std::string(is_string
-                            ? GenTypeAnnotation(kParam, "flatbuffers.Encoding=",
-                                                "optionalEncoding")
-                            : "") +
-                GenTypeAnnotation(kReturns,
-                                  GenTypeName(imports, struct_def, field.value.type, false, has_null_default),
-                                  "", false));
+        GenDocComment(field.doc_comment, code_ptr);
         std::string prefix = MakeCamel(field.name, false) + "(";
         if (is_string) {
           code += prefix + "):string|null\n";
@@ -1220,10 +1120,7 @@ class TsGenerator : public BaseGenerator {
         switch (field.value.type.base_type) {
           case BASE_TYPE_STRUCT: {
             auto type = AddImport(imports, struct_def, *field.value.type.struct_def);
-            GenDocComment(
-                field.doc_comment, code_ptr,
-                GenTypeAnnotation(kParam, type + "=", "obj") +
-                    GenTypeAnnotation(kReturns, type + "|null", "", false));
+            GenDocComment(field.doc_comment, code_ptr);
             type =
                 GenPrefixedTypeName(type, field.value.type.struct_def->file);
             code += MakeCamel(field.name, false);
@@ -1253,29 +1150,22 @@ class TsGenerator : public BaseGenerator {
             auto index = GenBBAccess() +
                          ".__vector(this.bb_pos + offset) + index" +
                          MaybeScale(inline_size);
-            std::string args = GenTypeAnnotation(kParam, "number", "index");
             std::string ret_type;
             bool is_union = false;
             switch (vectortype.base_type) {
               case BASE_TYPE_STRUCT:
-                args += GenTypeAnnotation(kParam, vectortypename + "=", "obj");
                 ret_type = vectortypename;
                 break;
               case BASE_TYPE_STRING:
-                args += GenTypeAnnotation(
-                    kParam, "flatbuffers.Encoding=", "optionalEncoding");
                 ret_type = vectortypename;
                 break;
               case BASE_TYPE_UNION:
-                args += GenTypeAnnotation(kParam, "flatbuffers.Table=", "obj");
                 ret_type = "?flatbuffers.Table";
                 is_union = true;
                 break;
               default: ret_type = vectortypename;
             }
-            GenDocComment(
-                field.doc_comment, code_ptr,
-                args + GenTypeAnnotation(kReturns, ret_type, "", false));
+            GenDocComment(field.doc_comment, code_ptr);
             std::string prefix = MakeCamel(field.name, false);
             // TODO: make it work without any
             //if (is_union) { prefix += "<T extends flatbuffers.Table>"; }
@@ -1323,11 +1213,7 @@ class TsGenerator : public BaseGenerator {
               code += GenBBAccess() + ".createLong(0, 0)";
             } else if (IsScalar(field.value.type.element)) {
               if (field.value.type.enum_def) {
-                code += "/** " +
-                        GenTypeAnnotation(
-                            kType, AddImport(imports, struct_def, *field.value.type.enum_def),
-                            "", false) +
-                        " */ (" + field.value.constant + ")";
+                code += field.value.constant;
               } else {
                 code += "0";
               }
@@ -1339,11 +1225,7 @@ class TsGenerator : public BaseGenerator {
           }
 
           case BASE_TYPE_UNION: {
-            GenDocComment(
-                field.doc_comment, code_ptr,
-                GenTypeAnnotation(kParam, "flatbuffers.Table", "obj") +
-                    GenTypeAnnotation(kReturns, "?flatbuffers.Table", "",
-                                      false));
+            GenDocComment(field.doc_comment, code_ptr);
             code += MakeCamel(field.name, false);
 
             const auto &union_enum = *(field.value.type.enum_def);
@@ -1366,11 +1248,6 @@ class TsGenerator : public BaseGenerator {
       // Adds the mutable scalar value to the output
       if (IsScalar(field.value.type.base_type) && parser.opts.mutable_buffer &&
           !IsUnion(field.value.type)) {
-        std::string annotations = GenTypeAnnotation(
-            kParam, GenTypeName(imports, struct_def, field.value.type, true), "value");
-        GenDocComment(
-            code_ptr,
-            annotations + GenTypeAnnotation(kReturns, "boolean", "", false));
 
         std::string type = GenTypeName(imports, struct_def, field.value.type, true);
 
@@ -1405,8 +1282,7 @@ class TsGenerator : public BaseGenerator {
       // Emit vector helpers
       if (IsVector(field.value.type)) {
         // Emit a length helper
-        GenDocComment(code_ptr,
-                      GenTypeAnnotation(kReturns, "number", "", false));
+        GenDocComment(code_ptr);
         code += MakeCamel(field.name, false);
         code += "Length():number {\n" + offset_prefix;
 
@@ -1416,9 +1292,7 @@ class TsGenerator : public BaseGenerator {
         // For scalar types, emit a typed array helper
         auto vectorType = field.value.type.VectorType();
         if (IsScalar(vectorType.base_type) && !IsLong(vectorType.base_type)) {
-          GenDocComment(code_ptr, GenTypeAnnotation(
-                                      kReturns, GenType(vectorType) + "Array",
-                                      "", false));
+          GenDocComment(code_ptr);
 
           code += MakeCamel(field.name, false);
           code += "Array():" + GenType(vectorType) + "Array|null {\n" +
@@ -1435,7 +1309,7 @@ class TsGenerator : public BaseGenerator {
 
     // Emit the fully qualified name
     if (parser_.opts.generate_name_strings) {
-      GenDocComment(code_ptr, GenTypeAnnotation(kReturns, "string", "", false));
+      GenDocComment(code_ptr);
       code += "static getFullyQualifiedName():string {\n";
       code += "  return '" + WrapInNameSpace(struct_def) + "';\n";
       code += "}\n\n";
@@ -1443,7 +1317,7 @@ class TsGenerator : public BaseGenerator {
 
     // Emit the size of the struct.
     if (struct_def.fixed) {
-      GenDocComment(code_ptr, GenTypeAnnotation(kReturns, "number", "", false));
+      GenDocComment(code_ptr);
       code += "static sizeOf():number {\n";
       code += "  return " + NumToString(struct_def.bytesize) + ";\n";
       code += "}\n\n";
@@ -1451,13 +1325,9 @@ class TsGenerator : public BaseGenerator {
 
     // Emit a factory constructor
     if (struct_def.fixed) {
-      std::string annotations =
-          GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder");
       std::string arguments;
-      GenStructArgs(imports, struct_def, &annotations, &arguments, "");
-      GenDocComment(code_ptr, annotations + GenTypeAnnotation(
-                                                kReturns, "flatbuffers.Offset",
-                                                "", false));
+      GenStructArgs(imports, struct_def, &arguments, "");
+      GenDocComment(code_ptr);
 
       code += "static create" + GetPrefixedName(struct_def) +
               "(builder:flatbuffers.Builder";
@@ -1467,8 +1337,7 @@ class TsGenerator : public BaseGenerator {
       code += "  return builder.offset();\n}\n\n";
     } else {
       // Generate a method to start building a new object
-      GenDocComment(code_ptr, GenTypeAnnotation(kParam, "flatbuffers.Builder",
-                                                "builder", false));
+      GenDocComment(code_ptr);
 
       code += "static start" + GetPrefixedName(struct_def) +
               "(builder:flatbuffers.Builder) {\n";
@@ -1485,11 +1354,7 @@ class TsGenerator : public BaseGenerator {
         const auto argname = GetArgName(field);
 
         // Generate the field insertion method
-        GenDocComment(
-            code_ptr,
-            GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder") +
-                GenTypeAnnotation(kParam, GenTypeName(imports, struct_def, field.value.type, true),
-                                  argname, false));
+        GenDocComment(code_ptr);
         code += "static add" + MakeCamel(field.name);
         code += "(builder:flatbuffers.Builder, " + argname + ":" +
                 GetArgType(imports, struct_def, field, false) + ") {\n";
@@ -1518,15 +1383,7 @@ class TsGenerator : public BaseGenerator {
 
           // Generate a method to create a vector from a JavaScript array
           if (!IsStruct(vector_type)) {
-            GenDocComment(
-                code_ptr,
-                GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder") +
-                    GenTypeAnnotation(
-                        kParam,
-                        "Array.<" + GenTypeName(imports, struct_def, vector_type, true) + ">",
-                        "data") +
-                    GenTypeAnnotation(kReturns, "flatbuffers.Offset", "",
-                                      false));
+            GenDocComment(code_ptr);
 
             const std::string sig_begin =
                 "static create" + MakeCamel(field.name) +
@@ -1564,10 +1421,7 @@ class TsGenerator : public BaseGenerator {
 
           // Generate a method to start a vector, data to be added manually
           // after
-          GenDocComment(
-              code_ptr,
-              GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder") +
-                  GenTypeAnnotation(kParam, "number", "numElems", false));
+          GenDocComment(code_ptr);
 
           code += "static start" + MakeCamel(field.name);
           code += "Vector(builder:flatbuffers.Builder, numElems:number) {\n";
@@ -1578,10 +1432,7 @@ class TsGenerator : public BaseGenerator {
       }
 
       // Generate a method to stop building a new object
-      GenDocComment(
-          code_ptr,
-          GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder") +
-              GenTypeAnnotation(kReturns, "flatbuffers.Offset", "", false));
+      GenDocComment(code_ptr);
 
       code += "static end" + GetPrefixedName(struct_def);
       code += "(builder:flatbuffers.Builder):flatbuffers.Offset {\n";
