@@ -299,6 +299,9 @@
               },
         "testrequirednestedflatbuffer" : {
                 "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" :255"}
+              },
+        "scalar_key_sorted_tables" : {
+                "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Stat"}
               }
       },
       "required" : ["name"],

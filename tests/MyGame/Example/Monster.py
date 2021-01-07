@@ -762,7 +762,32 @@ class Monster(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(102))
         return o == 0
 
-def MonsterStart(builder): builder.StartObject(50)
+    # Monster
+    def ScalarKeySortedTables(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(104))
+        if o != 0:
+            x = self._tab.Vector(o)
+            x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
+            x = self._tab.Indirect(x)
+            from MyGame.Example.Stat import Stat
+            obj = Stat()
+            obj.Init(self._tab.Bytes, x)
+            return obj
+        return None
+
+    # Monster
+    def ScalarKeySortedTablesLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(104))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # Monster
+    def ScalarKeySortedTablesIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(104))
+        return o == 0
+
+def MonsterStart(builder): builder.StartObject(51)
 def MonsterAddPos(builder, pos): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(pos), 0)
 def MonsterAddMana(builder, mana): builder.PrependInt16Slot(1, mana, 150)
 def MonsterAddHp(builder, hp): builder.PrependInt16Slot(2, hp, 100)
@@ -841,6 +866,8 @@ def MonsterMakeTestrequirednestedflatbufferVectorFromBytes(builder, bytes):
     builder.head = builder.head - len(bytes)
     builder.Bytes[builder.head : builder.head + len(bytes)] = bytes
     return builder.EndVector()
+def MonsterAddScalarKeySortedTables(builder, scalarKeySortedTables): builder.PrependUOffsetTRelativeSlot(50, flatbuffers.number_types.UOffsetTFlags.py_type(scalarKeySortedTables), 0)
+def MonsterStartScalarKeySortedTablesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def MonsterEnd(builder): return builder.EndObject()
 
 import MyGame.Example.Ability
@@ -912,6 +939,7 @@ class MonsterT(object):
         self.vectorOfEnums = None  # type: List[int]
         self.signedEnum = -1  # type: int
         self.testrequirednestedflatbuffer = None  # type: List[int]
+        self.scalarKeySortedTables = None  # type: List[MyGame.Example.Stat.StatT]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -1096,6 +1124,14 @@ class MonsterT(object):
                     self.testrequirednestedflatbuffer.append(monster.Testrequirednestedflatbuffer(i))
             else:
                 self.testrequirednestedflatbuffer = monster.TestrequirednestedflatbufferAsNumpy()
+        if not monster.ScalarKeySortedTablesIsNone():
+            self.scalarKeySortedTables = []
+            for i in range(monster.ScalarKeySortedTablesLength()):
+                if monster.ScalarKeySortedTables(i) is None:
+                    self.scalarKeySortedTables.append(None)
+                else:
+                    stat_ = MyGame.Example.Stat.StatT.InitFromObj(monster.ScalarKeySortedTables(i))
+                    self.scalarKeySortedTables.append(stat_)
 
     # MonsterT
     def Pack(self, builder):
@@ -1256,6 +1292,14 @@ class MonsterT(object):
                 for i in reversed(range(len(self.testrequirednestedflatbuffer))):
                     builder.PrependUint8(self.testrequirednestedflatbuffer[i])
                 testrequirednestedflatbuffer = builder.EndVector()
+        if self.scalarKeySortedTables is not None:
+            scalarKeySortedTableslist = []
+            for i in range(len(self.scalarKeySortedTables)):
+                scalarKeySortedTableslist.append(self.scalarKeySortedTables[i].Pack(builder))
+            MonsterStartScalarKeySortedTablesVector(builder, len(self.scalarKeySortedTables))
+            for i in reversed(range(len(self.scalarKeySortedTables))):
+                builder.PrependUOffsetTRelative(scalarKeySortedTableslist[i])
+            scalarKeySortedTables = builder.EndVector()
         MonsterStart(builder)
         if self.pos is not None:
             pos = self.pos.Pack(builder)
@@ -1334,5 +1378,7 @@ class MonsterT(object):
         MonsterAddSignedEnum(builder, self.signedEnum)
         if self.testrequirednestedflatbuffer is not None:
             MonsterAddTestrequirednestedflatbuffer(builder, testrequirednestedflatbuffer)
+        if self.scalarKeySortedTables is not None:
+            MonsterAddScalarKeySortedTables(builder, scalarKeySortedTables)
         monster = MonsterEnd(builder)
         return monster

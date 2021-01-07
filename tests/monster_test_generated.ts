@@ -2226,10 +2226,28 @@ testrequirednestedflatbufferArray():Uint8Array|null {
 };
 
 /**
+ * @param number index
+ * @param MyGame.Example.Stat= obj
+ * @returns MyGame.Example.Stat
+ */
+scalarKeySortedTables(index: number, obj?:MyGame.Example.Stat):MyGame.Example.Stat|null {
+  var offset = this.bb!.__offset(this.bb_pos, 104);
+  return offset ? (obj || new MyGame.Example.Stat()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
+};
+
+/**
+ * @returns number
+ */
+scalarKeySortedTablesLength():number {
+  var offset = this.bb!.__offset(this.bb_pos, 104);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
  * @param flatbuffers.Builder builder
  */
 static startMonster(builder:flatbuffers.Builder) {
-  builder.startObject(50);
+  builder.startObject(51);
 };
 
 /**
@@ -2991,6 +3009,35 @@ static startTestrequirednestedflatbufferVector(builder:flatbuffers.Builder, numE
 
 /**
  * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset scalarKeySortedTablesOffset
+ */
+static addScalarKeySortedTables(builder:flatbuffers.Builder, scalarKeySortedTablesOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(50, scalarKeySortedTablesOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param Array.<flatbuffers.Offset> data
+ * @returns flatbuffers.Offset
+ */
+static createScalarKeySortedTablesVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
+  builder.startVector(4, data.length, 4);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param number numElems
+ */
+static startScalarKeySortedTablesVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(4, numElems, 4);
+};
+
+/**
+ * @param flatbuffers.Builder builder
  * @returns flatbuffers.Offset
  */
 static endMonster(builder:flatbuffers.Builder):flatbuffers.Offset {
@@ -3089,7 +3136,8 @@ unpack(): MonsterT {
   })(),
     this.bb!.createScalarList(this.vectorOfEnums.bind(this), this.vectorOfEnumsLength()),
     this.signedEnum(),
-    this.bb!.createScalarList(this.testrequirednestedflatbuffer.bind(this), this.testrequirednestedflatbufferLength())
+    this.bb!.createScalarList(this.testrequirednestedflatbuffer.bind(this), this.testrequirednestedflatbufferLength()),
+    this.bb!.createObjList(this.scalarKeySortedTables.bind(this), this.scalarKeySortedTablesLength())
   );
 };
 
@@ -3158,6 +3206,7 @@ unpackTo(_o: MonsterT): void {
   _o.vectorOfEnums = this.bb!.createScalarList(this.vectorOfEnums.bind(this), this.vectorOfEnumsLength());
   _o.signedEnum = this.signedEnum();
   _o.testrequirednestedflatbuffer = this.bb!.createScalarList(this.testrequirednestedflatbuffer.bind(this), this.testrequirednestedflatbufferLength());
+  _o.scalarKeySortedTables = this.bb!.createObjList(this.scalarKeySortedTables.bind(this), this.scalarKeySortedTablesLength());
 };
 }
 
@@ -3213,6 +3262,7 @@ export class MonsterT {
  * @param (MyGame.Example.Color)[] vectorOfEnums
  * @param MyGame.Example.Race signedEnum
  * @param (number)[] testrequirednestedflatbuffer
+ * @param (MyGame.Example.StatT)[] scalarKeySortedTables
  */
 constructor(
   public pos: MyGame.Example.Vec3T|null = null,
@@ -3263,7 +3313,8 @@ constructor(
   public anyAmbiguous: MyGame.Example.MonsterT|null = null,
   public vectorOfEnums: (MyGame.Example.Color)[] = [],
   public signedEnum: MyGame.Example.Race = MyGame.Example.Race.None,
-  public testrequirednestedflatbuffer: (number)[] = []
+  public testrequirednestedflatbuffer: (number)[] = [],
+  public scalarKeySortedTables: (MyGame.Example.StatT)[] = []
 ){};
 
 /**
@@ -3294,6 +3345,7 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   const anyAmbiguous = builder.createObjectOffset(this.anyAmbiguous);
   const vectorOfEnums = MyGame.Example.Monster.createVectorOfEnumsVector(builder, this.vectorOfEnums);
   const testrequirednestedflatbuffer = MyGame.Example.Monster.createTestrequirednestedflatbufferVector(builder, this.testrequirednestedflatbuffer);
+  const scalarKeySortedTables = MyGame.Example.Monster.createScalarKeySortedTablesVector(builder, builder.createObjectOffsetList(this.scalarKeySortedTables));
 
   MyGame.Example.Monster.start(builder);
   MyGame.Example.Monster.addPos(builder, (this.pos !== null ? this.pos!.pack(builder) : 0));
@@ -3345,6 +3397,7 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   MyGame.Example.Monster.addVectorOfEnums(builder, vectorOfEnums);
   MyGame.Example.Monster.addSignedEnum(builder, this.signedEnum);
   MyGame.Example.Monster.addTestrequirednestedflatbuffer(builder, testrequirednestedflatbuffer);
+  MyGame.Example.Monster.addScalarKeySortedTables(builder, scalarKeySortedTables);
 
   return MyGame.Example.Monster.end(builder);
 };

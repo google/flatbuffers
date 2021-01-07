@@ -75,4 +75,10 @@
   testhashu32_fnv1a: "This string is being hashed!",
   testhashs64_fnv1a: "This string is being hashed!",
   testhashu64_fnv1a: "This string is being hashed!",
+  testarrayofsortedstruct:[
+    {id:5,distance:12}, {id:1,distance:21}, {id:0,distance:45}
+  ],
+  scalar_key_sorted_tables:[
+    {id:"hit",val:10,count:1}, {id:"miss",val:0,count:0}
+  ],
 }
