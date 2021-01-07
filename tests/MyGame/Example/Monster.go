@@ -56,6 +56,7 @@ type MonsterT struct {
 	VectorOfEnums []Color
 	SignedEnum Race
 	Testrequirednestedflatbuffer []byte
+	ScalarKeySortedTables []*StatT
 }
 
 func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
@@ -241,6 +242,19 @@ func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t.Testrequirednestedflatbuffer != nil {
 		testrequirednestedflatbufferOffset = builder.CreateByteString(t.Testrequirednestedflatbuffer)
 	}
+	scalarKeySortedTablesOffset := flatbuffers.UOffsetT(0)
+	if t.ScalarKeySortedTables != nil {
+		scalarKeySortedTablesLength := len(t.ScalarKeySortedTables)
+		scalarKeySortedTablesOffsets := make([]flatbuffers.UOffsetT, scalarKeySortedTablesLength)
+		for j := 0; j < scalarKeySortedTablesLength; j++ {
+			scalarKeySortedTablesOffsets[j] = t.ScalarKeySortedTables[j].Pack(builder)
+		}
+		MonsterStartScalarKeySortedTablesVector(builder, scalarKeySortedTablesLength)
+		for j := scalarKeySortedTablesLength - 1; j >= 0; j-- {
+			builder.PrependUOffsetT(scalarKeySortedTablesOffsets[j])
+		}
+		scalarKeySortedTablesOffset = builder.EndVector(scalarKeySortedTablesLength)
+	}
 	MonsterStart(builder)
 	posOffset := t.Pos.Pack(builder)
 	MonsterAddPos(builder, posOffset)
@@ -298,6 +312,7 @@ func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	MonsterAddVectorOfEnums(builder, vectorOfEnumsOffset)
 	MonsterAddSignedEnum(builder, t.SignedEnum)
 	MonsterAddTestrequirednestedflatbuffer(builder, testrequirednestedflatbufferOffset)
+	MonsterAddScalarKeySortedTables(builder, scalarKeySortedTablesOffset)
 	return MonsterEnd(builder)
 }
 
@@ -429,6 +444,13 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 	}
 	t.SignedEnum = rcv.SignedEnum()
 	t.Testrequirednestedflatbuffer = rcv.TestrequirednestedflatbufferBytes()
+	scalarKeySortedTablesLength := rcv.ScalarKeySortedTablesLength()
+	t.ScalarKeySortedTables = make([]*StatT, scalarKeySortedTablesLength)
+	for j := 0; j < scalarKeySortedTablesLength; j++ {
+		x := Stat{}
+		rcv.ScalarKeySortedTables(&x, j)
+		t.ScalarKeySortedTables[j] = x.UnPack()
+	}
 }
 
 func (rcv *Monster) UnPack() *MonsterT {
@@ -1297,8 +1319,28 @@ func (rcv *Monster) MutateTestrequirednestedflatbuffer(j int, n byte) bool {
 	return false
 }
 
+func (rcv *Monster) ScalarKeySortedTables(obj *Stat, j int) bool {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(104))
+	if o != 0 {
+		x := rcv._tab.Vector(o)
+		x += flatbuffers.UOffsetT(j) * 4
+		x = rcv._tab.Indirect(x)
+		obj.Init(rcv._tab.Bytes, x)
+		return true
+	}
+	return false
+}
+
+func (rcv *Monster) ScalarKeySortedTablesLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(104))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
 func MonsterStart(builder *flatbuffers.Builder) {
-	builder.StartObject(50)
+	builder.StartObject(51)
 }
 func MonsterAddPos(builder *flatbuffers.Builder, pos flatbuffers.UOffsetT) {
 	builder.PrependStructSlot(0, flatbuffers.UOffsetT(pos), 0)
@@ -1503,6 +1545,12 @@ func MonsterAddTestrequirednestedflatbuffer(builder *flatbuffers.Builder, testre
 }
 func MonsterStartTestrequirednestedflatbufferVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.StartVector(1, numElems, 1)
+}
+func MonsterAddScalarKeySortedTables(builder *flatbuffers.Builder, scalarKeySortedTables flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(50, flatbuffers.UOffsetT(scalarKeySortedTables), 0)
+}
+func MonsterStartScalarKeySortedTablesVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+	return builder.StartVector(4, numElems, 4)
 }
 func MonsterEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()

@@ -364,13 +364,17 @@ class Monster : flatbuffers_handle
         return buf_.read_int8_le(buf_.flatbuffers_field_vector(pos_, 102) + i * 1)
     def testrequirednestedflatbuffer_length():
         return buf_.flatbuffers_field_vector_len(pos_, 102)
+    def scalar_key_sorted_tables(i:int):
+        return MyGame_Example_Stat { buf_, buf_.flatbuffers_indirect(buf_.flatbuffers_field_vector(pos_, 104) + i * 4) }
+    def scalar_key_sorted_tables_length():
+        return buf_.flatbuffers_field_vector_len(pos_, 104)
 
 def GetRootAsMonster(buf:string): return Monster { buf, buf.flatbuffers_indirect(0) }
 
 struct MonsterBuilder:
     b_:flatbuffers_builder
     def start():
-        b_.StartObject(50)
+        b_.StartObject(51)
         return this
     def add_pos(pos:flatbuffers_offset):
         b_.PrependStructSlot(0, pos)
@@ -519,6 +523,9 @@ struct MonsterBuilder:
     def add_testrequirednestedflatbuffer(testrequirednestedflatbuffer:flatbuffers_offset):
         b_.PrependUOffsetTRelativeSlot(49, testrequirednestedflatbuffer)
         return this
+    def add_scalar_key_sorted_tables(scalar_key_sorted_tables:flatbuffers_offset):
+        b_.PrependUOffsetTRelativeSlot(50, scalar_key_sorted_tables)
+        return this
     def end():
         return b_.EndObject()
 
@@ -641,6 +648,13 @@ def MonsterStartTestrequirednestedflatbufferVector(b_:flatbuffers_builder, n_:in
 def MonsterCreateTestrequirednestedflatbufferVector(b_:flatbuffers_builder, v_:[int]):
     b_.StartVector(1, v_.length, 1)
     reverse(v_) e_: b_.PrependUint8(e_)
+    return b_.EndVector(v_.length)
+
+def MonsterStartScalarKeySortedTablesVector(b_:flatbuffers_builder, n_:int):
+    b_.StartVector(4, n_, 4)
+def MonsterCreateScalarKeySortedTablesVector(b_:flatbuffers_builder, v_:[flatbuffers_offset]):
+    b_.StartVector(4, v_.length, 4)
+    reverse(v_) e_: b_.PrependUOffsetTRelative(e_)
     return b_.EndVector(v_.length)
 
 class TypeAliases : flatbuffers_handle

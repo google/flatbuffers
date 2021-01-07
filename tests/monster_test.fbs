@@ -59,7 +59,7 @@ struct Ability {
 table Stat {
   id:string;
   val:long;
-  count:ushort;
+  count:ushort (key);
 }
 
 table Referrable {
@@ -117,6 +117,7 @@ table Monster {
   vector_of_enums:[Color] (id:47);
   signed_enum:Race = None (id:48);
   testrequirednestedflatbuffer:[ubyte] (id:49, nested_flatbuffer: "Monster");
+  scalar_key_sorted_tables:[Stat] (id: 50);
 }
 
 table TypeAliases {

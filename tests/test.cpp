@@ -166,8 +166,17 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
   abilities.push_back(Ability(4, 40));
   abilities.push_back(Ability(3, 30));
   abilities.push_back(Ability(2, 20));
-  abilities.push_back(Ability(1, 10));
+  abilities.push_back(Ability(0, 0));
   auto vecofstructs = builder.CreateVectorOfSortedStructs(&abilities);
+
+  flatbuffers::Offset<Stat> mlocs_stats[1];
+  auto miss = builder.CreateString("miss");
+  StatBuilder mb_miss(builder);
+  mb_miss.add_id(miss);
+  mb_miss.add_val(0);
+  mb_miss.add_count(0);  // key
+  mlocs_stats[0] = mb_miss.Finish();
+  auto vec_of_stats = builder.CreateVectorOfSortedTables(mlocs_stats, 1);
 
   // Create a nested FlatBuffer.
   // Nested FlatBuffers are stored in a ubyte vector, which can be convenient
@@ -210,7 +219,8 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
       testv, vecofstrings, vecoftables, 0, nested_flatbuffer_vector, 0, false,
       0, 0, 0, 0, 0, 0, 0, 0, 0, 3.14159f, 3.0f, 0.0f, vecofstrings2,
       vecofstructs, flex, testv2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      AnyUniqueAliases_NONE, 0, AnyAmbiguousAliases_NONE, 0, vecofcolors);
+      AnyUniqueAliases_NONE, 0, AnyAmbiguousAliases_NONE, 0, vecofcolors,
+      MyGame::Example::Race_None, 0, vec_of_stats);
 
   FinishMonsterBuffer(builder, mloc);
 
@@ -361,9 +371,18 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length,
       auto right = vecofstructs->Get(i + 1);
       TEST_EQ(true, (left->KeyCompareLessThan(right)));
     }
+    TEST_NOTNULL(vecofstructs->LookupByKey(0));  // test default value
     TEST_NOTNULL(vecofstructs->LookupByKey(3));
     TEST_EQ(static_cast<const Ability *>(nullptr),
             vecofstructs->LookupByKey(5));
+  }
+
+  if (auto vec_of_stat = monster->scalar_key_sorted_tables()) {
+    auto stat_0 = vec_of_stat->LookupByKey(static_cast<uint16_t>(0u));
+    TEST_NOTNULL(stat_0);
+    TEST_NOTNULL(stat_0->id());
+    TEST_EQ(0, stat_0->count());
+    TEST_EQ_STR("miss", stat_0->id()->c_str());
   }
 
   // Test nested FlatBuffers if available:
@@ -1088,12 +1107,13 @@ void MiniReflectFlatBuffersTest(uint8_t *flatbuf) {
       "4, 0, 6, 0, 8, 0, 12, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 13, 0, 0, 0, 78, "
       "101, 115, 116, 101, 100, 77, 111, 110, 115, 116, 101, 114, 0, 0, 0 ], "
       "testarrayofstring2: [ \"jane\", \"mary\" ], "
-      "testarrayofsortedstruct: [ { id: 1, distance: 10 }, "
+      "testarrayofsortedstruct: [ { id: 0, distance: 0 }, "
       "{ id: 2, distance: 20 }, { id: 3, distance: 30 }, "
       "{ id: 4, distance: 40 } ], "
       "flex: [ 210, 4, 5, 2 ], "
       "test5: [ { a: 10, b: 20 }, { a: 30, b: 40 } ], "
-      "vector_of_enums: [ Blue, Green ] "
+      "vector_of_enums: [ Blue, Green ], "
+      "scalar_key_sorted_tables: [ { id: \"miss\" } ] "
       "}");
 
   Test test(16, 32);
@@ -2134,6 +2154,15 @@ void GenerateTableTextTest() {
   TEST_EQ(ok, true);
   // Test root table
   const Monster *monster = GetMonster(parser.builder_.GetBufferPointer());
+  const auto abilities = monster->testarrayofsortedstruct();
+  TEST_EQ(abilities->size(), 3);
+  TEST_EQ(abilities->Get(0)->id(), 0);
+  TEST_EQ(abilities->Get(0)->distance(), 45);
+  TEST_EQ(abilities->Get(1)->id(), 1);
+  TEST_EQ(abilities->Get(1)->distance(), 21);
+  TEST_EQ(abilities->Get(2)->id(), 5);
+  TEST_EQ(abilities->Get(2)->distance(), 12);
+
   std::string jsongen;
   auto result = GenerateTextFromTable(parser, monster, "MyGame.Example.Monster",
                                       &jsongen);

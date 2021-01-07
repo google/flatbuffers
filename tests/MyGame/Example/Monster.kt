@@ -805,6 +805,35 @@ class Monster : Table() {
             false
         }
     }
+    fun scalarKeySortedTables(j: Int) : MyGame.Example.Stat? = scalarKeySortedTables(MyGame.Example.Stat(), j)
+    fun scalarKeySortedTables(obj: MyGame.Example.Stat, j: Int) : MyGame.Example.Stat? {
+        val o = __offset(104)
+        return if (o != 0) {
+            obj.__assign(__indirect(__vector(o) + j * 4), bb)
+        } else {
+            null
+        }
+    }
+    val scalarKeySortedTablesLength : Int
+        get() {
+            val o = __offset(104); return if (o != 0) __vector_len(o) else 0
+        }
+    fun scalarKeySortedTablesByKey(key: UShort) : MyGame.Example.Stat? {
+        val o = __offset(104)
+        return if (o != 0) {
+            MyGame.Example.Stat.__lookup_by_key(null, __vector(o), key, bb)
+        } else {
+            null
+        }
+    }
+    fun scalarKeySortedTablesByKey(obj: MyGame.Example.Stat, key: UShort) : MyGame.Example.Stat? {
+        val o = __offset(104)
+        return if (o != 0) {
+            MyGame.Example.Stat.__lookup_by_key(obj, __vector(o), key, bb)
+        } else {
+            null
+        }
+    }
     override fun keysCompare(o1: Int, o2: Int, _bb: ByteBuffer) : Int {
          return compareStrings(__offset(10, o1, _bb), __offset(10, o2, _bb), _bb)
     }
@@ -816,7 +845,7 @@ class Monster : Table() {
             return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb))
         }
         fun MonsterBufferHasIdentifier(_bb: ByteBuffer) : Boolean = __has_identifier(_bb, "MONS")
-        fun startMonster(builder: FlatBufferBuilder) = builder.startTable(50)
+        fun startMonster(builder: FlatBufferBuilder) = builder.startTable(51)
         fun addPos(builder: FlatBufferBuilder, pos: Int) = builder.addStruct(0, pos, 0)
         fun addMana(builder: FlatBufferBuilder, mana: Short) = builder.addShort(1, mana, 150)
         fun addHp(builder: FlatBufferBuilder, hp: Short) = builder.addShort(2, hp, 100)
@@ -997,6 +1026,15 @@ class Monster : Table() {
             return builder.endVector()
         }
         fun startTestrequirednestedflatbufferVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(1, numElems, 1)
+        fun addScalarKeySortedTables(builder: FlatBufferBuilder, scalarKeySortedTables: Int) = builder.addOffset(50, scalarKeySortedTables, 0)
+        fun createScalarKeySortedTablesVector(builder: FlatBufferBuilder, data: IntArray) : Int {
+            builder.startVector(4, data.size, 4)
+            for (i in data.size - 1 downTo 0) {
+                builder.addOffset(data[i])
+            }
+            return builder.endVector()
+        }
+        fun startScalarKeySortedTablesVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(4, numElems, 4)
         fun endMonster(builder: FlatBufferBuilder) : Int {
             val o = builder.endTable()
                 builder.required(o, 10)

@@ -1082,6 +1082,16 @@ impl<'a> Stat<'a> {
   pub fn count(&self) -> u16 {
     self._tab.get::<u16>(Stat::VT_COUNT, Some(0)).unwrap()
   }
+  #[inline]
+  pub fn key_compare_less_than(&self, o: &Stat) ->  bool {
+    self.count() < o.count()
+  }
+
+  #[inline]
+  pub fn key_compare_with_value(&self, val: u16) ->  ::std::cmp::Ordering {
+    let key = self.count();
+    key.cmp(&val)
+  }
 }
 
 impl flatbuffers::Verifiable for Stat<'_> {
@@ -1300,6 +1310,7 @@ impl<'a> Monster<'a> {
       builder.add_testhashs64_fnv1a(args.testhashs64_fnv1a);
       builder.add_testhashu64_fnv1(args.testhashu64_fnv1);
       builder.add_testhashs64_fnv1(args.testhashs64_fnv1);
+      if let Some(x) = args.scalar_key_sorted_tables { builder.add_scalar_key_sorted_tables(x); }
       if let Some(x) = args.testrequirednestedflatbuffer { builder.add_testrequirednestedflatbuffer(x); }
       if let Some(x) = args.vector_of_enums { builder.add_vector_of_enums(x); }
       if let Some(x) = args.any_ambiguous { builder.add_any_ambiguous(x); }
@@ -1394,6 +1405,7 @@ impl<'a> Monster<'a> {
     pub const VT_VECTOR_OF_ENUMS: flatbuffers::VOffsetT = 98;
     pub const VT_SIGNED_ENUM: flatbuffers::VOffsetT = 100;
     pub const VT_TESTREQUIREDNESTEDFLATBUFFER: flatbuffers::VOffsetT = 102;
+    pub const VT_SCALAR_KEY_SORTED_TABLES: flatbuffers::VOffsetT = 104;
 
   #[inline]
   pub fn pos(&self) -> Option<&'a Vec3> {
@@ -1616,6 +1628,10 @@ impl<'a> Monster<'a> {
     })
   }
   #[inline]
+  pub fn scalar_key_sorted_tables(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Stat<'a>>>> {
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Stat>>>>(Monster::VT_SCALAR_KEY_SORTED_TABLES, None)
+  }
+  #[inline]
   #[allow(non_snake_case)]
   pub fn test_as_monster(&self) -> Option<Monster<'a>> {
     if self.test_type() == Any::Monster {
@@ -1781,6 +1797,7 @@ impl flatbuffers::Verifiable for Monster<'_> {
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, Color>>>(&"vector_of_enums", Self::VT_VECTOR_OF_ENUMS, false)?
      .visit_field::<Race>(&"signed_enum", Self::VT_SIGNED_ENUM, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u8>>>(&"testrequirednestedflatbuffer", Self::VT_TESTREQUIREDNESTEDFLATBUFFER, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<Stat>>>>(&"scalar_key_sorted_tables", Self::VT_SCALAR_KEY_SORTED_TABLES, false)?
      .finish();
     Ok(())
   }
@@ -1835,6 +1852,7 @@ pub struct MonsterArgs<'a> {
     pub vector_of_enums: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, Color>>>,
     pub signed_enum: Race,
     pub testrequirednestedflatbuffer: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u8>>>,
+    pub scalar_key_sorted_tables: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Stat<'a>>>>>,
 }
 impl<'a> Default for MonsterArgs<'a> {
     #[inline]
@@ -1889,6 +1907,7 @@ impl<'a> Default for MonsterArgs<'a> {
             vector_of_enums: None,
             signed_enum: Race::None,
             testrequirednestedflatbuffer: None,
+            scalar_key_sorted_tables: None,
         }
     }
 }
@@ -2094,6 +2113,10 @@ impl<'a: 'b, 'b> MonsterBuilder<'a, 'b> {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Monster::VT_TESTREQUIREDNESTEDFLATBUFFER, testrequirednestedflatbuffer);
   }
   #[inline]
+  pub fn add_scalar_key_sorted_tables(&mut self, scalar_key_sorted_tables: flatbuffers::WIPOffset<flatbuffers::Vector<'b , flatbuffers::ForwardsUOffset<Stat<'b >>>>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Monster::VT_SCALAR_KEY_SORTED_TABLES, scalar_key_sorted_tables);
+  }
+  #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> MonsterBuilder<'a, 'b> {
     let start = _fbb.start_table();
     MonsterBuilder {
@@ -2239,6 +2262,7 @@ impl std::fmt::Debug for Monster<'_> {
       ds.field("vector_of_enums", &self.vector_of_enums());
       ds.field("signed_enum", &self.signed_enum());
       ds.field("testrequirednestedflatbuffer", &self.testrequirednestedflatbuffer());
+      ds.field("scalar_key_sorted_tables", &self.scalar_key_sorted_tables());
       ds.finish()
   }
 }

@@ -1351,20 +1351,69 @@ CheckedError Parser::ParseVectorDelimiters(uoffset_t &count, F body) {
   return NoError();
 }
 
-static bool CompareType(const uint8_t *a, const uint8_t *b, BaseType ftype) {
-  switch (ftype) {
-#define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
-  case BASE_TYPE_##ENUM: return ReadScalar<CTYPE>(a) < ReadScalar<CTYPE>(b);
+static bool CompareSerializedScalars(const uint8_t *a, const uint8_t *b,
+                                     const FieldDef &key) {
+  switch (key.value.type.base_type) {
+#define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...)                       \
+  case BASE_TYPE_##ENUM: {                                              \
+    CTYPE def = static_cast<CTYPE>(0);                                  \
+    if (!a || !b) { StringToNumber(key.value.constant.c_str(), &def); } \
+    const auto av = a ? ReadScalar<CTYPE>(a) : def;                     \
+    const auto bv = b ? ReadScalar<CTYPE>(b) : def;                     \
+    return av < bv;                                                     \
+  }
     FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
 #undef FLATBUFFERS_TD
-    case BASE_TYPE_STRING:
-      // Indirect offset pointer to string pointer.
-      a += ReadScalar<uoffset_t>(a);
-      b += ReadScalar<uoffset_t>(b);
-      return *reinterpret_cast<const String *>(a) <
-             *reinterpret_cast<const String *>(b);
-    default: return false;
+    default: {
+      FLATBUFFERS_ASSERT(false && "scalar type expected");
+      return false;
+    }
   }
+}
+
+static bool CompareTablesByScalarKey(const Offset<Table> *_a,
+                                     const Offset<Table> *_b,
+                                     const FieldDef &key) {
+  const voffset_t offset = key.value.offset;
+  // Indirect offset pointer to table pointer.
+  auto a = reinterpret_cast<const uint8_t *>(_a) + ReadScalar<uoffset_t>(_a);
+  auto b = reinterpret_cast<const uint8_t *>(_b) + ReadScalar<uoffset_t>(_b);
+  // Fetch field address from table.
+  a = reinterpret_cast<const Table *>(a)->GetAddressOf(offset);
+  b = reinterpret_cast<const Table *>(b)->GetAddressOf(offset);
+  return CompareSerializedScalars(a, b, key);
+}
+
+static bool CompareTablesByStringKey(const Offset<Table> *_a,
+                                     const Offset<Table> *_b,
+                                     const FieldDef &key) {
+  const voffset_t offset = key.value.offset;
+  // Indirect offset pointer to table pointer.
+  auto a = reinterpret_cast<const uint8_t *>(_a) + ReadScalar<uoffset_t>(_a);
+  auto b = reinterpret_cast<const uint8_t *>(_b) + ReadScalar<uoffset_t>(_b);
+  // Fetch field address from table.
+  a = reinterpret_cast<const Table *>(a)->GetAddressOf(offset);
+  b = reinterpret_cast<const Table *>(b)->GetAddressOf(offset);
+  if (a && b) {
+    // Indirect offset pointer to string pointer.
+    a += ReadScalar<uoffset_t>(a);
+    b += ReadScalar<uoffset_t>(b);
+    return *reinterpret_cast<const String *>(a) <
+           *reinterpret_cast<const String *>(b);
+  } else {
+    return a ? true : false;
+  }
+}
+
+static void SwapSerializedTables(Offset<Table> *a, Offset<Table> *b) {
+  // These are serialized offsets, so are relative where they are
+  // stored in memory, so compute the distance between these pointers:
+  ptrdiff_t diff = (b - a) * sizeof(Offset<Table>);
+  FLATBUFFERS_ASSERT(diff >= 0);  // Guaranteed by SimpleQsort.
+  auto udiff = static_cast<uoffset_t>(diff);
+  a->o = EndianScalar(ReadScalar<uoffset_t>(a) - udiff);
+  b->o = EndianScalar(ReadScalar<uoffset_t>(b) + udiff);
+  std::swap(*a, *b);
 }
 
 // See below for why we need our own sort :(
@@ -1451,23 +1500,21 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
     // globals, making parsing thread-unsafe.
     // So for now, we use SimpleQsort above.
     // TODO: replace with something better, preferably not recursive.
-    voffset_t offset = key->value.offset;
-    BaseType ftype = key->value.type.base_type;
 
     if (type.struct_def->fixed) {
+      const voffset_t offset = key->value.offset;
+      const size_t struct_size = type.struct_def->bytesize;
       auto v =
           reinterpret_cast<VectorOfAny *>(builder_.GetCurrentBufferPointer());
       SimpleQsort<uint8_t>(
           v->Data(), v->Data() + v->size() * type.struct_def->bytesize,
           type.struct_def->bytesize,
-          [&](const uint8_t *a, const uint8_t *b) -> bool {
-            return CompareType(a + offset, b + offset, ftype);
+          [offset, key](const uint8_t *a, const uint8_t *b) -> bool {
+            return CompareSerializedScalars(a + offset, b + offset, *key);
           },
-          [&](uint8_t *a, uint8_t *b) {
+          [struct_size](uint8_t *a, uint8_t *b) {
             // FIXME: faster?
-            for (size_t i = 0; i < type.struct_def->bytesize; i++) {
-              std::swap(a[i], b[i]);
-            }
+            for (size_t i = 0; i < struct_size; i++) { std::swap(a[i], b[i]); }
           });
     } else {
       auto v = reinterpret_cast<Vector<Offset<Table>> *>(
@@ -1475,29 +1522,21 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
       // Here also can't use std::sort. We do have an iterator type for it,
       // but it is non-standard as it will dereference the offsets, and thus
       // can't be used to swap elements.
-      SimpleQsort<Offset<Table>>(
-          v->data(), v->data() + v->size(), 1,
-          [&](const Offset<Table> *_a, const Offset<Table> *_b) -> bool {
-            // Indirect offset pointer to table pointer.
-            auto a = reinterpret_cast<const uint8_t *>(_a) +
-                     ReadScalar<uoffset_t>(_a);
-            auto b = reinterpret_cast<const uint8_t *>(_b) +
-                     ReadScalar<uoffset_t>(_b);
-            // Fetch field address from table.
-            a = reinterpret_cast<const Table *>(a)->GetAddressOf(offset);
-            b = reinterpret_cast<const Table *>(b)->GetAddressOf(offset);
-            return CompareType(a, b, ftype);
-          },
-          [&](Offset<Table> *a, Offset<Table> *b) {
-            // These are serialized offsets, so are relative where they are
-            // stored in memory, so compute the distance between these pointers:
-            ptrdiff_t diff = (b - a) * sizeof(Offset<Table>);
-            FLATBUFFERS_ASSERT(diff >= 0);  // Guaranteed by SimpleQsort.
-            auto udiff = static_cast<uoffset_t>(diff);
-            a->o = EndianScalar(ReadScalar<uoffset_t>(a) - udiff);
-            b->o = EndianScalar(ReadScalar<uoffset_t>(b) + udiff);
-            std::swap(*a, *b);
-          });
+      if (key->value.type.base_type == BASE_TYPE_STRING) {
+        SimpleQsort<Offset<Table>>(
+            v->data(), v->data() + v->size(), 1,
+            [key](const Offset<Table> *_a, const Offset<Table> *_b) -> bool {
+              return CompareTablesByStringKey(_a, _b, *key);
+            },
+            SwapSerializedTables);
+      } else {
+        SimpleQsort<Offset<Table>>(
+            v->data(), v->data() + v->size(), 1,
+            [key](const Offset<Table> *_a, const Offset<Table> *_b) -> bool {
+              return CompareTablesByScalarKey(_a, _b, *key);
+            },
+            SwapSerializedTables);
+      }
     }
   }
   return NoError();

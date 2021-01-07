@@ -203,8 +203,15 @@ public final class Monster extends Table {
   public MyGame.Example.Monster testrequirednestedflatbufferAsMonster() { return testrequirednestedflatbufferAsMonster(new MyGame.Example.Monster()); }
   public MyGame.Example.Monster testrequirednestedflatbufferAsMonster(MyGame.Example.Monster obj) { int o = __offset(102); return o != 0 ? obj.__assign(__indirect(__vector(o)), bb) : null; }
   public boolean mutateTestrequirednestedflatbuffer(int j, int testrequirednestedflatbuffer) { int o = __offset(102); if (o != 0) { bb.put(__vector(o) + j * 1, (byte)testrequirednestedflatbuffer); return true; } else { return false; } }
+  public MyGame.Example.Stat scalarKeySortedTables(int j) { return scalarKeySortedTables(new MyGame.Example.Stat(), j); }
+  public MyGame.Example.Stat scalarKeySortedTables(MyGame.Example.Stat obj, int j) { int o = __offset(104); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
+  public int scalarKeySortedTablesLength() { int o = __offset(104); return o != 0 ? __vector_len(o) : 0; }
+  public MyGame.Example.Stat scalarKeySortedTablesByKey(int key) { int o = __offset(104); return o != 0 ? MyGame.Example.Stat.__lookup_by_key(null, __vector(o), key, bb) : null; }
+  public MyGame.Example.Stat scalarKeySortedTablesByKey(MyGame.Example.Stat obj, int key) { int o = __offset(104); return o != 0 ? MyGame.Example.Stat.__lookup_by_key(obj, __vector(o), key, bb) : null; }
+  public MyGame.Example.Stat.Vector scalarKeySortedTablesVector() { return scalarKeySortedTablesVector(new MyGame.Example.Stat.Vector()); }
+  public MyGame.Example.Stat.Vector scalarKeySortedTablesVector(MyGame.Example.Stat.Vector obj) { int o = __offset(104); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
 
-  public static void startMonster(FlatBufferBuilder builder) { builder.startTable(50); }
+  public static void startMonster(FlatBufferBuilder builder) { builder.startTable(51); }
   public static void addPos(FlatBufferBuilder builder, int posOffset) { builder.addStruct(0, posOffset, 0); }
   public static void addMana(FlatBufferBuilder builder, short mana) { builder.addShort(1, mana, 150); }
   public static void addHp(FlatBufferBuilder builder, short hp) { builder.addShort(2, hp, 100); }
@@ -294,6 +301,9 @@ public final class Monster extends Table {
   public static int createTestrequirednestedflatbufferVector(FlatBufferBuilder builder, byte[] data) { return builder.createByteVector(data); }
   public static int createTestrequirednestedflatbufferVector(FlatBufferBuilder builder, ByteBuffer data) { return builder.createByteVector(data); }
   public static void startTestrequirednestedflatbufferVector(FlatBufferBuilder builder, int numElems) { builder.startVector(1, numElems, 1); }
+  public static void addScalarKeySortedTables(FlatBufferBuilder builder, int scalarKeySortedTablesOffset) { builder.addOffset(50, scalarKeySortedTablesOffset, 0); }
+  public static int createScalarKeySortedTablesVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
+  public static void startScalarKeySortedTablesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
   public static int endMonster(FlatBufferBuilder builder) {
     int o = builder.endTable();
     builder.required(o, 10);  // name
