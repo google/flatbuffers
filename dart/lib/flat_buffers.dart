@@ -669,6 +669,7 @@ class Builder {
     for (int i = 0; i < length; i++) {
       _buf.setUint8(offset++, bytes[i]);
     }
+    _buf.setUint8(offset, 0); // trailing zero
     return result;
   }
 
