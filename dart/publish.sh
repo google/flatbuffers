@@ -17,12 +17,25 @@
 # Note to pub consumers: this file is used to assist with publishing the
 # pub package from the flatbuffers repository and is not meant for general use.
 # As pub does not currently provide a way to exclude files, it is included here.
+set -e
 
-command -v pub >/dev/null 2>&1 || { echo >&2 "Require `pub` but it's not installed.  Aborting."; exit 1; }
+command -v dart >/dev/null 2>&1 || { echo >&2 "Require `dart` but it's not installed.  Aborting."; exit 1; }
 
 cp ../samples/monster.fbs example/
 cp ../tests/monster_test.fbs test/
-pub publish
+cp -r ../tests/include_test/*.fbs test/
+cp -r ../tests/include_test/sub test/
+
+pushd example
+../../flatc --dart ./monster.fbs
+popd
+
+pushd test
+../../flatc --dart ./monster_test.fbs
+popd
+
+dart pub publish
 
 rm example/monster.fbs
-rm test/monster_test.fbs
+rm test/*.fbs
+rm -rf test/sub

@@ -267,7 +267,7 @@ class DartGenerator : public BaseGenerator {
       code += "const " + name + "._(" + enum_def.ToString(ev) + ");\n";
     }
 
-    code += "  static const values = {";
+    code += "  static const Map<int," + name + "> values = {";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
       code += enum_def.ToString(ev) + ": " + ev.name + ",";
