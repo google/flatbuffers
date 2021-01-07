@@ -192,5 +192,3 @@ jobs:
     - name: test
       working-directory: tests/FlatBuffers.Test.Swift
       run: sh SwiftTest.sh
-
-
