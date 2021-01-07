@@ -443,6 +443,7 @@ class Builder {
     _maxAlign = 1;
     _tail = 0;
     _currentVTable = null;
+    _vTables.clear();
     if (_strings != null) {
       _strings = new Map<String, int>();
     }
