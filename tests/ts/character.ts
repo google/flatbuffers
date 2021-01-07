@@ -5,9 +5,6 @@ import { BookReader, BookReaderT } from './book-reader';
 import { Rapunzel, RapunzelT } from './rapunzel';
 
 
-/**
- * @enum {number}
- */
 export enum Character{
   NONE = 0,
   MuLan = 1,

@@ -2,8 +2,6 @@
 
 /**
  * Composite components of Monster color.
- *
- * @enum {number}
  */
 export enum Color{
   Red = 1,

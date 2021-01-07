@@ -4,56 +4,27 @@ import * as flatbuffers from 'flatbuffers';
 
 
 
-/**
- * @constructor
- */
 export class BookReader {
-  /**
-   * @type flatbuffers.ByteBuffer
-   */
   bb: flatbuffers.ByteBuffer|null = null;
-
-  /**
-   * @type number
-   */
   bb_pos = 0;
-/**
- * @param number i
- * @param flatbuffers.ByteBuffer bb
- * @returns BookReader
- */
 __init(i:number, bb:flatbuffers.ByteBuffer):BookReader {
   this.bb_pos = i;
   this.bb = bb;
   return this;
 }
 
-/**
- * @returns number
- */
 booksRead():number {
   return this.bb!.readInt32(this.bb_pos);
 }
 
-/**
- * @returns string
- */
 static getFullyQualifiedName():string {
   return 'BookReader';
 }
 
-/**
- * @returns number
- */
 static sizeOf():number {
   return 4;
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param number books_read
- * @returns flatbuffers.Offset
- */
 static createBookReader(builder:flatbuffers.Builder, books_read: number):flatbuffers.Offset {
   builder.prep(4, 4);
   builder.writeInt32(books_read);
@@ -61,36 +32,24 @@ static createBookReader(builder:flatbuffers.Builder, books_read: number):flatbuf
 }
 
 
-/**
- * @returns BookReaderT
- */
 unpack(): BookReaderT {
   return new BookReaderT(
     this.booksRead()
   );
 }
 
-/**
- * @param BookReaderT _o
- */
+
 unpackTo(_o: BookReaderT): void {
   _o.booksRead = this.booksRead();
 }
 }
 
 export class BookReaderT {
-/**
- * @constructor
- * @param number booksRead
- */
 constructor(
   public booksRead: number = 0
 ){}
 
-/**
- * @param flatbuffers.Builder builder
- * @returns flatbuffers.Offset
- */
+
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   return BookReader.createBookReader(builder,
     this.booksRead

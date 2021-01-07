@@ -5,9 +5,6 @@ import { Monster, MonsterT } from '../../my-game/example/monster';
 import { TestSimpleTableWithEnum, TestSimpleTableWithEnumT } from '../../my-game/example/test-simple-table-with-enum';
 
 
-/**
- * @enum {number}
- */
 export enum Any{
   NONE = 0,
   Monster = 1,

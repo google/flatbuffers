@@ -6,143 +6,72 @@ import { Color } from '../../my-game/example/color';
 import { Test, TestT } from '../../my-game/example/test';
 
 
-/**
- * @constructor
- */
 export class Vec3 {
-  /**
-   * @type flatbuffers.ByteBuffer
-   */
   bb: flatbuffers.ByteBuffer|null = null;
-
-  /**
-   * @type number
-   */
   bb_pos = 0;
-/**
- * @param number i
- * @param flatbuffers.ByteBuffer bb
- * @returns Vec3
- */
 __init(i:number, bb:flatbuffers.ByteBuffer):Vec3 {
   this.bb_pos = i;
   this.bb = bb;
   return this;
 }
 
-/**
- * @returns number
- */
 x():number {
   return this.bb!.readFloat32(this.bb_pos);
 }
 
-/**
- * @param number value
- * @returns boolean
- */
 mutate_x(value:number):boolean {
   this.bb!.writeFloat32(this.bb_pos + 0, value);
   return true;
 }
 
-/**
- * @returns number
- */
 y():number {
   return this.bb!.readFloat32(this.bb_pos + 4);
 }
 
-/**
- * @param number value
- * @returns boolean
- */
 mutate_y(value:number):boolean {
   this.bb!.writeFloat32(this.bb_pos + 4, value);
   return true;
 }
 
-/**
- * @returns number
- */
 z():number {
   return this.bb!.readFloat32(this.bb_pos + 8);
 }
 
-/**
- * @param number value
- * @returns boolean
- */
 mutate_z(value:number):boolean {
   this.bb!.writeFloat32(this.bb_pos + 8, value);
   return true;
 }
 
-/**
- * @returns number
- */
 test1():number {
   return this.bb!.readFloat64(this.bb_pos + 16);
 }
 
-/**
- * @param number value
- * @returns boolean
- */
 mutate_test1(value:number):boolean {
   this.bb!.writeFloat64(this.bb_pos + 16, value);
   return true;
 }
 
-/**
- * @returns Color
- */
 test2():Color {
-  return /** @type MyGame.Example.Color */ (this.bb!.readUint8(this.bb_pos + 24));
+  return this.bb!.readUint8(this.bb_pos + 24);
 }
 
-/**
- * @param Color value
- * @returns boolean
- */
 mutate_test2(value:Color):boolean {
   this.bb!.writeUint8(this.bb_pos + 24, value);
   return true;
 }
 
-/**
- * @param Test= obj
- * @returns Test|null
- */
 test3(obj?:Test):Test|null {
   return (obj || new Test()).__init(this.bb_pos + 26, this.bb!);
 }
 
-/**
- * @returns string
- */
 static getFullyQualifiedName():string {
   return 'MyGame.Example.Vec3';
 }
 
-/**
- * @returns number
- */
 static sizeOf():number {
   return 32;
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param number x
- * @param number y
- * @param number z
- * @param number test1
- * @param Color test2
- * @param number test3_a
- * @param number test3_b
- * @returns flatbuffers.Offset
- */
 static createVec3(builder:flatbuffers.Builder, x: number, y: number, z: number, test1: number, test2: Color, test3_a: number, test3_b: number):flatbuffers.Offset {
   builder.prep(8, 32);
   builder.pad(2);
@@ -161,9 +90,6 @@ static createVec3(builder:flatbuffers.Builder, x: number, y: number, z: number, 
 }
 
 
-/**
- * @returns Vec3T
- */
 unpack(): Vec3T {
   return new Vec3T(
     this.x(),
@@ -175,9 +101,7 @@ unpack(): Vec3T {
   );
 }
 
-/**
- * @param Vec3T _o
- */
+
 unpackTo(_o: Vec3T): void {
   _o.x = this.x();
   _o.y = this.y();
@@ -189,28 +113,16 @@ unpackTo(_o: Vec3T): void {
 }
 
 export class Vec3T {
-/**
- * @constructor
- * @param number x
- * @param number y
- * @param number z
- * @param number test1
- * @param Color test2
- * @param TestT|null test3
- */
 constructor(
   public x: number = 0.0,
   public y: number = 0.0,
   public z: number = 0.0,
   public test1: number = 0.0,
-  public test2: Color = /** @type MyGame.Example.Color} */ (0),
+  public test2: Color = 0,
   public test3: TestT|null = null
 ){}
 
-/**
- * @param flatbuffers.Builder builder
- * @returns flatbuffers.Offset
- */
+
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   return Vec3.createVec3(builder,
     this.x,

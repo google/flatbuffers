@@ -8,160 +8,83 @@ import { Character, unionToCharacter, unionListToCharacter } from './character';
 import { Rapunzel, RapunzelT } from './rapunzel';
 
 
-/**
- * @constructor
- */
 export class Movie {
-  /**
-   * @type flatbuffers.ByteBuffer
-   */
   bb: flatbuffers.ByteBuffer|null = null;
-
-  /**
-   * @type number
-   */
   bb_pos = 0;
-/**
- * @param number i
- * @param flatbuffers.ByteBuffer bb
- * @returns Movie
- */
 __init(i:number, bb:flatbuffers.ByteBuffer):Movie {
   this.bb_pos = i;
   this.bb = bb;
   return this;
 }
 
-/**
- * @param flatbuffers.ByteBuffer bb
- * @param Movie= obj
- * @returns Movie
- */
 static getRootAsMovie(bb:flatbuffers.ByteBuffer, obj?:Movie):Movie {
   return (obj || new Movie()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
-/**
- * @param flatbuffers.ByteBuffer bb
- * @param Movie= obj
- * @returns Movie
- */
 static getSizePrefixedRootAsMovie(bb:flatbuffers.ByteBuffer, obj?:Movie):Movie {
   bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
   return (obj || new Movie()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
-/**
- * @param flatbuffers.ByteBuffer bb
- * @returns boolean
- */
 static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean {
   return bb.__has_identifier('MOVI');
 }
 
-/**
- * @returns Character
- */
 mainCharacterType():Character {
   const offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? /** @type Character */ (this.bb!.readUint8(this.bb_pos + offset)) : Character.NONE;
+  return offset ? this.bb!.readUint8(this.bb_pos + offset) : Character.NONE;
 }
 
-/**
- * @param flatbuffers.Table obj
- * @returns ?flatbuffers.Table
- */
 mainCharacter<T extends flatbuffers.Table>(obj:any|string):any|string|null {
   const offset = this.bb!.__offset(this.bb_pos, 6);
   return offset ? this.bb!.__union_with_string(obj, this.bb_pos + offset) : null;
 }
 
-/**
- * @param number index
- * @returns Character
- */
 charactersType(index: number):Character|null {
   const offset = this.bb!.__offset(this.bb_pos, 8);
-  return offset ? /** @type Character */ (this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index)) : /** @type Character */ (0);
+  return offset ? this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index) : 0;
 }
 
-/**
- * @returns number
- */
 charactersTypeLength():number {
   const offset = this.bb!.__offset(this.bb_pos, 8);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-/**
- * @returns Uint8Array
- */
 charactersTypeArray():Uint8Array|null {
   const offset = this.bb!.__offset(this.bb_pos, 8);
   return offset ? new Uint8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
 }
 
-/**
- * @param number index
- * @param flatbuffers.Table= obj
- * @returns ?flatbuffers.Table
- */
 characters(index: number, obj:any|string):any|string|null {
   const offset = this.bb!.__offset(this.bb_pos, 10);
   return offset ? this.bb!.__union_with_string(obj, this.bb!.__vector(this.bb_pos + offset) + index * 4) : null;
 }
 
-/**
- * @returns number
- */
 charactersLength():number {
   const offset = this.bb!.__offset(this.bb_pos, 10);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-/**
- * @returns string
- */
 static getFullyQualifiedName():string {
   return 'Movie';
 }
 
-/**
- * @param flatbuffers.Builder builder
- */
 static startMovie(builder:flatbuffers.Builder) {
   builder.startObject(4);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param Character mainCharacterType
- */
 static addMainCharacterType(builder:flatbuffers.Builder, mainCharacterType:Character) {
   builder.addFieldInt8(0, mainCharacterType, Character.NONE);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset mainCharacterOffset
- */
 static addMainCharacter(builder:flatbuffers.Builder, mainCharacterOffset:flatbuffers.Offset) {
   builder.addFieldOffset(1, mainCharacterOffset, 0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset charactersTypeOffset
- */
 static addCharactersType(builder:flatbuffers.Builder, charactersTypeOffset:flatbuffers.Offset) {
   builder.addFieldOffset(2, charactersTypeOffset, 0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param Array.<Character> data
- * @returns flatbuffers.Offset
- */
 static createCharactersTypeVector(builder:flatbuffers.Builder, data:Character[]):flatbuffers.Offset {
   builder.startVector(1, data.length, 1);
   for (let i = data.length - 1; i >= 0; i--) {
@@ -170,27 +93,14 @@ static createCharactersTypeVector(builder:flatbuffers.Builder, data:Character[])
   return builder.endVector();
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param number numElems
- */
 static startCharactersTypeVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(1, numElems, 1);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset charactersOffset
- */
 static addCharacters(builder:flatbuffers.Builder, charactersOffset:flatbuffers.Offset) {
   builder.addFieldOffset(3, charactersOffset, 0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param Array.<flatbuffers.Offset> data
- * @returns flatbuffers.Offset
- */
 static createCharactersVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
   builder.startVector(4, data.length, 4);
   for (let i = data.length - 1; i >= 0; i--) {
@@ -199,35 +109,19 @@ static createCharactersVector(builder:flatbuffers.Builder, data:flatbuffers.Offs
   return builder.endVector();
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param number numElems
- */
 static startCharactersVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(4, numElems, 4);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @returns flatbuffers.Offset
- */
 static endMovie(builder:flatbuffers.Builder):flatbuffers.Offset {
   const offset = builder.endObject();
   return offset;
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset offset
- */
 static finishMovieBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
   builder.finish(offset, 'MOVI');
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset offset
- */
 static finishSizePrefixedMovieBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
   builder.finish(offset, 'MOVI', true);
 }
@@ -241,9 +135,6 @@ static createMovie(builder:flatbuffers.Builder, mainCharacterType:Character, mai
   return Movie.endMovie(builder);
 }
 
-/**
- * @returns MovieT
- */
 unpack(): MovieT {
   return new MovieT(
     this.mainCharacterType(),
@@ -270,9 +161,7 @@ unpack(): MovieT {
   );
 }
 
-/**
- * @param MovieT _o
- */
+
 unpackTo(_o: MovieT): void {
   _o.mainCharacterType = this.mainCharacterType();
   _o.mainCharacter = (() => {
@@ -299,13 +188,6 @@ unpackTo(_o: MovieT): void {
 }
 
 export class MovieT {
-/**
- * @constructor
- * @param Character mainCharacterType
- * @param AttackerT|BookReaderT|RapunzelT|string|null mainCharacter
- * @param (Character)[] charactersType
- * @param (AttackerT|BookReaderT|RapunzelT|string)[] characters
- */
 constructor(
   public mainCharacterType: Character = Character.NONE,
   public mainCharacter: AttackerT|BookReaderT|RapunzelT|string|null = null,
@@ -313,10 +195,7 @@ constructor(
   public characters: (AttackerT|BookReaderT|RapunzelT|string)[] = []
 ){}
 
-/**
- * @param flatbuffers.Builder builder
- * @returns flatbuffers.Offset
- */
+
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   const mainCharacter = builder.createObjectOffset(this.mainCharacter);
   const charactersType = Movie.createCharactersTypeVector(builder, this.charactersType);

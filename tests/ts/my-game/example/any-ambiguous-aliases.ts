@@ -3,9 +3,6 @@
 import { Monster, MonsterT } from '../../my-game/example/monster';
 
 
-/**
- * @enum {number}
- */
 export enum AnyAmbiguousAliases{
   NONE = 0,
   M1 = 1,

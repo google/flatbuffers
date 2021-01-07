@@ -4,53 +4,24 @@ import * as flatbuffers from 'flatbuffers';
 
 
 
-/**
- * @constructor
- */
 export class Stat {
-  /**
-   * @type flatbuffers.ByteBuffer
-   */
   bb: flatbuffers.ByteBuffer|null = null;
-
-  /**
-   * @type number
-   */
   bb_pos = 0;
-/**
- * @param number i
- * @param flatbuffers.ByteBuffer bb
- * @returns Stat
- */
 __init(i:number, bb:flatbuffers.ByteBuffer):Stat {
   this.bb_pos = i;
   this.bb = bb;
   return this;
 }
 
-/**
- * @param flatbuffers.ByteBuffer bb
- * @param Stat= obj
- * @returns Stat
- */
 static getRootAsStat(bb:flatbuffers.ByteBuffer, obj?:Stat):Stat {
   return (obj || new Stat()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
-/**
- * @param flatbuffers.ByteBuffer bb
- * @param Stat= obj
- * @returns Stat
- */
 static getSizePrefixedRootAsStat(bb:flatbuffers.ByteBuffer, obj?:Stat):Stat {
   bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
   return (obj || new Stat()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
-/**
- * @param flatbuffers.Encoding= optionalEncoding
- * @returns string|Uint8Array|null
- */
 id():string|null
 id(optionalEncoding:flatbuffers.Encoding):string|Uint8Array|null
 id(optionalEncoding?:any):string|Uint8Array|null {
@@ -58,18 +29,11 @@ id(optionalEncoding?:any):string|Uint8Array|null {
   return offset ? this.bb!.__string(this.bb_pos + offset, optionalEncoding) : null;
 }
 
-/**
- * @returns flatbuffers.Long
- */
 val():flatbuffers.Long {
   const offset = this.bb!.__offset(this.bb_pos, 6);
   return offset ? this.bb!.readInt64(this.bb_pos + offset) : this.bb!.createLong(0, 0);
 }
 
-/**
- * @param flatbuffers.Long value
- * @returns boolean
- */
 mutate_val(value:flatbuffers.Long):boolean {
   const offset = this.bb!.__offset(this.bb_pos, 6);
 
@@ -81,18 +45,11 @@ mutate_val(value:flatbuffers.Long):boolean {
   return true;
 }
 
-/**
- * @returns number
- */
 count():number {
   const offset = this.bb!.__offset(this.bb_pos, 8);
   return offset ? this.bb!.readUint16(this.bb_pos + offset) : 0;
 }
 
-/**
- * @param number value
- * @returns boolean
- */
 mutate_count(value:number):boolean {
   const offset = this.bb!.__offset(this.bb_pos, 8);
 
@@ -104,48 +61,26 @@ mutate_count(value:number):boolean {
   return true;
 }
 
-/**
- * @returns string
- */
 static getFullyQualifiedName():string {
   return 'MyGame.Example.Stat';
 }
 
-/**
- * @param flatbuffers.Builder builder
- */
 static startStat(builder:flatbuffers.Builder) {
   builder.startObject(3);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset idOffset
- */
 static addId(builder:flatbuffers.Builder, idOffset:flatbuffers.Offset) {
   builder.addFieldOffset(0, idOffset, 0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Long val
- */
 static addVal(builder:flatbuffers.Builder, val:flatbuffers.Long) {
   builder.addFieldInt64(1, val, builder.createLong(0, 0));
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param number count
- */
 static addCount(builder:flatbuffers.Builder, count:number) {
   builder.addFieldInt16(2, count, 0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @returns flatbuffers.Offset
- */
 static endStat(builder:flatbuffers.Builder):flatbuffers.Offset {
   const offset = builder.endObject();
   return offset;
@@ -167,9 +102,6 @@ static deserialize(buffer: Uint8Array):Stat {
   return Stat.getRootAsStat(new flatbuffers.ByteBuffer(buffer))
 }
 
-/**
- * @returns StatT
- */
 unpack(): StatT {
   return new StatT(
     this.id(),
@@ -178,9 +110,7 @@ unpack(): StatT {
   );
 }
 
-/**
- * @param StatT _o
- */
+
 unpackTo(_o: StatT): void {
   _o.id = this.id();
   _o.val = this.val();
@@ -189,22 +119,13 @@ unpackTo(_o: StatT): void {
 }
 
 export class StatT {
-/**
- * @constructor
- * @param string|Uint8Array|null id
- * @param flatbuffers.Long val
- * @param number count
- */
 constructor(
   public id: string|Uint8Array|null = null,
   public val: flatbuffers.Long = flatbuffers.createLong(0, 0),
   public count: number = 0
 ){}
 
-/**
- * @param flatbuffers.Builder builder
- * @returns flatbuffers.Offset
- */
+
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   const id = (this.id !== null ? builder.createString(this.id!) : 0);
 

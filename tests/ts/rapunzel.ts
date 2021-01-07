@@ -4,56 +4,27 @@ import * as flatbuffers from 'flatbuffers';
 
 
 
-/**
- * @constructor
- */
 export class Rapunzel {
-  /**
-   * @type flatbuffers.ByteBuffer
-   */
   bb: flatbuffers.ByteBuffer|null = null;
-
-  /**
-   * @type number
-   */
   bb_pos = 0;
-/**
- * @param number i
- * @param flatbuffers.ByteBuffer bb
- * @returns Rapunzel
- */
 __init(i:number, bb:flatbuffers.ByteBuffer):Rapunzel {
   this.bb_pos = i;
   this.bb = bb;
   return this;
 }
 
-/**
- * @returns number
- */
 hairLength():number {
   return this.bb!.readInt32(this.bb_pos);
 }
 
-/**
- * @returns string
- */
 static getFullyQualifiedName():string {
   return 'Rapunzel';
 }
 
-/**
- * @returns number
- */
 static sizeOf():number {
   return 4;
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param number hair_length
- * @returns flatbuffers.Offset
- */
 static createRapunzel(builder:flatbuffers.Builder, hair_length: number):flatbuffers.Offset {
   builder.prep(4, 4);
   builder.writeInt32(hair_length);
@@ -61,36 +32,24 @@ static createRapunzel(builder:flatbuffers.Builder, hair_length: number):flatbuff
 }
 
 
-/**
- * @returns RapunzelT
- */
 unpack(): RapunzelT {
   return new RapunzelT(
     this.hairLength()
   );
 }
 
-/**
- * @param RapunzelT _o
- */
+
 unpackTo(_o: RapunzelT): void {
   _o.hairLength = this.hairLength();
 }
 }
 
 export class RapunzelT {
-/**
- * @constructor
- * @param number hairLength
- */
 constructor(
   public hairLength: number = 0
 ){}
 
-/**
- * @param flatbuffers.Builder builder
- * @returns flatbuffers.Offset
- */
+
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   return Rapunzel.createRapunzel(builder,
     this.hairLength

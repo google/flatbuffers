@@ -4,67 +4,32 @@ import * as flatbuffers from 'flatbuffers';
 
 
 
-/**
- * @constructor
- */
 export class InParentNamespace {
-  /**
-   * @type flatbuffers.ByteBuffer
-   */
   bb: flatbuffers.ByteBuffer|null = null;
-
-  /**
-   * @type number
-   */
   bb_pos = 0;
-/**
- * @param number i
- * @param flatbuffers.ByteBuffer bb
- * @returns InParentNamespace
- */
 __init(i:number, bb:flatbuffers.ByteBuffer):InParentNamespace {
   this.bb_pos = i;
   this.bb = bb;
   return this;
 }
 
-/**
- * @param flatbuffers.ByteBuffer bb
- * @param InParentNamespace= obj
- * @returns InParentNamespace
- */
 static getRootAsInParentNamespace(bb:flatbuffers.ByteBuffer, obj?:InParentNamespace):InParentNamespace {
   return (obj || new InParentNamespace()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
-/**
- * @param flatbuffers.ByteBuffer bb
- * @param InParentNamespace= obj
- * @returns InParentNamespace
- */
 static getSizePrefixedRootAsInParentNamespace(bb:flatbuffers.ByteBuffer, obj?:InParentNamespace):InParentNamespace {
   bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
   return (obj || new InParentNamespace()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
-/**
- * @returns string
- */
 static getFullyQualifiedName():string {
   return 'MyGame.InParentNamespace';
 }
 
-/**
- * @param flatbuffers.Builder builder
- */
 static startInParentNamespace(builder:flatbuffers.Builder) {
   builder.startObject(0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @returns flatbuffers.Offset
- */
 static endInParentNamespace(builder:flatbuffers.Builder):flatbuffers.Offset {
   const offset = builder.endObject();
   return offset;
@@ -83,29 +48,18 @@ static deserialize(buffer: Uint8Array):InParentNamespace {
   return InParentNamespace.getRootAsInParentNamespace(new flatbuffers.ByteBuffer(buffer))
 }
 
-/**
- * @returns InParentNamespaceT
- */
 unpack(): InParentNamespaceT {
   return new InParentNamespaceT();
 }
 
-/**
- * @param InParentNamespaceT _o
- */
+
 unpackTo(_o: InParentNamespaceT): void {}
 }
 
 export class InParentNamespaceT {
-/**
- * @constructor
- */
 constructor(){}
 
-/**
- * @param flatbuffers.Builder builder
- * @returns flatbuffers.Offset
- */
+
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   return InParentNamespace.createInParentNamespace(builder);
 }

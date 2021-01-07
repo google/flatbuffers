@@ -4,82 +4,41 @@ import * as flatbuffers from 'flatbuffers';
 
 
 
-/**
- * @constructor
- */
 export class Test {
-  /**
-   * @type flatbuffers.ByteBuffer
-   */
   bb: flatbuffers.ByteBuffer|null = null;
-
-  /**
-   * @type number
-   */
   bb_pos = 0;
-/**
- * @param number i
- * @param flatbuffers.ByteBuffer bb
- * @returns Test
- */
 __init(i:number, bb:flatbuffers.ByteBuffer):Test {
   this.bb_pos = i;
   this.bb = bb;
   return this;
 }
 
-/**
- * @returns number
- */
 a():number {
   return this.bb!.readInt16(this.bb_pos);
 }
 
-/**
- * @param number value
- * @returns boolean
- */
 mutate_a(value:number):boolean {
   this.bb!.writeInt16(this.bb_pos + 0, value);
   return true;
 }
 
-/**
- * @returns number
- */
 b():number {
   return this.bb!.readInt8(this.bb_pos + 2);
 }
 
-/**
- * @param number value
- * @returns boolean
- */
 mutate_b(value:number):boolean {
   this.bb!.writeInt8(this.bb_pos + 2, value);
   return true;
 }
 
-/**
- * @returns string
- */
 static getFullyQualifiedName():string {
   return 'MyGame.Example.Test';
 }
 
-/**
- * @returns number
- */
 static sizeOf():number {
   return 4;
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param number a
- * @param number b
- * @returns flatbuffers.Offset
- */
 static createTest(builder:flatbuffers.Builder, a: number, b: number):flatbuffers.Offset {
   builder.prep(2, 4);
   builder.pad(1);
@@ -89,9 +48,6 @@ static createTest(builder:flatbuffers.Builder, a: number, b: number):flatbuffers
 }
 
 
-/**
- * @returns TestT
- */
 unpack(): TestT {
   return new TestT(
     this.a(),
@@ -99,9 +55,7 @@ unpack(): TestT {
   );
 }
 
-/**
- * @param TestT _o
- */
+
 unpackTo(_o: TestT): void {
   _o.a = this.a();
   _o.b = this.b();
@@ -109,20 +63,12 @@ unpackTo(_o: TestT): void {
 }
 
 export class TestT {
-/**
- * @constructor
- * @param number a
- * @param number b
- */
 constructor(
   public a: number = 0,
   public b: number = 0
 ){}
 
-/**
- * @param flatbuffers.Builder builder
- * @returns flatbuffers.Offset
- */
+
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   return Test.createTest(builder,
     this.a,

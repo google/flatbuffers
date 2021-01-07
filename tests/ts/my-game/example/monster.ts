@@ -19,78 +19,39 @@ import { InParentNamespace, InParentNamespaceT } from '../../my-game/in-parent-n
 
 /**
  * an example documentation comment: "monster object"
- *
- * @constructor
  */
 export class Monster {
-  /**
-   * @type flatbuffers.ByteBuffer
-   */
   bb: flatbuffers.ByteBuffer|null = null;
-
-  /**
-   * @type number
-   */
   bb_pos = 0;
-/**
- * @param number i
- * @param flatbuffers.ByteBuffer bb
- * @returns Monster
- */
 __init(i:number, bb:flatbuffers.ByteBuffer):Monster {
   this.bb_pos = i;
   this.bb = bb;
   return this;
 }
 
-/**
- * @param flatbuffers.ByteBuffer bb
- * @param Monster= obj
- * @returns Monster
- */
 static getRootAsMonster(bb:flatbuffers.ByteBuffer, obj?:Monster):Monster {
   return (obj || new Monster()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
-/**
- * @param flatbuffers.ByteBuffer bb
- * @param Monster= obj
- * @returns Monster
- */
 static getSizePrefixedRootAsMonster(bb:flatbuffers.ByteBuffer, obj?:Monster):Monster {
   bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
   return (obj || new Monster()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
-/**
- * @param flatbuffers.ByteBuffer bb
- * @returns boolean
- */
 static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean {
   return bb.__has_identifier('MONS');
 }
 
-/**
- * @param Vec3= obj
- * @returns Vec3|null
- */
 pos(obj?:Vec3):Vec3|null {
   const offset = this.bb!.__offset(this.bb_pos, 4);
   return offset ? (obj || new Vec3()).__init(this.bb_pos + offset, this.bb!) : null;
 }
 
-/**
- * @returns number
- */
 mana():number {
   const offset = this.bb!.__offset(this.bb_pos, 6);
   return offset ? this.bb!.readInt16(this.bb_pos + offset) : 150;
 }
 
-/**
- * @param number value
- * @returns boolean
- */
 mutate_mana(value:number):boolean {
   const offset = this.bb!.__offset(this.bb_pos, 6);
 
@@ -102,18 +63,11 @@ mutate_mana(value:number):boolean {
   return true;
 }
 
-/**
- * @returns number
- */
 hp():number {
   const offset = this.bb!.__offset(this.bb_pos, 8);
   return offset ? this.bb!.readInt16(this.bb_pos + offset) : 100;
 }
 
-/**
- * @param number value
- * @returns boolean
- */
 mutate_hp(value:number):boolean {
   const offset = this.bb!.__offset(this.bb_pos, 8);
 
@@ -125,10 +79,6 @@ mutate_hp(value:number):boolean {
   return true;
 }
 
-/**
- * @param flatbuffers.Encoding= optionalEncoding
- * @returns string|Uint8Array|null
- */
 name():string|null
 name(optionalEncoding:flatbuffers.Encoding):string|Uint8Array|null
 name(optionalEncoding?:any):string|Uint8Array|null {
@@ -136,43 +86,26 @@ name(optionalEncoding?:any):string|Uint8Array|null {
   return offset ? this.bb!.__string(this.bb_pos + offset, optionalEncoding) : null;
 }
 
-/**
- * @param number index
- * @returns number
- */
 inventory(index: number):number|null {
   const offset = this.bb!.__offset(this.bb_pos, 14);
   return offset ? this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index) : 0;
 }
 
-/**
- * @returns number
- */
 inventoryLength():number {
   const offset = this.bb!.__offset(this.bb_pos, 14);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-/**
- * @returns Uint8Array
- */
 inventoryArray():Uint8Array|null {
   const offset = this.bb!.__offset(this.bb_pos, 14);
   return offset ? new Uint8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
 }
 
-/**
- * @returns Color
- */
 color():Color {
   const offset = this.bb!.__offset(this.bb_pos, 16);
-  return offset ? /** @type MyGame.Example.Color */ (this.bb!.readUint8(this.bb_pos + offset)) : Color.Blue;
+  return offset ? this.bb!.readUint8(this.bb_pos + offset) : Color.Blue;
 }
 
-/**
- * @param Color value
- * @returns boolean
- */
 mutate_color(value:Color):boolean {
   const offset = this.bb!.__offset(this.bb_pos, 16);
 
@@ -184,46 +117,26 @@ mutate_color(value:Color):boolean {
   return true;
 }
 
-/**
- * @returns Any
- */
 testType():Any {
   const offset = this.bb!.__offset(this.bb_pos, 18);
-  return offset ? /** @type MyGame.Example.Any */ (this.bb!.readUint8(this.bb_pos + offset)) : Any.NONE;
+  return offset ? this.bb!.readUint8(this.bb_pos + offset) : Any.NONE;
 }
 
-/**
- * @param flatbuffers.Table obj
- * @returns ?flatbuffers.Table
- */
 test<T extends flatbuffers.Table>(obj:any):any|null {
   const offset = this.bb!.__offset(this.bb_pos, 20);
   return offset ? this.bb!.__union(obj, this.bb_pos + offset) : null;
 }
 
-/**
- * @param number index
- * @param Test= obj
- * @returns Test
- */
 test4(index: number, obj?:Test):Test|null {
   const offset = this.bb!.__offset(this.bb_pos, 22);
   return offset ? (obj || new Test()).__init(this.bb!.__vector(this.bb_pos + offset) + index * 4, this.bb!) : null;
 }
 
-/**
- * @returns number
- */
 test4Length():number {
   const offset = this.bb!.__offset(this.bb_pos, 22);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-/**
- * @param number index
- * @param flatbuffers.Encoding= optionalEncoding
- * @returns string|Uint8Array
- */
 testarrayofstring(index: number):string
 testarrayofstring(index: number,optionalEncoding:flatbuffers.Encoding):string|Uint8Array
 testarrayofstring(index: number,optionalEncoding?:any):string|Uint8Array|null {
@@ -231,9 +144,6 @@ testarrayofstring(index: number,optionalEncoding?:any):string|Uint8Array|null {
   return offset ? this.bb!.__string(this.bb!.__vector(this.bb_pos + offset) + index * 4, optionalEncoding) : null;
 }
 
-/**
- * @returns number
- */
 testarrayofstringLength():number {
   const offset = this.bb!.__offset(this.bb_pos, 24);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
@@ -242,79 +152,47 @@ testarrayofstringLength():number {
 /**
  * an example documentation comment: this will end up in the generated code
  * multiline too
- *
- * @param number index
- * @param Monster= obj
- * @returns Monster
  */
 testarrayoftables(index: number, obj?:Monster):Monster|null {
   const offset = this.bb!.__offset(this.bb_pos, 26);
   return offset ? (obj || new Monster()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
 }
 
-/**
- * @returns number
- */
 testarrayoftablesLength():number {
   const offset = this.bb!.__offset(this.bb_pos, 26);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-/**
- * @param Monster= obj
- * @returns Monster|null
- */
 enemy(obj?:Monster):Monster|null {
   const offset = this.bb!.__offset(this.bb_pos, 28);
   return offset ? (obj || new Monster()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
 }
 
-/**
- * @param number index
- * @returns number
- */
 testnestedflatbuffer(index: number):number|null {
   const offset = this.bb!.__offset(this.bb_pos, 30);
   return offset ? this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index) : 0;
 }
 
-/**
- * @returns number
- */
 testnestedflatbufferLength():number {
   const offset = this.bb!.__offset(this.bb_pos, 30);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-/**
- * @returns Uint8Array
- */
 testnestedflatbufferArray():Uint8Array|null {
   const offset = this.bb!.__offset(this.bb_pos, 30);
   return offset ? new Uint8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
 }
 
-/**
- * @param Stat= obj
- * @returns Stat|null
- */
 testempty(obj?:Stat):Stat|null {
   const offset = this.bb!.__offset(this.bb_pos, 32);
   return offset ? (obj || new Stat()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
 }
 
-/**
- * @returns boolean
- */
 testbool():boolean {
   const offset = this.bb!.__offset(this.bb_pos, 34);
   return offset ? !!this.bb!.readInt8(this.bb_pos + offset) : false;
 }
 
-/**
- * @param boolean value
- * @returns boolean
- */
 mutate_testbool(value:boolean):boolean {
   const offset = this.bb!.__offset(this.bb_pos, 34);
 
@@ -326,18 +204,11 @@ mutate_testbool(value:boolean):boolean {
   return true;
 }
 
-/**
- * @returns number
- */
 testhashs32Fnv1():number {
   const offset = this.bb!.__offset(this.bb_pos, 36);
   return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
 }
 
-/**
- * @param number value
- * @returns boolean
- */
 mutate_testhashs32_fnv1(value:number):boolean {
   const offset = this.bb!.__offset(this.bb_pos, 36);
 
@@ -349,18 +220,11 @@ mutate_testhashs32_fnv1(value:number):boolean {
   return true;
 }
 
-/**
- * @returns number
- */
 testhashu32Fnv1():number {
   const offset = this.bb!.__offset(this.bb_pos, 38);
   return offset ? this.bb!.readUint32(this.bb_pos + offset) : 0;
 }
 
-/**
- * @param number value
- * @returns boolean
- */
 mutate_testhashu32_fnv1(value:number):boolean {
   const offset = this.bb!.__offset(this.bb_pos, 38);
 
@@ -372,18 +236,11 @@ mutate_testhashu32_fnv1(value:number):boolean {
   return true;
 }
 
-/**
- * @returns flatbuffers.Long
- */
 testhashs64Fnv1():flatbuffers.Long {
   const offset = this.bb!.__offset(this.bb_pos, 40);
   return offset ? this.bb!.readInt64(this.bb_pos + offset) : this.bb!.createLong(0, 0);
 }
 
-/**
- * @param flatbuffers.Long value
- * @returns boolean
- */
 mutate_testhashs64_fnv1(value:flatbuffers.Long):boolean {
   const offset = this.bb!.__offset(this.bb_pos, 40);
 
@@ -395,18 +252,11 @@ mutate_testhashs64_fnv1(value:flatbuffers.Long):boolean {
   return true;
 }
 
-/**
- * @returns flatbuffers.Long
- */
 testhashu64Fnv1():flatbuffers.Long {
   const offset = this.bb!.__offset(this.bb_pos, 42);
   return offset ? this.bb!.readUint64(this.bb_pos + offset) : this.bb!.createLong(0, 0);
 }
 
-/**
- * @param flatbuffers.Long value
- * @returns boolean
- */
 mutate_testhashu64_fnv1(value:flatbuffers.Long):boolean {
   const offset = this.bb!.__offset(this.bb_pos, 42);
 
@@ -418,18 +268,11 @@ mutate_testhashu64_fnv1(value:flatbuffers.Long):boolean {
   return true;
 }
 
-/**
- * @returns number
- */
 testhashs32Fnv1a():number {
   const offset = this.bb!.__offset(this.bb_pos, 44);
   return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
 }
 
-/**
- * @param number value
- * @returns boolean
- */
 mutate_testhashs32_fnv1a(value:number):boolean {
   const offset = this.bb!.__offset(this.bb_pos, 44);
 
@@ -441,18 +284,11 @@ mutate_testhashs32_fnv1a(value:number):boolean {
   return true;
 }
 
-/**
- * @returns number
- */
 testhashu32Fnv1a():number {
   const offset = this.bb!.__offset(this.bb_pos, 46);
   return offset ? this.bb!.readUint32(this.bb_pos + offset) : 0;
 }
 
-/**
- * @param number value
- * @returns boolean
- */
 mutate_testhashu32_fnv1a(value:number):boolean {
   const offset = this.bb!.__offset(this.bb_pos, 46);
 
@@ -464,18 +300,11 @@ mutate_testhashu32_fnv1a(value:number):boolean {
   return true;
 }
 
-/**
- * @returns flatbuffers.Long
- */
 testhashs64Fnv1a():flatbuffers.Long {
   const offset = this.bb!.__offset(this.bb_pos, 48);
   return offset ? this.bb!.readInt64(this.bb_pos + offset) : this.bb!.createLong(0, 0);
 }
 
-/**
- * @param flatbuffers.Long value
- * @returns boolean
- */
 mutate_testhashs64_fnv1a(value:flatbuffers.Long):boolean {
   const offset = this.bb!.__offset(this.bb_pos, 48);
 
@@ -487,18 +316,11 @@ mutate_testhashs64_fnv1a(value:flatbuffers.Long):boolean {
   return true;
 }
 
-/**
- * @returns flatbuffers.Long
- */
 testhashu64Fnv1a():flatbuffers.Long {
   const offset = this.bb!.__offset(this.bb_pos, 50);
   return offset ? this.bb!.readUint64(this.bb_pos + offset) : this.bb!.createLong(0, 0);
 }
 
-/**
- * @param flatbuffers.Long value
- * @returns boolean
- */
 mutate_testhashu64_fnv1a(value:flatbuffers.Long):boolean {
   const offset = this.bb!.__offset(this.bb_pos, 50);
 
@@ -510,43 +332,26 @@ mutate_testhashu64_fnv1a(value:flatbuffers.Long):boolean {
   return true;
 }
 
-/**
- * @param number index
- * @returns boolean
- */
 testarrayofbools(index: number):boolean|null {
   const offset = this.bb!.__offset(this.bb_pos, 52);
   return offset ? !!this.bb!.readInt8(this.bb!.__vector(this.bb_pos + offset) + index) : false;
 }
 
-/**
- * @returns number
- */
 testarrayofboolsLength():number {
   const offset = this.bb!.__offset(this.bb_pos, 52);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-/**
- * @returns Int8Array
- */
 testarrayofboolsArray():Int8Array|null {
   const offset = this.bb!.__offset(this.bb_pos, 52);
   return offset ? new Int8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
 }
 
-/**
- * @returns number
- */
 testf():number {
   const offset = this.bb!.__offset(this.bb_pos, 54);
   return offset ? this.bb!.readFloat32(this.bb_pos + offset) : 3.14159;
 }
 
-/**
- * @param number value
- * @returns boolean
- */
 mutate_testf(value:number):boolean {
   const offset = this.bb!.__offset(this.bb_pos, 54);
 
@@ -558,18 +363,11 @@ mutate_testf(value:number):boolean {
   return true;
 }
 
-/**
- * @returns number
- */
 testf2():number {
   const offset = this.bb!.__offset(this.bb_pos, 56);
   return offset ? this.bb!.readFloat32(this.bb_pos + offset) : 3.0;
 }
 
-/**
- * @param number value
- * @returns boolean
- */
 mutate_testf2(value:number):boolean {
   const offset = this.bb!.__offset(this.bb_pos, 56);
 
@@ -581,18 +379,11 @@ mutate_testf2(value:number):boolean {
   return true;
 }
 
-/**
- * @returns number
- */
 testf3():number {
   const offset = this.bb!.__offset(this.bb_pos, 58);
   return offset ? this.bb!.readFloat32(this.bb_pos + offset) : 0.0;
 }
 
-/**
- * @param number value
- * @returns boolean
- */
 mutate_testf3(value:number):boolean {
   const offset = this.bb!.__offset(this.bb_pos, 58);
 
@@ -604,11 +395,6 @@ mutate_testf3(value:number):boolean {
   return true;
 }
 
-/**
- * @param number index
- * @param flatbuffers.Encoding= optionalEncoding
- * @returns string|Uint8Array
- */
 testarrayofstring2(index: number):string
 testarrayofstring2(index: number,optionalEncoding:flatbuffers.Encoding):string|Uint8Array
 testarrayofstring2(index: number,optionalEncoding?:any):string|Uint8Array|null {
@@ -616,156 +402,91 @@ testarrayofstring2(index: number,optionalEncoding?:any):string|Uint8Array|null {
   return offset ? this.bb!.__string(this.bb!.__vector(this.bb_pos + offset) + index * 4, optionalEncoding) : null;
 }
 
-/**
- * @returns number
- */
 testarrayofstring2Length():number {
   const offset = this.bb!.__offset(this.bb_pos, 60);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-/**
- * @param number index
- * @param Ability= obj
- * @returns Ability
- */
 testarrayofsortedstruct(index: number, obj?:Ability):Ability|null {
   const offset = this.bb!.__offset(this.bb_pos, 62);
   return offset ? (obj || new Ability()).__init(this.bb!.__vector(this.bb_pos + offset) + index * 8, this.bb!) : null;
 }
 
-/**
- * @returns number
- */
 testarrayofsortedstructLength():number {
   const offset = this.bb!.__offset(this.bb_pos, 62);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-/**
- * @param number index
- * @returns number
- */
 flex(index: number):number|null {
   const offset = this.bb!.__offset(this.bb_pos, 64);
   return offset ? this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index) : 0;
 }
 
-/**
- * @returns number
- */
 flexLength():number {
   const offset = this.bb!.__offset(this.bb_pos, 64);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-/**
- * @returns Uint8Array
- */
 flexArray():Uint8Array|null {
   const offset = this.bb!.__offset(this.bb_pos, 64);
   return offset ? new Uint8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
 }
 
-/**
- * @param number index
- * @param Test= obj
- * @returns Test
- */
 test5(index: number, obj?:Test):Test|null {
   const offset = this.bb!.__offset(this.bb_pos, 66);
   return offset ? (obj || new Test()).__init(this.bb!.__vector(this.bb_pos + offset) + index * 4, this.bb!) : null;
 }
 
-/**
- * @returns number
- */
 test5Length():number {
   const offset = this.bb!.__offset(this.bb_pos, 66);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-/**
- * @param number index
- * @returns flatbuffers.Long
- */
 vectorOfLongs(index: number):flatbuffers.Long|null {
   const offset = this.bb!.__offset(this.bb_pos, 68);
   return offset ? this.bb!.readInt64(this.bb!.__vector(this.bb_pos + offset) + index * 8) : this.bb!.createLong(0, 0);
 }
 
-/**
- * @returns number
- */
 vectorOfLongsLength():number {
   const offset = this.bb!.__offset(this.bb_pos, 68);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-/**
- * @param number index
- * @returns number
- */
 vectorOfDoubles(index: number):number|null {
   const offset = this.bb!.__offset(this.bb_pos, 70);
   return offset ? this.bb!.readFloat64(this.bb!.__vector(this.bb_pos + offset) + index * 8) : 0;
 }
 
-/**
- * @returns number
- */
 vectorOfDoublesLength():number {
   const offset = this.bb!.__offset(this.bb_pos, 70);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-/**
- * @returns Float64Array
- */
 vectorOfDoublesArray():Float64Array|null {
   const offset = this.bb!.__offset(this.bb_pos, 70);
   return offset ? new Float64Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
 }
 
-/**
- * @param InParentNamespace= obj
- * @returns InParentNamespace|null
- */
 parentNamespaceTest(obj?:InParentNamespace):InParentNamespace|null {
   const offset = this.bb!.__offset(this.bb_pos, 72);
   return offset ? (obj || new InParentNamespace()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
 }
 
-/**
- * @param number index
- * @param Referrable= obj
- * @returns Referrable
- */
 vectorOfReferrables(index: number, obj?:Referrable):Referrable|null {
   const offset = this.bb!.__offset(this.bb_pos, 74);
   return offset ? (obj || new Referrable()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
 }
 
-/**
- * @returns number
- */
 vectorOfReferrablesLength():number {
   const offset = this.bb!.__offset(this.bb_pos, 74);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-/**
- * @returns flatbuffers.Long
- */
 singleWeakReference():flatbuffers.Long {
   const offset = this.bb!.__offset(this.bb_pos, 76);
   return offset ? this.bb!.readUint64(this.bb_pos + offset) : this.bb!.createLong(0, 0);
 }
 
-/**
- * @param flatbuffers.Long value
- * @returns boolean
- */
 mutate_single_weak_reference(value:flatbuffers.Long):boolean {
   const offset = this.bb!.__offset(this.bb_pos, 76);
 
@@ -777,53 +498,31 @@ mutate_single_weak_reference(value:flatbuffers.Long):boolean {
   return true;
 }
 
-/**
- * @param number index
- * @returns flatbuffers.Long
- */
 vectorOfWeakReferences(index: number):flatbuffers.Long|null {
   const offset = this.bb!.__offset(this.bb_pos, 78);
   return offset ? this.bb!.readUint64(this.bb!.__vector(this.bb_pos + offset) + index * 8) : this.bb!.createLong(0, 0);
 }
 
-/**
- * @returns number
- */
 vectorOfWeakReferencesLength():number {
   const offset = this.bb!.__offset(this.bb_pos, 78);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-/**
- * @param number index
- * @param Referrable= obj
- * @returns Referrable
- */
 vectorOfStrongReferrables(index: number, obj?:Referrable):Referrable|null {
   const offset = this.bb!.__offset(this.bb_pos, 80);
   return offset ? (obj || new Referrable()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
 }
 
-/**
- * @returns number
- */
 vectorOfStrongReferrablesLength():number {
   const offset = this.bb!.__offset(this.bb_pos, 80);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-/**
- * @returns flatbuffers.Long
- */
 coOwningReference():flatbuffers.Long {
   const offset = this.bb!.__offset(this.bb_pos, 82);
   return offset ? this.bb!.readUint64(this.bb_pos + offset) : this.bb!.createLong(0, 0);
 }
 
-/**
- * @param flatbuffers.Long value
- * @returns boolean
- */
 mutate_co_owning_reference(value:flatbuffers.Long):boolean {
   const offset = this.bb!.__offset(this.bb_pos, 82);
 
@@ -835,35 +534,21 @@ mutate_co_owning_reference(value:flatbuffers.Long):boolean {
   return true;
 }
 
-/**
- * @param number index
- * @returns flatbuffers.Long
- */
 vectorOfCoOwningReferences(index: number):flatbuffers.Long|null {
   const offset = this.bb!.__offset(this.bb_pos, 84);
   return offset ? this.bb!.readUint64(this.bb!.__vector(this.bb_pos + offset) + index * 8) : this.bb!.createLong(0, 0);
 }
 
-/**
- * @returns number
- */
 vectorOfCoOwningReferencesLength():number {
   const offset = this.bb!.__offset(this.bb_pos, 84);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-/**
- * @returns flatbuffers.Long
- */
 nonOwningReference():flatbuffers.Long {
   const offset = this.bb!.__offset(this.bb_pos, 86);
   return offset ? this.bb!.readUint64(this.bb_pos + offset) : this.bb!.createLong(0, 0);
 }
 
-/**
- * @param flatbuffers.Long value
- * @returns boolean
- */
 mutate_non_owning_reference(value:flatbuffers.Long):boolean {
   const offset = this.bb!.__offset(this.bb_pos, 86);
 
@@ -875,94 +560,56 @@ mutate_non_owning_reference(value:flatbuffers.Long):boolean {
   return true;
 }
 
-/**
- * @param number index
- * @returns flatbuffers.Long
- */
 vectorOfNonOwningReferences(index: number):flatbuffers.Long|null {
   const offset = this.bb!.__offset(this.bb_pos, 88);
   return offset ? this.bb!.readUint64(this.bb!.__vector(this.bb_pos + offset) + index * 8) : this.bb!.createLong(0, 0);
 }
 
-/**
- * @returns number
- */
 vectorOfNonOwningReferencesLength():number {
   const offset = this.bb!.__offset(this.bb_pos, 88);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-/**
- * @returns AnyUniqueAliases
- */
 anyUniqueType():AnyUniqueAliases {
   const offset = this.bb!.__offset(this.bb_pos, 90);
-  return offset ? /** @type MyGame.Example.AnyUniqueAliases */ (this.bb!.readUint8(this.bb_pos + offset)) : AnyUniqueAliases.NONE;
+  return offset ? this.bb!.readUint8(this.bb_pos + offset) : AnyUniqueAliases.NONE;
 }
 
-/**
- * @param flatbuffers.Table obj
- * @returns ?flatbuffers.Table
- */
 anyUnique<T extends flatbuffers.Table>(obj:any):any|null {
   const offset = this.bb!.__offset(this.bb_pos, 92);
   return offset ? this.bb!.__union(obj, this.bb_pos + offset) : null;
 }
 
-/**
- * @returns AnyAmbiguousAliases
- */
 anyAmbiguousType():AnyAmbiguousAliases {
   const offset = this.bb!.__offset(this.bb_pos, 94);
-  return offset ? /** @type MyGame.Example.AnyAmbiguousAliases */ (this.bb!.readUint8(this.bb_pos + offset)) : AnyAmbiguousAliases.NONE;
+  return offset ? this.bb!.readUint8(this.bb_pos + offset) : AnyAmbiguousAliases.NONE;
 }
 
-/**
- * @param flatbuffers.Table obj
- * @returns ?flatbuffers.Table
- */
 anyAmbiguous<T extends flatbuffers.Table>(obj:any):any|null {
   const offset = this.bb!.__offset(this.bb_pos, 96);
   return offset ? this.bb!.__union(obj, this.bb_pos + offset) : null;
 }
 
-/**
- * @param number index
- * @returns Color
- */
 vectorOfEnums(index: number):Color|null {
   const offset = this.bb!.__offset(this.bb_pos, 98);
-  return offset ? /** @type MyGame.Example.Color */ (this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index)) : /** @type Color */ (0);
+  return offset ? this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index) : 0;
 }
 
-/**
- * @returns number
- */
 vectorOfEnumsLength():number {
   const offset = this.bb!.__offset(this.bb_pos, 98);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-/**
- * @returns Uint8Array
- */
 vectorOfEnumsArray():Uint8Array|null {
   const offset = this.bb!.__offset(this.bb_pos, 98);
   return offset ? new Uint8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
 }
 
-/**
- * @returns Race
- */
 signedEnum():Race {
   const offset = this.bb!.__offset(this.bb_pos, 100);
-  return offset ? /** @type MyGame.Example.Race */ (this.bb!.readInt8(this.bb_pos + offset)) : Race.None;
+  return offset ? this.bb!.readInt8(this.bb_pos + offset) : Race.None;
 }
 
-/**
- * @param Race value
- * @returns boolean
- */
 mutate_signed_enum(value:Race):boolean {
   const offset = this.bb!.__offset(this.bb_pos, 100);
 
@@ -974,90 +621,49 @@ mutate_signed_enum(value:Race):boolean {
   return true;
 }
 
-/**
- * @param number index
- * @returns number
- */
 testrequirednestedflatbuffer(index: number):number|null {
   const offset = this.bb!.__offset(this.bb_pos, 102);
   return offset ? this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index) : 0;
 }
 
-/**
- * @returns number
- */
 testrequirednestedflatbufferLength():number {
   const offset = this.bb!.__offset(this.bb_pos, 102);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-/**
- * @returns Uint8Array
- */
 testrequirednestedflatbufferArray():Uint8Array|null {
   const offset = this.bb!.__offset(this.bb_pos, 102);
   return offset ? new Uint8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
 }
 
-/**
- * @returns string
- */
 static getFullyQualifiedName():string {
   return 'MyGame.Example.Monster';
 }
 
-/**
- * @param flatbuffers.Builder builder
- */
 static startMonster(builder:flatbuffers.Builder) {
   builder.startObject(50);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset posOffset
- */
 static addPos(builder:flatbuffers.Builder, posOffset:flatbuffers.Offset) {
   builder.addFieldStruct(0, posOffset, 0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param number mana
- */
 static addMana(builder:flatbuffers.Builder, mana:number) {
   builder.addFieldInt16(1, mana, 150);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param number hp
- */
 static addHp(builder:flatbuffers.Builder, hp:number) {
   builder.addFieldInt16(2, hp, 100);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset nameOffset
- */
 static addName(builder:flatbuffers.Builder, nameOffset:flatbuffers.Offset) {
   builder.addFieldOffset(3, nameOffset, 0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset inventoryOffset
- */
 static addInventory(builder:flatbuffers.Builder, inventoryOffset:flatbuffers.Offset) {
   builder.addFieldOffset(5, inventoryOffset, 0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param Array.<number> data
- * @returns flatbuffers.Offset
- */
 static createInventoryVector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset {
   builder.startVector(1, data.length, 1);
   for (let i = data.length - 1; i >= 0; i--) {
@@ -1066,67 +672,34 @@ static createInventoryVector(builder:flatbuffers.Builder, data:number[]|Uint8Arr
   return builder.endVector();
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param number numElems
- */
 static startInventoryVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(1, numElems, 1);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param Color color
- */
 static addColor(builder:flatbuffers.Builder, color:Color) {
   builder.addFieldInt8(6, color, Color.Blue);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param Any testType
- */
 static addTestType(builder:flatbuffers.Builder, testType:Any) {
   builder.addFieldInt8(7, testType, Any.NONE);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset testOffset
- */
 static addTest(builder:flatbuffers.Builder, testOffset:flatbuffers.Offset) {
   builder.addFieldOffset(8, testOffset, 0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset test4Offset
- */
 static addTest4(builder:flatbuffers.Builder, test4Offset:flatbuffers.Offset) {
   builder.addFieldOffset(9, test4Offset, 0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param number numElems
- */
 static startTest4Vector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(4, numElems, 2);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset testarrayofstringOffset
- */
 static addTestarrayofstring(builder:flatbuffers.Builder, testarrayofstringOffset:flatbuffers.Offset) {
   builder.addFieldOffset(10, testarrayofstringOffset, 0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param Array.<flatbuffers.Offset> data
- * @returns flatbuffers.Offset
- */
 static createTestarrayofstringVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
   builder.startVector(4, data.length, 4);
   for (let i = data.length - 1; i >= 0; i--) {
@@ -1135,27 +708,14 @@ static createTestarrayofstringVector(builder:flatbuffers.Builder, data:flatbuffe
   return builder.endVector();
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param number numElems
- */
 static startTestarrayofstringVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(4, numElems, 4);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset testarrayoftablesOffset
- */
 static addTestarrayoftables(builder:flatbuffers.Builder, testarrayoftablesOffset:flatbuffers.Offset) {
   builder.addFieldOffset(11, testarrayoftablesOffset, 0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param Array.<flatbuffers.Offset> data
- * @returns flatbuffers.Offset
- */
 static createTestarrayoftablesVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
   builder.startVector(4, data.length, 4);
   for (let i = data.length - 1; i >= 0; i--) {
@@ -1164,35 +724,18 @@ static createTestarrayoftablesVector(builder:flatbuffers.Builder, data:flatbuffe
   return builder.endVector();
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param number numElems
- */
 static startTestarrayoftablesVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(4, numElems, 4);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset enemyOffset
- */
 static addEnemy(builder:flatbuffers.Builder, enemyOffset:flatbuffers.Offset) {
   builder.addFieldOffset(12, enemyOffset, 0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset testnestedflatbufferOffset
- */
 static addTestnestedflatbuffer(builder:flatbuffers.Builder, testnestedflatbufferOffset:flatbuffers.Offset) {
   builder.addFieldOffset(13, testnestedflatbufferOffset, 0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param Array.<number> data
- * @returns flatbuffers.Offset
- */
 static createTestnestedflatbufferVector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset {
   builder.startVector(1, data.length, 1);
   for (let i = data.length - 1; i >= 0; i--) {
@@ -1201,107 +744,54 @@ static createTestnestedflatbufferVector(builder:flatbuffers.Builder, data:number
   return builder.endVector();
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param number numElems
- */
 static startTestnestedflatbufferVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(1, numElems, 1);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset testemptyOffset
- */
 static addTestempty(builder:flatbuffers.Builder, testemptyOffset:flatbuffers.Offset) {
   builder.addFieldOffset(14, testemptyOffset, 0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param boolean testbool
- */
 static addTestbool(builder:flatbuffers.Builder, testbool:boolean) {
   builder.addFieldInt8(15, +testbool, +false);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param number testhashs32Fnv1
- */
 static addTesthashs32Fnv1(builder:flatbuffers.Builder, testhashs32Fnv1:number) {
   builder.addFieldInt32(16, testhashs32Fnv1, 0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param number testhashu32Fnv1
- */
 static addTesthashu32Fnv1(builder:flatbuffers.Builder, testhashu32Fnv1:number) {
   builder.addFieldInt32(17, testhashu32Fnv1, 0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Long testhashs64Fnv1
- */
 static addTesthashs64Fnv1(builder:flatbuffers.Builder, testhashs64Fnv1:flatbuffers.Long) {
   builder.addFieldInt64(18, testhashs64Fnv1, builder.createLong(0, 0));
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Long testhashu64Fnv1
- */
 static addTesthashu64Fnv1(builder:flatbuffers.Builder, testhashu64Fnv1:flatbuffers.Long) {
   builder.addFieldInt64(19, testhashu64Fnv1, builder.createLong(0, 0));
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param number testhashs32Fnv1a
- */
 static addTesthashs32Fnv1a(builder:flatbuffers.Builder, testhashs32Fnv1a:number) {
   builder.addFieldInt32(20, testhashs32Fnv1a, 0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param number testhashu32Fnv1a
- */
 static addTesthashu32Fnv1a(builder:flatbuffers.Builder, testhashu32Fnv1a:number) {
   builder.addFieldInt32(21, testhashu32Fnv1a, 0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Long testhashs64Fnv1a
- */
 static addTesthashs64Fnv1a(builder:flatbuffers.Builder, testhashs64Fnv1a:flatbuffers.Long) {
   builder.addFieldInt64(22, testhashs64Fnv1a, builder.createLong(0, 0));
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Long testhashu64Fnv1a
- */
 static addTesthashu64Fnv1a(builder:flatbuffers.Builder, testhashu64Fnv1a:flatbuffers.Long) {
   builder.addFieldInt64(23, testhashu64Fnv1a, builder.createLong(0, 0));
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset testarrayofboolsOffset
- */
 static addTestarrayofbools(builder:flatbuffers.Builder, testarrayofboolsOffset:flatbuffers.Offset) {
   builder.addFieldOffset(24, testarrayofboolsOffset, 0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param Array.<boolean> data
- * @returns flatbuffers.Offset
- */
 static createTestarrayofboolsVector(builder:flatbuffers.Builder, data:boolean[]):flatbuffers.Offset {
   builder.startVector(1, data.length, 1);
   for (let i = data.length - 1; i >= 0; i--) {
@@ -1310,51 +800,26 @@ static createTestarrayofboolsVector(builder:flatbuffers.Builder, data:boolean[])
   return builder.endVector();
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param number numElems
- */
 static startTestarrayofboolsVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(1, numElems, 1);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param number testf
- */
 static addTestf(builder:flatbuffers.Builder, testf:number) {
   builder.addFieldFloat32(25, testf, 3.14159);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param number testf2
- */
 static addTestf2(builder:flatbuffers.Builder, testf2:number) {
   builder.addFieldFloat32(26, testf2, 3.0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param number testf3
- */
 static addTestf3(builder:flatbuffers.Builder, testf3:number) {
   builder.addFieldFloat32(27, testf3, 0.0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset testarrayofstring2Offset
- */
 static addTestarrayofstring2(builder:flatbuffers.Builder, testarrayofstring2Offset:flatbuffers.Offset) {
   builder.addFieldOffset(28, testarrayofstring2Offset, 0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param Array.<flatbuffers.Offset> data
- * @returns flatbuffers.Offset
- */
 static createTestarrayofstring2Vector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
   builder.startVector(4, data.length, 4);
   for (let i = data.length - 1; i >= 0; i--) {
@@ -1363,43 +828,22 @@ static createTestarrayofstring2Vector(builder:flatbuffers.Builder, data:flatbuff
   return builder.endVector();
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param number numElems
- */
 static startTestarrayofstring2Vector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(4, numElems, 4);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset testarrayofsortedstructOffset
- */
 static addTestarrayofsortedstruct(builder:flatbuffers.Builder, testarrayofsortedstructOffset:flatbuffers.Offset) {
   builder.addFieldOffset(29, testarrayofsortedstructOffset, 0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param number numElems
- */
 static startTestarrayofsortedstructVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(8, numElems, 4);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset flexOffset
- */
 static addFlex(builder:flatbuffers.Builder, flexOffset:flatbuffers.Offset) {
   builder.addFieldOffset(30, flexOffset, 0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param Array.<number> data
- * @returns flatbuffers.Offset
- */
 static createFlexVector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset {
   builder.startVector(1, data.length, 1);
   for (let i = data.length - 1; i >= 0; i--) {
@@ -1408,43 +852,22 @@ static createFlexVector(builder:flatbuffers.Builder, data:number[]|Uint8Array):f
   return builder.endVector();
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param number numElems
- */
 static startFlexVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(1, numElems, 1);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset test5Offset
- */
 static addTest5(builder:flatbuffers.Builder, test5Offset:flatbuffers.Offset) {
   builder.addFieldOffset(31, test5Offset, 0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param number numElems
- */
 static startTest5Vector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(4, numElems, 2);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset vectorOfLongsOffset
- */
 static addVectorOfLongs(builder:flatbuffers.Builder, vectorOfLongsOffset:flatbuffers.Offset) {
   builder.addFieldOffset(32, vectorOfLongsOffset, 0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param Array.<flatbuffers.Long> data
- * @returns flatbuffers.Offset
- */
 static createVectorOfLongsVector(builder:flatbuffers.Builder, data:flatbuffers.Long[]):flatbuffers.Offset {
   builder.startVector(8, data.length, 8);
   for (let i = data.length - 1; i >= 0; i--) {
@@ -1453,27 +876,14 @@ static createVectorOfLongsVector(builder:flatbuffers.Builder, data:flatbuffers.L
   return builder.endVector();
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param number numElems
- */
 static startVectorOfLongsVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(8, numElems, 8);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset vectorOfDoublesOffset
- */
 static addVectorOfDoubles(builder:flatbuffers.Builder, vectorOfDoublesOffset:flatbuffers.Offset) {
   builder.addFieldOffset(33, vectorOfDoublesOffset, 0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param Array.<number> data
- * @returns flatbuffers.Offset
- */
 static createVectorOfDoublesVector(builder:flatbuffers.Builder, data:number[]|Float64Array):flatbuffers.Offset;
 /**
  * @deprecated This Uint8Array overload will be removed in the future.
@@ -1487,35 +897,18 @@ static createVectorOfDoublesVector(builder:flatbuffers.Builder, data:number[]|Fl
   return builder.endVector();
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param number numElems
- */
 static startVectorOfDoublesVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(8, numElems, 8);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset parentNamespaceTestOffset
- */
 static addParentNamespaceTest(builder:flatbuffers.Builder, parentNamespaceTestOffset:flatbuffers.Offset) {
   builder.addFieldOffset(34, parentNamespaceTestOffset, 0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset vectorOfReferrablesOffset
- */
 static addVectorOfReferrables(builder:flatbuffers.Builder, vectorOfReferrablesOffset:flatbuffers.Offset) {
   builder.addFieldOffset(35, vectorOfReferrablesOffset, 0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param Array.<flatbuffers.Offset> data
- * @returns flatbuffers.Offset
- */
 static createVectorOfReferrablesVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
   builder.startVector(4, data.length, 4);
   for (let i = data.length - 1; i >= 0; i--) {
@@ -1524,35 +917,18 @@ static createVectorOfReferrablesVector(builder:flatbuffers.Builder, data:flatbuf
   return builder.endVector();
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param number numElems
- */
 static startVectorOfReferrablesVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(4, numElems, 4);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Long singleWeakReference
- */
 static addSingleWeakReference(builder:flatbuffers.Builder, singleWeakReference:flatbuffers.Long) {
   builder.addFieldInt64(36, singleWeakReference, builder.createLong(0, 0));
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset vectorOfWeakReferencesOffset
- */
 static addVectorOfWeakReferences(builder:flatbuffers.Builder, vectorOfWeakReferencesOffset:flatbuffers.Offset) {
   builder.addFieldOffset(37, vectorOfWeakReferencesOffset, 0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param Array.<flatbuffers.Long> data
- * @returns flatbuffers.Offset
- */
 static createVectorOfWeakReferencesVector(builder:flatbuffers.Builder, data:flatbuffers.Long[]):flatbuffers.Offset {
   builder.startVector(8, data.length, 8);
   for (let i = data.length - 1; i >= 0; i--) {
@@ -1561,27 +937,14 @@ static createVectorOfWeakReferencesVector(builder:flatbuffers.Builder, data:flat
   return builder.endVector();
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param number numElems
- */
 static startVectorOfWeakReferencesVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(8, numElems, 8);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset vectorOfStrongReferrablesOffset
- */
 static addVectorOfStrongReferrables(builder:flatbuffers.Builder, vectorOfStrongReferrablesOffset:flatbuffers.Offset) {
   builder.addFieldOffset(38, vectorOfStrongReferrablesOffset, 0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param Array.<flatbuffers.Offset> data
- * @returns flatbuffers.Offset
- */
 static createVectorOfStrongReferrablesVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
   builder.startVector(4, data.length, 4);
   for (let i = data.length - 1; i >= 0; i--) {
@@ -1590,35 +953,18 @@ static createVectorOfStrongReferrablesVector(builder:flatbuffers.Builder, data:f
   return builder.endVector();
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param number numElems
- */
 static startVectorOfStrongReferrablesVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(4, numElems, 4);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Long coOwningReference
- */
 static addCoOwningReference(builder:flatbuffers.Builder, coOwningReference:flatbuffers.Long) {
   builder.addFieldInt64(39, coOwningReference, builder.createLong(0, 0));
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset vectorOfCoOwningReferencesOffset
- */
 static addVectorOfCoOwningReferences(builder:flatbuffers.Builder, vectorOfCoOwningReferencesOffset:flatbuffers.Offset) {
   builder.addFieldOffset(40, vectorOfCoOwningReferencesOffset, 0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param Array.<flatbuffers.Long> data
- * @returns flatbuffers.Offset
- */
 static createVectorOfCoOwningReferencesVector(builder:flatbuffers.Builder, data:flatbuffers.Long[]):flatbuffers.Offset {
   builder.startVector(8, data.length, 8);
   for (let i = data.length - 1; i >= 0; i--) {
@@ -1627,35 +973,18 @@ static createVectorOfCoOwningReferencesVector(builder:flatbuffers.Builder, data:
   return builder.endVector();
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param number numElems
- */
 static startVectorOfCoOwningReferencesVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(8, numElems, 8);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Long nonOwningReference
- */
 static addNonOwningReference(builder:flatbuffers.Builder, nonOwningReference:flatbuffers.Long) {
   builder.addFieldInt64(41, nonOwningReference, builder.createLong(0, 0));
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset vectorOfNonOwningReferencesOffset
- */
 static addVectorOfNonOwningReferences(builder:flatbuffers.Builder, vectorOfNonOwningReferencesOffset:flatbuffers.Offset) {
   builder.addFieldOffset(42, vectorOfNonOwningReferencesOffset, 0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param Array.<flatbuffers.Long> data
- * @returns flatbuffers.Offset
- */
 static createVectorOfNonOwningReferencesVector(builder:flatbuffers.Builder, data:flatbuffers.Long[]):flatbuffers.Offset {
   builder.startVector(8, data.length, 8);
   for (let i = data.length - 1; i >= 0; i--) {
@@ -1664,59 +993,30 @@ static createVectorOfNonOwningReferencesVector(builder:flatbuffers.Builder, data
   return builder.endVector();
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param number numElems
- */
 static startVectorOfNonOwningReferencesVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(8, numElems, 8);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param AnyUniqueAliases anyUniqueType
- */
 static addAnyUniqueType(builder:flatbuffers.Builder, anyUniqueType:AnyUniqueAliases) {
   builder.addFieldInt8(43, anyUniqueType, AnyUniqueAliases.NONE);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset anyUniqueOffset
- */
 static addAnyUnique(builder:flatbuffers.Builder, anyUniqueOffset:flatbuffers.Offset) {
   builder.addFieldOffset(44, anyUniqueOffset, 0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param AnyAmbiguousAliases anyAmbiguousType
- */
 static addAnyAmbiguousType(builder:flatbuffers.Builder, anyAmbiguousType:AnyAmbiguousAliases) {
   builder.addFieldInt8(45, anyAmbiguousType, AnyAmbiguousAliases.NONE);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset anyAmbiguousOffset
- */
 static addAnyAmbiguous(builder:flatbuffers.Builder, anyAmbiguousOffset:flatbuffers.Offset) {
   builder.addFieldOffset(46, anyAmbiguousOffset, 0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset vectorOfEnumsOffset
- */
 static addVectorOfEnums(builder:flatbuffers.Builder, vectorOfEnumsOffset:flatbuffers.Offset) {
   builder.addFieldOffset(47, vectorOfEnumsOffset, 0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param Array.<Color> data
- * @returns flatbuffers.Offset
- */
 static createVectorOfEnumsVector(builder:flatbuffers.Builder, data:Color[]):flatbuffers.Offset {
   builder.startVector(1, data.length, 1);
   for (let i = data.length - 1; i >= 0; i--) {
@@ -1725,35 +1025,18 @@ static createVectorOfEnumsVector(builder:flatbuffers.Builder, data:Color[]):flat
   return builder.endVector();
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param number numElems
- */
 static startVectorOfEnumsVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(1, numElems, 1);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param Race signedEnum
- */
 static addSignedEnum(builder:flatbuffers.Builder, signedEnum:Race) {
   builder.addFieldInt8(48, signedEnum, Race.None);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset testrequirednestedflatbufferOffset
- */
 static addTestrequirednestedflatbuffer(builder:flatbuffers.Builder, testrequirednestedflatbufferOffset:flatbuffers.Offset) {
   builder.addFieldOffset(49, testrequirednestedflatbufferOffset, 0);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param Array.<number> data
- * @returns flatbuffers.Offset
- */
 static createTestrequirednestedflatbufferVector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset {
   builder.startVector(1, data.length, 1);
   for (let i = data.length - 1; i >= 0; i--) {
@@ -1762,36 +1045,20 @@ static createTestrequirednestedflatbufferVector(builder:flatbuffers.Builder, dat
   return builder.endVector();
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param number numElems
- */
 static startTestrequirednestedflatbufferVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(1, numElems, 1);
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @returns flatbuffers.Offset
- */
 static endMonster(builder:flatbuffers.Builder):flatbuffers.Offset {
   const offset = builder.endObject();
   builder.requiredField(offset, 10) // name
   return offset;
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset offset
- */
 static finishMonsterBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
   builder.finish(offset, 'MONS');
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param flatbuffers.Offset offset
- */
 static finishSizePrefixedMonsterBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
   builder.finish(offset, 'MONS', true);
 }
@@ -1805,9 +1072,6 @@ static deserialize(buffer: Uint8Array):Monster {
   return Monster.getRootAsMonster(new flatbuffers.ByteBuffer(buffer))
 }
 
-/**
- * @returns MonsterT
- */
 unpack(): MonsterT {
   return new MonsterT(
     (this.pos() !== null ? this.pos()!.unpack() : null),
@@ -1874,9 +1138,7 @@ unpack(): MonsterT {
   );
 }
 
-/**
- * @param MonsterT _o
- */
+
 unpackTo(_o: MonsterT): void {
   _o.pos = (this.pos() !== null ? this.pos()!.unpack() : null);
   _o.mana = this.mana();
@@ -1943,58 +1205,6 @@ unpackTo(_o: MonsterT): void {
 }
 
 export class MonsterT {
-/**
- * @constructor
- * @param Vec3T|null pos
- * @param number mana
- * @param number hp
- * @param string|Uint8Array|null name
- * @param (number)[] inventory
- * @param Color color
- * @param Any testType
- * @param MonsterT|MyGameExample2MonsterT|TestSimpleTableWithEnumT|null test
- * @param (TestT)[] test4
- * @param (string)[] testarrayofstring
- * @param (MonsterT)[] testarrayoftables
- * @param MonsterT|null enemy
- * @param (number)[] testnestedflatbuffer
- * @param StatT|null testempty
- * @param boolean testbool
- * @param number testhashs32Fnv1
- * @param number testhashu32Fnv1
- * @param flatbuffers.Long testhashs64Fnv1
- * @param flatbuffers.Long testhashu64Fnv1
- * @param number testhashs32Fnv1a
- * @param number testhashu32Fnv1a
- * @param flatbuffers.Long testhashs64Fnv1a
- * @param flatbuffers.Long testhashu64Fnv1a
- * @param (boolean)[] testarrayofbools
- * @param number testf
- * @param number testf2
- * @param number testf3
- * @param (string)[] testarrayofstring2
- * @param (AbilityT)[] testarrayofsortedstruct
- * @param (number)[] flex
- * @param (TestT)[] test5
- * @param (flatbuffers.Long)[] vectorOfLongs
- * @param (number)[] vectorOfDoubles
- * @param InParentNamespaceT|null parentNamespaceTest
- * @param (ReferrableT)[] vectorOfReferrables
- * @param flatbuffers.Long singleWeakReference
- * @param (flatbuffers.Long)[] vectorOfWeakReferences
- * @param (ReferrableT)[] vectorOfStrongReferrables
- * @param flatbuffers.Long coOwningReference
- * @param (flatbuffers.Long)[] vectorOfCoOwningReferences
- * @param flatbuffers.Long nonOwningReference
- * @param (flatbuffers.Long)[] vectorOfNonOwningReferences
- * @param AnyUniqueAliases anyUniqueType
- * @param MonsterT|MyGameExample2MonsterT|TestSimpleTableWithEnumT|null anyUnique
- * @param AnyAmbiguousAliases anyAmbiguousType
- * @param MonsterT|null anyAmbiguous
- * @param (Color)[] vectorOfEnums
- * @param Race signedEnum
- * @param (number)[] testrequirednestedflatbuffer
- */
 constructor(
   public pos: Vec3T|null = null,
   public mana: number = 150,
@@ -2047,10 +1257,7 @@ constructor(
   public testrequirednestedflatbuffer: (number)[] = []
 ){}
 
-/**
- * @param flatbuffers.Builder builder
- * @returns flatbuffers.Offset
- */
+
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   const name = (this.name !== null ? builder.createString(this.name!) : 0);
   const inventory = Monster.createInventoryVector(builder, this.inventory);

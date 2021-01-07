@@ -4,82 +4,41 @@ import * as flatbuffers from 'flatbuffers';
 
 
 
-/**
- * @constructor
- */
 export class Ability {
-  /**
-   * @type flatbuffers.ByteBuffer
-   */
   bb: flatbuffers.ByteBuffer|null = null;
-
-  /**
-   * @type number
-   */
   bb_pos = 0;
-/**
- * @param number i
- * @param flatbuffers.ByteBuffer bb
- * @returns Ability
- */
 __init(i:number, bb:flatbuffers.ByteBuffer):Ability {
   this.bb_pos = i;
   this.bb = bb;
   return this;
 }
 
-/**
- * @returns number
- */
 id():number {
   return this.bb!.readUint32(this.bb_pos);
 }
 
-/**
- * @param number value
- * @returns boolean
- */
 mutate_id(value:number):boolean {
   this.bb!.writeUint32(this.bb_pos + 0, value);
   return true;
 }
 
-/**
- * @returns number
- */
 distance():number {
   return this.bb!.readUint32(this.bb_pos + 4);
 }
 
-/**
- * @param number value
- * @returns boolean
- */
 mutate_distance(value:number):boolean {
   this.bb!.writeUint32(this.bb_pos + 4, value);
   return true;
 }
 
-/**
- * @returns string
- */
 static getFullyQualifiedName():string {
   return 'MyGame.Example.Ability';
 }
 
-/**
- * @returns number
- */
 static sizeOf():number {
   return 8;
 }
 
-/**
- * @param flatbuffers.Builder builder
- * @param number id
- * @param number distance
- * @returns flatbuffers.Offset
- */
 static createAbility(builder:flatbuffers.Builder, id: number, distance: number):flatbuffers.Offset {
   builder.prep(4, 8);
   builder.writeInt32(distance);
@@ -88,9 +47,6 @@ static createAbility(builder:flatbuffers.Builder, id: number, distance: number):
 }
 
 
-/**
- * @returns AbilityT
- */
 unpack(): AbilityT {
   return new AbilityT(
     this.id(),
@@ -98,9 +54,7 @@ unpack(): AbilityT {
   );
 }
 
-/**
- * @param AbilityT _o
- */
+
 unpackTo(_o: AbilityT): void {
   _o.id = this.id();
   _o.distance = this.distance();
@@ -108,20 +62,12 @@ unpackTo(_o: AbilityT): void {
 }
 
 export class AbilityT {
-/**
- * @constructor
- * @param number id
- * @param number distance
- */
 constructor(
   public id: number = 0,
   public distance: number = 0
 ){}
 
-/**
- * @param flatbuffers.Builder builder
- * @returns flatbuffers.Offset
- */
+
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   return Ability.createAbility(builder,
     this.id,
