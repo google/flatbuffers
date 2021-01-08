@@ -544,10 +544,10 @@ The first step is to import/include the library, generated files, etc.
   import Flatbuffers
 
   // typealiases for convenience
-  typealias Monster = MyGame1.Sample.Monster
-  typealias Weapon = MyGame1.Sample.Weapon
-  typealias Color = MyGame1.Sample.Color
-  typealias Vec3 = MyGame1.Sample.Vec3
+  typealias Monster = MyGame1_Sample_Monster
+  typealias Weapon = MyGame1_Sample_Weapon
+  typealias Color = MyGame1_Sample_Color
+  typealias Vec3 = MyGame1_Sample_Vec3
 ~~~
 </div>
 
@@ -1017,7 +1017,7 @@ traversal. This is generally easy to do on any tree structures.
   MyGame.Sample.Monster.MonsterStartInventoryVector(builder, 10)
   for i in reversed(range(0, 10)):
     builder.PrependByte(i)
-  inv = builder.EndVector(10)
+  inv = builder.EndVector()
 ~~~
 </div>
 <div class="language-javascript">
@@ -1207,7 +1207,7 @@ offsets.
   MyGame.Sample.Monster.MonsterStartWeaponsVector(builder, 2)
   builder.PrependUOffsetTRelative(axe)
   builder.PrependUOffsetTRelative(sword)
-  weapons = builder.EndVector(2)
+  weapons = builder.EndVector()
 ~~~
 </div>
 <div class="language-javascript">
@@ -1336,7 +1336,7 @@ for the `path` field above:
   MyGame.Sample.Monster.MonsterStartPathVector(builder, 2)
   MyGame.Sample.Vec3.CreateVec3(builder, 1.0, 2.0, 3.0)
   MyGame.Sample.Vec3.CreateVec3(builder, 4.0, 5.0, 6.0)
-  path = builder.EndVector(2)
+  path = builder.EndVector()
 ~~~
 </div>
 <div class="language-javascript">
@@ -1420,9 +1420,20 @@ for the `path` field above:
 <div class="language-swift">
 ~~~{.swift}
   //
-  Monster.startVectorOfvec3(2, in: &fbb)
-  MyGame_Example_Vec3.createVec3(builder: &fbb, x: 1, y: 2, z: 3)
-  MyGame_Example_Vec3.createVec3(builder: &fbb, x: 4, y: 5, z: 6)
+  let points = fbb.createVector(ofStructs: [
+    Vec3(x: 1, y: 2, z: 3),
+    Vec3(x: 4, y: 5, z: 6)
+  ])
+
+  // OR
+  var vec3 = [
+    Vec3(x: 1, y: 2, z: 3),
+    Vec3(x: 4, y: 5, z: 6)
+  ]
+  Monster.startVectorOfVec3(2, in: &fbb)
+  for i in obj {
+    _ = create(struct: i)
+  }
   let points = fbb.endVectorOfStructs(count: size)
 ~~~
 </div>
@@ -1702,17 +1713,16 @@ can serialize the monster itself:
 </div>
 <div class="language-swift">
 ~~~{.swift}
-  let start = Monster.startMonster(&builder)
-  let posStruct = MyGame_Example_Vec3.createVec3(builder: &builder, x: 1, y: 2, z: 3)
-  Monster.add(pos: pos, &builder)
-  Monster.add(hp: 300, &builder)
-  Monster.add(name: name, &builder)
-  Monster.addVectorOf(inventory: inventoryOffset, &builder)
-  Monster.add(color: .red, &builder)
-  Monster.addVectorOf(weapons: weaponsOffset, &builder)
-  Monster.add(equippedType: .weapon, &builder)
-  Monster.add(equipped: axe, &builder)
-  var orc = Monster.endMonster(&builder, start: start)
+  let orc = Monster.createMonster(
+    fbb: &builder,
+    pos: Vec3(x: 1, y: 2, z: 3),
+    hp: 300,
+    name: name,
+    inventory: inventoryOffset,
+    color: .red,
+    weapons: weaponsOffset,
+    equippedType: .weapon,
+    equipped: axe)
 ~~~
 </div>
 
@@ -1777,6 +1787,21 @@ a bit more flexibility.
   ns(Monster_equipped_add(B, equipped));
   // Complete the monster object and make it the buffer root object.
   ns(Monster_end_as_root(B));
+~~~
+</div>
+
+<div class="language-swift">
+~~~{.swift}
+  let start = Monster.startMonster(&builder)
+  Monster.add(pos: Vec3(x: 1, y: 2, z: 3), &builder)
+  Monster.add(hp: 300, &builder)
+  Monster.add(name: name, &builder)
+  Monster.addVectorOf(inventory: inventoryOffset, &builder)
+  Monster.add(color: .red, &builder)
+  Monster.addVectorOf(weapons: weaponsOffset, &builder)
+  Monster.add(equippedType: .weapon, &builder)
+  Monster.add(equipped: axe, &builder)
+  var orc = Monster.endMonster(&builder, start: start)
 ~~~
 </div>
 
@@ -3239,7 +3264,8 @@ mutators like so:
 ~~~{.swift}
   let monster = Monster.getRootAsMonster(bb: ByteBuffer(bytes: buf))
   monster.mutate(hp: 10) // mutates a value in a table
-  monster.pos.mutate(z: 4) // mutates a value in a struct
+  /// to mutate structs in swift you have to use the mutable accessors
+  monster.mutablePos.mutate(z: 4) // mutates a value in a struct
   monster.mutate(inventory: 6, at index: 0) // mutates a value in an Scalar array
 ~~~
 </div>

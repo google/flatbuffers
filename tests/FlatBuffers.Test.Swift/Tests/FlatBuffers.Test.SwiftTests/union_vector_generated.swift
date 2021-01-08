@@ -23,8 +23,8 @@ public enum Character: UInt8, Enum {
 
 public struct CharacterUnion {
   public var type: Character
-  public var value: NativeTable?
-  public init(_ v: NativeTable?, type: Character) {
+  public var value: UnionObject?
+  public init(_ v: UnionObject?, type: Character) {
     self.type = type
     self.value = v
   }
@@ -34,116 +34,108 @@ public struct CharacterUnion {
       var __obj = value as? AttackerT
       return Attacker.pack(&builder, obj: &__obj)
     case .rapunzel:
-      var __obj = value as? RapunzelT
-      return Rapunzel.pack(&builder, obj: &__obj)
+      var __obj = value as? Rapunzel
+      return Rapunzel_Mutable.pack(&builder, obj: &__obj)
     case .belle:
-      var __obj = value as? BookReaderT
-      return BookReader.pack(&builder, obj: &__obj)
+      var __obj = value as? BookReader
+      return BookReader_Mutable.pack(&builder, obj: &__obj)
     case .bookfan:
-      var __obj = value as? BookReaderT
-      return BookReader.pack(&builder, obj: &__obj)
+      var __obj = value as? BookReader
+      return BookReader_Mutable.pack(&builder, obj: &__obj)
     default: return Offset()
     }
   }
 }
-public struct Rapunzel: Readable {
+public struct Rapunzel: NativeStruct, UnionObject {
+
+  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+
+  private var _hairLength: Int32
+
+  public init(hairLength: Int32) {
+    _hairLength = hairLength
+  }
+
+  public init() {
+    _hairLength = 0
+  }
+
+  public init(_ _t: inout Rapunzel_Mutable) {
+    _hairLength = _t.hairLength
+  }
+
+  public var hairLength: Int32 { _hairLength }
+}
+
+public struct Rapunzel_Mutable: FlatBufferObject {
 
   static func validateVersion() { FlatBuffersVersion_1_12_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
-  public static var size = 4
-  public static var alignment = 4
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Struct(bb: bb, position: o) }
 
   public var hairLength: Int32 { return _accessor.readBuffer(of: Int32.self, at: 0) }
   @discardableResult public func mutate(hairLength: Int32) -> Bool { return _accessor.mutate(hairLength, index: 0) }
   
 
-  public mutating func unpack() -> RapunzelT {
-    return RapunzelT(&self)
+  public mutating func unpack() -> Rapunzel {
+    return Rapunzel(&self)
   }
-  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout RapunzelT?) -> Offset<UOffset> {
+  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout Rapunzel?) -> Offset<UOffset> {
     guard var obj = obj else { return Offset<UOffset>() }
     return pack(&builder, obj: &obj)
   }
 
-  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout RapunzelT) -> Offset<UOffset> {
-    return createRapunzel(builder: &builder, hairLength: obj.hairLength)
+  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout Rapunzel) -> Offset<UOffset> {
+    return builder.create(struct: obj)
   }
 }
 
-public class RapunzelT: NativeTable {
+public struct BookReader: NativeStruct, UnionObject {
 
-  public var hairLength: Int32
+  static func validateVersion() { FlatBuffersVersion_1_12_0() }
 
-  public init(_ _t: inout Rapunzel) {
-    hairLength = _t.hairLength
+  private var _booksRead: Int32
+
+  public init(booksRead: Int32) {
+    _booksRead = booksRead
   }
 
   public init() {
-    hairLength = 0
+    _booksRead = 0
   }
 
+  public init(_ _t: inout BookReader_Mutable) {
+    _booksRead = _t.booksRead
+  }
+
+  public var booksRead: Int32 { _booksRead }
 }
-public struct BookReader: Readable {
+
+public struct BookReader_Mutable: FlatBufferObject {
 
   static func validateVersion() { FlatBuffersVersion_1_12_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
-  public static var size = 4
-  public static var alignment = 4
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Struct(bb: bb, position: o) }
 
   public var booksRead: Int32 { return _accessor.readBuffer(of: Int32.self, at: 0) }
   @discardableResult public func mutate(booksRead: Int32) -> Bool { return _accessor.mutate(booksRead, index: 0) }
   
 
-  public mutating func unpack() -> BookReaderT {
-    return BookReaderT(&self)
+  public mutating func unpack() -> BookReader {
+    return BookReader(&self)
   }
-  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout BookReaderT?) -> Offset<UOffset> {
+  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout BookReader?) -> Offset<UOffset> {
     guard var obj = obj else { return Offset<UOffset>() }
     return pack(&builder, obj: &obj)
   }
 
-  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout BookReaderT) -> Offset<UOffset> {
-    return createBookReader(builder: &builder, booksRead: obj.booksRead)
+  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout BookReader) -> Offset<UOffset> {
+    return builder.create(struct: obj)
   }
-}
-
-public class BookReaderT: NativeTable {
-
-  public var booksRead: Int32
-
-  public init(_ _t: inout BookReader) {
-    booksRead = _t.booksRead
-  }
-
-  public init() {
-    booksRead = 0
-  }
-
-}
-extension Rapunzel {
-  @discardableResult
-  public static func createRapunzel(builder: inout FlatBufferBuilder, hairLength: Int32 = 0) -> Offset<UOffset> {
-    builder.createStructOf(size: Rapunzel.size, alignment: Rapunzel.alignment)
-    builder.reverseAdd(v: hairLength, postion: 0)
-    return builder.endStruct()
-  }
-
-}
-
-extension BookReader {
-  @discardableResult
-  public static func createBookReader(builder: inout FlatBufferBuilder, booksRead: Int32 = 0) -> Offset<UOffset> {
-    builder.createStructOf(size: BookReader.size, alignment: BookReader.alignment)
-    builder.reverseAdd(v: booksRead, postion: 0)
-    return builder.endStruct()
-  }
-
 }
 
 public struct Attacker: FlatBufferObject, ObjectAPI {
@@ -194,7 +186,7 @@ public struct Attacker: FlatBufferObject, ObjectAPI {
   }
 }
 
-public class AttackerT: NativeTable {
+public class AttackerT: UnionObject {
 
   public var swordAttackDamage: Int32
 
@@ -287,7 +279,7 @@ public struct Movie: FlatBufferObject, ObjectAPI {
   }
 }
 
-public class MovieT: NativeTable {
+public class MovieT: UnionObject {
 
   public var mainCharacter: CharacterUnion?
   public var characters: [CharacterUnion?]
@@ -295,34 +287,34 @@ public class MovieT: NativeTable {
   public init(_ _t: inout Movie) {
     switch _t.mainCharacterType {
     case .mulan:
-        var _v = _t.mainCharacter(type: Attacker.self)
-        mainCharacter = CharacterUnion(_v?.unpack(), type: .mulan)
+      var _v = _t.mainCharacter(type: Attacker.self)
+      mainCharacter = CharacterUnion(_v?.unpack(), type: .mulan)
     case .rapunzel:
-        var _v = _t.mainCharacter(type: Rapunzel.self)
-        mainCharacter = CharacterUnion(_v?.unpack(), type: .rapunzel)
+      var _v = _t.mainCharacter(type: Rapunzel_Mutable.self)
+      mainCharacter = CharacterUnion(_v?.unpack(), type: .rapunzel)
     case .belle:
-        var _v = _t.mainCharacter(type: BookReader.self)
-        mainCharacter = CharacterUnion(_v?.unpack(), type: .belle)
+      var _v = _t.mainCharacter(type: BookReader_Mutable.self)
+      mainCharacter = CharacterUnion(_v?.unpack(), type: .belle)
     case .bookfan:
-        var _v = _t.mainCharacter(type: BookReader.self)
-        mainCharacter = CharacterUnion(_v?.unpack(), type: .bookfan)
+      var _v = _t.mainCharacter(type: BookReader_Mutable.self)
+      mainCharacter = CharacterUnion(_v?.unpack(), type: .bookfan)
     default: break
     }
     characters = []
     for index in 0..<_t.charactersCount {
         switch _t.charactersType(at: index) {
         case .mulan:
-            var _v = _t.characters(at: index, type: Attacker.self)
-            characters.append(CharacterUnion(_v?.unpack(), type: .mulan))
+          var _v = _t.characters(at: index, type: Attacker.self)
+          characters.append(CharacterUnion(_v?.unpack(), type: .mulan))
         case .rapunzel:
-            var _v = _t.characters(at: index, type: Rapunzel.self)
-            characters.append(CharacterUnion(_v?.unpack(), type: .rapunzel))
+          var _v = _t.characters(at: index, type: Rapunzel_Mutable.self)
+          characters.append(CharacterUnion(_v?.unpack(), type: .rapunzel))
         case .belle:
-            var _v = _t.characters(at: index, type: BookReader.self)
-            characters.append(CharacterUnion(_v?.unpack(), type: .belle))
+          var _v = _t.characters(at: index, type: BookReader_Mutable.self)
+          characters.append(CharacterUnion(_v?.unpack(), type: .belle))
         case .bookfan:
-            var _v = _t.characters(at: index, type: BookReader.self)
-            characters.append(CharacterUnion(_v?.unpack(), type: .bookfan))
+          var _v = _t.characters(at: index, type: BookReader_Mutable.self)
+          characters.append(CharacterUnion(_v?.unpack(), type: .bookfan))
         default: break
         }
     }

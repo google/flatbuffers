@@ -60,8 +60,8 @@ impl<'a> InParentNamespace<'a> {
 
 impl flatbuffers::Verifiable for InParentNamespace<'_> {
   #[inline]
-  fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     v.visit_table(pos)?
@@ -153,8 +153,8 @@ impl<'a> Monster<'a> {
 
 impl flatbuffers::Verifiable for Monster<'_> {
   #[inline]
-  fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     v.visit_table(pos)?
@@ -258,8 +258,8 @@ impl flatbuffers::EndianScalar for Color {
 
 impl<'a> flatbuffers::Verifiable for Color {
   #[inline]
-  fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     u8::run_verifier(v, pos)
@@ -267,11 +267,11 @@ impl<'a> flatbuffers::Verifiable for Color {
 }
 
 impl flatbuffers::SimpleToVerifyInSlice for Color {}
-#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_RACE: i8 = -1;
-#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MAX_RACE: i8 = 2;
-#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 #[allow(non_camel_case_types)]
 pub const ENUM_VALUES_RACE: [Race; 4] = [
   Race::None,
@@ -350,8 +350,8 @@ impl flatbuffers::EndianScalar for Race {
 
 impl<'a> flatbuffers::Verifiable for Race {
   #[inline]
-  fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     i8::run_verifier(v, pos)
@@ -359,11 +359,11 @@ impl<'a> flatbuffers::Verifiable for Race {
 }
 
 impl flatbuffers::SimpleToVerifyInSlice for Race {}
-#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_ANY: u8 = 0;
-#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MAX_ANY: u8 = 3;
-#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 #[allow(non_camel_case_types)]
 pub const ENUM_VALUES_ANY: [Any; 4] = [
   Any::NONE,
@@ -443,8 +443,8 @@ impl flatbuffers::EndianScalar for Any {
 
 impl<'a> flatbuffers::Verifiable for Any {
   #[inline]
-  fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     u8::run_verifier(v, pos)
@@ -452,11 +452,11 @@ impl<'a> flatbuffers::Verifiable for Any {
 }
 
 impl flatbuffers::SimpleToVerifyInSlice for Any {}
-#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_ANY_UNIQUE_ALIASES: u8 = 0;
-#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MAX_ANY_UNIQUE_ALIASES: u8 = 3;
-#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 #[allow(non_camel_case_types)]
 pub const ENUM_VALUES_ANY_UNIQUE_ALIASES: [AnyUniqueAliases; 4] = [
   AnyUniqueAliases::NONE,
@@ -536,8 +536,8 @@ impl flatbuffers::EndianScalar for AnyUniqueAliases {
 
 impl<'a> flatbuffers::Verifiable for AnyUniqueAliases {
   #[inline]
-  fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     u8::run_verifier(v, pos)
@@ -545,11 +545,11 @@ impl<'a> flatbuffers::Verifiable for AnyUniqueAliases {
 }
 
 impl flatbuffers::SimpleToVerifyInSlice for AnyUniqueAliases {}
-#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_ANY_AMBIGUOUS_ALIASES: u8 = 0;
-#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MAX_ANY_AMBIGUOUS_ALIASES: u8 = 3;
-#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 #[allow(non_camel_case_types)]
 pub const ENUM_VALUES_ANY_AMBIGUOUS_ALIASES: [AnyAmbiguousAliases; 4] = [
   AnyAmbiguousAliases::NONE,
@@ -629,8 +629,8 @@ impl flatbuffers::EndianScalar for AnyAmbiguousAliases {
 
 impl<'a> flatbuffers::Verifiable for AnyAmbiguousAliases {
   #[inline]
-  fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     u8::run_verifier(v, pos)
@@ -695,14 +695,15 @@ impl<'b> flatbuffers::Push for &'b Test {
 
 impl<'a> flatbuffers::Verifiable for Test {
   #[inline]
-  fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     v.in_buffer::<Self>(pos)
   }
 }
 impl Test {
+  #[allow(clippy::too_many_arguments)]
   pub fn new(_a: i16, _b: i8) -> Self {
     Test {
       a_: _a.to_little_endian(),
@@ -790,14 +791,15 @@ impl<'b> flatbuffers::Push for &'b Vec3 {
 
 impl<'a> flatbuffers::Verifiable for Vec3 {
   #[inline]
-  fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     v.in_buffer::<Self>(pos)
   }
 }
 impl Vec3 {
+  #[allow(clippy::too_many_arguments)]
   pub fn new(_x: f32, _y: f32, _z: f32, _test1: f64, _test2: Color, _test3: &Test) -> Self {
     Vec3 {
       x_: _x.to_little_endian(),
@@ -892,14 +894,15 @@ impl<'b> flatbuffers::Push for &'b Ability {
 
 impl<'a> flatbuffers::Verifiable for Ability {
   #[inline]
-  fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     v.in_buffer::<Self>(pos)
   }
 }
 impl Ability {
+  #[allow(clippy::too_many_arguments)]
   pub fn new(_id: u32, _distance: u32) -> Self {
     Ability {
       id_: _id.to_little_endian(),
@@ -974,8 +977,8 @@ impl<'a> TestSimpleTableWithEnum<'a> {
 
 impl flatbuffers::Verifiable for TestSimpleTableWithEnum<'_> {
   #[inline]
-  fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     v.visit_table(pos)?
@@ -1079,12 +1082,22 @@ impl<'a> Stat<'a> {
   pub fn count(&self) -> u16 {
     self._tab.get::<u16>(Stat::VT_COUNT, Some(0)).unwrap()
   }
+  #[inline]
+  pub fn key_compare_less_than(&self, o: &Stat) ->  bool {
+    self.count() < o.count()
+  }
+
+  #[inline]
+  pub fn key_compare_with_value(&self, val: u16) ->  ::std::cmp::Ordering {
+    let key = self.count();
+    key.cmp(&val)
+  }
 }
 
 impl flatbuffers::Verifiable for Stat<'_> {
   #[inline]
-  fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     v.visit_table(pos)?
@@ -1206,8 +1219,8 @@ impl<'a> Referrable<'a> {
 
 impl flatbuffers::Verifiable for Referrable<'_> {
   #[inline]
-  fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     v.visit_table(pos)?
@@ -1297,6 +1310,7 @@ impl<'a> Monster<'a> {
       builder.add_testhashs64_fnv1a(args.testhashs64_fnv1a);
       builder.add_testhashu64_fnv1(args.testhashu64_fnv1);
       builder.add_testhashs64_fnv1(args.testhashs64_fnv1);
+      if let Some(x) = args.scalar_key_sorted_tables { builder.add_scalar_key_sorted_tables(x); }
       if let Some(x) = args.testrequirednestedflatbuffer { builder.add_testrequirednestedflatbuffer(x); }
       if let Some(x) = args.vector_of_enums { builder.add_vector_of_enums(x); }
       if let Some(x) = args.any_ambiguous { builder.add_any_ambiguous(x); }
@@ -1391,6 +1405,7 @@ impl<'a> Monster<'a> {
     pub const VT_VECTOR_OF_ENUMS: flatbuffers::VOffsetT = 98;
     pub const VT_SIGNED_ENUM: flatbuffers::VOffsetT = 100;
     pub const VT_TESTREQUIREDNESTEDFLATBUFFER: flatbuffers::VOffsetT = 102;
+    pub const VT_SCALAR_KEY_SORTED_TABLES: flatbuffers::VOffsetT = 104;
 
   #[inline]
   pub fn pos(&self) -> Option<&'a Vec3> {
@@ -1613,6 +1628,10 @@ impl<'a> Monster<'a> {
     })
   }
   #[inline]
+  pub fn scalar_key_sorted_tables(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Stat<'a>>>> {
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Stat>>>>(Monster::VT_SCALAR_KEY_SORTED_TABLES, None)
+  }
+  #[inline]
   #[allow(non_snake_case)]
   pub fn test_as_monster(&self) -> Option<Monster<'a>> {
     if self.test_type() == Any::Monster {
@@ -1706,8 +1725,8 @@ impl<'a> Monster<'a> {
 
 impl flatbuffers::Verifiable for Monster<'_> {
   #[inline]
-  fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     v.visit_table(pos)?
@@ -1778,6 +1797,7 @@ impl flatbuffers::Verifiable for Monster<'_> {
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, Color>>>(&"vector_of_enums", Self::VT_VECTOR_OF_ENUMS, false)?
      .visit_field::<Race>(&"signed_enum", Self::VT_SIGNED_ENUM, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u8>>>(&"testrequirednestedflatbuffer", Self::VT_TESTREQUIREDNESTEDFLATBUFFER, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<Stat>>>>(&"scalar_key_sorted_tables", Self::VT_SCALAR_KEY_SORTED_TABLES, false)?
      .finish();
     Ok(())
   }
@@ -1832,6 +1852,7 @@ pub struct MonsterArgs<'a> {
     pub vector_of_enums: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, Color>>>,
     pub signed_enum: Race,
     pub testrequirednestedflatbuffer: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u8>>>,
+    pub scalar_key_sorted_tables: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Stat<'a>>>>>,
 }
 impl<'a> Default for MonsterArgs<'a> {
     #[inline]
@@ -1886,6 +1907,7 @@ impl<'a> Default for MonsterArgs<'a> {
             vector_of_enums: None,
             signed_enum: Race::None,
             testrequirednestedflatbuffer: None,
+            scalar_key_sorted_tables: None,
         }
     }
 }
@@ -2091,6 +2113,10 @@ impl<'a: 'b, 'b> MonsterBuilder<'a, 'b> {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Monster::VT_TESTREQUIREDNESTEDFLATBUFFER, testrequirednestedflatbuffer);
   }
   #[inline]
+  pub fn add_scalar_key_sorted_tables(&mut self, scalar_key_sorted_tables: flatbuffers::WIPOffset<flatbuffers::Vector<'b , flatbuffers::ForwardsUOffset<Stat<'b >>>>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Monster::VT_SCALAR_KEY_SORTED_TABLES, scalar_key_sorted_tables);
+  }
+  #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> MonsterBuilder<'a, 'b> {
     let start = _fbb.start_table();
     MonsterBuilder {
@@ -2236,6 +2262,7 @@ impl std::fmt::Debug for Monster<'_> {
       ds.field("vector_of_enums", &self.vector_of_enums());
       ds.field("signed_enum", &self.signed_enum());
       ds.field("testrequirednestedflatbuffer", &self.testrequirednestedflatbuffer());
+      ds.field("scalar_key_sorted_tables", &self.scalar_key_sorted_tables());
       ds.finish()
   }
 }
@@ -2350,8 +2377,8 @@ impl<'a> TypeAliases<'a> {
 
 impl flatbuffers::Verifiable for TypeAliases<'_> {
   #[inline]
-  fn run_verifier<'o, 'b>(
-    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     v.visit_table(pos)?
@@ -2491,13 +2518,13 @@ impl std::fmt::Debug for TypeAliases<'_> {
   }
 }
 #[inline]
-#[deprecated(since="1.13", note="Deprecated in favor of `root_as...` methods.")]
+#[deprecated(since="2.0.0", note="Deprecated in favor of `root_as...` methods.")]
 pub fn get_root_as_monster<'a>(buf: &'a [u8]) -> Monster<'a> {
   unsafe { flatbuffers::root_unchecked::<Monster<'a>>(buf) }
 }
 
 #[inline]
-#[deprecated(since="1.13", note="Deprecated in favor of `root_as...` methods.")]
+#[deprecated(since="2.0.0", note="Deprecated in favor of `root_as...` methods.")]
 pub fn get_size_prefixed_root_as_monster<'a>(buf: &'a [u8]) -> Monster<'a> {
   unsafe { flatbuffers::size_prefixed_root_unchecked::<Monster<'a>>(buf) }
 }

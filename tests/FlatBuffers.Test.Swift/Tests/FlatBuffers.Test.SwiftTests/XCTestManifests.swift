@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Google Inc. All rights reserved.
+ * Copyright 2021 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,17 +35,11 @@ extension FlatBuffersMonsterWriterTests {
     ("testCreateMonster", testCreateMonster),
     ("testCreateMonsterPrefixed", testCreateMonsterPrefixed),
     ("testCreateMonsterResizedBuffer", testCreateMonsterResizedBuffer),
-    (
-      "testCreateMonsterUsingCreateMonsterMethodWithNilPos",
-      testCreateMonsterUsingCreateMonsterMethodWithNilPos),
-    (
-      "testCreateMonsterUsingCreateMonsterMethodWithPosX",
-      testCreateMonsterUsingCreateMonsterMethodWithPosX),
+    ("testCreateMonsterUsingCreateMonsterMethodWithNilPos", testCreateMonsterUsingCreateMonsterMethodWithNilPos),
+    ("testCreateMonsterUsingCreateMonsterMethodWithPosX", testCreateMonsterUsingCreateMonsterMethodWithPosX),
     ("testData", testData),
     ("testReadFromOtherLanguages", testReadFromOtherLanguages),
-    (
-      "testReadMonsterFromUnsafePointerWithoutCopying",
-      testReadMonsterFromUnsafePointerWithoutCopying),
+    ("testReadMonsterFromUnsafePointerWithoutCopying", testReadMonsterFromUnsafePointerWithoutCopying),
   ]
 }
 

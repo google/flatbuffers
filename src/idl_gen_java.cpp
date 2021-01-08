@@ -316,7 +316,7 @@ class JavaGenerator : public BaseGenerator {
       auto &ev = **it;
       GenComment(ev.doc_comment, code_ptr, &comment_config, "  ");
       code += "  public static final ";
-      code += GenTypeBasic(enum_def.underlying_type);
+      code += GenTypeBasic(DestinationType(enum_def.underlying_type, false));
       code += " ";
       code += ev.name + " = ";
       code += enum_def.ToString(ev);

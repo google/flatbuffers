@@ -68,16 +68,17 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: cmake
-      run: cmake -G "Xcode" -DCMAKE_BUILD_TYPE=Release .
+      run: cmake -G "Xcode" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_FLATC_EXECUTABLE=_build/Release/flatc .
     - name: build
-      run: xcodebuild -toolchain clang -configuration Release -target flattests
+      # NOTE: we need this _build dir to not have xcodebuild's default ./build dir clash with the BUILD file.
+      run: xcodebuild -toolchain clang -configuration Release -target flattests SYMROOT=$(PWD)/_build
     - name: test
-      run: Release/flattests
+      run: _build/Release/flattests
     - name: upload build artifacts
       uses: actions/upload-artifact@v1
       with:
         name: Mac flatc binary
-        path: Release/flatc
+        path: _build/Release/flatc
 
   build-android:
    name: Build Android (on Linux)
@@ -148,17 +149,17 @@ jobs:
       working-directory: tests
       run: bash PythonTest.sh
 
-  #build-go:
-  #  name: Build Go
-  #  runs-on: ubuntu-latest
-  #  steps:
-  #  - uses: actions/checkout@v1
-  #  - name: flatc
-  #    # FIXME: make test script not rely on flatc
-  #    run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF . && make -j4
-  #  - name: test
-  #    working-directory: tests
-  #    run: bash GoTest.sh
+  build-go:
+    name: Build Go
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: flatc
+      # FIXME: make test script not rely on flatc
+      run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF . && make -j4
+    - name: test
+      working-directory: tests
+      run: bash GoTest.sh
 
   #build-csharp:
   #  name: Build CSharp
@@ -169,19 +170,19 @@ jobs:
   #    working-directory: tests/FlatBuffers.Test
   #    run: bash NetTest.sh
 
-  build-php:
-    name: Build PHP
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v1
-    - name: flatc
-      # FIXME: make test script not rely on flatc
-      run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF . && make -j4
-    - name: test
-      working-directory: tests
-      run: |
-        php phpTest.php
-        sh phpUnionVectorTest.sh
+  #build-php:
+  #  name: Build PHP
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #  - uses: actions/checkout@v1
+  #  - name: flatc
+  #    # FIXME: make test script not rely on flatc
+  #    run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF . && make -j4
+  #  - name: test
+  #    working-directory: tests
+  #    run: |
+  #      php phpTest.php
+  #      sh phpUnionVectorTest.sh
 
   build-swift:
     name: Build Swift
@@ -191,5 +192,3 @@ jobs:
     - name: test
       working-directory: tests/FlatBuffers.Test.Swift
       run: sh SwiftTest.sh
-
-

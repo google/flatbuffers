@@ -24,7 +24,7 @@
 namespace flatbuffers {
 
 // Convert a camelCaseIdentifier or CamelCaseIdentifier to a
-// snake_case_indentifier.
+// snake_case_identifier.
 std::string MakeSnakeCase(const std::string &in) {
   std::string s;
   for (size_t i = 0; i < in.length(); i++) {
@@ -561,7 +561,7 @@ class RustGenerator : public BaseGenerator {
       // Normal, c-modelled enums.
       // Deprecated associated constants;
       const std::string deprecation_warning =
-          "#[deprecated(since = \"1.13\", note = \"Use associated constants"
+          "#[deprecated(since = \"2.0.0\", note = \"Use associated constants"
           " instead. This will no longer be generated in 2021.\")]";
       code_ += deprecation_warning;
       code_ += "pub const ENUM_MIN_{{ENUM_NAME_CAPS}}: {{BASE_TYPE}}"
@@ -670,8 +670,8 @@ class RustGenerator : public BaseGenerator {
     // Generate verifier - deferring to the base type.
     code_ += "impl<'a> flatbuffers::Verifiable for {{ENUM_NAME}} {";
     code_ += "  #[inline]";
-    code_ += "  fn run_verifier<'o, 'b>(";
-    code_ += "    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize";
+    code_ += "  fn run_verifier(";
+    code_ += "    v: &mut flatbuffers::Verifier, pos: usize";
     code_ += "  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {";
     code_ += "    use self::flatbuffers::Verifiable;";
     code_ += "    {{BASE_TYPE}}::run_verifier(v, pos)";
@@ -1332,8 +1332,8 @@ class RustGenerator : public BaseGenerator {
     // Generate Verifier;
     code_ += "impl flatbuffers::Verifiable for {{STRUCT_NAME}}<'_> {";
     code_ += "  #[inline]";
-    code_ += "  fn run_verifier<'o, 'b>(";
-    code_ += "    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize";
+    code_ += "  fn run_verifier(";
+    code_ += "    v: &mut flatbuffers::Verifier, pos: usize";
     code_ += "  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {";
     code_ += "    use self::flatbuffers::Verifiable;";
     code_ += "    v.visit_table(pos)?\\";
@@ -1542,7 +1542,7 @@ class RustGenerator : public BaseGenerator {
 
     // The root datatype accessors:
     code_ += "#[inline]";
-    code_ += "#[deprecated(since=\"1.13\", "
+    code_ += "#[deprecated(since=\"2.0.0\", "
              "note=\"Deprecated in favor of `root_as...` methods.\")]";
     code_ +=
         "pub fn get_root_as_{{STRUCT_NAME_SNAKECASE}}<'a>(buf: &'a [u8])"
@@ -1553,7 +1553,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
 
     code_ += "#[inline]";
-    code_ += "#[deprecated(since=\"1.13\", "
+    code_ += "#[deprecated(since=\"2.0.0\", "
              "note=\"Deprecated in favor of `root_as...` methods.\")]";
     code_ +=
         "pub fn get_size_prefixed_root_as_{{STRUCT_NAME_SNAKECASE}}"
@@ -1831,8 +1831,8 @@ class RustGenerator : public BaseGenerator {
     // all that need to be checked.
     code_ += "impl<'a> flatbuffers::Verifiable for {{STRUCT_NAME}} {";
     code_ += "  #[inline]";
-    code_ += "  fn run_verifier<'o, 'b>(";
-    code_ += "    v: &mut flatbuffers::Verifier<'o, 'b>, pos: usize";
+    code_ += "  fn run_verifier(";
+    code_ += "    v: &mut flatbuffers::Verifier, pos: usize";
     code_ += "  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {";
     code_ += "    use self::flatbuffers::Verifiable;";
     code_ += "    v.in_buffer::<Self>(pos)";
@@ -1843,6 +1843,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "impl {{STRUCT_NAME}} {";
     // TODO(cneo): Stop generating args on one line. Make it simpler.
     bool first_arg = true;
+    code_ += "  #[allow(clippy::too_many_arguments)]";
     code_ += "  pub fn new(\\";
     ForAllStructFields(struct_def, [&](const FieldDef &field) {
       if (first_arg) first_arg = false; else code_ += ", \\";
@@ -1907,7 +1908,16 @@ class RustGenerator : public BaseGenerator {
         auto noext = flatbuffers::StripExtension(it->second);
         auto basename = flatbuffers::StripPath(noext);
 
-        code_ += indent + "use crate::" + basename + "_generated::*;";
+        if (parser_.opts.include_prefix.empty()) {
+          code_ += indent + "use crate::" + basename +
+                   parser_.opts.filename_suffix + "::*;";
+        } else {
+          auto prefix = parser_.opts.include_prefix;
+          prefix.pop_back();
+
+          code_ += indent + "use crate::" + prefix + "::" + basename +
+                   parser_.opts.filename_suffix + "::*;";
+        }
       }
     }
 

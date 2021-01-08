@@ -860,7 +860,7 @@ class TestByteLayout(unittest.TestCase):
         self.assertBuilderEquals(b, [0, 0, 0]) # align to 4bytes
         b.PrependByte(1)
         self.assertBuilderEquals(b, [1, 0, 0, 0])
-        b.EndVector(1)
+        b.EndVector()
         self.assertBuilderEquals(b, [1, 0, 0, 0, 1, 0, 0, 0]) # padding
 
     def test_2xbyte_vector(self):
@@ -871,7 +871,7 @@ class TestByteLayout(unittest.TestCase):
         self.assertBuilderEquals(b, [1, 0, 0])
         b.PrependByte(2)
         self.assertBuilderEquals(b, [2, 1, 0, 0])
-        b.EndVector(2)
+        b.EndVector()
         self.assertBuilderEquals(b, [2, 0, 0, 0, 2, 1, 0, 0]) # padding
 
     def test_1xuint16_vector(self):
@@ -880,7 +880,7 @@ class TestByteLayout(unittest.TestCase):
         self.assertBuilderEquals(b, [0, 0]) # align to 4bytes
         b.PrependUint16(1)
         self.assertBuilderEquals(b, [1, 0, 0, 0])
-        b.EndVector(1)
+        b.EndVector()
         self.assertBuilderEquals(b, [1, 0, 0, 0, 1, 0, 0, 0]) # padding
 
     def test_2xuint16_vector(self):
@@ -891,7 +891,7 @@ class TestByteLayout(unittest.TestCase):
         self.assertBuilderEquals(b, [0xCD, 0xAB])
         b.PrependUint16(0xDCBA)
         self.assertBuilderEquals(b, [0xBA, 0xDC, 0xCD, 0xAB])
-        b.EndVector(2)
+        b.EndVector()
         self.assertBuilderEquals(b, [2, 0, 0, 0, 0xBA, 0xDC, 0xCD, 0xAB])
 
     def test_create_ascii_string(self):
@@ -1288,7 +1288,7 @@ class TestByteLayout(unittest.TestCase):
     def test_vtable_with_empty_vector(self):
         b = flatbuffers.Builder(0)
         b.StartVector(flatbuffers.number_types.Uint8Flags.bytewidth, 0, 1)
-        vecend = b.EndVector(0)
+        vecend = b.EndVector()
         b.StartObject(1)
         b.PrependUOffsetTRelativeSlot(0, vecend, 0)
         b.EndObject()
@@ -1304,7 +1304,7 @@ class TestByteLayout(unittest.TestCase):
     def test_vtable_with_empty_vector_of_byte_and_some_scalars(self):
         b = flatbuffers.Builder(0)
         b.StartVector(flatbuffers.number_types.Uint8Flags.bytewidth, 0, 1)
-        vecend = b.EndVector(0)
+        vecend = b.EndVector()
         b.StartObject(2)
         b.PrependInt16Slot(0, 55, 0)
         b.PrependUOffsetTRelativeSlot(1, vecend, 0)
@@ -1326,7 +1326,7 @@ class TestByteLayout(unittest.TestCase):
         b.StartVector(flatbuffers.number_types.Int16Flags.bytewidth, 2, 1)
         b.PrependInt16(0x1234)
         b.PrependInt16(0x5678)
-        vecend = b.EndVector(2)
+        vecend = b.EndVector()
         b.StartObject(2)
         b.PrependUOffsetTRelativeSlot(1, vecend, 0)
         b.PrependInt16Slot(0, 55, 0)
@@ -1376,7 +1376,7 @@ class TestByteLayout(unittest.TestCase):
         b.PrependInt8(44)
         b.PrependInt8(55)
         b.PrependInt8(66)
-        vecend = b.EndVector(2)
+        vecend = b.EndVector()
         b.StartObject(1)
         b.PrependUOffsetTRelativeSlot(0, vecend, 0)
         b.EndObject()
@@ -1556,7 +1556,7 @@ def make_monster_from_generated_code(sizePrefix = False, file_identifier=None):
     b.PrependByte(2)
     b.PrependByte(1)
     b.PrependByte(0)
-    inv = b.EndVector(5)
+    inv = b.EndVector()
 
     MyGame.Example.Monster.MonsterStart(b)
     MyGame.Example.Monster.MonsterAddName(b, fred)
@@ -1565,12 +1565,12 @@ def make_monster_from_generated_code(sizePrefix = False, file_identifier=None):
     MyGame.Example.Monster.MonsterStartTest4Vector(b, 2)
     MyGame.Example.Test.CreateTest(b, 10, 20)
     MyGame.Example.Test.CreateTest(b, 30, 40)
-    test4 = b.EndVector(2)
+    test4 = b.EndVector()
 
     MyGame.Example.Monster.MonsterStartTestarrayofstringVector(b, 2)
     b.PrependUOffsetTRelative(test2)
     b.PrependUOffsetTRelative(test1)
-    testArrayOfString = b.EndVector(2)
+    testArrayOfString = b.EndVector()
 
     MyGame.Example.Monster.MonsterStartVectorOfLongsVector(b, 5)
     b.PrependInt64(100000000)
@@ -1578,13 +1578,13 @@ def make_monster_from_generated_code(sizePrefix = False, file_identifier=None):
     b.PrependInt64(10000)
     b.PrependInt64(100)
     b.PrependInt64(1)
-    VectorOfLongs = b.EndVector(5)
+    VectorOfLongs = b.EndVector()
 
     MyGame.Example.Monster.MonsterStartVectorOfDoublesVector(b, 3)
     b.PrependFloat64(1.7976931348623157e+308)
     b.PrependFloat64(0)
     b.PrependFloat64(-1.7976931348623157e+308)
-    VectorOfDoubles = b.EndVector(3)
+    VectorOfDoubles = b.EndVector()
 
     MyGame.Example.Monster.MonsterStart(b)
 
@@ -1687,7 +1687,7 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
     def test_empty_monster_inventory_vector(self):
         b = flatbuffers.Builder(0)
         MyGame.Example.Monster.MonsterStartInventoryVector(b, 0)
-        inv = b.EndVector(0)
+        inv = b.EndVector()
         MyGame.Example.Monster.MonsterStart(b)
         MyGame.Example.Monster.MonsterAddInventory(b, inv)
         mon = MyGame.Example.Monster.MonsterEnd(b)
@@ -1727,7 +1727,7 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
     def test_empty_monster_test4_vector(self):
         b = flatbuffers.Builder(0)
         MyGame.Example.Monster.MonsterStartTest4Vector(b, 0)
-        test4 = b.EndVector(0)
+        test4 = b.EndVector()
         MyGame.Example.Monster.MonsterStart(b)
         MyGame.Example.Monster.MonsterAddTest4(b, test4)
         mon = MyGame.Example.Monster.MonsterEnd(b)
@@ -1746,7 +1746,7 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
     def test_empty_monster_testarrayofstring_vector(self):
         b = flatbuffers.Builder(0)
         MyGame.Example.Monster.MonsterStartTestarrayofstringVector(b, 0)
-        testarrayofstring = b.EndVector(0)
+        testarrayofstring = b.EndVector()
         MyGame.Example.Monster.MonsterStart(b)
         MyGame.Example.Monster.MonsterAddTestarrayofstring(b, testarrayofstring)
         mon = MyGame.Example.Monster.MonsterEnd(b)
@@ -1769,7 +1769,7 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
         # build the vector:
         MyGame.Example.Monster.MonsterStartTestarrayoftablesVector(b, 1)
         b.PrependUOffsetTRelative(sub_monster)
-        vec = b.EndVector(1)
+        vec = b.EndVector()
 
         # make the parent monster and include the vector of Monster:
         MyGame.Example.Monster.MonsterStart(b)
@@ -1790,7 +1790,7 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
     def test_empty_monster_testarrayoftables_vector(self):
         b = flatbuffers.Builder(0)
         MyGame.Example.Monster.MonsterStartTestarrayoftablesVector(b, 0)
-        testarrayoftables = b.EndVector(0)
+        testarrayoftables = b.EndVector()
         MyGame.Example.Monster.MonsterStart(b)
         MyGame.Example.Monster.MonsterAddTestarrayoftables(b, testarrayoftables)
         mon = MyGame.Example.Monster.MonsterEnd(b)
@@ -1832,7 +1832,7 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
     def test_empty_monster_testnestedflatbuffer_vector(self):
         b = flatbuffers.Builder(0)
         MyGame.Example.Monster.MonsterStartTestnestedflatbufferVector(b, 0)
-        testnestedflatbuffer = b.EndVector(0)
+        testnestedflatbuffer = b.EndVector()
         MyGame.Example.Monster.MonsterStart(b)
         MyGame.Example.Monster.MonsterAddTestnestedflatbuffer(b, testnestedflatbuffer)
         mon = MyGame.Example.Monster.MonsterEnd(b)
@@ -1848,7 +1848,7 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
         b.PrependByte(4)
         b.PrependByte(2)
         b.PrependByte(0)
-        sub_buf = b.EndVector(3)
+        sub_buf = b.EndVector()
 
         # make the parent monster and include the vector of Monster:
         MyGame.Example.Monster.MonsterStart(b)
@@ -1873,6 +1873,35 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
             assertRaises(self,
                          lambda: mon2.TestnestedflatbufferAsNumpy(),
                          NumpyRequiredForThisFeature)
+
+    def test_nested_monster_testnestedflatbuffer(self):
+        b = flatbuffers.Builder(0)
+
+        # build another monster to nest inside testnestedflatbuffer
+        nestedB = flatbuffers.Builder(0)
+        nameStr = nestedB.CreateString("Nested Monster")
+        MyGame.Example.Monster.MonsterStart(nestedB)
+        MyGame.Example.Monster.MonsterAddHp(nestedB, 30)
+        MyGame.Example.Monster.MonsterAddName(nestedB, nameStr)
+        nestedMon = MyGame.Example.Monster.MonsterEnd(nestedB)
+        nestedB.Finish(nestedMon)
+
+        # write the nested FB bytes
+        sub_buf = MyGame.Example.Monster.MonsterMakeTestnestedflatbufferVectorFromBytes(
+            b, nestedB.Output())
+
+        # make the parent monster and include the bytes of the nested monster
+        MyGame.Example.Monster.MonsterStart(b)
+        MyGame.Example.Monster.MonsterAddTestnestedflatbuffer(b, sub_buf)
+        mon = MyGame.Example.Monster.MonsterEnd(b)
+        b.Finish(mon)
+
+        # inspect the resulting data:
+        mon2 = MyGame.Example.Monster.Monster.GetRootAsMonster(b.Bytes,
+                                                               b.Head())
+        nestedMon2 = mon2.TestnestedflatbufferNestedRoot()
+        self.assertEqual(b"Nested Monster", nestedMon2.Name())
+        self.assertEqual(30, nestedMon2.Hp())
 
     def test_nondefault_monster_testempty(self):
         b = flatbuffers.Builder(0)

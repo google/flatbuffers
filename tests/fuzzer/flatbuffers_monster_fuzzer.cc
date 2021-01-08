@@ -45,7 +45,8 @@ std::string LoadBinarySchema(const char *file_name) {
     return schemafile;
 }
 
-flatbuffers::Parser make_parser(const flatbuffers::IDLOptions opts) {
+std::string do_test(const flatbuffers::IDLOptions &opts,
+                    const std::string input_json) {
   // once loaded from disk
   static const std::string schemafile = LoadBinarySchema("./monster_test.bfbs");
   // parse schema first, so we can use it to parse the data after
@@ -55,12 +56,7 @@ flatbuffers::Parser make_parser(const flatbuffers::IDLOptions opts) {
                     schemafile.size()));
   // (re)define parser options
   parser.opts = opts;
-  return parser;
-}
 
-std::string do_test(const flatbuffers::IDLOptions &opts,
-                    const std::string input_json) {
-  auto parser = make_parser(opts);
   std::string jsongen;
   if (parser.ParseJson(input_json.c_str())) {
     flatbuffers::Verifier verifier(parser.builder_.GetBufferPointer(),

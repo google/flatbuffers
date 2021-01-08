@@ -35,7 +35,7 @@
 // Definition Language) / schema file.
 
 // Limits maximum depth of nested objects.
-// Prevents stack overflow while parse flatbuffers or json.
+// Prevents stack overflow while parse scheme, or json, or flexbuffer.
 #if !defined(FLATBUFFERS_MAX_PARSING_DEPTH)
 #  define FLATBUFFERS_MAX_PARSING_DEPTH 64
 #endif
@@ -767,8 +767,8 @@ class Parser : public ParserState {
         opts(options),
         uses_flexbuffers_(false),
         source_(nullptr),
-        anonymous_counter(0),
-        recurse_protection_counter(0) {
+        anonymous_counter_(0),
+        parse_depth_counter_(0) {
     if (opts.force_defaults) { builder_.ForceDefaults(true); }
     // Start out with the empty namespace being current.
     empty_namespace_ = new Namespace();
@@ -805,11 +805,6 @@ class Parser : public ParserState {
       delete *it;
     }
   }
-
-#ifdef FLATBUFFERS_DEFAULT_DECLARATION
-  Parser(Parser&&) = default;
-  Parser& operator=(Parser&&) = default;
-#endif
 
   // Parse the string containing either schema or JSON data, which will
   // populate the SymbolTable's or the FlatBufferBuilder above.
@@ -872,6 +867,8 @@ class Parser : public ParserState {
   static bool SupportsOptionalScalars(const flatbuffers::IDLOptions &opts);
 
  private:
+  class ParseDepthGuard;
+
   void Message(const std::string &msg);
   void Warning(const std::string &msg);
   FLATBUFFERS_CHECKED_ERROR ParseHexNum(int nibbles, uint64_t *val);
@@ -1000,8 +997,8 @@ class Parser : public ParserState {
 
   std::vector<std::pair<Value, FieldDef *>> field_stack_;
 
-  int anonymous_counter;
-  int recurse_protection_counter;
+  int anonymous_counter_;
+  int parse_depth_counter_;  // stack-overflow guard
 };
 
 // Utility functions for multiple generators:

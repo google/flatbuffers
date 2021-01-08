@@ -1662,8 +1662,8 @@ mod write_and_read_examples {
             vector_of_non_owning_references: None, any_unique_type: NONE, \
             any_unique: None, any_ambiguous_type: NONE, any_ambiguous: None, \
             vector_of_enums: None, signed_enum: None, \
-            testrequirednestedflatbuffer: None }, test4: Some([Test { \
-            a: 10, b: 20 }, Test { a: 30, b: 40 }]), \
+            testrequirednestedflatbuffer: None, scalar_key_sorted_tables: None }, \
+            test4: Some([Test { a: 10, b: 20 }, Test { a: 30, b: 40 }]), \
             testarrayofstring: Some([\"test1\", \"test2\"]), \
             testarrayoftables: None, enemy: None, testnestedflatbuffer: None, \
             testempty: None, testbool: false, testhashs32_fnv1: 0, \
@@ -1680,7 +1680,7 @@ mod write_and_read_examples {
             vector_of_non_owning_references: None, any_unique_type: NONE, \
             any_unique: None, any_ambiguous_type: NONE, any_ambiguous: None, \
             vector_of_enums: None, signed_enum: None, \
-            testrequirednestedflatbuffer: None }"
+            testrequirednestedflatbuffer: None, scalar_key_sorted_tables: None }"
         );
     }
 
@@ -3051,4 +3051,51 @@ fn load_file(filename: &str) -> Result<Vec<u8>, std::io::Error> {
     f.read_to_end(&mut buf)?;
     Ok(buf)
 }
+
+#[test]
+fn test_shared_strings() {
+    let mut builder = flatbuffers::FlatBufferBuilder::new();
+    let offset1 = builder.create_shared_string("welcome to flatbuffers!!");
+    let offset2 = builder.create_shared_string("welcome");
+    let offset3 = builder.create_shared_string("welcome to flatbuffers!!");
+    assert_ne!(offset2.value(), offset3.value());
+    assert_eq!(offset1.value(), offset3.value());
+    builder.reset();
+    let offset4 = builder.create_shared_string("welcome");
+    let offset5 = builder.create_shared_string("welcome to flatbuffers!!");
+    assert_ne!(offset2.value(), offset4.value());
+    assert_ne!(offset5.value(), offset1.value());
+    builder.reset();
+
+    // Checks if the shared string function would always work with
+    // an object in between the writes
+    let name = builder.create_shared_string("foo");
+    let enemy = my_game::example::Monster::create(&mut builder, &my_game::example::MonsterArgs {
+        name: Some(name),
+        ..Default::default()
+    });
+    let secondary_name = builder.create_shared_string("foo");
+    assert_eq!(name.value(), secondary_name.value());
+
+    // Builds a new monster object and embeds enemy into it so we can verify
+    // that shared strings are working.
+    let args = my_game::example::MonsterArgs {
+        name: Some(secondary_name),
+        enemy: Some(enemy),
+        testarrayofstring: Some(builder.create_vector(&[name, secondary_name])),
+        ..Default::default()
+    };
+    // Building secondary monster
+    let main_monster = my_game::example::Monster::create(&mut builder, &args);
+    builder.finish(main_monster, None);
+    let monster = my_game::example::root_as_monster(builder.finished_data()).unwrap();
+
+    // Checks if the embedded object (Enemy) name is foo
+    assert_eq!(monster.enemy().unwrap().name(), "foo");
+    let string_vector = monster.testarrayofstring().unwrap();
+    // Check if the vector will have the same string
+    assert_eq!(string_vector.get(0), "foo");
+    assert_eq!(string_vector.get(1), "foo");
+}
+
 }
