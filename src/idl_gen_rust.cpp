@@ -1840,7 +1840,8 @@ class RustGenerator : public BaseGenerator {
     code_ += "impl {{STRUCT_NAME}} {";
     code_ += "  #[allow(clippy::too_many_arguments)]";
     code_ += "  pub fn new(";
-    ForAllStructFields(struct_def, [&](const FieldDef &field) {
+    ForAllStructFields(struct_def, [&](const FieldDef &unused) {
+      (void) unused;
       code_ += "    {{FIELD_NAME}}: {{REF}}{{FIELD_TYPE}},";
     });
     code_ += "  ) -> Self {";
