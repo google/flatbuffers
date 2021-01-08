@@ -257,6 +257,7 @@ template<typename T> class Vector {
 
   typedef typename IndirectHelper<T>::return_type return_type;
   typedef typename IndirectHelper<T>::mutable_return_type mutable_return_type;
+  typedef return_type value_type;
 
   return_type Get(uoffset_t i) const {
     FLATBUFFERS_ASSERT(i < size());
