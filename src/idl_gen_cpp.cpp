@@ -2122,7 +2122,8 @@ class CppGenerator : public BaseGenerator {
         continue;
       }
       code_.SetValue("FIELD_NAME", Name(field));
-      code_.SetValue("FIELD_INDEX", std::to_string(index++));
+      code_.SetValue("FIELD_INDEX",
+          std::to_string(static_cast<long long>(index++)));
       if (need_else) {
         code_ += "    else \\";
       } else {
