@@ -1845,7 +1845,8 @@ class RustGenerator : public BaseGenerator {
     });
     code_ += "  ) -> Self {";
     code_ += "    let mut s = Self([0; {{STRUCT_SIZE}}]);";
-    ForAllStructFields(struct_def, [&](const FieldDef &field) {
+    ForAllStructFields(struct_def, [&](const FieldDef &unused) {
+      (void) unused;
       code_ += "    s.set_{{FIELD_NAME}}({{REF}}{{FIELD_NAME}});";
     });
     code_ += "    s";
