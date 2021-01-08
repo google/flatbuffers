@@ -18,6 +18,7 @@
 #include <stdint.h>
 
 #include <clocale>
+#include <filesystem>
 #include <string>
 
 #include "cpp17/generated_cpp17/monster_test_generated.h"
@@ -33,22 +34,39 @@ static constexpr uint8_t flags_strict_json = 0x80;
 static constexpr uint8_t flags_skip_unexpected_fields_in_json = 0x40;
 static constexpr uint8_t flags_allow_non_utf8 = 0x20;
 
-std::string LoadBinarySchema(const char *file_name) {
-    std::string schemafile;
-    TEST_EQ(true,
-            flatbuffers::LoadFile(file_name, true, &schemafile));
+bool TestFileExists(const char *file_name) {
+  namespace fs = std::filesystem;
+  const bool file_exists = flatbuffers::FileExists(file_name);
+  TEST_OUTPUT_LINE("@DEBUG: test file, exists: %d, name:'%s'", file_exists,
+                   file_name);
+  if (file_exists) return true;
 
-    flatbuffers::Verifier verifier(
-        reinterpret_cast<const uint8_t *>(schemafile.c_str()),
-        schemafile.size());
-    TEST_EQ(true, reflection::VerifySchemaBuffer(verifier));
-    return schemafile;
+  const auto cwd = fs::current_path();
+  TEST_OUTPUT_LINE("@DEBUG: file '%s' not found with flatbuffers::FileExists()",
+                   file_name);
+  TEST_OUTPUT_LINE("@DEBUG: CWD: '%s', fs::exists: %d", cwd.c_str(),
+                   fs::exists(cwd / file_name));
+  for (const auto &entry : fs::directory_iterator(cwd)) {
+    TEST_OUTPUT_LINE("@DEBUG: CWD entry: '%s'", entry.path().c_str());
+  }
+  return false;
+}
+
+std::string LoadBinarySchema(const char *file_name) {
+  TEST_EQ(true, TestFileExists(file_name));
+  std::string schemafile;
+  TEST_EQ(true, flatbuffers::LoadFile(file_name, true, &schemafile));
+
+  flatbuffers::Verifier verifier(
+      reinterpret_cast<const uint8_t *>(schemafile.c_str()), schemafile.size());
+  TEST_EQ(true, reflection::VerifySchemaBuffer(verifier));
+  return schemafile;
 }
 
 std::string do_test(const flatbuffers::IDLOptions &opts,
                     const std::string input_json) {
   // once loaded from disk
-  static const std::string schemafile = LoadBinarySchema("./monster_test.bfbs");
+  static const std::string schemafile = LoadBinarySchema("monster_test.bfbs");
   // parse schema first, so we can use it to parse the data after
   flatbuffers::Parser parser;
   TEST_EQ(true, parser.Deserialize(
