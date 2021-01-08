@@ -232,6 +232,25 @@ impl<'opts, 'buf> Verifier<'opts, 'buf> {
         self.num_tables = 0;
         self.num_tables = 0;
     }
+    /// Checks `pos` is aligned to T's alignment. This does not mean `buffer[pos]` is aligned w.r.t
+    /// memory since `buffer: &[u8]` has alignment 1.
+    ///
+    /// ### WARNING
+    /// This does not work for flatbuffers-structs as they have alignment 1 according to
+    /// `core::mem::align_of` but are meant to have higher alignment within a Flatbuffer w.r.t.
+    /// `buffer[0]`. TODO(caspern).
+    #[inline]
+    fn is_aligned<T>(&self, pos: usize) -> Result<()> {
+        if pos % std::mem::align_of::<T>() == 0 {
+            Ok(())
+        } else {
+            Err(InvalidFlatbuffer::Unaligned {
+                unaligned_type: std::any::type_name::<T>(),
+                position: pos,
+                error_trace: Default::default(),
+            })
+        }
+    }
     #[inline]
     fn range_in_buffer(&mut self, pos: usize, size: usize) -> Result<()> {
         let end = pos.saturating_add(size);
@@ -244,8 +263,10 @@ impl<'opts, 'buf> Verifier<'opts, 'buf> {
         }
         Ok(())
     }
+    /// Check that there really is a T in there.
     #[inline]
     pub fn in_buffer<T>(&mut self, pos: usize) -> Result<()> {
+        self.is_aligned::<T>(pos)?;
         self.range_in_buffer(pos, std::mem::size_of::<T>())
     }
     #[inline]
@@ -297,6 +318,7 @@ impl<'opts, 'buf> Verifier<'opts, 'buf> {
     ) -> Result<TableVerifier<'ver, 'opts, 'buf>> {
         let vtable_pos = self.deref_soffset(table_pos)?;
         let vtable_len = self.get_u16(vtable_pos)? as usize;
+        self.is_aligned::<VOffsetT>(vtable_pos.saturating_add(vtable_len))?; // i.e. vtable_len is even.
         self.range_in_buffer(vtable_pos, vtable_len)?;
         // Check bounds.
         self.num_tables += 1;
@@ -445,6 +467,7 @@ impl<T: Verifiable> Verifiable for ForwardsUOffset<T> {
 fn verify_vector_range<T>(v: &mut Verifier, pos: usize) -> Result<std::ops::Range<usize>> {
     let len = v.get_uoffset(pos)? as usize;
     let start = pos.saturating_add(SIZE_UOFFSET);
+    v.is_aligned::<T>(start)?;
     let size = len.saturating_mul(std::mem::size_of::<T>());
     let end = start.saturating_add(size);
     v.range_in_buffer(start, size)?;
