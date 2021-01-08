@@ -52,4 +52,4 @@ fi
 cargo bench $TARGET_FLAG
 
 rustup +nightly component add miri
-cargo miri test -- -Zmiri-disable-isolation
+cargo +nightly miri test -- -Zmiri-disable-isolation
