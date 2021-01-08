@@ -235,17 +235,18 @@ impl<'opts, 'buf> Verifier<'opts, 'buf> {
     /// Check that there really is a T in there.
     #[inline]
     fn is_aligned<T>(&self, pos: usize) -> Result<()> {
-        // Safe because we're not dereferencing.
-        let p = unsafe { self.buffer.as_ptr().add(pos) };
-        if (p as usize) % std::mem::align_of::<T>() == 0 {
-            Ok(())
-        } else {
-            Err(InvalidFlatbuffer::Unaligned {
-                unaligned_type: std::any::type_name::<T>(),
-                position: pos,
-                error_trace: Default::default(),
-            })
-        }
+        Ok(())
+        // // Safe because we're not dereferencing.
+        // let p = unsafe { self.buffer.as_ptr().add(pos) };
+        // if (p as usize) % std::mem::align_of::<T>() == 0 {
+        //     Ok(())
+        // } else {
+        //     Err(InvalidFlatbuffer::Unaligned {
+        //         unaligned_type: std::any::type_name::<T>(),
+        //         position: pos,
+        //         error_trace: Default::default(),
+        //     })
+        // }
     }
     #[inline]
     fn range_in_buffer(&mut self, pos: usize, size: usize) -> Result<()> {

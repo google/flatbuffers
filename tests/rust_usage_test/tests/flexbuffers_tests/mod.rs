@@ -15,5 +15,6 @@
 mod binary_format;
 mod interop;
 mod other_api;
+#[cfg(not(miri))]  // slow.
 mod qc_serious;
 mod rwyw;

@@ -14,6 +14,7 @@
 
 // Read what you wrote.
 use flexbuffers::*;
+#[cfg(not(miri))]  // slow.
 use quickcheck;
 use serde::{Deserialize, Serialize};
 
@@ -33,6 +34,7 @@ impl quickcheck::Arbitrary for NonNullString {
     }
 }
 
+#[cfg(not(miri))]  // slow.
 quickcheck! {
     fn qc_vec_bool(xs: Vec<bool>) -> bool {
         let mut builder = Builder::default();
@@ -363,6 +365,8 @@ struct Foo {
     c: Vec<u32>,
     d: String,
 }
+
+#[cfg(not(miri))]  // slow.
 quickcheck! {
     fn serde_foo(a: i8,
     b: f64,
