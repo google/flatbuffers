@@ -1024,6 +1024,11 @@ struct MonsterT : public flatbuffers::NativeTable {
   MyGame::Example::Race signed_enum = MyGame::Example::Race::None;
   std::vector<uint8_t> testrequirednestedflatbuffer{};
   std::vector<std::unique_ptr<MyGame::Example::StatT>> scalar_key_sorted_tables{};
+  MonsterT() = default;
+  MonsterT(const MonsterT &o);
+  MonsterT(MonsterT&&) FLATBUFFERS_NOEXCEPT = default;
+  MonsterT &operator=(const MonsterT &o);
+  MonsterT &operator=(MonsterT&&) FLATBUFFERS_NOEXCEPT = default;
 };
 
 /// an example documentation comment: "monster object"
@@ -2335,6 +2340,176 @@ inline flatbuffers::Offset<Referrable> CreateReferrable(flatbuffers::FlatBufferB
       _id);
 }
 
+inline MonsterT::MonsterT(const MonsterT &o)
+      : pos((o.pos) ? new MyGame::Example::Vec3(*o.pos) : nullptr),
+        mana(o.mana),
+        hp(o.hp),
+        name(o.name),
+        color(o.color),
+        test(o.test),
+        enemy((o.enemy) ? new MyGame::Example::MonsterT(*o.enemy) : nullptr),
+        testempty((o.testempty) ? new MyGame::Example::StatT(*o.testempty) : nullptr),
+        testbool(o.testbool),
+        testhashs32_fnv1(o.testhashs32_fnv1),
+        testhashu32_fnv1(o.testhashu32_fnv1),
+        testhashs64_fnv1(o.testhashs64_fnv1),
+        testhashu64_fnv1(o.testhashu64_fnv1),
+        testhashs32_fnv1a(o.testhashs32_fnv1a),
+        testhashu32_fnv1a(o.testhashu32_fnv1a),
+        testhashs64_fnv1a(o.testhashs64_fnv1a),
+        testhashu64_fnv1a(o.testhashu64_fnv1a),
+        testf(o.testf),
+        testf2(o.testf2),
+        testf3(o.testf3),
+        parent_namespace_test((o.parent_namespace_test) ? new MyGame::InParentNamespaceT(*o.parent_namespace_test) : nullptr),
+        single_weak_reference(o.single_weak_reference),
+        co_owning_reference(o.co_owning_reference),
+        non_owning_reference(o.non_owning_reference),
+        any_unique(o.any_unique),
+        any_ambiguous(o.any_ambiguous),
+        signed_enum(o.signed_enum) {
+  inventory.clear();
+  inventory.reserve(o.inventory.size());
+  for (const auto &v : o.inventory) { inventory.emplace_back(v); }
+  test4.clear();
+  test4.reserve(o.test4.size());
+  for (const auto &v : o.test4) { test4.emplace_back(v); }
+  testarrayofstring.clear();
+  testarrayofstring.reserve(o.testarrayofstring.size());
+  for (const auto &v : o.testarrayofstring) { testarrayofstring.emplace_back(v); }
+  testarrayoftables.clear();
+  testarrayoftables.reserve(o.testarrayoftables.size());
+  for (const auto &v : o.testarrayoftables) { testarrayoftables.emplace_back((v) ? new MyGame::Example::MonsterT(*v) : nullptr); }
+  testnestedflatbuffer.clear();
+  testnestedflatbuffer.reserve(o.testnestedflatbuffer.size());
+  for (const auto &v : o.testnestedflatbuffer) { testnestedflatbuffer.emplace_back(v); }
+  testarrayofbools.clear();
+  testarrayofbools.reserve(o.testarrayofbools.size());
+  for (const auto &v : o.testarrayofbools) { testarrayofbools.emplace_back(v); }
+  testarrayofstring2.clear();
+  testarrayofstring2.reserve(o.testarrayofstring2.size());
+  for (const auto &v : o.testarrayofstring2) { testarrayofstring2.emplace_back(v); }
+  testarrayofsortedstruct.clear();
+  testarrayofsortedstruct.reserve(o.testarrayofsortedstruct.size());
+  for (const auto &v : o.testarrayofsortedstruct) { testarrayofsortedstruct.emplace_back(v); }
+  flex.clear();
+  flex.reserve(o.flex.size());
+  for (const auto &v : o.flex) { flex.emplace_back(v); }
+  test5.clear();
+  test5.reserve(o.test5.size());
+  for (const auto &v : o.test5) { test5.emplace_back(v); }
+  vector_of_longs.clear();
+  vector_of_longs.reserve(o.vector_of_longs.size());
+  for (const auto &v : o.vector_of_longs) { vector_of_longs.emplace_back(v); }
+  vector_of_doubles.clear();
+  vector_of_doubles.reserve(o.vector_of_doubles.size());
+  for (const auto &v : o.vector_of_doubles) { vector_of_doubles.emplace_back(v); }
+  vector_of_referrables.clear();
+  vector_of_referrables.reserve(o.vector_of_referrables.size());
+  for (const auto &v : o.vector_of_referrables) { vector_of_referrables.emplace_back((v) ? new MyGame::Example::ReferrableT(*v) : nullptr); }
+  vector_of_weak_references.clear();
+  vector_of_weak_references.reserve(o.vector_of_weak_references.size());
+  for (const auto &v : o.vector_of_weak_references) { vector_of_weak_references.emplace_back(v); }
+  vector_of_strong_referrables.clear();
+  vector_of_strong_referrables.reserve(o.vector_of_strong_referrables.size());
+  for (const auto &v : o.vector_of_strong_referrables) { vector_of_strong_referrables.emplace_back((v) ? new MyGame::Example::ReferrableT(*v) : nullptr); }
+  vector_of_co_owning_references.clear();
+  vector_of_co_owning_references.reserve(o.vector_of_co_owning_references.size());
+  for (const auto &v : o.vector_of_co_owning_references) { vector_of_co_owning_references.emplace_back((v) ? new ReferrableT(*v) : nullptr); }
+  vector_of_non_owning_references.clear();
+  vector_of_non_owning_references.reserve(o.vector_of_non_owning_references.size());
+  for (const auto &v : o.vector_of_non_owning_references) { vector_of_non_owning_references.emplace_back(v); }
+  vector_of_enums.clear();
+  vector_of_enums.reserve(o.vector_of_enums.size());
+  for (const auto &v : o.vector_of_enums) { vector_of_enums.emplace_back(v); }
+}
+
+inline MonsterT &MonsterT::operator=(const MonsterT &o) {
+  pos.reset((o.pos) ? new MyGame::Example::Vec3(*o.pos) : nullptr);
+  mana = o.mana;
+  hp = o.hp;
+  name = o.name;
+  color = o.color;
+  test = o.test;
+  enemy.reset((o.enemy) ? new MyGame::Example::MonsterT(*o.enemy) : nullptr);
+  testempty.reset((o.testempty) ? new MyGame::Example::StatT(*o.testempty) : nullptr);
+  testbool = o.testbool;
+  testhashs32_fnv1 = o.testhashs32_fnv1;
+  testhashu32_fnv1 = o.testhashu32_fnv1;
+  testhashs64_fnv1 = o.testhashs64_fnv1;
+  testhashu64_fnv1 = o.testhashu64_fnv1;
+  testhashs32_fnv1a = o.testhashs32_fnv1a;
+  testhashu32_fnv1a = o.testhashu32_fnv1a;
+  testhashs64_fnv1a = o.testhashs64_fnv1a;
+  testhashu64_fnv1a = o.testhashu64_fnv1a;
+  testf = o.testf;
+  testf2 = o.testf2;
+  testf3 = o.testf3;
+  parent_namespace_test.reset((o.parent_namespace_test) ? new MyGame::InParentNamespaceT(*o.parent_namespace_test) : nullptr);
+  single_weak_reference = o.single_weak_reference;
+  co_owning_reference = o.co_owning_reference;
+  non_owning_reference = o.non_owning_reference;
+  any_unique = o.any_unique;
+  any_ambiguous = o.any_ambiguous;
+  signed_enum = o.signed_enum;
+  inventory.clear();
+  inventory.reserve(o.inventory.size());
+  for (const auto &v : o.inventory) { inventory.emplace_back(v); }
+  test4.clear();
+  test4.reserve(o.test4.size());
+  for (const auto &v : o.test4) { test4.emplace_back(v); }
+  testarrayofstring.clear();
+  testarrayofstring.reserve(o.testarrayofstring.size());
+  for (const auto &v : o.testarrayofstring) { testarrayofstring.emplace_back(v); }
+  testarrayoftables.clear();
+  testarrayoftables.reserve(o.testarrayoftables.size());
+  for (const auto &v : o.testarrayoftables) { testarrayoftables.emplace_back((v) ? new MyGame::Example::MonsterT(*v) : nullptr); }
+  testnestedflatbuffer.clear();
+  testnestedflatbuffer.reserve(o.testnestedflatbuffer.size());
+  for (const auto &v : o.testnestedflatbuffer) { testnestedflatbuffer.emplace_back(v); }
+  testarrayofbools.clear();
+  testarrayofbools.reserve(o.testarrayofbools.size());
+  for (const auto &v : o.testarrayofbools) { testarrayofbools.emplace_back(v); }
+  testarrayofstring2.clear();
+  testarrayofstring2.reserve(o.testarrayofstring2.size());
+  for (const auto &v : o.testarrayofstring2) { testarrayofstring2.emplace_back(v); }
+  testarrayofsortedstruct.clear();
+  testarrayofsortedstruct.reserve(o.testarrayofsortedstruct.size());
+  for (const auto &v : o.testarrayofsortedstruct) { testarrayofsortedstruct.emplace_back(v); }
+  flex.clear();
+  flex.reserve(o.flex.size());
+  for (const auto &v : o.flex) { flex.emplace_back(v); }
+  test5.clear();
+  test5.reserve(o.test5.size());
+  for (const auto &v : o.test5) { test5.emplace_back(v); }
+  vector_of_longs.clear();
+  vector_of_longs.reserve(o.vector_of_longs.size());
+  for (const auto &v : o.vector_of_longs) { vector_of_longs.emplace_back(v); }
+  vector_of_doubles.clear();
+  vector_of_doubles.reserve(o.vector_of_doubles.size());
+  for (const auto &v : o.vector_of_doubles) { vector_of_doubles.emplace_back(v); }
+  vector_of_referrables.clear();
+  vector_of_referrables.reserve(o.vector_of_referrables.size());
+  for (const auto &v : o.vector_of_referrables) { vector_of_referrables.emplace_back((v) ? new MyGame::Example::ReferrableT(*v) : nullptr); }
+  vector_of_weak_references.clear();
+  vector_of_weak_references.reserve(o.vector_of_weak_references.size());
+  for (const auto &v : o.vector_of_weak_references) { vector_of_weak_references.emplace_back(v); }
+  vector_of_strong_referrables.clear();
+  vector_of_strong_referrables.reserve(o.vector_of_strong_referrables.size());
+  for (const auto &v : o.vector_of_strong_referrables) { vector_of_strong_referrables.emplace_back((v) ? new MyGame::Example::ReferrableT(*v) : nullptr); }
+  vector_of_co_owning_references.clear();
+  vector_of_co_owning_references.reserve(o.vector_of_co_owning_references.size());
+  for (const auto &v : o.vector_of_co_owning_references) { vector_of_co_owning_references.emplace_back((v) ? new ReferrableT(*v) : nullptr); }
+  vector_of_non_owning_references.clear();
+  vector_of_non_owning_references.reserve(o.vector_of_non_owning_references.size());
+  for (const auto &v : o.vector_of_non_owning_references) { vector_of_non_owning_references.emplace_back(v); }
+  vector_of_enums.clear();
+  vector_of_enums.reserve(o.vector_of_enums.size());
+  for (const auto &v : o.vector_of_enums) { vector_of_enums.emplace_back(v); }
+
+  return *this;
+}
+
 inline MonsterT *Monster::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
   auto _o = std::make_unique<MonsterT>();
   UnPackTo(_o.get(), _resolver);
@@ -2646,7 +2821,7 @@ inline flatbuffers::Offset<void> AnyUnion::Pack(flatbuffers::FlatBufferBuilder &
 inline AnyUnion::AnyUnion(const AnyUnion &u) : type(u.type), value(nullptr) {
   switch (type) {
     case Any::Monster: {
-      FLATBUFFERS_ASSERT(false);  // MyGame::Example::MonsterT not copyable.
+      value = new MyGame::Example::MonsterT(*reinterpret_cast<MyGame::Example::MonsterT *>(u.value));
       break;
     }
     case Any::TestSimpleTableWithEnum: {
@@ -2757,7 +2932,7 @@ inline flatbuffers::Offset<void> AnyUniqueAliasesUnion::Pack(flatbuffers::FlatBu
 inline AnyUniqueAliasesUnion::AnyUniqueAliasesUnion(const AnyUniqueAliasesUnion &u) : type(u.type), value(nullptr) {
   switch (type) {
     case AnyUniqueAliases::M: {
-      FLATBUFFERS_ASSERT(false);  // MyGame::Example::MonsterT not copyable.
+      value = new MyGame::Example::MonsterT(*reinterpret_cast<MyGame::Example::MonsterT *>(u.value));
       break;
     }
     case AnyUniqueAliases::TS: {
@@ -2868,15 +3043,15 @@ inline flatbuffers::Offset<void> AnyAmbiguousAliasesUnion::Pack(flatbuffers::Fla
 inline AnyAmbiguousAliasesUnion::AnyAmbiguousAliasesUnion(const AnyAmbiguousAliasesUnion &u) : type(u.type), value(nullptr) {
   switch (type) {
     case AnyAmbiguousAliases::M1: {
-      FLATBUFFERS_ASSERT(false);  // MyGame::Example::MonsterT not copyable.
+      value = new MyGame::Example::MonsterT(*reinterpret_cast<MyGame::Example::MonsterT *>(u.value));
       break;
     }
     case AnyAmbiguousAliases::M2: {
-      FLATBUFFERS_ASSERT(false);  // MyGame::Example::MonsterT not copyable.
+      value = new MyGame::Example::MonsterT(*reinterpret_cast<MyGame::Example::MonsterT *>(u.value));
       break;
     }
     case AnyAmbiguousAliases::M3: {
-      FLATBUFFERS_ASSERT(false);  // MyGame::Example::MonsterT not copyable.
+      value = new MyGame::Example::MonsterT(*reinterpret_cast<MyGame::Example::MonsterT *>(u.value));
       break;
     }
     default:
