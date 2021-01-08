@@ -51,5 +51,8 @@ fi
 
 cargo bench $TARGET_FLAG
 
-rustup +nightly component add miri
-cargo +nightly miri test -- -Zmiri-disable-isolation
+# RUST_NIGHTLY environment variable set in dockerfile.
+if [[ -z RUST_NIGHTLY ]]; then
+  rustup +nightly component add miri
+  cargo +nightly miri test -- -Zmiri-disable-isolation
+fi
