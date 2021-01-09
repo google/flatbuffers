@@ -3175,7 +3175,7 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
       if (opts.proto_mode && attribute_ == "public") NEXT();
       auto name = flatbuffers::PosixPath(attribute_.c_str());
       EXPECT(kTokenStringConstant);
-      // Look for the file relative to the directory of the current file
+      // Look for the file relative to the directory of the current file.
       std::string filepath;
       if (source_filename) {
         auto source_file_directory =
