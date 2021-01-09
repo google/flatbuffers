@@ -153,7 +153,7 @@ pub fn emplace_scalar<T: EndianScalar>(s: &mut [u8], x: T) {
     let x_le = x.to_little_endian();
     unsafe {
         core::ptr::copy_nonoverlapping(
-            (&x) as *const T as *const u8,
+            &x_le as *const T as *const u8,
             s.as_mut_ptr() as *mut u8,
             size_of::<T>()
         );
