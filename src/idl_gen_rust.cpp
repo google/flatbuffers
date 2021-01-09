@@ -1762,7 +1762,6 @@ class RustGenerator : public BaseGenerator {
     code_ += "#[derive(Clone, Copy, PartialEq)]";
     code_ += "pub struct {{STRUCT_NAME}}(pub [u8; {{STRUCT_SIZE}}]);";
 
-
     // Debug for structs.
     code_ += "impl std::fmt::Debug for {{STRUCT_NAME}} {";
     code_ += "  fn fmt(&self, f: &mut std::fmt::Formatter"
@@ -1841,13 +1840,13 @@ class RustGenerator : public BaseGenerator {
     code_ += "  #[allow(clippy::too_many_arguments)]";
     code_ += "  pub fn new(";
     ForAllStructFields(struct_def, [&](const FieldDef &unused) {
-      (void) unused;
+      (void)unused;
       code_ += "    {{FIELD_NAME}}: {{REF}}{{FIELD_TYPE}},";
     });
     code_ += "  ) -> Self {";
     code_ += "    let mut s = Self([0; {{STRUCT_SIZE}}]);";
     ForAllStructFields(struct_def, [&](const FieldDef &unused) {
-      (void) unused;
+      (void)unused;
       code_ += "    s.set_{{FIELD_NAME}}({{REF}}{{FIELD_NAME}});";
     });
     code_ += "    s";
@@ -1864,13 +1863,15 @@ class RustGenerator : public BaseGenerator {
       // Getter.
       if (IsStruct(field.value.type)) {
         code_ += "  pub fn {{FIELD_NAME}}(&self) -> &{{FIELD_TYPE}} {";
-        code_ += "    unsafe {"
-                 " &*(self.0[{{FIELD_OFFSET}}..].as_ptr() as *const"
-                 " {{FIELD_TYPE}})  }";
+        code_ +=
+            "    unsafe {"
+            " &*(self.0[{{FIELD_OFFSET}}..].as_ptr() as *const"
+            " {{FIELD_TYPE}}) }";
       } else {
         code_ += "  pub fn {{FIELD_NAME}}(&self) -> {{FIELD_TYPE}} {";
-        code_ += "    let mut mem = core::mem::MaybeUninit::"
-                 "<{{FIELD_TYPE}}>::uninit();";
+        code_ +=
+            "    let mut mem = core::mem::MaybeUninit::"
+            "<{{FIELD_TYPE}}>::uninit();";
         code_ += "    unsafe {";
         code_ += "      core::ptr::copy_nonoverlapping(";
         code_ += "        self.0[{{FIELD_OFFSET}}..].as_ptr(),";
@@ -1886,8 +1887,9 @@ class RustGenerator : public BaseGenerator {
         code_.SetValue("FIELD_SIZE",
                        NumToString(field.value.type.struct_def->bytesize));
         code_ += "  pub fn set_{{FIELD_NAME}}(&mut self, x: &{{FIELD_TYPE}}) {";
-        code_ += "    self.0[{{FIELD_OFFSET}}..{{FIELD_OFFSET}}+{{FIELD_SIZE}}]"
-                 ".copy_from_slice(&x.0)";
+        code_ +=
+            "    self.0[{{FIELD_OFFSET}}..{{FIELD_OFFSET}}+{{FIELD_SIZE}}]"
+            ".copy_from_slice(&x.0)";
       } else {
         code_ += "  pub fn set_{{FIELD_NAME}}(&mut self, x: {{FIELD_TYPE}}) {";
         code_ += "    let x_le = x.to_little_endian();";
@@ -1900,7 +1902,6 @@ class RustGenerator : public BaseGenerator {
         code_ += "    }";
       }
       code_ += "  }\n";
-
 
       // Generate a comparison function for this field if it is a key.
       if (field.key) { GenKeyFieldMethods(field); }

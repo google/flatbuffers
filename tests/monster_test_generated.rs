@@ -966,7 +966,7 @@ impl Vec3 {
   }
 
   pub fn test3(&self) -> &Test {
-    unsafe { &*(self.0[26..].as_ptr() as *const Test)  }
+    unsafe { &*(self.0[26..].as_ptr() as *const Test) }
   }
 
   pub fn set_test3(&mut self, x: &Test) {
