@@ -3182,7 +3182,7 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
             flatbuffers::StripFileName(source_filename);
         filepath = flatbuffers::ConCatPathFileName(source_file_directory, name);
       }
-      if (!FileExists(filepath.c_str())) {
+      if (filepath.empty() || !FileExists(filepath.c_str())) {
         // Look for the file in include_paths.
         for (auto paths = include_paths; paths && *paths; paths++) {
           filepath = flatbuffers::ConCatPathFileName(*paths, name);
