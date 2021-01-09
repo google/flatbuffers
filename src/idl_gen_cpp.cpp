@@ -2106,9 +2106,8 @@ class CppGenerator : public BaseGenerator {
   void GenIndexBasedFieldGetter(const StructDef &struct_def) {
     if (struct_def.fields.vec.empty()) { return; }
     code_ += "  template<size_t Index>";
-    code_ += "  static constexpr auto getter_for() {";
+    code_ += "  auto getter_for() const {";
 
-    code_.SetValue("STRUCT_NAME", Name(struct_def));
     size_t index = 0;
     bool need_else = false;
     // Generate one index-based getter for each field.
@@ -2129,7 +2128,7 @@ class CppGenerator : public BaseGenerator {
       }
       need_else = true;
       code_ += "if constexpr (Index == {{FIELD_INDEX}}) \\";
-      code_ += "return &{{STRUCT_NAME}}::{{FIELD_NAME}};";
+      code_ += "return {{FIELD_NAME}}();";
     }
     code_ += "    else static_assert(Index != Index, \"Invalid Field Index\");";
     code_ += "  }";

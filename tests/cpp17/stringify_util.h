@@ -66,8 +66,8 @@ constexpr bool is_flatbuffers_vector_v = is_flatbuffers_vector<T>::value;
 *******************************************************************************/
 template<size_t Index, typename FBS>
 std::string AddStringifiedField(const FBS &fbs, const std::string &indent) {
-  auto field_getter = FBS::template getter_for<Index>();
-  auto value_string = StringifyFlatbufferValue((fbs.*field_getter)(), indent);
+  auto value_string =
+      StringifyFlatbufferValue(fbs.template getter_for<Index>(), indent);
   if (!value_string) { return ""; }
   return indent + FBS::Traits::field_names[Index] + " = " + *value_string +
          "\n";
