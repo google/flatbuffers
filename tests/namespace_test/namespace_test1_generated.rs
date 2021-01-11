@@ -115,12 +115,9 @@ impl<'a> flatbuffers::Verifiable for EnumInNestedNS {
 
 impl flatbuffers::SimpleToVerifyInSlice for EnumInNestedNS {}
 // struct StructInNestedNS, aligned to 4
-#[repr(C, align(4))]
+#[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
-pub struct StructInNestedNS {
-  a_: i32,
-  b_: i32,
-} // pub struct StructInNestedNS
+pub struct StructInNestedNS(pub [u8; 8]);
 impl std::fmt::Debug for StructInNestedNS {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     f.debug_struct("StructInNestedNS")
@@ -179,23 +176,66 @@ impl<'a> flatbuffers::Verifiable for StructInNestedNS {
 }
 impl StructInNestedNS {
   #[allow(clippy::too_many_arguments)]
-  pub fn new(_a: i32, _b: i32) -> Self {
-    StructInNestedNS {
-      a_: _a.to_little_endian(),
-      b_: _b.to_little_endian(),
-
-    }
+  pub fn new(
+    a: i32,
+    b: i32,
+  ) -> Self {
+    let mut s = Self([0; 8]);
+    s.set_a(a);
+    s.set_b(b);
+    s
   }
+
     pub const fn get_fully_qualified_name() -> &'static str {
         "NamespaceA.NamespaceB.StructInNestedNS"
     }
 
   pub fn a(&self) -> i32 {
-    self.a_.from_little_endian()
+    let mut mem = core::mem::MaybeUninit::<i32>::uninit();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[0..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<i32>(),
+      );
+      mem.assume_init()
+    }.from_little_endian()
   }
+
+  pub fn set_a(&mut self, x: i32) {
+    let x_le = x.to_little_endian();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const i32 as *const u8,
+        self.0[0..].as_mut_ptr(),
+        core::mem::size_of::<i32>(),
+      );
+    }
+  }
+
   pub fn b(&self) -> i32 {
-    self.b_.from_little_endian()
+    let mut mem = core::mem::MaybeUninit::<i32>::uninit();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[4..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<i32>(),
+      );
+      mem.assume_init()
+    }.from_little_endian()
   }
+
+  pub fn set_b(&mut self, x: i32) {
+    let x_le = x.to_little_endian();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const i32 as *const u8,
+        self.0[4..].as_mut_ptr(),
+        core::mem::size_of::<i32>(),
+      );
+    }
+  }
+
 }
 
 pub enum TableInNestedNSOffset {}

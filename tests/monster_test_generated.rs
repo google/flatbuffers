@@ -639,13 +639,9 @@ impl<'a> flatbuffers::Verifiable for AnyAmbiguousAliases {
 
 impl flatbuffers::SimpleToVerifyInSlice for AnyAmbiguousAliases {}
 // struct Test, aligned to 2
-#[repr(C, align(2))]
+#[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
-pub struct Test {
-  a_: i16,
-  b_: i8,
-  padding0__: u8,
-} // pub struct Test
+pub struct Test(pub [u8; 4]);
 impl std::fmt::Debug for Test {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     f.debug_struct("Test")
@@ -704,40 +700,72 @@ impl<'a> flatbuffers::Verifiable for Test {
 }
 impl Test {
   #[allow(clippy::too_many_arguments)]
-  pub fn new(_a: i16, _b: i8) -> Self {
-    Test {
-      a_: _a.to_little_endian(),
-      b_: _b.to_little_endian(),
-
-      padding0__: 0,
-    }
+  pub fn new(
+    a: i16,
+    b: i8,
+  ) -> Self {
+    let mut s = Self([0; 4]);
+    s.set_a(a);
+    s.set_b(b);
+    s
   }
+
     pub const fn get_fully_qualified_name() -> &'static str {
         "MyGame.Example.Test"
     }
 
   pub fn a(&self) -> i16 {
-    self.a_.from_little_endian()
+    let mut mem = core::mem::MaybeUninit::<i16>::uninit();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[0..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<i16>(),
+      );
+      mem.assume_init()
+    }.from_little_endian()
   }
+
+  pub fn set_a(&mut self, x: i16) {
+    let x_le = x.to_little_endian();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const i16 as *const u8,
+        self.0[0..].as_mut_ptr(),
+        core::mem::size_of::<i16>(),
+      );
+    }
+  }
+
   pub fn b(&self) -> i8 {
-    self.b_.from_little_endian()
+    let mut mem = core::mem::MaybeUninit::<i8>::uninit();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[2..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<i8>(),
+      );
+      mem.assume_init()
+    }.from_little_endian()
   }
+
+  pub fn set_b(&mut self, x: i8) {
+    let x_le = x.to_little_endian();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const i8 as *const u8,
+        self.0[2..].as_mut_ptr(),
+        core::mem::size_of::<i8>(),
+      );
+    }
+  }
+
 }
 
 // struct Vec3, aligned to 8
-#[repr(C, align(8))]
+#[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
-pub struct Vec3 {
-  x_: f32,
-  y_: f32,
-  z_: f32,
-  padding0__: u32,
-  test1_: f64,
-  test2_: Color,
-  padding1__: u8,
-  test3_: Test,
-  padding2__: u16,
-} // pub struct Vec3
+pub struct Vec3(pub [u8; 32]);
 impl std::fmt::Debug for Vec3 {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     f.debug_struct("Vec3")
@@ -800,51 +828,157 @@ impl<'a> flatbuffers::Verifiable for Vec3 {
 }
 impl Vec3 {
   #[allow(clippy::too_many_arguments)]
-  pub fn new(_x: f32, _y: f32, _z: f32, _test1: f64, _test2: Color, _test3: &Test) -> Self {
-    Vec3 {
-      x_: _x.to_little_endian(),
-      y_: _y.to_little_endian(),
-      z_: _z.to_little_endian(),
-      test1_: _test1.to_little_endian(),
-      test2_: _test2.to_little_endian(),
-      test3_: *_test3,
-
-      padding0__: 0,
-      padding1__: 0,
-      padding2__: 0,
-    }
+  pub fn new(
+    x: f32,
+    y: f32,
+    z: f32,
+    test1: f64,
+    test2: Color,
+    test3: &Test,
+  ) -> Self {
+    let mut s = Self([0; 32]);
+    s.set_x(x);
+    s.set_y(y);
+    s.set_z(z);
+    s.set_test1(test1);
+    s.set_test2(test2);
+    s.set_test3(&test3);
+    s
   }
+
     pub const fn get_fully_qualified_name() -> &'static str {
         "MyGame.Example.Vec3"
     }
 
   pub fn x(&self) -> f32 {
-    self.x_.from_little_endian()
+    let mut mem = core::mem::MaybeUninit::<f32>::uninit();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[0..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<f32>(),
+      );
+      mem.assume_init()
+    }.from_little_endian()
   }
+
+  pub fn set_x(&mut self, x: f32) {
+    let x_le = x.to_little_endian();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const f32 as *const u8,
+        self.0[0..].as_mut_ptr(),
+        core::mem::size_of::<f32>(),
+      );
+    }
+  }
+
   pub fn y(&self) -> f32 {
-    self.y_.from_little_endian()
+    let mut mem = core::mem::MaybeUninit::<f32>::uninit();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[4..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<f32>(),
+      );
+      mem.assume_init()
+    }.from_little_endian()
   }
+
+  pub fn set_y(&mut self, x: f32) {
+    let x_le = x.to_little_endian();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const f32 as *const u8,
+        self.0[4..].as_mut_ptr(),
+        core::mem::size_of::<f32>(),
+      );
+    }
+  }
+
   pub fn z(&self) -> f32 {
-    self.z_.from_little_endian()
+    let mut mem = core::mem::MaybeUninit::<f32>::uninit();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[8..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<f32>(),
+      );
+      mem.assume_init()
+    }.from_little_endian()
   }
+
+  pub fn set_z(&mut self, x: f32) {
+    let x_le = x.to_little_endian();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const f32 as *const u8,
+        self.0[8..].as_mut_ptr(),
+        core::mem::size_of::<f32>(),
+      );
+    }
+  }
+
   pub fn test1(&self) -> f64 {
-    self.test1_.from_little_endian()
+    let mut mem = core::mem::MaybeUninit::<f64>::uninit();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[16..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<f64>(),
+      );
+      mem.assume_init()
+    }.from_little_endian()
   }
+
+  pub fn set_test1(&mut self, x: f64) {
+    let x_le = x.to_little_endian();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const f64 as *const u8,
+        self.0[16..].as_mut_ptr(),
+        core::mem::size_of::<f64>(),
+      );
+    }
+  }
+
   pub fn test2(&self) -> Color {
-    self.test2_.from_little_endian()
+    let mut mem = core::mem::MaybeUninit::<Color>::uninit();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[24..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<Color>(),
+      );
+      mem.assume_init()
+    }.from_little_endian()
   }
+
+  pub fn set_test2(&mut self, x: Color) {
+    let x_le = x.to_little_endian();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const Color as *const u8,
+        self.0[24..].as_mut_ptr(),
+        core::mem::size_of::<Color>(),
+      );
+    }
+  }
+
   pub fn test3(&self) -> &Test {
-    &self.test3_
+    unsafe { &*(self.0[26..].as_ptr() as *const Test) }
   }
+
+  pub fn set_test3(&mut self, x: &Test) {
+    self.0[26..26+4].copy_from_slice(&x.0)
+  }
+
 }
 
 // struct Ability, aligned to 4
-#[repr(C, align(4))]
+#[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
-pub struct Ability {
-  id_: u32,
-  distance_: u32,
-} // pub struct Ability
+pub struct Ability(pub [u8; 8]);
 impl std::fmt::Debug for Ability {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     f.debug_struct("Ability")
@@ -903,20 +1037,43 @@ impl<'a> flatbuffers::Verifiable for Ability {
 }
 impl Ability {
   #[allow(clippy::too_many_arguments)]
-  pub fn new(_id: u32, _distance: u32) -> Self {
-    Ability {
-      id_: _id.to_little_endian(),
-      distance_: _distance.to_little_endian(),
-
-    }
+  pub fn new(
+    id: u32,
+    distance: u32,
+  ) -> Self {
+    let mut s = Self([0; 8]);
+    s.set_id(id);
+    s.set_distance(distance);
+    s
   }
+
     pub const fn get_fully_qualified_name() -> &'static str {
         "MyGame.Example.Ability"
     }
 
   pub fn id(&self) -> u32 {
-    self.id_.from_little_endian()
+    let mut mem = core::mem::MaybeUninit::<u32>::uninit();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[0..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<u32>(),
+      );
+      mem.assume_init()
+    }.from_little_endian()
   }
+
+  pub fn set_id(&mut self, x: u32) {
+    let x_le = x.to_little_endian();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const u32 as *const u8,
+        self.0[0..].as_mut_ptr(),
+        core::mem::size_of::<u32>(),
+      );
+    }
+  }
+
   #[inline]
   pub fn key_compare_less_than(&self, o: &Ability) ->  bool {
     self.id() < o.id()
@@ -928,8 +1085,28 @@ impl Ability {
     key.cmp(&val)
   }
   pub fn distance(&self) -> u32 {
-    self.distance_.from_little_endian()
+    let mut mem = core::mem::MaybeUninit::<u32>::uninit();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[4..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<u32>(),
+      );
+      mem.assume_init()
+    }.from_little_endian()
   }
+
+  pub fn set_distance(&mut self, x: u32) {
+    let x_le = x.to_little_endian();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const u32 as *const u8,
+        self.0[4..].as_mut_ptr(),
+        core::mem::size_of::<u32>(),
+      );
+    }
+  }
+
 }
 
 pub enum TestSimpleTableWithEnumOffset {}

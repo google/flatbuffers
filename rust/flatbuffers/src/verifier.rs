@@ -232,12 +232,16 @@ impl<'opts, 'buf> Verifier<'opts, 'buf> {
         self.num_tables = 0;
         self.num_tables = 0;
     }
-    /// Check that there really is a T in there.
+    /// Checks `pos` is aligned to T's alignment. This does not mean `buffer[pos]` is aligned w.r.t
+    /// memory since `buffer: &[u8]` has alignment 1.
+    ///
+    /// ### WARNING
+    /// This does not work for flatbuffers-structs as they have alignment 1 according to
+    /// `core::mem::align_of` but are meant to have higher alignment within a Flatbuffer w.r.t.
+    /// `buffer[0]`. TODO(caspern).
     #[inline]
     fn is_aligned<T>(&self, pos: usize) -> Result<()> {
-        // Safe because we're not dereferencing.
-        let p = unsafe { self.buffer.as_ptr().add(pos) };
-        if (p as usize) % std::mem::align_of::<T>() == 0 {
+        if pos % std::mem::align_of::<T>() == 0 {
             Ok(())
         } else {
             Err(InvalidFlatbuffer::Unaligned {
@@ -259,6 +263,7 @@ impl<'opts, 'buf> Verifier<'opts, 'buf> {
         }
         Ok(())
     }
+    /// Check that there really is a T in there.
     #[inline]
     pub fn in_buffer<T>(&mut self, pos: usize) -> Result<()> {
         self.is_aligned::<T>(pos)?;

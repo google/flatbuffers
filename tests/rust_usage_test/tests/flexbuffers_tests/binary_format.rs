@@ -108,6 +108,7 @@ fn store_vec_uint_16() {
     );
 }
 
+#[cfg(not(miri))]  // slow.
 quickcheck! {
     fn qc_f32(x: f32) -> bool {
         let fxb = singleton(x);

@@ -98,6 +98,7 @@ fn create_serialized_example_with_generated_code(builder: &mut flatbuffers::Flat
     my_game::example::finish_monster_buffer(builder, mon);
 }
 
+#[cfg(not(miri))]  // slow.
 fn main() {
     // test the allocation tracking:
     {

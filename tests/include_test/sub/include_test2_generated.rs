@@ -110,11 +110,9 @@ impl<'a> flatbuffers::Verifiable for FromInclude {
 
 impl flatbuffers::SimpleToVerifyInSlice for FromInclude {}
 // struct Unused, aligned to 4
-#[repr(C, align(4))]
+#[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
-pub struct Unused {
-  a_: i32,
-} // pub struct Unused
+pub struct Unused(pub [u8; 4]);
 impl std::fmt::Debug for Unused {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     f.debug_struct("Unused")
@@ -172,15 +170,37 @@ impl<'a> flatbuffers::Verifiable for Unused {
 }
 impl Unused {
   #[allow(clippy::too_many_arguments)]
-  pub fn new(_a: i32) -> Self {
-    Unused {
-      a_: _a.to_little_endian(),
+  pub fn new(
+    a: i32,
+  ) -> Self {
+    let mut s = Self([0; 4]);
+    s.set_a(a);
+    s
+  }
 
+  pub fn a(&self) -> i32 {
+    let mut mem = core::mem::MaybeUninit::<i32>::uninit();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[0..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<i32>(),
+      );
+      mem.assume_init()
+    }.from_little_endian()
+  }
+
+  pub fn set_a(&mut self, x: i32) {
+    let x_le = x.to_little_endian();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const i32 as *const u8,
+        self.0[0..].as_mut_ptr(),
+        core::mem::size_of::<i32>(),
+      );
     }
   }
-  pub fn a(&self) -> i32 {
-    self.a_.from_little_endian()
-  }
+
 }
 
 pub enum TableBOffset {}

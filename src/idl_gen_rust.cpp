@@ -1729,12 +1729,16 @@ class RustGenerator : public BaseGenerator {
     const StructDef &struct_def,
     std::function<void(const FieldDef &field)> cb
   ) {
+    size_t offset_to_field = 0;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
       code_.SetValue("FIELD_TYPE", GetTypeGet(field.value.type));
       code_.SetValue("FIELD_NAME", Name(field));
+      code_.SetValue("FIELD_OFFSET", NumToString(offset_to_field));
+      code_.SetValue("REF", IsStruct(field.value.type) ? "&" : "");
       cb(field);
+      offset_to_field += SizeOf(field.value.type.base_type) + field.padding;
     }
   }
   // Generate an accessor struct with constructor for a flatbuffers struct.
@@ -1745,26 +1749,18 @@ class RustGenerator : public BaseGenerator {
     GenComment(struct_def.doc_comment);
     code_.SetValue("ALIGN", NumToString(struct_def.minalign));
     code_.SetValue("STRUCT_NAME", Name(struct_def));
+    code_.SetValue("STRUCT_SIZE", NumToString(struct_def.bytesize));
 
-    code_ += "// struct {{STRUCT_NAME}}, aligned to {{ALIGN}}";
-    code_ += "#[repr(C, align({{ALIGN}}))]";
-
+    // We represent Flatbuffers-structs in Rust-u8-arrays since the data may be
+    // of the wrong endianness and alignment 1.
+    //
     // PartialEq is useful to derive because we can correctly compare structs
     // for equality by just comparing their underlying byte data. This doesn't
     // hold for PartialOrd/Ord.
+    code_ += "// struct {{STRUCT_NAME}}, aligned to {{ALIGN}}";
+    code_ += "#[repr(transparent)]";
     code_ += "#[derive(Clone, Copy, PartialEq)]";
-    code_ += "pub struct {{STRUCT_NAME}} {";
-
-    int padding_id = 0;
-    ForAllStructFields(struct_def, [&](const FieldDef &field) {
-      code_ += "  {{FIELD_NAME}}_: {{FIELD_TYPE}},";
-      if (field.padding) {
-        std::string padding;
-        GenPadding(field, &padding, &padding_id, PaddingDefinition);
-        code_ += padding;
-      }
-    });
-    code_ += "} // pub struct {{STRUCT_NAME}}";
+    code_ += "pub struct {{STRUCT_NAME}}(pub [u8; {{STRUCT_SIZE}}]);";
 
     // Debug for structs.
     code_ += "impl std::fmt::Debug for {{STRUCT_NAME}} {";
@@ -1841,37 +1837,21 @@ class RustGenerator : public BaseGenerator {
 
     // Generate a constructor that takes all fields as arguments.
     code_ += "impl {{STRUCT_NAME}} {";
-    // TODO(cneo): Stop generating args on one line. Make it simpler.
-    bool first_arg = true;
     code_ += "  #[allow(clippy::too_many_arguments)]";
-    code_ += "  pub fn new(\\";
-    ForAllStructFields(struct_def, [&](const FieldDef &field) {
-      if (first_arg) first_arg = false; else code_ += ", \\";
-      code_.SetValue("REF", IsStruct(field.value.type) ? "&" : "");
-      code_ += "_{{FIELD_NAME}}: {{REF}}{{FIELD_TYPE}}\\";
+    code_ += "  pub fn new(";
+    ForAllStructFields(struct_def, [&](const FieldDef &unused) {
+      (void)unused;
+      code_ += "    {{FIELD_NAME}}: {{REF}}{{FIELD_TYPE}},";
     });
-    code_ += ") -> Self {";
-    code_ += "    {{STRUCT_NAME}} {";
-
-    ForAllStructFields(struct_def, [&](const FieldDef &field) {
-      const bool is_struct = IsStruct(field.value.type);
-      code_.SetValue("DEREF", is_struct ? "*" : "");
-      code_.SetValue("TO_LE", is_struct ? "" : ".to_little_endian()");
-      code_ += "      {{FIELD_NAME}}_: {{DEREF}}_{{FIELD_NAME}}{{TO_LE}},";
+    code_ += "  ) -> Self {";
+    code_ += "    let mut s = Self([0; {{STRUCT_SIZE}}]);";
+    ForAllStructFields(struct_def, [&](const FieldDef &unused) {
+      (void)unused;
+      code_ += "    s.set_{{FIELD_NAME}}({{REF}}{{FIELD_NAME}});";
     });
-    code_ += "";
-
-    // TODO(cneo): Does this padding even work? Why after all the fields?
-    padding_id = 0;
-    ForAllStructFields(struct_def, [&](const FieldDef &field) {
-      if (field.padding) {
-        std::string padding;
-        GenPadding(field, &padding, &padding_id, PaddingInitializer);
-        code_ += "      " + padding;
-      }
-    });
-    code_ += "    }";
+    code_ += "    s";
     code_ += "  }";
+    code_ += "";
 
     if (parser_.opts.generate_name_strings) {
       GenFullyQualifiedNameGetter(struct_def, struct_def.name);
@@ -1879,14 +1859,49 @@ class RustGenerator : public BaseGenerator {
 
     // Generate accessor methods for the struct.
     ForAllStructFields(struct_def, [&](const FieldDef &field) {
-      const bool is_struct = IsStruct(field.value.type);
-      code_.SetValue("REF", is_struct ? "&" : "");
-      code_.SetValue("FROM_LE", is_struct ? "" : ".from_little_endian()");
-
       this->GenComment(field.doc_comment, "  ");
-      code_ += "  pub fn {{FIELD_NAME}}(&self) -> {{REF}}{{FIELD_TYPE}} {";
-      code_ += "    {{REF}}self.{{FIELD_NAME}}_{{FROM_LE}}";
-      code_ += "  }";
+      // Getter.
+      if (IsStruct(field.value.type)) {
+        code_ += "  pub fn {{FIELD_NAME}}(&self) -> &{{FIELD_TYPE}} {";
+        code_ +=
+            "    unsafe {"
+            " &*(self.0[{{FIELD_OFFSET}}..].as_ptr() as *const"
+            " {{FIELD_TYPE}}) }";
+      } else {
+        code_ += "  pub fn {{FIELD_NAME}}(&self) -> {{FIELD_TYPE}} {";
+        code_ +=
+            "    let mut mem = core::mem::MaybeUninit::"
+            "<{{FIELD_TYPE}}>::uninit();";
+        code_ += "    unsafe {";
+        code_ += "      core::ptr::copy_nonoverlapping(";
+        code_ += "        self.0[{{FIELD_OFFSET}}..].as_ptr(),";
+        code_ += "        mem.as_mut_ptr() as *mut u8,";
+        code_ += "        core::mem::size_of::<{{FIELD_TYPE}}>(),";
+        code_ += "      );";
+        code_ += "      mem.assume_init()";
+        code_ += "    }.from_little_endian()";
+      }
+      code_ += "  }\n";
+      // Setter.
+      if (IsStruct(field.value.type)) {
+        code_.SetValue("FIELD_SIZE",
+                       NumToString(field.value.type.struct_def->bytesize));
+        code_ += "  pub fn set_{{FIELD_NAME}}(&mut self, x: &{{FIELD_TYPE}}) {";
+        code_ +=
+            "    self.0[{{FIELD_OFFSET}}..{{FIELD_OFFSET}}+{{FIELD_SIZE}}]"
+            ".copy_from_slice(&x.0)";
+      } else {
+        code_ += "  pub fn set_{{FIELD_NAME}}(&mut self, x: {{FIELD_TYPE}}) {";
+        code_ += "    let x_le = x.to_little_endian();";
+        code_ += "    unsafe {";
+        code_ += "      core::ptr::copy_nonoverlapping(";
+        code_ += "        &x_le as *const {{FIELD_TYPE}} as *const u8,";
+        code_ += "        self.0[{{FIELD_OFFSET}}..].as_mut_ptr(),";
+        code_ += "        core::mem::size_of::<{{FIELD_TYPE}}>(),";
+        code_ += "      );";
+        code_ += "    }";
+      }
+      code_ += "  }\n";
 
       // Generate a comparison function for this field if it is a key.
       if (field.key) { GenKeyFieldMethods(field); }
