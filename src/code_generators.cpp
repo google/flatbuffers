@@ -84,6 +84,12 @@ const char *BaseGenerator::FlatBuffersGeneratedWarning() {
 
 std::string BaseGenerator::NamespaceDir(const Parser &parser,
                                         const std::string &path,
+                                        const Namespace &ns) {
+  return NamespaceDir(parser, path, ns, false);
+}
+
+std::string BaseGenerator::NamespaceDir(const Parser &parser,
+                                        const std::string &path,
                                         const Namespace &ns,
                                         const bool dasherize) {
   EnsureDirExists(path);
@@ -98,6 +104,10 @@ std::string BaseGenerator::NamespaceDir(const Parser &parser,
     EnsureDirExists(namespace_dir);
   }
   return namespace_dir;
+}
+
+std::string BaseGenerator::NamespaceDir(const Namespace &ns) const {
+  return BaseGenerator::NamespaceDir(parser_, path_, ns, false);
 }
 
 std::string BaseGenerator::NamespaceDir(const Namespace &ns, const bool dasherize) const {
