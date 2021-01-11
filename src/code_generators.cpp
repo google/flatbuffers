@@ -119,10 +119,10 @@ std::string BaseGenerator::ToDasherizedCase(const std::string pascal_case) {
   int i = 0;
   char p = 0;
   for (char const &c: pascal_case) {
-    if (c != CharToLower(c)) {
+    if (std::isupper(c)) {
       if (i > 0 && p != kPathSeparator)
         dasherized_case += "-";
-      dasherized_case += CharToLower(c);
+      dasherized_case += std::tolower(c);
     }
     else {
       dasherized_case += c;
