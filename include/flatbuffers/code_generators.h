@@ -94,9 +94,7 @@ class BaseGenerator {
   virtual bool generate() = 0;
 
   static std::string NamespaceDir(const Parser &parser, const std::string &path,
-                                  const Namespace &ns);
-  static std::string NamespaceDir(const Parser &parser, const std::string &path,
-                                  const Namespace &ns, const bool dasherize);
+                                  const Namespace &ns, const bool dasherize = false);
 
   static std::string ToDasherizedCase(const std::string pascal_case);
 
@@ -120,8 +118,7 @@ class BaseGenerator {
   BaseGenerator &operator=(const BaseGenerator &);
   BaseGenerator(const BaseGenerator &);
 
-  std::string NamespaceDir(const Namespace &ns) const;
-  std::string NamespaceDir(const Namespace &ns, const bool dasherize) const;
+  std::string NamespaceDir(const Namespace &ns, const bool dasherize = false) const;
 
   static const char *FlatBuffersGeneratedWarning();
 

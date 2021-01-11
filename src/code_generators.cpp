@@ -84,12 +84,6 @@ const char *BaseGenerator::FlatBuffersGeneratedWarning() {
 
 std::string BaseGenerator::NamespaceDir(const Parser &parser,
                                         const std::string &path,
-                                        const Namespace &ns) {
-  return NamespaceDir(parser, path, ns, false);
-}
-
-std::string BaseGenerator::NamespaceDir(const Parser &parser,
-                                        const std::string &path,
                                         const Namespace &ns,
                                         const bool dasherize) {
   EnsureDirExists(path);
@@ -97,17 +91,11 @@ std::string BaseGenerator::NamespaceDir(const Parser &parser,
   std::string namespace_dir = path;  // Either empty or ends in separator.
   auto &namespaces = ns.components;
   for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
-    auto component = *it;
-    if (dasherize)
-      component = ToDasherizedCase(component);
-    namespace_dir += component + kPathSeparator;
+    namespace_dir += !dasherize ? *it : ToDasherizedCase(*it);
+    namespace_dir += kPathSeparator;
     EnsureDirExists(namespace_dir);
   }
   return namespace_dir;
-}
-
-std::string BaseGenerator::NamespaceDir(const Namespace &ns) const {
-  return BaseGenerator::NamespaceDir(parser_, path_, ns, false);
 }
 
 std::string BaseGenerator::NamespaceDir(const Namespace &ns, const bool dasherize) const {
@@ -116,19 +104,18 @@ std::string BaseGenerator::NamespaceDir(const Namespace &ns, const bool dasheriz
 
 std::string BaseGenerator::ToDasherizedCase(const std::string pascal_case) {
   std::string dasherized_case;
-  int i = 0;
   char p = 0;
-  for (char const &c: pascal_case) {
-    if (std::isupper(c)) {
+  for (size_t i = 0; i < pascal_case.length(); i++) {
+    char const &c = pascal_case[i];
+    if (is_alpha_upper(c)) {
       if (i > 0 && p != kPathSeparator)
         dasherized_case += "-";
-      dasherized_case += std::tolower(c);
+      dasherized_case += CharToLower(c);
     }
     else {
       dasherized_case += c;
     }
     p = c;
-    i++;
   }
   return dasherized_case;
 }
