@@ -150,11 +150,13 @@ pub fn byte_swap_f64(x: f64) -> f64 {
 /// endian conversion, if necessary.
 #[inline]
 pub fn emplace_scalar<T: EndianScalar>(s: &mut [u8], x: T) {
-    let sz = size_of::<T>();
-    let mut_ptr = (&mut s[..sz]).as_mut_ptr() as *mut T;
-    let val = x.to_little_endian();
+    let x_le = x.to_little_endian();
     unsafe {
-        *mut_ptr = val;
+        core::ptr::copy_nonoverlapping(
+            &x_le as *const T as *const u8,
+            s.as_mut_ptr() as *mut u8,
+            size_of::<T>()
+        );
     }
 }
 
@@ -162,18 +164,22 @@ pub fn emplace_scalar<T: EndianScalar>(s: &mut [u8], x: T) {
 /// Performs endian conversion, if necessary.
 #[inline]
 pub fn read_scalar_at<T: EndianScalar>(s: &[u8], loc: usize) -> T {
-    let buf = &s[loc..loc + size_of::<T>()];
-    read_scalar(buf)
+    read_scalar(&s[loc..])
 }
 
 /// Read an EndianScalar from the provided byte slice. Performs endian
 /// conversion, if necessary.
 #[inline]
 pub fn read_scalar<T: EndianScalar>(s: &[u8]) -> T {
-    let sz = size_of::<T>();
-
-    let p = (&s[..sz]).as_ptr() as *const T;
-    let x = unsafe { *p };
-
+    let mut mem = core::mem::MaybeUninit::<T>::uninit();
+    // Since [u8] has alignment 1, we copy it into T which may have higher alignment.
+    let x = unsafe {
+        core::ptr::copy_nonoverlapping(
+            s.as_ptr(),
+            mem.as_mut_ptr() as *mut u8,
+            size_of::<T>()
+        );
+        mem.assume_init()
+    };
     x.from_little_endian()
 }

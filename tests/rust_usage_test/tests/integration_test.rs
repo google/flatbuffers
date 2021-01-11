@@ -16,6 +16,7 @@
  */
 
 #[macro_use]
+#[cfg(not(miri))]  // slow.
 extern crate quickcheck;
 extern crate flatbuffers;
 extern crate flexbuffers;
@@ -23,6 +24,7 @@ extern crate rand;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
+#[cfg(not(miri))]  // slow.
 #[macro_use]
 extern crate quickcheck_derive;
 
@@ -246,6 +248,7 @@ fn builder_collapses_into_vec() {
 }
 
 #[test]
+#[cfg(not(miri))]  // slow.
 fn verifier_one_byte_errors_do_not_crash() {
     let mut b = flatbuffers::FlatBufferBuilder::new();
     create_serialized_example_with_library_code(&mut b);
@@ -272,6 +275,7 @@ fn verifier_one_byte_errors_do_not_crash() {
     }
 }
 #[test]
+#[cfg(not(miri))]  // slow.
 fn verifier_too_many_tables() {
     use my_game::example::*;
     let b = &mut flatbuffers::FlatBufferBuilder::new();
@@ -296,6 +300,7 @@ fn verifier_too_many_tables() {
     assert!(flatbuffers::root_with_opts::<Monster>(&opts, data).is_ok());
 }
 #[test]
+#[cfg(not(miri))]  // slow.
 fn verifier_apparent_size_too_large() {
     use my_game::example::*;
     let b = &mut flatbuffers::FlatBufferBuilder::new();
@@ -851,11 +856,6 @@ mod generated_code_alignment_and_padding {
     }
 
     #[test]
-    fn enum_color_is_aligned_to_1() {
-        assert_eq!(1, ::std::mem::align_of::<my_game::example::Color>());
-    }
-
-    #[test]
     fn union_any_is_1_byte() {
         assert_eq!(1, ::std::mem::size_of::<my_game::example::Any>());
     }
@@ -864,25 +864,13 @@ mod generated_code_alignment_and_padding {
     fn union_any_is_aligned_to_1() {
         assert_eq!(1, ::std::mem::align_of::<my_game::example::Any>());
     }
-
     #[test]
     fn struct_test_is_4_bytes() {
         assert_eq!(4, ::std::mem::size_of::<my_game::example::Test>());
     }
-
-    #[test]
-    fn struct_test_is_aligned_to_2() {
-        assert_eq!(2, ::std::mem::align_of::<my_game::example::Test>());
-    }
-
     #[test]
     fn struct_vec3_is_32_bytes() {
         assert_eq!(32, ::std::mem::size_of::<my_game::example::Vec3>());
-    }
-
-    #[test]
-    fn struct_vec3_is_aligned_to_8() {
-        assert_eq!(8, ::std::mem::align_of::<my_game::example::Vec3>());
     }
 
     #[test]
@@ -906,18 +894,13 @@ mod generated_code_alignment_and_padding {
         let vec3_ptr = vec3 as *const my_game::example::Vec3 as usize;
 
         assert!(vec3_ptr > start_ptr);
-        let aln = ::std::mem::align_of::<my_game::example::Vec3>();
-        assert_eq!((vec3_ptr - start_ptr) % aln, 0);
+        // Vec3 is aligned to 8 wrt the flatbuffer.
+        assert_eq!((vec3_ptr - start_ptr) % 8, 0);
     }
 
     #[test]
     fn struct_ability_is_8_bytes() {
         assert_eq!(8, ::std::mem::size_of::<my_game::example::Ability>());
-    }
-
-    #[test]
-    fn struct_ability_is_aligned_to_4() {
-        assert_eq!(4, ::std::mem::align_of::<my_game::example::Ability>());
     }
 
     #[test]
@@ -948,14 +931,15 @@ mod generated_code_alignment_and_padding {
         for a in abilities.iter().rev() {
             let a_ptr = a as *const my_game::example::Ability as usize;
             assert!(a_ptr > start_ptr);
-            let aln = ::std::mem::align_of::<my_game::example::Ability>();
-            assert_eq!((a_ptr - start_ptr) % aln, 0);
+            // Vec3 is aligned to 8 wrt the flatbuffer.
+            assert_eq!((a_ptr - start_ptr) % 8, 0);
         }
     }
 }
 
 #[cfg(test)]
 mod roundtrip_byteswap {
+    #[cfg(not(miri))]  // slow.
     extern crate quickcheck;
     extern crate flatbuffers;
 
@@ -1003,6 +987,7 @@ mod roundtrip_byteswap {
     // fn fuzz_f64() { quickcheck::QuickCheck::new().max_tests(N).quickcheck(prop_f64 as fn(f64)); }
 }
 
+#[cfg(not(miri))]  // slow.
 #[cfg(test)]
 mod roundtrip_vectors {
 
@@ -1082,6 +1067,7 @@ mod roundtrip_vectors {
 
     #[cfg(test)]
     mod create_vector_direct {
+        #[cfg(not(miri))]  // slow.
         extern crate quickcheck;
         extern crate flatbuffers;
 
@@ -1129,6 +1115,7 @@ mod roundtrip_vectors {
 
     #[cfg(test)]
     mod string_manual_build {
+        #[cfg(not(miri))]  // slow.
         extern crate quickcheck;
         extern crate flatbuffers;
 
@@ -1166,6 +1153,7 @@ mod roundtrip_vectors {
 
     #[cfg(test)]
     mod string_helper_build {
+        #[cfg(not(miri))]  // slow.
         extern crate quickcheck;
         extern crate flatbuffers;
 
@@ -1196,9 +1184,11 @@ mod roundtrip_vectors {
 
     #[cfg(test)]
     mod ubyte {
+        #[cfg(not(miri))]  // slow.
         extern crate quickcheck;
         extern crate flatbuffers;
 
+        #[cfg(not(miri))]  // slow.
         #[test]
         fn fuzz_manual_build() {
             fn prop(vec: Vec<u8>) {
@@ -1254,11 +1244,13 @@ mod roundtrip_table {
     use std::collections::HashMap;
 
     extern crate flatbuffers;
+    #[cfg(not(miri))]  // slow.
     extern crate quickcheck;
 
     use super::LCG;
 
     #[test]
+    #[cfg(not(miri))]  // slow.
     fn table_of_mixed_scalars_fuzz() {
         // Values we're testing against: chosen to ensure no bits get chopped
         // off anywhere, and also be different from eachother.
@@ -1366,6 +1358,7 @@ mod roundtrip_table {
     }
 
     #[test]
+    #[cfg(not(miri))]  // slow.
     fn table_of_byte_strings_fuzz() {
         fn prop(vec: Vec<Vec<u8>>) {
             use flatbuffers::field_index_to_field_offset as fi2fo;
@@ -1402,6 +1395,7 @@ mod roundtrip_table {
     }
 
     #[test]
+    #[cfg(not(miri))]  // slow.
     fn fuzz_table_of_strings() {
         fn prop(vec: Vec<String>) {
             use flatbuffers::field_index_to_field_offset as fi2fo;
@@ -1433,8 +1427,10 @@ mod roundtrip_table {
         quickcheck::QuickCheck::new().max_tests(n).quickcheck(prop as fn(Vec<String>));
     }
 
+    #[cfg(not(miri))]  // slow.
     mod table_of_vectors_of_scalars {
         extern crate flatbuffers;
+        #[cfg(not(miri))]  // slow.
         extern crate quickcheck;
 
         const N: u64 = 20;
@@ -1515,9 +1511,11 @@ mod roundtrip_table {
     }
 }
 
+#[cfg(not(miri))]  // slow.
 #[cfg(test)]
 mod roundtrip_scalars {
     extern crate flatbuffers;
+    #[cfg(not(miri))]  // slow.
     extern crate quickcheck;
 
     const N: u64 = 1000;
@@ -1558,8 +1556,10 @@ mod roundtrip_scalars {
 }
 
 #[cfg(test)]
+#[cfg(not(miri))]  // slow.
 mod roundtrip_push_follow_scalars {
     extern crate flatbuffers;
+    #[cfg(not(miri))]  // slow.
     extern crate quickcheck;
 
     use flatbuffers::Push;
@@ -1685,6 +1685,7 @@ mod write_and_read_examples {
     }
 
     #[test]
+    #[cfg(not(miri))]  // slow.
     fn generated_code_creates_correct_example_repeatedly_with_reset() {
         let b = &mut flatbuffers::FlatBufferBuilder::new();
         for _ in 0..100 {
@@ -1706,6 +1707,7 @@ mod write_and_read_examples {
     }
 
     #[test]
+    #[cfg(not(miri))]  // slow.
     fn library_code_creates_correct_example_repeatedly_with_reset() {
         let b = &mut flatbuffers::FlatBufferBuilder::new();
         for _ in 0..100 {
@@ -2029,14 +2031,6 @@ mod follow_impls {
         let vec: Vec<u8> = vec![255, 255, 255, 255, 3, 0, 0, 0, 1, 2, 3, 0];
         let off: flatbuffers::FollowStart<flatbuffers::Vector<u8>> = flatbuffers::FollowStart::new();
         assert_eq!(off.self_follow(&vec[..], 4).safe_slice(), &[1, 2, 3][..]);
-    }
-
-    #[cfg(target_endian = "little")]
-    #[test]
-    fn to_slice_of_u16() {
-        let vec: Vec<u8> = vec![255, 255, 255, 255, 2, 0, 0, 0, 1, 2, 3, 4];
-        let off: flatbuffers::FollowStart<&[u16]> = flatbuffers::FollowStart::new();
-        assert_eq!(off.self_follow(&vec[..], 4), &vec![513, 1027][..]);
     }
 
     #[test]
@@ -2371,6 +2365,7 @@ mod vtable_deduplication {
         ]);
     }
 
+    #[cfg(not(miri))]  // slow.
     #[test]
     fn many_identical_tables_use_few_vtables() {
         let mut b = flatbuffers::FlatBufferBuilder::new();

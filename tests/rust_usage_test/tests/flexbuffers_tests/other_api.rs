@@ -13,9 +13,11 @@
 // limitations under the License.
 
 use flexbuffers::*;
+#[cfg(not(miri))]  // slow.
 use quickcheck::QuickCheck;
 
 #[test]
+#[cfg(not(miri))]  // slow.
 fn qc_reader_no_crash() {
     fn no_crash(xs: Vec<u8>) -> bool {
         let r = Reader::get_root(&xs);
