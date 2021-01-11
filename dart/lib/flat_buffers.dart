@@ -115,6 +115,8 @@ class Builder {
 
   ByteData _buf;
 
+  Allocator _allocator;
+
   /// The maximum alignment that has been seen so far.  If [_buf] has to be
   /// reallocated in the future (to insert room at its start for more bytes) the
   /// reallocation will need to be a multiple of this many bytes.
@@ -142,7 +144,9 @@ class Builder {
   /// automatically grow the array if/as needed.  `internStrings`, if set to
   /// true, will cause [writeString] to pool strings in the buffer so that
   /// identical strings will always use the same offset in tables.
-  Builder({this.initialSize: 1024, bool internStrings = false}) {
+  Builder(
+      {this.initialSize: 1024, bool internStrings = false, Allocator allocator})
+      : _allocator = allocator ?? DefaultAllocator() {
     if (internStrings == true) {
       _strings = new Map<String, int>();
     }
@@ -439,7 +443,12 @@ class Builder {
 
   /// Reset the builder and make it ready for filling a new buffer.
   void reset() {
-    _buf = new ByteData(initialSize);
+    if (_buf == null) {
+      _buf = _allocator.allocate(initialSize);
+      _allocator.clear(_buf, true);
+    } else {
+      _allocator.clear(_buf, false);
+    }
     _maxAlign = 1;
     _tail = 0;
     _currentVTable = null;
@@ -718,11 +727,7 @@ class Builder {
         int deltaCapacity = desiredNewCapacity - oldCapacity;
         deltaCapacity += (-deltaCapacity) % _maxAlign;
         int newCapacity = oldCapacity + deltaCapacity;
-        ByteData newBuf = new ByteData(newCapacity);
-        newBuf.buffer
-            .asUint8List()
-            .setAll(deltaCapacity, _buf.buffer.asUint8List());
-        _buf = newBuf;
+        _buf = _allocator.reallocateDownward(_buf, newCapacity, oldCapacity, 0);
       }
     }
     // Update the tail pointer.
@@ -1238,6 +1243,75 @@ class _VTable {
     for (int fieldOffset in fieldOffsets) {
       buf.setUint16(bufOffset, fieldOffset, Endian.little);
       bufOffset += 2;
+    }
+  }
+}
+
+// Allocator interface. This is flatbuffers-specific - only for [Builder].
+abstract class Allocator {
+  ByteData allocate(int size);
+
+  void deallocate(ByteData data);
+
+  /// Reallocate [newSize] bytes of memory, replacing the old [oldData]. This
+  /// grows downwards, and is intended specifically for use with [Builder].
+  /// Params [inUseBack] and [inUseFront] indicate how much of [oldData] is
+  /// actually in use at each end, and needs to be copied.
+  ByteData reallocateDownward(
+      ByteData oldData, int newSize, int inUseBack, int inUseFront) {
+    final newData = allocate(newSize);
+    clear(newData, true);
+    _copyDownward(oldData, newData, inUseBack, inUseFront);
+    deallocate(oldData);
+    return newData;
+  }
+
+  /// Clear the allocated data contents.
+  ///
+  /// Param [isFresh] is true if the given data has been freshly allocated,
+  /// depending on the allocator implementation, clearing may be unnecessary.
+  void clear(ByteData data, bool isFresh) {
+    final length = data.lengthInBytes;
+    final length64b = (length / 8).floor();
+    // fillRange iterates over data so it's faster with larger data type
+    if (length64b > 0) data.buffer.asUint64List().fillRange(0, length64b, 0);
+    data.buffer.asUint8List().fillRange(length64b * 8, length % 8, 0);
+  }
+
+  /// Called by [reallocate] to copy memory from [oldData] to [newData]. Only
+  /// memory of size [inUseFront] and [inUseBack] will be copied from the front
+  /// and back of the old memory allocation.
+  void _copyDownward(
+      ByteData oldData, ByteData newData, int inUseBack, int inUseFront) {
+    if (inUseBack != 0) {
+      newData.buffer.asUint8List().setAll(
+          newData.lengthInBytes - inUseBack,
+          oldData.buffer.asUint8List().getRange(
+              oldData.lengthInBytes - inUseBack, oldData.lengthInBytes));
+    }
+    if (inUseFront != 0) {
+      newData.buffer
+          .asUint8List()
+          .setAll(0, oldData.buffer.asUint8List().getRange(0, inUseFront));
+    }
+  }
+}
+
+class DefaultAllocator extends Allocator {
+  @override
+  ByteData allocate(int size) => ByteData(size);
+
+  @override
+  void deallocate(ByteData _) {
+    // nothing to do, it's garbage-collected
+  }
+
+  @override
+  void clear(ByteData data, bool isFresh) {
+    if (isFresh) {
+      // nothing to do, ByteData is created all zeroed out
+    } else {
+      super.clear(data, isFresh);
     }
   }
 }
