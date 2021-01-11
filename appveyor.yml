@@ -62,6 +62,7 @@ test_script:
   - "%CONFIGURATION%\\flattests.exe"
   - rem "---------------- JS -----------------"
   - "node --version"
+  - "npm install"
   - "npm test"
   - rem "---------------- C# -----------------"
   # Have to compile this here rather than in "build" above because AppVeyor only
