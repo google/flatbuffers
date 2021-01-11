@@ -116,9 +116,9 @@ std::string BaseGenerator::NamespaceDir(const Namespace &ns, const bool dasheriz
 
 std::string BaseGenerator::ToDasherizedCase(const std::string pascal_case) {
   std::string dasherized_case;
+  int i = 0;
   char p = 0;
-  for (size_t i = 0; i < pascal_case.length(); i++) {
-    auto c = pascal_case[i];
+  for (char const &c: pascal_case) {
     if (c != CharToLower(c)) {
       if (i > 0 && p != kPathSeparator)
         dasherized_case += "-";
@@ -128,6 +128,7 @@ std::string BaseGenerator::ToDasherizedCase(const std::string pascal_case) {
       dasherized_case += c;
     }
     p = c;
+    i++;
   }
   return dasherized_case;
 }
