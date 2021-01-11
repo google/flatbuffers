@@ -2987,7 +2987,13 @@ CheckedError Parser::ParseFlexBufferValue(flexbuffers::Builder *builder) {
     case kTokenFloatConstant: {
       double d;
       StringToNumber(attribute_.c_str(), &d);
-      builder->Double(d);
+
+      if (flexbuffers::WidthF(d) == flexbuffers::BIT_WIDTH_32) {
+        builder->Float(static_cast<float>(d));
+      } else {
+        builder->Double(d);
+      }
+
       EXPECT(kTokenFloatConstant);
       break;
     }
