@@ -485,7 +485,7 @@ class TsGenerator : public BaseGenerator {
     return ret;
   }
 
-  std::string AddImport(import_set &imports, const Definition &dependent, const Definition &dependency) {
+  std::string AddImport(import_set &imports, const Definition &dependent, const StructDef &dependency) {
     std::string ns;
     for (auto &component : dependency.defined_namespace->components)
       ns += component;
@@ -504,16 +504,56 @@ class TsGenerator : public BaseGenerator {
     import_statement += "import { ";
     if (long_import_name.empty()) {
       import_statement += import_name;
-      if (dynamic_cast<const StructDef*>(&dependency) != nullptr && parser_.opts.generate_object_based_api)
+      if (parser_.opts.generate_object_based_api)
         import_statement += ", " + import_name + "T";
     }
     else {
       import_statement += dependency.name + " as " + long_import_name;
-      if (dynamic_cast<const StructDef*>(&dependency) != nullptr && parser_.opts.generate_object_based_api)
+      if (parser_.opts.generate_object_based_api)
         import_statement += ", " + dependency.name + "T as " + long_import_name + "T";
     }
-    auto enum_def = dynamic_cast<const EnumDef*>(&dependency);
-    if (enum_def != nullptr && enum_def->is_union) {
+    import_statement += " } from '";
+    std::string file_name;
+    for (size_t i = 0; i < dependent.defined_namespace->components.size(); i++)
+      file_name += i == 0 ? ".." : (kPathSeparator + std::string(".."));
+    if (dependent.defined_namespace->components.size() == 0)
+      file_name += ".";
+    for (const auto &c : dependency.defined_namespace->components)
+      file_name += kPathSeparator + ToDasherizedCase(c);
+    file_name += kPathSeparator + ToDasherizedCase(dependency.name);
+    import_statement += file_name + "';";
+    ImportDefinition import;
+    import.name = long_import_name.empty() ? import_name : long_import_name;
+    import.statement = import_statement;
+    import.dependency = &dependency;
+    import.dependent = &dependent;
+    imports.insert(std::make_pair(unique_name, import));
+    return import.name;
+  }
+
+  // TODO: largely (but not identical) duplicated code from above couln't find a good way to refactor
+  std::string AddImport(import_set &imports, const Definition &dependent, const EnumDef &dependency) {
+    std::string ns;
+    for (auto &component : dependency.defined_namespace->components)
+      ns += component;
+    std::string unique_name = ns + dependency.name;
+    std::string import_name =  dependency.name;
+    std::string long_import_name;
+    if (imports.find(unique_name) != imports.end())
+      return imports.find(unique_name)->second.name;
+    for (auto it = imports.begin(); it != imports.end(); it++) {
+      if (it->second.name == import_name) {
+        long_import_name = ns + import_name;
+        break;
+      }
+    }
+    std::string import_statement;
+    import_statement += "import { ";
+    if (long_import_name.empty())
+      import_statement += import_name;
+    else
+      import_statement += dependency.name + " as " + long_import_name;
+    if (dependency.is_union) {
       import_statement += ", unionTo" + import_name;
       import_statement += ", unionListTo" + import_name;
     }
