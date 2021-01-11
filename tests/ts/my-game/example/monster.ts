@@ -636,12 +636,22 @@ testrequirednestedflatbufferArray():Uint8Array|null {
   return offset ? new Uint8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
 }
 
+scalarKeySortedTables(index: number, obj?:Stat):Stat|null {
+  const offset = this.bb!.__offset(this.bb_pos, 104);
+  return offset ? (obj || new Stat()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
+}
+
+scalarKeySortedTablesLength():number {
+  const offset = this.bb!.__offset(this.bb_pos, 104);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+}
+
 static getFullyQualifiedName():string {
   return 'MyGame.Example.Monster';
 }
 
 static startMonster(builder:flatbuffers.Builder) {
-  builder.startObject(50);
+  builder.startObject(51);
 }
 
 static addPos(builder:flatbuffers.Builder, posOffset:flatbuffers.Offset) {
@@ -1049,6 +1059,22 @@ static startTestrequirednestedflatbufferVector(builder:flatbuffers.Builder, numE
   builder.startVector(1, numElems, 1);
 }
 
+static addScalarKeySortedTables(builder:flatbuffers.Builder, scalarKeySortedTablesOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(50, scalarKeySortedTablesOffset, 0);
+}
+
+static createScalarKeySortedTablesVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
+  builder.startVector(4, data.length, 4);
+  for (let i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]);
+  }
+  return builder.endVector();
+}
+
+static startScalarKeySortedTablesVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(4, numElems, 4);
+}
+
 static endMonster(builder:flatbuffers.Builder):flatbuffers.Offset {
   const offset = builder.endObject();
   builder.requiredField(offset, 10) // name
@@ -1134,7 +1160,8 @@ unpack(): MonsterT {
   })(),
     this.bb!.createScalarList(this.vectorOfEnums.bind(this), this.vectorOfEnumsLength()),
     this.signedEnum(),
-    this.bb!.createScalarList(this.testrequirednestedflatbuffer.bind(this), this.testrequirednestedflatbufferLength())
+    this.bb!.createScalarList(this.testrequirednestedflatbuffer.bind(this), this.testrequirednestedflatbufferLength()),
+    this.bb!.createObjList(this.scalarKeySortedTables.bind(this), this.scalarKeySortedTablesLength())
   );
 }
 
@@ -1201,6 +1228,7 @@ unpackTo(_o: MonsterT): void {
   _o.vectorOfEnums = this.bb!.createScalarList(this.vectorOfEnums.bind(this), this.vectorOfEnumsLength());
   _o.signedEnum = this.signedEnum();
   _o.testrequirednestedflatbuffer = this.bb!.createScalarList(this.testrequirednestedflatbuffer.bind(this), this.testrequirednestedflatbufferLength());
+  _o.scalarKeySortedTables = this.bb!.createObjList(this.scalarKeySortedTables.bind(this), this.scalarKeySortedTablesLength());
 }
 }
 
@@ -1254,7 +1282,8 @@ constructor(
   public anyAmbiguous: MonsterT|null = null,
   public vectorOfEnums: (Color)[] = [],
   public signedEnum: Race = Race.None,
-  public testrequirednestedflatbuffer: (number)[] = []
+  public testrequirednestedflatbuffer: (number)[] = [],
+  public scalarKeySortedTables: (StatT)[] = []
 ){}
 
 
@@ -1282,6 +1311,7 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   const anyAmbiguous = builder.createObjectOffset(this.anyAmbiguous);
   const vectorOfEnums = Monster.createVectorOfEnumsVector(builder, this.vectorOfEnums);
   const testrequirednestedflatbuffer = Monster.createTestrequirednestedflatbufferVector(builder, this.testrequirednestedflatbuffer);
+  const scalarKeySortedTables = Monster.createScalarKeySortedTablesVector(builder, builder.createObjectOffsetList(this.scalarKeySortedTables));
 
   Monster.startMonster(builder);
   Monster.addPos(builder, (this.pos !== null ? this.pos!.pack(builder) : 0));
@@ -1333,6 +1363,7 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   Monster.addVectorOfEnums(builder, vectorOfEnums);
   Monster.addSignedEnum(builder, this.signedEnum);
   Monster.addTestrequirednestedflatbuffer(builder, testrequirednestedflatbuffer);
+  Monster.addScalarKeySortedTables(builder, scalarKeySortedTables);
 
   return Monster.endMonster(builder);
 }
