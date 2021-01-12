@@ -3,6 +3,7 @@ branches:
     - master
 
 environment:
+  nodejs_version: "14"
 
   global:
     # Workaround for https://github.com/conda/conda-build/issues/636
@@ -50,6 +51,7 @@ after_build:
 
 install:
   - set PATH=%CONDA_INSTALL_LOCN%;%CONDA_INSTALL_LOCN%\scripts;%PATH%;
+  - ps: Install-Product node $env:nodejs_version
 
 test_script:
   - call .appveyor\check-generate-code.bat -b %CONFIGURATION%
