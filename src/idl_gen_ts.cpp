@@ -488,7 +488,6 @@ class TsGenerator : public BaseGenerator {
   std::string AddImport(import_set &imports, const Definition &dependent,
                         const StructDef &dependency) {
     std::string ns;
-    const auto &dep_comps = dependent.defined_namespace->components;
     const auto &depc_comps = dependency.defined_namespace->components;
     for (auto it = depc_comps.begin(); it != depc_comps.end(); it++) ns += *it;
     std::string unique_name = ns + dependency.name;
@@ -516,6 +515,7 @@ class TsGenerator : public BaseGenerator {
     }
     import_statement += " } from '";
     std::string file_name;
+    const auto &dep_comps = dependent.defined_namespace->components;
     for (size_t i = 0; i < dep_comps.size(); i++)
       file_name += i == 0 ? ".." : (kPathSeparator + std::string(".."));
     if (dep_comps.size() == 0) file_name += ".";
@@ -537,7 +537,6 @@ class TsGenerator : public BaseGenerator {
   std::string AddImport(import_set &imports, const Definition &dependent,
                         const EnumDef &dependency) {
     std::string ns;
-    const auto &dep_comps = dependent.defined_namespace->components;
     const auto &depc_comps = dependency.defined_namespace->components;
     for (auto it = depc_comps.begin(); it != depc_comps.end(); it++) ns += *it;
     std::string unique_name = ns + dependency.name;
@@ -563,6 +562,7 @@ class TsGenerator : public BaseGenerator {
     }
     import_statement += " } from '";
     std::string file_name;
+    const auto &dep_comps = dependent.defined_namespace->components;
     for (size_t i = 0; i < dep_comps.size(); i++)
       file_name += i == 0 ? ".." : (kPathSeparator + std::string(".."));
     if (dep_comps.size() == 0) file_name += ".";
