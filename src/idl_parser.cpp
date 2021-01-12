@@ -906,6 +906,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     struct_def.has_key = true;
     if (!IsScalar(type.base_type)) {
       field->required = true;
+      field->optional = false;
       if (type.base_type != BASE_TYPE_STRING)
         return Error("'key' field must be string or scalar type");
     }
