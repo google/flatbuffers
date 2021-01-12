@@ -197,10 +197,15 @@ namespace flatbuffers {
 #if (!defined(_MSC_VER) || _MSC_FULL_VER >= 180020827) && \
     (!defined(__GNUC__) || (__GNUC__ * 100 + __GNUC_MINOR__ >= 404)) || \
     defined(__clang__)
-  #define FLATBUFFERS_DEFAULT_DECLARATION
-  #define FLATBUFFERS_DELETE_FUNC(func) func = delete;
+  #define FLATBUFFERS_DELETE_FUNC(func) func = delete
 #else
-  #define FLATBUFFERS_DELETE_FUNC(func) private: func;
+  #define FLATBUFFERS_DELETE_FUNC(func) private: func
+#endif
+
+#if (!defined(_MSC_VER) || _MSC_VER >= 1900) && \
+    (!defined(__GNUC__) || (__GNUC__ * 100 + __GNUC_MINOR__ >= 409)) || \
+    defined(__clang__)
+  #define FLATBUFFERS_DEFAULT_DECLARATION
 #endif
 
 // Check if we can use template aliases

@@ -26,11 +26,11 @@ pub mod sample {
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
 
-#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_COLOR: i8 = 0;
-#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MAX_COLOR: i8 = 2;
-#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 #[allow(non_camel_case_types)]
 pub const ENUM_VALUES_COLOR: [Color; 3] = [
   Color::Red,
@@ -77,7 +77,8 @@ impl<'a> flatbuffers::Follow<'a> for Color {
   type Inner = Self;
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self(flatbuffers::read_scalar_at::<i8>(buf, loc))
+    let b = flatbuffers::read_scalar_at::<i8>(buf, loc);
+    Self(b)
   }
 }
 
@@ -92,19 +93,32 @@ impl flatbuffers::Push for Color {
 impl flatbuffers::EndianScalar for Color {
   #[inline]
   fn to_little_endian(self) -> Self {
-    Self(i8::to_le(self.0))
+    let b = i8::to_le(self.0);
+    Self(b)
   }
   #[inline]
   fn from_little_endian(self) -> Self {
-    Self(i8::from_le(self.0))
+    let b = i8::from_le(self.0);
+    Self(b)
   }
 }
 
-#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+impl<'a> flatbuffers::Verifiable for Color {
+  #[inline]
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    i8::run_verifier(v, pos)
+  }
+}
+
+impl flatbuffers::SimpleToVerifyInSlice for Color {}
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_EQUIPMENT: u8 = 0;
-#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MAX_EQUIPMENT: u8 = 1;
-#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 #[allow(non_camel_case_types)]
 pub const ENUM_VALUES_EQUIPMENT: [Equipment; 2] = [
   Equipment::NONE,
@@ -147,7 +161,8 @@ impl<'a> flatbuffers::Follow<'a> for Equipment {
   type Inner = Self;
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self(flatbuffers::read_scalar_at::<u8>(buf, loc))
+    let b = flatbuffers::read_scalar_at::<u8>(buf, loc);
+    Self(b)
   }
 }
 
@@ -162,14 +177,27 @@ impl flatbuffers::Push for Equipment {
 impl flatbuffers::EndianScalar for Equipment {
   #[inline]
   fn to_little_endian(self) -> Self {
-    Self(u8::to_le(self.0))
+    let b = u8::to_le(self.0);
+    Self(b)
   }
   #[inline]
   fn from_little_endian(self) -> Self {
-    Self(u8::from_le(self.0))
+    let b = u8::from_le(self.0);
+    Self(b)
   }
 }
 
+impl<'a> flatbuffers::Verifiable for Equipment {
+  #[inline]
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    u8::run_verifier(v, pos)
+  }
+}
+
+impl flatbuffers::SimpleToVerifyInSlice for Equipment {}
 pub struct EquipmentUnionTableOffset {}
 
 #[non_exhaustive]
@@ -219,13 +247,9 @@ impl EquipmentT {
   }
 }
 // struct Vec3, aligned to 4
-#[repr(C, align(4))]
+#[repr(transparent)]
 #[derive(Clone, Copy, PartialEq, Default)]
-pub struct Vec3 {
-  x_: f32,
-  y_: f32,
-  z_: f32,
-} // pub struct Vec3
+pub struct Vec3(pub [u8; 12]);
 impl std::fmt::Debug for Vec3 {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     f.debug_struct("Vec3")
@@ -236,6 +260,7 @@ impl std::fmt::Debug for Vec3 {
   }
 }
 
+impl flatbuffers::SimpleToVerifyInSlice for Vec3 {}
 impl flatbuffers::SafeSliceAccess for Vec3 {}
 impl<'a> flatbuffers::Follow<'a> for Vec3 {
   type Inner = &'a Vec3;
@@ -273,25 +298,98 @@ impl<'b> flatbuffers::Push for &'b Vec3 {
     }
 }
 
-
+impl<'a> flatbuffers::Verifiable for Vec3 {
+  #[inline]
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    v.in_buffer::<Self>(pos)
+  }
+}
 impl Vec3 {
-  pub fn new(_x: f32, _y: f32, _z: f32) -> Self {
-    Vec3 {
-      x_: _x.to_little_endian(),
-      y_: _y.to_little_endian(),
-      z_: _z.to_little_endian(),
+  #[allow(clippy::too_many_arguments)]
+  pub fn new(
+    x: f32,
+    y: f32,
+    z: f32,
+  ) -> Self {
+    let mut s = Self([0; 12]);
+    s.set_x(x);
+    s.set_y(y);
+    s.set_z(z);
+    s
+  }
 
+  pub fn x(&self) -> f32 {
+    let mut mem = core::mem::MaybeUninit::<f32>::uninit();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[0..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<f32>(),
+      );
+      mem.assume_init()
+    }.from_little_endian()
+  }
+
+  pub fn set_x(&mut self, x: f32) {
+    let x_le = x.to_little_endian();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const f32 as *const u8,
+        self.0[0..].as_mut_ptr(),
+        core::mem::size_of::<f32>(),
+      );
     }
   }
-  pub fn x(&self) -> f32 {
-    self.x_.from_little_endian()
-  }
+
   pub fn y(&self) -> f32 {
-    self.y_.from_little_endian()
+    let mut mem = core::mem::MaybeUninit::<f32>::uninit();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[4..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<f32>(),
+      );
+      mem.assume_init()
+    }.from_little_endian()
   }
+
+  pub fn set_y(&mut self, x: f32) {
+    let x_le = x.to_little_endian();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const f32 as *const u8,
+        self.0[4..].as_mut_ptr(),
+        core::mem::size_of::<f32>(),
+      );
+    }
+  }
+
   pub fn z(&self) -> f32 {
-    self.z_.from_little_endian()
+    let mut mem = core::mem::MaybeUninit::<f32>::uninit();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[8..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<f32>(),
+      );
+      mem.assume_init()
+    }.from_little_endian()
   }
+
+  pub fn set_z(&mut self, x: f32) {
+    let x_le = x.to_little_endian();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const f32 as *const u8,
+        self.0[8..].as_mut_ptr(),
+        core::mem::size_of::<f32>(),
+      );
+    }
+  }
+
   pub fn unpack(&self) -> Vec3T {
     Vec3T {
       x: self.x(),
@@ -432,7 +530,7 @@ impl<'a> Monster<'a> {
   }
   #[inline]
   pub fn weapons(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Weapon<'a>>>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<flatbuffers::ForwardsUOffset<Weapon<'a>>>>>(Monster::VT_WEAPONS, None)
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Weapon>>>>(Monster::VT_WEAPONS, None)
   }
   #[inline]
   pub fn equipped_type(&self) -> Equipment {
@@ -444,7 +542,7 @@ impl<'a> Monster<'a> {
   }
   #[inline]
   pub fn path(&self) -> Option<&'a [Vec3]> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<Vec3>>>(Monster::VT_PATH, None).map(|v| v.safe_slice() )
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, Vec3>>>(Monster::VT_PATH, None).map(|v| v.safe_slice())
   }
   #[inline]
   #[allow(non_snake_case)]
@@ -458,6 +556,31 @@ impl<'a> Monster<'a> {
 
 }
 
+impl flatbuffers::Verifiable for Monster<'_> {
+  #[inline]
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    v.visit_table(pos)?
+     .visit_field::<Vec3>(&"pos", Self::VT_POS, false)?
+     .visit_field::<i16>(&"mana", Self::VT_MANA, false)?
+     .visit_field::<i16>(&"hp", Self::VT_HP, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<&str>>(&"name", Self::VT_NAME, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u8>>>(&"inventory", Self::VT_INVENTORY, false)?
+     .visit_field::<Color>(&"color", Self::VT_COLOR, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<Weapon>>>>(&"weapons", Self::VT_WEAPONS, false)?
+     .visit_union::<Equipment, _>(&"equipped_type", Self::VT_EQUIPPED_TYPE, &"equipped", Self::VT_EQUIPPED, false, |key, v, pos| {
+        match key {
+          Equipment::Weapon => v.verify_union_variant::<flatbuffers::ForwardsUOffset<Weapon>>("Equipment::Weapon", pos),
+          _ => Ok(()),
+        }
+     })?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, Vec3>>>(&"path", Self::VT_PATH, false)?
+     .finish();
+    Ok(())
+  }
+}
 pub struct MonsterArgs<'a> {
     pub pos: Option<&'a Vec3>,
     pub mana: i16,
@@ -679,6 +802,19 @@ impl<'a> Weapon<'a> {
   }
 }
 
+impl flatbuffers::Verifiable for Weapon<'_> {
+  #[inline]
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    v.visit_table(pos)?
+     .visit_field::<flatbuffers::ForwardsUOffset<&str>>(&"name", Self::VT_NAME, false)?
+     .visit_field::<i16>(&"damage", Self::VT_DAMAGE, false)?
+     .finish();
+    Ok(())
+  }
+}
 pub struct WeaponArgs<'a> {
     pub name: Option<flatbuffers::WIPOffset<&'a str>>,
     pub damage: i16,
@@ -750,15 +886,77 @@ impl WeaponT {
   }
 }
 #[inline]
+#[deprecated(since="2.0.0", note="Deprecated in favor of `root_as...` methods.")]
 pub fn get_root_as_monster<'a>(buf: &'a [u8]) -> Monster<'a> {
-  flatbuffers::get_root::<Monster<'a>>(buf)
+  unsafe { flatbuffers::root_unchecked::<Monster<'a>>(buf) }
 }
 
 #[inline]
+#[deprecated(since="2.0.0", note="Deprecated in favor of `root_as...` methods.")]
 pub fn get_size_prefixed_root_as_monster<'a>(buf: &'a [u8]) -> Monster<'a> {
-  flatbuffers::get_size_prefixed_root::<Monster<'a>>(buf)
+  unsafe { flatbuffers::size_prefixed_root_unchecked::<Monster<'a>>(buf) }
 }
 
+#[inline]
+/// Verifies that a buffer of bytes contains a `Monster`
+/// and returns it.
+/// Note that verification is still experimental and may not
+/// catch every error, or be maximally performant. For the
+/// previous, unchecked, behavior use
+/// `root_as_monster_unchecked`.
+pub fn root_as_monster(buf: &[u8]) -> Result<Monster, flatbuffers::InvalidFlatbuffer> {
+  flatbuffers::root::<Monster>(buf)
+}
+#[inline]
+/// Verifies that a buffer of bytes contains a size prefixed
+/// `Monster` and returns it.
+/// Note that verification is still experimental and may not
+/// catch every error, or be maximally performant. For the
+/// previous, unchecked, behavior use
+/// `size_prefixed_root_as_monster_unchecked`.
+pub fn size_prefixed_root_as_monster(buf: &[u8]) -> Result<Monster, flatbuffers::InvalidFlatbuffer> {
+  flatbuffers::size_prefixed_root::<Monster>(buf)
+}
+#[inline]
+/// Verifies, with the given options, that a buffer of bytes
+/// contains a `Monster` and returns it.
+/// Note that verification is still experimental and may not
+/// catch every error, or be maximally performant. For the
+/// previous, unchecked, behavior use
+/// `root_as_monster_unchecked`.
+pub fn root_as_monster_with_opts<'b, 'o>(
+  opts: &'o flatbuffers::VerifierOptions,
+  buf: &'b [u8],
+) -> Result<Monster<'b>, flatbuffers::InvalidFlatbuffer> {
+  flatbuffers::root_with_opts::<Monster<'b>>(opts, buf)
+}
+#[inline]
+/// Verifies, with the given verifier options, that a buffer of
+/// bytes contains a size prefixed `Monster` and returns
+/// it. Note that verification is still experimental and may not
+/// catch every error, or be maximally performant. For the
+/// previous, unchecked, behavior use
+/// `root_as_monster_unchecked`.
+pub fn size_prefixed_root_as_monster_with_opts<'b, 'o>(
+  opts: &'o flatbuffers::VerifierOptions,
+  buf: &'b [u8],
+) -> Result<Monster<'b>, flatbuffers::InvalidFlatbuffer> {
+  flatbuffers::size_prefixed_root_with_opts::<Monster<'b>>(opts, buf)
+}
+#[inline]
+/// Assumes, without verification, that a buffer of bytes contains a Monster and returns it.
+/// # Safety
+/// Callers must trust the given bytes do indeed contain a valid `Monster`.
+pub unsafe fn root_as_monster_unchecked(buf: &[u8]) -> Monster {
+  flatbuffers::root_unchecked::<Monster>(buf)
+}
+#[inline]
+/// Assumes, without verification, that a buffer of bytes contains a size prefixed Monster and returns it.
+/// # Safety
+/// Callers must trust the given bytes do indeed contain a valid size prefixed `Monster`.
+pub unsafe fn size_prefixed_root_as_monster_unchecked(buf: &[u8]) -> Monster {
+  flatbuffers::size_prefixed_root_unchecked::<Monster>(buf)
+}
 #[inline]
 pub fn finish_monster_buffer<'a, 'b>(
     fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>,

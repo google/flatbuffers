@@ -27,23 +27,23 @@ macro_rules! make_test {
             );
             builder.finish(ss, None);
 
-            let s = flatbuffers::get_root::<ScalarStuff>(builder.finished_data());
+            let s = flatbuffers::root::<ScalarStuff>(builder.finished_data()).unwrap();
             assert_eq!(s.$just(), $five);
             assert_eq!(s.$default(), $five);
             assert_eq!(s.$maybe(), Some($five));
 
             // Test defaults are used when not specified.
-            let s = flatbuffers::get_root::<ScalarStuff>(&[0; 8]);
+            let s = flatbuffers::root::<ScalarStuff>(&[0; 8]).unwrap();
             assert_eq!(s.$just(), $zero);
             assert_eq!(s.$default(), $fortytwo);
             assert_eq!(s.$maybe(), None);
 
             // Same for object API
-            let s = flatbuffers::get_root::<ScalarStuff>(builder.finished_data()).unpack();
+            let s = flatbuffers::root::<ScalarStuff>(builder.finished_data()).unwrap().unpack();
             assert_eq!(s.$just, $five);
             assert_eq!(s.$default, $five);
             assert_eq!(s.$maybe, Some($five));
-            let s = flatbuffers::get_root::<ScalarStuff>(&[0; 8]).unpack();
+            let s = flatbuffers::root::<ScalarStuff>(&[0; 8]).unwrap().unpack();
             assert_eq!(s.$just, $zero);
             assert_eq!(s.$default, $fortytwo);
             assert_eq!(s.$maybe, None);

@@ -132,10 +132,10 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --no-js-exports        Removes Node.js style export lines in JS.\n"
     "  --goog-js-export       Uses goog.exports* for closure compiler exporting in JS.\n"
     "  --es6-js-export        Uses ECMAScript 6 export style lines in JS.\n"
-    "  --go-namespace         Generate the overrided namespace in Golang.\n"
-    "  --go-import            Generate the overrided import for flatbuffers in Golang\n"
+    "  --go-namespace         Generate the overriding namespace in Golang.\n"
+    "  --go-import            Generate the overriding import for flatbuffers in Golang\n"
     "                         (default is \"github.com/google/flatbuffers/go\").\n"
-    "  --raw-binary           Allow binaries without file_indentifier to be read.\n"
+    "  --raw-binary           Allow binaries without file_identifier to be read.\n"
     "                         This may crash flatc given a mismatched schema.\n"
     "  --size-prefixed        Input binaries are size prefixed buffers.\n"
     "  --proto                Input is a .proto, translate to .fbs.\n"
@@ -171,6 +171,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "                         force vectors to empty rather than null.\n"
     "  --flexbuffers          Used with \"binary\" and \"json\" options, it generates\n"
     "                         data using schema-less FlexBuffers.\n"
+    "  --no-warnings          Inhibit all warning messages.\n"
     "FILEs may be schemas (must end in .fbs), binary schemas (must end in .bfbs),\n"
     "or JSON files (conforming to preceding schema). FILEs after the -- must be\n"
     "binary flatbuffer format files.\n"
@@ -372,10 +373,14 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.use_flexbuffers = true;
       } else if (arg == "--gen-jvmstatic") {
         opts.gen_jvmstatic = true;
+      } else if (arg == "--no-warnings") {
+        opts.no_warnings = true;
       } else if (arg == "--cpp-std") {
         if (++argi >= argc)
           Error("missing C++ standard specification" + arg, true);
         opts.cpp_std = argv[argi];
+      } else if (arg.rfind("--cpp-std=", 0) == 0) {
+        opts.cpp_std = arg.substr(std::string("--cpp-std=").size());
       } else {
         for (size_t i = 0; i < params_.num_generators; ++i) {
           if (arg == params_.generators[i].generator_opt_long ||

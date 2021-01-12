@@ -29,11 +29,11 @@ pub mod other_name_space {
   extern crate flatbuffers;
   use self::flatbuffers::EndianScalar;
 
-#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_FROM_INCLUDE: i64 = 0;
-#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MAX_FROM_INCLUDE: i64 = 0;
-#[deprecated(since = "1.13", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 #[allow(non_camel_case_types)]
 pub const ENUM_VALUES_FROM_INCLUDE: [FromInclude; 1] = [
   FromInclude::IncludeVal,
@@ -72,7 +72,8 @@ impl<'a> flatbuffers::Follow<'a> for FromInclude {
   type Inner = Self;
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self(flatbuffers::read_scalar_at::<i64>(buf, loc))
+    let b = flatbuffers::read_scalar_at::<i64>(buf, loc);
+    Self(b)
   }
 }
 
@@ -87,20 +88,31 @@ impl flatbuffers::Push for FromInclude {
 impl flatbuffers::EndianScalar for FromInclude {
   #[inline]
   fn to_little_endian(self) -> Self {
-    Self(i64::to_le(self.0))
+    let b = i64::to_le(self.0);
+    Self(b)
   }
   #[inline]
   fn from_little_endian(self) -> Self {
-    Self(i64::from_le(self.0))
+    let b = i64::from_le(self.0);
+    Self(b)
   }
 }
 
+impl<'a> flatbuffers::Verifiable for FromInclude {
+  #[inline]
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    i64::run_verifier(v, pos)
+  }
+}
+
+impl flatbuffers::SimpleToVerifyInSlice for FromInclude {}
 // struct Unused, aligned to 4
-#[repr(C, align(4))]
+#[repr(transparent)]
 #[derive(Clone, Copy, PartialEq, Default)]
-pub struct Unused {
-  a_: i32,
-} // pub struct Unused
+pub struct Unused(pub [u8; 4]);
 impl std::fmt::Debug for Unused {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     f.debug_struct("Unused")
@@ -109,6 +121,7 @@ impl std::fmt::Debug for Unused {
   }
 }
 
+impl flatbuffers::SimpleToVerifyInSlice for Unused {}
 impl flatbuffers::SafeSliceAccess for Unused {}
 impl<'a> flatbuffers::Follow<'a> for Unused {
   type Inner = &'a Unused;
@@ -146,17 +159,48 @@ impl<'b> flatbuffers::Push for &'b Unused {
     }
 }
 
-
+impl<'a> flatbuffers::Verifiable for Unused {
+  #[inline]
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    v.in_buffer::<Self>(pos)
+  }
+}
 impl Unused {
-  pub fn new(_a: i32) -> Self {
-    Unused {
-      a_: _a.to_little_endian(),
+  #[allow(clippy::too_many_arguments)]
+  pub fn new(
+    a: i32,
+  ) -> Self {
+    let mut s = Self([0; 4]);
+    s.set_a(a);
+    s
+  }
 
+  pub fn a(&self) -> i32 {
+    let mut mem = core::mem::MaybeUninit::<i32>::uninit();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[0..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<i32>(),
+      );
+      mem.assume_init()
+    }.from_little_endian()
+  }
+
+  pub fn set_a(&mut self, x: i32) {
+    let x_le = x.to_little_endian();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const i32 as *const u8,
+        self.0[0..].as_mut_ptr(),
+        core::mem::size_of::<i32>(),
+      );
     }
   }
-  pub fn a(&self) -> i32 {
-    self.a_.from_little_endian()
-  }
+
 }
 
 pub enum TableBOffset {}
@@ -192,10 +236,22 @@ impl<'a> TableB<'a> {
 
   #[inline]
   pub fn a(&self) -> Option<super::super::TableA<'a>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<super::super::TableA<'a>>>(TableB::VT_A, None)
+    self._tab.get::<flatbuffers::ForwardsUOffset<super::super::TableA>>(TableB::VT_A, None)
   }
 }
 
+impl flatbuffers::Verifiable for TableB<'_> {
+  #[inline]
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    v.visit_table(pos)?
+     .visit_field::<flatbuffers::ForwardsUOffset<super::super::TableA>>(&"a", Self::VT_A, false)?
+     .finish();
+    Ok(())
+  }
+}
 pub struct TableBArgs<'a> {
     pub a: Option<flatbuffers::WIPOffset<super::super::TableA<'a>>>,
 }

@@ -544,7 +544,25 @@ function Monster_mt:TestrequirednestedflatbufferLength()
     end
     return 0
 end
-function Monster.Start(builder) builder:StartObject(50) end
+function Monster_mt:ScalarKeySortedTables(j)
+    local o = self.view:Offset(104)
+    if o ~= 0 then
+        local x = self.view:Vector(o)
+        x = x + ((j-1) * 4)
+        x = self.view:Indirect(x)
+        local obj = require('MyGame.Example.Stat').New()
+        obj:Init(self.view.bytes, x)
+        return obj
+    end
+end
+function Monster_mt:ScalarKeySortedTablesLength()
+    local o = self.view:Offset(104)
+    if o ~= 0 then
+        return self.view:VectorLen(o)
+    end
+    return 0
+end
+function Monster.Start(builder) builder:StartObject(51) end
 function Monster.AddPos(builder, pos) builder:PrependStructSlot(0, pos, 0) end
 function Monster.AddMana(builder, mana) builder:PrependInt16Slot(1, mana, 150) end
 function Monster.AddHp(builder, hp) builder:PrependInt16Slot(2, hp, 100) end
@@ -613,6 +631,8 @@ function Monster.StartVectorOfEnumsVector(builder, numElems) return builder:Star
 function Monster.AddSignedEnum(builder, signedEnum) builder:PrependInt8Slot(48, signedEnum, -1) end
 function Monster.AddTestrequirednestedflatbuffer(builder, testrequirednestedflatbuffer) builder:PrependUOffsetTRelativeSlot(49, testrequirednestedflatbuffer, 0) end
 function Monster.StartTestrequirednestedflatbufferVector(builder, numElems) return builder:StartVector(1, numElems, 1) end
+function Monster.AddScalarKeySortedTables(builder, scalarKeySortedTables) builder:PrependUOffsetTRelativeSlot(50, scalarKeySortedTables, 0) end
+function Monster.StartScalarKeySortedTablesVector(builder, numElems) return builder:StartVector(4, numElems, 4) end
 function Monster.End(builder) return builder:EndObject() end
 
 return Monster -- return the module

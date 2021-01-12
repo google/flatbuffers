@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Google Inc. All rights reserved.
+ * Copyright 2021 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -187,7 +187,7 @@ public struct ByteBuffer {
     _writerSize = _writerSize &+ (MemoryLayout<UInt8>.size &* padding)
   }
 
-  ///Adds an array of type Scalar to the buffer memory
+  /// Adds an array of type Scalar to the buffer memory
   /// - Parameter elements: An array of Scalars
   @usableFromInline
   mutating func push<T: Scalar>(elements: [T]) {
@@ -198,41 +198,16 @@ public struct ByteBuffer {
     }
   }
 
-  /// A custom type of structs that are padded according to the flatbuffer padding,
+  /// Adds an object of type NativeStruct into the buffer
   /// - Parameters:
-  ///   - value: Pointer to the object in memory
-  ///   - size: Size of Value being written to the buffer
-  @available(
-    *,
-    deprecated,
-    message: "0.9.0 will be removing the following method. Regenerate the code")
-  @usableFromInline
-  mutating func push(struct value: UnsafeMutableRawPointer, size: Int) {
+  ///   - value: Object  that will be written to the buffer
+  ///   - size: size to subtract from the WriterIndex
+  @inline(__always)
+  mutating func push<T: NativeStruct>(struct value: T, size: Int) {
     ensureSpace(size: size)
-    memcpy(_storage.memory.advanced(by: writerIndex &- size), value, size)
-    defer { value.deallocate() }
-    _writerSize = _writerSize &+ size
-  }
-
-  /// Prepares the buffer to receive a struct of certian size.
-  /// The alignment of the memory is already handled since we already called preAlign
-  /// - Parameter size: size of the struct
-  @usableFromInline
-  mutating func prepareBufferToReceiveStruct(of size: Int) {
-    ensureSpace(size: size)
-    _writerSize = _writerSize &+ size
-  }
-
-  /// Reverse the input direction to the buffer, since `FlatBuffers` uses a back to front, following method will take current `writerIndex`
-  /// and writes front to back into the buffer, respecting the padding & the alignment
-  /// - Parameters:
-  ///   - value: value of type Scalar
-  ///   - position: position relative to the `writerIndex`
-  ///   - len: length of the value in terms of bytes
-  @usableFromInline
-  mutating func reversePush<T: Scalar>(value: T, position: Int, len: Int) {
     var v = value
-    memcpy(_storage.memory.advanced(by: writerIndex &+ position), &v, len)
+    memcpy(_storage.memory.advanced(by: writerIndex &- size), &v, size)
+    _writerSize = _writerSize &+ size
   }
 
   /// Adds an object of type Scalar into the buffer
@@ -266,7 +241,7 @@ public struct ByteBuffer {
   /// - Parameters:
   ///   - bytes: Pointer to the view
   ///   - len: Size of string
-  @usableFromInline
+  @inline(__always)
   mutating internal func push(
     bytes: UnsafeBufferPointer<String.UTF8View.Element>,
     len: Int) -> Bool
@@ -300,7 +275,7 @@ public struct ByteBuffer {
   /// Makes sure that buffer has enouch space for each of the objects that will be written into it
   /// - Parameter size: size of object
   @discardableResult
-  @usableFromInline
+  @inline(__always)
   mutating func ensureSpace(size: Int) -> Int {
     if size &+ _writerSize > _storage.capacity {
       _storage.reallocate(size, writerSize: _writerSize, alignment: alignment)
@@ -311,7 +286,7 @@ public struct ByteBuffer {
 
   /// pops the written VTable if it's already written into the buffer
   /// - Parameter size: size of the `VTable`
-  @usableFromInline
+  @inline(__always)
   mutating internal func pop(_ size: Int) {
     assert((_writerSize &- size) > 0, "New size should NOT be a negative number")
     memset(_storage.memory.advanced(by: writerIndex), 0, _writerSize &- size)
@@ -319,11 +294,13 @@ public struct ByteBuffer {
   }
 
   /// Clears the current size of the buffer
+  @inline(__always)
   mutating public func clearSize() {
     _writerSize = 0
   }
 
   /// Clears the current instance of the buffer, replacing it with new memory
+  @inline(__always)
   mutating public func clear() {
     _writerSize = 0
     alignment = 1
@@ -345,6 +322,7 @@ public struct ByteBuffer {
   /// - Parameters:
   ///   - index: index of the object to be read from the buffer
   ///   - count: count of bytes in memory
+  @inline(__always)
   public func readSlice<T>(
     index: Int32,
     count: Int32) -> [T]
@@ -362,6 +340,7 @@ public struct ByteBuffer {
   ///   - index: index of the string in the buffer
   ///   - count: length of the string
   ///   - type: Encoding of the string
+  @inline(__always)
   public func readString(
     at index: Int32,
     count: Int32,

@@ -257,6 +257,7 @@ template<typename T> class Vector {
 
   typedef typename IndirectHelper<T>::return_type return_type;
   typedef typename IndirectHelper<T>::mutable_return_type mutable_return_type;
+  typedef return_type value_type;
 
   return_type Get(uoffset_t i) const {
     FLATBUFFERS_ASSERT(i < size());
@@ -821,9 +822,9 @@ class DetachedBuffer {
   #if !defined(FLATBUFFERS_CPP98_STL)
   // clang-format on
   // These may change access mode, leave these at end of public section
-  FLATBUFFERS_DELETE_FUNC(DetachedBuffer(const DetachedBuffer &other))
+  FLATBUFFERS_DELETE_FUNC(DetachedBuffer(const DetachedBuffer &other));
   FLATBUFFERS_DELETE_FUNC(
-      DetachedBuffer &operator=(const DetachedBuffer &other))
+      DetachedBuffer &operator=(const DetachedBuffer &other));
   // clang-format off
   #endif  // !defined(FLATBUFFERS_CPP98_STL)
   // clang-format on
@@ -1066,8 +1067,8 @@ class vector_downward {
 
  private:
   // You shouldn't really be copying instances of this class.
-  FLATBUFFERS_DELETE_FUNC(vector_downward(const vector_downward &))
-  FLATBUFFERS_DELETE_FUNC(vector_downward &operator=(const vector_downward &))
+  FLATBUFFERS_DELETE_FUNC(vector_downward(const vector_downward &));
+  FLATBUFFERS_DELETE_FUNC(vector_downward &operator=(const vector_downward &));
 
   Allocator *allocator_;
   bool own_allocator_;
@@ -1611,6 +1612,16 @@ class FlatBufferBuilder {
     return off;
   }
 
+#ifdef FLATBUFFERS_HAS_STRING_VIEW
+  /// @brief Store a string in the buffer, which can contain any binary data.
+  /// If a string with this exact contents has already been serialized before,
+  /// instead simply returns the offset of the existing string.
+  /// @param[in] str A const std::string_view to store in the buffer.
+  /// @return Returns the offset in the buffer where the string starts
+  Offset<String> CreateSharedString(const flatbuffers::string_view str) {
+    return CreateSharedString(str.data(), str.size());
+  }
+#else
   /// @brief Store a string in the buffer, which null-terminated.
   /// If a string with this exact contents has already been serialized before,
   /// instead simply returns the offset of the existing string.
@@ -1628,6 +1639,7 @@ class FlatBufferBuilder {
   Offset<String> CreateSharedString(const std::string &str) {
     return CreateSharedString(str.c_str(), str.length());
   }
+#endif
 
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// If a string with this exact contents has already been serialized before,
@@ -1880,7 +1892,7 @@ class FlatBufferBuilder {
     }
 
     FLATBUFFERS_DELETE_FUNC(
-        StructKeyComparator &operator=(const StructKeyComparator &))
+        StructKeyComparator &operator=(const StructKeyComparator &));
   };
   /// @endcond
 
@@ -1955,7 +1967,8 @@ class FlatBufferBuilder {
     vector_downward &buf_;
 
    private:
-    FLATBUFFERS_DELETE_FUNC(TableKeyComparator &operator=(const TableKeyComparator &other))
+    FLATBUFFERS_DELETE_FUNC(
+        TableKeyComparator &operator=(const TableKeyComparator &other));
   };
   /// @endcond
 

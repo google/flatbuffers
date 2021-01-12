@@ -10,7 +10,7 @@ class MonsterExtra(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsMonsterExtra(cls, buf, offset):
+    def GetRootAsMonsterExtra(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = MonsterExtra()
         x.Init(buf, n + offset)
@@ -217,7 +217,7 @@ class MonsterExtraT(object):
                 MonsterExtraStartDvecVector(builder, len(self.dvec))
                 for i in reversed(range(len(self.dvec))):
                     builder.PrependFloat64(self.dvec[i])
-                dvec = builder.EndVector(len(self.dvec))
+                dvec = builder.EndVector()
         if self.fvec is not None:
             if np is not None and type(self.fvec) is np.ndarray:
                 fvec = builder.CreateNumpyVector(self.fvec)
@@ -225,7 +225,7 @@ class MonsterExtraT(object):
                 MonsterExtraStartFvecVector(builder, len(self.fvec))
                 for i in reversed(range(len(self.fvec))):
                     builder.PrependFloat32(self.fvec[i])
-                fvec = builder.EndVector(len(self.fvec))
+                fvec = builder.EndVector()
         MonsterExtraStart(builder)
         MonsterExtraAddD0(builder, self.d0)
         MonsterExtraAddD1(builder, self.d1)

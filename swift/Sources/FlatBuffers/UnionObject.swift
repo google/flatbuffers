@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Google Inc. All rights reserved.
+ * Copyright 2021 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 
 import Foundation
 
-public protocol NativeTable {}
+public protocol UnionObject {}
 
-extension NativeTable {
+extension UnionObject {
 
   /// Serialize is a helper function that serailizes the data from the Object API to a bytebuffer directly th
   /// - Parameter type: Type of the Flatbuffer object

@@ -103,6 +103,7 @@ fn validate_monster(flexbuffer: &[u8]) {
 
 // This is in a separate binary than tests because taking over the global allocator is not
 // hermetic and not thread safe.
+#[cfg(not(miri))]  // slow.
 fn main() {
     let start_up = current_allocs();
 
@@ -133,6 +134,7 @@ fn main() {
 }
 
 #[test]
+#[cfg(not(miri))]  // slow.
 fn no_extra_allocations() {
     main()
 }

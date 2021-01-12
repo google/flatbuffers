@@ -98,6 +98,7 @@ fn create_serialized_example_with_generated_code(builder: &mut flatbuffers::Flat
     my_game::example::finish_monster_buffer(builder, mon);
 }
 
+#[cfg(not(miri))]  // slow.
 fn main() {
     // test the allocation tracking:
     {
@@ -131,7 +132,7 @@ fn main() {
 
         // do many reads, forcing them to execute by using assert_eq:
         {
-            let m = my_game::example::get_root_as_monster(buf);
+            let m = unsafe { my_game::example::root_as_monster_unchecked(buf) };
             assert_eq!(80, m.hp());
             assert_eq!(150, m.mana());
             assert_eq!("MyMonster", m.name());

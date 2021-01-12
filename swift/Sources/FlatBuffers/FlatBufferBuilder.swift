@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Google Inc. All rights reserved.
+ * Copyright 2021 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,11 @@ public struct FlatBufferBuilder {
 
   /// Storage for the Vtables used in the buffer are stored in here, so they would be written later in EndTable
   @usableFromInline internal var _vtableStorage = VTableStorage()
+  /// Flatbuffer data will be written into
+  @usableFromInline internal var _bb: ByteBuffer
 
   /// Reference Vtables that were already written to the buffer
   private var _vtables: [UOffset] = []
-  /// Flatbuffer data will be written into
-  private var _bb: ByteBuffer
   /// A check if the buffer is being written into by a different table
   private var isNested = false
   /// Dictonary that stores a map of all the strings that were written to the buffer
@@ -227,7 +227,7 @@ public struct FlatBufferBuilder {
 
   /// Changes the minimuim alignment of the buffer
   /// - Parameter size: size of the current alignment
-  @usableFromInline
+  @inline(__always)
   mutating internal func minAlignment(size: Int) {
     if size > _minAlignment {
       _minAlignment = size
@@ -238,7 +238,7 @@ public struct FlatBufferBuilder {
   /// - Parameters:
   ///   - bufSize: Current size of the buffer + the offset of the object to be written
   ///   - elementSize: Element size
-  @usableFromInline
+  @inline(__always)
   mutating internal func padding(bufSize: UInt32, elementSize: UInt32) -> UInt32 {
     ((~bufSize) &+ 1) & (elementSize - 1)
   }
@@ -282,7 +282,7 @@ public struct FlatBufferBuilder {
     _vtableStorage.add(loc: FieldLoc(offset: offset, position: position))
   }
 
-  // MARK: - Vectors
+  // MARK: - Inserting Vectors
 
   /// Starts a vector of length and Element size
   mutating public func startVector(_ len: Int, elementSize: Int) {
@@ -296,10 +296,10 @@ public struct FlatBufferBuilder {
   ///
   /// The current function will fatalError if startVector is called before serializing the vector
   /// - Parameter len: Length of the buffer
-  mutating public func endVector(len: Int) -> UOffset {
+  mutating public func endVector(len: Int) -> Offset<UOffset> {
     assert(isNested, "Calling endVector without calling startVector")
     isNested = false
-    return push(element: Int32(len))
+    return Offset(offset: push(element: Int32(len)))
   }
 
   /// Creates a vector of type Scalar in the buffer
@@ -317,7 +317,7 @@ public struct FlatBufferBuilder {
     let size = size
     startVector(size, elementSize: MemoryLayout<T>.size)
     _bb.push(elements: elements)
-    return Offset(offset: endVector(len: size))
+    return endVector(len: size)
   }
 
   /// Creates a vector of type Enums in the buffer
@@ -337,7 +337,7 @@ public struct FlatBufferBuilder {
     for e in elements.reversed() {
       _bb.push(value: e.value, len: T.byteSize)
     }
-    return Offset(offset: endVector(len: size))
+    return endVector(len: size)
   }
 
   /// Creates a vector of type Offsets  in the buffer
@@ -356,7 +356,7 @@ public struct FlatBufferBuilder {
     for o in offsets.reversed() {
       push(element: o)
     }
-    return Offset(offset: endVector(len: len))
+    return endVector(len: len)
   }
 
   /// Creates a vector of Strings
@@ -370,99 +370,45 @@ public struct FlatBufferBuilder {
     return createVector(ofOffsets: offsets)
   }
 
-  /// Creates a vector of Flatbuffer structs.
-  ///
-  /// The function takes a Type to know what size it is, and alignment
-  /// - Parameters:
-  ///   - structs: An array of UnsafeMutableRawPointer
-  ///   - type: Type of the struct being written
-  /// - returns: Offset of the vector
-  @available(
-    *,
-    deprecated,
-    message: "0.9.0 will be removing the following method. Regenerate the code")
-  mutating public func createVector<T: Readable>(
-    structs: [UnsafeMutableRawPointer],
-    type: T.Type) -> Offset<UOffset>
-  {
-    startVector(structs.count &* T.size, elementSize: T.alignment)
+  /// Creates a vector of `Native swift structs` which were padded to flatbuffers standards
+  /// - Parameter structs: A vector of structs
+  /// - Returns: offset of the vector
+  mutating public func createVector<T: NativeStruct>(ofStructs structs: [T]) -> Offset<UOffset> {
+    startVector(structs.count * MemoryLayout<T>.size, elementSize: MemoryLayout<T>.alignment)
     for i in structs.reversed() {
-      create(struct: i, type: T.self)
+      _ = create(struct: i)
     }
-    return Offset(offset: endVector(len: structs.count))
-  }
-
-  /// Starts a vector of struct that considers the size and alignment of the struct
-  /// - Parameters:
-  ///   - count: number of elements to be written
-  ///   - size: size of struct
-  ///   - alignment: alignment of the struct
-  mutating public func startVectorOfStructs(count: Int, size: Int, alignment: Int) {
-    startVector(count &* size, elementSize: alignment)
-  }
-
-  /// Ends the vector of structs and writtens the current offset
-  /// - Parameter count: number of written elements
-  /// - Returns: Offset of type UOffset
-  mutating public func endVectorOfStructs(count: Int) -> Offset<UOffset> {
-    Offset<UOffset>(offset: endVector(len: count))
+    return endVector(len: structs.count)
   }
 
   // MARK: - Inserting Structs
 
-  /// Writes a Flatbuffer struct into the buffer
+  /// Fills the buffer with a native struct that's build and padded according to flatbuffers standards
   /// - Parameters:
-  ///   - s: Flatbuffer struct
-  ///   - type: Type of the element to be serialized
-  /// - returns: Offset of the Object
-  @available(
-    *,
-    deprecated,
-    message: "0.9.0 will be removing the following method. Regenerate the code")
+  ///   - s: `Native swift` struct to insert
+  ///   - position: The  predefined position of the object
+  /// - Returns: offset of written struct
   @discardableResult
-  mutating public func create<T: Readable>(
-    struct s: UnsafeMutableRawPointer,
-    type: T.Type) -> Offset<UOffset>
+  mutating public func create<T: NativeStruct>(
+    struct s: T, position: VOffset) -> Offset<UOffset>
   {
-    let size = T.size
-    preAlign(len: size, alignment: T.alignment)
+    let offset = create(struct: s)
+    _vtableStorage.add(loc: FieldLoc(offset: _bb.size, position: VOffset(position)))
+    return offset
+  }
+
+  /// Fills the buffer with a native struct that's build and padded according to flatbuffers standards
+  /// - Parameters:
+  ///   - s: `Native swift` struct to insert
+  /// - Returns: offset of written struct
+  @discardableResult
+  mutating public func create<T: NativeStruct>(
+    struct s: T) -> Offset<UOffset>
+  {
+    let size = MemoryLayout<T>.size
+    preAlign(len: size, alignment: MemoryLayout<T>.alignment)
     _bb.push(struct: s, size: size)
     return Offset(offset: _bb.size)
-  }
-
-  /// prepares the ByteBuffer to receive a struct of size and alignment
-  /// - Parameters:
-  ///   - size: size of written struct
-  ///   - alignment: alignment of written struct
-  mutating public func createStructOf(size: Int, alignment: Int) {
-    preAlign(len: size, alignment: alignment)
-    _bb.prepareBufferToReceiveStruct(of: size)
-  }
-
-  /// Adds scalars front to back instead of the default behavior of the normal add
-  /// - Parameters:
-  ///   - v: element of type Scalar
-  ///   - postion: position relative to the `writerIndex`
-  mutating public func reverseAdd<T: Scalar>(v: T, postion: Int) {
-    _bb.reversePush(
-      value: v,
-      position: postion,
-      len: MemoryLayout<T>.size)
-  }
-
-  /// Ends the struct and returns the current buffer size
-  /// - Returns: Offset of type UOffset
-  @discardableResult
-  public func endStruct() -> Offset<UOffset> {
-    Offset(offset: _bb.size)
-  }
-
-  /// Adds the offset of a struct into the vTable
-  ///
-  /// The function fatalErrors if we pass an offset that is out of range
-  /// - Parameter o: offset
-  mutating public func add(structOffset o: VOffset) {
-    _vtableStorage.add(loc: FieldLoc(offset: _bb.size, position: VOffset(o)))
   }
 
   // MARK: - Inserting Strings
@@ -596,6 +542,7 @@ extension FlatBufferBuilder: CustomDebugStringConvertible {
 
     /// Builds a buffer with byte count of fieldloc.size * count of field numbers
     /// - Parameter count: number of fields to be written
+    @inline(__always)
     func start(count: Int) {
       assert(count >= 0, "number of fields should NOT be negative")
       let capacity = count &* size
@@ -621,6 +568,7 @@ extension FlatBufferBuilder: CustomDebugStringConvertible {
 
     /// Ensure that the buffer has enough space instead of recreating the buffer each time.
     /// - Parameter space: space required for the new vtable
+    @inline(__always)
     func ensure(space: Int) {
       guard space &+ writtenIndex > capacity else { return }
       memory.deallocate()
@@ -631,6 +579,7 @@ extension FlatBufferBuilder: CustomDebugStringConvertible {
     /// Loads an object of type `FieldLoc` from buffer memory
     /// - Parameter index: index of element
     /// - Returns: a FieldLoc at index
+    @inline(__always)
     func load(at index: Int) -> FieldLoc {
       memory.load(fromByteOffset: index, as: FieldLoc.self)
     }

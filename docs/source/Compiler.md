@@ -142,8 +142,9 @@ Additional options:
 
 -   `--cpp-std CPP_STD` : Generate a C++ code using features of selected C++ standard.
      Supported `CPP_STD` values:
-    * `c++0x` - generate code compatible with old compilers (VS2010).
-    * `c++11` - use C++11 code generator (default);
+    * `c++0x` - generate code compatible with old compilers (VS2010),
+    * `c++11` - use C++11 code generator (default),
+    * `c++17` - use C++17 features in generated code (experimental).
 
 -   `--object-prefix` : Customise class prefix for C++ object-based API.
 
@@ -227,6 +228,11 @@ Additional options:
 
 -   `--force-empty-vectors` : When serializing from object API representation, force
      vectors to empty rather than null.
+
+-   `--flexbuffers` : Used with "binary" and "json" options, it generates
+     data using schema-less FlexBuffers.
+
+-    `--no-warnings` : Inhibit all warning messages.
 
 NOTE: short-form options for generators are deprecated, use the long form
 whenever possible.

@@ -92,7 +92,7 @@ static bool IsLowerSnakeCase(const std::string &str) {
   return true;
 }
 
-// Convert an underscore_based_indentifier in to camelCase.
+// Convert an underscore_based_identifier in to camelCase.
 // Also uppercases the first character if first is true.
 std::string MakeCamel(const std::string &in, bool first) {
   std::string s;
@@ -142,7 +142,10 @@ void Parser::Message(const std::string &msg) {
   error_ += ": " + msg;
 }
 
-void Parser::Warning(const std::string &msg) { Message("warning: " + msg); }
+void Parser::Warning(const std::string &msg) {
+  if (!opts.no_warnings)
+    Message("warning: " + msg);
+}
 
 CheckedError Parser::Error(const std::string &msg) {
   Message("error: " + msg);
@@ -152,18 +155,34 @@ CheckedError Parser::Error(const std::string &msg) {
 inline CheckedError NoError() { return CheckedError(false); }
 
 CheckedError Parser::RecurseError() {
-  return Error("maximum parsing recursion of " +
-               NumToString(FLATBUFFERS_MAX_PARSING_DEPTH) + " reached");
+  return Error("maximum parsing depth " + NumToString(parse_depth_counter_) +
+               " reached");
 }
 
-template<typename F> CheckedError Parser::Recurse(F f) {
-  if (recurse_protection_counter >= (FLATBUFFERS_MAX_PARSING_DEPTH))
-    return RecurseError();
-  recurse_protection_counter++;
-  auto ce = f();
-  recurse_protection_counter--;
-  return ce;
-}
+class Parser::ParseDepthGuard {
+ public:
+  explicit ParseDepthGuard(Parser *parser_not_null)
+      : parser_(*parser_not_null), caller_depth_(parser_.parse_depth_counter_) {
+    FLATBUFFERS_ASSERT(caller_depth_ <= (FLATBUFFERS_MAX_PARSING_DEPTH) &&
+                       "Check() must be called to prevent stack overflow");
+    parser_.parse_depth_counter_ += 1;
+  }
+
+  ~ParseDepthGuard() { parser_.parse_depth_counter_ -= 1; }
+
+  CheckedError Check() {
+    return caller_depth_ >= (FLATBUFFERS_MAX_PARSING_DEPTH)
+               ? parser_.RecurseError()
+               : CheckedError(false);
+  }
+
+  FLATBUFFERS_DELETE_FUNC(ParseDepthGuard(const ParseDepthGuard &));
+  FLATBUFFERS_DELETE_FUNC(ParseDepthGuard &operator=(const ParseDepthGuard &));
+
+ private:
+  Parser &parser_;
+  const int caller_depth_;
+};
 
 template<typename T> std::string TypeToIntervalString() {
   return "[" + NumToString((flatbuffers::numeric_limits<T>::lowest)()) + "; " +
@@ -172,8 +191,21 @@ template<typename T> std::string TypeToIntervalString() {
 
 // atot: template version of atoi/atof: convert a string to an instance of T.
 template<typename T>
-inline CheckedError atot(const char *s, Parser &parser, T *val) {
-  auto done = StringToNumber(s, val);
+bool atot_scalar(const char *s, T *val, bool_constant<false>) {
+  return StringToNumber(s, val);
+}
+
+template<typename T>
+bool atot_scalar(const char *s, T *val, bool_constant<true>) {
+  // Normalize NaN parsed from fbs or json to unsigned NaN.
+  if (false == StringToNumber(s, val)) return false;
+  *val = (*val != *val) ? std::fabs(*val) : *val;
+  return true;
+}
+
+template<typename T>
+CheckedError atot(const char *s, Parser &parser, T *val) {
+  auto done = atot_scalar(s, val, bool_constant<is_floating_point<T>::value>());
   if (done) return NoError();
   if (0 == *val)
     return parser.Error("invalid number: \"" + std::string(s) + "\"");
@@ -617,9 +649,11 @@ CheckedError Parser::ParseType(Type &type) {
       ECHECK(ParseTypeIdent(type));
     }
   } else if (token_ == '[') {
+    ParseDepthGuard depth_guard(this);
+    ECHECK(depth_guard.Check());
     NEXT();
     Type subtype;
-    ECHECK(Recurse([&]() { return ParseType(subtype); }));
+    ECHECK(ParseType(subtype));
     if (IsSeries(subtype)) {
       // We could support this, but it will complicate things, and it's
       // easier to work around with a struct around the inner vector.
@@ -872,6 +906,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     struct_def.has_key = true;
     if (!IsScalar(type.base_type)) {
       field->required = true;
+      field->optional = false;
       if (type.base_type != BASE_TYPE_STRING)
         return Error("'key' field must be string or scalar type");
     }
@@ -920,11 +955,22 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     // the automatically added type field should have an id as well (of N - 1).
     auto attr = field->attributes.Lookup("id");
     if (attr) {
-      auto id = atoi(attr->constant.c_str());
-      auto val = new Value();
-      val->type = attr->type;
-      val->constant = NumToString(id - 1);
-      typefield->attributes.Add("id", val);
+      const auto &id_str = attr->constant;
+      voffset_t id = 0;
+      const auto done = !atot(id_str.c_str(), *this, &id).Check();
+      if (done && id > 0) {
+        auto val = new Value();
+        val->type = attr->type;
+        val->constant = NumToString(id - 1);
+        typefield->attributes.Add("id", val);
+      } else {
+        return Error(
+            "a union type effectively adds two fields with non-negative ids, "
+            "its id must be that of the second field (the first field is "
+            "the type field and not explicitly declared in the schema);\n"
+            "field: " +
+            field->name + ", id: " + id_str);
+      }
     }
     // if this field is a union that is deprecated,
     // the automatically added type field should be deprecated as well
@@ -1006,6 +1052,8 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
         }
         if (next_name == type_name) {
           EXPECT(':');
+          ParseDepthGuard depth_guard(this);
+          ECHECK(depth_guard.Check());
           Value type_val = type_field->value;
           ECHECK(ParseAnyValue(type_val, type_field, 0, nullptr, 0));
           constant = type_val.constant;
@@ -1132,6 +1180,9 @@ CheckedError Parser::ParseTableDelimiters(size_t &fieldn,
 
 CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
                                 uoffset_t *ovalue) {
+  ParseDepthGuard depth_guard(this);
+  ECHECK(depth_guard.Check());
+
   size_t fieldn_outer = 0;
   auto err = ParseTableDelimiters(
       fieldn_outer, &struct_def,
@@ -1167,9 +1218,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
               ECHECK(
                   ParseNestedFlatbuffer(val, field, fieldn, struct_def_inner));
             } else {
-              ECHECK(Recurse([&]() {
-                return ParseAnyValue(val, field, fieldn, struct_def_inner, 0);
-              }));
+              ECHECK(ParseAnyValue(val, field, fieldn, struct_def_inner, 0));
             }
             // Hardcoded insertion-sort with error-check.
             // If fields are specified in order, then this loop exits
@@ -1303,20 +1352,69 @@ CheckedError Parser::ParseVectorDelimiters(uoffset_t &count, F body) {
   return NoError();
 }
 
-static bool CompareType(const uint8_t *a, const uint8_t *b, BaseType ftype) {
-  switch (ftype) {
-#define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
-  case BASE_TYPE_##ENUM: return ReadScalar<CTYPE>(a) < ReadScalar<CTYPE>(b);
+static bool CompareSerializedScalars(const uint8_t *a, const uint8_t *b,
+                                     const FieldDef &key) {
+  switch (key.value.type.base_type) {
+#define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...)                       \
+  case BASE_TYPE_##ENUM: {                                              \
+    CTYPE def = static_cast<CTYPE>(0);                                  \
+    if (!a || !b) { StringToNumber(key.value.constant.c_str(), &def); } \
+    const auto av = a ? ReadScalar<CTYPE>(a) : def;                     \
+    const auto bv = b ? ReadScalar<CTYPE>(b) : def;                     \
+    return av < bv;                                                     \
+  }
     FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
 #undef FLATBUFFERS_TD
-    case BASE_TYPE_STRING:
-      // Indirect offset pointer to string pointer.
-      a += ReadScalar<uoffset_t>(a);
-      b += ReadScalar<uoffset_t>(b);
-      return *reinterpret_cast<const String *>(a) <
-             *reinterpret_cast<const String *>(b);
-    default: return false;
+    default: {
+      FLATBUFFERS_ASSERT(false && "scalar type expected");
+      return false;
+    }
   }
+}
+
+static bool CompareTablesByScalarKey(const Offset<Table> *_a,
+                                     const Offset<Table> *_b,
+                                     const FieldDef &key) {
+  const voffset_t offset = key.value.offset;
+  // Indirect offset pointer to table pointer.
+  auto a = reinterpret_cast<const uint8_t *>(_a) + ReadScalar<uoffset_t>(_a);
+  auto b = reinterpret_cast<const uint8_t *>(_b) + ReadScalar<uoffset_t>(_b);
+  // Fetch field address from table.
+  a = reinterpret_cast<const Table *>(a)->GetAddressOf(offset);
+  b = reinterpret_cast<const Table *>(b)->GetAddressOf(offset);
+  return CompareSerializedScalars(a, b, key);
+}
+
+static bool CompareTablesByStringKey(const Offset<Table> *_a,
+                                     const Offset<Table> *_b,
+                                     const FieldDef &key) {
+  const voffset_t offset = key.value.offset;
+  // Indirect offset pointer to table pointer.
+  auto a = reinterpret_cast<const uint8_t *>(_a) + ReadScalar<uoffset_t>(_a);
+  auto b = reinterpret_cast<const uint8_t *>(_b) + ReadScalar<uoffset_t>(_b);
+  // Fetch field address from table.
+  a = reinterpret_cast<const Table *>(a)->GetAddressOf(offset);
+  b = reinterpret_cast<const Table *>(b)->GetAddressOf(offset);
+  if (a && b) {
+    // Indirect offset pointer to string pointer.
+    a += ReadScalar<uoffset_t>(a);
+    b += ReadScalar<uoffset_t>(b);
+    return *reinterpret_cast<const String *>(a) <
+           *reinterpret_cast<const String *>(b);
+  } else {
+    return a ? true : false;
+  }
+}
+
+static void SwapSerializedTables(Offset<Table> *a, Offset<Table> *b) {
+  // These are serialized offsets, so are relative where they are
+  // stored in memory, so compute the distance between these pointers:
+  ptrdiff_t diff = (b - a) * sizeof(Offset<Table>);
+  FLATBUFFERS_ASSERT(diff >= 0);  // Guaranteed by SimpleQsort.
+  auto udiff = static_cast<uoffset_t>(diff);
+  a->o = EndianScalar(ReadScalar<uoffset_t>(a) - udiff);
+  b->o = EndianScalar(ReadScalar<uoffset_t>(b) + udiff);
+  std::swap(*a, *b);
 }
 
 // See below for why we need our own sort :(
@@ -1345,9 +1443,7 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
   auto err = ParseVectorDelimiters(count, [&](uoffset_t &) -> CheckedError {
     Value val;
     val.type = type;
-    ECHECK(Recurse([&]() {
-      return ParseAnyValue(val, field, fieldn, nullptr, count, true);
-    }));
+    ECHECK(ParseAnyValue(val, field, fieldn, nullptr, count, true));
     field_stack_.push_back(std::make_pair(val, nullptr));
     return NoError();
   });
@@ -1405,23 +1501,21 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
     // globals, making parsing thread-unsafe.
     // So for now, we use SimpleQsort above.
     // TODO: replace with something better, preferably not recursive.
-    voffset_t offset = key->value.offset;
-    BaseType ftype = key->value.type.base_type;
 
     if (type.struct_def->fixed) {
+      const voffset_t offset = key->value.offset;
+      const size_t struct_size = type.struct_def->bytesize;
       auto v =
           reinterpret_cast<VectorOfAny *>(builder_.GetCurrentBufferPointer());
       SimpleQsort<uint8_t>(
           v->Data(), v->Data() + v->size() * type.struct_def->bytesize,
           type.struct_def->bytesize,
-          [&](const uint8_t *a, const uint8_t *b) -> bool {
-            return CompareType(a + offset, b + offset, ftype);
+          [offset, key](const uint8_t *a, const uint8_t *b) -> bool {
+            return CompareSerializedScalars(a + offset, b + offset, *key);
           },
-          [&](uint8_t *a, uint8_t *b) {
+          [struct_size](uint8_t *a, uint8_t *b) {
             // FIXME: faster?
-            for (size_t i = 0; i < type.struct_def->bytesize; i++) {
-              std::swap(a[i], b[i]);
-            }
+            for (size_t i = 0; i < struct_size; i++) { std::swap(a[i], b[i]); }
           });
     } else {
       auto v = reinterpret_cast<Vector<Offset<Table>> *>(
@@ -1429,29 +1523,21 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
       // Here also can't use std::sort. We do have an iterator type for it,
       // but it is non-standard as it will dereference the offsets, and thus
       // can't be used to swap elements.
-      SimpleQsort<Offset<Table>>(
-          v->data(), v->data() + v->size(), 1,
-          [&](const Offset<Table> *_a, const Offset<Table> *_b) -> bool {
-            // Indirect offset pointer to table pointer.
-            auto a = reinterpret_cast<const uint8_t *>(_a) +
-                     ReadScalar<uoffset_t>(_a);
-            auto b = reinterpret_cast<const uint8_t *>(_b) +
-                     ReadScalar<uoffset_t>(_b);
-            // Fetch field address from table.
-            a = reinterpret_cast<const Table *>(a)->GetAddressOf(offset);
-            b = reinterpret_cast<const Table *>(b)->GetAddressOf(offset);
-            return CompareType(a, b, ftype);
-          },
-          [&](Offset<Table> *a, Offset<Table> *b) {
-            // These are serialized offsets, so are relative where they are
-            // stored in memory, so compute the distance between these pointers:
-            ptrdiff_t diff = (b - a) * sizeof(Offset<Table>);
-            FLATBUFFERS_ASSERT(diff >= 0);  // Guaranteed by SimpleQsort.
-            auto udiff = static_cast<uoffset_t>(diff);
-            a->o = EndianScalar(ReadScalar<uoffset_t>(a) - udiff);
-            b->o = EndianScalar(ReadScalar<uoffset_t>(b) + udiff);
-            std::swap(*a, *b);
-          });
+      if (key->value.type.base_type == BASE_TYPE_STRING) {
+        SimpleQsort<Offset<Table>>(
+            v->data(), v->data() + v->size(), 1,
+            [key](const Offset<Table> *_a, const Offset<Table> *_b) -> bool {
+              return CompareTablesByStringKey(_a, _b, *key);
+            },
+            SwapSerializedTables);
+      } else {
+        SimpleQsort<Offset<Table>>(
+            v->data(), v->data() + v->size(), 1,
+            [key](const Offset<Table> *_a, const Offset<Table> *_b) -> bool {
+              return CompareTablesByScalarKey(_a, _b, *key);
+            },
+            SwapSerializedTables);
+      }
     }
   }
   return NoError();
@@ -1521,7 +1607,7 @@ CheckedError Parser::ParseNestedFlatbuffer(Value &val, FieldDef *field,
     nested_parser.enums_ = enums_;
     nested_parser.opts = opts;
     nested_parser.uses_flexbuffers_ = uses_flexbuffers_;
-
+    nested_parser.parse_depth_counter_ = parse_depth_counter_;
     // Parse JSON substring into new flatbuffer builder using nested_parser
     bool ok = nested_parser.Parse(substring.c_str(), nullptr, nullptr);
 
@@ -1670,6 +1756,9 @@ static inline void SingleValueRepack(Value &e, double val) {
 #endif
 
 CheckedError Parser::ParseFunction(const std::string *name, Value &e) {
+  ParseDepthGuard depth_guard(this);
+  ECHECK(depth_guard.Check());
+
   // Copy name, attribute will be changed on NEXT().
   const auto functionname = attribute_;
   if (!IsFloat(e.type.base_type)) {
@@ -1680,7 +1769,7 @@ CheckedError Parser::ParseFunction(const std::string *name, Value &e) {
   }
   NEXT();
   EXPECT('(');
-  ECHECK(Recurse([&]() { return ParseSingleValue(name, e, false); }));
+  ECHECK(ParseSingleValue(name, e, false));
   EXPECT(')');
   // calculate with double precision
   double x, y = 0.0;
@@ -1806,7 +1895,6 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
       match = true;
     }
     // Parse a float/integer number from the string.
-    if (!match) check_now = true;  // Re-pack if parsed from string literal.
     // A "scalar-in-string" value needs extra checks.
     if (!match && is_tok_string && IsScalar(in_type)) {
       // Strip trailing whitespaces from attribute_.
@@ -2395,11 +2483,25 @@ CheckedError Parser::ParseDecl() {
       // been specified.
       std::sort(fields.begin(), fields.end(), compareFieldDefs);
       // Verify we have a contiguous set, and reassign vtable offsets.
-      for (int i = 0; i < static_cast<int>(fields.size()); i++) {
-        if (i != atoi(fields[i]->attributes.Lookup("id")->constant.c_str()))
+      FLATBUFFERS_ASSERT(fields.size() <=
+                         flatbuffers::numeric_limits<voffset_t>::max());
+      for (voffset_t i = 0; i < static_cast<voffset_t>(fields.size()); i++) {
+        auto &field = *fields[i];
+        const auto &id_str = field.attributes.Lookup("id")->constant;
+        // Metadata values have a dynamic type, they can be `float`, 'int', or
+        // 'string`.
+        // The FieldIndexToOffset(i) expects the voffset_t so `id` is limited by
+        // this type.
+        voffset_t id = 0;
+        const auto done = !atot(id_str.c_str(), *this, &id).Check();
+        if (!done)
+          return Error("field id\'s must be non-negative number, field: " +
+                       field.name + ", id: " + id_str);
+        if (i != id)
           return Error("field id\'s must be consecutive from 0, id " +
-                       NumToString(i) + " missing or set twice");
-        fields[i]->value.offset = FieldIndexToOffset(static_cast<voffset_t>(i));
+                       NumToString(i) + " missing or set twice, field: " +
+                       field.name + ", id: " + id_str);
+        field.value.offset = FieldIndexToOffset(i);
       }
     }
   }
@@ -2638,7 +2740,7 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
           ECHECK(StartEnum(name, true, &oneof_union));
           type = Type(BASE_TYPE_UNION, nullptr, oneof_union);
         } else {
-          auto name = "Anonymous" + NumToString(anonymous_counter++);
+          auto name = "Anonymous" + NumToString(anonymous_counter_++);
           ECHECK(StartStruct(name, &anonymous_struct));
           type = Type(BASE_TYPE_STRUCT, anonymous_struct);
         }
@@ -2811,22 +2913,24 @@ CheckedError Parser::ParseTypeFromProtoType(Type *type) {
 }
 
 CheckedError Parser::SkipAnyJsonValue() {
+  ParseDepthGuard depth_guard(this);
+  ECHECK(depth_guard.Check());
+
   switch (token_) {
     case '{': {
       size_t fieldn_outer = 0;
-      return ParseTableDelimiters(
-          fieldn_outer, nullptr,
-          [&](const std::string &, size_t &fieldn,
-              const StructDef *) -> CheckedError {
-            ECHECK(Recurse([&]() { return SkipAnyJsonValue(); }));
-            fieldn++;
-            return NoError();
-          });
+      return ParseTableDelimiters(fieldn_outer, nullptr,
+                                  [&](const std::string &, size_t &fieldn,
+                                      const StructDef *) -> CheckedError {
+                                    ECHECK(SkipAnyJsonValue());
+                                    fieldn++;
+                                    return NoError();
+                                  });
     }
     case '[': {
       uoffset_t count = 0;
       return ParseVectorDelimiters(count, [&](uoffset_t &) -> CheckedError {
-        return Recurse([&]() { return SkipAnyJsonValue(); });
+        return SkipAnyJsonValue();
       });
     }
     case kTokenStringConstant:
@@ -2842,6 +2946,9 @@ CheckedError Parser::SkipAnyJsonValue() {
 }
 
 CheckedError Parser::ParseFlexBufferValue(flexbuffers::Builder *builder) {
+  ParseDepthGuard depth_guard(this);
+  ECHECK(depth_guard.Check());
+
   switch (token_) {
     case '{': {
       auto start = builder->StartMap();
@@ -2903,15 +3010,19 @@ CheckedError Parser::ParseFlexBufferValue(flexbuffers::Builder *builder) {
 
 bool Parser::ParseFlexBuffer(const char *source, const char *source_filename,
                              flexbuffers::Builder *builder) {
+  const auto initial_depth = parse_depth_counter_;
+  (void)initial_depth;
   auto ok = !StartParseFile(source, source_filename).Check() &&
             !ParseFlexBufferValue(builder).Check();
   if (ok) builder->Finish();
+  FLATBUFFERS_ASSERT(initial_depth == parse_depth_counter_);
   return ok;
 }
 
 bool Parser::Parse(const char *source, const char **include_paths,
                    const char *source_filename) {
-  FLATBUFFERS_ASSERT(0 == recurse_protection_counter);
+  const auto initial_depth = parse_depth_counter_;
+  (void)initial_depth;
   bool r;
 
   if (opts.use_flexbuffers) {
@@ -2919,16 +3030,17 @@ bool Parser::Parse(const char *source, const char **include_paths,
   } else {
     r = !ParseRoot(source, include_paths, source_filename).Check();
   }
-  FLATBUFFERS_ASSERT(0 == recurse_protection_counter);
+  FLATBUFFERS_ASSERT(initial_depth == parse_depth_counter_);
   return r;
 }
 
 bool Parser::ParseJson(const char *json, const char *json_filename) {
-  FLATBUFFERS_ASSERT(0 == recurse_protection_counter);
+  const auto initial_depth = parse_depth_counter_;
+  (void)initial_depth;
   builder_.Clear();
   const auto done =
       !StartParseFile(json, json_filename).Check() && !DoParseJson().Check();
-  FLATBUFFERS_ASSERT(0 == recurse_protection_counter);
+  FLATBUFFERS_ASSERT(initial_depth == parse_depth_counter_);
   return done;
 }
 
