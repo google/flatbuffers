@@ -3273,5 +3273,95 @@ MyGame.Example.TypeAliases.createTypeAliases = function(builder, i8, u8, i16, u1
   return MyGame.Example.TypeAliases.endTypeAliases(builder);
 }
 
+/**
+ * @constructor
+ */
+MyGame.Example.StringKey = function() {
+  /**
+   * @type {flatbuffers.ByteBuffer}
+   */
+  this.bb = null;
+
+  /**
+   * @type {number}
+   */
+  this.bb_pos = 0;
+};
+
+/**
+ * @param {number} i
+ * @param {flatbuffers.ByteBuffer} bb
+ * @returns {MyGame.Example.StringKey}
+ */
+MyGame.Example.StringKey.prototype.__init = function(i, bb) {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+};
+
+/**
+ * @param {flatbuffers.ByteBuffer} bb
+ * @param {MyGame.Example.StringKey=} obj
+ * @returns {MyGame.Example.StringKey}
+ */
+MyGame.Example.StringKey.getRootAsStringKey = function(bb, obj) {
+  return (obj || new MyGame.Example.StringKey).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param {flatbuffers.ByteBuffer} bb
+ * @param {MyGame.Example.StringKey=} obj
+ * @returns {MyGame.Example.StringKey}
+ */
+MyGame.Example.StringKey.getSizePrefixedRootAsStringKey = function(bb, obj) {
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new MyGame.Example.StringKey).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param {flatbuffers.Encoding=} optionalEncoding
+ * @returns {string|Uint8Array|null}
+ */
+MyGame.Example.StringKey.prototype.k = function(optionalEncoding) {
+  var offset = this.bb.__offset(this.bb_pos, 4);
+  return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ */
+MyGame.Example.StringKey.startStringKey = function(builder) {
+  builder.startObject(1);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} kOffset
+ */
+MyGame.Example.StringKey.addK = function(builder, kOffset) {
+  builder.addFieldOffset(0, kOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.StringKey.endStringKey = function(builder) {
+  var offset = builder.endObject();
+  builder.requiredField(offset, 4); // k
+  return offset;
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} kOffset
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.StringKey.createStringKey = function(builder, kOffset) {
+  MyGame.Example.StringKey.startStringKey(builder);
+  MyGame.Example.StringKey.addK(builder, kOffset);
+  return MyGame.Example.StringKey.endStringKey(builder);
+}
+
 // Exports for Node.js and RequireJS
 this.MyGame = MyGame;

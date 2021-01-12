@@ -348,6 +348,16 @@
               }
       },
       "additionalProperties" : false
+    },
+    "MyGame_Example_StringKey" : {
+      "type" : "object",
+      "properties" : {
+        "k" : {
+                "type" : "string"
+              }
+      },
+      "required" : ["k"],
+      "additionalProperties" : false
     }
   },
   "$ref" : "#/definitions/MyGame_Example_Monster"

@@ -135,6 +135,11 @@ table TypeAliases {
     vf64:[float64];
 }
 
+table StringKey {
+  k: string (key);
+}
+
+
 rpc_service MonsterStorage {
   Store(Monster):Stat (streaming: "none");
   Retrieve(Stat):Monster (streaming: "server", idempotent);

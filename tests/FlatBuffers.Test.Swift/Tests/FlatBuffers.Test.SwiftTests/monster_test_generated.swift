@@ -1630,3 +1630,92 @@ public class MyGame_Example_TypeAliasesT: UnionObject {
   public func serialize() -> ByteBuffer { return serialize(type: MyGame_Example_TypeAliases.self) }
 
 }
+public struct MyGame_Example_StringKey: FlatBufferObject, ObjectAPI {
+
+  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  public var __buffer: ByteBuffer! { return _accessor.bb }
+  private var _accessor: Table
+
+  public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset<UOffset>, prefix: Bool = false) { fbb.finish(offset: end, fileId: "MONS", addPrefix: prefix) }
+  public static func getRootAsStringKey(bb: ByteBuffer) -> MyGame_Example_StringKey { return MyGame_Example_StringKey(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
+
+  private init(_ t: Table) { _accessor = t }
+  public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
+
+  private enum VTOFFSET: VOffset {
+    case k = 4
+    var v: Int32 { Int32(self.rawValue) }
+    var p: VOffset { self.rawValue }
+  }
+
+  public var k: String! { let o = _accessor.offset(VTOFFSET.k.v); return _accessor.string(at: o) }
+  public var kSegmentArray: [UInt8]! { return _accessor.getVector(at: VTOFFSET.k.v) }
+  public static func startStringKey(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
+  public static func add(k: Offset<String>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: k, at: VTOFFSET.k.p) }
+  public static func endStringKey(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); fbb.require(table: end, fields: [4]); return end }
+  public static func createStringKey(
+    _ fbb: inout FlatBufferBuilder,
+    offsetOfK k: Offset<String> = Offset()
+  ) -> Offset<UOffset> {
+    let __start = MyGame_Example_StringKey.startStringKey(&fbb)
+    MyGame_Example_StringKey.add(k: k, &fbb)
+    return MyGame_Example_StringKey.endStringKey(&fbb, start: __start)
+  }
+  public static func sortVectorOfStringKey(offsets:[Offset<UOffset>], _ fbb: inout FlatBufferBuilder) -> Offset<UOffset> {
+    var off = offsets
+    off.sort { Table.compare(Table.offset(Int32($1.o), vOffset: 4, fbb: fbb.buffer), Table.offset(Int32($0.o), vOffset: 4, fbb: fbb.buffer), fbb: fbb.buffer) < 0 } 
+    return fbb.createVector(ofOffsets: off)
+  }
+  fileprivate static func lookupByKey(vector: Int32, key: String, fbb: ByteBuffer) -> MyGame_Example_StringKey? {
+    let key = key.utf8.map { $0 }
+    var span = fbb.read(def: Int32.self, position: Int(vector - 4))
+    var start: Int32 = 0
+    while span != 0 {
+      var middle = span / 2
+      let tableOffset = Table.indirect(vector + 4 * (start + middle), fbb)
+      let comp = Table.compare(Table.offset(Int32(fbb.capacity) - tableOffset, vOffset: 4, fbb: fbb), key, fbb: fbb)
+      if comp > 0 {
+        span = middle
+      } else if comp < 0 {
+        middle += 1
+        start += middle
+        span -= middle
+      } else {
+        return MyGame_Example_StringKey(fbb, o: tableOffset)
+      }
+    }
+    return nil
+  }
+  
+
+  public mutating func unpack() -> MyGame_Example_StringKeyT {
+    return MyGame_Example_StringKeyT(&self)
+  }
+  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_StringKeyT?) -> Offset<UOffset> {
+    guard var obj = obj else { return Offset<UOffset>() }
+    return pack(&builder, obj: &obj)
+  }
+
+  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_StringKeyT) -> Offset<UOffset> {
+    let __k = builder.create(string: obj.k)
+    let __root = MyGame_Example_StringKey.startStringKey(&builder)
+    MyGame_Example_StringKey.add(k: __k, &builder)
+    return MyGame_Example_StringKey.endStringKey(&builder, start: __root)
+  }
+}
+
+public class MyGame_Example_StringKeyT: UnionObject {
+
+  public var k: String
+
+  public init(_ _t: inout MyGame_Example_StringKey) {
+    k = _t.k
+  }
+
+  public init() {
+    k = ""
+  }
+
+  public func serialize() -> ByteBuffer { return serialize(type: MyGame_Example_StringKey.self) }
+
+}
