@@ -63,11 +63,13 @@ test_script:
   - rem "---------------- JS -----------------"
   - "node --version"
   - "npm install"
-  - "npm test"
+  - "npm run compile"
+  - "cd tests"
+  - "TypeScriptTest.bat"
   - rem "---------------- C# -----------------"
   # Have to compile this here rather than in "build" above because AppVeyor only
   # supports building one project??
-  - "cd tests/FlatBuffers.Test"
+  - "cd FlatBuffers.Test"
   - "dotnet new sln"
   - "dotnet sln add FlatBuffers.Test.csproj"
   - "nuget restore"
