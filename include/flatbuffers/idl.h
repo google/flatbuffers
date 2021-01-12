@@ -1041,7 +1041,7 @@ extern bool GenerateJava(const Parser &parser, const std::string &path,
 // Generate JavaScript or TypeScript code from the definitions in the Parser
 // object. See idl_gen_js.
 extern bool GenerateTS(const Parser &parser, const std::string &path,
-                         const std::string &file_name);
+                       const std::string &file_name);
 
 // Generate Go files from the definitions in the Parser object.
 // See idl_gen_go.cpp.
@@ -1096,7 +1096,7 @@ extern bool GenerateFBS(const Parser &parser, const std::string &path,
 // Generate a make rule for the generated TypeScript code.
 // See idl_gen_ts.cpp.
 extern std::string TSMakeRule(const Parser &parser, const std::string &path,
-                                const std::string &file_name);
+                              const std::string &file_name);
 
 // Generate a make rule for the generated C++ header.
 // See idl_gen_cpp.cpp.
@@ -1155,7 +1155,7 @@ extern bool GenerateSwiftGRPC(const Parser &parser, const std::string &path,
                               const std::string &file_name);
 
 extern bool GenerateTSGRPC(const Parser &parser, const std::string &path,
-                             const std::string &file_name);
+                           const std::string &file_name);
 }  // namespace flatbuffers
 
 #endif  // FLATBUFFERS_IDL_H_

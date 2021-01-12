@@ -52,9 +52,7 @@ inline bool is_alpha(char c) {
 }
 
 // Check for uppercase alpha
-inline bool is_alpha_upper(char c) {
-  return check_ascii_range(c, 'A', 'Z');
-}
+inline bool is_alpha_upper(char c) { return check_ascii_range(c, 'A', 'Z'); }
 
 // Check (case-insensitive) that `c` is equal to alpha.
 inline bool is_alpha_char(char c, char alpha) {

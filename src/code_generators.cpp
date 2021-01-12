@@ -98,7 +98,8 @@ std::string BaseGenerator::NamespaceDir(const Parser &parser,
   return namespace_dir;
 }
 
-std::string BaseGenerator::NamespaceDir(const Namespace &ns, const bool dasherize) const {
+std::string BaseGenerator::NamespaceDir(const Namespace &ns,
+                                        const bool dasherize) const {
   return BaseGenerator::NamespaceDir(parser_, path_, ns, dasherize);
 }
 
@@ -108,11 +109,9 @@ std::string BaseGenerator::ToDasherizedCase(const std::string pascal_case) {
   for (size_t i = 0; i < pascal_case.length(); i++) {
     char const &c = pascal_case[i];
     if (is_alpha_upper(c)) {
-      if (i > 0 && p != kPathSeparator)
-        dasherized_case += "-";
+      if (i > 0 && p != kPathSeparator) dasherized_case += "-";
       dasherized_case += CharToLower(c);
-    }
-    else {
+    } else {
       dasherized_case += c;
     }
     p = c;
