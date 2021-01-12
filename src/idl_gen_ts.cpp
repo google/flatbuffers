@@ -60,14 +60,14 @@ class TsGenerator : public BaseGenerator {
 
     std::string code = "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
 
-    for (auto &import : bare_imports)
-      code += import.second.statement + "\n";
+    for (auto it = bare_imports.begin(); it != bare_imports.end(); it++)
+      code += it->second.statement + "\n";
     if (!bare_imports.empty())
       code += "\n";
 
-    for (auto &import : imports)
-      if (import.second.dependency != &definition) // do not import itself
-        code += import.second.statement + "\n";
+    for (auto it = imports.begin(); it != imports.end(); it++)
+      if (it->second.dependency != &definition) // do not import itself
+        code += it->second.statement + "\n";
     if (!imports.empty())
       code += "\n\n";
 
@@ -487,8 +487,10 @@ class TsGenerator : public BaseGenerator {
 
   std::string AddImport(import_set &imports, const Definition &dependent, const StructDef &dependency) {
     std::string ns;
-    for (auto &component : dependency.defined_namespace->components)
-      ns += component;
+    const auto &dep_comps = dependent.defined_namespace->components;
+    const auto &depc_comps = dependency.defined_namespace->components;
+    for (auto it = depc_comps.begin(); it != depc_comps.end(); it++)
+      ns += *it;
     std::string unique_name = ns + dependency.name;
     std::string import_name =  dependency.name;
     std::string long_import_name;
@@ -514,12 +516,12 @@ class TsGenerator : public BaseGenerator {
     }
     import_statement += " } from '";
     std::string file_name;
-    for (size_t i = 0; i < dependent.defined_namespace->components.size(); i++)
+    for (size_t i = 0; i < dep_comps.size(); i++)
       file_name += i == 0 ? ".." : (kPathSeparator + std::string(".."));
-    if (dependent.defined_namespace->components.size() == 0)
+    if (dep_comps.size() == 0)
       file_name += ".";
-    for (const auto &c : dependency.defined_namespace->components)
-      file_name += kPathSeparator + ToDasherizedCase(c);
+    for (auto it = depc_comps.begin(); it != depc_comps.end(); it++)
+      file_name += kPathSeparator + ToDasherizedCase(*it);
     file_name += kPathSeparator + ToDasherizedCase(dependency.name);
     import_statement += file_name + "';";
     ImportDefinition import;
@@ -534,8 +536,10 @@ class TsGenerator : public BaseGenerator {
   // TODO: largely (but not identical) duplicated code from above couln't find a good way to refactor
   std::string AddImport(import_set &imports, const Definition &dependent, const EnumDef &dependency) {
     std::string ns;
-    for (auto &component : dependency.defined_namespace->components)
-      ns += component;
+    const auto &dep_comps = dependent.defined_namespace->components;
+    const auto &depc_comps = dependency.defined_namespace->components;
+    for (auto it = depc_comps.begin(); it != depc_comps.end(); it++)
+      ns += *it;
     std::string unique_name = ns + dependency.name;
     std::string import_name =  dependency.name;
     std::string long_import_name;
@@ -559,12 +563,12 @@ class TsGenerator : public BaseGenerator {
     }
     import_statement += " } from '";
     std::string file_name;
-    for (size_t i = 0; i < dependent.defined_namespace->components.size(); i++)
+    for (size_t i = 0; i < dep_comps.size(); i++)
       file_name += i == 0 ? ".." : (kPathSeparator + std::string(".."));
-    if (dependent.defined_namespace->components.size() == 0)
+    if (dep_comps.size() == 0)
       file_name += ".";
-    for (const auto &c : dependency.defined_namespace->components)
-      file_name += kPathSeparator + ToDasherizedCase(c);
+    for (auto it = depc_comps.begin(); it != depc_comps.end(); it++)
+      file_name += kPathSeparator + ToDasherizedCase(*it);
     file_name += kPathSeparator + ToDasherizedCase(dependency.name);
     import_statement += file_name + "';";
     ImportDefinition import;
