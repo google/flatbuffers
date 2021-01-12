@@ -49,10 +49,6 @@ struct TypeAliases;
 struct TypeAliasesBuilder;
 struct TypeAliasesT;
 
-struct StringKey;
-struct StringKeyBuilder;
-struct StringKeyT;
-
 }  // namespace Example
 
 bool operator==(const InParentNamespaceT &lhs, const InParentNamespaceT &rhs);
@@ -81,8 +77,6 @@ bool operator==(const MonsterT &lhs, const MonsterT &rhs);
 bool operator!=(const MonsterT &lhs, const MonsterT &rhs);
 bool operator==(const TypeAliasesT &lhs, const TypeAliasesT &rhs);
 bool operator!=(const TypeAliasesT &lhs, const TypeAliasesT &rhs);
-bool operator==(const StringKeyT &lhs, const StringKeyT &rhs);
-bool operator!=(const StringKeyT &lhs, const StringKeyT &rhs);
 
 }  // namespace Example
 
@@ -111,8 +105,6 @@ inline const flatbuffers::TypeTable *ReferrableTypeTable();
 inline const flatbuffers::TypeTable *MonsterTypeTable();
 
 inline const flatbuffers::TypeTable *TypeAliasesTypeTable();
-
-inline const flatbuffers::TypeTable *StringKeyTypeTable();
 
 /// Composite components of Monster color.
 enum Color : uint8_t {
@@ -2442,91 +2434,6 @@ inline flatbuffers::Offset<TypeAliases> CreateTypeAliasesDirect(
 
 flatbuffers::Offset<TypeAliases> CreateTypeAliases(flatbuffers::FlatBufferBuilder &_fbb, const TypeAliasesT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
-struct StringKeyT : public flatbuffers::NativeTable {
-  typedef StringKey TableType;
-  std::string k{};
-};
-
-inline bool operator==(const StringKeyT &lhs, const StringKeyT &rhs) {
-  return
-      (lhs.k == rhs.k);
-}
-
-inline bool operator!=(const StringKeyT &lhs, const StringKeyT &rhs) {
-    return !(lhs == rhs);
-}
-
-
-struct StringKey FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  typedef StringKeyT NativeTableType;
-  typedef StringKeyBuilder Builder;
-  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
-    return StringKeyTypeTable();
-  }
-  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_K = 4
-  };
-  const flatbuffers::String *k() const {
-    return GetPointer<const flatbuffers::String *>(VT_K);
-  }
-  flatbuffers::String *mutable_k() {
-    return GetPointer<flatbuffers::String *>(VT_K);
-  }
-  bool KeyCompareLessThan(const StringKey *o) const {
-    return *k() < *o->k();
-  }
-  int KeyCompareWithValue(const char *val) const {
-    return strcmp(k()->c_str(), val);
-  }
-  bool Verify(flatbuffers::Verifier &verifier) const {
-    return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_K) &&
-           verifier.VerifyString(k()) &&
-           verifier.EndTable();
-  }
-  StringKeyT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(StringKeyT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  static flatbuffers::Offset<StringKey> Pack(flatbuffers::FlatBufferBuilder &_fbb, const StringKeyT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
-};
-
-struct StringKeyBuilder {
-  typedef StringKey Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_k(flatbuffers::Offset<flatbuffers::String> k) {
-    fbb_.AddOffset(StringKey::VT_K, k);
-  }
-  explicit StringKeyBuilder(flatbuffers::FlatBufferBuilder &_fbb)
-        : fbb_(_fbb) {
-    start_ = fbb_.StartTable();
-  }
-  flatbuffers::Offset<StringKey> Finish() {
-    const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<StringKey>(end);
-    fbb_.Required(o, StringKey::VT_K);
-    return o;
-  }
-};
-
-inline flatbuffers::Offset<StringKey> CreateStringKey(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::String> k = 0) {
-  StringKeyBuilder builder_(_fbb);
-  builder_.add_k(k);
-  return builder_.Finish();
-}
-
-inline flatbuffers::Offset<StringKey> CreateStringKeyDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    const char *k = nullptr) {
-  auto k__ = k ? _fbb.CreateString(k) : 0;
-  return MyGame::Example::CreateStringKey(
-      _fbb,
-      k__);
-}
-
-flatbuffers::Offset<StringKey> CreateStringKey(flatbuffers::FlatBufferBuilder &_fbb, const StringKeyT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
-
 }  // namespace Example
 
 inline InParentNamespaceT *InParentNamespace::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
@@ -2902,32 +2809,6 @@ inline flatbuffers::Offset<TypeAliases> CreateTypeAliases(flatbuffers::FlatBuffe
       _f64,
       _v8,
       _vf64);
-}
-
-inline StringKeyT *StringKey::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = std::unique_ptr<StringKeyT>(new StringKeyT());
-  UnPackTo(_o.get(), _resolver);
-  return _o.release();
-}
-
-inline void StringKey::UnPackTo(StringKeyT *_o, const flatbuffers::resolver_function_t *_resolver) const {
-  (void)_o;
-  (void)_resolver;
-  { auto _e = k(); if (_e) _o->k = _e->str(); }
-}
-
-inline flatbuffers::Offset<StringKey> StringKey::Pack(flatbuffers::FlatBufferBuilder &_fbb, const StringKeyT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateStringKey(_fbb, _o, _rehasher);
-}
-
-inline flatbuffers::Offset<StringKey> CreateStringKey(flatbuffers::FlatBufferBuilder &_fbb, const StringKeyT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
-  (void)_rehasher;
-  (void)_o;
-  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const StringKeyT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _k = _fbb.CreateString(_o->k);
-  return MyGame::Example::CreateStringKey(
-      _fbb,
-      _k);
 }
 
 inline bool VerifyAny(flatbuffers::Verifier &verifier, const void *obj, Any type) {
@@ -3663,19 +3544,6 @@ inline const flatbuffers::TypeTable *TypeAliasesTypeTable() {
   };
   static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_TABLE, 12, type_codes, nullptr, nullptr, nullptr, names
-  };
-  return &tt;
-}
-
-inline const flatbuffers::TypeTable *StringKeyTypeTable() {
-  static const flatbuffers::TypeCode type_codes[] = {
-    { flatbuffers::ET_STRING, 0, -1 }
-  };
-  static const char * const names[] = {
-    "k"
-  };
-  static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 1, type_codes, nullptr, nullptr, nullptr, names
   };
   return &tt;
 }

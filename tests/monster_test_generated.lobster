@@ -62,8 +62,6 @@ class Monster
 
 class TypeAliases
 
-class StringKey
-
 namespace MyGame
 
 class InParentNamespace : flatbuffers_handle
@@ -748,21 +746,4 @@ def TypeAliasesCreateVf64Vector(b_:flatbuffers_builder, v_:[float]):
     b_.StartVector(8, v_.length, 8)
     reverse(v_) e_: b_.PrependFloat64(e_)
     return b_.EndVector(v_.length)
-
-class StringKey : flatbuffers_handle
-    def k():
-        return buf_.flatbuffers_field_string(pos_, 4)
-
-def GetRootAsStringKey(buf:string): return StringKey { buf, buf.flatbuffers_indirect(0) }
-
-struct StringKeyBuilder:
-    b_:flatbuffers_builder
-    def start():
-        b_.StartObject(1)
-        return this
-    def add_k(k:flatbuffers_offset):
-        b_.PrependUOffsetTRelativeSlot(0, k)
-        return this
-    def end():
-        return b_.EndObject()
 
