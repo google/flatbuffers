@@ -25,6 +25,13 @@
 #include "flatbuffers/idl.h"
 #include "test_init.h"
 
+namespace fs = std::filesystem;
+
+// Utility for test run.
+OneTimeTestInit OneTimeTestInit::one_time_init_;
+// The current executable path (see LLVMFuzzerInitialize).
+static fs::path exe_path_;
+
 namespace {
 
 static constexpr size_t kMinInputLength = 1;
@@ -34,28 +41,21 @@ static constexpr uint8_t flags_strict_json = 0x80;
 static constexpr uint8_t flags_skip_unexpected_fields_in_json = 0x40;
 static constexpr uint8_t flags_allow_non_utf8 = 0x20;
 
-bool TestFileExists(const char *file_name) {
-  namespace fs = std::filesystem;
-  const bool file_exists = flatbuffers::FileExists(file_name);
-  TEST_OUTPUT_LINE("@DEBUG: test file, exists: %d, name:'%s'", file_exists,
-                   file_name);
-  if (file_exists) return true;
+bool TestFileExists(fs::path file_path) {
+  if (file_path.has_filename() && fs::exists(file_path)) return true;
 
-  const auto cwd = fs::current_path();
-  TEST_OUTPUT_LINE("@DEBUG: file '%s' not found with flatbuffers::FileExists()",
-                   file_name);
-  TEST_OUTPUT_LINE("@DEBUG: CWD: '%s', fs::exists: %d", cwd.c_str(),
-                   fs::exists(cwd / file_name));
-  for (const auto &entry : fs::directory_iterator(cwd)) {
-    TEST_OUTPUT_LINE("@DEBUG: CWD entry: '%s'", entry.path().c_str());
+  TEST_OUTPUT_LINE("@DEBUG: file '%s' not found", file_path.c_str());
+  for (const auto &entry : fs::directory_iterator(file_path.parent_path())) {
+    TEST_OUTPUT_LINE("@DEBUG: parent path entry: '%s'", entry.path().c_str());
   }
   return false;
 }
 
 std::string LoadBinarySchema(const char *file_name) {
-  TEST_EQ(true, TestFileExists(file_name));
+  const auto file_path = exe_path_.parent_path() / file_name;
+  TEST_EQ(true, TestFileExists(file_path));
   std::string schemafile;
-  TEST_EQ(true, flatbuffers::LoadFile(file_name, true, &schemafile));
+  TEST_EQ(true, flatbuffers::LoadFile(file_path.c_str(), true, &schemafile));
 
   flatbuffers::Verifier verifier(
       reinterpret_cast<const uint8_t *>(schemafile.c_str()), schemafile.size());
@@ -87,8 +87,16 @@ std::string do_test(const flatbuffers::IDLOptions &opts,
 };
 }  // namespace
 
-// Utility for test run.
-OneTimeTestInit OneTimeTestInit::one_time_init_;
+// https://google.github.io/oss-fuzz/further-reading/fuzzer-environment/
+// Current working directory
+// You should not make any assumptions about the current working directory of
+// your fuzz target. If you need to load data files, please use argv[0] to get
+// the directory where your fuzz target executable is located.
+// You must not modify argv[0].
+extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv) {
+  exe_path_ = (*argv)[0];
+  return 0;
+}
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   // Reserve one byte for Parser flags and one byte for repetition counter.
