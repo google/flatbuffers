@@ -145,8 +145,10 @@ class Builder {
   /// true, will cause [writeString] to pool strings in the buffer so that
   /// identical strings will always use the same offset in tables.
   Builder(
-      {this.initialSize: 1024, bool internStrings = false, Allocator allocator})
-      : _allocator = allocator ?? DefaultAllocator() {
+      {this.initialSize: 1024,
+      bool internStrings = false,
+      Allocator allocator = _defaultAllocator})
+      : _allocator = allocator {
     if (internStrings == true) {
       _strings = new Map<String, int>();
     }
@@ -1249,6 +1251,8 @@ class _VTable {
 
 /// The interface that [Builder] uses to allocate buffers for encoding.
 abstract class Allocator {
+  const Allocator();
+
   /// Allocate a [ByteData] buffer of a given size.
   ByteData allocate(int size);
 
@@ -1300,6 +1304,8 @@ abstract class Allocator {
 }
 
 class DefaultAllocator extends Allocator {
+  const DefaultAllocator();
+
   @override
   ByteData allocate(int size) => ByteData(size);
 
@@ -1317,3 +1323,5 @@ class DefaultAllocator extends Allocator {
     }
   }
 }
+
+const _defaultAllocator = DefaultAllocator();
