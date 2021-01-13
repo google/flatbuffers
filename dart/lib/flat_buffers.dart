@@ -727,7 +727,7 @@ class Builder {
         int deltaCapacity = desiredNewCapacity - oldCapacity;
         deltaCapacity += (-deltaCapacity) % _maxAlign;
         int newCapacity = oldCapacity + deltaCapacity;
-        _buf = _allocator.reallocateDownward(_buf, newCapacity, oldCapacity, 0);
+        _buf = _allocator.resize(_buf, newCapacity, oldCapacity, 0);
       }
     }
     // Update the tail pointer.
@@ -1247,17 +1247,19 @@ class _VTable {
   }
 }
 
-// Allocator interface. This is flatbuffers-specific - only for [Builder].
+/// The interface that [Builder] uses to allocate buffers for encoding.
 abstract class Allocator {
+  /// Allocate a [ByteData] buffer of a given size.
   ByteData allocate(int size);
 
+  /// Free the given [ByteData] buffer previously allocated by [allocate].
   void deallocate(ByteData data);
 
   /// Reallocate [newSize] bytes of memory, replacing the old [oldData]. This
   /// grows downwards, and is intended specifically for use with [Builder].
   /// Params [inUseBack] and [inUseFront] indicate how much of [oldData] is
   /// actually in use at each end, and needs to be copied.
-  ByteData reallocateDownward(
+  ByteData resize(
       ByteData oldData, int newSize, int inUseBack, int inUseFront) {
     final newData = allocate(newSize);
     clear(newData, true);
@@ -1278,7 +1280,7 @@ abstract class Allocator {
     data.buffer.asUint8List().fillRange(length64b * 8, length % 8, 0);
   }
 
-  /// Called by [reallocate] to copy memory from [oldData] to [newData]. Only
+  /// Called by [resize] to copy memory from [oldData] to [newData]. Only
   /// memory of size [inUseFront] and [inUseBack] will be copied from the front
   /// and back of the old memory allocation.
   void _copyDownward(
