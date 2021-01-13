@@ -259,22 +259,22 @@ class TsGenerator : public BaseGenerator {
         } else {
           name = AddImport(imports, owner, *type.struct_def);
         }
-        return (allowNull) ? (name + "|null") : (name);
+        return allowNull ? (name + "|null") : name;
       }
     }
 
     switch (type.base_type) {
-      case BASE_TYPE_BOOL: return (allowNull) ? ("boolean|null") : ("boolean");
+      case BASE_TYPE_BOOL: return allowNull ? "boolean|null" : "boolean";
       case BASE_TYPE_LONG:
       case BASE_TYPE_ULONG:
-        return (allowNull) ? ("flatbuffers.Long|null") : ("flatbuffers.Long");
+        return allowNull ? "flatbuffers.Long|null" : "flatbuffers.Long";
       default:
         if (IsScalar(type.base_type)) {
           if (type.enum_def) {
             const auto enum_name = AddImport(imports, owner, *type.enum_def);
-            return (allowNull) ? (enum_name + "|null") : (enum_name);
+            return allowNull ? (enum_name + "|null") : enum_name;
           }
-          return (allowNull) ? ("number|null") : ("number");
+          return allowNull ? "number|null" : "number";
         }
         return "flatbuffers.Offset";
     }
@@ -305,7 +305,7 @@ class TsGenerator : public BaseGenerator {
   }
 
   static std::string GenFileNamespacePrefix(const std::string &file) {
-    return "NS" + std::to_string(HashFnv1a<uint64_t>(file.c_str()));
+    return "NS" + NumToString(HashFnv1a<uint64_t>(file.c_str()));
   }
 
   std::string GenPrefixedImport(const std::string &full_file_name,
@@ -391,7 +391,7 @@ class TsGenerator : public BaseGenerator {
   }
 
   void GenerateRootAccessor(StructDef &struct_def, std::string *code_ptr,
-                            std::string &code, std::string &object_name,
+                            std::string &code, const std::string &object_name,
                             bool size_prefixed) {
     if (!struct_def.fixed) {
       GenDocComment(code_ptr);
@@ -446,7 +446,7 @@ class TsGenerator : public BaseGenerator {
   bool UnionHasStringType(const EnumDef &union_enum) {
     return std::any_of(union_enum.Vals().begin(), union_enum.Vals().end(),
                        [](const EnumVal *ev) {
-                         return !(ev->IsZero()) && (IsString(ev->union_type));
+                         return !ev->IsZero() && IsString(ev->union_type);
                        });
   }
 
@@ -640,14 +640,13 @@ class TsGenerator : public BaseGenerator {
                  valid_union_type_with_null +
                  "\n): " + valid_union_type_with_null + " {\n";
 
-      const auto enum_type = AddImport(imports, enum_def, *union_type.enum_def);
-      const auto &union_enum = *(union_type.enum_def);
+      const auto enum_type = AddImport(imports, enum_def, enum_def);
 
       const auto union_enum_loop = [&](const std::string &accessor_str) {
         ret += "  switch(" + enum_type + "[type]) {\n";
         ret += "    case 'NONE': return null; \n";
 
-        for (auto it = union_enum.Vals().begin(); it != union_enum.Vals().end();
+        for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
              ++it) {
           const auto &ev = **it;
           if (ev.IsZero()) { continue; }
