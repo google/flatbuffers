@@ -22,11 +22,11 @@ swift:
 
 javascript:
   - '**/*.js'
-  - src/idl_gen_js_ts.cpp
+  - src/idl_gen_ts.cpp
 
 typescript:
   - '**/*.ts'
-  - src/idl_gen_js_ts.cpp
+  - src/idl_gen_ts.cpp
   - grpc/flatbuffers-js-grpc/**/*.ts
 
 golang:
