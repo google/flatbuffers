@@ -47,7 +47,7 @@ cc_library(
         "idl_gen_go.cpp",
         "idl_gen_grpc.cpp",
         "idl_gen_java.cpp",
-        "idl_gen_js_ts.cpp",
+        "idl_gen_ts.cpp",
         "idl_gen_json_schema.cpp",
         "idl_gen_kotlin.cpp",
         "idl_gen_lobster.cpp",
