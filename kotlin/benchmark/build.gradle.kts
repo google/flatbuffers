@@ -5,6 +5,7 @@ plugins {
   id("org.jetbrains.kotlin.plugin.allopen") version "1.4.20"
   id("kotlinx.benchmark") version "0.2.0-dev-20"
   id("io.morethan.jmhreport") version "0.9.0"
+  id("de.undercouch.download") version "4.1.1"
 }
 
 // allOpen plugin is needed for the benchmark annotations.
@@ -32,6 +33,8 @@ benchmark {
       iterations = 5
       iterationTime = 300
       iterationTimeUnit = "ms"
+      // uncomment for benchmarking JSON op only
+      // include(".*JsonBenchmark.*")
     }
   }
   targets {
@@ -76,6 +79,11 @@ kotlin {
         implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.4.1")
 
+        //moshi
+        implementation("com.squareup.moshi:moshi-kotlin:1.11.0")
+
+        //gson
+        implementation("com.google.code.gson:gson:2.8.5")
       }
     }
 
@@ -87,4 +95,17 @@ kotlin {
       targetFromPreset(presets.getAt("jvm"))
     }
   }
+}
+
+// This task download all JSON files used for benchmarking
+tasks.register<de.undercouch.gradle.tasks.download.Download>("downloadMultipleFiles") {
+  // We are downloading json benchmark samples from serdes-rs project.
+  // see: https://github.com/serde-rs/json-benchmark/blob/master/data
+  val baseUrl = "https://github.com/serde-rs/json-benchmark/blob/master/data"
+  src(listOf("$baseUrl/canada.json", "$baseUrl/twitter.json", "$baseUrl/citm_catalog.json"))
+  dest(File("${project.projectDir.absolutePath}/src/jvmMain/resources"))
+}
+
+project.tasks.named("compileKotlinJvm") {
+  dependsOn("downloadMultipleFiles")
 }
