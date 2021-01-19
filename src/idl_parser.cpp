@@ -227,14 +227,38 @@ std::string Namespace::GetFullyQualifiedName(const std::string &name,
   if (components.empty() || !max_components) { return name; }
   std::string stream_str;
   for (size_t i = 0; i < std::min(components.size(), max_components); i++) {
-    if (i) { stream_str += '.'; }
-    stream_str += std::string(components[i]);
+    stream_str += components[i];
+    stream_str += '.';
   }
+  if (!stream_str.empty()) stream_str.pop_back();
   if (name.length()) {
     stream_str += '.';
     stream_str += name;
   }
   return stream_str;
+}
+
+template<typename T>
+T *LookupTableByName(const SymbolTable<T> &table, const std::string &name,
+                     const Namespace &current_namespace, size_t skip_top) {
+  const auto &components = current_namespace.components;
+  if (table.dict.empty()) return nullptr;
+  if (components.size() < skip_top) return nullptr;
+  const auto N = components.size() - skip_top;
+  std::string full_name;
+  for (size_t i = 0; i < N; i++) {
+    full_name += components[i];
+    full_name += '.';
+  }
+  for (size_t i = N; i > 0; i--) {
+    full_name += name;
+    auto obj = table.Lookup(full_name);
+    if (obj) return obj;
+    auto len = full_name.size() - components[i - 1].size() - 1 - name.size();
+    full_name.resize(len);
+  }
+  FLATBUFFERS_ASSERT(full_name.empty());
+  return table.Lookup(name);  // lookup in global namespace
 }
 
 // Declare tokens we'll use. Single character tokens are represented by their
@@ -576,17 +600,18 @@ CheckedError Parser::ParseNamespacing(std::string *id, std::string *last) {
 
 EnumDef *Parser::LookupEnum(const std::string &id) {
   // Search thru parent namespaces.
-  for (int components = static_cast<int>(current_namespace_->components.size());
-       components >= 0; components--) {
-    auto ed = enums_.Lookup(
-        current_namespace_->GetFullyQualifiedName(id, components));
-    if (ed) return ed;
-  }
-  return nullptr;
+  return LookupTableByName(enums_, id, *current_namespace_, 0);
 }
 
 StructDef *Parser::LookupStruct(const std::string &id) const {
   auto sd = structs_.Lookup(id);
+  if (sd) sd->refcount++;
+  return sd;
+}
+
+StructDef *Parser::LookupStructThruParentNamespaces(
+    const std::string &id) const {
+  auto sd = LookupTableByName(structs_, id, *current_namespace_, 1);
   if (sd) sd->refcount++;
   return sd;
 }
@@ -1980,13 +2005,8 @@ StructDef *Parser::LookupCreateStruct(const std::string &name,
     }
     return struct_def;
   }
-  if (!definition) {
-    // Search thru parent namespaces.
-    for (size_t components = current_namespace_->components.size();
-         components && !struct_def; components--) {
-      struct_def = LookupStruct(
-          current_namespace_->GetFullyQualifiedName(name, components - 1));
-    }
+  if (!definition && !struct_def) {
+    struct_def = LookupStructThruParentNamespaces(name);
   }
   if (!struct_def && create_if_new) {
     struct_def = new StructDef();

@@ -856,6 +856,7 @@ class Parser : public ParserState {
                        flexbuffers::Builder *builder);
 
   StructDef *LookupStruct(const std::string &id) const;
+  StructDef *LookupStructThruParentNamespaces(const std::string &id) const;
 
   std::string UnqualifiedName(const std::string &fullQualifiedName);
 
