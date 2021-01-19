@@ -129,9 +129,6 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --object-prefix        Customise class prefix for C++ object-based API.\n"
     "  --object-suffix        Customise class suffix for C++ object-based API.\n"
     "                         Default value is \"T\".\n"
-    "  --no-js-exports        Removes Node.js style export lines in JS.\n"
-    "  --goog-js-export       Uses goog.exports* for closure compiler exporting in JS.\n"
-    "  --es6-js-export        Uses ECMAScript 6 export style lines in JS.\n"
     "  --go-namespace         Generate the overriding namespace in Golang.\n"
     "  --go-import            Generate the overriding import for flatbuffers in Golang\n"
     "                         (default is \"github.com/google/flatbuffers/go\").\n"
@@ -157,9 +154,6 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --include-prefix       Prefix this path to any generated include statements.\n"
     "    PATH\n"
     "  --keep-prefix          Keep original prefix of schema include statement.\n"
-    "  --no-fb-import         Don't include flatbuffers import statement for TypeScript.\n"
-    "  --no-ts-reexport       Don't re-export imported dependencies for TypeScript.\n"
-    "  --short-names          Use short function names for JS and TypeScript.\n"
     "  --reflect-types        Add minimal type reflection to code generation.\n"
     "  --reflect-names        Add minimal type/name reflection.\n"
     "  --root-type T          Select or override the default root_type\n"
@@ -240,14 +234,6 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.allow_non_utf8 = true;
       } else if (arg == "--natural-utf8") {
         opts.natural_utf8 = true;
-      } else if (arg == "--no-js-exports") {
-        opts.skip_js_exports = true;
-      } else if (arg == "--goog-js-export") {
-        opts.use_goog_js_export_format = true;
-        opts.use_ES6_js_export_format = false;
-      } else if (arg == "--es6-js-export") {
-        opts.use_goog_js_export_format = false;
-        opts.use_ES6_js_export_format = true;
       } else if (arg == "--go-namespace") {
         if (++argi >= argc) Error("missing golang namespace" + arg, true);
         opts.go_namespace = argv[argi];
@@ -301,7 +287,6 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       } else if (arg == "--gen-all") {
         opts.generate_all = true;
         opts.include_dependence_headers = false;
-        opts.reexport_ts_modules = false;
       } else if (arg == "--gen-includes") {
         // Deprecated, remove this option some time in the future.
         Warn("warning: --gen-includes is deprecated (it is now default)\n");
@@ -337,12 +322,6 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.binary_schema_builtins = true;
       } else if (arg == "--bfbs-gen-embed") {
         opts.binary_schema_gen_embed = true;
-      } else if (arg == "--no-fb-import") {
-        opts.skip_flatbuffers_import = true;
-      } else if (arg == "--no-ts-reexport") {
-        opts.reexport_ts_modules = false;
-      } else if (arg == "--short-names") {
-        opts.js_ts_short_names = true;
       } else if (arg == "--reflect-types") {
         opts.mini_reflect = IDLOptions::kTypes;
       } else if (arg == "--reflect-names") {

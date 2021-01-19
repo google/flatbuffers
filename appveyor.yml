@@ -3,6 +3,7 @@ branches:
     - master
 
 environment:
+  nodejs_version: "14"
 
   global:
     # Workaround for https://github.com/conda/conda-build/issues/636
@@ -50,6 +51,7 @@ after_build:
 
 install:
   - set PATH=%CONDA_INSTALL_LOCN%;%CONDA_INSTALL_LOCN%\scripts;%PATH%;
+  - ps: Install-Product node $env:nodejs_version
 
 test_script:
   - call .appveyor\check-generate-code.bat -b %CONFIGURATION%
@@ -60,13 +62,12 @@ test_script:
   - rem "---------------- C++ -----------------"
   - "cd .."
   - "%CONFIGURATION%\\flattests.exe"
-  - "cd tests"
   - rem "---------------- JS -----------------"
   - "node --version"
-  - "..\\%CONFIGURATION%\\flatc -b -I include_test monster_test.fbs unicode_test.json"
   - "npm install"
-  - "npm run pretest"
-  - "node JavaScriptTest ./monster_test_generated"
+  - "npm run compile"
+  - "cd tests"
+  - "TypeScriptTest.bat"
   - rem "---------------- C# -----------------"
   # Have to compile this here rather than in "build" above because AppVeyor only
   # supports building one project??

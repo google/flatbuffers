@@ -27,229 +27,89 @@
 
 namespace flatbuffers {
 
-struct JsTsLanguageParameters {
-  IDLOptions::Language language;
-  std::string file_extension;
-};
-
-struct ReexportDescription {
-  std::string symbol;
-  std::string source_namespace;
-  std::string target_namespace;
+struct ImportDefinition {
+  std::string name;
+  std::string statement;
+  const Definition *dependent;
+  const Definition *dependency;
 };
 
 enum AnnotationType { kParam = 0, kType = 1, kReturns = 2 };
 
-const JsTsLanguageParameters &GetJsLangParams(IDLOptions::Language lang) {
-  static JsTsLanguageParameters js_language_parameters[] = {
-    {
-        IDLOptions::kJs,
-        ".js",
-    },
-    {
-        IDLOptions::kTs,
-        ".ts",
-    },
-  };
-
-  if (lang == IDLOptions::kJs) {
-    return js_language_parameters[0];
-  } else {
-    FLATBUFFERS_ASSERT(lang == IDLOptions::kTs);
-    return js_language_parameters[1];
-  }
-}
-
-namespace jsts {
+namespace ts {
 // Iterate through all definitions we haven't generate code for (enums, structs,
 // and tables) and output them to a single file.
-class JsTsGenerator : public BaseGenerator {
+class TsGenerator : public BaseGenerator {
  public:
-  typedef std::unordered_set<std::string> imported_fileset;
-  typedef std::unordered_multimap<std::string, ReexportDescription>
-      reexport_map;
+  typedef std::map<std::string, ImportDefinition> import_set;
 
-  JsTsGenerator(const Parser &parser, const std::string &path,
-                const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", ".",
-                      parser.opts.lang == IDLOptions::kJs ? "js" : "ts"),
-        lang_(GetJsLangParams(parser_.opts.lang)) {}
-  // Iterate through all definitions we haven't generate code for (enums,
-  // structs, and tables) and output them to a single file.
+  TsGenerator(const Parser &parser, const std::string &path,
+              const std::string &file_name)
+      : BaseGenerator(parser, path, file_name, "", ".", "ts") {}
   bool generate() {
-    imported_fileset imported_files;
-    reexport_map reexports;
+    generateEnums();
+    generateStructs();
+    return true;
+  }
 
-    std::string enum_code, struct_code, import_code, exports_code, code;
-    generateEnums(&enum_code, &exports_code, reexports, imported_files);
-    generateStructs(&struct_code, &exports_code, imported_files);
-    generateImportDependencies(&import_code, imported_files);
-    generateReexports(&import_code, reexports, imported_files);
+  // Save out the generated code for a single class while adding
+  // declaration boilerplate.
+  bool SaveType(const Definition &definition, const std::string &classcode,
+                import_set &imports, import_set &bare_imports) const {
+    if (!classcode.length()) return true;
 
-    code = code + "// " + FlatBuffersGeneratedWarning() + "\n\n";
+    std::string code =
+        "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
 
-    // Generate code for all the namespace declarations.
-    GenNamespaces(&code, &exports_code);
+    for (auto it = bare_imports.begin(); it != bare_imports.end(); it++)
+      code += it->second.statement + "\n";
+    if (!bare_imports.empty()) code += "\n";
 
-    // Output the main declaration code from above.
-    code += import_code;
+    for (auto it = imports.begin(); it != imports.end(); it++)
+      if (it->second.dependency != &definition)  // do not import itself
+        code += it->second.statement + "\n";
+    if (!imports.empty()) code += "\n\n";
 
-    code += enum_code;
-    code += struct_code;
-
-    if (lang_.language == IDLOptions::kJs && !exports_code.empty() &&
-        !parser_.opts.skip_js_exports) {
-      if (parser_.opts.use_ES6_js_export_format)
-        code += "// Exports for ECMAScript6 Modules\n";
-      else
-        code += "// Exports for Node.js and RequireJS\n";
-      code += exports_code;
-    }
-
-    return SaveFile(GeneratedFileName(path_, file_name_, parser_.opts).c_str(),
-                    code, false);
+    code += classcode;
+    auto filename = NamespaceDir(*definition.defined_namespace, true) +
+                    ToDasherizedCase(definition.name) + ".ts";
+    return SaveFile(filename.c_str(), code, false);
   }
 
  private:
-  JsTsLanguageParameters lang_;
-
-  // Generate code for imports
-  void generateImportDependencies(std::string *code_ptr,
-                                  const imported_fileset &imported_files) {
-    std::string &code = *code_ptr;
-    for (auto it = imported_files.begin(); it != imported_files.end(); ++it) {
-      const auto &file = *it;
-      const auto basename =
-          flatbuffers::StripPath(flatbuffers::StripExtension(file));
-      if (basename != file_name_) { code += GenPrefixedImport(file, basename); }
-    }
-  }
-
-  // Generate reexports, which might not have been explicitly imported using the
-  // "export import" trick
-  void generateReexports(std::string *code_ptr, const reexport_map &reexports,
-                         imported_fileset imported_files) {
-    if (!parser_.opts.reexport_ts_modules ||
-        lang_.language != IDLOptions::kTs) {
-      return;
-    }
-
-    std::unordered_set<std::string> imported;
-
-    std::string &code = *code_ptr;
-    for (auto it = reexports.begin(); it != reexports.end(); ++it) {
-      const auto &file = *it;
-      const auto basename =
-          flatbuffers::StripPath(flatbuffers::StripExtension(file.first));
-      if (basename != file_name_ &&
-          imported.find(file.second.symbol) == imported.end()) {
-        if (imported_files.find(file.first) == imported_files.end()) {
-          code += GenPrefixedImport(file.first, basename);
-          imported_files.emplace(file.first);
-        }
-
-        if (!file.second.target_namespace.empty()) {
-          code += "export namespace " + file.second.target_namespace + " { \n";
-        }
-        code += "export import " + file.second.symbol + " = ";
-        code += GenFileNamespacePrefix(file.first) + ".";
-        if (!file.second.source_namespace.empty()) {
-          code += file.second.source_namespace + ".";
-        }
-        code += file.second.symbol + ";\n";
-        if (!file.second.target_namespace.empty()) { code += "}\n"; }
-
-        imported.emplace(file.second.symbol);
-      }
-    }
-  }
-
   // Generate code for all enums.
-  void generateEnums(std::string *enum_code_ptr, std::string *exports_code_ptr,
-                     reexport_map &reexports,
-                     imported_fileset &imported_files) {
+  void generateEnums() {
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
+      import_set bare_imports;
+      import_set imports;
+      std::string enumcode;
       auto &enum_def = **it;
-      GenEnum(enum_def, enum_code_ptr, exports_code_ptr, reexports,
-              imported_files, false);
-      GenEnum(enum_def, enum_code_ptr, exports_code_ptr, reexports,
-              imported_files, true);
+      GenEnum(enum_def, &enumcode, imports, false);
+      GenEnum(enum_def, &enumcode, imports, true);
+      SaveType(enum_def, enumcode, imports, bare_imports);
     }
   }
 
   // Generate code for all structs.
-  void generateStructs(std::string *decl_code_ptr,
-                       std::string *exports_code_ptr,
-                       imported_fileset &imported_files) {
+  void generateStructs() {
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
+      import_set bare_imports;
+      import_set imports;
+      AddImport(bare_imports, "* as flatbuffers", "flatbuffers");
       auto &struct_def = **it;
-      GenStruct(parser_, struct_def, decl_code_ptr, exports_code_ptr,
-                imported_files);
-    }
-  }
-  void GenNamespaces(std::string *code_ptr, std::string *exports_ptr) {
-    if (lang_.language == IDLOptions::kTs &&
-        parser_.opts.skip_flatbuffers_import) {
-      return;
-    }
-
-    std::set<std::string> namespaces;
-
-    for (auto it = parser_.namespaces_.begin(); it != parser_.namespaces_.end();
-         ++it) {
-      std::string namespace_so_far;
-
-      // Gather all parent namespaces for this namespace
-      for (auto component = (*it)->components.begin();
-           component != (*it)->components.end(); ++component) {
-        if (!namespace_so_far.empty()) { namespace_so_far += '.'; }
-        namespace_so_far += *component;
-        namespaces.insert(namespace_so_far);
-      }
-    }
-
-    // Make sure parent namespaces come before child namespaces
-    std::vector<std::string> sorted_namespaces(namespaces.begin(),
-                                               namespaces.end());
-    std::sort(sorted_namespaces.begin(), sorted_namespaces.end());
-
-    // Emit namespaces in a form that Closure Compiler can optimize
-    std::string &code = *code_ptr;
-    std::string &exports = *exports_ptr;
-
-    if (lang_.language == IDLOptions::kTs) {
-      code += "import * as flatbuffers from 'flatbuffers';\n";
-    }
-
-    for (auto it = sorted_namespaces.begin(); it != sorted_namespaces.end();
-         ++it) {
-      if (lang_.language == IDLOptions::kTs) {
-        if (it->find('.') == std::string::npos) { break; }
-      } else {
-        code += "/**\n * @const\n * @namespace\n */\n";
-        if (it->find('.') == std::string::npos) {
-          code += "var ";
-          if (parser_.opts.use_goog_js_export_format) {
-            exports += "goog.exportSymbol('" + *it + "', " + *it + ");\n";
-          } else if (parser_.opts.use_ES6_js_export_format) {
-            exports += "export {" + *it + "};\n";
-          } else {
-            exports += "this." + *it + " = " + *it + ";\n";
-          }
-        }
-        code += *it + " = " + *it + " || {};\n\n";
-      }
+      std::string declcode;
+      GenStruct(parser_, struct_def, &declcode, imports);
+      SaveType(struct_def, declcode, imports, bare_imports);
     }
   }
 
   // Generate a documentation comment, if available.
   static void GenDocComment(const std::vector<std::string> &dc,
                             std::string *code_ptr,
-                            const std::string &extra_lines,
                             const char *indent = nullptr) {
-    if (dc.empty() && extra_lines.empty()) {
+    if (dc.empty()) {
       // Don't output empty comment blocks with 0 lines of comment content.
       return;
     }
@@ -261,135 +121,48 @@ class JsTsGenerator : public BaseGenerator {
       if (indent) code += indent;
       code += " *" + *it + "\n";
     }
-    if (!extra_lines.empty()) {
-      if (!dc.empty()) {
-        if (indent) code += indent;
-        code += " *\n";
-      }
-      if (indent) code += indent;
-      std::string::size_type start = 0;
-      for (;;) {
-        auto end = extra_lines.find('\n', start);
-        if (end != std::string::npos) {
-          code += " * " + extra_lines.substr(start, end - start) + "\n";
-          start = end + 1;
-        } else {
-          code += " * " + extra_lines.substr(start) + "\n";
-          break;
-        }
-      }
-    }
     if (indent) code += indent;
     code += " */\n";
   }
 
-  static void GenDocComment(std::string *code_ptr,
-                            const std::string &extra_lines) {
-    GenDocComment(std::vector<std::string>(), code_ptr, extra_lines);
-  }
-
-  std::string GenTypeAnnotation(AnnotationType annotation_type,
-                                const std::string &type_name,
-                                const std::string &arg_name,
-                                bool include_newline = true) {
-    std::string result = "";
-    switch (annotation_type) {
-      case kParam: {
-        result += "@param";
-        break;
-      }
-      case kType: {
-        if (lang_.language != IDLOptions::kTs) {
-          result += "@type";
-        } else {
-          return "";
-        }
-        break;
-      }
-      case kReturns: {
-        result += "@returns";
-        break;
-      }
-    }
-    switch (lang_.language) {
-      case IDLOptions::kTs: {
-        result += " " + type_name;
-        break;
-      }
-      default: {
-        result += " {" + type_name + "}";
-      }
-    }
-    if (!arg_name.empty()) { result += " " + arg_name; }
-    if (include_newline) { result += "\n"; }
-
-    return result;
+  static void GenDocComment(std::string *code_ptr) {
+    GenDocComment(std::vector<std::string>(), code_ptr);
   }
 
   // Generate an enum declaration and an enum string lookup table.
-  void GenEnum(EnumDef &enum_def, std::string *code_ptr,
-               std::string *exports_ptr, reexport_map &reexports,
-               imported_fileset &imported_files, bool reverse) {
+  void GenEnum(EnumDef &enum_def, std::string *code_ptr, import_set &imports,
+               bool reverse) {
     if (enum_def.generated) return;
-    if (reverse && lang_.language == IDLOptions::kTs) return;  // FIXME.
+    if (reverse) return;  // FIXME.
     std::string &code = *code_ptr;
-    std::string &exports = *exports_ptr;
-    GenDocComment(enum_def.doc_comment, code_ptr,
-                  reverse ? "@enum {string}" : "@enum {number}");
+    GenDocComment(enum_def.doc_comment, code_ptr);
     std::string ns = GetNameSpace(enum_def);
     std::string enum_def_name = enum_def.name + (reverse ? "Name" : "");
-    if (lang_.language == IDLOptions::kTs) {
-      if (!ns.empty()) { code += "export namespace " + ns + "{\n"; }
-      code += "export enum " + enum_def.name + "{\n";
-    } else {
-      if (enum_def.defined_namespace->components.empty()) {
-        code += "var ";
-        if (parser_.opts.use_goog_js_export_format) {
-          exports += "goog.exportSymbol('" + enum_def_name + "', " +
-                     enum_def.name + ");\n";
-        } else if (parser_.opts.use_ES6_js_export_format) {
-          exports += "export {" + enum_def_name + "};\n";
-        } else {
-          exports += "this." + enum_def_name + " = " + enum_def_name + ";\n";
-        }
-      }
-      code += WrapInNameSpace(enum_def) + (reverse ? "Name" : "") + " = {\n";
-    }
+    code += "export enum " + enum_def.name + "{\n";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
       if (!ev.doc_comment.empty()) {
         if (it != enum_def.Vals().begin()) { code += '\n'; }
-        GenDocComment(ev.doc_comment, code_ptr, "", "  ");
+        GenDocComment(ev.doc_comment, code_ptr, "  ");
       }
 
       // Generate mapping between EnumName: EnumValue(int)
       if (reverse) {
         code += "  '" + enum_def.ToString(ev) + "'";
-        code += lang_.language == IDLOptions::kTs ? "= " : ": ";
+        code += " = ";
         code += "'" + ev.name + "'";
       } else {
         code += "  " + ev.name;
-        code += lang_.language == IDLOptions::kTs ? "= " : ": ";
+        code += " = ";
         code += enum_def.ToString(ev);
       }
 
       code += (it + 1) != enum_def.Vals().end() ? ",\n" : "\n";
-
-      if (ev.union_type.struct_def) {
-        ReexportDescription desc = { ev.union_type.struct_def->name,
-                                     GetNameSpace(*ev.union_type.struct_def),
-                                     GetNameSpace(enum_def) };
-        reexports.insert(
-            std::make_pair(ev.union_type.struct_def->file, std::move(desc)));
-      }
     }
-    code += "};";
+    code += "}";
 
-    if (lang_.language == IDLOptions::kTs) {
-      if (enum_def.is_union) {
-        code += GenUnionConvFunc(enum_def.underlying_type, imported_files);
-      }
-      if (!ns.empty()) { code += "\n}"; }
+    if (enum_def.is_union) {
+      code += GenUnionConvFunc(enum_def.underlying_type, imports);
     }
 
     code += "\n\n";
@@ -412,7 +185,7 @@ class JsTsGenerator : public BaseGenerator {
       case BASE_TYPE_STRING: return "String";
       case BASE_TYPE_VECTOR: return GenType(type.VectorType());
       case BASE_TYPE_STRUCT: return type.struct_def->name;
-      default: return "Table";
+      default: return "flatbuffers.Table";
     }
   }
 
@@ -421,8 +194,7 @@ class JsTsGenerator : public BaseGenerator {
       case BASE_TYPE_STRING: return GenBBAccess() + ".__string" + arguments;
       case BASE_TYPE_STRUCT: return GenBBAccess() + ".__struct" + arguments;
       case BASE_TYPE_UNION:
-        if (!UnionHasStringType(*type.enum_def) ||
-            lang_.language == IDLOptions::kJs) {
+        if (!UnionHasStringType(*type.enum_def)) {
           return GenBBAccess() + ".__union" + arguments;
         }
         return GenBBAccess() + ".__union_with_string" + arguments;
@@ -431,42 +203,25 @@ class JsTsGenerator : public BaseGenerator {
         auto getter =
             GenBBAccess() + ".read" + MakeCamel(GenType(type)) + arguments;
         if (type.base_type == BASE_TYPE_BOOL) { getter = "!!" + getter; }
-        if (type.enum_def) {
-          getter = "/** " +
-                   GenTypeAnnotation(kType, WrapInNameSpace(*type.enum_def), "",
-                                     false) +
-                   " */ (" + getter + ")";
-        }
         return getter;
       }
     }
   }
 
-  std::string GenBBAccess() const {
-    return lang_.language == IDLOptions::kTs ? "this.bb!" : "this.bb";
-  }
+  std::string GenBBAccess() const { return "this.bb!"; }
 
-  std::string GenDefaultValue(const FieldDef &field, const std::string &context) {
-    if (field.IsScalarOptional()) {
-      return "null";
-    }
+  std::string GenDefaultValue(const FieldDef &field, const std::string &context,
+                              import_set &imports) {
+    if (field.IsScalarOptional()) { return "null"; }
 
     const auto &value = field.value;
     if (value.type.enum_def && value.type.base_type != BASE_TYPE_UNION &&
         value.type.base_type != BASE_TYPE_VECTOR) {
       if (auto val = value.type.enum_def->FindByValue(value.constant)) {
-        if (lang_.language == IDLOptions::kTs) {
-          return GenPrefixedTypeName(WrapInNameSpace(*value.type.enum_def),
-                                     value.type.enum_def->file) +
-                 "." + val->name;
-        } else {
-          return WrapInNameSpace(*value.type.enum_def) + "." + val->name;
-        }
+        return AddImport(imports, *value.type.enum_def, *value.type.enum_def) +
+               "." + val->name;
       } else {
-        return "/** " +
-               GenTypeAnnotation(kType, WrapInNameSpace(*value.type.enum_def),
-                                 "", false) +
-               "} */ (" + value.constant + ")";
+        return value.constant;
       }
     }
 
@@ -484,16 +239,17 @@ class JsTsGenerator : public BaseGenerator {
       case BASE_TYPE_LONG:
       case BASE_TYPE_ULONG: {
         int64_t constant = StringToInt(value.constant.c_str());
-        return context + ".createLong(" +
-               NumToString(static_cast<int32_t>(constant)) + ", " +
-               NumToString(static_cast<int32_t>(constant >> 32)) + ")";
+        std::string createLong = context + ".createLong";
+        return createLong + "(" + NumToString(static_cast<int32_t>(constant)) +
+               ", " + NumToString(static_cast<int32_t>(constant >> 32)) + ")";
       }
 
       default: return value.constant;
     }
   }
 
-  std::string GenTypeName(const Type &type, bool input,
+  std::string GenTypeName(import_set &imports, const Definition &owner,
+                          const Type &type, bool input,
                           bool allowNull = false) {
     if (!input) {
       if (IsString(type) || type.base_type == BASE_TYPE_STRUCT) {
@@ -501,24 +257,24 @@ class JsTsGenerator : public BaseGenerator {
         if (IsString(type)) {
           name = "string|Uint8Array";
         } else {
-          name = WrapInNameSpace(*type.struct_def);
+          name = AddImport(imports, owner, *type.struct_def);
         }
-        return (allowNull) ? (name + "|null") : (name);
+        return allowNull ? (name + "|null") : name;
       }
     }
 
     switch (type.base_type) {
-      case BASE_TYPE_BOOL: return (allowNull) ? ("boolean|null") : ("boolean");
+      case BASE_TYPE_BOOL: return allowNull ? "boolean|null" : "boolean";
       case BASE_TYPE_LONG:
-      case BASE_TYPE_ULONG: return (allowNull) ? ("flatbuffers.Long|null") : ("flatbuffers.Long");
+      case BASE_TYPE_ULONG:
+        return allowNull ? "flatbuffers.Long|null" : "flatbuffers.Long";
       default:
         if (IsScalar(type.base_type)) {
           if (type.enum_def) {
-            const auto enum_name = WrapInNameSpace(*type.enum_def);
-            return (allowNull) ? (enum_name + "|null") : (enum_name);
+            const auto enum_name = AddImport(imports, owner, *type.enum_def);
+            return allowNull ? (enum_name + "|null") : enum_name;
           }
-          
-          return (allowNull) ? ("number|null") : ("number");
+          return allowNull ? "number|null" : "number";
         }
         return "flatbuffers.Offset";
     }
@@ -549,7 +305,7 @@ class JsTsGenerator : public BaseGenerator {
   }
 
   static std::string GenFileNamespacePrefix(const std::string &file) {
-    return "NS" + std::to_string(HashFnv1a<uint64_t>(file.c_str()));
+    return "NS" + NumToString(HashFnv1a<uint64_t>(file.c_str()));
   }
 
   std::string GenPrefixedImport(const std::string &full_file_name,
@@ -585,7 +341,7 @@ class JsTsGenerator : public BaseGenerator {
     return GenFileNamespacePrefix(file) + "." + typeName;
   }
 
-  void GenStructArgs(const StructDef &struct_def, std::string *annotations,
+  void GenStructArgs(import_set &imports, const StructDef &struct_def,
                      std::string *arguments, const std::string &nameprefix) {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
@@ -594,18 +350,12 @@ class JsTsGenerator : public BaseGenerator {
         // Generate arguments for a struct inside a struct. To ensure names
         // don't clash, and to make it obvious these arguments are constructing
         // a nested struct, prefix the name with the field name.
-        GenStructArgs(*field.value.type.struct_def, annotations, arguments,
+        GenStructArgs(imports, *field.value.type.struct_def, arguments,
                       nameprefix + field.name + "_");
       } else {
-        *annotations +=
-            GenTypeAnnotation(kParam, GenTypeName(field.value.type, true, field.optional),
-                              nameprefix + field.name);
-        if (lang_.language == IDLOptions::kTs) {
-          *arguments += ", " + nameprefix + field.name + ": " +
-                        GenTypeName(field.value.type, true, field.optional);
-        } else {
-          *arguments += ", " + nameprefix + field.name;
-        }
+        *arguments +=
+            ", " + nameprefix + field.name + ": " +
+            GenTypeName(imports, field, field.value.type, true, field.optional);
       }
     }
   }
@@ -637,29 +387,19 @@ class JsTsGenerator : public BaseGenerator {
   }
 
   std::string GenerateNewExpression(const std::string &object_name) {
-    return "new " + object_name +
-           (lang_.language == IDLOptions::kTs ? "()" : "");
+    return "new " + object_name + "()";
   }
 
   void GenerateRootAccessor(StructDef &struct_def, std::string *code_ptr,
-                            std::string &code, std::string &object_name,
+                            std::string &code, const std::string &object_name,
                             bool size_prefixed) {
     if (!struct_def.fixed) {
-      GenDocComment(code_ptr,
-                    GenTypeAnnotation(kParam, "flatbuffers.ByteBuffer", "bb") +
-                        GenTypeAnnotation(kParam, object_name + "=", "obj") +
-                        GenTypeAnnotation(kReturns, object_name, "", false));
+      GenDocComment(code_ptr);
       std::string sizePrefixed("SizePrefixed");
-      if (lang_.language == IDLOptions::kTs) {
-        code += "static get" + (size_prefixed ? sizePrefixed : "") + "Root" +
-                Verbose(struct_def, "As");
-        code += "(bb:flatbuffers.ByteBuffer, obj?:" + object_name +
-                "):" + object_name + " {\n";
-      } else {
-        code += object_name + ".get" + (size_prefixed ? sizePrefixed : "") +
-                "Root" + Verbose(struct_def, "As");
-        code += " = function(bb, obj) {\n";
-      }
+      code += "static get" + (size_prefixed ? sizePrefixed : "") + "Root" +
+              GetPrefixedName(struct_def, "As");
+      code += "(bb:flatbuffers.ByteBuffer, obj?:" + object_name +
+              "):" + object_name + " {\n";
       if (size_prefixed) {
         code +=
             "  bb.setPosition(bb.position() + "
@@ -667,30 +407,19 @@ class JsTsGenerator : public BaseGenerator {
       }
       code += "  return (obj || " + GenerateNewExpression(object_name);
       code += ").__init(bb.readInt32(bb.position()) + bb.position(), bb);\n";
-      code += "};\n\n";
+      code += "}\n\n";
     }
   }
 
   void GenerateFinisher(StructDef &struct_def, std::string *code_ptr,
-                        std::string &code, std::string &object_name,
-                        bool size_prefixed) {
+                        std::string &code, bool size_prefixed) {
     if (parser_.root_struct_def_ == &struct_def) {
       std::string sizePrefixed("SizePrefixed");
-      GenDocComment(
-          code_ptr,
-          GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder") +
-              GenTypeAnnotation(kParam, "flatbuffers.Offset", "offset", false));
+      GenDocComment(code_ptr);
 
-      if (lang_.language == IDLOptions::kTs) {
-        code += "static finish" + (size_prefixed ? sizePrefixed : "") +
-                Verbose(struct_def) + "Buffer";
-        code += "(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {\n";
-      } else {
-        code += object_name + ".finish" + (size_prefixed ? sizePrefixed : "") +
-                Verbose(struct_def) + "Buffer";
-        code += " = function(builder, offset) {\n";
-      }
-
+      code += "static finish" + (size_prefixed ? sizePrefixed : "") +
+              GetPrefixedName(struct_def) + "Buffer";
+      code += "(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {\n";
       code += "  builder.finish(offset";
       if (!parser_.file_identifier_.empty()) {
         code += ", '" + parser_.file_identifier_ + "'";
@@ -700,7 +429,7 @@ class JsTsGenerator : public BaseGenerator {
         code += ", true";
       }
       code += ");\n";
-      code += "};\n\n";
+      code += "}\n\n";
     }
   }
 
@@ -717,17 +446,19 @@ class JsTsGenerator : public BaseGenerator {
   bool UnionHasStringType(const EnumDef &union_enum) {
     return std::any_of(union_enum.Vals().begin(), union_enum.Vals().end(),
                        [](const EnumVal *ev) {
-                         return !(ev->IsZero()) &&
-                                (IsString(ev->union_type));
+                         return !ev->IsZero() && IsString(ev->union_type);
                        });
   }
 
   std::string GenUnionGenericTypeTS(const EnumDef &union_enum) {
-    return std::string("T") + (UnionHasStringType(union_enum) ? "|string" : "");
+    // TODO: make it work without any
+    // return std::string("T") + (UnionHasStringType(union_enum) ? "|string" :
+    // "");
+    return std::string("any") +
+           (UnionHasStringType(union_enum) ? "|string" : "");
   }
 
-  std::string GenUnionTypeTS(const EnumDef &union_enum,
-                             imported_fileset &imported_files) {
+  std::string GenUnionTypeTS(const EnumDef &union_enum, import_set &imports) {
     std::string ret;
     std::set<std::string> type_list;
 
@@ -740,12 +471,7 @@ class JsTsGenerator : public BaseGenerator {
       if (IsString(ev.union_type)) {
         type = "string";  // no need to wrap string type in namespace
       } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
-        if (!parser_.opts.generate_all) {
-          imported_files.insert(ev.union_type.struct_def->file);
-        }
-
-        type = GenPrefixedTypeName(WrapInNameSpace(*(ev.union_type.struct_def)),
-                                   ev.union_type.struct_def->file);
+        type = AddImport(imports, union_enum, *ev.union_type.struct_def);
       } else {
         FLATBUFFERS_ASSERT(false);
       }
@@ -759,8 +485,110 @@ class JsTsGenerator : public BaseGenerator {
     return ret;
   }
 
+  std::string AddImport(import_set &imports, const Definition &dependent,
+                        const StructDef &dependency) {
+    std::string ns;
+    const auto &depc_comps = dependency.defined_namespace->components;
+    for (auto it = depc_comps.begin(); it != depc_comps.end(); it++) ns += *it;
+    std::string unique_name = ns + dependency.name;
+    std::string import_name = dependency.name;
+    std::string long_import_name;
+    if (imports.find(unique_name) != imports.end())
+      return imports.find(unique_name)->second.name;
+    for (auto it = imports.begin(); it != imports.end(); it++) {
+      if (it->second.name == import_name) {
+        long_import_name = ns + import_name;
+        break;
+      }
+    }
+    std::string import_statement;
+    import_statement += "import { ";
+    if (long_import_name.empty()) {
+      import_statement += import_name;
+      if (parser_.opts.generate_object_based_api)
+        import_statement += ", " + import_name + "T";
+    } else {
+      import_statement += dependency.name + " as " + long_import_name;
+      if (parser_.opts.generate_object_based_api)
+        import_statement +=
+            ", " + dependency.name + "T as " + long_import_name + "T";
+    }
+    import_statement += " } from '";
+    std::string file_name;
+    const auto &dep_comps = dependent.defined_namespace->components;
+    for (size_t i = 0; i < dep_comps.size(); i++)
+      file_name += i == 0 ? ".." : (kPathSeparator + std::string(".."));
+    if (dep_comps.size() == 0) file_name += ".";
+    for (auto it = depc_comps.begin(); it != depc_comps.end(); it++)
+      file_name += kPathSeparator + ToDasherizedCase(*it);
+    file_name += kPathSeparator + ToDasherizedCase(dependency.name);
+    import_statement += file_name + "';";
+    ImportDefinition import;
+    import.name = long_import_name.empty() ? import_name : long_import_name;
+    import.statement = import_statement;
+    import.dependency = &dependency;
+    import.dependent = &dependent;
+    imports.insert(std::make_pair(unique_name, import));
+    return import.name;
+  }
+
+  // TODO: largely (but not identical) duplicated code from above couln't find a
+  // good way to refactor
+  std::string AddImport(import_set &imports, const Definition &dependent,
+                        const EnumDef &dependency) {
+    std::string ns;
+    const auto &depc_comps = dependency.defined_namespace->components;
+    for (auto it = depc_comps.begin(); it != depc_comps.end(); it++) ns += *it;
+    std::string unique_name = ns + dependency.name;
+    std::string import_name = dependency.name;
+    std::string long_import_name;
+    if (imports.find(unique_name) != imports.end())
+      return imports.find(unique_name)->second.name;
+    for (auto it = imports.begin(); it != imports.end(); it++) {
+      if (it->second.name == import_name) {
+        long_import_name = ns + import_name;
+        break;
+      }
+    }
+    std::string import_statement;
+    import_statement += "import { ";
+    if (long_import_name.empty())
+      import_statement += import_name;
+    else
+      import_statement += dependency.name + " as " + long_import_name;
+    if (dependency.is_union) {
+      import_statement += ", unionTo" + import_name;
+      import_statement += ", unionListTo" + import_name;
+    }
+    import_statement += " } from '";
+    std::string file_name;
+    const auto &dep_comps = dependent.defined_namespace->components;
+    for (size_t i = 0; i < dep_comps.size(); i++)
+      file_name += i == 0 ? ".." : (kPathSeparator + std::string(".."));
+    if (dep_comps.size() == 0) file_name += ".";
+    for (auto it = depc_comps.begin(); it != depc_comps.end(); it++)
+      file_name += kPathSeparator + ToDasherizedCase(*it);
+    file_name += kPathSeparator + ToDasherizedCase(dependency.name);
+    import_statement += file_name + "';";
+    ImportDefinition import;
+    import.name = long_import_name.empty() ? import_name : long_import_name;
+    import.statement = import_statement;
+    import.dependency = &dependency;
+    import.dependent = &dependent;
+    imports.insert(std::make_pair(unique_name, import));
+    return import.name;
+  }
+
+  void AddImport(import_set &imports, std::string import_name,
+                 std::string fileName) {
+    ImportDefinition import;
+    import.name = import_name;
+    import.statement = "import " + import_name + " from '" + fileName + "';";
+    imports.insert(std::make_pair(import_name, import));
+  }
+
   // Generate a TS union type based on a union's enum
-  std::string GenObjApiUnionTypeTS(const IDLOptions &opts,
+  std::string GenObjApiUnionTypeTS(import_set &imports, const IDLOptions &opts,
                                    const EnumDef &union_enum) {
     std::string ret = "";
     std::set<std::string> type_list;
@@ -774,10 +602,8 @@ class JsTsGenerator : public BaseGenerator {
       if (IsString(ev.union_type)) {
         type = "string";  // no need to wrap string type in namespace
       } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
-        type = GenPrefixedTypeName(
-            GetObjApiClassName(WrapInNameSpace(*(ev.union_type.struct_def)),
-                               opts),
-            union_enum.file);
+        type = GetObjApiClassName(
+            AddImport(imports, union_enum, *ev.union_type.struct_def), opts);
       } else {
         FLATBUFFERS_ASSERT(false);
       }
@@ -801,12 +627,11 @@ class JsTsGenerator : public BaseGenerator {
     return "unionListTo" + enum_def.name;
   }
 
-  std::string GenUnionConvFunc(const Type &union_type,
-                               imported_fileset &imported_files) {
+  std::string GenUnionConvFunc(const Type &union_type, import_set &imports) {
     if (union_type.enum_def) {
       const auto &enum_def = *union_type.enum_def;
 
-      const auto valid_union_type = GenUnionTypeTS(enum_def, imported_files);
+      const auto valid_union_type = GenUnionTypeTS(enum_def, imports);
       const auto valid_union_type_with_null = valid_union_type + "|null";
 
       auto ret = "\n\nexport function " + GenUnionConvFuncName(enum_def) +
@@ -815,19 +640,13 @@ class JsTsGenerator : public BaseGenerator {
                  valid_union_type_with_null +
                  "\n): " + valid_union_type_with_null + " {\n";
 
-      if (!parser_.opts.generate_all) {
-        imported_files.insert(union_type.enum_def->file);
-      }
-
-      const auto enum_type = GenPrefixedTypeName(
-          WrapInNameSpace(*(union_type.enum_def)), union_type.enum_def->file);
-      const auto &union_enum = *(union_type.enum_def);
+      const auto enum_type = AddImport(imports, enum_def, enum_def);
 
       const auto union_enum_loop = [&](const std::string &accessor_str) {
         ret += "  switch(" + enum_type + "[type]) {\n";
         ret += "    case 'NONE': return null; \n";
 
-        for (auto it = union_enum.Vals().begin(); it != union_enum.Vals().end();
+        for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
              ++it) {
           const auto &ev = **it;
           if (ev.IsZero()) { continue; }
@@ -837,9 +656,8 @@ class JsTsGenerator : public BaseGenerator {
           if (IsString(ev.union_type)) {
             ret += "return " + accessor_str + "'') as string;";
           } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
-            const auto type = GenPrefixedTypeName(
-                WrapInNameSpace(*(ev.union_type.struct_def)),
-                ev.union_type.struct_def->file);
+            const auto type =
+                AddImport(imports, enum_def, *ev.union_type.struct_def);
             ret += "return " + accessor_str + "new " + type + "())! as " +
                    type + ";";
           } else {
@@ -872,13 +690,12 @@ class JsTsGenerator : public BaseGenerator {
   // Used for generating a short function that returns the correct class
   // based on union enum type. Assume the context is inside the non object api
   // type
-  std::string GenUnionValTS(const std::string &field_name,
+  std::string GenUnionValTS(import_set &imports, const std::string &field_name,
                             const Type &union_type,
                             const bool is_array = false) {
     if (union_type.enum_def) {
       const auto &enum_def = *union_type.enum_def;
-      const auto enum_type =
-          GenPrefixedTypeName(WrapInNameSpace(enum_def), enum_def.file);
+      const auto enum_type = AddImport(imports, enum_def, enum_def);
       const std::string union_accessor = "this." + field_name;
 
       const auto union_has_string = UnionHasStringType(enum_def);
@@ -887,10 +704,7 @@ class JsTsGenerator : public BaseGenerator {
       std::string ret;
 
       if (!is_array) {
-        const auto conversion_function =
-            GenPrefixedTypeName(WrapInNameSpace(enum_def.defined_namespace,
-                                                GenUnionConvFuncName(enum_def)),
-                                enum_def.file);
+        const auto conversion_function = GenUnionConvFuncName(enum_def);
         const auto target_enum = "this." + field_name + "Type()";
 
         ret = "(() => {\n";
@@ -903,10 +717,7 @@ class JsTsGenerator : public BaseGenerator {
         ret += "      return temp.unpack()\n";
         ret += "  })()";
       } else {
-        const auto conversion_function = GenPrefixedTypeName(
-            WrapInNameSpace(enum_def.defined_namespace,
-                            GenUnionListConvFuncName(enum_def)),
-            enum_def.file);
+        const auto conversion_function = GenUnionListConvFuncName(enum_def);
         const auto target_enum_accesor = "this." + field_name + "Type";
         const auto target_enum_length = target_enum_accesor + "Length()";
 
@@ -940,9 +751,9 @@ class JsTsGenerator : public BaseGenerator {
     return "";
   }
 
-  static std::string GenNullCheckConditional(const std::string &nullCheckVar,
-                                      const std::string &trueVal,
-                                      const std::string &falseVal = "null") {
+  static std::string GenNullCheckConditional(
+      const std::string &nullCheckVar, const std::string &trueVal,
+      const std::string &falseVal = "null") {
     return "(" + nullCheckVar + " !== null ? " + trueVal + " : " + falseVal +
            ")";
   }
@@ -978,20 +789,15 @@ class JsTsGenerator : public BaseGenerator {
 
   void GenObjApi(const Parser &parser, StructDef &struct_def,
                  std::string &obj_api_unpack_func, std::string &obj_api_class,
-                 imported_fileset &imported_files) {
+                 import_set &imports) {
     const auto class_name = GetObjApiClassName(struct_def, parser.opts);
 
-    std::string unpack_func =
-        "\n/**\n * " + GenTypeAnnotation(kReturns, class_name, "") +
-        " */\nunpack(): " + class_name + " {\n  return new " + class_name +
-        "(" + (struct_def.fields.vec.empty() ? "" : "\n");
-    std::string unpack_to_func =
-        "/**\n * " + GenTypeAnnotation(kParam, class_name, "_o") +
-        " */\nunpackTo(_o: " + class_name + "): void {" +
-        +(struct_def.fields.vec.empty() ? "" : "\n");
+    std::string unpack_func = "\nunpack(): " + class_name +
+                              " {\n  return new " + class_name + "(" +
+                              (struct_def.fields.vec.empty() ? "" : "\n");
+    std::string unpack_to_func = "\nunpackTo(_o: " + class_name + "): void {" +
+                                 +(struct_def.fields.vec.empty() ? "" : "\n");
 
-    std::string constructor_annotation = "/**\n * @constructor";
-    constructor_annotation += (struct_def.fields.vec.empty() ? "" : "\n");
     std::string constructor_func = "constructor(";
     constructor_func += (struct_def.fields.vec.empty() ? "" : "\n");
 
@@ -999,23 +805,20 @@ class JsTsGenerator : public BaseGenerator {
         struct_def.fixed || CanCreateFactoryMethod(struct_def);
 
     std::string pack_func_prototype =
-        "/**\n * " +
-        GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder") + " * " +
-        GenTypeAnnotation(kReturns, "flatbuffers.Offset", "") +
-        " */\npack(builder:flatbuffers.Builder): flatbuffers.Offset {\n";
+        "\npack(builder:flatbuffers.Builder): flatbuffers.Offset {\n";
 
     std::string pack_func_offset_decl;
     std::string pack_func_create_call;
 
-    const auto struct_name =
-        GenPrefixedTypeName(WrapInNameSpace(struct_def), struct_def.file);
+    const auto struct_name = AddImport(imports, struct_def, struct_def);
 
     if (has_create) {
       pack_func_create_call = "  return " + struct_name + ".create" +
-                              Verbose(struct_def) + "(builder" +
+                              GetPrefixedName(struct_def) + "(builder" +
                               (struct_def.fields.vec.empty() ? "" : ",\n    ");
     } else {
-      pack_func_create_call = "  " + struct_name + ".start(builder);\n";
+      pack_func_create_call = "  " + struct_name + ".start" +
+                              GetPrefixedName(struct_def) + "(builder);\n";
     }
 
     if (struct_def.fixed) {
@@ -1044,24 +847,15 @@ class JsTsGenerator : public BaseGenerator {
       // the variable name from field_offset_decl
       std::string field_offset_val;
       const auto field_default_val =
-          GenDefaultValue(field, "flatbuffers");
+          GenDefaultValue(field, "flatbuffers", imports);
 
       // Emit a scalar field
       const auto is_string = IsString(field.value.type);
       if (IsScalar(field.value.type.base_type) || is_string) {
         const auto has_null_default = is_string || HasNullDefault(field);
 
-        if (field.value.type.enum_def) {
-          if (!parser_.opts.generate_all) {
-            imported_files.insert(field.value.type.enum_def->file);
-          }
-
-          field_type +=
-              GenPrefixedTypeName(GenTypeName(field.value.type, false, has_null_default),
-                                  field.value.type.enum_def->file);
-        } else {
-          field_type += GenTypeName(field.value.type, false, has_null_default);
-        }
+        field_type += GenTypeName(imports, field, field.value.type, false,
+                                  has_null_default);
         field_val = "this." + field_name + "()";
 
         if (field.value.type.base_type != BASE_TYPE_STRING) {
@@ -1079,10 +873,7 @@ class JsTsGenerator : public BaseGenerator {
         switch (field.value.type.base_type) {
           case BASE_TYPE_STRUCT: {
             const auto &sd = *field.value.type.struct_def;
-            field_type += GenPrefixedTypeName(
-                WrapInNameSpace(sd.defined_namespace,
-                                GetObjApiClassName(sd, parser.opts)),
-                field.value.type.struct_def->file);
+            field_type += GetObjApiClassName(sd, parser.opts);
 
             const std::string field_accessor = "this." + field_name + "()";
             field_val = GenNullCheckConditional(field_accessor,
@@ -1096,7 +887,8 @@ class JsTsGenerator : public BaseGenerator {
 
           case BASE_TYPE_VECTOR: {
             auto vectortype = field.value.type.VectorType();
-            auto vectortypename = GenTypeName(vectortype, false);
+            auto vectortypename =
+                GenTypeName(imports, struct_def, vectortype, false);
             is_vector = true;
 
             field_type = "(";
@@ -1104,10 +896,7 @@ class JsTsGenerator : public BaseGenerator {
             switch (vectortype.base_type) {
               case BASE_TYPE_STRUCT: {
                 const auto &sd = *field.value.type.struct_def;
-                field_type += GenPrefixedTypeName(
-                    WrapInNameSpace(sd.defined_namespace,
-                                    GetObjApiClassName(sd, parser.opts)),
-                    field.value.type.struct_def->file);
+                field_type += GetObjApiClassName(sd, parser.opts);
                 field_type += ")[]";
 
                 field_val = GenBBAccess() + ".createObjList(" +
@@ -1117,15 +906,12 @@ class JsTsGenerator : public BaseGenerator {
                 if (sd.fixed) {
                   field_offset_decl =
                       "builder.createStructOffsetList(this." + field_name +
-                      ", " +
-                      GenPrefixedTypeName(WrapInNameSpace(struct_def),
-                                          struct_def.file) +
+                      ", " + AddImport(imports, struct_def, struct_def) +
                       ".start" + MakeCamel(field_name) + "Vector)";
                 } else {
                   field_offset_decl =
-                      GenPrefixedTypeName(WrapInNameSpace(struct_def),
-                                          struct_def.file) +
-                      ".create" + MakeCamel(field_name) +
+                      AddImport(imports, struct_def, struct_def) + ".create" +
+                      MakeCamel(field_name) +
                       "Vector(builder, builder.createObjectOffsetList(" +
                       "this." + field_name + "))";
                 }
@@ -1135,28 +921,27 @@ class JsTsGenerator : public BaseGenerator {
 
               case BASE_TYPE_STRING: {
                 field_type += "string)[]";
-                field_val = GenBBAccess() + ".createStringList(" +
+                field_val = GenBBAccess() + ".createScalarList(" +
                             field_binded_method + ", this." + field_name +
                             "Length())";
                 field_offset_decl =
-                    GenPrefixedTypeName(WrapInNameSpace(struct_def),
-                                        struct_def.file) +
-                    ".create" + MakeCamel(field_name) +
+                    AddImport(imports, struct_def, struct_def) + ".create" +
+                    MakeCamel(field_name) +
                     "Vector(builder, builder.createObjectOffsetList(" +
                     "this." + field_name + "))";
                 break;
               }
 
               case BASE_TYPE_UNION: {
-                field_type +=
-                    GenObjApiUnionTypeTS(parser.opts, *(vectortype.enum_def));
+                field_type += GenObjApiUnionTypeTS(imports, parser.opts,
+                                                   *(vectortype.enum_def));
                 field_type += ")[]";
-                field_val = GenUnionValTS(field_name, vectortype, true);
+                field_val =
+                    GenUnionValTS(imports, field_name, vectortype, true);
 
                 field_offset_decl =
-                    GenPrefixedTypeName(WrapInNameSpace(struct_def),
-                                        struct_def.file) +
-                    ".create" + MakeCamel(field_name) +
+                    AddImport(imports, struct_def, struct_def) + ".create" +
+                    MakeCamel(field_name) +
                     "Vector(builder, builder.createObjectOffsetList(" +
                     "this." + field_name + "))";
 
@@ -1164,13 +949,8 @@ class JsTsGenerator : public BaseGenerator {
               }
               default: {
                 if (vectortype.enum_def) {
-                  if (!parser_.opts.generate_all) {
-                    imported_files.insert(vectortype.enum_def->file);
-                  }
-
-                  field_type +=
-                      GenPrefixedTypeName(GenTypeName(vectortype, false, HasNullDefault(field)),
-                                          vectortype.enum_def->file);
+                  field_type += GenTypeName(imports, struct_def, vectortype,
+                                            false, HasNullDefault(field));
                 } else {
                   field_type += vectortypename;
                 }
@@ -1179,11 +959,9 @@ class JsTsGenerator : public BaseGenerator {
                             field_binded_method + ", this." + field_name +
                             "Length())";
 
-                field_offset_decl =
-                    GenPrefixedTypeName(WrapInNameSpace(struct_def),
-                                        struct_def.file) +
-                    ".create" + MakeCamel(field_name) +
-                    "Vector(builder, this." + field_name + ")";
+                field_offset_decl = AddImport(imports, struct_def, struct_def) +
+                                    ".create" + MakeCamel(field_name) +
+                                    "Vector(builder, this." + field_name + ")";
 
                 break;
               }
@@ -1193,14 +971,10 @@ class JsTsGenerator : public BaseGenerator {
           }
 
           case BASE_TYPE_UNION: {
-            if (!parser_.opts.generate_all) {
-              imported_files.insert(field.value.type.enum_def->file);
-            }
+            field_type += GenObjApiUnionTypeTS(imports, parser.opts,
+                                               *(field.value.type.enum_def));
 
-            field_type +=
-                GenObjApiUnionTypeTS(parser.opts, *(field.value.type.enum_def));
-
-            field_val = GenUnionValTS(field_name, field.value.type);
+            field_val = GenUnionValTS(imports, field_name, field.value.type);
             field_offset_decl =
                 "builder.createObjectOffset(this." + field_name + ")";
             break;
@@ -1222,8 +996,6 @@ class JsTsGenerator : public BaseGenerator {
       unpack_func += "    " + field_val;
       unpack_to_func += "  _o." + field_name + " = " + field_val + ";";
 
-      constructor_annotation +=
-          " * " + GenTypeAnnotation(kParam, field_type, field_name, false);
       constructor_func += "  public " + field_name + ": " + field_type + " = " +
                           field_default_val;
 
@@ -1242,7 +1014,6 @@ class JsTsGenerator : public BaseGenerator {
       }
 
       if (std::next(it) != struct_def.fields.vec.end()) {
-        constructor_annotation += "\n";
         constructor_func += ",\n";
 
         if (!struct_def.fixed && has_create) {
@@ -1263,27 +1034,26 @@ class JsTsGenerator : public BaseGenerator {
       }
     }
 
-    constructor_annotation += "\n */\n";
-    constructor_func += "){};\n\n";
+    constructor_func += "){}\n\n";
 
     if (has_create) {
       pack_func_create_call += ");";
     } else {
-      pack_func_create_call += "return " + struct_name + ".end(builder);";
+      pack_func_create_call += "return " + struct_name + ".end" +
+                               GetPrefixedName(struct_def) + "(builder);";
     }
 
     obj_api_class = "\nexport class " +
                     GetObjApiClassName(struct_def, parser.opts) + " {\n";
 
-    obj_api_class += constructor_annotation + constructor_func;
-
+    obj_api_class += constructor_func;
     obj_api_class += pack_func_prototype + pack_func_offset_decl +
-                     pack_func_create_call + "\n};";
+                     pack_func_create_call + "\n}";
 
     obj_api_class += "\n}\n";
 
-    unpack_func += ");\n};";
-    unpack_to_func += "};\n";
+    unpack_func += ");\n}";
+    unpack_to_func += "}\n";
 
     obj_api_unpack_func = unpack_func + "\n\n" + unpack_to_func;
   }
@@ -1302,88 +1072,29 @@ class JsTsGenerator : public BaseGenerator {
 
   // Generate an accessor struct with constructor for a flatbuffers struct.
   void GenStruct(const Parser &parser, StructDef &struct_def,
-                 std::string *code_ptr, std::string *exports_ptr,
-                 imported_fileset &imported_files) {
+                 std::string *code_ptr, import_set &imports) {
     if (struct_def.generated) return;
     std::string &code = *code_ptr;
-    std::string &exports = *exports_ptr;
 
     std::string object_name;
     std::string object_namespace = GetNameSpace(struct_def);
 
     // Emit constructor
-    if (lang_.language == IDLOptions::kTs) {
-      object_name = struct_def.name;
-      GenDocComment(struct_def.doc_comment, code_ptr, "@constructor");
-      if (!object_namespace.empty()) {
-        code += "export namespace " + object_namespace + "{\n";
-      }
-      code += "export class " + struct_def.name;
-      code += " {\n";
-      if (lang_.language != IDLOptions::kTs) {
-        code += "  /**\n";
-        code +=
-            "   * " + GenTypeAnnotation(kType, "flatbuffers.ByteBuffer", "");
-        code += "   */\n";
-      }
-      code += "  bb: flatbuffers.ByteBuffer|null = null;\n";
-      code += "\n";
-      if (lang_.language != IDLOptions::kTs) {
-        code += "  /**\n";
-        code += "   * " + GenTypeAnnotation(kType, "number", "");
-        code += "   */\n";
-      }
-      code += "  bb_pos:number = 0;\n";
-    } else {
-      bool isStatement = struct_def.defined_namespace->components.empty();
-      object_name = WrapInNameSpace(struct_def);
-      GenDocComment(struct_def.doc_comment, code_ptr, "@constructor");
-      if (isStatement) {
-        if (parser_.opts.use_goog_js_export_format) {
-          exports += "goog.exportSymbol('" + struct_def.name + "', " +
-                     struct_def.name + ");\n";
-        } else if (parser_.opts.use_ES6_js_export_format) {
-          exports += "export {" + struct_def.name + "};\n";
-        } else {
-          exports +=
-              "this." + struct_def.name + " = " + struct_def.name + ";\n";
-        }
-        code += "function " + object_name;
-      } else {
-        code += object_name + " = function";
-      }
-      code += "() {\n";
-      code += "  /**\n";
-      code += "   * " + GenTypeAnnotation(kType, "flatbuffers.ByteBuffer", "");
-      code += "   */\n";
-      code += "  this.bb = null;\n";
-      code += "\n";
-      code += "  /**\n";
-      code += "   * " + GenTypeAnnotation(kType, "number", "");
-      code += "   */\n";
-      code += "  this.bb_pos = 0;\n";
-      code += isStatement ? "}\n\n" : "};\n\n";
-    }
+    object_name = struct_def.name;
+    GenDocComment(struct_def.doc_comment, code_ptr);
+    code += "export class " + struct_def.name;
+    code += " {\n";
+    code += "  bb: flatbuffers.ByteBuffer|null = null;\n";
+    code += "  bb_pos = 0;\n";
 
     // Generate the __init method that sets the field in a pre-existing
     // accessor object. This is to allow object reuse.
-    code += "/**\n";
-    code += " * " + GenTypeAnnotation(kParam, "number", "i");
-    code += " * " + GenTypeAnnotation(kParam, "flatbuffers.ByteBuffer", "bb");
-    code += " * " + GenTypeAnnotation(kReturns, object_name, "");
-    code += " */\n";
-
-    if (lang_.language == IDLOptions::kTs) {
-      code +=
-          "__init(i:number, bb:flatbuffers.ByteBuffer):" + object_name + " {\n";
-    } else {
-      code += object_name + ".prototype.__init = function(i, bb) {\n";
-    }
-
+    code +=
+        "__init(i:number, bb:flatbuffers.ByteBuffer):" + object_name + " {\n";
     code += "  this.bb_pos = i;\n";
     code += "  this.bb = bb;\n";
     code += "  return this;\n";
-    code += "};\n\n";
+    code += "}\n\n";
 
     // Generate special accessors for the table that when used as the root of a
     // FlatBuffer
@@ -1393,19 +1104,12 @@ class JsTsGenerator : public BaseGenerator {
     // Generate the identifier check method
     if (!struct_def.fixed && parser_.root_struct_def_ == &struct_def &&
         !parser_.file_identifier_.empty()) {
-      GenDocComment(code_ptr,
-                    GenTypeAnnotation(kParam, "flatbuffers.ByteBuffer", "bb") +
-                        GenTypeAnnotation(kReturns, "boolean", "", false));
-      if (lang_.language == IDLOptions::kTs) {
-        code +=
-            "static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean "
-            "{\n";
-      } else {
-        code += object_name + ".bufferHasIdentifier = function(bb) {\n";
-      }
-
+      GenDocComment(code_ptr);
+      code +=
+          "static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean "
+          "{\n";
       code += "  return bb.__has_identifier('" + parser_.file_identifier_;
-      code += "');\n};\n\n";
+      code += "');\n}\n\n";
     }
 
     // Emit field accessors
@@ -1414,7 +1118,7 @@ class JsTsGenerator : public BaseGenerator {
       auto &field = **it;
       if (field.deprecated) continue;
       auto offset_prefix =
-          "  var offset = " + GenBBAccess() + ".__offset(this.bb_pos, " +
+          "  const offset = " + GenBBAccess() + ".__offset(this.bb_pos, " +
           NumToString(field.value.offset) + ");\n  return offset ? ";
 
       // Emit a scalar field
@@ -1422,45 +1126,28 @@ class JsTsGenerator : public BaseGenerator {
       if (IsScalar(field.value.type.base_type) || is_string) {
         const auto has_null_default = is_string || HasNullDefault(field);
 
-        GenDocComment(
-            field.doc_comment, code_ptr,
-            std::string(is_string
-                            ? GenTypeAnnotation(kParam, "flatbuffers.Encoding=",
-                                                "optionalEncoding")
-                            : "") +
-                GenTypeAnnotation(kReturns,
-                                  GenTypeName(field.value.type, false, has_null_default),
-                                  "", false));
-        if (lang_.language == IDLOptions::kTs) {
-          std::string prefix = MakeCamel(field.name, false) + "(";
-          if (is_string) {
-            code += prefix + "):string|null\n";
-            code += prefix + "optionalEncoding:flatbuffers.Encoding" +
-                    "):" + GenTypeName(field.value.type, false, true) + "\n";
-            code += prefix + "optionalEncoding?:any";
-          } else {
-            code += prefix;
-          }
-          if (field.value.type.enum_def) {
-            code +=
-                "):" +
-                GenPrefixedTypeName(GenTypeName(field.value.type, false, field.optional),
-                                    field.value.type.enum_def->file) +
-                " {\n";
-
-            if (!parser_.opts.generate_all) {
-              imported_files.insert(field.value.type.enum_def->file);
-            }
-          } else {
-            code += "):" + GenTypeName(field.value.type, false, has_null_default) + " {\n";
-          }
+        GenDocComment(field.doc_comment, code_ptr);
+        std::string prefix = MakeCamel(field.name, false) + "(";
+        if (is_string) {
+          code += prefix + "):string|null\n";
+          code +=
+              prefix + "optionalEncoding:flatbuffers.Encoding" + "):" +
+              GenTypeName(imports, struct_def, field.value.type, false, true) +
+              "\n";
+          code += prefix + "optionalEncoding?:any";
         } else {
-          code += object_name + ".prototype." + MakeCamel(field.name, false);
-          code += " = function(";
-          if (is_string) {
-            code += "optionalEncoding";
-          }
-          code += ") {\n";
+          code += prefix;
+        }
+        if (field.value.type.enum_def) {
+          code += "):" +
+                  GenTypeName(imports, struct_def, field.value.type, false,
+                              field.optional) +
+                  " {\n";
+        } else {
+          code += "):" +
+                  GenTypeName(imports, struct_def, field.value.type, false,
+                              has_null_default) +
+                  " {\n";
         }
 
         if (struct_def.fixed) {
@@ -1471,12 +1158,10 @@ class JsTsGenerator : public BaseGenerator {
               ";\n";
         } else {
           std::string index = "this.bb_pos + offset";
-          if (is_string) {
-            index += ", optionalEncoding";
-          }
+          if (is_string) { index += ", optionalEncoding"; }
           code += offset_prefix +
                   GenGetter(field.value.type, "(" + index + ")") + " : " +
-                  GenDefaultValue(field, GenBBAccess());
+                  GenDefaultValue(field, GenBBAccess(), imports);
           code += ";\n";
         }
       }
@@ -1485,21 +1170,12 @@ class JsTsGenerator : public BaseGenerator {
       else {
         switch (field.value.type.base_type) {
           case BASE_TYPE_STRUCT: {
-            auto type = WrapInNameSpace(*field.value.type.struct_def);
-            GenDocComment(
-                field.doc_comment, code_ptr,
-                GenTypeAnnotation(kParam, type + "=", "obj") +
-                    GenTypeAnnotation(kReturns, type + "|null", "", false));
-            if (lang_.language == IDLOptions::kTs) {
-              type =
-                  GenPrefixedTypeName(type, field.value.type.struct_def->file);
-              code += MakeCamel(field.name, false);
-              code += "(obj?:" + type + "):" + type + "|null {\n";
-            } else {
-              code +=
-                  object_name + ".prototype." + MakeCamel(field.name, false);
-              code += " = function(obj) {\n";
-            }
+            auto type =
+                AddImport(imports, struct_def, *field.value.type.struct_def);
+            GenDocComment(field.doc_comment, code_ptr);
+            type = GenPrefixedTypeName(type, field.value.type.struct_def->file);
+            code += MakeCamel(field.name, false);
+            code += "(obj?:" + type + "):" + type + "|null {\n";
 
             if (struct_def.fixed) {
               code += "  return (obj || " + GenerateNewExpression(type);
@@ -1515,92 +1191,51 @@ class JsTsGenerator : public BaseGenerator {
               code += ", " + GenBBAccess() + ") : null;\n";
             }
 
-            if (lang_.language == IDLOptions::kTs &&
-                !parser_.opts.generate_all) {
-              imported_files.insert(field.value.type.struct_def->file);
-            }
-
             break;
           }
 
           case BASE_TYPE_VECTOR: {
             auto vectortype = field.value.type.VectorType();
-            auto vectortypename = GenTypeName(vectortype, false);
-
-            if (vectortype.enum_def) {
-              vectortypename = GenPrefixedTypeName(vectortypename,
-                                                   vectortype.enum_def->file);
-            }
-
+            auto vectortypename =
+                GenTypeName(imports, struct_def, vectortype, false);
             auto inline_size = InlineSize(vectortype);
             auto index = GenBBAccess() +
                          ".__vector(this.bb_pos + offset) + index" +
                          MaybeScale(inline_size);
-            std::string args = GenTypeAnnotation(kParam, "number", "index");
             std::string ret_type;
             bool is_union = false;
             switch (vectortype.base_type) {
-              case BASE_TYPE_STRUCT:
-                args += GenTypeAnnotation(kParam, vectortypename + "=", "obj");
-                ret_type = vectortypename;
-                break;
-              case BASE_TYPE_STRING:
-                args += GenTypeAnnotation(
-                    kParam, "flatbuffers.Encoding=", "optionalEncoding");
-                ret_type = vectortypename;
-                break;
+              case BASE_TYPE_STRUCT: ret_type = vectortypename; break;
+              case BASE_TYPE_STRING: ret_type = vectortypename; break;
               case BASE_TYPE_UNION:
-                args += GenTypeAnnotation(kParam, "flatbuffers.Table=", "obj");
                 ret_type = "?flatbuffers.Table";
                 is_union = true;
                 break;
               default: ret_type = vectortypename;
             }
-            GenDocComment(
-                field.doc_comment, code_ptr,
-                args + GenTypeAnnotation(kReturns, ret_type, "", false));
-            if (lang_.language == IDLOptions::kTs) {
-              std::string prefix = MakeCamel(field.name, false);
-              if (is_union) { prefix += "<T extends flatbuffers.Table>"; }
-              prefix += "(index: number";
-              if (is_union) {
-                const auto union_type =
-                    GenUnionGenericTypeTS(*(field.value.type.enum_def));
+            GenDocComment(field.doc_comment, code_ptr);
+            std::string prefix = MakeCamel(field.name, false);
+            // TODO: make it work without any
+            // if (is_union) { prefix += "<T extends flatbuffers.Table>"; }
+            if (is_union) { prefix += ""; }
+            prefix += "(index: number";
+            if (is_union) {
+              const auto union_type =
+                  GenUnionGenericTypeTS(*(field.value.type.enum_def));
 
-                vectortypename = union_type;
-                code += prefix + ", obj:" + union_type;
-              } else if (vectortype.base_type == BASE_TYPE_STRUCT) {
-                vectortypename = GenPrefixedTypeName(
-                    vectortypename, vectortype.struct_def->file);
-                code += prefix + ", obj?:" + vectortypename;
-
-                if (!parser_.opts.generate_all) {
-                  imported_files.insert(vectortype.struct_def->file);
-                }
-              } else if (IsString(vectortype)) {
-                code += prefix + "):string\n";
-                code += prefix + ",optionalEncoding:flatbuffers.Encoding" +
-                        "):" + vectortypename + "\n";
-                code += prefix + ",optionalEncoding?:any";
-              } else {
-                code += prefix;
-
-                if (vectortype.enum_def && !parser_.opts.generate_all) {
-                  imported_files.insert(vectortype.enum_def->file);
-                }
-              }
-              code += "):" + vectortypename + "|null {\n";
+              vectortypename = union_type;
+              code += prefix + ", obj:" + union_type;
+            } else if (vectortype.base_type == BASE_TYPE_STRUCT) {
+              code += prefix + ", obj?:" + vectortypename;
+            } else if (IsString(vectortype)) {
+              code += prefix + "):string\n";
+              code += prefix + ",optionalEncoding:flatbuffers.Encoding" +
+                      "):" + vectortypename + "\n";
+              code += prefix + ",optionalEncoding?:any";
             } else {
-              code +=
-                  object_name + ".prototype." + MakeCamel(field.name, false);
-              code += " = function(index";
-              if (vectortype.base_type == BASE_TYPE_STRUCT || is_union) {
-                code += ", obj";
-              } else if (IsString(vectortype)) {
-                code += ", optionalEncoding";
-              }
-              code += ") {\n";
+              code += prefix;
             }
+            code += "):" + vectortypename + "|null {\n";
 
             if (vectortype.base_type == BASE_TYPE_STRUCT) {
               code += offset_prefix + "(obj || " +
@@ -1626,11 +1261,7 @@ class JsTsGenerator : public BaseGenerator {
               code += GenBBAccess() + ".createLong(0, 0)";
             } else if (IsScalar(field.value.type.element)) {
               if (field.value.type.enum_def) {
-                code += "/** " +
-                        GenTypeAnnotation(
-                            kType, WrapInNameSpace(*field.value.type.enum_def),
-                            "", false) +
-                        " */ (" + field.value.constant + ")";
+                code += field.value.constant;
               } else {
                 code += "0";
               }
@@ -1641,77 +1272,41 @@ class JsTsGenerator : public BaseGenerator {
             break;
           }
 
-          case BASE_TYPE_UNION:
-            GenDocComment(
-                field.doc_comment, code_ptr,
-                GenTypeAnnotation(kParam, "flatbuffers.Table", "obj") +
-                    GenTypeAnnotation(kReturns, "?flatbuffers.Table", "",
-                                      false));
-            if (lang_.language == IDLOptions::kTs) {
-              code += MakeCamel(field.name, false);
+          case BASE_TYPE_UNION: {
+            GenDocComment(field.doc_comment, code_ptr);
+            code += MakeCamel(field.name, false);
 
-              const auto &union_enum = *(field.value.type.enum_def);
-              const auto union_type = GenUnionGenericTypeTS(union_enum);
-              code += "<T extends flatbuffers.Table>(obj:" + union_type +
-                      "):" + union_type +
-                      "|null "
-                      "{\n";
-            } else {
-              code +=
-                  object_name + ".prototype." + MakeCamel(field.name, false);
-              code += " = function(obj) {\n";
-            }
+            const auto &union_enum = *(field.value.type.enum_def);
+            const auto union_type = GenUnionGenericTypeTS(union_enum);
+            code += "<T extends flatbuffers.Table>(obj:" + union_type +
+                    "):" + union_type +
+                    "|null "
+                    "{\n";
 
             code += offset_prefix +
                     GenGetter(field.value.type, "(obj, this.bb_pos + offset)") +
                     " : null;\n";
             break;
-
+          }
           default: FLATBUFFERS_ASSERT(0);
         }
       }
-      code += "};\n\n";
-
-      if (parser_.opts.use_goog_js_export_format) {
-        exports += "goog.exportProperty(" + object_name + ".prototype, '" +
-                   MakeCamel(field.name, false) + "', " + object_name +
-                   ".prototype." + MakeCamel(field.name, false) + ");\n";
-      }
+      code += "}\n\n";
 
       // Adds the mutable scalar value to the output
       if (IsScalar(field.value.type.base_type) && parser.opts.mutable_buffer &&
           !IsUnion(field.value.type)) {
-        std::string annotations = GenTypeAnnotation(
-            kParam, GenTypeName(field.value.type, true), "value");
-        GenDocComment(
-            code_ptr,
-            annotations + GenTypeAnnotation(kReturns, "boolean", "", false));
+        std::string type =
+            GenTypeName(imports, struct_def, field.value.type, true);
 
-        if (lang_.language == IDLOptions::kTs) {
-          std::string type;
-          if (field.value.type.enum_def) {
-            if (!parser_.opts.generate_all) {
-              imported_files.insert(field.value.type.enum_def->file);
-            }
-
-            type = GenPrefixedTypeName(GenTypeName(field.value.type, true),
-                                       field.value.type.enum_def->file);
-          } else {
-            type = GenTypeName(field.value.type, true);
-          }
-
-          code += "mutate_" + field.name + "(value:" + type + "):boolean {\n";
-        } else {
-          code += object_name + ".prototype.mutate_" + field.name +
-                  " = function(value) {\n";
-        }
+        code += "mutate_" + field.name + "(value:" + type + "):boolean {\n";
 
         if (struct_def.fixed) {
           code += "  " + GenBBAccess() + ".write" +
                   MakeCamel(GenType(field.value.type)) + "(this.bb_pos + " +
                   NumToString(field.value.offset) + ", ";
         } else {
-          code += "  var offset = " + GenBBAccess() +
+          code += "  const offset = " + GenBBAccess() +
                   ".__offset(this.bb_pos, " + NumToString(field.value.offset) +
                   ");\n\n";
           code += "  if (offset === 0) {\n";
@@ -1722,140 +1317,80 @@ class JsTsGenerator : public BaseGenerator {
           code += "  " + GenBBAccess() + ".write" +
                   MakeCamel(GenType(field.value.type)) +
                   "(this.bb_pos + offset, ";
-          if (field.value.type.base_type == BASE_TYPE_BOOL &&
-              lang_.language == IDLOptions::kTs) {
-            code += "+";
-          }
+          if (field.value.type.base_type == BASE_TYPE_BOOL) { code += "+"; }
         }
 
         code += "value);\n";
         code += "  return true;\n";
-        code += "};\n\n";
-
-        if (parser_.opts.use_goog_js_export_format) {
-          exports += "goog.exportProperty(" + object_name +
-                     ".prototype, 'mutate_" + field.name + "', " + object_name +
-                     ".prototype.mutate_" + field.name + ");\n";
-        }
+        code += "}\n\n";
       }
 
       // Emit vector helpers
       if (IsVector(field.value.type)) {
         // Emit a length helper
-        GenDocComment(code_ptr,
-                      GenTypeAnnotation(kReturns, "number", "", false));
-        if (lang_.language == IDLOptions::kTs) {
-          code += MakeCamel(field.name, false);
-          code += "Length():number {\n" + offset_prefix;
-        } else {
-          code += object_name + ".prototype." + MakeCamel(field.name, false);
-          code += "Length = function() {\n" + offset_prefix;
-        }
+        GenDocComment(code_ptr);
+        code += MakeCamel(field.name, false);
+        code += "Length():number {\n" + offset_prefix;
 
         code +=
-            GenBBAccess() + ".__vector_len(this.bb_pos + offset) : 0;\n};\n\n";
-
-        if (parser_.opts.use_goog_js_export_format) {
-          exports += "goog.exportProperty(" + object_name + ".prototype, '" +
-                     MakeCamel(field.name, false) + "Length', " + object_name +
-                     ".prototype." + MakeCamel(field.name, false) +
-                     "Length);\n";
-        }
+            GenBBAccess() + ".__vector_len(this.bb_pos + offset) : 0;\n}\n\n";
 
         // For scalar types, emit a typed array helper
         auto vectorType = field.value.type.VectorType();
         if (IsScalar(vectorType.base_type) && !IsLong(vectorType.base_type)) {
-          GenDocComment(code_ptr, GenTypeAnnotation(
-                                      kReturns, GenType(vectorType) + "Array",
-                                      "", false));
+          GenDocComment(code_ptr);
 
-          if (lang_.language == IDLOptions::kTs) {
-            code += MakeCamel(field.name, false);
-            code += "Array():" + GenType(vectorType) + "Array|null {\n" +
-                    offset_prefix;
-          } else {
-            code += object_name + ".prototype." + MakeCamel(field.name, false);
-            code += "Array = function() {\n" + offset_prefix;
-          }
+          code += MakeCamel(field.name, false);
+          code += "Array():" + GenType(vectorType) + "Array|null {\n" +
+                  offset_prefix;
 
           code += "new " + GenType(vectorType) + "Array(" + GenBBAccess() +
                   ".bytes().buffer, " + GenBBAccess() +
                   ".bytes().byteOffset + " + GenBBAccess() +
                   ".__vector(this.bb_pos + offset), " + GenBBAccess() +
-                  ".__vector_len(this.bb_pos + offset)) : null;\n};\n\n";
-
-          if (parser_.opts.use_goog_js_export_format) {
-            exports += "goog.exportProperty(" + object_name + ".prototype, '" +
-                       MakeCamel(field.name, false) + "Array', " + object_name +
-                       ".prototype." + MakeCamel(field.name, false) +
-                       "Array);\n";
-          }
+                  ".__vector_len(this.bb_pos + offset)) : null;\n}\n\n";
         }
       }
     }
 
     // Emit the fully qualified name
     if (parser_.opts.generate_name_strings) {
-      GenDocComment(code_ptr, GenTypeAnnotation(kReturns, "string", "", false));
-      if (lang_.language == IDLOptions::kTs) {
-        code += "static getFullyQualifiedName():string {\n";
-      } else {
-        code += object_name + ".getFullyQualifiedName = function() {\n";
-      }
+      GenDocComment(code_ptr);
+      code += "static getFullyQualifiedName():string {\n";
       code += "  return '" + WrapInNameSpace(struct_def) + "';\n";
       code += "}\n\n";
     }
 
     // Emit the size of the struct.
     if (struct_def.fixed) {
-      GenDocComment(code_ptr, GenTypeAnnotation(kReturns, "number", "", false));
-      if (lang_.language == IDLOptions::kTs) {
-        code += "static sizeOf():number {\n";
-      } else {
-        code += object_name + ".sizeOf = function() {\n";
-      }
+      GenDocComment(code_ptr);
+      code += "static sizeOf():number {\n";
       code += "  return " + NumToString(struct_def.bytesize) + ";\n";
       code += "}\n\n";
     }
 
     // Emit a factory constructor
     if (struct_def.fixed) {
-      std::string annotations =
-          GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder");
       std::string arguments;
-      GenStructArgs(struct_def, &annotations, &arguments, "");
-      GenDocComment(code_ptr, annotations + GenTypeAnnotation(
-                                                kReturns, "flatbuffers.Offset",
-                                                "", false));
+      GenStructArgs(imports, struct_def, &arguments, "");
+      GenDocComment(code_ptr);
 
-      if (lang_.language == IDLOptions::kTs) {
-        code += "static create" + Verbose(struct_def) +
-                "(builder:flatbuffers.Builder";
-        code += arguments + "):flatbuffers.Offset {\n";
-      } else {
-        code += object_name + ".create" + Verbose(struct_def);
-        code += " = function(builder";
-        code += arguments + ") {\n";
-      }
+      code += "static create" + GetPrefixedName(struct_def) +
+              "(builder:flatbuffers.Builder";
+      code += arguments + "):flatbuffers.Offset {\n";
 
       GenStructBody(struct_def, &code, "");
-      code += "  return builder.offset();\n};\n\n";
+      code += "  return builder.offset();\n}\n\n";
     } else {
       // Generate a method to start building a new object
-      GenDocComment(code_ptr, GenTypeAnnotation(kParam, "flatbuffers.Builder",
-                                                "builder", false));
+      GenDocComment(code_ptr);
 
-      if (lang_.language == IDLOptions::kTs) {
-        code += "static start" + Verbose(struct_def) +
-                "(builder:flatbuffers.Builder) {\n";
-      } else {
-        code += object_name + ".start" + Verbose(struct_def);
-        code += " = function(builder) {\n";
-      }
+      code += "static start" + GetPrefixedName(struct_def) +
+              "(builder:flatbuffers.Builder) {\n";
 
       code += "  builder.startObject(" +
               NumToString(struct_def.fields.vec.size()) + ");\n";
-      code += "};\n\n";
+      code += "}\n\n";
 
       // Generate a set of static methods that allow table construction
       for (auto it = struct_def.fields.vec.begin();
@@ -1865,21 +1400,10 @@ class JsTsGenerator : public BaseGenerator {
         const auto argname = GetArgName(field);
 
         // Generate the field insertion method
-        GenDocComment(
-            code_ptr,
-            GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder") +
-                GenTypeAnnotation(kParam, GenTypeName(field.value.type, true),
-                                  argname, false));
-
-        if (lang_.language == IDLOptions::kTs) {
-          code += "static add" + MakeCamel(field.name);
-          code += "(builder:flatbuffers.Builder, " + argname + ":" +
-                  GetArgType(field, false) + ") {\n";
-        } else {
-          code += object_name + ".add" + MakeCamel(field.name);
-          code += " = function(builder, " + argname + ") {\n";
-        }
-
+        GenDocComment(code_ptr);
+        code += "static add" + MakeCamel(field.name);
+        code += "(builder:flatbuffers.Builder, " + argname + ":" +
+                GetArgType(imports, struct_def, field, false) + ") {\n";
         code += "  builder.addField" + GenWriteMethod(field.value.type) + "(";
         code += NumToString(it - struct_def.fields.vec.begin()) + ", ";
         if (field.value.type.base_type == BASE_TYPE_BOOL) { code += "+"; }
@@ -1894,9 +1418,9 @@ class JsTsGenerator : public BaseGenerator {
           }
         } else {
           if (field.value.type.base_type == BASE_TYPE_BOOL) { code += "+"; }
-          code += GenDefaultValue(field, "builder");
+          code += GenDefaultValue(field, "builder", imports);
         }
-        code += ");\n};\n\n";
+        code += ");\n}\n\n";
 
         if (IsVector(field.value.type)) {
           auto vector_type = field.value.type.VectorType();
@@ -1905,165 +1429,95 @@ class JsTsGenerator : public BaseGenerator {
 
           // Generate a method to create a vector from a JavaScript array
           if (!IsStruct(vector_type)) {
-            GenDocComment(
-                code_ptr,
-                GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder") +
-                    GenTypeAnnotation(
-                        kParam,
-                        "Array.<" + GenTypeName(vector_type, true) + ">",
-                        "data") +
-                    GenTypeAnnotation(kReturns, "flatbuffers.Offset", "",
-                                      false));
+            GenDocComment(code_ptr);
 
-            if (lang_.language == IDLOptions::kTs) {
-              const std::string sig_begin =
-                  "static create" + MakeCamel(field.name) +
-                  "Vector(builder:flatbuffers.Builder, data:";
-              const std::string sig_end = "):flatbuffers.Offset";
-              std::string type = GenTypeName(vector_type, true) + "[]";
-              if (type == "number[]") {
-                const auto &array_type = GenType(vector_type);
-                // the old type should be deprecated in the future
-                std::string type_old = "number[]|Uint8Array";
-                std::string type_new = "number[]|" + array_type + "Array";
-                if (type_old == type_new) {
-                  type = type_new;
-                } else {
-                  // add function overloads
-                  code += sig_begin + type_new + sig_end + ";\n";
-                  code +=
-                      "/**\n * @deprecated This Uint8Array overload will "
-                      "be removed in the future.\n */\n";
-                  code += sig_begin + type_old + sig_end + ";\n";
-                  type = type_new + "|Uint8Array";
-                }
+            const std::string sig_begin =
+                "static create" + MakeCamel(field.name) +
+                "Vector(builder:flatbuffers.Builder, data:";
+            const std::string sig_end = "):flatbuffers.Offset";
+            std::string type =
+                GenTypeName(imports, struct_def, vector_type, true) + "[]";
+            if (type == "number[]") {
+              const auto &array_type = GenType(vector_type);
+              // the old type should be deprecated in the future
+              std::string type_old = "number[]|Uint8Array";
+              std::string type_new = "number[]|" + array_type + "Array";
+              if (type_old == type_new) {
+                type = type_new;
               } else {
-                if (vector_type.enum_def) {
-                  if (!parser_.opts.generate_all) {
-                    imported_files.insert(vector_type.enum_def->file);
-                  }
-
-                  type = GenPrefixedTypeName(type, vector_type.enum_def->file);
-                }
+                // add function overloads
+                code += sig_begin + type_new + sig_end + ";\n";
+                code +=
+                    "/**\n * @deprecated This Uint8Array overload will "
+                    "be removed in the future.\n */\n";
+                code += sig_begin + type_old + sig_end + ";\n";
+                type = type_new + "|Uint8Array";
               }
-              code += sig_begin + type + sig_end + " {\n";
-            } else {
-              code += object_name + ".create" + MakeCamel(field.name);
-              code += "Vector = function(builder, data) {\n";
             }
-
+            code += sig_begin + type + sig_end + " {\n";
             code += "  builder.startVector(" + NumToString(elem_size);
             code += ", data.length, " + NumToString(alignment) + ");\n";
-            code += "  for (var i = data.length - 1; i >= 0; i--) {\n";
+            code += "  for (let i = data.length - 1; i >= 0; i--) {\n";
             code += "    builder.add" + GenWriteMethod(vector_type) + "(";
             if (vector_type.base_type == BASE_TYPE_BOOL) { code += "+"; }
             code += "data[i]);\n";
             code += "  }\n";
             code += "  return builder.endVector();\n";
-            code += "};\n\n";
+            code += "}\n\n";
           }
 
           // Generate a method to start a vector, data to be added manually
           // after
-          GenDocComment(
-              code_ptr,
-              GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder") +
-                  GenTypeAnnotation(kParam, "number", "numElems", false));
+          GenDocComment(code_ptr);
 
-          if (lang_.language == IDLOptions::kTs) {
-            code += "static start" + MakeCamel(field.name);
-            code += "Vector(builder:flatbuffers.Builder, numElems:number) {\n";
-          } else {
-            code += object_name + ".start" + MakeCamel(field.name);
-            code += "Vector = function(builder, numElems) {\n";
-          }
-
+          code += "static start" + MakeCamel(field.name);
+          code += "Vector(builder:flatbuffers.Builder, numElems:number) {\n";
           code += "  builder.startVector(" + NumToString(elem_size);
           code += ", numElems, " + NumToString(alignment) + ");\n";
-          code += "};\n\n";
+          code += "}\n\n";
         }
       }
 
       // Generate a method to stop building a new object
-      GenDocComment(
-          code_ptr,
-          GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder") +
-              GenTypeAnnotation(kReturns, "flatbuffers.Offset", "", false));
+      GenDocComment(code_ptr);
 
-      if (lang_.language == IDLOptions::kTs) {
-        code += "static end" + Verbose(struct_def);
-        code += "(builder:flatbuffers.Builder):flatbuffers.Offset {\n";
-      } else {
-        code += object_name + ".end" + Verbose(struct_def);
-        code += " = function(builder) {\n";
-      }
+      code += "static end" + GetPrefixedName(struct_def);
+      code += "(builder:flatbuffers.Builder):flatbuffers.Offset {\n";
 
-      code += "  var offset = builder.endObject();\n";
+      code += "  const offset = builder.endObject();\n";
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
         auto &field = **it;
         if (!field.deprecated && field.required) {
           code += "  builder.requiredField(offset, ";
           code += NumToString(field.value.offset);
-          code += "); // " + field.name + "\n";
+          code += ") // " + field.name + "\n";
         }
       }
       code += "  return offset;\n";
-      code += "};\n\n";
+      code += "}\n\n";
 
       // Generate the methods to complete buffer construction
-      GenerateFinisher(struct_def, code_ptr, code, object_name, false);
-      GenerateFinisher(struct_def, code_ptr, code, object_name, true);
+      GenerateFinisher(struct_def, code_ptr, code, false);
+      GenerateFinisher(struct_def, code_ptr, code, true);
 
       // Generate a convenient CreateX function
       if (CanCreateFactoryMethod(struct_def)) {
-        if (lang_.language == IDLOptions::kJs) {
-          std::string paramDoc =
-              GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder");
-          for (auto it = struct_def.fields.vec.begin();
-               it != struct_def.fields.vec.end(); ++it) {
-            const auto &field = **it;
-            if (field.deprecated) continue;
-            paramDoc +=
-                GenTypeAnnotation(kParam, GetArgType(field, true), GetArgName(field));
-          }
-          paramDoc +=
-              GenTypeAnnotation(kReturns, "flatbuffers.Offset", "", false);
-
-          GenDocComment(code_ptr, paramDoc);
-        }
-
-        if (lang_.language == IDLOptions::kTs) {
-          code += "static create" + Verbose(struct_def);
-          code += "(builder:flatbuffers.Builder";
-        } else {
-          code += object_name + ".create" + Verbose(struct_def);
-          code += " = function(builder";
-        }
+        code += "static create" + GetPrefixedName(struct_def);
+        code += "(builder:flatbuffers.Builder";
         for (auto it = struct_def.fields.vec.begin();
              it != struct_def.fields.vec.end(); ++it) {
           const auto &field = **it;
           if (field.deprecated) continue;
-
-          if (lang_.language == IDLOptions::kTs) {
-            code += ", " + GetArgName(field) + ":" + GetArgType(field, true);
-          } else {
-            code += ", " + GetArgName(field);
-          }
+          code += ", " + GetArgName(field) + ":" +
+                  GetArgType(imports, struct_def, field, true);
         }
 
-        if (lang_.language == IDLOptions::kTs) {
-          code += "):flatbuffers.Offset {\n";
-          code += "  " + struct_def.name + ".start" + Verbose(struct_def) +
-                  "(builder);\n";
-        } else {
-          code += ") {\n";
-          code += "  " + object_name + ".start" + Verbose(struct_def) +
-                  "(builder);\n";
-        }
+        code += "):flatbuffers.Offset {\n";
+        code += "  " + struct_def.name + ".start" +
+                GetPrefixedName(struct_def) + "(builder);\n";
 
-        std::string methodPrefix =
-            lang_.language == IDLOptions::kTs ? struct_def.name : object_name;
+        std::string methodPrefix = struct_def.name;
         for (auto it = struct_def.fields.vec.begin();
              it != struct_def.fields.vec.end(); ++it) {
           const auto &field = **it;
@@ -2079,57 +1533,46 @@ class JsTsGenerator : public BaseGenerator {
           code += "builder, " + arg_name + ");\n";
         }
 
-        code += "  return " + methodPrefix + ".end" + Verbose(struct_def) +
-                "(builder);\n";
+        code += "  return " + methodPrefix + ".end" +
+                GetPrefixedName(struct_def) + "(builder);\n";
         code += "}\n";
-        if (lang_.language == IDLOptions::kJs) code += "\n";
       }
     }
 
-    if (!struct_def.fixed && parser_.services_.vec.size() != 0 &&
-        lang_.language == IDLOptions::kTs) {
-      auto name = Verbose(struct_def, "");
+    if (!struct_def.fixed && parser_.services_.vec.size() != 0) {
+      auto name = GetPrefixedName(struct_def, "");
       code += "\n";
       code += "serialize():Uint8Array {\n";
       code += "  return this.bb!.bytes();\n";
       code += "}\n";
 
       code += "\n";
-      code += "static deserialize(buffer: Uint8Array):"+ name +" {\n";
-      code += "  return " + name + ".getRootAs" + name +
-              "(new flatbuffers.ByteBuffer(buffer))\n";
+      code += "static deserialize(buffer: Uint8Array):" + name + " {\n";
+      code += "  return " + AddImport(imports, struct_def, struct_def) +
+              ".getRootAs" + name + "(new flatbuffers.ByteBuffer(buffer))\n";
       code += "}\n";
     }
 
-    if (lang_.language == IDLOptions::kTs) {
-      if (parser_.opts.generate_object_based_api) {
-        std::string obj_api_class;
-        std::string obj_api_unpack_func;
-        GenObjApi(parser_, struct_def, obj_api_unpack_func, obj_api_class,
-                  imported_files);
+    if (parser_.opts.generate_object_based_api) {
+      std::string obj_api_class;
+      std::string obj_api_unpack_func;
+      GenObjApi(parser_, struct_def, obj_api_unpack_func, obj_api_class,
+                imports);
 
-        code += obj_api_unpack_func + "}\n" + obj_api_class;
-      } else {
-        code += "}\n";
-      }
-      if (!object_namespace.empty()) { code += "}\n"; }
+      code += obj_api_unpack_func + "}\n" + obj_api_class;
+    } else {
+      code += "}\n";
     }
   }
-  
+
   static bool HasNullDefault(const FieldDef &field) {
     return field.optional && field.value.constant == "null";
   }
 
-  std::string GetArgType(const FieldDef &field, bool allowNull) {
-    auto type_name = GenTypeName(field.value.type, true, allowNull && field.optional);
-
-    if (field.value.type.enum_def) {
-      if (IsScalar(field.value.type.base_type)) {
-        return GenPrefixedTypeName(type_name, field.value.type.enum_def->file);
-      }
-    }
-
-    return type_name;
+  std::string GetArgType(import_set &imports, const Definition &owner,
+                         const FieldDef &field, bool allowNull) {
+    return GenTypeName(imports, owner, field.value.type, true,
+                       allowNull && field.optional);
   }
 
   static std::string GetArgName(const FieldDef &field) {
@@ -2139,25 +1582,26 @@ class JsTsGenerator : public BaseGenerator {
     return argname;
   }
 
-  std::string Verbose(const StructDef &struct_def, const char *prefix = "") {
-    return parser_.opts.js_ts_short_names ? "" : prefix + struct_def.name;
+  std::string GetPrefixedName(const StructDef &struct_def,
+                              const char *prefix = "") {
+    return prefix + struct_def.name;
   }
-};  // namespace jsts
-}  // namespace jsts
+};  // namespace ts
+}  // namespace ts
 
-bool GenerateJSTS(const Parser &parser, const std::string &path,
-                  const std::string &file_name) {
-  jsts::JsTsGenerator generator(parser, path, file_name);
+bool GenerateTS(const Parser &parser, const std::string &path,
+                const std::string &file_name) {
+  ts::TsGenerator generator(parser, path, file_name);
   return generator.generate();
 }
 
-std::string JSTSMakeRule(const Parser &parser, const std::string &path,
-                         const std::string &file_name) {
+std::string TSMakeRule(const Parser &parser, const std::string &path,
+                       const std::string &file_name) {
   FLATBUFFERS_ASSERT(parser.opts.lang <= IDLOptions::kMAX);
 
   std::string filebase =
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
-  jsts::JsTsGenerator generator(parser, path, file_name);
+  ts::TsGenerator generator(parser, path, file_name);
   std::string make_rule =
       generator.GeneratedFileName(path, filebase, parser.opts) + ": ";
 

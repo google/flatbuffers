@@ -1,13 +1,14 @@
 // Run this using JavaScriptTest.sh
-var assert = require('assert');
-var fs = require('fs');
+import assert from 'assert'
+import fs from 'fs'
+import * as flatbuffers from 'flatbuffers'
 
-var flatbuffers = require('../js/flatbuffers').flatbuffers;
-global.flatbuffers = flatbuffers;
-
-var MyGame = require(process.argv[2]).MyGame;
-
-var isTsTest = !!process.env.FB_TS_TEST; 
+import { Monster, MonsterT } from './ts/my-game/example/monster'
+import { Test } from './ts/my-game/example/test'
+import { Stat } from './ts/my-game/example/stat'
+import { Vec3 } from './ts/my-game/example/vec3'
+import { Color } from './ts/my-game/example/color';
+import { Any } from './ts/my-game/example/any';
 
 function main() {
 
@@ -27,11 +28,8 @@ function main() {
   var fbb = new flatbuffers.Builder(1);
   createMonster(fbb);
   serializeAndTest(fbb);
+  testObjApiPack(fbb);
 
-  if(isTsTest) {
-    testObjApiPack(fbb);
-  }
-  
   // clear the builder, repeat tests
   var clearIterations = 100;
   var startingCapacity = fbb.bb.capacity();
@@ -39,10 +37,7 @@ function main() {
     fbb.clear();
     createMonster(fbb);
     serializeAndTest(fbb);
-
-    if(isTsTest) {
-      testObjApiPack(fbb);
-    }
+    testObjApiPack(fbb);
   }
   // the capacity of our buffer shouldn't increase with the same size payload
   assert.strictEqual(fbb.bb.capacity(), startingCapacity);
@@ -52,7 +47,7 @@ function main() {
   fuzzTest1();
   testNullStrings();
   testSharedStrings();
-  
+
   console.log('FlatBuffers test: completed successfully');
 }
 
@@ -61,36 +56,36 @@ function createMonster(fbb) {
 
   var str = fbb.createString('MyMonster');
 
-  var inv = MyGame.Example.Monster.createInventoryVector(fbb, [0, 1, 2, 3, 4]);
+  var inv = Monster.createInventoryVector(fbb, [0, 1, 2, 3, 4]);
 
   var fred = fbb.createString('Fred');
-  MyGame.Example.Monster.startMonster(fbb);
-  MyGame.Example.Monster.addName(fbb, fred);
-  var mon2 = MyGame.Example.Monster.endMonster(fbb);
+  Monster.startMonster(fbb);
+  Monster.addName(fbb, fred);
+  var mon2 = Monster.endMonster(fbb);
 
-  MyGame.Example.Monster.startTest4Vector(fbb, 2);
-  MyGame.Example.Test.createTest(fbb, 10, 20);
-  MyGame.Example.Test.createTest(fbb, 30, 40);
+  Monster.startTest4Vector(fbb, 2);
+  Test.createTest(fbb, 10, 20);
+  Test.createTest(fbb, 30, 40);
   var test4 = fbb.endVector();
 
-  var testArrayOfString = MyGame.Example.Monster.createTestarrayofstringVector(fbb, [
+  var testArrayOfString = Monster.createTestarrayofstringVector(fbb, [
     fbb.createString('test1'),
     fbb.createString('test2')
   ]);
 
-  MyGame.Example.Monster.startMonster(fbb);
-  MyGame.Example.Monster.addPos(fbb, MyGame.Example.Vec3.createVec3(fbb, 1, 2, 3, 3, MyGame.Example.Color.Green, 5, 6));
-  MyGame.Example.Monster.addHp(fbb, 80);
-  MyGame.Example.Monster.addName(fbb, str);
-  MyGame.Example.Monster.addInventory(fbb, inv);
-  MyGame.Example.Monster.addTestType(fbb, MyGame.Example.Any.Monster);
-  MyGame.Example.Monster.addTest(fbb, mon2);
-  MyGame.Example.Monster.addTest4(fbb, test4);
-  MyGame.Example.Monster.addTestarrayofstring(fbb, testArrayOfString);
-  MyGame.Example.Monster.addTestbool(fbb, true);
-  var mon = MyGame.Example.Monster.endMonster(fbb);
+  Monster.startMonster(fbb);
+  Monster.addPos(fbb, Vec3.createVec3(fbb, 1, 2, 3, 3, Color.Green, 5, 6));
+  Monster.addHp(fbb, 80);
+  Monster.addName(fbb, str);
+  Monster.addInventory(fbb, inv);
+  Monster.addTestType(fbb, Any.Monster);
+  Monster.addTest(fbb, mon2);
+  Monster.addTest4(fbb, test4);
+  Monster.addTestarrayofstring(fbb, testArrayOfString);
+  Monster.addTestbool(fbb, true);
+  var mon = Monster.endMonster(fbb);
 
-  MyGame.Example.Monster.finishMonsterBuffer(fbb, mon);
+  Monster.finishMonsterBuffer(fbb, mon);
 }
 
 function serializeAndTest(fbb) {
@@ -109,7 +104,7 @@ function serializeAndTest(fbb) {
 }
 
 function testMutation(bb) {
-  var monster = MyGame.Example.Monster.getRootAsMonster(bb);
+  var monster = Monster.getRootAsMonster(bb);
 
   monster.mutate_hp(120);
   assert.strictEqual(monster.hp(), 120);
@@ -126,9 +121,9 @@ function testMutation(bb) {
 function testObjApiPack(fbb) {
   fbb.clear();
   createMonster(fbb);
-  let monster_t = MyGame.Example.Monster.getRootAsMonster(fbb.dataBuffer()).unpack();
+  let monster_t = Monster.getRootAsMonster(fbb.dataBuffer()).unpack();
   fbb.clear();
-  MyGame.Example.Monster.finishMonsterBuffer(fbb, monster_t.pack(fbb));
+  Monster.finishMonsterBuffer(fbb, monster_t.pack(fbb));
   serializeAndTest(fbb);
 }
 
@@ -143,15 +138,15 @@ function testObjApiUnpack(monster) {
   assert.strictEqual(pos.y, 2);
   assert.strictEqual(pos.z, 3);
   assert.strictEqual(pos.test1, 3);
-  assert.strictEqual(pos.test2, MyGame.Example.Color.Green);
+  assert.strictEqual(pos.test2, Color.Green);
   let test3 = pos.test3;
   assert.strictEqual(test3.a, 5);
   assert.strictEqual(test3.b, 6);
 
-  assert.strictEqual(monster.testType, MyGame.Example.Any.Monster);
+  assert.strictEqual(monster.testType, Any.Monster);
   let monster2 = monster.test;
   assert.strictEqual(monster2 != null, true);
-  assert.strictEqual(monster2 instanceof MyGame.Example.MonsterT, true);
+  assert.strictEqual(monster2 instanceof MonsterT, true);
   assert.strictEqual(monster2.name, 'Fred');
 
   assert.strictEqual(monster.inventory.length, 5);
@@ -174,9 +169,9 @@ function testObjApiUnpack(monster) {
 }
 
 function testBuffer(bb) {
-  assert.ok(MyGame.Example.Monster.bufferHasIdentifier(bb));
+  assert.ok(Monster.bufferHasIdentifier(bb));
 
-  var monster = MyGame.Example.Monster.getRootAsMonster(bb);
+  var monster = Monster.getRootAsMonster(bb);
 
   assert.strictEqual(monster.hp(), 80);
   assert.strictEqual(monster.mana(), 150); // default
@@ -188,13 +183,13 @@ function testBuffer(bb) {
   assert.strictEqual(pos.y(), 2);
   assert.strictEqual(pos.z(), 3);
   assert.strictEqual(pos.test1(), 3);
-  assert.strictEqual(pos.test2(), MyGame.Example.Color.Green);
+  assert.strictEqual(pos.test2(), Color.Green);
   var t = pos.test3();
   assert.strictEqual(t.a(), 5);
   assert.strictEqual(t.b(), 6);
 
-  assert.strictEqual(monster.testType(), MyGame.Example.Any.Monster);
-  var monster2 = new MyGame.Example.Monster();
+  assert.strictEqual(monster.testType(), Any.Monster);
+  var monster2 = new Monster();
   assert.strictEqual(monster.test(monster2) != null, true);
   assert.strictEqual(monster2.name(), 'Fred');
 
@@ -223,47 +218,45 @@ function testBuffer(bb) {
 
   assert.strictEqual(monster.testbool(), true);
 
-  if(isTsTest) {
-    let monster_t = monster.unpack();
-    testObjApiUnpack(monster_t);
+  let monster_t = monster.unpack();
+  testObjApiUnpack(monster_t);
 
-    let monster2_t = new MyGame.Example.MonsterT();
-    monster.unpackTo(monster2_t);
-    testObjApiUnpack(monster2_t);
-  }
+  let monster2_t = new MonsterT();
+  monster.unpackTo(monster2_t);
+  testObjApiUnpack(monster2_t);
 }
 
 function test64bit() {
   var fbb = new flatbuffers.Builder();
   var required = fbb.createString('required');
 
-  MyGame.Example.Stat.startStat(fbb);
-  var stat2 = MyGame.Example.Stat.endStat(fbb);
+  Stat.startStat(fbb);
+  var stat2 = Stat.endStat(fbb);
 
-  MyGame.Example.Monster.startMonster(fbb);
-  MyGame.Example.Monster.addName(fbb, required);
-  MyGame.Example.Monster.addTestempty(fbb, stat2);
-  var mon2 = MyGame.Example.Monster.endMonster(fbb);
+  Monster.startMonster(fbb);
+  Monster.addName(fbb, required);
+  Monster.addTestempty(fbb, stat2);
+  var mon2 = Monster.endMonster(fbb);
 
-  MyGame.Example.Stat.startStat(fbb);
+  Stat.startStat(fbb);
   // 2541551405100253985 = 0x87654321(low part) + 0x23456789 * 0x100000000(high part);
-  MyGame.Example.Stat.addVal(fbb, new flatbuffers.Long(0x87654321, 0x23456789));    // the low part is Uint32
-  var stat = MyGame.Example.Stat.endStat(fbb);
+  Stat.addVal(fbb, new flatbuffers.Long(0x87654321, 0x23456789));    // the low part is Uint32
+  var stat = Stat.endStat(fbb);
 
-  MyGame.Example.Monster.startMonster(fbb);
-  MyGame.Example.Monster.addName(fbb, required);
-  MyGame.Example.Monster.addEnemy(fbb, mon2);
-  MyGame.Example.Monster.addTestempty(fbb, stat);
-  var mon = MyGame.Example.Monster.endMonster(fbb);
+  Monster.startMonster(fbb);
+  Monster.addName(fbb, required);
+  Monster.addEnemy(fbb, mon2);
+  Monster.addTestempty(fbb, stat);
+  var mon = Monster.endMonster(fbb);
 
-  MyGame.Example.Monster.finishMonsterBuffer(fbb, mon);
+  Monster.finishMonsterBuffer(fbb, mon);
   var bytes = fbb.asUint8Array();
 
   ////////////////////////////////////////////////////////////////
 
   var bb = new flatbuffers.ByteBuffer(bytes);
-  assert.ok(MyGame.Example.Monster.bufferHasIdentifier(bb));
-  var mon = MyGame.Example.Monster.getRootAsMonster(bb);
+  assert.ok(Monster.bufferHasIdentifier(bb));
+  var mon = Monster.getRootAsMonster(bb);
 
   var stat = mon.testempty();
   assert.strictEqual(stat != null, true);
@@ -285,7 +278,7 @@ function testUnicode() {
 
   // Test reading
   function testReadingUnicode(bb) {
-    var monster = MyGame.Example.Monster.getRootAsMonster(bb);
+    var monster = Monster.getRootAsMonster(bb);
     assert.strictEqual(monster.name(), json.name);
     assert.deepEqual(new Buffer(monster.name(flatbuffers.Encoding.UTF8_BYTES)), new Buffer(json.name));
     assert.strictEqual(monster.testarrayoftablesLength(), json.testarrayoftables.length);
@@ -307,19 +300,19 @@ function testUnicode() {
   var name = fbb.createString(json.name);
   var testarrayoftablesOffsets = json.testarrayoftables.map(function(table) {
     var name = fbb.createString(new Uint8Array(new Buffer(table.name)));
-    MyGame.Example.Monster.startMonster(fbb);
-    MyGame.Example.Monster.addName(fbb, name);
-    return MyGame.Example.Monster.endMonster(fbb);
+    Monster.startMonster(fbb);
+    Monster.addName(fbb, name);
+    return Monster.endMonster(fbb);
   });
-  var testarrayoftablesOffset = MyGame.Example.Monster.createTestarrayoftablesVector(fbb,
+  var testarrayoftablesOffset = Monster.createTestarrayoftablesVector(fbb,
     testarrayoftablesOffsets);
-  var testarrayofstringOffset = MyGame.Example.Monster.createTestarrayofstringVector(fbb,
+  var testarrayofstringOffset = Monster.createTestarrayofstringVector(fbb,
     json.testarrayofstring.map(function(string) { return fbb.createString(string); }));
-  MyGame.Example.Monster.startMonster(fbb);
-  MyGame.Example.Monster.addTestarrayofstring(fbb, testarrayofstringOffset);
-  MyGame.Example.Monster.addTestarrayoftables(fbb, testarrayoftablesOffset);
-  MyGame.Example.Monster.addName(fbb, name);
-  MyGame.Example.Monster.finishSizePrefixedMonsterBuffer(fbb, MyGame.Example.Monster.endMonster(fbb));
+  Monster.startMonster(fbb);
+  Monster.addTestarrayofstring(fbb, testarrayofstringOffset);
+  Monster.addTestarrayoftables(fbb, testarrayoftablesOffset);
+  Monster.addName(fbb, name);
+  Monster.finishSizePrefixedMonsterBuffer(fbb, Monster.endMonster(fbb));
   var bb = new flatbuffers.ByteBuffer(fbb.asUint8Array())
   bb.setPosition(4);
   testReadingUnicode(bb);

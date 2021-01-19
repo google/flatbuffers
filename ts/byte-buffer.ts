@@ -312,8 +312,8 @@ export class ByteBuffer {
     /**
      * A helper function for generating list for obj api
      */
-    createScalarList(listAccessor: (i: number) => unknown, listLength: number) : unknown[] {
-      const ret: unknown[] = [];
+    createScalarList(listAccessor: (i: number) => unknown, listLength: number): any[] {
+      const ret: any[]  = [];
       for(let i = 0; i < listLength; ++i) {
         if(listAccessor(i) !== null) {
           ret.push(listAccessor(i));
@@ -324,24 +324,17 @@ export class ByteBuffer {
     }
   
     /**
-     * This function is here only to get around typescript type system
-     */
-    createStringList(listAccessor: (i: number) => unknown, listLength: number): unknown[] {
-      return this.createScalarList(listAccessor, listLength);
-    }
-  
-    /**
      * A helper function for generating list for obj api
      * @param listAccessor function that accepts an index and return data at that index
      * @param listLength listLength
      * @param res result list
      */
-    createObjList(listAccessor: (i: number) => IGeneratedObject, listLength: number): IGeneratedObject[] {
-      const ret: IGeneratedObject[] = [];
+    createObjList(listAccessor: (i: number) => unknown, listLength: number): any[] {
+      const ret: any[] = [];
       for(let i = 0; i < listLength; ++i) {
         const val = listAccessor(i);
         if(val !== null) {
-          ret.push(val.unpack());
+          ret.push((val as IGeneratedObject).unpack());
         }
       }
       

@@ -84,20 +84,39 @@ const char *BaseGenerator::FlatBuffersGeneratedWarning() {
 
 std::string BaseGenerator::NamespaceDir(const Parser &parser,
                                         const std::string &path,
-                                        const Namespace &ns) {
+                                        const Namespace &ns,
+                                        const bool dasherize) {
   EnsureDirExists(path);
   if (parser.opts.one_file) return path;
   std::string namespace_dir = path;  // Either empty or ends in separator.
   auto &namespaces = ns.components;
   for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
-    namespace_dir += *it + kPathSeparator;
+    namespace_dir += !dasherize ? *it : ToDasherizedCase(*it);
+    namespace_dir += kPathSeparator;
     EnsureDirExists(namespace_dir);
   }
   return namespace_dir;
 }
 
-std::string BaseGenerator::NamespaceDir(const Namespace &ns) const {
-  return BaseGenerator::NamespaceDir(parser_, path_, ns);
+std::string BaseGenerator::NamespaceDir(const Namespace &ns,
+                                        const bool dasherize) const {
+  return BaseGenerator::NamespaceDir(parser_, path_, ns, dasherize);
+}
+
+std::string BaseGenerator::ToDasherizedCase(const std::string pascal_case) {
+  std::string dasherized_case;
+  char p = 0;
+  for (size_t i = 0; i < pascal_case.length(); i++) {
+    char const &c = pascal_case[i];
+    if (is_alpha_upper(c)) {
+      if (i > 0 && p != kPathSeparator) dasherized_case += "-";
+      dasherized_case += CharToLower(c);
+    } else {
+      dasherized_case += c;
+    }
+    p = c;
+  }
+  return dasherized_case;
 }
 
 std::string BaseGenerator::FullNamespace(const char *separator,

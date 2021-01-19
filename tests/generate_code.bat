@@ -32,18 +32,18 @@ set TEST_CS_FLAGS=--cs-gen-json-serializer
 set TEST_JS_TS_FLAGS=--gen-name-strings
 set TEST_RUST_FLAGS=--gen-name-strings
 set TEST_BASE_FLAGS=--reflect-names --gen-mutable --gen-object-api
-set TEST_NOINCL_FLAGS=%TEST_BASE_FLAGS% --no-includes --no-fb-import
+set TEST_NOINCL_FLAGS=%TEST_BASE_FLAGS% --no-includes
 
-..\%buildtype%\flatc.exe --binary --cpp --java --kotlin --csharp --dart --go --lobster --lua --js --ts --php --grpc ^
+..\%buildtype%\flatc.exe --binary --cpp --java --kotlin --csharp --dart --go --lobster --lua --ts --php --grpc ^
 %TEST_NOINCL_FLAGS% %TEST_CPP_FLAGS% %TEST_CS_FLAGS% -I include_test monster_test.fbs monsterdata_test.json || goto FAIL
 ..\%buildtype%\flatc.exe --rust %TEST_NOINCL_FLAGS% %TEST_RUST_FLAGS% -I include_test monster_test.fbs monsterdata_test.json || goto FAIL
 
-..\%buildtype%\flatc.exe --python %TEST_BASE_FLAGS% --no-fb-import -I include_test monster_test.fbs monsterdata_test.json || goto FAIL
+..\%buildtype%\flatc.exe --python %TEST_BASE_FLAGS% -I include_test monster_test.fbs monsterdata_test.json || goto FAIL
 
-..\%buildtype%\flatc.exe --binary --cpp --java --csharp --dart --go --lobster --lua --js --ts --php --python --rust ^
+..\%buildtype%\flatc.exe --binary --cpp --java --csharp --dart --go --lobster --lua --ts --php --python --rust ^
 %TEST_NOINCL_FLAGS% %TEST_CPP_FLAGS% %TEST_CS_FLAGS% %TEST_JS_TS_FLAGS% -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs || goto FAIL
 
-..\%buildtype%\flatc.exe --cpp --java --csharp --js --ts --php %TEST_BASE_FLAGS% %TEST_CPP_FLAGS% %TEST_CS_FLAGS% %TEST_JS_TS_FLAGS% -o union_vector ./union_vector/union_vector.fbs || goto FAIL
+..\%buildtype%\flatc.exe --cpp --java --csharp --ts --php %TEST_BASE_FLAGS% %TEST_CPP_FLAGS% %TEST_CS_FLAGS% %TEST_JS_TS_FLAGS% -o union_vector ./union_vector/union_vector.fbs || goto FAIL
 ..\%buildtype%\flatc.exe --rust -I include_test -o include_test include_test/include_test1.fbs || goto FAIL
 ..\%buildtype%\flatc.exe --rust -I include_test -o include_test/sub include_test/sub/include_test2.fbs || goto FAIL
 ..\%buildtype%\flatc.exe -b --schema --bfbs-comments --bfbs-builtins -I include_test monster_test.fbs || goto FAIL
@@ -55,7 +55,7 @@ set TEST_NOINCL_FLAGS=%TEST_BASE_FLAGS% --no-includes --no-fb-import
 ..\%buildtype%\flatc.exe --cpp %TEST_BASE_FLAGS% --cpp-ptr-type flatbuffers::unique_ptr native_type_test.fbs || goto FAIL
 
 @rem Generate the optional scalar code for tests.
-..\%buildtype%\flatc.exe --java --kotlin --rust --lobster --ts --js optional_scalars.fbs || goto FAIL
+..\%buildtype%\flatc.exe --java --kotlin --rust --lobster --ts optional_scalars.fbs || goto FAIL
 ..\%buildtype%\flatc.exe --csharp --gen-object-api optional_scalars.fbs || goto FAIL
 ..\%buildtype%\flatc.exe %TEST_NOINCL_FLAGS% %TEST_CPP_FLAGS% --cpp optional_scalars.fbs || goto FAIL
 
