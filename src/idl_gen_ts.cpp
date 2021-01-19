@@ -50,13 +50,19 @@ const JsTsLanguageParameters &GetJsLangParams(IDLOptions::Language lang) {
         IDLOptions::kTs,
         ".ts",
     },
+    {
+        IDLOptions::kAs,
+        ".ts",
+    },
   };
 
   if (lang == IDLOptions::kJs) {
     return js_language_parameters[0];
-  } else {
-    FLATBUFFERS_ASSERT(lang == IDLOptions::kTs);
+  } else if (lang == IDLOptions::kTs) {
     return js_language_parameters[1];
+  } else {
+    FLATBUFFERS_ASSERT(lang == IDLOptions::kAs);
+    return js_language_parameters[2];
   }
 }
 
@@ -81,6 +87,32 @@ class JsTsGenerator : public BaseGenerator {
     reexport_map reexports;
 
     std::string enum_code, struct_code, import_code, exports_code, code;
+    int closing_brackets = 0;
+
+    //  HACK: Assembly script does not currently support dot notation
+    //  namespaces. Removing namepsaces from each component for this reason.
+    if (lang_.language == IDLOptions::kAs) {
+      for (size_t i = 0; i < parser_.structs_.vec.size(); i++) {
+        parser_.structs_.vec[i]->defined_namespace->components.clear();
+        for (size_t j = 0; j < parser_.structs_.vec[i]->fields.vec.size();
+             j++) {
+          if (parser_.structs_.vec[i]->fields.vec[j]->value.type.struct_def) {
+            if (parser_.structs_.vec[i]
+                    ->fields.vec[j]
+                    ->value.type.struct_def->defined_namespace) {
+              parser_.structs_.vec[i]
+                  ->fields.vec[j]
+                  ->value.type.struct_def->defined_namespace->components
+                  .clear();
+            }
+          }
+        }
+      }
+      for (size_t i = 0; i < parser_.enums_.vec.size(); i++) {
+        parser_.enums_.vec[i]->defined_namespace->components.clear();
+      }
+    }
+
     generateEnums(&enum_code, &exports_code, reexports, imported_files);
     generateStructs(&struct_code, &exports_code, imported_files);
     generateImportDependencies(&import_code, imported_files);
@@ -93,12 +125,14 @@ class JsTsGenerator : public BaseGenerator {
 
     // Output the main declaration code from above.
     code += import_code;
-
     code += enum_code;
     code += struct_code;
 
-    if (lang_.language == IDLOptions::kJs && !exports_code.empty() &&
-        !parser_.opts.skip_js_exports) {
+    while (closing_brackets--) { code += "}\n"; }
+
+    if ((lang_.language == IDLOptions::kJs ||
+         lang_.language == IDLOptions::kAs) &&
+        !exports_code.empty() && !parser_.opts.skip_js_exports) {
       if (parser_.opts.use_ES6_js_export_format)
         code += "// Exports for ECMAScript6 Modules\n";
       else
@@ -190,7 +224,8 @@ class JsTsGenerator : public BaseGenerator {
     }
   }
   void GenNamespaces(std::string *code_ptr, std::string *exports_ptr) {
-    if (lang_.language == IDLOptions::kTs &&
+    if ((lang_.language == IDLOptions::kTs ||
+         lang_.language == IDLOptions::kAs) &&
         parser_.opts.skip_flatbuffers_import) {
       return;
     }
@@ -219,13 +254,15 @@ class JsTsGenerator : public BaseGenerator {
     std::string &code = *code_ptr;
     std::string &exports = *exports_ptr;
 
-    if (lang_.language == IDLOptions::kTs) {
+    if (lang_.language == IDLOptions::kTs ||
+        lang_.language == IDLOptions::kAs) {
       code += "import * as flatbuffers from 'flatbuffers';\n";
     }
 
     for (auto it = sorted_namespaces.begin(); it != sorted_namespaces.end();
          ++it) {
-      if (lang_.language == IDLOptions::kTs) {
+      if (lang_.language == IDLOptions::kTs ||
+          lang_.language == IDLOptions::kAs) {
         if (it->find('.') == std::string::npos) { break; }
       } else {
         code += "/**\n * @const\n * @namespace\n */\n";
@@ -331,7 +368,9 @@ class JsTsGenerator : public BaseGenerator {
                std::string *exports_ptr, reexport_map &reexports,
                imported_fileset &imported_files, bool reverse) {
     if (enum_def.generated) return;
-    if (reverse && lang_.language == IDLOptions::kTs) return;  // FIXME.
+    if (reverse && (lang_.language == IDLOptions::kTs ||
+                    lang_.language == IDLOptions::kAs))
+      return;  // FIXME.
     std::string &code = *code_ptr;
     std::string &exports = *exports_ptr;
     GenDocComment(enum_def.doc_comment, code_ptr,
@@ -340,6 +379,8 @@ class JsTsGenerator : public BaseGenerator {
     std::string enum_def_name = enum_def.name + (reverse ? "Name" : "");
     if (lang_.language == IDLOptions::kTs) {
       if (!ns.empty()) { code += "export namespace " + ns + "{\n"; }
+      code += "export enum " + enum_def.name + "{\n";
+    } else if (lang_.language == IDLOptions::kAs) {
       code += "export enum " + enum_def.name + "{\n";
     } else {
       if (enum_def.defined_namespace->components.empty()) {
@@ -365,11 +406,17 @@ class JsTsGenerator : public BaseGenerator {
       // Generate mapping between EnumName: EnumValue(int)
       if (reverse) {
         code += "  '" + enum_def.ToString(ev) + "'";
-        code += lang_.language == IDLOptions::kTs ? "= " : ": ";
+        code += lang_.language == IDLOptions::kTs ||
+                        lang_.language == IDLOptions::kAs
+                    ? "= "
+                    : ": ";
         code += "'" + ev.name + "'";
       } else {
         code += "  " + ev.name;
-        code += lang_.language == IDLOptions::kTs ? "= " : ": ";
+        code += lang_.language == IDLOptions::kTs ||
+                        lang_.language == IDLOptions::kAs
+                    ? "= "
+                    : ": ";
         code += enum_def.ToString(ev);
       }
 
@@ -383,6 +430,7 @@ class JsTsGenerator : public BaseGenerator {
             std::make_pair(ev.union_type.struct_def->file, std::move(desc)));
       }
     }
+
     code += "};";
 
     if (lang_.language == IDLOptions::kTs) {
@@ -443,7 +491,10 @@ class JsTsGenerator : public BaseGenerator {
   }
 
   std::string GenBBAccess() const {
-    return lang_.language == IDLOptions::kTs ? "this.bb!" : "this.bb";
+    return lang_.language == IDLOptions::kTs ||
+                   lang_.language == IDLOptions::kAs
+               ? "this.bb!"
+               : "this.bb";
   }
 
   std::string GenDefaultValue(const FieldDef &field, const std::string &context) {
@@ -455,7 +506,8 @@ class JsTsGenerator : public BaseGenerator {
     if (value.type.enum_def && value.type.base_type != BASE_TYPE_UNION &&
         value.type.base_type != BASE_TYPE_VECTOR) {
       if (auto val = value.type.enum_def->FindByValue(value.constant)) {
-        if (lang_.language == IDLOptions::kTs) {
+        if (lang_.language == IDLOptions::kTs ||
+            lang_.language == IDLOptions::kAs) {
           return GenPrefixedTypeName(WrapInNameSpace(*value.type.enum_def),
                                      value.type.enum_def->file) +
                  "." + val->name;
@@ -511,14 +563,20 @@ class JsTsGenerator : public BaseGenerator {
       case BASE_TYPE_BOOL: return (allowNull) ? ("boolean|null") : ("boolean");
       case BASE_TYPE_LONG:
       case BASE_TYPE_ULONG: return (allowNull) ? ("flatbuffers.Long|null") : ("flatbuffers.Long");
+      case BASE_TYPE_FLOAT:
+        if (lang_.language == IDLOptions::kAs) { return "f32"; }
+        return (allowNull) ? ("number|null") : ("number");
       default:
         if (IsScalar(type.base_type)) {
           if (type.enum_def) {
             const auto enum_name = WrapInNameSpace(*type.enum_def);
             return (allowNull) ? (enum_name + "|null") : (enum_name);
           }
-          
-          return (allowNull) ? ("number|null") : ("number");
+          if (lang_.language == IDLOptions::kAs) {
+            return "i32";
+          } else {
+            return (allowNull) ? ("number|null") : ("number");
+          }
         }
         return "flatbuffers.Offset";
     }
@@ -600,7 +658,8 @@ class JsTsGenerator : public BaseGenerator {
         *annotations +=
             GenTypeAnnotation(kParam, GenTypeName(field.value.type, true, field.optional),
                               nameprefix + field.name);
-        if (lang_.language == IDLOptions::kTs) {
+        if (lang_.language == IDLOptions::kTs ||
+            lang_.language == IDLOptions::kAs) {
           *arguments += ", " + nameprefix + field.name + ": " +
                         GenTypeName(field.value.type, true, field.optional);
         } else {
@@ -638,7 +697,10 @@ class JsTsGenerator : public BaseGenerator {
 
   std::string GenerateNewExpression(const std::string &object_name) {
     return "new " + object_name +
-           (lang_.language == IDLOptions::kTs ? "()" : "");
+           (lang_.language == IDLOptions::kTs ||
+                    lang_.language == IDLOptions::kAs
+                ? "()"
+                : "");
   }
 
   void GenerateRootAccessor(StructDef &struct_def, std::string *code_ptr,
@@ -655,6 +717,11 @@ class JsTsGenerator : public BaseGenerator {
                 Verbose(struct_def, "As");
         code += "(bb:flatbuffers.ByteBuffer, obj?:" + object_name +
                 "):" + object_name + " {\n";
+      } else if (lang_.language == IDLOptions::kAs) {
+        code += "static get" + (size_prefixed ? sizePrefixed : "") + "Root" +
+                Verbose(struct_def, "As");
+        code += "(bb:flatbuffers.ByteBuffer, obj:" + object_name +
+                "| null = null):" + object_name + " {\n";
       } else {
         code += object_name + ".get" + (size_prefixed ? sizePrefixed : "") +
                 "Root" + Verbose(struct_def, "As");
@@ -665,9 +732,20 @@ class JsTsGenerator : public BaseGenerator {
             "  bb.setPosition(bb.position() + "
             "flatbuffers.SIZE_PREFIX_LENGTH);\n";
       }
-      code += "  return (obj || " + GenerateNewExpression(object_name);
-      code += ").__init(bb.readInt32(bb.position()) + bb.position(), bb);\n";
-      code += "};\n\n";
+      if (lang_.language == IDLOptions::kAs) {
+        code += "  let local = obj;\n";
+        code += "  if (local === null) {\n";
+        code += "    local = new " + object_name + "()\n";
+        code += "  }\n";
+        code +=
+            "  return local.__init(bb.readInt32(bb.position()) + "
+            "bb.position(), bb);\n";
+        code += "};\n\n";
+      } else {
+        code += "  return (obj || " + GenerateNewExpression(object_name);
+        code += ").__init(bb.readInt32(bb.position()) + bb.position(), bb);\n";
+        code += "};\n\n";
+      }
     }
   }
 
@@ -685,6 +763,11 @@ class JsTsGenerator : public BaseGenerator {
         code += "static finish" + (size_prefixed ? sizePrefixed : "") +
                 Verbose(struct_def) + "Buffer";
         code += "(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {\n";
+      } else if (lang_.language == IDLOptions::kAs) {
+        code += "static finish" + (size_prefixed ? sizePrefixed : "") +
+                Verbose(struct_def) + "Buffer";
+        code +=
+            "(builder:flatbuffers.Builder, offset:flatbuffers.Offset):void {\n";
       } else {
         code += object_name + ".finish" + (size_prefixed ? sizePrefixed : "") +
                 Verbose(struct_def) + "Buffer";
@@ -855,13 +938,23 @@ class JsTsGenerator : public BaseGenerator {
       union_enum_loop("accessor(");
       ret += "}";
 
-      ret += "\n\nexport function " + GenUnionListConvFuncName(enum_def) +
-             "(\n  type: " + enum_def.name +
-             ", \n  accessor: (index: number, obj:" + valid_union_type +
-             ") => " + valid_union_type_with_null +
-             ", \n  index: number\n): " + valid_union_type_with_null + " {\n";
-      union_enum_loop("accessor(index, ");
-      ret += "}";
+      if (lang_.language == IDLOptions::kAs) {
+        ret += "\n\nexport function " + GenUnionListConvFuncName(enum_def) +
+               "(\n  type: " + enum_def.name +
+               ", \n  accessor: (index: i32, obj:" + valid_union_type +
+               ") => " + valid_union_type_with_null +
+               ", \n  index: i32\n): " + valid_union_type_with_null + " {\n";
+        union_enum_loop("accessor(index, ");
+        ret += "}";
+      } else {
+        ret += "\n\nexport function " + GenUnionListConvFuncName(enum_def) +
+               "(\n  type: " + enum_def.name +
+               ", \n  accessor: (index: number, obj:" + valid_union_type +
+               ") => " + valid_union_type_with_null +
+               ", \n  index: number\n): " + valid_union_type_with_null + " {\n";
+        union_enum_loop("accessor(index, ");
+        ret += "}";
+      }
 
       return ret;
     }
@@ -1320,7 +1413,8 @@ class JsTsGenerator : public BaseGenerator {
       }
       code += "export class " + struct_def.name;
       code += " {\n";
-      if (lang_.language != IDLOptions::kTs) {
+      if (lang_.language != IDLOptions::kTs &&
+          lang_.language != IDLOptions::kAs) {
         code += "  /**\n";
         code +=
             "   * " + GenTypeAnnotation(kType, "flatbuffers.ByteBuffer", "");
@@ -1328,12 +1422,21 @@ class JsTsGenerator : public BaseGenerator {
       }
       code += "  bb: flatbuffers.ByteBuffer|null = null;\n";
       code += "\n";
-      if (lang_.language != IDLOptions::kTs) {
+      if (lang_.language != IDLOptions::kTs &&
+          lang_.language != IDLOptions::kAs) {
         code += "  /**\n";
         code += "   * " + GenTypeAnnotation(kType, "number", "");
         code += "   */\n";
       }
       code += "  bb_pos:number = 0;\n";
+    } else if (lang_.language == IDLOptions::kAs) {
+      object_name = struct_def.name;
+      GenDocComment(struct_def.doc_comment, code_ptr, "@constructor");
+      code += "export class " + struct_def.name;
+      code += " {\n";
+      code += "  bb: flatbuffers.ByteBuffer|null = null;\n";
+      code += "\n";
+      code += "  bb_pos:i32 = 0;\n";
     } else {
       bool isStatement = struct_def.defined_namespace->components.empty();
       object_name = WrapInNameSpace(struct_def);
@@ -1376,6 +1479,9 @@ class JsTsGenerator : public BaseGenerator {
     if (lang_.language == IDLOptions::kTs) {
       code +=
           "__init(i:number, bb:flatbuffers.ByteBuffer):" + object_name + " {\n";
+    } else if (lang_.language == IDLOptions::kAs) {
+      code +=
+          "__init(i:i32, bb:flatbuffers.ByteBuffer):" + object_name + " {\n";
     } else {
       code += object_name + ".prototype.__init = function(i, bb) {\n";
     }
@@ -1396,7 +1502,8 @@ class JsTsGenerator : public BaseGenerator {
       GenDocComment(code_ptr,
                     GenTypeAnnotation(kParam, "flatbuffers.ByteBuffer", "bb") +
                         GenTypeAnnotation(kReturns, "boolean", "", false));
-      if (lang_.language == IDLOptions::kTs) {
+      if (lang_.language == IDLOptions::kTs ||
+          lang_.language == IDLOptions::kAs) {
         code +=
             "static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean "
             "{\n";
@@ -1454,6 +1561,31 @@ class JsTsGenerator : public BaseGenerator {
           } else {
             code += "):" + GenTypeName(field.value.type, false, has_null_default) + " {\n";
           }
+        } else if (lang_.language == IDLOptions::kAs) {
+          std::string prefix = MakeCamel(field.name, false) + "(";
+          if (field.value.type.base_type == BASE_TYPE_STRING) {
+            code += prefix + "):string|null{\n";
+          } else {
+            code += prefix;
+          }
+          if (field.value.type.base_type != BASE_TYPE_STRING) {
+            if (field.value.type.enum_def) {
+              code += "):" +
+                      GenPrefixedTypeName(
+                          GenTypeName(field.value.type, false, false),
+                          field.value.type.enum_def->file) +
+                      " {\n";
+
+              if (!parser_.opts.generate_all) {
+                imported_files.insert(field.value.type.enum_def->file);
+              }
+            } else {
+              code += "):" +
+                      GenTypeName(field.value.type, false,
+                                  !IsScalar(field.value.type.base_type)) +
+                      " {\n";
+            }
+          }
         } else {
           code += object_name + ".prototype." + MakeCamel(field.name, false);
           code += " = function(";
@@ -1471,7 +1603,7 @@ class JsTsGenerator : public BaseGenerator {
               ";\n";
         } else {
           std::string index = "this.bb_pos + offset";
-          if (is_string) {
+          if (is_string && lang_.language != IDLOptions::kAs) {
             index += ", optionalEncoding";
           }
           code += offset_prefix +
@@ -1495,27 +1627,57 @@ class JsTsGenerator : public BaseGenerator {
                   GenPrefixedTypeName(type, field.value.type.struct_def->file);
               code += MakeCamel(field.name, false);
               code += "(obj?:" + type + "):" + type + "|null {\n";
+            } else if (lang_.language == IDLOptions::kAs) {
+              type =
+                  GenPrefixedTypeName(type, field.value.type.struct_def->file);
+              code += MakeCamel(field.name, false);
+              code += "(obj:" + type + "|null):" + type + "|null {\n";
             } else {
               code +=
                   object_name + ".prototype." + MakeCamel(field.name, false);
               code += " = function(obj) {\n";
             }
 
-            if (struct_def.fixed) {
-              code += "  return (obj || " + GenerateNewExpression(type);
-              code += ").__init(this.bb_pos";
-              code +=
-                  MaybeAdd(field.value.offset) + ", " + GenBBAccess() + ");\n";
+            if (lang_.language == IDLOptions::kAs) {
+              if (struct_def.fixed) {
+                code += "  let local = obj;\n";
+                code += "  if (local === null) {\n";
+                code += "    local = new " + type + "()\n";
+                code += "  }\n";
+                code += "  return local.__init(this.bb_pos";
+                code += MaybeAdd(field.value.offset) + ", " + GenBBAccess() +
+                        ");\n";
+              } else {
+                code += "  let local = obj;\n";
+                code += "  if (local === null) {\n";
+                code += "    local = new " + type + "()\n";
+                code += "  }\n";
+                code += offset_prefix + " local.__init(";
+                code +=
+                    field.value.type.struct_def->fixed
+                        ? "this.bb_pos + offset"
+                        : GenBBAccess() + ".__indirect(this.bb_pos + offset)";
+                code += ", " + GenBBAccess() + ") : null;\n";
+              }
             } else {
-              code += offset_prefix + "(obj || " + GenerateNewExpression(type) +
-                      ").__init(";
-              code += field.value.type.struct_def->fixed
-                          ? "this.bb_pos + offset"
-                          : GenBBAccess() + ".__indirect(this.bb_pos + offset)";
-              code += ", " + GenBBAccess() + ") : null;\n";
+              if (struct_def.fixed) {
+                code += "  return (obj || " + GenerateNewExpression(type);
+                code += ").__init(this.bb_pos";
+                code += MaybeAdd(field.value.offset) + ", " + GenBBAccess() +
+                        ");\n";
+              } else {
+                code += offset_prefix + "(obj || " +
+                        GenerateNewExpression(type) + ").__init(";
+                code +=
+                    field.value.type.struct_def->fixed
+                        ? "this.bb_pos + offset"
+                        : GenBBAccess() + ".__indirect(this.bb_pos + offset)";
+                code += ", " + GenBBAccess() + ") : null;\n";
+              }
             }
 
-            if (lang_.language == IDLOptions::kTs &&
+            if ((lang_.language == IDLOptions::kTs ||
+                 lang_.language == IDLOptions::kAs) &&
                 !parser_.opts.generate_all) {
               imported_files.insert(field.value.type.struct_def->file);
             }
@@ -1590,6 +1752,35 @@ class JsTsGenerator : public BaseGenerator {
                 }
               }
               code += "):" + vectortypename + "|null {\n";
+            } else if (lang_.language == IDLOptions::kAs) {
+              std::string prefix = MakeCamel(field.name, false);
+              if (is_union) { prefix += "<T extends flatbuffers.Table>"; }
+              prefix += "(index: i32";
+              if (is_union) {
+                const auto union_type =
+                    GenUnionGenericTypeTS(*(field.value.type.enum_def));
+
+                vectortypename = union_type;
+                code += prefix + ", obj:" + union_type;
+              } else if (vectortype.base_type == BASE_TYPE_STRUCT) {
+                vectortypename = GenPrefixedTypeName(
+                    vectortypename, vectortype.struct_def->file);
+                code += prefix + ", obj:" + vectortypename + "|null=null";
+
+                if (!parser_.opts.generate_all) {
+                  imported_files.insert(vectortype.struct_def->file);
+                }
+              } else if (vectortype.base_type == BASE_TYPE_STRING) {
+                code += prefix + "):string|null {\n";
+              } else {
+                code += prefix;
+                if (vectortype.enum_def && !parser_.opts.generate_all) {
+                  imported_files.insert(vectortype.enum_def->file);
+                }
+              }
+              if (vectortype.base_type != BASE_TYPE_STRING) {
+                code += "):" + vectortypename + "|null {\n";
+              }
             } else {
               code +=
                   object_name + ".prototype." + MakeCamel(field.name, false);
@@ -1603,13 +1794,27 @@ class JsTsGenerator : public BaseGenerator {
             }
 
             if (vectortype.base_type == BASE_TYPE_STRUCT) {
-              code += offset_prefix + "(obj || " +
-                      GenerateNewExpression(vectortypename);
-              code += ").__init(";
-              code += vectortype.struct_def->fixed
-                          ? index
-                          : GenBBAccess() + ".__indirect(" + index + ")";
-              code += ", " + GenBBAccess() + ")";
+              if (lang_.language == IDLOptions::kAs) {
+                code += "  let local = obj;\n";
+                code += "  if (local === null) {\n";
+                code += "    local = " + GenerateNewExpression(vectortypename) +
+                        ";\n";
+                code += "  }\n";
+                code += offset_prefix + "local";
+                code += ".__init(";
+                code += vectortype.struct_def->fixed
+                            ? index
+                            : GenBBAccess() + ".__indirect(" + index + ")";
+                code += ", " + GenBBAccess() + ")";
+              } else {
+                code += offset_prefix + "(obj || " +
+                        GenerateNewExpression(vectortypename);
+                code += ").__init(";
+                code += vectortype.struct_def->fixed
+                            ? index
+                            : GenBBAccess() + ".__indirect(" + index + ")";
+                code += ", " + GenBBAccess() + ")";
+              }
             } else {
               if (is_union) {
                 index = "obj, " + index;
@@ -1647,7 +1852,8 @@ class JsTsGenerator : public BaseGenerator {
                 GenTypeAnnotation(kParam, "flatbuffers.Table", "obj") +
                     GenTypeAnnotation(kReturns, "?flatbuffers.Table", "",
                                       false));
-            if (lang_.language == IDLOptions::kTs) {
+            if (lang_.language == IDLOptions::kTs ||
+                lang_.language == IDLOptions::kAs) {
               code += MakeCamel(field.name, false);
 
               const auto &union_enum = *(field.value.type.enum_def);
@@ -1687,7 +1893,8 @@ class JsTsGenerator : public BaseGenerator {
             code_ptr,
             annotations + GenTypeAnnotation(kReturns, "boolean", "", false));
 
-        if (lang_.language == IDLOptions::kTs) {
+        if (lang_.language == IDLOptions::kTs ||
+            lang_.language == IDLOptions::kAs) {
           std::string type;
           if (field.value.type.enum_def) {
             if (!parser_.opts.generate_all) {
@@ -1747,6 +1954,9 @@ class JsTsGenerator : public BaseGenerator {
         if (lang_.language == IDLOptions::kTs) {
           code += MakeCamel(field.name, false);
           code += "Length():number {\n" + offset_prefix;
+        } else if (lang_.language == IDLOptions::kAs) {
+          code += MakeCamel(field.name, false);
+          code += "Length():i32 {\n" + offset_prefix;
         } else {
           code += object_name + ".prototype." + MakeCamel(field.name, false);
           code += "Length = function() {\n" + offset_prefix;
@@ -1769,7 +1979,8 @@ class JsTsGenerator : public BaseGenerator {
                                       kReturns, GenType(vectorType) + "Array",
                                       "", false));
 
-          if (lang_.language == IDLOptions::kTs) {
+          if (lang_.language == IDLOptions::kTs ||
+              lang_.language == IDLOptions::kAs) {
             code += MakeCamel(field.name, false);
             code += "Array():" + GenType(vectorType) + "Array|null {\n" +
                     offset_prefix;
@@ -1797,7 +2008,8 @@ class JsTsGenerator : public BaseGenerator {
     // Emit the fully qualified name
     if (parser_.opts.generate_name_strings) {
       GenDocComment(code_ptr, GenTypeAnnotation(kReturns, "string", "", false));
-      if (lang_.language == IDLOptions::kTs) {
+      if (lang_.language == IDLOptions::kTs ||
+          lang_.language == IDLOptions::kAs) {
         code += "static getFullyQualifiedName():string {\n";
       } else {
         code += object_name + ".getFullyQualifiedName = function() {\n";
@@ -1811,6 +2023,8 @@ class JsTsGenerator : public BaseGenerator {
       GenDocComment(code_ptr, GenTypeAnnotation(kReturns, "number", "", false));
       if (lang_.language == IDLOptions::kTs) {
         code += "static sizeOf():number {\n";
+      } else if (lang_.language == IDLOptions::kAs) {
+        code += "static sizeOf():i32 {\n";
       } else {
         code += object_name + ".sizeOf = function() {\n";
       }
@@ -1828,7 +2042,8 @@ class JsTsGenerator : public BaseGenerator {
                                                 kReturns, "flatbuffers.Offset",
                                                 "", false));
 
-      if (lang_.language == IDLOptions::kTs) {
+      if (lang_.language == IDLOptions::kTs ||
+          lang_.language == IDLOptions::kAs) {
         code += "static create" + Verbose(struct_def) +
                 "(builder:flatbuffers.Builder";
         code += arguments + "):flatbuffers.Offset {\n";
@@ -1848,6 +2063,9 @@ class JsTsGenerator : public BaseGenerator {
       if (lang_.language == IDLOptions::kTs) {
         code += "static start" + Verbose(struct_def) +
                 "(builder:flatbuffers.Builder) {\n";
+      } else if (lang_.language == IDLOptions::kAs) {
+        code += "static start" + Verbose(struct_def) +
+                "(builder:flatbuffers.Builder):void {\n";
       } else {
         code += object_name + ".start" + Verbose(struct_def);
         code += " = function(builder) {\n";
@@ -1875,6 +2093,10 @@ class JsTsGenerator : public BaseGenerator {
           code += "static add" + MakeCamel(field.name);
           code += "(builder:flatbuffers.Builder, " + argname + ":" +
                   GetArgType(field, false) + ") {\n";
+        } else if (lang_.language == IDLOptions::kAs) {
+          code += "static add" + MakeCamel(field.name);
+          code += "(builder:flatbuffers.Builder, " + argname + ":" +
+                  GetArgType(field, false) + "):void {\n";
         } else {
           code += object_name + ".add" + MakeCamel(field.name);
           code += " = function(builder, " + argname + ") {\n";
@@ -1915,7 +2137,8 @@ class JsTsGenerator : public BaseGenerator {
                     GenTypeAnnotation(kReturns, "flatbuffers.Offset", "",
                                       false));
 
-            if (lang_.language == IDLOptions::kTs) {
+            if (lang_.language == IDLOptions::kTs ||
+                lang_.language == IDLOptions::kAs) {
               const std::string sig_begin =
                   "static create" + MakeCamel(field.name) +
                   "Vector(builder:flatbuffers.Builder, data:";
@@ -1973,6 +2196,10 @@ class JsTsGenerator : public BaseGenerator {
           if (lang_.language == IDLOptions::kTs) {
             code += "static start" + MakeCamel(field.name);
             code += "Vector(builder:flatbuffers.Builder, numElems:number) {\n";
+          } else if (lang_.language == IDLOptions::kAs) {
+            code += "static start" + MakeCamel(field.name);
+            code +=
+                "Vector(builder:flatbuffers.Builder, numElems:i32):void {\n";
           } else {
             code += object_name + ".start" + MakeCamel(field.name);
             code += "Vector = function(builder, numElems) {\n";
@@ -1990,7 +2217,8 @@ class JsTsGenerator : public BaseGenerator {
           GenTypeAnnotation(kParam, "flatbuffers.Builder", "builder") +
               GenTypeAnnotation(kReturns, "flatbuffers.Offset", "", false));
 
-      if (lang_.language == IDLOptions::kTs) {
+      if (lang_.language == IDLOptions::kTs ||
+          lang_.language == IDLOptions::kAs) {
         code += "static end" + Verbose(struct_def);
         code += "(builder:flatbuffers.Builder):flatbuffers.Offset {\n";
       } else {
@@ -2033,7 +2261,8 @@ class JsTsGenerator : public BaseGenerator {
           GenDocComment(code_ptr, paramDoc);
         }
 
-        if (lang_.language == IDLOptions::kTs) {
+        if (lang_.language == IDLOptions::kTs ||
+            lang_.language == IDLOptions::kAs) {
           code += "static create" + Verbose(struct_def);
           code += "(builder:flatbuffers.Builder";
         } else {
@@ -2045,14 +2274,16 @@ class JsTsGenerator : public BaseGenerator {
           const auto &field = **it;
           if (field.deprecated) continue;
 
-          if (lang_.language == IDLOptions::kTs) {
+          if (lang_.language == IDLOptions::kTs ||
+              lang_.language == IDLOptions::kAs) {
             code += ", " + GetArgName(field) + ":" + GetArgType(field, true);
           } else {
             code += ", " + GetArgName(field);
           }
         }
 
-        if (lang_.language == IDLOptions::kTs) {
+        if (lang_.language == IDLOptions::kTs ||
+            lang_.language == IDLOptions::kAs) {
           code += "):flatbuffers.Offset {\n";
           code += "  " + struct_def.name + ".start" + Verbose(struct_def) +
                   "(builder);\n";
@@ -2062,8 +2293,10 @@ class JsTsGenerator : public BaseGenerator {
                   "(builder);\n";
         }
 
-        std::string methodPrefix =
-            lang_.language == IDLOptions::kTs ? struct_def.name : object_name;
+        std::string methodPrefix = (lang_.language == IDLOptions::kTs ||
+                                    lang_.language == IDLOptions::kAs)
+                                       ? struct_def.name
+                                       : object_name;
         for (auto it = struct_def.fields.vec.begin();
              it != struct_def.fields.vec.end(); ++it) {
           const auto &field = **it;
@@ -2082,12 +2315,15 @@ class JsTsGenerator : public BaseGenerator {
         code += "  return " + methodPrefix + ".end" + Verbose(struct_def) +
                 "(builder);\n";
         code += "}\n";
-        if (lang_.language == IDLOptions::kJs) code += "\n";
+        if (lang_.language == IDLOptions::kJs ||
+            lang_.language == IDLOptions::kAs)
+          code += "\n";
       }
     }
 
     if (!struct_def.fixed && parser_.services_.vec.size() != 0 &&
-        lang_.language == IDLOptions::kTs) {
+        (lang_.language == IDLOptions::kTs ||
+         lang_.language == IDLOptions::kAs)) {
       auto name = Verbose(struct_def, "");
       code += "\n";
       code += "serialize():Uint8Array {\n";
@@ -2101,7 +2337,8 @@ class JsTsGenerator : public BaseGenerator {
       code += "}\n";
     }
 
-    if (lang_.language == IDLOptions::kTs) {
+    if (lang_.language == IDLOptions::kTs ||
+        lang_.language == IDLOptions::kAs) {
       if (parser_.opts.generate_object_based_api) {
         std::string obj_api_class;
         std::string obj_api_unpack_func;
@@ -2112,10 +2349,12 @@ class JsTsGenerator : public BaseGenerator {
       } else {
         code += "}\n";
       }
-      if (!object_namespace.empty()) { code += "}\n"; }
+      if (!object_namespace.empty() && lang_.language != IDLOptions::kAs) {
+        code += "}\n";
+      }
     }
   }
-  
+
   static bool HasNullDefault(const FieldDef &field) {
     return field.optional && field.value.constant == "null";
   }
