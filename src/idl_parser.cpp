@@ -3176,11 +3176,19 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
       if (opts.proto_mode && attribute_ == "public") NEXT();
       auto name = flatbuffers::PosixPath(attribute_.c_str());
       EXPECT(kTokenStringConstant);
-      // Look for the file in include_paths.
+      // Look for the file relative to the directory of the current file.
       std::string filepath;
-      for (auto paths = include_paths; paths && *paths; paths++) {
-        filepath = flatbuffers::ConCatPathFileName(*paths, name);
-        if (FileExists(filepath.c_str())) break;
+      if (source_filename) {
+        auto source_file_directory =
+            flatbuffers::StripFileName(source_filename);
+        filepath = flatbuffers::ConCatPathFileName(source_file_directory, name);
+      }
+      if (filepath.empty() || !FileExists(filepath.c_str())) {
+        // Look for the file in include_paths.
+        for (auto paths = include_paths; paths && *paths; paths++) {
+          filepath = flatbuffers::ConCatPathFileName(*paths, name);
+          if (FileExists(filepath.c_str())) break;
+        }
       }
       if (filepath.empty())
         return Error("unable to locate include file: " + name);
