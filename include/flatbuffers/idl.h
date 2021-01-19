@@ -521,9 +521,6 @@ struct IDLOptions {
   // Use flexbuffers instead for binary and text generation
   bool use_flexbuffers;
   bool strict_json;
-  bool skip_js_exports;
-  bool use_goog_js_export_format;
-  bool use_ES6_js_export_format;
   bool output_default_scalars_in_json;
   int indent_step;
   bool output_enum_identifiers;
@@ -556,11 +553,8 @@ struct IDLOptions {
   bool binary_schema_comments;
   bool binary_schema_builtins;
   bool binary_schema_gen_embed;
-  bool skip_flatbuffers_import;
   std::string go_import;
   std::string go_namespace;
-  bool reexport_ts_modules;
-  bool js_ts_short_names;
   bool protobuf_ascii_alike;
   bool size_prefixed;
   std::string root_type;
@@ -580,7 +574,6 @@ struct IDLOptions {
     kCSharp = 1 << 1,
     kGo = 1 << 2,
     kCpp = 1 << 3,
-    kJs = 1 << 4,
     kPython = 1 << 5,
     kPhp = 1 << 6,
     kJson = 1 << 7,
@@ -621,9 +614,6 @@ struct IDLOptions {
       : gen_jvmstatic(false),
         use_flexbuffers(false),
         strict_json(false),
-        skip_js_exports(false),
-        use_goog_js_export_format(false),
-        use_ES6_js_export_format(false),
         output_default_scalars_in_json(false),
         indent_step(2),
         output_enum_identifiers(true),
@@ -653,9 +643,6 @@ struct IDLOptions {
         binary_schema_comments(false),
         binary_schema_builtins(false),
         binary_schema_gen_embed(false),
-        skip_flatbuffers_import(false),
-        reexport_ts_modules(true),
-        js_ts_short_names(false),
         protobuf_ascii_alike(false),
         size_prefixed(false),
         force_defaults(false),
@@ -1054,8 +1041,8 @@ extern bool GenerateJava(const Parser &parser, const std::string &path,
 
 // Generate JavaScript or TypeScript code from the definitions in the Parser
 // object. See idl_gen_js.
-extern bool GenerateJSTS(const Parser &parser, const std::string &path,
-                         const std::string &file_name);
+extern bool GenerateTS(const Parser &parser, const std::string &path,
+                       const std::string &file_name);
 
 // Generate Go files from the definitions in the Parser object.
 // See idl_gen_go.cpp.
@@ -1107,10 +1094,10 @@ extern std::string GenerateFBS(const Parser &parser,
 extern bool GenerateFBS(const Parser &parser, const std::string &path,
                         const std::string &file_name);
 
-// Generate a make rule for the generated JavaScript or TypeScript code.
-// See idl_gen_js.cpp.
-extern std::string JSTSMakeRule(const Parser &parser, const std::string &path,
-                                const std::string &file_name);
+// Generate a make rule for the generated TypeScript code.
+// See idl_gen_ts.cpp.
+extern std::string TSMakeRule(const Parser &parser, const std::string &path,
+                              const std::string &file_name);
 
 // Generate a make rule for the generated C++ header.
 // See idl_gen_cpp.cpp.
@@ -1169,7 +1156,7 @@ extern bool GenerateSwiftGRPC(const Parser &parser, const std::string &path,
                               const std::string &file_name);
 
 extern bool GenerateTSGRPC(const Parser &parser, const std::string &path,
-                             const std::string &file_name);
+                           const std::string &file_name);
 }  // namespace flatbuffers
 
 #endif  // FLATBUFFERS_IDL_H_

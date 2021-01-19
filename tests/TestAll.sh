@@ -14,12 +14,6 @@ echo "************************ Python:"
 
 sh PythonTest.sh
 
-echo "************************ JavaScript:"
-
-sh JavaScriptTest.sh
-# FIXME does not exist:
-# sh JavaScriptUnionVectorTest.sh
-
 echo "************************ TypeScript:"
 
 sh TypeScriptTest.sh

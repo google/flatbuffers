@@ -16,11 +16,9 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "cd tests && ./JavaScriptTest.sh",
-    "compile-ts": "tsc && tsc -p tsconfig.mjs.json",
-    "pretest": "npm run compile-ts",
-    "append-esm-export": "sed \"s/this.flatbuffers = flatbuffers;/export { flatbuffers };/\" js/flatbuffers.js > js/flatbuffers.mjs",
-    "prepublishOnly": "npm run compile-ts && npm run append-esm-export"
+    "test": "npm run compile && cd tests && ./TypeScriptTest.sh",
+    "compile": "tsc && tsc -p tsconfig.mjs.json",
+    "prepublishOnly": "npm run compile"
   },
   "repository": {
     "type": "git",
@@ -37,9 +35,9 @@
   "homepage": "https://google.github.io/flatbuffers/",
   "dependencies": {},
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^4.1.0",
-    "@typescript-eslint/parser": "^4.1.0",
-    "eslint": "^7.8.1",
-    "typescript": "^4.0.2"
+    "@typescript-eslint/eslint-plugin": "^4.12.0",
+    "@typescript-eslint/parser": "^4.12.0",
+    "eslint": "^7.17.0",
+    "typescript": "^4.1.3"
   }
 }
