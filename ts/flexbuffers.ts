@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 import { Builder } from './flexbuffers/builder'
-import { toReference as toReferenceFunction } from './flexbuffers/reference';
+import { toReference } from './flexbuffers/reference'
+export { toReference } from './flexbuffers/reference'
 
 export function builder(): Builder {
     return new Builder();
 }
 
 export function toObject(buffer: Uint8Array): unknown {
-    return toReferenceFunction(buffer).toObject();
+    return toReference(buffer).toObject();
 }
 
 export function encode(object: unknown, size = 2048, deduplicateStrings = true, deduplicateKeys = true, deduplicateKeyVectors = true): Uint8Array {
@@ -15,16 +16,3 @@ export function encode(object: unknown, size = 2048, deduplicateStrings = true, 
     builder.add(object);
     return builder.finish();
 }
-
-const builderFunction = builder
-const toObjectFunction = toObject
-const encodeFunction = encode
-
-export namespace flexbuffers {
-    export const builder = builderFunction;
-    export const toObject = toObjectFunction;
-    export const encode = encodeFunction;
-    export const toReference = toReferenceFunction;
-}
-
-export default flexbuffers;

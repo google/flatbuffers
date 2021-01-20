@@ -37,6 +37,7 @@ pub mod include_test1_generated;
 #[path = "../../include_test/sub/include_test2_generated.rs"]
 pub mod include_test2_generated;
 
+#[allow(clippy::approx_constant)]
 #[path = "../../monster_test_generated.rs"]
 mod monster_test_generated;
 pub use monster_test_generated::my_game;
@@ -46,7 +47,7 @@ pub use monster_test_generated::my_game;
 mod optional_scalars_generated;
 
 #[rustfmt::skip] // TODO: Use standard rust formatting and remove dead code.
-#[allow(dead_code)]
+#[allow(dead_code, clippy::approx_constant)]
 mod flatbuffers_tests {
 use super::*;
 

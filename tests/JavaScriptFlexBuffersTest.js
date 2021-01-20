@@ -1,9 +1,7 @@
 // Run this using JavaScriptTest.sh
-var assert = require('assert');
-var fs = require('fs');
-
-var flexbuffers = require('../js/flexbuffers').flexbuffers;
-global.flexbuffers = flexbuffers;
+import assert from 'assert'
+import fs from 'fs'
+import * as flexbuffers from 'flatbuffers/js/flexbuffers'
 
 function main() {
   testSingleValueBuffers();
@@ -16,10 +14,12 @@ function main() {
   testRoundTripWithBuilder();
   testDeduplicationOff();
   testBugWhereOffestWereStoredAsIntInsteadOfUInt();
+
+  console.log('FlexBuffers test: completed successfully');
 }
 
 function testSingleValueBuffers() {
-  { // null
+  {
     const ref = flexbuffers.toReference(new Uint8Array([0, 0, 1]).buffer);
     assert.strictEqual(true, ref.isNull());
   }

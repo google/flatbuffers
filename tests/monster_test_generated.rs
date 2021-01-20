@@ -2004,7 +2004,7 @@ impl<'a> Monster<'a> {
         x.to_string()
       };
       let inventory = self.inventory().map(|x| {
-        x.iter().cloned().collect()
+        x.to_vec()
       });
       let color = self.color();
       let test = match self.test_type() {
@@ -2039,7 +2039,7 @@ impl<'a> Monster<'a> {
         Box::new(x.unpack())
       });
       let testnestedflatbuffer = self.testnestedflatbuffer().map(|x| {
-        x.iter().cloned().collect()
+        x.to_vec()
       });
       let testempty = self.testempty().map(|x| {
         Box::new(x.unpack())
@@ -2054,7 +2054,7 @@ impl<'a> Monster<'a> {
       let testhashs64_fnv1a = self.testhashs64_fnv1a();
       let testhashu64_fnv1a = self.testhashu64_fnv1a();
       let testarrayofbools = self.testarrayofbools().map(|x| {
-        x.iter().cloned().collect()
+        x.to_vec()
       });
       let testf = self.testf();
       let testf2 = self.testf2();
@@ -2066,7 +2066,7 @@ impl<'a> Monster<'a> {
         x.iter().map(|t| t.unpack()).collect()
       });
       let flex = self.flex().map(|x| {
-        x.iter().cloned().collect()
+        x.to_vec()
       });
       let test5 = self.test5().map(|x| {
         x.iter().map(|t| t.unpack()).collect()
@@ -2141,7 +2141,7 @@ impl<'a> Monster<'a> {
       });
       let signed_enum = self.signed_enum();
       let testrequirednestedflatbuffer = self.testrequirednestedflatbuffer().map(|x| {
-        x.iter().cloned().collect()
+        x.to_vec()
       });
       let scalar_key_sorted_tables = self.scalar_key_sorted_tables().map(|x| {
         x.iter().map(|t| t.unpack()).collect()
@@ -3372,7 +3372,7 @@ impl<'a> TypeAliases<'a> {
       let f32_ = self.f32_();
       let f64_ = self.f64_();
       let v8 = self.v8().map(|x| {
-        x.iter().cloned().collect()
+        x.to_vec()
       });
       let vf64 = self.vf64().map(|x| {
         x.into_iter().collect()

@@ -463,7 +463,7 @@ impl<'a> Monster<'a> {
         x.to_string()
       });
       let inventory = self.inventory().map(|x| {
-        x.iter().cloned().collect()
+        x.to_vec()
       });
       let color = self.color();
       let weapons = self.weapons().map(|x| {

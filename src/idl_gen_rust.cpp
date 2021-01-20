@@ -1481,7 +1481,7 @@ class RustGenerator : public BaseGenerator {
             if (IsOneByte(type.VectorType().base_type)) {
               // 1 byte stuff is viewed w/ slice instead of flatbuffer::Vector
               // and thus needs to be cloned out of the slice.
-              code_.SetValue("EXPR", "x.iter().cloned().collect()");
+              code_.SetValue("EXPR", "x.to_vec()");
               break;
             }
             code_.SetValue("EXPR", "x.into_iter().collect()");
