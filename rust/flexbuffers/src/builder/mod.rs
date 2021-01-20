@@ -243,9 +243,6 @@ impl<'a> Builder {
         for &b in xs.iter() {
             self.buffer.push(b as u8);
             self.buffer.resize(self.buffer.len() + width as usize, 0);
-            // for _ in 0..width as u8 {
-            //     self.buffer.push(0); // Well this seems wasteful.
-            // }
         }
         self.values.push(Value::Reference {
             fxb_type: FlexBufferType::VectorBool,
