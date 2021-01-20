@@ -129,10 +129,7 @@ impl Value {
         !self.is_inline()
     }
     pub fn is_key(&self) -> bool {
-        match self {
-            Value::Key(_) => true,
-            _ => false,
-        }
+        matches!(self, Value::Key(_))
     }
     pub fn is_typed_vector_or_map(&self) -> bool {
         if let Value::Reference { fxb_type, .. } = self {

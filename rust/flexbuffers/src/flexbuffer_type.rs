@@ -122,10 +122,7 @@ macro_rules! is_ty {
 impl FlexBufferType {
     /// Returns true for flexbuffer types that are stored inline.
     pub fn is_inline(self) -> bool {
-        match self {
-            Null | Int | UInt | Float | Bool => true,
-            _ => false,
-        }
+        matches!(self, Null | Int | UInt | Float | Bool)
     }
     /// Returns true for flexbuffer types that are stored by offset.
     pub fn is_reference(self) -> bool {
@@ -134,7 +131,7 @@ impl FlexBufferType {
     /// Returns true if called on a map, vector, typed vector, or fixed length typed vector.
     pub fn is_vector(self) -> bool {
         let d = self as u8;
-        9 <= d && d < 25 || self == VectorBool
+        (9..25).contains(&d) || self == VectorBool
     }
     /// True iff the binary format stores the length.
     /// This applies to Blob, String, Maps, and Vectors of variable length.

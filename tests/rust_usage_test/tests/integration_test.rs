@@ -37,7 +37,6 @@ pub mod include_test1_generated;
 #[path = "../../include_test/sub/include_test2_generated.rs"]
 pub mod include_test2_generated;
 
-#[allow(clippy::approx_constant)]
 #[path = "../../monster_test_generated.rs"]
 mod monster_test_generated;
 pub use monster_test_generated::my_game;
@@ -47,7 +46,7 @@ pub use monster_test_generated::my_game;
 mod optional_scalars_generated;
 
 #[rustfmt::skip] // TODO: Use standard rust formatting and remove dead code.
-#[allow(dead_code, clippy::approx_constant)]
+#[allow(dead_code)]
 mod flatbuffers_tests {
 use super::*;
 
@@ -233,7 +232,7 @@ fn test_object_api_reads_correctly() -> Result<(), &'static str>{
     let mut fbb = flatbuffers::FlatBufferBuilder::new();
     create_serialized_example_with_library_code(&mut fbb);
 
-    let m = my_game::example::get_root_as_monster(fbb.finished_data()).unpack();
+    let m = my_game::example::root_as_monster(fbb.finished_data()).unwrap().unpack();
 
     check_eq!(m.hp, 80)?;
     check_eq!(m.mana, 150)?;

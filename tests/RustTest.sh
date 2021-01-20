@@ -21,33 +21,29 @@ if [[ "$1" == "mips-unknown-linux-gnu" ]]; then
     export CARGO_TARGET_MIPS_UNKNOWN_LINUX_GNU_RUNNER="qemu-mips -L /usr/mips-linux-gnu"
 fi
 
+
+function check_test_result() {
+    if [[ $? == 0 ]]; then
+        echo OK: $1 passed.
+    else
+        echo KO: $1 failed.
+        exit 1
+    fi
+}
+
 cd ./rust_usage_test
 cargo test $TARGET_FLAG -- --quiet
-TEST_RESULT=$?
-if [[ $TEST_RESULT  == 0 ]]; then
-    echo "OK: Rust tests passed."
-else
-    echo "KO: Rust tests failed."
-    exit 1
-fi
+check_test_result "Rust tests"
+
 
 cargo run $TARGET_FLAG --bin=flatbuffers_alloc_check
-TEST_RESULT=$?
-if [[ $TEST_RESULT  == 0 ]]; then
-    echo "OK: Rust heap alloc test passed."
-else
-    echo "KO: Rust heap alloc test failed."
-    exit 1
-fi
+check_test_result "Rust flatbuffers heap alloc test"
 
 cargo run $TARGET_FLAG --bin=flexbuffers_alloc_check
-TEST_RESULT=$?
-if [[ $TEST_RESULT  == 0 ]]; then
-    echo "OK: Rust heap alloc test passed."
-else
-    echo "KO: Rust heap alloc test failed."
-    exit 1
-fi
+check_test_result "Rust flexbuffers heap alloc test"
+
+cargo clippy $TARGET_FLAG
+check_test_result "No Cargo clippy lints test"
 
 cargo bench $TARGET_FLAG
 
