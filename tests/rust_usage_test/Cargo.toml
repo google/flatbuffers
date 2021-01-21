@@ -36,6 +36,10 @@ path = "../../samples/sample_flexbuffers_serde.rs"
 name = "sample_flatbuffers"
 path = "../../samples/sample_binary.rs"
 
+[[bin]]
+name = "outdir"
+path = "bin/outdir.rs"
+
 
 [dev-dependencies]
 quickcheck = "0.6"
