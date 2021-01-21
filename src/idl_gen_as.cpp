@@ -1579,7 +1579,7 @@ class AsGenerator : public BaseGenerator {
                               const char *prefix = "") {
     return prefix + struct_def.name;
   }
-};  // namespace ts
+};
 }  // namespace as
 
 bool GenerateAS(const Parser &parser, const std::string &path,
