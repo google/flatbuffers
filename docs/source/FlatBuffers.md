@@ -64,8 +64,8 @@ Protocol Buffers is indeed relatively similar to FlatBuffers,
 with the primary difference being that FlatBuffers does not need a parsing/
 unpacking step to a secondary representation before you can
 access data, often coupled with per-object memory allocation. The code
-is an order of magnitude bigger, too. Protocol Buffers has neither optional
-text import/export nor schema language features like unions.
+is an order of magnitude bigger, too. Protocol Buffers has no optional
+text import/export.
 
 ### But all the cool kids use JSON!
 
