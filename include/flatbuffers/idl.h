@@ -1057,6 +1057,11 @@ extern bool GenerateJava(const Parser &parser, const std::string &path,
 extern bool GenerateJSTS(const Parser &parser, const std::string &path,
                          const std::string &file_name);
 
+// Generate AssemblyScript code from the definitions in the Parser
+// object. See idl_gen_as.
+extern bool GenerateAS(const Parser &parser, const std::string &path,
+                       const std::string &file_name);
+
 // Generate Go files from the definitions in the Parser object.
 // See idl_gen_go.cpp.
 extern bool GenerateGo(const Parser &parser, const std::string &path,
@@ -1111,6 +1116,11 @@ extern bool GenerateFBS(const Parser &parser, const std::string &path,
 // See idl_gen_js.cpp.
 extern std::string JSTSMakeRule(const Parser &parser, const std::string &path,
                                 const std::string &file_name);
+
+// Generate a make rule for the generated TypeScript code.
+// See idl_gen_as.cpp.
+extern std::string ASMakeRule(const Parser &parser, const std::string &path,
+                              const std::string &file_name);
 
 // Generate a make rule for the generated C++ header.
 // See idl_gen_cpp.cpp.
