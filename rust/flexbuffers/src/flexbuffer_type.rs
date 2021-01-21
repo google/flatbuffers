@@ -122,7 +122,10 @@ macro_rules! is_ty {
 impl FlexBufferType {
     /// Returns true for flexbuffer types that are stored inline.
     pub fn is_inline(self) -> bool {
-        matches!(self, Null | Int | UInt | Float | Bool)
+        match self {
+            Null | Int | UInt | Float | Bool => true,
+            _ => false,
+        }
     }
     /// Returns true for flexbuffer types that are stored by offset.
     pub fn is_reference(self) -> bool {
