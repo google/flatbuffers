@@ -29,6 +29,9 @@ typescript:
   - src/idl_gen_ts.cpp
   - grpc/flatbuffers-js-grpc/**/*.ts
 
+assemlbyscript:
+  - src/idl_gen_as.cpp
+
 golang:
   - '**/*.go'
   - src/idl_gen_go.cpp
@@ -62,7 +65,7 @@ rust:
   - '**/*.rs'
   - rust/**/*
   - src/idl_gen_rust.cpp
-  
+
 dart:
   - '**/*.dart'
   - src/idl_gen_dart.cpp

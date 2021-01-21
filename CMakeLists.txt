@@ -99,6 +99,7 @@ set(FlatBuffers_Compiler_SRCS
   src/idl_gen_go.cpp
   src/idl_gen_java.cpp
   src/idl_gen_ts.cpp
+  src/idl_gen_as.cpp
   src/idl_gen_php.cpp
   src/idl_gen_python.cpp
   src/idl_gen_lobster.cpp
