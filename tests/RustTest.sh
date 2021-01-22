@@ -51,6 +51,13 @@ fi
 
 cargo bench $TARGET_FLAG
 
+# This test is dependent on flatc.
+if [[ -f ../../flatc ]]; then
+    cd outdir
+    cargo test
+    cd ..
+fi
+
 # RUST_NIGHTLY environment variable set in dockerfile.
 if [[ $RUST_NIGHTLY == 1 ]]; then
   rustup +nightly component add miri

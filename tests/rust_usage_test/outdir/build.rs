@@ -1,15 +1,15 @@
-use std::process::Command;
-
 fn main() {
+    use std::process::Command;
     
     let project_root = std::env::current_dir()
         .unwrap()
-        .parent()
+        .parent()  // flatbuffers/tests/rust_usage test
         .unwrap()
-        .parent()
+        .parent()  // flatbuffers/tests
+        .unwrap()
+        .parent()  // flatbuffers/
         .unwrap()
         .to_path_buf();
-
     
     let sample_schema = {
         let mut s = project_root.to_path_buf();
@@ -29,9 +29,11 @@ fn main() {
     Command::new(&flatc)
         .arg("--rust")
         .arg(&sample_schema)
+        .arg("--filename-suffix")
+        .arg("_gen")
         .output()
         .expect("Failed to generate file");
 
-    let genfile = "monster_generated.rs";
+    let genfile = "monster_gen.rs";
     std::fs::rename(&genfile, out_dir.join("monster_generated.rs")).unwrap();
 }
