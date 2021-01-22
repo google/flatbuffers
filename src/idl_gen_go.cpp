@@ -266,7 +266,9 @@ class GoGenerator : public BaseGenerator {
       if (i == 0) {
         code += "\tn := flatbuffers.GetUOffsetT(buf[offset:])\n";
       } else {
-        code += "\tn := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])\n";
+        code +=
+            "\tn := "
+            "flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])\n";
       }
       code += "\tx := &" + struct_def.name + "{}\n";
       if (i == 0) {

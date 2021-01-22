@@ -143,8 +143,7 @@ void Parser::Message(const std::string &msg) {
 }
 
 void Parser::Warning(const std::string &msg) {
-  if (!opts.no_warnings)
-    Message("warning: " + msg);
+  if (!opts.no_warnings) Message("warning: " + msg);
 }
 
 CheckedError Parser::Error(const std::string &msg) {
@@ -203,8 +202,7 @@ bool atot_scalar(const char *s, T *val, bool_constant<true>) {
   return true;
 }
 
-template<typename T>
-CheckedError atot(const char *s, Parser &parser, T *val) {
+template<typename T> CheckedError atot(const char *s, Parser &parser, T *val) {
   auto done = atot_scalar(s, val, bool_constant<is_floating_point<T>::value>());
   if (done) return NoError();
   if (0 == *val)
@@ -3301,13 +3299,11 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
   return NoError();
 }
 
-CheckedError Parser::DoParseJson()
-{
+CheckedError Parser::DoParseJson() {
   if (token_ != '{') {
     EXPECT('{');
   } else {
-    if (!root_struct_def_)
-      return Error("no root type set to parse json with");
+    if (!root_struct_def_) return Error("no root type set to parse json with");
     if (builder_.GetSize()) {
       return Error("cannot have more than one json object in a file");
     }
@@ -3319,8 +3315,8 @@ CheckedError Parser::DoParseJson()
           file_identifier_.length() ? file_identifier_.c_str() : nullptr);
     } else {
       builder_.Finish(Offset<Table>(toff), file_identifier_.length()
-                                                ? file_identifier_.c_str()
-                                                : nullptr);
+                                               ? file_identifier_.c_str()
+                                               : nullptr);
     }
   }
   // Check that JSON file doesn't contain more objects or IDL directives.

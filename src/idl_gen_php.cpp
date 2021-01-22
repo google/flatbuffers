@@ -735,9 +735,7 @@ class PhpGenerator : public BaseGenerator {
       } else {
         BuildFieldOfTable(field, offset, code_ptr);
       }
-      if (IsVector(field.value.type)) {
-        BuildVectorOfTable(field, code_ptr);
-      }
+      if (IsVector(field.value.type)) { BuildVectorOfTable(field, code_ptr); }
     }
 
     GetEndOffsetOnTable(struct_def, code_ptr);
