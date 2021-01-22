@@ -265,6 +265,7 @@ class BuilderTest {
       builder.addInt32(1, 20, 10);
       int offset = builder.endTable();
       byteList = builder.finish(offset);
+      expect(builder.size(), byteList.length);
     }
     // read and verify
     BufferContext buffer = new BufferContext.fromBytes(byteList);
