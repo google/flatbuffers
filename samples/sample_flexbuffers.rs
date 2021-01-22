@@ -31,6 +31,7 @@ use flexbuffers::{BitWidth, Builder, Reader, ReaderError};
 //         {"damage": 15, "name": "great axe"},
 //         {"damage": 5, "name": "hammer"}]
 // }
+#[allow(clippy::float_cmp)]
 fn main() {
     // Create a new Flexbuffer builder.
     let mut builder = Builder::default();

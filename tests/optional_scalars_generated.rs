@@ -30,7 +30,7 @@ pub const ENUM_VALUES_OPTIONAL_BYTE: [OptionalByte; 3] = [
   OptionalByte::Two,
 ];
 
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[repr(transparent)]
 pub struct OptionalByte(pub i8);
 #[allow(non_upper_case_globals)]
@@ -124,9 +124,7 @@ impl<'a> flatbuffers::Follow<'a> for ScalarStuff<'a> {
 impl<'a> ScalarStuff<'a> {
     #[inline]
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-        ScalarStuff {
-            _tab: table,
-        }
+        ScalarStuff { _tab: table }
     }
     #[allow(unused_mut)]
     pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
@@ -172,6 +170,82 @@ impl<'a> ScalarStuff<'a> {
       builder.finish()
     }
 
+    pub fn unpack(&self) -> ScalarStuffT {
+      let just_i8 = self.just_i8();
+      let maybe_i8 = self.maybe_i8();
+      let default_i8 = self.default_i8();
+      let just_u8 = self.just_u8();
+      let maybe_u8 = self.maybe_u8();
+      let default_u8 = self.default_u8();
+      let just_i16 = self.just_i16();
+      let maybe_i16 = self.maybe_i16();
+      let default_i16 = self.default_i16();
+      let just_u16 = self.just_u16();
+      let maybe_u16 = self.maybe_u16();
+      let default_u16 = self.default_u16();
+      let just_i32 = self.just_i32();
+      let maybe_i32 = self.maybe_i32();
+      let default_i32 = self.default_i32();
+      let just_u32 = self.just_u32();
+      let maybe_u32 = self.maybe_u32();
+      let default_u32 = self.default_u32();
+      let just_i64 = self.just_i64();
+      let maybe_i64 = self.maybe_i64();
+      let default_i64 = self.default_i64();
+      let just_u64 = self.just_u64();
+      let maybe_u64 = self.maybe_u64();
+      let default_u64 = self.default_u64();
+      let just_f32 = self.just_f32();
+      let maybe_f32 = self.maybe_f32();
+      let default_f32 = self.default_f32();
+      let just_f64 = self.just_f64();
+      let maybe_f64 = self.maybe_f64();
+      let default_f64 = self.default_f64();
+      let just_bool = self.just_bool();
+      let maybe_bool = self.maybe_bool();
+      let default_bool = self.default_bool();
+      let just_enum = self.just_enum();
+      let maybe_enum = self.maybe_enum();
+      let default_enum = self.default_enum();
+      ScalarStuffT {
+        just_i8,
+        maybe_i8,
+        default_i8,
+        just_u8,
+        maybe_u8,
+        default_u8,
+        just_i16,
+        maybe_i16,
+        default_i16,
+        just_u16,
+        maybe_u16,
+        default_u16,
+        just_i32,
+        maybe_i32,
+        default_i32,
+        just_u32,
+        maybe_u32,
+        default_u32,
+        just_i64,
+        maybe_i64,
+        default_i64,
+        just_u64,
+        maybe_u64,
+        default_u64,
+        just_f32,
+        maybe_f32,
+        default_f32,
+        just_f64,
+        maybe_f64,
+        default_f64,
+        just_bool,
+        maybe_bool,
+        default_bool,
+        just_enum,
+        maybe_enum,
+        default_enum,
+      }
+    }
     pub const VT_JUST_I8: flatbuffers::VOffsetT = 4;
     pub const VT_MAYBE_I8: flatbuffers::VOffsetT = 6;
     pub const VT_DEFAULT_I8: flatbuffers::VOffsetT = 8;
@@ -687,6 +761,127 @@ impl std::fmt::Debug for ScalarStuff<'_> {
       ds.field("maybe_enum", &self.maybe_enum());
       ds.field("default_enum", &self.default_enum());
       ds.finish()
+  }
+}
+#[non_exhaustive]
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct ScalarStuffT {
+  pub just_i8: i8,
+  pub maybe_i8: Option<i8>,
+  pub default_i8: i8,
+  pub just_u8: u8,
+  pub maybe_u8: Option<u8>,
+  pub default_u8: u8,
+  pub just_i16: i16,
+  pub maybe_i16: Option<i16>,
+  pub default_i16: i16,
+  pub just_u16: u16,
+  pub maybe_u16: Option<u16>,
+  pub default_u16: u16,
+  pub just_i32: i32,
+  pub maybe_i32: Option<i32>,
+  pub default_i32: i32,
+  pub just_u32: u32,
+  pub maybe_u32: Option<u32>,
+  pub default_u32: u32,
+  pub just_i64: i64,
+  pub maybe_i64: Option<i64>,
+  pub default_i64: i64,
+  pub just_u64: u64,
+  pub maybe_u64: Option<u64>,
+  pub default_u64: u64,
+  pub just_f32: f32,
+  pub maybe_f32: Option<f32>,
+  pub default_f32: f32,
+  pub just_f64: f64,
+  pub maybe_f64: Option<f64>,
+  pub default_f64: f64,
+  pub just_bool: bool,
+  pub maybe_bool: Option<bool>,
+  pub default_bool: bool,
+  pub just_enum: OptionalByte,
+  pub maybe_enum: Option<OptionalByte>,
+  pub default_enum: OptionalByte,
+}
+impl ScalarStuffT {
+  pub fn pack<'b>(
+    &self,
+    _fbb: &mut flatbuffers::FlatBufferBuilder<'b>
+  ) -> flatbuffers::WIPOffset<ScalarStuff<'b>> {
+    let just_i8 = self.just_i8;
+    let maybe_i8 = self.maybe_i8;
+    let default_i8 = self.default_i8;
+    let just_u8 = self.just_u8;
+    let maybe_u8 = self.maybe_u8;
+    let default_u8 = self.default_u8;
+    let just_i16 = self.just_i16;
+    let maybe_i16 = self.maybe_i16;
+    let default_i16 = self.default_i16;
+    let just_u16 = self.just_u16;
+    let maybe_u16 = self.maybe_u16;
+    let default_u16 = self.default_u16;
+    let just_i32 = self.just_i32;
+    let maybe_i32 = self.maybe_i32;
+    let default_i32 = self.default_i32;
+    let just_u32 = self.just_u32;
+    let maybe_u32 = self.maybe_u32;
+    let default_u32 = self.default_u32;
+    let just_i64 = self.just_i64;
+    let maybe_i64 = self.maybe_i64;
+    let default_i64 = self.default_i64;
+    let just_u64 = self.just_u64;
+    let maybe_u64 = self.maybe_u64;
+    let default_u64 = self.default_u64;
+    let just_f32 = self.just_f32;
+    let maybe_f32 = self.maybe_f32;
+    let default_f32 = self.default_f32;
+    let just_f64 = self.just_f64;
+    let maybe_f64 = self.maybe_f64;
+    let default_f64 = self.default_f64;
+    let just_bool = self.just_bool;
+    let maybe_bool = self.maybe_bool;
+    let default_bool = self.default_bool;
+    let just_enum = self.just_enum;
+    let maybe_enum = self.maybe_enum;
+    let default_enum = self.default_enum;
+    ScalarStuff::create(_fbb, &ScalarStuffArgs{
+      just_i8,
+      maybe_i8,
+      default_i8,
+      just_u8,
+      maybe_u8,
+      default_u8,
+      just_i16,
+      maybe_i16,
+      default_i16,
+      just_u16,
+      maybe_u16,
+      default_u16,
+      just_i32,
+      maybe_i32,
+      default_i32,
+      just_u32,
+      maybe_u32,
+      default_u32,
+      just_i64,
+      maybe_i64,
+      default_i64,
+      just_u64,
+      maybe_u64,
+      default_u64,
+      just_f32,
+      maybe_f32,
+      default_f32,
+      just_f64,
+      maybe_f64,
+      default_f64,
+      just_bool,
+      maybe_bool,
+      default_bool,
+      just_enum,
+      maybe_enum,
+      default_enum,
+    })
   }
 }
 #[inline]

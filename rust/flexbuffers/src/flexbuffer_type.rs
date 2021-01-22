@@ -134,7 +134,7 @@ impl FlexBufferType {
     /// Returns true if called on a map, vector, typed vector, or fixed length typed vector.
     pub fn is_vector(self) -> bool {
         let d = self as u8;
-        9 <= d && d < 25 || self == VectorBool
+        (9..25).contains(&d) || self == VectorBool
     }
     /// True iff the binary format stores the length.
     /// This applies to Blob, String, Maps, and Vectors of variable length.
