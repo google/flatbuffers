@@ -37,6 +37,16 @@ macro_rules! make_test {
             assert_eq!(s.$just(), $zero);
             assert_eq!(s.$default(), $fortytwo);
             assert_eq!(s.$maybe(), None);
+
+            // Same for object API
+            let s = flatbuffers::root::<ScalarStuff>(builder.finished_data()).unwrap().unpack();
+            assert_eq!(s.$just, $five);
+            assert_eq!(s.$default, $five);
+            assert_eq!(s.$maybe, Some($five));
+            let s = flatbuffers::root::<ScalarStuff>(&[0; 8]).unwrap().unpack();
+            assert_eq!(s.$just, $zero);
+            assert_eq!(s.$default, $fortytwo);
+            assert_eq!(s.$maybe, None);
         }
     };
 }

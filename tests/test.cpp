@@ -697,7 +697,7 @@ template<typename T, typename U, U qnan_base> bool is_quiet_nan_impl(T v) {
   std::memcpy(&b, &v, sizeof(T));
   return ((b & qnan_base) == qnan_base);
 }
-#if defined(__mips__) || defined(__hppa__)
+#  if defined(__mips__) || defined(__hppa__)
 static bool is_quiet_nan(float v) {
   return is_quiet_nan_impl<float, uint32_t, 0x7FC00000u>(v) ||
          is_quiet_nan_impl<float, uint32_t, 0x7FBFFFFFu>(v);
@@ -706,14 +706,14 @@ static bool is_quiet_nan(double v) {
   return is_quiet_nan_impl<double, uint64_t, 0x7FF8000000000000ul>(v) ||
          is_quiet_nan_impl<double, uint64_t, 0x7FF7FFFFFFFFFFFFu>(v);
 }
-#else
+#  else
 static bool is_quiet_nan(float v) {
   return is_quiet_nan_impl<float, uint32_t, 0x7FC00000u>(v);
 }
 static bool is_quiet_nan(double v) {
   return is_quiet_nan_impl<double, uint64_t, 0x7FF8000000000000ul>(v);
 }
-#endif
+#  endif
 
 void TestMonsterExtraFloats() {
   TEST_EQ(is_quiet_nan(1.0), false);
@@ -3420,21 +3420,21 @@ void FixedLengthArrayTest() {
   // set memory chunk of size ArrayStruct to 1's
   std::memset(static_cast<void *>(non_zero_memory), 1, arr_size);
   // after placement-new it should be all 0's
-#if defined (_MSC_VER) && defined (_DEBUG)
-  #undef new
-#endif
-  MyGame::Example::ArrayStruct *ap = new (non_zero_memory) MyGame::Example::ArrayStruct;
-#if defined (_MSC_VER) && defined (_DEBUG)
-  #define new DEBUG_NEW
-#endif
+#  if defined(_MSC_VER) && defined(_DEBUG)
+#    undef new
+#  endif
+  MyGame::Example::ArrayStruct *ap =
+      new (non_zero_memory) MyGame::Example::ArrayStruct;
+#  if defined(_MSC_VER) && defined(_DEBUG)
+#    define new DEBUG_NEW
+#  endif
   (void)ap;
-  for (size_t i = 0; i < arr_size; ++i) {
-    TEST_EQ(non_zero_memory[i], 0);
-  }
+  for (size_t i = 0; i < arr_size; ++i) { TEST_EQ(non_zero_memory[i], 0); }
 #endif
 }
 
-#if !defined(FLATBUFFERS_SPAN_MINIMAL) && (!defined(_MSC_VER) || _MSC_VER >= 1700)
+#if !defined(FLATBUFFERS_SPAN_MINIMAL) && \
+    (!defined(_MSC_VER) || _MSC_VER >= 1700)
 void FixedLengthArrayConstructorTest() {
   const int32_t nested_a[2] = { 1, 2 };
   MyGame::Example::TestEnum nested_c[2] = { MyGame::Example::TestEnum::A,
@@ -3481,8 +3481,7 @@ void FixedLengthArrayConstructorTest() {
   TEST_EQ(arr_struct.f()->Get(1), -1);
 }
 #else
-void FixedLengthArrayConstructorTest() {
-}
+void FixedLengthArrayConstructorTest() {}
 #endif
 
 void NativeTypeTest() {
@@ -3639,12 +3638,15 @@ void OptionalScalarsTest() {
   schemas.push_back("table Monster { mana : bool; }");
   schemas.push_back("table Monster { mana : bool = 42; }");
   schemas.push_back("table Monster { mana : bool = null; }");
-  schemas.push_back("enum Enum: int {A=0, B=1} "
-                    "table Monster { mana : Enum; }");
-  schemas.push_back("enum Enum: int {A=0, B=1} "
-                    "table Monster { mana : Enum = B; }");
-  schemas.push_back("enum Enum: int {A=0, B=1} "
-                    "table Monster { mana : Enum = null; }");
+  schemas.push_back(
+      "enum Enum: int {A=0, B=1} "
+      "table Monster { mana : Enum; }");
+  schemas.push_back(
+      "enum Enum: int {A=0, B=1} "
+      "table Monster { mana : Enum = B; }");
+  schemas.push_back(
+      "enum Enum: int {A=0, B=1} "
+      "table Monster { mana : Enum = null; }");
 
   // Check the FieldDef is correctly set.
   for (auto schema = schemas.begin(); schema < schemas.end(); schema++) {

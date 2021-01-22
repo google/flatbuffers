@@ -228,6 +228,50 @@ fn serialized_example_is_accessible_and_correct(bytes: &[u8], identifier_require
     Ok(())
 }
 
+#[test]
+fn test_object_api_reads_correctly() -> Result<(), &'static str>{
+    let mut fbb = flatbuffers::FlatBufferBuilder::new();
+    create_serialized_example_with_library_code(&mut fbb);
+
+    let m = my_game::example::root_as_monster(fbb.finished_data()).unwrap().unpack();
+
+    check_eq!(m.hp, 80)?;
+    check_eq!(m.mana, 150)?;
+    check_eq!(m.name, "MyMonster")?;
+
+    let pos = m.pos.as_ref().unwrap();
+    check_eq!(pos.x, 1.0f32)?;
+    check_eq!(pos.y, 2.0f32)?;
+    check_eq!(pos.z, 3.0f32)?;
+    check_eq!(pos.test1, 3.0f64)?;
+    check_eq!(pos.test2, my_game::example::Color::Green)?;
+
+    let pos_test3 = &pos.test3;
+    check_eq!(pos_test3.a, 5i16)?;
+    check_eq!(pos_test3.b, 6i8)?;
+
+    let monster2 = m.test.as_monster().unwrap();
+    check_eq!(monster2.name, "Fred")?;
+
+    let inv = m.inventory.as_ref().unwrap();
+    check_eq!(inv.len(), 5)?;
+    check_eq!(inv.iter().sum::<u8>(), 10u8)?;
+    check_eq!(inv.iter().rev().sum::<u8>(), 10u8)?;
+
+    let test4 = m.test4.as_ref().unwrap();
+    check_eq!(test4.len(), 2)?;
+    check_eq!(test4[0].a as i32 + test4[0].b as i32 +
+              test4[1].a as i32 + test4[1].b as i32, 100)?;
+
+    let testarrayofstring = m.testarrayofstring.as_ref().unwrap();
+    check_eq!(testarrayofstring.len(), 2)?;
+    check_eq!(testarrayofstring[0], "test1")?;
+    check_eq!(testarrayofstring[1], "test2")?;
+    Ok(())
+}
+
+
+
 // Disabled due to Windows CI limitations.
 // #[test]
 // fn builder_initializes_with_maximum_buffer_size() {

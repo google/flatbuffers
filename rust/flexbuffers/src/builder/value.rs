@@ -129,9 +129,10 @@ impl Value {
         !self.is_inline()
     }
     pub fn is_key(&self) -> bool {
-        match self {
-            Value::Key(_) => true,
-            _ => false,
+        if let Value::Key(_) = self {
+            true
+        } else {
+            false
         }
     }
     pub fn is_typed_vector_or_map(&self) -> bool {

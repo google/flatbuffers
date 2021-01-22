@@ -37,7 +37,7 @@ pub const ENUM_VALUES_ENUM_IN_NESTED_NS: [EnumInNestedNS; 3] = [
   EnumInNestedNS::C,
 ];
 
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[repr(transparent)]
 pub struct EnumInNestedNS(pub i8);
 #[allow(non_upper_case_globals)]
@@ -115,7 +115,7 @@ impl<'a> flatbuffers::Verifiable for EnumInNestedNS {
 impl flatbuffers::SimpleToVerifyInSlice for EnumInNestedNS {}
 // struct StructInNestedNS, aligned to 4
 #[repr(transparent)]
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Default)]
 pub struct StructInNestedNS(pub [u8; 8]);
 impl std::fmt::Debug for StructInNestedNS {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -235,6 +235,26 @@ impl StructInNestedNS {
     }
   }
 
+  pub fn unpack(&self) -> StructInNestedNST {
+    StructInNestedNST {
+      a: self.a(),
+      b: self.b(),
+    }
+  }
+}
+
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct StructInNestedNST {
+  pub a: i32,
+  pub b: i32,
+}
+impl StructInNestedNST {
+  pub fn pack(&self) -> StructInNestedNS {
+    StructInNestedNS::new(
+      self.a,
+      self.b,
+    )
+  }
 }
 
 pub enum TableInNestedNSOffset {}
@@ -259,9 +279,7 @@ impl<'a> TableInNestedNS<'a> {
 
     #[inline]
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-        TableInNestedNS {
-            _tab: table,
-        }
+        TableInNestedNS { _tab: table }
     }
     #[allow(unused_mut)]
     pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
@@ -272,6 +290,12 @@ impl<'a> TableInNestedNS<'a> {
       builder.finish()
     }
 
+    pub fn unpack(&self) -> TableInNestedNST {
+      let foo = self.foo();
+      TableInNestedNST {
+        foo,
+      }
+    }
     pub const VT_FOO: flatbuffers::VOffsetT = 4;
 
   #[inline]
@@ -332,6 +356,22 @@ impl std::fmt::Debug for TableInNestedNS<'_> {
     let mut ds = f.debug_struct("TableInNestedNS");
       ds.field("foo", &self.foo());
       ds.finish()
+  }
+}
+#[non_exhaustive]
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct TableInNestedNST {
+  pub foo: i32,
+}
+impl TableInNestedNST {
+  pub fn pack<'b>(
+    &self,
+    _fbb: &mut flatbuffers::FlatBufferBuilder<'b>
+  ) -> flatbuffers::WIPOffset<TableInNestedNS<'b>> {
+    let foo = self.foo;
+    TableInNestedNS::create(_fbb, &TableInNestedNSArgs{
+      foo,
+    })
   }
 }
 }  // pub mod NamespaceB
