@@ -1,4 +1,4 @@
-    /*
+/*
  * Copyright 2014 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -2462,8 +2462,7 @@ class CppGenerator : public BaseGenerator {
         if (!field.deprecated) {
           code_.SetValue("FIELD_NAME", Name(field));
           code_ += ",\n      {{FIELD_NAME}}\\";
-          if (IsString(field.value.type) ||
-              IsVector(field.value.type)) {
+          if (IsString(field.value.type) || IsVector(field.value.type)) {
             code_ += "__\\";
           }
         }
@@ -2551,9 +2550,7 @@ class CppGenerator : public BaseGenerator {
                         WrapInNameSpace(*field.value.type.enum_def) + ">(";
           }
           indexing += "_e->Get(_i)";
-          if (field.value.type.enum_def) {
-            indexing += ")";
-          }
+          if (field.value.type.enum_def) { indexing += ")"; }
           if (field.value.type.element == BASE_TYPE_BOOL) {
             indexing += " != 0";
           }
