@@ -200,19 +200,77 @@ class RustGenerator : public BaseGenerator {
       // changes to that webpage in the future.
 
       // currently-used keywords
-      "as", "break", "const", "continue", "crate", "else", "enum", "extern",
-      "false", "fn", "for", "if", "impl", "in", "let", "loop", "match", "mod",
-      "move", "mut", "pub", "ref", "return", "Self", "self", "static", "struct",
-      "super", "trait", "true", "type", "unsafe", "use", "where", "while",
+      "as",
+      "break",
+      "const",
+      "continue",
+      "crate",
+      "else",
+      "enum",
+      "extern",
+      "false",
+      "fn",
+      "for",
+      "if",
+      "impl",
+      "in",
+      "let",
+      "loop",
+      "match",
+      "mod",
+      "move",
+      "mut",
+      "pub",
+      "ref",
+      "return",
+      "Self",
+      "self",
+      "static",
+      "struct",
+      "super",
+      "trait",
+      "true",
+      "type",
+      "unsafe",
+      "use",
+      "where",
+      "while",
 
       // future possible keywords
-      "abstract", "alignof", "become", "box", "do", "final", "macro",
-      "offsetof", "override", "priv", "proc", "pure", "sizeof", "typeof",
-      "unsized", "virtual", "yield",
+      "abstract",
+      "alignof",
+      "become",
+      "box",
+      "do",
+      "final",
+      "macro",
+      "offsetof",
+      "override",
+      "priv",
+      "proc",
+      "pure",
+      "sizeof",
+      "typeof",
+      "unsized",
+      "virtual",
+      "yield",
 
       // other rust terms we should not use
-      "std", "usize", "isize", "u8", "i8", "u16", "i16", "u32", "i32", "u64",
-      "i64", "u128", "i128", "f32", "f64",
+      "std",
+      "usize",
+      "isize",
+      "u8",
+      "i8",
+      "u16",
+      "i16",
+      "u32",
+      "i32",
+      "u64",
+      "i64",
+      "u128",
+      "i128",
+      "f32",
+      "f64",
 
       // These are terms the code generator can implement on types.
       //
@@ -223,12 +281,19 @@ class RustGenerator : public BaseGenerator {
       // implementation detail, and how we implement methods could change in
       // the future. as a result, we proactively block these out as reserved
       // words.
-      "follow", "push", "size", "alignment", "to_little_endian",
-      "from_little_endian", nullptr,
+      "follow",
+      "push",
+      "size",
+      "alignment",
+      "to_little_endian",
+      "from_little_endian",
+      nullptr,
 
       // used by Enum constants
-      "ENUM_MAX", "ENUM_MIN", "ENUM_VALUES",
-    };  // clang-format on
+      "ENUM_MAX",
+      "ENUM_MIN",
+      "ENUM_VALUES",
+    };
     for (auto kw = keywords; *kw; kw++) keywords_.insert(*kw);
   }
 

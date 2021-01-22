@@ -413,14 +413,14 @@ class PythonGenerator : public BaseGenerator {
                                    const FieldDef &field,
                                    std::string *code_ptr) {
     auto nested = field.attributes.Lookup("nested_flatbuffer");
-    if (!nested) { return; } // There is no nested flatbuffer.
+    if (!nested) { return; }  // There is no nested flatbuffer.
 
     std::string unqualified_name = nested->constant;
     std::string qualified_name = nested->constant;
     auto nested_root = parser_.LookupStruct(nested->constant);
     if (nested_root == nullptr) {
-      qualified_name = parser_.current_namespace_->GetFullyQualifiedName(
-          nested->constant);
+      qualified_name =
+          parser_.current_namespace_->GetFullyQualifiedName(nested->constant);
       nested_root = parser_.LookupStruct(qualified_name);
     }
     FLATBUFFERS_ASSERT(nested_root);  // Guaranteed to exist by parser.
@@ -1250,7 +1250,8 @@ class PythonGenerator : public BaseGenerator {
                      field_instance_name + "))):";
       code_prefix +=
           GenIndents(4) + "self." + field_instance_name + "[i].Pack(builder)";
-      code_prefix += GenIndents(3) + field_instance_name + " = builder.EndVector()";
+      code_prefix +=
+          GenIndents(3) + field_instance_name + " = builder.EndVector()";
     } else {
       // If the vector is a struct vector, we need to first build accessor for
       // each struct element.
@@ -1267,7 +1268,8 @@ class PythonGenerator : public BaseGenerator {
                      field_instance_name + "))):";
       code_prefix += GenIndents(4) + "builder.PrependUOffsetTRelative" + "(" +
                      field_instance_name + "list[i])";
-      code_prefix += GenIndents(3) + field_instance_name + " = builder.EndVector()";
+      code_prefix +=
+          GenIndents(3) + field_instance_name + " = builder.EndVector()";
     }
 
     // Adds the field into the struct.
@@ -1341,7 +1343,8 @@ class PythonGenerator : public BaseGenerator {
                      field_instance_name + "[i]))";
       GenPackForScalarVectorFieldHelper(struct_def, field, code_prefix_ptr, 3);
       code_prefix += "(" + MakeLowerCamel(field) + "list[i])";
-      code_prefix += GenIndents(3) + field_instance_name + " = builder.EndVector()";
+      code_prefix +=
+          GenIndents(3) + field_instance_name + " = builder.EndVector()";
       return;
     }
 
@@ -1353,7 +1356,8 @@ class PythonGenerator : public BaseGenerator {
     code_prefix += GenIndents(3) + "else:";
     GenPackForScalarVectorFieldHelper(struct_def, field, code_prefix_ptr, 4);
     code_prefix += "(self." + field_instance_name + "[i])";
-    code_prefix += GenIndents(4) + field_instance_name + " = builder.EndVector()";
+    code_prefix +=
+        GenIndents(4) + field_instance_name + " = builder.EndVector()";
   }
 
   void GenPackForStructField(const StructDef &struct_def, const FieldDef &field,

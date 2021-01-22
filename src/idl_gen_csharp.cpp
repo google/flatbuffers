@@ -1515,10 +1515,11 @@ class CSharpGenerator : public BaseGenerator {
         case BASE_TYPE_ARRAY: {
           auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts);
           auto length_str = NumToString(field.value.type.fixed_length);
-          auto unpack_method = field.value.type.struct_def == nullptr ? ""
-                               : field.value.type.struct_def->fixed
-                                   ? ".UnPack()"
-                                   : "?.UnPack()";
+          auto unpack_method = field.value.type.struct_def == nullptr
+                                   ? ""
+                                   : field.value.type.struct_def->fixed
+                                         ? ".UnPack()"
+                                         : "?.UnPack()";
           code += start + "new " + type_name.substr(0, type_name.length() - 1) +
                   length_str + "];\n";
           code += "    for (var _j = 0; _j < " + length_str + "; ++_j) { _o." +
