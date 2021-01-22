@@ -211,9 +211,11 @@ If you have a need to distinguish between different FlatBuffers in a more
 open-ended way, for example for use as files, see the file identification
 feature below.
 
-There is an experimental support only in C++ for a vector of unions
-(and types). In the example IDL file above, use [Any] to add a
-vector of Any to Monster table.
+There is an experimental support only in C++ for a vector of unions (and
+types). In the example IDL file above, use [Any] to add a vector of Any to
+Monster table. There is also experimental support for other types besides
+tables in unions, in particular structs and strings. There's no direct support
+for scalars in unions, but they can be wrapped in a struct at no space cost.
 
 ### Namespaces
 
