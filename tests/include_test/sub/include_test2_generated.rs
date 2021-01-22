@@ -39,7 +39,7 @@ pub const ENUM_VALUES_FROM_INCLUDE: [FromInclude; 1] = [
   FromInclude::IncludeVal,
 ];
 
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[repr(transparent)]
 pub struct FromInclude(pub i64);
 #[allow(non_upper_case_globals)]
@@ -111,7 +111,7 @@ impl<'a> flatbuffers::Verifiable for FromInclude {
 impl flatbuffers::SimpleToVerifyInSlice for FromInclude {}
 // struct Unused, aligned to 4
 #[repr(transparent)]
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Default)]
 pub struct Unused(pub [u8; 4]);
 impl std::fmt::Debug for Unused {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -221,9 +221,7 @@ impl<'a> flatbuffers::Follow<'a> for TableB<'a> {
 impl<'a> TableB<'a> {
     #[inline]
     pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-        TableB {
-            _tab: table,
-        }
+        TableB { _tab: table }
     }
     #[allow(unused_mut)]
     pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
