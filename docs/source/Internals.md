@@ -111,6 +111,13 @@ is 0, that means the field is not present in this object, and the
 default value is return. Otherwise, the entry is used as offset to the
 field to be read.
 
+### Unions
+
+Unions are encoded as the combination of two fields: an enum representing the
+union choice and the offset to the actual element. FlatBuffers reserves the
+enumeration constant `NONE` (encoded as 0) to mean that the union field is not
+set.
+
 ### Strings and Vectors
 
 Strings are simply a vector of bytes, and are always
