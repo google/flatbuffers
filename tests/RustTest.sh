@@ -43,6 +43,7 @@ cargo run $TARGET_FLAG --bin=flexbuffers_alloc_check
 check_test_result "Rust flexbuffers heap alloc test"
 
 cargo clippy $TARGET_FLAG
+rustup component add clippy
 check_test_result "No Cargo clippy lints test"
 
 cargo bench $TARGET_FLAG
