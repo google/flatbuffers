@@ -858,7 +858,9 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
                         (IsString(type) && field->key);
   const bool optional =
       IsScalar(type.base_type) ? (field->value.constant == "null") : !required;
-  FLATBUFFERS_ASSERT(!(required && optional));
+  if (required && optional) {
+    return Error("Fields cannot be both optional and required.");
+  }
   // clang-format off
   field->presence = required ? FieldDef::kRequired
                   : optional ? FieldDef::kOptional
