@@ -850,7 +850,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     }
   }
 
-  // For historical, for convenience, string keys are assumed required.
+  // For historical convenience reasons, string keys are assumed required.
   // Scalars are kDefault unless otherwise specified.
   // Nonscalars are kOptional unless required;
   field->key = field->attributes.Lookup("key") != nullptr;
@@ -864,8 +864,6 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
                   : optional ? FieldDef::kOptional
                              : FieldDef::kDefault;
   // clang-format on
-  field->optional = optional;
-  field->required = required;
 
   if (required && (struct_def.fixed || IsScalar(type.base_type))) {
     return Error("only non-scalar fields in tables may be 'required'");
@@ -974,7 +972,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   if (typefield) {
     if (!IsScalar(typefield->value.type.base_type)) {
       // this is a union vector field
-      typefield->required = field->required;
+      typefield->presence = field->presence;
     }
     // If this field is a union, and it has a manually assigned id,
     // the automatically added type field should have an id as well (of N - 1).
@@ -1269,7 +1267,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
   for (auto field_it = struct_def.fields.vec.begin();
        field_it != struct_def.fields.vec.end(); ++field_it) {
     auto required_field = *field_it;
-    if (!required_field->required) { continue; }
+    if (!required_field->IsRequired()) { continue; }
     bool found = false;
     for (auto pf_it = field_stack_.end() - fieldn_outer;
          pf_it != field_stack_.end(); ++pf_it) {
@@ -2794,7 +2792,9 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
       }
       if (!field) ECHECK(AddField(*struct_def, name, type, &field));
       field->doc_comment = field_comment;
-      if (!IsScalar(type.base_type)) field->required = required;
+      if (!IsScalar(type.base_type) && required) {
+        field->presence = FieldDef::kRequired;
+      }
       // See if there's a default specified.
       if (Is('[')) {
         NEXT();
@@ -3499,8 +3499,8 @@ Offset<reflection::Field> FieldDef::Serialize(FlatBufferBuilder *builder,
       // Is uint64>max(int64) tested?
       IsInteger(value.type.base_type) ? StringToInt(value.constant.c_str()) : 0,
       // result may be platform-dependent if underlying is float (not double)
-      IsFloat(value.type.base_type) ? d : 0.0, deprecated, required, key,
-      attr__, docs__, optional);
+      IsFloat(value.type.base_type) ? d : 0.0, deprecated, IsRequired(), key,
+      attr__, docs__, IsOptional());
   // TODO: value.constant is almost always "0", we could save quite a bit of
   // space by sharing it. Same for common values of value.type.
 }
@@ -3515,8 +3515,11 @@ bool FieldDef::Deserialize(Parser &parser, const reflection::Field *field) {
   } else if (IsFloat(value.type.base_type)) {
     value.constant = FloatToString(field->default_real(), 16);
   }
-  deprecated = field->deprecated();
-  required = field->required();
+  // clang-format off
+  presence = field->required() ? FieldDef::kRequired
+           : field->optional() ? FieldDef::kOptional
+                               : FieldDef::kDefault;
+  // clang-format on
   key = field->key();
   if (!DeserializeAttributes(parser, field->attributes())) return false;
   // TODO: this should probably be handled by a separate attribute

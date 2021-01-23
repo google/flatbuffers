@@ -291,12 +291,10 @@ struct Definition {
 struct FieldDef : public Definition {
   FieldDef()
       : deprecated(false),
-        required(false),
         key(false),
         shared(false),
         native_inline(false),
         flexbuffer(false),
-        optional(false),
         nested_flatbuffer(NULL),
         padding(0) {}
 
@@ -306,7 +304,7 @@ struct FieldDef : public Definition {
   bool Deserialize(Parser &parser, const reflection::Field *field);
 
   bool IsScalarOptional() const {
-    return IsScalar(value.type.base_type) && optional;
+    return IsScalar(value.type.base_type) && IsOptional();
   }
   bool IsOptional() const {
     return presence == kOptional;
@@ -321,15 +319,12 @@ struct FieldDef : public Definition {
   Value value;
   bool deprecated;  // Field is allowed to be present in old data, but can't be.
                     // written in new data nor accessed in new code.
-  bool required;    // Field must always be present.
   bool key;         // Field functions as a key for creating sorted vectors.
   bool shared;  // Field will be using string pooling (i.e. CreateSharedString)
                 // as default serialization behavior if field is a string.
   bool native_inline;  // Field will be defined inline (instead of as a pointer)
                        // for native tables if field is a struct.
   bool flexbuffer;     // This field contains FlexBuffer data.
-  bool optional;       // If True, this field is Null (as opposed to default
-                       // valued).
 
   enum Presence {
     // Field must always be present.
