@@ -800,34 +800,6 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
           "default values currently only supported for scalars in tables");
   }
 
-  // Mark the optional scalars. Note that a side effect of ParseSingleValue is
-  // fixing field->value.constant to null.
-  if (IsScalar(type.base_type)) {
-    field->optional = (field->value.constant == "null");
-    if (field->optional) {
-      if (type.enum_def && type.enum_def->Lookup("null")) {
-        FLATBUFFERS_ASSERT(IsInteger(type.base_type));
-        return Error(
-            "the default 'null' is reserved for declaring optional scalar "
-            "fields, it conflicts with declaration of enum '" +
-            type.enum_def->name + "'.");
-      }
-      if (field->attributes.Lookup("key")) {
-        return Error(
-            "only a non-optional scalar field can be used as a 'key' field");
-      }
-      if (!SupportsOptionalScalars()) {
-        return Error(
-            "Optional scalars are not yet supported in at least one the of "
-            "the specified programming languages.");
-      }
-    }
-  } else {
-    // For nonscalars, only required fields are non-optional.
-    // At least until https://github.com/google/flatbuffers/issues/6053
-    field->optional = !field->required;
-  }
-
   // Append .0 if the value has not it (skip hex and scientific floats).
   // This suffix needed for generated C++ code.
   if (IsFloat(type.base_type)) {
@@ -841,27 +813,6 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     if ((false == IsIdentifierStart(*s)) &&
         (std::string::npos == field->value.constant.find_first_of(".eEpP"))) {
       field->value.constant += ".0";
-    }
-  }
-  if (type.enum_def) {
-    // The type.base_type can only be scalar, union, array or vector.
-    // Table, struct or string can't have enum_def.
-    // Default value of union and vector in NONE, NULL translated to "0".
-    FLATBUFFERS_ASSERT(IsInteger(type.base_type) ||
-                       (type.base_type == BASE_TYPE_UNION) || IsVector(type) ||
-                       IsArray(type));
-    if (IsVector(type)) {
-      // Vector can't use initialization list.
-      FLATBUFFERS_ASSERT(field->value.constant == "0");
-    } else {
-      // All unions should have the NONE ("0") enum value.
-      auto in_enum = type.enum_def->attributes.Lookup("bit_flags") ||
-                     field->IsScalarOptional() ||
-                     type.enum_def->FindByValue(field->value.constant);
-      if (false == in_enum)
-        return Error("default value of " + field->value.constant +
-                     " for field " + name + " is not part of enum " +
-                     type.enum_def->name);
     }
   }
 
@@ -898,6 +849,79 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
             "hashing.");
     }
   }
+
+  // For historical, for convenience, string keys are assumed required.
+  // Scalars are kDefault unless otherwise specified.
+  // Nonscalars are kOptional unless required;
+  field->key = field->attributes.Lookup("key") != nullptr;
+  const bool required = field->attributes.Lookup("required") != nullptr ||
+                        (IsString(type) && field->key);
+  const bool optional =
+      IsScalar(type.base_type) ? (field->value.constant == "null") : !required;
+  FLATBUFFERS_ASSERT(!(required && optional));
+  // clang-format off
+  field->presence = required ? FieldDef::kRequired
+                  : optional ? FieldDef::kOptional
+                             : FieldDef::kDefault;
+  // clang-format on
+  field->optional = optional;
+  field->required = required;
+
+  if (required && (struct_def.fixed || IsScalar(type.base_type))) {
+    return Error("only non-scalar fields in tables may be 'required'");
+  }
+  if (field->key) {
+    if (struct_def.has_key) return Error("only one field may be set as 'key'");
+    struct_def.has_key = true;
+    if (!IsScalar(type.base_type) && !IsString(type)) {
+      return Error("'key' field must be string or scalar type");
+    }
+  }
+
+  if (field->IsScalarOptional()) {
+    if (type.enum_def && type.enum_def->Lookup("null")) {
+      FLATBUFFERS_ASSERT(IsInteger(type.base_type));
+      return Error(
+          "the default 'null' is reserved for declaring optional scalar "
+          "fields, it conflicts with declaration of enum '" +
+          type.enum_def->name + "'.");
+    }
+    if (field->attributes.Lookup("key")) {
+      return Error(
+          "only a non-optional scalar field can be used as a 'key' field");
+    }
+    if (!SupportsOptionalScalars()) {
+      return Error(
+          "Optional scalars are not yet supported in at least one the of "
+          "the specified programming languages.");
+    }
+  }
+
+  if (type.enum_def) {
+    // The type.base_type can only be scalar, union, array or vector.
+    // Table, struct or string can't have enum_def.
+    // Default value of union and vector in NONE, NULL translated to "0".
+    FLATBUFFERS_ASSERT(IsInteger(type.base_type) ||
+                       (type.base_type == BASE_TYPE_UNION) || IsVector(type) ||
+                       IsArray(type));
+    if (IsVector(type)) {
+      // Vector can't use initialization list.
+      FLATBUFFERS_ASSERT(field->value.constant == "0");
+    } else {
+      // All unions should have the NONE ("0") enum value.
+      auto in_enum = field->IsOptional() ||
+                     type.enum_def->attributes.Lookup("bit_flags") ||
+                     type.enum_def->FindByValue(field->value.constant);
+      if (false == in_enum)
+        return Error("default value of " + field->value.constant +
+                     " for field " + name + " is not part of enum " +
+                     type.enum_def->name);
+    }
+  }
+
+  if (field->deprecated && struct_def.fixed)
+    return Error("can't deprecate fields in a struct");
+
   auto cpp_type = field->attributes.Lookup("cpp_type");
   if (cpp_type) {
     if (!hash_name)
@@ -911,34 +935,6 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
       field->attributes.Add("cpp_ptr_type", val);
     }
   }
-  if (field->deprecated && struct_def.fixed)
-    return Error("can't deprecate fields in a struct");
-  field->required = field->attributes.Lookup("required") != nullptr;
-  if (field->required && (struct_def.fixed || IsScalar(type.base_type)))
-    return Error("only non-scalar fields in tables may be 'required'");
-
-  if (!IsScalar(type.base_type)) {
-    // For nonscalars, only required fields are non-optional.
-    // At least until https://github.com/google/flatbuffers/issues/6053
-    field->optional = !field->required;
-  }
-
-  field->key = field->attributes.Lookup("key") != nullptr;
-  if (field->key) {
-    if (struct_def.has_key) return Error("only one field may be set as 'key'");
-    struct_def.has_key = true;
-    if (!IsScalar(type.base_type)) {
-      field->required = true;
-      field->optional = false;
-      if (type.base_type != BASE_TYPE_STRING)
-        return Error("'key' field must be string or scalar type");
-    }
-  }
-
-  FLATBUFFERS_ASSERT(!(field->required && field->optional));
-  field->presence = field->required ? FieldDef::kRequired
-                  : field->optional ? FieldDef::kOptional
-                                    : FieldDef::kDefault;
 
   field->shared = field->attributes.Lookup("shared") != nullptr;
   if (field->shared && field->value.type.base_type != BASE_TYPE_STRING)
