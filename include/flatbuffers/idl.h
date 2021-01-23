@@ -340,7 +340,7 @@ struct FieldDef : public Definition {
     // Implementations may omit writing default values.
     kDefault,
   };
-  Presence presence;
+  Presence presence = kDefault;
 
 
   StructDef *nested_flatbuffer;  // This field contains nested FlatBuffer data.

@@ -1871,7 +1871,7 @@ class CppGenerator : public BaseGenerator {
   void GenVerifyCall(const FieldDef &field, const char *prefix) {
     code_.SetValue("PRE", prefix);
     code_.SetValue("NAME", Name(field));
-    code_.SetValue("REQUIRED", field.required ? "Required" : "");
+    code_.SetValue("REQUIRED", field.IsRequired() ? "Required" : "");
     code_.SetValue("SIZE", GenTypeSize(field.value.type));
     code_.SetValue("OFFSET", GenFieldOffsetName(field));
     if (IsScalar(field.value.type.base_type) || IsStruct(field.value.type)) {
@@ -2340,7 +2340,7 @@ class CppGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
-      if (!field.deprecated && field.required) {
+      if (!field.deprecated && field.IsRequired()) {
         code_.SetValue("FIELD_NAME", Name(field));
         code_.SetValue("OFFSET_NAME", GenFieldOffsetName(field));
         code_ += "    fbb_.Required(o, {{STRUCT_NAME}}::{{OFFSET_NAME}});";
@@ -2684,7 +2684,7 @@ class CppGenerator : public BaseGenerator {
         // in _o->field before attempting to access it. If there isn't,
         // depending on set_empty_strings_to_null either set it to 0 or an empty
         // string.
-        if (!field.required) {
+        if (!field.IsRequired()) {
           auto empty_value = opts_.set_empty_strings_to_null
                                  ? "0"
                                  : "_fbb.CreateSharedString(\"\")";
@@ -2793,7 +2793,7 @@ class CppGenerator : public BaseGenerator {
         // If set_empty_vectors_to_null option is enabled, for optional fields,
         // check to see if there actually is any data in _o->field before
         // attempting to access it.
-        if (opts_.set_empty_vectors_to_null && !field.required) {
+        if (opts_.set_empty_vectors_to_null && !field.IsRequired()) {
           code = value + ".size() ? " + code + " : 0";
         }
         break;
