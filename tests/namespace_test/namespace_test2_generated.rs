@@ -50,7 +50,9 @@ impl<'a> TableInFirstNS<'a> {
         args: &'args TableInFirstNSArgs<'args>) -> flatbuffers::WIPOffset<TableInFirstNS<'bldr>> {
       let mut builder = TableInFirstNSBuilder::new(_fbb);
       if let Some(x) = args.foo_struct { builder.add_foo_struct(x); }
+      if let Some(x) = args.foo_union { builder.add_foo_union(x); }
       if let Some(x) = args.foo_table { builder.add_foo_table(x); }
+      builder.add_foo_union_type(args.foo_union_type);
       builder.add_foo_enum(args.foo_enum);
       builder.finish()
     }
@@ -60,18 +62,30 @@ impl<'a> TableInFirstNS<'a> {
         Box::new(x.unpack())
       });
       let foo_enum = self.foo_enum();
+      let foo_union = match self.foo_union_type() {
+        UnionInNestedNS::NONE => UnionInNestedNST::NONE,
+        UnionInNestedNS::TableInNestedNS => UnionInNestedNST::TableInNestedNS(Box::new(
+          self.foo_union_as_table_in_nested_ns()
+              .expect("Invalid union table, expected `UnionInNestedNS::TableInNestedNS`.")
+              .unpack()
+        )),
+        _ => UnionInNestedNST::NONE,
+      };
       let foo_struct = self.foo_struct().map(|x| {
         x.unpack()
       });
       TableInFirstNST {
         foo_table,
         foo_enum,
+        foo_union,
         foo_struct,
       }
     }
     pub const VT_FOO_TABLE: flatbuffers::VOffsetT = 4;
     pub const VT_FOO_ENUM: flatbuffers::VOffsetT = 6;
-    pub const VT_FOO_STRUCT: flatbuffers::VOffsetT = 8;
+    pub const VT_FOO_UNION_TYPE: flatbuffers::VOffsetT = 8;
+    pub const VT_FOO_UNION: flatbuffers::VOffsetT = 10;
+    pub const VT_FOO_STRUCT: flatbuffers::VOffsetT = 12;
 
   #[inline]
   pub fn foo_table(&self) -> Option<namespace_b::TableInNestedNS<'a>> {
@@ -82,9 +96,27 @@ impl<'a> TableInFirstNS<'a> {
     self._tab.get::<namespace_b::EnumInNestedNS>(TableInFirstNS::VT_FOO_ENUM, Some(namespace_b::EnumInNestedNS::A)).unwrap()
   }
   #[inline]
+  pub fn foo_union_type(&self) -> namespace_b::UnionInNestedNS {
+    self._tab.get::<namespace_b::UnionInNestedNS>(TableInFirstNS::VT_FOO_UNION_TYPE, Some(namespace_b::UnionInNestedNS::NONE)).unwrap()
+  }
+  #[inline]
+  pub fn foo_union(&self) -> Option<flatbuffers::Table<'a>> {
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Table<'a>>>(TableInFirstNS::VT_FOO_UNION, None)
+  }
+  #[inline]
   pub fn foo_struct(&self) -> Option<&'a namespace_b::StructInNestedNS> {
     self._tab.get::<namespace_b::StructInNestedNS>(TableInFirstNS::VT_FOO_STRUCT, None)
   }
+  #[inline]
+  #[allow(non_snake_case)]
+  pub fn foo_union_as_table_in_nested_ns(&self) -> Option<namespace_b::TableInNestedNS<'a>> {
+    if self.foo_union_type() == namespace_b::UnionInNestedNS::TableInNestedNS {
+      self.foo_union().map(namespace_b::TableInNestedNS::init_from_table)
+    } else {
+      None
+    }
+  }
+
 }
 
 impl flatbuffers::Verifiable for TableInFirstNS<'_> {
@@ -96,6 +128,12 @@ impl flatbuffers::Verifiable for TableInFirstNS<'_> {
     v.visit_table(pos)?
      .visit_field::<flatbuffers::ForwardsUOffset<namespace_b::TableInNestedNS>>(&"foo_table", Self::VT_FOO_TABLE, false)?
      .visit_field::<namespace_b::EnumInNestedNS>(&"foo_enum", Self::VT_FOO_ENUM, false)?
+     .visit_union::<UnionInNestedNS, _>(&"foo_union_type", Self::VT_FOO_UNION_TYPE, &"foo_union", Self::VT_FOO_UNION, false, |key, v, pos| {
+        match key {
+          namespace_b::UnionInNestedNS::TableInNestedNS => v.verify_union_variant::<flatbuffers::ForwardsUOffset<namespace_b::TableInNestedNS>>("namespace_b::UnionInNestedNS::TableInNestedNS", pos),
+          _ => Ok(()),
+        }
+     })?
      .visit_field::<namespace_b::StructInNestedNS>(&"foo_struct", Self::VT_FOO_STRUCT, false)?
      .finish();
     Ok(())
@@ -104,6 +142,8 @@ impl flatbuffers::Verifiable for TableInFirstNS<'_> {
 pub struct TableInFirstNSArgs<'a> {
     pub foo_table: Option<flatbuffers::WIPOffset<namespace_b::TableInNestedNS<'a>>>,
     pub foo_enum: namespace_b::EnumInNestedNS,
+    pub foo_union_type: namespace_b::UnionInNestedNS,
+    pub foo_union: Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>>,
     pub foo_struct: Option<&'a namespace_b::StructInNestedNS>,
 }
 impl<'a> Default for TableInFirstNSArgs<'a> {
@@ -112,6 +152,8 @@ impl<'a> Default for TableInFirstNSArgs<'a> {
         TableInFirstNSArgs {
             foo_table: None,
             foo_enum: namespace_b::EnumInNestedNS::A,
+            foo_union_type: namespace_b::UnionInNestedNS::NONE,
+            foo_union: None,
             foo_struct: None,
         }
     }
@@ -128,6 +170,14 @@ impl<'a: 'b, 'b> TableInFirstNSBuilder<'a, 'b> {
   #[inline]
   pub fn add_foo_enum(&mut self, foo_enum: namespace_b::EnumInNestedNS) {
     self.fbb_.push_slot::<namespace_b::EnumInNestedNS>(TableInFirstNS::VT_FOO_ENUM, foo_enum, namespace_b::EnumInNestedNS::A);
+  }
+  #[inline]
+  pub fn add_foo_union_type(&mut self, foo_union_type: namespace_b::UnionInNestedNS) {
+    self.fbb_.push_slot::<namespace_b::UnionInNestedNS>(TableInFirstNS::VT_FOO_UNION_TYPE, foo_union_type, namespace_b::UnionInNestedNS::NONE);
+  }
+  #[inline]
+  pub fn add_foo_union(&mut self, foo_union: flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(TableInFirstNS::VT_FOO_UNION, foo_union);
   }
   #[inline]
   pub fn add_foo_struct(&mut self, foo_struct: &namespace_b::StructInNestedNS) {
@@ -153,6 +203,20 @@ impl std::fmt::Debug for TableInFirstNS<'_> {
     let mut ds = f.debug_struct("TableInFirstNS");
       ds.field("foo_table", &self.foo_table());
       ds.field("foo_enum", &self.foo_enum());
+      ds.field("foo_union_type", &self.foo_union_type());
+      match self.foo_union_type() {
+        namespace_b::UnionInNestedNS::TableInNestedNS => {
+          if let Some(x) = self.foo_union_as_table_in_nested_ns() {
+            ds.field("foo_union", &x)
+          } else {
+            ds.field("foo_union", &"InvalidFlatbuffer: Union discriminant does not match value.")
+          }
+        },
+        _ => { 
+          let x: Option<()> = None;
+          ds.field("foo_union", &x)
+        },
+      };
       ds.field("foo_struct", &self.foo_struct());
       ds.finish()
   }
@@ -162,6 +226,7 @@ impl std::fmt::Debug for TableInFirstNS<'_> {
 pub struct TableInFirstNST {
   pub foo_table: Option<Box<namespace_b::TableInNestedNST>>,
   pub foo_enum: namespace_b::EnumInNestedNS,
+  pub foo_union: namespace_b::UnionInNestedNST,
   pub foo_struct: Option<namespace_b::StructInNestedNST>,
 }
 impl TableInFirstNST {
@@ -173,11 +238,15 @@ impl TableInFirstNST {
       x.pack(_fbb)
     });
     let foo_enum = self.foo_enum;
+    let foo_union_type = self.foo_union.union_in_nested_ns_type();
+    let foo_union = self.foo_union.pack(_fbb);
     let foo_struct_tmp = self.foo_struct.as_ref().map(|x| x.pack());
     let foo_struct = foo_struct_tmp.as_ref();
     TableInFirstNS::create(_fbb, &TableInFirstNSArgs{
       foo_table,
       foo_enum,
+      foo_union_type,
+      foo_union,
       foo_struct,
     })
   }
