@@ -689,7 +689,7 @@ impl std::fmt::Debug for Monster<'_> {
             ds.field("equipped", &"InvalidFlatbuffer: Union discriminant does not match value.")
           }
         },
-        _ => { 
+        _ => {
           let x: Option<()> = None;
           ds.field("equipped", &x)
         },

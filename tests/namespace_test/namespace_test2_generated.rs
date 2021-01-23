@@ -701,7 +701,7 @@ impl std::fmt::Debug for TableInFirstNS<'_> {
             ds.field("foo_union", &"InvalidFlatbuffer: Union discriminant does not match value.")
           }
         },
-        _ => { 
+        _ => {
           let x: Option<()> = None;
           ds.field("foo_union", &x)
         },

@@ -3004,7 +3004,7 @@ impl std::fmt::Debug for Monster<'_> {
             ds.field("test", &"InvalidFlatbuffer: Union discriminant does not match value.")
           }
         },
-        _ => { 
+        _ => {
           let x: Option<()> = None;
           ds.field("test", &x)
         },
@@ -3066,7 +3066,7 @@ impl std::fmt::Debug for Monster<'_> {
             ds.field("any_unique", &"InvalidFlatbuffer: Union discriminant does not match value.")
           }
         },
-        _ => { 
+        _ => {
           let x: Option<()> = None;
           ds.field("any_unique", &x)
         },
@@ -3094,7 +3094,7 @@ impl std::fmt::Debug for Monster<'_> {
             ds.field("any_ambiguous", &"InvalidFlatbuffer: Union discriminant does not match value.")
           }
         },
-        _ => { 
+        _ => {
           let x: Option<()> = None;
           ds.field("any_ambiguous", &x)
         },

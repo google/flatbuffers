@@ -1878,7 +1878,7 @@ class RustGenerator : public BaseGenerator {
               code_ += "          }";
               code_ += "        },";
             });
-        code_ += "        _ => { ";
+        code_ += "        _ => {";
         code_ += "          let x: Option<()> = None;";
         code_ += "          ds.field(\"{{FIELD_NAME}}\", &x)";
         code_ += "        },";
