@@ -212,7 +212,7 @@ impl Default for EquipmentT {
   }
 }
 impl EquipmentT {
-  fn equipment_type(&self) -> Equipment {
+  pub fn equipment_type(&self) -> Equipment {
     match self {
       Self::NONE => Equipment::NONE,
       Self::Weapon(_) => Equipment::Weapon,

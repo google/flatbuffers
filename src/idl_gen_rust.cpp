@@ -759,7 +759,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "impl flatbuffers::SimpleToVerifyInSlice for {{ENUM_NAME}} {}";
 
     if (enum_def.is_union) {
-      // Generate tyoesafe offset(s) for unions
+      // Generate typesafe offset(s) for unions
       code_.SetValue("NAME", Name(enum_def));
       code_.SetValue("UNION_OFFSET_NAME", Name(enum_def) + "UnionTableOffset");
       code_ += "pub struct {{UNION_OFFSET_NAME}} {}";
@@ -808,7 +808,7 @@ class RustGenerator : public BaseGenerator {
 
     // Get flatbuffers union key.
     // CASPER: add docstrings?
-    code_ += "  fn {{ENUM_NAME_SNAKE}}_type(&self) -> {{ENUM_NAME}} {";
+    code_ += "  pub fn {{ENUM_NAME_SNAKE}}_type(&self) -> {{ENUM_NAME}} {";
     code_ += "    match self {";
     code_ += "      Self::NONE => {{ENUM_NAME}}::NONE,";
     ForAllUnionObjectVariantsBesidesNone(enum_def, [&] {
@@ -1501,8 +1501,8 @@ class RustGenerator : public BaseGenerator {
           case ftUnionKey: return;
           case ftUnionValue: {
             const auto &enum_def = *type.enum_def;
-            code_.SetValue("ENUM_NAME", Name(enum_def));
-            code_.SetValue("NATIVE_ENUM_NAME", NativeName(enum_def));
+            code_.SetValue("ENUM_NAME", WrapInNameSpace(enum_def));
+            code_.SetValue("NATIVE_ENUM_NAME", NamespacedNativeName(enum_def));
             code_ +=
                 "      let {{FIELD_NAME}} = match "
                 "self.{{FIELD_NAME}}_type() {";
@@ -1730,7 +1730,7 @@ class RustGenerator : public BaseGenerator {
       }
       // Unions.
       EnumDef &union_def = *field.value.type.enum_def;
-      code_.SetValue("UNION_TYPE", Name(union_def));
+      code_.SetValue("UNION_TYPE", WrapInNameSpace(union_def));
       code_ +=
           "\n     .visit_union::<{{UNION_TYPE}}, _>("
           "&\"{{FIELD_NAME}}_type\", Self::{{OFFSET_NAME}}_TYPE, "

@@ -124,7 +124,7 @@ impl Default for UnionInNestedNST {
   }
 }
 impl UnionInNestedNST {
-  fn union_in_nested_ns_type(&self) -> UnionInNestedNS {
+  pub fn union_in_nested_ns_type(&self) -> UnionInNestedNS {
     match self {
       Self::NONE => UnionInNestedNS::NONE,
       Self::TableInNestedNS(_) => UnionInNestedNS::TableInNestedNS,

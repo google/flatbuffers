@@ -63,13 +63,13 @@ impl<'a> TableInFirstNS<'a> {
       });
       let foo_enum = self.foo_enum();
       let foo_union = match self.foo_union_type() {
-        UnionInNestedNS::NONE => UnionInNestedNST::NONE,
-        UnionInNestedNS::TableInNestedNS => UnionInNestedNST::TableInNestedNS(Box::new(
+        namespace_b::UnionInNestedNS::NONE => namespace_b::UnionInNestedNST::NONE,
+        namespace_b::UnionInNestedNS::TableInNestedNS => namespace_b::UnionInNestedNST::TableInNestedNS(Box::new(
           self.foo_union_as_table_in_nested_ns()
-              .expect("Invalid union table, expected `UnionInNestedNS::TableInNestedNS`.")
+              .expect("Invalid union table, expected `namespace_b::UnionInNestedNS::TableInNestedNS`.")
               .unpack()
         )),
-        _ => UnionInNestedNST::NONE,
+        _ => namespace_b::UnionInNestedNST::NONE,
       };
       let foo_struct = self.foo_struct().map(|x| {
         x.unpack()
@@ -128,7 +128,7 @@ impl flatbuffers::Verifiable for TableInFirstNS<'_> {
     v.visit_table(pos)?
      .visit_field::<flatbuffers::ForwardsUOffset<namespace_b::TableInNestedNS>>(&"foo_table", Self::VT_FOO_TABLE, false)?
      .visit_field::<namespace_b::EnumInNestedNS>(&"foo_enum", Self::VT_FOO_ENUM, false)?
-     .visit_union::<UnionInNestedNS, _>(&"foo_union_type", Self::VT_FOO_UNION_TYPE, &"foo_union", Self::VT_FOO_UNION, false, |key, v, pos| {
+     .visit_union::<namespace_b::UnionInNestedNS, _>(&"foo_union_type", Self::VT_FOO_UNION_TYPE, &"foo_union", Self::VT_FOO_UNION, false, |key, v, pos| {
         match key {
           namespace_b::UnionInNestedNS::TableInNestedNS => v.verify_union_variant::<flatbuffers::ForwardsUOffset<namespace_b::TableInNestedNS>>("namespace_b::UnionInNestedNS::TableInNestedNS", pos),
           _ => Ok(()),
