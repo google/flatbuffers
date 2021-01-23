@@ -37,8 +37,12 @@ $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS -I include_test monster_test.f
 
 ../flatc --python $TEST_BASE_FLAGS -I include_test monster_test.fbs monsterdata_test.json
 
-../flatc --cpp --java --kotlin --csharp --dart --go --binary --lobster --lua --ts --php --python --rust \
+../flatc --cpp --java --kotlin --csharp --dart --go --binary --lobster --lua --ts --php --python \
 $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_JS_TS_FLAGS -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs
+
+# For Rust we currently generate two independent schemas, with namespace_test2
+# duplicating the types in namespace_test1
+../flatc --rust --gen-all $TEST_RUST_FLAGS -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs
 
 ../flatc --cpp --java --kotlin --csharp --ts --php $TEST_BASE_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_JS_TS_FLAGS -o union_vector ./union_vector/union_vector.fbs
 ../flatc --rust -I include_test -o include_test include_test/include_test1.fbs

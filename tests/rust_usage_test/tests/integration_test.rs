@@ -37,6 +37,12 @@ pub mod include_test1_generated;
 #[path = "../../include_test/sub/include_test2_generated.rs"]
 pub mod include_test2_generated;
 
+#[path = "../../namespace_test/namespace_test1_generated.rs"]
+pub mod namespace_test1_generated;
+
+#[path = "../../namespace_test/namespace_test2_generated.rs"]
+pub mod namespace_test2_generated;
+
 #[path = "../../monster_test_generated.rs"]
 mod monster_test_generated;
 pub use monster_test_generated::my_game;
