@@ -934,6 +934,12 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
         return Error("'key' field must be string or scalar type");
     }
   }
+
+  FLATBUFFERS_ASSERT(!(field->required && field->optional));
+  field->presence = field->required ? FieldDef::kRequired
+                  : field->optional ? FieldDef::kOptional
+                                    : FieldDef::kDefault;
+
   field->shared = field->attributes.Lookup("shared") != nullptr;
   if (field->shared && field->value.type.base_type != BASE_TYPE_STRING)
     return Error("shared can only be defined on strings");

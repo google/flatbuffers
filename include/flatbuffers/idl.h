@@ -308,6 +308,15 @@ struct FieldDef : public Definition {
   bool IsScalarOptional() const {
     return IsScalar(value.type.base_type) && optional;
   }
+  bool IsOptional() const {
+    return presence == kOptional;
+  }
+  bool IsRequired() const {
+    return presence == kRequired;
+  }
+  bool IsDefault() const {
+    return presence == kDefault;
+  }
 
   Value value;
   bool deprecated;  // Field is allowed to be present in old data, but can't be.
@@ -321,6 +330,19 @@ struct FieldDef : public Definition {
   bool flexbuffer;     // This field contains FlexBuffer data.
   bool optional;       // If True, this field is Null (as opposed to default
                        // valued).
+
+  enum Presence {
+    // Field must always be present.
+    kRequired,
+    // Non-presence should be signalled to and controlled by users.
+    kOptional,
+    // Non-presence is hidden from users.
+    // Implementations may omit writing default values.
+    kDefault,
+  };
+  Presence presence;
+
+
   StructDef *nested_flatbuffer;  // This field contains nested FlatBuffer data.
   size_t padding;                // Bytes to always pad after this field.
 };
