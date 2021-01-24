@@ -883,11 +883,10 @@ class CppGenerator : public BaseGenerator {
   }
 
   std::string GetUnionElement(const EnumVal &ev, bool wrap_namespace,
-                              bool native_type, bool wrap_native,
-                              const IDLOptions &opts) {
+                              bool native_type, const IDLOptions &opts) {
     if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
       auto name = ev.union_type.struct_def->name;
-      if (wrap_native) {
+      if (native_type) {
         name = NativeName(name, ev.union_type.struct_def, opts);
       }
       if (wrap_namespace) {
@@ -1267,7 +1266,7 @@ class CppGenerator : public BaseGenerator {
         if (it == enum_def.Vals().begin()) {
           code_ += "template<typename T> struct {{ENUM_NAME}}Traits {";
         } else {
-          auto name = GetUnionElement(ev, true, false, false, opts_);
+          auto name = GetUnionElement(ev, true, false, opts_);
           code_ += "template<> struct {{ENUM_NAME}}Traits<" + name + "> {";
         }
 
@@ -1330,7 +1329,7 @@ class CppGenerator : public BaseGenerator {
         const auto &ev = **it;
         if (ev.IsZero()) { continue; }
 
-        const auto native_type = GetUnionElement(ev, true, true, true, opts_);
+        const auto native_type = GetUnionElement(ev, true, true, opts_);
         code_.SetValue("NATIVE_TYPE", native_type);
         code_.SetValue("NATIVE_NAME", Name(ev));
         code_.SetValue("NATIVE_ID", GetEnumValUse(enum_def, ev));
@@ -1362,8 +1361,7 @@ class CppGenerator : public BaseGenerator {
           const auto &ev = **it;
           code_.SetValue("NATIVE_ID", GetEnumValUse(enum_def, ev));
           if (ev.IsNonZero()) {
-            const auto native_type =
-                GetUnionElement(ev, true, true, true, opts_);
+            const auto native_type = GetUnionElement(ev, true, true, opts_);
             code_.SetValue("NATIVE_TYPE", native_type);
             code_ += "    case {{NATIVE_ID}}: {";
             code_ +=
@@ -1417,7 +1415,7 @@ class CppGenerator : public BaseGenerator {
       code_.SetValue("LABEL", GetEnumValUse(enum_def, ev));
 
       if (ev.IsNonZero()) {
-        code_.SetValue("TYPE", GetUnionElement(ev, true, false, false, opts_));
+        code_.SetValue("TYPE", GetUnionElement(ev, true, false, opts_));
         code_ += "    case {{LABEL}}: {";
         auto getptr =
             "      auto ptr = reinterpret_cast<const {{TYPE}} *>(obj);";
@@ -1472,7 +1470,7 @@ class CppGenerator : public BaseGenerator {
         if (ev.IsZero()) { continue; }
 
         code_.SetValue("LABEL", GetEnumValUse(enum_def, ev));
-        code_.SetValue("TYPE", GetUnionElement(ev, true, false, false, opts_));
+        code_.SetValue("TYPE", GetUnionElement(ev, true, false, opts_));
         code_ += "    case {{LABEL}}: {";
         code_ += "      auto ptr = reinterpret_cast<const {{TYPE}} *>(obj);";
         if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
@@ -1502,8 +1500,8 @@ class CppGenerator : public BaseGenerator {
         if (ev.IsZero()) { continue; }
 
         code_.SetValue("LABEL", GetEnumValUse(enum_def, ev));
-        code_.SetValue("TYPE", GetUnionElement(ev, true, true, true, opts_));
-        code_.SetValue("NAME", GetUnionElement(ev, false, false, false, opts_));
+        code_.SetValue("TYPE", GetUnionElement(ev, true, true, opts_));
+        code_.SetValue("NAME", GetUnionElement(ev, false, false, opts_));
         code_ += "    case {{LABEL}}: {";
         code_ += "      auto ptr = reinterpret_cast<const {{TYPE}} *>(value);";
         if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
@@ -1535,7 +1533,7 @@ class CppGenerator : public BaseGenerator {
         const auto &ev = **it;
         if (ev.IsZero()) { continue; }
         code_.SetValue("LABEL", GetEnumValUse(enum_def, ev));
-        code_.SetValue("TYPE", GetUnionElement(ev, true, true, true, opts_));
+        code_.SetValue("TYPE", GetUnionElement(ev, true, true, opts_));
         code_ += "    case {{LABEL}}: {";
         bool copyable = true;
         if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
@@ -1579,7 +1577,7 @@ class CppGenerator : public BaseGenerator {
         const auto &ev = **it;
         if (ev.IsZero()) { continue; }
         code_.SetValue("LABEL", GetEnumValUse(enum_def, ev));
-        code_.SetValue("TYPE", GetUnionElement(ev, true, true, true, opts_));
+        code_.SetValue("TYPE", GetUnionElement(ev, true, true, opts_));
         code_ += "    case {{LABEL}}: {";
         code_ += "      auto ptr = reinterpret_cast<{{TYPE}} *>(value);";
         code_ += "      delete ptr;";
@@ -1981,7 +1979,7 @@ class CppGenerator : public BaseGenerator {
     for (auto u_it = u->Vals().begin(); u_it != u->Vals().end(); ++u_it) {
       auto &ev = **u_it;
       if (ev.union_type.base_type == BASE_TYPE_NONE) { continue; }
-      auto full_struct_name = GetUnionElement(ev, true, false, false, opts_);
+      auto full_struct_name = GetUnionElement(ev, true, false, opts_);
 
       // @TODO: Mby make this decisions more universal? How?
       code_.SetValue("U_GET_TYPE",
@@ -2226,7 +2224,7 @@ class CppGenerator : public BaseGenerator {
         auto &ev = **u_it;
         if (ev.union_type.base_type == BASE_TYPE_NONE) { continue; }
 
-        auto full_struct_name = GetUnionElement(ev, true, false, false, opts_);
+        auto full_struct_name = GetUnionElement(ev, true, false, opts_);
 
         code_.SetValue(
             "U_ELEMENT_TYPE",
