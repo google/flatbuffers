@@ -794,10 +794,20 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   if (token_ == '=') {
     NEXT();
     ECHECK(ParseSingleValue(&field->name, field->value, true));
-    if (!IsScalar(type.base_type) ||
-        (struct_def.fixed && field->value.constant != "0"))
+    if (IsStruct(type) || (struct_def.fixed && field->value.constant != "0"))
       return Error(
-          "default values currently only supported for scalars in tables");
+          "default values are not supported for struct fields, table fields, "
+          "or in structs.");
+    if ((IsString(type) || IsVector(type)) && field->value.constant != "0" &&
+        field->value.constant != "null" && !SupportsDefaultVectorsAndStrings())
+      return Error(
+          "Default values for strings and vectors are not supported in one of "
+          "the "
+          "specified programming languages");
+    if (IsVector(type) &&
+        (field->value.constant != "0" || field->value.constant != "[]")) {
+      return Error("The only supported default for vectors is `[]`");
+    }
   }
 
   // Append .0 if the value has not it (skip hex and scientific floats).
@@ -2388,10 +2398,15 @@ bool Parser::SupportsOptionalScalars(const flatbuffers::IDLOptions &opts) {
   unsigned long langs = opts.lang_to_generate;
   return (langs > 0 && langs < IDLOptions::kMAX) && !(langs & ~supported_langs);
 }
-
 bool Parser::SupportsOptionalScalars() const {
   // Check in general if a language isn't specified.
   return opts.lang_to_generate == 0 || SupportsOptionalScalars(opts);
+}
+
+bool Parser::SupportsDefaultVectorsAndStrings() const {
+  static FLATBUFFERS_CONSTEXPR unsigned long supported_langs = 0;
+  unsigned long langs = opts.lang_to_generate;
+  return (langs > 0 && langs < IDLOptions::kMAX) && !(langs & ~supported_langs);
 }
 
 bool Parser::SupportsAdvancedUnionFeatures() const {
