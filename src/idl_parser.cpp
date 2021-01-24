@@ -861,11 +861,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   if (required && optional) {
     return Error("Fields cannot be both optional and required.");
   }
-  // clang-format off
-  field->presence = required ? FieldDef::kRequired
-                  : optional ? FieldDef::kOptional
-                             : FieldDef::kDefault;
-  // clang-format on
+  field->presence = FieldDef::MakeFieldPresence(optional, required);
 
   if (required && (struct_def.fixed || IsScalar(type.base_type))) {
     return Error("only non-scalar fields in tables may be 'required'");
@@ -3517,11 +3513,7 @@ bool FieldDef::Deserialize(Parser &parser, const reflection::Field *field) {
   } else if (IsFloat(value.type.base_type)) {
     value.constant = FloatToString(field->default_real(), 16);
   }
-  // clang-format off
-  presence = field->required() ? FieldDef::kRequired
-           : field->optional() ? FieldDef::kOptional
-                               : FieldDef::kDefault;
-  // clang-format on
+  presence = FieldDef::MakeFieldPresence(field->optional(), field->required());
   key = field->key();
   if (!DeserializeAttributes(parser, field->attributes())) return false;
   // TODO: this should probably be handled by a separate attribute

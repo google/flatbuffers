@@ -935,8 +935,8 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
 
   // Test nullability of fields: hp is a 0-default scalar, pos is a struct =>
   // optional, and name is a required string => not optional.
-  TEST_EQ(hp_field.IsOptional(), false);
-  TEST_EQ(pos_field_ptr->IsOptional(), true);
+  TEST_EQ(hp_field.optional(), false);
+  TEST_EQ(pos_field_ptr->optional(), true);
   TEST_EQ(fields->LookupByKey("name")->optional(), false);
 
   // Now use it to dynamically access a buffer.
@@ -3654,7 +3654,7 @@ void OptionalScalarsTest() {
     flatbuffers::Parser parser;
     TEST_ASSERT(parser.Parse(schema->c_str()));
     const auto *mana = parser.structs_.Lookup("Monster")->fields.Lookup("mana");
-    TEST_EQ(mana->optional, has_null);
+    TEST_EQ(mana->IsOptional(), has_null);
   }
 
   // Test if nullable scalars are allowed for each language.

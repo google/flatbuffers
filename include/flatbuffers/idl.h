@@ -335,6 +335,13 @@ struct FieldDef : public Definition {
     // Implementations may omit writing default values.
     kDefault,
   };
+  Presence static MakeFieldPresence(bool optional, bool required) {
+    // clang-format off
+    return required ? FieldDef::kRequired
+                    : optional ? FieldDef::kOptional
+                               : FieldDef::kDefault;
+    // clang-format on
+  }
   Presence presence = kDefault;
 
 
