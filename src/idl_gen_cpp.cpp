@@ -550,9 +550,7 @@ class CppGenerator : public BaseGenerator {
 
       if (opts_.generate_object_based_api) {
         // A convenient root unpack function.
-        auto native_name =
-            WrapInNameSpace(struct_def.defined_namespace,
-                            NativeName(Name(struct_def), &struct_def, opts_));
+        auto native_name = WrapNativeNameInNameSpace(struct_def, opts_);
         code_.SetValue("UNPACK_RETURN",
                        GenTypeNativePtr(native_name, nullptr, false));
         code_.SetValue("UNPACK_TYPE",
@@ -710,6 +708,12 @@ class CppGenerator : public BaseGenerator {
                             : name;
   }
 
+  std::string WrapNativeNameInNameSpace(const StructDef &struct_def,
+                                        const IDLOptions &opts) {
+    return WrapInNameSpace(struct_def.defined_namespace,
+                           NativeName(Name(struct_def), &struct_def, opts));
+  }
+
   const std::string &PtrType(const FieldDef *field) {
     auto attr = field ? field->attributes.Lookup("cpp_ptr_type") : nullptr;
     return attr ? attr->constant : opts_.cpp_object_api_pointer_type;
@@ -788,10 +792,8 @@ class CppGenerator : public BaseGenerator {
           }
         } else {
           return GenTypeNativePtr(
-              WrapInNameSpace(
-                  type.struct_def->defined_namespace,
-                  NativeName(Name(*type.struct_def), type.struct_def, opts_)),
-              &field, false);
+              WrapNativeNameInNameSpace(*type.struct_def, opts_), &field,
+              false);
         }
       }
       case BASE_TYPE_UNION: {
@@ -2508,10 +2510,8 @@ class CppGenerator : public BaseGenerator {
           }
         } else {
           const auto ptype = GenTypeNativePtr(
-              WrapInNameSpace(
-                  type.struct_def->defined_namespace,
-                  NativeName(Name(*type.struct_def), type.struct_def, opts_)),
-              &afield, true);
+              WrapNativeNameInNameSpace(*type.struct_def, opts_), &afield,
+              true);
           return ptype + "(" + val + "->UnPack(_resolver))";
         }
       }
@@ -2847,9 +2847,7 @@ class CppGenerator : public BaseGenerator {
           "inline " + TableUnPackSignature(struct_def, false, opts_) + " {";
 
       if (opts_.g_cpp_std == cpp::CPP_STD_X0) {
-        auto native_name = WrapInNameSpace(
-            struct_def.defined_namespace,
-            NativeName(Name(struct_def), &struct_def, parser_.opts));
+        auto native_name = WrapNativeNameInNameSpace(struct_def, parser_.opts);
         code_.SetValue("POINTER_TYPE",
                        GenTypeNativePtr(native_name, nullptr, false));
         code_ +=
