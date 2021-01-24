@@ -30,13 +30,13 @@ if NOT "%commandline%"=="%commandline:--cpp-std c++0x=%" (
 set TEST_CPP_FLAGS=--gen-compare --cpp-ptr-type flatbuffers::unique_ptr %TEST_CPP_FLAGS%
 set TEST_CS_FLAGS=--cs-gen-json-serializer
 set TEST_JS_TS_FLAGS=--gen-name-strings
-set TEST_RUST_FLAGS=--gen-name-strings
 set TEST_BASE_FLAGS=--reflect-names --gen-mutable --gen-object-api
+set TEST_RUST_FLAGS=%TEST_BASE_FLAGS% --gen-name-strings
 set TEST_NOINCL_FLAGS=%TEST_BASE_FLAGS% --no-includes
 
 ..\%buildtype%\flatc.exe --binary --cpp --java --kotlin --csharp --dart --go --lobster --lua --ts --php --grpc ^
 %TEST_NOINCL_FLAGS% %TEST_CPP_FLAGS% %TEST_CS_FLAGS% -I include_test monster_test.fbs monsterdata_test.json || goto FAIL
-..\%buildtype%\flatc.exe --rust %TEST_NOINCL_FLAGS% %TEST_RUST_FLAGS% -I include_test monster_test.fbs monsterdata_test.json || goto FAIL
+..\%buildtype%\flatc.exe --rust %TEST_RUST_FLAGS% -I include_test monster_test.fbs monsterdata_test.json || goto FAIL
 
 ..\%buildtype%\flatc.exe --python %TEST_BASE_FLAGS% -I include_test monster_test.fbs monsterdata_test.json || goto FAIL
 
