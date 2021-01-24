@@ -295,6 +295,7 @@ struct FieldDef : public Definition {
         shared(false),
         native_inline(false),
         flexbuffer(false),
+        presence(kDefault),
         nested_flatbuffer(NULL),
         padding(0) {}
 
@@ -342,7 +343,7 @@ struct FieldDef : public Definition {
                     : FieldDef::kDefault;
     // clang-format on
   }
-  Presence presence = kDefault;
+  Presence presence;
 
   StructDef *nested_flatbuffer;  // This field contains nested FlatBuffer data.
   size_t padding;                // Bytes to always pad after this field.
