@@ -2493,7 +2493,6 @@ class CppGenerator : public BaseGenerator {
         }
       }
       case BASE_TYPE_STRUCT: {
-        const auto name = WrapInNameSpace(*type.struct_def);
         if (IsStruct(type)) {
           auto native_type = type.struct_def->attributes.Lookup("native_type");
           if (native_type) {
@@ -2501,6 +2500,7 @@ class CppGenerator : public BaseGenerator {
           } else if (invector || afield.native_inline) {
             return "*" + val;
           } else {
+            const auto name = WrapInNameSpace(*type.struct_def);
             const auto ptype = GenTypeNativePtr(name, &afield, true);
             return ptype + "(new " + name + "(*" + val + "))";
           }
