@@ -7,6 +7,45 @@ import 'dart:typed_data' show Uint8List;
 import 'package:flat_buffers/flat_buffers.dart' as fb;
 
 
+class UnionInNestedNSTypeId {
+  final int value;
+  const UnionInNestedNSTypeId._(this.value);
+
+  factory UnionInNestedNSTypeId.fromValue(int value) {
+    if (value == null) value = 0;
+    if (!values.containsKey(value)) {
+      throw new StateError('Invalid value $value for bit flag enum UnionInNestedNSTypeId');
+    }
+    return values[value];
+  }
+
+  static const int minValue = 0;
+  static const int maxValue = 1;
+  static bool containsValue(int value) => values.containsKey(value);
+
+  static const UnionInNestedNSTypeId NONE = const UnionInNestedNSTypeId._(0);
+  static const UnionInNestedNSTypeId TableInNestedNS = const UnionInNestedNSTypeId._(1);
+  static const Map<int,UnionInNestedNSTypeId> values = {0: NONE,1: TableInNestedNS,};
+
+  static const fb.Reader<UnionInNestedNSTypeId> reader = const _UnionInNestedNSTypeIdReader();
+
+  @override
+  String toString() {
+    return 'UnionInNestedNSTypeId{value: $value}';
+  }
+}
+
+class _UnionInNestedNSTypeIdReader extends fb.Reader<UnionInNestedNSTypeId> {
+  const _UnionInNestedNSTypeIdReader();
+
+  @override
+  int get size => 1;
+
+  @override
+  UnionInNestedNSTypeId read(fb.BufferContext bc, int offset) =>
+      new UnionInNestedNSTypeId.fromValue(const fb.Uint8Reader().read(bc, offset));
+}
+
 class EnumInNestedNS {
   final int value;
   const EnumInNestedNS._(this.value);

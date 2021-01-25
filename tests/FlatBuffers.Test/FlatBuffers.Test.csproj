@@ -141,6 +141,9 @@
     <Compile Include="..\namespace_test\NamespaceA\NamespaceB\TableInNestedNS.cs">
       <Link>NamespaceA\NamespaceB\TableInNestedNS.cs</Link>
     </Compile>
+    <Compile Include="..\namespace_test\NamespaceA\NamespaceB\UnionInNestedNS.cs">
+      <Link>NamespaceA\NamespaceB\UnionInNestedNS.cs</Link>
+    </Compile>
     <Compile Include="..\namespace_test\NamespaceA\TableInFirstNS.cs">
       <Link>NamespaceA\TableInFirstNS.cs</Link>
     </Compile>
