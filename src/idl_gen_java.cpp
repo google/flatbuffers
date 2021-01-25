@@ -649,7 +649,7 @@ class JavaGenerator : public BaseGenerator {
       std::string src_cast = SourceCast(field.value.type);
       std::string method_start =
           "  public " +
-          (field.required ? "" : GenNullableAnnotation(field.value.type)) +
+          (field.IsRequired() ? "" : GenNullableAnnotation(field.value.type)) +
           GenPureAnnotation(field.value.type) + type_name_dest + optional +
           " " + MakeCamel(field.name, false);
       std::string obj = "obj";
@@ -1095,7 +1095,7 @@ class JavaGenerator : public BaseGenerator {
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
         auto &field = **it;
-        if (!field.deprecated && field.required) {
+        if (!field.deprecated && field.IsRequired()) {
           code += "    builder.required(o, ";
           code += NumToString(field.value.offset);
           code += ");  // " + field.name + "\n";

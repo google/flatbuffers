@@ -536,7 +536,7 @@ class PhpGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
-      if (!field.deprecated && field.required) {
+      if (!field.deprecated && field.IsRequired()) {
         code += Indent + Indent + "$builder->required($o, ";
         code += NumToString(field.value.offset);
         code += ");  // " + field.name + "\n";
@@ -645,7 +645,7 @@ class PhpGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
-      if (!field.deprecated && field.required) {
+      if (!field.deprecated && field.IsRequired()) {
         code += Indent + Indent + "$builder->required($o, ";
         code += NumToString(field.value.offset);
         code += ");  // " + field.name + "\n";

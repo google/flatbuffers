@@ -460,7 +460,7 @@ class SwiftGenerator : public BaseGenerator {
       auto &field = **it;
       if (field.deprecated) continue;
       if (field.key) key_field = &field;
-      if (field.required)
+      if (field.IsRequired())
         require_fields.push_back(NumToString(field.value.offset));
 
       GenTableWriterFields(field, &create_func_body, &create_func_header);
@@ -537,7 +537,7 @@ class SwiftGenerator : public BaseGenerator {
     auto &create_func_header = *create_header;
     auto name = Name(field);
     auto type = GenType(field.value.type);
-    auto opt_scalar = field.optional && IsScalar(field.value.type.base_type);
+    auto opt_scalar = field.IsOptional() && IsScalar(field.value.type.base_type);
     auto nullable_type = opt_scalar ? type + "?" : type;
     code_.SetValue("VALUENAME", name);
     code_.SetValue("VALUETYPE", nullable_type);
@@ -559,17 +559,17 @@ class SwiftGenerator : public BaseGenerator {
       code_ +=
           "{{VALUETYPE}}" + builder_string + "fbb.add(element: {{VALUENAME}}\\";
 
-      code_ += field.optional ? (optional_enum + "\\")
+      code_ += field.IsOptional() ? (optional_enum + "\\")
                               : (is_enum + ", def: {{CONSTANT}}\\");
 
       code_ += ", at: {{TABLEOFFSET}}.{{OFFSET}}.p) }";
 
       auto default_value =
           IsEnum(field.value.type)
-              ? (field.optional ? "nil" : GenEnumDefaultValue(field))
+              ? (field.IsOptional() ? "nil" : GenEnumDefaultValue(field))
               : field.value.constant;
       create_func_header.push_back("" + name + ": " + nullable_type + " = " +
-                                   (field.optional ? "nil" : default_value));
+                                   (field.IsOptional() ? "nil" : default_value));
       return;
     }
 
@@ -578,13 +578,13 @@ class SwiftGenerator : public BaseGenerator {
           "0" == field.value.constant ? "false" : "true";
 
       code_.SetValue("CONSTANT", default_value);
-      code_.SetValue("VALUETYPE", field.optional ? "Bool?" : "Bool");
+      code_.SetValue("VALUETYPE", field.IsOptional() ? "Bool?" : "Bool");
       code_ += "{{VALUETYPE}}" + builder_string +
                "fbb.add(element: {{VALUENAME}},\\";
-      code_ += field.optional ? "\\" : " def: {{CONSTANT}},";
+      code_ += field.IsOptional() ? "\\" : " def: {{CONSTANT}},";
       code_ += " at: {{TABLEOFFSET}}.{{OFFSET}}.p) }";
       create_func_header.push_back(name + ": " + nullable_type + " = " +
-                                   (field.optional ? "nil" : default_value));
+                                   (field.IsOptional() ? "nil" : default_value));
       return;
     }
 
@@ -647,7 +647,7 @@ class SwiftGenerator : public BaseGenerator {
     code_.SetValue("VALUETYPE", type);
     code_.SetValue("OFFSET", name);
     code_.SetValue("CONSTANT", field.value.constant);
-    bool opt_scalar = field.optional && IsScalar(field.value.type.base_type);
+    bool opt_scalar = field.IsOptional() && IsScalar(field.value.type.base_type);
     std::string def_Val = opt_scalar ? "nil" : "{{CONSTANT}}";
     std::string optional = opt_scalar ? "?" : "";
     auto const_string = "return o == 0 ? " + def_Val + " : ";
@@ -674,7 +674,7 @@ class SwiftGenerator : public BaseGenerator {
     }
 
     if (IsEnum(field.value.type)) {
-      auto default_value = field.optional ? "nil" : GenEnumDefaultValue(field);
+      auto default_value = field.IsOptional() ? "nil" : GenEnumDefaultValue(field);
       code_.SetValue("BASEVALUE", GenTypeBasic(field.value.type, false));
       code_ += GenReaderMainBody(optional) + "\\";
       code_ += GenOffset() + "return o == 0 ? " + default_value + " : " +
@@ -684,8 +684,8 @@ class SwiftGenerator : public BaseGenerator {
       return;
     }
 
-    std::string is_required = field.required ? "!" : "?";
-    auto required_reader = field.required ? "return " : const_string;
+    std::string is_required = field.IsRequired() ? "!" : "?";
+    auto required_reader = field.IsRequired() ? "return " : const_string;
 
     if (IsStruct(field.value.type) && field.value.type.struct_def->fixed) {
       code_.SetValue("VALUETYPE", GenType(field.value.type));
@@ -1024,7 +1024,7 @@ class SwiftGenerator : public BaseGenerator {
         case BASE_TYPE_STRING: {
           unpack_body.push_back("{{STRUCTNAME}}." + body + "__" + name +
                                 builder);
-          if (field.required) {
+          if (field.IsRequired()) {
             code_ +=
                 "let __" + name + " = builder.create(string: obj." + name + ")";
           } else {
@@ -1145,7 +1145,7 @@ class SwiftGenerator : public BaseGenerator {
     auto type = GenType(field.value.type);
     code_.SetValue("VALUENAME", name);
     code_.SetValue("VALUETYPE", type);
-    std::string is_required = field.required ? "" : "?";
+    std::string is_required = field.IsRequired() ? "" : "?";
 
     switch (field.value.type.base_type) {
       case BASE_TYPE_STRUCT: {
@@ -1154,7 +1154,7 @@ class SwiftGenerator : public BaseGenerator {
         auto optional =
             (field.value.type.struct_def && field.value.type.struct_def->fixed);
         std::string question_mark =
-            (field.required || (optional && is_fixed) ? "" : "?");
+            (field.IsRequired() || (optional && is_fixed) ? "" : "?");
 
         code_ +=
             "{{ACCESS_TYPE}} var {{VALUENAME}}: {{VALUETYPE}}" + question_mark;
@@ -1165,7 +1165,7 @@ class SwiftGenerator : public BaseGenerator {
         } else {
           buffer_constructor.push_back("var __" + name + " = _t." + name);
           buffer_constructor.push_back("" + name + " = __" + name +
-                                       (field.required ? "!" : question_mark) +
+                                       (field.IsRequired() ? "!" : question_mark) +
                                        ".unpack()");
         }
         break;
@@ -1179,7 +1179,7 @@ class SwiftGenerator : public BaseGenerator {
       case BASE_TYPE_STRING: {
         code_ += "{{ACCESS_TYPE}} var {{VALUENAME}}: String" + is_required;
         buffer_constructor.push_back(name + " = _t." + name);
-        if (field.required) base_constructor.push_back(name + " = \"\"");
+        if (field.IsRequired()) base_constructor.push_back(name + " = \"\"");
         break;
       }
       case BASE_TYPE_UTYPE: break;
@@ -1190,12 +1190,12 @@ class SwiftGenerator : public BaseGenerator {
       }
       default: {
         buffer_constructor.push_back(name + " = _t." + name);
-        std::string nullable = field.optional ? "?" : "";
+        std::string nullable = field.IsOptional() ? "?" : "";
         if (IsScalar(field.value.type.base_type) &&
             !IsBool(field.value.type.base_type) && !IsEnum(field.value.type)) {
           code_ +=
               "{{ACCESS_TYPE}} var {{VALUENAME}}: {{VALUETYPE}}" + nullable;
-          if (!field.optional)
+          if (!field.IsOptional())
             base_constructor.push_back(name + " = " + field.value.constant);
           break;
         }
@@ -1213,7 +1213,7 @@ class SwiftGenerator : public BaseGenerator {
           code_ += "{{ACCESS_TYPE}} var {{VALUENAME}}: Bool" + nullable;
           std::string default_value =
               "0" == field.value.constant ? "false" : "true";
-          if (!field.optional)
+          if (!field.IsOptional())
             base_constructor.push_back(name + " = " + default_value);
         }
       }

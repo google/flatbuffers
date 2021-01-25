@@ -355,7 +355,7 @@ class TsGenerator : public BaseGenerator {
       } else {
         *arguments +=
             ", " + nameprefix + field.name + ": " +
-            GenTypeName(imports, field, field.value.type, true, field.optional);
+            GenTypeName(imports, field, field.value.type, true, field.IsOptional());
       }
     }
   }
@@ -1141,7 +1141,7 @@ class TsGenerator : public BaseGenerator {
         if (field.value.type.enum_def) {
           code += "):" +
                   GenTypeName(imports, struct_def, field.value.type, false,
-                              field.optional) +
+                              field.IsOptional()) +
                   " {\n";
         } else {
           code += "):" +
@@ -1488,8 +1488,8 @@ class TsGenerator : public BaseGenerator {
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
         auto &field = **it;
-        if (!field.deprecated && field.required) {
-          code += "  builder.requiredField(offset, ";
+        if (!field.deprecated && field.IsRequired()) {
+          code += "  builder.IsRequired()Field(offset, ";
           code += NumToString(field.value.offset);
           code += ") // " + field.name + "\n";
         }
@@ -1566,13 +1566,13 @@ class TsGenerator : public BaseGenerator {
   }
 
   static bool HasNullDefault(const FieldDef &field) {
-    return field.optional && field.value.constant == "null";
+    return field.IsOptional() && field.value.constant == "null";
   }
 
   std::string GetArgType(import_set &imports, const Definition &owner,
                          const FieldDef &field, bool allowNull) {
     return GenTypeName(imports, owner, field.value.type, true,
-                       allowNull && field.optional);
+                       allowNull && field.IsOptional());
   }
 
   static std::string GetArgName(const FieldDef &field) {
