@@ -3654,7 +3654,7 @@ void OptionalScalarsTest() {
     flatbuffers::Parser parser;
     TEST_ASSERT(parser.Parse(schema->c_str()));
     const auto *mana = parser.structs_.Lookup("Monster")->fields.Lookup("mana");
-    TEST_EQ(mana->optional, has_null);
+    TEST_EQ(mana->IsOptional(), has_null);
   }
 
   // Test if nullable scalars are allowed for each language.
