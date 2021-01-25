@@ -497,7 +497,7 @@ impl Default for AnyT {
   }
 }
 impl AnyT {
-  fn any_type(&self) -> Any {
+  pub fn any_type(&self) -> Any {
     match self {
       Self::NONE => Any::NONE,
       Self::Monster(_) => Any::Monster,
@@ -685,7 +685,7 @@ impl Default for AnyUniqueAliasesT {
   }
 }
 impl AnyUniqueAliasesT {
-  fn any_unique_aliases_type(&self) -> AnyUniqueAliases {
+  pub fn any_unique_aliases_type(&self) -> AnyUniqueAliases {
     match self {
       Self::NONE => AnyUniqueAliases::NONE,
       Self::M(_) => AnyUniqueAliases::M,
@@ -873,7 +873,7 @@ impl Default for AnyAmbiguousAliasesT {
   }
 }
 impl AnyAmbiguousAliasesT {
-  fn any_ambiguous_aliases_type(&self) -> AnyAmbiguousAliases {
+  pub fn any_ambiguous_aliases_type(&self) -> AnyAmbiguousAliases {
     match self {
       Self::NONE => AnyAmbiguousAliases::NONE,
       Self::M1(_) => AnyAmbiguousAliases::M1,
@@ -3003,7 +3003,7 @@ impl std::fmt::Debug for Monster<'_> {
             ds.field("test", &"InvalidFlatbuffer: Union discriminant does not match value.")
           }
         },
-        _ => { 
+        _ => {
           let x: Option<()> = None;
           ds.field("test", &x)
         },
@@ -3065,7 +3065,7 @@ impl std::fmt::Debug for Monster<'_> {
             ds.field("any_unique", &"InvalidFlatbuffer: Union discriminant does not match value.")
           }
         },
-        _ => { 
+        _ => {
           let x: Option<()> = None;
           ds.field("any_unique", &x)
         },
@@ -3093,7 +3093,7 @@ impl std::fmt::Debug for Monster<'_> {
             ds.field("any_ambiguous", &"InvalidFlatbuffer: Union discriminant does not match value.")
           }
         },
-        _ => { 
+        _ => {
           let x: Option<()> = None;
           ds.field("any_ambiguous", &x)
         },

@@ -239,7 +239,7 @@ class JsonSchemaGenerator : public BaseGenerator {
       std::vector<FieldDef *> requiredProperties;
       std::copy_if(properties.begin(), properties.end(),
                    back_inserter(requiredProperties),
-                   [](FieldDef const *prop) { return prop->required; });
+                   [](FieldDef const *prop) { return prop->IsRequired(); });
       if (!requiredProperties.empty()) {
         auto required_string(Indent(3) + "\"required\" : [");
         for (auto req_prop = requiredProperties.cbegin();

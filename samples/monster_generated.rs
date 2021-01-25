@@ -211,7 +211,7 @@ impl Default for EquipmentT {
   }
 }
 impl EquipmentT {
-  fn equipment_type(&self) -> Equipment {
+  pub fn equipment_type(&self) -> Equipment {
     match self {
       Self::NONE => Equipment::NONE,
       Self::Weapon(_) => Equipment::Weapon,
@@ -688,7 +688,7 @@ impl std::fmt::Debug for Monster<'_> {
             ds.field("equipped", &"InvalidFlatbuffer: Union discriminant does not match value.")
           }
         },
-        _ => { 
+        _ => {
           let x: Option<()> = None;
           ds.field("equipped", &x)
         },
