@@ -18,7 +18,7 @@ class TestSimpleTableWithEnum(object):
 
     @classmethod
     def GetRootAsTestSimpleTableWithEnum(cls, buf, offset=0):
-        """This method is deprecated. Please switch to Start."""
+        """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
     @classmethod
     def TestSimpleTableWithEnumBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
@@ -41,11 +41,11 @@ def TestSimpleTableWithEnumStart(builder):
     return Start(builder)
 def AddColor(builder, color): builder.PrependUint8Slot(0, color, 2)
 def TestSimpleTableWithEnumAddColor(builder, color):
-    """This method is deprecated. Please switch to Start."""
+    """This method is deprecated. Please switch to AddColor."""
     return AddColor(builder, color)
 def End(builder): return builder.EndObject()
 def TestSimpleTableWithEnumEnd(builder):
-    """This method is deprecated. Please switch to Start."""
+    """This method is deprecated. Please switch to End."""
     return End(builder)
 
 class TestSimpleTableWithEnumT(object):

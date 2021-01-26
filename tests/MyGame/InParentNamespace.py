@@ -18,7 +18,7 @@ class InParentNamespace(object):
 
     @classmethod
     def GetRootAsInParentNamespace(cls, buf, offset=0):
-        """This method is deprecated. Please switch to Start."""
+        """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
     @classmethod
     def InParentNamespaceBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
@@ -34,7 +34,7 @@ def InParentNamespaceStart(builder):
     return Start(builder)
 def End(builder): return builder.EndObject()
 def InParentNamespaceEnd(builder):
-    """This method is deprecated. Please switch to Start."""
+    """This method is deprecated. Please switch to End."""
     return End(builder)
 
 class InParentNamespaceT(object):

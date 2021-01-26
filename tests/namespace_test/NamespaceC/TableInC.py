@@ -18,7 +18,7 @@ class TableInC(object):
 
     @classmethod
     def GetRootAsTableInC(cls, buf, offset=0):
-        """This method is deprecated. Please switch to Start."""
+        """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
     # TableInC
     def Init(self, buf, pos):
@@ -50,15 +50,15 @@ def TableInCStart(builder):
     return Start(builder)
 def AddReferToA1(builder, referToA1): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(referToA1), 0)
 def TableInCAddReferToA1(builder, referToA1):
-    """This method is deprecated. Please switch to Start."""
+    """This method is deprecated. Please switch to AddReferToA1."""
     return AddReferToA1(builder, referToA1)
 def AddReferToA2(builder, referToA2): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(referToA2), 0)
 def TableInCAddReferToA2(builder, referToA2):
-    """This method is deprecated. Please switch to Start."""
+    """This method is deprecated. Please switch to AddReferToA2."""
     return AddReferToA2(builder, referToA2)
 def End(builder): return builder.EndObject()
 def TableInCEnd(builder):
-    """This method is deprecated. Please switch to Start."""
+    """This method is deprecated. Please switch to End."""
     return End(builder)
 try:
     from typing import Optional

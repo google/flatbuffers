@@ -18,7 +18,7 @@ class Monster(object):
 
     @classmethod
     def GetRootAsMonster(cls, buf, offset=0):
-        """This method is deprecated. Please switch to Start."""
+        """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
     @classmethod
     def MonsterBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
@@ -34,7 +34,7 @@ def MonsterStart(builder):
     return Start(builder)
 def End(builder): return builder.EndObject()
 def MonsterEnd(builder):
-    """This method is deprecated. Please switch to Start."""
+    """This method is deprecated. Please switch to End."""
     return End(builder)
 
 class MonsterT(object):

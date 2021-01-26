@@ -18,7 +18,7 @@ class Referrable(object):
 
     @classmethod
     def GetRootAsReferrable(cls, buf, offset=0):
-        """This method is deprecated. Please switch to Start."""
+        """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
     @classmethod
     def ReferrableBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
@@ -41,11 +41,11 @@ def ReferrableStart(builder):
     return Start(builder)
 def AddId(builder, id): builder.PrependUint64Slot(0, id, 0)
 def ReferrableAddId(builder, id):
-    """This method is deprecated. Please switch to Start."""
+    """This method is deprecated. Please switch to AddId."""
     return AddId(builder, id)
 def End(builder): return builder.EndObject()
 def ReferrableEnd(builder):
-    """This method is deprecated. Please switch to Start."""
+    """This method is deprecated. Please switch to End."""
     return End(builder)
 
 class ReferrableT(object):

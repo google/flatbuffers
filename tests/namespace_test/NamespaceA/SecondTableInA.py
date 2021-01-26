@@ -18,7 +18,7 @@ class SecondTableInA(object):
 
     @classmethod
     def GetRootAsSecondTableInA(cls, buf, offset=0):
-        """This method is deprecated. Please switch to Start."""
+        """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
     # SecondTableInA
     def Init(self, buf, pos):
@@ -40,11 +40,11 @@ def SecondTableInAStart(builder):
     return Start(builder)
 def AddReferToC(builder, referToC): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(referToC), 0)
 def SecondTableInAAddReferToC(builder, referToC):
-    """This method is deprecated. Please switch to Start."""
+    """This method is deprecated. Please switch to AddReferToC."""
     return AddReferToC(builder, referToC)
 def End(builder): return builder.EndObject()
 def SecondTableInAEnd(builder):
-    """This method is deprecated. Please switch to Start."""
+    """This method is deprecated. Please switch to End."""
     return End(builder)
 try:
     from typing import Optional

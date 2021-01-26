@@ -18,7 +18,7 @@ class MonsterExtra(object):
 
     @classmethod
     def GetRootAsMonsterExtra(cls, buf, offset=0):
-        """This method is deprecated. Please switch to Start."""
+        """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
     @classmethod
     def MonsterExtraBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
@@ -144,39 +144,39 @@ def MonsterExtraStart(builder):
     return Start(builder)
 def AddD0(builder, d0): builder.PrependFloat64Slot(0, d0, float('nan'))
 def MonsterExtraAddD0(builder, d0):
-    """This method is deprecated. Please switch to Start."""
+    """This method is deprecated. Please switch to AddD0."""
     return AddD0(builder, d0)
 def AddD1(builder, d1): builder.PrependFloat64Slot(1, d1, float('nan'))
 def MonsterExtraAddD1(builder, d1):
-    """This method is deprecated. Please switch to Start."""
+    """This method is deprecated. Please switch to AddD1."""
     return AddD1(builder, d1)
 def AddD2(builder, d2): builder.PrependFloat64Slot(2, d2, float('inf'))
 def MonsterExtraAddD2(builder, d2):
-    """This method is deprecated. Please switch to Start."""
+    """This method is deprecated. Please switch to AddD2."""
     return AddD2(builder, d2)
 def AddD3(builder, d3): builder.PrependFloat64Slot(3, d3, float('-inf'))
 def MonsterExtraAddD3(builder, d3):
-    """This method is deprecated. Please switch to Start."""
+    """This method is deprecated. Please switch to AddD3."""
     return AddD3(builder, d3)
 def AddF0(builder, f0): builder.PrependFloat32Slot(4, f0, float('nan'))
 def MonsterExtraAddF0(builder, f0):
-    """This method is deprecated. Please switch to Start."""
+    """This method is deprecated. Please switch to AddF0."""
     return AddF0(builder, f0)
 def AddF1(builder, f1): builder.PrependFloat32Slot(5, f1, float('nan'))
 def MonsterExtraAddF1(builder, f1):
-    """This method is deprecated. Please switch to Start."""
+    """This method is deprecated. Please switch to AddF1."""
     return AddF1(builder, f1)
 def AddF2(builder, f2): builder.PrependFloat32Slot(6, f2, float('inf'))
 def MonsterExtraAddF2(builder, f2):
-    """This method is deprecated. Please switch to Start."""
+    """This method is deprecated. Please switch to AddF2."""
     return AddF2(builder, f2)
 def AddF3(builder, f3): builder.PrependFloat32Slot(7, f3, float('-inf'))
 def MonsterExtraAddF3(builder, f3):
-    """This method is deprecated. Please switch to Start."""
+    """This method is deprecated. Please switch to AddF3."""
     return AddF3(builder, f3)
 def AddDvec(builder, dvec): builder.PrependUOffsetTRelativeSlot(8, flatbuffers.number_types.UOffsetTFlags.py_type(dvec), 0)
 def MonsterExtraAddDvec(builder, dvec):
-    """This method is deprecated. Please switch to Start."""
+    """This method is deprecated. Please switch to AddDvec."""
     return AddDvec(builder, dvec)
 def StartDvecVector(builder, numElems): return builder.StartVector(8, numElems, 8)
 def MonsterExtraStartDvecVector(builder, numElems):
@@ -184,7 +184,7 @@ def MonsterExtraStartDvecVector(builder, numElems):
     return StartDvecVector(builder, numElems)
 def AddFvec(builder, fvec): builder.PrependUOffsetTRelativeSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(fvec), 0)
 def MonsterExtraAddFvec(builder, fvec):
-    """This method is deprecated. Please switch to Start."""
+    """This method is deprecated. Please switch to AddFvec."""
     return AddFvec(builder, fvec)
 def StartFvecVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def MonsterExtraStartFvecVector(builder, numElems):
@@ -192,7 +192,7 @@ def MonsterExtraStartFvecVector(builder, numElems):
     return StartFvecVector(builder, numElems)
 def End(builder): return builder.EndObject()
 def MonsterExtraEnd(builder):
-    """This method is deprecated. Please switch to Start."""
+    """This method is deprecated. Please switch to End."""
     return End(builder)
 try:
     from typing import List

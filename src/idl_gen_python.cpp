@@ -141,7 +141,7 @@ class PythonGenerator : public BaseGenerator {
     code += Indent + "def GetRootAs";
     code += NormalizedName(struct_def);
     code += "(cls, buf, offset=0):\n";
-    code += Indent + Indent + "\"\"\"This method is deprecated. Please switch to Start.\"\"\"\n";
+    code += Indent + Indent + "\"\"\"This method is deprecated. Please switch to GetRootAs.\"\"\"\n";
     code += Indent + Indent + "return cls.GetRootAs(buf, offset)\n";
   }
 
@@ -593,7 +593,8 @@ class PythonGenerator : public BaseGenerator {
     code += "(builder, ";
     code += MakeCamel(NormalizedName(field), false);
     code += "):\n";
-    code += Indent + "\"\"\"This method is deprecated. Please switch to Start.\"\"\"\n";
+    code += Indent + "\"\"\"This method is deprecated. Please switch to Add";
+    code += MakeCamel(NormalizedName(field)) + ".\"\"\"\n";
     code += Indent + "return Add" + MakeCamel(NormalizedName(field));
     code += "(builder, ";
     code += MakeCamel(NormalizedName(field), false);
@@ -678,7 +679,7 @@ class PythonGenerator : public BaseGenerator {
 
     // Add alias with the old name.
     code += "def " + NormalizedName(struct_def) + "End(builder):\n";
-    code += Indent + "\"\"\"This method is deprecated. Please switch to Start.\"\"\"\n";
+    code += Indent + "\"\"\"This method is deprecated. Please switch to End.\"\"\"\n";
     code += Indent + "return End(builder)";
   }
 

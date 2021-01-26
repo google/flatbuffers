@@ -18,7 +18,7 @@ class TableInNestedNS(object):
 
     @classmethod
     def GetRootAsTableInNestedNS(cls, buf, offset=0):
-        """This method is deprecated. Please switch to Start."""
+        """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
     # TableInNestedNS
     def Init(self, buf, pos):
@@ -37,11 +37,11 @@ def TableInNestedNSStart(builder):
     return Start(builder)
 def AddFoo(builder, foo): builder.PrependInt32Slot(0, foo, 0)
 def TableInNestedNSAddFoo(builder, foo):
-    """This method is deprecated. Please switch to Start."""
+    """This method is deprecated. Please switch to AddFoo."""
     return AddFoo(builder, foo)
 def End(builder): return builder.EndObject()
 def TableInNestedNSEnd(builder):
-    """This method is deprecated. Please switch to Start."""
+    """This method is deprecated. Please switch to End."""
     return End(builder)
 
 class TableInNestedNST(object):
