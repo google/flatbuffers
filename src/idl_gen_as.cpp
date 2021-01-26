@@ -87,8 +87,8 @@ class AsGenerator : public BaseGenerator {
       import_set imports;
       std::string enumcode;
       auto &enum_def = **it;
-      GenEnum(enum_def, &enumcode, imports, false);
-      GenEnum(enum_def, &enumcode, imports, true);
+      GenEnum(enum_def, &enumcode, false);
+      GenEnum(enum_def, &enumcode, true);
       SaveType(enum_def, enumcode, imports, bare_imports);
     }
   }
@@ -132,8 +132,7 @@ class AsGenerator : public BaseGenerator {
   }
 
   // Generate an enum declaration and an enum string lookup table.
-  void GenEnum(EnumDef &enum_def, std::string *code_ptr, import_set &imports,
-               bool reverse) {
+  void GenEnum(EnumDef &enum_def, std::string *code_ptr, bool reverse) {
     if (enum_def.generated) return;
     if (reverse) return;  // FIXME.
     std::string &code = *code_ptr;
