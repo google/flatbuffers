@@ -48,6 +48,14 @@ check_test_result "No Cargo clippy lints test"
 
 cargo bench $TARGET_FLAG
 
+# This test is dependent on flatc.
+if [[ -f ../../flatc ]]; then
+    cd outdir
+    cargo test
+    check_test_result "Rust generated file in \$OUT_DIR"
+    cd ..
+fi
+
 # RUST_NIGHTLY environment variable set in dockerfile.
 if [[ $RUST_NIGHTLY == 1 ]]; then
   rustup +nightly component add miri
