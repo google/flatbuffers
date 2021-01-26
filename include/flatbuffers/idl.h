@@ -291,12 +291,11 @@ struct Definition {
 struct FieldDef : public Definition {
   FieldDef()
       : deprecated(false),
-        required(false),
         key(false),
         shared(false),
         native_inline(false),
         flexbuffer(false),
-        optional(false),
+        presence(kDefault),
         nested_flatbuffer(NULL),
         padding(0) {}
 
@@ -306,21 +305,46 @@ struct FieldDef : public Definition {
   bool Deserialize(Parser &parser, const reflection::Field *field);
 
   bool IsScalarOptional() const {
-    return IsScalar(value.type.base_type) && optional;
+    return IsScalar(value.type.base_type) && IsOptional();
+  }
+  bool IsOptional() const {
+    return presence == kOptional;
+  }
+  bool IsRequired() const {
+    return presence == kRequired;
+  }
+  bool IsDefault() const {
+    return presence == kDefault;
   }
 
   Value value;
   bool deprecated;  // Field is allowed to be present in old data, but can't be.
                     // written in new data nor accessed in new code.
-  bool required;    // Field must always be present.
   bool key;         // Field functions as a key for creating sorted vectors.
   bool shared;  // Field will be using string pooling (i.e. CreateSharedString)
                 // as default serialization behavior if field is a string.
   bool native_inline;  // Field will be defined inline (instead of as a pointer)
                        // for native tables if field is a struct.
   bool flexbuffer;     // This field contains FlexBuffer data.
-  bool optional;       // If True, this field is Null (as opposed to default
-                       // valued).
+
+  enum Presence {
+    // Field must always be present.
+    kRequired,
+    // Non-presence should be signalled to and controlled by users.
+    kOptional,
+    // Non-presence is hidden from users.
+    // Implementations may omit writing default values.
+    kDefault,
+  };
+  Presence static MakeFieldPresence(bool optional, bool required) {
+    // clang-format off
+    return required ? FieldDef::kRequired
+         : optional ? FieldDef::kOptional
+                    : FieldDef::kDefault;
+    // clang-format on
+  }
+  Presence presence;
+
   StructDef *nested_flatbuffer;  // This field contains nested FlatBuffer data.
   size_t padding;                // Bytes to always pad after this field.
 };

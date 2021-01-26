@@ -37,8 +37,12 @@ $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS -I include_test monster_test.f
 
 ../flatc --python $TEST_BASE_FLAGS -I include_test monster_test.fbs monsterdata_test.json
 
-../flatc --cpp --java --kotlin --csharp --dart --go --binary --lobster --lua --ts --php --python --rust \
+../flatc --cpp --java --kotlin --csharp --dart --go --binary --lobster --lua --ts --php --python \
 $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_JS_TS_FLAGS -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs
+
+# For Rust we currently generate two independent schemas, with namespace_test2
+# duplicating the types in namespace_test1
+../flatc --rust --gen-all $TEST_RUST_FLAGS -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs
 
 ../flatc --cpp --java --kotlin --csharp --ts --php $TEST_BASE_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_JS_TS_FLAGS -o union_vector ./union_vector/union_vector.fbs
 ../flatc --rust -I include_test -o include_test include_test/include_test1.fbs
@@ -53,8 +57,8 @@ $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_JS_TS_FLAGS -o namespace
 ../flatc --dart monster_extra.fbs
 
 # Generate optional scalar code for tests.
-../flatc --java --kotlin --rust --lobster --ts optional_scalars.fbs
-../flatc --csharp --gen-object-api optional_scalars.fbs
+../flatc --java --kotlin --lobster --ts optional_scalars.fbs
+../flatc --csharp --rust --gen-object-api optional_scalars.fbs
 ../flatc $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS --cpp optional_scalars.fbs
 
 # Generate the schema evolution tests

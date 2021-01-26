@@ -6,6 +6,7 @@ table TableInFirstNS
 {
     foo_table:NamespaceB.TableInNestedNS;
 	foo_enum:NamespaceB.EnumInNestedNS;
+    foo_union:NamespaceB.UnionInNestedNS;
 	foo_struct:NamespaceB.StructInNestedNS;
 }
 

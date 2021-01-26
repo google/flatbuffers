@@ -239,7 +239,7 @@ class JsonSchemaGenerator : public BaseGenerator {
       std::vector<FieldDef *> requiredProperties;
       std::copy_if(properties.begin(), properties.end(),
                    back_inserter(requiredProperties),
-                   [](FieldDef const *prop) { return prop->required; });
+                   [](FieldDef const *prop) { return prop->IsRequired(); });
       if (!requiredProperties.empty()) {
         auto required_string(Indent(3) + "\"required\" : [");
         for (auto req_prop = requiredProperties.cbegin();
@@ -268,8 +268,7 @@ class JsonSchemaGenerator : public BaseGenerator {
   }
 
   bool save() const {
-    const auto file_path =
-        GeneratedFileName(path_, file_name_, parser_.opts);
+    const auto file_path = GeneratedFileName(path_, file_name_, parser_.opts);
     return SaveFile(file_path.c_str(), code_, false);
   }
 

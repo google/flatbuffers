@@ -21,7 +21,7 @@
 #include "flatbuffers/stl_emulation.h"
 
 #ifndef FLATBUFFERS_CPP98_STL
-  #include <functional>
+#  include <functional>
 #endif
 
 #if defined(FLATBUFFERS_NAN_DEFAULTS)
@@ -505,8 +505,8 @@ template<typename T, uint16_t length> class Array {
     (void)p2;
 
     CopyFromSpanImpl(
-        flatbuffers::integral_constant<bool,
-        !scalar_tag::value || sizeof(T) == 1 || FLATBUFFERS_LITTLEENDIAN>(),
+        flatbuffers::integral_constant < bool,
+        !scalar_tag::value || sizeof(T) == 1 || FLATBUFFERS_LITTLEENDIAN > (),
         src);
   }
 
@@ -584,12 +584,12 @@ template<typename T, uint16_t length> class Array<Offset<T>, length> {
 // Cast a raw T[length] to a raw flatbuffers::Array<T, length>
 // without endian conversion. Use with care.
 template<typename T, uint16_t length>
-Array<T, length>& CastToArray(T (&arr)[length]) {
+Array<T, length> &CastToArray(T (&arr)[length]) {
   return *reinterpret_cast<Array<T, length> *>(arr);
 }
 
 template<typename T, uint16_t length>
-const Array<T, length>& CastToArray(const T (&arr)[length]) {
+const Array<T, length> &CastToArray(const T (&arr)[length]) {
   return *reinterpret_cast<const Array<T, length> *>(arr);
 }
 
@@ -648,7 +648,7 @@ static inline const char *GetCstring(const String *str) {
 static inline flatbuffers::string_view GetStringView(const String *str) {
   return str ? str->string_view() : flatbuffers::string_view();
 }
-#endif // FLATBUFFERS_HAS_STRING_VIEW
+#endif  // FLATBUFFERS_HAS_STRING_VIEW
 
 // Allocator interface. This is flatbuffers-specific and meant only for
 // `vector_downward` usage.
@@ -1692,9 +1692,7 @@ class FlatBufferBuilder {
     // causing the wrong overload to be selected, remove it.
     AssertScalarT<T>();
     StartVector(len, sizeof(T));
-    if (len == 0) {
-      return Offset<Vector<T>>(EndVector(len));
-    }
+    if (len == 0) { return Offset<Vector<T>>(EndVector(len)); }
     // clang-format off
     #if FLATBUFFERS_LITTLEENDIAN
       PushBytes(reinterpret_cast<const uint8_t *>(v), len * sizeof(T));
@@ -2825,9 +2823,12 @@ inline const char * const *ElementaryTypeNames() {
 // bitfields is otherwise implementation-defined and causes warnings on older
 // GCC compilers.
 struct TypeCode {
-  unsigned short base_type : 4;  // ElementaryType
-  unsigned short is_repeating : 1;  // Either vector (in table) or array (in struct)
-  signed short sequence_ref : 11;  // Index into type_refs below, or -1 for none.
+  // ElementaryType
+  unsigned short base_type : 4;
+  // Either vector (in table) or array (in struct)
+  unsigned short is_repeating : 1;
+  // Index into type_refs below, or -1 for none.
+  signed short sequence_ref : 11;
 };
 
 static_assert(sizeof(TypeCode) == 2, "TypeCode");
