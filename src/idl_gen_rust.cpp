@@ -2497,7 +2497,9 @@ class RustGenerator : public BaseGenerator {
   }
 
   void GenNamespaceImports(const int white_spaces) {
-    if (white_spaces == 0) { code_ += "#![allow(unused_imports, dead_code)]"; }
+    // DO not use global attributes (i.e. #![...]) since it interferes
+    // with users who include! generated files.
+    // See: https://github.com/google/flatbuffers/issues/6261
     std::string indent = std::string(white_spaces, ' ');
     code_ += "";
     if (!parser_.opts.generate_all) {
