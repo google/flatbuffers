@@ -3208,6 +3208,8 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
       }
       if (filepath.empty())
         return Error("unable to locate include file: " + name);
+      if (FileExists(filepath.c_str()))
+        filepath = flatbuffers::AbsolutePath(filepath);
       if (source_filename)
         files_included_per_file_[source_filename].insert(filepath);
       if (included_files_.find(filepath) == included_files_.end()) {
