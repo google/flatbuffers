@@ -126,7 +126,6 @@ class PythonGenerator : public BaseGenerator {
 
     code += Indent + "@classmethod\n";
     code += Indent + "def GetRootAs";
-    code += NormalizedName(struct_def);
     code += "(cls, buf, offset=0):";
     code += "\n";
     code += Indent + Indent;
@@ -136,6 +135,14 @@ class PythonGenerator : public BaseGenerator {
     code += Indent + Indent + "x.Init(buf, n + offset)\n";
     code += Indent + Indent + "return x\n";
     code += "\n";
+
+    // Add an alias with the old name
+    code += Indent + "@classmethod\n";
+    code += Indent + "def GetRootAs";
+    code += NormalizedName(struct_def);
+    code += "(cls, buf, offset=0):\n";
+    code += Indent + Indent + "\"\"\"This method is deprecated. Please switch to GetRootAs.\"\"\"\n";
+    code += Indent + Indent + "return cls.GetRootAs(buf, offset)\n";
   }
 
   // Initialize an existing object with other data, to avoid an allocation.
@@ -435,7 +442,7 @@ class PythonGenerator : public BaseGenerator {
     code += Indent + Indent + Indent;
     code += "from " + qualified_name + " import " + unqualified_name + "\n";
     code += Indent + Indent + Indent + "return " + unqualified_name;
-    code += ".GetRootAs" + unqualified_name;
+    code += ".GetRootAs";
     code += "(self._tab.Bytes, self._tab.Vector(o))\n";
     code += Indent + Indent + "return 0\n";
     code += "\n";
@@ -546,19 +553,22 @@ class PythonGenerator : public BaseGenerator {
   // Get the value of a table's starting offset.
   void GetStartOfTable(const StructDef &struct_def, std::string *code_ptr) {
     auto &code = *code_ptr;
-    code += "def " + NormalizedName(struct_def) + "Start";
-    code += "(builder): ";
+    code += "def Start(builder): ";
     code += "builder.StartObject(";
     code += NumToString(struct_def.fields.vec.size());
     code += ")\n";
+
+    // Add alias with the old name.
+    code += "def " + NormalizedName(struct_def) + "Start(builder):\n";
+    code += Indent + "\"\"\"This method is deprecated. Please switch to Start.\"\"\"\n";
+    code += Indent + "return Start(builder)\n";
   }
 
   // Set the value of a table's field.
   void BuildFieldOfTable(const StructDef &struct_def, const FieldDef &field,
                          const size_t offset, std::string *code_ptr) {
     auto &code = *code_ptr;
-    code += "def " + NormalizedName(struct_def) + "Add" +
-            MakeCamel(NormalizedName(field));
+    code += "def Add" + MakeCamel(NormalizedName(field));
     code += "(builder, ";
     code += MakeCamel(NormalizedName(field), false);
     code += "): ";
@@ -577,13 +587,27 @@ class PythonGenerator : public BaseGenerator {
                 ? float_const_gen_.GenFloatConstant(field)
                 : field.value.constant;
     code += ")\n";
+
+    // Add alias with the old name.
+    code += "def " + NormalizedName(struct_def) + "Add" + MakeCamel(NormalizedName(field));
+    code += "(builder, ";
+    code += MakeCamel(NormalizedName(field), false);
+    code += "):\n";
+    code += Indent + "\"\"\"This method is deprecated. Please switch to Add";
+    code += MakeCamel(NormalizedName(field)) + ".\"\"\"\n";
+    code += Indent + "return Add" + MakeCamel(NormalizedName(field));
+    code += "(builder, ";
+    code += MakeCamel(NormalizedName(field), false);
+    code += ")\n";
+
+    // Add alias with the old name.
   }
 
   // Set the value of one of the members of a table's vector.
   void BuildVectorOfTable(const StructDef &struct_def, const FieldDef &field,
                           std::string *code_ptr) {
     auto &code = *code_ptr;
-    code += "def " + NormalizedName(struct_def) + "Start";
+    code += "def Start";
     code += MakeCamel(NormalizedName(field));
     code += "Vector(builder, numElems): return builder.StartVector(";
     auto vector_type = field.value.type.VectorType();
@@ -592,14 +616,21 @@ class PythonGenerator : public BaseGenerator {
     code += NumToString(elem_size);
     code += ", numElems, " + NumToString(alignment);
     code += ")\n";
+
+    // Add alias with the old name.
+    code += "def " + NormalizedName(struct_def) + "Start";
+    code += MakeCamel(NormalizedName(field));
+    code += "Vector(builder, numElems):\n";
+    code += Indent + "\"\"\"This method is deprecated. Please switch to Start.\"\"\"\n";
+    code += Indent + "return Start";
+    code += MakeCamel(NormalizedName(field));
+    code += "Vector(builder, numElems)\n";
   }
 
   // Set the value of one of the members of a table's vector and fills in the
   // elements from a bytearray. This is for simplifying the use of nested
   // flatbuffers.
-  void BuildVectorOfTableFromBytes(const StructDef &struct_def,
-                                   const FieldDef &field,
-                                   std::string *code_ptr) {
+  void BuildVectorOfTableFromBytes(const FieldDef &field, std::string *code_ptr) {
     auto nested = field.attributes.Lookup("nested_flatbuffer");
     if (!nested) { return; }  // There is no nested flatbuffer.
 
@@ -615,13 +646,23 @@ class PythonGenerator : public BaseGenerator {
     (void)nested_root;
 
     auto &code = *code_ptr;
-    code += "def " + NormalizedName(struct_def) + "Make";
-    code += MakeCamel(NormalizedName(field));
-    code += "VectorFromBytes(builder, bytes):\n";
+    code += "def MakeVectorFromBytes(builder, bytes):\n";
     code += Indent + "builder.StartVector(";
     auto vector_type = field.value.type.VectorType();
     auto alignment = InlineAlignment(vector_type);
     auto elem_size = InlineSize(vector_type);
+    code += NumToString(elem_size);
+    code += ", len(bytes), " + NumToString(alignment);
+    code += ")\n";
+    code += Indent + "builder.head = builder.head - len(bytes)\n";
+    code += Indent + "builder.Bytes[builder.head : builder.head + len(bytes)]";
+    code += " = bytes\n";
+    code += Indent + "return builder.EndVector()\n";
+
+    // Add alias with the old name.
+    code += "def Make" + MakeCamel(NormalizedName(field));
+    code += "VectorFromBytes(builder, bytes):\n";
+    code += Indent + "builder.StartVector(";
     code += NumToString(elem_size);
     code += ", len(bytes), " + NumToString(alignment);
     code += ")\n";
@@ -634,9 +675,12 @@ class PythonGenerator : public BaseGenerator {
   // Get the offset of the end of a table.
   void GetEndOffsetOnTable(const StructDef &struct_def, std::string *code_ptr) {
     auto &code = *code_ptr;
-    code += "def " + NormalizedName(struct_def) + "End";
-    code += "(builder): ";
-    code += "return builder.EndObject()\n";
+    code += "def End(builder): return builder.EndObject()\n";
+
+    // Add alias with the old name.
+    code += "def " + NormalizedName(struct_def) + "End(builder):\n";
+    code += Indent + "\"\"\"This method is deprecated. Please switch to End.\"\"\"\n";
+    code += Indent + "return End(builder)";
   }
 
   // Generate the receiver for function signatures.
@@ -714,7 +758,7 @@ class PythonGenerator : public BaseGenerator {
       BuildFieldOfTable(struct_def, field, offset, code_ptr);
       if (IsVector(field.value.type)) {
         BuildVectorOfTable(struct_def, field, code_ptr);
-        BuildVectorOfTableFromBytes(struct_def, field, code_ptr);
+        BuildVectorOfTableFromBytes(field, code_ptr);
       }
     }
 
@@ -1243,7 +1287,7 @@ class PythonGenerator : public BaseGenerator {
     code_prefix +=
         GenIndents(2) + "if self." + field_instance_name + " is not None:";
     if (field.value.type.struct_def->fixed) {
-      code_prefix += GenIndents(3) + struct_name + "Start" +
+      code_prefix += GenIndents(3) + "Start" +
                      field_accessor_name + "Vector(builder, len(self." +
                      field_instance_name + "))";
       code_prefix += GenIndents(3) + "for i in reversed(range(len(self." +
@@ -1261,7 +1305,7 @@ class PythonGenerator : public BaseGenerator {
       code_prefix += GenIndents(4) + field_instance_name + "list.append(self." +
                      field_instance_name + "[i].Pack(builder))";
 
-      code_prefix += GenIndents(3) + struct_name + "Start" +
+      code_prefix += GenIndents(3) + "Start" +
                      field_accessor_name + "Vector(builder, len(self." +
                      field_instance_name + "))";
       code_prefix += GenIndents(3) + "for i in reversed(range(len(self." +
@@ -1274,7 +1318,7 @@ class PythonGenerator : public BaseGenerator {
 
     // Adds the field into the struct.
     code += GenIndents(2) + "if self." + field_instance_name + " is not None:";
-    code += GenIndents(3) + struct_name + "Add" + field_accessor_name +
+    code += GenIndents(3) + "Add" + field_accessor_name +
             "(builder, " + field_instance_name + ")";
   }
 
@@ -1287,7 +1331,7 @@ class PythonGenerator : public BaseGenerator {
     auto struct_name = NormalizedName(struct_def);
     auto vectortype = field.value.type.VectorType();
 
-    code += GenIndents(indents) + struct_name + "Start" + field_accessor_name +
+    code += GenIndents(indents) + "Start" + field_accessor_name +
             "Vector(builder, len(self." + field_instance_name + "))";
     code += GenIndents(indents) + "for i in reversed(range(len(self." +
             field_instance_name + "))):";
@@ -1324,7 +1368,7 @@ class PythonGenerator : public BaseGenerator {
 
     // Adds the field into the struct.
     code += GenIndents(2) + "if self." + field_instance_name + " is not None:";
-    code += GenIndents(3) + struct_name + "Add" + field_accessor_name +
+    code += GenIndents(3) + "Add" + field_accessor_name +
             "(builder, " + field_instance_name + ")";
 
     // Creates the field.
@@ -1387,7 +1431,7 @@ class PythonGenerator : public BaseGenerator {
           GenIndents(2) + "if self." + field_instance_name + " is not None:";
     }
 
-    code += GenIndents(3) + struct_name + "Add" + field_accessor_name +
+    code += GenIndents(3) + "Add" + field_accessor_name +
             "(builder, " + field_instance_name + ")";
   }
 
@@ -1407,7 +1451,7 @@ class PythonGenerator : public BaseGenerator {
     code_prefix += GenIndents(3) + field_instance_name + " = self." +
                    field_instance_name + ".Pack(builder)";
     code += GenIndents(2) + "if self." + field_instance_name + " is not None:";
-    code += GenIndents(3) + struct_name + "Add" + field_accessor_name +
+    code += GenIndents(3) + "Add" + field_accessor_name +
             "(builder, " + field_instance_name + ")";
   }
 
@@ -1419,7 +1463,7 @@ class PythonGenerator : public BaseGenerator {
 
     GenReceiverForObjectAPI(struct_def, code_ptr);
     code_base += "Pack(self, builder):";
-    code += GenIndents(2) + struct_name + "Start(builder)";
+    code += GenIndents(2) + "Start(builder)";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
@@ -1458,7 +1502,7 @@ class PythonGenerator : public BaseGenerator {
                          ")";
           code += GenIndents(2) + "if self." + field_instance_name +
                   " is not None:";
-          code += GenIndents(3) + struct_name + "Add" + field_accessor_name +
+          code += GenIndents(3) + "Add" + field_accessor_name +
                   "(builder, " + field_instance_name + ")";
           break;
         }
@@ -1466,14 +1510,13 @@ class PythonGenerator : public BaseGenerator {
           // Generates code for scalar values. If the value equals to the
           // default value, builder will automatically ignore it. So we don't
           // need to check the value ahead.
-          code += GenIndents(2) + struct_name + "Add" + field_accessor_name +
+          code += GenIndents(2) + "Add" + field_accessor_name +
                   "(builder, self." + field_instance_name + ")";
           break;
       }
     }
 
-    code += GenIndents(2) + struct_instance_name + " = " + struct_name +
-            "End(builder)";
+    code += GenIndents(2) + struct_instance_name + " = " + "End(builder)";
     code += GenIndents(2) + "return " + struct_instance_name;
 
     code_base += code_prefix + code;
