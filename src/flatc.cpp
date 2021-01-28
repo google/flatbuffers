@@ -407,7 +407,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
 
   for (auto file_it = filenames.begin(); file_it != filenames.end();
        ++file_it) {
-    auto &filename = *file_it;
+    auto filename = flatbuffers::AbsolutePath(*file_it);
     std::string contents;
     if (!flatbuffers::LoadFile(filename.c_str(), true, &contents))
       Error("unable to load file: " + filename);
