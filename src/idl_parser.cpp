@@ -1458,6 +1458,23 @@ void SimpleQsort(T *begin, T *end, size_t width, F comparator, S swapper) {
   SimpleQsort(r, end, width, comparator, swapper);
 }
 
+CheckedError Parser::ParseAlignAttribute(const std::string &align_constant,
+                                         size_t min_align, size_t *align) {
+  // Use small temporary to avoid possible problems with size_t on Mac.
+  uint8_t align_value;
+  if (StringToNumber(align_constant.c_str(), &align_value) &&
+      VerifyAlignmentRequirements(static_cast<size_t>(align_value),
+                                  min_align)) {
+    *align = align_value;
+    return NoError();
+  }
+  return Error("unexpected force_align value '" + align_constant +
+               "', alignment must be a power of two integer ranging from the "
+               "type\'s natural alignment " +
+               NumToString(min_align) + " to " +
+               NumToString(FLATBUFFERS_MAX_ALIGNMENT));
+}
+
 CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
                                  FieldDef *field, size_t fieldn) {
   uoffset_t count = 0;
@@ -1470,13 +1487,14 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
   });
   ECHECK(err);
 
-  const auto *force_align = field->attributes.Lookup("force_align");
-  const size_t align =
-      force_align ? static_cast<size_t>(atoi(force_align->constant.c_str()))
-                  : 1;
   const size_t len = count * InlineSize(type) / InlineAlignment(type);
   const size_t elemsize = InlineAlignment(type);
-  if (align > 1) { builder_.ForceVectorAlignment(len, elemsize, align); }
+  const auto force_align = field->attributes.Lookup("force_align");
+  if (force_align) {
+    size_t align;
+    ECHECK(ParseAlignAttribute(force_align->constant, 1, &align));
+    if (align > 1) { builder_.ForceVectorAlignment(len, elemsize, align); }
+  }
 
   builder_.StartVector(len, elemsize);
   for (uoffset_t i = 0; i < count; i++) {
@@ -2457,17 +2475,12 @@ CheckedError Parser::ParseDecl() {
       struct_def->attributes.Lookup("original_order") == nullptr && !fixed;
   EXPECT('{');
   while (token_ != '}') ECHECK(ParseField(*struct_def));
-  auto force_align = struct_def->attributes.Lookup("force_align");
   if (fixed) {
+    const auto force_align = struct_def->attributes.Lookup("force_align");
     if (force_align) {
-      auto align = static_cast<size_t>(atoi(force_align->constant.c_str()));
-      if (force_align->type.base_type != BASE_TYPE_INT ||
-          align < struct_def->minalign || align > FLATBUFFERS_MAX_ALIGNMENT ||
-          align & (align - 1))
-        return Error(
-            "force_align must be a power of two integer ranging from the"
-            "struct\'s natural alignment to " +
-            NumToString(FLATBUFFERS_MAX_ALIGNMENT));
+      size_t align;
+      ECHECK(ParseAlignAttribute(force_align->constant, struct_def->minalign,
+                                 &align));
       struct_def->minalign = align;
     }
     if (!struct_def->bytesize) return Error("size 0 structs not allowed");

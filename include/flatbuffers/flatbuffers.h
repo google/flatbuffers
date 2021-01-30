@@ -1518,6 +1518,7 @@ class FlatBufferBuilder {
   // Aligns such that when "len" bytes are written, an object can be written
   // after it with "alignment" without padding.
   void PreAlign(size_t len, size_t alignment) {
+    FLATBUFFERS_ASSERT(VerifyAlignmentRequirements(alignment));
     TrackMinAlign(alignment);
     buf_.fill(PaddingBytes(GetSize() + len, alignment));
   }
