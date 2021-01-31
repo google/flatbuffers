@@ -1694,6 +1694,9 @@ void ErrorTest() {
   TestError("table X { y: [int] = [1]; }", "Expected `]`");
   TestError("table X { y: [int] = [; }", "Expected `]`");
   TestError("table X { y: [int] = \"\"; }", "type mismatch");
+  // An identifier can't start from sign (+|-)
+  TestError("table X { -Y: int; } root_type Y: {Y:1.0}", "identifier");
+  TestError("table X { +Y: int; } root_type Y: {Y:1.0}", "identifier");
 }
 
 template<typename T>
@@ -2028,6 +2031,8 @@ void ValidFloatTest() {
   TEST_EQ(std::isnan(TestValue<double>("{ y:nan }", "double")), true);
   TEST_EQ(std::isnan(TestValue<float>("{ y:nan }", "float")), true);
   TEST_EQ(std::isnan(TestValue<float>("{ y:\"nan\" }", "float")), true);
+  TEST_EQ(std::isnan(TestValue<float>("{ y:\"+nan\" }", "float")), true);
+  TEST_EQ(std::isnan(TestValue<float>("{ y:\"-nan\" }", "float")), true);
   TEST_EQ(std::isnan(TestValue<float>("{ y:+nan }", "float")), true);
   TEST_EQ(std::isnan(TestValue<float>("{ y:-nan }", "float")), true);
   TEST_EQ(std::isnan(TestValue<float>(nullptr, "float=nan")), true);
@@ -2035,6 +2040,8 @@ void ValidFloatTest() {
   // check inf
   TEST_EQ(TestValue<float>("{ y:inf }", "float"), infinity_f);
   TEST_EQ(TestValue<float>("{ y:\"inf\" }", "float"), infinity_f);
+  TEST_EQ(TestValue<float>("{ y:\"-inf\" }", "float"), -infinity_f);
+  TEST_EQ(TestValue<float>("{ y:\"+inf\" }", "float"), infinity_f);
   TEST_EQ(TestValue<float>("{ y:+inf }", "float"), infinity_f);
   TEST_EQ(TestValue<float>("{ y:-inf }", "float"), -infinity_f);
   TEST_EQ(TestValue<float>(nullptr, "float=inf"), infinity_f);
@@ -3779,6 +3786,26 @@ void FieldIdentifierTest() {
   TEST_EQ(true, Parser().Parse("union X{} table T{ u: X; }"));
 }
 
+void ParseIncorrectMonsterJsonTest() {
+  std::string schemafile;
+  TEST_EQ(flatbuffers::LoadFile((test_data_path + "monster_test.bfbs").c_str(),
+                                true, &schemafile),
+          true);
+  // parse schema first, so we can use it to parse the data after
+  flatbuffers::Parser parser;
+  flatbuffers::Verifier verifier(
+      reinterpret_cast<const uint8_t *>(schemafile.c_str()), schemafile.size());
+  TEST_EQ(reflection::VerifySchemaBuffer(verifier), true);
+  // auto schema = reflection::GetSchema(schemafile.c_str());
+  TEST_EQ(parser.Deserialize((const uint8_t *)schemafile.c_str(),
+                             schemafile.size()),
+          true);
+
+  TEST_EQ(parser.ParseJson(""), false);
+  TEST_EQ(parser.ParseJson("{name:-f}"), false);
+  TEST_EQ(parser.ParseJson("{name:+f}"), false);
+}
+
 int FlatBufferTests() {
   // clang-format off
 
@@ -3873,6 +3900,7 @@ int FlatBufferTests() {
   FixedLengthArrayConstructorTest();
   FieldIdentifierTest();
   StringVectorDefaultsTest();
+  ParseIncorrectMonsterJsonTest();
   return 0;
 }
 
