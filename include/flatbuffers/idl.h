@@ -993,7 +993,7 @@ class Parser : public ParserState {
   std::string file_identifier_;
   std::string file_extension_;
 
-  std::map<std::string, std::string> included_files_;
+  std::map<uint64_t, std::string> included_files_;
   std::map<std::string, std::set<std::string>> files_included_per_file_;
   std::vector<std::string> native_included_files_;
 
