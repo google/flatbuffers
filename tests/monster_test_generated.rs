@@ -2,8 +2,8 @@
 
 
 
-use crate::include_test1_generated::*;
 use crate::include_test2_generated::*;
+use crate::include_test1_generated::*;
 use std::mem;
 use std::cmp::Ordering;
 
@@ -13,8 +13,8 @@ use self::flatbuffers::EndianScalar;
 #[allow(unused_imports, dead_code)]
 pub mod my_game {
 
-  use crate::include_test1_generated::*;
   use crate::include_test2_generated::*;
+  use crate::include_test1_generated::*;
   use std::mem;
   use std::cmp::Ordering;
 
@@ -121,8 +121,8 @@ impl InParentNamespaceT {
 #[allow(unused_imports, dead_code)]
 pub mod example_2 {
 
-  use crate::include_test1_generated::*;
   use crate::include_test2_generated::*;
+  use crate::include_test1_generated::*;
   use std::mem;
   use std::cmp::Ordering;
 
@@ -231,8 +231,8 @@ impl MonsterT {
 #[allow(unused_imports, dead_code)]
 pub mod example {
 
-  use crate::include_test1_generated::*;
   use crate::include_test2_generated::*;
+  use crate::include_test1_generated::*;
   use std::mem;
   use std::cmp::Ordering;
 
