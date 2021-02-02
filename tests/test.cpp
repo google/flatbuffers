@@ -107,7 +107,7 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
   Test tests[] = { Test(10, 20), Test(30, 40) };
   auto testv = builder.CreateVectorOfStructs(tests, 2);
 
-  // clang-format off
+// clang-format off
   #ifndef FLATBUFFERS_CPP98_STL
     // Create a vector of structures from a lambda.
     auto testv2 = builder.CreateVectorOfStructs<Test>(
@@ -204,7 +204,6 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
   flexbuild.Int(1234);
   flexbuild.Finish();
   auto flex = builder.CreateVector(flexbuild.GetBuffer());
-
   // Test vector of enums.
   Color colors[] = { Color_Blue, Color_Green };
   // We use this special creation function because we have an array of
@@ -224,7 +223,7 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
 
   FinishMonsterBuffer(builder, mloc);
 
-  // clang-format off
+// clang-format off
   #ifdef FLATBUFFERS_TEST_VERBOSE
   // print byte data for debugging:
   auto p = builder.GetBufferPointer();
@@ -248,7 +247,7 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length,
   flatbuffers::Verifier verifier(flatbuf, length);
   TEST_EQ(VerifyMonsterBuffer(verifier), true);
 
-  // clang-format off
+// clang-format off
   #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
     std::vector<uint8_t> test_buff;
     test_buff.resize(length * 2);
@@ -603,7 +602,7 @@ void SizePrefixedTest() {
 }
 
 void TriviallyCopyableTest() {
-  // clang-format off
+// clang-format off
   #if __GNUG__ && __GNUC__ < 5
     TEST_EQ(__has_trivial_copy(Vec3), true);
   #else
@@ -935,8 +934,8 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
 
   // Test nullability of fields: hp is a 0-default scalar, pos is a struct =>
   // optional, and name is a required string => not optional.
-  TEST_EQ(hp_field.IsOptional(), false);
-  TEST_EQ(pos_field_ptr->IsOptional(), true);
+  TEST_EQ(hp_field.optional(), false);
+  TEST_EQ(pos_field_ptr->optional(), true);
   TEST_EQ(fields->LookupByKey("name")->optional(), false);
 
   // Now use it to dynamically access a buffer.
@@ -1439,7 +1438,7 @@ void FuzzTest2() {
     }
   };
 
-  // clang-format off
+// clang-format off
   #define AddToSchemaAndInstances(schema_add, instance_add) \
     RndDef::Add(definitions, schema, instances_per_definition, \
                 schema_add, instance_add, definition)
@@ -1591,7 +1590,7 @@ void FuzzTest2() {
     TEST_NOTNULL(nullptr);  //-V501 (this comment supresses CWE-570 warning)
   }
 
-  // clang-format off
+// clang-format off
   #ifdef FLATBUFFERS_TEST_VERBOSE
     TEST_OUTPUT_LINE("%dk schema tested with %dk of json\n",
                      static_cast<int>(schema.length() / 1024),
@@ -1645,7 +1644,6 @@ void ErrorTest() {
   TestError("table X { Y:int; Y:int; }", "field already");
   TestError("table Y {} table X { Y:int; }", "same as table");
   TestError("struct X { Y:string; }", "only scalar");
-  TestError("table X { Y:string = \"\"; }", "default values");
   TestError("struct X { a:uint = 42; }", "default values");
   TestError("enum Y:byte { Z = 1 } table X { y:Y; }", "not part of enum");
   TestError("struct X { Y:int (deprecated); }", "deprecate");
@@ -1690,6 +1688,11 @@ void ErrorTest() {
             "may contain only scalar or struct fields");
   // Non-snake case field names
   TestError("table X { Y: int; } root_type Y: {Y:1.0}", "snake_case");
+  // Complex defaults
+  TestError("table X { y: string = 1; }", "expecting: string");
+  TestError("table X { y: string = []; }", " Cannot assign token");
+  TestError("table X { y: [int] = [1]; }", " Cannot assign token");
+  TestError("table X { y: [int] = \"\"; }", "type mismatch");
 }
 
 template<typename T>
@@ -2865,10 +2868,10 @@ void FlexBuffersTest() {
   flexbuffers::Builder slb(512,
                            flexbuffers::BUILDER_FLAG_SHARE_KEYS_AND_STRINGS);
 
-  // Write the equivalent of:
-  // { vec: [ -100, "Fred", 4.0, false ], bar: [ 1, 2, 3 ], bar3: [ 1, 2, 3 ],
-  // foo: 100, bool: true, mymap: { foo: "Fred" } }
-  // clang-format off
+// Write the equivalent of:
+// { vec: [ -100, "Fred", 4.0, false ], bar: [ 1, 2, 3 ], bar3: [ 1, 2, 3 ],
+// foo: 100, bool: true, mymap: { foo: "Fred" } }
+// clang-format off
   #ifndef FLATBUFFERS_CPP98_STL
     // It's possible to do this without std::function support as well.
     slb.Map([&]() {
@@ -3620,6 +3623,22 @@ void TestEmbeddedBinarySchema() {
           0);
 }
 
+void MoreDefaultsTest() {
+  std::vector<std::string> schemas;
+  schemas.push_back("table Monster { mana: string = \"\"; }");
+  schemas.push_back("table Monster { mana: string = \"mystr\"; }");
+  schemas.push_back("table Monster { mana: string = \"  \"; }");
+  schemas.push_back("table Monster { mana: [int] = []; }");
+  schemas.push_back("table Monster { mana: [uint] = [  ]; }");
+  schemas.push_back("table Monster { mana: [byte] = [\t\t\n]; }");
+  for (auto s = schemas.begin(); s < schemas.end(); s++) {
+    flatbuffers::Parser parser;
+    TEST_ASSERT(parser.Parse(s->c_str()));
+    const auto *mana = parser.structs_.Lookup("Monster")->fields.Lookup("mana");
+    TEST_EQ(mana->IsDefault(), true);
+  }
+}
+
 void OptionalScalarsTest() {
   // Simple schemas and a "has optional scalar" sentinal.
   std::vector<std::string> schemas;
@@ -3852,6 +3871,7 @@ int FlatBufferTests() {
   FlatbuffersSpanTest();
   FixedLengthArrayConstructorTest();
   FieldIdentifierTest();
+  MoreDefaultsTest();
   return 0;
 }
 

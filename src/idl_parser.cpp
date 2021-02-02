@@ -802,11 +802,10 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
         field->value.constant != "null" && !SupportsDefaultVectorsAndStrings())
       return Error(
           "Default values for strings and vectors are not supported in one of "
-          "the "
-          "specified programming languages");
-    if (IsVector(type) &&
-        (field->value.constant != "0" || field->value.constant != "[]")) {
-      return Error("The only supported default for vectors is `[]`");
+          "the specified programming languages");
+    if (IsVector(type) && field->value.constant != "0" &&
+        field->value.constant != "[]") {
+      return Error("The only supported default for vectors is `[]`.");
     }
   }
 
@@ -866,8 +865,11 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   field->key = field->attributes.Lookup("key") != nullptr;
   const bool required = field->attributes.Lookup("required") != nullptr ||
                         (IsString(type) && field->key);
-  const bool optional =
-      IsScalar(type.base_type) ? (field->value.constant == "null") : !required;
+  const bool default_str_or_vec =
+      ((IsString(type) || IsVector(type)) && field->value.constant != "0");
+  const bool optional = IsScalar(type.base_type)
+                            ? (field->value.constant == "null")
+                            : !(required || default_str_or_vec);
   if (required && optional) {
     return Error("Fields cannot be both optional and required.");
   }
@@ -1307,7 +1309,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
       if (!struct_def.sortbysize ||
           size == SizeOf(field_value.type.base_type)) {
         switch (field_value.type.base_type) {
-          // clang-format off
+// clang-format off
           #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
             case BASE_TYPE_ ## ENUM: \
               builder_.Pad(field->padding); \
@@ -1493,7 +1495,7 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
     // start at the back, since we're building the data backwards.
     auto &val = field_stack_.back().first;
     switch (val.type.base_type) {
-      // clang-format off
+// clang-format off
       #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE,...) \
         case BASE_TYPE_ ## ENUM: \
           if (IsStruct(val.type)) SerializeStruct(*val.type.struct_def, val); \
@@ -1954,6 +1956,19 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
     // Integer token can init any scalar (integer of float).
     FORCE_ECHECK(kTokenIntegerConstant, IsScalar(in_type), BASE_TYPE_INT);
   }
+  // Match empty vectors for default-empty-vectors.
+  if (!match && IsVector(e.type) && token_ == '[') {
+    const char *c = cursor_;
+    // Peek next token.
+    while (*c == ' ' || *c == '\t' || *c == '\n') c++;
+    if (*c == ']') {
+      e.constant = "[]";
+      NEXT();
+      NEXT();
+      match = true;
+    }
+  }
+
 #undef FORCE_ECHECK
 #undef TRY_ECHECK
 #undef IF_ECHECK_
@@ -2405,8 +2420,7 @@ bool Parser::SupportsOptionalScalars() const {
 
 bool Parser::SupportsDefaultVectorsAndStrings() const {
   static FLATBUFFERS_CONSTEXPR unsigned long supported_langs = 0;
-  unsigned long langs = opts.lang_to_generate;
-  return (langs > 0 && langs < IDLOptions::kMAX) && !(langs & ~supported_langs);
+  return !(opts.lang_to_generate & ~supported_langs);
 }
 
 bool Parser::SupportsAdvancedUnionFeatures() const {
