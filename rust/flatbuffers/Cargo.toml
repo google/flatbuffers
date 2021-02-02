@@ -10,7 +10,12 @@ repository = "https://github.com/google/flatbuffers"
 keywords = ["flatbuffers", "serialization", "zero-copy"]
 categories = ["encoding", "data-structures", "memory-management"]
 
+[features]
+# Adds support for owned bytes, assists w/ tokio integration.
+tokio-bytes = ["bytes"]
+
 [dependencies]
 smallvec = "1.6.1"
 bitflags = "1.2.1"
 thiserror = "1.0.23"
+bytes = { version = "1", optional = true }

@@ -39,6 +39,8 @@ extern crate byteorder;
 extern crate serde_derive;
 extern crate num_enum;
 extern crate serde;
+#[cfg(feature = "tokio-bytes")]
+extern crate bytes;
 
 mod bitwidth;
 mod builder;
