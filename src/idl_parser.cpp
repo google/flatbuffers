@@ -1958,15 +1958,13 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
   }
   // Match empty vectors for default-empty-vectors.
   if (!match && IsVector(e.type) && token_ == '[') {
-    const char *c = cursor_;
-    // Peek next token.
-    while (*c == ' ' || *c == '\t' || *c == '\n') c++;
-    if (*c == ']') {
-      e.constant = "[]";
-      NEXT();
-      NEXT();
-      match = true;
+    NEXT();
+    if (token_ != ']') {
+      return Error("Expected `]` in vector default");
     }
+    NEXT();
+    match = true;
+    e.constant = "[]";
   }
 
 #undef FORCE_ECHECK

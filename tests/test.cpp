@@ -1691,7 +1691,8 @@ void ErrorTest() {
   // Complex defaults
   TestError("table X { y: string = 1; }", "expecting: string");
   TestError("table X { y: string = []; }", " Cannot assign token");
-  TestError("table X { y: [int] = [1]; }", " Cannot assign token");
+  TestError("table X { y: [int] = [1]; }", "Expected `]`");
+  TestError("table X { y: [int] = [; }", "Expected `]`");
   TestError("table X { y: [int] = \"\"; }", "type mismatch");
 }
 
@@ -3623,7 +3624,7 @@ void TestEmbeddedBinarySchema() {
           0);
 }
 
-void MoreDefaultsTest() {
+void StringVectorDefaultsTest() {
   std::vector<std::string> schemas;
   schemas.push_back("table Monster { mana: string = \"\"; }");
   schemas.push_back("table Monster { mana: string = \"mystr\"; }");
@@ -3871,7 +3872,7 @@ int FlatBufferTests() {
   FlatbuffersSpanTest();
   FixedLengthArrayConstructorTest();
   FieldIdentifierTest();
-  MoreDefaultsTest();
+  StringVectorDefaultsTest();
   return 0;
 }
 
