@@ -27,7 +27,7 @@ public protocol FlatBufferGRPCMessage {
 
 /// Message is a wrapper around Buffers to to able to send Flatbuffers `Buffers` through the
 /// GRPC library
-public final class Message<T: FlatBufferObject>: FlatBufferGRPCMessage {
+public struct Message<T: FlatBufferObject>: FlatBufferGRPCMessage {
   internal var buffer: ByteBuffer
 
   /// Returns the an object of type T that would be  read from the buffer
