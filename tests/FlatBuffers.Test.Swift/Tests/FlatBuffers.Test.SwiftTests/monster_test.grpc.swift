@@ -24,41 +24,121 @@ public extension GRPCFlatBufPayload {
 extension Message: GRPCFlatBufPayload {}
 
 /// Usage: instantiate MyGame_Example_MonsterStorageServiceClient, then call methods of this protocol to make API calls.
-public protocol MyGame_Example_MonsterStorageService {
-   func Store(_ request: Message<MyGame_Example_Monster>, callOptions: CallOptions?) -> UnaryCall<Message<MyGame_Example_Monster>,Message<MyGame_Example_Stat>>
-   func Retrieve(_ request: Message<MyGame_Example_Stat>, callOptions: CallOptions?, handler: @escaping (Message<MyGame_Example_Monster>) -> Void) -> ServerStreamingCall<Message<MyGame_Example_Stat>, Message<MyGame_Example_Monster>>
-   func GetMaxHitPoint(callOptions: CallOptions?) -> ClientStreamingCall<Message<MyGame_Example_Monster>,Message<MyGame_Example_Stat>>
-   func GetMinMaxHitPoints(callOptions: CallOptions?, handler: @escaping (Message<MyGame_Example_Stat>) -> Void) -> BidirectionalStreamingCall<Message<MyGame_Example_Monster>, Message<MyGame_Example_Stat>>
+public protocol MyGame_Example_MonsterStorageClientProtocol: GRPCClient {
+
+  var serviceName: String { get }
+
+  var interceptors: MyGame_Example_MonsterStorageClientInterceptorFactoryProtocol? { get }
+
+  func Store(
+    _ request: Message<MyGame_Example_Monster>
+    , callOptions: CallOptions?
+  ) -> UnaryCall<Message<MyGame_Example_Monster>, Message<MyGame_Example_Stat>>
+
+  func Retrieve(
+    _ request: Message<MyGame_Example_Stat>
+    , callOptions: CallOptions?,
+    handler: @escaping (Message<MyGame_Example_Monster>) -> Void
+  ) -> ServerStreamingCall<Message<MyGame_Example_Stat>, Message<MyGame_Example_Monster>>
+
+  func GetMaxHitPoint(
+    callOptions: CallOptions?
+  ) -> ClientStreamingCall<Message<MyGame_Example_Monster>, Message<MyGame_Example_Stat>>
+
+  func GetMinMaxHitPoints(
+    callOptions: CallOptions?,
+    handler: @escaping (Message<MyGame_Example_Stat> ) -> Void
+  ) -> BidirectionalStreamingCall<Message<MyGame_Example_Monster>, Message<MyGame_Example_Stat>>
+
 }
 
-public final class MyGame_Example_MonsterStorageServiceClient: GRPCClient, MyGame_Example_MonsterStorageService {
+extension MyGame_Example_MonsterStorageClientProtocol {
+
+  public var serviceName: String { "MyGame.Example.MonsterStorage" }
+
+  public func Store(
+    _ request: Message<MyGame_Example_Monster>
+    , callOptions: CallOptions? = nil
+  ) -> UnaryCall<Message<MyGame_Example_Monster>, Message<MyGame_Example_Stat>> {
+    return self.makeUnaryCall(
+      path: "/MyGame.Example.MonsterStorage/Store",
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeStoreInterceptors() ?? []
+    )
+  }
+
+  public func Retrieve(
+    _ request: Message<MyGame_Example_Stat>
+    , callOptions: CallOptions? = nil,
+    handler: @escaping (Message<MyGame_Example_Monster>) -> Void
+  ) -> ServerStreamingCall<Message<MyGame_Example_Stat>, Message<MyGame_Example_Monster>> {
+    return self.makeServerStreamingCall(
+      path: "/MyGame.Example.MonsterStorage/Retrieve",
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeRetrieveInterceptors() ?? [],
+      handler: handler
+    )
+  }
+
+  public func GetMaxHitPoint(
+    callOptions: CallOptions? = nil
+  ) -> ClientStreamingCall<Message<MyGame_Example_Monster>, Message<MyGame_Example_Stat>> {
+    return self.makeClientStreamingCall(
+      path: "/MyGame.Example.MonsterStorage/GetMaxHitPoint",
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetMaxHitPointInterceptors() ?? []
+    )
+  }
+
+  public func GetMinMaxHitPoints(
+    callOptions: CallOptions? = nil,
+    handler: @escaping (Message<MyGame_Example_Stat> ) -> Void
+  ) -> BidirectionalStreamingCall<Message<MyGame_Example_Monster>, Message<MyGame_Example_Stat>> {
+    return self.makeBidirectionalStreamingCall(
+      path: "/MyGame.Example.MonsterStorage/GetMinMaxHitPoints",
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetMinMaxHitPointsInterceptors() ?? [],
+      handler: handler
+    )
+  }
+}
+
+public protocol MyGame_Example_MonsterStorageClientInterceptorFactoryProtocol {
+  /// - Returns: Interceptors to use when invoking 'Store'.
+  func makeStoreInterceptors() -> [ClientInterceptor<Message<MyGame_Example_Monster>, Message<MyGame_Example_Stat>>]
+
+  /// - Returns: Interceptors to use when invoking 'Retrieve'.
+  func makeRetrieveInterceptors() -> [ClientInterceptor<Message<MyGame_Example_Stat>, Message<MyGame_Example_Monster>>]
+
+  /// - Returns: Interceptors to use when invoking 'GetMaxHitPoint'.
+  func makeGetMaxHitPointInterceptors() -> [ClientInterceptor<Message<MyGame_Example_Monster>, Message<MyGame_Example_Stat>>]
+
+  /// - Returns: Interceptors to use when invoking 'GetMinMaxHitPoints'.
+  func makeGetMinMaxHitPointsInterceptors() -> [ClientInterceptor<Message<MyGame_Example_Monster>, Message<MyGame_Example_Stat>>]
+
+}
+
+public final class MyGame_Example_MonsterStorageServiceClient: MyGame_Example_MonsterStorageClientProtocol {
   public let channel: GRPCChannel
   public var defaultCallOptions: CallOptions
+  public var interceptors: MyGame_Example_MonsterStorageClientInterceptorFactoryProtocol?
 
-  public init(channel: GRPCChannel, defaultCallOptions: CallOptions = CallOptions()) {
+  public init(
+    channel: GRPCChannel,
+    defaultCallOptions: CallOptions = CallOptions(),
+    interceptors: MyGame_Example_MonsterStorageClientInterceptorFactoryProtocol? = nil
+  ) {
     self.channel = channel
     self.defaultCallOptions = defaultCallOptions
-  }
-
-  public func Store(_ request: Message<MyGame_Example_Monster>, callOptions: CallOptions? = nil) -> UnaryCall<Message<MyGame_Example_Monster>,Message<MyGame_Example_Stat>> {
-    return self.makeUnaryCall(path: "/MyGame.Example.MonsterStorage/Store", request: request, callOptions: callOptions ?? self.defaultCallOptions)
-  }
-
-  public func Retrieve(_ request: Message<MyGame_Example_Stat>, callOptions: CallOptions? = nil, handler: @escaping (Message<MyGame_Example_Monster>) -> Void) -> ServerStreamingCall<Message<MyGame_Example_Stat>, Message<MyGame_Example_Monster>> {
-    return self.makeServerStreamingCall(path: "/MyGame.Example.MonsterStorage/Retrieve", request: request, callOptions: callOptions ?? self.defaultCallOptions, handler: handler)
-  }
-
-  public func GetMaxHitPoint(callOptions: CallOptions? = nil) -> ClientStreamingCall<Message<MyGame_Example_Monster>,Message<MyGame_Example_Stat>> {
-    return self.makeClientStreamingCall(path: "/MyGame.Example.MonsterStorage/GetMaxHitPoint", callOptions: callOptions ?? self.defaultCallOptions)
-  }
-
-  public func GetMinMaxHitPoints(callOptions: CallOptions? = nil, handler: @escaping (Message<MyGame_Example_Stat>) -> Void) -> BidirectionalStreamingCall<Message<MyGame_Example_Monster>, Message<MyGame_Example_Stat>> {
-    return self.makeBidirectionalStreamingCall(path: "/MyGame.Example.MonsterStorage/GetMinMaxHitPoints", callOptions: callOptions ?? self.defaultCallOptions, handler: handler)
+    self.interceptors = interceptors
   }
 }
 
 public protocol MyGame_Example_MonsterStorageProvider: CallHandlerProvider {
-  func Store(_ request: Message<MyGame_Example_Monster>, context: StatusOnlyCallContext) -> EventLoopFuture<Message<MyGame_Example_Stat>>
+  var interceptors: MyGame_Example_MonsterStorageServerInterceptorFactoryProtocol? { get }
+  func Store(request: Message<MyGame_Example_Monster>, context: StatusOnlyCallContext) -> EventLoopFuture<Message<MyGame_Example_Stat>>
   func Retrieve(request: Message<MyGame_Example_Stat>, context: StreamingResponseCallContext<Message<MyGame_Example_Monster>>) -> EventLoopFuture<GRPCStatus>
   func GetMaxHitPoint(context: UnaryResponseCallContext<Message<MyGame_Example_Stat>>) -> EventLoopFuture<(StreamEvent<Message<MyGame_Example_Monster>>) -> Void>
   func GetMinMaxHitPoints(context: StreamingResponseCallContext<Message<MyGame_Example_Stat>>) -> EventLoopFuture<(StreamEvent<Message<MyGame_Example_Monster>>) -> Void>
@@ -68,30 +148,61 @@ public extension MyGame_Example_MonsterStorageProvider {
 
   var serviceName: Substring { return "MyGame.Example.MonsterStorage" }
 
-  func handleMethod(_ methodName: Substring, callHandlerContext: CallHandlerContext) -> GRPCCallHandler? {
-    switch methodName {
+  func handle(method name: Substring, context: CallHandlerContext) -> GRPCServerHandlerProtocol? {
+    switch name {
     case "Store":
-    return CallHandlerFactory.makeUnary(callHandlerContext: callHandlerContext) { context in
-      return { request in
-        self.Store(request, context: context)
-      }
-    }
+    return UnaryServerHandler(
+      context: context,
+      requestDeserializer: GRPCPayloadDeserializer<Message<MyGame_Example_Monster>>(),
+      responseSerializer: GRPCPayloadSerializer<Message<MyGame_Example_Stat>>(),
+      interceptors: self.interceptors?.makeStoreInterceptors() ?? [],
+      userFunction: self.Store(request:context:))
+
     case "Retrieve":
-    return CallHandlerFactory.makeServerStreaming(callHandlerContext: callHandlerContext) { context in
-      return { request in
-        self.Retrieve(request: request, context: context)
-      }
-    }
+    return ServerStreamingServerHandler(
+      context: context,
+      requestDeserializer: GRPCPayloadDeserializer<Message<MyGame_Example_Stat>>(),
+      responseSerializer: GRPCPayloadSerializer<Message<MyGame_Example_Monster>>(),
+      interceptors: self.interceptors?.makeRetrieveInterceptors() ?? [],
+      userFunction: self.Retrieve(request:context:))
+
     case "GetMaxHitPoint":
-    return CallHandlerFactory.makeClientStreaming(callHandlerContext: callHandlerContext) { context in
-      self.GetMaxHitPoint(context: context)
-    }
+    return ClientStreamingServerHandler(
+      context: context,
+      requestDeserializer: GRPCPayloadDeserializer<Message<MyGame_Example_Monster>>(),
+      responseSerializer: GRPCPayloadSerializer<Message<MyGame_Example_Stat>>(),
+      interceptors: self.interceptors?.makeGetMaxHitPointInterceptors() ?? [],
+      observerFactory: self.GetMaxHitPoint(context:))
+
     case "GetMinMaxHitPoints":
-    return CallHandlerFactory.makeBidirectionalStreaming(callHandlerContext: callHandlerContext) { context in
-      self.GetMinMaxHitPoints(context: context)
-    }
+    return BidirectionalStreamingServerHandler(
+      context: context,
+      requestDeserializer: GRPCPayloadDeserializer<Message<MyGame_Example_Monster>>(),
+      responseSerializer: GRPCPayloadSerializer<Message<MyGame_Example_Stat>>(),
+      interceptors: self.interceptors?.makeGetMinMaxHitPointsInterceptors() ?? [],
+      observerFactory: self.GetMinMaxHitPoints(context:))
+
     default: return nil;
     }
   }
+
+}
+
+public protocol MyGame_Example_MonsterStorageServerInterceptorFactoryProtocol {
+  /// - Returns: Interceptors to use when handling 'Store'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeStoreInterceptors() -> [ServerInterceptor<Message<MyGame_Example_Monster>, Message<MyGame_Example_Stat>>]
+
+  /// - Returns: Interceptors to use when handling 'Retrieve'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeRetrieveInterceptors() -> [ServerInterceptor<Message<MyGame_Example_Stat>, Message<MyGame_Example_Monster>>]
+
+  /// - Returns: Interceptors to use when handling 'GetMaxHitPoint'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetMaxHitPointInterceptors() -> [ServerInterceptor<Message<MyGame_Example_Monster>, Message<MyGame_Example_Stat>>]
+
+  /// - Returns: Interceptors to use when handling 'GetMinMaxHitPoints'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetMinMaxHitPointsInterceptors() -> [ServerInterceptor<Message<MyGame_Example_Monster>, Message<MyGame_Example_Stat>>]
 
 }
