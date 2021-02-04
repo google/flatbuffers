@@ -183,6 +183,12 @@ bool IsBitFlagsEnum(const FieldDef &field) {
   return ed && IsBitFlagsEnum(*ed);
 }
 
+// TableArgs make required non-scalars "Option<_>".
+// TODO(cneo): Rework how we do defaults and stuff.
+bool IsOptionalOrRequiredNonScalar(const FieldDef &field) {
+    return field.IsOptional() || (field.IsRequired() && !IsScalar(field.value.type.base_type));
+}
+
 namespace rust {
 
 class RustGenerator : public BaseGenerator {
@@ -884,28 +890,22 @@ class RustGenerator : public BaseGenerator {
   }
 
   std::string GetDefaultScalarValue(const FieldDef &field) {
+    if (IsOptionalOrRequiredNonScalar(field)) return "None";
+
     switch (GetFullType(field.value.type)) {
-      case ftInteger:
-      case ftFloat: {
-        return field.IsOptional() ? "None" : field.value.constant;
-      }
       case ftBool: {
         return field.IsOptional() ? "None"
                               : field.value.constant == "0" ? "false" : "true";
       }
       case ftUnionKey:
       case ftEnumKey: {
-        if (field.IsOptional()) { return "None"; }
         auto ev = field.value.type.enum_def->FindByValue(field.value.constant);
         if (!ev) return "Default::default()";  // Bitflags enum.
         return WrapInNameSpace(field.value.type.enum_def->defined_namespace,
                                GetEnumValue(*field.value.type.enum_def, *ev));
       }
-
-      // All pointer-ish types have a default value of None, because they are
-      // wrapped in Option.
       default: {
-        return "None";
+        return field.value.constant;
       }
     }
   }
@@ -924,30 +924,39 @@ class RustGenerator : public BaseGenerator {
   std::string TableBuilderArgsDefnType(const FieldDef &field,
                                        const std::string &lifetime) {
     const Type &type = field.value.type;
+    auto WrapOption = [&](std::string s) {
+        return IsOptionalOrRequiredNonScalar(field) ? "Option<" + s + ">" : s;
+    };
+    auto WrapVector = [&](std::string ty) {
+        return WrapOption(
+                "flatbuffers::WIPOffset<flatbuffers::Vector<" + lifetime + ", " + ty + ">>"
+                );
+    };
+    auto WrapUOffsetsVector = [&](std::string ty) {
+        return WrapVector("flatbuffers::ForwardsUOffset<"+ty+">");
+    };
 
     switch (GetFullType(type)) {
       case ftInteger:
       case ftFloat:
       case ftBool: {
-        const auto typname = GetTypeBasic(type);
-        return field.IsOptional() ? "Option<" + typname + ">" : typname;
+        return WrapOption(GetTypeBasic(type));
       }
       case ftStruct: {
         const auto typname = WrapInNameSpace(*type.struct_def);
-        return "Option<&" + lifetime + " " + typname + ">";
+        return WrapOption("&" + lifetime + " " + typname);
       }
       case ftTable: {
         const auto typname = WrapInNameSpace(*type.struct_def);
-        return "Option<flatbuffers::WIPOffset<" + typname + "<" + lifetime +
-               ">>>";
+        return WrapOption("flatbuffers::WIPOffset<" + typname + "<" + lifetime +
+               ">>");
       }
       case ftString: {
-        return "Option<flatbuffers::WIPOffset<&" + lifetime + " str>>";
+        return WrapOption("flatbuffers::WIPOffset<&" + lifetime + " str>");
       }
       case ftEnumKey:
       case ftUnionKey: {
-        const auto typname = WrapInNameSpace(*type.enum_def);
-        return field.IsOptional() ? "Option<" + typname + ">" : typname;
+        return WrapOption(WrapInNameSpace(*type.enum_def));
       }
       case ftUnionValue: {
         return "Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>>";
@@ -957,36 +966,25 @@ class RustGenerator : public BaseGenerator {
       case ftVectorOfBool:
       case ftVectorOfFloat: {
         const auto typname = GetTypeBasic(type.VectorType());
-        return "Option<flatbuffers::WIPOffset<flatbuffers::Vector<" + lifetime +
-               ", " + typname + ">>>";
+        return WrapVector(typname);
       }
       case ftVectorOfEnumKey: {
         const auto typname = WrapInNameSpace(*type.enum_def);
-        return "Option<flatbuffers::WIPOffset<flatbuffers::Vector<" + lifetime +
-               ", " + typname + ">>>";
+        return WrapVector(typname);
       }
       case ftVectorOfStruct: {
         const auto typname = WrapInNameSpace(*type.struct_def);
-        return "Option<flatbuffers::WIPOffset<flatbuffers::Vector<" + lifetime +
-               ", " + typname + ">>>";
+        return WrapVector(typname);
       }
       case ftVectorOfTable: {
         const auto typname = WrapInNameSpace(*type.struct_def);
-        return "Option<flatbuffers::WIPOffset<flatbuffers::Vector<" + lifetime +
-               ", flatbuffers::ForwardsUOffset<" + typname + "<" + lifetime +
-               ">>>>>";
+        return WrapUOffsetsVector(typname + "<" + lifetime + ">");
       }
       case ftVectorOfString: {
-        return "Option<flatbuffers::WIPOffset<flatbuffers::Vector<" + lifetime +
-               ", flatbuffers::ForwardsUOffset<&" + lifetime + " str>>>>";
+        return WrapUOffsetsVector("&" + lifetime + " str");
       }
       case ftVectorOfUnionValue: {
-        const auto typname =
-            WrapInNameSpace(*type.enum_def) + "UnionTableOffset";
-        return "Option<flatbuffers::WIPOffset<flatbuffers::Vector<" + lifetime +
-               ", flatbuffers::ForwardsUOffset<"
-               "flatbuffers::Table<" +
-               lifetime + ">>>>";
+        return WrapUOffsetsVector("flatbuffers::Table<"+lifetime+">");
       }
     }
     return "INVALID_CODE_GENERATION";  // for return analysis
@@ -1055,8 +1053,7 @@ class RustGenerator : public BaseGenerator {
         return "INVALID_CODE_GENERATION";  // OH NO!
       }
     }
-    if (in_a_table && !IsUnion(type) &&
-        (IsScalar(type.base_type) ? field.IsOptional() : !field.IsRequired())) {
+    if (in_a_table && !IsUnion(type) && field.IsOptional()) {
       return "Option<" + ty + ">";
     } else {
       return ty;
@@ -1344,18 +1341,6 @@ class RustGenerator : public BaseGenerator {
            ", " + default_value + ")" + safe_slice + unwrap;
   }
 
-  bool TableFieldReturnsOption(const FieldDef &field) {
-    if (field.IsOptional()) return true;
-    switch (GetFullType(field.value.type)) {
-      case ftInteger:
-      case ftFloat:
-      case ftBool:
-      case ftEnumKey:
-      case ftUnionKey: return false;
-      default: return true;
-    }
-  }
-
   // Generates a fully-qualified name getter for use with --gen-name-strings
   void GenFullyQualifiedNameGetter(const StructDef &struct_def,
                                    const std::string &name) {
@@ -1469,7 +1454,7 @@ class RustGenerator : public BaseGenerator {
             if (struct_def.sortbysize &&
                 size != SizeOf(field.value.type.base_type))
               return;
-            if (TableFieldReturnsOption(field)) {
+            if (IsOptionalOrRequiredNonScalar(field)) {
               code_ +=
                   "      if let Some(x) = args.{{FIELD_NAME}} "
                   "{ builder.add_{{FIELD_NAME}}(x); }";
