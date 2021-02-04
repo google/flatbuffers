@@ -1,3 +1,5 @@
+namespace models;
+
 table HelloReply {
   message:string;
 }
@@ -7,6 +9,6 @@ table HelloRequest {
 }
 
 rpc_service Greeter {
-  SayHello(HelloRequest):HelloReply;
-  SayManyHellos(HelloRequest):HelloReply (streaming: "server");
+  SayHello(models.HelloRequest):models.HelloReply;
+  SayManyHellos(models.HelloRequest):models.HelloReply (streaming: "server");
 }

@@ -30,17 +30,79 @@
 
 namespace grpc_ts_generator {
 
+grpc::string ToDasherizedCase(const grpc::string pascal_case) {
+  std::string dasherized_case;
+  char p = 0;
+  for (size_t i = 0; i < pascal_case.length(); i++) {
+    char const &c = pascal_case[i];
+    if (flatbuffers::is_alpha_upper(c)) {
+      if (i > 0 && p != flatbuffers::kPathSeparator) dasherized_case += "-";
+      dasherized_case += flatbuffers::CharToLower(c);
+    } else {
+      dasherized_case += c;
+    }
+    p = c;
+  }
+  return dasherized_case;
+}
+
+grpc::string GenerateNamespace(const std::vector<std::string> namepsace,
+                               const std::string filename,
+                               const bool include_separator) {
+  grpc::string path = "";
+  if (include_separator) path += ".";
+
+  for (auto it = namepsace.begin(); it < namepsace.end(); it++) {
+    if (include_separator) path += "/";
+    path += include_separator ? ToDasherizedCase(*it) : *it + "_";
+  }
+
+  if (include_separator) path += "/";
+  path += include_separator ? ToDasherizedCase(filename) : filename;
+  return path;
+}
+
 // MARK: - Shared code
 
-void GenerateImports(grpc_generator::Printer *printer,
+void GenerateImports(const grpc_generator::Service *service,
+                     grpc_generator::Printer *printer,
                      std::map<grpc::string, grpc::string> *dictonary,
                      const bool grpc_var_import) {
   auto vars = *dictonary;
   printer->Print(
       "// Generated GRPC code for FlatBuffers TS *** DO NOT EDIT ***\n");
   printer->Print("import { flatbuffers } from 'flatbuffers';\n");
-  printer->Print(vars,
-                 "import *  as $FBSFile$ from './$Filename$_generated';\n");
+
+  std::set<grpc::string> generated_imports;
+
+  for (auto it = 0; it < service->method_count(); it++) {
+    auto method = service->method(it);
+    auto output = method->get_output_type_name();
+    auto input = method->get_input_type_name();
+    auto input_namespace = method->get_input_namespace_parts();
+
+    vars["OUTPUT"] = output;
+    vars["INPUT"] = input;
+
+    if (generated_imports.find(output) == generated_imports.end()) {
+      generated_imports.insert(output);
+      vars["OUTPUT_DIR"] =
+          GenerateNamespace(method->get_output_namespace_parts(), output, true);
+      vars["Output_alias"] = GenerateNamespace(
+          method->get_output_namespace_parts(), output, false);
+      printer->Print(
+          vars, "import { $OUTPUT$ as $Output_alias$ } from '$OUTPUT_DIR$';\n");
+    }
+    if (generated_imports.find(input) == generated_imports.end()) {
+      generated_imports.insert(input);
+      vars["INPUT_DIR"] =
+          GenerateNamespace(method->get_output_namespace_parts(), input, true);
+      vars["Input_alias"] =
+          GenerateNamespace(method->get_output_namespace_parts(), input, false);
+      printer->Print(
+          vars, "import { $INPUT$ as $Input_alias$ } from '$INPUT_DIR$';\n");
+    }
+  }
   printer->Print("\n");
   if (grpc_var_import)
     printer->Print("var grpc = require('grpc');\n");
@@ -68,10 +130,10 @@ void GenerateSerializeMethod(grpc_generator::Printer *printer,
   auto vars = *dictonary;
   printer->Print(vars, "function serialize_$Type$(buffer_args) {\n");
   printer->Indent();
-  printer->Print(vars, "if (!(buffer_args instanceof $FBSFile$.$Type$)) {\n");
+  printer->Print(vars, "if (!(buffer_args instanceof $Type$)) {\n");
   printer->Indent();
-  printer->Print(
-      vars, "throw new Error('Expected argument of type $FBSFile$.$Type$');\n");
+  printer->Print(vars,
+                 "throw new Error('Expected argument of type $VALUE$');\n");
   printer->Outdent();
   printer->Print("}\n");
   printer->Print(vars, "return buffer_args.serialize();\n");
@@ -86,7 +148,7 @@ void GenerateDeserializeMethod(
   printer->Print(vars, "function deserialize_$Type$(buffer) {\n");
   printer->Indent();
   printer->Print(vars,
-                 "return $FBSFile$.$Type$.getRootAs$Type$(new "
+                 "return $Type$.getRootAs$VALUE$(new "
                  "flatbuffers.ByteBuffer(buffer))\n");
   printer->Outdent();
   printer->Print("}\n\n");
@@ -106,14 +168,18 @@ void GenerateMethods(const grpc_generator::Service *service,
 
     if (generated_functions.find(output) == generated_functions.end()) {
       generated_functions.insert(output);
-      vars["Type"] = output;
+      vars["VALUE"] = output;
+      vars["Type"] = GenerateNamespace(method->get_output_namespace_parts(),
+                                       output, false);
       GenerateSerializeMethod(printer, &vars);
       GenerateDeserializeMethod(printer, &vars);
     }
     printer->Print("\n");
     if (generated_functions.find(input) == generated_functions.end()) {
       generated_functions.insert(input);
-      vars["Type"] = input;
+      vars["VALUE"] = input;
+      vars["Type"] =
+          GenerateNamespace(method->get_input_namespace_parts(), input, false);
       GenerateSerializeMethod(printer, &vars);
       GenerateDeserializeMethod(printer, &vars);
     }
@@ -131,18 +197,20 @@ void GenerateService(const grpc_generator::Service *service,
   for (auto it = 0; it < service->method_count(); it++) {
     auto method = service->method(it);
     vars["MethodName"] = method->name();
-    vars["Output"] = method->get_output_type_name();
-    vars["Input"] = method->get_input_type_name();
+    vars["OUTPUT"] = GenerateNamespace(method->get_output_namespace_parts(),
+                                       method->get_output_type_name(), false);
+    vars["INPUT"] = GenerateNamespace(method->get_input_namespace_parts(),
+                                      method->get_input_type_name(), false);
     printer->Print(vars, "$MethodName$: {\n");
     printer->Indent();
     printer->Print(vars, "path: '/$PATH$$ServiceName$/$MethodName$',\n");
     GetStreamType(printer, &*method, &vars);
     printer->Print(vars, "requestType: flatbuffers.ByteBuffer,\n");
-    printer->Print(vars, "responseType: $FBSFile$.$Output$,\n");
-    printer->Print(vars, "requestSerialize: serialize_$Input$,\n");
-    printer->Print(vars, "requestDeserialize: deserialize_$Input$,\n");
-    printer->Print(vars, "responseSerialize: serialize_$Output$,\n");
-    printer->Print(vars, "responseDeserialize: deserialize_$Output$,\n");
+    printer->Print(vars, "responseType: $OUTPUT$,\n");
+    printer->Print(vars, "requestSerialize: serialize_$INPUT$,\n");
+    printer->Print(vars, "requestDeserialize: deserialize_$INPUT$,\n");
+    printer->Print(vars, "responseSerialize: serialize_$OUTPUT$,\n");
+    printer->Print(vars, "responseDeserialize: deserialize_$OUTPUT$,\n");
     printer->Outdent();
     printer->Print("},\n");
   }
@@ -168,7 +236,7 @@ grpc::string Generate(grpc_generator::File *file,
   vars["Filename"] = filename;
   auto printer = file->CreatePrinter(&output);
 
-  GenerateImports(&*printer, &vars, true);
+  GenerateImports(service, &*printer, &vars, true);
   GenerateMethods(service, &*printer, &vars);
   GenerateService(service, &*printer, &vars);
   return output;
@@ -179,22 +247,17 @@ grpc::string Generate(grpc_generator::File *file,
 void FillInterface(grpc_generator::Printer *printer,
                    std::map<grpc::string, grpc::string> *dictonary) {
   auto vars = *dictonary;
-  printer->Print(
-      vars,
-      "interface I$ServiceName$Service_I$MethodName$ extends "
-      "grpc.MethodDefinition<$FBSFile$.$INPUT$, $FBSFile$.$OUTPUT$> {\n");
+  printer->Print(vars,
+                 "interface I$ServiceName$Service_I$MethodName$ extends "
+                 "grpc.MethodDefinition<$INPUT$, $OUTPUT$> {\n");
   printer->Indent();
   printer->Print(vars, "path: string; // /$PATH$$ServiceName$/$MethodName$\n");
   printer->Print(vars, "requestStream: boolean; // $ClientStreaming$\n");
   printer->Print(vars, "responseStream: boolean; // $ServerStreaming$\n");
-  printer->Print(vars,
-                 "requestSerialize: grpc.serialize<$FBSFile$.$INPUT$>;\n");
-  printer->Print(vars,
-                 "requestDeserialize: grpc.deserialize<$FBSFile$.$INPUT$>;\n");
-  printer->Print(vars,
-                 "responseSerialize: grpc.serialize<$FBSFile$.$OUTPUT$>;\n");
-  printer->Print(
-      vars, "responseDeserialize: grpc.deserialize<$FBSFile$.$OUTPUT$>;\n");
+  printer->Print(vars, "requestSerialize: grpc.serialize<$INPUT$>;\n");
+  printer->Print(vars, "requestDeserialize: grpc.deserialize<$INPUT$>;\n");
+  printer->Print(vars, "responseSerialize: grpc.serialize<$OUTPUT$>;\n");
+  printer->Print(vars, "responseDeserialize: grpc.deserialize<$OUTPUT$>;\n");
   printer->Outdent();
   printer->Print("}\n");
 }
@@ -212,8 +275,10 @@ void GenerateInterfaces(const grpc_generator::Service *service,
     vars["ClientStreaming"] = client_streaming ? "true" : "false";
     vars["ServerStreaming"] = server_streaming ? "true" : "false";
     vars["MethodName"] = method->name();
-    vars["INPUT"] = method->get_input_type_name();
-    vars["OUTPUT"] = method->get_output_type_name();
+    vars["OUTPUT"] = GenerateNamespace(method->get_output_namespace_parts(),
+                                       method->get_output_type_name(), false);
+    vars["INPUT"] = GenerateNamespace(method->get_input_namespace_parts(),
+                                      method->get_input_type_name(), false);
     FillInterface(printer, &vars);
     printer->Print("\n");
   }
@@ -228,32 +293,32 @@ void GenerateExportedInterface(
   for (auto it = 0; it < service->method_count(); it++) {
     auto method = service->method(it);
     vars["Name"] = method->name();
-    vars["INPUT"] = method->get_input_type_name();
-    vars["OUTPUT"] = method->get_output_type_name();
+    vars["OUTPUT"] = GenerateNamespace(method->get_output_namespace_parts(),
+                                       method->get_output_type_name(), false);
+    vars["INPUT"] = GenerateNamespace(method->get_input_namespace_parts(),
+                                      method->get_input_type_name(), false);
     if (method->BidiStreaming()) {
       printer->Print(vars,
-                     "$Name$: grpc.handleBidiStreamingCall<$FBSFile$.$INPUT$, "
-                     "$FBSFile$.$OUTPUT$>;\n");
+                     "$Name$: grpc.handleBidiStreamingCall<$INPUT$, "
+                     "$OUTPUT$>;\n");
       continue;
     }
     if (method->NoStreaming()) {
       printer->Print(vars,
-                     "$Name$: grpc.handleUnaryCall<$FBSFile$.$INPUT$, "
-                     "$FBSFile$.$OUTPUT$>;\n");
+                     "$Name$: grpc.handleUnaryCall<$INPUT$, "
+                     "$OUTPUT$>;\n");
       continue;
     }
     if (method->ClientStreaming()) {
-      printer->Print(
-          vars,
-          "$Name$: grpc.handleClientStreamingCall<$FBSFile$.$INPUT$, "
-          "$FBSFile$.$OUTPUT$>;\n");
+      printer->Print(vars,
+                     "$Name$: grpc.handleClientStreamingCall<$INPUT$, "
+                     "$OUTPUT$>;\n");
       continue;
     }
     if (method->ServerStreaming()) {
-      printer->Print(
-          vars,
-          "$Name$: grpc.handleServerStreamingCall<$FBSFile$.$INPUT$, "
-          "$FBSFile$.$OUTPUT$>;\n");
+      printer->Print(vars,
+                     "$Name$: grpc.handleServerStreamingCall<$INPUT$, "
+                     "$OUTPUT$>;\n");
       continue;
     }
   }
@@ -294,10 +359,10 @@ void GenerateUnaryClientInterface(
     grpc_generator::Printer *printer,
     std::map<grpc::string, grpc::string> *dictonary) {
   auto vars = *dictonary;
-  grpc::string main = "$ISPUBLIC$$MethodName$(request: $FBSFile$.$INPUT$, ";
+  grpc::string main = "$ISPUBLIC$$MethodName$(request: $INPUT$, ";
   grpc::string callback =
       "callback: (error: grpc.ServiceError | null, response: "
-      "$FBSFile$.$OUTPUT$) => void): grpc.ClientUnaryCall;\n";
+      "$OUTPUT$) => void): grpc.ClientUnaryCall;\n";
   auto meta_data = GenerateMetaData() + ", ";
   auto options = GenerateOptions() + ", ";
   printer->Print(vars, (main + callback).c_str());
@@ -312,8 +377,8 @@ void GenerateClientWriteStreamInterface(
   grpc::string main = "$ISPUBLIC$$MethodName$(";
   grpc::string callback =
       "callback: (error: grpc.ServiceError | null, response: "
-      "$FBSFile$.$INPUT$) => void): "
-      "grpc.ClientWritableStream<$FBSFile$.$OUTPUT$>;\n";
+      "$INPUT$) => void): "
+      "grpc.ClientWritableStream<$OUTPUT$>;\n";
   auto meta_data = GenerateMetaData() + ", ";
   auto options = GenerateOptions() + ", ";
   printer->Print(vars, (main + callback).c_str());
@@ -326,9 +391,8 @@ void GenerateClientReadableStreamInterface(
     grpc_generator::Printer *printer,
     std::map<grpc::string, grpc::string> *dictonary) {
   auto vars = *dictonary;
-  grpc::string main = "$ISPUBLIC$$MethodName$(request: $FBSFile$.$INPUT$, ";
-  grpc::string end_function =
-      "): grpc.ClientReadableStream<$FBSFile$.$OUTPUT$>;\n";
+  grpc::string main = "$ISPUBLIC$$MethodName$(request: $INPUT$, ";
+  grpc::string end_function = "): grpc.ClientReadableStream<$OUTPUT$>;\n";
   auto meta_data = GenerateMetaData();
   auto options = GenerateOptions();
   printer->Print(vars, (main + meta_data + end_function).c_str());
@@ -341,7 +405,7 @@ void GenerateDepluxStreamInterface(
   auto vars = *dictonary;
   grpc::string main = "$ISPUBLIC$$MethodName$(";
   grpc::string end_function =
-      "): grpc.ClientDuplexStream<$FBSFile$.$INPUT$, $FBSFile$.$OUTPUT$>;\n";
+      "): grpc.ClientDuplexStream<$INPUT$, $OUTPUT$>;\n";
   auto meta_data = GenerateMetaData();
   auto options = GenerateOptions();
   printer->Print(vars, (main + end_function).c_str());
@@ -360,8 +424,10 @@ void GenerateClientInterface(const grpc_generator::Service *service,
   for (auto it = 0; it < service->method_count(); it++) {
     auto method = service->method(it);
     vars["MethodName"] = method->name();
-    vars["INPUT"] = method->get_input_type_name();
-    vars["OUTPUT"] = method->get_output_type_name();
+    vars["OUTPUT"] = GenerateNamespace(method->get_output_namespace_parts(),
+                                       method->get_output_type_name(), false);
+    vars["INPUT"] = GenerateNamespace(method->get_input_namespace_parts(),
+                                      method->get_input_type_name(), false);
     vars["ISPUBLIC"] = "";
 
     if (method->NoStreaming()) {
@@ -401,8 +467,10 @@ void GenerateClientClassInterface(
   for (auto it = 0; it < service->method_count(); it++) {
     auto method = service->method(it);
     vars["MethodName"] = method->name();
-    vars["INPUT"] = method->get_input_type_name();
-    vars["OUTPUT"] = method->get_output_type_name();
+    vars["OUTPUT"] = GenerateNamespace(method->get_output_namespace_parts(),
+                                       method->get_output_type_name(), false);
+    vars["INPUT"] = GenerateNamespace(method->get_input_namespace_parts(),
+                                      method->get_input_type_name(), false);
     vars["ISPUBLIC"] = "public ";
     if (method->NoStreaming()) {
       GenerateUnaryClientInterface(printer, &vars);
@@ -444,7 +512,7 @@ grpc::string GenerateInterface(grpc_generator::File *file,
   vars["Filename"] = filename;
   auto printer = file->CreatePrinter(&output);
 
-  GenerateImports(&*printer, &vars, false);
+  GenerateImports(service, &*printer, &vars, false);
   GenerateMainInterface(service, &*printer, &vars);
   printer->Print("\n");
   GenerateClientInterface(service, &*printer, &vars);
