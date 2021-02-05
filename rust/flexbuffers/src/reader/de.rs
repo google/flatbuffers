@@ -19,6 +19,8 @@ use serde::de::{
     VariantAccess, Visitor,
 };
 
+type BufferSlice<'de> = &'de [u8];
+
 /// Errors that may happen when deserializing a flexbuffer with serde.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DeserializationError {
@@ -49,7 +51,7 @@ impl std::convert::From<super::Error> for DeserializationError {
     }
 }
 
-impl<'de> SeqAccess<'de> for ReaderIterator<'de> {
+impl<'de> SeqAccess<'de> for ReaderIterator<BufferSlice<'de>> {
     type Error = DeserializationError;
     fn next_element_seed<T>(
         &mut self,
@@ -71,12 +73,12 @@ impl<'de> SeqAccess<'de> for ReaderIterator<'de> {
 
 struct EnumReader<'de> {
     variant: &'de str,
-    value: Option<Reader<'de>>,
+    value: Option<Reader<BufferSlice<'de>>>,
 }
 
 impl<'de> EnumAccess<'de> for EnumReader<'de> {
     type Error = DeserializationError;
-    type Variant = Reader<'de>;
+    type Variant = Reader<BufferSlice<'de>>;
     fn variant_seed<V>(self, seed: V) -> Result<(V::Value, Self::Variant), Self::Error>
     where
         V: DeserializeSeed<'de>,
@@ -87,9 +89,10 @@ impl<'de> EnumAccess<'de> for EnumReader<'de> {
 }
 
 struct MapAccessor<'de> {
-    keys: ReaderIterator<'de>,
-    vals: ReaderIterator<'de>,
+    keys: ReaderIterator<BufferSlice<'de>>,
+    vals: ReaderIterator<BufferSlice<'de>>,
 }
+
 impl<'de> MapAccess<'de> for MapAccessor<'de> {
     type Error = DeserializationError;
 
@@ -112,7 +115,7 @@ impl<'de> MapAccess<'de> for MapAccessor<'de> {
     }
 }
 
-impl<'de> VariantAccess<'de> for Reader<'de> {
+impl<'de> VariantAccess<'de> for Reader<BufferSlice<'de>> {
     type Error = DeserializationError;
     fn unit_variant(self) -> Result<(), Self::Error> {
         Ok(())
@@ -149,7 +152,7 @@ impl<'de> VariantAccess<'de> for Reader<'de> {
     }
 }
 
-impl<'de> Deserializer<'de> for crate::Reader<'de> {
+impl<'de> Deserializer<'de> for crate::Reader<BufferSlice<'de>> {
     type Error = DeserializationError;
     fn is_human_readable(&self) -> bool {
         cfg!(deserialize_human_readable)
@@ -175,8 +178,10 @@ impl<'de> Deserializer<'de> for crate::Reader<'de> {
             (Float, W64) => visitor.visit_f64(self.as_f64()),
             (Float, _) => Err(Error::InvalidPackedType.into()), // f8 and f16 are not supported.
             (Null, _) => visitor.visit_unit(),
-            (String, _) | (Key, _) => visitor.visit_borrowed_str(self.as_str()),
-            (Blob, _) => visitor.visit_borrowed_bytes(self.get_blob()?.0),
+            // FIXME(colindjk) Lifetime issue
+            (String, _) | (Key, _) => visitor.visit_str(self.as_str()),
+            // FIXME(colindjk) Lifetime issue
+            (Blob, _) => visitor.visit_bytes(self.get_blob()?.0),
             (Map, _) => {
                 let m = self.get_map()?;
                 visitor.visit_map(MapAccessor {

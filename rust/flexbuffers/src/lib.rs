@@ -46,12 +46,15 @@ mod bitwidth;
 mod builder;
 mod flexbuffer_type;
 mod reader;
+mod flexbuffer;
+
 pub use bitwidth::BitWidth;
 pub use builder::Error as SerializationError;
 pub use builder::{
     singleton, Builder, BuilderOptions, FlexbufferSerializer, MapBuilder, Pushable, VectorBuilder,
 };
 pub use flexbuffer_type::FlexBufferType;
+pub use flexbuffer::FlexBuffer;
 pub use reader::Error as ReaderError;
 pub use reader::{DeserializationError, MapReader, Reader, ReaderIterator, VectorReader};
 use serde::{Deserialize, Serialize};
@@ -66,6 +69,7 @@ pub fn to_vec<T: Serialize>(x: T) -> Result<Vec<u8>, SerializationError> {
     x.serialize(&mut s)?;
     Ok(s.take_buffer())
 }
+
 /// Deserialize a type from a flexbuffer.
 pub fn from_slice<'de, T: Deserialize<'de>>(buf: &'de [u8]) -> Result<T, DeserializationError> {
     let r = Reader::get_root(buf)?;
@@ -76,7 +80,7 @@ pub fn from_slice<'de, T: Deserialize<'de>>(buf: &'de [u8]) -> Result<T, Deseria
 ///
 /// A `Blob` is a variable width `length` followed by that many bytes of data.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub struct Blob<'a>(pub &'a [u8]);
+pub struct Blob<B: FlexBuffer>(pub B);
 
 /// This struct, when pushed, will be serialized as a `FlexBufferType::IndirectUInt`.
 ///

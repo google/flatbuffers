@@ -14,6 +14,7 @@
 
 use super::{unpack_type, Error, Reader, ReaderIterator};
 use crate::{BitWidth, FlexBufferType};
+use crate::flexbuffer::FlexBuffer;
 
 #[derive(Default, Clone)]
 /// Allows indexing on any flexbuffer vector type, (heterogenous vector, typed vector, or fixed
@@ -22,13 +23,13 @@ use crate::{BitWidth, FlexBufferType};
 /// VectorReaders may be indexed with usize, `index` returns a result type
 /// which may indicate failure due to indexing out of bounds or bad data. `idx` returns a
 /// Null Reader in the event of any failure.
-pub struct VectorReader<'de> {
-    pub(super) reader: Reader<'de>,
+pub struct VectorReader<B> {
+    pub(super) reader: Reader<B>,
     // Cache the length because read_usize can be slow.
     pub(super) length: usize,
 }
 
-impl<'de> VectorReader<'de> {
+impl<B: FlexBuffer> VectorReader<B> {
     /// Returns the number of elements in the vector.
     pub fn len(&self) -> usize {
         self.length
@@ -44,31 +45,33 @@ impl<'de> VectorReader<'de> {
             let types_addr = self.reader.address + self.length * self.reader.width.n_bytes();
             self.reader
                 .buffer
+                .as_ref()
                 .get(types_addr + i)
                 .ok_or(Error::FlexbufferOutOfBounds)
                 .and_then(|&t| unpack_type(t))
         }
     }
     /// Index into a flexbuffer vector. Any errors are defaulted to Null Readers.
-    pub fn idx(&self, i: usize) -> Reader<'de> {
+    pub fn idx(&self, i: usize) -> Reader<B> {
         self.index(i).unwrap_or_default()
     }
     /// Index into a flexbuffer.
-    pub fn index(&self, i: usize) -> Result<Reader<'de>, Error> {
+    pub fn index(&self, i: usize) -> Result<Reader<B>, Error> {
         if i >= self.length {
             return Err(Error::IndexOutOfBounds);
         }
         let (fxb_type, bw) = self.get_elem_type(i)?;
         let data_address = self.reader.address + self.reader.width.n_bytes() * i;
         Reader::new(
-            self.reader.buffer,
+            self.reader.buffer.clone(),
             data_address,
             fxb_type,
             bw,
             self.reader.width,
         )
     }
-    pub fn iter(&self) -> ReaderIterator<'de> {
+
+    pub fn iter(&self) -> ReaderIterator<B> {
         ReaderIterator::new(self.clone())
     }
 }
