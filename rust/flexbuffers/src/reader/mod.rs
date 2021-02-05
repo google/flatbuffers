@@ -293,7 +293,7 @@ impl<B: FlexBuffer> Reader<B> {
         let (pre, mid, suf) = slice.align_to::<T>();
         if pre.is_empty() && suf.is_empty() {
             // TODO: Test that this works the same way as before
-            Ok(self.buffer.slice(pre.len()..mid.len()))
+            Ok(self.buffer.slice(pre.len()..mid.len() + pre.len()))
         } else {
             Err(Error::AlignmentError)
         }
