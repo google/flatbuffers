@@ -238,22 +238,23 @@ impl<'de> Deserializer<'de> for crate::Reader<BufferSlice<'de>> {
     where
         V: Visitor<'de>,
     {
-        let (variant, value) = match self.fxb_type {
-            FlexBufferType::String => (self.as_str(), None),
-            FlexBufferType::Map => {
-                let m = self.get_map()?;
-                let variant = m.keys_vector().idx(0).get_key()?;
-                let value = Some(m.idx(0));
-                (variant, value)
-            }
-            _ => {
-                return Err(Error::UnexpectedFlexbufferType {
-                    expected: FlexBufferType::Map,
-                    actual: self.fxb_type,
-                }
-                .into());
-            }
-        };
-        visitor.visit_enum(EnumReader { variant, value })
+        todo!("Fix lifetime issues");
+        //let (variant, value) = match self.fxb_type {
+            //FlexBufferType::String => (self.as_str(), None),
+            //FlexBufferType::Map => {
+                //let m = self.get_map()?;
+                //let variant = m.keys_vector().idx(0).get_key()?;
+                //let value = Some(m.idx(0));
+                //(variant, value)
+            //}
+            //_ => {
+                //return Err(Error::UnexpectedFlexbufferType {
+                    //expected: FlexBufferType::Map,
+                    //actual: self.fxb_type,
+                //}
+                //.into());
+            //}
+        //};
+        //visitor.visit_enum(EnumReader { variant, value })
     }
 }
