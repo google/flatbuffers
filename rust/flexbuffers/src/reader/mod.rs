@@ -274,28 +274,29 @@ impl<B: FlexBuffer> Reader<B> {
     /// Returns Err if the type, bitwidth, or memory alignment does not match. Since the bitwidth is
     /// dynamic, its better to use a VectorReader unless you know your data and performance is critical.
     #[cfg(target_endian = "little")]
-    pub fn get_slice<T: ReadLE>(&self) -> Result<&[T], Error> {
-        todo!("FIX THIS");
-        //if self.flexbuffer_type().typed_vector_type() != T::VECTOR_TYPE.typed_vector_type() {
-            //self.expect_type(T::VECTOR_TYPE)?;
-        //}
-        //if self.bitwidth().n_bytes() != std::mem::size_of::<T>() {
-            //self.expect_bw(T::WIDTH)?;
-        //}
-        //let end = self.address + self.length() * std::mem::size_of::<T>();
-        //let slice = &self
-            //.buffer
-            //.get(self.address..end)
-            //.ok_or(Error::FlexbufferOutOfBounds)?;
-        //// `align_to` is required because the point of this function is to directly hand back a
-        //// slice of scalars. This can fail because Rust's default allocator is not 16byte aligned
-        //// (though in practice this only happens for small buffers).
-        //let (pre, mid, suf) = slice.align_to::<T>();
-        //if pre.is_empty() && suf.is_empty() {
-            //Ok(mid)
-        //} else {
-            //Err(Error::AlignmentError)
-        //}
+    pub fn get_slice<T: ReadLE>(&self) -> Result<B, Error> {
+        if self.flexbuffer_type().typed_vector_type() != T::VECTOR_TYPE.typed_vector_type() {
+            self.expect_type(T::VECTOR_TYPE)?;
+        }
+        if self.bitwidth().n_bytes() != std::mem::size_of::<T>() {
+            self.expect_bw(T::WIDTH)?;
+        }
+        let end = self.address + self.length() * std::mem::size_of::<T>();
+        let slice = &self
+            .buffer
+            .get(self.address..end)
+            .ok_or(Error::FlexbufferOutOfBounds)?;
+
+        // `align_to` is required because the point of this function is to directly hand back a
+        // slice of scalars. This can fail because Rust's default allocator is not 16byte aligned
+        // (though in practice this only happens for small buffers).
+        let (pre, mid, suf) = slice.align_to::<T>();
+        if pre.is_empty() && suf.is_empty() {
+            // TODO: Test that this works the same way as before
+            Ok(self.buffer.slice(pre.len()..mid.len()))
+        } else {
+            Err(Error::AlignmentError)
+        }
     }
 
     /// Returns the value of the reader if it is a boolean.
