@@ -107,8 +107,14 @@ impl std::fmt::Debug for InParentNamespace<'_> {
   }
 }
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct InParentNamespaceT {
+}
+impl Default for InParentNamespaceT {
+  fn default() -> Self {
+    Self {
+    }
+  }
 }
 impl InParentNamespaceT {
   pub fn pack<'b>(
@@ -215,8 +221,14 @@ impl std::fmt::Debug for Monster<'_> {
   }
 }
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct MonsterT {
+}
+impl Default for MonsterT {
+  fn default() -> Self {
+    Self {
+    }
+  }
 }
 impl MonsterT {
   pub fn pack<'b>(
@@ -1599,9 +1611,16 @@ impl std::fmt::Debug for TestSimpleTableWithEnum<'_> {
   }
 }
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct TestSimpleTableWithEnumT {
   pub color: Color,
+}
+impl Default for TestSimpleTableWithEnumT {
+  fn default() -> Self {
+    Self {
+      color: Color::Green,
+    }
+  }
 }
 impl TestSimpleTableWithEnumT {
   pub fn pack<'b>(
@@ -1760,11 +1779,20 @@ impl std::fmt::Debug for Stat<'_> {
   }
 }
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct StatT {
   pub id: Option<String>,
   pub val: i64,
   pub count: u16,
+}
+impl Default for StatT {
+  fn default() -> Self {
+    Self {
+      id: None,
+      val: 0,
+      count: 0,
+    }
+  }
 }
 impl StatT {
   pub fn pack<'b>(
@@ -1895,9 +1923,16 @@ impl std::fmt::Debug for Referrable<'_> {
   }
 }
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ReferrableT {
   pub id: u64,
+}
+impl Default for ReferrableT {
+  fn default() -> Self {
+    Self {
+      id: 0,
+    }
+  }
 }
 impl ReferrableT {
   pub fn pack<'b>(
@@ -3107,7 +3142,7 @@ impl std::fmt::Debug for Monster<'_> {
   }
 }
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct MonsterT {
   pub pos: Option<Vec3T>,
   pub mana: i16,
@@ -3156,6 +3191,59 @@ pub struct MonsterT {
   pub signed_enum: Race,
   pub testrequirednestedflatbuffer: Option<Vec<u8>>,
   pub scalar_key_sorted_tables: Option<Vec<StatT>>,
+}
+impl Default for MonsterT {
+  fn default() -> Self {
+    Self {
+      pos: None,
+      mana: 150,
+      hp: 100,
+      name: String::new(),
+      inventory: None,
+      color: Color::Blue,
+      test: AnyT::NONE,
+      test4: None,
+      testarrayofstring: None,
+      testarrayoftables: None,
+      enemy: None,
+      testnestedflatbuffer: None,
+      testempty: None,
+      testbool: false,
+      testhashs32_fnv1: 0,
+      testhashu32_fnv1: 0,
+      testhashs64_fnv1: 0,
+      testhashu64_fnv1: 0,
+      testhashs32_fnv1a: 0,
+      testhashu32_fnv1a: 0,
+      testhashs64_fnv1a: 0,
+      testhashu64_fnv1a: 0,
+      testarrayofbools: None,
+      testf: 3.14159,
+      testf2: 3.0,
+      testf3: 0.0,
+      testarrayofstring2: None,
+      testarrayofsortedstruct: None,
+      flex: None,
+      test5: None,
+      vector_of_longs: None,
+      vector_of_doubles: None,
+      parent_namespace_test: None,
+      vector_of_referrables: None,
+      single_weak_reference: 0,
+      vector_of_weak_references: None,
+      vector_of_strong_referrables: None,
+      co_owning_reference: 0,
+      vector_of_co_owning_references: None,
+      non_owning_reference: 0,
+      vector_of_non_owning_references: None,
+      any_unique: AnyUniqueAliasesT::NONE,
+      any_ambiguous: AnyAmbiguousAliasesT::NONE,
+      vector_of_enums: None,
+      signed_enum: Race::None,
+      testrequirednestedflatbuffer: None,
+      scalar_key_sorted_tables: None,
+    }
+  }
 }
 impl MonsterT {
   pub fn pack<'b>(
@@ -3598,7 +3686,7 @@ impl std::fmt::Debug for TypeAliases<'_> {
   }
 }
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct TypeAliasesT {
   pub i8_: i8,
   pub u8_: u8,
@@ -3612,6 +3700,24 @@ pub struct TypeAliasesT {
   pub f64_: f64,
   pub v8: Option<Vec<i8>>,
   pub vf64: Option<Vec<f64>>,
+}
+impl Default for TypeAliasesT {
+  fn default() -> Self {
+    Self {
+      i8_: 0,
+      u8_: 0,
+      i16_: 0,
+      u16_: 0,
+      i32_: 0,
+      u32_: 0,
+      i64_: 0,
+      u64_: 0,
+      f32_: 0.0,
+      f64_: 0.0,
+      v8: None,
+      vf64: None,
+    }
+  }
 }
 impl TypeAliasesT {
   pub fn pack<'b>(

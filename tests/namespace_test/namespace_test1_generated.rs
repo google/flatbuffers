@@ -492,9 +492,16 @@ impl std::fmt::Debug for TableInNestedNS<'_> {
   }
 }
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct TableInNestedNST {
   pub foo: i32,
+}
+impl Default for TableInNestedNST {
+  fn default() -> Self {
+    Self {
+      foo: 0,
+    }
+  }
 }
 impl TableInNestedNST {
   pub fn pack<'b>(
