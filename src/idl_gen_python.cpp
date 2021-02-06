@@ -130,7 +130,8 @@ class PythonGenerator : public BaseGenerator {
     code += "\n";
     code += Indent + Indent;
     code += "buf = flatbuffers.compat.memoryview_type(buf) ";
-    code += "if not isinstance(buf, flatbuffers.compat.memoryview_type) else buf";
+    code += "if not isinstance(buf, flatbuffers.compat.memoryview_type) ";
+    code += "else buf";
     code += "\n";
     code += Indent + Indent;
     code += "n = flatbuffers.encode.Get";
