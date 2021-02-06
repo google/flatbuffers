@@ -146,7 +146,11 @@ export class ByteBuffer {
       this.writeInt32(offset, int32[isLittleEndian ? 0 : 1]);
       this.writeInt32(offset + 4, int32[isLittleEndian ? 1 : 0]);
     }
-  
+
+    writeBytes(offset: number, bytes: ArrayBuffer, length: number) {
+      this.bytes_.set(new Uint8Array(bytes, 0, length), offset)
+    }
+
     /**
      * Return the file identifier.   Behavior is undefined for FlatBuffers whose
      * schema does not include a file_identifier (likely points at padding or the

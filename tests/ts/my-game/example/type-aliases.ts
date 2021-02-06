@@ -264,17 +264,8 @@ static addV8(builder:flatbuffers.Builder, v8Offset:flatbuffers.Offset) {
   builder.addFieldOffset(10, v8Offset, 0);
 }
 
-static createV8Vector(builder:flatbuffers.Builder, data:number[]|Int8Array):flatbuffers.Offset;
-/**
- * @deprecated This Uint8Array overload will be removed in the future.
- */
-static createV8Vector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset;
-static createV8Vector(builder:flatbuffers.Builder, data:number[]|Int8Array|Uint8Array):flatbuffers.Offset {
-  builder.startVector(1, data.length, 1);
-  for (let i = data.length - 1; i >= 0; i--) {
-    builder.addInt8(data[i]);
-  }
-  return builder.endVector();
+static createV8Vector(builder:flatbuffers.Builder, data:number[]|Int8Array):flatbuffers.Offset {
+  return builder.createInt8Vector(data);
 }
 
 static startV8Vector(builder:flatbuffers.Builder, numElems:number) {
@@ -285,17 +276,8 @@ static addVf64(builder:flatbuffers.Builder, vf64Offset:flatbuffers.Offset) {
   builder.addFieldOffset(11, vf64Offset, 0);
 }
 
-static createVf64Vector(builder:flatbuffers.Builder, data:number[]|Float64Array):flatbuffers.Offset;
-/**
- * @deprecated This Uint8Array overload will be removed in the future.
- */
-static createVf64Vector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset;
-static createVf64Vector(builder:flatbuffers.Builder, data:number[]|Float64Array|Uint8Array):flatbuffers.Offset {
-  builder.startVector(8, data.length, 8);
-  for (let i = data.length - 1; i >= 0; i--) {
-    builder.addFloat64(data[i]);
-  }
-  return builder.endVector();
+static createVf64Vector(builder:flatbuffers.Builder, data:number[]|Float64Array):flatbuffers.Offset {
+  return builder.createFloat64Vector(data);
 }
 
 static startVf64Vector(builder:flatbuffers.Builder, numElems:number) {

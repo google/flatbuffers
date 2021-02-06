@@ -189,6 +189,20 @@ class TsGenerator : public BaseGenerator {
     }
   }
 
+  static bool HasTypedCreateVector(const Type &type) {
+    switch (type.base_type) {
+      case BASE_TYPE_CHAR:
+      case BASE_TYPE_UCHAR:
+      case BASE_TYPE_SHORT:
+      case BASE_TYPE_USHORT:
+      case BASE_TYPE_INT:
+      case BASE_TYPE_UINT:
+      case BASE_TYPE_FLOAT:
+      case BASE_TYPE_DOUBLE: return true;
+      default: return false;
+    }
+  }
+
   std::string GenGetter(const Type &type, const std::string &arguments) {
     switch (type.base_type) {
       case BASE_TYPE_STRING: return GenBBAccess() + ".__string" + arguments;
@@ -1439,30 +1453,22 @@ class TsGenerator : public BaseGenerator {
                 GenTypeName(imports, struct_def, vector_type, true) + "[]";
             if (type == "number[]") {
               const auto &array_type = GenType(vector_type);
-              // the old type should be deprecated in the future
-              std::string type_old = "number[]|Uint8Array";
-              std::string type_new = "number[]|" + array_type + "Array";
-              if (type_old == type_new) {
-                type = type_new;
-              } else {
-                // add function overloads
-                code += sig_begin + type_new + sig_end + ";\n";
-                code +=
-                    "/**\n * @deprecated This Uint8Array overload will "
-                    "be removed in the future.\n */\n";
-                code += sig_begin + type_old + sig_end + ";\n";
-                type = type_new + "|Uint8Array";
-              }
+              type = "number[]|" + array_type + "Array";
             }
             code += sig_begin + type + sig_end + " {\n";
-            code += "  builder.startVector(" + NumToString(elem_size);
-            code += ", data.length, " + NumToString(alignment) + ");\n";
-            code += "  for (let i = data.length - 1; i >= 0; i--) {\n";
-            code += "    builder.add" + GenWriteMethod(vector_type) + "(";
-            if (vector_type.base_type == BASE_TYPE_BOOL) { code += "+"; }
-            code += "data[i]);\n";
-            code += "  }\n";
-            code += "  return builder.endVector();\n";
+            if (HasTypedCreateVector(vector_type)) {
+              const auto &array_type = GenType(vector_type);
+              code += "  return builder.create" + array_type + "Vector(data);\n";
+            } else {
+              code += "  builder.startVector(" + NumToString(elem_size);
+              code += ", data.length, " + NumToString(alignment) + ");\n";
+              code += "  for (var i = data.length - 1; i >= 0; i--) {\n";
+              code += "    builder.add" + GenWriteMethod(vector_type) + "(";
+              if (vector_type.base_type == BASE_TYPE_BOOL) { code += "+"; }
+              code += "data[i]);\n";
+              code += "  }\n";
+              code += "  return builder.endVector();\n";
+            }
             code += "}\n\n";
           }
 
