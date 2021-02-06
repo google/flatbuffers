@@ -23,7 +23,7 @@ mod de;
 mod iter;
 mod map;
 mod vector;
-pub use de::DeserializationError;
+pub use de::{ReaderDeserializer, DeserializationError};
 pub use iter::ReaderIterator;
 pub use map::{MapReader, MapReaderIndexer};
 pub use vector::VectorReader;

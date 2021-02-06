@@ -56,7 +56,7 @@ pub use builder::{
 pub use flexbuffer_type::FlexBufferType;
 pub use flexbuffer::FlexBuffer;
 pub use reader::Error as ReaderError;
-pub use reader::{DeserializationError, MapReader, Reader, ReaderIterator, VectorReader};
+pub use reader::{ReaderDeserializer, DeserializationError, MapReader, Reader, ReaderIterator, VectorReader};
 use serde::{Deserialize, Serialize};
 
 mod private {
@@ -72,7 +72,7 @@ pub fn to_vec<T: Serialize>(x: T) -> Result<Vec<u8>, SerializationError> {
 
 /// Deserialize a type from a flexbuffer.
 pub fn from_slice<'de, T: Deserialize<'de>>(buf: &'de [u8]) -> Result<T, DeserializationError> {
-    let r = Reader::get_root(buf)?;
+    let r = ReaderDeserializer::new(Reader::get_root(buf)?);
     T::deserialize(r)
 }
 

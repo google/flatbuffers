@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::marker::PhantomData;
+
 use super::Error;
 use crate::{FlexBuffer, FlexBufferType, Reader, ReaderIterator};
 use serde::de::{
@@ -19,9 +21,59 @@ use serde::de::{
     VariantAccess, Visitor,
 };
 
-type BufferSlice<'de> = &'de [u8];
+pub struct ReaderDeserializer<'de, B> {
+    inner: Reader<B>,
+    lifetime: PhantomData<&'de B>
+}
 
-struct ReaderRef<'de, B>(&'de Reader<B>);
+impl<'de, B: 'de + FlexBuffer> ReaderDeserializer<'de, B> {
+    pub fn new(reader: Reader<B>) -> Self {
+        Self {
+            inner: reader,
+            lifetime: PhantomData
+        }
+    }
+
+    /// Pointer returned is ensured to live long enough b/c of the PhantomData struct.
+    #[inline]
+    pub fn inner(&self) -> &'de Reader<B> {
+        let inner: *const Reader<B> = &self.inner;
+        unsafe { inner.as_ref().unwrap() } // Value will never be `null`
+    }
+
+    /// Mutable pointer returned is ensured to live long enough b/c of the PhantomData struct.
+    #[inline]
+    pub fn inner_mut(&mut self) -> &'de mut Reader<B> {
+        let inner: *mut Reader<B> = &mut self.inner;
+        unsafe { inner.as_mut().unwrap() } // Value will never be `null`
+    }
+}
+
+struct ReaderDeserializerIterator<'de, B>{
+    inner: ReaderIterator<B>,
+    lifetime: PhantomData<&'de B>
+}
+
+impl<'de, B: 'de + FlexBuffer> ReaderDeserializerIterator<'de, B> {
+    pub fn new(iterator: ReaderIterator<B>) -> Self {
+        Self {
+            inner: iterator,
+            lifetime: PhantomData
+        }
+    }
+} 
+
+impl<'de, B: 'de + FlexBuffer> Iterator for ReaderDeserializerIterator<'de, B> {
+    type Item = ReaderDeserializer<'de, B>;
+    
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Some(reader) = self.inner.next() {
+            Some(ReaderDeserializer::new(reader))
+        } else {
+            None
+        }
+    }
+}
 
 /// Errors that may happen when deserializing a flexbuffer with serde.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -53,21 +105,7 @@ impl std::convert::From<super::Error> for DeserializationError {
     }
 }
 
-struct ReaderIteratorRef<'de, B>(&'de ReaderIterator<B>);
-
-impl<'de, B: FlexBuffer> Iterator for ReaderIteratorRef<'de, B> {
-    type Item = ReaderRef<'de, B>;
-    
-    fn next(&mut self) -> Option<Self::Item> {
-        if let Some(reader) = self.0.next() {
-            Some(ReaderRef(&reader))
-        } else {
-            None
-        }
-    }
-}
-
-impl<'de, B: FlexBuffer> SeqAccess<'de> for ReaderIteratorRef<'de, B> {
+impl<'de, B: 'de + FlexBuffer> SeqAccess<'de> for ReaderDeserializerIterator<'de, B> {
     type Error = DeserializationError;
 
     fn next_element_seed<T>(
@@ -86,7 +124,7 @@ impl<'de, B: FlexBuffer> SeqAccess<'de> for ReaderIteratorRef<'de, B> {
     }
 
     fn size_hint(&self) -> Option<usize> {
-        Some(self.0.len())
+        Some(self.inner.len())
     }
 }
 
@@ -97,33 +135,31 @@ struct EnumReader<'de, B> {
 
 impl<'de, B: 'de + FlexBuffer> EnumAccess<'de> for EnumReader<'de, B> {
     type Error = DeserializationError;
-    type Variant = ReaderRef<'de, B>;
+    type Variant = ReaderDeserializer<'de, B>;
 
     fn variant_seed<V>(self, seed: V) -> Result<(V::Value, Self::Variant), Self::Error>
     where
         V: DeserializeSeed<'de>,
     {
         seed.deserialize(self.variant.into_deserializer())
-            .map(|v| (v, ReaderRef(&self.value.unwrap_or_default())))
+            .map(|v| (v, ReaderDeserializer::new(self.value.unwrap_or_default())))
     }
 }
 
-struct MapAccessor<B> {
-    keys: ReaderIterator<B>,
-    vals: ReaderIterator<B>,
+struct MapAccessor<'de, B> {
+    keys: ReaderDeserializerIterator<'de, B>,
+    vals: ReaderDeserializerIterator<'de, B>,
 }
 
-struct MapAccessorRef<'de, B>(&'de MapAccessor<B>);
-
-impl<'de, B: FlexBuffer> MapAccess<'de> for MapAccessorRef<'de, B> {
+impl<'de, B: 'de + FlexBuffer> MapAccess<'de> for MapAccessor<'de, B> {
     type Error = DeserializationError;
 
     fn next_key_seed<K>(&mut self, seed: K) -> Result<Option<K::Value>, Self::Error>
     where
         K: DeserializeSeed<'de>,
     {
-        if let Some(k) = self.0.keys.next() {
-            seed.deserialize(ReaderRef(&k)).map(Some)
+        if let Some(k) = self.keys.next() {
+            seed.deserialize(k).map(Some)
         } else {
             Ok(None)
         }
@@ -133,12 +169,12 @@ impl<'de, B: FlexBuffer> MapAccess<'de> for MapAccessorRef<'de, B> {
     where
         V: DeserializeSeed<'de>,
     {
-        let val = self.0.vals.next().ok_or(Error::IndexOutOfBounds)?;
-        seed.deserialize(ReaderRef(&val))
+        let val = self.vals.next().ok_or(Error::IndexOutOfBounds)?;
+        seed.deserialize(val)
     }
 }
 
-impl<'de, B: FlexBuffer> VariantAccess<'de> for ReaderRef<'de, B> {
+impl<'de, B: 'de + FlexBuffer> VariantAccess<'de> for ReaderDeserializer<'de, B> {
     type Error = DeserializationError;
 
     fn unit_variant(self) -> Result<(), Self::Error> {
@@ -158,7 +194,7 @@ impl<'de, B: FlexBuffer> VariantAccess<'de> for ReaderRef<'de, B> {
     where
         V: Visitor<'de>,
     {
-        visitor.visit_seq(ReaderIteratorRef(&self.0.as_vector().iter()))
+        visitor.visit_seq(ReaderDeserializerIterator::new(self.inner.as_vector().iter()))
     }
 
     // Struct variants have an internally tagged representation. They are vectors where Index 0 is
@@ -171,15 +207,15 @@ impl<'de, B: FlexBuffer> VariantAccess<'de> for ReaderRef<'de, B> {
     where
         V: Visitor<'de>,
     {
-        let m = self.0.get_map()?;
-        visitor.visit_map(MapAccessorRef(&MapAccessor {
-            keys: m.keys_vector().iter(),
-            vals: m.iter_values(),
-        }))
+        let m = self.inner.get_map()?;
+        visitor.visit_map(MapAccessor {
+            keys: ReaderDeserializerIterator::new(m.keys_vector().iter()),
+            vals: ReaderDeserializerIterator::new(m.iter_values()),
+        })
     }
 }
 
-impl<'de, B: FlexBuffer> Deserializer<'de> for ReaderRef<'de, B> {
+impl<'de, B: 'de + FlexBuffer> Deserializer<'de> for ReaderDeserializer<'de, B> {
     type Error = DeserializationError;
     fn is_human_readable(&self) -> bool {
         cfg!(deserialize_human_readable)
@@ -191,30 +227,31 @@ impl<'de, B: FlexBuffer> Deserializer<'de> for ReaderRef<'de, B> {
     {
         use crate::BitWidth::*;
         use crate::FlexBufferType::*;
-        match (self.0.flexbuffer_type(), self.0.bitwidth()) {
-            (Bool, _) => visitor.visit_bool(self.0.as_bool()),
-            (UInt, W8) => visitor.visit_u8(self.0.as_u8()),
-            (UInt, W16) => visitor.visit_u16(self.0.as_u16()),
-            (UInt, W32) => visitor.visit_u32(self.0.as_u32()),
-            (UInt, W64) => visitor.visit_u64(self.0.as_u64()),
-            (Int, W8) => visitor.visit_i8(self.0.as_i8()),
-            (Int, W16) => visitor.visit_i16(self.0.as_i16()),
-            (Int, W32) => visitor.visit_i32(self.0.as_i32()),
-            (Int, W64) => visitor.visit_i64(self.0.as_i64()),
-            (Float, W32) => visitor.visit_f32(self.0.as_f32()),
-            (Float, W64) => visitor.visit_f64(self.0.as_f64()),
+        match (self.inner.flexbuffer_type(), self.inner.bitwidth()) {
+            (Bool, _) => visitor.visit_bool(self.inner.as_bool()),
+            (UInt, W8) => visitor.visit_u8(self.inner.as_u8()),
+            (UInt, W16) => visitor.visit_u16(self.inner.as_u16()),
+            (UInt, W32) => visitor.visit_u32(self.inner.as_u32()),
+            (UInt, W64) => visitor.visit_u64(self.inner.as_u64()),
+            (Int, W8) => visitor.visit_i8(self.inner.as_i8()),
+            (Int, W16) => visitor.visit_i16(self.inner.as_i16()),
+            (Int, W32) => visitor.visit_i32(self.inner.as_i32()),
+            (Int, W64) => visitor.visit_i64(self.inner.as_i64()),
+            (Float, W32) => visitor.visit_f32(self.inner.as_f32()),
+            (Float, W64) => visitor.visit_f64(self.inner.as_f64()),
             (Float, _) => Err(Error::InvalidPackedType.into()), // f8 and f16 are not supported.
             (Null, _) => visitor.visit_unit(),
-            (String, _) | (Key, _) => visitor.visit_borrowed_str(self.0.as_str()),
-            (Blob, _) => visitor.visit_borrowed_bytes(self.0.get_blob()?.0.as_ref()),
+            (String, _) | (Key, _) => visitor.visit_borrowed_str(self.inner().as_str()),
+            // FIXME: Lifetime issue
+            (Blob, _) => visitor.visit_bytes(self.inner.get_blob()?.0.as_ref()),
             (Map, _) => {
-                let m = self.0.get_map()?;
-                visitor.visit_map(MapAccessorRef(&MapAccessor {
-                    keys: m.keys_vector().iter(),
-                    vals: m.iter_values(),
-                }))
+                let m = self.inner.get_map()?;
+                visitor.visit_map(MapAccessor {
+                    keys: ReaderDeserializerIterator::new(m.keys_vector().iter()),
+                    vals: ReaderDeserializerIterator::new(m.iter_values()),
+                })
             }
-            (ty, _) if ty.is_vector() => visitor.visit_seq(ReaderIteratorRef(&self.0.as_vector().iter())),
+            (ty, _) if ty.is_vector() => visitor.visit_seq(ReaderDeserializerIterator::new(self.inner.as_vector().iter())),
             (ty, bw) => unreachable!("TODO deserialize_any {:?} {:?}.", ty, bw),
         }
     }
@@ -228,21 +265,21 @@ impl<'de, B: FlexBuffer> Deserializer<'de> for ReaderRef<'de, B> {
     where
         V: Visitor<'de>,
     {
-        visitor.visit_char(self.0.as_u8() as char)
+        visitor.visit_char(self.inner.as_u8() as char)
     }
 
     fn deserialize_byte_buf<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        visitor.visit_byte_buf(self.0.get_blob()?.0.as_ref().to_vec())
+        visitor.visit_byte_buf(self.inner.get_blob()?.0.as_ref().to_vec())
     }
 
     fn deserialize_option<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        if self.0.flexbuffer_type() == FlexBufferType::Null {
+        if self.inner.flexbuffer_type() == FlexBufferType::Null {
             visitor.visit_none()
         } else {
             visitor.visit_some(self)
@@ -269,18 +306,19 @@ impl<'de, B: FlexBuffer> Deserializer<'de> for ReaderRef<'de, B> {
     where
         V: Visitor<'de>,
     {
-        let (variant, value) = match self.0.fxb_type {
-            FlexBufferType::String => (self.0.as_str(), None),
+        let (variant, value) = match self.inner.fxb_type {
+            FlexBufferType::String => (self.inner().as_str(), None),
             FlexBufferType::Map => {
-                let m = self.0.get_map()?;
-                let variant = m.keys_vector().idx(0).get_key()?;
+                let m = self.inner().get_map()?;
+                let variant: *const str = m.keys_vector().idx(0).get_key()?;
                 let value = Some(m.idx(0));
-                (variant, value)
+                // FIXME: Lifetime issue
+                (unsafe { variant.as_ref().unwrap() }, value)
             }
             _ => {
                 return Err(Error::UnexpectedFlexbufferType {
                     expected: FlexBufferType::Map,
-                    actual: self.0.fxb_type,
+                    actual: self.inner.fxb_type,
                 }
                 .into());
             }
