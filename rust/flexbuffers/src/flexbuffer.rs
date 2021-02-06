@@ -4,7 +4,7 @@ use std::fmt::Debug;
 
 use crate::reader::ReadLE;
 
-pub trait FlexBuffer<Unsigned = u8>: Debug + PartialEq + IntoIterator + AsRef<[Unsigned]> + Default + Clone {
+pub trait FlexBuffer: Debug + PartialEq + IntoIterator + AsRef<[u8]> + Default + Clone {
     /// Gets the length of the current buffer.
     fn len(&self) -> usize;
 
