@@ -139,7 +139,7 @@ impl<B: FlexBuffer> MapReader<B> {
     {
         use std::str::FromStr;
         //// FIXME(colindjk) Resolve lifetime issue -> change API?
-        self.keys_vector().iter().map(|k| String::from_str(std::str::from_utf8(k.buffer.as_ref()).unwrap()).unwrap())
+        self.keys_vector().iter().map(|k| String::from_str(k.as_str()).unwrap())
     }
 
     pub fn keys_vector(&self) -> VectorReader<B> {
