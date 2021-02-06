@@ -32,7 +32,8 @@ def GetVectorAsNumpy(numpy_type, buf, count, offset):
     if np is not None:
         # TODO: could set .flags.writeable = False to make users jump through
         #       hoops before modifying...
-        return np.frombuffer(buf, dtype=numpy_type, count=count, offset=offset)
+        # NOTE: np.frombuffer raises error with python 2.7 memoryview
+        return np.frombuffer(buf.tobytes(), dtype=numpy_type, count=count, offset=offset)
     else:
         raise NumpyRequiredForThisFeature('Numpy was not found.')
 
