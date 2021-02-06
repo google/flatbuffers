@@ -79,7 +79,6 @@ cc_library(
     ],
     hdrs = [
         "python_generator.h",
-        "python_private_generator.h",
         ":common_headers",
     ],
     include_prefix = "src/compiler",
