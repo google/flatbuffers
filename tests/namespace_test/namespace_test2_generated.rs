@@ -491,9 +491,16 @@ impl std::fmt::Debug for TableInNestedNS<'_> {
   }
 }
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct TableInNestedNST {
   pub foo: i32,
+}
+impl Default for TableInNestedNST {
+  fn default() -> Self {
+    Self {
+      foo: 0,
+    }
+  }
 }
 impl TableInNestedNST {
   pub fn pack<'b>(
@@ -710,12 +717,22 @@ impl std::fmt::Debug for TableInFirstNS<'_> {
   }
 }
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct TableInFirstNST {
   pub foo_table: Option<Box<namespace_b::TableInNestedNST>>,
   pub foo_enum: namespace_b::EnumInNestedNS,
   pub foo_union: namespace_b::UnionInNestedNST,
   pub foo_struct: Option<namespace_b::StructInNestedNST>,
+}
+impl Default for TableInFirstNST {
+  fn default() -> Self {
+    Self {
+      foo_table: None,
+      foo_enum: namespace_b::EnumInNestedNS::A,
+      foo_union: namespace_b::UnionInNestedNST::NONE,
+      foo_struct: None,
+    }
+  }
 }
 impl TableInFirstNST {
   pub fn pack<'b>(
@@ -843,9 +860,16 @@ impl std::fmt::Debug for SecondTableInA<'_> {
   }
 }
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct SecondTableInAT {
   pub refer_to_c: Option<Box<super::namespace_c::TableInCT>>,
+}
+impl Default for SecondTableInAT {
+  fn default() -> Self {
+    Self {
+      refer_to_c: None,
+    }
+  }
 }
 impl SecondTableInAT {
   pub fn pack<'b>(
@@ -993,10 +1017,18 @@ impl std::fmt::Debug for TableInC<'_> {
   }
 }
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct TableInCT {
   pub refer_to_a1: Option<Box<super::namespace_a::TableInFirstNST>>,
   pub refer_to_a2: Option<Box<super::namespace_a::SecondTableInAT>>,
+}
+impl Default for TableInCT {
+  fn default() -> Self {
+    Self {
+      refer_to_a1: None,
+      refer_to_a2: None,
+    }
+  }
 }
 impl TableInCT {
   pub fn pack<'b>(
