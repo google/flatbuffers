@@ -938,6 +938,7 @@ class RustGenerator : public BaseGenerator {
       }
     }
     FLATBUFFERS_ASSERT("Unreachable.");
+    return "INVALID_CODE_GENERATION";
   }
 
   // Create the return type for fields in the *BuilderArgs structs that are
