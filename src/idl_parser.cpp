@@ -1460,8 +1460,8 @@ void SimpleQsort(T *begin, T *end, size_t width, F comparator, S swapper) {
 
 CheckedError Parser::ParseAlignAttribute(const std::string &align_constant,
                                          size_t min_align, size_t *align) {
-  // Use small temporary to avoid possible problems with size_t on Mac.
-  size_t align_value;
+  // Use uint8_t to avoid problems with size_t==`unsigned long` on LP64.
+  uint8_t align_value;
   if (StringToNumber(align_constant.c_str(), &align_value) &&
       VerifyAlignmentRequirements(static_cast<size_t>(align_value),
                                   min_align)) {

@@ -335,7 +335,8 @@ inline bool StringToFloatImpl(T *val, const char *const str) {
 // - If the converted value falls out of range of corresponding return type, a
 // range error occurs. In this case value MAX(T)/MIN(T) is returned.
 template<typename T> inline bool StringToNumber(const char *s, T *val) {
-  // Assert with size_t that is a distinguish unsigned 64-bit type on Mac.
+  // Assert on `unsigned long` and `signed long` on LP64.
+  // If it is necessary, it could be solved with flatbuffers::enable_if<B,T>.
   static_assert(sizeof(T) < sizeof(int64_t), "unexpected type T");
   FLATBUFFERS_ASSERT(s && val);
   int64_t i64;
