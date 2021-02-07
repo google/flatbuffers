@@ -894,9 +894,7 @@ class RustGenerator : public BaseGenerator {
     } else {
       // This for defaults in objects.
       // Unions have a NONE variant instead of using Rust's None.
-      if (field.IsOptional() && !IsUnion(field.value.type)) {
-        return "None";
-      }
+      if (field.IsOptional() && !IsUnion(field.value.type)) { return "None"; }
     }
     switch (GetFullType(field.value.type)) {
       case ftInteger:
