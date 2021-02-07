@@ -20,13 +20,9 @@ serialize_human_readable = []
 # You basically never need this to be true unless reading data from old binaries.
 deserialize_human_readable = []
 
-# Adds support for owned bytes, assists w/ tokio integration.
-tokio-bytes = ["bytes"]
-
 [dependencies]
 serde = "1.0.119"
 serde_derive = "1.0.119"
 byteorder = "1.4.2"
 num_enum = "0.5.1"
 bitflags = "1.2.1"
-bytes = { version = "1", optional = true }

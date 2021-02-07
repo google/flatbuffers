@@ -32,6 +32,7 @@ impl FlexBuffer for &[u8] {
     }
 
     /// Retrieves a slice of memory based on RangeBounds.
+    #[inline]
     fn slice(&self, range: impl RangeBounds<usize>) -> Self {
         // Taken from bytes::Bytes `slice` implementation.
         let len = self.len();
@@ -65,6 +66,7 @@ impl FlexBuffer for &[u8] {
     }
 
     /// Similar to [T]::get, get a value at an index.
+    #[inline]
     fn get<I>(&self, index: I) -> Option<&<I as SliceIndex<[u8]>>::Output>
         where I: SliceIndex<[u8]>
     {
@@ -79,77 +81,9 @@ impl FlexBuffer for &[u8] {
         (self.as_ptr() as usize).rem(8) == 0
     }
 
+    #[inline]
     unsafe fn align_to<L: ReadLE>(&self) -> (&[u8], &[L], &[u8]) {
         <[u8]>::align_to::<L>(self)
     }
 }
-
-//impl<'buf> FlexBuffer for FlexBufferSlice<'buf> {
-    //type BufferType = &'buf [u8];
-
-    //#[inline]
-    //fn len(&self) -> usize { self.buf.len() }
-
-    //#[inline]
-    //fn slice(&self, range: impl RangeBounds<usize>) -> Self {
-        //// Taken from bytes::Bytes `slice` implementation.
-        //let len = self.len();
-
-        //let begin = match range.start_bound() {
-            //Bound::Included(&n) => n,
-            //Bound::Excluded(&n) => n + 1,
-            //Bound::Unbounded => 0,
-        //};
-
-        //let end = match range.end_bound() {
-            //Bound::Included(&n) => n.checked_add(1).expect("out of range"),
-            //Bound::Excluded(&n) => n,
-            //Bound::Unbounded => len,
-        //};
-
-        //assert!(
-            //begin <= end,
-            //"range start must not be greater than end: {:?} <= {:?}",
-            //begin,
-            //end,
-        //);
-        //assert!(
-            //end <= len,
-            //"range end out of bounds: {:?} <= {:?}",
-            //end,
-            //len,
-        //);
-
-        //Self {
-            //buf: &self.buf[begin..end],
-        //}
-    //}
-//}
-
-//#[cfg(feature = "tokio-bytes")]
-//pub mod tokio_bytes {
-    //use std::ops::{RangeBounds};
-
-    //use bytes::{Bytes};
-    //use super::FlexBuffer;
-
-    //#[derive(Clone, Debug, PartialEq)]
-    //pub struct FlexBufferBytes {
-        //bytes: Bytes
-    //}
-
-    //impl FlexBuffer for FlexBufferBytes {
-        //type BufferType = Bytes;
-
-        //#[inline]
-        //fn len(&self) -> usize {
-            //self.bytes.len()
-        //}
-
-        //#[inline]
-        //fn slice(&self, range: impl RangeBounds<usize>) -> Self {
-            //Self { bytes: self.bytes.slice(range) }
-        //}
-    //}
-//}
 
