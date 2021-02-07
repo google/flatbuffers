@@ -22,6 +22,8 @@ import NIO
 
 class Greeter: GreeterProvider {
 
+  var interceptors: GreeterServerInterceptorFactoryProtocol?
+
   var hellos: [Message<HelloReply>] = []
 
   init() {
@@ -36,7 +38,7 @@ class Greeter: GreeterProvider {
   }
 
   func SayHello(
-    _ request: Message<HelloRequest>,
+    request: Message<HelloRequest>,
     context: StatusOnlyCallContext) -> EventLoopFuture<Message<HelloReply>>
   {
     let recipient = request.object.name ?? "Stranger"
