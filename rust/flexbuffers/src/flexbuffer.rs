@@ -21,7 +21,7 @@ pub trait FlexBuffer: Debug + PartialEq + IntoIterator + AsRef<[u8]> + Default +
     /// e.g. with `get_f64s` or `get_i16s`.
     fn is_aligned(&self) -> bool;
 
-    fn align_to<L: ReadLE>(&self) -> (&[u8], &[L], &[u8]);
+    unsafe fn align_to<L: ReadLE>(&self) -> (&[u8], &[L], &[u8]);
 }
 
 impl FlexBuffer for &[u8] {
@@ -79,8 +79,8 @@ impl FlexBuffer for &[u8] {
         (self.as_ptr() as usize).rem(8) == 0
     }
 
-    fn align_to<L: ReadLE>(&self) -> (&[u8], &[L], &[u8]) {
-        unsafe { <[u8]>::align_to::<L>(self) }
+    unsafe fn align_to<L: ReadLE>(&self) -> (&[u8], &[L], &[u8]) {
+        <[u8]>::align_to::<L>(self)
     }
 }
 

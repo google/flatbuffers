@@ -135,11 +135,12 @@ impl<B: FlexBuffer> MapReader<B> {
     //// Iterate over the keys of the map.
     pub fn iter_keys(
         &self,
-    ) -> impl Iterator<Item = String> + DoubleEndedIterator + ExactSizeIterator + FusedIterator
+    ) -> impl Iterator<Item = &str> + DoubleEndedIterator + ExactSizeIterator + FusedIterator
     {
-        use std::str::FromStr;
-        //// FIXME(colindjk) Resolve lifetime issue -> change API?
-        self.keys_vector().iter().map(|k| String::from_str(k.as_str()).unwrap())
+        unsafe {
+            // TODO(colindjk) is unsafe avoidable here?
+            self.keys_vector().iter().map(|k| (k.as_str() as *const str).as_ref().unwrap())
+        }
     }
 
     pub fn keys_vector(&self) -> VectorReader<B> {
