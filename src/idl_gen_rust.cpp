@@ -883,31 +883,60 @@ class RustGenerator : public BaseGenerator {
     return "VT_" + MakeUpper(Name(field));
   }
 
-  std::string GetDefaultScalarValue(const FieldDef &field) {
+  std::string GetDefaultValue(const FieldDef &field, bool for_builder) {
+    if (for_builder) {
+      // Builders and Args structs model nonscalars "optional" even if they're
+      // required or have defaults according to the schema. I guess its because
+      // WIPOffset is not nullable.
+      if (!IsScalar(field.value.type.base_type) || field.IsOptional()) {
+        return "None";
+      }
+    } else {
+      // This for defaults in objects.
+      // Unions have a NONE variant instead of using Rust's None.
+      if (field.IsOptional() && !IsUnion(field.value.type)) { return "None"; }
+    }
     switch (GetFullType(field.value.type)) {
       case ftInteger:
       case ftFloat: {
-        return field.IsOptional() ? "None" : field.value.constant;
+        return field.value.constant;
       }
       case ftBool: {
-        return field.IsOptional() ? "None"
-                              : field.value.constant == "0" ? "false" : "true";
+        return field.value.constant == "0" ? "false" : "true";
       }
       case ftUnionKey:
       case ftEnumKey: {
-        if (field.IsOptional()) { return "None"; }
         auto ev = field.value.type.enum_def->FindByValue(field.value.constant);
         if (!ev) return "Default::default()";  // Bitflags enum.
         return WrapInNameSpace(field.value.type.enum_def->defined_namespace,
                                GetEnumValue(*field.value.type.enum_def, *ev));
       }
-
-      // All pointer-ish types have a default value of None, because they are
-      // wrapped in Option.
-      default: {
-        return "None";
+      case ftUnionValue: {
+        return ObjectFieldType(field, true) + "::NONE";
+      }
+      case ftString: {
+        // Required strings.
+        return "String::new()";  // No default strings yet.
+      }
+      case ftVectorOfBool:
+      case ftVectorOfFloat:
+      case ftVectorOfInteger:
+      case ftVectorOfString:
+      case ftVectorOfStruct:
+      case ftVectorOfTable:
+      case ftVectorOfEnumKey:
+      case ftVectorOfUnionValue: {
+        // Required vectors.
+        return "Vec::new()";  // No default strings yet.
+      }
+      case ftStruct:
+      case ftTable: {
+        // Required struct/tables.
+        return "Default::default()";  // punt.
       }
     }
+    FLATBUFFERS_ASSERT("Unreachable.");
+    return "INVALID_CODE_GENERATION";
   }
 
   // Create the return type for fields in the *BuilderArgs structs that are
@@ -1138,14 +1167,14 @@ class RustGenerator : public BaseGenerator {
       case ftFloat: {
         const auto typname = GetTypeBasic(field.value.type);
         return (field.IsOptional() ? "self.fbb_.push_slot_always::<"
-                               : "self.fbb_.push_slot::<") +
+                                   : "self.fbb_.push_slot::<") +
                typname + ">";
       }
       case ftEnumKey:
       case ftUnionKey: {
         const auto underlying_typname = GetTypeBasic(type);
         return (field.IsOptional() ? "self.fbb_.push_slot_always::<"
-                               : "self.fbb_.push_slot::<") +
+                                   : "self.fbb_.push_slot::<") +
                underlying_typname + ">";
       }
 
@@ -1325,7 +1354,7 @@ class RustGenerator : public BaseGenerator {
     // Default-y fields (scalars so far) are neither optional nor required.
     const std::string default_value =
         !(field.IsOptional() || field.IsRequired())
-            ? "Some(" + GetDefaultScalarValue(field) + ")"
+            ? "Some(" + GetDefaultValue(field, /*builder=*/true) + ")"
             : "None";
     const std::string unwrap = field.IsOptional() ? "" : ".unwrap()";
 
@@ -1396,7 +1425,7 @@ class RustGenerator : public BaseGenerator {
       code_.SetValue("OFFSET_NAME", GetFieldOffsetName(field));
       code_.SetValue("OFFSET_VALUE", NumToString(field.value.offset));
       code_.SetValue("FIELD_NAME", Name(field));
-      code_.SetValue("DEFAULT_VALUE", GetDefaultScalarValue(field));
+      code_.SetValue("BLDR_DEF_VAL", GetDefaultValue(field, /*builder=*/true));
       cb(field);
     };
     const auto &fields = struct_def.fields.vec;
@@ -1769,7 +1798,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "    fn default() -> Self {";
     code_ += "        {{STRUCT_NAME}}Args {";
     ForAllTableFields(struct_def, [&](const FieldDef &field) {
-      code_ += "            {{FIELD_NAME}}: {{DEFAULT_VALUE}},\\";
+      code_ += "            {{FIELD_NAME}}: {{BLDR_DEF_VAL}},\\";
       code_ += field.IsRequired() ? " // required field" : "";
     });
     code_ += "        }";
@@ -1810,7 +1839,7 @@ class RustGenerator : public BaseGenerator {
       if (is_scalar && !field.IsOptional()) {
         code_ +=
             "    {{FUNC_BODY}}({{FIELD_OFFSET}}, {{FIELD_NAME}}, "
-            "{{DEFAULT_VALUE}});";
+            "{{BLDR_DEF_VAL}});";
       } else {
         code_ += "    {{FUNC_BODY}}({{FIELD_OFFSET}}, {{FIELD_NAME}});";
       }
@@ -1899,7 +1928,7 @@ class RustGenerator : public BaseGenerator {
 
     // Generate the native object.
     code_ += "#[non_exhaustive]";
-    code_ += "#[derive(Debug, Clone, PartialEq, Default)]";
+    code_ += "#[derive(Debug, Clone, PartialEq)]";
     code_ += "pub struct {{OBJECT_NAME}} {";
     ForAllObjectTableFields(table, [&](const FieldDef &field) {
       // Union objects combine both the union discriminant and value, so we
@@ -1907,6 +1936,18 @@ class RustGenerator : public BaseGenerator {
       if (field.value.type.base_type == BASE_TYPE_UTYPE) return;
       code_ += "  pub {{FIELD_NAME}}: {{FIELD_OBJECT_TYPE}},";
     });
+    code_ += "}";
+
+    code_ += "impl Default for {{OBJECT_NAME}} {";
+    code_ += "  fn default() -> Self {";
+    code_ += "    Self {";
+    ForAllObjectTableFields(table, [&](const FieldDef &field) {
+      if (field.value.type.base_type == BASE_TYPE_UTYPE) return;
+      std::string default_value = GetDefaultValue(field, /*builder=*/false);
+      code_ += "      {{FIELD_NAME}}: " + default_value + ",";
+    });
+    code_ += "    }";
+    code_ += "  }";
     code_ += "}";
 
     // TODO(cneo): Generate defaults for Native tables. However, since structs

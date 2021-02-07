@@ -698,7 +698,7 @@ impl std::fmt::Debug for Monster<'_> {
   }
 }
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct MonsterT {
   pub pos: Option<Vec3T>,
   pub mana: i16,
@@ -709,6 +709,21 @@ pub struct MonsterT {
   pub weapons: Option<Vec<WeaponT>>,
   pub equipped: EquipmentT,
   pub path: Option<Vec<Vec3T>>,
+}
+impl Default for MonsterT {
+  fn default() -> Self {
+    Self {
+      pos: None,
+      mana: 150,
+      hp: 100,
+      name: None,
+      inventory: None,
+      color: Color::Blue,
+      weapons: None,
+      equipped: EquipmentT::NONE,
+      path: None,
+    }
+  }
 }
 impl MonsterT {
   pub fn pack<'b>(
@@ -864,10 +879,18 @@ impl std::fmt::Debug for Weapon<'_> {
   }
 }
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct WeaponT {
   pub name: Option<String>,
   pub damage: i16,
+}
+impl Default for WeaponT {
+  fn default() -> Self {
+    Self {
+      name: None,
+      damage: 0,
+    }
+  }
 }
 impl WeaponT {
   pub fn pack<'b>(
