@@ -14,7 +14,6 @@
 
 use crate::builder::Builder;
 use crate::private::Sealed;
-use crate::FlexBuffer;
 use crate::{Blob, IndirectFloat, IndirectInt, IndirectUInt};
 
 impl<'de> Sealed for Blob<'de> {}
