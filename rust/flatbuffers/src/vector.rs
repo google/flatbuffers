@@ -27,6 +27,7 @@ use crate::endian_scalar::EndianScalar;
 use crate::follow::Follow;
 use crate::primitives::*;
 
+#[derive(Default)]
 pub struct Vector<'a, T: 'a>(&'a [u8], usize, PhantomData<T>);
 
 impl<'a, T> Debug for Vector<'a, T>

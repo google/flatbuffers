@@ -185,8 +185,8 @@ bool IsBitFlagsEnum(const FieldDef &field) {
 
 // TableArgs make required non-scalars "Option<_>".
 // TODO(cneo): Rework how we do defaults and stuff.
-bool IsOptionalOrRequiredNonScalar(const FieldDef &field) {
-    return field.IsOptional() || (field.IsRequired() && !IsScalar(field.value.type.base_type));
+bool IsOptionalToBuilder(const FieldDef &field) {
+    return field.IsOptional() || !IsScalar(field.value.type.base_type);
 }
 
 namespace rust {
@@ -889,8 +889,9 @@ class RustGenerator : public BaseGenerator {
     return "VT_" + MakeUpper(Name(field));
   }
 
-  std::string GetDefaultValue(const FieldDef &field, bool for_builder) {
-    if (for_builder) {
+  enum DefaultContext { kBuilder, kAccessor, kObject };
+  std::string GetDefaultValue(const FieldDef &field, const DefaultContext context) {
+    if (context == kBuilder) {
       // Builders and Args structs model nonscalars "optional" even if they're
       // required or have defaults according to the schema. I guess its because
       // WIPOffset is not nullable.
@@ -921,8 +922,16 @@ class RustGenerator : public BaseGenerator {
         return ObjectFieldType(field, true) + "::NONE";
       }
       case ftString: {
-        // Required strings.
-        return "String::new()";  // No default strings yet.
+        // Required fields do not have defaults defined by the schema, but we
+        // need one for Rust's Default trait so we use empty string. The usual
+        // value of field.value.constant is `0`, which is non-sensical except
+        // maybe to c++ (nullptr == 0).
+        // TODO: Escape strings?
+        const std::string defval =
+            field.IsRequired() ? "\"\"" : "\"" + field.value.constant + "\"";
+        if (context == kObject) return defval + ".to_string()";
+        if (context == kAccessor) return "&" + defval;
+        FLATBUFFERS_ASSERT("Unreachable.");
       }
       case ftVectorOfBool:
       case ftVectorOfFloat:
@@ -933,7 +942,11 @@ class RustGenerator : public BaseGenerator {
       case ftVectorOfEnumKey:
       case ftVectorOfUnionValue: {
         // Required vectors.
-        return "Vec::new()";  // No default strings yet.
+        return "Default::default()";
+        // if (context == kObject) return "Vec::new()";
+        // if (context == kAccessor) return "&[]";
+        // FLATBUFFERS_ASSERT("Unreachable.");
+
       }
       case ftStruct:
       case ftTable: {
@@ -960,7 +973,7 @@ class RustGenerator : public BaseGenerator {
                                        const std::string &lifetime) {
     const Type &type = field.value.type;
     auto WrapOption = [&](std::string s) {
-        return IsOptionalOrRequiredNonScalar(field) ? "Option<" + s + ">" : s;
+        return IsOptionalToBuilder(field) ? "Option<" + s + ">" : s;
     };
     auto WrapVector = [&](std::string ty) {
         return WrapOption(
@@ -1210,73 +1223,66 @@ class RustGenerator : public BaseGenerator {
   std::string GenTableAccessorFuncReturnType(const FieldDef &field,
                                              const std::string &lifetime) {
     const Type &type = field.value.type;
+    const auto WrapOption = [&](std::string s) {
+      return field.IsOptional() ? "Option<" + s + ">" : s;
+    };
 
     switch (GetFullType(field.value.type)) {
       case ftInteger:
       case ftFloat:
       case ftBool: {
-        const auto typname = GetTypeBasic(type);
-        return field.IsOptional() ? "Option<" + typname + ">" : typname;
+        return WrapOption(GetTypeBasic(type));
       }
       case ftStruct: {
         const auto typname = WrapInNameSpace(*type.struct_def);
-        return WrapInOptionIfNotRequired("&" + lifetime + " " + typname,
-                                         field.IsRequired());
+        return WrapOption("&" + lifetime + " " + typname);
       }
       case ftTable: {
         const auto typname = WrapInNameSpace(*type.struct_def);
-        return WrapInOptionIfNotRequired(typname + "<" + lifetime + ">",
-                                         field.IsRequired());
+        return WrapOption(typname + "<" + lifetime + ">");
       }
       case ftEnumKey:
       case ftUnionKey: {
-        const auto typname = WrapInNameSpace(*type.enum_def);
-        return field.IsOptional() ? "Option<" + typname + ">" : typname;
+        return WrapOption(WrapInNameSpace(*type.enum_def));
       }
 
       case ftUnionValue: {
-        return WrapInOptionIfNotRequired("flatbuffers::Table<" + lifetime + ">",
-                                         field.IsRequired());
+        return WrapOption("flatbuffers::Table<" + lifetime + ">");
       }
       case ftString: {
-        return WrapInOptionIfNotRequired("&" + lifetime + " str",
-                                         field.IsRequired());
+        return WrapOption("&" + lifetime + " str");
       }
       case ftVectorOfInteger:
       case ftVectorOfBool:
       case ftVectorOfFloat: {
         const auto typname = GetTypeBasic(type.VectorType());
-        if (IsOneByte(type.VectorType().base_type)) {
-          return WrapInOptionIfNotRequired(
-              "&" + lifetime + " [" + typname + "]", field.IsRequired());
-        }
-        return WrapInOptionIfNotRequired(
-            "flatbuffers::Vector<" + lifetime + ", " + typname + ">",
-            field.IsRequired());
+        const auto vector_type =
+          IsOneByte(type.VectorType().base_type) ?
+          "&" + lifetime + " [" + typname + "]" :
+          "flatbuffers::Vector<" + lifetime + ", " + typname + ">";
+        return WrapOption(vector_type);
       }
       case ftVectorOfEnumKey: {
         const auto typname = WrapInNameSpace(*type.enum_def);
-        return WrapInOptionIfNotRequired(
-            "flatbuffers::Vector<" + lifetime + ", " + typname + ">",
-            field.IsRequired());
+        return WrapOption("flatbuffers::Vector<" + lifetime + ", " +
+        typname + ">");
       }
       case ftVectorOfStruct: {
         const auto typname = WrapInNameSpace(*type.struct_def);
-        return WrapInOptionIfNotRequired("&" + lifetime + " [" + typname + "]",
-                                         field.IsRequired());
+        return WrapOption("&" + lifetime + " [" + typname + "]");
       }
       case ftVectorOfTable: {
         const auto typname = WrapInNameSpace(*type.struct_def);
-        return WrapInOptionIfNotRequired("flatbuffers::Vector<" + lifetime +
-                                             ", flatbuffers::ForwardsUOffset<" +
-                                             typname + "<" + lifetime + ">>>",
-                                         field.IsRequired());
+        return WrapOption(
+          "flatbuffers::Vector<" + lifetime +
+          ", flatbuffers::ForwardsUOffset<" +
+          typname + "<" + lifetime + ">>>"
+        );
       }
       case ftVectorOfString: {
-        return WrapInOptionIfNotRequired(
+        return WrapOption(
             "flatbuffers::Vector<" + lifetime +
-                ", flatbuffers::ForwardsUOffset<&" + lifetime + " str>>",
-            field.IsRequired());
+                ", flatbuffers::ForwardsUOffset<&" + lifetime + " str>>");
       }
       case ftVectorOfUnionValue: {
         FLATBUFFERS_ASSERT(false && "vectors of unions are not yet supported");
@@ -1357,7 +1363,7 @@ class RustGenerator : public BaseGenerator {
     // Default-y fields (scalars so far) are neither optional nor required.
     const std::string default_value =
         !(field.IsOptional() || field.IsRequired())
-            ? "Some(" + GetDefaultValue(field, /*builder=*/true) + ")"
+            ? "Some(" + GetDefaultValue(field, kAccessor) + ")"
             : "None";
     const std::string unwrap = field.IsOptional() ? "" : ".unwrap()";
 
@@ -1416,7 +1422,7 @@ class RustGenerator : public BaseGenerator {
       code_.SetValue("OFFSET_NAME", GetFieldOffsetName(field));
       code_.SetValue("OFFSET_VALUE", NumToString(field.value.offset));
       code_.SetValue("FIELD_NAME", Name(field));
-      code_.SetValue("BLDR_DEF_VAL", GetDefaultValue(field, /*builder=*/true));
+      code_.SetValue("BLDR_DEF_VAL", GetDefaultValue(field, kBuilder));
       cb(field);
     };
     const auto &fields = struct_def.fields.vec;
@@ -1489,7 +1495,7 @@ class RustGenerator : public BaseGenerator {
             if (struct_def.sortbysize &&
                 size != SizeOf(field.value.type.base_type))
               return;
-            if (IsOptionalOrRequiredNonScalar(field)) {
+            if (IsOptionalToBuilder(field)) {
               code_ +=
                   "      if let Some(x) = args.{{FIELD_NAME}} "
                   "{ builder.add_{{FIELD_NAME}}(x); }";
@@ -1934,7 +1940,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "    Self {";
     ForAllObjectTableFields(table, [&](const FieldDef &field) {
       if (field.value.type.base_type == BASE_TYPE_UTYPE) return;
-      std::string default_value = GetDefaultValue(field, /*builder=*/false);
+      std::string default_value = GetDefaultValue(field, kObject);
       code_ += "      {{FIELD_NAME}}: " + default_value + ",";
     });
     code_ += "    }";
@@ -2055,15 +2061,15 @@ class RustGenerator : public BaseGenerator {
     }
   }
   void MapNativeTableField(const FieldDef &field, const std::string &expr) {
-    if (field.IsRequired()) {
+    if (field.IsOptional()) {
+      code_ += "    let {{FIELD_NAME}} = self.{{FIELD_NAME}}.as_ref().map(|x|{";
+      code_ += "      " + expr;
+      code_ += "    });";
+    } else {
       // For some reason Args has optional types for required fields.
       // TODO(cneo): Fix this... but its a breaking change?
       code_ += "    let {{FIELD_NAME}} = Some({";
       code_ += "      let x = &self.{{FIELD_NAME}};";
-      code_ += "      " + expr;
-      code_ += "    });";
-    } else {
-      code_ += "    let {{FIELD_NAME}} = self.{{FIELD_NAME}}.as_ref().map(|x|{";
       code_ += "      " + expr;
       code_ += "    });";
     }
