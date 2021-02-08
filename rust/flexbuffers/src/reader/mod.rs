@@ -18,6 +18,7 @@ use crate::flexbuffer::FlexBuffer;
 use crate::Blob;
 use std::convert::{TryFrom, TryInto};
 use std::fmt;
+use std::ops::Rem;
 use std::str::FromStr;
 mod de;
 mod iter;
@@ -187,7 +188,7 @@ impl<'de, B: FlexBuffer> From<Reader<B>> for ReaderDeserializer<'de, B> {
     }
 }
 
-impl<B: FlexBuffer> Reader<B> {
+impl<'de, B: FlexBuffer + 'de> Reader<B> {
     fn new(
         buffer: B,
         mut address: usize,
@@ -213,7 +214,7 @@ impl<B: FlexBuffer> Reader<B> {
     /// Parses the flexbuffer from the given buffer. Assumes the flexbuffer root is the last byte
     /// of the buffer.
     pub fn get_root(buffer: B) -> Result<Self, Error> {
-        let end = buffer.len();
+        let end = buffer.as_ref().len();
         if end < 3 {
             return Err(Error::FlexbufferOutOfBounds);
         }
@@ -249,7 +250,7 @@ impl<B: FlexBuffer> Reader<B> {
     /// e.g. with `get_f64s` or `get_i16s`.
     #[inline]
     pub fn is_aligned(&self) -> bool {
-        FlexBuffer::is_aligned(&self.buffer)
+        (self.buffer.as_ref().as_ptr() as usize).rem(8) == 0
     }
 
     as_default!(as_vector, get_vector, VectorReader<B>);
@@ -288,19 +289,18 @@ impl<B: FlexBuffer> Reader<B> {
             self.expect_bw(T::WIDTH)?;
         }
         let end = self.address + self.length() * std::mem::size_of::<T>();
-        let slice = &self
+        let slice: &[u8] = &self
             .buffer
+            .as_ref()
             .get(self.address..end)
             .ok_or(Error::FlexbufferOutOfBounds)?;
 
         // `align_to` is required because the point of this function is to directly hand back a
         // slice of scalars. This can fail because Rust's default allocator is not 16byte aligned
         // (though in practice this only happens for small buffers).
-        let (pre, mid, suf) = unsafe { slice.align_to::<T>() };
+        let (pre, mid, suf) = unsafe { slice.as_ref().align_to::<T>() };
         if pre.is_empty() && suf.is_empty() {
-            // TODO(colindjk) is unsafe avoidable here?
-            let mid_ptr = mid as *const [T];
-            unsafe { Ok(mid_ptr.as_ref().unwrap()) }
+            Ok(mid)
         } else {
             Err(Error::AlignmentError)
         }
@@ -328,22 +328,22 @@ impl<B: FlexBuffer> Reader<B> {
         Ok(std::str::from_utf8(bytes)?)
     }
 
-    pub fn get_blob(&self) -> Result<Blob<B>, Error> {
+    pub fn get_blob(&self) -> Result<Blob<'_>, Error> {
         self.expect_type(FlexBufferType::Blob)?;
         Ok(Blob(
-            self.buffer.slice(self.address..self.address + self.length()),
+            self.buffer.as_ref().get(self.address..self.address + self.length()).unwrap(),
         ))
     }
 
-    pub fn as_blob(&self) -> Blob<B> {
-        self.get_blob().unwrap_or(Blob(B::default()))
+    pub fn as_blob(&self) -> Blob<'_> {
+        self.get_blob().unwrap_or(Blob(&[]))
     }
 
     /// Retrieves str pointer, errors if invalid UTF-8, or the provided index
     /// is out of bounds.
     pub fn get_str(&self) -> Result<&str, Error> {
         self.expect_type(FlexBufferType::String)?;
-        let bytes = self.buffer.get(self.address..self.address + self.length());
+        let bytes = self.buffer.as_ref().get(self.address..self.address + self.length());
         Ok(std::str::from_utf8(bytes.ok_or(Error::ReadUsizeOverflowed)?)?)
     }
 
@@ -381,6 +381,7 @@ impl<B: FlexBuffer> Reader<B> {
         self.expect_type(FlexBufferType::UInt)?;
         let cursor = self
             .buffer
+            .as_ref()
             .get(self.address..self.address + self.width.n_bytes());
         match self.width {
             BitWidth::W8 => cursor.map(|s| s[0] as u8).map(Into::into),
@@ -404,6 +405,7 @@ impl<B: FlexBuffer> Reader<B> {
         self.expect_type(FlexBufferType::Int)?;
         let cursor = self
             .buffer
+            .as_ref()
             .get(self.address..self.address + self.width.n_bytes());
         match self.width {
             BitWidth::W8 => cursor.map(|s| s[0] as i8).map(Into::into),
@@ -427,6 +429,7 @@ impl<B: FlexBuffer> Reader<B> {
         self.expect_type(FlexBufferType::Float)?;
         let cursor = self
             .buffer
+            .as_ref()
             .get(self.address..self.address + self.width.n_bytes());
         match self.width {
             BitWidth::W8 | BitWidth::W16 => return Err(Error::InvalidPackedType),

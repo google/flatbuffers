@@ -80,7 +80,7 @@ pub fn from_slice<'de, T: Deserialize<'de>>(buf: &'de [u8]) -> Result<T, Deseria
 ///
 /// A `Blob` is a variable width `length` followed by that many bytes of data.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub struct Blob<B: FlexBuffer>(pub B);
+pub struct Blob<'de>(pub &'de [u8]);
 
 /// This struct, when pushed, will be serialized as a `FlexBufferType::IndirectUInt`.
 ///

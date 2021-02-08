@@ -132,7 +132,7 @@ impl<B: FlexBuffer> MapReader<B> {
         })
     }
 
-    //// Iterate over the keys of the map.
+    /// Iterate over the keys of the map.
     pub fn iter_keys(
         &self,
     ) -> impl Iterator<Item = &str> + DoubleEndedIterator + ExactSizeIterator + FusedIterator

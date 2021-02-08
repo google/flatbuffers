@@ -1,36 +1,13 @@
-use std::ops::{RangeBounds, Rem, Bound};
-use std::slice::SliceIndex;
+use std::ops::{RangeBounds, Bound};
 use std::fmt::Debug;
 
-use crate::reader::ReadLE;
-
+/// The underlying buffer that is used by a flexbuffer Reader. 
 pub trait FlexBuffer: Debug + PartialEq + IntoIterator + AsRef<[u8]> + Default + Clone {
-    /// Gets the length of the current buffer.
-    fn len(&self) -> usize;
-
     /// Retrieves a slice of memory based on RangeBounds.
     fn slice(&self, range: impl RangeBounds<usize>) -> Self;
-
-    /// Similar to [T]::get, get a value at an index.
-    fn get<I>(&self, index: I) -> Option<&<I as SliceIndex<[u8]>>::Output>
-    where
-        I: SliceIndex<[u8]>;
-
-    /// Returns true if the flexbuffer is aligned to 8 bytes. This guarantees, for valid
-    /// flexbuffers, that the data is correctly aligned in memory and slices can be read directly
-    /// e.g. with `get_f64s` or `get_i16s`.
-    fn is_aligned(&self) -> bool;
-
-    unsafe fn align_to<L: ReadLE>(&self) -> (&[u8], &[L], &[u8]);
 }
 
 impl FlexBuffer for &[u8] {
-    /// Gets the length of the current buffer.
-    #[inline]
-    fn len(&self) -> usize {
-        <[u8]>::len(self)
-    }
-
     /// Retrieves a slice of memory based on RangeBounds.
     #[inline]
     fn slice(&self, range: impl RangeBounds<usize>) -> Self {
@@ -63,27 +40,6 @@ impl FlexBuffer for &[u8] {
         );
 
         &self[begin..end]
-    }
-
-    /// Similar to [T]::get, get a value at an index.
-    #[inline]
-    fn get<I>(&self, index: I) -> Option<&<I as SliceIndex<[u8]>>::Output>
-        where I: SliceIndex<[u8]>
-    {
-        <[u8]>::get(self, index)
-    }
-
-    /// Returns true if the flexbuffer is aligned to 8 bytes. This guarantees, for valid
-    /// flexbuffers, that the data is correctly aligned in memory and slices can be read directly
-    /// e.g. with `get_f64s` or `get_i16s`.
-    #[inline]
-    fn is_aligned(&self) -> bool {
-        (self.as_ptr() as usize).rem(8) == 0
-    }
-
-    #[inline]
-    unsafe fn align_to<L: ReadLE>(&self) -> (&[u8], &[L], &[u8]) {
-        <[u8]>::align_to::<L>(self)
     }
 }
 

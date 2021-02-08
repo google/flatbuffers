@@ -17,7 +17,7 @@ use crate::private::Sealed;
 use crate::FlexBuffer;
 use crate::{Blob, IndirectFloat, IndirectInt, IndirectUInt};
 
-impl<B: FlexBuffer> Sealed for Blob<B> {}
+impl<'de> Sealed for Blob<'de> {}
 impl Sealed for () {}
 
 // TODO: String interning
@@ -46,7 +46,7 @@ impl Pushable for () {
     }
 }
 
-impl<B: FlexBuffer> Pushable for Blob<B> {
+impl Pushable for Blob<'_> {
     fn push_to_builder(self, builder: &mut Builder) {
         builder.push_blob(self.0.as_ref());
     }
