@@ -934,6 +934,7 @@ class RustGenerator : public BaseGenerator {
         if (context == kAccessor) return "&" + defval;
         FLATBUFFERS_ASSERT("Unreachable.");
       }
+
       case ftVectorOfBool:
       case ftVectorOfFloat:
       case ftVectorOfInteger:
@@ -941,17 +942,16 @@ class RustGenerator : public BaseGenerator {
       case ftVectorOfStruct:
       case ftVectorOfTable:
       case ftVectorOfEnumKey:
-      case ftVectorOfUnionValue: {
-        // Required vectors.
-        return "Default::default()";
-        // if (context == kObject) return "Vec::new()";
-        // if (context == kAccessor) return "&[]";
-        // FLATBUFFERS_ASSERT("Unreachable.");
-      }
+      case ftVectorOfUnionValue:
       case ftStruct:
       case ftTable: {
-        // Required struct/tables.
-        return "Default::default()";  // punt.
+        // We only support empty vectors which matches the defaults for
+        // &[T] and Vec<T> anyway.
+        //
+        // For required structs and tables fields, we defer to their object API
+        // defaults. This works so long as there's nothing recursive happening,
+        // but `table Infinity { i: Infinity (required); }` does compile.
+        return "Default::default()";
       }
     }
     FLATBUFFERS_ASSERT("Unreachable.");
