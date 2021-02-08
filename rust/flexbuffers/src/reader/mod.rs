@@ -197,7 +197,6 @@ impl<'de, B: FlexBuffer + 'de> Reader<B> {
         parent_width: BitWidth,
     ) -> Result<Self, Error> {
         if fxb_type.is_reference() {
-            // TODO: Test this works cleanly.
             address = deref_offset(buffer.as_ref(), address, parent_width)?;
             // Indirects were dereferenced.
             if let Some(t) = fxb_type.to_direct() {
