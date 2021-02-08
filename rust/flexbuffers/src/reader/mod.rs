@@ -181,6 +181,12 @@ fn deref_offset(buffer: &[u8], address: usize, width: BitWidth) -> Result<usize,
     safe_sub(address, off)
 }
 
+impl<'de, B: FlexBuffer> From<Reader<B>> for ReaderDeserializer<'de, B> {
+    fn from(reader: Reader<B>) -> Self {
+        ReaderDeserializer::new(reader)
+    }
+}
+
 impl<B: FlexBuffer> Reader<B> {
     fn new(
         buffer: B,

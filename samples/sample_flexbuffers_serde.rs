@@ -18,6 +18,8 @@ extern crate serde;
 extern crate serde_derive;
 use serde::{Deserialize, Serialize};
 
+use flexbuffers::{ReaderDeserializer};
+
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 enum Weapon {
     Fist,
@@ -70,7 +72,7 @@ fn main() {
     println!("Monster stored in {:?} bytes.", s.view().len());
     println!("{}", r);
 
-    let monster2 = Monster::deserialize(r).unwrap();
+    let monster2 = Monster::deserialize(ReaderDeserializer::from(r)).unwrap();
 
     assert_eq!(monster, monster2);
 }
