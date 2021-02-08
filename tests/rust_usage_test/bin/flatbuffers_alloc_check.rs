@@ -36,7 +36,7 @@ pub mod include_test1_generated;
 #[path = "../../include_test/sub/include_test2_generated.rs"]
 pub mod include_test2_generated;
 
-#[allow(dead_code, unused_imports)]
+#[allow(dead_code, unused_imports, clippy::approx_constant)]
 #[path = "../../monster_test_generated.rs"]
 mod monster_test_generated;
 pub use monster_test_generated::my_game;
@@ -98,6 +98,7 @@ fn create_serialized_example_with_generated_code(builder: &mut flatbuffers::Flat
     my_game::example::finish_monster_buffer(builder, mon);
 }
 
+#[cfg(not(miri))]  // slow.
 fn main() {
     // test the allocation tracking:
     {
@@ -131,7 +132,7 @@ fn main() {
 
         // do many reads, forcing them to execute by using assert_eq:
         {
-            let m = my_game::example::get_root_as_monster(buf);
+            let m = unsafe { my_game::example::root_as_monster_unchecked(buf) };
             assert_eq!(80, m.hp());
             assert_eq!(150, m.mana());
             assert_eq!("MyMonster", m.name());

@@ -10,12 +10,16 @@ class Stat(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsStat(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = Stat()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsStat(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     @classmethod
     def StatBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
         return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x4D\x4F\x4E\x53", size_prefixed=size_prefixed)
@@ -45,12 +49,26 @@ class Stat(object):
             return self._tab.Get(flatbuffers.number_types.Uint16Flags, o + self._tab.Pos)
         return 0
 
-def StatStart(builder): builder.StartObject(3)
-def StatAddId(builder, id): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(id), 0)
-def StatAddVal(builder, val): builder.PrependInt64Slot(1, val, 0)
-def StatAddCount(builder, count): builder.PrependUint16Slot(2, count, 0)
-def StatEnd(builder): return builder.EndObject()
-
+def Start(builder): builder.StartObject(3)
+def StatStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddId(builder, id): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(id), 0)
+def StatAddId(builder, id):
+    """This method is deprecated. Please switch to AddId."""
+    return AddId(builder, id)
+def AddVal(builder, val): builder.PrependInt64Slot(1, val, 0)
+def StatAddVal(builder, val):
+    """This method is deprecated. Please switch to AddVal."""
+    return AddVal(builder, val)
+def AddCount(builder, count): builder.PrependUint16Slot(2, count, 0)
+def StatAddCount(builder, count):
+    """This method is deprecated. Please switch to AddCount."""
+    return AddCount(builder, count)
+def End(builder): return builder.EndObject()
+def StatEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)
 
 class StatT(object):
 
@@ -84,10 +102,10 @@ class StatT(object):
     def Pack(self, builder):
         if self.id is not None:
             id = builder.CreateString(self.id)
-        StatStart(builder)
+        Start(builder)
         if self.id is not None:
-            StatAddId(builder, id)
-        StatAddVal(builder, self.val)
-        StatAddCount(builder, self.count)
-        stat = StatEnd(builder)
+            AddId(builder, id)
+        AddVal(builder, self.val)
+        AddCount(builder, self.count)
+        stat = End(builder)
         return stat

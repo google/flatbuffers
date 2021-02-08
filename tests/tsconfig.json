@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "lib": ["ES2015", "ES2020.BigInt", "DOM"],
+    "moduleResolution": "Node",
+    "noImplicitAny": true,
+    "strict": true,
+    "noUnusedParameters": false,
+    "noUnusedLocals": false,
+    "noImplicitReturns": true,
+    "strictNullChecks": true,
+    "baseUrl": ".",
+    "noEmit": false,
+    "outDir": "./ts"
+  },
+  "include": [ "ts/**/*.ts" ],
+  "exclude": []
+}

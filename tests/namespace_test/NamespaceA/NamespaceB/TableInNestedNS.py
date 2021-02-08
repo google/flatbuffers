@@ -10,12 +10,16 @@ class TableInNestedNS(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsTableInNestedNS(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = TableInNestedNS()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsTableInNestedNS(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # TableInNestedNS
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -27,10 +31,18 @@ class TableInNestedNS(object):
             return self._tab.Get(flatbuffers.number_types.Int32Flags, o + self._tab.Pos)
         return 0
 
-def TableInNestedNSStart(builder): builder.StartObject(1)
-def TableInNestedNSAddFoo(builder, foo): builder.PrependInt32Slot(0, foo, 0)
-def TableInNestedNSEnd(builder): return builder.EndObject()
-
+def Start(builder): builder.StartObject(1)
+def TableInNestedNSStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddFoo(builder, foo): builder.PrependInt32Slot(0, foo, 0)
+def TableInNestedNSAddFoo(builder, foo):
+    """This method is deprecated. Please switch to AddFoo."""
+    return AddFoo(builder, foo)
+def End(builder): return builder.EndObject()
+def TableInNestedNSEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)
 
 class TableInNestedNST(object):
 
@@ -58,7 +70,7 @@ class TableInNestedNST(object):
 
     # TableInNestedNST
     def Pack(self, builder):
-        TableInNestedNSStart(builder)
-        TableInNestedNSAddFoo(builder, self.foo)
-        tableInNestedNS = TableInNestedNSEnd(builder)
+        Start(builder)
+        AddFoo(builder, self.foo)
+        tableInNestedNS = End(builder)
         return tableInNestedNS

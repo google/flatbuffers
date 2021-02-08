@@ -48,22 +48,37 @@ jobs:
         name: Windows flatc binary
         path: Release\flatc.exe
 
+  build-windows-2017:
+    name: Build Windows 2017
+    runs-on: windows-2016
+    steps:
+    - uses: actions/checkout@v1
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.2
+    - name: cmake
+      run: cmake -G "Visual Studio 15 2017" -A x64 -DCMAKE_BUILD_TYPE=Release .
+    - name: build
+      run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64
+    - name: test
+      run: Release\flattests.exe
+
   build-mac:
     name: Build Mac
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v1
     - name: cmake
-      run: cmake -G "Xcode" -DCMAKE_BUILD_TYPE=Release .
+      run: cmake -G "Xcode" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_FLATC_EXECUTABLE=_build/Release/flatc .
     - name: build
-      run: xcodebuild -toolchain clang -configuration Release -target flattests
+      # NOTE: we need this _build dir to not have xcodebuild's default ./build dir clash with the BUILD file.
+      run: xcodebuild -toolchain clang -configuration Release -target flattests SYMROOT=$(PWD)/_build
     - name: test
-      run: Release/flattests
+      run: _build/Release/flattests
     - name: upload build artifacts
       uses: actions/upload-artifact@v1
       with:
         name: Mac flatc binary
-        path: Release/flatc
+        path: _build/Release/flatc
 
   build-android:
    name: Build Android (on Linux)
@@ -82,3 +97,121 @@ jobs:
    - name: build
      working-directory: android
      run: bash ./gradlew clean build
+
+  build-java:
+    name: Build Java
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: test
+      working-directory: tests
+      run: bash JavaTest.sh
+  
+  build-kotlin:
+    name: Build Kotlin
+    runs-on: macos-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+    - name: Build
+      working-directory: kotlin  
+      run: ./gradlew clean build allTests
+    - name: Run Benchmark
+      working-directory: kotlin  
+      run: ./gradlew benchmark
+    - name: Generate Benchmark Report
+      working-directory: kotlin  
+      run: |
+        ./gradlew jmhReport;
+        mv benchmark/build/reports/benchmarks/main/* benchmark_latest
+    - name: Archive benchmark report
+      uses: actions/upload-artifact@v1
+      with:
+        name: Kotlin Benchmark Report
+        path: kotlin/benchmark_latest
+
+  build-rust:
+    name: Build Rust
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: test
+      working-directory: tests
+      run: bash RustTest.sh
+
+  #build-js:
+  #  name: Build JS
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #  - uses: actions/checkout@v1
+  #  - name: flatc
+  #    # FIXME: make test script not rely on flatc
+  #    run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF . && make -j4
+  #  - name: test
+  #    working-directory: tests
+  #    run: bash JavaScriptTest.sh
+
+  #build-ts:
+  #  name: Build TS
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #  - uses: actions/checkout@v1
+  #  - name: flatc
+  #    # FIXME: make test script not rely on flatc
+  #    run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF . && make -j4
+  #  - name: test
+  #    working-directory: tests
+  #    run: bash TypeScriptTest.sh
+
+  build-python:
+    name: Build Python
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: test
+      working-directory: tests
+      run: bash PythonTest.sh
+
+  build-go:
+    name: Build Go
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: flatc
+      # FIXME: make test script not rely on flatc
+      run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF . && make -j4
+    - name: test
+      working-directory: tests
+      run: bash GoTest.sh
+
+  #build-csharp:
+  #  name: Build CSharp
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #  - uses: actions/checkout@v1
+  #  - name: test
+  #    working-directory: tests/FlatBuffers.Test
+  #    run: bash NetTest.sh
+
+  #build-php:
+  #  name: Build PHP
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #  - uses: actions/checkout@v1
+  #  - name: flatc
+  #    # FIXME: make test script not rely on flatc
+  #    run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF . && make -j4
+  #  - name: test
+  #    working-directory: tests
+  #    run: |
+  #      php phpTest.php
+  #      sh phpUnionVectorTest.sh
+
+  build-swift:
+    name: Build Swift
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: test
+      working-directory: tests/FlatBuffers.Test.Swift
+      run: sh SwiftTest.sh

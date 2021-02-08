@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Google Inc. All rights reserved.
+ * Copyright 2021 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@
 
 import FlatBuffers
 
-typealias Monster = MyGame.Sample.Monster
-typealias Weapon = MyGame.Sample.Weapon
-typealias Color = MyGame.Sample.Color
-typealias Vec3 = MyGame.Sample.Vec3
+typealias Monster = MyGame_Sample_Monster
+typealias Weapon = MyGame_Sample_Weapon
+typealias Color = MyGame_Sample_Color
+typealias Vec3 = MyGame_Sample_Vec3
 
 func main() {
   let expectedDMG: [Int16] = [3, 5]
@@ -43,11 +43,10 @@ func main() {
   let inventoryOffset = builder.createVector(inventory)
 
   let weaponsOffset = builder.createVector(ofOffsets: [sword, axe])
-  let pos = MyGame.Sample.createVec3(x: 1, y: 2, z: 3)
 
   let orc = Monster.createMonster(
     &builder,
-    structOfPos: pos,
+    structOfPos: MyGame_Sample_Vec3(x: 1, y: 2, z: 3),
     hp: 300,
     offsetOfName: name,
     vectorOfInventory: inventoryOffset,
@@ -65,6 +64,7 @@ func main() {
   assert(monster.name == "Orc")
   assert(monster.color == MyGame.Sample.Color.red)
   assert(monster.pos != nil)
+  assert(monster.mutablePos != nil)
   for i in 0..<monster.inventoryCount {
     assert(i == monster.inventory(at: i))
   }

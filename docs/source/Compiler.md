@@ -142,22 +142,13 @@ Additional options:
 
 -   `--cpp-std CPP_STD` : Generate a C++ code using features of selected C++ standard.
      Supported `CPP_STD` values:
-    * `c++0x` - generate code compatible with old compilers (VS2010).
-    * `c++11` - use C++11 code generator (default);
+    * `c++0x` - generate code compatible with old compilers (VS2010),
+    * `c++11` - use C++11 code generator (default),
+    * `c++17` - use C++17 features in generated code (experimental).
 
 -   `--object-prefix` : Customise class prefix for C++ object-based API.
 
 -   `--object-suffix` : Customise class suffix for C++ object-based API.
-
--   `--no-js-exports` : Removes Node.js style export lines (useful for JS)
-
--   `--goog-js-export` :  Uses goog.exportsSymbol and goog.exportsProperty
-    instead of Node.js style exporting.  Needed for compatibility with the
-    Google closure compiler (useful for JS).
-
--   `--es6-js-export` : Generates ECMAScript v6 style export definitions
-    instead of Node.js style exporting. Useful when integrating flatbuffers
-    with modern Javascript projects.
 
 -   `--go-namespace` : Generate the overrided namespace in Golang.
 
@@ -206,12 +197,6 @@ Additional options:
 
 -   `--keep-prefix` : Keep original prefix of schema include statement.
 
--   `--no-fb-import` : Don't include flatbuffers import statement for TypeScript.
-
--   `--no-ts-reexport` : Don't re-export imported dependencies for TypeScript.
-
--   `--short-names` : Use short function names for JS and TypeScript.
-
 -   `--reflect-types` : Add minimal type reflection to code generation.
 
 -   `--reflect-names` : Add minimal type/name reflection.
@@ -227,6 +212,11 @@ Additional options:
 
 -   `--force-empty-vectors` : When serializing from object API representation, force
      vectors to empty rather than null.
+
+-   `--flexbuffers` : Used with "binary" and "json" options, it generates
+     data using schema-less FlexBuffers.
+
+-    `--no-warnings` : Inhibit all warning messages.
 
 NOTE: short-form options for generators are deprecated, use the long form
 whenever possible.

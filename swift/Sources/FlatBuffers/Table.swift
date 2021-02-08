@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Google Inc. All rights reserved.
+ * Copyright 2021 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,9 +56,9 @@ public struct Table {
 
   /// Reads from the buffer with respect to the position in the table.
   /// - Parameters:
-  ///   - type: Type of Scalar that needs to be read from the buffer
+  ///   - type: Type of Element that needs to be read from the buffer
   ///   - o: Offset of the Element
-  public func readBuffer<T: Scalar>(of type: T.Type, at o: Int32) -> T {
+  public func readBuffer<T>(of type: T.Type, at o: Int32) -> T {
     directRead(of: T.self, offset: o + postion)
   }
 
@@ -73,9 +73,9 @@ public struct Table {
   ///                  offset: __t.vector(at: offset) + index * 1)
   ///   ```
   /// - Parameters:
-  ///   - type: Type of Scalar that needs to be read from the buffer
+  ///   - type: Type of Element that needs to be read from the buffer
   ///   - o: Offset of the Element
-  public func directRead<T: Scalar>(of type: T.Type, offset o: Int32) -> T {
+  public func directRead<T>(of type: T.Type, offset o: Int32) -> T {
     let r = bb.read(def: T.self, position: Int(o))
     return r
   }

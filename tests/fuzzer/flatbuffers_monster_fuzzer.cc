@@ -18,69 +18,68 @@
 #include <stdint.h>
 
 #include <clocale>
+#include <filesystem>
 #include <string>
 
 #include "cpp17/generated_cpp17/monster_test_generated.h"
 #include "flatbuffers/idl.h"
 #include "test_init.h"
 
+namespace fs = std::filesystem;
+
+// Utility for test run.
+OneTimeTestInit OneTimeTestInit::one_time_init_;
+// The current executable path (see LLVMFuzzerInitialize).
+static fs::path exe_path_;
+
 namespace {
-constexpr bool use_binary_schema = true;
-// should point to flatbuffers/tests/
-constexpr const char *test_data_path = "../../";
-constexpr const char *schema_file_name = "monster_test";
+
+static constexpr size_t kMinInputLength = 1;
+static constexpr size_t kMaxInputLength = 16384;
 
 static constexpr uint8_t flags_strict_json = 0x80;
 static constexpr uint8_t flags_skip_unexpected_fields_in_json = 0x40;
 static constexpr uint8_t flags_allow_non_utf8 = 0x20;
 
-flatbuffers::Parser make_parser(const flatbuffers::IDLOptions opts) {
-  // once loaded from disk
-  static const std::string schemafile = [&]() {
-    std::string schemafile;
-    TEST_EQ(
-        flatbuffers::LoadFile((std::string(test_data_path) + schema_file_name +
-                               (use_binary_schema ? ".bfbs" : ".fbs"))
-                                  .c_str(),
-                              use_binary_schema, &schemafile),
-        true);
+bool TestFileExists(fs::path file_path) {
+  if (file_path.has_filename() && fs::exists(file_path)) return true;
 
-    if (use_binary_schema) {
-      flatbuffers::Verifier verifier(
-          reinterpret_cast<const uint8_t *>(schemafile.c_str()),
-          schemafile.size());
-      TEST_EQ(reflection::VerifySchemaBuffer(verifier), true);
-    }
-    return schemafile;
-  }();
-
-  // parse schema first, so we can use it to parse the data after
-  flatbuffers::Parser parser;
-  if (use_binary_schema) {
-    TEST_EQ(parser.Deserialize(
-                reinterpret_cast<const uint8_t *>(schemafile.c_str()),
-                schemafile.size()),
-            true);
-  } else {
-    auto include_test_path =
-        flatbuffers::ConCatPathFileName(test_data_path, "include_test");
-    const char *include_directories[] = { test_data_path,
-                                          include_test_path.c_str(), nullptr };
-    TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
+  TEST_OUTPUT_LINE("@DEBUG: file '%s' not found", file_path.c_str());
+  for (const auto &entry : fs::directory_iterator(file_path.parent_path())) {
+    TEST_OUTPUT_LINE("@DEBUG: parent path entry: '%s'", entry.path().c_str());
   }
-  // (re)define parser options
-  parser.opts = opts;
-  return parser;
+  return false;
+}
+
+std::string LoadBinarySchema(const char *file_name) {
+  const auto file_path = exe_path_.parent_path() / file_name;
+  TEST_EQ(true, TestFileExists(file_path));
+  std::string schemafile;
+  TEST_EQ(true, flatbuffers::LoadFile(file_path.c_str(), true, &schemafile));
+
+  flatbuffers::Verifier verifier(
+      reinterpret_cast<const uint8_t *>(schemafile.c_str()), schemafile.size());
+  TEST_EQ(true, reflection::VerifySchemaBuffer(verifier));
+  return schemafile;
 }
 
 std::string do_test(const flatbuffers::IDLOptions &opts,
                     const std::string input_json) {
-  auto parser = make_parser(opts);
+  // once loaded from disk
+  static const std::string schemafile = LoadBinarySchema("monster_test.bfbs");
+  // parse schema first, so we can use it to parse the data after
+  flatbuffers::Parser parser;
+  TEST_EQ(true, parser.Deserialize(
+                    reinterpret_cast<const uint8_t *>(schemafile.c_str()),
+                    schemafile.size()));
+  // (re)define parser options
+  parser.opts = opts;
+
   std::string jsongen;
   if (parser.ParseJson(input_json.c_str())) {
     flatbuffers::Verifier verifier(parser.builder_.GetBufferPointer(),
                                    parser.builder_.GetSize());
-    TEST_EQ(MyGame::Example::VerifyMonsterBuffer(verifier), true);
+    TEST_EQ(true, MyGame::Example::VerifyMonsterBuffer(verifier));
     TEST_ASSERT(
         GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen));
   }
@@ -88,8 +87,16 @@ std::string do_test(const flatbuffers::IDLOptions &opts,
 };
 }  // namespace
 
-// Utility for test run.
-OneTimeTestInit OneTimeTestInit::one_time_init_;
+// https://google.github.io/oss-fuzz/further-reading/fuzzer-environment/
+// Current working directory
+// You should not make any assumptions about the current working directory of
+// your fuzz target. If you need to load data files, please use argv[0] to get
+// the directory where your fuzz target executable is located.
+// You must not modify argv[0].
+extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv) {
+  exe_path_ = (*argv)[0];
+  return 0;
+}
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   // Reserve one byte for Parser flags and one byte for repetition counter.
@@ -101,7 +108,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
   const std::string original(reinterpret_cast<const char *>(data), size);
   auto input = std::string(original.c_str());  // until '\0'
-  if (input.empty()) return 0;
+  if (input.size() < kMinInputLength || input.size() > kMaxInputLength)
+    return 0;
 
   flatbuffers::IDLOptions opts;
   opts.strict_json = (flags & flags_strict_json);

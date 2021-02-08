@@ -70,8 +70,6 @@ For times when efficiency is less important a more convenient object based API
 can be used (through `--gen-object-api`) that is able to unpack & pack a
 FlatBuffer into objects and standard TS types.
 
-**When using the obj based API, the flatbuffers import need to be in the global namespace if you don't have `--no-fb-import` enabled** since creating default values require accessing the `flatbuffers.js` file.
-
 To use:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.ts}

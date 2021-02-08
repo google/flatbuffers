@@ -544,10 +544,10 @@ The first step is to import/include the library, generated files, etc.
   import Flatbuffers
 
   // typealiases for convenience
-  typealias Monster = MyGame1.Sample.Monster
-  typealias Weapon = MyGame1.Sample.Weapon
-  typealias Color = MyGame1.Sample.Color
-  typealias Vec3 = MyGame1.Sample.Vec3
+  typealias Monster = MyGame1_Sample_Monster
+  typealias Weapon = MyGame1_Sample_Weapon
+  typealias Color = MyGame1_Sample_Color
+  typealias Vec3 = MyGame1_Sample_Vec3
 ~~~
 </div>
 
@@ -741,16 +741,16 @@ our `orc` Monster, let's create some `Weapon`s: a `Sword` and an `Axe`.
   weapon_two = builder.CreateString('Axe')
 
   # Create the first `Weapon` ('Sword').
-  MyGame.Sample.Weapon.WeaponStart(builder)
-  MyGame.Sample.Weapon.WeaponAddName(builder, weapon_one)
-  MyGame.Sample.Weapon.WeaponAddDamage(builder, 3)
-  sword = MyGame.Sample.Weapon.WeaponEnd(builder)
+  MyGame.Sample.Weapon.Start(builder)
+  MyGame.Sample.Weapon.AddName(builder, weapon_one)
+  MyGame.Sample.Weapon.AddDamage(builder, 3)
+  sword = MyGame.Sample.Weapon.End(builder)
 
   # Create the second `Weapon` ('Axe').
-  MyGame.Sample.Weapon.WeaponStart(builder)
-  MyGame.Sample.Weapon.WeaponAddName(builder, weapon_two)
-  MyGame.Sample.Weapon.WeaponAddDamage(builder, 5)
-  axe = MyGame.Sample.Weapon.WeaponEnd(builder)
+  MyGame.Sample.Weapon.Start(builder)
+  MyGame.Sample.Weapon.AddName(builder, weapon_two)
+  MyGame.Sample.Weapon.AddDamage(builder, 5)
+  axe = MyGame.Sample.Weapon.End(builder)
 ~~~
 </div>
 <div class="language-javascript">
@@ -1014,10 +1014,10 @@ traversal. This is generally easy to do on any tree structures.
   # Create a `vector` representing the inventory of the Orc. Each number
   # could correspond to an item that can be claimed after he is slain.
   # Note: Since we prepend the bytes, this loop iterates in reverse.
-  MyGame.Sample.Monster.MonsterStartInventoryVector(builder, 10)
+  MyGame.Sample.Monster.StartInventoryVector(builder, 10)
   for i in reversed(range(0, 10)):
     builder.PrependByte(i)
-  inv = builder.EndVector(10)
+  inv = builder.EndVector()
 ~~~
 </div>
 <div class="language-javascript">
@@ -1204,10 +1204,10 @@ offsets.
 ~~~{.py}
   # Create a FlatBuffer vector and prepend the weapons.
   # Note: Since we prepend the data, prepend them in reverse order.
-  MyGame.Sample.Monster.MonsterStartWeaponsVector(builder, 2)
+  MyGame.Sample.Monster.StartWeaponsVector(builder, 2)
   builder.PrependUOffsetTRelative(axe)
   builder.PrependUOffsetTRelative(sword)
-  weapons = builder.EndVector(2)
+  weapons = builder.EndVector()
 ~~~
 </div>
 <div class="language-javascript">
@@ -1333,10 +1333,10 @@ for the `path` field above:
 </div>
 <div class="language-python">
 ~~~{.py}
-  MyGame.Sample.Monster.MonsterStartPathVector(builder, 2)
+  MyGame.Sample.Monster.StartPathVector(builder, 2)
   MyGame.Sample.Vec3.CreateVec3(builder, 1.0, 2.0, 3.0)
   MyGame.Sample.Vec3.CreateVec3(builder, 4.0, 5.0, 6.0)
-  path = builder.EndVector(2)
+  path = builder.EndVector()
 ~~~
 </div>
 <div class="language-javascript">
@@ -1420,9 +1420,20 @@ for the `path` field above:
 <div class="language-swift">
 ~~~{.swift}
   //
-  Monster.startVectorOfvec3(2, in: &fbb)
-  MyGame_Example_Vec3.createVec3(builder: &fbb, x: 1, y: 2, z: 3)
-  MyGame_Example_Vec3.createVec3(builder: &fbb, x: 4, y: 5, z: 6)
+  let points = fbb.createVector(ofStructs: [
+    Vec3(x: 1, y: 2, z: 3),
+    Vec3(x: 4, y: 5, z: 6)
+  ])
+
+  // OR
+  var vec3 = [
+    Vec3(x: 1, y: 2, z: 3),
+    Vec3(x: 4, y: 5, z: 6)
+  ]
+  Monster.startVectorOfVec3(2, in: &fbb)
+  for i in obj {
+    _ = create(struct: i)
+  }
   let points = fbb.endVectorOfStructs(count: size)
 ~~~
 </div>
@@ -1513,21 +1524,21 @@ can serialize the monster itself:
 </div>
 <div class="language-python">
 ~~~{.py}
-  # Create our monster by using `MonsterStart()` and `MonsterEnd()`.
-  MyGame.Sample.Monster.MonsterStart(builder)
-  MyGame.Sample.Monster.MonsterAddPos(builder,
+  # Create our monster by using `Monster.Start()` and `Monster.End()`.
+  MyGame.Sample.Monster.Start(builder)
+  MyGame.Sample.Monster.AddPos(builder,
                           MyGame.Sample.Vec3.CreateVec3(builder, 1.0, 2.0, 3.0))
-  MyGame.Sample.Monster.MonsterAddHp(builder, 300)
-  MyGame.Sample.Monster.MonsterAddName(builder, name)
-  MyGame.Sample.Monster.MonsterAddInventory(builder, inv)
-  MyGame.Sample.Monster.MonsterAddColor(builder,
+  MyGame.Sample.Monster.AddHp(builder, 300)
+  MyGame.Sample.Monster.AddName(builder, name)
+  MyGame.Sample.Monster.AddInventory(builder, inv)
+  MyGame.Sample.Monster.AddColor(builder,
                                         MyGame.Sample.Color.Color().Red)
-  MyGame.Sample.Monster.MonsterAddWeapons(builder, weapons)
-  MyGame.Sample.Monster.MonsterAddEquippedType(
+  MyGame.Sample.Monster.AddWeapons(builder, weapons)
+  MyGame.Sample.Monster.AddEquippedType(
       builder, MyGame.Sample.Equipment.Equipment().Weapon)
-  MyGame.Sample.Monster.MonsterAddEquipped(builder, axe)
-  MyGame.Sample.Monster.MonsterAddPath(builder, path)
-  orc = MyGame.Sample.Monster.MonsterEnd(builder)
+  MyGame.Sample.Monster.AddEquipped(builder, axe)
+  MyGame.Sample.Monster.AddPath(builder, path)
+  orc = MyGame.Sample.Monster.End(builder)
 ~~~
 </div>
 <div class="language-javascript">
@@ -1702,17 +1713,16 @@ can serialize the monster itself:
 </div>
 <div class="language-swift">
 ~~~{.swift}
-  let start = Monster.startMonster(&builder)
-  let posStruct = MyGame_Example_Vec3.createVec3(builder: &builder, x: 1, y: 2, z: 3)
-  Monster.add(pos: pos, &builder)
-  Monster.add(hp: 300, &builder)
-  Monster.add(name: name, &builder)
-  Monster.addVectorOf(inventory: inventoryOffset, &builder)
-  Monster.add(color: .red, &builder)
-  Monster.addVectorOf(weapons: weaponsOffset, &builder)
-  Monster.add(equippedType: .weapon, &builder)
-  Monster.add(equipped: axe, &builder)
-  var orc = Monster.endMonster(&builder, start: start)
+  let orc = Monster.createMonster(
+    fbb: &builder,
+    pos: Vec3(x: 1, y: 2, z: 3),
+    hp: 300,
+    name: name,
+    inventory: inventoryOffset,
+    color: .red,
+    weapons: weaponsOffset,
+    equippedType: .weapon,
+    equipped: axe)
 ~~~
 </div>
 
@@ -1780,6 +1790,21 @@ a bit more flexibility.
 ~~~
 </div>
 
+<div class="language-swift">
+~~~{.swift}
+  let start = Monster.startMonster(&builder)
+  Monster.add(pos: Vec3(x: 1, y: 2, z: 3), &builder)
+  Monster.add(hp: 300, &builder)
+  Monster.add(name: name, &builder)
+  Monster.addVectorOf(inventory: inventoryOffset, &builder)
+  Monster.add(color: .red, &builder)
+  Monster.addVectorOf(weapons: weaponsOffset, &builder)
+  Monster.add(equippedType: .weapon, &builder)
+  Monster.add(equipped: axe, &builder)
+  var orc = Monster.endMonster(&builder, start: start)
+~~~
+</div>
+
 Before finishing the serialization, let's take a quick look at FlatBuffer
 `union Equipped`. There are two parts to each FlatBuffer `union`. The first is
 a hidden field `_type` that is generated to hold the type of `table` referred
@@ -1823,9 +1848,9 @@ Here is a repetition of these lines, to help highlight them more clearly:
 </div>
 <div class="language-python">
   ~~~{.py}
-    MyGame.Sample.Monster.MonsterAddEquippedType(            # Union type
+    MyGame.Sample.Monster.AddEquippedType(            # Union type
         builder, MyGame.Sample.Equipment.Equipment().Weapon)
-    MyGame.Sample.Monster.MonsterAddEquipped(builder, axe)   # Union data
+    MyGame.Sample.Monster.AddEquipped(builder, axe)   # Union data
   ~~~
 </div>
 <div class="language-javascript">
@@ -2357,7 +2382,7 @@ won't work.**
   buf = /* the data you just read, in an object of type "bytearray" */
 
   // Get an accessor to the root object inside the buffer.
-  monster = MyGame.Sample.Monster.Monster.GetRootAsMonster(buf, 0)
+  monster = MyGame.Sample.Monster.Monster.GetRootAs(buf, 0)
 
   # Note: We use `0` for the offset here, which is typical for most buffers
   # you would read.  If you wanted to read from the `builder.Bytes` directly,
@@ -3239,7 +3264,8 @@ mutators like so:
 ~~~{.swift}
   let monster = Monster.getRootAsMonster(bb: ByteBuffer(bytes: buf))
   monster.mutate(hp: 10) // mutates a value in a table
-  monster.pos.mutate(z: 4) // mutates a value in a struct
+  /// to mutate structs in swift you have to use the mutable accessors
+  monster.mutablePos.mutate(z: 4) // mutates a value in a struct
   monster.mutate(inventory: 6, at index: 0) // mutates a value in an Scalar array
 ~~~
 </div>

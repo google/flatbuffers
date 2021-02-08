@@ -242,9 +242,7 @@ impl<'a> Builder {
         let address = self.buffer.len();
         for &b in xs.iter() {
             self.buffer.push(b as u8);
-            for _ in 0..width as u8 {
-                self.buffer.push(0); // Well this seems wasteful.
-            }
+            self.buffer.resize(self.buffer.len() + width as usize, 0);
         }
         self.values.push(Value::Reference {
             fxb_type: FlexBufferType::VectorBool,

@@ -1930,10 +1930,28 @@ MyGame.Example.Monster.prototype.testrequirednestedflatbufferArray = function() 
 };
 
 /**
+ * @param {number} index
+ * @param {MyGame.Example.Stat=} obj
+ * @returns {MyGame.Example.Stat}
+ */
+MyGame.Example.Monster.prototype.scalarKeySortedTables = function(index, obj) {
+  var offset = this.bb.__offset(this.bb_pos, 104);
+  return offset ? (obj || new MyGame.Example.Stat).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos + offset) + index * 4), this.bb) : null;
+};
+
+/**
+ * @returns {number}
+ */
+MyGame.Example.Monster.prototype.scalarKeySortedTablesLength = function() {
+  var offset = this.bb.__offset(this.bb_pos, 104);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
  * @param {flatbuffers.Builder} builder
  */
 MyGame.Example.Monster.startMonster = function(builder) {
-  builder.startObject(50);
+  builder.startObject(51);
 };
 
 /**
@@ -2686,6 +2704,35 @@ MyGame.Example.Monster.createTestrequirednestedflatbufferVector = function(build
  */
 MyGame.Example.Monster.startTestrequirednestedflatbufferVector = function(builder, numElems) {
   builder.startVector(1, numElems, 1);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} scalarKeySortedTablesOffset
+ */
+MyGame.Example.Monster.addScalarKeySortedTables = function(builder, scalarKeySortedTablesOffset) {
+  builder.addFieldOffset(50, scalarKeySortedTablesOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<flatbuffers.Offset>} data
+ * @returns {flatbuffers.Offset}
+ */
+MyGame.Example.Monster.createScalarKeySortedTablesVector = function(builder, data) {
+  builder.startVector(4, data.length, 4);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+MyGame.Example.Monster.startScalarKeySortedTablesVector = function(builder, numElems) {
+  builder.startVector(4, numElems, 4);
 };
 
 /**

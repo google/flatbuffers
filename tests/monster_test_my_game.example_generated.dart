@@ -32,7 +32,7 @@ class Color {
 
   ///  \brief color Blue (1u << 3)
   static const Color Blue = const Color._(8);
-  static const values = {1: Red,2: Green,8: Blue,};
+  static const Map<int,Color> values = {1: Red,2: Green,8: Blue,};
 
   static const fb.Reader<Color> reader = const _ColorReader();
 
@@ -73,7 +73,7 @@ class Race {
   static const Race Human = const Race._(0);
   static const Race Dwarf = const Race._(1);
   static const Race Elf = const Race._(2);
-  static const values = {-1: None,0: Human,1: Dwarf,2: Elf,};
+  static const Map<int,Race> values = {-1: None,0: Human,1: Dwarf,2: Elf,};
 
   static const fb.Reader<Race> reader = const _RaceReader();
 
@@ -114,7 +114,7 @@ class AnyTypeId {
   static const AnyTypeId Monster = const AnyTypeId._(1);
   static const AnyTypeId TestSimpleTableWithEnum = const AnyTypeId._(2);
   static const AnyTypeId MyGame_Example2_Monster = const AnyTypeId._(3);
-  static const values = {0: NONE,1: Monster,2: TestSimpleTableWithEnum,3: MyGame_Example2_Monster,};
+  static const Map<int,AnyTypeId> values = {0: NONE,1: Monster,2: TestSimpleTableWithEnum,3: MyGame_Example2_Monster,};
 
   static const fb.Reader<AnyTypeId> reader = const _AnyTypeIdReader();
 
@@ -155,7 +155,7 @@ class AnyUniqueAliasesTypeId {
   static const AnyUniqueAliasesTypeId M = const AnyUniqueAliasesTypeId._(1);
   static const AnyUniqueAliasesTypeId TS = const AnyUniqueAliasesTypeId._(2);
   static const AnyUniqueAliasesTypeId M2 = const AnyUniqueAliasesTypeId._(3);
-  static const values = {0: NONE,1: M,2: TS,3: M2,};
+  static const Map<int,AnyUniqueAliasesTypeId> values = {0: NONE,1: M,2: TS,3: M2,};
 
   static const fb.Reader<AnyUniqueAliasesTypeId> reader = const _AnyUniqueAliasesTypeIdReader();
 
@@ -196,7 +196,7 @@ class AnyAmbiguousAliasesTypeId {
   static const AnyAmbiguousAliasesTypeId M1 = const AnyAmbiguousAliasesTypeId._(1);
   static const AnyAmbiguousAliasesTypeId M2 = const AnyAmbiguousAliasesTypeId._(2);
   static const AnyAmbiguousAliasesTypeId M3 = const AnyAmbiguousAliasesTypeId._(3);
-  static const values = {0: NONE,1: M1,2: M2,3: M3,};
+  static const Map<int,AnyAmbiguousAliasesTypeId> values = {0: NONE,1: M1,2: M2,3: M3,};
 
   static const fb.Reader<AnyAmbiguousAliasesTypeId> reader = const _AnyAmbiguousAliasesTypeIdReader();
 
@@ -802,10 +802,11 @@ class Monster {
   List<Color> get vectorOfEnums => const fb.ListReader<Color>(Color.reader).vTableGet(_bc, _bcOffset, 98, null);
   Race get signedEnum => new Race.fromValue(const fb.Int8Reader().vTableGet(_bc, _bcOffset, 100, -1));
   List<int> get testrequirednestedflatbuffer => const fb.ListReader<int>(const fb.Uint8Reader()).vTableGet(_bc, _bcOffset, 102, null);
+  List<Stat> get scalarKeySortedTables => const fb.ListReader<Stat>(Stat.reader).vTableGet(_bc, _bcOffset, 104, null);
 
   @override
   String toString() {
-    return 'Monster{pos: $pos, mana: $mana, hp: $hp, name: $name, inventory: $inventory, color: $color, testType: $testType, test: $test, test4: $test4, testarrayofstring: $testarrayofstring, testarrayoftables: $testarrayoftables, enemy: $enemy, testnestedflatbuffer: $testnestedflatbuffer, testempty: $testempty, testbool: $testbool, testhashs32Fnv1: $testhashs32Fnv1, testhashu32Fnv1: $testhashu32Fnv1, testhashs64Fnv1: $testhashs64Fnv1, testhashu64Fnv1: $testhashu64Fnv1, testhashs32Fnv1a: $testhashs32Fnv1a, testhashu32Fnv1a: $testhashu32Fnv1a, testhashs64Fnv1a: $testhashs64Fnv1a, testhashu64Fnv1a: $testhashu64Fnv1a, testarrayofbools: $testarrayofbools, testf: $testf, testf2: $testf2, testf3: $testf3, testarrayofstring2: $testarrayofstring2, testarrayofsortedstruct: $testarrayofsortedstruct, flex: $flex, test5: $test5, vectorOfLongs: $vectorOfLongs, vectorOfDoubles: $vectorOfDoubles, parentNamespaceTest: $parentNamespaceTest, vectorOfReferrables: $vectorOfReferrables, singleWeakReference: $singleWeakReference, vectorOfWeakReferences: $vectorOfWeakReferences, vectorOfStrongReferrables: $vectorOfStrongReferrables, coOwningReference: $coOwningReference, vectorOfCoOwningReferences: $vectorOfCoOwningReferences, nonOwningReference: $nonOwningReference, vectorOfNonOwningReferences: $vectorOfNonOwningReferences, anyUniqueType: $anyUniqueType, anyUnique: $anyUnique, anyAmbiguousType: $anyAmbiguousType, anyAmbiguous: $anyAmbiguous, vectorOfEnums: $vectorOfEnums, signedEnum: $signedEnum, testrequirednestedflatbuffer: $testrequirednestedflatbuffer}';
+    return 'Monster{pos: $pos, mana: $mana, hp: $hp, name: $name, inventory: $inventory, color: $color, testType: $testType, test: $test, test4: $test4, testarrayofstring: $testarrayofstring, testarrayoftables: $testarrayoftables, enemy: $enemy, testnestedflatbuffer: $testnestedflatbuffer, testempty: $testempty, testbool: $testbool, testhashs32Fnv1: $testhashs32Fnv1, testhashu32Fnv1: $testhashu32Fnv1, testhashs64Fnv1: $testhashs64Fnv1, testhashu64Fnv1: $testhashu64Fnv1, testhashs32Fnv1a: $testhashs32Fnv1a, testhashu32Fnv1a: $testhashu32Fnv1a, testhashs64Fnv1a: $testhashs64Fnv1a, testhashu64Fnv1a: $testhashu64Fnv1a, testarrayofbools: $testarrayofbools, testf: $testf, testf2: $testf2, testf3: $testf3, testarrayofstring2: $testarrayofstring2, testarrayofsortedstruct: $testarrayofsortedstruct, flex: $flex, test5: $test5, vectorOfLongs: $vectorOfLongs, vectorOfDoubles: $vectorOfDoubles, parentNamespaceTest: $parentNamespaceTest, vectorOfReferrables: $vectorOfReferrables, singleWeakReference: $singleWeakReference, vectorOfWeakReferences: $vectorOfWeakReferences, vectorOfStrongReferrables: $vectorOfStrongReferrables, coOwningReference: $coOwningReference, vectorOfCoOwningReferences: $vectorOfCoOwningReferences, nonOwningReference: $nonOwningReference, vectorOfNonOwningReferences: $vectorOfNonOwningReferences, anyUniqueType: $anyUniqueType, anyUnique: $anyUnique, anyAmbiguousType: $anyAmbiguousType, anyAmbiguous: $anyAmbiguous, vectorOfEnums: $vectorOfEnums, signedEnum: $signedEnum, testrequirednestedflatbuffer: $testrequirednestedflatbuffer, scalarKeySortedTables: $scalarKeySortedTables}';
   }
 }
 
@@ -1024,6 +1025,10 @@ class MonsterBuilder {
     fbBuilder.addOffset(49, offset);
     return fbBuilder.offset;
   }
+  int addScalarKeySortedTablesOffset(int offset) {
+    fbBuilder.addOffset(50, offset);
+    return fbBuilder.offset;
+  }
 
   int finish() {
     return fbBuilder.endTable();
@@ -1080,6 +1085,7 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
   final List<Color> _vectorOfEnums;
   final Race _signedEnum;
   final List<int> _testrequirednestedflatbuffer;
+  final List<StatObjectBuilder> _scalarKeySortedTables;
 
   MonsterObjectBuilder({
     Vec3ObjectBuilder pos,
@@ -1131,6 +1137,7 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
     List<Color> vectorOfEnums,
     Race signedEnum,
     List<int> testrequirednestedflatbuffer,
+    List<StatObjectBuilder> scalarKeySortedTables,
   })
       : _pos = pos,
         _mana = mana,
@@ -1180,7 +1187,8 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
         _anyAmbiguous = anyAmbiguous,
         _vectorOfEnums = vectorOfEnums,
         _signedEnum = signedEnum,
-        _testrequirednestedflatbuffer = testrequirednestedflatbuffer;
+        _testrequirednestedflatbuffer = testrequirednestedflatbuffer,
+        _scalarKeySortedTables = scalarKeySortedTables;
 
   /// Finish building, and store into the [fbBuilder].
   @override
@@ -1250,6 +1258,9 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
         : null;
     final int testrequirednestedflatbufferOffset = _testrequirednestedflatbuffer?.isNotEmpty == true
         ? fbBuilder.writeListUint8(_testrequirednestedflatbuffer)
+        : null;
+    final int scalarKeySortedTablesOffset = _scalarKeySortedTables?.isNotEmpty == true
+        ? fbBuilder.writeList(_scalarKeySortedTables.map((b) => b.getOrCreateOffset(fbBuilder)).toList())
         : null;
 
     fbBuilder.startTable();
@@ -1355,6 +1366,9 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
     fbBuilder.addInt8(48, _signedEnum?.value);
     if (testrequirednestedflatbufferOffset != null) {
       fbBuilder.addOffset(49, testrequirednestedflatbufferOffset);
+    }
+    if (scalarKeySortedTablesOffset != null) {
+      fbBuilder.addOffset(50, scalarKeySortedTablesOffset);
     }
     return fbBuilder.endTable();
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Google Inc. All rights reserved.
+ * Copyright 2021 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import NIO
 
 class Greeter: GreeterProvider {
 
+  var interceptors: GreeterServerInterceptorFactoryProtocol?
+
   var hellos: [Message<HelloReply>] = []
 
   init() {
@@ -36,7 +38,7 @@ class Greeter: GreeterProvider {
   }
 
   func SayHello(
-    _ request: Message<HelloRequest>,
+    request: Message<HelloRequest>,
     context: StatusOnlyCallContext) -> EventLoopFuture<Message<HelloReply>>
   {
     let recipient = request.object.name ?? "Stranger"
