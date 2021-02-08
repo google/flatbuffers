@@ -1309,7 +1309,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
       if (!struct_def.sortbysize ||
           size == SizeOf(field_value.type.base_type)) {
         switch (field_value.type.base_type) {
-// clang-format off
+          // clang-format off
           #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
             case BASE_TYPE_ ## ENUM: \
               builder_.Pad(field->padding); \
@@ -1495,7 +1495,7 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
     // start at the back, since we're building the data backwards.
     auto &val = field_stack_.back().first;
     switch (val.type.base_type) {
-// clang-format off
+      // clang-format off
       #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE,...) \
         case BASE_TYPE_ ## ENUM: \
           if (IsStruct(val.type)) SerializeStruct(*val.type.struct_def, val); \
@@ -1959,9 +1959,7 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
   // Match empty vectors for default-empty-vectors.
   if (!match && IsVector(e.type) && token_ == '[') {
     NEXT();
-    if (token_ != ']') {
-      return Error("Expected `]` in vector default");
-    }
+    if (token_ != ']') { return Error("Expected `]` in vector default"); }
     NEXT();
     match = true;
     e.constant = "[]";

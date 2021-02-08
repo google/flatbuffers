@@ -186,7 +186,7 @@ bool IsBitFlagsEnum(const FieldDef &field) {
 // TableArgs make required non-scalars "Option<_>".
 // TODO(cneo): Rework how we do defaults and stuff.
 bool IsOptionalToBuilder(const FieldDef &field) {
-    return field.IsOptional() || !IsScalar(field.value.type.base_type);
+  return field.IsOptional() || !IsScalar(field.value.type.base_type);
 }
 
 namespace rust {
@@ -890,7 +890,8 @@ class RustGenerator : public BaseGenerator {
   }
 
   enum DefaultContext { kBuilder, kAccessor, kObject };
-  std::string GetDefaultValue(const FieldDef &field, const DefaultContext context) {
+  std::string GetDefaultValue(const FieldDef &field,
+                              const DefaultContext context) {
     if (context == kBuilder) {
       // Builders and Args structs model nonscalars "optional" even if they're
       // required or have defaults according to the schema. I guess its because
@@ -946,7 +947,6 @@ class RustGenerator : public BaseGenerator {
         // if (context == kObject) return "Vec::new()";
         // if (context == kAccessor) return "&[]";
         // FLATBUFFERS_ASSERT("Unreachable.");
-
       }
       case ftStruct:
       case ftTable: {
@@ -973,15 +973,14 @@ class RustGenerator : public BaseGenerator {
                                        const std::string &lifetime) {
     const Type &type = field.value.type;
     auto WrapOption = [&](std::string s) {
-        return IsOptionalToBuilder(field) ? "Option<" + s + ">" : s;
+      return IsOptionalToBuilder(field) ? "Option<" + s + ">" : s;
     };
     auto WrapVector = [&](std::string ty) {
-        return WrapOption(
-                "flatbuffers::WIPOffset<flatbuffers::Vector<" + lifetime + ", " + ty + ">>"
-                );
+      return WrapOption("flatbuffers::WIPOffset<flatbuffers::Vector<" +
+                        lifetime + ", " + ty + ">>");
     };
     auto WrapUOffsetsVector = [&](std::string ty) {
-        return WrapVector("flatbuffers::ForwardsUOffset<"+ty+">");
+      return WrapVector("flatbuffers::ForwardsUOffset<" + ty + ">");
     };
 
     switch (GetFullType(type)) {
@@ -997,7 +996,7 @@ class RustGenerator : public BaseGenerator {
       case ftTable: {
         const auto typname = WrapInNameSpace(*type.struct_def);
         return WrapOption("flatbuffers::WIPOffset<" + typname + "<" + lifetime +
-               ">>");
+                          ">>");
       }
       case ftString: {
         return WrapOption("flatbuffers::WIPOffset<&" + lifetime + " str>");
@@ -1032,7 +1031,7 @@ class RustGenerator : public BaseGenerator {
         return WrapUOffsetsVector("&" + lifetime + " str");
       }
       case ftVectorOfUnionValue: {
-        return WrapUOffsetsVector("flatbuffers::Table<"+lifetime+">");
+        return WrapUOffsetsVector("flatbuffers::Table<" + lifetime + ">");
       }
     }
     return "INVALID_CODE_GENERATION";  // for return analysis
@@ -1257,15 +1256,15 @@ class RustGenerator : public BaseGenerator {
       case ftVectorOfFloat: {
         const auto typname = GetTypeBasic(type.VectorType());
         const auto vector_type =
-          IsOneByte(type.VectorType().base_type) ?
-          "&" + lifetime + " [" + typname + "]" :
-          "flatbuffers::Vector<" + lifetime + ", " + typname + ">";
+            IsOneByte(type.VectorType().base_type)
+                ? "&" + lifetime + " [" + typname + "]"
+                : "flatbuffers::Vector<" + lifetime + ", " + typname + ">";
         return WrapOption(vector_type);
       }
       case ftVectorOfEnumKey: {
         const auto typname = WrapInNameSpace(*type.enum_def);
-        return WrapOption("flatbuffers::Vector<" + lifetime + ", " +
-        typname + ">");
+        return WrapOption("flatbuffers::Vector<" + lifetime + ", " + typname +
+                          ">");
       }
       case ftVectorOfStruct: {
         const auto typname = WrapInNameSpace(*type.struct_def);
@@ -1273,16 +1272,14 @@ class RustGenerator : public BaseGenerator {
       }
       case ftVectorOfTable: {
         const auto typname = WrapInNameSpace(*type.struct_def);
-        return WrapOption(
-          "flatbuffers::Vector<" + lifetime +
-          ", flatbuffers::ForwardsUOffset<" +
-          typname + "<" + lifetime + ">>>"
-        );
+        return WrapOption("flatbuffers::Vector<" + lifetime +
+                          ", flatbuffers::ForwardsUOffset<" + typname + "<" +
+                          lifetime + ">>>");
       }
       case ftVectorOfString: {
-        return WrapOption(
-            "flatbuffers::Vector<" + lifetime +
-                ", flatbuffers::ForwardsUOffset<&" + lifetime + " str>>");
+        return WrapOption("flatbuffers::Vector<" + lifetime +
+                          ", flatbuffers::ForwardsUOffset<&" + lifetime +
+                          " str>>");
       }
       case ftVectorOfUnionValue: {
         FLATBUFFERS_ASSERT(false && "vectors of unions are not yet supported");
