@@ -136,6 +136,8 @@ pub struct Build {
     include_paths: Vec<PathBuf>,
     /// The schema files that will be compiled.
     schema: Vec<PathBuf>,
+    /// Whether or not --gen-all is passed.
+    gen_all: bool,
 }
 
 impl Build {
@@ -148,6 +150,7 @@ impl Build {
             output_path: None,
             include_paths: Vec::new(),
             schema: Vec::new(),
+            gen_all: false,
         }
     }
 
@@ -205,6 +208,34 @@ impl Build {
         self
     }
 
+    /// This tells flatc to put all the code for includes into the same
+    /// generated file. This helps mitigate issue flatbuffers#5589.
+    /// It is set to `false` by default, but for Rust it is currently
+    /// necessary for significant usage of flatbuffers.
+    ///
+    /// ## Shell Command
+    ///
+    /// ```text
+    /// $ flatc -r --gen-all -I dir1 -I dir2 foo.fbs
+    /// ```
+    ///
+    /// ## Rust equivalent
+    ///
+    /// ```no_run
+    /// fn main() {
+    ///     flatc::Build::new()
+    ///         .gen_all(true)
+    ///         .schema("foo.fbs")
+    ///         .include("dir1")
+    ///         .include("dir2")
+    ///         .compile();
+    /// }
+    /// ```
+    pub fn gen_all(&mut self, gen_all: bool) -> &mut Self {
+        self.gen_all = gen_all;
+        self
+    }
+
     /// Run the FlatBuffer schema compiler, generating one file for each of the
     /// schemas added to the `Build` with the
     /// [`schema`](struct.Build.html#method.schema) method.
@@ -252,6 +283,7 @@ impl Build {
         Command::new(FLATC_EXECUTABLE)
             .current_dir(env::var("CARGO_MANIFEST_DIR").unwrap())
             .arg("-r")
+            .args(if self.gen_all { &["--gen-all"][..] } else { &[] })
             .args(&["-o", &output_path])
             .args(include_paths)
             .args(fbs_files)
@@ -267,13 +299,5 @@ impl Build {
                     ))
                 }
             })
-    }
-}
-
-impl Build {
-    #[doc(hidden)]
-    pub fn output<P: AsRef<Path>>(&mut self, dir: P) -> &mut Self {
-        self.output_path = Some(dir.as_ref().to_path_buf());
-        self
     }
 }

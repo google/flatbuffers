@@ -16,7 +16,7 @@
 
 extern crate tempfile;
 
-use std::{env, fs};
+use std::env;
 
 fn main() {
     flatc::Build::new()

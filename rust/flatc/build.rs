@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-extern crate cmake;
-
 use std::{env, fs, path::Path, process::Command};
 
 fn main() {
@@ -52,7 +50,7 @@ fn main() {
     cmake.define("FLATBUFFERS_BUILD_FLATLIB", "OFF");
     cmake.define("FLATBUFFERS_BUILD_FLATHASH", "OFF");
     #[cfg(windows)]
-    cmake.cxxflag("/EHsc");
+    cmake.cxxflag("/EHsc"); 
 
     #[cfg(windows)]
     let _ = if let Ok(cmake_vs_version) = env::var("CMAKE_VS_VERSION") {
