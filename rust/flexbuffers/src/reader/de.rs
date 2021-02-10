@@ -191,7 +191,6 @@ impl<'de> Deserializer<'de> for Reader<InnerBuffer<'de>> {
             (Float, W64) => visitor.visit_f64(self.as_f64()),
             (Float, _) => Err(Error::InvalidPackedType.into()), // f8 and f16 are not supported.
             (Null, _) => visitor.visit_unit(),
-            // FIXME: Remove unwrap?
             (String, _) => visitor.visit_borrowed_str(
                 std::str::from_utf8(self.as_blob_bytes()).unwrap_or_default()
             ),
