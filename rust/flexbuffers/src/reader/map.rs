@@ -14,7 +14,7 @@
 
 use super::{deref_offset, unpack_type, Error, Reader, ReaderIterator, VectorReader};
 use crate::BitWidth;
-use crate::flexbuffer::FlexBuffer;
+use crate::InternalBuffer;
 use std::cmp::Ordering;
 use std::iter::{DoubleEndedIterator, ExactSizeIterator, FusedIterator, Iterator};
 
@@ -47,7 +47,7 @@ impl<B> std::fmt::Debug for MapReader<B> {
     }
 }
 
-impl<B: FlexBuffer> MapReader<B> {
+impl<B: InternalBuffer> MapReader<B> {
     /// Returns the number of key/value pairs are in the map.
     pub fn len(&self) -> usize {
         self.length
@@ -157,19 +157,19 @@ impl<B: FlexBuffer> MapReader<B> {
 }
 
 pub trait MapReaderIndexer {
-    fn index_map_reader<B: FlexBuffer>(self, r: &MapReader<B>) -> Result<Reader<B>, Error>;
+    fn index_map_reader<B: InternalBuffer>(self, r: &MapReader<B>) -> Result<Reader<B>, Error>;
 }
 
 impl MapReaderIndexer for usize {
     #[inline]
-    fn index_map_reader<B: FlexBuffer>(self, r: &MapReader<B>) -> Result<Reader<B>, Error> {
+    fn index_map_reader<B: InternalBuffer>(self, r: &MapReader<B>) -> Result<Reader<B>, Error> {
         r.usize_index(self)
     }
 }
 
 impl MapReaderIndexer for &str {
     #[inline]
-    fn index_map_reader<B: FlexBuffer>(self, r: &MapReader<B>) -> Result<Reader<B>, Error> {
+    fn index_map_reader<B: InternalBuffer>(self, r: &MapReader<B>) -> Result<Reader<B>, Error> {
         r.key_index(self)
     }
 }

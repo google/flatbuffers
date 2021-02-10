@@ -1,14 +1,21 @@
 use std::ops::{RangeBounds, Bound};
 
 /// The underlying buffer that is used by a flexbuffer Reader. 
-pub trait FlexBuffer: AsRef<[u8]> + Clone + Default {
+///
+/// This allows for custom buffer implementations so long as they can be
+/// viewed as a &[u8]. 
+pub trait InternalBuffer: AsRef<[u8]> + Clone + Default {
+    /// This method returns an instance of type Self. This allows for lifetimes
+    /// to be tracked in cases of deserialization. 
+    ///
+    /// It also lets custom buffers manage reference counts. 
     fn slice(&self, range: impl RangeBounds<usize>) -> Self;
 }
 
 /// Helper function for getting the pair of points for the beginning / end
 /// of the given range. 
 #[inline]
-fn get_slice_pair(len: usize, range: impl RangeBounds<usize>) -> (usize, usize) {
+fn get_slice_pair(range: impl RangeBounds<usize>, len: usize) -> (usize, usize) {
     let begin = match range.start_bound() {
         Bound::Included(&n) => n,
         Bound::Excluded(&n) => n + 1,
@@ -38,11 +45,11 @@ fn get_slice_pair(len: usize, range: impl RangeBounds<usize>) -> (usize, usize) 
     (begin, end)
 }
 
-impl<'de> FlexBuffer for &'de [u8] {
+impl<'de> InternalBuffer for &'de [u8] {
 
     #[inline]
     fn slice(&self, range: impl RangeBounds<usize>) -> Self {
-        let (begin, end) = get_slice_pair(self.len(), range);
+        let (begin, end) = get_slice_pair(range, self.len());
         &self[begin..end]
     }
 }

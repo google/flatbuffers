@@ -14,7 +14,7 @@
 
 use crate::bitwidth::BitWidth;
 use crate::flexbuffer_type::FlexBufferType;
-use crate::flexbuffer::FlexBuffer;
+use crate::InternalBuffer;
 use crate::Blob;
 use std::convert::{TryFrom, TryInto};
 use std::fmt;
@@ -182,7 +182,7 @@ fn deref_offset(buffer: &[u8], address: usize, width: BitWidth) -> Result<usize,
     safe_sub(address, off)
 }
 
-impl<'de, B: FlexBuffer> Reader<B> {
+impl<'de, B: InternalBuffer> Reader<B> {
     fn new(
         buffer: B,
         mut address: usize,
@@ -565,7 +565,7 @@ impl<'de, B: FlexBuffer> Reader<B> {
     }
 }
 
-impl<B: FlexBuffer> fmt::Display for Reader<B> {
+impl<B: InternalBuffer> fmt::Display for Reader<B> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use FlexBufferType::*;
         match self.flexbuffer_type() {

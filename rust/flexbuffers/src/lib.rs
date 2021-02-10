@@ -46,7 +46,7 @@ mod bitwidth;
 mod builder;
 mod flexbuffer_type;
 mod reader;
-mod flexbuffer;
+mod internal_buffer;
 
 pub use bitwidth::BitWidth;
 pub use builder::Error as SerializationError;
@@ -54,7 +54,7 @@ pub use builder::{
     singleton, Builder, BuilderOptions, FlexbufferSerializer, MapBuilder, Pushable, VectorBuilder,
 };
 pub use flexbuffer_type::FlexBufferType;
-pub use flexbuffer::FlexBuffer;
+pub use internal_buffer::InternalBuffer;
 pub use reader::Error as ReaderError;
 pub use reader::{DeserializationError, MapReader, Reader, ReaderIterator, VectorReader};
 use serde::{Deserialize, Serialize};

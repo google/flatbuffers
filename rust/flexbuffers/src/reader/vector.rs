@@ -14,7 +14,7 @@
 
 use super::{unpack_type, Error, Reader, ReaderIterator};
 use crate::{BitWidth, FlexBufferType};
-use crate::flexbuffer::FlexBuffer;
+use crate::InternalBuffer;
 
 #[derive(Default, Clone)]
 /// Allows indexing on any flexbuffer vector type, (heterogenous vector, typed vector, or fixed
@@ -29,7 +29,7 @@ pub struct VectorReader<B> {
     pub(super) length: usize,
 }
 
-impl<B: FlexBuffer> VectorReader<B> {
+impl<B: InternalBuffer> VectorReader<B> {
     /// Returns the number of elements in the vector.
     pub fn len(&self) -> usize {
         self.length
