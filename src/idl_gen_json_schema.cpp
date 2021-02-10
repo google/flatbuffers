@@ -49,10 +49,10 @@ std::string GenType(BaseType type) {
       return "\"type\" : \"integer\", \"minimum\" : " +
              NumToString(std::numeric_limits<int8_t>::min()) +
              ", \"maximum\" : " +
-             NumToString(std::numeric_limits<int8_t>::max()) + "\"";
+             NumToString(std::numeric_limits<int8_t>::max());
     case BASE_TYPE_UCHAR:
       return "\"type\" : \"integer\", \"minimum\" : 0, \"maximum\" :" +
-             NumToString(std::numeric_limits<uint8_t>::max()) + "\"";
+             NumToString(std::numeric_limits<uint8_t>::max());
     case BASE_TYPE_SHORT:
       return "\"type\" : \"integer\", \"minimum\" : " +
              NumToString(std::numeric_limits<int16_t>::min()) +

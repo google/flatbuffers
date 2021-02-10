@@ -41,7 +41,7 @@
                 "maxItems": 15
               },
         "c" : {
-                "type" : "integer", "minimum" : -128, "maximum" : 127"
+                "type" : "integer", "minimum" : -128, "maximum" : 127
               },
         "d" : {
                 "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_NestedStruct"},

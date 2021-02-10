@@ -71,7 +71,7 @@
                 "type" : "integer", "minimum" : -32768, "maximum" : 32767
               },
         "b" : {
-                "type" : "integer", "minimum" : -128, "maximum" : 127"
+                "type" : "integer", "minimum" : -128, "maximum" : 127
               }
       },
       "additionalProperties" : false
@@ -166,7 +166,7 @@
                 "deprecated" : true,
               },
         "inventory" : {
-                "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" :255"}
+                "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" :255}
               },
         "color" : {
                 "$ref" : "#/definitions/MyGame_Example_Color"
@@ -190,7 +190,7 @@
                 "$ref" : "#/definitions/MyGame_Example_Monster"
               },
         "testnestedflatbuffer" : {
-                "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" :255"}
+                "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" :255}
               },
         "testempty" : {
                 "$ref" : "#/definitions/MyGame_Example_Stat"
@@ -241,7 +241,7 @@
                 "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Ability"}
               },
         "flex" : {
-                "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" :255"}
+                "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" :255}
               },
         "test5" : {
                 "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Test"}
@@ -298,7 +298,7 @@
                 "$ref" : "#/definitions/MyGame_Example_Race"
               },
         "testrequirednestedflatbuffer" : {
-                "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" :255"}
+                "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" :255}
               },
         "scalar_key_sorted_tables" : {
                 "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Stat"}
@@ -311,10 +311,10 @@
       "type" : "object",
       "properties" : {
         "i8" : {
-                "type" : "integer", "minimum" : -128, "maximum" : 127"
+                "type" : "integer", "minimum" : -128, "maximum" : 127
               },
         "u8" : {
-                "type" : "integer", "minimum" : 0, "maximum" :255"
+                "type" : "integer", "minimum" : 0, "maximum" :255
               },
         "i16" : {
                 "type" : "integer", "minimum" : -32768, "maximum" : 32767
@@ -341,7 +341,7 @@
                 "type" : "number"
               },
         "v8" : {
-                "type" : "array", "items" : {"type" : "integer", "minimum" : -128, "maximum" : 127"}
+                "type" : "array", "items" : {"type" : "integer", "minimum" : -128, "maximum" : 127}
               },
         "vf64" : {
                 "type" : "array", "items" : {"type" : "number"}
