@@ -550,7 +550,7 @@ impl<'de, B: FlexBuffer> Reader<B> {
 
     /// Used to access bytes directly, helpful when dealing with liftime
     /// issues and `&str` will not allow for proper lifetime granularity.
-    pub fn as_bytes(&self) -> B {
+    pub fn as_blob_bytes(&self) -> B {
         self.buffer.slice(self.address..self.address + self.length())
     }
 

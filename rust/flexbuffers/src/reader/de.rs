@@ -192,7 +192,9 @@ impl<'de> Deserializer<'de> for Reader<InnerBuffer<'de>> {
             (Float, _) => Err(Error::InvalidPackedType.into()), // f8 and f16 are not supported.
             (Null, _) => visitor.visit_unit(),
             // FIXME: Remove unwrap?
-            (String, _) | (Key, _) => visitor.visit_borrowed_str(std::str::from_utf8(self.as_bytes()).unwrap_or_default()),
+            (String, _) | (Key, _) => visitor.visit_borrowed_str(
+                std::str::from_utf8(self.as_blob_bytes()).unwrap_or_default()
+            ),
             (Blob, _) => visitor.visit_borrowed_bytes(self.get_blob()?.0),
             (Map, _) => {
                 let m = self.get_map()?;
