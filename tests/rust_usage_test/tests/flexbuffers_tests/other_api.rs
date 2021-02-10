@@ -20,7 +20,7 @@ use quickcheck::QuickCheck;
 #[cfg(not(miri))]  // slow.
 fn qc_reader_no_crash() {
     fn no_crash(xs: Vec<u8>) -> bool {
-        let r = Reader::get_root(&xs);
+        let r = Reader::get_root(xs.as_ref());
         r.is_err() || r.is_ok()
     }
     QuickCheck::new()
@@ -133,7 +133,7 @@ fn string_as_num() {
 }
 #[test]
 fn null_reader() {
-    let n = Reader::default();
+    let n = Reader::<&[u8]>::default();
     assert_eq!(n.as_i8(), 0);
     assert_eq!(n.as_i16(), 0);
     assert_eq!(n.as_i32(), 0);
@@ -159,7 +159,7 @@ fn get_root_deref_oob() {
         (FlexBufferType::Vector as u8) << 2 | BitWidth::W8 as u8,
         1,
     ];
-    assert!(Reader::get_root(s).is_err());
+    assert!(Reader::get_root(s.as_ref()).is_err());
 }
 #[test]
 fn get_root_deref_u64() {
@@ -170,7 +170,7 @@ fn get_root_deref_u64() {
         1,
     ];
     // The risk of crashing is reading 8 bytes from index 0.
-    assert_eq!(Reader::get_root(s).unwrap().as_u64(), 0);
+    assert_eq!(Reader::get_root(s.as_ref()).unwrap().as_u64(), 0);
 }
 
 #[test]
