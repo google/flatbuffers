@@ -24,7 +24,7 @@ mod de;
 mod iter;
 mod map;
 mod vector;
-pub use de::{ReaderDeserializer, DeserializationError};
+pub use de::{DeserializationError};
 pub use iter::ReaderIterator;
 pub use map::{MapReader, MapReaderIndexer};
 pub use vector::VectorReader;
@@ -182,13 +182,7 @@ fn deref_offset(buffer: &[u8], address: usize, width: BitWidth) -> Result<usize,
     safe_sub(address, off)
 }
 
-impl<'de, B: FlexBuffer> From<Reader<B>> for ReaderDeserializer<'de, B> {
-    fn from(reader: Reader<B>) -> Self {
-        ReaderDeserializer::new(reader)
-    }
-}
-
-impl<'de, B: FlexBuffer + 'de> Reader<B> {
+impl<'de, B: FlexBuffer> Reader<B> {
     fn new(
         buffer: B,
         mut address: usize,
@@ -316,26 +310,38 @@ impl<'de, B: FlexBuffer + 'de> Reader<B> {
         )
     }
 
-    pub fn get_key(&self) -> Result<&str, Error> {
+    /// Gets the length of the key if this type is a key.
+    ///
+    /// Otherwise, returns an error.
+    fn get_key_len(&self) -> Result<usize, Error> {
         self.expect_type(FlexBufferType::Key)?;
         let (length, _) = self.buffer.as_ref()[self.address..]
             .iter()
             .enumerate()
             .find(|(_, &b)| b == b'\0')
             .unwrap_or((0, &0));
-        let bytes = &self.buffer.as_ref()[self.address..self.address + length];
+        Ok(length)
+    }
+
+    fn get_key_bytes(&self) -> Result<B, Error> {
+        let bytes = self.buffer.slice(self.address..self.address + self.get_key_len()?);
+        Ok(bytes)
+    }
+
+    pub fn get_key(&self) -> Result<&str, Error> {
+        let bytes = &self.buffer.as_ref()[self.address..self.address + self.get_key_len()?];
         Ok(std::str::from_utf8(bytes)?)
     }
 
-    pub fn get_blob(&self) -> Result<Blob<'_>, Error> {
+    pub fn get_blob(&self) -> Result<Blob<B>, Error> {
         self.expect_type(FlexBufferType::Blob)?;
         Ok(Blob(
-            self.buffer.as_ref().get(self.address..self.address + self.length()).unwrap(),
+            self.buffer.slice(self.address..self.address + self.length()),
         ))
     }
 
-    pub fn as_blob(&self) -> Blob<'_> {
-        self.get_blob().unwrap_or(Blob(&[]))
+    pub fn as_blob(&self) -> Blob<B> {
+        self.get_blob().unwrap_or(Blob(B::default()))
     }
 
     /// Retrieves str pointer, errors if invalid UTF-8, or the provided index
@@ -540,6 +546,12 @@ impl<'de, B: FlexBuffer + 'de> Reader<B> {
             FlexBufferType::Key => self.get_key().unwrap_or_default(),
             _ => "",
         }
+    }
+
+    /// Used to access bytes directly, helpful when dealing with liftime
+    /// issues and `&str` will not allow for proper lifetime granularity.
+    pub fn as_bytes(&self) -> B {
+        self.buffer.slice(self.address..self.address + self.length())
     }
 
     pub fn get_vector(&self) -> Result<VectorReader<B>, Error> {
