@@ -76,6 +76,14 @@ pub fn from_slice<'de, T: Deserialize<'de>>(buf: &'de [u8]) -> Result<T, Deseria
     T::deserialize(r)
 }
 
+/// Deserialize a type from a flexbuffer.
+pub fn from_buffer<'de, T: Deserialize<'de>, B: InternalBuffer>(
+    buf: &'de B
+) -> Result<T, DeserializationError> {
+    let r = Reader::get_root(buf.as_ref())?;
+    T::deserialize(r)
+}
+
 /// This struct, when pushed will be serialized as a `FlexBufferType::Blob`.
 ///
 /// A `Blob` is a variable width `length` followed by that many bytes of data.

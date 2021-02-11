@@ -183,15 +183,6 @@ fn deref_offset(buffer: &[u8], address: usize, width: BitWidth) -> Result<usize,
 }
 
 impl<B: InternalBuffer> Reader<B> {
-    pub fn borrow(&self) -> Reader<&[u8]> {
-        Reader {
-            fxb_type: self.fxb_type,
-            width: self.width,
-            address: self.address,
-            buffer: self.buffer.as_ref()
-        }
-    }
-
     fn new(
         buffer: B,
         mut address: usize,
