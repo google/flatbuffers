@@ -182,7 +182,16 @@ fn deref_offset(buffer: &[u8], address: usize, width: BitWidth) -> Result<usize,
     safe_sub(address, off)
 }
 
-impl<'de, B: InternalBuffer> Reader<B> {
+impl<B: InternalBuffer> Reader<B> {
+    pub fn borrow(&self) -> Reader<&[u8]> {
+        Reader {
+            fxb_type: self.fxb_type,
+            width: self.width,
+            address: self.address,
+            buffer: self.buffer.as_ref()
+        }
+    }
+
     fn new(
         buffer: B,
         mut address: usize,
@@ -323,20 +332,19 @@ impl<'de, B: InternalBuffer> Reader<B> {
         Ok(length)
     }
 
-    fn get_key_bytes(&self) -> Result<B, Error> {
-        let bytes = self.buffer.slice(self.address..self.address + self.get_key_len()?);
-        Ok(bytes)
-    }
-
-    pub fn get_key(&self) -> Result<&str, Error> {
-        let bytes = &self.buffer.as_ref()[self.address..self.address + self.get_key_len()?];
-        Ok(std::str::from_utf8(bytes)?)
+    pub fn get_key(&self) -> Result<B::BufferString, Error> {
+        let bytes = self.buffer
+            .slice(self.address..self.address + self.get_key_len()?)
+            .ok_or(Error::IndexOutOfBounds)?;
+        Ok(bytes.as_str()?)
     }
 
     pub fn get_blob(&self) -> Result<Blob<B>, Error> {
         self.expect_type(FlexBufferType::Blob)?;
         Ok(Blob(
-            self.buffer.slice(self.address..self.address + self.length()),
+                self.buffer
+                    .slice(self.address..self.address + self.length())
+                    .ok_or(Error::IndexOutOfBounds)?
         ))
     }
 
@@ -346,10 +354,10 @@ impl<'de, B: InternalBuffer> Reader<B> {
 
     /// Retrieves str pointer, errors if invalid UTF-8, or the provided index
     /// is out of bounds.
-    pub fn get_str(&self) -> Result<&str, Error> {
+    pub fn get_str(&self) -> Result<B::BufferString, Error> {
         self.expect_type(FlexBufferType::String)?;
-        let bytes = self.buffer.as_ref().get(self.address..self.address + self.length());
-        Ok(std::str::from_utf8(bytes.ok_or(Error::ReadUsizeOverflowed)?)?)
+        let bytes = self.buffer.slice(self.address..self.address + self.length());
+        Ok(bytes.ok_or(Error::ReadUsizeOverflowed)?.as_str()?)
     }
 
     fn get_map_info(&self) -> Result<(usize, BitWidth), Error> {
@@ -475,7 +483,7 @@ impl<'de, B: InternalBuffer> Reader<B> {
             FlexBufferType::Float => self.get_f64().unwrap_or_default() as u64,
             FlexBufferType::String => {
                 if let Ok(s) = self.get_str() {
-                    if let Ok(f) = u64::from_str(s) {
+                    if let Ok(f) = u64::from_str(&s) {
                         return f;
                     }
                 }
@@ -502,7 +510,7 @@ impl<'de, B: InternalBuffer> Reader<B> {
             FlexBufferType::Float => self.get_f64().unwrap_or_default() as i64,
             FlexBufferType::String => {
                 if let Ok(s) = self.get_str() {
-                    if let Ok(f) = i64::from_str(s) {
+                    if let Ok(f) = i64::from_str(&s) {
                         return f;
                     }
                 }
@@ -525,7 +533,7 @@ impl<'de, B: InternalBuffer> Reader<B> {
             FlexBufferType::Float => self.get_f64().unwrap_or_default(),
             FlexBufferType::String => {
                 if let Ok(s) = self.get_str() {
-                    if let Ok(f) = f64::from_str(s) {
+                    if let Ok(f) = f64::from_str(&s) {
                         return f;
                     }
                 }
@@ -540,18 +548,12 @@ impl<'de, B: InternalBuffer> Reader<B> {
     }
 
     /// Returns empty string if you're not trying to read a string.
-    pub fn as_str(&self) -> &str {
+    pub fn as_str(&self) -> B::BufferString {
         match self.fxb_type {
             FlexBufferType::String => self.get_str().unwrap_or_default(),
             FlexBufferType::Key => self.get_key().unwrap_or_default(),
-            _ => "",
+            _ => B::BufferString::default(),
         }
-    }
-
-    /// Used to access bytes directly, helpful when dealing with liftime
-    /// issues and `&str` will not allow for proper lifetime granularity.
-    pub fn as_blob_bytes(&self) -> B {
-        self.buffer.slice(self.address..self.address + self.length())
     }
 
     pub fn get_vector(&self) -> Result<VectorReader<B>, Error> {

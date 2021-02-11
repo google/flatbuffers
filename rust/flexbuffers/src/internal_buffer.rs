@@ -1,21 +1,37 @@
-use std::ops::{RangeBounds, Bound};
+use std::fmt::Debug;
+use std::ops::{Deref, RangeBounds, Bound};
 
 /// The underlying buffer that is used by a flexbuffer Reader. 
 ///
 /// This allows for custom buffer implementations so long as they can be
 /// viewed as a &[u8]. 
-pub trait InternalBuffer: AsRef<[u8]> + Clone + Default {
+pub trait InternalBuffer: Deref<Target = [u8]> + AsRef<[u8]> + Clone + Default + Debug {
+    type BufferString: Deref<Target = str> + AsRef<str> + Default + Debug;
+
     /// This method returns an instance of type Self. This allows for lifetimes
     /// to be tracked in cases of deserialization. 
     ///
     /// It also lets custom buffers manage reference counts. 
-    fn slice(&self, range: impl RangeBounds<usize>) -> Self;
+    ///
+    /// Returns None if:
+    /// - range start is greater than end
+    /// - range end is out of bounds
+    fn slice(&self, range: impl RangeBounds<usize>) -> Option<Self>;
+
+    /// Attempts to convert the given buffer to a custom string type. 
+    ///
+    /// This should fail if the type does not have valid UTF-8 bytes. 
+    fn as_str(&self) -> Result<Self::BufferString, std::str::Utf8Error>;
 }
 
 /// Helper function for getting the pair of points for the beginning / end
 /// of the given range. 
+///
+/// Returns None if:
+/// - range start is greater than end
+/// - range end is out of bounds
 #[inline]
-fn get_slice_pair(range: impl RangeBounds<usize>, len: usize) -> (usize, usize) {
+fn get_slice_pair(range: impl RangeBounds<usize>, len: usize) -> Option<(usize, usize)> {
     let begin = match range.start_bound() {
         Bound::Included(&n) => n,
         Bound::Excluded(&n) => n + 1,
@@ -28,29 +44,28 @@ fn get_slice_pair(range: impl RangeBounds<usize>, len: usize) -> (usize, usize) 
         Bound::Unbounded => len,
     };
 
-    debug_assert!(
-        begin <= end,
-        "range start must not be greater than end: {:?} <= {:?}",
-        begin,
-        end,
-    );
-
-    debug_assert!(
-        end <= len,
-        "range end out of bounds: {:?} <= {:?}",
-        end,
-        len,
-    );
-
-    (begin, end)
+    if begin <= end || end <= len {
+        None 
+    } else {
+        Some((begin, end))
+    }
 }
 
 impl<'de> InternalBuffer for &'de [u8] {
+    type BufferString = &'de str;
 
     #[inline]
-    fn slice(&self, range: impl RangeBounds<usize>) -> Self {
-        let (begin, end) = get_slice_pair(range, self.len());
-        &self[begin..end]
+    fn slice(&self, range: impl RangeBounds<usize>) -> Option<Self> {
+        if let Some((begin, end)) = get_slice_pair(range, self.len()) {
+            Some(&self[begin..end])
+        } else {
+            None
+        }
+    }
+
+    #[inline]
+    fn as_str(&self) -> Result<Self::BufferString, std::str::Utf8Error> {
+        Ok(std::str::from_utf8(self)?)
     }
 }
 

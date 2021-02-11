@@ -135,12 +135,9 @@ impl<B: InternalBuffer> MapReader<B> {
     /// Iterate over the keys of the map.
     pub fn iter_keys(
         &self,
-    ) -> impl Iterator<Item = &str> + DoubleEndedIterator + ExactSizeIterator + FusedIterator
+    ) -> impl Iterator<Item = B::BufferString> + DoubleEndedIterator + ExactSizeIterator + FusedIterator
     {
-        unsafe {
-            // TODO(colindjk) is unsafe avoidable here?
-            self.keys_vector().iter().map(|k| (k.as_str() as *const str).as_ref().unwrap())
-        }
+        self.keys_vector().iter().map(|k| k.as_str())
     }
 
     pub fn keys_vector(&self) -> VectorReader<B> {
