@@ -1,4 +1,5 @@
 load("@rules_cc//cc:defs.bzl", "cc_test")
+load("//:build_defs.bzl", "flatbuffer_cc_library")
 
 package(default_visibility = ["//visibility:private"])
 
@@ -70,7 +71,6 @@ cc_test(
 )
 
 # Test bzl rules
-load("//:build_defs.bzl", "flatbuffer_cc_library")
 
 cc_library(
     name = "test_assert",

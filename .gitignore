@@ -2,6 +2,7 @@
 *_wire.bin
 .DS_Store
 **/.build
+build
 **/Packages
 /*.xcodeproj
 **/xcuserdata/
