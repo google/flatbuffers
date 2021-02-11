@@ -933,6 +933,7 @@ class RustGenerator : public BaseGenerator {
         if (context == kObject) return defval + ".to_string()";
         if (context == kAccessor) return "&" + defval;
         FLATBUFFERS_ASSERT("Unreachable.");
+        return "INVALID_CODE_GENERATION";
       }
 
       case ftVectorOfBool:
