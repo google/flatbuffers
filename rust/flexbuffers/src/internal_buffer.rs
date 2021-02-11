@@ -44,10 +44,10 @@ fn get_slice_pair(range: impl RangeBounds<usize>, len: usize) -> Option<(usize, 
         Bound::Unbounded => len,
     };
 
-    if begin <= end || end <= len {
-        None 
-    } else {
+    if begin <= end && end <= len {
         Some((begin, end))
+    } else {
+        None
     }
 }
 
