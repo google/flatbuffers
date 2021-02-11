@@ -1,6 +1,6 @@
-licenses(["notice"])
-
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+
+licenses(["notice"])
 
 package(
     default_visibility = ["//visibility:public"],
