@@ -14,7 +14,7 @@
 
 use super::{deref_offset, unpack_type, Error, Reader, ReaderIterator, VectorReader};
 use crate::BitWidth;
-use crate::InternalBuffer;
+use crate::Buffer;
 use std::cmp::Ordering;
 use std::iter::{DoubleEndedIterator, ExactSizeIterator, FusedIterator, Iterator};
 
@@ -47,7 +47,7 @@ impl<B> std::fmt::Debug for MapReader<B> {
     }
 }
 
-impl<B: InternalBuffer> MapReader<B> {
+impl<B: Buffer> MapReader<B> {
     /// Returns the number of key/value pairs are in the map.
     pub fn len(&self) -> usize {
         self.length
@@ -62,7 +62,7 @@ impl<B: InternalBuffer> MapReader<B> {
     // validation. This version is faster than both.
     fn lazy_strcmp(&self, key_addr: usize, key: &str) -> Ordering {
         // TODO: Can we know this won't OOB and panic?
-        let k = self.buffer.as_ref()[key_addr..].iter().take_while(|&&b| b != b'\0');
+        let k = self.buffer[key_addr..].iter().take_while(|&&b| b != b'\0');
         k.cmp(key.as_bytes().iter())
     }
 
@@ -154,19 +154,19 @@ impl<B: InternalBuffer> MapReader<B> {
 }
 
 pub trait MapReaderIndexer {
-    fn index_map_reader<B: InternalBuffer>(self, r: &MapReader<B>) -> Result<Reader<B>, Error>;
+    fn index_map_reader<B: Buffer>(self, r: &MapReader<B>) -> Result<Reader<B>, Error>;
 }
 
 impl MapReaderIndexer for usize {
     #[inline]
-    fn index_map_reader<B: InternalBuffer>(self, r: &MapReader<B>) -> Result<Reader<B>, Error> {
+    fn index_map_reader<B: Buffer>(self, r: &MapReader<B>) -> Result<Reader<B>, Error> {
         r.usize_index(self)
     }
 }
 
 impl MapReaderIndexer for &str {
     #[inline]
-    fn index_map_reader<B: InternalBuffer>(self, r: &MapReader<B>) -> Result<Reader<B>, Error> {
+    fn index_map_reader<B: Buffer>(self, r: &MapReader<B>) -> Result<Reader<B>, Error> {
         r.key_index(self)
     }
 }

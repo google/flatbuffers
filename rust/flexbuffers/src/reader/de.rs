@@ -221,7 +221,7 @@ impl<'de> Deserializer<'de> for Reader<InnerBuffer<'de>> {
     where
         V: Visitor<'de>,
     {
-        visitor.visit_byte_buf(self.get_blob()?.0.as_ref().to_vec())
+        visitor.visit_byte_buf(self.get_blob()?.0.to_vec())
     }
 
     fn deserialize_option<V>(self, visitor: V) -> Result<V::Value, Self::Error>

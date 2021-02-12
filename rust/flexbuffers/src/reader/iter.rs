@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::InternalBuffer;
-use super::{Reader, VectorReader};
+use crate::{Buffer, Reader, VectorReader};
 use std::iter::{DoubleEndedIterator, ExactSizeIterator, FusedIterator, Iterator};
 
 /// Iterates over a flexbuffer vector, typed vector, or map. Yields [Readers](struct.Reader.html).
@@ -25,7 +24,7 @@ pub struct ReaderIterator<B> {
     end: usize,
 }
 
-impl<B: InternalBuffer> ReaderIterator<B> {
+impl<B: Buffer> ReaderIterator<B> {
     pub(super) fn new(reader: VectorReader<B>) -> Self {
         let end = reader.len();
         ReaderIterator {
@@ -36,7 +35,7 @@ impl<B: InternalBuffer> ReaderIterator<B> {
     }
 }
 
-impl<B: InternalBuffer> Iterator for ReaderIterator<B> {
+impl<B: Buffer> Iterator for ReaderIterator<B> {
     type Item = Reader<B>;
     fn next(&mut self) -> Option<Self::Item> {
         if self.front < self.end {
@@ -53,7 +52,7 @@ impl<B: InternalBuffer> Iterator for ReaderIterator<B> {
     }
 }
 
-impl<B: InternalBuffer> DoubleEndedIterator for ReaderIterator<B> {
+impl<B: Buffer> DoubleEndedIterator for ReaderIterator<B> {
     fn next_back(&mut self) -> Option<Self::Item> {
         if self.front < self.end {
             self.end -= 1;
@@ -64,5 +63,5 @@ impl<B: InternalBuffer> DoubleEndedIterator for ReaderIterator<B> {
     }
 }
 
-impl<B: InternalBuffer> ExactSizeIterator for ReaderIterator<B> {}
-impl<B: InternalBuffer> FusedIterator for ReaderIterator<B> {}
+impl<B: Buffer> ExactSizeIterator for ReaderIterator<B> {}
+impl<B: Buffer> FusedIterator for ReaderIterator<B> {}

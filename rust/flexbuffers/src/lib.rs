@@ -44,7 +44,7 @@ mod bitwidth;
 mod builder;
 mod flexbuffer_type;
 mod reader;
-mod internal_buffer;
+mod buffer;
 
 pub use bitwidth::BitWidth;
 pub use builder::Error as SerializationError;
@@ -52,7 +52,7 @@ pub use builder::{
     singleton, Builder, BuilderOptions, FlexbufferSerializer, MapBuilder, Pushable, VectorBuilder,
 };
 pub use flexbuffer_type::FlexBufferType;
-pub use internal_buffer::InternalBuffer;
+pub use buffer::Buffer;
 pub use reader::Error as ReaderError;
 pub use reader::{DeserializationError, MapReader, Reader, ReaderIterator, VectorReader};
 use serde::{Deserialize, Serialize};
@@ -75,10 +75,10 @@ pub fn from_slice<'de, T: Deserialize<'de>>(buf: &'de [u8]) -> Result<T, Deseria
 }
 
 /// Deserialize a type from a flexbuffer.
-pub fn from_buffer<'de, T: Deserialize<'de>, B: InternalBuffer>(
+pub fn from_buffer<'de, T: Deserialize<'de>, B: Buffer>(
     buf: &'de B
 ) -> Result<T, DeserializationError> {
-    let r = Reader::get_root(buf.as_ref())?;
+    let r = Reader::get_root(buf as &'de [u8])?;
     T::deserialize(r)
 }
 

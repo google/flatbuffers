@@ -13,8 +13,7 @@
 // limitations under the License.
 
 use super::{unpack_type, Error, Reader, ReaderIterator};
-use crate::{BitWidth, FlexBufferType};
-use crate::InternalBuffer;
+use crate::{BitWidth, Buffer, FlexBufferType};
 
 #[derive(Default, Clone)]
 /// Allows indexing on any flexbuffer vector type, (heterogenous vector, typed vector, or fixed
@@ -29,7 +28,7 @@ pub struct VectorReader<B> {
     pub(super) length: usize,
 }
 
-impl<B: InternalBuffer> VectorReader<B> {
+impl<B: Buffer> VectorReader<B> {
     /// Returns the number of elements in the vector.
     pub fn len(&self) -> usize {
         self.length
@@ -45,7 +44,6 @@ impl<B: InternalBuffer> VectorReader<B> {
             let types_addr = self.reader.address + self.length * self.reader.width.n_bytes();
             self.reader
                 .buffer
-                .as_ref()
                 .get(types_addr + i)
                 .ok_or(Error::FlexbufferOutOfBounds)
                 .and_then(|&t| unpack_type(t))
