@@ -20,7 +20,7 @@ pub trait Buffer: Deref<Target = [u8]> + Clone + Default {
     /// Attempts to convert the given buffer to a custom string type. 
     ///
     /// This should fail if the type does not have valid UTF-8 bytes. 
-    fn as_str(&self) -> Result<Self::BufferString, std::str::Utf8Error>;
+    fn buffer_str(&self) -> Result<Self::BufferString, std::str::Utf8Error>;
 }
 
 impl<'de> Buffer for &'de [u8] {
@@ -32,7 +32,7 @@ impl<'de> Buffer for &'de [u8] {
     }
 
     #[inline]
-    fn as_str(&self) -> Result<Self::BufferString, std::str::Utf8Error> {
+    fn buffer_str(&self) -> Result<Self::BufferString, std::str::Utf8Error> {
         Ok(std::str::from_utf8(self)?)
     }
 }

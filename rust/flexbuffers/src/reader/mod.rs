@@ -339,7 +339,7 @@ impl<B: Buffer> Reader<B> {
         let bytes = self.buffer
             .slice(self.address..self.address + self.get_key_len()?)
             .ok_or(Error::IndexOutOfBounds)?;
-        Ok(bytes.as_str()?)
+        Ok(bytes.buffer_str()?)
     }
 
     pub fn get_blob(&self) -> Result<Blob<B>, Error> {
@@ -360,7 +360,7 @@ impl<B: Buffer> Reader<B> {
     pub fn get_str(&self) -> Result<B::BufferString, Error> {
         self.expect_type(FlexBufferType::String)?;
         let bytes = self.buffer.slice(self.address..self.address + self.length());
-        Ok(bytes.ok_or(Error::ReadUsizeOverflowed)?.as_str()?)
+        Ok(bytes.ok_or(Error::ReadUsizeOverflowed)?.buffer_str()?)
     }
 
     fn get_map_info(&self) -> Result<(usize, BitWidth), Error> {
