@@ -33,7 +33,7 @@ impl<'de> Buffer for &'de [u8] {
 
     #[inline]
     fn buffer_str(&self) -> Result<Self::BufferString, std::str::Utf8Error> {
-        Ok(std::str::from_utf8(self)?)
+        std::str::from_utf8(self)
     }
 }
 
