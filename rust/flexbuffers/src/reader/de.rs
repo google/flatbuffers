@@ -83,7 +83,7 @@ struct EnumReader<'de> {
     value: Option<Reader<InnerBuffer<'de>>>,
 }
 
-impl<'de, 'str> EnumAccess<'de> for EnumReader<'de> {
+impl<'de> EnumAccess<'de> for EnumReader<'de> {
     type Error = DeserializationError;
     type Variant = Reader<InnerBuffer<'de>>;
 
