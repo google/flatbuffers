@@ -794,10 +794,19 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   if (token_ == '=') {
     NEXT();
     ECHECK(ParseSingleValue(&field->name, field->value, true));
-    if (!IsScalar(type.base_type) ||
-        (struct_def.fixed && field->value.constant != "0"))
+    if (IsStruct(type) || (struct_def.fixed && field->value.constant != "0"))
       return Error(
-          "default values currently only supported for scalars in tables");
+          "default values are not supported for struct fields, table fields, "
+          "or in structs.");
+    if ((IsString(type) || IsVector(type)) && field->value.constant != "0" &&
+        field->value.constant != "null" && !SupportsDefaultVectorsAndStrings())
+      return Error(
+          "Default values for strings and vectors are not supported in one of "
+          "the specified programming languages");
+    if (IsVector(type) && field->value.constant != "0" &&
+        field->value.constant != "[]") {
+      return Error("The only supported default for vectors is `[]`.");
+    }
   }
 
   // Append .0 if the value has not it (skip hex and scientific floats).
@@ -856,8 +865,11 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   field->key = field->attributes.Lookup("key") != nullptr;
   const bool required = field->attributes.Lookup("required") != nullptr ||
                         (IsString(type) && field->key);
-  const bool optional =
-      IsScalar(type.base_type) ? (field->value.constant == "null") : !required;
+  const bool default_str_or_vec =
+      ((IsString(type) || IsVector(type)) && field->value.constant != "0");
+  const bool optional = IsScalar(type.base_type)
+                            ? (field->value.constant == "null")
+                            : !(required || default_str_or_vec);
   if (required && optional) {
     return Error("Fields cannot be both optional and required.");
   }
@@ -1458,6 +1470,23 @@ void SimpleQsort(T *begin, T *end, size_t width, F comparator, S swapper) {
   SimpleQsort(r, end, width, comparator, swapper);
 }
 
+CheckedError Parser::ParseAlignAttribute(const std::string &align_constant,
+                                         size_t min_align, size_t *align) {
+  // Use uint8_t to avoid problems with size_t==`unsigned long` on LP64.
+  uint8_t align_value;
+  if (StringToNumber(align_constant.c_str(), &align_value) &&
+      VerifyAlignmentRequirements(static_cast<size_t>(align_value),
+                                  min_align)) {
+    *align = align_value;
+    return NoError();
+  }
+  return Error("unexpected force_align value '" + align_constant +
+               "', alignment must be a power of two integer ranging from the "
+               "type\'s natural alignment " +
+               NumToString(min_align) + " to " +
+               NumToString(FLATBUFFERS_MAX_ALIGNMENT));
+}
+
 CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
                                  FieldDef *field, size_t fieldn) {
   uoffset_t count = 0;
@@ -1470,13 +1499,14 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
   });
   ECHECK(err);
 
-  const auto *force_align = field->attributes.Lookup("force_align");
-  const size_t align =
-      force_align ? static_cast<size_t>(atoi(force_align->constant.c_str()))
-                  : 1;
   const size_t len = count * InlineSize(type) / InlineAlignment(type);
   const size_t elemsize = InlineAlignment(type);
-  if (align > 1) { builder_.ForceVectorAlignment(len, elemsize, align); }
+  const auto force_align = field->attributes.Lookup("force_align");
+  if (force_align) {
+    size_t align;
+    ECHECK(ParseAlignAttribute(force_align->constant, 1, &align));
+    if (align > 1) { builder_.ForceVectorAlignment(len, elemsize, align); }
+  }
 
   builder_.StartVector(len, elemsize);
   for (uoffset_t i = 0; i < count; i++) {
@@ -1944,6 +1974,15 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
     // Integer token can init any scalar (integer of float).
     FORCE_ECHECK(kTokenIntegerConstant, IsScalar(in_type), BASE_TYPE_INT);
   }
+  // Match empty vectors for default-empty-vectors.
+  if (!match && IsVector(e.type) && token_ == '[') {
+    NEXT();
+    if (token_ != ']') { return Error("Expected `]` in vector default"); }
+    NEXT();
+    match = true;
+    e.constant = "[]";
+  }
+
 #undef FORCE_ECHECK
 #undef TRY_ECHECK
 #undef IF_ECHECK_
@@ -2388,10 +2427,15 @@ bool Parser::SupportsOptionalScalars(const flatbuffers::IDLOptions &opts) {
   unsigned long langs = opts.lang_to_generate;
   return (langs > 0 && langs < IDLOptions::kMAX) && !(langs & ~supported_langs);
 }
-
 bool Parser::SupportsOptionalScalars() const {
   // Check in general if a language isn't specified.
   return opts.lang_to_generate == 0 || SupportsOptionalScalars(opts);
+}
+
+bool Parser::SupportsDefaultVectorsAndStrings() const {
+  static FLATBUFFERS_CONSTEXPR unsigned long supported_langs =
+      IDLOptions::kRust;
+  return !(opts.lang_to_generate & ~supported_langs);
 }
 
 bool Parser::SupportsAdvancedUnionFeatures() const {
@@ -2457,17 +2501,12 @@ CheckedError Parser::ParseDecl() {
       struct_def->attributes.Lookup("original_order") == nullptr && !fixed;
   EXPECT('{');
   while (token_ != '}') ECHECK(ParseField(*struct_def));
-  auto force_align = struct_def->attributes.Lookup("force_align");
   if (fixed) {
+    const auto force_align = struct_def->attributes.Lookup("force_align");
     if (force_align) {
-      auto align = static_cast<size_t>(atoi(force_align->constant.c_str()));
-      if (force_align->type.base_type != BASE_TYPE_INT ||
-          align < struct_def->minalign || align > FLATBUFFERS_MAX_ALIGNMENT ||
-          align & (align - 1))
-        return Error(
-            "force_align must be a power of two integer ranging from the"
-            "struct\'s natural alignment to " +
-            NumToString(FLATBUFFERS_MAX_ALIGNMENT));
+      size_t align;
+      ECHECK(ParseAlignAttribute(force_align->constant, struct_def->minalign,
+                                 &align));
       struct_def->minalign = align;
     }
     if (!struct_def->bytesize) return Error("size 0 structs not allowed");

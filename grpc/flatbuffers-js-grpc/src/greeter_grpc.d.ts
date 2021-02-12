@@ -1,6 +1,7 @@
 // Generated GRPC code for FlatBuffers TS *** DO NOT EDIT ***
 import { flatbuffers } from 'flatbuffers';
-import *  as Greeter_fbs from './greeter_generated';
+import { HelloReply as models_HelloReply } from './models/hello-reply';
+import { HelloRequest as models_HelloRequest } from './models/hello-request';
 
 import * as grpc from 'grpc';
 
@@ -8,47 +9,47 @@ interface IGreeterService extends grpc.ServiceDefinition<grpc.UntypedServiceImpl
   SayHello: IGreeterService_ISayHello;
   SayManyHellos: IGreeterService_ISayManyHellos;
 }
-interface IGreeterService_ISayHello extends grpc.MethodDefinition<Greeter_fbs.HelloRequest, Greeter_fbs.HelloReply> {
-  path: string; // /Greeter/SayHello
+interface IGreeterService_ISayHello extends grpc.MethodDefinition<models_HelloRequest, models_HelloReply> {
+  path: string; // /models.Greeter/SayHello
   requestStream: boolean; // false
   responseStream: boolean; // false
-  requestSerialize: grpc.serialize<Greeter_fbs.HelloRequest>;
-  requestDeserialize: grpc.deserialize<Greeter_fbs.HelloRequest>;
-  responseSerialize: grpc.serialize<Greeter_fbs.HelloReply>;
-  responseDeserialize: grpc.deserialize<Greeter_fbs.HelloReply>;
+  requestSerialize: grpc.serialize<models_HelloRequest>;
+  requestDeserialize: grpc.deserialize<models_HelloRequest>;
+  responseSerialize: grpc.serialize<models_HelloReply>;
+  responseDeserialize: grpc.deserialize<models_HelloReply>;
 }
 
-interface IGreeterService_ISayManyHellos extends grpc.MethodDefinition<Greeter_fbs.HelloRequest, Greeter_fbs.HelloReply> {
-  path: string; // /Greeter/SayManyHellos
+interface IGreeterService_ISayManyHellos extends grpc.MethodDefinition<models_HelloRequest, models_HelloReply> {
+  path: string; // /models.Greeter/SayManyHellos
   requestStream: boolean; // false
   responseStream: boolean; // true
-  requestSerialize: grpc.serialize<Greeter_fbs.HelloRequest>;
-  requestDeserialize: grpc.deserialize<Greeter_fbs.HelloRequest>;
-  responseSerialize: grpc.serialize<Greeter_fbs.HelloReply>;
-  responseDeserialize: grpc.deserialize<Greeter_fbs.HelloReply>;
+  requestSerialize: grpc.serialize<models_HelloRequest>;
+  requestDeserialize: grpc.deserialize<models_HelloRequest>;
+  responseSerialize: grpc.serialize<models_HelloReply>;
+  responseDeserialize: grpc.deserialize<models_HelloReply>;
 }
 
 
 export const GreeterService: IGreeterService;
 
 export interface IGreeterServer {
-  SayHello: grpc.handleUnaryCall<Greeter_fbs.HelloRequest, Greeter_fbs.HelloReply>;
-  SayManyHellos: grpc.handleServerStreamingCall<Greeter_fbs.HelloRequest, Greeter_fbs.HelloReply>;
+  SayHello: grpc.handleUnaryCall<models_HelloRequest, models_HelloReply>;
+  SayManyHellos: grpc.handleServerStreamingCall<models_HelloRequest, models_HelloReply>;
 }
 
 export interface IGreeterClient {
-  SayHello(request: Greeter_fbs.HelloRequest, callback: (error: grpc.ServiceError | null, response: Greeter_fbs.HelloReply) => void): grpc.ClientUnaryCall;
-  SayHello(request: Greeter_fbs.HelloRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: Greeter_fbs.HelloReply) => void): grpc.ClientUnaryCall;
-  SayHello(request: Greeter_fbs.HelloRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: Greeter_fbs.HelloReply) => void): grpc.ClientUnaryCall;
-  SayManyHellos(request: Greeter_fbs.HelloRequest, metadata: grpc.Metadata): grpc.ClientReadableStream<Greeter_fbs.HelloReply>;
-  SayManyHellos(request: Greeter_fbs.HelloRequest, options: Partial<grpc.CallOptions>): grpc.ClientReadableStream<Greeter_fbs.HelloReply>;
+  SayHello(request: models_HelloRequest, callback: (error: grpc.ServiceError | null, response: models_HelloReply) => void): grpc.ClientUnaryCall;
+  SayHello(request: models_HelloRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: models_HelloReply) => void): grpc.ClientUnaryCall;
+  SayHello(request: models_HelloRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: models_HelloReply) => void): grpc.ClientUnaryCall;
+  SayManyHellos(request: models_HelloRequest, metadata: grpc.Metadata): grpc.ClientReadableStream<models_HelloReply>;
+  SayManyHellos(request: models_HelloRequest, options: Partial<grpc.CallOptions>): grpc.ClientReadableStream<models_HelloReply>;
 }
 
 export class GreeterClient extends grpc.Client implements IGreeterClient {
-  constructor(address: string, credentials: grpc.ChannelCredentials, options?: object);  public SayHello(request: Greeter_fbs.HelloRequest, callback: (error: grpc.ServiceError | null, response: Greeter_fbs.HelloReply) => void): grpc.ClientUnaryCall;
-  public SayHello(request: Greeter_fbs.HelloRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: Greeter_fbs.HelloReply) => void): grpc.ClientUnaryCall;
-  public SayHello(request: Greeter_fbs.HelloRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: Greeter_fbs.HelloReply) => void): grpc.ClientUnaryCall;
-  public SayManyHellos(request: Greeter_fbs.HelloRequest, metadata: grpc.Metadata): grpc.ClientReadableStream<Greeter_fbs.HelloReply>;
-  public SayManyHellos(request: Greeter_fbs.HelloRequest, options: Partial<grpc.CallOptions>): grpc.ClientReadableStream<Greeter_fbs.HelloReply>;
+  constructor(address: string, credentials: grpc.ChannelCredentials, options?: object);  public SayHello(request: models_HelloRequest, callback: (error: grpc.ServiceError | null, response: models_HelloReply) => void): grpc.ClientUnaryCall;
+  public SayHello(request: models_HelloRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: models_HelloReply) => void): grpc.ClientUnaryCall;
+  public SayHello(request: models_HelloRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: models_HelloReply) => void): grpc.ClientUnaryCall;
+  public SayManyHellos(request: models_HelloRequest, metadata: grpc.Metadata): grpc.ClientReadableStream<models_HelloReply>;
+  public SayManyHellos(request: models_HelloRequest, options: Partial<grpc.CallOptions>): grpc.ClientReadableStream<models_HelloReply>;
 }
 

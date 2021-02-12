@@ -10,7 +10,7 @@
 #include "test_init.h"
 
 static constexpr size_t kMinInputLength = 1;
-static constexpr size_t kMaxInputLength = 33000;
+static constexpr size_t kMaxInputLength = 16384;
 
 static constexpr uint8_t flags_strict_json = 0x80;
 static constexpr uint8_t flags_skip_unexpected_fields_in_json = 0x40;

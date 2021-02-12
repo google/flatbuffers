@@ -18,6 +18,7 @@
 extern crate flatbuffers;
 
 // import the generated code
+#[allow(dead_code, unused_imports)]
 #[path = "./monster_generated.rs"]
 #[allow(clippy::approx_constant)]  // We use low precision PI as a default value.
 mod monster_generated;

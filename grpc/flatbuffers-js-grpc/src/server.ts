@@ -1,12 +1,13 @@
 import grpc from 'grpc';
-import { HelloReply, HelloRequest } from './greeter_generated';
+import { HelloReply } from './models/hello-reply';
+import { HelloRequest } from './models/hello-request';
 import { IGreeterServer, GreeterService } from './greeter_grpc';
 import { flatbuffers } from 'flatbuffers';
 
 class GreeterServer implements IGreeterServer {
 
     SayHello(call: grpc.ServerUnaryCall<HelloRequest>, callback: grpc.sendUnaryData<HelloReply>): void {
-        console.log(`${call.request.name()}`);
+        console.log(`SayHello ${call.request.name()}`);
         const builder = new flatbuffers.Builder();
         const offset = builder.createString(`welcome ${call.request.name()}`);
         const root = HelloReply.createHelloReply(builder, offset);

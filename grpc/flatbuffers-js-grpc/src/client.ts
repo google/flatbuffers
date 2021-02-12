@@ -1,10 +1,11 @@
 import grpc from 'grpc';
-import { HelloRequest } from './greeter_generated';
+import { HelloReply } from './models/hello-reply';
+import { HelloRequest } from './models/hello-request';
 import { GreeterClient } from './greeter_grpc';
 import { flatbuffers } from 'flatbuffers';
 
-async function main() {
-    const _server = new GreeterClient('localhost:3000', grpc.credentials.createInsecure());
+async function main(PORT: Number) {
+    const _server = new GreeterClient(`localhost:${PORT}`, grpc.credentials.createInsecure());
     const builder = new flatbuffers.Builder();
     const offset = builder.createString('mustii');
     const root = HelloRequest.createHelloRequest(builder, offset);
@@ -25,4 +26,9 @@ async function main() {
     });
 }
 
-main();
+var PORT = Number(process.argv.slice(2));
+if (PORT) {
+    main(PORT);
+} else {
+    throw new Error("Requires a valid port number.")
+}

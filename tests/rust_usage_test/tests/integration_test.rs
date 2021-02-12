@@ -30,19 +30,25 @@ extern crate quickcheck_derive;
 
 mod flexbuffers_tests;
 mod optional_scalars_test;
+mod more_defaults_test;
 
+#[allow(dead_code, unused_imports)]
 #[path = "../../include_test/include_test1_generated.rs"]
 pub mod include_test1_generated;
 
+#[allow(dead_code, unused_imports)]
 #[path = "../../include_test/sub/include_test2_generated.rs"]
 pub mod include_test2_generated;
 
+#[allow(dead_code, unused_imports)]
 #[path = "../../namespace_test/namespace_test1_generated.rs"]
 pub mod namespace_test1_generated;
 
+#[allow(dead_code, unused_imports)]
 #[path = "../../namespace_test/namespace_test2_generated.rs"]
 pub mod namespace_test2_generated;
 
+#[allow(dead_code, unused_imports)]
 #[path = "../../monster_test_generated.rs"]
 mod monster_test_generated;
 pub use monster_test_generated::my_game;
@@ -110,6 +116,74 @@ fn macro_check_is_some() {
     assert!(check_is_some!(none).is_err());
 }
 
+#[test]
+fn object_api_defaults() {
+    use my_game::example::*;
+    assert_eq!(
+        Vec3T::default(), Vec3T {
+        x: 0.0,
+        y: 0.0,
+        z: 0.0,
+        test1: 0.0,
+        test2: Color::empty(),
+        test3: TestT {
+            a: 0,
+            b: 0
+        }
+    });
+    assert_eq!(
+        MonsterT::default(),
+        MonsterT {
+            pos: None,
+            hp: 100,
+            mana: 150,
+            name: String::new(),  // required string => default is empty string.
+            color: Color::Blue,
+            inventory: None,
+            testarrayoftables: None,
+            testarrayofstring: None,
+            testarrayofstring2: None,
+            testarrayofbools: None,
+            testarrayofsortedstruct: None,
+            enemy: None,
+            test: AnyT::NONE,
+            test4: None,
+            test5: None,
+            testnestedflatbuffer: None,
+            testempty: None,
+            testbool: false,
+            testhashs32_fnv1: 0,
+            testhashu32_fnv1: 0,
+            testhashs64_fnv1: 0,
+            testhashu64_fnv1: 0,
+            testhashs32_fnv1a: 0,
+            testhashu32_fnv1a: 0,
+            testhashs64_fnv1a: 0,
+            testhashu64_fnv1a: 0,
+            testf: 3.14159,
+            testf2: 3.0,
+            testf3: 0.0,
+            flex: None,
+            vector_of_longs: None,
+            vector_of_doubles: None,
+            parent_namespace_test: None,
+            vector_of_referrables: None,
+            single_weak_reference: 0,
+            vector_of_weak_references: None,
+            vector_of_strong_referrables: None,
+            co_owning_reference: 0,
+            vector_of_co_owning_references: None,
+            non_owning_reference: 0,
+            vector_of_non_owning_references: None,
+            any_unique: AnyUniqueAliasesT::NONE,
+            any_ambiguous: AnyAmbiguousAliasesT::NONE,
+            vector_of_enums: None,
+            signed_enum: Race::None,
+            testrequirednestedflatbuffer: None,  // despite the name, it is not required.
+            scalar_key_sorted_tables: None,
+        }
+    );
+}
 
 fn create_serialized_example_with_generated_code(builder: &mut flatbuffers::FlatBufferBuilder) {
     let mon = {
