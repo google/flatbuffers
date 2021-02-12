@@ -26,6 +26,7 @@ pub trait Buffer: Deref<Target = [u8]> + Default {
     fn slice(&self, range: Range<usize>) -> Option<Self>;
 
     /// Creates a shallow copy of the given buffer. This avoids issues with `Clone` / deepcopy.
+    #[inline]
     fn shallow_copy(&self) -> Self {
         self.slice(0..self.len()).unwrap()
     }
