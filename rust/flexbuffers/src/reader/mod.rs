@@ -220,8 +220,8 @@ impl<B: Buffer> Reader<B> {
         Self::new(buffer, address, fxb_type, width, root_width)
     }
 
-    /// Returns a clone of the underlying buffer. If it's a `&[u8]` these values will share
-    /// the same lifetime. 
+    /// Convenience function to get the underlying buffer. By using `Clone`, this preserves the
+    /// lifetime that the underlying buffer has. 
     pub fn buffer(&self) -> B {
         self.buffer.clone()
     }
