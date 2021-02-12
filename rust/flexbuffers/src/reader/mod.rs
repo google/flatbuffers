@@ -295,7 +295,7 @@ impl<B: Buffer> Reader<B> {
             self.expect_bw(T::WIDTH)?;
         }
         let end = self.address + self.length() * std::mem::size_of::<T>();
-        let slice: &[u8] = &self
+        let slice: &[u8] = self
             .buffer
             .get(self.address..end)
             .ok_or(Error::FlexbufferOutOfBounds)?;
