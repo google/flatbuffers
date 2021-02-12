@@ -337,6 +337,7 @@ struct FieldDef : public Definition {
     kDefault,
   };
   Presence static MakeFieldPresence(bool optional, bool required) {
+    FLATBUFFERS_ASSERT(!(required && optional));
     // clang-format off
     return required ? FieldDef::kRequired
          : optional ? FieldDef::kOptional
@@ -973,6 +974,7 @@ class Parser : public ParserState {
   bool SupportsAdvancedUnionFeatures() const;
   bool SupportsAdvancedArrayFeatures() const;
   bool SupportsOptionalScalars() const;
+  bool SupportsDefaultVectorsAndStrings() const;
   Namespace *UniqueNamespace(Namespace *ns);
 
   FLATBUFFERS_CHECKED_ERROR RecurseError();

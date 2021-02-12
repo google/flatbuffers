@@ -794,10 +794,19 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   if (token_ == '=') {
     NEXT();
     ECHECK(ParseSingleValue(&field->name, field->value, true));
-    if (!IsScalar(type.base_type) ||
-        (struct_def.fixed && field->value.constant != "0"))
+    if (IsStruct(type) || (struct_def.fixed && field->value.constant != "0"))
       return Error(
-          "default values currently only supported for scalars in tables");
+          "default values are not supported for struct fields, table fields, "
+          "or in structs.");
+    if ((IsString(type) || IsVector(type)) && field->value.constant != "0" &&
+        field->value.constant != "null" && !SupportsDefaultVectorsAndStrings())
+      return Error(
+          "Default values for strings and vectors are not supported in one of "
+          "the specified programming languages");
+    if (IsVector(type) && field->value.constant != "0" &&
+        field->value.constant != "[]") {
+      return Error("The only supported default for vectors is `[]`.");
+    }
   }
 
   // Append .0 if the value has not it (skip hex and scientific floats).
@@ -856,8 +865,11 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   field->key = field->attributes.Lookup("key") != nullptr;
   const bool required = field->attributes.Lookup("required") != nullptr ||
                         (IsString(type) && field->key);
-  const bool optional =
-      IsScalar(type.base_type) ? (field->value.constant == "null") : !required;
+  const bool default_str_or_vec =
+      ((IsString(type) || IsVector(type)) && field->value.constant != "0");
+  const bool optional = IsScalar(type.base_type)
+                            ? (field->value.constant == "null")
+                            : !(required || default_str_or_vec);
   if (required && optional) {
     return Error("Fields cannot be both optional and required.");
   }
@@ -1962,6 +1974,15 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
     // Integer token can init any scalar (integer of float).
     FORCE_ECHECK(kTokenIntegerConstant, IsScalar(in_type), BASE_TYPE_INT);
   }
+  // Match empty vectors for default-empty-vectors.
+  if (!match && IsVector(e.type) && token_ == '[') {
+    NEXT();
+    if (token_ != ']') { return Error("Expected `]` in vector default"); }
+    NEXT();
+    match = true;
+    e.constant = "[]";
+  }
+
 #undef FORCE_ECHECK
 #undef TRY_ECHECK
 #undef IF_ECHECK_
@@ -2406,10 +2427,15 @@ bool Parser::SupportsOptionalScalars(const flatbuffers::IDLOptions &opts) {
   unsigned long langs = opts.lang_to_generate;
   return (langs > 0 && langs < IDLOptions::kMAX) && !(langs & ~supported_langs);
 }
-
 bool Parser::SupportsOptionalScalars() const {
   // Check in general if a language isn't specified.
   return opts.lang_to_generate == 0 || SupportsOptionalScalars(opts);
+}
+
+bool Parser::SupportsDefaultVectorsAndStrings() const {
+  static FLATBUFFERS_CONSTEXPR unsigned long supported_langs =
+      IDLOptions::kRust;
+  return !(opts.lang_to_generate & ~supported_langs);
 }
 
 bool Parser::SupportsAdvancedUnionFeatures() const {

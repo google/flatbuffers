@@ -61,6 +61,9 @@ $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_JS_TS_FLAGS -o namespace
 ../flatc --csharp --rust --gen-object-api optional_scalars.fbs
 ../flatc $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS --cpp optional_scalars.fbs
 
+# Generate string/vector default code for tests
+../flatc --rust --gen-object-api more_defaults.fbs
+
 # Generate the schema evolution tests
 ../flatc --cpp --scoped-enums $TEST_CPP_FLAGS -o evolution_test ./evolution_test/evolution_v*.fbs
 
