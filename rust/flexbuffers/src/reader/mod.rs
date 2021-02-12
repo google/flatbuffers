@@ -325,6 +325,7 @@ impl<B: Buffer> Reader<B> {
     /// Gets the length of the key if this type is a key.
     ///
     /// Otherwise, returns an error.
+    #[inline]
     fn get_key_len(&self) -> Result<usize, Error> {
         self.expect_type(FlexBufferType::Key)?;
         let (length, _) = self.buffer[self.address..]
@@ -335,6 +336,7 @@ impl<B: Buffer> Reader<B> {
         Ok(length)
     }
 
+    /// Retrieves the string value up until the first `\0` character.
     pub fn get_key(&self) -> Result<B::BufferString, Error> {
         let bytes = self.buffer
             .slice(self.address..self.address + self.get_key_len()?)
