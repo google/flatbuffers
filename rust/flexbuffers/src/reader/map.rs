@@ -73,7 +73,7 @@ impl<B: Buffer> MapReader<B> {
             let i = (low + high) / 2;
             let key_offset_address = self.keys_address + i * self.keys_width.n_bytes();
             let key_address =
-                deref_offset(self.buffer.as_ref(), key_offset_address, self.keys_width).ok()?;
+                deref_offset(&self.buffer, key_offset_address, self.keys_width).ok()?;
             match self.lazy_strcmp(key_address, key) {
                 Ordering::Equal => return Some(i),
                 Ordering::Less => low = if i == low { i + 1 } else { i },
@@ -101,7 +101,6 @@ impl<B: Buffer> MapReader<B> {
         let type_address = self.values_address + self.values_width.n_bytes() * self.length + i;
         let (fxb_type, width) = self
             .buffer
-            .as_ref()
             .get(type_address)
             .ok_or(Error::FlexbufferOutOfBounds)
             .and_then(|&b| unpack_type(b))?;
