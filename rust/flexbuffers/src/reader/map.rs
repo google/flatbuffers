@@ -23,7 +23,7 @@ use std::iter::{DoubleEndedIterator, ExactSizeIterator, FusedIterator, Iterator}
 /// MapReaders may be indexed with strings or usizes. `index` returns a result type,
 /// which may indicate failure due to a missing key or bad data, `idx` returns an Null Reader in
 /// cases of error.
-#[derive(Default, Clone)]
+#[derive(Default)]
 pub struct MapReader<B> {
     pub(super) buffer: B,
     pub(super) values_address: usize,
@@ -33,8 +33,17 @@ pub struct MapReader<B> {
     pub(super) length: usize,
 }
 
+impl<B: Buffer> Clone for MapReader<B> {
+    fn clone(&self) -> Self {
+        MapReader {
+            buffer: self.buffer.shallow_copy(),
+            ..*self
+        }
+    }
+}
+
 // manual implementation of Debug because buffer slice can't be automatically displayed
-impl<B> std::fmt::Debug for MapReader<B> {
+impl<B: Buffer> std::fmt::Debug for MapReader<B> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         // skips buffer field
         f.debug_struct("MapReader")
@@ -50,6 +59,8 @@ impl<B> std::fmt::Debug for MapReader<B> {
 impl<B: Buffer> MapReader<B> {
     /// Returns the number of key/value pairs are in the map.
     pub fn len(&self) -> usize {
+        let thing = self.clone();
+        println!("{:?}", &thing);
         self.length
     }
 
@@ -105,7 +116,7 @@ impl<B: Buffer> MapReader<B> {
             .ok_or(Error::FlexbufferOutOfBounds)
             .and_then(|&b| unpack_type(b))?;
         Reader::new(
-            self.buffer.clone(),
+            self.buffer.shallow_copy(),
             data_address,
             fxb_type,
             width,
@@ -122,7 +133,7 @@ impl<B: Buffer> MapReader<B> {
     pub fn iter_values(&self) -> ReaderIterator<B> {
         ReaderIterator::new(VectorReader {
             reader: Reader {
-                buffer: self.buffer.clone(),
+                buffer: self.buffer.shallow_copy(),
                 fxb_type: crate::FlexBufferType::Map,
                 width: self.values_width,
                 address: self.values_address,
@@ -142,7 +153,7 @@ impl<B: Buffer> MapReader<B> {
     pub fn keys_vector(&self) -> VectorReader<B> {
         VectorReader {
             reader: Reader {
-                buffer: self.buffer.clone(),
+                buffer: self.buffer.shallow_copy(),
                 fxb_type: crate::FlexBufferType::VectorKey,
                 width: self.keys_width,
                 address: self.keys_address,

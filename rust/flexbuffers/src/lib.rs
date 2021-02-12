@@ -85,8 +85,14 @@ pub fn from_buffer<'de, T: Deserialize<'de>, B: Buffer>(
 /// This struct, when pushed will be serialized as a `FlexBufferType::Blob`.
 ///
 /// A `Blob` is a variable width `length` followed by that many bytes of data.
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Blob<B>(pub B);
+
+impl<B: Buffer> Clone for Blob<B> {
+    fn clone(&self) -> Self {
+        Blob(self.0.shallow_copy())
+    }
+}
 
 /// This struct, when pushed, will be serialized as a `FlexBufferType::IndirectUInt`.
 ///

@@ -3,7 +3,7 @@ use std::ops::{Deref, Range};
 /// The underlying buffer that is used by a flexbuffer Reader. 
 ///
 /// This allows for custom buffer implementations as long as they can be viewed as a &[u8].
-pub trait Buffer: Deref<Target = [u8]> + Clone + Default {
+pub trait Buffer: Deref<Target = [u8]> + Default {
     // The `BufferString` allows for a buffer to return a custom string which will have the
     // lifetime of the underlying buffer. A simple `std::str::from_utf8` wouldn't work since that
     // returns a &str, which is then owned by the callee (cannot be returned from a function).
@@ -24,6 +24,11 @@ pub trait Buffer: Deref<Target = [u8]> + Clone + Default {
     /// - range start is greater than end
     /// - range end is out of bounds
     fn slice(&self, range: Range<usize>) -> Option<Self>;
+
+    /// Creates a shallow copy of the given buffer. This avoids issues with `Clone` / deepcopy.
+    fn shallow_copy(&self) -> Self {
+        self.slice(0..self.len()).unwrap()
+    }
 
     /// Attempts to convert the given buffer to a custom string type. 
     ///

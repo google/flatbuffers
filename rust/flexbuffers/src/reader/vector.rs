@@ -15,17 +15,26 @@
 use super::{unpack_type, Error, Reader, ReaderIterator};
 use crate::{BitWidth, Buffer, FlexBufferType};
 
-#[derive(Default, Clone)]
 /// Allows indexing on any flexbuffer vector type, (heterogenous vector, typed vector, or fixed
 /// length typed vector).
 ///
 /// VectorReaders may be indexed with usize, `index` returns a result type
 /// which may indicate failure due to indexing out of bounds or bad data. `idx` returns a
 /// Null Reader in the event of any failure.
+#[derive(Default)]
 pub struct VectorReader<B> {
     pub(super) reader: Reader<B>,
     // Cache the length because read_usize can be slow.
     pub(super) length: usize,
+}
+
+impl<B: Buffer> Clone for VectorReader<B> {
+    fn clone(&self) -> Self {
+        VectorReader {
+            reader: self.reader.clone(),
+            ..*self
+        }
+    }
 }
 
 impl<B: Buffer> VectorReader<B> {
@@ -61,7 +70,7 @@ impl<B: Buffer> VectorReader<B> {
         let (fxb_type, bw) = self.get_elem_type(i)?;
         let data_address = self.reader.address + self.reader.width.n_bytes() * i;
         Reader::new(
-            self.reader.buffer.clone(),
+            self.reader.buffer.shallow_copy(),
             data_address,
             fxb_type,
             bw,

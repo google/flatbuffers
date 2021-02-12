@@ -143,12 +143,23 @@ macro_rules! as_default {
 /// - The `as_T` methods will try their best to return to a value of type `T`
 /// (by casting or even parsing a string if necessary) but ultimately returns `T::default` if it
 /// fails. This behavior is analogous to that of flexbuffers C++.
-#[derive(Default, Clone)]
+#[derive(Default)]
 pub struct Reader<B> {
     fxb_type: FlexBufferType,
     width: BitWidth,
     address: usize,
     buffer: B,
+}
+
+impl<B: Buffer> Clone for Reader<B> {
+    fn clone(&self) -> Self {
+        Reader {
+            fxb_type: self.fxb_type,
+            width: self.width,
+            address: self.address,
+            buffer: self.buffer.shallow_copy(),
+        }
+    }
 }
 
 // manual implementation of Debug because buffer slice can't be automatically displayed
@@ -220,10 +231,10 @@ impl<B: Buffer> Reader<B> {
         Self::new(buffer, address, fxb_type, width, root_width)
     }
 
-    /// Convenience function to get the underlying buffer. By using `Clone`, this preserves the
-    /// lifetime that the underlying buffer has. 
+    /// Convenience function to get the underlying buffer. By using `shallow_copy`, this preserves
+    /// the lifetime that the underlying buffer has. 
     pub fn buffer(&self) -> B {
-        self.buffer.clone()
+        self.buffer.shallow_copy()
     }
 
     /// Returns the FlexBufferType of this Reader.
@@ -384,7 +395,7 @@ impl<B: Buffer> Reader<B> {
         let keys_address = deref_offset(&self.buffer, keys_offset_address, self.width)?;
         // TODO(cneo): Check that vectors length equals keys length.
         Ok(MapReader {
-            buffer: self.buffer.clone(),
+            buffer: self.buffer.shallow_copy(),
             values_address: self.address,
             values_width: self.width,
             keys_address,
