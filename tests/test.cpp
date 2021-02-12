@@ -204,7 +204,6 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
   flexbuild.Int(1234);
   flexbuild.Finish();
   auto flex = builder.CreateVector(flexbuild.GetBuffer());
-
   // Test vector of enums.
   Color colors[] = { Color_Blue, Color_Green };
   // We use this special creation function because we have an array of
@@ -1645,7 +1644,6 @@ void ErrorTest() {
   TestError("table X { Y:int; Y:int; }", "field already");
   TestError("table Y {} table X { Y:int; }", "same as table");
   TestError("struct X { Y:string; }", "only scalar");
-  TestError("table X { Y:string = \"\"; }", "default values");
   TestError("struct X { a:uint = 42; }", "default values");
   TestError("enum Y:byte { Z = 1 } table X { y:Y; }", "not part of enum");
   TestError("struct X { Y:int (deprecated); }", "deprecate");
@@ -1690,6 +1688,12 @@ void ErrorTest() {
             "may contain only scalar or struct fields");
   // Non-snake case field names
   TestError("table X { Y: int; } root_type Y: {Y:1.0}", "snake_case");
+  // Complex defaults
+  TestError("table X { y: string = 1; }", "expecting: string");
+  TestError("table X { y: string = []; }", " Cannot assign token");
+  TestError("table X { y: [int] = [1]; }", "Expected `]`");
+  TestError("table X { y: [int] = [; }", "Expected `]`");
+  TestError("table X { y: [int] = \"\"; }", "type mismatch");
 }
 
 template<typename T>
@@ -3620,6 +3624,22 @@ void TestEmbeddedBinarySchema() {
           0);
 }
 
+void StringVectorDefaultsTest() {
+  std::vector<std::string> schemas;
+  schemas.push_back("table Monster { mana: string = \"\"; }");
+  schemas.push_back("table Monster { mana: string = \"mystr\"; }");
+  schemas.push_back("table Monster { mana: string = \"  \"; }");
+  schemas.push_back("table Monster { mana: [int] = []; }");
+  schemas.push_back("table Monster { mana: [uint] = [  ]; }");
+  schemas.push_back("table Monster { mana: [byte] = [\t\t\n]; }");
+  for (auto s = schemas.begin(); s < schemas.end(); s++) {
+    flatbuffers::Parser parser;
+    TEST_ASSERT(parser.Parse(s->c_str()));
+    const auto *mana = parser.structs_.Lookup("Monster")->fields.Lookup("mana");
+    TEST_EQ(mana->IsDefault(), true);
+  }
+}
+
 void OptionalScalarsTest() {
   // Simple schemas and a "has optional scalar" sentinal.
   std::vector<std::string> schemas;
@@ -3852,6 +3872,7 @@ int FlatBufferTests() {
   FlatbuffersSpanTest();
   FixedLengthArrayConstructorTest();
   FieldIdentifierTest();
+  StringVectorDefaultsTest();
   return 0;
 }
 

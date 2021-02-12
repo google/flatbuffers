@@ -30,6 +30,7 @@ extern crate quickcheck_derive;
 
 mod flexbuffers_tests;
 mod optional_scalars_test;
+mod more_defaults_test;
 
 #[allow(dead_code, unused_imports)]
 #[path = "../../include_test/include_test1_generated.rs"]

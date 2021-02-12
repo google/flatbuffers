@@ -3197,7 +3197,7 @@ impl Default for MonsterT {
       pos: None,
       mana: 150,
       hp: 100,
-      name: String::new(),
+      name: "".to_string(),
       inventory: None,
       color: Color::Blue,
       test: AnyT::NONE,
