@@ -174,6 +174,22 @@ fn get_root_deref_u64() {
 }
 
 #[test]
+fn check_clone_ptr() {
+    let mut fxb = Builder::default();
+    let mut m = fxb.start_map();
+    m.push("a", &[-1i8, -2, -3, -4]);
+    m.push("b", 250i64);
+    m.push("c", 5000u16);
+    m.end_map();
+
+    let r = Reader::get_root(fxb.view()).unwrap();
+
+    let r2 = r.clone();
+
+    assert_eq!(r.buffer().as_ptr(), r2.buffer().as_ptr());
+}
+
+#[test]
 #[should_panic]
 fn build_map_panic_on_repeated_key() {
     let mut b = Builder::default();
