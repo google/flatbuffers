@@ -21,7 +21,6 @@ use crate::{BitWidth, Buffer, FlexBufferType};
 /// VectorReaders may be indexed with usize, `index` returns a result type
 /// which may indicate failure due to indexing out of bounds or bad data. `idx` returns a
 /// Null Reader in the event of any failure.
-#[derive(Default)]
 pub struct VectorReader<B> {
     pub(super) reader: Reader<B>,
     // Cache the length because read_usize can be slow.
@@ -33,6 +32,15 @@ impl<B: Buffer> Clone for VectorReader<B> {
         VectorReader {
             reader: self.reader.clone(),
             ..*self
+        }
+    }
+}
+
+impl<B: Buffer> Default for VectorReader<B> {
+    fn default() -> Self {
+        VectorReader {
+            reader: Reader::default(),
+            length: usize::default()
         }
     }
 }

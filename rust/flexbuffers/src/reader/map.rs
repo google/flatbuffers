@@ -23,7 +23,6 @@ use std::iter::{DoubleEndedIterator, ExactSizeIterator, FusedIterator, Iterator}
 /// MapReaders may be indexed with strings or usizes. `index` returns a result type,
 /// which may indicate failure due to a missing key or bad data, `idx` returns an Null Reader in
 /// cases of error.
-#[derive(Default)]
 pub struct MapReader<B> {
     pub(super) buffer: B,
     pub(super) values_address: usize,
@@ -38,6 +37,19 @@ impl<B: Buffer> Clone for MapReader<B> {
         MapReader {
             buffer: self.buffer.shallow_copy(),
             ..*self
+        }
+    }
+}
+
+impl<B: Buffer> Default for MapReader<B> {
+    fn default() -> Self {
+        MapReader {
+            buffer: B::empty(),
+            values_address: usize::default(),
+            keys_address: usize::default(),
+            values_width: BitWidth::default(),
+            keys_width: BitWidth::default(),
+            length: usize::default(),
         }
     }
 }

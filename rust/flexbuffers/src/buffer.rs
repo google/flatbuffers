@@ -3,7 +3,7 @@ use std::ops::{Deref, Range};
 /// The underlying buffer that is used by a flexbuffer Reader. 
 ///
 /// This allows for custom buffer implementations as long as they can be viewed as a &[u8].
-pub trait Buffer: Deref<Target = [u8]> + Default {
+pub trait Buffer: Deref<Target = [u8]> + Sized {
     // The `BufferString` allows for a buffer to return a custom string which will have the
     // lifetime of the underlying buffer. A simple `std::str::from_utf8` wouldn't work since that
     // returns a &str, which is then owned by the callee (cannot be returned from a function).
@@ -13,7 +13,7 @@ pub trait Buffer: Deref<Target = [u8]> + Default {
     /// A BufferString which will live at least as long as the Buffer itself.
     ///
     /// Must be valid UTF-8, and only generated from the `buffer_str` function Result.
-    type BufferString: Deref<Target = str> + Default;
+    type BufferString: Deref<Target = str> + Sized;
 
     /// This method returns an instance of type Self. This allows for lifetimes
     /// to be tracked in cases of deserialization. 
@@ -31,6 +31,18 @@ pub trait Buffer: Deref<Target = [u8]> + Default {
         self.slice(0..self.len()).unwrap()
     }
 
+    /// Creates an empty instance of a `Buffer`. This is different than `Default` b/c it
+    /// guarantees that the buffer instance will have length zero. 
+    ///
+    /// Most impls shold be able to implement this via `Default`.
+    fn empty() -> Self;
+
+    /// Based off of the `empty` function, allows override for optimization purposes.
+    #[inline]
+    fn empty_str() -> Self::BufferString {
+        Self::empty().buffer_str().unwrap()
+    }
+
     /// Attempts to convert the given buffer to a custom string type. 
     ///
     /// This should fail if the type does not have valid UTF-8 bytes. 
@@ -43,6 +55,17 @@ impl<'de> Buffer for &'de [u8] {
     #[inline]
     fn slice(&self, range: Range<usize>) -> Option<Self> {
         self.get(range)
+    }
+
+    #[inline]
+    fn empty() -> Self {
+        &[]
+    }
+
+    /// Based off of the `empty` function, allows override for optimization purposes.
+    #[inline]
+    fn empty_str() -> Self::BufferString {
+        &""
     }
 
     #[inline]

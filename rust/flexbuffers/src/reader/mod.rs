@@ -143,7 +143,6 @@ macro_rules! as_default {
 /// - The `as_T` methods will try their best to return to a value of type `T`
 /// (by casting or even parsing a string if necessary) but ultimately returns `T::default` if it
 /// fails. This behavior is analogous to that of flexbuffers C++.
-#[derive(Default)]
 pub struct Reader<B> {
     fxb_type: FlexBufferType,
     width: BitWidth,
@@ -158,6 +157,17 @@ impl<B: Buffer> Clone for Reader<B> {
             width: self.width,
             address: self.address,
             buffer: self.buffer.shallow_copy(),
+        }
+    }
+}
+
+impl<B: Buffer> Default for Reader<B> {
+    fn default() -> Self {
+        Reader {
+            fxb_type: FlexBufferType::default(),
+            width: BitWidth::default(),
+            address: usize::default(),
+            buffer: B::empty(),
         }
     }
 }
@@ -365,7 +375,7 @@ impl<B: Buffer> Reader<B> {
     }
 
     pub fn as_blob(&self) -> Blob<B> {
-        self.get_blob().unwrap_or(Blob(B::default()))
+        self.get_blob().unwrap_or(Blob(B::empty()))
     }
 
     /// Retrieves str pointer, errors if invalid UTF-8, or the provided index
@@ -563,9 +573,9 @@ impl<B: Buffer> Reader<B> {
     /// Returns empty string if you're not trying to read a string.
     pub fn as_str(&self) -> B::BufferString {
         match self.fxb_type {
-            FlexBufferType::String => self.get_str().unwrap_or_default(),
-            FlexBufferType::Key => self.get_key().unwrap_or_default(),
-            _ => B::BufferString::default(),
+            FlexBufferType::String => self.get_str().unwrap_or(B::empty_str()),
+            FlexBufferType::Key => self.get_key().unwrap_or(B::empty_str()),
+            _ => B::empty_str(),
         }
     }
 
