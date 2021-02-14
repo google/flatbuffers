@@ -1434,7 +1434,7 @@ for the `path` field above:
   for i in obj {
     _ = create(struct: i)
   }
-  let points = fbb.endVectorOfStructs(count: size)
+  let points = fbb.endVector(len: size)
 ~~~
 </div>
 
