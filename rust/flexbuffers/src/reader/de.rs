@@ -19,11 +19,6 @@ use serde::de::{
     VariantAccess, Visitor,
 };
 
-/// The type for a serde deserializer.
-///
-/// This is done to ensure lifetimes of buffers are managed correctly. 
-type InnerBuffer<'de> = &'de [u8];
-
 /// Errors that may happen when deserializing a flexbuffer with serde.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DeserializationError {
@@ -56,7 +51,7 @@ impl std::convert::From<super::Error> for DeserializationError {
     }
 }
 
-impl<'de> SeqAccess<'de> for ReaderIterator<InnerBuffer<'de>> {
+impl<'de> SeqAccess<'de> for ReaderIterator<&'de [u8]> {
     type Error = DeserializationError;
 
     fn next_element_seed<T>(
@@ -80,12 +75,12 @@ impl<'de> SeqAccess<'de> for ReaderIterator<InnerBuffer<'de>> {
 
 struct EnumReader<'de> {
     variant: &'de str,
-    value: Option<Reader<InnerBuffer<'de>>>,
+    value: Option<Reader<&'de [u8]>>,
 }
 
 impl<'de> EnumAccess<'de> for EnumReader<'de> {
     type Error = DeserializationError;
-    type Variant = Reader<InnerBuffer<'de>>;
+    type Variant = Reader<&'de [u8]>;
 
     fn variant_seed<V>(self, seed: V) -> Result<(V::Value, Self::Variant), Self::Error>
     where
@@ -97,8 +92,8 @@ impl<'de> EnumAccess<'de> for EnumReader<'de> {
 }
 
 struct MapAccessor<'de> {
-    keys: ReaderIterator<InnerBuffer<'de>>,
-    vals: ReaderIterator<InnerBuffer<'de>>,
+    keys: ReaderIterator<&'de [u8]>,
+    vals: ReaderIterator<&'de [u8]>,
 }
 
 impl<'de> MapAccess<'de> for MapAccessor<'de> {
@@ -124,7 +119,7 @@ impl<'de> MapAccess<'de> for MapAccessor<'de> {
     }
 }
 
-impl<'de> VariantAccess<'de> for Reader<InnerBuffer<'de>> {
+impl<'de> VariantAccess<'de> for Reader<&'de [u8]> {
     type Error = DeserializationError;
 
     fn unit_variant(self) -> Result<(), Self::Error> {
@@ -165,7 +160,7 @@ impl<'de> VariantAccess<'de> for Reader<InnerBuffer<'de>> {
     }
 }
 
-impl<'de> Deserializer<'de> for Reader<InnerBuffer<'de>> {
+impl<'de> Deserializer<'de> for Reader<&'de [u8]> {
     type Error = DeserializationError;
     fn is_human_readable(&self) -> bool {
         cfg!(deserialize_human_readable)

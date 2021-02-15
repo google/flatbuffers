@@ -9,30 +9,35 @@ pub trait Buffer: Deref<Target = [u8]> + Sized {
     // returns a &str, which is then owned by the callee (cannot be returned from a function).
     //
     // Example: During deserialization a `BufferString` is returned, allowing the deserializer
-    // to "borrow" the given str - b/c there is a "lifetime" guarantee, so to speak.
+    // to "borrow" the given str - b/c there is a "lifetime" guarantee, so to speak, from the
+    // underlying buffer.
     /// A BufferString which will live at least as long as the Buffer itself.
     ///
-    /// Must be valid UTF-8, and only generated from the `buffer_str` function Result.
+    /// Deref's to UTF-8 `str`, and only generated from the `buffer_str` function Result.
     type BufferString: Deref<Target = str> + Sized;
 
-    /// This method returns an instance of type Self. This allows for lifetimes
-    /// to be tracked in cases of deserialization. 
+    /// This method returns an instance of type Self. This allows for lifetimes to be tracked
+    /// in cases of deserialization.
     ///
     /// It also lets custom buffers manage reference counts. 
     ///
     /// Returns None if:
     /// - range start is greater than end
     /// - range end is out of bounds
+    ///
+    /// This operation should be fast -> O(1), ideally with no heap allocations.
     fn slice(&self, range: Range<usize>) -> Option<Self>;
 
-    /// Creates a shallow copy of the given buffer. This avoids issues with `Clone` / deepcopy.
+    /// Creates a shallow copy of the given buffer, similar to `slice`.
+    ///
+    /// This operation should be fast -> O(1), ideally with no heap allocations.
     #[inline]
     fn shallow_copy(&self) -> Self {
         self.slice(0..self.len()).unwrap()
     }
 
     /// Creates an empty instance of a `Buffer`. This is different than `Default` b/c it
-    /// guarantees that the buffer instance will have length zero. 
+    /// guarantees that the buffer instance will have length zero.
     ///
     /// Most impls shold be able to implement this via `Default`.
     fn empty() -> Self;
@@ -45,7 +50,7 @@ pub trait Buffer: Deref<Target = [u8]> + Sized {
 
     /// Attempts to convert the given buffer to a custom string type. 
     ///
-    /// This should fail if the type does not have valid UTF-8 bytes. 
+    /// This should fail if the type does not have valid UTF-8 bytes, and must be zero copy.
     fn buffer_str(&self) -> Result<Self::BufferString, std::str::Utf8Error>;
 }
 

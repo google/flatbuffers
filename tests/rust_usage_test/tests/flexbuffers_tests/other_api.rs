@@ -173,8 +173,9 @@ fn get_root_deref_u64() {
     assert_eq!(Reader::get_root(s.as_ref()).unwrap().as_u64(), 0);
 }
 
+/// Verifies that the clone operation is shallow / zero copy.
 #[test]
-fn check_clone_ptr() {
+fn clone_is_shallow() {
     let mut fxb = Builder::default();
     let mut m = fxb.start_map();
     m.push("a", &[-1i8, -2, -3, -4]);
