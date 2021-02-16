@@ -26,7 +26,7 @@ public protocol FlatBufferObject {
   init(_ bb: ByteBuffer, o: Int32)
 }
 
-public protocol ObjectAPI {
+public protocol ObjectAPIPacker {
   associatedtype T
   static func pack(_ builder: inout FlatBufferBuilder, obj: inout T) -> Offset<UOffset>
   mutating func unpack() -> T
