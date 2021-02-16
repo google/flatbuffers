@@ -591,7 +591,8 @@ class SwiftGenerator : public BaseGenerator {
     if (IsStruct(field.value.type)) {
       auto create_struct =
           "guard let {{VALUENAME}} = {{VALUENAME}} else { return };"
-          " fbb.create(struct: {{VALUENAME}}, position: {{TABLEOFFSET}}.{{OFFSET}}.p) }";
+          " fbb.create(struct: {{VALUENAME}}, position: "
+          "{{TABLEOFFSET}}.{{OFFSET}}.p) }";
       code_ += type + "?" + builder_string + create_struct;
       /// Optional hard coded since structs are always optional
       create_func_header.push_back(name + ": " + type + "? = nil");
