@@ -187,7 +187,7 @@ class SwiftGenerator : public BaseGenerator {
     GenComment(struct_def.doc_comment);
     code_.SetValue("STRUCTNAME", NameWrappedInNameSpace(struct_def));
     code_ += "{{ACCESS_TYPE}} struct {{STRUCTNAME}}: NativeStruct\\";
-    if (parser_.opts.generate_object_based_api) code_ += ", UnionObject\\";
+    if (parser_.opts.generate_object_based_api) code_ += ", NativeObject\\";
     code_ += " {";
     code_ += "";
     Indent();
@@ -410,7 +410,7 @@ class SwiftGenerator : public BaseGenerator {
     code_ +=
         "{{ACCESS_TYPE}} struct {{STRUCTNAME}}{{MUTABLE}}: FlatBufferObject\\";
     if (!struct_def.fixed && parser_.opts.generate_object_based_api)
-      code_ += ", ObjectAPI\\";
+      code_ += ", ObjectAPIPacker\\";
     code_ += " {\n";
     Indent();
     code_ += ValidateFunc();
@@ -871,8 +871,8 @@ class SwiftGenerator : public BaseGenerator {
       code_ += "{{ACCESS_TYPE}} struct {{ENUM_NAME}}Union {";
       Indent();
       code_ += "{{ACCESS_TYPE}} var type: {{ENUM_NAME}}";
-      code_ += "{{ACCESS_TYPE}} var value: UnionObject?";
-      code_ += "{{ACCESS_TYPE}} init(_ v: UnionObject?, type: {{ENUM_NAME}}) {";
+      code_ += "{{ACCESS_TYPE}} var value: NativeObject?";
+      code_ += "{{ACCESS_TYPE}} init(_ v: NativeObject?, type: {{ENUM_NAME}}) {";
       Indent();
       code_ += "self.type = type";
       code_ += "self.value = v";
@@ -944,7 +944,7 @@ class SwiftGenerator : public BaseGenerator {
 
   void GenObjectAPI(const StructDef &struct_def) {
     code_ += "{{ACCESS_TYPE}} class " + ObjectAPIName("{{STRUCTNAME}}") +
-             ": UnionObject {\n";
+             ": NativeObject {\n";
     std::vector<std::string> buffer_constructor;
     std::vector<std::string> base_constructor;
     Indent();

@@ -51,8 +51,8 @@ public enum MyGame_Example_Any_: UInt8, Enum {
 
 public struct MyGame_Example_Any_Union {
   public var type: MyGame_Example_Any_
-  public var value: UnionObject?
-  public init(_ v: UnionObject?, type: MyGame_Example_Any_) {
+  public var value: NativeObject?
+  public init(_ v: NativeObject?, type: MyGame_Example_Any_) {
     self.type = type
     self.value = v
   }
@@ -87,8 +87,8 @@ public enum MyGame_Example_AnyUniqueAliases: UInt8, Enum {
 
 public struct MyGame_Example_AnyUniqueAliasesUnion {
   public var type: MyGame_Example_AnyUniqueAliases
-  public var value: UnionObject?
-  public init(_ v: UnionObject?, type: MyGame_Example_AnyUniqueAliases) {
+  public var value: NativeObject?
+  public init(_ v: NativeObject?, type: MyGame_Example_AnyUniqueAliases) {
     self.type = type
     self.value = v
   }
@@ -123,8 +123,8 @@ public enum MyGame_Example_AnyAmbiguousAliases: UInt8, Enum {
 
 public struct MyGame_Example_AnyAmbiguousAliasesUnion {
   public var type: MyGame_Example_AnyAmbiguousAliases
-  public var value: UnionObject?
-  public init(_ v: UnionObject?, type: MyGame_Example_AnyAmbiguousAliases) {
+  public var value: NativeObject?
+  public init(_ v: NativeObject?, type: MyGame_Example_AnyAmbiguousAliases) {
     self.type = type
     self.value = v
   }
@@ -143,7 +143,7 @@ public struct MyGame_Example_AnyAmbiguousAliasesUnion {
     }
   }
 }
-public struct MyGame_Example_Test: NativeStruct, UnionObject {
+public struct MyGame_Example_Test: NativeStruct, NativeObject {
 
   static func validateVersion() { FlatBuffersVersion_1_12_0() }
 
@@ -197,7 +197,7 @@ public struct MyGame_Example_Test_Mutable: FlatBufferObject {
   }
 }
 
-public struct MyGame_Example_Vec3: NativeStruct, UnionObject {
+public struct MyGame_Example_Vec3: NativeStruct, NativeObject {
 
   static func validateVersion() { FlatBuffersVersion_1_12_0() }
 
@@ -281,7 +281,7 @@ public struct MyGame_Example_Vec3_Mutable: FlatBufferObject {
   }
 }
 
-public struct MyGame_Example_Ability: NativeStruct, UnionObject {
+public struct MyGame_Example_Ability: NativeStruct, NativeObject {
 
   static func validateVersion() { FlatBuffersVersion_1_12_0() }
 
@@ -334,7 +334,7 @@ public struct MyGame_Example_Ability_Mutable: FlatBufferObject {
   }
 }
 
-public struct MyGame_InParentNamespace: FlatBufferObject, ObjectAPI {
+public struct MyGame_InParentNamespace: FlatBufferObject, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_1_12_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -364,7 +364,7 @@ public struct MyGame_InParentNamespace: FlatBufferObject, ObjectAPI {
   }
 }
 
-public class MyGame_InParentNamespaceT: UnionObject {
+public class MyGame_InParentNamespaceT: NativeObject {
 
 
   public init(_ _t: inout MyGame_InParentNamespace) {
@@ -376,7 +376,7 @@ public class MyGame_InParentNamespaceT: UnionObject {
   public func serialize() -> ByteBuffer { return serialize(type: MyGame_InParentNamespace.self) }
 
 }
-public struct MyGame_Example2_Monster: FlatBufferObject, ObjectAPI {
+public struct MyGame_Example2_Monster: FlatBufferObject, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_1_12_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -406,7 +406,7 @@ public struct MyGame_Example2_Monster: FlatBufferObject, ObjectAPI {
   }
 }
 
-public class MyGame_Example2_MonsterT: UnionObject {
+public class MyGame_Example2_MonsterT: NativeObject {
 
 
   public init(_ _t: inout MyGame_Example2_Monster) {
@@ -418,7 +418,7 @@ public class MyGame_Example2_MonsterT: UnionObject {
   public func serialize() -> ByteBuffer { return serialize(type: MyGame_Example2_Monster.self) }
 
 }
-internal struct MyGame_Example_TestSimpleTableWithEnum: FlatBufferObject, ObjectAPI {
+internal struct MyGame_Example_TestSimpleTableWithEnum: FlatBufferObject, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_1_12_0() }
   internal var __buffer: ByteBuffer! { return _accessor.bb }
@@ -466,7 +466,7 @@ internal struct MyGame_Example_TestSimpleTableWithEnum: FlatBufferObject, Object
   }
 }
 
-internal class MyGame_Example_TestSimpleTableWithEnumT: UnionObject {
+internal class MyGame_Example_TestSimpleTableWithEnumT: NativeObject {
 
   internal var color: MyGame_Example_Color
 
@@ -481,7 +481,7 @@ internal class MyGame_Example_TestSimpleTableWithEnumT: UnionObject {
   internal func serialize() -> ByteBuffer { return serialize(type: MyGame_Example_TestSimpleTableWithEnum.self) }
 
 }
-public struct MyGame_Example_Stat: FlatBufferObject, ObjectAPI {
+public struct MyGame_Example_Stat: FlatBufferObject, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_1_12_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -574,7 +574,7 @@ public struct MyGame_Example_Stat: FlatBufferObject, ObjectAPI {
   }
 }
 
-public class MyGame_Example_StatT: UnionObject {
+public class MyGame_Example_StatT: NativeObject {
 
   public var id: String?
   public var val: Int64
@@ -594,7 +594,7 @@ public class MyGame_Example_StatT: UnionObject {
   public func serialize() -> ByteBuffer { return serialize(type: MyGame_Example_Stat.self) }
 
 }
-public struct MyGame_Example_Referrable: FlatBufferObject, ObjectAPI {
+public struct MyGame_Example_Referrable: FlatBufferObject, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_1_12_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -666,7 +666,7 @@ public struct MyGame_Example_Referrable: FlatBufferObject, ObjectAPI {
   }
 }
 
-public class MyGame_Example_ReferrableT: UnionObject {
+public class MyGame_Example_ReferrableT: NativeObject {
 
   public var id: UInt64
 
@@ -682,7 +682,7 @@ public class MyGame_Example_ReferrableT: UnionObject {
 
 }
 ///  an example documentation comment: "monster object"
-public struct MyGame_Example_Monster: FlatBufferObject, ObjectAPI {
+public struct MyGame_Example_Monster: FlatBufferObject, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_1_12_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -1195,7 +1195,7 @@ public struct MyGame_Example_Monster: FlatBufferObject, ObjectAPI {
   }
 }
 
-public class MyGame_Example_MonsterT: UnionObject {
+public class MyGame_Example_MonsterT: NativeObject {
 
   public var pos: MyGame_Example_Vec3?
   public var mana: Int16
@@ -1445,7 +1445,7 @@ public class MyGame_Example_MonsterT: UnionObject {
   public func serialize() -> ByteBuffer { return serialize(type: MyGame_Example_Monster.self) }
 
 }
-public struct MyGame_Example_TypeAliases: FlatBufferObject, ObjectAPI {
+public struct MyGame_Example_TypeAliases: FlatBufferObject, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_1_12_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -1576,7 +1576,7 @@ public struct MyGame_Example_TypeAliases: FlatBufferObject, ObjectAPI {
   }
 }
 
-public class MyGame_Example_TypeAliasesT: UnionObject {
+public class MyGame_Example_TypeAliasesT: NativeObject {
 
   public var i8: Int8
   public var u8: UInt8
