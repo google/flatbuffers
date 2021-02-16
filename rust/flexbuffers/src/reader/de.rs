@@ -35,6 +35,7 @@ impl std::fmt::Display for DeserializationError {
         }
     }
 }
+
 impl serde::de::Error for DeserializationError {
     fn custom<T>(msg: T) -> Self
     where
@@ -43,14 +44,16 @@ impl serde::de::Error for DeserializationError {
         Self::Serde(format!("{}", msg))
     }
 }
+
 impl std::convert::From<super::Error> for DeserializationError {
     fn from(e: super::Error) -> Self {
         Self::Reader(e)
     }
 }
 
-impl<'de> SeqAccess<'de> for ReaderIterator<'de> {
+impl<'de> SeqAccess<'de> for ReaderIterator<&'de [u8]> {
     type Error = DeserializationError;
+
     fn next_element_seed<T>(
         &mut self,
         seed: T,
@@ -64,6 +67,7 @@ impl<'de> SeqAccess<'de> for ReaderIterator<'de> {
             Ok(None)
         }
     }
+
     fn size_hint(&self) -> Option<usize> {
         Some(self.len())
     }
@@ -71,12 +75,13 @@ impl<'de> SeqAccess<'de> for ReaderIterator<'de> {
 
 struct EnumReader<'de> {
     variant: &'de str,
-    value: Option<Reader<'de>>,
+    value: Option<Reader<&'de [u8]>>,
 }
 
 impl<'de> EnumAccess<'de> for EnumReader<'de> {
     type Error = DeserializationError;
-    type Variant = Reader<'de>;
+    type Variant = Reader<&'de [u8]>;
+
     fn variant_seed<V>(self, seed: V) -> Result<(V::Value, Self::Variant), Self::Error>
     where
         V: DeserializeSeed<'de>,
@@ -87,9 +92,10 @@ impl<'de> EnumAccess<'de> for EnumReader<'de> {
 }
 
 struct MapAccessor<'de> {
-    keys: ReaderIterator<'de>,
-    vals: ReaderIterator<'de>,
+    keys: ReaderIterator<&'de [u8]>,
+    vals: ReaderIterator<&'de [u8]>,
 }
+
 impl<'de> MapAccess<'de> for MapAccessor<'de> {
     type Error = DeserializationError;
 
@@ -103,6 +109,7 @@ impl<'de> MapAccess<'de> for MapAccessor<'de> {
             Ok(None)
         }
     }
+
     fn next_value_seed<V>(&mut self, seed: V) -> Result<V::Value, Self::Error>
     where
         V: DeserializeSeed<'de>,
@@ -112,17 +119,20 @@ impl<'de> MapAccess<'de> for MapAccessor<'de> {
     }
 }
 
-impl<'de> VariantAccess<'de> for Reader<'de> {
+impl<'de> VariantAccess<'de> for Reader<&'de [u8]> {
     type Error = DeserializationError;
+
     fn unit_variant(self) -> Result<(), Self::Error> {
         Ok(())
     }
+
     fn newtype_variant_seed<T>(self, seed: T) -> Result<T::Value, Self::Error>
     where
         T: DeserializeSeed<'de>,
     {
         seed.deserialize(self)
     }
+
     // Tuple variants have an internally tagged representation. They are vectors where Index 0 is
     // the discriminant and index N is field N-1.
     fn tuple_variant<V>(self, _len: usize, visitor: V) -> Result<V::Value, Self::Error>
@@ -131,6 +141,7 @@ impl<'de> VariantAccess<'de> for Reader<'de> {
     {
         visitor.visit_seq(self.as_vector().iter())
     }
+
     // Struct variants have an internally tagged representation. They are vectors where Index 0 is
     // the discriminant and index N is field N-1.
     fn struct_variant<V>(
@@ -149,7 +160,7 @@ impl<'de> VariantAccess<'de> for Reader<'de> {
     }
 }
 
-impl<'de> Deserializer<'de> for crate::Reader<'de> {
+impl<'de> Deserializer<'de> for Reader<&'de [u8]> {
     type Error = DeserializationError;
     fn is_human_readable(&self) -> bool {
         cfg!(deserialize_human_readable)
@@ -188,22 +199,26 @@ impl<'de> Deserializer<'de> for crate::Reader<'de> {
             (ty, bw) => unreachable!("TODO deserialize_any {:?} {:?}.", ty, bw),
         }
     }
+
     serde::forward_to_deserialize_any! {
         bool i8 i16 i32 i64 u8 u16 u32 u64 f32 f64 str unit unit_struct bytes
         ignored_any map identifier struct tuple tuple_struct seq string
     }
+
     fn deserialize_char<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
         visitor.visit_char(self.as_u8() as char)
     }
+
     fn deserialize_byte_buf<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
         visitor.visit_byte_buf(self.get_blob()?.0.to_vec())
     }
+
     fn deserialize_option<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
@@ -214,6 +229,7 @@ impl<'de> Deserializer<'de> for crate::Reader<'de> {
             visitor.visit_some(self)
         }
     }
+
     fn deserialize_newtype_struct<V>(
         self,
         _name: &'static str,
@@ -224,6 +240,7 @@ impl<'de> Deserializer<'de> for crate::Reader<'de> {
     {
         visitor.visit_newtype_struct(self)
     }
+
     fn deserialize_enum<V>(
         self,
         _name: &'static str,
