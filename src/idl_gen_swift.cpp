@@ -872,7 +872,8 @@ class SwiftGenerator : public BaseGenerator {
       Indent();
       code_ += "{{ACCESS_TYPE}} var type: {{ENUM_NAME}}";
       code_ += "{{ACCESS_TYPE}} var value: NativeObject?";
-      code_ += "{{ACCESS_TYPE}} init(_ v: NativeObject?, type: {{ENUM_NAME}}) {";
+      code_ +=
+          "{{ACCESS_TYPE}} init(_ v: NativeObject?, type: {{ENUM_NAME}}) {";
       Indent();
       code_ += "self.type = type";
       code_ += "self.value = v";
