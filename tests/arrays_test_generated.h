@@ -63,7 +63,7 @@ inline const char *EnumNameTestEnum(TestEnum e) {
   return EnumNamesTestEnum()[index];
 }
 
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) NestedStruct FLATBUFFERS_FINAL_CLASS {
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) NestedStruct final {
  private:
   int32_t a_[2];
   int8_t b_;
@@ -145,7 +145,7 @@ inline bool operator!=(const NestedStruct &lhs, const NestedStruct &rhs) {
 }
 
 
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) ArrayStruct FLATBUFFERS_FINAL_CLASS {
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) ArrayStruct final {
  private:
   float a_;
   int32_t b_[15];
@@ -279,7 +279,7 @@ inline bool operator!=(const ArrayTableT &lhs, const ArrayTableT &rhs) {
 }
 
 
-struct ArrayTable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct ArrayTable final : private flatbuffers::Table {
   typedef ArrayTableT NativeTableType;
   typedef ArrayTableBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
@@ -479,6 +479,10 @@ inline bool VerifySizePrefixedArrayTableBuffer(
 
 inline const char *ArrayTableExtension() {
   return "mon";
+}
+
+constexpr char* ArrayTableRootName() {
+ return "MyGame.Example.ArrayTable";
 }
 
 inline void FinishArrayTableBuffer(

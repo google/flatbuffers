@@ -20,7 +20,7 @@ inline const flatbuffers::TypeTable *Vector3DTypeTable();
 
 inline const flatbuffers::TypeTable *ApplicationDataTypeTable();
 
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector3D FLATBUFFERS_FINAL_CLASS {
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector3D final {
  private:
   float x_;
   float y_;
@@ -68,7 +68,7 @@ struct ApplicationDataT : public flatbuffers::NativeTable {
   }
 };
 
-struct ApplicationData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct ApplicationData final : private flatbuffers::Table {
   typedef ApplicationDataT NativeTableType;
   typedef ApplicationDataBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
@@ -211,6 +211,10 @@ inline bool VerifyApplicationDataBuffer(
 inline bool VerifySizePrefixedApplicationDataBuffer(
     flatbuffers::Verifier &verifier) {
   return verifier.VerifySizePrefixedBuffer<Geometry::ApplicationData>(nullptr);
+}
+
+constexpr char* ApplicationDataRootName() {
+ return "Geometry.ApplicationData";
 }
 
 inline void FinishApplicationDataBuffer(

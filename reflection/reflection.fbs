@@ -107,6 +107,7 @@ table Schema {
     enums:[Enum] (required);        // Sorted.
     file_ident:string;
     file_ext:string;
+    root_table_name:string;
     root_table:Object;
     services:[Service];             // Sorted.
 }

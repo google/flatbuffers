@@ -582,7 +582,7 @@ inline bool operator!=(const AnyAmbiguousAliasesUnion &lhs, const AnyAmbiguousAl
 bool VerifyAnyAmbiguousAliases(flatbuffers::Verifier &verifier, const void *obj, AnyAmbiguousAliases type);
 bool VerifyAnyAmbiguousAliasesVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
 
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(2) Test FLATBUFFERS_FINAL_CLASS {
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(2) Test final {
  private:
   int16_t a_;
   int8_t b_;
@@ -630,7 +630,7 @@ inline bool operator!=(const Test &lhs, const Test &rhs) {
 }
 
 
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vec3 FLATBUFFERS_FINAL_CLASS {
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vec3 final {
  private:
   float x_;
   float y_;
@@ -728,7 +728,7 @@ inline bool operator!=(const Vec3 &lhs, const Vec3 &rhs) {
 }
 
 
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Ability FLATBUFFERS_FINAL_CLASS {
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Ability final {
  private:
   uint32_t id_;
   uint32_t distance_;
@@ -794,7 +794,7 @@ inline bool operator!=(const InParentNamespaceT &lhs, const InParentNamespaceT &
 }
 
 
-struct InParentNamespace FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct InParentNamespace final : private flatbuffers::Table {
   typedef InParentNamespaceT NativeTableType;
   typedef InParentNamespaceBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
@@ -849,7 +849,7 @@ inline bool operator!=(const MonsterT &lhs, const MonsterT &rhs) {
 }
 
 
-struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct Monster final : private flatbuffers::Table {
   typedef MonsterT NativeTableType;
   typedef MonsterBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
@@ -909,7 +909,7 @@ inline bool operator!=(const TestSimpleTableWithEnumT &lhs, const TestSimpleTabl
 }
 
 
-struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct TestSimpleTableWithEnum final : private flatbuffers::Table {
   typedef TestSimpleTableWithEnumT NativeTableType;
   typedef TestSimpleTableWithEnumBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
@@ -985,7 +985,7 @@ inline bool operator!=(const StatT &lhs, const StatT &rhs) {
 }
 
 
-struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct Stat final : private flatbuffers::Table {
   typedef StatT NativeTableType;
   typedef StatBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
@@ -1096,7 +1096,7 @@ inline bool operator!=(const ReferrableT &lhs, const ReferrableT &rhs) {
 }
 
 
-struct Referrable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct Referrable final : private flatbuffers::Table {
   typedef ReferrableT NativeTableType;
   typedef ReferrableBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
@@ -1280,7 +1280,7 @@ inline bool operator!=(const MonsterT &lhs, const MonsterT &rhs) {
 
 
 /// an example documentation comment: "monster object"
-struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct Monster final : private flatbuffers::Table {
   typedef MonsterT NativeTableType;
   typedef MonsterBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
@@ -2203,7 +2203,7 @@ inline bool operator!=(const TypeAliasesT &lhs, const TypeAliasesT &rhs) {
 }
 
 
-struct TypeAliases FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct TypeAliases final : private flatbuffers::Table {
   typedef TypeAliasesT NativeTableType;
   typedef TypeAliasesBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
@@ -3570,6 +3570,10 @@ inline bool VerifySizePrefixedMonsterBuffer(
 
 inline const char *MonsterExtension() {
   return "mon";
+}
+
+constexpr char* MonsterRootName() {
+ return "MyGame.Example.Monster";
 }
 
 inline void FinishMonsterBuffer(

@@ -59,9 +59,6 @@ inline const flatbuffers::TypeTable *SecondTableInATypeTable();
 
 struct TableInFirstNST : public flatbuffers::NativeTable {
   typedef TableInFirstNS TableType;
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
-    return "NamespaceA.TableInFirstNST";
-  }
   flatbuffers::unique_ptr<NamespaceA::NamespaceB::TableInNestedNST> foo_table;
   NamespaceA::NamespaceB::EnumInNestedNS foo_enum;
   flatbuffers::unique_ptr<NamespaceA::NamespaceB::StructInNestedNS> foo_struct;
@@ -82,14 +79,11 @@ inline bool operator!=(const TableInFirstNST &lhs, const TableInFirstNST &rhs) {
 }
 
 
-struct TableInFirstNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct TableInFirstNS final : private flatbuffers::Table {
   typedef TableInFirstNST NativeTableType;
   typedef TableInFirstNSBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return TableInFirstNSTypeTable();
-  }
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
-    return "NamespaceA.TableInFirstNS";
   }
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_FOO_TABLE = 4,
@@ -171,9 +165,6 @@ namespace NamespaceC {
 
 struct TableInCT : public flatbuffers::NativeTable {
   typedef TableInC TableType;
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
-    return "NamespaceC.TableInCT";
-  }
   flatbuffers::unique_ptr<NamespaceA::TableInFirstNST> refer_to_a1;
   flatbuffers::unique_ptr<NamespaceA::SecondTableInAT> refer_to_a2;
   TableInCT() {
@@ -191,14 +182,11 @@ inline bool operator!=(const TableInCT &lhs, const TableInCT &rhs) {
 }
 
 
-struct TableInC FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct TableInC final : private flatbuffers::Table {
   typedef TableInCT NativeTableType;
   typedef TableInCBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return TableInCTypeTable();
-  }
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
-    return "NamespaceC.TableInC";
   }
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_REFER_TO_A1 = 4,
@@ -268,9 +256,6 @@ namespace NamespaceA {
 
 struct SecondTableInAT : public flatbuffers::NativeTable {
   typedef SecondTableInA TableType;
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
-    return "NamespaceA.SecondTableInAT";
-  }
   flatbuffers::unique_ptr<NamespaceC::TableInCT> refer_to_c;
   SecondTableInAT() {
   }
@@ -286,14 +271,11 @@ inline bool operator!=(const SecondTableInAT &lhs, const SecondTableInAT &rhs) {
 }
 
 
-struct SecondTableInA FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct SecondTableInA final : private flatbuffers::Table {
   typedef SecondTableInAT NativeTableType;
   typedef SecondTableInABuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return SecondTableInATypeTable();
-  }
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
-    return "NamespaceA.SecondTableInA";
   }
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_REFER_TO_C = 4

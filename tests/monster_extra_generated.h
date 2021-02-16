@@ -60,7 +60,7 @@ inline bool operator!=(const MonsterExtraT &lhs, const MonsterExtraT &rhs) {
 }
 
 
-struct MonsterExtra FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct MonsterExtra final : private flatbuffers::Table {
   typedef MonsterExtraT NativeTableType;
   typedef MonsterExtraBuilder Builder;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
@@ -379,6 +379,10 @@ inline bool VerifySizePrefixedMonsterExtraBuffer(
 
 inline const char *MonsterExtraExtension() {
   return "mon";
+}
+
+constexpr char* MonsterExtraRootName() {
+ return "MyGame.MonsterExtra";
 }
 
 inline void FinishMonsterExtraBuffer(
