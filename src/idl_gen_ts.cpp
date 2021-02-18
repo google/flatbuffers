@@ -1460,7 +1460,7 @@ class TsGenerator : public BaseGenerator {
             code += "  for (let i = data.length - 1; i >= 0; i--) {\n";
             code += "    builder.add" + GenWriteMethod(vector_type) + "(";
             if (vector_type.base_type == BASE_TYPE_BOOL) { code += "+"; }
-            code += "data[i]);\n";
+            code += "data[i]!);\n";
             code += "  }\n";
             code += "  return builder.endVector();\n";
             code += "}\n\n";
