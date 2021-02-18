@@ -71,8 +71,6 @@ impl<B: Buffer> std::fmt::Debug for MapReader<B> {
 impl<B: Buffer> MapReader<B> {
     /// Returns the number of key/value pairs are in the map.
     pub fn len(&self) -> usize {
-        let thing = self.clone();
-        println!("{:?}", &thing);
         self.length
     }
 
