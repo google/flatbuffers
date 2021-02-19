@@ -16,43 +16,31 @@ documentation to build `flatc` and should be familiar with
 
 ## FlatBuffers JavaScript library code location
 
-The code for the FlatBuffers JavaScript library can be found at
-`flatbuffers/js`. You can browse the library code on the [FlatBuffers
-GitHub page](https://github.com/google/flatbuffers/tree/master/js).
+The generated code for the FlatBuffers JavaScript library can be found at 
+https://www.npmjs.com/package/flatbuffers. To use it from sources:
 
-## Testing the FlatBuffers JavaScript library
-
-The code to test the JavaScript library can be found at `flatbuffers/tests`.
-The test code itself is located in [JavaScriptTest.js](https://github.com/
-google/flatbuffers/blob/master/tests/JavaScriptTest.js).
-
-To run the tests, use the [JavaScriptTest.sh](https://github.com/google/
-flatbuffers/blob/master/tests/JavaScriptTest.sh) shell script.
-
-*Note: The JavaScript test file requires [Node.js](https://nodejs.org/en/).*
+1. Run `npm run compile` from the main folder to generate JS files from TS.
+1. In your project, install it as a normal dependency, using the flatbuffers
+folder as the source.
 
 ## Using the FlatBuffers JavaScript libary
 
 *Note: See [Tutorial](@ref flatbuffers_guide_tutorial) for a more in-depth
-example of how to use FlatBuffers in JavaScript.*
+example of how to use FlatBuffers.*
 
-FlatBuffers supports both reading and writing FlatBuffers in JavaScript.
+Due to the complexity related with large amounts of JS flavors and module types,
+native JS support has been replaced in 2.0 by transpilation from TypeScript.
 
-To use FlatBuffers in your own code, first generate JavaScript classes from your
-schema with the `--js` option to `flatc`. Then you can include both FlatBuffers
-and the generated code to read or write a FlatBuffer.
+Please look at [TypeScript usage](@ref flatbuffers_guide_use_typescript) and
+transpile your sources to desired JS flavor. The minimal steps to get up and
+running with JS are:
 
-For example, here is how you would read a FlatBuffer binary file in Javascript:
-First, include the library and generated code. Then read the file into an
-`Uint8Array`. Make a `flatbuffers.ByteBuffer` out of the `Uint8Array`, and pass
-the ByteBuffer to the `getRootAsMonster` function.
-
-*Note: Both JavaScript module loaders (e.g. Node.js) and browser-based
-HTML/JavaScript code segments are shown below in the following snippet:*
+1. Generate TS files from `*.fbs` by using the `--ts` option.
+1. Transpile resulting TS files to desired JS flavor using `tsc` (see 
+   https://www.typescriptlang.org/download for installation instructions).
 
 ~~~{.js}
-  // Note: These require functions are specific to JavaScript module loaders
-  //       (namely, Node.js). See below for a browser-based example.
+  // Note: These require functions are an example - use your desired module flavor.
   var fs = require('fs');
 
   var flatbuffers = require('../flatbuffers').flatbuffers;
@@ -65,7 +53,7 @@ HTML/JavaScript code segments are shown below in the following snippet:*
 
   //--------------------------------------------------------------------------//
 
-  // Note: This code is specific to browser-based HTML/JavaScript. See above
+  // Note: This code is an example of browser-based HTML/JavaScript. See above
   //       for the code using JavaScript module loaders (e.g. Node.js).
   <script src="../js/flatbuffers.js"></script>
   <script src="monster_generated.js"></script>
