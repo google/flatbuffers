@@ -69,9 +69,10 @@ $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_JS_TS_FLAGS -o namespace
 
 working_dir=`pwd`
 cd FlatBuffers.Test.Swift/Tests/FlatBuffers.Test.SwiftTests
-$working_dir/../flatc --swift --grpc $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS -I ../../../include_test ../../../monster_test.fbs
-$working_dir/../flatc --swift $TEST_BASE_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS ../../../union_vector/union_vector.fbs
-$working_dir/../flatc --swift ../../../optional_scalars.fbs
+$working_dir/../flatc --swift --grpc $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS -I ${working_dir}/include_test ${working_dir}/monster_test.fbs
+$working_dir/../flatc --swift $TEST_BASE_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS ${working_dir}/union_vector/union_vector.fbs
+$working_dir/../flatc --swift ${working_dir}/optional_scalars.fbs
+$working_dir/../flatc --swift --gen-object-api ${working_dir}/more_defaults.fbs
 cd $working_dir
 
 cd FlatBuffers.GRPC.Swift/Sources/Model
