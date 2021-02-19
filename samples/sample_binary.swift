@@ -46,14 +46,14 @@ func main() {
 
   let orc = Monster.createMonster(
     &builder,
-    structOfPos: MyGame_Sample_Vec3(x: 1, y: 2, z: 3),
+    pos: MyGame_Sample_Vec3(x: 1, y: 2, z: 3),
     hp: 300,
-    offsetOfName: name,
-    vectorOfInventory: inventoryOffset,
+    nameOffset: name,
+    inventoryVectorOffset: inventoryOffset,
     color: .red,
-    vectorOfWeapons: weaponsOffset,
+    weaponsVectorOffset: weaponsOffset,
     equippedType: .weapon,
-    offsetOfEquipped: axe)
+    equippedOffset: axe)
   builder.finish(offset: orc)
 
   let buf = builder.sizedByteArray

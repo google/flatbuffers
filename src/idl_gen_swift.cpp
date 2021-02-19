@@ -605,9 +605,10 @@ class SwiftGenerator : public BaseGenerator {
     auto offset_type =
         IsString(field.value.type) ? "Offset<String>" : "Offset<UOffset>";
     auto camel_case_name =
-        (IsVector(field.value.type) || IsArray(field.value.type) ? "vectorOf"
-                                                                 : "offsetOf") +
-        MakeCamel(name, true);
+        MakeCamel(name, false) +
+        (IsVector(field.value.type) || IsArray(field.value.type)
+             ? "VectorOffset"
+             : "Offset");
     create_func_header.push_back(camel_case_name + " " + name + ": " +
                                  offset_type + " = Offset()");
     auto reader_type =

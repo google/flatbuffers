@@ -28,7 +28,7 @@ public struct HelloReply: FlatBufferObject {
   public static func endHelloReply(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
   public static func createHelloReply(
     _ fbb: inout FlatBufferBuilder,
-    offsetOfMessage message: Offset<String> = Offset()
+    messageOffset message: Offset<String> = Offset()
   ) -> Offset<UOffset> {
     let __start = HelloReply.startHelloReply(&fbb)
     HelloReply.add(message: message, &fbb)
@@ -60,7 +60,7 @@ public struct HelloRequest: FlatBufferObject {
   public static func endHelloRequest(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
   public static func createHelloRequest(
     _ fbb: inout FlatBufferBuilder,
-    offsetOfName name: Offset<String> = Offset()
+    nameOffset name: Offset<String> = Offset()
   ) -> Offset<UOffset> {
     let __start = HelloRequest.startHelloRequest(&fbb)
     HelloRequest.add(name: name, &fbb)
@@ -95,7 +95,7 @@ public struct ManyHellosRequest: FlatBufferObject {
   public static func endManyHellosRequest(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
   public static func createManyHellosRequest(
     _ fbb: inout FlatBufferBuilder,
-    offsetOfName name: Offset<String> = Offset(),
+    nameOffset name: Offset<String> = Offset(),
     numGreetings: Int32 = 0
   ) -> Offset<UOffset> {
     let __start = ManyHellosRequest.startManyHellosRequest(&fbb)

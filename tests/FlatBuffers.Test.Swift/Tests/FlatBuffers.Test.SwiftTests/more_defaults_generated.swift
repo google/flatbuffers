@@ -42,10 +42,10 @@ public struct MoreDefaults: FlatBufferObject, ObjectAPIPacker {
   public static func endMoreDefaults(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
   public static func createMoreDefaults(
     _ fbb: inout FlatBufferBuilder,
-    vectorOfInts ints: Offset<UOffset> = Offset(),
-    vectorOfFloats floats: Offset<UOffset> = Offset(),
-    offsetOfEmptyString emptyString: Offset<String> = Offset(),
-    offsetOfSomeString someString: Offset<String> = Offset()
+    intsVectorOffset ints: Offset<UOffset> = Offset(),
+    floatsVectorOffset floats: Offset<UOffset> = Offset(),
+    emptyStringOffset emptyString: Offset<String> = Offset(),
+    someStringOffset someString: Offset<String> = Offset()
   ) -> Offset<UOffset> {
     let __start = MoreDefaults.startMoreDefaults(&fbb)
     MoreDefaults.addVectorOf(ints: ints, &fbb)

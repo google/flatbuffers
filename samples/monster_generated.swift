@@ -137,13 +137,13 @@ public struct MyGame_Sample_Monster: FlatBufferObject {
     pos: MyGame_Sample_Vec3? = nil,
     mana: Int16 = 150,
     hp: Int16 = 100,
-    offsetOfName name: Offset<String> = Offset(),
-    vectorOfInventory inventory: Offset<UOffset> = Offset(),
+    nameOffset name: Offset<String> = Offset(),
+    inventoryVectorOffset inventory: Offset<UOffset> = Offset(),
     color: MyGame_Sample_Color = .blue,
-    vectorOfWeapons weapons: Offset<UOffset> = Offset(),
+    weaponsVectorOffset weapons: Offset<UOffset> = Offset(),
     equippedType: MyGame_Sample_Equipment = .none_,
-    offsetOfEquipped equipped: Offset<UOffset> = Offset(),
-    vectorOfPath path: Offset<UOffset> = Offset()
+    equippedOffset equipped: Offset<UOffset> = Offset(),
+    pathVectorOffset path: Offset<UOffset> = Offset()
   ) -> Offset<UOffset> {
     let __start = MyGame_Sample_Monster.startMonster(&fbb)
     MyGame_Sample_Monster.add(pos: pos, &fbb)
@@ -188,7 +188,7 @@ public struct MyGame_Sample_Weapon: FlatBufferObject {
   public static func endWeapon(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
   public static func createWeapon(
     _ fbb: inout FlatBufferBuilder,
-    offsetOfName name: Offset<String> = Offset(),
+    nameOffset name: Offset<String> = Offset(),
     damage: Int16 = 0
   ) -> Offset<UOffset> {
     let __start = MyGame_Sample_Weapon.startWeapon(&fbb)

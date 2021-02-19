@@ -1715,15 +1715,15 @@ can serialize the monster itself:
 <div class="language-swift">
 ~~~{.swift}
   let orc = Monster.createMonster(
-    fbb: &builder,
-    pos: Vec3(x: 1, y: 2, z: 3),
+    &builder,
+    pos: MyGame_Sample_Vec3(x: 1, y: 2, z: 3),
     hp: 300,
-    name: name,
-    inventory: inventoryOffset,
+    nameOffset: name,
+    inventoryVectorOffset: inventoryOffset,
     color: .red,
-    weapons: weaponsOffset,
+    weaponsVectorOffset: weaponsOffset,
     equippedType: .weapon,
-    equipped: axe)
+    equippedOffset: axe)
 ~~~
 </div>
 

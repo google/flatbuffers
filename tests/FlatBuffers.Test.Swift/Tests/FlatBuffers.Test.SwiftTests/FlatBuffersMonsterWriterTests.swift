@@ -104,7 +104,7 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     var fbb = FlatBufferBuilder(initialSize: 1)
     let name = fbb.create(string: "Frodo")
     let bools = fbb.createVector(boolArray)
-    let root = Monster.createMonster(&fbb, offsetOfName: name, vectorOfTestarrayofbools: bools)
+    let root = Monster.createMonster(&fbb, nameOffset: name, testarrayofboolsVectorOffset: bools)
     fbb.finish(offset: root)
     let monster = Monster.getRootAsMonster(bb: fbb.sizedBuffer)
 
