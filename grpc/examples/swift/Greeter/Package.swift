@@ -18,13 +18,13 @@
 import PackageDescription
 
 let package = Package(
-  name: "FlatBuffers.GRPC.Swift",
+  name: "Greeter",
   platforms: [
     .iOS(.v11),
     .macOS(.v10_14),
   ],
   dependencies: [
-    .package(path: "../../swift"),
+    .package(path: "../../../../swift"),
     .package(url: "https://github.com/grpc/grpc-swift.git", .exact("1.0.0-alpha.24")),
   ],
   targets: [

@@ -23,36 +23,36 @@ public extension GRPCFlatBufPayload {
 }
 extension Message: GRPCFlatBufPayload {}
 
-/// Usage: instantiate GreeterServiceClient, then call methods of this protocol to make API calls.
-public protocol GreeterClientProtocol: GRPCClient {
+/// Usage: instantiate models_GreeterServiceClient, then call methods of this protocol to make API calls.
+public protocol models_GreeterClientProtocol: GRPCClient {
 
   var serviceName: String { get }
 
-  var interceptors: GreeterClientInterceptorFactoryProtocol? { get }
+  var interceptors: models_GreeterClientInterceptorFactoryProtocol? { get }
 
   func SayHello(
-    _ request: Message<HelloRequest>
+    _ request: Message<models_HelloRequest>
     , callOptions: CallOptions?
-  ) -> UnaryCall<Message<HelloRequest>, Message<HelloReply>>
+  ) -> UnaryCall<Message<models_HelloRequest>, Message<models_HelloReply>>
 
   func SayManyHellos(
-    _ request: Message<ManyHellosRequest>
+    _ request: Message<models_HelloRequest>
     , callOptions: CallOptions?,
-    handler: @escaping (Message<HelloReply>) -> Void
-  ) -> ServerStreamingCall<Message<ManyHellosRequest>, Message<HelloReply>>
+    handler: @escaping (Message<models_HelloReply>) -> Void
+  ) -> ServerStreamingCall<Message<models_HelloRequest>, Message<models_HelloReply>>
 
 }
 
-extension GreeterClientProtocol {
+extension models_GreeterClientProtocol {
 
-  public var serviceName: String { "Greeter" }
+  public var serviceName: String { "models.Greeter" }
 
   public func SayHello(
-    _ request: Message<HelloRequest>
+    _ request: Message<models_HelloRequest>
     , callOptions: CallOptions? = nil
-  ) -> UnaryCall<Message<HelloRequest>, Message<HelloReply>> {
+  ) -> UnaryCall<Message<models_HelloRequest>, Message<models_HelloReply>> {
     return self.makeUnaryCall(
-      path: "/Greeter/SayHello",
+      path: "/models.Greeter/SayHello",
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeSayHelloInterceptors() ?? []
@@ -60,12 +60,12 @@ extension GreeterClientProtocol {
   }
 
   public func SayManyHellos(
-    _ request: Message<ManyHellosRequest>
+    _ request: Message<models_HelloRequest>
     , callOptions: CallOptions? = nil,
-    handler: @escaping (Message<HelloReply>) -> Void
-  ) -> ServerStreamingCall<Message<ManyHellosRequest>, Message<HelloReply>> {
+    handler: @escaping (Message<models_HelloReply>) -> Void
+  ) -> ServerStreamingCall<Message<models_HelloRequest>, Message<models_HelloReply>> {
     return self.makeServerStreamingCall(
-      path: "/Greeter/SayManyHellos",
+      path: "/models.Greeter/SayManyHellos",
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeSayManyHellosInterceptors() ?? [],
@@ -74,24 +74,24 @@ extension GreeterClientProtocol {
   }
 }
 
-public protocol GreeterClientInterceptorFactoryProtocol {
+public protocol models_GreeterClientInterceptorFactoryProtocol {
   /// - Returns: Interceptors to use when invoking 'SayHello'.
-  func makeSayHelloInterceptors() -> [ClientInterceptor<Message<HelloRequest>, Message<HelloReply>>]
+  func makeSayHelloInterceptors() -> [ClientInterceptor<Message<models_HelloRequest>, Message<models_HelloReply>>]
 
   /// - Returns: Interceptors to use when invoking 'SayManyHellos'.
-  func makeSayManyHellosInterceptors() -> [ClientInterceptor<Message<ManyHellosRequest>, Message<HelloReply>>]
+  func makeSayManyHellosInterceptors() -> [ClientInterceptor<Message<models_HelloRequest>, Message<models_HelloReply>>]
 
 }
 
-public final class GreeterServiceClient: GreeterClientProtocol {
+public final class models_GreeterServiceClient: models_GreeterClientProtocol {
   public let channel: GRPCChannel
   public var defaultCallOptions: CallOptions
-  public var interceptors: GreeterClientInterceptorFactoryProtocol?
+  public var interceptors: models_GreeterClientInterceptorFactoryProtocol?
 
   public init(
     channel: GRPCChannel,
     defaultCallOptions: CallOptions = CallOptions(),
-    interceptors: GreeterClientInterceptorFactoryProtocol? = nil
+    interceptors: models_GreeterClientInterceptorFactoryProtocol? = nil
   ) {
     self.channel = channel
     self.defaultCallOptions = defaultCallOptions
@@ -99,31 +99,31 @@ public final class GreeterServiceClient: GreeterClientProtocol {
   }
 }
 
-public protocol GreeterProvider: CallHandlerProvider {
-  var interceptors: GreeterServerInterceptorFactoryProtocol? { get }
-  func SayHello(request: Message<HelloRequest>, context: StatusOnlyCallContext) -> EventLoopFuture<Message<HelloReply>>
-  func SayManyHellos(request: Message<ManyHellosRequest>, context: StreamingResponseCallContext<Message<HelloReply>>) -> EventLoopFuture<GRPCStatus>
+public protocol models_GreeterProvider: CallHandlerProvider {
+  var interceptors: models_GreeterServerInterceptorFactoryProtocol? { get }
+  func SayHello(request: Message<models_HelloRequest>, context: StatusOnlyCallContext) -> EventLoopFuture<Message<models_HelloReply>>
+  func SayManyHellos(request: Message<models_HelloRequest>, context: StreamingResponseCallContext<Message<models_HelloReply>>) -> EventLoopFuture<GRPCStatus>
 }
 
-public extension GreeterProvider {
+public extension models_GreeterProvider {
 
-  var serviceName: Substring { return "Greeter" }
+  var serviceName: Substring { return "models.Greeter" }
 
   func handle(method name: Substring, context: CallHandlerContext) -> GRPCServerHandlerProtocol? {
     switch name {
     case "SayHello":
     return UnaryServerHandler(
       context: context,
-      requestDeserializer: GRPCPayloadDeserializer<Message<HelloRequest>>(),
-      responseSerializer: GRPCPayloadSerializer<Message<HelloReply>>(),
+      requestDeserializer: GRPCPayloadDeserializer<Message<models_HelloRequest>>(),
+      responseSerializer: GRPCPayloadSerializer<Message<models_HelloReply>>(),
       interceptors: self.interceptors?.makeSayHelloInterceptors() ?? [],
       userFunction: self.SayHello(request:context:))
 
     case "SayManyHellos":
     return ServerStreamingServerHandler(
       context: context,
-      requestDeserializer: GRPCPayloadDeserializer<Message<ManyHellosRequest>>(),
-      responseSerializer: GRPCPayloadSerializer<Message<HelloReply>>(),
+      requestDeserializer: GRPCPayloadDeserializer<Message<models_HelloRequest>>(),
+      responseSerializer: GRPCPayloadSerializer<Message<models_HelloReply>>(),
       interceptors: self.interceptors?.makeSayManyHellosInterceptors() ?? [],
       userFunction: self.SayManyHellos(request:context:))
 
@@ -133,13 +133,13 @@ public extension GreeterProvider {
 
 }
 
-public protocol GreeterServerInterceptorFactoryProtocol {
+public protocol models_GreeterServerInterceptorFactoryProtocol {
   /// - Returns: Interceptors to use when handling 'SayHello'.
   ///   Defaults to calling `self.makeInterceptors()`.
-  func makeSayHelloInterceptors() -> [ServerInterceptor<Message<HelloRequest>, Message<HelloReply>>]
+  func makeSayHelloInterceptors() -> [ServerInterceptor<Message<models_HelloRequest>, Message<models_HelloReply>>]
 
   /// - Returns: Interceptors to use when handling 'SayManyHellos'.
   ///   Defaults to calling `self.makeInterceptors()`.
-  func makeSayManyHellosInterceptors() -> [ServerInterceptor<Message<ManyHellosRequest>, Message<HelloReply>>]
+  func makeSayManyHellosInterceptors() -> [ServerInterceptor<Message<models_HelloRequest>, Message<models_HelloReply>>]
 
 }
