@@ -237,9 +237,9 @@ public struct Movie: FlatBufferObject, ObjectAPIPacker {
   public static func createMovie(
     _ fbb: inout FlatBufferBuilder,
     mainCharacterType: Character = .none_,
-    offsetOfMainCharacter mainCharacter: Offset<UOffset> = Offset(),
-    vectorOfCharactersType charactersType: Offset<UOffset> = Offset(),
-    vectorOfCharacters characters: Offset<UOffset> = Offset()
+    mainCharacterOffset mainCharacter: Offset<UOffset> = Offset(),
+    charactersTypeVectorOffset charactersType: Offset<UOffset> = Offset(),
+    charactersVectorOffset characters: Offset<UOffset> = Offset()
   ) -> Offset<UOffset> {
     let __start = Movie.startMovie(&fbb)
     Movie.add(mainCharacterType: mainCharacterType, &fbb)
