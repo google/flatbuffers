@@ -146,7 +146,12 @@ class FlatBufService : public grpc_generator::Service {
 
 class FlatBufPrinter : public grpc_generator::Printer {
  public:
-  FlatBufPrinter(std::string *str) : str_(str), escape_char_('$'), indent_(0) {}
+  FlatBufPrinter(std::string *str, const char indentation_type)
+      : str_(str),
+        escape_char_('$'),
+        indent_(0),
+        indentation_size_(2),
+        indentation_type_(indentation_type) {}
 
   void Print(const std::map<std::string, std::string> &vars,
              const char *string_template) {
@@ -173,7 +178,7 @@ class FlatBufPrinter : public grpc_generator::Printer {
     // Add this string, but for each part separated by \n, add indentation.
     for (;;) {
       // Current indentation.
-      str_->insert(str_->end(), indent_ * 2, ' ');
+      str_->insert(str_->end(), indent_ * indentation_size_, indentation_type_);
       // See if this contains more than one line.
       const char *lf = strchr(s, '\n');
       if (lf) {
@@ -187,6 +192,11 @@ class FlatBufPrinter : public grpc_generator::Printer {
     }
   }
 
+  void SetIndentationSize(const int size) {
+    FLATBUFFERS_ASSERT(str_->empty());
+    indentation_size_ = size;
+  }
+
   void Indent() { indent_++; }
 
   void Outdent() {
@@ -198,6 +208,8 @@ class FlatBufPrinter : public grpc_generator::Printer {
   std::string *str_;
   char escape_char_;
   int indent_;
+  int indentation_size_;
+  char indentation_type_;
 };
 
 class FlatBufFile : public grpc_generator::File {
@@ -277,8 +289,9 @@ class FlatBufFile : public grpc_generator::File {
   }
 
   std::unique_ptr<grpc_generator::Printer> CreatePrinter(
-      std::string *str) const {
-    return std::unique_ptr<grpc_generator::Printer>(new FlatBufPrinter(str));
+      std::string *str, const char indentation_type = ' ') const {
+    return std::unique_ptr<grpc_generator::Printer>(
+        new FlatBufPrinter(str, indentation_type));
   }
 
  private:
