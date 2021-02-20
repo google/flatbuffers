@@ -75,10 +75,6 @@ $working_dir/../flatc --swift ${working_dir}/optional_scalars.fbs
 $working_dir/../flatc --swift --gen-object-api ${working_dir}/more_defaults.fbs
 cd $working_dir
 
-cd FlatBuffers.GRPC.Swift/Sources/Model
-$working_dir/../flatc --swift --grpc greeter.fbs
-cd $working_dir
-
 # Tests if the --filename-suffix and --filename-ext works and produces the same
 # outputs.
 ../flatc --cpp --filename-suffix _suffix --filename-ext hpp $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS -I include_test monster_test.fbs

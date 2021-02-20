@@ -20,43 +20,39 @@ import Logging
 import Model
 import NIO
 
-class Greeter: GreeterProvider {
+class Greeter: models_GreeterProvider {
 
-  var interceptors: GreeterServerInterceptorFactoryProtocol?
+  var interceptors: models_GreeterServerInterceptorFactoryProtocol?
 
-  var hellos: [Message<HelloReply>] = []
+  let greetings: [String]
 
   init() {
-    let names = ["Stranger1", "Stranger2", "Stranger4", "Stranger3", "Stranger5", "Stranger6"]
-    for name in names {
-      var builder = FlatBufferBuilder()
-      let off = builder.create(string: name)
-      let root = HelloReply.createHelloReply(&builder, offsetOfMessage: off)
-      builder.finish(offset: root)
-      hellos.append(Message(builder: &builder))
-    }
+    greetings = ["Hi", "Hallo", "Ciao"]
   }
 
   func SayHello(
-    request: Message<HelloRequest>,
-    context: StatusOnlyCallContext) -> EventLoopFuture<Message<HelloReply>>
+    request: Message<models_HelloRequest>,
+    context: StatusOnlyCallContext) -> EventLoopFuture<Message<models_HelloReply>>
   {
     let recipient = request.object.name ?? "Stranger"
 
     var builder = FlatBufferBuilder()
-    let off = builder.create(string: recipient)
-    let root = HelloReply.createHelloReply(&builder, offsetOfMessage: off)
+    let off = builder.create(string: "Hello \(recipient)")
+    let root = models_HelloReply.createHelloReply(&builder, messageOffset: off)
     builder.finish(offset: root)
-    return context.eventLoop.makeSucceededFuture(Message<HelloReply>(builder: &builder))
+    return context.eventLoop.makeSucceededFuture(Message<models_HelloReply>(builder: &builder))
   }
 
   func SayManyHellos(
-    request: Message<ManyHellosRequest>,
-    context: StreamingResponseCallContext<Message<HelloReply>>) -> EventLoopFuture<GRPCStatus>
+    request: Message<models_HelloRequest>,
+    context: StreamingResponseCallContext<Message<models_HelloReply>>) -> EventLoopFuture<GRPCStatus>
   {
-    for _ in 0..<Int(request.object.numGreetings) {
-      let index = Int.random(in: 0..<hellos.count)
-      _ = context.sendResponse(hellos[index])
+    for name in greetings {
+      var builder = FlatBufferBuilder()
+      let off = builder.create(string: "\(name) \(request.object.name ?? "Unknown")")
+      let root = models_HelloReply.createHelloReply(&builder, messageOffset: off)
+      builder.finish(offset: root)
+      _ = context.sendResponse(Message<models_HelloReply>(builder: &builder))
     }
     return context.eventLoop.makeSucceededFuture(.ok)
   }
