@@ -21,7 +21,6 @@
 // generic in that it makes no reference to any particular Flatbuffer type.
 
 #include <optional>
-#include <sstream>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -41,61 +40,58 @@ namespace detail {
 /*******************************************************************************
 ** Metaprogramming helpers for detecting Flatbuffers Tables, Structs, & Vectors.
 *******************************************************************************/
-template<typename FB, typename = void>
-struct is_fb_table_or_struct : std::false_type {};
+template<typename FBS, typename = void>
+struct is_flatbuffers_table_or_struct : std::false_type {};
 
 // We know it's a table or struct when it has a Traits subclass.
-template<typename FB>
-struct is_fb_table_or_struct<FB, std::void_t<typename FB::Traits>>
+template<typename FBS>
+struct is_flatbuffers_table_or_struct<FBS, std::void_t<typename FBS::Traits>>
     : std::true_type {};
 
-template<typename FB>
-constexpr bool is_fb_table_or_struct_v = is_fb_table_or_struct<FB>::value;
+template<typename FBS>
+constexpr bool is_flatbuffers_table_or_struct_v =
+    is_flatbuffers_table_or_struct<FBS>::value;
 
-template<typename T> struct is_fb_vector : std::false_type {};
+template<typename T> struct is_flatbuffers_vector : std::false_type {};
 
 // We know it's a table or struct when it has a Traits subclass.
 template<typename T>
-struct is_fb_vector<flatbuffers::Vector<T>> : std::true_type {};
+struct is_flatbuffers_vector<flatbuffers::Vector<T>> : std::true_type {};
 
-template<typename T> constexpr bool is_fb_vector_v = is_fb_vector<T>::value;
+template<typename T>
+constexpr bool is_flatbuffers_vector_v = is_flatbuffers_vector<T>::value;
 
 /*******************************************************************************
 ** Compile-time Iteration & Recursive Stringification over Flatbuffers types.
 *******************************************************************************/
-template<typename FB, size_t... Indexes>
-std::string StringifyTableOrStructImpl(const FB &flatbuff,
-                                       const std::string &indent,
-                                       std::index_sequence<Indexes...>) {
-  // Getting the fields_pack should be a relatively light-weight operation. It
-  // will copy a std::tuple of primitive types, pointers, and references; no
-  // deep copies of anything will be made.
-  auto fields_pack = flatbuff.fields_pack();
-  std::ostringstream oss;
-  auto add_field = [&](auto &&field_value, size_t index) {
-    auto value_string = StringifyFlatbufferValue(field_value, indent);
-    if (!value_string) { return; }
-    oss << indent << FB::Traits::field_names[index] << " = " << *value_string
-        << "\n";
-  };
-  // Prevents unused-var warning when object has no fields.
-  (void)fields_pack;
-  (void)add_field;
-  // This line is where the compile-time iteration happens!
-  (add_field(std::get<Indexes>(fields_pack), Indexes), ...);
-  return oss.str();
+template<size_t Index, typename FBS>
+std::string AddStringifiedField(const FBS &fbs, const std::string &indent) {
+  auto value_string =
+      StringifyFlatbufferValue(fbs.template getter_for<Index>(), indent);
+  if (!value_string) { return ""; }
+  return indent + FBS::Traits::field_names[Index] + " = " + *value_string +
+         "\n";
 }
 
-template<typename FB>
-std::string StringifyTableOrStruct(const FB &flatbuff,
-                                   const std::string &indent) {
-  constexpr size_t field_count = std::tuple_size_v<typename FB::FieldTypes>;
-  std::ostringstream oss;
-  oss << FB::Traits::fully_qualified_name << "{\n"
-      << StringifyTableOrStructImpl(flatbuff, indent + "  ",
-                                    std::make_index_sequence<field_count>{})
-      << indent << "}";
-  return oss.str();
+template<typename FBS, size_t... Indexes>
+std::string StringifyTableOrStructImpl(const FBS &fbs,
+                                       const std::string &indent,
+                                       std::index_sequence<Indexes...>) {
+  // This line is where the compile-time iteration happens!
+  return (AddStringifiedField<Indexes>(fbs, indent) + ...);
+}
+
+template<typename FBS>
+std::string StringifyTableOrStruct(const FBS &fbs, const std::string &indent) {
+  constexpr size_t field_count = std::tuple_size_v<typename FBS::FieldTypes>;
+  std::string out;
+  if constexpr (field_count > 0) {
+    out = std::string(FBS::Traits::fully_qualified_name) + "{\n" +
+          StringifyTableOrStructImpl(fbs, indent + "  ",
+                                     std::make_index_sequence<field_count>{}) +
+          indent + "}";
+  }
+  return out;
 }
 
 template<typename T>
@@ -118,9 +114,7 @@ std::string StringifyVector(const flatbuffers::Vector<T> &vec,
 }
 
 template<typename T> std::string StringifyArithmeticType(T val) {
-  std::ostringstream oss;
-  oss << val;
-  return oss.str();
+  return std::to_string(val);
 }
 
 }  // namespace detail
@@ -141,7 +135,7 @@ std::optional<std::string> StringifyFlatbufferValue(T &&val,
       std::decay_t<std::remove_pointer_t<std::remove_reference_t<T>>>;
 
   // Is it a Flatbuffers Table or Struct?
-  if constexpr (detail::is_fb_table_or_struct_v<decayed>) {
+  if constexpr (detail::is_flatbuffers_table_or_struct_v<decayed>) {
     // We have a nested table or struct; use recursion!
     if constexpr (is_pointer) {
       return detail::StringifyTableOrStruct(*val, indent);
@@ -174,7 +168,7 @@ std::optional<std::string> StringifyFlatbufferValue(T &&val,
   }
 
   // Is it a Flatbuffers Vector?
-  else if constexpr (detail::is_fb_vector_v<decayed>) {
+  else if constexpr (detail::is_flatbuffers_vector_v<decayed>) {
     return detail::StringifyVector(*val, indent);
   }
 

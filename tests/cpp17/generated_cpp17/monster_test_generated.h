@@ -508,11 +508,11 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(2) Test FLATBUFFERS_FINAL_CLASS {
     int16_t,
     int8_t
     >;
-  FieldTypes fields_pack() const {
-    return {
-      a(),
-      b()
-    };
+  template<size_t Index>
+  auto getter_for() const {
+         if constexpr (Index == 0) return a();
+    else if constexpr (Index == 1) return b();
+    else static_assert(Index != Index, "Invalid Field Index");
   }
 };
 FLATBUFFERS_STRUCT_END(Test, 4);
@@ -616,15 +616,15 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vec3 FLATBUFFERS_FINAL_CLASS {
     MyGame::Example::Color,
     const MyGame::Example::Test &
     >;
-  FieldTypes fields_pack() const {
-    return {
-      x(),
-      y(),
-      z(),
-      test1(),
-      test2(),
-      test3()
-    };
+  template<size_t Index>
+  auto getter_for() const {
+         if constexpr (Index == 0) return x();
+    else if constexpr (Index == 1) return y();
+    else if constexpr (Index == 2) return z();
+    else if constexpr (Index == 3) return test1();
+    else if constexpr (Index == 4) return test2();
+    else if constexpr (Index == 5) return test3();
+    else static_assert(Index != Index, "Invalid Field Index");
   }
 };
 FLATBUFFERS_STRUCT_END(Vec3, 32);
@@ -683,11 +683,11 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Ability FLATBUFFERS_FINAL_CLASS {
     uint32_t,
     uint32_t
     >;
-  FieldTypes fields_pack() const {
-    return {
-      id(),
-      distance()
-    };
+  template<size_t Index>
+  auto getter_for() const {
+         if constexpr (Index == 0) return id();
+    else if constexpr (Index == 1) return distance();
+    else static_assert(Index != Index, "Invalid Field Index");
   }
 };
 FLATBUFFERS_STRUCT_END(Ability, 8);
@@ -716,9 +716,6 @@ struct InParentNamespace FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return InParentNamespaceTypeTable();
   }
   using FieldTypes = std::tuple<>;
-  FieldTypes fields_pack() const {
-    return {};
-  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            verifier.EndTable();
@@ -773,9 +770,6 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return MonsterTypeTable();
   }
   using FieldTypes = std::tuple<>;
-  FieldTypes fields_pack() const {
-    return {};
-  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            verifier.EndTable();
@@ -844,10 +838,10 @@ struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Ta
   using FieldTypes = std::tuple<
     MyGame::Example::Color
     >;
-  FieldTypes fields_pack() const {
-    return {
-      color()
-    };
+  template<size_t Index>
+  auto getter_for() const {
+         if constexpr (Index == 0) return color();
+    else static_assert(Index != Index, "Invalid Field Index");
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -945,12 +939,12 @@ struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     int64_t,
     uint16_t
     >;
-  FieldTypes fields_pack() const {
-    return {
-      id(),
-      val(),
-      count()
-    };
+  template<size_t Index>
+  auto getter_for() const {
+         if constexpr (Index == 0) return id();
+    else if constexpr (Index == 1) return val();
+    else if constexpr (Index == 2) return count();
+    else static_assert(Index != Index, "Invalid Field Index");
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1058,10 +1052,10 @@ struct Referrable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   using FieldTypes = std::tuple<
     uint64_t
     >;
-  FieldTypes fields_pack() const {
-    return {
-      id()
-    };
+  template<size_t Index>
+  auto getter_for() const {
+         if constexpr (Index == 0) return id();
+    else static_assert(Index != Index, "Invalid Field Index");
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1611,59 +1605,59 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     const flatbuffers::Vector<uint8_t> *,
     const flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::Stat>> *
     >;
-  FieldTypes fields_pack() const {
-    return {
-      pos(),
-      mana(),
-      hp(),
-      name(),
-      inventory(),
-      color(),
-      test_type(),
-      test(),
-      test4(),
-      testarrayofstring(),
-      testarrayoftables(),
-      enemy(),
-      testnestedflatbuffer(),
-      testempty(),
-      testbool(),
-      testhashs32_fnv1(),
-      testhashu32_fnv1(),
-      testhashs64_fnv1(),
-      testhashu64_fnv1(),
-      testhashs32_fnv1a(),
-      testhashu32_fnv1a(),
-      testhashs64_fnv1a(),
-      testhashu64_fnv1a(),
-      testarrayofbools(),
-      testf(),
-      testf2(),
-      testf3(),
-      testarrayofstring2(),
-      testarrayofsortedstruct(),
-      flex(),
-      test5(),
-      vector_of_longs(),
-      vector_of_doubles(),
-      parent_namespace_test(),
-      vector_of_referrables(),
-      single_weak_reference(),
-      vector_of_weak_references(),
-      vector_of_strong_referrables(),
-      co_owning_reference(),
-      vector_of_co_owning_references(),
-      non_owning_reference(),
-      vector_of_non_owning_references(),
-      any_unique_type(),
-      any_unique(),
-      any_ambiguous_type(),
-      any_ambiguous(),
-      vector_of_enums(),
-      signed_enum(),
-      testrequirednestedflatbuffer(),
-      scalar_key_sorted_tables()
-    };
+  template<size_t Index>
+  auto getter_for() const {
+         if constexpr (Index == 0) return pos();
+    else if constexpr (Index == 1) return mana();
+    else if constexpr (Index == 2) return hp();
+    else if constexpr (Index == 3) return name();
+    else if constexpr (Index == 4) return inventory();
+    else if constexpr (Index == 5) return color();
+    else if constexpr (Index == 6) return test_type();
+    else if constexpr (Index == 7) return test();
+    else if constexpr (Index == 8) return test4();
+    else if constexpr (Index == 9) return testarrayofstring();
+    else if constexpr (Index == 10) return testarrayoftables();
+    else if constexpr (Index == 11) return enemy();
+    else if constexpr (Index == 12) return testnestedflatbuffer();
+    else if constexpr (Index == 13) return testempty();
+    else if constexpr (Index == 14) return testbool();
+    else if constexpr (Index == 15) return testhashs32_fnv1();
+    else if constexpr (Index == 16) return testhashu32_fnv1();
+    else if constexpr (Index == 17) return testhashs64_fnv1();
+    else if constexpr (Index == 18) return testhashu64_fnv1();
+    else if constexpr (Index == 19) return testhashs32_fnv1a();
+    else if constexpr (Index == 20) return testhashu32_fnv1a();
+    else if constexpr (Index == 21) return testhashs64_fnv1a();
+    else if constexpr (Index == 22) return testhashu64_fnv1a();
+    else if constexpr (Index == 23) return testarrayofbools();
+    else if constexpr (Index == 24) return testf();
+    else if constexpr (Index == 25) return testf2();
+    else if constexpr (Index == 26) return testf3();
+    else if constexpr (Index == 27) return testarrayofstring2();
+    else if constexpr (Index == 28) return testarrayofsortedstruct();
+    else if constexpr (Index == 29) return flex();
+    else if constexpr (Index == 30) return test5();
+    else if constexpr (Index == 31) return vector_of_longs();
+    else if constexpr (Index == 32) return vector_of_doubles();
+    else if constexpr (Index == 33) return parent_namespace_test();
+    else if constexpr (Index == 34) return vector_of_referrables();
+    else if constexpr (Index == 35) return single_weak_reference();
+    else if constexpr (Index == 36) return vector_of_weak_references();
+    else if constexpr (Index == 37) return vector_of_strong_referrables();
+    else if constexpr (Index == 38) return co_owning_reference();
+    else if constexpr (Index == 39) return vector_of_co_owning_references();
+    else if constexpr (Index == 40) return non_owning_reference();
+    else if constexpr (Index == 41) return vector_of_non_owning_references();
+    else if constexpr (Index == 42) return any_unique_type();
+    else if constexpr (Index == 43) return any_unique();
+    else if constexpr (Index == 44) return any_ambiguous_type();
+    else if constexpr (Index == 45) return any_ambiguous();
+    else if constexpr (Index == 46) return vector_of_enums();
+    else if constexpr (Index == 47) return signed_enum();
+    else if constexpr (Index == 48) return testrequirednestedflatbuffer();
+    else if constexpr (Index == 49) return scalar_key_sorted_tables();
+    else static_assert(Index != Index, "Invalid Field Index");
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -2364,21 +2358,21 @@ struct TypeAliases FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     const flatbuffers::Vector<int8_t> *,
     const flatbuffers::Vector<double> *
     >;
-  FieldTypes fields_pack() const {
-    return {
-      i8(),
-      u8(),
-      i16(),
-      u16(),
-      i32(),
-      u32(),
-      i64(),
-      u64(),
-      f32(),
-      f64(),
-      v8(),
-      vf64()
-    };
+  template<size_t Index>
+  auto getter_for() const {
+         if constexpr (Index == 0) return i8();
+    else if constexpr (Index == 1) return u8();
+    else if constexpr (Index == 2) return i16();
+    else if constexpr (Index == 3) return u16();
+    else if constexpr (Index == 4) return i32();
+    else if constexpr (Index == 5) return u32();
+    else if constexpr (Index == 6) return i64();
+    else if constexpr (Index == 7) return u64();
+    else if constexpr (Index == 8) return f32();
+    else if constexpr (Index == 9) return f64();
+    else if constexpr (Index == 10) return v8();
+    else if constexpr (Index == 11) return vf64();
+    else static_assert(Index != Index, "Invalid Field Index");
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&

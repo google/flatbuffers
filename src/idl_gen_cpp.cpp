@@ -2102,26 +2102,14 @@ class CppGenerator : public BaseGenerator {
     code_ += "\n    >;";
   }
 
-  // Sample for Vec3:
-  //
-  //   FieldTypes fields_pack() const {
-  //     return {
-  //       x(),
-  //       y(),
-  //       z()
-  //     };
-  //   }
-  //
-  void GenFieldsPack(const StructDef &struct_def) {
-    code_ += "  FieldTypes fields_pack() const {";
-    code_ += "    return {\\";
-    if (struct_def.fields.vec.empty()) {
-      code_ += "};";
-      code_ += "  }";
-      return;
-    }
-    code_ += "";
-    // Generate the fields_pack elements.
+  void GenIndexBasedFieldGetter(const StructDef &struct_def) {
+    if (struct_def.fields.vec.empty()) { return; }
+    code_ += "  template<size_t Index>";
+    code_ += "  auto getter_for() const {";
+
+    size_t index = 0;
+    bool need_else = false;
+    // Generate one index-based getter for each field.
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
@@ -2130,10 +2118,18 @@ class CppGenerator : public BaseGenerator {
         continue;
       }
       code_.SetValue("FIELD_NAME", Name(field));
-      code_ += "      {{FIELD_NAME}}()\\";
-      if (it + 1 != struct_def.fields.vec.end()) { code_ += ","; }
+      code_.SetValue("FIELD_INDEX",
+                     std::to_string(static_cast<long long>(index++)));
+      if (need_else) {
+        code_ += "    else \\";
+      } else {
+        code_ += "         \\";
+      }
+      need_else = true;
+      code_ += "if constexpr (Index == {{FIELD_INDEX}}) \\";
+      code_ += "return {{FIELD_NAME}}();";
     }
-    code_ += "\n    };";
+    code_ += "    else static_assert(Index != Index, \"Invalid Field Index\");";
     code_ += "  }";
   }
 
@@ -2316,7 +2312,7 @@ class CppGenerator : public BaseGenerator {
 
     if (opts_.g_cpp_std >= cpp::CPP_STD_17) {
       GenFieldTypes(struct_def, /*is_struct=*/false);
-      GenFieldsPack(struct_def);
+      GenIndexBasedFieldGetter(struct_def);
     }
 
     // Generate a verifier function that can check a buffer from an untrusted
@@ -3404,7 +3400,7 @@ class CppGenerator : public BaseGenerator {
 
     if (opts_.g_cpp_std >= cpp::CPP_STD_17) {
       GenFieldTypes(struct_def, /*is_struct=*/true);
-      GenFieldsPack(struct_def);
+      GenIndexBasedFieldGetter(struct_def);
     }
 
     code_ += "};";
