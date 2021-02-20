@@ -15,12 +15,18 @@ cd go/
 cd greeter
 fbc --go ${generator}
 
-cd ../..
+cd ${current_dir}
+
+cd swift/
+
+cd Greeter/Sources/Model
+fbc --swift ${generator}
+
+cd ${current_dir}
 
 cd ts/
 
 cd greeter/src
 fbc --ts ${generator}
-cd ..
 
-cd ../..
+cd ${current_dir}

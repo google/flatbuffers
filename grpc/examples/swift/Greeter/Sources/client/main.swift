@@ -27,33 +27,34 @@ LoggingSystem.bootstrap {
   return handler
 }
 
-func greet(name: String, client greeter: GreeterServiceClient) {
+func greet(name: String, client greeter: models_GreeterServiceClient) {
   // Form the request with the name, if one was provided.
   var builder = FlatBufferBuilder()
-  let name = builder.create(string: name)
-  let root = HelloRequest.createHelloRequest(&builder, offsetOfName: name)
+  let nameOff = builder.create(string: name)
+  let root = models_HelloRequest.createHelloRequest(
+    &builder,
+    nameOffset: nameOff)
   builder.finish(offset: root)
 
   // Make the RPC call to the server.
-  let sayHello = greeter.SayHello(Message<HelloRequest>(builder: &builder))
+  let sayHello = greeter.SayHello(Message<models_HelloRequest>(builder: &builder))
 
   // wait() on the response to stop the program from exiting before the response is received.
   do {
     let response = try sayHello.response.wait()
-    print("Greeter received: \(response.object.message)")
+    print("Greeter SayHello received: \(response.object.message ?? "Unknown")")
   } catch {
     print("Greeter failed: \(error)")
   }
 
-  let surname = builder.create(string: "Name")
-  let manyRoot = ManyHellosRequest.createManyHellosRequest(
+  let surname = builder.create(string: name)
+  let manyRoot = models_HelloRequest.createHelloRequest(
     &builder,
-    offsetOfName: surname,
-    numGreetings: 2)
+    nameOffset: surname)
   builder.finish(offset: manyRoot)
 
   let call = greeter.SayManyHellos(Message(builder: &builder)) { message in
-    print(message.object.message)
+    print("Greeter SayManyHellos received: \(message.object.message  ?? "Unknown")")
   }
 
   let status = try! call.status.recover { _ in .processingError }.wait()
@@ -94,10 +95,10 @@ func main(args: [String]) {
     }
 
     // Provide the connection to the generated client.
-    let greeter = GreeterServiceClient(channel: channel)
+    let greeter = models_GreeterServiceClient(channel: channel)
 
     // Do the greeting.
-    greet(name: name ?? "Hello FlatBuffers!", client: greeter)
+    greet(name: name ?? "FlatBuffers!", client: greeter)
   }
 }
 
