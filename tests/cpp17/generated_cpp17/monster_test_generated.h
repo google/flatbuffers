@@ -522,7 +522,7 @@ struct Test::Traits {
     "b"
   };
   template<size_t Index>
-  using FieldType = decltype(std::declval<Test>().get_field<Index>());
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
 };
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vec3 FLATBUFFERS_FINAL_CLASS {
@@ -632,7 +632,7 @@ struct Vec3::Traits {
     "test3"
   };
   template<size_t Index>
-  using FieldType = decltype(std::declval<Vec3>().get_field<Index>());
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
 };
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Ability FLATBUFFERS_FINAL_CLASS {
@@ -689,7 +689,7 @@ struct Ability::Traits {
     "distance"
   };
   template<size_t Index>
-  using FieldType = decltype(std::declval<Ability>().get_field<Index>());
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
 };
 
 }  // namespace Example
@@ -873,7 +873,7 @@ struct TestSimpleTableWithEnum::Traits {
     "color"
   };
   template<size_t Index>
-  using FieldType = decltype(std::declval<TestSimpleTableWithEnum>().get_field<Index>());
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
 };
 
 flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnum(flatbuffers::FlatBufferBuilder &_fbb, const TestSimpleTableWithEnumT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -988,7 +988,7 @@ struct Stat::Traits {
     "count"
   };
   template<size_t Index>
-  using FieldType = decltype(std::declval<Stat>().get_field<Index>());
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
 };
 
 inline flatbuffers::Offset<Stat> CreateStatDirect(
@@ -1083,7 +1083,7 @@ struct Referrable::Traits {
     "id"
   };
   template<size_t Index>
-  using FieldType = decltype(std::declval<Referrable>().get_field<Index>());
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
 };
 
 flatbuffers::Offset<Referrable> CreateReferrable(flatbuffers::FlatBufferBuilder &_fbb, const ReferrableT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -2036,7 +2036,7 @@ struct Monster::Traits {
     "scalar_key_sorted_tables"
   };
   template<size_t Index>
-  using FieldType = decltype(std::declval<Monster>().get_field<Index>());
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
 };
 
 inline flatbuffers::Offset<Monster> CreateMonsterDirect(
@@ -2417,7 +2417,7 @@ struct TypeAliases::Traits {
     "vf64"
   };
   template<size_t Index>
-  using FieldType = decltype(std::declval<TypeAliases>().get_field<Index>());
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
 };
 
 inline flatbuffers::Offset<TypeAliases> CreateTypeAliasesDirect(

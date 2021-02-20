@@ -2071,10 +2071,9 @@ class CppGenerator : public BaseGenerator {
 
   void GenFieldTypeHelper(const StructDef &struct_def) {
     if (struct_def.fields.vec.empty()) { return; }
-    code_.SetValue("STRUCT_NAME", Name(struct_def));
     code_ += "  template<size_t Index>";
     code_ += "  using FieldType = \\";
-    code_ += "decltype(std::declval<{{STRUCT_NAME}}>().get_field<Index>());";
+    code_ += "decltype(std::declval<type>().get_field<Index>());";
   }
 
   void GenIndexBasedFieldGetter(const StructDef &struct_def) {
@@ -2514,8 +2513,8 @@ class CppGenerator : public BaseGenerator {
     code_ += "}";
     code_ += "";
 
-    // Definition for type traits for this table type. This al-
-    // lows querying various compile-time traits of the table.
+    // Definition for type traits for this table type. This allows querying var-
+    // ious compile-time traits of the table.
     if (opts_.g_cpp_std >= cpp::CPP_STD_17) {
       GenTraitsStruct(struct_def);
     }
@@ -3391,8 +3390,8 @@ class CppGenerator : public BaseGenerator {
     if (opts_.gen_compare) GenCompareOperator(struct_def, "()");
     code_ += "";
 
-    // Definition for type traits for this struct type. This al-
-    // lows querying various compile-time traits of the table.
+    // Definition for type traits for this table type. This allows querying var-
+    // ious compile-time traits of the table.
     if (opts_.g_cpp_std >= cpp::CPP_STD_17) {
       GenTraitsStruct(struct_def);
     }

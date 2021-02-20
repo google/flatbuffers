@@ -680,7 +680,7 @@ struct ScalarStuff::Traits {
     "default_enum"
   };
   template<size_t Index>
-  using FieldType = decltype(std::declval<ScalarStuff>().get_field<Index>());
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
 };
 
 flatbuffers::Offset<ScalarStuff> CreateScalarStuff(flatbuffers::FlatBufferBuilder &_fbb, const ScalarStuffT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
