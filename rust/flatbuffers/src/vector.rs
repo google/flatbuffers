@@ -29,6 +29,14 @@ use crate::primitives::*;
 
 pub struct Vector<'a, T: 'a>(&'a [u8], usize, PhantomData<T>);
 
+impl<'a, T:'a> Default for Vector<'a, T> {
+    fn default() -> Self {
+        // Static, length 0 vector.
+        // Note that derived default causes UB due to issues in read_scalar_at /facepalm.
+        Self(&[0; core::mem::size_of::<UOffsetT>()], 0, Default::default())
+    }
+}
+
 impl<'a, T> Debug for Vector<'a, T>
 where
     T: 'a + Follow<'a>,

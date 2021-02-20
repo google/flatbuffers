@@ -98,7 +98,7 @@ set(FlatBuffers_Compiler_SRCS
   src/idl_gen_kotlin.cpp
   src/idl_gen_go.cpp
   src/idl_gen_java.cpp
-  src/idl_gen_js_ts.cpp
+  src/idl_gen_ts.cpp
   src/idl_gen_php.cpp
   src/idl_gen_python.cpp
   src/idl_gen_lobster.cpp
@@ -283,6 +283,13 @@ elseif(MSVC)
   # multi-core build.
   add_definitions("/MP")
 endif()
+
+# Append FLATBUFFERS_CXX_FLAGS to CMAKE_CXX_FLAGS.
+if(DEFINED FLATBUFFERS_CXX_FLAGS AND NOT EXISTS "${CMAKE_TOOLCHAIN_FILE}")
+  message(STATUS "extend CXX_FLAGS with ${FLATBUFFERS_CXX_FLAGS}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLATBUFFERS_CXX_FLAGS}")
+endif()
+message(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
 
 if(FLATBUFFERS_CODE_COVERAGE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fprofile-arcs -ftest-coverage")

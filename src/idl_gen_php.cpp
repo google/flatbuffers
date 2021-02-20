@@ -536,7 +536,7 @@ class PhpGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
-      if (!field.deprecated && field.required) {
+      if (!field.deprecated && field.IsRequired()) {
         code += Indent + Indent + "$builder->required($o, ";
         code += NumToString(field.value.offset);
         code += ");  // " + field.name + "\n";
@@ -645,7 +645,7 @@ class PhpGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
-      if (!field.deprecated && field.required) {
+      if (!field.deprecated && field.IsRequired()) {
         code += Indent + Indent + "$builder->required($o, ";
         code += NumToString(field.value.offset);
         code += ");  // " + field.name + "\n";
@@ -735,9 +735,7 @@ class PhpGenerator : public BaseGenerator {
       } else {
         BuildFieldOfTable(field, offset, code_ptr);
       }
-      if (IsVector(field.value.type)) {
-        BuildVectorOfTable(field, code_ptr);
-      }
+      if (IsVector(field.value.type)) { BuildVectorOfTable(field, code_ptr); }
     }
 
     GetEndOffsetOnTable(struct_def, code_ptr);

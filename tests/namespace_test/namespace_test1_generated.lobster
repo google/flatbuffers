@@ -3,6 +3,10 @@ import flatbuffers
 
 namespace NamespaceA_NamespaceB
 
+enum UnionInNestedNS:
+    UnionInNestedNS_NONE = 0
+    UnionInNestedNS_TableInNestedNS = 1
+
 enum EnumInNestedNS:
     EnumInNestedNS_A = 0
     EnumInNestedNS_B = 1

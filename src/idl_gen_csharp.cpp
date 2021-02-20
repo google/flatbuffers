@@ -1142,7 +1142,7 @@ class CSharpGenerator : public BaseGenerator {
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
         auto &field = **it;
-        if (!field.deprecated && field.required) {
+        if (!field.deprecated && field.IsRequired()) {
           code += "    builder.Required(o, ";
           code += NumToString(field.value.offset);
           code += ");  // " + field.name + "\n";
@@ -1515,10 +1515,11 @@ class CSharpGenerator : public BaseGenerator {
         case BASE_TYPE_ARRAY: {
           auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts);
           auto length_str = NumToString(field.value.type.fixed_length);
-          auto unpack_method = field.value.type.struct_def == nullptr ? ""
-                               : field.value.type.struct_def->fixed
-                                   ? ".UnPack()"
-                                   : "?.UnPack()";
+          auto unpack_method = field.value.type.struct_def == nullptr
+                                   ? ""
+                                   : field.value.type.struct_def->fixed
+                                         ? ".UnPack()"
+                                         : "?.UnPack()";
           code += start + "new " + type_name.substr(0, type_name.length() - 1) +
                   length_str + "];\n";
           code += "    for (var _j = 0; _j < " + length_str + "; ++_j) { _o." +

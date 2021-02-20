@@ -16,20 +16,14 @@
 
 pushd "$(dirname $0)" >/dev/null
 
-npm install @types/flatbuffers
-npm run pretest
+# clean node_modules to make sure we depend on latest local flatbuffers at ../
+rm -rf node_modules
+npm install
 
-export FB_TS_TEST="TRUE"
-
-../flatc --ts --no-fb-import --gen-name-strings --gen-mutable --gen-object-api -o ts -I include_test monster_test.fbs
+../flatc --ts --gen-name-strings --gen-mutable --gen-object-api -o ts -I include_test monster_test.fbs
 ../flatc --gen-object-api -b -I include_test monster_test.fbs unicode_test.json
-tsc --strict --noUnusedParameters --noUnusedLocals --noImplicitReturns --strictNullChecks ts/monster_test_generated.ts
-node JavaScriptTest ./ts/monster_test_generated
-
-../flatc --ts --gen-name-strings --no-fb-import --gen-object-api -o ts union_vector/union_vector.fbs
-tsc --strict --noUnusedParameters --noUnusedLocals --noImplicitReturns --strictNullChecks ts/union_vector_generated.ts
-node JavaScriptUnionVectorTest ./ts/union_vector_generated
-
-unset FB_TS_TEST
-
-npm uninstall @types/flatbuffers
+../flatc --ts --gen-name-strings --gen-object-api -o ts union_vector/union_vector.fbs
+tsc
+node -r esm JavaScriptTest
+node -r esm JavaScriptUnionVectorTest
+node -r esm JavaScriptFlexBuffersTest

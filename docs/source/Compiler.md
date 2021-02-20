@@ -150,16 +150,6 @@ Additional options:
 
 -   `--object-suffix` : Customise class suffix for C++ object-based API.
 
--   `--no-js-exports` : Removes Node.js style export lines (useful for JS)
-
--   `--goog-js-export` :  Uses goog.exportsSymbol and goog.exportsProperty
-    instead of Node.js style exporting.  Needed for compatibility with the
-    Google closure compiler (useful for JS).
-
--   `--es6-js-export` : Generates ECMAScript v6 style export definitions
-    instead of Node.js style exporting. Useful when integrating flatbuffers
-    with modern Javascript projects.
-
 -   `--go-namespace` : Generate the overrided namespace in Golang.
 
 -   `--go-import` : Generate the overrided import for flatbuffers in Golang.
@@ -206,12 +196,6 @@ Additional options:
     statements.
 
 -   `--keep-prefix` : Keep original prefix of schema include statement.
-
--   `--no-fb-import` : Don't include flatbuffers import statement for TypeScript.
-
--   `--no-ts-reexport` : Don't re-export imported dependencies for TypeScript.
-
--   `--short-names` : Use short function names for JS and TypeScript.
 
 -   `--reflect-types` : Add minimal type reflection to code generation.
 

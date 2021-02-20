@@ -93,6 +93,7 @@ struct Printer {
   virtual void Print(const std::map<grpc::string, grpc::string> &vars,
                      const char *template_string) = 0;
   virtual void Print(const char *string) = 0;
+  virtual void SetIndentationSize(const int size) = 0;
   virtual void Indent() = 0;
   virtual void Outdent() = 0;
 };
@@ -111,7 +112,8 @@ struct File : public CommentHolder {
   virtual int service_count() const = 0;
   virtual std::unique_ptr<const Service> service(int i) const = 0;
 
-  virtual std::unique_ptr<Printer> CreatePrinter(grpc::string *str) const = 0;
+  virtual std::unique_ptr<Printer> CreatePrinter(
+      grpc::string *str, const char indentation_type = ' ') const = 0;
 };
 }  // namespace grpc_generator
 

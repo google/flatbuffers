@@ -13,12 +13,14 @@
 // limitations under the License.
 
 use flexbuffers::*;
+#[cfg(not(miri))]  // slow.
 use quickcheck::QuickCheck;
 
 #[test]
+#[cfg(not(miri))]  // slow.
 fn qc_reader_no_crash() {
     fn no_crash(xs: Vec<u8>) -> bool {
-        let r = Reader::get_root(&xs);
+        let r = Reader::get_root(xs.as_ref());
         r.is_err() || r.is_ok()
     }
     QuickCheck::new()
@@ -131,7 +133,7 @@ fn string_as_num() {
 }
 #[test]
 fn null_reader() {
-    let n = Reader::default();
+    let n = Reader::<&[u8]>::default();
     assert_eq!(n.as_i8(), 0);
     assert_eq!(n.as_i16(), 0);
     assert_eq!(n.as_i32(), 0);
@@ -157,7 +159,7 @@ fn get_root_deref_oob() {
         (FlexBufferType::Vector as u8) << 2 | BitWidth::W8 as u8,
         1,
     ];
-    assert!(Reader::get_root(s).is_err());
+    assert!(Reader::get_root(s.as_ref()).is_err());
 }
 #[test]
 fn get_root_deref_u64() {
@@ -168,7 +170,24 @@ fn get_root_deref_u64() {
         1,
     ];
     // The risk of crashing is reading 8 bytes from index 0.
-    assert_eq!(Reader::get_root(s).unwrap().as_u64(), 0);
+    assert_eq!(Reader::get_root(s.as_ref()).unwrap().as_u64(), 0);
+}
+
+/// Verifies that the clone operation is shallow / zero copy.
+#[test]
+fn clone_is_shallow() {
+    let mut fxb = Builder::default();
+    let mut m = fxb.start_map();
+    m.push("a", &[-1i8, -2, -3, -4]);
+    m.push("b", 250i64);
+    m.push("c", 5000u16);
+    m.end_map();
+
+    let r = Reader::get_root(fxb.view()).unwrap();
+
+    let r2 = r.clone();
+
+    assert_eq!(r.buffer().as_ptr(), r2.buffer().as_ptr());
 }
 
 #[test]

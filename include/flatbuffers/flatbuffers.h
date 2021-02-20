@@ -21,7 +21,7 @@
 #include "flatbuffers/stl_emulation.h"
 
 #ifndef FLATBUFFERS_CPP98_STL
-  #include <functional>
+#  include <functional>
 #endif
 
 #if defined(FLATBUFFERS_NAN_DEFAULTS)
@@ -257,6 +257,7 @@ template<typename T> class Vector {
 
   typedef typename IndirectHelper<T>::return_type return_type;
   typedef typename IndirectHelper<T>::mutable_return_type mutable_return_type;
+  typedef return_type value_type;
 
   return_type Get(uoffset_t i) const {
     FLATBUFFERS_ASSERT(i < size());
@@ -504,8 +505,8 @@ template<typename T, uint16_t length> class Array {
     (void)p2;
 
     CopyFromSpanImpl(
-        flatbuffers::integral_constant<bool,
-        !scalar_tag::value || sizeof(T) == 1 || FLATBUFFERS_LITTLEENDIAN>(),
+        flatbuffers::integral_constant < bool,
+        !scalar_tag::value || sizeof(T) == 1 || FLATBUFFERS_LITTLEENDIAN > (),
         src);
   }
 
@@ -583,12 +584,12 @@ template<typename T, uint16_t length> class Array<Offset<T>, length> {
 // Cast a raw T[length] to a raw flatbuffers::Array<T, length>
 // without endian conversion. Use with care.
 template<typename T, uint16_t length>
-Array<T, length>& CastToArray(T (&arr)[length]) {
+Array<T, length> &CastToArray(T (&arr)[length]) {
   return *reinterpret_cast<Array<T, length> *>(arr);
 }
 
 template<typename T, uint16_t length>
-const Array<T, length>& CastToArray(const T (&arr)[length]) {
+const Array<T, length> &CastToArray(const T (&arr)[length]) {
   return *reinterpret_cast<const Array<T, length> *>(arr);
 }
 
@@ -647,7 +648,7 @@ static inline const char *GetCstring(const String *str) {
 static inline flatbuffers::string_view GetStringView(const String *str) {
   return str ? str->string_view() : flatbuffers::string_view();
 }
-#endif // FLATBUFFERS_HAS_STRING_VIEW
+#endif  // FLATBUFFERS_HAS_STRING_VIEW
 
 // Allocator interface. This is flatbuffers-specific and meant only for
 // `vector_downward` usage.
@@ -821,9 +822,9 @@ class DetachedBuffer {
   #if !defined(FLATBUFFERS_CPP98_STL)
   // clang-format on
   // These may change access mode, leave these at end of public section
-  FLATBUFFERS_DELETE_FUNC(DetachedBuffer(const DetachedBuffer &other))
+  FLATBUFFERS_DELETE_FUNC(DetachedBuffer(const DetachedBuffer &other));
   FLATBUFFERS_DELETE_FUNC(
-      DetachedBuffer &operator=(const DetachedBuffer &other))
+      DetachedBuffer &operator=(const DetachedBuffer &other));
   // clang-format off
   #endif  // !defined(FLATBUFFERS_CPP98_STL)
   // clang-format on
@@ -1066,8 +1067,8 @@ class vector_downward {
 
  private:
   // You shouldn't really be copying instances of this class.
-  FLATBUFFERS_DELETE_FUNC(vector_downward(const vector_downward &))
-  FLATBUFFERS_DELETE_FUNC(vector_downward &operator=(const vector_downward &))
+  FLATBUFFERS_DELETE_FUNC(vector_downward(const vector_downward &));
+  FLATBUFFERS_DELETE_FUNC(vector_downward &operator=(const vector_downward &));
 
   Allocator *allocator_;
   bool own_allocator_;
@@ -1669,11 +1670,13 @@ class FlatBufferBuilder {
   // This is useful when storing a nested_flatbuffer in a vector of bytes,
   // or when storing SIMD floats, etc.
   void ForceVectorAlignment(size_t len, size_t elemsize, size_t alignment) {
+    FLATBUFFERS_ASSERT(VerifyAlignmentRequirements(alignment));
     PreAlign(len * elemsize, alignment);
   }
 
   // Similar to ForceVectorAlignment but for String fields.
   void ForceStringAlignment(size_t len, size_t alignment) {
+    FLATBUFFERS_ASSERT(VerifyAlignmentRequirements(alignment));
     PreAlign((len + 1) * sizeof(char), alignment);
   }
 
@@ -1691,9 +1694,7 @@ class FlatBufferBuilder {
     // causing the wrong overload to be selected, remove it.
     AssertScalarT<T>();
     StartVector(len, sizeof(T));
-    if (len == 0) {
-      return Offset<Vector<T>>(EndVector(len));
-    }
+    if (len == 0) { return Offset<Vector<T>>(EndVector(len)); }
     // clang-format off
     #if FLATBUFFERS_LITTLEENDIAN
       PushBytes(reinterpret_cast<const uint8_t *>(v), len * sizeof(T));
@@ -1891,7 +1892,7 @@ class FlatBufferBuilder {
     }
 
     FLATBUFFERS_DELETE_FUNC(
-        StructKeyComparator &operator=(const StructKeyComparator &))
+        StructKeyComparator &operator=(const StructKeyComparator &));
   };
   /// @endcond
 
@@ -1966,7 +1967,8 @@ class FlatBufferBuilder {
     vector_downward &buf_;
 
    private:
-    FLATBUFFERS_DELETE_FUNC(TableKeyComparator &operator=(const TableKeyComparator &other))
+    FLATBUFFERS_DELETE_FUNC(
+        TableKeyComparator &operator=(const TableKeyComparator &other));
   };
   /// @endcond
 
@@ -2823,9 +2825,12 @@ inline const char * const *ElementaryTypeNames() {
 // bitfields is otherwise implementation-defined and causes warnings on older
 // GCC compilers.
 struct TypeCode {
-  unsigned short base_type : 4;  // ElementaryType
-  unsigned short is_repeating : 1;  // Either vector (in table) or array (in struct)
-  signed short sequence_ref : 11;  // Index into type_refs below, or -1 for none.
+  // ElementaryType
+  unsigned short base_type : 4;
+  // Either vector (in table) or array (in struct)
+  unsigned short is_repeating : 1;
+  // Index into type_refs below, or -1 for none.
+  signed short sequence_ref : 11;
 };
 
 static_assert(sizeof(TypeCode) == 2, "TypeCode");

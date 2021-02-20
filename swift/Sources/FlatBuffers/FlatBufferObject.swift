@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Google Inc. All rights reserved.
+ * Copyright 2021 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,20 @@
 
 import Foundation
 
+/// NativeStruct is a protocol that indicates if the struct is a native `swift` struct
+/// since now we will be serializing native structs into the buffer.
+public protocol NativeStruct {}
+
 /// FlatbufferObject structures all the Flatbuffers objects
 public protocol FlatBufferObject {
   var __buffer: ByteBuffer! { get }
   init(_ bb: ByteBuffer, o: Int32)
 }
 
-public protocol ObjectAPI {
+public protocol ObjectAPIPacker {
   associatedtype T
   static func pack(_ builder: inout FlatBufferBuilder, obj: inout T) -> Offset<UOffset>
   mutating func unpack() -> T
-}
-
-/// Readable is structures all the Flatbuffers structs
-///
-/// Readable is a procotol that each Flatbuffer struct should confirm to since
-/// FlatBufferBuilder would require a Type to both create(struct:) and createVector(structs:) functions
-public protocol Readable: FlatBufferObject {
-  static var size: Int { get }
-  static var alignment: Int { get }
 }
 
 public protocol Enum {

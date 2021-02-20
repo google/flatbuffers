@@ -64,7 +64,8 @@ Now you can access values like this:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.swift}
     let hp = monster.hp
-    let pos = monster.pos
+    let pos = monster.pos // uses native swift structs
+    let pos = monster.mutablePos // uses flatbuffers structs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
@@ -76,8 +77,10 @@ In some cases it's necessary to modify values in an existing FlatBuffer in place
     if !monster.mutate(hp: 10) {
       fatalError("couldn't mutate")
     }
-    // mutate a struct field
-    let vec = monster.pos.mutate(z: 4)
+    // mutate a struct field using flatbuffers struct
+    // DONT use monster.pos to mutate since swift copy on write 
+    // will not mutate the value in the buffer
+    let vec = monster.mutablePos.mutate(z: 4)
 
     // This mutation will fail because the mana field is not available in
     // the buffer. It should be set when creating the buffer.

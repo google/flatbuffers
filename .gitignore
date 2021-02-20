@@ -2,6 +2,7 @@
 *_wire.bin
 .DS_Store
 **/.build
+build
 **/Packages
 /*.xcodeproj
 **/xcuserdata/
@@ -139,3 +140,6 @@ yarn-error.log
 .cache/
 /flatbuffers.lib
 .cmake/
+**/dist
+**/vendor
+**/go.sum

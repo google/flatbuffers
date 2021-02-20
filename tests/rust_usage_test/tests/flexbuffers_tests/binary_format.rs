@@ -108,6 +108,7 @@ fn store_vec_uint_16() {
     );
 }
 
+#[cfg(not(miri))]  // slow.
 quickcheck! {
     fn qc_f32(x: f32) -> bool {
         let fxb = singleton(x);
@@ -310,7 +311,7 @@ fn utf8_snowman() {
             1,      // Root bytes
         ]
     );
-    let r = Reader::get_root(&buf).unwrap();
+    let r = Reader::get_root(buf.as_ref()).unwrap();
     assert_eq!(r.get_str(), Ok("snowman ☃︎"));
 }
 #[test]

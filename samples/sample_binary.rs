@@ -18,7 +18,9 @@
 extern crate flatbuffers;
 
 // import the generated code
+#[allow(dead_code, unused_imports)]
 #[path = "./monster_generated.rs"]
+#[allow(clippy::approx_constant)]  // We use low precision PI as a default value.
 mod monster_generated;
 pub use monster_generated::my_game::sample::{Color, Equipment,
                                              Monster, MonsterArgs,
@@ -27,7 +29,7 @@ pub use monster_generated::my_game::sample::{Color, Equipment,
 
 
 // Example how to use FlatBuffers to create and read binary buffers.
-
+#[allow(clippy::float_cmp)]
 fn main() {
   // Build up a serialized buffer algorithmically.
   // Initialize it with a capacity of 1024 bytes.

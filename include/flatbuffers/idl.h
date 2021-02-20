@@ -35,7 +35,7 @@
 // Definition Language) / schema file.
 
 // Limits maximum depth of nested objects.
-// Prevents stack overflow while parse flatbuffers or json.
+// Prevents stack overflow while parse scheme, or json, or flexbuffer.
 #if !defined(FLATBUFFERS_MAX_PARSING_DEPTH)
 #  define FLATBUFFERS_MAX_PARSING_DEPTH 64
 #endif
@@ -291,12 +291,11 @@ struct Definition {
 struct FieldDef : public Definition {
   FieldDef()
       : deprecated(false),
-        required(false),
         key(false),
         shared(false),
         native_inline(false),
         flexbuffer(false),
-        optional(false),
+        presence(kDefault),
         nested_flatbuffer(NULL),
         padding(0) {}
 
@@ -306,21 +305,47 @@ struct FieldDef : public Definition {
   bool Deserialize(Parser &parser, const reflection::Field *field);
 
   bool IsScalarOptional() const {
-    return IsScalar(value.type.base_type) && optional;
+    return IsScalar(value.type.base_type) && IsOptional();
+  }
+  bool IsOptional() const {
+    return presence == kOptional;
+  }
+  bool IsRequired() const {
+    return presence == kRequired;
+  }
+  bool IsDefault() const {
+    return presence == kDefault;
   }
 
   Value value;
   bool deprecated;  // Field is allowed to be present in old data, but can't be.
                     // written in new data nor accessed in new code.
-  bool required;    // Field must always be present.
   bool key;         // Field functions as a key for creating sorted vectors.
   bool shared;  // Field will be using string pooling (i.e. CreateSharedString)
                 // as default serialization behavior if field is a string.
   bool native_inline;  // Field will be defined inline (instead of as a pointer)
                        // for native tables if field is a struct.
   bool flexbuffer;     // This field contains FlexBuffer data.
-  bool optional;       // If True, this field is Null (as opposed to default
-                       // valued).
+
+  enum Presence {
+    // Field must always be present.
+    kRequired,
+    // Non-presence should be signalled to and controlled by users.
+    kOptional,
+    // Non-presence is hidden from users.
+    // Implementations may omit writing default values.
+    kDefault,
+  };
+  Presence static MakeFieldPresence(bool optional, bool required) {
+    FLATBUFFERS_ASSERT(!(required && optional));
+    // clang-format off
+    return required ? FieldDef::kRequired
+         : optional ? FieldDef::kOptional
+                    : FieldDef::kDefault;
+    // clang-format on
+  }
+  Presence presence;
+
   StructDef *nested_flatbuffer;  // This field contains nested FlatBuffer data.
   size_t padding;                // Bytes to always pad after this field.
 };
@@ -521,9 +546,6 @@ struct IDLOptions {
   // Use flexbuffers instead for binary and text generation
   bool use_flexbuffers;
   bool strict_json;
-  bool skip_js_exports;
-  bool use_goog_js_export_format;
-  bool use_ES6_js_export_format;
   bool output_default_scalars_in_json;
   int indent_step;
   bool output_enum_identifiers;
@@ -556,11 +578,8 @@ struct IDLOptions {
   bool binary_schema_comments;
   bool binary_schema_builtins;
   bool binary_schema_gen_embed;
-  bool skip_flatbuffers_import;
   std::string go_import;
   std::string go_namespace;
-  bool reexport_ts_modules;
-  bool js_ts_short_names;
   bool protobuf_ascii_alike;
   bool size_prefixed;
   std::string root_type;
@@ -580,7 +599,6 @@ struct IDLOptions {
     kCSharp = 1 << 1,
     kGo = 1 << 2,
     kCpp = 1 << 3,
-    kJs = 1 << 4,
     kPython = 1 << 5,
     kPhp = 1 << 6,
     kJson = 1 << 7,
@@ -621,9 +639,6 @@ struct IDLOptions {
       : gen_jvmstatic(false),
         use_flexbuffers(false),
         strict_json(false),
-        skip_js_exports(false),
-        use_goog_js_export_format(false),
-        use_ES6_js_export_format(false),
         output_default_scalars_in_json(false),
         indent_step(2),
         output_enum_identifiers(true),
@@ -653,9 +668,6 @@ struct IDLOptions {
         binary_schema_comments(false),
         binary_schema_builtins(false),
         binary_schema_gen_embed(false),
-        skip_flatbuffers_import(false),
-        reexport_ts_modules(true),
-        js_ts_short_names(false),
         protobuf_ascii_alike(false),
         size_prefixed(false),
         force_defaults(false),
@@ -767,8 +779,8 @@ class Parser : public ParserState {
         opts(options),
         uses_flexbuffers_(false),
         source_(nullptr),
-        anonymous_counter(0),
-        recurse_protection_counter(0) {
+        anonymous_counter_(0),
+        parse_depth_counter_(0) {
     if (opts.force_defaults) { builder_.ForceDefaults(true); }
     // Start out with the empty namespace being current.
     empty_namespace_ = new Namespace();
@@ -805,11 +817,6 @@ class Parser : public ParserState {
       delete *it;
     }
   }
-
-#ifdef FLATBUFFERS_DEFAULT_DECLARATION
-  Parser(Parser&&) = default;
-  Parser& operator=(Parser&&) = default;
-#endif
 
   // Parse the string containing either schema or JSON data, which will
   // populate the SymbolTable's or the FlatBufferBuilder above.
@@ -861,6 +868,7 @@ class Parser : public ParserState {
                        flexbuffers::Builder *builder);
 
   StructDef *LookupStruct(const std::string &id) const;
+  StructDef *LookupStructThruParentNamespaces(const std::string &id) const;
 
   std::string UnqualifiedName(const std::string &fullQualifiedName);
 
@@ -872,6 +880,8 @@ class Parser : public ParserState {
   static bool SupportsOptionalScalars(const flatbuffers::IDLOptions &opts);
 
  private:
+  class ParseDepthGuard;
+
   void Message(const std::string &msg);
   void Warning(const std::string &msg);
   FLATBUFFERS_CHECKED_ERROR ParseHexNum(int nibbles, uint64_t *val);
@@ -958,10 +968,13 @@ class Parser : public ParserState {
   FLATBUFFERS_CHECKED_ERROR CheckClash(std::vector<FieldDef *> &fields,
                                        StructDef *struct_def,
                                        const char *suffix, BaseType baseType);
+  FLATBUFFERS_CHECKED_ERROR ParseAlignAttribute(
+      const std::string &align_constant, size_t min_align, size_t *align);
 
   bool SupportsAdvancedUnionFeatures() const;
   bool SupportsAdvancedArrayFeatures() const;
   bool SupportsOptionalScalars() const;
+  bool SupportsDefaultVectorsAndStrings() const;
   Namespace *UniqueNamespace(Namespace *ns);
 
   FLATBUFFERS_CHECKED_ERROR RecurseError();
@@ -1000,8 +1013,8 @@ class Parser : public ParserState {
 
   std::vector<std::pair<Value, FieldDef *>> field_stack_;
 
-  int anonymous_counter;
-  int recurse_protection_counter;
+  int anonymous_counter_;
+  int parse_depth_counter_;  // stack-overflow guard
 };
 
 // Utility functions for multiple generators:
@@ -1056,8 +1069,8 @@ extern bool GenerateJava(const Parser &parser, const std::string &path,
 
 // Generate JavaScript or TypeScript code from the definitions in the Parser
 // object. See idl_gen_js.
-extern bool GenerateJSTS(const Parser &parser, const std::string &path,
-                         const std::string &file_name);
+extern bool GenerateTS(const Parser &parser, const std::string &path,
+                       const std::string &file_name);
 
 // Generate Go files from the definitions in the Parser object.
 // See idl_gen_go.cpp.
@@ -1109,10 +1122,10 @@ extern std::string GenerateFBS(const Parser &parser,
 extern bool GenerateFBS(const Parser &parser, const std::string &path,
                         const std::string &file_name);
 
-// Generate a make rule for the generated JavaScript or TypeScript code.
-// See idl_gen_js.cpp.
-extern std::string JSTSMakeRule(const Parser &parser, const std::string &path,
-                                const std::string &file_name);
+// Generate a make rule for the generated TypeScript code.
+// See idl_gen_ts.cpp.
+extern std::string TSMakeRule(const Parser &parser, const std::string &path,
+                              const std::string &file_name);
 
 // Generate a make rule for the generated C++ header.
 // See idl_gen_cpp.cpp.
@@ -1171,7 +1184,7 @@ extern bool GenerateSwiftGRPC(const Parser &parser, const std::string &path,
                               const std::string &file_name);
 
 extern bool GenerateTSGRPC(const Parser &parser, const std::string &path,
-                             const std::string &file_name);
+                           const std::string &file_name);
 }  // namespace flatbuffers
 
 #endif  // FLATBUFFERS_IDL_H_

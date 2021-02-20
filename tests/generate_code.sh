@@ -29,18 +29,22 @@ TEST_CS_FLAGS="--cs-gen-json-serializer"
 TEST_JS_TS_FLAGS="--gen-name-strings"
 TEST_BASE_FLAGS="--reflect-names --gen-mutable --gen-object-api"
 TEST_RUST_FLAGS="$TEST_BASE_FLAGS --gen-name-strings"
-TEST_NOINCL_FLAGS="$TEST_BASE_FLAGS --no-includes --no-fb-import"
+TEST_NOINCL_FLAGS="$TEST_BASE_FLAGS --no-includes"
 
-../flatc --binary --cpp --java --kotlin  --csharp --dart --go --lobster --lua --js --ts --php --grpc \
+../flatc --binary --cpp --java --kotlin  --csharp --dart --go --lobster --lua --ts --php --grpc \
 $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS -I include_test monster_test.fbs monsterdata_test.json
 ../flatc --rust $TEST_RUST_FLAGS -I include_test monster_test.fbs monsterdata_test.json
 
 ../flatc --python $TEST_BASE_FLAGS -I include_test monster_test.fbs monsterdata_test.json
 
-../flatc --cpp --java --kotlin --csharp --dart --go --binary --lobster --lua --js --ts --php --python --rust \
+../flatc --cpp --java --kotlin --csharp --dart --go --binary --lobster --lua --ts --php --python \
 $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_JS_TS_FLAGS -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs
 
-../flatc --cpp --java --kotlin --csharp --js --ts --php $TEST_BASE_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_JS_TS_FLAGS -o union_vector ./union_vector/union_vector.fbs
+# For Rust we currently generate two independent schemas, with namespace_test2
+# duplicating the types in namespace_test1
+../flatc --rust --gen-all $TEST_RUST_FLAGS -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs
+
+../flatc --cpp --java --kotlin --csharp --ts --php $TEST_BASE_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_JS_TS_FLAGS -o union_vector ./union_vector/union_vector.fbs
 ../flatc --rust -I include_test -o include_test include_test/include_test1.fbs
 ../flatc --rust -I include_test -o include_test/sub include_test/sub/include_test2.fbs
 ../flatc -b --schema --bfbs-comments --bfbs-builtins -I include_test monster_test.fbs
@@ -53,22 +57,22 @@ $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_JS_TS_FLAGS -o namespace
 ../flatc --dart monster_extra.fbs
 
 # Generate optional scalar code for tests.
-../flatc --java --kotlin --rust --lobster --ts --js optional_scalars.fbs
-../flatc --csharp --gen-object-api optional_scalars.fbs
+../flatc --java --kotlin --lobster --ts optional_scalars.fbs
+../flatc --csharp --rust --gen-object-api optional_scalars.fbs
 ../flatc $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS --cpp optional_scalars.fbs
+
+# Generate string/vector default code for tests
+../flatc --rust --gen-object-api more_defaults.fbs
 
 # Generate the schema evolution tests
 ../flatc --cpp --scoped-enums $TEST_CPP_FLAGS -o evolution_test ./evolution_test/evolution_v*.fbs
 
 working_dir=`pwd`
 cd FlatBuffers.Test.Swift/Tests/FlatBuffers.Test.SwiftTests
-$working_dir/../flatc --swift --grpc $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS -I ../../../include_test ../../../monster_test.fbs
-$working_dir/../flatc --swift $TEST_BASE_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS ../../../union_vector/union_vector.fbs
-$working_dir/../flatc --swift ../../../optional_scalars.fbs
-cd $working_dir
-
-cd FlatBuffers.GRPC.Swift/Sources/Model
-$working_dir/../flatc --swift --grpc greeter.fbs
+$working_dir/../flatc --swift --grpc $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS -I ${working_dir}/include_test ${working_dir}/monster_test.fbs
+$working_dir/../flatc --swift $TEST_BASE_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS ${working_dir}/union_vector/union_vector.fbs
+$working_dir/../flatc --swift ${working_dir}/optional_scalars.fbs
+$working_dir/../flatc --swift --gen-object-api ${working_dir}/more_defaults.fbs
 cd $working_dir
 
 # Tests if the --filename-suffix and --filename-ext works and produces the same

@@ -646,7 +646,7 @@ class KotlinGenerator : public BaseGenerator {
           writer.IncrementIdentLevel();
           for (auto it = field_vec.begin(); it != field_vec.end(); ++it) {
             auto &field = **it;
-            if (field.deprecated || !field.required) { continue; }
+            if (field.deprecated || !field.IsRequired()) { continue; }
             writer.SetValue("offset", NumToString(field.value.offset));
             writer += "builder.required(o, {{offset}})";
           }

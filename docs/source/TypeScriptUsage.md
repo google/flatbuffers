@@ -17,7 +17,7 @@ documentation to build `flatc` and should be familiar with
 ## FlatBuffers TypeScript library code location
 
 The code for the FlatBuffers TypeScript library can be found at
-`flatbuffers/js` with typings available at `@types/flatbuffers`.
+https://www.npmjs.com/package/flatbuffers.
 
 ## Testing the FlatBuffers TypeScript library
 
@@ -43,7 +43,7 @@ First, include the library and generated code. Then read the file into an
 the ByteBuffer to the `getRootAsMonster` function.
 
 ~~~{.ts}
-  // note: import flatbuffers with your desired import method
+  import * as flatbuffers from 'flatbuffers';
 
   import { MyGame } from './monster_generated';
 
@@ -69,8 +69,6 @@ around using as little as possible of it. This does make the API clumsier
 For times when efficiency is less important a more convenient object based API
 can be used (through `--gen-object-api`) that is able to unpack & pack a
 FlatBuffer into objects and standard TS types.
-
-**When using the obj based API, the flatbuffers import need to be in the global namespace if you don't have `--no-fb-import` enabled** since creating default values require accessing the `flatbuffers.js` file.
 
 To use:
 

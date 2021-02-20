@@ -49,10 +49,10 @@ std::string GenType(BaseType type) {
       return "\"type\" : \"integer\", \"minimum\" : " +
              NumToString(std::numeric_limits<int8_t>::min()) +
              ", \"maximum\" : " +
-             NumToString(std::numeric_limits<int8_t>::max()) + "\"";
+             NumToString(std::numeric_limits<int8_t>::max());
     case BASE_TYPE_UCHAR:
       return "\"type\" : \"integer\", \"minimum\" : 0, \"maximum\" :" +
-             NumToString(std::numeric_limits<uint8_t>::max()) + "\"";
+             NumToString(std::numeric_limits<uint8_t>::max());
     case BASE_TYPE_SHORT:
       return "\"type\" : \"integer\", \"minimum\" : " +
              NumToString(std::numeric_limits<int16_t>::min()) +
@@ -239,7 +239,7 @@ class JsonSchemaGenerator : public BaseGenerator {
       std::vector<FieldDef *> requiredProperties;
       std::copy_if(properties.begin(), properties.end(),
                    back_inserter(requiredProperties),
-                   [](FieldDef const *prop) { return prop->required; });
+                   [](FieldDef const *prop) { return prop->IsRequired(); });
       if (!requiredProperties.empty()) {
         auto required_string(Indent(3) + "\"required\" : [");
         for (auto req_prop = requiredProperties.cbegin();
@@ -268,8 +268,7 @@ class JsonSchemaGenerator : public BaseGenerator {
   }
 
   bool save() const {
-    const auto file_path =
-        GeneratedFileName(path_, file_name_, parser_.opts);
+    const auto file_path = GeneratedFileName(path_, file_name_, parser_.opts);
     return SaveFile(file_path.c_str(), code_, false);
   }
 

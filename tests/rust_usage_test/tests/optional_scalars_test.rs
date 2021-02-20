@@ -37,6 +37,16 @@ macro_rules! make_test {
             assert_eq!(s.$just(), $zero);
             assert_eq!(s.$default(), $fortytwo);
             assert_eq!(s.$maybe(), None);
+
+            // Same for object API
+            let s = flatbuffers::root::<ScalarStuff>(builder.finished_data()).unwrap().unpack();
+            assert_eq!(s.$just, $five);
+            assert_eq!(s.$default, $five);
+            assert_eq!(s.$maybe, Some($five));
+            let s = flatbuffers::root::<ScalarStuff>(&[0; 8]).unwrap().unpack();
+            assert_eq!(s.$just, $zero);
+            assert_eq!(s.$default, $fortytwo);
+            assert_eq!(s.$maybe, None);
         }
     };
 }
@@ -85,3 +95,55 @@ make_test!(
      OptionalByte::None,
      OptionalByte::One
 );
+
+#[test]
+fn object_api_defaults() {
+    assert_eq!(
+        ScalarStuffT::default(),
+        ScalarStuffT {
+            just_i8: 0,
+            maybe_i8: None,
+            default_i8: 42,
+            just_u8: 0,
+            maybe_u8: None,
+            default_u8: 42,
+
+            just_i16: 0,
+            maybe_i16: None,
+            default_i16: 42,
+            just_u16: 0,
+            maybe_u16: None,
+            default_u16: 42,
+
+            just_i32: 0,
+            maybe_i32: None,
+            default_i32: 42,
+            just_u32: 0,
+            maybe_u32: None,
+            default_u32: 42,
+
+            just_i64: 0,
+            maybe_i64: None,
+            default_i64: 42,
+            just_u64: 0,
+            maybe_u64: None,
+            default_u64: 42,
+
+            just_f32: 0.0,
+            maybe_f32: None,
+            default_f32: 42.0,
+            just_f64: 0.0,
+            maybe_f64: None,
+            default_f64: 42.0,
+
+            just_bool: false,
+            maybe_bool: None,
+            default_bool: true,
+
+            just_enum: OptionalByte::None,
+            maybe_enum: None,
+            default_enum: OptionalByte::One,
+
+        }
+    );
+}

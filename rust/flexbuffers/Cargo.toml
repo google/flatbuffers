@@ -1,6 +1,6 @@
 [package]
 name = "flexbuffers"
-version = "0.2.1"
+version = "0.3.0"
 authors = ["Casper Neo <cneo@google.com>", "FlatBuffers Maintainers"]
 edition = "2018"
 license = "Apache-2.0"
@@ -20,10 +20,9 @@ serialize_human_readable = []
 # You basically never need this to be true unless reading data from old binaries.
 deserialize_human_readable = []
 
-
 [dependencies]
-serde = "1.0"
-serde_derive = "1.0"
-byteorder = "1.3.2"
-num_enum = "0.5.0"
+serde = "1.0.119"
+serde_derive = "1.0.119"
+byteorder = "1.4.2"
+num_enum = "0.5.1"
 bitflags = "1.2.1"
