@@ -16,3 +16,11 @@ cd greeter
 fbc --go ${generator}
 
 cd ../..
+
+cd ts/
+
+cd greeter/src
+fbc --ts ${generator}
+cd ..
+
+cd ../..
