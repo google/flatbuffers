@@ -27,6 +27,7 @@
 #include <vector>
 
 #include "flatbuffers/flatbuffers.h"
+#include "flatbuffers/util.h"
 
 namespace cpp17 {
 
@@ -49,17 +50,16 @@ struct is_flatbuffers_table_or_struct<FBS, std::void_t<typename FBS::Traits>>
     : std::true_type {};
 
 template<typename FBS>
-constexpr bool is_flatbuffers_table_or_struct_v =
+inline constexpr bool is_flatbuffers_table_or_struct_v =
     is_flatbuffers_table_or_struct<FBS>::value;
 
 template<typename T> struct is_flatbuffers_vector : std::false_type {};
 
-// We know it's a table or struct when it has a Traits subclass.
 template<typename T>
 struct is_flatbuffers_vector<flatbuffers::Vector<T>> : std::true_type {};
 
 template<typename T>
-constexpr bool is_flatbuffers_vector_v = is_flatbuffers_vector<T>::value;
+inline constexpr bool is_flatbuffers_vector_v = is_flatbuffers_vector<T>::value;
 
 /*******************************************************************************
 ** Compile-time Iteration & Recursive Stringification over Flatbuffers types.
@@ -67,7 +67,7 @@ constexpr bool is_flatbuffers_vector_v = is_flatbuffers_vector<T>::value;
 template<size_t Index, typename FBS>
 std::string AddStringifiedField(const FBS &fbs, const std::string &indent) {
   auto value_string =
-      StringifyFlatbufferValue(fbs.template getter_for<Index>(), indent);
+      StringifyFlatbufferValue(fbs.template get_field<Index>(), indent);
   if (!value_string) { return ""; }
   return indent + FBS::Traits::field_names[Index] + " = " + *value_string +
          "\n";
@@ -83,13 +83,13 @@ std::string StringifyTableOrStructImpl(const FBS &fbs,
 
 template<typename FBS>
 std::string StringifyTableOrStruct(const FBS &fbs, const std::string &indent) {
-  constexpr size_t field_count = std::tuple_size_v<typename FBS::FieldTypes>;
+  constexpr size_t field_count = FBS::Traits::field_names.size();
   std::string out;
   if constexpr (field_count > 0) {
     out = std::string(FBS::Traits::fully_qualified_name) + "{\n" +
           StringifyTableOrStructImpl(fbs, indent + "  ",
                                      std::make_index_sequence<field_count>{}) +
-          indent + "}";
+          indent + '}';
   }
   return out;
 }
@@ -109,12 +109,12 @@ std::string StringifyVector(const flatbuffers::Vector<T> &vec,
   if (vec.cbegin() != vec.cend()) {
     text.resize(text.size() - epilogue.size());
   }
-  text += std::string("\n") + indent + "]";
+  text += '\n' + indent + ']';
   return text;
 }
 
 template<typename T> std::string StringifyArithmeticType(T val) {
-  return std::to_string(val);
+  return flatbuffers::NumToString(val);
 }
 
 }  // namespace detail
@@ -127,9 +127,7 @@ std::optional<std::string> StringifyFlatbufferValue(T &&val,
                                                     const std::string &indent) {
   constexpr bool is_pointer = std::is_pointer_v<std::remove_reference_t<T>>;
   if constexpr (is_pointer) {
-    if (val == nullptr) {
-      return std::nullopt;  // Field is absent.
-    }
+    if (val == nullptr) return std::nullopt;  // Field is absent.
   }
   using decayed =
       std::decay_t<std::remove_pointer_t<std::remove_reference_t<T>>>;
@@ -137,11 +135,10 @@ std::optional<std::string> StringifyFlatbufferValue(T &&val,
   // Is it a Flatbuffers Table or Struct?
   if constexpr (detail::is_flatbuffers_table_or_struct_v<decayed>) {
     // We have a nested table or struct; use recursion!
-    if constexpr (is_pointer) {
+    if constexpr (is_pointer)
       return detail::StringifyTableOrStruct(*val, indent);
-    } else {
+    else
       return detail::StringifyTableOrStruct(val, indent);
-    }
   }
 
   // Is it an 8-bit number?  If so, print it like an int (not char).
@@ -164,7 +161,7 @@ std::optional<std::string> StringifyFlatbufferValue(T &&val,
 
   // Is it a Flatbuffers string?
   else if constexpr (std::is_same_v<decayed, flatbuffers::String>) {
-    return "\"" + val->str() + "\"";
+    return '"' + val->str() + '"';
   }
 
   // Is it a Flatbuffers Vector?

@@ -2069,43 +2069,18 @@ class CppGenerator : public BaseGenerator {
     code_ += "    {{FIELD_TYPE}}\\";
   }
 
-  // Sample for Vec3:
-  //
-  //   using FieldTypes = std::tuple<
-  //     float,
-  //     float,
-  //     float
-  //   >;
-  //
-  void GenFieldTypes(const StructDef &struct_def, bool is_struct) {
-    code_ += "  using FieldTypes = std::tuple<\\";
-    if (struct_def.fields.vec.empty()) {
-      code_ += ">;";
-      return;
-    }
-    code_ += "";
-    // Generate the std::tuple elements.
-    for (auto it = struct_def.fields.vec.begin();
-         it != struct_def.fields.vec.end(); ++it) {
-      const auto &field = **it;
-      if (field.deprecated) {
-        // Deprecated fields won't be accessible.
-        continue;
-      }
-      if (is_struct) {
-        GenStructFieldType(field);
-      } else {
-        GenTableFieldType(field);
-      }
-      if (it + 1 != struct_def.fields.vec.end()) { code_ += ","; }
-    }
-    code_ += "\n    >;";
+  void GenFieldTypeHelper(const StructDef &struct_def) {
+    if (struct_def.fields.vec.empty()) { return; }
+    code_.SetValue("STRUCT_NAME", Name(struct_def));
+    code_ += "  template<size_t Index>";
+    code_ += "  using FieldType = \\";
+    code_ += "decltype(std::declval<{{STRUCT_NAME}}>().get_field<Index>());";
   }
 
   void GenIndexBasedFieldGetter(const StructDef &struct_def) {
     if (struct_def.fields.vec.empty()) { return; }
     code_ += "  template<size_t Index>";
-    code_ += "  auto getter_for() const {";
+    code_ += "  auto get_field() const {";
 
     size_t index = 0;
     bool need_else = false;
@@ -2168,6 +2143,26 @@ class CppGenerator : public BaseGenerator {
       if (it + 1 != struct_def.fields.vec.end()) { code_ += ","; }
     }
     code_ += "\n  };";
+  }
+
+  void GenTraitsStruct(const StructDef &struct_def) {
+    code_.SetValue(
+        "FULLY_QUALIFIED_NAME",
+        struct_def.defined_namespace->GetFullyQualifiedName(Name(struct_def)));
+    code_ += "struct {{STRUCT_NAME}}::Traits {";
+    code_ += "  using type = {{STRUCT_NAME}};";
+    if (!struct_def.fixed) {
+      // We have a table and not a struct.
+      code_ += "  static auto constexpr Create = Create{{STRUCT_NAME}};";
+    }
+    code_ += "  static constexpr auto name = \"{{STRUCT_NAME}}\";";
+    code_ +=
+        "  static constexpr auto fully_qualified_name = "
+        "\"{{FULLY_QUALIFIED_NAME}}\";";
+    GenFieldNames(struct_def);
+    GenFieldTypeHelper(struct_def);
+    code_ += "};";
+    code_ += "";
   }
 
   void GenTableFieldSetter(const FieldDef &field) {
@@ -2311,7 +2306,6 @@ class CppGenerator : public BaseGenerator {
     }
 
     if (opts_.g_cpp_std >= cpp::CPP_STD_17) {
-      GenFieldTypes(struct_def, /*is_struct=*/false);
       GenIndexBasedFieldGetter(struct_def);
     }
 
@@ -2520,22 +2514,10 @@ class CppGenerator : public BaseGenerator {
     code_ += "}";
     code_ += "";
 
-    // Definition for type traits for this table type. This allows querying var-
-    // ious compile-time traits of the table.
+    // Definition for type traits for this table type. This al-
+    // lows querying various compile-time traits of the table.
     if (opts_.g_cpp_std >= cpp::CPP_STD_17) {
-      code_.SetValue("FULLY_QUALIFIED_NAME",
-                     struct_def.defined_namespace->GetFullyQualifiedName(
-                         Name(struct_def)));
-      code_ += "struct {{STRUCT_NAME}}::Traits {";
-      code_ += "  using type = {{STRUCT_NAME}};";
-      code_ += "  static auto constexpr Create = Create{{STRUCT_NAME}};";
-      code_ += "  static constexpr auto name = \"{{STRUCT_NAME}}\";";
-      code_ +=
-          "  static constexpr auto fully_qualified_name = "
-          "\"{{FULLY_QUALIFIED_NAME}}\";";
-      GenFieldNames(struct_def);
-      code_ += "};";
-      code_ += "";
+      GenTraitsStruct(struct_def);
     }
 
     // Generate a CreateXDirect function with vector types as parameters
@@ -3399,7 +3381,6 @@ class CppGenerator : public BaseGenerator {
     GenOperatorNewDelete(struct_def);
 
     if (opts_.g_cpp_std >= cpp::CPP_STD_17) {
-      GenFieldTypes(struct_def, /*is_struct=*/true);
       GenIndexBasedFieldGetter(struct_def);
     }
 
@@ -3411,20 +3392,9 @@ class CppGenerator : public BaseGenerator {
     code_ += "";
 
     // Definition for type traits for this struct type. This al-
-    // lows querying various compile-time traits of the struct.
+    // lows querying various compile-time traits of the table.
     if (opts_.g_cpp_std >= cpp::CPP_STD_17) {
-      code_.SetValue("FULLY_QUALIFIED_NAME",
-                     struct_def.defined_namespace->GetFullyQualifiedName(
-                         Name(struct_def)));
-      code_ += "struct {{STRUCT_NAME}}::Traits {";
-      code_ += "  using type = {{STRUCT_NAME}};";
-      code_ += "  static constexpr auto name = \"{{STRUCT_NAME}}\";";
-      code_ +=
-          "  static constexpr auto fully_qualified_name = "
-          "\"{{FULLY_QUALIFIED_NAME}}\";";
-      GenFieldNames(struct_def);
-      code_ += "};";
-      code_ += "";
+      GenTraitsStruct(struct_def);
     }
   }
 

@@ -104,10 +104,10 @@ void StringifyAnyFlatbuffersTypeTest() {
 
   std::string expected = R"(MyGame.Example.Monster{
         pos = MyGame.Example.Vec3{
-          x = 1.100000
-          y = 2.200000
-          z = 3.300000
-          test1 = 6.600000
+          x = 1.1
+          y = 2.2
+          z = 3.3
+          test1 = 6.6
           test2 = 2
           test3 = MyGame.Example.Test{
             a = 11
@@ -134,9 +134,9 @@ void StringifyAnyFlatbuffersTypeTest() {
         testhashu32_fnv1a = 9
         testhashs64_fnv1a = 10
         testhashu64_fnv1a = 11
-        testf = 12.100000
-        testf2 = 13.100000
-        testf3 = 14.100000
+        testf = 12.1
+        testf2 = 13.1
+        testf3 = 14.1
         single_weak_reference = 15
         co_owning_reference = 16
         non_owning_reference = 17

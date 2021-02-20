@@ -504,12 +504,8 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(2) Test FLATBUFFERS_FINAL_CLASS {
   void mutate_b(int8_t _b) {
     flatbuffers::WriteScalar(&b_, _b);
   }
-  using FieldTypes = std::tuple<
-    int16_t,
-    int8_t
-    >;
   template<size_t Index>
-  auto getter_for() const {
+  auto get_field() const {
          if constexpr (Index == 0) return a();
     else if constexpr (Index == 1) return b();
     else static_assert(Index != Index, "Invalid Field Index");
@@ -525,6 +521,8 @@ struct Test::Traits {
     "a",
     "b"
   };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<Test>().get_field<Index>());
 };
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vec3 FLATBUFFERS_FINAL_CLASS {
@@ -608,16 +606,8 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vec3 FLATBUFFERS_FINAL_CLASS {
   MyGame::Example::Test &mutable_test3() {
     return test3_;
   }
-  using FieldTypes = std::tuple<
-    float,
-    float,
-    float,
-    double,
-    MyGame::Example::Color,
-    const MyGame::Example::Test &
-    >;
   template<size_t Index>
-  auto getter_for() const {
+  auto get_field() const {
          if constexpr (Index == 0) return x();
     else if constexpr (Index == 1) return y();
     else if constexpr (Index == 2) return z();
@@ -641,6 +631,8 @@ struct Vec3::Traits {
     "test2",
     "test3"
   };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<Vec3>().get_field<Index>());
 };
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Ability FLATBUFFERS_FINAL_CLASS {
@@ -679,12 +671,8 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Ability FLATBUFFERS_FINAL_CLASS {
   void mutate_distance(uint32_t _distance) {
     flatbuffers::WriteScalar(&distance_, _distance);
   }
-  using FieldTypes = std::tuple<
-    uint32_t,
-    uint32_t
-    >;
   template<size_t Index>
-  auto getter_for() const {
+  auto get_field() const {
          if constexpr (Index == 0) return id();
     else if constexpr (Index == 1) return distance();
     else static_assert(Index != Index, "Invalid Field Index");
@@ -700,6 +688,8 @@ struct Ability::Traits {
     "id",
     "distance"
   };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<Ability>().get_field<Index>());
 };
 
 }  // namespace Example
@@ -715,7 +705,6 @@ struct InParentNamespace FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return InParentNamespaceTypeTable();
   }
-  using FieldTypes = std::tuple<>;
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            verifier.EndTable();
@@ -769,7 +758,6 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return MonsterTypeTable();
   }
-  using FieldTypes = std::tuple<>;
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            verifier.EndTable();
@@ -835,11 +823,8 @@ struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Ta
   bool mutate_color(MyGame::Example::Color _color) {
     return SetField<uint8_t>(VT_COLOR, static_cast<uint8_t>(_color), 2);
   }
-  using FieldTypes = std::tuple<
-    MyGame::Example::Color
-    >;
   template<size_t Index>
-  auto getter_for() const {
+  auto get_field() const {
          if constexpr (Index == 0) return color();
     else static_assert(Index != Index, "Invalid Field Index");
   }
@@ -887,6 +872,8 @@ struct TestSimpleTableWithEnum::Traits {
   static constexpr std::array<const char *, 1> field_names = {
     "color"
   };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<TestSimpleTableWithEnum>().get_field<Index>());
 };
 
 flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnum(flatbuffers::FlatBufferBuilder &_fbb, const TestSimpleTableWithEnumT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -934,13 +921,8 @@ struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   int KeyCompareWithValue(uint16_t val) const {
     return static_cast<int>(count() > val) - static_cast<int>(count() < val);
   }
-  using FieldTypes = std::tuple<
-    const flatbuffers::String *,
-    int64_t,
-    uint16_t
-    >;
   template<size_t Index>
-  auto getter_for() const {
+  auto get_field() const {
          if constexpr (Index == 0) return id();
     else if constexpr (Index == 1) return val();
     else if constexpr (Index == 2) return count();
@@ -1005,6 +987,8 @@ struct Stat::Traits {
     "val",
     "count"
   };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<Stat>().get_field<Index>());
 };
 
 inline flatbuffers::Offset<Stat> CreateStatDirect(
@@ -1049,11 +1033,8 @@ struct Referrable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   int KeyCompareWithValue(uint64_t val) const {
     return static_cast<int>(id() > val) - static_cast<int>(id() < val);
   }
-  using FieldTypes = std::tuple<
-    uint64_t
-    >;
   template<size_t Index>
-  auto getter_for() const {
+  auto get_field() const {
          if constexpr (Index == 0) return id();
     else static_assert(Index != Index, "Invalid Field Index");
   }
@@ -1101,6 +1082,8 @@ struct Referrable::Traits {
   static constexpr std::array<const char *, 1> field_names = {
     "id"
   };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<Referrable>().get_field<Index>());
 };
 
 flatbuffers::Offset<Referrable> CreateReferrable(flatbuffers::FlatBufferBuilder &_fbb, const ReferrableT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -1553,60 +1536,8 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::Stat>> *mutable_scalar_key_sorted_tables() {
     return GetPointer<flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::Stat>> *>(VT_SCALAR_KEY_SORTED_TABLES);
   }
-  using FieldTypes = std::tuple<
-    const MyGame::Example::Vec3 *,
-    int16_t,
-    int16_t,
-    const flatbuffers::String *,
-    const flatbuffers::Vector<uint8_t> *,
-    MyGame::Example::Color,
-    MyGame::Example::Any,
-    const void *,
-    const flatbuffers::Vector<const MyGame::Example::Test *> *,
-    const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *,
-    const flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::Monster>> *,
-    const MyGame::Example::Monster *,
-    const flatbuffers::Vector<uint8_t> *,
-    const MyGame::Example::Stat *,
-    bool,
-    int32_t,
-    uint32_t,
-    int64_t,
-    uint64_t,
-    int32_t,
-    uint32_t,
-    int64_t,
-    uint64_t,
-    const flatbuffers::Vector<uint8_t> *,
-    float,
-    float,
-    float,
-    const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *,
-    const flatbuffers::Vector<const MyGame::Example::Ability *> *,
-    const flatbuffers::Vector<uint8_t> *,
-    const flatbuffers::Vector<const MyGame::Example::Test *> *,
-    const flatbuffers::Vector<int64_t> *,
-    const flatbuffers::Vector<double> *,
-    const MyGame::InParentNamespace *,
-    const flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::Referrable>> *,
-    uint64_t,
-    const flatbuffers::Vector<uint64_t> *,
-    const flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::Referrable>> *,
-    uint64_t,
-    const flatbuffers::Vector<uint64_t> *,
-    uint64_t,
-    const flatbuffers::Vector<uint64_t> *,
-    MyGame::Example::AnyUniqueAliases,
-    const void *,
-    MyGame::Example::AnyAmbiguousAliases,
-    const void *,
-    const flatbuffers::Vector<MyGame::Example::Color> *,
-    MyGame::Example::Race,
-    const flatbuffers::Vector<uint8_t> *,
-    const flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::Stat>> *
-    >;
   template<size_t Index>
-  auto getter_for() const {
+  auto get_field() const {
          if constexpr (Index == 0) return pos();
     else if constexpr (Index == 1) return mana();
     else if constexpr (Index == 2) return hp();
@@ -2104,6 +2035,8 @@ struct Monster::Traits {
     "testrequirednestedflatbuffer",
     "scalar_key_sorted_tables"
   };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<Monster>().get_field<Index>());
 };
 
 inline flatbuffers::Offset<Monster> CreateMonsterDirect(
@@ -2344,22 +2277,8 @@ struct TypeAliases FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   flatbuffers::Vector<double> *mutable_vf64() {
     return GetPointer<flatbuffers::Vector<double> *>(VT_VF64);
   }
-  using FieldTypes = std::tuple<
-    int8_t,
-    uint8_t,
-    int16_t,
-    uint16_t,
-    int32_t,
-    uint32_t,
-    int64_t,
-    uint64_t,
-    float,
-    double,
-    const flatbuffers::Vector<int8_t> *,
-    const flatbuffers::Vector<double> *
-    >;
   template<size_t Index>
-  auto getter_for() const {
+  auto get_field() const {
          if constexpr (Index == 0) return i8();
     else if constexpr (Index == 1) return u8();
     else if constexpr (Index == 2) return i16();
@@ -2497,6 +2416,8 @@ struct TypeAliases::Traits {
     "v8",
     "vf64"
   };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<TypeAliases>().get_field<Index>());
 };
 
 inline flatbuffers::Offset<TypeAliases> CreateTypeAliasesDirect(

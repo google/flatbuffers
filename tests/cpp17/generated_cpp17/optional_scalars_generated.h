@@ -350,46 +350,8 @@ struct ScalarStuff FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool mutate_default_enum(optional_scalars::OptionalByte _default_enum) {
     return SetField<int8_t>(VT_DEFAULT_ENUM, static_cast<int8_t>(_default_enum), 1);
   }
-  using FieldTypes = std::tuple<
-    int8_t,
-    flatbuffers::Optional<int8_t>,
-    int8_t,
-    uint8_t,
-    flatbuffers::Optional<uint8_t>,
-    uint8_t,
-    int16_t,
-    flatbuffers::Optional<int16_t>,
-    int16_t,
-    uint16_t,
-    flatbuffers::Optional<uint16_t>,
-    uint16_t,
-    int32_t,
-    flatbuffers::Optional<int32_t>,
-    int32_t,
-    uint32_t,
-    flatbuffers::Optional<uint32_t>,
-    uint32_t,
-    int64_t,
-    flatbuffers::Optional<int64_t>,
-    int64_t,
-    uint64_t,
-    flatbuffers::Optional<uint64_t>,
-    uint64_t,
-    float,
-    flatbuffers::Optional<float>,
-    float,
-    double,
-    flatbuffers::Optional<double>,
-    double,
-    bool,
-    flatbuffers::Optional<bool>,
-    bool,
-    optional_scalars::OptionalByte,
-    flatbuffers::Optional<optional_scalars::OptionalByte>,
-    optional_scalars::OptionalByte
-    >;
   template<size_t Index>
-  auto getter_for() const {
+  auto get_field() const {
          if constexpr (Index == 0) return just_i8();
     else if constexpr (Index == 1) return maybe_i8();
     else if constexpr (Index == 2) return default_i8();
@@ -717,6 +679,8 @@ struct ScalarStuff::Traits {
     "maybe_enum",
     "default_enum"
   };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<ScalarStuff>().get_field<Index>());
 };
 
 flatbuffers::Offset<ScalarStuff> CreateScalarStuff(flatbuffers::FlatBufferBuilder &_fbb, const ScalarStuffT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
