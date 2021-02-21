@@ -118,6 +118,7 @@ class GoGenerator : public BaseGenerator {
  private:
   Namespace go_namespace_;
   Namespace *cur_name_space_;
+  CommentConfig comment_config = CommentConfig{NULL, "//", NULL};
 
   struct NamespacePtrLess {
     bool operator()(const Namespace *a, const Namespace *b) const {
@@ -621,7 +622,7 @@ class GoGenerator : public BaseGenerator {
   // Generate a struct field getter, conditioned on its child type(s).
   void GenStructAccessor(const StructDef &struct_def, const FieldDef &field,
                          std::string *code_ptr) {
-    GenComment(field.doc_comment, code_ptr, nullptr, "");
+    GenComment({" " + MakeCamel(field.name) + field.doc_comment.front()}, code_ptr, &comment_config, "");
     if (IsScalar(field.value.type.base_type)) {
       if (struct_def.fixed) {
         GetScalarFieldOfStruct(struct_def, field, code_ptr);
@@ -714,8 +715,8 @@ class GoGenerator : public BaseGenerator {
   // Generate a struct field setter, conditioned on its child type(s).
   void GenStructMutator(const StructDef &struct_def, const FieldDef &field,
                         std::string *code_ptr) {
-    GenComment(field.doc_comment, code_ptr, nullptr, "");
     if (IsScalar(field.value.type.base_type)) {
+      GenComment(field.doc_comment, code_ptr, &comment_config, "");
       if (struct_def.fixed) {
         MutateScalarFieldOfStruct(struct_def, field, code_ptr);
       } else {
@@ -723,6 +724,7 @@ class GoGenerator : public BaseGenerator {
       }
     } else if (IsVector(field.value.type)) {
       if (IsScalar(field.value.type.element)) {
+        GenComment(field.doc_comment, code_ptr, &comment_config, "");
         MutateElementOfVectorOfNonStruct(struct_def, field, code_ptr);
       }
     }
@@ -753,7 +755,7 @@ class GoGenerator : public BaseGenerator {
 
     cur_name_space_ = struct_def.defined_namespace;
 
-    GenComment(struct_def.doc_comment, code_ptr, nullptr);
+    GenComment(struct_def.doc_comment, code_ptr, &comment_config);
     if (parser_.opts.generate_object_based_api) {
       GenNativeStruct(struct_def, code_ptr);
     }
@@ -801,6 +803,8 @@ class GoGenerator : public BaseGenerator {
           field.value.type.enum_def != nullptr &&
           field.value.type.enum_def->is_union)
         continue;
+
+      GenComment({" " + MakeCamel(field.name) + field.doc_comment.front()}, code_ptr, &comment_config, "\t");
       code += "\t" + MakeCamel(field.name) + " " +
               NativeType(field.value.type) + "\n";
     }
@@ -1117,12 +1121,12 @@ class GoGenerator : public BaseGenerator {
     auto max_name_length = MaxNameLength(enum_def);
     cur_name_space_ = enum_def.defined_namespace;
 
-    GenComment(enum_def.doc_comment, code_ptr, nullptr);
+    GenComment(enum_def.doc_comment, code_ptr, &comment_config);
     GenEnumType(enum_def, code_ptr);
     BeginEnum(code_ptr);
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       const EnumVal &ev = **it;
-      GenComment(ev.doc_comment, code_ptr, nullptr, "\t");
+      GenComment(ev.doc_comment, code_ptr, &comment_config, "\t");
       EnumMember(enum_def, ev, max_name_length, code_ptr);
     }
     EndEnum(code_ptr);
