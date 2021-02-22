@@ -629,6 +629,14 @@ if(FLATBUFFERS_INSTALL)
       DESTINATION ${FB_CMAKE_DIR}
     )
   endif()
+
+  if(FLATBUFFERS_BUILD_SHAREDLIB OR FLATBUFFERS_BUILD_FLATLIB)
+      configure_file(CMake/flatbuffers.pc.in flatbuffers.pc @ONLY)
+      install(
+        FILES "${CMAKE_CURRENT_BINARY_DIR}/flatbuffers.pc"
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
+      )
+  endif()
 endif()
 
 if(FLATBUFFERS_BUILD_TESTS)
