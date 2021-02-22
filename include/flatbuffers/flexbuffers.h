@@ -1335,6 +1335,10 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     finished_ = true;
   }
 
+  void ExtendBuffer(size_t size) {
+    buf_.resize(buf_.size() + size);
+  }
+
  private:
   void Finished() const {
     // If you get this assert, you're attempting to get access a buffer
@@ -1496,7 +1500,11 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     auto byte_width = Align(bit_width);
     Write<uint64_t>(len, byte_width);
     auto sloc = buf_.size();
-    WriteBytes(data, len + trailing);
+    if (data != nullptr) {
+      WriteBytes(data, len + trailing);
+    } else {
+      ExtendBuffer(len + trailing);
+    }
     stack_.push_back(Value(static_cast<uint64_t>(sloc), type, bit_width));
     return sloc;
   }
