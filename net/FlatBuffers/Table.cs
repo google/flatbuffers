@@ -112,7 +112,7 @@ namespace FlatBuffers
         // Get the data of a vector whoses offset is stored at "offset" in this object as an
         // ArraySegment&lt;byte&gt;. If the vector is not present in the ByteBuffer,
         // then a null value will be returned.
-        public ArraySegment<byte>? __vector_as_arraysegment(int offset)
+        public ArraySegment<byte>? __vector_as_arraysegment(int offset, int elementSize)
         {
             var o = this.__offset(offset);
             if (0 == o)
@@ -122,7 +122,7 @@ namespace FlatBuffers
 
             var pos = this.__vector(o);
             var len = this.__vector_len(o);
-            return bb.ToArraySegment(pos, len);
+            return bb.ToArraySegment(pos, len * elementSize);
         }
 #endif
 

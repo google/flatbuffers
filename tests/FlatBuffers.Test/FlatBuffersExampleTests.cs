@@ -277,6 +277,9 @@ namespace FlatBuffers.Test
             {
                 Assert.IsTrue(monster.GetTestarrayofboolsBytes().HasValue);
             }
+
+            Assert.AreEqual(monster.VectorOfDoublesLength * 8, monster.GetVectorOfDoublesBytes().Value.Count);
+
             #endif
         }
 
