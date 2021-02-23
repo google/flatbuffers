@@ -87,7 +87,7 @@ static addCharactersType(builder:flatbuffers.Builder, charactersTypeOffset:flatb
 
 static createCharactersTypeVector(builder:flatbuffers.Builder, data:Character[]):flatbuffers.Offset {
   builder.startVector(1, data.length, 1);
-  for (let i = data.length - 1; i >= 0; i--) {
+  for (var i = data.length - 1; i >= 0; i--) {
     builder.addInt8(data[i]);
   }
   return builder.endVector();
@@ -103,7 +103,7 @@ static addCharacters(builder:flatbuffers.Builder, charactersOffset:flatbuffers.O
 
 static createCharactersVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
   builder.startVector(4, data.length, 4);
-  for (let i = data.length - 1; i >= 0; i--) {
+  for (var i = data.length - 1; i >= 0; i--) {
     builder.addOffset(data[i]);
   }
   return builder.endVector();

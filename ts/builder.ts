@@ -1,6 +1,7 @@
 import { ByteBuffer } from "./byte-buffer"
 import { SIZEOF_SHORT, SIZE_PREFIX_LENGTH, SIZEOF_INT, FILE_IDENTIFIER_LENGTH } from "./constants"
 import { Offset, IGeneratedObject } from "./types"
+import { isLittleEndian } from './utils';
 import { Long } from "./long"
 
 export class Builder {
@@ -127,13 +128,25 @@ export class Builder {
     writeInt8(value: number): void {
       this.bb.writeInt8(this.space -= 1, value);
     }
+
+    writeUint8(value: number): void {
+      this.bb.writeUint8(this.space -= 1, value);
+    }
   
     writeInt16(value: number): void {
       this.bb.writeInt16(this.space -= 2, value);
     }
+
+    writeUint16(value: number): void {
+      this.bb.writeUint16(this.space -= 2, value);
+    }
   
     writeInt32(value: number): void {
       this.bb.writeInt32(this.space -= 4, value);
+    }
+
+    writeUint32(value: number): void {
+      this.bb.writeUint32(this.space -= 4, value);
     }
   
     writeInt64(value: Long): void {
@@ -156,7 +169,16 @@ export class Builder {
       this.prep(1, 0);
       this.writeInt8(value);
     }
-  
+
+    /**
+     * Add an `uint8` to the buffer, properly aligned, and grows the buffer (if necessary).
+     * @param value The `uint8` to add the the buffer.
+     */
+    addUint8(value: number): void {
+      this.prep(1, 0);
+      this.writeUint8(value);
+    }
+
     /**
      * Add an `int16` to the buffer, properly aligned, and grows the buffer (if necessary).
      * @param value The `int16` to add the the buffer.
@@ -164,6 +186,15 @@ export class Builder {
     addInt16(value: number): void {
       this.prep(2, 0);
       this.writeInt16(value);
+    }
+
+    /**
+     * Add an `uint16` to the buffer, properly aligned, and grows the buffer (if necessary).
+     * @param value The `uint16` to add the the buffer.
+     */
+    addUint16(value: number): void {
+      this.prep(2, 0);
+      this.writeUint16(value);
     }
   
     /**
@@ -173,6 +204,15 @@ export class Builder {
     addInt32(value: number): void {
       this.prep(4, 0);
       this.writeInt32(value);
+    }
+
+    /**
+     * Add an `uint32` to the buffer, properly aligned, and grows the buffer (if necessary).
+     * @param value The `uint32` to add the the buffer.
+     */
+    addUint32(value: number): void {
+      this.prep(4, 0);
+      this.writeUint32(value);
     }
   
     /**
@@ -493,7 +533,200 @@ export class Builder {
       this.writeInt32(this.vector_num_elems);
       return this.offset();
     }
-  
+
+    /**
+     * Creates a new array/vector of `int8`.  Users usually will not call
+     * this directly. The FlatBuffers compiler will create a create
+     * method for vector types in generated code.
+     *
+     * @param elements The array of elements
+     * @returns The offset at which the newly created array starts.
+     */
+    createInt8Vector(elements: number[] | Int8Array): Offset {
+      this.startVector(1, elements.length, 1);
+
+      if (elements instanceof Int8Array) {
+        const byteLength = elements.length;
+        this.bb.setPosition(this.space -= byteLength);
+        this.bb.writeBytes(this.space, elements.buffer, byteLength);
+      } else {
+        for (let i = elements.length - 1; i >= 0; i--) {
+          this.addInt8(elements[i]);
+        }
+      }
+
+      return this.endVector();
+    }
+
+    /**
+     * Creates a new array/vector of `uint8`.  Users usually will not call
+     * this directly. The FlatBuffers compiler will create a create
+     * method for vector types in generated code.
+     *
+     * @param elements The array of elements
+     * @returns The offset at which the newly created array starts.
+     */
+    createUint8Vector(elements: number[] | Uint8Array): Offset {
+      this.startVector(1, elements.length, 1);
+
+      if (elements instanceof Uint8Array) {
+        const byteLength = elements.length;
+        this.bb.setPosition(this.space -= byteLength);
+        this.bb.writeBytes(this.space, elements.buffer, byteLength);
+      } else {
+        for (let i = elements.length - 1; i >= 0; i--) {
+          this.addUint8(elements[i]);
+        }
+      }
+
+      return this.endVector();
+    }
+
+    /**
+     * Creates a new array/vector of `int16`.  Users usually will not call
+     * this directly. The FlatBuffers compiler will create a create
+     * method for vector types in generated code.
+     *
+     * @param elements The array of elements
+     * @returns The offset at which the newly created array starts.
+     */
+    createInt16Vector(elements: number[] | Int16Array): Offset {
+      this.startVector(2, elements.length, 4);
+
+      if (elements instanceof Int16Array && isLittleEndian) {
+        const byteLength = 2 * elements.length;
+        this.bb.setPosition(this.space -= byteLength);
+        this.bb.writeBytes(this.space, elements.buffer, byteLength);
+      } else {
+        for (let i = elements.length - 1; i >= 0; i--) {
+          this.addInt16(elements[i]);
+        }
+      }
+
+      return this.endVector();
+    }
+
+    /**
+     * Creates a new array/vector of `uint16`.  Users usually will not call
+     * this directly. The FlatBuffers compiler will create a create
+     * method for vector types in generated code.
+     *
+     * @param elements The array of elements
+     * @returns The offset at which the newly created array starts.
+     */
+    createUint16Vector(elements: number[] | Uint16Array): Offset {
+      this.startVector(2, elements.length, 4);
+
+      if (elements instanceof Uint16Array && isLittleEndian) {
+        const byteLength = 2 * elements.length;
+        this.bb.setPosition(this.space -= byteLength);
+        this.bb.writeBytes(this.space, elements.buffer, byteLength);
+      } else {
+        for (let i = elements.length - 1; i >= 0; i--) {
+          this.addUint16(elements[i]);
+        }
+      }
+
+      return this.endVector();
+    }
+
+    /**
+     * Creates a new array/vector of `int32`.  Users usually will not call
+     * this directly. The FlatBuffers compiler will create a create
+     * method for vector types in generated code.
+     *
+     * @param elements The array of elements
+     * @returns The offset at which the newly created array starts.
+     */
+    createInt32Vector(elements: number[] | Int32Array): Offset {
+      this.startVector(4, elements.length, 4);
+
+      if (elements instanceof Int32Array && isLittleEndian) {
+        const byteLength = 4 * elements.length;
+        this.bb.setPosition(this.space -= byteLength);
+        this.bb.writeBytes(this.space, elements.buffer, byteLength);
+      } else {
+        for (let i = elements.length - 1; i >= 0; i--) {
+          this.addInt32(elements[i]);
+        }
+      }
+
+      return this.endVector();
+    }
+
+    /**
+     * Creates a new array/vector of `uint32`.  Users usually will not call
+     * this directly. The FlatBuffers compiler will create a create
+     * method for vector types in generated code.
+     *
+     * @param elements The array of elements
+     * @returns The offset at which the newly created array starts.
+     */
+    createUint32Vector(elements: number[] | Uint32Array): Offset {
+      this.startVector(4, elements.length, 4);
+
+      if (elements instanceof Uint32Array && isLittleEndian) {
+        const byteLength = 4 * elements.length;
+        this.bb.setPosition(this.space -= byteLength);
+        this.bb.writeBytes(this.space, elements.buffer, byteLength);
+      } else {
+        for (let i = elements.length - 1; i >= 0; i--) {
+          this.addUint32(elements[i]);
+        }
+      }
+
+      return this.endVector();
+    }
+
+    /**
+     * Creates a new array/vector of `float32`.  Users usually will not call
+     * this directly. The FlatBuffers compiler will create a create
+     * method for vector types in generated code.
+     *
+     * @param elements The array of elements
+     * @returns The offset at which the newly created array starts.
+     */
+    createFloat32Vector(elements: number[] | Float32Array): Offset {
+      this.startVector(4, elements.length, 4);
+
+      if (elements instanceof Float32Array && isLittleEndian) {
+        const byteLength = 4 * elements.length;
+        this.bb.setPosition(this.space -= byteLength);
+        this.bb.writeBytes(this.space, elements.buffer, byteLength);
+      } else {
+        for (let i = elements.length - 1; i >= 0; i--) {
+          console.log(elements[i]);
+          this.addFloat32(elements[i]);
+        }
+      }
+
+      return this.endVector();
+    }
+
+    /**
+     * Creates a new array/vector of `float64`.  Users usually will not call
+     * this directly. The FlatBuffers compiler will create a create
+     * method for vector types in generated code.
+     *
+     * @param elements The array of elements
+     * @returns The offset at which the newly created array starts.
+     */
+    createFloat64Vector(elements: number[] | Float64Array): Offset {
+      this.startVector(8, elements.length, 8);
+
+      if (elements instanceof Float64Array && isLittleEndian) {
+        const byteLength = 8 * elements.length;
+        this.bb.setPosition(this.space -= byteLength);
+        this.bb.writeBytes(this.space, elements.buffer, byteLength);
+      } else {
+        for (let i = elements.length - 1; i >= 0; i--) {
+          this.addFloat64(elements[i]);
+        }
+      }
+
+      return this.endVector();
+    }
+
     /**
      * Encode the string `s` in the buffer using UTF-8. If the string passed has 
      * already been seen, we return the offset of the already written string

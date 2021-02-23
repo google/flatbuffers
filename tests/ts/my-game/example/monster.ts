@@ -675,11 +675,7 @@ static addInventory(builder:flatbuffers.Builder, inventoryOffset:flatbuffers.Off
 }
 
 static createInventoryVector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset {
-  builder.startVector(1, data.length, 1);
-  for (let i = data.length - 1; i >= 0; i--) {
-    builder.addInt8(data[i]);
-  }
-  return builder.endVector();
+  return builder.createUint8Vector(data);
 }
 
 static startInventoryVector(builder:flatbuffers.Builder, numElems:number) {
@@ -712,7 +708,7 @@ static addTestarrayofstring(builder:flatbuffers.Builder, testarrayofstringOffset
 
 static createTestarrayofstringVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
   builder.startVector(4, data.length, 4);
-  for (let i = data.length - 1; i >= 0; i--) {
+  for (var i = data.length - 1; i >= 0; i--) {
     builder.addOffset(data[i]);
   }
   return builder.endVector();
@@ -728,7 +724,7 @@ static addTestarrayoftables(builder:flatbuffers.Builder, testarrayoftablesOffset
 
 static createTestarrayoftablesVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
   builder.startVector(4, data.length, 4);
-  for (let i = data.length - 1; i >= 0; i--) {
+  for (var i = data.length - 1; i >= 0; i--) {
     builder.addOffset(data[i]);
   }
   return builder.endVector();
@@ -747,11 +743,7 @@ static addTestnestedflatbuffer(builder:flatbuffers.Builder, testnestedflatbuffer
 }
 
 static createTestnestedflatbufferVector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset {
-  builder.startVector(1, data.length, 1);
-  for (let i = data.length - 1; i >= 0; i--) {
-    builder.addInt8(data[i]);
-  }
-  return builder.endVector();
+  return builder.createUint8Vector(data);
 }
 
 static startTestnestedflatbufferVector(builder:flatbuffers.Builder, numElems:number) {
@@ -804,7 +796,7 @@ static addTestarrayofbools(builder:flatbuffers.Builder, testarrayofboolsOffset:f
 
 static createTestarrayofboolsVector(builder:flatbuffers.Builder, data:boolean[]):flatbuffers.Offset {
   builder.startVector(1, data.length, 1);
-  for (let i = data.length - 1; i >= 0; i--) {
+  for (var i = data.length - 1; i >= 0; i--) {
     builder.addInt8(+data[i]);
   }
   return builder.endVector();
@@ -832,7 +824,7 @@ static addTestarrayofstring2(builder:flatbuffers.Builder, testarrayofstring2Offs
 
 static createTestarrayofstring2Vector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
   builder.startVector(4, data.length, 4);
-  for (let i = data.length - 1; i >= 0; i--) {
+  for (var i = data.length - 1; i >= 0; i--) {
     builder.addOffset(data[i]);
   }
   return builder.endVector();
@@ -855,11 +847,7 @@ static addFlex(builder:flatbuffers.Builder, flexOffset:flatbuffers.Offset) {
 }
 
 static createFlexVector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset {
-  builder.startVector(1, data.length, 1);
-  for (let i = data.length - 1; i >= 0; i--) {
-    builder.addInt8(data[i]);
-  }
-  return builder.endVector();
+  return builder.createUint8Vector(data);
 }
 
 static startFlexVector(builder:flatbuffers.Builder, numElems:number) {
@@ -880,7 +868,7 @@ static addVectorOfLongs(builder:flatbuffers.Builder, vectorOfLongsOffset:flatbuf
 
 static createVectorOfLongsVector(builder:flatbuffers.Builder, data:flatbuffers.Long[]):flatbuffers.Offset {
   builder.startVector(8, data.length, 8);
-  for (let i = data.length - 1; i >= 0; i--) {
+  for (var i = data.length - 1; i >= 0; i--) {
     builder.addInt64(data[i]);
   }
   return builder.endVector();
@@ -894,17 +882,8 @@ static addVectorOfDoubles(builder:flatbuffers.Builder, vectorOfDoublesOffset:fla
   builder.addFieldOffset(33, vectorOfDoublesOffset, 0);
 }
 
-static createVectorOfDoublesVector(builder:flatbuffers.Builder, data:number[]|Float64Array):flatbuffers.Offset;
-/**
- * @deprecated This Uint8Array overload will be removed in the future.
- */
-static createVectorOfDoublesVector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset;
-static createVectorOfDoublesVector(builder:flatbuffers.Builder, data:number[]|Float64Array|Uint8Array):flatbuffers.Offset {
-  builder.startVector(8, data.length, 8);
-  for (let i = data.length - 1; i >= 0; i--) {
-    builder.addFloat64(data[i]);
-  }
-  return builder.endVector();
+static createVectorOfDoublesVector(builder:flatbuffers.Builder, data:number[]|Float64Array):flatbuffers.Offset {
+  return builder.createFloat64Vector(data);
 }
 
 static startVectorOfDoublesVector(builder:flatbuffers.Builder, numElems:number) {
@@ -921,7 +900,7 @@ static addVectorOfReferrables(builder:flatbuffers.Builder, vectorOfReferrablesOf
 
 static createVectorOfReferrablesVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
   builder.startVector(4, data.length, 4);
-  for (let i = data.length - 1; i >= 0; i--) {
+  for (var i = data.length - 1; i >= 0; i--) {
     builder.addOffset(data[i]);
   }
   return builder.endVector();
@@ -941,7 +920,7 @@ static addVectorOfWeakReferences(builder:flatbuffers.Builder, vectorOfWeakRefere
 
 static createVectorOfWeakReferencesVector(builder:flatbuffers.Builder, data:flatbuffers.Long[]):flatbuffers.Offset {
   builder.startVector(8, data.length, 8);
-  for (let i = data.length - 1; i >= 0; i--) {
+  for (var i = data.length - 1; i >= 0; i--) {
     builder.addInt64(data[i]);
   }
   return builder.endVector();
@@ -957,7 +936,7 @@ static addVectorOfStrongReferrables(builder:flatbuffers.Builder, vectorOfStrongR
 
 static createVectorOfStrongReferrablesVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
   builder.startVector(4, data.length, 4);
-  for (let i = data.length - 1; i >= 0; i--) {
+  for (var i = data.length - 1; i >= 0; i--) {
     builder.addOffset(data[i]);
   }
   return builder.endVector();
@@ -977,7 +956,7 @@ static addVectorOfCoOwningReferences(builder:flatbuffers.Builder, vectorOfCoOwni
 
 static createVectorOfCoOwningReferencesVector(builder:flatbuffers.Builder, data:flatbuffers.Long[]):flatbuffers.Offset {
   builder.startVector(8, data.length, 8);
-  for (let i = data.length - 1; i >= 0; i--) {
+  for (var i = data.length - 1; i >= 0; i--) {
     builder.addInt64(data[i]);
   }
   return builder.endVector();
@@ -997,7 +976,7 @@ static addVectorOfNonOwningReferences(builder:flatbuffers.Builder, vectorOfNonOw
 
 static createVectorOfNonOwningReferencesVector(builder:flatbuffers.Builder, data:flatbuffers.Long[]):flatbuffers.Offset {
   builder.startVector(8, data.length, 8);
-  for (let i = data.length - 1; i >= 0; i--) {
+  for (var i = data.length - 1; i >= 0; i--) {
     builder.addInt64(data[i]);
   }
   return builder.endVector();
@@ -1028,11 +1007,7 @@ static addVectorOfEnums(builder:flatbuffers.Builder, vectorOfEnumsOffset:flatbuf
 }
 
 static createVectorOfEnumsVector(builder:flatbuffers.Builder, data:Color[]):flatbuffers.Offset {
-  builder.startVector(1, data.length, 1);
-  for (let i = data.length - 1; i >= 0; i--) {
-    builder.addInt8(data[i]);
-  }
-  return builder.endVector();
+  return builder.createUint8Vector(data);
 }
 
 static startVectorOfEnumsVector(builder:flatbuffers.Builder, numElems:number) {
@@ -1048,11 +1023,7 @@ static addTestrequirednestedflatbuffer(builder:flatbuffers.Builder, testrequired
 }
 
 static createTestrequirednestedflatbufferVector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset {
-  builder.startVector(1, data.length, 1);
-  for (let i = data.length - 1; i >= 0; i--) {
-    builder.addInt8(data[i]);
-  }
-  return builder.endVector();
+  return builder.createUint8Vector(data);
 }
 
 static startTestrequirednestedflatbufferVector(builder:flatbuffers.Builder, numElems:number) {
@@ -1065,7 +1036,7 @@ static addScalarKeySortedTables(builder:flatbuffers.Builder, scalarKeySortedTabl
 
 static createScalarKeySortedTablesVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
   builder.startVector(4, data.length, 4);
-  for (let i = data.length - 1; i >= 0; i--) {
+  for (var i = data.length - 1; i >= 0; i--) {
     builder.addOffset(data[i]);
   }
   return builder.endVector();
