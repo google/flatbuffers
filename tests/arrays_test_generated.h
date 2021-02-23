@@ -267,16 +267,6 @@ struct ArrayTableT : public flatbuffers::NativeTable {
   flatbuffers::unique_ptr<MyGame::Example::ArrayStruct> a{};
 };
 
-inline bool operator==(const ArrayTableT &lhs, const ArrayTableT &rhs) {
-  return
-      (lhs.a == rhs.a);
-}
-
-inline bool operator!=(const ArrayTableT &lhs, const ArrayTableT &rhs) {
-    return !(lhs == rhs);
-}
-
-
 struct ArrayTable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef ArrayTableT NativeTableType;
   typedef ArrayTableBuilder Builder;
@@ -329,6 +319,17 @@ inline flatbuffers::Offset<ArrayTable> CreateArrayTable(
 }
 
 flatbuffers::Offset<ArrayTable> CreateArrayTable(flatbuffers::FlatBufferBuilder &_fbb, const ArrayTableT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+
+
+inline bool operator==(const ArrayTableT &lhs, const ArrayTableT &rhs) {
+  return
+      ((!lhs.a && !rhs.a) || (lhs.a && rhs.a && *lhs.a == *rhs.a) || (lhs.a && !rhs.a && *lhs.a == decltype(lhs.a)::element_type()) || (rhs.a && !lhs.a && *rhs.a == decltype(rhs.a)::element_type()));
+}
+
+inline bool operator!=(const ArrayTableT &lhs, const ArrayTableT &rhs) {
+    return !(lhs == rhs);
+}
+
 
 inline ArrayTableT *ArrayTable::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
   auto _o = std::unique_ptr<ArrayTableT>(new ArrayTableT());
