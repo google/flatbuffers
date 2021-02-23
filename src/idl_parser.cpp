@@ -3155,8 +3155,11 @@ CheckedError Parser::ParseRoot(const char *source, const char **include_paths,
 
 // Generate a unique hash for a file based on its name and contents (if any).
 static uint64_t HashFile(const char *source_filename, const char *source) {
-  auto stripped_source_fillename = StripPath(source_filename);
-  auto hash = HashFnv1a<uint64_t>(stripped_source_fillename.c_str());
+  uint64_t hash = 0;
+
+  if (source_filename)
+    hash = HashFnv1a<uint64_t>(StripPath(source_filename).c_str());
+
   if (source && *source) hash ^= HashFnv1a<uint64_t>(source);
 
   return hash;
