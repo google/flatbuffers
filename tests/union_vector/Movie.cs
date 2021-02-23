@@ -31,7 +31,7 @@ public struct Movie : IFlatbufferObject
 #if ENABLE_SPAN_T
   public Span<Character> GetCharactersTypeBytes() { return __p.__vector_as_span<Character>(8, 1); }
 #else
-  public ArraySegment<byte>? GetCharactersTypeBytes() { return __p.__vector_as_arraysegment(8); }
+  public ArraySegment<byte>? GetCharactersTypeBytes() { return __p.__vector_as_arraysegment(8, 1); }
 #endif
   public Character[] GetCharactersTypeArray() { int o = __p.__offset(8); if (o == 0) return null; int p = __p.__vector(o); int l = __p.__vector_len(o); Character[] a = new Character[l]; for (int i = 0; i < l; i++) { a[i] = (Character)__p.bb.Get(p + i * 1); } return a; }
   public TTable? Characters<TTable>(int j) where TTable : struct, IFlatbufferObject { int o = __p.__offset(10); return o != 0 ? (TTable?)__p.__union<TTable>(__p.__vector(o) + j * 4) : null; }
