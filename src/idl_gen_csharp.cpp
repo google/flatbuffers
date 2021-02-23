@@ -845,8 +845,6 @@ class CSharpGenerator : public BaseGenerator {
         code += "Bytes() { return ";
         code += "__p.__vector_as_arraysegment(";
         code += NumToString(field.value.offset);
-        code +=
-            ", " + NumToString(SizeOf(field.value.type.VectorType().base_type));
         code += "); }\n";
         code += "#endif\n";
 
