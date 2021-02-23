@@ -23,7 +23,7 @@ public struct Stat : IFlatbufferObject
 #if ENABLE_SPAN_T
   public Span<byte> GetIdBytes() { return __p.__vector_as_span<byte>(4, 1); }
 #else
-  public ArraySegment<byte>? GetIdBytes() { return __p.__vector_as_arraysegment(4, 1); }
+  public ArraySegment<byte>? GetIdBytes() { return __p.__vector_as_arraysegment(4); }
 #endif
   public byte[] GetIdArray() { return __p.__vector_as_array<byte>(4); }
   public long Val { get { int o = __p.__offset(6); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }

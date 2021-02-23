@@ -44,7 +44,7 @@ public struct TypeAliases : IFlatbufferObject
 #if ENABLE_SPAN_T
   public Span<sbyte> GetV8Bytes() { return __p.__vector_as_span<sbyte>(24, 1); }
 #else
-  public ArraySegment<byte>? GetV8Bytes() { return __p.__vector_as_arraysegment(24, 1); }
+  public ArraySegment<byte>? GetV8Bytes() { return __p.__vector_as_arraysegment(24); }
 #endif
   public sbyte[] GetV8Array() { return __p.__vector_as_array<sbyte>(24); }
   public bool MutateV8(int j, sbyte v8) { int o = __p.__offset(24); if (o != 0) { __p.bb.PutSbyte(__p.__vector(o) + j * 1, v8); return true; } else { return false; } }
@@ -53,7 +53,7 @@ public struct TypeAliases : IFlatbufferObject
 #if ENABLE_SPAN_T
   public Span<double> GetVf64Bytes() { return __p.__vector_as_span<double>(26, 8); }
 #else
-  public ArraySegment<byte>? GetVf64Bytes() { return __p.__vector_as_arraysegment(26, 8); }
+  public ArraySegment<byte>? GetVf64Bytes() { return __p.__vector_as_arraysegment(26); }
 #endif
   public double[] GetVf64Array() { return __p.__vector_as_array<double>(26); }
   public bool MutateVf64(int j, double vf64) { int o = __p.__offset(26); if (o != 0) { __p.bb.PutDouble(__p.__vector(o) + j * 8, vf64); return true; } else { return false; } }

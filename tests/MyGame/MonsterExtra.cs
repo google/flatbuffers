@@ -41,7 +41,7 @@ public struct MonsterExtra : IFlatbufferObject
 #if ENABLE_SPAN_T
   public Span<double> GetDvecBytes() { return __p.__vector_as_span<double>(20, 8); }
 #else
-  public ArraySegment<byte>? GetDvecBytes() { return __p.__vector_as_arraysegment(20, 8); }
+  public ArraySegment<byte>? GetDvecBytes() { return __p.__vector_as_arraysegment(20); }
 #endif
   public double[] GetDvecArray() { return __p.__vector_as_array<double>(20); }
   public bool MutateDvec(int j, double dvec) { int o = __p.__offset(20); if (o != 0) { __p.bb.PutDouble(__p.__vector(o) + j * 8, dvec); return true; } else { return false; } }
@@ -50,7 +50,7 @@ public struct MonsterExtra : IFlatbufferObject
 #if ENABLE_SPAN_T
   public Span<float> GetFvecBytes() { return __p.__vector_as_span<float>(22, 4); }
 #else
-  public ArraySegment<byte>? GetFvecBytes() { return __p.__vector_as_arraysegment(22, 4); }
+  public ArraySegment<byte>? GetFvecBytes() { return __p.__vector_as_arraysegment(22); }
 #endif
   public float[] GetFvecArray() { return __p.__vector_as_array<float>(22); }
   public bool MutateFvec(int j, float fvec) { int o = __p.__offset(22); if (o != 0) { __p.bb.PutFloat(__p.__vector(o) + j * 4, fvec); return true; } else { return false; } }
