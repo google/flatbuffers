@@ -11,5 +11,5 @@ cmake . -DCMAKE_BUILD_TYPE=$config \
 cmake --build . --target flatc --clean-first -- -j$JOBS
 
 echo "Check generated code"
-.travis/check-generate-code.sh
+scripts/check-generate-code.sh
 echo "Done"

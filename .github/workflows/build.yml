@@ -98,6 +98,19 @@ jobs:
      working-directory: android
      run: bash ./gradlew clean build
 
+  build-generator:
+    name: Check Generated Code
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        cxx: [g++-9, clang++-9]
+    steps:
+    - uses: actions/checkout@v1
+    - name: cmake
+      run: CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" -DFLATBUFFERS_BUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=Release . && make -j4
+    - name: Generate
+      run: bash scripts/check-generate-code.sh && bash scripts/check-grpc-generated-code.sh
+
   build-java:
     name: Build Java
     runs-on: ubuntu-latest

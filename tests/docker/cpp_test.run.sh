@@ -15,6 +15,6 @@ cmake --build . --target all --clean-first -- -j$JOBS
 ctest --extra-verbose --output-on-failure -j$JOBS
 
 echo "Check generated code"
-.travis/check-generate-code.sh
+scripts/check-generate-code.sh
 
 echo "C++ tests done"
