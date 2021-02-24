@@ -920,6 +920,12 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     return buf_;
   }
 
+  /// @brief Get the serializing buffer, which is in-progress. This is a footgun.
+  /// @return Returns a vector owned by this class.
+  const std::vector<uint8_t> &GetUnfinishedBuffer() const {
+    return buf_;
+  }
+
   // Size of the buffer. Does not include unfinished values.
   size_t GetSize() const { return buf_.size(); }
 
