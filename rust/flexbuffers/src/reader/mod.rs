@@ -306,7 +306,7 @@ impl<B: Buffer> Reader<B> {
     #[cfg(target_endian = "little")]
     #[deprecated(
         since = "0.3.0",
-        note = "This function is unsafe - if this functionality is needed it can be added separately via the `buffer` function."
+        note = "This function is unsafe - if this functionality is needed use `Reader::buffer::align_to`"
     )]
     pub fn get_slice<T: ReadLE>(&self) -> Result<&[T], Error> {
         if self.flexbuffer_type().typed_vector_type() != T::VECTOR_TYPE.typed_vector_type() {
