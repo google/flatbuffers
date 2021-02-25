@@ -21,20 +21,13 @@
 
 #include <utility>
 
+#include "src/compiler/config.h"
 #include "src/compiler/schema_interface.h"
 
 namespace grpc_python_generator {
 
-// Data pertaining to configuration of the generator with respect to anything
-// that may be used internally at Google.
-struct GeneratorConfiguration {
-  grpc::string grpc_package_root;
-  // TODO(https://github.com/grpc/grpc/issues/8622): Drop this.
-  grpc::string beta_package_root;
-  // TODO(https://github.com/google/protobuf/issues/888): Drop this.
-  grpc::string import_prefix;
-};
-
+grpc::string Generate(grpc_generator::File *file,
+                      const grpc_generator::Service *service);
 }  // namespace grpc_python_generator
 
 #endif  // GRPC_INTERNAL_COMPILER_PYTHON_GENERATOR_H
