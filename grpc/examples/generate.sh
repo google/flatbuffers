@@ -38,21 +38,32 @@ fi
 generator="--grpc $current_dir/greeter.fbs"
 
 # Regenerate Go lang code
-cd go/
+cd go
 
 cd greeter
 fbc --go ${generator}
 
 cd ${current_dir}
 
-cd swift/
+# Regenerate Python code
+cd python
+
+cd greeter
+
+fbc --python ${generator}
+
+cd ${current_dir}
+
+# Regenerate Swift code
+cd swift
 
 cd Greeter/Sources/Model
 fbc --swift ${generator}
 
 cd ${current_dir}
 
-cd ts/
+# Regenerate Typescript code
+cd ts
 
 cd greeter/src
 fbc --ts ${generator}
