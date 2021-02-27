@@ -3784,6 +3784,11 @@ void FieldIdentifierTest() {
   // Positive tests for unions
   TEST_EQ(true, Parser().Parse("union X{} table T{ u: X (id:1); }"));
   TEST_EQ(true, Parser().Parse("union X{} table T{ u: X; }"));
+  // Test using 'inf' and 'nan' words both as identifiers and as default values.
+  TEST_EQ(true, Parser().Parse("table T{ inf: float = inf; }"));
+  TEST_EQ(true, Parser().Parse("table T{ nan: float = inf; }"));
+  TEST_EQ(true, Parser().Parse("table T{ nan: string; }"));
+  TEST_EQ(true, Parser().Parse("table T{ inf: string; }"));
 }
 
 void ParseIncorrectMonsterJsonTest() {
