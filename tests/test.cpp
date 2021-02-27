@@ -3796,17 +3796,18 @@ void ParseIncorrectMonsterJsonTest() {
   TEST_EQ(flatbuffers::LoadFile((test_data_path + "monster_test.bfbs").c_str(),
                                 true, &schemafile),
           true);
-  // parse schema first, so we can use it to parse the data after
   flatbuffers::Parser parser;
   flatbuffers::Verifier verifier(
       reinterpret_cast<const uint8_t *>(schemafile.c_str()), schemafile.size());
   TEST_EQ(reflection::VerifySchemaBuffer(verifier), true);
-  // auto schema = reflection::GetSchema(schemafile.c_str());
   TEST_EQ(parser.Deserialize((const uint8_t *)schemafile.c_str(),
                              schemafile.size()),
           true);
-
+  TEST_EQ(parser.ParseJson("{name:\"monster\"}"), true);
   TEST_EQ(parser.ParseJson(""), false);
+  TEST_EQ(parser.ParseJson("{name: 1}"), false);
+  TEST_EQ(parser.ParseJson("{name:+1}"), false);
+  TEST_EQ(parser.ParseJson("{name:-1}"), false);
   TEST_EQ(parser.ParseJson("{name:-f}"), false);
   TEST_EQ(parser.ParseJson("{name:+f}"), false);
 }
