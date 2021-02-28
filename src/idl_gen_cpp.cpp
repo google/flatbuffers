@@ -2144,6 +2144,16 @@ class CppGenerator : public BaseGenerator {
     code_ += "\n  };";
   }
 
+  void GenFieldsNumber(const StructDef &struct_def) {
+    auto non_deprecated_field_count = std::count_if(
+        struct_def.fields.vec.begin(), struct_def.fields.vec.end(),
+        [](const FieldDef *field) { return !field->deprecated; });
+    code_.SetValue(
+        "FIELD_COUNT",
+        std::to_string(static_cast<long long>(non_deprecated_field_count)));
+    code_ += "  static constexpr size_t fields_number = {{FIELD_COUNT}};";
+  }
+
   void GenTraitsStruct(const StructDef &struct_def) {
     code_.SetValue(
         "FULLY_QUALIFIED_NAME",
@@ -2160,6 +2170,7 @@ class CppGenerator : public BaseGenerator {
         "\"{{FULLY_QUALIFIED_NAME}}\";";
     GenFieldNames(struct_def);
     GenFieldTypeHelper(struct_def);
+    GenFieldsNumber(struct_def);
     code_ += "};";
     code_ += "";
   }

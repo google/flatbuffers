@@ -83,7 +83,7 @@ std::string StringifyTableOrStructImpl(const FBS &fbs,
 
 template<typename FBS>
 std::string StringifyTableOrStruct(const FBS &fbs, const std::string &indent) {
-  constexpr size_t field_count = FBS::Traits::field_names.size();
+  static constexpr size_t field_count = FBS::Traits::fields_number;
   std::string out;
   if constexpr (field_count > 0) {
     out = std::string(FBS::Traits::fully_qualified_name) + "{\n" +

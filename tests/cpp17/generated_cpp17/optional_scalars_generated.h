@@ -681,6 +681,7 @@ struct ScalarStuff::Traits {
   };
   template<size_t Index>
   using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 36;
 };
 
 flatbuffers::Offset<ScalarStuff> CreateScalarStuff(flatbuffers::FlatBufferBuilder &_fbb, const ScalarStuffT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);

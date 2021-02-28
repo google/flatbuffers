@@ -523,6 +523,7 @@ struct Test::Traits {
   };
   template<size_t Index>
   using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 2;
 };
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vec3 FLATBUFFERS_FINAL_CLASS {
@@ -633,6 +634,7 @@ struct Vec3::Traits {
   };
   template<size_t Index>
   using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 6;
 };
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Ability FLATBUFFERS_FINAL_CLASS {
@@ -690,6 +692,7 @@ struct Ability::Traits {
   };
   template<size_t Index>
   using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 2;
 };
 
 }  // namespace Example
@@ -741,6 +744,7 @@ struct InParentNamespace::Traits {
   static constexpr auto name = "InParentNamespace";
   static constexpr auto fully_qualified_name = "MyGame.InParentNamespace";
   static constexpr std::array<const char *, 0> field_names = {};
+  static constexpr size_t fields_number = 0;
 };
 
 flatbuffers::Offset<InParentNamespace> CreateInParentNamespace(flatbuffers::FlatBufferBuilder &_fbb, const InParentNamespaceT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -794,6 +798,7 @@ struct Monster::Traits {
   static constexpr auto name = "Monster";
   static constexpr auto fully_qualified_name = "MyGame.Example2.Monster";
   static constexpr std::array<const char *, 0> field_names = {};
+  static constexpr size_t fields_number = 0;
 };
 
 flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -874,6 +879,7 @@ struct TestSimpleTableWithEnum::Traits {
   };
   template<size_t Index>
   using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 1;
 };
 
 flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnum(flatbuffers::FlatBufferBuilder &_fbb, const TestSimpleTableWithEnumT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -989,6 +995,7 @@ struct Stat::Traits {
   };
   template<size_t Index>
   using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 3;
 };
 
 inline flatbuffers::Offset<Stat> CreateStatDirect(
@@ -1084,6 +1091,7 @@ struct Referrable::Traits {
   };
   template<size_t Index>
   using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 1;
 };
 
 flatbuffers::Offset<Referrable> CreateReferrable(flatbuffers::FlatBufferBuilder &_fbb, const ReferrableT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -2037,6 +2045,7 @@ struct Monster::Traits {
   };
   template<size_t Index>
   using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 50;
 };
 
 inline flatbuffers::Offset<Monster> CreateMonsterDirect(
@@ -2418,6 +2427,7 @@ struct TypeAliases::Traits {
   };
   template<size_t Index>
   using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 12;
 };
 
 inline flatbuffers::Offset<TypeAliases> CreateTypeAliasesDirect(
