@@ -308,28 +308,6 @@ class TsGenerator : public BaseGenerator {
     return "NS" + NumToString(HashFnv1a<uint64_t>(file.c_str()));
   }
 
-  std::string GenPrefixedImport(const std::string &full_file_name,
-                                const std::string &base_name) {
-    // Either keep the include path as it was
-    // or use only the base_name + kGeneratedFileNamePostfix
-    std::string path;
-    if (parser_.opts.keep_include_path) {
-      auto it = parser_.included_files_.find(full_file_name);
-      FLATBUFFERS_ASSERT(it != parser_.included_files_.end());
-      path = flatbuffers::StripExtension(it->second) +
-             parser_.opts.filename_suffix;
-    } else {
-      path = base_name + parser_.opts.filename_suffix;
-    }
-
-    // Add the include prefix and make the path always relative
-    path = flatbuffers::ConCatPathFileName(parser_.opts.include_prefix, path);
-    path = std::string(".") + kPathSeparator + path;
-
-    return "import * as " + GenFileNamespacePrefix(full_file_name) +
-           " from \"" + path + "\";\n";
-  }
-
   // Adds a source-dependent prefix, for of import * statements.
   std::string GenPrefixedTypeName(const std::string &typeName,
                                   const std::string &file) {

@@ -3192,13 +3192,32 @@ CheckedError Parser::ParseRoot(const char *source, const char **include_paths,
   return NoError();
 }
 
+// Generate a unique hash for a file based on its name and contents (if any).
+static uint64_t HashFile(const char *source_filename, const char *source) {
+  uint64_t hash = 0;
+
+  if (source_filename)
+    hash = HashFnv1a<uint64_t>(StripPath(source_filename).c_str());
+
+  if (source && *source) hash ^= HashFnv1a<uint64_t>(source);
+
+  return hash;
+}
+
 CheckedError Parser::DoParse(const char *source, const char **include_paths,
                              const char *source_filename,
                              const char *include_filename) {
+  uint64_t source_hash = 0;
   if (source_filename) {
-    if (included_files_.find(source_filename) == included_files_.end()) {
-      included_files_[source_filename] =
-          include_filename ? include_filename : "";
+    // If the file is in-memory, don't include its contents in the hash as we
+    // won't be able to load them later.
+    if (FileExists(source_filename))
+      source_hash = HashFile(source_filename, source);
+    else
+      source_hash = HashFile(source_filename, nullptr);
+
+    if (included_files_.find(source_hash) == included_files_.end()) {
+      included_files_[source_hash] = include_filename ? include_filename : "";
       files_included_per_file_[source_filename] = std::set<std::string>();
     } else {
       return NoError();
@@ -3249,12 +3268,14 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
         return Error("unable to locate include file: " + name);
       if (source_filename)
         files_included_per_file_[source_filename].insert(filepath);
-      if (included_files_.find(filepath) == included_files_.end()) {
+
+      std::string contents;
+      bool file_loaded = LoadFile(filepath.c_str(), true, &contents);
+      if (included_files_.find(HashFile(filepath.c_str(), contents.c_str())) ==
+          included_files_.end()) {
         // We found an include file that we have not parsed yet.
-        // Load it and parse it.
-        std::string contents;
-        if (!LoadFile(filepath.c_str(), true, &contents))
-          return Error("unable to load include file: " + name);
+        // Parse it.
+        if (!file_loaded) return Error("unable to load include file: " + name);
         ECHECK(DoParse(contents.c_str(), include_paths, filepath.c_str(),
                        name.c_str()));
         // We generally do not want to output code for any included files:
@@ -3271,7 +3292,7 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
         // entered into included_files_.
         // This is recursive, but only go as deep as the number of include
         // statements.
-        if (source_filename) { included_files_.erase(source_filename); }
+        included_files_.erase(source_hash);
         return DoParse(source, include_paths, source_filename,
                        include_filename);
       }
