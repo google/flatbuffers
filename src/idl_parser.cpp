@@ -912,18 +912,14 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     FLATBUFFERS_ASSERT(IsInteger(type.base_type) ||
                        (type.base_type == BASE_TYPE_UNION) || IsVector(type) ||
                        IsArray(type));
-    if (IsVector(type)) {
-      // Vector can't use initialization list.
-      FLATBUFFERS_ASSERT(field->value.constant == "0");
-    } else {
-      // All unions should have the NONE ("0") enum value.
-      auto in_enum = field->IsOptional() ||
-                     type.enum_def->attributes.Lookup("bit_flags") ||
-                     type.enum_def->FindByValue(field->value.constant);
-      if (false == in_enum)
-        return Error("default value of " + field->value.constant +
-                     " for field " + name + " is not part of enum " +
-                     type.enum_def->name);
+
+    // Ensure defautl values are present in the enum if needed.
+    // All unions should have the NONE ("0") enum value.
+    const bool needs_default = !(IsVector(type) || field->IsOptional() ||
+                                 type.enum_def->attributes.Lookup("bit_flags"));
+    if (needs_default && !type.enum_def->FindByValue(field->value.constant)) {
+      return Error("default value of " + field->value.constant + " for field " +
+                   name + " is not part of enum " + type.enum_def->name);
     }
   }
 

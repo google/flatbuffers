@@ -3632,6 +3632,7 @@ void StringVectorDefaultsTest() {
   schemas.push_back("table Monster { mana: [int] = []; }");
   schemas.push_back("table Monster { mana: [uint] = [  ]; }");
   schemas.push_back("table Monster { mana: [byte] = [\t\t\n]; }");
+  schemas.push_back("enum E:int{}table Monster{mana:[E]=[];}");
   for (auto s = schemas.begin(); s < schemas.end(); s++) {
     flatbuffers::Parser parser;
     TEST_ASSERT(parser.Parse(s->c_str()));
