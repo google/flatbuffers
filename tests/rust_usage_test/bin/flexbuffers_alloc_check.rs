@@ -70,6 +70,10 @@ fn make_monster(mut monster: MapBuilder) {
 fn validate_monster(flexbuffer: &[u8]) {
     let r = Reader::get_root(flexbuffer).unwrap().as_map();
 
+    assert!(!r.is_empty());
+    assert!(r.index_key("not_a_field").is_none());
+
+    assert_eq!(r.len(), 7);
     assert_eq!(r.idx("type").as_str(), "great orc");
     assert_eq!(r.idx("age").as_u8(), 100);
     assert_eq!(r.idx("name").as_str(), "Mr. Orc");
