@@ -16,6 +16,7 @@
 
 #include <grpcpp/grpcpp.h>
 
+#include <condition_variable>
 #include <thread>
 
 #include "monster_test.grpc.fb.h"
