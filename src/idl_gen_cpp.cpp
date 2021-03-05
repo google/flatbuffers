@@ -317,7 +317,7 @@ class CppGenerator : public BaseGenerator {
 
     if (opts_.gen_nullable) { code_ += "#pragma clang system_header\n\n"; }
 
-    if (opts_.g_cpp_std >= cpp::CPP_STD_17) {
+    if (opts_.cpp_static_reflection) {
       code_ += "#include <tuple>";
       code_ += "";
     }
@@ -2232,7 +2232,7 @@ class CppGenerator : public BaseGenerator {
       code_ += "  typedef {{NATIVE_NAME}} NativeTableType;";
     }
     code_ += "  typedef {{STRUCT_NAME}}Builder Builder;";
-    if (opts_.g_cpp_std >= cpp::CPP_STD_17) { code_ += "  struct Traits;"; }
+    if (opts_.cpp_static_reflection) { code_ += "  struct Traits;"; }
     if (opts_.mini_reflect != IDLOptions::kNone) {
       code_ +=
           "  static const flatbuffers::TypeTable *MiniReflectTypeTable() {";
@@ -2315,7 +2315,7 @@ class CppGenerator : public BaseGenerator {
       if (field.key) { GenKeyFieldMethods(field); }
     }
 
-    if (opts_.g_cpp_std >= cpp::CPP_STD_17) {
+    if (opts_.cpp_static_reflection) {
       GenIndexBasedFieldGetter(struct_def);
     }
 
@@ -2526,7 +2526,7 @@ class CppGenerator : public BaseGenerator {
 
     // Definition for type traits for this table type. This allows querying var-
     // ious compile-time traits of the table.
-    if (opts_.g_cpp_std >= cpp::CPP_STD_17) { GenTraitsStruct(struct_def); }
+    if (opts_.cpp_static_reflection) { GenTraitsStruct(struct_def); }
 
     // Generate a CreateXDirect function with vector types as parameters
     if (opts_.cpp_direct_copy && has_string_or_vector_fields) {
@@ -3300,7 +3300,7 @@ class CppGenerator : public BaseGenerator {
     code_ += "";
     code_ += " public:";
 
-    if (opts_.g_cpp_std >= cpp::CPP_STD_17) { code_ += "  struct Traits;"; }
+    if (opts_.cpp_static_reflection) { code_ += "  struct Traits;"; }
 
     // Make TypeTable accessible via the generated struct.
     if (opts_.mini_reflect != IDLOptions::kNone) {
@@ -3388,7 +3388,7 @@ class CppGenerator : public BaseGenerator {
     code_.SetValue("NATIVE_NAME", Name(struct_def));
     GenOperatorNewDelete(struct_def);
 
-    if (opts_.g_cpp_std >= cpp::CPP_STD_17) {
+    if (opts_.cpp_static_reflection) {
       GenIndexBasedFieldGetter(struct_def);
     }
 
@@ -3401,7 +3401,7 @@ class CppGenerator : public BaseGenerator {
 
     // Definition for type traits for this table type. This allows querying var-
     // ious compile-time traits of the table.
-    if (opts_.g_cpp_std >= cpp::CPP_STD_17) { GenTraitsStruct(struct_def); }
+    if (opts_.cpp_static_reflection) { GenTraitsStruct(struct_def); }
   }
 
   // Set up the correct namespace. Only open a namespace if the existing one is
@@ -3473,6 +3473,11 @@ bool GenerateCPP(const Parser &parser, const std::string &path,
   }
   // The opts.scoped_enums has priority.
   opts.g_only_fixed_enums |= opts.scoped_enums;
+
+  if (opts.cpp_static_reflection && opts.g_cpp_std < cpp::CPP_STD_17) {
+    LogCompilerError("--cpp-static-reflection requires using --cpp-std at \"C++17\" or higher.");
+    return false;
+  }
 
   cpp::CppGenerator generator(parser, path, file_name, opts);
   return generator.generate();
