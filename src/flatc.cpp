@@ -126,6 +126,9 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "                          * 'c++0x' - generate code compatible with old compilers;\n"
     "                          * 'c++11' - use C++11 code generator (default);\n"
     "                          * 'c++17' - use C++17 features in generated code (experimental).\n"
+    "  --cpp-static-reflection When using C++17, generate extra code to provide compile-time\n"
+    "                          (static) reflection of Flatbuffers types.  Requires --cpp-std\n"
+    "                          to be \"c++17\" or higher.\n"
     "  --object-prefix        Customise class prefix for C++ object-based API.\n"
     "  --object-suffix        Customise class suffix for C++ object-based API.\n"
     "                         Default value is \"T\".\n"
@@ -360,6 +363,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.cpp_std = argv[argi];
       } else if (arg.rfind("--cpp-std=", 0) == 0) {
         opts.cpp_std = arg.substr(std::string("--cpp-std=").size());
+      } else if (arg == "--cpp-static-reflection") {
+        opts.cpp_static_reflection = true;
       } else {
         for (size_t i = 0; i < params_.num_generators; ++i) {
           if (arg == params_.generators[i].generator_opt_long ||
