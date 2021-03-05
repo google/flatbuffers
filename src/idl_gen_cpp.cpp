@@ -2315,9 +2315,7 @@ class CppGenerator : public BaseGenerator {
       if (field.key) { GenKeyFieldMethods(field); }
     }
 
-    if (opts_.cpp_static_reflection) {
-      GenIndexBasedFieldGetter(struct_def);
-    }
+    if (opts_.cpp_static_reflection) { GenIndexBasedFieldGetter(struct_def); }
 
     // Generate a verifier function that can check a buffer from an untrusted
     // source will never cause reads outside the buffer.
@@ -3388,9 +3386,7 @@ class CppGenerator : public BaseGenerator {
     code_.SetValue("NATIVE_NAME", Name(struct_def));
     GenOperatorNewDelete(struct_def);
 
-    if (opts_.cpp_static_reflection) {
-      GenIndexBasedFieldGetter(struct_def);
-    }
+    if (opts_.cpp_static_reflection) { GenIndexBasedFieldGetter(struct_def); }
 
     code_ += "};";
 
@@ -3475,7 +3471,9 @@ bool GenerateCPP(const Parser &parser, const std::string &path,
   opts.g_only_fixed_enums |= opts.scoped_enums;
 
   if (opts.cpp_static_reflection && opts.g_cpp_std < cpp::CPP_STD_17) {
-    LogCompilerError("--cpp-static-reflection requires using --cpp-std at \"C++17\" or higher.");
+    LogCompilerError(
+        "--cpp-static-reflection requires using --cpp-std at \"C++17\" or "
+        "higher.");
     return false;
   }
 
