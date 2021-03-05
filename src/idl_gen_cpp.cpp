@@ -317,11 +317,6 @@ class CppGenerator : public BaseGenerator {
 
     if (opts_.gen_nullable) { code_ += "#pragma clang system_header\n\n"; }
 
-    if (opts_.cpp_static_reflection) {
-      code_ += "#include <tuple>";
-      code_ += "";
-    }
-
     code_ += "#include \"flatbuffers/flatbuffers.h\"";
     if (parser_.uses_flexbuffers_) {
       code_ += "#include \"flatbuffers/flexbuffers.h\"";

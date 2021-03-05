@@ -4,8 +4,6 @@
 #ifndef FLATBUFFERS_GENERATED_OPTIONALSCALARS_OPTIONAL_SCALARS_H_
 #define FLATBUFFERS_GENERATED_OPTIONALSCALARS_OPTIONAL_SCALARS_H_
 
-#include <tuple>
-
 #include "flatbuffers/flatbuffers.h"
 
 namespace optional_scalars {

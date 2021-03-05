@@ -4,8 +4,6 @@
 #ifndef FLATBUFFERS_GENERATED_MONSTERTEST_MYGAME_EXAMPLE_H_
 #define FLATBUFFERS_GENERATED_MONSTERTEST_MYGAME_EXAMPLE_H_
 
-#include <tuple>
-
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/flexbuffers.h"
 
