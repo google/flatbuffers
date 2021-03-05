@@ -120,7 +120,6 @@ set(FlatBuffers_Compiler_SRCS
   grpc/src/compiler/java_generator.h
   grpc/src/compiler/java_generator.cc
   grpc/src/compiler/python_generator.h
-  grpc/src/compiler/python_private_generator.h
   grpc/src/compiler/python_generator.cc
   grpc/src/compiler/swift_generator.h
   grpc/src/compiler/swift_generator.cc
@@ -628,6 +627,14 @@ if(FLATBUFFERS_INSTALL)
       NAMESPACE flatbuffers::
       DESTINATION ${FB_CMAKE_DIR}
     )
+  endif()
+
+  if(FLATBUFFERS_BUILD_SHAREDLIB OR FLATBUFFERS_BUILD_FLATLIB)
+      configure_file(CMake/flatbuffers.pc.in flatbuffers.pc @ONLY)
+      install(
+        FILES "${CMAKE_CURRENT_BINARY_DIR}/flatbuffers.pc"
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
+      )
   endif()
 endif()
 
