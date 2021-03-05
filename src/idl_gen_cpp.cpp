@@ -2041,6 +2041,135 @@ class CppGenerator : public BaseGenerator {
     if (type.base_type == BASE_TYPE_UNION) { GenTableUnionAsGetters(field); }
   }
 
+  void GenTableFieldType(const FieldDef &field) {
+    const auto &type = field.value.type;
+    const auto offset_str = GenFieldOffsetName(field);
+    if (!field.IsScalarOptional()) {
+      std::string afterptr = " *" + NullableExtension();
+      code_.SetValue("FIELD_TYPE",
+                     GenTypeGet(type, "", "const ", afterptr.c_str(), true));
+      code_ += "    {{FIELD_TYPE}}\\";
+    } else {
+      code_.SetValue("FIELD_TYPE", GenOptionalDecl(type));
+      code_ += "    {{FIELD_TYPE}}\\";
+    }
+  }
+
+  void GenStructFieldType(const FieldDef &field) {
+    const auto is_array = IsArray(field.value.type);
+    std::string field_type =
+        GenTypeGet(field.value.type, "", is_array ? "" : "const ",
+                   is_array ? "" : " &", true);
+    code_.SetValue("FIELD_TYPE", field_type);
+    code_ += "    {{FIELD_TYPE}}\\";
+  }
+
+  void GenFieldTypeHelper(const StructDef &struct_def) {
+    if (struct_def.fields.vec.empty()) { return; }
+    code_ += "  template<size_t Index>";
+    code_ += "  using FieldType = \\";
+    code_ += "decltype(std::declval<type>().get_field<Index>());";
+  }
+
+  void GenIndexBasedFieldGetter(const StructDef &struct_def) {
+    if (struct_def.fields.vec.empty()) { return; }
+    code_ += "  template<size_t Index>";
+    code_ += "  auto get_field() const {";
+
+    size_t index = 0;
+    bool need_else = false;
+    // Generate one index-based getter for each field.
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      const auto &field = **it;
+      if (field.deprecated) {
+        // Deprecated fields won't be accessible.
+        continue;
+      }
+      code_.SetValue("FIELD_NAME", Name(field));
+      code_.SetValue("FIELD_INDEX",
+                     std::to_string(static_cast<long long>(index++)));
+      if (need_else) {
+        code_ += "    else \\";
+      } else {
+        code_ += "         \\";
+      }
+      need_else = true;
+      code_ += "if constexpr (Index == {{FIELD_INDEX}}) \\";
+      code_ += "return {{FIELD_NAME}}();";
+    }
+    code_ += "    else static_assert(Index != Index, \"Invalid Field Index\");";
+    code_ += "  }";
+  }
+
+  // Sample for Vec3:
+  //
+  //   static constexpr std::array<const char *, 3> field_names = {
+  //     "x",
+  //     "y",
+  //     "z"
+  //   };
+  //
+  void GenFieldNames(const StructDef &struct_def) {
+    auto non_deprecated_field_count = std::count_if(
+        struct_def.fields.vec.begin(), struct_def.fields.vec.end(),
+        [](const FieldDef *field) { return !field->deprecated; });
+    code_ += "  static constexpr std::array<\\";
+    code_.SetValue(
+        "FIELD_COUNT",
+        std::to_string(static_cast<long long>(non_deprecated_field_count)));
+    code_ += "const char *, {{FIELD_COUNT}}> field_names = {\\";
+    if (struct_def.fields.vec.empty()) {
+      code_ += "};";
+      return;
+    }
+    code_ += "";
+    // Generate the field_names elements.
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      const auto &field = **it;
+      if (field.deprecated) {
+        // Deprecated fields won't be accessible.
+        continue;
+      }
+      code_.SetValue("FIELD_NAME", Name(field));
+      code_ += "    \"{{FIELD_NAME}}\"\\";
+      if (it + 1 != struct_def.fields.vec.end()) { code_ += ","; }
+    }
+    code_ += "\n  };";
+  }
+
+  void GenFieldsNumber(const StructDef &struct_def) {
+    auto non_deprecated_field_count = std::count_if(
+        struct_def.fields.vec.begin(), struct_def.fields.vec.end(),
+        [](const FieldDef *field) { return !field->deprecated; });
+    code_.SetValue(
+        "FIELD_COUNT",
+        std::to_string(static_cast<long long>(non_deprecated_field_count)));
+    code_ += "  static constexpr size_t fields_number = {{FIELD_COUNT}};";
+  }
+
+  void GenTraitsStruct(const StructDef &struct_def) {
+    code_.SetValue(
+        "FULLY_QUALIFIED_NAME",
+        struct_def.defined_namespace->GetFullyQualifiedName(Name(struct_def)));
+    code_ += "struct {{STRUCT_NAME}}::Traits {";
+    code_ += "  using type = {{STRUCT_NAME}};";
+    if (!struct_def.fixed) {
+      // We have a table and not a struct.
+      code_ += "  static auto constexpr Create = Create{{STRUCT_NAME}};";
+    }
+    code_ += "  static constexpr auto name = \"{{STRUCT_NAME}}\";";
+    code_ +=
+        "  static constexpr auto fully_qualified_name = "
+        "\"{{FULLY_QUALIFIED_NAME}}\";";
+    GenFieldNames(struct_def);
+    GenFieldTypeHelper(struct_def);
+    GenFieldsNumber(struct_def);
+    code_ += "};";
+    code_ += "";
+  }
+
   void GenTableFieldSetter(const FieldDef &field) {
     const auto &type = field.value.type;
     const bool is_scalar = IsScalar(type.base_type);
@@ -2098,7 +2227,7 @@ class CppGenerator : public BaseGenerator {
       code_ += "  typedef {{NATIVE_NAME}} NativeTableType;";
     }
     code_ += "  typedef {{STRUCT_NAME}}Builder Builder;";
-    if (opts_.g_cpp_std >= cpp::CPP_STD_17) { code_ += "  struct Traits;"; }
+    if (opts_.cpp_static_reflection) { code_ += "  struct Traits;"; }
     if (opts_.mini_reflect != IDLOptions::kNone) {
       code_ +=
           "  static const flatbuffers::TypeTable *MiniReflectTypeTable() {";
@@ -2180,6 +2309,8 @@ class CppGenerator : public BaseGenerator {
       // Generate a comparison function for this field if it is a key.
       if (field.key) { GenKeyFieldMethods(field); }
     }
+
+    if (opts_.cpp_static_reflection) { GenIndexBasedFieldGetter(struct_def); }
 
     // Generate a verifier function that can check a buffer from an untrusted
     // source will never cause reads outside the buffer.
@@ -2388,13 +2519,7 @@ class CppGenerator : public BaseGenerator {
 
     // Definition for type traits for this table type. This allows querying var-
     // ious compile-time traits of the table.
-    if (opts_.g_cpp_std >= cpp::CPP_STD_17) {
-      code_ += "struct {{STRUCT_NAME}}::Traits {";
-      code_ += "  using type = {{STRUCT_NAME}};";
-      code_ += "  static auto constexpr Create = Create{{STRUCT_NAME}};";
-      code_ += "};";
-      code_ += "";
-    }
+    if (opts_.cpp_static_reflection) { GenTraitsStruct(struct_def); }
 
     // Generate a CreateXDirect function with vector types as parameters
     if (opts_.cpp_direct_copy && has_string_or_vector_fields) {
@@ -3168,6 +3293,8 @@ class CppGenerator : public BaseGenerator {
     code_ += "";
     code_ += " public:";
 
+    if (opts_.cpp_static_reflection) { code_ += "  struct Traits;"; }
+
     // Make TypeTable accessible via the generated struct.
     if (opts_.mini_reflect != IDLOptions::kNone) {
       code_ +=
@@ -3253,12 +3380,19 @@ class CppGenerator : public BaseGenerator {
     }
     code_.SetValue("NATIVE_NAME", Name(struct_def));
     GenOperatorNewDelete(struct_def);
+
+    if (opts_.cpp_static_reflection) { GenIndexBasedFieldGetter(struct_def); }
+
     code_ += "};";
 
     code_.SetValue("STRUCT_BYTE_SIZE", NumToString(struct_def.bytesize));
     code_ += "FLATBUFFERS_STRUCT_END({{STRUCT_NAME}}, {{STRUCT_BYTE_SIZE}});";
     if (opts_.gen_compare) GenCompareOperator(struct_def, "()");
     code_ += "";
+
+    // Definition for type traits for this table type. This allows querying var-
+    // ious compile-time traits of the table.
+    if (opts_.cpp_static_reflection) { GenTraitsStruct(struct_def); }
   }
 
   // Set up the correct namespace. Only open a namespace if the existing one is
@@ -3330,6 +3464,13 @@ bool GenerateCPP(const Parser &parser, const std::string &path,
   }
   // The opts.scoped_enums has priority.
   opts.g_only_fixed_enums |= opts.scoped_enums;
+
+  if (opts.cpp_static_reflection && opts.g_cpp_std < cpp::CPP_STD_17) {
+    LogCompilerError(
+        "--cpp-static-reflection requires using --cpp-std at \"C++17\" or "
+        "higher.");
+    return false;
+  }
 
   cpp::CppGenerator generator(parser, path, file_name, opts);
   return generator.generate();

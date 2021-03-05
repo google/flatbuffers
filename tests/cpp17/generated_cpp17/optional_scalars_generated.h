@@ -348,6 +348,46 @@ struct ScalarStuff FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool mutate_default_enum(optional_scalars::OptionalByte _default_enum) {
     return SetField<int8_t>(VT_DEFAULT_ENUM, static_cast<int8_t>(_default_enum), 1);
   }
+  template<size_t Index>
+  auto get_field() const {
+         if constexpr (Index == 0) return just_i8();
+    else if constexpr (Index == 1) return maybe_i8();
+    else if constexpr (Index == 2) return default_i8();
+    else if constexpr (Index == 3) return just_u8();
+    else if constexpr (Index == 4) return maybe_u8();
+    else if constexpr (Index == 5) return default_u8();
+    else if constexpr (Index == 6) return just_i16();
+    else if constexpr (Index == 7) return maybe_i16();
+    else if constexpr (Index == 8) return default_i16();
+    else if constexpr (Index == 9) return just_u16();
+    else if constexpr (Index == 10) return maybe_u16();
+    else if constexpr (Index == 11) return default_u16();
+    else if constexpr (Index == 12) return just_i32();
+    else if constexpr (Index == 13) return maybe_i32();
+    else if constexpr (Index == 14) return default_i32();
+    else if constexpr (Index == 15) return just_u32();
+    else if constexpr (Index == 16) return maybe_u32();
+    else if constexpr (Index == 17) return default_u32();
+    else if constexpr (Index == 18) return just_i64();
+    else if constexpr (Index == 19) return maybe_i64();
+    else if constexpr (Index == 20) return default_i64();
+    else if constexpr (Index == 21) return just_u64();
+    else if constexpr (Index == 22) return maybe_u64();
+    else if constexpr (Index == 23) return default_u64();
+    else if constexpr (Index == 24) return just_f32();
+    else if constexpr (Index == 25) return maybe_f32();
+    else if constexpr (Index == 26) return default_f32();
+    else if constexpr (Index == 27) return just_f64();
+    else if constexpr (Index == 28) return maybe_f64();
+    else if constexpr (Index == 29) return default_f64();
+    else if constexpr (Index == 30) return just_bool();
+    else if constexpr (Index == 31) return maybe_bool();
+    else if constexpr (Index == 32) return default_bool();
+    else if constexpr (Index == 33) return just_enum();
+    else if constexpr (Index == 34) return maybe_enum();
+    else if constexpr (Index == 35) return default_enum();
+    else static_assert(Index != Index, "Invalid Field Index");
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int8_t>(verifier, VT_JUST_I8) &&
@@ -597,6 +637,49 @@ inline flatbuffers::Offset<ScalarStuff> CreateScalarStuff(
 struct ScalarStuff::Traits {
   using type = ScalarStuff;
   static auto constexpr Create = CreateScalarStuff;
+  static constexpr auto name = "ScalarStuff";
+  static constexpr auto fully_qualified_name = "optional_scalars.ScalarStuff";
+  static constexpr std::array<const char *, 36> field_names = {
+    "just_i8",
+    "maybe_i8",
+    "default_i8",
+    "just_u8",
+    "maybe_u8",
+    "default_u8",
+    "just_i16",
+    "maybe_i16",
+    "default_i16",
+    "just_u16",
+    "maybe_u16",
+    "default_u16",
+    "just_i32",
+    "maybe_i32",
+    "default_i32",
+    "just_u32",
+    "maybe_u32",
+    "default_u32",
+    "just_i64",
+    "maybe_i64",
+    "default_i64",
+    "just_u64",
+    "maybe_u64",
+    "default_u64",
+    "just_f32",
+    "maybe_f32",
+    "default_f32",
+    "just_f64",
+    "maybe_f64",
+    "default_f64",
+    "just_bool",
+    "maybe_bool",
+    "default_bool",
+    "just_enum",
+    "maybe_enum",
+    "default_enum"
+  };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 36;
 };
 
 flatbuffers::Offset<ScalarStuff> CreateScalarStuff(flatbuffers::FlatBufferBuilder &_fbb, const ScalarStuffT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
