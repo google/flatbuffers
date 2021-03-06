@@ -1,9 +1,0 @@
-libdir=/usr/local/lib
-includedir=/usr/local/include
-
-Name: FlatBuffers
-Description: Memory Efficient Serialization Library
-Version: 1.12.0
-
-Libs: -L${libdir} -lflatbuffers
-Cflags: -I${includedir}
