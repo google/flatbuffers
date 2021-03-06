@@ -267,8 +267,7 @@ T *LookupTableByName(const SymbolTable<T> &table, const std::string &name,
   TD(StringConstant, 257, "string constant") \
   TD(IntegerConstant, 258, "integer constant") \
   TD(FloatConstant, 259, "float constant") \
-  TD(NumericConstant, 260, "nan, inf or function name (signed)") \
-  TD(Identifier, 261, "identifier")
+  TD(Identifier, 260, "identifier")
 #ifdef __GNUC__
 __extension__  // Stop GCC complaining about trailing comma with -Wpendantic.
 #endif
@@ -499,15 +498,19 @@ CheckedError Parser::Next() {
         }
         FLATBUFFERS_FALLTHROUGH();  // else fall thru
       default:
-        const auto has_sign = (c == '+') || (c == '-');
-        // '-'/'+' and following identifier - can be a predefined constant like:
-        // NAN, INF, PI, etc or it can be a function name like cos/sin/deg.
-        if (IsIdentifierStart(c) || (has_sign && IsIdentifierStart(*cursor_))) {
+        if (IsIdentifierStart(c)) {
           // Collect all chars of an identifier:
           const char *start = cursor_ - 1;
           while (IsIdentifierStart(*cursor_) || is_digit(*cursor_)) cursor_++;
           attribute_.append(start, cursor_);
-          token_ = has_sign ? kTokenNumericConstant : kTokenIdentifier;
+          token_ = kTokenIdentifier;
+          return NoError();
+        }
+
+        const auto has_sign = (c == '+') || (c == '-');
+        if (has_sign && IsIdentifierStart(*cursor_)) {
+          // '-'/'+' and following identifier - it could be a predefined
+          // constant. Return the sign in token_, see ParseSingleValue.
           return NoError();
         }
 
@@ -1887,14 +1890,20 @@ CheckedError Parser::TryTypedValue(const std::string *name, int dtoken,
 
 CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
                                       bool check_now) {
+  if (token_ == '+' || token_ == '-') {
+    const char sign = static_cast<char>(token_);
+    // Get an indentifier: NAN, INF, or function name like cos/sin/deg.
+    NEXT();
+    if (token_ != kTokenIdentifier) return Error("constant name expected");
+    attribute_.insert(0, 1, sign);
+  }
+
   const auto in_type = e.type.base_type;
   const auto is_tok_ident = (token_ == kTokenIdentifier);
   const auto is_tok_string = (token_ == kTokenStringConstant);
 
   // First see if this could be a conversion function.
-  if (*cursor_ == '(' && (is_tok_ident || (token_ == kTokenNumericConstant))) {
-    return ParseFunction(name, e);
-  }
+  if (is_tok_ident && *cursor_ == '(') { return ParseFunction(name, e); }
 
   // clang-format off
   auto match = false;
@@ -1971,7 +1980,6 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
   } else {
     // Try a float number.
     TRY_ECHECK(kTokenFloatConstant, IsFloat(in_type), BASE_TYPE_FLOAT);
-    TRY_ECHECK(kTokenNumericConstant, IsFloat(in_type), BASE_TYPE_FLOAT);
     // Integer token can init any scalar (integer of float).
     FORCE_ECHECK(kTokenIntegerConstant, IsScalar(in_type), BASE_TYPE_INT);
   }
