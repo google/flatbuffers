@@ -2159,13 +2159,15 @@ class CppGenerator : public BaseGenerator {
       // We have a table and not a struct.
       code_ += "  static auto constexpr Create = Create{{STRUCT_NAME}};";
     }
-    code_ += "  static constexpr auto name = \"{{STRUCT_NAME}}\";";
-    code_ +=
-        "  static constexpr auto fully_qualified_name = "
-        "\"{{FULLY_QUALIFIED_NAME}}\";";
-    GenFieldNames(struct_def);
-    GenFieldTypeHelper(struct_def);
-    GenFieldsNumber(struct_def);
+    if (opts_.cpp_static_reflection) {
+      code_ += "  static constexpr auto name = \"{{STRUCT_NAME}}\";";
+      code_ +=
+          "  static constexpr auto fully_qualified_name = "
+          "\"{{FULLY_QUALIFIED_NAME}}\";";
+      GenFieldNames(struct_def);
+      GenFieldTypeHelper(struct_def);
+      GenFieldsNumber(struct_def);
+    }
     code_ += "};";
     code_ += "";
   }
@@ -2227,7 +2229,7 @@ class CppGenerator : public BaseGenerator {
       code_ += "  typedef {{NATIVE_NAME}} NativeTableType;";
     }
     code_ += "  typedef {{STRUCT_NAME}}Builder Builder;";
-    if (opts_.cpp_static_reflection) { code_ += "  struct Traits;"; }
+    if (opts_.g_cpp_std >= cpp::CPP_STD_17) { code_ += "  struct Traits;"; }
     if (opts_.mini_reflect != IDLOptions::kNone) {
       code_ +=
           "  static const flatbuffers::TypeTable *MiniReflectTypeTable() {";
@@ -2519,7 +2521,7 @@ class CppGenerator : public BaseGenerator {
 
     // Definition for type traits for this table type. This allows querying var-
     // ious compile-time traits of the table.
-    if (opts_.cpp_static_reflection) { GenTraitsStruct(struct_def); }
+    if (opts_.g_cpp_std >= cpp::CPP_STD_17) { GenTraitsStruct(struct_def); }
 
     // Generate a CreateXDirect function with vector types as parameters
     if (opts_.cpp_direct_copy && has_string_or_vector_fields) {
@@ -3293,7 +3295,7 @@ class CppGenerator : public BaseGenerator {
     code_ += "";
     code_ += " public:";
 
-    if (opts_.cpp_static_reflection) { code_ += "  struct Traits;"; }
+    if (opts_.g_cpp_std >= cpp::CPP_STD_17) { code_ += "  struct Traits;"; }
 
     // Make TypeTable accessible via the generated struct.
     if (opts_.mini_reflect != IDLOptions::kNone) {
@@ -3392,7 +3394,7 @@ class CppGenerator : public BaseGenerator {
 
     // Definition for type traits for this table type. This allows querying var-
     // ious compile-time traits of the table.
-    if (opts_.cpp_static_reflection) { GenTraitsStruct(struct_def); }
+    if (opts_.g_cpp_std >= cpp::CPP_STD_17) { GenTraitsStruct(struct_def); }
   }
 
   // Set up the correct namespace. Only open a namespace if the existing one is
