@@ -74,7 +74,7 @@ if NOT "%MONSTER_EXTRA%"=="skip" (
   @echo monster_extra.fbs skipped (the strtod function from MSVC2013 or older doesn't support NaN/Inf arguments)
 )
 
-set TEST_CPP17_FLAGS=--cpp --cpp-std c++17 -o ./cpp17/generated_cpp17 %TEST_NOINCL_FLAGS%
+set TEST_CPP17_FLAGS=--cpp --cpp-std c++17 --cpp-static-reflection -o ./cpp17/generated_cpp17 %TEST_NOINCL_FLAGS%
 if NOT "%MONSTER_EXTRA%"=="skip" (
   @rem Flag c++17 requires Clang6, GCC7, MSVC2017 (_MSC_VER >= 1914)  or higher.
   ..\%buildtype%\flatc.exe %TEST_CPP17_FLAGS% -I include_test monster_test.fbs  || goto FAIL
