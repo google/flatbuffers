@@ -1472,8 +1472,7 @@ class SwiftGenerator : public BaseGenerator {
     FLATBUFFERS_ASSERT(value.type.enum_def);
     auto &enum_def = *value.type.enum_def;
     // Vector of enum defaults are always "[]" which never works.
-    const std::string constant =
-      IsVector(value.type) ? "0" : value.constant;
+    const std::string constant = IsVector(value.type) ? "0" : value.constant;
     auto enum_val = enum_def.FindByValue(constant);
     std::string name;
     if (enum_val) {
