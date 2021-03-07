@@ -155,7 +155,7 @@ inline uint64_t ReadUInt64(const uint8_t *data, uint8_t byte_width) {
   // constant, which here it isn't. Test if memcpy is still faster than
   // the conditionals in ReadSizedScalar. Can also use inline asm.
   // clang-format off
-  #if defined(_MSC_VER) && (defined(_M_X64) || defined _M_IX86)
+  #if defined(_MSC_VER) && ((defined(_M_X64) && !defined(_M_ARM64EC)) || defined _M_IX86)
     uint64_t u = 0;
     __movsb(reinterpret_cast<uint8_t *>(&u),
             reinterpret_cast<const uint8_t *>(data), byte_width);
