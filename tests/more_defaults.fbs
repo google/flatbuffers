@@ -1,7 +1,14 @@
 
+enum ABC: int { A, B, C }
+enum Void: int {}
+
+
 table MoreDefaults {
   ints: [int] = [];
   floats: [float] = [     ];
   empty_string: string = "";
   some_string: string = "some";
+  abcs: [ABC] = [];
+  voids: [Void] = [];
+  bools: [bool] = [];
 }

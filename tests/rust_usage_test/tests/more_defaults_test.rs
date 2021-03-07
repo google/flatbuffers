@@ -12,6 +12,9 @@ fn object_defaults() {
             floats: Vec::new(),
             empty_string: "".to_string(),
             some_string: "some".to_string(),
+            abcs: Vec::new(),
+            voids: Vec::new(),
+            bools: Vec::new(),
         },
     )
 }
@@ -21,6 +24,9 @@ fn nonpresent_values() {
     let m = flatbuffers::root::<MoreDefaults>(&[0; 4]).unwrap();
     assert_eq!(m.ints().len(), 0);
     assert_eq!(m.floats().len(), 0);
+    assert_eq!(m.abcs().len(), 0);
+    assert_eq!(m.bools().len(), 0);
+    assert_eq!(m.voids().len(), 0);
     assert_eq!(m.empty_string(), "");
     assert_eq!(m.some_string(), "some");
 }
