@@ -588,6 +588,7 @@ struct IDLOptions {
   bool cs_gen_json_serializer;
   std::vector<std::string> cpp_includes;
   std::string cpp_std;
+  bool cpp_static_reflection;
   std::string proto_namespace_suffix;
   std::string filename_suffix;
   std::string filename_extension;
@@ -673,6 +674,7 @@ struct IDLOptions {
         force_defaults(false),
         java_primitive_has_method(false),
         cs_gen_json_serializer(false),
+        cpp_static_reflection(false),
         filename_suffix("_generated"),
         filename_extension(),
         no_warnings(false),

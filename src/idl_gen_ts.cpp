@@ -1467,7 +1467,7 @@ class TsGenerator : public BaseGenerator {
            it != struct_def.fields.vec.end(); ++it) {
         auto &field = **it;
         if (!field.deprecated && field.IsRequired()) {
-          code += "  builder.IsRequired()Field(offset, ";
+          code += "  builder.requiredField(offset, ";
           code += NumToString(field.value.offset);
           code += ") // " + field.name + "\n";
         }
