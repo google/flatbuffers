@@ -4,7 +4,7 @@
 
 import FlatBuffers
 
-public enum ABC: Int32, Enum { 
+public enum ABC: Int32, Enum {
   public typealias T = Int32
   public static var byteSize: Int { return MemoryLayout<Int32>.size }
   public var value: Int32 { return self.rawValue }
@@ -17,7 +17,7 @@ public enum ABC: Int32, Enum {
   public static var min: ABC { return .a }
 }
 
-public enum Void: Int32, Enum { 
+public enum Void: Int32, Enum {
   public typealias T = Int32
   public static var byteSize: Int { return MemoryLayout<Int32>.size }
   public var value: Int32 { return self.rawValue }

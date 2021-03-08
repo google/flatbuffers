@@ -5,7 +5,7 @@
 import FlatBuffers
 
 ///  Composite components of Monster color.
-public enum MyGame_Example_Color: UInt8, Enum { 
+public enum MyGame_Example_Color: UInt8, Enum {
   public typealias T = UInt8
   public static var byteSize: Int { return MemoryLayout<UInt8>.size }
   public var value: UInt8 { return self.rawValue }
@@ -21,7 +21,7 @@ public enum MyGame_Example_Color: UInt8, Enum {
   public static var min: MyGame_Example_Color { return .red }
 }
 
-public enum MyGame_Example_Race: Int8, Enum { 
+public enum MyGame_Example_Race: Int8, Enum {
   public typealias T = Int8
   public static var byteSize: Int { return MemoryLayout<Int8>.size }
   public var value: Int8 { return self.rawValue }
@@ -35,7 +35,7 @@ public enum MyGame_Example_Race: Int8, Enum {
   public static var min: MyGame_Example_Race { return .none_ }
 }
 
-public enum MyGame_Example_Any_: UInt8, Enum { 
+public enum MyGame_Example_Any_: UInt8, Enum {
   public typealias T = UInt8
   public static var byteSize: Int { return MemoryLayout<UInt8>.size }
   public var value: UInt8 { return self.rawValue }
@@ -71,7 +71,7 @@ public struct MyGame_Example_Any_Union {
     }
   }
 }
-public enum MyGame_Example_AnyUniqueAliases: UInt8, Enum { 
+public enum MyGame_Example_AnyUniqueAliases: UInt8, Enum {
   public typealias T = UInt8
   public static var byteSize: Int { return MemoryLayout<UInt8>.size }
   public var value: UInt8 { return self.rawValue }
@@ -107,7 +107,7 @@ public struct MyGame_Example_AnyUniqueAliasesUnion {
     }
   }
 }
-public enum MyGame_Example_AnyAmbiguousAliases: UInt8, Enum { 
+public enum MyGame_Example_AnyAmbiguousAliases: UInt8, Enum {
   public typealias T = UInt8
   public static var byteSize: Int { return MemoryLayout<UInt8>.size }
   public var value: UInt8 { return self.rawValue }

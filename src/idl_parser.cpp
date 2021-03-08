@@ -906,20 +906,32 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   }
 
   if (type.enum_def) {
-    // The type.base_type can only be scalar, union, array or vector.
-    // Table, struct or string can't have enum_def.
-    // Default value of union and vector in NONE, NULL translated to "0".
-    FLATBUFFERS_ASSERT(IsInteger(type.base_type) ||
-                       (type.base_type == BASE_TYPE_UNION) || IsVector(type) ||
-                       IsArray(type));
-
-    // Ensure defautl values are present in the enum if needed.
-    // All unions should have the NONE ("0") enum value.
-    const bool needs_default = !(IsVector(type) || field->IsOptional() ||
-                                 type.enum_def->attributes.Lookup("bit_flags"));
-    if (needs_default && !type.enum_def->FindByValue(field->value.constant)) {
-      return Error("default value of " + field->value.constant + " for field " +
-                   name + " is not part of enum " + type.enum_def->name);
+    // Verify the enum's type and default value.
+    const std::string &constant = field->value.constant;
+    if (type.base_type == BASE_TYPE_UNION) {
+      if (constant != "0") { return Error("Union defaults must be NONE"); }
+    } else if (IsVector(type)) {
+      if (constant != "0" && constant != "[]") {
+        return Error("Vector defaults may only be `[]`.");
+      }
+    } else if (IsArray(type)) {
+      if (constant != "0") {
+        return Error("Array defaults are not supported yet.");
+      }
+    } else {
+      if (!IsInteger(type.base_type)) {
+        return Error("Enums must have integer base types");
+      }
+      // Optional and bitflags enums may have default constants that are not
+      // their specified variants.
+      if (!field->IsOptional() &&
+          type.enum_def->attributes.Lookup("bit_flags") == nullptr) {
+        if (type.enum_def->FindByValue(constant) == nullptr) {
+          return Error("default value of `" + constant + "` for " + "field `" +
+                       name + "` is not part of enum `" +
+                       type.enum_def->name + "`.");
+        }
+      }
     }
   }
 
