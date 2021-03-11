@@ -78,9 +78,12 @@ constructor(
 
 
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
+  const referToA1 = (this.referToA1 !== null ? this.referToA1!.pack(builder) : 0);
+  const referToA2 = (this.referToA2 !== null ? this.referToA2!.pack(builder) : 0);
+
   TableInC.startTableInC(builder);
-  TableInC.addReferToA1(builder, (this.referToA1 !== null ? this.referToA1!.pack(builder) : 0));
-  TableInC.addReferToA2(builder, (this.referToA2 !== null ? this.referToA2!.pack(builder) : 0));
+  TableInC.addReferToA1(builder, referToA1);
+  TableInC.addReferToA2(builder, referToA2);
 
   return TableInC.endTableInC(builder);
 }

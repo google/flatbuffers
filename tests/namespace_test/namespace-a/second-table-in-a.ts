@@ -70,8 +70,10 @@ constructor(
 
 
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
+  const referToC = (this.referToC !== null ? this.referToC!.pack(builder) : 0);
+
   return SecondTableInA.createSecondTableInA(builder,
-    (this.referToC !== null ? this.referToC!.pack(builder) : 0)
+    referToC
   );
 }
 }
