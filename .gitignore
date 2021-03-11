@@ -144,3 +144,4 @@ yarn-error.log
 **/vendor
 **/go.sum
 /tests/**/*.js
+flatbuffers.pc
