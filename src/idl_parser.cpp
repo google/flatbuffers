@@ -498,15 +498,19 @@ CheckedError Parser::Next() {
         }
         FLATBUFFERS_FALLTHROUGH();  // else fall thru
       default:
-        const auto has_sign = (c == '+') || (c == '-');
-        // '-'/'+' and following identifier - can be a predefined constant like:
-        // NAN, INF, PI, etc or it can be a function name like cos/sin/deg.
-        if (IsIdentifierStart(c) || (has_sign && IsIdentifierStart(*cursor_))) {
+        if (IsIdentifierStart(c)) {
           // Collect all chars of an identifier:
           const char *start = cursor_ - 1;
           while (IsIdentifierStart(*cursor_) || is_digit(*cursor_)) cursor_++;
           attribute_.append(start, cursor_);
-          token_ = has_sign ? kTokenStringConstant : kTokenIdentifier;
+          token_ = kTokenIdentifier;
+          return NoError();
+        }
+
+        const auto has_sign = (c == '+') || (c == '-');
+        if (has_sign && IsIdentifierStart(*cursor_)) {
+          // '-'/'+' and following identifier - it could be a predefined
+          // constant. Return the sign in token_, see ParseSingleValue.
           return NoError();
         }
 
@@ -1852,56 +1856,61 @@ CheckedError Parser::ParseFunction(const std::string *name, Value &e) {
 CheckedError Parser::TryTypedValue(const std::string *name, int dtoken,
                                    bool check, Value &e, BaseType req,
                                    bool *destmatch) {
-  bool match = dtoken == token_;
-  if (match) {
-    FLATBUFFERS_ASSERT(*destmatch == false);
-    *destmatch = true;
-    e.constant = attribute_;
-    // Check token match
-    if (!check) {
-      if (e.type.base_type == BASE_TYPE_NONE) {
-        e.type.base_type = req;
-      } else {
-        return Error(
-            std::string("type mismatch: expecting: ") +
-            kTypeNames[e.type.base_type] + ", found: " + kTypeNames[req] +
-            ", name: " + (name ? *name : "") + ", value: " + e.constant);
-      }
+  FLATBUFFERS_ASSERT(*destmatch == false && dtoken == token_);
+  *destmatch = true;
+  e.constant = attribute_;
+  // Check token match
+  if (!check) {
+    if (e.type.base_type == BASE_TYPE_NONE) {
+      e.type.base_type = req;
+    } else {
+      return Error(std::string("type mismatch: expecting: ") +
+                   kTypeNames[e.type.base_type] +
+                   ", found: " + kTypeNames[req] +
+                   ", name: " + (name ? *name : "") + ", value: " + e.constant);
     }
-    // The exponent suffix of hexadecimal float-point number is mandatory.
-    // A hex-integer constant is forbidden as an initializer of float number.
-    if ((kTokenFloatConstant != dtoken) && IsFloat(e.type.base_type)) {
-      const auto &s = e.constant;
-      const auto k = s.find_first_of("0123456789.");
-      if ((std::string::npos != k) && (s.length() > (k + 1)) &&
-          (s[k] == '0' && is_alpha_char(s[k + 1], 'X')) &&
-          (std::string::npos == s.find_first_of("pP", k + 2))) {
-        return Error(
-            "invalid number, the exponent suffix of hexadecimal "
-            "floating-point literals is mandatory: \"" +
-            s + "\"");
-      }
-    }
-    NEXT();
   }
+  // The exponent suffix of hexadecimal float-point number is mandatory.
+  // A hex-integer constant is forbidden as an initializer of float number.
+  if ((kTokenFloatConstant != dtoken) && IsFloat(e.type.base_type)) {
+    const auto &s = e.constant;
+    const auto k = s.find_first_of("0123456789.");
+    if ((std::string::npos != k) && (s.length() > (k + 1)) &&
+        (s[k] == '0' && is_alpha_char(s[k + 1], 'X')) &&
+        (std::string::npos == s.find_first_of("pP", k + 2))) {
+      return Error(
+          "invalid number, the exponent suffix of hexadecimal "
+          "floating-point literals is mandatory: \"" +
+          s + "\"");
+    }
+  }
+  NEXT();
   return NoError();
 }
 
 CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
                                       bool check_now) {
+  if (token_ == '+' || token_ == '-') {
+    const char sign = static_cast<char>(token_);
+    // Get an indentifier: NAN, INF, or function name like cos/sin/deg.
+    NEXT();
+    if (token_ != kTokenIdentifier) return Error("constant name expected");
+    attribute_.insert(0, 1, sign);
+  }
+
   const auto in_type = e.type.base_type;
   const auto is_tok_ident = (token_ == kTokenIdentifier);
   const auto is_tok_string = (token_ == kTokenStringConstant);
 
-  // First see if this could be a conversion function:
+  // First see if this could be a conversion function.
   if (is_tok_ident && *cursor_ == '(') { return ParseFunction(name, e); }
 
   // clang-format off
   auto match = false;
 
   #define IF_ECHECK_(force, dtoken, check, req)    \
-    if (!match && ((check) || IsConstTrue(force))) \
-    ECHECK(TryTypedValue(name, dtoken, check, e, req, &match))
+    if (!match && ((dtoken) == token_) && ((check) || IsConstTrue(force))) \
+      ECHECK(TryTypedValue(name, dtoken, check, e, req, &match))
   #define TRY_ECHECK(dtoken, check, req) IF_ECHECK_(false, dtoken, check, req)
   #define FORCE_ECHECK(dtoken, check, req) IF_ECHECK_(true, dtoken, check, req)
   // clang-format on
