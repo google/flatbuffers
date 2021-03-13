@@ -44,9 +44,9 @@ static constexpr uint8_t flags_allow_non_utf8 = 0x20;
 bool TestFileExists(fs::path file_path) {
   if (file_path.has_filename() && fs::exists(file_path)) return true;
 
-  TEST_OUTPUT_LINE("@DEBUG: file '%s' not found", file_path.c_str());
+  TEST_OUTPUT_LINE("@DEBUG: file '%s' not found", file_path.string().c_str());
   for (const auto &entry : fs::directory_iterator(file_path.parent_path())) {
-    TEST_OUTPUT_LINE("@DEBUG: parent path entry: '%s'", entry.path().c_str());
+    TEST_OUTPUT_LINE("@DEBUG: parent path entry: '%s'", entry.path().string().c_str());
   }
   return false;
 }
@@ -55,7 +55,7 @@ std::string LoadBinarySchema(const char *file_name) {
   const auto file_path = exe_path_.parent_path() / file_name;
   TEST_EQ(true, TestFileExists(file_path));
   std::string schemafile;
-  TEST_EQ(true, flatbuffers::LoadFile(file_path.c_str(), true, &schemafile));
+  TEST_EQ(true, flatbuffers::LoadFile(file_path.string().c_str(), true, &schemafile));
 
   flatbuffers::Verifier verifier(
       reinterpret_cast<const uint8_t *>(schemafile.c_str()), schemafile.size());
@@ -64,7 +64,7 @@ std::string LoadBinarySchema(const char *file_name) {
 }
 
 std::string do_test(const flatbuffers::IDLOptions &opts,
-                    const std::string input_json) {
+                    const std::string input_json, const bool check_parser) {
   // once loaded from disk
   static const std::string schemafile = LoadBinarySchema("monster_test.bfbs");
   // parse schema first, so we can use it to parse the data after
@@ -82,6 +82,10 @@ std::string do_test(const flatbuffers::IDLOptions &opts,
     TEST_EQ(true, MyGame::Example::VerifyMonsterBuffer(verifier));
     TEST_ASSERT(
         GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen));
+  } else if (check_parser) {
+    TEST_OUTPUT_LINE("parser failed with JSON:\n%s", input_json.c_str());
+    TEST_EQ_STR("", parser.error_.c_str());
+    TEST_ASSERT(false);
   }
   return jsongen;
 };
@@ -94,6 +98,7 @@ std::string do_test(const flatbuffers::IDLOptions &opts,
 // the directory where your fuzz target executable is located.
 // You must not modify argv[0].
 extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv) {
+  (void)argc;
   exe_path_ = (*argv)[0];
   return 0;
 }
@@ -117,9 +122,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
       (flags & flags_skip_unexpected_fields_in_json);
   opts.allow_non_utf8 = (flags & flags_allow_non_utf8);
 
-  const std::string jsongen_1 = do_test(opts, input);
+  const std::string jsongen_1 = do_test(opts, input, false);
   if (!jsongen_1.empty()) {
-    const std::string jsongen_2 = do_test(opts, jsongen_1);
+    const std::string jsongen_2 = do_test(opts, jsongen_1, true);
     TEST_EQ(jsongen_1, jsongen_2);
   }
   return 0;
