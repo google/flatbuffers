@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@file:JvmName("JVMByteArray")
 @file:Suppress("NOTHING_TO_INLINE")
 
 package com.google.flatbuffers.kotlin

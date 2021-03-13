@@ -216,7 +216,7 @@ public class JSONParser(public var output: FlexBuffersBuilder = FlexBuffersBuild
     var useDouble = false
     val limit = ary.size
     var sign = 1
-    var double = 0.0
+    var double: Double
     var long = 0L
     var digits = 0
 
