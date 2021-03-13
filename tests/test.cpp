@@ -3493,10 +3493,13 @@ void NativeTypeTest() {
 
   Geometry::ApplicationDataT src_data;
   src_data.vectors.reserve(N);
+  src_data.vectors_alt.reserve(N);
 
   for (int i = 0; i < N; ++i) {
     src_data.vectors.push_back(
         Native::Vector3D(10 * i + 0.1f, 10 * i + 0.2f, 10 * i + 0.3f));
+    src_data.vectors_alt.push_back(
+        Native::Vector3D(20 * i + 0.1f, 20 * i + 0.2f, 20 * i + 0.3f));
   }
 
   flatbuffers::FlatBufferBuilder fbb;
@@ -3505,10 +3508,15 @@ void NativeTypeTest() {
   auto dstDataT = Geometry::UnPackApplicationData(fbb.GetBufferPointer());
 
   for (int i = 0; i < N; ++i) {
-    Native::Vector3D &v = dstDataT->vectors[i];
+    const Native::Vector3D &v = dstDataT->vectors[i];
     TEST_EQ(v.x, 10 * i + 0.1f);
     TEST_EQ(v.y, 10 * i + 0.2f);
     TEST_EQ(v.z, 10 * i + 0.3f);
+
+    const Native::Vector3D &v2 = dstDataT->vectors_alt[i];
+    TEST_EQ(v2.x, 20 * i + 0.1f);
+    TEST_EQ(v2.y, 20 * i + 0.2f);
+    TEST_EQ(v2.z, 20 * i + 0.3f);
   }
 }
 
