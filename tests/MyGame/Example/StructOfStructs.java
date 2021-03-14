@@ -40,5 +40,34 @@ public final class StructOfStructs extends Struct {
     public StructOfStructs get(int j) { return get(new StructOfStructs(), j); }
     public StructOfStructs get(StructOfStructs obj, int j) {  return obj.__assign(__element(j), bb); }
   }
+  public StructOfStructsT unpack() {
+    StructOfStructsT _o = new StructOfStructsT();
+    this.unpackTo(_o);
+    return _o;
+  }
+  public void unpackTo(StructOfStructsT _o) {
+    MyGame.Example.AbilityT _oA = this.a().unpack();
+    _o.setA(_oA);
+    MyGame.Example.TestT _oB = this.b().unpack();
+    _o.setB(_oB);
+    MyGame.Example.AbilityT _oC = this.c().unpack();
+    _o.setC(_oC);
+  }
+  public static int pack(FlatBufferBuilder builder, StructOfStructsT _o) {
+    if (_o == null) return 0;
+    int _a_id = _o.getA().getId();
+    int _a_distance = _o.getA().getDistance();
+    short _b_a = _o.getB().getA();
+    byte _b_b = _o.getB().getB();
+    int _c_id = _o.getC().getId();
+    int _c_distance = _o.getC().getDistance();
+    return createStructOfStructs(
+      builder,
+      _a_id,
+      _a_distance,
+      _b_a,
+      _b_b,
+      _c_id,
+      _c_distance);
+  }
 }
-

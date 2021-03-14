@@ -38,6 +38,7 @@ public final class Monster extends Table {
   public int color() { int o = __offset(16); return o != 0 ? bb.get(o + bb_pos) & 0xFF : 8; }
   public boolean mutateColor(int color) { int o = __offset(16); if (o != 0) { bb.put(o + bb_pos, (byte)color); return true; } else { return false; } }
   public byte testType() { int o = __offset(18); return o != 0 ? bb.get(o + bb_pos) : 0; }
+  public Table test() { return test(new Table()); }
   public Table test(Table obj) { int o = __offset(20); return o != 0 ? __union(obj, o + bb_pos) : null; }
   public MyGame.Example.Test test4(int j) { return test4(new MyGame.Example.Test(), j); }
   public MyGame.Example.Test test4(MyGame.Example.Test obj, int j) { int o = __offset(22); return o != 0 ? obj.__assign(__vector(o) + j * 4, bb) : null; }
@@ -182,8 +183,10 @@ public final class Monster extends Table {
   public ByteBuffer vectorOfNonOwningReferencesInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 88, 8); }
   public boolean mutateVectorOfNonOwningReferences(int j, long vector_of_non_owning_references) { int o = __offset(88); if (o != 0) { bb.putLong(__vector(o) + j * 8, vector_of_non_owning_references); return true; } else { return false; } }
   public byte anyUniqueType() { int o = __offset(90); return o != 0 ? bb.get(o + bb_pos) : 0; }
+  public Table anyUnique() { return anyUnique(new Table()); }
   public Table anyUnique(Table obj) { int o = __offset(92); return o != 0 ? __union(obj, o + bb_pos) : null; }
   public byte anyAmbiguousType() { int o = __offset(94); return o != 0 ? bb.get(o + bb_pos) : 0; }
+  public Table anyAmbiguous() { return anyAmbiguous(new Table()); }
   public Table anyAmbiguous(Table obj) { int o = __offset(96); return o != 0 ? __union(obj, o + bb_pos) : null; }
   public int vectorOfEnums(int j) { int o = __offset(98); return o != 0 ? bb.get(__vector(o) + j * 1) & 0xFF : 0; }
   public int vectorOfEnumsLength() { int o = __offset(98); return o != 0 ? __vector_len(o) : 0; }
@@ -226,10 +229,10 @@ public final class Monster extends Table {
   public static void addTest4(FlatBufferBuilder builder, int test4Offset) { builder.addOffset(9, test4Offset, 0); }
   public static void startTest4Vector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 2); }
   public static void addTestarrayofstring(FlatBufferBuilder builder, int testarrayofstringOffset) { builder.addOffset(10, testarrayofstringOffset, 0); }
-  public static int createTestarrayofstringVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
+  public static int createTestarrayofstringVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset( data[i]); return builder.endVector(); }
   public static void startTestarrayofstringVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
   public static void addTestarrayoftables(FlatBufferBuilder builder, int testarrayoftablesOffset) { builder.addOffset(11, testarrayoftablesOffset, 0); }
-  public static int createTestarrayoftablesVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
+  public static int createTestarrayoftablesVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset( data[i]); return builder.endVector(); }
   public static void startTestarrayoftablesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
   public static void addEnemy(FlatBufferBuilder builder, int enemyOffset) { builder.addOffset(12, enemyOffset, 0); }
   public static void addTestnestedflatbuffer(FlatBufferBuilder builder, int testnestedflatbufferOffset) { builder.addOffset(13, testnestedflatbufferOffset, 0); }
@@ -247,13 +250,13 @@ public final class Monster extends Table {
   public static void addTesthashs64Fnv1a(FlatBufferBuilder builder, long testhashs64Fnv1a) { builder.addLong(22, testhashs64Fnv1a, 0L); }
   public static void addTesthashu64Fnv1a(FlatBufferBuilder builder, long testhashu64Fnv1a) { builder.addLong(23, testhashu64Fnv1a, 0L); }
   public static void addTestarrayofbools(FlatBufferBuilder builder, int testarrayofboolsOffset) { builder.addOffset(24, testarrayofboolsOffset, 0); }
-  public static int createTestarrayofboolsVector(FlatBufferBuilder builder, boolean[] data) { builder.startVector(1, data.length, 1); for (int i = data.length - 1; i >= 0; i--) builder.addBoolean(data[i]); return builder.endVector(); }
+  public static int createTestarrayofboolsVector(FlatBufferBuilder builder, boolean[] data) { builder.startVector(1, data.length, 1); for (int i = data.length - 1; i >= 0; i--) builder.addBoolean( data[i]); return builder.endVector(); }
   public static void startTestarrayofboolsVector(FlatBufferBuilder builder, int numElems) { builder.startVector(1, numElems, 1); }
   public static void addTestf(FlatBufferBuilder builder, float testf) { builder.addFloat(25, testf, 3.14159f); }
   public static void addTestf2(FlatBufferBuilder builder, float testf2) { builder.addFloat(26, testf2, 3.0f); }
   public static void addTestf3(FlatBufferBuilder builder, float testf3) { builder.addFloat(27, testf3, 0.0f); }
   public static void addTestarrayofstring2(FlatBufferBuilder builder, int testarrayofstring2Offset) { builder.addOffset(28, testarrayofstring2Offset, 0); }
-  public static int createTestarrayofstring2Vector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
+  public static int createTestarrayofstring2Vector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset( data[i]); return builder.endVector(); }
   public static void startTestarrayofstring2Vector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
   public static void addTestarrayofsortedstruct(FlatBufferBuilder builder, int testarrayofsortedstructOffset) { builder.addOffset(29, testarrayofsortedstructOffset, 0); }
   public static void startTestarrayofsortedstructVector(FlatBufferBuilder builder, int numElems) { builder.startVector(8, numElems, 4); }
@@ -264,29 +267,29 @@ public final class Monster extends Table {
   public static void addTest5(FlatBufferBuilder builder, int test5Offset) { builder.addOffset(31, test5Offset, 0); }
   public static void startTest5Vector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 2); }
   public static void addVectorOfLongs(FlatBufferBuilder builder, int vectorOfLongsOffset) { builder.addOffset(32, vectorOfLongsOffset, 0); }
-  public static int createVectorOfLongsVector(FlatBufferBuilder builder, long[] data) { builder.startVector(8, data.length, 8); for (int i = data.length - 1; i >= 0; i--) builder.addLong(data[i]); return builder.endVector(); }
+  public static int createVectorOfLongsVector(FlatBufferBuilder builder, long[] data) { builder.startVector(8, data.length, 8); for (int i = data.length - 1; i >= 0; i--) builder.addLong( data[i]); return builder.endVector(); }
   public static void startVectorOfLongsVector(FlatBufferBuilder builder, int numElems) { builder.startVector(8, numElems, 8); }
   public static void addVectorOfDoubles(FlatBufferBuilder builder, int vectorOfDoublesOffset) { builder.addOffset(33, vectorOfDoublesOffset, 0); }
-  public static int createVectorOfDoublesVector(FlatBufferBuilder builder, double[] data) { builder.startVector(8, data.length, 8); for (int i = data.length - 1; i >= 0; i--) builder.addDouble(data[i]); return builder.endVector(); }
+  public static int createVectorOfDoublesVector(FlatBufferBuilder builder, double[] data) { builder.startVector(8, data.length, 8); for (int i = data.length - 1; i >= 0; i--) builder.addDouble( data[i]); return builder.endVector(); }
   public static void startVectorOfDoublesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(8, numElems, 8); }
   public static void addParentNamespaceTest(FlatBufferBuilder builder, int parentNamespaceTestOffset) { builder.addOffset(34, parentNamespaceTestOffset, 0); }
   public static void addVectorOfReferrables(FlatBufferBuilder builder, int vectorOfReferrablesOffset) { builder.addOffset(35, vectorOfReferrablesOffset, 0); }
-  public static int createVectorOfReferrablesVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
+  public static int createVectorOfReferrablesVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset( data[i]); return builder.endVector(); }
   public static void startVectorOfReferrablesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
   public static void addSingleWeakReference(FlatBufferBuilder builder, long singleWeakReference) { builder.addLong(36, singleWeakReference, 0L); }
   public static void addVectorOfWeakReferences(FlatBufferBuilder builder, int vectorOfWeakReferencesOffset) { builder.addOffset(37, vectorOfWeakReferencesOffset, 0); }
-  public static int createVectorOfWeakReferencesVector(FlatBufferBuilder builder, long[] data) { builder.startVector(8, data.length, 8); for (int i = data.length - 1; i >= 0; i--) builder.addLong(data[i]); return builder.endVector(); }
+  public static int createVectorOfWeakReferencesVector(FlatBufferBuilder builder, long[] data) { builder.startVector(8, data.length, 8); for (int i = data.length - 1; i >= 0; i--) builder.addLong( data[i]); return builder.endVector(); }
   public static void startVectorOfWeakReferencesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(8, numElems, 8); }
   public static void addVectorOfStrongReferrables(FlatBufferBuilder builder, int vectorOfStrongReferrablesOffset) { builder.addOffset(38, vectorOfStrongReferrablesOffset, 0); }
-  public static int createVectorOfStrongReferrablesVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
+  public static int createVectorOfStrongReferrablesVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset( data[i]); return builder.endVector(); }
   public static void startVectorOfStrongReferrablesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
   public static void addCoOwningReference(FlatBufferBuilder builder, long coOwningReference) { builder.addLong(39, coOwningReference, 0L); }
   public static void addVectorOfCoOwningReferences(FlatBufferBuilder builder, int vectorOfCoOwningReferencesOffset) { builder.addOffset(40, vectorOfCoOwningReferencesOffset, 0); }
-  public static int createVectorOfCoOwningReferencesVector(FlatBufferBuilder builder, long[] data) { builder.startVector(8, data.length, 8); for (int i = data.length - 1; i >= 0; i--) builder.addLong(data[i]); return builder.endVector(); }
+  public static int createVectorOfCoOwningReferencesVector(FlatBufferBuilder builder, long[] data) { builder.startVector(8, data.length, 8); for (int i = data.length - 1; i >= 0; i--) builder.addLong( data[i]); return builder.endVector(); }
   public static void startVectorOfCoOwningReferencesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(8, numElems, 8); }
   public static void addNonOwningReference(FlatBufferBuilder builder, long nonOwningReference) { builder.addLong(41, nonOwningReference, 0L); }
   public static void addVectorOfNonOwningReferences(FlatBufferBuilder builder, int vectorOfNonOwningReferencesOffset) { builder.addOffset(42, vectorOfNonOwningReferencesOffset, 0); }
-  public static int createVectorOfNonOwningReferencesVector(FlatBufferBuilder builder, long[] data) { builder.startVector(8, data.length, 8); for (int i = data.length - 1; i >= 0; i--) builder.addLong(data[i]); return builder.endVector(); }
+  public static int createVectorOfNonOwningReferencesVector(FlatBufferBuilder builder, long[] data) { builder.startVector(8, data.length, 8); for (int i = data.length - 1; i >= 0; i--) builder.addLong( data[i]); return builder.endVector(); }
   public static void startVectorOfNonOwningReferencesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(8, numElems, 8); }
   public static void addAnyUniqueType(FlatBufferBuilder builder, byte anyUniqueType) { builder.addByte(43, anyUniqueType, 0); }
   public static void addAnyUnique(FlatBufferBuilder builder, int anyUniqueOffset) { builder.addOffset(44, anyUniqueOffset, 0); }
@@ -302,7 +305,7 @@ public final class Monster extends Table {
   public static int createTestrequirednestedflatbufferVector(FlatBufferBuilder builder, ByteBuffer data) { return builder.createByteVector(data); }
   public static void startTestrequirednestedflatbufferVector(FlatBufferBuilder builder, int numElems) { builder.startVector(1, numElems, 1); }
   public static void addScalarKeySortedTables(FlatBufferBuilder builder, int scalarKeySortedTablesOffset) { builder.addOffset(50, scalarKeySortedTablesOffset, 0); }
-  public static int createScalarKeySortedTablesVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
+  public static int createScalarKeySortedTablesVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset( data[i]); return builder.endVector(); }
   public static void startScalarKeySortedTablesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
   public static int endMonster(FlatBufferBuilder builder) {
     int o = builder.endTable();
@@ -344,5 +347,372 @@ public final class Monster extends Table {
     public Monster getByKey(String key) {  return __lookup_by_key(null, __vector(), key, bb); }
     public Monster getByKey(Monster obj, String key) {  return __lookup_by_key(obj, __vector(), key, bb); }
   }
+  public MonsterT unpack() {
+    MonsterT _o = new MonsterT();
+    this.unpackTo(_o);
+    return _o;
+  }
+  public void unpackTo(MonsterT _o) {
+    MyGame.Example.Vec3T _oPos = this.pos() != null ? this.pos().unpack() : null;
+    _o.setPos(_oPos);
+    short _oMana = this.mana();
+    _o.setMana(_oMana);
+    short _oHp = this.hp();
+    _o.setHp(_oHp);
+    String _oName = this.name();
+    _o.setName(_oName);
+    List<Integer> _oInventory = new ArrayList<>();
+    for (int _j = 0; _j < this.inventoryLength(); ++_j) {_oInventory.add(this.inventory(_j));}
+    _o.setInventory(_oInventory);
+    int _oColor = this.color();
+    _o.setColor(_oColor);
+    AnyUnion _oTest = new AnyUnion();
+    byte _oTestType = this.testType();
+    _oTest.setType(_oTestType);
+    Table _oTestValue  = this.test();
+    switch (_oTestType) {
+      case Any.Monster:
+        _oTest.setValue(_oTestValue != null ? ((MyGame.Example.Monster) _oTestValue).unpack() : null);
+        break;
+      case Any.TestSimpleTableWithEnum:
+        _oTest.setValue(_oTestValue != null ? ((MyGame.Example.TestSimpleTableWithEnum) _oTestValue).unpack() : null);
+        break;
+      case Any.MyGame_Example2_Monster:
+        _oTest.setValue(_oTestValue != null ? ((MyGame.Example2.Monster) _oTestValue).unpack() : null);
+        break;
+      default: break;
+    }
+    _o.setTest(_oTest);
+    List<MyGame.Example.TestT> _oTest4 = new ArrayList<>();
+    for (int _j = 0; _j < this.test4Length(); ++_j) {_oTest4.add(this.test4(_j) != null ? this.test4(_j).unpack() : null);}
+    _o.setTest4(_oTest4);
+    List<String> _oTestarrayofstring = new ArrayList<>();
+    for (int _j = 0; _j < this.testarrayofstringLength(); ++_j) {_oTestarrayofstring.add(this.testarrayofstring(_j));}
+    _o.setTestarrayofstring(_oTestarrayofstring);
+    List<MyGame.Example.MonsterT> _oTestarrayoftables = new ArrayList<>();
+    for (int _j = 0; _j < this.testarrayoftablesLength(); ++_j) {_oTestarrayoftables.add(this.testarrayoftables(_j) != null ? this.testarrayoftables(_j).unpack() : null);}
+    _o.setTestarrayoftables(_oTestarrayoftables);
+    MyGame.Example.MonsterT _oEnemy = this.enemy() != null ? this.enemy().unpack() : null;
+    _o.setEnemy(_oEnemy);
+    List<Integer> _oTestnestedflatbuffer = new ArrayList<>();
+    for (int _j = 0; _j < this.testnestedflatbufferLength(); ++_j) {_oTestnestedflatbuffer.add(this.testnestedflatbuffer(_j));}
+    _o.setTestnestedflatbuffer(_oTestnestedflatbuffer);
+    MyGame.Example.StatT _oTestempty = this.testempty() != null ? this.testempty().unpack() : null;
+    _o.setTestempty(_oTestempty);
+    boolean _oTestbool = this.testbool();
+    _o.setTestbool(_oTestbool);
+    int _oTesthashs32Fnv1 = this.testhashs32Fnv1();
+    _o.setTesthashs32Fnv1(_oTesthashs32Fnv1);
+    long _oTesthashu32Fnv1 = this.testhashu32Fnv1();
+    _o.setTesthashu32Fnv1(_oTesthashu32Fnv1);
+    long _oTesthashs64Fnv1 = this.testhashs64Fnv1();
+    _o.setTesthashs64Fnv1(_oTesthashs64Fnv1);
+    long _oTesthashu64Fnv1 = this.testhashu64Fnv1();
+    _o.setTesthashu64Fnv1(_oTesthashu64Fnv1);
+    int _oTesthashs32Fnv1a = this.testhashs32Fnv1a();
+    _o.setTesthashs32Fnv1a(_oTesthashs32Fnv1a);
+    long _oTesthashu32Fnv1a = this.testhashu32Fnv1a();
+    _o.setTesthashu32Fnv1a(_oTesthashu32Fnv1a);
+    long _oTesthashs64Fnv1a = this.testhashs64Fnv1a();
+    _o.setTesthashs64Fnv1a(_oTesthashs64Fnv1a);
+    long _oTesthashu64Fnv1a = this.testhashu64Fnv1a();
+    _o.setTesthashu64Fnv1a(_oTesthashu64Fnv1a);
+    List<Boolean> _oTestarrayofbools = new ArrayList<>();
+    for (int _j = 0; _j < this.testarrayofboolsLength(); ++_j) {_oTestarrayofbools.add(this.testarrayofbools(_j));}
+    _o.setTestarrayofbools(_oTestarrayofbools);
+    float _oTestf = this.testf();
+    _o.setTestf(_oTestf);
+    float _oTestf2 = this.testf2();
+    _o.setTestf2(_oTestf2);
+    float _oTestf3 = this.testf3();
+    _o.setTestf3(_oTestf3);
+    List<String> _oTestarrayofstring2 = new ArrayList<>();
+    for (int _j = 0; _j < this.testarrayofstring2Length(); ++_j) {_oTestarrayofstring2.add(this.testarrayofstring2(_j));}
+    _o.setTestarrayofstring2(_oTestarrayofstring2);
+    List<MyGame.Example.AbilityT> _oTestarrayofsortedstruct = new ArrayList<>();
+    for (int _j = 0; _j < this.testarrayofsortedstructLength(); ++_j) {_oTestarrayofsortedstruct.add(this.testarrayofsortedstruct(_j) != null ? this.testarrayofsortedstruct(_j).unpack() : null);}
+    _o.setTestarrayofsortedstruct(_oTestarrayofsortedstruct);
+    List<Integer> _oFlex = new ArrayList<>();
+    for (int _j = 0; _j < this.flexLength(); ++_j) {_oFlex.add(this.flex(_j));}
+    _o.setFlex(_oFlex);
+    List<MyGame.Example.TestT> _oTest5 = new ArrayList<>();
+    for (int _j = 0; _j < this.test5Length(); ++_j) {_oTest5.add(this.test5(_j) != null ? this.test5(_j).unpack() : null);}
+    _o.setTest5(_oTest5);
+    List<Long> _oVectorOfLongs = new ArrayList<>();
+    for (int _j = 0; _j < this.vectorOfLongsLength(); ++_j) {_oVectorOfLongs.add(this.vectorOfLongs(_j));}
+    _o.setVectorOfLongs(_oVectorOfLongs);
+    List<Double> _oVectorOfDoubles = new ArrayList<>();
+    for (int _j = 0; _j < this.vectorOfDoublesLength(); ++_j) {_oVectorOfDoubles.add(this.vectorOfDoubles(_j));}
+    _o.setVectorOfDoubles(_oVectorOfDoubles);
+    MyGame.InParentNamespaceT _oParentNamespaceTest = this.parentNamespaceTest() != null ? this.parentNamespaceTest().unpack() : null;
+    _o.setParentNamespaceTest(_oParentNamespaceTest);
+    List<MyGame.Example.ReferrableT> _oVectorOfReferrables = new ArrayList<>();
+    for (int _j = 0; _j < this.vectorOfReferrablesLength(); ++_j) {_oVectorOfReferrables.add(this.vectorOfReferrables(_j) != null ? this.vectorOfReferrables(_j).unpack() : null);}
+    _o.setVectorOfReferrables(_oVectorOfReferrables);
+    long _oSingleWeakReference = this.singleWeakReference();
+    _o.setSingleWeakReference(_oSingleWeakReference);
+    List<Long> _oVectorOfWeakReferences = new ArrayList<>();
+    for (int _j = 0; _j < this.vectorOfWeakReferencesLength(); ++_j) {_oVectorOfWeakReferences.add(this.vectorOfWeakReferences(_j));}
+    _o.setVectorOfWeakReferences(_oVectorOfWeakReferences);
+    List<MyGame.Example.ReferrableT> _oVectorOfStrongReferrables = new ArrayList<>();
+    for (int _j = 0; _j < this.vectorOfStrongReferrablesLength(); ++_j) {_oVectorOfStrongReferrables.add(this.vectorOfStrongReferrables(_j) != null ? this.vectorOfStrongReferrables(_j).unpack() : null);}
+    _o.setVectorOfStrongReferrables(_oVectorOfStrongReferrables);
+    long _oCoOwningReference = this.coOwningReference();
+    _o.setCoOwningReference(_oCoOwningReference);
+    List<Long> _oVectorOfCoOwningReferences = new ArrayList<>();
+    for (int _j = 0; _j < this.vectorOfCoOwningReferencesLength(); ++_j) {_oVectorOfCoOwningReferences.add(this.vectorOfCoOwningReferences(_j));}
+    _o.setVectorOfCoOwningReferences(_oVectorOfCoOwningReferences);
+    long _oNonOwningReference = this.nonOwningReference();
+    _o.setNonOwningReference(_oNonOwningReference);
+    List<Long> _oVectorOfNonOwningReferences = new ArrayList<>();
+    for (int _j = 0; _j < this.vectorOfNonOwningReferencesLength(); ++_j) {_oVectorOfNonOwningReferences.add(this.vectorOfNonOwningReferences(_j));}
+    _o.setVectorOfNonOwningReferences(_oVectorOfNonOwningReferences);
+    AnyUniqueAliasesUnion _oAnyUnique = new AnyUniqueAliasesUnion();
+    byte _oAnyUniqueType = this.anyUniqueType();
+    _oAnyUnique.setType(_oAnyUniqueType);
+    Table _oAnyUniqueValue  = this.anyUnique();
+    switch (_oAnyUniqueType) {
+      case AnyUniqueAliases.M:
+        _oAnyUnique.setValue(_oAnyUniqueValue != null ? ((MyGame.Example.Monster) _oAnyUniqueValue).unpack() : null);
+        break;
+      case AnyUniqueAliases.TS:
+        _oAnyUnique.setValue(_oAnyUniqueValue != null ? ((MyGame.Example.TestSimpleTableWithEnum) _oAnyUniqueValue).unpack() : null);
+        break;
+      case AnyUniqueAliases.M2:
+        _oAnyUnique.setValue(_oAnyUniqueValue != null ? ((MyGame.Example2.Monster) _oAnyUniqueValue).unpack() : null);
+        break;
+      default: break;
+    }
+    _o.setAnyUnique(_oAnyUnique);
+    AnyAmbiguousAliasesUnion _oAnyAmbiguous = new AnyAmbiguousAliasesUnion();
+    byte _oAnyAmbiguousType = this.anyAmbiguousType();
+    _oAnyAmbiguous.setType(_oAnyAmbiguousType);
+    Table _oAnyAmbiguousValue  = this.anyAmbiguous();
+    switch (_oAnyAmbiguousType) {
+      case AnyAmbiguousAliases.M1:
+        _oAnyAmbiguous.setValue(_oAnyAmbiguousValue != null ? ((MyGame.Example.Monster) _oAnyAmbiguousValue).unpack() : null);
+        break;
+      case AnyAmbiguousAliases.M2:
+        _oAnyAmbiguous.setValue(_oAnyAmbiguousValue != null ? ((MyGame.Example.Monster) _oAnyAmbiguousValue).unpack() : null);
+        break;
+      case AnyAmbiguousAliases.M3:
+        _oAnyAmbiguous.setValue(_oAnyAmbiguousValue != null ? ((MyGame.Example.Monster) _oAnyAmbiguousValue).unpack() : null);
+        break;
+      default: break;
+    }
+    _o.setAnyAmbiguous(_oAnyAmbiguous);
+    List<Integer> _oVectorOfEnums = new ArrayList<>();
+    for (int _j = 0; _j < this.vectorOfEnumsLength(); ++_j) {_oVectorOfEnums.add(this.vectorOfEnums(_j));}
+    _o.setVectorOfEnums(_oVectorOfEnums);
+    byte _oSignedEnum = this.signedEnum();
+    _o.setSignedEnum(_oSignedEnum);
+    List<Integer> _oTestrequirednestedflatbuffer = new ArrayList<>();
+    for (int _j = 0; _j < this.testrequirednestedflatbufferLength(); ++_j) {_oTestrequirednestedflatbuffer.add(this.testrequirednestedflatbuffer(_j));}
+    _o.setTestrequirednestedflatbuffer(_oTestrequirednestedflatbuffer);
+    List<MyGame.Example.StatT> _oScalarKeySortedTables = new ArrayList<>();
+    for (int _j = 0; _j < this.scalarKeySortedTablesLength(); ++_j) {_oScalarKeySortedTables.add(this.scalarKeySortedTables(_j) != null ? this.scalarKeySortedTables(_j).unpack() : null);}
+    _o.setScalarKeySortedTables(_oScalarKeySortedTables);
+  }
+  public static int pack(FlatBufferBuilder builder, MonsterT _o) {
+    if (_o == null) return 0;
+    int _name = _o.getName() == null ? 0 : builder.createString(_o.getName());
+    int _inventory = 0;
+    if (_o.getInventory() != null) {
+      int[] __inventory = new int[_o.getInventory().size()];
+      int _j = 0;
+      for (int _e : _o.getInventory()) { __inventory[_j] = _e; _j++;}
+      _inventory = createInventoryVector(builder, __inventory);
+    }
+    byte _testType = _o.getTest() == null ? MyGame.Example.Any.NONE : _o.getTest().getType();
+    int _test = _o.getTest() == null ? 0 : AnyUnion.pack(builder, _o.getTest());
+    int _test4 = 0;
+    if (_o.getTest4() != null) {
+      startTest4Vector(builder, _o.getTest4().size());
+      for (MyGame.Example.TestT _e : _o.getTest4()) { MyGame.Example.Test.pack(builder, _e);}
+      _test4 = builder.endVector();
+    }
+    int _testarrayofstring = 0;
+    if (_o.getTestarrayofstring() != null) {
+      int[] __testarrayofstring = new int[_o.getTestarrayofstring().size()];
+      int _j = 0;
+      for (String _e : _o.getTestarrayofstring()) { __testarrayofstring[_j] = builder.createString(_e); _j++;}
+      _testarrayofstring = createTestarrayofstringVector(builder, __testarrayofstring);
+    }
+    int _testarrayoftables = 0;
+    if (_o.getTestarrayoftables() != null) {
+      int[] __testarrayoftables = new int[_o.getTestarrayoftables().size()];
+      int _j = 0;
+      for (MyGame.Example.Monster _e : _o.getTestarrayoftables()) { __testarrayoftables[_j] = MyGame.Example.Monster.pack(builder, _e); _j++;}
+      _testarrayoftables = createTestarrayoftablesVector(builder, __testarrayoftables);
+    }
+    int _enemy = _o.getEnemy() == null ? 0 : MyGame.Example.Monster.pack(builder, _o.getEnemy());
+    int _testnestedflatbuffer = 0;
+    if (_o.getTestnestedflatbuffer() != null) {
+      int[] __testnestedflatbuffer = new int[_o.getTestnestedflatbuffer().size()];
+      int _j = 0;
+      for (int _e : _o.getTestnestedflatbuffer()) { __testnestedflatbuffer[_j] = _e; _j++;}
+      _testnestedflatbuffer = createTestnestedflatbufferVector(builder, __testnestedflatbuffer);
+    }
+    int _testempty = _o.getTestempty() == null ? 0 : MyGame.Example.Stat.pack(builder, _o.getTestempty());
+    int _testarrayofbools = 0;
+    if (_o.getTestarrayofbools() != null) {
+      boolean[] __testarrayofbools = new boolean[_o.getTestarrayofbools().size()];
+      int _j = 0;
+      for (boolean _e : _o.getTestarrayofbools()) { __testarrayofbools[_j] = _e; _j++;}
+      _testarrayofbools = createTestarrayofboolsVector(builder, __testarrayofbools);
+    }
+    int _testarrayofstring2 = 0;
+    if (_o.getTestarrayofstring2() != null) {
+      int[] __testarrayofstring2 = new int[_o.getTestarrayofstring2().size()];
+      int _j = 0;
+      for (String _e : _o.getTestarrayofstring2()) { __testarrayofstring2[_j] = builder.createString(_e); _j++;}
+      _testarrayofstring2 = createTestarrayofstring2Vector(builder, __testarrayofstring2);
+    }
+    int _testarrayofsortedstruct = 0;
+    if (_o.getTestarrayofsortedstruct() != null) {
+      startTestarrayofsortedstructVector(builder, _o.getTestarrayofsortedstruct().size());
+      for (MyGame.Example.AbilityT _e : _o.getTestarrayofsortedstruct()) { MyGame.Example.Ability.pack(builder, _e);}
+      _testarrayofsortedstruct = builder.endVector();
+    }
+    int _flex = 0;
+    if (_o.getFlex() != null) {
+      int[] __flex = new int[_o.getFlex().size()];
+      int _j = 0;
+      for (int _e : _o.getFlex()) { __flex[_j] = _e; _j++;}
+      _flex = createFlexVector(builder, __flex);
+    }
+    int _test5 = 0;
+    if (_o.getTest5() != null) {
+      startTest5Vector(builder, _o.getTest5().size());
+      for (MyGame.Example.TestT _e : _o.getTest5()) { MyGame.Example.Test.pack(builder, _e);}
+      _test5 = builder.endVector();
+    }
+    int _vectorOfLongs = 0;
+    if (_o.getVectorOfLongs() != null) {
+      long[] __vectorOfLongs = new long[_o.getVectorOfLongs().size()];
+      int _j = 0;
+      for (long _e : _o.getVectorOfLongs()) { __vectorOfLongs[_j] = _e; _j++;}
+      _vectorOfLongs = createVectorOfLongsVector(builder, __vectorOfLongs);
+    }
+    int _vectorOfDoubles = 0;
+    if (_o.getVectorOfDoubles() != null) {
+      double[] __vectorOfDoubles = new double[_o.getVectorOfDoubles().size()];
+      int _j = 0;
+      for (double _e : _o.getVectorOfDoubles()) { __vectorOfDoubles[_j] = _e; _j++;}
+      _vectorOfDoubles = createVectorOfDoublesVector(builder, __vectorOfDoubles);
+    }
+    int _parent_namespace_test = _o.getParentNamespaceTest() == null ? 0 : MyGame.InParentNamespace.pack(builder, _o.getParentNamespaceTest());
+    int _vectorOfReferrables = 0;
+    if (_o.getVectorOfReferrables() != null) {
+      int[] __vectorOfReferrables = new int[_o.getVectorOfReferrables().size()];
+      int _j = 0;
+      for (MyGame.Example.Referrable _e : _o.getVectorOfReferrables()) { __vectorOfReferrables[_j] = MyGame.Example.Referrable.pack(builder, _e); _j++;}
+      _vectorOfReferrables = createVectorOfReferrablesVector(builder, __vectorOfReferrables);
+    }
+    int _vectorOfWeakReferences = 0;
+    if (_o.getVectorOfWeakReferences() != null) {
+      long[] __vectorOfWeakReferences = new long[_o.getVectorOfWeakReferences().size()];
+      int _j = 0;
+      for (long _e : _o.getVectorOfWeakReferences()) { __vectorOfWeakReferences[_j] = _e; _j++;}
+      _vectorOfWeakReferences = createVectorOfWeakReferencesVector(builder, __vectorOfWeakReferences);
+    }
+    int _vectorOfStrongReferrables = 0;
+    if (_o.getVectorOfStrongReferrables() != null) {
+      int[] __vectorOfStrongReferrables = new int[_o.getVectorOfStrongReferrables().size()];
+      int _j = 0;
+      for (MyGame.Example.Referrable _e : _o.getVectorOfStrongReferrables()) { __vectorOfStrongReferrables[_j] = MyGame.Example.Referrable.pack(builder, _e); _j++;}
+      _vectorOfStrongReferrables = createVectorOfStrongReferrablesVector(builder, __vectorOfStrongReferrables);
+    }
+    int _vectorOfCoOwningReferences = 0;
+    if (_o.getVectorOfCoOwningReferences() != null) {
+      long[] __vectorOfCoOwningReferences = new long[_o.getVectorOfCoOwningReferences().size()];
+      int _j = 0;
+      for (long _e : _o.getVectorOfCoOwningReferences()) { __vectorOfCoOwningReferences[_j] = _e; _j++;}
+      _vectorOfCoOwningReferences = createVectorOfCoOwningReferencesVector(builder, __vectorOfCoOwningReferences);
+    }
+    int _vectorOfNonOwningReferences = 0;
+    if (_o.getVectorOfNonOwningReferences() != null) {
+      long[] __vectorOfNonOwningReferences = new long[_o.getVectorOfNonOwningReferences().size()];
+      int _j = 0;
+      for (long _e : _o.getVectorOfNonOwningReferences()) { __vectorOfNonOwningReferences[_j] = _e; _j++;}
+      _vectorOfNonOwningReferences = createVectorOfNonOwningReferencesVector(builder, __vectorOfNonOwningReferences);
+    }
+    byte _anyUniqueType = _o.getAnyUnique() == null ? MyGame.Example.AnyUniqueAliases.NONE : _o.getAnyUnique().getType();
+    int _anyUnique = _o.getAnyUnique() == null ? 0 : AnyUniqueAliasesUnion.pack(builder, _o.getAnyUnique());
+    byte _anyAmbiguousType = _o.getAnyAmbiguous() == null ? MyGame.Example.AnyAmbiguousAliases.NONE : _o.getAnyAmbiguous().getType();
+    int _anyAmbiguous = _o.getAnyAmbiguous() == null ? 0 : AnyAmbiguousAliasesUnion.pack(builder, _o.getAnyAmbiguous());
+    int _vectorOfEnums = 0;
+    if (_o.getVectorOfEnums() != null) {
+      int[] __vectorOfEnums = new int[_o.getVectorOfEnums().size()];
+      int _j = 0;
+      for (int _e : _o.getVectorOfEnums()) { __vectorOfEnums[_j] = _e; _j++;}
+      _vectorOfEnums = createVectorOfEnumsVector(builder, __vectorOfEnums);
+    }
+    int _testrequirednestedflatbuffer = 0;
+    if (_o.getTestrequirednestedflatbuffer() != null) {
+      int[] __testrequirednestedflatbuffer = new int[_o.getTestrequirednestedflatbuffer().size()];
+      int _j = 0;
+      for (int _e : _o.getTestrequirednestedflatbuffer()) { __testrequirednestedflatbuffer[_j] = _e; _j++;}
+      _testrequirednestedflatbuffer = createTestrequirednestedflatbufferVector(builder, __testrequirednestedflatbuffer);
+    }
+    int _scalarKeySortedTables = 0;
+    if (_o.getScalarKeySortedTables() != null) {
+      int[] __scalarKeySortedTables = new int[_o.getScalarKeySortedTables().size()];
+      int _j = 0;
+      for (MyGame.Example.Stat _e : _o.getScalarKeySortedTables()) { __scalarKeySortedTables[_j] = MyGame.Example.Stat.pack(builder, _e); _j++;}
+      _scalarKeySortedTables = createScalarKeySortedTablesVector(builder, __scalarKeySortedTables);
+    }
+    startMonster(builder);
+    addPos(builder, MyGame.Example.Vec3.pack(builder, _o.getPos()));
+    addMana(builder, _o.getMana());
+    addHp(builder, _o.getHp());
+    addName(builder, _name);
+    addInventory(builder, _inventory);
+    addColor(builder, _o.getColor());
+    addTestType(builder, _testType);
+    addTest(builder, _test);
+    addTest4(builder, _test4);
+    addTestarrayofstring(builder, _testarrayofstring);
+    addTestarrayoftables(builder, _testarrayoftables);
+    addEnemy(builder, _enemy);
+    addTestnestedflatbuffer(builder, _testnestedflatbuffer);
+    addTestempty(builder, _testempty);
+    addTestbool(builder, _o.getTestbool());
+    addTesthashs32Fnv1(builder, _o.getTesthashs32Fnv1());
+    addTesthashu32Fnv1(builder, _o.getTesthashu32Fnv1());
+    addTesthashs64Fnv1(builder, _o.getTesthashs64Fnv1());
+    addTesthashu64Fnv1(builder, _o.getTesthashu64Fnv1());
+    addTesthashs32Fnv1a(builder, _o.getTesthashs32Fnv1a());
+    addTesthashu32Fnv1a(builder, _o.getTesthashu32Fnv1a());
+    addTesthashs64Fnv1a(builder, _o.getTesthashs64Fnv1a());
+    addTesthashu64Fnv1a(builder, _o.getTesthashu64Fnv1a());
+    addTestarrayofbools(builder, _testarrayofbools);
+    addTestf(builder, _o.getTestf());
+    addTestf2(builder, _o.getTestf2());
+    addTestf3(builder, _o.getTestf3());
+    addTestarrayofstring2(builder, _testarrayofstring2);
+    addTestarrayofsortedstruct(builder, _testarrayofsortedstruct);
+    addFlex(builder, _flex);
+    addTest5(builder, _test5);
+    addVectorOfLongs(builder, _vectorOfLongs);
+    addVectorOfDoubles(builder, _vectorOfDoubles);
+    addParentNamespaceTest(builder, _parent_namespace_test);
+    addVectorOfReferrables(builder, _vectorOfReferrables);
+    addSingleWeakReference(builder, _o.getSingleWeakReference());
+    addVectorOfWeakReferences(builder, _vectorOfWeakReferences);
+    addVectorOfStrongReferrables(builder, _vectorOfStrongReferrables);
+    addCoOwningReference(builder, _o.getCoOwningReference());
+    addVectorOfCoOwningReferences(builder, _vectorOfCoOwningReferences);
+    addNonOwningReference(builder, _o.getNonOwningReference());
+    addVectorOfNonOwningReferences(builder, _vectorOfNonOwningReferences);
+    addAnyUniqueType(builder, _anyUniqueType);
+    addAnyUnique(builder, _anyUnique);
+    addAnyAmbiguousType(builder, _anyAmbiguousType);
+    addAnyAmbiguous(builder, _anyAmbiguous);
+    addVectorOfEnums(builder, _vectorOfEnums);
+    addSignedEnum(builder, _o.getSignedEnum());
+    addTestrequirednestedflatbuffer(builder, _testrequirednestedflatbuffer);
+    addScalarKeySortedTables(builder, _scalarKeySortedTables);
+    return endMonster(builder);
+  }
 }
-

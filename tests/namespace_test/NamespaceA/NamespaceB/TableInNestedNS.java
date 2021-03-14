@@ -38,5 +38,19 @@ public final class TableInNestedNS extends Table {
     public TableInNestedNS get(int j) { return get(new TableInNestedNS(), j); }
     public TableInNestedNS get(TableInNestedNS obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }
   }
+  public TableInNestedNST unpack() {
+    TableInNestedNST _o = new TableInNestedNST();
+    this.unpackTo(_o);
+    return _o;
+  }
+  public void unpackTo(TableInNestedNST _o) {
+    int _oFoo = this.foo();
+    _o.setFoo(_oFoo);
+  }
+  public static int pack(FlatBufferBuilder builder, TableInNestedNST _o) {
+    if (_o == null) return 0;
+    return createTableInNestedNS(
+      builder,
+      _o.getFoo());
+  }
 }
-

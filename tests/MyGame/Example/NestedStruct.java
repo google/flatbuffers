@@ -43,5 +43,34 @@ public final class NestedStruct extends Struct {
     public NestedStruct get(int j) { return get(new NestedStruct(), j); }
     public NestedStruct get(NestedStruct obj, int j) {  return obj.__assign(__element(j), bb); }
   }
+  public NestedStructT unpack() {
+    NestedStructT _o = new NestedStructT();
+    this.unpackTo(_o);
+    return _o;
+  }
+  public void unpackTo(NestedStructT _o) {
+    int[] _oA = new int[2];
+    for (int _j = 0; _j < 2; ++_j) { _oA[_j] = this.a(_j); }
+    _o.setA(_oA);
+    byte _oB = this.b();
+    _o.setB(_oB);
+    byte[] _oC = new byte[2];
+    for (int _j = 0; _j < 2; ++_j) { _oC[_j] = this.c(_j); }
+    _o.setC(_oC);
+    long[] _oD = new long[2];
+    for (int _j = 0; _j < 2; ++_j) { _oD[_j] = this.d(_j); }
+    _o.setD(_oD);
+  }
+  public static int pack(FlatBufferBuilder builder, NestedStructT _o) {
+    if (_o == null) return 0;
+    int[] _a = _o.getA();
+    byte[] _c = _o.getC();
+    long[] _d = _o.getD();
+    return createNestedStruct(
+      builder,
+      _a,
+      _o.getB(),
+      _c,
+      _d);
+  }
 }
-

@@ -28,5 +28,16 @@ public final class Monster extends Table {
     public Monster get(int j) { return get(new Monster(), j); }
     public Monster get(Monster obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }
   }
+  public MonsterT unpack() {
+    MonsterT _o = new MonsterT();
+    this.unpackTo(_o);
+    return _o;
+  }
+  public void unpackTo(MonsterT _o) {
+  }
+  public static int pack(FlatBufferBuilder builder, MonsterT _o) {
+    if (_o == null) return 0;
+    startMonster(builder);
+    return endMonster(builder);
+  }
 }
-
