@@ -28,5 +28,17 @@ public final class InParentNamespace extends Table {
     public InParentNamespace get(int j) { return get(new InParentNamespace(), j); }
     public InParentNamespace get(InParentNamespace obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }
   }
+  public InParentNamespaceT unpack() {
+    InParentNamespaceT _o = new InParentNamespaceT();
+    unpackTo(_o);
+    return _o;
+  }
+  public void unpackTo(InParentNamespaceT _o) {
+  }
+  public static int pack(FlatBufferBuilder builder, InParentNamespaceT _o) {
+    if (_o == null) return 0;
+    startInParentNamespace(builder);
+    return endInParentNamespace(builder);
+  }
 }
 

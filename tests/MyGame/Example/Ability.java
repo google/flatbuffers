@@ -30,5 +30,23 @@ public final class Ability extends Struct {
     public Ability get(int j) { return get(new Ability(), j); }
     public Ability get(Ability obj, int j) {  return obj.__assign(__element(j), bb); }
   }
+  public AbilityT unpack() {
+    AbilityT _o = new AbilityT();
+    unpackTo(_o);
+    return _o;
+  }
+  public void unpackTo(AbilityT _o) {
+    long _oId = id();
+    _o.setId(_oId);
+    long _oDistance = distance();
+    _o.setDistance(_oDistance);
+  }
+  public static int pack(FlatBufferBuilder builder, AbilityT _o) {
+    if (_o == null) return 0;
+    return createAbility(
+      builder,
+      _o.getId(),
+      _o.getDistance());
+  }
 }
 

@@ -28,15 +28,15 @@ public final class Movie extends Table {
   public UnionVector charactersVector(UnionVector obj) { int o = __offset(10); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
 
   public static int createMovie(FlatBufferBuilder builder,
-      byte main_character_type,
-      int main_characterOffset,
-      int characters_typeOffset,
+      byte mainCharacterType,
+      int mainCharacterOffset,
+      int charactersTypeOffset,
       int charactersOffset) {
     builder.startTable(4);
     Movie.addCharacters(builder, charactersOffset);
-    Movie.addCharactersType(builder, characters_typeOffset);
-    Movie.addMainCharacter(builder, main_characterOffset);
-    Movie.addMainCharacterType(builder, main_character_type);
+    Movie.addCharactersType(builder, charactersTypeOffset);
+    Movie.addMainCharacter(builder, mainCharacterOffset);
+    Movie.addMainCharacterType(builder, mainCharacterType);
     return Movie.endMovie(builder);
   }
 
@@ -44,10 +44,10 @@ public final class Movie extends Table {
   public static void addMainCharacterType(FlatBufferBuilder builder, byte mainCharacterType) { builder.addByte(0, mainCharacterType, 0); }
   public static void addMainCharacter(FlatBufferBuilder builder, int mainCharacterOffset) { builder.addOffset(1, mainCharacterOffset, 0); }
   public static void addCharactersType(FlatBufferBuilder builder, int charactersTypeOffset) { builder.addOffset(2, charactersTypeOffset, 0); }
-  public static int createCharactersTypeVector(FlatBufferBuilder builder, byte[] data) { builder.startVector(1, data.length, 1); for (int i = data.length - 1; i >= 0; i--) builder.addByte(data[i]); return builder.endVector(); }
+  public static int createCharactersTypeVector(FlatBufferBuilder builder, byte[] data) { builder.startVector(1, data.length, 1); for (int i = data.length - 1; i >= 0; i--) builder.addByte( data[i]); return builder.endVector(); }
   public static void startCharactersTypeVector(FlatBufferBuilder builder, int numElems) { builder.startVector(1, numElems, 1); }
   public static void addCharacters(FlatBufferBuilder builder, int charactersOffset) { builder.addOffset(3, charactersOffset, 0); }
-  public static int createCharactersVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
+  public static int createCharactersVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset( data[i]); return builder.endVector(); }
   public static void startCharactersVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
   public static int endMovie(FlatBufferBuilder builder) {
     int o = builder.endTable();
@@ -61,6 +61,106 @@ public final class Movie extends Table {
 
     public Movie get(int j) { return get(new Movie(), j); }
     public Movie get(Movie obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }
+  }
+  public MovieT unpack() {
+    MovieT _o = new MovieT();
+    unpackTo(_o);
+    return _o;
+  }
+  public void unpackTo(MovieT _o) {
+    CharacterUnion _oMainCharacter = new CharacterUnion();
+    byte _oMainCharacterType = mainCharacterType();
+    _oMainCharacter.setType(_oMainCharacterType);
+    Table _oMainCharacterValue;
+    switch (_oMainCharacterType) {
+      case Character.MuLan:
+        _oMainCharacterValue = mainCharacter(new Attacker());
+        _oMainCharacter.setValue(_oMainCharacterValue != null ? ((Attacker) _oMainCharacterValue).unpack() : null);
+        break;
+      case Character.Rapunzel:
+        _oMainCharacterValue = mainCharacter(new Rapunzel());
+        _oMainCharacter.setValue(_oMainCharacterValue != null ? ((Rapunzel) _oMainCharacterValue).unpack() : null);
+        break;
+      case Character.Belle:
+        _oMainCharacterValue = mainCharacter(new BookReader());
+        _oMainCharacter.setValue(_oMainCharacterValue != null ? ((BookReader) _oMainCharacterValue).unpack() : null);
+        break;
+      case Character.BookFan:
+        _oMainCharacterValue = mainCharacter(new BookReader());
+        _oMainCharacter.setValue(_oMainCharacterValue != null ? ((BookReader) _oMainCharacterValue).unpack() : null);
+        break;
+      case Character.Other:
+        _oMainCharacterValue = mainCharacter(new String());
+        _oMainCharacter.setValue(_oMainCharacterValue != null ? ((String) _oMainCharacterValue).unpack() : null);
+        break;
+      case Character.Unused:
+        _oMainCharacterValue = mainCharacter(new String());
+        _oMainCharacter.setValue(_oMainCharacterValue != null ? ((String) _oMainCharacterValue).unpack() : null);
+        break;
+      default: break;
+    }
+    _o.setMainCharacter(_oMainCharacter);
+    CharacterUnion[] _oCharacters = new CharacterUnion[charactersLength()];
+    for (int _j = 0; _j < charactersLength(); ++_j) {
+      CharacterUnion _oCharactersElement = new CharacterUnion();
+      byte _oCharactersElementType = charactersType(_j);
+      _oCharactersElement.setType(_oCharactersElementType);
+      Table _oCharactersElementValue;
+      switch (_oCharactersElementType) {
+        case Character.MuLan:
+          _oCharactersElementValue = characters(new Attacker(), _j);
+          _oCharactersElement.setValue(_oCharactersElementValue != null ? ((Attacker) _oCharactersElementValue).unpack() : null);
+          break;
+        case Character.Rapunzel:
+          _oCharactersElementValue = characters(new Rapunzel(), _j);
+          _oCharactersElement.setValue(_oCharactersElementValue != null ? ((Rapunzel) _oCharactersElementValue).unpack() : null);
+          break;
+        case Character.Belle:
+          _oCharactersElementValue = characters(new BookReader(), _j);
+          _oCharactersElement.setValue(_oCharactersElementValue != null ? ((BookReader) _oCharactersElementValue).unpack() : null);
+          break;
+        case Character.BookFan:
+          _oCharactersElementValue = characters(new BookReader(), _j);
+          _oCharactersElement.setValue(_oCharactersElementValue != null ? ((BookReader) _oCharactersElementValue).unpack() : null);
+          break;
+        case Character.Other:
+          _oCharactersElementValue = characters(new String(), _j);
+          _oCharactersElement.setValue(_oCharactersElementValue != null ? ((String) _oCharactersElementValue).unpack() : null);
+          break;
+        case Character.Unused:
+          _oCharactersElementValue = characters(new String(), _j);
+          _oCharactersElement.setValue(_oCharactersElementValue != null ? ((String) _oCharactersElementValue).unpack() : null);
+          break;
+        default: break;
+      }
+      _oCharacters[_j] = _oCharactersElement;
+    }
+    _o.setCharacters(_oCharacters);
+  }
+  public static int pack(FlatBufferBuilder builder, MovieT _o) {
+    if (_o == null) return 0;
+    byte _mainCharacterType = _o.getMainCharacter() == null ? Character.NONE : _o.getMainCharacter().getType();
+    int _mainCharacter = _o.getMainCharacter() == null ? 0 : CharacterUnion.pack(builder, _o.getMainCharacter());
+    int _charactersType = 0;
+    if (_o.getCharacters() != null) {
+      byte[] __charactersType = new byte[_o.getCharacters().length];
+      int _j = 0;
+      for (CharacterUnion _e : _o.getCharacters()) { __charactersType[_j] = _o.getCharacters()[_j].getType(); _j++;}
+      _charactersType = createCharactersTypeVector(builder, __charactersType);
+    }
+    int _characters = 0;
+    if (_o.getCharacters() != null) {
+      int[] __characters = new int[_o.getCharacters().length];
+      int _j = 0;
+      for (CharacterUnion _e : _o.getCharacters()) { __characters[_j] = CharacterUnion.pack(builder,  _o.getCharacters()[_j]); _j++;}
+      _characters = createCharactersVector(builder, __characters);
+    }
+    return createMovie(
+      builder,
+      _mainCharacterType,
+      _mainCharacter,
+      _charactersType,
+      _characters);
   }
 }
 

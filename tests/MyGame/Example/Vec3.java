@@ -48,5 +48,38 @@ public final class Vec3 extends Struct {
     public Vec3 get(int j) { return get(new Vec3(), j); }
     public Vec3 get(Vec3 obj, int j) {  return obj.__assign(__element(j), bb); }
   }
+  public Vec3T unpack() {
+    Vec3T _o = new Vec3T();
+    unpackTo(_o);
+    return _o;
+  }
+  public void unpackTo(Vec3T _o) {
+    float _oX = x();
+    _o.setX(_oX);
+    float _oY = y();
+    _o.setY(_oY);
+    float _oZ = z();
+    _o.setZ(_oZ);
+    double _oTest1 = test1();
+    _o.setTest1(_oTest1);
+    int _oTest2 = test2();
+    _o.setTest2(_oTest2);
+    MyGame.Example.TestT _oTest3 = test3().unpack();
+    _o.setTest3(_oTest3);
+  }
+  public static int pack(FlatBufferBuilder builder, Vec3T _o) {
+    if (_o == null) return 0;
+    short _test3_a = _o.getTest3().getA();
+    byte _test3_b = _o.getTest3().getB();
+    return createVec3(
+      builder,
+      _o.getX(),
+      _o.getY(),
+      _o.getZ(),
+      _o.getTest1(),
+      _o.getTest2(),
+      _test3_a,
+      _test3_b);
+  }
 }
 

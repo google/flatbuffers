@@ -79,5 +79,27 @@ public final class Stat extends Table {
     public Stat getByKey(int key) {  return __lookup_by_key(null, __vector(), key, bb); }
     public Stat getByKey(Stat obj, int key) {  return __lookup_by_key(obj, __vector(), key, bb); }
   }
+  public StatT unpack() {
+    StatT _o = new StatT();
+    unpackTo(_o);
+    return _o;
+  }
+  public void unpackTo(StatT _o) {
+    String _oId = id();
+    _o.setId(_oId);
+    long _oVal = val();
+    _o.setVal(_oVal);
+    int _oCount = count();
+    _o.setCount(_oCount);
+  }
+  public static int pack(FlatBufferBuilder builder, StatT _o) {
+    if (_o == null) return 0;
+    int _id = _o.getId() == null ? 0 : builder.createString(_o.getId());
+    return createStat(
+      builder,
+      _id,
+      _o.getVal(),
+      _o.getCount());
+  }
 }
 

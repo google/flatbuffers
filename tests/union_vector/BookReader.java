@@ -25,5 +25,20 @@ public final class BookReader extends Struct {
     public BookReader get(int j) { return get(new BookReader(), j); }
     public BookReader get(BookReader obj, int j) {  return obj.__assign(__element(j), bb); }
   }
+  public BookReaderT unpack() {
+    BookReaderT _o = new BookReaderT();
+    unpackTo(_o);
+    return _o;
+  }
+  public void unpackTo(BookReaderT _o) {
+    int _oBooksRead = booksRead();
+    _o.setBooksRead(_oBooksRead);
+  }
+  public static int pack(FlatBufferBuilder builder, BookReaderT _o) {
+    if (_o == null) return 0;
+    return createBookReader(
+      builder,
+      _o.getBooksRead());
+  }
 }
 
