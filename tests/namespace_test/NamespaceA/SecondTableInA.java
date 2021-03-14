@@ -19,9 +19,9 @@ public final class SecondTableInA extends Table {
   public NamespaceC.TableInC referToC(NamespaceC.TableInC obj) { int o = __offset(4); return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null; }
 
   public static int createSecondTableInA(FlatBufferBuilder builder,
-      int refer_to_cOffset) {
+      int referToCOffset) {
     builder.startTable(1);
-    SecondTableInA.addReferToC(builder, refer_to_cOffset);
+    SecondTableInA.addReferToC(builder, referToCOffset);
     return SecondTableInA.endSecondTableInA(builder);
   }
 
@@ -37,6 +37,22 @@ public final class SecondTableInA extends Table {
 
     public SecondTableInA get(int j) { return get(new SecondTableInA(), j); }
     public SecondTableInA get(SecondTableInA obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }
+  }
+  public SecondTableInAT unpack() {
+    SecondTableInAT _o = new SecondTableInAT();
+    unpackTo(_o);
+    return _o;
+  }
+  public void unpackTo(SecondTableInAT _o) {
+    NamespaceC.TableInCT _oReferToC = referToC() != null ? referToC().unpack() : null;
+    _o.setReferToC(_oReferToC);
+  }
+  public static int pack(FlatBufferBuilder builder, SecondTableInAT _o) {
+    if (_o == null) return 0;
+    int _refer_to_c = _o.getReferToC() == null ? 0 : NamespaceC.TableInC.pack(builder, _o.getReferToC());
+    return createSecondTableInA(
+      builder,
+      _refer_to_c);
   }
 }
 

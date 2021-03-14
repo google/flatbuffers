@@ -82,10 +82,10 @@ public final class MonsterExtra extends Table {
   public static void addF2(FlatBufferBuilder builder, float f2) { builder.addFloat(6, f2, Float.POSITIVE_INFINITY); }
   public static void addF3(FlatBufferBuilder builder, float f3) { builder.addFloat(7, f3, Float.NEGATIVE_INFINITY); }
   public static void addDvec(FlatBufferBuilder builder, int dvecOffset) { builder.addOffset(8, dvecOffset, 0); }
-  public static int createDvecVector(FlatBufferBuilder builder, double[] data) { builder.startVector(8, data.length, 8); for (int i = data.length - 1; i >= 0; i--) builder.addDouble(data[i]); return builder.endVector(); }
+  public static int createDvecVector(FlatBufferBuilder builder, double[] data) { builder.startVector(8, data.length, 8); for (int i = data.length - 1; i >= 0; i--) builder.addDouble( data[i]); return builder.endVector(); }
   public static void startDvecVector(FlatBufferBuilder builder, int numElems) { builder.startVector(8, numElems, 8); }
   public static void addFvec(FlatBufferBuilder builder, int fvecOffset) { builder.addOffset(9, fvecOffset, 0); }
-  public static int createFvecVector(FlatBufferBuilder builder, float[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addFloat(data[i]); return builder.endVector(); }
+  public static int createFvecVector(FlatBufferBuilder builder, float[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addFloat( data[i]); return builder.endVector(); }
   public static void startFvecVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
   public static int endMonsterExtra(FlatBufferBuilder builder) {
     int o = builder.endTable();
@@ -99,6 +99,58 @@ public final class MonsterExtra extends Table {
 
     public MonsterExtra get(int j) { return get(new MonsterExtra(), j); }
     public MonsterExtra get(MonsterExtra obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }
+  }
+  public MonsterExtraT unpack() {
+    MonsterExtraT _o = new MonsterExtraT();
+    unpackTo(_o);
+    return _o;
+  }
+  public void unpackTo(MonsterExtraT _o) {
+    double _oD0 = d0();
+    _o.setD0(_oD0);
+    double _oD1 = d1();
+    _o.setD1(_oD1);
+    double _oD2 = d2();
+    _o.setD2(_oD2);
+    double _oD3 = d3();
+    _o.setD3(_oD3);
+    float _oF0 = f0();
+    _o.setF0(_oF0);
+    float _oF1 = f1();
+    _o.setF1(_oF1);
+    float _oF2 = f2();
+    _o.setF2(_oF2);
+    float _oF3 = f3();
+    _o.setF3(_oF3);
+    double[] _oDvec = new double[dvecLength()];
+    for (int _j = 0; _j < dvecLength(); ++_j) {_oDvec[_j] = dvec(_j);}
+    _o.setDvec(_oDvec);
+    float[] _oFvec = new float[fvecLength()];
+    for (int _j = 0; _j < fvecLength(); ++_j) {_oFvec[_j] = fvec(_j);}
+    _o.setFvec(_oFvec);
+  }
+  public static int pack(FlatBufferBuilder builder, MonsterExtraT _o) {
+    if (_o == null) return 0;
+    int _dvec = 0;
+    if (_o.getDvec() != null) {
+      _dvec = createDvecVector(builder, _o.getDvec());
+    }
+    int _fvec = 0;
+    if (_o.getFvec() != null) {
+      _fvec = createFvecVector(builder, _o.getFvec());
+    }
+    return createMonsterExtra(
+      builder,
+      _o.getD0(),
+      _o.getD1(),
+      _o.getD2(),
+      _o.getD3(),
+      _o.getF0(),
+      _o.getF1(),
+      _o.getF2(),
+      _o.getF3(),
+      _dvec,
+      _fvec);
   }
 }
 
