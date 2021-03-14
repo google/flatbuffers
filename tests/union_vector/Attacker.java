@@ -38,11 +38,11 @@ public final class Attacker extends Table {
   }
   public AttackerT unpack() {
     AttackerT _o = new AttackerT();
-    this.unpackTo(_o);
+    unpackTo(_o);
     return _o;
   }
   public void unpackTo(AttackerT _o) {
-    int _oSwordAttackDamage = this.swordAttackDamage();
+    int _oSwordAttackDamage = swordAttackDamage();
     _o.setSwordAttackDamage(_oSwordAttackDamage);
   }
   public static int pack(FlatBufferBuilder builder, AttackerT _o) {
@@ -52,3 +52,4 @@ public final class Attacker extends Table {
       _o.getSwordAttackDamage());
   }
 }
+

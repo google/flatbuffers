@@ -10,7 +10,7 @@ import com.google.flatbuffers.*;
 public class SecondTableInAT {
   private NamespaceC.TableInCT referToC;
 
-  public NamespaceC.TableInCT getReferToC() { return this.referToC; }
+  public NamespaceC.TableInCT getReferToC() { return referToC; }
 
   public void setReferToC(NamespaceC.TableInCT referToC) { this.referToC = referToC; }
 
@@ -19,3 +19,4 @@ public class SecondTableInAT {
     this.referToC = null;
   }
 }
+

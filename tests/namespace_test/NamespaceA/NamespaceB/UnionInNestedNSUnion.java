@@ -8,11 +8,11 @@ public class UnionInNestedNSUnion {
   private byte type;
   private Object value;
 
-  public byte getType() { return this.type; }
+  public byte getType() { return type; }
 
   public void setType(byte type) { this.type = type; }
 
-  public Object getValue() { return this.value; }
+  public Object getValue() { return value; }
 
   public void setValue(Object value) { this.value = value; }
 
@@ -21,7 +21,7 @@ public class UnionInNestedNSUnion {
     this.value = null;
   }
 
-  public NamespaceA.NamespaceB.TableInNestedNST asTableInNestedNS() { return (NamespaceA.NamespaceB.TableInNestedNST) this.value; }
+  public NamespaceA.NamespaceB.TableInNestedNST asTableInNestedNS() { return (NamespaceA.NamespaceB.TableInNestedNST) value; }
 
   public static int pack(FlatBufferBuilder builder, UnionInNestedNSUnion _o) {
     switch (_o.type) {

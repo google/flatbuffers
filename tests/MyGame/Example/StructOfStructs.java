@@ -42,15 +42,15 @@ public final class StructOfStructs extends Struct {
   }
   public StructOfStructsT unpack() {
     StructOfStructsT _o = new StructOfStructsT();
-    this.unpackTo(_o);
+    unpackTo(_o);
     return _o;
   }
   public void unpackTo(StructOfStructsT _o) {
-    MyGame.Example.AbilityT _oA = this.a().unpack();
+    MyGame.Example.AbilityT _oA = a().unpack();
     _o.setA(_oA);
-    MyGame.Example.TestT _oB = this.b().unpack();
+    MyGame.Example.TestT _oB = b().unpack();
     _o.setB(_oB);
-    MyGame.Example.AbilityT _oC = this.c().unpack();
+    MyGame.Example.AbilityT _oC = c().unpack();
     _o.setC(_oC);
   }
   public static int pack(FlatBufferBuilder builder, StructOfStructsT _o) {
@@ -71,3 +71,4 @@ public final class StructOfStructs extends Struct {
       _c_distance);
   }
 }
+

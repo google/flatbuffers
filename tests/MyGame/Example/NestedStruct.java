@@ -45,20 +45,20 @@ public final class NestedStruct extends Struct {
   }
   public NestedStructT unpack() {
     NestedStructT _o = new NestedStructT();
-    this.unpackTo(_o);
+    unpackTo(_o);
     return _o;
   }
   public void unpackTo(NestedStructT _o) {
     int[] _oA = new int[2];
-    for (int _j = 0; _j < 2; ++_j) { _oA[_j] = this.a(_j); }
+    for (int _j = 0; _j < 2; ++_j) { _oA[_j] = a(_j); }
     _o.setA(_oA);
-    byte _oB = this.b();
+    byte _oB = b();
     _o.setB(_oB);
     byte[] _oC = new byte[2];
-    for (int _j = 0; _j < 2; ++_j) { _oC[_j] = this.c(_j); }
+    for (int _j = 0; _j < 2; ++_j) { _oC[_j] = c(_j); }
     _o.setC(_oC);
     long[] _oD = new long[2];
-    for (int _j = 0; _j < 2; ++_j) { _oD[_j] = this.d(_j); }
+    for (int _j = 0; _j < 2; ++_j) { _oD[_j] = d(_j); }
     _o.setD(_oD);
   }
   public static int pack(FlatBufferBuilder builder, NestedStructT _o) {
@@ -74,3 +74,4 @@ public final class NestedStruct extends Struct {
       _d);
   }
 }
+

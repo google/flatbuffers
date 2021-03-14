@@ -13,19 +13,19 @@ public class NestedStructT {
   private byte[] c;
   private long[] d;
 
-  public int[] getA() { return this.a; }
+  public int[] getA() { return a; }
 
   public void setA(int[] a) { this.a = a; }
 
-  public byte getB() { return this.b; }
+  public byte getB() { return b; }
 
   public void setB(byte b) { this.b = b; }
 
-  public byte[] getC() { return this.c; }
+  public byte[] getC() { return c; }
 
   public void setC(byte[] c) { this.c = c; }
 
-  public long[] getD() { return this.d; }
+  public long[] getD() { return d; }
 
   public void setD(long[] d) { this.d = d; }
 
@@ -37,3 +37,4 @@ public class NestedStructT {
     this.d = new long[2];
   }
 }
+

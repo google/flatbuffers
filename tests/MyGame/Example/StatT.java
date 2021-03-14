@@ -12,15 +12,15 @@ public class StatT {
   private long val;
   private int count;
 
-  public String getId() { return this.id; }
+  public String getId() { return id; }
 
   public void setId(String id) { this.id = id; }
 
-  public long getVal() { return this.val; }
+  public long getVal() { return val; }
 
   public void setVal(long val) { this.val = val; }
 
-  public int getCount() { return this.count; }
+  public int getCount() { return count; }
 
   public void setCount(int count) { this.count = count; }
 
@@ -31,3 +31,4 @@ public class StatT {
     this.count = 0;
   }
 }
+

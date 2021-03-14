@@ -30,7 +30,7 @@ public final class InParentNamespace extends Table {
   }
   public InParentNamespaceT unpack() {
     InParentNamespaceT _o = new InParentNamespaceT();
-    this.unpackTo(_o);
+    unpackTo(_o);
     return _o;
   }
   public void unpackTo(InParentNamespaceT _o) {
@@ -41,3 +41,4 @@ public final class InParentNamespace extends Table {
     return endInParentNamespace(builder);
   }
 }
+

@@ -32,13 +32,13 @@ public final class Ability extends Struct {
   }
   public AbilityT unpack() {
     AbilityT _o = new AbilityT();
-    this.unpackTo(_o);
+    unpackTo(_o);
     return _o;
   }
   public void unpackTo(AbilityT _o) {
-    long _oId = this.id();
+    long _oId = id();
     _o.setId(_oId);
-    long _oDistance = this.distance();
+    long _oDistance = distance();
     _o.setDistance(_oDistance);
   }
   public static int pack(FlatBufferBuilder builder, AbilityT _o) {
@@ -49,3 +49,4 @@ public final class Ability extends Struct {
       _o.getDistance());
   }
 }
+

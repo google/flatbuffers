@@ -7,15 +7,15 @@ import com.google.flatbuffers.*;
 
 public class MovieT {
   private CharacterUnion mainCharacter;
-  private List<CharacterUnion> characters;
+  private CharacterUnion[] characters;
 
-  public CharacterUnion getMainCharacter() { return this.mainCharacter; }
+  public CharacterUnion getMainCharacter() { return mainCharacter; }
 
   public void setMainCharacter(CharacterUnion mainCharacter) { this.mainCharacter = mainCharacter; }
 
-  public List<CharacterUnion> getCharacters() { return this.characters; }
+  public CharacterUnion[] getCharacters() { return characters; }
 
-  public void setCharacters(List<CharacterUnion> characters) { this.characters = characters; }
+  public void setCharacters(CharacterUnion[] characters) { this.characters = characters; }
 
 
   public MovieT() {
@@ -31,3 +31,4 @@ public class MovieT {
     return fbb.sizedByteArray();
   }
 }
+

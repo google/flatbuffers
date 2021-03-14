@@ -70,11 +70,11 @@ public final class Referrable extends Table {
   }
   public ReferrableT unpack() {
     ReferrableT _o = new ReferrableT();
-    this.unpackTo(_o);
+    unpackTo(_o);
     return _o;
   }
   public void unpackTo(ReferrableT _o) {
-    long _oId = this.id();
+    long _oId = id();
     _o.setId(_oId);
   }
   public static int pack(FlatBufferBuilder builder, ReferrableT _o) {
@@ -84,3 +84,4 @@ public final class Referrable extends Table {
       _o.getId());
   }
 }
+

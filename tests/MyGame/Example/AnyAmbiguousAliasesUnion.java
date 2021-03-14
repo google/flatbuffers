@@ -8,11 +8,11 @@ public class AnyAmbiguousAliasesUnion {
   private byte type;
   private Object value;
 
-  public byte getType() { return this.type; }
+  public byte getType() { return type; }
 
   public void setType(byte type) { this.type = type; }
 
-  public Object getValue() { return this.value; }
+  public Object getValue() { return value; }
 
   public void setValue(Object value) { this.value = value; }
 
@@ -21,9 +21,9 @@ public class AnyAmbiguousAliasesUnion {
     this.value = null;
   }
 
-  public MyGame.Example.MonsterT asM1() { return (MyGame.Example.MonsterT) this.value; }
-  public MyGame.Example.MonsterT asM2() { return (MyGame.Example.MonsterT) this.value; }
-  public MyGame.Example.MonsterT asM3() { return (MyGame.Example.MonsterT) this.value; }
+  public MyGame.Example.MonsterT asM1() { return (MyGame.Example.MonsterT) value; }
+  public MyGame.Example.MonsterT asM2() { return (MyGame.Example.MonsterT) value; }
+  public MyGame.Example.MonsterT asM3() { return (MyGame.Example.MonsterT) value; }
 
   public static int pack(FlatBufferBuilder builder, AnyAmbiguousAliasesUnion _o) {
     switch (_o.type) {
