@@ -2,6 +2,7 @@
 
 package MyGame.Example;
 
+@SuppressWarnings("unused")
 public final class TestEnum {
   private TestEnum() { }
   public static final byte A = 0;

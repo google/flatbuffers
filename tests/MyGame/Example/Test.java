@@ -31,5 +31,22 @@ public final class Test extends Struct {
     public Test get(int j) { return get(new Test(), j); }
     public Test get(Test obj, int j) {  return obj.__assign(__element(j), bb); }
   }
+  public TestT unpack() {
+    TestT _o = new TestT();
+    this.unpackTo(_o);
+    return _o;
+  }
+  public void unpackTo(TestT _o) {
+    short _oA = this.a();
+    _o.setA(_oA);
+    byte _oB = this.b();
+    _o.setB(_oB);
+  }
+  public static int pack(FlatBufferBuilder builder, TestT _o) {
+    if (_o == null) return 0;
+    return createTest(
+      builder,
+      _o.getA(),
+      _o.getB());
+  }
 }
-
