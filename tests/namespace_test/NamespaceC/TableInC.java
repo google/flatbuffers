@@ -21,11 +21,11 @@ public final class TableInC extends Table {
   public NamespaceA.SecondTableInA referToA2(NamespaceA.SecondTableInA obj) { int o = __offset(6); return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null; }
 
   public static int createTableInC(FlatBufferBuilder builder,
-      int refer_to_a1Offset,
-      int refer_to_a2Offset) {
+      int referToA1Offset,
+      int referToA2Offset) {
     builder.startTable(2);
-    TableInC.addReferToA2(builder, refer_to_a2Offset);
-    TableInC.addReferToA1(builder, refer_to_a1Offset);
+    TableInC.addReferToA2(builder, referToA2Offset);
+    TableInC.addReferToA1(builder, referToA1Offset);
     return TableInC.endTableInC(builder);
   }
 
@@ -43,5 +43,24 @@ public final class TableInC extends Table {
     public TableInC get(int j) { return get(new TableInC(), j); }
     public TableInC get(TableInC obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }
   }
+  public TableInCT unpack() {
+    TableInCT _o = new TableInCT();
+    this.unpackTo(_o);
+    return _o;
+  }
+  public void unpackTo(TableInCT _o) {
+    NamespaceA.TableInFirstNST _oReferToA1 = this.referToA1() != null ? this.referToA1().unpack() : null;
+    _o.setReferToA1(_oReferToA1);
+    NamespaceA.SecondTableInAT _oReferToA2 = this.referToA2() != null ? this.referToA2().unpack() : null;
+    _o.setReferToA2(_oReferToA2);
+  }
+  public static int pack(FlatBufferBuilder builder, TableInCT _o) {
+    if (_o == null) return 0;
+    int _refer_to_a1 = _o.getReferToA1() == null ? 0 : NamespaceA.TableInFirstNS.pack(builder, _o.getReferToA1());
+    int _refer_to_a2 = _o.getReferToA2() == null ? 0 : NamespaceA.SecondTableInA.pack(builder, _o.getReferToA2());
+    return createTableInC(
+      builder,
+      _refer_to_a1,
+      _refer_to_a2);
+  }
 }
-

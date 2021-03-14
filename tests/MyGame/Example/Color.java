@@ -5,6 +5,7 @@ package MyGame.Example;
 /**
  * Composite components of Monster color.
  */
+@SuppressWarnings("unused")
 public final class Color {
   private Color() { }
   public static final int Red = 1;
