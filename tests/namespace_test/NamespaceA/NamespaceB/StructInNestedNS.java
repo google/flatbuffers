@@ -30,5 +30,22 @@ public final class StructInNestedNS extends Struct {
     public StructInNestedNS get(int j) { return get(new StructInNestedNS(), j); }
     public StructInNestedNS get(StructInNestedNS obj, int j) {  return obj.__assign(__element(j), bb); }
   }
+  public StructInNestedNST unpack() {
+    StructInNestedNST _o = new StructInNestedNST();
+    this.unpackTo(_o);
+    return _o;
+  }
+  public void unpackTo(StructInNestedNST _o) {
+    int _oA = this.a();
+    _o.setA(_oA);
+    int _oB = this.b();
+    _o.setB(_oB);
+  }
+  public static int pack(FlatBufferBuilder builder, StructInNestedNST _o) {
+    if (_o == null) return 0;
+    return createStructInNestedNS(
+      builder,
+      _o.getA(),
+      _o.getB());
+  }
 }
-

@@ -2,6 +2,7 @@
 
 package MyGame.Example;
 
+@SuppressWarnings("unused")
 public final class AnyAmbiguousAliases {
   private AnyAmbiguousAliases() { }
   public static final byte NONE = 0;
