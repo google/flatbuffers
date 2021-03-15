@@ -127,6 +127,7 @@ class SwiftGenerator : public BaseGenerator {
       "unowned",
       "weak",
       "willSet",
+      "Void",
       nullptr,
     };
     for (auto kw = keywords; *kw; kw++) keywords_.insert(*kw);

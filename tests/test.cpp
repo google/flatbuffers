@@ -1694,6 +1694,9 @@ void ErrorTest() {
   TestError("table X { y: [int] = [1]; }", "Expected `]`");
   TestError("table X { y: [int] = [; }", "Expected `]`");
   TestError("table X { y: [int] = \"\"; }", "type mismatch");
+  // An identifier can't start from sign (+|-)
+  TestError("table X { -Y: int; } root_type Y: {Y:1.0}", "identifier");
+  TestError("table X { +Y: int; } root_type Y: {Y:1.0}", "identifier");
 }
 
 template<typename T>
@@ -2028,6 +2031,8 @@ void ValidFloatTest() {
   TEST_EQ(std::isnan(TestValue<double>("{ y:nan }", "double")), true);
   TEST_EQ(std::isnan(TestValue<float>("{ y:nan }", "float")), true);
   TEST_EQ(std::isnan(TestValue<float>("{ y:\"nan\" }", "float")), true);
+  TEST_EQ(std::isnan(TestValue<float>("{ y:\"+nan\" }", "float")), true);
+  TEST_EQ(std::isnan(TestValue<float>("{ y:\"-nan\" }", "float")), true);
   TEST_EQ(std::isnan(TestValue<float>("{ y:+nan }", "float")), true);
   TEST_EQ(std::isnan(TestValue<float>("{ y:-nan }", "float")), true);
   TEST_EQ(std::isnan(TestValue<float>(nullptr, "float=nan")), true);
@@ -2035,6 +2040,8 @@ void ValidFloatTest() {
   // check inf
   TEST_EQ(TestValue<float>("{ y:inf }", "float"), infinity_f);
   TEST_EQ(TestValue<float>("{ y:\"inf\" }", "float"), infinity_f);
+  TEST_EQ(TestValue<float>("{ y:\"-inf\" }", "float"), -infinity_f);
+  TEST_EQ(TestValue<float>("{ y:\"+inf\" }", "float"), infinity_f);
   TEST_EQ(TestValue<float>("{ y:+inf }", "float"), infinity_f);
   TEST_EQ(TestValue<float>("{ y:-inf }", "float"), -infinity_f);
   TEST_EQ(TestValue<float>(nullptr, "float=inf"), infinity_f);
@@ -3013,6 +3020,31 @@ void FlexBuffersTest() {
   TEST_EQ(slb.GetSize(), 664);
 }
 
+void FlexBuffersFloatingPointTest() {
+#if defined(FLATBUFFERS_HAS_NEW_STRTOD) && (FLATBUFFERS_HAS_NEW_STRTOD > 0)
+  flexbuffers::Builder slb(512,
+                           flexbuffers::BUILDER_FLAG_SHARE_KEYS_AND_STRINGS);
+  // Parse floating-point values from JSON:
+  flatbuffers::Parser parser;
+  slb.Clear();
+  auto jsontest =
+      "{ a: [1.0, nan, inf, infinity, -inf, +inf, -infinity, 8.0] }";
+  TEST_EQ(parser.ParseFlexBuffer(jsontest, nullptr, &slb), true);
+  auto jroot = flexbuffers::GetRoot(slb.GetBuffer());
+  auto jmap = jroot.AsMap();
+  auto jvec = jmap["a"].AsVector();
+  TEST_EQ(8, jvec.size());
+  TEST_EQ(1.0, jvec[0].AsDouble());
+  TEST_ASSERT(is_quiet_nan(jvec[1].AsDouble()));
+  TEST_EQ(infinity_d, jvec[2].AsDouble());
+  TEST_EQ(infinity_d, jvec[3].AsDouble());
+  TEST_EQ(-infinity_d, jvec[4].AsDouble());
+  TEST_EQ(+infinity_d, jvec[5].AsDouble());
+  TEST_EQ(-infinity_d, jvec[6].AsDouble());
+  TEST_EQ(8.0, jvec[7].AsDouble());
+#endif
+}
+
 void FlexBuffersDeprecatedTest() {
   // FlexBuffers as originally designed had a flaw involving the
   // FBT_VECTOR_STRING datatype, and this test documents/tests the fix for it.
@@ -3778,6 +3810,34 @@ void FieldIdentifierTest() {
   // Positive tests for unions
   TEST_EQ(true, Parser().Parse("union X{} table T{ u: X (id:1); }"));
   TEST_EQ(true, Parser().Parse("union X{} table T{ u: X; }"));
+  // Test using 'inf' and 'nan' words both as identifiers and as default values.
+  TEST_EQ(true, Parser().Parse("table T{ nan: string; }"));
+  TEST_EQ(true, Parser().Parse("table T{ inf: string; }"));
+#if defined(FLATBUFFERS_HAS_NEW_STRTOD) && (FLATBUFFERS_HAS_NEW_STRTOD > 0)
+  TEST_EQ(true, Parser().Parse("table T{ inf: float = inf; }"));
+  TEST_EQ(true, Parser().Parse("table T{ nan: float = inf; }"));
+#endif
+}
+
+void ParseIncorrectMonsterJsonTest() {
+  std::string schemafile;
+  TEST_EQ(flatbuffers::LoadFile((test_data_path + "monster_test.bfbs").c_str(),
+                                true, &schemafile),
+          true);
+  flatbuffers::Parser parser;
+  flatbuffers::Verifier verifier(
+      reinterpret_cast<const uint8_t *>(schemafile.c_str()), schemafile.size());
+  TEST_EQ(reflection::VerifySchemaBuffer(verifier), true);
+  TEST_EQ(parser.Deserialize((const uint8_t *)schemafile.c_str(),
+                             schemafile.size()),
+          true);
+  TEST_EQ(parser.ParseJson("{name:\"monster\"}"), true);
+  TEST_EQ(parser.ParseJson(""), false);
+  TEST_EQ(parser.ParseJson("{name: 1}"), false);
+  TEST_EQ(parser.ParseJson("{name:+1}"), false);
+  TEST_EQ(parser.ParseJson("{name:-1}"), false);
+  TEST_EQ(parser.ParseJson("{name:-f}"), false);
+  TEST_EQ(parser.ParseJson("{name:+f}"), false);
 }
 
 int FlatBufferTests() {
@@ -3874,6 +3934,8 @@ int FlatBufferTests() {
   FixedLengthArrayConstructorTest();
   FieldIdentifierTest();
   StringVectorDefaultsTest();
+  ParseIncorrectMonsterJsonTest();
+  FlexBuffersFloatingPointTest();
   return 0;
 }
 
