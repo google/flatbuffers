@@ -956,6 +956,8 @@ class Parser : public ParserState {
   FLATBUFFERS_CHECKED_ERROR ParseProtoCurliesOrIdent();
   FLATBUFFERS_CHECKED_ERROR ParseTypeFromProtoType(Type *type);
   FLATBUFFERS_CHECKED_ERROR SkipAnyJsonValue();
+  FLATBUFFERS_CHECKED_ERROR ParseFlexBufferNumericConstant(
+      flexbuffers::Builder *builder);
   FLATBUFFERS_CHECKED_ERROR ParseFlexBufferValue(flexbuffers::Builder *builder);
   FLATBUFFERS_CHECKED_ERROR StartParseFile(const char *source,
                                            const char *source_filename);

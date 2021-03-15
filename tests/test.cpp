@@ -3020,6 +3020,31 @@ void FlexBuffersTest() {
   TEST_EQ(slb.GetSize(), 664);
 }
 
+void FlexBuffersFloatingPointTest() {
+#if defined(FLATBUFFERS_HAS_NEW_STRTOD) && (FLATBUFFERS_HAS_NEW_STRTOD > 0)
+  flexbuffers::Builder slb(512,
+                           flexbuffers::BUILDER_FLAG_SHARE_KEYS_AND_STRINGS);
+  // Parse floating-point values from JSON:
+  flatbuffers::Parser parser;
+  slb.Clear();
+  auto jsontest =
+      "{ a: [1.0, nan, inf, infinity, -inf, +inf, -infinity, 8.0] }";
+  TEST_EQ(parser.ParseFlexBuffer(jsontest, nullptr, &slb), true);
+  auto jroot = flexbuffers::GetRoot(slb.GetBuffer());
+  auto jmap = jroot.AsMap();
+  auto jvec = jmap["a"].AsVector();
+  TEST_EQ(8, jvec.size());
+  TEST_EQ(1.0, jvec[0].AsDouble());
+  TEST_ASSERT(is_quiet_nan(jvec[1].AsDouble()));
+  TEST_EQ(infinity_d, jvec[2].AsDouble());
+  TEST_EQ(infinity_d, jvec[3].AsDouble());
+  TEST_EQ(-infinity_d, jvec[4].AsDouble());
+  TEST_EQ(+infinity_d, jvec[5].AsDouble());
+  TEST_EQ(-infinity_d, jvec[6].AsDouble());
+  TEST_EQ(8.0, jvec[7].AsDouble());
+#endif
+}
+
 void FlexBuffersDeprecatedTest() {
   // FlexBuffers as originally designed had a flaw involving the
   // FBT_VECTOR_STRING datatype, and this test documents/tests the fix for it.
@@ -3909,6 +3934,7 @@ int FlatBufferTests() {
   FieldIdentifierTest();
   StringVectorDefaultsTest();
   ParseIncorrectMonsterJsonTest();
+  FlexBuffersFloatingPointTest();
   return 0;
 }
 
