@@ -767,8 +767,7 @@ class SwiftGenerator : public BaseGenerator {
 
     if (!IsEnum(vectortype)) code_ += const_string + "\\";
 
-    if (IsScalar(vectortype.base_type) && !IsEnum(vectortype) &&
-        !IsBool(field.value.type.base_type)) {
+    if (IsScalar(vectortype.base_type) && !IsBool(field.value.type.base_type)) {
       code_ +=
           "{{ACCESS}}.directRead(of: {{VALUETYPE}}.self, offset: "
           "{{ACCESS}}.vector(at: o) + index * {{SIZE}}) }";

@@ -50,7 +50,8 @@ public struct MoreDefaults: FlatBufferObject, ObjectAPIPacker {
   public var someString: String? { let o = _accessor.offset(VTOFFSET.someString.v); return o == 0 ? "some" : _accessor.string(at: o) }
   public var someStringSegmentArray: [UInt8]? { return _accessor.getVector(at: VTOFFSET.someString.v) }
   public var abcsCount: Int32 { let o = _accessor.offset(VTOFFSET.abcs.v); return o == 0 ? 0 : _accessor.vector(count: o) }
-  public func abcs(at index: Int32) -> ABC? { let o = _accessor.offset(VTOFFSET.abcs.v); return o == 0 ? ABC.a : ABC(rawValue: _accessor.directRead(of: Int32.self, offset: _accessor.vector(at: o) + index * 4)) }
+  public func abcs(at index: Int32) -> ABC? { let o = _accessor.offset(VTOFFSET.abcs.v); _accessor.directRead(of: ABC.self, offset: _accessor.vector(at: o) + index * 4) }
+  public var abcs: [ABC] { return _accessor.getVector(at: VTOFFSET.abcs.v) ?? [] }
   public var boolsCount: Int32 { let o = _accessor.offset(VTOFFSET.bools.v); return o == 0 ? 0 : _accessor.vector(count: o) }
   public func bools(at index: Int32) -> Bool { let o = _accessor.offset(VTOFFSET.bools.v); return o == 0 ? true : _accessor.directRead(of: Bool.self, offset: _accessor.vector(at: o) + index * 1) }
   public var bools: [Bool] { return _accessor.getVector(at: VTOFFSET.bools.v) ?? [] }
