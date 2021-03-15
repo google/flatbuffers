@@ -96,86 +96,6 @@ impl<'a> flatbuffers::Verifiable for ABC {
 }
 
 impl flatbuffers::SimpleToVerifyInSlice for ABC {}
-#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
-pub const ENUM_MIN_VOID: i32 = 0;
-#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
-pub const ENUM_MAX_VOID: i32 = 0;
-#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
-#[allow(non_camel_case_types)]
-pub const ENUM_VALUES_VOID: [Void; 1] = [
-  Void::NONE,
-];
-
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
-#[repr(transparent)]
-pub struct Void(pub i32);
-#[allow(non_upper_case_globals)]
-impl Void {
-  pub const NONE: Self = Self(0);
-
-  pub const ENUM_MIN: i32 = 0;
-  pub const ENUM_MAX: i32 = 0;
-  pub const ENUM_VALUES: &'static [Self] = &[
-    Self::NONE,
-  ];
-  /// Returns the variant's name or "" if unknown.
-  pub fn variant_name(self) -> Option<&'static str> {
-    match self {
-      Self::NONE => Some("NONE"),
-      _ => None,
-    }
-  }
-}
-impl std::fmt::Debug for Void {
-  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-    if let Some(name) = self.variant_name() {
-      f.write_str(name)
-    } else {
-      f.write_fmt(format_args!("<UNKNOWN {:?}>", self.0))
-    }
-  }
-}
-impl<'a> flatbuffers::Follow<'a> for Void {
-  type Inner = Self;
-  #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    let b = flatbuffers::read_scalar_at::<i32>(buf, loc);
-    Self(b)
-  }
-}
-
-impl flatbuffers::Push for Void {
-    type Output = Void;
-    #[inline]
-    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        flatbuffers::emplace_scalar::<i32>(dst, self.0);
-    }
-}
-
-impl flatbuffers::EndianScalar for Void {
-  #[inline]
-  fn to_little_endian(self) -> Self {
-    let b = i32::to_le(self.0);
-    Self(b)
-  }
-  #[inline]
-  fn from_little_endian(self) -> Self {
-    let b = i32::from_le(self.0);
-    Self(b)
-  }
-}
-
-impl<'a> flatbuffers::Verifiable for Void {
-  #[inline]
-  fn run_verifier(
-    v: &mut flatbuffers::Verifier, pos: usize
-  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
-    use self::flatbuffers::Verifiable;
-    i32::run_verifier(v, pos)
-  }
-}
-
-impl flatbuffers::SimpleToVerifyInSlice for Void {}
 pub enum MoreDefaultsOffset {}
 #[derive(Copy, Clone, PartialEq)]
 
@@ -202,7 +122,6 @@ impl<'a> MoreDefaults<'a> {
         args: &'args MoreDefaultsArgs<'args>) -> flatbuffers::WIPOffset<MoreDefaults<'bldr>> {
       let mut builder = MoreDefaultsBuilder::new(_fbb);
       if let Some(x) = args.bools { builder.add_bools(x); }
-      if let Some(x) = args.voids { builder.add_voids(x); }
       if let Some(x) = args.abcs { builder.add_abcs(x); }
       if let Some(x) = args.some_string { builder.add_some_string(x); }
       if let Some(x) = args.empty_string { builder.add_empty_string(x); }
@@ -232,10 +151,6 @@ impl<'a> MoreDefaults<'a> {
         let x = self.abcs();
         x.into_iter().collect()
       };
-      let voids = {
-        let x = self.voids();
-        x.into_iter().collect()
-      };
       let bools = {
         let x = self.bools();
         x.to_vec()
@@ -246,7 +161,6 @@ impl<'a> MoreDefaults<'a> {
         empty_string,
         some_string,
         abcs,
-        voids,
         bools,
       }
     }
@@ -255,8 +169,7 @@ impl<'a> MoreDefaults<'a> {
     pub const VT_EMPTY_STRING: flatbuffers::VOffsetT = 8;
     pub const VT_SOME_STRING: flatbuffers::VOffsetT = 10;
     pub const VT_ABCS: flatbuffers::VOffsetT = 12;
-    pub const VT_VOIDS: flatbuffers::VOffsetT = 14;
-    pub const VT_BOOLS: flatbuffers::VOffsetT = 16;
+    pub const VT_BOOLS: flatbuffers::VOffsetT = 14;
 
   #[inline]
   pub fn ints(&self) -> flatbuffers::Vector<'a, i32> {
@@ -279,10 +192,6 @@ impl<'a> MoreDefaults<'a> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, ABC>>>(MoreDefaults::VT_ABCS, Some(Default::default())).unwrap()
   }
   #[inline]
-  pub fn voids(&self) -> flatbuffers::Vector<'a, Void> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, Void>>>(MoreDefaults::VT_VOIDS, Some(Default::default())).unwrap()
-  }
-  #[inline]
   pub fn bools(&self) -> &'a [bool] {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, bool>>>(MoreDefaults::VT_BOOLS, Some(Default::default())).map(|v| v.safe_slice()).unwrap()
   }
@@ -300,7 +209,6 @@ impl flatbuffers::Verifiable for MoreDefaults<'_> {
      .visit_field::<flatbuffers::ForwardsUOffset<&str>>(&"empty_string", Self::VT_EMPTY_STRING, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<&str>>(&"some_string", Self::VT_SOME_STRING, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, ABC>>>(&"abcs", Self::VT_ABCS, false)?
-     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, Void>>>(&"voids", Self::VT_VOIDS, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, bool>>>(&"bools", Self::VT_BOOLS, false)?
      .finish();
     Ok(())
@@ -312,7 +220,6 @@ pub struct MoreDefaultsArgs<'a> {
     pub empty_string: Option<flatbuffers::WIPOffset<&'a str>>,
     pub some_string: Option<flatbuffers::WIPOffset<&'a str>>,
     pub abcs: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, ABC>>>,
-    pub voids: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, Void>>>,
     pub bools: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, bool>>>,
 }
 impl<'a> Default for MoreDefaultsArgs<'a> {
@@ -324,7 +231,6 @@ impl<'a> Default for MoreDefaultsArgs<'a> {
             empty_string: None,
             some_string: None,
             abcs: None,
-            voids: None,
             bools: None,
         }
     }
@@ -355,10 +261,6 @@ impl<'a: 'b, 'b> MoreDefaultsBuilder<'a, 'b> {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(MoreDefaults::VT_ABCS, abcs);
   }
   #[inline]
-  pub fn add_voids(&mut self, voids: flatbuffers::WIPOffset<flatbuffers::Vector<'b , Void>>) {
-    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(MoreDefaults::VT_VOIDS, voids);
-  }
-  #[inline]
   pub fn add_bools(&mut self, bools: flatbuffers::WIPOffset<flatbuffers::Vector<'b , bool>>) {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(MoreDefaults::VT_BOOLS, bools);
   }
@@ -385,7 +287,6 @@ impl std::fmt::Debug for MoreDefaults<'_> {
       ds.field("empty_string", &self.empty_string());
       ds.field("some_string", &self.some_string());
       ds.field("abcs", &self.abcs());
-      ds.field("voids", &self.voids());
       ds.field("bools", &self.bools());
       ds.finish()
   }
@@ -398,7 +299,6 @@ pub struct MoreDefaultsT {
   pub empty_string: String,
   pub some_string: String,
   pub abcs: Vec<ABC>,
-  pub voids: Vec<Void>,
   pub bools: Vec<bool>,
 }
 impl Default for MoreDefaultsT {
@@ -409,7 +309,6 @@ impl Default for MoreDefaultsT {
       empty_string: "".to_string(),
       some_string: "some".to_string(),
       abcs: Default::default(),
-      voids: Default::default(),
       bools: Default::default(),
     }
   }
@@ -439,10 +338,6 @@ impl MoreDefaultsT {
       let x = &self.abcs;
       _fbb.create_vector(x)
     });
-    let voids = Some({
-      let x = &self.voids;
-      _fbb.create_vector(x)
-    });
     let bools = Some({
       let x = &self.bools;
       _fbb.create_vector(x)
@@ -453,7 +348,6 @@ impl MoreDefaultsT {
       empty_string,
       some_string,
       abcs,
-      voids,
       bools,
     })
   }
