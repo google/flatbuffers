@@ -147,13 +147,16 @@ The following attributes are specific to the object-based API code generation:
     Minimal Example:
 
     schema:
-
+    
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
     table mytable(native_custom_alloc:"custom_allocator") {
       ...
     }
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     with custom_allocator defined before flatbuffers.h is included, as:
-
+    
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
     template <typename T> struct custom_allocator : public std::allocator<T> {
 
       typedef T *pointer;
@@ -175,32 +178,39 @@ The following attributes are specific to the object-based API code generation:
       template <class U>
       custom_allocator(const custom_allocator<U>&) throw() {}
     };
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -   `native_type`' "type" (on a struct): In some cases, a more optimal C++ data
     type exists for a given struct.  For example, the following schema:
-
-      struct Vec2 {
-        x: float;
-        y: float;
-      }
+    
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+    struct Vec2 {
+      x: float;
+      y: float;
+    }
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     generates the following Object-Based API class:
-
-      struct Vec2T : flatbuffers::NativeTable {
-        float x;
-        float y;
-      };
+    
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+    struct Vec2T : flatbuffers::NativeTable {
+      float x;
+      float y;
+    };
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     However, it can be useful to instead use a user-defined C++ type since it
     can provide more functionality, eg.
 
-      struct vector2 {
-        float x = 0, y = 0;
-        vector2 operator+(vector2 rhs) const { ... }
-        vector2 operator-(vector2 rhs) const { ... }
-        float length() const { ... }
-        // etc.
-      };
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+    struct vector2 {
+      float x = 0, y = 0;
+      vector2 operator+(vector2 rhs) const { ... }
+      vector2 operator-(vector2 rhs) const { ... }
+      float length() const { ... }
+      // etc.
+    };
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     The `native_type` attribute will replace the usage of the generated class
     with the given type.  So, continuing with the example, the generated
@@ -209,10 +219,12 @@ The following attributes are specific to the object-based API code generation:
     However, becuase the native_type is unknown to flatbuffers, the user must
     provide the following functions to aide in the serialization process:
 
-      namespace flatbuffers {
-        FlatbufferStruct Pack(const native_type& obj);
-        native_type UnPack(const FlatbufferStruct& obj);
-      }
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+    namespace flatbuffers {
+      FlatbufferStruct Pack(const native_type& obj);
+      native_type UnPack(const FlatbufferStruct& obj);
+    }
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Finally, the following top-level attribute
 
