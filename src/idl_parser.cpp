@@ -3009,6 +3009,15 @@ CheckedError Parser::SkipAnyJsonValue() {
   return NoError();
 }
 
+CheckedError Parser::ParseFlexBufferNumericConstant(
+    flexbuffers::Builder *builder) {
+  double d;
+  if (!StringToNumber(attribute_.c_str(), &d))
+    return Error("unexpected floating-point constant: " + attribute_);
+  builder->Double(d);
+  return NoError();
+}
+
 CheckedError Parser::ParseFlexBufferValue(flexbuffers::Builder *builder) {
   ParseDepthGuard depth_guard(this);
   ECHECK(depth_guard.Check());
@@ -3056,6 +3065,18 @@ CheckedError Parser::ParseFlexBufferValue(flexbuffers::Builder *builder) {
       EXPECT(kTokenFloatConstant);
       break;
     }
+    case '-':
+    case '+': {
+      // `[-+]?(nan|inf|infinity)`, see ParseSingleValue().
+      const auto sign = static_cast<char>(token_);
+      NEXT();
+      if (token_ != kTokenIdentifier)
+        return Error("floating-point constant expected");
+      attribute_.insert(0, 1, sign);
+      ECHECK(ParseFlexBufferNumericConstant(builder));
+      NEXT();
+      break;
+    }
     default:
       if (IsIdent("true")) {
         builder->Bool(true);
@@ -3065,6 +3086,9 @@ CheckedError Parser::ParseFlexBufferValue(flexbuffers::Builder *builder) {
         NEXT();
       } else if (IsIdent("null")) {
         builder->Null();
+        NEXT();
+      } else if (IsIdent("inf") || IsIdent("infinity") || IsIdent("nan")) {
+        ECHECK(ParseFlexBufferNumericConstant(builder));
         NEXT();
       } else
         return TokenError();
