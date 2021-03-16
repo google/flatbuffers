@@ -1071,7 +1071,7 @@ class JavaGenerator : public BaseGenerator {
               code += "create";
               code += MakeCamel(field.name);
               code += "Vector(FlatBufferBuilder builder, ";
-              code += GenTypeBasic(vector_type) + "[] data) ";
+              code += GenTypeBasic(DestinationType(vector_type, false)) + "[] data) ";
               code += "{ builder.startVector(";
               code += NumToString(elem_size);
               code += ", data.length, ";
@@ -1081,8 +1081,8 @@ class JavaGenerator : public BaseGenerator {
               code += "add";
               code += GenMethod(vector_type);
               code += "(";
-              code += SourceCastBasic(vector_type, false);
-              code += "data[i]";
+              code += SourceCastBasic(vector_type);
+              code += " data[i]";
               code += "); return ";
               code += "builder.endVector(); }\n";
             }
