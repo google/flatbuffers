@@ -30,7 +30,7 @@ gofmt -w .
 cd ..
 cd grpc/examples/go
 sh format.sh
-cd ../..
+cd ../../..
 
 node_modules/.bin/eslint ts/** --ext .ts --quiet --fix
 
