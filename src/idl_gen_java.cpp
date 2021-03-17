@@ -59,7 +59,7 @@ class JavaGenerator : public BaseGenerator {
       std::string enumcode;
       auto &enum_def = **it;
       if (!parser_.opts.one_file) cur_name_space_ = enum_def.defined_namespace;
-      GenEnum(enum_def, &enumcode);
+      GenEnum(enum_def, &enumcode, parser_.opts);
       if (parser_.opts.one_file) {
         one_file_code += enumcode;
       } else {
@@ -297,7 +297,8 @@ class JavaGenerator : public BaseGenerator {
     return GenDefaultValue(field);
   }
 
-  void GenEnum(EnumDef &enum_def, std::string *code_ptr) const {
+  void GenEnum(EnumDef &enum_def, std::string *code_ptr,
+               const IDLOptions &opts) const {
     std::string &code = *code_ptr;
     if (enum_def.generated) return;
 
@@ -307,6 +308,10 @@ class JavaGenerator : public BaseGenerator {
     // to map directly to how they're used in C/C++ and file formats.
     // That, and Java Enums are expensive, and not universally liked.
     GenComment(enum_def.doc_comment, code_ptr, &comment_config);
+
+    if (opts.generate_object_based_api) {
+      code += "import com.google.flatbuffers.FlatBufferBuilder; \n\n";
+    }
 
     if (enum_def.attributes.Lookup("private")) {
       // For Java, we leave the enum unmarked to indicate package-private
@@ -358,6 +363,10 @@ class JavaGenerator : public BaseGenerator {
 
     // Close the class
     code += "}\n\n";
+
+    if (opts.generate_object_based_api) {
+      GenEnum_ObjectAPI(enum_def, code_ptr, opts);
+    }
   }
 
   // Returns the function name that is able to read a value of the given type.
@@ -732,7 +741,9 @@ class JavaGenerator : public BaseGenerator {
               code += type_name + " obj, ";
               getter = obj + ".__assign";
             } else if (vectortype.base_type == BASE_TYPE_UNION) {
-              code += type_name + " obj, ";
+              code += "int j) { return " + MakeCamel(field.name, false) + "(new Table(), j); }\n";
+              code += method_start;
+              code += "(" + type_name + " obj, ";
             }
             code += "int j)";
             const auto body = offset_prefix + conditional_cast + getter + "(";
@@ -769,6 +780,8 @@ class JavaGenerator : public BaseGenerator {
             break;
           }
           case BASE_TYPE_UNION:
+            code += "() { return " + MakeCamel(field.name, false) + "(new Table()); }\n";
+            code += method_start;
             code += "(" + type_name + " obj)" + offset_prefix + getter;
             code += "(obj, o + bb_pos) : null";
             break;
@@ -985,11 +998,12 @@ class JavaGenerator : public BaseGenerator {
         for (auto it = struct_def.fields.vec.begin();
              it != struct_def.fields.vec.end(); ++it) {
           auto &field = **it;
+          auto field_name = MakeCamel(field.name, false);
           if (field.deprecated) continue;
           code += ",\n      ";
-          code += GenTypeNameDest(field.value.type);
+          code += GenTypeBasic(DestinationType(field.value.type, false));
           code += " ";
-          code += field.name;
+          code += field_name;
           if (!IsScalar(field.value.type.base_type)) code += "Offset";
         }
         code += ") {\n    builder.";
@@ -1000,12 +1014,14 @@ class JavaGenerator : public BaseGenerator {
           for (auto it = struct_def.fields.vec.rbegin();
                it != struct_def.fields.vec.rend(); ++it) {
             auto &field = **it;
+            auto field_name = MakeCamel(field.name, false);
+            auto method_name = MakeCamel(field.name, true);
             if (!field.deprecated &&
                 (!struct_def.sortbysize ||
                  size == SizeOf(field.value.type.base_type))) {
               code += "    " + struct_def.name + ".";
               code += "add";
-              code += MakeCamel(field.name) + "(builder, " + field.name;
+              code += method_name + "(builder, " + field_name;
               if (!IsScalar(field.value.type.base_type)) code += "Offset";
               code += ");\n";
             }
@@ -1250,6 +1266,154 @@ class JavaGenerator : public BaseGenerator {
     return "get" + MakeCamel(field_name, true);
   }
 
+  void GenEnum_ObjectAPI(EnumDef &enum_def, std::string *code_ptr,
+                         const IDLOptions &opts) const {
+    auto &code = *code_ptr;
+    if (enum_def.generated) return;
+    if (!enum_def.is_union) return;
+    if (!enum_def.attributes.Lookup("private")) {
+      code += "public ";
+    }
+    auto union_name = enum_def.name + "Union";
+    auto union_type = GenTypeBasic(DestinationType(enum_def.underlying_type, false));
+    code += "class " + union_name + " {\n";
+    // Type
+    code += "  private " + union_type + " type;\n";
+    // Value
+    code += "  private Object value;\n";
+    code += "\n";
+    // getters and setters
+    code += "  public " + union_type + " getType() { return this.type; }\n\n";
+    code += "  public void setType(" + union_type + " type) { this.type = type; }\n\n";
+    code += "  public Object getValue() { return this.value; }\n\n";
+    code += "  public void setValue(Object value) { this.value = value; }\n\n";    
+    // Constructor
+    code += "  public " + union_name + "() {\n";
+    code += "    this.type = " + enum_def.name + "." +
+            enum_def.Vals()[0]->name + ";\n";
+    code += "    this.value = null;\n";
+    code += "  }\n\n";
+    // As
+    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      auto &ev = **it;
+      if (ev.union_type.base_type == BASE_TYPE_NONE) continue;
+      auto type_name = GenTypeGet_ObjectAPI(ev.union_type, opts, false, true);
+      if (ev.union_type.base_type == BASE_TYPE_STRUCT &&
+          ev.union_type.struct_def->attributes.Lookup("private")) {
+        code += "  ";
+      } else {
+        code += "  public ";
+      }
+      code += type_name + " as" + ev.name + "() { return (" + type_name + ") this.value; }\n";
+    }
+    code += "\n";
+    // Pack()
+    code += "  public static int pack(FlatBufferBuilder builder, " +
+            union_name + " _o) {\n";
+    code += "    switch (_o.type) {\n";
+    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      auto &ev = **it;
+      if (ev.union_type.base_type == BASE_TYPE_NONE) {
+        continue;
+      } else {
+        code += "      case " + enum_def.name + "." + ev.name + ": return ";
+        if (IsString(ev.union_type)) {
+          code += "builder.CreateString(_o.As" + ev.name + "()).Value;\n";
+        } else {
+          code += GenTypeGet(ev.union_type) + ".pack(builder, _o.as" + ev.name +
+                  "());\n";
+        }
+      }
+    }
+    code += "      default: return 0;\n";
+    code += "    }\n";
+    code += "  }\n";
+    code += "}\n\n";
+    // JsonConverter
+    if (opts.cs_gen_json_serializer) {
+      if (enum_def.attributes.Lookup("private")) {
+        code += "internal ";
+      } else {
+        code += "public ";
+      }
+      code += "class " + union_name +
+              "_JsonConverter : Newtonsoft.Json.JsonConverter {\n";
+      code += "  public override bool CanConvert(System.Type objectType) {\n";
+      code += "    return objectType == typeof(" + union_name +
+              ") || objectType == typeof(System.Collections.Generic.List<" +
+              union_name + ">);\n";
+      code += "  }\n";
+      code +=
+          "  public override void WriteJson(Newtonsoft.Json.JsonWriter writer, "
+          "object value, "
+          "Newtonsoft.Json.JsonSerializer serializer) {\n";
+      code += "    var _olist = value as System.Collections.Generic.List<" +
+              union_name + ">;\n";
+      code += "    if (_olist != null) {\n";
+      code += "      writer.WriteStartArray();\n";
+      code +=
+          "      foreach (var _o in _olist) { this.WriteJson(writer, _o, "
+          "serializer); }\n";
+      code += "      writer.WriteEndArray();\n";
+      code += "    } else {\n";
+      code += "      this.WriteJson(writer, value as " + union_name +
+              ", serializer);\n";
+      code += "    }\n";
+      code += "  }\n";
+      code += "  public void WriteJson(Newtonsoft.Json.JsonWriter writer, " +
+              union_name +
+              " _o, "
+              "Newtonsoft.Json.JsonSerializer serializer) {\n";
+      code += "    if (_o == null) return;\n";
+      code += "    serializer.Serialize(writer, _o.Value);\n";
+      code += "  }\n";
+      code +=
+          "  public override object ReadJson(Newtonsoft.Json.JsonReader "
+          "reader, "
+          "System.Type objectType, "
+          "object existingValue, Newtonsoft.Json.JsonSerializer serializer) "
+          "{\n";
+      code +=
+          "    var _olist = existingValue as System.Collections.Generic.List<" +
+          union_name + ">;\n";
+      code += "    if (_olist != null) {\n";
+      code += "      for (var _j = 0; _j < _olist.Count; ++_j) {\n";
+      code += "        reader.Read();\n";
+      code +=
+          "        _olist[_j] = this.ReadJson(reader, _olist[_j], "
+          "serializer);\n";
+      code += "      }\n";
+      code += "      reader.Read();\n";
+      code += "      return _olist;\n";
+      code += "    } else {\n";
+      code += "      return this.ReadJson(reader, existingValue as " +
+              union_name + ", serializer);\n";
+      code += "    }\n";
+      code += "  }\n";
+      code += "  public " + union_name +
+              " ReadJson(Newtonsoft.Json.JsonReader reader, " + union_name +
+              " _o, Newtonsoft.Json.JsonSerializer serializer) {\n";
+      code += "    if (_o == null) return null;\n";
+      code += "    switch (_o.Type) {\n";
+      for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
+           ++it) {
+        auto &ev = **it;
+        if (ev.union_type.base_type == BASE_TYPE_NONE) {
+          code += "      default: break;\n";
+        } else {
+          auto type_name = GenTypeGet_ObjectAPI(ev.union_type, opts, false, true);
+          code += "      case " + enum_def.name + "." + ev.name +
+                  ": _o.Value = serializer.Deserialize<" + type_name +
+                  ">(reader); break;\n";
+        }
+      }
+      code += "    }\n";
+      code += "    return _o;\n";
+      code += "  }\n";
+      code += "}\n\n";
+    }
+  }
+
   std::string GenSetterFuncName_ObjectAPI(const std::string &field_name) const {
     return "set" + MakeCamel(field_name, true);
   }
@@ -1263,49 +1427,43 @@ class JavaGenerator : public BaseGenerator {
                                 const std::string &camel_name,
                                 bool is_vector) const {
     auto &code = *code_ptr;
-    std::string varialbe_name = "_o" + camel_name;
-    std::string type_suffix = "";
+    
+    std::string varialbe_type = enum_def.name + "Union";
+    std::string varialbe_name = "_o" + MakeCamel(camel_name, true);
+    std::string type_params = "";
     std::string func_suffix = "()";
     std::string indent = "    ";
     if (is_vector) {
-      varialbe_name = "_o_" + camel_name;
-      type_suffix = "(_j)";
+      varialbe_name += "Element";
+      type_params = "_j";
       func_suffix = "(_j)";
       indent = "      ";
     }
-    if (is_vector) {
-      code += indent + "var " + varialbe_name + " = new ";
-    } else {
-      code += indent + varialbe_name + " = new ";
-    }
-    code += WrapInNameSpace(enum_def) + "Union();\n";
-    code += indent + varialbe_name + ".Type = this." + camel_name + "Type" +
-            type_suffix + ";\n";
+    code += indent + varialbe_type + " " + varialbe_name + " = new " + varialbe_type + "();\n";
+    code += indent + GenTypeBasic(DestinationType(enum_def.underlying_type, false)) + " " + varialbe_name + "Type = this." + camel_name + "Type(" + type_params + ");\n";
+    code += indent + varialbe_name + ".setType(" + varialbe_name + "Type);\n";
+    code += indent + "Table " + varialbe_name + "Value  = this." + camel_name + "(" + type_params + ");\n";
     code +=
-        indent + "switch (this." + camel_name + "Type" + type_suffix + ") {\n";
+        indent + "switch (" + varialbe_name + "Type) {\n";
     for (auto eit = enum_def.Vals().begin(); eit != enum_def.Vals().end();
          ++eit) {
       auto &ev = **eit;
       if (ev.union_type.base_type == BASE_TYPE_NONE) {
-        code += indent + "  default: break;\n";
+        continue;
       } else {
-        code += indent + "  case " + WrapInNameSpace(enum_def) + "." + ev.name +
+        code += indent + "  case " + enum_def.name + "." + ev.name +
                 ":\n";
-        code += indent + "    " + varialbe_name + ".Value = this." + camel_name;
+        code += indent + "    " + varialbe_name + ".setValue(" + varialbe_name + "Value != null ? ((" + GenTypeGet(ev.union_type) + ") " + varialbe_name + "Value" + ").unpack() : null);\n";
         if (IsString(ev.union_type)) {
           code += "AsString" + func_suffix + ";\n";
-        } else {
-          code += "<" + GenTypeGet(ev.union_type) + ">" + func_suffix;
-          code += ".HasValue ? this." + camel_name;
-          code += "<" + GenTypeGet(ev.union_type) + ">" + func_suffix +
-                  ".Value.UnPack() : null;\n";
         }
         code += indent + "    break;\n";
       }
     }
+    code += indent + "  default: break;\n";
     code += indent + "}\n";
     if (is_vector) {
-      code += indent + "_o." + camel_name + ".Add(" + varialbe_name + ");\n";
+      code += indent + "_o" + MakeCamel(camel_name, true) + ".add(" + varialbe_name + ");\n";
     }
   }
 
@@ -1315,21 +1473,23 @@ class JavaGenerator : public BaseGenerator {
       const std::set<FieldDef *> &field_has_create) const {
     auto &code = *code_ptr;
     auto struct_name = GenTypeName_ObjectAPI(struct_def.name, opts);
-    // UnPack()
+    // unpack()
     code += "  public " + struct_name + " unpack() {\n";
     code += "    " + struct_name + " _o = new " + struct_name + "();\n";
     code += "    this.unpackTo(_o);\n";
     code += "    return _o;\n";
     code += "  }\n";
-    // UnPackTo()
+    // unpackTo()
     code += "  public void unpackTo(" + struct_name + " _o) {\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
       if (field.deprecated) continue;
+      if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
+      if (field.value.type.element == BASE_TYPE_UTYPE) continue;
       auto camel_name = MakeCamel(field.name, false);
       auto camel_name_with_first = MakeCamel(field.name, true);
-      auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts, false);
+      auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts, false, false);
       auto start = "    " + type_name + " _o" + camel_name_with_first + " = ";
       switch (field.value.type.base_type) {
         case BASE_TYPE_STRUCT: {
@@ -1360,7 +1520,7 @@ class JavaGenerator : public BaseGenerator {
             code += "    for (int _j = 0; _j < this." + camel_name +
                     "Length(); ++_j) {\n";
             GenUnionUnPack_ObjectAPI(*field.value.type.enum_def, code_ptr,
-                                     camel_name_with_first, true);
+                                     camel_name, true);
             code += "    }\n";
           } else if (field.value.type.element != BASE_TYPE_UTYPE) {
             auto fixed = field.value.type.struct_def == nullptr;
@@ -1449,35 +1609,35 @@ class JavaGenerator : public BaseGenerator {
                 array_type = "Offset<" + GenTypeGet(field.value.type) + ">";
                 element_type = array_type;
                 to_array = GenTypeGet(field.value.type) + ".pack(builder, _o." +
-                           GenGetterFuncName_ObjectAPI(field.name) + "().get(_j))";
+                           GenGetterFuncName_ObjectAPI(property_name) + "().get(_j))";
                 break;
               case BASE_TYPE_UTYPE:
                 property_name = camel_name.substr(0, camel_name.size() - 4);
-                array_type = WrapInNameSpace(*field.value.type.enum_def);
-                element_type = array_type;
-                to_array = "_o." + GenGetterFuncName_ObjectAPI(field.name) + "().get(_j)";
+                array_type = GenTypeBasic(DestinationType(field.value.type.enum_def->underlying_type, false));
+                element_type = field.value.type.enum_def->name + "Union";
+                to_array = "_o." + GenGetterFuncName_ObjectAPI(property_name) + "().get(_j).getType()";
                 break;
               case BASE_TYPE_UNION:
                 array_type = "int";
-                element_type = array_type;
+                element_type = field.value.type.enum_def->name + "Union";
                 to_array = WrapInNameSpace(*field.value.type.enum_def) +
-                           "Union.Pack(builder,  _o." + GenGetterFuncName_ObjectAPI(field.name) + "().get(_j)";
+                           "Union.pack(builder,  _o." + GenGetterFuncName_ObjectAPI(property_name) + "().get(_j))";
                 break;
               default:
-                array_type = GenTypeGet(field.value.type);
+                array_type = GenTypeNameDest(field.value.type);
                 element_type = array_type;
                 to_array = "_e";
                 break;
             }
             code += "    int _" + camel_name + " = 0;\n";
-            code += "    if (_o." + GenGetterFuncName_ObjectAPI(field.name) + "() != null) {\n";
+            code += "    if (_o." + GenGetterFuncName_ObjectAPI(property_name) + "() != null) {\n";
             if (gen_for_loop) {
-              code += "      " + array_type + "[] " + array_name + " = new " + array_type + "[_o." + GenGetterFuncName_ObjectAPI(field.name) + "().size()];\n";
+              code += "      " + array_type + "[] " + array_name + " = new " + array_type + "[_o." + GenGetterFuncName_ObjectAPI(property_name) + "().size()];\n";
               code += "      int _j = 0;\n";
-              code += "      for (" + element_type + " _e : _o." + GenGetterFuncName_ObjectAPI(field.name) + "()) { ";
+              code += "      for (" + element_type + " _e : _o." + GenGetterFuncName_ObjectAPI(property_name) + "()) { ";
               code += array_name + "[_j] = " + to_array + "; _j++;}\n";
             } else {
-              code += "      " + array_type + "[] " + array_name + " = _o." + GenGetterFuncName_ObjectAPI(field.name) +
+              code += "      " + array_type + "[] " + array_name + " = _o." + GenGetterFuncName_ObjectAPI(property_name) +
                       "().toArray();\n";
             }
             code += "      _" + camel_name + " = create" + camel_name_with_first +
@@ -1485,7 +1645,7 @@ class JavaGenerator : public BaseGenerator {
             code += "    }\n";
           } else {
             auto type_name = GenTypeGet(field.value.type);
-            auto element_type_name = GenTypeGet_ObjectAPI(field.value.type, opts, true);
+            auto element_type_name = GenTypeGet_ObjectAPI(field.value.type, opts, true, true);
             auto pack_method =
                 field.value.type.struct_def == nullptr
                     ? "builder.add" + GenMethod(field.value.type.VectorType()) +
@@ -1512,18 +1672,18 @@ class JavaGenerator : public BaseGenerator {
             GenStructPackDecl_ObjectAPI(*field.value.type.struct_def, code_ptr,
                                         array_lengths);
           } else {
-            code += "    " + GenTypeGet_ObjectAPI(field.value.type, opts, false) + " _" + camel_name + " = _o." + GenGetterFuncName_ObjectAPI(field.name) + "();\n";
+            code += "    " + GenTypeGet_ObjectAPI(field.value.type, opts, false, true) + " _" + camel_name + " = _o." + GenGetterFuncName_ObjectAPI(field.name) + "();\n";
           }
           break;
         }
         case BASE_TYPE_UNION: {
-          code += "    var _" + field.name + "_type = _o." + camel_name +
-                  " == null ? " + WrapInNameSpace(*field.value.type.enum_def) +
-                  ".NONE : " + "_o." + camel_name + ".Type;\n";
+          code += "    " + GenTypeBasic(DestinationType(field.value.type.enum_def->underlying_type, false)) + " _" + camel_name + "Type = _o.get" + camel_name_with_first +
+                  "() == null ? " + WrapInNameSpace(*field.value.type.enum_def) +
+                  ".NONE : " + "_o.get" + camel_name_with_first + "().getType();\n";
           code +=
-              "    var _" + field.name + " = _o." + camel_name +
-              " == null ? 0 : " + GenTypeGet_ObjectAPI(field.value.type, opts, false) +
-              ".Pack(builder, _o." + camel_name + ");\n";
+              "    " + GenOffsetType() + " _" + camel_name + " = _o.get" + camel_name_with_first +
+                  "() == null ? 0 : " + field.value.type.enum_def->name +
+              "Union.pack(builder, _o.get" + camel_name_with_first + "());\n";
           break;
         }
         default: break;
@@ -1614,10 +1774,10 @@ class JavaGenerator : public BaseGenerator {
           }
           case BASE_TYPE_UTYPE: break;
           case BASE_TYPE_UNION: {
-            code += "    Add" + camel_name_with_first + "Type(builder, _" + camel_name +
-                    "_type);\n";
+            code += "    add" + camel_name_with_first + "Type(builder, _" + camel_name +
+                    "Type);\n";
             code +=
-                "    Add" + camel_name_with_first + "(builder, _" + camel_name + ");\n";
+                "    add" + camel_name_with_first + "(builder, _" + camel_name + ");\n";
             break;
           }
           // scalar
@@ -1751,7 +1911,8 @@ class JavaGenerator : public BaseGenerator {
 
   std::string GenTypeGet_ObjectAPI(flatbuffers::Type type,
                                    const IDLOptions &opts,
-                                   bool vectorelem) const {
+                                   bool vectorelem,
+                                   bool wrap_in_namespace) const {
     auto type_name = GenTypeNameDest(type);
     // Replace to ObjectBaseAPI Type Name
     switch (type.base_type) {
@@ -1765,13 +1926,21 @@ class JavaGenerator : public BaseGenerator {
           type_name.replace(type_name.length() - type_name_length,
                             type_name_length, new_type_name);
         } else if (type.element == BASE_TYPE_UNION) {
-          type_name = WrapInNameSpace(*type.enum_def) + "Union";
+          if (wrap_in_namespace) {
+            type_name = WrapInNameSpace(*type.enum_def) + "Union";
+          } else {
+            type_name = type.enum_def->name + "Union";
+          }
         }
         break;
       }
 
       case BASE_TYPE_UNION: {
-        type_name = WrapInNameSpace(*type.enum_def) + "Union";
+        if (wrap_in_namespace) {
+          type_name = WrapInNameSpace(*type.enum_def) + "Union";
+        } else {
+          type_name = type.enum_def->name + "Union";
+        }
         break;
       }
       default: break;
@@ -1854,7 +2023,7 @@ class JavaGenerator : public BaseGenerator {
       if (field.deprecated) continue;
       if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
       if (field.value.type.element == BASE_TYPE_UTYPE) continue;
-      auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts, false);
+      auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts, false, true);
       if (field.IsScalarOptional()) type_name += "?";
       auto camel_name = MakeCamel(field.name, false);
       code += "  private " + type_name + " " + camel_name + ";\n";
@@ -1867,7 +2036,7 @@ class JavaGenerator : public BaseGenerator {
       if (field.deprecated) continue;
       if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
       if (field.value.type.element == BASE_TYPE_UTYPE) continue;
-      auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts, false);
+      auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts, false, true);
       if (field.IsScalarOptional()) type_name += "?";
       auto camel_name = MakeCamel(field.name, false);
       code += "  public " + type_name + " " + GenGetterFuncName_ObjectAPI(field.name) + "() { return this." + camel_name + "; }\n\n";
@@ -1883,7 +2052,7 @@ class JavaGenerator : public BaseGenerator {
       if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
       if (field.value.type.element == BASE_TYPE_UTYPE) continue;
       code += "    this." + MakeCamel(field.name, false) + " = ";
-      auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts, false);
+      auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts, false, true);
       if (IsScalar(field.value.type.base_type)) {
         code += GenDefaultValue(field) + ";\n";
       } else {
