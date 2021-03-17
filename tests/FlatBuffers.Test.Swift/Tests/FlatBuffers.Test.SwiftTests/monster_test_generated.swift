@@ -859,9 +859,7 @@ public struct MyGame_Example_Monster: FlatBufferObject, ObjectAPIPacker {
   public var anyAmbiguousType: MyGame_Example_AnyAmbiguousAliases { let o = _accessor.offset(VTOFFSET.anyAmbiguousType.v); return o == 0 ? .none_ : MyGame_Example_AnyAmbiguousAliases(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? .none_ }
   public func anyAmbiguous<T: FlatBufferObject>(type: T.Type) -> T? { let o = _accessor.offset(VTOFFSET.anyAmbiguous.v); return o == 0 ? nil : _accessor.union(o) }
   public var vectorOfEnumsCount: Int32 { let o = _accessor.offset(VTOFFSET.vectorOfEnums.v); return o == 0 ? 0 : _accessor.vector(count: o) }
-  public func vectorOfEnums(at index: Int32) -> MyGame_Example_Color? { let o = _accessor.offset(VTOFFSET.vectorOfEnums.v); _accessor.directRead(of: MyGame_Example_Color.self, offset: _accessor.vector(at: o) + index * 1) }
-  public var vectorOfEnums: [MyGame_Example_Color] { return _accessor.getVector(at: VTOFFSET.vectorOfEnums.v) ?? [] }
-  public func mutate(vectorOfEnums: MyGame_Example_Color, at index: Int32) -> Bool { let o = _accessor.offset(VTOFFSET.vectorOfEnums.v); return _accessor.directMutate(vectorOfEnums, index: _accessor.vector(at: o) + index * 1) }
+  public func vectorOfEnums(at index: Int32) -> MyGame_Example_Color? { let o = _accessor.offset(VTOFFSET.vectorOfEnums.v); return o == 0 ? MyGame_Example_Color.red : MyGame_Example_Color(rawValue: _accessor.directRead(of: UInt8.self, offset: _accessor.vector(at: o) + index * 1)) }
   public var signedEnum: MyGame_Example_Race { let o = _accessor.offset(VTOFFSET.signedEnum.v); return o == 0 ? .none_ : MyGame_Example_Race(rawValue: _accessor.readBuffer(of: Int8.self, at: o)) ?? .none_ }
   @discardableResult public func mutate(signedEnum: MyGame_Example_Race) -> Bool {let o = _accessor.offset(VTOFFSET.signedEnum.v);  return _accessor.mutate(signedEnum.rawValue, index: o) }
   public var testrequirednestedflatbufferCount: Int32 { let o = _accessor.offset(VTOFFSET.testrequirednestedflatbuffer.v); return o == 0 ? 0 : _accessor.vector(count: o) }

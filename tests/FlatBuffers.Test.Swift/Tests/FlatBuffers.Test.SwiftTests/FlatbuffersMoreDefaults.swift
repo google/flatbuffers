@@ -29,7 +29,6 @@ class FlatBuffersMoreDefaults: XCTestCase {
     XCTAssertEqual(defaults.someString, "some")
     XCTAssertEqual(defaults.ints, [])
     XCTAssertEqual(defaults.floats, [])
-    XCTAssertEqual(defaults.abcs, [])
     XCTAssertEqual(defaults.bools, [])
     XCTAssertEqual(defaults.intsCount, 0)
     XCTAssertEqual(defaults.floatsCount, 0)

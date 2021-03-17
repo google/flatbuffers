@@ -225,9 +225,7 @@ public struct Movie: FlatBufferObject, ObjectAPIPacker {
   public var mainCharacterType: Character { let o = _accessor.offset(VTOFFSET.mainCharacterType.v); return o == 0 ? .none_ : Character(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? .none_ }
   public func mainCharacter<T: FlatBufferObject>(type: T.Type) -> T? { let o = _accessor.offset(VTOFFSET.mainCharacter.v); return o == 0 ? nil : _accessor.union(o) }
   public var charactersTypeCount: Int32 { let o = _accessor.offset(VTOFFSET.charactersType.v); return o == 0 ? 0 : _accessor.vector(count: o) }
-  public func charactersType(at index: Int32) -> Character? { let o = _accessor.offset(VTOFFSET.charactersType.v); _accessor.directRead(of: Character.self, offset: _accessor.vector(at: o) + index * 1) }
-  public var charactersType: [Character] { return _accessor.getVector(at: VTOFFSET.charactersType.v) ?? [] }
-  public func mutate(charactersType: Character, at index: Int32) -> Bool { let o = _accessor.offset(VTOFFSET.charactersType.v); return _accessor.directMutate(charactersType, index: _accessor.vector(at: o) + index * 1) }
+  public func charactersType(at index: Int32) -> Character? { let o = _accessor.offset(VTOFFSET.charactersType.v); return o == 0 ? Character.none_ : Character(rawValue: _accessor.directRead(of: UInt8.self, offset: _accessor.vector(at: o) + index * 1)) }
   public var charactersCount: Int32 { let o = _accessor.offset(VTOFFSET.characters.v); return o == 0 ? 0 : _accessor.vector(count: o) }
   public func characters<T: FlatBufferObject>(at index: Int32, type: T.Type) -> T? { let o = _accessor.offset(VTOFFSET.characters.v); return o == 0 ? nil : _accessor.directUnion(_accessor.vector(at: o) + index * 4) }
   public static func startMovie(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 4) }
