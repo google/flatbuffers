@@ -1,7 +1,6 @@
 --swiftversion 5.1
 
 # format
---allman true
 --indent 2
 
 # options
