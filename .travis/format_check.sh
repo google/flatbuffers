@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2020 Google Inc. All rights reserved.
+# Copyright 2021 Google Inc. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,12 +23,22 @@ nvm use default
 
 sh src/clang-format-git.sh
 
+# Check formatting for go lang
+
+cd go
+gofmt -w .
+cd ..
+cd grpc/examples/go
+sh format.sh
+cd ../../..
+
 node_modules/.bin/eslint ts/** --ext .ts --quiet --fix
 
 #PYTHON IS DISABLED UNTIL WE CREATE A .pylintrc FILE FOR IT
 pylint python/** --disable=all
 
 swiftformat --config swift.swiftformat .
+
 
 if ! git diff --quiet; then
   echo >&2

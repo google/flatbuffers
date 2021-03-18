@@ -55,7 +55,15 @@ install_languages() {
 
   export PATH="~/swiftbuild/swift-5.3.1-RELEASE-ubuntu16.04/usr/bin:$PATH"
 
+
+  mkdir ~/gobuild
+  wget -c https://golang.org/dl/go1.15.2.linux-amd64.tar.gz
+  tar -xvzf go1.15.2.linux-amd64.tar.gz -C ~/gobuild
+
+  export  PATH="~/gobuild/go/bin:$PATH"
+
   swift --version
+  go version
   yarn -v
   node -v
 }
