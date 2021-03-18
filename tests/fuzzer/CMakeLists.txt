@@ -175,4 +175,16 @@ if(BUILD_DEBUGGER)
     scalar_debug.cpp
   )
   target_link_libraries(scalar_debug PRIVATE flatbuffers_nonfuzz)
+
+  add_executable(monster_debug
+    flatbuffers_monster_fuzzer.cc
+    monster_debug.cpp
+  )
+  target_link_libraries(monster_debug PRIVATE flatbuffers_nonfuzz)
+  add_custom_command(
+    TARGET monster_debug PRE_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+    ${CMAKE_SOURCE_DIR}/../monster_test.bfbs
+    ${CMAKE_CURRENT_BINARY_DIR}/monster_test.bfbs)
+  
 endif(BUILD_DEBUGGER)
