@@ -133,11 +133,11 @@ The following attributes are specific to the object-based API code generation:
     This attribute changes the member declaration to use the type directly
     rather than wrapped in a unique_ptr.
 
--   `native_default`: "value" (on a field): For members that are declared
+-   `native_default("value")` (on a field): For members that are declared
     "native_inline", the value specified with this attribute will be included
     verbatim in the class constructor initializer list for this member.
 
--   `native_custom_alloc`:"custom_allocator" (on a table or struct): When using the
+-   `native_custom_alloc("custom_allocator")` (on a table or struct): When using the
     object-based API all generated NativeTables that  are allocated when unpacking
     your  flatbuffer will use "custom allocator". The allocator is also used by
     any std::vector that appears in a table defined with `native_custom_alloc`.
@@ -148,12 +148,15 @@ The following attributes are specific to the object-based API code generation:
 
     schema:
 
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
     table mytable(native_custom_alloc:"custom_allocator") {
       ...
     }
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    with custom_allocator defined before flatbuffers.h is included, as:
+    with custom_allocator defined before `flatbuffers.h` is included, as:
 
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
     template <typename T> struct custom_allocator : public std::allocator<T> {
 
       typedef T *pointer;
@@ -175,48 +178,73 @@ The following attributes are specific to the object-based API code generation:
       template <class U>
       custom_allocator(const custom_allocator<U>&) throw() {}
     };
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--   `native_type`' "type" (on a struct): In some cases, a more optimal C++ data
+-   `native_type("type")` (on a struct): In some cases, a more optimal C++ data
     type exists for a given struct.  For example, the following schema:
 
-      struct Vec2 {
-        x: float;
-        y: float;
-      }
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+    struct Vec2 {
+      x: float;
+      y: float;
+    }
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     generates the following Object-Based API class:
 
-      struct Vec2T : flatbuffers::NativeTable {
-        float x;
-        float y;
-      };
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+    struct Vec2T : flatbuffers::NativeTable {
+      float x;
+      float y;
+    };
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     However, it can be useful to instead use a user-defined C++ type since it
     can provide more functionality, eg.
 
-      struct vector2 {
-        float x = 0, y = 0;
-        vector2 operator+(vector2 rhs) const { ... }
-        vector2 operator-(vector2 rhs) const { ... }
-        float length() const { ... }
-        // etc.
-      };
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+    struct vector2 {
+      float x = 0, y = 0;
+      vector2 operator+(vector2 rhs) const { ... }
+      vector2 operator-(vector2 rhs) const { ... }
+      float length() const { ... }
+      // etc.
+    };
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     The `native_type` attribute will replace the usage of the generated class
     with the given type.  So, continuing with the example, the generated
-    code would use |vector2| in place of |Vec2T| for all generated code.
+    code would use `vector2` in place of `Vec2T` for all generated code of
+    the Object-Based API.
 
-    However, becuase the native_type is unknown to flatbuffers, the user must
+    However, because the `native_type` is unknown to flatbuffers, the user must
     provide the following functions to aide in the serialization process:
 
-      namespace flatbuffers {
-        FlatbufferStruct Pack(const native_type& obj);
-        native_type UnPack(const FlatbufferStruct& obj);
-      }
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+    namespace flatbuffers {
+      Vec2 Pack(const vector2& obj);
+      vector2 UnPack(const Vec2& obj);
+    }
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Finally, the following top-level attribute
+-   `native_type_pack_name("name")` (on a struct when `native_type` is
+    specified, too): when you want to use the same `native_type` multiple times
+    (e. g. with different precision) you must make the names of the Pack/UnPack
+    functions unique, otherwise you will run into compile errors. This attribute
+    appends a name to the expected Pack/UnPack functions. So when you
+    specify `native_type_pack_name("Vec2")` in the above example you now need to
+    implement these serialization functions instead:
 
--   `native_include`: "path" (at file level): Because the `native_type` attribute
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+    namespace flatbuffers {
+      Vec2 PackVec2(const vector2& obj);
+      vector2 UnPackVec2(const Vec2& obj);
+    }
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Finally, the following top-level attributes:
+
+-   `native_include("path")` (at file level): Because the `native_type` attribute
     can be used to introduce types that are unknown to flatbuffers, it may be
     necessary to include "external" header files in the generated code.  This
     attribute can be used to directly add an #include directive to the top of
