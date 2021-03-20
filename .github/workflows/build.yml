@@ -235,7 +235,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: compile
-      run: npm compile
+      run: npm run compile
     - name: test
       working-directory: tests
       run: sh TypeScriptTest.sh
