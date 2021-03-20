@@ -234,6 +234,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
+    - name: compile
+      run: npm compile
     - name: test
       working-directory: tests
       run: sh TypeScriptTest.sh
