@@ -228,3 +228,12 @@ jobs:
     - name: test
       working-directory: tests/FlatBuffers.Test.Swift
       run: sh SwiftTest.sh
+
+  build-ts:
+    name: Build TS
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: test
+      working-directory: tests
+      run: sh TypeScriptTest.sh
