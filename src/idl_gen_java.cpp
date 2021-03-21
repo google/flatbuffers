@@ -1284,7 +1284,7 @@ class JavaGenerator : public BaseGenerator {
                          const IDLOptions &opts) const {
     auto &code = *code_ptr;
     if (enum_def.generated) return;
-    code += "import com.google.flatbuffers.FlatBufferBuilder; \n\n";
+    code += "import com.google.flatbuffers.FlatBufferBuilder;\n\n";
 
     if (!enum_def.attributes.Lookup("private")) {
       code += "public ";
@@ -1322,7 +1322,7 @@ class JavaGenerator : public BaseGenerator {
       code += type_name + " as" + ev.name + "() { return (" + type_name + ") this.value; }\n";
     }
     code += "\n";
-    // Pack()
+    // pack()
     code += "  public static int pack(FlatBufferBuilder builder, " +
             union_name + " _o) {\n";
     code += "    switch (_o.type) {\n";
@@ -1344,89 +1344,6 @@ class JavaGenerator : public BaseGenerator {
     code += "    }\n";
     code += "  }\n";
     code += "}\n\n";
-    // JsonConverter
-    if (opts.cs_gen_json_serializer) {
-      if (enum_def.attributes.Lookup("private")) {
-        code += "internal ";
-      } else {
-        code += "public ";
-      }
-      code += "class " + union_name +
-              "_JsonConverter : Newtonsoft.Json.JsonConverter {\n";
-      code += "  public override bool CanConvert(System.Type objectType) {\n";
-      code += "    return objectType == typeof(" + union_name +
-              ") || objectType == typeof(System.Collections.Generic.List<" +
-              union_name + ">);\n";
-      code += "  }\n";
-      code +=
-          "  public override void WriteJson(Newtonsoft.Json.JsonWriter writer, "
-          "object value, "
-          "Newtonsoft.Json.JsonSerializer serializer) {\n";
-      code += "    var _olist = value as System.Collections.Generic.List<" +
-              union_name + ">;\n";
-      code += "    if (_olist != null) {\n";
-      code += "      writer.WriteStartArray();\n";
-      code +=
-          "      foreach (var _o in _olist) { this.WriteJson(writer, _o, "
-          "serializer); }\n";
-      code += "      writer.WriteEndArray();\n";
-      code += "    } else {\n";
-      code += "      this.WriteJson(writer, value as " + union_name +
-              ", serializer);\n";
-      code += "    }\n";
-      code += "  }\n";
-      code += "  public void WriteJson(Newtonsoft.Json.JsonWriter writer, " +
-              union_name +
-              " _o, "
-              "Newtonsoft.Json.JsonSerializer serializer) {\n";
-      code += "    if (_o == null) return;\n";
-      code += "    serializer.Serialize(writer, _o.Value);\n";
-      code += "  }\n";
-      code +=
-          "  public override object ReadJson(Newtonsoft.Json.JsonReader "
-          "reader, "
-          "System.Type objectType, "
-          "object existingValue, Newtonsoft.Json.JsonSerializer serializer) "
-          "{\n";
-      code +=
-          "    var _olist = existingValue as System.Collections.Generic.List<" +
-          union_name + ">;\n";
-      code += "    if (_olist != null) {\n";
-      code += "      for (var _j = 0; _j < _olist.Count; ++_j) {\n";
-      code += "        reader.Read();\n";
-      code +=
-          "        _olist[_j] = this.ReadJson(reader, _olist[_j], "
-          "serializer);\n";
-      code += "      }\n";
-      code += "      reader.Read();\n";
-      code += "      return _olist;\n";
-      code += "    } else {\n";
-      code += "      return this.ReadJson(reader, existingValue as " +
-              union_name + ", serializer);\n";
-      code += "    }\n";
-      code += "  }\n";
-      code += "  public " + union_name +
-              " ReadJson(Newtonsoft.Json.JsonReader reader, " + union_name +
-              " _o, Newtonsoft.Json.JsonSerializer serializer) {\n";
-      code += "    if (_o == null) return null;\n";
-      code += "    switch (_o.Type) {\n";
-      for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
-           ++it) {
-        auto &ev = **it;
-        if (ev.union_type.base_type == BASE_TYPE_NONE) {
-          code += "      default: break;\n";
-        } else {
-          auto type_name = GenTypeGet_ObjectAPI(ev.union_type, opts, false, true);
-          code += "      case " + enum_def.name + "." + ev.name +
-                  ": _o.Value = serializer.Deserialize<" + type_name +
-                  ">(reader); break;\n";
-        }
-      }
-      code += "    }\n";
-      code += "    return _o;\n";
-      code += "  }\n";
-      code += "}";
-    }
   }
 
   std::string GenSetterFuncName_ObjectAPI(const std::string &field_name) const {
@@ -1626,6 +1543,7 @@ class JavaGenerator : public BaseGenerator {
                 break;
               }
               case BASE_TYPE_STRUCT:
+                // Seems like unreachable code
                 array_type = "Offset<" + GenTypeGet(field.value.type) + ">";
                 element_type = array_type;
                 to_array = GenTypeGet(field.value.type) + ".pack(builder, _o." +
@@ -1730,6 +1648,7 @@ class JavaGenerator : public BaseGenerator {
                 if (opts.generate_object_based_api)
                   code += "      _o." + camel_name;
                 else
+                  // Seems like unreachable code
                   code += "      " + GenTypeGet(field.value.type) +
                           ".Pack(builder, _o." + camel_name + ")";
               } else {
@@ -2105,21 +2024,6 @@ class JavaGenerator : public BaseGenerator {
       }
     }
     code += "  }\n";
-    // Generate Serialization
-    if (opts.cs_gen_json_serializer &&
-        parser_.root_struct_def_ == &struct_def) {
-      code += "\n";
-      code += "  public static " + class_name +
-              " DeserializeFromJson(string jsonText) {\n";
-      code += "    return Newtonsoft.Json.JsonConvert.DeserializeObject<" +
-              class_name + ">(jsonText);\n";
-      code += "  }\n";
-      code += "  public string SerializeToJson() {\n";
-      code +=
-          "    return Newtonsoft.Json.JsonConvert.SerializeObject(this, "
-          "Newtonsoft.Json.Formatting.Indented);\n";
-      code += "  }\n";
-    }
     if (parser_.root_struct_def_ == &struct_def) {
       code += "  public static " + class_name +
               " deserializeFromBinary(byte[] fbBuffer) {\n";
