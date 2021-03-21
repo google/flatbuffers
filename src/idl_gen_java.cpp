@@ -59,13 +59,26 @@ class JavaGenerator : public BaseGenerator {
       std::string enumcode;
       auto &enum_def = **it;
       if (!parser_.opts.one_file) cur_name_space_ = enum_def.defined_namespace;
-      GenEnum(enum_def, &enumcode, parser_.opts);
+      GenEnum(enum_def, &enumcode);
       if (parser_.opts.one_file) {
         one_file_code += enumcode;
       } else {
         if (!SaveType(enum_def.name, *enum_def.defined_namespace, enumcode,
                       /* needs_includes= */ false))
           return false;
+      }
+
+      if (parser_.opts.generate_object_based_api && enum_def.is_union) {
+        enumcode = "";
+        GenEnum_ObjectAPI(enum_def, &enumcode, parser_.opts);
+        auto class_name = enum_def.name + "Union";
+        if (parser_.opts.one_file) {
+          one_file_code += enumcode;
+        } else {
+          if (!SaveType(class_name, *enum_def.defined_namespace, enumcode,
+                        /* needs_includes= */ false))
+            return false;
+        }
       }
     }
 
@@ -82,6 +95,19 @@ class JavaGenerator : public BaseGenerator {
         if (!SaveType(struct_def.name, *struct_def.defined_namespace, declcode,
                       /* needs_includes= */ true))
           return false;
+      }
+
+      if (parser_.opts.generate_object_based_api) {
+        declcode = "";
+        GenStruct_ObjectAPI(struct_def, &declcode, parser_.opts);
+        auto class_name = GenTypeName_ObjectAPI(struct_def.name, parser_.opts);
+        if (parser_.opts.one_file) {
+          one_file_code += declcode;
+        } else {
+          if (!SaveType(class_name, *struct_def.defined_namespace, declcode,
+                        /* needs_includes= */ true))
+            return false;
+        }
       }
     }
 
@@ -297,8 +323,7 @@ class JavaGenerator : public BaseGenerator {
     return GenDefaultValue(field);
   }
 
-  void GenEnum(EnumDef &enum_def, std::string *code_ptr,
-               const IDLOptions &opts) const {
+  void GenEnum(EnumDef &enum_def, std::string *code_ptr) const {
     std::string &code = *code_ptr;
     if (enum_def.generated) return;
 
@@ -309,10 +334,7 @@ class JavaGenerator : public BaseGenerator {
     // That, and Java Enums are expensive, and not universally liked.
     GenComment(enum_def.doc_comment, code_ptr, &comment_config);
 
-    if (opts.generate_object_based_api) {
-      code += "import com.google.flatbuffers.FlatBufferBuilder; \n\n";
-    }
-
+    code += "@SuppressWarnings(\"unused\")\n";
     if (enum_def.attributes.Lookup("private")) {
       // For Java, we leave the enum unmarked to indicate package-private
     } else {
@@ -362,11 +384,7 @@ class JavaGenerator : public BaseGenerator {
     }
 
     // Close the class
-    code += "}\n\n";
-
-    if (opts.generate_object_based_api) {
-      GenEnum_ObjectAPI(enum_def, code_ptr, opts);
-    }
+    code += "}";
   }
 
   // Returns the function name that is able to read a value of the given type.
@@ -1188,10 +1206,6 @@ class JavaGenerator : public BaseGenerator {
                               field_has_create_set);
     }
     code += "}";
-    code += "\n\n";
-    if (opts.generate_object_based_api) {
-      GenStruct_ObjectAPI(struct_def, code_ptr, opts);
-    }
   }
 
   std::string GenOptionalScalarCheck(FieldDef &field) const {
@@ -1270,7 +1284,8 @@ class JavaGenerator : public BaseGenerator {
                          const IDLOptions &opts) const {
     auto &code = *code_ptr;
     if (enum_def.generated) return;
-    if (!enum_def.is_union) return;
+    code += "import com.google.flatbuffers.FlatBufferBuilder; \n\n";
+
     if (!enum_def.attributes.Lookup("private")) {
       code += "public ";
     }
@@ -1410,7 +1425,7 @@ class JavaGenerator : public BaseGenerator {
       code += "    }\n";
       code += "    return _o;\n";
       code += "  }\n";
-      code += "}\n\n";
+      code += "}";
     }
   }
 
@@ -1490,6 +1505,7 @@ class JavaGenerator : public BaseGenerator {
       auto camel_name = MakeCamel(field.name, false);
       auto camel_name_with_first = MakeCamel(field.name, true);
       auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts, false, false);
+      if (field.IsScalarOptional()) type_name = ConvertPrimitiveTypeToObjectWrapper_ObjectAPI(type_name);
       auto start = "    " + type_name + " _o" + camel_name_with_first + " = ";
       switch (field.value.type.base_type) {
         case BASE_TYPE_STRUCT: {
@@ -1545,7 +1561,11 @@ class JavaGenerator : public BaseGenerator {
           break;
         }
         default: {
-          code += start + "this." + camel_name + "();\n";
+          if (field.IsScalarOptional()) {
+            code += start + "this.has" + camel_name_with_first + "() ? this." + camel_name + "() : null;\n";
+          } else {
+            code += start + "this." + camel_name + "();\n";
+          }
           break;
         }
       }
@@ -1782,8 +1802,11 @@ class JavaGenerator : public BaseGenerator {
           }
           // scalar
           default: {
-            code +=
-                "    add" + camel_name_with_first + "(builder, _o." + GenGetterFuncName_ObjectAPI(field.name) + "());\n";
+            if (field.IsScalarOptional()) {
+              code += "    if (_o." + GenGetterFuncName_ObjectAPI(field.name) + "() != null) { add" + camel_name_with_first + "(builder, _o." + GenGetterFuncName_ObjectAPI(field.name) + "(); }\n";
+            } else {
+              code += "    add" + camel_name_with_first + "(builder, _o." + GenGetterFuncName_ObjectAPI(field.name) + "());\n";
+            }
             break;
           }
         }
@@ -2015,7 +2038,7 @@ class JavaGenerator : public BaseGenerator {
 
     auto class_name = GenTypeName_ObjectAPI(struct_def.name, opts);
     code += "class " + class_name;
-    code += "\n{\n";
+    code += " {\n";
     // Generate Properties
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
@@ -2024,7 +2047,7 @@ class JavaGenerator : public BaseGenerator {
       if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
       if (field.value.type.element == BASE_TYPE_UTYPE) continue;
       auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts, false, true);
-      if (field.IsScalarOptional()) type_name += "?";
+      if (field.IsScalarOptional()) type_name = ConvertPrimitiveTypeToObjectWrapper_ObjectAPI(type_name);
       auto camel_name = MakeCamel(field.name, false);
       code += "  private " + type_name + " " + camel_name + ";\n";
     }
@@ -2037,7 +2060,7 @@ class JavaGenerator : public BaseGenerator {
       if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
       if (field.value.type.element == BASE_TYPE_UTYPE) continue;
       auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts, false, true);
-      if (field.IsScalarOptional()) type_name += "?";
+      if (field.IsScalarOptional()) type_name = ConvertPrimitiveTypeToObjectWrapper_ObjectAPI(type_name);
       auto camel_name = MakeCamel(field.name, false);
       code += "  public " + type_name + " " + GenGetterFuncName_ObjectAPI(field.name) + "() { return this." + camel_name + "; }\n\n";
       code += "  public void " + GenSetterFuncName_ObjectAPI(field.name) + "(" + type_name + " " + camel_name + ") { this." + camel_name + " = "+ camel_name + "; }\n\n";
@@ -2054,7 +2077,11 @@ class JavaGenerator : public BaseGenerator {
       code += "    this." + MakeCamel(field.name, false) + " = ";
       auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts, false, true);
       if (IsScalar(field.value.type.base_type)) {
-        code += GenDefaultValue(field) + ";\n";
+        if (field.IsScalarOptional()) {
+          code += "null;\n";
+        } else {
+          code += GenDefaultValue(field) + ";\n";
+        }
       } else {
         switch (field.value.type.base_type) {
           case BASE_TYPE_STRUCT: {
@@ -2106,7 +2133,7 @@ class JavaGenerator : public BaseGenerator {
       code += "    return fbb.sizedByteArray();\n";
       code += "  }\n";
     }
-    code += "}\n\n";
+    code += "}";
   }
 
   // This tracks the current namespace used to determine if a type need to be
