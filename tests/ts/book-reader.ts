@@ -17,6 +17,11 @@ booksRead():number {
   return this.bb!.readInt32(this.bb_pos);
 }
 
+mutate_books_read(value:number):boolean {
+  this.bb!.writeInt32(this.bb_pos + 0, value);
+  return true;
+}
+
 static getFullyQualifiedName():string {
   return 'BookReader';
 }

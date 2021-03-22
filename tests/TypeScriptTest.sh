@@ -23,7 +23,7 @@ npm install
 if [ -x ../flatc ]; then
     ../flatc --ts --gen-name-strings --gen-mutable --gen-object-api -o ts -I include_test monster_test.fbs
     ../flatc --gen-object-api -b -I include_test monster_test.fbs unicode_test.json
-    ../flatc --ts --gen-name-strings --gen-object-api -o ts union_vector/union_vector.fbs
+    ../flatc --ts --gen-name-strings --gen-mutable --gen-object-api -o ts union_vector/union_vector.fbs
 fi
 tsc
 node -r esm JavaScriptTest

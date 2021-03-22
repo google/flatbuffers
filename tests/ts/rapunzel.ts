@@ -17,6 +17,11 @@ hairLength():number {
   return this.bb!.readInt32(this.bb_pos);
 }
 
+mutate_hair_length(value:number):boolean {
+  this.bb!.writeInt32(this.bb_pos + 0, value);
+  return true;
+}
+
 static getFullyQualifiedName():string {
   return 'Rapunzel';
 }

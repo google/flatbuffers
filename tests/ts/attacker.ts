@@ -27,6 +27,17 @@ swordAttackDamage():number {
   return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
 }
 
+mutate_sword_attack_damage(value:number):boolean {
+  const offset = this.bb!.__offset(this.bb_pos, 4);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeInt32(this.bb_pos + offset, value);
+  return true;
+}
+
 static getFullyQualifiedName():string {
   return 'Attacker';
 }
