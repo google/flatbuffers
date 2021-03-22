@@ -33,7 +33,7 @@ TEST_NOINCL_FLAGS="$TEST_BASE_FLAGS --no-includes"
 
 ../flatc --binary --cpp --java --kotlin  --csharp --dart --go --lobster --lua --php --grpc \
 $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS -I include_test monster_test.fbs monsterdata_test.json
-../flatc --binary --ts -o ts \
+../flatc --binary --ts --grpc -o ts \
 -I include_test monster_test.fbs monsterdata_test.json
 ../flatc --rust $TEST_RUST_FLAGS -I include_test monster_test.fbs monsterdata_test.json
 
