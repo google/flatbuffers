@@ -39,9 +39,7 @@ $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS -I include_test monster_test.f
 
 ../flatc --python $TEST_BASE_FLAGS -I include_test monster_test.fbs monsterdata_test.json
 
-../flatc --cpp --java --kotlin --csharp --dart --go --binary --lobster --lua --php --python \
-$TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_TS_FLAGS -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs
-../flatc --ts -o ts \
+../flatc --cpp --java --kotlin --csharp --dart --go --binary --lobster --lua --php --python --ts \
 $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_TS_FLAGS -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs
 
 # For Rust we currently generate two independent schemas, with namespace_test2

@@ -42,9 +42,7 @@ set TEST_NOINCL_FLAGS=%TEST_BASE_FLAGS% --no-includes
 
 ..\%buildtype%\flatc.exe --python %TEST_BASE_FLAGS% -I include_test monster_test.fbs monsterdata_test.json || goto FAIL
 
-..\%buildtype%\flatc.exe --binary --cpp --java --csharp --dart --go --lobster --lua --php --python ^
-%TEST_NOINCL_FLAGS% %TEST_CPP_FLAGS% %TEST_CS_FLAGS% %TEST_JS_TS_FLAGS% -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs || goto FAIL
-..\%buildtype%\flatc.exe --binary --ts -o ts ^
+..\%buildtype%\flatc.exe --binary --cpp --java --csharp --dart --go --lobster --lua --php --python -ts ^
 %TEST_NOINCL_FLAGS% %TEST_CPP_FLAGS% %TEST_CS_FLAGS% %TEST_JS_TS_FLAGS% -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs || goto FAIL
 
 @rem For Rust we currently generate two independent schemas, with namespace_test2
