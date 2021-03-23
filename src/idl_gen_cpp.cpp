@@ -2621,9 +2621,14 @@ class CppGenerator : public BaseGenerator {
       }
       case BASE_TYPE_STRUCT: {
         if (IsStruct(type)) {
-          auto native_type = type.struct_def->attributes.Lookup("native_type");
+          const auto &struct_attrs = type.struct_def->attributes;
+          const auto native_type = struct_attrs.Lookup("native_type");
           if (native_type) {
-            return "flatbuffers::UnPack(*" + val + ")";
+            std::string unpack_call = "flatbuffers::UnPack";
+            const auto pack_name = struct_attrs.Lookup("native_type_pack_name");
+            if (pack_name) { unpack_call += pack_name->constant; }
+            unpack_call += "(*" + val + ")";
+            return unpack_call;
           } else if (invector || afield.native_inline) {
             return "*" + val;
           } else {
@@ -2849,15 +2854,24 @@ class CppGenerator : public BaseGenerator {
           }
           case BASE_TYPE_STRUCT: {
             if (IsStruct(vector_type)) {
-              auto native_type =
-                  field.value.type.struct_def->attributes.Lookup("native_type");
+              const auto &struct_attrs =
+                  field.value.type.struct_def->attributes;
+              const auto native_type = struct_attrs.Lookup("native_type");
               if (native_type) {
                 code += "_fbb.CreateVectorOfNativeStructs<";
-                code += WrapInNameSpace(*vector_type.struct_def) + ">";
+                code += WrapInNameSpace(*vector_type.struct_def) + ", " +
+                        native_type->constant + ">";
+                code += "(" + value;
+                const auto pack_name =
+                    struct_attrs.Lookup("native_type_pack_name");
+                if (pack_name) {
+                  code += ", flatbuffers::Pack" + pack_name->constant;
+                }
+                code += ")";
               } else {
                 code += "_fbb.CreateVectorOfStructs";
+                code += "(" + value + ")";
               }
-              code += "(" + value + ")";
             } else {
               code += "_fbb.CreateVector<flatbuffers::Offset<";
               code += WrapInNameSpace(*vector_type.struct_def) + ">> ";
@@ -2932,10 +2946,14 @@ class CppGenerator : public BaseGenerator {
       }
       case BASE_TYPE_STRUCT: {
         if (IsStruct(field.value.type)) {
-          auto native_type =
-              field.value.type.struct_def->attributes.Lookup("native_type");
+          const auto &struct_attribs = field.value.type.struct_def->attributes;
+          const auto native_type = struct_attribs.Lookup("native_type");
           if (native_type) {
-            code += "flatbuffers::Pack(" + value + ")";
+            code += "flatbuffers::Pack";
+            const auto pack_name =
+                struct_attribs.Lookup("native_type_pack_name");
+            if (pack_name) { code += pack_name->constant; }
+            code += "(" + value + ")";
           } else if (field.native_inline) {
             code += "&" + value;
           } else {
