@@ -856,9 +856,15 @@ class TsGenerator : public BaseGenerator {
             const std::string field_accessor = "this." + field_name + "()";
             field_val = GenNullCheckConditional(field_accessor,
                                                 field_accessor + "!.unpack()");
-            field_offset_decl = GenNullCheckConditional(
+            auto packing = GenNullCheckConditional(
                 "this." + field_name, "this." + field_name + "!.pack(builder)",
                 "0");
+
+            if (sd.fixed) {
+              field_offset_val = std::move(packing);
+            } else {
+              field_offset_decl = std::move(packing);
+            }
 
             break;
           }
