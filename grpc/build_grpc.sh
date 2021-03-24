@@ -7,7 +7,9 @@ function build_grpc () {
   cd google/grpc
   git checkout ${grpc_1_36_0_githash}
   git submodule update --init
-  cmake . -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=`pwd`/install
+  mkdir ../grpc_build
+  cd ../grpc_build
+  cmake ../grpc -DgRPC_INSTALL=ON -DgRPC_BUILD_TESTS=OFF -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=`pwd`/../grpc/install
   make
   make install
   if [ ! -f ${GRPC_INSTALL_PATH}/lib/libgrpc++_unsecure.so.1 ]; then

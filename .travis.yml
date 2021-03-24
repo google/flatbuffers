@@ -104,6 +104,7 @@ matrix:
       - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which gcc-$GCC_VERSION) /usr/bin/gcc; fi
 
       script:
+      - pip install cmake
       - bash .travis/check-sources.sh
       - bash grpc/build_grpc.sh
       - cmake .
