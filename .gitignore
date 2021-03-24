@@ -141,3 +141,7 @@ yarn-error.log
 /flatbuffers.lib
 .cmake/
 **/dist
+**/vendor
+**/go.sum
+/tests/**/*.js
+flatbuffers.pc

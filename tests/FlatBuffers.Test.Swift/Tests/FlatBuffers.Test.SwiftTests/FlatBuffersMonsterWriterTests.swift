@@ -99,6 +99,24 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     readObjectApi(monster: unpacked)
   }
 
+  func testArrayOfBools() {
+    let boolArray = [false, true, false, true, false, true, false]
+    var fbb = FlatBufferBuilder(initialSize: 1)
+    let name = fbb.create(string: "Frodo")
+    let bools = fbb.createVector(boolArray)
+    let root = Monster.createMonster(&fbb, nameOffset: name, testarrayofboolsVectorOffset: bools)
+    fbb.finish(offset: root)
+    let monster = Monster.getRootAsMonster(bb: fbb.sizedBuffer)
+
+    let values = monster.testarrayofbools
+
+    XCTAssertEqual(boolArray, values)
+
+    for i in 0..<monster.testarrayofboolsCount {
+      XCTAssertEqual(boolArray[Int(i)], monster.testarrayofbools(at: i))
+    }
+  }
+
   func readMonster(fb: ByteBuffer) {
     var monster = Monster.getRootAsMonster(bb: fb)
     readFlatbufferMonster(monster: &monster)

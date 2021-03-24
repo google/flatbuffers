@@ -37,7 +37,7 @@ jobs:
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
     - name: cmake
-      run: cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release .
+      run: cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_CPP17=ON .
     - name: build
       run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64
     - name: test
@@ -97,6 +97,19 @@ jobs:
    - name: build
      working-directory: android
      run: bash ./gradlew clean build
+
+  build-generator:
+    name: Check Generated Code
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        cxx: [g++-9, clang++-9]
+    steps:
+    - uses: actions/checkout@v1
+    - name: cmake
+      run: CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" -DFLATBUFFERS_BUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=Release . && make -j4
+    - name: Generate
+      run: bash scripts/check-generate-code.sh && bash scripts/check-grpc-generated-code.sh
 
   build-java:
     name: Build Java

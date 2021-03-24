@@ -498,15 +498,19 @@ CheckedError Parser::Next() {
         }
         FLATBUFFERS_FALLTHROUGH();  // else fall thru
       default:
-        const auto has_sign = (c == '+') || (c == '-');
-        // '-'/'+' and following identifier - can be a predefined constant like:
-        // NAN, INF, PI, etc or it can be a function name like cos/sin/deg.
-        if (IsIdentifierStart(c) || (has_sign && IsIdentifierStart(*cursor_))) {
+        if (IsIdentifierStart(c)) {
           // Collect all chars of an identifier:
           const char *start = cursor_ - 1;
           while (IsIdentifierStart(*cursor_) || is_digit(*cursor_)) cursor_++;
           attribute_.append(start, cursor_);
-          token_ = has_sign ? kTokenStringConstant : kTokenIdentifier;
+          token_ = kTokenIdentifier;
+          return NoError();
+        }
+
+        const auto has_sign = (c == '+') || (c == '-');
+        if (has_sign && IsIdentifierStart(*cursor_)) {
+          // '-'/'+' and following identifier - it could be a predefined
+          // constant. Return the sign in token_, see ParseSingleValue.
           return NoError();
         }
 
@@ -1852,56 +1856,61 @@ CheckedError Parser::ParseFunction(const std::string *name, Value &e) {
 CheckedError Parser::TryTypedValue(const std::string *name, int dtoken,
                                    bool check, Value &e, BaseType req,
                                    bool *destmatch) {
-  bool match = dtoken == token_;
-  if (match) {
-    FLATBUFFERS_ASSERT(*destmatch == false);
-    *destmatch = true;
-    e.constant = attribute_;
-    // Check token match
-    if (!check) {
-      if (e.type.base_type == BASE_TYPE_NONE) {
-        e.type.base_type = req;
-      } else {
-        return Error(
-            std::string("type mismatch: expecting: ") +
-            kTypeNames[e.type.base_type] + ", found: " + kTypeNames[req] +
-            ", name: " + (name ? *name : "") + ", value: " + e.constant);
-      }
+  FLATBUFFERS_ASSERT(*destmatch == false && dtoken == token_);
+  *destmatch = true;
+  e.constant = attribute_;
+  // Check token match
+  if (!check) {
+    if (e.type.base_type == BASE_TYPE_NONE) {
+      e.type.base_type = req;
+    } else {
+      return Error(std::string("type mismatch: expecting: ") +
+                   kTypeNames[e.type.base_type] +
+                   ", found: " + kTypeNames[req] +
+                   ", name: " + (name ? *name : "") + ", value: " + e.constant);
     }
-    // The exponent suffix of hexadecimal float-point number is mandatory.
-    // A hex-integer constant is forbidden as an initializer of float number.
-    if ((kTokenFloatConstant != dtoken) && IsFloat(e.type.base_type)) {
-      const auto &s = e.constant;
-      const auto k = s.find_first_of("0123456789.");
-      if ((std::string::npos != k) && (s.length() > (k + 1)) &&
-          (s[k] == '0' && is_alpha_char(s[k + 1], 'X')) &&
-          (std::string::npos == s.find_first_of("pP", k + 2))) {
-        return Error(
-            "invalid number, the exponent suffix of hexadecimal "
-            "floating-point literals is mandatory: \"" +
-            s + "\"");
-      }
-    }
-    NEXT();
   }
+  // The exponent suffix of hexadecimal float-point number is mandatory.
+  // A hex-integer constant is forbidden as an initializer of float number.
+  if ((kTokenFloatConstant != dtoken) && IsFloat(e.type.base_type)) {
+    const auto &s = e.constant;
+    const auto k = s.find_first_of("0123456789.");
+    if ((std::string::npos != k) && (s.length() > (k + 1)) &&
+        (s[k] == '0' && is_alpha_char(s[k + 1], 'X')) &&
+        (std::string::npos == s.find_first_of("pP", k + 2))) {
+      return Error(
+          "invalid number, the exponent suffix of hexadecimal "
+          "floating-point literals is mandatory: \"" +
+          s + "\"");
+    }
+  }
+  NEXT();
   return NoError();
 }
 
 CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
                                       bool check_now) {
+  if (token_ == '+' || token_ == '-') {
+    const char sign = static_cast<char>(token_);
+    // Get an indentifier: NAN, INF, or function name like cos/sin/deg.
+    NEXT();
+    if (token_ != kTokenIdentifier) return Error("constant name expected");
+    attribute_.insert(0, 1, sign);
+  }
+
   const auto in_type = e.type.base_type;
   const auto is_tok_ident = (token_ == kTokenIdentifier);
   const auto is_tok_string = (token_ == kTokenStringConstant);
 
-  // First see if this could be a conversion function:
+  // First see if this could be a conversion function.
   if (is_tok_ident && *cursor_ == '(') { return ParseFunction(name, e); }
 
   // clang-format off
   auto match = false;
 
   #define IF_ECHECK_(force, dtoken, check, req)    \
-    if (!match && ((check) || IsConstTrue(force))) \
-    ECHECK(TryTypedValue(name, dtoken, check, e, req, &match))
+    if (!match && ((dtoken) == token_) && ((check) || IsConstTrue(force))) \
+      ECHECK(TryTypedValue(name, dtoken, check, e, req, &match))
   #define TRY_ECHECK(dtoken, check, req) IF_ECHECK_(false, dtoken, check, req)
   #define FORCE_ECHECK(dtoken, check, req) IF_ECHECK_(true, dtoken, check, req)
   // clang-format on
@@ -2434,7 +2443,7 @@ bool Parser::SupportsOptionalScalars() const {
 
 bool Parser::SupportsDefaultVectorsAndStrings() const {
   static FLATBUFFERS_CONSTEXPR unsigned long supported_langs =
-      IDLOptions::kRust;
+      IDLOptions::kRust | IDLOptions::kSwift;
   return !(opts.lang_to_generate & ~supported_langs);
 }
 
@@ -3000,6 +3009,15 @@ CheckedError Parser::SkipAnyJsonValue() {
   return NoError();
 }
 
+CheckedError Parser::ParseFlexBufferNumericConstant(
+    flexbuffers::Builder *builder) {
+  double d;
+  if (!StringToNumber(attribute_.c_str(), &d))
+    return Error("unexpected floating-point constant: " + attribute_);
+  builder->Double(d);
+  return NoError();
+}
+
 CheckedError Parser::ParseFlexBufferValue(flexbuffers::Builder *builder) {
   ParseDepthGuard depth_guard(this);
   ECHECK(depth_guard.Check());
@@ -3047,6 +3065,18 @@ CheckedError Parser::ParseFlexBufferValue(flexbuffers::Builder *builder) {
       EXPECT(kTokenFloatConstant);
       break;
     }
+    case '-':
+    case '+': {
+      // `[-+]?(nan|inf|infinity)`, see ParseSingleValue().
+      const auto sign = static_cast<char>(token_);
+      NEXT();
+      if (token_ != kTokenIdentifier)
+        return Error("floating-point constant expected");
+      attribute_.insert(0, 1, sign);
+      ECHECK(ParseFlexBufferNumericConstant(builder));
+      NEXT();
+      break;
+    }
     default:
       if (IsIdent("true")) {
         builder->Bool(true);
@@ -3056,6 +3086,9 @@ CheckedError Parser::ParseFlexBufferValue(flexbuffers::Builder *builder) {
         NEXT();
       } else if (IsIdent("null")) {
         builder->Null();
+        NEXT();
+      } else if (IsIdent("inf") || IsIdent("infinity") || IsIdent("nan")) {
+        ECHECK(ParseFlexBufferNumericConstant(builder));
         NEXT();
       } else
         return TokenError();
@@ -3189,16 +3222,38 @@ CheckedError Parser::ParseRoot(const char *source, const char **include_paths,
       }
     }
   }
+  // Parse JSON object only if the scheme has been parsed.
+  if (token_ == '{') { ECHECK(DoParseJson()); }
+  EXPECT(kTokenEof);
   return NoError();
+}
+
+// Generate a unique hash for a file based on its name and contents (if any).
+static uint64_t HashFile(const char *source_filename, const char *source) {
+  uint64_t hash = 0;
+
+  if (source_filename)
+    hash = HashFnv1a<uint64_t>(StripPath(source_filename).c_str());
+
+  if (source && *source) hash ^= HashFnv1a<uint64_t>(source);
+
+  return hash;
 }
 
 CheckedError Parser::DoParse(const char *source, const char **include_paths,
                              const char *source_filename,
                              const char *include_filename) {
+  uint64_t source_hash = 0;
   if (source_filename) {
-    if (included_files_.find(source_filename) == included_files_.end()) {
-      included_files_[source_filename] =
-          include_filename ? include_filename : "";
+    // If the file is in-memory, don't include its contents in the hash as we
+    // won't be able to load them later.
+    if (FileExists(source_filename))
+      source_hash = HashFile(source_filename, source);
+    else
+      source_hash = HashFile(source_filename, nullptr);
+
+    if (included_files_.find(source_hash) == included_files_.end()) {
+      included_files_[source_hash] = include_filename ? include_filename : "";
       files_included_per_file_[source_filename] = std::set<std::string>();
     } else {
       return NoError();
@@ -3249,12 +3304,14 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
         return Error("unable to locate include file: " + name);
       if (source_filename)
         files_included_per_file_[source_filename].insert(filepath);
-      if (included_files_.find(filepath) == included_files_.end()) {
+
+      std::string contents;
+      bool file_loaded = LoadFile(filepath.c_str(), true, &contents);
+      if (included_files_.find(HashFile(filepath.c_str(), contents.c_str())) ==
+          included_files_.end()) {
         // We found an include file that we have not parsed yet.
-        // Load it and parse it.
-        std::string contents;
-        if (!LoadFile(filepath.c_str(), true, &contents))
-          return Error("unable to load include file: " + name);
+        // Parse it.
+        if (!file_loaded) return Error("unable to load include file: " + name);
         ECHECK(DoParse(contents.c_str(), include_paths, filepath.c_str(),
                        name.c_str()));
         // We generally do not want to output code for any included files:
@@ -3271,7 +3328,7 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
         // entered into included_files_.
         // This is recursive, but only go as deep as the number of include
         // statements.
-        if (source_filename) { included_files_.erase(source_filename); }
+        included_files_.erase(source_hash);
         return DoParse(source, include_paths, source_filename,
                        include_filename);
       }
@@ -3287,7 +3344,7 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
     } else if (IsIdent("namespace")) {
       ECHECK(ParseNamespace());
     } else if (token_ == '{') {
-      ECHECK(DoParseJson());
+      return NoError();
     } else if (IsIdent("enum")) {
       ECHECK(ParseEnum(false, nullptr));
     } else if (IsIdent("union")) {

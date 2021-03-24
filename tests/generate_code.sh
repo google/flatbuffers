@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2015 Google Inc. All rights reserved.
+# Copyright 2021 Google Inc. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -69,13 +69,10 @@ $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_JS_TS_FLAGS -o namespace
 
 working_dir=`pwd`
 cd FlatBuffers.Test.Swift/Tests/FlatBuffers.Test.SwiftTests
-$working_dir/../flatc --swift --grpc $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS -I ../../../include_test ../../../monster_test.fbs
-$working_dir/../flatc --swift $TEST_BASE_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS ../../../union_vector/union_vector.fbs
-$working_dir/../flatc --swift ../../../optional_scalars.fbs
-cd $working_dir
-
-cd FlatBuffers.GRPC.Swift/Sources/Model
-$working_dir/../flatc --swift --grpc greeter.fbs
+$working_dir/../flatc --swift --grpc $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS -I ${working_dir}/include_test ${working_dir}/monster_test.fbs
+$working_dir/../flatc --swift $TEST_BASE_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS ${working_dir}/union_vector/union_vector.fbs
+$working_dir/../flatc --swift ${working_dir}/optional_scalars.fbs
+$working_dir/../flatc --swift --gen-object-api ${working_dir}/more_defaults.fbs
 cd $working_dir
 
 # Tests if the --filename-suffix and --filename-ext works and produces the same
@@ -91,7 +88,7 @@ else
 fi
 
 # Flag c++17 requires Clang6, GCC7, MSVC2017 (_MSC_VER >= 1914)  or higher.
-TEST_CPP17_FLAGS="--cpp --cpp-std c++17 -o ./cpp17/generated_cpp17 $TEST_NOINCL_FLAGS"
+TEST_CPP17_FLAGS="--cpp --cpp-std c++17 --cpp-static-reflection -o ./cpp17/generated_cpp17 $TEST_NOINCL_FLAGS"
 ../flatc $TEST_CPP17_FLAGS -I include_test monster_test.fbs
 ../flatc $TEST_CPP17_FLAGS optional_scalars.fbs
 

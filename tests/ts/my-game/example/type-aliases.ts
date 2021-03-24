@@ -272,7 +272,7 @@ static createV8Vector(builder:flatbuffers.Builder, data:number[]|Uint8Array):fla
 static createV8Vector(builder:flatbuffers.Builder, data:number[]|Int8Array|Uint8Array):flatbuffers.Offset {
   builder.startVector(1, data.length, 1);
   for (let i = data.length - 1; i >= 0; i--) {
-    builder.addInt8(data[i]);
+    builder.addInt8(data[i]!);
   }
   return builder.endVector();
 }
@@ -293,7 +293,7 @@ static createVf64Vector(builder:flatbuffers.Builder, data:number[]|Uint8Array):f
 static createVf64Vector(builder:flatbuffers.Builder, data:number[]|Float64Array|Uint8Array):flatbuffers.Offset {
   builder.startVector(8, data.length, 8);
   for (let i = data.length - 1; i >= 0; i--) {
-    builder.addFloat64(data[i]);
+    builder.addFloat64(data[i]!);
   }
   return builder.endVector();
 }

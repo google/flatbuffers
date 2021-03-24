@@ -107,7 +107,10 @@ final class FlatBuffersUnionTests: XCTestCase {
     ]
     let types = fb.createVector(characterType)
     let characterVector = fb.createVector(ofOffsets: characters)
-    let end = Movie.createMovie(&fb, vectorOfCharactersType: types, vectorOfCharacters: characterVector)
+    let end = Movie.createMovie(
+      &fb,
+      charactersTypeVectorOffset: types,
+      charactersVectorOffset: characterVector)
     Movie.finish(&fb, end: end)
 
     var movie = Movie.getRootAsMovie(bb: fb.buffer)

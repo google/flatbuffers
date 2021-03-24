@@ -1,0 +1,14 @@
+{
+  "name": "flatbuffers-js-grpc",
+  "version": "1.0.0",
+  "author": "mustii@mmk.one",
+  "scripts": {
+    "build": "npm install && tsc",
+    "client": "node dist/client.js",
+    "server": "node dist/server.js"
+  },
+  "dependencies": {
+    "flatbuffers": "^1.12.0",
+    "grpc": "^1.24.3"
+  }
+}

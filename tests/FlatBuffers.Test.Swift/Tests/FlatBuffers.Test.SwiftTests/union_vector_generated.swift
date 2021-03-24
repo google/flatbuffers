@@ -23,8 +23,8 @@ public enum Character: UInt8, Enum {
 
 public struct CharacterUnion {
   public var type: Character
-  public var value: UnionObject?
-  public init(_ v: UnionObject?, type: Character) {
+  public var value: NativeObject?
+  public init(_ v: NativeObject?, type: Character) {
     self.type = type
     self.value = v
   }
@@ -46,7 +46,7 @@ public struct CharacterUnion {
     }
   }
 }
-public struct Rapunzel: NativeStruct, UnionObject {
+public struct Rapunzel: NativeStruct, NativeObject {
 
   static func validateVersion() { FlatBuffersVersion_1_12_0() }
 
@@ -92,7 +92,7 @@ public struct Rapunzel_Mutable: FlatBufferObject {
   }
 }
 
-public struct BookReader: NativeStruct, UnionObject {
+public struct BookReader: NativeStruct, NativeObject {
 
   static func validateVersion() { FlatBuffersVersion_1_12_0() }
 
@@ -138,7 +138,7 @@ public struct BookReader_Mutable: FlatBufferObject {
   }
 }
 
-public struct Attacker: FlatBufferObject, ObjectAPI {
+public struct Attacker: FlatBufferObject, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_1_12_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -186,7 +186,7 @@ public struct Attacker: FlatBufferObject, ObjectAPI {
   }
 }
 
-public class AttackerT: UnionObject {
+public class AttackerT: NativeObject {
 
   public var swordAttackDamage: Int32
 
@@ -201,7 +201,7 @@ public class AttackerT: UnionObject {
   public func serialize() -> ByteBuffer { return serialize(type: Attacker.self) }
 
 }
-public struct Movie: FlatBufferObject, ObjectAPI {
+public struct Movie: FlatBufferObject, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_1_12_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -237,9 +237,9 @@ public struct Movie: FlatBufferObject, ObjectAPI {
   public static func createMovie(
     _ fbb: inout FlatBufferBuilder,
     mainCharacterType: Character = .none_,
-    offsetOfMainCharacter mainCharacter: Offset<UOffset> = Offset(),
-    vectorOfCharactersType charactersType: Offset<UOffset> = Offset(),
-    vectorOfCharacters characters: Offset<UOffset> = Offset()
+    mainCharacterOffset mainCharacter: Offset<UOffset> = Offset(),
+    charactersTypeVectorOffset charactersType: Offset<UOffset> = Offset(),
+    charactersVectorOffset characters: Offset<UOffset> = Offset()
   ) -> Offset<UOffset> {
     let __start = Movie.startMovie(&fbb)
     Movie.add(mainCharacterType: mainCharacterType, &fbb)
@@ -279,7 +279,7 @@ public struct Movie: FlatBufferObject, ObjectAPI {
   }
 }
 
-public class MovieT: UnionObject {
+public class MovieT: NativeObject {
 
   public var mainCharacter: CharacterUnion?
   public var characters: [CharacterUnion?]

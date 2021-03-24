@@ -1,6 +1,6 @@
 [package]
 name = "flexbuffers"
-version = "0.2.2"
+version = "0.3.0"
 authors = ["Casper Neo <cneo@google.com>", "FlatBuffers Maintainers"]
 edition = "2018"
 license = "Apache-2.0"
@@ -19,7 +19,6 @@ serialize_human_readable = []
 # The default was changed from true to false in version "0.2.1".
 # You basically never need this to be true unless reading data from old binaries.
 deserialize_human_readable = []
-
 
 [dependencies]
 serde = "1.0.119"

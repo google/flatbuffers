@@ -45,7 +45,7 @@ It is possible to cancel `warnings as errors` flag at `cmake` configuration stag
 appended to the project-level `CMAKE_CXX_FLAGS` variable.
 Examples:
 
-- GCC and Clang: `cmake . -D FLATBUFFERS_CXX_FLAGS="Wno-error"`
+- GCC and Clang: `cmake . -D FLATBUFFERS_CXX_FLAGS="-Wno-error"`
 - MSVC: `cmake . -D FLATBUFFERS_CXX_FLAGS="/WX-"`
 - MSVC: `cmake . -D FLATBUFFERS_CXX_FLAGS="/Wv <compiler.version>"`
 
