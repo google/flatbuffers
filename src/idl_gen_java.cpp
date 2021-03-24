@@ -1543,11 +1543,9 @@ class JavaGenerator : public BaseGenerator {
                 break;
               }
               case BASE_TYPE_STRUCT:
-                // Seems like unreachable code
-                array_type = "Offset<" + GenTypeGet(field.value.type) + ">";
-                element_type = array_type;
-                to_array = GenTypeGet(field.value.type) + ".pack(builder, _o." +
-                           GenGetterFuncName_ObjectAPI(property_name) + "().get(_j))";
+                array_type = "int";
+                element_type = GenTypeGet(field.value.type);
+                to_array = GenTypeGet(field.value.type) + ".pack(builder, _e)";
                 break;
               case BASE_TYPE_UTYPE:
                 property_name = camel_name.substr(0, camel_name.size() - 4);
