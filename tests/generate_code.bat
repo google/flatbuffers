@@ -37,7 +37,7 @@ set TEST_NOINCL_FLAGS=%TEST_BASE_FLAGS% --no-includes
 ..\%buildtype%\flatc.exe --binary --cpp --java --kotlin --csharp --dart --go --lobster --lua --php --grpc ^
 %TEST_NOINCL_FLAGS% %TEST_CPP_FLAGS% %TEST_CS_FLAGS% -I include_test monster_test.fbs monsterdata_test.json || goto FAIL
 ..\%buildtype%\flatc.exe --binary --ts --grpc ^
-%TEST_NOINCL_FLAGS% -o ts -I include_test monster_test.fbs monsterdata_test.json || goto FAIL
+%TEST_NOINCL_FLAGS% -I include_test -o ts monster_test.fbs monsterdata_test.json || goto FAIL
 ..\%buildtype%\flatc.exe --rust %TEST_RUST_FLAGS% -I include_test monster_test.fbs monsterdata_test.json || goto FAIL
 
 ..\%buildtype%\flatc.exe --python %TEST_BASE_FLAGS% -I include_test monster_test.fbs monsterdata_test.json || goto FAIL
@@ -50,7 +50,7 @@ set TEST_NOINCL_FLAGS=%TEST_BASE_FLAGS% --no-includes
 ..\%buildtype%\flatc.exe --rust --gen-all %TEST_RUST_FLAGS% -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs || goto FAIL
 
 ..\%buildtype%\flatc.exe --cpp --java --csharp --php %TEST_BASE_FLAGS% %TEST_CPP_FLAGS% %TEST_CS_FLAGS% %TEST_JS_TS_FLAGS% -o union_vector ./union_vector/union_vector.fbs || goto FAIL
-..\%buildtype%\flatc.exe --ts --gen-name-strings --gen-mutable $TEST_BASE_FLAGS $TEST_TS_FLAGS -o ts -I include_test monster_test.fbs
+..\%buildtype%\flatc.exe --ts --gen-name-strings --gen-mutable $TEST_BASE_FLAGS $TEST_TS_FLAGS -I include_test -o ts monster_test.fbs
 ..\%buildtype%\flatc.exe %TEST_BASE_FLAGS% %TEST_TS_FLAGS% -b -I include_test monster_test.fbs unicode_test.json
 ..\%buildtype%\flatc.exe --ts --gen-name-strings $TEST_BASE_FLAGS $TEST_TS_FLAGS -o ts union_vector/union_vector.fbs
 ..\%buildtype%\flatc.exe --rust -I include_test -o include_test include_test/include_test1.fbs || goto FAIL
