@@ -36,8 +36,8 @@ set TEST_NOINCL_FLAGS=%TEST_BASE_FLAGS% --no-includes
 
 ..\%buildtype%\flatc.exe --binary --cpp --java --kotlin --csharp --dart --go --lobster --lua --php --grpc ^
 %TEST_NOINCL_FLAGS% %TEST_CPP_FLAGS% %TEST_CS_FLAGS% -I include_test monster_test.fbs monsterdata_test.json || goto FAIL
-..\%buildtype%\flatc.exe --binary --ts -o ts --grpc ^
-%TEST_NOINCL_FLAGS% %TEST_CPP_FLAGS% %TEST_CS_FLAGS% -I include_test monster_test.fbs monsterdata_test.json || goto FAIL
+..\%buildtype%\flatc.exe --binary --ts --grpc ^
+%TEST_NOINCL_FLAGS% -o ts -I include_test monster_test.fbs monsterdata_test.json || goto FAIL
 ..\%buildtype%\flatc.exe --rust %TEST_RUST_FLAGS% -I include_test monster_test.fbs monsterdata_test.json || goto FAIL
 
 ..\%buildtype%\flatc.exe --python %TEST_BASE_FLAGS% -I include_test monster_test.fbs monsterdata_test.json || goto FAIL
