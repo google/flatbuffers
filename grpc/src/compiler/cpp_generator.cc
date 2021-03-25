@@ -144,15 +144,15 @@ grpc::string GetHeaderIncludes(grpc_generator::File *file,
     std::map<grpc::string, grpc::string> vars;
 
     static const char *headers_strs[] = {
-        "grpc++/impl/codegen/async_stream.h",
-        "grpc++/impl/codegen/async_unary_call.h",
-        "grpc++/impl/codegen/method_handler_impl.h",
-        "grpc++/impl/codegen/proto_utils.h",
-        "grpc++/impl/codegen/rpc_method.h",
-        "grpc++/impl/codegen/service_type.h",
-        "grpc++/impl/codegen/status.h",
-        "grpc++/impl/codegen/stub_options.h",
-        "grpc++/impl/codegen/sync_stream.h"};
+        "grpcpp/impl/codegen/async_stream.h",
+        "grpcpp/impl/codegen/async_unary_call.h",
+        "grpcpp/impl/codegen/method_handler.h",
+        "grpcpp/impl/codegen/proto_utils.h",
+        "grpcpp/impl/codegen/rpc_method.h",
+        "grpcpp/impl/codegen/service_type.h",
+        "grpcpp/impl/codegen/status.h",
+        "grpcpp/impl/codegen/stub_options.h",
+        "grpcpp/impl/codegen/sync_stream.h"};
     std::vector<grpc::string> headers(headers_strs, array_end(headers_strs));
     PrintIncludes(printer.get(), headers, params);
     printer->Print(vars, "\n");
@@ -1179,14 +1179,14 @@ grpc::string GetSourceIncludes(grpc_generator::File *file,
     std::map<grpc::string, grpc::string> vars;
 
     static const char *headers_strs[] = {
-        "grpc++/impl/codegen/async_stream.h",
-        "grpc++/impl/codegen/async_unary_call.h",
-        "grpc++/impl/codegen/channel_interface.h",
-        "grpc++/impl/codegen/client_unary_call.h",
-        "grpc++/impl/codegen/method_handler_impl.h",
-        "grpc++/impl/codegen/rpc_service_method.h",
-        "grpc++/impl/codegen/service_type.h",
-        "grpc++/impl/codegen/sync_stream.h"};
+        "grpcpp/impl/codegen/async_stream.h",
+        "grpcpp/impl/codegen/async_unary_call.h",
+        "grpcpp/impl/codegen/channel_interface.h",
+        "grpcpp/impl/codegen/client_unary_call.h",
+        "grpcpp/impl/codegen/method_handler.h",
+        "grpcpp/impl/codegen/rpc_service_method.h",
+        "grpcpp/impl/codegen/service_type.h",
+        "grpcpp/impl/codegen/sync_stream.h"};
     std::vector<grpc::string> headers(headers_strs, array_end(headers_strs));
     PrintIncludes(printer.get(), headers, params);
 
@@ -1604,8 +1604,8 @@ grpc::string GetMockIncludes(grpc_generator::File *file,
     std::map<grpc::string, grpc::string> vars;
 
     static const char *headers_strs[] = {
-        "grpc++/impl/codegen/async_stream.h",
-        "grpc++/impl/codegen/sync_stream.h",
+        "grpcpp/impl/codegen/async_stream.h",
+        "grpcpp/impl/codegen/sync_stream.h",
         "gmock/gmock.h",
     };
     std::vector<grpc::string> headers(headers_strs, array_end(headers_strs));
