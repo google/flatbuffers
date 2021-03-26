@@ -71,7 +71,7 @@ void GenerateImports(const grpc_generator::Service *service,
   auto vars = *dictonary;
   printer->Print(
       "// Generated GRPC code for FlatBuffers TS *** DO NOT EDIT ***\n");
-  printer->Print("import { flatbuffers } from 'flatbuffers';\n");
+  printer->Print("import * as flatbuffers from 'flatbuffers';\n");
 
   std::set<grpc::string> generated_imports;
 
