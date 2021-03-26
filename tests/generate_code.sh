@@ -31,9 +31,8 @@ TEST_BASE_FLAGS="--reflect-names --gen-mutable --gen-object-api"
 TEST_RUST_FLAGS="$TEST_BASE_FLAGS --gen-name-strings"
 TEST_NOINCL_FLAGS="$TEST_BASE_FLAGS --no-includes"
 
-../flatc --binary --cpp --java --kotlin  --csharp --dart --go --lobster --lua --php --grpc \
+../flatc --binary --cpp --java --kotlin  --csharp --dart --go --lobster --lua --ts --php --grpc \
 $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS -I include_test monster_test.fbs monsterdata_test.json
-../flatc --binary --ts --grpc $TEST_NOINCL_FLAGS -I include_test -o ts monster_test.fbs monsterdata_test.json
 ../flatc --rust $TEST_RUST_FLAGS -I include_test monster_test.fbs monsterdata_test.json
 
 ../flatc --python $TEST_BASE_FLAGS -I include_test monster_test.fbs monsterdata_test.json
@@ -45,10 +44,10 @@ $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_TS_FLAGS -o namespace_te
 # duplicating the types in namespace_test1
 ../flatc --rust --gen-all $TEST_RUST_FLAGS -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs
 
-../flatc --cpp --java --kotlin --csharp --php $TEST_BASE_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_TS_FLAGS -o union_vector ./union_vector/union_vector.fbs
-../flatc --ts --gen-name-strings --gen-mutable $TEST_BASE_FLAGS $TEST_TS_FLAGS -I include_test -o ts monster_test.fbs
+../flatc --cpp --java --kotlin --csharp --ts --php $TEST_BASE_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_TS_FLAGS -o union_vector ./union_vector/union_vector.fbs
+../flatc --ts --gen-name-strings --gen-mutable $TEST_BASE_FLAGS $TEST_TS_FLAGS -I include_test monster_test.fbs
 ../flatc $TEST_BASE_FLAGS $TEST_TS_FLAGS -b -I include_test monster_test.fbs unicode_test.json
-../flatc --ts --gen-name-strings $TEST_BASE_FLAGS $TEST_TS_FLAGS -o ts union_vector/union_vector.fbs
+../flatc --ts --gen-name-strings $TEST_BASE_FLAGS $TEST_TS_FLAGS union_vector/union_vector.fbs
 ../flatc --rust -I include_test -o include_test include_test/include_test1.fbs
 ../flatc --rust -I include_test -o include_test/sub include_test/sub/include_test2.fbs
 ../flatc -b --schema --bfbs-comments --bfbs-builtins -I include_test monster_test.fbs
@@ -61,8 +60,7 @@ $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_TS_FLAGS -o namespace_te
 ../flatc --dart monster_extra.fbs
 
 # Generate optional scalar code for tests.
-../flatc --java --kotlin --lobster optional_scalars.fbs
-../flatc --ts -o ts optional_scalars.fbs
+../flatc --java --kotlin --lobster --ts optional_scalars.fbs
 ../flatc --csharp --rust --gen-object-api optional_scalars.fbs
 ../flatc $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS --cpp optional_scalars.fbs
 
