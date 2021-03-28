@@ -101,7 +101,7 @@ kotlin {
 tasks.register<de.undercouch.gradle.tasks.download.Download>("downloadMultipleFiles") {
   // We are downloading json benchmark samples from serdes-rs project.
   // see: https://github.com/serde-rs/json-benchmark/blob/master/data
-  val baseUrl = "https://github.com/serde-rs/json-benchmark/blob/master/data"
+  val baseUrl = "https://github.com/serde-rs/json-benchmark/raw/master/data/"
   src(listOf("$baseUrl/canada.json", "$baseUrl/twitter.json", "$baseUrl/citm_catalog.json"))
   dest(File("${project.projectDir.absolutePath}/src/jvmMain/resources"))
 }
