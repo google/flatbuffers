@@ -2318,7 +2318,10 @@ class RustGenerator : public BaseGenerator {
       code_.SetValue("FIELD_OFFSET", NumToString(offset_to_field));
       code_.SetValue("REF", IsStruct(field.value.type) ? "&" : "");
       cb(field);
-      offset_to_field += SizeOf(field.value.type.base_type) + field.padding;
+      const size_t size = IsStruct(field.value.type)
+                              ? field.value.type.struct_def->bytesize
+                              : SizeOf(field.value.type.base_type);
+      offset_to_field += size + field.padding;
     }
   }
   // Generate an accessor struct with constructor for a flatbuffers struct.
@@ -2339,8 +2342,13 @@ class RustGenerator : public BaseGenerator {
     // hold for PartialOrd/Ord.
     code_ += "// struct {{STRUCT_NAME}}, aligned to {{ALIGN}}";
     code_ += "#[repr(transparent)]";
-    code_ += "#[derive(Clone, Copy, PartialEq, Default)]";
+    code_ += "#[derive(Clone, Copy, PartialEq)]";
     code_ += "pub struct {{STRUCT_NAME}}(pub [u8; {{STRUCT_SIZE}}]);";
+    code_ += "impl Default for {{STRUCT_NAME}} { ";
+    code_ += "  fn default() -> Self { ";
+    code_ += "    Self([0; {{STRUCT_SIZE}}])";
+    code_ += "  }";
+    code_ += "}";
 
     // Debug for structs.
     code_ += "impl std::fmt::Debug for {{STRUCT_NAME}} {";

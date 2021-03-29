@@ -1111,6 +1111,39 @@ mod roundtrip_byteswap {
     // fn fuzz_f64() { quickcheck::QuickCheck::new().max_tests(N).quickcheck(prop_f64 as fn(f64)); }
 }
 
+quickcheck! {
+  fn struct_of_structs(
+    a_id: u32,
+    a_distance: u32,
+    b_a: i16,
+    b_b: i8,
+    c_id: u32,
+    c_distance: u32
+  ) -> bool {
+    use my_game::example::*;
+    let mut sos = StructOfStructs::default();
+    let mut a = Ability::default();
+    a.set_id(a_id);
+    a.set_distance(a_distance);
+    let mut b = Test::default();
+    b.set_a(b_a);
+    b.set_b(b_b);
+    let mut c = Ability::default();
+    c.set_id(c_id);
+    c.set_distance(c_distance);
+    sos.set_a(&a);
+    sos.set_b(&b);
+    sos.set_c(&c);
+
+    sos.a().id() == a_id &&
+    sos.a().distance() == a_distance &&
+    sos.b().a() == b_a &&
+    sos.b().b() == b_b &&
+    sos.c().id() == c_id &&
+    sos.c().distance() == c_distance
+  }
+}
+
 #[cfg(not(miri))]  // slow.
 #[cfg(test)]
 mod roundtrip_vectors {

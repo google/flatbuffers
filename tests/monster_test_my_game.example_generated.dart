@@ -544,6 +544,85 @@ class AbilityObjectBuilder extends fb.ObjectBuilder {
     return fbBuilder.finish(offset, fileIdentifier);
   }
 }
+class StructOfStructs {
+  StructOfStructs._(this._bc, this._bcOffset);
+
+  static const fb.Reader<StructOfStructs> reader = const _StructOfStructsReader();
+
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  Ability get a => Ability.reader.read(_bc, _bcOffset + 0);
+  Test get b => Test.reader.read(_bc, _bcOffset + 8);
+  Ability get c => Ability.reader.read(_bc, _bcOffset + 12);
+
+  @override
+  String toString() {
+    return 'StructOfStructs{a: $a, b: $b, c: $c}';
+  }
+}
+
+class _StructOfStructsReader extends fb.StructReader<StructOfStructs> {
+  const _StructOfStructsReader();
+
+  @override
+  int get size => 20;
+
+  @override
+  StructOfStructs createObject(fb.BufferContext bc, int offset) => 
+    new StructOfStructs._(bc, offset);
+}
+
+class StructOfStructsBuilder {
+  StructOfStructsBuilder(this.fbBuilder) {
+    assert(fbBuilder != null);
+  }
+
+  final fb.Builder fbBuilder;
+
+  int finish(fb.StructBuilder a, fb.StructBuilder b, fb.StructBuilder c) {
+    c();
+    b();
+    a();
+    return fbBuilder.offset;
+  }
+
+}
+
+class StructOfStructsObjectBuilder extends fb.ObjectBuilder {
+  final AbilityObjectBuilder _a;
+  final TestObjectBuilder _b;
+  final AbilityObjectBuilder _c;
+
+  StructOfStructsObjectBuilder({
+    AbilityObjectBuilder a,
+    TestObjectBuilder b,
+    AbilityObjectBuilder c,
+  })
+      : _a = a,
+        _b = b,
+        _c = c;
+
+  /// Finish building, and store into the [fbBuilder].
+  @override
+  int finish(
+    fb.Builder fbBuilder) {
+    assert(fbBuilder != null);
+
+    _c.finish(fbBuilder);
+    _b.finish(fbBuilder);
+    _a.finish(fbBuilder);
+    return fbBuilder.offset;
+  }
+
+  /// Convenience method to serialize to byte list.
+  @override
+  Uint8List toBytes([String fileIdentifier]) {
+    fb.Builder fbBuilder = new fb.Builder();
+    int offset = finish(fbBuilder);
+    return fbBuilder.finish(offset, fileIdentifier);
+  }
+}
 class Stat {
   Stat._(this._bc, this._bcOffset);
   factory Stat(List<int> bytes) {

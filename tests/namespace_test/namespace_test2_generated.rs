@@ -247,8 +247,13 @@ impl<'a> flatbuffers::Verifiable for EnumInNestedNS {
 impl flatbuffers::SimpleToVerifyInSlice for EnumInNestedNS {}
 // struct StructInNestedNS, aligned to 4
 #[repr(transparent)]
-#[derive(Clone, Copy, PartialEq, Default)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct StructInNestedNS(pub [u8; 8]);
+impl Default for StructInNestedNS { 
+  fn default() -> Self { 
+    Self([0; 8])
+  }
+}
 impl std::fmt::Debug for StructInNestedNS {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     f.debug_struct("StructInNestedNS")
