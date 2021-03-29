@@ -56,6 +56,12 @@ struct Ability {
   distance:uint;
 }
 
+struct StructOfStructs {
+  a: Ability;
+  b: Test;
+  c: Ability;
+}
+
 table Stat {
   id:string;
   val:long;

@@ -33,6 +33,8 @@ struct Vec3;
 
 struct Ability;
 
+struct StructOfStructs;
+
 struct Stat;
 struct StatBuilder;
 struct StatT;
@@ -68,6 +70,8 @@ inline const flatbuffers::TypeTable *TestSimpleTableWithEnumTypeTable();
 inline const flatbuffers::TypeTable *Vec3TypeTable();
 
 inline const flatbuffers::TypeTable *AbilityTypeTable();
+
+inline const flatbuffers::TypeTable *StructOfStructsTypeTable();
 
 inline const flatbuffers::TypeTable *StatTypeTable();
 
@@ -691,6 +695,69 @@ struct Ability::Traits {
   template<size_t Index>
   using FieldType = decltype(std::declval<type>().get_field<Index>());
   static constexpr size_t fields_number = 2;
+};
+
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) StructOfStructs FLATBUFFERS_FINAL_CLASS {
+ private:
+  MyGame::Example::Ability a_;
+  MyGame::Example::Test b_;
+  MyGame::Example::Ability c_;
+
+ public:
+  struct Traits;
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return StructOfStructsTypeTable();
+  }
+  StructOfStructs()
+      : a_(),
+        b_(),
+        c_() {
+  }
+  StructOfStructs(const MyGame::Example::Ability &_a, const MyGame::Example::Test &_b, const MyGame::Example::Ability &_c)
+      : a_(_a),
+        b_(_b),
+        c_(_c) {
+  }
+  const MyGame::Example::Ability &a() const {
+    return a_;
+  }
+  MyGame::Example::Ability &mutable_a() {
+    return a_;
+  }
+  const MyGame::Example::Test &b() const {
+    return b_;
+  }
+  MyGame::Example::Test &mutable_b() {
+    return b_;
+  }
+  const MyGame::Example::Ability &c() const {
+    return c_;
+  }
+  MyGame::Example::Ability &mutable_c() {
+    return c_;
+  }
+  template<size_t Index>
+  auto get_field() const {
+         if constexpr (Index == 0) return a();
+    else if constexpr (Index == 1) return b();
+    else if constexpr (Index == 2) return c();
+    else static_assert(Index != Index, "Invalid Field Index");
+  }
+};
+FLATBUFFERS_STRUCT_END(StructOfStructs, 20);
+
+struct StructOfStructs::Traits {
+  using type = StructOfStructs;
+  static constexpr auto name = "StructOfStructs";
+  static constexpr auto fully_qualified_name = "MyGame.Example.StructOfStructs";
+  static constexpr std::array<const char *, 3> field_names = {
+    "a",
+    "b",
+    "c"
+  };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 3;
 };
 
 }  // namespace Example
@@ -3380,6 +3447,28 @@ inline const flatbuffers::TypeTable *AbilityTypeTable() {
   };
   static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_STRUCT, 2, type_codes, nullptr, nullptr, values, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *StructOfStructsTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_SEQUENCE, 0, 0 },
+    { flatbuffers::ET_SEQUENCE, 0, 1 },
+    { flatbuffers::ET_SEQUENCE, 0, 0 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    MyGame::Example::AbilityTypeTable,
+    MyGame::Example::TestTypeTable
+  };
+  static const int64_t values[] = { 0, 8, 12, 20 };
+  static const char * const names[] = {
+    "a",
+    "b",
+    "c"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_STRUCT, 3, type_codes, type_refs, nullptr, values, names
   };
   return &tt;
 }

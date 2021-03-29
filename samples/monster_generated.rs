@@ -247,8 +247,13 @@ impl EquipmentT {
 }
 // struct Vec3, aligned to 4
 #[repr(transparent)]
-#[derive(Clone, Copy, PartialEq, Default)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct Vec3(pub [u8; 12]);
+impl Default for Vec3 { 
+  fn default() -> Self { 
+    Self([0; 12])
+  }
+}
 impl std::fmt::Debug for Vec3 {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     f.debug_struct("Vec3")
