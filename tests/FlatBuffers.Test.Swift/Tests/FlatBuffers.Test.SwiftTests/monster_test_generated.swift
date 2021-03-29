@@ -235,8 +235,8 @@ public struct MyGame_Example_Vec3: NativeStruct, NativeObject {
     _z = _t.z
     _test1 = _t.test1
     _test2 = _t.test2.value
-    var _v = _t.test3
-    _test3 = _v.unpack()
+    var _vtest3 = _t.test3
+    _test3 = _vtest3.unpack()
   }
 
   public var x: Float32 { _x }
@@ -355,12 +355,12 @@ public struct MyGame_Example_StructOfStructs: NativeStruct, NativeObject {
   }
 
   public init(_ _t: inout MyGame_Example_StructOfStructs_Mutable) {
-    var _v = _t.a
-    _a = _v.unpack()
-    var _v = _t.b
-    _b = _v.unpack()
-    var _v = _t.c
-    _c = _v.unpack()
+    var _va = _t.a
+    _a = _va.unpack()
+    var _vb = _t.b
+    _b = _vb.unpack()
+    var _vc = _t.c
+    _c = _vc.unpack()
   }
 
   public var a: MyGame_Example_Ability { _a }
