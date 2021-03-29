@@ -334,6 +334,66 @@ public struct MyGame_Example_Ability_Mutable: FlatBufferObject {
   }
 }
 
+public struct MyGame_Example_StructOfStructs: NativeStruct, NativeObject {
+
+  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+
+  private var _a: MyGame_Example_Ability
+  private var _b: MyGame_Example_Test
+  private var _c: MyGame_Example_Ability
+
+  public init(a: MyGame_Example_Ability, b: MyGame_Example_Test, c: MyGame_Example_Ability) {
+    _a = a
+    _b = b
+    _c = c
+  }
+
+  public init() {
+    _a = MyGame_Example_Ability()
+    _b = MyGame_Example_Test()
+    _c = MyGame_Example_Ability()
+  }
+
+  public init(_ _t: inout MyGame_Example_StructOfStructs_Mutable) {
+    var _v = _t.a
+    _a = _v.unpack()
+    var _v = _t.b
+    _b = _v.unpack()
+    var _v = _t.c
+    _c = _v.unpack()
+  }
+
+  public var a: MyGame_Example_Ability { _a }
+  public var b: MyGame_Example_Test { _b }
+  public var c: MyGame_Example_Ability { _c }
+}
+
+public struct MyGame_Example_StructOfStructs_Mutable: FlatBufferObject {
+
+  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  public var __buffer: ByteBuffer! { return _accessor.bb }
+  private var _accessor: Struct
+
+  public init(_ bb: ByteBuffer, o: Int32) { _accessor = Struct(bb: bb, position: o) }
+
+  public var a: MyGame_Example_Ability_Mutable { return MyGame_Example_Ability_Mutable(_accessor.bb, o: _accessor.postion + 0) }
+  public var b: MyGame_Example_Test_Mutable { return MyGame_Example_Test_Mutable(_accessor.bb, o: _accessor.postion + 8) }
+  public var c: MyGame_Example_Ability_Mutable { return MyGame_Example_Ability_Mutable(_accessor.bb, o: _accessor.postion + 12) }
+  
+
+  public mutating func unpack() -> MyGame_Example_StructOfStructs {
+    return MyGame_Example_StructOfStructs(&self)
+  }
+  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_StructOfStructs?) -> Offset<UOffset> {
+    guard var obj = obj else { return Offset<UOffset>() }
+    return pack(&builder, obj: &obj)
+  }
+
+  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_StructOfStructs) -> Offset<UOffset> {
+    return builder.create(struct: obj)
+  }
+}
+
 public struct MyGame_InParentNamespace: FlatBufferObject, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_1_12_0() }
