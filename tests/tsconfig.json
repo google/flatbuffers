@@ -13,6 +13,6 @@
     "noEmit": false,
     "outDir": "./"
   },
-  "include": [ "**/*.ts" ],
+  "include": [ "ts/**/*.ts" ],
   "exclude": [ "namespace_test/**/*.ts"]
 }
