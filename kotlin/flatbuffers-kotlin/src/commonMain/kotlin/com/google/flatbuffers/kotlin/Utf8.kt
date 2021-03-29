@@ -338,6 +338,8 @@ public object Utf8 {
     // Designed to take advantage of
     // https://wikis.oracle.com/display/HotSpotInternals/RangeCheckElimination
 
+    if (utf16Length == 0)
+      return 0
     var cc: Char = input[i]
     while (i < utf16Length && i + j < limit && input[i].also { cc = it }.toInt() < 0x80) {
       out[j + i] = cc.toByte()

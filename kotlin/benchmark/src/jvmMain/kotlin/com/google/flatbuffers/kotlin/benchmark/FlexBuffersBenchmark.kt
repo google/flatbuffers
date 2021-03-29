@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 @Measurement(iterations = 20, time = 1, timeUnit = TimeUnit.NANOSECONDS)
-class KotlinBenchmark {
+class FlexBuffersBenchmark {
 
   var initialCapacity = 1024
   var value: Double = 0.0

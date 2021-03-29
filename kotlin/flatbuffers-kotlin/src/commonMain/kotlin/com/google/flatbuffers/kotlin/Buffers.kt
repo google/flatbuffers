@@ -322,7 +322,8 @@ public interface ReadWriteBuffer : ReadBuffer {
   public fun requestCapacity(capacity: Int)
 }
 
-public class ArrayReadBuffer(private val buffer: ByteArray, override var limit: Int = buffer.size) : ReadBuffer {
+public open class ArrayReadBuffer(protected var buffer: ByteArray, override val limit: Int = buffer.size) : ReadBuffer {
+
   override fun findFirst(value: Byte, start: Int, end: Int): Int {
     val e = min(end, limit)
     val s = max(0, start)
@@ -369,43 +370,15 @@ public class ArrayReadBuffer(private val buffer: ByteArray, override var limit: 
  * All operations assumes Little Endian byte order.
  */
 public class ArrayReadWriteBuffer(
-  private var buffer: ByteArray,
+  buffer: ByteArray,
   override var writePosition: Int = 0
-) : ReadWriteBuffer {
+) : ArrayReadBuffer(buffer, writePosition), ReadWriteBuffer {
 
   public constructor(initialCapacity: Int = 10) : this(ByteArray(initialCapacity))
 
   override val limit: Int get() = writePosition
 
   override fun clear(): Unit = run { writePosition = 0 }
-
-  override fun getBoolean(index: Int): Boolean = buffer[index] != 0.toByte()
-
-  override operator fun get(index: Int): Byte = buffer[index]
-
-  override fun getUByte(index: Int): UByte = buffer.getUByte(index)
-
-  override fun getShort(index: Int): Short = buffer.getShort(index)
-
-  override fun getUShort(index: Int): UShort = buffer.getUShort(index)
-
-  override fun getInt(index: Int): Int = buffer.getInt(index)
-
-  override fun getUInt(index: Int): UInt = buffer.getUInt(index)
-
-  override fun getLong(index: Int): Long = buffer.getLong(index)
-
-  override fun getULong(index: Int): ULong = buffer.getULong(index)
-
-  override fun getFloat(index: Int): Float = buffer.getFloat(index)
-
-  override fun getDouble(index: Int): Double = buffer.getDouble(index)
-
-  override fun getString(start: Int, size: Int): String = buffer.decodeToString(start, start + size)
-
-  override fun data(): ByteArray = buffer
-
-  override fun slice(start: Int, size: Int): ReadBuffer = ArrayReadWriteBuffer(buffer, writePosition)
 
   override fun put(value: Boolean) {
     set(writePosition, value)
@@ -507,13 +480,6 @@ public class ArrayReadWriteBuffer(
       newCapacity = capacity
     }
     buffer = buffer.copyOf(newCapacity)
-  }
-
-  override fun findFirst(value: Byte, start: Int, end: Int): Int {
-    val e = min(end, buffer.size)
-    val s = max(0, start)
-    for (i in s until e) if (buffer[i] == value) return i
-    return -1
   }
 
   private inline fun withCapacity(size: Int, crossinline action: ByteArray.() -> Unit) {
