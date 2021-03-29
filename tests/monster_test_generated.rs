@@ -967,8 +967,13 @@ impl AnyAmbiguousAliasesT {
 }
 // struct Test, aligned to 2
 #[repr(transparent)]
-#[derive(Clone, Copy, PartialEq, Default)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct Test(pub [u8; 4]);
+impl Default for Test { 
+  fn default() -> Self { 
+    Self([0; 4])
+  }
+}
 impl std::fmt::Debug for Test {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     f.debug_struct("Test")
@@ -1111,8 +1116,13 @@ impl TestT {
 
 // struct Vec3, aligned to 8
 #[repr(transparent)]
-#[derive(Clone, Copy, PartialEq, Default)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct Vec3(pub [u8; 32]);
+impl Default for Vec3 { 
+  fn default() -> Self { 
+    Self([0; 32])
+  }
+}
 impl std::fmt::Debug for Vec3 {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     f.debug_struct("Vec3")
@@ -1356,8 +1366,13 @@ impl Vec3T {
 
 // struct Ability, aligned to 4
 #[repr(transparent)]
-#[derive(Clone, Copy, PartialEq, Default)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct Ability(pub [u8; 8]);
+impl Default for Ability { 
+  fn default() -> Self { 
+    Self([0; 8])
+  }
+}
 impl std::fmt::Debug for Ability {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     f.debug_struct("Ability")
