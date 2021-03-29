@@ -11,7 +11,7 @@
     "strictNullChecks": true,
     "baseUrl": ".",
     "noEmit": false,
-    "outDir": "./"
+    "outDir": "./ts"
   },
   "include": [ "ts/**/*.ts" ],
   "exclude": [ "namespace_test/**/*.ts"]
