@@ -208,9 +208,10 @@ matrix:
         - cd android; ./gradlew clean build
 
     - language: generic
+      if: type IN (pull_request)
       os: linux
       install:
         - bash .travis/format_install.sh
-        
+
       script:
         - bash .travis/format_check.sh
