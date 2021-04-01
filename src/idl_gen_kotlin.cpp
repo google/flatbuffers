@@ -261,25 +261,27 @@ class KotlinGenerator : public BaseGenerator {
 
     GenerateComment(enum_def.doc_comment, writer, &comment_config);
 
+auto field_type = GenTypeBasic(enum_def.underlying_type.base_type);
+
     writer += "@Suppress(\"unused\")";
     writer += "@ExperimentalUnsignedTypes";
-    writer += "class " + Esc(enum_def.name) + " private constructor() {";
+    writer += "enum class " + Esc(enum_def.name) + " private constructor(val code : "+field_type+") {";
     writer.IncrementIdentLevel();
 
-    GenerateCompanionObject(writer, [&]() {
       // Write all properties
       auto vals = enum_def.Vals();
       for (auto it = vals.begin(); it != vals.end(); ++it) {
         auto &ev = **it;
-        auto field_type = GenTypeBasic(enum_def.underlying_type.base_type);
+        
         auto val = enum_def.ToString(ev);
         auto suffix = LiteralSuffix(enum_def.underlying_type.base_type);
         writer.SetValue("name", Esc(ev.name));
         writer.SetValue("type", field_type);
         writer.SetValue("val", val + suffix);
         GenerateComment(ev.doc_comment, writer, &comment_config);
-        writer += "const val {{name}}: {{type}} = {{val}}";
+        writer += "{{name}}( {{val}} ),";
       }
+      writer += ";";
 
       // Generate a generate string table for enum values.
       // Problem is, if values are very sparse that could generate really
@@ -290,30 +292,17 @@ class KotlinGenerator : public BaseGenerator {
       // "too sparse". Change at will.
       static const uint64_t kMaxSparseness = 5;
       if (range / static_cast<uint64_t>(enum_def.size()) < kMaxSparseness) {
-        GeneratePropertyOneLine(writer, "names", "Array<String>", [&]() {
-          writer += "arrayOf(\\";
-          auto val = enum_def.Vals().front();
-          for (auto it = vals.begin(); it != vals.end(); ++it) {
-            auto ev = *it;
-            for (auto k = enum_def.Distance(val, ev); k > 1; --k)
-              writer += "\"\", \\";
-            val = ev;
-            writer += "\"" + (*it)->name + "\"\\";
-            if (it + 1 != vals.end()) { writer += ", \\"; }
-          }
-          writer += ")";
-        });
         GenerateFunOneLine(
             writer, "name", "e: Int", "String",
             [&]() {
-              writer += "names[e\\";
+              writer += "values()[e\\";
               if (enum_def.MinValue()->IsNonZero())
                 writer += " - " + enum_def.MinValue()->name + ".toInt()\\";
-              writer += "]";
+              writer += "].name";
             },
             parser_.opts.gen_jvmstatic);
       }
-    });
+     
     writer.DecrementIdentLevel();
     writer += "}";
   }
