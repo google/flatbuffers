@@ -932,8 +932,8 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
           type.enum_def->attributes.Lookup("bit_flags") == nullptr) {
         if (type.enum_def->FindByValue(constant) == nullptr) {
           return Error("default value of `" + constant + "` for " + "field `" +
-                       name + "` is not part of enum `" +
-                       type.enum_def->name + "`.");
+                       name + "` is not part of enum `" + type.enum_def->name +
+                       "`.");
         }
       }
     }
