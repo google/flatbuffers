@@ -110,8 +110,13 @@ impl<'a> flatbuffers::Verifiable for FromInclude {
 impl flatbuffers::SimpleToVerifyInSlice for FromInclude {}
 // struct Unused, aligned to 4
 #[repr(transparent)]
-#[derive(Clone, Copy, PartialEq, Default)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct Unused(pub [u8; 4]);
+impl Default for Unused { 
+  fn default() -> Self { 
+    Self([0; 4])
+  }
+}
 impl std::fmt::Debug for Unused {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     f.debug_struct("Unused")

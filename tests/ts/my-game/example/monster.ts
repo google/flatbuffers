@@ -1294,7 +1294,9 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   const test4 = builder.createStructOffsetList(this.test4, Monster.startTest4Vector);
   const testarrayofstring = Monster.createTestarrayofstringVector(builder, builder.createObjectOffsetList(this.testarrayofstring));
   const testarrayoftables = Monster.createTestarrayoftablesVector(builder, builder.createObjectOffsetList(this.testarrayoftables));
+  const enemy = (this.enemy !== null ? this.enemy!.pack(builder) : 0);
   const testnestedflatbuffer = Monster.createTestnestedflatbufferVector(builder, this.testnestedflatbuffer);
+  const testempty = (this.testempty !== null ? this.testempty!.pack(builder) : 0);
   const testarrayofbools = Monster.createTestarrayofboolsVector(builder, this.testarrayofbools);
   const testarrayofstring2 = Monster.createTestarrayofstring2Vector(builder, builder.createObjectOffsetList(this.testarrayofstring2));
   const testarrayofsortedstruct = builder.createStructOffsetList(this.testarrayofsortedstruct, Monster.startTestarrayofsortedstructVector);
@@ -1302,6 +1304,7 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   const test5 = builder.createStructOffsetList(this.test5, Monster.startTest5Vector);
   const vectorOfLongs = Monster.createVectorOfLongsVector(builder, this.vectorOfLongs);
   const vectorOfDoubles = Monster.createVectorOfDoublesVector(builder, this.vectorOfDoubles);
+  const parentNamespaceTest = (this.parentNamespaceTest !== null ? this.parentNamespaceTest!.pack(builder) : 0);
   const vectorOfReferrables = Monster.createVectorOfReferrablesVector(builder, builder.createObjectOffsetList(this.vectorOfReferrables));
   const vectorOfWeakReferences = Monster.createVectorOfWeakReferencesVector(builder, this.vectorOfWeakReferences);
   const vectorOfStrongReferrables = Monster.createVectorOfStrongReferrablesVector(builder, builder.createObjectOffsetList(this.vectorOfStrongReferrables));
@@ -1325,9 +1328,9 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   Monster.addTest4(builder, test4);
   Monster.addTestarrayofstring(builder, testarrayofstring);
   Monster.addTestarrayoftables(builder, testarrayoftables);
-  Monster.addEnemy(builder, (this.enemy !== null ? this.enemy!.pack(builder) : 0));
+  Monster.addEnemy(builder, enemy);
   Monster.addTestnestedflatbuffer(builder, testnestedflatbuffer);
-  Monster.addTestempty(builder, (this.testempty !== null ? this.testempty!.pack(builder) : 0));
+  Monster.addTestempty(builder, testempty);
   Monster.addTestbool(builder, this.testbool);
   Monster.addTesthashs32Fnv1(builder, this.testhashs32Fnv1);
   Monster.addTesthashu32Fnv1(builder, this.testhashu32Fnv1);
@@ -1347,7 +1350,7 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   Monster.addTest5(builder, test5);
   Monster.addVectorOfLongs(builder, vectorOfLongs);
   Monster.addVectorOfDoubles(builder, vectorOfDoubles);
-  Monster.addParentNamespaceTest(builder, (this.parentNamespaceTest !== null ? this.parentNamespaceTest!.pack(builder) : 0));
+  Monster.addParentNamespaceTest(builder, parentNamespaceTest);
   Monster.addVectorOfReferrables(builder, vectorOfReferrables);
   Monster.addSingleWeakReference(builder, this.singleWeakReference);
   Monster.addVectorOfWeakReferences(builder, vectorOfWeakReferences);

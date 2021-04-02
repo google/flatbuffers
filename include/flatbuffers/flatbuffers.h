@@ -1806,15 +1806,32 @@ class FlatBufferBuilder {
   /// @param[in] v A pointer to the array of type `S` to serialize into the
   /// buffer as a `vector`.
   /// @param[in] len The number of elements to serialize.
+  /// @param[in] pack_func Pointer to a function to convert the native struct
+  /// to the FlatBuffer struct.
+  /// @return Returns a typed `Offset` into the serialized data indicating
+  /// where the vector is stored.
+  template<typename T, typename S>
+  Offset<Vector<const T *>> CreateVectorOfNativeStructs(
+      const S *v, size_t len, T((*const pack_func)(const S &))) {
+    FLATBUFFERS_ASSERT(pack_func);
+    std::vector<T> vv(len);
+    std::transform(v, v + len, vv.begin(), pack_func);
+    return CreateVectorOfStructs<T>(data(vv), vv.size());
+  }
+
+  /// @brief Serialize an array of native structs into a FlatBuffer `vector`.
+  /// @tparam T The data type of the struct array elements.
+  /// @tparam S The data type of the native struct array elements.
+  /// @param[in] v A pointer to the array of type `S` to serialize into the
+  /// buffer as a `vector`.
+  /// @param[in] len The number of elements to serialize.
   /// @return Returns a typed `Offset` into the serialized data indicating
   /// where the vector is stored.
   template<typename T, typename S>
   Offset<Vector<const T *>> CreateVectorOfNativeStructs(const S *v,
                                                         size_t len) {
     extern T Pack(const S &);
-    std::vector<T> vv(len);
-    std::transform(v, v + len, vv.begin(), Pack);
-    return CreateVectorOfStructs<T>(data(vv), vv.size());
+    return CreateVectorOfNativeStructs(v, len, Pack);
   }
 
   // clang-format off
@@ -1869,6 +1886,22 @@ class FlatBufferBuilder {
   Offset<Vector<const T *>> CreateVectorOfStructs(
       const std::vector<T, Alloc> &v) {
     return CreateVectorOfStructs(data(v), v.size());
+  }
+
+  /// @brief Serialize a `std::vector` of native structs into a FlatBuffer
+  /// `vector`.
+  /// @tparam T The data type of the `std::vector` struct elements.
+  /// @tparam S The data type of the `std::vector` native struct elements.
+  /// @param[in] v A const reference to the `std::vector` of structs to
+  /// serialize into the buffer as a `vector`.
+  /// @param[in] pack_func Pointer to a function to convert the native struct
+  /// to the FlatBuffer struct.
+  /// @return Returns a typed `Offset` into the serialized data indicating
+  /// where the vector is stored.
+  template<typename T, typename S>
+  Offset<Vector<const T *>> CreateVectorOfNativeStructs(
+      const std::vector<S> &v, T((*const pack_func)(const S &))) {
+    return CreateVectorOfNativeStructs<T, S>(data(v), v.size(), pack_func);
   }
 
   /// @brief Serialize a `std::vector` of native structs into a FlatBuffer

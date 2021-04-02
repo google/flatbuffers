@@ -137,14 +137,13 @@ constructor(
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   const fooTable = (this.fooTable !== null ? this.fooTable!.pack(builder) : 0);
   const fooUnion = builder.createObjectOffset(this.fooUnion);
-  const fooStruct = (this.fooStruct !== null ? this.fooStruct!.pack(builder) : 0);
 
   TableInFirstNS.startTableInFirstNS(builder);
   TableInFirstNS.addFooTable(builder, fooTable);
   TableInFirstNS.addFooEnum(builder, this.fooEnum);
   TableInFirstNS.addFooUnionType(builder, this.fooUnionType);
   TableInFirstNS.addFooUnion(builder, fooUnion);
-  TableInFirstNS.addFooStruct(builder, fooStruct);
+  TableInFirstNS.addFooStruct(builder, (this.fooStruct !== null ? this.fooStruct!.pack(builder) : 0));
 
   return TableInFirstNS.endTableInFirstNS(builder);
 }
