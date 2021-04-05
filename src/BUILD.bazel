@@ -48,7 +48,6 @@ cc_library(
         "idl_gen_go.cpp",
         "idl_gen_grpc.cpp",
         "idl_gen_java.cpp",
-        "idl_gen_ts.cpp",
         "idl_gen_json_schema.cpp",
         "idl_gen_kotlin.cpp",
         "idl_gen_lobster.cpp",
@@ -58,6 +57,7 @@ cc_library(
         "idl_gen_rust.cpp",
         "idl_gen_swift.cpp",
         "idl_gen_text.cpp",
+        "idl_gen_ts.cpp",
         "util.cpp",
     ],
     hdrs = [
