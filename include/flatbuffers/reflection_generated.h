@@ -114,15 +114,15 @@ inline const char *EnumNameBaseType(BaseType e) {
   return EnumNamesBaseType()[index];
 }
 
-enum AdvancedFeature {
-  AdvancedArrayFeatures = 0,
-  AdvancedUnionFeatures = 1,
-  OptionalScalars = 2,
-  DefaultVectorsAndStrings = 3
+enum AdvancedFeatures {
+  AdvancedArrayFeatures = 1ULL,
+  AdvancedUnionFeatures = 2ULL,
+  OptionalScalars = 4ULL,
+  DefaultVectorsAndStrings = 8ULL
 };
 
-inline const AdvancedFeature (&EnumValuesAdvancedFeature())[4] {
-  static const AdvancedFeature values[] = {
+inline const AdvancedFeatures (&EnumValuesAdvancedFeatures())[4] {
+  static const AdvancedFeatures values[] = {
     AdvancedArrayFeatures,
     AdvancedUnionFeatures,
     OptionalScalars,
@@ -131,21 +131,25 @@ inline const AdvancedFeature (&EnumValuesAdvancedFeature())[4] {
   return values;
 }
 
-inline const char * const *EnumNamesAdvancedFeature() {
-  static const char * const names[5] = {
+inline const char * const *EnumNamesAdvancedFeatures() {
+  static const char * const names[9] = {
     "AdvancedArrayFeatures",
     "AdvancedUnionFeatures",
+    "",
     "OptionalScalars",
+    "",
+    "",
+    "",
     "DefaultVectorsAndStrings",
     nullptr
   };
   return names;
 }
 
-inline const char *EnumNameAdvancedFeature(AdvancedFeature e) {
+inline const char *EnumNameAdvancedFeatures(AdvancedFeatures e) {
   if (flatbuffers::IsOutRange(e, AdvancedArrayFeatures, DefaultVectorsAndStrings)) return "";
-  const size_t index = static_cast<size_t>(e);
-  return EnumNamesAdvancedFeature()[index];
+  const size_t index = static_cast<size_t>(e) - static_cast<size_t>(AdvancedArrayFeatures);
+  return EnumNamesAdvancedFeatures()[index];
 }
 
 struct Type FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -1118,8 +1122,8 @@ struct Schema FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::Vector<flatbuffers::Offset<reflection::Service>> *services() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<reflection::Service>> *>(VT_SERVICES);
   }
-  const flatbuffers::Vector<uint32_t> *advanced_features() const {
-    return GetPointer<const flatbuffers::Vector<uint32_t> *>(VT_ADVANCED_FEATURES);
+  reflection::AdvancedFeatures advanced_features() const {
+    return static_cast<reflection::AdvancedFeatures>(GetField<uint64_t>(VT_ADVANCED_FEATURES, 0));
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1138,8 +1142,7 @@ struct Schema FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyOffset(verifier, VT_SERVICES) &&
            verifier.VerifyVector(services()) &&
            verifier.VerifyVectorOfTables(services()) &&
-           VerifyOffset(verifier, VT_ADVANCED_FEATURES) &&
-           verifier.VerifyVector(advanced_features()) &&
+           VerifyField<uint64_t>(verifier, VT_ADVANCED_FEATURES) &&
            verifier.EndTable();
   }
 };
@@ -1166,8 +1169,8 @@ struct SchemaBuilder {
   void add_services(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<reflection::Service>>> services) {
     fbb_.AddOffset(Schema::VT_SERVICES, services);
   }
-  void add_advanced_features(flatbuffers::Offset<flatbuffers::Vector<uint32_t>> advanced_features) {
-    fbb_.AddOffset(Schema::VT_ADVANCED_FEATURES, advanced_features);
+  void add_advanced_features(reflection::AdvancedFeatures advanced_features) {
+    fbb_.AddElement<uint64_t>(Schema::VT_ADVANCED_FEATURES, static_cast<uint64_t>(advanced_features), 0);
   }
   explicit SchemaBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -1190,7 +1193,7 @@ inline flatbuffers::Offset<Schema> CreateSchema(
     flatbuffers::Offset<flatbuffers::String> file_ext = 0,
     flatbuffers::Offset<reflection::Object> root_table = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<reflection::Service>>> services = 0,
-    flatbuffers::Offset<flatbuffers::Vector<uint32_t>> advanced_features = 0) {
+    reflection::AdvancedFeatures advanced_features = static_cast<reflection::AdvancedFeatures>(0)) {
   SchemaBuilder builder_(_fbb);
   builder_.add_advanced_features(advanced_features);
   builder_.add_services(services);
@@ -1210,13 +1213,12 @@ inline flatbuffers::Offset<Schema> CreateSchemaDirect(
     const char *file_ext = nullptr,
     flatbuffers::Offset<reflection::Object> root_table = 0,
     std::vector<flatbuffers::Offset<reflection::Service>> *services = nullptr,
-    const std::vector<uint32_t> *advanced_features = nullptr) {
+    reflection::AdvancedFeatures advanced_features = static_cast<reflection::AdvancedFeatures>(0)) {
   auto objects__ = objects ? _fbb.CreateVectorOfSortedTables<reflection::Object>(objects) : 0;
   auto enums__ = enums ? _fbb.CreateVectorOfSortedTables<reflection::Enum>(enums) : 0;
   auto file_ident__ = file_ident ? _fbb.CreateString(file_ident) : 0;
   auto file_ext__ = file_ext ? _fbb.CreateString(file_ext) : 0;
   auto services__ = services ? _fbb.CreateVectorOfSortedTables<reflection::Service>(services) : 0;
-  auto advanced_features__ = advanced_features ? _fbb.CreateVector<uint32_t>(*advanced_features) : 0;
   return reflection::CreateSchema(
       _fbb,
       objects__,
@@ -1225,7 +1227,7 @@ inline flatbuffers::Offset<Schema> CreateSchemaDirect(
       file_ext__,
       root_table,
       services__,
-      advanced_features__);
+      advanced_features);
 }
 
 inline const reflection::Schema *GetSchema(const void *buf) {

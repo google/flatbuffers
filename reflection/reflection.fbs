@@ -103,7 +103,7 @@ table Service {
 }
 
 // New schema language features that are not supported by old code generators.
-enum AdvancedFeature : uint {
+enum AdvancedFeatures : ulong (bit_flags) {
     AdvancedArrayFeatures,
     AdvancedUnionFeatures,
     OptionalScalars,
@@ -117,7 +117,7 @@ table Schema {
     file_ext:string;
     root_table:Object;
     services:[Service];             // Sorted.
-    advanced_features:[AdvancedFeature];
+    advanced_features:AdvancedFeatures;
 }
 
 root_type Schema;
