@@ -3923,12 +3923,12 @@ bool Parser::Deserialize(const reflection::Schema *schema) {
       }
     }
   }
-  // if (schema->advanced_features()) {
-  //   for (auto it = schema->advanced_features()->begin();
-  //        it != schema->advanced_features()->end(); it++) {
-  //     advanced_features_.insert(*it);
-  //   }
-  // }
+  if (schema->advanced_features()) {
+    for (auto it = schema->advanced_features()->begin();
+         it != schema->advanced_features()->end(); it++) {
+      advanced_features_.insert(static_cast<reflection::AdvancedFeature>(*it));
+    }
+  }
 
   return true;
 }
