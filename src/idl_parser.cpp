@@ -766,8 +766,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     return Error("fixed-length array in table must be wrapped in struct");
 
   if (IsArray(type)) {
-    advanced_features_ = static_cast<reflection::AdvancedFeatures>(
-      advanced_features_ | reflection::AdvancedArrayFeatures);
+    advanced_features_ |= reflection::AdvancedArrayFeatures;
     if (!SupportsAdvancedArrayFeatures()) {
       return Error(
           "Arrays are not yet supported in all "
@@ -782,8 +781,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     ECHECK(AddField(struct_def, name + UnionTypeFieldSuffix(),
                     type.enum_def->underlying_type, &typefield));
   } else if (IsVector(type) && type.element == BASE_TYPE_UNION) {
-    advanced_features_ = static_cast<reflection::AdvancedFeatures>(
-      advanced_features_ | reflection::AdvancedUnionFeatures);
+    advanced_features_ |= reflection::AdvancedUnionFeatures;
     // Only cpp, js and ts supports the union vector feature so far.
     if (!SupportsAdvancedUnionFeatures()) {
       return Error(
@@ -809,8 +807,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
           "default values are not supported for struct fields, table fields, "
           "or in structs.");
     if (IsString(type) || IsVector(type)) {
-      advanced_features_ = static_cast<reflection::AdvancedFeatures>(
-        advanced_features_ | reflection::DefaultVectorsAndStrings);
+      advanced_features_ |= reflection::DefaultVectorsAndStrings;
       if (field->value.constant != "0" && field->value.constant != "null" &&
           !SupportsDefaultVectorsAndStrings()) {
         return Error(
@@ -903,8 +900,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   }
 
   if (field->IsScalarOptional()) {
-    advanced_features_ = static_cast<reflection::AdvancedFeatures>(
-      advanced_features_ | reflection::OptionalScalars);
+    advanced_features_ |= reflection::OptionalScalars;
     if (type.enum_def && type.enum_def->Lookup("null")) {
       FLATBUFFERS_ASSERT(IsInteger(type.base_type));
       return Error(
@@ -3505,7 +3501,7 @@ void Parser::Serialize() {
   auto schema_offset = reflection::CreateSchema(
       builder_, objs__, enum__, fiid__, fext__,
       (root_struct_def_ ? root_struct_def_->serialized_location : 0), serv__,
-      advanced_features_
+      static_cast<reflection::AdvancedFeatures>(advanced_features_)
     );
   if (opts.size_prefixed) {
     builder_.FinishSizePrefixed(schema_offset, reflection::SchemaIdentifier());
