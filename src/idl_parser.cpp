@@ -3501,8 +3501,7 @@ void Parser::Serialize() {
   auto schema_offset = reflection::CreateSchema(
       builder_, objs__, enum__, fiid__, fext__,
       (root_struct_def_ ? root_struct_def_->serialized_location : 0), serv__,
-      static_cast<reflection::AdvancedFeatures>(advanced_features_)
-    );
+      static_cast<reflection::AdvancedFeatures>(advanced_features_));
   if (opts.size_prefixed) {
     builder_.FinishSizePrefixed(schema_offset, reflection::SchemaIdentifier());
   } else {
