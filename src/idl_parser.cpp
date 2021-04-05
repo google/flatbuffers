@@ -765,10 +765,13 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   if (!struct_def.fixed && IsArray(type))
     return Error("fixed-length array in table must be wrapped in struct");
 
-  if (IsArray(type) && !SupportsAdvancedArrayFeatures()) {
-    return Error(
-        "Arrays are not yet supported in all "
-        "the specified programming languages.");
+  if (IsArray(type)) {
+    advanced_features_.insert(reflection::AdvancedArrayFeatures);
+    if (!SupportsAdvancedArrayFeatures()) {
+      return Error(
+          "Arrays are not yet supported in all "
+          "the specified programming languages.");
+    }
   }
 
   FieldDef *typefield = nullptr;
@@ -778,6 +781,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     ECHECK(AddField(struct_def, name + UnionTypeFieldSuffix(),
                     type.enum_def->underlying_type, &typefield));
   } else if (IsVector(type) && type.element == BASE_TYPE_UNION) {
+    advanced_features_.insert(reflection::AdvancedUnionFeatures);
     // Only cpp, js and ts supports the union vector feature so far.
     if (!SupportsAdvancedUnionFeatures()) {
       return Error(
@@ -802,11 +806,16 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
       return Error(
           "default values are not supported for struct fields, table fields, "
           "or in structs.");
-    if ((IsString(type) || IsVector(type)) && field->value.constant != "0" &&
-        field->value.constant != "null" && !SupportsDefaultVectorsAndStrings())
-      return Error(
-          "Default values for strings and vectors are not supported in one of "
-          "the specified programming languages");
+    if (IsString(type) || IsVector(type)) {
+      advanced_features_.insert(reflection::DefaultVectorsAndStrings);
+      if (field->value.constant != "0" && field->value.constant != "null" &&
+          !SupportsDefaultVectorsAndStrings()) {
+        return Error(
+            "Default values for strings and vectors are not supported in one "
+            "of the specified programming languages");
+      }
+    }
+
     if (IsVector(type) && field->value.constant != "0" &&
         field->value.constant != "[]") {
       return Error("The only supported default for vectors is `[]`.");
@@ -891,6 +900,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   }
 
   if (field->IsScalarOptional()) {
+    advanced_features_.insert(reflection::OptionalScalars);
     if (type.enum_def && type.enum_def->Lookup("null")) {
       FLATBUFFERS_ASSERT(IsInteger(type.base_type));
       return Error(
@@ -3483,6 +3493,10 @@ void Parser::Serialize() {
     service_offsets.push_back(offset);
     (*it)->serialized_location = offset.o;
   }
+  std::vector<uint32_t> advanced_features(
+    advanced_features_.begin(), advanced_features_.end()
+  );
+  Offset<Vector<uint32_t>> afts__ = builder_.CreateVector(advanced_features);
   auto objs__ = builder_.CreateVectorOfSortedTables(&object_offsets);
   auto enum__ = builder_.CreateVectorOfSortedTables(&enum_offsets);
   auto fiid__ = builder_.CreateString(file_identifier_);
@@ -3490,7 +3504,9 @@ void Parser::Serialize() {
   auto serv__ = builder_.CreateVectorOfSortedTables(&service_offsets);
   auto schema_offset = reflection::CreateSchema(
       builder_, objs__, enum__, fiid__, fext__,
-      (root_struct_def_ ? root_struct_def_->serialized_location : 0), serv__);
+      (root_struct_def_ ? root_struct_def_->serialized_location : 0), serv__,
+      afts__
+    );
   if (opts.size_prefixed) {
     builder_.FinishSizePrefixed(schema_offset, reflection::SchemaIdentifier());
   } else {
@@ -3907,6 +3923,12 @@ bool Parser::Deserialize(const reflection::Schema *schema) {
       }
     }
   }
+  // if (schema->advanced_features()) {
+  //   for (auto it = schema->advanced_features()->begin();
+  //        it != schema->advanced_features()->end(); it++) {
+  //     advanced_features_.insert(*it);
+  //   }
+  // }
 
   return true;
 }

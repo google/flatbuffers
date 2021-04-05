@@ -1011,6 +1011,8 @@ class Parser : public ParserState {
   IDLOptions opts;
   bool uses_flexbuffers_;
 
+  std::set<reflection::AdvancedFeature> advanced_features_;
+
  private:
   const char *source_;
 
