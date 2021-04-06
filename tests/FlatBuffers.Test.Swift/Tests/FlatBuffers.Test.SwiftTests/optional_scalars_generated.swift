@@ -4,7 +4,7 @@
 
 import FlatBuffers
 
-public enum optional_scalars_OptionalByte: Int8, Enum { 
+public enum optional_scalars_OptionalByte: Int8, Enum {
   public typealias T = Int8
   public static var byteSize: Int { return MemoryLayout<Int8>.size }
   public var value: Int8 { return self.rawValue }

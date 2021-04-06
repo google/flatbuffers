@@ -29,8 +29,11 @@ class FlatBuffersMoreDefaults: XCTestCase {
     XCTAssertEqual(defaults.someString, "some")
     XCTAssertEqual(defaults.ints, [])
     XCTAssertEqual(defaults.floats, [])
+    XCTAssertEqual(defaults.bools, [])
     XCTAssertEqual(defaults.intsCount, 0)
     XCTAssertEqual(defaults.floatsCount, 0)
+    XCTAssertEqual(defaults.abcsCount, 0)
+    XCTAssertEqual(defaults.boolsCount, 0)
   }
 
   func testFlatbuffersObjectAPI() {
@@ -40,6 +43,8 @@ class FlatBuffersMoreDefaults: XCTestCase {
     XCTAssertEqual(defaults.someString, "some")
     XCTAssertEqual(defaults.ints, [])
     XCTAssertEqual(defaults.floats, [])
+    XCTAssertEqual(defaults.abcs, [])
+    XCTAssertEqual(defaults.bools, [])
 
     let buffer = defaults.serialize(builder: &fbb, type: MoreDefaults.self)
     let fDefaults = MoreDefaults.getRootAsMoreDefaults(bb: buffer)
@@ -49,5 +54,7 @@ class FlatBuffersMoreDefaults: XCTestCase {
     XCTAssertEqual(fDefaults.floats, [])
     XCTAssertEqual(fDefaults.intsCount, 0)
     XCTAssertEqual(fDefaults.floatsCount, 0)
+    XCTAssertEqual(fDefaults.abcsCount, 0)
+    XCTAssertEqual(fDefaults.boolsCount, 0)
   }
 }

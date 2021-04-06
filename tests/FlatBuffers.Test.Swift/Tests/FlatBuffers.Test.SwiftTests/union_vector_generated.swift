@@ -4,7 +4,7 @@
 
 import FlatBuffers
 
-public enum Character: UInt8, Enum { 
+public enum Character: UInt8, Enum {
   public typealias T = UInt8
   public static var byteSize: Int { return MemoryLayout<UInt8>.size }
   public var value: UInt8 { return self.rawValue }

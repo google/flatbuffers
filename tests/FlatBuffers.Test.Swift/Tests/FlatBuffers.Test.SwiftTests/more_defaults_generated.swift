@@ -4,6 +4,19 @@
 
 import FlatBuffers
 
+public enum ABC: Int32, Enum {
+  public typealias T = Int32
+  public static var byteSize: Int { return MemoryLayout<Int32>.size }
+  public var value: Int32 { return self.rawValue }
+  case a = 0
+  case b = 1
+  case c = 2
+  
+
+  public static var max: ABC { return .c }
+  public static var min: ABC { return .a }
+}
+
 public struct MoreDefaults: FlatBufferObject, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_1_12_0() }
@@ -20,6 +33,8 @@ public struct MoreDefaults: FlatBufferObject, ObjectAPIPacker {
     case floats = 6
     case emptyString = 8
     case someString = 10
+    case abcs = 12
+    case bools = 14
     var v: Int32 { Int32(self.rawValue) }
     var p: VOffset { self.rawValue }
   }
@@ -34,24 +49,35 @@ public struct MoreDefaults: FlatBufferObject, ObjectAPIPacker {
   public var emptyStringSegmentArray: [UInt8]? { return _accessor.getVector(at: VTOFFSET.emptyString.v) }
   public var someString: String? { let o = _accessor.offset(VTOFFSET.someString.v); return o == 0 ? "some" : _accessor.string(at: o) }
   public var someStringSegmentArray: [UInt8]? { return _accessor.getVector(at: VTOFFSET.someString.v) }
-  public static func startMoreDefaults(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 4) }
+  public var abcsCount: Int32 { let o = _accessor.offset(VTOFFSET.abcs.v); return o == 0 ? 0 : _accessor.vector(count: o) }
+  public func abcs(at index: Int32) -> ABC? { let o = _accessor.offset(VTOFFSET.abcs.v); return o == 0 ? ABC.a : ABC(rawValue: _accessor.directRead(of: Int32.self, offset: _accessor.vector(at: o) + index * 4)) }
+  public var boolsCount: Int32 { let o = _accessor.offset(VTOFFSET.bools.v); return o == 0 ? 0 : _accessor.vector(count: o) }
+  public func bools(at index: Int32) -> Bool { let o = _accessor.offset(VTOFFSET.bools.v); return o == 0 ? true : _accessor.directRead(of: Bool.self, offset: _accessor.vector(at: o) + index * 1) }
+  public var bools: [Bool] { return _accessor.getVector(at: VTOFFSET.bools.v) ?? [] }
+  public static func startMoreDefaults(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 6) }
   public static func addVectorOf(ints: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: ints, at: VTOFFSET.ints.p) }
   public static func addVectorOf(floats: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: floats, at: VTOFFSET.floats.p) }
   public static func add(emptyString: Offset<String>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: emptyString, at: VTOFFSET.emptyString.p) }
   public static func add(someString: Offset<String>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: someString, at: VTOFFSET.someString.p) }
+  public static func addVectorOf(abcs: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: abcs, at: VTOFFSET.abcs.p) }
+  public static func addVectorOf(bools: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: bools, at: VTOFFSET.bools.p) }
   public static func endMoreDefaults(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
   public static func createMoreDefaults(
     _ fbb: inout FlatBufferBuilder,
     intsVectorOffset ints: Offset<UOffset> = Offset(),
     floatsVectorOffset floats: Offset<UOffset> = Offset(),
     emptyStringOffset emptyString: Offset<String> = Offset(),
-    someStringOffset someString: Offset<String> = Offset()
+    someStringOffset someString: Offset<String> = Offset(),
+    abcsVectorOffset abcs: Offset<UOffset> = Offset(),
+    boolsVectorOffset bools: Offset<UOffset> = Offset()
   ) -> Offset<UOffset> {
     let __start = MoreDefaults.startMoreDefaults(&fbb)
     MoreDefaults.addVectorOf(ints: ints, &fbb)
     MoreDefaults.addVectorOf(floats: floats, &fbb)
     MoreDefaults.add(emptyString: emptyString, &fbb)
     MoreDefaults.add(someString: someString, &fbb)
+    MoreDefaults.addVectorOf(abcs: abcs, &fbb)
+    MoreDefaults.addVectorOf(bools: bools, &fbb)
     return MoreDefaults.endMoreDefaults(&fbb, start: __start)
   }
   
@@ -81,11 +107,15 @@ public struct MoreDefaults: FlatBufferObject, ObjectAPIPacker {
       __someString = Offset<String>()
     }
 
+    let __abcs = builder.createVector(obj.abcs)
+    let __bools = builder.createVector(obj.bools)
     let __root = MoreDefaults.startMoreDefaults(&builder)
     MoreDefaults.addVectorOf(ints: __ints, &builder)
     MoreDefaults.addVectorOf(floats: __floats, &builder)
     MoreDefaults.add(emptyString: __emptyString, &builder)
     MoreDefaults.add(someString: __someString, &builder)
+    MoreDefaults.addVectorOf(abcs: __abcs, &builder)
+    MoreDefaults.addVectorOf(bools: __bools, &builder)
     return MoreDefaults.endMoreDefaults(&builder, start: __root)
   }
 }
@@ -96,6 +126,8 @@ public class MoreDefaultsT: NativeObject {
   public var floats: [Float32]
   public var emptyString: String?
   public var someString: String?
+  public var abcs: [ABC]
+  public var bools: [Bool]
 
   public init(_ _t: inout MoreDefaults) {
     ints = []
@@ -108,6 +140,14 @@ public class MoreDefaultsT: NativeObject {
     }
     emptyString = _t.emptyString
     someString = _t.someString
+    abcs = []
+    for index in 0..<_t.abcsCount {
+        abcs.append(_t.abcs(at: index)!)
+    }
+    bools = []
+    for index in 0..<_t.boolsCount {
+        bools.append(_t.bools(at: index))
+    }
   }
 
   public init() {
@@ -115,6 +155,8 @@ public class MoreDefaultsT: NativeObject {
     floats = []
     emptyString = ""
     someString = "some"
+    abcs = []
+    bools = []
   }
 
   public func serialize() -> ByteBuffer { return serialize(type: MoreDefaults.self) }
