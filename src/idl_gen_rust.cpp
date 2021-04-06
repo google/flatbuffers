@@ -133,8 +133,8 @@ FullType GetFullType(const Type &type) {
     }
   } else if (IsArray(type)) {
     switch (GetFullType(type.VectorType())) {
-      case ftInteger: 
-      case ftFloat: 
+      case ftInteger:
+      case ftFloat:
       case ftBool: {
         return ftArrayOfBuiltin;
       }
@@ -591,8 +591,8 @@ class RustGenerator : public BaseGenerator {
       case ftArrayOfBuiltin:
       case ftArrayOfEnum:
       case ftArrayOfStruct: {
-        return "[" + GetTypeGet(type.VectorType()) + "; " + 
-            NumToString(type.fixed_length) + "]";
+        return "[" + GetTypeGet(type.VectorType()) + "; " +
+               NumToString(type.fixed_length) + "]";
       }
       case ftTable: {
         return WrapInNameSpace(type.struct_def->defined_namespace,
@@ -1138,18 +1138,18 @@ class RustGenerator : public BaseGenerator {
         return "INVALID_CODE_GENERATION";  // OH NO!
       }
       case ftArrayOfEnum: {
-        ty = "[" + WrapInNameSpace(*type.VectorType().enum_def) + "; " + 
-            NumToString(type.fixed_length) + "]";
+        ty = "[" + WrapInNameSpace(*type.VectorType().enum_def) + "; " +
+             NumToString(type.fixed_length) + "]";
         break;
       }
       case ftArrayOfStruct: {
-        ty = "[" + NamespacedNativeName(*type.VectorType().struct_def) + "; " + 
-            NumToString(type.fixed_length) + "]";
+        ty = "[" + NamespacedNativeName(*type.VectorType().struct_def) + "; " +
+             NumToString(type.fixed_length) + "]";
         break;
       }
       case ftArrayOfBuiltin: {
-        ty = "[" + GetTypeBasic(type.VectorType()) + "; " + 
-            NumToString(type.fixed_length) + "]";
+        ty = "[" + GetTypeBasic(type.VectorType()) + "; " +
+             NumToString(type.fixed_length) + "]";
         break;
       }
     }
@@ -1223,18 +1223,18 @@ class RustGenerator : public BaseGenerator {
       }
       case ftArrayOfBuiltin: {
         const auto typname = GetTypeBasic(type.VectorType());
-        return "flatbuffers::Array<" + lifetime + ", " +
-               typname + ", " + NumToString(type.fixed_length) + ">";
+        return "flatbuffers::Array<" + lifetime + ", " + typname + ", " +
+               NumToString(type.fixed_length) + ">";
       }
       case ftArrayOfEnum: {
         const auto typname = WrapInNameSpace(*type.enum_def);
-        return "flatbuffers::Array<" + lifetime + ", " +
-               typname + ", " + NumToString(type.fixed_length) + ">";
+        return "flatbuffers::Array<" + lifetime + ", " + typname + ", " +
+               NumToString(type.fixed_length) + ">";
       }
       case ftArrayOfStruct: {
         const auto typname = WrapInNameSpace(*type.struct_def);
-        return "flatbuffers::Array<" + lifetime + ", " +
-               typname + ", " + NumToString(type.fixed_length) + ">";
+        return "flatbuffers::Array<" + lifetime + ", " + typname + ", " +
+               NumToString(type.fixed_length) + ">";
       }
     }
 
@@ -1381,7 +1381,8 @@ class RustGenerator : public BaseGenerator {
       return "flatbuffers::Vector<" + lifetime + ", " + ty + ">";
     };
     const auto WrapArray = [&](std::string ty, uint16_t length) -> std::string {
-      return "flatbuffers::Array<" + lifetime + ", " + ty  + ", " + NumToString(length) + ">";
+      return "flatbuffers::Array<" + lifetime + ", " + ty + ", " +
+             NumToString(length) + ">";
     };
     switch (GetFullType(type)) {
       case ftInteger:
@@ -1691,9 +1692,10 @@ class RustGenerator : public BaseGenerator {
           case ftArrayOfEnum:
           case ftArrayOfStruct:
           case ftArrayOfBuiltin: {
-            FLATBUFFERS_ASSERT(false && "arrays are not supported within tables");
+            FLATBUFFERS_ASSERT(false &&
+                               "arrays are not supported within tables");
             return;
-      }
+          }
         }
         if (field.IsOptional()) {
           code_ += "      let {{FIELD_NAME}} = self.{{FIELD_NAME}}().map(|x| {";
@@ -2422,7 +2424,9 @@ class RustGenerator : public BaseGenerator {
       code_.SetValue("FIELD_OBJECT_TYPE", ObjectFieldType(field, false));
       code_.SetValue("FIELD_NAME", Name(field));
       code_.SetValue("FIELD_OFFSET", NumToString(offset_to_field));
-      code_.SetValue("REF", IsStruct(field.value.type) || IsArray(field.value.type) ? "&" : "");
+      code_.SetValue(
+          "REF",
+          IsStruct(field.value.type) || IsArray(field.value.type) ? "&" : "");
       cb(field);
       const size_t size = InlineSize(field.value.type);
       offset_to_field += size + field.padding;
@@ -2560,10 +2564,12 @@ class RustGenerator : public BaseGenerator {
             " &*(self.0[{{FIELD_OFFSET}}..].as_ptr() as *const"
             " {{FIELD_TYPE}}) }";
       } else if (IsArray(field.value.type)) {
-        code_.SetValue("ARRAY_SIZE", NumToString(field.value.type.fixed_length));
+        code_.SetValue("ARRAY_SIZE",
+                       NumToString(field.value.type.fixed_length));
         code_.SetValue("ARRAY_ITEM", GetTypeGet(field.value.type.VectorType()));
-        code_ += "  pub fn {{FIELD_NAME}}(&'a self) -> "
-                        "flatbuffers::Array<'a, {{ARRAY_ITEM}}, {{ARRAY_SIZE}}> {";
+        code_ +=
+            "  pub fn {{FIELD_NAME}}(&'a self) -> "
+            "flatbuffers::Array<'a, {{ARRAY_ITEM}}, {{ARRAY_SIZE}}> {";
         code_ += "    flatbuffers::Array::follow(&self.0, {{FIELD_OFFSET}})";
       } else {
         code_ += "  pub fn {{FIELD_NAME}}(&self) -> {{FIELD_TYPE}} {";
@@ -2590,8 +2596,9 @@ class RustGenerator : public BaseGenerator {
       } else if (IsArray(field.value.type)) {
         code_.SetValue("FIELD_SIZE", NumToString(InlineSize(field.value.type)));
         code_ += "  pub fn set_{{FIELD_NAME}}(&mut self, x: &{{FIELD_TYPE}}) {";
-        code_ += 
-            "    let src = unsafe { ::std::slice::from_raw_parts(x.as_ptr() as *const u8, "
+        code_ +=
+            "    let src = unsafe { ::std::slice::from_raw_parts(x.as_ptr() as "
+            "*const u8, "
             "{{FIELD_SIZE}}) };";
         code_ +=
             "    self.0[{{FIELD_OFFSET}}..{{FIELD_OFFSET}}+{{FIELD_SIZE}}]"
@@ -2621,12 +2628,13 @@ class RustGenerator : public BaseGenerator {
       ForAllStructFields(struct_def, [&](const FieldDef &field) {
         if (IsArray(field.value.type)) {
           if (GetFullType(field.value.type) == ftArrayOfStruct) {
-            code_.SetValue("NATIVE_ARRAY_ITEM", 
-              NativeName(*field.value.type.VectorType().struct_def));
-            code_ += 
-            "      {{FIELD_NAME}}: self.{{FIELD_NAME}}().iter()"
-            ".map(|x| x.unpack()).collect::<Vec<{{NATIVE_ARRAY_ITEM}}>>()"
-            ".try_into().expect(\"Invalid array size\"),";
+            code_.SetValue(
+                "NATIVE_ARRAY_ITEM",
+                NativeName(*field.value.type.VectorType().struct_def));
+            code_ +=
+                "      {{FIELD_NAME}}: self.{{FIELD_NAME}}().iter()"
+                ".map(|x| x.unpack()).collect::<Vec<{{NATIVE_ARRAY_ITEM}}>>()"
+                ".try_into().expect(\"Invalid array size\"),";
           } else {
             code_ += "      {{FIELD_NAME}}: *self.{{FIELD_NAME}}().as_array(),";
           }
@@ -2660,13 +2668,14 @@ class RustGenerator : public BaseGenerator {
       ForAllStructFields(struct_def, [&](const FieldDef &field) {
         if (IsStruct(field.value.type)) {
           code_ += "      &self.{{FIELD_NAME}}.pack(),";
-        }else if (IsArray(field.value.type)) {
+        } else if (IsArray(field.value.type)) {
           if (GetFullType(field.value.type) == ftArrayOfStruct) {
-            code_.SetValue("ARRAY_ITEM", GetTypeGet(field.value.type.VectorType()));
-            code_ += 
-            "      &self.{{FIELD_NAME}}.iter()"
-            ".map(|x| x.pack()).collect::<Vec<{{ARRAY_ITEM}}>>()"
-            ".try_into().expect(\"Invalid array size\"),";
+            code_.SetValue("ARRAY_ITEM",
+                           GetTypeGet(field.value.type.VectorType()));
+            code_ +=
+                "      &self.{{FIELD_NAME}}.iter()"
+                ".map(|x| x.pack()).collect::<Vec<{{ARRAY_ITEM}}>>()"
+                ".try_into().expect(\"Invalid array size\"),";
           } else {
             code_ += "      &self.{{FIELD_NAME}},";
           }
