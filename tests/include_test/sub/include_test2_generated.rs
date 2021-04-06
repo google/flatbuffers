@@ -4,29 +4,29 @@
 
 use crate::include_test1_generated::*;
 use std::mem;
-use std::cmp::Ordering;
+use std::{convert::TryInto, cmp::Ordering};
 
 extern crate flatbuffers;
-use self::flatbuffers::EndianScalar;
+use self::flatbuffers::{EndianScalar, Follow};
 
 #[allow(unused_imports, dead_code)]
 pub mod my_game {
 
   use crate::include_test1_generated::*;
   use std::mem;
-  use std::cmp::Ordering;
+  use std::{convert::TryInto, cmp::Ordering};
 
   extern crate flatbuffers;
-  use self::flatbuffers::EndianScalar;
+  use self::flatbuffers::{EndianScalar, Follow};
 #[allow(unused_imports, dead_code)]
 pub mod other_name_space {
 
   use crate::include_test1_generated::*;
   use std::mem;
-  use std::cmp::Ordering;
+  use std::{convert::TryInto, cmp::Ordering};
 
   extern crate flatbuffers;
-  use self::flatbuffers::EndianScalar;
+  use self::flatbuffers::{EndianScalar, Follow};
 
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_FROM_INCLUDE: i64 = 0;
@@ -173,7 +173,7 @@ impl<'a> flatbuffers::Verifiable for Unused {
     v.in_buffer::<Self>(pos)
   }
 }
-impl Unused {
+impl<'a> Unused {
   #[allow(clippy::too_many_arguments)]
   pub fn new(
     a: i32,

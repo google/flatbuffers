@@ -728,23 +728,21 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         // could be empty (e.g. for empty tables, or for all-default values).
         debug_assert!(
             self.nested,
-            format!(
-                "incorrect FlatBufferBuilder usage: {} must be called while in a nested state",
-                fn_name
-            )
+            "incorrect FlatBufferBuilder usage: {} must be called while in a nested state",
+            fn_name
         );
     }
     #[inline]
     fn assert_not_nested(&self, msg: &'static str) {
-        debug_assert!(!self.nested, msg);
+        debug_assert!(!self.nested, "{}", msg);
     }
     #[inline]
     fn assert_finished(&self, msg: &'static str) {
-        debug_assert!(self.finished, msg);
+        debug_assert!(self.finished, "{}", msg);
     }
     #[inline]
     fn assert_not_finished(&self, msg: &'static str) {
-        debug_assert!(!self.finished, msg);
+        debug_assert!(!self.finished, "{}", msg);
     }
 }
 

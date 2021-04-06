@@ -3,27 +3,27 @@
 
 
 use std::mem;
-use std::cmp::Ordering;
+use std::{convert::TryInto, cmp::Ordering};
 
 extern crate flatbuffers;
-use self::flatbuffers::EndianScalar;
+use self::flatbuffers::{EndianScalar, Follow};
 
 #[allow(unused_imports, dead_code)]
 pub mod my_game {
 
   use std::mem;
-  use std::cmp::Ordering;
+  use std::{convert::TryInto, cmp::Ordering};
 
   extern crate flatbuffers;
-  use self::flatbuffers::EndianScalar;
+  use self::flatbuffers::{EndianScalar, Follow};
 #[allow(unused_imports, dead_code)]
 pub mod sample {
 
   use std::mem;
-  use std::cmp::Ordering;
+  use std::{convert::TryInto, cmp::Ordering};
 
   extern crate flatbuffers;
-  use self::flatbuffers::EndianScalar;
+  use self::flatbuffers::{EndianScalar, Follow};
 
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_COLOR: i8 = 0;
@@ -313,7 +313,7 @@ impl<'a> flatbuffers::Verifiable for Vec3 {
     v.in_buffer::<Self>(pos)
   }
 }
-impl Vec3 {
+impl<'a> Vec3 {
   #[allow(clippy::too_many_arguments)]
   pub fn new(
     x: f32,
