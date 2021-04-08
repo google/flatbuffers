@@ -2594,15 +2594,39 @@ class RustGenerator : public BaseGenerator {
             "    self.0[{{FIELD_OFFSET}}..{{FIELD_OFFSET}}+{{FIELD_SIZE}}]"
             ".copy_from_slice(&x.0)";
       } else if (IsArray(field.value.type)) {
-        code_.SetValue("FIELD_SIZE", NumToString(InlineSize(field.value.type)));
-        code_ += "  pub fn set_{{FIELD_NAME}}(&mut self, x: &{{FIELD_TYPE}}) {";
-        code_ +=
-            "    let src = unsafe { ::std::slice::from_raw_parts(x.as_ptr() as "
-            "*const u8, "
-            "{{FIELD_SIZE}}) };";
-        code_ +=
-            "    self.0[{{FIELD_OFFSET}}..{{FIELD_OFFSET}}+{{FIELD_SIZE}}]"
-            ".copy_from_slice(src)";
+        if (GetFullType(field.value.type) == ftArrayOfBuiltin) {
+          code_.SetValue("ARRAY_ITEM",
+                         GetTypeGet(field.value.type.VectorType()));
+          code_.SetValue(
+              "ARRAY_ITEM_SIZE",
+              NumToString(InlineSize(field.value.type.VectorType())));
+          code_ +=
+              "  pub fn set_{{FIELD_NAME}}(&mut self, items: &{{FIELD_TYPE}}) "
+              "{";
+          code_ += "    for (i, item) in items.iter().enumerate() {";
+          code_ += "      let item_le = item.to_little_endian();";
+          code_ += "      unsafe {";
+          code_ += "        core::ptr::copy_nonoverlapping(";
+          code_ += "          &item_le as *const {{ARRAY_ITEM}} as *const u8,";
+          code_ +=
+              "          self.0[{{FIELD_OFFSET}} + {{ARRAY_ITEM_SIZE}} * "
+              "i..].as_mut_ptr(),";
+          code_ += "          {{ARRAY_ITEM_SIZE}},";
+          code_ += "        );";
+          code_ += "      }";
+          code_ += "    }";
+        } else {
+          code_.SetValue("FIELD_SIZE",
+                         NumToString(InlineSize(field.value.type)));
+          code_ +=
+              "  pub fn set_{{FIELD_NAME}}(&mut self, x: &{{FIELD_TYPE}}) {";
+          code_ +=
+              "    let src = unsafe { ::std::slice::from_raw_parts(x.as_ptr() "
+              "as *const u8, {{FIELD_SIZE}}) };";
+          code_ +=
+              "    self.0[{{FIELD_OFFSET}}..{{FIELD_OFFSET}}+{{FIELD_SIZE}}]"
+              ".copy_from_slice(src)";
+        }
       } else {
         code_ += "  pub fn set_{{FIELD_NAME}}(&mut self, x: {{FIELD_TYPE}}) {";
         code_ += "    let x_le = x.to_little_endian();";
@@ -2636,7 +2660,7 @@ class RustGenerator : public BaseGenerator {
                 ".map(|x| x.unpack()).collect::<Vec<{{NATIVE_ARRAY_ITEM}}>>()"
                 ".try_into().expect(\"Invalid array size\"),";
           } else {
-            code_ += "      {{FIELD_NAME}}: *self.{{FIELD_NAME}}().as_array(),";
+            code_ += "      {{FIELD_NAME}}: self.{{FIELD_NAME}}().into(),";
           }
         } else {
           std::string unpack = IsStruct(field.value.type) ? ".unpack()" : "";

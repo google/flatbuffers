@@ -70,8 +70,8 @@ fn serialized_example_is_accessible_and_correct(
     assert_eq!(nested_struct1.c().get(1), TestEnum::B);
     assert_eq!(nested_struct1.d().len(), 2);
     assert_eq!(
-        nested_struct1.d().as_array(),
-        &[0x1122334455667788, -0x1122334455667788]
+        [nested_struct1.d().get(0), nested_struct1.d().get(1)],
+        [0x1122334455667788, -0x1122334455667788]
     );
     let nested_struct2 = array_struct.d().get(1);
     assert_eq!(nested_struct2.a().len(), 2);
@@ -81,9 +81,10 @@ fn serialized_example_is_accessible_and_correct(
     assert_eq!(nested_struct2.c().get(0), TestEnum::B);
     assert_eq!(nested_struct2.c().get(1), TestEnum::A);
     assert_eq!(nested_struct2.d().len(), 2);
+    let arr: [i64; 2] = nested_struct2.d().into();
     assert_eq!(
-        nested_struct2.d().as_array(),
-        &[-0x1122334455667788, 0x1122334455667788]
+        arr,
+        [-0x1122334455667788, 0x1122334455667788]
     );
 
     assert_eq!(array_struct.e(), 1);
@@ -181,7 +182,6 @@ fn generated_code_debug_prints_correctly() {
     let b = &mut flatbuffers::FlatBufferBuilder::new();
     create_serialized_example_with_generated_code(b);
     let buf = b.finished_data();
-    serialized_example_is_accessible_and_correct(&buf, true, false);
     let array_table = root_as_array_table(buf).unwrap();
     assert_eq!(
         format!("{:.5?}", &array_table),

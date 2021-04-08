@@ -200,9 +200,17 @@ impl<'a> NestedStruct {
     flatbuffers::Array::follow(&self.0, 0)
   }
 
-  pub fn set_a(&mut self, x: &[i32; 2]) {
-    let src = unsafe { ::std::slice::from_raw_parts(x.as_ptr() as *const u8, 8) };
-    self.0[0..0+8].copy_from_slice(src)
+  pub fn set_a(&mut self, items: &[i32; 2]) {
+    for (i, item) in items.iter().enumerate() {
+      let item_le = item.to_little_endian();
+      unsafe {
+        core::ptr::copy_nonoverlapping(
+          &item_le as *const i32 as *const u8,
+          self.0[0 + 4 * i..].as_mut_ptr(),
+          4,
+        );
+      }
+    }
   }
 
   pub fn b(&self) -> TestEnum {
@@ -241,17 +249,25 @@ impl<'a> NestedStruct {
     flatbuffers::Array::follow(&self.0, 16)
   }
 
-  pub fn set_d(&mut self, x: &[i64; 2]) {
-    let src = unsafe { ::std::slice::from_raw_parts(x.as_ptr() as *const u8, 16) };
-    self.0[16..16+16].copy_from_slice(src)
+  pub fn set_d(&mut self, items: &[i64; 2]) {
+    for (i, item) in items.iter().enumerate() {
+      let item_le = item.to_little_endian();
+      unsafe {
+        core::ptr::copy_nonoverlapping(
+          &item_le as *const i64 as *const u8,
+          self.0[16 + 8 * i..].as_mut_ptr(),
+          8,
+        );
+      }
+    }
   }
 
   pub fn unpack(&self) -> NestedStructT {
     NestedStructT {
-      a: *self.a().as_array(),
+      a: self.a().into(),
       b: self.b(),
-      c: *self.c().as_array(),
-      d: *self.d().as_array(),
+      c: self.c().into(),
+      d: self.d().into(),
     }
   }
 }
@@ -390,9 +406,17 @@ impl<'a> ArrayStruct {
     flatbuffers::Array::follow(&self.0, 4)
   }
 
-  pub fn set_b(&mut self, x: &[i32; 15]) {
-    let src = unsafe { ::std::slice::from_raw_parts(x.as_ptr() as *const u8, 60) };
-    self.0[4..4+60].copy_from_slice(src)
+  pub fn set_b(&mut self, items: &[i32; 15]) {
+    for (i, item) in items.iter().enumerate() {
+      let item_le = item.to_little_endian();
+      unsafe {
+        core::ptr::copy_nonoverlapping(
+          &item_le as *const i32 as *const u8,
+          self.0[4 + 4 * i..].as_mut_ptr(),
+          4,
+        );
+      }
+    }
   }
 
   pub fn c(&self) -> i8 {
@@ -454,19 +478,27 @@ impl<'a> ArrayStruct {
     flatbuffers::Array::follow(&self.0, 144)
   }
 
-  pub fn set_f(&mut self, x: &[i64; 2]) {
-    let src = unsafe { ::std::slice::from_raw_parts(x.as_ptr() as *const u8, 16) };
-    self.0[144..144+16].copy_from_slice(src)
+  pub fn set_f(&mut self, items: &[i64; 2]) {
+    for (i, item) in items.iter().enumerate() {
+      let item_le = item.to_little_endian();
+      unsafe {
+        core::ptr::copy_nonoverlapping(
+          &item_le as *const i64 as *const u8,
+          self.0[144 + 8 * i..].as_mut_ptr(),
+          8,
+        );
+      }
+    }
   }
 
   pub fn unpack(&self) -> ArrayStructT {
     ArrayStructT {
       a: self.a(),
-      b: *self.b().as_array(),
+      b: self.b().into(),
       c: self.c(),
       d: self.d().iter().map(|x| x.unpack()).collect::<Vec<NestedStructT>>().try_into().expect("Invalid array size"),
       e: self.e(),
-      f: *self.f().as_array(),
+      f: self.f().into(),
     }
   }
 }

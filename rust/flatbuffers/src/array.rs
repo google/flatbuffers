@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-use std::{fmt::{Debug, Formatter, Result}, marker::PhantomData};
+use std::marker::PhantomData;
+use std::fmt::{Debug, Formatter, Result};
 use std::mem::size_of;
 use std::slice::from_raw_parts;
 use crate::vector::{VectorIter, SafeSliceAccess};
@@ -46,11 +47,6 @@ impl<'a, T: 'a, const N: usize> Array<'a, T, N> {
     pub fn len(&self) -> usize {
         N
     }
-
-    #[inline(always)]
-    pub fn as_array(&self) -> &[T; N] {
-        unsafe { &*(self.0.as_ptr() as *const T as *const [T; N]) }
-    }
 }
 
 impl<'a, T: Follow<'a> + 'a, const N: usize> Array<'a, T, N> {
@@ -64,6 +60,24 @@ impl<'a, T: Follow<'a> + 'a, const N: usize> Array<'a, T, N> {
     #[inline(always)]
     pub fn iter(&self) -> VectorIter<'a, T> {
         VectorIter::from_slice(self.0, self.len())
+    }
+}
+
+impl<'a, T: Follow<'a> + Debug, const N: usize> Into<[T::Inner; N]> for Array<'a, T, N>{
+    fn into(self) -> [T::Inner; N] {
+        let mut mem = core::mem::MaybeUninit::<[T::Inner; N]>::uninit();
+        let sz = core::mem::size_of::<T::Inner>();
+        let mem_ptr = mem.as_mut_ptr() as *mut u8;
+        unsafe {
+            for (i, item) in self.iter().enumerate() {
+                core::ptr::copy_nonoverlapping(
+                &item as *const T::Inner as *const u8,
+                mem_ptr.offset((i * sz) as isize),
+                sz,
+                );
+            }
+            mem.assume_init()
+        }
     }
 }
 

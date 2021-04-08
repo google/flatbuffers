@@ -1513,8 +1513,7 @@ mod roundtrip_table {
         assert!(values_generated > 0);
         assert!(min_tests_per_choice > 0);
         for i in 0..test_value_types_max as u64 {
-            assert!(stats[&i] >= min_tests_per_choice,
-                    format!("inadequately-tested fuzz case: {}", i));
+            assert!(stats[&i] >= min_tests_per_choice, "inadequately-tested fuzz case: {}", i);
         }
     }
 
