@@ -155,7 +155,7 @@ pub fn emplace_scalar<T: EndianScalar>(s: &mut [u8], x: T) {
         core::ptr::copy_nonoverlapping(
             &x_le as *const T as *const u8,
             s.as_mut_ptr() as *mut u8,
-            size_of::<T>()
+            size_of::<T>(),
         );
     }
 }
@@ -174,11 +174,7 @@ pub fn read_scalar<T: EndianScalar>(s: &[u8]) -> T {
     let mut mem = core::mem::MaybeUninit::<T>::uninit();
     // Since [u8] has alignment 1, we copy it into T which may have higher alignment.
     let x = unsafe {
-        core::ptr::copy_nonoverlapping(
-            s.as_ptr(),
-            mem.as_mut_ptr() as *mut u8,
-            size_of::<T>()
-        );
+        core::ptr::copy_nonoverlapping(s.as_ptr(), mem.as_mut_ptr() as *mut u8, size_of::<T>());
         mem.assume_init()
     };
     x.from_little_endian()

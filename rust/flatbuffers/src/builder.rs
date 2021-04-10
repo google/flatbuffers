@@ -253,12 +253,9 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
             // Gets The pointer to the size of the string
             let str_memory = &buf[buf.len() - ptr..];
             // Gets the size of the written string from buffer
-            let size = u32::from_le_bytes([
-                str_memory[0],
-                str_memory[1],
-                str_memory[2],
-                str_memory[3],
-            ]) as usize;
+            let size =
+                u32::from_le_bytes([str_memory[0], str_memory[1], str_memory[2], str_memory[3]])
+                    as usize;
             // Size of the string size
             let string_size: usize = 4;
             // Fetches actual string bytes from index of string after string size

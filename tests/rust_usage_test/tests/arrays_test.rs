@@ -1,7 +1,14 @@
+extern crate array_init;
 #[allow(dead_code, unused_imports)]
 #[path = "../../arrays_test_generated.rs"]
 mod arrays_test_generated;
+use std::fmt::Debug;
+
 use crate::arrays_test_generated::my_game::example::*;
+extern crate quickcheck;
+use array_init::array_init;
+use quickcheck::{Arbitrary, Gen};
+
 
 fn create_serialized_example_with_generated_code(builder: &mut flatbuffers::FlatBufferBuilder) {
     let nested_struct1 = NestedStruct::new(
@@ -192,4 +199,103 @@ fn generated_code_debug_prints_correctly() {
          NestedStruct { a: [3, -4], b: B, c: [B, A], d: [-1234605616436508552, 1234605616436508552] }], \
          e: 1, f: [-9223372036854775808, 9223372036854775807] }) }"
     );
+}
+
+#[should_panic]
+#[test]
+fn assert_on_too_small_array_buf() {
+    let a = [0u8; 19];
+    flatbuffers::Array::<i32, 5>::new(&a);
+}
+
+#[should_panic]
+#[test]
+fn assert_on_too_big_array_buf() {
+    let a = [0u8; 21];
+    flatbuffers::Array::<i32, 5>::new(&a);
+}
+
+#[test]
+#[cfg(target_endian = "little")]
+fn verify_struct_array_alignment() {
+    let mut b = flatbuffers::FlatBufferBuilder::new();
+    create_serialized_example_with_generated_code(&mut b);
+    let buf = b.finished_data();
+    let array_table = root_as_array_table(buf).unwrap();
+    let array_struct = array_table.a().unwrap();
+    let struct_start_ptr = array_struct.0.as_ptr() as usize;
+    let b_start_ptr = array_struct.b().safe_slice().as_ptr() as usize;
+    let d_start_ptr = array_struct.d().safe_slice().as_ptr() as usize;
+    // The T type of b
+    let b_aln = ::std::mem::align_of::<i32>();
+    assert_eq!((b_start_ptr - struct_start_ptr) % b_aln, 0);
+    assert_eq!((d_start_ptr - b_start_ptr) % b_aln, 0);
+    assert_eq!((d_start_ptr - struct_start_ptr) % 8, 0);
+}
+
+#[derive(Clone, Debug)]
+struct FakeArray<T, const N: usize>([T; N]);
+
+impl<T: Arbitrary + Debug + flatbuffers::EndianScalar, const N: usize> Arbitrary for FakeArray<T, N> {
+    fn arbitrary<G: Gen>(g: &mut G) -> FakeArray<T, N> {
+        let x: [T; N] = array_init(|_| {
+            loop {
+                let generated_scalar = T::arbitrary(g).to_little_endian();
+                // Verify that generated scalar is not Nan, which is not equals to itself, 
+                // therefore we can't use it to validate input == output
+                if generated_scalar == generated_scalar { return generated_scalar }
+            }
+        });
+        FakeArray{0: x}
+    }
+}
+
+#[cfg(test)]
+mod array_fuzz {
+    #[cfg(not(miri))]  // slow.
+    extern crate quickcheck;
+    extern crate flatbuffers;
+    use super::*;
+
+    const N: u64 = 20;
+    const ARRAY_SIZE: usize = 29;
+
+    // This uses a macro because lifetimes for the trait-bounded function get too
+    // complicated.
+    macro_rules! impl_prop {
+        ($test_name:ident, $fn_name:ident, $ty:ident) => (
+            fn $fn_name(xs: FakeArray<$ty, ARRAY_SIZE>) {
+                use self::flatbuffers::Follow;
+                let mut test_buf = [0 as u8; 1024];
+                flatbuffers::emplace_scalar_array(&mut test_buf, 0, &xs.0);
+                let arr: flatbuffers::Array<$ty, ARRAY_SIZE> = flatbuffers::Array::follow(&test_buf, 0);
+                let got: [$ty; ARRAY_SIZE] = arr.into();
+                if got != xs.0 {
+                    for i in 0..ARRAY_SIZE {
+                        if got[i] != xs.0[i] {
+                            println!("{} != {}", got[i], xs.0[i]);
+                        }
+                    }
+                }
+
+                assert_eq!(got, xs.0);
+                #[cfg(target_endian = "little")]
+                assert_eq!(arr.safe_slice(), xs.0);
+            }
+            #[test]
+            fn $test_name() { quickcheck::QuickCheck::new().max_tests(N).quickcheck($fn_name as fn(FakeArray<$ty, ARRAY_SIZE>)); }
+        )
+    }
+
+    impl_prop!(test_bool, prop_bool, bool);
+    impl_prop!(test_u8, prop_u8, u8);
+    impl_prop!(test_i8, prop_i8, i8);
+    impl_prop!(test_u16, prop_u16, u16);
+    impl_prop!(test_u32, prop_u32, u32);
+    impl_prop!(test_u64, prop_u64, u64);
+    impl_prop!(test_i16, prop_i16, i16);
+    impl_prop!(test_i32, prop_i32, i32);
+    impl_prop!(test_i64, prop_i64, i64);
+    impl_prop!(test_f32, prop_f32, f32);
+    impl_prop!(test_f64, prop_f64, f64);
 }

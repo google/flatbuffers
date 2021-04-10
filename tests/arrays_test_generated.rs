@@ -201,16 +201,7 @@ impl<'a> NestedStruct {
   }
 
   pub fn set_a(&mut self, items: &[i32; 2]) {
-    for (i, item) in items.iter().enumerate() {
-      let item_le = item.to_little_endian();
-      unsafe {
-        core::ptr::copy_nonoverlapping(
-          &item_le as *const i32 as *const u8,
-          self.0[0 + 4 * i..].as_mut_ptr(),
-          4,
-        );
-      }
-    }
+    flatbuffers::emplace_scalar_array(&mut self.0, 0, items);
   }
 
   pub fn b(&self) -> TestEnum {
@@ -250,16 +241,7 @@ impl<'a> NestedStruct {
   }
 
   pub fn set_d(&mut self, items: &[i64; 2]) {
-    for (i, item) in items.iter().enumerate() {
-      let item_le = item.to_little_endian();
-      unsafe {
-        core::ptr::copy_nonoverlapping(
-          &item_le as *const i64 as *const u8,
-          self.0[16 + 8 * i..].as_mut_ptr(),
-          8,
-        );
-      }
-    }
+    flatbuffers::emplace_scalar_array(&mut self.0, 16, items);
   }
 
   pub fn unpack(&self) -> NestedStructT {
@@ -407,16 +389,7 @@ impl<'a> ArrayStruct {
   }
 
   pub fn set_b(&mut self, items: &[i32; 15]) {
-    for (i, item) in items.iter().enumerate() {
-      let item_le = item.to_little_endian();
-      unsafe {
-        core::ptr::copy_nonoverlapping(
-          &item_le as *const i32 as *const u8,
-          self.0[4 + 4 * i..].as_mut_ptr(),
-          4,
-        );
-      }
-    }
+    flatbuffers::emplace_scalar_array(&mut self.0, 4, items);
   }
 
   pub fn c(&self) -> i8 {
@@ -479,16 +452,7 @@ impl<'a> ArrayStruct {
   }
 
   pub fn set_f(&mut self, items: &[i64; 2]) {
-    for (i, item) in items.iter().enumerate() {
-      let item_le = item.to_little_endian();
-      unsafe {
-        core::ptr::copy_nonoverlapping(
-          &item_le as *const i64 as *const u8,
-          self.0[144 + 8 * i..].as_mut_ptr(),
-          8,
-        );
-      }
-    }
+    flatbuffers::emplace_scalar_array(&mut self.0, 144, items);
   }
 
   pub fn unpack(&self) -> ArrayStructT {

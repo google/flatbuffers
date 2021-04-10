@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-use std::marker::PhantomData;
+use crate::follow::Follow;
+use crate::{
+    vector::{SafeSliceAccess, VectorIter},
+    EndianScalar,
+};
 use std::fmt::{Debug, Formatter, Result};
+use std::marker::PhantomData;
 use std::mem::size_of;
 use std::slice::from_raw_parts;
-use crate::vector::{VectorIter, SafeSliceAccess};
-use crate::follow::Follow;
 
 #[derive(Copy, Clone)]
 pub struct Array<'a, T: 'a, const N: usize>(&'a [u8], PhantomData<T>);
@@ -37,6 +40,8 @@ where
 impl<'a, T: 'a, const N: usize> Array<'a, T, N> {
     #[inline(always)]
     pub fn new(buf: &'a [u8]) -> Self {
+        debug_assert!(size_of::<T>() * N == buf.len());
+
         Array {
             0: buf,
             1: PhantomData,
@@ -63,18 +68,14 @@ impl<'a, T: Follow<'a> + 'a, const N: usize> Array<'a, T, N> {
     }
 }
 
-impl<'a, T: Follow<'a> + Debug, const N: usize> Into<[T::Inner; N]> for Array<'a, T, N>{
+impl<'a, T: Follow<'a> + Debug, const N: usize> Into<[T::Inner; N]> for Array<'a, T, N> {
     fn into(self) -> [T::Inner; N] {
         let mut mem = core::mem::MaybeUninit::<[T::Inner; N]>::uninit();
-        let sz = core::mem::size_of::<T::Inner>();
-        let mem_ptr = mem.as_mut_ptr() as *mut u8;
+        let mut mem_ptr = mem.as_mut_ptr() as *mut T::Inner;
         unsafe {
-            for (i, item) in self.iter().enumerate() {
-                core::ptr::copy_nonoverlapping(
-                &item as *const T::Inner as *const u8,
-                mem_ptr.offset((i * sz) as isize),
-                sz,
-                );
+            for item in self.iter() {
+                mem_ptr.write(item);
+                mem_ptr = mem_ptr.add(1);
             }
             mem.assume_init()
         }
@@ -95,6 +96,21 @@ impl<'a, T: Follow<'a> + 'a, const N: usize> Follow<'a> for Array<'a, T, N> {
     type Inner = Array<'a, T, N>;
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
         Array::new(&buf[loc..loc + N * size_of::<T>()])
+    }
+}
+
+pub fn emplace_scalar_array<T: EndianScalar, const N: usize>(
+    buf: &mut [u8],
+    loc: usize,
+    src: &[T; N],
+) {
+    let mut buf_ptr = buf[loc..].as_mut_ptr() as *mut T;
+    for item in src.iter() {
+        let item_le = item.to_little_endian();
+        unsafe {
+            buf_ptr.write(item_le);
+            buf_ptr = buf_ptr.add(1);
+        }
     }
 }
 

@@ -2603,18 +2603,9 @@ class RustGenerator : public BaseGenerator {
           code_ +=
               "  pub fn set_{{FIELD_NAME}}(&mut self, items: &{{FIELD_TYPE}}) "
               "{";
-          code_ += "    for (i, item) in items.iter().enumerate() {";
-          code_ += "      let item_le = item.to_little_endian();";
-          code_ += "      unsafe {";
-          code_ += "        core::ptr::copy_nonoverlapping(";
-          code_ += "          &item_le as *const {{ARRAY_ITEM}} as *const u8,";
           code_ +=
-              "          self.0[{{FIELD_OFFSET}} + {{ARRAY_ITEM_SIZE}} * "
-              "i..].as_mut_ptr(),";
-          code_ += "          {{ARRAY_ITEM_SIZE}},";
-          code_ += "        );";
-          code_ += "      }";
-          code_ += "    }";
+              "    flatbuffers::emplace_scalar_array(&mut self.0, "
+              "{{FIELD_OFFSET}}, items);";
         } else {
           code_.SetValue("FIELD_SIZE",
                          NumToString(InlineSize(field.value.type)));
