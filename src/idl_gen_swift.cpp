@@ -848,7 +848,7 @@ class SwiftGenerator : public BaseGenerator {
     code_.SetValue("ENUM_NAME", NameWrappedInNameSpace(enum_def));
     code_.SetValue("BASE_TYPE", GenTypeBasic(enum_def.underlying_type, false));
     GenComment(enum_def.doc_comment);
-    code_ += "{{ACCESS_TYPE}} enum {{ENUM_NAME}}: {{BASE_TYPE}}, Enum { ";
+    code_ += "{{ACCESS_TYPE}} enum {{ENUM_NAME}}: {{BASE_TYPE}}, Enum {";
     Indent();
     code_ += "{{ACCESS_TYPE}} typealias T = {{BASE_TYPE}}";
     code_ +=
@@ -935,8 +935,8 @@ class SwiftGenerator : public BaseGenerator {
       auto type = GenType(field.value.type);
       code_.SetValue("VALUENAME", name);
       if (IsStruct(field.value.type)) {
-        code_ += "var _v = _t.{{VALUENAME}}";
-        code_ += "_{{VALUENAME}} = _v.unpack()";
+        code_ += "var _v{{VALUENAME}} = _t.{{VALUENAME}}";
+        code_ += "_{{VALUENAME}} = _v{{VALUENAME}}.unpack()";
         continue;
       }
       std::string is_enum = IsEnum(field.value.type) ? ".value" : "";
@@ -1472,7 +1472,9 @@ class SwiftGenerator : public BaseGenerator {
     auto &value = field.value;
     FLATBUFFERS_ASSERT(value.type.enum_def);
     auto &enum_def = *value.type.enum_def;
-    auto enum_val = enum_def.FindByValue(value.constant);
+    // Vector of enum defaults are always "[]" which never works.
+    const std::string constant = IsVector(value.type) ? "0" : value.constant;
+    auto enum_val = enum_def.FindByValue(constant);
     std::string name;
     if (enum_val) {
       name = Name(*enum_val);

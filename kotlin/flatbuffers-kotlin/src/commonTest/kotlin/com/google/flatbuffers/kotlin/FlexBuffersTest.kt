@@ -210,7 +210,7 @@ class FlexBuffersTest {
     val builder = FlexBuffersBuilder(shareFlag = FlexBuffersBuilder.SHARE_KEYS_AND_STRINGS)
     builder.putVector {
       put(10)
-      builder.putMap {
+      putMap {
         this["chello"] = "world"
         this["aint"] = 10
         this["bfloat"] = 12.3
