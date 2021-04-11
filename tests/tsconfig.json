@@ -12,6 +12,12 @@
     "baseUrl": ".",
     "noEmit": false
   },
-  "include": [ "ts/**/*.ts" ],
-  "exclude": [ "namespace_test/**/*.ts"]
+  "include": [ 
+    "ts/**/*.ts",
+    "optional_scalars/**/*.ts",
+    "union_vector/**/*.ts"
+  ],
+  "exclude": [
+    "namespace_test/**/*.ts"
+  ]
 }
