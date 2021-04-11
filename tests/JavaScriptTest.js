@@ -3,12 +3,12 @@ import assert from 'assert'
 import fs from 'fs'
 import * as flatbuffers from 'flatbuffers'
 
-import { Monster, MonsterT } from './ts/my-game/example/monster'
-import { Test } from './ts/my-game/example/test'
-import { Stat } from './ts/my-game/example/stat'
-import { Vec3 } from './ts/my-game/example/vec3'
-import { Color } from './ts/my-game/example/color';
-import { Any } from './ts/my-game/example/any';
+import { Monster, MonsterT } from './my-game/example/monster'
+import { Test } from './my-game/example/test'
+import { Stat } from './my-game/example/stat'
+import { Vec3 } from './my-game/example/vec3'
+import { Color } from './my-game/example/color';
+import { Any } from './my-game/example/any';
 
 function main() {
 

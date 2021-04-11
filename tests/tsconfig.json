@@ -13,7 +13,7 @@
     "noEmit": false
   },
   "include": [ 
-    "ts/**/*.ts",
+    "my-game/**/*.ts",
     "optional_scalars/**/*.ts",
     "union_vector/**/*.ts"
   ],
