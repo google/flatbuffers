@@ -10,8 +10,7 @@
     "noImplicitReturns": true,
     "strictNullChecks": true,
     "baseUrl": ".",
-    "noEmit": false,
-    "outDir": "./ts"
+    "noEmit": false
   },
   "include": [ "ts/**/*.ts" ],
   "exclude": [ "namespace_test/**/*.ts"]

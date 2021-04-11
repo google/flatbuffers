@@ -52,7 +52,7 @@ set TEST_NOINCL_FLAGS=%TEST_BASE_FLAGS% --no-includes
 ..\%buildtype%\flatc.exe --cpp --java --csharp --ts --php %TEST_BASE_FLAGS% %TEST_CPP_FLAGS% %TEST_CS_FLAGS% %TEST_TS_FLAGS% -o union_vector ./union_vector/union_vector.fbs || goto FAIL
 ..\%buildtype%\flatc.exe --ts --gen-name-strings --gen-mutable %TEST_BASE_FLAGS% %TEST_TS_FLAGS% -I include_test -o ts monster_test.fbs
 ..\%buildtype%\flatc.exe %TEST_BASE_FLAGS% %TEST_TS_FLAGS% -b -I include_test monster_test.fbs unicode_test.json
-..\%buildtype%\flatc.exe --ts --gen-name-strings %TEST_BASE_FLAGS% %TEST_TS_FLAGS% -o ts union_vector/union_vector.fbs
+..\%buildtype%\flatc.exe --ts --gen-name-strings %TEST_BASE_FLAGS% %TEST_TS_FLAGS% -o union_vector union_vector/union_vector.fbs
 ..\%buildtype%\flatc.exe --rust -I include_test -o include_test include_test/include_test1.fbs || goto FAIL
 ..\%buildtype%\flatc.exe --rust -I include_test -o include_test/sub include_test/sub/include_test2.fbs || goto FAIL
 ..\%buildtype%\flatc.exe -b --schema --bfbs-comments --bfbs-builtins -I include_test monster_test.fbs || goto FAIL
@@ -64,8 +64,7 @@ set TEST_NOINCL_FLAGS=%TEST_BASE_FLAGS% --no-includes
 ..\%buildtype%\flatc.exe --cpp %TEST_BASE_FLAGS% --cpp-ptr-type flatbuffers::unique_ptr native_type_test.fbs || goto FAIL
 
 @rem Generate the optional scalar code for tests.
-..\%buildtype%\flatc.exe --java --kotlin --lobster optional_scalars.fbs || goto FAIL
-..\%buildtype%\flatc.exe --ts -o ts optional_scalars.fbs || goto FAIL
+..\%buildtype%\flatc.exe --java --kotlin --lobster --ts optional_scalars.fbs || goto FAIL
 ..\%buildtype%\flatc.exe --csharp --rust --gen-object-api optional_scalars.fbs || goto FAIL
 ..\%buildtype%\flatc.exe %TEST_NOINCL_FLAGS% %TEST_CPP_FLAGS% --cpp optional_scalars.fbs || goto FAIL
 
