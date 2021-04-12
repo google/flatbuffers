@@ -8,7 +8,7 @@ import com.google.flatbuffers.*;
 public class BookReaderT {
   private int booksRead;
 
-  public int getBooksRead() { return booksRead; }
+  public int getBooksRead() { return this.booksRead; }
 
   public void setBooksRead(int booksRead) { this.booksRead = booksRead; }
 
@@ -17,4 +17,3 @@ public class BookReaderT {
     this.booksRead = 0;
   }
 }
-
