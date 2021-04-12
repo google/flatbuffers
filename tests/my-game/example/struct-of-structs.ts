@@ -27,6 +27,10 @@ c(obj?:Ability):Ability|null {
   return (obj || new Ability()).__init(this.bb_pos + 12, this.bb!);
 }
 
+static getFullyQualifiedName():string {
+  return 'MyGame.Example.StructOfStructs';
+}
+
 static sizeOf():number {
   return 20;
 }

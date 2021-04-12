@@ -1,10 +1,10 @@
 import assert from 'assert'
 import * as flatbuffers from 'flatbuffers'
 
-import { Character } from './ts/character'
-import { BookReader, BookReaderT } from './ts/book-reader'
-import { Attacker, AttackerT } from './ts/attacker'
-import { Movie, MovieT } from './ts/movie'
+import { Character } from './union_vector/character'
+import { BookReader, BookReaderT } from './union_vector/book-reader'
+import { Attacker, AttackerT } from './union_vector/attacker'
+import { Movie, MovieT } from './union_vector/movie'
 
 var charTypes = [
   Character.Belle,
