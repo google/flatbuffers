@@ -10,9 +10,14 @@
     "noImplicitReturns": true,
     "strictNullChecks": true,
     "baseUrl": ".",
-    "noEmit": false,
-    "outDir": "./ts"
+    "noEmit": false
   },
-  "include": [ "ts/**/*.ts" ],
-  "exclude": []
+  "include": [ 
+    "my-game/**/*.ts",
+    "optional_scalars/**/*.ts",
+    "union_vector/**/*.ts"
+  ],
+  "exclude": [
+    "namespace_test/**/*.ts"
+  ]
 }

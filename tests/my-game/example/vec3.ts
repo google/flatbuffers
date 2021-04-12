@@ -64,6 +64,10 @@ test3(obj?:Test):Test|null {
   return (obj || new Test()).__init(this.bb_pos + 26, this.bb!);
 }
 
+static getFullyQualifiedName():string {
+  return 'MyGame.Example.Vec3';
+}
+
 static sizeOf():number {
   return 32;
 }
