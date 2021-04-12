@@ -384,7 +384,7 @@ class JavaGenerator : public BaseGenerator {
     }
 
     // Close the class
-    code += "}";
+    code += "}\n\n";
   }
 
   // Returns the function name that is able to read a value of the given type.
