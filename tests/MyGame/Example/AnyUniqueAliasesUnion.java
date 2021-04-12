@@ -8,11 +8,11 @@ public class AnyUniqueAliasesUnion {
   private byte type;
   private Object value;
 
-  public byte getType() { return type; }
+  public byte getType() { return this.type; }
 
   public void setType(byte type) { this.type = type; }
 
-  public Object getValue() { return value; }
+  public Object getValue() { return this.value; }
 
   public void setValue(Object value) { this.value = value; }
 
@@ -21,9 +21,9 @@ public class AnyUniqueAliasesUnion {
     this.value = null;
   }
 
-  public MyGame.Example.MonsterT asM() { return (MyGame.Example.MonsterT) value; }
-  MyGame.Example.TestSimpleTableWithEnumT asTS() { return (MyGame.Example.TestSimpleTableWithEnumT) value; }
-  public MyGame.Example2.MonsterT asM2() { return (MyGame.Example2.MonsterT) value; }
+  public MyGame.Example.MonsterT asM() { return (MyGame.Example.MonsterT) this.value; }
+  MyGame.Example.TestSimpleTableWithEnumT asTS() { return (MyGame.Example.TestSimpleTableWithEnumT) this.value; }
+  public MyGame.Example2.MonsterT asM2() { return (MyGame.Example2.MonsterT) this.value; }
 
   public static int pack(FlatBufferBuilder builder, AnyUniqueAliasesUnion _o) {
     switch (_o.type) {

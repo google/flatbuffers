@@ -10,7 +10,7 @@ import com.google.flatbuffers.*;
 public class ReferrableT {
   private long id;
 
-  public long getId() { return id; }
+  public long getId() { return this.id; }
 
   public void setId(long id) { this.id = id; }
 
@@ -19,4 +19,3 @@ public class ReferrableT {
     this.id = 0L;
   }
 }
-

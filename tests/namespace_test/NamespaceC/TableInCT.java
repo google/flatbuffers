@@ -11,11 +11,11 @@ public class TableInCT {
   private NamespaceA.TableInFirstNST referToA1;
   private NamespaceA.SecondTableInAT referToA2;
 
-  public NamespaceA.TableInFirstNST getReferToA1() { return referToA1; }
+  public NamespaceA.TableInFirstNST getReferToA1() { return this.referToA1; }
 
   public void setReferToA1(NamespaceA.TableInFirstNST referToA1) { this.referToA1 = referToA1; }
 
-  public NamespaceA.SecondTableInAT getReferToA2() { return referToA2; }
+  public NamespaceA.SecondTableInAT getReferToA2() { return this.referToA2; }
 
   public void setReferToA2(NamespaceA.SecondTableInAT referToA2) { this.referToA2 = referToA2; }
 
@@ -25,4 +25,3 @@ public class TableInCT {
     this.referToA2 = null;
   }
 }
-

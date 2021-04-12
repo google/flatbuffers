@@ -10,7 +10,7 @@ import com.google.flatbuffers.*;
 class TestSimpleTableWithEnumT {
   private int color;
 
-  public int getColor() { return color; }
+  public int getColor() { return this.color; }
 
   public void setColor(int color) { this.color = color; }
 
@@ -19,4 +19,3 @@ class TestSimpleTableWithEnumT {
     this.color = 2;
   }
 }
-

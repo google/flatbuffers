@@ -16,48 +16,48 @@ public class MonsterExtraT {
   private float f1;
   private float f2;
   private float f3;
-  private double[] dvec;
-  private float[] fvec;
+  private List<Double> dvec;
+  private List<Float> fvec;
 
-  public double getD0() { return d0; }
+  public double getD0() { return this.d0; }
 
   public void setD0(double d0) { this.d0 = d0; }
 
-  public double getD1() { return d1; }
+  public double getD1() { return this.d1; }
 
   public void setD1(double d1) { this.d1 = d1; }
 
-  public double getD2() { return d2; }
+  public double getD2() { return this.d2; }
 
   public void setD2(double d2) { this.d2 = d2; }
 
-  public double getD3() { return d3; }
+  public double getD3() { return this.d3; }
 
   public void setD3(double d3) { this.d3 = d3; }
 
-  public float getF0() { return f0; }
+  public float getF0() { return this.f0; }
 
   public void setF0(float f0) { this.f0 = f0; }
 
-  public float getF1() { return f1; }
+  public float getF1() { return this.f1; }
 
   public void setF1(float f1) { this.f1 = f1; }
 
-  public float getF2() { return f2; }
+  public float getF2() { return this.f2; }
 
   public void setF2(float f2) { this.f2 = f2; }
 
-  public float getF3() { return f3; }
+  public float getF3() { return this.f3; }
 
   public void setF3(float f3) { this.f3 = f3; }
 
-  public double[] getDvec() { return dvec; }
+  public List<Double> getDvec() { return this.dvec; }
 
-  public void setDvec(double[] dvec) { this.dvec = dvec; }
+  public void setDvec(List<Double> dvec) { this.dvec = dvec; }
 
-  public float[] getFvec() { return fvec; }
+  public List<Float> getFvec() { return this.fvec; }
 
-  public void setFvec(float[] fvec) { this.fvec = fvec; }
+  public void setFvec(List<Float> fvec) { this.fvec = fvec; }
 
 
   public MonsterExtraT() {
@@ -81,4 +81,3 @@ public class MonsterExtraT {
     return fbb.sizedByteArray();
   }
 }
-

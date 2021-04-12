@@ -10,7 +10,7 @@ import com.google.flatbuffers.*;
 public class ArrayTableT {
   private MyGame.Example.ArrayStructT a;
 
-  public MyGame.Example.ArrayStructT getA() { return a; }
+  public MyGame.Example.ArrayStructT getA() { return this.a; }
 
   public void setA(MyGame.Example.ArrayStructT a) { this.a = a; }
 
@@ -27,4 +27,3 @@ public class ArrayTableT {
     return fbb.sizedByteArray();
   }
 }
-

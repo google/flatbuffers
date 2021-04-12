@@ -10,7 +10,7 @@ import com.google.flatbuffers.*;
 public class UnusedT {
   private int a;
 
-  public int getA() { return a; }
+  public int getA() { return this.a; }
 
   public void setA(int a) { this.a = a; }
 
@@ -19,4 +19,3 @@ public class UnusedT {
     this.a = 0;
   }
 }
-

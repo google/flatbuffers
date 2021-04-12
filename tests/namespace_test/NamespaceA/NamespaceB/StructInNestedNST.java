@@ -11,11 +11,11 @@ public class StructInNestedNST {
   private int a;
   private int b;
 
-  public int getA() { return a; }
+  public int getA() { return this.a; }
 
   public void setA(int a) { this.a = a; }
 
-  public int getB() { return b; }
+  public int getB() { return this.b; }
 
   public void setB(int b) { this.b = b; }
 
@@ -25,4 +25,3 @@ public class StructInNestedNST {
     this.b = 0;
   }
 }
-

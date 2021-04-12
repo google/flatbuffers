@@ -12,15 +12,15 @@ public class StructOfStructsT {
   private MyGame.Example.TestT b;
   private MyGame.Example.AbilityT c;
 
-  public MyGame.Example.AbilityT getA() { return a; }
+  public MyGame.Example.AbilityT getA() { return this.a; }
 
   public void setA(MyGame.Example.AbilityT a) { this.a = a; }
 
-  public MyGame.Example.TestT getB() { return b; }
+  public MyGame.Example.TestT getB() { return this.b; }
 
   public void setB(MyGame.Example.TestT b) { this.b = b; }
 
-  public MyGame.Example.AbilityT getC() { return c; }
+  public MyGame.Example.AbilityT getC() { return this.c; }
 
   public void setC(MyGame.Example.AbilityT c) { this.c = c; }
 
@@ -31,4 +31,3 @@ public class StructOfStructsT {
     this.c = new MyGame.Example.AbilityT();
   }
 }
-

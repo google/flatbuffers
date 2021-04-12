@@ -10,7 +10,7 @@ import com.google.flatbuffers.*;
 public class TableBT {
   private TableAT a;
 
-  public TableAT getA() { return a; }
+  public TableAT getA() { return this.a; }
 
   public void setA(TableAT a) { this.a = a; }
 
@@ -19,4 +19,3 @@ public class TableBT {
     this.a = null;
   }
 }
-
