@@ -32,13 +32,13 @@ public final class StructInNestedNS extends Struct {
   }
   public StructInNestedNST unpack() {
     StructInNestedNST _o = new StructInNestedNST();
-    unpackTo(_o);
+    this.unpackTo(_o);
     return _o;
   }
   public void unpackTo(StructInNestedNST _o) {
-    int _oA = a();
+    int _oA = this.a();
     _o.setA(_oA);
-    int _oB = b();
+    int _oB = this.b();
     _o.setB(_oB);
   }
   public static int pack(FlatBufferBuilder builder, StructInNestedNST _o) {
@@ -49,4 +49,3 @@ public final class StructInNestedNS extends Struct {
       _o.getB());
   }
 }
-

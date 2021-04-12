@@ -63,37 +63,37 @@ public final class ArrayStruct extends Struct {
   }
   public ArrayStructT unpack() {
     ArrayStructT _o = new ArrayStructT();
-    unpackTo(_o);
+    this.unpackTo(_o);
     return _o;
   }
   public void unpackTo(ArrayStructT _o) {
-    float _oA = a();
+    float _oA = this.a();
     _o.setA(_oA);
     int[] _oB = new int[15];
-    for (int _j = 0; _j < 15; ++_j) { _oB[_j] = b(_j); }
+    for (int _j = 0; _j < 15; ++_j) { _oB[_j] = this.b(_j); }
     _o.setB(_oB);
-    byte _oC = c();
+    byte _oC = this.c();
     _o.setC(_oC);
     MyGame.Example.NestedStructT[] _oD = new MyGame.Example.NestedStructT[2];
-    for (int _j = 0; _j < 2; ++_j) { _oD[_j] = d(_j).unpack(); }
+    for (int _j = 0; _j < 2; ++_j) { _oD[_j] = this.d(_j).unpack(); }
     _o.setD(_oD);
-    int _oE = e();
+    int _oE = this.e();
     _o.setE(_oE);
     long[] _oF = new long[2];
-    for (int _j = 0; _j < 2; ++_j) { _oF[_j] = f(_j); }
+    for (int _j = 0; _j < 2; ++_j) { _oF[_j] = this.f(_j); }
     _o.setF(_oF);
   }
   public static int pack(FlatBufferBuilder builder, ArrayStructT _o) {
     if (_o == null) return 0;
     int[] _b = _o.getB();
-    int[][] _d_a = new int[2][2];
-    for (int idx0 = 0; idx0 < 2; ++idx0) {for (int idx1 = 0; idx1 < 2; ++idx1) {_d_a[idx0][idx1] = _o.getD()[idx0].getA()[idx1];}}
+    int[] _d_a = new int[2,2];
+    for (int idx0 = 0; idx0 < 2; ++idx0) {for (int idx1 = 0; idx1 < 2; ++idx1) {_d_a[idx0,idx1] = _o.getD()[idx0].getA()[idx1];}}
     byte[] _d_b = new byte[2];
     for (int idx0 = 0; idx0 < 2; ++idx0) {_d_b[idx0] = _o.getD()[idx0].getB();}
-    byte[][] _d_c = new byte[2][2];
-    for (int idx0 = 0; idx0 < 2; ++idx0) {for (int idx1 = 0; idx1 < 2; ++idx1) {_d_c[idx0][idx1] = _o.getD()[idx0].getC()[idx1];}}
-    long[][] _d_d = new long[2][2];
-    for (int idx0 = 0; idx0 < 2; ++idx0) {for (int idx1 = 0; idx1 < 2; ++idx1) {_d_d[idx0][idx1] = _o.getD()[idx0].getD()[idx1];}}
+    byte[] _d_c = new byte[2,2];
+    for (int idx0 = 0; idx0 < 2; ++idx0) {for (int idx1 = 0; idx1 < 2; ++idx1) {_d_c[idx0,idx1] = _o.getD()[idx0].getC()[idx1];}}
+    long[] _d_d = new long[2,2];
+    for (int idx0 = 0; idx0 < 2; ++idx0) {for (int idx1 = 0; idx1 < 2; ++idx1) {_d_d[idx0,idx1] = _o.getD()[idx0].getD()[idx1];}}
     long[] _f = _o.getF();
     return createArrayStruct(
       builder,
@@ -108,4 +108,3 @@ public final class ArrayStruct extends Struct {
       _f);
   }
 }
-

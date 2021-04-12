@@ -40,11 +40,11 @@ public final class SecondTableInA extends Table {
   }
   public SecondTableInAT unpack() {
     SecondTableInAT _o = new SecondTableInAT();
-    unpackTo(_o);
+    this.unpackTo(_o);
     return _o;
   }
   public void unpackTo(SecondTableInAT _o) {
-    NamespaceC.TableInCT _oReferToC = referToC() != null ? referToC().unpack() : null;
+    NamespaceC.TableInCT _oReferToC = this.referToC() != null ? this.referToC().unpack() : null;
     _o.setReferToC(_oReferToC);
   }
   public static int pack(FlatBufferBuilder builder, SecondTableInAT _o) {
@@ -55,4 +55,3 @@ public final class SecondTableInA extends Table {
       _refer_to_c);
   }
 }
-

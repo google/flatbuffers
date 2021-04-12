@@ -110,46 +110,52 @@ public final class TypeAliases extends Table {
   }
   public TypeAliasesT unpack() {
     TypeAliasesT _o = new TypeAliasesT();
-    unpackTo(_o);
+    this.unpackTo(_o);
     return _o;
   }
   public void unpackTo(TypeAliasesT _o) {
-    byte _oI8 = i8();
+    byte _oI8 = this.i8();
     _o.setI8(_oI8);
-    int _oU8 = u8();
+    int _oU8 = this.u8();
     _o.setU8(_oU8);
-    short _oI16 = i16();
+    short _oI16 = this.i16();
     _o.setI16(_oI16);
-    int _oU16 = u16();
+    int _oU16 = this.u16();
     _o.setU16(_oU16);
-    int _oI32 = i32();
+    int _oI32 = this.i32();
     _o.setI32(_oI32);
-    long _oU32 = u32();
+    long _oU32 = this.u32();
     _o.setU32(_oU32);
-    long _oI64 = i64();
+    long _oI64 = this.i64();
     _o.setI64(_oI64);
-    long _oU64 = u64();
+    long _oU64 = this.u64();
     _o.setU64(_oU64);
-    float _oF32 = f32();
+    float _oF32 = this.f32();
     _o.setF32(_oF32);
-    double _oF64 = f64();
+    double _oF64 = this.f64();
     _o.setF64(_oF64);
-    byte[] _oV8 = new byte[v8Length()];
-    for (int _j = 0; _j < v8Length(); ++_j) {_oV8[_j] = v8(_j);}
+    List<Byte> _oV8 = new ArrayList<>();
+    for (int _j = 0; _j < this.v8Length(); ++_j) {_oV8.add(this.v8(_j));}
     _o.setV8(_oV8);
-    double[] _oVf64 = new double[vf64Length()];
-    for (int _j = 0; _j < vf64Length(); ++_j) {_oVf64[_j] = vf64(_j);}
+    List<Double> _oVf64 = new ArrayList<>();
+    for (int _j = 0; _j < this.vf64Length(); ++_j) {_oVf64.add(this.vf64(_j));}
     _o.setVf64(_oVf64);
   }
   public static int pack(FlatBufferBuilder builder, TypeAliasesT _o) {
     if (_o == null) return 0;
     int _v8 = 0;
     if (_o.getV8() != null) {
-      _v8 = createV8Vector(builder, _o.getV8());
+      byte[] __v8 = new byte[_o.getV8().size()];
+      int _j = 0;
+      for (byte _e : _o.getV8()) { __v8[_j] = _e; _j++;}
+      _v8 = createV8Vector(builder, __v8);
     }
     int _vf64 = 0;
     if (_o.getVf64() != null) {
-      _vf64 = createVf64Vector(builder, _o.getVf64());
+      double[] __vf64 = new double[_o.getVf64().size()];
+      int _j = 0;
+      for (double _e : _o.getVf64()) { __vf64[_j] = _e; _j++;}
+      _vf64 = createVf64Vector(builder, __vf64);
     }
     return createTypeAliases(
       builder,
@@ -167,4 +173,3 @@ public final class TypeAliases extends Table {
       _vf64);
   }
 }
-

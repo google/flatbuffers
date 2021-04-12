@@ -27,11 +27,11 @@ public final class BookReader extends Struct {
   }
   public BookReaderT unpack() {
     BookReaderT _o = new BookReaderT();
-    unpackTo(_o);
+    this.unpackTo(_o);
     return _o;
   }
   public void unpackTo(BookReaderT _o) {
-    int _oBooksRead = booksRead();
+    int _oBooksRead = this.booksRead();
     _o.setBooksRead(_oBooksRead);
   }
   public static int pack(FlatBufferBuilder builder, BookReaderT _o) {
@@ -41,4 +41,3 @@ public final class BookReader extends Struct {
       _o.getBooksRead());
   }
 }
-

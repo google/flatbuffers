@@ -33,13 +33,13 @@ public final class Test extends Struct {
   }
   public TestT unpack() {
     TestT _o = new TestT();
-    unpackTo(_o);
+    this.unpackTo(_o);
     return _o;
   }
   public void unpackTo(TestT _o) {
-    short _oA = a();
+    short _oA = this.a();
     _o.setA(_oA);
-    byte _oB = b();
+    byte _oB = this.b();
     _o.setB(_oB);
   }
   public static int pack(FlatBufferBuilder builder, TestT _o) {
@@ -50,4 +50,3 @@ public final class Test extends Struct {
       _o.getB());
   }
 }
-

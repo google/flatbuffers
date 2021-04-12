@@ -45,13 +45,13 @@ public final class TableInC extends Table {
   }
   public TableInCT unpack() {
     TableInCT _o = new TableInCT();
-    unpackTo(_o);
+    this.unpackTo(_o);
     return _o;
   }
   public void unpackTo(TableInCT _o) {
-    NamespaceA.TableInFirstNST _oReferToA1 = referToA1() != null ? referToA1().unpack() : null;
+    NamespaceA.TableInFirstNST _oReferToA1 = this.referToA1() != null ? this.referToA1().unpack() : null;
     _o.setReferToA1(_oReferToA1);
-    NamespaceA.SecondTableInAT _oReferToA2 = referToA2() != null ? referToA2().unpack() : null;
+    NamespaceA.SecondTableInAT _oReferToA2 = this.referToA2() != null ? this.referToA2().unpack() : null;
     _o.setReferToA2(_oReferToA2);
   }
   public static int pack(FlatBufferBuilder builder, TableInCT _o) {
@@ -64,4 +64,3 @@ public final class TableInC extends Table {
       _refer_to_a2);
   }
 }
-

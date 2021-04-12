@@ -40,11 +40,11 @@ public final class TableInNestedNS extends Table {
   }
   public TableInNestedNST unpack() {
     TableInNestedNST _o = new TableInNestedNST();
-    unpackTo(_o);
+    this.unpackTo(_o);
     return _o;
   }
   public void unpackTo(TableInNestedNST _o) {
-    int _oFoo = foo();
+    int _oFoo = this.foo();
     _o.setFoo(_oFoo);
   }
   public static int pack(FlatBufferBuilder builder, TableInNestedNST _o) {
@@ -54,4 +54,3 @@ public final class TableInNestedNS extends Table {
       _o.getFoo());
   }
 }
-

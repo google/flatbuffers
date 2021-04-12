@@ -36,11 +36,11 @@ public final class ArrayTable extends Table {
   }
   public ArrayTableT unpack() {
     ArrayTableT _o = new ArrayTableT();
-    unpackTo(_o);
+    this.unpackTo(_o);
     return _o;
   }
   public void unpackTo(ArrayTableT _o) {
-    MyGame.Example.ArrayStructT _oA = a() != null ? a().unpack() : null;
+    MyGame.Example.ArrayStructT _oA = this.a() != null ? this.a().unpack() : null;
     _o.setA(_oA);
   }
   public static int pack(FlatBufferBuilder builder, ArrayTableT _o) {
@@ -50,4 +50,3 @@ public final class ArrayTable extends Table {
     return endArrayTable(builder);
   }
 }
-

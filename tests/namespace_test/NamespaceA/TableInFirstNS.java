@@ -20,6 +20,7 @@ public final class TableInFirstNS extends Table {
   public byte fooEnum() { int o = __offset(6); return o != 0 ? bb.get(o + bb_pos) : 0; }
   public boolean mutateFooEnum(byte foo_enum) { int o = __offset(6); if (o != 0) { bb.put(o + bb_pos, foo_enum); return true; } else { return false; } }
   public byte fooUnionType() { int o = __offset(8); return o != 0 ? bb.get(o + bb_pos) : 0; }
+  public Table fooUnion() { return fooUnion(new Table()); }
   public Table fooUnion(Table obj) { int o = __offset(10); return o != 0 ? __union(obj, o + bb_pos) : null; }
   public NamespaceA.NamespaceB.StructInNestedNS fooStruct() { return fooStruct(new NamespaceA.NamespaceB.StructInNestedNS()); }
   public NamespaceA.NamespaceB.StructInNestedNS fooStruct(NamespaceA.NamespaceB.StructInNestedNS obj) { int o = __offset(12); return o != 0 ? obj.__assign(o + bb_pos, bb) : null; }
@@ -43,34 +44,33 @@ public final class TableInFirstNS extends Table {
   }
   public TableInFirstNST unpack() {
     TableInFirstNST _o = new TableInFirstNST();
-    unpackTo(_o);
+    this.unpackTo(_o);
     return _o;
   }
   public void unpackTo(TableInFirstNST _o) {
-    NamespaceA.NamespaceB.TableInNestedNST _oFooTable = fooTable() != null ? fooTable().unpack() : null;
+    NamespaceA.NamespaceB.TableInNestedNST _oFooTable = this.fooTable() != null ? this.fooTable().unpack() : null;
     _o.setFooTable(_oFooTable);
-    byte _oFooEnum = fooEnum();
+    byte _oFooEnum = this.fooEnum();
     _o.setFooEnum(_oFooEnum);
-    NamespaceA.NamespaceB.UnionInNestedNSUnion _oFooUnion = new NamespaceA.NamespaceB.UnionInNestedNSUnion();
-    byte _oFooUnionType = fooUnionType();
+    UnionInNestedNSUnion _oFooUnion = new UnionInNestedNSUnion();
+    byte _oFooUnionType = this.fooUnionType();
     _oFooUnion.setType(_oFooUnionType);
-    Table _oFooUnionValue;
+    Table _oFooUnionValue  = this.fooUnion();
     switch (_oFooUnionType) {
-      case NamespaceA.NamespaceB.UnionInNestedNS.TableInNestedNS:
-        _oFooUnionValue = fooUnion(new NamespaceA.NamespaceB.TableInNestedNS());
+      case UnionInNestedNS.TableInNestedNS:
         _oFooUnion.setValue(_oFooUnionValue != null ? ((NamespaceA.NamespaceB.TableInNestedNS) _oFooUnionValue).unpack() : null);
         break;
       default: break;
     }
     _o.setFooUnion(_oFooUnion);
-    NamespaceA.NamespaceB.StructInNestedNST _oFooStruct = fooStruct() != null ? fooStruct().unpack() : null;
+    NamespaceA.NamespaceB.StructInNestedNST _oFooStruct = this.fooStruct() != null ? this.fooStruct().unpack() : null;
     _o.setFooStruct(_oFooStruct);
   }
   public static int pack(FlatBufferBuilder builder, TableInFirstNST _o) {
     if (_o == null) return 0;
     int _foo_table = _o.getFooTable() == null ? 0 : NamespaceA.NamespaceB.TableInNestedNS.pack(builder, _o.getFooTable());
     byte _fooUnionType = _o.getFooUnion() == null ? NamespaceA.NamespaceB.UnionInNestedNS.NONE : _o.getFooUnion().getType();
-    int _fooUnion = _o.getFooUnion() == null ? 0 : NamespaceA.NamespaceB.UnionInNestedNSUnion.pack(builder, _o.getFooUnion());
+    int _fooUnion = _o.getFooUnion() == null ? 0 : UnionInNestedNSUnion.pack(builder, _o.getFooUnion());
     startTableInFirstNS(builder);
     addFooTable(builder, _foo_table);
     addFooEnum(builder, _o.getFooEnum());
@@ -80,4 +80,3 @@ public final class TableInFirstNS extends Table {
     return endTableInFirstNS(builder);
   }
 }
-

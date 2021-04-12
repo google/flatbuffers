@@ -30,7 +30,7 @@ public final class Monster extends Table {
   }
   public MonsterT unpack() {
     MonsterT _o = new MonsterT();
-    unpackTo(_o);
+    this.unpackTo(_o);
     return _o;
   }
   public void unpackTo(MonsterT _o) {
@@ -41,4 +41,3 @@ public final class Monster extends Table {
     return endMonster(builder);
   }
 }
-

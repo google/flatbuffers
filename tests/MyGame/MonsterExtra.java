@@ -102,42 +102,48 @@ public final class MonsterExtra extends Table {
   }
   public MonsterExtraT unpack() {
     MonsterExtraT _o = new MonsterExtraT();
-    unpackTo(_o);
+    this.unpackTo(_o);
     return _o;
   }
   public void unpackTo(MonsterExtraT _o) {
-    double _oD0 = d0();
+    double _oD0 = this.d0();
     _o.setD0(_oD0);
-    double _oD1 = d1();
+    double _oD1 = this.d1();
     _o.setD1(_oD1);
-    double _oD2 = d2();
+    double _oD2 = this.d2();
     _o.setD2(_oD2);
-    double _oD3 = d3();
+    double _oD3 = this.d3();
     _o.setD3(_oD3);
-    float _oF0 = f0();
+    float _oF0 = this.f0();
     _o.setF0(_oF0);
-    float _oF1 = f1();
+    float _oF1 = this.f1();
     _o.setF1(_oF1);
-    float _oF2 = f2();
+    float _oF2 = this.f2();
     _o.setF2(_oF2);
-    float _oF3 = f3();
+    float _oF3 = this.f3();
     _o.setF3(_oF3);
-    double[] _oDvec = new double[dvecLength()];
-    for (int _j = 0; _j < dvecLength(); ++_j) {_oDvec[_j] = dvec(_j);}
+    List<Double> _oDvec = new ArrayList<>();
+    for (int _j = 0; _j < this.dvecLength(); ++_j) {_oDvec.add(this.dvec(_j));}
     _o.setDvec(_oDvec);
-    float[] _oFvec = new float[fvecLength()];
-    for (int _j = 0; _j < fvecLength(); ++_j) {_oFvec[_j] = fvec(_j);}
+    List<Float> _oFvec = new ArrayList<>();
+    for (int _j = 0; _j < this.fvecLength(); ++_j) {_oFvec.add(this.fvec(_j));}
     _o.setFvec(_oFvec);
   }
   public static int pack(FlatBufferBuilder builder, MonsterExtraT _o) {
     if (_o == null) return 0;
     int _dvec = 0;
     if (_o.getDvec() != null) {
-      _dvec = createDvecVector(builder, _o.getDvec());
+      double[] __dvec = new double[_o.getDvec().size()];
+      int _j = 0;
+      for (double _e : _o.getDvec()) { __dvec[_j] = _e; _j++;}
+      _dvec = createDvecVector(builder, __dvec);
     }
     int _fvec = 0;
     if (_o.getFvec() != null) {
-      _fvec = createFvecVector(builder, _o.getFvec());
+      float[] __fvec = new float[_o.getFvec().size()];
+      int _j = 0;
+      for (float _e : _o.getFvec()) { __fvec[_j] = _e; _j++;}
+      _fvec = createFvecVector(builder, __fvec);
     }
     return createMonsterExtra(
       builder,
@@ -153,4 +159,3 @@ public final class MonsterExtra extends Table {
       _fvec);
   }
 }
-

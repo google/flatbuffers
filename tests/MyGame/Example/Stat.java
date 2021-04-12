@@ -81,15 +81,15 @@ public final class Stat extends Table {
   }
   public StatT unpack() {
     StatT _o = new StatT();
-    unpackTo(_o);
+    this.unpackTo(_o);
     return _o;
   }
   public void unpackTo(StatT _o) {
-    String _oId = id();
+    String _oId = this.id();
     _o.setId(_oId);
-    long _oVal = val();
+    long _oVal = this.val();
     _o.setVal(_oVal);
-    int _oCount = count();
+    int _oCount = this.count();
     _o.setCount(_oCount);
   }
   public static int pack(FlatBufferBuilder builder, StatT _o) {
@@ -102,4 +102,3 @@ public final class Stat extends Table {
       _o.getCount());
   }
 }
-

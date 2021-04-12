@@ -27,11 +27,11 @@ public final class Rapunzel extends Struct {
   }
   public RapunzelT unpack() {
     RapunzelT _o = new RapunzelT();
-    unpackTo(_o);
+    this.unpackTo(_o);
     return _o;
   }
   public void unpackTo(RapunzelT _o) {
-    int _oHairLength = hairLength();
+    int _oHairLength = this.hairLength();
     _o.setHairLength(_oHairLength);
   }
   public static int pack(FlatBufferBuilder builder, RapunzelT _o) {
@@ -41,4 +41,3 @@ public final class Rapunzel extends Struct {
       _o.getHairLength());
   }
 }
-
