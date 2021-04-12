@@ -3,7 +3,7 @@
 
 
 use std::mem;
-use std::{convert::TryInto, cmp::Ordering};
+use std::cmp::Ordering;
 
 extern crate flatbuffers;
 use self::flatbuffers::{EndianScalar, Follow};
@@ -12,7 +12,7 @@ use self::flatbuffers::{EndianScalar, Follow};
 pub mod my_game {
 
   use std::mem;
-  use std::{convert::TryInto, cmp::Ordering};
+  use std::cmp::Ordering;
 
   extern crate flatbuffers;
   use self::flatbuffers::{EndianScalar, Follow};
@@ -20,7 +20,7 @@ pub mod my_game {
 pub mod example {
 
   use std::mem;
-  use std::{convert::TryInto, cmp::Ordering};
+  use std::cmp::Ordering;
 
   extern crate flatbuffers;
   use self::flatbuffers::{EndianScalar, Follow};
@@ -96,6 +96,7 @@ impl flatbuffers::EndianScalar for TestEnum {
     Self(b)
   }
   #[inline]
+  #[allow(clippy::wrong_self_convention)]
   fn from_little_endian(self) -> Self {
     let b = i8::from_le(self.0);
     Self(b)
@@ -232,8 +233,13 @@ impl<'a> NestedStruct {
   }
 
   pub fn set_c(&mut self, x: &[TestEnum; 2]) {
-    let src = unsafe { ::std::slice::from_raw_parts(x.as_ptr() as *const u8, 2) };
-    self.0[9..9+2].copy_from_slice(src)
+    unsafe {
+      std::ptr::copy(
+        x.as_ptr() as *const u8,
+        self.0.as_mut_ptr().add(9),
+        2,
+      );
+    }
   }
 
   pub fn d(&'a self) -> flatbuffers::Array<'a, i64, 2> {
@@ -420,8 +426,13 @@ impl<'a> ArrayStruct {
   }
 
   pub fn set_d(&mut self, x: &[NestedStruct; 2]) {
-    let src = unsafe { ::std::slice::from_raw_parts(x.as_ptr() as *const u8, 64) };
-    self.0[72..72+64].copy_from_slice(src)
+    unsafe {
+      std::ptr::copy(
+        x.as_ptr() as *const u8,
+        self.0.as_mut_ptr().add(72),
+        64,
+      );
+    }
   }
 
   pub fn e(&self) -> i32 {
@@ -460,7 +471,7 @@ impl<'a> ArrayStruct {
       a: self.a(),
       b: self.b().into(),
       c: self.c(),
-      d: self.d().iter().map(|x| x.unpack()).collect::<Vec<NestedStructT>>().try_into().expect("Invalid array size"),
+      d: { let d = self.d(); flatbuffers::array_init(|i| d.get(i).unpack()) },
       e: self.e(),
       f: self.f().into(),
     }
@@ -482,7 +493,7 @@ impl ArrayStructT {
       self.a,
       &self.b,
       self.c,
-      &self.d.iter().map(|x| x.pack()).collect::<Vec<NestedStruct>>().try_into().expect("Invalid array size"),
+      &flatbuffers::array_init(|i| self.d[i].pack()),
       self.e,
       &self.f,
     )

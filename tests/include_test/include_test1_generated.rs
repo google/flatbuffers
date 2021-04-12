@@ -4,7 +4,7 @@
 
 use crate::include_test2_generated::*;
 use std::mem;
-use std::{convert::TryInto, cmp::Ordering};
+use std::cmp::Ordering;
 
 extern crate flatbuffers;
 use self::flatbuffers::{EndianScalar, Follow};

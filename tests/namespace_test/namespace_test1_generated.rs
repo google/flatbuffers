@@ -3,7 +3,7 @@
 
 
 use std::mem;
-use std::{convert::TryInto, cmp::Ordering};
+use std::cmp::Ordering;
 
 extern crate flatbuffers;
 use self::flatbuffers::{EndianScalar, Follow};
@@ -12,7 +12,7 @@ use self::flatbuffers::{EndianScalar, Follow};
 pub mod namespace_a {
 
   use std::mem;
-  use std::{convert::TryInto, cmp::Ordering};
+  use std::cmp::Ordering;
 
   extern crate flatbuffers;
   use self::flatbuffers::{EndianScalar, Follow};
@@ -20,7 +20,7 @@ pub mod namespace_a {
 pub mod namespace_b {
 
   use std::mem;
-  use std::{convert::TryInto, cmp::Ordering};
+  use std::cmp::Ordering;
 
   extern crate flatbuffers;
   use self::flatbuffers::{EndianScalar, Follow};

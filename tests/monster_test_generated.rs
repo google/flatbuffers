@@ -5,7 +5,7 @@
 use crate::include_test2_generated::*;
 use crate::include_test1_generated::*;
 use std::mem;
-use std::{convert::TryInto, cmp::Ordering};
+use std::cmp::Ordering;
 
 extern crate flatbuffers;
 use self::flatbuffers::{EndianScalar, Follow};
@@ -16,7 +16,7 @@ pub mod my_game {
   use crate::include_test2_generated::*;
   use crate::include_test1_generated::*;
   use std::mem;
-  use std::{convert::TryInto, cmp::Ordering};
+  use std::cmp::Ordering;
 
   extern crate flatbuffers;
   use self::flatbuffers::{EndianScalar, Follow};
@@ -130,7 +130,7 @@ pub mod example_2 {
   use crate::include_test2_generated::*;
   use crate::include_test1_generated::*;
   use std::mem;
-  use std::{convert::TryInto, cmp::Ordering};
+  use std::cmp::Ordering;
 
   extern crate flatbuffers;
   use self::flatbuffers::{EndianScalar, Follow};
@@ -246,7 +246,7 @@ pub mod example {
   use crate::include_test2_generated::*;
   use crate::include_test1_generated::*;
   use std::mem;
-  use std::{convert::TryInto, cmp::Ordering};
+  use std::cmp::Ordering;
 
   extern crate flatbuffers;
   use self::flatbuffers::{EndianScalar, Follow};

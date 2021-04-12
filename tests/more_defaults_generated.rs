@@ -3,7 +3,7 @@
 
 
 use std::mem;
-use std::{convert::TryInto, cmp::Ordering};
+use std::cmp::Ordering;
 
 extern crate flatbuffers;
 use self::flatbuffers::{EndianScalar, Follow};

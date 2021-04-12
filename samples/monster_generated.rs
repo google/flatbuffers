@@ -3,7 +3,7 @@
 
 
 use std::mem;
-use std::{convert::TryInto, cmp::Ordering};
+use std::cmp::Ordering;
 
 extern crate flatbuffers;
 use self::flatbuffers::{EndianScalar, Follow};
@@ -12,7 +12,7 @@ use self::flatbuffers::{EndianScalar, Follow};
 pub mod my_game {
 
   use std::mem;
-  use std::{convert::TryInto, cmp::Ordering};
+  use std::cmp::Ordering;
 
   extern crate flatbuffers;
   use self::flatbuffers::{EndianScalar, Follow};
@@ -20,7 +20,7 @@ pub mod my_game {
 pub mod sample {
 
   use std::mem;
-  use std::{convert::TryInto, cmp::Ordering};
+  use std::cmp::Ordering;
 
   extern crate flatbuffers;
   use self::flatbuffers::{EndianScalar, Follow};

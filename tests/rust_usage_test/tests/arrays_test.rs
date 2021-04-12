@@ -7,6 +7,7 @@ use std::fmt::Debug;
 use crate::arrays_test_generated::my_game::example::*;
 extern crate quickcheck;
 use array_init::array_init;
+use std::mem::size_of;
 use quickcheck::{Arbitrary, Gen};
 
 
@@ -201,15 +202,15 @@ fn generated_code_debug_prints_correctly() {
     );
 }
 
-#[should_panic]
 #[test]
+#[should_panic]
 fn assert_on_too_small_array_buf() {
     let a = [0u8; 19];
     flatbuffers::Array::<i32, 5>::new(&a);
 }
 
-#[should_panic]
 #[test]
+#[should_panic]
 fn assert_on_too_big_array_buf() {
     let a = [0u8; 21];
     flatbuffers::Array::<i32, 5>::new(&a);
@@ -236,11 +237,11 @@ fn verify_struct_array_alignment() {
 #[derive(Clone, Debug)]
 struct FakeArray<T, const N: usize>([T; N]);
 
-impl<T: Arbitrary + Debug + flatbuffers::EndianScalar, const N: usize> Arbitrary for FakeArray<T, N> {
+impl<T: Arbitrary + Debug + PartialEq, const N: usize> Arbitrary for FakeArray<T, N> {
     fn arbitrary<G: Gen>(g: &mut G) -> FakeArray<T, N> {
         let x: [T; N] = array_init(|_| {
             loop {
-                let generated_scalar = T::arbitrary(g).to_little_endian();
+                let generated_scalar = T::arbitrary(g);
                 // Verify that generated scalar is not Nan, which is not equals to itself, 
                 // therefore we can't use it to validate input == output
                 if generated_scalar == generated_scalar { return generated_scalar }
@@ -255,9 +256,10 @@ mod array_fuzz {
     #[cfg(not(miri))]  // slow.
     extern crate quickcheck;
     extern crate flatbuffers;
+    use self::flatbuffers::{Follow, Push};
     use super::*;
 
-    const N: u64 = 20;
+    const MAX_TESTS: u64 = 20;
     const ARRAY_SIZE: usize = 29;
 
     // This uses a macro because lifetimes for the trait-bounded function get too
@@ -265,25 +267,18 @@ mod array_fuzz {
     macro_rules! impl_prop {
         ($test_name:ident, $fn_name:ident, $ty:ident) => (
             fn $fn_name(xs: FakeArray<$ty, ARRAY_SIZE>) {
-                use self::flatbuffers::Follow;
                 let mut test_buf = [0 as u8; 1024];
                 flatbuffers::emplace_scalar_array(&mut test_buf, 0, &xs.0);
                 let arr: flatbuffers::Array<$ty, ARRAY_SIZE> = flatbuffers::Array::follow(&test_buf, 0);
                 let got: [$ty; ARRAY_SIZE] = arr.into();
-                if got != xs.0 {
-                    for i in 0..ARRAY_SIZE {
-                        if got[i] != xs.0[i] {
-                            println!("{} != {}", got[i], xs.0[i]);
-                        }
-                    }
-                }
-
                 assert_eq!(got, xs.0);
                 #[cfg(target_endian = "little")]
                 assert_eq!(arr.safe_slice(), xs.0);
             }
             #[test]
-            fn $test_name() { quickcheck::QuickCheck::new().max_tests(N).quickcheck($fn_name as fn(FakeArray<$ty, ARRAY_SIZE>)); }
+            fn $test_name() { 
+                quickcheck::QuickCheck::new().max_tests(MAX_TESTS).quickcheck($fn_name as fn(FakeArray<$ty, ARRAY_SIZE>));
+            }
         )
     }
 
@@ -298,4 +293,38 @@ mod array_fuzz {
     impl_prop!(test_i64, prop_i64, i64);
     impl_prop!(test_f32, prop_f32, f32);
     impl_prop!(test_f64, prop_f64, f64);
+
+    const NESTED_STRUCT_SIZE: usize = size_of::<NestedStruct>();
+
+    #[derive(Clone, Debug, PartialEq)]
+    struct NestedStructWrapper(NestedStruct);
+
+    impl Arbitrary for NestedStructWrapper {
+        fn arbitrary<G: Gen>(g: &mut G) -> NestedStructWrapper {
+            let mut x = NestedStruct::default();
+            x.0 = FakeArray::<u8, NESTED_STRUCT_SIZE>::arbitrary(g).0;
+            NestedStructWrapper{0: x}
+        }
+    }
+
+    fn prop_struct(xs: FakeArray<NestedStructWrapper, ARRAY_SIZE>) {
+        let mut test_buf = [0 as u8; 1024];
+        let native_struct_array: [&NestedStruct; ARRAY_SIZE] = array_init::from_iter(xs.0.iter().map(|x| &x.0)).unwrap();
+        for i in 0..ARRAY_SIZE {
+            let offset = i * NESTED_STRUCT_SIZE;
+            native_struct_array[i].push(&mut test_buf[offset..offset + NESTED_STRUCT_SIZE], &[]);
+        }
+        let arr: flatbuffers::Array<NestedStruct, ARRAY_SIZE> = flatbuffers::Array::follow(&test_buf, 0);
+        let got: [&NestedStruct; ARRAY_SIZE] = arr.into();
+        assert_eq!(got, native_struct_array);
+        let arr_slice = arr.safe_slice();
+        for i in 0..ARRAY_SIZE {
+            assert_eq!(arr_slice[i], *native_struct_array[i]);
+        }
+    }
+
+    #[test]
+    fn test_struct() { 
+        quickcheck::QuickCheck::new().max_tests(MAX_TESTS).quickcheck(prop_struct as fn(FakeArray<NestedStructWrapper, ARRAY_SIZE>));
+    }
 }

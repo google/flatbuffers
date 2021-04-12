@@ -69,16 +69,9 @@ impl<'a, T: Follow<'a> + 'a, const N: usize> Array<'a, T, N> {
 }
 
 impl<'a, T: Follow<'a> + Debug, const N: usize> Into<[T::Inner; N]> for Array<'a, T, N> {
+    #[inline(always)]
     fn into(self) -> [T::Inner; N] {
-        let mut mem = core::mem::MaybeUninit::<[T::Inner; N]>::uninit();
-        let mut mem_ptr = mem.as_mut_ptr() as *mut T::Inner;
-        unsafe {
-            for item in self.iter() {
-                mem_ptr.write(item);
-                mem_ptr = mem_ptr.add(1);
-            }
-            mem.assume_init()
-        }
+        array_init(|i| self.get(i))
     }
 }
 
@@ -94,6 +87,7 @@ impl<'a, T: SafeSliceAccess + 'a, const N: usize> Array<'a, T, N> {
 /// Implement Follow for all possible Arrays that have Follow-able elements.
 impl<'a, T: Follow<'a> + 'a, const N: usize> Follow<'a> for Array<'a, T, N> {
     type Inner = Array<'a, T, N>;
+    #[inline(always)]
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
         Array::new(&buf[loc..loc + N * size_of::<T>()])
     }
@@ -120,5 +114,23 @@ impl<'a, T: Follow<'a> + 'a, const N: usize> IntoIterator for Array<'a, T, N> {
     #[inline]
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
+    }
+}
+
+#[inline]
+pub fn array_init<F, T, const N: usize>(mut initializer: F) -> [T; N]
+where
+    F: FnMut(usize) -> T,
+{
+    let mut array: core::mem::MaybeUninit<[T; N]> = core::mem::MaybeUninit::uninit();
+    let mut ptr_i = array.as_mut_ptr() as *mut T;
+
+    unsafe {
+        for i in 0..N {
+            let value_i = initializer(i);
+            ptr_i.write(value_i);
+            ptr_i = ptr_i.add(1);
+        }
+        array.assume_init()
     }
 }
