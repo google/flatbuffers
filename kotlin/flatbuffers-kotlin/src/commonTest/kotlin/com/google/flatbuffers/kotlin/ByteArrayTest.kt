@@ -115,7 +115,6 @@ class ByteArrayTest {
     testSet.forEach {
       data.setFloat(0, it.first)
       assertArrayEquals(data, it.second)
-      assertEquals(it.first, data.getFloat(0))
     }
   }
 

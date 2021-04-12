@@ -104,6 +104,7 @@ tasks.register<de.undercouch.gradle.tasks.download.Download>("downloadMultipleFi
   val baseUrl = "https://github.com/serde-rs/json-benchmark/raw/master/data/"
   src(listOf("$baseUrl/canada.json", "$baseUrl/twitter.json", "$baseUrl/citm_catalog.json"))
   dest(File("${project.projectDir.absolutePath}/src/jvmMain/resources"))
+  overwrite(false)
 }
 
 project.tasks.named("compileKotlinJvm") {

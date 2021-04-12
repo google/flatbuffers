@@ -764,12 +764,6 @@ public class Map internal constructor(buffer: ReadBuffer, end: Int, byteWidth: B
   public operator fun contains(key: String): Boolean = binarySearch(key) >= 0
 
   /**
-   * Returns a [Vector] for accessing all values in the [Map].
-   * @return [Vector] of values.
-   */
-  public fun values(): Vector = Vector(buffer, end, byteWidth)
-
-  /**
    * Returns a [Key] for a given position [index] in the [Map].
    * @param index of the key in the map
    * @return a Key for the given index. Out of bounds indexes returns invalid keys.
@@ -809,6 +803,10 @@ public class Map internal constructor(buffer: ReadBuffer, end: Int, byteWidth: B
       return set
     }
 
+  /**
+   * Returns a [Vector] for accessing all values in the [Map].
+   * @return [Vector] of values.
+   */
   override val values: Collection<Reference>
     get() = Vector(buffer, end, byteWidth)
 
