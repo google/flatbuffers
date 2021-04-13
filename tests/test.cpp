@@ -1667,6 +1667,13 @@ void ErrorTest() {
   TestError("enum X:byte { Y, Y }", "value already");
   TestError("enum X:byte { Y=2, Z=2 }", "unique");
   TestError("table X { Y:int; } table X {", "datatype already");
+  TestError("table X { A:bool; } table Y { } union X {",
+            "enum clashes with datatype");
+  TestError("union X { X, Y } table X {", "datatype clashes with enum");
+  TestError("namespace A; table X { } namespace A; union X {",
+            "enum clashes with datatype");
+  TestError("namespace A; union X { } namespace A; table X {",
+            "datatype clashes with enum");
   TestError("struct X (force_align: 7) { Y:int; }", "force_align");
   TestError("struct X {}", "size 0");
   TestError("{}", "no root");

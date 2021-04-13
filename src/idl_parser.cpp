@@ -2414,7 +2414,12 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef **dest) {
 
 CheckedError Parser::StartStruct(const std::string &name, StructDef **dest) {
   auto &struct_def = *LookupCreateStruct(name, true, true);
-  if (!struct_def.predecl) return Error("datatype already exists: " + name);
+  auto qualified_name = current_namespace_->GetFullyQualifiedName(name);
+  if (!struct_def.predecl)
+    return Error("datatype already exists: " + qualified_name);
+  if (enums_.Lookup(qualified_name) != nullptr)
+    return Error("datatype clashes with enum which already exists: " +
+                 qualified_name);
   struct_def.predecl = false;
   struct_def.name = name;
   struct_def.file = file_being_parsed_;
@@ -2747,17 +2752,20 @@ CheckedError Parser::ParseProtoDecl() {
   return NoError();
 }
 
-CheckedError Parser::StartEnum(const std::string &enum_name, bool is_union,
+CheckedError Parser::StartEnum(const std::string &name, bool is_union,
                                EnumDef **dest) {
   auto &enum_def = *new EnumDef();
-  enum_def.name = enum_name;
+  enum_def.name = name;
   enum_def.file = file_being_parsed_;
   enum_def.doc_comment = doc_comment_;
   enum_def.is_union = is_union;
   enum_def.defined_namespace = current_namespace_;
-  if (enums_.Add(current_namespace_->GetFullyQualifiedName(enum_name),
-                 &enum_def))
-    return Error("enum already exists: " + enum_name);
+  auto qualified_name = current_namespace_->GetFullyQualifiedName(name);
+  if (enums_.Add(qualified_name, &enum_def))
+    return Error("enum already exists: " + qualified_name);
+  if (structs_.Lookup(qualified_name) != nullptr)
+    return Error("enum clashes with datatype which already exists: " +
+                 qualified_name);
   enum_def.underlying_type.base_type =
       is_union ? BASE_TYPE_UTYPE : BASE_TYPE_INT;
   enum_def.underlying_type.enum_def = &enum_def;
