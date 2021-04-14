@@ -40,11 +40,11 @@ final class TestSimpleTableWithEnum extends Table {
   }
   public TestSimpleTableWithEnumT unpack() {
     TestSimpleTableWithEnumT _o = new TestSimpleTableWithEnumT();
-    this.unpackTo(_o);
+    unpackTo(_o);
     return _o;
   }
   public void unpackTo(TestSimpleTableWithEnumT _o) {
-    int _oColor = this.color();
+    int _oColor = color();
     _o.setColor(_oColor);
   }
   public static int pack(FlatBufferBuilder builder, TestSimpleTableWithEnumT _o) {
@@ -54,3 +54,4 @@ final class TestSimpleTableWithEnum extends Table {
       _o.getColor());
   }
 }
+

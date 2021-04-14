@@ -8,7 +8,7 @@ import com.google.flatbuffers.*;
 public class TableAT {
   private MyGame.OtherNameSpace.TableBT b;
 
-  public MyGame.OtherNameSpace.TableBT getB() { return this.b; }
+  public MyGame.OtherNameSpace.TableBT getB() { return b; }
 
   public void setB(MyGame.OtherNameSpace.TableBT b) { this.b = b; }
 
@@ -17,3 +17,4 @@ public class TableAT {
     this.b = null;
   }
 }
+

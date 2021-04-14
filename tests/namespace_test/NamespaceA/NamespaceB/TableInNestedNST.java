@@ -10,7 +10,7 @@ import com.google.flatbuffers.*;
 public class TableInNestedNST {
   private int foo;
 
-  public int getFoo() { return this.foo; }
+  public int getFoo() { return foo; }
 
   public void setFoo(int foo) { this.foo = foo; }
 
@@ -19,3 +19,4 @@ public class TableInNestedNST {
     this.foo = 0;
   }
 }
+

@@ -13,3 +13,4 @@ public class MonsterT {
   public MonsterT() {
   }
 }
+

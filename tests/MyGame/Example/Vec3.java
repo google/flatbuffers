@@ -50,21 +50,21 @@ public final class Vec3 extends Struct {
   }
   public Vec3T unpack() {
     Vec3T _o = new Vec3T();
-    this.unpackTo(_o);
+    unpackTo(_o);
     return _o;
   }
   public void unpackTo(Vec3T _o) {
-    float _oX = this.x();
+    float _oX = x();
     _o.setX(_oX);
-    float _oY = this.y();
+    float _oY = y();
     _o.setY(_oY);
-    float _oZ = this.z();
+    float _oZ = z();
     _o.setZ(_oZ);
-    double _oTest1 = this.test1();
+    double _oTest1 = test1();
     _o.setTest1(_oTest1);
-    int _oTest2 = this.test2();
+    int _oTest2 = test2();
     _o.setTest2(_oTest2);
-    MyGame.Example.TestT _oTest3 = this.test3().unpack();
+    MyGame.Example.TestT _oTest3 = test3().unpack();
     _o.setTest3(_oTest3);
   }
   public static int pack(FlatBufferBuilder builder, Vec3T _o) {
@@ -82,3 +82,4 @@ public final class Vec3 extends Struct {
       _test3_b);
   }
 }
+

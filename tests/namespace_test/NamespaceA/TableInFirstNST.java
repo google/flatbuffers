@@ -13,19 +13,19 @@ public class TableInFirstNST {
   private NamespaceA.NamespaceB.UnionInNestedNSUnion fooUnion;
   private NamespaceA.NamespaceB.StructInNestedNST fooStruct;
 
-  public NamespaceA.NamespaceB.TableInNestedNST getFooTable() { return this.fooTable; }
+  public NamespaceA.NamespaceB.TableInNestedNST getFooTable() { return fooTable; }
 
   public void setFooTable(NamespaceA.NamespaceB.TableInNestedNST fooTable) { this.fooTable = fooTable; }
 
-  public byte getFooEnum() { return this.fooEnum; }
+  public byte getFooEnum() { return fooEnum; }
 
   public void setFooEnum(byte fooEnum) { this.fooEnum = fooEnum; }
 
-  public NamespaceA.NamespaceB.UnionInNestedNSUnion getFooUnion() { return this.fooUnion; }
+  public NamespaceA.NamespaceB.UnionInNestedNSUnion getFooUnion() { return fooUnion; }
 
   public void setFooUnion(NamespaceA.NamespaceB.UnionInNestedNSUnion fooUnion) { this.fooUnion = fooUnion; }
 
-  public NamespaceA.NamespaceB.StructInNestedNST getFooStruct() { return this.fooStruct; }
+  public NamespaceA.NamespaceB.StructInNestedNST getFooStruct() { return fooStruct; }
 
   public void setFooStruct(NamespaceA.NamespaceB.StructInNestedNST fooStruct) { this.fooStruct = fooStruct; }
 
@@ -37,3 +37,4 @@ public class TableInFirstNST {
     this.fooStruct = new NamespaceA.NamespaceB.StructInNestedNST();
   }
 }
+

@@ -11,11 +11,11 @@ public class TestT {
   private short a;
   private byte b;
 
-  public short getA() { return this.a; }
+  public short getA() { return a; }
 
   public void setA(short a) { this.a = a; }
 
-  public byte getB() { return this.b; }
+  public byte getB() { return b; }
 
   public void setB(byte b) { this.b = b; }
 
@@ -25,3 +25,4 @@ public class TestT {
     this.b = 0;
   }
 }
+

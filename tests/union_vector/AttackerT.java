@@ -8,7 +8,7 @@ import com.google.flatbuffers.*;
 public class AttackerT {
   private int swordAttackDamage;
 
-  public int getSwordAttackDamage() { return this.swordAttackDamage; }
+  public int getSwordAttackDamage() { return swordAttackDamage; }
 
   public void setSwordAttackDamage(int swordAttackDamage) { this.swordAttackDamage = swordAttackDamage; }
 
@@ -17,3 +17,4 @@ public class AttackerT {
     this.swordAttackDamage = 0;
   }
 }
+

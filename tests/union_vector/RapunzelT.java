@@ -8,7 +8,7 @@ import com.google.flatbuffers.*;
 public class RapunzelT {
   private int hairLength;
 
-  public int getHairLength() { return this.hairLength; }
+  public int getHairLength() { return hairLength; }
 
   public void setHairLength(int hairLength) { this.hairLength = hairLength; }
 
@@ -17,3 +17,4 @@ public class RapunzelT {
     this.hairLength = 0;
   }
 }
+

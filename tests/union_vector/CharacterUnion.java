@@ -6,11 +6,11 @@ public class CharacterUnion {
   private byte type;
   private Object value;
 
-  public byte getType() { return this.type; }
+  public byte getType() { return type; }
 
   public void setType(byte type) { this.type = type; }
 
-  public Object getValue() { return this.value; }
+  public Object getValue() { return value; }
 
   public void setValue(Object value) { this.value = value; }
 
@@ -19,12 +19,12 @@ public class CharacterUnion {
     this.value = null;
   }
 
-  public AttackerT asMuLan() { return (AttackerT) this.value; }
-  public RapunzelT asRapunzel() { return (RapunzelT) this.value; }
-  public BookReaderT asBelle() { return (BookReaderT) this.value; }
-  public BookReaderT asBookFan() { return (BookReaderT) this.value; }
-  public String asOther() { return (String) this.value; }
-  public String asUnused() { return (String) this.value; }
+  public AttackerT asMuLan() { return (AttackerT) value; }
+  public RapunzelT asRapunzel() { return (RapunzelT) value; }
+  public BookReaderT asBelle() { return (BookReaderT) value; }
+  public BookReaderT asBookFan() { return (BookReaderT) value; }
+  public String asOther() { return (String) value; }
+  public String asUnused() { return (String) value; }
 
   public static int pack(FlatBufferBuilder builder, CharacterUnion _o) {
     switch (_o.type) {
@@ -32,8 +32,8 @@ public class CharacterUnion {
       case Character.Rapunzel: return Rapunzel.pack(builder, _o.asRapunzel());
       case Character.Belle: return BookReader.pack(builder, _o.asBelle());
       case Character.BookFan: return BookReader.pack(builder, _o.asBookFan());
-      case Character.Other: return builder.CreateString(_o.AsOther()).Value;
-      case Character.Unused: return builder.CreateString(_o.AsUnused()).Value;
+      case Character.Other: return builder.createString(_o.asOther());
+      case Character.Unused: return builder.createString(_o.asUnused());
       default: return 0;
     }
   }

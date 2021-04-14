@@ -11,11 +11,11 @@ public class AbilityT {
   private long id;
   private long distance;
 
-  public long getId() { return this.id; }
+  public long getId() { return id; }
 
   public void setId(long id) { this.id = id; }
 
-  public long getDistance() { return this.distance; }
+  public long getDistance() { return distance; }
 
   public void setDistance(long distance) { this.distance = distance; }
 
@@ -25,3 +25,4 @@ public class AbilityT {
     this.distance = 0L;
   }
 }
+

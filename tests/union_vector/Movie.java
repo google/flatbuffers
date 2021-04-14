@@ -66,14 +66,14 @@ public final class Movie extends Table {
   }
   public MovieT unpack() {
     MovieT _o = new MovieT();
-    this.unpackTo(_o);
+    unpackTo(_o);
     return _o;
   }
   public void unpackTo(MovieT _o) {
     CharacterUnion _oMainCharacter = new CharacterUnion();
-    byte _oMainCharacterType = this.mainCharacterType();
+    byte _oMainCharacterType = mainCharacterType();
     _oMainCharacter.setType(_oMainCharacterType);
-    Table _oMainCharacterValue  = this.mainCharacter();
+    Table _oMainCharacterValue  = mainCharacter();
     switch (_oMainCharacterType) {
       case Character.MuLan:
         _oMainCharacter.setValue(_oMainCharacterValue != null ? ((Attacker) _oMainCharacterValue).unpack() : null);
@@ -89,21 +89,19 @@ public final class Movie extends Table {
         break;
       case Character.Other:
         _oMainCharacter.setValue(_oMainCharacterValue != null ? ((String) _oMainCharacterValue).unpack() : null);
-AsString();
         break;
       case Character.Unused:
         _oMainCharacter.setValue(_oMainCharacterValue != null ? ((String) _oMainCharacterValue).unpack() : null);
-AsString();
         break;
       default: break;
     }
     _o.setMainCharacter(_oMainCharacter);
-    List<CharacterUnion> _oCharacters = new ArrayList<>();
-    for (int _j = 0; _j < this.charactersLength(); ++_j) {
+    CharacterUnion[] _oCharacters = new CharacterUnion[charactersLength()];
+    for (int _j = 0; _j < charactersLength(); ++_j) {
       CharacterUnion _oCharactersElement = new CharacterUnion();
-      byte _oCharactersElementType = this.charactersType(_j);
+      byte _oCharactersElementType = charactersType(_j);
       _oCharactersElement.setType(_oCharactersElementType);
-      Table _oCharactersElementValue  = this.characters(_j);
+      Table _oCharactersElementValue  = characters(_j);
       switch (_oCharactersElementType) {
         case Character.MuLan:
           _oCharactersElement.setValue(_oCharactersElementValue != null ? ((Attacker) _oCharactersElementValue).unpack() : null);
@@ -119,15 +117,13 @@ AsString();
           break;
         case Character.Other:
           _oCharactersElement.setValue(_oCharactersElementValue != null ? ((String) _oCharactersElementValue).unpack() : null);
-AsString(_j);
           break;
         case Character.Unused:
           _oCharactersElement.setValue(_oCharactersElementValue != null ? ((String) _oCharactersElementValue).unpack() : null);
-AsString(_j);
           break;
         default: break;
       }
-      _oCharacters.add(_oCharactersElement);
+      _oCharacters[_j] = _oCharactersElement;
     }
     _o.setCharacters(_oCharacters);
   }
@@ -137,16 +133,16 @@ AsString(_j);
     int _mainCharacter = _o.getMainCharacter() == null ? 0 : CharacterUnion.pack(builder, _o.getMainCharacter());
     int _charactersType = 0;
     if (_o.getCharacters() != null) {
-      byte[] __charactersType = new byte[_o.getCharacters().size()];
+      byte[] __charactersType = new byte[_o.getCharacters().length];
       int _j = 0;
-      for (CharacterUnion _e : _o.getCharacters()) { __charactersType[_j] = _o.getCharacters().get(_j).getType(); _j++;}
+      for (CharacterUnion _e : _o.getCharacters()) { __charactersType[_j] = _o.getCharacters()[_j].getType(); _j++;}
       _charactersType = createCharactersTypeVector(builder, __charactersType);
     }
     int _characters = 0;
     if (_o.getCharacters() != null) {
-      int[] __characters = new int[_o.getCharacters().size()];
+      int[] __characters = new int[_o.getCharacters().length];
       int _j = 0;
-      for (CharacterUnion _e : _o.getCharacters()) { __characters[_j] = CharacterUnion.pack(builder,  _o.getCharacters().get(_j)); _j++;}
+      for (CharacterUnion _e : _o.getCharacters()) { __characters[_j] = CharacterUnion.pack(builder,  _o.getCharacters()[_j]); _j++;}
       _characters = createCharactersVector(builder, __characters);
     }
     return createMovie(
@@ -157,3 +153,4 @@ AsString(_j);
       _characters);
   }
 }
+
