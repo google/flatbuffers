@@ -19,6 +19,9 @@ kotlin {
     }
   }
   macosX64()
+  iosArm32()
+  iosArm64()
+  iosX64()
 
   sourceSets {
     val commonMain by getting {
@@ -63,6 +66,17 @@ kotlin {
     val macosX64Main by getting {
       dependsOn(nativeMain)
     }
+
+    val iosArm32Main by getting {
+      dependsOn(nativeMain)
+    }
+    val iosArm64Main by getting {
+      dependsOn(nativeMain)
+    }
+    val iosX64Main by getting {
+      dependsOn(nativeMain)
+    }
+
     all {
       languageSettings.enableLanguageFeature("InlineClasses")
       languageSettings.useExperimentalAnnotation("kotlin.ExperimentalUnsignedTypes")
@@ -76,5 +90,8 @@ kotlin {
     targetFromPreset(presets.getAt("jvm"))
     targetFromPreset(presets.getAt("js"))
     targetFromPreset(presets.getAt("macosX64"))
+    targetFromPreset(presets.getAt("iosArm32"))
+    targetFromPreset(presets.getAt("iosArm64"))
+    targetFromPreset(presets.getAt("iosX64"))
   }
 }
