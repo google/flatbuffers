@@ -88,6 +88,7 @@ impl flatbuffers::EndianScalar for OptionalByte {
     Self(b)
   }
   #[inline]
+  #[allow(clippy::wrong_self_convention)]
   fn from_little_endian(self) -> Self {
     let b = i8::from_le(self.0);
     Self(b)

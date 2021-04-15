@@ -79,6 +79,7 @@ impl flatbuffers::EndianScalar for ABC {
     Self(b)
   }
   #[inline]
+  #[allow(clippy::wrong_self_convention)]
   fn from_little_endian(self) -> Self {
     let b = i32::from_le(self.0);
     Self(b)

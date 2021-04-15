@@ -96,6 +96,7 @@ impl flatbuffers::EndianScalar for Color {
     Self(b)
   }
   #[inline]
+  #[allow(clippy::wrong_self_convention)]
   fn from_little_endian(self) -> Self {
     let b = i8::from_le(self.0);
     Self(b)
@@ -180,6 +181,7 @@ impl flatbuffers::EndianScalar for Equipment {
     Self(b)
   }
   #[inline]
+  #[allow(clippy::wrong_self_convention)]
   fn from_little_endian(self) -> Self {
     let b = u8::from_le(self.0);
     Self(b)
