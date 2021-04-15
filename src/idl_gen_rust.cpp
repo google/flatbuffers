@@ -743,6 +743,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "    {{FROM_BASE}}";
     code_ += "  }";
     code_ += "  #[inline]";
+    code_ += "  #[allow(clippy::wrong_self_convention)]";
     code_ += "  fn from_little_endian(self) -> Self {";
     code_ += "    let b = {{BASE_TYPE}}::from_le({{INTO_BASE}});";
     code_ += "    {{FROM_BASE}}";
