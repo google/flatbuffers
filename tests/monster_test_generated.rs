@@ -292,6 +292,7 @@ impl flatbuffers::EndianScalar for Color {
     unsafe { Self::from_bits_unchecked(b) }
   }
   #[inline]
+  #[allow(clippy::wrong_self_convention)]
   fn from_little_endian(self) -> Self {
     let b = u8::from_le(self.bits());
     unsafe { Self::from_bits_unchecked(b) }
@@ -384,6 +385,7 @@ impl flatbuffers::EndianScalar for Race {
     Self(b)
   }
   #[inline]
+  #[allow(clippy::wrong_self_convention)]
   fn from_little_endian(self) -> Self {
     let b = i8::from_le(self.0);
     Self(b)
@@ -476,6 +478,7 @@ impl flatbuffers::EndianScalar for Any {
     Self(b)
   }
   #[inline]
+  #[allow(clippy::wrong_self_convention)]
   fn from_little_endian(self) -> Self {
     let b = u8::from_le(self.0);
     Self(b)
@@ -664,6 +667,7 @@ impl flatbuffers::EndianScalar for AnyUniqueAliases {
     Self(b)
   }
   #[inline]
+  #[allow(clippy::wrong_self_convention)]
   fn from_little_endian(self) -> Self {
     let b = u8::from_le(self.0);
     Self(b)
@@ -852,6 +856,7 @@ impl flatbuffers::EndianScalar for AnyAmbiguousAliases {
     Self(b)
   }
   #[inline]
+  #[allow(clippy::wrong_self_convention)]
   fn from_little_endian(self) -> Self {
     let b = u8::from_le(self.0);
     Self(b)
