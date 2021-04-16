@@ -7,7 +7,7 @@ use std::mem;
 use std::cmp::Ordering;
 
 extern crate flatbuffers;
-use self::flatbuffers::EndianScalar;
+use self::flatbuffers::{EndianScalar, Follow};
 
 pub enum TableAOffset {}
 #[derive(Copy, Clone, PartialEq)]

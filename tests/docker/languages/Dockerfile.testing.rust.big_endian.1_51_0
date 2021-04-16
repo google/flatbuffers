@@ -1,4 +1,4 @@
-FROM rust:1.40.0-slim-stretch as base
+FROM rust:1.51.0-slim as base
 RUN apt -qq update -y && apt -qq install -y \
     gcc-mips-linux-gnu \
     libexpat1 \

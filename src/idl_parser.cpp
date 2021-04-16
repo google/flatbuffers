@@ -2467,7 +2467,7 @@ bool Parser::SupportsAdvancedArrayFeatures() const {
   return (opts.lang_to_generate &
           ~(IDLOptions::kCpp | IDLOptions::kPython | IDLOptions::kJava |
             IDLOptions::kCSharp | IDLOptions::kJsonSchema | IDLOptions::kJson |
-            IDLOptions::kBinary)) == 0;
+            IDLOptions::kBinary | IDLOptions::kRust)) == 0;
 }
 
 Namespace *Parser::UniqueNamespace(Namespace *ns) {

@@ -29,11 +29,15 @@ use crate::primitives::*;
 
 pub struct Vector<'a, T: 'a>(&'a [u8], usize, PhantomData<T>);
 
-impl<'a, T:'a> Default for Vector<'a, T> {
+impl<'a, T: 'a> Default for Vector<'a, T> {
     fn default() -> Self {
         // Static, length 0 vector.
         // Note that derived default causes UB due to issues in read_scalar_at /facepalm.
-        Self(&[0; core::mem::size_of::<UOffsetT>()], 0, Default::default())
+        Self(
+            &[0; core::mem::size_of::<UOffsetT>()],
+            0,
+            Default::default(),
+        )
     }
 }
 
@@ -88,7 +92,7 @@ impl<'a, T: Follow<'a> + 'a> Vector<'a, T> {
 
     #[inline(always)]
     pub fn iter(&self) -> VectorIter<'a, T> {
-        VectorIter::new(*self)
+        VectorIter::from_vector(*self)
     }
 }
 
@@ -185,7 +189,7 @@ pub struct VectorIter<'a, T: 'a> {
 
 impl<'a, T: 'a> VectorIter<'a, T> {
     #[inline]
-    pub fn new(inner: Vector<'a, T>) -> Self {
+    pub fn from_vector(inner: Vector<'a, T>) -> Self {
         VectorIter {
             buf: inner.0,
             // inner.1 is the location of the data for the vector.
@@ -193,6 +197,16 @@ impl<'a, T: 'a> VectorIter<'a, T> {
             // that to get to the actual vector content.
             loc: inner.1 + SIZE_UOFFSET,
             remaining: inner.len(),
+            phantom: PhantomData,
+        }
+    }
+
+    #[inline]
+    pub fn from_slice(buf: &'a [u8], items_num: usize) -> Self {
+        VectorIter {
+            buf,
+            loc: 0,
+            remaining: items_num,
             phantom: PhantomData,
         }
     }
