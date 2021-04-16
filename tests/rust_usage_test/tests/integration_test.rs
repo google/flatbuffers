@@ -16,7 +16,7 @@
  */
 
 #[macro_use]
-#[cfg(not(miri))]  // slow.
+#[cfg(not(miri))] // slow.
 extern crate quickcheck;
 extern crate flatbuffers;
 extern crate flexbuffers;
@@ -24,13 +24,13 @@ extern crate rand;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
-#[cfg(not(miri))]  // slow.
+#[cfg(not(miri))] // slow.
 #[macro_use]
 extern crate quickcheck_derive;
 
 mod flexbuffers_tests;
-mod optional_scalars_test;
 mod more_defaults_test;
+mod optional_scalars_test;
 
 #[allow(dead_code, unused_imports)]
 #[path = "../../include_test/include_test1_generated.rs"]
@@ -56,6 +56,10 @@ pub use monster_test_generated::my_game;
 #[allow(dead_code, unused_imports)]
 #[path = "../../optional_scalars_generated.rs"]
 mod optional_scalars_generated;
+
+#[allow(dead_code, unused_imports)]
+#[path = "../../arrays_test_generated.rs"]
+mod arrays_test_generated;
 
 #[rustfmt::skip] // TODO: Use standard rust formatting and remove dead code.
 #[allow(dead_code)]
@@ -1509,8 +1513,7 @@ mod roundtrip_table {
         assert!(values_generated > 0);
         assert!(min_tests_per_choice > 0);
         for i in 0..test_value_types_max as u64 {
-            assert!(stats[&i] >= min_tests_per_choice,
-                    format!("inadequately-tested fuzz case: {}", i));
+            assert!(stats[&i] >= min_tests_per_choice, "inadequately-tested fuzz case: {}", i);
         }
     }
 

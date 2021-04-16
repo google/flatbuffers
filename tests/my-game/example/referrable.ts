@@ -38,6 +38,10 @@ mutate_id(value:flatbuffers.Long):boolean {
   return true;
 }
 
+static getFullyQualifiedName():string {
+  return 'MyGame.Example.Referrable';
+}
+
 static startReferrable(builder:flatbuffers.Builder) {
   builder.startObject(1);
 }

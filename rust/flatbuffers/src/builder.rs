@@ -253,12 +253,9 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
             // Gets The pointer to the size of the string
             let str_memory = &buf[buf.len() - ptr..];
             // Gets the size of the written string from buffer
-            let size = u32::from_le_bytes([
-                str_memory[0],
-                str_memory[1],
-                str_memory[2],
-                str_memory[3],
-            ]) as usize;
+            let size =
+                u32::from_le_bytes([str_memory[0], str_memory[1], str_memory[2], str_memory[3]])
+                    as usize;
             // Size of the string size
             let string_size: usize = 4;
             // Fetches actual string bytes from index of string after string size
@@ -728,23 +725,21 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         // could be empty (e.g. for empty tables, or for all-default values).
         debug_assert!(
             self.nested,
-            format!(
-                "incorrect FlatBufferBuilder usage: {} must be called while in a nested state",
-                fn_name
-            )
+            "incorrect FlatBufferBuilder usage: {} must be called while in a nested state",
+            fn_name
         );
     }
     #[inline]
     fn assert_not_nested(&self, msg: &'static str) {
-        debug_assert!(!self.nested, msg);
+        debug_assert!(!self.nested, "{}", msg);
     }
     #[inline]
     fn assert_finished(&self, msg: &'static str) {
-        debug_assert!(self.finished, msg);
+        debug_assert!(self.finished, "{}", msg);
     }
     #[inline]
     fn assert_not_finished(&self, msg: &'static str) {
-        debug_assert!(!self.finished, msg);
+        debug_assert!(!self.finished, "{}", msg);
     }
 }
 
