@@ -6,7 +6,7 @@ use std::mem;
 use std::cmp::Ordering;
 
 extern crate flatbuffers;
-use self::flatbuffers::EndianScalar;
+use self::flatbuffers::{EndianScalar, Follow};
 
 #[allow(unused_imports, dead_code)]
 pub mod namespace_a {
@@ -15,7 +15,7 @@ pub mod namespace_a {
   use std::cmp::Ordering;
 
   extern crate flatbuffers;
-  use self::flatbuffers::EndianScalar;
+  use self::flatbuffers::{EndianScalar, Follow};
 #[allow(unused_imports, dead_code)]
 pub mod namespace_b {
 
@@ -23,7 +23,7 @@ pub mod namespace_b {
   use std::cmp::Ordering;
 
   extern crate flatbuffers;
-  use self::flatbuffers::EndianScalar;
+  use self::flatbuffers::{EndianScalar, Follow};
 
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_UNION_IN_NESTED_NS: u8 = 0;
@@ -312,7 +312,7 @@ impl<'a> flatbuffers::Verifiable for StructInNestedNS {
     v.in_buffer::<Self>(pos)
   }
 }
-impl StructInNestedNS {
+impl<'a> StructInNestedNS {
   #[allow(clippy::too_many_arguments)]
   pub fn new(
     a: i32,

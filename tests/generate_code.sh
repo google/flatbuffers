@@ -55,7 +55,7 @@ $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_TS_FLAGS -o namespace_te
 ../flatc -b --schema --bfbs-comments --bfbs-builtins -I include_test arrays_test.fbs
 ../flatc --jsonschema --schema -I include_test monster_test.fbs
 ../flatc --cpp --java --kotlin --csharp --python $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS monster_extra.fbs monsterdata_extra.json
-../flatc --cpp --java --csharp --jsonschema $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS --scoped-enums arrays_test.fbs
+../flatc --cpp --java --csharp --jsonschema --rust $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS --scoped-enums arrays_test.fbs
 ../flatc --python $TEST_BASE_FLAGS arrays_test.fbs
 ../flatc --dart monster_extra.fbs
 

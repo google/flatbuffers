@@ -43,6 +43,7 @@ bencher = "0.1.5"
 static_assertions = "1.0.0"
 rand = "*"
 quickcheck_derive = "*"
+array-init = "2.0"
 
 [[bench]]
 # setup for bencher

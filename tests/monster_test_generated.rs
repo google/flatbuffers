@@ -8,7 +8,7 @@ use std::mem;
 use std::cmp::Ordering;
 
 extern crate flatbuffers;
-use self::flatbuffers::EndianScalar;
+use self::flatbuffers::{EndianScalar, Follow};
 
 #[allow(unused_imports, dead_code)]
 pub mod my_game {
@@ -19,7 +19,7 @@ pub mod my_game {
   use std::cmp::Ordering;
 
   extern crate flatbuffers;
-  use self::flatbuffers::EndianScalar;
+  use self::flatbuffers::{EndianScalar, Follow};
 
 pub enum InParentNamespaceOffset {}
 #[derive(Copy, Clone, PartialEq)]
@@ -133,7 +133,7 @@ pub mod example_2 {
   use std::cmp::Ordering;
 
   extern crate flatbuffers;
-  use self::flatbuffers::EndianScalar;
+  use self::flatbuffers::{EndianScalar, Follow};
 
 pub enum MonsterOffset {}
 #[derive(Copy, Clone, PartialEq)]
@@ -249,7 +249,7 @@ pub mod example {
   use std::cmp::Ordering;
 
   extern crate flatbuffers;
-  use self::flatbuffers::EndianScalar;
+  use self::flatbuffers::{EndianScalar, Follow};
 
 #[allow(non_upper_case_globals)]
 mod bitflags_color {
@@ -1035,7 +1035,7 @@ impl<'a> flatbuffers::Verifiable for Test {
     v.in_buffer::<Self>(pos)
   }
 }
-impl Test {
+impl<'a> Test {
   #[allow(clippy::too_many_arguments)]
   pub fn new(
     a: i16,
@@ -1188,7 +1188,7 @@ impl<'a> flatbuffers::Verifiable for Vec3 {
     v.in_buffer::<Self>(pos)
   }
 }
-impl Vec3 {
+impl<'a> Vec3 {
   #[allow(clippy::too_many_arguments)]
   pub fn new(
     x: f32,
@@ -1434,7 +1434,7 @@ impl<'a> flatbuffers::Verifiable for Ability {
     v.in_buffer::<Self>(pos)
   }
 }
-impl Ability {
+impl<'a> Ability {
   #[allow(clippy::too_many_arguments)]
   pub fn new(
     id: u32,
@@ -1594,7 +1594,7 @@ impl<'a> flatbuffers::Verifiable for StructOfStructs {
     v.in_buffer::<Self>(pos)
   }
 }
-impl StructOfStructs {
+impl<'a> StructOfStructs {
   #[allow(clippy::too_many_arguments)]
   pub fn new(
     a: &Ability,
