@@ -17,6 +17,7 @@ local function checkReadBuffer(buf, offset, sizePrefix)
     assert(mon:Hp() == 80, "Monster Hp is not 80")
     assert(mon:Mana() == 150, "Monster Mana is not 150")
     assert(mon:Name() == "MyMonster", "Monster Name is not MyMonster")
+    assert(mon:Testbool() == true)
     
     local vec = assert(mon:Pos(), "Monster Position is nil")
     assert(vec:X() == 1.0)
