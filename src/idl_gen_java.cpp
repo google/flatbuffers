@@ -1559,6 +1559,11 @@ class JavaGenerator : public BaseGenerator {
                 to_array = WrapInNameSpace(*field.value.type.enum_def) +
                            "Union.pack(builder,  _o." + GenGetterFuncName_ObjectAPI(property_name) + "()[_j])";
                 break;
+              case BASE_TYPE_UCHAR: // TODO this branch of the switch is due to inconsistent behavior in unsigned byte. Read further at Issue #6574.
+                array_type = "byte";
+                element_type = "int";
+                to_array = "(byte) _e";
+                break;
               default:
                 gen_for_loop = false;
                 array_name = "_o." + GenGetterFuncName_ObjectAPI(property_name) + "()";

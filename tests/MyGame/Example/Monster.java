@@ -518,7 +518,10 @@ public final class Monster extends Table {
     int _name = _o.getName() == null ? 0 : builder.createString(_o.getName());
     int _inventory = 0;
     if (_o.getInventory() != null) {
-      _inventory = createInventoryVector(builder, _o.getInventory());
+      byte[] __inventory = new byte[_o.getInventory().length];
+      int _j = 0;
+      for (int _e : _o.getInventory()) { __inventory[_j] = (byte) _e; _j++;}
+      _inventory = createInventoryVector(builder, __inventory);
     }
     byte _testType = _o.getTest() == null ? MyGame.Example.Any.NONE : _o.getTest().getType();
     int _test = _o.getTest() == null ? 0 : MyGame.Example.AnyUnion.pack(builder, _o.getTest());
@@ -545,7 +548,10 @@ public final class Monster extends Table {
     int _enemy = _o.getEnemy() == null ? 0 : MyGame.Example.Monster.pack(builder, _o.getEnemy());
     int _testnestedflatbuffer = 0;
     if (_o.getTestnestedflatbuffer() != null) {
-      _testnestedflatbuffer = createTestnestedflatbufferVector(builder, _o.getTestnestedflatbuffer());
+      byte[] __testnestedflatbuffer = new byte[_o.getTestnestedflatbuffer().length];
+      int _j = 0;
+      for (int _e : _o.getTestnestedflatbuffer()) { __testnestedflatbuffer[_j] = (byte) _e; _j++;}
+      _testnestedflatbuffer = createTestnestedflatbufferVector(builder, __testnestedflatbuffer);
     }
     int _testempty = _o.getTestempty() == null ? 0 : MyGame.Example.Stat.pack(builder, _o.getTestempty());
     int _testarrayofbools = 0;
@@ -567,7 +573,10 @@ public final class Monster extends Table {
     }
     int _flex = 0;
     if (_o.getFlex() != null) {
-      _flex = createFlexVector(builder, _o.getFlex());
+      byte[] __flex = new byte[_o.getFlex().length];
+      int _j = 0;
+      for (int _e : _o.getFlex()) { __flex[_j] = (byte) _e; _j++;}
+      _flex = createFlexVector(builder, __flex);
     }
     int _test5 = 0;
     if (_o.getTest5() != null) {
@@ -616,11 +625,17 @@ public final class Monster extends Table {
     int _anyAmbiguous = _o.getAnyAmbiguous() == null ? 0 : MyGame.Example.AnyAmbiguousAliasesUnion.pack(builder, _o.getAnyAmbiguous());
     int _vectorOfEnums = 0;
     if (_o.getVectorOfEnums() != null) {
-      _vectorOfEnums = createVectorOfEnumsVector(builder, _o.getVectorOfEnums());
+      byte[] __vectorOfEnums = new byte[_o.getVectorOfEnums().length];
+      int _j = 0;
+      for (int _e : _o.getVectorOfEnums()) { __vectorOfEnums[_j] = (byte) _e; _j++;}
+      _vectorOfEnums = createVectorOfEnumsVector(builder, __vectorOfEnums);
     }
     int _testrequirednestedflatbuffer = 0;
     if (_o.getTestrequirednestedflatbuffer() != null) {
-      _testrequirednestedflatbuffer = createTestrequirednestedflatbufferVector(builder, _o.getTestrequirednestedflatbuffer());
+      byte[] __testrequirednestedflatbuffer = new byte[_o.getTestrequirednestedflatbuffer().length];
+      int _j = 0;
+      for (int _e : _o.getTestrequirednestedflatbuffer()) { __testrequirednestedflatbuffer[_j] = (byte) _e; _j++;}
+      _testrequirednestedflatbuffer = createTestrequirednestedflatbufferVector(builder, __testrequirednestedflatbuffer);
     }
     int _scalarKeySortedTables = 0;
     if (_o.getScalarKeySortedTables() != null) {
