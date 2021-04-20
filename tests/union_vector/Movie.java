@@ -103,7 +103,7 @@ public final class Movie extends Table {
     CharacterUnion[] _oCharacters = new CharacterUnion[charactersLength()];
     for (int _j = 0; _j < charactersLength(); ++_j) {
       CharacterUnion _oCharactersElement = new CharacterUnion();
-      byte _oCharactersElementType = charactersType(, _j);
+      byte _oCharactersElementType = charactersType(_j);
       _oCharactersElement.setType(_oCharactersElementType);
       Table _oCharactersElementValue;
       switch (_oCharactersElementType) {

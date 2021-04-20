@@ -1359,12 +1359,14 @@ class JavaGenerator : public BaseGenerator {
     std::string variable_type = type_name;
     std::string variable_name = "_o" + MakeCamel(camel_name, true);
     std::string type_params = "";
+    std::string value_params = "";
     std::string func_suffix = "()";
     std::string indent = "    ";
     if (is_vector) {
       variable_type = type_name.substr(0, type_name.length() - 2);
       variable_name += "Element";
-      type_params = ", _j";
+      type_params = "_j";
+      value_params = ", _j";
       func_suffix = "(_j)";
       indent = "      ";
     }
@@ -1383,7 +1385,7 @@ class JavaGenerator : public BaseGenerator {
         code += indent + "  case " + WrapInNameSpace(enum_def) + "." + ev.name +
                 ":\n";
         auto actual_type = GenTypeGet(ev.union_type);
-        code += indent + "    " + variable_name + "Value = " + camel_name + "(new " + actual_type + "()" + type_params + ");\n";
+        code += indent + "    " + variable_name + "Value = " + camel_name + "(new " + actual_type + "()" + value_params + ");\n";
         code += indent + "    " + variable_name + ".setValue(" + variable_name + "Value != null ? ((" + actual_type + ") " + variable_name + "Value).unpack() : null);\n";
         code += indent + "    break;\n";
       }
