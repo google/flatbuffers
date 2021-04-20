@@ -20,7 +20,6 @@ public final class TableInFirstNS extends Table {
   public byte fooEnum() { int o = __offset(6); return o != 0 ? bb.get(o + bb_pos) : 0; }
   public boolean mutateFooEnum(byte foo_enum) { int o = __offset(6); if (o != 0) { bb.put(o + bb_pos, foo_enum); return true; } else { return false; } }
   public byte fooUnionType() { int o = __offset(8); return o != 0 ? bb.get(o + bb_pos) : 0; }
-  public Table fooUnion() { return fooUnion(new Table()); }
   public Table fooUnion(Table obj) { int o = __offset(10); return o != 0 ? __union(obj, o + bb_pos) : null; }
   public NamespaceA.NamespaceB.StructInNestedNS fooStruct() { return fooStruct(new NamespaceA.NamespaceB.StructInNestedNS()); }
   public NamespaceA.NamespaceB.StructInNestedNS fooStruct(NamespaceA.NamespaceB.StructInNestedNS obj) { int o = __offset(12); return o != 0 ? obj.__assign(o + bb_pos, bb) : null; }
@@ -55,9 +54,10 @@ public final class TableInFirstNS extends Table {
     NamespaceA.NamespaceB.UnionInNestedNSUnion _oFooUnion = new NamespaceA.NamespaceB.UnionInNestedNSUnion();
     byte _oFooUnionType = fooUnionType();
     _oFooUnion.setType(_oFooUnionType);
-    Table _oFooUnionValue  = fooUnion();
+    Table _oFooUnionValue;
     switch (_oFooUnionType) {
       case NamespaceA.NamespaceB.UnionInNestedNS.TableInNestedNS:
+        _oFooUnionValue = fooUnion(new NamespaceA.NamespaceB.TableInNestedNS());
         _oFooUnion.setValue(_oFooUnionValue != null ? ((NamespaceA.NamespaceB.TableInNestedNS) _oFooUnionValue).unpack() : null);
         break;
       default: break;

@@ -1382,26 +1382,61 @@ class JavaTest {
         TestEq(scalarStuff.hasMaybeEnum(), true);
     }
 
+    static void TestObject(MonsterT monster) {
+        TestEq(monster.getHp(), (short)80);
+        TestEq(monster.getMana(), (short)150);  // default
+
+        TestEq(monster.getName(), "MyMonster");
+        // monster.friendly() // can't access, deprecated
+
+        Vec3T pos = monster.getPos();
+        TestEq(pos.getX(), 1.0f);
+        TestEq(pos.getY(), 2.0f);
+        TestEq(pos.getZ(), 3.0f);
+        TestEq(pos.getTest1(), 3.0);
+        // issue: int != byte
+        TestEq(pos.getTest2(), (int) Color.Green);
+        TestT t = pos.getTest3();
+        TestEq(t.getA(), (short)5);
+        TestEq(t.getB(), (byte)6);
+
+        TestEq(monster.getTest().getType(), (byte)Any.Monster);
+        MonsterT monster2 = (MonsterT) monster.getTest().getValue();
+        TestEq(monster2 != null, true);
+        TestEq(monster2.getName(), "Fred");
+
+        int[] inv = monster.getInventory();
+        TestEq(inv.length, 5);
+        int invsum = 0;
+        for (int i = 0; i < inv.length; i++)
+            invsum += inv[i];
+        TestEq(invsum, 10);
+
+        TestT[] test4 = monster.getTest4();
+        TestT test_0 = test4[0];
+        TestT test_1 = test4[1];
+        TestEq(test4.length, 2);
+        TestEq(test_0.getA() + test_0.getB() + test_1.getA() + test_1.getB(), 100);
+
+        String[] testarrayofstring = monster.getTestarrayofstring();
+        TestEq(testarrayofstring.length, 2);
+        TestEq(testarrayofstring[0],"test1");
+        TestEq(testarrayofstring[1],"test2");
+
+        TestEq(monster.getTestbool(), true);
+    }
+
     static void TestPackUnpack(ByteBuffer bb) {
         Monster m = Monster.getRootAsMonster(bb);
         MonsterT mObject = m.unpack();
         FlatBufferBuilder fbb = new FlatBufferBuilder();
-        Monster.pack(fbb, mObject);
+        int monster = Monster.pack(fbb, mObject);
+        Monster.finishMonsterBuffer(fbb, monster);
         TestBuffer(fbb.dataBuffer());
 
-//        var fbb = new FlatBufferBuilder(1);
-//        fbb.Finish(Monster.Pack(fbb, b).Value);
-//        var c = Monster.GetRootAsMonster(fbb.DataBuffer);
-//        AreEqual(a, c);
-//
-//        var jsonText = b.SerializeToJson();
-//        var d = MonsterT.DeserializeFromJson(jsonText);
-//        AreEqual(a, d);
-//
-//        var fbBuffer = b.SerializeToBinary();
-//        Assert.IsTrue(Monster.MonsterBufferHasIdentifier(new ByteBuffer(fbBuffer)));
-//        var e = MonsterT.DeserializeFromBinary(fbBuffer);
-//        AreEqual(a, e);
+        byte[] bytes = mObject.serializeToBinary();
+        MonsterT newMonsterT = MonsterT.deserializeFromBinary(bytes);
+        TestObject(newMonsterT);
     }
 
     static <T> void TestEq(T a, T b) {

@@ -759,9 +759,7 @@ class JavaGenerator : public BaseGenerator {
               code += type_name + " obj, ";
               getter = obj + ".__assign";
             } else if (vectortype.base_type == BASE_TYPE_UNION) {
-              code += "int j) { return " + MakeCamel(field.name, false) + "(new Table(), j); }\n";
-              code += method_start;
-              code += "(" + type_name + " obj, ";
+              code += type_name + " obj, ";
             }
             code += "int j)";
             const auto body = offset_prefix + conditional_cast + getter + "(";
@@ -798,8 +796,6 @@ class JavaGenerator : public BaseGenerator {
             break;
           }
           case BASE_TYPE_UNION:
-            code += "() { return " + MakeCamel(field.name, false) + "(new Table()); }\n";
-            code += method_start;
             code += "(" + type_name + " obj)" + offset_prefix + getter;
             code += "(obj, o + bb_pos) : null";
             break;
@@ -1368,14 +1364,14 @@ class JavaGenerator : public BaseGenerator {
     if (is_vector) {
       variable_type = type_name.substr(0, type_name.length() - 2);
       variable_name += "Element";
-      type_params = "_j";
+      type_params = ", _j";
       func_suffix = "(_j)";
       indent = "      ";
     }
     code += indent + variable_type + " " + variable_name + " = new " + variable_type + "();\n";
     code += indent + GenTypeBasic(DestinationType(enum_def.underlying_type, false)) + " " + variable_name + "Type = " + camel_name + "Type(" + type_params + ");\n";
     code += indent + variable_name + ".setType(" + variable_name + "Type);\n";
-    code += indent + "Table " + variable_name + "Value  = " + camel_name + "(" + type_params + ");\n";
+    code += indent + "Table " + variable_name + "Value;\n";
     code +=
         indent + "switch (" + variable_name + "Type) {\n";
     for (auto eit = enum_def.Vals().begin(); eit != enum_def.Vals().end();
@@ -1386,7 +1382,9 @@ class JavaGenerator : public BaseGenerator {
       } else {
         code += indent + "  case " + WrapInNameSpace(enum_def) + "." + ev.name +
                 ":\n";
-        code += indent + "    " + variable_name + ".setValue(" + variable_name + "Value != null ? ((" + GenTypeGet(ev.union_type) + ") " + variable_name + "Value" + ").unpack() : null);\n";
+        auto actual_type = GenTypeGet(ev.union_type);
+        code += indent + "    " + variable_name + "Value = " + camel_name + "(new " + actual_type + "()" + type_params + ");\n";
+        code += indent + "    " + variable_name + ".setValue(" + variable_name + "Value != null ? ((" + actual_type + ") " + variable_name + "Value).unpack() : null);\n";
         code += indent + "    break;\n";
       }
     }

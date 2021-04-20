@@ -15,7 +15,6 @@ public final class Movie extends Table {
   public Movie __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public byte mainCharacterType() { int o = __offset(4); return o != 0 ? bb.get(o + bb_pos) : 0; }
-  public Table mainCharacter() { return mainCharacter(new Table()); }
   public Table mainCharacter(Table obj) { int o = __offset(6); return o != 0 ? __union(obj, o + bb_pos) : null; }
   public byte charactersType(int j) { int o = __offset(8); return o != 0 ? bb.get(__vector(o) + j * 1) : 0; }
   public int charactersTypeLength() { int o = __offset(8); return o != 0 ? __vector_len(o) : 0; }
@@ -23,7 +22,6 @@ public final class Movie extends Table {
   public ByteVector charactersTypeVector(ByteVector obj) { int o = __offset(8); return o != 0 ? obj.__assign(__vector(o), bb) : null; }
   public ByteBuffer charactersTypeAsByteBuffer() { return __vector_as_bytebuffer(8, 1); }
   public ByteBuffer charactersTypeInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 8, 1); }
-  public Table characters(int j) { return characters(new Table(), j); }
   public Table characters(Table obj, int j) { int o = __offset(10); return o != 0 ? __union(obj, __vector(o) + j * 4) : null; }
   public int charactersLength() { int o = __offset(10); return o != 0 ? __vector_len(o) : 0; }
   public UnionVector charactersVector() { return charactersVector(new UnionVector()); }
@@ -73,24 +71,30 @@ public final class Movie extends Table {
     CharacterUnion _oMainCharacter = new CharacterUnion();
     byte _oMainCharacterType = mainCharacterType();
     _oMainCharacter.setType(_oMainCharacterType);
-    Table _oMainCharacterValue  = mainCharacter();
+    Table _oMainCharacterValue;
     switch (_oMainCharacterType) {
       case Character.MuLan:
+        _oMainCharacterValue = mainCharacter(new Attacker());
         _oMainCharacter.setValue(_oMainCharacterValue != null ? ((Attacker) _oMainCharacterValue).unpack() : null);
         break;
       case Character.Rapunzel:
+        _oMainCharacterValue = mainCharacter(new Rapunzel());
         _oMainCharacter.setValue(_oMainCharacterValue != null ? ((Rapunzel) _oMainCharacterValue).unpack() : null);
         break;
       case Character.Belle:
+        _oMainCharacterValue = mainCharacter(new BookReader());
         _oMainCharacter.setValue(_oMainCharacterValue != null ? ((BookReader) _oMainCharacterValue).unpack() : null);
         break;
       case Character.BookFan:
+        _oMainCharacterValue = mainCharacter(new BookReader());
         _oMainCharacter.setValue(_oMainCharacterValue != null ? ((BookReader) _oMainCharacterValue).unpack() : null);
         break;
       case Character.Other:
+        _oMainCharacterValue = mainCharacter(new String());
         _oMainCharacter.setValue(_oMainCharacterValue != null ? ((String) _oMainCharacterValue).unpack() : null);
         break;
       case Character.Unused:
+        _oMainCharacterValue = mainCharacter(new String());
         _oMainCharacter.setValue(_oMainCharacterValue != null ? ((String) _oMainCharacterValue).unpack() : null);
         break;
       default: break;
@@ -99,26 +103,32 @@ public final class Movie extends Table {
     CharacterUnion[] _oCharacters = new CharacterUnion[charactersLength()];
     for (int _j = 0; _j < charactersLength(); ++_j) {
       CharacterUnion _oCharactersElement = new CharacterUnion();
-      byte _oCharactersElementType = charactersType(_j);
+      byte _oCharactersElementType = charactersType(, _j);
       _oCharactersElement.setType(_oCharactersElementType);
-      Table _oCharactersElementValue  = characters(_j);
+      Table _oCharactersElementValue;
       switch (_oCharactersElementType) {
         case Character.MuLan:
+          _oCharactersElementValue = characters(new Attacker(), _j);
           _oCharactersElement.setValue(_oCharactersElementValue != null ? ((Attacker) _oCharactersElementValue).unpack() : null);
           break;
         case Character.Rapunzel:
+          _oCharactersElementValue = characters(new Rapunzel(), _j);
           _oCharactersElement.setValue(_oCharactersElementValue != null ? ((Rapunzel) _oCharactersElementValue).unpack() : null);
           break;
         case Character.Belle:
+          _oCharactersElementValue = characters(new BookReader(), _j);
           _oCharactersElement.setValue(_oCharactersElementValue != null ? ((BookReader) _oCharactersElementValue).unpack() : null);
           break;
         case Character.BookFan:
+          _oCharactersElementValue = characters(new BookReader(), _j);
           _oCharactersElement.setValue(_oCharactersElementValue != null ? ((BookReader) _oCharactersElementValue).unpack() : null);
           break;
         case Character.Other:
+          _oCharactersElementValue = characters(new String(), _j);
           _oCharactersElement.setValue(_oCharactersElementValue != null ? ((String) _oCharactersElementValue).unpack() : null);
           break;
         case Character.Unused:
+          _oCharactersElementValue = characters(new String(), _j);
           _oCharactersElement.setValue(_oCharactersElementValue != null ? ((String) _oCharactersElementValue).unpack() : null);
           break;
         default: break;
