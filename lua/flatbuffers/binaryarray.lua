@@ -1,3 +1,8 @@
+local compat = require("flatbuffers.compat")
+local spack = compat.spack
+local sunpack = compat.sunpack
+
+
 local m = {} -- the module table
 
 local mt = {} -- the module metatable
@@ -105,9 +110,6 @@ function mt:Set(value, position)
 end
 
 -- locals for slightly faster access
-local sunpack = string.unpack
-local spack = string.pack
-
 -- Pack the data into a binary representation
 function m.Pack(fmt, ...)
     return spack(fmt, ...)

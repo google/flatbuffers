@@ -1,6 +1,7 @@
 local N = require("flatbuffers.numTypes")
 local ba = require("flatbuffers.binaryarray")
 local compat = require("flatbuffers.compat")
+local sunpack = compat.sunpack
 
 local m = {}
 
@@ -34,7 +35,7 @@ local function vtableEqual(a, objectStart, b)
     end
 
     for i, elem in ipairs(a) do
-        local x = string.unpack(VOffsetT.packFmt, b, 1 + (i - 1) * 2)
+        local x = sunpack(VOffsetT.packFmt, b, 1 + (i - 1) * 2)
         if x ~= 0 or elem ~= 0 then
             local y = objectStart - elem
             if x ~= y then
@@ -119,7 +120,7 @@ function mt:WriteVtable()
         local vt2Offset = self.vtables[i]
         local vt2Start = #self.bytes - vt2Offset
         local vt2lenstr = self.bytes:Slice(vt2Start, vt2Start+1)
-        local vt2Len = string.unpack(VOffsetT.packFmt, vt2lenstr, 1)
+        local vt2Len = sunpack(VOffsetT.packFmt, vt2lenstr, 1)
 
         local metadata = VtableMetadataFields * 2
         local vt2End = vt2Start + vt2Len
@@ -210,7 +211,7 @@ function mt:Prep(size, additionalBytes)
     local h = self.head
 
     local k = #self.bytes - h + additionalBytes
-    local alignsize = ((~k) + 1) & (size - 1) -- getAlignSize(k, size)
+    local alignsize = getAlignSize(k, size)
 
     local desiredSize = alignsize + size + additionalBytes
 

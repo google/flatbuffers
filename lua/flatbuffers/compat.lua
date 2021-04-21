@@ -1,17 +1,12 @@
-local m = {}
-
-local getAlignSize
+local m
 if _VERSION == "Lua 5.3" then
-    getAlignSize = function(k, size)
-            return ((~k) + 1) & (size - 1)
-        end    
+    m = require("flatbuffers.compat_5_3")
 else
-    getAlignSize = function(self, size, additionalBytes)        
-        local alignsize = bit32.bnot(#self.bytes-self:Head() + additionalBytes) + 1
-        return bit32.band(alignsize,(size - 1))
+    local ok = pcall(require, "jit")
+    if not ok then
+        error("Only Lua 5.3 or LuaJIT is supported")
+    else
+        m = require("flatbuffers.compat_luajit")
     end
 end
-    
-m.GetAlignSize = getAlignSize
-
 return m
