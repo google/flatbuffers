@@ -29,7 +29,7 @@ flatbuffers/blob/master/tests/luatest.lua).
 To run the tests, use the [LuaTest.sh](https://github.com/google/flatbuffers/
 blob/master/tests/LuaTest.sh) shell script.
 
-*Note: This script requires [Lua 5.3](https://www.lua.org/) or
+*Note: This script requires [Lua 5.3](https://www.lua.org/) and
 [LuaJIT](http://luajit.org/) to be installed.*
 
 ## Using the FlatBuffers Lua library
