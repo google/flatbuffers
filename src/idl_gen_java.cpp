@@ -43,6 +43,7 @@ class JavaGenerator : public BaseGenerator {
     std::string name;
     int length;
   };
+
  public:
   JavaGenerator(const Parser &parser, const std::string &path,
                 const std::string &file_name)
@@ -1101,7 +1102,8 @@ class JavaGenerator : public BaseGenerator {
               code += "create";
               code += MakeCamel(field.name);
               code += "Vector(FlatBufferBuilder builder, ";
-              code += GenTypeBasic(DestinationType(vector_type, false)) + "[] data) ";
+              code += GenTypeBasic(DestinationType(vector_type, false)) +
+                      "[] data) ";
               code += "{ builder.startVector(";
               code += NumToString(elem_size);
               code += ", data.length, ";
@@ -1282,11 +1284,10 @@ class JavaGenerator : public BaseGenerator {
     if (enum_def.generated) return;
     code += "import com.google.flatbuffers.FlatBufferBuilder;\n\n";
 
-    if (!enum_def.attributes.Lookup("private")) {
-      code += "public ";
-    }
+    if (!enum_def.attributes.Lookup("private")) { code += "public "; }
     auto union_name = enum_def.name + "Union";
-    auto union_type = GenTypeBasic(DestinationType(enum_def.underlying_type, false));
+    auto union_type =
+        GenTypeBasic(DestinationType(enum_def.underlying_type, false));
     code += "class " + union_name + " {\n";
     // Type
     code += "  private " + union_type + " type;\n";
@@ -1295,9 +1296,10 @@ class JavaGenerator : public BaseGenerator {
     code += "\n";
     // getters and setters
     code += "  public " + union_type + " getType() { return type; }\n\n";
-    code += "  public void setType(" + union_type + " type) { this.type = type; }\n\n";
+    code += "  public void setType(" + union_type +
+            " type) { this.type = type; }\n\n";
     code += "  public Object getValue() { return value; }\n\n";
-    code += "  public void setValue(Object value) { this.value = value; }\n\n";    
+    code += "  public void setValue(Object value) { this.value = value; }\n\n";
     // Constructor
     code += "  public " + union_name + "() {\n";
     code += "    this.type = " + enum_def.name + "." +
@@ -1315,7 +1317,8 @@ class JavaGenerator : public BaseGenerator {
       } else {
         code += "  public ";
       }
-      code += type_name + " as" + ev.name + "() { return (" + type_name + ") value; }\n";
+      code += type_name + " as" + ev.name + "() { return (" + type_name +
+              ") value; }\n";
     }
     code += "\n";
     // pack()
@@ -1351,11 +1354,12 @@ class JavaGenerator : public BaseGenerator {
     return opts.object_prefix + name + opts.object_suffix;
   }
 
-  void GenUnionUnPack_ObjectAPI(const EnumDef &enum_def, std::string *code_ptr, 
-                                const std::string &type_name, const std::string &camel_name,
+  void GenUnionUnPack_ObjectAPI(const EnumDef &enum_def, std::string *code_ptr,
+                                const std::string &type_name,
+                                const std::string &camel_name,
                                 bool is_vector) const {
     auto &code = *code_ptr;
-    
+
     std::string variable_type = type_name;
     std::string variable_name = "_o" + MakeCamel(camel_name, true);
     std::string type_params = "";
@@ -1370,12 +1374,15 @@ class JavaGenerator : public BaseGenerator {
       func_suffix = "(_j)";
       indent = "      ";
     }
-    code += indent + variable_type + " " + variable_name + " = new " + variable_type + "();\n";
-    code += indent + GenTypeBasic(DestinationType(enum_def.underlying_type, false)) + " " + variable_name + "Type = " + camel_name + "Type(" + type_params + ");\n";
+    code += indent + variable_type + " " + variable_name + " = new " +
+            variable_type + "();\n";
+    code += indent +
+            GenTypeBasic(DestinationType(enum_def.underlying_type, false)) +
+            " " + variable_name + "Type = " + camel_name + "Type(" +
+            type_params + ");\n";
     code += indent + variable_name + ".setType(" + variable_name + "Type);\n";
     code += indent + "Table " + variable_name + "Value;\n";
-    code +=
-        indent + "switch (" + variable_name + "Type) {\n";
+    code += indent + "switch (" + variable_name + "Type) {\n";
     for (auto eit = enum_def.Vals().begin(); eit != enum_def.Vals().end();
          ++eit) {
       auto &ev = **eit;
@@ -1385,15 +1392,19 @@ class JavaGenerator : public BaseGenerator {
         code += indent + "  case " + WrapInNameSpace(enum_def) + "." + ev.name +
                 ":\n";
         auto actual_type = GenTypeGet(ev.union_type);
-        code += indent + "    " + variable_name + "Value = " + camel_name + "(new " + actual_type + "()" + value_params + ");\n";
-        code += indent + "    " + variable_name + ".setValue(" + variable_name + "Value != null ? ((" + actual_type + ") " + variable_name + "Value).unpack() : null);\n";
+        code += indent + "    " + variable_name + "Value = " + camel_name +
+                "(new " + actual_type + "()" + value_params + ");\n";
+        code += indent + "    " + variable_name + ".setValue(" + variable_name +
+                "Value != null ? ((" + actual_type + ") " + variable_name +
+                "Value).unpack() : null);\n";
         code += indent + "    break;\n";
       }
     }
     code += indent + "  default: break;\n";
     code += indent + "}\n";
     if (is_vector) {
-      code += indent + "_o" + MakeCamel(camel_name, true) + "[_j] = " + variable_name + ";\n";
+      code += indent + "_o" + MakeCamel(camel_name, true) +
+              "[_j] = " + variable_name + ";\n";
     }
   }
 
@@ -1419,8 +1430,10 @@ class JavaGenerator : public BaseGenerator {
       if (field.value.type.element == BASE_TYPE_UTYPE) continue;
       auto camel_name = MakeCamel(field.name, false);
       auto camel_name_with_first = MakeCamel(field.name, true);
-      auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts, false, true);
-      if (field.IsScalarOptional()) type_name = ConvertPrimitiveTypeToObjectWrapper_ObjectAPI(type_name);
+      auto type_name =
+          GenTypeGet_ObjectAPI(field.value.type, opts, false, true);
+      if (field.IsScalarOptional())
+        type_name = ConvertPrimitiveTypeToObjectWrapper_ObjectAPI(type_name);
       auto start = "    " + type_name + " _o" + camel_name_with_first + " = ";
       switch (field.value.type.base_type) {
         case BASE_TYPE_STRUCT: {
@@ -1428,15 +1441,15 @@ class JavaGenerator : public BaseGenerator {
           if (fixed) {
             code += start + camel_name + "().unpack();\n";
           } else {
-            code += start + camel_name + "() != null ? " +
-                    camel_name + "().unpack() : null;\n";
+            code += start + camel_name + "() != null ? " + camel_name +
+                    "().unpack() : null;\n";
           }
           break;
         }
         case BASE_TYPE_ARRAY: {
           auto length_str = NumToString(field.value.type.fixed_length);
-          auto unpack_method = field.value.type.struct_def == nullptr ? ""
-                               : ".unpack()";
+          auto unpack_method =
+              field.value.type.struct_def == nullptr ? "" : ".unpack()";
           code += start + "new " + type_name.substr(0, type_name.length() - 1) +
                   length_str + "];\n";
           code += "    for (int _j = 0; _j < " + length_str + "; ++_j) { _o" +
@@ -1447,46 +1460,50 @@ class JavaGenerator : public BaseGenerator {
         case BASE_TYPE_VECTOR:
           if (field.value.type.element == BASE_TYPE_UNION) {
             code += start + "new " +
-                    GenConcreteTypeGet_ObjectAPI(field.value.type, opts).substr(0, type_name.length() - 1) +
+                    GenConcreteTypeGet_ObjectAPI(field.value.type, opts)
+                        .substr(0, type_name.length() - 1) +
                     camel_name + "Length()];\n";
             code += "    for (int _j = 0; _j < " + camel_name +
                     "Length(); ++_j) {\n";
-            GenUnionUnPack_ObjectAPI(*field.value.type.enum_def, code_ptr, type_name,
-                                     camel_name, true);
+            GenUnionUnPack_ObjectAPI(*field.value.type.enum_def, code_ptr,
+                                     type_name, camel_name, true);
             code += "    }\n";
           } else if (field.value.type.element != BASE_TYPE_UTYPE) {
             auto fixed = field.value.type.struct_def == nullptr;
             code += start + "new " +
-                    GenConcreteTypeGet_ObjectAPI(field.value.type, opts).substr(0, type_name.length() - 1) +
+                    GenConcreteTypeGet_ObjectAPI(field.value.type, opts)
+                        .substr(0, type_name.length() - 1) +
                     camel_name + "Length()];\n";
-            code += "    for (int _j = 0; _j < " + camel_name +
-                    "Length(); ++_j) {";
+            code +=
+                "    for (int _j = 0; _j < " + camel_name + "Length(); ++_j) {";
             code += "_o" + camel_name_with_first + "[_j] = ";
             if (fixed) {
               code += camel_name + "(_j)";
             } else {
-              code += "(" + camel_name + "(_j) != null ? " +
-                      camel_name + "(_j).unpack() : null)";
+              code += "(" + camel_name + "(_j) != null ? " + camel_name +
+                      "(_j).unpack() : null)";
             }
             code += ";}\n";
           }
           break;
         case BASE_TYPE_UTYPE: break;
         case BASE_TYPE_UNION: {
-          GenUnionUnPack_ObjectAPI(*field.value.type.enum_def, code_ptr, type_name,
-                                   camel_name, false);
+          GenUnionUnPack_ObjectAPI(*field.value.type.enum_def, code_ptr,
+                                   type_name, camel_name, false);
           break;
         }
         default: {
           if (field.IsScalarOptional()) {
-            code += start + "has" + camel_name_with_first + "() ? " + camel_name + "() : null;\n";
+            code += start + "has" + camel_name_with_first + "() ? " +
+                    camel_name + "() : null;\n";
           } else {
             code += start + camel_name + "();\n";
           }
           break;
         }
       }
-      code += "    _o." + GenSetterFuncName_ObjectAPI(field.name) + "(_o" + camel_name_with_first + ");\n";
+      code += "    _o." + GenSetterFuncName_ObjectAPI(field.name) + "(_o" +
+              camel_name_with_first + ");\n";
     }
     code += "  }\n";
     // pack()
@@ -1503,9 +1520,11 @@ class JavaGenerator : public BaseGenerator {
       switch (field.value.type.base_type) {
         case BASE_TYPE_STRUCT: {
           if (!field.value.type.struct_def->fixed) {
-            code += "    " + GenOffsetType() + " _" + field.name + " = _o." + GenGetterFuncName_ObjectAPI(field.name) +
+            code += "    " + GenOffsetType() + " _" + field.name + " = _o." +
+                    GenGetterFuncName_ObjectAPI(field.name) +
                     "() == null ? 0 : " + GenTypeGet(field.value.type) +
-                    ".pack(builder, _o." + GenGetterFuncName_ObjectAPI(field.name) + "());\n";
+                    ".pack(builder, _o." +
+                    GenGetterFuncName_ObjectAPI(field.name) + "());\n";
           } else if (struct_def.fixed && struct_has_create) {
             std::vector<FieldArrayLength> array_lengths;
             FieldArrayLength tmp_array_length = {
@@ -1520,10 +1539,12 @@ class JavaGenerator : public BaseGenerator {
         }
         case BASE_TYPE_STRING: {
           std::string create_string = "createString";
-          code += "    int _" + camel_name + " = _o." + GenGetterFuncName_ObjectAPI(field.name) +
+          code += "    int _" + camel_name + " = _o." +
+                  GenGetterFuncName_ObjectAPI(field.name) +
                   "() == null ? 0 : "
                   "builder." +
-                  create_string + "(_o." + GenGetterFuncName_ObjectAPI(field.name) + "());\n";
+                  create_string + "(_o." +
+                  GenGetterFuncName_ObjectAPI(field.name) + "());\n";
           break;
         }
         case BASE_TYPE_VECTOR: {
@@ -1544,57 +1565,78 @@ class JavaGenerator : public BaseGenerator {
               }
               case BASE_TYPE_STRUCT:
                 array_type = "int";
-                element_type = GenTypeGet_ObjectAPI(field.value.type, opts, true, true);;
+                element_type =
+                    GenTypeGet_ObjectAPI(field.value.type, opts, true, true);
+                ;
                 to_array = GenTypeGet(field.value.type) + ".pack(builder, _e)";
                 break;
               case BASE_TYPE_UTYPE:
                 property_name = camel_name.substr(0, camel_name.size() - 4);
-                array_type = GenTypeBasic(DestinationType(field.value.type.enum_def->underlying_type, false));
+                array_type = GenTypeBasic(DestinationType(
+                    field.value.type.enum_def->underlying_type, false));
                 element_type = field.value.type.enum_def->name + "Union";
-                to_array = "_o." + GenGetterFuncName_ObjectAPI(property_name) + "()[_j].getType()";
+                to_array = "_o." + GenGetterFuncName_ObjectAPI(property_name) +
+                           "()[_j].getType()";
                 break;
               case BASE_TYPE_UNION:
                 array_type = "int";
-                element_type = WrapInNameSpace(*field.value.type.enum_def) + "Union";
+                element_type =
+                    WrapInNameSpace(*field.value.type.enum_def) + "Union";
                 to_array = WrapInNameSpace(*field.value.type.enum_def) +
-                           "Union.pack(builder,  _o." + GenGetterFuncName_ObjectAPI(property_name) + "()[_j])";
+                           "Union.pack(builder,  _o." +
+                           GenGetterFuncName_ObjectAPI(property_name) +
+                           "()[_j])";
                 break;
-              case BASE_TYPE_UCHAR: // TODO this branch of the switch is due to inconsistent behavior in unsigned byte. Read further at Issue #6574.
+              case BASE_TYPE_UCHAR:  // TODO this branch of the switch is due to
+                                     // inconsistent behavior in unsigned byte.
+                                     // Read further at Issue #6574.
                 array_type = "byte";
                 element_type = "int";
                 to_array = "(byte) _e";
                 break;
               default:
                 gen_for_loop = false;
-                array_name = "_o." + GenGetterFuncName_ObjectAPI(property_name) + "()";
+                array_name =
+                    "_o." + GenGetterFuncName_ObjectAPI(property_name) + "()";
                 array_type = GenTypeNameDest(field.value.type);
                 element_type = array_type;
                 to_array = "_e";
                 break;
             }
             code += "    int _" + camel_name + " = 0;\n";
-            code += "    if (_o." + GenGetterFuncName_ObjectAPI(property_name) + "() != null) {\n";
+            code += "    if (_o." + GenGetterFuncName_ObjectAPI(property_name) +
+                    "() != null) {\n";
             if (gen_for_loop) {
-              code += "      " + array_type + "[] " + array_name + " = new " + array_type + "[_o." + GenGetterFuncName_ObjectAPI(property_name) + "().length];\n";
+              code += "      " + array_type + "[] " + array_name + " = new " +
+                      array_type + "[_o." +
+                      GenGetterFuncName_ObjectAPI(property_name) +
+                      "().length];\n";
               code += "      int _j = 0;\n";
-              code += "      for (" + element_type + " _e : _o." + GenGetterFuncName_ObjectAPI(property_name) + "()) { ";
+              code += "      for (" + element_type + " _e : _o." +
+                      GenGetterFuncName_ObjectAPI(property_name) + "()) { ";
               code += array_name + "[_j] = " + to_array + "; _j++;}\n";
             }
-            code += "      _" + camel_name + " = create" + camel_name_with_first +
-                    "Vector(builder, " + array_name + ");\n";
+            code += "      _" + camel_name + " = create" +
+                    camel_name_with_first + "Vector(builder, " + array_name +
+                    ");\n";
             code += "    }\n";
           } else {
             auto type_name = GenTypeGet(field.value.type);
-            auto element_type_name = GenTypeGet_ObjectAPI(field.value.type, opts, true, true);
+            auto element_type_name =
+                GenTypeGet_ObjectAPI(field.value.type, opts, true, true);
             auto pack_method =
                 field.value.type.struct_def == nullptr
                     ? "builder.add" + GenMethod(field.value.type.VectorType()) +
                           "(_o." + camel_name + "[_j]);"
                     : type_name + ".pack(builder, _e);";
             code += "    int _" + camel_name + " = 0;\n";
-            code += "    if (_o." + GenGetterFuncName_ObjectAPI(field.name) + "() != null) {\n";
-            code += "      start" + camel_name_with_first + "Vector(builder, _o." + GenGetterFuncName_ObjectAPI(field.name) + "().length);\n";
-            code += "      for (" + element_type_name + " _e : _o." + GenGetterFuncName_ObjectAPI(field.name) + "()) { ";
+            code += "    if (_o." + GenGetterFuncName_ObjectAPI(field.name) +
+                    "() != null) {\n";
+            code += "      start" + camel_name_with_first +
+                    "Vector(builder, _o." +
+                    GenGetterFuncName_ObjectAPI(field.name) + "().length);\n";
+            code += "      for (" + element_type_name + " _e : _o." +
+                    GenGetterFuncName_ObjectAPI(field.name) + "()) { ";
             code += pack_method + "}\n";
             code += "      _" + camel_name + " = builder.endVector();\n";
             code += "    }\n";
@@ -1612,18 +1654,26 @@ class JavaGenerator : public BaseGenerator {
             GenStructPackDecl_ObjectAPI(*field.value.type.struct_def, code_ptr,
                                         array_lengths);
           } else {
-            code += "    " + GenTypeGet_ObjectAPI(field.value.type, opts, false, true) + " _" + camel_name + " = _o." + GenGetterFuncName_ObjectAPI(field.name) + "();\n";
+            code += "    " +
+                    GenTypeGet_ObjectAPI(field.value.type, opts, false, true) +
+                    " _" + camel_name + " = _o." +
+                    GenGetterFuncName_ObjectAPI(field.name) + "();\n";
           }
           break;
         }
         case BASE_TYPE_UNION: {
-          code += "    " + GenTypeBasic(DestinationType(field.value.type.enum_def->underlying_type, false)) + " _" + camel_name + "Type = _o.get" + camel_name_with_first +
-                  "() == null ? " + WrapInNameSpace(*field.value.type.enum_def) +
-                  ".NONE : " + "_o.get" + camel_name_with_first + "().getType();\n";
           code +=
-              "    " + GenOffsetType() + " _" + camel_name + " = _o.get" + camel_name_with_first +
-                  "() == null ? 0 : " + WrapInNameSpace(*field.value.type.enum_def) +
-              "Union.pack(builder, _o.get" + camel_name_with_first + "());\n";
+              "    " +
+              GenTypeBasic(DestinationType(
+                  field.value.type.enum_def->underlying_type, false)) +
+              " _" + camel_name + "Type = _o.get" + camel_name_with_first +
+              "() == null ? " + WrapInNameSpace(*field.value.type.enum_def) +
+              ".NONE : " + "_o.get" + camel_name_with_first + "().getType();\n";
+          code += "    " + GenOffsetType() + " _" + camel_name + " = _o.get" +
+                  camel_name_with_first + "() == null ? 0 : " +
+                  WrapInNameSpace(*field.value.type.enum_def) +
+                  "Union.pack(builder, _o.get" + camel_name_with_first +
+                  "());\n";
           break;
         }
         default: break;
@@ -1680,7 +1730,8 @@ class JavaGenerator : public BaseGenerator {
           }
           default:  // scalar
             code += ",\n";
-            code += "      _o." + GenGetterFuncName_ObjectAPI(field.name) + "()";
+            code +=
+                "      _o." + GenGetterFuncName_ObjectAPI(field.name) + "()";
             break;
         }
       }
@@ -1701,32 +1752,36 @@ class JavaGenerator : public BaseGenerator {
                       GenTypeGet(field.value.type) + ".pack(builder, _o." +
                       GenGetterFuncName_ObjectAPI(field.name) + "()));\n";
             } else {
-              code +=
-                  "    add" + camel_name_with_first + "(builder, _" + field.name + ");\n";
+              code += "    add" + camel_name_with_first + "(builder, _" +
+                      field.name + ");\n";
             }
             break;
           }
           case BASE_TYPE_STRING: FLATBUFFERS_FALLTHROUGH();  // fall thru
           case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();   // fall thru
           case BASE_TYPE_VECTOR: {
-            code +=
-                "    add" + camel_name_with_first + "(builder, _" + camel_name + ");\n";
+            code += "    add" + camel_name_with_first + "(builder, _" +
+                    camel_name + ");\n";
             break;
           }
           case BASE_TYPE_UTYPE: break;
           case BASE_TYPE_UNION: {
-            code += "    add" + camel_name_with_first + "Type(builder, _" + camel_name +
-                    "Type);\n";
-            code +=
-                "    add" + camel_name_with_first + "(builder, _" + camel_name + ");\n";
+            code += "    add" + camel_name_with_first + "Type(builder, _" +
+                    camel_name + "Type);\n";
+            code += "    add" + camel_name_with_first + "(builder, _" +
+                    camel_name + ");\n";
             break;
           }
           // scalar
           default: {
             if (field.IsScalarOptional()) {
-              code += "    if (_o." + GenGetterFuncName_ObjectAPI(field.name) + "() != null) { add" + camel_name_with_first + "(builder, _o." + GenGetterFuncName_ObjectAPI(field.name) + "()); }\n";
+              code += "    if (_o." + GenGetterFuncName_ObjectAPI(field.name) +
+                      "() != null) { add" + camel_name_with_first +
+                      "(builder, _o." +
+                      GenGetterFuncName_ObjectAPI(field.name) + "()); }\n";
             } else {
-              code += "    add" + camel_name_with_first + "(builder, _o." + GenGetterFuncName_ObjectAPI(field.name) + "());\n";
+              code += "    add" + camel_name_with_first + "(builder, _o." +
+                      GenGetterFuncName_ObjectAPI(field.name) + "());\n";
             }
             break;
           }
@@ -1796,7 +1851,8 @@ class JavaGenerator : public BaseGenerator {
           }
           code += "] = _o";
           for (size_t i = 0, j = 0; i < array_lengths.size(); ++i) {
-            code += "." + GenGetterFuncName_ObjectAPI(array_lengths[i].name) + "()";
+            code +=
+                "." + GenGetterFuncName_ObjectAPI(array_lengths[i].name) + "()";
             if (array_lengths[i].length <= 0) continue;
             code += "[idx" + NumToString(j++) + "]";
           }
@@ -1808,7 +1864,8 @@ class JavaGenerator : public BaseGenerator {
           code += " " + name + " = ";
           code += "_o";
           for (size_t i = 0; i < array_lengths.size(); ++i) {
-            code += "." + GenGetterFuncName_ObjectAPI(array_lengths[i].name) + "()"; // + MakeCamel(array_lengths[i].name);
+            code += "." + GenGetterFuncName_ObjectAPI(array_lengths[i].name) +
+                    "()";  // + MakeCamel(array_lengths[i].name);
           }
           code += ";";
         }
@@ -1827,8 +1884,9 @@ class JavaGenerator : public BaseGenerator {
       auto &field = **it;
       const auto &field_type = field.value.type;
       if (field_type.struct_def != nullptr) {
-        GenStructPackCall_ObjectAPI(*field_type.struct_def, code_ptr,
-                                    prefix + MakeCamel(field.name, false) + "_");
+        GenStructPackCall_ObjectAPI(
+            *field_type.struct_def, code_ptr,
+            prefix + MakeCamel(field.name, false) + "_");
       } else {
         code += ",\n";
         code += prefix + MakeCamel(field.name, false);
@@ -1836,7 +1894,8 @@ class JavaGenerator : public BaseGenerator {
     }
   }
 
-  std::string ConvertPrimitiveTypeToObjectWrapper_ObjectAPI(std::string type_name) const {
+  std::string ConvertPrimitiveTypeToObjectWrapper_ObjectAPI(
+      std::string type_name) const {
     if (type_name == "boolean")
       return "Boolean";
     else if (type_name == "byte")
@@ -1849,7 +1908,7 @@ class JavaGenerator : public BaseGenerator {
       return "Integer";
     else if (type_name == "long")
       return "Long";
-        else if (type_name == "float")
+    else if (type_name == "float")
       return "Float";
     else if (type_name == "double")
       return "Double";
@@ -1857,8 +1916,7 @@ class JavaGenerator : public BaseGenerator {
   }
 
   std::string GenTypeGet_ObjectAPI(flatbuffers::Type type,
-                                   const IDLOptions &opts,
-                                   bool vectorelem,
+                                   const IDLOptions &opts, bool vectorelem,
                                    bool wrap_in_namespace) const {
     auto type_name = GenTypeNameDest(type);
     // Replace to ObjectBaseAPI Type Name
@@ -1892,9 +1950,7 @@ class JavaGenerator : public BaseGenerator {
       }
       default: break;
     }
-    if (vectorelem) {
-      return type_name;
-    }
+    if (vectorelem) { return type_name; }
     switch (type.base_type) {
       case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();  // fall thru
       case BASE_TYPE_VECTOR: {
@@ -1905,9 +1961,9 @@ class JavaGenerator : public BaseGenerator {
     }
     return type_name;
   }
-  
+
   std::string GenConcreteTypeGet_ObjectAPI(flatbuffers::Type type,
-                                   const IDLOptions &opts) const {
+                                           const IDLOptions &opts) const {
     auto type_name = GenTypeNameDest(type);
     // Replace to ObjectBaseAPI Type Name
     switch (type.base_type) {
@@ -1963,8 +2019,10 @@ class JavaGenerator : public BaseGenerator {
       if (field.deprecated) continue;
       if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
       if (field.value.type.element == BASE_TYPE_UTYPE) continue;
-      auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts, false, true);
-      if (field.IsScalarOptional()) type_name = ConvertPrimitiveTypeToObjectWrapper_ObjectAPI(type_name);
+      auto type_name =
+          GenTypeGet_ObjectAPI(field.value.type, opts, false, true);
+      if (field.IsScalarOptional())
+        type_name = ConvertPrimitiveTypeToObjectWrapper_ObjectAPI(type_name);
       auto camel_name = MakeCamel(field.name, false);
       code += "  private " + type_name + " " + camel_name + ";\n";
     }
@@ -1976,11 +2034,17 @@ class JavaGenerator : public BaseGenerator {
       if (field.deprecated) continue;
       if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
       if (field.value.type.element == BASE_TYPE_UTYPE) continue;
-      auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts, false, true);
-      if (field.IsScalarOptional()) type_name = ConvertPrimitiveTypeToObjectWrapper_ObjectAPI(type_name);
+      auto type_name =
+          GenTypeGet_ObjectAPI(field.value.type, opts, false, true);
+      if (field.IsScalarOptional())
+        type_name = ConvertPrimitiveTypeToObjectWrapper_ObjectAPI(type_name);
       auto camel_name = MakeCamel(field.name, false);
-      code += "  public " + type_name + " " + GenGetterFuncName_ObjectAPI(field.name) + "() { return " + camel_name + "; }\n\n";
-      code += "  public void " + GenSetterFuncName_ObjectAPI(field.name) + "(" + type_name + " " + camel_name + ") { this." + camel_name + " = "+ camel_name + "; }\n\n";
+      code += "  public " + type_name + " " +
+              GenGetterFuncName_ObjectAPI(field.name) + "() { return " +
+              camel_name + "; }\n\n";
+      code += "  public void " + GenSetterFuncName_ObjectAPI(field.name) + "(" +
+              type_name + " " + camel_name + ") { this." + camel_name + " = " +
+              camel_name + "; }\n\n";
     }
     // Generate Constructor
     code += "\n";
@@ -1992,7 +2056,8 @@ class JavaGenerator : public BaseGenerator {
       if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
       if (field.value.type.element == BASE_TYPE_UTYPE) continue;
       code += "    this." + MakeCamel(field.name, false) + " = ";
-      auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts, false, true);
+      auto type_name =
+          GenTypeGet_ObjectAPI(field.value.type, opts, false, true);
       if (IsScalar(field.value.type.base_type)) {
         if (field.IsScalarOptional()) {
           code += "null;\n";
