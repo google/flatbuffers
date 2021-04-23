@@ -137,7 +137,9 @@ impl<T> Push for WIPOffset<T> {
     #[inline(always)]
     fn push(&self, dst: &mut [u8], rest: &[u8]) {
         let n = (SIZE_UOFFSET + rest.len() - self.value() as usize) as UOffsetT;
-        emplace_scalar::<UOffsetT>(dst, n);
+        unsafe {
+            emplace_scalar::<UOffsetT>(dst, n);
+        }
     }
 }
 

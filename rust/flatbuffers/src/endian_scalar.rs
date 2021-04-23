@@ -149,15 +149,13 @@ pub fn byte_swap_f64(x: f64) -> f64 {
 /// Place an EndianScalar into the provided mutable byte slice. Performs
 /// endian conversion, if necessary.
 #[inline]
-pub fn emplace_scalar<T: EndianScalar>(s: &mut [u8], x: T) {
+pub unsafe fn emplace_scalar<T: EndianScalar>(s: &mut [u8], x: T) {
     let x_le = x.to_little_endian();
-    unsafe {
-        core::ptr::copy_nonoverlapping(
-            &x_le as *const T as *const u8,
-            s.as_mut_ptr() as *mut u8,
-            size_of::<T>(),
-        );
-    }
+    core::ptr::copy_nonoverlapping(
+        &x_le as *const T as *const u8,
+        s.as_mut_ptr() as *mut u8,
+        size_of::<T>(),
+    );
 }
 
 /// Read an EndianScalar from the provided byte slice at the specified location.

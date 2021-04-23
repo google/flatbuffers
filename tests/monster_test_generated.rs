@@ -281,7 +281,7 @@ impl flatbuffers::Push for Color {
     type Output = Color;
     #[inline]
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        flatbuffers::emplace_scalar::<u8>(dst, self.bits());
+        unsafe { flatbuffers::emplace_scalar::<u8>(dst, self.bits()); }
     }
 }
 
@@ -374,7 +374,7 @@ impl flatbuffers::Push for Race {
     type Output = Race;
     #[inline]
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        flatbuffers::emplace_scalar::<i8>(dst, self.0);
+        unsafe { flatbuffers::emplace_scalar::<i8>(dst, self.0); }
     }
 }
 
@@ -467,7 +467,7 @@ impl flatbuffers::Push for Any {
     type Output = Any;
     #[inline]
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        flatbuffers::emplace_scalar::<u8>(dst, self.0);
+        unsafe { flatbuffers::emplace_scalar::<u8>(dst, self.0); }
     }
 }
 
@@ -656,7 +656,7 @@ impl flatbuffers::Push for AnyUniqueAliases {
     type Output = AnyUniqueAliases;
     #[inline]
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        flatbuffers::emplace_scalar::<u8>(dst, self.0);
+        unsafe { flatbuffers::emplace_scalar::<u8>(dst, self.0); }
     }
 }
 
@@ -845,7 +845,7 @@ impl flatbuffers::Push for AnyAmbiguousAliases {
     type Output = AnyAmbiguousAliases;
     #[inline]
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        flatbuffers::emplace_scalar::<u8>(dst, self.0);
+        unsafe { flatbuffers::emplace_scalar::<u8>(dst, self.0); }
     }
 }
 

@@ -80,7 +80,7 @@ impl flatbuffers::Push for FromInclude {
     type Output = FromInclude;
     #[inline]
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        flatbuffers::emplace_scalar::<i64>(dst, self.0);
+        unsafe { flatbuffers::emplace_scalar::<i64>(dst, self.0); }
     }
 }
 

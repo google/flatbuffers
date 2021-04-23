@@ -758,8 +758,8 @@ class RustGenerator : public BaseGenerator {
     code_ += "    #[inline]";
     code_ += "    fn push(&self, dst: &mut [u8], _rest: &[u8]) {";
     code_ +=
-        "        flatbuffers::emplace_scalar::<{{BASE_TYPE}}>"
-        "(dst, {{INTO_BASE}});";
+        "        unsafe { flatbuffers::emplace_scalar::<{{BASE_TYPE}}>"
+        "(dst, {{INTO_BASE}}); }";
     code_ += "    }";
     code_ += "}";
     code_ += "";
