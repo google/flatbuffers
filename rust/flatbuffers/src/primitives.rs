@@ -232,7 +232,7 @@ impl<'a, T: Follow<'a>> Follow<'a> for BackwardsSOffset<T> {
     #[inline(always)]
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
         let slice = &buf[loc..loc + SIZE_SOFFSET];
-        let off = unsafe { read_scalar::<SOffsetT>(slice) } ;
+        let off = unsafe { read_scalar::<SOffsetT>(slice) };
         T::follow(buf, (loc as SOffsetT - off) as usize)
     }
 }

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#![allow(clippy::wrong_self_convention)]
 
 use std::mem::size_of;
 
@@ -148,9 +149,10 @@ pub fn byte_swap_f64(x: f64) -> f64 {
 
 /// Place an EndianScalar into the provided mutable byte slice. Performs
 /// endian conversion, if necessary.
+/// # Safety
+/// Caller must ensure `s.len() > size_of::<T>()`.
 #[inline]
 pub unsafe fn emplace_scalar<T: EndianScalar>(s: &mut [u8], x: T) {
-    assert!(s.len() >= core::mem::size_of::<T>());
     let x_le = x.to_little_endian();
     core::ptr::copy_nonoverlapping(
         &x_le as *const T as *const u8,
@@ -161,6 +163,8 @@ pub unsafe fn emplace_scalar<T: EndianScalar>(s: &mut [u8], x: T) {
 
 /// Read an EndianScalar from the provided byte slice at the specified location.
 /// Performs endian conversion, if necessary.
+/// # Safety
+/// Caller must ensure `s.len() > loc + size_of::<T>()`.
 #[inline]
 pub unsafe fn read_scalar_at<T: EndianScalar>(s: &[u8], loc: usize) -> T {
     read_scalar(&s[loc..])
@@ -168,6 +172,8 @@ pub unsafe fn read_scalar_at<T: EndianScalar>(s: &[u8], loc: usize) -> T {
 
 /// Read an EndianScalar from the provided byte slice. Performs endian
 /// conversion, if necessary.
+/// # Safety
+/// Caller must ensure `s.len() > size_of::<T>()`.
 #[inline]
 pub unsafe fn read_scalar<T: EndianScalar>(s: &[u8]) -> T {
     let mut mem = core::mem::MaybeUninit::<T>::uninit();

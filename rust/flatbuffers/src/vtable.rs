@@ -51,10 +51,12 @@ impl<'a> VTable<'a> {
         if idx > self.num_fields() {
             return 0;
         }
-        unsafe { read_scalar_at::<VOffsetT>(
-            self.buf,
-            self.loc + SIZE_VOFFSET + SIZE_VOFFSET + SIZE_VOFFSET * idx,
-        ) }
+        unsafe {
+            read_scalar_at::<VOffsetT>(
+                self.buf,
+                self.loc + SIZE_VOFFSET + SIZE_VOFFSET + SIZE_VOFFSET * idx,
+            )
+        }
     }
     pub fn get(&self, byte_loc: VOffsetT) -> VOffsetT {
         // TODO(rw): distinguish between None and 0?
