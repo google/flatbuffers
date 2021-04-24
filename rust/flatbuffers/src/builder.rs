@@ -564,7 +564,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
 
         {
             let n = self.head + self.used_space() - object_revloc_to_vtable.value() as usize;
-            let saw = read_scalar_at::<UOffsetT>(&self.owned_buf, n);
+            let saw = unsafe { read_scalar_at::<UOffsetT>(&self.owned_buf, n) };
             debug_assert_eq!(saw, 0xF0F0_F0F0);
             unsafe {
                 emplace_scalar::<SOffsetT>(

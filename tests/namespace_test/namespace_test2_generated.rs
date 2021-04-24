@@ -72,7 +72,9 @@ impl<'a> flatbuffers::Follow<'a> for UnionInNestedNS {
   type Inner = Self;
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    let b = flatbuffers::read_scalar_at::<u8>(buf, loc);
+    let b = unsafe {
+      flatbuffers::read_scalar_at::<u8>(buf, loc)
+    };
     Self(b)
   }
 }
@@ -209,7 +211,9 @@ impl<'a> flatbuffers::Follow<'a> for EnumInNestedNS {
   type Inner = Self;
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    let b = flatbuffers::read_scalar_at::<i8>(buf, loc);
+    let b = unsafe {
+      flatbuffers::read_scalar_at::<i8>(buf, loc)
+    };
     Self(b)
   }
 }

@@ -746,9 +746,9 @@ class RustGenerator : public BaseGenerator {
     code_ += "  type Inner = Self;";
     code_ += "  #[inline]";
     code_ += "  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {";
-    code_ +=
-        "    let b = flatbuffers::read_scalar_at::<{{BASE_TYPE}}>(buf,"
-        " loc);";
+    code_ += "    let b = unsafe {";
+    code_ += "      flatbuffers::read_scalar_at::<{{BASE_TYPE}}>(buf, loc)";
+    code_ += "    };";
     code_ += "    {{FROM_BASE}}";
     code_ += "  }";
     code_ += "}";

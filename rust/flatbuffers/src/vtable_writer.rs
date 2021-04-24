@@ -61,7 +61,7 @@ impl<'a> VTableWriter<'a> {
     #[inline(always)]
     pub fn get_field_offset(&self, vtable_offset: VOffsetT) -> VOffsetT {
         let idx = vtable_offset as usize;
-        read_scalar_at::<VOffsetT>(&self.buf, idx)
+        unsafe { read_scalar_at::<VOffsetT>(&self.buf, idx) }
     }
 
     /// Writes an object field offset into the vtable.
