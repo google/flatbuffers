@@ -20,15 +20,21 @@ import Foundation
 /// since now we will be serializing native structs into the buffer.
 public protocol NativeStruct {}
 
-/// FlatbufferObject structures all the Flatbuffers objects
-public protocol FlatBufferObject {
-  var __buffer: ByteBuffer! { get }
+/// FlatbuffersInitializable is a protocol that allows any object to be
+/// Initialized from a ByteBuffer
+public protocol FlatbuffersInitializable {
   init(_ bb: ByteBuffer, o: Int32)
+}
+
+/// FlatbufferObject structures all the Flatbuffers objects
+public protocol FlatBufferObject: FlatbuffersInitializable {
+  var __buffer: ByteBuffer! { get }
 }
 
 public protocol ObjectAPIPacker {
   associatedtype T
-  static func pack(_ builder: inout FlatBufferBuilder, obj: inout T) -> Offset<UOffset>
+  static func pack(_ builder: inout FlatBufferBuilder, obj: inout T?) -> Offset
+  static func pack(_ builder: inout FlatBufferBuilder, obj: inout T) -> Offset
   mutating func unpack() -> T
 }
 
