@@ -24,8 +24,8 @@ final class FlatBuffersTests: XCTestCase {
   func testEndian() { XCTAssertEqual(isLitteEndian, true) }
 
   func testOffset() {
-    let o = Offset<Int>()
-    let b = Offset<Int>(offset: 1)
+    let o = Offset()
+    let b = Offset(offset: 1)
     XCTAssertEqual(o.isEmpty, true)
     XCTAssertEqual(b.isEmpty, false)
   }
@@ -130,7 +130,7 @@ class Country {
     builder: inout FlatBufferBuilder,
     name: String,
     log: Int32,
-    lan: Int32) -> Offset<Country>
+    lan: Int32) -> Offset
   {
     createCountry(builder: &builder, offset: builder.create(string: name), log: log, lan: lan)
   }
@@ -138,9 +138,9 @@ class Country {
   @inlinable
   static func createCountry(
     builder: inout FlatBufferBuilder,
-    offset: Offset<String>,
+    offset: Offset,
     log: Int32,
-    lan: Int32) -> Offset<Country>
+    lan: Int32) -> Offset
   {
     let _start = builder.startTable(with: 3)
     Country.add(builder: &builder, lng: log)
@@ -150,7 +150,7 @@ class Country {
   }
 
   @inlinable
-  static func end(builder: inout FlatBufferBuilder, startOffset: UOffset) -> Offset<Country> {
+  static func end(builder: inout FlatBufferBuilder, startOffset: UOffset) -> Offset {
     Offset(offset: builder.endTable(at: startOffset))
   }
 
@@ -160,7 +160,7 @@ class Country {
   }
 
   @inlinable
-  static func add(builder: inout FlatBufferBuilder, name: Offset<String>) {
+  static func add(builder: inout FlatBufferBuilder, name: Offset) {
     builder.add(offset: name, at: Country.offsets.name)
   }
 

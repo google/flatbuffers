@@ -88,6 +88,7 @@ extension FlatBuffersUnionTests {
     ("testCreateMonstor", testCreateMonstor),
     ("testEndTableFinish", testEndTableFinish),
     ("testEnumVector", testEnumVector),
+    ("testStringUnion", testStringUnion),
     ("testUnionVector", testUnionVector),
   ]
 }

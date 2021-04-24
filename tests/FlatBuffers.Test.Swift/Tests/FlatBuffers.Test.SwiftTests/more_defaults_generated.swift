@@ -55,22 +55,22 @@ public struct MoreDefaults: FlatBufferObject, ObjectAPIPacker {
   public func bools(at index: Int32) -> Bool { let o = _accessor.offset(VTOFFSET.bools.v); return o == 0 ? true : _accessor.directRead(of: Bool.self, offset: _accessor.vector(at: o) + index * 1) }
   public var bools: [Bool] { return _accessor.getVector(at: VTOFFSET.bools.v) ?? [] }
   public static func startMoreDefaults(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 6) }
-  public static func addVectorOf(ints: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: ints, at: VTOFFSET.ints.p) }
-  public static func addVectorOf(floats: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: floats, at: VTOFFSET.floats.p) }
-  public static func add(emptyString: Offset<String>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: emptyString, at: VTOFFSET.emptyString.p) }
-  public static func add(someString: Offset<String>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: someString, at: VTOFFSET.someString.p) }
-  public static func addVectorOf(abcs: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: abcs, at: VTOFFSET.abcs.p) }
-  public static func addVectorOf(bools: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: bools, at: VTOFFSET.bools.p) }
-  public static func endMoreDefaults(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
+  public static func addVectorOf(ints: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: ints, at: VTOFFSET.ints.p) }
+  public static func addVectorOf(floats: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: floats, at: VTOFFSET.floats.p) }
+  public static func add(emptyString: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: emptyString, at: VTOFFSET.emptyString.p) }
+  public static func add(someString: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: someString, at: VTOFFSET.someString.p) }
+  public static func addVectorOf(abcs: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: abcs, at: VTOFFSET.abcs.p) }
+  public static func addVectorOf(bools: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: bools, at: VTOFFSET.bools.p) }
+  public static func endMoreDefaults(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
   public static func createMoreDefaults(
     _ fbb: inout FlatBufferBuilder,
-    intsVectorOffset ints: Offset<UOffset> = Offset(),
-    floatsVectorOffset floats: Offset<UOffset> = Offset(),
-    emptyStringOffset emptyString: Offset<String> = Offset(),
-    someStringOffset someString: Offset<String> = Offset(),
-    abcsVectorOffset abcs: Offset<UOffset> = Offset(),
-    boolsVectorOffset bools: Offset<UOffset> = Offset()
-  ) -> Offset<UOffset> {
+    intsVectorOffset ints: Offset = Offset(),
+    floatsVectorOffset floats: Offset = Offset(),
+    emptyStringOffset emptyString: Offset = Offset(),
+    someStringOffset someString: Offset = Offset(),
+    abcsVectorOffset abcs: Offset = Offset(),
+    boolsVectorOffset bools: Offset = Offset()
+  ) -> Offset {
     let __start = MoreDefaults.startMoreDefaults(&fbb)
     MoreDefaults.addVectorOf(ints: ints, &fbb)
     MoreDefaults.addVectorOf(floats: floats, &fbb)
@@ -85,26 +85,26 @@ public struct MoreDefaults: FlatBufferObject, ObjectAPIPacker {
   public mutating func unpack() -> MoreDefaultsT {
     return MoreDefaultsT(&self)
   }
-  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MoreDefaultsT?) -> Offset<UOffset> {
-    guard var obj = obj else { return Offset<UOffset>() }
+  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MoreDefaultsT?) -> Offset {
+    guard var obj = obj else { return Offset() }
     return pack(&builder, obj: &obj)
   }
 
-  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MoreDefaultsT) -> Offset<UOffset> {
+  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MoreDefaultsT) -> Offset {
     let __ints = builder.createVector(obj.ints)
     let __floats = builder.createVector(obj.floats)
-    let __emptyString: Offset<String>
+    let __emptyString: Offset
     if let s = obj.emptyString {
       __emptyString = builder.create(string: s)
     } else {
-      __emptyString = Offset<String>()
+      __emptyString = Offset()
     }
 
-    let __someString: Offset<String>
+    let __someString: Offset
     if let s = obj.someString {
       __someString = builder.create(string: s)
     } else {
-      __someString = Offset<String>()
+      __someString = Offset()
     }
 
     let __abcs = builder.createVector(obj.abcs)
