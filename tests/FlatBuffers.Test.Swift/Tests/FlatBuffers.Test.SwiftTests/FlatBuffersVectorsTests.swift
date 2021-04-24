@@ -109,23 +109,23 @@ struct Numbers {
   var vArrayDouble: [Double]? { __t.getVector(at: 4) }
   var vArrayFloat: [Float32]? { __t.getVector(at: 4) }
 
-  static func createNumbersVector(b: inout FlatBufferBuilder, array: [Int]) -> Offset<UOffset> {
+  static func createNumbersVector(b: inout FlatBufferBuilder, array: [Int]) -> Offset {
     b.createVector(array, size: array.count)
   }
 
-  static func createNumbersVector(b: inout FlatBufferBuilder, array: [Int32]) -> Offset<UOffset> {
+  static func createNumbersVector(b: inout FlatBufferBuilder, array: [Int32]) -> Offset {
     b.createVector(array, size: array.count)
   }
 
-  static func createNumbersVector(b: inout FlatBufferBuilder, array: [Double]) -> Offset<UOffset> {
+  static func createNumbersVector(b: inout FlatBufferBuilder, array: [Double]) -> Offset {
     b.createVector(array, size: array.count)
   }
 
-  static func createNumbersVector(b: inout FlatBufferBuilder, array: [Float32]) -> Offset<UOffset> {
+  static func createNumbersVector(b: inout FlatBufferBuilder, array: [Float32]) -> Offset {
     b.createVector(array, size: array.count)
   }
 
-  static func createNumbers(b: inout FlatBufferBuilder, o: Offset<UOffset>) -> Offset<UOffset> {
+  static func createNumbers(b: inout FlatBufferBuilder, o: Offset) -> Offset {
     let start = b.startTable(with: 1)
     b.add(offset: o, at: 4)
     return Offset(offset: b.endTable(at: start))

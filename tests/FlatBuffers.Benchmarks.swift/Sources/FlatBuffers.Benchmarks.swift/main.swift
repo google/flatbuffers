@@ -87,7 +87,7 @@ func benchmarkThreeMillionStructs() {
 
   var fb = FlatBufferBuilder(initialSize: Int32(rawSize * 1600))
 
-  var offsets: [Offset<UOffset>] = []
+  var offsets: [Offset] = []
   for _ in 0..<structCount {
     fb.startVector(5 * MemoryLayout<AA>.size, elementSize: MemoryLayout<AA>.alignment)
     for _ in 0..<5 {
@@ -96,12 +96,12 @@ func benchmarkThreeMillionStructs() {
     let vector = fb.endVector(len: 5)
     let start = fb.startTable(with: 1)
     fb.add(offset: vector, at: 4)
-    offsets.append(Offset<UOffset>(offset: fb.endTable(at: start)))
+    offsets.append(Offset(offset: fb.endTable(at: start)))
   }
   let vector = fb.createVector(ofOffsets: offsets)
   let start = fb.startTable(with: 1)
   fb.add(offset: vector, at: 4)
-  let root = Offset<UOffset>(offset: fb.endTable(at: start))
+  let root = Offset(offset: fb.endTable(at: start))
   fb.finish(offset: root)
 }
 

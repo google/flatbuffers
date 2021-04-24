@@ -80,12 +80,12 @@ public struct Table {
     return r
   }
 
-  public func union<T: FlatBufferObject>(_ o: Int32) -> T {
+  public func union<T: FlatbuffersInitializable>(_ o: Int32) -> T {
     let o = o + postion
     return directUnion(o)
   }
 
-  public func directUnion<T: FlatBufferObject>(_ o: Int32) -> T {
+  public func directUnion<T: FlatbuffersInitializable>(_ o: Int32) -> T {
     T.init(bb, o: o + bb.read(def: Int32.self, position: Int(o)))
   }
 
