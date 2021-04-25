@@ -150,7 +150,8 @@ pub fn byte_swap_f64(x: f64) -> f64 {
 /// Place an EndianScalar into the provided mutable byte slice. Performs
 /// endian conversion, if necessary.
 /// # Safety
-/// Caller must ensure `s.len() > size_of::<T>()`.
+/// Caller must ensure `s.len() > size_of::<T>()`
+/// and `x` does not overlap with `s`.
 #[inline]
 pub unsafe fn emplace_scalar<T: EndianScalar>(s: &mut [u8], x: T) {
     let x_le = x.to_little_endian();
