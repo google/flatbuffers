@@ -37,6 +37,8 @@ where
     }
 }
 
+#[allow(clippy::len_without_is_empty)]
+#[allow(clippy::from_over_into)]  // TODO(caspern): Go from From to Into.
 impl<'a, T: 'a, const N: usize> Array<'a, T, N> {
     #[inline(always)]
     pub fn new(buf: &'a [u8]) -> Self {
@@ -49,7 +51,7 @@ impl<'a, T: 'a, const N: usize> Array<'a, T, N> {
     }
 
     #[inline(always)]
-    pub fn len(&self) -> usize {
+    pub const fn len(&self) -> usize {
         N
     }
 }

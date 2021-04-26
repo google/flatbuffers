@@ -61,7 +61,9 @@ macro_rules! impl_push_for_endian_scalar {
 
             #[inline]
             fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-                emplace_scalar::<$ty>(dst, *self);
+                unsafe {
+                    emplace_scalar::<$ty>(dst, *self);
+                }
             }
         }
     };

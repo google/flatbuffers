@@ -149,24 +149,6 @@ fn main() {
         .iter()
         .map(|r| r.as_u8())
         .eq(vec![5, 10, 25, 25, 25, 100].into_iter()));
-    // For very speed sensitive applications, you can directly read the slice if all of the
-    // following are true:
-    //
-    // *   The provided data buffer contains a valid flexbuffer.
-    // *   You correctly specify the flexbuffer type and width.
-    // *   The host machine is little endian.
-    // *   The provided data buffer itself is aligned in memory to 8 bytes.
-    //
-    // Vec<u8> has alignment 1 so special care is needed to get your buffer's alignment to 8.
-    #[cfg(target_endian = "little")]
-    {
-        if monster_coins.is_aligned() {
-            assert_eq!(
-                monster_coins.get_slice::<i8>().unwrap(),
-                &[5, 10, 25, 25, 25, 100]
-            );
-        }
-    }
 
     // Build the answer to life the universe and everything. Reusing a builder resets it. The
     // reused internals won't need to reallocate leading to a potential 2x speedup.

@@ -255,6 +255,7 @@ fn vector_uint4() {
     assert_eq!(v.idx(2).get_u64(), Ok(5));
     assert_eq!(v.idx(3).get_u64(), Ok(7));
     assert!(v.index(4).is_err());
+    #[allow(deprecated)]
     #[cfg(target_endian = "little")]
     {
         assert_eq!(r.get_slice::<u8>().unwrap(), [2, 3, 5, 7]);
@@ -399,7 +400,7 @@ fn serde_serious() {
         b: u16,
         c: u32,
         d: u64,
-    };
+    }
 
     #[derive(Debug, PartialEq, Serialize, Deserialize)]
     struct MyUnitStruct(Vec<String>);
