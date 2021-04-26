@@ -780,9 +780,11 @@ class Parser : public ParserState {
         root_struct_def_(nullptr),
         opts(options),
         uses_flexbuffers_(false),
+        advanced_features_(0),
         source_(nullptr),
         anonymous_counter_(0),
         parse_depth_counter_(0) {
+
     if (opts.force_defaults) { builder_.ForceDefaults(true); }
     // Start out with the empty namespace being current.
     empty_namespace_ = new Namespace();
