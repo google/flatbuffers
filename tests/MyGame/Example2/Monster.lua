@@ -13,6 +13,9 @@ function Monster.New()
     return o
 end
 function Monster.GetRootAsMonster(buf, offset)
+    if type(buf) == "string" then
+        buf = flatbuffers.binaryArray.New(buf)
+    end
     local n = flatbuffers.N.UOffsetT:Unpack(buf, offset)
     local o = Monster.New()
     o:Init(buf, n + offset)
