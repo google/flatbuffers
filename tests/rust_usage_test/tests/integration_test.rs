@@ -1115,6 +1115,7 @@ mod roundtrip_byteswap {
     // fn fuzz_f64() { quickcheck::QuickCheck::new().max_tests(N).quickcheck(prop_f64 as fn(f64)); }
 }
 
+#[cfg(not(miri))]
 quickcheck! {
   fn struct_of_structs(
     a_id: u32,
