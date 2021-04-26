@@ -54,6 +54,9 @@ impl<'a, T: 'a, const N: usize> Array<'a, T, N> {
     pub const fn len(&self) -> usize {
         N
     }
+    pub fn as_ptr(&self) -> *const u8 {
+        self.0.as_ptr()
+    }
 }
 
 impl<'a, T: Follow<'a> + 'a, const N: usize> Array<'a, T, N> {
@@ -77,14 +80,7 @@ impl<'a, T: Follow<'a> + Debug, const N: usize> Into<[T::Inner; N]> for Array<'a
     }
 }
 
-impl<'a, T: SafeSliceAccess + 'a, const N: usize> Array<'a, T, N> {
-    pub fn safe_slice(self) -> &'a [T] {
-        let sz = size_of::<T>();
-        debug_assert!(sz > 0);
-        let ptr = self.0.as_ptr() as *const T;
-        unsafe { from_raw_parts(ptr, N) }
-    }
-}
+// TODO(caspern): Implement some future safe version of SafeSliceAccess.
 
 /// Implement Follow for all possible Arrays that have Follow-able elements.
 impl<'a, T: Follow<'a> + 'a, const N: usize> Follow<'a> for Array<'a, T, N> {
@@ -100,12 +96,16 @@ pub fn emplace_scalar_array<T: EndianScalar, const N: usize>(
     loc: usize,
     src: &[T; N],
 ) {
-    let mut buf_ptr = buf[loc..].as_mut_ptr() as *mut T;
+    let mut buf_ptr = buf[loc..].as_mut_ptr();
     for item in src.iter() {
         let item_le = item.to_little_endian();
         unsafe {
-            buf_ptr.write(item_le);
-            buf_ptr = buf_ptr.add(1);
+            core::ptr::copy_nonoverlapping(
+                &item_le as *const T as *const u8,
+                buf_ptr,
+                size_of::<T>(),
+            );
+            buf_ptr = buf_ptr.add(size_of::<T>());
         }
     }
 }
