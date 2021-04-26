@@ -253,12 +253,9 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
             // Gets The pointer to the size of the string
             let str_memory = &buf[buf.len() - ptr..];
             // Gets the size of the written string from buffer
-            let size = u32::from_le_bytes([
-                str_memory[0],
-                str_memory[1],
-                str_memory[2],
-                str_memory[3],
-            ]) as usize;
+            let size =
+                u32::from_le_bytes([str_memory[0], str_memory[1], str_memory[2], str_memory[3]])
+                    as usize;
             // Size of the string size
             let string_size: usize = 4;
             // Fetches actual string bytes from index of string after string size
@@ -567,12 +564,14 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
 
         {
             let n = self.head + self.used_space() - object_revloc_to_vtable.value() as usize;
-            let saw = read_scalar_at::<UOffsetT>(&self.owned_buf, n);
+            let saw = unsafe { read_scalar_at::<UOffsetT>(&self.owned_buf, n) };
             debug_assert_eq!(saw, 0xF0F0_F0F0);
-            emplace_scalar::<SOffsetT>(
-                &mut self.owned_buf[n..n + SIZE_SOFFSET],
-                vt_use as SOffsetT - object_revloc_to_vtable.value() as SOffsetT,
-            );
+            unsafe {
+                emplace_scalar::<SOffsetT>(
+                    &mut self.owned_buf[n..n + SIZE_SOFFSET],
+                    vt_use as SOffsetT - object_revloc_to_vtable.value() as SOffsetT,
+                );
+            }
         }
 
         self.field_locs.clear();
@@ -728,23 +727,21 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         // could be empty (e.g. for empty tables, or for all-default values).
         debug_assert!(
             self.nested,
-            format!(
-                "incorrect FlatBufferBuilder usage: {} must be called while in a nested state",
-                fn_name
-            )
+            "incorrect FlatBufferBuilder usage: {} must be called while in a nested state",
+            fn_name
         );
     }
     #[inline]
     fn assert_not_nested(&self, msg: &'static str) {
-        debug_assert!(!self.nested, msg);
+        debug_assert!(!self.nested, "{}", msg);
     }
     #[inline]
     fn assert_finished(&self, msg: &'static str) {
-        debug_assert!(self.finished, msg);
+        debug_assert!(self.finished, "{}", msg);
     }
     #[inline]
     fn assert_not_finished(&self, msg: &'static str) {
-        debug_assert!(!self.finished, msg);
+        debug_assert!(!self.finished, "{}", msg);
     }
 }
 

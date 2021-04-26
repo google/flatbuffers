@@ -39,8 +39,10 @@ pub enum InvalidFlatbuffer {
         required: &'static str,
         error_trace: ErrorTrace,
     },
-    #[error("Union exactly one of union discriminant (`{field_type}`) and value \
-             (`{field}`) are present.\n{error_trace}")]
+    #[error(
+        "Union exactly one of union discriminant (`{field_type}`) and value \
+             (`{field}`) are present.\n{error_trace}"
+    )]
     InconsistentUnion {
         field: &'static str,
         field_type: &'static str,
@@ -70,8 +72,10 @@ pub enum InvalidFlatbuffer {
         range: Range<usize>,
         error_trace: ErrorTrace,
     },
-    #[error("Signed offset at position {position} has value {soffset} which points out of bounds.\
-             \n{error_trace}")]
+    #[error(
+        "Signed offset at position {position} has value {soffset} which points out of bounds.\
+             \n{error_trace}"
+    )]
     SignedOffsetOutOfBounds {
         soffset: SOffsetT,
         position: usize,

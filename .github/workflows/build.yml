@@ -164,18 +164,6 @@ jobs:
   #    working-directory: tests
   #    run: bash JavaScriptTest.sh
 
-  #build-ts:
-  #  name: Build TS
-  #  runs-on: ubuntu-latest
-  #  steps:
-  #  - uses: actions/checkout@v1
-  #  - name: flatc
-  #    # FIXME: make test script not rely on flatc
-  #    run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF . && make -j4
-  #  - name: test
-  #    working-directory: tests
-  #    run: bash TypeScriptTest.sh
-
   build-python:
     name: Build Python
     runs-on: ubuntu-latest
@@ -228,3 +216,14 @@ jobs:
     - name: test
       working-directory: tests/FlatBuffers.Test.Swift
       run: sh SwiftTest.sh
+
+  build-ts:
+    name: Build TS
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: compile
+      run: npm run compile
+    - name: test
+      working-directory: tests
+      run: sh TypeScriptTest.sh

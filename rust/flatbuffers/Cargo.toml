@@ -1,6 +1,6 @@
 [package]
 name = "flatbuffers"
-version = "0.8.3"
+version = "0.8.4"
 edition = "2018"
 authors = ["Robert Winslow <hello@rwinslow.com>", "FlatBuffers Maintainers"]
 license = "Apache-2.0"
@@ -9,6 +9,7 @@ homepage = "https://google.github.io/flatbuffers/"
 repository = "https://github.com/google/flatbuffers"
 keywords = ["flatbuffers", "serialization", "zero-copy"]
 categories = ["encoding", "data-structures", "memory-management"]
+rust = "1.51"
 
 [dependencies]
 smallvec = "1.6.1"

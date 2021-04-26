@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.ir.backend.js.compile
 plugins {
   kotlin("multiplatform") version "1.4.20"
   id("org.jetbrains.kotlin.plugin.allopen") version "1.4.20"
-  id("kotlinx.benchmark") version "0.2.0-dev-20"
+  id("org.jetbrains.kotlinx.benchmark") version "0.3.0"
   id("io.morethan.jmhreport") version "0.9.0"
   id("de.undercouch.download") version "4.1.1"
 }
@@ -72,10 +72,9 @@ kotlin {
     }
     val jvmMain by getting {
       dependencies {
-        implementation("org.jetbrains.kotlinx:kotlinx.benchmark.runtime:0.2.0-dev-20")
+        implementation("org.jetbrains.kotlinx:kotlinx-benchmark-runtime:0.3.0")
         implementation(kotlin("stdlib-common"))
         implementation(project(":flatbuffers-kotlin"))
-        implementation("org.jetbrains.kotlinx:kotlinx.benchmark.runtime-jvm:0.2.0-dev-20")
         implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.4.1")
 
@@ -104,6 +103,7 @@ tasks.register<de.undercouch.gradle.tasks.download.Download>("downloadMultipleFi
   val baseUrl = "https://github.com/serde-rs/json-benchmark/raw/master/data/"
   src(listOf("$baseUrl/canada.json", "$baseUrl/twitter.json", "$baseUrl/citm_catalog.json"))
   dest(File("${project.projectDir.absolutePath}/src/jvmMain/resources"))
+  overwrite(false)
 }
 
 project.tasks.named("compileKotlinJvm") {

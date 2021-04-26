@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("NOTHING_TO_INLINE")
 package com.google.flatbuffers.kotlin
+
+import kotlin.experimental.and
 
 internal fun ByteArray.getString(index: Int, size: Int): String = Utf8.decodeUtf8Array(this, index, size)
 
@@ -40,3 +43,104 @@ internal expect inline fun ByteArray.setLong(index: Int, value: Long)
 internal expect inline fun ByteArray.setULong(index: Int, value: ULong)
 internal expect inline fun ByteArray.setFloat(index: Int, value: Float)
 internal expect inline fun ByteArray.setDouble(index: Int, value: Double)
+
+/**
+ * This implementation uses Little Endian order.
+ */
+public object ByteArrayOps {
+  public inline fun getUByte(ary: ByteArray, index: Int): UByte = ary[index].toUByte()
+  public inline fun getShort(ary: ByteArray, index: Int): Short {
+    return (ary[index + 1].toInt() shl 8 or (ary[index].toInt() and 0xff)).toShort()
+  }
+
+  public inline fun getUShort(ary: ByteArray, index: Int): UShort = getShort(ary, index).toUShort()
+
+  public inline fun getInt(ary: ByteArray, index: Int): Int {
+    return (
+      (ary[index + 3].toInt() shl 24) or
+        ((ary[index + 2].toInt() and 0xff) shl 16) or
+        ((ary[index + 1].toInt() and 0xff) shl 8) or
+        ((ary[index].toInt() and 0xff))
+      )
+  }
+
+  public inline fun getUInt(ary: ByteArray, index: Int): UInt = getInt(ary, index).toUInt()
+
+  public inline fun getLong(ary: ByteArray, index: Int): Long {
+    var idx = index
+    return ary[idx++].toLong() and 0xff or
+      (ary[idx++].toLong() and 0xff shl 8) or
+      (ary[idx++].toLong() and 0xff shl 16) or
+      (ary[idx++].toLong() and 0xff shl 24) or
+      (ary[idx++].toLong() and 0xff shl 32) or
+      (ary[idx++].toLong() and 0xff shl 40) or
+      (ary[idx++].toLong() and 0xff shl 48) or
+      (ary[idx].toLong() shl 56)
+  }
+
+  public inline fun getULong(ary: ByteArray, index: Int): ULong = getLong(ary, index).toULong()
+
+  public inline fun setUByte(ary: ByteArray, index: Int, value: UByte) {
+    ary[index] = value.toByte()
+  }
+  public inline fun setShort(ary: ByteArray, index: Int, value: Short) {
+    var idx = index
+    ary[idx++] = (value and 0xff).toByte()
+    ary[idx] = (value.toInt() shr 8 and 0xff).toByte()
+  }
+
+  public inline fun setUShort(ary: ByteArray, index: Int, value: UShort): Unit = setShort(ary, index, value.toShort())
+
+  public inline fun setInt(ary: ByteArray, index: Int, value: Int) {
+    var idx = index
+    ary[idx++] = (value and 0xff).toByte()
+    ary[idx++] = (value shr 8 and 0xff).toByte()
+    ary[idx++] = (value shr 16 and 0xff).toByte()
+    ary[idx] = (value shr 24 and 0xff).toByte()
+  }
+
+  public inline fun setUInt(ary: ByteArray, index: Int, value: UInt): Unit = setInt(ary, index, value.toInt())
+
+  public inline fun setLong(ary: ByteArray, index: Int, value: Long) {
+    var idx = index
+    var i = value.toInt()
+    ary[idx++] = (i and 0xff).toByte()
+    ary[idx++] = (i shr 8 and 0xff).toByte()
+    ary[idx++] = (i shr 16 and 0xff).toByte()
+    ary[idx++] = (i shr 24 and 0xff).toByte()
+    i = (value shr 32).toInt()
+    ary[idx++] = (i and 0xff).toByte()
+    ary[idx++] = (i shr 8 and 0xff).toByte()
+    ary[idx++] = (i shr 16 and 0xff).toByte()
+    ary[idx] = (i shr 24 and 0xff).toByte()
+  }
+
+  public inline fun setULong(ary: ByteArray, index: Int, value: ULong): Unit = setLong(ary, index, value.toLong())
+
+  public inline fun setFloat(ary: ByteArray, index: Int, value: Float) {
+    var idx = index
+    val iValue: Int = value.toRawBits()
+    ary[idx++] = (iValue and 0xff).toByte()
+    ary[idx++] = (iValue shr 8 and 0xff).toByte()
+    ary[idx++] = (iValue shr 16 and 0xff).toByte()
+    ary[idx] = (iValue shr 24 and 0xff).toByte()
+  }
+
+  public inline fun setDouble(ary: ByteArray, index: Int, value: Double) {
+    var idx = index
+    val lValue: Long = value.toRawBits()
+    var i = lValue.toInt()
+    ary[idx++] = (i and 0xff).toByte()
+    ary[idx++] = (i shr 8 and 0xff).toByte()
+    ary[idx++] = (i shr 16 and 0xff).toByte()
+    ary[idx++] = (i shr 24 and 0xff).toByte()
+    i = (lValue shr 32).toInt()
+    ary[idx++] = (i and 0xff).toByte()
+    ary[idx++] = (i shr 8 and 0xff).toByte()
+    ary[idx++] = (i shr 16 and 0xff).toByte()
+    ary[idx] = (i shr 24 and 0xff).toByte()
+  }
+
+  public inline fun getFloat(ary: ByteArray, index: Int): Float = Float.fromBits(getInt(ary, index))
+  public inline fun getDouble(ary: ByteArray, index: Int): Double = Double.fromBits(getLong(ary, index))
+}

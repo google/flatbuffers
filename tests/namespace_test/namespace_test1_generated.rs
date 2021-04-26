@@ -6,7 +6,7 @@ use std::mem;
 use std::cmp::Ordering;
 
 extern crate flatbuffers;
-use self::flatbuffers::EndianScalar;
+use self::flatbuffers::{EndianScalar, Follow};
 
 #[allow(unused_imports, dead_code)]
 pub mod namespace_a {
@@ -15,7 +15,7 @@ pub mod namespace_a {
   use std::cmp::Ordering;
 
   extern crate flatbuffers;
-  use self::flatbuffers::EndianScalar;
+  use self::flatbuffers::{EndianScalar, Follow};
 #[allow(unused_imports, dead_code)]
 pub mod namespace_b {
 
@@ -23,7 +23,7 @@ pub mod namespace_b {
   use std::cmp::Ordering;
 
   extern crate flatbuffers;
-  use self::flatbuffers::EndianScalar;
+  use self::flatbuffers::{EndianScalar, Follow};
 
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_UNION_IN_NESTED_NS: u8 = 0;
@@ -72,7 +72,9 @@ impl<'a> flatbuffers::Follow<'a> for UnionInNestedNS {
   type Inner = Self;
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    let b = flatbuffers::read_scalar_at::<u8>(buf, loc);
+    let b = unsafe {
+      flatbuffers::read_scalar_at::<u8>(buf, loc)
+    };
     Self(b)
   }
 }
@@ -81,7 +83,7 @@ impl flatbuffers::Push for UnionInNestedNS {
     type Output = UnionInNestedNS;
     #[inline]
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        flatbuffers::emplace_scalar::<u8>(dst, self.0);
+        unsafe { flatbuffers::emplace_scalar::<u8>(dst, self.0); }
     }
 }
 
@@ -92,6 +94,7 @@ impl flatbuffers::EndianScalar for UnionInNestedNS {
     Self(b)
   }
   #[inline]
+  #[allow(clippy::wrong_self_convention)]
   fn from_little_endian(self) -> Self {
     let b = u8::from_le(self.0);
     Self(b)
@@ -208,7 +211,9 @@ impl<'a> flatbuffers::Follow<'a> for EnumInNestedNS {
   type Inner = Self;
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    let b = flatbuffers::read_scalar_at::<i8>(buf, loc);
+    let b = unsafe {
+      flatbuffers::read_scalar_at::<i8>(buf, loc)
+    };
     Self(b)
   }
 }
@@ -217,7 +222,7 @@ impl flatbuffers::Push for EnumInNestedNS {
     type Output = EnumInNestedNS;
     #[inline]
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        flatbuffers::emplace_scalar::<i8>(dst, self.0);
+        unsafe { flatbuffers::emplace_scalar::<i8>(dst, self.0); }
     }
 }
 
@@ -228,6 +233,7 @@ impl flatbuffers::EndianScalar for EnumInNestedNS {
     Self(b)
   }
   #[inline]
+  #[allow(clippy::wrong_self_convention)]
   fn from_little_endian(self) -> Self {
     let b = i8::from_le(self.0);
     Self(b)
@@ -310,7 +316,7 @@ impl<'a> flatbuffers::Verifiable for StructInNestedNS {
     v.in_buffer::<Self>(pos)
   }
 }
-impl StructInNestedNS {
+impl<'a> StructInNestedNS {
   #[allow(clippy::too_many_arguments)]
   pub fn new(
     a: i32,

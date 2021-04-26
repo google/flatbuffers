@@ -8,7 +8,20 @@ version = "1.12.0-SNAPSHOT"
 kotlin {
   explicitApi()
   jvm()
+  js {
+    browser {
+      binaries.executable()
+      testTask {
+        useKarma {
+          useChromeHeadless()
+        }
+      }
+    }
+  }
   macosX64()
+  iosArm32()
+  iosArm64()
+  iosX64()
 
   sourceSets {
     val commonMain by getting {
@@ -35,6 +48,15 @@ kotlin {
       }
     }
 
+    val jsMain by getting {
+      dependsOn(commonMain)
+    }
+    val jsTest by getting {
+      dependsOn(commonTest)
+      dependencies {
+        implementation(kotlin("test-js"))
+      }
+    }
     val nativeMain by creating {
         dependsOn(commonMain)
     }
@@ -44,6 +66,17 @@ kotlin {
     val macosX64Main by getting {
       dependsOn(nativeMain)
     }
+
+    val iosArm32Main by getting {
+      dependsOn(nativeMain)
+    }
+    val iosArm64Main by getting {
+      dependsOn(nativeMain)
+    }
+    val iosX64Main by getting {
+      dependsOn(nativeMain)
+    }
+
     all {
       languageSettings.enableLanguageFeature("InlineClasses")
       languageSettings.useExperimentalAnnotation("kotlin.ExperimentalUnsignedTypes")
@@ -55,6 +88,10 @@ kotlin {
    *  https://kotlinlang.org/docs/reference/building-mpp-with-gradle.html#setting-up-targets */
   targets {
     targetFromPreset(presets.getAt("jvm"))
+    targetFromPreset(presets.getAt("js"))
     targetFromPreset(presets.getAt("macosX64"))
+    targetFromPreset(presets.getAt("iosArm32"))
+    targetFromPreset(presets.getAt("iosArm64"))
+    targetFromPreset(presets.getAt("iosX64"))
   }
 }

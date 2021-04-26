@@ -39,6 +39,10 @@ mutate_color(value:Color):boolean {
   return true;
 }
 
+static getFullyQualifiedName():string {
+  return 'MyGame.Example.TestSimpleTableWithEnum';
+}
+
 static startTestSimpleTableWithEnum(builder:flatbuffers.Builder) {
   builder.startObject(1);
 }
