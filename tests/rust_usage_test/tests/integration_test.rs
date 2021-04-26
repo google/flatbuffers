@@ -1682,8 +1682,10 @@ mod roundtrip_scalars {
 
     fn prop<T: PartialEq + ::std::fmt::Debug + Copy + flatbuffers::EndianScalar>(x: T) {
         let mut buf = vec![0u8; ::std::mem::size_of::<T>()];
-        flatbuffers::emplace_scalar(&mut buf[..], x);
-        let y = flatbuffers::read_scalar(&buf[..]);
+        let y = unsafe {
+            flatbuffers::emplace_scalar(&mut buf[..], x);
+            flatbuffers::read_scalar(&buf[..])
+        };
         assert_eq!(x, y);
     }
 
