@@ -13,6 +13,9 @@ function Referrable.New()
     return o
 end
 function Referrable.GetRootAsReferrable(buf, offset)
+    if type(buf) == "string" then
+        buf = flatbuffers.binaryArray.New(buf)
+    end
     local n = flatbuffers.N.UOffsetT:Unpack(buf, offset)
     local o = Referrable.New()
     o:Init(buf, n + offset)

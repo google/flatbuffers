@@ -124,6 +124,10 @@ class LuaGenerator : public BaseGenerator {
 
     code += "function " + NormalizedName(struct_def) + ".GetRootAs" +
             NormalizedName(struct_def) + "(buf, offset)\n";
+    code += std::string(Indent) + "if type(buf) == \"string\" then\n";
+    code += std::string(Indent) + Indent +
+            "buf = flatbuffers.binaryArray.New(buf)\n";
+    code += std::string(Indent) + "end\n";
     code += std::string(Indent) +
             "local n = flatbuffers.N.UOffsetT:Unpack(buf, offset)\n";
     code += std::string(Indent) + "local o = " + NormalizedName(struct_def) +
