@@ -1,5 +1,16 @@
 package.path = string.format("../lua/?.lua;./?.lua;%s",package.path)
 
+local performBenchmarkTests = false
+
+if #arg > 1 then
+    print("usage: lua luatests [benchmark]");
+    return
+elseif #arg > 0 then 
+    if(arg[1] == "benchmark") then
+        performBenchmarkTests = true
+    end 
+end
+
 local function checkReadBuffer(buf, offset, sizePrefix)
     offset = offset or 0
     
@@ -248,6 +259,15 @@ local function benchmarkReadBuffer(count)
     print(string.format('traversed %d %d-byte flatbuffers in %.2fsec: %.2f/msec, %.2fMB/sec',
         count, #buf, dur, rate, dataRate))
 end
+
+local function getRootAs_canAcceptString()
+    local f = assert(io.open('monsterdata_test.mon', 'rb'))
+    local wireData = f:read("*a")
+    f:close() 
+    assert(type(wireData) == "string", "Data is not a string");
+    local mon = monster.GetRootAsMonster(wireData, 0)
+    assert(mon:Hp() == 80, "Monster Hp is not 80")
+end
     
 local tests = 
 { 
@@ -264,6 +284,14 @@ local tests =
         f = testCanonicalData, 
         d = "Tests Canonical flatbuffer file included in repo"       
     },
+    {
+        f = getRootAs_canAcceptString,
+        d = "Tests that GetRootAs<type>() generated methods accept strings"
+    },
+}
+
+local benchmarks = 
+{
     {
         f = benchmarkMakeMonster,
         d = "Benchmark making monsters",
@@ -302,6 +330,12 @@ local result, err = xpcall(function()
         return s:sub(1,-2)
     end
     
+    if performBenchmarkTests then
+        for _,benchmark in ipairs(benchmarks) do
+            table.insert(tests, benchmark)
+        end
+    end
+
     local testsPassed, testsFailed = 0,0
     for _,test in ipairs(tests) do
         local allargs = test.args or {{}}
