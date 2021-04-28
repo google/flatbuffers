@@ -107,7 +107,7 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
   Test tests[] = { Test(10, 20), Test(30, 40) };
   auto testv = builder.CreateVectorOfStructs(tests, 2);
 
-// clang-format off
+  // clang-format off
   #ifndef FLATBUFFERS_CPP98_STL
     // Create a vector of structures from a lambda.
     auto testv2 = builder.CreateVectorOfStructs<Test>(
@@ -223,7 +223,7 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
 
   FinishMonsterBuffer(builder, mloc);
 
-// clang-format off
+  // clang-format off
   #ifdef FLATBUFFERS_TEST_VERBOSE
   // print byte data for debugging:
   auto p = builder.GetBufferPointer();
@@ -247,7 +247,7 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length,
   flatbuffers::Verifier verifier(flatbuf, length);
   TEST_EQ(VerifyMonsterBuffer(verifier), true);
 
-// clang-format off
+  // clang-format off
   #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
     std::vector<uint8_t> test_buff;
     test_buff.resize(length * 2);
@@ -602,7 +602,7 @@ void SizePrefixedTest() {
 }
 
 void TriviallyCopyableTest() {
-// clang-format off
+  // clang-format off
   #if __GNUG__ && __GNUC__ < 5
     TEST_EQ(__has_trivial_copy(Vec3), true);
   #else
@@ -1438,7 +1438,7 @@ void FuzzTest2() {
     }
   };
 
-// clang-format off
+  // clang-format off
   #define AddToSchemaAndInstances(schema_add, instance_add) \
     RndDef::Add(definitions, schema, instances_per_definition, \
                 schema_add, instance_add, definition)
@@ -1590,7 +1590,7 @@ void FuzzTest2() {
     TEST_NOTNULL(nullptr);  //-V501 (this comment supresses CWE-570 warning)
   }
 
-// clang-format off
+  // clang-format off
   #ifdef FLATBUFFERS_TEST_VERBOSE
     TEST_OUTPUT_LINE("%dk schema tested with %dk of json\n",
                      static_cast<int>(schema.length() / 1024),
@@ -2876,10 +2876,10 @@ void FlexBuffersTest() {
   flexbuffers::Builder slb(512,
                            flexbuffers::BUILDER_FLAG_SHARE_KEYS_AND_STRINGS);
 
-// Write the equivalent of:
-// { vec: [ -100, "Fred", 4.0, false ], bar: [ 1, 2, 3 ], bar3: [ 1, 2, 3 ],
-// foo: 100, bool: true, mymap: { foo: "Fred" } }
-// clang-format off
+  // Write the equivalent of:
+  // { vec: [ -100, "Fred", 4.0, false ], bar: [ 1, 2, 3 ], bar3: [ 1, 2, 3 ],
+  // foo: 100, bool: true, mymap: { foo: "Fred" } }
+  // clang-format off
   #ifndef FLATBUFFERS_CPP98_STL
     // It's possible to do this without std::function support as well.
     slb.Map([&]() {

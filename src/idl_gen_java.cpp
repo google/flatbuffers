@@ -1440,15 +1440,19 @@ class JavaGenerator : public BaseGenerator {
         case BASE_TYPE_STRUCT: {
           auto fixed = struct_def.fixed && field.value.type.struct_def->fixed;
           if (fixed) {
-            code += "    " + camel_name + "().unpackTo(_o.get" + camel_name_with_first + "());\n";
+            code += "    " + camel_name + "().unpackTo(_o.get" +
+                    camel_name_with_first + "());\n";
           } else {
             code += "    if (" + camel_name + "() != null) ";
             if (field.value.type.struct_def->fixed) {
-              code += camel_name + "().unpackTo(_o.get" + camel_name_with_first + "());\n";
+              code += camel_name + "().unpackTo(_o.get" +
+                      camel_name_with_first + "());\n";
             } else {
-              code += "_o." + GenSetterFuncName_ObjectAPI(field.name) + "(" + camel_name + "().unpack());\n";
+              code += "_o." + GenSetterFuncName_ObjectAPI(field.name) + "(" +
+                      camel_name + "().unpack());\n";
             }
-            code += "    else _o." + GenSetterFuncName_ObjectAPI(field.name) + "(null);\n";
+            code += "    else _o." + GenSetterFuncName_ObjectAPI(field.name) +
+                    "(null);\n";
           }
           call_setter = false;
           break;

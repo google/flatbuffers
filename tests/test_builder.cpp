@@ -9,7 +9,7 @@ struct OwnedAllocator : public flatbuffers::DefaultAllocator {};
 
 class TestHeapBuilder : public flatbuffers::FlatBufferBuilder {
  private:
-// clang-format off
+  // clang-format off
   #if !defined(FLATBUFFERS_CPP98_STL)
   TestHeapBuilder(const TestHeapBuilder &);
   TestHeapBuilder &operator=(const TestHeapBuilder &);
@@ -20,7 +20,7 @@ class TestHeapBuilder : public flatbuffers::FlatBufferBuilder {
   TestHeapBuilder()
       : flatbuffers::FlatBufferBuilder(2048, new OwnedAllocator(), true) {}
 
-// clang-format off
+  // clang-format off
   #if !defined(FLATBUFFERS_CPP98_STL)
   // clang-format on
   TestHeapBuilder(TestHeapBuilder &&other)
@@ -30,7 +30,7 @@ class TestHeapBuilder : public flatbuffers::FlatBufferBuilder {
     FlatBufferBuilder::operator=(std::move(other));
     return *this;
   }
-// clang-format off
+  // clang-format off
   #endif  // !defined(FLATBUFFERS_CPP98_STL)
   // clang-format on
 };
@@ -56,7 +56,7 @@ struct GrpcLikeMessageBuilder : private AllocatorMember,
     Swap(other);
   }
 
-// clang-format off
+  // clang-format off
   #if !defined(FLATBUFFERS_CPP98_STL)
   // clang-format on
   GrpcLikeMessageBuilder &operator=(GrpcLikeMessageBuilder &&other) {
@@ -65,7 +65,7 @@ struct GrpcLikeMessageBuilder : private AllocatorMember,
     Swap(temp);
     return *this;
   }
-// clang-format off
+  // clang-format off
   #endif  // !defined(FLATBUFFERS_CPP98_STL)
   // clang-format on
 
