@@ -1429,6 +1429,7 @@ class JavaTest {
     static void TestPackUnpack(ByteBuffer bb) {
         Monster m = Monster.getRootAsMonster(bb);
         MonsterT mObject = m.unpack();
+        TestObject(mObject);
         FlatBufferBuilder fbb = new FlatBufferBuilder();
         int monster = Monster.pack(fbb, mObject);
         Monster.finishMonsterBuffer(fbb, monster);

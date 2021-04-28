@@ -44,8 +44,8 @@ public final class SecondTableInA extends Table {
     return _o;
   }
   public void unpackTo(SecondTableInAT _o) {
-    NamespaceC.TableInCT _oReferToC = referToC() != null ? referToC().unpack() : null;
-    _o.setReferToC(_oReferToC);
+    if (referToC() != null) _o.setReferToC(referToC().unpack());
+    else _o.setReferToC(null);
   }
   public static int pack(FlatBufferBuilder builder, SecondTableInAT _o) {
     if (_o == null) return 0;

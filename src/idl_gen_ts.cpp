@@ -331,9 +331,9 @@ class TsGenerator : public BaseGenerator {
         GenStructArgs(imports, *field.value.type.struct_def, arguments,
                       nameprefix + field.name + "_");
       } else {
-        *arguments +=
-            ", " + nameprefix + field.name + ": " +
-            GenTypeName(imports, field, field.value.type, true, field.IsOptional());
+        *arguments += ", " + nameprefix + field.name + ": " +
+                      GenTypeName(imports, field, field.value.type, true,
+                                  field.IsOptional());
       }
     }
   }

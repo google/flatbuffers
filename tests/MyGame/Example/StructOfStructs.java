@@ -22,15 +22,15 @@ public final class StructOfStructs extends Struct {
   public static int createStructOfStructs(FlatBufferBuilder builder, long a_id, long a_distance, short b_a, byte b_b, long c_id, long c_distance) {
     builder.prep(4, 20);
     builder.prep(4, 8);
-    builder.putInt((int)c_distance);
-    builder.putInt((int)c_id);
+    builder.putInt((int) c_distance);
+    builder.putInt((int) c_id);
     builder.prep(2, 4);
     builder.pad(1);
     builder.putByte(b_b);
     builder.putShort(b_a);
     builder.prep(4, 8);
-    builder.putInt((int)a_distance);
-    builder.putInt((int)a_id);
+    builder.putInt((int) a_distance);
+    builder.putInt((int) a_id);
     return builder.offset();
   }
 
@@ -46,12 +46,9 @@ public final class StructOfStructs extends Struct {
     return _o;
   }
   public void unpackTo(StructOfStructsT _o) {
-    MyGame.Example.AbilityT _oA = a().unpack();
-    _o.setA(_oA);
-    MyGame.Example.TestT _oB = b().unpack();
-    _o.setB(_oB);
-    MyGame.Example.AbilityT _oC = c().unpack();
-    _o.setC(_oC);
+    a().unpackTo(_o.getA());
+    b().unpackTo(_o.getB());
+    c().unpackTo(_o.getC());
   }
   public static int pack(FlatBufferBuilder builder, StructOfStructsT _o) {
     if (_o == null) return 0;

@@ -47,8 +47,8 @@ public final class TableInFirstNS extends Table {
     return _o;
   }
   public void unpackTo(TableInFirstNST _o) {
-    NamespaceA.NamespaceB.TableInNestedNST _oFooTable = fooTable() != null ? fooTable().unpack() : null;
-    _o.setFooTable(_oFooTable);
+    if (fooTable() != null) _o.setFooTable(fooTable().unpack());
+    else _o.setFooTable(null);
     byte _oFooEnum = fooEnum();
     _o.setFooEnum(_oFooEnum);
     NamespaceA.NamespaceB.UnionInNestedNSUnion _oFooUnion = new NamespaceA.NamespaceB.UnionInNestedNSUnion();
@@ -63,8 +63,8 @@ public final class TableInFirstNS extends Table {
       default: break;
     }
     _o.setFooUnion(_oFooUnion);
-    NamespaceA.NamespaceB.StructInNestedNST _oFooStruct = fooStruct() != null ? fooStruct().unpack() : null;
-    _o.setFooStruct(_oFooStruct);
+    if (fooStruct() != null) fooStruct().unpackTo(_o.getFooStruct());
+    else _o.setFooStruct(null);
   }
   public static int pack(FlatBufferBuilder builder, TableInFirstNST _o) {
     if (_o == null) return 0;

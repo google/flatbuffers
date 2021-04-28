@@ -18,15 +18,15 @@ public final class TypeAliases extends Table {
   public byte i8() { int o = __offset(4); return o != 0 ? bb.get(o + bb_pos) : 0; }
   public boolean mutateI8(byte i8) { int o = __offset(4); if (o != 0) { bb.put(o + bb_pos, i8); return true; } else { return false; } }
   public int u8() { int o = __offset(6); return o != 0 ? bb.get(o + bb_pos) & 0xFF : 0; }
-  public boolean mutateU8(int u8) { int o = __offset(6); if (o != 0) { bb.put(o + bb_pos, (byte)u8); return true; } else { return false; } }
+  public boolean mutateU8(int u8) { int o = __offset(6); if (o != 0) { bb.put(o + bb_pos, (byte) u8); return true; } else { return false; } }
   public short i16() { int o = __offset(8); return o != 0 ? bb.getShort(o + bb_pos) : 0; }
   public boolean mutateI16(short i16) { int o = __offset(8); if (o != 0) { bb.putShort(o + bb_pos, i16); return true; } else { return false; } }
   public int u16() { int o = __offset(10); return o != 0 ? bb.getShort(o + bb_pos) & 0xFFFF : 0; }
-  public boolean mutateU16(int u16) { int o = __offset(10); if (o != 0) { bb.putShort(o + bb_pos, (short)u16); return true; } else { return false; } }
+  public boolean mutateU16(int u16) { int o = __offset(10); if (o != 0) { bb.putShort(o + bb_pos, (short) u16); return true; } else { return false; } }
   public int i32() { int o = __offset(12); return o != 0 ? bb.getInt(o + bb_pos) : 0; }
   public boolean mutateI32(int i32) { int o = __offset(12); if (o != 0) { bb.putInt(o + bb_pos, i32); return true; } else { return false; } }
   public long u32() { int o = __offset(14); return o != 0 ? (long)bb.getInt(o + bb_pos) & 0xFFFFFFFFL : 0L; }
-  public boolean mutateU32(long u32) { int o = __offset(14); if (o != 0) { bb.putInt(o + bb_pos, (int)u32); return true; } else { return false; } }
+  public boolean mutateU32(long u32) { int o = __offset(14); if (o != 0) { bb.putInt(o + bb_pos, (int) u32); return true; } else { return false; } }
   public long i64() { int o = __offset(16); return o != 0 ? bb.getLong(o + bb_pos) : 0L; }
   public boolean mutateI64(long i64) { int o = __offset(16); if (o != 0) { bb.putLong(o + bb_pos, i64); return true; } else { return false; } }
   public long u64() { int o = __offset(18); return o != 0 ? bb.getLong(o + bb_pos) : 0L; }
@@ -81,11 +81,11 @@ public final class TypeAliases extends Table {
 
   public static void startTypeAliases(FlatBufferBuilder builder) { builder.startTable(12); }
   public static void addI8(FlatBufferBuilder builder, byte i8) { builder.addByte(0, i8, 0); }
-  public static void addU8(FlatBufferBuilder builder, int u8) { builder.addByte(1, (byte)u8, (byte)0); }
+  public static void addU8(FlatBufferBuilder builder, int u8) { builder.addByte(1, (byte) u8, (byte) 0); }
   public static void addI16(FlatBufferBuilder builder, short i16) { builder.addShort(2, i16, 0); }
-  public static void addU16(FlatBufferBuilder builder, int u16) { builder.addShort(3, (short)u16, (short)0); }
+  public static void addU16(FlatBufferBuilder builder, int u16) { builder.addShort(3, (short) u16, (short) 0); }
   public static void addI32(FlatBufferBuilder builder, int i32) { builder.addInt(4, i32, 0); }
-  public static void addU32(FlatBufferBuilder builder, long u32) { builder.addInt(5, (int)u32, (int)0L); }
+  public static void addU32(FlatBufferBuilder builder, long u32) { builder.addInt(5, (int) u32, (int) 0L); }
   public static void addI64(FlatBufferBuilder builder, long i64) { builder.addLong(6, i64, 0L); }
   public static void addU64(FlatBufferBuilder builder, long u64) { builder.addLong(7, u64, 0L); }
   public static void addF32(FlatBufferBuilder builder, float f32) { builder.addFloat(8, f32, 0.0f); }
@@ -95,7 +95,7 @@ public final class TypeAliases extends Table {
   public static int createV8Vector(FlatBufferBuilder builder, ByteBuffer data) { return builder.createByteVector(data); }
   public static void startV8Vector(FlatBufferBuilder builder, int numElems) { builder.startVector(1, numElems, 1); }
   public static void addVf64(FlatBufferBuilder builder, int vf64Offset) { builder.addOffset(11, vf64Offset, 0); }
-  public static int createVf64Vector(FlatBufferBuilder builder, double[] data) { builder.startVector(8, data.length, 8); for (int i = data.length - 1; i >= 0; i--) builder.addDouble( data[i]); return builder.endVector(); }
+  public static int createVf64Vector(FlatBufferBuilder builder, double[] data) { builder.startVector(8, data.length, 8); for (int i = data.length - 1; i >= 0; i--) builder.addDouble(data[i]); return builder.endVector(); }
   public static void startVf64Vector(FlatBufferBuilder builder, int numElems) { builder.startVector(8, numElems, 8); }
   public static int endTypeAliases(FlatBufferBuilder builder) {
     int o = builder.endTable();

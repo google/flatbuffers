@@ -21,7 +21,7 @@ public final class Stat extends Table {
   public long val() { int o = __offset(6); return o != 0 ? bb.getLong(o + bb_pos) : 0L; }
   public boolean mutateVal(long val) { int o = __offset(6); if (o != 0) { bb.putLong(o + bb_pos, val); return true; } else { return false; } }
   public int count() { int o = __offset(8); return o != 0 ? bb.getShort(o + bb_pos) & 0xFFFF : 0; }
-  public boolean mutateCount(int count) { int o = __offset(8); if (o != 0) { bb.putShort(o + bb_pos, (short)count); return true; } else { return false; } }
+  public boolean mutateCount(int count) { int o = __offset(8); if (o != 0) { bb.putShort(o + bb_pos, (short) count); return true; } else { return false; } }
 
   public static int createStat(FlatBufferBuilder builder,
       int idOffset,
@@ -37,7 +37,7 @@ public final class Stat extends Table {
   public static void startStat(FlatBufferBuilder builder) { builder.startTable(3); }
   public static void addId(FlatBufferBuilder builder, int idOffset) { builder.addOffset(0, idOffset, 0); }
   public static void addVal(FlatBufferBuilder builder, long val) { builder.addLong(1, val, 0L); }
-  public static void addCount(FlatBufferBuilder builder, int count) { builder.addShort(2, (short)count, (short)0); }
+  public static void addCount(FlatBufferBuilder builder, int count) { builder.addShort(2, (short) count, (short) 0); }
   public static int endStat(FlatBufferBuilder builder) {
     int o = builder.endTable();
     return o;

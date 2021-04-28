@@ -667,9 +667,7 @@ class CppGenerator : public BaseGenerator {
       }
       case BASE_TYPE_UNION:
         // fall through
-      default: {
-        return "void";
-      }
+      default: { return "void"; }
     }
   }
 
@@ -1924,9 +1922,7 @@ class CppGenerator : public BaseGenerator {
         }
         break;
       }
-      default: {
-        break;
-      }
+      default: { break; }
     }
   }
 

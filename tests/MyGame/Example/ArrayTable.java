@@ -40,8 +40,8 @@ public final class ArrayTable extends Table {
     return _o;
   }
   public void unpackTo(ArrayTableT _o) {
-    MyGame.Example.ArrayStructT _oA = a() != null ? a().unpack() : null;
-    _o.setA(_oA);
+    if (a() != null) a().unpackTo(_o.getA());
+    else _o.setA(null);
   }
   public static int pack(FlatBufferBuilder builder, ArrayTableT _o) {
     if (_o == null) return 0;

@@ -49,10 +49,10 @@ public final class TableInC extends Table {
     return _o;
   }
   public void unpackTo(TableInCT _o) {
-    NamespaceA.TableInFirstNST _oReferToA1 = referToA1() != null ? referToA1().unpack() : null;
-    _o.setReferToA1(_oReferToA1);
-    NamespaceA.SecondTableInAT _oReferToA2 = referToA2() != null ? referToA2().unpack() : null;
-    _o.setReferToA2(_oReferToA2);
+    if (referToA1() != null) _o.setReferToA1(referToA1().unpack());
+    else _o.setReferToA1(null);
+    if (referToA2() != null) _o.setReferToA2(referToA2().unpack());
+    else _o.setReferToA2(null);
   }
   public static int pack(FlatBufferBuilder builder, TableInCT _o) {
     if (_o == null) return 0;
