@@ -415,10 +415,20 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     }
     /// Get the byte slice for the data that has been written after a call to
     /// one of the `finish` functions.
+    /// # Panics
+    /// Panics if the buffer is not finished.
     #[inline]
     pub fn finished_data(&self) -> &[u8] {
         self.assert_finished("finished_bytes cannot be called when the buffer is not yet finished");
         &self.owned_buf[self.head..]
+    }
+    /// Returns a mutable view of a finished buffer and location of where the flatbuffer starts.
+    /// Note that modifying the flatbuffer data may corrupt it.
+    /// # Panics
+    /// Panics if the flatbuffer is not finished.
+    #[inline]
+    pub fn mut_finished_buffer(&mut self) -> (&mut [u8], usize) {
+        (&mut self.owned_buf, self.head)
     }
     /// Assert that a field is present in the just-finished Table.
     ///
