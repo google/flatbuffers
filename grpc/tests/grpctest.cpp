@@ -179,7 +179,7 @@ int grpc_server_test() {
   return 0;
 }
 
-int main(int /*argc*/, const char * /*argv*/ []) {
+int main(int /*argc*/, const char * /*argv*/[]) {
   message_builder_tests();
   grpc_server_test();
 
