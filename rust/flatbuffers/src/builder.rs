@@ -62,24 +62,32 @@ pub struct FlatBufferBuilder<'fbb> {
 impl<'fbb> FlatBufferBuilder<'fbb> {
     /// Create a FlatBufferBuilder that is ready for writing.
     pub fn new() -> Self {
-        Self::new_with_capacity(0)
+        Self::with_capacity(0)
     }
-
+    #[deprecated(note = "replaced with `with_capacity`", since = "0.8.5")]
+    pub fn new_with_capacity(size: usize) -> Self {
+        Self::with_capacity(size)
+    }
     /// Create a FlatBufferBuilder that is ready for writing, with a
     /// ready-to-use capacity of the provided size.
     ///
     /// The maximum valid value is `FLATBUFFERS_MAX_BUFFER_SIZE`.
-    pub fn new_with_capacity(size: usize) -> Self {
+    pub fn with_capacity(size: usize) -> Self {
+        Self::from_vec(vec![0; size])
+    }
+    /// Create a FlatBufferBuilder that is ready for writing, reusing
+    /// an existing vector.
+    pub fn from_vec(buffer: Vec<u8>) -> Self {
         // we need to check the size here because we create the backing buffer
         // directly, bypassing the typical way of using grow_owned_buf:
         assert!(
-            size <= FLATBUFFERS_MAX_BUFFER_SIZE,
+            buffer.len() <= FLATBUFFERS_MAX_BUFFER_SIZE,
             "cannot initialize buffer bigger than 2 gigabytes"
         );
-
+        let head = buffer.len();
         FlatBufferBuilder {
-            owned_buf: vec![0u8; size],
-            head: size,
+            owned_buf: buffer,
+            head,
 
             field_locs: Vec::new(),
             written_vtable_revpos: Vec::new(),
@@ -765,6 +773,6 @@ fn padding_bytes(buf_size: usize, scalar_size: usize) -> usize {
 
 impl<'fbb> Default for FlatBufferBuilder<'fbb> {
     fn default() -> Self {
-        Self::new_with_capacity(0)
+        Self::with_capacity(0)
     }
 }
