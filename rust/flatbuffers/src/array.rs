@@ -15,14 +15,11 @@
  */
 
 use crate::follow::Follow;
-use crate::{
-    vector::{SafeSliceAccess, VectorIter},
-    EndianScalar,
-};
+use crate::vector::VectorIter;
+use crate::EndianScalar;
 use std::fmt::{Debug, Formatter, Result};
 use std::marker::PhantomData;
 use std::mem::size_of;
-use std::slice::from_raw_parts;
 
 #[derive(Copy, Clone)]
 pub struct Array<'a, T: 'a, const N: usize>(&'a [u8], PhantomData<T>);
@@ -38,7 +35,7 @@ where
 }
 
 #[allow(clippy::len_without_is_empty)]
-#[allow(clippy::from_over_into)]  // TODO(caspern): Go from From to Into.
+#[allow(clippy::from_over_into)] // TODO(caspern): Go from From to Into.
 impl<'a, T: 'a, const N: usize> Array<'a, T, N> {
     #[inline(always)]
     pub fn new(buf: &'a [u8]) -> Self {
