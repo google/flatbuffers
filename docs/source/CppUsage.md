@@ -327,7 +327,7 @@ And example of usage, for the time being, can be found in
 ## Mini Reflection
 
 A more limited form of reflection is available for direct inclusion in
-generated code, which doesn't any (binary) schema access at all. It was designed
+generated code, which doesn't do any (binary) schema access at all. It was designed
 to keep the overhead of reflection as low as possible (on the order of 2-6
 bytes per field added to your executable), but doesn't contain all the
 information the (binary) schema contains.
