@@ -26,9 +26,9 @@ static getSizePrefixedRootAsTableInFirstNS(bb:flatbuffers.ByteBuffer, obj?:Table
   return (obj || new TableInFirstNS()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
-fooTable(obj?:NS8755221360535654258.TableInNestedNS):NS8755221360535654258.TableInNestedNS|null {
+fooTable(obj?:TableInNestedNS):TableInNestedNS|null {
   const offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? (obj || new NS8755221360535654258.TableInNestedNS()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
+  return offset ? (obj || new TableInNestedNS()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
 }
 
 fooEnum():EnumInNestedNS {
@@ -57,9 +57,9 @@ fooUnion<T extends flatbuffers.Table>(obj:any):any|null {
   return offset ? this.bb!.__union(obj, this.bb_pos + offset) : null;
 }
 
-fooStruct(obj?:NS8755221360535654258.StructInNestedNS):NS8755221360535654258.StructInNestedNS|null {
+fooStruct(obj?:StructInNestedNS):StructInNestedNS|null {
   const offset = this.bb!.__offset(this.bb_pos, 12);
-  return offset ? (obj || new NS8755221360535654258.StructInNestedNS()).__init(this.bb_pos + offset, this.bb!) : null;
+  return offset ? (obj || new StructInNestedNS()).__init(this.bb_pos + offset, this.bb!) : null;
 }
 
 static getFullyQualifiedName():string {
