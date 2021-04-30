@@ -7,8 +7,8 @@ m.GetAlignSize = function(k, size)
 end
 
 
-m.spack = string.pack
-m.sunpack = string.unpack
+m.string_pack = string.pack
+m.string_unpack = string.unpack
 
 
 return m

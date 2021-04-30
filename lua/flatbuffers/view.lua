@@ -1,5 +1,5 @@
 local compat = require("flatbuffers.compat")
-local sunpack = compat.sunpack
+local string_unpack = compat.string_unpack
 
 
 local m = {}
@@ -17,11 +17,11 @@ local function enforceOffset(off)
 end
 
 local function unPackUoffset(bytes, off)
-    return sunpack("<I4", bytes.str, off + 1)
+    return string_unpack("<I4", bytes.str, off + 1)
 end
 
 local function unPackVoffset(bytes, off)
-    return sunpack("<I2", bytes.str, off + 1)
+    return string_unpack("<I2", bytes.str, off + 1)
 end
 
 function m.New(buf, pos)

@@ -1,7 +1,7 @@
 local bit = require("bit")
+local ffi = require("ffi")
 local band = bit.band
 local bnot = bit.bnot
-local ffi = require("ffi")
 
 
 local m = {}
@@ -145,7 +145,7 @@ local function unpack_d(n, pos)
 end
 
 
-m.spack = function(fmt, i, ...)
+m.string_pack = function(fmt, i, ...)
     if fmt == "<I1" then
         return pack_I1(i)
     elseif fmt == "<I2" then
@@ -172,7 +172,7 @@ m.spack = function(fmt, i, ...)
 end
 
 
-m.sunpack = function(fmt, s, pos)
+m.string_unpack = function(fmt, s, pos)
     if not pos then
         pos = 1
     end
