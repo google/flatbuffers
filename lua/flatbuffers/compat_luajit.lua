@@ -9,6 +9,13 @@ local Uint8Bound = 256 -- bound is the max uintN + 1
 local Uint16Bound = 65536
 local Uint32Bound = 4294967296
 
+if not table.unpack then
+    table.unpack = unpack
+end
+
+if not table.pack then
+    table.pack = pack
+end
 
 m.GetAlignSize = function(k, size)
     return band((bnot(k) + 1), (size - 1))
