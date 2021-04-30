@@ -295,15 +295,11 @@ template<typename T> class Vector {
   iterator end() { return iterator(Data(), size()); }
   const_iterator end() const { return const_iterator(Data(), size()); }
 
-  reverse_iterator rbegin() { return reverse_iterator(end() - 1); }
-  const_reverse_iterator rbegin() const {
-    return const_reverse_iterator(end() - 1);
-  }
+  reverse_iterator rbegin() { return reverse_iterator(end()); }
+  const_reverse_iterator rbegin() const { return const_reverse_iterator(end()); }
 
-  reverse_iterator rend() { return reverse_iterator(begin() - 1); }
-  const_reverse_iterator rend() const {
-    return const_reverse_iterator(begin() - 1);
-  }
+  reverse_iterator rend() { return reverse_iterator(begin()); }
+  const_reverse_iterator rend() const { return const_reverse_iterator(begin()); }
 
   const_iterator cbegin() const { return begin(); }
 
