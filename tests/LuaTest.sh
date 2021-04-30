@@ -19,4 +19,7 @@ test_dir="$(pwd)"
 
 ${test_dir}/../flatc --lua -I include_test monster_test.fbs
 
+echo "Run with LuaJIT:"
+luajit luatest.lua
+echo "Run with Lua 5.3:"
 lua5.3 luatest.lua
