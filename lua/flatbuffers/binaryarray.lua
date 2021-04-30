@@ -1,3 +1,9 @@
+local compat = require("flatbuffers.compat")
+-- locals for slightly faster access
+local string_pack = compat.string_pack
+local string_unpack = compat.string_unpack
+
+
 local m = {} -- the module table
 
 local mt = {} -- the module metatable
@@ -104,19 +110,15 @@ function mt:Set(value, position)
     self.data[position] = value
 end
 
--- locals for slightly faster access
-local sunpack = string.unpack
-local spack = string.pack
-
 -- Pack the data into a binary representation
 function m.Pack(fmt, ...)
-    return spack(fmt, ...)
+    return string_pack(fmt, ...)
 end
 
 -- Unpack the data from a binary representation in
 -- a Lua value
 function m.Unpack(fmt, s, pos)
-    return sunpack(fmt, s.str, pos + 1)
+    return string_unpack(fmt, s.str, pos + 1)
 end
 
 -- Return the binary array module

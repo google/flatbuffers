@@ -1,3 +1,7 @@
+local compat = require("flatbuffers.compat")
+local string_unpack = compat.string_unpack
+
+
 local m = {}
 local mt = {}
 
@@ -12,13 +16,12 @@ local function enforceOffset(off)
     end
 end
 
-local unpack = string.unpack
 local function unPackUoffset(bytes, off)
-    return unpack("<I4", bytes.str, off + 1)
+    return string_unpack("<I4", bytes.str, off + 1)
 end
 
 local function unPackVoffset(bytes, off)
-    return unpack("<I2", bytes.str, off + 1)
+    return string_unpack("<I2", bytes.str, off + 1)
 end
 
 function m.New(buf, pos)
