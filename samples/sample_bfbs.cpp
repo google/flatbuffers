@@ -22,7 +22,7 @@ using namespace MyGame::Sample;
 
 // This is an example of parsing text straight into a buffer and then
 // generating flatbuffer (JSON) text from the buffer.
-int main(int /*argc*/, const char * /*argv*/[]) {
+int main(int /*argc*/, const char * /*argv*/ []) {
   // load FlatBuffer schema (.fbs) and JSON from disk
   std::string schema_file;
   std::string json_file;
