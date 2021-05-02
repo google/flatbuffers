@@ -77,26 +77,6 @@ public final class Movie extends Table {
         _oMainCharacterValue = mainCharacter(new Attacker());
         _oMainCharacter.setValue(_oMainCharacterValue != null ? ((Attacker) _oMainCharacterValue).unpack() : null);
         break;
-      case Character.Rapunzel:
-        _oMainCharacterValue = mainCharacter(new Rapunzel());
-        _oMainCharacter.setValue(_oMainCharacterValue != null ? ((Rapunzel) _oMainCharacterValue).unpack() : null);
-        break;
-      case Character.Belle:
-        _oMainCharacterValue = mainCharacter(new BookReader());
-        _oMainCharacter.setValue(_oMainCharacterValue != null ? ((BookReader) _oMainCharacterValue).unpack() : null);
-        break;
-      case Character.BookFan:
-        _oMainCharacterValue = mainCharacter(new BookReader());
-        _oMainCharacter.setValue(_oMainCharacterValue != null ? ((BookReader) _oMainCharacterValue).unpack() : null);
-        break;
-      case Character.Other:
-        _oMainCharacterValue = mainCharacter(new String());
-        _oMainCharacter.setValue(_oMainCharacterValue != null ? ((String) _oMainCharacterValue).unpack() : null);
-        break;
-      case Character.Unused:
-        _oMainCharacterValue = mainCharacter(new String());
-        _oMainCharacter.setValue(_oMainCharacterValue != null ? ((String) _oMainCharacterValue).unpack() : null);
-        break;
       default: break;
     }
     _o.setMainCharacter(_oMainCharacter);
@@ -110,26 +90,6 @@ public final class Movie extends Table {
         case Character.MuLan:
           _oCharactersElementValue = characters(new Attacker(), _j);
           _oCharactersElement.setValue(_oCharactersElementValue != null ? ((Attacker) _oCharactersElementValue).unpack() : null);
-          break;
-        case Character.Rapunzel:
-          _oCharactersElementValue = characters(new Rapunzel(), _j);
-          _oCharactersElement.setValue(_oCharactersElementValue != null ? ((Rapunzel) _oCharactersElementValue).unpack() : null);
-          break;
-        case Character.Belle:
-          _oCharactersElementValue = characters(new BookReader(), _j);
-          _oCharactersElement.setValue(_oCharactersElementValue != null ? ((BookReader) _oCharactersElementValue).unpack() : null);
-          break;
-        case Character.BookFan:
-          _oCharactersElementValue = characters(new BookReader(), _j);
-          _oCharactersElement.setValue(_oCharactersElementValue != null ? ((BookReader) _oCharactersElementValue).unpack() : null);
-          break;
-        case Character.Other:
-          _oCharactersElementValue = characters(new String(), _j);
-          _oCharactersElement.setValue(_oCharactersElementValue != null ? ((String) _oCharactersElementValue).unpack() : null);
-          break;
-        case Character.Unused:
-          _oCharactersElementValue = characters(new String(), _j);
-          _oCharactersElement.setValue(_oCharactersElementValue != null ? ((String) _oCharactersElementValue).unpack() : null);
           break;
         default: break;
       }

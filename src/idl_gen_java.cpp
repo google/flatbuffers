@@ -1389,6 +1389,9 @@ class JavaGenerator : public BaseGenerator {
       if (ev.union_type.base_type == BASE_TYPE_NONE) {
         continue;
       } else {
+        if (ev.union_type.base_type == BASE_TYPE_STRING || (ev.union_type.base_type == BASE_TYPE_STRUCT && ev.union_type.struct_def->fixed)) {
+          continue; // This branch is due to bad implemantation of Unions in Java which doesn't handle non Table types. Should be deleted when issue #6561 is fixed.
+        }
         code += indent + "  case " + WrapInNameSpace(enum_def) + "." + ev.name +
                 ":\n";
         auto actual_type = GenTypeGet(ev.union_type);

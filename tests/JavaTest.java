@@ -97,7 +97,7 @@ class JavaTest {
 
         TestSizedInputStream();
 
-//        TestVectorOfUnions();
+        TestVectorOfUnions();
 
         TestFixedLengthArrays();
 
@@ -490,44 +490,44 @@ class JavaTest {
         TestEq(pos.x(), 1.0f);
     }
 
-//    static void TestVectorOfUnions() {
-//        final FlatBufferBuilder fbb = new FlatBufferBuilder();
-//
-//        final int swordAttackDamage = 1;
-//
-//        final int[] characterVector = new int[] {
-//            Attacker.createAttacker(fbb, swordAttackDamage),
-//        };
-//
-//        final byte[] characterTypeVector = new byte[]{
-//            Character.MuLan,
-//        };
-//
-//        Movie.finishMovieBuffer(
-//            fbb,
-//            Movie.createMovie(
-//                fbb,
-//                (byte)0,
-//                (byte)0,
-//                Movie.createCharactersTypeVector(fbb, characterTypeVector),
-//                Movie.createCharactersVector(fbb, characterVector)
-//            )
-//        );
-//
-//        final Movie movie = Movie.getRootAsMovie(fbb.dataBuffer());
-//        ByteVector charactersTypeByteVector = movie.charactersTypeVector();
-//        UnionVector charactersVector = movie.charactersVector();
-//
-//        TestEq(movie.charactersTypeLength(), characterTypeVector.length);
-//        TestEq(charactersTypeByteVector.length(), characterTypeVector.length);
-//        TestEq(movie.charactersLength(), characterVector.length);
-//        TestEq(charactersVector.length(), characterVector.length);
-//
-//        TestEq(movie.charactersType(0), characterTypeVector[0]);
-//        TestEq(charactersTypeByteVector.get(0), characterTypeVector[0]);
-//
-//        TestEq(((Attacker)movie.characters(new Attacker(), 0)).swordAttackDamage(), swordAttackDamage);
-//    }
+    static void TestVectorOfUnions() {
+        final FlatBufferBuilder fbb = new FlatBufferBuilder();
+
+        final int swordAttackDamage = 1;
+
+        final int[] characterVector = new int[] {
+            Attacker.createAttacker(fbb, swordAttackDamage),
+        };
+
+        final byte[] characterTypeVector = new byte[]{
+            Character.MuLan,
+        };
+
+        Movie.finishMovieBuffer(
+            fbb,
+            Movie.createMovie(
+                fbb,
+                (byte)0,
+                (byte)0,
+                Movie.createCharactersTypeVector(fbb, characterTypeVector),
+                Movie.createCharactersVector(fbb, characterVector)
+            )
+        );
+
+        final Movie movie = Movie.getRootAsMovie(fbb.dataBuffer());
+        ByteVector charactersTypeByteVector = movie.charactersTypeVector();
+        UnionVector charactersVector = movie.charactersVector();
+
+        TestEq(movie.charactersTypeLength(), characterTypeVector.length);
+        TestEq(charactersTypeByteVector.length(), characterTypeVector.length);
+        TestEq(movie.charactersLength(), characterVector.length);
+        TestEq(charactersVector.length(), characterVector.length);
+
+        TestEq(movie.charactersType(0), characterTypeVector[0]);
+        TestEq(charactersTypeByteVector.get(0), characterTypeVector[0]);
+
+        TestEq(((Attacker)movie.characters(new Attacker(), 0)).swordAttackDamage(), swordAttackDamage);
+    }
 
     static void TestFixedLengthArrays() {
         FlatBufferBuilder builder = new FlatBufferBuilder(0);
