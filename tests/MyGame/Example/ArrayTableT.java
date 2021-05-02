@@ -22,7 +22,7 @@ public class ArrayTableT {
     return ArrayTable.getRootAsArrayTable(ByteBuffer.wrap(fbBuffer)).unpack();
   }
   public byte[] serializeToBinary() {
-    FlatBufferBuilder fbb = new FlatBufferBuilder(0x10000);
+    FlatBufferBuilder fbb = new FlatBufferBuilder();
     ArrayTable.finishArrayTableBuffer(fbb, ArrayTable.pack(fbb, this));
     return fbb.sizedByteArray();
   }

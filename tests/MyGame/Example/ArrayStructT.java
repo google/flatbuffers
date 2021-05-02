@@ -21,7 +21,7 @@ public class ArrayStructT {
 
   public int[] getB() { return b; }
 
-  public void setB(int[] b) { this.b = b; }
+  public void setB(int[] b) { if (b != null && b.length == 15) this.b = b; }
 
   public byte getC() { return c; }
 
@@ -29,7 +29,7 @@ public class ArrayStructT {
 
   public MyGame.Example.NestedStructT[] getD() { return d; }
 
-  public void setD(MyGame.Example.NestedStructT[] d) { this.d = d; }
+  public void setD(MyGame.Example.NestedStructT[] d) { if (d != null && d.length == 2) this.d = d; }
 
   public int getE() { return e; }
 
@@ -37,7 +37,7 @@ public class ArrayStructT {
 
   public long[] getF() { return f; }
 
-  public void setF(long[] f) { this.f = f; }
+  public void setF(long[] f) { if (f != null && f.length == 2) this.f = f; }
 
 
   public ArrayStructT() {

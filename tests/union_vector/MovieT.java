@@ -26,7 +26,7 @@ public class MovieT {
     return Movie.getRootAsMovie(ByteBuffer.wrap(fbBuffer)).unpack();
   }
   public byte[] serializeToBinary() {
-    FlatBufferBuilder fbb = new FlatBufferBuilder(0x10000);
+    FlatBufferBuilder fbb = new FlatBufferBuilder();
     Movie.finishMovieBuffer(fbb, Movie.pack(fbb, this));
     return fbb.sizedByteArray();
   }

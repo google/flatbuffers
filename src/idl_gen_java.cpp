@@ -1468,11 +1468,12 @@ class JavaGenerator : public BaseGenerator {
           auto length_str = NumToString(field.value.type.fixed_length);
           auto unpack_method =
               field.value.type.struct_def == nullptr ? "" : ".unpack()";
-          code += start + "new " + type_name.substr(0, type_name.length() - 1) +
-                  length_str + "];\n";
+          code +=
+              start + "_o." + GenGetterFuncName_ObjectAPI(field.name) + "();\n";
           code += "    for (int _j = 0; _j < " + length_str + "; ++_j) { _o" +
                   camel_name_with_first + "[_j] = " + camel_name + "(_j)" +
                   unpack_method + "; }\n";
+          call_setter = false;
           break;
         }
         case BASE_TYPE_VECTOR:
@@ -1647,16 +1648,19 @@ class JavaGenerator : public BaseGenerator {
             auto pack_method =
                 field.value.type.struct_def == nullptr
                     ? "builder.add" + GenMethod(field.value.type.VectorType()) +
-                          "(_o." + camel_name + "[_j]);"
-                    : type_name + ".pack(builder, _e);";
+                          "(_o" + camel_name_with_first + "[_j]);"
+                    : type_name + ".pack(builder, _o" + camel_name_with_first +
+                          "[_j]);";
             code += "    int _" + camel_name + " = 0;\n";
-            code += "    if (_o." + GenGetterFuncName_ObjectAPI(field.name) +
-                    "() != null) {\n";
+            code += "    " + element_type_name + "[] _o" +
+                    camel_name_with_first + " = _o." +
+                    GenGetterFuncName_ObjectAPI(field.name) + "();\n";
+            code += "    if (_o" + camel_name_with_first + " != null) {\n";
             code += "      start" + camel_name_with_first +
-                    "Vector(builder, _o." +
-                    GenGetterFuncName_ObjectAPI(field.name) + "().length);\n";
-            code += "      for (" + element_type_name + " _e : _o." +
-                    GenGetterFuncName_ObjectAPI(field.name) + "()) { ";
+                    "Vector(builder, _o" + camel_name_with_first +
+                    ".length);\n";
+            code += "      for (int _j = _o" + camel_name_with_first +
+                    ".length - 1; _j >=0; _j--) { ";
             code += pack_method + "}\n";
             code += "      _" + camel_name + " = builder.endVector();\n";
             code += "    }\n";
@@ -2062,9 +2066,15 @@ class JavaGenerator : public BaseGenerator {
       code += "  public " + type_name + " " +
               GenGetterFuncName_ObjectAPI(field.name) + "() { return " +
               camel_name + "; }\n\n";
+      std::string array_validation = "";
+      if (field.value.type.base_type == BASE_TYPE_ARRAY) {
+        array_validation =
+            "if (" + camel_name + " != null && " + camel_name +
+            ".length == " + NumToString(field.value.type.fixed_length) + ") ";
+      }
       code += "  public void " + GenSetterFuncName_ObjectAPI(field.name) + "(" +
-              type_name + " " + camel_name + ") { this." + camel_name + " = " +
-              camel_name + "; }\n\n";
+              type_name + " " + camel_name + ") { " + array_validation +
+              "this." + camel_name + " = " + camel_name + "; }\n\n";
     }
     // Generate Constructor
     code += "\n";
@@ -2114,7 +2124,7 @@ class JavaGenerator : public BaseGenerator {
               "(ByteBuffer.wrap(fbBuffer)).unpack();\n";
       code += "  }\n";
       code += "  public byte[] serializeToBinary() {\n";
-      code += "    FlatBufferBuilder fbb = new FlatBufferBuilder(0x10000);\n";
+      code += "    FlatBufferBuilder fbb = new FlatBufferBuilder();\n";
       code += "    " + struct_def.name + ".finish" + struct_def.name +
               "Buffer(fbb, " + struct_def.name + ".pack(fbb, this));\n";
       code += "    return fbb.sizedByteArray();\n";

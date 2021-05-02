@@ -49,17 +49,14 @@ public final class NestedStruct extends Struct {
     return _o;
   }
   public void unpackTo(NestedStructT _o) {
-    int[] _oA = new int[2];
+    int[] _oA = _o.getA();
     for (int _j = 0; _j < 2; ++_j) { _oA[_j] = a(_j); }
-    _o.setA(_oA);
     byte _oB = b();
     _o.setB(_oB);
-    byte[] _oC = new byte[2];
+    byte[] _oC = _o.getC();
     for (int _j = 0; _j < 2; ++_j) { _oC[_j] = c(_j); }
-    _o.setC(_oC);
-    long[] _oD = new long[2];
+    long[] _oD = _o.getD();
     for (int _j = 0; _j < 2; ++_j) { _oD[_j] = d(_j); }
-    _o.setD(_oD);
   }
   public static int pack(FlatBufferBuilder builder, NestedStructT _o) {
     if (_o == null) return 0;

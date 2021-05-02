@@ -76,7 +76,7 @@ public class MonsterExtraT {
     return MonsterExtra.getRootAsMonsterExtra(ByteBuffer.wrap(fbBuffer)).unpack();
   }
   public byte[] serializeToBinary() {
-    FlatBufferBuilder fbb = new FlatBufferBuilder(0x10000);
+    FlatBufferBuilder fbb = new FlatBufferBuilder();
     MonsterExtra.finishMonsterExtraBuffer(fbb, MonsterExtra.pack(fbb, this));
     return fbb.sizedByteArray();
   }

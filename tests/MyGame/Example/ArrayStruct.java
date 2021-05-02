@@ -69,19 +69,16 @@ public final class ArrayStruct extends Struct {
   public void unpackTo(ArrayStructT _o) {
     float _oA = a();
     _o.setA(_oA);
-    int[] _oB = new int[15];
+    int[] _oB = _o.getB();
     for (int _j = 0; _j < 15; ++_j) { _oB[_j] = b(_j); }
-    _o.setB(_oB);
     byte _oC = c();
     _o.setC(_oC);
-    MyGame.Example.NestedStructT[] _oD = new MyGame.Example.NestedStructT[2];
+    MyGame.Example.NestedStructT[] _oD = _o.getD();
     for (int _j = 0; _j < 2; ++_j) { _oD[_j] = d(_j).unpack(); }
-    _o.setD(_oD);
     int _oE = e();
     _o.setE(_oE);
-    long[] _oF = new long[2];
+    long[] _oF = _o.getF();
     for (int _j = 0; _j < 2; ++_j) { _oF[_j] = f(_j); }
-    _o.setF(_oF);
   }
   public static int pack(FlatBufferBuilder builder, ArrayStructT _o) {
     if (_o == null) return 0;
