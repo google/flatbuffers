@@ -286,6 +286,7 @@ struct Definition {
   uoffset_t serialized_location;
   int index;  // Inside the vector it is stored.
   int refcount;
+  std::string declaration_file;
 };
 
 struct FieldDef : public Definition {
@@ -942,14 +943,15 @@ class Parser : public ParserState {
   StructDef *LookupCreateStruct(const std::string &name,
                                 bool create_if_new = true,
                                 bool definition = false);
-  FLATBUFFERS_CHECKED_ERROR ParseEnum(bool is_union, EnumDef **dest);
+  FLATBUFFERS_CHECKED_ERROR ParseEnum(bool is_union, EnumDef **dest,
+                                      const char *filename);
   FLATBUFFERS_CHECKED_ERROR ParseNamespace();
   FLATBUFFERS_CHECKED_ERROR StartStruct(const std::string &name,
                                         StructDef **dest);
   FLATBUFFERS_CHECKED_ERROR StartEnum(const std::string &name, bool is_union,
                                       EnumDef **dest);
-  FLATBUFFERS_CHECKED_ERROR ParseDecl();
-  FLATBUFFERS_CHECKED_ERROR ParseService();
+  FLATBUFFERS_CHECKED_ERROR ParseDecl(const char *filename);
+  FLATBUFFERS_CHECKED_ERROR ParseService(const char *filename);
   FLATBUFFERS_CHECKED_ERROR ParseProtoFields(StructDef *struct_def,
                                              bool isextend, bool inside_oneof);
   FLATBUFFERS_CHECKED_ERROR ParseProtoOption();

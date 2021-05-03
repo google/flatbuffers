@@ -414,7 +414,8 @@ struct Enum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_IS_UNION = 8,
     VT_UNDERLYING_TYPE = 10,
     VT_ATTRIBUTES = 12,
-    VT_DOCUMENTATION = 14
+    VT_DOCUMENTATION = 14,
+    VT_DECLARATION_FILE = 16
   };
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
@@ -440,6 +441,9 @@ struct Enum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *documentation() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_DOCUMENTATION);
   }
+  const flatbuffers::String *declaration_file() const {
+    return GetPointer<const flatbuffers::String *>(VT_DECLARATION_FILE);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
@@ -456,6 +460,8 @@ struct Enum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyOffset(verifier, VT_DOCUMENTATION) &&
            verifier.VerifyVector(documentation()) &&
            verifier.VerifyVectorOfStrings(documentation()) &&
+           VerifyOffset(verifier, VT_DECLARATION_FILE) &&
+           verifier.VerifyString(declaration_file()) &&
            verifier.EndTable();
   }
 };
@@ -482,6 +488,9 @@ struct EnumBuilder {
   void add_documentation(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> documentation) {
     fbb_.AddOffset(Enum::VT_DOCUMENTATION, documentation);
   }
+  void add_declaration_file(flatbuffers::Offset<flatbuffers::String> declaration_file) {
+    fbb_.AddOffset(Enum::VT_DECLARATION_FILE, declaration_file);
+  }
   explicit EnumBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -503,8 +512,10 @@ inline flatbuffers::Offset<Enum> CreateEnum(
     bool is_union = false,
     flatbuffers::Offset<reflection::Type> underlying_type = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<reflection::KeyValue>>> attributes = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> documentation = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> documentation = 0,
+    flatbuffers::Offset<flatbuffers::String> declaration_file = 0) {
   EnumBuilder builder_(_fbb);
+  builder_.add_declaration_file(declaration_file);
   builder_.add_documentation(documentation);
   builder_.add_attributes(attributes);
   builder_.add_underlying_type(underlying_type);
@@ -521,11 +532,13 @@ inline flatbuffers::Offset<Enum> CreateEnumDirect(
     bool is_union = false,
     flatbuffers::Offset<reflection::Type> underlying_type = 0,
     std::vector<flatbuffers::Offset<reflection::KeyValue>> *attributes = nullptr,
-    const std::vector<flatbuffers::Offset<flatbuffers::String>> *documentation = nullptr) {
+    const std::vector<flatbuffers::Offset<flatbuffers::String>> *documentation = nullptr,
+    const char *declaration_file = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto values__ = values ? _fbb.CreateVectorOfSortedTables<reflection::EnumVal>(values) : 0;
   auto attributes__ = attributes ? _fbb.CreateVectorOfSortedTables<reflection::KeyValue>(attributes) : 0;
   auto documentation__ = documentation ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*documentation) : 0;
+  auto declaration_file__ = declaration_file ? _fbb.CreateString(declaration_file) : 0;
   return reflection::CreateEnum(
       _fbb,
       name__,
@@ -533,7 +546,8 @@ inline flatbuffers::Offset<Enum> CreateEnumDirect(
       is_union,
       underlying_type,
       attributes__,
-      documentation__);
+      documentation__,
+      declaration_file__);
 }
 
 struct Field FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -743,7 +757,8 @@ struct Object FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_MINALIGN = 10,
     VT_BYTESIZE = 12,
     VT_ATTRIBUTES = 14,
-    VT_DOCUMENTATION = 16
+    VT_DOCUMENTATION = 16,
+    VT_DECLARATION_FILE = 18
   };
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
@@ -772,6 +787,9 @@ struct Object FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *documentation() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_DOCUMENTATION);
   }
+  const flatbuffers::String *declaration_file() const {
+    return GetPointer<const flatbuffers::String *>(VT_DECLARATION_FILE);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
@@ -788,6 +806,8 @@ struct Object FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyOffset(verifier, VT_DOCUMENTATION) &&
            verifier.VerifyVector(documentation()) &&
            verifier.VerifyVectorOfStrings(documentation()) &&
+           VerifyOffset(verifier, VT_DECLARATION_FILE) &&
+           verifier.VerifyString(declaration_file()) &&
            verifier.EndTable();
   }
 };
@@ -817,6 +837,9 @@ struct ObjectBuilder {
   void add_documentation(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> documentation) {
     fbb_.AddOffset(Object::VT_DOCUMENTATION, documentation);
   }
+  void add_declaration_file(flatbuffers::Offset<flatbuffers::String> declaration_file) {
+    fbb_.AddOffset(Object::VT_DECLARATION_FILE, declaration_file);
+  }
   explicit ObjectBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -838,8 +861,10 @@ inline flatbuffers::Offset<Object> CreateObject(
     int32_t minalign = 0,
     int32_t bytesize = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<reflection::KeyValue>>> attributes = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> documentation = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> documentation = 0,
+    flatbuffers::Offset<flatbuffers::String> declaration_file = 0) {
   ObjectBuilder builder_(_fbb);
+  builder_.add_declaration_file(declaration_file);
   builder_.add_documentation(documentation);
   builder_.add_attributes(attributes);
   builder_.add_bytesize(bytesize);
@@ -858,11 +883,13 @@ inline flatbuffers::Offset<Object> CreateObjectDirect(
     int32_t minalign = 0,
     int32_t bytesize = 0,
     std::vector<flatbuffers::Offset<reflection::KeyValue>> *attributes = nullptr,
-    const std::vector<flatbuffers::Offset<flatbuffers::String>> *documentation = nullptr) {
+    const std::vector<flatbuffers::Offset<flatbuffers::String>> *documentation = nullptr,
+    const char *declaration_file = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto fields__ = fields ? _fbb.CreateVectorOfSortedTables<reflection::Field>(fields) : 0;
   auto attributes__ = attributes ? _fbb.CreateVectorOfSortedTables<reflection::KeyValue>(attributes) : 0;
   auto documentation__ = documentation ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*documentation) : 0;
+  auto declaration_file__ = declaration_file ? _fbb.CreateString(declaration_file) : 0;
   return reflection::CreateObject(
       _fbb,
       name__,
@@ -871,7 +898,8 @@ inline flatbuffers::Offset<Object> CreateObjectDirect(
       minalign,
       bytesize,
       attributes__,
-      documentation__);
+      documentation__,
+      declaration_file__);
 }
 
 struct RPCCall FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -996,7 +1024,8 @@ struct Service FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_NAME = 4,
     VT_CALLS = 6,
     VT_ATTRIBUTES = 8,
-    VT_DOCUMENTATION = 10
+    VT_DOCUMENTATION = 10,
+    VT_DECLARATION_FILE = 12
   };
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
@@ -1016,6 +1045,9 @@ struct Service FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *documentation() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_DOCUMENTATION);
   }
+  const flatbuffers::String *declaration_file() const {
+    return GetPointer<const flatbuffers::String *>(VT_DECLARATION_FILE);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
@@ -1029,6 +1061,8 @@ struct Service FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyOffset(verifier, VT_DOCUMENTATION) &&
            verifier.VerifyVector(documentation()) &&
            verifier.VerifyVectorOfStrings(documentation()) &&
+           VerifyOffset(verifier, VT_DECLARATION_FILE) &&
+           verifier.VerifyString(declaration_file()) &&
            verifier.EndTable();
   }
 };
@@ -1049,6 +1083,9 @@ struct ServiceBuilder {
   void add_documentation(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> documentation) {
     fbb_.AddOffset(Service::VT_DOCUMENTATION, documentation);
   }
+  void add_declaration_file(flatbuffers::Offset<flatbuffers::String> declaration_file) {
+    fbb_.AddOffset(Service::VT_DECLARATION_FILE, declaration_file);
+  }
   explicit ServiceBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -1066,8 +1103,10 @@ inline flatbuffers::Offset<Service> CreateService(
     flatbuffers::Offset<flatbuffers::String> name = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<reflection::RPCCall>>> calls = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<reflection::KeyValue>>> attributes = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> documentation = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> documentation = 0,
+    flatbuffers::Offset<flatbuffers::String> declaration_file = 0) {
   ServiceBuilder builder_(_fbb);
+  builder_.add_declaration_file(declaration_file);
   builder_.add_documentation(documentation);
   builder_.add_attributes(attributes);
   builder_.add_calls(calls);
@@ -1080,17 +1119,20 @@ inline flatbuffers::Offset<Service> CreateServiceDirect(
     const char *name = nullptr,
     std::vector<flatbuffers::Offset<reflection::RPCCall>> *calls = nullptr,
     std::vector<flatbuffers::Offset<reflection::KeyValue>> *attributes = nullptr,
-    const std::vector<flatbuffers::Offset<flatbuffers::String>> *documentation = nullptr) {
+    const std::vector<flatbuffers::Offset<flatbuffers::String>> *documentation = nullptr,
+    const char *declaration_file = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto calls__ = calls ? _fbb.CreateVectorOfSortedTables<reflection::RPCCall>(calls) : 0;
   auto attributes__ = attributes ? _fbb.CreateVectorOfSortedTables<reflection::KeyValue>(attributes) : 0;
   auto documentation__ = documentation ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*documentation) : 0;
+  auto declaration_file__ = declaration_file ? _fbb.CreateString(declaration_file) : 0;
   return reflection::CreateService(
       _fbb,
       name__,
       calls__,
       attributes__,
-      documentation__);
+      documentation__,
+      declaration_file__);
 }
 
 struct Schema FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -1102,7 +1144,8 @@ struct Schema FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_FILE_EXT = 10,
     VT_ROOT_TABLE = 12,
     VT_SERVICES = 14,
-    VT_ADVANCED_FEATURES = 16
+    VT_ADVANCED_FEATURES = 16,
+    VT_FBS_FILES = 18
   };
   const flatbuffers::Vector<flatbuffers::Offset<reflection::Object>> *objects() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<reflection::Object>> *>(VT_OBJECTS);
@@ -1125,6 +1168,9 @@ struct Schema FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   reflection::AdvancedFeatures advanced_features() const {
     return static_cast<reflection::AdvancedFeatures>(GetField<uint64_t>(VT_ADVANCED_FEATURES, 0));
   }
+  const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *fbs_files() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_FBS_FILES);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_OBJECTS) &&
@@ -1143,6 +1189,9 @@ struct Schema FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyVector(services()) &&
            verifier.VerifyVectorOfTables(services()) &&
            VerifyField<uint64_t>(verifier, VT_ADVANCED_FEATURES) &&
+           VerifyOffset(verifier, VT_FBS_FILES) &&
+           verifier.VerifyVector(fbs_files()) &&
+           verifier.VerifyVectorOfStrings(fbs_files()) &&
            verifier.EndTable();
   }
 };
@@ -1172,6 +1221,9 @@ struct SchemaBuilder {
   void add_advanced_features(reflection::AdvancedFeatures advanced_features) {
     fbb_.AddElement<uint64_t>(Schema::VT_ADVANCED_FEATURES, static_cast<uint64_t>(advanced_features), 0);
   }
+  void add_fbs_files(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> fbs_files) {
+    fbb_.AddOffset(Schema::VT_FBS_FILES, fbs_files);
+  }
   explicit SchemaBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -1193,9 +1245,11 @@ inline flatbuffers::Offset<Schema> CreateSchema(
     flatbuffers::Offset<flatbuffers::String> file_ext = 0,
     flatbuffers::Offset<reflection::Object> root_table = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<reflection::Service>>> services = 0,
-    reflection::AdvancedFeatures advanced_features = static_cast<reflection::AdvancedFeatures>(0)) {
+    reflection::AdvancedFeatures advanced_features = static_cast<reflection::AdvancedFeatures>(0),
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> fbs_files = 0) {
   SchemaBuilder builder_(_fbb);
   builder_.add_advanced_features(advanced_features);
+  builder_.add_fbs_files(fbs_files);
   builder_.add_services(services);
   builder_.add_root_table(root_table);
   builder_.add_file_ext(file_ext);
@@ -1213,12 +1267,14 @@ inline flatbuffers::Offset<Schema> CreateSchemaDirect(
     const char *file_ext = nullptr,
     flatbuffers::Offset<reflection::Object> root_table = 0,
     std::vector<flatbuffers::Offset<reflection::Service>> *services = nullptr,
-    reflection::AdvancedFeatures advanced_features = static_cast<reflection::AdvancedFeatures>(0)) {
+    reflection::AdvancedFeatures advanced_features = static_cast<reflection::AdvancedFeatures>(0),
+    const std::vector<flatbuffers::Offset<flatbuffers::String>> *fbs_files = nullptr) {
   auto objects__ = objects ? _fbb.CreateVectorOfSortedTables<reflection::Object>(objects) : 0;
   auto enums__ = enums ? _fbb.CreateVectorOfSortedTables<reflection::Enum>(enums) : 0;
   auto file_ident__ = file_ident ? _fbb.CreateString(file_ident) : 0;
   auto file_ext__ = file_ext ? _fbb.CreateString(file_ext) : 0;
   auto services__ = services ? _fbb.CreateVectorOfSortedTables<reflection::Service>(services) : 0;
+  auto fbs_files__ = fbs_files ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*fbs_files) : 0;
   return reflection::CreateSchema(
       _fbb,
       objects__,
@@ -1227,7 +1283,8 @@ inline flatbuffers::Offset<Schema> CreateSchemaDirect(
       file_ext__,
       root_table,
       services__,
-      advanced_features);
+      advanced_features,
+      fbs_files__);
 }
 
 inline const reflection::Schema *GetSchema(const void *buf) {

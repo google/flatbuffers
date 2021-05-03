@@ -910,7 +910,36 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   // Make sure the schema is what we expect it to be.
   auto &schema = *reflection::GetSchema(bfbsfile.c_str());
   auto root_table = schema.root_table();
+  // Check the declaration files.
+  // declaration_file is an absolute path so we check for substrings.
   TEST_EQ_STR(root_table->name()->c_str(), "MyGame.Example.Monster");
+  TEST_ASSERT(root_table->declaration_file()->str().find(
+                  "tests/monster_test.fbs") != std::string::npos);
+  TEST_ASSERT(
+      schema.objects()->LookupByKey("TableA")->declaration_file()->str().find(
+          "tests/include_test/include_test1.fbs") != std::string::npos);
+  TEST_ASSERT(schema.objects()
+                  ->LookupByKey("MyGame.OtherNameSpace.Unused")
+                  ->declaration_file()
+                  ->str()
+                  .find("tests/include_test/sub/include_test2.fbs") !=
+              std::string::npos);
+  TEST_ASSERT(schema.enums()
+                  ->LookupByKey("MyGame.OtherNameSpace.FromInclude")
+                  ->declaration_file()
+                  ->str()
+                  .find("tests/include_test/sub/include_test2.fbs") !=
+              std::string::npos);
+  TEST_ASSERT(schema.fbs_files()->size() == 3);
+  TEST_ASSERT(schema.fbs_files()->Get(0)->str().find(
+                  "tests/include_test/include_test1.fbs") != std::string::npos);
+  TEST_ASSERT(schema.fbs_files()->Get(1)->str().find(
+                  "tests/include_test/sub/include_test2.fbs") !=
+              std::string::npos);
+  TEST_ASSERT(schema.fbs_files()->Get(2)->str().find(
+                  "tests/monster_test.fbs") != std::string::npos);
+
+  // Check Root table fields
   auto fields = root_table->fields();
   auto hp_field_ptr = fields->LookupByKey("hp");
   TEST_NOTNULL(hp_field_ptr);

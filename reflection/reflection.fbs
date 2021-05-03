@@ -60,6 +60,7 @@ table Enum {
     underlying_type:Type (required);
     attributes:[KeyValue];
     documentation:[string];
+    declaration_file: string;  // File that this Object is declared in.
 }
 
 table Field {
@@ -85,6 +86,7 @@ table Object {  // Used for both tables and structs.
     bytesize:int;  // For structs.
     attributes:[KeyValue];
     documentation:[string];
+    declaration_file: string;  // File that this Object is declared in.
 }
 
 table RPCCall {
@@ -100,6 +102,7 @@ table Service {
     calls:[RPCCall];
     attributes:[KeyValue];
     documentation:[string];
+    declaration_file: string;       // File that this Service is declared in.
 }
 
 // New schema language features that are not supported by old code generators.
@@ -118,6 +121,7 @@ table Schema {
     root_table:Object;
     services:[Service];             // Sorted.
     advanced_features:AdvancedFeatures;
+    fbs_files:[string];            // All the files used in this compilation.
 }
 
 root_type Schema;

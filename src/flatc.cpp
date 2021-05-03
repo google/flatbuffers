@@ -420,8 +420,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
     bool is_binary =
         static_cast<size_t>(file_it - filenames.begin()) >= binary_files_from;
     auto ext = flatbuffers::GetExtension(filename);
-    auto is_schema = ext == "fbs" || ext == "proto";
-    auto is_binary_schema = ext == reflection::SchemaExtension();
+    const bool is_schema = ext == "fbs" || ext == "proto";
+    const bool is_binary_schema = ext == reflection::SchemaExtension();
     if (is_binary) {
       parser->builder_.Clear();
       parser->builder_.PushFlatBuffer(
