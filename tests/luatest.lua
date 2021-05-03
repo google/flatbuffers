@@ -1,4 +1,5 @@
 package.path = string.format("../lua/?.lua;./?.lua;%s",package.path)
+local compat = require("flatbuffers.compat")
 
 local performBenchmarkTests = false
 
@@ -20,7 +21,7 @@ local function checkReadBuffer(buf, offset, sizePrefix)
     
     if sizePrefix then               
         local size = flatbuffers.N.Int32:Unpack(buf, offset)
-        assert(size == #buf - offset - 4)
+        assert(size == buf.size - offset - 4)
         offset = offset + flatbuffers.N.Int32.bytewidth
     end    
     
