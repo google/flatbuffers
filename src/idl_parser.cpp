@@ -3752,7 +3752,6 @@ Offset<reflection::EnumVal> EnumVal::Serialize(FlatBufferBuilder *builder,
                     : 0;
   return reflection::CreateEnumVal(
       *builder, name__, value,
-      union_type.struct_def ? union_type.struct_def->serialized_location : 0,
       type__, docs__);
 }
 
