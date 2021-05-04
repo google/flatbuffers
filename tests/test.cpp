@@ -306,21 +306,25 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length,
   }
   TEST_EQ(n, inv_vec.size());
 
-  n = 0;
-  for (auto it = inventory->rbegin(); it != inventory->rend(); ++it, ++n) {
-    auto indx = inventory->rend() - it - 1;
-    TEST_EQ(*it, inv_vec.at(indx));  // Use bounds-check.
-    TEST_EQ(*it, inv_data[indx]);
+  {
+    int n = 0; // prefer local var(?)
+    auto inv_vec_indx = inv_vec.size() - 1;
+    for (auto it = inventory->rbegin(); it != inventory->rend(); ++it, ++n, --inv_vec_indx) {
+      TEST_EQ(*it, inv_vec.at(inv_vec_indx));  // Use bounds-check.
+      TEST_EQ(*it, inv_data[inv_vec_indx]);
+    }
+    TEST_EQ(n, inv_vec.size());
   }
-  TEST_EQ(n, inv_vec.size());
 
-  n = 0;
-  for (auto it = inventory->crbegin(); it != inventory->crend(); ++it, ++n) {
-    auto indx = inventory->crend() - it - 1;
-    TEST_EQ(*it, inv_vec.at(indx));  // Use bounds-check.
-    TEST_EQ(*it, inv_data[indx]);
-  }
+  {
+    int n = 0;
+    auto inv_vec_indx = inv_vec.size() - 1;
+    for (auto it = inventory->crbegin(); it != inventory->crend(); ++it, ++n, --inv_vec_indx) {
+      TEST_EQ(*it, inv_vec.at(inv_vec_indx));  // Use bounds-check.
+      TEST_EQ(*it, inv_data[inv_vec_indx]);
+    }
   TEST_EQ(n, inv_vec.size());
+  }
 
   TEST_EQ(monster->color(), Color_Blue);
 
