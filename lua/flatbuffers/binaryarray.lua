@@ -50,7 +50,10 @@ function mt:Slice(startPos, endPos)
         -- updated the startPos based on the size of the
         -- value
         while startPos < endPos do
-            local v = d[startPos] or '/0'
+            local v = d[startPos]
+            if not v or v == "" then
+                v = '/0'
+            end
             table.insert(b, v)
             startPos = startPos + #v
         end
