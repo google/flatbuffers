@@ -245,11 +245,14 @@ std::string RemoveStringQuotes(const std::string &s) {
 }
 
 std::string Trim(const std::string &s) {
-    const auto start = std::find_if(s.begin(), s.end(), [](char c){ return !isspace(c);});
-    const auto end = std::find_if(s.rbegin(), s.rend(), [](char c){ return !isspace(c);}).base();
-    if (start < end) return std::string(start, end);
-    return std::string();
-  }
+  const auto start =
+      std::find_if(s.begin(), s.end(), [](char c){ return !isspace(c); });
+  const auto end =
+      std::find_if(s.rbegin(), s.rend(), [](char c){ return !isspace(c); })
+          .base();
+  if (start < end) return std::string(start, end);
+  return std::string();
+}
 
 bool SetGlobalTestLocale(const char *locale_name, std::string *_value) {
   const auto the_locale = setlocale(LC_ALL, locale_name);
