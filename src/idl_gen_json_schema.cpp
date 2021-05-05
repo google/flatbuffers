@@ -166,7 +166,7 @@ class JsonSchemaGenerator : public BaseGenerator {
     return std::string(num_spaces, ' ');
   }
 
-  std::tuple<bool, std::string> PrepareDescription(
+  std::string PrepareDescription(
       const std::vector<std::string> &comment_lines) {
     std::string comment;
     for (auto comment_line = comment_lines.cbegin();
@@ -178,11 +178,11 @@ class JsonSchemaGenerator : public BaseGenerator {
       std::string description;
       if (EscapeString(comment.c_str(), comment.length(), &description, true,
                        true)) {
-        return std::tuple<bool, std::string>(true, description);
+        return description;
       }
-      return std::tuple<bool, std::string>(false, "");
+      return "";
     }
-    return std::tuple<bool, std::string>(false, "");
+    return "";
   }
 
   bool generate() {
@@ -214,9 +214,8 @@ class JsonSchemaGenerator : public BaseGenerator {
       code_ += Indent(3) + GenType("object") + "," + NewLine();
       const auto &comment_lines = structure->doc_comment;
       auto comment = PrepareDescription(comment_lines);
-      if (std::get<0>(comment)) {
-        code_ += Indent(3) + "\"description\" : " + std::get<1>(comment) + "," +
-                 NewLine();
+      if (comment != "") {
+        code_ += Indent(3) + "\"description\" : " + comment + "," + NewLine();
       }
 
       code_ += Indent(3) + "\"properties\" : {" + NewLine();
@@ -242,9 +241,9 @@ class JsonSchemaGenerator : public BaseGenerator {
         typeLine += arrayInfo;
         typeLine += deprecated_info;
         auto description = PrepareDescription(property->doc_comment);
-        if (std::get<0>(description)) {
-          typeLine += "," + NewLine() + Indent(8) +
-                      "\"description\" : " + std::get<1>(description);
+        if (description != "") {
+          typeLine +=
+              "," + NewLine() + Indent(8) + "\"description\" : " + description;
         }
 
         typeLine += NewLine() + Indent(7) + "}";
