@@ -32,7 +32,7 @@ inline const flatbuffers::TypeTable *MonsterTypeTable();
 
 inline const flatbuffers::TypeTable *WeaponTypeTable();
 
-enum Color : int8_t {
+enum Color {
   Color_Red = 0,
   Color_Green = 1,
   Color_Blue = 2,
@@ -65,7 +65,7 @@ inline const char *EnumNameColor(Color e) {
   return EnumNamesColor()[index];
 }
 
-enum Equipment : uint8_t {
+enum Equipment {
   Equipment_NONE = 0,
   Equipment_Weapon = 1,
   Equipment_MIN = Equipment_NONE,
@@ -224,15 +224,20 @@ inline bool operator!=(const Vec3 &lhs, const Vec3 &rhs) {
 
 struct MonsterT : public flatbuffers::NativeTable {
   typedef Monster TableType;
-  flatbuffers::unique_ptr<MyGame::Sample::Vec3> pos{};
-  int16_t mana = 150;
-  int16_t hp = 100;
-  std::string name{};
-  std::vector<uint8_t> inventory{};
-  MyGame::Sample::Color color = MyGame::Sample::Color_Blue;
-  std::vector<flatbuffers::unique_ptr<MyGame::Sample::WeaponT>> weapons{};
-  MyGame::Sample::EquipmentUnion equipped{};
-  std::vector<MyGame::Sample::Vec3> path{};
+  flatbuffers::unique_ptr<MyGame::Sample::Vec3> pos;
+  int16_t mana;
+  int16_t hp;
+  std::string name;
+  std::vector<uint8_t> inventory;
+  MyGame::Sample::Color color;
+  std::vector<flatbuffers::unique_ptr<MyGame::Sample::WeaponT>> weapons;
+  MyGame::Sample::EquipmentUnion equipped;
+  std::vector<MyGame::Sample::Vec3> path;
+  MonsterT()
+      : mana(150),
+        hp(100),
+        color(MyGame::Sample::Color_Blue) {
+  }
 };
 
 inline bool operator==(const MonsterT &lhs, const MonsterT &rhs) {
@@ -466,8 +471,11 @@ flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb,
 
 struct WeaponT : public flatbuffers::NativeTable {
   typedef Weapon TableType;
-  std::string name{};
-  int16_t damage = 0;
+  std::string name;
+  int16_t damage;
+  WeaponT()
+      : damage(0) {
+  }
 };
 
 inline bool operator==(const WeaponT &lhs, const WeaponT &rhs) {
@@ -560,7 +568,7 @@ inline flatbuffers::Offset<Weapon> CreateWeaponDirect(
 flatbuffers::Offset<Weapon> CreateWeapon(flatbuffers::FlatBufferBuilder &_fbb, const WeaponT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 inline MonsterT *Monster::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = std::unique_ptr<MonsterT>(new MonsterT());
+  flatbuffers::unique_ptr<MyGame::Sample::MonsterT> _o = flatbuffers::unique_ptr<MyGame::Sample::MonsterT>(new MonsterT());
   UnPackTo(_o.get(), _resolver);
   return _o.release();
 }
@@ -613,7 +621,7 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
 }
 
 inline WeaponT *Weapon::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = std::unique_ptr<WeaponT>(new WeaponT());
+  flatbuffers::unique_ptr<MyGame::Sample::WeaponT> _o = flatbuffers::unique_ptr<MyGame::Sample::WeaponT>(new WeaponT());
   UnPackTo(_o.get(), _resolver);
   return _o.release();
 }

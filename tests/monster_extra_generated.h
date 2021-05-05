@@ -19,16 +19,26 @@ inline const flatbuffers::TypeTable *MonsterExtraTypeTable();
 
 struct MonsterExtraT : public flatbuffers::NativeTable {
   typedef MonsterExtra TableType;
-  double d0 = std::numeric_limits<double>::quiet_NaN();
-  double d1 = std::numeric_limits<double>::quiet_NaN();
-  double d2 = std::numeric_limits<double>::infinity();
-  double d3 = -std::numeric_limits<double>::infinity();
-  float f0 = std::numeric_limits<float>::quiet_NaN();
-  float f1 = std::numeric_limits<float>::quiet_NaN();
-  float f2 = std::numeric_limits<float>::infinity();
-  float f3 = -std::numeric_limits<float>::infinity();
-  std::vector<double> dvec{};
-  std::vector<float> fvec{};
+  double d0;
+  double d1;
+  double d2;
+  double d3;
+  float f0;
+  float f1;
+  float f2;
+  float f3;
+  std::vector<double> dvec;
+  std::vector<float> fvec;
+  MonsterExtraT()
+      : d0(std::numeric_limits<double>::quiet_NaN()),
+        d1(std::numeric_limits<double>::quiet_NaN()),
+        d2(std::numeric_limits<double>::infinity()),
+        d3(-std::numeric_limits<double>::infinity()),
+        f0(std::numeric_limits<float>::quiet_NaN()),
+        f1(std::numeric_limits<float>::quiet_NaN()),
+        f2(std::numeric_limits<float>::infinity()),
+        f3(-std::numeric_limits<float>::infinity()) {
+  }
 };
 
 inline bool operator==(const MonsterExtraT &lhs, const MonsterExtraT &rhs) {
@@ -251,7 +261,7 @@ inline flatbuffers::Offset<MonsterExtra> CreateMonsterExtraDirect(
 flatbuffers::Offset<MonsterExtra> CreateMonsterExtra(flatbuffers::FlatBufferBuilder &_fbb, const MonsterExtraT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 inline MonsterExtraT *MonsterExtra::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = std::unique_ptr<MonsterExtraT>(new MonsterExtraT());
+  flatbuffers::unique_ptr<MyGame::MonsterExtraT> _o = flatbuffers::unique_ptr<MyGame::MonsterExtraT>(new MonsterExtraT());
   UnPackTo(_o.get(), _resolver);
   return _o.release();
 }
