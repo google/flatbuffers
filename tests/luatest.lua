@@ -370,4 +370,4 @@ if not result then
     print("Unable to run tests due to test framework error: ",err)
 end
 
-os.exit(result or -1)
+os.exit(result and 0 or -1)
