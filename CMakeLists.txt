@@ -43,11 +43,21 @@ option(FLATBUFFERS_ENABLE_PCH
         Only work if CMake supports 'target_precompile_headers'. \"
         This can speed up compilation time."
        OFF)
+option(FLATBUFFERS_GENERAL_HEAP_ALLOC_OK
+       "Allow flatbuffers to use the heap for certain builder methods. \"
+        Disabling this will inject run-time assertions if these heap using \"
+        methods are invoked."
+       ON)
 
 if(NOT FLATBUFFERS_BUILD_FLATC AND FLATBUFFERS_BUILD_TESTS)
     message(WARNING
     "Cannot build tests without building the compiler. Tests will be disabled.")
     set(FLATBUFFERS_BUILD_TESTS OFF)
+endif()
+
+if(NOT FLATBUFFERS_GENERAL_HEAP_ALLOC_OK)
+  add_definitions(-DFLATBUFFERS_GENERAL_HEAP_ALLOC_OK=0)
+  message(STATUS "Asserting Heap Allocations")
 endif()
 
 if(DEFINED FLATBUFFERS_MAX_PARSING_DEPTH)
