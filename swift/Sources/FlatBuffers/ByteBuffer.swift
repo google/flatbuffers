@@ -16,6 +16,7 @@
 
 import Foundation
 
+@frozen
 public struct ByteBuffer {
 
   /// Storage is a container that would hold the memory pointer to solve the issue of
@@ -29,12 +30,14 @@ public struct ByteBuffer {
     /// Capacity of UInt8 the buffer can hold
     var capacity: Int
 
+    @usableFromInline
     init(count: Int, alignment: Int) {
       memory = UnsafeMutableRawPointer.allocate(byteCount: count, alignment: alignment)
       capacity = count
       unowned = false
     }
 
+    @usableFromInline
     init(memory: UnsafeMutableRawPointer, capacity: Int, unowned: Bool) {
       self.memory = memory
       self.capacity = capacity
@@ -47,6 +50,7 @@ public struct ByteBuffer {
       }
     }
 
+    @usableFromInline
     func copy(from ptr: UnsafeRawPointer, count: Int) {
       assert(
         !unowned,
@@ -54,6 +58,7 @@ public struct ByteBuffer {
       memory.copyMemory(from: ptr, byteCount: count)
     }
 
+    @usableFromInline
     func initialize(for size: Int) {
       assert(
         !unowned,

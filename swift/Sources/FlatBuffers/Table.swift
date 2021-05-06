@@ -16,6 +16,7 @@
 
 import Foundation
 
+@frozen
 public struct Table {
   public private(set) var bb: ByteBuffer
   public private(set) var postion: Int32
@@ -113,9 +114,6 @@ public struct Table {
     o += postion
     return o + bb.read(def: Int32.self, position: Int(o)) + 4
   }
-}
-
-extension Table {
 
   static public func indirect(_ o: Int32, _ fbb: ByteBuffer) -> Int32 { o + fbb.read(
     def: Int32.self,

@@ -16,6 +16,7 @@
 
 import Foundation
 
+@frozen
 public struct FlatBufferBuilder {
 
   /// Storage for the Vtables used in the buffer are stored in here, so they would be written later in EndTable
@@ -532,6 +533,7 @@ extension FlatBufferBuilder: CustomDebugStringConvertible {
     var addedElements: Int { capacity - (numOfFields &* size) }
 
     /// Creates the memory to store the buffer in
+    @usableFromInline
     init() {
       memory = UnsafeMutableRawBufferPointer.allocate(byteCount: 0, alignment: 0)
     }

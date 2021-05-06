@@ -16,6 +16,7 @@
 
 import Foundation
 
+@frozen
 public struct Struct {
   public private(set) var bb: ByteBuffer
   public private(set) var postion: Int32
