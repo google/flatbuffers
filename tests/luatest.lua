@@ -227,7 +227,10 @@ local function testCreateEmptyString()
     monster.Start(b)
     monster.AddName(b, str)
     b:Finish(monster.End(b))
-    b:Output()
+    local s = b:Output()
+    local data = flatbuffers.binaryArray.New(s)
+    local mon = monster.GetRootAsMonster(data, 0)
+    assert(mon:Name() == "")
 end
 
 local function benchmarkMakeMonster(count, reuseBuilder)
