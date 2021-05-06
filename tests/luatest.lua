@@ -222,6 +222,18 @@ local function testCanonicalData()
     checkReadBuffer(wireData)  
 end    
     
+local function testCreateEmptyString()
+    local b = flatbuffers.Builder(0)
+    local str = b:CreateString("")
+    monster.Start(b)
+    monster.AddName(b, str)
+    b:Finish(monster.End(b))
+    local s = b:Output()
+    local data = flatbuffers.binaryArray.New(s)
+    local mon = monster.GetRootAsMonster(data, 0)
+    assert(mon:Name() == "")
+end
+
 local function benchmarkMakeMonster(count, reuseBuilder)
     local fbb = reuseBuilder and flatbuffers.Builder(0)
     local length = #(generateMonster(false, fbb))
@@ -284,6 +296,10 @@ local tests =
     {   
         f = testCanonicalData, 
         d = "Tests Canonical flatbuffer file included in repo"       
+    },
+    {
+        f = testCreateEmptyString,
+        d = "Avoid infinite loop when creating empty string"
     },
     {
         f = getRootAs_canAcceptString,
