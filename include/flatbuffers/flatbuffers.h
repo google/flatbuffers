@@ -342,6 +342,17 @@ template<typename T> class Vector {
 
   uint8_t *Data() { return reinterpret_cast<uint8_t *>(&length_ + 1); }
 
+  // The raw data in little endian format. Use with care.
+  flatbuffers::span<uint8_t> DataSpan()
+  {
+    return flatbuffers::span<uint8_t>(Data(), size());
+  }
+
+  const flatbuffers::span<const uint8_t> DataSpan() const
+  {
+    return flatbuffers::span<const uint8_t>(Data(), size());
+  }
+
   // Similarly, but typed, much like std::vector::data
   const T *data() const { return reinterpret_cast<const T *>(Data()); }
   T *data() { return reinterpret_cast<T *>(Data()); }
@@ -488,6 +499,17 @@ template<typename T, uint16_t length> class Array {
   const uint8_t *Data() const { return data_; }
 
   uint8_t *Data() { return data_; }
+
+  // The raw data in little endian format. Use with care.
+  flatbuffers::span<uint8_t, length> DataSpan()
+  {
+    return flatbuffers::span<uint8_t, length>(Data(), length);
+  }
+
+  const flatbuffers::span<const uint8_t, length> DataSpan() const
+  {
+    return flatbuffers::span<const uint8_t, length>(Data(), length);
+  }
 
   // Similarly, but typed, much like std::vector::data
   const T *data() const { return reinterpret_cast<const T *>(Data()); }
