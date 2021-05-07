@@ -15,6 +15,12 @@
  */
 #include <cmath>
 
+#ifdef FLATBUFFERS_GENERAL_HEAP_ALLOC_OK
+// Using heap allocations for the test is OK
+#  undef FLATBUFFERS_GENERAL_HEAP_ALLOC_OK
+#  define FLATBUFFERS_GENERAL_HEAP_ALLOC_OK 1
+#endif  // FLATBUFFERS_GENERAL_HEAP_ALLOC_OK
+
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/minireflect.h"
