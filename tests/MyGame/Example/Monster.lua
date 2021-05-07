@@ -62,6 +62,15 @@ function Monster_mt:Inventory(j)
     end
     return 0
 end
+function Monster_mt:InventoryString(i, j)
+    local o = self.view:Offset(14)
+    if o ~= 0 then
+        local a = self.view:Vector(o) + i - 1
+        local len = j - i + 1
+        return self.view.bytes:Slice(a, a + len)
+    end
+    return ''
+end
 function Monster_mt:InventoryLength()
     local o = self.view:Offset(14)
     if o ~= 0 then
@@ -159,6 +168,15 @@ function Monster_mt:Testnestedflatbuffer(j)
         return self.view:Get(flatbuffers.N.Uint8, a + ((j-1) * 1))
     end
     return 0
+end
+function Monster_mt:TestnestedflatbufferString(i, j)
+    local o = self.view:Offset(30)
+    if o ~= 0 then
+        local a = self.view:Vector(o) + i - 1
+        local len = j - i + 1
+        return self.view.bytes:Slice(a, a + len)
+    end
+    return ''
 end
 function Monster_mt:TestnestedflatbufferLength()
     local o = self.view:Offset(30)
@@ -314,6 +332,15 @@ function Monster_mt:Flex(j)
         return self.view:Get(flatbuffers.N.Uint8, a + ((j-1) * 1))
     end
     return 0
+end
+function Monster_mt:FlexString(i, j)
+    local o = self.view:Offset(64)
+    if o ~= 0 then
+        local a = self.view:Vector(o) + i - 1
+        local len = j - i + 1
+        return self.view.bytes:Slice(a, a + len)
+    end
+    return ''
 end
 function Monster_mt:FlexLength()
     local o = self.view:Offset(64)
@@ -518,6 +545,15 @@ function Monster_mt:VectorOfEnums(j)
     end
     return 0
 end
+function Monster_mt:VectorOfEnumsString(i, j)
+    local o = self.view:Offset(98)
+    if o ~= 0 then
+        local a = self.view:Vector(o) + i - 1
+        local len = j - i + 1
+        return self.view.bytes:Slice(a, a + len)
+    end
+    return ''
+end
 function Monster_mt:VectorOfEnumsLength()
     local o = self.view:Offset(98)
     if o ~= 0 then
@@ -539,6 +575,15 @@ function Monster_mt:Testrequirednestedflatbuffer(j)
         return self.view:Get(flatbuffers.N.Uint8, a + ((j-1) * 1))
     end
     return 0
+end
+function Monster_mt:TestrequirednestedflatbufferString(i, j)
+    local o = self.view:Offset(102)
+    if o ~= 0 then
+        local a = self.view:Vector(o) + i - 1
+        local len = j - i + 1
+        return self.view.bytes:Slice(a, a + len)
+    end
+    return ''
 end
 function Monster_mt:TestrequirednestedflatbufferLength()
     local o = self.view:Offset(102)
