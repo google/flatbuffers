@@ -20,6 +20,12 @@
 #include <string>
 #include <utility>
 
+#ifdef FLATBUFFERS_GENERAL_HEAP_ALLOC_OK
+// The parser is OK for using heap allocations
+#  undef FLATBUFFERS_GENERAL_HEAP_ALLOC_OK
+#  define FLATBUFFERS_GENERAL_HEAP_ALLOC_OK 1
+#endif  // FLATBUFFERS_GENERAL_HEAP_ALLOC_OK
+
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
