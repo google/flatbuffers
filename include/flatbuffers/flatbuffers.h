@@ -1601,7 +1601,8 @@ class FlatBufferBuilder {
 
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// If a string with this exact contents has already been serialized before,
-  /// instead simply returns the offset of the existing string.
+  /// instead simply returns the offset of the existing string. This uses a map
+  /// stored on the heap, but only stores the numerical offsets.
   /// @param[in] str A const char pointer to the data to be stored as a string.
   /// @param[in] len The number of bytes that should be stored from `str`.
   /// @return Returns the offset in the buffer where the string starts.
@@ -1628,7 +1629,8 @@ class FlatBufferBuilder {
 #ifdef FLATBUFFERS_HAS_STRING_VIEW
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// If a string with this exact contents has already been serialized before,
-  /// instead simply returns the offset of the existing string.
+  /// instead simply returns the offset of the existing string. This uses a map
+  /// stored on the heap, but only stores the numerical offsets.
   /// @param[in] str A const std::string_view to store in the buffer.
   /// @return Returns the offset in the buffer where the string starts
   Offset<String> CreateSharedString(const flatbuffers::string_view str) {
@@ -1637,7 +1639,8 @@ class FlatBufferBuilder {
 #else
   /// @brief Store a string in the buffer, which null-terminated.
   /// If a string with this exact contents has already been serialized before,
-  /// instead simply returns the offset of the existing string.
+  /// instead simply returns the offset of the existing string. This uses a map
+  /// stored on the heap, but only stores the numerical offsets.
   /// @param[in] str A const char pointer to a C-string to add to the buffer.
   /// @return Returns the offset in the buffer where the string starts.
   Offset<String> CreateSharedString(const char *str) {
@@ -1646,7 +1649,8 @@ class FlatBufferBuilder {
 
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// If a string with this exact contents has already been serialized before,
-  /// instead simply returns the offset of the existing string.
+  /// instead simply returns the offset of the existing string. This uses a map
+  /// stored on the heap, but only stores the numerical offsets.
   /// @param[in] str A const reference to a std::string to store in the buffer.
   /// @return Returns the offset in the buffer where the string starts.
   Offset<String> CreateSharedString(const std::string &str) {
@@ -1656,7 +1660,8 @@ class FlatBufferBuilder {
 
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// If a string with this exact contents has already been serialized before,
-  /// instead simply returns the offset of the existing string.
+  /// instead simply returns the offset of the existing string. This uses a map
+  /// stored on the heap, but only stores the numerical offsets.
   /// @param[in] str A const pointer to a `String` struct to add to the buffer.
   /// @return Returns the offset in the buffer where the string starts
   Offset<String> CreateSharedString(const String *str) {
@@ -1790,7 +1795,9 @@ class FlatBufferBuilder {
   // clang-format on
 
   /// @brief Serialize values returned by a function into a FlatBuffer `vector`.
-  /// This is a convenience function that takes care of iteration for you.
+  /// This is a convenience function that takes care of iteration for you. This
+  /// uses a vector stored on the heap to store the intermediate results of the
+  /// iteration.
   /// @tparam T The data type of the `std::vector` elements.
   /// @param f A function that takes the current iteration 0..vector_size-1,
   /// and the state parameter returning any type that you can construct a
@@ -1807,7 +1814,9 @@ class FlatBufferBuilder {
   }
 
   /// @brief Serialize a `std::vector<std::string>` into a FlatBuffer `vector`.
-  /// This is a convenience function for a common case.
+  /// This is a convenience function for a common case. This may use a vector
+  /// stored on the heap to cache the intermediate results, but only stores the
+  /// numerical offsets.
   /// @param v A const reference to the `std::vector` to serialize into the
   /// buffer as a `vector`.
   /// @return Returns a typed `Offset` into the serialized data indicating
