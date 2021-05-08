@@ -62,6 +62,9 @@ function Monster_mt:Inventory(j)
     end
     return 0
 end
+function Monster_mt:InventoryAsString(start, stop)
+    return self.view:VectorAsString(14, start, stop)
+end
 function Monster_mt:InventoryLength()
     local o = self.view:Offset(14)
     if o ~= 0 then
@@ -159,6 +162,9 @@ function Monster_mt:Testnestedflatbuffer(j)
         return self.view:Get(flatbuffers.N.Uint8, a + ((j-1) * 1))
     end
     return 0
+end
+function Monster_mt:TestnestedflatbufferAsString(start, stop)
+    return self.view:VectorAsString(30, start, stop)
 end
 function Monster_mt:TestnestedflatbufferLength()
     local o = self.view:Offset(30)
@@ -314,6 +320,9 @@ function Monster_mt:Flex(j)
         return self.view:Get(flatbuffers.N.Uint8, a + ((j-1) * 1))
     end
     return 0
+end
+function Monster_mt:FlexAsString(start, stop)
+    return self.view:VectorAsString(64, start, stop)
 end
 function Monster_mt:FlexLength()
     local o = self.view:Offset(64)
@@ -518,6 +527,9 @@ function Monster_mt:VectorOfEnums(j)
     end
     return 0
 end
+function Monster_mt:VectorOfEnumsAsString(start, stop)
+    return self.view:VectorAsString(98, start, stop)
+end
 function Monster_mt:VectorOfEnumsLength()
     local o = self.view:Offset(98)
     if o ~= 0 then
@@ -539,6 +551,9 @@ function Monster_mt:Testrequirednestedflatbuffer(j)
         return self.view:Get(flatbuffers.N.Uint8, a + ((j-1) * 1))
     end
     return 0
+end
+function Monster_mt:TestrequirednestedflatbufferAsString(start, stop)
+    return self.view:VectorAsString(102, start, stop)
 end
 function Monster_mt:TestrequirednestedflatbufferLength()
     local o = self.view:Offset(102)

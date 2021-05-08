@@ -76,6 +76,17 @@ function mt:Vector(off)
     return off + self:Get(N.UOffsetT, off) + 4
 end
 
+function mt:VectorAsString(off, start, stop)
+    local o = self:Offset(off)
+    if o ~= 0 then
+        start = start or 1
+        stop = stop or self:VectorLen(o)
+        local a = self:Vector(o) + start - 1
+        return self.bytes:Slice(a, a + stop - start + 1)
+    end
+    return nil
+end
+
 function mt:Union(t2, off)
     assert(getmetatable(t2) == mt_name)
     enforceOffset(off)

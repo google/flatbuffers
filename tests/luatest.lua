@@ -282,6 +282,41 @@ local function getRootAs_canAcceptString()
     assert(mon:Hp() == 80, "Monster Hp is not 80")
 end
     
+local function testAccessByteVectorAsString()
+    local f = assert(io.open('monsterdata_test.mon', 'rb'))
+    local wireData = f:read("*a")
+    f:close()
+    local mon = monster.GetRootAsMonster(wireData, 0)
+    -- the data of byte array Inventory is [0, 1, 2, 3, 4]
+    local s = mon:InventoryAsString(1, 3)
+    assert(#s == 3)
+    for i = 1, #s do
+        assert(string.byte(s, i) == i - 1)
+    end
+
+    local s = mon:InventoryAsString(2, 5)
+    assert(#s == 4)
+    for i = 1, #s do
+        assert(string.byte(s, i) == i)
+    end
+
+    local s = mon:InventoryAsString(5, 5)
+    assert(#s == 1)
+    assert(string.byte(s, 1) == 4)
+
+    local s = mon:InventoryAsString(2)
+    assert(#s == 4)
+    for i = 1, #s do
+        assert(string.byte(s, i) == i)
+    end
+
+    local s = mon:InventoryAsString()
+    assert(#s == 5)
+    for i = 1, #s do
+        assert(string.byte(s, i) == i - 1)
+    end
+end
+
 local tests = 
 { 
     {   
@@ -304,6 +339,10 @@ local tests =
     {
         f = getRootAs_canAcceptString,
         d = "Tests that GetRootAs<type>() generated methods accept strings"
+    },
+    {
+        f = testAccessByteVectorAsString,
+        d = "Access byte vector as string"
     },
 }
 
