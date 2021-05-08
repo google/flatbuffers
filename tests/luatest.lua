@@ -287,19 +287,20 @@ local function testAccessByteVectorAsString()
     local wireData = f:read("*a")
     f:close()
     local mon = monster.GetRootAsMonster(wireData, 0)
-    local s = mon:InventoryString(1, 3)
+    -- the data of byte array Inventory is [0, 1, 2, 3, 4]
+    local s = mon:InventoryAsString(1, 3)
     assert(#s == 3)
     for i = 1, #s do
         assert(string.byte(s, i) == i - 1)
     end
 
-    local s = mon:InventoryString(2, 5)
+    local s = mon:InventoryAsString(2, 5)
     assert(#s == 4)
     for i = 1, #s do
         assert(string.byte(s, i) == i)
     end
 
-    local s = mon:InventoryString(5, 5)
+    local s = mon:InventoryAsString(5, 5)
     assert(#s == 1)
     assert(string.byte(s, 1) == 4)
 end

@@ -345,15 +345,14 @@ class LuaGenerator : public BaseGenerator {
     std::string &code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
     code += MakeCamel(NormalizedName(field));
-    code += "String(i, j)\n";
+    code += "AsString(start, stop)\n";
     code += OffsetPrefix(field);
     code += std::string(Indent) + Indent + "local a = " + SelfData +
-            ":Vector(o) + i - 1\n";
-    code += std::string(Indent) + Indent + "local len = j - i + 1\n";
+            ":Vector(o) + start - 1\n";
     code += std::string(Indent) + Indent + "return " + SelfDataBytes +
-            ":Slice(a, a + len)\n";
+            ":Slice(a, a + stop - start + 1)\n";
     code += std::string(Indent) + End;
-    code += std::string(Indent) + "return ''\n";
+    code += std::string(Indent) + "return nil\n";
     code += EndFunc;
   }
 
