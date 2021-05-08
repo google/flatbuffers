@@ -2407,19 +2407,18 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef **dest) {
   }
 
   if (dest) *dest = enum_def;
-  types_.Add(current_namespace_->GetFullyQualifiedName(enum_def->name),
-             new Type(BASE_TYPE_UNION, nullptr, enum_def));
+  const auto qualified_name =
+      current_namespace_->GetFullyQualifiedName(enum_def->name);
+  if (types_.Add(qualified_name, new Type(BASE_TYPE_UNION, nullptr, enum_def)))
+    return Error("datatype already exists: " + qualified_name);
   return NoError();
 }
 
 CheckedError Parser::StartStruct(const std::string &name, StructDef **dest) {
   auto &struct_def = *LookupCreateStruct(name, true, true);
-  auto qualified_name = current_namespace_->GetFullyQualifiedName(name);
   if (!struct_def.predecl)
-    return Error("datatype already exists: " + qualified_name);
-  if (enums_.Lookup(qualified_name) != nullptr)
-    return Error("datatype clashes with enum which already exists: " +
-                 qualified_name);
+    return Error("datatype already exists: " +
+                 current_namespace_->GetFullyQualifiedName(name));
   struct_def.predecl = false;
   struct_def.name = name;
   struct_def.file = file_being_parsed_;
@@ -2599,8 +2598,11 @@ CheckedError Parser::ParseDecl() {
   ECHECK(CheckClash(fields, struct_def, "_byte_vector", BASE_TYPE_STRING));
   ECHECK(CheckClash(fields, struct_def, "ByteVector", BASE_TYPE_STRING));
   EXPECT('}');
-  types_.Add(current_namespace_->GetFullyQualifiedName(struct_def->name),
-             new Type(BASE_TYPE_STRUCT, struct_def, nullptr));
+  const auto qualified_name =
+      current_namespace_->GetFullyQualifiedName(struct_def->name);
+  if (types_.Add(qualified_name,
+                 new Type(BASE_TYPE_STRUCT, struct_def, nullptr)))
+    return Error("datatype already exists: " + qualified_name);
   return NoError();
 }
 
@@ -2760,12 +2762,9 @@ CheckedError Parser::StartEnum(const std::string &name, bool is_union,
   enum_def.doc_comment = doc_comment_;
   enum_def.is_union = is_union;
   enum_def.defined_namespace = current_namespace_;
-  auto qualified_name = current_namespace_->GetFullyQualifiedName(name);
+  const auto qualified_name = current_namespace_->GetFullyQualifiedName(name);
   if (enums_.Add(qualified_name, &enum_def))
     return Error("enum already exists: " + qualified_name);
-  if (structs_.Lookup(qualified_name) != nullptr)
-    return Error("enum clashes with datatype which already exists: " +
-                 qualified_name);
   enum_def.underlying_type.base_type =
       is_union ? BASE_TYPE_UTYPE : BASE_TYPE_INT;
   enum_def.underlying_type.enum_def = &enum_def;
