@@ -2521,6 +2521,49 @@ void ParseUnionTest() {
           true);
 }
 
+void ValidSameNameDifferentNamespaceTest() {
+  // Duplicate table names in different namespaces must be parsable
+  TEST_ASSERT(flatbuffers::Parser().Parse(
+      "namespace A; table X {} namespace B; table X {}"));
+  // Duplicate union names in different namespaces must be parsable
+  TEST_ASSERT(flatbuffers::Parser().Parse(
+      "namespace A; union X {} namespace B; union X {}"));
+  // Clashing table and union names in different namespaces must be parsable
+  TEST_ASSERT(flatbuffers::Parser().Parse(
+      "namespace A; table X {} namespace B; union X {}"));
+  TEST_ASSERT(flatbuffers::Parser().Parse(
+      "namespace A; union X {} namespace B; table X {}"));
+}
+
+void MultiFileNameClashTest() {
+  const auto name_clash_path =
+      flatbuffers::ConCatPathFileName(test_data_path, "name_clash_test");
+  const char *include_directories[] = { name_clash_path.c_str() };
+
+  // Load valid 2 file Flatbuffer schema
+  const auto valid_path =
+      flatbuffers::ConCatPathFileName(name_clash_path, "valid_test1.fbs");
+  std::string valid_schema;
+  TEST_ASSERT(flatbuffers::LoadFile(valid_path.c_str(), false, &valid_schema));
+  // Clashing table and union names in different namespaces must be parsable
+  TEST_ASSERT(
+      flatbuffers::Parser().Parse(valid_schema.c_str(), include_directories));
+
+  flatbuffers::Parser p;
+  TEST_ASSERT(p.Parse(valid_schema.c_str(), include_directories));
+
+  // Load invalid 2 file Flatbuffer schema
+  const auto invalid_path =
+      flatbuffers::ConCatPathFileName(name_clash_path, "invalid_test1.fbs");
+  std::string invalid_schema;
+  TEST_ASSERT(
+      flatbuffers::LoadFile(invalid_path.c_str(), false, &invalid_schema));
+  // Clashing table and union names in same namespace must fail to parse
+  TEST_EQ(
+      flatbuffers::Parser().Parse(invalid_schema.c_str(), include_directories),
+      false);
+}
+
 void InvalidNestedFlatbufferTest() {
   // First, load and parse FlatBuffer schema (.fbs)
   std::string schemafile;
@@ -3986,6 +4029,8 @@ int FlatBufferTests() {
   InvalidUTF8Test();
   UnknownFieldsTest();
   ParseUnionTest();
+  ValidSameNameDifferentNamespaceTest();
+  MultiFileNameClashTest();
   InvalidNestedFlatbufferTest();
   ConformTest();
   ParseProtoBufAsciiTest();
