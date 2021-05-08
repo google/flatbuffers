@@ -303,6 +303,18 @@ local function testAccessByteVectorAsString()
     local s = mon:InventoryAsString(5, 5)
     assert(#s == 1)
     assert(string.byte(s, 1) == 4)
+
+    local s = mon:InventoryAsString(2)
+    assert(#s == 4)
+    for i = 1, #s do
+        assert(string.byte(s, i) == i)
+    end
+
+    local s = mon:InventoryAsString()
+    assert(#s == 5)
+    for i = 1, #s do
+        assert(string.byte(s, i) == i - 1)
+    end
 end
 
 local tests = 

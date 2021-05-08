@@ -346,13 +346,8 @@ class LuaGenerator : public BaseGenerator {
     GenReceiver(struct_def, code_ptr);
     code += MakeCamel(NormalizedName(field));
     code += "AsString(start, stop)\n";
-    code += OffsetPrefix(field);
-    code += std::string(Indent) + Indent + "local a = " + SelfData +
-            ":Vector(o) + start - 1\n";
-    code += std::string(Indent) + Indent + "return " + SelfDataBytes +
-            ":Slice(a, a + stop - start + 1)\n";
-    code += std::string(Indent) + End;
-    code += std::string(Indent) + "return nil\n";
+    code += std::string(Indent) + "return " + SelfData + ":VectorAsString(" +
+            NumToString(field.value.offset) + ", start, stop)\n";
     code += EndFunc;
   }
 

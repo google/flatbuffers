@@ -103,12 +103,7 @@ function TypeAliases_mt:V8(j)
     return 0
 end
 function TypeAliases_mt:V8AsString(start, stop)
-    local o = self.view:Offset(24)
-    if o ~= 0 then
-        local a = self.view:Vector(o) + start - 1
-        return self.view.bytes:Slice(a, a + stop - start + 1)
-    end
-    return nil
+    return self.view:VectorAsString(24, start, stop)
 end
 function TypeAliases_mt:V8Length()
     local o = self.view:Offset(24)
