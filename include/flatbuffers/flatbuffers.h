@@ -172,8 +172,12 @@ template<typename T, typename IT> struct VectorIterator {
     return (data_ - other.data_) / IndirectHelper<T>::element_stride;
   }
 
+  // Note: return type is incompatible with the standard
+  // `reference operator*()`.
   IT operator*() const { return IndirectHelper<T>::Read(data_, 0); }
 
+  // Note: return type is incompatible with the standard
+  // `pointer operator->()`.
   IT operator->() const { return IndirectHelper<T>::Read(data_, 0); }
 
   VectorIterator &operator++() {
@@ -227,12 +231,18 @@ struct VectorReverseIterator : public std::reverse_iterator<Iterator> {
   explicit VectorReverseIterator(Iterator iter)
       : std::reverse_iterator<Iterator>(iter) {}
 
+  // Note: return type is incompatible with the standard
+  // `reference operator*()`.
   typename Iterator::value_type operator*() const {
-    return *(std::reverse_iterator<Iterator>::current);
+    auto tmp = std::reverse_iterator<Iterator>::current;
+    return *--tmp;
   }
 
+  // Note: return type is incompatible with the standard
+  // `pointer operator->()`.
   typename Iterator::value_type operator->() const {
-    return *(std::reverse_iterator<Iterator>::current);
+    auto tmp = std::reverse_iterator<Iterator>::current;
+    return *--tmp;
   }
 };
 
@@ -295,14 +305,14 @@ template<typename T> class Vector {
   iterator end() { return iterator(Data(), size()); }
   const_iterator end() const { return const_iterator(Data(), size()); }
 
-  reverse_iterator rbegin() { return reverse_iterator(end() - 1); }
+  reverse_iterator rbegin() { return reverse_iterator(end()); }
   const_reverse_iterator rbegin() const {
-    return const_reverse_iterator(end() - 1);
+    return const_reverse_iterator(end());
   }
 
-  reverse_iterator rend() { return reverse_iterator(begin() - 1); }
+  reverse_iterator rend() { return reverse_iterator(begin()); }
   const_reverse_iterator rend() const {
-    return const_reverse_iterator(begin() - 1);
+    return const_reverse_iterator(begin());
   }
 
   const_iterator cbegin() const { return begin(); }
@@ -463,7 +473,9 @@ template<typename T, uint16_t length> class Array {
   const_reverse_iterator rbegin() const {
     return const_reverse_iterator(end());
   }
-  const_reverse_iterator rend() const { return const_reverse_iterator(end()); }
+  const_reverse_iterator rend() const {
+    return const_reverse_iterator(begin());
+  }
 
   const_iterator cbegin() const { return begin(); }
   const_iterator cend() const { return end(); }
