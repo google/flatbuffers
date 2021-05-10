@@ -1767,30 +1767,12 @@ class FlatBufferBuilder {
   /// where the vector is stored.
   template<typename T> Offset<Vector<T>> CreateVector(size_t vector_size,
       const std::function<T (size_t i)> &f) {
-    StartVector(vector_size, sizeof(T));
-    for (auto i = vector_size; i > 0;) { 
-      PushElement(f(--i)); 
-    }
-    return Offset<Vector<T>>(EndVector(vector_size));
+    FLATBUFFERS_ASSERT(FLATBUFFERS_GENERAL_HEAP_ALLOC_OK);
+    std::vector<T> elems(vector_size);
+    for (size_t i = 0; i < vector_size; i++) elems[i] = f(i);
+    return CreateVector(elems);
   }
-  #endif
-
-  #ifndef FLATBUFFERS_CPP98_STL
-  /// @brief Serialize values returned by a function into a FlatBuffer `vector`.
-  /// This is a convenience function that takes care of iteration for you.
-  /// @param f A function that takes the current iteration 0..vector_size-1 and
-  /// returns any type that you can construct a FlatBuffers vector out of.
-  /// @return Returns a typed `Offset` into the serialized data indicating
-  /// where the vector is stored.
-  Offset<Vector<uint8_t>> CreateVector(size_t vector_size,
-                                       const std::function<bool(size_t i)> &f) {
-    StartVector(vector_size, sizeof(uint8_t));
-    for (auto i = vector_size; i > 0;) {
-      PushElement(static_cast<uint8_t>(f(--i)));
-    }
-    return Offset<Vector<uint8_t>>(EndVector(vector_size));
-  }
-  #endif
+  #endif // FLATBUFFERS_CPP98_STL
   // clang-format on
 
   /// @brief Serialize values returned by a function into a FlatBuffer `vector`.
