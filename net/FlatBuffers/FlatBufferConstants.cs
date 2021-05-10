@@ -32,6 +32,6 @@ namespace FlatBuffers
         Changes to the C# implementation need to be sure to change
         the version here and in the code generator on every possible
         incompatible change */
-        public static void FLATBUFFERS_1_12_0() {}
+        public static void FLATBUFFERS_2_0_0() {}
     }
 }

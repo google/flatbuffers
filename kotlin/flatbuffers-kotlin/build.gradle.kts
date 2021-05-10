@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "com.google.flatbuffers.kotlin"
-version = "1.12.0-SNAPSHOT"
+version = "2.0.0-SNAPSHOT"
 
 kotlin {
   explicitApi()
@@ -29,7 +29,7 @@ kotlin {
         implementation(kotlin("stdlib-common"))
       }
     }
-        
+
     val commonTest by getting {
       dependencies {
         implementation(kotlin("test-common"))

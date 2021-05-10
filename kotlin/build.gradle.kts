@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "com.google.flatbuffers"
-version = "1.12.0-SNAPSHOT"
+version = "2.0.0-SNAPSHOT"
 
 subprojects {
 
