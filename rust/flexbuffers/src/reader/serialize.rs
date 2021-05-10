@@ -1,0 +1,68 @@
+// Copyright 2021 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+use crate::reader::Reader;
+use crate::Buffer;
+use crate::{BitWidth::*, FlexBufferType::*};
+use serde::ser;
+use serde::ser::{SerializeSeq, SerializeMap};
+
+impl<B: Buffer> ser::Serialize for &Reader<B> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: ser::Serializer,
+    {
+        #[allow(deprecated)]
+        match (self.flexbuffer_type(), self.bitwidth()) {
+            (Null, _) => serializer.serialize_unit(),
+            (Int | IndirectInt, W8) => serializer.serialize_i8(self.as_i8()),
+            (Int | IndirectInt, W16) => serializer.serialize_i16(self.as_i16()),
+            (Int | IndirectInt, W32) => serializer.serialize_i32(self.as_i32()),
+            (Int | IndirectInt, W64) => serializer.serialize_i64(self.as_i64()),
+            (UInt | IndirectUInt, W8) => serializer.serialize_u8(self.as_u8()),
+            (UInt | IndirectUInt, W16) => serializer.serialize_u16(self.as_u16()),
+            (UInt | IndirectUInt, W32) => serializer.serialize_u32(self.as_u32()),
+            (UInt | IndirectUInt, W64) => serializer.serialize_u64(self.as_u64()),
+            (Float | IndirectFloat, W32) => serializer.serialize_f32(self.as_f32()),
+            (Float | IndirectFloat, _) => serializer.serialize_f64(self.as_f64()),
+            (Bool, _) => serializer.serialize_bool(self.as_bool()),
+            (Key | String, _) => serializer.serialize_str(&self.as_str()),
+            (Map, _) => {
+                let m = self.as_map();
+                let mut map_serializer = serializer.serialize_map(Some(m.len()))?;
+                for (k, v) in m.iter_keys().zip(m.iter_values()) {
+                    map_serializer.serialize_key(&&k)?;
+                    map_serializer.serialize_value(&&v)?;
+                }
+                map_serializer.end()
+            }
+            (
+                Vector | VectorInt | VectorUInt | VectorFloat | VectorKey | VectorString
+                | VectorBool | VectorInt2 | VectorUInt2 | VectorFloat2 | VectorInt3 | VectorUInt3
+                | VectorFloat3 | VectorInt4 | VectorUInt4 | VectorFloat4,
+                _,
+            ) => {
+                let v = self.as_vector();
+                let mut seq_serializer = serializer.serialize_seq(Some(v.len()))?;
+                for x in v.iter() {
+                    seq_serializer.serialize_element(&&x)?;
+                }
+                seq_serializer.end()
+            }
+            (Blob, _) => {
+                serializer.serialize_bytes(&self.as_blob().0)
+            }
+        }
+    }
+}
