@@ -2026,6 +2026,7 @@ class JavaGenerator : public BaseGenerator {
 
   void GenStruct_ObjectAPI(StructDef &struct_def, std::string *code_ptr,
                            const IDLOptions &opts) const {
+    if (struct_def.generated) return;
     auto &code = *code_ptr;
     if (struct_def.attributes.Lookup("private")) {
       // For Java, we leave the enum unmarked to indicate package-private
