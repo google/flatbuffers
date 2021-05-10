@@ -290,7 +290,7 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length,
   unsigned char inv_data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
   // Check compatibilty of iterators with STL.
   std::vector<unsigned char> inv_vec(inventory->begin(), inventory->end());
-  int n = 0;
+  size_t n = 0;
   for (auto it = inventory->begin(); it != inventory->end(); ++it, ++n) {
     auto indx = it - inventory->begin();
     TEST_EQ(*it, inv_vec.at(indx));  // Use bounds-check.
@@ -3848,6 +3848,69 @@ void ParseIncorrectMonsterJsonTest() {
   TEST_EQ(parser.ParseJson("{name:+f}"), false);
 }
 
+#if !defined(_MSC_VER) || _MSC_VER >= 1700
+template<class T, class Container>
+void TestIterators(const std::vector<T> &expected, const Container &tested) {
+  TEST_ASSERT(tested.rbegin().base() == tested.end());
+  TEST_ASSERT(tested.crbegin().base() == tested.cend());
+  TEST_ASSERT(tested.rend().base() == tested.begin());
+  TEST_ASSERT(tested.crend().base() == tested.cbegin());
+
+  size_t k = 0;
+  for (auto it = tested.begin(); it != tested.end(); ++it, ++k) {
+    const auto &e = expected.at(k);
+    TEST_EQ(*it, e);
+  }
+  TEST_EQ(k, expected.size());
+
+  k = expected.size();
+  for (auto it = tested.rbegin(); it != tested.rend(); ++it, --k) {
+    const auto &e = expected.at(k - 1);
+    TEST_EQ(*it, e);
+  }
+  TEST_EQ(k, 0);
+}
+
+void FlatbuffersIteratorsTest() {
+  {
+    flatbuffers::FlatBufferBuilder fbb;
+    const std::vector<unsigned char> inv_data = { 1, 2, 3 };
+    {
+      auto mon_name = fbb.CreateString("MyMonster");  // key, mandatory
+      auto inv_vec = fbb.CreateVector(inv_data);
+      auto empty_i64_vec =
+          fbb.CreateVector(static_cast<const int64_t *>(nullptr), 0);
+      MonsterBuilder mb(fbb);
+      mb.add_name(mon_name);
+      mb.add_inventory(inv_vec);
+      mb.add_vector_of_longs(empty_i64_vec);
+      FinishMonsterBuffer(fbb, mb.Finish());
+    }
+    const auto &mon = *flatbuffers::GetRoot<Monster>(fbb.GetBufferPointer());
+
+    TEST_EQ_STR("MyMonster", mon.name()->c_str());
+    TEST_ASSERT(mon.inventory());
+    TEST_ASSERT(mon.vector_of_longs());
+    TestIterators(inv_data, *mon.inventory());
+    TestIterators(std::vector<int64_t>(), *mon.vector_of_longs());
+  }
+
+  {
+    flatbuffers::FlatBufferBuilder fbb;
+    MyGame::Example::ArrayStruct aStruct;
+    MyGame::Example::FinishArrayTableBuffer(
+        fbb, MyGame::Example::CreateArrayTable(fbb, &aStruct));
+    const auto &array_table =
+        *flatbuffers::GetRoot<ArrayTable>(fbb.GetBufferPointer());
+    TEST_ASSERT(array_table.a());
+    auto &int_15 = *array_table.a()->b();
+    TestIterators(std::vector<int>(15, 0), int_15);
+  }
+}
+#else
+void FlatbuffersIteratorsTest() {}
+#endif
+
 int FlatBufferTests() {
   // clang-format off
 
@@ -3944,6 +4007,7 @@ int FlatBufferTests() {
   StringVectorDefaultsTest();
   ParseIncorrectMonsterJsonTest();
   FlexBuffersFloatingPointTest();
+  FlatbuffersIteratorsTest();
   return 0;
 }
 
