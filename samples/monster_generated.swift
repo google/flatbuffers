@@ -11,7 +11,7 @@ public enum MyGame_Sample_Color: Int8, Enum {
   case red = 0
   case green = 1
   case blue = 2
-  
+
 
   public static var max: MyGame_Sample_Color { return .blue }
   public static var min: MyGame_Sample_Color { return .red }
@@ -23,7 +23,7 @@ public enum MyGame_Sample_Equipment: UInt8, Enum {
   public var value: UInt8 { return self.rawValue }
   case none_ = 0
   case weapon = 1
-  
+
 
   public static var max: MyGame_Sample_Equipment { return .weapon }
   public static var min: MyGame_Sample_Equipment { return .none_ }
@@ -31,7 +31,7 @@ public enum MyGame_Sample_Equipment: UInt8, Enum {
 
 public struct MyGame_Sample_Vec3: NativeStruct {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
 
   private var _x: Float32
   private var _y: Float32
@@ -56,7 +56,7 @@ public struct MyGame_Sample_Vec3: NativeStruct {
 
 public struct MyGame_Sample_Vec3_Mutable: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -72,7 +72,7 @@ public struct MyGame_Sample_Vec3_Mutable: FlatBufferObject {
 
 public struct MyGame_Sample_Monster: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
@@ -162,7 +162,7 @@ public struct MyGame_Sample_Monster: FlatBufferObject {
 
 public struct MyGame_Sample_Weapon: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 

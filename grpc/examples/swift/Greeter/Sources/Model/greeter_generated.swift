@@ -6,7 +6,7 @@ import FlatBuffers
 
 public struct models_HelloReply: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
@@ -38,7 +38,7 @@ public struct models_HelloReply: FlatBufferObject {
 
 public struct models_HelloRequest: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
