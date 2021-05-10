@@ -19,7 +19,7 @@ public enum ABC: Int32, Enum {
 
 public struct MoreDefaults: FlatBufferObject, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
