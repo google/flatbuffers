@@ -4,14 +4,14 @@ import FlatBuffers
 
 public struct Property: NativeStruct {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
 
   public var property: Bool
 }
 
 public struct Property_Mutable: FlatBufferObject {
 
-    static func validateVersion() { FlatBuffersVersion_1_12_0() }
+    static func validateVersion() { FlatBuffersVersion_2_0_0() }
     public var __buffer: ByteBuffer! { return _accessor.bb }
     private var _accessor: Struct
 
@@ -25,7 +25,7 @@ public struct Property_Mutable: FlatBufferObject {
 
 public struct TestMutatingBool: FlatBufferObject {
 
-    static func validateVersion() { FlatBuffersVersion_1_12_0() }
+    static func validateVersion() { FlatBuffersVersion_2_0_0() }
     public var __buffer: ByteBuffer! { return _accessor.bb }
     private var _accessor: Table
 
