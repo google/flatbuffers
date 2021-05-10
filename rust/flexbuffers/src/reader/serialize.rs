@@ -16,7 +16,7 @@ use crate::reader::Reader;
 use crate::Buffer;
 use crate::{BitWidth::*, FlexBufferType::*};
 use serde::ser;
-use serde::ser::{SerializeSeq, SerializeMap};
+use serde::ser::{SerializeMap, SerializeSeq};
 
 impl<B: Buffer> ser::Serialize for &Reader<B> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -37,7 +37,7 @@ impl<B: Buffer> ser::Serialize for &Reader<B> {
             (Float, W32) | (IndirectFloat, W32) => serializer.serialize_f32(self.as_f32()),
             (Float, _) | (IndirectFloat, _) => serializer.serialize_f64(self.as_f64()),
             (Bool, _) => serializer.serialize_bool(self.as_bool()),
-            (Key, _) | String, _) => serializer.serialize_str(&self.as_str()),
+            (Key, _) | (String, _) => serializer.serialize_str(&self.as_str()),
             (Map, _) => {
                 let m = self.as_map();
                 let mut map_serializer = serializer.serialize_map(Some(m.len()))?;
@@ -47,12 +47,22 @@ impl<B: Buffer> ser::Serialize for &Reader<B> {
                 }
                 map_serializer.end()
             }
-            (
-                Vector | VectorInt | VectorUInt | VectorFloat | VectorKey | VectorString
-                | VectorBool | VectorInt2 | VectorUInt2 | VectorFloat2 | VectorInt3 | VectorUInt3
-                | VectorFloat3 | VectorInt4 | VectorUInt4 | VectorFloat4,
-                _,
-            ) => {
+            (Vector, _)
+            | (VectorInt, _)
+            | (VectorUInt, _)
+            | (VectorFloat, _)
+            | (VectorKey, _)
+            | (VectorString, _)
+            | (VectorBool, _)
+            | (VectorInt2, _)
+            | (VectorUInt2, _)
+            | (VectorFloat2, _)
+            | (VectorInt3, _)
+            | (VectorUInt3, _)
+            | (VectorFloat3, _)
+            | (VectorInt4, _)
+            | (VectorUInt4, _)
+            | (VectorFloat4, _) => {
                 let v = self.as_vector();
                 let mut seq_serializer = serializer.serialize_seq(Some(v.len()))?;
                 for x in v.iter() {
@@ -60,9 +70,7 @@ impl<B: Buffer> ser::Serialize for &Reader<B> {
                 }
                 seq_serializer.end()
             }
-            (Blob, _) => {
-                serializer.serialize_bytes(&self.as_blob().0)
-            }
+            (Blob, _) => serializer.serialize_bytes(&self.as_blob().0),
         }
     }
 }
