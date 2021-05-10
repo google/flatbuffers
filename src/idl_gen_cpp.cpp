@@ -1534,7 +1534,8 @@ class CppGenerator : public BaseGenerator {
         code_.SetValue("TYPE", GetUnionElement(ev, true, opts_));
         code_ += "    case {{LABEL}}: {";
         bool copyable = true;
-        if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
+        if (ev.union_type.base_type == BASE_TYPE_STRUCT &&
+            !ev.union_type.struct_def->fixed) {
           // Don't generate code to copy if table is not copyable.
           // TODO(wvo): make tables copyable instead.
           for (auto fit = ev.union_type.struct_def->fields.vec.begin();

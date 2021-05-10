@@ -19,7 +19,7 @@ public enum optional_scalars_OptionalByte: Int8, Enum {
 
 public struct optional_scalars_ScalarStuff: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 

@@ -7,7 +7,7 @@ import com.google.flatbuffers.*;
 
 @SuppressWarnings("unused")
 public final class Attacker extends Table {
-  public static void ValidateVersion() { Constants.FLATBUFFERS_1_12_0(); }
+  public static void ValidateVersion() { Constants.FLATBUFFERS_2_0_0(); }
   public static Attacker getRootAsAttacker(ByteBuffer _bb) { return getRootAsAttacker(_bb, new Attacker()); }
   public static Attacker getRootAsAttacker(ByteBuffer _bb, Attacker obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
   public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }
