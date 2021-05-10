@@ -54,7 +54,7 @@ public struct CharacterUnion {
 }
 public struct Rapunzel: NativeStruct, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
 
   private var _hairLength: Int32
 
@@ -75,7 +75,7 @@ public struct Rapunzel: NativeStruct, NativeObject {
 
 public struct Rapunzel_Mutable: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -100,7 +100,7 @@ public struct Rapunzel_Mutable: FlatBufferObject {
 
 public struct BookReader: NativeStruct, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
 
   private var _booksRead: Int32
 
@@ -121,7 +121,7 @@ public struct BookReader: NativeStruct, NativeObject {
 
 public struct BookReader_Mutable: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -146,7 +146,7 @@ public struct BookReader_Mutable: FlatBufferObject {
 
 public struct Attacker: FlatBufferObject, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
@@ -209,7 +209,7 @@ public class AttackerT: NativeObject {
 }
 public struct Movie: FlatBufferObject, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
