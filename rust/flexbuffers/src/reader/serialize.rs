@@ -26,18 +26,18 @@ impl<B: Buffer> ser::Serialize for &Reader<B> {
         #[allow(deprecated)]
         match (self.flexbuffer_type(), self.bitwidth()) {
             (Null, _) => serializer.serialize_unit(),
-            (Int | IndirectInt, W8) => serializer.serialize_i8(self.as_i8()),
-            (Int | IndirectInt, W16) => serializer.serialize_i16(self.as_i16()),
-            (Int | IndirectInt, W32) => serializer.serialize_i32(self.as_i32()),
-            (Int | IndirectInt, W64) => serializer.serialize_i64(self.as_i64()),
-            (UInt | IndirectUInt, W8) => serializer.serialize_u8(self.as_u8()),
-            (UInt | IndirectUInt, W16) => serializer.serialize_u16(self.as_u16()),
-            (UInt | IndirectUInt, W32) => serializer.serialize_u32(self.as_u32()),
-            (UInt | IndirectUInt, W64) => serializer.serialize_u64(self.as_u64()),
-            (Float | IndirectFloat, W32) => serializer.serialize_f32(self.as_f32()),
-            (Float | IndirectFloat, _) => serializer.serialize_f64(self.as_f64()),
+            (Int, W8) | (IndirectInt, W8) => serializer.serialize_i8(self.as_i8()),
+            (Int, W16) | (IndirectInt, W16) => serializer.serialize_i16(self.as_i16()),
+            (Int, W32) | (IndirectInt, W32) => serializer.serialize_i32(self.as_i32()),
+            (Int, W64) | (IndirectInt, W64) => serializer.serialize_i64(self.as_i64()),
+            (UInt, W8) | (IndirectUInt, W8) => serializer.serialize_u8(self.as_u8()),
+            (UInt, W16) | (IndirectUInt, W16) => serializer.serialize_u16(self.as_u16()),
+            (UInt, W32) | (IndirectUInt, W32) => serializer.serialize_u32(self.as_u32()),
+            (UInt, W64) | (IndirectUInt, W64) => serializer.serialize_u64(self.as_u64()),
+            (Float, W32) | (IndirectFloat, W32) => serializer.serialize_f32(self.as_f32()),
+            (Float, _) | (IndirectFloat, _) => serializer.serialize_f64(self.as_f64()),
             (Bool, _) => serializer.serialize_bool(self.as_bool()),
-            (Key | String, _) => serializer.serialize_str(&self.as_str()),
+            (Key, _) | String, _) => serializer.serialize_str(&self.as_str()),
             (Map, _) => {
                 let m = self.as_map();
                 let mut map_serializer = serializer.serialize_map(Some(m.len()))?;
