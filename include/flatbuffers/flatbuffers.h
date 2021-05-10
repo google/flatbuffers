@@ -1356,9 +1356,8 @@ class FlatBufferBuilder {
   // Write a single aligned scalar to the buffer
   template<typename T> uoffset_t PushElement(T element) {
     AssertScalarT<T>();
-    T little_endian_element = EndianScalar(element);
     Align(sizeof(T));
-    buf_.push_small(little_endian_element);
+    buf_.push_small(EndianScalar(element));
     return GetSize();
   }
 
@@ -1823,25 +1822,42 @@ class FlatBufferBuilder {
   /// where the vector is stored.
   Offset<Vector<Offset<String>>> CreateVectorOfStrings(
       const std::vector<std::string> &v) {
-    size_t scratch_buffer_usage = v.size() * sizeof(Offset<String>);
+    return CreateVectorOfStrings(v.begin(), v.end());
+  }
+
+  /// @brief Serialize a collection of Strings into a FlatBuffer `vector`.
+  /// This is a convenience function for a common case. This may use a vector
+  /// stored on the heap to cache the intermediate results, but only stores the
+  /// numerical offsets.
+  /// @param begin The begining iterator of the collection
+  /// @param end The ending iterator of the collection
+  /// @return Returns a typed `Offset` into the serialized data indicating
+  /// where the vector is stored.
+  template<class It>
+  Offset<Vector<Offset<String>>> CreateVectorOfStrings(It begin, It end) {
+    auto size = std::distance(begin, end);
+    size_t scratch_buffer_usage = size * sizeof(Offset<String>);
     if (scratch_buffer_usage < buf_.scratch_size()) {
       // There is enough room in the scratch buffer to store all the string
       // offsets, use it instead of creating the temporary buffer on the heap.
-      for (size_t i = 0; i < v.size(); i++) {
-        buf_.scratch_push_small(CreateString(v[i]));
+      for (auto it = begin; it != end; ++it) {
+        buf_.scratch_push_small(CreateString(*it));
       }
-      StartVector(v.size(), sizeof(Offset<String>));
+      StartVector(size, sizeof(Offset<String>));
       for (auto it = buf_.scratch_end();
            it > buf_.scratch_end() - scratch_buffer_usage;) {
         it -= sizeof(Offset<String>);
         PushElement(*reinterpret_cast<Offset<String> *>(it));
       }
       buf_.scratch_pop(scratch_buffer_usage);
-      return Offset<Vector<Offset<String>>>(EndVector(v.size()));
+      return Offset<Vector<Offset<String>>>(EndVector(size));
     } else {
       FLATBUFFERS_ASSERT(FLATBUFFERS_GENERAL_HEAP_ALLOC_OK);
-      std::vector<Offset<String>> offsets(v.size());
-      for (size_t i = 0; i < v.size(); i++) offsets[i] = CreateString(v[i]);
+      std::vector<Offset<String>> offsets;
+      offsets.reserve(size);
+      for (auto it = begin; it != end; ++it) {
+        offsets.push_back(CreateString(*it));
+      }
       return CreateVector(offsets);
     }
   }
