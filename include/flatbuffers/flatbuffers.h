@@ -1795,9 +1795,7 @@ class FlatBufferBuilder {
   }
 
   /// @brief Serialize a `std::vector<std::string>` into a FlatBuffer `vector`.
-  /// This is a convenience function for a common case. This may use a vector
-  /// stored on the heap to cache the intermediate results, but only stores the
-  /// numerical offsets.
+  /// This is a convenience function for a common case.
   /// @param v A const reference to the `std::vector` to serialize into the
   /// buffer as a `vector`.
   /// @return Returns a typed `Offset` into the serialized data indicating
@@ -1808,9 +1806,7 @@ class FlatBufferBuilder {
   }
 
   /// @brief Serialize a collection of Strings into a FlatBuffer `vector`.
-  /// This is a convenience function for a common case. This may use a vector
-  /// stored on the heap to cache the intermediate results, but only stores the
-  /// numerical offsets.
+  /// This is a convenience function for a common case.
   /// @param begin The begining iterator of the collection
   /// @param end The ending iterator of the collection
   /// @return Returns a typed `Offset` into the serialized data indicating
@@ -1818,30 +1814,22 @@ class FlatBufferBuilder {
   template<class It>
   Offset<Vector<Offset<String>>> CreateVectorOfStrings(It begin, It end) {
     auto size = std::distance(begin, end);
-    size_t scratch_buffer_usage = size * sizeof(Offset<String>);
-    if (scratch_buffer_usage < buf_.scratch_size()) {
-      // There is enough room in the scratch buffer to store all the string
-      // offsets, use it instead of creating the temporary buffer on the heap.
-      for (auto it = begin; it != end; ++it) {
-        buf_.scratch_push_small(CreateString(*it));
-      }
-      StartVector(size, sizeof(Offset<String>));
-      for (auto it = buf_.scratch_end();
-           it > buf_.scratch_end() - scratch_buffer_usage;) {
-        it -= sizeof(Offset<String>);
-        PushElement(*reinterpret_cast<Offset<String> *>(it));
-      }
-      buf_.scratch_pop(scratch_buffer_usage);
-      return Offset<Vector<Offset<String>>>(EndVector(size));
-    } else {
-      FLATBUFFERS_ASSERT(FLATBUFFERS_GENERAL_HEAP_ALLOC_OK);
-      std::vector<Offset<String>> offsets;
-      offsets.reserve(size);
-      for (auto it = begin; it != end; ++it) {
-        offsets.push_back(CreateString(*it));
-      }
-      return CreateVector(offsets);
+    auto scratch_buffer_usage = size * sizeof(Offset<String>);
+    // If there is not enough space to store the offsets, there definitely won't
+    // be enough space to store all the strings. So ensuring space for the
+    // scratch region is OK, for it it fails, it would have failed later.
+    buf_.ensure_space(scratch_buffer_usage);
+    for (auto it = begin; it != end; ++it) {
+      buf_.scratch_push_small(CreateString(*it));
     }
+    StartVector(size, sizeof(Offset<String>));
+    for (auto it = buf_.scratch_end();
+         it > buf_.scratch_end() - scratch_buffer_usage;) {
+      it -= sizeof(Offset<String>);
+      PushElement(*reinterpret_cast<Offset<String> *>(it));
+    }
+    buf_.scratch_pop(scratch_buffer_usage);
+    return Offset<Vector<Offset<String>>>(EndVector(size));
   }
 
   /// @brief Serialize an array of structs into a FlatBuffer `vector`.
