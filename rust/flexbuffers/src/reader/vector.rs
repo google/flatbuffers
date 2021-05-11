@@ -40,7 +40,7 @@ impl<B: Buffer> Default for VectorReader<B> {
     fn default() -> Self {
         VectorReader {
             reader: Reader::default(),
-            length: usize::default()
+            length: usize::default(),
         }
     }
 }

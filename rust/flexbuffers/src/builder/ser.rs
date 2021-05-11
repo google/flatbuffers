@@ -36,6 +36,10 @@ impl FlexbufferSerializer {
     pub fn take_buffer(&mut self) -> Vec<u8> {
         self.builder.take_buffer()
     }
+    pub fn reset(&mut self) {
+        self.builder.reset();
+        self.nesting.clear();
+    }
     fn finish_if_not_nested(&mut self) -> Result<(), Error> {
         if self.nesting.is_empty() {
             assert_eq!(self.builder.values.len(), 1);

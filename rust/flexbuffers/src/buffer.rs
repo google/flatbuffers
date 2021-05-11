@@ -1,6 +1,6 @@
 use std::ops::{Deref, Range};
 
-/// The underlying buffer that is used by a flexbuffer Reader. 
+/// The underlying buffer that is used by a flexbuffer Reader.
 ///
 /// This allows for custom buffer implementations as long as they can be viewed as a &[u8].
 pub trait Buffer: Deref<Target = [u8]> + Sized {
@@ -14,12 +14,12 @@ pub trait Buffer: Deref<Target = [u8]> + Sized {
     /// A BufferString which will live at least as long as the Buffer itself.
     ///
     /// Deref's to UTF-8 `str`, and only generated from the `buffer_str` function Result.
-    type BufferString: Deref<Target = str> + Sized;
+    type BufferString: Deref<Target = str> + Sized + serde::ser::Serialize;
 
     /// This method returns an instance of type Self. This allows for lifetimes to be tracked
     /// in cases of deserialization.
     ///
-    /// It also lets custom buffers manage reference counts. 
+    /// It also lets custom buffers manage reference counts.
     ///
     /// Returns None if:
     /// - range start is greater than end
@@ -48,7 +48,7 @@ pub trait Buffer: Deref<Target = [u8]> + Sized {
         Self::empty().buffer_str().unwrap()
     }
 
-    /// Attempts to convert the given buffer to a custom string type. 
+    /// Attempts to convert the given buffer to a custom string type.
     ///
     /// This should fail if the type does not have valid UTF-8 bytes, and must be zero copy.
     fn buffer_str(&self) -> Result<Self::BufferString, std::str::Utf8Error>;
@@ -78,4 +78,3 @@ impl<'de> Buffer for &'de [u8] {
         std::str::from_utf8(self)
     }
 }
-
