@@ -32,20 +32,19 @@
 #include "monster_test_generated.h"
 #include "namespace_test/namespace_test1_generated.h"
 #include "namespace_test/namespace_test2_generated.h"
-#include "union_vector/union_vector_generated.h"
 #include "optional_scalars_generated.h"
+#include "union_vector/union_vector_generated.h"
 #if !defined(_MSC_VER) || _MSC_VER >= 1700
-#  include "monster_extra_generated.h"
 #  include "arrays_test_generated.h"
 #  include "evolution_test/evolution_v1_generated.h"
 #  include "evolution_test/evolution_v2_generated.h"
+#  include "monster_extra_generated.h"
 #endif
-
-#include "native_type_test_generated.h"
-#include "test_assert.h"
 
 #include "flatbuffers/flexbuffers.h"
 #include "monster_test_bfbs_generated.h"  // Generated using --bfbs-comments --bfbs-builtins --cpp --bfbs-gen-embed
+#include "native_type_test_generated.h"
+#include "test_assert.h"
 
 // clang-format off
 // Check that char* and uint8_t* are interoperable types.
@@ -1545,7 +1544,9 @@ void FuzzTest2() {
           }
       }
       AddToSchemaAndInstances(deprecated ? "(deprecated);\n" : ";\n",
-                              deprecated ? "" : is_last_field ? "\n" : ",\n");
+                              deprecated      ? ""
+                              : is_last_field ? "\n"
+                                              : ",\n");
     }
     AddToSchemaAndInstances("}\n\n", "}");
   }
