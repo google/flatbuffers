@@ -114,6 +114,7 @@ inline const char *EnumNameBaseType(BaseType e) {
   return EnumNamesBaseType()[index];
 }
 
+/// New schema language features that are not supported by old code generators.
 enum AdvancedFeatures {
   AdvancedArrayFeatures = 1ULL,
   AdvancedUnionFeatures = 2ULL,
@@ -441,6 +442,7 @@ struct Enum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *documentation() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_DOCUMENTATION);
   }
+  /// File that this Enum is declared in.
   const flatbuffers::String *declaration_file() const {
     return GetPointer<const flatbuffers::String *>(VT_DECLARATION_FILE);
   }
@@ -787,6 +789,7 @@ struct Object FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *documentation() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_DOCUMENTATION);
   }
+  /// File that this Object is declared in.
   const flatbuffers::String *declaration_file() const {
     return GetPointer<const flatbuffers::String *>(VT_DECLARATION_FILE);
   }
@@ -1045,6 +1048,7 @@ struct Service FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *documentation() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_DOCUMENTATION);
   }
+  /// File that this Service is declared in.
   const flatbuffers::String *declaration_file() const {
     return GetPointer<const flatbuffers::String *>(VT_DECLARATION_FILE);
   }
@@ -1168,6 +1172,8 @@ struct Schema FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   reflection::AdvancedFeatures advanced_features() const {
     return static_cast<reflection::AdvancedFeatures>(GetField<uint64_t>(VT_ADVANCED_FEATURES, 0));
   }
+  /// All the files used in this compilation. Files are relative to where
+  /// flatc was invoked.
   const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *fbs_files() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_FBS_FILES);
   }

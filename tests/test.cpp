@@ -911,33 +911,27 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   auto &schema = *reflection::GetSchema(bfbsfile.c_str());
   auto root_table = schema.root_table();
   // Check the declaration files.
-  // declaration_file is an absolute path so we check for substrings.
   TEST_EQ_STR(root_table->name()->c_str(), "MyGame.Example.Monster");
-  TEST_ASSERT(root_table->declaration_file()->str().find(
-                  "tests/monster_test.fbs") != std::string::npos);
-  TEST_ASSERT(
-      schema.objects()->LookupByKey("TableA")->declaration_file()->str().find(
-          "tests/include_test/include_test1.fbs") != std::string::npos);
-  TEST_ASSERT(schema.objects()
+  TEST_EQ_STR(root_table->declaration_file()->c_str(), "monster_test.fbs");
+  TEST_EQ_STR(
+      schema.objects()->LookupByKey("TableA")->declaration_file()->c_str(),
+      "include_test/include_test1.fbs");
+  TEST_EQ_STR(schema.objects()
                   ->LookupByKey("MyGame.OtherNameSpace.Unused")
                   ->declaration_file()
-                  ->str()
-                  .find("tests/include_test/sub/include_test2.fbs") !=
-              std::string::npos);
-  TEST_ASSERT(schema.enums()
+                  ->c_str(),
+              "include_test/sub/include_test2.fbs");
+  TEST_EQ_STR(schema.enums()
                   ->LookupByKey("MyGame.OtherNameSpace.FromInclude")
                   ->declaration_file()
-                  ->str()
-                  .find("tests/include_test/sub/include_test2.fbs") !=
-              std::string::npos);
-  TEST_ASSERT(schema.fbs_files()->size() == 3);
-  TEST_ASSERT(schema.fbs_files()->Get(0)->str().find(
-                  "tests/include_test/include_test1.fbs") != std::string::npos);
-  TEST_ASSERT(schema.fbs_files()->Get(1)->str().find(
-                  "tests/include_test/sub/include_test2.fbs") !=
-              std::string::npos);
-  TEST_ASSERT(schema.fbs_files()->Get(2)->str().find(
-                  "tests/monster_test.fbs") != std::string::npos);
+                  ->c_str(),
+              "include_test/sub/include_test2.fbs");
+  TEST_EQ(schema.fbs_files()->size(), 3);
+  TEST_EQ_STR(schema.fbs_files()->Get(0)->c_str(),
+              "include_test/include_test1.fbs");
+  TEST_EQ_STR(schema.fbs_files()->Get(1)->c_str(),
+              "include_test/sub/include_test2.fbs");
+  TEST_EQ_STR(schema.fbs_files()->Get(2)->c_str(), "monster_test.fbs");
 
   // Check Root table fields
   auto fields = root_table->fields();
