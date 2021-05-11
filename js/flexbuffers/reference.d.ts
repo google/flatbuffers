@@ -1,0 +1,32 @@
+import { ValueType } from './value-type';
+import { Long } from '../long';
+export declare function toReference(buffer: Uint8Array): Reference;
+export declare class Reference {
+    private dataView;
+    private offset;
+    private parentWidth;
+    private packedType;
+    private path;
+    private readonly byteWidth;
+    private readonly valueType;
+    private _length;
+    constructor(dataView: DataView, offset: number, parentWidth: number, packedType: ValueType, path: string);
+    isNull(): boolean;
+    isNumber(): boolean;
+    isFloat(): boolean;
+    isInt(): boolean;
+    isString(): boolean;
+    isBool(): boolean;
+    isBlob(): boolean;
+    isVector(): boolean;
+    isMap(): boolean;
+    boolValue(): boolean | null;
+    intValue(): number | Long | bigint | null;
+    floatValue(): number | null;
+    numericValue(): number | Long | bigint | null;
+    stringValue(): string | null;
+    blobValue(): Uint8Array | null;
+    get(key: number): Reference;
+    length(): number;
+    toObject(): unknown;
+}
