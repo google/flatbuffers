@@ -1860,7 +1860,8 @@ class FlatBufferBuilder {
   Offset<Vector<const T *>> CreateVectorOfNativeStructs(
       const S *v, size_t len, T((*const pack_func)(const S &))) {
     FLATBUFFERS_ASSERT(pack_func);
-    std::transform(v, v + len, StartVectorOfStructs<T>(len), pack_func);
+    auto structs = StartVectorOfStructs<T>(len);
+    for (size_t i = 0; i < len; i++) { structs[i] = pack_func(v[i]); }
     return EndVectorOfStructs<T>(len);
   }
 
@@ -2028,7 +2029,7 @@ class FlatBufferBuilder {
                                                               size_t len) {
     extern T Pack(const S &);
     auto structs = StartVectorOfStructs<T>(len);
-    std::transform(v, v + len, structs, Pack);
+    for (size_t i = 0; i < len; i++) { structs[i] = Pack(v[i]); }
     std::sort(structs, structs + len, StructKeyComparator<T>());
     return EndVectorOfStructs<T>(len);
   }

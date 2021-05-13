@@ -16,11 +16,6 @@
   #define new DEBUG_NEW
 #endif
 
-#if defined(_MSC_VER) && defined(_DEBUG)
-// see: https://devblogs.microsoft.com/cppblog/why-am-i-getting-these-_scl_secure_no_warnings-messages/
-#define _SCL_SECURE_NO_WARNINGS 1
-#endif // _MSC_VER && _DEBUG
-
 #if !defined(FLATBUFFERS_ASSERT)
 #include <assert.h>
 #define FLATBUFFERS_ASSERT assert
