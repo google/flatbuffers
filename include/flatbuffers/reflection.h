@@ -412,7 +412,7 @@ inline const reflection::Object &GetUnionType(
   FLATBUFFERS_ASSERT(type_field);
   auto union_type = GetFieldI<uint8_t>(table, *type_field);
   auto enumval = enumdef->values()->LookupByKey(union_type);
-  return *enumval->object();
+  return *schema.objects()->Get(enumval->union_type()->index());
 }
 
 // Changes the contents of a string inside a FlatBuffer. FlatBuffer must
