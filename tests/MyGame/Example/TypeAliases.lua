@@ -13,6 +13,9 @@ function TypeAliases.New()
     return o
 end
 function TypeAliases.GetRootAsTypeAliases(buf, offset)
+    if type(buf) == "string" then
+        buf = flatbuffers.binaryArray.New(buf)
+    end
     local n = flatbuffers.N.UOffsetT:Unpack(buf, offset)
     local o = TypeAliases.New()
     o:Init(buf, n + offset)
@@ -98,6 +101,9 @@ function TypeAliases_mt:V8(j)
         return self.view:Get(flatbuffers.N.Int8, a + ((j-1) * 1))
     end
     return 0
+end
+function TypeAliases_mt:V8AsString(start, stop)
+    return self.view:VectorAsString(24, start, stop)
 end
 function TypeAliases_mt:V8Length()
     local o = self.view:Offset(24)

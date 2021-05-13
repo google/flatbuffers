@@ -383,8 +383,8 @@ if(FLATBUFFERS_BUILD_SHAREDLIB)
   # - micro updated every release when there is no API/ABI changes
   # - minor updated when there are additions in API/ABI
   # - major (ABI number) updated when there are changes in ABI (or removals)
-  set(FlatBuffers_Library_SONAME_MAJOR "1")
-  set(FlatBuffers_Library_SONAME_FULL "${FlatBuffers_Library_SONAME_MAJOR}.12.0")
+  set(FlatBuffers_Library_SONAME_MAJOR "2")
+  set(FlatBuffers_Library_SONAME_FULL "${FlatBuffers_Library_SONAME_MAJOR}.0.0")
   set_target_properties(flatbuffers_shared PROPERTIES OUTPUT_NAME flatbuffers
                         SOVERSION "${FlatBuffers_Library_SONAME_MAJOR}"
                         VERSION "${FlatBuffers_Library_SONAME_FULL}")
@@ -544,10 +544,13 @@ if(FLATBUFFERS_BUILD_GRPCTEST)
   endif()
   INCLUDE_DIRECTORIES(${GRPC_INSTALL_PATH}/include)
   INCLUDE_DIRECTORIES(${PROTOBUF_DOWNLOAD_PATH}/src)
-  LINK_DIRECTORIES(${GRPC_INSTALL_PATH}/lib)
+  find_package(Threads REQUIRED)
+  list(APPEND CMAKE_PREFIX_PATH ${GRPC_INSTALL_PATH})
+  find_package(protobuf CONFIG REQUIRED)
+  find_package(gRPC CONFIG REQUIRED)
   add_executable(grpctest ${FlatBuffers_GRPCTest_SRCS})
   add_dependencies(grpctest generated_code)
-  target_link_libraries(grpctest PRIVATE grpc++_unsecure grpc_unsecure gpr pthread dl)
+  target_link_libraries(grpctest PRIVATE gRPC::grpc++_unsecure gRPC::grpc_unsecure gRPC::gpr pthread dl)
   if(FLATBUFFERS_CODE_SANITIZE AND NOT WIN32)
     # GRPC test has problems with alignment and will fail under ASAN/UBSAN.
     # add_fsanitize_to_target(grpctest ${FLATBUFFERS_CODE_SANITIZE})

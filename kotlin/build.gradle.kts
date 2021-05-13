@@ -3,13 +3,11 @@ plugins {
 }
 
 group = "com.google.flatbuffers"
-version = "1.12.0-SNAPSHOT"
+version = "2.0.0-SNAPSHOT"
 
 subprojects {
 
   repositories {
-    maven { setUrl("https://dl.bintray.com/kotlin/kotlinx") }
-    maven { setUrl("https://dl.bintray.com/kotlin/kotlin-dev") }
     maven { setUrl("https://plugins.gradle.org/m2/") }
     mavenCentral()
   }
@@ -17,7 +15,6 @@ subprojects {
 
 buildscript {
   repositories {
-    maven { setUrl("https://dl.bintray.com/kotlin/kotlin-dev") }
     maven { setUrl("https://plugins.gradle.org/m2/") }
     gradlePluginPortal()
     mavenCentral()

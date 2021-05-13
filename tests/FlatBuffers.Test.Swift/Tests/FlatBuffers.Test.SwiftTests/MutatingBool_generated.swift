@@ -4,14 +4,14 @@ import FlatBuffers
 
 public struct Property: NativeStruct {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
 
   public var property: Bool
 }
 
 public struct Property_Mutable: FlatBufferObject {
 
-    static func validateVersion() { FlatBuffersVersion_1_12_0() }
+    static func validateVersion() { FlatBuffersVersion_2_0_0() }
     public var __buffer: ByteBuffer! { return _accessor.bb }
     private var _accessor: Struct
 
@@ -25,7 +25,7 @@ public struct Property_Mutable: FlatBufferObject {
 
 public struct TestMutatingBool: FlatBufferObject {
 
-    static func validateVersion() { FlatBuffersVersion_1_12_0() }
+    static func validateVersion() { FlatBuffersVersion_2_0_0() }
     public var __buffer: ByteBuffer! { return _accessor.bb }
     private var _accessor: Table
 
@@ -44,6 +44,6 @@ public struct TestMutatingBool: FlatBufferObject {
     public var mutableB: Property_Mutable? { let o = _accessor.offset(VTOFFSET.b.v); return o == 0 ? nil : Property_Mutable(_accessor.bb, o: o + _accessor.postion) }
     public static func startTestMutatingBool(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
     public static func add(b: Property?, _ fbb: inout FlatBufferBuilder) { guard let b = b else { return }; _ = fbb.create(struct: b, position: VTOFFSET.b.p) }
-    public static func endTestMutatingBool(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
+    public static func endTestMutatingBool(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
 }
 

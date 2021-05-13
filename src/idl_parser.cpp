@@ -765,10 +765,13 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   if (!struct_def.fixed && IsArray(type))
     return Error("fixed-length array in table must be wrapped in struct");
 
-  if (IsArray(type) && !SupportsAdvancedArrayFeatures()) {
-    return Error(
-        "Arrays are not yet supported in all "
-        "the specified programming languages.");
+  if (IsArray(type)) {
+    advanced_features_ |= reflection::AdvancedArrayFeatures;
+    if (!SupportsAdvancedArrayFeatures()) {
+      return Error(
+          "Arrays are not yet supported in all "
+          "the specified programming languages.");
+    }
   }
 
   FieldDef *typefield = nullptr;
@@ -778,6 +781,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     ECHECK(AddField(struct_def, name + UnionTypeFieldSuffix(),
                     type.enum_def->underlying_type, &typefield));
   } else if (IsVector(type) && type.element == BASE_TYPE_UNION) {
+    advanced_features_ |= reflection::AdvancedUnionFeatures;
     // Only cpp, js and ts supports the union vector feature so far.
     if (!SupportsAdvancedUnionFeatures()) {
       return Error(
@@ -802,11 +806,16 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
       return Error(
           "default values are not supported for struct fields, table fields, "
           "or in structs.");
-    if ((IsString(type) || IsVector(type)) && field->value.constant != "0" &&
-        field->value.constant != "null" && !SupportsDefaultVectorsAndStrings())
-      return Error(
-          "Default values for strings and vectors are not supported in one of "
-          "the specified programming languages");
+    if (IsString(type) || IsVector(type)) {
+      advanced_features_ |= reflection::DefaultVectorsAndStrings;
+      if (field->value.constant != "0" && field->value.constant != "null" &&
+          !SupportsDefaultVectorsAndStrings()) {
+        return Error(
+            "Default values for strings and vectors are not supported in one "
+            "of the specified programming languages");
+      }
+    }
+
     if (IsVector(type) && field->value.constant != "0" &&
         field->value.constant != "[]") {
       return Error("The only supported default for vectors is `[]`.");
@@ -891,6 +900,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   }
 
   if (field->IsScalarOptional()) {
+    advanced_features_ |= reflection::OptionalScalars;
     if (type.enum_def && type.enum_def->Lookup("null")) {
       FLATBUFFERS_ASSERT(IsInteger(type.base_type));
       return Error(
@@ -910,24 +920,32 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   }
 
   if (type.enum_def) {
-    // The type.base_type can only be scalar, union, array or vector.
-    // Table, struct or string can't have enum_def.
-    // Default value of union and vector in NONE, NULL translated to "0".
-    FLATBUFFERS_ASSERT(IsInteger(type.base_type) ||
-                       (type.base_type == BASE_TYPE_UNION) || IsVector(type) ||
-                       IsArray(type));
-    if (IsVector(type)) {
-      // Vector can't use initialization list.
-      FLATBUFFERS_ASSERT(field->value.constant == "0");
+    // Verify the enum's type and default value.
+    const std::string &constant = field->value.constant;
+    if (type.base_type == BASE_TYPE_UNION) {
+      if (constant != "0") { return Error("Union defaults must be NONE"); }
+    } else if (IsVector(type)) {
+      if (constant != "0" && constant != "[]") {
+        return Error("Vector defaults may only be `[]`.");
+      }
+    } else if (IsArray(type)) {
+      if (constant != "0") {
+        return Error("Array defaults are not supported yet.");
+      }
     } else {
-      // All unions should have the NONE ("0") enum value.
-      auto in_enum = field->IsOptional() ||
-                     type.enum_def->attributes.Lookup("bit_flags") ||
-                     type.enum_def->FindByValue(field->value.constant);
-      if (false == in_enum)
-        return Error("default value of " + field->value.constant +
-                     " for field " + name + " is not part of enum " +
-                     type.enum_def->name);
+      if (!IsInteger(type.base_type)) {
+        return Error("Enums must have integer base types");
+      }
+      // Optional and bitflags enums may have default constants that are not
+      // their specified variants.
+      if (!field->IsOptional() &&
+          type.enum_def->attributes.Lookup("bit_flags") == nullptr) {
+        if (type.enum_def->FindByValue(constant) == nullptr) {
+          return Error("default value of `" + constant + "` for " + "field `" +
+                       name + "` is not part of enum `" + type.enum_def->name +
+                       "`.");
+        }
+      }
     }
   }
 
@@ -2459,7 +2477,7 @@ bool Parser::SupportsAdvancedArrayFeatures() const {
   return (opts.lang_to_generate &
           ~(IDLOptions::kCpp | IDLOptions::kPython | IDLOptions::kJava |
             IDLOptions::kCSharp | IDLOptions::kJsonSchema | IDLOptions::kJson |
-            IDLOptions::kBinary)) == 0;
+            IDLOptions::kBinary | IDLOptions::kRust)) == 0;
 }
 
 Namespace *Parser::UniqueNamespace(Namespace *ns) {
@@ -3490,7 +3508,8 @@ void Parser::Serialize() {
   auto serv__ = builder_.CreateVectorOfSortedTables(&service_offsets);
   auto schema_offset = reflection::CreateSchema(
       builder_, objs__, enum__, fiid__, fext__,
-      (root_struct_def_ ? root_struct_def_->serialized_location : 0), serv__);
+      (root_struct_def_ ? root_struct_def_->serialized_location : 0), serv__,
+      static_cast<reflection::AdvancedFeatures>(advanced_features_));
   if (opts.size_prefixed) {
     builder_.FinishSizePrefixed(schema_offset, reflection::SchemaIdentifier());
   } else {
@@ -3907,7 +3926,7 @@ bool Parser::Deserialize(const reflection::Schema *schema) {
       }
     }
   }
-
+  advanced_features_ = schema->advanced_features();
   return true;
 }
 

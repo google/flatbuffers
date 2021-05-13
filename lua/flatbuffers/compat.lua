@@ -1,17 +1,15 @@
-local m = {}
-
-local getAlignSize
-if _VERSION == "Lua 5.3" then
-    getAlignSize = function(k, size)
-            return ((~k) + 1) & (size - 1)
-        end    
-else
-    getAlignSize = function(self, size, additionalBytes)        
-        local alignsize = bit32.bnot(#self.bytes-self:Head() + additionalBytes) + 1
-        return bit32.band(alignsize,(size - 1))
-    end
-end
-    
-m.GetAlignSize = getAlignSize
-
-return m
+local compats = {
+    ["Lua 5.1"] = function()  
+        -- Check if Lua JIT is installed first
+        local ok = pcall(require, "jit")
+        if not ok then
+            return require("flatbuffers.compat_5_1")
+        else
+            return require("flatbuffers.compat_luajit")
+        end
+    end,
+    ["Lua 5.2"] = function() return require("flatbuffers.compat_5_1") end,
+    ["Lua 5.3"] = function() return require("flatbuffers.compat_5_3") end,
+    ["Lua 5.4"] = function() return require("flatbuffers.compat_5_3") end,
+}
+return assert(compats[_VERSION], "Unsupported Lua Version: ".._VERSION)()

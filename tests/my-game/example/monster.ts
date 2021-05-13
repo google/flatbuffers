@@ -646,6 +646,10 @@ scalarKeySortedTablesLength():number {
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
+static getFullyQualifiedName():string {
+  return 'MyGame.Example.Monster';
+}
+
 static startMonster(builder:flatbuffers.Builder) {
   builder.startObject(51);
 }
@@ -1284,7 +1288,6 @@ constructor(
 
 
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  const pos = (this.pos !== null ? this.pos!.pack(builder) : 0);
   const name = (this.name !== null ? builder.createString(this.name!) : 0);
   const inventory = Monster.createInventoryVector(builder, this.inventory);
   const test = builder.createObjectOffset(this.test);
@@ -1314,7 +1317,7 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   const scalarKeySortedTables = Monster.createScalarKeySortedTablesVector(builder, builder.createObjectOffsetList(this.scalarKeySortedTables));
 
   Monster.startMonster(builder);
-  Monster.addPos(builder, pos);
+  Monster.addPos(builder, (this.pos !== null ? this.pos!.pack(builder) : 0));
   Monster.addMana(builder, this.mana);
   Monster.addHp(builder, this.hp);
   Monster.addName(builder, name);

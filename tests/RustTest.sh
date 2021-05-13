@@ -63,5 +63,5 @@ fi
 # RUST_NIGHTLY environment variable set in dockerfile.
 if [[ $RUST_NIGHTLY == 1 ]]; then
   rustup +nightly component add miri
-  cargo +nightly miri test -- -Zmiri-disable-isolation
+  MIRIFLAGS="-Zmiri-disable-isolation" cargo +nightly miri test
 fi

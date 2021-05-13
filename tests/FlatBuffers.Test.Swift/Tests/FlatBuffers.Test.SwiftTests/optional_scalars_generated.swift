@@ -4,7 +4,7 @@
 
 import FlatBuffers
 
-public enum optional_scalars_OptionalByte: Int8, Enum { 
+public enum optional_scalars_OptionalByte: Int8, Enum {
   public typealias T = Int8
   public static var byteSize: Int { return MemoryLayout<Int8>.size }
   public var value: Int8 { return self.rawValue }
@@ -19,11 +19,11 @@ public enum optional_scalars_OptionalByte: Int8, Enum {
 
 public struct optional_scalars_ScalarStuff: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
-  public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset<UOffset>, prefix: Bool = false) { fbb.finish(offset: end, fileId: "NULL", addPrefix: prefix) }
+  public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: "NULL", addPrefix: prefix) }
   public static func getRootAsScalarStuff(bb: ByteBuffer) -> optional_scalars_ScalarStuff { return optional_scalars_ScalarStuff(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
 
   private init(_ t: Table) { _accessor = t }
@@ -145,7 +145,7 @@ public struct optional_scalars_ScalarStuff: FlatBufferObject {
   public static func add(justEnum: optional_scalars_OptionalByte, _ fbb: inout FlatBufferBuilder) { fbb.add(element: justEnum.rawValue, def: 0, at: VTOFFSET.justEnum.p) }
   public static func add(maybeEnum: optional_scalars_OptionalByte?, _ fbb: inout FlatBufferBuilder) { fbb.add(element: maybeEnum?.rawValue, at: VTOFFSET.maybeEnum.p) }
   public static func add(defaultEnum: optional_scalars_OptionalByte, _ fbb: inout FlatBufferBuilder) { fbb.add(element: defaultEnum.rawValue, def: 1, at: VTOFFSET.defaultEnum.p) }
-  public static func endScalarStuff(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
+  public static func endScalarStuff(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
   public static func createScalarStuff(
     _ fbb: inout FlatBufferBuilder,
     justI8: Int8 = 0,
@@ -184,7 +184,7 @@ public struct optional_scalars_ScalarStuff: FlatBufferObject {
     justEnum: optional_scalars_OptionalByte = .none_,
     maybeEnum: optional_scalars_OptionalByte? = nil,
     defaultEnum: optional_scalars_OptionalByte = .one
-  ) -> Offset<UOffset> {
+  ) -> Offset {
     let __start = optional_scalars_ScalarStuff.startScalarStuff(&fbb)
     optional_scalars_ScalarStuff.add(justI8: justI8, &fbb)
     optional_scalars_ScalarStuff.add(maybeI8: maybeI8, &fbb)
