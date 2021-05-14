@@ -630,7 +630,7 @@ void PrintHeaderServerMethodAsync(grpc_generator::Printer *printer,
                  "class WithAsyncMethod_$Method$ : public BaseClass {\n");
   printer->Print(
       " private:\n"
-      "  void BaseClassMustBeDerivedFromService(const Service *service) {}\n");
+      "  void BaseClassMustBeDerivedFromService(const Service *service) { (void) service; }\n");
   printer->Print(" public:\n");
   printer->Indent();
   printer->Print(*vars,
@@ -648,6 +648,9 @@ void PrintHeaderServerMethodAsync(grpc_generator::Printer *printer,
         "::grpc::Status $Method$("
         "::grpc::ServerContext* context, const $Request$* request, "
         "$Response$* response) final override {\n"
+        "  (void) context;\n"
+        "  (void) request;\n"
+        "  (void) response;\n"
         "  abort();\n"
         "  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, \"\");\n"
         "}\n");
@@ -670,6 +673,8 @@ void PrintHeaderServerMethodAsync(grpc_generator::Printer *printer,
         "::grpc::ServerContext* context, "
         "::grpc::ServerReader< $Request$>* reader, "
         "$Response$* response) final override {\n"
+        "  (void) context;\n"
+        "  (void) reader;\n"
         "  abort();\n"
         "  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, \"\");\n"
         "}\n");
@@ -692,6 +697,9 @@ void PrintHeaderServerMethodAsync(grpc_generator::Printer *printer,
         "::grpc::ServerContext* context, const $Request$* request, "
         "::grpc::ServerWriter< $Response$>* writer) final override "
         "{\n"
+        "  (void) context;\n"
+        "  (void) request;\n"
+        "  (void) writer;\n"
         "  abort();\n"
         "  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, \"\");\n"
         "}\n");
@@ -715,6 +723,8 @@ void PrintHeaderServerMethodAsync(grpc_generator::Printer *printer,
         "::grpc::ServerContext* context, "
         "::grpc::ServerReaderWriter< $Response$, $Request$>* stream) "
         "final override {\n"
+        "  (void) context;\n"
+        "  (void) stream;\n"
         "  abort();\n"
         "  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, \"\");\n"
         "}\n");
@@ -748,7 +758,7 @@ void PrintHeaderServerMethodStreamedUnary(
     printer->Print(
         " private:\n"
         "  void BaseClassMustBeDerivedFromService(const Service *service) "
-        "{}\n");
+        "{ (void) service; }\n");
     printer->Print(" public:\n");
     printer->Indent();
     printer->Print(*vars,
@@ -770,6 +780,9 @@ void PrintHeaderServerMethodStreamedUnary(
         "::grpc::Status $Method$("
         "::grpc::ServerContext* context, const $Request$* request, "
         "$Response$* response) final override {\n"
+        "  (void) context;\n"
+        "  (void) request;\n"
+        "  (void) response;\n"
         "  abort();\n"
         "  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, \"\");\n"
         "}\n");
@@ -799,7 +812,7 @@ void PrintHeaderServerMethodSplitStreaming(
     printer->Print(
         " private:\n"
         "  void BaseClassMustBeDerivedFromService(const Service *service) "
-        "{}\n");
+        "{ (void) service; }\n");
     printer->Print(" public:\n");
     printer->Indent();
     printer->Print(
@@ -823,6 +836,8 @@ void PrintHeaderServerMethodSplitStreaming(
         "::grpc::ServerContext* context, const $Request$* request, "
         "::grpc::ServerWriter< $Response$>* writer) final override "
         "{\n"
+        "  (void) context;\n"
+        "  (void) writer;\n"
         "  abort();\n"
         "  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, \"\");\n"
         "}\n");
@@ -849,7 +864,7 @@ void PrintHeaderServerMethodGeneric(
                  "class WithGenericMethod_$Method$ : public BaseClass {\n");
   printer->Print(
       " private:\n"
-      "  void BaseClassMustBeDerivedFromService(const Service *service) {}\n");
+      "  void BaseClassMustBeDerivedFromService(const Service *service) { (void) service; }\n");
   printer->Print(" public:\n");
   printer->Indent();
   printer->Print(*vars,
@@ -867,6 +882,9 @@ void PrintHeaderServerMethodGeneric(
         "::grpc::Status $Method$("
         "::grpc::ServerContext* context, const $Request$* request, "
         "$Response$* response) final override {\n"
+        "  (void) context;\n"
+        "  (void) request;\n"
+        "  (void) response;\n"
         "  abort();\n"
         "  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, \"\");\n"
         "}\n");
@@ -878,6 +896,9 @@ void PrintHeaderServerMethodGeneric(
         "::grpc::ServerContext* context, "
         "::grpc::ServerReader< $Request$>* reader, "
         "$Response$* response) final override {\n"
+        "  (void) context;\n"
+        "  (void) reader;\n"
+        "  (void) response;\n"
         "  abort();\n"
         "  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, \"\");\n"
         "}\n");
@@ -889,6 +910,9 @@ void PrintHeaderServerMethodGeneric(
         "::grpc::ServerContext* context, const $Request$* request, "
         "::grpc::ServerWriter< $Response$>* writer) final override "
         "{\n"
+        "  (void) context;\n"
+        "  (void) request;\n"
+        "  (void) writer;\n"
         "  abort();\n"
         "  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, \"\");\n"
         "}\n");
@@ -900,6 +924,8 @@ void PrintHeaderServerMethodGeneric(
         "::grpc::ServerContext* context, "
         "::grpc::ServerReaderWriter< $Response$, $Request$>* stream) "
         "final override {\n"
+        "  (void) context;\n"
+        "  (void) stream;\n"
         "  abort();\n"
         "  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, \"\");\n"
         "}\n");
@@ -1422,6 +1448,7 @@ void PrintSourceService(grpc_generator::Printer *printer,
                  "std::unique_ptr< $ns$$Service$::Stub> $ns$$Service$::NewStub("
                  "const std::shared_ptr< ::grpc::ChannelInterface>& channel, "
                  "const ::grpc::StubOptions& options) {\n"
+                 "  (void) options;\n"
                  "  std::unique_ptr< $ns$$Service$::Stub> stub(new "
                  "$ns$$Service$::Stub(channel));\n"
                  "  return stub;\n"

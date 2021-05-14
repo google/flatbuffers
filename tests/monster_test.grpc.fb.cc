@@ -24,6 +24,7 @@ static const char* MonsterStorage_method_names[] = {
 };
 
 std::unique_ptr< MonsterStorage::Stub> MonsterStorage::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
+  (void) options;
   std::unique_ptr< MonsterStorage::Stub> stub(new MonsterStorage::Stub(channel));
   return stub;
 }
