@@ -40,7 +40,7 @@ func run(name: String, runs: Int, action: () -> Void) -> Benchmark {
 func createDocument(Benchmarks: [Benchmark]) -> String {
   let separator = "-------------------------------------"
   var document = "\(separator)\n"
-  document += "\(String(format: "|\t%@\t\t|\t\t%@\t\t|", "Name", "Scores"))\n"
+  document += "\(String(format: "|\t%@\t\t  |\t\t%@\t\t|", "Name", "Scores"))\n"
   document += "\(separator)\n"
   for i in Benchmarks {
     document += "\(i.description) \n"
@@ -89,7 +89,9 @@ func benchmarkThreeMillionStructs() {
 
   var offsets: [Offset] = []
   for _ in 0..<structCount {
-    fb.startVector(5 * MemoryLayout<AA>.size, elementSize: MemoryLayout<AA>.alignment)
+    fb.startVector(
+      5 * MemoryLayout<AA>.size,
+      elementSize: MemoryLayout<AA>.alignment)
     for _ in 0..<5 {
       _ = fb.create(struct: AA(a: 2.4, b: 2.4))
     }
@@ -119,12 +121,18 @@ struct AA: NativeStruct {
 func benchmark(numberOfRuns runs: Int) {
   var benchmarks: [Benchmark] = []
   let str = (0...99).map { _ -> String in "x" }.joined()
-  benchmarks.append(run(name: "500_000", runs: runs, action: benchmarkFiveHundredAdds))
+  benchmarks.append(run(
+    name: "500_000",
+    runs: runs,
+    action: benchmarkFiveHundredAdds))
   benchmarks.append(run(name: "10 str", runs: runs, action: create10Strings))
   let hundredStr = run(name: "100 str", runs: runs) {
     create100Strings(str: str)
   }
-  benchmarks.append(run(name: "3M strc", runs: 1, action: benchmarkThreeMillionStructs))
+  benchmarks.append(run(
+    name: "3M strc",
+    runs: 1,
+    action: benchmarkThreeMillionStructs))
   benchmarks.append(hundredStr)
   print(createDocument(Benchmarks: benchmarks))
 }

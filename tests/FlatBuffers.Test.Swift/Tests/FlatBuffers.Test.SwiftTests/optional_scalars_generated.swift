@@ -4,20 +4,19 @@
 
 import FlatBuffers
 
-public enum optional_scalars_OptionalByte: Int8, Enum {
+public enum optional_scalars_OptionalByte: Int8, Enum, Verifiable {
   public typealias T = Int8
   public static var byteSize: Int { return MemoryLayout<Int8>.size }
   public var value: Int8 { return self.rawValue }
   case none_ = 0
   case one = 1
   case two = 2
-  
 
   public static var max: optional_scalars_OptionalByte { return .two }
   public static var min: optional_scalars_OptionalByte { return .none_ }
 }
 
-public struct optional_scalars_ScalarStuff: FlatBufferObject {
+public struct optional_scalars_ScalarStuff: FlatBufferObject, Verifiable {
 
   static func validateVersion() { FlatBuffersVersion_2_0_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -223,6 +222,47 @@ public struct optional_scalars_ScalarStuff: FlatBufferObject {
     optional_scalars_ScalarStuff.add(maybeEnum: maybeEnum, &fbb)
     optional_scalars_ScalarStuff.add(defaultEnum: defaultEnum, &fbb)
     return optional_scalars_ScalarStuff.endScalarStuff(&fbb, start: __start)
+  }
+
+  public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
+    var _v = try verifier.visitTable(at: position)
+    try _v.visit(field: VTOFFSET.justI8.p, fieldName: "justI8", required: false, type: Int8.self)
+    try _v.visit(field: VTOFFSET.maybeI8.p, fieldName: "maybeI8", required: false, type: Int8.self)
+    try _v.visit(field: VTOFFSET.defaultI8.p, fieldName: "defaultI8", required: false, type: Int8.self)
+    try _v.visit(field: VTOFFSET.justU8.p, fieldName: "justU8", required: false, type: UInt8.self)
+    try _v.visit(field: VTOFFSET.maybeU8.p, fieldName: "maybeU8", required: false, type: UInt8.self)
+    try _v.visit(field: VTOFFSET.defaultU8.p, fieldName: "defaultU8", required: false, type: UInt8.self)
+    try _v.visit(field: VTOFFSET.justI16.p, fieldName: "justI16", required: false, type: Int16.self)
+    try _v.visit(field: VTOFFSET.maybeI16.p, fieldName: "maybeI16", required: false, type: Int16.self)
+    try _v.visit(field: VTOFFSET.defaultI16.p, fieldName: "defaultI16", required: false, type: Int16.self)
+    try _v.visit(field: VTOFFSET.justU16.p, fieldName: "justU16", required: false, type: UInt16.self)
+    try _v.visit(field: VTOFFSET.maybeU16.p, fieldName: "maybeU16", required: false, type: UInt16.self)
+    try _v.visit(field: VTOFFSET.defaultU16.p, fieldName: "defaultU16", required: false, type: UInt16.self)
+    try _v.visit(field: VTOFFSET.justI32.p, fieldName: "justI32", required: false, type: Int32.self)
+    try _v.visit(field: VTOFFSET.maybeI32.p, fieldName: "maybeI32", required: false, type: Int32.self)
+    try _v.visit(field: VTOFFSET.defaultI32.p, fieldName: "defaultI32", required: false, type: Int32.self)
+    try _v.visit(field: VTOFFSET.justU32.p, fieldName: "justU32", required: false, type: UInt32.self)
+    try _v.visit(field: VTOFFSET.maybeU32.p, fieldName: "maybeU32", required: false, type: UInt32.self)
+    try _v.visit(field: VTOFFSET.defaultU32.p, fieldName: "defaultU32", required: false, type: UInt32.self)
+    try _v.visit(field: VTOFFSET.justI64.p, fieldName: "justI64", required: false, type: Int64.self)
+    try _v.visit(field: VTOFFSET.maybeI64.p, fieldName: "maybeI64", required: false, type: Int64.self)
+    try _v.visit(field: VTOFFSET.defaultI64.p, fieldName: "defaultI64", required: false, type: Int64.self)
+    try _v.visit(field: VTOFFSET.justU64.p, fieldName: "justU64", required: false, type: UInt64.self)
+    try _v.visit(field: VTOFFSET.maybeU64.p, fieldName: "maybeU64", required: false, type: UInt64.self)
+    try _v.visit(field: VTOFFSET.defaultU64.p, fieldName: "defaultU64", required: false, type: UInt64.self)
+    try _v.visit(field: VTOFFSET.justF32.p, fieldName: "justF32", required: false, type: Float32.self)
+    try _v.visit(field: VTOFFSET.maybeF32.p, fieldName: "maybeF32", required: false, type: Float32.self)
+    try _v.visit(field: VTOFFSET.defaultF32.p, fieldName: "defaultF32", required: false, type: Float32.self)
+    try _v.visit(field: VTOFFSET.justF64.p, fieldName: "justF64", required: false, type: Double.self)
+    try _v.visit(field: VTOFFSET.maybeF64.p, fieldName: "maybeF64", required: false, type: Double.self)
+    try _v.visit(field: VTOFFSET.defaultF64.p, fieldName: "defaultF64", required: false, type: Double.self)
+    try _v.visit(field: VTOFFSET.justBool.p, fieldName: "justBool", required: false, type: Bool.self)
+    try _v.visit(field: VTOFFSET.maybeBool.p, fieldName: "maybeBool", required: false, type: Bool.self)
+    try _v.visit(field: VTOFFSET.defaultBool.p, fieldName: "defaultBool", required: false, type: Bool.self)
+    try _v.visit(field: VTOFFSET.justEnum.p, fieldName: "justEnum", required: false, type: optional_scalars_OptionalByte.self)
+    try _v.visit(field: VTOFFSET.maybeEnum.p, fieldName: "maybeEnum", required: false, type: optional_scalars_OptionalByte.self)
+    try _v.visit(field: VTOFFSET.defaultEnum.p, fieldName: "defaultEnum", required: false, type: optional_scalars_OptionalByte.self)
+    _v.finish()
   }
 }
 

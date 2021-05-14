@@ -26,9 +26,11 @@ typealias Stat = MyGame_Example_Stat
 class FlatBuffersMonsterWriterTests: XCTestCase {
 
   func testData() {
+    // swiftformat:disable all
     let data = Data([48, 0, 0, 0, 77, 79, 78, 83, 0, 0, 0, 0, 36, 0, 72, 0, 40, 0, 0, 0, 38, 0, 32, 0, 0, 0, 28, 0, 0, 0, 27, 0, 20, 0, 16, 0, 12, 0, 4, 0, 0, 0, 0, 0, 0, 0, 11, 0, 36, 0, 0, 0, 164, 0, 0, 0, 0, 0, 0, 1, 60, 0, 0, 0, 68, 0, 0, 0, 76, 0, 0, 0, 0, 0, 0, 1, 88, 0, 0, 0, 120, 0, 0, 0, 0, 0, 80, 0, 0, 0, 128, 63, 0, 0, 0, 64, 0, 0, 64, 64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 64, 2, 0, 5, 0, 6, 0, 0, 0, 2, 0, 0, 0, 64, 0, 0, 0, 48, 0, 0, 0, 2, 0, 0, 0, 30, 0, 40, 0, 10, 0, 20, 0, 152, 255, 255, 255, 4, 0, 0, 0, 4, 0, 0, 0, 70, 114, 101, 100, 0, 0, 0, 0, 5, 0, 0, 0, 0, 1, 2, 3, 4, 0, 0, 0, 5, 0, 0, 0, 116, 101, 115, 116, 50, 0, 0, 0, 5, 0, 0, 0, 116, 101, 115, 116, 49, 0, 0, 0, 9, 0, 0, 0, 77, 121, 77, 111, 110, 115, 116, 101, 114, 0, 0, 0, 3, 0, 0, 0, 20, 0, 0, 0, 36, 0, 0, 0, 4, 0, 0, 0, 240, 255, 255, 255, 32, 0, 0, 0, 248, 255, 255, 255, 36, 0, 0, 0, 12, 0, 8, 0, 0, 0, 0, 0, 0, 0, 4, 0, 12, 0, 0, 0, 28, 0, 0, 0, 5, 0, 0, 0, 87, 105, 108, 109, 97, 0, 0, 0, 6, 0, 0, 0, 66, 97, 114, 110, 101, 121, 0, 0, 5, 0, 0, 0, 70, 114, 111, 100, 111, 0, 0, 0])
+    // swiftformat:enable all
     let _data = ByteBuffer(data: data)
-    readMonster(fb: _data)
+    readVerifiedMonster(fb: _data)
   }
 
   func testReadFromOtherLanguages() {
@@ -36,29 +38,36 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     let url = URL(fileURLWithPath: path, isDirectory: true).appendingPathComponent("monsterdata_test").appendingPathExtension("mon")
     guard let data = try? Data(contentsOf: url) else { return }
     let _data = ByteBuffer(data: data)
-    readMonster(fb: _data)
+    readVerifiedMonster(fb: _data)
   }
 
   func testCreateMonster() {
     let bytes = createMonster(withPrefix: false)
+    // swiftformat:disable all
     XCTAssertEqual(bytes.sizedByteArray, [48, 0, 0, 0, 77, 79, 78, 83, 0, 0, 0, 0, 36, 0, 72, 0, 40, 0, 0, 0, 38, 0, 32, 0, 0, 0, 28, 0, 0, 0, 27, 0, 20, 0, 16, 0, 12, 0, 4, 0, 0, 0, 0, 0, 0, 0, 11, 0, 36, 0, 0, 0, 164, 0, 0, 0, 0, 0, 0, 1, 60, 0, 0, 0, 68, 0, 0, 0, 76, 0, 0, 0, 0, 0, 0, 1, 88, 0, 0, 0, 120, 0, 0, 0, 0, 0, 80, 0, 0, 0, 128, 63, 0, 0, 0, 64, 0, 0, 64, 64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 64, 2, 0, 5, 0, 6, 0, 0, 0, 2, 0, 0, 0, 64, 0, 0, 0, 48, 0, 0, 0, 2, 0, 0, 0, 30, 0, 40, 0, 10, 0, 20, 0, 152, 255, 255, 255, 4, 0, 0, 0, 4, 0, 0, 0, 70, 114, 101, 100, 0, 0, 0, 0, 5, 0, 0, 0, 0, 1, 2, 3, 4, 0, 0, 0, 5, 0, 0, 0, 116, 101, 115, 116, 50, 0, 0, 0, 5, 0, 0, 0, 116, 101, 115, 116, 49, 0, 0, 0, 9, 0, 0, 0, 77, 121, 77, 111, 110, 115, 116, 101, 114, 0, 0, 0, 3, 0, 0, 0, 20, 0, 0, 0, 36, 0, 0, 0, 4, 0, 0, 0, 240, 255, 255, 255, 32, 0, 0, 0, 248, 255, 255, 255, 36, 0, 0, 0, 12, 0, 8, 0, 0, 0, 0, 0, 0, 0, 4, 0, 12, 0, 0, 0, 28, 0, 0, 0, 5, 0, 0, 0, 87, 105, 108, 109, 97, 0, 0, 0, 6, 0, 0, 0, 66, 97, 114, 110, 101, 121, 0, 0, 5, 0, 0, 0, 70, 114, 111, 100, 111, 0, 0, 0])
-    readMonster(fb: bytes.buffer)
+    // swiftformat:enable all
+    let monster = MyGame_Example_Monster.getRootAsMonster(bb: bytes.buffer)
+    readMonster(monster: monster)
     mutateMonster(fb: bytes.buffer)
-    readMonster(fb: bytes.buffer)
+    readMonster(monster: monster)
   }
 
   func testCreateMonsterResizedBuffer() {
     let bytes = createMonster(withPrefix: false)
+    // swiftformat:disable all
     XCTAssertEqual(bytes.sizedByteArray, [48, 0, 0, 0, 77, 79, 78, 83, 0, 0, 0, 0, 36, 0, 72, 0, 40, 0, 0, 0, 38, 0, 32, 0, 0, 0, 28, 0, 0, 0, 27, 0, 20, 0, 16, 0, 12, 0, 4, 0, 0, 0, 0, 0, 0, 0, 11, 0, 36, 0, 0, 0, 164, 0, 0, 0, 0, 0, 0, 1, 60, 0, 0, 0, 68, 0, 0, 0, 76, 0, 0, 0, 0, 0, 0, 1, 88, 0, 0, 0, 120, 0, 0, 0, 0, 0, 80, 0, 0, 0, 128, 63, 0, 0, 0, 64, 0, 0, 64, 64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 64, 2, 0, 5, 0, 6, 0, 0, 0, 2, 0, 0, 0, 64, 0, 0, 0, 48, 0, 0, 0, 2, 0, 0, 0, 30, 0, 40, 0, 10, 0, 20, 0, 152, 255, 255, 255, 4, 0, 0, 0, 4, 0, 0, 0, 70, 114, 101, 100, 0, 0, 0, 0, 5, 0, 0, 0, 0, 1, 2, 3, 4, 0, 0, 0, 5, 0, 0, 0, 116, 101, 115, 116, 50, 0, 0, 0, 5, 0, 0, 0, 116, 101, 115, 116, 49, 0, 0, 0, 9, 0, 0, 0, 77, 121, 77, 111, 110, 115, 116, 101, 114, 0, 0, 0, 3, 0, 0, 0, 20, 0, 0, 0, 36, 0, 0, 0, 4, 0, 0, 0, 240, 255, 255, 255, 32, 0, 0, 0, 248, 255, 255, 255, 36, 0, 0, 0, 12, 0, 8, 0, 0, 0, 0, 0, 0, 0, 4, 0, 12, 0, 0, 0, 28, 0, 0, 0, 5, 0, 0, 0, 87, 105, 108, 109, 97, 0, 0, 0, 6, 0, 0, 0, 66, 97, 114, 110, 101, 121, 0, 0, 5, 0, 0, 0, 70, 114, 111, 100, 111, 0, 0, 0])
-    readMonster(fb: bytes.sizedBuffer)
+    // swiftformat:enable all
+    readVerifiedMonster(fb: bytes.sizedBuffer)
   }
 
   func testCreateMonsterPrefixed() {
     let bytes = createMonster(withPrefix: true)
+    // swiftformat:disable all
     XCTAssertEqual(bytes.sizedByteArray, [44, 1, 0, 0, 44, 0, 0, 0, 77, 79, 78, 83, 36, 0, 72, 0, 40, 0, 0, 0, 38, 0, 32, 0, 0, 0, 28, 0, 0, 0, 27, 0, 20, 0, 16, 0, 12, 0, 4, 0, 0, 0, 0, 0, 0, 0, 11, 0, 36, 0, 0, 0, 164, 0, 0, 0, 0, 0, 0, 1, 60, 0, 0, 0, 68, 0, 0, 0, 76, 0, 0, 0, 0, 0, 0, 1, 88, 0, 0, 0, 120, 0, 0, 0, 0, 0, 80, 0, 0, 0, 128, 63, 0, 0, 0, 64, 0, 0, 64, 64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 64, 2, 0, 5, 0, 6, 0, 0, 0, 2, 0, 0, 0, 64, 0, 0, 0, 48, 0, 0, 0, 2, 0, 0, 0, 30, 0, 40, 0, 10, 0, 20, 0, 152, 255, 255, 255, 4, 0, 0, 0, 4, 0, 0, 0, 70, 114, 101, 100, 0, 0, 0, 0, 5, 0, 0, 0, 0, 1, 2, 3, 4, 0, 0, 0, 5, 0, 0, 0, 116, 101, 115, 116, 50, 0, 0, 0, 5, 0, 0, 0, 116, 101, 115, 116, 49, 0, 0, 0, 9, 0, 0, 0, 77, 121, 77, 111, 110, 115, 116, 101, 114, 0, 0, 0, 3, 0, 0, 0, 20, 0, 0, 0, 36, 0, 0, 0, 4, 0, 0, 0, 240, 255, 255, 255, 32, 0, 0, 0, 248, 255, 255, 255, 36, 0, 0, 0, 12, 0, 8, 0, 0, 0, 0, 0, 0, 0, 4, 0, 12, 0, 0, 0, 28, 0, 0, 0, 5, 0, 0, 0, 87, 105, 108, 109, 97, 0, 0, 0, 6, 0, 0, 0, 66, 97, 114, 110, 101, 121, 0, 0, 5, 0, 0, 0, 70, 114, 111, 100, 111, 0, 0, 0])
+    // swiftformat:enable all
 
-    let newBuf = FlatBuffersUtils.removeSizePrefix(bb: bytes.buffer)
-    readMonster(fb: newBuf)
+    var buffer = bytes.buffer
+    readMonster(monster: getPrefixedSizeRoot(byteBuffer: &buffer))
   }
 
   func testCreateMonsterUsingCreateMonsterMethodWithNilPos() {
@@ -77,7 +86,15 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     var fbb = FlatBufferBuilder(initialSize: 1)
     let name = fbb.create(string: "Barney")
     let mStart = Monster.startMonster(&fbb)
-    Monster.add(pos: MyGame_Example_Vec3(x: 10, y: 0, z: 0, test1: 0, test2: .blue, test3: .init()), &fbb)
+    Monster.add(
+      pos: MyGame_Example_Vec3(
+        x: 10,
+        y: 0,
+        z: 0,
+        test1: 0,
+        test2: .blue,
+        test3: .init()),
+      &fbb)
     Monster.add(name: name, &fbb)
     let root = Monster.endMonster(&fbb, start: mStart)
     fbb.finish(offset: root)
@@ -88,9 +105,13 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
   }
 
   func testReadMonsterFromUnsafePointerWithoutCopying() {
+    // swiftformat:disable all
     var array: [UInt8] = [48, 0, 0, 0, 77, 79, 78, 83, 0, 0, 0, 0, 36, 0, 72, 0, 40, 0, 0, 0, 38, 0, 32, 0, 0, 0, 28, 0, 0, 0, 27, 0, 20, 0, 16, 0, 12, 0, 4, 0, 0, 0, 0, 0, 0, 0, 11, 0, 36, 0, 0, 0, 164, 0, 0, 0, 0, 0, 0, 1, 60, 0, 0, 0, 68, 0, 0, 0, 76, 0, 0, 0, 0, 0, 0, 1, 88, 0, 0, 0, 120, 0, 0, 0, 0, 0, 80, 0, 0, 0, 128, 63, 0, 0, 0, 64, 0, 0, 64, 64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 64, 2, 0, 5, 0, 6, 0, 0, 0, 2, 0, 0, 0, 64, 0, 0, 0, 48, 0, 0, 0, 2, 0, 0, 0, 30, 0, 40, 0, 10, 0, 20, 0, 152, 255, 255, 255, 4, 0, 0, 0, 4, 0, 0, 0, 70, 114, 101, 100, 0, 0, 0, 0, 5, 0, 0, 0, 0, 1, 2, 3, 4, 0, 0, 0, 5, 0, 0, 0, 116, 101, 115, 116, 50, 0, 0, 0, 5, 0, 0, 0, 116, 101, 115, 116, 49, 0, 0, 0, 9, 0, 0, 0, 77, 121, 77, 111, 110, 115, 116, 101, 114, 0, 0, 0, 3, 0, 0, 0, 20, 0, 0, 0, 36, 0, 0, 0, 4, 0, 0, 0, 240, 255, 255, 255, 32, 0, 0, 0, 248, 255, 255, 255, 36, 0, 0, 0, 12, 0, 8, 0, 0, 0, 0, 0, 0, 0, 4, 0, 12, 0, 0, 0, 28, 0, 0, 0, 5, 0, 0, 0, 87, 105, 108, 109, 97, 0, 0, 0, 6, 0, 0, 0, 66, 97, 114, 110, 101, 121, 0, 0, 5, 0, 0, 0, 70, 114, 111, 100, 111, 0, 0, 0]
+    // swiftformat:enable all
     let unpacked = array.withUnsafeMutableBytes { (memory) -> MyGame_Example_MonsterT in
-      let bytes = ByteBuffer(assumingMemoryBound: memory.baseAddress!, capacity: memory.count)
+      let bytes = ByteBuffer(
+        assumingMemoryBound: memory.baseAddress!,
+        capacity: memory.count)
       var monster = Monster.getRootAsMonster(bb: bytes)
       readFlatbufferMonster(monster: &monster)
       let unpacked = monster.unpack()
@@ -104,7 +125,10 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     var fbb = FlatBufferBuilder(initialSize: 1)
     let name = fbb.create(string: "Frodo")
     let bools = fbb.createVector(boolArray)
-    let root = Monster.createMonster(&fbb, nameOffset: name, testarrayofboolsVectorOffset: bools)
+    let root = Monster.createMonster(
+      &fbb,
+      nameOffset: name,
+      testarrayofboolsVectorOffset: bools)
     fbb.finish(offset: root)
     let monster = Monster.getRootAsMonster(bb: fbb.sizedBuffer)
 
@@ -117,8 +141,13 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     }
   }
 
-  func readMonster(fb: ByteBuffer) {
-    var monster = Monster.getRootAsMonster(bb: fb)
+  func readVerifiedMonster(fb: ByteBuffer) {
+    var byteBuffer = fb
+    XCTAssertNoThrow(try readMonster(monster: getCheckedRoot(byteBuffer: &byteBuffer) as MyGame_Example_Monster))
+  }
+
+  func readMonster(monster: Monster) {
+    var monster = monster
     readFlatbufferMonster(monster: &monster)
     let unpacked: MyGame_Example_MonsterT? = monster.unpack()
     readObjectApi(monster: unpacked!)
@@ -129,7 +158,11 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
 
   func createMonster(withPrefix prefix: Bool) -> FlatBufferBuilder {
     var fbb = FlatBufferBuilder(initialSize: 1)
-    let names = [fbb.create(string: "Frodo"), fbb.create(string: "Barney"), fbb.create(string: "Wilma")]
+    let names = [
+      fbb.create(string: "Frodo"),
+      fbb.create(string: "Barney"),
+      fbb.create(string: "Wilma"),
+    ]
     var offsets: [Offset] = []
     let start1 = Monster.startMonster(&fbb)
     Monster.add(name: names[0], &fbb)
@@ -161,7 +194,15 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
 
     let stringTestVector = fbb.createVector(ofOffsets: [test1, test2])
     let mStart = Monster.startMonster(&fbb)
-    Monster.add(pos: MyGame_Example_Vec3(x: 1, y: 2, z: 3, test1: 3, test2: .green, test3: .init(a: 5, b: 6)), &fbb)
+    Monster.add(
+      pos: MyGame_Example_Vec3(
+        x: 1,
+        y: 2,
+        z: 3,
+        test1: 3,
+        test2: .green,
+        test3: .init(a: 5, b: 6)),
+      &fbb)
     Monster.add(hp: 80, &fbb)
     Monster.add(name: str, &fbb)
     Monster.addVectorOf(inventory: inv, &fbb)

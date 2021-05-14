@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+import Foundation
+
+/// FlatBufferGRPCMessage protocol that should allow us to invoke
+/// initializers directly from the GRPC generated code
 public protocol FlatBufferGRPCMessage {
 
   /// Raw pointer which would be pointing to the beginning of the readable bytes

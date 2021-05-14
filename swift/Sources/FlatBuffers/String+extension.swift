@@ -16,6 +16,42 @@
 
 import Foundation
 
+extension String: Verifiable {
+
+  /// Verifies that the current value is which the bounds of the buffer, and if
+  /// the current `Value` is aligned properly
+  /// - Parameters:
+  ///   - verifier: Verifier that hosts the buffer
+  ///   - position: Current position within the buffer
+  ///   - type: The type of the object to be verified
+  /// - Throws: Errors coming from `inBuffer`, `missingNullTerminator` and `outOfBounds`
+  public static func verify<T>(
+    _ verifier: inout Verifier,
+    at position: Int,
+    of type: T.Type) throws where T: Verifiable
+  {
+
+    let range = try String.verifyRange(&verifier, at: position, of: UInt8.self)
+    /// Safe &+ since we already check for overflow in verify range
+    let stringLen = range.start &+ range.count
+
+    if stringLen >= verifier.capacity {
+      throw FlatbuffersErrors.outOfBounds(
+        position: UInt(clamping: stringLen.magnitude),
+        end: verifier.capacity)
+    }
+
+    let isNullTerminated = verifier._buffer.read(
+      def: UInt8.self,
+      position: stringLen) == 0
+
+    if !verifier._options._ignoreMissingNullTerminators && !isNullTerminated {
+      let str = verifier._buffer.readString(at: range.start, count: range.count)
+      throw FlatbuffersErrors.missingNullTerminator(position: position, str: str)
+    }
+  }
+}
+
 extension String: FlatbuffersInitializable {
 
   /// Initailizes a string from a Flatbuffers ByteBuffer
@@ -23,10 +59,11 @@ extension String: FlatbuffersInitializable {
   ///   - bb: ByteBuffer containing the readable string
   ///   - o: Current position
   public init(_ bb: ByteBuffer, o: Int32) {
-    let count = bb.read(def: Int32.self, position: Int(o))
+    let v = Int(o)
+    let count = bb.read(def: Int32.self, position: v)
     self = bb.readString(
-      at: Int32(MemoryLayout<Int32>.size) + o,
-      count: count) ?? ""
+      at: MemoryLayout<Int32>.size + v,
+      count: Int(count)) ?? ""
   }
 }
 
@@ -53,7 +90,10 @@ extension String: NativeObject {
     fatalError("serialize should never be called from string directly")
   }
 
-  public func serialize<T: ObjectAPIPacker>(builder: inout FlatBufferBuilder, type: T.Type) -> ByteBuffer where T.T == Self {
+  public func serialize<T: ObjectAPIPacker>(
+    builder: inout FlatBufferBuilder,
+    type: T.Type) -> ByteBuffer where T.T == Self
+  {
     fatalError("serialize should never be called from string directly")
   }
 }

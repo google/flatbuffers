@@ -2,6 +2,7 @@
 
 # format
 --indent 2
+--maxwidth 80
 
 # options
 --self remove # redundantSelf

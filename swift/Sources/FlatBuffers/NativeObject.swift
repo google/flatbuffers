@@ -16,6 +16,9 @@
 
 import Foundation
 
+/// NativeObject is a protocol that all of the `Object-API` generated code should be
+/// conforming to since it allows developers the ease of use to pack and unpack their
+/// Flatbuffers objects
 public protocol NativeObject {}
 
 extension NativeObject {
@@ -36,7 +39,10 @@ extension NativeObject {
   /// - Returns: returns the encoded sized ByteBuffer
   /// - Note: The `serialize(builder:type)` can be considered as a function that allows you to create smaller builder instead of the default `1024`.
   ///  It can be considered less expensive in terms of memory allocation
-  public func serialize<T: ObjectAPIPacker>(builder: inout FlatBufferBuilder, type: T.Type) -> ByteBuffer where T.T == Self {
+  public func serialize<T: ObjectAPIPacker>(
+    builder: inout FlatBufferBuilder,
+    type: T.Type) -> ByteBuffer where T.T == Self
+  {
     var s = self
     let root = type.pack(&builder, obj: &s)
     builder.finish(offset: root)

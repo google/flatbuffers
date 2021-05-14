@@ -4,20 +4,19 @@
 
 import FlatBuffers
 
-public enum ABC: Int32, Enum {
+public enum ABC: Int32, Enum, Verifiable {
   public typealias T = Int32
   public static var byteSize: Int { return MemoryLayout<Int32>.size }
   public var value: Int32 { return self.rawValue }
   case a = 0
   case b = 1
   case c = 2
-  
 
   public static var max: ABC { return .c }
   public static var min: ABC { return .a }
 }
 
-public struct MoreDefaults: FlatBufferObject, ObjectAPIPacker {
+public struct MoreDefaults: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_2_0_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -117,6 +116,17 @@ public struct MoreDefaults: FlatBufferObject, ObjectAPIPacker {
     MoreDefaults.addVectorOf(abcs: __abcs, &builder)
     MoreDefaults.addVectorOf(bools: __bools, &builder)
     return MoreDefaults.endMoreDefaults(&builder, start: __root)
+  }
+
+  public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
+    var _v = try verifier.visitTable(at: position)
+    try _v.visit(field: VTOFFSET.ints.p, fieldName: "ints", required: false, type: ForwardOffset<Vector<Int32, Int32>>.self)
+    try _v.visit(field: VTOFFSET.floats.p, fieldName: "floats", required: false, type: ForwardOffset<Vector<Float32, Float32>>.self)
+    try _v.visit(field: VTOFFSET.emptyString.p, fieldName: "emptyString", required: false, type: ForwardOffset<String>.self)
+    try _v.visit(field: VTOFFSET.someString.p, fieldName: "someString", required: false, type: ForwardOffset<String>.self)
+    try _v.visit(field: VTOFFSET.abcs.p, fieldName: "abcs", required: false, type: ForwardOffset<Vector<ABC, ABC>>.self)
+    try _v.visit(field: VTOFFSET.bools.p, fieldName: "bools", required: false, type: ForwardOffset<Vector<Bool, Bool>>.self)
+    _v.finish()
   }
 }
 
