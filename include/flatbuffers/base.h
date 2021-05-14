@@ -173,7 +173,7 @@ namespace flatbuffers {
   #define FLATBUFFERS_CONSTEXPR_CPP11 constexpr
   #define FLATBUFFERS_CONSTEXPR_DEFINED
 #else
-  #define FLATBUFFERS_CONSTEXPR const
+  #define FLATBUFFERS_CONSTEXPR
   #define FLATBUFFERS_CONSTEXPR_CPP11
 #endif
 
