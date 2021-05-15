@@ -202,7 +202,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Rapunzel FLATBUFFERS_FINAL_CLASS {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return RapunzelTypeTable();
   }
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+  static FLATBUFFERS_CONSTEXPR_CPP11 const char *GetFullyQualifiedName() {
     return "Rapunzel";
   }
   Rapunzel()
@@ -238,7 +238,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) BookReader FLATBUFFERS_FINAL_CLASS {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return BookReaderTypeTable();
   }
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+  static FLATBUFFERS_CONSTEXPR_CPP11 const char *GetFullyQualifiedName() {
     return "BookReader";
   }
   BookReader()
@@ -268,7 +268,7 @@ inline bool operator!=(const BookReader &lhs, const BookReader &rhs) {
 
 struct AttackerT : public flatbuffers::NativeTable {
   typedef Attacker TableType;
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+  static FLATBUFFERS_CONSTEXPR_CPP11 const char *GetFullyQualifiedName() {
     return "AttackerT";
   }
   int32_t sword_attack_damage = 0;
@@ -290,7 +290,7 @@ struct Attacker FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return AttackerTypeTable();
   }
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+  static FLATBUFFERS_CONSTEXPR_CPP11 const char *GetFullyQualifiedName() {
     return "Attacker";
   }
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
@@ -342,7 +342,7 @@ flatbuffers::Offset<Attacker> CreateAttacker(flatbuffers::FlatBufferBuilder &_fb
 
 struct MovieT : public flatbuffers::NativeTable {
   typedef Movie TableType;
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+  static FLATBUFFERS_CONSTEXPR_CPP11 const char *GetFullyQualifiedName() {
     return "MovieT";
   }
   CharacterUnion main_character{};
@@ -366,7 +366,7 @@ struct Movie FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return MovieTypeTable();
   }
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+  static FLATBUFFERS_CONSTEXPR_CPP11 const char *GetFullyQualifiedName() {
     return "Movie";
   }
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
