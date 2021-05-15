@@ -40,13 +40,15 @@
 #endif
 // clang-format on
 
-#include "flatbuffers/base.h"
 #include "flatbuffers/util.h"
 
 #include <sys/stat.h>
+
 #include <clocale>
 #include <cstdlib>
 #include <fstream>
+
+#include "flatbuffers/base.h"
 
 namespace flatbuffers {
 
