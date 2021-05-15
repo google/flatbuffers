@@ -511,7 +511,7 @@ class span FLATBUFFERS_FINAL_CLASS {
   typedef const T* const_pointer;
   typedef std::size_t size_type;
 
-  static const size_type extent = Extent;
+  static FLATBUFFERS_CONSTEXPR size_type extent = Extent;
 
   // Returns the number of elements in the span.
   FLATBUFFERS_CONSTEXPR_CPP11 size_type size() const FLATBUFFERS_NOEXCEPT {

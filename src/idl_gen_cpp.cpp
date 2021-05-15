@@ -1621,8 +1621,8 @@ class CppGenerator : public BaseGenerator {
     if (!opts_.generate_name_strings) { return; }
     auto fullname = struct_def.defined_namespace->GetFullyQualifiedName(name);
     code_.SetValue("NAME", fullname);
-    code_ +=
-        "  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {";
+    code_.SetValue("CONSTEXPR", "FLATBUFFERS_CONSTEXPR_CPP11");
+    code_ += "  static {{CONSTEXPR}} const char *GetFullyQualifiedName() {";
     code_ += "    return \"{{NAME}}\";";
     code_ += "  }";
   }
