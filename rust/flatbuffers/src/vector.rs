@@ -21,7 +21,6 @@ use std::mem::size_of;
 use std::slice::from_raw_parts;
 use std::str::from_utf8_unchecked;
 
-use crate::endian_scalar::read_scalar_at;
 #[cfg(target_endian = "little")]
 use crate::endian_scalar::EndianScalar;
 use crate::follow::Follow;
@@ -73,8 +72,9 @@ impl<'a, T: 'a> Vector<'a, T> {
 
     #[inline(always)]
     pub fn len(&self) -> usize {
-        unsafe { read_scalar_at::<UOffsetT>(&self.0, self.1) as usize }
+        UOffsetT::from_le_chunk(&self.0[self.1..self.1 + SIZE_UOFFSET]) as usize
     }
+
     #[inline(always)]
     pub fn is_empty(&self) -> bool {
         self.len() == 0
@@ -99,11 +99,12 @@ impl<'a, T: Follow<'a> + 'a> Vector<'a, T> {
 pub trait SafeSliceAccess {}
 impl<'a, T: SafeSliceAccess + 'a> Vector<'a, T> {
     pub fn safe_slice(self) -> &'a [T] {
+        let len = self.len();
+
         let buf = self.0;
         let loc = self.1;
         let sz = size_of::<T>();
         debug_assert!(sz > 0);
-        let len = unsafe { read_scalar_at::<UOffsetT>(&buf, loc) } as usize;
         let data_buf = &buf[loc + SIZE_UOFFSET..loc + SIZE_UOFFSET + len * sz];
         let ptr = data_buf.as_ptr() as *const T;
         let s: &'a [T] = unsafe { from_raw_parts(ptr, len) };
@@ -144,7 +145,7 @@ pub fn follow_cast_ref<'a, T: Sized + 'a>(buf: &'a [u8], loc: usize) -> &'a T {
 impl<'a> Follow<'a> for &'a str {
     type Inner = &'a str;
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        let len = unsafe { read_scalar_at::<UOffsetT>(&buf, loc) } as usize;
+        let len = UOffsetT::from_le_chunk(&buf[loc..loc + UOffsetT::N]) as usize;
         let slice = &buf[loc + SIZE_UOFFSET..loc + SIZE_UOFFSET + len];
         unsafe { from_utf8_unchecked(slice) }
     }
@@ -154,7 +155,7 @@ impl<'a> Follow<'a> for &'a str {
 fn follow_slice_helper<T>(buf: &[u8], loc: usize) -> &[T] {
     let sz = size_of::<T>();
     debug_assert!(sz > 0);
-    let len = unsafe { read_scalar_at::<UOffsetT>(&buf, loc) as usize };
+    let len = UOffsetT::from_le_chunk(&buf[loc..loc + UOffsetT::N]) as usize;
     let data_buf = &buf[loc + SIZE_UOFFSET..loc + SIZE_UOFFSET + len * sz];
     let ptr = data_buf.as_ptr() as *const T;
     let s: &[T] = unsafe { from_raw_parts(ptr, len) };

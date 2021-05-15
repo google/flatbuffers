@@ -18,7 +18,7 @@ use std::marker::PhantomData;
 use std::mem::size_of;
 use std::ops::Deref;
 
-use crate::endian_scalar::{emplace_scalar, read_scalar, read_scalar_at};
+use crate::endian_scalar::EndianScalar;
 use crate::follow::Follow;
 use crate::push::Push;
 
@@ -137,9 +137,7 @@ impl<T> Push for WIPOffset<T> {
     #[inline(always)]
     fn push(&self, dst: &mut [u8], rest: &[u8]) {
         let n = (SIZE_UOFFSET + rest.len() - self.value() as usize) as UOffsetT;
-        unsafe {
-            emplace_scalar::<UOffsetT>(dst, n);
-        }
+        dst.copy_from_slice(n.to_le_bytes().as_ref())
     }
 }
 
@@ -181,7 +179,7 @@ impl<'a, T: Follow<'a>> Follow<'a> for ForwardsUOffset<T> {
     #[inline(always)]
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
         let slice = &buf[loc..loc + SIZE_UOFFSET];
-        let off = unsafe { read_scalar::<u32>(slice) as usize };
+        let off = u32::from_le_chunk(slice) as usize;
         T::follow(buf, loc + off)
     }
 }
@@ -202,7 +200,7 @@ impl<'a, T: Follow<'a>> Follow<'a> for ForwardsVOffset<T> {
     #[inline(always)]
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
         let slice = &buf[loc..loc + SIZE_VOFFSET];
-        let off = unsafe { read_scalar::<VOffsetT>(slice) as usize };
+        let off = VOffsetT::from_le_chunk(slice) as usize;
         T::follow(buf, loc + off)
     }
 }
@@ -232,7 +230,7 @@ impl<'a, T: Follow<'a>> Follow<'a> for BackwardsSOffset<T> {
     #[inline(always)]
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
         let slice = &buf[loc..loc + SIZE_SOFFSET];
-        let off = unsafe { read_scalar::<SOffsetT>(slice) };
+        let off = SOffsetT::from_le_chunk(slice);
         T::follow(buf, (loc as SOffsetT - off) as usize)
     }
 }
@@ -295,7 +293,7 @@ impl<'a> Follow<'a> for bool {
     type Inner = bool;
     #[inline(always)]
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        unsafe { read_scalar_at::<u8>(buf, loc) != 0 }
+        u8::from_le_chunk(&buf[loc..loc + u8::N]) != 0
     }
 }
 
@@ -310,7 +308,7 @@ macro_rules! impl_follow_for_endian_scalar {
             type Inner = $ty;
             #[inline(always)]
             fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-                unsafe { read_scalar_at::<$ty>(buf, loc) }
+                <$ty>::from_le_chunk(&buf[loc..loc + u8::N])
             }
         }
     };

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::endian_scalar::read_scalar_at;
+use crate::endian_scalar::EndianScalar;
 use crate::follow::Follow;
 use crate::primitives::*;
 
@@ -40,30 +40,27 @@ impl<'a> VTable<'a> {
         (self.num_bytes() / SIZE_VOFFSET) - 2
     }
     pub fn num_bytes(&self) -> usize {
-        unsafe { read_scalar_at::<VOffsetT>(self.buf, self.loc) as usize }
+        VOffsetT::from_le_chunk(&self.buf[self.loc..self.loc + VOffsetT::N]) as usize
     }
     pub fn object_inline_num_bytes(&self) -> usize {
-        let n = unsafe { read_scalar_at::<VOffsetT>(self.buf, self.loc + SIZE_VOFFSET) };
-        n as usize
+        let start = self.loc + SIZE_VOFFSET;
+        VOffsetT::from_le_chunk(&self.buf[start..start + VOffsetT::N]) as usize
     }
     pub fn get_field(&self, idx: usize) -> VOffsetT {
         // TODO(rw): distinguish between None and 0?
         if idx > self.num_fields() {
             return 0;
         }
-        unsafe {
-            read_scalar_at::<VOffsetT>(
-                self.buf,
-                self.loc + SIZE_VOFFSET + SIZE_VOFFSET + SIZE_VOFFSET * idx,
-            )
-        }
+        let start = self.loc + SIZE_VOFFSET + SIZE_VOFFSET + SIZE_VOFFSET * idx;
+        VOffsetT::from_le_chunk(&self.buf[start..start + VOffsetT::N])
     }
     pub fn get(&self, byte_loc: VOffsetT) -> VOffsetT {
         // TODO(rw): distinguish between None and 0?
         if byte_loc as usize >= self.num_bytes() {
             return 0;
         }
-        unsafe { read_scalar_at::<VOffsetT>(self.buf, self.loc + byte_loc as usize) }
+        let start = self.loc + byte_loc as usize;
+        VOffsetT::from_le_chunk(&self.buf[start..start + VOffsetT::N])
     }
     pub fn as_bytes(&self) -> &[u8] {
         let len = self.num_bytes();

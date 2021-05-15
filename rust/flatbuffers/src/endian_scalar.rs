@@ -15,7 +15,10 @@
  */
 #![allow(clippy::wrong_self_convention)]
 
-use std::mem::size_of;
+use std::{
+    convert::{TryFrom, TryInto},
+    mem::size_of,
+};
 
 /// Trait for values that must be stored in little-endian byte order, but
 /// might be represented in memory as big-endian. Every type that implements
@@ -28,157 +31,64 @@ use std::mem::size_of;
 /// "too much". For example, num-traits provides i128 support, but that is an
 /// invalid FlatBuffers type.
 pub trait EndianScalar: Sized + PartialEq + Copy + Clone {
-    fn to_little_endian(self) -> Self;
-    fn from_little_endian(self) -> Self;
-}
+    type Bytes: AsRef<[u8]> + for<'a> TryFrom<&'a [u8]>;
+    const N: usize;
+    fn to_le_bytes(self) -> Self::Bytes;
+    fn from_le_bytes(v: Self::Bytes) -> Self;
 
-/// Macro for implementing a no-op endian conversion. This is used for types
-/// that are one byte wide.
-macro_rules! impl_endian_scalar_noop {
-    ($ty:ident) => {
-        impl EndianScalar for $ty {
-            #[inline]
-            fn to_little_endian(self) -> Self {
-                self
-            }
-            #[inline]
-            fn from_little_endian(self) -> Self {
-                self
-            }
-        }
-    };
+    /// Reads a chunk into bytes, panicking if the chunk does not fit into `T`.
+    #[inline]
+    fn from_le_chunk(chunk: &[u8]) -> Self {
+        let chunk: Self::Bytes = match chunk.try_into() {
+            Ok(v) => v,
+            Err(_) => panic!(),
+        };
+        Self::from_le_bytes(chunk)
+    }
 }
 
 /// Macro for implementing an endian conversion using the stdlib `to_le` and
 /// `from_le` functions. This is used for integer types. It is not used for
 /// floats, because the `to_le` and `from_le` are not implemented for them in
 /// the stdlib.
-macro_rules! impl_endian_scalar_stdlib_le_conversion {
+macro_rules! impl_endian_scalar {
     ($ty:ident) => {
         impl EndianScalar for $ty {
+            type Bytes = [u8; size_of::<Self>()];
+            const N: usize = size_of::<Self>();
             #[inline]
-            fn to_little_endian(self) -> Self {
-                Self::to_le(self)
+            fn to_le_bytes(self) -> Self::Bytes {
+                <$ty>::to_le_bytes(self)
             }
             #[inline]
-            fn from_little_endian(self) -> Self {
-                Self::from_le(self)
+            fn from_le_bytes(bytes: Self::Bytes) -> Self {
+                <$ty>::from_le_bytes(bytes)
             }
         }
     };
 }
 
-impl_endian_scalar_noop!(bool);
-impl_endian_scalar_noop!(u8);
-impl_endian_scalar_noop!(i8);
-
-impl_endian_scalar_stdlib_le_conversion!(u16);
-impl_endian_scalar_stdlib_le_conversion!(u32);
-impl_endian_scalar_stdlib_le_conversion!(u64);
-impl_endian_scalar_stdlib_le_conversion!(i16);
-impl_endian_scalar_stdlib_le_conversion!(i32);
-impl_endian_scalar_stdlib_le_conversion!(i64);
-
-impl EndianScalar for f32 {
-    /// Convert f32 from host endian-ness to little-endian.
+impl EndianScalar for bool {
+    type Bytes = [u8; 1];
+    const N: usize = size_of::<Self>();
     #[inline]
-    fn to_little_endian(self) -> Self {
-        #[cfg(target_endian = "little")]
-        {
-            self
-        }
-        #[cfg(not(target_endian = "little"))]
-        {
-            byte_swap_f32(self)
-        }
+    fn to_le_bytes(self) -> Self::Bytes {
+        [self as u8]
     }
-    /// Convert f32 from little-endian to host endian-ness.
     #[inline]
-    fn from_little_endian(self) -> Self {
-        #[cfg(target_endian = "little")]
-        {
-            self
-        }
-        #[cfg(not(target_endian = "little"))]
-        {
-            byte_swap_f32(self)
-        }
+    fn from_le_bytes(bytes: Self::Bytes) -> Self {
+        bytes[0] != 0
     }
 }
 
-impl EndianScalar for f64 {
-    /// Convert f64 from host endian-ness to little-endian.
-    #[inline]
-    fn to_little_endian(self) -> Self {
-        #[cfg(target_endian = "little")]
-        {
-            self
-        }
-        #[cfg(not(target_endian = "little"))]
-        {
-            byte_swap_f64(self)
-        }
-    }
-    /// Convert f64 from little-endian to host endian-ness.
-    #[inline]
-    fn from_little_endian(self) -> Self {
-        #[cfg(target_endian = "little")]
-        {
-            self
-        }
-        #[cfg(not(target_endian = "little"))]
-        {
-            byte_swap_f64(self)
-        }
-    }
-}
-
-/// Swaps the bytes of an f32.
-#[allow(dead_code)]
-#[inline]
-pub fn byte_swap_f32(x: f32) -> f32 {
-    f32::from_bits(x.to_bits().swap_bytes())
-}
-
-/// Swaps the bytes of an f64.
-#[allow(dead_code)]
-#[inline]
-pub fn byte_swap_f64(x: f64) -> f64 {
-    f64::from_bits(x.to_bits().swap_bytes())
-}
-
-/// Place an EndianScalar into the provided mutable byte slice. Performs
-/// endian conversion, if necessary.
-/// # Safety
-/// Caller must ensure `s.len() > size_of::<T>()`
-/// and `x` does not overlap with `s`.
-#[inline]
-pub unsafe fn emplace_scalar<T: EndianScalar>(s: &mut [u8], x: T) {
-    let x_le = x.to_little_endian();
-    core::ptr::copy_nonoverlapping(
-        &x_le as *const T as *const u8,
-        s.as_mut_ptr() as *mut u8,
-        size_of::<T>(),
-    );
-}
-
-/// Read an EndianScalar from the provided byte slice at the specified location.
-/// Performs endian conversion, if necessary.
-/// # Safety
-/// Caller must ensure `s.len() > loc + size_of::<T>()`.
-#[inline]
-pub unsafe fn read_scalar_at<T: EndianScalar>(s: &[u8], loc: usize) -> T {
-    read_scalar(&s[loc..])
-}
-
-/// Read an EndianScalar from the provided byte slice. Performs endian
-/// conversion, if necessary.
-/// # Safety
-/// Caller must ensure `s.len() > size_of::<T>()`.
-#[inline]
-pub unsafe fn read_scalar<T: EndianScalar>(s: &[u8]) -> T {
-    let mut mem = core::mem::MaybeUninit::<T>::uninit();
-    // Since [u8] has alignment 1, we copy it into T which may have higher alignment.
-    core::ptr::copy_nonoverlapping(s.as_ptr(), mem.as_mut_ptr() as *mut u8, size_of::<T>());
-    mem.assume_init().from_little_endian()
-}
+//impl_endian_scalar!(bool);
+impl_endian_scalar!(u8);
+impl_endian_scalar!(i8);
+impl_endian_scalar!(u16);
+impl_endian_scalar!(u32);
+impl_endian_scalar!(u64);
+impl_endian_scalar!(i16);
+impl_endian_scalar!(i32);
+impl_endian_scalar!(i64);
+impl_endian_scalar!(f32);
+impl_endian_scalar!(f64);
