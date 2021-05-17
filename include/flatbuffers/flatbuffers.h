@@ -1802,7 +1802,7 @@ class FlatBufferBuilder {
   /// where the vector is stored.
   Offset<Vector<Offset<String>>> CreateVectorOfStrings(
       const std::vector<std::string> &v) {
-    return CreateVectorOfStrings(v.begin(), v.end());
+    return CreateVectorOfStrings(v.cbegin(), v.cend());
   }
 
   /// @brief Serialize a collection of Strings into a FlatBuffer `vector`.
