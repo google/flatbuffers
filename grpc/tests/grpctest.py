@@ -126,16 +126,16 @@ def run():
     Monster.MonsterStartInventoryVector(b, len(test_inventory))
     for i in range(0, len(test_inventory)):
         b.PrependByte(test_inventory[i])
-    inv = b.EndVector(len(test_inventory))
+    inv = b.EndVector()
 
     Monster.MonsterStartTest4Vector(b, 2)
     Test.CreateTest(b, 10, 20)
     Test.CreateTest(b, 30, 40)
-    test4 = b.EndVector(2)
+    test4 = b.EndVector()
 
     Monster.MonsterStartTestarrayofstringVector(b, 1)
     b.PrependUOffsetTRelative(test1)
-    test_array_of_string = b.EndVector(1)
+    test_array_of_string = b.EndVector()
 
     Monster.MonsterStart(b)
 
