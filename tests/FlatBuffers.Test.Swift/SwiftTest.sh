@@ -9,5 +9,17 @@ fbc --swift --gen-mutable --grpc --gen-object-api -I ${test_dir}/include_test ${
 fbc --swift ${test_dir}/optional_scalars.fbs
 fbc --swift --gen-object-api ${test_dir}/more_defaults.fbs
 cd ${swift_dir}
+
+cd ${swift_dir}/Sources/SwiftFlatBuffers
+# create better fuzzing test file
+fbc --swift fuzzer.fbs
+cd ${swift_dir}
+
 swift build --build-tests
 swift test
+
+if [ $(uname -s) != Darwin ]; then
+  echo fuzzing
+  swift build -c debug -Xswiftc -sanitize=fuzzer,address -Xswiftc -parse-as-library
+  swift build -c release -Xswiftc -sanitize=fuzzer,address -Xswiftc -parse-as-library
+fi

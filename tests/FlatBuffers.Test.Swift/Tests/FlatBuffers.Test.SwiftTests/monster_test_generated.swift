@@ -5,7 +5,7 @@
 import FlatBuffers
 
 ///  Composite components of Monster color.
-public enum MyGame_Example_Color: UInt8, Enum {
+public enum MyGame_Example_Color: UInt8, Enum, Verifiable {
   public typealias T = UInt8
   public static var byteSize: Int { return MemoryLayout<UInt8>.size }
   public var value: UInt8 { return self.rawValue }
@@ -15,13 +15,12 @@ public enum MyGame_Example_Color: UInt8, Enum {
   case green = 2
   ///  \brief color Blue (1u << 3)
   case blue = 8
-  
 
   public static var max: MyGame_Example_Color { return .blue }
   public static var min: MyGame_Example_Color { return .red }
 }
 
-public enum MyGame_Example_Race: Int8, Enum {
+public enum MyGame_Example_Race: Int8, Enum, Verifiable {
   public typealias T = Int8
   public static var byteSize: Int { return MemoryLayout<Int8>.size }
   public var value: Int8 { return self.rawValue }
@@ -29,21 +28,24 @@ public enum MyGame_Example_Race: Int8, Enum {
   case human = 0
   case dwarf = 1
   case elf = 2
-  
 
   public static var max: MyGame_Example_Race { return .elf }
   public static var min: MyGame_Example_Race { return .none_ }
 }
 
-public enum MyGame_Example_Any_: UInt8, Enum {
+public enum MyGame_Example_Any_: UInt8, UnionEnum {
   public typealias T = UInt8
+
+  public init?(value: T) {
+    self.init(rawValue: value)
+  }
+
   public static var byteSize: Int { return MemoryLayout<UInt8>.size }
   public var value: UInt8 { return self.rawValue }
   case none_ = 0
   case monster = 1
   case testsimpletablewithenum = 2
   case mygameExample2Monster = 3
-  
 
   public static var max: MyGame_Example_Any_ { return .mygameExample2Monster }
   public static var min: MyGame_Example_Any_ { return .none_ }
@@ -71,15 +73,19 @@ public struct MyGame_Example_Any_Union {
     }
   }
 }
-public enum MyGame_Example_AnyUniqueAliases: UInt8, Enum {
+public enum MyGame_Example_AnyUniqueAliases: UInt8, UnionEnum {
   public typealias T = UInt8
+
+  public init?(value: T) {
+    self.init(rawValue: value)
+  }
+
   public static var byteSize: Int { return MemoryLayout<UInt8>.size }
   public var value: UInt8 { return self.rawValue }
   case none_ = 0
   case m = 1
   case ts = 2
   case m2 = 3
-  
 
   public static var max: MyGame_Example_AnyUniqueAliases { return .m2 }
   public static var min: MyGame_Example_AnyUniqueAliases { return .none_ }
@@ -107,15 +113,19 @@ public struct MyGame_Example_AnyUniqueAliasesUnion {
     }
   }
 }
-public enum MyGame_Example_AnyAmbiguousAliases: UInt8, Enum {
+public enum MyGame_Example_AnyAmbiguousAliases: UInt8, UnionEnum {
   public typealias T = UInt8
+
+  public init?(value: T) {
+    self.init(rawValue: value)
+  }
+
   public static var byteSize: Int { return MemoryLayout<UInt8>.size }
   public var value: UInt8 { return self.rawValue }
   case none_ = 0
   case m1 = 1
   case m2 = 2
   case m3 = 3
-  
 
   public static var max: MyGame_Example_AnyAmbiguousAliases { return .m3 }
   public static var min: MyGame_Example_AnyAmbiguousAliases { return .none_ }
@@ -143,9 +153,9 @@ public struct MyGame_Example_AnyAmbiguousAliasesUnion {
     }
   }
 }
-public struct MyGame_Example_Test: NativeStruct, NativeObject {
+public struct MyGame_Example_Test: NativeStruct, Verifiable, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
 
   private var _a: Int16
   private var _b: Int8
@@ -168,11 +178,15 @@ public struct MyGame_Example_Test: NativeStruct, NativeObject {
 
   public var a: Int16 { _a }
   public var b: Int8 { _b }
+
+  public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
+    try verifier.inBuffer(position: position, of: MyGame_Example_Test.self)
+  }
 }
 
 public struct MyGame_Example_Test_Mutable: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -197,9 +211,9 @@ public struct MyGame_Example_Test_Mutable: FlatBufferObject {
   }
 }
 
-public struct MyGame_Example_Vec3: NativeStruct, NativeObject {
+public struct MyGame_Example_Vec3: NativeStruct, Verifiable, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
 
   private var _x: Float32
   private var _y: Float32
@@ -245,11 +259,15 @@ public struct MyGame_Example_Vec3: NativeStruct, NativeObject {
   public var test1: Double { _test1 }
   public var test2: MyGame_Example_Color { MyGame_Example_Color(rawValue: _test2)! }
   public var test3: MyGame_Example_Test { _test3 }
+
+  public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
+    try verifier.inBuffer(position: position, of: MyGame_Example_Vec3.self)
+  }
 }
 
 public struct MyGame_Example_Vec3_Mutable: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -281,9 +299,9 @@ public struct MyGame_Example_Vec3_Mutable: FlatBufferObject {
   }
 }
 
-public struct MyGame_Example_Ability: NativeStruct, NativeObject {
+public struct MyGame_Example_Ability: NativeStruct, Verifiable, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
 
   private var _id: UInt32
   private var _distance: UInt32
@@ -305,11 +323,15 @@ public struct MyGame_Example_Ability: NativeStruct, NativeObject {
 
   public var id: UInt32 { _id }
   public var distance: UInt32 { _distance }
+
+  public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
+    try verifier.inBuffer(position: position, of: MyGame_Example_Ability.self)
+  }
 }
 
 public struct MyGame_Example_Ability_Mutable: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -334,9 +356,9 @@ public struct MyGame_Example_Ability_Mutable: FlatBufferObject {
   }
 }
 
-public struct MyGame_Example_StructOfStructs: NativeStruct, NativeObject {
+public struct MyGame_Example_StructOfStructs: NativeStruct, Verifiable, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
 
   private var _a: MyGame_Example_Ability
   private var _b: MyGame_Example_Test
@@ -366,11 +388,15 @@ public struct MyGame_Example_StructOfStructs: NativeStruct, NativeObject {
   public var a: MyGame_Example_Ability { _a }
   public var b: MyGame_Example_Test { _b }
   public var c: MyGame_Example_Ability { _c }
+
+  public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
+    try verifier.inBuffer(position: position, of: MyGame_Example_StructOfStructs.self)
+  }
 }
 
 public struct MyGame_Example_StructOfStructs_Mutable: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -394,9 +420,9 @@ public struct MyGame_Example_StructOfStructs_Mutable: FlatBufferObject {
   }
 }
 
-public struct MyGame_InParentNamespace: FlatBufferObject, ObjectAPIPacker {
+public struct MyGame_InParentNamespace: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
@@ -422,6 +448,11 @@ public struct MyGame_InParentNamespace: FlatBufferObject, ObjectAPIPacker {
     let __root = MyGame_InParentNamespace.startInParentNamespace(&builder)
     return MyGame_InParentNamespace.endInParentNamespace(&builder, start: __root)
   }
+
+  public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
+    var _v = try verifier.visitTable(at: position)
+    _v.finish()
+  }
 }
 
 public class MyGame_InParentNamespaceT: NativeObject {
@@ -436,9 +467,9 @@ public class MyGame_InParentNamespaceT: NativeObject {
   public func serialize() -> ByteBuffer { return serialize(type: MyGame_InParentNamespace.self) }
 
 }
-public struct MyGame_Example2_Monster: FlatBufferObject, ObjectAPIPacker {
+public struct MyGame_Example2_Monster: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
@@ -464,6 +495,11 @@ public struct MyGame_Example2_Monster: FlatBufferObject, ObjectAPIPacker {
     let __root = MyGame_Example2_Monster.startMonster(&builder)
     return MyGame_Example2_Monster.endMonster(&builder, start: __root)
   }
+
+  public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
+    var _v = try verifier.visitTable(at: position)
+    _v.finish()
+  }
 }
 
 public class MyGame_Example2_MonsterT: NativeObject {
@@ -478,9 +514,9 @@ public class MyGame_Example2_MonsterT: NativeObject {
   public func serialize() -> ByteBuffer { return serialize(type: MyGame_Example2_Monster.self) }
 
 }
-internal struct MyGame_Example_TestSimpleTableWithEnum: FlatBufferObject, ObjectAPIPacker {
+internal struct MyGame_Example_TestSimpleTableWithEnum: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
   internal var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
@@ -524,6 +560,12 @@ internal struct MyGame_Example_TestSimpleTableWithEnum: FlatBufferObject, Object
     MyGame_Example_TestSimpleTableWithEnum.add(color: obj.color, &builder)
     return MyGame_Example_TestSimpleTableWithEnum.endTestSimpleTableWithEnum(&builder, start: __root)
   }
+
+  public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
+    var _v = try verifier.visitTable(at: position)
+    try _v.visit(field: VTOFFSET.color.p, fieldName: "color", required: false, type: MyGame_Example_Color.self)
+    _v.finish()
+  }
 }
 
 internal class MyGame_Example_TestSimpleTableWithEnumT: NativeObject {
@@ -541,9 +583,9 @@ internal class MyGame_Example_TestSimpleTableWithEnumT: NativeObject {
   internal func serialize() -> ByteBuffer { return serialize(type: MyGame_Example_TestSimpleTableWithEnum.self) }
 
 }
-public struct MyGame_Example_Stat: FlatBufferObject, ObjectAPIPacker {
+public struct MyGame_Example_Stat: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
@@ -632,6 +674,14 @@ public struct MyGame_Example_Stat: FlatBufferObject, ObjectAPIPacker {
     MyGame_Example_Stat.add(count: obj.count, &builder)
     return MyGame_Example_Stat.endStat(&builder, start: __root)
   }
+
+  public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
+    var _v = try verifier.visitTable(at: position)
+    try _v.visit(field: VTOFFSET.id.p, fieldName: "id", required: false, type: ForwardOffset<String>.self)
+    try _v.visit(field: VTOFFSET.val.p, fieldName: "val", required: false, type: Int64.self)
+    try _v.visit(field: VTOFFSET.count.p, fieldName: "count", required: false, type: UInt16.self)
+    _v.finish()
+  }
 }
 
 public class MyGame_Example_StatT: NativeObject {
@@ -654,9 +704,9 @@ public class MyGame_Example_StatT: NativeObject {
   public func serialize() -> ByteBuffer { return serialize(type: MyGame_Example_Stat.self) }
 
 }
-public struct MyGame_Example_Referrable: FlatBufferObject, ObjectAPIPacker {
+public struct MyGame_Example_Referrable: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
@@ -724,6 +774,12 @@ public struct MyGame_Example_Referrable: FlatBufferObject, ObjectAPIPacker {
     MyGame_Example_Referrable.add(id: obj.id, &builder)
     return MyGame_Example_Referrable.endReferrable(&builder, start: __root)
   }
+
+  public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
+    var _v = try verifier.visitTable(at: position)
+    try _v.visit(field: VTOFFSET.id.p, fieldName: "id", required: false, type: UInt64.self)
+    _v.finish()
+  }
 }
 
 public class MyGame_Example_ReferrableT: NativeObject {
@@ -742,9 +798,9 @@ public class MyGame_Example_ReferrableT: NativeObject {
 
 }
 ///  an example documentation comment: "monster object"
-public struct MyGame_Example_Monster: FlatBufferObject, ObjectAPIPacker {
+public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
@@ -1253,6 +1309,91 @@ public struct MyGame_Example_Monster: FlatBufferObject, ObjectAPIPacker {
     MyGame_Example_Monster.addVectorOf(scalarKeySortedTables: __scalarKeySortedTables, &builder)
     return MyGame_Example_Monster.endMonster(&builder, start: __root)
   }
+
+  public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
+    var _v = try verifier.visitTable(at: position)
+    try _v.visit(field: VTOFFSET.pos.p, fieldName: "pos", required: false, type: MyGame_Example_Vec3.self)
+    try _v.visit(field: VTOFFSET.mana.p, fieldName: "mana", required: false, type: Int16.self)
+    try _v.visit(field: VTOFFSET.hp.p, fieldName: "hp", required: false, type: Int16.self)
+    try _v.visit(field: VTOFFSET.name.p, fieldName: "name", required: true, type: ForwardOffset<String>.self)
+    try _v.visit(field: VTOFFSET.inventory.p, fieldName: "inventory", required: false, type: ForwardOffset<Vector<UInt8, UInt8>>.self)
+    try _v.visit(field: VTOFFSET.color.p, fieldName: "color", required: false, type: MyGame_Example_Color.self)
+    try _v.visit(unionKey: VTOFFSET.testType.p, unionField: VTOFFSET.test.p, unionKeyName: "testType", fieldName: "test", required: false, completion: { (verifier, key: MyGame_Example_Any_, pos) in
+      switch key {
+      case .none_:
+        break // NOTE - SWIFT doesnt support none
+      case .monster:
+        try ForwardOffset<MyGame_Example_Monster>.verify(&verifier, at: pos, of: MyGame_Example_Monster.self)
+      case .testsimpletablewithenum:
+        try ForwardOffset<MyGame_Example_TestSimpleTableWithEnum>.verify(&verifier, at: pos, of: MyGame_Example_TestSimpleTableWithEnum.self)
+      case .mygameExample2Monster:
+        try ForwardOffset<MyGame_Example2_Monster>.verify(&verifier, at: pos, of: MyGame_Example2_Monster.self)
+      }
+    })
+    try _v.visit(field: VTOFFSET.test4.p, fieldName: "test4", required: false, type: ForwardOffset<Vector<MyGame_Example_Test, MyGame_Example_Test>>.self)
+    try _v.visit(field: VTOFFSET.testarrayofstring.p, fieldName: "testarrayofstring", required: false, type: ForwardOffset<Vector<ForwardOffset<String>, String>>.self)
+    try _v.visit(field: VTOFFSET.testarrayoftables.p, fieldName: "testarrayoftables", required: false, type: ForwardOffset<Vector<ForwardOffset<MyGame_Example_Monster>, MyGame_Example_Monster>>.self)
+    try _v.visit(field: VTOFFSET.enemy.p, fieldName: "enemy", required: false, type: ForwardOffset<MyGame_Example_Monster>.self)
+    try _v.visit(field: VTOFFSET.testnestedflatbuffer.p, fieldName: "testnestedflatbuffer", required: false, type: ForwardOffset<Vector<UInt8, UInt8>>.self)
+    try _v.visit(field: VTOFFSET.testempty.p, fieldName: "testempty", required: false, type: ForwardOffset<MyGame_Example_Stat>.self)
+    try _v.visit(field: VTOFFSET.testbool.p, fieldName: "testbool", required: false, type: Bool.self)
+    try _v.visit(field: VTOFFSET.testhashs32Fnv1.p, fieldName: "testhashs32Fnv1", required: false, type: Int32.self)
+    try _v.visit(field: VTOFFSET.testhashu32Fnv1.p, fieldName: "testhashu32Fnv1", required: false, type: UInt32.self)
+    try _v.visit(field: VTOFFSET.testhashs64Fnv1.p, fieldName: "testhashs64Fnv1", required: false, type: Int64.self)
+    try _v.visit(field: VTOFFSET.testhashu64Fnv1.p, fieldName: "testhashu64Fnv1", required: false, type: UInt64.self)
+    try _v.visit(field: VTOFFSET.testhashs32Fnv1a.p, fieldName: "testhashs32Fnv1a", required: false, type: Int32.self)
+    try _v.visit(field: VTOFFSET.testhashu32Fnv1a.p, fieldName: "testhashu32Fnv1a", required: false, type: UInt32.self)
+    try _v.visit(field: VTOFFSET.testhashs64Fnv1a.p, fieldName: "testhashs64Fnv1a", required: false, type: Int64.self)
+    try _v.visit(field: VTOFFSET.testhashu64Fnv1a.p, fieldName: "testhashu64Fnv1a", required: false, type: UInt64.self)
+    try _v.visit(field: VTOFFSET.testarrayofbools.p, fieldName: "testarrayofbools", required: false, type: ForwardOffset<Vector<Bool, Bool>>.self)
+    try _v.visit(field: VTOFFSET.testf.p, fieldName: "testf", required: false, type: Float32.self)
+    try _v.visit(field: VTOFFSET.testf2.p, fieldName: "testf2", required: false, type: Float32.self)
+    try _v.visit(field: VTOFFSET.testf3.p, fieldName: "testf3", required: false, type: Float32.self)
+    try _v.visit(field: VTOFFSET.testarrayofstring2.p, fieldName: "testarrayofstring2", required: false, type: ForwardOffset<Vector<ForwardOffset<String>, String>>.self)
+    try _v.visit(field: VTOFFSET.testarrayofsortedstruct.p, fieldName: "testarrayofsortedstruct", required: false, type: ForwardOffset<Vector<MyGame_Example_Ability, MyGame_Example_Ability>>.self)
+    try _v.visit(field: VTOFFSET.flex.p, fieldName: "flex", required: false, type: ForwardOffset<Vector<UInt8, UInt8>>.self)
+    try _v.visit(field: VTOFFSET.test5.p, fieldName: "test5", required: false, type: ForwardOffset<Vector<MyGame_Example_Test, MyGame_Example_Test>>.self)
+    try _v.visit(field: VTOFFSET.vectorOfLongs.p, fieldName: "vectorOfLongs", required: false, type: ForwardOffset<Vector<Int64, Int64>>.self)
+    try _v.visit(field: VTOFFSET.vectorOfDoubles.p, fieldName: "vectorOfDoubles", required: false, type: ForwardOffset<Vector<Double, Double>>.self)
+    try _v.visit(field: VTOFFSET.parentNamespaceTest.p, fieldName: "parentNamespaceTest", required: false, type: ForwardOffset<MyGame_InParentNamespace>.self)
+    try _v.visit(field: VTOFFSET.vectorOfReferrables.p, fieldName: "vectorOfReferrables", required: false, type: ForwardOffset<Vector<ForwardOffset<MyGame_Example_Referrable>, MyGame_Example_Referrable>>.self)
+    try _v.visit(field: VTOFFSET.singleWeakReference.p, fieldName: "singleWeakReference", required: false, type: UInt64.self)
+    try _v.visit(field: VTOFFSET.vectorOfWeakReferences.p, fieldName: "vectorOfWeakReferences", required: false, type: ForwardOffset<Vector<UInt64, UInt64>>.self)
+    try _v.visit(field: VTOFFSET.vectorOfStrongReferrables.p, fieldName: "vectorOfStrongReferrables", required: false, type: ForwardOffset<Vector<ForwardOffset<MyGame_Example_Referrable>, MyGame_Example_Referrable>>.self)
+    try _v.visit(field: VTOFFSET.coOwningReference.p, fieldName: "coOwningReference", required: false, type: UInt64.self)
+    try _v.visit(field: VTOFFSET.vectorOfCoOwningReferences.p, fieldName: "vectorOfCoOwningReferences", required: false, type: ForwardOffset<Vector<UInt64, UInt64>>.self)
+    try _v.visit(field: VTOFFSET.nonOwningReference.p, fieldName: "nonOwningReference", required: false, type: UInt64.self)
+    try _v.visit(field: VTOFFSET.vectorOfNonOwningReferences.p, fieldName: "vectorOfNonOwningReferences", required: false, type: ForwardOffset<Vector<UInt64, UInt64>>.self)
+    try _v.visit(unionKey: VTOFFSET.anyUniqueType.p, unionField: VTOFFSET.anyUnique.p, unionKeyName: "anyUniqueType", fieldName: "anyUnique", required: false, completion: { (verifier, key: MyGame_Example_AnyUniqueAliases, pos) in
+      switch key {
+      case .none_:
+        break // NOTE - SWIFT doesnt support none
+      case .m:
+        try ForwardOffset<MyGame_Example_Monster>.verify(&verifier, at: pos, of: MyGame_Example_Monster.self)
+      case .ts:
+        try ForwardOffset<MyGame_Example_TestSimpleTableWithEnum>.verify(&verifier, at: pos, of: MyGame_Example_TestSimpleTableWithEnum.self)
+      case .m2:
+        try ForwardOffset<MyGame_Example2_Monster>.verify(&verifier, at: pos, of: MyGame_Example2_Monster.self)
+      }
+    })
+    try _v.visit(unionKey: VTOFFSET.anyAmbiguousType.p, unionField: VTOFFSET.anyAmbiguous.p, unionKeyName: "anyAmbiguousType", fieldName: "anyAmbiguous", required: false, completion: { (verifier, key: MyGame_Example_AnyAmbiguousAliases, pos) in
+      switch key {
+      case .none_:
+        break // NOTE - SWIFT doesnt support none
+      case .m1:
+        try ForwardOffset<MyGame_Example_Monster>.verify(&verifier, at: pos, of: MyGame_Example_Monster.self)
+      case .m2:
+        try ForwardOffset<MyGame_Example_Monster>.verify(&verifier, at: pos, of: MyGame_Example_Monster.self)
+      case .m3:
+        try ForwardOffset<MyGame_Example_Monster>.verify(&verifier, at: pos, of: MyGame_Example_Monster.self)
+      }
+    })
+    try _v.visit(field: VTOFFSET.vectorOfEnums.p, fieldName: "vectorOfEnums", required: false, type: ForwardOffset<Vector<MyGame_Example_Color, MyGame_Example_Color>>.self)
+    try _v.visit(field: VTOFFSET.signedEnum.p, fieldName: "signedEnum", required: false, type: MyGame_Example_Race.self)
+    try _v.visit(field: VTOFFSET.testrequirednestedflatbuffer.p, fieldName: "testrequirednestedflatbuffer", required: false, type: ForwardOffset<Vector<UInt8, UInt8>>.self)
+    try _v.visit(field: VTOFFSET.scalarKeySortedTables.p, fieldName: "scalarKeySortedTables", required: false, type: ForwardOffset<Vector<ForwardOffset<MyGame_Example_Stat>, MyGame_Example_Stat>>.self)
+    _v.finish()
+  }
 }
 
 public class MyGame_Example_MonsterT: NativeObject {
@@ -1505,9 +1646,9 @@ public class MyGame_Example_MonsterT: NativeObject {
   public func serialize() -> ByteBuffer { return serialize(type: MyGame_Example_Monster.self) }
 
 }
-public struct MyGame_Example_TypeAliases: FlatBufferObject, ObjectAPIPacker {
+public struct MyGame_Example_TypeAliases: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
@@ -1633,6 +1774,23 @@ public struct MyGame_Example_TypeAliases: FlatBufferObject, ObjectAPIPacker {
     MyGame_Example_TypeAliases.addVectorOf(v8: __v8, &builder)
     MyGame_Example_TypeAliases.addVectorOf(vf64: __vf64, &builder)
     return MyGame_Example_TypeAliases.endTypeAliases(&builder, start: __root)
+  }
+
+  public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
+    var _v = try verifier.visitTable(at: position)
+    try _v.visit(field: VTOFFSET.i8.p, fieldName: "i8", required: false, type: Int8.self)
+    try _v.visit(field: VTOFFSET.u8.p, fieldName: "u8", required: false, type: UInt8.self)
+    try _v.visit(field: VTOFFSET.i16.p, fieldName: "i16", required: false, type: Int16.self)
+    try _v.visit(field: VTOFFSET.u16.p, fieldName: "u16", required: false, type: UInt16.self)
+    try _v.visit(field: VTOFFSET.i32.p, fieldName: "i32", required: false, type: Int32.self)
+    try _v.visit(field: VTOFFSET.u32.p, fieldName: "u32", required: false, type: UInt32.self)
+    try _v.visit(field: VTOFFSET.i64.p, fieldName: "i64", required: false, type: Int64.self)
+    try _v.visit(field: VTOFFSET.u64.p, fieldName: "u64", required: false, type: UInt64.self)
+    try _v.visit(field: VTOFFSET.f32.p, fieldName: "f32", required: false, type: Float32.self)
+    try _v.visit(field: VTOFFSET.f64.p, fieldName: "f64", required: false, type: Double.self)
+    try _v.visit(field: VTOFFSET.v8.p, fieldName: "v8", required: false, type: ForwardOffset<Vector<Int8, Int8>>.self)
+    try _v.visit(field: VTOFFSET.vf64.p, fieldName: "vf64", required: false, type: ForwardOffset<Vector<Double, Double>>.self)
+    _v.finish()
   }
 }
 

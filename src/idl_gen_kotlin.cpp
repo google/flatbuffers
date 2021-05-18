@@ -494,7 +494,7 @@ class KotlinGenerator : public BaseGenerator {
           // runtime.
           GenerateFunOneLine(
               writer, "validateVersion", "", "",
-              [&]() { writer += "Constants.FLATBUFFERS_1_12_0()"; },
+              [&]() { writer += "Constants.FLATBUFFERS_2_0_0()"; },
               options.gen_jvmstatic);
 
           GenerateGetRootAsAccessors(Esc(struct_def.name), writer, options);

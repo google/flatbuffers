@@ -16,6 +16,10 @@
 
 import Foundation
 
+/// `FlatBufferBuilder` builds a `FlatBuffer` through manipulating its internal state.
+/// This is done by creating a `ByteBuffer` that hosts the incoming data and
+/// has a hardcoded growth limit of `2GiB` which is set by the Flatbuffers standards
+@frozen
 public struct FlatBufferBuilder {
 
   /// Storage for the Vtables used in the buffer are stored in here, so they would be written later in EndTable
@@ -73,7 +77,9 @@ public struct FlatBufferBuilder {
   /// Returns A sized Buffer from the readable bytes
   public var sizedBuffer: ByteBuffer {
     assert(finished, "Data shouldn't be called before finish()")
-    return ByteBuffer(memory: _bb.memory.advanced(by: _bb.reader), count: Int(_bb.size))
+    return ByteBuffer(
+      memory: _bb.memory.advanced(by: _bb.reader),
+      count: Int(_bb.size))
   }
 
   // MARK: - Init
@@ -111,7 +117,9 @@ public struct FlatBufferBuilder {
     for field in fields {
       let start = _bb.capacity &- Int(table.o)
       let startTable = start &- Int(_bb.read(def: Int32.self, position: start))
-      let isOkay = _bb.read(def: VOffset.self, position: startTable &+ Int(field)) != 0
+      let isOkay = _bb.read(
+        def: VOffset.self,
+        position: startTable &+ Int(field)) != 0
       assert(isOkay, "Flatbuffers requires the following field")
     }
   }
@@ -121,9 +129,15 @@ public struct FlatBufferBuilder {
   ///   - offset: Offset of the table
   ///   - fileId: Takes the fileId
   ///   - prefix: if false it wont add the size of the buffer
-  mutating public func finish(offset: Offset, fileId: String, addPrefix prefix: Bool = false) {
+  mutating public func finish(
+    offset: Offset,
+    fileId: String,
+    addPrefix prefix: Bool = false)
+  {
     let size = MemoryLayout<UOffset>.size
-    preAlign(len: size &+ (prefix ? size : 0) &+ FileIdLength, alignment: _minAlignment)
+    preAlign(
+      len: size &+ (prefix ? size : 0) &+ FileIdLength,
+      alignment: _minAlignment)
     assert(fileId.count == FileIdLength, "Flatbuffers requires file id to be 4")
     _bb.push(string: fileId, len: 4)
     finish(offset: offset, addPrefix: prefix)
@@ -133,7 +147,10 @@ public struct FlatBufferBuilder {
   /// - Parameters:
   ///   - offset: Offset of the table
   ///   - prefix: if false it wont add the size of the buffer
-  mutating public func finish(offset: Offset, addPrefix prefix: Bool = false) {
+  mutating public func finish(
+    offset: Offset,
+    addPrefix prefix: Bool = false)
+  {
     notNested()
     let size = MemoryLayout<UOffset>.size
     preAlign(len: size &+ (prefix ? size : 0), alignment: _minAlignment)
@@ -183,7 +200,10 @@ public struct FlatBufferBuilder {
       itr = itr &+ _vtableStorage.size
       guard loaded.offset != 0 else { continue }
       let _index = (_bb.writerIndex &+ Int(loaded.position))
-      _bb.write(value: VOffset(vTableOffset &- loaded.offset), index: _index, direct: true)
+      _bb.write(
+        value: VOffset(vTableOffset &- loaded.offset),
+        index: _index,
+        direct: true)
     }
 
     _vtableStorage.clear()
@@ -374,7 +394,9 @@ public struct FlatBufferBuilder {
   /// - Parameter structs: A vector of structs
   /// - Returns: offset of the vector
   mutating public func createVector<T: NativeStruct>(ofStructs structs: [T]) -> Offset {
-    startVector(structs.count * MemoryLayout<T>.size, elementSize: MemoryLayout<T>.alignment)
+    startVector(
+      structs.count * MemoryLayout<T>.size,
+      elementSize: MemoryLayout<T>.alignment)
     for i in structs.reversed() {
       _ = create(struct: i)
     }
@@ -393,7 +415,9 @@ public struct FlatBufferBuilder {
     struct s: T, position: VOffset) -> Offset
   {
     let offset = create(struct: s)
-    _vtableStorage.add(loc: FieldLoc(offset: _bb.size, position: VOffset(position)))
+    _vtableStorage.add(loc: FieldLoc(
+      offset: _bb.size,
+      position: VOffset(position)))
     return offset
   }
 
@@ -528,10 +552,9 @@ extension FlatBufferBuilder: CustomDebugStringConvertible {
     var numOfFields: Int = 0
     /// Last written Index
     var writtenIndex: Int = 0
-    /// the amount of added elements into the buffer
-    var addedElements: Int { capacity - (numOfFields &* size) }
 
     /// Creates the memory to store the buffer in
+    @usableFromInline
     init() {
       memory = UnsafeMutableRawBufferPointer.allocate(byteCount: 0, alignment: 0)
     }
@@ -553,7 +576,9 @@ extension FlatBufferBuilder: CustomDebugStringConvertible {
     /// and max offset
     /// - Parameter loc: Location of encoded element
     func add(loc: FieldLoc) {
-      memory.baseAddress?.advanced(by: writtenIndex).storeBytes(of: loc, as: FieldLoc.self)
+      memory.baseAddress?.advanced(by: writtenIndex).storeBytes(
+        of: loc,
+        as: FieldLoc.self)
       writtenIndex = writtenIndex &+ size
       numOfFields = numOfFields &+ 1
       maxOffset = max(loc.position, maxOffset)
@@ -572,7 +597,9 @@ extension FlatBufferBuilder: CustomDebugStringConvertible {
     func ensure(space: Int) {
       guard space &+ writtenIndex > capacity else { return }
       memory.deallocate()
-      memory = UnsafeMutableRawBufferPointer.allocate(byteCount: space, alignment: size)
+      memory = UnsafeMutableRawBufferPointer.allocate(
+        byteCount: space,
+        alignment: size)
       capacity = space
     }
 

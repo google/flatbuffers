@@ -102,6 +102,9 @@ function TypeAliases_mt:V8(j)
     end
     return 0
 end
+function TypeAliases_mt:V8AsString(start, stop)
+    return self.view:VectorAsString(24, start, stop)
+end
 function TypeAliases_mt:V8Length()
     local o = self.view:Offset(24)
     if o ~= 0 then

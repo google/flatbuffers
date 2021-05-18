@@ -172,8 +172,12 @@ template<typename T, typename IT> struct VectorIterator {
     return (data_ - other.data_) / IndirectHelper<T>::element_stride;
   }
 
+  // Note: return type is incompatible with the standard
+  // `reference operator*()`.
   IT operator*() const { return IndirectHelper<T>::Read(data_, 0); }
 
+  // Note: return type is incompatible with the standard
+  // `pointer operator->()`.
   IT operator->() const { return IndirectHelper<T>::Read(data_, 0); }
 
   VectorIterator &operator++() {
@@ -227,12 +231,18 @@ struct VectorReverseIterator : public std::reverse_iterator<Iterator> {
   explicit VectorReverseIterator(Iterator iter)
       : std::reverse_iterator<Iterator>(iter) {}
 
+  // Note: return type is incompatible with the standard
+  // `reference operator*()`.
   typename Iterator::value_type operator*() const {
-    return *(std::reverse_iterator<Iterator>::current);
+    auto tmp = std::reverse_iterator<Iterator>::current;
+    return *--tmp;
   }
 
+  // Note: return type is incompatible with the standard
+  // `pointer operator->()`.
   typename Iterator::value_type operator->() const {
-    return *(std::reverse_iterator<Iterator>::current);
+    auto tmp = std::reverse_iterator<Iterator>::current;
+    return *--tmp;
   }
 };
 
@@ -295,14 +305,14 @@ template<typename T> class Vector {
   iterator end() { return iterator(Data(), size()); }
   const_iterator end() const { return const_iterator(Data(), size()); }
 
-  reverse_iterator rbegin() { return reverse_iterator(end() - 1); }
+  reverse_iterator rbegin() { return reverse_iterator(end()); }
   const_reverse_iterator rbegin() const {
-    return const_reverse_iterator(end() - 1);
+    return const_reverse_iterator(end());
   }
 
-  reverse_iterator rend() { return reverse_iterator(begin() - 1); }
+  reverse_iterator rend() { return reverse_iterator(begin()); }
   const_reverse_iterator rend() const {
-    return const_reverse_iterator(begin() - 1);
+    return const_reverse_iterator(begin());
   }
 
   const_iterator cbegin() const { return begin(); }
@@ -463,7 +473,9 @@ template<typename T, uint16_t length> class Array {
   const_reverse_iterator rbegin() const {
     return const_reverse_iterator(end());
   }
-  const_reverse_iterator rend() const { return const_reverse_iterator(end()); }
+  const_reverse_iterator rend() const {
+    return const_reverse_iterator(begin());
+  }
 
   const_iterator cbegin() const { return begin(); }
   const_iterator cend() const { return end(); }
@@ -1344,9 +1356,8 @@ class FlatBufferBuilder {
   // Write a single aligned scalar to the buffer
   template<typename T> uoffset_t PushElement(T element) {
     AssertScalarT<T>();
-    T litle_endian_element = EndianScalar(element);
     Align(sizeof(T));
-    buf_.push_small(litle_endian_element);
+    buf_.push_small(EndianScalar(element));
     return GetSize();
   }
 
@@ -1589,11 +1600,13 @@ class FlatBufferBuilder {
 
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// If a string with this exact contents has already been serialized before,
-  /// instead simply returns the offset of the existing string.
+  /// instead simply returns the offset of the existing string. This uses a map
+  /// stored on the heap, but only stores the numerical offsets.
   /// @param[in] str A const char pointer to the data to be stored as a string.
   /// @param[in] len The number of bytes that should be stored from `str`.
   /// @return Returns the offset in the buffer where the string starts.
   Offset<String> CreateSharedString(const char *str, size_t len) {
+    FLATBUFFERS_ASSERT(FLATBUFFERS_GENERAL_HEAP_ALLOC_OK);
     if (!string_pool)
       string_pool = new StringOffsetMap(StringOffsetCompare(buf_));
     auto size_before_string = buf_.size();
@@ -1615,7 +1628,8 @@ class FlatBufferBuilder {
 #ifdef FLATBUFFERS_HAS_STRING_VIEW
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// If a string with this exact contents has already been serialized before,
-  /// instead simply returns the offset of the existing string.
+  /// instead simply returns the offset of the existing string. This uses a map
+  /// stored on the heap, but only stores the numerical offsets.
   /// @param[in] str A const std::string_view to store in the buffer.
   /// @return Returns the offset in the buffer where the string starts
   Offset<String> CreateSharedString(const flatbuffers::string_view str) {
@@ -1624,7 +1638,8 @@ class FlatBufferBuilder {
 #else
   /// @brief Store a string in the buffer, which null-terminated.
   /// If a string with this exact contents has already been serialized before,
-  /// instead simply returns the offset of the existing string.
+  /// instead simply returns the offset of the existing string. This uses a map
+  /// stored on the heap, but only stores the numerical offsets.
   /// @param[in] str A const char pointer to a C-string to add to the buffer.
   /// @return Returns the offset in the buffer where the string starts.
   Offset<String> CreateSharedString(const char *str) {
@@ -1633,7 +1648,8 @@ class FlatBufferBuilder {
 
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// If a string with this exact contents has already been serialized before,
-  /// instead simply returns the offset of the existing string.
+  /// instead simply returns the offset of the existing string. This uses a map
+  /// stored on the heap, but only stores the numerical offsets.
   /// @param[in] str A const reference to a std::string to store in the buffer.
   /// @return Returns the offset in the buffer where the string starts.
   Offset<String> CreateSharedString(const std::string &str) {
@@ -1643,7 +1659,8 @@ class FlatBufferBuilder {
 
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// If a string with this exact contents has already been serialized before,
-  /// instead simply returns the offset of the existing string.
+  /// instead simply returns the offset of the existing string. This uses a map
+  /// stored on the heap, but only stores the numerical offsets.
   /// @param[in] str A const pointer to a `String` struct to add to the buffer.
   /// @return Returns the offset in the buffer where the string starts
   Offset<String> CreateSharedString(const String *str) {
@@ -1750,15 +1767,18 @@ class FlatBufferBuilder {
   /// where the vector is stored.
   template<typename T> Offset<Vector<T>> CreateVector(size_t vector_size,
       const std::function<T (size_t i)> &f) {
+    FLATBUFFERS_ASSERT(FLATBUFFERS_GENERAL_HEAP_ALLOC_OK);
     std::vector<T> elems(vector_size);
     for (size_t i = 0; i < vector_size; i++) elems[i] = f(i);
     return CreateVector(elems);
   }
-  #endif
+  #endif // FLATBUFFERS_CPP98_STL
   // clang-format on
 
   /// @brief Serialize values returned by a function into a FlatBuffer `vector`.
-  /// This is a convenience function that takes care of iteration for you.
+  /// This is a convenience function that takes care of iteration for you. This
+  /// uses a vector stored on the heap to store the intermediate results of the
+  /// iteration.
   /// @tparam T The data type of the `std::vector` elements.
   /// @param f A function that takes the current iteration 0..vector_size-1,
   /// and the state parameter returning any type that you can construct a
@@ -1768,6 +1788,7 @@ class FlatBufferBuilder {
   /// where the vector is stored.
   template<typename T, typename F, typename S>
   Offset<Vector<T>> CreateVector(size_t vector_size, F f, S *state) {
+    FLATBUFFERS_ASSERT(FLATBUFFERS_GENERAL_HEAP_ALLOC_OK);
     std::vector<T> elems(vector_size);
     for (size_t i = 0; i < vector_size; i++) elems[i] = f(i, state);
     return CreateVector(elems);
@@ -1781,9 +1802,34 @@ class FlatBufferBuilder {
   /// where the vector is stored.
   Offset<Vector<Offset<String>>> CreateVectorOfStrings(
       const std::vector<std::string> &v) {
-    std::vector<Offset<String>> offsets(v.size());
-    for (size_t i = 0; i < v.size(); i++) offsets[i] = CreateString(v[i]);
-    return CreateVector(offsets);
+    return CreateVectorOfStrings(v.cbegin(), v.cend());
+  }
+
+  /// @brief Serialize a collection of Strings into a FlatBuffer `vector`.
+  /// This is a convenience function for a common case.
+  /// @param begin The begining iterator of the collection
+  /// @param end The ending iterator of the collection
+  /// @return Returns a typed `Offset` into the serialized data indicating
+  /// where the vector is stored.
+  template<class It>
+  Offset<Vector<Offset<String>>> CreateVectorOfStrings(It begin, It end) {
+    auto size = std::distance(begin, end);
+    auto scratch_buffer_usage = size * sizeof(Offset<String>);
+    // If there is not enough space to store the offsets, there definitely won't
+    // be enough space to store all the strings. So ensuring space for the
+    // scratch region is OK, for it it fails, it would have failed later.
+    buf_.ensure_space(scratch_buffer_usage);
+    for (auto it = begin; it != end; ++it) {
+      buf_.scratch_push_small(CreateString(*it));
+    }
+    StartVector(size, sizeof(Offset<String>));
+    for (auto it = buf_.scratch_end();
+         it > buf_.scratch_end() - scratch_buffer_usage;) {
+      it -= sizeof(Offset<String>);
+      PushElement(*reinterpret_cast<Offset<String> *>(it));
+    }
+    buf_.scratch_pop(scratch_buffer_usage);
+    return Offset<Vector<Offset<String>>>(EndVector(size));
   }
 
   /// @brief Serialize an array of structs into a FlatBuffer `vector`.
@@ -1814,9 +1860,9 @@ class FlatBufferBuilder {
   Offset<Vector<const T *>> CreateVectorOfNativeStructs(
       const S *v, size_t len, T((*const pack_func)(const S &))) {
     FLATBUFFERS_ASSERT(pack_func);
-    std::vector<T> vv(len);
-    std::transform(v, v + len, vv.begin(), pack_func);
-    return CreateVectorOfStructs<T>(data(vv), vv.size());
+    auto structs = StartVectorOfStructs<T>(len);
+    for (size_t i = 0; i < len; i++) { structs[i] = pack_func(v[i]); }
+    return EndVectorOfStructs<T>(len);
   }
 
   /// @brief Serialize an array of native structs into a FlatBuffer `vector`.
@@ -1982,10 +2028,10 @@ class FlatBufferBuilder {
   Offset<Vector<const T *>> CreateVectorOfSortedNativeStructs(S *v,
                                                               size_t len) {
     extern T Pack(const S &);
-    typedef T (*Pack_t)(const S &);
-    std::vector<T> vv(len);
-    std::transform(v, v + len, vv.begin(), static_cast<Pack_t &>(Pack));
-    return CreateVectorOfSortedStructs<T>(vv, len);
+    auto structs = StartVectorOfStructs<T>(len);
+    for (size_t i = 0; i < len; i++) { structs[i] = Pack(v[i]); }
+    std::sort(structs, structs + len, StructKeyComparator<T>());
+    return EndVectorOfStructs<T>(len);
   }
 
   /// @cond FLATBUFFERS_INTERNAL

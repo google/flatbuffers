@@ -32,10 +32,11 @@ macro_rules! push_slice {
         fn $push_name<T, S>(&mut self, xs: S)
         where
             T: Into<$scalar> + Copy,
-            S: AsRef<[T]>
+            S: AsRef<[T]>,
         {
             let mut value = Value::$new_vec(xs.as_ref().len());
-            let mut width = xs.as_ref()
+            let mut width = xs
+                .as_ref()
                 .iter()
                 .map(|x| BitWidth::from((*x).into()))
                 .max()
@@ -56,7 +57,7 @@ macro_rules! push_slice {
             value.set_child_width_or_panic(width);
             self.values.push(value);
         }
-    }
+    };
 }
 macro_rules! push_indirect {
     ($push_name: ident, $scalar: ty, $Direct: ident, $Indirect: ident) => {
@@ -65,15 +66,13 @@ macro_rules! push_indirect {
             let child_width = x.width_or_child_width();
             let address = self.buffer.len();
             store_value(&mut self.buffer, x, child_width);
-            self.values.push(
-                Value::Reference {
-                    address,
-                    child_width,
-                    fxb_type: FlexBufferType::$Indirect,
-                }
-            );
+            self.values.push(Value::Reference {
+                address,
+                child_width,
+                fxb_type: FlexBufferType::$Indirect,
+            });
         }
-    }
+    };
 }
 
 bitflags! {

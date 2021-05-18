@@ -187,7 +187,8 @@ class SwiftGenerator : public BaseGenerator {
     code_.SetValue("ACCESS_TYPE", is_private_access ? "internal" : "public");
     GenComment(struct_def.doc_comment);
     code_.SetValue("STRUCTNAME", NameWrappedInNameSpace(struct_def));
-    code_ += "{{ACCESS_TYPE}} struct {{STRUCTNAME}}: NativeStruct\\";
+    code_ +=
+        "{{ACCESS_TYPE}} struct {{STRUCTNAME}}: NativeStruct, Verifiable\\";
     if (parser_.opts.generate_object_based_api) code_ += ", NativeObject\\";
     code_ += " {";
     code_ += "";
@@ -250,6 +251,15 @@ class SwiftGenerator : public BaseGenerator {
             GenReaderMainBody() + "{{VALUETYPE}}(rawValue: _{{VALUENAME}})! }";
       }
     }
+    code_ += "";
+    code_ +=
+        "public static func verify<T>(_ verifier: inout Verifier, at position: "
+        "Int, of type: T.Type) throws where T: Verifiable {";
+    Indent();
+    code_ +=
+        "try verifier.inBuffer(position: position, of: {{STRUCTNAME}}.self)";
+    Outdent();
+    code_ += "}";
     Outdent();
     code_ += "}\n";
   }
@@ -375,6 +385,8 @@ class SwiftGenerator : public BaseGenerator {
     GenTableWriter(struct_def);
     if (parser_.opts.generate_object_based_api)
       GenerateObjectAPITableExtension(struct_def);
+    code_ += "";
+    GenerateVerifier(struct_def);
     Outdent();
     code_ += "}\n";
   }
@@ -410,6 +422,7 @@ class SwiftGenerator : public BaseGenerator {
     code_.SetValue("MUTABLE", struct_def.fixed ? Mutable() : "");
     code_ +=
         "{{ACCESS_TYPE}} struct {{STRUCTNAME}}{{MUTABLE}}: FlatBufferObject\\";
+    if (!struct_def.fixed) code_ += ", Verifiable\\";
     if (!struct_def.fixed && parser_.opts.generate_object_based_api)
       code_ += ", ObjectAPIPacker\\";
     code_ += " {\n";
@@ -651,8 +664,10 @@ class SwiftGenerator : public BaseGenerator {
     code_.SetValue("VALUETYPE", type);
     code_.SetValue("OFFSET", name);
     code_.SetValue("CONSTANT", field.value.constant);
-    std::string def_Val = field.IsDefault() ? "{{CONSTANT}}" : "nil";
-    std::string optional = field.IsOptional() ? "?" : "";
+    bool opt_scalar =
+        field.IsOptional() && IsScalar(field.value.type.base_type);
+    std::string def_Val = opt_scalar ? "nil" : "{{CONSTANT}}";
+    std::string optional = opt_scalar ? "?" : "";
     auto const_string = "return o == 0 ? " + def_Val + " : ";
     GenComment(field.doc_comment);
     if (IsScalar(field.value.type.base_type) && !IsEnum(field.value.type) &&
@@ -831,6 +846,112 @@ class SwiftGenerator : public BaseGenerator {
     }
   }
 
+  void GenerateVerifier(const StructDef &struct_def) {
+    code_ +=
+        "public static func verify<T>(_ verifier: inout Verifier, at position: "
+        "Int, of type: T.Type) throws where T: Verifiable {";
+    Indent();
+    code_ += "var _v = try verifier.visitTable(at: position)";
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto &field = **it;
+      if (field.deprecated) continue;
+      auto offset = NumToString(field.value.offset);
+      auto name = Name(field);
+
+      code_.SetValue("VALUENAME", name);
+      code_.SetValue("VALUETYPE", GenerateVerifierType(field));
+      code_.SetValue("OFFSET", name);
+      code_.SetValue("ISREQUIRED", field.IsRequired() ? "true" : "false");
+
+      if (IsUnion(field.value.type)) {
+        GenerateUnionTypeVerifier(field);
+        continue;
+      }
+
+      code_ +=
+          "try _v.visit(field: {{TABLEOFFSET}}.{{OFFSET}}.p, fieldName: "
+          "\"{{VALUENAME}}\", required: {{ISREQUIRED}}, type: "
+          "{{VALUETYPE}}.self)";
+    }
+    code_ += "_v.finish()";
+    Outdent();
+    code_ += "}";
+  }
+
+  void GenerateUnionTypeVerifier(const FieldDef &field) {
+    auto is_vector = IsVector(field.value.type) || IsArray(field.value.type);
+    if (field.value.type.base_type == BASE_TYPE_UTYPE ||
+        (is_vector &&
+         field.value.type.VectorType().base_type == BASE_TYPE_UTYPE))
+      return;
+    EnumDef &union_def = *field.value.type.enum_def;
+    code_.SetValue("VALUETYPE", NameWrappedInNameSpace(union_def));
+    code_.SetValue("FUNCTION_NAME", is_vector ? "visitUnionVector" : "visit");
+    code_ +=
+        "try _v.{{FUNCTION_NAME}}(unionKey: {{TABLEOFFSET}}.{{OFFSET}}Type.p, "
+        "unionField: {{TABLEOFFSET}}.{{OFFSET}}.p, unionKeyName: "
+        "\"{{VALUENAME}}Type\", fieldName: \"{{VALUENAME}}\", required: "
+        "{{ISREQUIRED}}, completion: { (verifier, key: {{VALUETYPE}}, pos) in";
+    Indent();
+    code_ += "switch key {";
+    for (auto it = union_def.Vals().begin(); it != union_def.Vals().end();
+         ++it) {
+      const auto &ev = **it;
+
+      auto name = Name(ev);
+      auto type = GenType(ev.union_type);
+      code_.SetValue("KEY", name);
+      code_.SetValue("VALUETYPE", type);
+      code_ += "case .{{KEY}}:";
+      Indent();
+      if (ev.union_type.base_type == BASE_TYPE_NONE) {
+        code_ += "break // NOTE - SWIFT doesnt support none";
+      } else if (ev.union_type.base_type == BASE_TYPE_STRING) {
+        code_ +=
+            "try ForwardOffset<String>.verify(&verifier, at: pos, of: "
+            "String.self)";
+      } else {
+        code_.SetValue("MAINTYPE", ev.union_type.struct_def->fixed
+                                       ? type
+                                       : "ForwardOffset<" + type + ">");
+        code_ +=
+            "try {{MAINTYPE}}.verify(&verifier, at: pos, of: "
+            "{{VALUETYPE}}.self)";
+      }
+      Outdent();
+    }
+    code_ += "}";
+    Outdent();
+    code_ += "})";
+  }
+
+  std::string GenerateVerifierType(const FieldDef &field) {
+    auto type = field.value.type;
+    auto is_vector = IsVector(type) || IsArray(type);
+
+    if (is_vector) {
+      auto vector_type = field.value.type.VectorType();
+      return "ForwardOffset<Vector<" +
+             GenerateNestedVerifierTypes(vector_type) + ", " +
+             GenType(vector_type) + ">>";
+    }
+
+    return GenerateNestedVerifierTypes(field.value.type);
+  }
+
+  std::string GenerateNestedVerifierTypes(const Type &type) {
+    auto string_type = GenType(type);
+
+    if (IsScalar(type.base_type)) { return string_type; }
+
+    if (IsString(type)) { return "ForwardOffset<" + string_type + ">"; }
+
+    if (type.struct_def && type.struct_def->fixed) { return string_type; }
+
+    return "ForwardOffset<" + string_type + ">";
+  }
+
   void GenByKeyFunctions(const FieldDef &key_field) {
     code_.SetValue("TYPE", GenType(key_field.value.type));
     code_ +=
@@ -844,13 +965,24 @@ class SwiftGenerator : public BaseGenerator {
   void GenEnum(const EnumDef &enum_def) {
     if (enum_def.generated) return;
     auto is_private_access = enum_def.attributes.Lookup("private");
+    code_.SetValue("ENUM_TYPE",
+                   enum_def.is_union ? "UnionEnum" : "Enum, Verifiable");
     code_.SetValue("ACCESS_TYPE", is_private_access ? "internal" : "public");
     code_.SetValue("ENUM_NAME", NameWrappedInNameSpace(enum_def));
     code_.SetValue("BASE_TYPE", GenTypeBasic(enum_def.underlying_type, false));
     GenComment(enum_def.doc_comment);
-    code_ += "{{ACCESS_TYPE}} enum {{ENUM_NAME}}: {{BASE_TYPE}}, Enum {";
+    code_ +=
+        "{{ACCESS_TYPE}} enum {{ENUM_NAME}}: {{BASE_TYPE}}, {{ENUM_TYPE}} {";
     Indent();
     code_ += "{{ACCESS_TYPE}} typealias T = {{BASE_TYPE}}";
+    if (enum_def.is_union) {
+      code_ += "";
+      code_ += "{{ACCESS_TYPE}} init?(value: T) {";
+      Indent();
+      code_ += "self.init(rawValue: value)";
+      Outdent();
+      code_ += "}\n";
+    }
     code_ +=
         "{{ACCESS_TYPE}} static var byteSize: Int { return "
         "MemoryLayout<{{BASE_TYPE}}>.size "
@@ -865,7 +997,7 @@ class SwiftGenerator : public BaseGenerator {
       GenComment(ev.doc_comment);
       code_ += "case {{KEY}} = {{VALUE}}";
     }
-    code_ += "\n";
+    code_ += "";
     AddMinOrMaxEnumValue(Name(*enum_def.MaxValue()), "max");
     AddMinOrMaxEnumValue(Name(*enum_def.MinValue()), "min");
     Outdent();
@@ -1482,7 +1614,7 @@ class SwiftGenerator : public BaseGenerator {
   }
 
   std::string ValidateFunc() {
-    return "static func validateVersion() { FlatBuffersVersion_1_12_0() }";
+    return "static func validateVersion() { FlatBuffersVersion_2_0_0() }";
   }
 
   std::string GenType(const Type &type,

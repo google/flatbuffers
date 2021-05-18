@@ -34,7 +34,9 @@ final class FlatBuffersUnionTests: XCTestCase {
       equippedOffset: weapon.o)
     b.finish(offset: root)
     let buffer = b.sizedByteArray
+    // swiftformat:disable all
     XCTAssertEqual(buffer, [16, 0, 0, 0, 0, 0, 10, 0, 16, 0, 8, 0, 7, 0, 12, 0, 10, 0, 0, 0, 0, 0, 0, 1, 8, 0, 0, 0, 20, 0, 0, 0, 1, 0, 0, 0, 12, 0, 0, 0, 8, 0, 12, 0, 8, 0, 6, 0, 8, 0, 0, 0, 0, 0, 5, 0, 4, 0, 0, 0, 3, 0, 0, 0, 65, 120, 101, 0])
+    // swiftformat:enable all
     let monster = LocalMonster.getRootAsMonster(bb: ByteBuffer(bytes: buffer))
     XCTAssertEqual(monster.weapon(at: 0)?.dmg, dmg)
     XCTAssertEqual(monster.weapon(at: 0)?.name, str)
@@ -71,7 +73,9 @@ final class FlatBuffersUnionTests: XCTestCase {
       equippedOffset: weaponTwo,
       path: path)
     builder.finish(offset: orc)
+    // swiftformat:disable all
     XCTAssertEqual(builder.sizedByteArray, [32, 0, 0, 0, 0, 0, 26, 0, 48, 0, 36, 0, 0, 0, 34, 0, 28, 0, 0, 0, 24, 0, 23, 0, 16, 0, 15, 0, 8, 0, 4, 0, 26, 0, 0, 0, 44, 0, 0, 0, 104, 0, 0, 0, 0, 0, 0, 1, 60, 0, 0, 0, 0, 0, 0, 0, 64, 0, 0, 0, 76, 0, 0, 0, 0, 0, 44, 1, 0, 0, 128, 63, 0, 0, 0, 64, 0, 0, 64, 64, 2, 0, 0, 0, 0, 0, 128, 64, 0, 0, 160, 64, 0, 0, 192, 64, 0, 0, 128, 63, 0, 0, 0, 64, 0, 0, 64, 64, 2, 0, 0, 0, 52, 0, 0, 0, 28, 0, 0, 0, 10, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0, 3, 0, 0, 0, 79, 114, 99, 0, 244, 255, 255, 255, 0, 0, 5, 0, 24, 0, 0, 0, 8, 0, 12, 0, 8, 0, 6, 0, 8, 0, 0, 0, 0, 0, 3, 0, 12, 0, 0, 0, 3, 0, 0, 0, 65, 120, 101, 0, 5, 0, 0, 0, 83, 119, 111, 114, 100, 0, 0, 0])
+    // swiftformat:enable all
   }
 
   func testEnumVector() {
@@ -83,7 +87,9 @@ final class FlatBuffersUnionTests: XCTestCase {
     ColorsNameSpace.Monster.add(colors: off, &builder)
     let end = ColorsNameSpace.Monster.endMonster(&builder, start: start)
     builder.finish(offset: end)
+    // swiftformat:disable all
     XCTAssertEqual(builder.sizedByteArray, [12, 0, 0, 0, 0, 0, 6, 0, 8, 0, 4, 0, 6, 0, 0, 0, 4, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 1, 0, 0, 0])
+    // swiftformat:enable all
     let monster = ColorsNameSpace.Monster.getRootAsMonster(bb: builder.buffer)
     XCTAssertEqual(monster.colorsCount, 2)
     XCTAssertEqual(monster.colors(at: 0), .blue)
@@ -121,22 +127,36 @@ final class FlatBuffersUnionTests: XCTestCase {
       XCTAssertEqual(movie.charactersType(at: i), characterType[Int(i)])
     }
 
-    XCTAssertEqual(movie.characters(at: 0, type: BookReader_Mutable.self)?.booksRead, 7)
-    XCTAssertEqual(movie.characters(at: 1, type: Attacker.self)?.swordAttackDamage, swordDmg)
-    XCTAssertEqual(movie.characters(at: 2, type: BookReader_Mutable.self)?.booksRead, 2)
+    XCTAssertEqual(
+      movie.characters(at: 0, type: BookReader_Mutable.self)?.booksRead,
+      7)
+    XCTAssertEqual(
+      movie.characters(at: 1, type: Attacker.self)?.swordAttackDamage,
+      swordDmg)
+    XCTAssertEqual(
+      movie.characters(at: 2, type: BookReader_Mutable.self)?.booksRead,
+      2)
 
     var objc: MovieT? = movie.unpack()
     XCTAssertEqual(movie.charactersTypeCount, Int32(objc?.characters.count ?? 0))
-    XCTAssertEqual(movie.characters(at: 0, type: BookReader_Mutable.self)?.booksRead, (objc?.characters[0]?.value as? BookReader)?.booksRead)
+    XCTAssertEqual(
+      movie.characters(at: 0, type: BookReader_Mutable.self)?.booksRead,
+      (objc?.characters[0]?.value as? BookReader)?.booksRead)
     fb.clear()
     let newMovie = Movie.pack(&fb, obj: &objc)
     fb.finish(offset: newMovie)
 
     let packedMovie = Movie.getRootAsMovie(bb: fb.buffer)
 
-    XCTAssertEqual(packedMovie.characters(at: 0, type: BookReader_Mutable.self)?.booksRead, movie.characters(at: 0, type: BookReader_Mutable.self)?.booksRead)
-    XCTAssertEqual(packedMovie.characters(at: 1, type: Attacker.self)?.swordAttackDamage, movie.characters(at: 1, type: Attacker.self)?.swordAttackDamage)
-    XCTAssertEqual(packedMovie.characters(at: 2, type: BookReader_Mutable.self)?.booksRead, movie.characters(at: 2, type: BookReader_Mutable.self)?.booksRead)
+    XCTAssertEqual(
+      packedMovie.characters(at: 0, type: BookReader_Mutable.self)?.booksRead,
+      movie.characters(at: 0, type: BookReader_Mutable.self)?.booksRead)
+    XCTAssertEqual(
+      packedMovie.characters(at: 1, type: Attacker.self)?.swordAttackDamage,
+      movie.characters(at: 1, type: Attacker.self)?.swordAttackDamage)
+    XCTAssertEqual(
+      packedMovie.characters(at: 2, type: BookReader_Mutable.self)?.booksRead,
+      movie.characters(at: 2, type: BookReader_Mutable.self)?.booksRead)
   }
 
   func testStringUnion() {
@@ -162,7 +182,9 @@ final class FlatBuffersUnionTests: XCTestCase {
 
     var movie = Movie.getRootAsMovie(bb: fb.sizedBuffer)
     XCTAssertEqual(movie.mainCharacter(type: String.self), string)
-    XCTAssertEqual(movie.characters(at: 0, type: BookReader_Mutable.self)?.booksRead, 7)
+    XCTAssertEqual(
+      movie.characters(at: 0, type: BookReader_Mutable.self)?.booksRead,
+      7)
     XCTAssertEqual(movie.characters(at: 1, type: String.self), string)
 
     var objc: MovieT? = movie.unpack()
@@ -175,7 +197,9 @@ final class FlatBuffersUnionTests: XCTestCase {
 
     let packedMovie = Movie.getRootAsMovie(bb: fb.buffer)
     XCTAssertEqual(packedMovie.mainCharacter(type: String.self), string)
-    XCTAssertEqual(packedMovie.characters(at: 0, type: BookReader_Mutable.self)?.booksRead, 7)
+    XCTAssertEqual(
+      packedMovie.characters(at: 0, type: BookReader_Mutable.self)?.booksRead,
+      7)
     XCTAssertEqual(packedMovie.characters(at: 1, type: String.self), string)
   }
 }
@@ -239,7 +263,10 @@ struct FinalMonster {
     builder.add(offset: inventory, at: 14)
     builder.add(element: color.rawValue, def: Color3.green.rawValue, at: 16)
     builder.add(offset: weapons, at: 18)
-    builder.add(element: equipment.rawValue, def: Equipment.none.rawValue, at: 20)
+    builder.add(
+      element: equipment.rawValue,
+      def: Equipment.none.rawValue,
+      at: 20)
     builder.add(offset: equippedOffset, at: 22)
     builder.add(offset: path, at: 24)
     return Offset(offset: builder.endTable(at: start))
@@ -262,7 +289,9 @@ struct LocalMonster {
   }
 
   static func getRootAsMonster(bb: ByteBuffer) -> LocalMonster {
-    LocalMonster(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: 0))))
+    LocalMonster(Table(
+      bb: bb,
+      position: Int32(bb.read(def: UOffset.self, position: 0))))
   }
 
   @inlinable
@@ -290,11 +319,15 @@ struct Weapon: FlatBufferObject {
   init(_ t: Table) { __t = t }
   init(_ fb: ByteBuffer, o: Int32) { __t = Table(bb: fb, position: o)}
 
-  var dmg: Int16 { let o = __t.offset(6); return o == 0 ? 0 : __t.readBuffer(of: Int16.self, at: o) }
+  var dmg: Int16 { let o = __t.offset(6); return o == 0 ? 0 : __t.readBuffer(
+    of: Int16.self,
+    at: o) }
   var nameVector: [UInt8]? { __t.getVector(at: 4) }
   var name: String? { let o = __t.offset(4); return o == 0 ? nil : __t.string(at: o) }
 
-  static func assign(_ i: Int32, _ bb: ByteBuffer) -> Weapon { Weapon(Table(bb: bb, position: i)) }
+  static func assign(_ i: Int32, _ bb: ByteBuffer) -> Weapon { Weapon(Table(
+    bb: bb,
+    position: i)) }
 
   @inlinable
   static func createWeapon(
