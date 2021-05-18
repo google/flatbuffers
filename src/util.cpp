@@ -248,9 +248,9 @@ std::string RemoveStringQuotes(const std::string &s) {
 
 std::string Trim(const std::string &s) {
   const auto start =
-      std::find_if(s.begin(), s.end(), [](char c){ return !isspace(c); });
+      std::find_if(s.begin(), s.end(), [](char c) { return !isspace(c); });
   const auto end =
-      std::find_if(s.rbegin(), s.rend(), [](char c){ return !isspace(c); })
+      std::find_if(s.rbegin(), s.rend(), [](char c) { return !isspace(c); })
           .base();
   if (start < end) return std::string(start, end);
   return std::string();
