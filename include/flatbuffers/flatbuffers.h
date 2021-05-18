@@ -94,6 +94,8 @@ template<typename T> FLATBUFFERS_CONSTEXPR size_t AlignOf() {
   // clang-format on
 }
 
+typedef std::map<std::string, uoffset_t> StringPoolMap;
+
 // When we read serialized data from memory, in the case of most scalars,
 // we want to just read T, but in the case of Offset, we want to actually
 // perform the indirection and return a pointer.
@@ -1166,7 +1168,8 @@ class FlatBufferBuilder {
         minalign_(1),
         force_defaults_(false),
         dedup_vtables_(true),
-        string_pool(nullptr) {
+        string_pool(nullptr),
+        owned_string_pool(false) {
     EndianCheck();
   }
 
@@ -1185,7 +1188,8 @@ class FlatBufferBuilder {
       minalign_(1),
       force_defaults_(false),
       dedup_vtables_(true),
-      string_pool(nullptr) {
+      string_pool(nullptr),
+      owned_string_pool(false) {
     EndianCheck();
     // Default construct and swap idiom.
     // Lack of delegating constructors in vs2010 makes it more verbose than needed.
@@ -1218,10 +1222,11 @@ class FlatBufferBuilder {
     swap(force_defaults_, other.force_defaults_);
     swap(dedup_vtables_, other.dedup_vtables_);
     swap(string_pool, other.string_pool);
+    swap(owned_string_pool, other.owned_string_pool);
   }
 
   ~FlatBufferBuilder() {
-    if (string_pool) delete string_pool;
+    if (string_pool && owned_string_pool) delete string_pool;
   }
 
   void Reset() {
@@ -1598,6 +1603,11 @@ class FlatBufferBuilder {
     return CreateString(str.c_str(), str.length());
   }
 
+  void SetStringPool(StringPoolMap *string_pool_map) {
+    FLATBUFFERS_ASSERT(!string_pool);
+    string_pool = string_pool_map;
+  }
+
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// If a string with this exact contents has already been serialized before,
   /// instead simply returns the offset of the existing string. This uses a map
@@ -1606,22 +1616,16 @@ class FlatBufferBuilder {
   /// @param[in] len The number of bytes that should be stored from `str`.
   /// @return Returns the offset in the buffer where the string starts.
   Offset<String> CreateSharedString(const char *str, size_t len) {
-    FLATBUFFERS_ASSERT(FLATBUFFERS_GENERAL_HEAP_ALLOC_OK);
-    if (!string_pool)
-      string_pool = new StringOffsetMap(StringOffsetCompare(buf_));
-    auto size_before_string = buf_.size();
-    // Must first serialize the string, since the set is all offsets into
-    // buffer.
-    auto off = CreateString(str, len);
-    auto it = string_pool->find(off);
-    // If it exists we reuse existing serialized data!
-    if (it != string_pool->end()) {
-      // We can remove the string we serialized.
-      buf_.pop(buf_.size() - size_before_string);
-      return *it;
+    if (!string_pool) {
+      FLATBUFFERS_ASSERT(FLATBUFFERS_GENERAL_HEAP_ALLOC_OK);
+      string_pool = new StringPoolMap();
+      owned_string_pool = true;
     }
-    // Record this string for future use.
-    string_pool->insert(off);
+    auto s = std::string(str, len);
+    auto it = string_pool->find(s);
+    if (it != string_pool->end()) { return Offset<String>(it->second); }
+    auto off = CreateString(str, len);
+    string_pool->insert(std::make_pair(s, off.o));
     return off;
   }
 
@@ -2215,20 +2219,8 @@ class FlatBufferBuilder {
 
   bool dedup_vtables_;
 
-  struct StringOffsetCompare {
-    StringOffsetCompare(const vector_downward &buf) : buf_(&buf) {}
-    bool operator()(const Offset<String> &a, const Offset<String> &b) const {
-      auto stra = reinterpret_cast<const String *>(buf_->data_at(a.o));
-      auto strb = reinterpret_cast<const String *>(buf_->data_at(b.o));
-      return StringLessThan(stra->data(), stra->size(), strb->data(),
-                            strb->size());
-    }
-    const vector_downward *buf_;
-  };
-
-  // For use with CreateSharedString. Instantiated on first use only.
-  typedef std::set<Offset<String>, StringOffsetCompare> StringOffsetMap;
-  StringOffsetMap *string_pool;
+  StringPoolMap *string_pool;
+  bool owned_string_pool;
 
  private:
   // Allocates space for a vector of structures.
