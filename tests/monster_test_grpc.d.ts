@@ -3,7 +3,7 @@ import * as flatbuffers from 'flatbuffers';
 import { Stat as MyGame_Example_Stat } from './my-game/example/stat';
 import { Monster as MyGame_Example_Monster } from './my-game/example/monster';
 
-import * as grpc from 'grpc';
+import * as grpc from '@grpc/grpc-js';
 
 interface IMonsterStorageService extends grpc.ServiceDefinition<grpc.UntypedServiceImplementation> {
   Store: IMonsterStorageService_IStore;
@@ -54,7 +54,7 @@ interface IMonsterStorageService_IGetMinMaxHitPoints extends grpc.MethodDefiniti
 
 export const MonsterStorageService: IMonsterStorageService;
 
-export interface IMonsterStorageServer {
+export interface IMonsterStorageServer extends grpc.UntypedServiceImplementation {
   Store: grpc.handleUnaryCall<MyGame_Example_Monster, MyGame_Example_Stat>;
   Retrieve: grpc.handleServerStreamingCall<MyGame_Example_Stat, MyGame_Example_Monster>;
   GetMaxHitPoint: grpc.handleClientStreamingCall<MyGame_Example_Monster, MyGame_Example_Stat>;
@@ -77,7 +77,8 @@ export interface IMonsterStorageClient {
 }
 
 export class MonsterStorageClient extends grpc.Client implements IMonsterStorageClient {
-  constructor(address: string, credentials: grpc.ChannelCredentials, options?: object);  public Store(request: MyGame_Example_Monster, callback: (error: grpc.ServiceError | null, response: MyGame_Example_Stat) => void): grpc.ClientUnaryCall;
+  constructor(address: string, credentials: grpc.ChannelCredentials, options?: object);
+  public Store(request: MyGame_Example_Monster, callback: (error: grpc.ServiceError | null, response: MyGame_Example_Stat) => void): grpc.ClientUnaryCall;
   public Store(request: MyGame_Example_Monster, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: MyGame_Example_Stat) => void): grpc.ClientUnaryCall;
   public Store(request: MyGame_Example_Monster, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: MyGame_Example_Stat) => void): grpc.ClientUnaryCall;
   public Retrieve(request: MyGame_Example_Stat, metadata: grpc.Metadata): grpc.ClientReadableStream<MyGame_Example_Monster>;
