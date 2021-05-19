@@ -44,6 +44,10 @@ maximum memory efficiency. It allows you to directly access serialized data with
 
 *To contribute to this project,* see [CONTRIBUTING][].
 
+## Security
+
+Please see our [Security Policy](SECURITY.md) for reporting vulnerabilities.
+
 ## Licensing
 *Flatbuffers* is licensed under the Apache License, Version 2.0. See [LICENSE][] for the full license text.
 
