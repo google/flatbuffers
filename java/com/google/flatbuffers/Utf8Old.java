@@ -17,6 +17,7 @@
 package com.google.flatbuffers;
 
 import java.nio.ByteBuffer;
+import java.nio.Buffer;
 import java.nio.CharBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.CharsetDecoder;
@@ -87,7 +88,7 @@ public class Utf8Old extends Utf8 {
     CharsetDecoder decoder = CACHE.get().decoder;
     decoder.reset();
     buffer = buffer.duplicate();
-    buffer.position(offset);
+    ((Buffer) buffer).position(offset);
     buffer.limit(offset + length);
     try {
       CharBuffer result = decoder.decode(buffer);
