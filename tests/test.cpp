@@ -160,9 +160,7 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
 
   // Create many vectors of strings
   std::vector<std::string> manyNames;
-  for (auto i = 0; i < 100; i++) {
-    manyNames.push_back("john_doe" + std::to_string(i));
-  }
+  for (auto i = 0; i < 100; i++) { manyNames.push_back("john_doe"); }
   auto manyNamesVec = builder.CreateVectorOfStrings(manyNames);
   TEST_EQ(false, manyNamesVec.IsNull());
   auto manyNamesVec2 =
