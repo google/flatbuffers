@@ -83,7 +83,7 @@ class CheckOtherLangaugesData {
       'anyUniqueType: AnyUniqueAliasesTypeId{value: 0}, anyUnique: null, '
       'anyAmbiguousType: AnyAmbiguousAliasesTypeId{value: 0}, '
       'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}, '
-      'testrequirednestedflatbuffer: null}, '
+      'testrequirednestedflatbuffer: null, scalarKeySortedTables: null}, '
       'test4: [Test{a: 10, b: 20}, Test{a: 30, b: 40}], '
       'testarrayofstring: [test1, test2], testarrayoftables: null, '
       'enemy: Monster{pos: null, mana: 150, hp: 100, name: Fred, '
@@ -104,7 +104,7 @@ class CheckOtherLangaugesData {
       'anyUniqueType: AnyUniqueAliasesTypeId{value: 0}, anyUnique: null, '
       'anyAmbiguousType: AnyAmbiguousAliasesTypeId{value: 0}, '
       'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}, '
-      'testrequirednestedflatbuffer: null}, '
+      'testrequirednestedflatbuffer: null, scalarKeySortedTables: null}, '
       'testnestedflatbuffer: null, testempty: null, testbool: true, '
       'testhashs32Fnv1: -579221183, testhashu32Fnv1: 3715746113, '
       'testhashs64Fnv1: 7930699090847568257, '
@@ -113,7 +113,9 @@ class CheckOtherLangaugesData {
       'testhashs64Fnv1a: 4898026182817603057, '
       'testhashu64Fnv1a: 4898026182817603057, '
       'testarrayofbools: [true, false, true], testf: 3.14159, testf2: 3.0, '
-      'testf3: 0.0, testarrayofstring2: null, testarrayofsortedstruct: null, '
+      'testf3: 0.0, testarrayofstring2: null, testarrayofsortedstruct: ['
+      'Ability{id: 0, distance: 45}, Ability{id: 1, distance: 21}, '
+      'Ability{id: 5, distance: 12}], '
       'flex: null, test5: [Test{a: 10, b: 20}, Test{a: 30, b: 40}], '
       'vectorOfLongs: [1, 100, 10000, 1000000, 100000000], '
       'vectorOfDoubles: [-1.7976931348623157e+308, 0.0, 1.7976931348623157e+308], '
@@ -125,7 +127,8 @@ class CheckOtherLangaugesData {
       'anyUniqueType: AnyUniqueAliasesTypeId{value: 0}, anyUnique: null, '
       'anyAmbiguousType: AnyAmbiguousAliasesTypeId{value: 0}, '
       'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}, '
-      'testrequirednestedflatbuffer: null}',
+      'testrequirednestedflatbuffer: null, scalarKeySortedTables: [Stat{id: '
+      'miss, val: 0, count: 0}, Stat{id: hit, val: 10, count: 1}]}',
     );
   }
 }
