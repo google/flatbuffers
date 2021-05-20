@@ -227,3 +227,18 @@ jobs:
     - name: test
       working-directory: tests
       run: sh TypeScriptTest.sh
+
+  build-dart:
+    name: Build Dart
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+      - name: flatc
+        # FIXME: make test script not rely on flatc
+        run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF . && make -j4
+      - name: test
+        working-directory: tests
+        run: bash DartTest.sh
