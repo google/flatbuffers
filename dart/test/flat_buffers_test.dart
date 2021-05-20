@@ -29,7 +29,8 @@ int indexToField(int index) {
 class CheckOtherLangaugesData {
   test_cppData() async {
     List<int> data = await new io.File(path.join(
-      path.dirname(io.Platform.script.path),
+      path.context.current,
+      'test',
       'monsterdata_test.mon',
     )).readAsBytes();
     example.Monster mon = new example.Monster(data);
@@ -643,7 +644,9 @@ class GeneratorTest {
     expect(example.Color.values, same(example.Color.values));
     expect(example.Race.values, same(example.Race.values));
     expect(example.AnyTypeId.values, same(example.AnyTypeId.values));
-    expect(example.AnyUniqueAliasesTypeId.values, same(example.AnyUniqueAliasesTypeId.values));
-    expect(example.AnyAmbiguousAliasesTypeId.values, same(example.AnyAmbiguousAliasesTypeId.values));
+    expect(example.AnyUniqueAliasesTypeId.values,
+        same(example.AnyUniqueAliasesTypeId.values));
+    expect(example.AnyAmbiguousAliasesTypeId.values,
+        same(example.AnyAmbiguousAliasesTypeId.values));
   }
 }
