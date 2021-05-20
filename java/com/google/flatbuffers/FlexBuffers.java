@@ -655,7 +655,7 @@ public class FlexBuffers {
 
         Sized(ReadBuf buff, int end, int byteWidth) {
             super(buff, end, byteWidth);
-            size = readInt(bb, end - byteWidth, byteWidth);
+            size = (int) readUInt(bb, end - byteWidth, byteWidth);
         }
 
         public int size() {
