@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include <cmath>
+#include <string>
 
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
@@ -156,6 +157,17 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
   names2.push_back("jane");
   names2.push_back("mary");
   auto vecofstrings2 = builder.CreateVectorOfStrings(names2);
+
+  // Create many vectors of strings
+  std::vector<std::string> manyNames;
+  for (auto i = 0; i < 100; i++) {
+    manyNames.push_back("john_doe" + std::to_string(i));
+  }
+  auto manyNamesVec = builder.CreateVectorOfStrings(manyNames);
+  TEST_EQ(false, manyNamesVec.IsNull());
+  auto manyNamesVec2 =
+      builder.CreateVectorOfStrings(manyNames.cbegin(), manyNames.cend());
+  TEST_EQ(false, manyNamesVec2.IsNull());
 
   // Create an array of sorted tables, can be used with binary search when read:
   auto vecoftables = builder.CreateVectorOfSortedTables(mlocs, 3);
