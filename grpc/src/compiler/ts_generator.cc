@@ -46,6 +46,7 @@ grpc::string ToDasherizedCase(const grpc::string pascal_case) {
   return dasherized_case;
 }
 
+
 grpc::string GenerateNamespace(const std::vector<std::string> namepsace,
                                const std::string filename,
                                const bool include_separator) {
@@ -105,9 +106,9 @@ void GenerateImports(const grpc_generator::Service *service,
   }
   printer->Print("\n");
   if (grpc_var_import)
-    printer->Print("var grpc = require('grpc');\n");
+    printer->Print("var grpc = require('@grpc/grpc-js');\n");
   else
-    printer->Print("import * as grpc from 'grpc';\n");
+    printer->Print("import * as grpc from '@grpc/grpc-js';\n");
   printer->Print("\n");
 }
 
@@ -136,7 +137,7 @@ void GenerateSerializeMethod(grpc_generator::Printer *printer,
                  "throw new Error('Expected argument of type $VALUE$');\n");
   printer->Outdent();
   printer->Print("}\n");
-  printer->Print(vars, "return buffer_args.serialize();\n");
+  printer->Print(vars, "return Buffer.from(buffer_args.serialize());\n");
   printer->Outdent();
   printer->Print("}\n\n");
 }
@@ -288,7 +289,9 @@ void GenerateExportedInterface(
     const grpc_generator::Service *service, grpc_generator::Printer *printer,
     std::map<grpc::string, grpc::string> *dictonary) {
   auto vars = *dictonary;
-  printer->Print(vars, "export interface I$ServiceName$Server {\n");
+  printer->Print(vars,
+                 "export interface I$ServiceName$Server extends "
+                 "grpc.UntypedServiceImplementation {\n");
   printer->Indent();
   for (auto it = 0; it < service->method_count(); it++) {
     auto method = service->method(it);
@@ -463,7 +466,7 @@ void GenerateClientClassInterface(
   printer->Indent();
   printer->Print(
       "constructor(address: string, credentials: grpc.ChannelCredentials, "
-      "options?: object);");
+      "options?: object);\n");
   for (auto it = 0; it < service->method_count(); it++) {
     auto method = service->method(it);
     vars["MethodName"] = method->name();
