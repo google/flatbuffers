@@ -9,7 +9,6 @@ import (
 	flatbuffers "github.com/google/flatbuffers/go"
 	models "github.com/google/flatbuffers/grpc/examples/go/greeter/models"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/encoding"
 )
 
 var (
@@ -68,8 +67,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-	grpcServer := grpc.NewServer()
-	encoding.RegisterCodec(flatbuffers.FlatbuffersCodec{})
+	codec := &flatbuffers.FlatbuffersCodec{}
+	grpcServer := grpc.NewServer(grpc.ForceServerCodec(codec))
 	models.RegisterGreeterServer(grpcServer, newServer())
 	if err := grpcServer.Serve(lis); err != nil {
 		fmt.Print(err)
