@@ -1,21 +1,19 @@
-import grpc from 'grpc';
+import * as grpc from '@grpc/grpc-js';
+import * as flatbuffers from 'flatbuffers';
 import { HelloReply } from './models/hello-reply';
 import { HelloRequest } from './models/hello-request';
 import { IGreeterServer, GreeterService } from './greeter_grpc';
-import { flatbuffers } from 'flatbuffers';
 
-class GreeterServer implements IGreeterServer {
-
-    SayHello(call: grpc.ServerUnaryCall<HelloRequest>, callback: grpc.sendUnaryData<HelloReply>): void {
+const greeter: IGreeterServer = {
+    SayHello(call: grpc.ServerUnaryCall<HelloRequest, HelloReply>, callback: grpc.sendUnaryData<HelloReply>): void {
         console.log(`SayHello ${call.request.name()}`);
         const builder = new flatbuffers.Builder();
         const offset = builder.createString(`welcome ${call.request.name()}`);
         const root = HelloReply.createHelloReply(builder, offset);
         builder.finish(root);
         callback(null, HelloReply.getRootAsHelloReply(new flatbuffers.ByteBuffer(builder.asUint8Array())));
-    }
-
-    async SayManyHellos(call: grpc.ServerWritableStream<HelloRequest>): Promise<void> {
+    },
+    async SayManyHellos(call: grpc.ServerWritableStream<HelloRequest, HelloReply>): Promise<void> {
         const name = call.request.name();
         console.log(`${call.request.name()} saying hi in different langagues`);
         ['Hi', 'Hallo', 'Ciao'].forEach(element => {
@@ -32,10 +30,20 @@ class GreeterServer implements IGreeterServer {
 function serve(): void {
     const PORT = 3000;
     const server = new grpc.Server();
-    server.addService<IGreeterServer>(GreeterService, new GreeterServer());
+    server.addService(GreeterService, greeter);
     console.log(`Listening on ${PORT}`);
-    server.bind(`localhost:${PORT}`, grpc.ServerCredentials.createInsecure());
-    server.start();
+    server.bindAsync(
+        `localhost:${PORT}`,
+        grpc.ServerCredentials.createInsecure(),
+        (err: Error | null, port: number) => {
+          if (err) {
+            console.error(`Server error: ${err.message}`);
+          } else {
+            console.log(`Server bound on port: ${port}`);
+            server.start();
+          }
+        }
+      );
 }
 
 serve();
