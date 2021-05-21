@@ -21,7 +21,7 @@ source ~/.nvm/nvm.sh
 nvm alias default node
 nvm use default
 
-sh src/clang-format-git.sh
+sh scripts/clang-format-git.sh
 
 # Check formatting for go lang
 

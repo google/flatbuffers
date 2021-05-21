@@ -14,7 +14,7 @@
 
 use crate::bitwidth::BitWidth;
 use crate::flexbuffer_type::FlexBufferType;
-use crate::{Buffer, Blob};
+use crate::{Blob, Buffer};
 use std::convert::{TryFrom, TryInto};
 use std::fmt;
 use std::ops::Rem;
@@ -22,6 +22,7 @@ use std::str::FromStr;
 mod de;
 mod iter;
 mod map;
+mod serialize;
 mod vector;
 pub use de::DeserializationError;
 pub use iter::ReaderIterator;
@@ -184,13 +185,12 @@ impl<B> std::fmt::Debug for Reader<B> {
     }
 }
 
-
 macro_rules! try_cast_fn {
     ($name: ident, $full_width: ident, $Ty: ident) => {
         pub fn $name(&self) -> $Ty {
             self.$full_width().try_into().unwrap_or_default()
         }
-    }
+    };
 }
 
 fn safe_sub(a: usize, b: usize) -> Result<usize, Error> {
@@ -242,7 +242,7 @@ impl<B: Buffer> Reader<B> {
     }
 
     /// Convenience function to get the underlying buffer. By using `shallow_copy`, this preserves
-    /// the lifetime that the underlying buffer has. 
+    /// the lifetime that the underlying buffer has.
     pub fn buffer(&self) -> B {
         self.buffer.shallow_copy()
     }
@@ -263,7 +263,11 @@ impl<B: Buffer> Reader<B> {
         if let Some(len) = self.fxb_type.fixed_length_vector_length() {
             len
         } else if self.fxb_type.has_length_slot() && self.address >= self.width.n_bytes() {
-            read_usize(&self.buffer, self.address - self.width.n_bytes(), self.width)
+            read_usize(
+                &self.buffer,
+                self.address - self.width.n_bytes(),
+                self.width,
+            )
         } else {
             0
         }
@@ -359,7 +363,8 @@ impl<B: Buffer> Reader<B> {
 
     /// Retrieves the string value up until the first `\0` character.
     pub fn get_key(&self) -> Result<B::BufferString, Error> {
-        let bytes = self.buffer
+        let bytes = self
+            .buffer
             .slice(self.address..self.address + self.get_key_len()?)
             .ok_or(Error::IndexOutOfBounds)?;
         Ok(bytes.buffer_str()?)
@@ -368,9 +373,9 @@ impl<B: Buffer> Reader<B> {
     pub fn get_blob(&self) -> Result<Blob<B>, Error> {
         self.expect_type(FlexBufferType::Blob)?;
         Ok(Blob(
-                self.buffer
-                    .slice(self.address..self.address + self.length())
-                    .ok_or(Error::IndexOutOfBounds)?
+            self.buffer
+                .slice(self.address..self.address + self.length())
+                .ok_or(Error::IndexOutOfBounds)?,
         ))
     }
 
@@ -382,7 +387,9 @@ impl<B: Buffer> Reader<B> {
     /// is out of bounds.
     pub fn get_str(&self) -> Result<B::BufferString, Error> {
         self.expect_type(FlexBufferType::String)?;
-        let bytes = self.buffer.slice(self.address..self.address + self.length());
+        let bytes = self
+            .buffer
+            .slice(self.address..self.address + self.length());
         Ok(bytes.ok_or(Error::ReadUsizeOverflowed)?.buffer_str()?)
     }
 

@@ -553,7 +553,7 @@ class CSharpGenerator : public BaseGenerator {
       // Force compile time error if not using the same version runtime.
       code += "  public static void ValidateVersion() {";
       code += " FlatBufferConstants.";
-      code += "FLATBUFFERS_1_12_0(); ";
+      code += "FLATBUFFERS_2_0_0(); ";
       code += "}\n";
 
       // Generate a special accessor for the table that when used as the root
@@ -1515,11 +1515,10 @@ class CSharpGenerator : public BaseGenerator {
         case BASE_TYPE_ARRAY: {
           auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts);
           auto length_str = NumToString(field.value.type.fixed_length);
-          auto unpack_method = field.value.type.struct_def == nullptr
-                                   ? ""
-                                   : field.value.type.struct_def->fixed
-                                         ? ".UnPack()"
-                                         : "?.UnPack()";
+          auto unpack_method = field.value.type.struct_def == nullptr ? ""
+                               : field.value.type.struct_def->fixed
+                                   ? ".UnPack()"
+                                   : "?.UnPack()";
           code += start + "new " + type_name.substr(0, type_name.length() - 1) +
                   length_str + "];\n";
           code += "    for (var _j = 0; _j < " + length_str + "; ++_j) { _o." +

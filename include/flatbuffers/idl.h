@@ -308,15 +308,9 @@ struct FieldDef : public Definition {
   bool IsScalarOptional() const {
     return IsScalar(value.type.base_type) && IsOptional();
   }
-  bool IsOptional() const {
-    return presence == kOptional;
-  }
-  bool IsRequired() const {
-    return presence == kRequired;
-  }
-  bool IsDefault() const {
-    return presence == kDefault;
-  }
+  bool IsOptional() const { return presence == kOptional; }
+  bool IsRequired() const { return presence == kRequired; }
+  bool IsDefault() const { return presence == kDefault; }
 
   Value value;
   bool deprecated;  // Field is allowed to be present in old data, but can't be.
