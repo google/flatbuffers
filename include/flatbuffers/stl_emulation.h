@@ -166,6 +166,8 @@ inline void vector_emplace_back(std::vector<T> *vector, V &&data) {
     using integral_constant = std::integral_constant<T, v>;
     template <bool B>
     using bool_constant = integral_constant<bool, B>;
+    using true_type  = std::true_type;
+    using false_type = std::false_type;
   #else
     // Map C++ TR1 templates defined by stlport.
     template <typename T> using is_scalar = std::tr1::is_scalar<T>;
@@ -191,7 +193,9 @@ inline void vector_emplace_back(std::vector<T> *vector, V &&data) {
     using integral_constant = std::tr1::integral_constant<T, v>;
     template <bool B>
     using bool_constant = integral_constant<bool, B>;
-  #endif  // !FLATBUFFERS_CPP98_STL
+    using true_type  = bool_constant<true>;
+    using false_type = bool_constant<false>;
+#endif  // !FLATBUFFERS_CPP98_STL
 #else
   // MSVC 2010 doesn't support C++11 aliases.
   template <typename T> struct is_scalar : public std::is_scalar<T> {};
@@ -207,6 +211,8 @@ inline void vector_emplace_back(std::vector<T> *vector, V &&data) {
   struct integral_constant : public std::integral_constant<T, v> {};
   template <bool B>
   struct bool_constant : public integral_constant<bool, B> {};
+  typedef bool_constant<true>  true_type;
+  typedef bool_constant<false> false_type;
 #endif  // defined(FLATBUFFERS_TEMPLATES_ALIASES)
 
 #ifndef FLATBUFFERS_CPP98_STL
@@ -627,46 +633,45 @@ class span FLATBUFFERS_FINAL_CLASS {
   pointer const data_;
   const size_type count_;
 };
-
- #if !defined(FLATBUFFERS_SPAN_MINIMAL)
-  template<class U, std::size_t N>
-  FLATBUFFERS_CONSTEXPR_CPP11
-  flatbuffers::span<U, N> make_span(U(&arr)[N]) FLATBUFFERS_NOEXCEPT {
-    return span<U, N>(arr);
-  }
-
-  template<class U, std::size_t N>
-  FLATBUFFERS_CONSTEXPR_CPP11
-  flatbuffers::span<const U, N> make_span(const U(&arr)[N]) FLATBUFFERS_NOEXCEPT {
-    return span<const U, N>(arr);
-  }
-
-  template<class U, std::size_t N>
-  FLATBUFFERS_CONSTEXPR_CPP11
-  flatbuffers::span<U, N> make_span(std::array<U, N> &arr) FLATBUFFERS_NOEXCEPT {
-    return span<U, N>(arr);
-  }
-
-  template<class U, std::size_t N>
-  FLATBUFFERS_CONSTEXPR_CPP11
-  flatbuffers::span<const U, N> make_span(const std::array<U, N> &arr) FLATBUFFERS_NOEXCEPT {
-    return span<const U, N>(arr);
-  }
-
-  template<class U, std::size_t N>
-  FLATBUFFERS_CONSTEXPR_CPP11
-  flatbuffers::span<U, dynamic_extent> make_span(U *first, std::size_t count) FLATBUFFERS_NOEXCEPT {
-    return span<U, dynamic_extent>(first, count);
-  }
-
-  template<class U, std::size_t N>
-  FLATBUFFERS_CONSTEXPR_CPP11
-  flatbuffers::span<const U, dynamic_extent> make_span(const U *first, std::size_t count) FLATBUFFERS_NOEXCEPT {
-    return span<const U, dynamic_extent>(first, count);
-  }
-#endif
-
 #endif  // defined(FLATBUFFERS_USE_STD_SPAN)
+
+#if !defined(FLATBUFFERS_SPAN_MINIMAL)
+template<class U, std::size_t N>
+FLATBUFFERS_CONSTEXPR_CPP11
+flatbuffers::span<U, N> make_span(U(&arr)[N]) FLATBUFFERS_NOEXCEPT {
+  return span<U, N>(arr);
+}
+
+template<class U, std::size_t N>
+FLATBUFFERS_CONSTEXPR_CPP11
+flatbuffers::span<const U, N> make_span(const U(&arr)[N]) FLATBUFFERS_NOEXCEPT {
+  return span<const U, N>(arr);
+}
+
+template<class U, std::size_t N>
+FLATBUFFERS_CONSTEXPR_CPP11
+flatbuffers::span<U, N> make_span(std::array<U, N> &arr) FLATBUFFERS_NOEXCEPT {
+  return span<U, N>(arr);
+}
+
+template<class U, std::size_t N>
+FLATBUFFERS_CONSTEXPR_CPP11
+flatbuffers::span<const U, N> make_span(const std::array<U, N> &arr) FLATBUFFERS_NOEXCEPT {
+  return span<const U, N>(arr);
+}
+
+template<class U, std::size_t N>
+FLATBUFFERS_CONSTEXPR_CPP11
+flatbuffers::span<U, dynamic_extent> make_span(U *first, std::size_t count) FLATBUFFERS_NOEXCEPT {
+  return span<U, dynamic_extent>(first, count);
+}
+
+template<class U, std::size_t N>
+FLATBUFFERS_CONSTEXPR_CPP11
+flatbuffers::span<const U, dynamic_extent> make_span(const U *first, std::size_t count) FLATBUFFERS_NOEXCEPT {
+  return span<const U, dynamic_extent>(first, count);
+}
+#endif // !defined(FLATBUFFERS_SPAN_MINIMAL)
 
 }  // namespace flatbuffers
 
