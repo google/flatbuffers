@@ -18,6 +18,7 @@ package com.google.flatbuffers;
 
 import static com.google.flatbuffers.Constants.*;
 import java.nio.ByteBuffer;
+import java.nio.Buffer;
 import java.nio.ByteOrder;
 
 /// @cond FLATBUFFERS_INTERNAL
@@ -152,7 +153,7 @@ public class Table {
     if (o == 0) return null;
     ByteBuffer bb = this.bb.duplicate().order(ByteOrder.LITTLE_ENDIAN);
     int vectorstart = __vector(o);
-    bb.position(vectorstart);
+    ((Buffer) bb).position(vectorstart);
     bb.limit(vectorstart + __vector_len(o) * elem_size);
     return bb;
   }
@@ -174,7 +175,7 @@ public class Table {
     int vectorstart = __vector(o);
     bb.rewind();
     bb.limit(vectorstart + __vector_len(o) * elem_size);
-    bb.position(vectorstart);
+    ((Buffer) bb).position(vectorstart);
     return bb;
   }
 
