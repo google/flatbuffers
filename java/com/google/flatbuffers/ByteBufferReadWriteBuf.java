@@ -155,7 +155,7 @@ public class ByteBufferReadWriteBuf implements ReadWriteBuf {
 
   @Override
   public int writePosition() {
-    return ((Buffer) buffer).position();
+    return buffer.position();
   }
 
   @Override
