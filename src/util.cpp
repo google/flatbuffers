@@ -217,6 +217,19 @@ std::string AbsolutePath(const std::string &filepath) {
   // clang-format on
 }
 
+std::string RelativeToRootPath(const std::string &project,
+                               const std::string &filepath) {
+  const std::string absolute_project = AbsolutePath(project) + "/";
+  const std::string absolute_filepath = AbsolutePath(filepath);
+  FLATBUFFERS_ASSERT(
+    absolute_filepath.size() >= absolute_project.size() &&
+    absolute_filepath.substr(0, absolute_project.size()) == absolute_project &&
+    "The --project_root directory must contain all files and included files."
+  );
+  const std::string relpath = absolute_filepath.substr(absolute_project.size());
+  return "//" + relpath;
+}
+
 // Locale-independent code.
 #if defined(FLATBUFFERS_LOCALE_INDEPENDENT) && \
     (FLATBUFFERS_LOCALE_INDEPENDENT > 0)

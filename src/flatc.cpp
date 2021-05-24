@@ -216,6 +216,10 @@ int FlatCompiler::Compile(int argc, const char **argv) {
             flatbuffers::PosixPath(argv[argi]));
         include_directories.push_back(
             include_directories_storage.back().c_str());
+            // hmm
+      } else if (arg == "--project-root") {
+        if (++argi > argc) Error("missing path following: " + arg, true);
+        opts.project_root = argv[argi];
       } else if (arg == "--conform") {
         if (++argi >= argc) Error("missing path following: " + arg, true);
         conform_to_schema = flatbuffers::PosixPath(argv[argi]);

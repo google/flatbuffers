@@ -2289,7 +2289,9 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef **dest,
   EXPECT(kTokenIdentifier);
   EnumDef *enum_def;
   ECHECK(StartEnum(enum_name, is_union, &enum_def));
-  if (filename != nullptr) enum_def->declaration_file = filename;
+  if (filename != nullptr) {
+    enum_def->declaration_file = RelativeToRootPath(opts.project_root, filename);
+  }
   enum_def->doc_comment = enum_comment;
   if (!is_union && !opts.proto_mode) {
     // Give specialized error message, since this type spec used to
@@ -2529,7 +2531,9 @@ CheckedError Parser::ParseDecl(const char *filename) {
   ECHECK(StartStruct(name, &struct_def));
   struct_def->doc_comment = dc;
   struct_def->fixed = fixed;
-  if (filename != nullptr) struct_def->declaration_file = filename;
+  if (filename != nullptr) {
+    struct_def->declaration_file = RelativeToRootPath(opts.project_root, filename);
+  }
   ECHECK(ParseMetaData(&struct_def->attributes));
   struct_def->sortbysize =
       struct_def->attributes.Lookup("original_order") == nullptr && !fixed;
@@ -2619,7 +2623,9 @@ CheckedError Parser::ParseService(const char *filename) {
   service_def.file = file_being_parsed_;
   service_def.doc_comment = service_comment;
   service_def.defined_namespace = current_namespace_;
-  if (filename != nullptr) service_def.declaration_file = filename;
+  if (filename != nullptr) {
+    service_def.declaration_file = RelativeToRootPath(opts.project_root, filename);
+  }
   if (services_.Add(current_namespace_->GetFullyQualifiedName(service_name),
                     &service_def))
     return Error("service already exists: " + service_name);
@@ -3579,7 +3585,8 @@ Offset<reflection::Object> StructDef::Serialize(FlatBufferBuilder *builder,
   const auto docs__ = parser.opts.binary_schema_comments
                           ? builder->CreateVectorOfStrings(doc_comment)
                           : 0;
-  const auto file__ = builder->CreateSharedString(declaration_file);
+  std::string decl_file_in_project = declaration_file;
+  const auto file__ = builder->CreateSharedString(decl_file_in_project);
   return reflection::CreateObject(
       *builder, name__, flds__, fixed, static_cast<int>(minalign),
       static_cast<int>(bytesize), attr__, docs__, file__);

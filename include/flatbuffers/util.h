@@ -477,6 +477,10 @@ void EnsureDirExists(const std::string &filepath);
 // Returns the input path if the absolute path couldn't be resolved.
 std::string AbsolutePath(const std::string &filepath);
 
+// Returns files relative to the --project_root path, prefixed with `//`.
+std::string RelativeToRootPath(const std::string &project,
+                               const std::string &filepath);
+
 // To and from UTF-8 unicode conversion functions
 
 // Convert a unicode code point into a UTF-8 representation by appending it
