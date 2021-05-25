@@ -2290,7 +2290,8 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef **dest,
   EnumDef *enum_def;
   ECHECK(StartEnum(enum_name, is_union, &enum_def));
   if (filename != nullptr) {
-    enum_def->declaration_file = RelativeToRootPath(opts.project_root, filename);
+    enum_def->declaration_file =
+        RelativeToRootPath(opts.project_root, filename);
   }
   enum_def->doc_comment = enum_comment;
   if (!is_union && !opts.proto_mode) {
@@ -2532,7 +2533,8 @@ CheckedError Parser::ParseDecl(const char *filename) {
   struct_def->doc_comment = dc;
   struct_def->fixed = fixed;
   if (filename != nullptr) {
-    struct_def->declaration_file = RelativeToRootPath(opts.project_root, filename);
+    struct_def->declaration_file =
+        RelativeToRootPath(opts.project_root, filename);
   }
   ECHECK(ParseMetaData(&struct_def->attributes));
   struct_def->sortbysize =
@@ -2624,7 +2626,8 @@ CheckedError Parser::ParseService(const char *filename) {
   service_def.doc_comment = service_comment;
   service_def.defined_namespace = current_namespace_;
   if (filename != nullptr) {
-    service_def.declaration_file = RelativeToRootPath(opts.project_root, filename);
+    service_def.declaration_file =
+        RelativeToRootPath(opts.project_root, filename);
   }
   if (services_.Add(current_namespace_->GetFullyQualifiedName(service_name),
                     &service_def))
@@ -3525,7 +3528,7 @@ void Parser::Serialize() {
   // TODO(caspern): CreateVectorOfSharedStrings
   std::vector<Offset<flatbuffers::String>> file_offsets;
   for (auto it = files.begin(); it != files.end(); it++) {
-      file_offsets.push_back(builder_.CreateSharedString(*it));
+    file_offsets.push_back(builder_.CreateSharedString(*it));
   }
 
   const auto objs__ = builder_.CreateVectorOfSortedTables(&object_offsets);
@@ -3783,9 +3786,7 @@ Offset<reflection::EnumVal> EnumVal::Serialize(FlatBufferBuilder *builder,
   auto docs__ = parser.opts.binary_schema_comments
                     ? builder->CreateVectorOfStrings(doc_comment)
                     : 0;
-  return reflection::CreateEnumVal(
-      *builder, name__, value,
-      type__, docs__);
+  return reflection::CreateEnumVal(*builder, name__, value, type__, docs__);
 }
 
 bool EnumVal::Deserialize(const Parser &parser,
