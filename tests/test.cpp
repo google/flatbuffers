@@ -1336,7 +1336,8 @@ void ParseProtoTestWithIncludes() {
   flatbuffers::Parser parser2(opts2);
   // Since `imported.fbs` isn't in the filesystem AbsolutePath can't figure it
   // out by itself. We manually construct it so Parser works.
-  std::string imported_fbs = flatbuffers::AbsolutePath(protopath) + "/imported.fbs";
+  std::string imported_fbs = flatbuffers::PosixPath(
+      flatbuffers::AbsolutePath(protopath) + "/imported.fbs");
   TEST_EQ(
       parser2.Parse(import_fbs.c_str(), include_directories, imported_fbs.c_str()),
       true);
