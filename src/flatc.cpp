@@ -280,16 +280,16 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.cpp_object_api_string_flexible_constructor = true;
       } else if (arg == "--no-cpp-direct-copy") {
         opts.cpp_direct_copy = false;
-      } else if (arg == "--cpp-case-style") {
+      } else if (arg == "--cpp-field-case") {
         if (++argi >= argc) Error("missing case style following: " + arg, true);
-	if (!strcmp(argv[argi], "snake"))
-	  opts.cpp_object_api_field_case = IDLOptions::Case_Snake;
-	else if (!strcmp(argv[argi], "upper"))
-	  opts.cpp_object_api_field_case = IDLOptions::Case_Upper;
-	else if (!strcmp(argv[argi], "lower"))
-	  opts.cpp_object_api_field_case = IDLOptions::Case_Lower;
-	else
-	  Error("unknown case style: " + std::string(argv[argi]), true);
+        if (!strcmp(argv[argi], "snake"))
+          opts.cpp_object_api_field_case = IDLOptions::Case_Snake;
+        else if (!strcmp(argv[argi], "upper"))
+          opts.cpp_object_api_field_case = IDLOptions::Case_Upper;
+        else if (!strcmp(argv[argi], "lower"))
+          opts.cpp_object_api_field_case = IDLOptions::Case_Lower;
+        else
+          Error("unknown case style: " + std::string(argv[argi]), true);
       } else if (arg == "--gen-nullable") {
         opts.gen_nullable = true;
       } else if (arg == "--java-checkerframework") {
