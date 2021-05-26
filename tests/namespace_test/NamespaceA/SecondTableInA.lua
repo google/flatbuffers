@@ -13,6 +13,9 @@ function SecondTableInA.New()
     return o
 end
 function SecondTableInA.GetRootAsSecondTableInA(buf, offset)
+    if type(buf) == "string" then
+        buf = flatbuffers.binaryArray.New(buf)
+    end
     local n = flatbuffers.N.UOffsetT:Unpack(buf, offset)
     local o = SecondTableInA.New()
     o:Init(buf, n + offset)

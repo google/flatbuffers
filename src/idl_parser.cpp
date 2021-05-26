@@ -765,10 +765,13 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   if (!struct_def.fixed && IsArray(type))
     return Error("fixed-length array in table must be wrapped in struct");
 
-  if (IsArray(type) && !SupportsAdvancedArrayFeatures()) {
-    return Error(
-        "Arrays are not yet supported in all "
-        "the specified programming languages.");
+  if (IsArray(type)) {
+    advanced_features_ |= reflection::AdvancedArrayFeatures;
+    if (!SupportsAdvancedArrayFeatures()) {
+      return Error(
+          "Arrays are not yet supported in all "
+          "the specified programming languages.");
+    }
   }
 
   FieldDef *typefield = nullptr;
@@ -778,6 +781,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     ECHECK(AddField(struct_def, name + UnionTypeFieldSuffix(),
                     type.enum_def->underlying_type, &typefield));
   } else if (IsVector(type) && type.element == BASE_TYPE_UNION) {
+    advanced_features_ |= reflection::AdvancedUnionFeatures;
     // Only cpp, js and ts supports the union vector feature so far.
     if (!SupportsAdvancedUnionFeatures()) {
       return Error(
@@ -802,11 +806,16 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
       return Error(
           "default values are not supported for struct fields, table fields, "
           "or in structs.");
-    if ((IsString(type) || IsVector(type)) && field->value.constant != "0" &&
-        field->value.constant != "null" && !SupportsDefaultVectorsAndStrings())
-      return Error(
-          "Default values for strings and vectors are not supported in one of "
-          "the specified programming languages");
+    if (IsString(type) || IsVector(type)) {
+      advanced_features_ |= reflection::DefaultVectorsAndStrings;
+      if (field->value.constant != "0" && field->value.constant != "null" &&
+          !SupportsDefaultVectorsAndStrings()) {
+        return Error(
+            "Default values for strings and vectors are not supported in one "
+            "of the specified programming languages");
+      }
+    }
+
     if (IsVector(type) && field->value.constant != "0" &&
         field->value.constant != "[]") {
       return Error("The only supported default for vectors is `[]`.");
@@ -891,6 +900,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   }
 
   if (field->IsScalarOptional()) {
+    advanced_features_ |= reflection::OptionalScalars;
     if (type.enum_def && type.enum_def->Lookup("null")) {
       FLATBUFFERS_ASSERT(IsInteger(type.base_type));
       return Error(
@@ -2397,14 +2407,18 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef **dest) {
   }
 
   if (dest) *dest = enum_def;
-  types_.Add(current_namespace_->GetFullyQualifiedName(enum_def->name),
-             new Type(BASE_TYPE_UNION, nullptr, enum_def));
+  const auto qualified_name =
+      current_namespace_->GetFullyQualifiedName(enum_def->name);
+  if (types_.Add(qualified_name, new Type(BASE_TYPE_UNION, nullptr, enum_def)))
+    return Error("datatype already exists: " + qualified_name);
   return NoError();
 }
 
 CheckedError Parser::StartStruct(const std::string &name, StructDef **dest) {
   auto &struct_def = *LookupCreateStruct(name, true, true);
-  if (!struct_def.predecl) return Error("datatype already exists: " + name);
+  if (!struct_def.predecl)
+    return Error("datatype already exists: " +
+                 current_namespace_->GetFullyQualifiedName(name));
   struct_def.predecl = false;
   struct_def.name = name;
   struct_def.file = file_being_parsed_;
@@ -2584,8 +2598,11 @@ CheckedError Parser::ParseDecl() {
   ECHECK(CheckClash(fields, struct_def, "_byte_vector", BASE_TYPE_STRING));
   ECHECK(CheckClash(fields, struct_def, "ByteVector", BASE_TYPE_STRING));
   EXPECT('}');
-  types_.Add(current_namespace_->GetFullyQualifiedName(struct_def->name),
-             new Type(BASE_TYPE_STRUCT, struct_def, nullptr));
+  const auto qualified_name =
+      current_namespace_->GetFullyQualifiedName(struct_def->name);
+  if (types_.Add(qualified_name,
+                 new Type(BASE_TYPE_STRUCT, struct_def, nullptr)))
+    return Error("datatype already exists: " + qualified_name);
   return NoError();
 }
 
@@ -2737,17 +2754,17 @@ CheckedError Parser::ParseProtoDecl() {
   return NoError();
 }
 
-CheckedError Parser::StartEnum(const std::string &enum_name, bool is_union,
+CheckedError Parser::StartEnum(const std::string &name, bool is_union,
                                EnumDef **dest) {
   auto &enum_def = *new EnumDef();
-  enum_def.name = enum_name;
+  enum_def.name = name;
   enum_def.file = file_being_parsed_;
   enum_def.doc_comment = doc_comment_;
   enum_def.is_union = is_union;
   enum_def.defined_namespace = current_namespace_;
-  if (enums_.Add(current_namespace_->GetFullyQualifiedName(enum_name),
-                 &enum_def))
-    return Error("enum already exists: " + enum_name);
+  const auto qualified_name = current_namespace_->GetFullyQualifiedName(name);
+  if (enums_.Add(qualified_name, &enum_def))
+    return Error("enum already exists: " + qualified_name);
   enum_def.underlying_type.base_type =
       is_union ? BASE_TYPE_UTYPE : BASE_TYPE_INT;
   enum_def.underlying_type.enum_def = &enum_def;
@@ -3498,7 +3515,8 @@ void Parser::Serialize() {
   auto serv__ = builder_.CreateVectorOfSortedTables(&service_offsets);
   auto schema_offset = reflection::CreateSchema(
       builder_, objs__, enum__, fiid__, fext__,
-      (root_struct_def_ ? root_struct_def_->serialized_location : 0), serv__);
+      (root_struct_def_ ? root_struct_def_->serialized_location : 0), serv__,
+      static_cast<reflection::AdvancedFeatures>(advanced_features_));
   if (opts.size_prefixed) {
     builder_.FinishSizePrefixed(schema_offset, reflection::SchemaIdentifier());
   } else {
@@ -3741,7 +3759,6 @@ Offset<reflection::EnumVal> EnumVal::Serialize(FlatBufferBuilder *builder,
                     : 0;
   return reflection::CreateEnumVal(
       *builder, name__, value,
-      union_type.struct_def ? union_type.struct_def->serialized_location : 0,
       type__, docs__);
 }
 
@@ -3915,7 +3932,7 @@ bool Parser::Deserialize(const reflection::Schema *schema) {
       }
     }
   }
-
+  advanced_features_ = schema->advanced_features();
   return true;
 }
 

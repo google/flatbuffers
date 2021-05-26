@@ -16,6 +16,10 @@
 
 import Foundation
 
+/// `ByteBuffer` is the interface that stores the data for a `Flatbuffers` object
+/// it allows users to write and read data directly from memory thus the use of its
+/// functions should be used
+@frozen
 public struct ByteBuffer {
 
   /// Storage is a container that would hold the memory pointer to solve the issue of
@@ -29,12 +33,16 @@ public struct ByteBuffer {
     /// Capacity of UInt8 the buffer can hold
     var capacity: Int
 
+    @usableFromInline
     init(count: Int, alignment: Int) {
-      memory = UnsafeMutableRawPointer.allocate(byteCount: count, alignment: alignment)
+      memory = UnsafeMutableRawPointer.allocate(
+        byteCount: count,
+        alignment: alignment)
       capacity = count
       unowned = false
     }
 
+    @usableFromInline
     init(memory: UnsafeMutableRawPointer, capacity: Int, unowned: Bool) {
       self.memory = memory
       self.capacity = capacity
@@ -47,6 +55,7 @@ public struct ByteBuffer {
       }
     }
 
+    @usableFromInline
     func copy(from ptr: UnsafeRawPointer, count: Int) {
       assert(
         !unowned,
@@ -54,6 +63,7 @@ public struct ByteBuffer {
       memory.copyMemory(from: ptr, byteCount: count)
     }
 
+    @usableFromInline
     func initialize(for size: Int) {
       assert(
         !unowned,
@@ -64,7 +74,7 @@ public struct ByteBuffer {
     /// Reallocates the buffer incase the object to be written doesnt fit in the current buffer
     /// - Parameter size: Size of the current object
     @usableFromInline
-    internal func reallocate(_ size: Int, writerSize: Int, alignment: Int) {
+    func reallocate(_ size: Int, writerSize: Int, alignment: Int) {
       let currentWritingIndex = capacity &- writerSize
       while capacity <= writerSize &+ size {
         capacity = capacity << 1
@@ -73,7 +83,9 @@ public struct ByteBuffer {
       /// solution take from Apple-NIO
       capacity = capacity.convertToPowerofTwo
 
-      let newData = UnsafeMutableRawPointer.allocate(byteCount: capacity, alignment: alignment)
+      let newData = UnsafeMutableRawPointer.allocate(
+        byteCount: capacity,
+        alignment: alignment)
       memset(newData, 0, capacity &- writerSize)
       memcpy(
         newData.advanced(by: capacity &- writerSize),
@@ -89,9 +101,9 @@ public struct ByteBuffer {
   /// The size of the elements written to the buffer + their paddings
   private var _writerSize: Int = 0
   /// Aliginment of the current  memory being written to the buffer
-  internal var alignment = 1
+  var alignment = 1
   /// Current Index which is being used to write to the buffer, it is written from the end to the start of the buffer
-  internal var writerIndex: Int { _storage.capacity &- _writerSize }
+  var writerIndex: Int { _storage.capacity &- _writerSize }
 
   /// Reader is the position of the current Writer Index (capacity - size)
   public var reader: Int { writerIndex }
@@ -161,7 +173,7 @@ public struct ByteBuffer {
   /// - Parameters:
   ///   - memory: Current memory of the buffer
   ///   - count: count of bytes
-  internal init(memory: UnsafeMutableRawPointer, count: Int) {
+  init(memory: UnsafeMutableRawPointer, count: Int) {
     _storage = Storage(count: count, alignment: alignment)
     _storage.copy(from: memory, count: count)
     _writerSize = _storage.capacity
@@ -172,7 +184,11 @@ public struct ByteBuffer {
   ///   - memory: Current memory of the buffer
   ///   - count: count of bytes
   ///   - removeBytes: Removes a number of bytes from the current size
-  internal init(memory: UnsafeMutableRawPointer, count: Int, removing removeBytes: Int) {
+  init(
+    memory: UnsafeMutableRawPointer,
+    count: Int,
+    removing removeBytes: Int)
+  {
     _storage = Storage(count: count, alignment: alignment)
     _storage.copy(from: memory, count: count)
     _writerSize = removeBytes
@@ -242,7 +258,7 @@ public struct ByteBuffer {
   ///   - bytes: Pointer to the view
   ///   - len: Size of string
   @inline(__always)
-  mutating internal func push(
+  mutating func push(
     bytes: UnsafeBufferPointer<String.UTF8View.Element>,
     len: Int) -> Bool
   {
@@ -287,20 +303,18 @@ public struct ByteBuffer {
   /// pops the written VTable if it's already written into the buffer
   /// - Parameter size: size of the `VTable`
   @inline(__always)
-  mutating internal func pop(_ size: Int) {
+  mutating func pop(_ size: Int) {
     assert((_writerSize &- size) > 0, "New size should NOT be a negative number")
     memset(_storage.memory.advanced(by: writerIndex), 0, _writerSize &- size)
     _writerSize = size
   }
 
   /// Clears the current size of the buffer
-  @inline(__always)
   mutating public func clearSize() {
     _writerSize = 0
   }
 
   /// Clears the current instance of the buffer, replacing it with new memory
-  @inline(__always)
   mutating public func clear() {
     _writerSize = 0
     alignment = 1
@@ -312,10 +326,7 @@ public struct ByteBuffer {
   ///   - def: Type of the object
   ///   - position: the index of the object in the buffer
   public func read<T>(def: T.Type, position: Int) -> T {
-    assert(
-      position + MemoryLayout<T>.size <= _storage.capacity,
-      "Reading out of bounds is illegal")
-    return _storage.memory.advanced(by: position).load(as: T.self)
+    _storage.memory.advanced(by: position).load(as: T.self)
   }
 
   /// Reads a slice from the memory assuming a type of T
@@ -324,14 +335,14 @@ public struct ByteBuffer {
   ///   - count: count of bytes in memory
   @inline(__always)
   public func readSlice<T>(
-    index: Int32,
-    count: Int32) -> [T]
+    index: Int,
+    count: Int) -> [T]
   {
-    let _index = Int(index)
-    let _count = Int(count)
-    assert(_index + _count <= _storage.capacity, "Reading out of bounds is illegal")
-    let start = _storage.memory.advanced(by: _index).assumingMemoryBound(to: T.self)
-    let array = UnsafeBufferPointer(start: start, count: _count)
+    assert(
+      index + count <= _storage.capacity,
+      "Reading out of bounds is illegal")
+    let start = _storage.memory.advanced(by: index).assumingMemoryBound(to: T.self)
+    let array = UnsafeBufferPointer(start: start, count: count)
     return Array(array)
   }
 
@@ -340,17 +351,16 @@ public struct ByteBuffer {
   ///   - index: index of the string in the buffer
   ///   - count: length of the string
   ///   - type: Encoding of the string
-  @inline(__always)
   public func readString(
-    at index: Int32,
-    count: Int32,
+    at index: Int,
+    count: Int,
     type: String.Encoding = .utf8) -> String?
   {
-    let _index = Int(index)
-    let _count = Int(count)
-    assert(_index + _count <= _storage.capacity, "Reading out of bounds is illegal")
-    let start = _storage.memory.advanced(by: _index).assumingMemoryBound(to: UInt8.self)
-    let bufprt = UnsafeBufferPointer(start: start, count: _count)
+    assert(
+      index + count <= _storage.capacity,
+      "Reading out of bounds is illegal")
+    let start = _storage.memory.advanced(by: index).assumingMemoryBound(to: UInt8.self)
+    let bufprt = UnsafeBufferPointer(start: start, count: count)
     return String(bytes: Array(bufprt), encoding: type)
   }
 
@@ -358,11 +368,21 @@ public struct ByteBuffer {
   /// - Parameter removeBytes: the amount of bytes to remove from the current Size
   public func duplicate(removing removeBytes: Int = 0) -> ByteBuffer {
     assert(removeBytes > 0, "Can NOT remove negative bytes")
-    assert(removeBytes < _storage.capacity, "Can NOT remove more bytes than the ones allocated")
+    assert(
+      removeBytes < _storage.capacity,
+      "Can NOT remove more bytes than the ones allocated")
     return ByteBuffer(
       memory: _storage.memory,
       count: _storage.capacity,
       removing: _writerSize &- removeBytes)
+  }
+
+  /// SkipPrefix Skips the first 4 bytes in case one of the following
+  /// functions are called `getPrefixedSizeCheckedRoot` & `getPrefixedSizeRoot`
+  /// which allows us to skip the first 4 bytes instead of recreating the buffer
+  @usableFromInline
+  mutating func skipPrefix() {
+    _writerSize = _writerSize &- MemoryLayout<Int32>.size
   }
 }
 

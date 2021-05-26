@@ -1007,10 +1007,9 @@ class CppGenerator : public BaseGenerator {
                     ? bt - BASE_TYPE_UTYPE + ET_UTYPE
                     : ET_SEQUENCE;
       int ref_idx = -1;
-      std::string ref_name =
-          type.struct_def
-              ? WrapInNameSpace(*type.struct_def)
-              : type.enum_def ? WrapInNameSpace(*type.enum_def) : "";
+      std::string ref_name = type.struct_def ? WrapInNameSpace(*type.struct_def)
+                             : type.enum_def ? WrapInNameSpace(*type.enum_def)
+                                             : "";
       if (!ref_name.empty()) {
         auto rit = type_refs.begin();
         for (; rit != type_refs.end(); ++rit) {
@@ -1532,7 +1531,8 @@ class CppGenerator : public BaseGenerator {
         code_.SetValue("TYPE", GetUnionElement(ev, true, opts_));
         code_ += "    case {{LABEL}}: {";
         bool copyable = true;
-        if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
+        if (ev.union_type.base_type == BASE_TYPE_STRUCT &&
+            !ev.union_type.struct_def->fixed) {
           // Don't generate code to copy if table is not copyable.
           // TODO(wvo): make tables copyable instead.
           for (auto fit = ev.union_type.struct_def->fields.vec.begin();
@@ -1618,7 +1618,7 @@ class CppGenerator : public BaseGenerator {
     if (!opts_.generate_name_strings) { return; }
     auto fullname = struct_def.defined_namespace->GetFullyQualifiedName(name);
     code_.SetValue("NAME", fullname);
-    code_.SetValue("CONSTEXPR", "FLATBUFFERS_CONSTEXPR");
+    code_.SetValue("CONSTEXPR", "FLATBUFFERS_CONSTEXPR_CPP11");
     code_ += "  static {{CONSTEXPR}} const char *GetFullyQualifiedName() {";
     code_ += "    return \"{{NAME}}\";";
     code_ += "  }";

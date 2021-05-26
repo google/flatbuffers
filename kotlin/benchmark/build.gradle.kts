@@ -15,7 +15,7 @@ allOpen {
 }
 
 group = "com.google.flatbuffers.jmh"
-version = "1.12.0-SNAPSHOT"
+version = "2.0.0-SNAPSHOT"
 
 // This plugin generates a static html page with the aggregation
 // of all benchmarks ran. very useful visualization tool.

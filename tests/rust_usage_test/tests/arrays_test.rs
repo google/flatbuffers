@@ -225,8 +225,8 @@ fn verify_struct_array_alignment() {
     let array_table = root_as_array_table(buf).unwrap();
     let array_struct = array_table.a().unwrap();
     let struct_start_ptr = array_struct.0.as_ptr() as usize;
-    let b_start_ptr = array_struct.b().safe_slice().as_ptr() as usize;
-    let d_start_ptr = array_struct.d().safe_slice().as_ptr() as usize;
+    let b_start_ptr = array_struct.b().as_ptr() as usize;
+    let d_start_ptr = array_struct.d().as_ptr() as usize;
     // The T type of b
     let b_aln = ::std::mem::align_of::<i32>();
     assert_eq!((b_start_ptr - struct_start_ptr) % b_aln, 0);
@@ -272,8 +272,6 @@ mod array_fuzz {
                 let arr: flatbuffers::Array<$ty, ARRAY_SIZE> = flatbuffers::Array::follow(&test_buf, 0);
                 let got: [$ty; ARRAY_SIZE] = arr.into();
                 assert_eq!(got, xs.0);
-                #[cfg(target_endian = "little")]
-                assert_eq!(arr.safe_slice(), xs.0);
             }
             #[test]
             fn $test_name() { 
@@ -317,13 +315,10 @@ mod array_fuzz {
         let arr: flatbuffers::Array<NestedStruct, ARRAY_SIZE> = flatbuffers::Array::follow(&test_buf, 0);
         let got: [&NestedStruct; ARRAY_SIZE] = arr.into();
         assert_eq!(got, native_struct_array);
-        let arr_slice = arr.safe_slice();
-        for i in 0..ARRAY_SIZE {
-            assert_eq!(arr_slice[i], *native_struct_array[i]);
-        }
     }
 
     #[test]
+    #[cfg(not(miri))]  // slow.
     fn test_struct() { 
         quickcheck::QuickCheck::new().max_tests(MAX_TESTS).quickcheck(prop_struct as fn(FakeArray<NestedStructWrapper, ARRAY_SIZE>));
     }

@@ -1115,6 +1115,7 @@ mod roundtrip_byteswap {
     // fn fuzz_f64() { quickcheck::QuickCheck::new().max_tests(N).quickcheck(prop_f64 as fn(f64)); }
 }
 
+#[cfg(not(miri))]
 quickcheck! {
   fn struct_of_structs(
     a_id: u32,
@@ -1682,8 +1683,10 @@ mod roundtrip_scalars {
 
     fn prop<T: PartialEq + ::std::fmt::Debug + Copy + flatbuffers::EndianScalar>(x: T) {
         let mut buf = vec![0u8; ::std::mem::size_of::<T>()];
-        flatbuffers::emplace_scalar(&mut buf[..], x);
-        let y = flatbuffers::read_scalar(&buf[..]);
+        let y = unsafe {
+            flatbuffers::emplace_scalar(&mut buf[..], x);
+            flatbuffers::read_scalar(&buf[..])
+        };
         assert_eq!(x, y);
     }
 

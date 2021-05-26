@@ -382,8 +382,8 @@ if(FLATBUFFERS_BUILD_SHAREDLIB)
   # - micro updated every release when there is no API/ABI changes
   # - minor updated when there are additions in API/ABI
   # - major (ABI number) updated when there are changes in ABI (or removals)
-  set(FlatBuffers_Library_SONAME_MAJOR "1")
-  set(FlatBuffers_Library_SONAME_FULL "${FlatBuffers_Library_SONAME_MAJOR}.12.0")
+  set(FlatBuffers_Library_SONAME_MAJOR "2")
+  set(FlatBuffers_Library_SONAME_FULL "${FlatBuffers_Library_SONAME_MAJOR}.0.0")
   set_target_properties(flatbuffers_shared PROPERTIES OUTPUT_NAME flatbuffers
                         SOVERSION "${FlatBuffers_Library_SONAME_MAJOR}"
                         VERSION "${FlatBuffers_Library_SONAME_FULL}")
@@ -483,9 +483,9 @@ if(FLATBUFFERS_BUILD_TESTS)
   # TODO Add (monster_test.fbs monsterdata_test.json)->monsterdata_test.mon
   compile_flatbuffers_schema_to_cpp(tests/monster_test.fbs)
   compile_flatbuffers_schema_to_binary(tests/monster_test.fbs)
-  compile_flatbuffers_schema_to_cpp(tests/namespace_test/namespace_test1.fbs)
-  compile_flatbuffers_schema_to_cpp(tests/namespace_test/namespace_test2.fbs)
-  compile_flatbuffers_schema_to_cpp(tests/union_vector/union_vector.fbs)
+  compile_flatbuffers_schema_to_cpp_opt(tests/namespace_test/namespace_test1.fbs "--no-includes;--gen-compare;--gen-name-strings")
+  compile_flatbuffers_schema_to_cpp_opt(tests/namespace_test/namespace_test2.fbs "--no-includes;--gen-compare;--gen-name-strings")
+  compile_flatbuffers_schema_to_cpp_opt(tests/union_vector/union_vector.fbs "--no-includes;--gen-compare;--gen-name-strings")
   compile_flatbuffers_schema_to_cpp(tests/optional_scalars.fbs)
   compile_flatbuffers_schema_to_cpp_opt(tests/native_type_test.fbs "")
   compile_flatbuffers_schema_to_cpp_opt(tests/arrays_test.fbs "--scoped-enums;--gen-compare")

@@ -142,8 +142,8 @@
   #endif
 #endif // !defined(FLATBUFFERS_LITTLEENDIAN)
 
-#define FLATBUFFERS_VERSION_MAJOR 1
-#define FLATBUFFERS_VERSION_MINOR 12
+#define FLATBUFFERS_VERSION_MAJOR 2
+#define FLATBUFFERS_VERSION_MINOR 0
 #define FLATBUFFERS_VERSION_REVISION 0
 #define FLATBUFFERS_STRING_EXPAND(X) #X
 #define FLATBUFFERS_STRING(X) FLATBUFFERS_STRING_EXPAND(X)
@@ -246,6 +246,11 @@ namespace flatbuffers {
     #endif
   #endif // __has_include
 #endif // !FLATBUFFERS_HAS_STRING_VIEW
+
+#ifndef FLATBUFFERS_GENERAL_HEAP_ALLOC_OK
+  // Allow heap allocations to be used
+  #define FLATBUFFERS_GENERAL_HEAP_ALLOC_OK 1
+#endif // !FLATBUFFERS_GENERAL_HEAP_ALLOC_OK
 
 #ifndef FLATBUFFERS_HAS_NEW_STRTOD
   // Modern (C++11) strtod and strtof functions are available for use.

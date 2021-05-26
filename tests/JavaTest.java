@@ -864,6 +864,27 @@ class JavaTest {
         TestEq((byte)-1, result[3]);
     }
 
+    public static void testSingleElementLongBlob() {
+
+        // verifies blobs of up to 2^16 in length
+        for (int i = 2; i <= 1<<16; i = i<<1) {
+            byte[] input = new byte[i-1];
+            for (int index = 0; index < input.length; index++) {
+                input[index] = (byte)(index % 64);
+            }
+
+            FlexBuffersBuilder builder = new FlexBuffersBuilder();
+            builder.putBlob(input);
+            ByteBuffer b = builder.finish();
+            FlexBuffers.Reference r = FlexBuffers.getRoot(b);
+            byte[] result = r.asBlob().getBytes();
+            
+            for (int index = 0; index < input.length; index++) {
+                TestEq((byte)(index % 64), result[index]);
+            }
+        }
+    }
+
     public static void testSingleElementUByte() {
         FlexBuffersBuilder builder = new FlexBuffersBuilder();
         builder.putUInt(0xFF);
@@ -1086,6 +1107,7 @@ class JavaTest {
         testSingleElementSmallString();
         testSingleElementBigString();
         testSingleElementBlob();
+        testSingleElementLongBlob();
         testSingleElementVector();
         testSingleFixedTypeVector();
         testSingleElementUShort();

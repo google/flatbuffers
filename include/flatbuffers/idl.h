@@ -774,6 +774,7 @@ class Parser : public ParserState {
         root_struct_def_(nullptr),
         opts(options),
         uses_flexbuffers_(false),
+        advanced_features_(0),
         source_(nullptr),
         anonymous_counter_(0),
         parse_depth_counter_(0) {
@@ -1004,6 +1005,8 @@ class Parser : public ParserState {
 
   IDLOptions opts;
   bool uses_flexbuffers_;
+
+  uint64_t advanced_features_;
 
  private:
   const char *source_;
