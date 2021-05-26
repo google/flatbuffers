@@ -15,11 +15,12 @@ class Color {
   const Color._(this.value);
 
   factory Color.fromValue(int value) {
-    if (value == null) value = 0;
-    if (!values.containsKey(value)) {
-      throw new StateError('Invalid value $value for bit flag enum Color');
+    var ret = values[value];
+    if (ret == null) {
+      throw StateError('Invalid value $value for bit flag enum');
+    } else {
+      return ret;
     }
-    return values[value];
   }
 
   static bool containsValue(int value) => values.containsKey(value);
@@ -58,11 +59,12 @@ class Race {
   const Race._(this.value);
 
   factory Race.fromValue(int value) {
-    if (value == null) value = 0;
-    if (!values.containsKey(value)) {
-      throw new StateError('Invalid value $value for bit flag enum Race');
+    var ret = values[value];
+    if (ret == null) {
+      throw StateError('Invalid value $value for bit flag enum');
+    } else {
+      return ret;
     }
-    return values[value];
   }
 
   static const int minValue = -1;
@@ -99,11 +101,12 @@ class AnyTypeId {
   const AnyTypeId._(this.value);
 
   factory AnyTypeId.fromValue(int value) {
-    if (value == null) value = 0;
-    if (!values.containsKey(value)) {
-      throw new StateError('Invalid value $value for bit flag enum AnyTypeId');
+    var ret = values[value];
+    if (ret == null) {
+      throw StateError('Invalid value $value for bit flag enum');
+    } else {
+      return ret;
     }
-    return values[value];
   }
 
   static const int minValue = 0;
@@ -140,11 +143,12 @@ class AnyUniqueAliasesTypeId {
   const AnyUniqueAliasesTypeId._(this.value);
 
   factory AnyUniqueAliasesTypeId.fromValue(int value) {
-    if (value == null) value = 0;
-    if (!values.containsKey(value)) {
-      throw new StateError('Invalid value $value for bit flag enum AnyUniqueAliasesTypeId');
+    var ret = values[value];
+    if (ret == null) {
+      throw StateError('Invalid value $value for bit flag enum');
+    } else {
+      return ret;
     }
-    return values[value];
   }
 
   static const int minValue = 0;
@@ -181,11 +185,12 @@ class AnyAmbiguousAliasesTypeId {
   const AnyAmbiguousAliasesTypeId._(this.value);
 
   factory AnyAmbiguousAliasesTypeId.fromValue(int value) {
-    if (value == null) value = 0;
-    if (!values.containsKey(value)) {
-      throw new StateError('Invalid value $value for bit flag enum AnyAmbiguousAliasesTypeId');
+    var ret = values[value];
+    if (ret == null) {
+      throw StateError('Invalid value $value for bit flag enum');
+    } else {
+      return ret;
     }
-    return values[value];
   }
 
   static const int minValue = 0;
@@ -266,8 +271,8 @@ class TestObjectBuilder extends fb.ObjectBuilder {
   final int _b;
 
   TestObjectBuilder({
-    int a,
-    int b,
+    required int a,
+    required int b,
   })
       : _a = a,
         _b = b;
@@ -286,7 +291,7 @@ class TestObjectBuilder extends fb.ObjectBuilder {
 
   /// Convenience method to serialize to byte list.
   @override
-  Uint8List toBytes([String fileIdentifier]) {
+  Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
     return fbBuilder.finish(offset, fileIdentifier);
@@ -345,7 +350,7 @@ class TestSimpleTableWithEnumObjectBuilder extends fb.ObjectBuilder {
   final Color _color;
 
   TestSimpleTableWithEnumObjectBuilder({
-    Color color,
+    required Color color,
   })
       : _color = color;
 
@@ -362,7 +367,7 @@ class TestSimpleTableWithEnumObjectBuilder extends fb.ObjectBuilder {
 
   /// Convenience method to serialize to byte list.
   @override
-  Uint8List toBytes([String fileIdentifier]) {
+  Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
     return fbBuilder.finish(offset, fileIdentifier);
@@ -431,12 +436,12 @@ class Vec3ObjectBuilder extends fb.ObjectBuilder {
   final TestObjectBuilder _test3;
 
   Vec3ObjectBuilder({
-    double x,
-    double y,
-    double z,
-    double test1,
-    Color test2,
-    TestObjectBuilder test3,
+    required double x,
+    required double y,
+    required double z,
+    required double test1,
+    required Color test2,
+    required TestObjectBuilder test3,
   })
       : _x = x,
         _y = y,
@@ -465,7 +470,7 @@ class Vec3ObjectBuilder extends fb.ObjectBuilder {
 
   /// Convenience method to serialize to byte list.
   @override
-  Uint8List toBytes([String fileIdentifier]) {
+  Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
     return fbBuilder.finish(offset, fileIdentifier);
@@ -519,8 +524,8 @@ class AbilityObjectBuilder extends fb.ObjectBuilder {
   final int _distance;
 
   AbilityObjectBuilder({
-    int id,
-    int distance,
+    required int id,
+    required int distance,
   })
       : _id = id,
         _distance = distance;
@@ -538,7 +543,7 @@ class AbilityObjectBuilder extends fb.ObjectBuilder {
 
   /// Convenience method to serialize to byte list.
   @override
-  Uint8List toBytes([String fileIdentifier]) {
+  Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
     return fbBuilder.finish(offset, fileIdentifier);
@@ -595,9 +600,9 @@ class StructOfStructsObjectBuilder extends fb.ObjectBuilder {
   final AbilityObjectBuilder _c;
 
   StructOfStructsObjectBuilder({
-    AbilityObjectBuilder a,
-    TestObjectBuilder b,
-    AbilityObjectBuilder c,
+    required AbilityObjectBuilder a,
+    required TestObjectBuilder b,
+    required AbilityObjectBuilder c,
   })
       : _a = a,
         _b = b,
@@ -617,7 +622,7 @@ class StructOfStructsObjectBuilder extends fb.ObjectBuilder {
 
   /// Convenience method to serialize to byte list.
   @override
-  Uint8List toBytes([String fileIdentifier]) {
+  Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
     return fbBuilder.finish(offset, fileIdentifier);
@@ -688,9 +693,9 @@ class StatObjectBuilder extends fb.ObjectBuilder {
   final int _count;
 
   StatObjectBuilder({
-    String id,
-    int val,
-    int count,
+    required String id,
+    required int val,
+    required int count,
   })
       : _id = id,
         _val = val,
@@ -714,7 +719,7 @@ class StatObjectBuilder extends fb.ObjectBuilder {
 
   /// Convenience method to serialize to byte list.
   @override
-  Uint8List toBytes([String fileIdentifier]) {
+  Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
     return fbBuilder.finish(offset, fileIdentifier);
@@ -773,7 +778,7 @@ class ReferrableObjectBuilder extends fb.ObjectBuilder {
   final int _id;
 
   ReferrableObjectBuilder({
-    int id,
+    required int id,
   })
       : _id = id;
 
@@ -790,7 +795,7 @@ class ReferrableObjectBuilder extends fb.ObjectBuilder {
 
   /// Convenience method to serialize to byte list.
   @override
-  Uint8List toBytes([String fileIdentifier]) {
+  Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
     return fbBuilder.finish(offset, fileIdentifier);
@@ -1167,56 +1172,56 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
   final List<StatObjectBuilder> _scalarKeySortedTables;
 
   MonsterObjectBuilder({
-    Vec3ObjectBuilder pos,
-    int mana,
-    int hp,
-    String name,
-    List<int> inventory,
-    Color color,
-    AnyTypeId testType,
-    dynamic test,
-    List<TestObjectBuilder> test4,
-    List<String> testarrayofstring,
-    List<MonsterObjectBuilder> testarrayoftables,
-    MonsterObjectBuilder enemy,
-    List<int> testnestedflatbuffer,
-    StatObjectBuilder testempty,
-    bool testbool,
-    int testhashs32Fnv1,
-    int testhashu32Fnv1,
-    int testhashs64Fnv1,
-    int testhashu64Fnv1,
-    int testhashs32Fnv1a,
-    int testhashu32Fnv1a,
-    int testhashs64Fnv1a,
-    int testhashu64Fnv1a,
-    List<bool> testarrayofbools,
-    double testf,
-    double testf2,
-    double testf3,
-    List<String> testarrayofstring2,
-    List<AbilityObjectBuilder> testarrayofsortedstruct,
-    List<int> flex,
-    List<TestObjectBuilder> test5,
-    List<int> vectorOfLongs,
-    List<double> vectorOfDoubles,
-    my_game.InParentNamespaceObjectBuilder parentNamespaceTest,
-    List<ReferrableObjectBuilder> vectorOfReferrables,
-    int singleWeakReference,
-    List<int> vectorOfWeakReferences,
-    List<ReferrableObjectBuilder> vectorOfStrongReferrables,
-    int coOwningReference,
-    List<int> vectorOfCoOwningReferences,
-    int nonOwningReference,
-    List<int> vectorOfNonOwningReferences,
-    AnyUniqueAliasesTypeId anyUniqueType,
-    dynamic anyUnique,
-    AnyAmbiguousAliasesTypeId anyAmbiguousType,
-    dynamic anyAmbiguous,
-    List<Color> vectorOfEnums,
-    Race signedEnum,
-    List<int> testrequirednestedflatbuffer,
-    List<StatObjectBuilder> scalarKeySortedTables,
+    required Vec3ObjectBuilder pos,
+    required int mana,
+    required int hp,
+    required String name,
+    required List<int> inventory,
+    required Color color,
+    required AnyTypeId testType,
+    required dynamic test,
+    required List<TestObjectBuilder> test4,
+    required List<String> testarrayofstring,
+    required List<MonsterObjectBuilder> testarrayoftables,
+    required MonsterObjectBuilder enemy,
+    required List<int> testnestedflatbuffer,
+    required StatObjectBuilder testempty,
+    required bool testbool,
+    required int testhashs32Fnv1,
+    required int testhashu32Fnv1,
+    required int testhashs64Fnv1,
+    required int testhashu64Fnv1,
+    required int testhashs32Fnv1a,
+    required int testhashu32Fnv1a,
+    required int testhashs64Fnv1a,
+    required int testhashu64Fnv1a,
+    required List<bool> testarrayofbools,
+    required double testf,
+    required double testf2,
+    required double testf3,
+    required List<String> testarrayofstring2,
+    required List<AbilityObjectBuilder> testarrayofsortedstruct,
+    required List<int> flex,
+    required List<TestObjectBuilder> test5,
+    required List<int> vectorOfLongs,
+    required List<double> vectorOfDoubles,
+    required my_game.InParentNamespaceObjectBuilder parentNamespaceTest,
+    required List<ReferrableObjectBuilder> vectorOfReferrables,
+    required int singleWeakReference,
+    required List<int> vectorOfWeakReferences,
+    required List<ReferrableObjectBuilder> vectorOfStrongReferrables,
+    required int coOwningReference,
+    required List<int> vectorOfCoOwningReferences,
+    required int nonOwningReference,
+    required List<int> vectorOfNonOwningReferences,
+    required AnyUniqueAliasesTypeId anyUniqueType,
+    required dynamic anyUnique,
+    required AnyAmbiguousAliasesTypeId anyAmbiguousType,
+    required dynamic anyAmbiguous,
+    required List<Color> vectorOfEnums,
+    required Race signedEnum,
+    required List<int> testrequirednestedflatbuffer,
+    required List<StatObjectBuilder> scalarKeySortedTables,
   })
       : _pos = pos,
         _mana = mana,
@@ -1454,7 +1459,7 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
 
   /// Convenience method to serialize to byte list.
   @override
-  Uint8List toBytes([String fileIdentifier]) {
+  Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
     return fbBuilder.finish(offset, fileIdentifier);
@@ -1579,18 +1584,18 @@ class TypeAliasesObjectBuilder extends fb.ObjectBuilder {
   final List<double> _vf64;
 
   TypeAliasesObjectBuilder({
-    int i8,
-    int u8,
-    int i16,
-    int u16,
-    int i32,
-    int u32,
-    int i64,
-    int u64,
-    double f32,
-    double f64,
-    List<int> v8,
-    List<double> vf64,
+    required int i8,
+    required int u8,
+    required int i16,
+    required int u16,
+    required int i32,
+    required int u32,
+    required int i64,
+    required int u64,
+    required double f32,
+    required double f64,
+    required List<int> v8,
+    required List<double> vf64,
   })
       : _i8 = i8,
         _u8 = u8,
@@ -1639,7 +1644,7 @@ class TypeAliasesObjectBuilder extends fb.ObjectBuilder {
 
   /// Convenience method to serialize to byte list.
   @override
-  Uint8List toBytes([String fileIdentifier]) {
+  Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
     return fbBuilder.finish(offset, fileIdentifier);

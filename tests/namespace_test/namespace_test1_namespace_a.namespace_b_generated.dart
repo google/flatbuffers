@@ -12,11 +12,12 @@ class UnionInNestedNSTypeId {
   const UnionInNestedNSTypeId._(this.value);
 
   factory UnionInNestedNSTypeId.fromValue(int value) {
-    if (value == null) value = 0;
-    if (!values.containsKey(value)) {
-      throw new StateError('Invalid value $value for bit flag enum UnionInNestedNSTypeId');
+    var ret = values[value];
+    if (ret == null) {
+      throw StateError('Invalid value $value for bit flag enum');
+    } else {
+      return ret;
     }
-    return values[value];
   }
 
   static const int minValue = 0;
@@ -51,11 +52,12 @@ class EnumInNestedNS {
   const EnumInNestedNS._(this.value);
 
   factory EnumInNestedNS.fromValue(int value) {
-    if (value == null) value = 0;
-    if (!values.containsKey(value)) {
-      throw new StateError('Invalid value $value for bit flag enum EnumInNestedNS');
+    var ret = values[value];
+    if (ret == null) {
+      throw StateError('Invalid value $value for bit flag enum');
+    } else {
+      return ret;
     }
-    return values[value];
   }
 
   static const int minValue = 0;
@@ -139,7 +141,7 @@ class TableInNestedNSObjectBuilder extends fb.ObjectBuilder {
   final int _foo;
 
   TableInNestedNSObjectBuilder({
-    int foo,
+    required int foo,
   })
       : _foo = foo;
 
@@ -156,7 +158,7 @@ class TableInNestedNSObjectBuilder extends fb.ObjectBuilder {
 
   /// Convenience method to serialize to byte list.
   @override
-  Uint8List toBytes([String fileIdentifier]) {
+  Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
     return fbBuilder.finish(offset, fileIdentifier);
@@ -210,8 +212,8 @@ class StructInNestedNSObjectBuilder extends fb.ObjectBuilder {
   final int _b;
 
   StructInNestedNSObjectBuilder({
-    int a,
-    int b,
+    required int a,
+    required int b,
   })
       : _a = a,
         _b = b;
@@ -229,7 +231,7 @@ class StructInNestedNSObjectBuilder extends fb.ObjectBuilder {
 
   /// Convenience method to serialize to byte list.
   @override
-  Uint8List toBytes([String fileIdentifier]) {
+  Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
     return fbBuilder.finish(offset, fileIdentifier);

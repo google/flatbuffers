@@ -230,16 +230,15 @@ class DartGenerator : public BaseGenerator {
     code += "class " + name + " {\n";
     code += "  final int value;\n";
     code += "  const " + name + "._(this.value);\n\n";
+
     code += "  factory " + name + ".fromValue(int value) {\n";
-    code += "    if (value == null) value = 0;\n";
-
-    code += "    if (!values.containsKey(value)) {\n";
+    code += "    var ret = values[value];\n";
+    code += "    if (ret == null) {\n";
     code +=
-        "      throw new StateError('Invalid value $value for bit flag enum ";
-    code += name + "');\n";
+        "      throw StateError('Invalid value $value for bit flag enum');\n";
+    code += "    } else {\n";
+    code += "      return ret;\n";
     code += "    }\n";
-
-    code += "    return values[value];\n";
     code += "  }\n\n";
 
     // this is meaningless for bit_flags
@@ -769,7 +768,7 @@ class DartGenerator : public BaseGenerator {
         auto pair = *it;
         auto &field = *pair.second;
 
-        code += "    " +
+        code += "    required " +
                 GenDartTypeName(field.value.type, struct_def.defined_namespace,
                                 field, true) +
                 " " + MakeCamel(field.name, false) + ",\n";
@@ -851,7 +850,7 @@ class DartGenerator : public BaseGenerator {
 
     code += "  /// Convenience method to serialize to byte list.\n";
     code += "  @override\n";
-    code += "  Uint8List toBytes([String fileIdentifier]) {\n";
+    code += "  Uint8List toBytes([String? fileIdentifier]) {\n";
     code += "    " + _kFb + ".Builder fbBuilder = new ";
     code += _kFb + ".Builder();\n";
     code += "    int offset = finish(fbBuilder);\n";
