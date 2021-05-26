@@ -238,11 +238,9 @@ class CppGenerator : public BaseGenerator {
     static size_t union_suffix_len = strlen(UnionTypeFieldSuffix());
     // early return if no case transformation required
     switch (opts_.cpp_object_api_field_case) {
-      default:
-        return EscapeKeyword(field.name);
+      default: return EscapeKeyword(field.name);
       case IDLOptions::Case_Upper:
-      case IDLOptions::Case_Lower:
-        break;
+      case IDLOptions::Case_Lower: break;
     }
     std::string name = field.name;
     switch (field.value.type.base_type) {
@@ -251,26 +249,19 @@ class CppGenerator : public BaseGenerator {
         if (name.length() > union_suffix_len)
           name.erase(name.length() - union_suffix_len, union_suffix_len);
       } break;
-      default:
-        break;
+      default: break;
     }
     switch (opts_.cpp_object_api_field_case) {
-      case IDLOptions::Case_Upper:
-        name = MakeCamel(name, true);
-        break;
-      case IDLOptions::Case_Lower:
-        name = MakeCamel(name, false);
-        break;
-      default:
-        break;
+      case IDLOptions::Case_Upper: name = MakeCamel(name, true); break;
+      case IDLOptions::Case_Lower: name = MakeCamel(name, false); break;
+      default: break;
     }
     switch (field.value.type.base_type) {
       // restore the union field type suffix
       case BASE_TYPE_UTYPE:
         name.append(UnionTypeFieldSuffix(), union_suffix_len);
         break;
-      default:
-        break;
+      default: break;
     }
     return EscapeKeyword(name);
   }
