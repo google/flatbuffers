@@ -47,7 +47,7 @@
 #include "native_type_test_generated.h"
 #include "test_assert.h"
 
-// clang-format off
+  // clang-format off
 // Check that char* and uint8_t* are interoperable types.
 // The reinterpret_cast<> between the pointers are used to simplify data loading.
 static_assert(flatbuffers::is_same<uint8_t, char>::value ||
@@ -4071,7 +4071,7 @@ int FlatBufferTests() {
   return 0;
 }
 
-int main(int /*argc*/, const char * /*argv*/ []) {
+int main(int /*argc*/, const char * /*argv*/[]) {
   InitTestEngine();
 
   std::string req_locale;
