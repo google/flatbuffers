@@ -225,10 +225,11 @@ std::string RelativeToRootPath(const std::string &project,
   const std::string absolute_project = PosixPath(AbsolutePath(project)) + "/";
   std::string absolute_filepath = PosixPath(AbsolutePath(filepath));
   if (absolute_filepath.size() < absolute_project.size() ||
-      absolute_filepath.substr(0, absolute_project.size()) != absolute_project) {
+      absolute_filepath.substr(0, absolute_project.size()) !=
+          absolute_project) {
     printf(
-        "The --project_root directory must contain all files and included files.\n"
-    );
+        "The --project_root directory must contain all files and included "
+        "files.\n");
     printf("project:          %s\n", project.c_str());
     printf("filepath:         %s\n", filepath.c_str());
     printf("absolute_project: %s\n", absolute_project.c_str());

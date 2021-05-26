@@ -1338,9 +1338,9 @@ void ParseProtoTestWithIncludes() {
   // out by itself. We manually construct it so Parser works.
   std::string imported_fbs = flatbuffers::PosixPath(
       flatbuffers::AbsolutePath(protopath) + "/imported.fbs");
-  TEST_EQ(
-      parser2.Parse(import_fbs.c_str(), include_directories, imported_fbs.c_str()),
-      true);
+  TEST_EQ(parser2.Parse(import_fbs.c_str(), include_directories,
+                        imported_fbs.c_str()),
+          true);
   TEST_EQ(parser2.Parse(fbs.c_str(), nullptr), true);
   TEST_EQ_STR(fbs.c_str(), goldenfile.c_str());
 
@@ -1354,7 +1354,8 @@ void ParseProtoTestWithIncludes() {
 
   // Ensure generated file is parsable.
   flatbuffers::Parser parser4;
-  TEST_EQ(parser4.Parse(import_fbs.c_str(), nullptr, imported_fbs.c_str()), true);
+  TEST_EQ(parser4.Parse(import_fbs.c_str(), nullptr, imported_fbs.c_str()),
+          true);
   TEST_EQ(parser4.Parse(fbs_union.c_str(), nullptr), true);
   TEST_EQ_STR(fbs_union.c_str(), goldenunionfile.c_str());
 }
