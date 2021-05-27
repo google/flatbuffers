@@ -1,5 +1,5 @@
 name: flat_buffers
-version: 1.12.0
+version: 2.0.0
 description: >
   FlatBuffers reading and writing library for Dart.  Use the flatc compiler to
   generate Dart classes for a FlatBuffers schema, and this library to assist with

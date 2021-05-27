@@ -304,21 +304,6 @@ class TsGenerator : public BaseGenerator {
     return value != 1 ? " * " + NumToString(value) : "";
   }
 
-  static std::string GenFileNamespacePrefix(const std::string &file) {
-    return "NS" + NumToString(HashFnv1a<uint64_t>(file.c_str()));
-  }
-
-  // Adds a source-dependent prefix, for of import * statements.
-  std::string GenPrefixedTypeName(const std::string &typeName,
-                                  const std::string &file) {
-    const auto basename =
-        flatbuffers::StripPath(flatbuffers::StripExtension(file));
-    if (basename == file_name_ || parser_.opts.generate_all) {
-      return typeName;
-    }
-    return GenFileNamespacePrefix(file) + "." + typeName;
-  }
-
   void GenStructArgs(import_set &imports, const StructDef &struct_def,
                      std::string *arguments, const std::string &nameprefix) {
     for (auto it = struct_def.fields.vec.begin();
@@ -856,9 +841,15 @@ class TsGenerator : public BaseGenerator {
             const std::string field_accessor = "this." + field_name + "()";
             field_val = GenNullCheckConditional(field_accessor,
                                                 field_accessor + "!.unpack()");
-            field_offset_decl = GenNullCheckConditional(
+            auto packing = GenNullCheckConditional(
                 "this." + field_name, "this." + field_name + "!.pack(builder)",
                 "0");
+
+            if (sd.fixed) {
+              field_offset_val = std::move(packing);
+            } else {
+              field_offset_decl = std::move(packing);
+            }
 
             break;
           }
@@ -1148,10 +1139,9 @@ class TsGenerator : public BaseGenerator {
       else {
         switch (field.value.type.base_type) {
           case BASE_TYPE_STRUCT: {
-            auto type =
+            const auto type =
                 AddImport(imports, struct_def, *field.value.type.struct_def);
             GenDocComment(field.doc_comment, code_ptr);
-            type = GenPrefixedTypeName(type, field.value.type.struct_def->file);
             code += MakeCamel(field.name, false);
             code += "(obj?:" + type + "):" + type + "|null {\n";
 

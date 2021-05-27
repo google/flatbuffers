@@ -6,7 +6,7 @@ import FlatBuffers
 
 public struct models_HelloReply: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
@@ -24,12 +24,12 @@ public struct models_HelloReply: FlatBufferObject {
   public var message: String? { let o = _accessor.offset(VTOFFSET.message.v); return o == 0 ? nil : _accessor.string(at: o) }
   public var messageSegmentArray: [UInt8]? { return _accessor.getVector(at: VTOFFSET.message.v) }
   public static func startHelloReply(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
-  public static func add(message: Offset<String>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: message, at: VTOFFSET.message.p) }
-  public static func endHelloReply(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
+  public static func add(message: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: message, at: VTOFFSET.message.p) }
+  public static func endHelloReply(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
   public static func createHelloReply(
     _ fbb: inout FlatBufferBuilder,
-    messageOffset message: Offset<String> = Offset()
-  ) -> Offset<UOffset> {
+    messageOffset message: Offset = Offset()
+  ) -> Offset {
     let __start = models_HelloReply.startHelloReply(&fbb)
     models_HelloReply.add(message: message, &fbb)
     return models_HelloReply.endHelloReply(&fbb, start: __start)
@@ -38,7 +38,7 @@ public struct models_HelloReply: FlatBufferObject {
 
 public struct models_HelloRequest: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
@@ -56,12 +56,12 @@ public struct models_HelloRequest: FlatBufferObject {
   public var name: String? { let o = _accessor.offset(VTOFFSET.name.v); return o == 0 ? nil : _accessor.string(at: o) }
   public var nameSegmentArray: [UInt8]? { return _accessor.getVector(at: VTOFFSET.name.v) }
   public static func startHelloRequest(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
-  public static func add(name: Offset<String>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: name, at: VTOFFSET.name.p) }
-  public static func endHelloRequest(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
+  public static func add(name: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: name, at: VTOFFSET.name.p) }
+  public static func endHelloRequest(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
   public static func createHelloRequest(
     _ fbb: inout FlatBufferBuilder,
-    nameOffset name: Offset<String> = Offset()
-  ) -> Offset<UOffset> {
+    nameOffset name: Offset = Offset()
+  ) -> Offset {
     let __start = models_HelloRequest.startHelloRequest(&fbb)
     models_HelloRequest.add(name: name, &fbb)
     return models_HelloRequest.endHelloRequest(&fbb, start: __start)

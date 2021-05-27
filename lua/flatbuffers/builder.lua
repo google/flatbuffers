@@ -1,6 +1,7 @@
 local N = require("flatbuffers.numTypes")
 local ba = require("flatbuffers.binaryarray")
 local compat = require("flatbuffers.compat")
+local string_unpack = compat.string_unpack
 
 local m = {}
 
@@ -34,7 +35,7 @@ local function vtableEqual(a, objectStart, b)
     end
 
     for i, elem in ipairs(a) do
-        local x = string.unpack(VOffsetT.packFmt, b, 1 + (i - 1) * 2)
+        local x = string_unpack(VOffsetT.packFmt, b, 1 + (i - 1) * 2)
         if x ~= 0 or elem ~= 0 then
             local y = objectStart - elem
             if x ~= y then
@@ -69,7 +70,7 @@ function mt:Clear()
     self.minalign = 1
     self.currentVTable = nil
     self.objectEnd = nil
-    self.head = #self.bytes -- place the head at the end of the binary array
+    self.head = self.bytes.size -- place the head at the end of the binary array
 
     -- clear vtables instead of making a new table
     local vtable = self.vtables
@@ -117,9 +118,9 @@ function mt:WriteVtable()
     while i >= 1 do
 
         local vt2Offset = self.vtables[i]
-        local vt2Start = #self.bytes - vt2Offset
+        local vt2Start = self.bytes.size - vt2Offset
         local vt2lenstr = self.bytes:Slice(vt2Start, vt2Start+1)
-        local vt2Len = string.unpack(VOffsetT.packFmt, vt2lenstr, 1)
+        local vt2Len = string_unpack(VOffsetT.packFmt, vt2lenstr, 1)
 
         local metadata = VtableMetadataFields * 2
         local vt2End = vt2Start + vt2Len
@@ -153,12 +154,12 @@ function mt:WriteVtable()
         vBytes = vBytes * 2
         self:PrependVOffsetT(vBytes)
 
-        local objectStart = #self.bytes - objectOffset
+        local objectStart = self.bytes.size - objectOffset
         self.bytes:Set(SOffsetT:Pack(self:Offset() - objectOffset),objectStart)
 
         table.insert(self.vtables, self:Offset())
     else
-        local objectStart = #self.bytes - objectOffset
+        local objectStart = self.bytes.size - objectOffset
         self.head = objectStart
         self.bytes:Set(SOffsetT:Pack(exisitingVTable - objectOffset),self.head)
     end
@@ -174,7 +175,7 @@ function mt:EndObject()
 end
 
 local function growByteBuffer(self, desiredSize)
-    local s = #self.bytes
+    local s = self.bytes.size
     assert(s < MAX_BUFFER_SIZE, "Flat Buffers cannot grow buffer beyond 2 gigabytes")
     local newsize = s
     repeat
@@ -190,7 +191,7 @@ function mt:Head()
 end
 
 function mt:Offset()
-   return #self.bytes - self.head
+   return self.bytes.size - self.head
 end
 
 function mt:Pad(n)
@@ -209,15 +210,15 @@ function mt:Prep(size, additionalBytes)
 
     local h = self.head
 
-    local k = #self.bytes - h + additionalBytes
-    local alignsize = ((~k) + 1) & (size - 1) -- getAlignSize(k, size)
+    local k = self.bytes.size - h + additionalBytes
+    local alignsize = getAlignSize(k, size)
 
     local desiredSize = alignsize + size + additionalBytes
 
     while self.head < desiredSize do
-        local oldBufSize = #self.bytes
+        local oldBufSize = self.bytes.size
         growByteBuffer(self, desiredSize)
-        local updatedHead = self.head + #self.bytes - oldBufSize
+        local updatedHead = self.head + self.bytes.size - oldBufSize
         self.head = updatedHead
     end
 
@@ -300,7 +301,7 @@ local function finish(self, rootTable, sizePrefix)
     self:Prep(self.minalign, sizePrefix and 8 or 4)
     self:PrependUOffsetTRelative(rootTable)
     if sizePrefix then
-        local size = #self.bytes - self.head
+        local size = self.bytes.size - self.head
         Int32:EnforceNumber(size)
         self:PrependInt32(size)
     end

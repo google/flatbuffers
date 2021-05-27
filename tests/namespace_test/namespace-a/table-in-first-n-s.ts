@@ -26,9 +26,9 @@ static getSizePrefixedRootAsTableInFirstNS(bb:flatbuffers.ByteBuffer, obj?:Table
   return (obj || new TableInFirstNS()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
-fooTable(obj?:NS8755221360535654258.TableInNestedNS):NS8755221360535654258.TableInNestedNS|null {
+fooTable(obj?:TableInNestedNS):TableInNestedNS|null {
   const offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? (obj || new NS8755221360535654258.TableInNestedNS()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
+  return offset ? (obj || new TableInNestedNS()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
 }
 
 fooEnum():EnumInNestedNS {
@@ -57,9 +57,9 @@ fooUnion<T extends flatbuffers.Table>(obj:any):any|null {
   return offset ? this.bb!.__union(obj, this.bb_pos + offset) : null;
 }
 
-fooStruct(obj?:NS8755221360535654258.StructInNestedNS):NS8755221360535654258.StructInNestedNS|null {
+fooStruct(obj?:StructInNestedNS):StructInNestedNS|null {
   const offset = this.bb!.__offset(this.bb_pos, 12);
-  return offset ? (obj || new NS8755221360535654258.StructInNestedNS()).__init(this.bb_pos + offset, this.bb!) : null;
+  return offset ? (obj || new StructInNestedNS()).__init(this.bb_pos + offset, this.bb!) : null;
 }
 
 static getFullyQualifiedName():string {
@@ -137,14 +137,13 @@ constructor(
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   const fooTable = (this.fooTable !== null ? this.fooTable!.pack(builder) : 0);
   const fooUnion = builder.createObjectOffset(this.fooUnion);
-  const fooStruct = (this.fooStruct !== null ? this.fooStruct!.pack(builder) : 0);
 
   TableInFirstNS.startTableInFirstNS(builder);
   TableInFirstNS.addFooTable(builder, fooTable);
   TableInFirstNS.addFooEnum(builder, this.fooEnum);
   TableInFirstNS.addFooUnionType(builder, this.fooUnionType);
   TableInFirstNS.addFooUnion(builder, fooUnion);
-  TableInFirstNS.addFooStruct(builder, fooStruct);
+  TableInFirstNS.addFooStruct(builder, (this.fooStruct !== null ? this.fooStruct!.pack(builder) : 0));
 
   return TableInFirstNS.endTableInFirstNS(builder);
 }

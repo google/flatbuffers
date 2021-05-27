@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#![allow(clippy::wrong_self_convention)]
 
 use std::mem::size_of;
 
@@ -148,38 +149,36 @@ pub fn byte_swap_f64(x: f64) -> f64 {
 
 /// Place an EndianScalar into the provided mutable byte slice. Performs
 /// endian conversion, if necessary.
+/// # Safety
+/// Caller must ensure `s.len() > size_of::<T>()`
+/// and `x` does not overlap with `s`.
 #[inline]
-pub fn emplace_scalar<T: EndianScalar>(s: &mut [u8], x: T) {
+pub unsafe fn emplace_scalar<T: EndianScalar>(s: &mut [u8], x: T) {
     let x_le = x.to_little_endian();
-    unsafe {
-        core::ptr::copy_nonoverlapping(
-            &x_le as *const T as *const u8,
-            s.as_mut_ptr() as *mut u8,
-            size_of::<T>()
-        );
-    }
+    core::ptr::copy_nonoverlapping(
+        &x_le as *const T as *const u8,
+        s.as_mut_ptr() as *mut u8,
+        size_of::<T>(),
+    );
 }
 
 /// Read an EndianScalar from the provided byte slice at the specified location.
 /// Performs endian conversion, if necessary.
+/// # Safety
+/// Caller must ensure `s.len() > loc + size_of::<T>()`.
 #[inline]
-pub fn read_scalar_at<T: EndianScalar>(s: &[u8], loc: usize) -> T {
+pub unsafe fn read_scalar_at<T: EndianScalar>(s: &[u8], loc: usize) -> T {
     read_scalar(&s[loc..])
 }
 
 /// Read an EndianScalar from the provided byte slice. Performs endian
 /// conversion, if necessary.
+/// # Safety
+/// Caller must ensure `s.len() > size_of::<T>()`.
 #[inline]
-pub fn read_scalar<T: EndianScalar>(s: &[u8]) -> T {
+pub unsafe fn read_scalar<T: EndianScalar>(s: &[u8]) -> T {
     let mut mem = core::mem::MaybeUninit::<T>::uninit();
     // Since [u8] has alignment 1, we copy it into T which may have higher alignment.
-    let x = unsafe {
-        core::ptr::copy_nonoverlapping(
-            s.as_ptr(),
-            mem.as_mut_ptr() as *mut u8,
-            size_of::<T>()
-        );
-        mem.assume_init()
-    };
-    x.from_little_endian()
+    core::ptr::copy_nonoverlapping(s.as_ptr(), mem.as_mut_ptr() as *mut u8, size_of::<T>());
+    mem.assume_init().from_little_endian()
 }

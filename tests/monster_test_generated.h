@@ -33,6 +33,8 @@ struct Vec3;
 
 struct Ability;
 
+struct StructOfStructs;
+
 struct Stat;
 struct StatBuilder;
 struct StatT;
@@ -69,6 +71,8 @@ bool operator==(const Vec3 &lhs, const Vec3 &rhs);
 bool operator!=(const Vec3 &lhs, const Vec3 &rhs);
 bool operator==(const Ability &lhs, const Ability &rhs);
 bool operator!=(const Ability &lhs, const Ability &rhs);
+bool operator==(const StructOfStructs &lhs, const StructOfStructs &rhs);
+bool operator!=(const StructOfStructs &lhs, const StructOfStructs &rhs);
 bool operator==(const StatT &lhs, const StatT &rhs);
 bool operator!=(const StatT &lhs, const StatT &rhs);
 bool operator==(const ReferrableT &lhs, const ReferrableT &rhs);
@@ -97,6 +101,8 @@ inline const flatbuffers::TypeTable *TestSimpleTableWithEnumTypeTable();
 inline const flatbuffers::TypeTable *Vec3TypeTable();
 
 inline const flatbuffers::TypeTable *AbilityTypeTable();
+
+inline const flatbuffers::TypeTable *StructOfStructsTypeTable();
 
 inline const flatbuffers::TypeTable *StatTypeTable();
 
@@ -773,6 +779,59 @@ inline bool operator==(const Ability &lhs, const Ability &rhs) {
 }
 
 inline bool operator!=(const Ability &lhs, const Ability &rhs) {
+    return !(lhs == rhs);
+}
+
+
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) StructOfStructs FLATBUFFERS_FINAL_CLASS {
+ private:
+  MyGame::Example::Ability a_;
+  MyGame::Example::Test b_;
+  MyGame::Example::Ability c_;
+
+ public:
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return StructOfStructsTypeTable();
+  }
+  StructOfStructs()
+      : a_(),
+        b_(),
+        c_() {
+  }
+  StructOfStructs(const MyGame::Example::Ability &_a, const MyGame::Example::Test &_b, const MyGame::Example::Ability &_c)
+      : a_(_a),
+        b_(_b),
+        c_(_c) {
+  }
+  const MyGame::Example::Ability &a() const {
+    return a_;
+  }
+  MyGame::Example::Ability &mutable_a() {
+    return a_;
+  }
+  const MyGame::Example::Test &b() const {
+    return b_;
+  }
+  MyGame::Example::Test &mutable_b() {
+    return b_;
+  }
+  const MyGame::Example::Ability &c() const {
+    return c_;
+  }
+  MyGame::Example::Ability &mutable_c() {
+    return c_;
+  }
+};
+FLATBUFFERS_STRUCT_END(StructOfStructs, 20);
+
+inline bool operator==(const StructOfStructs &lhs, const StructOfStructs &rhs) {
+  return
+      (lhs.a() == rhs.a()) &&
+      (lhs.b() == rhs.b()) &&
+      (lhs.c() == rhs.c());
+}
+
+inline bool operator!=(const StructOfStructs &lhs, const StructOfStructs &rhs) {
     return !(lhs == rhs);
 }
 
@@ -3352,6 +3411,28 @@ inline const flatbuffers::TypeTable *AbilityTypeTable() {
   };
   static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_STRUCT, 2, type_codes, nullptr, nullptr, values, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *StructOfStructsTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_SEQUENCE, 0, 0 },
+    { flatbuffers::ET_SEQUENCE, 0, 1 },
+    { flatbuffers::ET_SEQUENCE, 0, 0 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    MyGame::Example::AbilityTypeTable,
+    MyGame::Example::TestTypeTable
+  };
+  static const int64_t values[] = { 0, 8, 12, 20 };
+  static const char * const names[] = {
+    "a",
+    "b",
+    "c"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_STRUCT, 3, type_codes, type_refs, nullptr, values, names
   };
   return &tt;
 }

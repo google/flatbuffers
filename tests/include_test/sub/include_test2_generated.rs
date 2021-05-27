@@ -7,7 +7,7 @@ use std::mem;
 use std::cmp::Ordering;
 
 extern crate flatbuffers;
-use self::flatbuffers::EndianScalar;
+use self::flatbuffers::{EndianScalar, Follow};
 
 #[allow(unused_imports, dead_code)]
 pub mod my_game {
@@ -17,7 +17,7 @@ pub mod my_game {
   use std::cmp::Ordering;
 
   extern crate flatbuffers;
-  use self::flatbuffers::EndianScalar;
+  use self::flatbuffers::{EndianScalar, Follow};
 #[allow(unused_imports, dead_code)]
 pub mod other_name_space {
 
@@ -26,7 +26,7 @@ pub mod other_name_space {
   use std::cmp::Ordering;
 
   extern crate flatbuffers;
-  use self::flatbuffers::EndianScalar;
+  use self::flatbuffers::{EndianScalar, Follow};
 
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_FROM_INCLUDE: i64 = 0;
@@ -71,7 +71,9 @@ impl<'a> flatbuffers::Follow<'a> for FromInclude {
   type Inner = Self;
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    let b = flatbuffers::read_scalar_at::<i64>(buf, loc);
+    let b = unsafe {
+      flatbuffers::read_scalar_at::<i64>(buf, loc)
+    };
     Self(b)
   }
 }
@@ -80,7 +82,7 @@ impl flatbuffers::Push for FromInclude {
     type Output = FromInclude;
     #[inline]
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        flatbuffers::emplace_scalar::<i64>(dst, self.0);
+        unsafe { flatbuffers::emplace_scalar::<i64>(dst, self.0); }
     }
 }
 
@@ -91,6 +93,7 @@ impl flatbuffers::EndianScalar for FromInclude {
     Self(b)
   }
   #[inline]
+  #[allow(clippy::wrong_self_convention)]
   fn from_little_endian(self) -> Self {
     let b = i64::from_le(self.0);
     Self(b)
@@ -110,8 +113,13 @@ impl<'a> flatbuffers::Verifiable for FromInclude {
 impl flatbuffers::SimpleToVerifyInSlice for FromInclude {}
 // struct Unused, aligned to 4
 #[repr(transparent)]
-#[derive(Clone, Copy, PartialEq, Default)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct Unused(pub [u8; 4]);
+impl Default for Unused { 
+  fn default() -> Self { 
+    Self([0; 4])
+  }
+}
 impl std::fmt::Debug for Unused {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     f.debug_struct("Unused")
@@ -167,7 +175,7 @@ impl<'a> flatbuffers::Verifiable for Unused {
     v.in_buffer::<Self>(pos)
   }
 }
-impl Unused {
+impl<'a> Unused {
   #[allow(clippy::too_many_arguments)]
   pub fn new(
     a: i32,

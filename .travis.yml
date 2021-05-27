@@ -104,6 +104,7 @@ matrix:
       - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which gcc-$GCC_VERSION) /usr/bin/gcc; fi
 
       script:
+      - pip install cmake
       - bash .travis/check-sources.sh
       - bash grpc/build_grpc.sh
       - cmake .
@@ -125,6 +126,11 @@ matrix:
           - BUILD_TYPE=Release
 
       script:
+      - pip install --user cmake
+      - mkdir ~/cmake_path
+      - ln -s $(find ~/Library/Python -name cmake -type f | head -n 1) ~/cmake_path/cmake
+      - ln -s $(find ~/Library/Python -name ctest -type f | head -n 1) ~/cmake_path/ctest
+      - export PATH=~/cmake_path:${PATH}
       - bash grpc/build_grpc.sh
       - cmake .
         -DCMAKE_BUILD_TYPE=$BUILD_TYPE
@@ -202,9 +208,10 @@ matrix:
         - cd android; ./gradlew clean build
 
     - language: generic
+      if: type IN (pull_request)
       os: linux
       install:
         - bash .travis/format_install.sh
-        
+
       script:
         - bash .travis/format_check.sh

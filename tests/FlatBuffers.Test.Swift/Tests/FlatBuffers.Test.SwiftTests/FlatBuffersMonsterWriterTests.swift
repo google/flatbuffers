@@ -130,7 +130,7 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
   func createMonster(withPrefix prefix: Bool) -> FlatBufferBuilder {
     var fbb = FlatBufferBuilder(initialSize: 1)
     let names = [fbb.create(string: "Frodo"), fbb.create(string: "Barney"), fbb.create(string: "Wilma")]
-    var offsets: [Offset<UOffset>] = []
+    var offsets: [Offset] = []
     let start1 = Monster.startMonster(&fbb)
     Monster.add(name: names[0], &fbb)
     offsets.append(Monster.endMonster(&fbb, start: start1))

@@ -22,6 +22,10 @@ static getSizePrefixedRootAsInParentNamespace(bb:flatbuffers.ByteBuffer, obj?:In
   return (obj || new InParentNamespace()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
+static getFullyQualifiedName():string {
+  return 'MyGame.InParentNamespace';
+}
+
 static startInParentNamespace(builder:flatbuffers.Builder) {
   builder.startObject(0);
 }

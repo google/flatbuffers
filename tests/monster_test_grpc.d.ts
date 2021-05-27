@@ -1,5 +1,5 @@
 // Generated GRPC code for FlatBuffers TS *** DO NOT EDIT ***
-import { flatbuffers } from 'flatbuffers';
+import * as flatbuffers from 'flatbuffers';
 import { Stat as MyGame_Example_Stat } from './my-game/example/stat';
 import { Monster as MyGame_Example_Monster } from './my-game/example/monster';
 

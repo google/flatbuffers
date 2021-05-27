@@ -4,7 +4,7 @@
 
 import FlatBuffers
 
-public enum Character: UInt8, Enum { 
+public enum Character: UInt8, Enum {
   public typealias T = UInt8
   public static var byteSize: Int { return MemoryLayout<UInt8>.size }
   public var value: UInt8 { return self.rawValue }
@@ -28,7 +28,7 @@ public struct CharacterUnion {
     self.type = type
     self.value = v
   }
-  public func pack(builder: inout FlatBufferBuilder) -> Offset<UOffset> {
+  public func pack(builder: inout FlatBufferBuilder) -> Offset {
     switch type {
     case .mulan:
       var __obj = value as? AttackerT
@@ -42,13 +42,19 @@ public struct CharacterUnion {
     case .bookfan:
       var __obj = value as? BookReader
       return BookReader_Mutable.pack(&builder, obj: &__obj)
+    case .other:
+      var __obj = value as? String
+      return String.pack(&builder, obj: &__obj)
+    case .unused:
+      var __obj = value as? String
+      return String.pack(&builder, obj: &__obj)
     default: return Offset()
     }
   }
 }
 public struct Rapunzel: NativeStruct, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
 
   private var _hairLength: Int32
 
@@ -69,7 +75,7 @@ public struct Rapunzel: NativeStruct, NativeObject {
 
 public struct Rapunzel_Mutable: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -82,19 +88,19 @@ public struct Rapunzel_Mutable: FlatBufferObject {
   public mutating func unpack() -> Rapunzel {
     return Rapunzel(&self)
   }
-  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout Rapunzel?) -> Offset<UOffset> {
-    guard var obj = obj else { return Offset<UOffset>() }
+  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout Rapunzel?) -> Offset {
+    guard var obj = obj else { return Offset() }
     return pack(&builder, obj: &obj)
   }
 
-  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout Rapunzel) -> Offset<UOffset> {
+  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout Rapunzel) -> Offset {
     return builder.create(struct: obj)
   }
 }
 
 public struct BookReader: NativeStruct, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
 
   private var _booksRead: Int32
 
@@ -115,7 +121,7 @@ public struct BookReader: NativeStruct, NativeObject {
 
 public struct BookReader_Mutable: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -128,23 +134,23 @@ public struct BookReader_Mutable: FlatBufferObject {
   public mutating func unpack() -> BookReader {
     return BookReader(&self)
   }
-  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout BookReader?) -> Offset<UOffset> {
-    guard var obj = obj else { return Offset<UOffset>() }
+  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout BookReader?) -> Offset {
+    guard var obj = obj else { return Offset() }
     return pack(&builder, obj: &obj)
   }
 
-  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout BookReader) -> Offset<UOffset> {
+  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout BookReader) -> Offset {
     return builder.create(struct: obj)
   }
 }
 
 public struct Attacker: FlatBufferObject, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
-  public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset<UOffset>, prefix: Bool = false) { fbb.finish(offset: end, fileId: "MOVI", addPrefix: prefix) }
+  public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: "MOVI", addPrefix: prefix) }
   public static func getRootAsAttacker(bb: ByteBuffer) -> Attacker { return Attacker(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
 
   private init(_ t: Table) { _accessor = t }
@@ -160,11 +166,11 @@ public struct Attacker: FlatBufferObject, ObjectAPIPacker {
   @discardableResult public func mutate(swordAttackDamage: Int32) -> Bool {let o = _accessor.offset(VTOFFSET.swordAttackDamage.v);  return _accessor.mutate(swordAttackDamage, index: o) }
   public static func startAttacker(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
   public static func add(swordAttackDamage: Int32, _ fbb: inout FlatBufferBuilder) { fbb.add(element: swordAttackDamage, def: 0, at: VTOFFSET.swordAttackDamage.p) }
-  public static func endAttacker(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
+  public static func endAttacker(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
   public static func createAttacker(
     _ fbb: inout FlatBufferBuilder,
     swordAttackDamage: Int32 = 0
-  ) -> Offset<UOffset> {
+  ) -> Offset {
     let __start = Attacker.startAttacker(&fbb)
     Attacker.add(swordAttackDamage: swordAttackDamage, &fbb)
     return Attacker.endAttacker(&fbb, start: __start)
@@ -174,12 +180,12 @@ public struct Attacker: FlatBufferObject, ObjectAPIPacker {
   public mutating func unpack() -> AttackerT {
     return AttackerT(&self)
   }
-  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout AttackerT?) -> Offset<UOffset> {
-    guard var obj = obj else { return Offset<UOffset>() }
+  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout AttackerT?) -> Offset {
+    guard var obj = obj else { return Offset() }
     return pack(&builder, obj: &obj)
   }
 
-  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout AttackerT) -> Offset<UOffset> {
+  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout AttackerT) -> Offset {
     let __root = Attacker.startAttacker(&builder)
     Attacker.add(swordAttackDamage: obj.swordAttackDamage, &builder)
     return Attacker.endAttacker(&builder, start: __root)
@@ -203,11 +209,11 @@ public class AttackerT: NativeObject {
 }
 public struct Movie: FlatBufferObject, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_1_12_0() }
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
-  public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset<UOffset>, prefix: Bool = false) { fbb.finish(offset: end, fileId: "MOVI", addPrefix: prefix) }
+  public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: "MOVI", addPrefix: prefix) }
   public static func getRootAsMovie(bb: ByteBuffer) -> Movie { return Movie(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
 
   private init(_ t: Table) { _accessor = t }
@@ -223,24 +229,24 @@ public struct Movie: FlatBufferObject, ObjectAPIPacker {
   }
 
   public var mainCharacterType: Character { let o = _accessor.offset(VTOFFSET.mainCharacterType.v); return o == 0 ? .none_ : Character(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? .none_ }
-  public func mainCharacter<T: FlatBufferObject>(type: T.Type) -> T? { let o = _accessor.offset(VTOFFSET.mainCharacter.v); return o == 0 ? nil : _accessor.union(o) }
+  public func mainCharacter<T: FlatbuffersInitializable>(type: T.Type) -> T? { let o = _accessor.offset(VTOFFSET.mainCharacter.v); return o == 0 ? nil : _accessor.union(o) }
   public var charactersTypeCount: Int32 { let o = _accessor.offset(VTOFFSET.charactersType.v); return o == 0 ? 0 : _accessor.vector(count: o) }
   public func charactersType(at index: Int32) -> Character? { let o = _accessor.offset(VTOFFSET.charactersType.v); return o == 0 ? Character.none_ : Character(rawValue: _accessor.directRead(of: UInt8.self, offset: _accessor.vector(at: o) + index * 1)) }
   public var charactersCount: Int32 { let o = _accessor.offset(VTOFFSET.characters.v); return o == 0 ? 0 : _accessor.vector(count: o) }
-  public func characters<T: FlatBufferObject>(at index: Int32, type: T.Type) -> T? { let o = _accessor.offset(VTOFFSET.characters.v); return o == 0 ? nil : _accessor.directUnion(_accessor.vector(at: o) + index * 4) }
+  public func characters<T: FlatbuffersInitializable>(at index: Int32, type: T.Type) -> T? { let o = _accessor.offset(VTOFFSET.characters.v); return o == 0 ? nil : _accessor.directUnion(_accessor.vector(at: o) + index * 4) }
   public static func startMovie(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 4) }
   public static func add(mainCharacterType: Character, _ fbb: inout FlatBufferBuilder) { fbb.add(element: mainCharacterType.rawValue, def: 0, at: VTOFFSET.mainCharacterType.p) }
-  public static func add(mainCharacter: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: mainCharacter, at: VTOFFSET.mainCharacter.p) }
-  public static func addVectorOf(charactersType: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: charactersType, at: VTOFFSET.charactersType.p) }
-  public static func addVectorOf(characters: Offset<UOffset>, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: characters, at: VTOFFSET.characters.p) }
-  public static func endMovie(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
+  public static func add(mainCharacter: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: mainCharacter, at: VTOFFSET.mainCharacter.p) }
+  public static func addVectorOf(charactersType: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: charactersType, at: VTOFFSET.charactersType.p) }
+  public static func addVectorOf(characters: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: characters, at: VTOFFSET.characters.p) }
+  public static func endMovie(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
   public static func createMovie(
     _ fbb: inout FlatBufferBuilder,
     mainCharacterType: Character = .none_,
-    mainCharacterOffset mainCharacter: Offset<UOffset> = Offset(),
-    charactersTypeVectorOffset charactersType: Offset<UOffset> = Offset(),
-    charactersVectorOffset characters: Offset<UOffset> = Offset()
-  ) -> Offset<UOffset> {
+    mainCharacterOffset mainCharacter: Offset = Offset(),
+    charactersTypeVectorOffset charactersType: Offset = Offset(),
+    charactersVectorOffset characters: Offset = Offset()
+  ) -> Offset {
     let __start = Movie.startMovie(&fbb)
     Movie.add(mainCharacterType: mainCharacterType, &fbb)
     Movie.add(mainCharacter: mainCharacter, &fbb)
@@ -253,14 +259,14 @@ public struct Movie: FlatBufferObject, ObjectAPIPacker {
   public mutating func unpack() -> MovieT {
     return MovieT(&self)
   }
-  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MovieT?) -> Offset<UOffset> {
-    guard var obj = obj else { return Offset<UOffset>() }
+  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MovieT?) -> Offset {
+    guard var obj = obj else { return Offset() }
     return pack(&builder, obj: &obj)
   }
 
-  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MovieT) -> Offset<UOffset> {
+  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MovieT) -> Offset {
     let __mainCharacter = obj.mainCharacter?.pack(builder: &builder) ?? Offset()
-    var __characters__: [Offset<UOffset>] = []
+    var __characters__: [Offset] = []
     for i in obj.characters {
       guard let off = i?.pack(builder: &builder) else { continue }
       __characters__.append(off)
@@ -298,6 +304,12 @@ public class MovieT: NativeObject {
     case .bookfan:
       var _v = _t.mainCharacter(type: BookReader_Mutable.self)
       mainCharacter = CharacterUnion(_v?.unpack(), type: .bookfan)
+    case .other:
+      var _v = _t.mainCharacter(type: String.self)
+      mainCharacter = CharacterUnion(_v?.unpack(), type: .other)
+    case .unused:
+      var _v = _t.mainCharacter(type: String.self)
+      mainCharacter = CharacterUnion(_v?.unpack(), type: .unused)
     default: break
     }
     characters = []
@@ -315,6 +327,12 @@ public class MovieT: NativeObject {
         case .bookfan:
           var _v = _t.characters(at: index, type: BookReader_Mutable.self)
           characters.append(CharacterUnion(_v?.unpack(), type: .bookfan))
+        case .other:
+          var _v = _t.characters(at: index, type: String.self)
+          characters.append(CharacterUnion(_v?.unpack(), type: .other))
+        case .unused:
+          var _v = _t.characters(at: index, type: String.self)
+          characters.append(CharacterUnion(_v?.unpack(), type: .unused))
         default: break
         }
     }

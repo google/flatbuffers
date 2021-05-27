@@ -17,7 +17,7 @@
 import Foundation
 
 /// Offset object for all the Objects that are written into the buffer
-public struct Offset<T> {
+public struct Offset {
   /// Offset of the object in the buffer
   public var o: UOffset
   /// Returns false if the offset is equal to zero

@@ -1,7 +1,7 @@
 #include "greeter.grpc.fb.h"
 #include "greeter_generated.h"
 
-#include <grpc++/grpc++.h>
+#include <grpcpp/grpcpp.h>
 
 #include <iostream>
 #include <memory>
