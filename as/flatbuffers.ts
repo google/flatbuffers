@@ -3,7 +3,6 @@ import * as constants from './constants';
 import * as types from './types';
 import * as utils from './utils';
 
-import { Long as LongClass } from './long';
 import { Encoding as EncodingEnum } from './encoding';
 import { Builder as BuilderClass } from './builder';
 import { ByteBuffer as ByteBufferClass } from './byte-buffer';
@@ -24,6 +23,5 @@ export const float32 = utils.float32;
 export const float64 = utils.float64;
 export const isLittleEndian = utils.isLittleEndian;
 
-export type Long = LongClass;
 export type Builder = BuilderClass;
 export type ByteBuffer = ByteBufferClass;

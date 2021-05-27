@@ -233,11 +233,11 @@ class AsGenerator : public BaseGenerator {
       case BASE_TYPE_VECTOR: return "[]";
 
       case BASE_TYPE_LONG:
+        int64_t constant = StringToInt(value.constant.c_str());
+        return NumToString(constant) + " as i64";
       case BASE_TYPE_ULONG: {
         int64_t constant = StringToInt(value.constant.c_str());
-        std::string createLong = context + ".createLong";
-        return createLong + "(" + NumToString(static_cast<int32_t>(constant)) +
-               ", " + NumToString(static_cast<int32_t>(constant >> 32)) + ")";
+        return NumToString(constant) + " as u64";
       }
 
       default: return value.constant;
@@ -263,8 +263,9 @@ class AsGenerator : public BaseGenerator {
       case BASE_TYPE_BOOL: return "boolean";
       case BASE_TYPE_FLOAT: return "f32";
       case BASE_TYPE_LONG:
+        return "i64";
       case BASE_TYPE_ULONG:
-        return allowNull ? "flatbuffers.Long|null" : "flatbuffers.Long";
+        return "u64";
       default:
         if (IsScalar(type.base_type)) {
           if (type.enum_def) {
@@ -1232,7 +1233,7 @@ class AsGenerator : public BaseGenerator {
               code += "false";
             } else if (field.value.type.element == BASE_TYPE_LONG ||
                        field.value.type.element == BASE_TYPE_ULONG) {
-              code += GenBBAccess() + ".createLong(0, 0)";
+              code += "0";
             } else if (IsScalar(field.value.type.element)) {
               if (field.value.type.enum_def) {
                 code += field.value.constant;
@@ -1378,14 +1379,8 @@ class AsGenerator : public BaseGenerator {
         code += NumToString(it - struct_def.fields.vec.begin()) + ", ";
         if (field.value.type.base_type == BASE_TYPE_BOOL) { code += "+"; }
         code += argname + ", ";
-        if (!IsScalar(field.value.type.base_type)) {
+        if (!IsScalar(field.value.type.base_type) || IsLong(field.value.type.base_type) || HasNullDefault(field)) {
           code += "0";
-        } else if (HasNullDefault(field)) {
-          if (IsLong(field.value.type.base_type)) {
-            code += "builder.createLong(0, 0)";
-          } else {
-            code += "0";
-          }
         } else {
           if (field.value.type.base_type == BASE_TYPE_BOOL) { code += "+"; }
           code += GenDefaultValue(field, "builder", imports);

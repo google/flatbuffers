@@ -1,5 +1,4 @@
 import { FILE_IDENTIFIER_LENGTH, SIZEOF_INT } from './constants';
-import { Long } from './long';
 import { int32, isLittleEndian, float32, float64 } from './utils';
 import { Offset, Table, IGeneratedObject } from './types';
 
@@ -51,7 +50,7 @@ export class ByteBuffer {
   }
 
   readInt8(offset: i32): i32 {
-    return (i32(this.readUint8(offset)) << 24) >> 24;
+    return this.readUint8(offset) as i32;
   }
 
   readUint8(offset: i32): i32 {
@@ -59,7 +58,7 @@ export class ByteBuffer {
   }
 
   readInt16(offset: i32): i32 {
-    return (i32(this.readUint16(offset)) << 16) >> 16;
+    return this.readUint16(offset) as i32;
   }
 
   readUint16(offset: i32): i32 {
@@ -75,16 +74,16 @@ export class ByteBuffer {
     );
   }
 
-  readUint32(offset: i32): i32 {
-    return this.readInt32(offset) >>> 0;
+  readUint32(offset: i32): u32 {
+    return this.readInt32(offset);
   }
 
-  readInt64(offset: i32): Long {
-    return new Long(this.readInt32(offset), this.readInt32(offset + 4));
+  readInt64(offset: i32): i32 {
+    return this.readInt32(offset) | (this.readInt32(offset + 4) << 32);
   }
 
-  readUint64(offset: i32): Long {
-    return new Long(this.readUint32(offset), this.readUint32(offset + 4));
+  readUint64(offset: i32): u64 {
+    return this.readInt64(offset) as u64;
   }
 
   readFloat32(offset: i32): f32 {
@@ -130,14 +129,26 @@ export class ByteBuffer {
     this.bytes_[offset + 3] = value >> 24;
   }
 
-  writeInt64(offset: i32, value: Long): void {
-    this.writeInt32(offset, value.low);
-    this.writeInt32(offset + 4, value.high);
+  writeInt64(offset: i32, value: i32): void {
+    this.bytes_[offset] = value;
+    this.bytes_[offset + 1] = value >> 8;
+    this.bytes_[offset + 2] = value >> 16;
+    this.bytes_[offset + 3] = value >> 24;
+    this.bytes_[offset + 4] = value >> 32;
+    this.bytes_[offset + 5] = value >> 38;
+    this.bytes_[offset + 6] = value >> 46;
+    this.bytes_[offset + 7] = value >> 54;
   }
 
-  writeUint64(offset: i32, value: Long): void {
-    this.writeUint32(offset, value.low);
-    this.writeUint32(offset + 4, value.high);
+  writeUint64(offset: i32, value: i32): void {
+    this.bytes_[offset] = value;
+    this.bytes_[offset + 1] = value >> 8;
+    this.bytes_[offset + 2] = value >> 16;
+    this.bytes_[offset + 3] = value >> 24;
+    this.bytes_[offset + 4] = value >> 32;
+    this.bytes_[offset + 5] = value >> 38;
+    this.bytes_[offset + 6] = value >> 46;
+    this.bytes_[offset + 7] = value >> 54;
   }
 
   writeFloat32(offset: i32, value: f32): void {
@@ -306,13 +317,6 @@ export class ByteBuffer {
       }
     }
     return true;
-  }
-
-  /**
-   * A helper function to avoid generated code depending on this file directly.
-   */
-  createLong(low: i32, high: i32): Long {
-    return Long.create(low, high);
   }
 
   /**
