@@ -238,11 +238,11 @@ class CppGenerator : public BaseGenerator {
     static size_t union_suffix_len = strlen(UnionTypeFieldSuffix());
     // early return if no case transformation required
     if (opts_.cpp_object_api_field_case != IDLOptions::Case_Upper &&
-	opts_.cpp_object_api_field_case != IDLOptions::Case_Lower)
+        opts_.cpp_object_api_field_case != IDLOptions::Case_Lower)
       return EscapeKeyword(field.name);
     std::string name = field.name;
     if (field.value.type.base_type == BASE_TYPE_UTYPE &&
-	name.length() > union_suffix_len)
+        name.length() > union_suffix_len)
       // do not change the case style of the union type field suffix
       name.erase(name.length() - union_suffix_len, union_suffix_len);
     if (opts_.cpp_object_api_field_case == IDLOptions::Case_Upper)
