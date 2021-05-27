@@ -123,9 +123,9 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "                         from Flatbuffers, but (char* + length).\n"
     "  --cpp-field-case STYLE Generate C++ fields using selected case style.\n"
     "                         Supported STYLE values:\n"
-    "                          * 'snake' - leave unchanged (default);\n"
-    "                          * 'upper' - upper camel case;\n"
-    "                          * 'lower' - lower camel case.\n"
+    "                          * 'unchanged' - leave unchanged (default);\n"
+    "                          * 'upper' - schema snake_case emits UpperCamel;\n"
+    "                          * 'lower' - schema snake_case emits lowerCamel.\n"
     "  --cpp-std CPP_STD      Generate a C++ code using features of selected C++ standard.\n"
     "                         Supported CPP_STD values:\n"
     "                          * 'c++0x' - generate code compatible with old compilers;\n"
@@ -282,8 +282,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.cpp_direct_copy = false;
       } else if (arg == "--cpp-field-case") {
         if (++argi >= argc) Error("missing case style following: " + arg, true);
-        if (!strcmp(argv[argi], "snake"))
-          opts.cpp_object_api_field_case = IDLOptions::Case_Snake;
+        if (!strcmp(argv[argi], "unchanged"))
+          opts.cpp_object_api_field_case = IDLOptions::Case_Unchanged;
         else if (!strcmp(argv[argi], "upper"))
           opts.cpp_object_api_field_case = IDLOptions::Case_Upper;
         else if (!strcmp(argv[argi], "lower"))
