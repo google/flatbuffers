@@ -78,9 +78,9 @@ export class ByteBuffer {
     return this.readInt32(offset);
   }
 
-  readInt64(offset: i32): i32 {
-    return this.readInt32(offset) | (this.readInt32(offset + 4) << 32);
-  }
+  readInt64(offset: i32): i64 {
+    return <i64>this.readInt32(offset) | (<i64>this.readInt32(offset + 4) << 32);
+}
 
   readUint64(offset: i32): u64 {
     return this.readInt64(offset) as u64;
