@@ -92,7 +92,7 @@ public class FlatBufferBuilder {
         this.bb_factory = bb_factory;
         if (existing_bb != null) {
           bb = existing_bb;
-          bb.clear();
+          ((Buffer) bb).clear();
           bb.order(ByteOrder.LITTLE_ENDIAN);
         } else {
           bb = bb_factory.newByteBuffer(initial_size);
@@ -154,7 +154,7 @@ public class FlatBufferBuilder {
     public FlatBufferBuilder init(ByteBuffer existing_bb, ByteBufferFactory bb_factory){
         this.bb_factory = bb_factory;
         bb = existing_bb;
-        bb.clear();
+        ((Buffer) bb).clear();
         bb.order(ByteOrder.LITTLE_ENDIAN);
         minalign = 1;
         space = bb.capacity();
@@ -235,7 +235,7 @@ public class FlatBufferBuilder {
      */
     public void clear(){
         space = bb.capacity();
-        bb.clear();
+        ((Buffer) bb).clear();
         minalign = 1;
         while(vtable_in_use > 0) vtable[--vtable_in_use] = 0;
         vtable_in_use = 0;
@@ -275,7 +275,7 @@ public class FlatBufferBuilder {
 
         ((Buffer) bb).position(0);
         ByteBuffer nbb = bb_factory.newByteBuffer(new_buf_size);
-        new_buf_size = nbb.clear().capacity(); // Ensure the returned buffer is treated as empty
+        new_buf_size = ((Buffer) nbb).clear().capacity(); // Ensure the returned buffer is treated as empty
         ((Buffer) nbb).position(new_buf_size - old_buf_size);
         nbb.put(bb);
         return nbb;
