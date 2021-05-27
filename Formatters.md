@@ -11,7 +11,7 @@ If you are interesting in contributing to the flatbuffers project, please take a
 
 ## C++
 
-C++ uses `clang-format` as it's formatter. Run the following script `sh src/clang-format-git.sh`, and it should style the C++ code according to [google style guide](https://google.github.io/styleguide/cppguide.html).
+C++ uses `clang-format` as it's formatter. Run the following script `sh scripts/clang-format-git.sh`, and it should style the C++ code according to [google style guide](https://google.github.io/styleguide/cppguide.html).
 
 ## Swift
 

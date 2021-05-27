@@ -8,7 +8,7 @@
     "server": "node dist/server.js"
   },
   "dependencies": {
-    "flatbuffers": "^2.0.0",
-    "grpc": "^1.24.3"
+    "@grpc/grpc-js": "^1.3.2",
+    "flatbuffers": "^2.0.0"
   }
 }
