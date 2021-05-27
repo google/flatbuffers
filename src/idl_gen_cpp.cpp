@@ -237,32 +237,21 @@ class CppGenerator : public BaseGenerator {
     // the union type field suffix is immutable
     static size_t union_suffix_len = strlen(UnionTypeFieldSuffix());
     // early return if no case transformation required
-    switch (opts_.cpp_object_api_field_case) {
-      default: return EscapeKeyword(field.name);
-      case IDLOptions::Case_Upper:
-      case IDLOptions::Case_Lower: break;
-    }
+    if (opts_.cpp_object_api_field_case != IDLOptions::Case_Upper &&
+	opts_.cpp_object_api_field_case != IDLOptions::Case_Lower)
+      return EscapeKeyword(field.name);
     std::string name = field.name;
-    switch (field.value.type.base_type) {
+    if (field.value.type.base_type == BASE_TYPE_UTYPE &&
+	name.length() > union_suffix_len)
       // do not change the case style of the union type field suffix
-      case BASE_TYPE_UTYPE: {
-        if (name.length() > union_suffix_len)
-          name.erase(name.length() - union_suffix_len, union_suffix_len);
-      } break;
-      default: break;
-    }
-    switch (opts_.cpp_object_api_field_case) {
-      case IDLOptions::Case_Upper: name = MakeCamel(name, true); break;
-      case IDLOptions::Case_Lower: name = MakeCamel(name, false); break;
-      default: break;
-    }
-    switch (field.value.type.base_type) {
+      name.erase(name.length() - union_suffix_len, union_suffix_len);
+    if (opts_.cpp_object_api_field_case == IDLOptions::Case_Upper)
+      name = MakeCamel(name, true);
+    else if (opts_.cpp_object_api_field_case == IDLOptions::Case_Lower)
+      name = MakeCamel(name, false);
+    if (field.value.type.base_type == BASE_TYPE_UTYPE)
       // restore the union field type suffix
-      case BASE_TYPE_UTYPE:
-        name.append(UnionTypeFieldSuffix(), union_suffix_len);
-        break;
-      default: break;
-    }
+      name.append(UnionTypeFieldSuffix(), union_suffix_len);
     return EscapeKeyword(name);
   }
 
