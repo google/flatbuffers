@@ -246,9 +246,9 @@ class CppGenerator : public BaseGenerator {
       // do not change the case style of the union type field suffix
       name.erase(name.length() - union_suffix_len, union_suffix_len);
     if (opts_.cpp_object_api_field_case == IDLOptions::Case_Upper)
-      name = MakeCamel(name, true);
+      name = MakeCamel(name, true); /* upper */
     else if (opts_.cpp_object_api_field_case == IDLOptions::Case_Lower)
-      name = MakeCamel(name, false);
+      name = MakeCamel(name, false); /* lower */
     if (field.value.type.base_type == BASE_TYPE_UTYPE)
       // restore the union field type suffix
       name.append(UnionTypeFieldSuffix(), union_suffix_len);
