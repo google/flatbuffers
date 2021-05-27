@@ -206,8 +206,7 @@ class AsGenerator : public BaseGenerator {
 
   std::string GenBBAccess() const { return "this.bb!"; }
 
-  std::string GenDefaultValue(const FieldDef &field, const std::string &context,
-                              import_set &imports) {
+  std::string GenDefaultValue(const FieldDef &field, import_set &imports) {
     if (field.IsScalarOptional()) { return "null"; }
 
     const auto &value = field.value;
@@ -233,11 +232,9 @@ class AsGenerator : public BaseGenerator {
       case BASE_TYPE_VECTOR: return "[]";
 
       case BASE_TYPE_LONG:
-        int64_t constant = StringToInt(value.constant.c_str());
-        return NumToString(constant) + " as i64";
+        return value.constant + " as i64";
       case BASE_TYPE_ULONG: {
-        int64_t constant = StringToInt(value.constant.c_str());
-        return NumToString(constant) + " as u64";
+        return value.constant + " as u64";
       }
 
       default: return value.constant;
@@ -829,7 +826,7 @@ class AsGenerator : public BaseGenerator {
       // the variable name from field_offset_decl
       std::string field_offset_val;
       const auto field_default_val =
-          GenDefaultValue(field, "flatbuffers", imports);
+          GenDefaultValue(field, imports);
 
       // Emit a scalar field
       const auto is_string = IsString(field.value.type);
@@ -1136,7 +1133,7 @@ class AsGenerator : public BaseGenerator {
           std::string index = "this.bb_pos + offset";
           code += offset_prefix +
                   GenGetter(field.value.type, "(" + index + ")") + " : " +
-                  GenDefaultValue(field, GenBBAccess(), imports);
+                  GenDefaultValue(field, imports);
           code += ";\n";
         }
       }
@@ -1383,7 +1380,7 @@ class AsGenerator : public BaseGenerator {
           code += "0";
         } else {
           if (field.value.type.base_type == BASE_TYPE_BOOL) { code += "+"; }
-          code += GenDefaultValue(field, "builder", imports);
+          code += GenDefaultValue(field, imports);
         }
         code += ");\n}\n\n";
 
