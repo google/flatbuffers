@@ -237,8 +237,7 @@ class CppGenerator : public BaseGenerator {
     // the union type field suffix is immutable
     static size_t union_suffix_len = strlen(UnionTypeFieldSuffix());
     // early return if no case transformation required
-    if (opts_.cpp_object_api_field_case != IDLOptions::Case_Upper &&
-        opts_.cpp_object_api_field_case != IDLOptions::Case_Lower)
+    if (opts_.cpp_object_api_field_case == IDLOptions::Case_Unchanged)
       return EscapeKeyword(field.name);
     std::string name = field.name;
     if (field.value.type.base_type == BASE_TYPE_UTYPE &&
