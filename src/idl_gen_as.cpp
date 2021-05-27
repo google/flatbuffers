@@ -231,8 +231,7 @@ class AsGenerator : public BaseGenerator {
 
       case BASE_TYPE_VECTOR: return "[]";
 
-      case BASE_TYPE_LONG:
-        return value.constant + " as i64";
+      case BASE_TYPE_LONG: return value.constant + " as i64";
       case BASE_TYPE_ULONG: {
         return value.constant + " as u64";
       }
@@ -259,10 +258,8 @@ class AsGenerator : public BaseGenerator {
     switch (type.base_type) {
       case BASE_TYPE_BOOL: return "boolean";
       case BASE_TYPE_FLOAT: return "f32";
-      case BASE_TYPE_LONG:
-        return "i64";
-      case BASE_TYPE_ULONG:
-        return "u64";
+      case BASE_TYPE_LONG: return "i64";
+      case BASE_TYPE_ULONG: return "u64";
       default:
         if (IsScalar(type.base_type)) {
           if (type.enum_def) {
@@ -825,8 +822,7 @@ class AsGenerator : public BaseGenerator {
       // a string that contains values for things that can be created inline or
       // the variable name from field_offset_decl
       std::string field_offset_val;
-      const auto field_default_val =
-          GenDefaultValue(field, imports);
+      const auto field_default_val = GenDefaultValue(field, imports);
 
       // Emit a scalar field
       const auto is_string = IsString(field.value.type);
@@ -1376,7 +1372,8 @@ class AsGenerator : public BaseGenerator {
         code += NumToString(it - struct_def.fields.vec.begin()) + ", ";
         if (field.value.type.base_type == BASE_TYPE_BOOL) { code += "+"; }
         code += argname + ", ";
-        if (!IsScalar(field.value.type.base_type) || IsLong(field.value.type.base_type) || HasNullDefault(field)) {
+        if (!IsScalar(field.value.type.base_type) ||
+            IsLong(field.value.type.base_type) || HasNullDefault(field)) {
           code += "0";
         } else {
           if (field.value.type.base_type == BASE_TYPE_BOOL) { code += "+"; }
