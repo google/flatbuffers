@@ -443,7 +443,7 @@ function(compile_flatbuffers_schema_to_binary SRC_FBS)
     OUTPUT ${GEN_BINARY_SCHEMA}
     COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}"
             -b --schema --bfbs-comments --bfbs-builtins
-            --project-root ${SRC_FBS_DIR}
+            --bfbs-filenames ${SRC_FBS_DIR}
             -I "${CMAKE_CURRENT_SOURCE_DIR}/tests/include_test"
             -o "${SRC_FBS_DIR}"
             "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
@@ -469,7 +469,7 @@ function(compile_flatbuffers_schema_to_embedded_binary SRC_FBS OPT)
           --cpp-ptr-type flatbuffers::unique_ptr # Used to test with C++98 STLs
           ${OPT}
           --bfbs-comments --bfbs-builtins --bfbs-gen-embed
-          --project-root ${SRC_FBS_DIR}
+          --bfbs-filenames ${SRC_FBS_DIR}
           -I "${CMAKE_CURRENT_SOURCE_DIR}/tests/include_test"
           -o "${SRC_FBS_DIR}"
           "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"

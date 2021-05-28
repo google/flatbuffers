@@ -2289,7 +2289,7 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef **dest,
   EXPECT(kTokenIdentifier);
   EnumDef *enum_def;
   ECHECK(StartEnum(enum_name, is_union, &enum_def));
-  if (filename != nullptr) {
+  if (filename != nullptr && !opts.project_root.empty())  {
     enum_def->declaration_file =
         RelativeToRootPath(opts.project_root, filename);
   }
@@ -2532,7 +2532,7 @@ CheckedError Parser::ParseDecl(const char *filename) {
   ECHECK(StartStruct(name, &struct_def));
   struct_def->doc_comment = dc;
   struct_def->fixed = fixed;
-  if (filename != nullptr) {
+  if (filename != nullptr && !opts.project_root.empty()) {
     struct_def->declaration_file =
         RelativeToRootPath(opts.project_root, filename);
   }
@@ -2625,7 +2625,7 @@ CheckedError Parser::ParseService(const char *filename) {
   service_def.file = file_being_parsed_;
   service_def.doc_comment = service_comment;
   service_def.defined_namespace = current_namespace_;
-  if (filename != nullptr) {
+  if (filename != nullptr && !opts.project_root.empty()) {
     service_def.declaration_file =
         RelativeToRootPath(opts.project_root, filename);
   }
