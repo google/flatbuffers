@@ -10,7 +10,7 @@
     "ts/*.ts"
   ],
   "main": "js/flatbuffers.js",
-  "module": "mjs/index.mjs",
+  "module": "mjs/flatbuffers.js",
   "directories": {
     "doc": "docs",
     "test": "tests"
