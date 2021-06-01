@@ -121,7 +121,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "                         (see the --cpp-str-flex-ctor option to change this behavior).\n"
     "  --cpp-str-flex-ctor    Don't construct custom string types by passing std::string\n"
     "                         from Flatbuffers, but (char* + length).\n"
-    "  --cpp-field-case STYLE Generate C++ fields using selected case style.\n"
+    "  --cpp-field-case-style STYLE Generate C++ fields using selected case style.\n"
     "                         Supported STYLE values:\n"
     "                          * 'unchanged' - leave unchanged (default);\n"
     "                          * 'upper' - schema snake_case emits UpperCamel;\n"
@@ -280,14 +280,17 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.cpp_object_api_string_flexible_constructor = true;
       } else if (arg == "--no-cpp-direct-copy") {
         opts.cpp_direct_copy = false;
-      } else if (arg == "--cpp-field-case") {
+      } else if (arg == "--cpp-field-case-style") {
         if (++argi >= argc) Error("missing case style following: " + arg, true);
         if (!strcmp(argv[argi], "unchanged"))
-          opts.cpp_object_api_field_case = IDLOptions::Case_Unchanged;
+          opts.cpp_object_api_field_case_style =
+	    IDLOptions::CaseStyle_Unchanged;
         else if (!strcmp(argv[argi], "upper"))
-          opts.cpp_object_api_field_case = IDLOptions::Case_Upper;
+          opts.cpp_object_api_field_case_style =
+	    IDLOptions::CaseStyle_Upper;
         else if (!strcmp(argv[argi], "lower"))
-          opts.cpp_object_api_field_case = IDLOptions::Case_Lower;
+          opts.cpp_object_api_field_case_style =
+	    IDLOptions::CaseStyle_Lower;
         else
           Error("unknown case style: " + std::string(argv[argi]), true);
       } else if (arg == "--gen-nullable") {
