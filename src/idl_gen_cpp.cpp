@@ -234,7 +234,7 @@ class CppGenerator : public BaseGenerator {
   }
 
   std::string Name(const FieldDef &field) const {
-    // the union type field suffix is immutable
+    // the union type field suffix is immutable.
     static size_t union_suffix_len = strlen(UnionTypeFieldSuffix());
     const bool is_union_type = field.value.type.base_type == BASE_TYPE_UTYPE;
     // early return if no case transformation required
