@@ -284,13 +284,11 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         if (++argi >= argc) Error("missing case style following: " + arg, true);
         if (!strcmp(argv[argi], "unchanged"))
           opts.cpp_object_api_field_case_style =
-	    IDLOptions::CaseStyle_Unchanged;
+              IDLOptions::CaseStyle_Unchanged;
         else if (!strcmp(argv[argi], "upper"))
-          opts.cpp_object_api_field_case_style =
-	    IDLOptions::CaseStyle_Upper;
+          opts.cpp_object_api_field_case_style = IDLOptions::CaseStyle_Upper;
         else if (!strcmp(argv[argi], "lower"))
-          opts.cpp_object_api_field_case_style =
-	    IDLOptions::CaseStyle_Lower;
+          opts.cpp_object_api_field_case_style = IDLOptions::CaseStyle_Lower;
         else
           Error("unknown case style: " + std::string(argv[argi]), true);
       } else if (arg == "--gen-nullable") {
