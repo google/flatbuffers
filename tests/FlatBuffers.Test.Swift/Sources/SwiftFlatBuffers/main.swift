@@ -14,5 +14,16 @@
  * limitations under the License.
  */
 
-import Foundation
-print("Flatbuffers")
+import FlatBuffers
+
+@_cdecl("LLVMFuzzerTestOneInput")
+public func FuzzFlatbuffers(_ start: UnsafeRawPointer, _ count: Int) -> CInt {
+  let bytes = UnsafeRawBufferPointer(start: start, count: count)
+  do {
+    var buffer = ByteBuffer(contiguousBytes: bytes, count: count)
+    let _: Monster = try getCheckedRoot(byteBuffer: &buffer)
+  } catch {
+  }
+
+  return 0
+}

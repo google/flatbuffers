@@ -141,3 +141,4 @@ yarn-error.log
 **/vendor
 **/go.sum
 flatbuffers.pc
+**/FlatBuffers.Test.Swift.xcodeproj

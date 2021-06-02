@@ -29,7 +29,10 @@ namespace flatbuffers {
 
 struct ImportDefinition {
   std::string name;
-  std::string statement;
+  std::string import_statement;
+  std::string export_statement;
+  std::string bare_file_path;
+  std::string rel_file_path;
   const Definition *dependent;
   const Definition *dependency;
 };
@@ -49,6 +52,7 @@ class TsGenerator : public BaseGenerator {
   bool generate() {
     generateEnums();
     generateStructs();
+    generateEntry();
     return true;
   }
 
@@ -62,12 +66,12 @@ class TsGenerator : public BaseGenerator {
         "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
 
     for (auto it = bare_imports.begin(); it != bare_imports.end(); it++)
-      code += it->second.statement + "\n";
+      code += it->second.import_statement + "\n";
     if (!bare_imports.empty()) code += "\n";
 
     for (auto it = imports.begin(); it != imports.end(); it++)
       if (it->second.dependency != &definition)  // do not import itself
-        code += it->second.statement + "\n";
+        code += it->second.import_statement + "\n";
     if (!imports.empty()) code += "\n\n";
 
     code += classcode;
@@ -77,6 +81,8 @@ class TsGenerator : public BaseGenerator {
   }
 
  private:
+  import_set imports_all_;
+
   // Generate code for all enums.
   void generateEnums() {
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
@@ -88,6 +94,7 @@ class TsGenerator : public BaseGenerator {
       GenEnum(enum_def, &enumcode, imports, false);
       GenEnum(enum_def, &enumcode, imports, true);
       SaveType(enum_def, enumcode, imports, bare_imports);
+      imports_all_.insert(imports.begin(), imports.end());
     }
   }
 
@@ -102,7 +109,17 @@ class TsGenerator : public BaseGenerator {
       std::string declcode;
       GenStruct(parser_, struct_def, &declcode, imports);
       SaveType(struct_def, declcode, imports, bare_imports);
+      imports_all_.insert(imports.begin(), imports.end());
     }
+  }
+
+  // Generate code for a single entry point module.
+  void generateEntry() {
+    std::string code;
+    for (auto it = imports_all_.begin(); it != imports_all_.end(); it++)
+      code += it->second.export_statement + "\n";
+    std::string path = "./" + path_ + file_name_ + ".ts";
+    SaveFile(path.c_str(), code, false);
   }
 
   // Generate a documentation comment, if available.
@@ -316,9 +333,9 @@ class TsGenerator : public BaseGenerator {
         GenStructArgs(imports, *field.value.type.struct_def, arguments,
                       nameprefix + field.name + "_");
       } else {
-        *arguments +=
-            ", " + nameprefix + field.name + ": " +
-            GenTypeName(imports, field, field.value.type, true, field.IsOptional());
+        *arguments += ", " + nameprefix + field.name + ": " +
+                      GenTypeName(imports, field, field.value.type, true,
+                                  field.IsOptional());
       }
     }
   }
@@ -465,30 +482,40 @@ class TsGenerator : public BaseGenerator {
       }
     }
     std::string import_statement;
+    std::string export_statement;
     import_statement += "import { ";
+    export_statement += "export { ";
+    std::string symbols_expression;
     if (long_import_name.empty()) {
-      import_statement += import_name;
+      symbols_expression += import_name;
       if (parser_.opts.generate_object_based_api)
-        import_statement += ", " + import_name + "T";
+        symbols_expression += ", " + import_name + "T";
     } else {
-      import_statement += dependency.name + " as " + long_import_name;
+      symbols_expression += dependency.name + " as " + long_import_name;
       if (parser_.opts.generate_object_based_api)
-        import_statement +=
+        symbols_expression +=
             ", " + dependency.name + "T as " + long_import_name + "T";
     }
-    import_statement += " } from '";
-    std::string file_name;
+    import_statement += symbols_expression + " } from '";
+    export_statement += symbols_expression + " } from '";
+    std::string bare_file_path;
+    std::string rel_file_path;
     const auto &dep_comps = dependent.defined_namespace->components;
     for (size_t i = 0; i < dep_comps.size(); i++)
-      file_name += i == 0 ? ".." : (kPathSeparator + std::string(".."));
-    if (dep_comps.size() == 0) file_name += ".";
+      rel_file_path += i == 0 ? ".." : (kPathSeparator + std::string(".."));
+    if (dep_comps.size() == 0) rel_file_path += ".";
     for (auto it = depc_comps.begin(); it != depc_comps.end(); it++)
-      file_name += kPathSeparator + ToDasherizedCase(*it);
-    file_name += kPathSeparator + ToDasherizedCase(dependency.name);
-    import_statement += file_name + "';";
+      bare_file_path += kPathSeparator + ToDasherizedCase(*it);
+    bare_file_path += kPathSeparator + ToDasherizedCase(dependency.name);
+    rel_file_path += bare_file_path;
+    import_statement += rel_file_path + "';";
+    export_statement += "." + bare_file_path + "';";
     ImportDefinition import;
     import.name = long_import_name.empty() ? import_name : long_import_name;
-    import.statement = import_statement;
+    import.bare_file_path = bare_file_path;
+    import.rel_file_path = rel_file_path;
+    import.import_statement = import_statement;
+    import.export_statement = export_statement;
     import.dependency = &dependency;
     import.dependent = &dependent;
     imports.insert(std::make_pair(unique_name, import));
@@ -514,28 +541,38 @@ class TsGenerator : public BaseGenerator {
       }
     }
     std::string import_statement;
+    std::string export_statement;
     import_statement += "import { ";
+    export_statement += "export { ";
+    std::string symbols_expression;
     if (long_import_name.empty())
-      import_statement += import_name;
+      symbols_expression += import_name;
     else
-      import_statement += dependency.name + " as " + long_import_name;
+      symbols_expression += dependency.name + " as " + long_import_name;
     if (dependency.is_union) {
-      import_statement += ", unionTo" + import_name;
-      import_statement += ", unionListTo" + import_name;
+      symbols_expression += ", unionTo" + import_name;
+      symbols_expression += ", unionListTo" + import_name;
     }
-    import_statement += " } from '";
-    std::string file_name;
+    import_statement += symbols_expression + " } from '";
+    export_statement += symbols_expression + " } from '";
+    std::string bare_file_path;
+    std::string rel_file_path;
     const auto &dep_comps = dependent.defined_namespace->components;
     for (size_t i = 0; i < dep_comps.size(); i++)
-      file_name += i == 0 ? ".." : (kPathSeparator + std::string(".."));
-    if (dep_comps.size() == 0) file_name += ".";
+      rel_file_path += i == 0 ? ".." : (kPathSeparator + std::string(".."));
+    if (dep_comps.size() == 0) rel_file_path += ".";
     for (auto it = depc_comps.begin(); it != depc_comps.end(); it++)
-      file_name += kPathSeparator + ToDasherizedCase(*it);
-    file_name += kPathSeparator + ToDasherizedCase(dependency.name);
-    import_statement += file_name + "';";
+      bare_file_path += kPathSeparator + ToDasherizedCase(*it);
+    bare_file_path += kPathSeparator + ToDasherizedCase(dependency.name);
+    rel_file_path += bare_file_path;
+    import_statement += rel_file_path + "';";
+    export_statement += "." + bare_file_path + "';";
     ImportDefinition import;
     import.name = long_import_name.empty() ? import_name : long_import_name;
-    import.statement = import_statement;
+    import.bare_file_path = bare_file_path;
+    import.rel_file_path = rel_file_path;
+    import.import_statement = import_statement;
+    import.export_statement = export_statement;
     import.dependency = &dependency;
     import.dependent = &dependent;
     imports.insert(std::make_pair(unique_name, import));
@@ -546,7 +583,7 @@ class TsGenerator : public BaseGenerator {
                  std::string fileName) {
     ImportDefinition import;
     import.name = import_name;
-    import.statement = "import " + import_name + " from '" + fileName + "';";
+    import.import_statement = "import " + import_name + " from '" + fileName + "';";
     imports.insert(std::make_pair(import_name, import));
   }
 

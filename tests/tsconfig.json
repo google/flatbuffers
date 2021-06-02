@@ -12,7 +12,8 @@
     "baseUrl": ".",
     "noEmit": false
   },
-  "include": [ 
+  "include": [
+    "monster_test.ts",
     "my-game/**/*.ts",
     "optional_scalars/**/*.ts",
     "namespace_test/**/*.ts",
