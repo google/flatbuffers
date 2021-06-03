@@ -66,79 +66,79 @@ public final class ScalarStuff extends Table {
   public byte defaultEnum() { int o = __offset(74); return o != 0 ? bb.get(o + bb_pos) : 1; }
 
   public static int createScalarStuff(FlatBufferBuilder builder,
-      byte just_i8,
-      byte maybe_i8,
-      byte default_i8,
-      int just_u8,
-      int maybe_u8,
-      int default_u8,
-      short just_i16,
-      short maybe_i16,
-      short default_i16,
-      int just_u16,
-      int maybe_u16,
-      int default_u16,
-      int just_i32,
-      int maybe_i32,
-      int default_i32,
-      long just_u32,
-      long maybe_u32,
-      long default_u32,
-      long just_i64,
-      long maybe_i64,
-      long default_i64,
-      long just_u64,
-      long maybe_u64,
-      long default_u64,
-      float just_f32,
-      float maybe_f32,
-      float default_f32,
-      double just_f64,
-      double maybe_f64,
-      double default_f64,
-      boolean just_bool,
-      boolean maybe_bool,
-      boolean default_bool,
-      byte just_enum,
-      byte maybe_enum,
-      byte default_enum) {
+      byte justI8,
+      byte maybeI8,
+      byte defaultI8,
+      int justU8,
+      int maybeU8,
+      int defaultU8,
+      short justI16,
+      short maybeI16,
+      short defaultI16,
+      int justU16,
+      int maybeU16,
+      int defaultU16,
+      int justI32,
+      int maybeI32,
+      int defaultI32,
+      long justU32,
+      long maybeU32,
+      long defaultU32,
+      long justI64,
+      long maybeI64,
+      long defaultI64,
+      long justU64,
+      long maybeU64,
+      long defaultU64,
+      float justF32,
+      float maybeF32,
+      float defaultF32,
+      double justF64,
+      double maybeF64,
+      double defaultF64,
+      boolean justBool,
+      boolean maybeBool,
+      boolean defaultBool,
+      byte justEnum,
+      byte maybeEnum,
+      byte defaultEnum) {
     builder.startTable(36);
-    ScalarStuff.addDefaultF64(builder, default_f64);
-    ScalarStuff.addMaybeF64(builder, maybe_f64);
-    ScalarStuff.addJustF64(builder, just_f64);
-    ScalarStuff.addDefaultU64(builder, default_u64);
-    ScalarStuff.addMaybeU64(builder, maybe_u64);
-    ScalarStuff.addJustU64(builder, just_u64);
-    ScalarStuff.addDefaultI64(builder, default_i64);
-    ScalarStuff.addMaybeI64(builder, maybe_i64);
-    ScalarStuff.addJustI64(builder, just_i64);
-    ScalarStuff.addDefaultF32(builder, default_f32);
-    ScalarStuff.addMaybeF32(builder, maybe_f32);
-    ScalarStuff.addJustF32(builder, just_f32);
-    ScalarStuff.addDefaultU32(builder, default_u32);
-    ScalarStuff.addMaybeU32(builder, maybe_u32);
-    ScalarStuff.addJustU32(builder, just_u32);
-    ScalarStuff.addDefaultI32(builder, default_i32);
-    ScalarStuff.addMaybeI32(builder, maybe_i32);
-    ScalarStuff.addJustI32(builder, just_i32);
-    ScalarStuff.addDefaultU16(builder, default_u16);
-    ScalarStuff.addMaybeU16(builder, maybe_u16);
-    ScalarStuff.addJustU16(builder, just_u16);
-    ScalarStuff.addDefaultI16(builder, default_i16);
-    ScalarStuff.addMaybeI16(builder, maybe_i16);
-    ScalarStuff.addJustI16(builder, just_i16);
-    ScalarStuff.addDefaultEnum(builder, default_enum);
-    ScalarStuff.addMaybeEnum(builder, maybe_enum);
-    ScalarStuff.addJustEnum(builder, just_enum);
-    ScalarStuff.addDefaultBool(builder, default_bool);
-    ScalarStuff.addMaybeBool(builder, maybe_bool);
-    ScalarStuff.addJustBool(builder, just_bool);
-    ScalarStuff.addDefaultU8(builder, default_u8);
-    ScalarStuff.addMaybeU8(builder, maybe_u8);
-    ScalarStuff.addJustU8(builder, just_u8);
-    ScalarStuff.addDefaultI8(builder, default_i8);
-    ScalarStuff.addMaybeI8(builder, maybe_i8);
-    ScalarStuff.addJustI8(builder, just_i8);
+    ScalarStuff.addDefaultF64(builder, defaultF64);
+    ScalarStuff.addMaybeF64(builder, maybeF64);
+    ScalarStuff.addJustF64(builder, justF64);
+    ScalarStuff.addDefaultU64(builder, defaultU64);
+    ScalarStuff.addMaybeU64(builder, maybeU64);
+    ScalarStuff.addJustU64(builder, justU64);
+    ScalarStuff.addDefaultI64(builder, defaultI64);
+    ScalarStuff.addMaybeI64(builder, maybeI64);
+    ScalarStuff.addJustI64(builder, justI64);
+    ScalarStuff.addDefaultF32(builder, defaultF32);
+    ScalarStuff.addMaybeF32(builder, maybeF32);
+    ScalarStuff.addJustF32(builder, justF32);
+    ScalarStuff.addDefaultU32(builder, defaultU32);
+    ScalarStuff.addMaybeU32(builder, maybeU32);
+    ScalarStuff.addJustU32(builder, justU32);
+    ScalarStuff.addDefaultI32(builder, defaultI32);
+    ScalarStuff.addMaybeI32(builder, maybeI32);
+    ScalarStuff.addJustI32(builder, justI32);
+    ScalarStuff.addDefaultU16(builder, defaultU16);
+    ScalarStuff.addMaybeU16(builder, maybeU16);
+    ScalarStuff.addJustU16(builder, justU16);
+    ScalarStuff.addDefaultI16(builder, defaultI16);
+    ScalarStuff.addMaybeI16(builder, maybeI16);
+    ScalarStuff.addJustI16(builder, justI16);
+    ScalarStuff.addDefaultEnum(builder, defaultEnum);
+    ScalarStuff.addMaybeEnum(builder, maybeEnum);
+    ScalarStuff.addJustEnum(builder, justEnum);
+    ScalarStuff.addDefaultBool(builder, defaultBool);
+    ScalarStuff.addMaybeBool(builder, maybeBool);
+    ScalarStuff.addJustBool(builder, justBool);
+    ScalarStuff.addDefaultU8(builder, defaultU8);
+    ScalarStuff.addMaybeU8(builder, maybeU8);
+    ScalarStuff.addJustU8(builder, justU8);
+    ScalarStuff.addDefaultI8(builder, defaultI8);
+    ScalarStuff.addMaybeI8(builder, maybeI8);
+    ScalarStuff.addJustI8(builder, justI8);
     return ScalarStuff.endScalarStuff(builder);
   }
 
@@ -146,21 +146,21 @@ public final class ScalarStuff extends Table {
   public static void addJustI8(FlatBufferBuilder builder, byte justI8) { builder.addByte(0, justI8, 0); }
   public static void addMaybeI8(FlatBufferBuilder builder, byte maybeI8) { builder.addByte(1, maybeI8, 0); }
   public static void addDefaultI8(FlatBufferBuilder builder, byte defaultI8) { builder.addByte(2, defaultI8, 42); }
-  public static void addJustU8(FlatBufferBuilder builder, int justU8) { builder.addByte(3, (byte)justU8, (byte)0); }
-  public static void addMaybeU8(FlatBufferBuilder builder, int maybeU8) { builder.addByte(4, (byte)maybeU8, (byte)0); }
-  public static void addDefaultU8(FlatBufferBuilder builder, int defaultU8) { builder.addByte(5, (byte)defaultU8, (byte)42); }
+  public static void addJustU8(FlatBufferBuilder builder, int justU8) { builder.addByte(3, (byte) justU8, (byte) 0); }
+  public static void addMaybeU8(FlatBufferBuilder builder, int maybeU8) { builder.addByte(4, (byte) maybeU8, (byte) 0); }
+  public static void addDefaultU8(FlatBufferBuilder builder, int defaultU8) { builder.addByte(5, (byte) defaultU8, (byte) 42); }
   public static void addJustI16(FlatBufferBuilder builder, short justI16) { builder.addShort(6, justI16, 0); }
   public static void addMaybeI16(FlatBufferBuilder builder, short maybeI16) { builder.addShort(7, maybeI16, 0); }
   public static void addDefaultI16(FlatBufferBuilder builder, short defaultI16) { builder.addShort(8, defaultI16, 42); }
-  public static void addJustU16(FlatBufferBuilder builder, int justU16) { builder.addShort(9, (short)justU16, (short)0); }
-  public static void addMaybeU16(FlatBufferBuilder builder, int maybeU16) { builder.addShort(10, (short)maybeU16, (short)0); }
-  public static void addDefaultU16(FlatBufferBuilder builder, int defaultU16) { builder.addShort(11, (short)defaultU16, (short)42); }
+  public static void addJustU16(FlatBufferBuilder builder, int justU16) { builder.addShort(9, (short) justU16, (short) 0); }
+  public static void addMaybeU16(FlatBufferBuilder builder, int maybeU16) { builder.addShort(10, (short) maybeU16, (short) 0); }
+  public static void addDefaultU16(FlatBufferBuilder builder, int defaultU16) { builder.addShort(11, (short) defaultU16, (short) 42); }
   public static void addJustI32(FlatBufferBuilder builder, int justI32) { builder.addInt(12, justI32, 0); }
   public static void addMaybeI32(FlatBufferBuilder builder, int maybeI32) { builder.addInt(13, maybeI32, 0); }
   public static void addDefaultI32(FlatBufferBuilder builder, int defaultI32) { builder.addInt(14, defaultI32, 42); }
-  public static void addJustU32(FlatBufferBuilder builder, long justU32) { builder.addInt(15, (int)justU32, (int)0L); }
-  public static void addMaybeU32(FlatBufferBuilder builder, long maybeU32) { builder.addInt(16, (int)maybeU32, (int)0L); }
-  public static void addDefaultU32(FlatBufferBuilder builder, long defaultU32) { builder.addInt(17, (int)defaultU32, (int)42L); }
+  public static void addJustU32(FlatBufferBuilder builder, long justU32) { builder.addInt(15, (int) justU32, (int) 0L); }
+  public static void addMaybeU32(FlatBufferBuilder builder, long maybeU32) { builder.addInt(16, (int) maybeU32, (int) 0L); }
+  public static void addDefaultU32(FlatBufferBuilder builder, long defaultU32) { builder.addInt(17, (int) defaultU32, (int) 42L); }
   public static void addJustI64(FlatBufferBuilder builder, long justI64) { builder.addLong(18, justI64, 0L); }
   public static void addMaybeI64(FlatBufferBuilder builder, long maybeI64) { builder.addLong(19, maybeI64, 0L); }
   public static void addDefaultI64(FlatBufferBuilder builder, long defaultI64) { builder.addLong(20, defaultI64, 42L); }

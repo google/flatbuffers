@@ -667,9 +667,7 @@ class CppGenerator : public BaseGenerator {
       }
       case BASE_TYPE_UNION:
         // fall through
-      default: {
-        return "void";
-      }
+      default: { return "void"; }
     }
   }
 
@@ -1009,9 +1007,10 @@ class CppGenerator : public BaseGenerator {
                     ? bt - BASE_TYPE_UTYPE + ET_UTYPE
                     : ET_SEQUENCE;
       int ref_idx = -1;
-      std::string ref_name = type.struct_def ? WrapInNameSpace(*type.struct_def)
-                             : type.enum_def ? WrapInNameSpace(*type.enum_def)
-                                             : "";
+      std::string ref_name =
+          type.struct_def
+              ? WrapInNameSpace(*type.struct_def)
+              : type.enum_def ? WrapInNameSpace(*type.enum_def) : "";
       if (!ref_name.empty()) {
         auto rit = type_refs.begin();
         for (; rit != type_refs.end(); ++rit) {
@@ -1924,9 +1923,7 @@ class CppGenerator : public BaseGenerator {
         }
         break;
       }
-      default: {
-        break;
-      }
+      default: { break; }
     }
   }
 
