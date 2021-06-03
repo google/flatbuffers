@@ -56,7 +56,7 @@ public class Utf8Old extends Utf8 {
     if (cache.lastOutput == null || cache.lastOutput.capacity() < estimated) {
       cache.lastOutput = ByteBuffer.allocate(Math.max(128, estimated));
     }
-    cache.lastOutput.clear();
+    ((Buffer) cache.lastOutput).clear();
     cache.lastInput = in;
     CharBuffer wrap = (in instanceof CharBuffer) ?
                           (CharBuffer) in : CharBuffer.wrap(in);
@@ -68,7 +68,7 @@ public class Utf8Old extends Utf8 {
         throw new IllegalArgumentException("bad character encoding", e);
       }
     }
-    cache.lastOutput.flip();
+    ((Buffer) cache.lastOutput).flip();
     return cache.lastOutput.remaining();
   }
 
