@@ -2,6 +2,7 @@
 
 package MyGame.Example;
 
+@SuppressWarnings("unused")
 public final class Race {
   private Race() { }
   public static final byte None = -1;

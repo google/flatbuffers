@@ -17,9 +17,9 @@ public final class Attacker extends Table {
   public boolean mutateSwordAttackDamage(int sword_attack_damage) { int o = __offset(4); if (o != 0) { bb.putInt(o + bb_pos, sword_attack_damage); return true; } else { return false; } }
 
   public static int createAttacker(FlatBufferBuilder builder,
-      int sword_attack_damage) {
+      int swordAttackDamage) {
     builder.startTable(1);
-    Attacker.addSwordAttackDamage(builder, sword_attack_damage);
+    Attacker.addSwordAttackDamage(builder, swordAttackDamage);
     return Attacker.endAttacker(builder);
   }
 
@@ -35,6 +35,21 @@ public final class Attacker extends Table {
 
     public Attacker get(int j) { return get(new Attacker(), j); }
     public Attacker get(Attacker obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }
+  }
+  public AttackerT unpack() {
+    AttackerT _o = new AttackerT();
+    unpackTo(_o);
+    return _o;
+  }
+  public void unpackTo(AttackerT _o) {
+    int _oSwordAttackDamage = swordAttackDamage();
+    _o.setSwordAttackDamage(_oSwordAttackDamage);
+  }
+  public static int pack(FlatBufferBuilder builder, AttackerT _o) {
+    if (_o == null) return 0;
+    return createAttacker(
+      builder,
+      _o.getSwordAttackDamage());
   }
 }
 

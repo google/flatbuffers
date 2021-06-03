@@ -68,5 +68,20 @@ public final class Referrable extends Table {
     public Referrable getByKey(long key) {  return __lookup_by_key(null, __vector(), key, bb); }
     public Referrable getByKey(Referrable obj, long key) {  return __lookup_by_key(obj, __vector(), key, bb); }
   }
+  public ReferrableT unpack() {
+    ReferrableT _o = new ReferrableT();
+    unpackTo(_o);
+    return _o;
+  }
+  public void unpackTo(ReferrableT _o) {
+    long _oId = id();
+    _o.setId(_oId);
+  }
+  public static int pack(FlatBufferBuilder builder, ReferrableT _o) {
+    if (_o == null) return 0;
+    return createReferrable(
+      builder,
+      _o.getId());
+  }
 }
 

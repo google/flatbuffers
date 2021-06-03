@@ -2,6 +2,7 @@
 
 package MyGame.Example;
 
+@SuppressWarnings("unused")
 public final class Any {
   private Any() { }
   public static final byte NONE = 0;

@@ -130,9 +130,7 @@ std::string GenType(const Type &type) {
       return union_type_string;
     }
     case BASE_TYPE_UTYPE: return GenTypeRef(type.enum_def);
-    default: {
-      return GenBaseType(type);
-    }
+    default: { return GenBaseType(type); }
   }
 }
 

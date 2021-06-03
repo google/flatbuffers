@@ -3757,9 +3757,7 @@ Offset<reflection::EnumVal> EnumVal::Serialize(FlatBufferBuilder *builder,
   auto docs__ = parser.opts.binary_schema_comments
                     ? builder->CreateVectorOfStrings(doc_comment)
                     : 0;
-  return reflection::CreateEnumVal(
-      *builder, name__, value,
-      type__, docs__);
+  return reflection::CreateEnumVal(*builder, name__, value, type__, docs__);
 }
 
 bool EnumVal::Deserialize(const Parser &parser,

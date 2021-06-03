@@ -1554,9 +1554,7 @@ void FuzzTest2() {
           }
       }
       AddToSchemaAndInstances(deprecated ? "(deprecated);\n" : ";\n",
-                              deprecated      ? ""
-                              : is_last_field ? "\n"
-                                              : ",\n");
+                              deprecated ? "" : is_last_field ? "\n" : ",\n");
     }
     AddToSchemaAndInstances("}\n\n", "}");
   }
