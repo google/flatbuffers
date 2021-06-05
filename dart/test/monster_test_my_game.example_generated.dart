@@ -232,6 +232,27 @@ class Test {
   String toString() {
     return 'Test{a: $a, b: $b}';
   }
+
+  TestT unPack() => TestT(
+      a: a,
+      b: b);
+
+  static int pack(fb.Builder fbBuilder, TestT object) {
+    if (object == null) return 0;
+    final builder = TestObjectBuilder(
+        a: object.a,
+        b: object.b);
+    return builder.finish(fbBuilder);
+  }
+}
+
+class TestT {
+  int a;
+  int b;
+
+  TestT({
+      this.a,
+      this.b});
 }
 
 class _TestReader extends fb.StructReader<Test> {
@@ -310,6 +331,23 @@ class TestSimpleTableWithEnum {
   String toString() {
     return 'TestSimpleTableWithEnum{color: $color}';
   }
+
+  TestSimpleTableWithEnumT unPack() => TestSimpleTableWithEnumT(
+      color: color);
+
+  static int pack(fb.Builder fbBuilder, TestSimpleTableWithEnumT object) {
+    if (object == null) return 0;
+    final builder = TestSimpleTableWithEnumObjectBuilder(
+        color: object.color);
+    return builder.finish(fbBuilder);
+  }
+}
+
+class TestSimpleTableWithEnumT {
+  Color color;
+
+  TestSimpleTableWithEnumT({
+      this.color});
 }
 
 class _TestSimpleTableWithEnumReader extends fb.TableReader<TestSimpleTableWithEnum> {
@@ -387,6 +425,43 @@ class Vec3 {
   String toString() {
     return 'Vec3{x: $x, y: $y, z: $z, test1: $test1, test2: $test2, test3: $test3}';
   }
+
+  Vec3T unPack() => Vec3T(
+      x: x,
+      y: y,
+      z: z,
+      test1: test1,
+      test2: test2,
+      test3: test3);
+
+  static int pack(fb.Builder fbBuilder, Vec3T object) {
+    if (object == null) return 0;
+    final builder = Vec3ObjectBuilder(
+        x: object.x,
+        y: object.y,
+        z: object.z,
+        test1: object.test1,
+        test2: object.test2,
+        test3: object.test3);
+    return builder.finish(fbBuilder);
+  }
+}
+
+class Vec3T {
+  double x;
+  double y;
+  double z;
+  double test1;
+  Color test2;
+  Test test3;
+
+  Vec3T({
+      this.x,
+      this.y,
+      this.z,
+      this.test1,
+      this.test2,
+      this.test3});
 }
 
 class _Vec3Reader extends fb.StructReader<Vec3> {
@@ -486,6 +561,27 @@ class Ability {
   String toString() {
     return 'Ability{id: $id, distance: $distance}';
   }
+
+  AbilityT unPack() => AbilityT(
+      id: id,
+      distance: distance);
+
+  static int pack(fb.Builder fbBuilder, AbilityT object) {
+    if (object == null) return 0;
+    final builder = AbilityObjectBuilder(
+        id: object.id,
+        distance: object.distance);
+    return builder.finish(fbBuilder);
+  }
+}
+
+class AbilityT {
+  int id;
+  int distance;
+
+  AbilityT({
+      this.id,
+      this.distance});
 }
 
 class _AbilityReader extends fb.StructReader<Ability> {
@@ -560,6 +656,31 @@ class StructOfStructs {
   String toString() {
     return 'StructOfStructs{a: $a, b: $b, c: $c}';
   }
+
+  StructOfStructsT unPack() => StructOfStructsT(
+      a: a,
+      b: b,
+      c: c);
+
+  static int pack(fb.Builder fbBuilder, StructOfStructsT object) {
+    if (object == null) return 0;
+    final builder = StructOfStructsObjectBuilder(
+        a: object.a,
+        b: object.b,
+        c: object.c);
+    return builder.finish(fbBuilder);
+  }
+}
+
+class StructOfStructsT {
+  Ability a;
+  Test b;
+  Ability c;
+
+  StructOfStructsT({
+      this.a,
+      this.b,
+      this.c});
 }
 
 class _StructOfStructsReader extends fb.StructReader<StructOfStructs> {
@@ -643,6 +764,31 @@ class Stat {
   String toString() {
     return 'Stat{id: $id, val: $val, count: $count}';
   }
+
+  StatT unPack() => StatT(
+      id: id,
+      val: val,
+      count: count);
+
+  static int pack(fb.Builder fbBuilder, StatT object) {
+    if (object == null) return 0;
+    final builder = StatObjectBuilder(
+        id: object.id,
+        val: object.val,
+        count: object.count);
+    return builder.finish(fbBuilder);
+  }
+}
+
+class StatT {
+  String id;
+  int val;
+  int count;
+
+  StatT({
+      this.id,
+      this.val,
+      this.count});
 }
 
 class _StatReader extends fb.TableReader<Stat> {
@@ -738,6 +884,23 @@ class Referrable {
   String toString() {
     return 'Referrable{id: $id}';
   }
+
+  ReferrableT unPack() => ReferrableT(
+      id: id);
+
+  static int pack(fb.Builder fbBuilder, ReferrableT object) {
+    if (object == null) return 0;
+    final builder = ReferrableObjectBuilder(
+        id: object.id);
+    return builder.finish(fbBuilder);
+  }
+}
+
+class ReferrableT {
+  int id;
+
+  ReferrableT({
+      this.id});
 }
 
 class _ReferrableReader extends fb.TableReader<Referrable> {
@@ -887,6 +1050,225 @@ class Monster {
   String toString() {
     return 'Monster{pos: $pos, mana: $mana, hp: $hp, name: $name, inventory: $inventory, color: $color, testType: $testType, test: $test, test4: $test4, testarrayofstring: $testarrayofstring, testarrayoftables: $testarrayoftables, enemy: $enemy, testnestedflatbuffer: $testnestedflatbuffer, testempty: $testempty, testbool: $testbool, testhashs32Fnv1: $testhashs32Fnv1, testhashu32Fnv1: $testhashu32Fnv1, testhashs64Fnv1: $testhashs64Fnv1, testhashu64Fnv1: $testhashu64Fnv1, testhashs32Fnv1a: $testhashs32Fnv1a, testhashu32Fnv1a: $testhashu32Fnv1a, testhashs64Fnv1a: $testhashs64Fnv1a, testhashu64Fnv1a: $testhashu64Fnv1a, testarrayofbools: $testarrayofbools, testf: $testf, testf2: $testf2, testf3: $testf3, testarrayofstring2: $testarrayofstring2, testarrayofsortedstruct: $testarrayofsortedstruct, flex: $flex, test5: $test5, vectorOfLongs: $vectorOfLongs, vectorOfDoubles: $vectorOfDoubles, parentNamespaceTest: $parentNamespaceTest, vectorOfReferrables: $vectorOfReferrables, singleWeakReference: $singleWeakReference, vectorOfWeakReferences: $vectorOfWeakReferences, vectorOfStrongReferrables: $vectorOfStrongReferrables, coOwningReference: $coOwningReference, vectorOfCoOwningReferences: $vectorOfCoOwningReferences, nonOwningReference: $nonOwningReference, vectorOfNonOwningReferences: $vectorOfNonOwningReferences, anyUniqueType: $anyUniqueType, anyUnique: $anyUnique, anyAmbiguousType: $anyAmbiguousType, anyAmbiguous: $anyAmbiguous, vectorOfEnums: $vectorOfEnums, signedEnum: $signedEnum, testrequirednestedflatbuffer: $testrequirednestedflatbuffer, scalarKeySortedTables: $scalarKeySortedTables}';
   }
+
+  MonsterT unPack() => MonsterT(
+      pos: pos,
+      mana: mana,
+      hp: hp,
+      name: name,
+      inventory: inventory,
+      color: color,
+      testType: testType,
+      test: test,
+      test4: test4,
+      testarrayofstring: testarrayofstring,
+      testarrayoftables: testarrayoftables,
+      enemy: enemy,
+      testnestedflatbuffer: testnestedflatbuffer,
+      testempty: testempty,
+      testbool: testbool,
+      testhashs32Fnv1: testhashs32Fnv1,
+      testhashu32Fnv1: testhashu32Fnv1,
+      testhashs64Fnv1: testhashs64Fnv1,
+      testhashu64Fnv1: testhashu64Fnv1,
+      testhashs32Fnv1a: testhashs32Fnv1a,
+      testhashu32Fnv1a: testhashu32Fnv1a,
+      testhashs64Fnv1a: testhashs64Fnv1a,
+      testhashu64Fnv1a: testhashu64Fnv1a,
+      testarrayofbools: testarrayofbools,
+      testf: testf,
+      testf2: testf2,
+      testf3: testf3,
+      testarrayofstring2: testarrayofstring2,
+      testarrayofsortedstruct: testarrayofsortedstruct,
+      flex: flex,
+      test5: test5,
+      vectorOfLongs: vectorOfLongs,
+      vectorOfDoubles: vectorOfDoubles,
+      parentNamespaceTest: parentNamespaceTest,
+      vectorOfReferrables: vectorOfReferrables,
+      singleWeakReference: singleWeakReference,
+      vectorOfWeakReferences: vectorOfWeakReferences,
+      vectorOfStrongReferrables: vectorOfStrongReferrables,
+      coOwningReference: coOwningReference,
+      vectorOfCoOwningReferences: vectorOfCoOwningReferences,
+      nonOwningReference: nonOwningReference,
+      vectorOfNonOwningReferences: vectorOfNonOwningReferences,
+      anyUniqueType: anyUniqueType,
+      anyUnique: anyUnique,
+      anyAmbiguousType: anyAmbiguousType,
+      anyAmbiguous: anyAmbiguous,
+      vectorOfEnums: vectorOfEnums,
+      signedEnum: signedEnum,
+      testrequirednestedflatbuffer: testrequirednestedflatbuffer,
+      scalarKeySortedTables: scalarKeySortedTables);
+
+  static int pack(fb.Builder fbBuilder, MonsterT object) {
+    if (object == null) return 0;
+    final builder = MonsterObjectBuilder(
+        pos: object.pos,
+        mana: object.mana,
+        hp: object.hp,
+        name: object.name,
+        inventory: object.inventory,
+        color: object.color,
+        testType: object.testType,
+        test: object.test,
+        test4: object.test4,
+        testarrayofstring: object.testarrayofstring,
+        testarrayoftables: object.testarrayoftables,
+        enemy: object.enemy,
+        testnestedflatbuffer: object.testnestedflatbuffer,
+        testempty: object.testempty,
+        testbool: object.testbool,
+        testhashs32Fnv1: object.testhashs32Fnv1,
+        testhashu32Fnv1: object.testhashu32Fnv1,
+        testhashs64Fnv1: object.testhashs64Fnv1,
+        testhashu64Fnv1: object.testhashu64Fnv1,
+        testhashs32Fnv1a: object.testhashs32Fnv1a,
+        testhashu32Fnv1a: object.testhashu32Fnv1a,
+        testhashs64Fnv1a: object.testhashs64Fnv1a,
+        testhashu64Fnv1a: object.testhashu64Fnv1a,
+        testarrayofbools: object.testarrayofbools,
+        testf: object.testf,
+        testf2: object.testf2,
+        testf3: object.testf3,
+        testarrayofstring2: object.testarrayofstring2,
+        testarrayofsortedstruct: object.testarrayofsortedstruct,
+        flex: object.flex,
+        test5: object.test5,
+        vectorOfLongs: object.vectorOfLongs,
+        vectorOfDoubles: object.vectorOfDoubles,
+        parentNamespaceTest: object.parentNamespaceTest,
+        vectorOfReferrables: object.vectorOfReferrables,
+        singleWeakReference: object.singleWeakReference,
+        vectorOfWeakReferences: object.vectorOfWeakReferences,
+        vectorOfStrongReferrables: object.vectorOfStrongReferrables,
+        coOwningReference: object.coOwningReference,
+        vectorOfCoOwningReferences: object.vectorOfCoOwningReferences,
+        nonOwningReference: object.nonOwningReference,
+        vectorOfNonOwningReferences: object.vectorOfNonOwningReferences,
+        anyUniqueType: object.anyUniqueType,
+        anyUnique: object.anyUnique,
+        anyAmbiguousType: object.anyAmbiguousType,
+        anyAmbiguous: object.anyAmbiguous,
+        vectorOfEnums: object.vectorOfEnums,
+        signedEnum: object.signedEnum,
+        testrequirednestedflatbuffer: object.testrequirednestedflatbuffer,
+        scalarKeySortedTables: object.scalarKeySortedTables);
+    return builder.finish(fbBuilder);
+  }
+}
+
+///  an example documentation comment: "monster object"
+class MonsterT {
+  Vec3 pos;
+  int mana;
+  int hp;
+  String name;
+  List<int> inventory;
+  Color color;
+  AnyTypeId testType;
+  // TODO support union field test
+  dynamic test;
+  List<Test> test4;
+  List<String> testarrayofstring;
+  ///  an example documentation comment: this will end up in the generated code
+  ///  multiline too
+  List<Monster> testarrayoftables;
+  Monster enemy;
+  List<int> testnestedflatbuffer;
+  Stat testempty;
+  bool testbool;
+  int testhashs32Fnv1;
+  int testhashu32Fnv1;
+  int testhashs64Fnv1;
+  int testhashu64Fnv1;
+  int testhashs32Fnv1a;
+  int testhashu32Fnv1a;
+  int testhashs64Fnv1a;
+  int testhashu64Fnv1a;
+  List<bool> testarrayofbools;
+  double testf;
+  double testf2;
+  double testf3;
+  List<String> testarrayofstring2;
+  List<Ability> testarrayofsortedstruct;
+  List<int> flex;
+  List<Test> test5;
+  List<int> vectorOfLongs;
+  List<double> vectorOfDoubles;
+  my_game.InParentNamespace parentNamespaceTest;
+  List<Referrable> vectorOfReferrables;
+  int singleWeakReference;
+  List<int> vectorOfWeakReferences;
+  List<Referrable> vectorOfStrongReferrables;
+  int coOwningReference;
+  List<int> vectorOfCoOwningReferences;
+  int nonOwningReference;
+  List<int> vectorOfNonOwningReferences;
+  AnyUniqueAliasesTypeId anyUniqueType;
+  // TODO support union field anyUnique
+  dynamic anyUnique;
+  AnyAmbiguousAliasesTypeId anyAmbiguousType;
+  // TODO support union field anyAmbiguous
+  dynamic anyAmbiguous;
+  List<Color> vectorOfEnums;
+  Race signedEnum;
+  List<int> testrequirednestedflatbuffer;
+  List<Stat> scalarKeySortedTables;
+
+  MonsterT({
+      this.pos,
+      this.mana,
+      this.hp,
+      this.name,
+      this.inventory,
+      this.color,
+      this.testType,
+      this.test,
+      this.test4,
+      this.testarrayofstring,
+      this.testarrayoftables,
+      this.enemy,
+      this.testnestedflatbuffer,
+      this.testempty,
+      this.testbool,
+      this.testhashs32Fnv1,
+      this.testhashu32Fnv1,
+      this.testhashs64Fnv1,
+      this.testhashu64Fnv1,
+      this.testhashs32Fnv1a,
+      this.testhashu32Fnv1a,
+      this.testhashs64Fnv1a,
+      this.testhashu64Fnv1a,
+      this.testarrayofbools,
+      this.testf,
+      this.testf2,
+      this.testf3,
+      this.testarrayofstring2,
+      this.testarrayofsortedstruct,
+      this.flex,
+      this.test5,
+      this.vectorOfLongs,
+      this.vectorOfDoubles,
+      this.parentNamespaceTest,
+      this.vectorOfReferrables,
+      this.singleWeakReference,
+      this.vectorOfWeakReferences,
+      this.vectorOfStrongReferrables,
+      this.coOwningReference,
+      this.vectorOfCoOwningReferences,
+      this.nonOwningReference,
+      this.vectorOfNonOwningReferences,
+      this.anyUniqueType,
+      this.anyUnique,
+      this.anyAmbiguousType,
+      this.anyAmbiguous,
+      this.vectorOfEnums,
+      this.signedEnum,
+      this.testrequirednestedflatbuffer,
+      this.scalarKeySortedTables});
 }
 
 class _MonsterReader extends fb.TableReader<Monster> {
@@ -1489,6 +1871,67 @@ class TypeAliases {
   String toString() {
     return 'TypeAliases{i8: $i8, u8: $u8, i16: $i16, u16: $u16, i32: $i32, u32: $u32, i64: $i64, u64: $u64, f32: $f32, f64: $f64, v8: $v8, vf64: $vf64}';
   }
+
+  TypeAliasesT unPack() => TypeAliasesT(
+      i8: i8,
+      u8: u8,
+      i16: i16,
+      u16: u16,
+      i32: i32,
+      u32: u32,
+      i64: i64,
+      u64: u64,
+      f32: f32,
+      f64: f64,
+      v8: v8,
+      vf64: vf64);
+
+  static int pack(fb.Builder fbBuilder, TypeAliasesT object) {
+    if (object == null) return 0;
+    final builder = TypeAliasesObjectBuilder(
+        i8: object.i8,
+        u8: object.u8,
+        i16: object.i16,
+        u16: object.u16,
+        i32: object.i32,
+        u32: object.u32,
+        i64: object.i64,
+        u64: object.u64,
+        f32: object.f32,
+        f64: object.f64,
+        v8: object.v8,
+        vf64: object.vf64);
+    return builder.finish(fbBuilder);
+  }
+}
+
+class TypeAliasesT {
+  int i8;
+  int u8;
+  int i16;
+  int u16;
+  int i32;
+  int u32;
+  int i64;
+  int u64;
+  double f32;
+  double f64;
+  List<int> v8;
+  List<double> vf64;
+
+  TypeAliasesT({
+      this.i8,
+      this.u8,
+      this.i16,
+      this.u16,
+      this.i32,
+      this.u32,
+      this.i64,
+      this.u64,
+      this.f32,
+      this.f64,
+      this.v8,
+      this.vf64});
 }
 
 class _TypeAliasesReader extends fb.TableReader<TypeAliases> {

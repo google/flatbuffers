@@ -456,7 +456,18 @@ class DartGenerator : public BaseGenerator {
 
     GenImplementationGetters(struct_def, non_deprecated_fields, &code);
 
+    if (parser_.opts.generate_object_based_api) {
+      code +=
+          "\n" + GenStructObjectAPIUnPack(struct_def, non_deprecated_fields);
+
+      code += "\n" + GenStructObjectAPIPack(struct_def, non_deprecated_fields);
+    }
+
     code += "}\n\n";
+
+    if (parser_.opts.generate_object_based_api) {
+      code += GenStructObjectAPI(struct_def, non_deprecated_fields);
+    }
 
     GenReader(struct_def, &reader_name, &reader_code);
     GenBuilder(struct_def, non_deprecated_fields, &builder_name, &builder_code);
@@ -467,6 +478,87 @@ class DartGenerator : public BaseGenerator {
     code += builder_code;
 
     (*namespace_code)[object_namespace] += code;
+  }
+
+  // Generate an accessor struct with constructor for a flatbuffers struct.
+  std::string GenStructObjectAPI(
+      const StructDef &struct_def,
+      const std::vector<std::pair<int, FieldDef *>> &non_deprecated_fields) {
+    std::string code;
+    GenDocComment(struct_def.doc_comment, &code, "");
+
+    std::string class_name = struct_def.name + "T";
+    code += "class " + class_name + " {\n";
+
+    std::string constructor_args;
+    for (const auto &pair : non_deprecated_fields) {
+      const FieldDef &field = *pair.second;
+
+      std::string field_name = MakeCamel(field.name, false);
+      std::string type_name = GenDartTypeName(
+          field.value.type, struct_def.defined_namespace, field, false);
+
+      GenDocComment(field.doc_comment, &code, "", "  ");
+
+      if (field.value.type.base_type == BASE_TYPE_UNION) {
+        // TODO support unions
+        code += "  // TODO support union field " + field_name + "\n";
+      }
+      code += "  " + type_name + " " + field_name + ";\n";
+
+      if (!constructor_args.empty()) constructor_args += ",\n";
+      constructor_args += "      this." + field_name;
+    }
+
+    if (!constructor_args.empty()) {
+      code += "\n  " + class_name + "({\n" + constructor_args + "});\n";
+    }
+
+    code += "}\n\n";
+    return code;
+  }
+
+  // Generate function `StructNameT unPack()`
+  std::string GenStructObjectAPIUnPack(
+      const StructDef &struct_def,
+      const std::vector<std::pair<int, FieldDef *>> &non_deprecated_fields) {
+    std::string constructor_args;
+    for (const auto &pair : non_deprecated_fields) {
+      std::string field_name = MakeCamel(pair.second->name, false);
+      if (!constructor_args.empty()) constructor_args += ",\n";
+      constructor_args += "      " + field_name + ": " + field_name;
+    }
+
+    std::string class_name = struct_def.name + "T";
+    std::string code = "  " + class_name + " unPack() => " + class_name + "(";
+    if (!constructor_args.empty()) code += "\n" + constructor_args;
+    code += ");\n";
+    return code;
+  }
+
+  // Generate function `StructNameT pack()`
+  std::string GenStructObjectAPIPack(
+      const StructDef &struct_def,
+      const std::vector<std::pair<int, FieldDef *>> &non_deprecated_fields) {
+    std::string constructor_args;
+    for (const auto &pair : non_deprecated_fields) {
+      std::string field_name = MakeCamel(pair.second->name, false);
+      if (!constructor_args.empty()) constructor_args += ",\n";
+      constructor_args += "        " + field_name + ": object." + field_name;
+    }
+
+    std::string code = "  static int pack(fb.Builder fbBuilder, " +
+                       struct_def.name + "T object) {\n";
+    code += "    if (object == null) return 0;\n";
+    // TODO this is suboptimal because upon ...Builder construction, all props
+    //      are copied. Either use the same code as ...Builder.finish() or make
+    //      ...Builder accept the T class as an argument (and hold props in it).
+    code += "    final builder = " + struct_def.name + "ObjectBuilder(";
+    if (!constructor_args.empty()) code += "\n" + constructor_args;
+    code += ");\n";
+    code += "    return builder.finish(fbBuilder);\n";
+    code += "  }\n";
+    return code;
   }
 
   std::string NamespaceAliasFromUnionType(Namespace *root_namespace,

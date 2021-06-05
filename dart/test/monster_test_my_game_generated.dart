@@ -26,6 +26,17 @@ class InParentNamespace {
   String toString() {
     return 'InParentNamespace{}';
   }
+
+  InParentNamespaceT unPack() => InParentNamespaceT();
+
+  static int pack(fb.Builder fbBuilder, InParentNamespaceT object) {
+    if (object == null) return 0;
+    final builder = InParentNamespaceObjectBuilder();
+    return builder.finish(fbBuilder);
+  }
+}
+
+class InParentNamespaceT {
 }
 
 class _InParentNamespaceReader extends fb.TableReader<InParentNamespace> {
