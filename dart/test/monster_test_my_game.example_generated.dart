@@ -472,7 +472,7 @@ class Vec3T {
     assert(fbBuilder != null);
 
     fbBuilder.pad(2);
-    test3.finish(fbBuilder);
+    test3.pack(fbBuilder);
     fbBuilder.pad(1);
     fbBuilder.putUint8(test2?.value);
     fbBuilder.putFloat64(test1);
@@ -706,9 +706,9 @@ class StructOfStructsT {
   int pack(fb.Builder fbBuilder) {
     assert(fbBuilder != null);
 
-    c.finish(fbBuilder);
-    b.finish(fbBuilder);
-    a.finish(fbBuilder);
+    c.pack(fbBuilder);
+    b.pack(fbBuilder);
+    a.pack(fbBuilder);
     return fbBuilder.offset;
   }
 }
@@ -1270,51 +1270,57 @@ class MonsterT {
     final int inventoryOffset = inventory?.isNotEmpty == true
         ? fbBuilder.writeListUint8(inventory)
         : null;
-    final int testOffset = test?.getOrCreateOffset(fbBuilder);
-    final int test4Offset = test4?.isNotEmpty == true
-        ? fbBuilder.writeListOfStructs(test4)
-        : null;
+    final int testOffset = test?.pack(fbBuilder);
+    int test4Offset = 0;
+    if (test4?.isNotEmpty == true) {
+      test4.forEach((e) => e.pack(fbBuilder));
+      test4Offset = fbBuilder.endStructVector(test4.length);
+    }
     final int testarrayofstringOffset = testarrayofstring?.isNotEmpty == true
         ? fbBuilder.writeList(testarrayofstring.map((b) => fbBuilder.writeString(b)).toList())
         : null;
     final int testarrayoftablesOffset = testarrayoftables?.isNotEmpty == true
-        ? fbBuilder.writeList(testarrayoftables.map((b) => b.getOrCreateOffset(fbBuilder)).toList())
+        ? fbBuilder.writeList(testarrayoftables.map((b) => b.pack(fbBuilder)).toList())
         : null;
-    final int enemyOffset = enemy?.getOrCreateOffset(fbBuilder);
+    final int enemyOffset = enemy?.pack(fbBuilder);
     final int testnestedflatbufferOffset = testnestedflatbuffer?.isNotEmpty == true
         ? fbBuilder.writeListUint8(testnestedflatbuffer)
         : null;
-    final int testemptyOffset = testempty?.getOrCreateOffset(fbBuilder);
+    final int testemptyOffset = testempty?.pack(fbBuilder);
     final int testarrayofboolsOffset = testarrayofbools?.isNotEmpty == true
         ? fbBuilder.writeListBool(testarrayofbools)
         : null;
     final int testarrayofstring2Offset = testarrayofstring2?.isNotEmpty == true
         ? fbBuilder.writeList(testarrayofstring2.map((b) => fbBuilder.writeString(b)).toList())
         : null;
-    final int testarrayofsortedstructOffset = testarrayofsortedstruct?.isNotEmpty == true
-        ? fbBuilder.writeListOfStructs(testarrayofsortedstruct)
-        : null;
+    int testarrayofsortedstructOffset = 0;
+    if (testarrayofsortedstruct?.isNotEmpty == true) {
+      testarrayofsortedstruct.forEach((e) => e.pack(fbBuilder));
+      testarrayofsortedstructOffset = fbBuilder.endStructVector(testarrayofsortedstruct.length);
+    }
     final int flexOffset = flex?.isNotEmpty == true
         ? fbBuilder.writeListUint8(flex)
         : null;
-    final int test5Offset = test5?.isNotEmpty == true
-        ? fbBuilder.writeListOfStructs(test5)
-        : null;
+    int test5Offset = 0;
+    if (test5?.isNotEmpty == true) {
+      test5.forEach((e) => e.pack(fbBuilder));
+      test5Offset = fbBuilder.endStructVector(test5.length);
+    }
     final int vectorOfLongsOffset = vectorOfLongs?.isNotEmpty == true
         ? fbBuilder.writeListInt64(vectorOfLongs)
         : null;
     final int vectorOfDoublesOffset = vectorOfDoubles?.isNotEmpty == true
         ? fbBuilder.writeListFloat64(vectorOfDoubles)
         : null;
-    final int parentNamespaceTestOffset = parentNamespaceTest?.getOrCreateOffset(fbBuilder);
+    final int parentNamespaceTestOffset = parentNamespaceTest?.pack(fbBuilder);
     final int vectorOfReferrablesOffset = vectorOfReferrables?.isNotEmpty == true
-        ? fbBuilder.writeList(vectorOfReferrables.map((b) => b.getOrCreateOffset(fbBuilder)).toList())
+        ? fbBuilder.writeList(vectorOfReferrables.map((b) => b.pack(fbBuilder)).toList())
         : null;
     final int vectorOfWeakReferencesOffset = vectorOfWeakReferences?.isNotEmpty == true
         ? fbBuilder.writeListUint64(vectorOfWeakReferences)
         : null;
     final int vectorOfStrongReferrablesOffset = vectorOfStrongReferrables?.isNotEmpty == true
-        ? fbBuilder.writeList(vectorOfStrongReferrables.map((b) => b.getOrCreateOffset(fbBuilder)).toList())
+        ? fbBuilder.writeList(vectorOfStrongReferrables.map((b) => b.pack(fbBuilder)).toList())
         : null;
     final int vectorOfCoOwningReferencesOffset = vectorOfCoOwningReferences?.isNotEmpty == true
         ? fbBuilder.writeListUint64(vectorOfCoOwningReferences)
@@ -1322,8 +1328,8 @@ class MonsterT {
     final int vectorOfNonOwningReferencesOffset = vectorOfNonOwningReferences?.isNotEmpty == true
         ? fbBuilder.writeListUint64(vectorOfNonOwningReferences)
         : null;
-    final int anyUniqueOffset = anyUnique?.getOrCreateOffset(fbBuilder);
-    final int anyAmbiguousOffset = anyAmbiguous?.getOrCreateOffset(fbBuilder);
+    final int anyUniqueOffset = anyUnique?.pack(fbBuilder);
+    final int anyAmbiguousOffset = anyAmbiguous?.pack(fbBuilder);
     final int vectorOfEnumsOffset = vectorOfEnums?.isNotEmpty == true
         ? fbBuilder.writeListUint8(vectorOfEnums.map((f) => f.value))
         : null;
@@ -1331,12 +1337,12 @@ class MonsterT {
         ? fbBuilder.writeListUint8(testrequirednestedflatbuffer)
         : null;
     final int scalarKeySortedTablesOffset = scalarKeySortedTables?.isNotEmpty == true
-        ? fbBuilder.writeList(scalarKeySortedTables.map((b) => b.getOrCreateOffset(fbBuilder)).toList())
+        ? fbBuilder.writeList(scalarKeySortedTables.map((b) => b.pack(fbBuilder)).toList())
         : null;
 
     fbBuilder.startTable();
     if (pos != null) {
-      fbBuilder.addStruct(0, pos.finish(fbBuilder));
+      fbBuilder.addStruct(0, pos.pack(fbBuilder));
     }
     fbBuilder.addInt16(1, mana);
     fbBuilder.addInt16(2, hp);

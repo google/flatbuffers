@@ -557,7 +557,16 @@ class DartGenerator : public BaseGenerator {
       const std::vector<std::pair<int, FieldDef *>> &non_deprecated_fields) {
     std::string code = "  int pack(fb.Builder fbBuilder) {\n";
     code += GenObjectBuilderImplementation(struct_def, non_deprecated_fields,
-                                           false);
+                                           false, true);
+    // TODO figure out packOnce() and how to keep the state throughout a pack().
+//    code += "  }\n\n";
+//    code += "/// Write the object to the [Builder] only once and reuse the same offset \n"
+//        "  /// on subsequent references of the same object.\n"
+//        "  ///\n"
+//        "  /// Note that this method assumes you call it using the same [Builder] instance\n"
+//        "  /// every time. The returned offset is only good for the [Builder] used in the\n"
+//        "  /// first call to this method."
+//    code += "  int packOnce(fb.Builder fbBuilder) {\n";
     code += "  }\n";
     return code;
   }
@@ -907,7 +916,7 @@ class DartGenerator : public BaseGenerator {
   std::string GenObjectBuilderImplementation(
       const StructDef &struct_def,
       const std::vector<std::pair<int, FieldDef *>> &non_deprecated_fields,
-      bool prependUnderscore = true) {
+      bool prependUnderscore = true, bool pack = false) {
     std::string code = "    assert(fbBuilder != null);\n";
     for (const auto &pair : non_deprecated_fields) {
       auto &field = *pair.second;
@@ -915,9 +924,25 @@ class DartGenerator : public BaseGenerator {
       if (IsScalar(field.value.type.base_type) || IsStruct(field.value.type))
         continue;
 
-      code += "    final int " + MakeCamel(field.name, false) + "Offset";
+      std::string offset_name = MakeCamel(field.name, false) + "Offset";
       std::string field_name =
           (prependUnderscore ? "_" : "") + MakeCamel(field.name, false);
+
+      // custom handling for fixed-sized struct in pack()
+      if (pack && IsVector(field.value.type) &&
+          field.value.type.VectorType().base_type == BASE_TYPE_STRUCT &&
+          field.value.type.struct_def->fixed) {
+        code += "    int " + offset_name + " = 0;\n";
+        code += "    if (" + field_name + "?.isNotEmpty == true) {\n";
+        code += "      " + field_name + ".forEach((e) => e.pack(fbBuilder));\n";
+        code += "      " + MakeCamel(field.name, false) +
+                "Offset = fbBuilder.endStructVector(" + field_name +
+                ".length);\n";
+        code += "    }\n";
+        continue;
+      }
+
+      code += "    final int " + offset_name;
       if (IsVector(field.value.type)) {
         code += " = " + field_name + "?.isNotEmpty == true\n";
         code += "        ? fbBuilder.writeList";
@@ -930,8 +955,10 @@ class DartGenerator : public BaseGenerator {
             if (field.value.type.struct_def->fixed) {
               code += "OfStructs(" + field_name + ")";
             } else {
-              code += "(" + field_name +
-                      ".map((b) => b.getOrCreateOffset(fbBuilder)).toList())";
+              // TODO use packOnce
+              code += "(" + field_name + ".map((b) => b." +
+                      (pack ? "pack" : "getOrCreateOffset") +
+                      "(fbBuilder)).toList())";
             }
             break;
           default:
@@ -943,21 +970,25 @@ class DartGenerator : public BaseGenerator {
       } else if (IsString(field.value.type)) {
         code += " = fbBuilder.writeString(" + field_name + ");\n";
       } else {
-        code += " = " + field_name + "?.getOrCreateOffset(fbBuilder);\n";
+        // TODO use packOnce
+        code += " = " + field_name + "?." +
+                (pack ? "pack" : "getOrCreateOffset") + "(fbBuilder);\n";
       }
     }
     code += "\n";
     if (struct_def.fixed) {
-      code += StructObjectBuilderBody(non_deprecated_fields, prependUnderscore);
+      code += StructObjectBuilderBody(non_deprecated_fields, prependUnderscore,
+                                      pack);
     } else {
-      code += TableObjectBuilderBody(non_deprecated_fields, prependUnderscore);
+      code += TableObjectBuilderBody(non_deprecated_fields, prependUnderscore,
+                                     pack);
     }
     return code;
   }
 
   std::string StructObjectBuilderBody(
       const std::vector<std::pair<int, FieldDef *>> &non_deprecated_fields,
-      bool prependUnderscore = true) {
+      bool prependUnderscore = true, bool pack = false) {
     std::string code;
 
     for (auto it = non_deprecated_fields.rbegin();
@@ -972,7 +1003,7 @@ class DartGenerator : public BaseGenerator {
       if (IsStruct(field.value.type)) {
         code += "    ";
         if (prependUnderscore) { code += "_"; }
-        code += field.name + ".finish(fbBuilder);\n";
+        code += field.name + (pack ? ".pack" : ".finish") + "(fbBuilder);\n";
       } else {
         code += "    fbBuilder.put" + GenType(field.value.type) + "(";
         if (prependUnderscore) { code += "_"; }
@@ -988,7 +1019,7 @@ class DartGenerator : public BaseGenerator {
 
   std::string TableObjectBuilderBody(
       const std::vector<std::pair<int, FieldDef *>> &non_deprecated_fields,
-      bool prependUnderscore = true) {
+      bool prependUnderscore = true, bool pack = false) {
     std::string code;
     code += "    fbBuilder.startTable();\n";
 
@@ -1007,7 +1038,7 @@ class DartGenerator : public BaseGenerator {
       } else if (IsStruct(field.value.type)) {
         code += "    if (" + field_name + " != null) {\n";
         code += "      fbBuilder.addStruct(" + NumToString(offset) + ", " +
-                field_name + ".finish(fbBuilder));\n";
+                field_name + (pack ? ".pack" : ".finish") + "(fbBuilder));\n";
         code += "    }\n";
       } else {
         code +=
