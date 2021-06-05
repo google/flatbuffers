@@ -506,11 +506,6 @@ class DartGenerator : public BaseGenerator {
           field.value.type, struct_def.defined_namespace, field, "T");
 
       GenDocComment(field.doc_comment, &code, "", "  ");
-
-      if (field.value.type.base_type == BASE_TYPE_UNION) {
-        // TODO support unions
-        code += "  // TODO support union field " + field_name + "\n";
-      }
       code += "  " + type_name + " " + field_name + ";\n";
 
       if (!constructor_args.empty()) constructor_args += ",\n";

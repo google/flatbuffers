@@ -260,12 +260,12 @@ class TestT {
   /// Note that this method assumes you call it using the same [Builder]
   /// instance every time. The returned offset is only good for the [Builder]
   /// used in the first call to this method.
-  int packOnce(fb.Builder fbBuilder, HashMap<Object, int> existingOffsets) {
+  int packOnce(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
     assert(existingOffsets != null);
     return existingOffsets[this] ??= _pack(fbBuilder, existingOffsets);
   }
 
-  int _pack(fb.Builder fbBuilder, HashMap<Object, int> existingOffsets) {
+  int _pack(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
     assert(existingOffsets != null);
     assert(fbBuilder != null);
 
@@ -376,12 +376,12 @@ class TestSimpleTableWithEnumT {
   /// Note that this method assumes you call it using the same [Builder]
   /// instance every time. The returned offset is only good for the [Builder]
   /// used in the first call to this method.
-  int packOnce(fb.Builder fbBuilder, HashMap<Object, int> existingOffsets) {
+  int packOnce(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
     assert(existingOffsets != null);
     return existingOffsets[this] ??= _pack(fbBuilder, existingOffsets);
   }
 
-  int _pack(fb.Builder fbBuilder, HashMap<Object, int> existingOffsets) {
+  int _pack(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
     assert(existingOffsets != null);
     assert(fbBuilder != null);
 
@@ -505,12 +505,12 @@ class Vec3T {
   /// Note that this method assumes you call it using the same [Builder]
   /// instance every time. The returned offset is only good for the [Builder]
   /// used in the first call to this method.
-  int packOnce(fb.Builder fbBuilder, HashMap<Object, int> existingOffsets) {
+  int packOnce(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
     assert(existingOffsets != null);
     return existingOffsets[this] ??= _pack(fbBuilder, existingOffsets);
   }
 
-  int _pack(fb.Builder fbBuilder, HashMap<Object, int> existingOffsets) {
+  int _pack(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
     assert(existingOffsets != null);
     assert(fbBuilder != null);
 
@@ -651,12 +651,12 @@ class AbilityT {
   /// Note that this method assumes you call it using the same [Builder]
   /// instance every time. The returned offset is only good for the [Builder]
   /// used in the first call to this method.
-  int packOnce(fb.Builder fbBuilder, HashMap<Object, int> existingOffsets) {
+  int packOnce(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
     assert(existingOffsets != null);
     return existingOffsets[this] ??= _pack(fbBuilder, existingOffsets);
   }
 
-  int _pack(fb.Builder fbBuilder, HashMap<Object, int> existingOffsets) {
+  int _pack(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
     assert(existingOffsets != null);
     assert(fbBuilder != null);
 
@@ -768,12 +768,12 @@ class StructOfStructsT {
   /// Note that this method assumes you call it using the same [Builder]
   /// instance every time. The returned offset is only good for the [Builder]
   /// used in the first call to this method.
-  int packOnce(fb.Builder fbBuilder, HashMap<Object, int> existingOffsets) {
+  int packOnce(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
     assert(existingOffsets != null);
     return existingOffsets[this] ??= _pack(fbBuilder, existingOffsets);
   }
 
-  int _pack(fb.Builder fbBuilder, HashMap<Object, int> existingOffsets) {
+  int _pack(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
     assert(existingOffsets != null);
     assert(fbBuilder != null);
 
@@ -895,12 +895,12 @@ class StatT {
   /// Note that this method assumes you call it using the same [Builder]
   /// instance every time. The returned offset is only good for the [Builder]
   /// used in the first call to this method.
-  int packOnce(fb.Builder fbBuilder, HashMap<Object, int> existingOffsets) {
+  int packOnce(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
     assert(existingOffsets != null);
     return existingOffsets[this] ??= _pack(fbBuilder, existingOffsets);
   }
 
-  int _pack(fb.Builder fbBuilder, HashMap<Object, int> existingOffsets) {
+  int _pack(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
     assert(existingOffsets != null);
     assert(fbBuilder != null);
     final int idOffset = fbBuilder.writeString(id);
@@ -1032,12 +1032,12 @@ class ReferrableT {
   /// Note that this method assumes you call it using the same [Builder]
   /// instance every time. The returned offset is only good for the [Builder]
   /// used in the first call to this method.
-  int packOnce(fb.Builder fbBuilder, HashMap<Object, int> existingOffsets) {
+  int packOnce(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
     assert(existingOffsets != null);
     return existingOffsets[this] ??= _pack(fbBuilder, existingOffsets);
   }
 
-  int _pack(fb.Builder fbBuilder, HashMap<Object, int> existingOffsets) {
+  int _pack(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
     assert(existingOffsets != null);
     assert(fbBuilder != null);
 
@@ -1262,7 +1262,6 @@ class MonsterT {
   List<int> inventory;
   Color color;
   AnyTypeId testType;
-  // TODO support union field test
   dynamic test;
   List<TestT> test4;
   List<String> testarrayofstring;
@@ -1301,10 +1300,8 @@ class MonsterT {
   int nonOwningReference;
   List<int> vectorOfNonOwningReferences;
   AnyUniqueAliasesTypeId anyUniqueType;
-  // TODO support union field anyUnique
   dynamic anyUnique;
   AnyAmbiguousAliasesTypeId anyAmbiguousType;
-  // TODO support union field anyAmbiguous
   dynamic anyAmbiguous;
   List<Color> vectorOfEnums;
   Race signedEnum;
@@ -1371,12 +1368,12 @@ class MonsterT {
   /// Note that this method assumes you call it using the same [Builder]
   /// instance every time. The returned offset is only good for the [Builder]
   /// used in the first call to this method.
-  int packOnce(fb.Builder fbBuilder, HashMap<Object, int> existingOffsets) {
+  int packOnce(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
     assert(existingOffsets != null);
     return existingOffsets[this] ??= _pack(fbBuilder, existingOffsets);
   }
 
-  int _pack(fb.Builder fbBuilder, HashMap<Object, int> existingOffsets) {
+  int _pack(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
     assert(existingOffsets != null);
     assert(fbBuilder != null);
     final int nameOffset = fbBuilder.writeString(name);
@@ -2221,12 +2218,12 @@ class TypeAliasesT {
   /// Note that this method assumes you call it using the same [Builder]
   /// instance every time. The returned offset is only good for the [Builder]
   /// used in the first call to this method.
-  int packOnce(fb.Builder fbBuilder, HashMap<Object, int> existingOffsets) {
+  int packOnce(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
     assert(existingOffsets != null);
     return existingOffsets[this] ??= _pack(fbBuilder, existingOffsets);
   }
 
-  int _pack(fb.Builder fbBuilder, HashMap<Object, int> existingOffsets) {
+  int _pack(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
     assert(existingOffsets != null);
     assert(fbBuilder != null);
     final int v8Offset = v8?.isNotEmpty == true

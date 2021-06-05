@@ -46,12 +46,12 @@ class InParentNamespaceT {
   /// Note that this method assumes you call it using the same [Builder]
   /// instance every time. The returned offset is only good for the [Builder]
   /// used in the first call to this method.
-  int packOnce(fb.Builder fbBuilder, HashMap<Object, int> existingOffsets) {
+  int packOnce(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
     assert(existingOffsets != null);
     return existingOffsets[this] ??= _pack(fbBuilder, existingOffsets);
   }
 
-  int _pack(fb.Builder fbBuilder, HashMap<Object, int> existingOffsets) {
+  int _pack(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
     assert(existingOffsets != null);
     assert(fbBuilder != null);
 
