@@ -239,10 +239,12 @@ class Test {
 
   static int pack(fb.Builder fbBuilder, TestT object) {
     if (object == null) return 0;
-    final builder = TestObjectBuilder(
-        a: object.a,
-        b: object.b);
-    return builder.finish(fbBuilder);
+    assert(fbBuilder != null);
+
+    fbBuilder.pad(1);
+    fbBuilder.putInt8(b);
+    fbBuilder.putInt16(a);
+    return fbBuilder.offset;
   }
 }
 
@@ -337,9 +339,11 @@ class TestSimpleTableWithEnum {
 
   static int pack(fb.Builder fbBuilder, TestSimpleTableWithEnumT object) {
     if (object == null) return 0;
-    final builder = TestSimpleTableWithEnumObjectBuilder(
-        color: object.color);
-    return builder.finish(fbBuilder);
+    assert(fbBuilder != null);
+
+    fbBuilder.startTable();
+    fbBuilder.addUint8(0, color?.value);
+    return fbBuilder.endTable();
   }
 }
 
@@ -436,14 +440,18 @@ class Vec3 {
 
   static int pack(fb.Builder fbBuilder, Vec3T object) {
     if (object == null) return 0;
-    final builder = Vec3ObjectBuilder(
-        x: object.x,
-        y: object.y,
-        z: object.z,
-        test1: object.test1,
-        test2: object.test2,
-        test3: object.test3);
-    return builder.finish(fbBuilder);
+    assert(fbBuilder != null);
+
+    fbBuilder.pad(2);
+    test3.finish(fbBuilder);
+    fbBuilder.pad(1);
+    fbBuilder.putUint8(test2?.value);
+    fbBuilder.putFloat64(test1);
+    fbBuilder.pad(4);
+    fbBuilder.putFloat32(z);
+    fbBuilder.putFloat32(y);
+    fbBuilder.putFloat32(x);
+    return fbBuilder.offset;
   }
 }
 
@@ -568,10 +576,11 @@ class Ability {
 
   static int pack(fb.Builder fbBuilder, AbilityT object) {
     if (object == null) return 0;
-    final builder = AbilityObjectBuilder(
-        id: object.id,
-        distance: object.distance);
-    return builder.finish(fbBuilder);
+    assert(fbBuilder != null);
+
+    fbBuilder.putUint32(distance);
+    fbBuilder.putUint32(id);
+    return fbBuilder.offset;
   }
 }
 
@@ -664,11 +673,12 @@ class StructOfStructs {
 
   static int pack(fb.Builder fbBuilder, StructOfStructsT object) {
     if (object == null) return 0;
-    final builder = StructOfStructsObjectBuilder(
-        a: object.a,
-        b: object.b,
-        c: object.c);
-    return builder.finish(fbBuilder);
+    assert(fbBuilder != null);
+
+    c.finish(fbBuilder);
+    b.finish(fbBuilder);
+    a.finish(fbBuilder);
+    return fbBuilder.offset;
   }
 }
 
@@ -772,11 +782,16 @@ class Stat {
 
   static int pack(fb.Builder fbBuilder, StatT object) {
     if (object == null) return 0;
-    final builder = StatObjectBuilder(
-        id: object.id,
-        val: object.val,
-        count: object.count);
-    return builder.finish(fbBuilder);
+    assert(fbBuilder != null);
+    final int idOffset = fbBuilder.writeString(id);
+
+    fbBuilder.startTable();
+    if (idOffset != null) {
+      fbBuilder.addOffset(0, idOffset);
+    }
+    fbBuilder.addInt64(1, val);
+    fbBuilder.addUint16(2, count);
+    return fbBuilder.endTable();
   }
 }
 
@@ -890,9 +905,11 @@ class Referrable {
 
   static int pack(fb.Builder fbBuilder, ReferrableT object) {
     if (object == null) return 0;
-    final builder = ReferrableObjectBuilder(
-        id: object.id);
-    return builder.finish(fbBuilder);
+    assert(fbBuilder != null);
+
+    fbBuilder.startTable();
+    fbBuilder.addUint64(0, id);
+    return fbBuilder.endTable();
   }
 }
 
@@ -1105,58 +1122,183 @@ class Monster {
 
   static int pack(fb.Builder fbBuilder, MonsterT object) {
     if (object == null) return 0;
-    final builder = MonsterObjectBuilder(
-        pos: object.pos,
-        mana: object.mana,
-        hp: object.hp,
-        name: object.name,
-        inventory: object.inventory,
-        color: object.color,
-        testType: object.testType,
-        test: object.test,
-        test4: object.test4,
-        testarrayofstring: object.testarrayofstring,
-        testarrayoftables: object.testarrayoftables,
-        enemy: object.enemy,
-        testnestedflatbuffer: object.testnestedflatbuffer,
-        testempty: object.testempty,
-        testbool: object.testbool,
-        testhashs32Fnv1: object.testhashs32Fnv1,
-        testhashu32Fnv1: object.testhashu32Fnv1,
-        testhashs64Fnv1: object.testhashs64Fnv1,
-        testhashu64Fnv1: object.testhashu64Fnv1,
-        testhashs32Fnv1a: object.testhashs32Fnv1a,
-        testhashu32Fnv1a: object.testhashu32Fnv1a,
-        testhashs64Fnv1a: object.testhashs64Fnv1a,
-        testhashu64Fnv1a: object.testhashu64Fnv1a,
-        testarrayofbools: object.testarrayofbools,
-        testf: object.testf,
-        testf2: object.testf2,
-        testf3: object.testf3,
-        testarrayofstring2: object.testarrayofstring2,
-        testarrayofsortedstruct: object.testarrayofsortedstruct,
-        flex: object.flex,
-        test5: object.test5,
-        vectorOfLongs: object.vectorOfLongs,
-        vectorOfDoubles: object.vectorOfDoubles,
-        parentNamespaceTest: object.parentNamespaceTest,
-        vectorOfReferrables: object.vectorOfReferrables,
-        singleWeakReference: object.singleWeakReference,
-        vectorOfWeakReferences: object.vectorOfWeakReferences,
-        vectorOfStrongReferrables: object.vectorOfStrongReferrables,
-        coOwningReference: object.coOwningReference,
-        vectorOfCoOwningReferences: object.vectorOfCoOwningReferences,
-        nonOwningReference: object.nonOwningReference,
-        vectorOfNonOwningReferences: object.vectorOfNonOwningReferences,
-        anyUniqueType: object.anyUniqueType,
-        anyUnique: object.anyUnique,
-        anyAmbiguousType: object.anyAmbiguousType,
-        anyAmbiguous: object.anyAmbiguous,
-        vectorOfEnums: object.vectorOfEnums,
-        signedEnum: object.signedEnum,
-        testrequirednestedflatbuffer: object.testrequirednestedflatbuffer,
-        scalarKeySortedTables: object.scalarKeySortedTables);
-    return builder.finish(fbBuilder);
+    assert(fbBuilder != null);
+    final int nameOffset = fbBuilder.writeString(name);
+    final int inventoryOffset = inventory?.isNotEmpty == true
+        ? fbBuilder.writeListUint8(inventory)
+        : null;
+    final int testOffset = test?.getOrCreateOffset(fbBuilder);
+    final int test4Offset = test4?.isNotEmpty == true
+        ? fbBuilder.writeListOfStructs(test4)
+        : null;
+    final int testarrayofstringOffset = testarrayofstring?.isNotEmpty == true
+        ? fbBuilder.writeList(testarrayofstring.map((b) => fbBuilder.writeString(b)).toList())
+        : null;
+    final int testarrayoftablesOffset = testarrayoftables?.isNotEmpty == true
+        ? fbBuilder.writeList(testarrayoftables.map((b) => b.getOrCreateOffset(fbBuilder)).toList())
+        : null;
+    final int enemyOffset = enemy?.getOrCreateOffset(fbBuilder);
+    final int testnestedflatbufferOffset = testnestedflatbuffer?.isNotEmpty == true
+        ? fbBuilder.writeListUint8(testnestedflatbuffer)
+        : null;
+    final int testemptyOffset = testempty?.getOrCreateOffset(fbBuilder);
+    final int testarrayofboolsOffset = testarrayofbools?.isNotEmpty == true
+        ? fbBuilder.writeListBool(testarrayofbools)
+        : null;
+    final int testarrayofstring2Offset = testarrayofstring2?.isNotEmpty == true
+        ? fbBuilder.writeList(testarrayofstring2.map((b) => fbBuilder.writeString(b)).toList())
+        : null;
+    final int testarrayofsortedstructOffset = testarrayofsortedstruct?.isNotEmpty == true
+        ? fbBuilder.writeListOfStructs(testarrayofsortedstruct)
+        : null;
+    final int flexOffset = flex?.isNotEmpty == true
+        ? fbBuilder.writeListUint8(flex)
+        : null;
+    final int test5Offset = test5?.isNotEmpty == true
+        ? fbBuilder.writeListOfStructs(test5)
+        : null;
+    final int vectorOfLongsOffset = vectorOfLongs?.isNotEmpty == true
+        ? fbBuilder.writeListInt64(vectorOfLongs)
+        : null;
+    final int vectorOfDoublesOffset = vectorOfDoubles?.isNotEmpty == true
+        ? fbBuilder.writeListFloat64(vectorOfDoubles)
+        : null;
+    final int parentNamespaceTestOffset = parentNamespaceTest?.getOrCreateOffset(fbBuilder);
+    final int vectorOfReferrablesOffset = vectorOfReferrables?.isNotEmpty == true
+        ? fbBuilder.writeList(vectorOfReferrables.map((b) => b.getOrCreateOffset(fbBuilder)).toList())
+        : null;
+    final int vectorOfWeakReferencesOffset = vectorOfWeakReferences?.isNotEmpty == true
+        ? fbBuilder.writeListUint64(vectorOfWeakReferences)
+        : null;
+    final int vectorOfStrongReferrablesOffset = vectorOfStrongReferrables?.isNotEmpty == true
+        ? fbBuilder.writeList(vectorOfStrongReferrables.map((b) => b.getOrCreateOffset(fbBuilder)).toList())
+        : null;
+    final int vectorOfCoOwningReferencesOffset = vectorOfCoOwningReferences?.isNotEmpty == true
+        ? fbBuilder.writeListUint64(vectorOfCoOwningReferences)
+        : null;
+    final int vectorOfNonOwningReferencesOffset = vectorOfNonOwningReferences?.isNotEmpty == true
+        ? fbBuilder.writeListUint64(vectorOfNonOwningReferences)
+        : null;
+    final int anyUniqueOffset = anyUnique?.getOrCreateOffset(fbBuilder);
+    final int anyAmbiguousOffset = anyAmbiguous?.getOrCreateOffset(fbBuilder);
+    final int vectorOfEnumsOffset = vectorOfEnums?.isNotEmpty == true
+        ? fbBuilder.writeListUint8(vectorOfEnums.map((f) => f.value))
+        : null;
+    final int testrequirednestedflatbufferOffset = testrequirednestedflatbuffer?.isNotEmpty == true
+        ? fbBuilder.writeListUint8(testrequirednestedflatbuffer)
+        : null;
+    final int scalarKeySortedTablesOffset = scalarKeySortedTables?.isNotEmpty == true
+        ? fbBuilder.writeList(scalarKeySortedTables.map((b) => b.getOrCreateOffset(fbBuilder)).toList())
+        : null;
+
+    fbBuilder.startTable();
+    if (pos != null) {
+      fbBuilder.addStruct(0, pos.finish(fbBuilder));
+    }
+    fbBuilder.addInt16(1, mana);
+    fbBuilder.addInt16(2, hp);
+    if (nameOffset != null) {
+      fbBuilder.addOffset(3, nameOffset);
+    }
+    if (inventoryOffset != null) {
+      fbBuilder.addOffset(5, inventoryOffset);
+    }
+    fbBuilder.addUint8(6, color?.value);
+    fbBuilder.addUint8(7, testType?.value);
+    if (testOffset != null) {
+      fbBuilder.addOffset(8, testOffset);
+    }
+    if (test4Offset != null) {
+      fbBuilder.addOffset(9, test4Offset);
+    }
+    if (testarrayofstringOffset != null) {
+      fbBuilder.addOffset(10, testarrayofstringOffset);
+    }
+    if (testarrayoftablesOffset != null) {
+      fbBuilder.addOffset(11, testarrayoftablesOffset);
+    }
+    if (enemyOffset != null) {
+      fbBuilder.addOffset(12, enemyOffset);
+    }
+    if (testnestedflatbufferOffset != null) {
+      fbBuilder.addOffset(13, testnestedflatbufferOffset);
+    }
+    if (testemptyOffset != null) {
+      fbBuilder.addOffset(14, testemptyOffset);
+    }
+    fbBuilder.addBool(15, testbool);
+    fbBuilder.addInt32(16, testhashs32Fnv1);
+    fbBuilder.addUint32(17, testhashu32Fnv1);
+    fbBuilder.addInt64(18, testhashs64Fnv1);
+    fbBuilder.addUint64(19, testhashu64Fnv1);
+    fbBuilder.addInt32(20, testhashs32Fnv1a);
+    fbBuilder.addUint32(21, testhashu32Fnv1a);
+    fbBuilder.addInt64(22, testhashs64Fnv1a);
+    fbBuilder.addUint64(23, testhashu64Fnv1a);
+    if (testarrayofboolsOffset != null) {
+      fbBuilder.addOffset(24, testarrayofboolsOffset);
+    }
+    fbBuilder.addFloat32(25, testf);
+    fbBuilder.addFloat32(26, testf2);
+    fbBuilder.addFloat32(27, testf3);
+    if (testarrayofstring2Offset != null) {
+      fbBuilder.addOffset(28, testarrayofstring2Offset);
+    }
+    if (testarrayofsortedstructOffset != null) {
+      fbBuilder.addOffset(29, testarrayofsortedstructOffset);
+    }
+    if (flexOffset != null) {
+      fbBuilder.addOffset(30, flexOffset);
+    }
+    if (test5Offset != null) {
+      fbBuilder.addOffset(31, test5Offset);
+    }
+    if (vectorOfLongsOffset != null) {
+      fbBuilder.addOffset(32, vectorOfLongsOffset);
+    }
+    if (vectorOfDoublesOffset != null) {
+      fbBuilder.addOffset(33, vectorOfDoublesOffset);
+    }
+    if (parentNamespaceTestOffset != null) {
+      fbBuilder.addOffset(34, parentNamespaceTestOffset);
+    }
+    if (vectorOfReferrablesOffset != null) {
+      fbBuilder.addOffset(35, vectorOfReferrablesOffset);
+    }
+    fbBuilder.addUint64(36, singleWeakReference);
+    if (vectorOfWeakReferencesOffset != null) {
+      fbBuilder.addOffset(37, vectorOfWeakReferencesOffset);
+    }
+    if (vectorOfStrongReferrablesOffset != null) {
+      fbBuilder.addOffset(38, vectorOfStrongReferrablesOffset);
+    }
+    fbBuilder.addUint64(39, coOwningReference);
+    if (vectorOfCoOwningReferencesOffset != null) {
+      fbBuilder.addOffset(40, vectorOfCoOwningReferencesOffset);
+    }
+    fbBuilder.addUint64(41, nonOwningReference);
+    if (vectorOfNonOwningReferencesOffset != null) {
+      fbBuilder.addOffset(42, vectorOfNonOwningReferencesOffset);
+    }
+    fbBuilder.addUint8(43, anyUniqueType?.value);
+    if (anyUniqueOffset != null) {
+      fbBuilder.addOffset(44, anyUniqueOffset);
+    }
+    fbBuilder.addUint8(45, anyAmbiguousType?.value);
+    if (anyAmbiguousOffset != null) {
+      fbBuilder.addOffset(46, anyAmbiguousOffset);
+    }
+    if (vectorOfEnumsOffset != null) {
+      fbBuilder.addOffset(47, vectorOfEnumsOffset);
+    }
+    fbBuilder.addInt8(48, signedEnum?.value);
+    if (testrequirednestedflatbufferOffset != null) {
+      fbBuilder.addOffset(49, testrequirednestedflatbufferOffset);
+    }
+    if (scalarKeySortedTablesOffset != null) {
+      fbBuilder.addOffset(50, scalarKeySortedTablesOffset);
+    }
+    return fbBuilder.endTable();
   }
 }
 
@@ -1888,20 +2030,32 @@ class TypeAliases {
 
   static int pack(fb.Builder fbBuilder, TypeAliasesT object) {
     if (object == null) return 0;
-    final builder = TypeAliasesObjectBuilder(
-        i8: object.i8,
-        u8: object.u8,
-        i16: object.i16,
-        u16: object.u16,
-        i32: object.i32,
-        u32: object.u32,
-        i64: object.i64,
-        u64: object.u64,
-        f32: object.f32,
-        f64: object.f64,
-        v8: object.v8,
-        vf64: object.vf64);
-    return builder.finish(fbBuilder);
+    assert(fbBuilder != null);
+    final int v8Offset = v8?.isNotEmpty == true
+        ? fbBuilder.writeListInt8(v8)
+        : null;
+    final int vf64Offset = vf64?.isNotEmpty == true
+        ? fbBuilder.writeListFloat64(vf64)
+        : null;
+
+    fbBuilder.startTable();
+    fbBuilder.addInt8(0, i8);
+    fbBuilder.addUint8(1, u8);
+    fbBuilder.addInt16(2, i16);
+    fbBuilder.addUint16(3, u16);
+    fbBuilder.addInt32(4, i32);
+    fbBuilder.addUint32(5, u32);
+    fbBuilder.addInt64(6, i64);
+    fbBuilder.addUint64(7, u64);
+    fbBuilder.addFloat32(8, f32);
+    fbBuilder.addFloat64(9, f64);
+    if (v8Offset != null) {
+      fbBuilder.addOffset(10, v8Offset);
+    }
+    if (vf64Offset != null) {
+      fbBuilder.addOffset(11, vf64Offset);
+    }
+    return fbBuilder.endTable();
   }
 }
 

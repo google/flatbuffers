@@ -31,8 +31,10 @@ class InParentNamespace {
 
   static int pack(fb.Builder fbBuilder, InParentNamespaceT object) {
     if (object == null) return 0;
-    final builder = InParentNamespaceObjectBuilder();
-    return builder.finish(fbBuilder);
+    assert(fbBuilder != null);
+
+    fbBuilder.startTable();
+    return fbBuilder.endTable();
   }
 }
 

@@ -31,8 +31,10 @@ class Monster {
 
   static int pack(fb.Builder fbBuilder, MonsterT object) {
     if (object == null) return 0;
-    final builder = MonsterObjectBuilder();
-    return builder.finish(fbBuilder);
+    assert(fbBuilder != null);
+
+    fbBuilder.startTable();
+    return fbBuilder.endTable();
   }
 }
 
