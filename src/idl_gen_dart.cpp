@@ -889,11 +889,25 @@ class DartGenerator : public BaseGenerator {
     code += "  @override\n";
     code += "  int finish(\n";
     code += "    " + _kFb + ".Builder fbBuilder) {\n";
-    code += "    assert(fbBuilder != null);\n";
+    code += GenObjectBuilderImplementation(struct_def, non_deprecated_fields);
+    code += "  }\n\n";
 
-    for (auto it = non_deprecated_fields.begin();
-         it != non_deprecated_fields.end(); ++it) {
-      auto pair = *it;
+    code += "  /// Convenience method to serialize to byte list.\n";
+    code += "  @override\n";
+    code += "  Uint8List toBytes([String fileIdentifier]) {\n";
+    code += "    " + _kFb + ".Builder fbBuilder = new ";
+    code += _kFb + ".Builder();\n";
+    code += "    int offset = finish(fbBuilder);\n";
+    code += "    return fbBuilder.finish(offset, fileIdentifier);\n";
+    code += "  }\n";
+    code += "}\n";
+  }
+
+  std::string GenObjectBuilderImplementation(
+      const StructDef &struct_def,
+      const std::vector<std::pair<int, FieldDef *>> &non_deprecated_fields) {
+    std::string code = "    assert(fbBuilder != null);\n";
+    for (const auto &pair : non_deprecated_fields) {
       auto &field = *pair.second;
 
       if (IsScalar(field.value.type.base_type) || IsStruct(field.value.type))
@@ -932,30 +946,19 @@ class DartGenerator : public BaseGenerator {
                 "?.getOrCreateOffset(fbBuilder);\n";
       }
     }
-
     code += "\n";
     if (struct_def.fixed) {
-      StructObjectBuilderBody(non_deprecated_fields, code_ptr);
+      code += StructObjectBuilderBody(non_deprecated_fields);
     } else {
-      TableObjectBuilderBody(non_deprecated_fields, code_ptr);
+      code += TableObjectBuilderBody(non_deprecated_fields);
     }
-    code += "  }\n\n";
-
-    code += "  /// Convenience method to serialize to byte list.\n";
-    code += "  @override\n";
-    code += "  Uint8List toBytes([String fileIdentifier]) {\n";
-    code += "    " + _kFb + ".Builder fbBuilder = new ";
-    code += _kFb + ".Builder();\n";
-    code += "    int offset = finish(fbBuilder);\n";
-    code += "    return fbBuilder.finish(offset, fileIdentifier);\n";
-    code += "  }\n";
-    code += "}\n";
+    return code;
   }
 
-  void StructObjectBuilderBody(
-      std::vector<std::pair<int, FieldDef *>> non_deprecated_fields,
-      std::string *code_ptr, bool prependUnderscore = true) {
-    auto &code = *code_ptr;
+  std::string StructObjectBuilderBody(
+      const std::vector<std::pair<int, FieldDef *>> &non_deprecated_fields,
+      bool prependUnderscore = true) {
+    std::string code;
 
     for (auto it = non_deprecated_fields.rbegin();
          it != non_deprecated_fields.rend(); ++it) {
@@ -980,17 +983,16 @@ class DartGenerator : public BaseGenerator {
     }
 
     code += "    return fbBuilder.offset;\n";
+    return code;
   }
 
-  void TableObjectBuilderBody(
-      std::vector<std::pair<int, FieldDef *>> non_deprecated_fields,
-      std::string *code_ptr, bool prependUnderscore = true) {
-    std::string &code = *code_ptr;
+  std::string TableObjectBuilderBody(
+      const std::vector<std::pair<int, FieldDef *>> &non_deprecated_fields,
+      bool prependUnderscore = true) {
+    std::string code;
     code += "    fbBuilder.startTable();\n";
 
-    for (auto it = non_deprecated_fields.begin();
-         it != non_deprecated_fields.end(); ++it) {
-      auto pair = *it;
+    for (const auto &pair : non_deprecated_fields) {
       auto &field = *pair.second;
       auto offset = pair.first;
 
@@ -1017,6 +1019,7 @@ class DartGenerator : public BaseGenerator {
       }
     }
     code += "    return fbBuilder.endTable();\n";
+    return code;
   }
 };
 }  // namespace dart
