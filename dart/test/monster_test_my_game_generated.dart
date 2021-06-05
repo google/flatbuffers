@@ -31,14 +31,18 @@ class InParentNamespace {
 
   static int pack(fb.Builder fbBuilder, InParentNamespaceT object) {
     if (object == null) return 0;
+    return object.pack(fbBuilder);
+  }
+}
+
+class InParentNamespaceT {
+
+  int pack(fb.Builder fbBuilder) {
     assert(fbBuilder != null);
 
     fbBuilder.startTable();
     return fbBuilder.endTable();
   }
-}
-
-class InParentNamespaceT {
 }
 
 class _InParentNamespaceReader extends fb.TableReader<InParentNamespace> {

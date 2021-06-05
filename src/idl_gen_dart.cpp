@@ -460,7 +460,11 @@ class DartGenerator : public BaseGenerator {
       code +=
           "\n" + GenStructObjectAPIUnPack(struct_def, non_deprecated_fields);
 
-      code += "\n" + GenStructObjectAPIPack(struct_def, non_deprecated_fields);
+      code += "\n  static int pack(fb.Builder fbBuilder, " + struct_def.name +
+              "T object) {\n";
+      code += "    if (object == null) return 0;\n";
+      code += "    return object.pack(fbBuilder);\n";
+      code += "  }\n";
     }
 
     code += "}\n\n";
@@ -514,6 +518,8 @@ class DartGenerator : public BaseGenerator {
       code += "\n  " + class_name + "({\n" + constructor_args + "});\n";
     }
 
+    code += "\n" + GenStructObjectAPIPack(struct_def, non_deprecated_fields);
+
     code += "}\n\n";
     return code;
   }
@@ -540,9 +546,7 @@ class DartGenerator : public BaseGenerator {
   std::string GenStructObjectAPIPack(
       const StructDef &struct_def,
       const std::vector<std::pair<int, FieldDef *>> &non_deprecated_fields) {
-    std::string code = "  static int pack(fb.Builder fbBuilder, " +
-                       struct_def.name + "T object) {\n";
-    code += "    if (object == null) return 0;\n";
+    std::string code = "  int pack(fb.Builder fbBuilder) {\n";
     code += GenObjectBuilderImplementation(struct_def, non_deprecated_fields,
                                            false);
     code += "  }\n";

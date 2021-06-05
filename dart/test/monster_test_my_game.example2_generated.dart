@@ -31,14 +31,18 @@ class Monster {
 
   static int pack(fb.Builder fbBuilder, MonsterT object) {
     if (object == null) return 0;
+    return object.pack(fbBuilder);
+  }
+}
+
+class MonsterT {
+
+  int pack(fb.Builder fbBuilder) {
     assert(fbBuilder != null);
 
     fbBuilder.startTable();
     return fbBuilder.endTable();
   }
-}
-
-class MonsterT {
 }
 
 class _MonsterReader extends fb.TableReader<Monster> {
