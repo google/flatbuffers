@@ -444,7 +444,7 @@ class Vec3 {
       z: z,
       test1: test1,
       test2: test2,
-      test3: test3);
+      test3: test3.unPack());
 
   static int pack(fb.Builder fbBuilder, Vec3T object) {
     if (object == null) return 0;
@@ -458,7 +458,7 @@ class Vec3T {
   double z;
   double test1;
   Color test2;
-  Test test3;
+  TestT test3;
 
   Vec3T({
       this.x,
@@ -683,9 +683,9 @@ class StructOfStructs {
   }
 
   StructOfStructsT unPack() => StructOfStructsT(
-      a: a,
-      b: b,
-      c: c);
+      a: a.unPack(),
+      b: b.unPack(),
+      c: c.unPack());
 
   static int pack(fb.Builder fbBuilder, StructOfStructsT object) {
     if (object == null) return 0;
@@ -694,9 +694,9 @@ class StructOfStructs {
 }
 
 class StructOfStructsT {
-  Ability a;
-  Test b;
-  Ability c;
+  AbilityT a;
+  TestT b;
+  AbilityT c;
 
   StructOfStructsT({
       this.a,
@@ -1097,7 +1097,7 @@ class Monster {
   }
 
   MonsterT unPack() => MonsterT(
-      pos: pos,
+      pos: pos.unPack(),
       mana: mana,
       hp: hp,
       name: name,
@@ -1105,12 +1105,12 @@ class Monster {
       color: color,
       testType: testType,
       test: test,
-      test4: test4,
+      test4: test4.map((e) => e.unPack()).toList(),
       testarrayofstring: testarrayofstring,
-      testarrayoftables: testarrayoftables,
-      enemy: enemy,
+      testarrayoftables: testarrayoftables.map((e) => e.unPack()).toList(),
+      enemy: enemy.unPack(),
       testnestedflatbuffer: testnestedflatbuffer,
-      testempty: testempty,
+      testempty: testempty.unPack(),
       testbool: testbool,
       testhashs32Fnv1: testhashs32Fnv1,
       testhashu32Fnv1: testhashu32Fnv1,
@@ -1125,16 +1125,16 @@ class Monster {
       testf2: testf2,
       testf3: testf3,
       testarrayofstring2: testarrayofstring2,
-      testarrayofsortedstruct: testarrayofsortedstruct,
+      testarrayofsortedstruct: testarrayofsortedstruct.map((e) => e.unPack()).toList(),
       flex: flex,
-      test5: test5,
+      test5: test5.map((e) => e.unPack()).toList(),
       vectorOfLongs: vectorOfLongs,
       vectorOfDoubles: vectorOfDoubles,
-      parentNamespaceTest: parentNamespaceTest,
-      vectorOfReferrables: vectorOfReferrables,
+      parentNamespaceTest: parentNamespaceTest.unPack(),
+      vectorOfReferrables: vectorOfReferrables.map((e) => e.unPack()).toList(),
       singleWeakReference: singleWeakReference,
       vectorOfWeakReferences: vectorOfWeakReferences,
-      vectorOfStrongReferrables: vectorOfStrongReferrables,
+      vectorOfStrongReferrables: vectorOfStrongReferrables.map((e) => e.unPack()).toList(),
       coOwningReference: coOwningReference,
       vectorOfCoOwningReferences: vectorOfCoOwningReferences,
       nonOwningReference: nonOwningReference,
@@ -1146,7 +1146,7 @@ class Monster {
       vectorOfEnums: vectorOfEnums,
       signedEnum: signedEnum,
       testrequirednestedflatbuffer: testrequirednestedflatbuffer,
-      scalarKeySortedTables: scalarKeySortedTables);
+      scalarKeySortedTables: scalarKeySortedTables.map((e) => e.unPack()).toList());
 
   static int pack(fb.Builder fbBuilder, MonsterT object) {
     if (object == null) return 0;
@@ -1156,7 +1156,7 @@ class Monster {
 
 ///  an example documentation comment: "monster object"
 class MonsterT {
-  Vec3 pos;
+  Vec3T pos;
   int mana;
   int hp;
   String name;
@@ -1165,14 +1165,14 @@ class MonsterT {
   AnyTypeId testType;
   // TODO support union field test
   dynamic test;
-  List<Test> test4;
+  List<TestT> test4;
   List<String> testarrayofstring;
   ///  an example documentation comment: this will end up in the generated code
   ///  multiline too
-  List<Monster> testarrayoftables;
-  Monster enemy;
+  List<MonsterT> testarrayoftables;
+  MonsterT enemy;
   List<int> testnestedflatbuffer;
-  Stat testempty;
+  StatT testempty;
   bool testbool;
   int testhashs32Fnv1;
   int testhashu32Fnv1;
@@ -1187,16 +1187,16 @@ class MonsterT {
   double testf2;
   double testf3;
   List<String> testarrayofstring2;
-  List<Ability> testarrayofsortedstruct;
+  List<AbilityT> testarrayofsortedstruct;
   List<int> flex;
-  List<Test> test5;
+  List<TestT> test5;
   List<int> vectorOfLongs;
   List<double> vectorOfDoubles;
-  my_game.InParentNamespace parentNamespaceTest;
-  List<Referrable> vectorOfReferrables;
+  my_game.InParentNamespaceT parentNamespaceTest;
+  List<ReferrableT> vectorOfReferrables;
   int singleWeakReference;
   List<int> vectorOfWeakReferences;
-  List<Referrable> vectorOfStrongReferrables;
+  List<ReferrableT> vectorOfStrongReferrables;
   int coOwningReference;
   List<int> vectorOfCoOwningReferences;
   int nonOwningReference;
@@ -1210,7 +1210,7 @@ class MonsterT {
   List<Color> vectorOfEnums;
   Race signedEnum;
   List<int> testrequirednestedflatbuffer;
-  List<Stat> scalarKeySortedTables;
+  List<StatT> scalarKeySortedTables;
 
   MonsterT({
       this.pos,

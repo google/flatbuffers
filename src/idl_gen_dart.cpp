@@ -350,7 +350,8 @@ class DartGenerator : public BaseGenerator {
   }
 
   std::string GenDartTypeName(const Type &type, Namespace *current_namespace,
-                              const FieldDef &def, bool addBuilder = false) {
+                              const FieldDef &def,
+                              std::string struct_type_suffix = "") {
     if (type.enum_def) {
       if (type.enum_def->is_union && type.base_type != BASE_TYPE_UNION) {
         return type.enum_def->name + "TypeId";
@@ -375,13 +376,12 @@ class DartGenerator : public BaseGenerator {
       case BASE_TYPE_DOUBLE: return "double";
       case BASE_TYPE_STRING: return "String";
       case BASE_TYPE_STRUCT:
-        return MaybeWrapNamespace(
-            type.struct_def->name + (addBuilder ? "ObjectBuilder" : ""),
-            current_namespace, def);
+        return MaybeWrapNamespace(type.struct_def->name + struct_type_suffix,
+                                  current_namespace, def);
       case BASE_TYPE_VECTOR:
         return "List<" +
                GenDartTypeName(type.VectorType(), current_namespace, def,
-                               addBuilder) +
+                               struct_type_suffix) +
                ">";
       default: assert(0); return "dynamic";
     }
@@ -500,7 +500,7 @@ class DartGenerator : public BaseGenerator {
 
       std::string field_name = MakeCamel(field.name, false);
       std::string type_name = GenDartTypeName(
-          field.value.type, struct_def.defined_namespace, field, false);
+          field.value.type, struct_def.defined_namespace, field, "T");
 
       GenDocComment(field.doc_comment, &code, "", "  ");
 
@@ -530,9 +530,18 @@ class DartGenerator : public BaseGenerator {
       const std::vector<std::pair<int, FieldDef *>> &non_deprecated_fields) {
     std::string constructor_args;
     for (const auto &pair : non_deprecated_fields) {
-      std::string field_name = MakeCamel(pair.second->name, false);
+      const auto &field = *pair.second;
+      std::string field_name = MakeCamel(field.name, false);
       if (!constructor_args.empty()) constructor_args += ",\n";
       constructor_args += "      " + field_name + ": " + field_name;
+
+      const Type &type = field.value.type;
+      if (type.base_type == BASE_TYPE_STRUCT) {
+        constructor_args += ".unPack()";
+      } else if (type.base_type == BASE_TYPE_VECTOR &&
+                 type.VectorType().base_type == BASE_TYPE_STRUCT) {
+        constructor_args += ".map((e) => e.unPack()).toList()";
+      }
     }
 
     std::string class_name = struct_def.name + "T";
@@ -596,7 +605,7 @@ class DartGenerator : public BaseGenerator {
 
       std::string field_name = MakeCamel(field.name, false);
       std::string type_name = GenDartTypeName(
-          field.value.type, struct_def.defined_namespace, field, false);
+          field.value.type, struct_def.defined_namespace, field);
 
       GenDocComment(field.doc_comment, &code, "", "  ");
 
@@ -840,7 +849,7 @@ class DartGenerator : public BaseGenerator {
 
       code += "  final " +
               GenDartTypeName(field.value.type, struct_def.defined_namespace,
-                              field, true) +
+                              field, "ObjectBuilder") +
               " _" + MakeCamel(field.name, false) + ";\n";
     }
     code += "\n";
@@ -855,7 +864,7 @@ class DartGenerator : public BaseGenerator {
 
         code += "    " +
                 GenDartTypeName(field.value.type, struct_def.defined_namespace,
-                                field, true) +
+                                field, "ObjectBuilder") +
                 " " + MakeCamel(field.name, false) + ",\n";
       }
       code += "  })\n";
