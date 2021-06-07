@@ -223,7 +223,7 @@ std::string AbsolutePath(const std::string &filepath) {
 std::string RelativeToRootPath(const std::string &project,
                                const std::string &filepath) {
   std::string absolute_project = PosixPath(AbsolutePath(project));
-  if (!absolute_project.endswith("/")) absolute_project += "/";
+  if (absolute_project.back() != '/') absolute_project += "/";
   std::string absolute_filepath = PosixPath(AbsolutePath(filepath));
   if (absolute_filepath.size() < absolute_project.size() ||
       absolute_filepath.substr(0, absolute_project.size()) !=
