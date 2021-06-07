@@ -468,6 +468,7 @@ std::string ConCatPathFileName(const std::string &path,
 
 // Replaces any '\\' separators with '/'
 std::string PosixPath(const char *path);
+std::string PosixPath(const std::string &path);
 
 // This function ensure a directory exists, by recursively
 // creating dirs for any parts of the path that don't exist yet.

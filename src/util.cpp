@@ -178,6 +178,9 @@ std::string PosixPath(const char *path) {
   std::replace(p.begin(), p.end(), '\\', '/');
   return p;
 }
+std::string PosixPath(const std::string &path) {
+  return PosixPath(path.c_str());
+}
 
 void EnsureDirExists(const std::string &filepath) {
   auto parent = StripFileName(filepath);
@@ -219,13 +222,20 @@ std::string AbsolutePath(const std::string &filepath) {
 
 std::string RelativeToRootPath(const std::string &project,
                                const std::string &filepath) {
-  const std::string absolute_project = AbsolutePath(project) + "/";
-  const std::string absolute_filepath = AbsolutePath(filepath);
-  FLATBUFFERS_ASSERT(
-    absolute_filepath.size() >= absolute_project.size() &&
-    absolute_filepath.substr(0, absolute_project.size()) == absolute_project &&
-    "The --project_root directory must contain all files and included files."
-  );
+  const std::string absolute_project = PosixPath(AbsolutePath(project)) + "/";
+  std::string absolute_filepath = PosixPath(AbsolutePath(filepath));
+  if (absolute_filepath.size() < absolute_project.size() ||
+      absolute_filepath.substr(0, absolute_project.size()) !=
+          absolute_project) {
+    printf(
+        "The --project_root directory must contain all files and included "
+        "files.\n");
+    printf("project:          %s\n", project.c_str());
+    printf("filepath:         %s\n", filepath.c_str());
+    printf("absolute_project: %s\n", absolute_project.c_str());
+    printf("absolute_filepath:%s\n", absolute_filepath.c_str());
+    FLATBUFFERS_ASSERT(0);
+  }
   const std::string relpath = absolute_filepath.substr(absolute_project.size());
   return "//" + relpath;
 }

@@ -72,10 +72,10 @@ $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_TS_FLAGS -o namespace_te
 
 working_dir=`pwd`
 cd FlatBuffers.Test.Swift/Tests/FlatBuffers.Test.SwiftTests
-# $working_dir/../flatc --project-root $working_dir --swift --grpc $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS -I ${working_dir}/include_test ${working_dir}/monster_test.fbs
-$working_dir/../flatc --project-root $working_dir --swift $TEST_BASE_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS ${working_dir}/union_vector/union_vector.fbs
-$working_dir/../flatc --project-root $working_dir --swift ${working_dir}/optional_scalars.fbs
-$working_dir/../flatc --project-root $working_dir --swift --gen-object-api ${working_dir}/more_defaults.fbs
+# $working_dir/../flatc --bfbs-filenames $working_dir --swift --grpc $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS -I ${working_dir}/include_test ${working_dir}/monster_test.fbs
+$working_dir/../flatc --bfbs-filenames $working_dir --swift $TEST_BASE_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS ${working_dir}/union_vector/union_vector.fbs
+$working_dir/../flatc --bfbs-filenames $working_dir --swift ${working_dir}/optional_scalars.fbs
+$working_dir/../flatc --bfbs-filenames $working_dir --swift --gen-object-api ${working_dir}/more_defaults.fbs
 cd $working_dir
 
 # Tests if the --filename-suffix and --filename-ext works and produces the same
