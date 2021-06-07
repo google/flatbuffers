@@ -1,6 +1,6 @@
 name: flatbuffers
 base: core18
-version: git
+adopt-info: flatc
 summary: FlatBuffers compiler
 description: |
   FlatBuffers compiler
@@ -26,10 +26,18 @@ parts:
       - -DCMAKE_BUILD_TYPE=Release
     build-packages:
       - g++
+      - git
+    override-pull: |
+      snapcraftctl pull
+      tag=$(git describe --tags --abbrev=0)
+      count=$(git rev-list $tag.. --count)
+      hash=$(git rev-parse --short HEAD)
+      snapcraftctl set-version $tag+git$count.$hash
+
 
 apps:
   flatc:
-    command: flatc
+    command: bin/flatc
     plugs:
       - home
       - removable-media
