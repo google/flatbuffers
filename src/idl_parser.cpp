@@ -2289,7 +2289,7 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef **dest,
   EXPECT(kTokenIdentifier);
   EnumDef *enum_def;
   ECHECK(StartEnum(enum_name, is_union, &enum_def));
-  if (filename != nullptr && !opts.project_root.empty())  {
+  if (filename != nullptr && !opts.project_root.empty()) {
     enum_def->declaration_file =
         RelativeToRootPath(opts.project_root, filename);
   }
