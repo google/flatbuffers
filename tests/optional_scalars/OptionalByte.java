@@ -2,6 +2,7 @@
 
 package optional_scalars;
 
+@SuppressWarnings("unused")
 public final class OptionalByte {
   private OptionalByte() { }
   public static final byte None = 0;
