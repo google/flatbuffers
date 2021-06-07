@@ -3,13 +3,13 @@ import * as flatbuffers from 'flatbuffers';
 import { HelloReply as models_HelloReply } from './models/hello-reply';
 import { HelloRequest as models_HelloRequest } from './models/hello-request';
 
-var grpc = require('grpc');
+var grpc = require('@grpc/grpc-js');
 
 function serialize_models_HelloReply(buffer_args) {
   if (!(buffer_args instanceof models_HelloReply)) {
     throw new Error('Expected argument of type HelloReply');
   }
-  return buffer_args.serialize();
+  return Buffer.from(buffer_args.serialize());
 }
 
 function deserialize_models_HelloReply(buffer) {
@@ -21,7 +21,7 @@ function serialize_models_HelloRequest(buffer_args) {
   if (!(buffer_args instanceof models_HelloRequest)) {
     throw new Error('Expected argument of type HelloRequest');
   }
-  return buffer_args.serialize();
+  return Buffer.from(buffer_args.serialize());
 }
 
 function deserialize_models_HelloRequest(buffer) {

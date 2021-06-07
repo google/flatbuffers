@@ -1823,10 +1823,11 @@ class FlatBufferBuilder {
       buf_.scratch_push_small(CreateString(*it));
     }
     StartVector(size, sizeof(Offset<String>));
-    for (auto it = buf_.scratch_end();
-         it > buf_.scratch_end() - scratch_buffer_usage;) {
-      it -= sizeof(Offset<String>);
-      PushElement(*reinterpret_cast<Offset<String> *>(it));
+    for (auto i = 1; i <= size; i++) {
+      // Note we re-evaluate the buf location each iteration to account for any
+      // underlying buffer resizing that may occur.
+      PushElement(*reinterpret_cast<Offset<String> *>(
+          buf_.scratch_end() - i * sizeof(Offset<String>)));
     }
     buf_.scratch_pop(scratch_buffer_usage);
     return Offset<Vector<Offset<String>>>(EndVector(size));

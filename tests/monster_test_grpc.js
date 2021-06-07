@@ -3,13 +3,13 @@ import * as flatbuffers from 'flatbuffers';
 import { Stat as MyGame_Example_Stat } from './my-game/example/stat';
 import { Monster as MyGame_Example_Monster } from './my-game/example/monster';
 
-var grpc = require('grpc');
+var grpc = require('@grpc/grpc-js');
 
 function serialize_MyGame_Example_Stat(buffer_args) {
   if (!(buffer_args instanceof MyGame_Example_Stat)) {
     throw new Error('Expected argument of type Stat');
   }
-  return buffer_args.serialize();
+  return Buffer.from(buffer_args.serialize());
 }
 
 function deserialize_MyGame_Example_Stat(buffer) {
@@ -21,7 +21,7 @@ function serialize_MyGame_Example_Monster(buffer_args) {
   if (!(buffer_args instanceof MyGame_Example_Monster)) {
     throw new Error('Expected argument of type Monster');
   }
-  return buffer_args.serialize();
+  return Buffer.from(buffer_args.serialize());
 }
 
 function deserialize_MyGame_Example_Monster(buffer) {

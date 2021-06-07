@@ -526,7 +526,7 @@ Creating a FlatBuffer is not thread safe. All state related to building
 a FlatBuffer is contained in a FlatBufferBuilder instance, and no memory
 outside of it is touched. To make this thread safe, either do not
 share instances of FlatBufferBuilder between threads (recommended), or
-manually wrap it in synchronisation primites. There's no automatic way to
+manually wrap it in synchronisation primitives. There's no automatic way to
 accomplish this, by design, as we feel multithreaded construction
 of a single buffer will be rare, and synchronisation overhead would be costly.
 
