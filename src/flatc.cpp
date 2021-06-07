@@ -144,6 +144,8 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --oneof-union          Translate .proto oneofs to flatbuffer unions.\n"
     "  --grpc                 Generate GRPC interfaces for the specified languages.\n"
     "  --schema               Serialize schemas instead of JSON (use with -b).\n"
+    "  --bfbs-filenames PATH  Adds declaration filenames, relative to PATH and prefixed with
+    "                         `//`, to the binary schema.\n"
     "  --bfbs-comments        Add doc comments to the binary schema files.\n"
     "  --bfbs-builtins        Add builtin attributes to the binary schema files.\n"
     "  --bfbs-gen-embed       Generate code to embed the bfbs schema to the source.\n"

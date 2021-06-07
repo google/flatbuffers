@@ -2532,7 +2532,7 @@ CheckedError Parser::ParseDecl(const char *filename) {
   ECHECK(StartStruct(name, &struct_def));
   struct_def->doc_comment = dc;
   struct_def->fixed = fixed;
-  if (filename != nullptr && !opts.project_root.empty()) {
+  if (filename && !opts.project_root.empty()) {
     struct_def->declaration_file =
         RelativeToRootPath(opts.project_root, filename);
   }
