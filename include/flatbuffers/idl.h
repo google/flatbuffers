@@ -536,6 +536,9 @@ struct ServiceDef : public Definition {
 
 // Container of options that may apply to any of the source/text generators.
 struct IDLOptions {
+  // field case style options for C++
+  enum CaseStyle { CaseStyle_Unchanged = 0, CaseStyle_Upper, CaseStyle_Lower };
+
   bool gen_jvmstatic;
   // Use flexbuffers instead for binary and text generation
   bool use_flexbuffers;
@@ -558,6 +561,7 @@ struct IDLOptions {
   std::string cpp_object_api_pointer_type;
   std::string cpp_object_api_string_type;
   bool cpp_object_api_string_flexible_constructor;
+  CaseStyle cpp_object_api_field_case_style;
   bool cpp_direct_copy;
   bool gen_nullable;
   bool java_checkerframework;
@@ -651,6 +655,7 @@ struct IDLOptions {
         gen_compare(false),
         cpp_object_api_pointer_type("std::unique_ptr"),
         cpp_object_api_string_flexible_constructor(false),
+        cpp_object_api_field_case_style(CaseStyle_Unchanged),
         cpp_direct_copy(true),
         gen_nullable(false),
         java_checkerframework(false),
