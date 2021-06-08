@@ -233,6 +233,30 @@ class CppGenerator : public BaseGenerator {
     return keywords_.find(name) == keywords_.end() ? name : name + "_";
   }
 
+  std::string Name(const FieldDef &field) const {
+    // the union type field suffix is immutable.
+    static size_t union_suffix_len = strlen(UnionTypeFieldSuffix());
+    const bool is_union_type = field.value.type.base_type == BASE_TYPE_UTYPE;
+    // early return if no case transformation required
+    if (opts_.cpp_object_api_field_case_style ==
+        IDLOptions::CaseStyle_Unchanged)
+      return EscapeKeyword(field.name);
+    std::string name = field.name;
+    // do not change the case style of the union type field suffix
+    if (is_union_type) {
+      FLATBUFFERS_ASSERT(name.length() > union_suffix_len);
+      name.erase(name.length() - union_suffix_len, union_suffix_len);
+    }
+    if (opts_.cpp_object_api_field_case_style == IDLOptions::CaseStyle_Upper)
+      name = MakeCamel(name, true); /* upper */
+    else if (opts_.cpp_object_api_field_case_style ==
+             IDLOptions::CaseStyle_Lower)
+      name = MakeCamel(name, false); /* lower */
+    // restore the union field type suffix
+    if (is_union_type) name.append(UnionTypeFieldSuffix(), union_suffix_len);
+    return EscapeKeyword(name);
+  }
+
   std::string Name(const Definition &def) const {
     return EscapeKeyword(def.name);
   }
