@@ -501,6 +501,28 @@ namespace internal {
                                 int, void>::type;
   };
 
+  template<typename T>
+  struct SpanIterator
+  {
+    // TODO: upgrade to std::random_access_iterator_tag.
+    using iterator_category = std::forward_iterator_tag;
+    using difference_type  = std::ptrdiff_t;
+    using value_type = typename std::remove_cv<T>::type;
+    using reference = T&;
+    using pointer   = T*;
+
+    SpanIterator(pointer ptr) : ptr_(ptr) {}
+    reference operator*() const { return *ptr_; }
+    pointer operator->() { return ptr_; }
+    SpanIterator& operator++() { ptr_++; return *this; }  
+    SpanIterator  operator++(int) { auto tmp = *this; ++(*this); return tmp; }
+
+    friend bool operator== (const SpanIterator& lhs, const SpanIterator& rhs) { return lhs.ptr_ == rhs.ptr_; }
+    friend bool operator!= (const SpanIterator& lhs, const SpanIterator& rhs) { return lhs.ptr_ != rhs.ptr_; }
+
+   private:
+    pointer ptr_;
+  };
 }  // namespace internal
 #endif  // !defined(FLATBUFFERS_SPAN_MINIMAL)
 
@@ -539,6 +561,17 @@ class span FLATBUFFERS_FINAL_CLASS {
   FLATBUFFERS_CONSTEXPR_CPP11 pointer data() const FLATBUFFERS_NOEXCEPT {
     return data_;
   }
+
+#if !defined(FLATBUFFERS_SPAN_MINIMAL)
+  using Iterator = internal::SpanIterator<T>;
+  using ConstIterator = internal::SpanIterator<const T>;
+
+  Iterator begin() const { return Iterator(data()); }
+  Iterator end() const   { return Iterator(data() + size()); }
+
+  ConstIterator cbegin() const { return ConstIterator(data()); }
+  ConstIterator cend() const  { return ConstIterator(data() + size()); }
+#endif
 
   // Returns a reference to the idx-th element of the sequence.
   // The behavior is undefined if the idx is greater than or equal to size().

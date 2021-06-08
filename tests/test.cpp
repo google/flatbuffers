@@ -3519,7 +3519,7 @@ void FixedLengthArrayTest() {
 }
 #else
 void FixedLengthArrayTest() {}
-#endif // !defined(_MSC_VER) || _MSC_VER >= 1700
+#endif  // !defined(_MSC_VER) || _MSC_VER >= 1700
 
 #if !defined(FLATBUFFERS_SPAN_MINIMAL) && \
     (!defined(_MSC_VER) || _MSC_VER >= 1700)
@@ -3714,13 +3714,11 @@ void FixedLengthArraySpanTest() {
     TEST_EQ(2, mutable_d_c.size());
     TEST_EQ(MyGame::Example::TestEnum::C, const_d_c[0]);
     TEST_EQ(MyGame::Example::TestEnum::B, const_d_c[1]);
-    // TODO: add begin()/end() to flatbuffers::span
-    TEST_EQ(mutable_d_c.data() + mutable_d_c.size(),
-            std::copy(const_d_c.data(), const_d_c.data() + const_d_c.size(),
-                      mutable_d_c.data()));
-    TEST_ASSERT(std::equal(const_d_c.data(),
-                           const_d_c.data() + const_d_c.size(),
-                           mutable_d_c.data()));
+    TEST_ASSERT(mutable_d_c.end() == std::copy(const_d_c.cbegin(),
+                                               const_d_c.cend(),
+                                               mutable_d_c.begin()));
+    TEST_ASSERT(
+        std::equal(const_d_c.cbegin(), const_d_c.cend(), mutable_d_c.cbegin()));
   }
   // test little endian array of int32
 #  if FLATBUFFERS_LITTLEENDIAN
@@ -3732,12 +3730,11 @@ void FixedLengthArraySpanTest() {
     TEST_EQ(2, mutable_d_a.size());
     TEST_EQ(-1, const_d_a[0]);
     TEST_EQ(2, const_d_a[1]);
-    TEST_EQ(mutable_d_a.data() + mutable_d_a.size(),
-            std::copy(const_d_a.data(), const_d_a.data() + const_d_a.size(),
-                      mutable_d_a.data()));
-    TEST_ASSERT(std::equal(const_d_a.data(),
-                           const_d_a.data() + const_d_a.size(),
-                           mutable_d_a.data()));
+    TEST_ASSERT(mutable_d_a.end() == std::copy(const_d_a.cbegin(),
+                                               const_d_a.cend(),
+                                               mutable_d_a.begin()));
+    TEST_ASSERT(
+        std::equal(const_d_a.cbegin(), const_d_a.cend(), mutable_d_a.cbegin()));
   }
 #  endif
 }
