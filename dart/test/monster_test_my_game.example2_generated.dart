@@ -28,7 +28,7 @@ class Monster {
     return 'Monster{}';
   }
 
-  MonsterT unPack() => MonsterT();
+  MonsterT unpack() => MonsterT();
 
   static int pack(fb.Builder fbBuilder, MonsterT object) {
     if (object == null) return 0;
@@ -57,6 +57,11 @@ class MonsterT {
 
     fbBuilder.startTable();
     return fbBuilder.endTable();
+  }
+
+  @override
+  String toString() {
+    return 'MonsterT{}';
   }
 }
 

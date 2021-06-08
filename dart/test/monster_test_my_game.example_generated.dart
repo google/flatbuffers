@@ -234,7 +234,7 @@ class Test {
     return 'Test{a: $a, b: $b}';
   }
 
-  TestT unPack() => TestT(
+  TestT unpack() => TestT(
       a: a,
       b: b);
 
@@ -273,6 +273,11 @@ class TestT {
     fbBuilder.putInt8(b);
     fbBuilder.putInt16(a);
     return fbBuilder.offset;
+  }
+
+  @override
+  String toString() {
+    return 'TestT{a: $a, b: $b}';
   }
 }
 
@@ -353,7 +358,7 @@ class TestSimpleTableWithEnum {
     return 'TestSimpleTableWithEnum{color: $color}';
   }
 
-  TestSimpleTableWithEnumT unPack() => TestSimpleTableWithEnumT(
+  TestSimpleTableWithEnumT unpack() => TestSimpleTableWithEnumT(
       color: color);
 
   static int pack(fb.Builder fbBuilder, TestSimpleTableWithEnumT object) {
@@ -388,6 +393,11 @@ class TestSimpleTableWithEnumT {
     fbBuilder.startTable();
     fbBuilder.addUint8(0, color?.value);
     return fbBuilder.endTable();
+  }
+
+  @override
+  String toString() {
+    return 'TestSimpleTableWithEnumT{color: $color}';
   }
 }
 
@@ -467,13 +477,13 @@ class Vec3 {
     return 'Vec3{x: $x, y: $y, z: $z, test1: $test1, test2: $test2, test3: $test3}';
   }
 
-  Vec3T unPack() => Vec3T(
+  Vec3T unpack() => Vec3T(
       x: x,
       y: y,
       z: z,
       test1: test1,
       test2: test2,
-      test3: test3.unPack());
+      test3: test3?.unpack());
 
   static int pack(fb.Builder fbBuilder, Vec3T object) {
     if (object == null) return 0;
@@ -524,6 +534,11 @@ class Vec3T {
     fbBuilder.putFloat32(y);
     fbBuilder.putFloat32(x);
     return fbBuilder.offset;
+  }
+
+  @override
+  String toString() {
+    return 'Vec3T{x: $x, y: $y, z: $z, test1: $test1, test2: $test2, test3: $test3}';
   }
 }
 
@@ -625,7 +640,7 @@ class Ability {
     return 'Ability{id: $id, distance: $distance}';
   }
 
-  AbilityT unPack() => AbilityT(
+  AbilityT unpack() => AbilityT(
       id: id,
       distance: distance);
 
@@ -663,6 +678,11 @@ class AbilityT {
     fbBuilder.putUint32(distance);
     fbBuilder.putUint32(id);
     return fbBuilder.offset;
+  }
+
+  @override
+  String toString() {
+    return 'AbilityT{id: $id, distance: $distance}';
   }
 }
 
@@ -739,10 +759,10 @@ class StructOfStructs {
     return 'StructOfStructs{a: $a, b: $b, c: $c}';
   }
 
-  StructOfStructsT unPack() => StructOfStructsT(
-      a: a.unPack(),
-      b: b.unPack(),
-      c: c.unPack());
+  StructOfStructsT unpack() => StructOfStructsT(
+      a: a?.unpack(),
+      b: b?.unpack(),
+      c: c?.unpack());
 
   static int pack(fb.Builder fbBuilder, StructOfStructsT object) {
     if (object == null) return 0;
@@ -781,6 +801,11 @@ class StructOfStructsT {
     b.pack(fbBuilder);
     a.pack(fbBuilder);
     return fbBuilder.offset;
+  }
+
+  @override
+  String toString() {
+    return 'StructOfStructsT{a: $a, b: $b, c: $c}';
   }
 }
 
@@ -866,7 +891,7 @@ class Stat {
     return 'Stat{id: $id, val: $val, count: $count}';
   }
 
-  StatT unPack() => StatT(
+  StatT unpack() => StatT(
       id: id,
       val: val,
       count: count);
@@ -912,6 +937,11 @@ class StatT {
     fbBuilder.addInt64(1, val);
     fbBuilder.addUint16(2, count);
     return fbBuilder.endTable();
+  }
+
+  @override
+  String toString() {
+    return 'StatT{id: $id, val: $val, count: $count}';
   }
 }
 
@@ -1009,7 +1039,7 @@ class Referrable {
     return 'Referrable{id: $id}';
   }
 
-  ReferrableT unPack() => ReferrableT(
+  ReferrableT unpack() => ReferrableT(
       id: id);
 
   static int pack(fb.Builder fbBuilder, ReferrableT object) {
@@ -1044,6 +1074,11 @@ class ReferrableT {
     fbBuilder.startTable();
     fbBuilder.addUint64(0, id);
     return fbBuilder.endTable();
+  }
+
+  @override
+  String toString() {
+    return 'ReferrableT{id: $id}';
   }
 }
 
@@ -1195,8 +1230,8 @@ class Monster {
     return 'Monster{pos: $pos, mana: $mana, hp: $hp, name: $name, inventory: $inventory, color: $color, testType: $testType, test: $test, test4: $test4, testarrayofstring: $testarrayofstring, testarrayoftables: $testarrayoftables, enemy: $enemy, testnestedflatbuffer: $testnestedflatbuffer, testempty: $testempty, testbool: $testbool, testhashs32Fnv1: $testhashs32Fnv1, testhashu32Fnv1: $testhashu32Fnv1, testhashs64Fnv1: $testhashs64Fnv1, testhashu64Fnv1: $testhashu64Fnv1, testhashs32Fnv1a: $testhashs32Fnv1a, testhashu32Fnv1a: $testhashu32Fnv1a, testhashs64Fnv1a: $testhashs64Fnv1a, testhashu64Fnv1a: $testhashu64Fnv1a, testarrayofbools: $testarrayofbools, testf: $testf, testf2: $testf2, testf3: $testf3, testarrayofstring2: $testarrayofstring2, testarrayofsortedstruct: $testarrayofsortedstruct, flex: $flex, test5: $test5, vectorOfLongs: $vectorOfLongs, vectorOfDoubles: $vectorOfDoubles, parentNamespaceTest: $parentNamespaceTest, vectorOfReferrables: $vectorOfReferrables, singleWeakReference: $singleWeakReference, vectorOfWeakReferences: $vectorOfWeakReferences, vectorOfStrongReferrables: $vectorOfStrongReferrables, coOwningReference: $coOwningReference, vectorOfCoOwningReferences: $vectorOfCoOwningReferences, nonOwningReference: $nonOwningReference, vectorOfNonOwningReferences: $vectorOfNonOwningReferences, anyUniqueType: $anyUniqueType, anyUnique: $anyUnique, anyAmbiguousType: $anyAmbiguousType, anyAmbiguous: $anyAmbiguous, vectorOfEnums: $vectorOfEnums, signedEnum: $signedEnum, testrequirednestedflatbuffer: $testrequirednestedflatbuffer, scalarKeySortedTables: $scalarKeySortedTables}';
   }
 
-  MonsterT unPack() => MonsterT(
-      pos: pos.unPack(),
+  MonsterT unpack() => MonsterT(
+      pos: pos?.unpack(),
       mana: mana,
       hp: hp,
       name: name,
@@ -1204,12 +1239,12 @@ class Monster {
       color: color,
       testType: testType,
       test: test,
-      test4: test4.map((e) => e.unPack()).toList(),
+      test4: test4?.map((e) => e.unpack())?.toList(),
       testarrayofstring: testarrayofstring,
-      testarrayoftables: testarrayoftables.map((e) => e.unPack()).toList(),
-      enemy: enemy.unPack(),
+      testarrayoftables: testarrayoftables?.map((e) => e.unpack())?.toList(),
+      enemy: enemy?.unpack(),
       testnestedflatbuffer: testnestedflatbuffer,
-      testempty: testempty.unPack(),
+      testempty: testempty?.unpack(),
       testbool: testbool,
       testhashs32Fnv1: testhashs32Fnv1,
       testhashu32Fnv1: testhashu32Fnv1,
@@ -1224,16 +1259,16 @@ class Monster {
       testf2: testf2,
       testf3: testf3,
       testarrayofstring2: testarrayofstring2,
-      testarrayofsortedstruct: testarrayofsortedstruct.map((e) => e.unPack()).toList(),
+      testarrayofsortedstruct: testarrayofsortedstruct?.map((e) => e.unpack())?.toList(),
       flex: flex,
-      test5: test5.map((e) => e.unPack()).toList(),
+      test5: test5?.map((e) => e.unpack())?.toList(),
       vectorOfLongs: vectorOfLongs,
       vectorOfDoubles: vectorOfDoubles,
-      parentNamespaceTest: parentNamespaceTest.unPack(),
-      vectorOfReferrables: vectorOfReferrables.map((e) => e.unPack()).toList(),
+      parentNamespaceTest: parentNamespaceTest?.unpack(),
+      vectorOfReferrables: vectorOfReferrables?.map((e) => e.unpack())?.toList(),
       singleWeakReference: singleWeakReference,
       vectorOfWeakReferences: vectorOfWeakReferences,
-      vectorOfStrongReferrables: vectorOfStrongReferrables.map((e) => e.unPack()).toList(),
+      vectorOfStrongReferrables: vectorOfStrongReferrables?.map((e) => e.unpack())?.toList(),
       coOwningReference: coOwningReference,
       vectorOfCoOwningReferences: vectorOfCoOwningReferences,
       nonOwningReference: nonOwningReference,
@@ -1245,7 +1280,7 @@ class Monster {
       vectorOfEnums: vectorOfEnums,
       signedEnum: signedEnum,
       testrequirednestedflatbuffer: testrequirednestedflatbuffer,
-      scalarKeySortedTables: scalarKeySortedTables.map((e) => e.unPack()).toList());
+      scalarKeySortedTables: scalarKeySortedTables?.map((e) => e.unpack())?.toList());
 
   static int pack(fb.Builder fbBuilder, MonsterT object) {
     if (object == null) return 0;
@@ -1381,7 +1416,7 @@ class MonsterT {
         ? fbBuilder.writeListUint8(inventory)
         : null;
     final int testOffset = test?.packOnce(fbBuilder, existingOffsets);
-    int test4Offset = 0;
+    int test4Offset = null;
     if (test4?.isNotEmpty == true) {
       test4.forEach((e) => e.pack(fbBuilder));
       test4Offset = fbBuilder.endStructVector(test4.length);
@@ -1403,7 +1438,7 @@ class MonsterT {
     final int testarrayofstring2Offset = testarrayofstring2?.isNotEmpty == true
         ? fbBuilder.writeList(testarrayofstring2.map((b) => fbBuilder.writeString(b)).toList())
         : null;
-    int testarrayofsortedstructOffset = 0;
+    int testarrayofsortedstructOffset = null;
     if (testarrayofsortedstruct?.isNotEmpty == true) {
       testarrayofsortedstruct.forEach((e) => e.pack(fbBuilder));
       testarrayofsortedstructOffset = fbBuilder.endStructVector(testarrayofsortedstruct.length);
@@ -1411,7 +1446,7 @@ class MonsterT {
     final int flexOffset = flex?.isNotEmpty == true
         ? fbBuilder.writeListUint8(flex)
         : null;
-    int test5Offset = 0;
+    int test5Offset = null;
     if (test5?.isNotEmpty == true) {
       test5.forEach((e) => e.pack(fbBuilder));
       test5Offset = fbBuilder.endStructVector(test5.length);
@@ -1441,7 +1476,7 @@ class MonsterT {
     final int anyUniqueOffset = anyUnique?.packOnce(fbBuilder, existingOffsets);
     final int anyAmbiguousOffset = anyAmbiguous?.packOnce(fbBuilder, existingOffsets);
     final int vectorOfEnumsOffset = vectorOfEnums?.isNotEmpty == true
-        ? fbBuilder.writeListUint8(vectorOfEnums.map((f) => f.value))
+        ? fbBuilder.writeListUint8(vectorOfEnums.map((f) => f.value).toList())
         : null;
     final int testrequirednestedflatbufferOffset = testrequirednestedflatbuffer?.isNotEmpty == true
         ? fbBuilder.writeListUint8(testrequirednestedflatbuffer)
@@ -1558,6 +1593,11 @@ class MonsterT {
       fbBuilder.addOffset(50, scalarKeySortedTablesOffset);
     }
     return fbBuilder.endTable();
+  }
+
+  @override
+  String toString() {
+    return 'MonsterT{pos: $pos, mana: $mana, hp: $hp, name: $name, inventory: $inventory, color: $color, testType: $testType, test: $test, test4: $test4, testarrayofstring: $testarrayofstring, testarrayoftables: $testarrayoftables, enemy: $enemy, testnestedflatbuffer: $testnestedflatbuffer, testempty: $testempty, testbool: $testbool, testhashs32Fnv1: $testhashs32Fnv1, testhashu32Fnv1: $testhashu32Fnv1, testhashs64Fnv1: $testhashs64Fnv1, testhashu64Fnv1: $testhashu64Fnv1, testhashs32Fnv1a: $testhashs32Fnv1a, testhashu32Fnv1a: $testhashu32Fnv1a, testhashs64Fnv1a: $testhashs64Fnv1a, testhashu64Fnv1a: $testhashu64Fnv1a, testarrayofbools: $testarrayofbools, testf: $testf, testf2: $testf2, testf3: $testf3, testarrayofstring2: $testarrayofstring2, testarrayofsortedstruct: $testarrayofsortedstruct, flex: $flex, test5: $test5, vectorOfLongs: $vectorOfLongs, vectorOfDoubles: $vectorOfDoubles, parentNamespaceTest: $parentNamespaceTest, vectorOfReferrables: $vectorOfReferrables, singleWeakReference: $singleWeakReference, vectorOfWeakReferences: $vectorOfWeakReferences, vectorOfStrongReferrables: $vectorOfStrongReferrables, coOwningReference: $coOwningReference, vectorOfCoOwningReferences: $vectorOfCoOwningReferences, nonOwningReference: $nonOwningReference, vectorOfNonOwningReferences: $vectorOfNonOwningReferences, anyUniqueType: $anyUniqueType, anyUnique: $anyUnique, anyAmbiguousType: $anyAmbiguousType, anyAmbiguous: $anyAmbiguous, vectorOfEnums: $vectorOfEnums, signedEnum: $signedEnum, testrequirednestedflatbuffer: $testrequirednestedflatbuffer, scalarKeySortedTables: $scalarKeySortedTables}';
   }
 }
 
@@ -2005,7 +2045,7 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
     final int anyUniqueOffset = _anyUnique?.getOrCreateOffset(fbBuilder);
     final int anyAmbiguousOffset = _anyAmbiguous?.getOrCreateOffset(fbBuilder);
     final int vectorOfEnumsOffset = _vectorOfEnums?.isNotEmpty == true
-        ? fbBuilder.writeListUint8(_vectorOfEnums.map((f) => f.value))
+        ? fbBuilder.writeListUint8(_vectorOfEnums.map((f) => f.value).toList())
         : null;
     final int testrequirednestedflatbufferOffset = _testrequirednestedflatbuffer?.isNotEmpty == true
         ? fbBuilder.writeListUint8(_testrequirednestedflatbuffer)
@@ -2162,7 +2202,7 @@ class TypeAliases {
     return 'TypeAliases{i8: $i8, u8: $u8, i16: $i16, u16: $u16, i32: $i32, u32: $u32, i64: $i64, u64: $u64, f32: $f32, f64: $f64, v8: $v8, vf64: $vf64}';
   }
 
-  TypeAliasesT unPack() => TypeAliasesT(
+  TypeAliasesT unpack() => TypeAliasesT(
       i8: i8,
       u8: u8,
       i16: i16,
@@ -2251,6 +2291,11 @@ class TypeAliasesT {
       fbBuilder.addOffset(11, vf64Offset);
     }
     return fbBuilder.endTable();
+  }
+
+  @override
+  String toString() {
+    return 'TypeAliasesT{i8: $i8, u8: $u8, i16: $i16, u16: $u16, i32: $i32, u32: $u32, i64: $i64, u64: $u64, f32: $f32, f64: $f64, v8: $v8, vf64: $vf64}';
   }
 }
 

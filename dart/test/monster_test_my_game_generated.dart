@@ -28,7 +28,7 @@ class InParentNamespace {
     return 'InParentNamespace{}';
   }
 
-  InParentNamespaceT unPack() => InParentNamespaceT();
+  InParentNamespaceT unpack() => InParentNamespaceT();
 
   static int pack(fb.Builder fbBuilder, InParentNamespaceT object) {
     if (object == null) return 0;
@@ -57,6 +57,11 @@ class InParentNamespaceT {
 
     fbBuilder.startTable();
     return fbBuilder.endTable();
+  }
+
+  @override
+  String toString() {
+    return 'InParentNamespaceT{}';
   }
 }
 

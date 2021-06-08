@@ -433,6 +433,8 @@ class DartGenerator : public BaseGenerator {
     code += "class " + object_name + " {\n";
 
     code += "  " + object_name + "._(this._bc, this._bcOffset);\n";
+    // TODO why not generate the (reader) factory constructor for "structs"?
+    //      Currently only genreated for "tables" but should work for both...
     if (!struct_def.fixed) {
       code += "  factory " + object_name + "(List<int> bytes) {\n";
       code += "    " + _kFb + ".BufferContext rootRef = new " + _kFb +
@@ -461,7 +463,7 @@ class DartGenerator : public BaseGenerator {
 
     if (parser_.opts.generate_object_based_api) {
       code +=
-          "\n" + GenStructObjectAPIUnPack(struct_def, non_deprecated_fields);
+          "\n" + GenStructObjectAPIUnpack(struct_def, non_deprecated_fields);
 
       code += "\n  static int pack(fb.Builder fbBuilder, " + struct_def.name +
               "T object) {\n";
@@ -509,6 +511,7 @@ class DartGenerator : public BaseGenerator {
       code += "  " + type_name + " " + field_name + ";\n";
 
       if (!constructor_args.empty()) constructor_args += ",\n";
+      // TODO for null safety: add `required` if struct_def.fixed
       constructor_args += "      this." + field_name;
     }
 
@@ -517,13 +520,15 @@ class DartGenerator : public BaseGenerator {
     }
 
     code += GenStructObjectAPIPack(struct_def, non_deprecated_fields);
+    code += "\n";
+    code += GenToString(class_name, non_deprecated_fields);
 
     code += "}\n\n";
     return code;
   }
 
-  // Generate function `StructNameT unPack()`
-  std::string GenStructObjectAPIUnPack(
+  // Generate function `StructNameT unpack()`
+  std::string GenStructObjectAPIUnpack(
       const StructDef &struct_def,
       const std::vector<std::pair<int, FieldDef *>> &non_deprecated_fields) {
     std::string constructor_args;
@@ -535,15 +540,15 @@ class DartGenerator : public BaseGenerator {
 
       const Type &type = field.value.type;
       if (type.base_type == BASE_TYPE_STRUCT) {
-        constructor_args += ".unPack()";
+        constructor_args += "?.unpack()";
       } else if (type.base_type == BASE_TYPE_VECTOR &&
                  type.VectorType().base_type == BASE_TYPE_STRUCT) {
-        constructor_args += ".map((e) => e.unPack()).toList()";
+        constructor_args += "?.map((e) => e.unpack())?.toList()";
       }
     }
 
     std::string class_name = struct_def.name + "T";
-    std::string code = "  " + class_name + " unPack() => " + class_name + "(";
+    std::string code = "  " + class_name + " unpack() => " + class_name + "(";
     if (!constructor_args.empty()) code += "\n" + constructor_args;
     code += ");\n";
     return code;
@@ -696,10 +701,16 @@ class DartGenerator : public BaseGenerator {
     }
 
     code += "\n";
+    code += GenToString(struct_def.name, non_deprecated_fields);
+  }
 
+  std::string GenToString(
+      const std::string &object_name,
+      const std::vector<std::pair<int, FieldDef *>> &non_deprecated_fields) {
+    std::string code;
     code += "  @override\n";
     code += "  String toString() {\n";
-    code += "    return '" + struct_def.name + "{";
+    code += "    return '" + object_name + "{";
     for (auto it = non_deprecated_fields.begin();
          it != non_deprecated_fields.end(); ++it) {
       auto pair = *it;
@@ -710,6 +721,7 @@ class DartGenerator : public BaseGenerator {
     }
     code += "}';\n";
     code += "  }\n";
+    return code;
   }
 
   void GenReader(const StructDef &struct_def, std::string *reader_name_ptr,
@@ -939,7 +951,7 @@ class DartGenerator : public BaseGenerator {
       if (pack && IsVector(field.value.type) &&
           field.value.type.VectorType().base_type == BASE_TYPE_STRUCT &&
           field.value.type.struct_def->fixed) {
-        code += "    int " + offset_name + " = 0;\n";
+        code += "    int " + offset_name + " = null;\n";
         code += "    if (" + field_name + "?.isNotEmpty == true) {\n";
         code += "      " + field_name + ".forEach((e) => e.pack(fbBuilder));\n";
         code += "      " + MakeCamel(field.name, false) +
@@ -970,7 +982,9 @@ class DartGenerator : public BaseGenerator {
             break;
           default:
             code += GenType(field.value.type.VectorType()) + "(" + field_name;
-            if (field.value.type.enum_def) { code += ".map((f) => f.value)"; }
+            if (field.value.type.enum_def) {
+              code += ".map((f) => f.value).toList()";
+            }
             code += ")";
         }
         code += "\n        : null;\n";
