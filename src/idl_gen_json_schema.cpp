@@ -231,7 +231,7 @@ class JsonSchemaGenerator : public BaseGenerator {
         std::string deprecated_info = "";
         if (property->deprecated) {
           deprecated_info =
-              "," + NewLine() + Indent(8) + "\"deprecated\" : true,";
+              "," + NewLine() + Indent(8) + "\"deprecated\" : true";
         }
         std::string typeLine = Indent(4) + "\"" + property->name + "\"";
         typeLine += " : {" + NewLine() + Indent(8);
