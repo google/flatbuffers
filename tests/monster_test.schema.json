@@ -178,7 +178,7 @@
               },
         "friendly" : {
                 "type" : "boolean",
-                "deprecated" : true,
+                "deprecated" : true
               },
         "inventory" : {
                 "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" :255}
