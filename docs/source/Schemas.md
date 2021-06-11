@@ -239,9 +239,9 @@ included files (those you still generate separately).
 
 ### Root type
 
-This declares what you consider to be the root table (or struct) of the
-serialized data. This is particularly important for parsing JSON data,
-which doesn't include object type information.
+This declares what you consider to be the root table of the serialized
+data. This is particularly important for parsing JSON data, which doesn't
+include object type information.
 
 ### File identification and extension
 
