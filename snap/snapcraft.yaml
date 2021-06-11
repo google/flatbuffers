@@ -31,8 +31,14 @@ parts:
       snapcraftctl pull
       tag=$(git describe --tags --abbrev=0)
       count=$(git rev-list $tag.. --count)
-      hash=$(git rev-parse --short HEAD)
-      snapcraftctl set-version $tag+git$count.$hash
+      if [ "$count" = 0 ];
+      then
+        version=$tag
+      else
+        hash=$(git rev-parse --short HEAD)
+        version=$tag+git$count.$hash
+      fi
+      snapcraftctl set-version $version
 
 
 apps:
